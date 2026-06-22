@@ -1,0 +1,10 @@
+// First let me rewrite the key sections
+
+// 1. ThrustAttack.execute - add white attack range visualization
+// 2. checkTriangleHit - remove per-frame exp accumulation, track total hits
+// 3. swing phase - give exp at the end of swing, not per frame
+// 4. Player constructor - add gameStartCooldown to prevent auto-attack on game start
+// 5. resolveCollisions - fix wall sticking bug
+// 6. Game.start - spawn training bow and G18 at preset positions
+
+// These will be done via Edit calls below

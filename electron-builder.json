@@ -1,0 +1,24 @@
+{
+  "appId": "com.yourname.wuxian-lunhui",
+  "productName": "无限轮回",
+  "directories": {
+    "output": "dist-electron"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "build/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "assets",
+      "to": "assets"
+    }
+  ],
+  "asar": false,
+  "win": {
+    "target": "portable",
+    "icon": "build/app-icon.png",
+    "signAndEditExecutable": false
+  }
+}

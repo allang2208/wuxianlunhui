@@ -1,0 +1,183 @@
+{
+  "equipment": {
+    "rusty_sword": {
+      "weaponId": "weapon1",
+      "name": "生锈的长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/1-rusty_sword_macro.png",
+      "category": "weapon_melee",
+      "rarity": "common",
+      "level": 1,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/1-rusty_sword_euip.png",
+      "stats": [
+        { "name": "物理攻击", "value": "12-18" },
+        { "name": "暴击率", "value": "+3%", "pos": true }
+      ],
+      "desc": "一把锈迹斑斑的旧剑",
+      "equipSlot": "weapon",
+      "attack": { "range": 165, "knockback": 8, "attackInterval": 500, "hitType": "突刺（扇形判定）", "damageType": "物理" },
+      "animation": { "type": "thrust（突刺）", "totalMs": "1100ms (200+500+400)", "windupMs": 200, "swingMs": 500, "recoveryMs": 400, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "description": "三段式突刺动画：预备→前刺→回位。 windup 阶段剑身向后上方扬起，swing 阶段快速向前突刺，recover 阶段回到待机姿态。" }
+    },
+    "rune_sword": {
+      "weaponId": "weapon4",
+      "name": "符文长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/EXsword_icon.png",
+      "category": "weapon_melee",
+      "rarity": "uncommon",
+      "level": 5,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/EXsword_equipped_v2_.png",
+      "stats": [
+        { "name": "物理攻击", "value": "45-55" },
+        { "name": "暴击率", "value": "+5%", "pos": true }
+      ],
+      "desc": "剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。",
+      "equipSlot": "weapon",
+      "attack": { "range": 165, "knockback": 8, "attackInterval": 500, "hitType": "突刺（扇形判定）", "damageType": "物理" },
+      "animation": { "type": "thrust（突刺）", "totalMs": "1100ms (200+500+400)", "windupMs": 200, "swingMs": 500, "recoveryMs": 400, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "description": "三段式突刺动画：预备→前刺→回位。符文长剑的刺击带有符文残影，威力远超凡铁。" }
+    },
+    "night_flame_sword": {
+      "weaponId": "weapon5",
+      "name": "夜与火之剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/Nightandflame_macro.png",
+      "category": "weapon_melee",
+      "rarity": "rare",
+      "level": 10,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/Nightandflame_equip.png",
+      "stats": [
+        { "name": "物理攻击", "value": "60-75" },
+        { "name": "暴击率", "value": "+5%", "pos": true }
+      ],
+      "desc": "一把在暗夜中燃烧着淡蓝色火焰的传奇之剑，传说中它同时寄宿着夜之力与火之力。持有者可以释放其中的火焰之力，发射毁灭性的光柱。",
+      "equipSlot": "weapon",
+      "specialAttack": { "cooldown": 10, "damageMul": 0.25, "width": 30, "length": 700, "duration": 3000, "tickInterval": 200 },
+      "attack": { "range": 165, "knockback": 8, "attackInterval": 500, "hitType": "突刺（扇形判定）", "damageType": "物理" },
+      "animation": { "type": "thrust（突刺）", "totalMs": "1100ms (200+500+400)", "windupMs": 200, "swingMs": 500, "recoveryMs": 400, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "description": "三段式突刺动画：预备→前刺→回位。夜与火之剑的刺击带有淡蓝色火焰轨迹，可释放毁灭性光柱。" }
+    },
+    "knights_sword": {
+      "weaponId": "weapon2",
+      "name": "骑士长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/knights_sword_v3_macro.png",
+      "category": "weapon_melee",
+      "rarity": "uncommon",
+      "level": 5,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/knights_sword_v3_equip.png",
+      "stats": [
+        { "name": "物理攻击", "value": "18-23" }
+      ],
+      "desc": "骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。",
+      "equipSlot": "weapon2",
+      "attack": { "range": 165, "knockback": 8, "attackInterval": 500, "hitType": "突刺（扇形判定）", "damageType": "物理" },
+      "animation": { "type": "thrust（突刺）", "totalMs": "1100ms (200+500+400)", "windupMs": 200, "swingMs": 500, "recoveryMs": 400, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "description": "三段式突刺动画：预备→前刺→回位。骑士长剑的刺击更加有力，攻击间隔较短。" },
+      "skillOverrides": {
+        "dashAttackThrust": {
+          "animation": {
+            "totalMs": 600,
+            "dashDist": 173,
+            "chargeMs": 0,
+            "thrustMs": 600,
+            "recoverMs": 0
+          },
+          "hitCheck": {
+            "shape": "rectangle",
+            "width": 75,
+            "length": 350,
+            "hitArc": 0
+          }
+        }
+      }
+    },
+    "training_bow": {
+      "weaponId": "weapon3",
+      "name": "训练用弓",
+      "type": "副武器",
+      "icon": "🏹",
+      "iconImage": "assets/icons/bow_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "common",
+      "level": 1,
+      "weaponCategory": "mainhand",
+      "weaponType": "bow",
+      "weaponAsset": { "framePrefix": "assets/weapons/bow_frame_", "frameCount": 8, "framePad": 2 },
+      "stats": [
+        { "name": "物理攻击", "value": "8-14" },
+        { "name": "射程", "value": "600" }
+      ],
+      "desc": "一把简陋的弓，勉强能射出箭，适合初学者练习",
+      "equipSlot": "weapon2",
+      "attack": { "range": 800, "knockback": 0, "attackInterval": 600, "hitType": "箭矢（直线弹道）", "damageType": "物理" },
+      "animation": { "type": "frameSequence（帧序列）", "totalMs": "800ms (200+250+350)", "windupMs": 200, "swingMs": 250, "recoveryMs": 350, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "frameCount": 8, "framePrefix": "bow_frame_", "description": "8帧序列动画：搭箭→拉弓→满弦→发射。基础训练弓的完整拉弓动作。" }
+    },
+    "steel_bow": {
+      "name": "精钢长弓",
+      "type": "副武器",
+      "icon": "🏹",
+      "iconImage": "assets/icons/bow_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "uncommon",
+      "level": 5,
+      "dropImage": "assets/items/steel_bow_dropped.png",
+      "weaponCategory": "mainhand",
+      "weaponType": "bow",
+      "weaponAsset": { "framePrefix": "assets/weapons/steel_bow_frame_", "frameCount": 8, "framePad": 2 },
+      "stats": [
+        { "name": "物理攻击", "value": "15-25" },
+        { "name": "射程", "value": "800" }
+      ],
+      "desc": "由精钢打造的长弓，射程远，威力大",
+      "equipSlot": "weapon2",
+      "attack": { "range": 800, "knockback": 0, "attackInterval": 600, "hitType": "箭矢（直线弹道）", "damageType": "物理" },
+      "animation": { "type": "frameSequence（帧序列）", "totalMs": "800ms (200+250+350)", "windupMs": 200, "swingMs": 250, "recoveryMs": 350, "idleAngle": "0°", "windupAngle": "+30°", "swingAngle": "-30°", "holdOffset": "(-20, 11)", "weaponSize": 84, "timingMul": "1.0x (标准)", "frameCount": 8, "framePrefix": "steel_bow_frame_", "description": "8帧序列动画：搭箭→拉弓→满弦→发射。精钢长弓的拉弦动作比普通弓更有力。" }
+    },
+    "g18_pistol": {
+      "name": "G18 手枪",
+      "type": "副武器",
+      "icon": "🔫",
+      "iconImage": "assets/icons/pistol_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "common",
+      "level": 1,
+      "dropImage": "assets/weapons/g18_topdown_v2.png",
+      "weaponCategory": "mainhand",
+      "weaponType": "pistol",
+      "weaponAsset": { "image": "assets/weapons/g18_topdown_v2.png", "muzzleImage": "assets/effects/muzzle_flash_01.png" },
+      "stats": [
+        { "name": "物理攻击", "value": "6-12" },
+        { "name": "射程", "value": "500" }
+      ],
+      "desc": "G18 全自动手枪，1100发/分钟，黄色曳光弹",
+      "equipSlot": "weapon2",
+      "attack": { "range": 600, "knockback": 8, "attackInterval": 55, "hitType": "黄色曳光弹（直线弹道）", "damageType": "物理" },
+      "animation": { "type": "recoil（后坐力抖动）", "totalMs": "48ms (约)", "windupMs": "≈12", "swingMs": "≈18", "recoveryMs": "≈18", "holdOffset": "(0, 4)", "weaponSize": 84, "timingMul": "0.06x (极速)", "recoilAmount": "0.15rad", "description": "G18 以1100RPM的射速连续射击，单次开火动画仅约48ms。采用后坐力抖动模式：每次开火枪身快速上扬后回位，无明显 windup/swing/recover 阶段。timingMul=0.06 确保动画总时长小于55ms的射击间隔。" }
+    },
+    "novice_cap": { "name": "新手布帽", "type": "头盔", "icon": "⛑", "category": "armor", "rarity": "common", "level": 1, "stats": [{ "name": "物理防御", "value": "+2", "pos": true }], "desc": "一件破旧的头巾", "equipSlot": "helmet" },
+    "rough_necklace": { "name": "粗制项链", "type": "项链", "icon": "📿", "category": "accessory", "rarity": "common", "level": 1, "stats": [{ "name": "最大生命值", "value": "+10", "pos": true }], "desc": "用绳子串起来的小石头", "equipSlot": "necklace" },
+    "old_leather_armor": { "name": "旧皮甲", "type": "盔甲", "icon": "🛡", "category": "armor", "rarity": "common", "level": 1, "stats": [{ "name": "物理防御", "value": "+5", "pos": true }], "desc": "不知道传了多少手的皮甲", "equipSlot": "armor" },
+    "old_wooden_shield": { "name": "旧木盾", "type": "副手", "icon": "🛡", "category": "armor", "rarity": "common", "level": 1, "weaponCategory": "offhand", "stats": [{ "name": "物理防御", "value": "+3", "pos": true }], "desc": "用木板拼成的盾牌", "equipSlot": "offhand" },
+    "copper_ring": { "name": "铜戒指", "type": "戒指", "icon": "💍", "category": "accessory", "rarity": "common", "level": 1, "stats": [{ "name": "幸运", "value": "+1", "pos": true }], "desc": "一枚生锈的铜戒指", "equipSlot": "ring1" },
+    "leather_gloves": { "name": "皮手套", "type": "手套", "icon": "🧤", "category": "armor", "rarity": "common", "level": 1, "stats": [{ "name": "物理攻击", "value": "+2", "pos": true }], "desc": "保护双手的皮手套", "equipSlot": "gloves" },
+    "iron_ring": { "name": "铁戒指", "type": "戒指", "icon": "💍", "category": "accessory", "rarity": "common", "level": 1, "stats": [{ "name": "力量", "value": "+1", "pos": true }], "desc": "简单的铁戒指", "equipSlot": "ring2" },
+    "basic_belt": { "name": "腰带", "type": "腰带", "icon": "⛓", "category": "accessory", "rarity": "common", "level": 1, "stats": [{ "name": "最大体力", "value": "+5", "pos": true }], "desc": "一根普通的腰带", "equipSlot": "belt" },
+    "old_leather_boots": { "name": "旧皮靴", "type": "靴子", "icon": "👢", "category": "armor", "rarity": "common", "level": 1, "stats": [{ "name": "移动速度", "value": "+5%", "pos": true }], "desc": "磨破了的旧靴子", "equipSlot": "boots" },
+    "hp_potion": { "name": "治疗药水", "type": "消耗品", "icon": "🧪", "category": "consumable", "rarity": "common", "level": 1, "stats": [{ "name": "恢复生命", "value": "+30" }], "desc": "一瓶红色的药水，味道有点甜", "stack": 5, "equipSlot": "" },
+    "mp_potion": { "name": "魔力药水", "type": "消耗品", "icon": "💧", "category": "consumable", "rarity": "common", "level": 1, "stats": [{ "name": "恢复魔法", "value": "+25" }], "desc": "一瓶蓝色的药水，冒着冷气", "stack": 3, "equipSlot": "" }
+  }
+}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Legacy</title></head>
+<body>
+<script>
+  window.onerror = function(msg, url, line, col, err) {
+    console.error('GLOBAL ERROR:', msg, 'at line', line, 'col', col, err);
+    document.body.innerHTML += '<div style="color:red">ERROR: ' + msg + ' at line ' + line + '</div>';
+    return true;
+  };
+</script>
+<script src="./legacy.js?v=3"></script>
+<script>
+  console.log('typeof Game:', typeof Game);
+  console.log('typeof SystemUI:', typeof SystemUI);
+  console.log('typeof Input:', typeof Input);
+  document.body.innerHTML += '<div>typeof Game: ' + typeof Game + '</div>';
+  document.body.innerHTML += '<div>typeof SystemUI: ' + typeof SystemUI + '</div>';
+  document.body.innerHTML += '<div>typeof Input: ' + typeof Input + '</div>';
+  if (typeof Game !== 'undefined') {
+    document.body.innerHTML += '<div style="color:green">Game.init exists: ' + (typeof Game.init === 'function') + '</div>';
+  }
+</script>
+</body>
+</html>

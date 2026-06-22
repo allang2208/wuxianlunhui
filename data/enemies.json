@@ -1,0 +1,22 @@
+{
+  "enemies": {
+    "test_slime": {
+      "name": "测试敌人",
+      "icon": "💀",
+      "hp": 200,
+      "maxHp": 200,
+      "speed": 0.25,
+      "size": 20,
+      "collisionRadius": 14,
+      "color": "#8a7a6b",
+      "attackCooldown": 1200,
+      "attackRange": 60,
+      "attackDamage": { "min": 8, "max": 15 },
+      "expValue": 50,
+      "dropTable": [
+        { "itemId": "hp_potion", "chance": 0.3 },
+        { "itemId": "copper_ring", "chance": 0.1 }
+      ]
+    }
+  }
+}

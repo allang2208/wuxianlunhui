@@ -1,0 +1,74 @@
+{
+  "skills": {
+    "swordMastery": {
+      "id": "swordMastery",
+      "name": "剑精通",
+      "icon": "⚔",
+      "description": "精通剑术，每次挥舞都更加致命",
+      "maxLevel": 20,
+      "tags": [
+        { "name": "剑类武器", "type": "weapon" },
+        { "name": "近战", "type": "melee" },
+        { "name": "被动", "type": "passive" }
+      ],
+      "effectFormula": {
+        "atkBonus": "level",
+        "cooldownReduction": "level * 0.01",
+        "dexBonus": "level"
+      },
+      "expFormula": "10 + (level - 1) * 10"
+    },
+    "dashAttack": {
+      "id": "dashAttack",
+      "name": "冲刺攻击",
+      "icon": "💨",
+      "description": "在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击",
+      "maxLevel": 20,
+      "tags": [
+        { "name": "近战", "type": "melee" },
+        { "name": "被动", "type": "passive" }
+      ],
+      "effectFormula": {
+        "damageMul": "1.75 + level * 0.05",
+        "cooldownReduction": "level * 0.02"
+      },
+      "expFormula": "10 + (level - 1) * 10"
+    },
+    "dashAttackThrust": {
+      "id": "dashAttackThrust",
+      "name": "冲刺攻击-突刺",
+      "icon": "⚔",
+      "description": "骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害",
+      "maxLevel": 20,
+      "tags": [
+        { "name": "近战", "type": "melee" },
+        { "name": "被动", "type": "passive" }
+      ],
+      "effectFormula": {
+        "damageMul": "0.80 + level * 0.03",
+        "cooldownReduction": "level * 0.02"
+      },
+      "expFormula": "10 + (level - 1) * 10"
+    },
+    "whirlwind": {
+      "id": "whirlwind",
+      "name": "风车",
+      "icon": "🌀",
+      "description": "以自身为中心高速旋转武器，对周围敌人造成毁灭性打击",
+      "maxLevel": 20,
+      "tags": [
+        { "name": "近战", "type": "melee" },
+        { "name": "主动", "type": "active" }
+      ],
+      "effectFormula": {
+        "damageMul": "1.5 + level * 0.10",
+        "strBonus": "level",
+        "cooldown": "10 - level * 0.2",
+        "staminaCost": "20 + level * 1",
+        "radius": "150 + level * 5",
+        "knockback": "250"
+      },
+      "expFormula": "10 + (level - 1) * 10"
+    }
+  }
+}
