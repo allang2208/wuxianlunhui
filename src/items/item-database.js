@@ -16,9 +16,9 @@
                     weapon: this.get('rusty_sword'),
                     armor: this.get('old_leather_armor'),
                     offhand: this.get('old_wooden_shield'),
-                    ring1: this.get('copper_ring'),
+                    ring1: null,
                     gloves: this.get('leather_gloves'),
-                    ring2: this.get('iron_ring'),
+                    ring2: null,
                     belt: this.get('basic_belt'),
                     boots: this.get('old_leather_boots')
                 };

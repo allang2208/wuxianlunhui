@@ -14,10 +14,29 @@
                 window.addEventListener('contextmenu', e => e.preventDefault());
             },
             handleKey(code) {
-                if (code === CONFIG.KEYS.MENU) { if (SystemUI.isOpen) SystemUI.close(); else Game.toMenu(); return; }
+                if (code === CONFIG.KEYS.PAUSE) {
+                    Game._paused = !Game._paused;
+                    EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, Game._paused ? '游戏暂停' : '游戏继续', '#ffdd00'));
+                    return;
+                }
+                if (code === CONFIG.KEYS.MENU) {
+                    // 有子页面打开：按 Esc 回到初始对话
+                    if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen) {
+                        if (ShopSystem._isOpen) ShopSystem.close();
+                        if (EnhanceSystem._isOpen) EnhanceSystem.close();
+                        if (CraftSystem._isOpen) CraftSystem.close();
+                        if (EnchantSystem._isOpen) EnchantSystem.close();
+                        if (NPCDialogue._active) NPCDialogue.exitCompactMode();
+                        return;
+                    }
+                    if (SystemUI.isOpen) { SystemUI.close(); return; }
+                    if (NPCDialogue._active) { NPCDialogue.goodbye(); return; }
+                    Game.toMenu(); return;
+                }
                 if (SystemUI.isOpen) {
                     // 面板打开时：允许Tab切换快捷键，允许F切换武器，允许Z范围拾取，其他按键拦截
-                    if (code === CONFIG.KEYS.INVENTORY || code === CONFIG.KEYS.EQUIP || code === 'KeyB') { SystemUI.toggle('equip'); return; }
+                    if (code === CONFIG.KEYS.INVENTORY || code === CONFIG.KEYS.BACKPACK) { SystemUI.toggle('equip'); return; }
+                    if (code === CONFIG.KEYS.STATUS) { SystemUI.toggle('status'); return; }
                     if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
                     if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
                     if (code === 'KeyF' && Game.player) { Game.player.switchWeaponMode(); return; }
@@ -25,13 +44,17 @@
                     return; // 其他按键在面板打开时忽略
                 }
                 if (code === CONFIG.KEYS.INVENTORY) SystemUI.toggle('equip');
-                if (code === CONFIG.KEYS.EQUIP || code === 'KeyB') SystemUI.toggle('equip');
+                if (code === CONFIG.KEYS.BACKPACK) SystemUI.toggle('equip');
+                if (code === CONFIG.KEYS.STATUS) SystemUI.toggle('status');
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
-                if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R) QuickBar.useSlot(code);
+                if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) QuickBar.useSlot(code);
                 if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);
                 if (code === 'KeyF' && Game.player) {
                     Game.player.switchWeaponMode();
+                }
+                if (code === 'KeyR' && Game.player) {
+                    Game.player.reloadCurrentWeapon();
                 }
                 if (code === 'KeyZ' && Game.isRunning) {
                     Game._pickupNearbyFlag = true;

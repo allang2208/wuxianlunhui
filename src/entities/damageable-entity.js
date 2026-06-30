@@ -1,30 +1,137 @@
 import { Entity } from './entity.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { ZombieBloodPool } from '../effects/particle-effects.js';
+import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 
         class DamageableEntity extends Entity {
             constructor(x, y, config = {}) {
-                super(x, y); this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
-                this.size = config.size || 20; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 200;
-                this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.95;
+                super(x, y); this._faction = config.faction || 'neutral'; this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
+                this.size = config.size || 20; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 300;
+                this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.962;
             }
-            takeDamage(damage, source) {
-                const critRate = (source && source.data && source.data.crit) || 0;
-                const isCrit = Math.random() * 100 < critRate;
-                this.hp -= damage; this.hitFlash = this.hitFlashDuration;
-                // SoundManager.play(isCrit ? 'crit' : 'hit');
-                EffectManager.createDamageText(this.x, this.y - this.size, damage, isCrit);
-                if (isCrit) EffectManager.triggerCritEffects();
-                if (this.hp <= 0) { this.hp = 0; this.onDeath(source); }
+            takeDamage(damage, source, damageType = 'physical') {
+                // 新增：怪物之间不互相攻击
+                if (this._faction === 'enemy' && source && source._faction === 'enemy') return;
+                // 应用伤害公式：伤害 = 攻击力² / (攻击力 + 防御力)
+                let baseDamage = damage;
+                let isCrit = false;
+                if (source && source.data && this.data) {
+                    let atk, def;
+                    if (damageType === 'magic') {
+                        // 魔法伤害：使用 matk 和 mdef
+                        atk = source.data.matk || 0;
+                        def = this.data.mdef || 0;
+                    } else {
+                        // 物理伤害（默认）：使用 damage 作为 atk 值（武器攻击力）
+                        atk = (damage > 0) ? damage : (source.data.atk || 0);
+                        def = this.data.def || 0;
+                        // 应用改造穿甲效果（钢芯穿甲弹等）
+                        if (source && source.equipments && source.weaponMode) {
+                            const currentWpn = source.equipments[source.weaponMode];
+                            if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.armorPenetrationPercent) {
+                                def = Math.floor(def * (1 - currentWpn._craftEffects.armorPenetrationPercent));
+                            }
+                        }
+                    }
+                    if (atk > 0) {
+                        baseDamage = Math.floor((atk * atk) / (atk + def));
+                        // 10%最低保底伤害
+                        const minDamage = Math.floor(atk * 0.1);
+                        if (baseDamage < minDamage) {
+                            baseDamage = minDamage;
+                        }
+                    }
+                    // 暴击判定（仅用于精通技能经验，不额外应用伤害倍率——调用方已处理）
+                    let critRate = source.data.crit || 0;
+                    if (source && source.equipments && source.skills && source.skills.rifleMastery) {
+                        const currentWpn = source.equipments[source.weaponMode];
+                        if (currentWpn && isRifle(currentWpn.weaponType)) {
+                            critRate += source.skills.rifleMastery.getEffect(source.skills.rifleMastery.level).critRateBonus;
+                        }
+                    }
+                    // 改造效果：暴击率加成
+                    if (source && source.equipments && source.weaponMode) {
+                        const currentWpn = source.equipments[source.weaponMode];
+                        if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.critChancePercent) {
+                            critRate += currentWpn._craftEffects.critChancePercent * 100;
+                        }
+                    }
+                    const critRes = this.data.critRes || 0;
+                    const finalCritRate = Math.max(0, critRate - critRes);
+                    isCrit = Math.random() * 100 < finalCritRate;
+                    if (isCrit && source && source.skills && source.skills.criticalStrike) {
+                        SkillManager.addCriticalStrikeExp(source, isCrit, false); // isKill 在下面计算
+                    }
+                }
+                // 扣血
+                this.hp -= baseDamage;
+                this.hitFlash = this.hitFlashDuration;
+                // 显示伤害数字
+                if (typeof EffectManager !== 'undefined' && EffectManager.createDamageText) {
+                    EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit);
+                }
+                const isKill = this.hp <= 0;
+                if (isKill) {
+                    this.hp = 0;
+                    this.onDeath(source);
+                }
+                // 武器精通技能经验（使用大类判定）
+                if (source && source.equipments && SkillManager) {
+                    const currentWpn = source.equipments[source.weaponMode];
+                    if (currentWpn) {
+                        const wt = currentWpn.weaponType;
+                        if (isMachineGun(wt) && (isKill || isCrit)) {
+                            SkillManager.addMachineGunMasteryExp(source, isKill, isCrit);
+                        } else if (isRifle(wt) && (isKill || isCrit)) {
+                            SkillManager.addRifleMasteryExp(source, isKill, isCrit);
+                        } else if (isPistolCategory(wt) && (isKill || isCrit)) {
+                            SkillManager.addPistolMasteryExp(source, isKill, isCrit);
+                        } else if (isShotgunCategory(wt) && (isKill || isCrit)) {
+                            SkillManager.addShotgunMasteryExp(source, isKill, isCrit);
+                        } else if (wt === 'bow') {
+                            SkillManager.addBowExp(source, true, isCrit, isKill);
+                        }
+                    }
+                }
             }
             onDeath(source) {
                 this.active = false;
-                // SoundManager.play('enemy_death');
+                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    SoundManager.playFile('assets/sounds/knockdown_1.mp3');
+                }
                 if (source && source.data) source.data.kills++;
                 EffectManager.add(new DeathEffect(this.x, this.y, this.size));
-                // 掉落钢弓
-                if (this instanceof Enemy) Game.dropItem(this.x, this.y, EquipManager.G18_PISTOL_ITEM);
-                // 给予玩家经验值
-                if (source && source.gainExp && typeof source.gainExp === 'function') {
-                    source.gainExp(this.expValue || 10);
+                if (source) {
+                    const angle = Math.atan2(source.y - this.y, source.x - this.x);
+                    EffectManager.add(new BloodMistEffect(this.x, this.y, angle + Math.PI));
+                }
+                // 血池最后添加，确保在最上层渲染（不被血雾覆盖）
+                if (this.name && this.name.includes('僵尸')) {
+                    EffectManager.add(new ZombieBloodPool(this.x, this.y, { r: 45, g: 200, b: 35 }));
+                } else if (this._faction === 'enemy') {
+                    EffectManager.add(new ZombieBloodPool(this.x, this.y, { r: 180, g: 35, b: 35 }));
+                }
+                // 掉落金币（不再掉落 G18）
+                if (this instanceof Enemy) {
+                    const level = this.level || 1;
+                    const goldAmount = 5 + Math.floor(Math.random() * 10 + 1) * level;
+                    const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
+                    Game.dropItem(this.x, this.y, goldItem);
+                    // 新增：掉落经验值
+                    if (source && source.gainExp) {
+                        source.gainExp(this.getExpValue ? this.getExpValue() : 2);
+                    } else if (source && source.source && source.source.gainExp) {
+                        // 如果是 Projectile，经验给 Projectile 的 owner
+                        source.source.gainExp(this.getExpValue ? this.getExpValue() : 2);
+                    }
+                }
+                // 延迟删除尸体（3秒后从 entities 中移除）
+                this._deathTime = Date.now();
+                this._deathRemoveDelay = 3000; // 3秒后删除
+                // 隐藏 Phaser Sprite
+                const phaserScene = window.__phaserScene;
+                if (phaserScene && this._phaserSprite) {
+                    this._phaserSprite.setVisible(false);
                 }
             }
             applyKnockback(angle, totalPx) {
@@ -71,10 +178,19 @@ import { Entity } from './entity.js';
             }
             renderHealthBar(ctx) {
                 if (this.hp >= this.maxHp) return;
-                const screenPos = Renderer.worldToScreen(this.x, this.y), barWidth = 40, barHeight = 4, hpPercent = this.hp / this.maxHp;
-                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(screenPos.x - barWidth/2, screenPos.y - this.size - 12, barWidth, barHeight);
-                ctx.fillStyle = hpPercent > 0.5 ? '#7a9a6a' : hpPercent > 0.25 ? '#a09060' : '#8a4a4a';
-                ctx.fillRect(screenPos.x - barWidth/2, screenPos.y - this.size - 12, barWidth * hpPercent, barHeight);
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                const barWidth = 40, barHeight = 5, border = 1;
+                const x = screenPos.x - barWidth / 2, y = screenPos.y - this.size - 14;
+                const hpPercent = this.hp / this.maxHp;
+                // 边框：深黑色背景，与主角体力条做明显区分
+                ctx.fillStyle = '#1a0a0a';
+                ctx.fillRect(x - border, y - border, barWidth + border * 2, barHeight + border * 2);
+                // 底色：深红色
+                ctx.fillStyle = '#5a1010';
+                ctx.fillRect(x, y, barWidth, barHeight);
+                // 当前血量：根据血量百分比变化亮度
+                ctx.fillStyle = hpPercent > 0.5 ? '#c04040' : hpPercent > 0.25 ? '#a03030' : '#8a1a1a';
+                ctx.fillRect(x, y, barWidth * hpPercent, barHeight);
             }
         }
 

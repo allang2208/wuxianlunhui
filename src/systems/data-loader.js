@@ -44,12 +44,13 @@ const DataLoader = {
     /** 从 JSON 构建技能对象（兼容原有 Player.skills 结构） */
     buildSkillFromJSON(skillId, skillData) {
         const effectFormula = skillData.effectFormula || {};
-        const expFormula = skillData.expFormula || '10 + (level - 1) * 10';
+        const expFormula = skillData.expFormula || '100 + (level - 1) * 100';
 
         return {
             id: skillId,
             name: skillData.name,
             icon: skillData.icon,
+            iconImage: skillData.iconImage,
             description: skillData.description,
             level: 1,
             maxLevel: skillData.maxLevel,

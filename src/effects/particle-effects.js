@@ -71,6 +71,53 @@
             }
         }
 
+        class BloodMistEffect {
+            constructor(x, y, angle) {
+                this.x = x; this.y = y; this.life = 600; this.maxLife = 600; this.active = true;
+                this.particles = [];
+                for (let i = 0; i < 35; i++) {
+                    const spreadAngle = angle + (Math.random() - 0.5) * Math.PI * 0.9;
+                    const speed = 1.0 + Math.random() * 4.5;
+                    const r = Math.random();
+                    let color;
+                    if (r > 0.6) color = `rgba(180, 20, 20,`;
+                    else if (r > 0.3) color = `rgba(140, 10, 10,`;
+                    else color = `rgba(100, 5, 5,`;
+                    this.particles.push({
+                        x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8,
+                        vx: Math.cos(spreadAngle) * speed,
+                        vy: Math.sin(spreadAngle) * speed,
+                        size: 3 + Math.random() * 9,
+                        alpha: 0.5 + Math.random() * 0.5,
+                        color: color
+                    });
+                }
+            }
+            update() {
+                this.life -= 12;
+                if (this.life <= 0) { this.active = false; return; }
+                this.particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.90; p.vy *= 0.90;
+                    p.alpha -= 0.008;
+                });
+            }
+            render(ctx) {
+                const globalAlpha = this.life / this.maxLife;
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                ctx.save(); ctx.translate(screenPos.x, screenPos.y);
+                this.particles.forEach(p => {
+                    if (p.alpha <= 0) return;
+                    const a = p.alpha * globalAlpha;
+                    ctx.fillStyle = `${p.color} ${a})`;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (0.6 + globalAlpha * 0.4), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.restore();
+            }
+        }
+
         class DustEffect {
             constructor(x, y, intensity) {
                 this.x = x; this.y = y; this.life = 450; this.maxLife = 450; this.active = true;
@@ -115,4 +162,109 @@
             }
         }
 
-export { DodgeEffect, DeathEffect, BloodEffect, DustEffect };
+class ZombieBloodPool {
+    constructor(x, y, color) {
+        this.x = x; this.y = y;
+        this.life = 12000; this.maxLife = 12000; this.active = true;
+        this.fadeStart = 4000;
+        this.radius = 25 + Math.random() * 20;
+        this.color = color || { r: 60, g: 240, b: 45 };
+        this.blobs = [];
+        for (let i = 0; i < 12; i++) {
+            this.blobs.push({
+                dx: (Math.random() - 0.5) * this.radius * 2.5,
+                dy: (Math.random() - 0.5) * this.radius * 1.5,
+                radius: this.radius * (0.4 + Math.random() * 0.6),
+                wobble: Math.random() * Math.PI * 2,
+                wobbleSpeed: 0.01 + Math.random() * 0.015
+            });
+        }
+    }
+    update() {
+        this.life -= 16;
+        if (this.life <= 0) { this.active = false; return; }
+        this.blobs.forEach(b => { b.wobble += b.wobbleSpeed; });
+    }
+    render(ctx) {
+        const screenPos = Renderer.worldToScreen(this.x, this.y);
+        let alpha = 1;
+        if (this.life < this.fadeStart) {
+            alpha = this.life / this.fadeStart;
+        }
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.5;
+        const c = this.color;
+        this.blobs.forEach(b => {
+            const wobbleX = Math.sin(b.wobble) * 3;
+            const wobbleY = Math.cos(b.wobble) * 2;
+            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${0.4 + alpha * 0.2})`;
+            ctx.beginPath();
+            ctx.arc(screenPos.x + b.dx + wobbleX, screenPos.y + b.dy + wobbleY, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        // 中心高光（更亮）
+        ctx.fillStyle = `rgba(${c.r + 50}, ${c.g + 50}, ${c.b + 40}, ${alpha * 0.35})`;
+        ctx.beginPath();
+        ctx.arc(screenPos.x, screenPos.y, this.radius * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        // 外圈轮廓
+        ctx.strokeStyle = `rgba(${c.r + 70}, ${c.g + 70}, ${c.b + 60}, ${alpha * 0.3})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(screenPos.x, screenPos.y, this.radius * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+export { DodgeEffect, DeathEffect, BloodEffect, BloodMistEffect, DustEffect, RuneSwordExplodeEffect, ZombieBloodPool };
+
+class RuneSwordExplodeEffect {
+    constructor(x, y) {
+        this.x = x; this.y = y;
+        this.life = 400; this.maxLife = 400; this.active = true;
+        this.lines = [];
+        for (let i = 0; i < 35; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const length = 15 + Math.random() * 40;
+            this.lines.push({
+                angle, length,
+                width: 1 + Math.random() * 2,
+                growDuration: 80 + Math.random() * 120,
+                fadeDuration: 150 + Math.random() * 150,
+                elapsed: 0
+            });
+        }
+    }
+    update(dt) {
+        this.life -= dt;
+        if (this.life <= 0) { this.active = false; return; }
+        this.lines.forEach(line => { line.elapsed += dt; });
+        this.lines = this.lines.filter(line => line.elapsed < line.growDuration + line.fadeDuration);
+    }
+    render(ctx) {
+        const screenPos = Renderer.worldToScreen(this.x, this.y);
+        ctx.save(); ctx.translate(screenPos.x, screenPos.y);
+        this.lines.forEach(line => {
+            const t = line.elapsed;
+            let alpha = 0, currentLen = 0;
+            if (t < line.growDuration) {
+                const p = t / line.growDuration;
+                currentLen = line.length * p;
+                alpha = 1;
+            } else {
+                const p = (t - line.growDuration) / line.fadeDuration;
+                currentLen = line.length;
+                alpha = 1 - p;
+            }
+            if (alpha <= 0) return;
+            ctx.strokeStyle = `rgba(50, 130, 255, ${alpha})`;
+            ctx.lineWidth = line.width;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(line.angle) * currentLen, Math.sin(line.angle) * currentLen);
+            ctx.stroke();
+        });
+        ctx.restore();
+    }
+}

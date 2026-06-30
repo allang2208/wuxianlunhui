@@ -56,7 +56,7 @@
 
             // 播放外部音频文件（.mp3, .wav 等）
             playFile(path, volume = 1.0) {
-                if (!this.enabled || !this._ensureCtx()) return;
+                if (!this.enabled) return;
                 try {
                     const audio = new Audio(path);
                     audio.volume = Math.max(0, Math.min(1, volume * this.masterVolume));

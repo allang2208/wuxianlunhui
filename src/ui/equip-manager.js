@@ -1,30 +1,19 @@
+        // Item Tooltip System v2 - Cache Bust
+import { EquipDataManager } from './equip-data-manager.js';
+import { BackpackDialogManager } from './backpack-dialog-manager.js';
+import { EquipTooltipManager } from './equip-tooltip-manager.js';
+import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
+import { CraftSystem } from './craft-system.js';
         export const EquipManager = {
-            TEST_EQUIPMENTS: {
-                helmet: { name: '新手布帽', type: '头盔', icon: '⛑', iconImage: 'assets/icons/helmet_icon.png', equipSlot: 'helmet', stats: [{ name: '物理防御', value: '+2', pos: true }, { name: '最大生命', value: '+15', pos: true }], desc: '一件破旧的头巾', level: 1, rarity: 'common' },
-                necklace: { name: '粗制项链', type: '项链', icon: '📿', iconImage: '', equipSlot: 'necklace', stats: [{ name: '最大生命值', value: '+10', pos: true }, { name: '法力回复', value: '+1/秒', pos: true }], desc: '用绳子串起来的小石头', level: 1, rarity: 'common' },
-                weapon: { weaponId: 'weapon1', name: '生锈的长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', equipImage: 'assets/weapons/1-rusty_sword_euip.png', category: 'weapon_melee', equipSlot: 'weapon', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%', pos: true }], desc: '一把锈迹斑斑的旧剑', level: 1, rarity: 'common', weaponType: 'sword' },
-                armor: { name: '旧皮甲', type: '盔甲', icon: '🛡', iconImage: 'assets/icons/armor_icon.png', equipSlot: 'armor', stats: [{ name: '物理防御', value: '+5', pos: true }, { name: '最大生命', value: '+25', pos: true }, { name: '韧性', value: '+2', pos: true }], desc: '不知道传了多少手的皮甲', level: 1, rarity: 'common' },
-                offhand: { name: '旧木盾', type: '副手', icon: '🛡', iconImage: 'assets/icons/shield_icon.png', category: 'armor', weaponCategory: 'offhand', equipSlot: 'offhand', stats: [{ name: '物理防御', value: '+3', pos: true }, { name: '格挡率', value: '+5%', pos: true }], desc: '用木板拼成的盾牌', level: 1, rarity: 'common' },
-                weapon2: { weaponId: 'weapon3', name: '训练用弓', type: '弓', icon: '🏹', iconImage: 'assets/icons/bow_icon.png', category: 'weapon_ranged', rarity: 'common', level: 1, weaponCategory: 'mainhand', weaponType: 'bow', weaponAsset: { framePrefix: 'assets/weapons/bow_frame_', frameCount: 8, framePad: 2 }, stats: [{ name: '物理攻击', value: '8-14' }, { name: '射程', value: '600' }], desc: '一把简陋的弓，勉强能射出箭，适合初学者练习', equipSlot: 'weapon2' },
-                ring1: { name: '铜戒指', type: '戒指', icon: '💍', iconImage: 'assets/icons/ring_icon.png', equipSlot: 'ring1', stats: [{ name: '幸运', value: '+1', pos: true }, { name: '金币获取', value: '+5%', pos: true }], desc: '一枚生锈的铜戒指', level: 1, rarity: 'common' },
-                gloves: { name: '皮手套', type: '手套', icon: '🧤', iconImage: 'assets/icons/gloves_icon.png', equipSlot: 'gloves', stats: [{ name: '物理攻击', value: '+2', pos: true }, { name: '攻击速度', value: '+3%', pos: true }], desc: '保护双手的皮手套', level: 1, rarity: 'common' },
-                ring2: { name: '铁戒指', type: '戒指', icon: '💍', iconImage: 'assets/icons/ring_icon.png', equipSlot: 'ring2', stats: [{ name: '力量', value: '+1', pos: true }, { name: '物理攻击', value: '+2', pos: true }], desc: '简单的铁戒指', level: 1, rarity: 'common' },
-                belt: { name: '腰带', type: '腰带', icon: '⛓', iconImage: 'assets/icons/belt_icon.png', equipSlot: 'belt', stats: [{ name: '最大体力', value: '+5', pos: true }, { name: '负重', value: '+10', pos: true }], desc: '一根普通的腰带', level: 1, rarity: 'common' },
-                boots: { name: '旧皮靴', type: '靴子', icon: '👢', iconImage: 'assets/icons/boot_icon.png', equipSlot: 'boots', stats: [{ name: '移动速度', value: '+5%', pos: true }, { name: '闪避', value: '+2%', pos: true }], desc: '磨破了的旧靴子', level: 1, rarity: 'common' }
-            },
-            TEST_BACKPACK_ITEMS: [
-                { slot: 0, name: '治疗药水', type: '消耗品', icon: '🧪', category: 'consumable', stats: [{ name: '恢复生命', value: '+30' }], desc: '一瓶红色的药水，味道有点甜', stack: 5 },
-                { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', category: 'consumable', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 }
-            ],
-            init(player) {
+            async init(player) {
                 this.player = player;
                 // 初始化背包数组
                 if (!this.backpackItems || this.backpackItems.length === 0) {
-                    this.backpackItems = JSON.parse(JSON.stringify(this.TEST_BACKPACK_ITEMS));
+                    this.backpackItems = JSON.parse(JSON.stringify(EquipDataManager.TEST_BACKPACK_ITEMS));
                 }
                 // 深拷贝 TEST_EQUIPMENTS，避免多个玩家共享引用
                 if (player.equipments) {
-                    const copy = JSON.parse(JSON.stringify(this.TEST_EQUIPMENTS));
+                    const copy = JSON.parse(JSON.stringify(EquipDataManager.TEST_EQUIPMENTS));
                     Object.assign(player.equipments, copy);
                 }
                 // 加载 weapon2 槽的武器状态
@@ -39,14 +28,21 @@
                 } else if (w2 && w2.weaponAsset && w2.weaponAsset.framePrefix) {
                     // 从 weaponAsset 加载弓帧动画
                     const frames = [];
-                    for (let i = 1; i <= w2.weaponAsset.frameCount; i++) {
-                        const num = String(i).padStart(w2.weaponAsset.framePad || 2, '0');
+                    const startFrame = w2.weaponAsset.startFrame || 1;
+                    for (let i = 0; i < w2.weaponAsset.frameCount; i++) {
+                        const num = String(startFrame + i).padStart(w2.weaponAsset.framePad || 2, '0');
                         const img = new Image(); img.src = w2.weaponAsset.framePrefix + num + '.png'; frames.push(img);
                     }
                     player.equippedBowFrames = frames;
                     player.equippedRangedType = 'bow';
                 } else if (w2 && (w2.rangedType === 'pistol' || w2.weaponType === 'pistol')) {
                     player.equippedRangedType = 'pistol';
+                } else if (w2 && w2.weaponType === 'pkm') {
+                    player.equippedRangedType = 'pkm';
+                } else if (w2 && w2.weaponType === 'akm') {
+                    player.equippedRangedType = 'akm';
+                } else if (w2 && w2.weaponType === 'qbz191') {
+                    player.equippedRangedType = 'qbz191';
                 }
                 // 同步当前武器栏的近战武器贴图
                 const currentWeapon = player.equipments[player.weaponMode];
@@ -60,20 +56,815 @@
                 // ===== FIX 1: 先创建背包格子，再更新显示 =====
                 const grid = document.getElementById('inventoryGrid');
                 if (grid && grid.children.length === 0) {
-                    for (let i = 0; i < 36; i++) {
+                    for (let i = 0; i < this.maxBackpackSlots; i++) {
                         const cell = document.createElement('div');
                         cell.className = 'inv-cell';
                         cell.dataset.slot = i;
                         grid.appendChild(cell);
                     }
                 }
+                EquipTooltipManager.init({
+                    player: this.player,
+                    backpackItems: this.backpackItems,
+                    unequip: (key) => this.unequip(key),
+                    equipFromBackpack: (idx) => this.equipFromBackpack(idx),
+                    showSplitDialog: (item, idx) => BackpackDialogManager._showSplitDialog(item, idx),
+                    triggerEquipFlash: (slot) => this.triggerEquipFlash(slot),
+                    triggerBackpackFlash: (idx) => this.triggerBackpackFlash(idx)
+                });
+                EquipTooltipManager.bindEquipTooltip();
+                this._syncWeaponVisual();
+                EquipTooltipManager.bindInventoryTooltip();
+                // 内联 DragDropManager 定义，绕过 Vite 模块缓存问题
+                this._dragDropManager = {
+                    player: null,
+                    backpackItems: null,
+                    callbacks: {},
+                    _dragSrc: null,
+                    _dropHandled: false,
+
+                    init(options) {
+                        this.player = options.player || null;
+                        // 使用 getter/setter 确保始终访问 EquipManager.backpackItems，避免 filter 重新赋值导致引用断裂
+                        Object.defineProperty(this, 'backpackItems', {
+                            get() { return EquipManager.backpackItems; },
+                            set(v) { EquipManager.backpackItems = v; }
+                        });
+                        this.callbacks = {
+                            updateEquipSlots: options.updateEquipSlots || (() => {}),
+                            updateInventorySlots: options.updateInventorySlots || (() => {}),
+                            triggerEquipFlash: options.triggerEquipFlash || (() => {}),
+                            triggerBackpackFlash: options.triggerBackpackFlash || (() => {}),
+                            clearWeaponState: options.clearWeaponState || (() => {}),
+                            syncWeaponVisual: options.syncWeaponVisual || (() => {}),
+                            showBackpackFullNotice: options.showBackpackFullNotice || (() => {})
+                        };
+                    },
+
+                    setupDragAndDrop() {
+                        this._dragSrc = null;
+                        const equipGrid = document.querySelector('.equip-grid');
+                        if (equipGrid) {
+                            equipGrid.ondragover = function(e) { e.preventDefault(); };
+                            equipGrid.ondragenter = function(e) {
+                                const slot = e.target.closest('.diablo-slot');
+                                if (slot) slot.classList.add('drag-over');
+                            };
+                            equipGrid.ondragleave = function(e) {
+                                const slot = e.target.closest('.diablo-slot');
+                                if (slot && !slot.contains(e.relatedTarget)) slot.classList.remove('drag-over');
+                            };
+                            const self = this;
+                            equipGrid.ondrop = function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const slot = e.target.closest('.diablo-slot');
+                                document.querySelectorAll('.equip-grid .diablo-slot').forEach(s => s.classList.remove('drag-over'));
+                                self._dropHandled = true;
+                                if (!slot) return;
+                                const src = self._dragSrc;
+                                if (!src || src.slot === slot.dataset.slot) return;
+                                self.handleDrop(src, 'equip', slot.dataset.slot);
+                                self._dragSrc = null;
+                            };
+                        }
+                        document.querySelectorAll('.diablo-slot, .inv-cell').forEach(cell => {
+                            this.bindDragToCell(cell);
+                        });
+                        this.bindCanvasDiscard();
+                    },
+
+                    _doDiscard() {
+                        const src = this._dragSrc;
+                        if (!src || !Game.player) return false;
+                        console.log(`[EquipManager._doDiscard] src.type=${src.type}, src.slot=${src.slot}`);
+                        // 改造槽拖出：归还装备到背包/装备栏，不是丢弃
+                        if (src.type === 'craft') {
+                            if (CraftSystem._equippedItem) {
+                                CraftSystem._returnEquippedItem();
+                                CraftSystem._updateUI();
+                            }
+                            return true;
+                        }
+                        // 附魔栏拖出：归还物品到背包
+                        if (src.type === 'enchantScroll') {
+                            if (typeof window !== 'undefined' && window.EnchantSystem) {
+                                console.log(`[EquipManager._doDiscard] returning enchant scroll to backpack`);
+                                window.EnchantSystem._returnScrollItem();
+                                window.EnchantSystem._updateUI();
+                            } else {
+                                console.error(`[EquipManager._doDiscard] EnchantSystem not available`);
+                            }
+                            return true;
+                        }
+                        if (src.type === 'enchantEquip') {
+                            if (typeof window !== 'undefined' && window.EnchantSystem) {
+                                console.log(`[EquipManager._doDiscard] returning enchant equip to backpack`);
+                                window.EnchantSystem._returnEquipItem();
+                                window.EnchantSystem._updateUI();
+                            } else {
+                                console.error(`[EquipManager._doDiscard] EnchantSystem not available`);
+                            }
+                            return true;
+                        }
+                        let item = null;
+                        if (src.type === 'inventory') {
+                            const idx = parseInt(src.slot);
+                            item = EquipManager.backpackItems.find(i => i.slot === idx);
+                            if (item) {
+                                const removeIdx = EquipManager.backpackItems.findIndex(i => i.slot === idx);
+                                if (removeIdx !== -1) EquipManager.backpackItems.splice(removeIdx, 1);
+                            }
+                        } else if (src.type === 'equip') {
+                            item = Game.player.equipments[src.slot];
+                            if (item) {
+                                Game.player.equipments[src.slot] = null;
+                                this.callbacks.clearWeaponState(src.slot);
+                                if (src.slot === Game.player.weaponMode && Game.player._clearSkillOverrides) {
+                                    Game.player._clearSkillOverrides();
+                                    if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                        SkillManager.renderSkillGrid();
+                                    }
+                                }
+                            }
+                        }
+                        if (item) {
+                            const dropDist = 60 + Math.random() * 40;
+                            const dropAngle = Game.player.rotation + (Math.random() - 0.5) * 0.5;
+                            const dropX = Game.player.x + Math.cos(dropAngle) * dropDist;
+                            const dropY = Game.player.y + Math.sin(dropAngle) * dropDist;
+                            if (item.category === 'gold') {
+                                item._droppedByPlayer = true;
+                                item._wasOutOfRange = false;
+                            }
+                            Game.dropItem(dropX, dropY, item);
+                            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 30, '已丢弃: ' + item.name));
+                            this.callbacks.updateEquipSlots();
+                            this.callbacks.updateInventorySlots();
+                            this._dragSrc = null;
+                            return true;
+                        }
+                        return false;
+                    },
+
+                    _isInGameArea(clientX) {
+                        const panel = document.getElementById('systemPanel');
+                        if (!panel || !panel.classList.contains('active')) return true;
+                        const panelLeft = window.innerWidth * 0.55;
+                        if (clientX >= panelLeft) return false;
+                        // 附魔栏打开时，附魔栏区域也不视为丢弃区域
+                        const enchantPanel = document.getElementById('enchantPanel');
+                        if (enchantPanel && enchantPanel.classList.contains('active')) {
+                            // enchantPanel is at right: 45vw, width: 380px
+                            // enchant panel is in the left side from clientX perspective? No, it's on the right
+                            // The enchant panel is at right: 45vw, which means it's from (100vw - 45vw - 380px) to (100vw - 45vw)
+                            // Actually the enchant panel is: right: 45vw, width: 380px
+                            // So it occupies from (window.innerWidth - 45vw - 380px) to (window.innerWidth - 45vw)
+                            // Wait, let me check the CSS. The enchant panel is at right: 45vw, width: 380px
+                            // In CSS: .enchant-panel { right: 45vw; width: 380px; }
+                            // So its left edge is at: window.innerWidth - 0.45*window.innerWidth - 380
+                            // = 0.55*window.innerWidth - 380
+                            // But since the panel is at right: 45vw (fixed positioning), the left edge is:
+                            // window.innerWidth - (0.45 * window.innerWidth) - 380
+                            // Hmm, actually CSS right: 45vw means the right edge is 45vw from the right
+                            // So the right edge is at: window.innerWidth - 0.45*window.innerWidth = 0.55*window.innerWidth
+                            // And the left edge is at: 0.55*window.innerWidth - 380
+                            const enchantRight = window.innerWidth * 0.55;
+                            const enchantLeft = enchantRight - 380;
+                            if (clientX >= enchantLeft && clientX <= enchantRight) return false;
+                        }
+                        return true;
+                    },
+
+                    bindCanvasDiscard() {
+                        const self = this;
+                        const canvas = document.getElementById('gameCanvas');
+                        if (canvas) {
+                            canvas.ondragover = function(e) { e.preventDefault(); };
+                            canvas.ondrop = function(e) {
+                                e.preventDefault();
+                                self._dropHandled = true;
+                                self._doDiscard();
+                            };
+                        }
+                        const overlay = document.getElementById('panelOverlay');
+                        if (overlay) {
+                            overlay.ondragover = function(e) { e.preventDefault(); };
+                            overlay.ondrop = function(e) {
+                                e.preventDefault();
+                                self._dropHandled = true;
+                                self._doDiscard();
+                            };
+                        }
+                        const panel = document.getElementById('systemPanel');
+                        if (panel) {
+                            panel.ondragover = function(e) { e.preventDefault(); };
+                            panel.ondrop = function(e) {
+                                e.preventDefault();
+                                self._dropHandled = true;
+                            };
+                        }
+                        const uiLayer = document.getElementById('uiLayer');
+                        if (uiLayer) {
+                            uiLayer.ondragover = function(e) { e.preventDefault(); };
+                            uiLayer.ondrop = function(e) {
+                                e.preventDefault();
+                                self._dropHandled = true;
+                            };
+                        }
+                        document.querySelectorAll('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid').forEach(el => {
+                            el.ondragover = function(e) { e.preventDefault(); };
+                            el.ondrop = function(e) {
+                                e.preventDefault();
+                                self._dropHandled = true;
+                            };
+                        });
+                        document.addEventListener('dragover', function _discardAllowDrop(e) {
+                            if (self._dragSrc) e.preventDefault();
+                        });
+                    },
+
+                    bindDragToCell(cell) {
+                        const self = this;
+                        cell.ondragstart = function(e) {
+                            self._dragSrc = {
+                                type: cell.classList.contains('inv-cell') ? 'inventory' : 'equip',
+                                slot: cell.dataset.slot
+                            };
+                            self._dropHandled = false;
+                            e.dataTransfer.setData('text/plain', cell.dataset.slot);
+                            e.dataTransfer.effectAllowed = 'move';
+                            cell.classList.add('dragging');
+                            const tooltip = document.getElementById('equipTooltip');
+                            if (tooltip) {
+                                tooltip.classList.remove('visible', 'pinned');
+                                tooltip._pinned = false;
+                            }
+                        };
+                        cell.ondragend = function(e) {
+                            cell.classList.remove('dragging');
+                            document.querySelectorAll('.inv-cell, .diablo-slot').forEach(s => s.classList.remove('drag-over'));
+                            if (!self._dropHandled && self._dragSrc && self._isInGameArea(e.clientX)) {
+                                self._doDiscard();
+                            }
+                            self._dropHandled = false;
+                            self._dragSrc = null;
+                        };
+                        cell.ondragover = function(e) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                        };
+                        cell.ondragenter = function(e) {
+                            cell.classList.add('drag-over');
+                        };
+                        cell.ondragleave = function(e) {
+                            cell.classList.remove('drag-over');
+                        };
+                        cell.ondrop = function(e) {
+                            e.preventDefault();
+                            if (!cell.classList.contains('inv-cell')) {
+                                cell.classList.remove('drag-over');
+                                return;
+                            }
+                            e.stopPropagation();
+                            cell.classList.remove('drag-over');
+                            self._dropHandled = true;
+                            const src = self._dragSrc;
+                            if (!src || src.slot === cell.dataset.slot) return;
+                            self.handleDrop(src, 'inventory', cell.dataset.slot);
+                            self._dragSrc = null;
+                        };
+                    },
+
+                    handleDrop(src, targetType, targetSlot) {
+                        if (!src || !targetType) return;
+                        
+                        // 附魔槽 → 背包/装备栏：退回物品
+                        if (src.type === 'enchantScroll' || src.type === 'enchantEquip') {
+                            if (typeof window !== 'undefined' && window.EnchantSystem) {
+                                if (src.type === 'enchantScroll') {
+                                    window.EnchantSystem._returnScrollItem();
+                                } else {
+                                    window.EnchantSystem._returnEquipItem();
+                                }
+                                if (window.EnchantSystem._updateUI) window.EnchantSystem._updateUI();
+                            }
+                            return;
+                        }
+                        if (src.type === 'inventory' && targetType === 'inventory') {
+                            const sIdx = parseInt(src.slot), tIdx = parseInt(targetSlot);
+                            if (isNaN(sIdx) || isNaN(tIdx) || sIdx === tIdx) return;
+                            const sItem = EquipManager.backpackItems.find(i => i.slot === sIdx);
+                            const tItem = EquipManager.backpackItems.find(i => i.slot === tIdx);
+                            if (sItem) sItem.slot = tIdx;
+                            if (tItem) tItem.slot = sIdx;
+                            this.callbacks.updateInventorySlots(); return;
+                        }
+                        // 改造槽 → 背包：卸下到指定背包格子
+                        if (src.type === 'craft' && targetType === 'inventory') {
+                            const tIdx = parseInt(targetSlot);
+                            const item = CraftSystem._equippedItem;
+                            if (!item) return;
+                            const bpItem = EquipManager.backpackItems.find(i => i.slot === tIdx);
+                            if (bpItem) {
+                                // 目标格子有物品，尝试放入第一个空位
+                                const emptySlot = EquipManager._findFirstEmptySlot ? EquipManager._findFirstEmptySlot() : -1;
+                                if (emptySlot === -1) return; // 背包满，无法卸下
+                                CraftSystem._equippedItem = null;
+                                CraftSystem._equippedSlot = null;
+                                const clone = JSON.parse(JSON.stringify(item));
+                                clone.slot = emptySlot;
+                                EquipManager.backpackItems.push(clone);
+                                this.callbacks.updateInventorySlots();
+                                CraftSystem._updateUI();
+                                return;
+                            }
+                            CraftSystem._equippedItem = null;
+                            CraftSystem._equippedSlot = null;
+                            const clone = JSON.parse(JSON.stringify(item));
+                            clone.slot = tIdx;
+                            EquipManager.backpackItems.push(clone);
+                            this.callbacks.updateInventorySlots();
+                            CraftSystem._updateUI();
+                            return;
+                        }
+                        // 改造槽 → 装备栏：直接装备到指定栏位
+                        if (src.type === 'craft' && targetType === 'equip') {
+                            const eKey = targetSlot;
+                            const item = CraftSystem._equippedItem;
+                            if (!item) return;
+                            const isWeaponSlot = (eKey === 'weapon' || eKey === 'weapon2');
+                            const isOffhandSlot = (eKey === 'offhand' || eKey === 'ring2');
+                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
+                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
+                            if (isWeaponSlot && !isWeaponItem) return;
+                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== eKey) return;
+                            CraftSystem._equippedItem = null;
+                            CraftSystem._equippedSlot = null;
+                            const cur = this.player.equipments[eKey];
+                            if (cur && cur.name) {
+                                const usedSlots = new Set(EquipManager.backpackItems.map(i => i.slot));
+                                let slot = 0; while (usedSlots.has(slot) && slot < this.maxBackpackSlots) slot++;
+                                if (slot < this.maxBackpackSlots) {
+                                    const oldClone = JSON.parse(JSON.stringify(cur));
+                                    oldClone.slot = slot;
+                                    EquipManager.backpackItems.push(oldClone);
+                                }
+                            }
+                            this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
+                            if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
+                                this.player._applySkillOverrides(item);
+                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                    SkillManager.renderSkillGrid();
+                                }
+                            }
+                            if (eKey === 'weapon' || eKey === 'weapon2') {
+                                if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
+                                    const frames = [];
+                                    if (item.bowFrames) {
+                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                    } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
+                                        const startFrame = item.weaponAsset.startFrame || 1;
+                                        for (let i = 0; i < item.weaponAsset.frameCount; i++) {
+                                            const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
+                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                        }
+                                    }
+                                    this.player.equippedBowFrames = frames;
+                                    this.player.equippedRangedType = 'bow';
+                                } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
+                                    this.player.equippedRangedType = 'pistol';
+                                    if (item.equipImage) {
+                                        this.player.pistolImage = new Image();
+                                        this.player.pistolImage.src = item.equipImage;
+                                    }
+                                    if (item.weaponAsset && item.weaponAsset.muzzleImage) {
+                                        this.player.muzzleFlashImg = new Image();
+                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                    }
+                                } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
+                                    this.player.hasMeleeWeapon = true;
+                                }
+                                this.player.weaponAnim.nextSpin = Date.now() + 150;
+                                this.callbacks.syncWeaponVisual();
+                            }
+                            this.callbacks.updateEquipSlots(); this.callbacks.updateInventorySlots();
+                            CraftSystem._updateUI();
+                            return;
+                        }
+                        if (src.type === 'inventory' && targetType === 'equip') {
+                            const sIdx = parseInt(src.slot);
+                            const item = this.backpackItems.find(i => i.slot === sIdx);
+                            if (!item) return;
+                            const isWeaponSlot = (targetSlot === 'weapon' || targetSlot === 'weapon2');
+                            const isOffhandSlot = (targetSlot === 'offhand' || targetSlot === 'ring2');
+                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
+                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
+                            if (isWeaponSlot && !isWeaponItem) return;
+                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== targetSlot) return;
+                            const cur = this.player.equipments[targetSlot];
+                            const removeIdx = this.backpackItems.findIndex(i => i.slot === sIdx);
+                            if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
+                            if (cur && cur.name) {
+                                const oldClone = JSON.parse(JSON.stringify(cur));
+                                oldClone.slot = sIdx;
+                                this.backpackItems.push(oldClone);
+                            }
+                            // ===== 双手武器与副手栏互斥逻辑 =====
+                            // 1. 如果装备到 weapon 栏且是双手武器 → 卸下 offhand
+                            if (item.isTwoHanded && targetSlot === 'weapon') {
+                                const offItem = this.player.equipments['offhand'];
+                                if (offItem && offItem.name) {
+                                    const oldClone = JSON.parse(JSON.stringify(offItem));
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    oldClone.slot = freeSlot;
+                                    this.backpackItems.push(oldClone);
+                                    this.player.equipments['offhand'] = null;
+                                    this.callbacks.clearWeaponState('offhand');
+                                    if ('offhand' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 1b. 如果装备到 weapon2 栏且是双手武器 → 卸下 ring2
+                            if (item.isTwoHanded && targetSlot === 'weapon2') {
+                                const offItem = this.player.equipments['ring2'];
+                                if (offItem && offItem.name) {
+                                    const oldClone = JSON.parse(JSON.stringify(offItem));
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    oldClone.slot = freeSlot;
+                                    this.backpackItems.push(oldClone);
+                                    this.player.equipments['ring2'] = null;
+                                    this.callbacks.clearWeaponState('ring2');
+                                    if ('ring2' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 2. 如果装备到 offhand → 检查 weapon 是否有双手武器
+                            if (targetSlot === 'offhand') {
+                                const wItem = this.player.equipments['weapon'];
+                                if (wItem && wItem.isTwoHanded) {
+                                    const oldClone = JSON.parse(JSON.stringify(wItem));
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    oldClone.slot = freeSlot;
+                                    this.backpackItems.push(oldClone);
+                                    this.player.equipments['weapon'] = null;
+                                    this.callbacks.clearWeaponState('weapon');
+                                    if ('weapon' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 2b. 如果装备到 ring2 → 检查 weapon2 是否有双手武器
+                            if (targetSlot === 'ring2') {
+                                const wItem = this.player.equipments['weapon2'];
+                                if (wItem && wItem.isTwoHanded) {
+                                    const oldClone = JSON.parse(JSON.stringify(wItem));
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    oldClone.slot = freeSlot;
+                                    this.backpackItems.push(oldClone);
+                                    this.player.equipments['weapon2'] = null;
+                                    this.callbacks.clearWeaponState('weapon2');
+                                    if ('weapon2' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            this.player.equipments[targetSlot] = JSON.parse(JSON.stringify(item));
+                            if (targetSlot === this.player.weaponMode && this.player._applySkillOverrides) {
+                                this.player._applySkillOverrides(item);
+                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                    SkillManager.renderSkillGrid();
+                                }
+                            }
+                            if (targetSlot === 'weapon' || targetSlot === 'weapon2') {
+                                if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
+                                    const frames = [];
+                                    if (item.bowFrames) {
+                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                    } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
+                                        const startFrame = item.weaponAsset.startFrame || 1;
+                                        for (let i = 0; i < item.weaponAsset.frameCount; i++) {
+                                            const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
+                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                        }
+                                    }
+                                    this.player.equippedBowFrames = frames;
+                                    this.player.equippedRangedType = 'bow';
+                                } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
+                                    this.player.equippedRangedType = 'pistol';
+                                    if (item.equipImage) {
+                                        this.player.pistolImage = new Image();
+                                        this.player.pistolImage.src = item.equipImage;
+                                    }
+                                    if (item.weaponAsset && item.weaponAsset.muzzleImage) {
+                                        this.player.muzzleFlashImg = new Image();
+                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                    }
+                                } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
+                                    this.player.hasMeleeWeapon = true;
+                                }
+                                this.player.weaponAnim.nextSpin = Date.now() + 150;
+                                this.callbacks.syncWeaponVisual();
+                            }
+                            this.callbacks.updateEquipSlots(); this.callbacks.updateInventorySlots();
+                            this.callbacks.triggerEquipFlash(targetSlot);
+                            if (cur && cur.name) {
+                                this.callbacks.triggerBackpackFlash(sIdx);
+                            }
+                            return;
+                        }
+                        if (src.type === 'equip' && targetType === 'inventory') {
+                            const eKey = src.slot, tIdx = parseInt(targetSlot);
+                            const existing = this.player.equipments[eKey];
+                            if (!existing) return;
+                            const bpItem = this.backpackItems.find(i => i.slot === tIdx);
+                            if (bpItem && bpItem.equipSlot === eKey) {
+                                const oldClone = JSON.parse(JSON.stringify(existing));
+                                oldClone.slot = tIdx;
+                                this.player.equipments[eKey] = bpItem;
+                                bpItem.slot = -1;
+                                const removeIdx = this.backpackItems.findIndex(i => i.slot === tIdx);
+                                if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
+                                this.backpackItems.push(oldClone);
+                                if (eKey === 'weapon2' && bpItem.weaponAsset) this.player.loadWeaponAssets(bpItem);
+                                if (eKey === 'weapon' || eKey === 'weapon2') this.callbacks.syncWeaponVisual();
+                                if (this.player._applySkillOverrides) {
+                                    this.player._applySkillOverrides(bpItem);
+                                }
+                            } else {
+                                // 卸下到背包：目标格子必须为空，否则会删除已有物品
+                                if (bpItem) return;
+                                const removeIdx = this.backpackItems.findIndex(i => i.slot === tIdx);
+                                if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
+                                const clone = JSON.parse(JSON.stringify(existing));
+                                clone.slot = tIdx;
+                                clone.backpackSlot = tIdx;
+                                this.backpackItems.push(clone);
+                                this.player.equipments[eKey] = null;
+                                this.callbacks.clearWeaponState(eKey);
+                                if (eKey === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                    this.player._clearSkillOverrides();
+                                }
+                                if (existing.weaponId === 'weapon5') {
+                                    QuickBar.disableSpecialAttack();
+                                }
+                            }
+                            this.callbacks.updateEquipSlots(); this.callbacks.updateInventorySlots();
+                            this.callbacks.triggerEquipFlash(eKey);
+                            this.callbacks.triggerBackpackFlash(tIdx);
+                            return;
+                        }
+                        if (src.type === 'equip' && targetType === 'equip') {
+                            const sKey = src.slot, tKey = targetSlot;
+                            if (sKey === tKey) return;
+                            const sItem = this.player.equipments[sKey];
+                            const tItem = this.player.equipments[tKey];
+                            if (!sItem && !tItem) return;
+                            if (!this._canEquipSlot(sItem, tKey)) return;
+                            if (!this._canEquipSlot(tItem, sKey)) return;
+                            this.player.equipments[sKey] = tItem || null;
+                            this.player.equipments[tKey] = sItem || null;
+                            if (this.player._applySkillOverrides) {
+                                const activeItem = this.player.equipments[this.player.weaponMode];
+                                this.player._applySkillOverrides(activeItem);
+                            }
+                            if (sKey === 'weapon' || sKey === 'weapon2' || tKey === 'weapon' || tKey === 'weapon2') {
+                                this.callbacks.syncWeaponVisual();
+                            }
+                            if ((tKey === 'weapon' || tKey === 'weapon2') && sItem && sItem.weaponAsset) this.player.loadWeaponAssets(sItem);
+                            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, `已交换: ${sItem.name} ↔ ${tItem ? tItem.name : '空'}`, '#d4c5a9'));
+                            this.callbacks.updateEquipSlots();
+                            this.callbacks.triggerEquipFlash(sKey);
+                            this.callbacks.triggerEquipFlash(tKey);
+                            return;
+                        }
+                        if (src.type === 'sell' && targetType === 'inventory') {
+                            const sellIndex = parseInt(src.slot);
+                            const sellItem = ShopSystem._selectedSellItems[sellIndex];
+                            if (!sellItem) return;
+                            const tIdx = parseInt(targetSlot);
+                            const bpItem = this.backpackItems.find(i => i.slot === tIdx);
+                            if (bpItem) {
+                                ShopSystem._selectedSellItems[sellIndex] = { item: JSON.parse(JSON.stringify(bpItem)), source: 'backpack', bpIndex: tIdx };
+                                const removeIdx = this.backpackItems.findIndex(i => i.slot === tIdx);
+                                if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
+                            } else {
+                                ShopSystem._selectedSellItems.splice(sellIndex, 1);
+                            }
+                            const clone = JSON.parse(JSON.stringify(sellItem.item));
+                            clone.slot = tIdx;
+                            this.backpackItems.push(clone);
+                            this.callbacks.updateInventorySlots();
+                            ShopSystem._updateUI();
+                            this.callbacks.triggerBackpackFlash(tIdx);
+                            return;
+                        }
+                        if (src.type === 'sell' && targetType === 'equip') {
+                            const sellIndex = parseInt(src.slot);
+                            const sellItem = ShopSystem._selectedSellItems[sellIndex];
+                            if (!sellItem) return;
+                            const item = sellItem.item;
+                            const eKey = targetSlot;
+                            const isWeaponSlot = (eKey === 'weapon' || eKey === 'weapon2');
+                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
+                            if (isWeaponItem && !isWeaponSlot) return;
+                            if (isWeaponSlot && !isWeaponItem) return;
+                            // 所有武器都可以装备到 weapon/weapon2/offhand/ring2
+                            const isOffhandSlot = (eKey === 'offhand' || eKey === 'ring2');
+                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
+                            if (isWeaponSlot && !isWeaponItem) return;
+                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== eKey) return;
+                            const cur = this.player.equipments[eKey];
+                            if (cur && cur.name) {
+                                const usedSlots = new Set(this.backpackItems.map(i => i.slot));
+                                let slot = 0;
+                                while (usedSlots.has(slot) && slot < 36) slot++;
+                                if (slot < 36) {
+                                    const oldClone = JSON.parse(JSON.stringify(cur));
+                                    oldClone.slot = slot;
+                                    this.backpackItems.push(oldClone);
+                                }
+                            }
+                            // ===== 双手武器与副手栏互斥逻辑（卖出栏 → 装备栏）=====
+                            // 1. 如果装备到 weapon 栏且是双手武器 → 卸下 offhand
+                            if (item.isTwoHanded && eKey === 'weapon') {
+                                const offItem = this.player.equipments['offhand'];
+                                if (offItem && offItem.name) {
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    if (freeSlot < 36) {
+                                        const oldClone = JSON.parse(JSON.stringify(offItem));
+                                        oldClone.slot = freeSlot;
+                                        this.backpackItems.push(oldClone);
+                                    }
+                                    this.player.equipments['offhand'] = null;
+                                    this.callbacks.clearWeaponState('offhand');
+                                    if ('offhand' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 1b. 如果装备到 weapon2 栏且是双手武器 → 卸下 ring2
+                            if (item.isTwoHanded && eKey === 'weapon2') {
+                                const offItem = this.player.equipments['ring2'];
+                                if (offItem && offItem.name) {
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    if (freeSlot < 36) {
+                                        const oldClone = JSON.parse(JSON.stringify(offItem));
+                                        oldClone.slot = freeSlot;
+                                        this.backpackItems.push(oldClone);
+                                    }
+                                    this.player.equipments['ring2'] = null;
+                                    this.callbacks.clearWeaponState('ring2');
+                                    if ('ring2' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 2. 如果装备到 offhand → 检查 weapon 是否有双手武器
+                            if (eKey === 'offhand') {
+                                const wItem = this.player.equipments['weapon'];
+                                if (wItem && wItem.isTwoHanded) {
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    if (freeSlot < 36) {
+                                        const oldClone = JSON.parse(JSON.stringify(wItem));
+                                        oldClone.slot = freeSlot;
+                                        this.backpackItems.push(oldClone);
+                                    }
+                                    this.player.equipments['weapon'] = null;
+                                    this.callbacks.clearWeaponState('weapon');
+                                    if ('weapon' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            // 2b. 如果装备到 ring2 → 检查 weapon2 是否有双手武器
+                            if (eKey === 'ring2') {
+                                const wItem = this.player.equipments['weapon2'];
+                                if (wItem && wItem.isTwoHanded) {
+                                    const used = new Set(this.backpackItems.map(i => i.slot));
+                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                                    if (freeSlot < 36) {
+                                        const oldClone = JSON.parse(JSON.stringify(wItem));
+                                        oldClone.slot = freeSlot;
+                                        this.backpackItems.push(oldClone);
+                                    }
+                                    this.player.equipments['weapon2'] = null;
+                                    this.callbacks.clearWeaponState('weapon2');
+                                    if ('weapon2' === this.player.weaponMode && this.player._clearSkillOverrides) {
+                                        this.player._clearSkillOverrides();
+                                    }
+                                }
+                            }
+                            this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
+                            if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
+                                this.player._applySkillOverrides(item);
+                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                    SkillManager.renderSkillGrid();
+                                }
+                            }
+                            if (eKey === 'weapon' || eKey === 'weapon2') {
+                                if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
+                                    const frames = [];
+                                    if (item.bowFrames) {
+                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                    } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
+                                        const startFrame = item.weaponAsset.startFrame || 1;
+                                        for (let i = 0; i < item.weaponAsset.frameCount; i++) {
+                                            const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
+                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                        }
+                                    }
+                                    this.player.equippedBowFrames = frames;
+                                    this.player.equippedRangedType = 'bow';
+                                } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
+                                    this.player.equippedRangedType = 'pistol';
+                                    if (item.equipImage) {
+                                        this.player.pistolImage = new Image();
+                                        this.player.pistolImage.src = item.equipImage;
+                                    }
+                                    if (item.weaponAsset && item.weaponAsset.muzzleImage) {
+                                        this.player.muzzleFlashImg = new Image();
+                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                    }
+                                } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
+                                    this.player.hasMeleeWeapon = true;
+                                }
+                                this.player.weaponAnim.nextSpin = Date.now() + 150;
+                                this.callbacks.syncWeaponVisual();
+                            }
+                            ShopSystem._selectedSellItems.splice(sellIndex, 1);
+                            this.callbacks.updateEquipSlots(); this.callbacks.updateInventorySlots();
+                            ShopSystem._updateUI();
+                            this.callbacks.triggerEquipFlash(eKey);
+                            return;
+                        }
+                    },
+
+                    _canEquipSlot(item, slot) {
+                        if (!item || !slot) return true;
+                        const isWeaponSlot = (slot === 'weapon' || slot === 'weapon2');
+                        const isOffhandSlot = (slot === 'offhand' || slot === 'ring2');
+                        const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
+                        if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return false;
+                        if (isWeaponSlot && !isWeaponItem) return false;
+                        // 所有武器都可以装备到 offhand/ring2（副手武器槽）
+                        if (isOffhandSlot && isWeaponItem) return true;
+                        if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== slot) return false;
+                        return true;
+                    }
+                };
+                this._dragDropManager.init({
+                    player: this.player,
+                    backpackItems: this.backpackItems,
+                    updateEquipSlots: () => this.updateEquipSlots(),
+                    updateInventorySlots: () => this.updateInventorySlots(),
+                    triggerEquipFlash: (slot) => this.triggerEquipFlash(slot),
+                    triggerBackpackFlash: (idx) => this.triggerBackpackFlash(idx),
+                    clearWeaponState: (slot) => this._clearWeaponState(slot),
+                    syncWeaponVisual: () => this._syncWeaponVisual(),
+                    showBackpackFullNotice: () => BackpackDialogManager._showBackpackFullNotice()
+                });
+                this._dragDropManager.setupDragAndDrop();
                 this.updateEquipSlots();
                 this.updateInventorySlots();
-                this.bindEquipTooltip();
-                this.bindInventoryTooltip();
-                this.setupDragAndDrop();
+                BackpackDialogManager.init({
+                    backpackItems: this.backpackItems,
+                    maxBackpackSlots: this.maxBackpackSlots,
+                    addToBackpack: (item) => this.addToBackpack(item),
+                    updateInventorySlots: () => this.updateInventorySlots(),
+                    showBackpackFullNotice: () => BackpackDialogManager._showBackpackFullNotice()
+                });
+                // 初始化 GoldManager 引用和回调
+                if (typeof GoldManager !== 'undefined') {
+                    GoldManager.setBackpackRef(this.backpackItems);
+                    GoldManager.setMaxBackpackSlots(this.maxBackpackSlots);
+                    GoldManager.setCallbacks({
+                        onUpdate: () => this.updateInventorySlots(),
+                        onFull: () => BackpackDialogManager._showBackpackFullNotice()
+                    });
+                }
             },
-            // === 触发装备动画 ===
+            // 背包最大格子数（可通过装备/道具扩容）
+            maxBackpackSlots: 10,
+
+            // 查找背包第一个空位，返回 slot 索引，-1 表示满
+            _findFirstEmptySlot() {
+                const used = new Set(this.backpackItems.map(i => i.slot));
+                let slot = 0;
+                while (used.has(slot) && slot < this.maxBackpackSlots) slot++;
+                return slot < this.maxBackpackSlots ? slot : -1;
+            },
+
+            // 触发装备动画
             triggerEquipFlash(slotKey) {
                 if (!slotKey) return;
                 const slot = document.querySelector(`.equip-grid .diablo-slot[data-slot="${slotKey}"]`);
@@ -93,41 +884,6 @@
                 setTimeout(() => cell.classList.remove('equip-pop'), 550);
             },
             /** 设置拖放事件 */
-            setupDragAndDrop() {
-                this._dragSrc = null;
-                // === 装备栏事件委托（所有槽位统一处理，包括空槽位） ===
-                const equipGrid = document.querySelector('.equip-grid');
-                if (equipGrid) {
-                    equipGrid.ondragover = function(e) { e.preventDefault(); };
-                    equipGrid.ondragenter = function(e) {
-                        const slot = e.target.closest('.diablo-slot');
-                        if (slot) slot.classList.add('drag-over');
-                    };
-                    equipGrid.ondragleave = function(e) {
-                        const slot = e.target.closest('.diablo-slot');
-                        if (slot && !slot.contains(e.relatedTarget)) slot.classList.remove('drag-over');
-                    };
-                    const self = this;
-                    equipGrid.ondrop = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const slot = e.target.closest('.diablo-slot');
-                        document.querySelectorAll('.equip-grid .diablo-slot').forEach(s => s.classList.remove('drag-over'));
-                        self._dropHandled = true;
-                        if (!slot) return;
-                        const src = self._dragSrc;
-                        if (!src || src.slot === slot.dataset.slot) return;
-                        self.handleDrop(src, 'equip', slot.dataset.slot);
-                        self._dragSrc = null;
-                    };
-                }
-                // 一次性绑定所有装备栏和背包格子的拖放事件
-                document.querySelectorAll('.diablo-slot, .inv-cell').forEach(cell => {
-                    this.bindDragToCell(cell);
-                });
-                // 绑定画布丢弃事件：拖到游戏画面上 = 扔到地上
-                this.bindCanvasDiscard();
-            },
             /** 清除玩家手上持有的武器状态（与 loadWeaponAssets 逆操作对应）
              *  卸下 weapon（武器栏1）或 weapon2（武器栏2）槽后同步清除手上状态
              */
@@ -156,8 +912,9 @@
                         if (currentItem.bowFrames) {
                             for (let i = 0; i < currentItem.bowFrames.length; i++) { const im = new Image(); im.src = currentItem.bowFrames[i]; frames.push(im); }
                         } else if (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix) {
-                            for (let i = 1; i <= currentItem.weaponAsset.frameCount; i++) {
-                                const num = String(i).padStart(currentItem.weaponAsset.framePad || 2, '0');
+                            const startFrame = currentItem.weaponAsset.startFrame || 1;
+                            for (let i = 0; i < currentItem.weaponAsset.frameCount; i++) {
+                                const num = String(startFrame + i).padStart(currentItem.weaponAsset.framePad || 2, '0');
                                 const im = new Image(); im.src = currentItem.weaponAsset.framePrefix + num + '.png'; frames.push(im);
                             }
                         }
@@ -165,6 +922,12 @@
                         player.equippedRangedType = 'bow';
                     } else if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
+                    } else if (currentItem.weaponType === 'pkm') {
+                        player.equippedRangedType = 'pkm';
+                    } else if (currentItem.weaponType === 'akm') {
+                        player.equippedRangedType = 'akm';
+                    } else if (currentItem.weaponType === 'qbz191') {
+                        player.equippedRangedType = 'qbz191';
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
                     }
@@ -178,330 +941,10 @@
                 player.weaponAnim.state = 'idle';
                 player.weaponAnim.timer = 0;
                 player.weaponAnim.nextSpin = Date.now() + 150; // 触发待机动画2（旋转动画）
-                // 夜与火之剑：禁用特殊攻击图标
-                if (!currentItem || currentItem.weaponId !== 'weapon5') {
+                // 夜与火之剑/符文长剑：禁用特殊攻击图标
+                if (!currentItem || (currentItem.weaponId !== 'weapon5' && currentItem.weaponId !== 'weapon4')) {
                     QuickBar.disableSpecialAttack();
                 }
-            },
-            /** 执行丢弃物品到地上的核心逻辑 */
-            _doDiscard() {
-                const src = this._dragSrc;
-                if (!src || !Game.player) return false;
-                let item = null;
-                if (src.type === 'inventory') {
-                    const idx = parseInt(src.slot);
-                    item = this.backpackItems.find(i => i.slot === idx);
-                    if (item) this.backpackItems = this.backpackItems.filter(i => i.slot !== idx);
-                } else if (src.type === 'equip') {
-                    item = Game.player.equipments[src.slot];
-                    if (item) {
-                        Game.player.equipments[src.slot] = null;
-                        // 同步清除手上武器状态
-                        this._clearWeaponState(src.slot);
-                        // 清除技能覆盖（如果丢弃的是当前武器栏的装备）
-                        if (src.slot === Game.player.weaponMode && Game.player._clearSkillOverrides) {
-                            Game.player._clearSkillOverrides();
-                            // 刷新技能栏显示
-                            if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
-                                SkillManager.renderSkillGrid();
-                            }
-                        }
-                    }
-                }
-                if (item) {
-                    const dropDist = 60 + Math.random() * 40;
-                    const dropAngle = Game.player.rotation + (Math.random() - 0.5) * 0.5;
-                    const dropX = Game.player.x + Math.cos(dropAngle) * dropDist;
-                    const dropY = Game.player.y + Math.sin(dropAngle) * dropDist;
-                    Game.dropItem(dropX, dropY, item);
-                    EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 30, '已丢弃: ' + item.name));
-                    this.updateEquipSlots();
-                    this.updateInventorySlots();
-                    this._dragSrc = null;
-                    return true;
-                }
-                return false;
-            },
-            /** 检查鼠标位置是否在红线区域（游戏画面内，不含右侧面板） */
-            _isInGameArea(clientX) {
-                const panel = document.getElementById('systemPanel');
-                // 面板未打开时，整个屏幕都是游戏区域
-                if (!panel || !panel.classList.contains('active')) return true;
-                // 面板打开时，获取面板左边界（屏幕宽度的 55% 处，因为面板宽 45vw 从右边推出）
-                const panelLeft = window.innerWidth * 0.55;
-                return clientX < panelLeft;
-            },
-            /** 绑定画布丢弃：拖放到游戏画面区域 = 扔出物品
-             * 采用 drop-标记法：dragstart 时标记 _dropHandled=false
-             * 任何成功的 drop（到面板格子）标记 _dropHandled=true
-             * dragend 时如果 _dropHandled 仍为 false，说明 drop 到游戏区域，执行丢弃
-             */
-            bindCanvasDiscard() {
-                const self = this;
-                // === 丢弃区域：drop 到这些元素上 = 执行丢弃 ===
-                const canvas = document.getElementById('gameCanvas');
-                if (canvas) {
-                    canvas.ondragover = function(e) { e.preventDefault(); };
-                    canvas.ondrop = function(e) {
-                        e.preventDefault();
-                        self._dropHandled = true;
-                        self._doDiscard();
-                    };
-                }
-                const overlay = document.getElementById('panelOverlay');
-                if (overlay) {
-                    overlay.ondragover = function(e) { e.preventDefault(); };
-                    overlay.ondrop = function(e) {
-                        e.preventDefault();
-                        self._dropHandled = true;
-                        self._doDiscard();
-                    };
-                }
-                // === 非丢弃区域：drop 到面板和 UI 上 = 标记已处理，不丢弃 ===
-                const panel = document.getElementById('systemPanel');
-                if (panel) {
-                    panel.ondragover = function(e) { e.preventDefault(); };
-                    panel.ondrop = function(e) {
-                        e.preventDefault();
-                        self._dropHandled = true; // 标记已处理，不丢弃
-                    };
-                }
-                const uiLayer = document.getElementById('uiLayer');
-                if (uiLayer) {
-                    uiLayer.ondragover = function(e) { e.preventDefault(); };
-                    uiLayer.ondrop = function(e) {
-                        e.preventDefault();
-                        self._dropHandled = true; // 标记已处理，不丢弃
-                    };
-                }
-                // === 面板内所有子容器也标记为非丢弃区域 ===
-                document.querySelectorAll('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid').forEach(el => {
-                    el.ondragover = function(e) { e.preventDefault(); };
-                    el.ondrop = function(e) {
-                        e.preventDefault();
-                        self._dropHandled = true; // 标记已处理，不丢弃
-                    };
-                });
-                // document 级别 dragover（确保 drop 事件能触发）
-                document.addEventListener('dragover', function _discardAllowDrop(e) {
-                    if (self._dragSrc) e.preventDefault();
-                });
-            },
-            /** 绑定单个格子的拖放事件 */
-            bindDragToCell(cell) {
-                const self = this;
-                cell.ondragstart = function(e) {
-                    self._dragSrc = {
-                        type: cell.classList.contains('inv-cell') ? 'inventory' : 'equip',
-                        slot: cell.dataset.slot
-                    };
-                    self._dropHandled = false; // drop 标记：false = 尚未处理
-                    e.dataTransfer.setData('text/plain', cell.dataset.slot);
-                    e.dataTransfer.effectAllowed = 'move';
-                    cell.classList.add('dragging');
-                    // 拖拽开始时自动隐藏属性浮窗
-                    const tooltip = document.getElementById('equipTooltip');
-                    if (tooltip) {
-                        tooltip.classList.remove('visible', 'pinned');
-                        tooltip._pinned = false;
-                    }
-                };
-                cell.ondragend = function(e) {
-                    cell.classList.remove('dragging');
-                    document.querySelectorAll('.inv-cell, .diablo-slot').forEach(s => s.classList.remove('drag-over'));
-                    // 丢弃条件：drop 没被任何已知区域处理（所有面板/UI区域都已绑定ondrop标记_dropHandled）
-                    // 如果 _dropHandled 仍为 false，说明拖到了浏览器外部或未知区域，执行丢弃
-                    if (!self._dropHandled && self._dragSrc && self._isInGameArea(e.clientX)) {
-                        self._doDiscard();
-                    }
-                    self._dropHandled = false;
-                    self._dragSrc = null;
-                };
-                cell.ondragover = function(e) {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                };
-                cell.ondragenter = function(e) {
-                    cell.classList.add('drag-over');
-                };
-                cell.ondragleave = function(e) {
-                    cell.classList.remove('drag-over');
-                };
-                cell.ondrop = function(e) {
-                    e.preventDefault();
-                    // 装备栏槽位的 drop 由 equipGrid 事件委托处理，这里直接返回不阻止冒泡
-                    if (!cell.classList.contains('inv-cell')) {
-                        cell.classList.remove('drag-over');
-                        return;
-                    }
-                    // 背包格子的 drop 自行处理
-                    e.stopPropagation();
-                    cell.classList.remove('drag-over');
-                    self._dropHandled = true;
-                    const src = self._dragSrc;
-                    if (!src || src.slot === cell.dataset.slot) return;
-                    self.handleDrop(src, 'inventory', cell.dataset.slot);
-                    self._dragSrc = null;
-                };
-            },
-/** 处理拖放放下逻辑 */
-            handleDrop(src, targetType, targetSlot) {
-                if (!src || !targetType) return;
-                // 背包 -> 背包：交换位置
-                if (src.type === 'inventory' && targetType === 'inventory') {
-                    const sIdx = parseInt(src.slot), tIdx = parseInt(targetSlot);
-                    if (isNaN(sIdx) || isNaN(tIdx) || sIdx === tIdx) return;
-                    const sItem = this.backpackItems.find(i => i.slot === sIdx);
-                    const tItem = this.backpackItems.find(i => i.slot === tIdx);
-                    if (sItem) sItem.slot = tIdx;
-                    if (tItem) tItem.slot = sIdx;
-                    // SoundManager.play('equip');
-                    this.updateInventorySlots(); return;
-                }
-                // 背包 -> 装备栏：装备物品（通用武器槽设计）
-                if (src.type === 'inventory' && targetType === 'equip') {
-                    const sIdx = parseInt(src.slot);
-                    const item = this.backpackItems.find(i => i.slot === sIdx);
-                    if (!item) return;
-                    // 非武器槽位需要 equipSlot 匹配；武器槽位（weapon/weapon2）只能放武器
-                    const isWeaponSlot = (targetSlot === 'weapon' || targetSlot === 'weapon2');
-                    const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                    if (isWeaponItem && !isWeaponSlot) return; // 武器只能放入武器槽
-                    if (isWeaponSlot && !isWeaponItem) return; // 非武器不能放入武器槽
-                    if (!isWeaponSlot && item.equipSlot !== targetSlot) return;
-                    const cur = this.player.equipments[targetSlot];
-                    // 先移除背包中原物品
-                    this.backpackItems = this.backpackItems.filter(i => i.slot !== sIdx);
-                    // 如果槽位有旧装备，卸下放到背包
-                    if (cur && cur.name) {
-                        const oldClone = JSON.parse(JSON.stringify(cur));
-                        oldClone.slot = sIdx;
-                        this.backpackItems.push(oldClone);
-                    }
-                    // 装备新物品
-                    this.player.equipments[targetSlot] = JSON.parse(JSON.stringify(item));
-                    // 只在装备到当前武器栏时应用技能覆盖（非当前栏位等切换时再应用）
-                    if (targetSlot === this.player.weaponMode && this.player._applySkillOverrides) {
-                        this.player._applySkillOverrides(item);
-                        // 刷新技能栏显示
-                        if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
-                            SkillManager.renderSkillGrid();
-                        }
-                    }
-                    // 更新武器状态
-                    if (targetSlot === 'weapon' || targetSlot === 'weapon2') {
-                        if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
-                            const frames = [];
-                            if (item.bowFrames) {
-                                for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
-                            } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
-                                for (let i = 1; i <= item.weaponAsset.frameCount; i++) {
-                                    const num = String(i).padStart(item.weaponAsset.framePad || 2, '0');
-                                    const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
-                                }
-                            }
-                            this.player.equippedBowFrames = frames;
-                            this.player.equippedRangedType = 'bow';
-                        } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
-                            this.player.equippedRangedType = 'pistol';
-                        } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
-                            this.player.hasMeleeWeapon = true;
-                        }
-                        // 同步当前武器视觉状态（确保贴图正确更新）
-                        this._syncWeaponVisual();
-                    }
-                    this.updateEquipSlots(); this.updateInventorySlots();
-                    // 触发装备动画
-                    this.triggerEquipFlash(targetSlot);
-                    if (cur && cur.name) {
-                        this.triggerBackpackFlash(sIdx);
-                    }
-                    return;
-                }
-                // 装备栏 -> 背包：卸下装备到指定格子
-                if (src.type === 'equip' && targetType === 'inventory') {
-                    const eKey = src.slot, tIdx = parseInt(targetSlot);
-                    const existing = this.player.equipments[eKey];
-                    if (!existing) return;
-                    const bpItem = this.backpackItems.find(i => i.slot === tIdx);
-                    if (bpItem && bpItem.equipSlot === eKey) {
-                        // 交换：背包物品装备到栏位，旧装备放到被交换物品的格子
-                        const oldClone = JSON.parse(JSON.stringify(existing));
-                        oldClone.slot = tIdx;
-                        this.player.equipments[eKey] = bpItem;
-                        bpItem.slot = -1; // 临时标记，避免被filter掉
-                        this.backpackItems = this.backpackItems.filter(i => i.slot !== tIdx);
-                        this.backpackItems.push(oldClone);
-                        if (eKey === 'weapon2' && bpItem.weaponAsset) this.player.loadWeaponAssets(bpItem);
-                        // 如果交换的是当前武器槽，同步视觉状态
-                        if (eKey === 'weapon' || eKey === 'weapon2') this._syncWeaponVisual();
-                        // 应用技能覆盖（如果新装备有 skillOverrides）
-                        if (this.player._applySkillOverrides) {
-                            this.player._applySkillOverrides(bpItem);
-                        }
-                    } else {
-                        // 目标格子有物品（类型不匹配）或为空：统一处理
-                        this.backpackItems = this.backpackItems.filter(i => i.slot !== tIdx);
-                        const clone = JSON.parse(JSON.stringify(existing));
-                        clone.slot = tIdx;
-                        clone.backpackSlot = tIdx;
-                        this.backpackItems.push(clone);
-                        this.player.equipments[eKey] = null;
-                        this._clearWeaponState(eKey);
-                        // 清除技能覆盖（只在卸下当前武器栏时）
-                        if (eKey === this.player.weaponMode && this.player._clearSkillOverrides) {
-                            this.player._clearSkillOverrides();
-                        }
-                        // 夜与火之剑：禁用特殊攻击图标
-                        if (existing.weaponId === 'weapon5') {
-                            QuickBar.disableSpecialAttack();
-                        }
-                    }
-                    this.updateEquipSlots(); this.updateInventorySlots();
-                    // 触发动画
-                    this.triggerEquipFlash(eKey);
-                    this.triggerBackpackFlash(tIdx);
-                    return;
-                }
-                // 装备栏 -> 装备栏：交换（需类型验证）
-                if (src.type === 'equip' && targetType === 'equip') {
-                    const sKey = src.slot, tKey = targetSlot;
-                    if (sKey === tKey) return;
-                    const sItem = this.player.equipments[sKey];
-                    const tItem = this.player.equipments[tKey];
-                    if (!sItem && !tItem) return;
-                    // 类型验证：检查源物品能否放入目标槽，目标物品能否放入源槽
-                    if (!this._canEquipSlot(sItem, tKey)) return;
-                    if (!this._canEquipSlot(tItem, sKey)) return;
-                    this.player.equipments[sKey] = tItem || null;
-                    this.player.equipments[tKey] = sItem || null;
-                    // 应用技能覆盖（以目标槽位优先）
-                    if (this.player._applySkillOverrides) {
-                        const activeItem = this.player.equipments[this.player.weaponMode];
-                        this.player._applySkillOverrides(activeItem);
-                    }
-                    // 如果交换涉及武器槽位，重新同步视觉状态（不切换 weaponMode，保持当前使用的武器）
-                    if (sKey === 'weapon' || sKey === 'weapon2' || tKey === 'weapon' || tKey === 'weapon2') {
-                        this._syncWeaponVisual();
-                    }
-                    // 拖入目标槽时加载新武器资源
-                    if ((tKey === 'weapon' || tKey === 'weapon2') && sItem && sItem.weaponAsset) this.player.loadWeaponAssets(sItem);
-                    EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, `已交换: ${sItem.name} ↔ ${tItem ? tItem.name : '空'}`, '#d4c5a9'));
-                    this.updateEquipSlots();
-                    // 触发交换动画
-                    this.triggerEquipFlash(sKey);
-                    this.triggerEquipFlash(tKey);
-                    return;
-                }
-            },
-            _canEquipSlot(item, slot) {
-                if (!item || !slot) return true;
-                const isWeaponSlot = (slot === 'weapon' || slot === 'weapon2');
-                const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                if (isWeaponItem && !isWeaponSlot) return false;
-                if (isWeaponSlot && !isWeaponItem) return false;
-                if (!isWeaponSlot && item.equipSlot !== slot) return false;
-                return true;
             },
             /** 同步当前武器视觉状态：根据 weaponMode 重新设置 meleeImage、弓/手枪状态、特殊攻击图标 */
             _syncWeaponVisual() {
@@ -519,8 +962,9 @@
                         if (currentItem.bowFrames) {
                             for (let i = 0; i < currentItem.bowFrames.length; i++) { const im = new Image(); im.src = currentItem.bowFrames[i]; frames.push(im); }
                         } else if (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix) {
-                            for (let i = 1; i <= currentItem.weaponAsset.frameCount; i++) {
-                                const num = String(i).padStart(currentItem.weaponAsset.framePad || 2, '0');
+                            const startFrame = currentItem.weaponAsset.startFrame || 1;
+                            for (let i = 0; i < currentItem.weaponAsset.frameCount; i++) {
+                                const num = String(startFrame + i).padStart(currentItem.weaponAsset.framePad || 2, '0');
                                 const im = new Image(); im.src = currentItem.weaponAsset.framePrefix + num + '.png'; frames.push(im);
                             }
                         }
@@ -528,11 +972,26 @@
                         player.equippedRangedType = 'bow';
                     } else if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
+                        // 同步手枪贴图（G18等）
+                        if (currentItem.equipImage) {
+                            player.pistolImage = new Image();
+                            player.pistolImage.src = currentItem.equipImage;
+                        }
+                        if (currentItem.weaponAsset && currentItem.weaponAsset.muzzleImage) {
+                            player.muzzleFlashImg = new Image();
+                            player.muzzleFlashImg.src = currentItem.weaponAsset.muzzleImage;
+                        }
+                    } else if (currentItem.weaponType === 'pkm') {
+                        player.equippedRangedType = 'pkm';
+                    } else if (currentItem.weaponType === 'akm') {
+                        player.equippedRangedType = 'akm';
+                    } else if (currentItem.weaponType === 'qbz191') {
+                        player.equippedRangedType = 'qbz191';
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
                     }
-                    // 同步夜与火之剑特殊攻击图标
-                    if (currentItem.weaponId === 'weapon5') {
+                    // 同步特殊攻击图标（夜与火之剑/符文长剑）
+                    if (currentItem && (currentItem.weaponId === 'weapon5' || currentItem.weaponId === 'weapon4')) {
                         QuickBar.enableSpecialAttack(currentItem);
                     } else {
                         QuickBar.disableSpecialAttack();
@@ -560,6 +1019,21 @@
                     const nameEl = slot.querySelector('.slot-name');
                     const rarityEl = slot.querySelector('.slot-rarity');
                     slot.draggable = !!item;
+                    // ===== 双手武器锁定状态：weapon1→offhand, weapon2→ring2 =====
+                    const isOffhandLocked = (key === 'offhand') && (eq['weapon'] && eq['weapon'].isTwoHanded);
+                    const isRing2Locked = (key === 'ring2') && (eq['weapon2'] && eq['weapon2'].isTwoHanded);
+                    const isLocked = isOffhandLocked || isRing2Locked;
+                    // 清除旧状态
+                    slot.classList.remove('two-handed-locked');
+                    const oldX = slot.querySelector('.two-handed-x');
+                    if (oldX) oldX.remove();
+                    if (isLocked) {
+                        slot.classList.add('two-handed-locked');
+                        const xEl = document.createElement('div');
+                        xEl.className = 'two-handed-x';
+                        xEl.textContent = '✕';
+                        slot.appendChild(xEl);
+                    }
                     if (item) {
                         slot.classList.add('equipped');
                         const imgSrc = item.slotImage || item.iconImage;
@@ -576,6 +1050,35 @@
                         } else {
                             iconEl.textContent = item.icon || '⚔';
                         }
+                        // 已强化标签
+                        let enhancedEl = slot.querySelector('.slot-enhanced');
+                        if (!enhancedEl) {
+                            enhancedEl = document.createElement('div');
+                            enhancedEl.className = 'slot-enhanced';
+                            slot.appendChild(enhancedEl);
+                        }
+                        enhancedEl.textContent = (item.enhanceLevel || 0) > 0 ? '已强化' : '';
+                        enhancedEl.style.display = (item.enhanceLevel || 0) > 0 ? 'flex' : 'none';
+                        // 已改造标签
+                        const isCrafted = item._isCrafted || (item._craftData && Object.keys(item._craftData).length > 0);
+                        let craftedEl = slot.querySelector('.slot-crafted');
+                        if (!craftedEl) {
+                            craftedEl = document.createElement('div');
+                            craftedEl.className = 'slot-crafted';
+                            slot.appendChild(craftedEl);
+                        }
+                        craftedEl.textContent = isCrafted ? '已改造' : '';
+                        craftedEl.style.display = isCrafted ? 'flex' : 'none';
+                        // 已附魔标签
+                        const isEnchanted = item._isEnchanted || (item._enchantData && (item._enchantData.prefix || item._enchantData.suffix));
+                        let enchantedEl = slot.querySelector('.slot-enchanted');
+                        if (!enchantedEl) {
+                            enchantedEl = document.createElement('div');
+                            enchantedEl.className = 'slot-enchanted';
+                            slot.appendChild(enchantedEl);
+                        }
+                        enchantedEl.textContent = isEnchanted ? '已附魔' : '';
+                        enchantedEl.style.display = isEnchanted ? 'flex' : 'none';
                     } else {
                         slot.classList.remove('equipped');
                         iconEl.innerHTML = '';
@@ -584,40 +1087,21 @@
                             rarityEl.textContent = '';
                             rarityEl.className = 'slot-rarity';
                         }
+                        const enhancedEl = slot.querySelector('.slot-enhanced');
+                        if (enhancedEl) enhancedEl.style.display = 'none';
+                        const craftedEl = slot.querySelector('.slot-crafted');
+                        if (craftedEl) craftedEl.style.display = 'none';
+                        const enchantedEl = slot.querySelector('.slot-enchanted');
+                        if (enchantedEl) enchantedEl.style.display = 'none';
                     }
-                    // 为装备栏槽位绑定 dragstart/dragend（drop 由 equipGrid 事件委托处理）
-                    const self = this;
-                    slot.ondragstart = function(e) {
-                        // 拖拽开始时自动隐藏属性浮窗
-                        const tooltip = document.getElementById('equipTooltip');
-                        if (tooltip) {
-                            tooltip.classList.remove('visible', 'pinned');
-                            tooltip._pinned = false;
-                        }
-                        if (!item) return;
-                        self._dragSrc = { type: 'equip', slot: key };
-                        self._dropHandled = false;
-                        e.dataTransfer.setData('text/plain', key);
-                        e.dataTransfer.effectAllowed = 'move';
-                        slot.classList.add('dragging');
-                    };
-                    slot.ondragend = function(e) {
-                        slot.classList.remove('dragging');
-                        document.querySelectorAll('.diablo-slot').forEach(s => s.classList.remove('drag-over'));
-                        if (!self._dropHandled && self._dragSrc && self._isInGameArea(e.clientX)) {
-                            self._doDiscard();
-                        }
-                        self._dropHandled = false;
-                        self._dragSrc = null;
-                    };
                 });
             },
             unequip(slotKey) {
                 const equipped = this.player.equipments[slotKey];
                 if (!equipped || !equipped.name) return false;
                 // 如果背包已满，不能卸下
-                if (this.backpackItems.length >= 36) {
-                    EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '背包已满！'));
+                if (this.backpackItems.length >= this.maxBackpackSlots) {
+                    BackpackDialogManager._showBackpackFullNotice();
                     return false;
                 }
                 // 使用原装备中的 backpackSlot 记忆字段，若无则分配第一个空位
@@ -625,8 +1109,8 @@
                 if (targetSlot === undefined || targetSlot < 0 || this.backpackItems.some(i => i.slot === targetSlot)) {
                     const used = new Set(this.backpackItems.map(i => i.slot));
                     targetSlot = 0;
-                    while (used.has(targetSlot) && targetSlot < 36) targetSlot++;
-                    if (targetSlot >= 36) return false;
+                    while (used.has(targetSlot) && targetSlot < this.maxBackpackSlots) targetSlot++;
+                    if (targetSlot >= this.maxBackpackSlots) return false;
                 }
                 const clone = JSON.parse(JSON.stringify(equipped));
                 clone.slot = targetSlot;
@@ -635,6 +1119,7 @@
                     else if (slotKey === 'offhand' || slotKey === 'ring2') clone.weaponCategory = 'offhand';
                 }
                 this.backpackItems.push(clone);
+                // 主手1/副手1/主手2/副手2 各自独立卸载，不再联动
                 this.player.equipments[slotKey] = null;
                 this._clearWeaponState(slotKey);
                 // 清除技能覆盖
@@ -645,384 +1130,34 @@
                 this.updateInventorySlots();
                 return true;
             },
-            bindEquipTooltip() {
-                const tooltip = document.getElementById('equipTooltip');
-                const ttName = document.getElementById('ttName');
-                const ttType = document.getElementById('ttType');
-                const ttStats = document.getElementById('ttStats');
-                const ttExtra = document.getElementById('ttExtra');
-                const ttDesc = document.getElementById('ttDesc');
-                const self = this;
-                let _ttMoveHandler = null;
-                // 关闭按钮
-                const closeBtn = document.getElementById('ttCloseBtn');
-                if (closeBtn) {
-                    closeBtn.onclick = function(e) {
-                        e.stopPropagation();
-                        tooltip.classList.remove('visible', 'pinned');
-                        tooltip._pinned = false;
-                    };
-                }
-                // 点击外部关闭
-                document.addEventListener('click', function(e) {
-                    if (tooltip._pinned && !tooltip.contains(e.target) && !e.target.closest('.diablo-slot') && !e.target.closest('.inv-cell')) {
-                        tooltip.classList.remove('visible', 'pinned');
-                        tooltip._pinned = false;
-                    }
-                });
-                function buildTooltip(item) {
-                    // 从 CodexManager 合并完整的武器数据
-                    const codexItem = (typeof CodexManager !== 'undefined' && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
-                    // 核心策略：以 codexItem 为完整数据基准（包含 attack、animation、weaponCategory 等所有字段），
-                    // 然后只覆盖 item 中需要动态计算的字段（如 stats 中的物理攻击值）和运行时字段（如 slot、backpackSlot）
-                    const fullItem = codexItem ? { ...codexItem } : { ...item };
-                    if (codexItem && item) {
-                        // 用 item 的 stats 值覆盖 codexItem 的 stats 值（如动态计算后的物理攻击）
-                        if (item.stats && Array.isArray(item.stats) && fullItem.stats && Array.isArray(fullItem.stats)) {
-                            const itemStatsMap = new Map();
-                            for (const s of item.stats) {
-                                const key = (s.name || s.label || '').trim();
-                                if (key) itemStatsMap.set(key, s);
-                            }
-                            for (let i = 0; i < fullItem.stats.length; i++) {
-                                const fs = fullItem.stats[i];
-                                const key = (fs.label || fs.name || '').trim();
-                                if (key && itemStatsMap.has(key)) {
-                                    const itemStat = itemStatsMap.get(key);
-                                    fullItem.stats[i] = { ...fs, value: itemStat.value, pos: itemStat.pos };
-                                }
-                            }
-                        }
-                        // 保留 item 中独有的运行时字段（如 slot、backpackSlot、itemId 等）
-                        for (const key of Object.keys(item)) {
-                            if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
-                                if (fullItem[key] === undefined || fullItem[key] === null || fullItem[key] === '') {
-                                    fullItem[key] = item[key];
-                                }
-                            }
-                        }
-                    }
-                    // 稀有度颜色绑定
-                    const rarityColorMap = { common: '#c0c0c0', uncommon: '#7aff7a', rare: '#7a9aff', epic: '#c67aff' };
-                    const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
-                    const rarityKey = fullItem.rarity || 'common';
-                    const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
-                    const rarityColor = rarityColorMap[rarityKey] || '#ffffff';
-                    ttName.textContent = fullItem.name;
-                    ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span style="color:${rarityColor};font-weight:700;">${rarityLabel}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
-                    // 属性列表
-                    let statsHtml = '';
-                    if (fullItem.stats && fullItem.stats.length > 0) {
-                        statsHtml = fullItem.stats.map(s => {
-                            const statName = s.name || s.label;
-                            if (!statName) return '';
-                            let value = s.value;
-                            // 近战武器物理攻击显示公式，远程武器显示固定数值
-                            if (statName === '物理攻击' && fullItem.weaponId && fullItem.category === 'weapon_melee') {
-                                const formulas = {
-                                    weapon1: '6 + 力量×0.8 + 敏捷×0.5',
-                                    weapon2: '12 + 力量×1 + 敏捷×0.5',
-                                    weapon4: '15 + 力量×1.5 + 敏捷×0.8',
-                                    weapon5: '20 + 力量×1.8 + 敏捷×1'
-                                };
-                                if (formulas[fullItem.weaponId]) value = formulas[fullItem.weaponId];
-                            }
-                            return `<div class="tt-stat"><span class="tt-stat-name">${statName}</span><span class="tt-stat-val ${s.pos ? 'pos' : ''}">${value}</span></div>`;
-                        }).join('');
-                    }
-                    ttStats.innerHTML = statsHtml;
-                    // 额外属性
-                    let extraHtml = '';
-                    if (fullItem.category) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">分类</span><span class="tt-stat-val">${fullItem.category}</span></div>`;
-                    if (fullItem.weaponType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器类型</span><span class="tt-stat-val">${fullItem.weaponType}</span></div>`;
-                    if (fullItem.weaponTypeTag) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器类型</span><span class="tt-stat-val">${fullItem.weaponTypeTag}</span></div>`;
-                    if (fullItem.equipSlot) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">装备槽位</span><span class="tt-stat-val">${fullItem.equipSlot}</span></div>`;
-                    if (fullItem.weaponId) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器ID</span><span class="tt-stat-val">${fullItem.weaponId}</span></div>`;
-                    if (fullItem.weaponCategory) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器分类</span><span class="tt-stat-val">${fullItem.weaponCategory}</span></div>`;
-                    // 武器攻击参数：仅从图鉴/原始数据获取，不读取玩家动态配置
-                    let attackParams = null;
-                    const codexAttack = codexItem ? codexItem.attack : null;
-                    if (codexAttack) {
-                        attackParams = codexAttack;
-                    } else if (fullItem.attack) {
-                        attackParams = fullItem.attack;
-                    }
-                    if (attackParams) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎯 攻击参数</span></div>`;
-                        if (attackParams.range) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击距离</span><span class="tt-stat-val">${attackParams.range}px</span></div>`;
-                        if (attackParams.attackInterval) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击间隔</span><span class="tt-stat-val">${attackParams.attackInterval}ms</span></div>`;
-                        if (attackParams.hitType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">命中类型</span><span class="tt-stat-val">${attackParams.hitType}</span></div>`;
-                        if (attackParams.damageType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">伤害类型</span><span class="tt-stat-val">${attackParams.damageType}</span></div>`;
-                    }
-                    // 武器动画参数：优先从 codexItem 获取，再回退到 fullItem
-                    const animSource = (codexItem && codexItem.animation) ? codexItem.animation : fullItem.animation;
-                    if (animSource) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎬 动画参数</span></div>`;
-                        if (animSource.type) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">动画类型</span><span class="tt-stat-val">${animSource.type}</span></div>`;
-                        if (animSource.totalMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">总时长</span><span class="tt-stat-val">${animSource.totalMs}</span></div>`;
-                        if (animSource.windupMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">预备(windup)</span><span class="tt-stat-val">${animSource.windupMs}ms</span></div>`;
-                        if (animSource.swingMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击(swing)</span><span class="tt-stat-val">${animSource.swingMs}ms</span></div>`;
-                        if (animSource.recoveryMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">回位(recovery)</span><span class="tt-stat-val">${animSource.recoveryMs}ms</span></div>`;
-                    }
-                    // 武器素材
-                    if (fullItem.weaponAsset) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">📁 素材</span></div>`;
-                        if (fullItem.weaponAsset.framePrefix) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">帧前缀</span><span class="tt-stat-val">${fullItem.weaponAsset.framePrefix}</span></div>`;
-                        if (fullItem.weaponAsset.frameCount) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">帧数</span><span class="tt-stat-val">${fullItem.weaponAsset.frameCount}</span></div>`;
-                    }
-                    if (fullItem.equipImage) extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name">装备贴图</span><span class="tt-stat-val" style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${fullItem.equipImage}</span></div>`;
-                    if (fullItem.iconImage) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">图标贴图</span><span class="tt-stat-val" style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;">${fullItem.iconImage}</span></div>`;
-                    ttExtra.innerHTML = extraHtml;
-                    ttDesc.textContent = fullItem.desc || '';
-                }
-                function positionTooltip(e) {
-                    const tw = 360;
-                    let left = e.clientX - tw - 10;
-                    let top = e.clientY + 10;
-                    // 先临时设置位置并获取实际高度
-                    tooltip.style.left = left + 'px';
-                    tooltip.style.top = top + 'px';
-                    const th = tooltip.offsetHeight || 280;
-                    // 水平边界检测：默认在鼠标左侧，若左侧空间不足则放右侧
-                    if (left < 10) left = e.clientX + 10;
-                    if (left + tw > window.innerWidth - 10) left = window.innerWidth - tw - 10;
-                    // 垂直边界检测：优先在鼠标下方，若下方空间不足则放上方
-                    if (top + th > window.innerHeight - 10) {
-                        top = e.clientY - th - 10;
-                    }
-                    // 若上方也超出，则强制限制在视口内
-                    if (top < 10) top = 10;
-                    tooltip.style.left = left + 'px';
-                    tooltip.style.top = top + 'px';
-                    // 保存固定位置
-                    tooltip._fixedLeft = left;
-                    tooltip._fixedTop = top;
-                }
-                function removeMoveHandler(slot) {
-                    if (slot._ttMoveHandler) {
-                        document.removeEventListener('mousemove', slot._ttMoveHandler);
-                        slot._ttMoveHandler = null;
-                    }
-                }
-                document.querySelectorAll('.diablo-slot').forEach(slot => {
-                    slot.onmouseenter = function(e) {
-                        if (tooltip._pinned) return; // 固定时不响应hover
-                        const key = slot.dataset.slot;
-                        const item = self.player.equipments[key];
-                        if (!item) return;
-                        buildTooltip(item);
-                        tooltip.classList.add('visible');
-                        positionTooltip(e);
-                        slot._ttMoveHandler = positionTooltip;
-                        document.addEventListener('mousemove', slot._ttMoveHandler);
-                    };
-                    slot.onmouseleave = function() {
-                        if (tooltip._pinned) return; // 固定时不隐藏
-                        tooltip.classList.remove('visible');
-                        removeMoveHandler(slot);
-                    };
-                    slot.onmousedown = function(e) {
-                        if (e.button !== 0) return; // 仅左键
-                        const key = slot.dataset.slot;
-                        const item = self.player.equipments[key];
-                        if (!item) return;
-                        e.stopPropagation();
-                        if (tooltip._pinned) {
-                            // 再次点击已固定的项，取消固定
-                            tooltip.classList.remove('visible', 'pinned');
-                            tooltip._pinned = false;
-                        } else {
-                            // 固定显示
-                            buildTooltip(item);
-                            tooltip.classList.add('visible', 'pinned');
-                            tooltip._pinned = true;
-                            positionTooltip(e);
-                            // 固定后移除mousemove监听器，不再跟随鼠标
-                            removeMoveHandler(slot);
-                        }
-                    };
-                    slot.oncontextmenu = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const key = slot.dataset.slot;
-                        if (self.unequip(key)) {
-                            EffectManager.add(new FloatingTextEffect(self.player.x, self.player.y - 20, '已卸下装备'));
-                        }
-                    };
-                });
+            _showBackpackFullNotice() {
+                BackpackDialogManager._showBackpackFullNotice();
             },
-            bindInventoryTooltip() {
-                const tooltip = document.getElementById('equipTooltip');
-                const ttName = document.getElementById('ttName');
-                const ttType = document.getElementById('ttType');
-                const ttStats = document.getElementById('ttStats');
-                const ttExtra = document.getElementById('ttExtra');
-                const ttDesc = document.getElementById('ttDesc');
-                const self = this;
-                function buildTooltip(item) {
-                    // 从 CodexManager 合并完整的武器数据（与装备栏版本完全一致）
-                    const codexItem = (typeof CodexManager !== 'undefined' && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
-                    const fullItem = codexItem ? { ...codexItem } : { ...item };
-                    if (codexItem && item) {
-                        // 用 item 的 stats 值覆盖 codexItem 的 stats 值（动态计算后的物理攻击等）
-                        if (item.stats && Array.isArray(item.stats) && fullItem.stats && Array.isArray(fullItem.stats)) {
-                            const itemStatsMap = new Map();
-                            for (const s of item.stats) {
-                                const key = (s.name || s.label || '').trim();
-                                if (key) itemStatsMap.set(key, s);
-                            }
-                            for (let i = 0; i < fullItem.stats.length; i++) {
-                                const fs = fullItem.stats[i];
-                                const key = (fs.label || fs.name || '').trim();
-                                if (key && itemStatsMap.has(key)) {
-                                    const itemStat = itemStatsMap.get(key);
-                                    fullItem.stats[i] = { ...fs, value: itemStat.value, pos: itemStat.pos };
-                                }
-                            }
-                        }
-                        // 保留 item 中独有的运行时字段
-                        for (const key of Object.keys(item)) {
-                            if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
-                                if (fullItem[key] === undefined || fullItem[key] === null || fullItem[key] === '') {
-                                    fullItem[key] = item[key];
-                                }
-                            }
-                        }
-                    }
-                    // 稀有度颜色绑定（背包浮窗）
-                    const rarityColorMap2 = { common: '#c0c0c0', uncommon: '#7aff7a', rare: '#7a9aff', epic: '#c67aff' };
-                    const rarityLabelMap2 = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
-                    const rarityKey2 = fullItem.rarity || 'common';
-                    const rarityLabel2 = rarityLabelMap2[rarityKey2] || rarityKey2;
-                    const rarityColor2 = rarityColorMap2[rarityKey2] || '#ffffff';
-                    ttName.textContent = fullItem.name;
-                    ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span style="color:${rarityColor2};font-weight:700;">${rarityLabel2}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
-                    let statsHtml = '';
-                    if (fullItem.stats && fullItem.stats.length > 0) {
-                        statsHtml = fullItem.stats.map(s => {
-                            const statName = s.name || s.label;
-                            if (!statName) return '';
-                            let value = s.value;
-                            // 近战武器物理攻击显示公式，远程武器显示固定数值
-                            if (statName === '物理攻击' && fullItem.weaponId && fullItem.category === 'weapon_melee') {
-                                const formulas = {
-                                    weapon1: '6 + 力量×0.8 + 敏捷×0.5',
-                                    weapon2: '12 + 力量×1 + 敏捷×0.5',
-                                    weapon4: '15 + 力量×1.5 + 敏捷×0.8',
-                                    weapon5: '20 + 力量×1.8 + 敏捷×1'
-                                };
-                                if (formulas[fullItem.weaponId]) value = formulas[fullItem.weaponId];
-                            }
-                            return `<div class="tt-stat"><span class="tt-stat-name">${statName}</span><span class="tt-stat-val ${s.pos ? 'pos' : ''}">${value}</span></div>`;
-                        }).join('');
-                    }
-                    ttStats.innerHTML = statsHtml;
-                    let extraHtml = '';
-                    if (fullItem.category) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">分类</span><span class="tt-stat-val">${fullItem.category}</span></div>`;
-                    if (fullItem.weaponType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器类型</span><span class="tt-stat-val">${fullItem.weaponType}</span></div>`;
-                    if (fullItem.weaponTypeTag) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器类型</span><span class="tt-stat-val">${fullItem.weaponTypeTag}</span></div>`;
-                    if (fullItem.equipSlot) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">装备槽位</span><span class="tt-stat-val">${fullItem.equipSlot}</span></div>`;
-                    if (fullItem.weaponId) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器ID</span><span class="tt-stat-val">${fullItem.weaponId}</span></div>`;
-                    if (fullItem.weaponCategory) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">武器分类</span><span class="tt-stat-val">${fullItem.weaponCategory}</span></div>`;
-                    // 攻击参数：仅从图鉴/原始数据获取，不读取玩家动态配置
-                    let attackParams = null;
-                    const codexAttack = codexItem ? codexItem.attack : null;
-                    if (codexAttack) {
-                        attackParams = codexAttack;
-                    } else if (fullItem.attack) {
-                        attackParams = fullItem.attack;
-                    }
-                    if (attackParams) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎯 攻击参数</span></div>`;
-                        if (attackParams.range) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击距离</span><span class="tt-stat-val">${attackParams.range}px</span></div>`;
-                        if (attackParams.attackInterval) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击间隔</span><span class="tt-stat-val">${attackParams.attackInterval}ms</span></div>`;
-                        if (attackParams.hitType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">命中类型</span><span class="tt-stat-val">${attackParams.hitType}</span></div>`;
-                        if (attackParams.damageType) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">伤害类型</span><span class="tt-stat-val">${attackParams.damageType}</span></div>`;
-                    }
-                    // 动画参数：优先从 codexItem 获取，确保背包和装备栏一致
-                    const animSource = (codexItem && codexItem.animation) ? codexItem.animation : fullItem.animation;
-                    if (animSource) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎬 动画参数</span></div>`;
-                        if (animSource.type) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">动画类型</span><span class="tt-stat-val">${animSource.type}</span></div>`;
-                        if (animSource.totalMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">总时长</span><span class="tt-stat-val">${animSource.totalMs}</span></div>`;
-                        if (animSource.windupMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">预备(windup)</span><span class="tt-stat-val">${animSource.windupMs}ms</span></div>`;
-                        if (animSource.swingMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击(swing)</span><span class="tt-stat-val">${animSource.swingMs}ms</span></div>`;
-                        if (animSource.recoveryMs) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">回位(recovery)</span><span class="tt-stat-val">${animSource.recoveryMs}ms</span></div>`;
-                    }
-                    // 武器素材
-                    if (fullItem.weaponAsset) {
-                        extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">📁 素材</span></div>`;
-                        if (fullItem.weaponAsset.framePrefix) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">帧前缀</span><span class="tt-stat-val">${fullItem.weaponAsset.framePrefix}</span></div>`;
-                        if (fullItem.weaponAsset.frameCount) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">帧数</span><span class="tt-stat-val">${fullItem.weaponAsset.frameCount}</span></div>`;
-                    }
-                    if (fullItem.equipImage) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">装备贴图</span><span class="tt-stat-val">${fullItem.equipImage}</span></div>`;
-                    if (fullItem.iconImage) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">图标贴图</span><span class="tt-stat-val">${fullItem.iconImage}</span></div>`;
-                    if (fullItem.stack > 1) extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">堆叠数量</span><span class="tt-stat-val">${fullItem.stack}</span></div>`;
-                    ttExtra.innerHTML = extraHtml;
-                    ttDesc.textContent = fullItem.desc || '';
+            _showSplitDialog(item, idx) {
+                BackpackDialogManager._showSplitDialog(item, idx);
+            },
+            addToBackpack(item) {
+                return this.addToInventory(item);
+            },
+            addToInventory(item) {
+                if (!this.backpackItems) this.backpackItems = [];
+                // 金币特殊处理：使用 GoldManager 合并到已有金币堆叠中
+                if (item && item.category === 'gold' && typeof GoldManager !== 'undefined') {
+                    return GoldManager.mergeGold(item);
                 }
-                function positionTooltip(e) {
-                    const tw = 360;
-                    let left = e.clientX - tw - 10;
-                    let top = e.clientY + 10;
-                    // 先临时设置位置并获取实际高度
-                    tooltip.style.left = left + 'px';
-                    tooltip.style.top = top + 'px';
-                    const th = tooltip.offsetHeight || 280;
-                    // 水平边界检测：默认在鼠标左侧，若左侧空间不足则放右侧
-                    if (left < 10) left = e.clientX + 10;
-                    if (left + tw > window.innerWidth - 10) left = window.innerWidth - tw - 10;
-                    // 垂直边界检测：优先在鼠标下方，若下方空间不足则放上方
-                    if (top + th > window.innerHeight - 10) {
-                        top = e.clientY - th - 10;
-                    }
-                    // 若上方也超出，则强制限制在视口内
-                    if (top < 10) top = 10;
-                    tooltip.style.left = left + 'px';
-                    tooltip.style.top = top + 'px';
+                const usedSlots = new Set(this.backpackItems.map(i => i.slot));
+                let slot = 0;
+                while (usedSlots.has(slot) && slot < this.maxBackpackSlots) slot++;
+                if (slot >= this.maxBackpackSlots) {
+                    BackpackDialogManager._showBackpackFullNotice();
+                    return false;
                 }
-                function removeMoveHandler(cell) {
-                    if (cell._ttMoveHandler) {
-                        document.removeEventListener('mousemove', cell._ttMoveHandler);
-                        cell._ttMoveHandler = null;
-                    }
-                }
-                document.querySelectorAll('.inv-cell').forEach(cell => {
-                    cell.onmouseenter = function(e) {
-                        if (tooltip._pinned) return;
-                        const idx = parseInt(cell.dataset.slot);
-                        const item = self.backpackItems.find(i => i.slot === idx);
-                        if (!item) return;
-                        buildTooltip(item);
-                        tooltip.classList.add('visible');
-                        positionTooltip(e);
-                        cell._ttMoveHandler = positionTooltip;
-                        document.addEventListener('mousemove', cell._ttMoveHandler);
-                    };
-                    cell.onmouseleave = function() {
-                        if (tooltip._pinned) return;
-                        tooltip.classList.remove('visible');
-                        removeMoveHandler(cell);
-                    };
-                    cell.onmousedown = function(e) {
-                        if (e.button !== 0) return;
-                        const idx = parseInt(cell.dataset.slot);
-                        const item = self.backpackItems.find(i => i.slot === idx);
-                        if (!item) return;
-                        e.stopPropagation();
-                        if (tooltip._pinned) {
-                            tooltip.classList.remove('visible', 'pinned');
-                            tooltip._pinned = false;
-                        } else {
-                            buildTooltip(item);
-                            tooltip.classList.add('visible', 'pinned');
-                            tooltip._pinned = true;
-                            positionTooltip(e);
-                            // 固定后移除mousemove监听器，不再跟随鼠标
-                            removeMoveHandler(cell);
-                        }
-                    };
-                });
+                const clone = JSON.parse(JSON.stringify(item));
+                clone.slot = slot;
+                this.backpackItems.push(clone);
+                this.updateInventorySlots();
+                this.triggerBackpackFlash(slot);
+                return true;
             },
             equipFromBackpack(backpackIdx) {
                 const item = this.backpackItems.find(i => i.slot === backpackIdx);
@@ -1031,6 +1166,10 @@
 
                 // ===== 消耗品：直接使用 =====
                 if (item.category === 'consumable') {
+                    // 附魔卷轴：平常时不消耗，只在附魔栏打开时由附魔系统处理
+                    if (item.scrollId) {
+                        return; // 不消耗，不响应
+                    }
                     if (item.name === '治疗药水') {
                         player.hp = Math.min(player.hp + 30, player.maxHp);
                         EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+30 HP', '#7a9a6a'));
@@ -1040,7 +1179,7 @@
                     }
                     // 减少堆叠数量
                     if (item.stack > 1) { item.stack--; }
-                    else { this.backpackItems = this.backpackItems.filter(i => i.slot !== backpackIdx); }
+                    else { const removeIdx = this.backpackItems.findIndex(i => i.slot === backpackIdx); if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1); }
                     this.updateInventorySlots();
                     return;
                 }
@@ -1053,22 +1192,39 @@
                 // 武器类：统一按空槽位填充逻辑，忽略 equipSlot
                 // 栏1空 → 栏1，栏1有栏2空 → 栏2，都满 → 替换当前使用的武器栏
                 if (isWeapon) {
-                    const w1Empty = !player.equipments.weapon || !player.equipments.weapon.name;
-                    const w2Empty = !player.equipments.weapon2 || !player.equipments.weapon2.name;
-                    if (w1Empty) {
-                        targetSlot = 'weapon';
-                    } else if (w2Empty) {
-                        targetSlot = 'weapon2';
+                    const isOneHandedWeapon = item.weaponType && isOneHanded(item.weaponType);
+                    if (isOneHandedWeapon) {
+                        // 单手武器：先检查当前主手是否装备双手武器，如果是则替换主手
+                        const currentMainSlot = player.weaponMode; // 'weapon' 或 'weapon2'
+                        const currentMainItem = player.equipments[currentMainSlot];
+                        const currentMainIsTwoHanded = currentMainItem && currentMainItem.weaponType && isTwoHanded(currentMainItem.weaponType);
+                        if (currentMainIsTwoHanded) {
+                            // 当前主手是双手武器，单手武器直接替换当前主手
+                            targetSlot = currentMainSlot;
+                        } else {
+                            // 当前主手不是双手武器，按原有逻辑：优先空槽，最后替换当前
+                            const slots = ['weapon', 'offhand', 'weapon2', 'ring2'];
+                            targetSlot = slots.find(s => !player.equipments[s] || !player.equipments[s].name) || player.weaponMode;
+                        }
                     } else {
-                        // 两个都满，替换当前正在使用的武器栏
-                        targetSlot = player.weaponMode;
+                        // 双手武器（机枪/步枪类）：只能装备到主手槽
+                        const w1Empty = !player.equipments.weapon || !player.equipments.weapon.name;
+                        const w2Empty = !player.equipments.weapon2 || !player.equipments.weapon2.name;
+                        if (w1Empty) {
+                            targetSlot = 'weapon';
+                        } else if (w2Empty) {
+                            targetSlot = 'weapon2';
+                        } else {
+                            targetSlot = player.weaponMode;
+                        }
                     }
                 }
                 if (!targetSlot || !player.equipments.hasOwnProperty(targetSlot)) return;
 
                 const replacedItem = player.equipments[targetSlot];
                 // 先从背包移除原物品
-                this.backpackItems = this.backpackItems.filter(i => i.slot !== backpackIdx);
+                const removeIdx = this.backpackItems.findIndex(i => i.slot === backpackIdx);
+                if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
                 // 如果目标槽位有旧装备，卸下并记录其来源格子
                 if (replacedItem && replacedItem.name) {
                     const oldClone = JSON.parse(JSON.stringify(replacedItem));
@@ -1079,10 +1235,75 @@
                 // 装备新物品
                 const equippedClone = JSON.parse(JSON.stringify(item));
                 equippedClone.backpackSlot = backpackIdx; // 记录来源格子
+                // ===== 双手武器与副手栏互斥逻辑 =====
+                // 1. 如果装备到 weapon 栏且是双手武器 → 卸下 offhand
+                if (item.isTwoHanded && targetSlot === 'weapon') {
+                    const offItem = player.equipments['offhand'];
+                    if (offItem && offItem.name) {
+                        const oldClone = JSON.parse(JSON.stringify(offItem));
+                        const used = new Set(this.backpackItems.map(i => i.slot));
+                        let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                        oldClone.slot = freeSlot;
+                        this.backpackItems.push(oldClone);
+                        player.equipments['offhand'] = null;
+                        this._clearWeaponState('offhand');
+                        if ('offhand' === player.weaponMode && player._clearSkillOverrides) {
+                            player._clearSkillOverrides();
+                        }
+                    }
+                }
+                // 1b. 如果装备到 weapon2 栏且是双手武器 → 卸下 ring2
+                if (item.isTwoHanded && targetSlot === 'weapon2') {
+                    const offItem = player.equipments['ring2'];
+                    if (offItem && offItem.name) {
+                        const oldClone = JSON.parse(JSON.stringify(offItem));
+                        const used = new Set(this.backpackItems.map(i => i.slot));
+                        let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                        oldClone.slot = freeSlot;
+                        this.backpackItems.push(oldClone);
+                        player.equipments['ring2'] = null;
+                        this._clearWeaponState('ring2');
+                        if ('ring2' === player.weaponMode && player._clearSkillOverrides) {
+                            player._clearSkillOverrides();
+                        }
+                    }
+                }
+                // 2. 如果装备到 offhand → 检查 weapon 是否有双手武器
+                if (targetSlot === 'offhand') {
+                    const wItem = player.equipments['weapon'];
+                    if (wItem && wItem.isTwoHanded) {
+                        const oldClone = JSON.parse(JSON.stringify(wItem));
+                        const used = new Set(this.backpackItems.map(i => i.slot));
+                        let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                        oldClone.slot = freeSlot;
+                        this.backpackItems.push(oldClone);
+                        player.equipments['weapon'] = null;
+                        this._clearWeaponState('weapon');
+                        if ('weapon' === player.weaponMode && player._clearSkillOverrides) {
+                            player._clearSkillOverrides();
+                        }
+                    }
+                }
+                // 2b. 如果装备到 ring2 → 检查 weapon2 是否有双手武器
+                if (targetSlot === 'ring2') {
+                    const wItem = player.equipments['weapon2'];
+                    if (wItem && wItem.isTwoHanded) {
+                        const oldClone = JSON.parse(JSON.stringify(wItem));
+                        const used = new Set(this.backpackItems.map(i => i.slot));
+                        let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                        oldClone.slot = freeSlot;
+                        this.backpackItems.push(oldClone);
+                        player.equipments['weapon2'] = null;
+                        this._clearWeaponState('weapon2');
+                        if ('weapon2' === player.weaponMode && player._clearSkillOverrides) {
+                            player._clearSkillOverrides();
+                        }
+                    }
+                }
                 player.equipments[targetSlot] = equippedClone;
 
                 // 根据槽位处理武器状态（加载武器资源，不修改 weaponMode）
-                if (targetSlot === 'weapon' || targetSlot === 'weapon2') {
+                if (targetSlot === 'weapon' || targetSlot === 'weapon2' || targetSlot === 'offhand' || targetSlot === 'ring2') {
                     if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
                         const frames = [];
                         const framePaths = item.bowFrames || [];
@@ -1093,8 +1314,30 @@
                         player.equippedRangedType = 'bow';
                     } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
+                        if (item.equipImage) {
+                            player.pistolImage = new Image();
+                            player.pistolImage.src = item.equipImage;
+                        }
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = new Image(); player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                        }
+                    } else if (item.weaponType === 'shotgun') {
+                        player.equippedRangedType = 'shotgun';
+                        if (item.equipImage) {
+                            if (item.weaponId === 'weapon13') {
+                                player.saiga12kImage = new Image();
+                                player.saiga12kImage.src = item.equipImage;
+                            } else {
+                                player.super90Image = new Image();
+                                player.super90Image.src = item.equipImage;
+                            }
+                        }
+                        if (item.weaponAsset && item.weaponAsset.muzzleImage) {
+                            player.muzzleFlashImg = new Image(); player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                        }
+                        // 装备Super90时播放枪栓音效
+                        if (item.weaponId !== 'weapon13' && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                            SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
                         }
                     } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
@@ -1102,6 +1345,13 @@
                     // 安全：装备到当前武器栏时，设置切换冷却，防止装备后立即攻击
                     if (targetSlot === player.weaponMode && (item.weaponType === 'pistol' || item.rangedType === 'pistol')) {
                         player.weaponSwitchCooldown = 300;
+                    }
+                    // 触发待机动画2（旋转动画）—— 双手武器不触发
+                    if (!isTwoHanded(item.weaponType)) {
+                        player.weaponAnim.nextSpin = Date.now() + 150;
+                    } else {
+                        player.weaponAnim.nextSpin = 0;
+                        player.weaponAnim.spinEnd = 0;
                     }
                     // 同步当前武器视觉状态（贴图、弓/手枪状态、特殊攻击图标、旋转动画）
                     this._syncWeaponVisual();
@@ -1118,97 +1368,6 @@
                 if (replacedItem && replacedItem.name) {
                     this.triggerBackpackFlash(backpackIdx);
                 }
-            },
-            addToBackpack(item) {
-                const existingSlot = this.backpackItems.map(i => i.slot);
-                let slot = 0;
-                while (existingSlot.includes(slot)) slot++;
-                if (slot >= 36) return; // 背包已满
-                item.slot = slot;
-                this.backpackItems.push(item);
-                this.updateInventorySlots();
-            },
-            STEEL_BOW_ITEM: {
-                name: '精钢长弓', type: '远程武器', icon: '🏹', iconImage: 'assets/icons/bow_icon.png',
-                dropImage: 'assets/items/steel_bow_dropped.png',
-                bowFrames: ['assets/weapons/steel_bow_frame_01.png','assets/weapons/steel_bow_frame_02.png','assets/weapons/steel_bow_frame_03.png','assets/weapons/steel_bow_frame_04.png','assets/weapons/steel_bow_frame_05.png','assets/weapons/steel_bow_frame_06.png','assets/weapons/steel_bow_frame_07.png','assets/weapons/steel_bow_frame_08.png'],
-                stats: [{ name: '物理攻击', value: '15-25' }, { name: '射程', value: '800' }],
-                desc: '由精钢打造的长弓，射程远，威力大',
-                equipSlot: 'weapon2'
-            },
-            TEST_BOW_ITEM: {
-                name: '训练用弓', type: '远程武器', icon: '🏹', iconImage: 'assets/icons/bow_icon.png',
-                category: 'weapon_ranged', rarity: 'common', level: 1,
-                weaponCategory: 'mainhand', weaponType: 'bow',
-                weaponAsset: { framePrefix: 'assets/weapons/bow_frame_', frameCount: 8, framePad: 2 },
-                stats: [{ name: '物理攻击', value: '8-14' }, { name: '射程', value: '600' }],
-                desc: '一把简陋的弓，勉强能射出箭，适合初学者练习',
-                equipSlot: 'weapon2'
-            },
-            G18_PISTOL_ITEM: {
-                name: 'G18 手枪', type: '远程武器', icon: '🔫', iconImage: 'assets/icons/pistol_icon.png',
-                dropImage: 'assets/weapons/g18_topdown_v2.png',
-                category: 'weapon_ranged',
-                weaponType: 'pistol',
-                weaponAsset: { image: 'assets/weapons/g18_topdown_v2.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-                rangedType: 'pistol',
-                stats: [{ name: '物理攻击', value: '6-12' }, { name: '射程', value: '500' }],
-                desc: 'G18 全自动手枪，1100发/分钟，黄色曳光弹',
-                equipSlot: 'weapon2'
-            },
-            KINGHTS_SWORD_ITEM: {
-                weaponId: 'weapon2',
-                name: '骑士长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/knights_sword_v3_macro.png',
-                dropImage: 'assets/weapons/knights_sword_v3_equip.png',
-                equipImage: 'assets/weapons/knights_sword_v3_equip.png',
-                category: 'weapon_melee', rarity: 'uncommon', level: 5,
-                weaponCategory: 'mainhand', weaponType: 'sword',
-                weaponTypeTag: '近战武器',
-                stats: [{ name: '物理攻击', value: '18-23' }],
-                desc: '骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。',
-                equipSlot: 'weapon2',
-                skillOverrides: {
-                    dashAttackThrust: {
-                        animation: {
-                            totalMs: 600,
-                            dashDist: 173,
-                            chargeMs: 0,
-                            thrustMs: 600,
-                            recoverMs: 0
-                        },
-                        hitCheck: {
-                            shape: 'rectangle',
-                            width: 75,
-                            length: 350,
-                            hitArc: 0
-                        }
-                    }
-                }
-            },
-            RUNE_SWORD_ITEM: {
-                weaponId: 'weapon4',
-                name: '符文长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/EXsword_icon.png',
-                dropImage: 'assets/weapons/EXsword_equipped_v2_.png',
-                equipImage: 'assets/weapons/EXsword_equipped_v2_.png',
-                category: 'weapon_melee', rarity: 'uncommon', level: 5,
-                weaponCategory: 'mainhand', weaponType: 'sword',
-                weaponTypeTag: '近战武器',
-                stats: [{ name: '物理攻击', value: '45-55' }, { name: '暴击率', value: '+5%', pos: true }],
-                desc: '剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。',
-                equipSlot: 'weapon'
-            },
-            NIGHT_FLAME_SWORD_ITEM: {
-                weaponId: 'weapon5',
-                name: '夜与火之剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/Nightandflame_macro.png',
-                dropImage: 'assets/weapons/Nightandflame_equip.png',
-                equipImage: 'assets/weapons/Nightandflame_equip.png',
-                category: 'weapon_melee', rarity: 'rare', level: 10,
-                weaponCategory: 'mainhand', weaponType: 'sword',
-                weaponTypeTag: '近战武器',
-                stats: [{ name: '物理攻击', value: '60-75' }, { name: '暴击率', value: '+5%', pos: true }],
-                desc: '一把在暗夜中燃烧着淡蓝色火焰的传奇之剑，传说中它同时寄宿着夜之力与火之力。持有者可以释放其中的火焰之力，发射毁灭性的光柱。',
-                equipSlot: 'weapon',
-                specialAttack: { cooldown: 10, damageMul: 0.25, width: 30, length: 700, duration: 3000, tickInterval: 200 }
             },
             backpackItems: [],
             updateInventorySlots() {
@@ -1228,29 +1387,27 @@
                         const imgSrc = item.slotImage || item.iconImage;
                         const rarityKey = item.rarity || 'common';
                         const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
+                        const enhancedTag = (item.enhanceLevel || 0) > 0 ? `<div class="inv-enhanced">已强化</div>` : '';
+                        const isCrafted = item._isCrafted || (item._craftData && Object.keys(item._craftData).length > 0);
+                        const craftedTag = isCrafted ? `<div class="inv-crafted">已改造</div>` : '';
+                        const isEnchanted = item._isEnchanted || (item._enchantData && (item._enchantData.prefix || item._enchantData.suffix));
+                        const enchantedTag = isEnchanted ? `<div class="inv-enchanted">已附魔</div>` : '';
                         if (imgSrc) {
-                            cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div><img src="${imgSrc}" style="width:32px;height:32px;object-fit:cover;pointer-events:none;border-radius:4px;"><span class="inv-name">${item.name}</span>${item.stack > 1 ? `<span class="inv-stack">${item.stack}</span>` : ''}`;
+                            cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div>${enhancedTag}${craftedTag}${enchantedTag}<img src="${imgSrc}" style="width:32px;height:32px;object-fit:cover;pointer-events:none;border-radius:4px;"><span class="inv-name">${item.name}</span>${item.stack > 1 ? `<span class="inv-stack">${item.stack}</span>` : ''}`;
                         } else {
-                            cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div>${item.icon || '❓'}<span class="inv-name">${item.name}</span>${item.stack > 1 ? `<span class="inv-stack">${item.stack}</span>` : ''}`;
+                            cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div>${enhancedTag}${craftedTag}${enchantedTag}${item.icon || '❓'}<span class="inv-name">${item.name}</span>${item.stack > 1 ? `<span class="inv-stack">${item.stack}</span>` : ''}`;
                         }
                         cell.dataset.itemName = item.name;
                     }
                     // 绑定拖放事件（所有格子都可作为放置目标）
-                    this.bindDragToCell(cell);
-                    // 右键事件：使用直接赋值覆盖旧值，避免 addEventListener 重复绑定导致卡死
-                    const self = this;
-                    cell.oncontextmenu = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const idx = parseInt(cell.dataset.slot);
-                        const item = self.backpackItems.find(i => i.slot === idx);
-                        if (item) {
-                            self.equipFromBackpack(idx);
-                        }
-                    };
+                    if (this._dragDropManager && typeof this._dragDropManager.bindDragToCell === 'function') {
+                        this._dragDropManager.bindDragToCell(cell);
+                    }
                 });
-                const invCountEl = document.getElementById('invCount'); if (invCountEl) invCountEl.textContent = `${this.backpackItems.length}/36`;
+                const invCountEl = document.getElementById('invCount'); if (invCountEl) invCountEl.textContent = `${this.backpackItems.length}/${this.maxBackpackSlots}`;
                 // 重新绑定tooltip（使用 onmouseenter/onmouseleave 直接赋值覆盖旧值）
-                this.bindInventoryTooltip();
+                EquipTooltipManager.bindInventoryTooltip();
             }
         };
+
+

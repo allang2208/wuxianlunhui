@@ -75,7 +75,7 @@ const MazeGenerator = {
         }
         return result;
     },
-    render(ctx, offsetX, offsetY) {
+    renderWalls(ctx, offsetX, offsetY) {
         ctx.save();
         const walls = WallSystem.getWallsInView(offsetX, offsetY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
         for (const w of walls) {
@@ -95,6 +95,113 @@ const MazeGenerator = {
             }
         }
         ctx.restore();
+    },
+    renderTrees(ctx, offsetX, offsetY) {
+        ctx.save();
+        const trees = WallSystem.getTreesInView(offsetX, offsetY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+        if (!MazeGenerator._treeImageCache) MazeGenerator._treeImageCache = {};
+        const cache = MazeGenerator._treeImageCache;
+        // 预加载 wood.png 用于碰撞体积标记
+        if (!cache['assets/scenes/wood.png']) {
+            const woodImg = new Image();
+            woodImg.src = 'assets/scenes/wood.png';
+            cache['assets/scenes/wood.png'] = woodImg;
+        }
+        const woodImg = cache['assets/scenes/wood.png'];
+        for (const t of trees) {
+            const sx = t.x - offsetX, sy = t.y - offsetY;
+            // 查找覆盖此树的实体（排除死亡的）
+            let entitiesInTree = [];
+            if (typeof Game !== 'undefined' && Game.entities) {
+                for (const e of Game.entities.values()) {
+                    if (!e.active || e._isDead) continue;
+                    const dx = e.x - t.x, dy = e.y - t.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < t.radius + 120) entitiesInTree.push(e);
+                }
+            }
+            // 计算统一的透视区域（所有实体位置的并集包围圆）
+            let unifiedClipRadius = 0, unifiedCx = sx, unifiedCy = sy;
+            if (entitiesInTree.length > 0) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                for (const e of entitiesInTree) {
+                    const ex = e.x - offsetX, ey = e.y - offsetY;
+                    minX = Math.min(minX, ex - 60);
+                    minY = Math.min(minY, ey - 60);
+                    maxX = Math.max(maxX, ex + 60);
+                    maxY = Math.max(maxY, ey + 60);
+                }
+                unifiedCx = (minX + maxX) / 2;
+                unifiedCy = (minY + maxY) / 2;
+                unifiedClipRadius = Math.max(60, Math.sqrt((maxX - minX) ** 2 + (maxY - minY) ** 2) / 2 + 20);
+            }
+            if (t.image) {
+                let img = cache[t.image];
+                if (!img) {
+                    img = new Image();
+                    img.src = t.image;
+                    cache[t.image] = img;
+                }
+                if (img.complete && img.naturalWidth > 0) {
+                    const s = t.radius * 13.2;
+                    if (entitiesInTree.length > 0) {
+                        // 统一透视效果：使用一个大的包围圆排除所有实体区域
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, s / 2, 0, Math.PI * 2);
+                        ctx.moveTo(unifiedCx + unifiedClipRadius, unifiedCy);
+                        ctx.arc(unifiedCx, unifiedCy, unifiedClipRadius, 0, Math.PI * 2);
+                        ctx.clip('evenodd');
+                        // 支持树木旋转
+                        if (t.rotation) {
+                            ctx.translate(sx, sy);
+                            ctx.rotate(t.rotation);
+                            ctx.drawImage(img, -s / 2, -s / 2, s, s);
+                            ctx.translate(-sx, -sy); // 恢复
+                        } else {
+                            ctx.drawImage(img, sx - s / 2, sy - s / 2, s, s);
+                        }
+                        ctx.restore();
+                    } else {
+                        if (t.rotation) {
+                            ctx.save();
+                            ctx.translate(sx, sy);
+                            ctx.rotate(t.rotation);
+                            ctx.drawImage(img, -s / 2, -s / 2, s, s);
+                            ctx.restore();
+                        } else {
+                            ctx.drawImage(img, sx - s / 2, sy - s / 2, s, s);
+                        }
+                    }
+                } else {
+                    ctx.fillStyle = '#2d8a3e';
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, t.radius * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                ctx.fillStyle = '#2d8a3e';
+                ctx.beginPath();
+                ctx.arc(sx, sy, t.radius * 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // 碰撞体积标记：使用 wood.png 替换棕色实心圆（仅在透视状态下显示）
+            if (entitiesInTree.length > 0) {
+                if (woodImg && woodImg.complete && woodImg.naturalWidth > 0) {
+                    const ws = t.radius * 2;
+                    ctx.drawImage(woodImg, sx - ws / 2, sy - ws / 2, ws, ws);
+                } else {
+                    ctx.fillStyle = '#8B5A2B';
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, t.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        ctx.restore();
+    },
+    render(ctx, offsetX, offsetY) {
+        this.renderWalls(ctx, offsetX, offsetY);
     }
 };
 

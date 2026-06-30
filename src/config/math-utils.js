@@ -3,11 +3,12 @@ export const Easing = {
     easeInQuad(t) { return t * t; },
     easeOutQuad(t) { return 1 - (1 - t) * (1 - t); },
     easeInCubic(t) { return t * t * t; },
-    easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; },
+    easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
 };
 
 export const WEAPON_ANIM = {
-    size: 84, holdX: -20, holdY: 11,
+    size: 105, holdX: 0, holdY: 0,
     idleAngle: 0, windupAngle: Math.PI / 6, swingAngle: -Math.PI / 6,
     windupMs: 188, swingMs: 250, recoverMs: 438,
 };

@@ -3,6 +3,7 @@ const EffectManager = {
     _pools: {},
     _factories: {
         'BloodEffect': () => new BloodEffect(0, 0, 0),
+        'BloodMistEffect': () => new BloodMistEffect(0, 0, 0),
         'Projectile': () => new Projectile(0, 0, 0, 0, 0, 0, {min:0,max:0}, false, null, null, null),
         'DustEffect': () => new DustEffect(0, 0, 1.0),
         'DodgeEffect': () => new DodgeEffect(0, 0, 1, 0),

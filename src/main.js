@@ -23,12 +23,15 @@ async function initModules() {
     window.MathUtils = MathUtils;
     window.Easing = Easing;
     window.WEAPON_ANIM = WEAPON_ANIM;
+    window.Z_INDEX = Z_INDEX;
+    window.CSS_Z_INDEX = CSS_Z_INDEX;
     window.DataLoader = DataLoader;
     // 兼容旧代码直接引用的 easing 函数（player.js / enemy.js 中使用）
     window.easeInQuad = Easing.easeInQuad;
     window.easeOutQuad = Easing.easeOutQuad;
     window.easeInCubic = Easing.easeInCubic;
     window.easeInOutCubic = Easing.easeInOutCubic;
+    window.easeOutQuart = Easing.easeOutQuart;
 
     // B. World
     window.Renderer = Renderer;
@@ -39,6 +42,7 @@ async function initModules() {
 
     // C. Effects
     window.EffectManager = EffectManager;
+    window.WeaponEffect = WeaponEffect;
     window.SlashEffect = SlashEffect;
     window.ThrustEffect = ThrustEffect;
     window.BloodHitEffect = BloodHitEffect;
@@ -52,10 +56,18 @@ async function initModules() {
     window.DodgeEffect = DodgeEffect;
     window.DeathEffect = DeathEffect;
     window.BloodEffect = BloodEffect;
+    window.BloodMistEffect = BloodMistEffect;
     window.DustEffect = DustEffect;
+    window.RuneSwordExplodeEffect = RuneSwordExplodeEffect;
+    window.ZombieBloodPool = ZombieBloodPool;
     window.FloatingTextEffect = FloatingTextEffect;
     window.MuzzleFlashEffect = MuzzleFlashEffect;
     window.ShellCasingEffect = ShellCasingEffect;
+    window.LevelUpEffectQueue = LevelUpEffectQueue;
+
+    // World & Scene
+    window.SceneManager = SceneManager;
+    window.Portal = Portal;
 
     // D. Items
     window.ItemFactory = ItemFactory;
@@ -75,6 +87,21 @@ async function initModules() {
     window.TargetDummy = TargetDummy;
     window.Player = Player;
     window.Enemy = Enemy;
+    window.Zombie = Zombie;
+    window.RunnerZombie = RunnerZombie;
+    window.FatZombie = FatZombie;
+    window.SpitterZombie = SpitterZombie;
+    window.BlackWolf = BlackWolf;
+    window.BabySpider = BabySpider;
+    window.Spider = Spider;
+    window.WolfSpider = WolfSpider;
+    window.BroodmotherSpider = BroodmotherSpider;
+    window.SkeletonWarrior = SkeletonWarrior;
+    window.SkeletonArcher = SkeletonArcher;
+    window.SkeletonDog = SkeletonDog;
+    window.Necromancer = Necromancer;
+    window.DeathKnight = DeathKnight;
+    window.ENEMY_DATA = ENEMY_DATA;
     window.DropItem = DropItem;
     window.NPC = NPC;
 
@@ -82,26 +109,44 @@ async function initModules() {
     window.NPCDialogue = NPCDialogue;
     window.ShopSystem = ShopSystem;
     window.EnhanceSystem = EnhanceSystem;
+    window.CraftSystem = CraftSystem;
+    window.EnchantSystem = EnchantSystem;
+
+    // Gold Manager
+    window.GoldManager = GoldManager;
 
     // 兼容别名
     window.HitEffect = BloodHitEffect;
+
+    // AI
+    window.pathFinder = pathFinder;
 
     // G. Core Systems
     window.EventBus = EventBus;
 
     // H. UI Systems
+    window.StatusBar = StatusBar;
     window.Input = Input;
     window.SkillManager = SkillManager;
     window.QuickBar = QuickBar;
     window.QUICK_BAR_CONFIG = QUICK_BAR_CONFIG;
     window.EquipManager = EquipManager;
+    window.EquipTooltipManager = EquipTooltipManager;
+    window.BackpackDialogManager = BackpackDialogManager;
+    window.EquipDataManager = EquipDataManager;
+    window.GameUIManager = GameUIManager;
     window.CodexManager = CodexManager;
     window.SystemUI = SystemUI;
     window.UI_DATA_CONFIG = UI_DATA_CONFIG;
     window.SoundManager = SoundManager;
+    // 挂载开发工具
+    window.DevTool = DevTool;
 
     // I. Game
     window.Game = Game;
+    window.SkillLevelSystem = SkillLevelSystem;
+    // Phaser 迁移系统
+    window.PhaserGame = PhaserGame;
 
     // 绑定按钮事件（替代 HTML 内联 onclick，避免 ES6 模块加载前引用未定义的 Game）
     const startBtn = document.getElementById('startGameBtn');
@@ -110,6 +155,8 @@ async function initModules() {
     if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); Game.showHelp(); });
     const backBtn = document.getElementById('backMenuBtn');
     if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); Game.toMenu(); });
+    // 初始化开发工具
+    DevTool.init();
 
     // 启动游戏
     if (document.readyState === 'complete') {
@@ -125,6 +172,7 @@ async function initModules() {
 // A. Config & Utils
 import { CONFIG } from './config/config.js';
 import { MathUtils, Easing, WEAPON_ANIM } from './config/math-utils.js';
+import { Z_INDEX, CSS_Z_INDEX } from './config/ui-constants.js';
 
 // B. World
 import { Renderer } from './world/renderer.js';
@@ -135,6 +183,7 @@ import { WallSystem } from './world/wall-system.js';
 
 // C. Effects
 import { EffectManager } from './effects/effect-manager.js';
+import { WeaponEffect } from './effects/weapon-effect.js';
 import { SlashEffect } from './effects/slash-effect.js';
 import { ThrustEffect } from './effects/thrust-effect.js';
 import { BloodHitEffect } from './effects/blood-hit-effect.js';
@@ -143,10 +192,16 @@ import { AttackRangeEffect } from './effects/attack-range-effect.js';
 import { DashConvergeEffect, DashAuraEffect, GoldenConvergeEffect } from './effects/dash-effects.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { NightFlameBeamEffect } from './effects/nightflame-effect.js';
-import { DodgeEffect, DeathEffect, BloodEffect, DustEffect } from './effects/particle-effects.js';
+import { DodgeEffect, DeathEffect, BloodEffect, BloodMistEffect, DustEffect, RuneSwordExplodeEffect, ZombieBloodPool } from './effects/particle-effects.js';
 import { FloatingTextEffect } from './effects/floating-text.js';
 import { MuzzleFlashEffect } from './effects/muzzle-flash.js';
 import { ShellCasingEffect } from './effects/shell-casing.js';
+import { LevelUpEffectQueue } from './effects/level-up-queue.js';
+import { PoisonEffect } from './effects/poison-effect.js';
+
+// World & Scene
+import { SceneManager } from './world/scene-manager.js';
+import { Portal } from './world/portal.js';
 
 // D. Items
 import { ItemFactory } from './items/item-factory.js';
@@ -163,28 +218,48 @@ import { DamageableEntity } from './entities/damageable-entity.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
+import { pathFinder } from './ai/pathfinder.js';
+import { Zombie, RunnerZombie, FatZombie, SpitterZombie, BlackWolf, BabySpider, Spider, WolfSpider, BroodmotherSpider, SkeletonWarrior, SkeletonArcher, SkeletonDog, Necromancer, DeathKnight } from './entities/enemy-types.js';
+import { ENEMY_DATA } from './entities/enemy-data.js';
 import { DropItem } from './entities/drop-item.js';
+import { NPC } from './entities/npc.js';
 
 // G. Core Systems
 import { EventBus } from './core/event-bus.js';
 
 // H. UI Systems
+import { StatusBar } from './ui/status-bar.js';
 import { Input } from './ui/input.js';
 import { SkillManager } from './ui/skill-manager.js';
 import { QuickBar, QUICK_BAR_CONFIG } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
+import { EquipTooltipManager } from './ui/equip-tooltip-manager.js';
+import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
+import { EquipDataManager } from './ui/equip-data-manager.js';
+import { GameUIManager } from './ui/game-ui-manager.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './ui/system-ui.js';
 import { SoundManager } from './ui/sound-manager.js';
+import DevTool from './ui/dev-tool.js';
 
 // I. Game
 import { Game } from './game.js';
 
-// NPC
-import { NPC } from './entities/npc.js';
+// Phaser 迁移系统
+import { PhaserGame } from './phaser/PhaserGame.js';
+
+// NPC Systems
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { ShopSystem } from './ui/shop-system.js';
 import { EnhanceSystem } from './ui/enhance-system.js';
+import { CraftSystem } from './ui/craft-system.js';
+import { EnchantSystem } from './ui/enchant-system.js';
+
+// Gold & Currency
+import { GoldManager } from './systems/gold-manager.js';
+
+// Skill Level System
+import { SkillLevelSystem } from './combat/skill-level-system.js';
 
 // 启动初始化
 initModules().catch(err => console.error('Module init failed:', err));

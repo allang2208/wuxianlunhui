@@ -4,8 +4,22 @@ import { Entity } from './entity.js';
             constructor(x, y, itemData) {
                 super(x, y);
                 this.x = x; this.y = y; this.itemData = itemData || {};
-                this.size = 0; this.active = true; this.life = Infinity; // 装备不自行消失，无碰撞体积
-                this.bobOffset = 0; this.image = new Image(); this.image.src = itemData.dropImage || 'assets/items/steel_bow_dropped.png';
+                this.size = 0; this.active = true; this.life = Infinity;
+                this.bobOffset = 0;
+                this.image = new Image();
+                // 金币使用新的动画贴图
+                if (itemData.category === 'gold' || itemData.name === '金币') {
+                    this.image.src = 'assets/items/gold_transparent_07.png';
+                } else if (itemData.iconImage) {
+                    this.image.src = itemData.iconImage;
+                } else if (itemData.equipImage) {
+                    // 所有装备一律使用持有的贴图（equipImage）
+                    this.image.src = itemData.equipImage;
+                } else if (itemData.dropImage) {
+                    this.image.src = itemData.dropImage;
+                } else {
+                    this.image.src = 'assets/items/steel_bow_dropped.png';
+                }
                 this.pickupRange = 30;
             }
             update(dt) {

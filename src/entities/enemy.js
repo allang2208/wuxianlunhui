@@ -1,20 +1,47 @@
 import { DamageableEntity } from './damageable-entity.js';
-import { ThrustAttack } from '../combat/attack.js';
+import { ThrustAttack, RangedAttack } from '../combat/attack.js';
+import { Player } from './player.js';
 
         class Enemy extends DamageableEntity {
             constructor(x, y, config = {}) {
-                super(x, y, { hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: 12, name: config.name || '测试敌人' });
+                super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: 12, name: config.name || '测试敌人' });
                 this.speed = config.speed || 0.3; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
                 this.attacks = { melee: new ThrustAttack({ cooldown: 600, range: 80, width: 20, damage: { min: 8, max: 15 }, knockback: 15 }) };
                 this.weaponMode = 'melee';
-                this.expValue = config.expValue || 10;
+                this.level = config.level || 1;
+                // 新增：6维基础属性
+                this.data = {
+                    str: config.str || 10, dex: config.dex || 10, int: config.int || 10,
+                    con: config.con || 10, wis: config.wis || 10, luck: config.luck || 10,
+                    atk: 0, def: 0, matk: 0, mdef: 0, hit: 0, dodge: 0, crit: 0, critRes: 0, aspd: 0,
+                    stamina: 9999, maxStamina: 9999, name: this.name, kills: 0
+                };
+                this.calculateCombatStats();
                 this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
-                this.data = { stamina: 9999, maxStamina: 9999, name: this.name, kills: 0 };
                 this.aiTimer = 0; this.aiInterval = 300; this.target = null; this.attackRange = 70;
                 this._dashStunned = false; // 冲刺攻击眩晕状态
                 this._dashStunTimer = 0; // 眩晕剩余时间
+                this._showWeapon = config.showWeapon !== false; // 是否显示武器
+                this._color = config.color || '#8a4a4a'; // 怪物颜色
+                this._highlightColor = config.highlightColor || 'rgba(180, 100, 100, 0.3)'; // 高光颜色
+                // A*寻路相关
+                this._path = null; // 当前路径
+                this._pathIdx = 0; // 路径索引
+                this._pathRecalcTimer = 0; // 路径重算计时器
+                this._stuckTimer = 0; // 卡住计时器
+                this._lastX = x; this._lastY = y; // 上次位置（用于检测卡住）
+                // ===== 中毒系统（狼蛛附魔）=====
+                this._poisonStacks = 0;      // 中毒层数
+                this._poisonTimer = 0;       // 中毒持续时间计时器
+                this._poisonTickTimer = 0;   // 中毒伤害计时器
+                this._poisonEffectId = null; // 状态栏效果ID
+                // ===== 流血系统（骑士长剑改造）=====
+                this._bleedStacks = 0;       // 流血层数
+                this._bleedTimer = 0;        // 流血持续时间计时器
+                this._bleedTickTimer = 0;    // 流血伤害计时器
+                this._bleedEffectId = null;  // 状态栏效果ID
             }
             triggerWeaponAnim() {
                 // 动画打断机制：无论当前动画状态，立即重置为 windup
@@ -32,7 +59,25 @@ import { ThrustAttack } from '../combat/attack.js';
                         break;
                     case 'swing':
                         anim.timer += dt;
-                        if (anim.timer >= wa.swingMs) { anim.state = 'recover'; anim.timer = 0; }
+                        // 新增：敌人swing阶段进行攻击判定（与Player一致）
+                        if (anim.timer === 0 && this._pendingThrust) {
+                            this._pendingThrust.active = true;
+                        }
+                        if (this._pendingThrust && this._pendingThrust.active) {
+                            if (Date.now() - this._pendingThrust.startTime <= 200) {
+                                this.attacks.melee.checkTriangleHit(this);
+                            } else {
+                                this._pendingThrust.active = false;
+                            }
+                        }
+                        if (anim.timer >= wa.swingMs) {
+                            anim.state = 'recover';
+                            anim.timer = 0;
+                            if (this._pendingThrust) {
+                                this._pendingThrust.active = false;
+                                this.attacks.melee.giveExp(this);
+                            }
+                        }
                         else anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / wa.swingMs);
                         break;
                     case 'recover':
@@ -43,7 +88,7 @@ import { ThrustAttack } from '../combat/attack.js';
                 }
             }
             renderWeapon(ctx) {
-                if (!this.weaponImage || !this.weaponImage.complete) return;
+                if (!this._showWeapon || !this.weaponImage || !this.weaponImage.complete) return;
                 const wa = WEAPON_ANIM, s = wa.size, w = s * 0.84;
                 ctx.save();
                 ctx.translate(wa.holdX, wa.holdY);
@@ -80,10 +125,84 @@ import { ThrustAttack } from '../combat/attack.js';
                 // 3. 攻击系统（始终独立运行）
                 this._updateAttack(dt, entities);
                 // 4. 更新攻击冷却和武器动画
-                this.attacks.melee.update(dt);
+                if (this.attacks.melee) this.attacks.melee.update(dt);
+                if (this.attacks.ranged) this.attacks.ranged.update(dt);
                 this.updateWeaponAnim(dt);
+                // 5. 中毒效果更新
+                this._updatePoison(dt);
+                // 6. 流血效果更新
+                this._updateBleed(dt);
             }
-            // --- 移动寻路子系统：始终朝玩家移动，带墙壁碰撞和绕路 ---
+            // --- 中毒效果更新 ---
+            _updatePoison(dt) {
+                if (this._poisonStacks > 0) {
+                    this._poisonTimer -= dt;
+                    this._poisonTickTimer -= dt;
+                    if (this._poisonTickTimer <= 0) {
+                        this.hp -= this._poisonStacks;
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#7a9a5a'));
+                        this._poisonTickTimer = 1000;
+                    }
+                    if (this._poisonTimer <= 0) {
+                        this._poisonStacks = Math.max(0, this._poisonStacks - 1);
+                        if (this._poisonStacks > 0) {
+                            this._poisonTimer = 5000;
+                        } else {
+                            if (this._poisonEffectId) {
+                                StatusBar.removeEffect(this._poisonEffectId);
+                                this._poisonEffectId = null;
+                            }
+                        }
+                    }
+                }
+            }
+            // 应用中毒（狼蛛附魔）
+            applyPoison(stacks) {
+                this._poisonStacks += stacks;
+                this._poisonTimer = 5000;
+                if (this._poisonTickTimer <= 0) this._poisonTickTimer = 1000;
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#7a9a5a'));
+            }
+            // --- 流血效果更新 ---
+            _updateBleed(dt) {
+                if (this._bleedStacks > 0) {
+                    this._bleedTimer -= dt;
+                    this._bleedTickTimer -= dt;
+                    if (this._bleedTickTimer <= 0) {
+                        const bleedDamage = Math.max(1, Math.floor(this.hp * 0.1));
+                        this.hp -= bleedDamage;
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${bleedDamage}`, '#9a3a3a'));
+                        this._bleedTickTimer = 1000;
+                    }
+                    if (this._bleedTimer <= 0) {
+                        this._bleedStacks = Math.max(0, this._bleedStacks - 1);
+                        if (this._bleedStacks > 0) {
+                            this._bleedTimer = 5000;
+                            if (this._bleedEffectId) {
+                                StatusBar.updateEffectStacks('bleed', this._bleedStacks);
+                            }
+                        } else {
+                            if (this._bleedEffectId) {
+                                StatusBar.removeEffect(this._bleedEffectId);
+                                this._bleedEffectId = null;
+                            }
+                        }
+                    }
+                }
+            }
+            // 应用流血（骑士长剑改造）
+            applyBleeding(stacks) {
+                this._bleedStacks += stacks;
+                this._bleedTimer = 5000;
+                if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
+                if (!this._bleedEffectId) {
+                    this._bleedEffectId = StatusBar.addEffect('bleed', 5000, { stacks: this._bleedStacks });
+                } else {
+                    StatusBar.updateEffectStacks('bleed', this._bleedStacks);
+                }
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🩸 流血 +${stacks}层`, '#9a3a3a'));
+            }
+            // --- 移动寻路子系统：始终朝玩家移动，带墙壁碰撞和A*绕路 ---
             _updateMovement(dx, dy, dist) {
                 // 冲刺攻击眩晕：无法移动
                 if (this._dashStunned) {
@@ -91,7 +210,51 @@ import { ThrustAttack } from '../combat/attack.js';
                     this.isMoving = false;
                     return;
                 }
-                // 归一化方向
+                // 检测是否被卡住（500ms内位置几乎不变）
+                this._stuckTimer += 16.67; // 约一帧的时间
+                const movedDist = Math.sqrt((this.x - this._lastX) ** 2 + (this.y - this._lastY) ** 2);
+                if (this._stuckTimer >= 500) {
+                    if (movedDist < 5) {
+                        // 被卡住，尝试使用A*寻路
+                        if (this.target && typeof pathFinder !== 'undefined') {
+                            this._path = pathFinder.findPath(this.x, this.y, this.target.x, this.target.y, this.collisionRadius || 12);
+                            this._pathIdx = 0;
+                        }
+                    }
+                    this._stuckTimer = 0;
+                    this._lastX = this.x;
+                    this._lastY = this.y;
+                }
+                // 如果有A*路径，沿路径移动
+                if (this._path && this._pathIdx < this._path.length) {
+                    const waypoint = this._path[this._pathIdx];
+                    const wdx = waypoint.x - this.x;
+                    const wdy = waypoint.y - this.y;
+                    const wdist = Math.sqrt(wdx * wdx + wdy * wdy);
+                    if (wdist < 10) {
+                        this._pathIdx++;
+                        if (this._pathIdx >= this._path.length) {
+                            this._path = null; // 到达路径终点
+                        }
+                    } else {
+                        const pathMoveX = wdx / wdist;
+                        const pathMoveY = wdy / wdist;
+                        this.vx += (pathMoveX * this.maxSpeed - this.vx) * this.accel;
+                        this.vy += (pathMoveY * this.maxSpeed - this.vy) * this.accel;
+                        // 墙壁碰撞解析
+                        const enx = this.x + this.vx, eny = this.y + this.vy;
+                        const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
+                        if (er.x !== this.x || er.y !== this.y) {
+                            this.x = er.x; this.y = er.y;
+                        } else {
+                            this._path = null; // 路径被阻挡，放弃当前路径
+                        }
+                        this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
+                        if (this.isMoving) this.animTime += 0.15;
+                        return;
+                    }
+                }
+                // 归一化方向（直接朝玩家）
                 const moveX = dx / Math.max(dist, 1), moveY = dy / Math.max(dist, 1);
                 // 加速度
                 this.vx += (moveX * this.maxSpeed - this.vx) * this.accel;
@@ -140,32 +303,95 @@ import { ThrustAttack } from '../combat/attack.js';
             _updateAttack(dt, entities) {
                 this.aiTimer += dt;
                 if (this.aiTimer < this.aiInterval) return;
-                if (!this.attacks.melee.canUse()) return;
+                const attack = this.attacks.ranged || this.attacks.melee;
+                if (!attack || !attack.canUse()) return;
                 // 视线检测：检查攻击是否被墙阻挡
-                // 即使不在攻击范围内，只要视线未被完全阻挡就尝试攻击
                 const targetX = this.target.x, targetY = this.target.y;
                 const isBlocked = typeof WallSystem !== 'undefined' &&
                     WallSystem.blocked(this.x, this.y, targetX, targetY);
                 if (isBlocked) return; // 视线被墙完全挡住，无法攻击
-                // 执行攻击（无论距离是否精确在 attackRange 内，都会尝试）
+                // 执行攻击
                 this.aiTimer = 0;
-                if (this.attacks.melee.use(this, targetX, targetY, Array.from(entities.values()))) {
+                if (attack.use(this, targetX, targetY, Array.from(entities.values()))) {
                     this.triggerWeaponAnim();
                 }
             }
             render(ctx) {
                 const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
                 this.renderHealthBar(ctx);
+                // Phaser 同步：如果已有 Phaser Sprite，跳过 Canvas 实体渲染，保留名称和碰撞半径
+                if (this._phaserSprite && this._phaserSprite.active) {
+                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
+                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.name, x, y - 32);
+                    this.renderCollisionRadius(ctx);
+                    return;
+                }
                 ctx.save(); ctx.translate(x, y); ctx.rotate(this.rotation);
                 ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0, 10, 8, 4, 0, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#8a4a4a'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = 'rgba(180, 100, 100, 0.3)'; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = this._color; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = this._highlightColor; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
                 this.renderWeapon(ctx);
-                ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
-                ctx.strokeStyle = 'rgba(180, 100, 100, 0.3)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
+                // 方向箭头（仅当显示武器时）
+                if (this._showWeapon) {
+                    ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
+                }
+                ctx.strokeStyle = this._highlightColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
+                // 近战攻击范围黄圈显示（提高对比度，雪地场景可见）
+                if (this.attacks && this.attacks.melee && this.attacks.melee.config && this.attacks.melee.config.range) {
+                    ctx.strokeStyle = 'rgba(220, 160, 20, 0.75)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.attacks.melee.config.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
                 ctx.restore();
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.name, x, y - 32);
                 this.renderCollisionRadius(ctx);
+                // 受击白光效果
+                if (this.hitFlash > 0) {
+                    const flashAlpha = this.hitFlash / this.hitFlashDuration;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
+                    ctx.beginPath(); ctx.arc(x, y, this.size + 2, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+            // 新增：计算战斗属性（使用与主角相同的公式）
+            calculateCombatStats() {
+                const d = this.data;
+                d.atk = Math.round(10 + d.str * 0.05 + d.dex * 0.1);
+                d.def = Math.floor(d.con * 1.2 + d.str * 0.3);
+                d.matk = Math.floor(d.int * 1.5 + d.wis * 0.5);
+                d.mdef = Math.floor(d.wis * 1.2 + d.int * 0.3);
+                d.hit = 80 + Math.floor(d.dex * 0.5);
+                d.dodge = 5 + Math.floor(d.dex * 0.3);
+                d.crit = 2 + Math.floor(d.luck * 1.0);
+                d.aspd = 1.0 + d.dex * 0.02;
+                d.critRes = Math.floor(d.con * 1.0);
+                // 新增：计算等级
+                d.level = Math.floor(1 + d.str * 0.05 + d.con * 0.06 + d.dex * 0.04 + d.int * 0.02 + d.wis * 0.015 + d.luck * 0.015);
+                // 同步到 this.level（damageable-entity 中使用的是 this.level）
+                this.level = d.level;
+            }
+            // 新增：获取等级
+            getLevel() { return this.data ? this.data.level : 1; }
+            // 新增：获取经验值（基于 rank 实时计算，不依赖构造函数时序）
+            getExpValue() {
+                const rank = this._rank || 'normal';
+                const expTable = { minor: 1, normal: 2, elite: 6, boss: 20 };
+                return expTable[rank] || 2;
+            }
+            // 新增：获取当前武器攻击力（供攻击系统使用）
+            getCurrentWeaponAtk() {
+                return this.data ? this.data.atk : 0;
+            }
+            // 攻击命中回调：供毒伤等效果使用
+            _onHitEntity(target) {
+                if (this.poisonStacks && this.poisonStacks > 0 && target instanceof Player) {
+                    target.applyPoison(this.poisonStacks);
+                }
             }
         }
 

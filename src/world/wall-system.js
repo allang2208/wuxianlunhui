@@ -3,6 +3,7 @@ const WallSystem = {
     mazeEndY: 0,
     init(ww, wh) {
         this.walls = [];
+        this.trees = [];
         const mazeH = wh * 0.25, mazeW = ww * 0.6, mazeOX = ww * 0.2;
         // 迷宫顶部边距：确保入口在 Camera 可跟随区域（halfH 以上）
         const mazeOY = Math.max(wh * 0.12, CONFIG.VIEW_HEIGHT * 0.55);
@@ -17,6 +18,43 @@ const WallSystem = {
         this.walls.push({ x: mazeOX + cs, y: mazeOY - 16, w: mazeW - cs + 16, h: 16 }); // 入口右侧顶部边界
         this.walls.push({ x: mazeOX - 16, y: mazeOY + mazeH, w: mazeW + 32, h: 16 }); // 底部边界
         this.mazeEndY = mazeOY + mazeH;
+        // ===== Phaser 墙壁同步 =====
+        this._syncWallsToPhaser();
+    },
+    /**
+     * 将墙壁同步到 Phaser 的 staticGroup
+     * 在 init() 和 addTree() 时调用
+     */
+    _syncWallsToPhaser() {
+        const phaserScene = window.__phaserScene;
+        if (!phaserScene) return;
+        // 清除旧墙壁（如果存在）
+        if (phaserScene.walls && phaserScene.walls.countActive(true) > 0) {
+            phaserScene.walls.clear(true, true);
+        }
+        // 创建矩形墙壁物理体
+        for (const w of this.walls) {
+            const wall = phaserScene.add.rectangle(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 0x000000, 0);
+            phaserScene.physics.add.existing(wall, true); // true = static
+            phaserScene.walls.add(wall);
+        }
+        console.log('[WallSystem] Synced', this.walls.length, 'walls to Phaser');
+        // 设置碰撞关系
+        phaserScene.setupColliders();
+    },
+    /**
+     * 将树木同步到 Phaser 的 staticGroup
+     */
+    _syncTreesToPhaser() {
+        const phaserScene = window.__phaserScene;
+        if (!phaserScene) return;
+        // 创建树木圆形碰撞体（用不可见圆形表示）
+        for (const t of this.trees) {
+            const tree = phaserScene.add.circle(t.x, t.y, t.radius, 0x000000, 0);
+            phaserScene.physics.add.existing(tree, true);
+            phaserScene.walls.add(tree);
+        }
+        console.log('[WallSystem] Synced', this.trees.length, 'trees to Phaser');
     },
     getWallsInView(vx, vy, vw, vh) {
         const result = [];
@@ -32,17 +70,29 @@ const WallSystem = {
     },
     canMoveTo(x, y, radius) {
         for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
+        // 检查树木碰撞
+        for (const t of this.trees) {
+            const dx = x - t.x, dy = y - t.y;
+            if (Math.sqrt(dx * dx + dy * dy) < t.radius + radius) return false;
+        }
         return true;
     },
     resolve(x, y, nx, ny, r) {
-        // 检查目标位置可用，且从起点到终点的线段不穿墙
         if (this.canMoveTo(nx, ny, r) && !this.blocked(x, y, nx, ny)) return { x: nx, y: ny };
-        // 尝试只移动X轴
         if (this.canMoveTo(nx, y, r) && !this.blocked(x, y, nx, y)) return { x: nx, y };
-        // 尝试只移动Y轴
         if (this.canMoveTo(x, ny, r) && !this.blocked(x, y, x, ny)) return { x, y: ny };
-        // 都不行，返回起点（安全位置）
         return { x, y };
+    },
+    lineCircle(x1, y1, x2, y2, cx, cy, r) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const a = dx * dx + dy * dy;
+        const b = 2 * (dx * (x1 - cx) + dy * (y1 - cy));
+        const c = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy) - r * r;
+        if (a === 0) return Math.sqrt((x1 - cx) ** 2 + (y1 - cy) ** 2) < r;
+        const det = b * b - 4 * a * c;
+        if (det < 0) return false;
+        const t1 = (-b - Math.sqrt(det)) / (2 * a), t2 = (-b + Math.sqrt(det)) / (2 * a);
+        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
     },
     lineRect(x1, y1, x2, y2, rect) {
         const dx = x2 - x1, dy = y2 - y1;
@@ -56,7 +106,25 @@ const WallSystem = {
     },
     blocked(x1, y1, x2, y2) {
         for (const w of this.walls) if (this.lineRect(x1, y1, x2, y2, w)) return true;
+        for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.radius)) return true;
         return false;
+    },
+    addTree(x, y, radius, treeType, imagePath, sceneGroup = 'normal', rotation = 0) {
+        this.trees.push({ x, y, radius, type: treeType || 0, image: imagePath || null, sceneGroup: sceneGroup || 'normal', rotation: rotation || 0 });
+        // ===== Phaser 树木同步（单个添加）=====
+        const phaserScene = window.__phaserScene;
+        if (phaserScene) {
+            const tree = phaserScene.add.circle(x, y, radius, 0x000000, 0);
+            phaserScene.physics.add.existing(tree, true);
+            phaserScene.walls.add(tree);
+        }
+    },
+    getTreesInView(vx, vy, vw, vh) {
+        const result = [];
+        for (const t of this.trees) {
+            if (t.x + t.radius > vx && t.x - t.radius < vx + vw && t.y + t.radius > vy && t.y - t.radius < vy + vh) result.push(t);
+        }
+        return result;
     }
 };
 
