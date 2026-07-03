@@ -46,13 +46,13 @@ const DevTool = {
                        }
                      },
         pistol:     { name: 'G18',        img: 'assets/weapons/g18_pistol.png',       type: 'pistol' },
-        deagle:     { name: '沙漠之鹰',   img: 'assets/weapons/DesertEagle_equip.png',  type: 'pistol' },
+        deagle:     { name: '沙漠之鹰',   img: 'assets/weapons/Desert eagle-eqiup.png',  type: 'pistol' },
         pkm:        { name: 'PKM',        img: 'assets/weapons/pkm_topdown.png',      type: 'machinegun' },
         akm:        { name: 'AKM',        img: 'assets/weapons/akm_topdown_lowpoly_v2.png', type: 'rifle' },
         qbz191:     { name: 'QBZ-191',    img: 'assets/weapons/akm_topdown_lowpoly_v2.png', type: 'rifle' },
         qjb201:     { name: 'QJB-201',    img: 'assets/weapons/pkm_topdown.png',      type: 'machinegun' },
         super90:    { name: 'Super90',    img: 'assets/weapons/M4s90_equip.png',      type: 'shotgun' },
-        saiga12k:   { name: 'S12K',       img: 'assets/weapons/S12k-equip.png',       type: 'shotgun' },
+        energy_lmg: { name: '能量轻机枪', img: 'assets/weapons/devotion-equip.png', type: 'machinegun' },
     },
 
     // 动画状态映射
@@ -176,6 +176,10 @@ const DevTool = {
         // 重置按钮
         const resetBtn = document.getElementById('devToolReset2');
         if (resetBtn) resetBtn.addEventListener('click', () => this._reset());
+
+        // 坐标工具按钮
+        const coordBtn = document.getElementById('devToolCoord');
+        if (coordBtn) coordBtn.addEventListener('click', () => this._startCoordTool());
 
         // Canvas 鼠标交互
         this._canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -557,7 +561,7 @@ const DevTool = {
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
 
-        // 武器绘制（如果已在画布上）- 使用与游戏 renderWeapon 近战待机完全一致的变换链
+        // 武器绘制（如果已在画布上）- 使用与游戏 renderWeapon 完全一致的变换链
         if (this.state.weaponOnCanvas && this.weaponImage && this.weaponImage.complete) {
             const wp = this.weaponParams;
             const s = 105; // 与游戏中 WEAPON_ANIM.size 一致
@@ -566,21 +570,36 @@ const DevTool = {
             // 获取当前武器类型
             const weaponType = this.WEAPON_MAP[this.state.weaponType]?.type || 'melee';
             const isMelee = weaponType === 'melee';
+            const isBow = weaponType === 'bow';
+            const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
             
             // 将屏幕偏移转换为 holdOffset（与 renderWeapon 变换链兼容）
             // 注意：不同武器类型的变换链不同！
-            // 剑类：ctx.translate(0, -ms * 0.85) 在 rotate(π/2) 之后
-            // 弓类：没有 translate(0, -ms * 0.85) 这个偏移
-            const holdOffsetX = isMelee ? wp.offsetX - ms * 0.85 + 7 : wp.offsetX + 7;
-            const holdOffsetY = -wp.offsetY;
+            // 剑类：ctx.translate(0, -ms * 0.85) 在 rotate(π/2) 之后，mainBaseX = -7
+            // 弓类：没有 translate(0, -ms * 0.85) 这个偏移，mainBaseX = -7
+            // 枪械类：ctx.translate(0, -s * 0.42) 在 rotate(π/2) 之后，mainBaseX = 8
+            let mainBaseX = -7;
+            let holdOffsetX, holdOffsetY;
+            if (isMelee) {
+                holdOffsetX = wp.offsetX - ms * 0.85 + 7;
+                holdOffsetY = -wp.offsetY;
+            } else if (isGun) {
+                mainBaseX = 8;
+                holdOffsetX = wp.offsetX - 104.6; // 0.92*s + 8 = 96.6 + 8
+                holdOffsetY = -wp.offsetY;
+            } else {
+                // 弓类
+                holdOffsetX = wp.offsetX + 7;
+                holdOffsetY = -wp.offsetY;
+            }
             
             ctx.save();
             
             // 0. 移动到玩家中心
             ctx.translate(cx, cy);
             
-            // 1. 主手基础偏移（与游戏中 mainBaseX/Y = (-7, 0) 一致）
-            ctx.translate(-7, 0);
+            // 1. 主手基础偏移（与游戏中 mainBaseX/Y 一致）
+            ctx.translate(mainBaseX, 0);
             
             // 2. holdOffset（WeaponAnimConfig 参数）
             ctx.translate(holdOffsetX, holdOffsetY);
@@ -588,9 +607,11 @@ const DevTool = {
             // 3. 基础旋转（让武器水平朝右，与游戏中 Math.PI / 2 一致）
             ctx.rotate(Math.PI / 2);
             
-            // 4. 武器中心偏移（仅剑类有，弓类没有）
+            // 4. 武器中心偏移
             if (isMelee) {
                 ctx.translate(0, -ms * 0.85);
+            } else if (isGun) {
+                ctx.translate(0, -s * 0.42);
             }
             
             // 5. 最终角度（含 idleRotation + 呼吸效果）
@@ -611,6 +632,10 @@ const DevTool = {
                 const w = ms * 0.63 * scale;
                 const h = ms * scale;
                 ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
+            } else if (isGun) {
+                const w = s * 0.75 * scale;
+                const h = s * scale;
+                ctx.drawImage(this.weaponImage, -w / 2, 0, w, h);
             } else {
                 // 弓类：根据图片宽高比绘制
                 const imgW = this.weaponImage.naturalWidth || 1024;
@@ -649,17 +674,30 @@ const DevTool = {
 
     // 保存数据
     _save() {
-        const ms = 105 * 0.75; // 78.75
+        const s = 105;
+        const ms = s * 0.75; // 78.75
         const wt = this.state.weaponType;
         const weaponType = this.WEAPON_MAP[wt]?.type || 'melee';
         const isMelee = weaponType === 'melee';
+        const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
         
         // 将屏幕偏移转换为 holdOffset（与 renderWeapon 变换链兼容）
         // 注意：不同武器类型的转换公式不同！
         // 剑类：holdOffsetX = offsetX - ms*0.85 + 7
-        // 弓类：holdOffsetX = offsetX + 7（没有 ms*0.85 偏移）
-        const holdOffsetX = isMelee ? this.weaponParams.offsetX - ms * 0.85 + 7 : this.weaponParams.offsetX + 7;
-        const holdOffsetY = -this.weaponParams.offsetY;
+        // 弓类：holdOffsetX = offsetX + 7
+        // 枪械类：holdOffsetX = offsetX - (0.92*s + 8) = offsetX - 104.6
+        let holdOffsetX, holdOffsetY;
+        if (isMelee) {
+            holdOffsetX = this.weaponParams.offsetX - ms * 0.85 + 7;
+            holdOffsetY = -this.weaponParams.offsetY;
+        } else if (isGun) {
+            holdOffsetX = this.weaponParams.offsetX - 104.6;
+            holdOffsetY = -this.weaponParams.offsetY;
+        } else {
+            // 弓类
+            holdOffsetX = this.weaponParams.offsetX + 7;
+            holdOffsetY = -this.weaponParams.offsetY;
+        }
         
         // 直接修改 WeaponAnimConfig（实时生效，无需重新构建）
         const cfg = WeaponAnimConfig[wt];
@@ -728,11 +766,22 @@ const DevTool = {
     _reset() {
         const weaponType = this.WEAPON_MAP[this.state.weaponType]?.type || 'melee';
         const isMelee = weaponType === 'melee';
+        const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
         
         if (isMelee) {
             // 剑类：使用 WEAPON_ANIM.size 计算默认值
             const ms = 105 * 0.75;
             this.weaponParams = { offsetX: Math.round(ms * 0.85 - 7), offsetY: 30, rotation: 0, scale: 1.0 };
+        } else if (isGun) {
+            // 枪械类：使用 WeaponAnimConfig 当前配置反向推导
+            const gunCfg = WeaponAnimConfig[this.state.weaponType] || WeaponAnimConfig.pkm;
+            // holdOffsetX = wp.offsetX - 104.6 → wp.offsetX = holdOffsetX + 104.6
+            this.weaponParams = {
+                offsetX: Math.round((gunCfg.holdOffsetX || 0) + 104.6),
+                offsetY: Math.round(-(gunCfg.holdOffsetY || 0)),
+                rotation: gunCfg.idleRotation || 0,
+                scale: gunCfg.idleScale || 1.0
+            };
         } else {
             // 弓类：使用 WeaponAnimConfig.bow 当前配置
             const bowCfg = WeaponAnimConfig.bow;
@@ -767,6 +816,185 @@ const DevTool = {
     },
     toggle() {
         if (this._active) this.hide(); else this.show();
+    },
+
+    // ===== 坐标工具 =====
+    _startCoordTool() {
+        this.hide(); // 关闭交互开发工具
+
+        const overlay = document.getElementById('coordOverlay');
+        const panel = document.getElementById('coordPanel');
+        if (!overlay || !panel) return;
+
+        overlay.classList.add('active');
+        panel.classList.add('active');
+
+        // 创建鼠标坐标标签
+        const label = document.createElement('div');
+        label.className = 'mouse-label';
+        label.id = 'coordMouseLabel';
+        overlay.appendChild(label);
+
+        // 创建矩形预览
+        const rectPreview = document.createElement('div');
+        rectPreview.className = 'rect-preview';
+        rectPreview.id = 'coordRectPreview';
+        rectPreview.style.display = 'none';
+        overlay.appendChild(rectPreview);
+
+        // 创建起始点标记
+        const startMarker = document.createElement('div');
+        startMarker.className = 'start-marker';
+        startMarker.id = 'coordStartMarker';
+        startMarker.style.display = 'none';
+        overlay.appendChild(startMarker);
+
+        // 状态
+        const state = {
+            dragging: false,
+            startX: 0, startY: 0,
+            currentX: 0, currentY: 0,
+        };
+
+        const updateLabel = (x, y) => {
+            label.textContent = `X:${Math.round(x)} Y:${Math.round(y)}`;
+            label.style.left = (x + 12) + 'px';
+            label.style.top = (y - 12) + 'px';
+        };
+
+        const updateRect = (x1, y1, x2, y2) => {
+            const left = Math.min(x1, x2);
+            const top = Math.min(y1, y2);
+            const width = Math.abs(x2 - x1);
+            const height = Math.abs(y2 - y1);
+            rectPreview.style.left = left + 'px';
+            rectPreview.style.top = top + 'px';
+            rectPreview.style.width = width + 'px';
+            rectPreview.style.height = height + 'px';
+        };
+
+        const onMouseDown = (e) => {
+            if (e.button !== 0) return; // 只响应左键
+            e.preventDefault();
+            state.dragging = true;
+            state.startX = e.clientX;
+            state.startY = e.clientY;
+            state.currentX = e.clientX;
+            state.currentY = e.clientY;
+
+            rectPreview.style.display = 'block';
+            startMarker.style.display = 'block';
+            startMarker.style.left = (state.startX - 4) + 'px';
+            startMarker.style.top = (state.startY - 4) + 'px';
+
+            const startEl = document.getElementById('coordStart');
+            if (startEl) startEl.textContent = `X:${state.startX}, Y:${state.startY}`;
+            const endEl = document.getElementById('coordEnd');
+            if (endEl) endEl.textContent = '拖动中...';
+            const sizeEl = document.getElementById('coordSize');
+            if (sizeEl) sizeEl.textContent = '--';
+        };
+
+        const onMouseMove = (e) => {
+            updateLabel(e.clientX, e.clientY);
+            if (!state.dragging) return;
+            state.currentX = e.clientX;
+            state.currentY = e.clientY;
+            updateRect(state.startX, state.startY, state.currentX, state.currentY);
+        };
+
+        const onMouseUp = (e) => {
+            if (!state.dragging) return;
+            state.dragging = false;
+            state.currentX = e.clientX;
+            state.currentY = e.clientY;
+
+            const endX = state.currentX;
+            const endY = state.currentY;
+            const width = Math.abs(endX - state.startX);
+            const height = Math.abs(endY - state.startY);
+
+            // 如果拖动距离很小，视为点击而非拖动
+            if (width < 5 && height < 5) {
+                rectPreview.style.display = 'none';
+                startMarker.style.display = 'none';
+                const endEl = document.getElementById('coordEnd');
+                if (endEl) endEl.textContent = '点击了位置（未拖动）';
+                const sizeEl = document.getElementById('coordSize');
+                if (sizeEl) sizeEl.textContent = '--';
+                return;
+            }
+
+            // 创建最终矩形
+            const finalRect = document.createElement('div');
+            finalRect.className = 'final-rect';
+            const left = Math.min(state.startX, endX);
+            const top = Math.min(state.startY, endY);
+            finalRect.style.left = left + 'px';
+            finalRect.style.top = top + 'px';
+            finalRect.style.width = width + 'px';
+            finalRect.style.height = height + 'px';
+            overlay.appendChild(finalRect);
+
+            rectPreview.style.display = 'none';
+            startMarker.style.display = 'none';
+
+            // 更新控制栏
+            const endEl = document.getElementById('coordEnd');
+            if (endEl) endEl.textContent = `X:${endX}, Y:${endY}`;
+            const sizeEl = document.getElementById('coordSize');
+            if (sizeEl) sizeEl.textContent = `${width}px × ${height}px`;
+
+            // 自动复制到剪贴板
+            const text = `起始点: X:${state.startX}, Y:${state.startY}\n结束点: X:${endX}, Y:${endY}\n尺寸: ${width}px × ${height}px`;
+            navigator.clipboard.writeText(text).catch(() => {});
+        };
+
+        const onContextMenu = (e) => {
+            e.preventDefault();
+            // 退出坐标工具
+            overlay.classList.remove('active');
+            panel.classList.remove('active');
+
+            // 清理元素
+            const labelEl = document.getElementById('coordMouseLabel');
+            const rectEl = document.getElementById('coordRectPreview');
+            const markerEl = document.getElementById('coordStartMarker');
+            const finalRects = overlay.querySelectorAll('.final-rect');
+            if (labelEl) labelEl.remove();
+            if (rectEl) rectEl.remove();
+            if (markerEl) markerEl.remove();
+            finalRects.forEach(el => el.remove());
+
+            // 移除事件监听
+            document.removeEventListener('mousedown', onMouseDown);
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('contextmenu', onContextMenu);
+        };
+
+        document.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('contextmenu', onContextMenu);
+
+        // 复制按钮
+        const copyBtn = document.getElementById('coordCopyBtn');
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                const startEl = document.getElementById('coordStart');
+                const endEl = document.getElementById('coordEnd');
+                const sizeEl = document.getElementById('coordSize');
+                const text = `起始点: ${startEl ? startEl.textContent : '--'}\n结束点: ${endEl ? endEl.textContent : '--'}\n尺寸: ${sizeEl ? sizeEl.textContent : '--'}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.textContent = '✅ 已复制';
+                    setTimeout(() => { copyBtn.textContent = '📋 复制坐标'; }, 1500);
+                }).catch(() => {
+                    copyBtn.textContent = '❌ 复制失败';
+                    setTimeout(() => { copyBtn.textContent = '📋 复制坐标'; }, 1500);
+                });
+            };
+        }
     },
 };
 

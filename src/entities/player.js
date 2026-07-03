@@ -3,16 +3,22 @@ import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WeaponEffect } from '../effects/weapon-effect.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
-import { isGunWeapon, getGunAmmoCapacity, isMachineGun, isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
+import { isGunWeapon, isMachineGun, isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
+import { computeWeaponAttack } from '../config/attack-formula.js';
 import { DashSystem } from './components/dash-system.js';
 import { WhirlwindSystem } from './components/whirlwind-system.js';
 import { PushStrikeSystem } from './components/push-strike-system.js';
 import { SpecialAttackSystem } from './components/special-attack-system.js';
 import { RuneSwordSystem } from './components/rune-sword-system.js';
+import { IceSpikeSystem } from './components/ice-spike-system.js';
+import { FireballSystem } from './components/fireball-system.js';
+import { DroneSystem } from './components/drone-system.js';
+import { ShieldSystem } from './components/shield-system.js';
+
 
         class Player extends Entity {
             constructor(x, y) {
-                super(x, y); this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0;
+                super(x, y); this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300;
                 this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
                 this.weaponSwitchCooldown = 0; // 武器切换冷却：切换 G18 后防止立即开火
                 this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）
@@ -43,10 +49,11 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this._pushStrikeHitChecked = false; // 推击攻击判定是否已执行
                 this._pushStrikeRangeEffect = null; // 推击范围提示效果引用
                 this.pushStrikeSystem = new PushStrikeSystem(this); // 推击技能系统
+                // ===== 每个特殊攻击类型的独立冷却 { [specialAttackType]: ms } =====
+                this._specialAttackCooldowns = {};
                 // ===== 夜与火之剑特殊攻击状态 =====
                 this._specialAttackActive = false; // 是否正在释放特殊攻击
                 this._specialAttackTimer = 0; // 特殊攻击计时器
-                this._specialAttackCooldown = 0; // 特殊攻击冷却（ms）
                 this._specialAttackHitSet = new Set(); // 特殊攻击已命中目标
                 this._specialAttackLastTick = 0; // 上次伤害判定时间
                 this._specialAttackAngle = 0; // 光柱方向
@@ -57,26 +64,45 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 // ===== 符文长剑特殊攻击状态 =====
                 this._runeSwordSpecialActive = false; // 符文长剑特殊攻击是否激活
                 this._runeSwordSpecialTimer = 0; // 累计计时（30秒超时）
-                this._runeSwordSpecialCooldown = 0; // 冷却（ms）
                 this._runeSwordSwords = []; // 4把剑状态数组
                 this._runeSwordBladeImg = null; // 剑贴图
                 this._runeSwordResetAnim = null; // 符文长剑复位动画
+                // ===== 冰锥技能状态 =====
+                this._iceSpikeActive = false; // 冰锥是否已生成
+                this._iceSpikeTimer = 0; // 悬浮持续时间计时
+                this._iceSpikeCooldown = 0; // 冷却（ms）
+                this._iceSpikeSpikes = []; // 冰锥数组
+                this._iceSpikeImg = null; // 冰锥贴图
+                // ===== 火球技能状态 =====
+                this._fireballActive = false; // 火球是否已生成
+                this._fireballTimer = 0; // 悬浮持续时间计时
+                this._fireballCooldown = 0; // 冷却（ms）
+                this._fireball = null; // 火球对象
+                this._fireballImg = null; // 火球贴图
+                // ===== 蓄力攻击状态（边境长弓） =====
+                this._chargeState = 'idle'; // idle/charging/charged/firing
+                this._chargeTimer = 0; // 蓄力计时器
+                this._chargeFlashTimer = 0; // 闪光计时器
+                this._chargeFlashActive = false; // 是否正在闪光
                 // ===== 装备-技能联动系统 =====
                 this._skillOverrides = {}; // 当前装备的技能覆盖 { skillId: overrideData }
                 this.attacks = {
                     melee: new ThrustAttack({ cooldown: 500, range: 116, width: 25, damage: { min: 12, max: 20 }, knockback: 8 }),
-                    ranged: new RangedAttack({ cooldown: 600, projectileSpeed: 5, projectileRange: 1000, projectileSize: 9, damage: { min: 8, max: 16 }, piercing: false }),
-                    pistol: new RangedAttack({ cooldown: 55, projectileSpeed: 13, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                    deagle: new RangedAttack({ cooldown: 800, projectileSpeed: 20, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
+                    ranged: new RangedAttack({ cooldown: 600, projectileSpeed: 2028, projectileRange: 1000, projectileSize: 9, damage: { min: 8, max: 16 }, piercing: false }),
+                    pistol: new RangedAttack({ cooldown: 55, projectileSpeed: 2028, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
+                    deagle: new RangedAttack({ cooldown: 800, projectileSpeed: 3120, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
                     // 副手独立攻击对象（双持时互不干扰）
-                    pistolOffhand: new RangedAttack({ cooldown: 55, projectileSpeed: 13, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                    deagleOffhand: new RangedAttack({ cooldown: 800, projectileSpeed: 20, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
-                    pkm: new RangedAttack({ cooldown: 92, projectileSpeed: 30, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    akm: new RangedAttack({ cooldown: 100, projectileSpeed: 30, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    qbz191: new RangedAttack({ cooldown: 70, projectileSpeed: 36, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    qjb201: new RangedAttack({ cooldown: 60, projectileSpeed: 30, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    super90: new RangedAttack({ cooldown: 333, projectileSpeed: 25, projectileRange: 500, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 }),
-                    saiga12k: new RangedAttack({ cooldown: 150, projectileSpeed: 15, projectileRange: 400, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 })
+                    pistolOffhand: new RangedAttack({ cooldown: 55, projectileSpeed: 2028, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
+                    deagleOffhand: new RangedAttack({ cooldown: 800, projectileSpeed: 3120, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
+                    p4040: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
+                    p4040Offhand: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
+                    pkm: new RangedAttack({ cooldown: 92, projectileSpeed: 4680, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    akm: new RangedAttack({ cooldown: 100, projectileSpeed: 4680, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    qbz191: new RangedAttack({ cooldown: 70, projectileSpeed: 5616, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    qjb201: new RangedAttack({ cooldown: 60, projectileSpeed: 2808, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    energy_lmg: new RangedAttack({ cooldown: 333, projectileSpeed: 5616, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 0 }),
+                    super90: new RangedAttack({ cooldown: 333, projectileSpeed: 3900, projectileRange: 500, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 }),
+                    saiga12k: new RangedAttack({ cooldown: 150, projectileSpeed: 2340, projectileRange: 400, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 })
                 };
                 // 应用剑精通的冷却缩减
                 SkillManager.updateMeleeCooldown(this);
@@ -90,7 +116,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     str: 10, dex: 10, int: 10, con: 10, wis: 10, luck: 10,
                     atk: 0, def: 0, matk: 0, mdef: 0, hit: 0, dodge: 0, crit: 0, critRes: 0, aspd: 0, speed: 0,
                     loopCount: 0, surviveDays: 1, kills: 0, quests: 0, geneLock: '未开启', rank: 'F',
-                    attrPoints: 0
+                    attrPoints: 0,
+                    hpRegen: 1, // 每秒生命回复
+                    mpRegen: 1  // 每3秒魔法回复（实际为1/3点/秒）
                 };
                 this._faction = 'player'; // 新增：阵营标识
                 this.skills = this._initSkills();
@@ -102,12 +130,16 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this.equippedBowFrames = null; // 装备后的弓贴图，null表示使用默认弓
                 this.bowEquipImage = new Image(); this.bowEquipImage.src = 'assets/weapons/trainingBOW.png'; // 弓装备栏贴图
                 this.pistolImage = new Image(); this.pistolImage.src = 'assets/weapons/G18equip.png';
+                this.deagleImage = new Image(); this.deagleImage.src = 'assets/weapons/Desert eagle-eqiup.png';
+                this.p4040Image = new Image(); this.p4040Image.src = 'assets/weapons/P4040-equip.png';
                 this.pkmImage = new Image(); this.pkmImage.src = 'assets/weapons/pkm_topdown.png';
                 this.akmImage = new Image(); this.akmImage.src = 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png';
                 this.qbz191Image = new Image(); this.qbz191Image.src = 'assets/weapons/191equip_clean.png';
                 this.qjb201Image = new Image(); this.qjb201Image.src = 'assets/weapons/201equip.png';
                 this.super90Image = new Image(); this.super90Image.src = 'assets/weapons/M4s90_equip.png';
                 this.saiga12kImage = new Image(); this.saiga12kImage.src = 'assets/weapons/S12k-equip.png';
+                this.energyLmgImage = new Image(); this.energyLmgImage.src = 'assets/weapons/devotion-equip.png';
+                this.shieldImage = new Image(); this.shieldImage.src = 'assets/weapons/woodshied-equip.png';
                 this.characterImage = new Image(); this.characterImage.src = 'assets/characters/character_idle_new.png';
                 this.characterFrames = [];
                 for (let i = 1; i <= 24; i++) { const img = new Image(); img.src = `assets/characters/walk/hero_${String(i).padStart(3, '0')}.png`; this.characterFrames.push(img); }
@@ -124,6 +156,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this.whirlwindSystem = new WhirlwindSystem(this); // 风车技能系统
                 this.specialAttackSystem = new SpecialAttackSystem(this); // 夜与火之剑特殊攻击系统
                 this.runeSwordSystem = new RuneSwordSystem(this); // 符文长剑特殊攻击系统
+                this.iceSpikeSystem = new IceSpikeSystem(this); // 冰锥技能系统
+                this.fireballSystem = new FireballSystem(this); // 火球技能系统
+                this.droneSystem = new DroneSystem(this); // 无人机技能系统
+                this.shieldSystem = new ShieldSystem(this); // 盾防御系统
                 // ===== 独头弹后坐力系统（Super90）=====
                 this._slugRecoilLayers = 0; // 后坐力层数
                 this._slugRecoilTimer = 0; // 后坐力恢复计时器
@@ -139,6 +175,11 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this._overheatRecoverTimer = 0; // 过热恢复计时器
                 this._overheatActive = false; // 过热条是否显示
                 this._overheatWeaponType = null; // 当前过热绑定的武器类型
+                // ===== 能量轻机枪射速提升系统 =====
+                this._energyLMGFireTime = 0; // 持续开火时间（ms）
+                this._energyLMGIsFiring = false; // 是否正在持续开火
+                // 能量轻机枪参数默认值为硬编码，实际从武器配置读取（支持改造/强化调整）
+                this._energyLMGDefaults = { baseCooldown: 333, maxCooldown: 50, rampUpTime: 2500, overheatTime: 5000, overheatRecoverTime: 4000, overheatCooldownTime: 4000, spreadMaxTime: 2500, maxSpreadAngle: 15 };
                 // ===== 魔法晶尘（附魔系统）=====
                 this.magicDust = 0; // 魔法晶尘数量
                 // ===== 枪械类武器弹药系统 =====
@@ -196,6 +237,15 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         d.def = Math.floor(d.def * (1 + currentWpn._craftEffects.defensePercent));
                     }
                 }
+                // 应用持盾防御技能的防御力加成
+                if (this.equipments && this.skills && this.skills.shieldDefense) {
+                    const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+                    const shield = this.equipments[offhandSlot];
+                    if (shield && shield.weaponType === 'shield') {
+                        const sdEffect = this.skills.shieldDefense.getEffect(this.skills.shieldDefense.level);
+                        d.def = Math.floor(d.def * (1 + sdEffect.defBonusPercent));
+                    }
+                }
                 d.matk = Math.floor(d.int * 1.5 + (d.wis + bonusWis) * 0.5); d.mdef = Math.floor((d.wis + bonusWis) * 1.2 + d.int * 0.3);
                 d.hit = 80 + Math.floor((d.dex + bonusDex) * 0.5); d.dodge = 5 + Math.floor((d.dex + bonusDex) * 0.3);
                 d.crit = 2 + Math.floor(d.luck * 1.0); d.aspd = 1.0 + (d.dex + bonusDex) * 0.02;
@@ -204,108 +254,28 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 // 保存加成供其他系统使用
                 this._masteryBonus = { str: bonusStr, dex: bonusDex, wis: bonusWis };
             }
+            // 获取能量轻机枪参数（从当前装备配置读取，支持改造/强化调整）
+            _getEnergyLMGParams() {
+                const currentWpn = this.equipments[this.weaponMode];
+                const params = currentWpn && currentWpn.energyLMGParams;
+                const defaults = this._energyLMGDefaults || { baseCooldown: 333, maxCooldown: 50, rampUpTime: 2500, overheatTime: 4000, overheatRecoverTime: 2500, overheatCooldownTime: 4000, spreadMaxTime: 2500, maxSpreadAngle: 15 };
+                if (!params) return defaults;
+                return {
+                    baseCooldown: params.baseCooldown ?? defaults.baseCooldown,
+                    maxCooldown: params.maxCooldown ?? defaults.maxCooldown,
+                    rampUpTime: params.rampUpTime ?? defaults.rampUpTime,
+                    overheatTime: params.overheatTime ?? defaults.overheatTime,
+                    overheatRecoverTime: params.overheatRecoverTime ?? defaults.overheatRecoverTime,
+                    overheatCooldownTime: params.overheatCooldownTime ?? defaults.overheatCooldownTime,
+                    spreadMaxTime: params.spreadMaxTime ?? defaults.spreadMaxTime,
+                    maxSpreadAngle: params.maxSpreadAngle ?? defaults.maxSpreadAngle
+                };
+            }
             // 获取当前武器攻击力（状态栏同步计算，包含强化等级加成和武器精通加成）
             getCurrentWeaponAtk(itemOverride) {
                 const currentWpn = itemOverride || this.equipments[this.weaponMode];
-                let weaponAtk = 0;
-                if (currentWpn && currentWpn.weaponId) {
-                    const d = this.data;
-                    const el = currentWpn.enhanceLevel || 0;
-                    const wType = currentWpn.weaponType;
-                    if (currentWpn.weaponId === 'weapon1') {
-                        weaponAtk = Math.round(6 + el + d.str * (0.5 + 0.02 * el) + d.dex * (0.5 + 0.02 * el));
-                    } else if (currentWpn.weaponId === 'weapon2') {
-                        weaponAtk = Math.round(10 + el + d.str * (1 + 0.02 * el) + d.dex * (0.5 + 0.02 * el));
-                        const ce = currentWpn._craftEffects;
-                        if (ce && ce.damagePercent) {
-                            weaponAtk = Math.round(weaponAtk * (1 + ce.damagePercent));
-                        }
-                    } else if (currentWpn.weaponId === 'weapon3') {
-                        weaponAtk = Math.round(6 + el + d.dex * (0.35 + 0.02 * el));
-                    } else if (currentWpn.weaponId === 'weapon4') {
-                        weaponAtk = Math.round(8 + el + d.str * (0.6 + 0.02 * el) + d.int * (1 + 0.02 * el));
-                    } else if (currentWpn.weaponId === 'weapon5') {
-                        weaponAtk = Math.round(12 + el + d.str * (1.2 + 0.02 * el) + d.int * (1 + 0.02 * el));
-                    } else if (currentWpn.weaponId === 'weapon6') {
-                        weaponAtk = Math.round(5 + el + d.str * (0.11 + 0.001 * el) + d.wis * (0.11 + 0.002 * el));
-                    } else if (currentWpn.weaponId === 'weapon7') {
-                        // AKM: 9 + 强化等级 + 智力×(0.45+0.12×强化等级) + 精神×(0.45+0.12×强化等级)
-                        weaponAtk = Math.round(9 + el + d.int * (0.45 + 0.12 * el) + d.wis * (0.45 + 0.12 * el));
-                    } else if (currentWpn.weaponId === 'weapon8') {
-                        // QBZ-191: 8 + 强化等级 + 智力×(0.4+0.15×强化等级) + 精神×(0.4+0.15×强化等级)
-                        weaponAtk = Math.round(8 + el + d.int * (0.4 + 0.15 * el) + d.wis * (0.4 + 0.15 * el));
-                    } else if (currentWpn.weaponId === 'weapon9') {
-                        // G18: 5 + 强化等级 + 敏捷×(0.35+0.15×强化等级) + 精神×(0.4+0.15×强化等级)
-                        weaponAtk = Math.round(5 + el + d.dex * (0.35 + 0.15 * el) + d.wis * (0.4 + 0.15 * el));
-                    } else if (currentWpn.weaponId === 'weapon10') {
-                        // 沙漠之鹰：30 + 敏捷×1 + 精神×2
-                        weaponAtk = Math.round(30 + d.dex * 1 + d.wis * 2);
-                    } else if (currentWpn.weaponId === 'weapon11') {
-                        weaponAtk = Math.round(3 + el + d.str * (0.08 + 0.01 * el) + d.wis * (0.15 + 0.02 * el));
-                    } else if (currentWpn.weaponId === 'weapon14') {
-                        // 训练用弓：50 + 强化等级×10 + 敏捷×(2+1.5×强化等级) + 力量×(1.5+1.5×强化等级)
-                        weaponAtk = Math.round(50 + el * 10 + d.dex * (2 + 1.5 * el) + d.str * (1.5 + 1.5 * el));
-                    } else if (currentWpn.weaponId === 'weapon12') {
-                        const ce = currentWpn._craftEffects;
-                        if (ce && ce.slugMode) {
-                            // 独头弹模式：8 + 强化等级×5 + 体质×(0.6+0.05×强化等级) + 精神×(1+0.1×强化等级)
-                            weaponAtk = Math.round(8 + el * 5 + d.con * (0.6 + 0.05 * el) + d.wis * (1 + 0.1 * el));
-                        } else {
-                            // Super90：10 + 强化等级 + 体质×(0.2+0.10×强化等级) + 精神×(0.5+0.15×强化等级)
-                            weaponAtk = Math.round(10 + el + d.con * (0.2 + 0.10 * el) + d.wis * (0.5 + 0.15 * el));
-                        }
-                        if (ce && ce.damagePercent) {
-                            weaponAtk = Math.round(weaponAtk * (1 + ce.damagePercent));
-                        }
-                    } else if (currentWpn.weaponId === 'weapon13') {
-                        const ce = currentWpn._craftEffects;
-                        if (ce && ce.slugMode) {
-                            // 独头弹模式：8 + 强化等级×5 + 体质×(0.6+0.05×强化等级) + 精神×(1+0.1×强化等级)
-                            weaponAtk = Math.round(8 + el * 5 + d.con * (0.6 + 0.05 * el) + d.wis * (1 + 0.1 * el));
-                        } else {
-                            // S12K：8 + 强化等级 + 体质×(0.5+0.15×强化等级) + 精神×(0.25+0.10×强化等级)
-                            weaponAtk = Math.round(8 + el + d.con * (0.5 + 0.15 * el) + d.wis * (0.25 + 0.10 * el));
-                        }
-                        if (ce && ce.damagePercent) {
-                            weaponAtk = Math.round(weaponAtk * (1 + ce.damagePercent));
-                        }
-                    }
-                    // 剑精通加成
-                    if (this.skills && this.skills.swordMastery) {
-                        weaponAtk += this.skills.swordMastery.getEffect(this.skills.swordMastery.level).atkBonus;
-                    }
-                    // 机枪精通加成（PKM / QJB-201）
-                    if (isMachineGun(wType) && this.skills && this.skills.machineGunMastery) {
-                        const mg = this.skills.machineGunMastery.getEffect(this.skills.machineGunMastery.level);
-                        weaponAtk = Math.round(weaponAtk * (1 + mg.damagePercent) + mg.damageBonus);
-                    }
-                    // 步枪精通加成（AKM / QBZ-191）
-                    if ((wType === 'akm' || wType === 'qbz191') && this.skills && this.skills.rifleMastery) {
-                        const rm = this.skills.rifleMastery.getEffect(this.skills.rifleMastery.level);
-                        weaponAtk = Math.round(weaponAtk * (1 + rm.damagePercent) + rm.damageBonus);
-                    }
-                    // 手枪精通加成（G18）
-                    if (wType === 'pistol' && this.skills && this.skills.pistolMastery) {
-                        const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
-                        weaponAtk = Math.round(weaponAtk * (1 + pm.damagePercent) + pm.damageBonus);
-                    }
-                    // 散弹枪精通加成（Super90 / S12K）
-                    if (wType === 'shotgun' && this.skills && this.skills.shotgunMastery) {
-                        const sm = this.skills.shotgunMastery.getEffect(this.skills.shotgunMastery.level);
-                        weaponAtk = Math.round(weaponAtk * (1 + sm.damagePercent));
-                    }
-                    // 弓精通加成（训练用弓等弓类武器）
-                    if (wType === 'bow' && this.skills && this.skills.bowMastery) {
-                        const bm = this.skills.bowMastery.getEffect(this.skills.bowMastery.level);
-                        weaponAtk = Math.round(weaponAtk * (1 + bm.damagePercent) + bm.damageBonus);
-                    }
-                    // 附魔效果：攻击力加成
-                    const ee = currentWpn._enchantEffects;
-                    if (ee && ee.damagePercent) {
-                        weaponAtk = Math.round(weaponAtk * (1 + ee.damagePercent));
-                    }
-                }
-                return weaponAtk;
+                if (!currentWpn) return 0;
+                return computeWeaponAttack(currentWpn, this.data, this.skills);
             }
             // ===== 经验值系统 =====
             getExpForLevel(level) { return 20 + level * 20 + level * 12; }
@@ -329,6 +299,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 }
             }
             onLevelUp(level) {
+                // 播放升级音效
+                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
+                }
                 // 使用特效队列顺序播放
                 LevelUpEffectQueue.add({
                     type: 'playerLevelUp',
@@ -349,7 +323,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 });
             }
             // ===== 死亡系统 =====
-            takeDamage(damage, source) {
+            takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                 // 主神空间（场景一）无敌
                 if (SceneManager.currentScene === 'main') return;
                 // 闪避无敌期间不受伤害
@@ -384,7 +358,17 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     const csEffect = source.skills.criticalStrike.getEffect(source.skills.criticalStrike.level);
                     finalDamage = Math.floor(damage * (1 + csEffect.damageBonus));
                 }
+                // 盾防御系统处理
+                if (this.shieldSystem && this.shieldSystem.active && this.shieldSystem.defending) {
+                    const result = this.shieldSystem.onDamageTaken(finalDamage, source, isMelee);
+                    finalDamage = result.damage;
+                    if (result.parried) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 20, '🛡️ 弹反！', '#c0a060'));
+                        return;
+                    }
+                }
                 d.hp -= finalDamage;
+                this.hitFlash = this.hitFlashDuration;
                 EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
                 if (isCrit) EffectManager.triggerCritEffects();
                 const isKill = d.hp <= 0;
@@ -399,6 +383,11 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this._deathTimer = 3000; // 3秒后重生
                 // 显示死亡提示
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '你死了！3秒后重生', '#ff4444'));
+                // 如果在任务模式中死亡，重置任务状态
+                if (typeof QuestState !== 'undefined' && QuestState.isInQuest()) {
+                    QuestState.reset();
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '任务失败，请重新与侍从对话', '#ff4444'));
+                }
                 // 死亡不掉落经验或装备（预留接口）
                 if (typeof this._onDeathDrop === 'function') {
                     this._onDeathDrop();
@@ -439,17 +428,33 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this._runeSwordSwords = null;
                 // 清除夜与火之剑特殊状态
                 this._specialAttackActive = false;
-                this._specialAttackCooldown = 0;
                 this._specialAttackTimer = 0;
                 this._specialAttackEntities = null;
+                // 清除所有特殊攻击冷却
+                this._specialAttackCooldowns = {};
+                // 清除无人机状态
+                if (this.droneSystem) {
+                    this.droneSystem._deactivate();
+                }
+                // 清除冰锥状态
+                this._iceSpikeActive = false;
+                this._iceSpikeTimer = 0;
+                this._iceSpikeCooldown = 0;
+                this._iceSpikeSpikes = [];
+                // 清除火球状态
+                this._fireballActive = false;
+                this._fireballTimer = 0;
+                this._fireballCooldown = 0;
+                this._fireball = null;
                 // 清除死亡粒子效果
                 if (this._poisonEffect) this._poisonEffect.reset();
                 // 重置所有弹药状态
                 this._ammoState = { weapon: null, offhand: null, weapon2: null, ring2: null };
                 // 重新初始化当前装备的弹药
                 ['weapon', 'offhand', 'weapon2', 'ring2'].forEach(slot => this._initAmmoForSlot(slot));
-                // 重生位置：主神空间，小鼠大王左侧 200px
-                const respawnPos = { x: CONFIG.WORLD_WIDTH / 2 + 120 - 200, y: CONFIG.WORLD_HEIGHT / 2 - 150 };
+                // 重生位置：主神空间出生点（小鼠大王位置，固定坐标）
+                const MAIN_SCENE_WIDTH = 7650, MAIN_SCENE_HEIGHT = 3800;
+                const respawnPos = { x: MAIN_SCENE_WIDTH / 2 + 120, y: MAIN_SCENE_HEIGHT / 2 - 150 };
                 if (SceneManager.currentScene !== 'main') {
                     // 从其他场景死亡回主神空间：使用独立的重生位置变量，不覆盖 _mainPlayerPos
                     SceneManager._respawnPos = respawnPos;
@@ -535,11 +540,72 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     // 兜底：确保暴击技能始终存在（即使JSON中没有定义）
                     if (!skills.criticalStrike) {
                         skills.criticalStrike = {
-                            id: 'criticalStrike', name: '暴击', icon: '💥',
+                            id: 'criticalStrike', name: '暴击', icon: '💥', iconImage: 'assets/skills/暴击.png',
                             description: '精通暴击之道，每次暴击都能造成更致命的打击',
                             level: 1, maxLevel: 20, exp: 0, maxExp: 100,
                             tags: [{ name: '暴击', type: 'passive' }, { name: '被动', type: 'passive' }],
                             getEffect(level) { return { damageBonus: 0.50 + level * 0.05, luckBonus: level }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保冲刺攻击-火始终存在（即使JSON缓存了旧版本）
+                    if (!skills.dashAttackFire) {
+                        skills.dashAttackFire = {
+                            id: 'dashAttackFire', name: '冲刺攻击-火', icon: '🔥', iconImage: 'assets/skills/冲刺攻击-火.png',
+                            description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
+                            getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    if (skills.dashAttackFire) {
+                        skills.dashAttackFire.iconImage = 'assets/skills/冲刺攻击-火.png';
+                    }
+                    // 兜底：确保冲刺攻击-突刺始终存在（即使JSON缓存了旧版本）
+                    if (!skills.dashAttackThrust) {
+                        skills.dashAttackThrust = {
+                            id: 'dashAttackThrust', name: '冲刺攻击-突刺', icon: '⚔', iconImage: 'assets/skills/冲刺突击.png',
+                            description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
+                            getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    if (skills.dashAttackThrust) {
+                        skills.dashAttackThrust.iconImage = 'assets/skills/冲刺突击.png';
+                    }
+                    // 兜底：确保冰锥技能始终存在
+                    if (!skills.iceSpike) {
+                        skills.iceSpike = {
+                            id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
+                            description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保持盾防御技能始终存在
+                    if (!skills.shieldDefense) {
+                        skills.shieldDefense = {
+                            id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                            description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
+                            getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保火球技能始终存在
+                    if (!skills.fireball) {
+                        skills.fireball = {
+                            id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
+                            description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
                             getExpForNext(level) { return 100 + (level - 1) * 100; }
                         };
                     }
@@ -563,8 +629,16 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02 }; },
                         getExpForNext(level) { return 100 + (level - 1) * 100; }
                     },
+                    dashAttackFire: {
+                        id: 'dashAttackFire', name: '冲刺攻击-火', icon: '🔥', iconImage: 'assets/skills/冲刺攻击-火.png',
+                        description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
+                        getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
                     dashAttackThrust: {
-                        id: 'dashAttackThrust', name: '冲刺攻击-突刺', icon: '⚔',
+                        id: 'dashAttackThrust', name: '冲刺攻击-突刺', icon: '⚔', iconImage: 'assets/skills/冲刺突击.png',
                         description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
                         level: 1, maxLevel: 20, exp: 0, maxExp: 100,
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
@@ -588,7 +662,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         getExpForNext(level) { return 100 + (level - 1) * 100; }
                     },
                     criticalStrike: {
-                        id: 'criticalStrike', name: '暴击', icon: '💥',
+                        id: 'criticalStrike', name: '暴击', icon: '💥', iconImage: 'assets/skills/暴击.png',
                         description: '精通暴击之道，每次暴击都能造成更致命的打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: 100,
                         tags: [{ name: '暴击', type: 'passive' }, { name: '被动', type: 'passive' }],
@@ -634,6 +708,38 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         tags: [{ name: '弓类武器', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageBonus: level * 5, damagePercent: level * 0.01, cooldownReduction: level * 0.01, dexBonus: level }; },
                         getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    droneSkill: {
+                        id: 'droneSkill', name: '无人机', icon: '🛸', iconImage: 'assets/skills/无人机.png',
+                        description: '释放一架无人机，操控时对范围内敌人施加易伤效果',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '主动', type: 'active' }],
+                        getEffect(level) { return { duration: 30 + (level - 1) * 2, damageBonusPercent: 10 + (level - 1) * 2, critBonusPercent: 10 + (level - 1) * 2, moveSpeed: 500 + Math.floor((level - 1) / 5) * 50, radius: 300 + Math.floor((level - 1) / 5) * 100, cooldown: 15 - level * 0.2 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    iceSpike: {
+                        id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
+                        description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                        getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    shieldDefense: {
+                        id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                        description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
+                        getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    fireball: {
+                        id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
+                        description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                        getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
                     }
                 };
             }
@@ -653,42 +759,25 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 
                 // 根据武器类型更新对应的攻击冷却
                 const wType = item.weaponType;
-                const attackMap = {
-                    'sword': 'melee',
-                    'pistol': item.weaponId === 'weapon10' ? 'deagle' : 'pistol',
-                    'pkm': 'pkm',
-                    'akm': 'akm',
-                    'qbz191': 'qbz191',
-                    'qjb201': 'qjb201',
-                    'shotgun': 'super90', // 默认Super90
-                    'bow': 'ranged',
-                };
-                
-                // 保存基础冷却值（如果未保存）
+                const attackKey = item.attackKey || 'melee';
                 if (!this._baseCooldowns) this._baseCooldowns = {};
-                const attackKey = attackMap[wType] || 'melee';
                 if (this.attacks[attackKey]) {
                     if (!this._baseCooldowns[attackKey]) {
                         this._baseCooldowns[attackKey] = this.attacks[attackKey].maxCooldown;
                     }
+                    // 弓类：使用武器配置中的 attackInterval 作为基础冷却
+                    let baseCooldown = this._baseCooldowns[attackKey];
+                    if (wType === 'bow' && item.attack && item.attack.attackInterval) {
+                        baseCooldown = item.attack.attackInterval;
+                    }
                     // 基础冷却 × 附魔倍率 + 改造间隔变化
-                    this.attacks[attackKey].maxCooldown = Math.round(this._baseCooldowns[attackKey] * intervalMul + attackIntervalDelta);
+                    this.attacks[attackKey].maxCooldown = Math.round(baseCooldown * intervalMul + attackIntervalDelta);
                 }
             }
 
-            // 附魔效果：攻击命中时触发（狼蛛中毒）
+            // 附魔效果：攻击命中时触发（已由 attack.js 的 applyEnchantOnHit 统一处理，此处保留兼容空方法）
             _onHitEntity(entity) {
-                if (!entity || !entity.active) return;
-                const weapon = this.equipments[this.weaponMode];
-                if (!weapon || !weapon._enchantEffects) return;
-                
-                // 狼蛛附魔：给敌人叠加中毒效果
-                if (weapon._enchantEffects.poisonOnHit) {
-                    const stacks = weapon._enchantEffects.poisonStacks || 1;
-                    if (entity.applyPoison) {
-                        entity.applyPoison(stacks);
-                    }
-                }
+                // 所有附魔命中效果已迁移至 attack.js 的通用附魔系统，避免硬编码
             }
 
             _applySkillOverrides(item) {
@@ -739,9 +828,14 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 return val;
             }
             _getActiveDashSkillId() {
+                // 优先使用 _skillOverrides（由 _applySkillOverrides 设置）
+                if (this._skillOverrides.dashAttackThrust) return 'dashAttackThrust';
+                if (this._skillOverrides.dashAttackFire) return 'dashAttackFire';
+                // 回退到检查装备物品上的 skillOverrides
                 const currentItem = this.equipments[this.weaponMode];
-                if (currentItem && currentItem.skillOverrides && currentItem.skillOverrides.dashAttackThrust) {
-                    return 'dashAttackThrust';
+                if (currentItem && currentItem.skillOverrides) {
+                    if (currentItem.skillOverrides.dashAttackThrust) return 'dashAttackThrust';
+                    if (currentItem.skillOverrides.dashAttackFire) return 'dashAttackFire';
                 }
                 return 'dashAttack';
             }
@@ -767,6 +861,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
             }
             update(dt, entities) {
                 super.update(dt); // 同步六边形顶点世界坐标
+                if (this.hitFlash > 0) {
+                    this.hitFlash = Math.max(0, this.hitFlash - dt);
+                }
                 // 死亡状态处理
                 if (this._isDead) {
                     this._deathTimer -= dt;
@@ -786,6 +883,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             StatusBar.removeEffect(this._stunEffectId);
                             this._stunEffectId = null;
                         }
+                    }
+                    // 眩晕期间强制取消防御状态
+                    if (this.shieldSystem && this.shieldSystem.defending) {
+                        this.shieldSystem.exitDefense();
                     }
                     // 眩晕期间：无法移动、无法攻击、无法调准朝向、无法释放技能
                     // 更新其他子系统（如武器特效、动画复位等）
@@ -836,28 +937,40 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 this._updateAmmoDisplay();
                 
                 const move = Input.getMovement();
+                // 无人机操控模式下：禁用玩家移动，但继续更新其他逻辑
+                const isDroneControlling = this.droneSystem && this.droneSystem.controlling;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown -= dt;
                 if (this.weaponSwitchCooldown > 0) this.weaponSwitchCooldown -= dt;
                 if (this.isDodging) {
                     this.dodgeTimer -= dt;
                     if (this.dodgeTimer <= 0) { this.isDodging = false; this.dodgeInvincible = false; }
                     else {
-                        const dnx = this.x + this.dodgeDirection.x * CONFIG.DODGE_SPEED * 0.33, dny = this.y + this.dodgeDirection.y * CONFIG.DODGE_SPEED * 0.33;
+                        const dScale = dt / 1000;
+                        const dnx = this.x + this.dodgeDirection.x * CONFIG.DODGE_SPEED * 0.33 * dScale, dny = this.y + this.dodgeDirection.y * CONFIG.DODGE_SPEED * 0.33 * dScale;
                         const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.collisionRadius);
                         this.x = dr.x; this.y = dr.y;
-                        this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
+                        // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
+                        if (typeof SceneManager !== 'undefined' && SceneManager.currentScene === 'main') {
+                            this.x = Math.max(0, Math.min(CONFIG.WORLD_WIDTH, this.x)); this.y = Math.max(0, Math.min(CONFIG.WORLD_HEIGHT, this.y));
+                        } else {
+                            this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
+                        }
                         this.animTime += 0.4;
                     }
-                } else {
+                } else if (!isDroneControlling) {
                     let sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
+                    // 防御状态：禁止奔跑
+                    if (this.shieldSystem && this.shieldSystem.defending) sprint = false;
                     // 攻击期间禁止奔跑
                     const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
                     if (isAttacking) sprint = false;
                     let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
+                    // 防御状态：移动速度减慢 50%
+                    if (this.shieldSystem && this.shieldSystem.defending) targetSpeed *= 0.5;
                     const currentEquip = this.equipments[this.weaponMode];
-                    const isPkmEquipped = currentEquip && (currentEquip.weaponType === 'pkm' || currentEquip.weaponType === 'qjb201');
+                    const isPkmEquipped = currentEquip && (currentEquip.weaponType === 'pkm' || currentEquip.weaponType === 'qjb201' || currentEquip.weaponType === 'energy_lmg');
                     const isPistolEquipped = currentEquip && (currentEquip.weaponType === 'pistol' || currentEquip.rangedType === 'pistol');
-                    const isAkmOrQbz191 = currentEquip && (currentEquip.weaponType === 'akm' || currentEquip.weaponType === 'qbz191' || currentEquip.weaponType === 'qjb201');
+                    const isAkmOrQbz191 = currentEquip && (currentEquip.weaponType === 'akm' || currentEquip.weaponType === 'qjb201');
                     if (isPkmEquipped) {
                         let moveSpeedReduction = 0.50; // Base reduction 50%
                         const craftEffects = currentEquip && currentEquip._craftEffects;
@@ -873,8 +986,8 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
-                    // PKM 开火时禁止 Shift 奔跑
-                    if (sprint && isPkmEquipped && Input.mouse.leftDown && this._gunSpreadWeapon === 'pkm') {
+                    // 机枪开火时禁止 Shift 奔跑
+                    if (sprint && isPkmEquipped && Input.mouse.leftDown && this._gunSpreadWeapon) {
                         sprint = false;
                         let moveSpeedReduction = 0.50;
                         const craftEffects = currentEquip && currentEquip._craftEffects;
@@ -908,14 +1021,20 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         // GameScene._syncBodiesToPhysics() 会从 Phaser 同步位置回 Player
                     } else {
                         // 原有模式：直接位置设置 + WallSystem 碰撞解析
-                        const nx = this.x + this.vx, ny = this.y + this.vy;
+                        const mScale = dt / 1000;
+                        const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.collisionRadius);
                         // 墙壁碰撞音效：速度较大且位置被阻挡时
                         if ((Math.abs(this.vx) > 1.5 || Math.abs(this.vy) > 1.5) && (Math.abs(resolved.x - nx) > 1 || Math.abs(resolved.y - ny) > 1)) {
                             // SoundManager.play('wall_hit');
                         }
                         this.x = resolved.x; this.y = resolved.y;
-                        this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
+                        // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
+                        if (typeof SceneManager !== 'undefined' && SceneManager.currentScene === 'main') {
+                            this.x = Math.max(0, Math.min(CONFIG.WORLD_WIDTH, this.x)); this.y = Math.max(0, Math.min(CONFIG.WORLD_HEIGHT, this.y));
+                        } else {
+                            this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
+                        }
                     }
                     if (sprint && this.isMoving) { this.data.stamina -= CONFIG.STAMINA_SPRINT_COST * (dt / 1000); if (this.data.stamina < 0) this.data.stamina = 0; }
                     if (Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) this.triggerDodge(move);
@@ -928,6 +1047,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     this.rotation = this._specialAttackLockedAngle;
                 } else if (!this._isWhirlwind && !this.isDodging) {
                     this.rotation = Math.atan2(dy, dx);
+                }
+                if (isDroneControlling) {
+                    this.vx *= this.friction;
+                    this.vy *= this.friction;
                 }
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
                 if (this.isMoving && !this.isDodging) {
@@ -956,21 +1079,21 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this.dustTimer >= interval) {
                             this.dustTimer -= interval;
                             // SoundManager.play('step');
-                            const offsetX = -this.vx * 1.5 + (Math.random() - 0.5) * 8;
-                            const offsetY = -this.vy * 1.5 + (Math.random() - 0.5) * 4;
+                            const offsetX = -this.vx * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 8;
+                            const offsetY = -this.vy * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 4;
                             { let d = EffectManager._acquire('DustEffect');
                             const dInt = sprint ? 1.5 : 0.8;
                             if (d) { d.x = this.x + offsetX; d.y = this.y + offsetY + 10; d.life = d.maxLife; d.active = true;
-                                d.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 0.8+Math.random()*2+dInt*0.8; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
+                                d.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 49.92+Math.random()*124.8+dInt*49.92; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
                             else d = new DustEffect(this.x + offsetX, this.y + offsetY + 10, dInt);
                             EffectManager.add(d); }
                             // PKM 装备时奔跑额外生成更浓密的烟尘
                             const currentItem = this.equipments[this.weaponMode];
-                            if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201')) {
+                            if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg')) {
                                 { let d2 = EffectManager._acquire('DustEffect');
                                 const pkmDInt = sprint ? 2.2 : 1.2;
                                 if (d2) { d2.x = this.x + offsetX * 0.7; d2.y = this.y + offsetY * 0.7 + 10; d2.life = d2.maxLife; d2.active = true;
-                                    d2.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 0.8+Math.random()*2+pkmDInt*0.8; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
+                                    d2.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 49.92+Math.random()*124.8+pkmDInt*49.92; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
                                 else d2 = new DustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 + 10, pkmDInt);
                                 EffectManager.add(d2); }
                             }
@@ -1007,7 +1130,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     this._dashConvergeShown = false;
                     this._dashConvergeAuraActive = false;
                 }
-                if (!this.isDodging && !isAttacking && !isSprinting && this.data.stamina < this.data.maxStamina) {
+                if (!this.isDodging && !isAttacking && !isSprinting && !(this.shieldSystem && this.shieldSystem.defending) && this.data.stamina < this.data.maxStamina) {
                     this.staminaRegenDelay -= dt;
                     if (this.staminaRegenDelay <= 0) {
                         const mul = this._staminaRegenMul || 1.0;
@@ -1017,11 +1140,24 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 } else {
                     this.staminaRegenDelay = 500;
                 }
+                // ===== 生命回复 =====
+                if (this.data.hp < this.data.maxHp) {
+                    this.data.hp = Math.min(this.data.maxHp, this.data.hp + this.data.hpRegen * (dt / 1000));
+                }
+                // ===== 魔法回复 =====
+                if (this.data.mp < this.data.maxMp) {
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * (dt / 1000));
+                }
                 Object.values(this.attacks).forEach(a => a.update(dt));
                 // ===== 枪类武器弹道扩散计时更新（所有枪械） =====
                 const _currentWep2 = this.equipments[this.weaponMode];
                 const _isGun = _currentWep2 && isGunWeapon(_currentWep2);
-                if (_isGun && Input.mouse.leftDown) {
+                // 双持时右键开火也要计算散布
+                const _offSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+                const _offItem = this.equipments[_offSlot];
+                const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
+                const _shouldTrackSpread = _isGun && (Input.mouse.leftDown || (_isDual && Input.mouse.rightDown));
+                if (_shouldTrackSpread) {
                     this._gunSpreadTimer += dt;
                 } else {
                     this._gunSpreadTimer = 0;
@@ -1037,18 +1173,21 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this._currentSpreadMaxAngle < 0) this._currentSpreadMaxAngle = 0;
                     } else {
                         // 普通枪械散布系统
-                        let spreadStartDelay = 500; // 所有枪械：0.5秒后开始散布
+                        let spreadStartDelay = 500; // 默认：0.5秒后开始散布
                         let spreadMaxTime = 4000;
                         let maxSpreadAngle = 25;
-                        // 武器特异化散布参数
-                        const wId = _currentWep2.weaponId;
-                        if (wId === 'weapon9') { // G18
-                            spreadStartDelay = 0;
-                            spreadMaxTime = 300;
-                        } else if (wt === 'pistol') {
-                            maxSpreadAngle = 30;
-                        } else if (wt === 'qjb201') {
-                            maxSpreadAngle = 30;
+                        // 武器特异化散布参数（优先从配置读取）
+                        const sp = _currentWep2.spreadParams;
+                        if (sp) {
+                            if (sp.startDelay !== undefined) spreadStartDelay = sp.startDelay;
+                            if (sp.maxTime !== undefined) spreadMaxTime = sp.maxTime;
+                            if (sp.maxAngle !== undefined) maxSpreadAngle = sp.maxAngle;
+                        }
+                        // 能量机枪：动态散布参数覆盖
+                        if (wt === 'energy_lmg') {
+                            const elp = this._getEnergyLMGParams();
+                            spreadMaxTime = elp.spreadMaxTime;
+                            maxSpreadAngle = elp.maxSpreadAngle;
                         }
                         // 瞄准模式：散布开始延迟 +1s
                         if (this._aimModeActive) {
@@ -1062,7 +1201,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             if (spreadMaxTime < 500) spreadMaxTime = 500;
                             maxSpreadAngle += craftEffects.maxSpreadAngleDelta || 0;
                         }
-                        this._currentSpreadFactor = Math.min(1, Math.max(0, this._gunSpreadTimer - spreadStartDelay) / spreadMaxTime);
+                        this._currentSpreadFactor = (spreadMaxTime <= 0)
+                            ? (this._gunSpreadTimer > spreadStartDelay ? 1 : 0)
+                            : Math.min(1, Math.max(0, this._gunSpreadTimer - spreadStartDelay) / spreadMaxTime);
                         this._currentSpreadMaxAngle = maxSpreadAngle;
                     }
                 } else {
@@ -1092,13 +1233,22 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         this._slugRecoilTimer = 0;
                     }
                 }
-                // ===== 机枪类武器过热系统更新（PKM 和 QJB-201）=====
-                if (_currentWep2 && (_currentWep2.weaponType === 'pkm' || _currentWep2.weaponType === 'qjb201')) {
+                // ===== 机枪类武器过热系统更新（PKM、QJB-201、能量轻机枪） =====
+                if (_currentWep2 && (_currentWep2.weaponType === 'pkm' || _currentWep2.weaponType === 'qjb201' || _currentWep2.weaponType === 'energy_lmg')) {
                     this._overheatWeaponType = _currentWep2.weaponType;
+                    const ce = _currentWep2._craftEffects;
+                    const ohDelta = (ce && ce.overheatTimeDelta) || 0;
+                    const ohRecDelta = (ce && ce.overheatRecoverDelta) || 0;
+                    const elp = _currentWep2.weaponType === 'energy_lmg' ? this._getEnergyLMGParams() : null;
+                    const hp = _currentWep2.heatParams || {};
                     if (this._overheatOverheated) {
-                        // 过热恢复中：1.5秒内从当前值减到0
+                        // 过热恢复中
                         this._overheatRecoverTimer -= dt;
-                        const recoverTime = 1500; // 1.5秒恢复
+                        let recoverTime = _currentWep2.weaponType === 'energy_lmg'
+                            ? (elp ? elp.overheatRecoverTime : 2500)
+                            : (hp.overheatRecoverTime || 1500);
+                        if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
+                        if (recoverTime < 500) recoverTime = 500; // 最小0.5秒
                         this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
                         if (this._overheatRecoverTimer <= 0 || this._overheatValue <= 0) {
                             this._overheatOverheated = false;
@@ -1107,21 +1257,39 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             this._overheatActive = false;
                         }
                     } else if (Input.mouse.leftDown && !this._isReloading(this.weaponMode)) {
-                        // 持续开火：PKM 5秒，QJB-201 4秒
+                        // 持续开火
                         this._overheatActive = true;
-                        const overheatTime = _currentWep2.weaponType === 'qjb201' ? 4000 : 5000;
+                        let overheatTime = _currentWep2.weaponType === 'energy_lmg'
+                            ? (elp ? elp.overheatTime : 4000)
+                            : (hp.overheatTime || 5000);
+                        if (_currentWep2.weaponType === 'energy_lmg') overheatTime += ohDelta;
+                        if (overheatTime < 1000) overheatTime = 1000; // 最小1秒
                         this._overheatValue = Math.min(1, this._overheatValue + (dt / overheatTime));
                         if (this._overheatValue >= 1) {
                             this._overheatOverheated = true;
-                            this._overheatRecoverTimer = 1500;
+                            let recoverTimer = _currentWep2.weaponType === 'energy_lmg'
+                                ? (elp ? elp.overheatCooldownTime : 4000)
+                                : (hp.overheatCooldownTime || 1500);
+                            if (_currentWep2.weaponType === 'energy_lmg') recoverTimer += ohRecDelta;
+                            if (recoverTimer < 500) recoverTimer = 500;
+                            this._overheatRecoverTimer = recoverTimer;
                             // 过热音效
                             if (typeof SoundManager !== 'undefined') {
-                                SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
+                                if (_currentWep2.weaponType === 'energy_lmg') {
+                                    SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
+                                    SoundManager.playFile('assets/sounds/apex_reload_4s_raw.mp3');
+                                } else {
+                                    SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
+                                }
                             }
                         }
                     } else {
-                        // 停止开火：1.5秒内从当前值减到0
-                        const recoverTime = 1500;
+                        // 停止开火
+                        let recoverTime = _currentWep2.weaponType === 'energy_lmg'
+                            ? (elp ? elp.overheatCooldownTime : 4000)
+                            : (hp.overheatCooldownTime || 1500);
+                        if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
+                        if (recoverTime < 500) recoverTime = 500;
                         this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
                         if (this._overheatValue <= 0) {
                             this._overheatActive = false;
@@ -1141,11 +1309,29 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 // 左键拾取地面物品已取消 — 现在仅在鼠标悬停触发金色特效时自动拾取
                 // （逻辑移至 Game.update() 的悬停检测中）
                 if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
+                    // ===== 盾防御状态管理 =====
+                    if (this.shieldSystem && this.shieldSystem.checkEquipped()) {
+                        if (Input.mouse.rightDown) {
+                            if (!this.shieldSystem.defending) {
+                                this.shieldSystem.enterDefense();
+                            }
+                        } else {
+                            if (this.shieldSystem.defending) {
+                                this.shieldSystem.exitDefense();
+                            }
+                        }
+                    }
                     // 游戏开始冷却：防止点击"开始游戏"按钮的鼠标事件携带到游戏中导致自动攻击
                     if (this.gameStartCooldown > 0) {
                         this.gameStartCooldown -= dt;
                         Input.mouse.leftPressed = false;
                         Input.mouse.leftDown = false;
+                    }
+                    // 防御状态下：跳过所有攻击输入处理（手枪+盾时允许手枪攻击）
+                    const _mainItem = this.equipments[this.weaponMode];
+                    const _isMainPistol = _mainItem && (_mainItem.weaponType === 'pistol' || _mainItem.rangedType === 'pistol');
+                    if (this.shieldSystem && this.shieldSystem.defending && !_isMainPistol) {
+                        return;
                     }
                     // === 攻击输入处理 ===
                     // BUG FIX：装备面板打开时，完全禁止攻击输入
@@ -1183,24 +1369,62 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     const useOffhand = !isWeaponEquipped && _offhandItem && _offhandItem.name;
                     const effectiveItem = useOffhand ? _offhandItem : currentItem;
                     const effectiveSlot = useOffhand ? _offhandSlot : currentSlot;
+                    // ===== 边境长弓蓄力攻击逻辑 =====
+                    const isBorderBow = effectiveItem && effectiveItem.chargeAttack;
+                    if (isBorderBow) {
+                        if (Input.mouse.leftDown) {
+                            if (this._chargeState === 'idle') {
+                                this._chargeState = 'charging';
+                                this._chargeTimer = 0;
+                            } else if (this._chargeState === 'charging') {
+                                this._chargeTimer += dt;
+                                if (this._chargeTimer >= 1500) {
+                                    this._chargeState = 'charged';
+                                    this._chargeFlashActive = true;
+                                    this._chargeFlashTimer = 500;
+                                }
+                            }
+                        } else {
+                            if (this._chargeState === 'charging') {
+                                this._chargeState = 'idle';
+                                this._chargeTimer = 0;
+                            } else if (this._chargeState === 'charged') {
+                                this._chargeState = 'idle';
+                                this._chargeTimer = 0;
+                                const atk = this.attacks.ranged;
+                                if (atk.canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                    if (Input.isSprint() && this.data.stamina > 0) this._sprintDuration = 0;
+                                    this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities };
+                                    atk.cooldown = atk.maxCooldown;
+                                    this.triggerWeaponAnim();
+                                }
+                            }
+                        }
+                        // 更新闪光计时器
+                        if (this._chargeFlashActive) {
+                            this._chargeFlashTimer -= dt;
+                            if (this._chargeFlashTimer <= 0) {
+                                this._chargeFlashActive = false;
+                                this._chargeFlashTimer = 0;
+                            }
+                        }
+                        // 边境长弓消费掉 leftPressed，防止进入下方的点击攻击逻辑
+                        if (Input.mouse.leftPressed) Input.mouse.leftPressed = false;
+                    }
                     // 判断当前有效武器的类型
                     const isPistol = effectiveItem && (effectiveItem.weaponType === 'pistol' || effectiveItem.rangedType === 'pistol');
                     const isBow = effectiveItem && effectiveItem.weaponType === 'bow';
-                    const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201');
+                    const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
                     const isShotgun = effectiveItem && effectiveItem.weaponType === 'shotgun';
                     const isMelee = effectiveItem && effectiveItem.category === 'weapon_melee';
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
                     
+                    // ===== 计算副手状态（用于双持判断） =====
+                    const offhandSlot = currentSlot === 'weapon' ? 'offhand' : 'ring2';
+                    const offhandItem = this.equipments[offhandSlot];
+                    const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded;
+                    
                     // ===== 瞄准模式：所有枪械都可以进行瞄准（双持手枪除外） =====
-                    let offhandSlot = null;
-                    let offhandItem = null;
-                    let isDualWield = false;
-                    if (isPistol) {
-                        if (effectiveSlot === 'weapon') offhandSlot = 'offhand';
-                        else if (effectiveSlot === 'weapon2') offhandSlot = 'ring2';
-                        offhandItem = offhandSlot ? this.equipments[offhandSlot] : null;
-                        isDualWield = !useOffhand && offhandItem && isOneHanded(offhandItem.weaponType);
-                    }
                     if (isGun && Input.mouse.rightDown && !(isPistol && isDualWield)) {
                         this._aimModeActive = true;
                         const craftEffects = effectiveItem && effectiveItem._craftEffects;
@@ -1232,34 +1456,49 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     
                     if (isPistol) {
                         // 手枪射击：根据左右键分别控制主副手
-                        const attackKey = effectiveItem.weaponId === 'weapon10' ? 'deagle' : 'pistol';
-                        const offhandAttackKey = offhandItem && offhandItem.weaponId === 'weapon10' ? 'deagleOffhand' : 'pistolOffhand';
+                        const attackKey = effectiveItem.attackKey || 'pistol';
+                        const offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
                         // 检查弹药和换弹状态
                         const mainHasAmmo = this._hasAmmo(effectiveSlot);
                         const mainReloading = this._isReloading(effectiveSlot);
                         const offhandHasAmmo = isDualWield ? this._hasAmmo(offhandSlot) : false;
                         const offhandReloading = isDualWield ? this._isReloading(offhandSlot) : false;
+                        // 根据 fireMode 选择触发器：semiAuto = 单击射击，fullAuto = 按住持续射击
+                        const mainFireMode = effectiveItem.fireMode || 'fullAuto';
+                        const mainFireTrigger = mainFireMode === 'semiAuto' ? Input.mouse.leftPressed : Input.mouse.leftDown;
                         // 左键：主手射击
-                        if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.leftDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                        if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && mainFireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
+                            // 半自动武器：消费掉点击事件，防止持续射击
+                            if (mainFireMode === 'semiAuto') {
+                                Input.mouse.leftPressed = false;
+                            }
                         }
                         // 右键：副手射击（双持时）
-                        if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.rightDown && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                        const offhandFireMode = offhandItem && offhandItem.fireMode || 'fullAuto';
+                        const offhandFireTrigger = offhandFireMode === 'semiAuto' ? Input.mouse.rightPressed : Input.mouse.rightDown;
+                        if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && offhandFireTrigger && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
                             this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
                             this.triggerOffhandWeaponAnim();
+                            // 半自动副手：消费掉点击事件
+                            if (offhandFireMode === 'semiAuto') {
+                                Input.mouse.rightPressed = false;
+                            }
                         }
                     } else if (isPkm) {
-                        // PKM / AKM / 191 / 201 全自动模式：按住 leftDown 持续射击
-                        const isActuallyPkm = effectiveItem.weaponType === 'pkm';
-                        const attackKey = isActuallyPkm ? 'pkm' : 'akm';
-                        // 检查弹药和换弹状态
-                        const hasAmmo = this._hasAmmo(effectiveSlot);
-                        const isReloading = this._isReloading(effectiveSlot);
-                        // 过热时禁止射击（PKM 和 QJB-201）
-                        const isOverheated = (isActuallyPkm || effectiveItem.weaponType === 'qjb201') && this._overheatOverheated;
+                        // PKM / AKM / 191 / 201 / 能量轻机枪 全自动模式：按住 leftDown 持续射击
+                        const isEnergyLMG = effectiveItem.weaponType === 'energy_lmg';
+                        const attackKey = effectiveItem.weaponType === 'pkm' ? 'pkm' : (effectiveItem.weaponType === 'akm' ? 'akm' : (effectiveItem.weaponType === 'qbz191' ? 'qbz191' : (effectiveItem.weaponType === 'qjb201' ? 'qjb201' : 'energy_lmg')));
+                        
+                        // 检查弹药和换弹状态（能量轻机枪无限子弹，不检查弹药）
+                        const hasAmmo = isEnergyLMG ? true : this._hasAmmo(effectiveSlot);
+                        const isReloading = isEnergyLMG ? false : this._isReloading(effectiveSlot);
+                        
+                        // 过热时禁止射击
+                        const isOverheated = this._overheatOverheated;
                         if (isOverheated) {
                             // 过热中，禁止开火
                         } else if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.leftDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
@@ -1267,14 +1506,37 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
                         }
+                        
+                        // 能量轻机枪：更新射速提升状态
+                        if (isEnergyLMG) {
+                            const elp = this._getEnergyLMGParams();
+                            if (Input.mouse.leftDown && !this._overheatOverheated) {
+                                // 持续开火：累积开火时间
+                                if (!this._energyLMGIsFiring) {
+                                    this._energyLMGIsFiring = true;
+                                    this._energyLMGFireTime = 0;
+                                }
+                                this._energyLMGFireTime += dt; // 使用实际dt，确保固定时间
+                                // 计算当前冷却时间：从baseCooldown线性降到maxCooldown，rampUpTime内完成
+                                const rampProgress = Math.min(1, this._energyLMGFireTime / elp.rampUpTime);
+                                const currentCooldown = Math.round(elp.baseCooldown - (elp.baseCooldown - elp.maxCooldown) * rampProgress);
+                                this.attacks.energy_lmg.maxCooldown = currentCooldown;
+                            } else {
+                                // 停止开火：重置射速
+                                this._energyLMGIsFiring = false;
+                                this._energyLMGFireTime = 0;
+                                this.attacks.energy_lmg.maxCooldown = elp.baseCooldown;
+                            }
+                        }
+                        
                         // 右键：副手射击（双持时，且不在瞄准模式下）
                         if (!this._aimModeActive && !useOffhand) {
                             let offhandSlot = null;
                             if (currentSlot === 'weapon') offhandSlot = 'offhand';
                             else if (currentSlot === 'weapon2') offhandSlot = 'ring2';
                             const offhandItem = offhandSlot ? this.equipments[offhandSlot] : null;
-                            if (offhandItem && offhandItem.name && isOneHanded(offhandItem.weaponType)) {
-                                const offhandAttackKey = offhandItem.weaponId === 'weapon10' ? 'deagleOffhand' : 'pistolOffhand';
+                            if (offhandItem && offhandItem.name && isOneHanded(offhandItem)) {
+                                const offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
                                 if (offhandAttackKey && this.attacks[offhandAttackKey]) {
                                     const offhandHasAmmo = this._hasAmmo(offhandSlot);
                                     const offhandReloading = this._isReloading(offhandSlot);
@@ -1287,8 +1549,8 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             }
                         }
                     } else if (isShotgun) {
-                        const isSaiga12k = effectiveItem && effectiveItem.weaponId === 'weapon13';
-                        const attackKey = isSaiga12k ? 'saiga12k' : 'super90';
+                        const attackKey = effectiveItem.attackKey || 'super90';
+                        const isSaiga12k = attackKey === 'saiga12k';
                         const hasAmmo = this._hasAmmo(effectiveSlot);
                         const isReloading = this._isReloading(effectiveSlot);
                         // 打断单发装填：左键按下时打断换弹（仅Super90）
@@ -1353,19 +1615,19 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     // ===== 右键特殊攻击：夜与火之剑 / 符文长剑 =====
                     if (Input.mouse.rightPressed && isMelee) {
                         console.log('[SpecialAttack] Right-click detected, effectiveItem:', effectiveItem ? { name: effectiveItem.name, weaponId: effectiveItem.weaponId, category: effectiveItem.category } : 'null');
-                        if (effectiveItem && effectiveItem.weaponId === 'weapon5') {
+                        if (effectiveItem && effectiveItem.specialAttackType === 'nightFlame') {
                             // 夜与火之剑
-                            console.log('[SpecialAttack] NightFlame check:', { cooldown: this._specialAttackCooldown, active: this._specialAttackActive, runeActive: this._runeSwordSpecialActive });
-                            if (this._specialAttackCooldown <= 0 && !this._specialAttackActive && !this._runeSwordSpecialActive) {
+                            console.log('[SpecialAttack] NightFlame check:', { cooldown: this._specialAttackCooldowns['nightFlame'] || 0, active: this._specialAttackActive, runeActive: this._runeSwordSpecialActive });
+                            if ((this._specialAttackCooldowns['nightFlame'] || 0) <= 0 && !this._specialAttackActive && !this._runeSwordSpecialActive) {
                                 this.specialAttackSystem.trigger(mouseWorld.x, mouseWorld.y, entities);
                             }
-                        } else if (effectiveItem && effectiveItem.weaponId === 'weapon4') {
+                        } else if (effectiveItem && effectiveItem.specialAttackType === 'runeSword') {
                             // 符文长剑
-                            console.log('[SpecialAttack] RuneSword check:', { active: this._runeSwordSpecialActive, cooldown: this._runeSwordSpecialCooldown, specialActive: this._specialAttackActive });
+                            console.log('[SpecialAttack] RuneSword check:', { active: this._runeSwordSpecialActive, cooldown: this._specialAttackCooldowns['runeSword'] || 0, specialActive: this._specialAttackActive });
                             if (this._runeSwordSpecialActive) {
                                 // 已激活：发射一把剑
                                 this.runeSwordSystem._launchBlade();
-                            } else if (this._runeSwordSpecialCooldown <= 0 && !this._specialAttackActive) {
+                            } else if ((this._specialAttackCooldowns['runeSword'] || 0) <= 0 && !this._specialAttackActive) {
                                 // 未激活：启动特殊攻击
                                 this.runeSwordSystem.trigger();
                             }
@@ -1376,6 +1638,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
             }
             triggerDodge(moveInput) {
                 if (this._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止闪避
+                if (this.shieldSystem && this.shieldSystem.defending) return; // 防御状态禁止闪避
                 let dirX = moveInput.x, dirY = moveInput.y;
                 if (dirX === 0 && dirY === 0) { dirX = Math.cos(this.rotation); dirY = Math.sin(this.rotation); }
                 const len = Math.sqrt(dirX*dirX + dirY*dirY); if (len > 0) { dirX /= len; dirY /= len; }
@@ -1475,6 +1738,13 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     return;
                 }
                 this.weaponMode = nextMode;
+                // 切换武器时重置蓄力状态
+                if (this._chargeState !== 'idle') {
+                    this._chargeState = 'idle';
+                    this._chargeTimer = 0;
+                    this._chargeFlashActive = false;
+                    this._chargeFlashTimer = 0;
+                }
                 // G18 切换保护：切换到 pistol 后 300ms 内不能开火
                 if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol' || nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
                     this.weaponSwitchCooldown = 300;
@@ -1497,7 +1767,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 document.body.appendChild(hint);
                 requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
                 // 切换武器后150ms触发一次待机动画2（旋转动画）—— 双手武器不触发旋转
-                if (nextItem && !isTwoHanded(nextItem.weaponType)) {
+                if (nextItem && !isTwoHanded(nextItem)) {
                     this.weaponAnim.nextSpin = Date.now() + 150;
                 } else {
                     this.weaponAnim.nextSpin = 0;
@@ -1515,6 +1785,11 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
+                    // 设置弓类待机贴图
+                    if (nextItem.equipImage) {
+                        this.bowEquipImage = new Image();
+                        this.bowEquipImage.src = nextItem.equipImage;
+                    }
                 } else if (nextItem && nextItem.weaponAsset && nextItem.weaponAsset.framePrefix) {
                     const frames = [];
                     for (let i = 1; i <= nextItem.weaponAsset.frameCount; i++) {
@@ -1523,11 +1798,21 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
+                    // 设置弓类待机贴图
+                    if (nextItem.equipImage) {
+                        this.bowEquipImage = new Image();
+                        this.bowEquipImage.src = nextItem.equipImage;
+                    }
                 } else if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol')) {
                     this.equippedRangedType = 'pistol';
                     if (nextItem.equipImage) {
-                        this.pistolImage = new Image();
-                        this.pistolImage.src = nextItem.equipImage;
+                        if (nextItem.canvasImageProp === 'deagleImage') {
+                            this.deagleImage = new Image();
+                            this.deagleImage.src = nextItem.equipImage;
+                        } else {
+                            this.pistolImage = new Image();
+                            this.pistolImage.src = nextItem.equipImage;
+                        }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = new Image();
@@ -1553,12 +1838,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 } else if (nextItem && nextItem.weaponType === 'shotgun') {
                     this.equippedRangedType = 'shotgun';
                     if (nextItem.equipImage) {
-                        if (nextItem.weaponId === 'weapon13') {
-                            this.saiga12kImage = new Image();
-                            this.saiga12kImage.src = nextItem.equipImage;
-                        } else {
-                            this.super90Image = new Image();
-                            this.super90Image.src = nextItem.equipImage;
+                        if (nextItem.canvasImageProp) {
+                            this[nextItem.canvasImageProp] = new Image();
+                            this[nextItem.canvasImageProp].src = nextItem.equipImage;
                         }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
@@ -1566,8 +1848,8 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         this.muzzleFlashImg.src = nextItem.weaponAsset.muzzleImage;
                     }
                     // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
-                    if (nextItem.weaponId !== 'weapon13' && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
-                        SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
+                    if (nextItem.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                        SoundManager.playFile(nextItem.equipSound);
                     }
                 } else {
                     this.equippedRangedType = null;
@@ -1578,11 +1860,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     this.runeSwordSystem._end(true);
                 }
                 // 切换武器时同步特殊攻击图标
-                if (nextItem && (nextItem.weaponId === 'weapon5' || nextItem.weaponId === 'weapon4')) {
-                    QuickBar.enableSpecialAttack(nextItem);
-                } else {
-                    QuickBar.disableSpecialAttack();
-                }
+                QuickBar.refreshSpecialAttack(this);
                 // 切换武器时重置武器粒子效果
                 this.weaponEffect.reset();
                 // 切换武器时初始化弹药系统
@@ -1618,8 +1896,17 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
+                    // 设置弓类待机贴图
+                    if (item.equipImage) {
+                        this.bowEquipImage = new Image();
+                        this.bowEquipImage.src = item.equipImage;
+                    }
                 } else if (wt === 'pistol' && wa.image) {
-                    this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                    if (item.canvasImageProp === 'deagleImage') {
+                        this.deagleImage = new Image(); this.deagleImage.src = wa.image;
+                    } else {
+                        this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                    }
                     this.equippedRangedType = 'pistol';
                     if (wa.muzzleImage) { this.muzzleFlashImg = new Image(); this.muzzleFlashImg.src = wa.muzzleImage; }
                 }
@@ -1632,14 +1919,14 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     this._ammoState[slot] = null;
                     return;
                 }
-                const ammoCap = getGunAmmoCapacity(item.weaponId);
-                if (!ammoCap) {
+                const ammoConfig = item.ammoConfig;
+                if (!ammoConfig) {
                     this._ammoState[slot] = null;
                     return;
                 }
                 // 如果已经有弹药状态，保持当前弹药（换武器时不清空），否则初始化满弹
-                let maxAmmo = ammoCap.max;
-                let reloadTime = ammoCap.reloadTime;
+                let maxAmmo = ammoConfig.max;
+                let reloadTime = ammoConfig.reloadTime;
                 // 应用改造效果（弹夹容量、换弹时间、短枪管覆盖）
                 if (item._craftEffects) {
                     const ce = item._craftEffects;
@@ -1707,25 +1994,27 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     return false;
                 }
                 const item = this.equipments[slot];
-                const isSuper90 = item && item.weaponId === 'weapon12';
+                const ammoConfig = item && item.ammoConfig;
+                const singleReloadMode = ammoConfig && ammoConfig.singleReloadMode;
+                const reloadSound = ammoConfig && ammoConfig.reloadSound;
                 state.reloading = true;
-                // 双持手枪换弹惩罚 +0.25s
+                // 双持模式下换弹时间 +50%（副手为手枪或盾）
                 let actualReloadTime = state.reloadTime;
                 if (item && (item.weaponType === 'pistol' || item.rangedType === 'pistol')) {
-                    const offSlot = slot === 'weapon' ? 'offhand' : (slot === 'weapon2' ? 'ring2' : null);
+                    const offSlot = slot === 'weapon' ? 'offhand' : (slot === 'weapon2' ? 'ring2' : (slot === 'offhand' ? 'weapon' : (slot === 'ring2' ? 'weapon2' : null)));
                     if (offSlot) {
                         const offItem = this.equipments[offSlot];
-                        if (offItem && (offItem.weaponType === 'pistol' || offItem.rangedType === 'pistol')) {
-                            actualReloadTime += 250;
+                        if (offItem && (offItem.weaponType === 'pistol' || offItem.weaponType === 'shield')) {
+                            actualReloadTime = Math.round(actualReloadTime * 1.5);
                         }
                     }
                 }
                 state.reloadTimer = actualReloadTime;
-                console.log(`[_startReload] slot=${slot}, weaponId=${item?.weaponId}, isSuper90=${isSuper90}, reloadTime=${actualReloadTime}, current=${state.current}, max=${state.max}`);
-                if (isSuper90) {
-                    // Super90：单发装填模式
+                console.log(`[_startReload] slot=${slot}, weaponId=${item?.weaponId}, singleReloadMode=${singleReloadMode}, reloadTime=${actualReloadTime}, current=${state.current}, max=${state.max}`);
+                if (singleReloadMode) {
+                    // 单发装填模式（如Super90）
                     state.singleReloadMode = true;
-                    SoundManager.playFile('assets/sounds/Super90-reload.mp3');
+                    SoundManager.playFile(reloadSound || 'assets/sounds/Super90-reload.mp3');
                 } else {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
@@ -1874,7 +2163,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
             _getOffhandAnimMs(offhandItem, baseMs) {
                 if (!offhandItem) return baseMs;
                 let cfgKey = 'sword';
-                if (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol') cfgKey = offhandItem.weaponId === 'weapon10' ? 'deagle' : 'pistol';
+                if (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol') cfgKey = offhandItem.animConfigKey || 'pistol';
                 else if (offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201') cfgKey = offhandItem.weaponType;
                 else if (offhandItem.weaponType === 'bow') cfgKey = 'bow';
                 const cfg = WeaponAnimConfig[cfgKey];
@@ -1886,15 +2175,16 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 const currentItem = this.equipments[this.weaponMode];
                 let cfgKey = 'sword'; // 默认
                 if (currentItem) {
-                    if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') cfgKey = currentItem.weaponId === 'weapon10' ? 'deagle' : 'pistol';
-                    else if (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201') cfgKey = currentItem.weaponType;
+                    if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') cfgKey = currentItem.animConfigKey || 'pistol';
+                    else if (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg') cfgKey = currentItem.weaponType;
                     else if (currentItem.weaponType === 'bow') cfgKey = 'bow';
                     else if (currentItem.weaponType === 'shotgun') cfgKey = 'shotgun';
                 }
                 const cfg = WeaponAnimConfig[cfgKey];
                 // 弓：攻击动画时长 = 总攻击间隔 - 前摇 - 后摇，前摇/后摇不受攻击间隔影响
                 if (currentItem && currentItem.weaponType === 'bow' && cfg && cfg.attackInterval) {
-                    const attackAnimMs = cfg.attackInterval - (cfg.rotateMs || 500) - (cfg.returnMs || 200);
+                    const bowAttackInterval = (currentItem.attack && currentItem.attack.attackInterval) || cfg.attackInterval;
+                    const attackAnimMs = bowAttackInterval - (cfg.rotateMs || 500) - (cfg.returnMs || 200);
                     const totalBaseMs = WEAPON_ANIM.windupMs + WEAPON_ANIM.swingMs + WEAPON_ANIM.recoverMs;
                     const mul = (attackAnimMs / totalBaseMs) * (this.animTimingMul || 1);
                     return Math.round(baseMs * mul);
@@ -1907,6 +2197,20 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 if (!d) return;
                 const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
 
+                // 计算有效穿透值（附魔+改造的穿透加成）
+                const getEffectivePiercing = (basePiercing, item) => {
+                    let result = (typeof basePiercing === 'number') ? basePiercing : 0;
+                    if (item) {
+                        if (item._enchantEffects && item._enchantEffects.piercingBonus) {
+                            result += item._enchantEffects.piercingBonus;
+                        }
+                        if (item._craftEffects && item._craftEffects.piercingBonus) {
+                            result += item._craftEffects.piercingBonus;
+                        }
+                    }
+                    return result;
+                };
+
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {
                     const offhandSlot = d.offhandSlot || (this.weaponMode === 'weapon' ? 'offhand' : 'ring2');
@@ -1915,7 +2219,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         const offhandHasAmmo = this._hasAmmo(offhandSlot);
                         if (offhandHasAmmo) {
                             this._consumeAmmo(offhandSlot);
-                            const offhandAttackKey = offhandItem.weaponId === 'weapon10' ? 'deagleOffhand' : 'pistolOffhand';
+                            const offhandAttackKey = offhandItem.offhandAttackKey || 'pistolOffhand';
                             const offPC = this.attacks[offhandAttackKey].config;
                             const gunLX = this.size + 20, gunLY = 13;
                             const leftGunLY = -13;
@@ -1931,13 +2235,17 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                                 offhandDamage = this.getCurrentWeaponAtk(offhandItem);
                             }
                             const offhandDamageObj = { min: offhandDamage, max: offhandDamage };
-                            const offIsDarkGold = offhandItem.weaponId === 'weapon10';
+                            const offIsDarkGold = offhandItem.isDarkGold || false;
                             { let p2 = EffectManager._acquire('Projectile');
-                            if (p2) { p2.x = leftMuzzleX; p2.y = leftMuzzleY; p2.angle = leftFinalAngle; p2.speed = offPC.projectileSpeed; p2.maxRange = offPC.projectileRange; p2.size = offPC.projectileSize; p2.damage = offhandDamageObj; p2.piercing = offPC.piercing; p2.source = this; p2.entities = d.entities; p2.image = null; p2.isTracer = !offIsDarkGold; p2.isDarkGold = offIsDarkGold; p2.traveled = 0; p2.active = true; p2.hitTargets = new Set(); }
-                            else p2 = new Projectile(leftMuzzleX, leftMuzzleY, leftFinalAngle, offPC.projectileSpeed, offPC.projectileRange, offPC.projectileSize, offhandDamageObj, offPC.piercing, this, d.entities, null, !offIsDarkGold, false, offIsDarkGold);
+                            if (p2) { p2.x = leftMuzzleX; p2.y = leftMuzzleY; p2.angle = leftFinalAngle; p2.speed = offPC.projectileSpeed; p2.maxRange = offPC.projectileRange; p2.size = offPC.projectileSize; p2.damage = offhandDamageObj; p2.piercing = getEffectivePiercing(offPC.piercing, offhandItem); p2.source = this; p2.entities = d.entities; p2.image = null; p2.isTracer = !offIsDarkGold; p2.isDarkGold = offIsDarkGold; p2.traveled = 0; p2.active = true; p2.hitTargets = new Set(); }
+                            else p2 = new Projectile(leftMuzzleX, leftMuzzleY, leftFinalAngle, offPC.projectileSpeed, offPC.projectileRange, offPC.projectileSize, offhandDamageObj, getEffectivePiercing(offPC.piercing, offhandItem), this, d.entities, null, !offIsDarkGold, false, offIsDarkGold);
                             EffectManager.add(p2); }
-                            if (offhandItem.weaponId === 'weapon10') {
-                                SoundManager.playFile('assets/sounds/cs_deagle_35_80.wav');
+                            if (offhandItem.fireSound) {
+                                if (offhandItem.fireSound.startsWith('assets/')) {
+                                    SoundManager.playFile(offhandItem.fireSound);
+                                } else {
+                                    SoundManager.play(offhandItem.fireSound);
+                                }
                             } else {
                                 SoundManager.play('gun_fire');
                             }
@@ -1966,20 +2274,19 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 const currentItem = this.equipments[mainSlot];
                 const isPistol = currentItem && (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol');
                 const isBow = currentItem && currentItem.weaponType === 'bow';
-                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201');
+                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg');
                 const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
                 const wac = WeaponAnimConfig[isPistol ? 'pistol' : (isBow ? 'bow' : (isPkmOrAkm ? currentItem.weaponType : (isShotgun ? 'shotgun' : 'sword')))];
                 const holdX = wac ? wac.holdOffsetX : WEAPON_ANIM.holdX;
                 const holdY = wac ? wac.holdOffsetY : WEAPON_ANIM.holdY;
                 if (isPistol) {
                     // 检测是否双持手枪（任何手枪组合均可）
-                    const mainWeaponId = currentItem ? currentItem.weaponId : null;
-                    const mainAttackKey = mainWeaponId === 'weapon10' ? 'deagle' : 'pistol';
+                    const mainAttackKey = currentItem.attackKey || 'pistol';
                     // 从 rangedFireData 获取槽位信息
                     const mainSlot = d.mainSlot || this.weaponMode;
                     const offhandSlot = d.offhandSlot || (this.weaponMode === 'weapon' ? 'offhand' : 'ring2');
                     const offhandItem = this.equipments[offhandSlot];
-                    const offhandAttackKey = offhandItem && offhandItem.weaponId === 'weapon10' ? 'deagleOffhand' : 'pistolOffhand';
+                    const offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
                     const gunLX = this.size + 20, gunLY = 13;
                     
                     // === 左键：主手开火 ===
@@ -2002,14 +2309,18 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             }
                             const mainDamageObj = { min: mainDamage, max: mainDamage };
                             // 创建主手弹丸
-                            const mainIsDarkGold = mainWeaponId === 'weapon10';
+                            const mainIsDarkGold = currentItem.isDarkGold || false;
                             { let p = EffectManager._acquire('Projectile');
-                            if (p) { p.x = muzzleX; p.y = muzzleY; p.angle = finalAngle; p.speed = mainPC.projectileSpeed; p.maxRange = mainPC.projectileRange; p.size = mainPC.projectileSize; p.damage = mainDamageObj; p.piercing = mainPC.piercing; p.source = this; p.entities = d.entities; p.image = null; p.isTracer = !mainIsDarkGold; p.isDarkGold = mainIsDarkGold; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
-                            else p = new Projectile(muzzleX, muzzleY, finalAngle, mainPC.projectileSpeed, mainPC.projectileRange, mainPC.projectileSize, mainDamageObj, mainPC.piercing, this, d.entities, null, !mainIsDarkGold, false, mainIsDarkGold);
+                            if (p) { p.x = muzzleX; p.y = muzzleY; p.angle = finalAngle; p.speed = mainPC.projectileSpeed; p.maxRange = mainPC.projectileRange; p.size = mainPC.projectileSize; p.damage = mainDamageObj; p.piercing = getEffectivePiercing(mainPC.piercing, currentItem); p.source = this; p.entities = d.entities; p.image = null; p.isTracer = !mainIsDarkGold; p.isDarkGold = mainIsDarkGold; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
+                            else p = new Projectile(muzzleX, muzzleY, finalAngle, mainPC.projectileSpeed, mainPC.projectileRange, mainPC.projectileSize, mainDamageObj, getEffectivePiercing(mainPC.piercing, currentItem), this, d.entities, null, !mainIsDarkGold, false, mainIsDarkGold);
                             EffectManager.add(p); }
                             // 主手开火音效
-                            if (mainWeaponId === 'weapon10') {
-                                SoundManager.playFile('assets/sounds/cs_deagle_35_80.wav');
+                            if (currentItem.fireSound) {
+                                if (currentItem.fireSound.startsWith('assets/')) {
+                                    SoundManager.playFile(currentItem.fireSound);
+                                } else {
+                                    SoundManager.play(currentItem.fireSound);
+                                }
                             } else {
                                 SoundManager.play('gun_fire');
                             }
@@ -2033,29 +2344,45 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     // 只处理明确标记为主手开火的情况
                     if (d.fireMainHand) {
                         const craftEffects = currentItem && currentItem._craftEffects;
-                        // 消耗弹药
                         const mainSlot = d.mainSlot || this.weaponMode;
-                        if (this._hasAmmo(mainSlot)) {
-                            this._consumeAmmo(mainSlot);
+                        const attackKey = currentItem.weaponType; // 'pkm' | 'akm' | 'qbz191' | 'qjb201' | 'energy_lmg'
+                        const isEnergyLMG = attackKey === 'energy_lmg';
+                        
+                        // 能量轻机枪：不消耗弹药，其他机枪消耗弹药
+                        if (!isEnergyLMG) {
+                            if (this._hasAmmo(mainSlot)) {
+                                this._consumeAmmo(mainSlot);
+                            }
                         }
-                        // PKM / AKM / QBZ-191 / QJB-201 机枪发射（共用动画和特效，伤害公式不同）
-                        const attackKey = currentItem.weaponType; // 'pkm' | 'akm' | 'qbz191' | 'qjb201'
-                        const isActuallyPkm = attackKey === 'pkm';
+                        
                         const gunLX = this.size + 24, gunLY = holdY;
                         const spawnX = this.x + c * (gunLX + 30) - sin * gunLY;
                         const spawnY = this.y + sin * (gunLX + 30) + c * gunLY;
                         const baseAngle = Math.atan2(d.targetY - this.y, d.targetX - this.x);
-                        // 使用统一的散布系统（所有枪械散布计算时间0.5s）
-                        const spreadFactor = this._currentSpreadFactor;
-                        const maxSpreadAngle = this._currentSpreadMaxAngle || 25;
-                        const spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
-                        const angle = baseAngle + spreadRad;
+                        
+                        // 散布：能量轻机枪从配置读取，其他使用统一散布系统
+                        let spreadFactor, maxSpreadAngle, spreadRad, angle;
+                        if (isEnergyLMG) {
+                            const elp = this._getEnergyLMGParams();
+                            maxSpreadAngle = elp.maxSpreadAngle + (craftEffects?.maxSpreadAngleDelta || 0);
+                            if (maxSpreadAngle < 0) maxSpreadAngle = 0;
+                            // 能量轻机枪散布即时开始，从配置读取达到最大时间
+                            const spreadProgress = Math.min(1, this._gunSpreadTimer / elp.spreadMaxTime);
+                            spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadProgress;
+                            angle = baseAngle + spreadRad;
+                        } else {
+                            spreadFactor = this._currentSpreadFactor;
+                            maxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
+                            angle = baseAngle + spreadRad;
+                        }
+                        
                         const pc = this.attacks[attackKey].config;
-                        // 动态计算伤害（PKM vs AKM vs QBZ-191 vs QJB-201 公式不同，优先使用 getCurrentWeaponAtk 包含强化加成）
+                        // 动态计算伤害（优先使用 getCurrentWeaponAtk，包含强化和改造加成）
                         let weaponDamage;
                         if (this.getCurrentWeaponAtk) {
                             weaponDamage = this.getCurrentWeaponAtk();
-                        } else if (isActuallyPkm) {
+                        } else if (attackKey === 'pkm') {
                             weaponDamage = Math.round(5 + this.data.str * 0.1 + this.data.stamina * 0.1);
                         } else if (attackKey === 'qbz191') {
                             weaponDamage = Math.round(3 + this.data.str * 0.04 + this.data.wis * 0.18);
@@ -2065,11 +2392,15 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             weaponDamage = Math.round(3 + this.data.str * 0.05 + this.data.wis * 0.15);
                         }
                         const damage = { min: weaponDamage, max: weaponDamage };
-                        // PKM/AKM/QBZ-191/QJB-201 开火时屏幕轻微抖动
-                        Camera.triggerShake(4);
+                        
+                        // 屏幕抖动
+                        Camera.triggerShake(isEnergyLMG ? 2 : 4);
+                        
                         // 音效播放
                         if (typeof SoundManager !== 'undefined') {
-                            if (isActuallyPkm) {
+                            if (isEnergyLMG) {
+                                SoundManager.playFile('assets/sounds/apex_shot_600ms.wav');
+                            } else if (attackKey === 'pkm') {
                                 SoundManager.playFile('assets/sounds/pkm_half_sec.wav');
                             } else if (attackKey === 'qbz191') {
                                 SoundManager.playFile('assets/sounds/qbz191_shot6_valley.mp3');
@@ -2079,11 +2410,12 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                                 SoundManager.playFile('assets/sounds/akm_burst.mp3');
                             }
                         }
-                        // 应用PKM改造效果（消音器：射程-300px，击退+5px；长枪管：射程+200px等）
+                        
+                        // 应用改造效果
                         let effectiveRange = pc.projectileRange;
                         let effectiveKnockback = pc.knockback || 0;
                         let effectiveProjectileSpeed = pc.projectileSpeed;
-                        if (isActuallyPkm && craftEffects) {
+                        if (craftEffects) {
                             effectiveRange += craftEffects.rangeDelta || 0;
                             effectiveKnockback += craftEffects.knockbackDelta || 0;
                             if (craftEffects.projectileSpeedPercent) {
@@ -2091,27 +2423,34 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             }
                             if (effectiveRange < 100) effectiveRange = 100;
                         }
+                        
+                        // 创建弹丸
                         { let p = EffectManager._acquire('Projectile');
-                        if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = effectiveProjectileSpeed; p.maxRange = effectiveRange; p.size = pc.projectileSize; p.damage = damage; p.piercing = pc.piercing; p.source = this; p.entities = d.entities; p.image = null; p.isTracer = false; p.isGold = true; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.knockback = effectiveKnockback; }
-                        else p = new Projectile(spawnX, spawnY, angle, effectiveProjectileSpeed, effectiveRange, pc.projectileSize, damage, pc.piercing, this, d.entities, null, false, true);
+                        if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = effectiveProjectileSpeed; p.maxRange = effectiveRange; p.size = pc.projectileSize; p.damage = damage; p.piercing = getEffectivePiercing(pc.piercing, currentItem); p.source = this; p.entities = d.entities; p.image = null; p.isTracer = false; p.isGold = !isEnergyLMG; p.isGreen = isEnergyLMG; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.knockback = effectiveKnockback; p.damageType = isEnergyLMG ? 'magic' : 'physical'; }
+                        else p = new Projectile(spawnX, spawnY, angle, effectiveProjectileSpeed, effectiveRange, pc.projectileSize, damage, getEffectivePiercing(pc.piercing, currentItem), this, d.entities, null, false, !isEnergyLMG, false, isEnergyLMG ? 'magic' : 'physical', false, isEnergyLMG);
                         if (effectiveKnockback > 0 && p) p.knockback = effectiveKnockback;
                         EffectManager.add(p); }
-                        // 大枪口火焰特效（消音器隐藏枪口火焰）
-                        const hideMuzzle = isActuallyPkm && craftEffects && craftEffects.hideMuzzleFlash;
+                        
+                        // 枪口火焰特效
+                        const hideMuzzle = !isEnergyLMG && craftEffects && craftEffects.hideMuzzleFlash;
                         if (!hideMuzzle) {
                             const flashX = this.x + c * (gunLX + 38) - sin * gunLY;
                             const flashY = this.y + sin * (gunLX + 38) + c * gunLY;
                             { let m = EffectManager._acquire('MuzzleFlashEffect');
-                            if (m) { m.x = flashX; m.y = flashY; m.angle = angle; m.life = m.maxLife; m.active = true; m.scale = 1.5; }
-                            else m = new MuzzleFlashEffect(flashX, flashY, angle, 1.5);
+                            if (m) { m.x = flashX; m.y = flashY; m.angle = angle; m.life = m.maxLife; m.active = true; m.scale = isEnergyLMG ? 1.0 : 1.5; m.isGreen = isEnergyLMG; }
+                            else m = new MuzzleFlashEffect(flashX, flashY, angle, isEnergyLMG ? 1.0 : 1.5);
+                            if (isEnergyLMG) m.isGreen = true;
                             EffectManager.add(m); }
                         }
-                        // 弹壳从抛壳窗弹出
-                        { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
-                        let s = EffectManager._acquire('ShellCasingEffect');
-                        if (s) { s.x = cSX; s.y = cSY; s.life = s.maxLife; s.active = true; }
-                        else s = new ShellCasingEffect(cSX, cSY, angle);
-                        EffectManager.add(s); }
+                        
+                        // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
+                        if (!isEnergyLMG) {
+                            { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
+                            let s = EffectManager._acquire('ShellCasingEffect');
+                            if (s) { s.x = cSX; s.y = cSY; s.life = s.maxLife; s.active = true; }
+                            else s = new ShellCasingEffect(cSX, cSY, angle);
+                            EffectManager.add(s); }
+                        }
                         delete d.fireMainHand;
                     }
                     // 副手开火已移到 hand === 'offhand' 分支独立处理
@@ -2120,11 +2459,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     const craftEffects = currentItem && currentItem._craftEffects;
                     const isSlug = craftEffects && craftEffects.slugMode;
                     const isFlechette = craftEffects && craftEffects.flechetteMode;
-                    const isSaiga12k = currentItem.weaponId === 'weapon13';
-                    const pelletCount = isSaiga12k ? 4 : 6;
+                    const attackKey = currentItem.attackKey || 'super90';
+                    const pelletCount = currentItem.pelletCount || 6;
                     const baseSpreadAngle = 20; // 所有散弹枪统一基础散布±20°
-                    const attackKey = isSaiga12k ? 'saiga12k' : 'super90';
-                    const fireSound = isSaiga12k ? 'assets/sounds/gunshot_600ms_open.wav' : 'assets/sounds/gunshot_600ms_clean.wav';
+                    const fireSound = currentItem.fireSound || 'assets/sounds/gunshot_600ms_clean.wav';
                     // 散弹枪：一次击发多发弹丸（普通模式）或单发弹丸（独头弹模式）
                     if (d.fireMainHand) {
                         const mainSlot = d.mainSlot || this.weaponMode;
@@ -2163,11 +2501,12 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             if (typeof SoundManager !== 'undefined') {
                                 SoundManager.playFile(fireSound);
                             }
-                            // 确定穿透值（箭型弹模式）
+                            // 确定穿透值（箭型弹模式基础1层 + 附魔/改造加成）
                             let piercing = 0;
                             if (isFlechette) {
-                                piercing = 1 + (craftEffects.piercingBonus || 0);
+                                piercing = 1;
                             }
+                            piercing = getEffectivePiercing(piercing, currentItem);
                             if (isSlug) {
                                 // 独头弹模式：单发弹丸，后坐力层数控制散布（应用改造效果）
                                 this._slugRecoilLayers++;
@@ -2226,6 +2565,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     }
                 } else if (isBow) {
                     const cfg = this.attacks.ranged.config;
+                    const weaponCfg = (currentItem && currentItem.attack) || {};
                     const bowLX = this.size + 15, bowLY = holdY;
                     const spawnX = this.x + c * bowLX - sin * bowLY;
                     const spawnY = this.y + sin * bowLX + c * bowLY;
@@ -2236,9 +2576,13 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         weaponDamage = this.getCurrentWeaponAtk();
                     }
                     const damage = { min: weaponDamage, max: weaponDamage };
+                    const projSpeed = weaponCfg.projectileSpeed || cfg.projectileSpeed;
+                    const projRange = weaponCfg.range || cfg.projectileRange;
+                    const projSize = weaponCfg.projectileSize || cfg.projectileSize;
+                    const projPiercing = getEffectivePiercing(weaponCfg.piercing !== undefined ? weaponCfg.piercing : cfg.piercing, currentItem);
                     { let p = EffectManager._acquire('Projectile');
-                    if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = cfg.projectileSpeed; p.maxRange = cfg.projectileRange; p.size = cfg.projectileSize; p.damage = damage; p.piercing = cfg.piercing; p.source = this; p.entities = d.entities; p.image = this.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
-                    else p = new Projectile(spawnX, spawnY, angle, cfg.projectileSpeed, cfg.projectileRange, cfg.projectileSize, damage, cfg.piercing, this, d.entities, this.arrowImage);
+                    if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = projSpeed; p.maxRange = projRange; p.size = projSize; p.damage = damage; p.piercing = projPiercing; p.source = this; p.entities = d.entities; p.image = this.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
+                    else p = new Projectile(spawnX, spawnY, angle, projSpeed, projRange, projSize, damage, projPiercing, this, d.entities, this.arrowImage);
                     EffectManager.add(p); }
                 }
                 if (d && !d.fireMainHand && !d.fireOffhand) {
@@ -2258,7 +2602,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;
                         // 装备双手武器时不播放旋转待机动画
                         const _idleItem = this.equipments[this.weaponMode];
-                        const _isTwoHandedIdle = _idleItem && isTwoHanded(_idleItem.weaponType);
+                        const _isTwoHandedIdle = _idleItem && isTwoHanded(_idleItem);
                         if (_isTwoHandedIdle) {
                             // 双手武器：清除所有旋转状态
                             anim.nextSpin = 0;
@@ -2323,7 +2667,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             // swing阶段：根据当前装备类型决定发射逻辑
                             // 弓除外：弓在攻击动画（recover）结束后才射出箭矢
                             const currentItem = this.equipments[this.weaponMode];
-                            const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.rangedType === 'pistol');
+                            const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
                             const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
                             if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) this._fireRanged('main');
                         }
@@ -2399,6 +2743,33 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         // 副手动画保持独立，不再同步主手动画
                         // 非双持状态下副手动画自行管理
                     }
+                }
+            }
+            renderHealthBar(ctx, x, y) {
+                const barWidth = 40, barHeight = 6;
+                const hpPercent = Math.max(0, this.data.hp / this.data.maxHp);
+                const barY = y - this.size - 12;
+                // 背景
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(x - barWidth/2, barY, barWidth, barHeight);
+                // 血量
+                let hpColor;
+                if (hpPercent > 0.6) hpColor = '#4ade80';
+                else if (hpPercent > 0.3) hpColor = '#facc15';
+                else hpColor = '#ef4444';
+                ctx.fillStyle = hpColor;
+                ctx.fillRect(x - barWidth/2, barY, barWidth * hpPercent, barHeight);
+                // 边框
+                ctx.strokeStyle = 'rgba(60, 50, 40, 0.9)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x - barWidth/2, barY, barWidth, barHeight);
+                // 血量文字（低于满血时显示）
+                if (hpPercent < 1) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 9px SimHei, "Microsoft YaHei", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${Math.ceil(this.data.hp)}`, x, barY + barHeight/2 + 0.5);
                 }
             }
             renderStaminaBar(ctx, x, y) {
@@ -2485,9 +2856,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 const anim = this.weaponAnim;
                 const isMeleeWeapon = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const isBowAttacking = currentItem.weaponType === 'bow' && anim.state !== 'idle';
-                const isSpecialAnim = this._isWhirlwind || this._isDashing || this._dashResetAnim || this._specialAttackActive || this._specialResetAnim || isBowAttacking;
+                const isSpecialAnim = this._isWhirlwind || this._isDashing || this._dashResetAnim || this._specialAttackActive || this._specialResetAnim || this._runeSwordSpecialActive || this._runeSwordResetAnim || isBowAttacking;
                 if (this._usePhaserWeapon && !isSpecialAnim) {
-                    if (isMeleeWeapon && currentItem.weaponId === 'weapon4' && this.weaponAnim.state === 'idle') {
+                    if (isMeleeWeapon && currentItem.weaponEffect === 'runeSword' && this.weaponAnim.state === 'idle') {
                         const swordCfg = WeaponAnimConfig.sword;
                         ctx.save();
                         ctx.translate(-7, 0); // mainBaseX
@@ -2505,8 +2876,13 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     if (this._lastFallbackItem !== currentItem.equipImage) {
                         this._lastFallbackItem = currentItem.equipImage;
                         if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
-                            this.pistolImage = new Image();
-                            this.pistolImage.src = currentItem.equipImage;
+                            if (currentItem.canvasImageProp === 'deagleImage') {
+                                this.deagleImage = new Image();
+                                this.deagleImage.src = currentItem.equipImage;
+                            } else {
+                                this.pistolImage = new Image();
+                                this.pistolImage.src = currentItem.equipImage;
+                            }
                         } else if (currentItem.weaponType === 'pkm') {
                             this.pkmImage = new Image();
                             this.pkmImage.src = currentItem.equipImage;
@@ -2520,12 +2896,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             this.qjb201Image = new Image();
                             this.qjb201Image.src = currentItem.equipImage;
                         } else if (currentItem.weaponType === 'shotgun') {
-                            if (currentItem.weaponId === 'weapon13') {
-                                this.saiga12kImage = new Image();
-                                this.saiga12kImage.src = currentItem.equipImage;
-                            } else {
-                                this.super90Image = new Image();
-                                this.super90Image.src = currentItem.equipImage;
+                            if (currentItem.canvasImageProp) {
+                                this[currentItem.canvasImageProp] = new Image();
+                                this[currentItem.canvasImageProp].src = currentItem.equipImage;
                             }
                         } else if (currentItem.weaponType === 'bow') {
                             // 弓帧动画在 switchWeaponMode 中处理
@@ -2538,13 +2911,13 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 // 判断当前装备类型
                 const isPistol = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
                 const isBow = currentItem.weaponType === 'bow';
-                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201';
+                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg';
                 const isShotgun = currentItem.weaponType === 'shotgun';
                 const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const isAttacking = anim.state !== 'idle';
                 const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const offhandItem = this.equipments[offhandSlot];
-                const isDualWield = offhandItem && offhandItem.name;
+                const isDualWield = offhandItem && offhandItem.name && offhandItem.weaponType !== 'shield';
                 // 武器位置根据类型调整：手枪/近战/弓后退5px，双手枪械保持原位置
                 let mainBaseX, mainBaseY, offBaseX, offBaseY;
                 if (isPistol) {
@@ -2566,19 +2939,20 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 ctx.translate(mainBaseX, mainBaseY);
                 // === 手枪渲染 ===
                 if (isPistol) {
-                    const isDeagle = currentItem && currentItem.weaponId === 'weapon10';
-                    const pCfg = isDeagle ? WeaponAnimConfig.deagle : WeaponAnimConfig.pistol;
+                    const pCfg = WeaponAnimConfig[currentItem.animConfigKey || 'pistol'];
+                    const rp = pCfg.renderParams || {};
+                    const weaponImg = currentItem.canvasImageProp ? this[currentItem.canvasImageProp] : this.pistolImage;
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
-                            recoil = -s * (isDeagle ? 0.02 : 0.04) * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                            recoil = -s * (rp.recoilWindup || 0.04) * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
                             const st = anim.timer / this._getAnimMs(wa.swingMs);
-                            recoil = s * (isDeagle ? 0.05 : 0.1) * (1 - st);
-                            shakeY = (Math.random() - 0.5) * (isDeagle ? 1 : 3) * (1 - st);
+                            recoil = s * (rp.recoilSwing || 0.1) * (1 - st);
+                            shakeY = (Math.random() - 0.5) * (rp.shakeIntensity || 3) * (1 - st);
                         } else {
                             const rt = anim.timer / this._getAnimMs(wa.recoverMs);
-                            recoil = -s * (isDeagle ? 0.02 : 0.04) * (1 - rt);
+                            recoil = -s * (rp.recoilRecover || 0.04) * (1 - rt);
                         }
                         const ps = pCfg.idleScale || 1;
                         const gunX = (pCfg.holdOffsetX || 0) + recoil;
@@ -2586,22 +2960,27 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
                         const pw = s * 0.275 * ps; const ph = s * 0.5 * ps;
-                        if (this.pistolImage && this.pistolImage.complete && this.pistolImage.naturalWidth > 0) ctx.drawImage(this.pistolImage, -pw / 2, 0, pw, ph);
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -pw / 2, 0, pw, ph);
                     } else {
-                        // 主手G18待机：武器中心为旋转轴
-                        const pCfg = WeaponAnimConfig.pistol;
+                        // 主手手枪待机：武器中心为旋转轴
+                        const pCfg = WeaponAnimConfig[currentItem.animConfigKey || 'pistol'];
                         const ps = pCfg.idleScale || 1;
                         ctx.translate(pCfg.holdOffsetX || 0, pCfg.holdOffsetY || 0);
                         ctx.rotate(Math.PI / 2);
                         let finalAngle = anim.angle;
-                        if (this.isMoving && anim.state === 'idle' && !anim.spinEnd) {
-                            const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                            finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                        // 待机动画1：轻微摆动（始终生效）
+                        if (anim.state === 'idle' && !anim.spinEnd) {
+                            finalAngle += (pCfg.idleRotation || 0) * Math.PI / 180;
+                            finalAngle += Math.sin(this.animTime * 0.4) * 0.02;
+                            if (this.isMoving) {
+                                const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                                finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                            }
                         }
                         ctx.translate(0, -s * 0.42);
                         ctx.rotate(finalAngle);
                         const pw = s * 0.275 * ps; const ph = s * 0.5 * ps;
-                        if (this.pistolImage && this.pistolImage.complete && this.pistolImage.naturalWidth > 0) ctx.drawImage(this.pistolImage, -pw / 2, -ph / 2, pw, ph);
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -pw / 2, -ph / 2, pw, ph);
                     }
                 }
                 // === PKM / AKM 渲染 ===
@@ -2612,6 +2991,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     if (isActuallyPkm) weaponImg = this.pkmImage;
                     else if (currentItem.weaponType === 'qbz191') weaponImg = this.qbz191Image;
                     else if (currentItem.weaponType === 'qjb201') weaponImg = this.qjb201Image;
+                    else if (currentItem.weaponType === 'energy_lmg') weaponImg = this.energyLmgImage;
                     else weaponImg = this.akmImage;
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
@@ -2629,27 +3009,36 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         ctx.translate(gunX, (pCfg.holdOffsetY || 0) + shakeY);
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
-                        const w = s * 0.75;
-                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, s);
+                        const scale = pCfg.idleScale || 1;
+                        const w = s * 0.75 * scale;
+                        const h = s * scale;
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, h);
                     } else {
                         ctx.translate(pCfg.holdOffsetX || 0, pCfg.holdOffsetY || 0);
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
                         let finalAngle = anim.angle;
-                        if (this.isMoving && anim.state === 'idle' && !anim.spinEnd) {
-                            const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                            finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                        // 待机动画1：轻微摆动（始终生效）
+                        if (anim.state === 'idle' && !anim.spinEnd) {
+                            finalAngle += (pCfg.idleRotation || 0) * Math.PI / 180;
+                            finalAngle += Math.sin(this.animTime * 0.4) * 0.02;
+                            if (this.isMoving) {
+                                const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                                finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                            }
                         }
                         ctx.rotate(finalAngle);
-                        const w = s * 0.75;
-                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, s);
+                        const scale = pCfg.idleScale || 1;
+                        const w = s * 0.75 * scale;
+                        const h = s * scale;
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, h);
                     }
                 }
                 // === Super90 散弹枪渲染 ===
                 else if (isShotgun) {
                     const pCfg = WeaponAnimConfig.shotgun || WeaponAnimConfig.akm;
                     const currentItem = this.equipments[this.weaponMode];
-                    const weaponImg = currentItem && currentItem.weaponId === 'weapon13' ? this.saiga12kImage : this.super90Image;
+                    const weaponImg = currentItem && currentItem.canvasImageProp ? this[currentItem.canvasImageProp] : null;
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
@@ -2666,20 +3055,29 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         ctx.translate(gunX, (pCfg.holdOffsetY || 0) + shakeY);
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
-                        const w = s * 0.75;
-                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, s);
+                        const scale = pCfg.idleScale || 1;
+                        const w = s * 0.75 * scale;
+                        const h = s * scale;
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, h);
                     } else {
                         ctx.translate(pCfg.holdOffsetX || 0, pCfg.holdOffsetY || 0);
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
                         let finalAngle = anim.angle;
-                        if (this.isMoving && anim.state === 'idle' && !anim.spinEnd) {
-                            const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                            finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                        // 待机动画1：轻微摆动（始终生效）
+                        if (anim.state === 'idle' && !anim.spinEnd) {
+                            finalAngle += (pCfg.idleRotation || 0) * Math.PI / 180;
+                            finalAngle += Math.sin(this.animTime * 0.4) * 0.02;
+                            if (this.isMoving) {
+                                const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                                finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                            }
                         }
                         ctx.rotate(finalAngle);
-                        const w = s * 0.75;
-                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, s);
+                        const scale = pCfg.idleScale || 1;
+                        const w = s * 0.75 * scale;
+                        const h = s * scale;
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -w / 2, 0, w, h);
                     }
                 }
                 // === 弓渲染 ===
@@ -2720,13 +3118,16 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             // windup / swing 阶段：显示帧动画
                             // 动态帧数弓动画
                             const frames = this.equippedBowFrames || this.bowFrames;
+                            const frameCount = frames.length;
                             let frameIdx = 0;
                             const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
                             let attackProgress = 0;
                             if (anim.state === 'windup') attackProgress = anim.timer / totalMs;
                             else if (anim.state === 'swing') attackProgress = (wa.windupMs + anim.timer) / totalMs;
                             else if (anim.state === 'recover') attackProgress = (wa.windupMs + wa.swingMs + anim.timer) / totalMs;
-                            frameIdx = Math.min(7, Math.floor(attackProgress * 8));
+                            if (frameCount > 0) {
+                                frameIdx = Math.min(frameCount - 1, Math.floor(attackProgress * frameCount));
+                            }
                             const bowImg = frames[frameIdx] || frames[0];
                             if (bowImg && bowImg.complete && bowImg.naturalWidth > 0) {
                                 const baseH = s * scale * 0.80; // 攻击帧缩小20%
@@ -2827,7 +3228,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) {
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else if (this._isDashing) {
@@ -2846,7 +3247,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
                         // weapon4 粒子：在武器变换后绘制，但粒子本身不旋转
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else if (this._dashResetAnim) {
@@ -2874,7 +3275,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) {
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else if (this._specialResetAnim) {
@@ -2899,7 +3300,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) {
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else if (this._specialAttackActive) {
@@ -2912,7 +3313,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) {
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else if (isAttacking) {
@@ -2956,7 +3357,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         const w = ms * 0.63;
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         // weapon4 符文长剑：绘制蓝色发光粒子（紧密贴合剑身，50%透明度）
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else {
@@ -2967,7 +3368,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         // 先移动到武器中心，使旋转中心在武器中心
                         ctx.translate(0, -ms * 0.85);
                         // weapon4 符文长剑：在呼吸旋转前绘制粒子（不随待机动画旋转）
-                        if (currentItem && currentItem.weaponId === 'weapon4') {
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                         // 使用 anim.angle（包含呼吸和旋转动画）
@@ -3034,8 +3435,8 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     
                     let offhandImg, w, drawY, drawH = s;
                     if (offIsPistol) {
-                        const offIsDeagle = offhandItem && offhandItem.weaponId === 'weapon10';
-                        const offPCfg = offIsDeagle ? WeaponAnimConfig.deagle : WeaponAnimConfig.pistol;
+                        const offPCfg = WeaponAnimConfig[offhandItem.animConfigKey || 'pistol'];
+                        const offRp = offPCfg.renderParams || {};
                         const offPs = offPCfg.idleScale || 1;
                         offhandImg = offhandItem.equipImage ? (() => { const img = new Image(); img.src = offhandItem.equipImage; return img; })() : this.pistolImage;
                         const pw = s * 0.275 * offPs; const ph = s * 0.5 * offPs;
@@ -3045,14 +3446,14 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             const offSwingMs = this._getOffhandAnimMs(offhandItem, wa.swingMs);
                             const offRecoverMs = this._getOffhandAnimMs(offhandItem, wa.recoverMs);
                             if (offhandAnim.state === 'windup') {
-                                recoil = -s * (offIsDeagle ? 0.02 : 0.04) * easeOutQuad(offhandAnim.timer / offWindupMs);
+                                recoil = -s * (offRp.recoilWindup || 0.04) * easeOutQuad(offhandAnim.timer / offWindupMs);
                             } else if (offhandAnim.state === 'swing') {
                                 const st = offhandAnim.timer / offSwingMs;
-                                recoil = s * (offIsDeagle ? 0.05 : 0.1) * (1 - st);
-                                shakeY = offIsDeagle ? 0 : (Math.random() - 0.5) * 3 * (1 - st);
+                                recoil = s * (offRp.recoilSwing || 0.1) * (1 - st);
+                                shakeY = (offRp.shakeIntensity || 3) === 0 ? 0 : (Math.random() - 0.5) * (offRp.shakeIntensity || 3) * (1 - st);
                             } else {
                                 const rt = offhandAnim.timer / offRecoverMs;
-                                recoil = -s * (offIsDeagle ? 0.02 : 0.04) * (1 - rt);
+                                recoil = -s * (offRp.recoilRecover || 0.04) * (1 - rt);
                             }
                             ctx.translate(recoil, shakeY);
                             ctx.translate(0, -s * 0.42);
@@ -3094,6 +3495,15 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     
                     ctx.restore();
                 }
+                // ===== 边境长弓蓄力满闪光特效（武器） =====
+                if (this._chargeFlashActive && currentItem && currentItem.chargeAttack) {
+                    const flashAlpha = Math.min(1, this._chargeFlashTimer / 500);
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.7})`;
+                    ctx.fillRect(-60, -60, 120, 120);
+                    ctx.globalCompositeOperation = 'source-over';
+                }
+                ctx.restore(); // 恢复 renderWeapon 开始的 ctx.save()
             }
 
             /**
@@ -3109,7 +3519,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 if (!currentItem || !currentItem.name) return params;
 
                 const isPistol = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
-                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201';
+                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg';
                 const isShotgun = currentItem.weaponType === 'shotgun';
                 const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const s = wa.size;
@@ -3153,6 +3563,16 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     }
                     params.recoil = recoil;
                     params.recoilAngle = -recoil * 0.05; // 轻微旋转角度
+                }
+
+                // 枪械待机动画1：轻微摆动（Phaser 同步）
+                if ((isPistol || isPkmOrAkm || isShotgun) && anim.state === 'idle' && !anim.spinEnd) {
+                    let swayAngle = Math.sin(this.animTime * 0.4) * 0.02;
+                    if (this.isMoving) {
+                        const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                        swayAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
+                    }
+                    params.animAngle = swayAngle;
                 }
 
                 // 剑类刺击动画
@@ -3285,7 +3705,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 return params;
             }
 
-            // 调试坐标系绘制（用于对比工具的坐标系）
+            // 调试坐标系绘制（与 Canvas 坐标系一致：X+向右，Y+向下）
             _drawDebugCoordinateSystem(ctx) {
                 ctx.save();
                 ctx.lineWidth = 2;
@@ -3293,10 +3713,10 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 ctx.strokeStyle = '#ff5555';
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(150, 0); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(145, -5); ctx.lineTo(150, 0); ctx.lineTo(145, 5); ctx.stroke();
-                // y轴（向上，绿色）
+                // y轴（向下，绿色）——与 Canvas 一致，Y+向下
                 ctx.strokeStyle = '#55ff55';
-                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -150); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(-5, -145); ctx.lineTo(0, -150); ctx.lineTo(5, -145); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-5, 145); ctx.lineTo(0, 150); ctx.lineTo(5, 145); ctx.stroke();
                 // 刻度
                 ctx.fillStyle = '#888888';
                 ctx.font = '10px monospace';
@@ -3308,8 +3728,8 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     ctx.beginPath(); ctx.moveTo(i, -3); ctx.lineTo(i, 3); ctx.stroke();
                     if (i % 20 === 0) ctx.fillText(String(i), i, 12);
                     ctx.strokeStyle = '#55ff55'; ctx.lineWidth = 0.5;
-                    ctx.beginPath(); ctx.moveTo(-3, -i); ctx.lineTo(3, -i); ctx.stroke();
-                    if (i % 20 === 0) ctx.fillText(String(i), -12, -i);
+                    ctx.beginPath(); ctx.moveTo(-3, i); ctx.lineTo(3, i); ctx.stroke();
+                    if (i % 20 === 0) ctx.fillText(String(i), -12, i);
                 }
                 // 原点
                 ctx.fillStyle = '#ffffff';
@@ -3363,7 +3783,7 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                     this._usePhaserWeapon = false;
                 }
 
-                this.renderStaminaBar(ctx, x, y); ctx.save(); ctx.translate(x, y);
+                this.renderHealthBar(ctx, x, y); this.renderStaminaBar(ctx, x, y); ctx.save(); ctx.translate(x, y);
                 if (this.isDodging) { const tilt = Math.atan2(this.dodgeDirection.y, this.dodgeDirection.x); ctx.rotate(tilt + Math.PI/2); }
                 else if (this._dashResetAnim) {
                     const elapsed = Date.now() - this._dashResetAnim.startTime;
@@ -3522,6 +3942,14 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
                     }
                 }
+                // ===== 边境长弓蓄力满闪光特效（人物） =====
+                if (this._chargeFlashActive) {
+                    const flashAlpha = Math.min(1, this._chargeFlashTimer / 500);
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.7})`;
+                    ctx.fillRect(-60, -60, 120, 120);
+                    ctx.globalCompositeOperation = 'source-over';
+                }
                 // ===== 符文长剑特殊攻击：渲染悬浮的剑 =====
                 if (this._runeSwordSpecialActive && this._runeSwordSwords.length > 0) {
                     const img = this._runeSwordBladeImg;
@@ -3556,12 +3984,105 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                         });
                     }
                 }
+                // ===== 冰锥技能：渲染悬浮的冰锥 =====
+                if (this._iceSpikeActive && this._iceSpikeSpikes && this._iceSpikeSpikes.length > 0) {
+                    const img = this._iceSpikeImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const w = 40;
+                        const h = 60;
+                        this._iceSpikeSpikes.forEach(spike => {
+                            if (!spike.active || spike.launched || spike.flyActive) return;
+                            ctx.save();
+                            // 摇摆效果
+                            const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
+                            const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
+                            // 渲染在角色身后左右位置
+                            ctx.translate(spike.offsetX + swayX, spike.offsetY + swayY);
+                            // 朝向鼠标
+                            const sp = Renderer.worldToScreen(this.x, this.y);
+                            let mouseLocalAngle = 0;
+                            if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
+                                mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
+                            }
+                            ctx.rotate(mouseLocalAngle + Math.PI / 2);
+                            ctx.globalAlpha = 0.85;
+                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                            ctx.restore();
+                        });
+                    }
+                }
+                // ===== 火球技能：渲染悬浮的火球 =====
+                if (this._fireballActive && this._fireball && !this._fireball.launched) {
+                    const img = this._fireballImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const fb = this._fireball;
+                        ctx.save();
+                        // 摇摆效果
+                        const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
+                        const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
+                        // 渲染在角色身前
+                        ctx.translate(fb.offsetX + swayX, fb.offsetY + swayY);
+                        // 朝向鼠标
+                        const sp = Renderer.worldToScreen(this.x, this.y);
+                        let mouseLocalAngle = 0;
+                        if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
+                            mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
+                        }
+                        ctx.rotate(mouseLocalAngle + Math.PI / 2);
+                        ctx.globalAlpha = 0.9;
+                        const size = 50 * fb.scale;
+                        // 从 sprite sheet 中截取对应帧
+                        const cols = 9, frameW = 480, frameH = 480;
+                        const frameIndex = fb.frameIndex || 0;
+                        const col = frameIndex % cols;
+                        const row = Math.floor(frameIndex / cols);
+                        const sx = col * frameW, sy = row * frameH;
+                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
+                        ctx.restore();
+                    }
+                }
                 // 闪避时：恢复旋转为 this.rotation，避免武器随身体倾斜而错位
                 if (this.isDodging) {
                     const tilt = Math.atan2(this.dodgeDirection.y, this.dodgeDirection.x);
                     ctx.rotate(-(tilt + Math.PI/2) + this.rotation);
                 }
                 this.renderWeapon(ctx);
+                // === 盾牌渲染（副手栏装备盾牌时）===
+                const _offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+                const _offhandItem = this.equipments[_offhandSlot];
+                if (_offhandItem && _offhandItem.weaponType === 'shield') {
+                    ctx.save();
+                    ctx.translate(20, -20); // 右上方（20, -20）
+                    ctx.rotate(Math.PI / 2); // 顺时针旋转 90 度
+                    const shieldImg = this.shieldImage;
+                    const sw = this.size * 6.25 * 0.55;
+                    const sh = this.size * 6.25 * 0.7;
+                    if (this.shieldSystem && this.shieldSystem.defending) {
+                        ctx.rotate(-0.3);
+                    }
+                    if (shieldImg && shieldImg.complete && shieldImg.naturalWidth > 0) {
+                        ctx.drawImage(shieldImg, -sw / 2, -sh / 2, sw, sh);
+                    } else {
+                        ctx.fillStyle = '#8a6a3a';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, sw * 0.4, sh * 0.5, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+                // ===== 防御状态红光特效 =====
+                if (this.shieldSystem && this.shieldSystem.defending) {
+                    const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25; // 闪烁效果
+                    ctx.fillStyle = `rgba(200, 60, 60, ${flicker * 0.35})`;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size + 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = `rgba(255, 80, 80, ${flicker * 0.6})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
                 if (!this._usePhaserSprite) {
                     ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
                     ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
@@ -3585,6 +4106,49 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                             ctx.restore();
                         });
                     }
+                }
+                // ===== 冰锥技能：渲染飞行中的冰锥（世界坐标）=====
+                if (this._iceSpikeSpikes && this._iceSpikeSpikes.some(s => s.flyActive)) {
+                    const img = this._iceSpikeImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const w = 40;
+                        const h = 60;
+                        this._iceSpikeSpikes.forEach(spike => {
+                            if (!spike.flyActive) return;
+                            const sp = Renderer.worldToScreen(spike.flyX, spike.flyY);
+                            ctx.save();
+                            ctx.translate(sp.x, sp.y);
+                            ctx.rotate(spike.flyAngle + Math.PI / 2);
+                            ctx.globalAlpha = 0.9;
+                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                            ctx.restore();
+                        });
+                    }
+                }
+                // ===== 火球技能：渲染飞行中的火球（世界坐标）=====
+                if (this._fireball && this._fireball.flyActive) {
+                    const img = this._fireballImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const fb = this._fireball;
+                        const sp = Renderer.worldToScreen(fb.flyX, fb.flyY);
+                        ctx.save();
+                        ctx.translate(sp.x, sp.y);
+                        ctx.rotate(fb.flyAngle + Math.PI / 2);
+                        ctx.globalAlpha = 0.95;
+                        const size = 50 * fb.scale;
+                        // 从 sprite sheet 中截取对应帧
+                        const cols = 9, frameW = 480, frameH = 480;
+                        const frameIndex = fb.frameIndex || 0;
+                        const col = frameIndex % cols;
+                        const row = Math.floor(frameIndex / cols);
+                        const sx = col * frameW, sy = row * frameH;
+                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
+                        ctx.restore();
+                    }
+                }
+                // ===== 无人机渲染 =====
+                if (this.droneSystem && this.droneSystem.active) {
+                    this.droneSystem.render(ctx);
                 }
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 32);
             }
@@ -3617,9 +4181,9 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
             _updateSubsystems(dt, entities) {
                 // ===== 武器符文发光粒子更新（仅 weapon4） =====
                 const _currentWep = this.equipments[this.weaponMode];
-                if (_currentWep && _currentWep.weaponId === 'weapon4') {
+                if (_currentWep && _currentWep.weaponEffect === 'runeSword') {
                     const isAttacking = this.weaponAnim.state !== 'idle';
-                    const isUsingSkill = this._isWhirlwind || this._isDashing || this._specialAttackActive;
+                    const isUsingSkill = this._isWhirlwind || this._isDashing || this._specialAttackActive || this._runeSwordSpecialActive;
                     this.weaponEffect.update({
                         dt,
                         size: WEAPON_ANIM.size,
@@ -3652,10 +4216,12 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 if (this._specialAttackActive) {
                     this.specialAttackSystem.update(dt, entities);
                 }
-                // 特殊攻击冷却
-                if (this._specialAttackCooldown > 0) {
-                    this._specialAttackCooldown -= dt;
-                    if (this._specialAttackCooldown < 0) this._specialAttackCooldown = 0;
+                // 特殊攻击冷却（每个类型独立）
+                for (const type in this._specialAttackCooldowns) {
+                    if (this._specialAttackCooldowns[type] > 0) {
+                        this._specialAttackCooldowns[type] -= dt;
+                        if (this._specialAttackCooldowns[type] < 0) this._specialAttackCooldowns[type] = 0;
+                    }
                 }
                 // ===== 符文长剑特殊攻击更新 =====
                 if (this._runeSwordSpecialActive) {
@@ -3663,10 +4229,27 @@ import { RuneSwordSystem } from './components/rune-sword-system.js';
                 } else if (this._runeSwordSwords && this._runeSwordSwords.some(s => s.flyActive)) {
                     this.runeSwordSystem._updateFlyingBlades(dt, entities);
                 }
-                // 符文长剑特殊攻击冷却
-                if (this._runeSwordSpecialCooldown > 0) {
-                    this._runeSwordSpecialCooldown -= dt;
-                    if (this._runeSwordSpecialCooldown < 0) this._runeSwordSpecialCooldown = 0;
+                // ===== 冰锥技能更新 =====
+                if (this._iceSpikeActive || (this._iceSpikeSpikes && this._iceSpikeSpikes.some(s => s.flyActive))) {
+                    this.iceSpikeSystem.update(dt, entities);
+                }
+                // 冰锥技能冷却
+                if (this._iceSpikeCooldown > 0) {
+                    this._iceSpikeCooldown -= dt;
+                    if (this._iceSpikeCooldown < 0) this._iceSpikeCooldown = 0;
+                }
+                // ===== 火球技能更新 =====
+                if (this._fireballActive || (this._fireball && this._fireball.flyActive)) {
+                    this.fireballSystem.update(dt, entities);
+                }
+                // 火球技能冷却
+                if (this._fireballCooldown > 0) {
+                    this._fireballCooldown -= dt;
+                    if (this._fireballCooldown < 0) this._fireballCooldown = 0;
+                }
+                // ===== 无人机技能更新 =====
+                if (this.droneSystem && this.droneSystem.active) {
+                    this.droneSystem.update(dt, entities);
                 }
                 // 冲刺攻击复位动画更新
                 if (this._dashResetAnim) {
