@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无限轮回 - v0.004</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #2a2520; font-family: 'Noto Serif SC', 'Georgia', serif; user-select: none; color: #4a3f35; }
+
+        #menuLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: linear-gradient(135deg, #3d342b 0%, #2a2520 50%, #1e1a16 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease, visibility 1.2s ease; }
+        #menuLayer.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+        .menu-title { font-size: 56px; color: #d4c5a9; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; font-weight: 700; }
+        .menu-sub { font-size: 14px; color: #8a7d6b; margin-bottom: 50px; letter-spacing: 3px; }
+        .menu-btn { width: 220px; padding: 14px; margin: 8px; background: linear-gradient(to bottom, #5a4d3f, #4a3f35); border: 2px solid #6b5d4f; border-radius: 8px; color: #d4c5a9; font-size: 18px; cursor: pointer; transition: all 0.3s; letter-spacing: 4px; font-family: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .menu-btn:hover { background: linear-gradient(to bottom, #6b5d4f, #5a4d3f); border-color: #8a7d6b; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+
+        #gameCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; cursor: crosshair; }
+        #uiLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: none; }
+
+        .top-bar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; align-items: center; background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f; border-radius: 12px; padding: 6px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .top-item { text-align: center; color: #d4c5a9; font-size: 13px; min-width: 50px; }
+        .top-item .label { color: #8a7d6b; font-size: 11px; margin-bottom: 2px; }
+        .top-item .value { font-weight: 600; letter-spacing: 1px; }
+        .top-item.bar { min-width: 100px; display: flex; flex-direction: column; gap: 2px; }
+        .top-bar-track { height: 10px; background: #1e1a16; border-radius: 5px; overflow: hidden; border: 1px solid #5a4d3f; }
+        .top-bar-fill { height: 100%; border-radius: 5px; transition: width 0.3s ease; }
+        .top-bar-fill.hp { background: linear-gradient(to right, #8a4a4a, #a06060); }
+        .top-bar-fill.mp { background: linear-gradient(to right, #4a6a8a, #6080a0); }
+        .top-bar-value { font-size: 10px; color: #d4c5a9; font-family: monospace; }
+
+        .side-menu { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 11; }
+        .side-menu-btn { width: 44px; height: 44px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; pointer-events: auto; transition: all 0.2s; position: relative; }
+        .side-menu-btn:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .side-menu-btn.active { border-color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
+        .side-menu-btn .key-hint { position: absolute; bottom: 2px; right: 4px; font-size: 9px; color: #6b5d4f; font-family: monospace; }
+
+        .bottom-bar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(42, 37, 32, 0.9); border: 2px solid #5a4d3f; border-radius: 12px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .quick-slot { width: 48px; height: 48px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #8a7d6b; font-size: 20px; cursor: pointer; pointer-events: auto; transition: all 0.2s; position: relative; }
+        .quick-slot:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .quick-slot.active { border-color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
+        .quick-slot .key-hint { position: absolute; bottom: 2px; right: 4px; font-size: 10px; color: #6b5d4f; }
+        .quick-slot-group { display: flex; gap: 8px; }
+        .quick-slot-divider { width: 2px; background: rgba(90, 77, 63, 0.5); border-radius: 1px; margin: 0 4px; }
+        .quick-slot.skill { border-color: #6b5d4f; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .quick-slot.skill:hover { border-color: #9a8a6a; }
+        .quick-slot.item { border-color: #5a4d5a; background: linear-gradient(to bottom, #3d342b, #2a2520); }
+        .quick-slot.item:hover { border-color: #8a7a8a; }
+        .quick-slot.empty { border-style: dashed; opacity: 0.6; }
+
+        .back-menu-btn { position: absolute; top: 12px; left: 12px; padding: 8px 16px; background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f; border-radius: 8px; color: #d4c5a9; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 13px; transition: all 0.2s; }
+        .back-menu-btn:hover { background: rgba(90, 77, 63, 0.9); border-color: #8a7d6b; }
+
+        .attack-indicator-left { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .attack-cd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #5a4d3f; background: rgba(42, 37, 32, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #8a7d6b; position: relative; overflow: hidden; }
+        .attack-cd.ready { border-color: #7a9a6a; color: #7a9a6a; box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
+        .attack-cd .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); transition: height 0.1s linear; }
+        .attack-cd .key-label { position: absolute; bottom: -16px; font-size: 10px; color: #6b5d4f; font-family: monospace; }
+
+        .controls-hint-left { position: absolute; top: 50%; left: 60px; transform: translateY(-50%); color: rgba(212, 197, 169, 0.35); font-size: 11px; text-align: left; background: rgba(42, 37, 32, 0.5); padding: 10px 14px; border-radius: 8px; pointer-events: none; line-height: 1.8; border: 1px solid rgba(90, 77, 63, 0.3); }
+
+        .system-panel { position: fixed; top: 0; right: 0; transform: translateX(100%); width: 420px; height: 100%; background: linear-gradient(135deg, #3d342b 0%, #2a2520 100%); border-left: 3px solid #5a4d3f; box-shadow: -8px 0 32px rgba(0,0,0,0.6); opacity: 1; pointer-events: none; visibility: hidden; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s; overflow: hidden; display: flex; flex-direction: column; z-index: 15; }
+        .system-panel.active { pointer-events: auto; visibility: visible; transform: translateX(0); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: linear-gradient(to right, #4a3f35, #3d342b); border-bottom: 2px solid #5a4d3f; }
+        .panel-title { color: #d4c5a9; font-size: 20px; letter-spacing: 4px; font-weight: 700; }
+        .panel-close { width: 32px; height: 32px; background: #5a4d3f; border: 1px solid #6b5d4f; border-radius: 6px; color: #d4c5a9; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+        .panel-close:hover { background: #7a6d5f; }
+        .panel-tabs { display: flex; background: #2a2520; border-bottom: 1px solid #5a4d3f; }
+        .panel-tab { flex: 1; padding: 12px; text-align: center; color: #8a7d6b; cursor: pointer; pointer-events: auto; border-bottom: 3px solid transparent; transition: all 0.2s; font-size: 15px; }
+        .panel-tab:hover { color: #d4c5a9; background: rgba(90, 77, 63, 0.3); }
+        .panel-tab.active { color: #d4c5a9; border-bottom-color: #8a7d6b; background: rgba(90, 77, 63, 0.2); }
+        .panel-content { flex: 1; overflow: auto; padding: 20px; }
+        .tab-page { display: none; }
+        .tab-page.active { display: block; }
+
+        .status-char-layout { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+        .status-header { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; background: rgba(0,0,0,0.15); border-radius: 8px; }
+        .status-header .header-name { font-size: 22px; color: #d4c5a9; font-weight: 700; }
+        .status-header .header-class { font-size: 14px; color: #8a7d6b; }
+        .status-header .header-level { font-size: 16px; color: #a0907a; font-weight: 600; margin-left: auto; }
+        .status-details { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .status-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+        .diablo-equip-layout { display: flex; align-items: center; justify-content: center; height: 100%; }
+        .diablo-paperdoll { display: flex; align-items: center; justify-content: center; position: relative; width: 100%; height: 100%; }
+        .paperdoll-bg { position: relative; width: 380px; height: 550px; background: linear-gradient(135deg, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 12px; }
+        .diablo-slot { position: absolute; width: 70px; height: 70px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .diablo-slot:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .diablo-slot.equipped { border-color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); }
+        .diablo-slot .slot-icon { font-size: 28px; }
+        .diablo-slot .slot-name { font-size: 11px; color: #8a7d6b; margin-top: 2px; text-align: center; }
+        .diablo-slot.helmet { top: 15px; left: 50%; transform: translateX(-50%); }
+        .diablo-slot.necklace { top: 15px; right: 25px; }
+        .diablo-slot.weapon-main { top: 130px; left: 25px; }
+        .diablo-slot.armor { top: 130px; left: 50%; transform: translateX(-50%); }
+        .diablo-slot.weapon-off { top: 130px; right: 25px; }
+        .diablo-slot.ring-left { top: 240px; left: 25px; }
+        .diablo-slot.gloves { top: 240px; left: 50%; transform: translateX(-50%); }
+        .diablo-slot.ring-right { top: 240px; right: 25px; }
+        .diablo-slot.belt { top: 350px; left: 50%; transform: translateX(-50%); }
+        .diablo-slot.boots { top: 460px; left: 50%; transform: translateX(-50%); }
+        .diablo-slot.equipped .slot-name { color: #d4c5a9; font-weight: 600; }
+
+        .equip-tooltip { position: absolute; z-index: 1000; width: 220px; background: linear-gradient(135deg, #3d342b, #2a2520); border: 2px solid #8a7d6b; border-radius: 8px; padding: 10px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.6); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 0.15s, transform 0.15s; }
+        .equip-tooltip.visible { opacity: 1; transform: translateY(0); }
+        .equip-tooltip .tt-name { color: #d4c5a9; font-size: 14px; font-weight: 700; margin-bottom: 4px; border-bottom: 1px solid #5a4d3f; padding-bottom: 4px; }
+        .equip-tooltip .tt-type { color: #8a7d6b; font-size: 11px; margin-bottom: 6px; }
+        .equip-tooltip .tt-stat { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+        .equip-tooltip .tt-stat .tt-stat-name { color: #8a7d6b; }
+        .equip-tooltip .tt-stat .tt-stat-val { color: #d4c5a9; }
+        .equip-tooltip .tt-stat .tt-stat-val.pos { color: #7a9a6a; }
+        .equip-tooltip .tt-desc { color: #6b5d4f; font-size: 11px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #5a4d3f; font-style: italic; }
+        .skill-module-container { display: flex; flex-direction: column; gap: 16px; height: 100%; }
+
+        .skill-module-container { display: flex; flex-direction: column; gap: 16px; height: 100%; }
+        .skill-module-header { text-align: center; padding: 12px; background: rgba(0,0,0,0.1); border-radius: 8px; }
+        .skill-module-header h3 { color: #d4c5a9; font-size: 18px; margin-bottom: 4px; }
+        .skill-module-desc { color: #8a7d6b; font-size: 12px; }
+        .skill-module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 12px; }
+        .skill-module-slot { background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px dashed #5a4d3f; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .skill-module-slot:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .skill-slot-icon { font-size: 28px; color: #5a4d3f; margin-bottom: 4px; }
+        .skill-slot-name { font-size: 11px; color: #8a7d6b; }
+        .skill-module-info { background: rgba(0,0,0,0.1); border-radius: 8px; padding: 12px; }
+        .skill-module-info h4 { color: #a0907a; font-size: 14px; margin-bottom: 8px; }
+        .module-interface-list { display: flex; flex-direction: column; gap: 6px; }
+        .interface-item { color: #8a7d6b; font-size: 12px; font-family: monospace; padding: 4px 8px; background: rgba(90, 77, 63, 0.2); border-radius: 4px; }
+
+        .diablo-inventory-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; }
+        .inventory-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.1); border-radius: 8px; width: 100%; max-width: 360px; }
+        .inventory-header h3 { color: #d4c5a9; font-size: 16px; }
+        .inventory-capacity { color: #8a7d6b; font-size: 12px; }
+        .inventory-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); gap: 6px; width: 360px; height: 360px; }
+        .inv-cell { background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; }
+        .inv-cell:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+        .inv-cell.occupied { border-color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); }
+        .inv-cell .inv-stack { position: absolute; bottom: 2px; right: 4px; font-size: 10px; color: #d4c5a9; font-family: monospace; }
+
+        .status-section { background: rgba(0,0,0,0.15); border-radius: 8px; padding: 10px; }
+        .status-section h4 { color: #a0907a; margin-bottom: 8px; font-size: 14px; border-bottom: 1px solid #5a4d3f; padding-bottom: 4px; }
+        .status-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .status-bar .bar-label { width: 50px; font-size: 13px; color: #8a7d6b; font-weight: 600; }
+        .status-bar .bar-track { flex: 1; height: 14px; background: #1e1a16; border-radius: 7px; overflow: hidden; border: 1px solid #5a4d3f; }
+        .status-bar .bar-fill { height: 100%; border-radius: 7px; transition: width 0.3s ease; }
+        .bar-fill.hp { background: linear-gradient(to right, #8a4a4a, #a06060); }
+        .bar-fill.mp { background: linear-gradient(to right, #4a6a8a, #6080a0); }
+        .bar-fill.stamina { background: linear-gradient(to right, #7a8a4a, #90a060); }
+        .bar-fill.exp { background: linear-gradient(to right, #8a7a4a, #a09060); }
+        .status-value { width: 55px; text-align: right; font-size: 12px; color: #d4c5a9; font-family: monospace; }
+        .attr-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .attr-item { display: flex; justify-content: space-between; padding: 5px 8px; background: rgba(90, 77, 63, 0.2); border-radius: 4px; font-size: 14px; }
+        .attr-item .attr-name { color: #8a7d6b; }
+        .attr-item .attr-val { color: #d4c5a9; font-weight: 600; font-size: 15px; }
+
+        .stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(90, 77, 63, 0.3); font-size: 14px; }
+        .stat-row .stat-name { color: #8a7d6b; }
+        .stat-row .stat-value { color: #d4c5a9; font-weight: 600; }
+        .stat-row .stat-value.positive { color: #7a9a6a; }
+
+        .panel-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.25s, visibility 0.25s; z-index: 5; }
+        .panel-overlay.active { opacity: 1; pointer-events: auto; visibility: visible; }
+
+        .combat-text { position: absolute; color: #ff6666; font-size: 18px; font-weight: 700; pointer-events: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); animation: floatUp 1s ease-out forwards; z-index: 50; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+    </style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+    <div id="menuLayer">
+        <div class="menu-title">无限轮回</div>
+        <div class="menu-sub">想明白生命的意义吗？想真正的活着吗？</div>
+        <button class="menu-btn" onclick="Game.start()">▶ 开始游戏</button>
+        <button class="menu-btn" onclick="Game.load()">💾 读取存档</button>
+        <button class="menu-btn" onclick="Game.exit()">✕ 退出游戏</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="uiLayer">
+        <div class="panel-overlay" id="panelOverlay" onclick="SystemUI.close()"></div>
+
+        <div class="equip-tooltip" id="equipTooltip">
+            <div class="tt-name" id="ttName"></div>
+            <div class="tt-type" id="ttType"></div>
+            <div id="ttStats"></div>
+            <div class="tt-desc" id="ttDesc"></div>
+        </div>
+
+        <div class="top-bar">
+            <div class="top-item"><div class="label">轮回者</div><div class="value" id="uiName">未命名</div></div>
+            <div class="top-item"><div class="label">等级</div><div class="value" id="uiLevel">1</div></div>
+            <div class="top-item"><div class="label">职业</div><div class="value" id="uiClass">初心者</div></div>
+            <div class="top-item bar"><div class="label">HP</div><div class="top-bar-track"><div class="top-bar-fill hp" id="topBarHp" style="width: 100%"></div></div><div class="top-bar-value" id="topValHp">100/100</div></div>
+            <div class="top-item bar"><div class="label">MP</div><div class="top-bar-track"><div class="top-bar-fill mp" id="topBarMp" style="width: 100%"></div></div><div class="top-bar-value" id="topValMp">100/100</div></div>
+            <div class="top-item"><div class="label">坐标</div><div class="value" id="uiPos">0, 0</div></div>
+            <div class="top-item"><div class="label">击杀</div><div class="value" id="uiKills">0</div></div>
+        </div>
+
+        <div class="side-menu" id="sideMenu">
+            <div class="side-menu-btn" id="btnStatus" onclick="SystemUI.toggle('status')" title="状态 (I)">📊<span class="key-hint">I</span></div>
+            <div class="side-menu-btn" id="btnEquip" onclick="SystemUI.toggle('equip')" title="装备 (C)">⚔<span class="key-hint">C</span></div>
+            <div class="side-menu-btn" id="btnSkill" onclick="SystemUI.toggle('skill')" title="技能 (K)">✦<span class="key-hint">K</span></div>
+            <div class="side-menu-btn" id="btnInventory" onclick="SystemUI.toggle('inventory')" title="背包 (B)">🎒<span class="key-hint">B</span></div>
+        </div>
+
+        <button class="back-menu-btn" onclick="Game.toMenu()">返回主菜单</button>
+
+        <div class="attack-indicator-left" id="attackIndicator">
+            <div class="attack-cd ready" id="cdAttack">⚔<div class="cd-overlay" id="cdAttackOverlay" style="height: 0%"></div><span class="key-label" id="attackLabel">近战</span></div>
+        </div>
+
+        <div class="controls-hint-left">
+            <div>[WASD] 移动</div>
+            <div>[Shift] 冲刺(8/s)</div>
+            <div>[空格] 闪避(25)</div>
+            <div>[鼠标] 方向</div>
+            <div>[左键] 攻击</div>
+            <div>[F] 切换武器</div>
+            <div>[QER] 技能 [1-4] 道具</div>
+            <div>[I] 状态 [C] 装备</div>
+            <div>[K] 技能 [B] 背包</div>
+            <div>[ESC] 关闭面板</div>
+        </div>
+
+        <div class="system-panel" id="systemPanel">
+            <div class="panel-header"><div class="panel-title" id="panelTitle">角色系统</div><button class="panel-close" onclick="SystemUI.close()">✕</button></div>
+            <div class="panel-tabs">
+                <div class="panel-tab" data-tab="status" onclick="SystemUI.switchTab('status')">📊 状态</div>
+                <div class="panel-tab" data-tab="equip" onclick="SystemUI.switchTab('equip')">⚔ 装备</div>
+                <div class="panel-tab" data-tab="skill" onclick="SystemUI.switchTab('skill')">✦ 技能</div>
+                <div class="panel-tab" data-tab="inventory" onclick="SystemUI.switchTab('inventory')">🎒 背包</div>
+            </div>
+            <div class="panel-content">
+                <!-- 状态页 -->
+                <div class="tab-page" id="tab-status">
+                    <div class="status-char-layout">
+                        <div class="status-header">
+                            <span class="header-name" id="charName">轮回者</span>
+                            <span class="header-class" id="charClass">初心者</span>
+                            <span class="header-level" id="charLevel">Lv.1</span>
+                        </div>
+                        <div class="status-details">
+                            <div class="status-section">
+                                <h4>❤ 生命状态</h4>
+                                <div class="status-bar"><span class="bar-label">HP</span><div class="bar-track"><div class="bar-fill hp" id="barHp" style="width: 85%"></div></div><span class="status-value" id="valHp">85/100</span></div>
+                                <div class="status-bar"><span class="bar-label">MP</span><div class="bar-track"><div class="bar-fill mp" id="barMp" style="width: 40%"></div></div><span class="status-value" id="valMp">40/100</span></div>
+                                <div class="status-bar"><span class="bar-label">体力</span><div class="bar-track"><div class="bar-fill stamina" id="barStamina" style="width: 92%"></div></div><span class="status-value" id="valStamina">92/100</span></div>
+                                <div class="status-bar"><span class="bar-label">EXP</span><div class="bar-track"><div class="bar-fill exp" id="barExp" style="width: 23%"></div></div><span class="status-value" id="valExp">23%</span></div>
+                            </div>
+                            <div class="status-section">
+                                <h4>💪 基础属性</h4>
+                                <div class="status-grid" id="baseAttrs">
+                                    <div class="attr-item"><span class="attr-name">力量</span><span class="attr-val" id="attrStr">10</span></div>
+                                    <div class="attr-item"><span class="attr-name">敏捷</span><span class="attr-val" id="attrDex">10</span></div>
+                                    <div class="attr-item"><span class="attr-name">智力</span><span class="attr-val" id="attrInt">10</span></div>
+                                    <div class="attr-item"><span class="attr-name">体质</span><span class="attr-val" id="attrCon">10</span></div>
+                                    <div class="attr-item"><span class="attr-name">精神</span><span class="attr-val" id="attrWis">10</span></div>
+                                    <div class="attr-item"><span class="attr-name">幸运</span><span class="attr-val" id="attrLuck">10</span></div>
+                                </div>
+                            </div>
+                            <div class="status-section">
+                                <h4>⚔ 战斗属性</h4>
+                                <div class="status-grid" id="combatAttrs">
+                                    <div class="attr-item"><span class="attr-name">物攻</span><span class="attr-val" id="combatAtk">15</span></div>
+                                    <div class="attr-item"><span class="attr-name">物防</span><span class="attr-val" id="combatDef">5</span></div>
+                                    <div class="attr-item"><span class="attr-name">魔攻</span><span class="attr-val" id="combatMatk">0</span></div>
+                                    <div class="attr-item"><span class="attr-name">魔防</span><span class="attr-val" id="combatMdef">3</span></div>
+                                    <div class="attr-item"><span class="attr-name">命中</span><span class="attr-val" id="combatHit">85%</span></div>
+                                    <div class="attr-item"><span class="attr-name">闪避</span><span class="attr-val" id="combatDodge">5%</span></div>
+                                    <div class="attr-item"><span class="attr-name">暴击</span><span class="attr-val" id="combatCrit">2%</span></div>
+                                    <div class="attr-item"><span class="attr-name">攻速</span><span class="attr-val" id="combatAspd">1.0</span></div>
+                                    <div class="attr-item"><span class="attr-name">移速</span><span class="attr-val" id="combatSpd">3.5</span></div>
+                                </div>
+                            </div>
+                            <div class="status-section">
+                                <h4>📜 轮回信息</h4>
+                                <div class="status-grid" id="loopInfo">
+                                    <div class="attr-item"><span class="attr-name">轮回</span><span class="attr-val" id="infoLoop">0</span></div>
+                                    <div class="attr-item"><span class="attr-name">天数</span><span class="attr-val" id="infoDays">1</span></div>
+                                    <div class="attr-item"><span class="attr-name">击杀</span><span class="attr-val" id="infoKills">0</span></div>
+                                    <div class="attr-item"><span class="attr-name">任务</span><span class="attr-val" id="infoQuests">0</span></div>
+                                    <div class="attr-item"><span class="attr-name">基因</span><span class="attr-val" id="infoGene">未开启</span></div>
+                                    <div class="attr-item"><span class="attr-name">评价</span><span class="attr-val" id="infoRank">F</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 装备页 -->
+                <div class="tab-page" id="tab-equip">
+                    <div class="diablo-equip-layout">
+                        <div class="diablo-paperdoll">
+                            <div class="paperdoll-bg">
+                                <div class="diablo-slot helmet" data-slot="helmet"><div class="slot-icon">⛑</div><div class="slot-name">头盔</div></div>
+                                <div class="diablo-slot necklace" data-slot="necklace"><div class="slot-icon">📿</div><div class="slot-name">项链</div></div>
+                                <div class="diablo-slot weapon-main" data-slot="weapon"><div class="slot-icon">⚔</div><div class="slot-name">主手</div></div>
+                                <div class="diablo-slot armor" data-slot="armor"><div class="slot-icon">🛡</div><div class="slot-name">盔甲</div></div>
+                                <div class="diablo-slot weapon-off" data-slot="offhand"><div class="slot-icon">🛡</div><div class="slot-name">副手</div></div>
+                                <div class="diablo-slot ring-left" data-slot="ring1"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+                                <div class="diablo-slot gloves" data-slot="gloves"><div class="slot-icon">🧤</div><div class="slot-name">手套</div></div>
+                                <div class="diablo-slot ring-right" data-slot="ring2"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+                                <div class="diablo-slot belt" data-slot="belt"><div class="slot-icon">⛓</div><div class="slot-name">腰带</div></div>
+                                <div class="diablo-slot boots" data-slot="boots"><div class="slot-icon">👢</div><div class="slot-name">靴子</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技能页 -->
+                <div class="tab-page" id="tab-skill">
+                    <div class="skill-module-container">
+                        <div class="skill-module-header">
+                            <h3>✦ 技能系统</h3>
+                            <p class="skill-module-desc">模块化设计，支持后续扩展技能树、技能书、天赋系统等</p>
+                        </div>
+                        <div class="skill-module-grid">
+                            <div class="skill-module-slot" data-skill-id="empty-1"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                            <div class="skill-module-slot" data-skill-id="empty-2"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                            <div class="skill-module-slot" data-skill-id="empty-3"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                            <div class="skill-module-slot" data-skill-id="empty-4"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                            <div class="skill-module-slot" data-skill-id="empty-5"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                            <div class="skill-module-slot" data-skill-id="empty-6"><div class="skill-slot-icon">+</div><div class="skill-slot-name">空技能槽</div></div>
+                        </div>
+                        <div class="skill-module-info">
+                            <h4>📋 预留接口</h4>
+                            <div class="module-interface-list">
+                                <div class="interface-item">🔌 SkillTreeModule - 技能树系统</div>
+                                <div class="interface-item">🔌 SkillBookModule - 技能书系统</div>
+                                <div class="interface-item">🔌 TalentModule - 天赋系统</div>
+                                <div class="interface-item">🔌 ComboModule - 连击系统</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 背包页 -->
+                <div class="tab-page" id="tab-inventory">
+                    <div class="diablo-inventory-layout">
+                        <div class="inventory-header">
+                            <h3>🎒 背包</h3>
+                            <span class="inventory-capacity" id="invCapacity">2/36</span>
+                        </div>
+                        <div class="inventory-grid" id="inventoryGrid">
+                            <div class="inv-cell" data-slot="0"></div>
+                            <div class="inv-cell" data-slot="1"></div>
+                            <div class="inv-cell" data-slot="2"></div>
+                            <div class="inv-cell" data-slot="3"></div>
+                            <div class="inv-cell" data-slot="4"></div>
+                            <div class="inv-cell" data-slot="5"></div>
+                            <div class="inv-cell" data-slot="6"></div>
+                            <div class="inv-cell" data-slot="7"></div>
+                            <div class="inv-cell" data-slot="8"></div>
+                            <div class="inv-cell" data-slot="9"></div>
+                            <div class="inv-cell" data-slot="10"></div>
+                            <div class="inv-cell" data-slot="11"></div>
+                            <div class="inv-cell" data-slot="12"></div>
+                            <div class="inv-cell" data-slot="13"></div>
+                            <div class="inv-cell" data-slot="14"></div>
+                            <div class="inv-cell" data-slot="15"></div>
+                            <div class="inv-cell" data-slot="16"></div>
+                            <div class="inv-cell" data-slot="17"></div>
+                            <div class="inv-cell" data-slot="18"></div>
+                            <div class="inv-cell" data-slot="19"></div>
+                            <div class="inv-cell" data-slot="20"></div>
+                            <div class="inv-cell" data-slot="21"></div>
+                            <div class="inv-cell" data-slot="22"></div>
+                            <div class="inv-cell" data-slot="23"></div>
+                            <div class="inv-cell" data-slot="24"></div>
+                            <div class="inv-cell" data-slot="25"></div>
+                            <div class="inv-cell" data-slot="26"></div>
+                            <div class="inv-cell" data-slot="27"></div>
+                            <div class="inv-cell" data-slot="28"></div>
+                            <div class="inv-cell" data-slot="29"></div>
+                            <div class="inv-cell" data-slot="30"></div>
+                            <div class="inv-cell" data-slot="31"></div>
+                            <div class="inv-cell" data-slot="32"></div>
+                            <div class="inv-cell" data-slot="33"></div>
+                            <div class="inv-cell" data-slot="34"></div>
+                            <div class="inv-cell" data-slot="35"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-bar" id="quickBar">
+            <div class="quick-slot-group" id="skillGroup"></div>
+            <div class="quick-slot-divider"></div>
+            <div class="quick-slot-group" id="itemGroup"></div>
+        </div>
+    </div>
+    <script>
+        const CONFIG = {
+            WORLD_WIDTH: 0, WORLD_HEIGHT: 0, VIEW_WIDTH: 0, VIEW_HEIGHT: 0,
+            PLAYER_SPEED: 3.5, PLAYER_SPRINT: 6, PLAYER_SIZE: 14, PLAYER_COLOR: '#7a9a6a',
+            STAMINA_MAX: 100, STAMINA_REGEN: 10,
+            STAMINA_MELEE_COST: 16.67, STAMINA_RANGED_COST: 12.5,
+            STAMINA_SPRINT_COST: 8, STAMINA_DODGE_COST: 25,
+            DODGE_SPEED: 12, DODGE_DURATION: 200, DODGE_COOLDOWN: 800,
+            CRIT_SHAKE_DURATION: 200, CRIT_FLASH_DURATION: 150,
+            CAMERA_SMOOTH: 0.12, GRID_SIZE: 60,
+            KEYS: { W: 'KeyW', A: 'KeyA', S: 'KeyS', D: 'KeyD', SHIFT: 'ShiftLeft', SPACE: 'Space', INVENTORY: 'KeyI', EQUIP: 'KeyC', SKILL: 'KeyK', MENU: 'Escape', SKILL_Q: 'KeyQ', SKILL_E: 'KeyE', SKILL_R: 'KeyR', SKILL_F: 'KeyF', ITEM_1: 'Digit1', ITEM_2: 'Digit2', ITEM_3: 'Digit3', ITEM_4: 'Digit4' }
+        };
+
+        class SlashEffect {
+            constructor(x, y, angle, range, arc) {
+                this.x = x; this.y = y; this.angle = angle; this.range = range; this.arc = arc;
+                this.life = 350; this.maxLife = 350; this.active = true;
+                this.startAngle = angle - arc / 2; this.endAngle = angle + arc / 2;
+                this.currentAngle = this.startAngle;
+                this.swingSpeed = arc / 6; // 更流畅的展开速度
+            }
+            update() {
+                this.life -= 12;
+                if (this.currentAngle < this.endAngle) {
+                    this.currentAngle += this.swingSpeed;
+                    if (this.currentAngle > this.endAngle) this.currentAngle = this.endAngle;
+                }
+                if (this.life <= 0) this.active = false;
+            }
+            render(ctx) {
+                const alpha = Math.min(1, this.life / 200);
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                ctx.save();
+                ctx.translate(screenPos.x, screenPos.y);
+
+                // 动态展开扇形
+                const currentSweep = this.currentAngle - this.startAngle;
+                if (currentSweep > 0) {
+                    // 径向渐变：中心不透明 → 边缘淡出
+                    const gradient = ctx.createRadialGradient(0, 0, this.range * 0.05, 0, 0, this.range);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.7})`);
+                    gradient.addColorStop(0.2, `rgba(230, 210, 180, ${alpha * 0.5})`);
+                    gradient.addColorStop(0.6, `rgba(212, 197, 169, ${alpha * 0.2})`);
+                    gradient.addColorStop(1, `rgba(212, 197, 169, 0)`);
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, this.range, this.startAngle, this.currentAngle);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 扇形边缘高光
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.range, this.startAngle, this.currentAngle);
+                    ctx.stroke();
+
+                    // 两侧边缘线
+                    ctx.strokeStyle = `rgba(230, 210, 180, ${alpha * 0.4})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(this.startAngle) * this.range, Math.sin(this.startAngle) * this.range);
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(this.currentAngle) * this.range, Math.sin(this.currentAngle) * this.range);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class ThrustEffect {
+            constructor(x, y, angle, range, width) {
+                this.x = x; this.y = y; this.angle = angle; this.range = range; this.width = width;
+                this.life = 350; this.maxLife = 350; this.active = true; this.progress = 0; this.speed = 0.08;
+            }
+            update() {
+                this.life -= 12;
+                this.progress += this.speed;
+                if (this.progress > 1) this.progress = 1;
+                if (this.life <= 0) this.active = false;
+            }
+            render(ctx) {
+                const alpha = Math.min(1, this.life / 200);
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                ctx.save();
+                ctx.translate(screenPos.x, screenPos.y);
+                ctx.rotate(this.angle);
+
+                const tip = this.range * this.progress;
+                const halfW = this.width * (0.5 + this.progress * 0.5) / 2;
+                if (tip > 0) {
+                    // 线性渐变：起点明亮 → 末端淡出
+                    const gradient = ctx.createLinearGradient(0, 0, tip, 0);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.7})`);
+                    gradient.addColorStop(0.3, `rgba(230, 210, 180, ${alpha * 0.5})`);
+                    gradient.addColorStop(0.7, `rgba(212, 197, 169, ${alpha * 0.2})`);
+                    gradient.addColorStop(1, `rgba(212, 197, 169, 0)`);
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -halfW);
+                    ctx.lineTo(tip, -halfW);
+                    ctx.lineTo(tip, halfW);
+                    ctx.lineTo(0, halfW);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 边缘高光
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -halfW); ctx.lineTo(tip, -halfW);
+                    ctx.lineTo(tip, halfW); ctx.lineTo(0, halfW); ctx.closePath();
+                    ctx.stroke();
+
+                    // 末端亮点
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(tip, 0, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        const MathUtils = {
+            distance(x1, y1, x2, y2) { return Math.sqrt((x2-x1)**2 + (y2-y1)**2); },
+            angleBetween(x1, y1, x2, y2) { return Math.atan2(y2-y1, x2-x1); },
+            pointInSector(px, py, cx, cy, angle, radius, arcAngle) {
+                const dist = this.distance(px, py, cx, cy);
+                if (dist > radius) return false;
+                const pointAngle = this.angleBetween(cx, cy, px, py);
+                let diff = Math.abs(pointAngle - angle);
+                if (diff > Math.PI) diff = 2 * Math.PI - diff;
+                return diff <= arcAngle / 2;
+            },
+            pointToLineDistance(px, py, x1, y1, x2, y2) {
+                const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
+                const dot = A * C + B * D, lenSq = C * C + D * D;
+                let param = -1;
+                if (lenSq !== 0) param = dot / lenSq;
+                let xx, yy;
+                if (param < 0) { xx = x1; yy = y1; }
+                else if (param > 1) { xx = x2; yy = y2; }
+                else { xx = x1 + param * C; yy = y1 + param * D; }
+                const dx = px - xx, dy = py - yy;
+                return Math.sqrt(dx * dx + dy * dy);
+            },
+            randomRange(min, max) { return min + Math.random() * (max - min); }
+        };
+
+        const UI_DATA_CONFIG = {
+            topBar: [
+                { id: 'uiName', label: '轮回者', getValue: (p) => p.data.name || '未命名' },
+                { id: 'uiLevel', label: '等级', getValue: (p) => p.data.level },
+                { id: 'uiClass', label: '职业', getValue: (p) => p.data.class },
+                { id: 'uiPos', label: '坐标', getValue: (p) => `${Math.round(p.x)}, ${Math.round(p.y)}` },
+                { id: 'uiKills', label: '击杀', getValue: (p) => p.data.kills }
+            ],
+            topStatus: [
+                { barId: 'topBarHp', valId: 'topValHp', label: 'HP', getValue: (d) => `${Math.ceil(d.hp)}/${d.maxHp}`, getPercent: (d) => (d.hp / d.maxHp * 100) + '%', color: 'hp' },
+                { barId: 'topBarMp', valId: 'topValMp', label: 'MP', getValue: (d) => `${Math.ceil(d.mp)}/${d.maxMp}`, getPercent: (d) => (d.mp / d.maxMp * 100) + '%', color: 'mp' }
+            ],
+            statusPage: {
+                bars: [
+                    { barId: 'barHp', valId: 'valHp', label: '生命值', type: 'hp', getValue: (d) => `${Math.ceil(d.hp)}/${d.maxHp}`, getPercent: (d) => (d.hp / d.maxHp * 100) + '%' },
+                    { barId: 'barMp', valId: 'valMp', label: '魔法值', type: 'mp', getValue: (d) => `${Math.ceil(d.mp)}/${d.maxMp}`, getPercent: (d) => (d.mp / d.maxMp * 100) + '%' },
+                    { barId: 'barStamina', valId: 'valStamina', label: '体力值', type: 'stamina', getValue: (d) => `${Math.ceil(d.stamina)}/${d.maxStamina}`, getPercent: (d) => (d.stamina / d.maxStamina * 100) + '%' },
+                    { barId: 'barExp', valId: 'valExp', label: '经验值', type: 'exp', getValue: (d) => Math.floor(d.exp / d.maxExp * 100) + '%', getPercent: (d) => (d.exp / d.maxExp * 100) + '%' }
+                ],
+                baseAttrs: [
+                    { id: 'attrStr', key: 'str', name: '力量' },
+                    { id: 'attrDex', key: 'dex', name: '敏捷' },
+                    { id: 'attrInt', key: 'int', name: '智力' },
+                    { id: 'attrCon', key: 'con', name: '体质' },
+                    { id: 'attrWis', key: 'wis', name: '精神' },
+                    { id: 'attrLuck', key: 'luck', name: '幸运' }
+                ],
+                combatAttrs: [
+                    { id: 'combatAtk', key: 'atk', name: '物理攻击' },
+                    { id: 'combatDef', key: 'def', name: '物理防御' },
+                    { id: 'combatMatk', key: 'matk', name: '魔法攻击' },
+                    { id: 'combatMdef', key: 'mdef', name: '魔法防御' },
+                    { id: 'combatHit', key: 'hit', name: '命中率', suffix: '%' },
+                    { id: 'combatDodge', key: 'dodge', name: '闪避率', suffix: '%' },
+                    { id: 'combatCrit', key: 'crit', name: '暴击率', suffix: '%' },
+                    { id: 'combatAspd', key: 'aspd', name: '攻击速度', fixed: 1 },
+                    { id: 'combatSpd', key: 'speed', name: '移动速度', suffix: '', fixed: 1 }
+                ],
+                loopInfo: [
+                    { id: 'infoLoop', key: 'loopCount', name: '轮回次数' },
+                    { id: 'infoDays', key: 'surviveDays', name: '存活天数' },
+                    { id: 'infoKills', key: 'kills', name: '击杀数' },
+                    { id: 'infoQuests', key: 'quests', name: '完成任务' },
+                    { id: 'infoGene', key: 'geneLock', name: '基因锁' },
+                    { id: 'infoRank', key: 'rank', name: '主神评价' }
+                ]
+            }
+        };
+
+        const QUICK_BAR_CONFIG = [
+            { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
+            { id: 'slotSkillE', type: 'skill', key: 'E', keyCode: 'KeyE', label: 'E', icon: '?', placeholder: '技能占位' },
+            { id: 'slotSkillR', type: 'skill', key: 'R', keyCode: 'KeyR', label: 'R', icon: '?', placeholder: '技能占位' },
+            { id: 'slotItem1', type: 'item', key: '1', keyCode: 'Digit1', label: '1', icon: '?', placeholder: '道具占位' },
+            { id: 'slotItem2', type: 'item', key: '2', keyCode: 'Digit2', label: '2', icon: '?', placeholder: '道具占位' },
+            { id: 'slotItem3', type: 'item', key: '3', keyCode: 'Digit3', label: '3', icon: '?', placeholder: '道具占位' },
+            { id: 'slotItem4', type: 'item', key: '4', keyCode: 'Digit4', label: '4', icon: '?', placeholder: '道具占位' }
+        ];
+
+        const MapGenerator = {
+            generateTerrainTexture(width, height) {
+                const canvas = document.createElement('canvas');
+                canvas.width = width; canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#3d4a35'; ctx.fillRect(0, 0, width, height);
+                for (let i = 0; i < 8000; i++) {
+                    const x = Math.random() * width, y = Math.random() * height, size = Math.random() * 3 + 1, alpha = Math.random() * 0.15 + 0.05;
+                    ctx.fillStyle = Math.random() > 0.5 ? `rgba(90, 110, 70, ${alpha})` : `rgba(60, 80, 50, ${alpha})`;
+                    ctx.fillRect(x, y, size, size);
+                }
+                this.generatePaths(ctx, width, height);
+                this.generateWater(ctx, width, height);
+                this.generateTrees(ctx, width, height);
+                this.generateRocks(ctx, width, height);
+                return canvas;
+            },
+            generatePaths(ctx, w, h) {
+                ctx.strokeStyle = '#6b5d4f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(w * 0.5, 0); ctx.lineTo(w * 0.5, h); ctx.stroke();
+                ctx.strokeStyle = '#5a4d4f'; ctx.lineWidth = 6;
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath(); const startX = Math.random() * w, startY = Math.random() * h;
+                    ctx.moveTo(startX, startY); ctx.lineTo(startX + (Math.random() - 0.5) * 400, startY + (Math.random() - 0.5) * 400); ctx.stroke();
+                }
+            },
+            generateWater(ctx, w, h) {
+                for (let i = 0; i < 3; i++) {
+                    const cx = Math.random() * w, cy = Math.random() * h, rx = 30 + Math.random() * 50, ry = 20 + Math.random() * 40;
+                    ctx.fillStyle = 'rgba(80, 100, 120, 0.6)'; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = 'rgba(100, 120, 140, 0.3)'; ctx.lineWidth = 1;
+                    for (let r = 5; r < Math.max(rx, ry); r += 8) { ctx.beginPath(); ctx.ellipse(cx, cy, rx * (r/Math.max(rx,ry)), ry * (r/Math.max(rx,ry)), 0, 0, Math.PI*2); ctx.stroke(); }
+                }
+            },
+            generateTrees(ctx, w, h) {
+                for (let i = 0; i < 150; i++) {
+                    const x = Math.random() * w, y = Math.random() * h;
+                    ctx.fillStyle = '#4a3f35'; ctx.fillRect(x - 2, y, 4, 8);
+                    ctx.fillStyle = Math.random() > 0.5 ? '#2d4a25' : '#3d5a35'; ctx.beginPath(); ctx.arc(x, y - 4, 6 + Math.random() * 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(90, 120, 70, 0.2)'; ctx.beginPath(); ctx.arc(x - 2, y - 6, 3, 0, Math.PI * 2); ctx.fill();
+                }
+            },
+            generateRocks(ctx, w, h) {
+                for (let i = 0; i < 40; i++) {
+                    const x = Math.random() * w, y = Math.random() * h, size = 3 + Math.random() * 8;
+                    ctx.fillStyle = '#6a6a6a'; ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#8a8a8a'; ctx.beginPath(); ctx.arc(x - 1, y - 1, size * 0.6, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+        };
+
+        const Input = {
+            keys: new Set(),
+            mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
+            init() {
+                window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code); });
+                window.addEventListener('keyup', e => this.keys.delete(e.code));
+                window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
+                window.addEventListener('mousedown', e => {
+                    const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn');
+                    if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
+                    if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
+                });
+                window.addEventListener('mouseup', e => { if (e.button === 0) this.mouse.leftDown = false; if (e.button === 2) this.mouse.rightDown = false; });
+                window.addEventListener('contextmenu', e => e.preventDefault());
+            },
+            handleKey(code) {
+                if (code === CONFIG.KEYS.MENU) { if (SystemUI.isOpen) SystemUI.close(); else Game.toMenu(); return; }
+                if (SystemUI.isOpen) return;
+                if (code === CONFIG.KEYS.INVENTORY) SystemUI.toggle('status');
+                if (code === CONFIG.KEYS.EQUIP) SystemUI.toggle('equip');
+                if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
+                if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R) QuickBar.useSlot(code);
+                if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);
+                if (code === 'KeyF' && Game.player) {
+                    Game.player.weaponMode = Game.player.weaponMode === 'melee' ? 'ranged' : 'melee';
+                    console.log(`[Weapon] Switched to ${Game.player.weaponMode}`);
+                }
+            },
+            update() { this.mouse.leftPressed = false; this.mouse.rightPressed = false; },
+            isPressed(key) { return this.keys.has(key); },
+            getMovement() {
+                let dx = 0, dy = 0;
+                if (this.isPressed(CONFIG.KEYS.W)) dy -= 1;
+                if (this.isPressed(CONFIG.KEYS.S)) dy += 1;
+                if (this.isPressed(CONFIG.KEYS.A)) dx -= 1;
+                if (this.isPressed(CONFIG.KEYS.D)) dx += 1;
+                if (dx !== 0 && dy !== 0) { const len = Math.sqrt(dx*dx + dy*dy); dx /= len; dy /= len; }
+                return { x: dx, y: dy };
+            },
+            isSprint() { return this.isPressed(CONFIG.KEYS.SHIFT); }
+        };
+
+        const Renderer = {
+            canvas: document.getElementById('gameCanvas'), ctx: null, terrainTexture: null,
+            init() { this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
+            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; CONFIG.VIEW_WIDTH = this.canvas.width; CONFIG.VIEW_HEIGHT = this.canvas.height; },
+            generateWorld() { CONFIG.WORLD_WIDTH = this.canvas.width * 10; CONFIG.WORLD_HEIGHT = this.canvas.height * 10; this.terrainTexture = MapGenerator.generateTerrainTexture(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); },
+            worldToScreen(wx, wy) { return { x: wx - Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, y: wy - Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY }; },
+            screenToWorld(sx, sy) { return { x: sx + Camera.x - CONFIG.VIEW_WIDTH / 2, y: sy + Camera.y - CONFIG.VIEW_HEIGHT / 2 }; },
+            clear() { this.ctx.fillStyle = '#2a3520'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
+            renderTerrain() {
+                if (!this.terrainTexture) return;
+                const ctx = this.ctx, offsetX = -Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, offsetY = -Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY;
+                ctx.drawImage(this.terrainTexture, offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
+                ctx.strokeStyle = '#8a4a4a'; ctx.lineWidth = 4; ctx.strokeRect(offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
+            },
+            renderGrid() {
+                const ctx = this.ctx, offsetX = (-Camera.x + CONFIG.VIEW_WIDTH/2 + Camera.shakeX) % CONFIG.GRID_SIZE, offsetY = (-Camera.y + CONFIG.VIEW_HEIGHT/2 + Camera.shakeY) % CONFIG.GRID_SIZE;
+                ctx.strokeStyle = 'rgba(90, 77, 63, 0.15)'; ctx.lineWidth = 1; ctx.beginPath();
+                for (let x = offsetX; x < CONFIG.VIEW_WIDTH; x += CONFIG.GRID_SIZE) { ctx.moveTo(x, 0); ctx.lineTo(x, CONFIG.VIEW_HEIGHT); }
+                for (let y = offsetY; y < CONFIG.VIEW_HEIGHT; y += CONFIG.GRID_SIZE) { ctx.moveTo(0, y); ctx.lineTo(CONFIG.VIEW_WIDTH, y); }
+                ctx.stroke();
+            }
+        };
+
+        const Camera = {
+            x: 0, y: 0, shakeX: 0, shakeY: 0, shakeIntensity: 0, shakeDecay: 0.85,
+            follow(target) { this.x = target.x; this.y = target.y; },
+            update(target) {
+                this.x = target.x; this.y = target.y;
+                if (this.shakeIntensity > 0.5) { this.shakeX = (Math.random() - 0.5) * this.shakeIntensity; this.shakeY = (Math.random() - 0.5) * this.shakeIntensity; this.shakeIntensity *= this.shakeDecay; }
+                else { this.shakeX = 0; this.shakeY = 0; this.shakeIntensity = 0; }
+                const halfW = CONFIG.VIEW_WIDTH / 2, halfH = CONFIG.VIEW_HEIGHT / 2;
+                this.x = Math.max(halfW, Math.min(CONFIG.WORLD_WIDTH - halfW, this.x));
+                this.y = Math.max(halfH, Math.min(CONFIG.WORLD_HEIGHT - halfH, this.y));
+            },
+            triggerShake(intensity) { this.shakeIntensity = intensity; }
+        };
+
+        const EffectManager = {
+            effects: [], critFlash: 0,
+            add(effect) { this.effects.push(effect); },
+            update() {
+                this.effects = this.effects.filter(e => { e.update(); return e.active; });
+                if (this.critFlash > 0) { this.critFlash -= 0.08; if (this.critFlash < 0) this.critFlash = 0; }
+            },
+            render(ctx) {
+                this.effects.forEach(e => e.render(ctx));
+                if (this.critFlash > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${this.critFlash * 0.4})`; ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT); }
+            },
+            createDamageText(x, y, damage, isCrit) {
+                const el = document.createElement('div'); el.className = 'combat-text'; el.textContent = isCrit ? `暴击! ${damage}` : `${damage}`;
+                el.style.color = isCrit ? '#ffaa44' : '#ff6666'; el.style.fontSize = isCrit ? '22px' : '18px';
+                const screenPos = Renderer.worldToScreen(x, y); el.style.left = screenPos.x + 'px'; el.style.top = screenPos.y + 'px';
+                document.getElementById('uiLayer').appendChild(el); setTimeout(() => el.remove(), 1000);
+            },
+            triggerCritEffects() { this.critFlash = 1.0; Camera.triggerShake(12); }
+        };
+
+        class Attack {
+            constructor(config) { this.config = config; this.cooldown = 0; this.maxCooldown = config.cooldown || 1000; this.active = true; }
+            canUse() { return this.cooldown <= 0; }
+            use(source, targetX, targetY, entities) { if (!this.canUse()) return false; this.cooldown = this.maxCooldown; this.execute(source, targetX, targetY, entities); return true; }
+            execute(source, targetX, targetY, entities) {}
+            update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
+            getCooldownPercent() { return Math.max(0, this.cooldown / this.maxCooldown); }
+        }
+
+        class SlashAttack extends Attack {
+            constructor(config = {}) {
+                super({ cooldown: config.cooldown || 500, range: config.range || 80, arc: config.arc || Math.PI / 2.5, damage: config.damage || { min: 10, max: 18 }, knockback: config.knockback || 25, ...config });
+            }
+            execute(source, targetX, targetY, entities) {
+                if (source.data.stamina < CONFIG.STAMINA_MELEE_COST) return false;
+                source.data.stamina -= CONFIG.STAMINA_MELEE_COST;
+                const range = this.config.range, arc = this.config.arc;
+                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
+                EffectManager.add(new SlashEffect(source.x, source.y, attackAngle, range, arc));
+                // 同步攻击判定：确保扇形末端也能命中
+                entities.forEach(entity => {
+                    if (entity === source || !entity.active || !entity.hittable) return;
+                    if (MathUtils.pointInSector(entity.x, entity.y, source.x, source.y, attackAngle, range, arc)) {
+                        const damage = Math.floor(MathUtils.randomRange(this.config.damage.min, this.config.damage.max));
+                        entity.takeDamage(damage, source);
+                        entity.applyKnockback(attackAngle, this.config.knockback);
+                    }
+                });
+                return true;
+            }
+        }
+
+        class ThrustAttack extends Attack {
+            constructor(config = {}) {
+                super({ cooldown: config.cooldown || 600, range: config.range || 150, width: config.width || 30, damage: config.damage || { min: 12, max: 20 }, knockback: config.knockback || 15, ...config });
+            }
+            execute(source, targetX, targetY, entities) {
+                if (source.data.stamina < CONFIG.STAMINA_MELEE_COST) return false;
+                source.data.stamina -= CONFIG.STAMINA_MELEE_COST;
+                const range = this.config.range, width = this.config.width;
+                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
+                EffectManager.add(new ThrustEffect(source.x, source.y, attackAngle, range, width));
+                const endX = source.x + Math.cos(attackAngle) * range;
+                const endY = source.y + Math.sin(attackAngle) * range;
+                // 同步攻击判定
+                entities.forEach(entity => {
+                    if (entity === source || !entity.active || !entity.hittable) return;
+                    const dist = MathUtils.pointToLineDistance(entity.x, entity.y, source.x, source.y, endX, endY);
+                    if (dist <= width / 2 + entity.size) {
+                        const damage = Math.floor(MathUtils.randomRange(this.config.damage.min, this.config.damage.max));
+                        entity.takeDamage(damage, source);
+                        entity.applyKnockback(attackAngle, this.config.knockback);
+                    }
+                });
+                return true;
+            }
+        }
+
+        class RangedAttack extends Attack {
+            constructor(config = {}) {
+                super({ cooldown: config.cooldown || 800, projectileSpeed: config.projectileSpeed || 10, projectileRange: config.projectileRange || 500, projectileSize: config.projectileSize || 5, damage: config.damage || { min: 6, max: 14 }, piercing: config.piercing || false, ...config });
+            }
+            execute(source, targetX, targetY, entities) {
+                if (source.data.stamina < CONFIG.STAMINA_RANGED_COST) return false;
+                source.data.stamina -= CONFIG.STAMINA_RANGED_COST;
+                const angle = Math.atan2(targetY - source.y, targetX - source.x);
+                EffectManager.add(new Projectile(source.x, source.y, angle, this.config.projectileSpeed, this.config.projectileRange, this.config.projectileSize, this.config.damage, this.config.piercing, source, entities));
+                return true;
+            }
+        }
+        class Projectile {
+            constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities) {
+                this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
+                this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
+                this.traveled = 0; this.active = true; this.hitTargets = new Set();
+            }
+            update() {
+                const dx = Math.cos(this.angle) * this.speed, dy = Math.sin(this.angle) * this.speed;
+                this.x += dx; this.y += dy; this.traveled += this.speed;
+                if (this.traveled >= this.maxRange) { this.active = false; return; }
+                if (this.x < 0 || this.x > CONFIG.WORLD_WIDTH || this.y < 0 || this.y > CONFIG.WORLD_HEIGHT) { this.active = false; return; }
+                this.entities.forEach(entity => {
+                    if (entity === this.source || !entity.active || !entity.hittable) return;
+                    if (this.hitTargets.has(entity.id)) return;
+                    const dist = MathUtils.distance(this.x, this.y, entity.x, entity.y);
+                    if (dist < entity.size + this.size) {
+                        const damage = Math.floor(MathUtils.randomRange(this.damage.min, this.damage.max));
+                        entity.takeDamage(damage, this.source);
+                        entity.applyKnockback(this.angle, 8); // 远程击退力度较小
+                        if (!this.piercing) this.active = false; else this.hitTargets.add(entity.id);
+                    }
+                });
+            }
+            render(ctx) {
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                ctx.save(); ctx.translate(screenPos.x, screenPos.y); ctx.rotate(this.angle);
+                ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.ellipse(0, 0, this.size * 2, this.size, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(212, 197, 169, 0.3)'; ctx.beginPath(); ctx.ellipse(-this.size * 3, 0, this.size * 3, this.size * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Entity {
+            constructor(x, y) { this.id = Math.random().toString(36).substr(2, 9); this.x = x; this.y = y; this.vx = 0; this.vy = 0; this.rotation = 0; this.active = true; this.hittable = false; this.components = new Map(); }
+            addComponent(name, comp) { this.components.set(name, comp); comp.entity = this; }
+            update() {} render(ctx) {} takeDamage(damage, source) {}
+        }
+
+        class DamageableEntity extends Entity {
+            constructor(x, y, config = {}) {
+                super(x, y); this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
+                this.size = config.size || 20; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 200;
+                this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.88;
+            }
+            takeDamage(damage, source) {
+                const isCrit = damage >= 15; this.hp -= damage; this.hitFlash = this.hitFlashDuration;
+                EffectManager.createDamageText(this.x, this.y - this.size, damage, isCrit);
+                if (isCrit) EffectManager.triggerCritEffects();
+                if (this.hp <= 0) { this.hp = 0; this.onDeath(source); }
+            }
+            onDeath(source) { this.active = false; if (source && source.data) source.data.kills++; EffectManager.add(new DeathEffect(this.x, this.y, this.size)); }
+            applyKnockback(angle, force) {
+                this.knockbackX += Math.cos(angle) * force;
+                this.knockbackY += Math.sin(angle) * force;
+            }
+            update() {
+                if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
+                    this.x += this.knockbackX;
+                    this.y += this.knockbackY;
+                    this.knockbackX *= this.knockbackFriction;
+                    this.knockbackY *= this.knockbackFriction;
+                    if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
+                    if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
+                }
+                if (this.hitFlash > 0) this.hitFlash -= 16;
+            }
+            renderHealthBar(ctx) {
+                if (this.hp >= this.maxHp) return;
+                const screenPos = Renderer.worldToScreen(this.x, this.y), barWidth = 40, barHeight = 4, hpPercent = this.hp / this.maxHp;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(screenPos.x - barWidth/2, screenPos.y - this.size - 12, barWidth, barHeight);
+                ctx.fillStyle = hpPercent > 0.5 ? '#7a9a6a' : hpPercent > 0.25 ? '#a09060' : '#8a4a4a';
+                ctx.fillRect(screenPos.x - barWidth/2, screenPos.y - this.size - 12, barWidth * hpPercent, barHeight);
+            }
+        }
+
+        class TargetDummy extends DamageableEntity {
+            constructor(x, y, config = {}) { super(x, y, { hp: config.hp || 200, maxHp: config.maxHp || 200, size: config.size || 24, name: config.name || '训练靶', ...config }); this.wobble = 0; this.baseY = y; }
+            update() {
+                if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
+                    this.x += this.knockbackX;
+                    this.baseY += this.knockbackY;
+                    this.knockbackX *= this.knockbackFriction;
+                    this.knockbackY *= this.knockbackFriction;
+                    if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
+                    if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
+                }
+                if (this.hitFlash > 0) this.hitFlash -= 16;
+                this.wobble += 0.05;
+                this.y = this.baseY + Math.sin(this.wobble) * 3;
+            }
+            render(ctx) {
+                const screenPos = Renderer.worldToScreen(this.x, this.y), x = screenPos.x, y = screenPos.y;
+                ctx.save(); ctx.translate(x, y);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(0, this.size + 4, this.size * 0.8, 6, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = this.hitFlash > 0 ? '#ffaaaa' : '#8a7d6b'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#5a4d3f'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.25, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#5a4d3f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.stroke();
+                ctx.restore();
+                this.renderHealthBar(ctx);
+                ctx.fillStyle = '#d4c5a9'; ctx.font = '11px "Noto Serif SC"'; ctx.textAlign = 'center'; ctx.fillText(`${this.name} ${this.hp}/${this.maxHp}`, x, y - this.size - 18);
+            }
+        }
+
+        class DodgeEffect {
+            constructor(x, y, dirX, dirY) {
+                this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY; this.life = 300; this.maxLife = 300; this.active = true; this.trails = [];
+                for (let i = 0; i < 5; i++) this.trails.push({ x: x - dirX * i * 8, y: y - dirY * i * 8, alpha: 1 - i * 0.15, size: 14 - i * 1.5 });
+            }
+            update() { this.life -= 16; if (this.life <= 0) this.active = false; this.trails.forEach(t => t.alpha -= 0.03); }
+            render(ctx) {
+                const alpha = this.life / this.maxLife;
+                this.trails.forEach(t => { if (t.alpha <= 0) return; const screenPos = Renderer.worldToScreen(t.x, t.y); ctx.fillStyle = `rgba(160, 200, 160, ${t.alpha * alpha * 0.4})`; ctx.beginPath(); ctx.arc(screenPos.x, screenPos.y, t.size, 0, Math.PI*2); ctx.fill(); });
+            }
+        }
+
+        class DeathEffect {
+            constructor(x, y, size) {
+                this.x = x; this.y = y; this.size = size; this.life = 500; this.maxLife = 500; this.active = true; this.particles = [];
+                for (let i = 0; i < 8; i++) { const angle = (Math.PI * 2 / 8) * i; this.particles.push({ x: 0, y: 0, vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3, size: 3 + Math.random() * 4 }); }
+            }
+            update() {
+                this.life -= 16; if (this.life <= 0) this.active = false;
+                this.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vx *= 0.95; p.vy *= 0.95; });
+            }
+            render(ctx) {
+                const alpha = this.life / this.maxLife, screenPos = Renderer.worldToScreen(this.x, this.y);
+                ctx.save(); ctx.translate(screenPos.x, screenPos.y);
+                this.particles.forEach(p => { ctx.fillStyle = `rgba(138, 125, 107, ${alpha})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI*2); ctx.fill(); });
+                ctx.restore();
+            }
+        }
+
+        const WEAPON_ANIM = {
+            size: 84, holdX: -20, holdY: 11,
+            idleAngle: 0, windupAngle: Math.PI / 5, swingAngle: -Math.PI / 3,
+            windupMs: 140, swingMs: 300, recoverMs: 450,
+        };
+        function easeInQuad(t) { return t * t; }
+        function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
+        function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+        class Player extends Entity {
+            constructor(x, y) {
+                super(x, y); this.size = CONFIG.PLAYER_SIZE; this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true;
+                this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
+                this.attacks = {
+                    melee: new SlashAttack({ cooldown: 500, range: 80, arc: Math.PI / 2.5, damage: { min: 10, max: 18 }, knockback: 25 }),
+                    ranged: new ThrustAttack({ cooldown: 600, range: 150, width: 30, damage: { min: 12, max: 20 }, knockback: 15 })
+                };
+                this.weaponMode = 'melee'; // 'melee' or 'ranged'
+                this.data = {
+                    name: '轮回者', level: 1, class: '初心者', hp: 100, maxHp: 100, mp: 100, maxMp: 100,
+                    stamina: CONFIG.STAMINA_MAX, maxStamina: CONFIG.STAMINA_MAX, exp: 0, maxExp: 100,
+                    str: 10, dex: 10, int: 10, con: 10, wis: 10, luck: 10,
+                    atk: 0, def: 0, matk: 0, mdef: 0, hit: 0, dodge: 0, crit: 0, aspd: 0, speed: 0,
+                    loopCount: 0, surviveDays: 1, kills: 0, quests: 0, geneLock: '未开启', rank: 'F'
+                };
+                this.equipments = {};
+                this.weaponImage = new Image(); this.weaponImage.src = 'sword.png';
+                this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle, nextSpin: 0 };
+                this.calculateCombatStats();
+            }
+            calculateCombatStats() {
+                const d = this.data;
+                d.atk = Math.floor(d.str * 1.5 + d.dex * 0.5); d.def = Math.floor(d.con * 1.2 + d.str * 0.3);
+                d.matk = Math.floor(d.int * 1.5 + d.wis * 0.5); d.mdef = Math.floor(d.wis * 1.2 + d.int * 0.3);
+                d.hit = 80 + Math.floor(d.dex * 0.5); d.dodge = 5 + Math.floor(d.dex * 0.3);
+                d.crit = 2 + Math.floor(d.luck * 0.2); d.aspd = 1.0 + d.dex * 0.02;
+                d.speed = CONFIG.PLAYER_SPEED + d.dex * 0.05;
+            }
+            update(dt, entities) {
+                const move = Input.getMovement();
+                if (this.dodgeCooldown > 0) this.dodgeCooldown -= dt;
+                if (this.isDodging) {
+                    this.dodgeTimer -= dt;
+                    if (this.dodgeTimer <= 0) { this.isDodging = false; this.dodgeInvincible = false; }
+                    else {
+                        this.x += this.dodgeDirection.x * CONFIG.DODGE_SPEED; this.y += this.dodgeDirection.y * CONFIG.DODGE_SPEED;
+                        this.x = Math.max(10, Math.min(CONFIG.WORLD_WIDTH - 10, this.x)); this.y = Math.max(10, Math.min(CONFIG.WORLD_HEIGHT - 10, this.y));
+                        this.animTime += 0.4;
+                    }
+                } else {
+                    const sprint = Input.isSprint() && this.data.stamina > 0, targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
+                    this.vx += (move.x * targetSpeed - this.vx) * this.accel; this.vy += (move.y * targetSpeed - this.vy) * this.accel;
+                    if (move.x === 0) this.vx *= this.friction; if (move.y === 0) this.vy *= this.friction;
+                    this.x += this.vx; this.y += this.vy;
+                    this.x = Math.max(20, Math.min(CONFIG.WORLD_WIDTH - 20, this.x)); this.y = Math.max(20, Math.min(CONFIG.WORLD_HEIGHT - 20, this.y));
+                    if (sprint && this.isMoving) { this.data.stamina -= CONFIG.STAMINA_SPRINT_COST * (dt / 1000); if (this.data.stamina < 0) this.data.stamina = 0; }
+                    if (Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) this.triggerDodge(move);
+                }
+                const screenPos = Renderer.worldToScreen(this.x, this.y), dx = Input.mouse.x - screenPos.x, dy = Input.mouse.y - screenPos.y;
+                this.rotation = Math.atan2(dy, dx);
+                this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
+                if (this.isMoving && !this.isDodging) this.animTime += 0.15;
+                if (!this.isDodging && this.data.stamina < this.data.maxStamina) {
+                    this.data.stamina += CONFIG.STAMINA_REGEN * (dt / 1000);
+                    if (this.data.stamina > this.data.maxStamina) this.data.stamina = this.data.maxStamina;
+                }
+                Object.values(this.attacks).forEach(a => a.update(dt));
+                this.updateWeaponAnim(dt);
+                const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                if (!this.isDodging) {
+                    if (Input.mouse.leftPressed && this.attacks[this.weaponMode].canUse()) {
+                        if (this.attacks[this.weaponMode].use(this, mouseWorld.x, mouseWorld.y, entities)) {
+                            this.triggerWeaponAnim();
+                        }
+                    }
+                }
+            }
+            triggerDodge(moveInput) {
+                let dirX = moveInput.x, dirY = moveInput.y;
+                if (dirX === 0 && dirY === 0) { dirX = Math.cos(this.rotation); dirY = Math.sin(this.rotation); }
+                const len = Math.sqrt(dirX*dirX + dirY*dirY); if (len > 0) { dirX /= len; dirY /= len; }
+                this.dodgeDirection = { x: dirX, y: dirY }; this.isDodging = true; this.dodgeTimer = CONFIG.DODGE_DURATION;
+                this.dodgeCooldown = CONFIG.DODGE_COOLDOWN; this.dodgeInvincible = true; this.data.stamina -= CONFIG.STAMINA_DODGE_COST;
+                this.vx = 0; this.vy = 0; EffectManager.add(new DodgeEffect(this.x, this.y, dirX, dirY));
+            }
+            triggerWeaponAnim() {
+                if (this.weaponAnim.state !== 'idle') return;
+                this.weaponAnim.state = 'windup'; this.weaponAnim.timer = 0;
+            }
+            updateWeaponAnim(dt) {
+                const wa = WEAPON_ANIM, anim = this.weaponAnim;
+                switch (anim.state) {
+                    case 'idle':
+                        if (anim.spinEnd && Date.now() < anim.spinEnd) {
+                            const t = 1 - (anim.spinEnd - Date.now()) / anim.spinDuration;
+                            anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06 + t * Math.PI * 8;
+                            break;
+                        }
+                        anim.spinEnd = 0;
+                        anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;
+                        if (!anim.nextSpin) anim.nextSpin = Date.now() + 3000 + Math.random() * 3000;
+                        if (Date.now() >= anim.nextSpin) {
+                            anim.spinDuration = 600;
+                            anim.spinEnd = Date.now() + anim.spinDuration;
+                            anim.nextSpin = Date.now() + anim.spinDuration + 3000 + Math.random() * 3000;
+                        }
+                        break;
+                    case 'windup':
+                        anim.timer += dt;
+                        if (anim.timer >= wa.windupMs) { anim.state = 'swing'; anim.timer = 0; }
+                        else anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / wa.windupMs);
+                        break;
+                    case 'swing':
+                        anim.timer += dt;
+                        if (anim.timer >= wa.swingMs) { anim.state = 'recover'; anim.timer = 0; }
+                        else anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / wa.swingMs);
+                        break;
+                    case 'recover':
+                        anim.timer += dt;
+                        if (anim.timer >= wa.recoverMs) { anim.state = 'idle'; anim.timer = 0; anim.angle = wa.idleAngle; }
+                        else anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / wa.recoverMs);
+                        break;
+                }
+            }
+            renderStaminaBar(ctx, x, y) {
+                const barWidth = 36, barHeight = 5, staminaPercent = this.data.stamina / this.data.maxStamina;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(x - barWidth/2, y + this.size + 6, barWidth, barHeight);
+                const staminaColor = staminaPercent > 0.5 ? '#a09060' : staminaPercent > 0.25 ? '#a08040' : '#8a4a4a';
+                ctx.fillStyle = staminaColor; ctx.fillRect(x - barWidth/2, y + this.size + 6, barWidth * staminaPercent, barHeight);
+                ctx.strokeStyle = 'rgba(90, 77, 63, 0.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - barWidth/2, y + this.size + 6, barWidth, barHeight);
+            }
+            renderWeapon(ctx) {
+                if (!this.weaponImage || !this.weaponImage.complete) return;
+                const wa = WEAPON_ANIM;
+                const s = wa.size, w = s * 0.28;
+                ctx.save();
+                ctx.translate(wa.holdX, wa.holdY);
+                ctx.rotate(Math.PI / 2);
+                ctx.translate(0, -s / 2);
+                ctx.rotate(this.weaponAnim.angle);
+                ctx.drawImage(this.weaponImage, -w / 2, -s / 2, w, s);
+                ctx.restore();
+            }
+            render(ctx) {
+                const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + (this.isDodging ? 0 : Math.sin(this.animTime) * 2);
+                this.renderStaminaBar(ctx, x, y); ctx.save(); ctx.translate(x, y);
+                if (this.isDodging) { const tilt = Math.atan2(this.dodgeDirection.y, this.dodgeDirection.x); ctx.rotate(tilt + Math.PI/2); }
+                else ctx.rotate(this.rotation);
+                const attack = this.attacks[this.weaponMode];
+                if (!this.isDodging && attack.cooldown > 0 && attack.cooldown > attack.maxCooldown - 200) {
+                    if (this.weaponMode === 'melee') {
+                        ctx.fillStyle = 'rgba(212, 197, 169, 0.1)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, attack.config.range, -attack.config.arc/2, attack.config.arc/2); ctx.closePath(); ctx.fill();
+                    } else {
+                        ctx.fillStyle = 'rgba(212, 197, 169, 0.1)'; ctx.beginPath(); ctx.moveTo(0, -attack.config.width/2); ctx.lineTo(attack.config.range, -attack.config.width/2); ctx.lineTo(attack.config.range, attack.config.width/2); ctx.lineTo(0, attack.config.width/2); ctx.closePath(); ctx.fill();
+                    }
+                }
+                if (this.isDodging) ctx.globalAlpha = 0.7;
+                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0, 10, 8, 4, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = this.isDodging ? '#a0c0a0' : CONFIG.PLAYER_COLOR; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'rgba(154, 186, 138, 0.3)'; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
+                this.renderWeapon(ctx);
+                ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
+                ctx.restore();
+                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px "Noto Serif SC"'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 32);
+            }
+        }
+
+        const QuickBar = {
+            slots: [],
+            init() {
+                const skillGroup = document.getElementById('skillGroup');
+                const itemGroup = document.getElementById('itemGroup');
+                QUICK_BAR_CONFIG.forEach(config => {
+                    const slot = document.createElement('div');
+                    slot.id = config.id;
+                    slot.className = `quick-slot ${config.type} empty`;
+                    slot.innerHTML = `<span style="font-size:20px">${config.icon}</span><span class="key-hint">${config.key}</span>`;
+                    slot.title = `${config.placeholder} (${config.key})`;
+                    slot.dataset.type = config.type;
+                    slot.dataset.key = config.key;
+                    if (config.type === 'skill') skillGroup.appendChild(slot);
+                    else itemGroup.appendChild(slot);
+                    this.slots.push({ config, element: slot });
+                });
+            },
+            useSlot(keyCode) {
+                const slot = this.slots.find(s => s.config.keyCode === keyCode);
+                if (!slot) return;
+                console.log(`[QuickBar] ${slot.config.type.toUpperCase()} slot ${slot.config.label} triggered (placeholder)`);
+                slot.element.style.transform = 'scale(0.95)';
+                setTimeout(() => slot.element.style.transform = '', 100);
+            }
+        };
+
+        const EquipManager = {
+            TEST_EQUIPMENTS: {
+                helmet: { name: '新手布帽', type: '头盔', icon: '⛑', stats: [{ name: '物理防御', value: '+2', pos: true }], desc: '一件破旧的头巾' },
+                necklace: { name: '粗制项链', type: '项链', icon: '📿', stats: [{ name: '最大生命值', value: '+10', pos: true }], desc: '用绳子串起来的小石头' },
+                weapon: { name: '生锈的长剑', type: '单手剑', icon: '⚔', stats: [{ name: '物理攻击', value: '12-18' }, { name: '攻速', value: '1.2' }], desc: '一把锈迹斑斑的旧剑' },
+                armor: { name: '旧皮甲', type: '盔甲', icon: '🛡', stats: [{ name: '物理防御', value: '+5', pos: true }], desc: '不知道传了多少手的皮甲' },
+                offhand: { name: '旧木盾', type: '副手', icon: '🛡', stats: [{ name: '物理防御', value: '+3', pos: true }], desc: '用木板拼成的盾牌' },
+                ring1: { name: '铜戒指', type: '戒指', icon: '💍', stats: [{ name: '幸运', value: '+1', pos: true }], desc: '一枚生锈的铜戒指' },
+                gloves: { name: '皮手套', type: '手套', icon: '🧤', stats: [{ name: '物理攻击', value: '+2', pos: true }], desc: '保护双手的皮手套' },
+                ring2: { name: '铁戒指', type: '戒指', icon: '💍', stats: [{ name: '力量', value: '+1', pos: true }], desc: '简单的铁戒指' },
+                belt: { name: '腰带', type: '腰带', icon: '⛓', stats: [{ name: '最大体力', value: '+5', pos: true }], desc: '一根普通的腰带' },
+                boots: { name: '旧皮靴', type: '靴子', icon: '👢', stats: [{ name: '移动速度', value: '+5%', pos: true }], desc: '磨破了的旧靴子' }
+            },
+            TEST_BACKPACK_ITEMS: [
+                { slot: 0, name: '治疗药水', type: '消耗品', icon: '🧪', stats: [{ name: '恢复生命', value: '+30' }], desc: '一瓶红色的药水，味道有点甜', stack: 5 },
+                { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 }
+            ],
+            init(player) {
+                this.player = player;
+                Object.assign(player.equipments, this.TEST_EQUIPMENTS);
+                this.updateEquipSlots();
+                this.updateInventorySlots();
+                this.bindEquipTooltip();
+                this.bindInventoryTooltip();
+            },
+            updateEquipSlots() {
+                const eq = this.player.equipments;
+                document.querySelectorAll('.diablo-slot').forEach(slot => {
+                    const key = slot.dataset.slot;
+                    const item = eq[key];
+                    if (item) {
+                        slot.classList.add('equipped');
+                        slot.querySelector('.slot-icon').textContent = item.icon;
+                        slot.querySelector('.slot-name').textContent = item.name;
+                    }
+                });
+            },
+            updateInventorySlots() {
+                const items = this.TEST_BACKPACK_ITEMS;
+                document.querySelectorAll('.inv-cell').forEach((cell, idx) => {
+                    const item = items.find(i => i.slot === idx);
+                    if (item) {
+                        cell.classList.add('occupied');
+                        cell.innerHTML = `${item.icon}${item.stack > 1 ? `<span class="inv-stack">${item.stack}</span>` : ''}`;
+                        cell.dataset.itemName = item.name;
+                    }
+                });
+                document.getElementById('invCapacity').textContent = `${items.length}/36`;
+            },
+            bindEquipTooltip() {
+                const tooltip = document.getElementById('equipTooltip');
+                const ttName = document.getElementById('ttName');
+                const ttType = document.getElementById('ttType');
+                const ttStats = document.getElementById('ttStats');
+                const ttDesc = document.getElementById('ttDesc');
+                document.querySelectorAll('.diablo-slot').forEach(slot => {
+                    slot.addEventListener('mouseenter', e => {
+                        const key = slot.dataset.slot;
+                        const item = this.player.equipments[key];
+                        if (!item) return;
+                        ttName.textContent = item.name;
+                        ttType.textContent = item.type;
+                        ttStats.innerHTML = item.stats.map(s => `<div class="tt-stat"><span class="tt-stat-name">${s.name}</span><span class="tt-stat-val ${s.pos ? 'pos' : ''}">${s.value}</span></div>`).join('');
+                        ttDesc.textContent = item.desc;
+                        const rect = slot.getBoundingClientRect();
+                        tooltip.style.left = (rect.left - 230) + 'px';
+                        tooltip.style.top = rect.top + 'px';
+                        tooltip.classList.add('visible');
+                    });
+                    slot.addEventListener('mouseleave', () => {
+                        tooltip.classList.remove('visible');
+                    });
+                });
+            },
+            bindInventoryTooltip() {
+                const tooltip = document.getElementById('equipTooltip');
+                const ttName = document.getElementById('ttName');
+                const ttType = document.getElementById('ttType');
+                const ttStats = document.getElementById('ttStats');
+                const ttDesc = document.getElementById('ttDesc');
+                document.querySelectorAll('.inv-cell').forEach(cell => {
+                    cell.addEventListener('mouseenter', e => {
+                        const idx = parseInt(cell.dataset.slot);
+                        const item = this.TEST_BACKPACK_ITEMS.find(i => i.slot === idx);
+                        if (!item) return;
+                        ttName.textContent = item.name;
+                        ttType.textContent = item.type;
+                        ttStats.innerHTML = item.stats.map(s => `<div class="tt-stat"><span class="tt-stat-name">${s.name}</span><span class="tt-stat-val ${s.pos ? 'pos' : ''}">${s.value}</span></div>`).join('');
+                        ttDesc.textContent = item.desc + (item.stack > 1 ? ` (数量: ${item.stack})` : '');
+                        const rect = cell.getBoundingClientRect();
+                        tooltip.style.left = (rect.left - 230) + 'px';
+                        tooltip.style.top = rect.top + 'px';
+                        tooltip.classList.add('visible');
+                    });
+                    cell.addEventListener('mouseleave', () => {
+                        tooltip.classList.remove('visible');
+                    });
+                });
+            }
+        };
+
+        const SystemUI = {
+            isOpen: false, currentTab: null,
+            init() {},
+            toggle(tab) { if (this.isOpen && this.currentTab === tab) { this.close(); return; } this.open(tab); },
+            open(tab) {
+                this.isOpen = true; this.currentTab = tab;
+                const panel = document.getElementById('systemPanel'), overlay = document.getElementById('panelOverlay');
+                const titles = { status: '📊 角色状态', equip: '⚔ 装备栏', skill: '✦ 技能系统', inventory: '🎒 背包' };
+                document.getElementById('panelTitle').textContent = titles[tab] || '角色系统';
+                document.querySelectorAll('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+                document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active');
+                panel.classList.add('active'); overlay.classList.add('active'); this.updateQuickSlots();
+            },
+            close() {
+                this.isOpen = false; this.currentTab = null;
+                document.getElementById('systemPanel').classList.remove('active'); document.getElementById('panelOverlay').classList.remove('active'); this.updateQuickSlots();
+            },
+            switchTab(tab) { this.open(tab); },
+            updateQuickSlots() {
+                document.getElementById('btnStatus').classList.toggle('active', this.currentTab === 'status');
+                document.getElementById('btnEquip').classList.toggle('active', this.currentTab === 'equip');
+                document.getElementById('btnSkill').classList.toggle('active', this.currentTab === 'skill');
+                document.getElementById('btnInventory').classList.toggle('active', this.currentTab === 'inventory');
+            }
+        };
+
+        const Game = {
+            isRunning: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(),
+            init() { Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init(); },
+            start() {
+                document.getElementById('menuLayer').classList.add('hidden'); document.getElementById('uiLayer').style.display = 'block';
+                Renderer.generateWorld(); this.spawnPlayer(); this.spawnTargets();
+                this.isRunning = true; this.lastTime = performance.now(); this.loop(this.lastTime);
+            },
+            spawnPlayer() { this.player = new Player(CONFIG.WORLD_WIDTH/2, CONFIG.WORLD_HEIGHT/2); this.entities.set('player', this.player); Camera.follow(this.player); EquipManager.init(this.player); },
+            spawnTargets() {
+                const positions = [{ x: 200, y: 0 }, { x: -200, y: 0 }, { x: 0, y: 200 }, { x: 0, y: -200 }, { x: 150, y: 150 }, { x: -150, y: -150 }, { x: 300, y: 100 }, { x: -300, y: -100 }];
+                positions.forEach((pos, i) => {
+                    const target = new TargetDummy(CONFIG.WORLD_WIDTH/2 + pos.x, CONFIG.WORLD_HEIGHT/2 + pos.y, { hp: 150 + i * 50, maxHp: 150 + i * 50, name: `训练靶 ${i + 1}` });
+                    this.entities.set(`target_${i}`, target);
+                });
+            },
+            loop(timestamp) {
+                if (!this.isRunning) return;
+                const dt = timestamp - this.lastTime; this.lastTime = timestamp;
+                this.frameCount++; this.fpsTimer += dt;
+                if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
+                this.update(dt); this.render(); this.updateUI(); Input.update();
+                requestAnimationFrame(t => this.loop(t));
+            },
+            update(dt) {
+                Camera.update(this.player);
+                this.entities.forEach(e => { if (e.active) e.update(dt, this.entities); });
+                EffectManager.update();
+            },
+            render() {
+                Renderer.clear(); Renderer.renderTerrain(); Renderer.renderGrid();
+                const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
+                sorted.forEach(e => e.render(Renderer.ctx)); EffectManager.render(Renderer.ctx);
+            },
+            updateUI() {
+                if (!this.player) return;
+                const d = this.player.data, p = this.player;
+                // 数据驱动更新顶部栏
+                UI_DATA_CONFIG.topBar.forEach(item => {
+                    const el = document.getElementById(item.id);
+                    if (el) el.textContent = item.getValue(p);
+                });
+                // 数据驱动更新顶部状态栏 (HP/MP)
+                UI_DATA_CONFIG.topStatus.forEach(item => {
+                    const bar = document.getElementById(item.barId);
+                    const val = document.getElementById(item.valId);
+                    if (bar) bar.style.width = item.getPercent(d);
+                    if (val) val.textContent = item.getValue(d);
+                });
+                // 攻击冷却指示器
+                const currentAttack = p.attacks[p.weaponMode];
+                const attackCD = currentAttack.getCooldownPercent();
+                document.getElementById('cdAttackOverlay').style.height = (attackCD * 100) + '%';
+                document.getElementById('cdAttack').classList.toggle('ready', attackCD <= 0);
+                const attackIcon = p.weaponMode === 'melee' ? '⚔' : '🏹';
+                const attackLabel = p.weaponMode === 'melee' ? '近战' : '远程';
+                document.getElementById('cdAttack').childNodes[0].textContent = attackIcon;
+                document.getElementById('attackLabel').textContent = attackLabel;
+                // 数据驱动更新状态面板
+                const sp = UI_DATA_CONFIG.statusPage;
+                // 头部信息
+                document.getElementById('charName').textContent = d.name;
+                document.getElementById('charClass').textContent = d.class;
+                document.getElementById('charLevel').textContent = 'Lv.' + d.level;
+                sp.bars.forEach(item => {
+                    const bar = document.getElementById(item.barId);
+                    const val = document.getElementById(item.valId);
+                    if (bar) bar.style.width = item.getPercent(d);
+                    if (val) val.textContent = item.getValue(d);
+                });
+                sp.baseAttrs.forEach(item => {
+                    const el = document.getElementById(item.id);
+                    if (el) el.textContent = d[item.key];
+                });
+                sp.combatAttrs.forEach(item => {
+                    const el = document.getElementById(item.id);
+                    if (el) el.textContent = item.suffix ? d[item.key] + item.suffix : (item.fixed ? d[item.key].toFixed(item.fixed) : d[item.key]);
+                });
+                sp.loopInfo.forEach(item => {
+                    const el = document.getElementById(item.id);
+                    if (el) el.textContent = d[item.key];
+                });
+            },
+            load() {
+                const save = localStorage.getItem('infiniteLoop_save');
+                if (save) { const data = JSON.parse(save); alert(`读取存档: ${data.player?.name || '未知'}\n等级: ${data.player?.level || 1}`); }
+                else alert('没有找到存档');
+            },
+            save() {
+                if (!this.player) return;
+                const saveData = { version: '1.0', timestamp: Date.now(), player: this.player.data, position: { x: this.player.x, y: this.player.y } };
+                localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间');
+            },
+            toMenu() {
+                this.isRunning = false; this.entities.clear(); this.player = null; SystemUI.close();
+                document.getElementById('menuLayer').classList.remove('hidden'); document.getElementById('uiLayer').style.display = 'none';
+            },
+            exit() { if (confirm('确定要离开主神空间吗？')) document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#2a2520;color:#8a7d6b;font-size:20px;">连接已中断</div>'; }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

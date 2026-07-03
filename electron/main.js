@@ -1,6 +1,9 @@
 const { app, BrowserWindow, screen, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 
+// 禁用 Windows 系统 DPI 缩放，确保游戏内坐标一致
+app.commandLine.appendSwitch('force-device-scale-factor', '1');
+
 // 全局窗口引用
 let mainWindow = null;
 let isFullScreen = true;
@@ -28,7 +31,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            zoomFactor: 1.0
         },
         // 标题
         title: '无限轮回',

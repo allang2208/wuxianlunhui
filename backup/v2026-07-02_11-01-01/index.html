@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>无限轮回 - 俯视角动作RPG</title>
+    <link rel="stylesheet" href="game-style.css">
+    <style>
+        @keyframes toastFade {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== 版本号（全局显示） ===== -->
+    <div class="version-badge" id="versionBadge">V0.192</div>
+
+    <!-- ===== 游戏容器 ===== -->
+    <div id="gameContainer" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #1a1a1a;">
+
+        <!-- 视觉标记：开发/生产模式 -->
+        <script>
+            const badge = document.createElement('div');
+            badge.id = 'modularBadge';
+            badge.style.cssText = 'position:fixed;bottom:4px;right:4px;background:rgba(90,140,90,0.85);color:#d4e8c5;font-size:10px;padding:2px 6px;border-radius:3px;z-index:9999;pointer-events:none;font-family:monospace;';
+            if (!document.getElementById('modularBadge')) { document.body.appendChild(badge); }
+            if (window.location.protocol === 'file:') { badge.textContent = 'LEGACY'; }
+            else { badge.textContent = 'MODULAR'; }
+        </script>
+
+        <!-- ===== 菜单层 ===== -->
+        <div id="menuLayer" class="menu-layer">
+            <div class="menu-bg"></div>
+            <div class="menu-content">
+                <h1 class="game-title">无限轮回</h1>
+                <p class="game-subtitle">俯视角动作RPG</p>
+                <div class="menu-buttons">
+                    <button class="menu-btn start-btn" id="startGameBtn">开始游戏</button>
+                    <button class="menu-btn" id="showHelpBtn">操作说明</button>
+                </div>
+                <div class="menu-info">
+                    <p>WASD移动 | 鼠标瞄准 | 左键攻击 | 右键特殊攻击</p>
+                    <p>F切换武器 | R换弹 | 空格闪避 | Shift冲刺</p>
+                    <p>1~4快捷栏 | Q/E/X/C技能 | Z范围拾取 | Tab背包</p>
+                    <p>CapsLock状态栏 | K技能栏 | L图鉴 | Esc菜单</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 游戏层 ===== -->
+        <div id="gameLayer" style="display: none;">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <!-- ===== UI 层 ===== -->
+        <div id="uiLayer" style="display: none; position: absolute; inset: 0; pointer-events: none;">
+            <button class="back-menu-btn" id="backMenuBtn">返回主菜单</button>
+
+            <!-- 玩家状态栏（显示眩晕、中毒等状态效果） -->
+            <div class="status-bar-container" id="statusBarContainer"></div>
+
+            <!-- 顶部状态栏 -->
+            <div class="top-bar" id="topBar">
+                <div class="top-item"><div class="label">名称</div><div class="value" id="uiName">轮回者</div></div>
+                <div class="top-item"><div class="label">等级</div><div class="value" id="uiLevel">1</div></div>
+                <div class="top-item"><div class="label">职业</div><div class="value" id="uiClass">初心者</div></div>
+                <div class="top-item"><div class="label">坐标</div><div class="value" id="uiPos">0, 0</div></div>
+                <div class="top-item"><div class="label">击杀</div><div class="value" id="uiKills">0</div></div>
+                <div class="top-item bar">
+                    <div class="top-bar-track"><div class="top-bar-fill hp" id="topBarHp" style="width:100%"></div></div>
+                    <div class="top-bar-value" id="topValHp">100/100</div>
+                </div>
+                <div class="top-item bar">
+                    <div class="top-bar-track"><div class="top-bar-fill mp" id="topBarMp" style="width:100%"></div></div>
+                    <div class="top-bar-value" id="topValMp">100/100</div>
+                </div>
+            </div>
+
+            <!-- 状态条 -->
+            <div class="status-bar">
+                <div class="bar-hp"><div class="bar-fill-hp" id="hpBar"></div><span class="bar-text" id="hpText">100/100</span></div>
+                <div class="bar-stamina"><div class="bar-fill-stamina" id="staminaBar"></div><span class="bar-text" id="staminaText">200/200</span></div>
+            </div>
+
+            <!-- 武器信息 -->
+            <div class="weapon-info" id="weaponInfo">
+                <div class="wi-mode" id="weaponMode">近战模式</div>
+                <div class="wi-name" id="weaponName">生锈的长剑</div>
+            </div>
+
+            <!-- ===== 系统面板 ===== -->
+            <div class="panel-overlay" id="panelOverlay"></div>
+            <div class="system-panel" id="systemPanel">
+                <div class="panel-header">
+                    <div class="panel-title" id="panelTitle">角色状态</div>
+                    <div class="panel-close" onclick="SystemUI.close()">✕</div>
+                </div>
+                <div class="panel-tabs">
+                    <div class="tab-btn panel-tab active" data-tab="status" id="btnStatus" onclick="SystemUI.switchTab('status')">状态</div>
+                    <div class="tab-btn panel-tab" data-tab="equip" id="btnEquip" onclick="SystemUI.switchTab('equip')">装备</div>
+                    <div class="tab-btn panel-tab" data-tab="skill" id="btnSkill" onclick="SystemUI.switchTab('skill')">技能</div>
+                    <div class="tab-btn panel-tab" data-tab="codex" id="btnCodex" onclick="SystemUI.switchTab('codex')">图鉴</div>
+                </div>
+
+                <!-- 状态页 -->
+                <div class="tab-page active" data-page="status" id="tab-status">
+                    <div class="status-page">
+                        <h3 class="sp-title">角色状态</h3>
+                        <div class="status-char-layout">
+                            <div class="status-header">
+                                <span class="header-name" id="charName">轮回者</span>
+                                <span class="header-class" id="charClass">初心者</span>
+                                <span class="header-level" id="charLevel">Lv.1</span>
+                                <span class="header-attrpoints" id="attrPoints">属性点: 0</span>
+                            </div>
+                            <div class="status-details">
+                                <div class="status-section">
+                                    <h4>状态</h4>
+                                    <div class="status-bar"><span class="bar-label">生命</span><div class="bar-track"><div class="bar-fill hp" id="barHp"></div></div><span class="status-value" id="valHp">100/100</span></div>
+                                    <div class="status-bar"><span class="bar-label">魔法</span><div class="bar-track"><div class="bar-fill mp" id="barMp"></div></div><span class="status-value" id="valMp">100/100</span></div>
+                                    <div class="status-bar"><span class="bar-label">体力</span><div class="bar-track"><div class="bar-fill stamina" id="barStamina"></div></div><span class="status-value" id="valStamina">200/200</span></div>
+                                    <div class="status-bar"><span class="bar-label">经验</span><div class="bar-track"><div class="bar-fill exp" id="barExp"></div></div><span class="status-value" id="valExp">0%</span></div>
+                                </div>
+                                <div class="status-section">
+                                    <h4>基础属性</h4>
+                                    <div class="attr-list">
+                                        <div class="attr-col">
+                                            <div class="attr-item" data-attr="str"><span class="attr-name">力量</span><span class="attr-val" id="attrStr">10</span><span class="attr-plus" data-attr="str" style="display:none;">+</span></div>
+                                            <div class="attr-item" data-attr="dex"><span class="attr-name">敏捷</span><span class="attr-val" id="attrDex">10</span><span class="attr-plus" data-attr="dex" style="display:none;">+</span></div>
+                                            <div class="attr-item" data-attr="int"><span class="attr-name">智力</span><span class="attr-val" id="attrInt">10</span><span class="attr-plus" data-attr="int" style="display:none;">+</span></div>
+                                        </div>
+                                        <div class="attr-col">
+                                            <div class="attr-item" data-attr="wis"><span class="attr-name">精神</span><span class="attr-val" id="attrWis">10</span><span class="attr-plus" data-attr="wis" style="display:none;">+</span></div>
+                                            <div class="attr-item" data-attr="con"><span class="attr-name">体质</span><span class="attr-val" id="attrCon">10</span><span class="attr-plus" data-attr="con" style="display:none;">+</span></div>
+                                            <div class="attr-item" data-attr="luck"><span class="attr-name">幸运</span><span class="attr-val" id="attrLuck">10</span><span class="attr-plus" data-attr="luck" style="display:none;">+</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="status-section">
+                                    <h4>战斗属性</h4>
+                                    <div class="attr-list">
+                                        <div class="attr-item"><span class="attr-name">物理攻击</span><span class="attr-val" id="combatAtk">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">物理防御</span><span class="attr-val" id="combatDef">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">魔法攻击</span><span class="attr-val" id="combatMatk">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">魔法防御</span><span class="attr-val" id="combatMdef">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">暴击率</span><span class="attr-val" id="combatCrit">0%</span></div>
+                                        <div class="attr-item"><span class="attr-name">暴击抵抗</span><span class="attr-val" id="combatCritRes">0%</span></div>
+                                        <div class="attr-item"><span class="attr-name">攻击间隔</span><span class="attr-val" id="combatAspd">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">移动速度</span><span class="attr-val" id="combatSpd">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="status-section">
+                                    <h4>详细信息</h4>
+                                    <div class="attr-list">
+                                        <div class="attr-item"><span class="attr-name">体力恢复</span><span class="attr-val" id="detailStaminaRegen">0/秒</span></div>
+                                        <div class="attr-item"><span class="attr-name">生命回复</span><span class="attr-val" id="detailHpRegen">1/秒</span></div>
+                                        <div class="attr-item"><span class="attr-name">魔法回复</span><span class="attr-val" id="detailMpRegen">1/3秒</span></div>
+                                        <div class="attr-item"><span class="attr-name">碰撞体积</span><span class="attr-val" id="detailCollisionRadius">0px</span></div>
+                                        <div class="attr-item"><span class="attr-name">移动速度</span><span class="attr-val" id="detailMoveSpeed">0px/帧</span></div>
+                                        <div class="attr-item"><span class="attr-name">闪避冷却</span><span class="attr-val" id="detailDodgeCooldown">0ms</span></div>
+                                        <div class="attr-item"><span class="attr-name">攻击距离</span><span class="attr-val" id="detailAttackRange">0px</span></div>
+                                        <div class="attr-item"><span class="attr-name">击退距离</span><span class="attr-val" id="detailKnockback">0px</span></div>
+                                        <div class="attr-item"><span class="attr-name">视野宽度</span><span class="attr-val" id="detailViewRange">0px</span></div>
+                                    </div>
+                                </div>
+                                <div class="status-section">
+                                    <h4>轮回信息</h4>
+                                    <div class="attr-list">
+                                        <div class="attr-item"><span class="attr-name">轮回次数</span><span class="attr-val" id="infoLoop">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">存活天数</span><span class="attr-val" id="infoDays">1</span></div>
+                                        <div class="attr-item"><span class="attr-name">击杀数</span><span class="attr-val" id="infoKills">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">完成任务</span><span class="attr-val" id="infoQuests">0</span></div>
+                                        <div class="attr-item"><span class="attr-name">基因锁</span><span class="attr-val" id="infoGene">未开启</span></div>
+                                        <div class="attr-item"><span class="attr-name">主神评价</span><span class="attr-val" id="infoRank">F</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 装备+背包页 -->
+                <div class="tab-page" data-page="equip" id="tab-equip">
+                    <div class="gear-layout">
+                        <div class="gear-equip-col">
+                            <div class="gear-col-title">装备栏</div>
+                            <div class="equip-grid">
+                                <div class="diablo-slot" data-slot="earring"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="左耳环">左耳环</div></div>
+                                <div class="diablo-slot" data-slot="helmet"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="头盔">头盔</div></div>
+                                <div class="diablo-slot" data-slot="ring1"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="右耳环">右耳环</div></div>
+                                <div class="diablo-slot" data-slot="gloves"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="手套">手套</div></div>
+                                <div class="diablo-slot" data-slot="necklace"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="项链">项链</div></div>
+                                <div class="diablo-slot" data-slot="cloak"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="披风">披风</div></div>
+                                <div class="diablo-slot" data-slot="weapon"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="主手武器1">主手武器1</div></div>
+                                <div class="diablo-slot" data-slot="armor"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="盔甲">盔甲</div></div>
+                                <div class="diablo-slot" data-slot="offhand"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="副手武器1">副手武器1</div></div>
+                                <div class="diablo-slot" data-slot="weapon2"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="主手武器2">主手武器2</div></div>
+                                <div class="diablo-slot" data-slot="belt"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="腰带">腰带</div></div>
+                                <div class="diablo-slot" data-slot="ring2"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="副手武器2">副手武器2</div></div>
+                                <div class="diablo-slot" data-slot="extra"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="额外物品">额外物品</div></div>
+                                <div class="diablo-slot" data-slot="boots"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="靴子">靴子</div></div>
+                                <div class="diablo-slot" data-slot="backpack"><div class="slot-icon" data-default=""></div><div class="slot-rarity" data-default=""></div><div class="slot-name" data-default="背包装备">背包装备</div></div>
+                            </div>
+                        </div>
+                        <div class="gear-inventory-col">
+                            <div class="inventory-header">
+                                <span>背包</span>
+                                <span id="invCount">0/36</span>
+                            </div>
+                            <div class="inventory-grid" id="inventoryGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技能页 -->
+                <div class="tab-page" data-page="skill" id="tab-skill">
+                    <div class="skill-page">
+                        <div class="skill-grid" id="skillGrid"></div>
+                        <div class="skill-detail" id="skillDetail" style="display:none">
+                            <div class="sd-header">
+                                <button class="sd-back" id="sdBackBtn">← 返回</button>
+                                <span class="sd-title" id="sdTitle">技能详情</span>
+                            </div>
+                            <div class="sd-body" id="sdBody"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图鉴页 -->
+                <div class="tab-page" data-page="codex" id="tab-codex">
+                    <div class="codex-wrapper">
+                        <div class="codex-layout" id="codexLayout">
+                            <div class="codex-header"><h3 class="sp-title">图鉴</h3></div>
+                            <div class="codex-main-tabs" id="codexMainTabs">
+                                <div class="codex-main-tab active" data-section="equipment">装备</div>
+                                <div class="codex-main-tab" data-section="monster">怪物</div>
+                            </div>
+                            <div class="codex-sub-layout active" id="codexEquipLayout">
+                                <div class="codex-category-tabs" id="codexCatTabs"></div>
+                                <div class="codex-grid" id="codexGrid"></div>
+                            </div>
+                            <div class="codex-sub-layout" id="codexMonsterLayout">
+                                <div class="codex-grid" id="codexMonsterGrid"></div>
+                            </div>
+                        </div>
+                        <div class="codex-detail" id="codexDetail">
+                            <div class="codex-detail-header">
+                                <div class="codex-detail-title" id="codexDetailTitle">详情</div>
+                            </div>
+                            <div class="codex-detail-body" id="codexDetailBody"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 侧边菜单 -->
+            <div class="side-menu">
+                <div class="side-menu-btn" onclick="SystemUI.toggle('status')" title="角色状态 (CapsLock)">
+                    <img src="assets/ui/icons/status.png" alt="状态"><span class="key-hint">Caps</span><span class="panel-label">人物状态</span>
+                </div>
+                <div class="side-menu-btn" onclick="SystemUI.toggle('equip')" title="装备背包 (Tab)">
+                    <img src="assets/ui/icons/inventory.png" alt="背包"><span class="key-hint">Tab</span><span class="panel-label">背包</span>
+                </div>
+                <div class="side-menu-btn" onclick="SystemUI.toggle('skill')" title="技能 (K)">
+                    <img src="assets/ui/icons/skills.png" alt="技能"><span class="key-hint">K</span><span class="panel-label">技能栏</span>
+                </div>
+                <div class="side-menu-btn" onclick="SystemUI.toggle('codex')" title="图鉴 (O)">
+                    <img src="assets/ui/icons/codex.png" alt="图鉴"><span class="key-hint">O</span><span class="panel-label">图鉴栏</span>
+                </div>
+                <div class="side-menu-btn" onclick="QuestSystem.open()" title="任务 (L)">
+                    <img src="assets/ui/icons/quest.png" alt="任务"><span class="key-hint">L</span><span class="panel-label">任务栏</span>
+                </div>
+                <div class="side-menu-btn addpoint-btn hidden" id="addPointBtn" onclick="Game.handleAddPoint()" title="属性点">
+                    <img src="assets/ui/addpoint.png" alt="属性点"><span class="panel-label">属性点</span>
+                </div>
+            </div>
+
+            <!-- 快捷栏 -->
+            <div class="bottom-bar">
+                <div class="quick-slot-group" id="skillGroup">
+                    <div class="quick-slot-divider"></div>
+                </div>
+                <div class="quick-slot-group" id="itemGroup">
+                    <div class="quick-slot-divider"></div>
+                </div>
+            </div>
+
+            <!-- 经验值条 -->
+            <div class="exp-bar-container" id="expBarContainer">
+                <div class="exp-bar-fill" id="expBar"></div>
+            </div>
+
+            <!-- 操作提示 -->
+            <div class="controls-hint-left">
+                <div>WASD - 移动 | 鼠标 - 瞄准</div>
+                <div>左键 - 攻击 | 右键 - 特殊攻击</div>
+                <div>空格 - 闪避 | Shift - 冲刺</div>
+                <div>F - 切换武器 | R - 换弹</div>
+                <div>1~4 - 快捷栏 | Q/E/X/C - 技能</div>
+                <div>Z - 范围拾取 | Tab - 背包</div>
+                <div>CapsLock - 状态栏 | K - 技能栏 | O - 图鉴</div>
+                <div>Tab - 背包 | L - 任务 | Esc - 菜单</div>
+            </div>
+
+            <!-- 显示攻击范围开关 -->
+            <div class="attack-range-toggle" id="attackRangeToggle" title="显示攻击范围">
+                <span>范围</span>
+            </div>
+            <!-- 交互开发工具按钮 -->
+            <div class="dev-tool-trigger" id="devToolTrigger" title="交互开发工具">
+                <span>🛠</span>
+            </div>
+
+            <!-- ===== 游戏秒表计时器 ===== -->
+            <div id="gameTimer" class="game-timer" style="display:none;">
+                <span class="timer-icon">⏱</span>
+                <span id="timerText" class="timer-text">00:00:00</span>
+            </div>
+
+            <!-- ===== NPC 立绘（独立显示在画面左侧） ===== -->
+            <img id="npcPortrait" class="npc-portrait" src="assets/ui/npc_portrait.png" alt="NPC" style="display:none;">
+            <!-- ===== NPC 对话框 ===== -->
+            <div id="npcDialogueBox" class="npc-dialogue-box" style="display:none;">
+                <div class="npc-dialogue-content">
+                    <div id="npcDialogueText" class="npc-dialogue-text"></div>
+                    <div id="npcDialogueOptions" class="npc-dialogue-options" style="display:none;">
+                        <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 打开商店</button>
+                        <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化装备</button>
+                        <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造装备</button>
+                        <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔装备</button>
+                        <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
+                    </div>
+                </div>
+            </div>
+
+<!-- ===== 商店面板 ===== -->
+            <div id="shopPanel" class="shop-panel">
+                <div class="shop-header">
+                    <span class="shop-title">🏪 商店</span>
+                    <span class="shop-money" id="shopMoney">💰 0</span>
+                    <button class="shop-close" onclick="ShopSystem.close()">✕</button>
+                </div>
+                <div class="shop-body">
+                    <!-- 上方：商品购买区域 -->
+                    <div class="shop-section buy">
+                        <div class="shop-section-title">📦 商品购买</div>
+                        <div class="shop-grid" id="shopBuyGrid"></div>
+                    </div>
+                    <!-- 下方：主角卖出区域 -->
+                    <div class="shop-section sell">
+                        <div class="shop-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                            <span>💼 我的卖出</span>
+                            <button class="sell-confirm-btn" id="sellConfirmBtn" onclick="ShopSystem.confirmSell()">💰 确认卖出</button>
+                        </div>
+                        <div class="shop-grid" id="shopSellGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+<!-- ===== 强化面板 ===== -->
+            <div id="enhancePanel" class="enhance-panel">
+                <div class="enhance-header">
+                    <span class="enhance-title">⚒️ 装备强化</span>
+                    <span class="enhance-money" id="enhanceMoney">💰 0</span>
+                    <button class="enhance-close" onclick="EnhanceSystem.close()">✕</button>
+                </div>
+                <div class="enhance-body">
+                    <div class="magic-circle-container">
+                        <div class="magic-circle"></div>
+                        <div class="magic-circle-ring"></div>
+                        <div class="magic-circle-glow"></div>
+                        <div class="enhance-slot" id="enhanceSlot">
+                            <div class="enhance-slot-placeholder">拖入装备</div>
+                        </div>
+                    </div>
+                    <div class="enhance-slot-info" id="enhanceSlotInfo">
+                        <div class="enhance-info-placeholder">请将装备拖入上方强化槽</div>
+                    </div>
+                    <div class="enhance-action">
+                        <div class="enhance-cost-row">
+                            <span class="enhance-cost-label">强化费用:</span>
+                            <span class="enhance-cost-value" id="enhanceCost">💰 0</span>
+                        </div>
+                        <button class="enhance-btn" id="enhanceBtn" disabled>
+                            <span class="enhance-btn-text">✨ 强化</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+<!-- ===== 改造面板 ===== -->
+            <div id="craftPanel" class="craft-panel">
+                <div class="craft-header">
+                    <span class="craft-title">🔧 装备改造</span>
+                    <button class="craft-close" onclick="CraftSystem.close()">✕</button>
+                </div>
+                <div class="craft-edit-bar" id="craftEditBar" style="display:none;">
+                    <button class="craft-edit-btn" id="craftEditBtn" onclick="CraftSystem.enterEditMode()">🎚 调整布局</button>
+                    <button class="craft-edit-btn" id="craftSaveBtn" onclick="CraftSystem.saveEditMode()" style="display:none;">💾 保存布局</button>
+                    <button class="craft-edit-btn" id="craftCancelBtn" onclick="CraftSystem.exitEditMode()" style="display:none;">❌ 取消</button>
+                    <div class="craft-edit-hint" id="craftEditHint">点击"调整布局"开始编辑</div>
+                </div>
+                <div class="craft-body" id="craftBody">
+                    <!-- 拖入区域 -->
+                    <div class="craft-drop-zone" id="craftDropZone" draggable="true">
+                        <div class="craft-drop-placeholder" id="craftDropPlaceholder">将武器拖入此处进行改造</div>
+                        <div class="craft-weapon-display" id="craftWeaponDisplay" style="display:none;"></div>
+                        <!-- 改造格子区域（PKM等武器放入后显示） -->
+                        <div class="craft-mod-container" id="craftModContainer" style="display:none;">
+                            <svg class="craft-lines-svg" id="craftLinesSvg"></svg>
+                            <div class="craft-mod-grid" id="craftModGrid"></div>
+                        </div>
+                    </div>
+                    <!-- 配件选择浮窗 -->
+                    <div class="craft-mod-popup" id="craftModPopup" style="display:none;">
+                        <div class="craft-mod-popup-header">选择配件</div>
+                        <div class="craft-mod-popup-body" id="craftModPopupBody"></div>
+                        <div class="craft-mod-popup-close" onclick="CraftSystem._closeModPopup()">✕</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- ===== 附魔面板 ===== -->
+            <div id="enchantPanel" class="enchant-panel">
+                <div class="enchant-header">
+                    <span class="enchant-title">✨ 装备附魔</span>
+                    <span class="enchant-dust" id="enchantDust">✨ 魔法晶尘: 0</span>
+                    <button class="enchant-close" onclick="EnchantSystem.close()">✕</button>
+                </div>
+                <div class="enchant-body">
+                    <div class="enchant-slots-container">
+                        <!-- 左框：附魔卷轴槽 -->
+                        <div class="enchant-scroll-section">
+                            <div class="enchant-section-title">📜 附魔卷轴</div>
+                            <div class="enchant-scroll-slot" id="enchantScrollSlot" draggable="true">
+                                <div class="enchant-slot-placeholder" id="enchantScrollPlaceholder">拖入卷轴</div>
+                                <div class="enchant-scroll-display" id="enchantScrollDisplay" style="display:none;"></div>
+                            </div>
+                            <div class="enchant-scroll-info" id="enchantScrollInfo"></div>
+                        </div>
+                        <!-- 中间箭头 -->
+                        <div class="enchant-arrow">➜</div>
+                        <!-- 右框：装备槽 -->
+                        <div class="enchant-equip-section">
+                            <div class="enchant-section-title">⚔️ 装备</div>
+                            <div class="enchant-equip-slot" id="enchantEquipSlot" draggable="true">
+                                <div class="enchant-slot-placeholder" id="enchantEquipPlaceholder">拖入装备</div>
+                                <div class="enchant-equip-display" id="enchantEquipDisplay" style="display:none;"></div>
+                            </div>
+                            <div class="enchant-equip-info" id="enchantEquipInfo"></div>
+                        </div>
+                    </div>
+                    <!-- 附魔结果预览 -->
+                    <div class="enchant-preview" id="enchantPreview" style="display:none;">
+                        <div class="enchant-preview-title">🔮 预览效果</div>
+                        <div class="enchant-preview-content" id="enchantPreviewContent"></div>
+                    </div>
+                    <!-- 操作按钮 -->
+                    <div class="enchant-actions">
+                        <button class="enchant-reset-btn" id="enchantResetBtn" onclick="EnchantSystem.reset()">🔄 重置</button>
+                        <button class="enchant-convert-btn" id="enchantConvertBtn" onclick="EnchantSystem.convertDust()">💎 转换晶尘</button>
+                        <button class="enchant-do-btn" id="enchantDoBtn" onclick="EnchantSystem.doEnchant()" disabled>✨ 进行附魔</button>
+                    </div>
+                    <!-- 提示信息 -->
+                    <div class="enchant-message" id="enchantMessage"></div>
+                </div>
+            </div>
+
+<!-- ===== 任务面板 ===== -->
+            <div id="questPanel" class="quest-panel">
+                <div class="quest-panel-header">
+                    <span class="quest-panel-title">📜 任务日志</span>
+                    <button class="quest-panel-close" onclick="QuestSystem.close()">✕</button>
+                </div>
+                <div class="quest-panel-body">
+                    <div class="quest-list-col" id="questListCol"></div>
+                    <div class="quest-detail-col" id="questDetailCol"></div>
+                </div>
+            </div>
+
+<!-- ===== 奖励结算面板 ===== -->
+            <div id="rewardPanel" class="reward-panel" style="display:none;">
+                <div class="reward-panel-title">🎉 任务完成 - 选择奖励</div>
+                <div class="reward-cards-container" id="rewardCardsContainer"></div>
+            </div>
+
+    <!-- 模块化入口（必须先加载，提供全局变量） -->
+    <script type="module" src="./src/main.js"></script>
+
+
+<!-- ===== 交互开发工具面板 ===== -->
+            <div id="devToolPanel" class="dev-tool-panel">
+                <div class="dev-tool-header">
+                    <span class="dev-tool-title">🛠️ 交互开发工具</span>
+                    <button class="dev-tool-close" id="devToolClose">✕</button>
+                </div>
+                <!-- 上方菜单栏 -->
+                <div class="dev-tool-menu">
+                    <div class="dev-tool-menu-item">
+                        <label>动画:</label>
+                        <select id="devToolAnimSelect">
+                            <option value="idle">待机</option>
+                            <option value="walk">移动</option>
+                            <option value="attack">攻击</option>
+                            <option value="bow_draw">拉弓</option>
+                            <option value="bow_release">射箭</option>
+                            <option value="gun_idle">持枪待机</option>
+                            <option value="gun_fire">射击</option>
+                            <option value="reload">换弹</option>
+                            <option value="hurt">受击</option>
+                            <option value="death">死亡</option>
+                        </select>
+                    </div>
+                    <div class="dev-tool-menu-item">
+                        <label>武器:</label>
+                        <select id="devToolWeaponSelect">
+                            <option value="sword">⚔️ 剑（生锈长剑）</option>
+                            <option value="bow">🏹 弓（训练弓）</option>
+                            <option value="pistol">🔫 手枪（G18）</option>
+                            <option value="deagle">🔫 沙漠之鹰</option>
+                            <option value="pkm">🔥 PKM</option>
+                            <option value="akm">🔥 AKM</option>
+                            <option value="qbz191">🔥 QBZ-191</option>
+                            <option value="qjb201">🔥 QJB-201</option>
+                            <option value="super90">🔫 Super90</option>
+                            <option value="saiga12k">🔫 S12K</option>
+                            <option value="energy_lmg">🔫 能量轻机枪</option>
+                        </select>
+                    </div>
+                    <button class="dev-tool-menu-btn" id="devToolSave">💾 保存</button>
+                    <button class="dev-tool-menu-btn" id="devToolReset2">🔄 重置</button>
+                    <button class="dev-tool-menu-btn" id="devToolCoord">📐 坐标工具</button>
+                </div>
+                <!-- 下方双栏 -->
+                <div class="dev-tool-content">
+                    <!-- 左栏：人物动画展示 -->
+                    <div class="dev-tool-left">
+                        <div class="dev-tool-canvas-wrap">
+                            <canvas id="devToolCanvas" width="640" height="520"></canvas>
+                            <div class="dev-tool-canvas-overlay">
+                                <div class="dev-tool-hint-text" id="devToolHint">
+                                    拖动武器到人物位置 → 按 <kbd>R</kbd> 进入调整模式
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 动画帧展示区 -->
+                        <div class="dev-tool-frame-strip" id="devToolFrameStrip"></div>
+                        <div class="dev-tool-info" id="devToolInfo">
+                            <div class="dev-tool-info-row">
+                                <span>状态:</span> <span id="devToolStatus">待机</span>
+                            </div>
+                            <div class="dev-tool-info-row">
+                                <span>武器:</span> <span id="devToolWeaponName">无</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右栏：武器选择和控制 -->
+                    <div class="dev-tool-right">
+                        <div class="dev-tool-section-title">武器贴图</div>
+                        <div class="dev-tool-weapon-preview" id="devToolWeaponPreview">
+                            <div class="dev-tool-weapon-placeholder">选择武器类型</div>
+                            <img id="devToolWeaponImg" src="" style="display:none; cursor: grab;" alt="weapon" draggable="true">
+                        </div>
+                        <div class="dev-tool-controls">
+                            <div class="dev-tool-control-row">
+                                <label>屏幕偏移X:</label>
+                                <input type="number" id="devToolOffX" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>屏幕偏移Y:</label>
+                                <input type="number" id="devToolOffY" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>Rotation:</label>
+                                <input type="number" id="devToolRot" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>Scale:</label>
+                                <input type="number" id="devToolScl" value="1" step="0.1">
+                            </div>
+                        </div>
+                        <div class="dev-tool-mode-hint" id="devToolModeHint">
+                            <div>🖱 左键拖动</div>
+                            <div>🔄 滚轮缩放</div>
+                            <div>按 <kbd>R</kbd> 切换旋转/缩放模式</div>
+                        </div>
+                        <div class="dev-tool-data-output" id="devToolDataOutput" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+    <!-- 装备 Tooltip -->
+    <div class="equip-tooltip" id="equipTooltip">
+        <div class="tt-enchant" id="ttEnchant"></div>
+        <div class="tt-craft" id="ttCraft"></div>
+        <div class="tt-main">
+            <div class="tt-close" id="ttCloseBtn">×</div>
+            <div class="tt-header">
+                <div class="tt-icon" id="ttIcon">⚔</div>
+                <div class="tt-title">
+                    <div class="tt-name" id="ttName">装备名称</div>
+                    <div class="tt-type" id="ttType">装备类型</div>
+                </div>
+            </div>
+            <div class="tt-stats" id="ttStats"></div>
+            <div class="tt-extra" id="ttExtra"></div>
+            <div class="tt-desc" id="ttDesc">装备描述</div>
+        </div>
+    </div>
+
+		<!-- ===== 坐标工具覆盖层 ===== -->
+		<div id="coordOverlay" class="coord-overlay"></div>
+		<div id="coordPanel" class="coord-panel">
+			<div class="coord-panel-title">📐 坐标工具</div>
+			<div class="coord-row"><span class="coord-label">起始点:</span><span class="coord-value" id="coordStart">--</span></div>
+			<div class="coord-row"><span class="coord-label">结束点:</span><span class="coord-value" id="coordEnd">--</span></div>
+			<div class="coord-row"><span class="coord-label">尺寸:</span><span class="coord-value" id="coordSize">--</span></div>
+			<div class="coord-row" style="justify-content: space-between; margin-top: 4px;">
+				<span class="coord-hint">左键拖动框选 · 右键退出</span>
+				<button class="coord-btn" id="coordCopyBtn">📋 复制坐标</button>
+			</div>
+		</div>
+
+</body>
+</html>
