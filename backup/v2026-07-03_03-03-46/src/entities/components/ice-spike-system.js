@@ -47,7 +47,7 @@ export class IceSpikeSystem {
                 launched: false,
                 flyX: 0, flyY: 0,
                 flyAngle: 0,
-                flySpeed: 800,
+                flySpeed: 1600,
                 flyDistance: 0,
                 flyActive: false,
                 swayTimer: i * 0.5,
