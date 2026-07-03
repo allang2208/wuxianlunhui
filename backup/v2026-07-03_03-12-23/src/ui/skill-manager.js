@@ -2,6 +2,7 @@ import { SkillLevelSystem } from '../combat/skill-level-system.js';
 import { isSwordCategory } from '../config/gun-ammo.js';
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
+    _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
     addMeleeExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
         // 检查当前武器是否为剑类（剑精通只对剑类武器生效）
@@ -327,12 +328,43 @@ export const SkillManager = {
         const reducedCooldown = baseCooldown * (1 - effect.cooldownReduction);
         player.attacks.ranged.maxCooldown = Math.max(200, reducedCooldown);
     },
+    _getSkillCategoryPriority(skill) {
+        if (!skill || !skill.tags) return 4;
+        if (skill.tags.some(t => t.type === 'passive')) return 1;
+        if (skill.tags.some(t => t.type === 'active')) return 2;
+        if (skill.tags.some(t => t.type === 'magic')) return 3;
+        return 4;
+    },
+    _sortSkills(skills) {
+        return skills.slice().sort((a, b) => {
+            const pa = this._getSkillCategoryPriority(a);
+            const pb = this._getSkillCategoryPriority(b);
+            if (pa !== pb) return pa - pb;
+            return (a.name || '').localeCompare(b.name || '');
+        });
+    },
     renderSkillGrid() {
         const grid = document.getElementById('skillGrid');
         if (!grid) return;
         const player = Game.player;
         if (!player || !player.skills) { grid.innerHTML = '<p style="color:#8a7d6b;text-align:center;padding:40px;">技能系统加载中...</p>'; return; }
         grid.innerHTML = '';
+        // 渲染筛选按钮
+        const filterBar = document.getElementById('skillFilterBar');
+        if (filterBar) {
+            filterBar.innerHTML = `
+                <button class="skill-filter-btn ${this._currentFilter === 'all' ? 'active' : ''}" data-filter="all">全部</button>
+                <button class="skill-filter-btn ${this._currentFilter === 'passive' ? 'active' : ''}" data-filter="passive">被动</button>
+                <button class="skill-filter-btn ${this._currentFilter === 'active' ? 'active' : ''}" data-filter="active">主动</button>
+                <button class="skill-filter-btn ${this._currentFilter === 'magic' ? 'active' : ''}" data-filter="magic">魔法</button>
+            `;
+            filterBar.querySelectorAll('.skill-filter-btn').forEach(btn => {
+                btn.onclick = () => {
+                    this._currentFilter = btn.dataset.filter;
+                    this.renderSkillGrid();
+                };
+            });
+        }
         // 根据当前装备决定显示 dashAttack 还是 dashAttackThrust 或 dashAttackFire
         const currentWeapon = player.equipments[player.weaponMode];
         const hasFireSkill = (player._skillOverrides && player._skillOverrides.dashAttackFire) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackFire);
@@ -345,6 +377,15 @@ export const SkillManager = {
         } else {
             skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.shieldDefense, player.skills.fireball];
         }
+        // 筛选
+        if (this._currentFilter !== 'all') {
+            skillList = skillList.filter(skill => {
+                if (!skill) return false;
+                return skill.tags && skill.tags.some(t => t.type === this._currentFilter);
+            });
+        }
+        // 排序
+        skillList = this._sortSkills(skillList);
         skillList.forEach(skill => {
             if (!skill) return;
             const card = document.createElement('div');
