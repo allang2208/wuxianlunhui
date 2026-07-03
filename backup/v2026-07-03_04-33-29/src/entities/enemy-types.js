@@ -1026,6 +1026,7 @@ class DeathKnight extends Enemy {
 class BlackWolf extends Enemy {
     constructor(x, y, config = {}) {
         super(x, y, {
+            id: 'blackWolf',
             name: config.name || '黑狼',
             hp: config.hp || 160, maxHp: config.maxHp || 160,
             size: config.size || 19, collisionRadius: config.collisionRadius || 16,
@@ -1045,6 +1046,9 @@ class BlackWolf extends Enemy {
         };
         this.attackRange = 88;
         this.aiInterval = 300;
+        // 重新保存原始值（因为父类构造函数已保存了默认值，子类覆盖后需同步）
+        this._baseAttackRange = this.attackRange;
+        this._baseAiInterval = this.aiInterval;
         // 加载精灵图
         this._sprite = new Image();
         this._sprite.src = 'assets/enemies/black_wolf.png';

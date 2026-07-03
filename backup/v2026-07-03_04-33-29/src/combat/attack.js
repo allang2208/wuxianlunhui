@@ -82,6 +82,7 @@ function applyEnchantOnHit(weapon, target, source) {
                         source._triggerRuneSwordCooldownReduction && source._triggerRuneSwordCooldownReduction();
                         // 通用附魔命中效果（非硬编码）
                         applyEnchantOnHit(currentWeapon, entity, source);
+                        if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
                         // 改造效果：流血
                         if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
                             entity.applyBleeding(1);
@@ -192,6 +193,7 @@ function applyEnchantOnHit(weapon, target, source) {
                         hitCount++;
                         // 通用附魔命中效果（非硬编码，替代硬编码的 _onHitEntity）
                         applyEnchantOnHit(currentWeapon, entity, source);
+                        if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
                         let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                         const damage = baseDamage + pt.damageBonus;
                         const wasAlive = entity.hp > 0;

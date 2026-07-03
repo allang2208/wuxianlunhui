@@ -3,11 +3,16 @@ import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { Renderer } from '../world/renderer.js';
+import { EnemyFSM, PhaseChangeEffect } from '../ai/enemy-fsm.js';
+import aiConfigData from '../../data/ai-config.json';
 
         class Enemy extends DamageableEntity {
             constructor(x, y, config = {}) {
                 super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: 12, name: config.name || '测试敌人' });
+                this.id = config.id || this.name;
                 this.speed = (config.speed || 0.3) * 2; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
+                // 保存原始属性，供 FSM 阶段切换时计算倍率
+                this._baseSpeed = this.maxSpeed;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
                 this.attacks = { melee: new ThrustAttack({ cooldown: 600, range: 80, width: 20, damage: { min: 8, max: 15 }, knockback: 15 }) };
                 this.weaponMode = 'melee';
@@ -23,6 +28,9 @@ import { Renderer } from '../world/renderer.js';
                 this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 this.aiTimer = 0; this.aiInterval = 300; this.target = null; this.attackRange = 70;
+                // 保存原始 AI 属性，供 FSM 阶段切换时计算倍率
+                this._baseAiInterval = this.aiInterval;
+                this._baseAttackRange = this.attackRange;
                 this._dashStunned = false; // 冲刺攻击眩晕状态
                 this._dashStunTimer = 0; // 眩晕剩余时间
                 this._showWeapon = config.showWeapon !== false; // 是否显示武器
@@ -52,6 +60,15 @@ import { Renderer } from '../world/renderer.js';
                 this._droneVulnerabilityStacks = 0; // 无人机易伤层数
                 this._droneVulnerabilityTimer = 0;  // 无人机易伤持续时间计时器
 
+                // ===== FSM 阶段系统 =====
+                this._fsm = null;      // FSM 实例
+                this._phaseSkills = null; // 阶段技能集合
+                // 加载 AI 配置：优先使用子类传入的 config.aiConfig，否则从 JSON 按 id/name 匹配
+                const aiConfig = config.aiConfig || aiConfigData[this.id] || aiConfigData[this.name] || null;
+                if (aiConfig) {
+                    this._fsm = new EnemyFSM(aiConfig);
+                }
+
                 // 自动包装子类 render 方法，在渲染后添加中毒粒子效果
                 // 所有子类（Zombie, Spider 等）都覆盖了 render 不调用 super.render()
                 const proto = Object.getPrototypeOf(this);
@@ -66,6 +83,7 @@ import { Renderer } from '../world/renderer.js';
                         }
                     };
                 }
+
             }
             triggerWeaponAnim() {
                 // 动画打断机制：无论当前动画状态，立即重置为 windup
@@ -127,8 +145,21 @@ import { Renderer } from '../world/renderer.js';
                 ctx.restore();
             }
             // === AI 系统：移动寻路 与 攻击指令 完全分离 ===
+            // 阶段切换回调：子类可覆盖以实现自定义特效
+            onPhaseChange(phase) {
+                // 默认在控制台输出阶段切换
+                console.log(`[${this.name}] 进入阶段: ${phase.name}`);
+                // 触发视觉特效（如屏幕震动、粒子效果）
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new PhaseChangeEffect(this.x, this.y, phase.name));
+                }
+            }
             update(dt, entities) {
                 super.update(dt);
+                // FSM 阶段切换更新（始终执行，不因眩晕或目标丢失而跳过）
+                if (this._fsm) {
+                    this._fsm.update(dt, this, entities);
+                }
                 // 冲刺攻击眩晕计时
                 if (this._dashStunned) {
                     this._dashStunTimer -= dt;
