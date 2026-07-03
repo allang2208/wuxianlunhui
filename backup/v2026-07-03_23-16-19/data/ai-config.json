@@ -1,0 +1,15 @@
+{
+  "blackWolf": {
+    "phases": [
+      { "name": "普通", "hpThreshold": 1.0, "speedMul": 1.0, "attackSpeedMul": 1.0 },
+      { "name": "愤怒", "hpThreshold": 0.7, "speedMul": 1.3, "attackSpeedMul": 1.3, "newSkill": "charge" },
+      { "name": "狂暴", "hpThreshold": 0.3, "speedMul": 2.0, "attackSpeedMul": 1.5, "attackRangeMul": 1.5 }
+    ]
+  },
+  "broodmotherSpider": {
+    "phases": [
+      { "name": "产卵", "hpThreshold": 1.0, "speedMul": 1.0 },
+      { "name": "狂暴产卵", "hpThreshold": 0.5, "speedMul": 1.2, "newSkill": "summonBabySpiders" }
+    ]
+  }
+}

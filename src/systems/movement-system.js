@@ -160,9 +160,15 @@ const MovementSystem = {
 
     /**
      * 卡住检测：定期记录位置，若长时间未移动则触发寻路或随机转向
+     * [MODIFIED] 添加寻路冷却(2000ms)，防止每帧频繁调用A*寻路
      */
     _updateStuckDetection(enemy, dt, dx, dy, dist) {
         enemy._stuckTimer = (enemy._stuckTimer || 0) + dt;
+
+        // [MODIFIED] 寻路冷却计时：无论是否成功，每次寻路后冷却2秒
+        if (enemy._pathfindCooldown > 0) {
+            enemy._pathfindCooldown -= dt;
+        }
 
         if (enemy._stuckTimer >= 500) {
             const movedDist = Math.sqrt(
@@ -171,14 +177,16 @@ const MovementSystem = {
             );
 
             if (movedDist < 3 && dist > enemy.attackRange) {
-                // 卡住了，尝试寻路
-                if (enemy.target && typeof pathFinder !== 'undefined' && pathFinder.findPath) {
+                // [MODIFIED] 检查寻路冷却，避免频繁调用A*
+                if (enemy._pathfindCooldown <= 0 && enemy.target && typeof pathFinder !== 'undefined' && pathFinder.findPath) {
                     enemy._path = pathFinder.findPath(
                         enemy.x, enemy.y,
                         enemy.target.x, enemy.target.y,
                         enemy.collisionRadius || 12
                     );
                     enemy._pathIdx = 0;
+                    // [MODIFIED] 触发寻路冷却2000ms
+                    enemy._pathfindCooldown = 2000;
                 }
 
                 // 寻路失败时随机转向
@@ -377,11 +385,29 @@ const MovementSystem = {
 
     /**
      * 工具：计算到目标的距离（支持 _faction 检测）
+     * [MODIFIED] 使用 SpatialPartitionSystem.queryRadius 替代全量遍历，优化性能
      * @param {Enemy} enemy
      * @param {Map|Array} entities
+     * @param {number} [maxRadius=2000] - 最大搜索半径
      * @returns {number} 到最近玩家的距离，Infinity 若无玩家
      */
-    distanceToNearestPlayer(enemy, entities) {
+    distanceToNearestPlayer(enemy, entities, maxRadius = 2000) {
+        // [MODIFIED] 优先使用 SpatialPartitionSystem 范围查询
+        if (typeof SpatialPartitionSystem !== 'undefined' && SpatialPartitionSystem.queryRadius) {
+            const nearby = SpatialPartitionSystem.queryRadius(enemy.x, enemy.y, maxRadius, enemy);
+            let minDist = Infinity;
+            for (let i = 0; i < nearby.length; i++) {
+                const e = nearby[i];
+                if (e && e._faction === 'player' && e.active) {
+                    const dx = e.x - enemy.x;
+                    const dy = e.y - enemy.y;
+                    const d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < minDist) minDist = d;
+                }
+            }
+            return minDist;
+        }
+        // Fallback：全量遍历（保留原有逻辑）
         let minDist = Infinity;
         const arr = entities.values ? Array.from(entities.values()) : entities;
         for (const e of arr) {
@@ -397,11 +423,33 @@ const MovementSystem = {
 
     /**
      * 工具：寻找最近的玩家实体
+     * [MODIFIED] 使用 SpatialPartitionSystem.queryRadius 替代全量遍历，优化性能
      * @param {Enemy} enemy
      * @param {Map|Array} entities
+     * @param {number} [maxRadius=2000] - 最大搜索半径
      * @returns {Entity|null}
      */
-    findNearestPlayer(enemy, entities) {
+    findNearestPlayer(enemy, entities, maxRadius = 2000) {
+        // [MODIFIED] 优先使用 SpatialPartitionSystem 范围查询
+        if (typeof SpatialPartitionSystem !== 'undefined' && SpatialPartitionSystem.queryRadius) {
+            const nearby = SpatialPartitionSystem.queryRadius(enemy.x, enemy.y, maxRadius, enemy);
+            let nearest = null;
+            let minDist = Infinity;
+            for (let i = 0; i < nearby.length; i++) {
+                const e = nearby[i];
+                if (e && e._faction === 'player' && e.active) {
+                    const dx = e.x - enemy.x;
+                    const dy = e.y - enemy.y;
+                    const d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearest = e;
+                    }
+                }
+            }
+            return nearest;
+        }
+        // Fallback：全量遍历（保留原有逻辑）
         let nearest = null;
         let minDist = Infinity;
         const arr = entities.values ? Array.from(entities.values()) : entities;

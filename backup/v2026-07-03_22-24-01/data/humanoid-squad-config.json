@@ -1,0 +1,293 @@
+{
+  "version": "1.0",
+  "weapons": {
+    "qjb201": {
+      "weaponType": "qjb201",
+      "weaponAsset": {
+        "image": "assets/weapons/201equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "attack": {
+        "range": 1200,
+        "knockback": 1,
+        "attackInterval": 60,
+        "projectileSpeed": 2808,
+        "damageType": "物理"
+      },
+      "heatParams": {
+        "overheatTime": 4000,
+        "overheatRecoverTime": 1500,
+        "overheatCooldownTime": 1500
+      },
+      "ammoConfig": {
+        "max": 60,
+        "reloadTime": 2000
+      },
+      "spreadParams": {
+        "startDelay": 500,
+        "maxTime": 4000,
+        "maxAngle": 30
+      },
+      "fireMode": "fullAuto"
+    },
+    "pkm": {
+      "weaponType": "pkm",
+      "weaponAsset": {
+        "image": "assets/weapons/pkm_topdown.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "attack": {
+        "range": 1200,
+        "knockback": 3,
+        "attackInterval": 92,
+        "projectileSpeed": 4680,
+        "damageType": "物理"
+      },
+      "heatParams": {
+        "overheatTime": 5000,
+        "overheatRecoverTime": 1500,
+        "overheatCooldownTime": 1500
+      },
+      "ammoConfig": {
+        "max": 75,
+        "reloadTime": 3500
+      },
+      "spreadParams": {
+        "startDelay": 500,
+        "maxTime": 4000,
+        "maxAngle": 25
+      },
+      "fireMode": "fullAuto"
+    },
+    "akm": {
+      "weaponType": "akm",
+      "weaponAsset": {
+        "image": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "attack": {
+        "range": 1200,
+        "knockback": 2,
+        "attackInterval": 100,
+        "projectileSpeed": 4680,
+        "damageType": "物理"
+      },
+      "ammoConfig": {
+        "max": 30,
+        "reloadTime": 1150
+      },
+      "spreadParams": {
+        "startDelay": 500,
+        "maxTime": 4000,
+        "maxAngle": 25
+      },
+      "fireMode": "fullAuto"
+    },
+    "qbz191": {
+      "weaponType": "qbz191",
+      "weaponAsset": {
+        "image": "assets/weapons/191equip_clean.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "attack": {
+        "range": 1200,
+        "knockback": 2,
+        "attackInterval": 70,
+        "projectileSpeed": 5616,
+        "damageType": "物理"
+      },
+      "ammoConfig": {
+        "max": 30,
+        "reloadTime": 1000
+      },
+      "spreadParams": {
+        "startDelay": 500,
+        "maxTime": 4000,
+        "maxAngle": 25
+      },
+      "fireMode": "fullAuto"
+    },
+    "pistol": {
+      "weaponType": "pistol",
+      "weaponAsset": {
+        "image": "assets/weapons/G18equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "attack": {
+        "range": 650,
+        "knockback": 0,
+        "attackInterval": 55,
+        "projectileSpeed": 2028,
+        "damageType": "物理"
+      },
+      "ammoConfig": {
+        "max": 17,
+        "reloadTime": 1200
+      },
+      "spreadParams": {
+        "startDelay": 0,
+        "maxTime": 0,
+        "maxAngle": 1
+      },
+      "fireMode": "fullAuto"
+    }
+  },
+  "roles": {
+    "commander": {
+      "name": "指挥官",
+      "weaponType": "qjb201",
+      "hp": 350,
+      "size": 22,
+      "collisionRadius": 20,
+      "speed": 31.2,
+      "level": 5,
+      "color": "#c04040",
+      "highlightColor": "rgba(200, 100, 100, 0.3)",
+      "str": 40,
+      "dex": 40,
+      "con": 45,
+      "int": 15,
+      "wis": 10,
+      "luck": 8,
+      "rank": "elite",
+      "skills": [
+        {
+          "id": "drone",
+          "name": "侦察无人机",
+          "cooldown": 20000,
+          "range": 1500,
+          "effect": "标记目标，使其受到无人机易伤"
+        }
+      ],
+      "ai": {
+        "desiredDist": 700,
+        "distAdjust": 50
+      }
+    },
+    "machineGunner": {
+      "name": "机枪手",
+      "weaponType": "pkm",
+      "hp": 400,
+      "size": 24,
+      "collisionRadius": 22,
+      "speed": 23.4,
+      "level": 5,
+      "color": "#d06020",
+      "highlightColor": "rgba(220, 120, 80, 0.3)",
+      "str": 50,
+      "dex": 30,
+      "con": 55,
+      "int": 5,
+      "wis": 5,
+      "luck": 5,
+      "rank": "elite",
+      "skills": [
+        {
+          "id": "suppression",
+          "name": "火力压制",
+          "cooldown": 15000,
+          "duration": 5000,
+          "effect": "开火不消耗弹药且散布减半"
+        }
+      ],
+      "ai": {
+        "desiredDist": 800,
+        "distAdjust": 100
+      }
+    },
+    "rifleman": {
+      "name": "步枪手",
+      "weaponType": "akm",
+      "hp": 300,
+      "size": 20,
+      "collisionRadius": 18,
+      "speed": 39,
+      "level": 5,
+      "color": "#208040",
+      "highlightColor": "rgba(100, 200, 120, 0.3)",
+      "str": 35,
+      "dex": 45,
+      "con": 40,
+      "int": 8,
+      "wis": 6,
+      "luck": 8,
+      "rank": "normal",
+      "skills": [
+        {
+          "id": "evade",
+          "name": "战术规避",
+          "cooldown": 8000,
+          "duration": 2000,
+          "effect": "左右移动速度提升30%"
+        }
+      ],
+      "ai": {
+        "desiredDist": 700,
+        "evadeInterval": [1000, 2000],
+        "evadeOffset": [10, 30]
+      }
+    },
+    "flankRifleman": {
+      "name": "侧翼步枪手",
+      "weaponType": "qbz191",
+      "hp": 280,
+      "size": 20,
+      "collisionRadius": 18,
+      "speed": 46.8,
+      "level": 5,
+      "color": "#4080c0",
+      "highlightColor": "rgba(120, 160, 220, 0.3)",
+      "str": 35,
+      "dex": 50,
+      "con": 35,
+      "int": 10,
+      "wis": 8,
+      "luck": 8,
+      "rank": "normal",
+      "skills": [
+        {
+          "id": "flank",
+          "name": "侧翼包抄",
+          "cooldown": 12000,
+          "duration": 6000,
+          "effect": "移动速度提升20%，绕到目标侧面"
+        }
+      ],
+      "ai": {
+        "desiredDist": 700,
+        "flankAngle": 1.5708
+      }
+    },
+    "shieldBearer": {
+      "name": "盾卫",
+      "weaponType": "pistol",
+      "hp": 450,
+      "size": 25,
+      "collisionRadius": 23,
+      "speed": 31.2,
+      "level": 5,
+      "color": "#808080",
+      "highlightColor": "rgba(160, 160, 160, 0.3)",
+      "str": 45,
+      "dex": 25,
+      "con": 60,
+      "int": 5,
+      "wis": 5,
+      "luck": 5,
+      "rank": "normal",
+      "skills": [
+        {
+          "id": "shieldWall",
+          "name": "盾墙",
+          "cooldown": 10000,
+          "duration": 5000,
+          "effect": "减伤50%，移动速度减半"
+        }
+      ],
+      "ai": {
+        "coverDist": 60,
+        "defenseRange": 500
+      }
+    }
+  }
+}

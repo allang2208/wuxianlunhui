@@ -172,7 +172,7 @@ class SpatialHash {
 /* ---------- 路径查找器 ---------- */
 class PathFinder {
     constructor() {
-        this.gridSize = 20;
+        this.gridSize = 40;  // [MODIFIED] 优化grid分辨率：20→40，减少网格数量提高性能
         this.minSearchRange = 300;
         this.spatialHash = new SpatialHash(40);
         this._hashValid = false;
