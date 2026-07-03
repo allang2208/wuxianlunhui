@@ -7,6 +7,12 @@
 // 全局存储：每个NPC的立绘参数 { [npcId]: { offsetX, offsetY, scale, rotation, flipX } }
 const npcPortraitSettings = {};
 
+// 默认立绘参数：按NPC肖像路径匹配（用于首次打开时自动应用）
+const DEFAULT_PORTRAIT_PARAMS = {
+    // 小鼠侍从：默认偏移，使立绘在对话框中位置合适
+    'mouse_attendant': { offsetX: -42, offsetY: -113, scale: 1.0, rotation: 0, flipX: false }
+};
+
 export const NpcPortraitTool = {
     // --------------- 状态字段 ---------------
     _active: false,
@@ -96,17 +102,27 @@ export const NpcPortraitTool = {
         });
     },
 
+    // 获取指定NPC的默认立绘参数（通过肖像路径匹配）
+    getDefaultParams(portraitSrc) {
+        if (!portraitSrc) return null;
+        for (const [key, params] of Object.entries(DEFAULT_PORTRAIT_PARAMS)) {
+            if (portraitSrc.includes(key)) return { ...params };
+        }
+        return null;
+    },
+
     // --------------- 打开/关闭 ---------------
     // 打开工具面板，传入NPC ID和立绘图片路径
     show(npcId, portraitSrc) {
         this._npcId = npcId;
         this._active = true;
 
-        // 加载已保存的参数，若存在则使用，否则使用默认值
+        // 加载已保存的参数，若存在则使用；否则使用默认参数；否则使用默认值
         if (npcPortraitSettings[npcId]) {
             this._params = { ...npcPortraitSettings[npcId] };
         } else {
-            this._params = { offsetX: 0, offsetY: 0, scale: 1.0, rotation: 0, flipX: false };
+            const defaults = this.getDefaultParams(portraitSrc);
+            this._params = defaults || { offsetX: 0, offsetY: 0, scale: 1.0, rotation: 0, flipX: false };
         }
 
         // 加载立绘图片
@@ -259,6 +275,9 @@ export const NpcPortraitTool = {
     // mousemove：如果拖动中，更新 offsetX/offsetY，调用 _draw() 和 applyToDom()
     // mouseup：停止拖动
     _onMouseDown(e) {
+        // 修复Bug：阻止事件冒泡到NPC对话框，防止拖动时对话框消失
+        e.stopPropagation();
+        e.preventDefault();
         if (!this._canvas || !this._image) return;
 
         const rect = this._canvas.getBoundingClientRect();

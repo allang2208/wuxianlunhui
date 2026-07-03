@@ -19,7 +19,7 @@
 </head>
 <body>
     <!-- ===== 版本号（全局显示） ===== -->
-    <div class="version-badge" id="versionBadge">V0.192</div>
+    <div class="version-badge" id="versionBadge">V0.196</div>
 
     <!-- ===== 游戏容器 ===== -->
     <div id="gameContainer" style="position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #1a1a1a;">
@@ -503,6 +503,13 @@
                     <span class="dev-tool-title">🛠️ 交互开发工具</span>
                     <button class="dev-tool-close" id="devToolClose">✕</button>
                 </div>
+                <!-- Tab 栏 -->
+                <div class="dev-tool-tabs">
+                    <div class="dev-tool-tab active" data-tab="weapon" onclick="DevTool.switchTab('weapon')">武器</div>
+                    <div class="dev-tool-tab" data-tab="ai" onclick="DevTool.switchTab('ai')">AI</div>
+                </div>
+                <!-- Tab 内容：武器 -->
+                <div class="dev-tool-tab-content active" data-tab-content="weapon">
                 <!-- 上方菜单栏 -->
                 <div class="dev-tool-menu">
                     <div class="dev-tool-menu-item">
@@ -594,6 +601,25 @@
                             <div>按 <kbd>R</kbd> 切换旋转/缩放模式</div>
                         </div>
                         <div class="dev-tool-data-output" id="devToolDataOutput" style="display:none;"></div>
+                    </div>
+                </div>
+                </div>
+                <!-- Tab 内容：AI -->
+                <div class="dev-tool-tab-content" data-tab-content="ai" style="display:none;">
+                    <div class="ai-dev-tool">
+                        <div class="ai-dev-tool-header">
+                            <span>当前战术: <span id="aiCurrentTactic">骚扰</span></span>
+                            <span>怪物数量: <span id="aiEnemyCount">0</span></span>
+                        </div>
+                        <div class="ai-dev-tool-monsters" id="aiDevToolMonsterList">
+                            <div class="ai-monster-item">暂无活跃怪物</div>
+                        </div>
+                        <div class="ai-dev-tool-synergies">
+                            <h4>激活的协同</h4>
+                            <div id="aiDevToolSynergyList">
+                                <div class="ai-synergy-item">暂无激活的协同</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

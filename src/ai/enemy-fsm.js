@@ -38,8 +38,8 @@ class PhaseChangeEffect {
         ctx.save();
         // 阶段颜色：愤怒=橙红，狂暴=深红，普通=白色
         let color = '255, 255, 255';
-        if (this.phaseName.includes('愤怒')) color = '255, 120, 60';
-        if (this.phaseName.includes('狂暴')) color = '220, 40, 40';
+        if ((this.phaseName || '').includes('愤怒')) color = '255, 120, 60';
+        if ((this.phaseName || '').includes('狂暴')) color = '220, 40, 40';
 
         ctx.strokeStyle = `rgba(${color}, ${0.8 * (1 - progress)})`;
         ctx.lineWidth = 3;
@@ -60,6 +60,8 @@ class PhaseChangeEffect {
 export class EnemyFSM {
     constructor(config = {}) {
         this.phases = config.phases || [];     // 阶段数组
+        // 按血量阈值降序排序，确保阶段触发顺序正确
+        this.phases.sort((a, b) => b.hpThreshold - a.hpThreshold);
         this.currentPhase = -1;                  // 当前阶段索引（-1表示未初始化）
         this._phaseEffectsApplied = {};         // 记录已应用的阶段效果（避免重复）
     }
@@ -80,12 +82,56 @@ export class EnemyFSM {
      * @param {Enemy} enemy - 敌人实例
      */
     _checkPhaseTransition(enemy) {
+        if (!enemy || enemy.maxHp <= 0) return;
         const hpRatio = enemy.hp / enemy.maxHp;
-        for (let i = this.currentPhase + 1; i < this.phases.length; i++) {
+
+        // 找到当前血量对应的正确阶段（phases已按hpThreshold降序排列）
+        let targetPhase = -1;
+        for (let i = 0; i < this.phases.length; i++) {
             if (hpRatio <= this.phases[i].hpThreshold) {
-                this.currentPhase = i;
-                this._applyPhase(enemy, this.phases[i]);
+                targetPhase = i;
+            } else {
+                break;
             }
+        }
+
+        if (targetPhase !== this.currentPhase) {
+            // 回退旧阶段效果
+            if (this.currentPhase >= 0) {
+                this._revertPhase(enemy, this.phases[this.currentPhase]);
+            }
+            this.currentPhase = targetPhase;
+            // 应用新阶段效果
+            if (this.currentPhase >= 0) {
+                this._applyPhase(enemy, this.phases[this.currentPhase]);
+            }
+        }
+    }
+
+    /**
+     * 回退阶段效果
+     * @param {Enemy} enemy - 敌人实例
+     * @param {object} phase - 阶段配置对象
+     */
+    _revertPhase(enemy, phase) {
+        if (!this._phaseEffectsApplied[phase.name]) return;
+        delete this._phaseEffectsApplied[phase.name];
+
+        // 恢复基础速度
+        if (phase.speedMul && enemy._baseSpeed) {
+            enemy.maxSpeed = enemy._baseSpeed;
+        }
+        // 恢复基础攻击间隔
+        if (phase.attackSpeedMul > 0 && enemy._baseAiInterval) {
+            enemy.aiInterval = enemy._baseAiInterval;
+        }
+        // 恢复基础攻击范围
+        if (phase.attackRangeMul && enemy._baseAttackRange) {
+            enemy.attackRange = enemy._baseAttackRange;
+        }
+        // 移除阶段技能
+        if (phase.newSkill && enemy._phaseSkills) {
+            enemy._phaseSkills.delete(phase.newSkill);
         }
     }
 
@@ -104,7 +150,7 @@ export class EnemyFSM {
             enemy.maxSpeed = enemy._baseSpeed * phase.speedMul;
         }
         // 攻击间隔倍率（攻击速度越快，间隔越短）
-        if (phase.attackSpeedMul && enemy._baseAiInterval) {
+        if (phase.attackSpeedMul > 0 && enemy._baseAiInterval) {
             enemy.aiInterval = enemy._baseAiInterval / phase.attackSpeedMul;
         }
         // 攻击范围倍率
@@ -117,7 +163,7 @@ export class EnemyFSM {
             enemy._phaseSkills.add(phase.newSkill);
         }
         // 视觉提示：触发阶段切换特效
-        if (enemy.onPhaseChange) {
+        if (typeof enemy.onPhaseChange === 'function') {
             enemy.onPhaseChange(phase);
         }
     }

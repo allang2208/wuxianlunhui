@@ -1,4 +1,5 @@
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+import { AIDevTool } from './ai-dev-tool.js';
 
 // 交互式开发工具 - 武器定位与动画调试面板
 const DevTool = {
@@ -6,6 +7,7 @@ const DevTool = {
     _canvas: null,
     _ctx: null,
     _panel: null,
+    _currentTab: 'weapon', // 当前选中的 tab
 
     // 状态
     state: {
@@ -74,6 +76,31 @@ const DevTool = {
         this._bindEvents();
         this._syncInputs();
         this._draw();
+        // 初始化 AI 开发工具
+        AIDevTool.init();
+    },
+
+    // Tab 切换
+    switchTab(tabName) {
+        this._currentTab = tabName;
+        // 更新 tab 按钮状态
+        document.querySelectorAll('.dev-tool-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        // 更新 tab 内容显示
+        document.querySelectorAll('.dev-tool-tab-content').forEach(content => {
+            content.classList.toggle('active', content.dataset.tabContent === tabName);
+        });
+        // 显示/隐藏 AI 开发工具
+        if (tabName === 'ai') {
+            AIDevTool.show();
+        } else {
+            AIDevTool.hide();
+        }
+        // 如果切换回武器 tab，重新绘制 Canvas
+        if (tabName === 'weapon') {
+            this._draw();
+        }
     },
 
     // 加载图片
@@ -806,6 +833,8 @@ const DevTool = {
         if (this._panel) this._panel.classList.add('active');
         const trigger = document.getElementById('devToolTrigger');
         if (trigger) trigger.classList.add('active');
+        // 默认切换到武器 tab
+        this.switchTab('weapon');
         this._draw();
     },
     hide() {
@@ -813,9 +842,30 @@ const DevTool = {
         if (this._panel) this._panel.classList.remove('active');
         const trigger = document.getElementById('devToolTrigger');
         if (trigger) trigger.classList.remove('active');
+        AIDevTool.hide();
     },
     toggle() {
         if (this._active) this.hide(); else this.show();
+    },
+
+    // ===== Tab 切换 =====
+    switchTab(tabName) {
+        // 更新 tab 按钮状态
+        document.querySelectorAll('.dev-tool-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        // 更新 tab 内容显示
+        document.querySelectorAll('.dev-tool-tab-content').forEach(content => {
+            const contentTab = content.dataset.tabContent || content.dataset.tab;
+            content.style.display = contentTab === tabName ? 'flex' : 'none';
+            content.classList.toggle('active', contentTab === tabName);
+        });
+        // 显示/隐藏 AI 开发工具
+        if (tabName === 'ai') {
+            AIDevTool.show();
+        } else {
+            AIDevTool.hide();
+        }
     },
 
     // ===== 坐标工具 =====

@@ -24,8 +24,8 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                         atk = source.data.matk || 0;
                         def = this.data.mdef || 0;
                         // 应用改造魔法防御穿透效果
-                        if (source && source.equipments && source.weaponMode) {
-                            const currentWpn = source.equipments[source.weaponMode];
+                        if (source && source.getCurrentWeapon) {
+                            const currentWpn = source.getCurrentWeapon();
                             if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.magicPenetrationPercent) {
                                 def = Math.floor(def * (1 - currentWpn._craftEffects.magicPenetrationPercent));
                             }
@@ -35,8 +35,8 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                         atk = (damage > 0) ? damage : (source.data.atk || 0);
                         def = this.data.def || 0;
                         // 应用改造穿甲效果（钢芯穿甲弹等）
-                        if (source && source.equipments && source.weaponMode) {
-                            const currentWpn = source.equipments[source.weaponMode];
+                        if (source && source.getCurrentWeapon) {
+                            const currentWpn = source.getCurrentWeapon();
                             if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.armorPenetrationPercent) {
                                 def = Math.floor(def * (1 - currentWpn._craftEffects.armorPenetrationPercent));
                             }
@@ -66,15 +66,15 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     }
                     // 暴击判定（仅用于精通技能经验，不额外应用伤害倍率——调用方已处理）
                     let critRate = source.data.crit || 0;
-                    if (source && source.equipments && source.skills && source.skills.rifleMastery) {
-                        const currentWpn = source.equipments[source.weaponMode];
+                    if (source && source.getCurrentWeapon && source.skills && source.skills.rifleMastery) {
+                        const currentWpn = source.getCurrentWeapon();
                         if (currentWpn && isRifle(currentWpn.weaponType)) {
                             critRate += source.skills.rifleMastery.getEffect(source.skills.rifleMastery.level).critRateBonus;
                         }
                     }
                     // 改造效果：暴击率加成
-                    if (source && source.equipments && source.weaponMode) {
-                        const currentWpn = source.equipments[source.weaponMode];
+                    if (source && source.getCurrentWeapon) {
+                        const currentWpn = source.getCurrentWeapon();
                         if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.critChancePercent) {
                             critRate += currentWpn._craftEffects.critChancePercent * 100;
                         }
@@ -108,8 +108,8 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     this.onDeath(source);
                 }
                 // 武器精通技能经验（使用大类判定）
-                if (source && source.equipments && SkillManager) {
-                    const currentWpn = source.equipments[source.weaponMode];
+                if (source && source.getCurrentWeapon && SkillManager) {
+                    const currentWpn = source.getCurrentWeapon();
                     if (currentWpn) {
                         const wt = currentWpn.weaponType;
                         if (isMachineGun(wt) && (isKill || isCrit)) {

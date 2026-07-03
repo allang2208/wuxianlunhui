@@ -371,6 +371,31 @@
         "maxRange": 1200
       },
       "expFormula": "100 + (level - 1) * 100"
+    },
+    "droneSkill": {
+      "id": "droneSkill",
+      "name": "无人机",
+      "icon": "🚁",
+      "iconImage": "assets/skills/drone_skill.png",
+      "description": "释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加",
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "主动",
+          "type": "active"
+        },
+        {
+          "name": "魔法",
+          "type": "magic"
+        }
+      ],
+      "effectFormula": {
+        "damageBonus": "0.10 + level * 0.02",
+        "cooldown": 20,
+        "mpCost": 50,
+        "duration": "5 + level * 0.5"
+      },
+      "expFormula": "100 + (level - 1) * 100"
     }
   }
 }

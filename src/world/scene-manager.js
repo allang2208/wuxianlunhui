@@ -1,4 +1,6 @@
 import { Portal } from './portal.js';
+import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
+import FormationSystem from '../systems/formation-system.js';
 
 export const SceneManager = {
     currentScene: 'main',
@@ -13,7 +15,7 @@ export const SceneManager = {
             scene2: { name: '雪地', type: 'instance', width: 9000, height: 9000, background: '#b8c0c8', label: '场景二', origin: { x: 4500, y: 4500 } },
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
             scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
-            scene5: { name: 'AI测试场', type: 'instance', width: 1530, height: 760, background: '#3a3a3a', label: '场景五', origin: { x: 765, y: 380 } }
+            scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } }
         };
     },
 
@@ -94,6 +96,8 @@ export const SceneManager = {
             // 清理当前场景
             Game.entities.clear();
             EffectManager.effects = [];
+            // 清除战术小队AI
+            if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
             // 清除 Phaser 层的旧 Sprite
             const phaserScene = window.__phaserScene;
             if (phaserScene && phaserScene.clearAllEntitySprites) {
@@ -661,8 +665,9 @@ export const SceneManager = {
             { x: -10, y: -10, w: 10, h: scene.height + 20 },
             { x: scene.width, y: -10, w: 10, h: scene.height + 20 }
         ];
-        // 添加一些障碍物（方块）
-        for (let i = 0; i < 15; i++) {
+        // 添加一些障碍物（方块），数量随场景面积等比例增加
+        const obstacleCount = Math.floor(15 * (scene.width * scene.height) / (1530 * 760));
+        for (let i = 0; i < obstacleCount; i++) {
             const wx = 200 + Math.random() * (scene.width - 400);
             const wy = 100 + Math.random() * (scene.height - 200);
             const ww = 40 + Math.random() * 80;
@@ -672,8 +677,23 @@ export const SceneManager = {
 
         // 放置玩家
         if (player) {
-            player.x = scene.width / 2;
-            player.y = scene.height / 2;
+            let px = scene.width / 2;
+            let py = scene.height / 2;
+            // 检查玩家位置是否在墙壁内，如果是则重新选择
+            if (typeof WallSystem !== 'undefined' && WallSystem.canMoveTo) {
+                const playerRadius = player.collisionRadius || player.size || 15;
+                let attempts = 0;
+                while (!WallSystem.canMoveTo(px, py, playerRadius) && attempts < 50) {
+                    px = 100 + Math.random() * (scene.width - 200);
+                    py = 100 + Math.random() * (scene.height - 200);
+                    attempts++;
+                }
+                if (attempts >= 50) {
+                    console.warn('[scene5] 无法为玩家找到安全位置，使用默认位置');
+                }
+            }
+            player.x = px;
+            player.y = py;
             Game.entities.set('player', player);
             Camera.follow(player);
         }
@@ -682,26 +702,64 @@ export const SceneManager = {
         const portal = new Portal(scene.width / 2, scene.height - 50, 'main', '返回主神空间');
         Game.entities.set('portal_return', portal);
 
-        // 生成测试怪物
-        const spawnMonster = (Type, count, minDist, maxDist) => {
-            for (let i = 0; i < count; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = minDist + Math.random() * (maxDist - minDist);
-                let mx = scene.width / 2 + Math.cos(angle) * radius;
-                let my = scene.height / 2 + Math.sin(angle) * radius;
-                mx = Math.max(50, Math.min(scene.width - 50, mx));
-                my = Math.max(50, Math.min(scene.height - 50, my));
-                const monster = new Type(mx, my);
-                Game.entities.set(`monster_${Type.name}_${i}`, monster);
+        // 仅生成战术小队，删除其他怪物
+        // ===== 6人战术小队测试生成 =====
+        const spawnTacticalSquad = (centerX, centerY, radius) => {
+            // 先清空旧的战术小队AI成员和FormationSystem编队
+            if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
+            if (typeof FormationSystem !== 'undefined') {
+                FormationSystem.getAllFormationIds().forEach(id => FormationSystem.disbandFormation(id));
+            }
+            const roles = [
+                { Class: Commander, role: 'commander', name: 'commander' },
+                { Class: MachineGunner, role: 'machineGunner', name: 'machineGunner' },
+                { Class: Rifleman, role: 'rifleman', name: 'rifleman' },
+                { Class: FlankRifleman, role: 'flankRifleman', name: 'flankRifleman' },
+                { Class: ShieldBearer, role: 'shieldBearer', name: 'shieldBearer_A' },
+                { Class: ShieldBearer, role: 'shieldBearer', name: 'shieldBearer_B' }
+            ];
+            const members = [];
+            let commander = null;
+            // 以 centerX, centerY 为圆心，radius 为半径环形排列
+            for (let i = 0; i < roles.length; i++) {
+                const angle = (Math.PI * 2 / roles.length) * i;
+                let sx = centerX + Math.cos(angle) * radius;
+                let sy = centerY + Math.sin(angle) * radius;
+
+                // 检查生成位置是否在墙壁内，如果是则重新选择
+                if (typeof WallSystem !== 'undefined' && WallSystem.canMoveTo) {
+                    let attempts = 0;
+                    const checkRadius = 25; // 最小安全半径
+                    while (!WallSystem.canMoveTo(sx, sy, checkRadius) && attempts < 20) {
+                        sx = centerX + (Math.random() - 0.5) * radius * 3;
+                        sy = centerY + (Math.random() - 0.5) * radius * 3;
+                        attempts++;
+                    }
+                    if (attempts >= 20) {
+                        console.warn(`[spawnTacticalSquad] 无法为 ${roles[i].name} 找到安全生成位置，使用默认位置`);
+                    }
+                }
+
+                const member = new roles[i].Class(sx, sy);
+                Game.entities.set(`tactical_squad_${roles[i].name}_${i}`, member);
+                members.push(member);
+                if (roles[i].role === 'commander') commander = member;
+                // 绑定到战术小队AI
+                if (Game._tacticalSquadAI) {
+                    Game._tacticalSquadAI.addMember(member, roles[i].role);
+                }
+            }
+            // 创建阵型编队（指挥官为leader，其他为成员）
+            if (typeof FormationSystem !== 'undefined' && commander && members.length > 1) {
+                const followers = members.filter(m => m !== commander);
+                const fid = FormationSystem.createFormation(commander, 'wedge', followers);
+                if (fid) {
+                    FormationSystem.setTargetPosition(fid, centerX, centerY);
+                }
             }
         };
-
-        spawnMonster(BlackWolf, 5, 200, 400);
-        spawnMonster(WolfSpider, 2, 150, 350);
-        spawnMonster(SkeletonWarrior, 3, 200, 400);
-        spawnMonster(SkeletonArcher, 2, 200, 400);
-        spawnMonster(BroodmotherSpider, 1, 300, 500);
-        spawnMonster(BabySpider, 3, 100, 250);
+        // 在场景五右上角生成战术小队（与原有怪物错开位置）
+        spawnTacticalSquad(scene.width * 0.75, scene.height * 0.25, 80);
 
         if (player) QuickBar.refreshSpecialAttack(player);
     }

@@ -37,7 +37,7 @@ export class SynergySystem {
 
     // 检查规则是否满足
     _checkRule(rule, enemies) {
-        const matched = enemies.filter(e => rule.types.includes(e.constructor.name));
+        const matched = enemies.filter(e => rule.types.includes(e.type));
         if (matched.length < rule.count) return [];
 
         // 检查是否在协同范围内
@@ -59,7 +59,55 @@ export class SynergySystem {
 
     // 应用协同效果
     _applySynergy(rule, affected) {
-        if (this.activeSynergies.has(rule.id)) return; // 已激活
+        if (this.activeSynergies.has(rule.id)) {
+            const existing = this.activeSynergies.get(rule.id);
+            const oldAffected = existing.affected;
+            const added = affected.filter(e => !oldAffected.includes(e));
+            const removed = oldAffected.filter(e => !affected.includes(e));
+            if (added.length === 0 && removed.length === 0) return;
+            existing.affected = affected;
+
+            for (const enemy of added) {
+                enemy._synergyEffects = enemy._synergyEffects || {};
+                enemy._synergyEffects[rule.id] = rule.effects;
+
+                if (rule.effects.speedMul) {
+                    enemy._baseSpeed = enemy._baseSpeed || enemy.maxSpeed;
+                    enemy.maxSpeed = enemy._baseSpeed * rule.effects.speedMul;
+                }
+                if (rule.effects.damageMul) {
+                    enemy._synergyDamageMul = rule.effects.damageMul;
+                }
+                if (rule.effects.bleedChance) {
+                    enemy._synergyBleedChance = rule.effects.bleedChance;
+                }
+                if (rule.effects.poisonChance) {
+                    enemy._synergyPoisonChance = rule.effects.poisonChance;
+                    enemy._synergyPoisonStacks = rule.effects.poisonStacks ?? 1;
+                }
+            }
+
+            for (const enemy of removed) {
+                if (enemy._synergyEffects && enemy._synergyEffects[rule.id]) {
+                    if (enemy._synergyEffects[rule.id].speedMul) {
+                        enemy.maxSpeed = enemy._baseSpeed || enemy.maxSpeed;
+                    }
+                    if (enemy._synergyEffects[rule.id].poisonChance) {
+                        delete enemy._synergyPoisonChance;
+                        delete enemy._synergyPoisonStacks;
+                    }
+                    if (enemy._synergyEffects[rule.id].damageMul) {
+                        delete enemy._synergyDamageMul;
+                    }
+                    if (enemy._synergyEffects[rule.id].bleedChance) {
+                        delete enemy._synergyBleedChance;
+                    }
+                    delete enemy._synergyEffects[rule.id];
+                }
+            }
+
+            return;
+        }
 
         this.activeSynergies.set(rule.id, { rule, affected, appliedAt: Date.now() });
 
@@ -69,7 +117,8 @@ export class SynergySystem {
 
             // 应用效果
             if (rule.effects.speedMul) {
-                enemy.maxSpeed = (enemy._baseSpeed || enemy.maxSpeed) * rule.effects.speedMul;
+                enemy._baseSpeed = enemy._baseSpeed || enemy.maxSpeed;
+                enemy.maxSpeed = enemy._baseSpeed * rule.effects.speedMul;
             }
             if (rule.effects.damageMul) {
                 // 标记，在攻击时读取
@@ -77,6 +126,11 @@ export class SynergySystem {
             }
             if (rule.effects.bleedChance) {
                 enemy._synergyBleedChance = rule.effects.bleedChance;
+            }
+            // 新增：中毒效果支持
+            if (rule.effects.poisonChance) {
+                enemy._synergyPoisonChance = rule.effects.poisonChance;
+                enemy._synergyPoisonStacks = rule.effects.poisonStacks ?? 1;
             }
         }
 
@@ -92,6 +146,19 @@ export class SynergySystem {
                 // 恢复速度
                 if (enemy._synergyEffects[ruleId].speedMul) {
                     enemy.maxSpeed = enemy._baseSpeed || enemy.maxSpeed;
+                }
+                // 移除中毒效果
+                if (enemy._synergyEffects[ruleId].poisonChance) {
+                    delete enemy._synergyPoisonChance;
+                    delete enemy._synergyPoisonStacks;
+                }
+                // 移除伤害倍率
+                if (enemy._synergyEffects[ruleId].damageMul) {
+                    delete enemy._synergyDamageMul;
+                }
+                // 移除流血效果
+                if (enemy._synergyEffects[ruleId].bleedChance) {
+                    delete enemy._synergyBleedChance;
                 }
                 delete enemy._synergyEffects[ruleId];
             }
@@ -134,5 +201,32 @@ export const DEFAULT_SYNERGY_RULES = [
         count: 2,
         radius: 200,
         effects: { speedMul: 1.1 }
+    },
+    // 新增规则：毒性瘴气
+    {
+        id: 'toxicMiasma',
+        name: '毒性瘴气',
+        types: ['WolfSpider', 'BlackWolf'],
+        count: 2,
+        radius: 200,
+        effects: { poisonChance: 0.3, poisonStacks: 1 }
+    },
+    // 新增规则：育母召唤
+    {
+        id: 'broodmotherCall',
+        name: '育母召唤',
+        types: ['BroodmotherSpider', 'BabySpider'],
+        count: 2,
+        radius: 250,
+        effects: { damageMul: 1.15, speedMul: 1.1 }
+    },
+    // 新增规则：亡灵军团
+    {
+        id: 'undeadLegion',
+        name: '亡灵军团',
+        types: ['SkeletonWarrior', 'SkeletonArcher', 'Necromancer'],
+        count: 3,
+        radius: 300,
+        effects: { speedMul: 1.15, damageMul: 1.1 }
     }
 ];

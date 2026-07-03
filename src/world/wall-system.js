@@ -39,6 +39,8 @@ const WallSystem = {
             phaserScene.walls.add(wall);
         }
         console.log('[WallSystem] Synced', this.walls.length, 'walls to Phaser');
+        // 重新同步树木碰撞体
+        this._syncTreesToPhaser();
         // 设置碰撞关系
         phaserScene.setupColliders();
     },
@@ -53,6 +55,7 @@ const WallSystem = {
             const tree = phaserScene.add.circle(t.x, t.y, t.radius, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
+            t.phaserSprite = tree;
         }
         console.log('[WallSystem] Synced', this.trees.length, 'trees to Phaser');
     },
@@ -110,13 +113,15 @@ const WallSystem = {
         return false;
     },
     addTree(x, y, radius, treeType, imagePath, sceneGroup = 'normal', rotation = 0) {
-        this.trees.push({ x, y, radius, type: treeType || 0, image: imagePath || null, sceneGroup: sceneGroup || 'normal', rotation: rotation || 0 });
+        const treeData = { x, y, radius, type: treeType || 0, image: imagePath || null, sceneGroup: sceneGroup || 'normal', rotation: rotation || 0 };
+        this.trees.push(treeData);
         // ===== Phaser 树木同步（单个添加）=====
         const phaserScene = window.__phaserScene;
         if (phaserScene) {
             const tree = phaserScene.add.circle(x, y, radius, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
+            treeData.phaserSprite = tree;
         }
     },
     /**
@@ -133,17 +138,12 @@ const WallSystem = {
             const dx = t.x - cx;
             const dy = t.y - cy;
             if (Math.sqrt(dx * dx + dy * dy) <= radius) {
+                if (t.phaserSprite) {
+                    t.phaserSprite.destroy();
+                }
                 this.trees.splice(i, 1);
                 removed++;
             }
-        }
-        // Phaser 同步：重新同步所有树木（简单粗暴但有效）
-        const phaserScene = window.__phaserScene;
-        if (phaserScene && phaserScene.walls) {
-            // 清除 Phaser 中的圆形树木碰撞体（需要区分墙壁和树木）
-            // 由于树木是圆形，墙壁是矩形，我们可以根据形状来区分
-            // 但更简单的方式是重新 init 整个 walls
-            // 这里我们只移除 trees 数组中的数据，Phaser 碰撞体在场景切换时会重新初始化
         }
         return removed;
     },

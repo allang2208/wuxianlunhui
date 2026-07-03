@@ -281,6 +281,16 @@ class HitDetector {
         
         for (const edge of edges) {
             const hit = this.lineToHex(edge.x1, edge.y1, edge.x2, edge.y2, hexHitbox);
+            if (hit) {
+                const dx = hit.x - cx, dy = hit.y - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < bestScore) {
+                    bestScore = dist;
+                    bestHit = { x: hit.x, y: hit.y, index: hit.vertexIndex };
+                }
+            }
+        }
+            const hit = this.lineToHex(edge.x1, edge.y1, edge.x2, edge.y2, hexHitbox);
             if (hit && hit.distance < bestScore) {
                 bestScore = hit.distance;
                 bestHit = { x: hit.x, y: hit.y, index: hit.vertexIndex };

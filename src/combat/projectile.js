@@ -1,11 +1,12 @@
 import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
 
         class Projectile {
-            constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', noRender = false, isGreen = false) {
+            constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', noRender = false, isGreen = false, isSpit = false) {
                 this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
                 this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
                 this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;
                 this.isTracer = isTracer; // 是否为曳光弹（G18手枪）
+                this.isSpit = isSpit || false; // 是否为毒液投射物（SpitterZombie）
                 this.isGold = isGold; // 是否为亮金色曳光弹（PKM）
                 this.isDarkGold = isDarkGold; // 是否为深黄色曳光弹（沙漠之鹰）
                 this.isGreen = isGreen; // 是否为亮绿色曳光弹（能量轻机枪）
@@ -22,6 +23,12 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                 if (typeof WallSystem !== 'undefined' && WallSystem.blocked && WallSystem.blocked(prevX, prevY, this.x, this.y)) {
                     this.active = false; return;
                 }
+                // 清理已失效目标的命中记录
+                for (const target of Array.from(this.hitTargets)) {
+                    if (!target.active) {
+                        this.hitTargets.delete(target);
+                    }
+                }
                 // 实体碰撞检测（this.entities 是 Map，需遍历 .values()）
                 const entityList = Array.from(this.entities.values());
                 for (const entity of entityList) {
@@ -32,13 +39,13 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                         const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
                         entity.takeDamage(damage, this.source, this.damageType);
                         // 通用附魔命中效果（支持远程武器如S12K的狼蛛附魔）
-                        if (this.source && this.source.equipments && this.source.weaponMode) {
-                            const weapon = this.source.equipments[this.source.weaponMode];
+                        if (this.source) {
+                            const weapon = this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null);
                             applyEnchantOnHit(weapon, entity, this.source);
                         }
-                        if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
+                        if (this.piercing) { this.piercing--; if (this.piercing < 0) this.active = false; }
                         else { this.active = false; }
-                        return;
+                        if (!this.active) return;
                     }
                 }
             }
@@ -172,4 +179,3 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
         }
 
 export { Projectile };
-

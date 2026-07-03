@@ -25,7 +25,7 @@ const ENEMY_DATA = {
     },
     fatZombie: {
         name: "胖子僵尸", type: "首领", category: "monster",
-        color: "#6a4a2a", size: 22,
+        color: "#6a4a2a", size: 36,
         hp: 200, maxHp: 200,
         def: 25, speed: 18.72,
         attackRange: 90, attackCooldown: 1200,
@@ -143,7 +143,7 @@ const ENEMY_DATA = {
         color: "#3a2a5a", size: 22,
         hp: 175, maxHp: 175,
         def: 23, speed: 31.2,
-        attackRange: 95, attackCooldown: 1000,
+        attackRange: 350, attackCooldown: 1000,
         attackType: "黑暗魔法", knockback: 26,
         level: 8, rank: "elite",
         str: 45, dex: 50, con: 45, int: 5, wis: 8, luck: 4,

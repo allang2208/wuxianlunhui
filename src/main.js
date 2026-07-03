@@ -17,6 +17,12 @@ async function initModules() {
         window.ENEMY_DATA = data.enemies;
     }
 
+    // 加载战术小队配置
+    const squadConfig = await DataLoader.loadJSON('/data/humanoid-squad-config.json');
+    if (squadConfig) {
+        window.HUMANOID_SQUAD_CONFIG = squadConfig;
+    }
+
     // 挂载到全局（保持与原 legacy.js 相同的运行时行为）
     // A. Config & Utils
     window.CONFIG = CONFIG;
@@ -106,6 +112,12 @@ async function initModules() {
     window.Necromancer = Necromancer;
     window.DeathKnight = DeathKnight;
     window.BigBoss = BigBoss;
+    window.HumanoidMonster = HumanoidMonster;
+    window.Commander = Commander;
+    window.MachineGunner = MachineGunner;
+    window.Rifleman = Rifleman;
+    window.FlankRifleman = FlankRifleman;
+    window.ShieldBearer = ShieldBearer;
     window.ENEMY_DATA = ENEMY_DATA;
     window.DropItem = DropItem;
     window.NPC = NPC;
@@ -132,6 +144,7 @@ async function initModules() {
 
     // AI
     window.pathFinder = pathFinder;
+    window.TacticalSquadAI = TacticalSquadAI;
 
     // G. Core Systems
     window.EventBus = EventBus;
@@ -238,6 +251,8 @@ import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { pathFinder } from './ai/pathfinder.js';
 import { Zombie, RunnerZombie, FatZombie, SpitterZombie, BlackWolf, BabySpider, Spider, WolfSpider, BroodmotherSpider, SkeletonWarrior, SkeletonArcher, SkeletonDog, Necromancer, DeathKnight, BigBoss } from './entities/enemy-types.js';
+import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './entities/humanoid-monster.js';
+import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { ENEMY_DATA } from './entities/enemy-data.js';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';

@@ -1,4 +1,4 @@
-import { DamageableEntity } from './damageable-entity.js';
+import { Combatant } from './combatant.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
@@ -6,7 +6,7 @@ import { Renderer } from '../world/renderer.js';
 import { EnemyFSM, PhaseChangeEffect } from '../ai/enemy-fsm.js';
 import aiConfigData from '../../data/ai-config.json';
 
-        class Enemy extends DamageableEntity {
+        class Enemy extends Combatant {
             constructor(x, y, config = {}) {
                 super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: 12, name: config.name || '测试敌人' });
                 this.id = config.id || this.name;
@@ -17,13 +17,12 @@ import aiConfigData from '../../data/ai-config.json';
                 this.attacks = { melee: new ThrustAttack({ cooldown: 600, range: 80, width: 20, damage: { min: 8, max: 15 }, knockback: 15 }) };
                 this.weaponMode = 'melee';
                 this.level = config.level || 1;
-                // 新增：6维基础属性
-                this.data = {
+                // 新增：6维基础属性（合并到 Combatant 已创建的 this.data）
+                Object.assign(this.data, {
                     str: config.str || 10, dex: config.dex || 10, int: config.int || 10,
                     con: config.con || 10, wis: config.wis || 10, luck: config.luck || 10,
-                    atk: 0, def: 0, matk: 0, mdef: 0, hit: 0, dodge: 0, crit: 0, critRes: 0, aspd: 0,
-                    stamina: 9999, maxStamina: 9999, name: this.name, kills: 0
-                };
+                    stamina: 9999, maxStamina: 9999, kills: 0
+                });
                 this.calculateCombatStats();
                 this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
@@ -334,6 +333,16 @@ import aiConfigData from '../../data/ai-config.json';
                     this.vx = 0; this.vy = 0;
                     this.isMoving = false;
                     return;
+                }
+                // 战术目标覆盖：阵型位置 / 特殊行为（规避、侧翼）
+                if (this._specialTacticalTarget) {
+                    dx = this._specialTacticalTarget.x - this.x;
+                    dy = this._specialTacticalTarget.y - this.y;
+                    dist = Math.sqrt(dx * dx + dy * dy);
+                } else if (this._tacticalTarget) {
+                    dx = this._tacticalTarget.x - this.x;
+                    dy = this._tacticalTarget.y - this.y;
+                    dist = Math.sqrt(dx * dx + dy * dy);
                 }
                 // 检测是否被卡住（500ms内位置几乎不变）
                 this._stuckTimer += 16.67; // 约一帧的时间

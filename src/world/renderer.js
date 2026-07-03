@@ -156,9 +156,10 @@ const Renderer = {
                     }
                 }
                 // 绘制其他实体（怪物、传送门等）
-                if (Game.entities) {
+                if (Game.entities && typeof Game.entities.forEach === 'function') {
                     Game.entities.forEach(e => {
-                        if (!e.active || e === Game.player) return;
+                        if (!e || e === Game.player || !e.active) return;
+                        if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
                         const ex = mx + e.x * scale;
                         const ey = my + e.y * scale;
                         if (e.targetScene) { // 传送门
@@ -169,10 +170,10 @@ const Renderer = {
                             ctx.font = 'bold 10px sans-serif';
                             ctx.textAlign = 'center';
                             ctx.fillText('❌', ex, ey + 3);
-                        } else if (e instanceof Enemy) { // 怪物
+                        } else if (e._faction === 'enemy') { // 怪物
                             ctx.fillStyle = '#ff4444';
                             ctx.beginPath(); ctx.arc(ex, ey, 1.5, 0, Math.PI * 2); ctx.fill();
-                        } else if (e instanceof DropItem) { // 掉落物
+                        } else if (e.itemData) { // 掉落物
                             ctx.fillStyle = '#ffd700';
                             ctx.beginPath(); ctx.arc(ex, ey, 1, 0, Math.PI * 2); ctx.fill();
                         }
