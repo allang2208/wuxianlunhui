@@ -347,7 +347,7 @@ const NPCDialogue = {
             if (dialogueText) dialogueText.textContent = '';
             return;
         }
-        QuestState.startQuest('snow_field', 'quest');
+        QuestState.startQuest(quest.scene, 'quest');
     },
 
     // 选择商店

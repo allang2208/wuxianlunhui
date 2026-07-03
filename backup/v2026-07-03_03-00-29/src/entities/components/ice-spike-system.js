@@ -8,10 +8,8 @@ export class IceSpikeSystem {
         if (this.player._iceSpikeSpikes && this.player._iceSpikeSpikes.some(s => s.flyActive)) {
             return;
         }
-        console.log('[IceSpike] trigger called, active:', this.player._iceSpikeActive, 'cooldown:', this.player._iceSpikeCooldown, 'mp:', this.player.data.mp);
         // 如果已有悬浮冰锥，发射它们
         if (this.player._iceSpikeActive && this.player._iceSpikeSpikes && this.player._iceSpikeSpikes.some(s => s.active && !s.launched)) {
-            console.log('[IceSpike] launching existing spikes');
             this._launchAll();
             return;
         }
@@ -62,9 +60,8 @@ export class IceSpikeSystem {
         // 加载冰锥贴图
         if (!this.player._iceSpikeImg || this.player._iceSpikeImg.naturalWidth === 0) {
             this.player._iceSpikeImg = new Image();
-            this.player._iceSpikeImg.src = 'assets/skills/icearrow.png';
+            this.player._iceSpikeImg.src = 'assets/skills/Icearrow-skill.png';
         }
-        console.log('[IceSpike] _spawnSpikes called, count:', count, 'spikes:', this.player._iceSpikeSpikes.length, 'active:', this.player._iceSpikeActive);
         EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 40, `❄ 冰锥凝聚 x${count}`, '#5a8aaa'));
     }
 

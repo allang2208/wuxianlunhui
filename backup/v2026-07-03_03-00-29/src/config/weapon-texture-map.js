@@ -47,5 +47,6 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_super90', path: 'assets/weapons/M4s90_equip.png' },
         { key: 'weapon_saiga12k', path: 'assets/weapons/S12k-equip.png' },
         { key: 'weapon_bow', path: 'assets/weapons/trainingBOW.png' },
+        { key: 'weapon_shield', path: 'assets/weapons/woodshied-equip.png' },
     ];
 }

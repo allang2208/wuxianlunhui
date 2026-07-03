@@ -22,7 +22,7 @@
       "int": 3,
       "wis": 4,
       "luck": 5,
-      "atk": 14
+      "atk": 25
     },
     "runnerZombie": {
       "name": "奔跑僵尸",
@@ -46,7 +46,7 @@
       "int": 3,
       "wis": 3,
       "luck": 4,
-      "atk": 14
+      "atk": 25
     },
     "fatZombie": {
       "name": "胖子僵尸",
@@ -119,7 +119,7 @@
       "int": 2,
       "wis": 2,
       "luck": 4,
-      "atk": 12
+      "atk": 25
     },
     "spider": {
       "name": "普通蜘蛛",
@@ -143,7 +143,7 @@
       "int": 4,
       "wis": 5,
       "luck": 5,
-      "atk": 15
+      "atk": 25
     },
     "wolfSpider": {
       "name": "狼蛛",
@@ -218,7 +218,7 @@
       "int": 4,
       "wis": 4,
       "luck": 6,
-      "atk": 18
+      "atk": 25
     },
     "skeletonWarrior": {
       "name": "骷髅兵",
@@ -242,7 +242,7 @@
       "int": 3,
       "wis": 3,
       "luck": 4,
-      "atk": 17
+      "atk": 25
     },
     "skeletonArcher": {
       "name": "骷髅射手",
@@ -266,7 +266,7 @@
       "int": 15,
       "wis": 10,
       "luck": 6,
-      "atk": 22,
+      "atk": 25,
       "piercing": false
     },
     "skeletonDog": {
@@ -291,7 +291,7 @@
       "int": 5,
       "wis": 5,
       "luck": 6,
-      "atk": 19
+      "atk": 25
     },
     "necromancer": {
       "name": "亡灵法师",

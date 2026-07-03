@@ -511,6 +511,7 @@ import { ShieldSystem } from './components/shield-system.js';
                                 id: id,
                                 name: data.name || id,
                                 icon: data.icon || '✦',
+                                iconImage: data.iconImage || '',
                                 description: data.description || '',
                                 level: 1,
                                 maxLevel: data.maxLevel || 20,

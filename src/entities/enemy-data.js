@@ -10,7 +10,7 @@ const ENEMY_DATA = {
         attackType: "近战突刺", knockback: 10,
         level: 3, rank: "normal",
         str: 10, dex: 15, con: 15, int: 3, wis: 4, luck: 5,
-        atk: 14
+        atk: 25
     },
     runnerZombie: {
         name: "奔跑僵尸", type: "普通", category: "monster",
@@ -21,7 +21,7 @@ const ENEMY_DATA = {
         attackType: "快速撕咬", knockback: 8,
         level: 4, rank: "normal",
         str: 15, dex: 30, con: 15, int: 3, wis: 3, luck: 4,
-        atk: 14
+        atk: 25
     },
     fatZombie: {
         name: "胖子僵尸", type: "首领", category: "monster",
@@ -55,7 +55,7 @@ const ENEMY_DATA = {
         attackType: "撕咬", knockback: 8,
         level: 2, rank: "minor",
         str: 5, dex: 8, con: 5, int: 2, wis: 2, luck: 4,
-        atk: 12
+        atk: 25
     },
     spider: {
         name: "普通蜘蛛", type: "普通", category: "monster",
@@ -66,7 +66,7 @@ const ENEMY_DATA = {
         attackType: "撕咬", knockback: 10,
         level: 5, rank: "normal",
         str: 20, dex: 40, con: 22, int: 4, wis: 5, luck: 5,
-        atk: 15
+        atk: 25
     },
     wolfSpider: {
         name: "狼蛛", type: "精英", category: "monster",
@@ -102,7 +102,7 @@ const ENEMY_DATA = {
         attackType: "撕咬", knockback: 13,
         level: 4, rank: "normal",
         str: 16, dex: 28, con: 18, int: 4, wis: 4, luck: 6,
-        atk: 18
+        atk: 25
     },
     skeletonWarrior: {
         name: "骷髅兵", type: "次级", category: "monster",
@@ -113,7 +113,7 @@ const ENEMY_DATA = {
         attackType: "近战突刺", knockback: 15,
         level: 3, rank: "minor",
         str: 10, dex: 18, con: 15, int: 3, wis: 3, luck: 4,
-        atk: 17
+        atk: 25
     },
     skeletonArcher: {
         name: "骷髅射手", type: "普通", category: "monster",
@@ -124,7 +124,7 @@ const ENEMY_DATA = {
         attackType: "骨箭射击", knockback: 0,
         level: 5, rank: "normal",
         str: 20, dex: 38, con: 18, int: 15, wis: 10, luck: 6,
-        atk: 22
+        atk: 25
         ,piercing: false
     },
     skeletonDog: {
@@ -136,7 +136,7 @@ const ENEMY_DATA = {
         attackType: "撕咬", knockback: 19,
         level: 6, rank: "normal",
         str: 30, dex: 48, con: 26, int: 5, wis: 5, luck: 6,
-        atk: 19
+        atk: 25
     },
     necromancer: {
         name: "亡灵法师", type: "精英", category: "monster",
