@@ -1,43 +1,42 @@
-# Plan: 夜与火之剑特殊攻击系统
+# Plan: 3 Major Tasks
 
-## 分析完成
-- 单文件架构 legacy.js (~5900行)
-- 武器数据在 ItemDatabase (line 3430)
-- 攻击输入在 Player.update (line 2018)
-- 快捷栏在 QuickBar (line 3275) + QUICK_BAR_CONFIG (line 5168)
-- 特效通过 EffectManager 管理 (line 308)
-- 装备/卸下在 EquipManager (line 3540)
-- 冷却遮罩在 QuickBar._renderCooldownOverlays (line 3366)
+## Task 1: 任务栏从右方弹出动画
+- **Goal**: 参考其他UI栏位（技能栏、背包栏等）的弹出/关闭动画，将任务栏改为从右方弹出
+- **Files to explore**: 
+  - `src/ui/system-ui.js` — 各栏位的打开/关闭动画
+  - `src/ui/skill-manager.js` — 技能栏动画参考
+  - `game-style.css` — 各栏位的CSS样式和动画
+  - `index.html` — 任务栏DOM结构
+- **Implementation**: 复制其他栏位的动画模式，应用到任务栏
 
-## 阶段
+## Task 2: 任务系统调整
+- **Goal**: 
+  1. 接受任务后不传送，仅接受任务
+  2. 雪地场景调查时空裂隙时间为10秒
+- **Files to explore**:
+  - `src/ui/quest-system.js` or quest-related files
+  - `src/world/scene-manager.js` — 场景切换
+  - `src/world/rift-system.js` — 时空裂隙系统
+  - `src/game.js` — 任务模式场景切换
+- **Implementation**: 移除传送逻辑，添加10秒计时器
 
-### Stage 1 — 武器数据定义
-- 在 ItemDatabase.items 中添加 `night_flame_sword` (weapon5)
-- 攻击力公式：60 + 力量×1.5 + 敏捷×1.25
-- 攻击间隔 450ms，参考 weapon1 的其他参数
+## Task 3: NPC对话系统改造
+- **Goal**: 
+  1. 选项移到底端，统一对话框格式
+  2. 互相对话模式（玩家说话时隐藏NPC立绘，NPC说话时显示）
+  3. 单击快速显示整段对话，再单击跳到下一句
+  4. 生成指定的对话内容
+- **Files to explore**:
+  - `src/ui/npc-dialogue.js` — 对话系统核心
+  - `game-style.css` — 对话框样式
+  - `index.html` — 对话框DOM结构
+- **Implementation**: 重写对话系统核心逻辑
 
-### Stage 2 — 攻击力公式联动
-- ThrustAttack 伤害计算 (line 942)：添加 weapon5 分支
-- EquipPanel 公式显示 (line 4133, 4348, 4945)：添加 weapon5 公式
+## Stage 1: Research (parallel explore)
+- 3 explore agents for each task
 
-### Stage 3 — 特殊攻击系统
-- Player 构造函数添加 `_specialAttack` 状态
-- 右键攻击输入处理：检测 weapon5 装备 + 右键按下 → 触发光柱
-- 光柱特效类：3秒持续，深蓝+淡黄色粒子，向鼠标方向
-- 持续伤害判定：30×700 矩形，每200ms造成武器伤害×0.25
-- 10秒冷却
+## Stage 2: Implementation (parallel coder)
+- 3 coder agents with research findings
 
-### Stage 4 — 装备/卸下绑定
-- EquipManager 装备 weapon5 时初始化特殊攻击图标
-- 卸下 weapon5 时清除特殊攻击图标和状态
-- Player 切换武器栏时同步更新
-
-### Stage 5 — 快捷栏特殊攻击图标
-- 在 QUICK_BAR_CONFIG 添加特殊攻击槽位（skillGroup 右侧或 itemGroup 右侧）
-- QuickBar 中添加特殊攻击冷却管理（独立冷却系统）
-- 冷却遮罩展示
-
-### Stage 6 — 验证测试
-- 检查所有 weapon5 相关分支
-- 检查特殊攻击动画和伤害
-- 检查冷却展示
+## Stage 3: Dialogue Content Integration
+- 将对话内容集成到NPC对话系统中

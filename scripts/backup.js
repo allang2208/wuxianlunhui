@@ -55,3 +55,21 @@ fs.writeFileSync(metaPath, JSON.stringify({
 }, null, 2));
 
 console.log(`[Backup] 完成: ${backupDir}`);
+
+// 保留最新3个版本，删除旧版本
+const backupRoot = path.join(process.cwd(), 'backup');
+if (fs.existsSync(backupRoot)) {
+    const dirs = fs.readdirSync(backupRoot)
+        .filter(d => d.startsWith('v'))
+        .map(d => ({ name: d, path: path.join(backupRoot, d), mtime: fs.statSync(path.join(backupRoot, d)).mtimeMs }))
+        .sort((a, b) => b.mtime - a.mtime);
+    
+    if (dirs.length > 3) {
+        const toDelete = dirs.slice(3);
+        for (const d of toDelete) {
+            fs.rmSync(d.path, { recursive: true, force: true });
+            console.log(`[Backup] 删除旧版本: ${d.name}`);
+        }
+    }
+    console.log(`[Backup] 当前保留 ${Math.min(dirs.length, 3)} 个版本`);
+}

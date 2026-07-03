@@ -1,0 +1,9 @@
+{
+  "frameWidth": 480,
+  "frameHeight": 480,
+  "totalFrames": 73,
+  "cols": 9,
+  "rows": 9,
+  "frameDuration": 100,
+  "loop": true
+}

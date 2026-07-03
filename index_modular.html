@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无限轮回 - v0.005</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="menuLayer">
+        <div class="menu-title">无限轮回</div>
+        <div class="menu-sub">想明白生命的意义吗？想真正的活着吗？</div>
+        <button class="menu-btn" onclick="Game.start()">▶ 开始游戏</button>
+        <button class="menu-btn" onclick="Game.load()">💾 读取存档</button>
+        <button class="menu-btn" onclick="Game.exit()">✕ 退出游戏</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="uiLayer">
+        <div class="panel-overlay" id="panelOverlay" onclick="SystemUI.close()"></div>
+
+        <div class="equip-tooltip" id="equipTooltip">
+            <div class="tt-name" id="ttName"></div>
+            <div class="tt-type" id="ttType"></div>
+            <div id="ttStats"></div>
+            <div class="tt-desc" id="ttDesc"></div>
+        </div>
+
+        <div class="top-bar">
+            <div class="top-item"><div class="label">轮回者</div><div class="value" id="uiName">未命名</div></div>
+            <div class="top-item"><div class="label">等级</div><div class="value" id="uiLevel">1</div></div>
+            <div class="top-item"><div class="label">职业</div><div class="value" id="uiClass">初心者</div></div>
+            <div class="top-item bar"><div class="label">HP</div><div class="top-bar-track"><div class="top-bar-fill hp" id="topBarHp" style="width: 100%"></div></div><div class="top-bar-value" id="topValHp">100/100</div></div>
+            <div class="top-item bar"><div class="label">MP</div><div class="top-bar-track"><div class="top-bar-fill mp" id="topBarMp" style="width: 100%"></div></div><div class="top-bar-value" id="topValMp">100/100</div></div>
+            <div class="top-item"><div class="label">坐标</div><div class="value" id="uiPos">0, 0</div></div>
+            <div class="top-item"><div class="label">击杀</div><div class="value" id="uiKills">0</div></div>
+        </div>
+
+        <div class="side-menu" id="sideMenu">
+            <div class="side-menu-btn" id="btnStatus" onclick="SystemUI.toggle('status')" title="状态 (I)">📊<span class="key-hint">I</span></div>
+            <div class="side-menu-btn" id="btnEquip" onclick="SystemUI.toggle('equip')" title="装备 (C)">⚔<span class="key-hint">C</span></div>
+            <div class="side-menu-btn" id="btnSkill" onclick="SystemUI.toggle('skill')" title="技能 (K)">✦<span class="key-hint">K</span></div>
+            <div class="side-menu-btn" id="btnInventory" onclick="SystemUI.toggle('inventory')" title="背包 (B)">🎒<span class="key-hint">B</span></div>
+        </div>
+
+        <button class="back-menu-btn" onclick="Game.toMenu()">返回主菜单</button>
+
+        <div class="attack-indicator-left" id="attackIndicator">
+            <div class="attack-cd ready" id="cdAttack">⚔<div class="cd-overlay" id="cdAttackOverlay" style="height: 0%"></div><span class="key-label" id="attackLabel">近战</span></div>
+        </div>
+
+        <div class="controls-hint-left">
+            <div>[WASD] 移动</div>
+            <div>[Shift] 冲刺(8/s)</div>
+            <div>[空格] 闪避(25)</div>
+            <div>[鼠标] 方向</div>
+            <div>[左键] 攻击</div>
+            <div>[F] 切换武器</div>
+            <div>[QER] 技能 [1-4] 道具</div>
+            <div>[I] 状态 [C] 装备</div>
+            <div>[K] 技能 [B] 背包</div>
+            <div>[ESC] 关闭面板</div>
+        </div>
+
+        <div class="system-panel" id="systemPanel">
+            <div class="panel-header"><div class="panel-title" id="panelTitle">角色系统</div><button class="panel-close" onclick="SystemUI.close()">✕</button></div>
+            <div class="panel-tabs">
+                <div class="panel-tab" data-tab="status" onclick="SystemUI.switchTab('status')">📊 状态</div>
+                <div class="panel-tab" data-tab="equip" onclick="SystemUI.switchTab('equip')">⚔ 装备</div>
+                <div class="panel-tab" data-tab="skill" onclick="SystemUI.switchTab('skill')">✦ 技能</div>
+                <div class="panel-tab" data-tab="inventory" onclick="SystemUI.switchTab('inventory')">🎒 背包</div>
+            </div>
+            <div class="panel-content">
+                <!-- 状态页 -->
+                <div class="tab-page active" id="tab-status">
+                    <div class="status-char-layout">
+                        <div class="status-header">
+                            <div class="header-name" id="statusName">轮回者</div>
+                            <div class="header-class" id="statusClass">初心者</div>
+                            <div class="header-level" id="statusLevel">Lv.1</div>
+                        </div>
+                        <div class="status-details">
+                            <div class="status-grid-2">
+                                <div class="status-section">
+                                    <h4>基础属性</h4>
+                                    <div class="attr-list" id="statusAttrs">
+                                        <div class="attr-item"><span class="attr-name">力量</span><span class="attr-val">10</span></div>
+                                        <div class="attr-item"><span class="attr-name">敏捷</span><span class="attr-val">10</span></div>
+                                        <div class="attr-item"><span class="attr-name">体质</span><span class="attr-val">10</span></div>
+                                        <div class="attr-item"><span class="attr-name">智力</span><span class="attr-val">10</span></div>
+                                        <div class="attr-item"><span class="attr-name">精神</span><span class="attr-val">10</span></div>
+                                        <div class="attr-item"><span class="attr-name">幸运</span><span class="attr-val">5</span></div>
+                                    </div>
+                                </div>
+                                <div class="status-section">
+                                    <h4>战斗属性</h4>
+                                    <div class="attr-list" id="combatAttrs">
+                                        <div class="attr-item"><span class="attr-name">物攻</span><span class="attr-val">12-18</span></div>
+                                        <div class="attr-item"><span class="attr-name">魔攻</span><span class="attr-val">5-8</span></div>
+                                        <div class="attr-item"><span class="attr-name">攻速</span><span class="attr-val">1.0</span></div>
+                                        <div class="attr-item"><span class="attr-name">暴击</span><span class="attr-val">5%</span></div>
+                                        <div class="attr-item"><span class="attr-name">命中</span><span class="attr-val">90%</span></div>
+                                        <div class="attr-item"><span class="attr-name">闪避</span><span class="attr-val">5%</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="status-section">
+                                <h4>状态</h4>
+                                <div class="status-bar">
+                                    <span class="bar-label">HP</span>
+                                    <div class="bar-track"><div class="bar-fill hp" id="statusBarHp" style="width: 100%"></div></div>
+                                    <span class="status-value" id="statusValHp">100/100</span>
+                                </div>
+                                <div class="status-bar">
+                                    <span class="bar-label">MP</span>
+                                    <div class="bar-track"><div class="bar-fill mp" id="statusBarMp" style="width: 100%"></div></div>
+                                    <span class="status-value" id="statusValMp">100/100</span>
+                                </div>
+                                <div class="status-bar">
+                                    <span class="bar-label">体力</span>
+                                    <div class="bar-track"><div class="bar-fill stamina" id="statusBarStamina" style="width: 100%"></div></div>
+                                    <span class="status-value" id="statusValStamina">100/100</span>
+                                </div>
+                                <div class="status-bar">
+                                    <span class="bar-label">EXP</span>
+                                    <div class="bar-track"><div class="bar-fill exp" id="statusBarExp" style="width: 0%"></div></div>
+                                    <span class="status-value" id="statusValExp">0/100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 装备页 -->
+                <div class="tab-page" id="tab-equip">
+                    <div class="diablo-equip-layout">
+                        <div class="diablo-paperdoll">
+                            <div class="paperdoll-bg">
+                                <div class="diablo-slot helmet" data-slot="helmet"><div class="slot-icon">⛑</div><div class="slot-name">头盔</div></div>
+                                <div class="diablo-slot necklace" data-slot="necklace"><div class="slot-icon">📿</div><div class="slot-name">项链</div></div>
+                                <div class="diablo-slot weapon-main" data-slot="weapon"><div class="slot-icon">⚔</div><div class="slot-name">主手</div></div>
+                                <div class="diablo-slot armor" data-slot="armor"><div class="slot-icon">🛡</div><div class="slot-name">盔甲</div></div>
+                                <div class="diablo-slot weapon-off" data-slot="offhand"><div class="slot-icon">🛡</div><div class="slot-name">副手</div></div>
+                                <div class="diablo-slot ring-left" data-slot="ring1"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+                                <div class="diablo-slot gloves" data-slot="gloves"><div class="slot-icon">🧤</div><div class="slot-name">手套</div></div>
+                                <div class="diablo-slot ring-right" data-slot="ring2"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+                                <div class="diablo-slot belt" data-slot="belt"><div class="slot-icon">⛓</div><div class="slot-name">腰带</div></div>
+                                <div class="diablo-slot boots" data-slot="boots"><div class="slot-icon">👢</div><div class="slot-name">靴子</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技能页 -->
+                <div class="tab-page" id="tab-skill">
+                    <div class="skill-module-container">
+                        <div class="skill-module-header">
+                            <h3>技能模块</h3>
+                            <div class="skill-module-desc">技能系统将在第二章开放</div>
+                        </div>
+                        <div class="skill-module-grid">
+                            <div class="skill-module-slot">
+                                <div class="skill-slot-icon">⚔</div>
+                                <div class="skill-slot-name">近战精通</div>
+                            </div>
+                            <div class="skill-module-slot">
+                                <div class="skill-slot-icon">🏹</div>
+                                <div class="skill-slot-name">远程精通</div>
+                            </div>
+                            <div class="skill-module-slot">
+                                <div class="skill-slot-icon">✦</div>
+                                <div class="skill-slot-name">魔法精通</div>
+                            </div>
+                        </div>
+                        <div class="skill-module-info">
+                            <h4>可用接口</h4>
+                            <div class="module-interface-list">
+                                <div class="interface-item">被动技能槽 x3</div>
+                                <div class="interface-item">主动技能槽 x4</div>
+                                <div class="interface-item">技能强化 x∞</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 背包页 -->
+                <div class="tab-page" id="tab-inventory">
+                    <div class="diablo-inventory-layout">
+                        <div class="inventory-header">
+                            <h3>背包</h3>
+                            <div class="inventory-capacity" id="invCapacity">2/36</div>
+                        </div>
+                        <div class="inventory-grid" id="inventoryGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="quick-slot-group">
+                <div class="quick-slot" data-key="attack" title="攻击 (左键)" id="quickAttack">⚔<span class="key-hint">左键</span></div>
+                <div class="quick-slot skill" data-key="q" title="技能 Q">?<span class="key-hint">Q</span></div>
+                <div class="quick-slot skill" data-key="e" title="技能 E">?<span class="key-hint">E</span></div>
+                <div class="quick-slot skill" data-key="r" title="技能 R">?<span class="key-hint">R</span></div>
+            </div>
+            <div class="quick-slot-divider"></div>
+            <div class="quick-slot-group">
+                <div class="quick-slot item empty" data-key="1" title="道具 1"><span class="key-hint">1</span></div>
+                <div class="quick-slot item empty" data-key="2" title="道具 2"><span class="key-hint">2</span></div>
+                <div class="quick-slot item empty" data-key="3" title="道具 3"><span class="key-hint">3</span></div>
+                <div class="quick-slot item empty" data-key="4" title="道具 4"><span class="key-hint">4</span></div>
+            </div>
+            <div class="quick-slot-divider"></div>
+            <div class="quick-slot-group">
+                <div class="quick-slot active" data-key="melee" title="近战武器 (F)" id="quickMelee">⚔<span class="key-hint">F</span></div>
+                <div class="quick-slot" data-key="ranged" title="远程武器 (F)" id="quickRanged">🏹<span class="key-hint">F</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="legacy.js"></script>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

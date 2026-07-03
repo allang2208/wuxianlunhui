@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-07-03T02:20:50.206Z",
+  "sources": [
+    "src",
+    "game-style.css",
+    "index.html",
+    "data",
+    "package.json",
+    "vite.config.js",
+    "package-lock.json"
+  ],
+  "copiedFiles": 7
+}

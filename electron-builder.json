@@ -2,7 +2,7 @@
   "appId": "com.yourname.wuxian-lunhui",
   "productName": "无限轮回",
   "directories": {
-    "output": "dist-electron"
+    "output": "dist-electron-new"
   },
   "files": [
     "dist/**/*",
@@ -16,9 +16,12 @@
     }
   ],
   "asar": false,
+  "npmRebuild": false,
+  "nodeGypRebuild": false,
   "win": {
     "target": "portable",
     "icon": "build/app-icon.png",
     "signAndEditExecutable": false
-  }
+  },
+  "electronDist": "node_modules/electron/dist"
 }

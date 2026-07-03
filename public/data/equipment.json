@@ -1,0 +1,1116 @@
+{
+  "equipment": {
+    "rusty_sword": {
+      "weaponId": "weapon1",
+      "name": "生锈的长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/1-rusty_sword_macro.png",
+      "category": "weapon_melee",
+      "rarity": "common",
+      "level": 1,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/1-rusty_sword_euip.png",
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "12-18"
+        },
+        {
+          "name": "暴击率",
+          "value": "+3%",
+          "pos": true
+        }
+      ],
+      "desc": "一把锈迹斑斑的旧剑",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 165,
+        "knockback": 8,
+        "attackInterval": 500,
+        "hitType": "突刺（扇形判定）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "thrust（突刺）",
+        "totalMs": "1100ms (200+500+400)",
+        "windupMs": 200,
+        "swingMs": 500,
+        "recoveryMs": 400,
+        "idleAngle": "0°",
+        "windupAngle": "+30°",
+        "swingAngle": "-30°",
+        "holdOffset": "(30, -19)",
+        "weaponSize": 84,
+        "timingMul": "1.0x (标准)",
+        "description": "三段式突刺动画：预备→前刺→回位。 windup 阶段剑身向后上方扬起，swing 阶段快速向前突刺，recover 阶段回到待机姿态。"
+      }
+    },
+    "rune_sword": {
+      "weaponId": "weapon4",
+      "name": "符文长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/EXsword_icon.png",
+      "category": "weapon_melee",
+      "rarity": "uncommon",
+      "level": 5,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/EXsword_equipped_v2_.png",
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "45-55"
+        },
+        {
+          "name": "暴击率",
+          "value": "+5%",
+          "pos": true
+        }
+      ],
+      "desc": "剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 165,
+        "knockback": 8,
+        "attackInterval": 500,
+        "hitType": "突刺（扇形判定）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "thrust（突刺）",
+        "totalMs": "1100ms (200+500+400)",
+        "windupMs": 200,
+        "swingMs": 500,
+        "recoveryMs": 400,
+        "idleAngle": "0°",
+        "windupAngle": "+30°",
+        "swingAngle": "-30°",
+        "holdOffset": "(30, -19)",
+        "weaponSize": 84,
+        "timingMul": "1.0x (标准)",
+        "description": "三段式突刺动画：预备→前刺→回位。符文长剑的刺击带有符文残影，威力远超凡铁。"
+      }
+    },
+    "night_flame_sword": {
+      "weaponId": "weapon5",
+      "name": "夜与火之剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/Nightandflame_macro.png",
+      "category": "weapon_melee",
+      "rarity": "rare",
+      "level": 10,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/Nightandflame_equip.png",
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "60-75"
+        },
+        {
+          "name": "暴击率",
+          "value": "+5%",
+          "pos": true
+        }
+      ],
+      "desc": "一把在暗夜中燃烧着淡蓝色火焰的传奇之剑，传说中它同时寄宿着夜之力与火之力。持有者可以释放其中的火焰之力，发射毁灭性的光柱。",
+      "equipSlot": "weapon",
+      "specialAttack": {
+        "cooldown": 15,
+        "damageType": "魔法",
+        "damageFormula": "⌊(物理攻击+魔法攻击)×1.2⌋",
+        "damageMul": 0.25,
+        "width": 30,
+        "length": 700,
+        "duration": 3,
+        "tickInterval": 200
+      },
+      "attack": {
+        "range": 165,
+        "knockback": 8,
+        "attackInterval": 500,
+        "hitType": "突刺（扇形判定）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "thrust（突刺）",
+        "totalMs": "1100ms (200+500+400)",
+        "windupMs": 200,
+        "swingMs": 500,
+        "recoveryMs": 400,
+        "idleAngle": "0°",
+        "windupAngle": "+30°",
+        "swingAngle": "-30°",
+        "holdOffset": "(30, -19)",
+        "weaponSize": 84,
+        "timingMul": "1.0x (标准)",
+        "description": "三段式突刺动画：预备→前刺→回位。夜与火之剑的刺击带有淡蓝色火焰轨迹，可释放毁灭性光柱。"
+      }
+    },
+    "knights_sword": {
+      "weaponId": "weapon2",
+      "name": "骑士长剑",
+      "type": "单手剑",
+      "icon": "⚔",
+      "iconImage": "assets/icons/knights_sword_v3_macro.png",
+      "category": "weapon_melee",
+      "rarity": "uncommon",
+      "level": 5,
+      "weaponCategory": "mainhand",
+      "weaponType": "sword",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/knights_sword_v3_equip.png",
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "18-23"
+        }
+      ],
+      "desc": "骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。",
+      "equipSlot": "weapon2",
+      "attack": {
+        "range": 165,
+        "knockback": 8,
+        "attackInterval": 500,
+        "hitType": "突刺（扇形判定）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "thrust（突刺）",
+        "totalMs": "1100ms (200+500+400)",
+        "windupMs": 200,
+        "swingMs": 500,
+        "recoveryMs": 400,
+        "idleAngle": "0°",
+        "windupAngle": "+30°",
+        "swingAngle": "-30°",
+        "holdOffset": "(30, -19)",
+        "weaponSize": 84,
+        "timingMul": "1.0x (标准)",
+        "description": "三段式突刺动画：预备→前刺→回位。骑士长剑的刺击更加有力，攻击间隔较短。"
+      },
+      "skillOverrides": {
+        "dashAttackThrust": {
+          "animation": {
+            "totalMs": 600,
+            "dashDist": 173,
+            "chargeMs": 0,
+            "thrustMs": 600,
+            "recoverMs": 0
+          },
+          "hitCheck": {
+            "shape": "rectangle",
+            "width": 75,
+            "length": 350,
+            "hitArc": 0
+          }
+        }
+      }
+    },
+    "training_bow": {
+      "weaponId": "weapon14",
+      "name": "训练用弓",
+      "type": "弓",
+      "icon": "🏹",
+      "iconImage": "assets/icons/trainingBOW.png",
+      "equipImage": "assets/weapons/trainingBOW.png",
+      "category": "weapon_ranged",
+      "rarity": "common",
+      "level": 1,
+      "isTwoHanded": true,
+      "weaponCategory": "mainhand",
+      "weaponType": "bow",
+      "weaponTypeTag": "远程武器",
+      "weaponAsset": {
+        "framePrefix": "assets/weapons/training_bow_frame_",
+        "frameCount": 9,
+        "framePad": 2,
+        "startFrame": 0
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "50-85"
+        },
+        {
+          "name": "射程",
+          "value": "1500"
+        }
+      ],
+      "desc": "一把适合初学者练习的弓，经过改良后拥有更远的射程和更强的威力。\n攻击前会先将弓旋转14°蓄力，攻击动画结束后箭矢才射出。",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1500,
+        "projectileSpeed": 1872,
+        "knockback": 30,
+        "attackInterval": 1500,
+        "hitType": "箭矢（直线弹道，攻击动画结束后射出）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "frameSequence（帧序列）+ 旋转前摇/后摇",
+        "totalMs": "1500ms (500+800+200)",
+        "rotateMs": 500,
+        "windupMs": 300,
+        "swingMs": 400,
+        "recoverMs": 300,
+        "returnMs": 200,
+        "idleAngle": "0°",
+        "rotateAngle": "-14°（逆时针）",
+        "holdOffset": "(17, 3)",
+        "weaponSize": 105,
+        "timingMul": "动态（攻击动画时长 = 攻击间隔 - 前摇 - 后摇）",
+        "frameCount": 9,
+        "framePrefix": "training_bow_frame_",
+        "soundEffects": {
+          "rotateComplete": "assets/sounds/rope_pull_1s.wav（拉弓音效）",
+          "attackEnd": "assets/sounds/arrow_flyby_1s.mp3（箭矢射出音效）"
+        },
+        "description": "攻击流程：①前摇500ms——弓逆时针旋转14°蓄力，同时播放拉弓音效；②攻击动画约800ms——9帧拉弓序列动画在旋转后的角度播放；③后摇200ms——弓平滑回正到待机角度；④箭矢射出——攻击动画结束后箭矢才射出，同时播放箭矢飞行音效。"
+      }
+    },
+    "old_wooden_shield": {
+      "name": "旧木盾",
+      "type": "副手",
+      "icon": "🛡",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "weaponCategory": "offhand",
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+3",
+          "pos": true
+        }
+      ],
+      "desc": "用木板拼成的盾牌",
+      "equipSlot": "offhand"
+    },
+    "weapon16": {
+      "weaponId": "weapon16",
+      "name": "边境长弓",
+      "type": "弓",
+      "icon": "🏹",
+      "iconImage": "assets/icons/border_bow_icon.png",
+      "equipImage": "assets/weapons/borderbow.png",
+      "dropImage": "assets/items/border_bow_dropped.png",
+      "slotImage": "assets/icons/border_bow_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 10,
+      "isTwoHanded": true,
+      "weaponCategory": "mainhand",
+      "weaponType": "bow",
+      "weaponTypeTag": "远程武器",
+      "weaponAsset": {
+        "framePrefix": "assets/weapons/border_bow_frame_",
+        "frameCount": 10,
+        "framePad": 2,
+        "startFrame": 0
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "60+敏捷×2.5+力量×2"
+        },
+        {
+          "name": "射程",
+          "value": "1500"
+        }
+      ],
+      "desc": "一把来自边境猎人手中的长弓，弓身以秘法加固，拉满时弦上似有风雷之声。蓄力射击可贯穿敌人护甲。",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1500,
+        "projectileSpeed": 1872,
+        "knockback": 30,
+        "attackInterval": 1500,
+        "hitType": "箭矢（直线弹道，攻击动画结束后射出）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "frameSequence（帧序列）+ 旋转前摇/后摇 + 蓄力攻击",
+        "totalMs": "1500ms (500+1000+0)",
+        "rotateMs": 500,
+        "windupMs": 300,
+        "swingMs": 400,
+        "recoverMs": 300,
+        "returnMs": 200,
+        "idleAngle": "0°",
+        "rotateAngle": "-14°（逆时针）",
+        "holdOffset": "(17, 3)",
+        "weaponSize": 105,
+        "timingMul": "动态（攻击动画时长 = 攻击间隔 - 前摇 - 后摇）",
+        "frameCount": 10,
+        "framePrefix": "border_bow_frame_",
+        "soundEffects": {
+          "rotateComplete": "assets/sounds/rope_pull_1s.wav（拉弓音效）",
+          "attackEnd": "assets/sounds/arrow_flyby_1s.mp3（箭矢射出音效）"
+        },
+        "description": "攻击流程：①长按蓄力1.5秒——弓逆时针旋转14°蓄力，同时播放拉弓音效；②蓄力满后人物与武器同步闪过0.5秒白色闪光；③松开鼠标发射——10帧拉弓序列动画在旋转后的角度播放，箭矢射出并播放箭矢飞行音效；④若蓄力未满1.5秒松开，则取消蓄力，不发射箭矢。"
+      },
+      "chargeAttack": {
+        "chargeTime": 1500,
+        "flashDuration": 500
+      }
+    },
+    "small_shield": {
+      "weaponId": "weapon17",
+      "name": "小圆盾",
+      "type": "盾",
+      "icon": "🛡",
+      "iconImage": "assets/icons/woodshied.png",
+      "equipImage": "assets/weapons/woodshied-equip.png",
+      "dropImage": "assets/items/woodshied_dropped.png",
+      "slotImage": "assets/icons/woodshied.png",
+      "category": "weapon_shield",
+      "rarity": "common",
+      "level": 1,
+      "weaponCategory": "offhand",
+      "weaponType": "shield",
+      "weaponTypeTag": "副手武器",
+      "isTwoHanded": false,
+      "weaponAsset": {
+        "image": "assets/weapons/woodshied-equip.png"
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "15"
+        },
+        {
+          "name": "防御减伤",
+          "value": "50%"
+        }
+      ],
+      "desc": "一块用硬木削成的圆盾，虽然简陋，但足以挡住致命的攻击。",
+      "equipSlot": "offhand",
+      "defense": {
+        "base": 15,
+        "perEnhance": 1.5,
+        "damageReduction": 0.5,
+        "staminaCost": 20,
+        "parryWindow": 1000,
+        "parryStun": 1000,
+        "parryKnockback": 100
+      }
+    },
+    "g18_pistol": {
+      "weaponId": "weapon9",
+      "name": "G18",
+      "type": "手枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/G18icon.png",
+      "dropImage": "assets/weapons/G18equip.png",
+      "equipImage": "assets/weapons/G18equip.png",
+      "slotImage": "assets/icons/G18icon.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 5,
+      "weaponCategory": "mainhand",
+      "weaponType": "pistol",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": false,
+      "weaponAsset": {
+        "image": "assets/weapons/G18equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "1-3"
+        },
+        {
+          "name": "射程",
+          "value": "650"
+        }
+      ],
+      "desc": "G18 全自动手枪，1100发/分钟，淡金色曳光弹，可双持",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 650,
+        "knockback": 0,
+        "attackInterval": 55,
+        "hitType": "淡金色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 2028
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "55ms (约)",
+        "windupMs": "≈12",
+        "swingMs": "≈18",
+        "recoveryMs": "≈25",
+        "holdOffset": "(0, 4)",
+        "weaponSize": 84,
+        "timingMul": "0.06x (极速)",
+        "recoilAmount": "0.15rad",
+        "description": "G18 以1100RPM的射速连续射击，单次开火动画仅约55ms。可双持，双持时左右手同时开火。"
+      }
+    },
+    "desert_eagle": {
+      "weaponId": "weapon10",
+      "name": "沙漠之鹰",
+      "type": "手枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/DesertEagle_icon.png",
+      "dropImage": "assets/weapons/DesertEagle_equip.png",
+      "equipImage": "assets/weapons/DesertEagle_equip.png",
+      "slotImage": "assets/icons/DesertEagle_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "epic",
+      "level": 15,
+      "weaponCategory": "mainhand",
+      "weaponType": "pistol",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": false,
+      "weaponAsset": {
+        "image": "assets/weapons/DesertEagle_equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "3-8"
+        },
+        {
+          "name": "射程",
+          "value": "750"
+        }
+      ],
+      "desc": "沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火2秒后计算散布",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 750,
+        "knockback": 10,
+        "attackInterval": 800,
+        "hitType": "深黄色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 3120,
+        "bulletSpeed": 3120
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "800ms (约)",
+        "windupMs": "≈200",
+        "swingMs": "≈300",
+        "recoveryMs": "≈300",
+        "holdOffset": "(0, 4)",
+        "weaponSize": 84,
+        "timingMul": "0.5x (慢速)",
+        "recoilAmount": "0.10rad",
+        "description": "沙漠之鹰以较慢射速开火，单次开火动画约800ms。后坐力抖动幅度较小，与射击频率一致。"
+      }
+    },
+    "p4040": {
+      "weaponId": "weapon18",
+      "name": "P4040",
+      "type": "手枪",
+      "icon": "🔫",
+      "iconImage": "assets/weapons/P4040-icon.png",
+      "dropImage": "assets/weapons/P4040-equip.png",
+      "equipImage": "assets/weapons/P4040-equip.png",
+      "slotImage": "assets/weapons/P4040-icon.png",
+      "category": "weapon_ranged",
+      "rarity": "epic",
+      "level": 15,
+      "weaponCategory": "mainhand",
+      "weaponType": "p4040",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": false,
+      "weaponAsset": {
+        "image": "assets/weapons/P4040-equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "2-4"
+        },
+        {
+          "name": "射程",
+          "value": "750"
+        }
+      ],
+      "desc": "P4040半自动手枪，可双持，精准射击",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 750,
+        "knockback": 2,
+        "attackInterval": 300,
+        "hitType": "子弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 1248,
+        "bulletSpeed": 1248
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "300ms (约)",
+        "windupMs": "≈75",
+        "swingMs": "≈100",
+        "recoveryMs": "≈125",
+        "holdOffset": "(0, 4)",
+        "weaponSize": 84,
+        "timingMul": "0.5x (慢速)",
+        "recoilAmount": "0.08rad",
+        "description": "P4040 以较慢射速开火，单次开火动画约300ms。后坐力抖动幅度较小，与射击频率一致。"
+      }
+    },
+    "pkm": {
+      "weaponId": "weapon6",
+      "name": "PKM",
+      "type": "机枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/pkm_side_clean.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 10,
+      "dropImage": "assets/weapons/pkm_topdown.png",
+      "equipImage": "assets/weapons/pkm_topdown.png",
+      "weaponCategory": "mainhand",
+      "weaponType": "pkm",
+      "weaponTypeTag": "远程武器",
+      "weaponAsset": {
+        "image": "assets/weapons/pkm_topdown.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "10-15"
+        },
+        {
+          "name": "射程",
+          "value": "1200"
+        }
+      ],
+      "desc": "PKM通用机枪，650发/分钟，亮金色曳光弹，火力压制利器",
+      "equipSlot": "weapon2",
+      "attack": {
+        "range": 1200,
+        "knockback": 3,
+        "attackInterval": 92,
+        "hitType": "亮金色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 4680
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "92ms (约)",
+        "windupMs": "≈20",
+        "swingMs": "≈30",
+        "recoveryMs": "≈42",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.1x (高速)",
+        "recoilAmount": "0.12rad",
+        "description": "PKM 以650RPM的射速连续射击，单次开火动画约92ms。采用后坐力抖动模式：每次开火枪身快速上扬后回位。timingMul=0.1 确保动画总时长小于92ms的射击间隔。"
+      },
+      "isTwoHanded": true
+    },
+    "novice_cap": {
+      "name": "新手布帽",
+      "type": "头盔",
+      "icon": "⛑",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+2",
+          "pos": true
+        }
+      ],
+      "desc": "一件破旧的头巾",
+      "equipSlot": "helmet"
+    },
+    "rough_necklace": {
+      "name": "粗制项链",
+      "type": "项链",
+      "icon": "📿",
+      "category": "accessory",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "最大生命值",
+          "value": "+10",
+          "pos": true
+        }
+      ],
+      "desc": "用绳子串起来的小石头",
+      "equipSlot": "necklace"
+    },
+    "old_leather_armor": {
+      "name": "旧皮甲",
+      "type": "盔甲",
+      "icon": "🛡",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+5",
+          "pos": true
+        }
+      ],
+      "desc": "不知道传了多少手的皮甲",
+      "equipSlot": "armor"
+    },
+    "copper_ring": {
+      "name": "铜戒指",
+      "type": "戒指",
+      "icon": "💍",
+      "category": "accessory",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "幸运",
+          "value": "+1",
+          "pos": true
+        }
+      ],
+      "desc": "一枚生锈的铜戒指",
+      "equipSlot": "ring1"
+    },
+    "leather_gloves": {
+      "name": "皮手套",
+      "type": "手套",
+      "icon": "🧤",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+2",
+          "pos": true
+        }
+      ],
+      "desc": "保护双手的皮手套",
+      "equipSlot": "gloves"
+    },
+    "iron_ring": {
+      "name": "铁戒指",
+      "type": "戒指",
+      "icon": "💍",
+      "category": "accessory",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "力量",
+          "value": "+1",
+          "pos": true
+        }
+      ],
+      "desc": "简单的铁戒指",
+      "equipSlot": "ring2"
+    },
+    "basic_belt": {
+      "name": "腰带",
+      "type": "腰带",
+      "icon": "⛓",
+      "category": "accessory",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "最大体力",
+          "value": "+5",
+          "pos": true
+        }
+      ],
+      "desc": "一根普通的腰带",
+      "equipSlot": "belt"
+    },
+    "old_leather_boots": {
+      "name": "旧皮靴",
+      "type": "靴子",
+      "icon": "👢",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "移动速度",
+          "value": "+5%",
+          "pos": true
+        }
+      ],
+      "desc": "磨破了的旧靴子",
+      "equipSlot": "boots"
+    },
+    "hp_potion": {
+      "name": "治疗药水",
+      "type": "消耗品",
+      "icon": "🧪",
+      "category": "consumable",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "恢复生命",
+          "value": "+30"
+        }
+      ],
+      "desc": "一瓶红色的药水，味道有点甜",
+      "stack": 5,
+      "equipSlot": ""
+    },
+    "mp_potion": {
+      "name": "魔力药水",
+      "type": "消耗品",
+      "icon": "💧",
+      "category": "consumable",
+      "rarity": "common",
+      "level": 1,
+      "stats": [
+        {
+          "name": "恢复魔法",
+          "value": "+25"
+        }
+      ],
+      "desc": "一瓶蓝色的药水，冒着冷气",
+      "stack": 3,
+      "equipSlot": ""
+    },
+    "akm": {
+      "weaponId": "weapon7",
+      "name": "AKM",
+      "type": "自动步枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/akm-equip.png",
+      "slotImage": "assets/icons/akm-equip.png",
+      "equipImage": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 10,
+      "weaponCategory": "mainhand",
+      "weaponType": "akm",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "9-14"
+        },
+        {
+          "name": "射程",
+          "value": "1200"
+        }
+      ],
+      "desc": "AKM自动步枪，600发/分钟，亮金色曳光弹，可靠耐用的经典步枪",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1200,
+        "knockback": 2,
+        "attackInterval": 100,
+        "hitType": "亮金色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 4680
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "100ms (约)",
+        "windupMs": "≈20",
+        "swingMs": "≈30",
+        "recoveryMs": "≈50",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.1x (高速)",
+        "recoilAmount": "0.12rad",
+        "description": "AKM 以600RPM的射速连续射击，单次开火动画约100ms。采用后坐力抖动模式，与PKM共用相同动画系统。"
+      }
+    },
+    "qbz191": {
+      "weaponId": "weapon8",
+      "name": "QBZ-191",
+      "type": "自动步枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/191icon.png",
+      "slotImage": "assets/icons/191icon.png",
+      "equipImage": "assets/weapons/191equip_clean.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 12,
+      "weaponCategory": "mainhand",
+      "weaponType": "qbz191",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/191equip_clean.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "3-6"
+        },
+        {
+          "name": "射程",
+          "value": "1200"
+        }
+      ],
+      "desc": "QBZ-191自动步枪，850发/分钟，亮金色曳光弹，新一代国产步枪",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1200,
+        "knockback": 2,
+        "attackInterval": 70,
+        "hitType": "亮金色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 5616
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "70ms (约)",
+        "windupMs": "≈15",
+        "swingMs": "≈20",
+        "recoveryMs": "≈35",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.07x (高速)",
+        "recoilAmount": "0.10rad",
+        "description": "QBZ-191 以850RPM的射速连续射击，单次开火动画约70ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+      }
+    },
+    "qjb201": {
+      "weaponId": "weapon11",
+      "name": "QJB-201",
+      "type": "机枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/201-icon.png",
+      "dropImage": "assets/weapons/201equip.png",
+      "equipImage": "assets/weapons/201equip.png",
+      "slotImage": "assets/icons/201-icon.png",
+      "category": "weapon_ranged",
+      "rarity": "rare",
+      "level": 12,
+      "weaponCategory": "mainhand",
+      "weaponType": "qjb201",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/201equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "3-6"
+        },
+        {
+          "name": "射程",
+          "value": "1200"
+        }
+      ],
+      "desc": "QJB-201班用机枪，1000发/分钟，亮金色曳光弹，轻量化设计的国产机枪，机动性与火力兼备",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1200,
+        "knockback": 1,
+        "attackInterval": 60,
+        "hitType": "亮金色曳光弹（直线弹道）",
+        "damageType": "物理",
+        "projectileSpeed": 2808
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "60ms (约)",
+        "windupMs": "≈12",
+        "swingMs": "≈18",
+        "recoveryMs": "≈30",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.06x (高速)",
+        "recoilAmount": "0.08rad",
+        "description": "QJB-201 以1000RPM的射速连续射击，单次开火动画约60ms。采用后坐力抖动模式，轻量化设计带来更小的后坐力。"
+      }
+    },
+    "super90": {
+      "weaponId": "weapon12",
+      "name": "Super90",
+      "type": "散弹枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/M4s90_icon.png",
+      "dropImage": "assets/weapons/M4s90_equip.png",
+      "equipImage": "assets/weapons/M4s90_equip.png",
+      "slotImage": "assets/icons/M4s90_icon.png",
+      "category": "weapon_ranged",
+      "rarity": "epic",
+      "level": 15,
+      "weaponCategory": "mainhand",
+      "weaponType": "shotgun",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/M4s90_equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "1-3"
+        },
+        {
+          "name": "射程",
+          "value": "500"
+        }
+      ],
+      "desc": "Super90 半自动散弹枪，一次击发6发弹丸，单发装填换弹机制，近距离毁灭性火力",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 500,
+        "knockback": 12.5,
+        "attackInterval": 333,
+        "hitType": "散弹（6发弹丸）",
+        "damageType": "物理",
+        "projectileSpeed": 3900
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "500ms (约)",
+        "windupMs": "≈100",
+        "swingMs": "≈200",
+        "recoveryMs": "≈200",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.5x (慢速)",
+        "recoilAmount": "0.15rad",
+        "description": "Super90 以较慢射速开火，单次开火动画约500ms。一次击发6发弹丸，近距离毁灭性火力。"
+      }
+    },
+    "energy_lmg": {
+      "weaponId": "weapon15",
+      "name": "能量轻机枪",
+      "type": "机枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/devotion-icon.png",
+      "category": "weapon_ranged",
+      "rarity": "epic",
+      "level": 15,
+      "dropImage": "assets/weapons/devotion-equip.png",
+      "equipImage": "assets/weapons/devotion-equip.png",
+      "slotImage": "assets/icons/devotion-icon.png",
+      "weaponCategory": "mainhand",
+      "weaponType": "energy_lmg",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/devotion-equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "魔法攻击",
+          "value": "6+力量/精神"
+        },
+        {
+          "name": "射程",
+          "value": "1200"
+        }
+      ],
+      "desc": "能量轻机枪，发射高能粒子束，无限能量供给。按住鼠标持续开火，射速随时间线性提升，过热后需冷却。",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 1200,
+        "knockback": 0,
+        "attackInterval": 333,
+        "maxAttackInterval": 50,
+        "rampUpTime": 2500,
+        "hitType": "亮绿色曳光弹（直线弹道）",
+        "damageType": "魔法",
+        "projectileSpeed": 1800,
+        "spreadStart": 0,
+        "spreadTime": 2500,
+        "maxSpreadAngle": 15,
+        "overheatTime": 4000,
+        "overheatCooldown": 4000,
+        "isInfiniteAmmo": true,
+        "fireSound": "assets/sounds/apex_shot_600ms.wav",
+        "overheatSound": "assets/sounds/apex_reload_4s_raw.mp3"
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "250ms",
+        "windupMs": "≈50",
+        "swingMs": "≈100",
+        "recoveryMs": "≈100",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.25x",
+        "recoilAmount": "0.08rad",
+        "description": "能量轻机枪初始射速较慢，持续开火后射速线性提升。过热后武器锁定，需冷却。"
+      }
+    },
+    "saiga12k": {
+      "weaponId": "weapon13",
+      "name": "SAIGA-12K",
+      "type": "散弹枪",
+      "icon": "🔫",
+      "iconImage": "assets/icons/S12k-icon.png",
+      "dropImage": "assets/weapons/S12k-equip.png",
+      "equipImage": "assets/weapons/S12k-equip.png",
+      "slotImage": "assets/icons/S12k-icon.png",
+      "category": "weapon_ranged",
+      "rarity": "epic",
+      "level": 15,
+      "weaponCategory": "mainhand",
+      "weaponType": "shotgun",
+      "weaponTypeTag": "远程武器",
+      "isTwoHanded": true,
+      "weaponAsset": {
+        "image": "assets/weapons/S12k-equip.png",
+        "muzzleImage": "assets/effects/muzzle_flash_01.png"
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "1-3"
+        },
+        {
+          "name": "射程",
+          "value": "400"
+        }
+      ],
+      "desc": "SAIGA-12K 半自动散弹枪，一次击发4发弹丸，正常弹夹换弹，高射速近距离火力",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 400,
+        "knockback": 12.5,
+        "attackInterval": 150,
+        "hitType": "散弹（4发弹丸）",
+        "damageType": "物理",
+        "projectileSpeed": 2340
+      },
+      "animation": {
+        "type": "recoil（后坐力抖动）",
+        "totalMs": "150ms (约)",
+        "windupMs": "≈30",
+        "swingMs": "≈60",
+        "recoveryMs": "≈60",
+        "holdOffset": "(0, 6)",
+        "weaponSize": 96,
+        "timingMul": "0.15x (高速)",
+        "recoilAmount": "0.15rad",
+        "description": "SAIGA-12K 以高射速开火，单次开火动画约150ms。一次击发4发弹丸，散布±20°。"
+      }
+    }
+  }
+}
