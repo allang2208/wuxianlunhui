@@ -153,6 +153,8 @@ async function initModules() {
     window.SoundManager = SoundManager;
     // 挂载开发工具
     window.DevTool = DevTool;
+    // 挂载立绘调整工具
+    window.NpcPortraitTool = NpcPortraitTool;
 
     // I. Game
     window.Game = Game;
@@ -169,6 +171,8 @@ async function initModules() {
     if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); Game.toMenu(); });
     // 初始化开发工具
     DevTool.init();
+    // 初始化立绘调整工具
+    NpcPortraitTool.init();
 
     // 启动游戏
     if (document.readyState === 'complete') {
@@ -255,6 +259,7 @@ import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './ui/system-ui.js';
 import { SoundManager } from './ui/sound-manager.js';
 import DevTool from './ui/dev-tool.js';
+import { NpcPortraitTool } from './ui/npc-portrait-tool.js';
 
 // I. Game
 import { Game } from './game.js';
