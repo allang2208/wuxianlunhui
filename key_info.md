@@ -1,80 +1,85 @@
 # 关键工作信息
 
-**最后保存**: 当前会话
-**当前版本**: V0.073
+**最后更新**: 2026-07-03
 **项目目录**: `C:\Users\allan\Documents\kimi\workspace\game-dev`
+**技术栈**: Phaser v4.0.0 + 自定义 Canvas 2D Hybrid 渲染, Vite + Electron
 
 ---
 
-## Electron 打包状态（已完成 ✅）
+## 核心配置
 
-### 输出文件
-- `dist-electron/无限轮回 0.7.3.exe` (228MB) — 便携版，直接双击运行
+### 怪物数值（已调整）
+- **所有怪物 HP 减半**（data/enemies.json）
+- **普通/次级类型怪物攻击力统一为 25**
+  - 普通类型: zombie, runnerZombie, spider, blackWolf, skeletonArcher, skeletonDog
+  - 次级类型: babySpider, skeletonWarrior
+- **精英/首领攻击力保持不变**
 
-### 配置汇总
-- **主进程**: `electron/main.js` — 无边框窗口、ESC 全屏切换
-- **预加载脚本**: `electron/preload.js` — 安全 IPC 通信
-- **Vite 配置**: `vite.config.js` — 构建输出到 dist/、相对路径
-- **打包配置**: `electron-builder.json` — 便携版、跳过签名
-- **构建脚本**: `scripts/copy-assets.js` — 自动复制 assets + legacy.js 到 dist/
-- **应用图标**: `build/app-icon.png` — 256×256 像素
+### 技能配置
+- **冰锥 (iceSpike)**: flySpeed=1600, maxRange=800, 左右交替生成, 飞行中禁止重新生成
+- **火球 (fireball)**: 73 帧 Sprite Sheet (9×9), flySpeed=1600, 范围爆炸+火焰特效
+- **持盾防御 (shieldBlock)**: 被动技能, 增强盾牌防御/弹反效果
 
-### 已知问题
-- 首次构建时 electron-builder 会下载 Electron 二进制文件（约 80MB），耗时 2-3 分钟
-- 后续构建会复用缓存，速度更快
+### 武器配置
+- **P4040**: 独立 `canvasImageProp='p4040Image'`, 预加载 key `weapon_p4040`
+- **沙漠之鹰 (Deagle)**: 预加载 key `weapon_deagle`, 文件 `Desert eagle-eqiup.png`（注意空格）
+- **G18**: 补齐 `fireSound`/`reloadSound`/`equipSound` 字段（`shop-system.js`）
+- **骑士长剑 (weapon3)**: 使用 `GoldenConvergeEffect`, 汇聚点改为动态剑尖位置
 
-### 后续打包命令
-```bash
-cd C:\Users\allan\Documents\kimi\workspace\game-dev
-npm run build:portable
+---
+
+## 关键代码模式
+
+### 双持散布计时器修复（player.js）
+```javascript
+const _offSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+const _offItem = this.equipments[_offSlot];
+const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
+const _shouldTrackSpread = _isGun && (Input.mouse.leftDown || (_isDual && Input.mouse.rightDown));
 ```
 
----
+### 瞄准模式（双持除外）
+```javascript
+const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded;
+if (isGun && Input.mouse.rightDown && !(isPistol && isDualWield)) {
+    this._aimModeActive = true;
+}
+```
 
-## 最近修改（V0.068 ~ V0.073）
+### 特殊攻击 CD 独立计算
+```javascript
+// player._specialAttackCooldowns 对象按 specialAttackType 存储
+this._specialAttackCooldowns[config.specialAttackType] = now;
+```
 
-## 最近修改（V0.068 ~ V0.073）
+### Map 遍历（entities 参数）
+```javascript
+// entities 是 Map 对象，不是数组
+const entityList = Array.from(entities.values ? entities.values() : entities);
+for (const entity of entityList) { ... }
+```
 
-### V0.073 — weapon5 特殊攻击优化
-- **移动限制**: 特殊攻击动画期间移动速度限制为 `0.1 px/帧`，结束后恢复
-- **视觉特效替换**: 
-  - 去除原有的 40 粒子系统、光柱渐变、发光效果
-  - 改为调用 `assets/effects/nightandflame-effect.png`，拉伸覆盖攻击范围
-  - 头尾两端 20% 使用 `destination-in` + `createLinearGradient` 渐变透明（alpha 1.0 → 0.1）
-- **⚠️ 待确认**: 图片 `nightandflame-effect.png` 在项目目录中**不存在**，需用户复制到 `assets/effects/` 目录下
-
-### V0.071 / V0.072 — 风车移动速度调整
-- 风车攻击动画期间移动速度：`0.1 px/帧`（修改自原先的 10px/s）
-- 通过 `Player.update` 中 `targetSpeed` 控制，攻击结束后自然恢复
-
-### V0.070 — weapon4 粒子动画优化
-- 攻击/技能期间：已生成的粒子**继续播放**，但**不生成新粒子**
-- 结束后恢复自然生成
-
-### V0.069 — 语法错误修复
-- `equipFromBackpack` 中多了一行 `}` 导致 `this` 无法解析
-- 修复后游戏可正常启动
-
-### V0.068 — 右键装备旋转动画修复
-- 背包右键装备 → `_syncWeaponVisual()` 触发旋转动画
-- 装备栏右键卸下 → `_clearWeaponState()` 增加 `weaponAnim.nextSpin`
+### Phaser 纹理映射一致性
+- `getWeaponTextureKey()` 和 `getWeaponTextureLoadList()` 必须保持同步
+- 所有 Phaser Sprite 使用的纹理必须在 `BootScene.preload` 中预加载
 
 ---
 
-## 待解决问题
+## 已知陷阱
 
-1. **weapon5 特效图片缺失**: `assets/effects/nightandflame-effect.png` 不存在，需用户复制到正确位置后测试
-2. **移动速度单位统一**: 目前为 `px/帧`（默认 0.875，冲刺 1.5），攻击范围 `px`（近战 165），已统一使用像素
-
----
-
-## 工作规则更新
-
-新增规则：**未获用户明确指示的情况下，不得修改现有的公式、数值和常量定义。** 涉及攻击力、防御力、速度、概率、成本等数值改动时，必须先输出拟改方案，经用户确认后方可执行。
+1. **Phaser 不支持 GIF**: 必须用 GIF→Sprite Sheet 转换
+2. **文件名空格**: Vite 中可正常加载（URL 编码为 `%20`）
+3. **P4040 除以零**: `spreadParams.maxTime=0` 导致 `0/0=NaN`，需加防护
+4. **混合渲染**: `_usePhaserWeapon` 开关决定由 Phaser 还是 Canvas 2D 渲染武器
+5. **技能经验**: `SkillLevelSystem.addExp(skill, amount, player)` + `refreshUI(skillId)`
+6. **伤害公式**: `base + matk * magicMul + int * intMul`
 
 ---
 
-## 活跃状态
+## 活跃问题
 
-- 当前**无**进行中任务
-- 所有 TODO 已清空
+- **无活跃问题**：所有报告 bug 已修复
+
+## 工作规则
+
+**未获用户明确指示的情况下，不得修改现有的公式、数值和常量定义。** 涉及攻击力、防御力、速度、概率、成本等数值改动时，必须先输出拟改方案，经用户确认后方可执行。
