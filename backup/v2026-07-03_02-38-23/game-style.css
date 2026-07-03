@@ -506,11 +506,12 @@
             object-fit: fill;
             object-position: bottom center;
             z-index: 5001;
-            transition: all 0.3s;
+            transition: transform 0.3s, opacity 0.3s;
         }
         .npc-portrait.mouse-attendant {
             width: 1191px;
-            top: 180px;
+            top: -20px;
+            left: -300px;
             object-fit: contain;
         }
         .npc-dialogue-content {

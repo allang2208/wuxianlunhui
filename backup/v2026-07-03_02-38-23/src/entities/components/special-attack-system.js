@@ -6,14 +6,14 @@ class SpecialAttackSystem {
     trigger(targetX, targetY, entities) {
         const currentItem = this.player.equipments[this.player.weaponMode];
         if (!currentItem || currentItem.specialAttackType !== 'nightFlame') return;
-        if (this.player._specialAttackCooldown > 0 || this.player._specialAttackActive) return;
+        if (this.player._specialAttackCooldowns['nightFlame'] > 0 || this.player._specialAttackActive) return;
         this.player._specialAttackActive = true;
         this.player._specialAttackTimer = 0;
         this.player._specialAttackHitSet = new Set();
         this.player._specialAttackLastTick = 0;
         this.player._specialAttackAngle = Math.atan2(targetY - this.player.y, targetX - this.player.x);
         this.player._specialAttackLockedAngle = this.player._specialAttackAngle; // 锁定朝向为鼠标方向
-        this.player._specialAttackCooldown = 15000; // 15秒冷却
+        this.player._specialAttackCooldowns['nightFlame'] = 15000; // 15秒冷却
         // 改造效果：鹰眼符文增加攻击距离，符文重构增加持续时间
         const ce = currentItem._craftEffects || {};
         const specialRangeBonus = ce.specialRangeDelta || 0;

@@ -46,7 +46,7 @@ const DevTool = {
                        }
                      },
         pistol:     { name: 'G18',        img: 'assets/weapons/g18_pistol.png',       type: 'pistol' },
-        deagle:     { name: '沙漠之鹰',   img: 'assets/weapons/DesertEagle_equip.png',  type: 'pistol' },
+        deagle:     { name: '沙漠之鹰',   img: 'assets/weapons/Desert eagle-eqiup.png',  type: 'pistol' },
         pkm:        { name: 'PKM',        img: 'assets/weapons/pkm_topdown.png',      type: 'machinegun' },
         akm:        { name: 'AKM',        img: 'assets/weapons/akm_topdown_lowpoly_v2.png', type: 'rifle' },
         qbz191:     { name: 'QBZ-191',    img: 'assets/weapons/akm_topdown_lowpoly_v2.png', type: 'rifle' },

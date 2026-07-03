@@ -12,7 +12,13 @@ export class ShieldSystem {
         const currentMode = this.player.weaponMode;
         const offhandSlot = currentMode === 'weapon' ? 'offhand' : 'ring2';
         const item = this.player.equipments[offhandSlot];
-        this.active = !!(item && item.weaponType === 'shield');
+        const newActive = !!(item && item.weaponType === 'shield');
+        if (this.active !== newActive) {
+            this.active = newActive;
+            if (this.player.calculateCombatStats) {
+                this.player.calculateCombatStats();
+            }
+        }
         return this.active;
     }
 
@@ -44,16 +50,27 @@ export class ShieldSystem {
             return { damage: damage * 0.5, parried: false };
         }
 
-        const reduction = shieldData.defense.damageReduction || 0.5;
+        const baseReduction = shieldData.defense.damageReduction || 0.5;
+        // 应用持盾防御技能减伤加成
+        let skillReductionBonus = 0;
+        if (this.player.skills && this.player.skills.shieldDefense) {
+            const sdEffect = this.player.skills.shieldDefense.getEffect(this.player.skills.shieldDefense.level);
+            skillReductionBonus = sdEffect.damageReductionBonus || 0;
+        }
+        const remainingDamageRatio = Math.max(0.05, baseReduction - skillReductionBonus);
 
         // 弹反判定：防御后 1 秒内 + 近战攻击
         if (this.canParry() && isMelee) {
             this.triggerParry(attacker);
+            // 弹反经验
+            if (typeof SkillManager !== 'undefined' && SkillManager.addShieldDefenseExp) {
+                SkillManager.addShieldDefenseExp(this.player, isMelee, true);
+            }
             return { damage: 0, parried: true };
         }
 
         // 正常防御：减伤 + 扣体力
-        const reducedDamage = damage * reduction;
+        const reducedDamage = damage * remainingDamageRatio;
         const staminaCost = shieldData.defense.staminaCost || 20;
 
         // 播放防御受击音效（非弹反）
@@ -69,6 +86,10 @@ export class ShieldSystem {
         }
 
         this.player.data.stamina -= staminaCost;
+        // 防御经验：近战+1，远程+3
+        if (typeof SkillManager !== 'undefined' && SkillManager.addShieldDefenseExp) {
+            SkillManager.addShieldDefenseExp(this.player, isMelee, false);
+        }
         return { damage: reducedDamage, parried: false };
     }
 
@@ -79,8 +100,13 @@ export class ShieldSystem {
         if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
             SoundManager.playFile('assets/sounds/wood_thud_1s.wav');
         }
-        // 攻击者眩晕 2 秒
-        if (attacker.applyStun) attacker.applyStun(2000);
+        // 攻击者眩晕（基础2秒 + 持盾防御技能加成）
+        let stunDuration = 2000;
+        if (this.player.skills && this.player.skills.shieldDefense) {
+            const sdEffect = this.player.skills.shieldDefense.getEffect(this.player.skills.shieldDefense.level);
+            stunDuration += (sdEffect.parryStunBonus || 0) * 1000;
+        }
+        if (attacker.applyStun) attacker.applyStun(stunDuration);
         // 攻击者被击退 100px（使用统一的击退系统）
         const angle = Math.atan2(attacker.y - this.player.y, attacker.x - this.player.x);
         if (attacker.applyKnockback) attacker.applyKnockback(angle, 100);

@@ -8,9 +8,18 @@
       "description": "精通剑术，每次挥舞都更加致命",
       "maxLevel": 20,
       "tags": [
-        { "name": "剑类武器", "type": "weapon" },
-        { "name": "近战", "type": "melee" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "剑类武器",
+          "type": "weapon"
+        },
+        {
+          "name": "近战",
+          "type": "melee"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "atkBonus": "level",
@@ -27,8 +36,14 @@
       "description": "在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击",
       "maxLevel": 20,
       "tags": [
-        { "name": "近战", "type": "melee" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "近战",
+          "type": "melee"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "damageMul": "1.75 + level * 0.05",
@@ -44,8 +59,14 @@
       "description": "夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击",
       "maxLevel": 20,
       "tags": [
-        { "name": "近战", "type": "melee" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "近战",
+          "type": "melee"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "damageMul": "1.5 + level * 0.05",
@@ -61,8 +82,14 @@
       "description": "骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害",
       "maxLevel": 20,
       "tags": [
-        { "name": "近战", "type": "melee" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "近战",
+          "type": "melee"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "damageMul": "0.80 + level * 0.03",
@@ -78,8 +105,14 @@
       "description": "以自身为中心高速旋转武器，对周围敌人造成毁灭性打击",
       "maxLevel": 20,
       "tags": [
-        { "name": "近战", "type": "melee" },
-        { "name": "主动", "type": "active" }
+        {
+          "name": "近战",
+          "type": "melee"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
       ],
       "effectFormula": {
         "damageMul": "1.5 + level * 0.10",
@@ -98,8 +131,14 @@
       "description": "使用远程武器向前方扇形区域释放强力推击，击退并眩晕敌人",
       "maxLevel": 20,
       "tags": [
-        { "name": "远程", "type": "ranged" },
-        { "name": "主动", "type": "active" }
+        {
+          "name": "远程",
+          "type": "ranged"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
       ],
       "effectFormula": {
         "damageMul": "0.5 + level * 0.1",
@@ -118,8 +157,14 @@
       "description": "精通暴击之道，每次暴击都能造成更致命的打击",
       "maxLevel": 20,
       "tags": [
-        { "name": "暴击", "type": "passive" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "暴击",
+          "type": "passive"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "damageBonus": "0.50 + level * 0.05",
@@ -135,9 +180,18 @@
       "description": "精通机枪的操控艺术，每次射击都更加致命",
       "maxLevel": 20,
       "tags": [
-        { "name": "机枪", "type": "weapon" },
-        { "name": "远程", "type": "ranged" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "机枪",
+          "type": "weapon"
+        },
+        {
+          "name": "远程",
+          "type": "ranged"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "strBonus": "level",
@@ -155,9 +209,18 @@
       "description": "精通步枪的精准射击，每颗子弹都命中要害",
       "maxLevel": 20,
       "tags": [
-        { "name": "步枪", "type": "weapon" },
-        { "name": "远程", "type": "ranged" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "步枪",
+          "type": "weapon"
+        },
+        {
+          "name": "远程",
+          "type": "ranged"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "wisBonus": "level",
@@ -175,9 +238,18 @@
       "description": "精通手枪的快速射击，在移动中也能精准命中",
       "maxLevel": 20,
       "tags": [
-        { "name": "手枪", "type": "weapon" },
-        { "name": "远程", "type": "ranged" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "手枪",
+          "type": "weapon"
+        },
+        {
+          "name": "远程",
+          "type": "ranged"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "dexBonus": "level",
@@ -195,9 +267,18 @@
       "description": "精通弓箭射击之道，每次拉弓都更加致命",
       "maxLevel": 20,
       "tags": [
-        { "name": "弓类武器", "type": "weapon" },
-        { "name": "远程", "type": "ranged" },
-        { "name": "被动", "type": "passive" }
+        {
+          "name": "弓类武器",
+          "type": "weapon"
+        },
+        {
+          "name": "远程",
+          "type": "ranged"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
       ],
       "effectFormula": {
         "damageBonus": "level * 5",
@@ -207,22 +288,87 @@
       },
       "expFormula": "100 + (level - 1) * 100"
     },
-    "droneSkill": {
-      "id": "droneSkill",
-      "name": "无人机",
-      "icon": "🛸",
-      "iconImage": "assets/skills/无人机.png",
-      "description": "释放一架无人机，操控时对范围内敌人施加易伤效果",
+    "iceSpike": {
+      "id": "iceSpike",
+      "name": "冰锥",
+      "icon": "❄",
+      "iconImage": "assets/skills/Icearrow-skill.png",
+      "description": "释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出",
       "maxLevel": 20,
       "tags": [
-        { "name": "主动", "type": "active" }
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
       ],
       "effectFormula": {
-        "duration": "30 + (level - 1) * 2",
-        "damageBonusPercent": "10 + (level - 1) * 2",
-        "critBonusPercent": "10 + (level - 1) * 2",
-        "moveSpeed": "500 + Math.floor((level - 1) / 5) * 50",
-        "radius": "300 + Math.floor((level - 1) / 5) * 100"
+        "damageBase": "30 + level * 5",
+        "magicMul": "1.2 + 0.25 * level",
+        "intMul": "1.2 + 0.25 * level",
+        "cooldown": 10,
+        "mpCost": 30,
+        "spikeCount": "2 + Math.floor((level - 1) / 5)",
+        "duration": 30,
+        "flySpeed": 1600,
+        "maxRange": 800
+      },
+      "expFormula": "100 + (level - 1) * 100"
+    },
+    "shieldDefense": {
+      "id": "shieldDefense",
+      "name": "持盾防御",
+      "icon": "🛡",
+      "iconImage": "assets/skills/Meshy_AI_Shield Block Sword Warrior.png",
+      "description": "精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果",
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "盾牌",
+          "type": "weapon"
+        },
+        {
+          "name": "被动",
+          "type": "passive"
+        }
+      ],
+      "effectFormula": {
+        "defBonusPercent": "level * 0.02",
+        "damageReductionBonus": "level * 0.02",
+        "parryStunBonus": "Math.floor(level / 5) * 0.25"
+      },
+      "expFormula": "100 + (level - 1) * 100"
+    },
+    "fireball": {
+      "id": "fireball",
+      "name": "火球",
+      "icon": "🔥",
+      "iconImage": "assets/skills/fireball_icon.png",
+      "description": "释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害",
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "damageBase": "80 + level * 10",
+        "magicMul": "2 + 0.5 * level",
+        "intMul": "2.5 + 0.75 * level",
+        "cooldown": 20,
+        "mpCost": 50,
+        "explosionRadius": "80 + level * 5",
+        "duration": 30,
+        "flySpeed": 1600,
+        "maxRange": 1200
       },
       "expFormula": "100 + (level - 1) * 100"
     }

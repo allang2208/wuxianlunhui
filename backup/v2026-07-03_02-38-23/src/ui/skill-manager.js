@@ -159,6 +159,20 @@ export const SkillManager = {
             effectText = `弓攻击+${effect.damageBonus}  伤害+${(effect.damagePercent * 100).toFixed(0)}%  冷却-${(effect.cooldownReduction * 100).toFixed(0)}%  敏捷+${effect.dexBonus}`;
         } else if (skill.id === 'droneSkill') {
             effectText = `持续时间+${effect.duration}s  伤害加成+${effect.damageBonusPercent}%  暴击率+${effect.critBonusPercent}%  移速${effect.moveSpeed}px/s  范围${effect.radius}px`;
+        } else if (skill.id === 'iceSpike') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            effectText = `伤害${totalDamage}  冰锥数量${effect.spikeCount}  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'fireball') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            effectText = `伤害${totalDamage}  爆炸范围${effect.explosionRadius}px  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         }
         // 使用特效队列顺序播放
         LevelUpEffectQueue.add({
@@ -257,6 +271,44 @@ export const SkillManager = {
             SkillLevelSystem.refreshUI(ds.id);
         }
     },
+    addIceSpikeExp(player, hitCount, killCount) {
+        if (!player || !player.skills) return;
+        const is = player.skills.iceSpike;
+        if (!is || is.level >= is.maxLevel) return;
+        let gained = 0;
+        gained += hitCount * 3;
+        gained += killCount * 10;
+        if (gained <= 0) return;
+        SkillLevelSystem.addExp(is, gained, player);
+        SkillLevelSystem.refreshUI(is.id);
+    },
+    addFireballExp(player, hitCount, killCount) {
+        if (!player || !player.skills) return;
+        const fb = player.skills.fireball;
+        if (!fb || fb.level >= fb.maxLevel) return;
+        let gained = 0;
+        gained += hitCount * 3;
+        gained += killCount * 10;
+        if (gained <= 0) return;
+        SkillLevelSystem.addExp(fb, gained, player);
+        SkillLevelSystem.refreshUI(fb.id);
+    },
+    addShieldDefenseExp(player, isMelee, isParry) {
+        if (!player || !player.skills) return;
+        const sd = player.skills.shieldDefense;
+        if (!sd || sd.level >= sd.maxLevel) return;
+        let gained = 0;
+        if (isParry) {
+            gained += 5;
+        } else if (isMelee) {
+            gained += 1;
+        } else {
+            gained += 3; // 远程攻击防御
+        }
+        if (gained <= 0) return;
+        SkillLevelSystem.addExp(sd, gained, player);
+        SkillLevelSystem.refreshUI(sd.id);
+    },
     updateMeleeCooldown(player) {
         if (!player || !player.skills) return;
         const sm = player.skills.swordMastery;
@@ -287,11 +339,11 @@ export const SkillManager = {
         const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.shieldDefense, player.skills.fireball];
         } else if (hasThrustSkill && player.skills.dashAttackThrust) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.shieldDefense, player.skills.fireball];
         } else {
-            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill];
+            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.shieldDefense, player.skills.fireball];
         }
         skillList.forEach(skill => {
             if (!skill) return;
@@ -524,6 +576,79 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级移速</span><span class="sd-stat-val pos">${nextEffect.moveSpeed}px/s</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级范围</span><span class="sd-stat-val pos">${nextEffect.radius}px</span></div>`;
             }
+        } else if (skill.id === 'iceSpike') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础伤害</span><span class="sd-stat-val pos">${baseDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法攻击加成</span><span class="sd-stat-val pos">${magicDamage} (魔法攻击×${effect.magicMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${intDamage} (智力×${effect.intMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前总伤害</span><span class="sd-stat-val pos">${totalDamage}</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冰锥数量</span><span class="sd-stat-val pos">${effect.spikeCount}个</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">悬浮持续时间</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">飞行速度</span><span class="sd-stat-val pos">${effect.flySpeed}px/s</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">最大射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            if (nextEffect) {
+                const nextBase = nextEffect.damageBase;
+                const nextMagic = Math.floor(d.matk * nextEffect.magicMul);
+                const nextInt = Math.floor(d.int * nextEffect.intMul);
+                const nextTotal = nextBase + nextMagic + nextInt;
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级基础伤害</span><span class="sd-stat-val pos">${nextBase}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法攻击加成</span><span class="sd-stat-val pos">${nextMagic} (魔法攻击×${nextEffect.magicMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级智力加成</span><span class="sd-stat-val pos">${nextInt} (智力×${nextEffect.intMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级总伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冰锥数量</span><span class="sd-stat-val pos">${nextEffect.spikeCount}个</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
+            }
+        } else if (skill.id === 'shieldDefense') {
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">装备盾牌防御力加成</span><span class="sd-stat-val pos">+${(effect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">防御减伤加成</span><span class="sd-stat-val pos">+${(effect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">弹反眩晕加成</span><span class="sd-stat-val pos">+${effect.parryStunBonus.toFixed(2)}秒</span></div>`;
+            if (nextEffect) {
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级防御力加成</span><span class="sd-stat-val pos">+${(nextEffect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级减伤加成</span><span class="sd-stat-val pos">+${(nextEffect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级弹反眩晕加成</span><span class="sd-stat-val pos">+${nextEffect.parryStunBonus.toFixed(2)}秒</span></div>`;
+            }
+        } else if (skill.id === 'fireball') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础伤害</span><span class="sd-stat-val pos">${baseDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法攻击加成</span><span class="sd-stat-val pos">${magicDamage} (魔法攻击×${effect.magicMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${intDamage} (智力×${effect.intMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前总伤害</span><span class="sd-stat-val pos">${totalDamage}</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">爆炸范围</span><span class="sd-stat-val pos">${effect.explosionRadius}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">悬浮持续时间</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">飞行速度</span><span class="sd-stat-val pos">${effect.flySpeed}px/s</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">最大射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            if (nextEffect) {
+                const nextBase = nextEffect.damageBase;
+                const nextMagic = Math.floor(d.matk * nextEffect.magicMul);
+                const nextInt = Math.floor(d.int * nextEffect.intMul);
+                const nextTotal = nextBase + nextMagic + nextInt;
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级基础伤害</span><span class="sd-stat-val pos">${nextBase}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法攻击加成</span><span class="sd-stat-val pos">${nextMagic} (魔法攻击×${nextEffect.magicMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级智力加成</span><span class="sd-stat-val pos">${nextInt} (智力×${nextEffect.intMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级总伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级爆炸范围</span><span class="sd-stat-val pos">${nextEffect.explosionRadius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
+            }
         }
         if (!nextEffect) {
             html += `<div class="sd-stat-row" style="margin-top:8px;color:#7a9a6a;">已达到最高等级</div>`;
@@ -594,6 +719,19 @@ export const SkillManager = {
         } else if (skill.id === 'droneSkill') {
             html += `<p>• 击杀被无人机影响的敌人增加 10 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：按快捷键释放/操控/回收无人机</p>`;
+        } else if (skill.id === 'iceSpike') {
+            html += `<p>• 使用冰锥攻击到一个目标加 3 点经验</p>`;
+            html += `<p>• 使用冰锥杀死一个目标加 10 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：按快捷键生成冰锥，再次按同一键发射所有冰锥</p>`;
+        } else if (skill.id === 'fireball') {
+            html += `<p>• 使用火球攻击到一个目标加 3 点经验</p>`;
+            html += `<p>• 使用火球杀死一个目标加 10 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：按快捷键在身前凝聚火球，再次按同一键发射火球</p>`;
+        } else if (skill.id === 'shieldDefense') {
+            html += `<p>• 防御敌人近战攻击加 1 点经验</p>`;
+            html += `<p>• 防御敌人远程攻击加 3 点经验</p>`;
+            html += `<p>• 成功弹反敌人加 5 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">被动技能：装备盾牌时自动生效</p>`;
         }
         html += `</div>`;
         body.innerHTML = html;

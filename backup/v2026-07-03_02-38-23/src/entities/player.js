@@ -10,6 +10,8 @@ import { WhirlwindSystem } from './components/whirlwind-system.js';
 import { PushStrikeSystem } from './components/push-strike-system.js';
 import { SpecialAttackSystem } from './components/special-attack-system.js';
 import { RuneSwordSystem } from './components/rune-sword-system.js';
+import { IceSpikeSystem } from './components/ice-spike-system.js';
+import { FireballSystem } from './components/fireball-system.js';
 import { DroneSystem } from './components/drone-system.js';
 import { ShieldSystem } from './components/shield-system.js';
 
@@ -47,10 +49,11 @@ import { ShieldSystem } from './components/shield-system.js';
                 this._pushStrikeHitChecked = false; // 推击攻击判定是否已执行
                 this._pushStrikeRangeEffect = null; // 推击范围提示效果引用
                 this.pushStrikeSystem = new PushStrikeSystem(this); // 推击技能系统
+                // ===== 每个特殊攻击类型的独立冷却 { [specialAttackType]: ms } =====
+                this._specialAttackCooldowns = {};
                 // ===== 夜与火之剑特殊攻击状态 =====
                 this._specialAttackActive = false; // 是否正在释放特殊攻击
                 this._specialAttackTimer = 0; // 特殊攻击计时器
-                this._specialAttackCooldown = 0; // 特殊攻击冷却（ms）
                 this._specialAttackHitSet = new Set(); // 特殊攻击已命中目标
                 this._specialAttackLastTick = 0; // 上次伤害判定时间
                 this._specialAttackAngle = 0; // 光柱方向
@@ -61,10 +64,21 @@ import { ShieldSystem } from './components/shield-system.js';
                 // ===== 符文长剑特殊攻击状态 =====
                 this._runeSwordSpecialActive = false; // 符文长剑特殊攻击是否激活
                 this._runeSwordSpecialTimer = 0; // 累计计时（30秒超时）
-                this._runeSwordSpecialCooldown = 0; // 冷却（ms）
                 this._runeSwordSwords = []; // 4把剑状态数组
                 this._runeSwordBladeImg = null; // 剑贴图
                 this._runeSwordResetAnim = null; // 符文长剑复位动画
+                // ===== 冰锥技能状态 =====
+                this._iceSpikeActive = false; // 冰锥是否已生成
+                this._iceSpikeTimer = 0; // 悬浮持续时间计时
+                this._iceSpikeCooldown = 0; // 冷却（ms）
+                this._iceSpikeSpikes = []; // 冰锥数组
+                this._iceSpikeImg = null; // 冰锥贴图
+                // ===== 火球技能状态 =====
+                this._fireballActive = false; // 火球是否已生成
+                this._fireballTimer = 0; // 悬浮持续时间计时
+                this._fireballCooldown = 0; // 冷却（ms）
+                this._fireball = null; // 火球对象
+                this._fireballImg = null; // 火球贴图
                 // ===== 蓄力攻击状态（边境长弓） =====
                 this._chargeState = 'idle'; // idle/charging/charged/firing
                 this._chargeTimer = 0; // 蓄力计时器
@@ -116,6 +130,8 @@ import { ShieldSystem } from './components/shield-system.js';
                 this.equippedBowFrames = null; // 装备后的弓贴图，null表示使用默认弓
                 this.bowEquipImage = new Image(); this.bowEquipImage.src = 'assets/weapons/trainingBOW.png'; // 弓装备栏贴图
                 this.pistolImage = new Image(); this.pistolImage.src = 'assets/weapons/G18equip.png';
+                this.deagleImage = new Image(); this.deagleImage.src = 'assets/weapons/Desert eagle-eqiup.png';
+                this.p4040Image = new Image(); this.p4040Image.src = 'assets/weapons/P4040-equip.png';
                 this.pkmImage = new Image(); this.pkmImage.src = 'assets/weapons/pkm_topdown.png';
                 this.akmImage = new Image(); this.akmImage.src = 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png';
                 this.qbz191Image = new Image(); this.qbz191Image.src = 'assets/weapons/191equip_clean.png';
@@ -140,6 +156,8 @@ import { ShieldSystem } from './components/shield-system.js';
                 this.whirlwindSystem = new WhirlwindSystem(this); // 风车技能系统
                 this.specialAttackSystem = new SpecialAttackSystem(this); // 夜与火之剑特殊攻击系统
                 this.runeSwordSystem = new RuneSwordSystem(this); // 符文长剑特殊攻击系统
+                this.iceSpikeSystem = new IceSpikeSystem(this); // 冰锥技能系统
+                this.fireballSystem = new FireballSystem(this); // 火球技能系统
                 this.droneSystem = new DroneSystem(this); // 无人机技能系统
                 this.shieldSystem = new ShieldSystem(this); // 盾防御系统
                 // ===== 独头弹后坐力系统（Super90）=====
@@ -217,6 +235,15 @@ import { ShieldSystem } from './components/shield-system.js';
                     const currentWpn = this.equipments[this.weaponMode];
                     if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.defensePercent) {
                         d.def = Math.floor(d.def * (1 + currentWpn._craftEffects.defensePercent));
+                    }
+                }
+                // 应用持盾防御技能的防御力加成
+                if (this.equipments && this.skills && this.skills.shieldDefense) {
+                    const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+                    const shield = this.equipments[offhandSlot];
+                    if (shield && shield.weaponType === 'shield') {
+                        const sdEffect = this.skills.shieldDefense.getEffect(this.skills.shieldDefense.level);
+                        d.def = Math.floor(d.def * (1 + sdEffect.defBonusPercent));
                     }
                 }
                 d.matk = Math.floor(d.int * 1.5 + (d.wis + bonusWis) * 0.5); d.mdef = Math.floor((d.wis + bonusWis) * 1.2 + d.int * 0.3);
@@ -401,13 +428,24 @@ import { ShieldSystem } from './components/shield-system.js';
                 this._runeSwordSwords = null;
                 // 清除夜与火之剑特殊状态
                 this._specialAttackActive = false;
-                this._specialAttackCooldown = 0;
                 this._specialAttackTimer = 0;
                 this._specialAttackEntities = null;
+                // 清除所有特殊攻击冷却
+                this._specialAttackCooldowns = {};
                 // 清除无人机状态
                 if (this.droneSystem) {
                     this.droneSystem._deactivate();
                 }
+                // 清除冰锥状态
+                this._iceSpikeActive = false;
+                this._iceSpikeTimer = 0;
+                this._iceSpikeCooldown = 0;
+                this._iceSpikeSpikes = [];
+                // 清除火球状态
+                this._fireballActive = false;
+                this._fireballTimer = 0;
+                this._fireballCooldown = 0;
+                this._fireball = null;
                 // 清除死亡粒子效果
                 if (this._poisonEffect) this._poisonEffect.reset();
                 // 重置所有弹药状态
@@ -473,6 +511,7 @@ import { ShieldSystem } from './components/shield-system.js';
                                 id: id,
                                 name: data.name || id,
                                 icon: data.icon || '✦',
+                                iconImage: data.iconImage || '',
                                 description: data.description || '',
                                 level: 1,
                                 maxLevel: data.maxLevel || 20,
@@ -537,6 +576,39 @@ import { ShieldSystem } from './components/shield-system.js';
                     }
                     if (skills.dashAttackThrust) {
                         skills.dashAttackThrust.iconImage = 'assets/skills/冲刺突击.png';
+                    }
+                    // 兜底：确保冰锥技能始终存在
+                    if (!skills.iceSpike) {
+                        skills.iceSpike = {
+                            id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
+                            description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保持盾防御技能始终存在
+                    if (!skills.shieldDefense) {
+                        skills.shieldDefense = {
+                            id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                            description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
+                            getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保火球技能始终存在
+                    if (!skills.fireball) {
+                        skills.fireball = {
+                            id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
+                            description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
                     }
                     return skills;
                 }
@@ -644,6 +716,30 @@ import { ShieldSystem } from './components/shield-system.js';
                         level: 1, maxLevel: 20, exp: 0, maxExp: 100,
                         tags: [{ name: '主动', type: 'active' }],
                         getEffect(level) { return { duration: 30 + (level - 1) * 2, damageBonusPercent: 10 + (level - 1) * 2, critBonusPercent: 10 + (level - 1) * 2, moveSpeed: 500 + Math.floor((level - 1) / 5) * 50, radius: 300 + Math.floor((level - 1) / 5) * 100, cooldown: 15 - level * 0.2 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    iceSpike: {
+                        id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
+                        description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                        getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    shieldDefense: {
+                        id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                        description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
+                        getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
+                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                    },
+                    fireball: {
+                        id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
+                        description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                        getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
                         getExpForNext(level) { return 100 + (level - 1) * 100; }
                     }
                 };
@@ -1057,7 +1153,12 @@ import { ShieldSystem } from './components/shield-system.js';
                 // ===== 枪类武器弹道扩散计时更新（所有枪械） =====
                 const _currentWep2 = this.equipments[this.weaponMode];
                 const _isGun = _currentWep2 && isGunWeapon(_currentWep2);
-                if (_isGun && Input.mouse.leftDown) {
+                // 双持时右键开火也要计算散布
+                const _offSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+                const _offItem = this.equipments[_offSlot];
+                const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
+                const _shouldTrackSpread = _isGun && (Input.mouse.leftDown || (_isDual && Input.mouse.rightDown));
+                if (_shouldTrackSpread) {
                     this._gunSpreadTimer += dt;
                 } else {
                     this._gunSpreadTimer = 0;
@@ -1101,7 +1202,9 @@ import { ShieldSystem } from './components/shield-system.js';
                             if (spreadMaxTime < 500) spreadMaxTime = 500;
                             maxSpreadAngle += craftEffects.maxSpreadAngleDelta || 0;
                         }
-                        this._currentSpreadFactor = Math.min(1, Math.max(0, this._gunSpreadTimer - spreadStartDelay) / spreadMaxTime);
+                        this._currentSpreadFactor = (spreadMaxTime <= 0)
+                            ? (this._gunSpreadTimer > spreadStartDelay ? 1 : 0)
+                            : Math.min(1, Math.max(0, this._gunSpreadTimer - spreadStartDelay) / spreadMaxTime);
                         this._currentSpreadMaxAngle = maxSpreadAngle;
                     }
                 } else {
@@ -1317,16 +1420,12 @@ import { ShieldSystem } from './components/shield-system.js';
                     const isMelee = effectiveItem && effectiveItem.category === 'weapon_melee';
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
                     
+                    // ===== 计算副手状态（用于双持判断） =====
+                    const offhandSlot = currentSlot === 'weapon' ? 'offhand' : 'ring2';
+                    const offhandItem = this.equipments[offhandSlot];
+                    const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded;
+                    
                     // ===== 瞄准模式：所有枪械都可以进行瞄准（双持手枪除外） =====
-                    let offhandSlot = null;
-                    let offhandItem = null;
-                    let isDualWield = false;
-                    if (isPistol) {
-                        if (effectiveSlot === 'weapon') offhandSlot = 'offhand';
-                        else if (effectiveSlot === 'weapon2') offhandSlot = 'ring2';
-                        offhandItem = offhandSlot ? this.equipments[offhandSlot] : null;
-                        isDualWield = !useOffhand && offhandItem && isOneHanded(offhandItem);
-                    }
                     if (isGun && Input.mouse.rightDown && !(isPistol && isDualWield)) {
                         this._aimModeActive = true;
                         const craftEffects = effectiveItem && effectiveItem._craftEffects;
@@ -1365,17 +1464,30 @@ import { ShieldSystem } from './components/shield-system.js';
                         const mainReloading = this._isReloading(effectiveSlot);
                         const offhandHasAmmo = isDualWield ? this._hasAmmo(offhandSlot) : false;
                         const offhandReloading = isDualWield ? this._isReloading(offhandSlot) : false;
+                        // 根据 fireMode 选择触发器：semiAuto = 单击射击，fullAuto = 按住持续射击
+                        const mainFireMode = effectiveItem.fireMode || 'fullAuto';
+                        const mainFireTrigger = mainFireMode === 'semiAuto' ? Input.mouse.leftPressed : Input.mouse.leftDown;
                         // 左键：主手射击
-                        if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.leftDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                        if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && mainFireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
+                            // 半自动武器：消费掉点击事件，防止持续射击
+                            if (mainFireMode === 'semiAuto') {
+                                Input.mouse.leftPressed = false;
+                            }
                         }
                         // 右键：副手射击（双持时）
-                        if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.rightDown && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                        const offhandFireMode = offhandItem && offhandItem.fireMode || 'fullAuto';
+                        const offhandFireTrigger = offhandFireMode === 'semiAuto' ? Input.mouse.rightPressed : Input.mouse.rightDown;
+                        if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && offhandFireTrigger && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
                             this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
                             this.triggerOffhandWeaponAnim();
+                            // 半自动副手：消费掉点击事件
+                            if (offhandFireMode === 'semiAuto') {
+                                Input.mouse.rightPressed = false;
+                            }
                         }
                     } else if (isPkm) {
                         // PKM / AKM / 191 / 201 / 能量轻机枪 全自动模式：按住 leftDown 持续射击
@@ -1506,17 +1618,17 @@ import { ShieldSystem } from './components/shield-system.js';
                         console.log('[SpecialAttack] Right-click detected, effectiveItem:', effectiveItem ? { name: effectiveItem.name, weaponId: effectiveItem.weaponId, category: effectiveItem.category } : 'null');
                         if (effectiveItem && effectiveItem.specialAttackType === 'nightFlame') {
                             // 夜与火之剑
-                            console.log('[SpecialAttack] NightFlame check:', { cooldown: this._specialAttackCooldown, active: this._specialAttackActive, runeActive: this._runeSwordSpecialActive });
-                            if (this._specialAttackCooldown <= 0 && !this._specialAttackActive && !this._runeSwordSpecialActive) {
+                            console.log('[SpecialAttack] NightFlame check:', { cooldown: this._specialAttackCooldowns['nightFlame'] || 0, active: this._specialAttackActive, runeActive: this._runeSwordSpecialActive });
+                            if ((this._specialAttackCooldowns['nightFlame'] || 0) <= 0 && !this._specialAttackActive && !this._runeSwordSpecialActive) {
                                 this.specialAttackSystem.trigger(mouseWorld.x, mouseWorld.y, entities);
                             }
                         } else if (effectiveItem && effectiveItem.specialAttackType === 'runeSword') {
                             // 符文长剑
-                            console.log('[SpecialAttack] RuneSword check:', { active: this._runeSwordSpecialActive, cooldown: this._runeSwordSpecialCooldown, specialActive: this._specialAttackActive });
+                            console.log('[SpecialAttack] RuneSword check:', { active: this._runeSwordSpecialActive, cooldown: this._specialAttackCooldowns['runeSword'] || 0, specialActive: this._specialAttackActive });
                             if (this._runeSwordSpecialActive) {
                                 // 已激活：发射一把剑
                                 this.runeSwordSystem._launchBlade();
-                            } else if (this._runeSwordSpecialCooldown <= 0 && !this._specialAttackActive) {
+                            } else if ((this._specialAttackCooldowns['runeSword'] || 0) <= 0 && !this._specialAttackActive) {
                                 // 未激活：启动特殊攻击
                                 this.runeSwordSystem.trigger();
                             }
@@ -1695,8 +1807,13 @@ import { ShieldSystem } from './components/shield-system.js';
                 } else if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol')) {
                     this.equippedRangedType = 'pistol';
                     if (nextItem.equipImage) {
-                        this.pistolImage = new Image();
-                        this.pistolImage.src = nextItem.equipImage;
+                        if (nextItem.canvasImageProp === 'deagleImage') {
+                            this.deagleImage = new Image();
+                            this.deagleImage.src = nextItem.equipImage;
+                        } else {
+                            this.pistolImage = new Image();
+                            this.pistolImage.src = nextItem.equipImage;
+                        }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = new Image();
@@ -1744,11 +1861,7 @@ import { ShieldSystem } from './components/shield-system.js';
                     this.runeSwordSystem._end(true);
                 }
                 // 切换武器时同步特殊攻击图标
-                if (nextItem && nextItem.specialAttack) {
-                    QuickBar.enableSpecialAttack(nextItem);
-                } else {
-                    QuickBar.disableSpecialAttack();
-                }
+                QuickBar.refreshSpecialAttack(this);
                 // 切换武器时重置武器粒子效果
                 this.weaponEffect.reset();
                 // 切换武器时初始化弹药系统
@@ -1790,7 +1903,11 @@ import { ShieldSystem } from './components/shield-system.js';
                         this.bowEquipImage.src = item.equipImage;
                     }
                 } else if (wt === 'pistol' && wa.image) {
-                    this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                    if (item.canvasImageProp === 'deagleImage') {
+                        this.deagleImage = new Image(); this.deagleImage.src = wa.image;
+                    } else {
+                        this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                    }
                     this.equippedRangedType = 'pistol';
                     if (wa.muzzleImage) { this.muzzleFlashImg = new Image(); this.muzzleFlashImg.src = wa.muzzleImage; }
                 }
@@ -2760,8 +2877,13 @@ import { ShieldSystem } from './components/shield-system.js';
                     if (this._lastFallbackItem !== currentItem.equipImage) {
                         this._lastFallbackItem = currentItem.equipImage;
                         if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
-                            this.pistolImage = new Image();
-                            this.pistolImage.src = currentItem.equipImage;
+                            if (currentItem.canvasImageProp === 'deagleImage') {
+                                this.deagleImage = new Image();
+                                this.deagleImage.src = currentItem.equipImage;
+                            } else {
+                                this.pistolImage = new Image();
+                                this.pistolImage.src = currentItem.equipImage;
+                            }
                         } else if (currentItem.weaponType === 'pkm') {
                             this.pkmImage = new Image();
                             this.pkmImage.src = currentItem.equipImage;
@@ -2820,6 +2942,7 @@ import { ShieldSystem } from './components/shield-system.js';
                 if (isPistol) {
                     const pCfg = WeaponAnimConfig[currentItem.animConfigKey || 'pistol'];
                     const rp = pCfg.renderParams || {};
+                    const weaponImg = currentItem.canvasImageProp ? this[currentItem.canvasImageProp] : this.pistolImage;
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
@@ -2838,9 +2961,9 @@ import { ShieldSystem } from './components/shield-system.js';
                         ctx.rotate(Math.PI / 2);
                         ctx.translate(0, -s * 0.42);
                         const pw = s * 0.275 * ps; const ph = s * 0.5 * ps;
-                        if (this.pistolImage && this.pistolImage.complete && this.pistolImage.naturalWidth > 0) ctx.drawImage(this.pistolImage, -pw / 2, 0, pw, ph);
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -pw / 2, 0, pw, ph);
                     } else {
-                        // 主手G18待机：武器中心为旋转轴
+                        // 主手手枪待机：武器中心为旋转轴
                         const pCfg = WeaponAnimConfig[currentItem.animConfigKey || 'pistol'];
                         const ps = pCfg.idleScale || 1;
                         ctx.translate(pCfg.holdOffsetX || 0, pCfg.holdOffsetY || 0);
@@ -2858,7 +2981,7 @@ import { ShieldSystem } from './components/shield-system.js';
                         ctx.translate(0, -s * 0.42);
                         ctx.rotate(finalAngle);
                         const pw = s * 0.275 * ps; const ph = s * 0.5 * ps;
-                        if (this.pistolImage && this.pistolImage.complete && this.pistolImage.naturalWidth > 0) ctx.drawImage(this.pistolImage, -pw / 2, -ph / 2, pw, ph);
+                        if (weaponImg && weaponImg.complete && weaponImg.naturalWidth > 0) ctx.drawImage(weaponImg, -pw / 2, -ph / 2, pw, ph);
                     }
                 }
                 // === PKM / AKM 渲染 ===
@@ -3862,6 +3985,63 @@ import { ShieldSystem } from './components/shield-system.js';
                         });
                     }
                 }
+                // ===== 冰锥技能：渲染悬浮的冰锥 =====
+                if (this._iceSpikeActive && this._iceSpikeSpikes && this._iceSpikeSpikes.length > 0) {
+                    const img = this._iceSpikeImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const w = 40;
+                        const h = 60;
+                        this._iceSpikeSpikes.forEach(spike => {
+                            if (!spike.active || spike.launched || spike.flyActive) return;
+                            ctx.save();
+                            // 摇摆效果
+                            const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
+                            const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
+                            // 渲染在角色身后左右位置
+                            ctx.translate(spike.offsetX + swayX, spike.offsetY + swayY);
+                            // 朝向鼠标
+                            const sp = Renderer.worldToScreen(this.x, this.y);
+                            let mouseLocalAngle = 0;
+                            if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
+                                mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
+                            }
+                            ctx.rotate(mouseLocalAngle + Math.PI / 2);
+                            ctx.globalAlpha = 0.85;
+                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                            ctx.restore();
+                        });
+                    }
+                }
+                // ===== 火球技能：渲染悬浮的火球 =====
+                if (this._fireballActive && this._fireball && !this._fireball.launched) {
+                    const img = this._fireballImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const fb = this._fireball;
+                        ctx.save();
+                        // 摇摆效果
+                        const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
+                        const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
+                        // 渲染在角色身前
+                        ctx.translate(fb.offsetX + swayX, fb.offsetY + swayY);
+                        // 朝向鼠标
+                        const sp = Renderer.worldToScreen(this.x, this.y);
+                        let mouseLocalAngle = 0;
+                        if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
+                            mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
+                        }
+                        ctx.rotate(mouseLocalAngle + Math.PI / 2);
+                        ctx.globalAlpha = 0.9;
+                        const size = 50 * fb.scale;
+                        // 从 sprite sheet 中截取对应帧
+                        const cols = 9, frameW = 480, frameH = 480;
+                        const frameIndex = fb.frameIndex || 0;
+                        const col = frameIndex % cols;
+                        const row = Math.floor(frameIndex / cols);
+                        const sx = col * frameW, sy = row * frameH;
+                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
+                        ctx.restore();
+                    }
+                }
                 // 闪避时：恢复旋转为 this.rotation，避免武器随身体倾斜而错位
                 if (this.isDodging) {
                     const tilt = Math.atan2(this.dodgeDirection.y, this.dodgeDirection.x);
@@ -3926,6 +4106,45 @@ import { ShieldSystem } from './components/shield-system.js';
                             ctx.drawImage(img, -w / 2, -s / 2, w, s);
                             ctx.restore();
                         });
+                    }
+                }
+                // ===== 冰锥技能：渲染飞行中的冰锥（世界坐标）=====
+                if (this._iceSpikeSpikes && this._iceSpikeSpikes.some(s => s.flyActive)) {
+                    const img = this._iceSpikeImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const w = 40;
+                        const h = 60;
+                        this._iceSpikeSpikes.forEach(spike => {
+                            if (!spike.flyActive) return;
+                            const sp = Renderer.worldToScreen(spike.flyX, spike.flyY);
+                            ctx.save();
+                            ctx.translate(sp.x, sp.y);
+                            ctx.rotate(spike.flyAngle + Math.PI / 2);
+                            ctx.globalAlpha = 0.9;
+                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                            ctx.restore();
+                        });
+                    }
+                }
+                // ===== 火球技能：渲染飞行中的火球（世界坐标）=====
+                if (this._fireball && this._fireball.flyActive) {
+                    const img = this._fireballImg;
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        const fb = this._fireball;
+                        const sp = Renderer.worldToScreen(fb.flyX, fb.flyY);
+                        ctx.save();
+                        ctx.translate(sp.x, sp.y);
+                        ctx.rotate(fb.flyAngle + Math.PI / 2);
+                        ctx.globalAlpha = 0.95;
+                        const size = 50 * fb.scale;
+                        // 从 sprite sheet 中截取对应帧
+                        const cols = 9, frameW = 480, frameH = 480;
+                        const frameIndex = fb.frameIndex || 0;
+                        const col = frameIndex % cols;
+                        const row = Math.floor(frameIndex / cols);
+                        const sx = col * frameW, sy = row * frameH;
+                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
+                        ctx.restore();
                     }
                 }
                 // ===== 无人机渲染 =====
@@ -3998,10 +4217,12 @@ import { ShieldSystem } from './components/shield-system.js';
                 if (this._specialAttackActive) {
                     this.specialAttackSystem.update(dt, entities);
                 }
-                // 特殊攻击冷却
-                if (this._specialAttackCooldown > 0) {
-                    this._specialAttackCooldown -= dt;
-                    if (this._specialAttackCooldown < 0) this._specialAttackCooldown = 0;
+                // 特殊攻击冷却（每个类型独立）
+                for (const type in this._specialAttackCooldowns) {
+                    if (this._specialAttackCooldowns[type] > 0) {
+                        this._specialAttackCooldowns[type] -= dt;
+                        if (this._specialAttackCooldowns[type] < 0) this._specialAttackCooldowns[type] = 0;
+                    }
                 }
                 // ===== 符文长剑特殊攻击更新 =====
                 if (this._runeSwordSpecialActive) {
@@ -4009,10 +4230,23 @@ import { ShieldSystem } from './components/shield-system.js';
                 } else if (this._runeSwordSwords && this._runeSwordSwords.some(s => s.flyActive)) {
                     this.runeSwordSystem._updateFlyingBlades(dt, entities);
                 }
-                // 符文长剑特殊攻击冷却
-                if (this._runeSwordSpecialCooldown > 0) {
-                    this._runeSwordSpecialCooldown -= dt;
-                    if (this._runeSwordSpecialCooldown < 0) this._runeSwordSpecialCooldown = 0;
+                // ===== 冰锥技能更新 =====
+                if (this._iceSpikeActive || (this._iceSpikeSpikes && this._iceSpikeSpikes.some(s => s.flyActive))) {
+                    this.iceSpikeSystem.update(dt, entities);
+                }
+                // 冰锥技能冷却
+                if (this._iceSpikeCooldown > 0) {
+                    this._iceSpikeCooldown -= dt;
+                    if (this._iceSpikeCooldown < 0) this._iceSpikeCooldown = 0;
+                }
+                // ===== 火球技能更新 =====
+                if (this._fireballActive || (this._fireball && this._fireball.flyActive)) {
+                    this.fireballSystem.update(dt, entities);
+                }
+                // 火球技能冷却
+                if (this._fireballCooldown > 0) {
+                    this._fireballCooldown -= dt;
+                    if (this._fireballCooldown < 0) this._fireballCooldown = 0;
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

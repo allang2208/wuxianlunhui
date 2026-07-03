@@ -6,7 +6,7 @@ export class RuneSwordSystem {
     trigger() {
         const currentItem = this.player.equipments[this.player.weaponMode];
         if (!currentItem || currentItem.specialAttackType !== 'runeSword') return;
-        if (this.player._runeSwordSpecialCooldown > 0 || this.player._runeSwordSpecialActive) return;
+        if (this.player._specialAttackCooldowns['runeSword'] > 0 || this.player._runeSwordSpecialActive) return;
         this.player._runeSwordSpecialActive = true;
         this.player._runeSwordSpecialTimer = 0;
         // 基础4把剑：左右两侧50px/100px偏移
@@ -197,7 +197,7 @@ export class RuneSwordSystem {
         this.player._runeSwordSpecialActive = false;
         this.player._runeSwordSpecialTimer = 0;
         this.player._runeSwordSwords = [];
-        this.player._runeSwordSpecialCooldown = 15000; // 15秒冷却
+        this.player._specialAttackCooldowns['runeSword'] = 15000; // 15秒冷却
         // 不关闭图标！图标保持显示，冷却期间显示遮罩
     }
 
@@ -210,13 +210,11 @@ export class RuneSwordSystem {
                 QuickBar.cooldowns[skillId] = Math.max(0, QuickBar.cooldowns[skillId] - 500);
             }
         }
-        // 同时减少符文长剑特殊攻击自身CD 0.5秒
-        if (this.player._runeSwordSpecialCooldown > 0) {
-            this.player._runeSwordSpecialCooldown = Math.max(0, this.player._runeSwordSpecialCooldown - 500);
-        }
-        // 同时减少夜与火之剑特殊攻击CD 0.5秒
-        if (this.player._specialAttackCooldown > 0) {
-            this.player._specialAttackCooldown = Math.max(0, this.player._specialAttackCooldown - 500);
+        // 同时减少所有特殊攻击自身CD 0.5秒
+        for (const type in this.player._specialAttackCooldowns) {
+            if (this.player._specialAttackCooldowns[type] > 0) {
+                this.player._specialAttackCooldowns[type] = Math.max(0, this.player._specialAttackCooldowns[type] - 500);
+            }
         }
         // 触发白色闪烁特效
         QuickBar._flashAllCooldownSlots();

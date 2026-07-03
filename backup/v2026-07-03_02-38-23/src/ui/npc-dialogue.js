@@ -79,6 +79,7 @@ const NPCDialogue = {
         if (npcType === 'quest') {
             dialogueOptions.innerHTML = `
                 <button class="npc-option-btn" id="npcOptionQuest" onclick="NPCDialogue.openQuest()">📜 开始任务</button>
+                <button class="npc-option-btn" id="npcOptionTeleport" onclick="NPCDialogue.teleportToQuest()">🌨️ 传送至任务地点</button>
                 <button class="npc-option-btn" id="npcOptionInfo" onclick="NPCDialogue.showInfo()">ℹ️ 了解信息</button>
                 <button class="npc-option-btn" id="npcOptionHelp" onclick="NPCDialogue.showHelp()">❓ 获取帮助</button>
                 <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
@@ -197,6 +198,7 @@ const NPCDialogue = {
         if (npcPortrait) {
             npcPortrait.style.display = 'none';
             npcPortrait.classList.remove('mouse-attendant');
+            npcPortrait.src = ''; // 重置 src，防止下次打开对话框时闪现旧立绘
         }
 
         // 恢复小地图、任务追踪、返回主菜单按钮
@@ -331,6 +333,21 @@ const NPCDialogue = {
         this._lastCharTime = Date.now();
         const dialogueText = document.getElementById('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
+    },
+
+    teleportToQuest() {
+        if (typeof QuestSystem === 'undefined' || typeof QuestState === 'undefined') return;
+        const quest = QuestSystem.QUESTS['explore_rift_1'];
+        if (!quest || !quest.accepted) {
+            this._currentText = '您还没有接受任务，请先点击"📜 开始任务"按钮接受任务。';
+            this._displayedText = '';
+            this._charIndex = 0;
+            this._lastCharTime = Date.now();
+            const dialogueText = document.getElementById('npcDialogueText');
+            if (dialogueText) dialogueText.textContent = '';
+            return;
+        }
+        QuestState.startQuest(quest.scene, 'quest');
     },
 
     // 选择商店

@@ -37,6 +37,7 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_rune_sword', path: 'assets/weapons/EXsword_equipped_v2_.png' },
         { key: 'weapon_night_flame', path: 'assets/weapons/Nightandflame_equip.png' },
         { key: 'weapon_g18', path: 'assets/weapons/G18equip.png' },
+        { key: 'weapon_deagle', path: 'assets/weapons/Desert eagle-eqiup.png' },
         { key: 'weapon_p4040', path: 'assets/weapons/P4040-equip.png' },
         { key: 'weapon_pkm', path: 'assets/weapons/pkm_topdown.png' },
         { key: 'weapon_akm', path: 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png' },
@@ -46,5 +47,6 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_super90', path: 'assets/weapons/M4s90_equip.png' },
         { key: 'weapon_saiga12k', path: 'assets/weapons/S12k-equip.png' },
         { key: 'weapon_bow', path: 'assets/weapons/trainingBOW.png' },
+        { key: 'weapon_shield', path: 'assets/weapons/woodshied-equip.png' },
     ];
 }

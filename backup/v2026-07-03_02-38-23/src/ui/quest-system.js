@@ -137,7 +137,7 @@ export const QuestSystem = {
                 ${rewardsHtml}
             </div>
             <div class="quest-detail-status ${statusClass}">状态：${statusText}</div>
-            ${!quest.accepted && !quest.completed ? `<div style="margin-top:12px;"><button class="quest-btn quest-btn-accept" onclick="${QuestSystem._fromNPC ? 'QuestSystem.acceptQuestAndTeleport()' : 'QuestSystem.acceptQuest()'}">接受任务</button></div>` : ''}
+            ${!quest.accepted && !quest.completed ? `<div style="margin-top:12px;"><button class="quest-btn quest-btn-accept" onclick="QuestSystem.acceptQuest()">接受任务</button></div>` : ''}
         `;
     }
 };

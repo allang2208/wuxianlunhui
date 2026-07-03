@@ -50,6 +50,11 @@ export const QuickBar = {
         });
     },
     enableSpecialAttack(item) {
+        // 只支持夜与火之剑和符文长剑的特殊攻击图标
+        if (!item || (item.specialAttackType !== 'nightFlame' && item.specialAttackType !== 'runeSword')) {
+            this.disableSpecialAttack();
+            return;
+        }
         this.specialAttack.enabled = true;
         this.specialAttack.item = item;
         const slot = this.slots.find(s => s.config.type === 'special');
@@ -70,6 +75,45 @@ export const QuickBar = {
         if (slot) {
             slot.element.style.display = 'none';
             slot.element.classList.add('empty');
+        }
+    },
+    refreshSpecialAttack(player) {
+        if (!player) {
+            this.disableSpecialAttack();
+            return;
+        }
+        const slots = ['weapon', 'weapon2', 'offhand', 'ring2'];
+        let currentItem = null;
+        let currentInCooldown = false;
+        let otherReady = null;
+        let otherCooldown = null;
+        for (const slot of slots) {
+            const item = player.equipments[slot];
+            if (item && item.specialAttackType) {
+                const cooldown = (player._specialAttackCooldowns && player._specialAttackCooldowns[item.specialAttackType]) || 0;
+                if (slot === player.weaponMode) {
+                    currentItem = item;
+                    currentInCooldown = cooldown > 0;
+                } else {
+                    if (!otherReady && cooldown <= 0) {
+                        otherReady = item;
+                    }
+                    if (!otherCooldown) {
+                        otherCooldown = item;
+                    }
+                }
+            }
+        }
+        if (currentItem && !currentInCooldown) {
+            this.enableSpecialAttack(currentItem);
+        } else if (otherReady) {
+            this.enableSpecialAttack(otherReady);
+        } else if (currentItem) {
+            this.enableSpecialAttack(currentItem);
+        } else if (otherCooldown) {
+            this.enableSpecialAttack(otherCooldown);
+        } else {
+            this.disableSpecialAttack();
         }
     },
     _setupDrop(slot, config) {
@@ -376,6 +420,18 @@ export const QuickBar = {
                 }
                 // 设置冷却时间
                 this.cooldowns[skillId] = effect.cooldown * 1000;
+            } else if (skillId === 'iceSpike') {
+                // 冰锥技能
+                if (player.iceSpikeSystem) {
+                    player.iceSpikeSystem.trigger();
+                }
+                // 冷却时间由 IceSpikeSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'fireball') {
+                // 火球技能
+                if (player.fireballSystem) {
+                    player.fireballSystem.trigger();
+                }
+                // 冷却时间由 FireballSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             setTimeout(() => slot.element.style.transform = '', 100);
@@ -425,16 +481,28 @@ export const QuickBar = {
                 if (this.cooldowns[skillId] < 0) this.cooldowns[skillId] = 0;
             }
         }
-        // 特殊攻击冷却同步（夜与火之剑）
+        // 特殊攻击冷却同步（基于当前显示的特殊攻击武器）
         if (this.specialAttack.enabled && Game.player) {
             const player = Game.player;
-            if (player._specialAttackCooldown > 0) {
-                this.specialAttack.cooldown = player._specialAttackCooldown;
-            } else if (player._runeSwordSpecialCooldown > 0) {
-                this.specialAttack.cooldown = player._runeSwordSpecialCooldown;
+            const displayedItem = this.specialAttack.item;
+            const specialType = displayedItem && displayedItem.specialAttackType;
+            if (specialType && player._specialAttackCooldowns[specialType] > 0) {
+                this.specialAttack.cooldown = player._specialAttackCooldowns[specialType];
             } else {
                 this.specialAttack.cooldown = 0;
             }
+        }
+        // 冰锥技能冷却同步
+        if (Game.player && Game.player._iceSpikeCooldown > 0) {
+            this.cooldowns['iceSpike'] = Game.player._iceSpikeCooldown;
+        } else if (Game.player && Game.player._iceSpikeCooldown === 0) {
+            this.cooldowns['iceSpike'] = 0;
+        }
+        // 火球技能冷却同步
+        if (Game.player && Game.player._fireballCooldown > 0) {
+            this.cooldowns['fireball'] = Game.player._fireballCooldown;
+        } else if (Game.player && Game.player._fireballCooldown === 0) {
+            this.cooldowns['fireball'] = 0;
         }
         this._renderCooldownOverlays();
     },
@@ -462,7 +530,7 @@ export const QuickBar = {
                 // 特殊攻击冷却遮罩
                 if (!this.specialAttack.enabled) return;
                 const remaining = this.specialAttack.cooldown || 0;
-                const totalCooldown = 5000; // 5秒
+                const totalCooldown = 15000; // 15秒
                 const overlay = slot.element.querySelector('.cooldown-overlay');
                 const text = slot.element.querySelector('.cooldown-text');
                 if (overlay) {

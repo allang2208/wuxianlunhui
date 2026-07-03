@@ -664,9 +664,8 @@ import { CraftSystem } from './craft-system.js';
                                 if (eKey === this.player.weaponMode && this.player._clearSkillOverrides) {
                                     this.player._clearSkillOverrides();
                                 }
-                                if (existing.specialAttack) {
-                                    QuickBar.disableSpecialAttack();
-                                }
+                                // 同步特殊攻击图标（检查所有武器槽）
+                                QuickBar.refreshSpecialAttack(this.player);
                             }
                             this.callbacks.updateEquipSlots(); this.callbacks.updateInventorySlots();
                             this.callbacks.triggerEquipFlash(eKey);
@@ -999,10 +998,8 @@ import { CraftSystem } from './craft-system.js';
                 player.weaponAnim.state = 'idle';
                 player.weaponAnim.timer = 0;
                 player.weaponAnim.nextSpin = Date.now() + 150; // 触发待机动画2（旋转动画）
-                // 夜与火之剑/符文长剑：禁用特殊攻击图标
-                if (!currentItem || !currentItem.specialAttack) {
-                    QuickBar.disableSpecialAttack();
-                }
+                // 同步特殊攻击图标（检查所有武器槽）
+                QuickBar.refreshSpecialAttack(player);
             },
             /** 同步当前武器视觉状态：根据 weaponMode 重新设置 meleeImage、弓/手枪状态、特殊攻击图标 */
             _syncWeaponVisual() {
@@ -1030,10 +1027,15 @@ import { CraftSystem } from './craft-system.js';
                         player.equippedRangedType = 'bow';
                     } else if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
-                        // 同步手枪贴图（G18等）
+                        // 同步手枪贴图（G18/沙漠之鹰等）
                         if (currentItem.equipImage) {
-                            player.pistolImage = new Image();
-                            player.pistolImage.src = currentItem.equipImage;
+                            if (currentItem.canvasImageProp === 'deagleImage') {
+                                player.deagleImage = new Image();
+                                player.deagleImage.src = currentItem.equipImage;
+                            } else {
+                                player.pistolImage = new Image();
+                                player.pistolImage.src = currentItem.equipImage;
+                            }
                         }
                         if (currentItem.weaponAsset && currentItem.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = new Image();
@@ -1048,12 +1050,8 @@ import { CraftSystem } from './craft-system.js';
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
                     }
-                    // 同步特殊攻击图标（夜与火之剑/符文长剑）
-                    if (currentItem && currentItem.specialAttack) {
-                        QuickBar.enableSpecialAttack(currentItem);
-                    } else {
-                        QuickBar.disableSpecialAttack();
-                    }
+                    // 同步特殊攻击图标（检查所有武器槽）
+                    QuickBar.refreshSpecialAttack(player);
                     // 触发待机动画2（旋转动画）
                     player.weaponAnim.nextSpin = Date.now() + 150;
                 } else {
@@ -1062,7 +1060,7 @@ import { CraftSystem } from './craft-system.js';
                     player.equippedRangedType = null;
                     player.equippedBowFrames = null;
                     player.meleeImage.src = 'assets/weapons/1-rusty_sword_euip.png';
-                    QuickBar.disableSpecialAttack();
+                    QuickBar.refreshSpecialAttack(player);
                 }
                 player.weaponAnim.state = 'idle';
                 player.weaponAnim.timer = 0;
@@ -1229,10 +1227,10 @@ import { CraftSystem } from './craft-system.js';
                         return; // 不消耗，不响应
                     }
                     if (item.name === '治疗药水') {
-                        player.hp = Math.min(player.hp + 30, player.maxHp);
+                        player.data.hp = Math.min(player.data.hp + 30, player.data.maxHp);
                         EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+30 HP', '#7a9a6a'));
                     } else if (item.name === '魔力药水') {
-                        player.mp = Math.min(player.mp + 25, player.maxMp);
+                        player.data.mp = Math.min(player.data.mp + 25, player.data.maxMp);
                         EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+25 MP', '#5a8aaa'));
                     }
                     // 减少堆叠数量
@@ -1395,8 +1393,13 @@ import { CraftSystem } from './craft-system.js';
                     } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
                         if (item.equipImage) {
-                            player.pistolImage = new Image();
-                            player.pistolImage.src = item.equipImage;
+                            if (item.canvasImageProp === 'deagleImage') {
+                                player.deagleImage = new Image();
+                                player.deagleImage.src = item.equipImage;
+                            } else {
+                                player.pistolImage = new Image();
+                                player.pistolImage.src = item.equipImage;
+                            }
                         }
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = new Image(); player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;

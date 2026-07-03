@@ -304,12 +304,7 @@ export const SceneManager = {
 
         // 同步快捷栏特殊攻击图标
         if (player) {
-            const currentItem = player.equipments[player.weaponMode];
-            if (currentItem && currentItem.specialAttack) {
-                QuickBar.enableSpecialAttack(currentItem);
-            } else {
-                QuickBar.disableSpecialAttack();
-            }
+            QuickBar.refreshSpecialAttack(player);
         }
     },
 
@@ -341,12 +336,7 @@ export const SceneManager = {
             }
 
             if (player) {
-                const currentItem = player.equipments[player.weaponMode];
-                if (currentItem && currentItem.specialAttack) {
-                    QuickBar.enableSpecialAttack(currentItem);
-                } else {
-                    QuickBar.disableSpecialAttack();
-                }
+                QuickBar.refreshSpecialAttack(player);
             }
         }
 
@@ -495,12 +485,7 @@ export const SceneManager = {
 
         // 同步快捷栏
         if (player) {
-            const currentItem = player.equipments[player.weaponMode];
-            if (currentItem && currentItem.specialAttack) {
-                QuickBar.enableSpecialAttack(currentItem);
-            } else {
-                QuickBar.disableSpecialAttack();
-            }
+            QuickBar.refreshSpecialAttack(player);
         }
 
         // 初始化列车滚动背景偏移
@@ -634,12 +619,7 @@ export const SceneManager = {
 
         // 同步快捷栏
         if (player) {
-            const currentItem = player.equipments[player.weaponMode];
-            if (currentItem && currentItem.specialAttack) {
-                QuickBar.enableSpecialAttack(currentItem);
-            } else {
-                QuickBar.disableSpecialAttack();
-            }
+            QuickBar.refreshSpecialAttack(player);
         }
     },
 
