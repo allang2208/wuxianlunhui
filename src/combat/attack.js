@@ -38,18 +38,22 @@ function applyEnchantOnHit(weapon, target, source) {
                 super({ cooldown: config.cooldown || 500, range: config.range || 100, arc: config.arc || Math.PI / 2.5, damage: config.damage || { min: 10, max: 18 }, knockback: config.knockback || 31, ...config });
             }
             execute(source, targetX, targetY, entities) {
-                const currentWeapon = source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null;
+                const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
                     if (ce.staminaCostDelta) staminaCost += ce.staminaCostDelta;
                 }
                 if (staminaCost < 0) staminaCost = 0;
-                if (source.data.stamina !== undefined && source.data.stamina < staminaCost) return false;
-                if (source.data.stamina !== undefined) source.data.stamina -= staminaCost;
+                if (source.consumeStamina) {
+                    if (!source.consumeStamina(staminaCost)) return false;
+                } else if (source.data && source.data.stamina !== undefined) {
+                    if (source.data.stamina < staminaCost) return false;
+                    source.data.stamina -= staminaCost;
+                }
                 // 剑类武器攻击范围调整：根据武器配置使用对应射程
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) || 50;
+                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? 50;
                 let effectiveRange = isSword ? ((currentWeapon.attack?.range || 155) + rangeBonus) : this.config.range;
                 // 应用改造效果：攻击距离
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
@@ -100,15 +104,19 @@ function applyEnchantOnHit(weapon, target, source) {
                 super({ cooldown: config.cooldown || 600, range: config.range || 117, width: config.width || 23, damage: config.damage || { min: 12, max: 20 }, knockback: config.knockback || 19, damageType: config.damageType || 'physical', ...config });
             }
             execute(source, targetX, targetY, entities) {
-                const currentWeapon = source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null;
+                const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
                     if (ce.staminaCostDelta) staminaCost += ce.staminaCostDelta;
                 }
                 if (staminaCost < 0) staminaCost = 0;
-                if (source.data.stamina !== undefined && source.data.stamina < staminaCost) return false;
-                if (source.data.stamina !== undefined) source.data.stamina -= staminaCost;
+                if (source.consumeStamina) {
+                    if (!source.consumeStamina(staminaCost)) return false;
+                } else if (source.data && source.data.stamina !== undefined) {
+                    if (source.data.stamina < staminaCost) return false;
+                    source.data.stamina -= staminaCost;
+                }
                 const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
                 if (!isFinite(attackAngle)) {
                     console.warn('ThrustAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
@@ -118,7 +126,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) || 50;
+                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? 50;
                 const hitBox = WeaponAnimConfig.sword.hitBox;
                 let effectiveRange = isSword ? (hitBox.forwardRange + rangeBonus) : this.config.range;
                 // 应用改造效果：攻击距离
@@ -167,7 +175,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
                 // 获取当前武器，检查是否为剑类武器
-                const currentWeapon = source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null;
+                const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;
@@ -185,8 +193,8 @@ function applyEnchantOnHit(weapon, target, source) {
                     const lateral = dx * (-sin) + dy * cos; // 垂直方向投影 (X轴)
                     const forwardMin = isSword ? -hitBox.backExtension - entityRadius : -entityRadius;
                     const forwardMax = range + entityRadius;
-                    const lateralMin = -hitBox.width - entityRadius;
-                    const lateralMax = hitBox.width + entityRadius;
+                    const lateralMin = -pt.width - entityRadius;
+                    const lateralMax = pt.width + entityRadius;
                     if (forward >= forwardMin && forward <= forwardMax && 
                         lateral >= lateralMin && lateral <= lateralMax) {
                         pt.hitSet.add(entity);
@@ -237,8 +245,12 @@ function applyEnchantOnHit(weapon, target, source) {
                 super({ cooldown: config.cooldown || 800, projectileSpeed: config.projectileSpeed || 10, projectileRange: config.projectileRange || 625, projectileSize: config.projectileSize || 6, damage: config.damage || { min: 6, max: 14 }, piercing: config.piercing || false, damageType: config.damageType || 'physical', ...config });
             }
             execute(source, targetX, targetY, entities) {
-                if (source.data.stamina < CONFIG.STAMINA_RANGED_COST) return false;
-                source.data.stamina -= CONFIG.STAMINA_RANGED_COST;
+                if (source.consumeStamina) {
+                    if (!source.consumeStamina(CONFIG.STAMINA_RANGED_COST)) return false;
+                } else if (source.data && source.data.stamina !== undefined) {
+                    if (source.data.stamina < CONFIG.STAMINA_RANGED_COST) return false;
+                    source.data.stamina -= CONFIG.STAMINA_RANGED_COST;
+                }
                 const wType = source.equippedRangedType;
                 // 播放武器开火音效
                 if (wType === 'pkm') {
@@ -260,8 +272,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 const damageType = this.config.damageType || 'physical';
                 // 附魔效果：穿透加成（骷髅射手）
                 let piercing = this.config.piercing;
-                if (source && source.equipments) {
-                    const weapon = source.equipments[source.weaponMode];
+                if (source && source.getCurrentWeapon) {
+                    const weapon = source.getCurrentWeapon();
                     if (weapon) {
                         if (weapon._enchantEffects && weapon._enchantEffects.piercingBonus) {
                             piercing = (piercing || 0) + weapon._enchantEffects.piercingBonus;
@@ -272,7 +284,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     }
                 }
                 { let p = EffectManager._acquire('Projectile');
-                        if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = this.config.projectileSpeed; p.maxRange = this.config.projectileRange; p.size = this.config.projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; }
+                        if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = this.config.projectileSpeed; p.maxRange = this.config.projectileRange; p.size = this.config.projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; p.isSpit = false; }
                         else p = new Projectile(source.x, source.y, angle, this.config.projectileSpeed, this.config.projectileRange, this.config.projectileSize, damage, piercing, source, entities, source.arrowImage, false, false, false, damageType);
                         if (source.name === '毒液僵尸') p.isSpit = true;
                         EffectManager.add(p); }

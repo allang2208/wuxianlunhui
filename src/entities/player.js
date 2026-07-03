@@ -1,4 +1,4 @@
-import { Entity } from './entity.js';
+import { Combatant } from './combatant.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WeaponEffect } from '../effects/weapon-effect.js';
@@ -14,9 +14,10 @@ import { IceSpikeSystem } from './components/ice-spike-system.js';
 import { FireballSystem } from './components/fireball-system.js';
 import { DroneSystem } from './components/drone-system.js';
 import { ShieldSystem } from './components/shield-system.js';
+import { StatusBar } from '../ui/status-bar.js';
 
 
-        class Player extends Entity {
+        class Player extends Combatant {
             constructor(x, y) {
                 super(x, y); this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300;
                 this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
@@ -109,7 +110,6 @@ import { ShieldSystem } from './components/shield-system.js';
                 // 应用弓精通的冷却缩减
                 SkillManager.updateBowCooldown(this);
                 this.gameStartCooldown = 500; // 游戏开始后500ms内禁止攻击，防止点击"开始游戏"的鼠标事件携带到游戏中
-                this.weaponMode = 'weapon'; // 'weapon' or 'weapon2'
                 this.data = {
                     name: '轮回者', level: 1, class: '初心者', hp: 100, maxHp: 100, mp: 100, maxMp: 100,
                     stamina: CONFIG.STAMINA_MAX, maxStamina: CONFIG.STAMINA_MAX, exp: 0, maxExp: 52,
@@ -146,11 +146,6 @@ import { ShieldSystem } from './components/shield-system.js';
                 this.characterAnim = { frame: 0, timer: 0, frameInterval: 50 };
                 this.equippedRangedType = null; // 'bow' | 'pistol' | 'pkm' | 'akm' | 'qbz191' | null，装备副武器时设置
                 this.arrowImage = new Image(); this.arrowImage.src = 'assets/ammo/arrow.png';
-                this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle, nextSpin: 0 };
-                this.offhandWeaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle, nextSpin: 0 };
-                this.animTimingMul = 1.0; // 动画时间倍率，随攻击间隔同步调整
-                this.rangedFireData = null; this.rangedFired = false;
-                this.staminaRegenDelay = 0;
                 this.weaponEffect = new WeaponEffect(); // 武器符文发光粒子效果（已从 Player 中拆出）
                 this.dashSystem = new DashSystem(this); // 冲刺攻击系统
                 this.whirlwindSystem = new WhirlwindSystem(this); // 风车技能系统
@@ -163,48 +158,18 @@ import { ShieldSystem } from './components/shield-system.js';
                 // ===== 独头弹后坐力系统（Super90）=====
                 this._slugRecoilLayers = 0; // 后坐力层数
                 this._slugRecoilTimer = 0; // 后坐力恢复计时器
-                // ===== 枪类武器弹道扩散系统 =====
-                this._gunSpreadTimer = 0; // 连续开火计时器（ms）
-                this._gunSpreadWeapon = null; // 当前正在扩散的武器类型
                 // ===== 高倍镜瞄准模式 =====
                 this._aimModeActive = false; // 是否处于瞄准模式
-                // ===== 机枪类武器过热系统 =====
-                this._overheatValue = 0; // 过热值（0~1）
-                this._overheatMax = 1; // 过热上限
-                this._overheatOverheated = false; // 是否已触发过热
-                this._overheatRecoverTimer = 0; // 过热恢复计时器
-                this._overheatActive = false; // 过热条是否显示
-                this._overheatWeaponType = null; // 当前过热绑定的武器类型
-                // ===== 能量轻机枪射速提升系统 =====
-                this._energyLMGFireTime = 0; // 持续开火时间（ms）
-                this._energyLMGIsFiring = false; // 是否正在持续开火
-                // 能量轻机枪参数默认值为硬编码，实际从武器配置读取（支持改造/强化调整）
-                this._energyLMGDefaults = { baseCooldown: 333, maxCooldown: 50, rampUpTime: 2500, overheatTime: 5000, overheatRecoverTime: 4000, overheatCooldownTime: 4000, spreadMaxTime: 2500, maxSpreadAngle: 15 };
                 // ===== 魔法晶尘（附魔系统）=====
                 this.magicDust = 0; // 魔法晶尘数量
-                // ===== 枪械类武器弹药系统 =====
-                // 每个装备槽位独立的弹药状态：{ current, max, reloading, reloadTimer, reloadTime }
-                this._ammoState = {
-                    weapon: null,
-                    offhand: null,
-                    weapon2: null,
-                    ring2: null
-                };
-                // ===== 状态效果系统 =====
-                this.isStunned = false; // 眩晕状态
-                this.stunTimer = 0; // 眩晕剩余时间（ms）
-                this._stunEffectId = null; // 状态栏中的眩晕效果ID
-                // ===== 中毒效果系统 =====
-                this._poisonStacks = 0;      // 中毒层数
-                this._poisonTimer = 0;       // 中毒计时器（ms）
-                this._poisonTickTimer = 0;   // 毒伤触发计时器（ms）
-                this._poisonEffectId = null; // 状态栏效果ID
-                this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
                 // ===== 弹药显示UI =====
+                this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
                 this._ammoDisplayEl = null;
                 this._initAmmoDisplay();
                 this._usePhaserSprite = false;
                 this._usePhaserWeapon = false;
+                this._droneVulnerabilityStacks = 0;
+                this._droneVulnerabilityTimer = 0;
                 this.calculateCombatStats();
                 this.updateMaxStats();
             }
@@ -367,6 +332,15 @@ import { ShieldSystem } from './components/shield-system.js';
                         return;
                     }
                 }
+                // 应用无人机易伤：受到的所有伤害增加
+                if (this._droneVulnerabilityStacks > 0) {
+                    let droneBonus = 0.10 * this._droneVulnerabilityStacks;
+                    if (source && source.skills && source.skills.droneSkill) {
+                        const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
+                        droneBonus = (effect.damageBonusPercent / 100) * this._droneVulnerabilityStacks;
+                    }
+                    finalDamage = Math.floor(finalDamage * (1 + droneBonus));
+                }
                 d.hp -= finalDamage;
                 this.hitFlash = this.hitFlashDuration;
                 EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
@@ -376,6 +350,23 @@ import { ShieldSystem } from './components/shield-system.js';
                 // 暴击技能经验
                 if (isCrit && source && SkillManager) {
                     SkillManager.addCriticalStrikeExp(source, isCrit, isKill);
+                }
+            }
+            // 应用无人机易伤（被敌方无人机技能影响）
+            applyDroneVulnerability(stacks) {
+                this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
+                this._droneVulnerabilityTimer = 5000;
+                if (StatusBar) {
+                    this._droneVulnerabilityEffectId = StatusBar.addEffect('droneVulnerability', 5000);
+                }
+            }
+            // 移除无人机易伤
+            removeDroneVulnerability() {
+                this._droneVulnerabilityStacks = 0;
+                this._droneVulnerabilityTimer = 0;
+                if (this._droneVulnerabilityEffectId && StatusBar) {
+                    StatusBar.removeEffect(this._droneVulnerabilityEffectId);
+                    this._droneVulnerabilityEffectId = null;
                 }
             }
             onDeath() {
@@ -404,7 +395,7 @@ import { ShieldSystem } from './components/shield-system.js';
                 this._poisonStacks = 0;
                 this._poisonTimer = 0;
                 this._poisonTickTimer = 0;
-                if (this._poisonEffectId && typeof StatusBar !== 'undefined') {
+                if (this._poisonEffectId && StatusBar) {
                     StatusBar.removeEffect(this._poisonEffectId);
                     this._poisonEffectId = null;
                 }
@@ -435,6 +426,13 @@ import { ShieldSystem } from './components/shield-system.js';
                 // 清除无人机状态
                 if (this.droneSystem) {
                     this.droneSystem._deactivate();
+                }
+                // 清除无人机易伤状态
+                this._droneVulnerabilityStacks = 0;
+                this._droneVulnerabilityTimer = 0;
+                if (this._droneVulnerabilityEffectId && StatusBar) {
+                    StatusBar.removeEffect(this._droneVulnerabilityEffectId);
+                    this._droneVulnerabilityEffectId = null;
                 }
                 // 清除冰锥状态
                 this._iceSpikeActive = false;
@@ -474,7 +472,7 @@ import { ShieldSystem } from './components/shield-system.js';
                 if (!wasPoisoned) {
                     this._poisonTickTimer = 1000;
                 }
-                if (typeof StatusBar !== 'undefined') {
+                if (StatusBar) {
                     this._poisonEffectId = StatusBar.addEffect('poison', 5000, { stacks: this._poisonStacks });
                 }
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#7a9a5a'));
@@ -607,6 +605,17 @@ import { ShieldSystem } from './components/shield-system.js';
                             level: 1, maxLevel: 20, exp: 0, maxExp: 100,
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                             getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
+                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        };
+                    }
+                    // 兜底：确保无人机技能始终存在（即使JSON中没有定义）
+                    if (!skills.droneSkill) {
+                        skills.droneSkill = {
+                            id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/drone_skill.png',
+                            description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
+                            getEffect(level) { return { damageBonus: 0.10 + level * 0.02, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5 }; },
                             getExpForNext(level) { return 100 + (level - 1) * 100; }
                         };
                     }
@@ -861,7 +870,10 @@ import { ShieldSystem } from './components/shield-system.js';
                 return true;
             }
             update(dt, entities) {
-                super.update(dt); // 同步六边形顶点世界坐标
+                // 同步六边形顶点世界坐标（原 super.update(dt) 做的事情）
+                if (this.hitbox) {
+                    this.hitbox.updateWorldPosition(this);
+                }
                 if (this.hitFlash > 0) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
@@ -880,7 +892,7 @@ import { ShieldSystem } from './components/shield-system.js';
                         this.isStunned = false;
                         this.stunTimer = 0;
                         // 从状态栏移除眩晕效果
-                        if (this._stunEffectId && typeof StatusBar !== 'undefined') {
+                        if (this._stunEffectId && StatusBar) {
                             StatusBar.removeEffect(this._stunEffectId);
                             this._stunEffectId = null;
                         }
@@ -912,14 +924,14 @@ import { ShieldSystem } from './components/shield-system.js';
                         if (this._poisonStacks > 0) {
                             // 还有剩余层数，重新启动计时器
                             this._poisonTimer = 5000;
-                            if (typeof StatusBar !== 'undefined') {
+                            if (StatusBar) {
                                 StatusBar.updateEffectStacks('poison', this._poisonStacks);
                             }
                         } else {
                             // 全部层数耗尽，完全清除
                             this._poisonTimer = 0;
                             this._poisonTickTimer = 0;
-                            if (this._poisonEffectId && typeof StatusBar !== 'undefined') {
+                            if (this._poisonEffectId && StatusBar) {
                                 StatusBar.removeEffect(this._poisonEffectId);
                                 this._poisonEffectId = null;
                             }
@@ -931,6 +943,21 @@ import { ShieldSystem } from './components/shield-system.js';
                 // 更新中毒粒子效果
                 if (this._poisonStacks > 0 && this._poisonEffect) {
                     this._poisonEffect.update(dt, 0, 0);
+                }
+                // ===== 无人机易伤效果更新 =====
+                if (this._droneVulnerabilityStacks > 0) {
+                    this._droneVulnerabilityTimer -= dt;
+                    if (this._droneVulnerabilityTimer <= 0) {
+                        this._droneVulnerabilityStacks = Math.max(0, this._droneVulnerabilityStacks - 1);
+                        if (this._droneVulnerabilityStacks > 0) {
+                            this._droneVulnerabilityTimer = 5000;
+                        } else {
+                            if (this._droneVulnerabilityEffectId && StatusBar) {
+                                StatusBar.removeEffect(this._droneVulnerabilityEffectId);
+                                this._droneVulnerabilityEffectId = null;
+                            }
+                        }
+                    }
                 }
                 // ===== 弹药系统换弹更新 =====
                 this._updateReload(dt);
@@ -1150,20 +1177,31 @@ import { ShieldSystem } from './components/shield-system.js';
                     this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * (dt / 1000));
                 }
                 Object.values(this.attacks).forEach(a => a.update(dt));
-                // ===== 枪类武器弹道扩散计时更新（所有枪械） =====
+                // ===== 枪类武器弹道扩散计时更新（主副手独立） =====
                 const _currentWep2 = this.equipments[this.weaponMode];
                 const _isGun = _currentWep2 && isGunWeapon(_currentWep2);
-                // 双持时右键开火也要计算散布
+                // 双持判断
                 const _offSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const _offItem = this.equipments[_offSlot];
                 const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
-                const _shouldTrackSpread = _isGun && (Input.mouse.leftDown || (_isDual && Input.mouse.rightDown));
-                if (_shouldTrackSpread) {
+                // 主手散布计时：左键按下时主手武器累计散布
+                if (_isGun && Input.mouse.leftDown) {
                     this._gunSpreadTimer += dt;
+                    this._gunSpreadWeapon = _currentWep2.weaponType;
                 } else {
                     this._gunSpreadTimer = 0;
+                    this._gunSpreadWeapon = null;
                 }
-                // 预计算当前散布因子（供准星显示使用）
+                // 副手散布计时：双持时右键按下且副手为枪械时累计散布
+                const _offIsGun = _offItem && isGunWeapon(_offItem);
+                if (_isDual && _offIsGun && Input.mouse.rightDown) {
+                    this._gunSpreadTimerOff += dt;
+                    this._gunSpreadWeaponOff = _offItem.weaponType;
+                } else {
+                    this._gunSpreadTimerOff = 0;
+                    this._gunSpreadWeaponOff = null;
+                }
+                // 预计算主手散布因子（供准星显示与主手开火使用）
                 if (_isGun) {
                     const wt = _currentWep2.weaponType;
                     const craftEffects = _currentWep2 && _currentWep2._craftEffects;
@@ -1210,6 +1248,48 @@ import { ShieldSystem } from './components/shield-system.js';
                 } else {
                     this._currentSpreadFactor = 0;
                     this._currentSpreadMaxAngle = 0;
+                }
+                // 预计算副手散布因子（供副手开火使用）
+                if (_offIsGun) {
+                    const offWt = _offItem.weaponType;
+                    const offCraftEffects = _offItem && _offItem._craftEffects;
+                    if (offWt === 'shotgun' && offCraftEffects && offCraftEffects.slugMode) {
+                        this._currentSpreadFactorOff = 1;
+                        this._currentSpreadMaxAngleOff = this._slugRecoilLayers * 5 + (offCraftEffects.maxSpreadAngleDelta || 0);
+                        if (this._currentSpreadMaxAngleOff < 0) this._currentSpreadMaxAngleOff = 0;
+                    } else {
+                        let offSpreadStartDelay = 500;
+                        let offSpreadMaxTime = 4000;
+                        let offMaxSpreadAngle = 25;
+                        const offSp = _offItem.spreadParams;
+                        if (offSp) {
+                            if (offSp.startDelay !== undefined) offSpreadStartDelay = offSp.startDelay;
+                            if (offSp.maxTime !== undefined) offSpreadMaxTime = offSp.maxTime;
+                            if (offSp.maxAngle !== undefined) offMaxSpreadAngle = offSp.maxAngle;
+                        }
+                        if (offWt === 'energy_lmg') {
+                            const offElp = this._getEnergyLMGParams(); // 能量轻机枪参数从主手装备读取（Player 只持一把能量轻机枪）
+                            offSpreadMaxTime = offElp.spreadMaxTime;
+                            offMaxSpreadAngle = offElp.maxSpreadAngle;
+                        }
+                        if (this._aimModeActive) {
+                            offSpreadStartDelay += 1000;
+                        }
+                        if (offCraftEffects) {
+                            offSpreadStartDelay += offCraftEffects.spreadStartDelta || 0;
+                            if (offSpreadStartDelay < 0) offSpreadStartDelay = 0;
+                            offSpreadMaxTime += offCraftEffects.spreadTimeDelta || 0;
+                            if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
+                            offMaxSpreadAngle += offCraftEffects.maxSpreadAngleDelta || 0;
+                        }
+                        this._currentSpreadFactorOff = (offSpreadMaxTime <= 0)
+                            ? (this._gunSpreadTimerOff > offSpreadStartDelay ? 1 : 0)
+                            : Math.min(1, Math.max(0, this._gunSpreadTimerOff - offSpreadStartDelay) / offSpreadMaxTime);
+                        this._currentSpreadMaxAngleOff = offMaxSpreadAngle;
+                    }
+                } else {
+                    this._currentSpreadFactorOff = 0;
+                    this._currentSpreadMaxAngleOff = 0;
                 }
                 // ===== 独头弹后坐力恢复系统 =====
                 if (_currentWep2 && _currentWep2.weaponType === 'shotgun') {
@@ -2060,7 +2140,8 @@ import { ShieldSystem } from './components/shield-system.js';
                             if (state.current >= state.max) {
                                 state.reloading = false;
                                 state.singleReloadMode = false;
-                                this._gunSpreadTimer = 0;
+                                this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
+                                this._gunSpreadTimerOff = 0; // 同时重置副手散布
                                 // 单发装填满弹时播放枪栓音效
                                 if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
                                     SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
@@ -2075,7 +2156,8 @@ import { ShieldSystem } from './components/shield-system.js';
                             console.log(`[_updateReload] slot=${slot} bulkReload: current ${state.current}→${state.max}`);
                             state.reloading = false;
                             state.current = state.max;
-                            this._gunSpreadTimer = 0;
+                            this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
+                            this._gunSpreadTimerOff = 0; // 同时重置副手散布
                         }
                     }
                 }
@@ -2227,8 +2309,8 @@ import { ShieldSystem } from './components/shield-system.js';
                             const leftMuzzleX = this.x + c * (gunLX + 22) - sin * leftGunLY;
                             const leftMuzzleY = this.y + sin * (gunLX + 22) + c * leftGunLY;
                             const leftAngle = Math.atan2(d.targetY - leftMuzzleY, d.targetX - leftMuzzleX);
-                            let offhandSpreadFactor = this._currentSpreadFactor;
-                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            let offhandSpreadFactor = this._currentSpreadFactorOff;
+                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || 25;
                             const leftSpreadRad = (Math.random() - 0.5) * 2 * (offhandMaxSpreadAngle * Math.PI / 180) * offhandSpreadFactor;
                             const leftFinalAngle = leftAngle + leftSpreadRad;
                             let offhandDamage = offPC.damage.min;
@@ -2821,8 +2903,8 @@ import { ShieldSystem } from './components/shield-system.js';
                     // 双持时：副手换弹进度条（主手下方 3px）
                     const offhandSlot = currentSlot === 'weapon' ? 'offhand' : 'ring2';
                     const offhandItem = this.equipments[offhandSlot];
-                    const isDualWieldOff = offhandItem && (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol');
-                    if (isDualWieldOff) {
+                    const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded; // Bug-4 统一双持判断：副手有装备且非双手武器
+                    if (isDualWield) {
                         const offState = this._ammoState[offhandSlot];
                         if (offState && offState.reloading) {
                             const offReloadPercent = 1 - (offState.reloadTimer / offState.reloadTime);
@@ -2918,7 +3000,7 @@ import { ShieldSystem } from './components/shield-system.js';
                 const isAttacking = anim.state !== 'idle';
                 const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const offhandItem = this.equipments[offhandSlot];
-                const isDualWield = offhandItem && offhandItem.name && offhandItem.weaponType !== 'shield';
+                const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded; // Bug-4 统一双持判断：副手有装备且非双手武器
                 // 武器位置根据类型调整：手枪/近战/弓后退5px，双手枪械保持原位置
                 let mainBaseX, mainBaseY, offBaseX, offBaseY;
                 if (isPistol) {
@@ -4164,7 +4246,7 @@ import { ShieldSystem } from './components/shield-system.js';
                 this.isStunned = true;
                 this.stunTimer = duration;
                 // 在状态栏显示眩晕效果
-                if (typeof StatusBar !== 'undefined') {
+                if (StatusBar) {
                     if (this._stunEffectId) {
                         StatusBar.removeEffect(this._stunEffectId);
                     }

@@ -57,10 +57,13 @@ export class IceSpikeSystem {
                 swayAmpY: 2
             });
         }
-        // 加载冰锥贴图
-        if (!this.player._iceSpikeImg || this.player._iceSpikeImg.naturalWidth === 0) {
+        // 加载冰锥贴图（游戏内冰锥贴图，非技能栏图标）
+        // 注意：如果图片已加载但路径不正确（如旧版技能栏图标），需要重新加载
+        const GAME_ICE_SPIKE_SRC = 'assets/skills/icearrow.png';
+        if (!this.player._iceSpikeImg || this.player._iceSpikeImg.naturalWidth === 0 ||
+            this.player._iceSpikeImg.src !== GAME_ICE_SPIKE_SRC) {
             this.player._iceSpikeImg = new Image();
-            this.player._iceSpikeImg.src = 'assets/skills/Icearrow-skill.png';
+            this.player._iceSpikeImg.src = GAME_ICE_SPIKE_SRC;
         }
         EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 40, `❄ 冰锥凝聚 x${count}`, '#5a8aaa'));
     }

@@ -5,11 +5,18 @@ import { EquipDataManager } from './ui/equip-data-manager.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantScrollItems, MagicDustItem } from './config/enchant-config.js';
 import { SynergySystem, DEFAULT_SYNERGY_RULES } from './ai/synergy-system.js';
+import { BattleCommander } from './ai/battle-commander.js';
+import { Enemy } from './entities/enemy.js';
+import SpatialPartitionSystem from './systems/spatial-partition-system.js';
+import FormationSystem from './systems/formation-system.js';
+import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 
 export const Game = {
-    VERSION: '0.195', // 游戏版本号（每次更新必须递增）
+    VERSION: '0.196', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
     _synergySystem: null,
+    _battleCommander: null, // 指挥AI实例
+    _tacticalSquadAI: null, // 战术小队AI实例
     showAttackRange: false, // 攻击范围显示开关
     showHitbox: false, // 六边形碰撞盒调试显示开关
     _npcDialoguePaused: false,
@@ -64,6 +71,10 @@ export const Game = {
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
+            // 初始化指挥AI系统
+            this._battleCommander = new BattleCommander();
+            // 初始化战术小队AI系统
+            this._tacticalSquadAI = new TacticalSquadAI();
             // 在当前地图测试区域左边生成5个传送门（场景二至六）
             const portalBaseX = 3478;
             const portalBaseY = 2363;
@@ -376,9 +387,36 @@ export const Game = {
             });
         }
         this.entities.forEach(e => { if (e.active) e.update(dt, this.entities); });
+        // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
+        if (typeof FormationSystem !== 'undefined') {
+            this.entities.forEach(e => {
+                if (e.active) FormationSystem.update(e, dt, this.entities);
+            });
+        }
+        // ===== 空间分区重建（所有AI系统的前置条件）=====
+        // ===== 空间分区重建（所有AI系统的前置条件）=====
+        if (typeof SpatialPartitionSystem !== 'undefined') {
+            SpatialPartitionSystem.update(dt, this.entities);
+        }
         // 协同效应系统更新
         if (this._synergySystem) {
             this._synergySystem.update(dt, this.entities);
+        }
+        // 指挥AI（BattleCommander）更新：根据战场态势选择战术并分配目标位置
+        if (this._battleCommander) {
+            const enemies = [];
+            this.entities.forEach(e => { if (e instanceof Enemy && e.active && e.hp > 0) enemies.push(e); });
+            if (this.player && enemies.length > 0) {
+                this._battleCommander.update(dt, this.player, enemies);
+            }
+        }
+        // 战术小队AI更新：控制类人型战术小队的协同行动
+        if (this._tacticalSquadAI) {
+            this._tacticalSquadAI.update(dt, this.player, this.entities);
+        }
+        // 战术小队角色动态切换（指挥官死亡后自动晋升）
+        if (typeof TacticalSquadRoleSwitch !== 'undefined') {
+            TacticalSquadRoleSwitch.update(dt, this.entities);
         }
         // ===== 金币自动拾取 =====
         this.entities.forEach((entity, key) => {
@@ -678,6 +716,10 @@ export const Game = {
             });
         }
         EffectManager.render(Renderer.ctx);
+        // 战术小队无人机渲染
+        if (this._tacticalSquadAI) {
+            this._tacticalSquadAI.renderDrone(Renderer.ctx);
+        }
         // 协同效应系统渲染
         if (this._synergySystem) {
             this._synergySystem.render(Renderer.ctx);
