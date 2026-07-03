@@ -552,7 +552,6 @@ class WolfSpider extends Enemy {
 class BroodmotherSpider extends Enemy {
     constructor(x, y) {
         super(x, y, {
-            id: 'broodmotherSpider',
             name: '育母蜘蛛',
             hp: 550, maxHp: 550,
             size: 40, collisionRadius: 35,
