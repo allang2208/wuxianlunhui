@@ -12,7 +12,7 @@ import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 
 export const Game = {
-    VERSION: '0.196', // 游戏版本号（每次更新必须递增）
+    VERSION: '0.197', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
     _synergySystem: null,
     _battleCommander: null, // 指挥AI实例
@@ -387,6 +387,28 @@ export const Game = {
             });
         }
         this.entities.forEach(e => { if (e.active) e.update(dt, this.entities); });
+        // === [REFACTOR-START] 实体基础 update 后，集成外部系统驱动 ===
+        // 说明：Enemy 原先在 update() 内部调用 _updateMovement/_updateAttack，
+        // 现改为由外部系统驱动，便于集中管理与扩展。
+        this.entities.forEach(e => {
+            if (!e.active) return;
+            // 仅对 Enemy 实例调用外部系统（替代内部旧逻辑）
+            if (e instanceof Enemy) {
+                // 感知系统：目标选择 / LOS 检测
+                if (typeof PerceptionSystem !== 'undefined') {
+                    PerceptionSystem.update(e, dt, this.entities);
+                }
+                // 移动系统：移动 / 寻路 / 墙壁碰撞
+                if (typeof MovementSystem !== 'undefined') {
+                    MovementSystem.update(e, dt, this.entities);
+                }
+                // 战斗系统：攻击 / 冷却 / 状态效果
+                if (typeof CombatSystem !== 'undefined') {
+                    CombatSystem.update(e, dt, this.entities);
+                }
+            }
+        });
+        // === [REFACTOR-END] ===
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
         if (typeof FormationSystem !== 'undefined') {
             this.entities.forEach(e => {

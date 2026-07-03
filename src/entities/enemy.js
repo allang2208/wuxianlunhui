@@ -172,30 +172,33 @@ import aiConfigData from '../../data/ai-config.json';
                     this.isMoving = false;
                     return;
                 }
-                // 1. 寻找目标
-                if (!this.target) {
-                    entities.forEach(e => { if (e instanceof Player) this.target = e; });
+
+                // [REFACTOR] 外部系统驱动：如果 game.js 已调用 MovementSystem/CombatSystem/PerceptionSystem，
+                // 则 enemy.js 不再重复处理移动/攻击/目标选择/状态效果，避免每帧重复调用。
+                // 如果没有外部系统（fallback），使用旧逻辑。
+                if (typeof MovementSystem === 'undefined' || typeof CombatSystem === 'undefined') {
+                    // 1. 寻找目标
+                    if (!this.target) {
+                        entities.forEach(e => { if (e instanceof Player) this.target = e; });
+                    }
+                    if (!this.target || !this.target.active) return;
+                    const dx = this.target.x - this.x, dy = this.target.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    this.rotation = Math.atan2(dy, dx);
+                    // 2. 移动系统（始终独立运行）
+                    this._updateMovement(dx, dy, dist, dt);
+                    // 3. 攻击系统（始终独立运行）
+                    this._updateAttack(dt, entities);
+                    // 4. 更新攻击冷却和武器动画
+                    if (this.attacks.melee) this.attacks.melee.update(dt);
+                    if (this.attacks.ranged) this.attacks.ranged.update(dt);
+                    this.updateWeaponAnim(dt);
+                    // 5. 状态效果更新
+                    this._updatePoison(dt);
+                    this._updateBleed(dt);
+                    this._updateMagicVulnerability(dt);
+                    this._updateDroneVulnerability(dt);
                 }
-                if (!this.target || !this.target.active) return;
-                const dx = this.target.x - this.x, dy = this.target.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                this.rotation = Math.atan2(dy, dx);
-                // 2. 移动系统（始终独立运行）
-                this._updateMovement(dx, dy, dist, dt);
-                // 3. 攻击系统（始终独立运行）
-                this._updateAttack(dt, entities);
-                // 4. 更新攻击冷却和武器动画
-                if (this.attacks.melee) this.attacks.melee.update(dt);
-                if (this.attacks.ranged) this.attacks.ranged.update(dt);
-                this.updateWeaponAnim(dt);
-                // 5. 中毒效果更新
-                this._updatePoison(dt);
-                // 6. 流血效果更新
-                this._updateBleed(dt);
-                // 7. 魔力易伤效果更新
-                this._updateMagicVulnerability(dt);
-                // 8. 无人机易伤效果更新
-                this._updateDroneVulnerability(dt);
             }
             // --- 中毒效果更新 ---
             _updatePoison(dt) {

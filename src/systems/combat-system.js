@@ -71,7 +71,16 @@ class CombatSystemImpl {
         const dx = targetX - enemy.x, dy = targetY - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist > enemy.attackRange) return;
-        const isBlocked = typeof WallSystem !== 'undefined' && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
+        // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
+        let isBlocked;
+        if (enemy._perception && enemy._perception.lastLOSTargetId === enemy.target.id) {
+            // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
+            isBlocked = !enemy._perception.lastLOSResult;
+        } else {
+            // 缓存未命中：fallback 到 WallSystem 直接检测
+            isBlocked = typeof WallSystem !== 'undefined' && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
+        }
+        // === END REFACTOR ===
         if (isBlocked) return;
 
         // === 真实武器系统路径（HumanoidMonster 等使用玩家同款武器）===
