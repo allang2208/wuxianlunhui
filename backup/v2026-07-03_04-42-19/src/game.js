@@ -4,10 +4,12 @@ import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
 import { EquipDataManager } from './ui/equip-data-manager.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantScrollItems, MagicDustItem } from './config/enchant-config.js';
+import { SynergySystem, DEFAULT_SYNERGY_RULES } from './ai/synergy-system.js';
 
 export const Game = {
     VERSION: '0.195', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
+    _synergySystem: null,
     showAttackRange: false, // 攻击范围显示开关
     showHitbox: false, // 六边形碰撞盒调试显示开关
     _npcDialoguePaused: false,
@@ -59,12 +61,15 @@ export const Game = {
             EffectManager.add(new FloatingTextEffect(3478, 2363 - 20, '测试区域', '#000000'));
             // 初始化场景管理器
             SceneManager.init();
+            // 初始化协同效应系统
+            this._synergySystem = new SynergySystem();
+            DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
             // 在当前地图测试区域左边生成5个传送门（场景二至六）
             const portalBaseX = 3478;
             const portalBaseY = 2363;
             const portalSpacing = 100;
             const portalLabels = ['场景二', '场景三', '场景四', '场景五', '场景六'];
-            const portalTargets = ['scene2', 'scene3', 'scene4', null, null];
+            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', null];
             for (let i = 0; i < 5; i++) {
                 const px = portalBaseX - (i + 1) * portalSpacing;
                 const py = portalBaseY;
@@ -371,6 +376,10 @@ export const Game = {
             });
         }
         this.entities.forEach(e => { if (e.active) e.update(dt, this.entities); });
+        // 协同效应系统更新
+        if (this._synergySystem) {
+            this._synergySystem.update(dt, this.entities);
+        }
         // ===== 金币自动拾取 =====
         this.entities.forEach((entity, key) => {
             if (entity instanceof DropItem && entity.active && entity.itemData && entity.itemData.category === 'gold') {
@@ -669,6 +678,10 @@ export const Game = {
             });
         }
         EffectManager.render(Renderer.ctx);
+        // 协同效应系统渲染
+        if (this._synergySystem) {
+            this._synergySystem.render(Renderer.ctx);
+        }
         // 裂隙系统渲染（仅在任务模式的雪地场景）
         if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {
             RiftSystem.render(Renderer.ctx);

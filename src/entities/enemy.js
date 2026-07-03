@@ -523,6 +523,10 @@ import aiConfigData from '../../data/ai-config.json';
                 if (this.poisonStacks && this.poisonStacks > 0 && target instanceof Player) {
                     target.applyPoison(this.poisonStacks);
                 }
+                // 协同流血效果
+                if (this._synergyBleedChance && Math.random() < this._synergyBleedChance && target.applyBleeding) {
+                    target.applyBleeding(1);
+                }
             }
         }
 

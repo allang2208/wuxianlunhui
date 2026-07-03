@@ -12,7 +12,8 @@ export const SceneManager = {
             main: { name: '主神空间', type: 'main', label: '场景一', origin: { x: 3825, y: 1886 } },
             scene2: { name: '雪地', type: 'instance', width: 9000, height: 9000, background: '#b8c0c8', label: '场景二', origin: { x: 4500, y: 4500 } },
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
-            scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } }
+            scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
+            scene5: { name: 'AI测试场', type: 'instance', width: 1530, height: 760, background: '#3a3a3a', label: '场景五', origin: { x: 765, y: 380 } }
         };
     },
 
@@ -121,6 +122,8 @@ export const SceneManager = {
                 this._loadScene3(player);
             } else if (sceneId === 'scene4') {
                 this._loadScene4(player);
+            } else if (sceneId === 'scene5') {
+                this._loadScene5(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -625,6 +628,82 @@ export const SceneManager = {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    _loadScene5(player) {
+        const scene = this.scenes.scene5;
+        CONFIG.WORLD_WIDTH = scene.width;
+        CONFIG.WORLD_HEIGHT = scene.height;
+
+        // 灰色地形纹理
+        const canvas = document.createElement('canvas');
+        canvas.width = scene.width;
+        canvas.height = scene.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(0, 0, scene.width, scene.height);
+        // 网格纹理
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.1)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < scene.width; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, scene.height); ctx.stroke();
+        }
+        for (let y = 0; y < scene.height; y += 50) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(scene.width, y); ctx.stroke();
+        }
+        Renderer.terrainTexture = canvas;
+
+        // 墙壁系统
+        WallSystem.init(scene.width, scene.height);
+        WallSystem.walls = [
+            { x: -10, y: -10, w: scene.width + 20, h: 10 },
+            { x: -10, y: scene.height, w: scene.width + 20, h: 10 },
+            { x: -10, y: -10, w: 10, h: scene.height + 20 },
+            { x: scene.width, y: -10, w: 10, h: scene.height + 20 }
+        ];
+        // 添加一些障碍物（方块）
+        for (let i = 0; i < 15; i++) {
+            const wx = 200 + Math.random() * (scene.width - 400);
+            const wy = 100 + Math.random() * (scene.height - 200);
+            const ww = 40 + Math.random() * 80;
+            const wh = 40 + Math.random() * 80;
+            WallSystem.walls.push({ x: wx, y: wy, w: ww, h: wh });
+        }
+
+        // 放置玩家
+        if (player) {
+            player.x = scene.width / 2;
+            player.y = scene.height / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+        }
+
+        // 返回传送门
+        const portal = new Portal(scene.width / 2, scene.height - 50, 'main', '返回主神空间');
+        Game.entities.set('portal_return', portal);
+
+        // 生成测试怪物
+        const spawnMonster = (Type, count, minDist, maxDist) => {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = minDist + Math.random() * (maxDist - minDist);
+                let mx = scene.width / 2 + Math.cos(angle) * radius;
+                let my = scene.height / 2 + Math.sin(angle) * radius;
+                mx = Math.max(50, Math.min(scene.width - 50, mx));
+                my = Math.max(50, Math.min(scene.height - 50, my));
+                const monster = new Type(mx, my);
+                Game.entities.set(`monster_${Type.name}_${i}`, monster);
+            }
+        };
+
+        spawnMonster(BlackWolf, 5, 200, 400);
+        spawnMonster(WolfSpider, 2, 150, 350);
+        spawnMonster(SkeletonWarrior, 3, 200, 400);
+        spawnMonster(SkeletonArcher, 2, 200, 400);
+        spawnMonster(BroodmotherSpider, 1, 300, 500);
+        spawnMonster(BabySpider, 3, 100, 250);
+
+        if (player) QuickBar.refreshSpecialAttack(player);
     }
 };
 

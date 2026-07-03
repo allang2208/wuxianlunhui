@@ -64,7 +64,7 @@ export const QuickBar = {
         const isRune = item && item.weaponId === 'weapon4';
         const icon = isRune ? '⚔' : '🔥';
         const title = isRune ? '符文长剑：特殊攻击 (右键)' : '夜与火之剑：特殊攻击 (右键)';
-        slot.element.innerHTML = `<span style="font-size:20px">${icon}</span><span class="key-hint">右键</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span>`;
+        slot.element.innerHTML = `<span style="font-size:20px">${icon}</span><span class="key-hint">右键</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span><div class="cooldown-flash"></div>`;
         slot.element.title = title;
     },
     disableSpecialAttack() {
@@ -313,7 +313,7 @@ export const QuickBar = {
         const iconHtml = skill.iconImage
             ? `<img src="${skill.iconImage}" style="width:48px;height:48px;object-fit:contain;" onerror="this.style.display='none';this.parentElement.textContent='${skill.icon}';this.parentElement.style.fontSize='20px';">`
             : skill.icon;
-        slot.innerHTML = `<span class="skill-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span>`;
+        slot.innerHTML = `<span class="skill-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span><div class="cooldown-flash"></div>`;
         // 清理该槽位的物品数据（如果之前有）
         delete this.itemAssignments[slot.dataset.keyCode];
         // 技能槽内部拖动
@@ -334,7 +334,7 @@ export const QuickBar = {
         const iconHtml = imgSrc
             ? `<img src="${imgSrc}" style="width:40px;height:40px;object-fit:contain;" draggable="false" ondragstart="return false;">`
             : (item.icon || '❓');
-        slot.innerHTML = `<span class="item-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><span class="item-stack">${item.stack > 1 ? item.stack : ''}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span>`;
+        slot.innerHTML = `<span class="item-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><span class="item-stack">${item.stack > 1 ? item.stack : ''}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span><div class="cooldown-flash"></div>`;
         // 清理该槽位的技能数据（如果之前有）
         delete this.skillAssignments[slot.dataset.keyCode];
         // 快捷栏内部拖动
@@ -533,12 +533,18 @@ export const QuickBar = {
                 const totalCooldown = 15000; // 15秒
                 const overlay = slot.element.querySelector('.cooldown-overlay');
                 const text = slot.element.querySelector('.cooldown-text');
+                const flash = slot.element.querySelector('.cooldown-flash');
                 if (overlay) {
                     const pct = remaining > 0 ? (remaining / totalCooldown) * 100 : 0;
                     overlay.style.height = `${pct}%`;
                 }
                 if (text) {
                     text.textContent = remaining > 0 ? (remaining / 1000).toFixed(1) : '';
+                    if (remaining <= 0 && text.textContent !== '') {
+                        // CD刚结束，触发闪光
+                        if (flash) flash.classList.add('active');
+                        setTimeout(() => { if (flash) flash.classList.remove('active'); }, 600);
+                    }
                 }
                 return;
             }
@@ -551,12 +557,19 @@ export const QuickBar = {
             const remaining = this.cooldowns[skillId] || 0;
             const overlay = slot.element.querySelector('.cooldown-overlay');
             const text = slot.element.querySelector('.cooldown-text');
+            const flash = slot.element.querySelector('.cooldown-flash');
             if (overlay) {
                 const pct = remaining > 0 ? (remaining / totalCooldown) * 100 : 0;
                 overlay.style.height = `${pct}%`;
             }
             if (text) {
+                const hadText = text.textContent !== '';
                 text.textContent = remaining > 0 ? (remaining / 1000).toFixed(1) : '';
+                // CD刚结束，触发白色闪光
+                if (hadText && text.textContent === '' && flash) {
+                    flash.classList.add('active');
+                    setTimeout(() => flash.classList.remove('active'), 600);
+                }
             }
         });
     }
