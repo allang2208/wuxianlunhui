@@ -28,6 +28,17 @@ const NPCDialogue = {
         if (dialogueText) dialogueText.textContent = '';
         if (npcPortrait) {
             npcPortrait.src = npc.portrait;
+            // 设置当前 NPC ID 到立绘工具，供 toggle 使用
+            if (window.NpcPortraitTool) {
+                window.NpcPortraitTool._npcId = npc.id;
+            }
+            // 加载已保存的立绘参数并应用
+            if (npc.id && window.NpcPortraitTool && window.NpcPortraitTool._settings && window.NpcPortraitTool._settings[npc.id]) {
+                const saved = window.NpcPortraitTool._settings[npc.id];
+                npcPortrait.style.transform = `translateX(${saved.offsetX}px) translateY(${saved.offsetY}px) scale(${saved.scale}) rotate(${saved.rotation}deg) scaleX(${saved.flipX ? -1 : 1})`;
+            } else {
+                npcPortrait.style.transform = ''; // 清除旧变换
+            }
             // 小鼠侍从立绘放大300%
             if (npc.portrait && npc.portrait.includes('mouse_attendant')) {
                 npcPortrait.classList.add('mouse-attendant');
@@ -82,6 +93,7 @@ const NPCDialogue = {
                 <button class="npc-option-btn" id="npcOptionTeleport" onclick="NPCDialogue.teleportToQuest()">🌨️ 传送至任务地点</button>
                 <button class="npc-option-btn" id="npcOptionInfo" onclick="NPCDialogue.showInfo()">ℹ️ 了解信息</button>
                 <button class="npc-option-btn" id="npcOptionHelp" onclick="NPCDialogue.showHelp()">❓ 获取帮助</button>
+                <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
                 <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
             `;
         } else {
@@ -90,6 +102,7 @@ const NPCDialogue = {
                 <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化装备</button>
                 <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造装备</button>
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔装备</button>
+                <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
                 <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
             `;
         }
@@ -182,6 +195,8 @@ const NPCDialogue = {
         if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) QuestSystem.close();
         // 强制关闭背包
         SystemUI.close();
+        // 关闭立绘调整工具
+        if (typeof window.NpcPortraitTool !== 'undefined') window.NpcPortraitTool.hide();
 
         // 移除点击外部退出事件
         if (this._clickOutsideHandler) {
@@ -199,6 +214,7 @@ const NPCDialogue = {
             npcPortrait.style.display = 'none';
             npcPortrait.classList.remove('mouse-attendant');
             npcPortrait.src = ''; // 重置 src，防止下次打开对话框时闪现旧立绘
+            npcPortrait.style.transform = ''; // 清除变换，避免影响下次对话
         }
 
         // 恢复小地图、任务追踪、返回主菜单按钮

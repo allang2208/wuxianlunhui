@@ -1,6 +1,6 @@
 {
   "name": "wuxian-lunhui",
-  "version": "0.195.9",
+  "version": "0.195.10",
   "description": "无限轮回 - 像素风动作Roguelike游戏",
   "main": "electron/main.js",
   "author": "开发者",

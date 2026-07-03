@@ -1904,7 +1904,104 @@
     50% { transform: translateY(-10px); }
 }
 
+
 /* ===== 任务追踪栏 ===== */
+
+/* ============================================
+   NPC 立绘调整工具（参考 dev-tool 样式）
+   ============================================ */
+
+/* 工具面板容器 */
+.npc-portrait-tool {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 620px;
+    background: linear-gradient(135deg, rgba(45, 40, 35, 0.98), rgba(35, 30, 25, 0.99));
+    border: 2px solid #7a6a5a;
+    border-radius: 12px;
+    z-index: 10000;
+    display: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    overflow: hidden;
+}
+.npc-portrait-tool.active { display: block; }
+
+/* 头部 */
+.npc-portrait-tool-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(122, 106, 90, 0.4);
+    color: #d4c5a9;
+    font-size: 16px; font-weight: 700;
+}
+.npc-portrait-tool-close {
+    background: transparent; border: none; color: #a0907a;
+    font-size: 18px; cursor: pointer; transition: color 0.2s;
+}
+.npc-portrait-tool-close:hover { color: #d4c5a9; }
+
+/* 主体布局 */
+.npc-portrait-tool-body {
+    display: flex; gap: 12px;
+    padding: 12px;
+}
+
+/* Canvas */
+.npc-portrait-canvas {
+    border: 1px solid rgba(122, 106, 90, 0.3);
+    border-radius: 8px;
+    cursor: grab;
+    background: #f5f5f5;
+    flex-shrink: 0;
+}
+.npc-portrait-canvas:active { cursor: grabbing; }
+
+/* 控制面板 */
+.npc-portrait-tool-controls {
+    display: flex; flex-direction: column; gap: 10px;
+    width: 180px; flex-shrink: 0;
+}
+
+/* 控制行 */
+.npc-portrait-control-row {
+    display: flex; flex-direction: column; gap: 4px;
+}
+.npc-portrait-control-row label {
+    color: #a0907a; font-size: 12px; font-weight: 600;
+}
+.npc-portrait-control-row input[type="range"] {
+    width: 100%; accent-color: #7a9a6a;
+}
+.npc-portrait-control-row span {
+    color: #d4c5a9; font-size: 12px; text-align: right;
+}
+
+/* 按钮 */
+.npc-portrait-btn {
+    background: linear-gradient(to bottom, #4a3f35, #3d342b);
+    border: 1px solid #5a4d3f; border-radius: 6px;
+    color: #d4c5a9; padding: 6px 12px;
+    font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+    flex: 1;
+}
+.npc-portrait-btn:hover {
+    border-color: #d4c5a9;
+    background: linear-gradient(to bottom, #5a4f45, #4a3f35);
+}
+.npc-portrait-btn-primary {
+    background: linear-gradient(to bottom, #3d4a35, #2a3520);
+    border-color: #7a9a6a;
+}
+.npc-portrait-btn-primary:hover {
+    border-color: #a0c080;
+    background: linear-gradient(to bottom, #4d5a45, #3a4530);
+}
+.npc-portrait-btn-secondary {
+    background: linear-gradient(to bottom, #3d3d3d, #2a2a2a);
+    border-color: #5a5a5a;
+}
 .quest-tracker {
     position: absolute; top: 225px; left: 10px; width: 220px;
     background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f;

@@ -630,5 +630,35 @@
 			</div>
 		</div>
 
+	<!-- ===== NPC 立绘调整工具 ===== -->
+	<div id="npcPortraitTool" class="npc-portrait-tool">
+	    <div class="npc-portrait-tool-header">
+	        <span>🖼️ 调整立绘</span>
+	        <button id="npcPortraitToolClose" class="npc-portrait-tool-close">✕</button>
+	    </div>
+	    <div class="npc-portrait-tool-body">
+	        <canvas id="npcPortraitCanvas" width="400" height="400" class="npc-portrait-canvas"></canvas>
+	        <div class="npc-portrait-tool-controls">
+	            <div class="npc-portrait-control-row">
+	                <label>缩放</label>
+	                <input type="range" id="npcPortraitScale" min="0.1" max="5.0" step="0.01" value="1.0">
+	                <span id="npcPortraitScaleVal">1.0</span>
+	            </div>
+	            <div class="npc-portrait-control-row">
+	                <label>旋转</label>
+	                <input type="range" id="npcPortraitRotation" min="-180" max="180" step="1" value="0">
+	                <span id="npcPortraitRotationVal">0°</span>
+	            </div>
+	            <div class="npc-portrait-control-row">
+	                <button id="npcPortraitFlipX" class="npc-portrait-btn">🔄 镜像</button>
+	            </div>
+	            <div class="npc-portrait-control-row">
+	                <button id="npcPortraitReset" class="npc-portrait-btn npc-portrait-btn-secondary">↺ 重置</button>
+	                <button id="npcPortraitSave" class="npc-portrait-btn npc-portrait-btn-primary">💾 保存</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
 </body>
 </html>
