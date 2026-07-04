@@ -11,7 +11,7 @@
         "range": 1200,
         "knockback": 1,
         "attackInterval": 60,
-        "projectileSpeed": 2808,
+        "projectileSpeed": 1248,
         "damageType": "物理"
       },
       "heatParams": {
@@ -41,7 +41,7 @@
         "range": 1200,
         "knockback": 3,
         "attackInterval": 92,
-        "projectileSpeed": 4680,
+        "projectileSpeed": 1248,
         "damageType": "物理"
       },
       "heatParams": {
@@ -71,7 +71,7 @@
         "range": 1200,
         "knockback": 2,
         "attackInterval": 100,
-        "projectileSpeed": 4680,
+        "projectileSpeed": 1248,
         "damageType": "物理"
       },
       "ammoConfig": {
@@ -96,7 +96,7 @@
         "range": 1200,
         "knockback": 2,
         "attackInterval": 70,
-        "projectileSpeed": 5616,
+        "projectileSpeed": 1248,
         "damageType": "物理"
       },
       "ammoConfig": {
@@ -121,7 +121,7 @@
         "range": 650,
         "knockback": 0,
         "attackInterval": 55,
-        "projectileSpeed": 2028,
+        "projectileSpeed": 1248,
         "damageType": "物理"
       },
       "ammoConfig": {

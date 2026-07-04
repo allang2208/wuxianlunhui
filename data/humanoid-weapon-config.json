@@ -1,6 +1,6 @@
 {
-  "qjb201": { "cooldown": 60, "projectileSpeed": 2808, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 700, "aiInterval": 400 },
-  "pkm": { "cooldown": 92, "projectileSpeed": 4680, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 800, "aiInterval": 300 },
-  "akm": { "cooldown": 100, "projectileSpeed": 4680, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 700, "aiInterval": 350 },
-  "g18": { "cooldown": 55, "projectileSpeed": 2028, "projectileRange": 650, "projectileSize": 4, "damageMin": 1, "damageMax": 1, "attackRange": 350, "aiInterval": 250 }
+  "qjb201": { "cooldown": 60, "projectileSpeed": 1248, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 700, "aiInterval": 400 },
+  "pkm": { "cooldown": 92, "projectileSpeed": 1248, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 800, "aiInterval": 300 },
+  "akm": { "cooldown": 100, "projectileSpeed": 1248, "projectileRange": 1200, "projectileSize": 5, "damageMin": 1, "damageMax": 1, "attackRange": 700, "aiInterval": 350 },
+  "g18": { "cooldown": 55, "projectileSpeed": 1248, "projectileRange": 650, "projectileSize": 4, "damageMin": 1, "damageMax": 1, "attackRange": 350, "aiInterval": 250 }
 }

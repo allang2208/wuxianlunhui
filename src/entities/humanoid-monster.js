@@ -12,7 +12,7 @@ const _HUMANOID_WEAPON_DATA = {
     qjb201: {
         weaponType: 'qjb201',
         weaponAsset: { image: 'assets/weapons/201equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        attack: { range: 1200, knockback: 1, attackInterval: 60, projectileSpeed: 2808, damageType: '物理' },
+        attack: { range: 1200, knockback: 1, attackInterval: 60, projectileSpeed: 1248, damageType: '物理' },
         heatParams: { overheatTime: 4000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
         ammoConfig: { max: 60, reloadTime: 2000 },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 30 },
@@ -21,7 +21,7 @@ const _HUMANOID_WEAPON_DATA = {
     pkm: {
         weaponType: 'pkm',
         weaponAsset: { image: 'assets/weapons/pkm_topdown.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        attack: { range: 1200, knockback: 3, attackInterval: 92, projectileSpeed: 4680, damageType: '物理' },
+        attack: { range: 1200, knockback: 3, attackInterval: 92, projectileSpeed: 1248, damageType: '物理' },
         heatParams: { overheatTime: 5000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
         ammoConfig: { max: 75, reloadTime: 3500 },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 },
@@ -30,7 +30,7 @@ const _HUMANOID_WEAPON_DATA = {
     akm: {
         weaponType: 'akm',
         weaponAsset: { image: 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        attack: { range: 1200, knockback: 2, attackInterval: 100, projectileSpeed: 4680, damageType: '物理' },
+        attack: { range: 1200, knockback: 2, attackInterval: 100, projectileSpeed: 1248, damageType: '物理' },
         ammoConfig: { max: 30, reloadTime: 1150 },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 },
         fireMode: 'fullAuto'
@@ -38,7 +38,7 @@ const _HUMANOID_WEAPON_DATA = {
     qbz191: {
         weaponType: 'qbz191',
         weaponAsset: { image: 'assets/weapons/191equip_clean.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        attack: { range: 1200, knockback: 2, attackInterval: 70, projectileSpeed: 5616, damageType: '物理' },
+        attack: { range: 1200, knockback: 2, attackInterval: 70, projectileSpeed: 1248, damageType: '物理' },
         ammoConfig: { max: 30, reloadTime: 1000 },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 },
         fireMode: 'fullAuto'
@@ -46,7 +46,7 @@ const _HUMANOID_WEAPON_DATA = {
     pistol: {
         weaponType: 'pistol',
         weaponAsset: { image: 'assets/weapons/G18equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        attack: { range: 650, knockback: 0, attackInterval: 55, projectileSpeed: 2028, damageType: '物理' },
+        attack: { range: 650, knockback: 0, attackInterval: 55, projectileSpeed: 1248, damageType: '物理' },
         ammoConfig: { max: 17, reloadTime: 1200 },
         spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 1 },
         fireMode: 'fullAuto'
@@ -136,7 +136,7 @@ export class HumanoidMonster extends Enemy {
         const attackCfg = data.attack;
         this.attacks[data.weaponType] = new RangedAttack({
             cooldown: 0, // AI 的 aiInterval 控制射速，攻击对象不设冷却
-            projectileSpeed: attackCfg.projectileSpeed || 2000,
+            projectileSpeed: attackCfg.projectileSpeed || 1248,
             projectileRange: attackCfg.range || 800,
             projectileSize: 5,
             damage: { min: 1, max: 1 },

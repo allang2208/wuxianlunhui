@@ -12,7 +12,7 @@ import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 
 export const Game = {
-    VERSION: '0.197', // 游戏版本号（每次更新必须递增）
+    VERSION: '0.198', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
     _synergySystem: null,
     _battleCommander: null, // 指挥AI实例
