@@ -89,21 +89,21 @@ import { StatusBar } from '../ui/status-bar.js';
                 this._skillOverrides = {}; // 当前装备的技能覆盖 { skillId: overrideData }
                 this.attacks = {
                     melee: new ThrustAttack({ cooldown: 500, range: 116, width: 25, damage: { min: 12, max: 20 }, knockback: 8 }),
-                    ranged: new RangedAttack({ cooldown: 600, projectileSpeed: 2028, projectileRange: 1000, projectileSize: 9, damage: { min: 8, max: 16 }, piercing: false }),
-                    pistol: new RangedAttack({ cooldown: 55, projectileSpeed: 2028, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                    deagle: new RangedAttack({ cooldown: 800, projectileSpeed: 3120, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
+                    ranged: new RangedAttack({ cooldown: 600, projectileSpeed: 1248, projectileRange: 1000, projectileSize: 9, damage: { min: 8, max: 16 }, piercing: false }),
+                    pistol: new RangedAttack({ cooldown: 55, projectileSpeed: 1248, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
+                    deagle: new RangedAttack({ cooldown: 800, projectileSpeed: 1248, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
                     // 副手独立攻击对象（双持时互不干扰）
-                    pistolOffhand: new RangedAttack({ cooldown: 55, projectileSpeed: 2028, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                    deagleOffhand: new RangedAttack({ cooldown: 800, projectileSpeed: 3120, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
+                    pistolOffhand: new RangedAttack({ cooldown: 55, projectileSpeed: 1248, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
+                    deagleOffhand: new RangedAttack({ cooldown: 800, projectileSpeed: 1248, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
                     p4040: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
                     p4040Offhand: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
-                    pkm: new RangedAttack({ cooldown: 92, projectileSpeed: 4680, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    akm: new RangedAttack({ cooldown: 100, projectileSpeed: 4680, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    qbz191: new RangedAttack({ cooldown: 70, projectileSpeed: 5616, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    qjb201: new RangedAttack({ cooldown: 60, projectileSpeed: 2808, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                    energy_lmg: new RangedAttack({ cooldown: 333, projectileSpeed: 5616, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 0 }),
-                    super90: new RangedAttack({ cooldown: 333, projectileSpeed: 3900, projectileRange: 500, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 }),
-                    saiga12k: new RangedAttack({ cooldown: 150, projectileSpeed: 2340, projectileRange: 400, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 })
+                    pkm: new RangedAttack({ cooldown: 92, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    akm: new RangedAttack({ cooldown: 100, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    qbz191: new RangedAttack({ cooldown: 70, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    qjb201: new RangedAttack({ cooldown: 60, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
+                    energy_lmg: new RangedAttack({ cooldown: 333, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 0 }),
+                    super90: new RangedAttack({ cooldown: 333, projectileSpeed: 1248, projectileRange: 500, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 }),
+                    saiga12k: new RangedAttack({ cooldown: 150, projectileSpeed: 1248, projectileRange: 400, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 })
                 };
                 // 应用剑精通的冷却缩减
                 SkillManager.updateMeleeCooldown(this);
@@ -355,9 +355,9 @@ import { StatusBar } from '../ui/status-bar.js';
             // 应用无人机易伤（被敌方无人机技能影响）
             applyDroneVulnerability(stacks) {
                 this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
-                this._droneVulnerabilityTimer = 5000;
+                this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
                 if (StatusBar) {
-                    this._droneVulnerabilityEffectId = StatusBar.addEffect('droneVulnerability', 5000);
+                    this._droneVulnerabilityEffectId = StatusBar.addEffect('droneVulnerability', 999999);
                 }
             }
             // 移除无人机易伤

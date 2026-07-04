@@ -43,7 +43,10 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                         }
                     }
                     if (atk > 0) {
-                        baseDamage = Math.floor((atk * atk) / (atk + def));
+                        // 防御减伤公式：伤害 = atk * (1 - def / (def + 60))
+                        // 提升防御收益（原100改为60），def=60时减伤50%
+                        const damageReduction = def / (def + 60);
+                        baseDamage = Math.floor(atk * (1 - damageReduction));
                         // 10%最低保底伤害
                         const minDamage = Math.floor(atk * 0.1);
                         if (baseDamage < minDamage) {

@@ -260,8 +260,9 @@ class FormationSystemClass {
 
             if (dist > 5) {
                 const speed = (enemy._speed || 100) * 0.001;
-                enemy.x += (dx / dist) * speed * dt;
-                enemy.y += (dy / dist) * speed * dt;
+                // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
+                // enemy.x += (dx / dist) * speed * dt;
+                // enemy.y += (dy / dist) * speed * dt;
                 formation.formationAngle = Math.atan2(dy, dx);
             } else {
                 formation.state = FORMATION_STATE.FORMED;
@@ -275,8 +276,9 @@ class FormationSystemClass {
 
                 if (dist > 100) {
                     const speed = (enemy._speed || 100) * 0.001;
-                    enemy.x += (dx / dist) * speed * dt;
-                    enemy.y += (dy / dist) * speed * dt;
+                    // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
+                    // enemy.x += (dx / dist) * speed * dt;
+                    // enemy.y += (dy / dist) * speed * dt;
                     formation.formationAngle = Math.atan2(dy, dx);
                 }
             }
@@ -320,8 +322,9 @@ class FormationSystemClass {
 
         if (dist > 5) {
             const speed = (enemy._speed || 100) * 0.001;
-            enemy.x += (dx / dist) * speed * dt;
-            enemy.y += (dy / dist) * speed * dt;
+            // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
+            // enemy.x += (dx / dist) * speed * dt;
+            // enemy.y += (dy / dist) * speed * dt;
         }
     }
 

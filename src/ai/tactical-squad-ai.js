@@ -14,6 +14,25 @@ export class TacticalSquadAI {
         this._sharedExpireMs = 30000; // 30秒内全队共享目标位置
         // 搜索状态
         this._searchRadius = 200; // 搜索半径（到达最后位置后开始绕圈搜索）
+        // [DRONE] 指挥官无人机状态
+        this._drone = {
+            active: false,
+            x: 0, y: 0,
+            vx: 0, vy: 0,
+            speed: 500,
+            radius: 300,
+            duration: 0,       // 剩余持续时间(ms)
+            maxDuration: 30000, // 30秒
+            cooldown: 0,      // 冷却计时(ms)
+            cooldownMs: 20000,  // 20秒冷却
+            checkTimer: 0,    // debuff检测计时
+            _affectedEntities: new Set(), // 当前被影响的目标
+            _image: null
+        };
+        // 预加载无人机贴图
+        const img = new Image();
+        img.src = 'assets/skills/drone.png';
+        this._drone._image = img;
     }
 
     addMember(member, role) {
@@ -122,40 +141,165 @@ export class TacticalSquadAI {
     _updateCommander(dt, player, entities) {
         const cmd = this.members.find(m => m._tacticalRole === 'commander');
         if (!cmd || !cmd.active) return;
-        // 确保 _droneReady 有默认值
-        if (cmd._droneReady === undefined) cmd._droneReady = true;
         const dist = Math.sqrt((player.x - cmd.x) ** 2 + (player.y - cmd.y) ** 2);
         const angle = Math.atan2(player.y - cmd.y, player.x - cmd.x);
         let desiredDist = 700;
         if (dist < 650) desiredDist = 750;
         else if (dist > 750) desiredDist = 650;
         cmd._tacticalTarget = { x: player.x - Math.cos(angle) * desiredDist, y: player.y - Math.sin(angle) * desiredDist };
-        // ===== 指挥官无人机技能 =====
-        if (cmd._droneReady) {
-            const droneRadius = 800; // 覆盖指挥官战斗距离（650-750px），确保始终生效
-            if (dist <= droneRadius) {
-                if (!cmd._droneActive) {
-                    cmd._droneActive = true;
-                    if (player.applyDroneVulnerability) {
-                        player.applyDroneVulnerability(1);
-                    }
-                }
+        // ===== [DRONE] 指挥官自动追踪无人机 =====
+        this._updateCommanderDrone(dt, cmd, player, entities, dist);
+    }
+
+    // [DRONE] 自动追踪无人机系统
+    _updateCommanderDrone(dt, cmd, player, entities, dist) {
+        const drone = this._drone;
+        // 更新冷却
+        if (drone.cooldown > 0) {
+            drone.cooldown -= dt;
+        }
+        // 如果无人机已激活，更新追踪逻辑
+        if (drone.active) {
+            drone.duration -= dt;
+            if (drone.duration <= 0) {
+                // 回收无人机
+                this._deactivateDrone();
+                return;
+            }
+            // 追踪玩家：向玩家方向移动
+            const toPlayerAngle = Math.atan2(player.y - drone.y, player.x - drone.x);
+            const toPlayerDist = Math.sqrt((player.x - drone.x) ** 2 + (player.y - drone.y) ** 2);
+            const sc = dt / 1000;
+            // 保持300px范围（范围内绕圈，范围外追赶）
+            if (toPlayerDist > drone.radius * 0.8) {
+                drone.vx += (Math.cos(toPlayerAngle) * drone.speed - drone.vx) * 0.7;
+                drone.vy += (Math.sin(toPlayerAngle) * drone.speed - drone.vy) * 0.7;
             } else {
-                if (cmd._droneActive) {
-                    cmd._droneActive = false;
-                    if (player.removeDroneVulnerability) {
-                        player.removeDroneVulnerability();
-                    }
+                // 范围内：环绕玩家（减少靠近趋势）
+                const tangentAngle = toPlayerAngle + Math.PI / 2;
+                drone.vx += (Math.cos(tangentAngle) * drone.speed * 0.6 - drone.vx) * 0.3;
+                drone.vy += (Math.sin(tangentAngle) * drone.speed * 0.6 - drone.vy) * 0.3;
+            }
+            // 墙壁碰撞：[FIX] 无人机无碰撞体积，直接穿过障碍物
+            drone.x = drone.x + drone.vx * sc;
+            drone.y = drone.y + drone.vy * sc;
+            // 每0.25s检测范围内敌人并施加debuff
+            drone.checkTimer -= dt;
+            if (drone.checkTimer <= 0) {
+                drone.checkTimer = 250;
+                this._applyDroneDebuff(entities, player);
+            }
+            return;
+        }
+        // 无人机未激活：检查是否释放
+        if (drone.cooldown <= 0 && dist <= 1500 && cmd.active) {
+            // 释放无人机
+            this._deployDrone(cmd, player);
+        }
+    }
+
+    _deployDrone(cmd, player) {
+        const drone = this._drone;
+        drone.active = true;
+        drone.duration = drone.maxDuration;
+        drone.cooldown = drone.cooldownMs;
+        drone.checkTimer = 0;
+        // 从指挥官正前方50px释放
+        const angle = Math.atan2(player.y - cmd.y, player.x - cmd.x);
+        drone.x = cmd.x + Math.cos(angle) * 50;
+        drone.y = cmd.y + Math.sin(angle) * 50;
+        drone.vx = 0;
+        drone.vy = 0;
+        // 初始化受影响集合
+        if (!drone._affectedEntities) drone._affectedEntities = new Set();
+        else drone._affectedEntities.clear();
+        // 释放提示
+        if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+            EffectManager.add(new FloatingTextEffect(drone.x, drone.y - 20, '🛸 无人机已部署', '#5a7a9a'));
+        }
+    }
+
+    _deactivateDrone() {
+        const drone = this._drone;
+        drone.active = false;
+        // 清除所有受影响实体的 debuff
+        if (drone._affectedEntities) {
+            drone._affectedEntities.forEach(entity => {
+                if (entity && entity.removeDroneVulnerability) {
+                    entity.removeDroneVulnerability();
                 }
+            });
+            drone._affectedEntities.clear();
+        }
+        if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+            EffectManager.add(new FloatingTextEffect(drone.x, drone.y - 20, '🛸 无人机已回收', '#5a7a9a'));
+        }
+    }
+
+    _applyDroneDebuff(entities, player) {
+        const drone = this._drone;
+        if (!drone._affectedEntities) drone._affectedEntities = new Set();
+        const inRangeEntities = new Set();
+        // 收集范围内实体（排除友军：_faction === 'enemy'）
+        entities.forEach(entity => {
+            if (!entity.active || !entity.hittable) return;
+            if (entity._faction === 'enemy') return; // [FIX] 敌我识别：排除友军
+            const dist = Math.sqrt((entity.x - drone.x) ** 2 + (entity.y - drone.y) ** 2);
+            if (dist <= drone.radius) {
+                inRangeEntities.add(entity);
+            }
+        });
+        // 玩家检查（排除友军身份的玩家）
+        if (player && player.active && player._faction !== 'enemy') {
+            const playerDist = Math.sqrt((player.x - drone.x) ** 2 + (player.y - drone.y) ** 2);
+            if (playerDist <= drone.radius) {
+                inRangeEntities.add(player);
             }
         }
+        // 新进入范围：施加debuff（[FIX] 不再刷新5秒计时器，只判定范围）
+        inRangeEntities.forEach(entity => {
+            if (!drone._affectedEntities.has(entity)) {
+                if (entity.applyDroneVulnerability) {
+                    entity.applyDroneVulnerability(1);
+                }
+                drone._affectedEntities.add(entity);
+            }
+        });
+        // 离开范围：移除debuff
+        drone._affectedEntities.forEach(entity => {
+            if (!inRangeEntities.has(entity)) {
+                if (entity && entity.removeDroneVulnerability) {
+                    entity.removeDroneVulnerability();
+                }
+            }
+        });
+        // 清理集合
+        drone._affectedEntities.forEach(entity => {
+            if (!inRangeEntities.has(entity)) {
+                drone._affectedEntities.delete(entity);
+            }
+        });
     }
 
     _updateMachineGunner(dt, player, entities) {
         const mg = this.members.find(m => m._tacticalRole === 'machineGunner');
         if (!mg || !mg.active) return;
-        // 机枪手不再设置 _tacticalTarget，由 FormationSystem 控制其阵型位置
-        // 保留此方法用于未来扩展（如特殊武器技能）
+        // [ENHANCE] 机枪手跟随指挥官，形成火力组
+        const cmd = this.members.find(m => m._tacticalRole === 'commander');
+        if (cmd && cmd.active) {
+            // 机枪手在指挥官侧翼 100px 处（垂直于玩家-指挥官方向）
+            const toPlayerAngle = Math.atan2(player.y - cmd.y, player.x - cmd.x);
+            const perpAngle = toPlayerAngle + Math.PI / 2;
+            mg._specialTacticalTarget = {
+                x: cmd.x + Math.cos(perpAngle) * 100,
+                y: cmd.y + Math.sin(perpAngle) * 100
+            };
+        } else {
+            // 无指挥官时独立行动：玩家后方 700px
+            const angle = Math.atan2(player.y - mg.y, player.x - mg.x);
+            const targetDist = 700;
+            mg._specialTacticalTarget = { x: player.x - Math.cos(angle) * targetDist, y: player.y - Math.sin(angle) * targetDist };
+        }
     }
 
     _updateRiflemen(dt, player, entities) {
@@ -163,19 +307,17 @@ export class TacticalSquadAI {
         if (rifleman && rifleman.active) {
             const dist = Math.sqrt((player.x - rifleman.x) ** 2 + (player.y - rifleman.y) ** 2);
             const angle = Math.atan2(player.y - rifleman.y, player.x - rifleman.x);
-            const targetDist = 700;
-            let baseX = player.x - Math.cos(angle) * targetDist;
-            let baseY = player.y - Math.sin(angle) * targetDist;
+            const targetDist = 500;
             rifleman._evadeTimer -= dt;
             if (rifleman._evadeTimer <= 0) {
                 rifleman._evadeTimer = 1000 + Math.random() * 1000;
                 rifleman._evadeDirection = Math.random() > 0.5 ? 1 : -1;
-                rifleman._evadeOffset = 10 + Math.random() * 20;
             }
-            const perpAngle = angle + Math.PI / 2;
-            baseX += Math.cos(perpAngle) * (rifleman._evadeOffset || 15) * rifleman._evadeDirection;
-            baseY += Math.sin(perpAngle) * (rifleman._evadeOffset || 15) * rifleman._evadeDirection;
-            if (dist < 400) {
+            const sideDir = rifleman._evadeDirection || 1;
+            const flankAngle = angle + Math.PI / 3 * sideDir;
+            let baseX = player.x + Math.cos(flankAngle) * targetDist;
+            let baseY = player.y + Math.sin(flankAngle) * targetDist;
+            if (dist < 300) {
                 baseX = player.x - Math.cos(angle) * (targetDist + 100);
                 baseY = player.y - Math.sin(angle) * (targetDist + 100);
             }
@@ -184,71 +326,102 @@ export class TacticalSquadAI {
         }
         const flanker = this.members.find(m => m._tacticalRole === 'flankRifleman');
         if (flanker && flanker.active) {
+            const dist = Math.sqrt((player.x - flanker.x) ** 2 + (player.y - flanker.y) ** 2);
             const angle = Math.atan2(player.y - flanker.y, player.x - flanker.x);
-            const targetDist = 700;
-            flanker._flankAngle = (flanker._flankAngle || 0) + 0.3 * (dt / 1000);
-            const flankAngle = angle + Math.sin(flanker._flankAngle) * (Math.PI / 2);
+            const targetDist = 500;
+            const sideDir = flanker._flankSide || 1;
+            if (!flanker._flankSide) flanker._flankSide = sideDir;
+            const flankAngle = angle + Math.PI / 2 * sideDir;
+            let baseX = player.x + Math.cos(flankAngle) * targetDist;
+            let baseY = player.y + Math.sin(flankAngle) * targetDist;
+            if (dist < 300) {
+                baseX = player.x - Math.cos(angle) * (targetDist + 100);
+                baseY = player.y - Math.sin(angle) * (targetDist + 100);
+            }
             // 使用 _specialTacticalTarget 避免覆盖 FormationSystem 的阵型目标
-            flanker._specialTacticalTarget = { x: player.x + Math.cos(flankAngle) * targetDist, y: player.y + Math.sin(flankAngle) * targetDist };
+            flanker._specialTacticalTarget = { x: baseX, y: baseY };
         }
     }
 
     _updateShieldBearers(dt, player, entities) {
         const shieldBearers = this.members.filter(m => m._tacticalRole === 'shieldBearer');
         if (shieldBearers.length === 0) return;
-        const isPlayerRanged = this._isPlayerUsingRanged(player);
-        const protectRoles = ['commander', 'machineGunner', 'rifleman', 'flankRifleman'];
-        const teammates = protectRoles.map(role => this.members.find(m => m._tacticalRole === role && m.active)).filter(Boolean);
         for (let i = 0; i < shieldBearers.length; i++) {
             const sb = shieldBearers[i];
             if (!sb.active) continue;
+            // [FIX] 初始化原始速度（只一次），确保所有速度计算有基准
+            if (!sb._originalMaxSpeed) sb._originalMaxSpeed = sb.maxSpeed;
             const dist = Math.sqrt((player.x - sb.x) ** 2 + (player.y - sb.y) ** 2);
-            if (isPlayerRanged && dist < 500) {
+            const angle = Math.atan2(player.y - sb.y, player.x - sb.x);
+            // [ENHANCE] 盾位更贴身：120px（更激进，进攻性更强）
+            const targetDist = 120;
+            sb._specialTacticalTarget = { x: player.x - Math.cos(angle) * targetDist, y: player.y - Math.sin(angle) * targetDist };
+            if (dist < 200) {
+                // [ENHANCE] 防御状态减速从50%降到30%，保持机动性
                 sb._shieldDefenseActive = true;
-                if (!sb._originalMaxSpeed) sb._originalMaxSpeed = sb.maxSpeed;
-                sb.maxSpeed = sb._originalMaxSpeed * 0.5;
+                sb.maxSpeed = sb._originalMaxSpeed * 0.7;
             } else {
                 sb._shieldDefenseActive = false;
-                if (sb._originalMaxSpeed) sb.maxSpeed = sb._originalMaxSpeed;
+                sb.maxSpeed = sb._originalMaxSpeed;
             }
-            // 盾卫不再设置 _tacticalTarget，由 FormationSystem 控制其阵型位置
-            // 保留防御速度逻辑（举盾减速）
+            // [ENHANCE] 冲锋机制：远距离时额外加速20%（基于原始速度，避免无限加速）
+            if (dist > 400) {
+                sb.maxSpeed = sb._originalMaxSpeed * 1.2;
+            }
         }
     }
 
-    // 渲染指挥官无人机范围圈（无论 _droneReady 状态，只要指挥官存在就画）
+    // 渲染指挥官无人机（实体）
     renderDrone(ctx) {
-        const cmd = this.members.find(m => m._tacticalRole === 'commander');
-        if (!cmd || !cmd.active) return;
-        // 调试：如果 _droneReady 未设置，设置默认值
-        if (cmd._droneReady === undefined) cmd._droneReady = true;
-        const screenPos = Renderer.worldToScreen(cmd.x, cmd.y);
-        const radiusScreen = 800; // 与 _updateCommander 中的 droneRadius 保持一致
-        // 范围圈（根据 _droneReady 状态改变颜色：就绪=红色，未就绪=灰色）
-        if (cmd._droneReady) {
-            ctx.strokeStyle = 'rgba(255, 60, 60, 0.5)';
-            ctx.fillStyle = 'rgba(255, 60, 60, 0.1)';
-        } else {
-            ctx.strokeStyle = 'rgba(150, 150, 150, 0.3)';
-            ctx.fillStyle = 'rgba(150, 150, 150, 0.05)';
+        const drone = this._drone;
+        if (!drone.active) {
+            // 无人机未激活，显示冷却状态（如果指挥官存在）
+            const cmd = this.members.find(m => m._tacticalRole === 'commander');
+            if (cmd && cmd.active && drone.cooldown > 0) {
+                const screenPos = Renderer.worldToScreen(cmd.x, cmd.y);
+                const cdSec = Math.ceil(drone.cooldown / 1000);
+                ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
+                ctx.font = '12px SimHei, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`🛸 ${cdSec}s`, screenPos.x, screenPos.y - 25);
+            }
+            return;
         }
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
+        // 绘制无人机实体
+        const screenPos = Renderer.worldToScreen(drone.x, drone.y);
+        if (drone._image && drone._image.complete && drone._image.naturalWidth > 0) {
+            const size = 32;
+            ctx.drawImage(drone._image, screenPos.x - size / 2, screenPos.y - size / 2, size, size);
+        } else {
+            ctx.fillStyle = '#5a7a9a';
+            ctx.beginPath();
+            ctx.arc(screenPos.x, screenPos.y, 12, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // 绘制范围圈（300px半径）
+        const radiusScreen = drone.radius * Renderer.zoom;
+        ctx.strokeStyle = 'rgba(90, 122, 154, 0.3)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(screenPos.x, screenPos.y, radiusScreen, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fill();
-        // 中心无人机标记
-        ctx.fillStyle = cmd._droneReady ? 'rgba(255, 60, 60, 0.7)' : 'rgba(150, 150, 150, 0.3)';
-        ctx.beginPath();
-        ctx.arc(screenPos.x, screenPos.y, 8, 0, Math.PI * 2);
-        ctx.fill();
-        // 指挥官位置标记（小圆点）
-        ctx.fillStyle = '#ff0000';
-        ctx.beginPath();
-        ctx.arc(screenPos.x, screenPos.y, 3, 0, Math.PI * 2);
-        ctx.fill();
+        // 显示剩余时间
+        const remainingSec = Math.ceil(drone.duration / 1000);
+        ctx.fillStyle = '#d4c5a9';
+        ctx.font = '10px SimHei, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${remainingSec}s`, screenPos.x, screenPos.y - 18);
+        // 绘制连线到指挥官（如果指挥官存在）
+        const cmd = this.members.find(m => m._tacticalRole === 'commander');
+        if (cmd && cmd.active) {
+            const cmdScreen = Renderer.worldToScreen(cmd.x, cmd.y);
+            ctx.strokeStyle = 'rgba(90, 122, 154, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(screenPos.x, screenPos.y);
+            ctx.lineTo(cmdScreen.x, cmdScreen.y);
+            ctx.stroke();
+        }
     }
 
     _isPlayerUsingRanged(player) {

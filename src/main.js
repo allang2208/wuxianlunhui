@@ -2,6 +2,9 @@
 // 按原 legacy.js 顺序导入所有模块，并挂载为全局变量
 
 import { DataLoader } from './systems/data-loader.js';
+import { MovementSystem } from './systems/movement-system.js';
+import { CombatSystem } from './systems/combat-system.js';
+import { PerceptionSystem } from './systems/perception-system.js';
 
 // 异步加载所有数据，然后初始化模块
 async function initModules() {
@@ -145,6 +148,11 @@ async function initModules() {
     // AI
     window.pathFinder = pathFinder;
     window.TacticalSquadAI = TacticalSquadAI;
+
+    // AI Systems (v0.197 重构)
+    window.MovementSystem = MovementSystem;
+    window.CombatSystem = CombatSystem;
+    window.PerceptionSystem = PerceptionSystem;
 
     // G. Core Systems
     window.EventBus = EventBus;

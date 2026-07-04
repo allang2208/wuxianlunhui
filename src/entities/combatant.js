@@ -657,10 +657,6 @@ class Combatant extends DamageableEntity {
         }
 
         super.takeDamage(finalDamage, source, damageType);
-
-        if (typeof EffectManager !== 'undefined') {
-            EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
-        }
     }
 }
 

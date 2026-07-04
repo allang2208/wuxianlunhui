@@ -317,8 +317,7 @@ import aiConfigData from '../../data/ai-config.json';
             // 应用无人机易伤（无人机技能）
             applyDroneVulnerability(stacks) {
                 this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
-                this._droneVulnerabilityTimer = 5000;
-                // 触发红色圆圈收缩特效（仅在首次施加时播放，由调用方控制）
+                this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
                 if (typeof EffectManager !== 'undefined' && EffectManager.add) {
                     EffectManager.add(new DroneVulnerabilityEffect(this.x, this.y));
                 }
@@ -329,15 +328,23 @@ import aiConfigData from '../../data/ai-config.json';
                 this._droneVulnerabilityTimer = 0;
                 this.removeStatusEffect('droneVulnerability');
             }
-            // --- 移动寻路子系统：始终朝玩家移动，带墙壁碰撞和A*绕路 ---
-            _updateMovement(dx, dy, dist, dt) {
-                // 冲刺攻击眩晕：无法移动
-                if (this._dashStunned) {
-                    this.vx = 0; this.vy = 0;
-                    this.isMoving = false;
-                    return;
+            // [ANTI-TELEPORT] 限制每帧最大移动距离
+            _clampMoveDistance(fromX, fromY, toX, toY, maxDist) {
+                const dx = toX - fromX, dy = toY - fromY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > maxDist && maxDist > 0) {
+                    const ratio = maxDist / dist;
+                    return { x: fromX + dx * ratio, y: fromY + dy * ratio };
                 }
-                // 战术目标覆盖：阵型位置 / 特殊行为（规避、侧翼）
+                return { x: toX, y: toY };
+            }
+            // --- 移动寻路子系统（fallback）---
+            _updateMovement(dx, dy, dist, dt) {
+                if (this._dashStunned) { this.vx = 0; this.vy = 0; this.isMoving = false; return; }
+                const maxSpd = this.maxSpeed || this.speed || 100;
+                const sc = dt / 1000;
+                const maxStep = maxSpd * sc;
+
                 if (this._specialTacticalTarget) {
                     dx = this._specialTacticalTarget.x - this.x;
                     dy = this._specialTacticalTarget.y - this.y;
@@ -347,97 +354,57 @@ import aiConfigData from '../../data/ai-config.json';
                     dy = this._tacticalTarget.y - this.y;
                     dist = Math.sqrt(dx * dx + dy * dy);
                 }
-                // 检测是否被卡住（500ms内位置几乎不变）
-                this._stuckTimer += 16.67; // 约一帧的时间
-                const movedDist = Math.sqrt((this.x - this._lastX) ** 2 + (this.y - this._lastY) ** 2);
-                if (this._stuckTimer >= 500) {
-                    if (movedDist < 5) {
-                        // 被卡住，尝试使用A*寻路
-                        if (this.target && typeof pathFinder !== 'undefined') {
-                            this._path = pathFinder.findPath(this.x, this.y, this.target.x, this.target.y, this.collisionRadius || 12);
-                            this._pathIdx = 0;
-                        }
-                    }
-                    this._stuckTimer = 0;
-                    this._lastX = this.x;
-                    this._lastY = this.y;
-                }
-                // 如果有A*路径，沿路径移动
+                // A* 路径
                 if (this._path && this._pathIdx < this._path.length) {
-                    const waypoint = this._path[this._pathIdx];
-                    const wdx = waypoint.x - this.x;
-                    const wdy = waypoint.y - this.y;
-                    const wdist = Math.sqrt(wdx * wdx + wdy * wdy);
-                    if (wdist < 10) {
-                        this._pathIdx++;
-                        if (this._pathIdx >= this._path.length) {
-                            this._path = null; // 到达路径终点
-                        }
-                    } else {
-                        const pathMoveX = wdx / wdist;
-                        const pathMoveY = wdy / wdist;
-                        this.vx += (pathMoveX * this.maxSpeed - this.vx) * this.accel;
-                        this.vy += (pathMoveY * this.maxSpeed - this.vy) * this.accel;
-                        // 墙壁碰撞解析
-                        const eScale = dt / 1000;
-                        const enx = this.x + this.vx * eScale, eny = this.y + this.vy * eScale;
+                    const wp = this._path[this._pathIdx];
+                    const wdx = wp.x - this.x, wdy = wp.y - this.y, wdist = Math.sqrt(wdx*wdx + wdy*wdy);
+                    if (wdist < 10) { this._pathIdx++; if (this._pathIdx >= this._path.length) this._path = null; }
+                    else {
+                        this.vx += (wdx/wdist * maxSpd - this.vx) * this.accel;
+                        this.vy += (wdy/wdist * maxSpd - this.vy) * this.accel;
+                        const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
                         const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
-                        if (er.x !== this.x || er.y !== this.y) {
-                            this.x = er.x; this.y = er.y;
-                        } else {
-                            this._path = null; // 路径被阻挡，放弃当前路径
-                        }
-                        this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
-                        if (this.isMoving) this.animTime += 0.15;
-                        return;
+                        const clamped = this._clampMoveDistance(this.x, this.y, er.x, er.y, maxStep);
+                        this.x = clamped.x; this.y = clamped.y;
+                        this.isMoving = true; this.animTime += 0.15; return;
                     }
                 }
-                // 归一化方向（直接朝玩家）
+                // 正常移动
                 const moveX = dx / Math.max(dist, 1), moveY = dy / Math.max(dist, 1);
-                // 加速度
-                this.vx += (moveX * this.maxSpeed - this.vx) * this.accel;
-                this.vy += (moveY * this.maxSpeed - this.vy) * this.accel;
-                // 墙壁碰撞解析
-                const eScale2 = dt / 1000;
-                const enx = this.x + this.vx * eScale2, eny = this.y + this.vy * eScale2;
+                this.vx += (moveX * maxSpd - this.vx) * this.accel;
+                this.vy += (moveY * maxSpd - this.vy) * this.accel;
+                const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
                 const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
                 if (er.x === this.x && er.y === this.y) {
-                    // 被墙困住：沿切线方向滑动（绕路）
+                    // 被墙困住：切线滑动
                     this.vx *= 0.5; this.vy *= 0.5;
-                    const tangentX = -moveY, tangentY = moveX;
-                    const slideDist = this.maxSpeed * 2;
-                    // 尝试切线方向 A
-                    const saX = this.x + tangentX * slideDist, saY = this.y + tangentY * slideDist;
+                    const tx = -moveY, ty = moveX;
+                    const saX = this.x + tx * maxSpd * 2, saY = this.y + ty * maxSpd * 2;
                     const saR = WallSystem.resolve(this.x, this.y, saX, saY, this.collisionRadius || 12);
                     if (saR.x !== this.x || saR.y !== this.y) {
-                        this.x = saR.x; this.y = saR.y;
-                        this.vx = tangentX * this.maxSpeed * 0.5;
-                        this.vy = tangentY * this.maxSpeed * 0.5;
+                        const clamped = this._clampMoveDistance(this.x, this.y, saR.x, saR.y, maxStep);
+                        this.x = clamped.x; this.y = clamped.y;
+                        this.vx = tx * maxSpd * 0.5; this.vy = ty * maxSpd * 0.5;
                     } else {
-                        // 尝试切线方向 B（反向）
-                        const sbX = this.x - tangentX * slideDist, sbY = this.y - tangentY * slideDist;
+                        const sbX = this.x - tx * maxSpd * 2, sbY = this.y - ty * maxSpd * 2;
                         const sbR = WallSystem.resolve(this.x, this.y, sbX, sbY, this.collisionRadius || 12);
                         if (sbR.x !== this.x || sbR.y !== this.y) {
-                            this.x = sbR.x; this.y = sbR.y;
-                            this.vx = -tangentX * this.maxSpeed * 0.5;
-                            this.vy = -tangentY * this.maxSpeed * 0.5;
-                        } else {
-                            this.vx = 0; this.vy = 0;
-                        }
+                            const clamped = this._clampMoveDistance(this.x, this.y, sbR.x, sbR.y, maxStep);
+                            this.x = clamped.x; this.y = clamped.y;
+                            this.vx = -tx * maxSpd * 0.5; this.vy = -ty * maxSpd * 0.5;
+                        } else { this.vx = 0; this.vy = 0; }
                     }
                 } else {
                     if (er.x === this.x) this.vx = 0;
                     if (er.y === this.y) this.vy = 0;
-                    this.x = er.x; this.y = er.y;
+                    const clamped = this._clampMoveDistance(this.x, this.y, er.x, er.y, maxStep);
+                    this.x = clamped.x; this.y = clamped.y;
                 }
-                // 距离近时摩擦减速（避免冲过头）
-                if (dist <= this.attackRange) {
-                    this.vx *= this.friction;
-                    this.vy *= this.friction;
-                }
+                if (dist <= this.attackRange) { this.vx *= this.friction; this.vy *= this.friction; }
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
                 if (this.isMoving) this.animTime += 0.15;
             }
+            // --- 魔力易伤效果更新 ---
             // --- 攻击指令子系统：独立运行，只要视线未被墙完全阻挡就尝试攻击 ---
             _updateAttack(dt, entities) {
                 this.aiTimer += dt;
@@ -504,6 +471,8 @@ import aiConfigData from '../../data/ai-config.json';
             // 新增：计算战斗属性（使用与主角相同的公式）
             calculateCombatStats() {
                 const d = this.data;
+                d.maxHp = 100 + d.con * 5;
+                d.hp = d.maxHp;
                 d.atk = Math.round(10 + d.str * 0.05 + d.dex * 0.1);
                 d.def = Math.floor(d.con * 1.2 + d.str * 0.3);
                 d.matk = Math.floor(d.int * 1.5 + d.wis * 0.5);
@@ -513,9 +482,9 @@ import aiConfigData from '../../data/ai-config.json';
                 d.crit = 2 + Math.floor(d.luck * 1.0);
                 d.aspd = 1.0 + d.dex * 0.02;
                 d.critRes = Math.floor(d.con * 1.0);
-                // 新增：计算等级
                 d.level = Math.floor(1 + d.str * 0.05 + d.con * 0.06 + d.dex * 0.04 + d.int * 0.02 + d.wis * 0.015 + d.luck * 0.015);
-                // 同步到 this.level（damageable-entity 中使用的是 this.level）
+                this.maxHp = d.maxHp;
+                this.hp = d.hp;
                 this.level = d.level;
             }
             // 新增：获取等级

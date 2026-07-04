@@ -90,8 +90,14 @@ const MovementSystem = {
     _computeMoveDirection(enemy, entities) {
         let tx = 0, ty = 0, hasTarget = false;
 
-        // 1. 战术目标优先级最高
-        if (enemy._tacticalTarget) {
+        // 0. [FIX] 特殊战术目标（TacticalSquadAI 设置）优先级最高
+        if (enemy._specialTacticalTarget) {
+            tx = enemy._specialTacticalTarget.x;
+            ty = enemy._specialTacticalTarget.y;
+            hasTarget = true;
+        }
+        // 1. 战术目标
+        else if (enemy._tacticalTarget) {
             tx = enemy._tacticalTarget.x;
             ty = enemy._tacticalTarget.y;
             hasTarget = true;
@@ -143,8 +149,14 @@ const MovementSystem = {
         const kf = enemy.knockbackFriction || 0.9;
         const sc = dt / 1000;
 
-        enemy.x += (enemy.knockbackX || 0) * sc;
-        enemy.y += (enemy.knockbackY || 0) * sc;
+        // [ANTI-TELEPORT] 限制击退每帧最大移动距离
+        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const maxStep = maxSpd * sc;
+        const nextX = enemy.x + (enemy.knockbackX || 0) * sc;
+        const nextY = enemy.y + (enemy.knockbackY || 0) * sc;
+        const clamped = this._clampMoveDistance(enemy.x, enemy.y, nextX, nextY, maxStep);
+        enemy.x = clamped.x;
+        enemy.y = clamped.y;
         enemy.knockbackX *= kf;
         enemy.knockbackY *= kf;
 
@@ -170,12 +182,25 @@ const MovementSystem = {
                 (enemy.y - (enemy._lastY || enemy.y)) ** 2
             );
 
-            if (movedDist < 3 && dist > enemy.attackRange) {
-                // 卡住了，尝试寻路
-                if (enemy.target && typeof pathFinder !== 'undefined' && pathFinder.findPath) {
+            // [FIX] 移除 dist > enemy.attackRange 限制：任何距离下卡住都触发寻路
+            if (movedDist < 3) {
+                // [FIX] 寻路目标与实际移动目标一致（优先级同 _computeMoveDirection）
+                let targetX = enemy.x, targetY = enemy.y;
+                if (enemy._specialTacticalTarget) {
+                    targetX = enemy._specialTacticalTarget.x;
+                    targetY = enemy._specialTacticalTarget.y;
+                } else if (enemy._tacticalTarget) {
+                    targetX = enemy._tacticalTarget.x;
+                    targetY = enemy._tacticalTarget.y;
+                } else if (enemy.target && enemy.target.active) {
+                    targetX = enemy.target.x;
+                    targetY = enemy.target.y;
+                }
+                
+                if (typeof pathFinder !== 'undefined' && pathFinder.findPath) {
                     enemy._path = pathFinder.findPath(
                         enemy.x, enemy.y,
-                        enemy.target.x, enemy.target.y,
+                        targetX, targetY,
                         enemy.collisionRadius || 12
                     );
                     enemy._pathIdx = 0;
@@ -213,6 +238,34 @@ const MovementSystem = {
             return { x: fromX + dx * ratio, y: fromY + dy * ratio };
         }
         return { x: toX, y: toY };
+    },
+
+    /**
+     * [FIX] 单位间排斥：避免多个敌人堆叠在一起
+     * 只检查附近 5 个单位（性能考虑），返回排斥方向
+     */
+    _computeSeparation(enemy, minDist) {
+        let rdx = 0, rdy = 0, count = 0;
+        if (typeof Game === 'undefined' || !Game.entities) return { dx: 0, dy: 0 };
+        const entities = Game.entities;
+        let checked = 0;
+        for (const other of entities.values()) {
+            if (other === enemy || !other.active || other.hp <= 0) continue;
+            if (other._faction !== enemy._faction) continue;
+            const dx = enemy.x - other.x;
+            const dy = enemy.y - other.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < minDist && dist > 0) {
+                rdx += dx / dist;
+                rdy += dy / dist;
+                count++;
+            }
+            if (++checked >= 5) break; // 性能：只检查 5 个单位
+        }
+        if (count === 0) return { dx: 0, dy: 0 };
+        const len = Math.sqrt(rdx * rdx + rdy * rdy);
+        if (len > 0) { rdx /= len; rdy /= len; }
+        return { dx: rdx, dy: rdy };
     },
 
     /**
@@ -255,10 +308,19 @@ const MovementSystem = {
                 enemy.x = clamped.x;
                 enemy.y = clamped.y;
             } else {
-                // 被墙完全挡住，跳过当前路径点
-                enemy._pathIdx++;
-                if (enemy._pathIdx >= enemy._path.length) {
-                    enemy._path = null;
+                // [FIX] 被墙完全挡住：如果路径剩余点不多，重新寻路；否则跳过当前点
+                if (enemy._path.length - enemy._pathIdx <= 2 && enemy.target && typeof pathFinder !== 'undefined' && pathFinder.findPath) {
+                    enemy._path = pathFinder.findPath(
+                        enemy.x, enemy.y,
+                        enemy.target.x, enemy.target.y,
+                        enemy.collisionRadius || 12
+                    );
+                    enemy._pathIdx = 0;
+                } else {
+                    enemy._pathIdx++;
+                    if (enemy._pathIdx >= enemy._path.length) {
+                        enemy._path = null;
+                    }
                 }
                 return;
             }
@@ -279,8 +341,17 @@ const MovementSystem = {
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist) {
         const maxSpd = enemy.maxSpeed || enemy.speed || 100;
-        const moveX = dx / Math.max(dist, 1);
-        const moveY = dy / Math.max(dist, 1);
+        let moveX = dx / Math.max(dist, 1);
+        let moveY = dy / Math.max(dist, 1);
+
+        // [FIX] 单位间简单排斥：避免多个敌人堆叠
+        const repel = this._computeSeparation(enemy, 30);
+        if (repel.dx !== 0 || repel.dy !== 0) {
+            moveX += repel.dx * 0.5;
+            moveY += repel.dy * 0.5;
+            const len = Math.sqrt(moveX * moveX + moveY * moveY);
+            if (len > 0) { moveX /= len; moveY /= len; }
+        }
 
         enemy.vx += (moveX * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveY * maxSpd - enemy.vy) * (enemy.accel || 0.7);
@@ -295,43 +366,35 @@ const MovementSystem = {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
 
             if (er.x === enemy.x && er.y === enemy.y) {
-                // 完全卡住，尝试侧向移动
-                enemy.vx *= 0.5;
-                enemy.vy *= 0.5;
+                // [SLIDE] 沿墙滑动：分解为 x 和 y 方向分别检测
+                // 当目标方向被墙完全挡住时，保留可移动方向的分量
+                const xSlide = WallSystem.resolve(enemy.x, enemy.y, enemy.x + enemy.vx * sc, enemy.y, enemy.collisionRadius || 12);
+                const ySlide = WallSystem.resolve(enemy.x, enemy.y, enemy.x, enemy.y + enemy.vy * sc, enemy.collisionRadius || 12);
+                const xCanMove = xSlide.x !== enemy.x;
+                const yCanMove = ySlide.y !== enemy.y;
 
-                const tx = -moveY;
-                const ty = moveX;
-                const sd = maxSpd * 0.5;
-
-                // 尝试左侧
-                const sa = WallSystem.resolve(enemy.x, enemy.y, enemy.x + tx * sd * sc, enemy.y + ty * sd * sc, enemy.collisionRadius || 12);
-                if (sa.x !== enemy.x || sa.y !== enemy.y) {
-                    const clamped = this._clampMoveDistance(enemy.x, enemy.y, sa.x, sa.y, maxStep);
-                    enemy.x = clamped.x;
-                    enemy.y = clamped.y;
-                    enemy.vx = tx * maxSpd * 0.5;
-                    enemy.vy = ty * maxSpd * 0.5;
-                } else {
-                    // 尝试右侧
-                    const sb = WallSystem.resolve(enemy.x, enemy.y, enemy.x - tx * sd * sc, enemy.y - ty * sd * sc, enemy.collisionRadius || 12);
-                    if (sb.x !== enemy.x || sb.y !== enemy.y) {
-                        const clamped = this._clampMoveDistance(enemy.x, enemy.y, sb.x, sb.y, maxStep);
-                        enemy.x = clamped.x;
-                        enemy.y = clamped.y;
-                        enemy.vx = -tx * maxSpd * 0.5;
-                        enemy.vy = -ty * maxSpd * 0.5;
+                if (xCanMove && yCanMove) {
+                    // 两个方向都可移动，选择速度更大的方向（避免同时移动导致新问题）
+                    if (Math.abs(enemy.vx) >= Math.abs(enemy.vy)) {
+                        enemy.x = this._clampMoveDistance(enemy.x, enemy.y, xSlide.x, enemy.y, maxStep).x;
                     } else {
-                        // 随机方向
-                        const ra = Math.random() * Math.PI * 2;
-                        const r = WallSystem.resolve(enemy.x, enemy.y, enemy.x + Math.cos(ra) * sd * sc, enemy.y + Math.sin(ra) * sd * sc, enemy.collisionRadius || 12);
-                        if (r.x !== enemy.x || r.y !== enemy.y) {
-                            const clamped = this._clampMoveDistance(enemy.x, enemy.y, r.x, r.y, maxStep);
-                            enemy.x = clamped.x;
-                            enemy.y = clamped.y;
-                        } else {
-                            enemy.vx = 0;
-                            enemy.vy = 0;
-                        }
+                        enemy.y = this._clampMoveDistance(enemy.x, enemy.y, enemy.x, ySlide.y, maxStep).y;
+                    }
+                } else if (xCanMove) {
+                    // 只有 x 方向可移动：沿墙水平滑动
+                    enemy.x = this._clampMoveDistance(enemy.x, enemy.y, xSlide.x, enemy.y, maxStep).x;
+                    enemy.vy *= 0.5; // 消除垂直于墙的分量
+                } else if (yCanMove) {
+                    // 只有 y 方向可移动：沿墙垂直滑动
+                    enemy.y = this._clampMoveDistance(enemy.x, enemy.y, enemy.x, ySlide.y, maxStep).y;
+                    enemy.vx *= 0.5; // 消除垂直于墙的分量
+                } else {
+                    // 完全卡住（墙角）：减速但不立即停止，给寻路触发时间
+                    enemy.vx *= 0.5;
+                    enemy.vy *= 0.5;
+                    if (Math.abs(enemy.vx) < 1 && Math.abs(enemy.vy) < 1) {
+                        enemy.vx = 0;
+                        enemy.vy = 0;
                     }
                 }
             } else {
@@ -369,26 +432,11 @@ const MovementSystem = {
      * @param {number} duration - 持续时间（ms），0表示瞬时
      */
     dashTo(enemy, angle, distance, duration = 0) {
-        if (duration <= 0) {
-            // 瞬时位移
-            const sc = 1 / 60; // 假设一帧
-            const nx = enemy.x + Math.cos(angle) * distance;
-            const ny = enemy.y + Math.sin(angle) * distance;
-
-            if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
-                const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
-                enemy.x = er.x;
-                enemy.y = er.y;
-            } else {
-                enemy.x = nx;
-                enemy.y = ny;
-            }
-        } else {
-            // 设置击退/冲刺速度，由 _applyKnockback 处理
-            const speed = distance / (duration / 1000);
-            enemy.knockbackX = Math.cos(angle) * speed;
-            enemy.knockbackY = Math.sin(angle) * speed;
-        }
+        // [ANTI-TELEPORT] 所有位移统一走 knockback 通道，由 _applyKnockback 逐帧处理
+        const actualDuration = duration <= 0 ? 16.67 : duration; // 瞬时位移改为1帧
+        const speed = distance / (actualDuration / 1000);
+        enemy.knockbackX = Math.cos(angle) * speed;
+        enemy.knockbackY = Math.sin(angle) * speed;
     },
 
     /**
@@ -535,11 +583,15 @@ const MovementSystem = {
 
         if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
-            enemy.x = er.x;
-            enemy.y = er.y;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         } else {
-            enemy.x = nx;
-            enemy.y = ny;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         }
 
         enemy.isMoving = true;
@@ -582,11 +634,15 @@ const MovementSystem = {
 
         if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
-            enemy.x = er.x;
-            enemy.y = er.y;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         } else {
-            enemy.x = nx;
-            enemy.y = ny;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         }
 
         enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
@@ -634,11 +690,15 @@ const MovementSystem = {
 
         if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
-            enemy.x = er.x;
-            enemy.y = er.y;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         } else {
-            enemy.x = nx;
-            enemy.y = ny;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         }
 
         enemy.isMoving = true;
@@ -688,11 +748,15 @@ const MovementSystem = {
 
         if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
-            enemy.x = er.x;
-            enemy.y = er.y;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         } else {
-            enemy.x = nx;
-            enemy.y = ny;
+            const maxStep = maxSpd * sc;
+            const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
         }
 
         enemy.isMoving = true;

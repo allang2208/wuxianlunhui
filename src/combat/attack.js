@@ -25,7 +25,7 @@ function applyEnchantOnHit(weapon, target, source) {
 }
 
         class Attack {
-            constructor(config) { this.config = config; this.cooldown = 0; this.maxCooldown = config.cooldown || 1000; this.range = config.range || 0; this.width = config.width || 0; this.projectileSpeed = config.projectileSpeed || 0; this.projectileRange = config.projectileRange || 0; this.active = true; }
+            constructor(config) { this.config = config; this.cooldown = 0; this.maxCooldown = config.cooldown !== undefined ? config.cooldown : 1000; this.range = config.range || 0; this.width = config.width || 0; this.projectileSpeed = config.projectileSpeed || 0; this.projectileRange = config.projectileRange || 0; this.active = true; }
             canUse() { return this.cooldown <= 0; }
             use(source, targetX, targetY, entities) { if (!this.canUse()) return false; const success = this.execute(source, targetX, targetY, entities); if (success) this.cooldown = this.maxCooldown; return success; }
             execute(source, targetX, targetY, entities) {}
