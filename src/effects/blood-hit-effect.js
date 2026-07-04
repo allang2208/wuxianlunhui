@@ -1,18 +1,21 @@
         class BloodHitEffect {
-            constructor(x, y) {
+            constructor(x, y, angle = null) {
                 this.x = x; this.y = y;
                 this.life = 600; this.maxLife = 600; this.active = true;
                 // 粒子系统：生成红色飙血粒子
                 this.particles = [];
                 const particleCount = 12 + Math.floor(Math.random() * 8); // 12-20个粒子
                 for (let i = 0; i < particleCount; i++) {
-                    const angle = Math.random() * Math.PI * 2;
+                    const pAngle = (angle !== null)
+                        ? angle + (Math.random() - 0.5) * Math.PI * 0.6
+                        : Math.random() * Math.PI * 2;
                     const speed = 93.6 + Math.random() * 218.4; // 1.5-5 px/帧速度
                     const size = 2 + Math.random() * 4; // 2-6px大小
+                    const upwardOffset = (angle !== null) ? 0 : -1.5;
                     this.particles.push({
                         x: 0, y: 0, // 相对中心位置
-                        vx: Math.cos(angle) * speed,
-                        vy: Math.sin(angle) * speed - 1.5, // 稍微向上飞溅
+                        vx: Math.cos(pAngle) * speed,
+                        vy: Math.sin(pAngle) * speed + upwardOffset,
                         size: size,
                         color: this._randomBloodColor(),
                         life: 400 + Math.random() * 200, // 400-600ms寿命

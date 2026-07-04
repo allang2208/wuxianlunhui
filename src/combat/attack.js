@@ -149,6 +149,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     range: effectiveRange,         // 剑类武器使用武器配置射程
                     width: this.config.width,      // 35px
                     angle: attackAngle,
+                    facingDir: source._facingDir || 'down', // 4方向朝向（用于矩形攻击判定）
                     hitSet: new Set(),             // 已命中目标
                     damage: { min: weaponAtk, max: weaponAtk },
                     damageBonus: 0,                // 剑精通加成已包含在 getCurrentWeaponAtk 中
@@ -170,8 +171,6 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 攻击判定持续时间：200ms
                 if (Date.now() - pt.startTime > 200) { pt.active = false; return; }
                 const range = pt.range, width = pt.width, angle = pt.angle;
-                const halfW = width / 2;
-                const cos = Math.cos(angle), sin = Math.sin(angle);
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
                 // 获取当前武器，检查是否为剑类武器
@@ -179,6 +178,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;
+                const facingDir = pt.facingDir || 'down';
                 pt.entities.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     if (pt.hitSet.has(entity)) return; // 已命中过
@@ -186,17 +186,25 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (source._faction === 'enemy' && entity._faction === 'enemy') return;
                     // 墙壁视线检测：不能攻击墙后的目标
                     if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
-                    // 矩形命中判定：考虑目标碰撞半径，只要碰撞圆与矩形有重叠就命中
+                    // 矩形命中判定：根据4方向确定攻击矩形范围
                     const entityRadius = entity.collisionRadius || entity.size * 0.6 || 10;
                     const dx = entity.x - ax, dy = entity.y - ay;
-                    const forward = dx * cos + dy * sin;  // 沿攻击方向投影 (Y轴)
-                    const lateral = dx * (-sin) + dy * cos; // 垂直方向投影 (X轴)
-                    const forwardMin = isSword ? -hitBox.backExtension - entityRadius : -entityRadius;
-                    const forwardMax = range + entityRadius;
-                    const lateralMin = -pt.width - entityRadius;
-                    const lateralMax = pt.width + entityRadius;
-                    if (forward >= forwardMin && forward <= forwardMax && 
-                        lateral >= lateralMin && lateral <= lateralMax) {
+                    const backExt = isSword ? hitBox.backExtension : 0;
+                    let inRange = false;
+                    if (facingDir === 'right') {
+                        inRange = dx >= -backExt - entityRadius && dx <= range + entityRadius &&
+                                  Math.abs(dy) <= width + entityRadius;
+                    } else if (facingDir === 'left') {
+                        inRange = dx <= backExt + entityRadius && dx >= -range - entityRadius &&
+                                  Math.abs(dy) <= width + entityRadius;
+                    } else if (facingDir === 'down') {
+                        inRange = dy >= -backExt - entityRadius && dy <= range + entityRadius &&
+                                  Math.abs(dx) <= width + entityRadius;
+                    } else if (facingDir === 'up') {
+                        inRange = dy <= backExt + entityRadius && dy >= -range - entityRadius &&
+                                  Math.abs(dx) <= width + entityRadius;
+                    }
+                    if (inRange) {
                         pt.hitSet.add(entity);
                         hitCount++;
                         // 通用附魔命中效果（非硬编码，替代硬编码的 _onHitEntity）

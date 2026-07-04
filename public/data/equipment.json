@@ -248,7 +248,7 @@
       "equipSlot": "weapon",
       "attack": {
         "range": 1500,
-        "projectileSpeed": 1872,
+        "projectileSpeed": 1248,
         "knockback": 30,
         "attackInterval": 1500,
         "hitType": "箭矢（直线弹道，攻击动画结束后射出）",
@@ -330,7 +330,7 @@
       "equipSlot": "weapon",
       "attack": {
         "range": 1500,
-        "projectileSpeed": 1872,
+        "projectileSpeed": 1248,
         "knockback": 30,
         "attackInterval": 1500,
         "hitType": "箭矢（直线弹道，攻击动画结束后射出）",
@@ -441,7 +441,7 @@
         "attackInterval": 55,
         "hitType": "淡金色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 2028
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -494,8 +494,8 @@
         "attackInterval": 800,
         "hitType": "深黄色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 3120,
-        "bulletSpeed": 3120
+        "projectileSpeed": 1248,
+        "bulletSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -600,7 +600,7 @@
         "attackInterval": 92,
         "hitType": "亮金色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 4680
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -823,7 +823,7 @@
         "attackInterval": 100,
         "hitType": "亮金色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 4680
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -875,7 +875,7 @@
         "attackInterval": 70,
         "hitType": "亮金色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 5616
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -928,7 +928,7 @@
         "attackInterval": 60,
         "hitType": "亮金色曳光弹（直线弹道）",
         "damageType": "物理",
-        "projectileSpeed": 2808
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -981,7 +981,7 @@
         "attackInterval": 333,
         "hitType": "散弹（6发弹丸）",
         "damageType": "物理",
-        "projectileSpeed": 3900
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",
@@ -1036,7 +1036,7 @@
         "rampUpTime": 2500,
         "hitType": "亮绿色曳光弹（直线弹道）",
         "damageType": "魔法",
-        "projectileSpeed": 1800,
+        "projectileSpeed": 1248,
         "spreadStart": 0,
         "spreadTime": 2500,
         "maxSpreadAngle": 15,
@@ -1097,7 +1097,7 @@
         "attackInterval": 150,
         "hitType": "散弹（4发弹丸）",
         "damageType": "物理",
-        "projectileSpeed": 2340
+        "projectileSpeed": 1248
       },
       "animation": {
         "type": "recoil（后坐力抖动）",

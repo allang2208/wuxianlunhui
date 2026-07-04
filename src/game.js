@@ -726,6 +726,8 @@ export const Game = {
             Renderer.renderGrid();
             MazeGenerator.render(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         }
+        // 墙壁侧视渲染（在 terrain 之后、实体之前）
+        WallSystem.renderWalls(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
         // 实体渲染：每个实体自行处理 Phaser/Canvas 分层（body 由 Phaser 渲染，overlay 由 Canvas 渲染）
         sorted.forEach(e => e.render(Renderer.ctx));
@@ -769,7 +771,7 @@ export const Game = {
         }
         // 树木在实体上方渲染（覆盖人物，但排除人物位置形成透视效果）
         if (SceneManager.currentScene !== 'scene3') {
-            MazeGenerator.renderTrees(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
+            WallSystem.renderTrees(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         }
         // 绘制准星
         Renderer.drawCrosshair();

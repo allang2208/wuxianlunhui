@@ -434,8 +434,21 @@ import aiConfigData from '../../data/ai-config.json';
                     this.renderCollisionRadius(ctx);
                     return;
                 }
-                ctx.save(); ctx.translate(x, y); ctx.rotate(this.rotation);
-                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0, 10, 8, 4, 0, 0, Math.PI*2); ctx.fill();
+                this._drawShadow(ctx, x, y, this.size);
+                // 4方向朝向判断
+                let facingAngle = this.rotation;
+                if (this.isMoving && (Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1)) {
+                    facingAngle = Math.atan2(this.vy, this.vx);
+                }
+                const deg = (facingAngle * 180 / Math.PI + 360) % 360;
+                let facing = 'right';
+                let displayAngle = 0;
+                if (deg >= 45 && deg < 135) { facing = 'down'; displayAngle = Math.PI / 2; }
+                else if (deg >= 135 && deg < 225) { facing = 'left'; displayAngle = 0; }
+                else if (deg >= 225 && deg < 315) { facing = 'up'; displayAngle = -Math.PI / 2; }
+                ctx.save(); ctx.translate(x, y);
+                ctx.rotate(displayAngle);
+                if (facing === 'left') ctx.scale(-1, 1);
                 ctx.fillStyle = this._color; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = this._highlightColor; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
                 this.renderWeapon(ctx);

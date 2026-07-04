@@ -19,7 +19,7 @@ import { StatusBar } from '../ui/status-bar.js';
 
         class Player extends Combatant {
             constructor(x, y) {
-                super(x, y); this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300;
+                super(x, y); this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300; this._facingDir = 'down';
                 this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
                 this.weaponSwitchCooldown = 0; // 武器切换冷却：切换 G18 后防止立即开火
                 this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）
@@ -859,6 +859,29 @@ import { StatusBar } from '../ui/status-bar.js';
                 if (len === 0) return true;
                 return (moveDir.x * mx + moveDir.y * my) / len > 0;
             }
+            _getFacingDirection() {
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                const mx = Input.mouse.x - screenPos.x;
+                const my = Input.mouse.y - screenPos.y;
+                const absX = Math.abs(mx);
+                const absY = Math.abs(my);
+                if (absX === 0 && absY === 0) {
+                    const vx = this.vx || 0;
+                    const vy = this.vy || 0;
+                    const absVX = Math.abs(vx);
+                    const absVY = Math.abs(vy);
+                    if (absVX > absVY) {
+                        return vx > 0 ? 'right' : 'left';
+                    } else {
+                        return vy > 0 ? 'down' : 'up';
+                    }
+                }
+                if (absX > absY) {
+                    return mx > 0 ? 'right' : 'left';
+                } else {
+                    return my > 0 ? 'down' : 'up';
+                }
+            }
             addAttribute(attr) {
                 if (this.data.attrPoints <= 0) return false;
                 const validAttrs = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
@@ -1075,6 +1098,14 @@ import { StatusBar } from '../ui/status-bar.js';
                     this.rotation = this._specialAttackLockedAngle;
                 } else if (!this._isWhirlwind && !this.isDodging) {
                     this.rotation = Math.atan2(dy, dx);
+                    // 根据鼠标方向确定4方向朝向
+                    const absDx = Math.abs(dx);
+                    const absDy = Math.abs(dy);
+                    if (absDx > absDy) {
+                        this._facingDir = dx > 0 ? 'right' : 'left';
+                    } else {
+                        this._facingDir = dy > 0 ? 'down' : 'up';
+                    }
                 }
                 if (isDroneControlling) {
                     this.vx *= this.friction;
@@ -3020,6 +3051,15 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 ctx.save();
                 ctx.translate(mainBaseX, mainBaseY);
+                const wpnDir = this._getFacingDirection();
+                if (wpnDir === 'left' || wpnDir === 'right') {
+                    ctx.scale(-1, 1);
+                }
+                if (wpnDir === 'up') {
+                    ctx.translate(0, -5);
+                } else if (wpnDir === 'down') {
+                    ctx.translate(0, 5);
+                }
                 // === 手枪渲染 ===
                 if (isPistol) {
                     const pCfg = WeaponAnimConfig[currentItem.animConfigKey || 'pistol'];
@@ -3514,6 +3554,14 @@ import { StatusBar } from '../ui/status-bar.js';
                     const offIsAttacking = offhandAnim.state !== 'idle';
                     ctx.save();
                     ctx.translate(offBaseX, offBaseY); // 副手位置
+                    if (wpnDir === 'left' || wpnDir === 'right') {
+                        ctx.scale(-1, 1);
+                    }
+                    if (wpnDir === 'up') {
+                        ctx.translate(0, -5);
+                    } else if (wpnDir === 'down') {
+                        ctx.translate(0, 5);
+                    }
                     ctx.rotate(Math.PI / 2);
                     
                     let offhandImg, w, drawY, drawH = s;
@@ -3918,10 +3966,6 @@ import { StatusBar } from '../ui/status-bar.js';
                     ctx.fillStyle = `rgba(255, 230, 100, ${flicker * 0.35})`;
                     ctx.beginPath(); ctx.arc(0, 0, this.size + 7, 0, Math.PI * 2); ctx.fill();
                 }
-                // 阴影在风车旋转之前绘制（地面投影不旋转）
-                if (!this._usePhaserSprite) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0, 10, 8, 4, 0, 0, Math.PI*2); ctx.fill();
-                }
                 // 中毒绿色粒子效果
                 if (this._poisonStacks > 0 && this._poisonEffect) {
                     this._poisonEffect.render(ctx, 0, 0);
@@ -3987,6 +4031,8 @@ import { StatusBar } from '../ui/status-bar.js';
 
                 // 绘制角色精灵图（仅在 Phaser 未就绪时，Canvas 回退）
                 if (!this._usePhaserSprite) {
+                    const facingDir = this._getFacingDirection();
+                    const isLeft = facingDir === 'left';
                     if (this.characterAnim.state === 'idle' && this.characterImage && this.characterImage.complete && this.characterImage.naturalWidth > 0) {
                         const ca = this.characterAnim;
                         const frameImg = this.characterFrames[ca.frame] || this.characterFrames[0];
@@ -3994,9 +4040,12 @@ import { StatusBar } from '../ui/status-bar.js';
                             ctx.save();
                             ctx.imageSmoothingEnabled = false;
                             ctx.imageSmoothingQuality = 'low';
-                            ctx.translate(bodyOffsetX, bodyOffsetY);
+                            // 侧视角：反旋转使精灵图保持屏幕空间朝向
+                            ctx.rotate(-this.rotation);
+                            ctx.translate(isLeft ? -bodyOffsetX : bodyOffsetX, bodyOffsetY);
                             ctx.scale(bodyScale, bodyScale);
                             ctx.rotate(-Math.PI / 2); // 精灵图原始面朝下方，逆时针旋转90°面朝右侧（0点方向）
+                            if (isLeft) ctx.scale(-1, 1); // 水平翻转
                             const spriteSize = this.size * 6.25;
                             ctx.drawImage(frameImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
                             ctx.restore();
@@ -4011,9 +4060,12 @@ import { StatusBar } from '../ui/status-bar.js';
                         ctx.save();
                         ctx.imageSmoothingEnabled = false;
                         ctx.imageSmoothingQuality = 'low';
-                        ctx.translate(bodyOffsetX, bodyOffsetY);
+                        // 侧视角：反旋转使精灵图保持屏幕空间朝向
+                        ctx.rotate(-this.rotation);
+                        ctx.translate(isLeft ? -bodyOffsetX : bodyOffsetX, bodyOffsetY);
                         ctx.scale(bodyScale, bodyScale);
                         ctx.rotate(-Math.PI / 2); // 精灵图原始面朝下方，逆时针旋转90°面朝右侧（0点方向）
+                        if (isLeft) ctx.scale(-1, 1); // 水平翻转
                         const spriteSize = this.size * 6.25;
                         ctx.drawImage(this.characterImage, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
                         ctx.restore();
@@ -4172,6 +4224,13 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 ctx.restore();
                 ctx.globalAlpha = 1;
+                // 脚下阴影（屏幕空间，侧视角）
+                if (!this._usePhaserSprite) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                    ctx.beginPath();
+                    ctx.ellipse(x, y + this.size + 5, this.size * 0.8, this.size * 0.3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 // ===== 符文长剑特殊攻击：渲染飞行中的剑（世界坐标）=====
                 if (this._runeSwordSpecialActive && this._runeSwordSwords.length > 0) {
                     const img = this._runeSwordBladeImg;

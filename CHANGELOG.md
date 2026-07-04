@@ -119,3 +119,33 @@
   - `assets/sounds/`：添加音效文件
 - **测试结果**：`vite build` 通过
 - **已知问题**：无
+
+
+## 2026-07-04
+
+### 侧视角 2D 渲染迁移（P0-P3 全部完成）
+- **修改文件**：11 个核心文件
+- **任务 1 - Player 4方向朝向 + 阴影**：
+  - `src/entities/player.js`：添加 `_getFacingDirection()` 从鼠标位置判断4方向；render 中反旋转+水平翻转；武器跟随朝向（左/右翻转，上/下偏移）；脚下阴影改为屏幕空间绘制
+- **任务 2 - Enemy 4方向朝向 + 阴影**：
+  - `src/entities/damageable-entity.js`：新增基类 `_drawShadow()` 通用阴影方法
+  - `src/entities/enemy.js`：render 中从速度/目标方向判断4方向；scaleX 翻转；量化旋转角度；调用基类阴影
+- **任务 3 - 战术小队 4方向朝向**：
+  - `src/entities/humanoid-monster.js`：新增 `_getDirection4()`；render 取消自由旋转；盾位小圆盾位置根据4方向动态调整；武器根据4方向变换
+- **任务 4 - 墙壁侧视渲染**：
+  - `src/world/wall-system.js`：墙壁数据添加 `height: 60`；新增 `renderWalls()` 按 y 排序绘制立面+墙顶
+  - `src/game.js`：渲染循环在 terrain 后、实体前调用 `WallSystem.renderWalls()`
+- **任务 5 - 近战攻击判定**：
+  - `src/entities/player.js`：update 中根据鼠标方向计算 `_facingDir`（4方向），射击仍用360° rotation
+  - `src/combat/attack.js`：`ThrustAttack.checkTriangleHit` 改为4方向轴对齐矩形判定（right/left/down/up），保留击退和墙壁检测
+- **任务 6 - 子弹 Y 缩放 + 树木侧视**：
+  - `src/combat/projectile.js`：render 中根据 vy 做 Y 方向缩放（上70%/下130%/水平100%）
+  - `src/world/wall-system.js`：`addTree()` 添加侧视数据（树干+树冠）；新增 `renderTrees()` 按 sortY 排序绘制
+  - `src/game.js`：渲染调用从 `MazeGenerator.renderTrees` 改为 `WallSystem.renderTrees()`
+- **任务 7 - 弹壳/血溅/特效**：
+  - `src/effects/shell-casing.js`：重力增强约50%且改为时间缩放（`vy += 10.8 * dt/1000`）
+  - `src/effects/blood-hit-effect.js`：构造函数支持可选 `angle` 参数，传入时粒子朝攻击方向扇形分布
+  - `src/effects/effect-manager.js`：`render()` 添加 `this.effects.sort((a,b) => a.y - b.y)` 深度排序
+- **验证**：所有11个文件语法通过 `node --check`
+- **已实现的侧视角效果**：角色4方向显示/8方向移动、脚下阴影、墙壁立面高度、树木侧视、子弹远近缩放、弹壳重力下落、特效深度排序
+- **已知问题**：上/下武器偏移在旋转坐标系下表现可能有偏差；Enemy 暂未添加 `_facingDir`（近战回退到 down）

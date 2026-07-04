@@ -324,6 +324,12 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 ctx.fillStyle = hpPercent > 0.5 ? '#c04040' : hpPercent > 0.25 ? '#a03030' : '#8a1a1a';
                 ctx.fillRect(x, y, barWidth * hpPercent, barHeight);
             }
+            _drawShadow(ctx, x, y, size) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                ctx.beginPath();
+                ctx.ellipse(x, y + size * 0.7, size * 0.8, size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
 export { DamageableEntity };

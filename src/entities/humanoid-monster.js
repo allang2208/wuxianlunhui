@@ -401,23 +401,46 @@ export class HumanoidMonster extends Enemy {
         ctx.restore();
     }
 
+    _getDirection4() {
+        let dx = 0, dy = 0;
+        if (this.vx !== undefined && this.vy !== undefined) {
+            dx = this.vx;
+            dy = this.vy;
+        }
+        if (dx === 0 && dy === 0 && this.target) {
+            dx = this.target.x - this.x;
+            dy = this.target.y - this.y;
+        }
+        if (dx === 0 && dy === 0) {
+            return 'right';
+        }
+        const adx = Math.abs(dx);
+        const ady = Math.abs(dy);
+        if (adx >= ady) {
+            return dx > 0 ? 'right' : 'left';
+        } else {
+            return dy > 0 ? 'down' : 'up';
+        }
+    }
+
     render(ctx) {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y;
         this.renderHealthBar(ctx);
 
+        const dir = this._getDirection4();
+
         // 类人型怪物：实心圆绘制，不同兵种不同颜色
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(this.rotation);
 
-        // 阴影
+        // 阴影（不旋转，始终在角色下方）
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.beginPath();
         ctx.ellipse(0, 10, this.size * 0.8, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 身体（实心圆）
+        // 身体（实心圆，不旋转）
         ctx.fillStyle = this.color || '#8a8a8a';
         ctx.beginPath();
         ctx.arc(0, 0, this.size, 0, Math.PI * 2);
@@ -429,11 +452,30 @@ export class HumanoidMonster extends Enemy {
         ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // 盾位贴图：小圆盾
+        // 盾位小圆盾：根据4方向调整
         if (this._tacticalRole === 'shieldBearer') {
+            let shieldX = this.size * 0.9, shieldY = -this.size * 0.2;
+            switch (dir) {
+                case 'left':
+                    shieldX = this.size * 0.9;
+                    shieldY = -this.size * 0.2;
+                    break;
+                case 'right':
+                    shieldX = -this.size * 0.9;
+                    shieldY = -this.size * 0.2;
+                    break;
+                case 'up':
+                    shieldX = this.size * 0.9;
+                    shieldY = -this.size * 0.5;
+                    break;
+                case 'down':
+                    shieldX = -this.size * 0.9;
+                    shieldY = -this.size * 0.5;
+                    break;
+            }
             ctx.fillStyle = '#607080';
             ctx.beginPath();
-            ctx.arc(this.size * 0.9, -this.size * 0.2, this.size * 0.55, 0, Math.PI * 2);
+            ctx.arc(shieldX, shieldY, this.size * 0.55, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = '#8090a0';
             ctx.lineWidth = 2;
@@ -441,7 +483,7 @@ export class HumanoidMonster extends Enemy {
             // 盾牌中心装饰
             ctx.fillStyle = '#708090';
             ctx.beginPath();
-            ctx.arc(this.size * 0.9, -this.size * 0.2, this.size * 0.25, 0, Math.PI * 2);
+            ctx.arc(shieldX, shieldY, this.size * 0.25, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -458,16 +500,32 @@ export class HumanoidMonster extends Enemy {
             ctx.fill();
         }
 
-        // 武器方向指示（小线条，沿旋转后X轴方向）
+        // 武器方向指示（根据4方向）
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 2;
         ctx.beginPath();
+        let wx = 0, wy = 0;
+        switch (dir) {
+            case 'right': wx = this.size * 1.2; break;
+            case 'left': wx = -this.size * 1.2; break;
+            case 'down': wy = this.size * 1.2; break;
+            case 'up': wy = -this.size * 1.2; break;
+        }
         ctx.moveTo(0, 0);
-        ctx.lineTo(this.size * 1.2, 0);
+        ctx.lineTo(wx, wy);
         ctx.stroke();
 
-        // 绘制武器贴图（entity-local坐标，已旋转到目标方向）
+        // 绘制武器贴图（根据4方向调整）
+        ctx.save();
+        if (dir === 'left') {
+            ctx.scale(-1, 1);
+        } else if (dir === 'up') {
+            ctx.translate(0, -this.size * 0.8);
+        } else if (dir === 'down') {
+            ctx.translate(0, this.size * 0.8);
+        }
         this.renderWeapon(ctx);
+        ctx.restore();
 
         ctx.restore();
 

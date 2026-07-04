@@ -1,22 +1,24 @@
 const WallSystem = {
     walls: [],
     mazeEndY: 0,
+    _wallHeight: 60,
     init(ww, wh) {
         this.walls = [];
         this.trees = [];
+        const wallHeight = this._wallHeight;
         const mazeH = wh * 0.25, mazeW = ww * 0.6, mazeOX = ww * 0.2;
         // 迷宫顶部边距：确保入口在 Camera 可跟随区域（halfH 以上），同时限制不覆盖玩家生成位置
         const mazeOY = Math.max(wh * 0.12, Math.min(CONFIG.VIEW_HEIGHT * 0.55, wh * 0.20));
         this._mazeOX = mazeOX; this._mazeOY = mazeOY; this._mazeH = mazeH; this._mazeW = mazeW;
         const mazeWalls = MazeGenerator.generate(mazeW, mazeH);
-        for (const w of mazeWalls) this.walls.push({ x: w.x + mazeOX, y: w.y + mazeOY, w: w.w, h: w.h });
-        this.walls.push({ x: mazeOX - 16, y: mazeOY, w: 16, h: mazeH });
-        this.walls.push({ x: mazeOX + mazeW, y: mazeOY, w: 16, h: mazeH });
+        for (const w of mazeWalls) this.walls.push({ x: w.x + mazeOX, y: w.y + mazeOY, w: w.w, h: w.h, height: wallHeight });
+        this.walls.push({ x: mazeOX - 16, y: mazeOY, w: 16, h: mazeH, height: wallHeight });
+        this.walls.push({ x: mazeOX + mazeW, y: mazeOY, w: 16, h: mazeH, height: wallHeight });
         // 顶部边界分两段，避开入口（第一个格子顶部，宽CELL_SIZE）
         const cs = MazeGenerator.CELL_SIZE;
-        this.walls.push({ x: mazeOX - 16, y: mazeOY - 16, w: 16, h: 16 }); // 左上角封头
-        this.walls.push({ x: mazeOX + cs, y: mazeOY - 16, w: mazeW - cs + 16, h: 16 }); // 入口右侧顶部边界
-        this.walls.push({ x: mazeOX - 16, y: mazeOY + mazeH, w: mazeW + 32, h: 16 }); // 底部边界
+        this.walls.push({ x: mazeOX - 16, y: mazeOY - 16, w: 16, h: 16, height: wallHeight }); // 左上角封头
+        this.walls.push({ x: mazeOX + cs, y: mazeOY - 16, w: mazeW - cs + 16, h: 16, height: wallHeight }); // 入口右侧顶部边界
+        this.walls.push({ x: mazeOX - 16, y: mazeOY + mazeH, w: mazeW + 32, h: 16, height: wallHeight }); // 底部边界
         this.mazeEndY = mazeOY + mazeH;
         // ===== Phaser 墙壁同步 =====
         this._syncWallsToPhaser();
@@ -66,6 +68,30 @@ const WallSystem = {
         }
         return result;
     },
+    /**
+     * 侧视角墙壁渲染：绘制墙面（立面矩形）+ 墙顶（小矩形）
+     * 按 y 深度排序（y 小的先画，即后面的先画）
+     */
+    renderWalls(ctx, cameraX, cameraY) {
+        const vw = CONFIG.VIEW_WIDTH, vh = CONFIG.VIEW_HEIGHT;
+        const visible = [];
+        for (const w of this.walls) {
+            if (w.x + w.w > cameraX && w.x < cameraX + vw && w.y + w.h > cameraY && w.y < cameraY + vh) {
+                visible.push(w);
+            }
+        }
+        visible.sort((a, b) => a.y - b.y);
+        for (const w of visible) {
+            const sx = w.x - cameraX;
+            const sy = w.y - cameraY;
+            // 墙面（立面）：从 footprint 后沿向上延伸
+            ctx.fillStyle = '#5a5a5a';
+            ctx.fillRect(sx, sy - w.height, w.w, w.height);
+            // 墙顶（小矩形，厚度 4px）
+            ctx.fillStyle = '#6e6e6e';
+            ctx.fillRect(sx, sy - w.height - 4, w.w, 4);
+        }
+    },
     circleRect(cx, cy, r, rect) {
         const clX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
         const clY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
@@ -113,7 +139,17 @@ const WallSystem = {
         return false;
     },
     addTree(x, y, radius, treeType, imagePath, sceneGroup = 'normal', rotation = 0) {
-        const treeData = { x, y, radius, type: treeType || 0, image: imagePath || null, sceneGroup: sceneGroup || 'normal', rotation: rotation || 0 };
+        const treeData = {
+            x, y, radius,
+            type: treeType || 0,
+            image: imagePath || null,
+            sceneGroup: sceneGroup || 'normal',
+            rotation: rotation || 0,
+            trunkWidth: radius * 0.6,
+            trunkHeight: radius * 2,
+            canopyRadius: radius * 1.2,
+            sortY: y + radius * 2
+        };
         this.trees.push(treeData);
         // ===== Phaser 树木同步（单个添加）=====
         const phaserScene = window.__phaserScene;
@@ -153,6 +189,33 @@ const WallSystem = {
             if (t.x + t.radius > vx && t.x - t.radius < vx + vw && t.y + t.radius > vy && t.y - t.radius < vy + vh) result.push(t);
         }
         return result;
+    },
+    renderTrees(ctx, cameraX, cameraY) {
+        const trees = this.getTreesInView(cameraX, cameraY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
+        trees.sort((a, b) => (a.sortY || a.y) - (b.sortY || b.y));
+        for (const t of trees) {
+            const sx = t.x - cameraX;
+            const sy = t.y - cameraY;
+            const trunkW = t.trunkWidth || t.radius * 0.6;
+            const trunkH = t.trunkHeight || t.radius * 2;
+            const canopyR = t.canopyRadius || t.radius * 1.2;
+            // 绘制树干（棕色矩形）
+            ctx.fillStyle = '#5a3a1a';
+            ctx.fillRect(sx - trunkW / 2, sy - trunkH, trunkW, trunkH);
+            // 树干高光
+            ctx.fillStyle = '#4a2a0a';
+            ctx.fillRect(sx - trunkW / 2 + 2, sy - trunkH, 2, trunkH);
+            // 绘制树冠（绿色圆形）
+            ctx.fillStyle = '#2d8a3e';
+            ctx.beginPath();
+            ctx.arc(sx, sy - trunkH - canopyR * 0.3, canopyR, 0, Math.PI * 2);
+            ctx.fill();
+            // 树冠高光
+            ctx.fillStyle = '#3da84e';
+            ctx.beginPath();
+            ctx.arc(sx - canopyR * 0.2, sy - trunkH - canopyR * 0.5, canopyR * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 };
 
