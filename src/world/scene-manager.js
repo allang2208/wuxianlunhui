@@ -219,10 +219,7 @@ export const SceneManager = {
         // 生成树枝/树干障碍物 — 雪地场景已移除
         /* for (let i = 0; i < 40; i++) { ... } */
 
-        // 雪地场景：随机生成100棵雪地树木（3种雪地类型，最小距离500px，随机朝向）
-        const snowTreeImages = [
-            'assets/scenes/snowtree1.png', 'assets/scenes/snowtree2.png', 'assets/scenes/snowtree3.png'
-        ];
+        // 雪地场景：随机生成100棵雪地树木（最小距离500px，随机朝向）
         const treeRadius = 25;
         const snowTrees = [];
         for (let i = 0; i < 100; i++) {
@@ -241,9 +238,9 @@ export const SceneManager = {
                 attempts++;
             } while (!distOk && attempts < 50);
             if (distOk) {
-                const treeType = Math.floor(Math.random() * snowTreeImages.length);
+                const treeType = Math.floor(Math.random() * 3);
                 const rotation = Math.random() * Math.PI * 2;
-                WallSystem.addTree(tx, ty, treeRadius, treeType, snowTreeImages[treeType], 'snow', rotation);
+                WallSystem.addTree(tx, ty, treeRadius, treeType, 'snow', rotation);
                 snowTrees.push({ x: tx, y: ty });
             }
         }

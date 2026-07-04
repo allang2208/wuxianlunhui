@@ -138,11 +138,11 @@ const WallSystem = {
         for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.radius)) return true;
         return false;
     },
-    addTree(x, y, radius, treeType, imagePath, sceneGroup = 'normal', rotation = 0) {
+    addTree(x, y, radius, treeType, sceneGroup = 'normal', rotation = 0) {
         const treeData = {
             x, y, radius,
             type: treeType || 0,
-            image: imagePath || null,
+
             sceneGroup: sceneGroup || 'normal',
             rotation: rotation || 0,
             trunkWidth: radius * 0.6,
