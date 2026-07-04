@@ -174,9 +174,9 @@ import aiConfigData from '../../data/ai-config.json';
                 }
 
                 // [REFACTOR] 外部系统驱动：如果 game.js 已调用 MovementSystem/CombatSystem/PerceptionSystem，
-                // 则 enemy.js 不再重复处理移动/攻击/目标选择/状态效果，避免每帧重复调用。
+                // 则 enemy.js 不再重复处理移动/攻击/目标选择，避免每帧重复调用。
                 // 如果没有外部系统（fallback），使用旧逻辑。
-                if (typeof MovementSystem === 'undefined' || typeof CombatSystem === 'undefined') {
+                if (typeof window !== 'undefined' && (!window.MovementSystem || !window.CombatSystem)) {
                     // 1. 寻找目标
                     if (!this.target) {
                         entities.forEach(e => { if (e instanceof Player) this.target = e; });
@@ -193,12 +193,12 @@ import aiConfigData from '../../data/ai-config.json';
                     if (this.attacks.melee) this.attacks.melee.update(dt);
                     if (this.attacks.ranged) this.attacks.ranged.update(dt);
                     this.updateWeaponAnim(dt);
-                    // 5. 状态效果更新
-                    this._updatePoison(dt);
-                    this._updateBleed(dt);
-                    this._updateMagicVulnerability(dt);
-                    this._updateDroneVulnerability(dt);
                 }
+                // 状态效果更新（始终执行，无论外部系统是否存在）
+                this._updatePoison(dt);
+                this._updateBleed(dt);
+                this._updateMagicVulnerability(dt);
+                this._updateDroneVulnerability(dt);
             }
             // --- 中毒效果更新 ---
             _updatePoison(dt) {

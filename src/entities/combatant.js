@@ -467,7 +467,7 @@ class Combatant extends DamageableEntity {
         // 获取武器配置
         const weaponType = item.weaponType;
         const damage = attack.config.damage || { min: 1, max: 3 };
-        const speed = attack.config.projectileSpeed || 2000;
+        const speed = attack.config.projectileSpeed || 1248;
         const range = attack.config.projectileRange || 800;
         const size = attack.config.projectileSize || 4;
         const piercing = attack.config.piercing || false;

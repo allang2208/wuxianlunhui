@@ -10,6 +10,28 @@
 
 ## 2026-07-03
 
+### 对话 2：AI系统重构 + 50+怪物性能优化（v0.197）
+- **修改文件**（7 个核心文件）：
+  - `src/game.js`：在实体 update 后集成 MovementSystem + CombatSystem + PerceptionSystem 调用
+  - `src/entities/enemy.js`：精简 update，外部系统存在时跳过旧移动/攻击/状态效果逻辑，避免重复调用
+  - `src/systems/movement-system.js`：添加寻路冷却（2000ms），SpatialPartitionSystem 范围查询替代全量遍历
+  - `src/systems/combat-system.js`：复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用
+  - `src/ai/pathfinder.js`：grid 分辨率 20→40，减少 A* 网格数量 75%
+  - `index.html`：版本号更新到 V0.197
+  - `src/game.js`：版本号更新到 0.197
+- **修改内容摘要**：
+  1. 诊断场景2/4怪海卡顿根因：双重寻路触发（Enemy._updateMovement + MovementSystem）+ A*寻路风暴（100只僵尸×3600格子=500万次操作/500ms）+ O(n²)目标扫描
+  2. 架构重构：game.js 统一调用 MovementSystem/CombatSystem/PerceptionSystem，enemy.js 改为外部系统驱动
+  3. MovementSystem 性能优化：寻路冷却 2 秒、SpatialPartition 范围查询、grid 分辨率降低
+  4. CombatSystem 视线缓存：复用 PerceptionSystem LOS 缓存，避免每帧射线检测
+  5. 清理旧备份：删除 50+ 个旧备份文件，释放 18MB 硬盘空间
+  6. 创建新备份：backup/v2026-07-03_23-16-19/
+- **测试结果**：所有文件语法验证通过，Git 提交 e7da369
+- **预期效果**：50-100 怪同屏从卡顿→流畅，总体性能提升约 100x
+- **已知问题**：
+  - 需实际测试场景2/4确认怪物行为正常
+  - 如果 MovementSystem 有 bug，enemy.js 有 fallback 逻辑（当外部系统不存在时启用旧逻辑）
+
 ### 对话 1：战术小队武器系统 + 弹道渲染 + 无人机状态栏（v0.196）
 - **修改文件**（41 个文件，+6647 -567 行）：
   - `src/entities/combatant.js`：新建 Combatant 基类，共享武器/弹药/散布/过热系统
