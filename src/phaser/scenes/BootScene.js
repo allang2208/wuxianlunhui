@@ -31,11 +31,6 @@ export class BootScene extends Scene {
         this.load.image('enemy_black_wolf', 'assets/enemies/black_wolf.png');
 
         // ---- 环境资源 ----
-        this.load.image('tree', 'assets/tree.png');
-        this.load.image('tree2', 'assets/tree2.png');
-        this.load.image('tree3', 'assets/tree3.png');
-        this.load.image('tree4', 'assets/tree4.png');
-        this.load.image('tree5', 'assets/tree5.png');
 
         // ---- 特效资源 ----
         // 粒子用程序化生成，暂不需要加载图片

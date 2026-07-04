@@ -86,6 +86,20 @@ class CombatSystemImpl {
         // === 真实武器系统路径（HumanoidMonster 等使用玩家同款武器）===
         if (enemy._isHumanoid && typeof enemy.fireProjectile === 'function') {
             enemy.aiTimer = 0;
+            // AI 射击精度：根据角色和距离设置散布
+            const accuracyDist = Math.sqrt((targetX - enemy.x)**2 + (targetY - enemy.y)**2);
+            let accuracyFactor = 0;
+            if (enemy._tacticalRole === 'shieldBearer') {
+                accuracyFactor = 0.05;
+            } else if (enemy._tacticalRole === 'rifleman' || enemy._tacticalRole === 'flankRifleman') {
+                accuracyFactor = Math.min(1, accuracyDist / 1000) * 0.5;
+            } else if (enemy._tacticalRole === 'machineGunner') {
+                accuracyFactor = Math.min(1, accuracyDist / 1200) * 0.7;
+            } else if (enemy._tacticalRole === 'commander') {
+                accuracyFactor = Math.min(1, accuracyDist / 1000) * 0.4;
+            }
+            enemy._currentSpreadFactor = accuracyFactor;
+            enemy._currentSpreadMaxAngle = 3 + accuracyFactor * 22;
             enemy.fireProjectile(targetX, targetY, entities, { slot: 'weapon' });
             return;
         }
@@ -100,8 +114,10 @@ class CombatSystemImpl {
     }
     // --- 攻击冷却更新 ---
     _updateAttacks(enemy, dt) {
-        if (enemy.attacks.melee) enemy.attacks.melee.update(dt);
-        if (enemy.attacks.ranged) enemy.attacks.ranged.update(dt);
+        // 更新所有攻击类型的冷却（包括 HumanoidMonster 的 weaponType 键）
+        for (const key in enemy.attacks) {
+            if (enemy.attacks[key]) enemy.attacks[key].update(dt);
+        }
     }
 
     // --- 武器动画 ---

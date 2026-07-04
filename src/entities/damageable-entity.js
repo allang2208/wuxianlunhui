@@ -43,7 +43,10 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                         }
                     }
                     if (atk > 0) {
-                        baseDamage = Math.floor((atk * atk) / (atk + def));
+                        // 防御减伤公式：伤害 = atk * (1 - def / (def + 60))
+                        // 提升防御收益（原100改为60），def=60时减伤50%
+                        const damageReduction = def / (def + 60);
+                        baseDamage = Math.floor(atk * (1 - damageReduction));
                         // 10%最低保底伤害
                         const minDamage = Math.floor(atk * 0.1);
                         if (baseDamage < minDamage) {
@@ -320,6 +323,12 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 // 当前血量：根据血量百分比变化亮度
                 ctx.fillStyle = hpPercent > 0.5 ? '#c04040' : hpPercent > 0.25 ? '#a03030' : '#8a1a1a';
                 ctx.fillRect(x, y, barWidth * hpPercent, barHeight);
+            }
+            _drawShadow(ctx, x, y, size) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                ctx.beginPath();
+                ctx.ellipse(x, y + size * 0.7, size * 0.8, size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 

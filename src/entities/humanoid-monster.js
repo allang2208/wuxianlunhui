@@ -134,12 +134,18 @@ export class HumanoidMonster extends Enemy {
 
         // 创建对应的攻击对象（供 Combatant.fireProjectile 使用）
         const attackCfg = data.attack;
+        // [ENHANCE] 使用六维计算的 data.atk + 武器配置，不再硬编码
+        const atk = this.data.atk || 10;
+        let damage = attackCfg.damage;
+        if (!damage) {
+            damage = { min: Math.max(1, Math.floor(atk * 0.8)), max: Math.max(2, Math.floor(atk * 1.2)) };
+        }
         this.attacks[data.weaponType] = new RangedAttack({
             cooldown: 0, // AI 的 aiInterval 控制射速，攻击对象不设冷却
             projectileSpeed: attackCfg.projectileSpeed || 1248,
             projectileRange: attackCfg.range || 800,
             projectileSize: 5,
-            damage: { min: 1, max: 1 },
+            damage: damage,
             piercing: false,
             knockback: attackCfg.knockback || 0
         });
@@ -151,8 +157,11 @@ export class HumanoidMonster extends Enemy {
         }
 
         // 应用角色配置的 AI 参数覆盖（外部配置优先）
+        // [FIX] 不再覆盖 attackRange，保持武器原始射程
+        // 移动目标距离由 TacticalSquadAI 单独控制，不应与武器射程混淆
         if (roleConfig && roleConfig.ai && roleConfig.ai.desiredDist !== undefined) {
-            this.attackRange = roleConfig.ai.desiredDist;
+            // 仅保存到 data 供参考，不覆盖 attackRange
+            this.data.desiredDist = roleConfig.ai.desiredDist;
         }
 
         // 加载武器贴图（使用全局缓存）
@@ -316,6 +325,21 @@ export class HumanoidMonster extends Enemy {
 
         this.aiTimer = 0;
 
+        // 根据角色和距离设置AI射击精度
+        const accuracyDist = Math.sqrt((targetX - this.x)**2 + (targetY - this.y)**2);
+        let accuracyFactor = 0; // 0=精准, 1=最大散布
+        if (this._tacticalRole === 'shieldBearer') {
+            accuracyFactor = 0.05; // 盾位贴脸，非常准
+        } else if (this._tacticalRole === 'rifleman' || this._tacticalRole === 'flankRifleman') {
+            accuracyFactor = Math.min(1, accuracyDist / 1000) * 0.5; // 步枪手：距离越远越不准
+        } else if (this._tacticalRole === 'machineGunner') {
+            accuracyFactor = Math.min(1, accuracyDist / 1200) * 0.7; // 机枪手：压制，精度较低
+        } else if (this._tacticalRole === 'commander') {
+            accuracyFactor = Math.min(1, accuracyDist / 1000) * 0.4; // 指挥官：中等精度
+        }
+        this._currentSpreadFactor = accuracyFactor;
+        this._currentSpreadMaxAngle = 3 + accuracyFactor * 22; // 3-25度
+
         // 重置攻击冷却，让 aiInterval 控制射速
         // 避免 RangedAttack 构造函数将 cooldown:0 覆盖为 800/1000
         const weaponType = this.equipments.weapon.weaponType;
@@ -377,20 +401,25 @@ export class HumanoidMonster extends Enemy {
         ctx.restore();
     }
 
-    calculateCombatStats() {
-        super.calculateCombatStats();
-        const d = this.data;
-        // 血量公式：maxHp = 100 + 体质 * 10
-        const oldMaxHp = this.maxHp;
-        d.maxHp = 100 + d.con * 10;
-        this.maxHp = d.maxHp;
-        if (oldMaxHp > 0) {
-            const hpDiff = this.maxHp - oldMaxHp;
-            this.hp = Math.min(this.maxHp, this.hp + hpDiff);
-            d.hp = Math.min(d.maxHp, d.hp + hpDiff);
+    _getDirection4() {
+        let dx = 0, dy = 0;
+        if (this.vx !== undefined && this.vy !== undefined) {
+            dx = this.vx;
+            dy = this.vy;
+        }
+        if (dx === 0 && dy === 0 && this.target) {
+            dx = this.target.x - this.x;
+            dy = this.target.y - this.y;
+        }
+        if (dx === 0 && dy === 0) {
+            return 'right';
+        }
+        const adx = Math.abs(dx);
+        const ady = Math.abs(dy);
+        if (adx >= ady) {
+            return dx > 0 ? 'right' : 'left';
         } else {
-            this.hp = this.maxHp;
-            d.hp = d.maxHp;
+            return dy > 0 ? 'down' : 'up';
         }
     }
 
@@ -399,18 +428,19 @@ export class HumanoidMonster extends Enemy {
         const x = pos.x, y = pos.y;
         this.renderHealthBar(ctx);
 
+        const dir = this._getDirection4();
+
         // 类人型怪物：实心圆绘制，不同兵种不同颜色
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(this.rotation);
 
-        // 阴影
+        // 阴影（不旋转，始终在角色下方）
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.beginPath();
         ctx.ellipse(0, 10, this.size * 0.8, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 身体（实心圆）
+        // 身体（实心圆，不旋转）
         ctx.fillStyle = this.color || '#8a8a8a';
         ctx.beginPath();
         ctx.arc(0, 0, this.size, 0, Math.PI * 2);
@@ -421,6 +451,41 @@ export class HumanoidMonster extends Enemy {
         ctx.beginPath();
         ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI * 2);
         ctx.fill();
+
+        // 盾位小圆盾：根据4方向调整
+        if (this._tacticalRole === 'shieldBearer') {
+            let shieldX = this.size * 0.9, shieldY = -this.size * 0.2;
+            switch (dir) {
+                case 'left':
+                    shieldX = this.size * 0.9;
+                    shieldY = -this.size * 0.2;
+                    break;
+                case 'right':
+                    shieldX = -this.size * 0.9;
+                    shieldY = -this.size * 0.2;
+                    break;
+                case 'up':
+                    shieldX = this.size * 0.9;
+                    shieldY = -this.size * 0.5;
+                    break;
+                case 'down':
+                    shieldX = -this.size * 0.9;
+                    shieldY = -this.size * 0.5;
+                    break;
+            }
+            ctx.fillStyle = '#607080';
+            ctx.beginPath();
+            ctx.arc(shieldX, shieldY, this.size * 0.55, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#8090a0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // 盾牌中心装饰
+            ctx.fillStyle = '#708090';
+            ctx.beginPath();
+            ctx.arc(shieldX, shieldY, this.size * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         // 盾卫防御状态：绘制盾牌特效
         if (this._shieldDefenseActive) {
@@ -435,16 +500,32 @@ export class HumanoidMonster extends Enemy {
             ctx.fill();
         }
 
-        // 武器方向指示（小线条，沿旋转后X轴方向）
+        // 武器方向指示（根据4方向）
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 2;
         ctx.beginPath();
+        let wx = 0, wy = 0;
+        switch (dir) {
+            case 'right': wx = this.size * 1.2; break;
+            case 'left': wx = -this.size * 1.2; break;
+            case 'down': wy = this.size * 1.2; break;
+            case 'up': wy = -this.size * 1.2; break;
+        }
         ctx.moveTo(0, 0);
-        ctx.lineTo(this.size * 1.2, 0);
+        ctx.lineTo(wx, wy);
         ctx.stroke();
 
-        // 绘制武器贴图（entity-local坐标，已旋转到目标方向）
+        // 绘制武器贴图（根据4方向调整）
+        ctx.save();
+        if (dir === 'left') {
+            ctx.scale(-1, 1);
+        } else if (dir === 'up') {
+            ctx.translate(0, -this.size * 0.8);
+        } else if (dir === 'down') {
+            ctx.translate(0, this.size * 0.8);
+        }
         this.renderWeapon(ctx);
+        ctx.restore();
 
         ctx.restore();
 
@@ -465,7 +546,6 @@ export class Commander extends HumanoidMonster {
     constructor(x, y) {
         super(x, y, {
             name: '指挥官',
-            hp: 350, maxHp: 350,
             size: 22, collisionRadius: 20,
             speed: 31.2,
             level: 5,
@@ -487,7 +567,6 @@ export class MachineGunner extends HumanoidMonster {
     constructor(x, y) {
         super(x, y, {
             name: '机枪手',
-            hp: 400, maxHp: 400,
             size: 24, collisionRadius: 22,
             speed: 23.4,
             level: 5,
@@ -508,7 +587,6 @@ export class Rifleman extends HumanoidMonster {
     constructor(x, y) {
         super(x, y, {
             name: '步枪手',
-            hp: 300, maxHp: 300,
             size: 20, collisionRadius: 18,
             speed: 39,
             level: 5,
@@ -532,7 +610,6 @@ export class FlankRifleman extends HumanoidMonster {
     constructor(x, y) {
         super(x, y, {
             name: '侧翼步枪手',
-            hp: 280, maxHp: 280,
             size: 20, collisionRadius: 18,
             speed: 46.8,
             level: 5,
@@ -555,9 +632,8 @@ export class ShieldBearer extends HumanoidMonster {
     constructor(x, y) {
         super(x, y, {
             name: '盾卫',
-            hp: 450, maxHp: 450,
             size: 25, collisionRadius: 23,
-            speed: 31.2,
+            speed: 39,
             level: 5,
             color: '#808080',
             highlightColor: 'rgba(160, 160, 160, 0.3)',

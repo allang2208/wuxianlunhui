@@ -18,7 +18,7 @@
                 if (this.life <= 0) { this.active = false; return; }
                 if (!this.grounded) {
                     this.x += this.vx * (dt / 1000); this.y += this.vy * (dt / 1000);
-                    this.vy += 0.12; // 重力
+                this.vy += 10.8 * (dt / 1000); // 重力（侧视角，增强下落趋势）
                     this.rot += this.rotSpeed;
                     this.vx *= 0.98;
                     if (this.y >= this.groundY) {

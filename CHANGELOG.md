@@ -72,7 +72,35 @@
   - 无人机 debuff 在指挥官死亡后不会自动清除（应清理）
   - 指挥官红色范围圈在指挥官死亡后仍显示（应隐藏）
 
-## 2025-06-30
+## 2026-07-04
+
+### 对话：战术小队 AI 全面优化 + 自动追踪无人机（v0.199）
+- **修改文件**（11 个核心文件，+538 -288 行）：
+  - `src/ai/tactical-squad-ai.js`：自动追踪无人机系统（释放/追踪/回收/范围判定），机枪手跟随指挥官，盾位更贴身（120px），步枪手侧翼包抄，所有角色移动目标优先级统一
+  - `src/systems/movement-system.js`：x/y 分解滑动（沿墙移动不卡死），卡住检测寻路目标与实际目标一致，单位间排斥，_specialTacticalTarget 最高优先级，寻路路径点被墙挡住时重新寻路
+  - `src/systems/formation-system.js`：停止直接移动，只设置 _tacticalTarget
+  - `src/combat/attack.js`：修复 `cooldown: 0` 被 `|| 1000` 误判为 1000 的 bug（`config.cooldown || 1000` → `config.cooldown !== undefined ? config.cooldown : 1000`）
+  - `src/systems/combat-system.js`：遍历所有攻击类型更新冷却，修复 `_updateAttacks` 只更新 primary 的问题
+  - `src/entities/humanoid-monster.js`：六维计算伤害（`data.atk`），不再硬编码 1；不再覆盖 `attackRange`（保持武器原始射程）；盾位 Canvas 小圆盾贴图；盾位速度 31.2→39
+  - `src/entities/damageable-entity.js`：防御公式统一为 `def/(def+60)`（物理/魔法同步），10% 保底伤害
+  - `src/entities/enemy.js`：`calculateCombatStats` 新增 `maxHp` 同步，删除旧覆盖公式和硬编码 hp/maxHp
+  - `src/entities/player.js`：14 处硬编码子弹速度改为 1248；`droneVulnerability` timer 改为 999999（由范围判定控制移除）
+  - `src/entities/combatant.js`：删除重复的 `createDamageText`
+  - `src/main.js`：挂载 MovementSystem/CombatSystem/PerceptionSystem 到 window
+- **修改内容摘要**：
+  1. 战术小队卡墙修复：FormationSystem 停止直接移动 + MovementSystem 沿墙滑动 + 寻路目标一致
+  2. 指挥官自动追踪无人机：释放→追踪玩家→300px 范围判定→敌我识别（排除友军）→离开范围立即移除 debuff
+  3. 机枪手跟随指挥官（侧翼 100px），盾位贴身 120px（冲锋加速 20%），步枪手 500px 侧翼
+  4. 修复战术小队不会开枪：attack.js cooldown 0 被误判 + combat-system 只更新 primary 攻击
+  5. 修复子弹速度：player.js 14 处硬编码改为 1248
+  6. 修复伤害：六维计算 atk + 武器配置，不再硬编码 1
+  7. 修复防御公式：统一 `def/(def+60)`，物理/魔法同步
+  8. 修复瞬移：fallback + _clampMoveDistance + dashTo 走 knockback 持续移动
+  9. 防瞬移方案 A+B+C 全面实施：window 挂载 + _clampMoveDistance + dashTo 持续移动
+- **测试结果**：所有文件语法验证通过
+- **已知问题**：
+  - 需实际测试障碍物边缘移动效果
+  - 需验证无人机实体渲染和 debuff 效果
 
 ### 对话 6：武器横向生成
 - **修改文件**：
@@ -91,3 +119,33 @@
   - `assets/sounds/`：添加音效文件
 - **测试结果**：`vite build` 通过
 - **已知问题**：无
+
+
+## 2026-07-04
+
+### 侧视角 2D 渲染迁移（P0-P3 全部完成）
+- **修改文件**：11 个核心文件
+- **任务 1 - Player 4方向朝向 + 阴影**：
+  - `src/entities/player.js`：添加 `_getFacingDirection()` 从鼠标位置判断4方向；render 中反旋转+水平翻转；武器跟随朝向（左/右翻转，上/下偏移）；脚下阴影改为屏幕空间绘制
+- **任务 2 - Enemy 4方向朝向 + 阴影**：
+  - `src/entities/damageable-entity.js`：新增基类 `_drawShadow()` 通用阴影方法
+  - `src/entities/enemy.js`：render 中从速度/目标方向判断4方向；scaleX 翻转；量化旋转角度；调用基类阴影
+- **任务 3 - 战术小队 4方向朝向**：
+  - `src/entities/humanoid-monster.js`：新增 `_getDirection4()`；render 取消自由旋转；盾位小圆盾位置根据4方向动态调整；武器根据4方向变换
+- **任务 4 - 墙壁侧视渲染**：
+  - `src/world/wall-system.js`：墙壁数据添加 `height: 60`；新增 `renderWalls()` 按 y 排序绘制立面+墙顶
+  - `src/game.js`：渲染循环在 terrain 后、实体前调用 `WallSystem.renderWalls()`
+- **任务 5 - 近战攻击判定**：
+  - `src/entities/player.js`：update 中根据鼠标方向计算 `_facingDir`（4方向），射击仍用360° rotation
+  - `src/combat/attack.js`：`ThrustAttack.checkTriangleHit` 改为4方向轴对齐矩形判定（right/left/down/up），保留击退和墙壁检测
+- **任务 6 - 子弹 Y 缩放 + 树木侧视**：
+  - `src/combat/projectile.js`：render 中根据 vy 做 Y 方向缩放（上70%/下130%/水平100%）
+  - `src/world/wall-system.js`：`addTree()` 添加侧视数据（树干+树冠）；新增 `renderTrees()` 按 sortY 排序绘制
+  - `src/game.js`：渲染调用从 `MazeGenerator.renderTrees` 改为 `WallSystem.renderTrees()`
+- **任务 7 - 弹壳/血溅/特效**：
+  - `src/effects/shell-casing.js`：重力增强约50%且改为时间缩放（`vy += 10.8 * dt/1000`）
+  - `src/effects/blood-hit-effect.js`：构造函数支持可选 `angle` 参数，传入时粒子朝攻击方向扇形分布
+  - `src/effects/effect-manager.js`：`render()` 添加 `this.effects.sort((a,b) => a.y - b.y)` 深度排序
+- **验证**：所有11个文件语法通过 `node --check`
+- **已实现的侧视角效果**：角色4方向显示/8方向移动、脚下阴影、墙壁立面高度、树木侧视、子弹远近缩放、弹壳重力下落、特效深度排序
+- **已知问题**：上/下武器偏移在旋转坐标系下表现可能有偏差；Enemy 暂未添加 `_facingDir`（近战回退到 down）

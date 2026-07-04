@@ -185,18 +185,16 @@ export const Game = {
         this.entities.set('npc_attendant', attendant);
         // 在小鼠大王右侧生成5棵不同类型的树木（普通场景合集）
         const treeRadius = 25;
-        const treeImages = ['assets/tree.png', 'assets/tree2.png', 'assets/tree3.png', 'assets/tree4.png', 'assets/tree5.png'];
         for (let i = 0; i < 5; i++) {
             const tx = npcX + 300 + i * 300;
             const ty = npcY + (i % 2 === 0 ? -20 : 20);
-            WallSystem.addTree(tx, ty, treeRadius, i, treeImages[i], 'normal', Math.random() * Math.PI * 2);
+            WallSystem.addTree(tx, ty, treeRadius, i, 'normal', Math.random() * Math.PI * 2);
         }
         // 在5棵旧树下方300px处生成3棵新雪地树木（雪地场景合集）
-        const snowTreeImages = ['assets/scenes/snowtree1.png', 'assets/scenes/snowtree2.png', 'assets/scenes/snowtree3.png'];
         for (let i = 0; i < 3; i++) {
             const tx = npcX + 300 + i * 300;
             const ty = npcY + (i % 2 === 0 ? -20 : 20) + 300;
-            WallSystem.addTree(tx, ty, treeRadius, 5 + i, snowTreeImages[i], 'snow', Math.random() * Math.PI * 2);
+            WallSystem.addTree(tx, ty, treeRadius, 5 + i, 'snow', Math.random() * Math.PI * 2);
         }
         // 在出生点旁边生成一只蜘蛛，方便测试盾牌
         /* 已删除：主神空间不再生成蜘蛛
@@ -726,6 +724,8 @@ export const Game = {
             Renderer.renderGrid();
             MazeGenerator.render(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         }
+        // 墙壁侧视渲染（在 terrain 之后、实体之前）
+        WallSystem.renderWalls(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
         // 实体渲染：每个实体自行处理 Phaser/Canvas 分层（body 由 Phaser 渲染，overlay 由 Canvas 渲染）
         sorted.forEach(e => e.render(Renderer.ctx));
@@ -769,7 +769,7 @@ export const Game = {
         }
         // 树木在实体上方渲染（覆盖人物，但排除人物位置形成透视效果）
         if (SceneManager.currentScene !== 'scene3') {
-            MazeGenerator.renderTrees(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
+            WallSystem.renderTrees(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
         }
         // 绘制准星
         Renderer.drawCrosshair();

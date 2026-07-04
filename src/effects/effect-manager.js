@@ -30,6 +30,8 @@ const EffectManager = {
     },
     render(ctx) {
         ctx.save();
+        // 按 y 坐标深度排序，确保侧视角正确遮挡关系
+        this.effects.sort((a, b) => (a.y || 0) - (b.y || 0));
         this.effects.forEach(e => e.render(ctx));
         if (this.critFlash > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${this.critFlash * 0.4})`; ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT); }
         ctx.restore();

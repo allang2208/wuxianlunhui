@@ -55,12 +55,15 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
             }
             render(ctx) {
                 if (this.noRender) return; // 训练用弓：不渲染箭矢
+                const vy = Math.sin(this.angle);
+                const scaleY = vy > 0 ? 1.3 : (vy < 0 ? 0.7 : 1.0);
                 if (this.isSpit) {
                     // 毒液僵尸投射物：亮绿色方块
                     const screenPos = Renderer.worldToScreen(this.x, this.y);
                     const size = this.size * 2;
                     ctx.save();
                     ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(1, scaleY);
                     ctx.rotate(this.angle);
                     ctx.fillStyle = '#00ff00';
                     ctx.fillRect(-size / 2, -size / 2, size, size);
@@ -76,6 +79,9 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                     const tx = screenPos.x - Math.cos(this.angle) * tailLen;
                     const ty = screenPos.y - Math.sin(this.angle) * tailLen;
                     ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(1, scaleY);
+                    ctx.translate(-screenPos.x, -screenPos.y);
                     ctx.strokeStyle = 'rgba(0, 255, 100, 0.3)';
                     ctx.lineWidth = 10;
                     ctx.lineCap = 'round';
@@ -98,6 +104,9 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                     const tx = screenPos.x - Math.cos(this.angle) * tailLen;
                     const ty = screenPos.y - Math.sin(this.angle) * tailLen;
                     ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(1, scaleY);
+                    ctx.translate(-screenPos.x, -screenPos.y);
                     ctx.strokeStyle = 'rgba(255, 200, 0, 0.3)';
                     ctx.lineWidth = 10;
                     ctx.lineCap = 'round';
@@ -120,6 +129,9 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                     const tx = screenPos.x - Math.cos(this.angle) * tailLen;
                     const ty = screenPos.y - Math.sin(this.angle) * tailLen;
                     ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(1, scaleY);
+                    ctx.translate(-screenPos.x, -screenPos.y);
                     // 外层光晕
                     ctx.strokeStyle = 'rgba(255, 160, 0, 0.3)';
                     ctx.lineWidth = 9;
@@ -146,6 +158,9 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                     const tx = screenPos.x - Math.cos(this.angle) * tailLen;
                     const ty = screenPos.y - Math.sin(this.angle) * tailLen;
                     ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(1, scaleY);
+                    ctx.translate(-screenPos.x, -screenPos.y);
                     // 外层光晕（较宽、较淡）
                     ctx.strokeStyle = 'rgba(255, 200, 70, 0.25)';
                     ctx.lineWidth = 8;
@@ -167,7 +182,7 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                 }
                 // 非曳光弹（弓矢）：绘制箭矢贴图
                 const screenPos = Renderer.worldToScreen(this.x, this.y);
-                ctx.save(); ctx.translate(screenPos.x, screenPos.y); ctx.rotate(this.angle);
+                ctx.save(); ctx.translate(screenPos.x, screenPos.y); ctx.scale(1, scaleY); ctx.rotate(this.angle);
                 if (this.image && this.image.complete && this.image.naturalWidth > 0) {
                     const s = this.size * 10; const w = s * 0.22;
                     ctx.rotate(-Math.PI / 2); ctx.drawImage(this.image, -w / 2, -s / 2, w, s);
