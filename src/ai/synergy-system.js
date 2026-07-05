@@ -189,44 +189,18 @@ export const DEFAULT_SYNERGY_RULES = [
     {
         id: 'wolfPack',
         name: '狼群战术',
-        types: ['BlackWolf', 'WolfSpider'],
+        types: ['BlackWolf'],
         count: 3,
         radius: 300,
         effects: { speedMul: 1.2, bleedChance: 0.2 }
-    },
-    {
-        id: 'skirmishLine',
-        name: '远近配合',
-        types: ['SkeletonArcher', 'SkeletonWarrior'],
-        count: 2,
-        radius: 200,
-        effects: { speedMul: 1.1 }
     },
     // 新增规则：毒性瘴气
     {
         id: 'toxicMiasma',
         name: '毒性瘴气',
-        types: ['WolfSpider', 'BlackWolf'],
+        types: ['BlackWolf'],
         count: 2,
         radius: 200,
         effects: { poisonChance: 0.3, poisonStacks: 1 }
-    },
-    // 新增规则：育母召唤
-    {
-        id: 'broodmotherCall',
-        name: '育母召唤',
-        types: ['BroodmotherSpider', 'BabySpider'],
-        count: 2,
-        radius: 250,
-        effects: { damageMul: 1.15, speedMul: 1.1 }
-    },
-    // 新增规则：亡灵军团
-    {
-        id: 'undeadLegion',
-        name: '亡灵军团',
-        types: ['SkeletonWarrior', 'SkeletonArcher', 'Necromancer'],
-        count: 3,
-        radius: 300,
-        effects: { speedMul: 1.15, damageMul: 1.1 }
     }
 ];

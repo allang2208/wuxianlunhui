@@ -29,10 +29,8 @@
  */
 
 import {
-    Zombie, RunnerZombie, FatZombie, SpitterZombie,
-    BabySpider, Spider, WolfSpider, BroodmotherSpider,
-    BlackWolf, SkeletonWarrior, SkeletonArcher, SkeletonDog,
-    Necromancer, DeathKnight, BigBoss
+    BlackWolf,
+    HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
 } from '../entities/enemy-types.js';
 
 export const DungeonMapSystem = {
@@ -492,14 +490,12 @@ export const DungeonMapSystem = {
 
         // 普通怪物池（从现有怪物库中选择）
         const normalMonsters = [
-            Zombie, RunnerZombie, Spider, WolfSpider,
-            BlackWolf, SkeletonWarrior, SkeletonArcher, SkeletonDog
+            BlackWolf, Rifleman, MachineGunner, FlankRifleman, ShieldBearer
         ];
 
         // Boss 怪物池（从现有怪物库中选择）
         const bossMonsters = [
-            FatZombie, SpitterZombie, BroodmotherSpider,
-            Necromancer, DeathKnight, BigBoss
+            Commander, HumanoidMonster, BlackWolf
         ];
 
         for (let i = 0; i < count; i++) {

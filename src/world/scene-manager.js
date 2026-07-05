@@ -1,5 +1,6 @@
 import { Portal } from './portal.js';
 import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
+import { BlackWolf } from '../entities/black-wolf.js';
 import FormationSystem from '../systems/formation-system.js';
 import { DungeonMapSystem } from './dungeon-map-system.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
@@ -264,12 +265,12 @@ export const SceneManager = {
             const portal = new Portal(scene.width / 2, scene.height - 100, 'main', '返回主神空间');
             Game.entities.set('portal_return', portal);
 
-            const monsterTypes = [Zombie, RunnerZombie, FatZombie, SpitterZombie];
-            const typeNames = ['zombie', 'runner', 'fat', 'spitter'];
+            const monsterTypes = [BlackWolf];
+            const typeNames = ['black_wolf'];
             const playerX = player ? player.x : scene.width / 2;
             const playerY = player ? player.y : scene.height / 2;
             for (let t = 0; t < monsterTypes.length; t++) {
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 20; i++) {
                     let mx, my, distToPlayer;
                     let attempts = 0;
                     do {
@@ -289,14 +290,14 @@ export const SceneManager = {
                 }
             }
 
-            // 生成 BigBoss
+            // 生成区域BOSS (BlackWolf)
             const bigBossAngle = Math.random() * Math.PI * 2;
             const bigBossDist = 2000;
             let bbx = playerX + Math.cos(bigBossAngle) * bigBossDist;
             let bby = playerY + Math.sin(bigBossAngle) * bigBossDist;
             bbx = Math.max(100, Math.min(scene.width - 100, bbx));
             bby = Math.max(100, Math.min(scene.height - 100, bby));
-            const bigBoss = new BigBoss(bbx, bby);
+            const bigBoss = new BlackWolf(bbx, bby);
             Game.entities.set('big_boss', bigBoss);
         } else {
             console.log('quest mode');
@@ -601,12 +602,12 @@ export const SceneManager = {
         Game.entities.set('portal_return', portal);
 
         // 古堡怪物：以玩家为中心，半径3000~4000px环形区域随机生成，每种5个
-        const monsterTypes = [SkeletonWarrior, SkeletonArcher, SkeletonDog, Necromancer, DeathKnight];
-        const typeNames = ['skeleton_warrior', 'skeleton_archer', 'skeleton_dog', 'necromancer', 'death_knight'];
+        const monsterTypes = [BlackWolf];
+        const typeNames = ['black_wolf'];
         const playerX = player ? player.x : scene.width / 2;
         const playerY = player ? player.y : scene.height / 2;
         for (let t = 0; t < monsterTypes.length; t++) {
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 25; i++) {
                 let mx, my, distToPlayer;
                 let attempts = 0;
                 do {

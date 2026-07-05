@@ -202,14 +202,8 @@ export const Game = {
             WallSystem.addTree(tx, ty, treeRadius, 5 + i, 'snow', Math.random() * Math.PI * 2);
         }
         // 在出生点旁边生成一只蜘蛛，方便测试盾牌
-        /* 已删除：主神空间不再生成蜘蛛
-        if (typeof window !== 'undefined' && window.Spider) {
-            const spiderX = CONFIG.WORLD_WIDTH / 2 + 200;
-            const spiderY = CONFIG.WORLD_HEIGHT / 2 + 200;
-            const spider = new window.Spider(spiderX, spiderY);
-            this.entities.set('test_spider', spider);
-        }
-        */
+        /* 已删除：主神空间不再生成蜘蛛 */
+    },
     },
     spawnTestTargets() {
         // 在坐标(4379, 2411)生成20个10HP不会移动的测试目标
@@ -671,20 +665,7 @@ export const Game = {
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
                         const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
                         // 普通60%（僵尸80%，奔跑僵尸20%）、精英30%（毒液僵尸）、首领10%（胖子僵尸）
-                        const rand = Math.random();
-                        let monster;
-                        if (rand < 0.60) {
-                            // 普通：僵尸80%，奔跑僵尸20%
-                            const normalRand = Math.random();
-                            if (normalRand < 0.80) monster = new window.Zombie(mx, my);
-                            else monster = new window.RunnerZombie(mx, my);
-                        } else if (rand < 0.90) {
-                            // 精英：毒液僵尸
-                            monster = new window.SpitterZombie(mx, my);
-                        } else {
-                            // 首领：胖子僵尸
-                            monster = new window.FatZombie(mx, my);
-                        }
+                        const monster = new window.BlackWolf(mx, my);
                         Game.entities.set(`scene2_quest_${Date.now()}_${i}_${Math.random()}`, monster);
                     }
                 }
@@ -702,15 +683,7 @@ export const Game = {
                         const sy = this.player.y + Math.sin(angle) * dist;
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
                         const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        const rand = Math.random();
-                        let monster;
-                        if (rand < 0.45) monster = new window.Zombie(mx, my);
-                        else if (rand < 0.65) monster = new window.RunnerZombie(mx, my);
-                        else if (rand < 0.75) monster = new window.SpitterZombie(mx, my);
-                        else if (rand < 0.85) monster = new window.FatZombie(mx, my);
-                        else if (rand < 0.93) monster = new window.Spider(mx, my);
-                        else if (rand < 0.98) monster = new window.WolfSpider(mx, my);
-                        else monster = new window.BroodmotherSpider(mx, my);
+                        const monster = new window.BlackWolf(mx, my);
                         Game.entities.set(`scene2_monster_${Date.now()}_${i}_${Math.random()}`, monster);
                     }
                 }
