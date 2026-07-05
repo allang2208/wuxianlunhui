@@ -14,7 +14,15 @@ import aiConfigData from '../../data/ai-config.json';
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
                 this._baseSpeed = this.maxSpeed;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
-                this.attacks = { melee: new ThrustAttack({ cooldown: 600, range: 80, width: 20, damage: { min: 8, max: 15 }, knockback: 15 }) };
+                // 使用 config.attack 中的配置（如果提供），否则使用默认值
+                const attackConfig = config.attack || {};
+                this.attacks = { melee: new ThrustAttack({ 
+                    cooldown: attackConfig.cooldown || 600, 
+                    range: attackConfig.range || 80, 
+                    width: attackConfig.width || 20, 
+                    damage: attackConfig.damage || { min: 8, max: 15 }, 
+                    knockback: attackConfig.knockback || 15 
+                }) };
                 this.weaponMode = 'melee';
                 this.level = config.level || 1;
                 // 新增：6维基础属性（合并到 Combatant 已创建的 this.data）
