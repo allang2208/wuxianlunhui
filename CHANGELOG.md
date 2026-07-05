@@ -8,6 +8,28 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-05（补充）
+
+### 对话：删除普通怪物 + 方案B渲染模板重构（v0.198）
+- **修改文件**（12 个文件）：
+  - `src/entities/enemy-types.js`：删除 14 个普通怪物类（Zombie/Spider/Skeleton/Necromancer/DeathKnight/BigBoss），仅保留 BlackWolf（254行→200行）
+  - `src/entities/enemy.js`：重构 `render()` 为通用模板，新增 7 个可覆盖钩子方法（_getRenderPosition/_getTextureKey/_getPhaserOptions/_drawBody/_renderNameTag/_renderPoisonEffect/_renderHitFlash）
+  - `data/enemy-config.json`：删除 14 个怪物配置，仅保留 blackWolf
+  - `src/main.js`：删除对应 import 和全局挂载
+  - `src/game.js`：怪物生成用 BlackWolf 替代，修复多余 `}` 语法错误
+  - `src/world/scene-manager.js`：场景怪物池用 BlackWolf 替代
+  - `src/world/dungeon-map-system.js`：地牢怪物池用 BlackWolf+战术小队替代
+  - `src/ai/synergy-system.js`：删除涉及已删除怪物的协同规则
+- **修改内容摘要**：
+  1. 删除所有普通怪物代码（14个类），保留 BlackWolf 和战术小队（6个类）
+  2. 方案B：提取通用渲染模板到 Enemy.render()，BlackWolf 使用钩子方法注入自身逻辑
+  3. 新增怪物只需实现 4 个钩子方法（_getRenderPosition/_getTextureKey/_getPhaserOptions/_drawBody）
+  4. 所有怪物属性统一通过 enemy-config.json 配置（攻击/防御/血量/速度等）
+  5. 修复 Vite 500 错误：game.js 多余括号 + scene-manager.js 错误 import 路径
+- **测试结果**：Vite 编译通过，语法检查通过
+- **预期效果**：新增怪物开发效率大幅提升，只需配置 JSON + 实现钩子方法
+- **已知问题**：战术小队（humanoid-monster.js）当前独立渲染，后续可改造为使用基类模板
+
 ## 2026-07-05
 
 ### 对话：黑狼贴图朝向调试 + 怪物贴图调整工具（v0.198）
