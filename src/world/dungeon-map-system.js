@@ -28,10 +28,10 @@
  *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect
  */
 
+import { BlackWolf } from '../entities/enemy-types.js';
 import {
-    BlackWolf,
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
-} from '../entities/enemy-types.js';
+} from '../entities/humanoid-monster.js';
 
 export const DungeonMapSystem = {
     active: false,

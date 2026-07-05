@@ -5,7 +5,6 @@ import { RangedAttack } from '../combat/attack.js';
 import { Renderer } from '../world/renderer.js';
 import { MathUtils } from '../config/math-utils.js';
 import enemyConfigData from '../../data/enemy-config.json';
-import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './humanoid-monster.js';
 
 class BlackWolf extends Enemy {
     constructor(x, y, config = {}) {
