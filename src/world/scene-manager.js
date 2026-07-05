@@ -1,6 +1,6 @@
 import { Portal } from './portal.js';
 import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
-import { BlackWolf } from '../entities/black-wolf.js';
+import { BlackWolf } from '../entities/enemy-types.js';
 import FormationSystem from '../systems/formation-system.js';
 import { DungeonMapSystem } from './dungeon-map-system.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
