@@ -591,9 +591,15 @@ class BlackWolf extends Enemy {
         // 攻击动画计时 + 冲刺位移
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
-            // 攻击冲刺位移：100px，使用正弦曲线（前400ms 向前加速，后400ms 减速返回）
+            // 攻击冲刺位移：前100ms快速冲刺到100px，后700ms缓慢返回
             const progress = 1 - (this._attackTimer / 800); // 0 → 1
-            this._attackDashOffset = 100 * Math.sin(progress * Math.PI);
+            if (progress < 0.125) {
+                // 前100ms：线性冲刺到100px（迅速突进）
+                this._attackDashOffset = 100 * (progress / 0.125);
+            } else {
+                // 后700ms：线性返回原点
+                this._attackDashOffset = 100 * Math.max(0, 1 - (progress - 0.125) / 0.875);
+            }
         } else {
             this._attackDashOffset = 0;
             if (this._animState === 'attack') {
@@ -629,8 +635,11 @@ class BlackWolf extends Enemy {
 
     triggerWeaponAnim() {
         super.triggerWeaponAnim();
+        // 如果攻击动画还在播放，不重置（避免提前打断动画）
+        if (this._attackTimer > 0) return;
         this._attackTimer = 800; // 800ms 攻击动画（8帧 × 100ms/帧）
         this._animFrame = 0;     // 从第一帧开始
+        this._animTimer = 0;     // 重置帧计时器，确保从第一帧开始计时
         this._attackDashOffset = 0; // 重置冲刺位移
     }
 
