@@ -261,7 +261,138 @@ const defense = shieldData.defense;  // 行81 ← 重复声明！
 
 ---
 
+## 智能寻路系统（参考《环世界》PathManager）
+
+### 设计目标
+- **主动预规划**：看到目标时立即计算路径，而不是等卡住才反应
+- **定期路径检查**：每 1.5-2.5 秒扫描路径节点，检测新障碍物
+- **局部修复**：路径被阻挡时，在障碍物附近搜索替代路线，不重新计算整条路径
+- **地形权重**：树木附近增加移动成本，让单位自然绕行
+
+### 架构
+
+```
+Enemy
+  └── _pathManager: PathManager 实例
+        ├── path: {x,y}[]          // 当前路径
+        ├── pathIdx: number        // 当前索引
+        ├── checkInterval: 1500-2500ms  // 检查间隔（随机，避免同时检查）
+        ├── checkTimer: number     // 计时器
+        └── isValid: boolean       // 路径是否有效
+
+PathManager
+  ├── setPath(path)              // 设置新路径
+  ├── update(dt, pathPlanner)   // 每帧：检查有效性
+  ├── _checkValidity()         // 扫描路径节点，检测障碍物
+  ├── _repairPath(blockedIdx)  // 局部修复（核心）
+  ├── getCurrentWaypoint()     // 获取当前目标路径点
+  ├── advanceWaypoint()        // 前进到下一个路径点
+  └── forceRecalc()            // 强制重算路径
+
+PathPlanner（增强的 PathFinder）
+  ├── _getMoveCost(x, y, radius)   // 地形权重计算
+  ├── isReachable()               // 区域连通性检查（Flood Fill）
+  ├── _pathCache: Map             // 全局路径缓存（3秒有效期）
+  └── findPath()                  // A* + 权重 + 缓存
+```
+
+### 局部修复算法（核心）
+
+当 PathManager 检测到路径上的节点 `i` 被阻挡时：
+
+1. **策略1：小范围局部搜索**
+   - 取 `path[i-2]` 作为修复起点，`path[i+2]` 作为修复终点
+   - 在起点和终点之间用 `findPath` 搜索替代路径（搜索范围自然受限）
+   - 如果找到：拼接路径 = 前半段 + 替代段 + 后半段
+   - 调整 `pathIdx`：如果当前索引在修复范围内，回退到修复起点
+
+2. **策略2：从阻挡点到终点重新计算**
+   - 如果策略1失败，从 `path[i-2]` 重新计算到终点的完整路径
+   - 拼接：前半段 + 新路径（去掉起点）
+
+3. **策略3：完全失败**
+   - 连续 3 次修复失败，清除路径，让 MovementSystem 触发随机逃逸
+
+### 地形权重
+
+在 `PathFinder._buildGrid` 中，每个格子计算 `moveCost`：
+- 普通地面：`1.0`
+- 树木附近（碰撞半径 × 1.5 范围内）：`+0.5`（总计 1.5）
+- 其他单位附近（碰撞半径 × 2.5 范围内）：`+0.3`（总计 1.3）
+
+A* 中移动成本 = `baseMoveCost * terrainCost * gridSize`
+- 直线：`1.0 * terrainCost * 40`
+- 对角线：`1.414 * terrainCost * 40`
+
+### 区域连通性检查
+
+在 `findPath` 之前，先用 `isReachable` 做 Flood Fill：
+- 从起点向 8 方向扩展，检查是否可达目标附近
+- 如果不可达，直接返回 `null`，避免昂贵的 A* 计算
+- 限制最大步数，防止 Flood Fill 无限扩散
+
+### 路径缓存
+
+- 全局缓存：`Map<key, {path, timestamp}>`
+- 缓存 key：`量化起点 + 量化终点 + 碰撞半径`
+- 量化：坐标取 `floor(x / gridSize) * gridSize`
+- 有效期：3 秒
+- 最大容量：50 条路径
+- 墙壁变化时调用 `invalidateCache()` 清空缓存
+
+### 使用方式
+
+```javascript
+// 1. 在 MovementSystem.update 中主动预规划
+if (enemy._pathManager && dist > attackRange * 1.5) {
+    if (!enemy._pathManager.hasValidPath()) {
+        enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+    }
+}
+
+// 2. 每帧更新 PathManager（检查有效性 + 局部修复）
+if (enemy._pathManager) {
+    enemy._pathManager.update(dt, pathFinder);
+}
+
+// 3. 沿路径移动
+if (enemy._pathManager.hasValidPath()) {
+    const wp = enemy._pathManager.getCurrentWaypoint();
+    // ... 向 wp 移动 ...
+    if (距离 < 5) enemy._pathManager.advanceWaypoint();
+}
+
+// 4. 卡住时 fallback
+if (enemy._pathManager) {
+    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+}
+```
+
+### 与旧系统的兼容性
+
+- `enemy._path` 和 `enemy._pathIdx` 仍然保留，作为 fallback
+- MovementSystem 优先使用 `enemy._pathManager`，没有 PathManager 时使用旧路径
+- Enemy 的 `_updateMovement`（fallback 模式）也兼容 PathManager
+
+### 为什么之前被动寻路不好？
+
+旧系统只在卡住（500ms 移动 < 3px）时才触发寻路：
+- 单位先撞墙 → 被卡住 → 检测卡住 → 计算路径 → 开始移动
+- 这导致单位在撞墙后有明显的"停顿"感
+
+新系统：
+- 单位看到目标 → 立即计算路径 → 沿路径移动 → 遇到障碍物时 PathManager 自动修复
+- 单位更流畅，不会明显撞墙
+
+---
+
 ## 变更记录
+
+- v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复
+  - 新建 `src/ai/path-manager.js`：路径缓存 + 每 1.5-2.5 秒有效性检查 + 局部修复（障碍物附近搜索替代路线）
+  - 增强 `src/ai/pathfinder.js`：地形权重（树木 1.5x，拥挤 1.3x）、区域连通性检查（Flood Fill）、全局路径缓存
+  - 修改 `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）+ PathManager 集成
+  - 修改 `src/entities/enemy.js`：fallback `_updateMovement` 兼容 PathManager
 
 - v1.4 (2026-07-05) — 硬编码清理：状态效果统一化、树木碰撞体优化、dash 偏移统一
   - DamageableEntity 基类新增 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`，4种状态效果统一在基类 `update()` 中驱动

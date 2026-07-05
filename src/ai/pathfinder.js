@@ -176,6 +176,10 @@ class PathFinder {
         this.minSearchRange = 300;
         this.spatialHash = new SpatialHash(40);
         this._hashValid = false;
+        // [ENHANCE] 全局路径缓存：减少重复计算
+        this._pathCache = new Map(); // key -> { path, timestamp }
+        this._cacheMaxAge = 3000;    // 缓存有效期 3 秒
+        this._cacheMaxSize = 50;     // 最多缓存 50 条路径
     }
 
     // 确保空间哈希已构建
@@ -189,11 +193,109 @@ class PathFinder {
     // 墙壁变化时调用（如动态生成墙壁后）
     invalidateCache() {
         this._hashValid = false;
+        this._pathCache.clear();
     }
 
     _isBlocked(x, y, radius) {
         this._ensureHash();
         return this.spatialHash.isBlocked(x, y, radius);
+    }
+
+    // [ENHANCE] 地形权重计算：不同地形的移动成本
+    // 普通地面：1.0，树木附近：1.5，其他单位附近：1.3
+    _getMoveCost(x, y, entityRadius) {
+        let cost = 1.0;
+        // 检查树木附近（增加移动成本，让单位自然绕行）
+        if (typeof WallSystem !== 'undefined' && WallSystem.trees) {
+            for (const t of WallSystem.trees) {
+                const treeR = t.collisionRadius || t.radius * 0.6;
+                const d = Math.sqrt((x - t.x) ** 2 + (y - t.y) ** 2);
+                if (d < treeR + entityRadius * 1.5) {
+                    cost += 0.5;
+                    break; // 只计算最近的一棵树
+                }
+            }
+        }
+        // 检查其他单位附近（避免拥挤）
+        if (typeof Game !== 'undefined' && Game.entities) {
+            for (const e of Game.entities.values()) {
+                if (!e || e === this || !e.active || e.hp <= 0) continue;
+                // 只检查同阵营单位（敌人不会互相排斥）
+                const d = Math.sqrt((x - e.x) ** 2 + (y - e.y) ** 2);
+                if (d < entityRadius * 2.5) {
+                    cost += 0.3;
+                    break;
+                }
+            }
+        }
+        return cost;
+    }
+
+    // [ENHANCE] 区域连通性检查：使用 Flood Fill 快速判断目标是否可达
+    // 如果起点和终点不在同一区域，直接返回 false，避免昂贵的 A* 计算
+    isReachable(startX, startY, endX, endY, entityRadius) {
+        this._ensureHash();
+        const step = this.gridSize;
+        const maxDist = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+        const maxSteps = Math.ceil(maxDist / step) + 5;
+        const visited = new Set();
+        const queue = [{ x: startX, y: startY }];
+        visited.add(`${Math.floor(startX / step)},${Math.floor(startY / step)}`);
+        let steps = 0;
+        while (queue.length > 0 && steps < maxSteps * 2) {
+            steps++;
+            const { x, y } = queue.shift();
+            // 如果到达目标附近，认为可达
+            if (Math.sqrt((x - endX) ** 2 + (y - endY) ** 2) < step * 2) {
+                return true;
+            }
+            // 8方向扩展
+            const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+            for (const [dr, dc] of dirs) {
+                const nx = x + dr * step;
+                const ny = y + dc * step;
+                const key = `${Math.floor(nx / step)},${Math.floor(ny / step)}`;
+                if (visited.has(key)) continue;
+                if (this._isBlocked(nx, ny, entityRadius)) continue;
+                visited.add(key);
+                queue.push({ x: nx, y: ny });
+            }
+        }
+        return false;
+    }
+
+    // [ENHANCE] 缓存管理
+    _getCacheKey(startX, startY, endX, endY, radius) {
+        // 坐标量化到 gridSize 的倍数，减少缓存 key 的精度
+        const gs = this.gridSize;
+        const qx = Math.floor(startX / gs) * gs;
+        const qy = Math.floor(startY / gs) * gs;
+        const qex = Math.floor(endX / gs) * gs;
+        const qey = Math.floor(endY / gs) * gs;
+        return `${qx},${qy},${qex},${qey},${radius}`;
+    }
+
+    _getFromCache(key) {
+        const cached = this._pathCache.get(key);
+        if (!cached) return null;
+        if (Date.now() - cached.timestamp > this._cacheMaxAge) {
+            this._pathCache.delete(key);
+            return null;
+        }
+        return cached.path;
+    }
+
+    _setCache(key, path) {
+        // 清理过期缓存
+        if (this._pathCache.size >= this._cacheMaxSize) {
+            const now = Date.now();
+            for (const [k, v] of this._pathCache) {
+                if (now - v.timestamp > this._cacheMaxAge) {
+                    this._pathCache.delete(k);
+                }
+            }
+        }
+        this._pathCache.set(key, { path, timestamp: Date.now() });
     }
 
     _buildGrid(startX, startY, endX, endY, entityRadius) {
@@ -211,9 +313,12 @@ class PathFinder {
             for (let c = 0; c < cols; c++) {
                 const x = minX + c * this.gridSize + this.gridSize / 2;
                 const y = minY + r * this.gridSize + this.gridSize / 2;
+                // [ENHANCE] 增加 moveCost 属性
+                const blocked = this._isBlocked(x, y, entityRadius);
                 grid[r][c] = {
                     x, y, r, c,
-                    blocked: this._isBlocked(x, y, entityRadius),
+                    blocked,
+                    moveCost: blocked ? Infinity : this._getMoveCost(x, y, entityRadius),
                     g: Infinity, h: 0, f: Infinity,
                     parent: null, visited: false
                 };
@@ -286,6 +391,16 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
+        // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
+        if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
+            return null;
+        }
+        // [ENHANCE] 尝试从缓存获取
+        const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius);
+        const cachedPath = this._getFromCache(cacheKey);
+        if (cachedPath) {
+            return cachedPath;
+        }
         const { grid, minX, minY, cols, rows } = this._buildGrid(startX, startY, endX, endY, entityRadius);
         const startC = Math.floor((startX - minX) / this.gridSize);
         const startR = Math.floor((startY - minY) / this.gridSize);
@@ -318,7 +433,10 @@ class PathFinder {
                     path.unshift({ x: node.x, y: node.y });
                     node = node.parent;
                 }
-                return this._smoothPath(path, entityRadius);
+                const smoothed = this._smoothPath(path, entityRadius);
+                // [ENHANCE] 缓存路径
+                this._setCache(cacheKey, smoothed);
+                return smoothed;
             }
             const neighbors = [
                 [-1, -1], [-1, 0], [-1, 1],
@@ -334,8 +452,11 @@ class PathFinder {
                 if (closedSet.has(`${nr},${nc}`)) continue;
                 if (this._isCornerCut(grid, rows, cols, current.r, current.c, dr, dc)) continue;
                 const isDiagonal = dr !== 0 && dc !== 0;
-                const moveCost = isDiagonal ? 1.414 : 1;
-                const tentativeG = current.g + moveCost * this.gridSize;
+                // [ENHANCE] 使用格子的 moveCost 权重
+                const baseMoveCost = isDiagonal ? 1.414 : 1;
+                const terrainCost = neighbor.moveCost || 1.0;
+                const moveCost = baseMoveCost * terrainCost * this.gridSize;
+                const tentativeG = current.g + moveCost;
                 if (tentativeG < neighbor.g) {
                     neighbor.g = tentativeG;
                     neighbor.h = Math.max(Math.abs(endX - neighbor.x), Math.abs(endY - neighbor.y));

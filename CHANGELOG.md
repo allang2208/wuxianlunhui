@@ -8,6 +8,27 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-05（智能寻路系统：参考《环世界》预规划 + 局部修复）
+
+### 对话：开发智能寻路系统（v0.198）
+- **修改文件**（5 个文件）：
+  - `src/ai/path-manager.js`：新建智能路径管理器，实现路径缓存、定期有效性检查（1.5-2.5秒）、局部修复（障碍物附近搜索替代路线）
+  - `src/ai/pathfinder.js`：增强 A* 寻路器，增加地形权重（树木1.5x/拥挤1.3x）、区域连通性检查（Flood Fill）、全局路径缓存（3秒/50条上限）
+  - `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）、PathManager 集成、`_followPath` 使用 PathManager API、`_updateStuckDetection` 使用 PathManager fallback
+  - `src/entities/enemy.js`：构造函数初始化 `_pathManager`（懒加载）、fallback `_updateMovement` 兼容 PathManager
+- **修改内容摘要**：
+  1. 主动预规划：单位看到目标时立即计算路径，而不是等卡住才反应
+  2. 定期路径检查：PathManager 每 1.5-2.5 秒扫描路径节点，检测新障碍物
+  3. 局部修复：路径被阻挡时，在障碍物前后 2 个节点范围内搜索替代路径，拼接回原路径；失败后从阻挡点重算到终点；连续3次失败清除路径
+  4. 地形权重：A* 中树木附近移动成本 1.5x，拥挤区域 1.3x，单位自然绕行
+  5. 区域连通性：findPath 前先用 Flood Fill 判断目标是否可达，避免无效 A* 计算
+  6. 路径缓存：全局缓存计算结果，相同起点+终点+半径复用，3秒有效期，50条上限
+  7. 向后兼容：旧 `enemy._path` 和 `enemy._pathIdx` 仍然保留，MovementSystem 和 Enemy fallback 模式自动回退
+- **测试结果**：node 语法验证通过（path-manager.js、pathfinder.js、movement-system.js 全部 OK）
+- **已知问题**：PathManager 的 `_getMoveCost` 检查其他单位时，可能因 Game.entities 遍历量较大而性能开销增加，后续可考虑优化
+
+---
+
 ## 2026-07-05（硬编码清理 + 碰撞体积优化）
 
 ### 对话：全面硬编码清理 + 黑狼碰撞体积缩小 + 树木碰撞优化（v0.198）

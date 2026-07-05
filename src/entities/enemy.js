@@ -45,11 +45,13 @@ import aiConfigData from '../../data/ai-config.json';
                 this._color = config.color || '#8a4a4a'; // 怪物颜色
                 this._highlightColor = config.highlightColor || 'rgba(180, 100, 100, 0.3)'; // 高光颜色
                 // A*寻路相关
-                this._path = null; // 当前路径
-                this._pathIdx = 0; // 路径索引
-                this._pathRecalcTimer = 0; // 路径重算计时器
+                this._path = null; // 当前路径（兼容性保留，实际由 _pathManager 管理）
+                this._pathIdx = 0; // 路径索引（兼容性保留）
+                this._pathRecalcTimer = 0; // 路径重算计时器（兼容性保留）
                 this._stuckTimer = 0; // 卡住计时器
                 this._lastX = x; this._lastY = y; // 上次位置（用于检测卡住）
+                // [ENHANCE] 智能路径管理器（参考《环世界》）：预规划 + 定期有效性检查 + 局部修复
+                this._pathManager = null; // 由 MovementSystem 懒加载创建
                 // ===== 状态效果：中毒粒子效果（Enemy 特有，Combatant 基类未包含）=====
                 this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
 
@@ -242,7 +244,24 @@ import aiConfigData from '../../data/ai-config.json';
                     dy = this._tacticalTarget.y - this.y;
                     dist = Math.sqrt(dx * dx + dy * dy);
                 }
-                // A* 路径
+                // [ENHANCE] 优先使用 PathManager 的路径
+                if (this._pathManager && this._pathManager.hasValidPath()) {
+                    const wp = this._pathManager.getCurrentWaypoint();
+                    if (wp) {
+                        const wdx = wp.x - this.x, wdy = wp.y - this.y, wdist = Math.sqrt(wdx*wdx + wdy*wdy);
+                        if (wdist < 10) { this._pathManager.advanceWaypoint(); }
+                        else {
+                            this.vx += (wdx/wdist * maxSpd - this.vx) * this.accel;
+                            this.vy += (wdy/wdist * maxSpd - this.vy) * this.accel;
+                            const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
+                            const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
+                            const clamped = this._clampMoveDistance(this.x, this.y, er.x, er.y, maxStep);
+                            this.x = clamped.x; this.y = clamped.y;
+                            this.isMoving = true; this.animTime += 0.15; return;
+                        }
+                    }
+                }
+                // 兼容性：旧路径系统
                 if (this._path && this._pathIdx < this._path.length) {
                     const wp = this._path[this._pathIdx];
                     const wdx = wp.x - this.x, wdy = wp.y - this.y, wdist = Math.sqrt(wdx*wdx + wdy*wdy);

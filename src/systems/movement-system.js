@@ -45,6 +45,14 @@ const MovementSystem = {
             return;
         }
 
+        // [ENHANCE] 初始化 PathManager（懒加载）
+        if (!enemy._pathManager) {
+            // 动态导入，避免循环依赖
+            if (typeof PathManager !== 'undefined') {
+                enemy._pathManager = new PathManager(enemy);
+            }
+        }
+
         // 计算目标方向和距离
         const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
@@ -61,10 +69,45 @@ const MovementSystem = {
             enemy.rotation = Math.atan2(dy, dx);
         }
 
-        // 卡住检测与寻路触发
+        // [ENHANCE] 主动预规划：有目标但没有有效路径时，立即计算路径
+        // 只在距离较远时预规划（近距离直接移动即可）
+        if (enemy._pathManager && dist > (enemy.attackRange || 70) * 1.5) {
+            if (!enemy._pathManager.hasValidPath()) {
+                // 获取实际目标位置
+                let targetX = enemy.x, targetY = enemy.y;
+                if (enemy._specialTacticalTarget) {
+                    targetX = enemy._specialTacticalTarget.x;
+                    targetY = enemy._specialTacticalTarget.y;
+                } else if (enemy._tacticalTarget) {
+                    targetX = enemy._tacticalTarget.x;
+                    targetY = enemy._tacticalTarget.y;
+                } else if (enemy.target && enemy.target.active) {
+                    targetX = enemy.target.x;
+                    targetY = enemy.target.y;
+                } else if (enemy._lastKnownTargetPos) {
+                    targetX = enemy._lastKnownTargetPos.x;
+                    targetY = enemy._lastKnownTargetPos.y;
+                }
+                if (targetX !== enemy.x || targetY !== enemy.y) {
+                    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+                }
+            }
+        }
+
+        // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
+        if (enemy._pathManager && typeof pathFinder !== 'undefined') {
+            enemy._pathManager.update(dt, pathFinder);
+        }
+
+        // 卡住检测与寻路触发（保留原有逻辑，作为 fallback）
         this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
-        // 路径跟随（优先）
+        // 路径跟随（优先，使用 PathManager）
+        if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
+            this._followPath(enemy, dt);
+            return;
+        }
+        // 兼容性 fallback：如果 PathManager 不可用，使用旧的路径
         if (enemy._path && enemy._pathIdx < enemy._path.length) {
             this._followPath(enemy, dt);
             return;
@@ -197,7 +240,11 @@ const MovementSystem = {
                     targetY = enemy.target.y;
                 }
                 
-                if (typeof pathFinder !== 'undefined' && pathFinder.findPath) {
+                // [ENHANCE] 优先使用 PathManager
+                if (enemy._pathManager && typeof pathFinder !== 'undefined') {
+                    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+                } else if (typeof pathFinder !== 'undefined' && pathFinder.findPath) {
+                    // 兼容性 fallback
                     enemy._path = pathFinder.findPath(
                         enemy.x, enemy.y,
                         targetX, targetY,
@@ -207,7 +254,7 @@ const MovementSystem = {
                 }
 
                 // 寻路失败时随机转向
-                if (!enemy._path) {
+                if (!enemy._pathManager?.hasValidPath() && !enemy._path) {
                     const ra = Math.random() * Math.PI * 2;
                     enemy.vx = Math.cos(ra) * (enemy.maxSpeed || enemy.speed || 100) * 0.5;
                     enemy.vy = Math.sin(ra) * (enemy.maxSpeed || enemy.speed || 100) * 0.5;
@@ -269,9 +316,58 @@ const MovementSystem = {
     },
 
     /**
-     * 沿A*路径移动
+     * 沿路径移动（支持 PathManager 和旧路径兼容）
      */
     _followPath(enemy, dt) {
+        // [ENHANCE] 优先使用 PathManager
+        if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
+            const wp = enemy._pathManager.getCurrentWaypoint();
+            if (!wp) {
+                enemy._pathManager._clearPath();
+                return;
+            }
+            const wdx = wp.x - enemy.x;
+            const wdy = wp.y - enemy.y;
+            const wdist = Math.sqrt(wdx * wdx + wdy * wdy);
+            if (wdist < 5) {
+                enemy._pathManager.advanceWaypoint();
+                if (enemy._pathManager.isPathComplete()) {
+                    enemy._pathManager._clearPath();
+                }
+                return;
+            }
+            const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+            enemy.vx += (wdx / wdist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
+            enemy.vy += (wdy / wdist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
+            const sc = dt / 1000;
+            let nx = enemy.x + enemy.vx * sc;
+            let ny = enemy.y + enemy.vy * sc;
+            if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+                const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
+                if (er.x !== enemy.x || er.y !== enemy.y) {
+                    const maxStep = maxSpd * sc;
+                    const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
+                    enemy.x = clamped.x;
+                    enemy.y = clamped.y;
+                } else {
+                    // 被墙完全挡住：路径失效，让 PathManager 重新规划
+                    if (enemy._pathManager) {
+                        enemy._pathManager._clearPath();
+                    }
+                    return;
+                }
+            } else {
+                const maxStep = maxSpd * sc;
+                const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
+                enemy.x = clamped.x;
+                enemy.y = clamped.y;
+            }
+            enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
+            if (enemy.isMoving) enemy.animTime += 0.15;
+            return;
+        }
+
+        // 兼容性：旧路径系统
         if (!enemy._path || enemy._pathIdx >= enemy._path.length) {
             enemy._path = null;
             return;
@@ -302,13 +398,11 @@ const MovementSystem = {
         if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
             if (er.x !== enemy.x || er.y !== enemy.y) {
-                // [ANTI-TELEPORT] 限制每帧移动距离，防止 WallSystem.resolve 返回过远位置导致瞬移
                 const maxStep = maxSpd * sc;
                 const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
                 enemy.x = clamped.x;
                 enemy.y = clamped.y;
             } else {
-                // [FIX] 被墙完全挡住：如果路径剩余点不多，重新寻路；否则跳过当前点
                 if (enemy._path.length - enemy._pathIdx <= 2 && enemy.target && typeof pathFinder !== 'undefined' && pathFinder.findPath) {
                     enemy._path = pathFinder.findPath(
                         enemy.x, enemy.y,
@@ -325,7 +419,6 @@ const MovementSystem = {
                 return;
             }
         } else {
-            // 无 WallSystem 时，直接限制移动距离
             const maxStep = maxSpd * sc;
             const clamped = this._clampMoveDistance(enemy.x, enemy.y, nx, ny, maxStep);
             enemy.x = clamped.x;
