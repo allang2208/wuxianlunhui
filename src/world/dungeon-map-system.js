@@ -28,12 +28,10 @@
  *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect
  */
 
+import { BlackWolf } from '../entities/enemy-types.js';
 import {
-    Zombie, RunnerZombie, FatZombie, SpitterZombie,
-    BabySpider, Spider, WolfSpider, BroodmotherSpider,
-    BlackWolf, SkeletonWarrior, SkeletonArcher, SkeletonDog,
-    Necromancer, DeathKnight, BigBoss
-} from '../entities/enemy-types.js';
+    HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
+} from '../entities/humanoid-monster.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -492,14 +490,12 @@ export const DungeonMapSystem = {
 
         // 普通怪物池（从现有怪物库中选择）
         const normalMonsters = [
-            Zombie, RunnerZombie, Spider, WolfSpider,
-            BlackWolf, SkeletonWarrior, SkeletonArcher, SkeletonDog
+            BlackWolf, Rifleman, MachineGunner, FlankRifleman, ShieldBearer
         ];
 
         // Boss 怪物池（从现有怪物库中选择）
         const bossMonsters = [
-            FatZombie, SpitterZombie, BroodmotherSpider,
-            Necromancer, DeathKnight, BigBoss
+            Commander, HumanoidMonster, BlackWolf
         ];
 
         for (let i = 0; i < count; i++) {
