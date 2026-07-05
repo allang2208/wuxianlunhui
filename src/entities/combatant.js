@@ -108,6 +108,12 @@ class Combatant extends DamageableEntity {
         this._poisonTimer = 0;
         this._poisonTickTimer = 0;
         this._poisonEffectId = null;
+        this._bleedStacks = 0;
+        this._bleedTimer = 0;
+        this._bleedTickTimer = 0;
+        this._bleedEffectId = null;
+        this._magicVulnerabilityStacks = 0;
+        this._magicVulnerabilityTimer = 0;
         this._droneVulnerabilityStacks = 0;
         this._droneVulnerabilityTimer = 0;
 

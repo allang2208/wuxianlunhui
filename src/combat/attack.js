@@ -160,6 +160,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     startTime: Date.now(),         // 判定开始时间
                     totalHitCount: 0,              // 整个攻击累计命中数
                     totalKillCount: 0,           // 整个攻击累计击杀数
+                    dynamicRange: this.config.dynamicRange || 0,
                     expGiven: false                // 是否已发放经验
                 };
                 return true;
@@ -186,8 +187,59 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (source._faction === 'enemy' && entity._faction === 'enemy') return;
                     // 墙壁视线检测：不能攻击墙后的目标
                     if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
-                    // 矩形命中判定：根据4方向确定攻击矩形范围
+                    // === 动态距离判定（优先于矩形判定）===
                     const entityRadius = entity.collisionRadius || entity.size * 0.6 || 10;
+                    if (pt.dynamicRange > 0) {
+                        // 计算黑狼当前实际位置（含冲刺偏移）
+                        let sourceX = source.x, sourceY = source.y;
+                        if (source._attackDashOffset > 0 && !source._dashBlocked) {
+                            if (source._dashAngle !== undefined) {
+                                sourceX += Math.cos(source._dashAngle) * source._attackDashOffset;
+                                sourceY += Math.sin(source._dashAngle) * source._attackDashOffset;
+                            } else {
+                                switch (source._dashStartFacing) {
+                                    case 'right': sourceX += source._attackDashOffset; break;
+                                    case 'left':  sourceX -= source._attackDashOffset; break;
+                                    case 'down':  sourceY += source._attackDashOffset; break;
+                                    case 'up':    sourceY -= source._attackDashOffset; break;
+                                }
+                            }
+                        }
+                        const realDist = Math.sqrt((entity.x - sourceX)**2 + (entity.y - sourceY)**2);
+                        if (realDist <= pt.dynamicRange + entityRadius) {
+                            // 命中：走正常伤害流程
+                            pt.hitSet.add(entity);
+                            hitCount++;
+                            // 通用附魔命中效果
+                            applyEnchantOnHit(currentWeapon, entity, source);
+                            if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
+                            let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
+                            const damage = baseDamage + pt.damageBonus;
+                            const wasAlive = entity.hp > 0;
+                            entity.takeDamage(damage, source, pt.damageType || 'physical', true);
+                            if (wasAlive && entity.hp <= 0) killCount++;
+                            entity.applyKnockback(angle, pt.knockback);
+                            // 改造效果：流血
+                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
+                                entity.applyBleeding(1);
+                            }
+                            // 改造效果：魔力易伤
+                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
+                                const stacks = currentWeapon._craftEffects.magicVulnerabilityStacks || 1;
+                                entity.applyMagicVulnerability(stacks);
+                            }
+                            // 改造效果：附魔刀刃
+                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.enchantedBlade) {
+                                const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
+                                entity.takeDamage(weaponAtk, source, 'magic');
+                            }
+                            source._triggerRuneSwordCooldownReduction && source._triggerRuneSwordCooldownReduction();
+                            return; // 命中后直接处理下一个实体
+                        }
+                        // 动态距离未命中：跳过矩形判定，继续下一个
+                        return;
+                    }
+                    // 矩形命中判定：根据4方向确定攻击矩形范围
                     const dx = entity.x - ax, dy = entity.y - ay;
                     const backExt = isSword ? hitBox.backExtension : 0;
                     let inRange = false;

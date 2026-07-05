@@ -1,12 +1,12 @@
-{
+  {
   "blackWolf": {
     "id": "blackWolf",
     "name": "黑狼",
     "hp": 160,
     "maxHp": 160,
-    "size": 19,
-    "collisionRadius": 16,
-    "speed": 62.4,
+    "size": 13,
+    "collisionRadius": 38,
+    "speed": 93.6,
     "level": 5,
     "color": "#2a2a2a",
     "highlightColor": "rgba(80, 80, 80, 0.3)",
@@ -17,13 +17,19 @@
     "wis": 6,
     "luck": 10,
     "rank": "normal",
-    "attackRange": 100,
-    "aiInterval": 300,
+    "attackRange": 140,
+    "aiInterval": 2000,
+    "dashDistance": 200,
+    "ai": {
+      "aggroRange": 800,
+      "pacingRange": 200,
+      "loseTimeout": 2000
+    },
     "attack": {
       "type": "thrust",
       "cooldown": 1000,
-      "range": 100,
-      "width": 25,
+      "dynamicRange": 160,
+      "width": 18,
       "damageMin": 13,
       "damageMax": 22,
       "knockback": 13

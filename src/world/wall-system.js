@@ -52,9 +52,9 @@ const WallSystem = {
     _syncTreesToPhaser() {
         const phaserScene = window.__phaserScene;
         if (!phaserScene) return;
-        // 创建树木圆形碰撞体（用不可见圆形表示）
+        // 创建树木圆形碰撞体（用不可见圆形表示），使用独立的 collisionRadius
         for (const t of this.trees) {
-            const tree = phaserScene.add.circle(t.x, t.y, t.radius, 0x000000, 0);
+            const tree = phaserScene.add.circle(t.x, t.y, t.collisionRadius || t.radius * 0.6, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
             t.phaserSprite = tree;
@@ -99,10 +99,11 @@ const WallSystem = {
     },
     canMoveTo(x, y, radius) {
         for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
-        // 检查树木碰撞
+        // 检查树木碰撞：使用独立的 collisionRadius（视觉半径的60%）
         for (const t of this.trees) {
             const dx = x - t.x, dy = y - t.y;
-            if (Math.sqrt(dx * dx + dy * dy) < t.radius + radius) return false;
+            const treeR = t.collisionRadius || t.radius * 0.6;
+            if (Math.sqrt(dx * dx + dy * dy) < treeR + radius) return false;
         }
         return true;
     },
@@ -110,6 +111,19 @@ const WallSystem = {
         if (this.canMoveTo(nx, ny, r) && !this.blocked(x, y, nx, ny)) return { x: nx, y: ny };
         if (this.canMoveTo(nx, y, r) && !this.blocked(x, y, nx, y)) return { x: nx, y };
         if (this.canMoveTo(x, ny, r) && !this.blocked(x, y, x, ny)) return { x, y: ny };
+        // [OPTIMIZE] 大怪物卡树优化：标准滑动失败后，尝试沿移动方向逐步缩减步长
+        // 找到可移动的最远位置，避免完全卡住
+        const dx = nx - x, dy = ny - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0) {
+            for (let ratio = 0.75; ratio >= 0.25; ratio -= 0.25) {
+                const stepX = x + dx * ratio;
+                const stepY = y + dy * ratio;
+                if (this.canMoveTo(stepX, stepY, r) && !this.blocked(x, y, stepX, stepY)) {
+                    return { x: stepX, y: stepY };
+                }
+            }
+        }
         return { x, y };
     },
     lineCircle(x1, y1, x2, y2, cx, cy, r) {
@@ -135,14 +149,18 @@ const WallSystem = {
     },
     blocked(x1, y1, x2, y2) {
         for (const w of this.walls) if (this.lineRect(x1, y1, x2, y2, w)) return true;
-        for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.radius)) return true;
+        // 检查树木：使用独立的 collisionRadius（视觉半径的60%）
+        for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
         return false;
     },
     addTree(x, y, radius, treeType, sceneGroup = 'normal', rotation = 0) {
+        // [OPTIMIZE] 碰撞体积较大的怪物卡树优化：
+        // 树木视觉半径和碰撞半径分离，碰撞半径为视觉半径的60%，
+        // 让大怪物更容易在树木间通过，同时保持视觉效果
+        const collisionRadius = radius * 0.6;
         const treeData = {
-            x, y, radius,
+            x, y, radius, collisionRadius,
             type: treeType || 0,
-
             sceneGroup: sceneGroup || 'normal',
             rotation: rotation || 0,
             trunkWidth: radius * 0.6,
@@ -154,7 +172,7 @@ const WallSystem = {
         // ===== Phaser 树木同步（单个添加）=====
         const phaserScene = window.__phaserScene;
         if (phaserScene) {
-            const tree = phaserScene.add.circle(x, y, radius, 0x000000, 0);
+            const tree = phaserScene.add.circle(x, y, collisionRadius, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
             treeData.phaserSprite = tree;

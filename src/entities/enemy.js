@@ -8,7 +8,7 @@ import aiConfigData from '../../data/ai-config.json';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
-                super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: 12, name: config.name || '测试敌人' });
+                super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: config.collisionRadius, name: config.name || '测试敌人' });
                 this.id = config.id || this.name;
                 this.speed = (config.speed || 0.3) * 2; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
@@ -20,8 +20,9 @@ import aiConfigData from '../../data/ai-config.json';
                     cooldown: attackConfig.cooldown || 600, 
                     range: attackConfig.range || 80, 
                     width: attackConfig.width || 20, 
-                    damage: attackConfig.damage || { min: 8, max: 15 }, 
-                    knockback: attackConfig.knockback || 15 
+                    damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : { min: 8, max: 15 }), 
+                    knockback: attackConfig.knockback || 15,
+                    dynamicRange: attackConfig.dynamicRange || 0
                 }) };
                 this.weaponMode = 'melee';
                 this.level = config.level || 1;
@@ -34,7 +35,7 @@ import aiConfigData from '../../data/ai-config.json';
                 this.calculateCombatStats();
                 this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
-                this.aiTimer = 0; this.aiInterval = 300; this.target = null; this.attackRange = 70;
+                this.aiTimer = 0; this.aiInterval = 300; this.target = null; this.attackRange = config.attackRange || config.dashDistance || 70;
                 // 保存原始 AI 属性，供 FSM 阶段切换时计算倍率
                 this._baseAiInterval = this.aiInterval;
                 this._baseAttackRange = this.attackRange;
@@ -49,23 +50,8 @@ import aiConfigData from '../../data/ai-config.json';
                 this._pathRecalcTimer = 0; // 路径重算计时器
                 this._stuckTimer = 0; // 卡住计时器
                 this._lastX = x; this._lastY = y; // 上次位置（用于检测卡住）
-                // ===== 中毒系统（狼蛛附魔）=====
-                this._poisonStacks = 0;      // 中毒层数
-                this._poisonTimer = 0;       // 中毒持续时间计时器
-                this._poisonTickTimer = 0;   // 中毒伤害计时器
-                this._poisonEffectId = null; // 状态栏效果ID
-                this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果（与玩家一致）
-                // ===== 流血系统（骑士长剑改造）=====
-                this._bleedStacks = 0;       // 流血层数
-                this._bleedTimer = 0;        // 流血持续时间计时器
-                this._bleedTickTimer = 0;    // 流血伤害计时器
-                this._bleedEffectId = null;  // 状态栏效果ID
-                // ===== 魔力易伤系统（符文长剑/夜与火之剑改造）=====
-                this._magicVulnerabilityStacks = 0; // 魔力易伤层数
-                this._magicVulnerabilityTimer = 0;  // 魔力易伤持续时间计时器
-                // ===== 无人机易伤系统（无人机技能）=====
-                this._droneVulnerabilityStacks = 0; // 无人机易伤层数
-                this._droneVulnerabilityTimer = 0;  // 无人机易伤持续时间计时器
+                // ===== 状态效果：中毒粒子效果（Enemy 特有，Combatant 基类未包含）=====
+                this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
 
                 // ===== FSM 阶段系统 =====
                 this._fsm = null;      // FSM 实例
@@ -108,10 +94,6 @@ import aiConfigData from '../../data/ai-config.json';
                         break;
                     case 'swing':
                         anim.timer += dt;
-                        // 新增：敌人swing阶段进行攻击判定（与Player一致）
-                        if (anim.timer === 0 && this._pendingThrust) {
-                            this._pendingThrust.active = true;
-                        }
                         if (this._pendingThrust && this._pendingThrust.active) {
                             if (Date.now() - this._pendingThrust.startTime <= 200) {
                                 this.attacks.melee.checkTriangleHit(this);
@@ -150,6 +132,23 @@ import aiConfigData from '../../data/ai-config.json';
                 ctx.rotate(finalAngle);
                 if (this.weaponImage && this.weaponImage.complete && this.weaponImage.naturalWidth > 0) ctx.drawImage(this.weaponImage, -w / 2, -s / 2, w, s);
                 ctx.restore();
+            }
+            // --- 冲刺偏移计算（默认实现，子类可覆盖） ---
+            _getDashOffset() {
+                if (this._attackDashOffset <= 0) return { x: 0, y: 0 };
+                if (this._dashAngle !== undefined) {
+                    return {
+                        x: Math.cos(this._dashAngle) * this._attackDashOffset,
+                        y: Math.sin(this._dashAngle) * this._attackDashOffset
+                    };
+                }
+                switch (this._dashStartFacing || this._facing) {
+                    case 'right': return { x: this._attackDashOffset, y: 0 };
+                    case 'left':  return { x: -this._attackDashOffset, y: 0 };
+                    case 'down':  return { x: 0, y: this._attackDashOffset };
+                    case 'up':    return { x: 0, y: -this._attackDashOffset };
+                    default:      return { x: 0, y: 0 };
+                }
             }
             // === AI 系统：移动寻路 与 攻击指令 完全分离 ===
             // 阶段切换回调：子类可覆盖以实现自定义特效
@@ -201,120 +200,6 @@ import aiConfigData from '../../data/ai-config.json';
                     if (this.attacks.melee) this.attacks.melee.update(dt);
                     if (this.attacks.ranged) this.attacks.ranged.update(dt);
                     this.updateWeaponAnim(dt);
-                }
-            }
-            // --- 中毒效果更新 ---
-            _updatePoison(dt) {
-                if (this._poisonStacks > 0) {
-                    this._poisonTimer -= dt;
-                    this._poisonTickTimer -= dt;
-                    // 更新粒子效果
-                    if (this._poisonEffect) {
-                        this._poisonEffect.update(dt, 0, -this.size);
-                    }
-                    if (this._poisonTickTimer <= 0) {
-                        this.hp -= this._poisonStacks;
-                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#39ff14'));
-                        this._poisonTickTimer = 1000;
-                        // 中毒致死
-                        if (this.hp <= 0) {
-                            this.hp = 0;
-                            this.onDeath();
-                        }
-                    }
-                    if (this._poisonTimer <= 0) {
-                        this._poisonStacks = Math.max(0, this._poisonStacks - 1);
-                        if (this._poisonStacks > 0) {
-                            this._poisonTimer = 5000;
-                        } else {
-                            if (this._poisonEffectId) {
-                                StatusBar.removeEffect(this._poisonEffectId);
-                                this._poisonEffectId = null;
-                            }
-                            if (this._poisonEffect) {
-                                this._poisonEffect.reset();
-                            }
-                        }
-                    }
-                }
-            }
-            // 应用中毒（狼蛛附魔）
-            applyPoison(stacks) {
-                this._poisonStacks += stacks;
-                this._poisonTimer = 5000;
-                if (this._poisonTickTimer <= 0) this._poisonTickTimer = 1000;
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#39ff14'));
-                if (this._poisonEffect) {
-                    this._poisonEffect.reset();
-                }
-            }
-            // --- 流血效果更新 ---
-            _updateBleed(dt) {
-                if (this._bleedStacks > 0) {
-                    this._bleedTimer -= dt;
-                    this._bleedTickTimer -= dt;
-                    if (this._bleedTickTimer <= 0) {
-                        const bleedDamage = Math.max(1, Math.floor(this.hp * 0.1));
-                        this.hp -= bleedDamage;
-                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${bleedDamage}`, '#9a3a3a'));
-                        this._bleedTickTimer = 1000;
-                    }
-                    if (this._bleedTimer <= 0) {
-                        this._bleedStacks = Math.max(0, this._bleedStacks - 1);
-                        if (this._bleedStacks > 0) {
-                            this._bleedTimer = 5000;
-                            if (this._bleedEffectId) {
-                                StatusBar.updateEffectStacks('bleed', this._bleedStacks);
-                            }
-                        } else {
-                            if (this._bleedEffectId) {
-                                StatusBar.removeEffect(this._bleedEffectId);
-                                this._bleedEffectId = null;
-                            }
-                        }
-                    }
-                }
-            }
-            // 应用流血（骑士长剑改造）
-            applyBleeding(stacks) {
-                this._bleedStacks += stacks;
-                this._bleedTimer = 5000;
-                if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
-                if (!this._bleedEffectId) {
-                    this._bleedEffectId = StatusBar.addEffect('bleed', 5000, { stacks: this._bleedStacks });
-                } else {
-                    StatusBar.updateEffectStacks('bleed', this._bleedStacks);
-                }
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🩸 流血 +${stacks}层`, '#9a3a3a'));
-            }
-            // --- 魔力易伤效果更新 ---
-            _updateMagicVulnerability(dt) {
-                if (this._magicVulnerabilityStacks > 0) {
-                    this._magicVulnerabilityTimer -= dt;
-                    if (this._magicVulnerabilityTimer <= 0) {
-                        this._magicVulnerabilityStacks = Math.max(0, this._magicVulnerabilityStacks - 1);
-                        if (this._magicVulnerabilityStacks > 0) {
-                            this._magicVulnerabilityTimer = 5000;
-                        }
-                    }
-                }
-            }
-            // 应用魔力易伤（符文长剑/夜与火之剑改造）
-            applyMagicVulnerability(stacks) {
-                this._magicVulnerabilityStacks += stacks;
-                this._magicVulnerabilityTimer = 5000;
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🔮 魔力易伤 +${stacks}层`, '#8a5a9a'));
-            }
-            // --- 无人机易伤效果更新 ---
-            _updateDroneVulnerability(dt) {
-                if (this._droneVulnerabilityStacks > 0) {
-                    this._droneVulnerabilityTimer -= dt;
-                    if (this._droneVulnerabilityTimer <= 0) {
-                        this._droneVulnerabilityStacks = Math.max(0, this._droneVulnerabilityStacks - 1);
-                        if (this._droneVulnerabilityStacks > 0) {
-                            this._droneVulnerabilityTimer = 5000;
-                        }
-                    }
                 }
             }
             // 应用无人机易伤（无人机技能）
@@ -431,13 +316,14 @@ import aiConfigData from '../../data/ai-config.json';
                 
                 this.renderHealthBar(ctx);
                 
+                // 阴影在 Phaser 之前画（确保不被跳过）
+                this._drawShadow(ctx, x, y, this.size);
+                
                 const textureKey = this._getTextureKey();
                 const phaserOptions = this._getPhaserOptions();
                 if (this._renderPhaserSync(ctx, x, y, textureKey, phaserOptions)) {
                     return;
                 }
-                
-                this._drawShadow(ctx, x, y, this.size);
                 
                 ctx.save(); ctx.translate(x, y);
                 this._drawBody(ctx);
@@ -577,7 +463,10 @@ import aiConfigData from '../../data/ai-config.json';
                 const rotation = options.rotation !== undefined ? options.rotation : this.rotation + Math.PI / 2;
                 const textOffsetY = options.textOffsetY !== undefined ? options.textOffsetY : -32;
 
-                sprite.setPosition(this.x, this.y);
+                sprite.setPosition(
+                    this.x + (options.offsetX || 0),
+                    this.y + (options.offsetY || 0)
+                );
                 
                 // 关键：设置 this.rotation 让 GameScene.update 同步正确旋转
                 // GameScene.update 中: entity._phaserSprite.setRotation(entity.rotation + Math.PI/2)
@@ -588,7 +477,13 @@ import aiConfigData from '../../data/ai-config.json';
                 // 不在这里设置 sprite.setRotation，由 GameScene.update 统一处理
                 // 这样可以避免两个系统冲突
                 
-                if (options.frame !== undefined) sprite.setFrame(options.frame);
+                if (options.frame !== undefined) {
+                    // 只对 spritesheet 设置 frame（单张图片如 idle 不设置）
+                    const texture = sprite.texture;
+                    if (texture && texture.frameTotal > 1) {
+                        sprite.setFrame(options.frame);
+                    }
+                }
                 // 注意：flip 通过 setScale 负值实现，不单独调用 setFlipX/setFlipY
                 // 避免 setScale 覆盖 flip 的符号导致双重翻转
 
@@ -607,7 +502,8 @@ import aiConfigData from '../../data/ai-config.json';
                 this._phaserSprite = sprite;
 
                 // 绘制名字和碰撞半径
-                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
+                const nameColor = options.nameColor || 'rgba(212, 197, 169, 0.8)';
+                ctx.fillStyle = nameColor;
                 ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(this.name, x, y + textOffsetY);
