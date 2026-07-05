@@ -237,12 +237,13 @@ class PathFinder {
         this._ensureHash();
         const step = this.gridSize;
         const maxDist = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
-        const maxSteps = Math.ceil(maxDist / step) + 5;
+        // [FIX] 步数按 BFS 层数计算：每层 step 距离，给 3 倍冗余 + 20 保底
+        const maxSteps = Math.ceil(maxDist / step) * 3 + 20;
         const visited = new Set();
         const queue = [{ x: startX, y: startY }];
         visited.add(`${Math.floor(startX / step)},${Math.floor(startY / step)}`);
         let steps = 0;
-        while (queue.length > 0 && steps < maxSteps * 2) {
+        while (queue.length > 0 && steps < maxSteps) {
             steps++;
             const { x, y } = queue.shift();
             // 如果到达目标附近，认为可达
@@ -261,7 +262,8 @@ class PathFinder {
                 queue.push({ x: nx, y: ny });
             }
         }
-        return false;
+        // [FIX] 步数用完不一定不可达，返回 true 让 A* 继续尝试（A* 有超时保护）
+        return true;
     }
 
     // [ENHANCE] 缓存管理
