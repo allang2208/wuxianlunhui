@@ -204,7 +204,6 @@ export const Game = {
         // 在出生点旁边生成一只蜘蛛，方便测试盾牌
         /* 已删除：主神空间不再生成蜘蛛 */
     },
-    },
     spawnTestTargets() {
         // 在坐标(4379, 2411)生成20个10HP不会移动的测试目标
         const baseX = 4379, baseY = 2411;
