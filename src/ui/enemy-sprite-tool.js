@@ -35,7 +35,8 @@ const EnemySpriteTool = {
     
     // 可选择的精灵图列表
     SPRITE_LIST: [
-        { key: 'enemy_black_wolf', name: '黑狼', path: 'assets/enemies/black_wolf.png', frames: 8, cols: 4, rows: 2 },
+        { key: 'enemy_black_wolf', name: '黑狼（移动）', path: 'assets/enemies/black_wolf.png', frames: 8, cols: 4, rows: 2 },
+        { key: 'enemy_black_wolf_attack', name: '黑狼（攻击）', path: 'assets/enemies/black_wolf_attack.png', frames: 8, cols: 4, rows: 2 },
         { key: 'enemy_spider', name: '蜘蛛', path: 'assets/enemies/spider.png', frames: 1, cols: 1, rows: 1 },
         { key: 'enemy_slime', name: '史莱姆', path: 'assets/enemies/slime.png', frames: 1, cols: 1, rows: 1 },
         { key: 'enemy_skeleton', name: '骷髅', path: 'assets/enemies/skeleton.png', frames: 1, cols: 1, rows: 1 },

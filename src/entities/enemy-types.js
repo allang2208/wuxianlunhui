@@ -535,13 +535,15 @@ class BlackWolf extends Enemy {
         });
         // 加载精灵图（挺进地牢风格：多方向）
         this._sprites = {
-            side: new Image(),   // 侧视图（水平移动）— 已有
-            front: new Image(),  // 正面（向下移动）— 需要生成
-            back: new Image(),   // 背面（向上移动）— 需要生成
+            side: new Image(),   // 侧视图（水平移动）
+            front: new Image(),  // 正面（向下移动）
+            back: new Image(),   // 背面（向上移动）
+            attack: new Image(), // 攻击动画（8帧撕咬）
         };
         this._sprites.side.src = 'assets/enemies/black_wolf.png';
         this._sprites.front.src = 'assets/enemies/black_wolf_updown.png';
         this._sprites.back.src = 'assets/enemies/black_wolf_updown.png';
+        this._sprites.attack.src = 'assets/enemies/black_wolf_attack.png';
         
         // 当前 facing 方向（用于渲染和动画）
         this._facing = 'right'; // right, left, up, down
@@ -588,23 +590,40 @@ class BlackWolf extends Enemy {
         // 攻击动画计时
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
+        } else if (this._animState === 'attack') {
+            // 攻击结束，重置帧索引
+            this._animFrame = 0;
         }
         // 更新帧动画
         this._animTimer += dt;
         let frameDuration = 150;
-        if (this._animState === 'run') frameDuration = 80;
-        else if (this._animState === 'walk') frameDuration = 120;
-        else if (this._animState === 'idle') frameDuration = 200;
-        if (this._animTimer >= frameDuration) {
-            this._animTimer = 0;
-            const totalFrames = (this._animState === 'run' || this._animState === 'attack') ? 8 : 4;
-            this._animFrame = (this._animFrame + 1) % totalFrames;
+        if (this._animState === 'attack') {
+            // 攻击动画：300ms 内播完 8 帧，37.5ms/帧，不循环（只播一次）
+            frameDuration = 37.5;
+            if (this._animTimer >= frameDuration) {
+                this._animTimer = 0;
+                this._animFrame = (this._animFrame + 1) % 8;
+            }
+        } else if (this._animState === 'run') {
+            frameDuration = 80;
+        } else if (this._animState === 'walk') {
+            frameDuration = 120;
+        } else if (this._animState === 'idle') {
+            frameDuration = 200;
+        }
+        if (this._animState !== 'attack') {
+            if (this._animTimer >= frameDuration) {
+                this._animTimer = 0;
+                const totalFrames = (this._animState === 'run') ? 8 : 4;
+                this._animFrame = (this._animFrame + 1) % totalFrames;
+            }
         }
     }
 
     triggerWeaponAnim() {
         super.triggerWeaponAnim();
         this._attackTimer = 300; // 300ms 攻击动画
+        this._animFrame = 0;     // 从第一帧开始播放攻击动画
     }
 
     render(ctx) {
@@ -612,8 +631,11 @@ class BlackWolf extends Enemy {
         const x = pos.x, y = pos.y;
         this.renderHealthBar(ctx);
 
-        // 先对左右向的移动进行调整
-        // 使用工具数据（优先从 EnemySpriteTool 获取，否则使用默认值）
+        // 直接使用原始精灵图，不旋转
+        // 原理：原始精灵图本身就是正确的朝向，不做任何旋转
+        // X轴（左右移动）：直接使用原始贴图 + flipX（水平镜像）区分方向
+        // Y轴（上下移动）：使用不同行的帧（后续调整）
+        // 攻击时：使用攻击精灵图 + 相同的 flipX 逻辑
         let textureKey = 'enemy_black_wolf';
         let currentSprite = this._sprites.side;
         let flipX = false;
@@ -621,28 +643,24 @@ class BlackWolf extends Enemy {
         let canvasRotation = 0;
         let phaserRotation = 0;
         
-        // 直接使用原始精灵图，不旋转
-        // 原理：原始精灵图本身就是正确的朝向，不做任何旋转
-        // X轴（左右移动）：直接使用原始贴图 + flipX（水平镜像）区分方向
-        // Y轴（上下移动）：使用不同行的帧（后续调整）
-        const defaults = {
-            right: { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
-            left:  { textureKey: 'enemy_black_wolf', rotation: 0, flipX: true },
-            up:    { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
-            down:  { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
-        };
+        // 攻击状态：使用攻击精灵图
+        if (this._animState === 'attack') {
+            textureKey = 'enemy_black_wolf_attack';
+            currentSprite = this._sprites.attack;
+        }
         
-        // 强制使用硬编码配置，忽略工具数据（工具数据可能有旧值）
-        const cfg = defaults[this._facing] || defaults.right;
-        
-        textureKey = cfg.textureKey || 'enemy_black_wolf';
-        canvasRotation = (cfg.rotation || 0) * Math.PI / 180;
-        phaserRotation = (cfg.rotation || 0) * Math.PI / 180;
-        flipX = cfg.flipX || false;
+        // 根据 facing 设置 flipX（攻击和移动使用相同逻辑）
+        if (this._facing === 'left') {
+            flipX = true;
+        } else if (this._facing === 'right') {
+            flipX = false;
+        }
         const flipY = false; // 不再使用 flipY
         
-        // 调试日志：确认参数是否生效
-        console.log(`[BlackWolf render] facing=${this._facing} texture=${textureKey} rotation=${cfg.rotation}° flipX=${flipX}`);
+        // 调试日志：确认攻击状态
+        if (this._animState === 'attack') {
+            console.log(`[BlackWolf attack] frame=${actualFrame} flipX=${flipX}`);
+        }
 
         // Phaser 同步
         if (this._renderPhaserSync(ctx, x, y, textureKey, {
