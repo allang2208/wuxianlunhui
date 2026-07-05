@@ -1486,6 +1486,319 @@
 .enchant-message.error { color: #c06060; }
 .enchant-message.success { color: #60a060; }
 
+/* ===== 出征准备黑色背景覆盖层 ===== */
+.expedition-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    right: 0; /* 覆盖全屏，包括背包后面的背景 */
+    height: 100%;
+    background: 
+        linear-gradient(180deg, rgba(15, 12, 8, 0.70) 0%, rgba(20, 16, 12, 0.65) 50%, rgba(15, 12, 8, 0.70) 100%),
+        url('../assets/ui/expedition-bg.png') center / cover no-repeat;
+    background-blend-mode: multiply;
+    z-index: 10;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s;
+    pointer-events: none;
+}
+.expedition-overlay.active {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ===== 出征准备面板 ===== */
+.expedition-panel {
+    position: fixed;
+    top: 0;
+    left: auto;
+    right: 45vw;
+    width: 45vw;
+    height: 100vh;
+    background: linear-gradient(180deg, rgba(35, 28, 22, 0.70) 0%, rgba(30, 24, 18, 0.65) 50%, rgba(35, 28, 22, 0.70) 100%);
+    border: 2px solid #7a6a5a;
+    border-radius: 12px 0 0 12px;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+}
+.expedition-panel.active {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+}
+.expedition-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(122, 106, 90, 0.4);
+    background: rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+.expedition-title {
+    color: #e8c878;
+    font-size: 16px;
+    font-weight: bold;
+}
+.expedition-close {
+    background: none;
+    border: none;
+    color: #a09070;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    pointer-events: auto;
+}
+.expedition-close:hover { color: #ff4444; }
+.expedition-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 地牢信息 */
+.expedition-info {
+    background: rgba(30, 26, 22, 0.6);
+    border: 1px solid #5a4d3f;
+    border-radius: 8px;
+    padding: 12px;
+}
+.expedition-dungeon-name {
+    font-size: 18px;
+    color: #e8c878;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.expedition-dungeon-desc {
+    font-size: 12px;
+    color: #8a7d6b;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+.expedition-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+}
+.expedition-stat {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 8px;
+    border-radius: 4px;
+    text-align: center;
+}
+.expedition-stat-label {
+    font-size: 10px;
+    color: #6a5a4a;
+    display: block;
+}
+.expedition-stat-value {
+    font-size: 12px;
+    color: #d4c5a9;
+    font-weight: 600;
+}
+
+/* 队伍 */
+.expedition-party {
+    background: rgba(30, 26, 22, 0.6);
+    border: 1px solid #5a4d3f;
+    border-radius: 8px;
+    padding: 12px;
+}
+.expedition-section-title {
+    font-size: 13px;
+    color: #9a8a6a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+.expedition-hint {
+    font-size: 11px;
+    color: #5a4a3a;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: normal;
+}
+.expedition-party-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.expedition-party-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: rgba(42, 37, 32, 0.8);
+    border-radius: 6px;
+    border: 1px solid #3a352a;
+}
+.expedition-party-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #3a3a3a;
+    border: 2px solid #5a4a3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #e8c878;
+    flex-shrink: 0;
+}
+.expedition-party-info {
+    flex: 1;
+}
+.expedition-party-name {
+    font-size: 13px;
+    color: #d4c5a9;
+    font-weight: 600;
+}
+.expedition-party-detail {
+    font-size: 11px;
+    color: #7a6a5a;
+}
+
+/* 携带物资（背包格子） */
+.expedition-supplies {
+    background: rgba(30, 26, 22, 0.6);
+    border: 1px solid #5a4d3f;
+    border-radius: 8px;
+    padding: 12px;
+    flex: 1;
+}
+.expedition-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 56px;
+    gap: 3px;
+    padding: 4px;
+}
+.expedition-inv-cell {
+    background: rgba(26, 24, 20, 0.8);
+    border: 1px solid #3a352a;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    font-size: 18px;
+    min-height: 56px;
+}
+.expedition-inv-cell.drag-over {
+    border-color: #7a9a6a;
+    background: rgba(122, 154, 106, 0.15);
+}
+.expedition-inv-cell.occupied {
+    border-color: #5a4a3a;
+    background: rgba(42, 37, 32, 0.9);
+}
+.expedition-inv-cell .inv-name {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    right: 2px;
+    font-size: 9px;
+    color: #d4c5a9;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+.expedition-inv-cell .inv-stack {
+    position: absolute;
+    bottom: 3px;
+    right: 5px;
+    font-size: 11px;
+    color: #d4c5a9;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    pointer-events: none;
+}
+.expedition-inv-cell img {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 3px;
+    pointer-events: none;
+}
+
+/* 操作按钮 */
+.expedition-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding-top: 8px;
+    flex-shrink: 0;
+}
+.expedition-reset-btn, .expedition-back-btn, .expedition-depart-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 2px solid;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.expedition-reset-btn {
+    background: linear-gradient(to bottom, #4a3f35, #3d342b);
+    border-color: #6b5d3f;
+    color: #d4c5a9;
+}
+.expedition-reset-btn:hover {
+    background: linear-gradient(to bottom, #5a4d3f, #4a3f35);
+}
+.expedition-back-btn {
+    background: linear-gradient(to bottom, #5a3a3a, #4a2a2a);
+    border-color: #7a5a5a;
+    color: #d4c5a9;
+}
+.expedition-back-btn:hover {
+    background: linear-gradient(to bottom, #6a4a4a, #5a3a3a);
+}
+.expedition-depart-btn {
+    background: linear-gradient(to bottom, #3d4a35, #2a3520);
+    border-color: #7a9a6a;
+    color: #d4e5c5;
+    font-weight: 600;
+}
+.expedition-depart-btn:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #4d5a45, #3a4530);
+    transform: translateY(-1px);
+}
+.expedition-depart-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #4a4a4a;
+    color: #6a6a6a;
+}
+
+.expedition-message {
+    text-align: center;
+    font-size: 13px;
+    color: #c0a060;
+    min-height: 20px;
+    flex-shrink: 0;
+}
+.expedition-message.error { color: #c06060; }
+.expedition-message.success { color: #60a060; }
+
 /* 附魔浮窗效果 */
 .tt-enchant {
     position: absolute;
@@ -2066,3 +2379,30 @@
 .quest-tracker-obj { font-size: 11px; color: #b4a599; padding: 2px 0; }
 .quest-tracker-obj.completed { color: #7a9a6a; text-decoration: line-through; }
 .quest-tracker-empty { font-size: 11px; color: #6b5d4f; }
+
+/* ===== 怪物贴图调整工具 ===== */
+.enemy-sprite-tool { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 10px; gap: 10px; }
+.enemy-sprite-menu { display: flex; gap: 10px; padding: 8px; background: rgba(30, 26, 22, 0.4); border: 1px solid #5a4d3f; border-radius: 6px; align-items: center; }
+.enemy-sprite-menu-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #d4c5a9; }
+.enemy-sprite-menu-item label { color: #8a7d6b; font-size: 12px; }
+.enemy-sprite-menu-item select { background: #3a3228; border: 1px solid #5a4d3f; color: #d4c5a9; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+.enemy-sprite-menu-btn { background: linear-gradient(to bottom, #4a3f35, #3d342b); border: 1px solid #5a4d3f; color: #d4c5a9; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+.enemy-sprite-menu-btn:hover { background: linear-gradient(to bottom, #5a4d3f, #4a3f35); border-color: #8a7d6b; }
+.enemy-sprite-content { display: flex; gap: 10px; flex: 1; overflow: hidden; }
+.enemy-sprite-left { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.enemy-sprite-canvas-wrap { flex: 1; border: 1px solid #5a4d3f; border-radius: 6px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #2a2a2a; }
+.enemy-sprite-canvas-wrap canvas { display: block; max-width: 100%; max-height: 100%; }
+.enemy-sprite-directions { display: flex; gap: 6px; justify-content: center; }
+.enemy-direction-btn { background: #3a3228; border: 1px solid #5a4d3f; color: #8a7d6b; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+.enemy-direction-btn:hover { background: #4a3f35; color: #d4c5a9; }
+.enemy-direction-btn.active { background: rgba(122, 154, 106, 0.2); border-color: #7a9a6a; color: #7a9a6a; }
+.enemy-sprite-right { width: 220px; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(30, 26, 22, 0.4); border: 1px solid #5a4d3f; border-radius: 6px; overflow-y: auto; }
+.enemy-sprite-section-title { font-size: 13px; color: #a090c0; font-weight: 600; border-bottom: 1px solid #5a4d3f; padding-bottom: 4px; margin-bottom: 4px; }
+.enemy-sprite-controls { display: flex; flex-direction: column; gap: 8px; }
+.enemy-sprite-control-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.enemy-sprite-control-row label { min-width: 60px; color: #8a7d6b; font-size: 11px; }
+.enemy-sprite-control-row input[type="number"] { width: 70px; background: #3a3228; border: 1px solid #5a4d3f; color: #d4c5a9; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+.enemy-sprite-control-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #7a9a6a; }
+.enemy-sprite-control-row select { flex: 1; background: #3a3228; border: 1px solid #5a4d3f; color: #d4c5a9; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+.enemy-sprite-hint { font-size: 11px; color: #6b5d4f; margin-top: auto; padding-top: 8px; border-top: 1px solid #5a4d3f; }
+.enemy-sprite-output { max-height: 120px; overflow: auto; background: #1e1a16; border: 1px solid #5a4d3f; padding: 8px; font-size: 11px; color: #90d070; font-family: monospace; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }

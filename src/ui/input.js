@@ -34,7 +34,14 @@
                         if (NPCDialogue._active) NPCDialogue.exitCompactMode();
                         return;
                     }
-                    if (SystemUI.isOpen) { SystemUI.close(); return; }
+                    if (SystemUI.isOpen) {
+                    // 如果出征面板打开，ESC只关闭出征面板，不关闭背包
+                    if (typeof ExpeditionSystem !== 'undefined' && ExpeditionSystem._isOpen) {
+                        ExpeditionSystem.close();
+                        return;
+                    }
+                    SystemUI.close(); return;
+                }
                     if (NPCDialogue._active) { NPCDialogue.goodbye(); return; }
                     Game.toMenu(); return;
                 }

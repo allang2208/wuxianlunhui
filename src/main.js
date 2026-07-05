@@ -121,7 +121,7 @@ async function initModules() {
     window.Rifleman = Rifleman;
     window.FlankRifleman = FlankRifleman;
     window.ShieldBearer = ShieldBearer;
-    window.ENEMY_DATA = ENEMY_DATA;
+
     window.DropItem = DropItem;
     window.NPC = NPC;
 
@@ -261,7 +261,7 @@ import { pathFinder } from './ai/pathfinder.js';
 import { Zombie, RunnerZombie, FatZombie, SpitterZombie, BlackWolf, BabySpider, Spider, WolfSpider, BroodmotherSpider, SkeletonWarrior, SkeletonArcher, SkeletonDog, Necromancer, DeathKnight, BigBoss } from './entities/enemy-types.js';
 import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './entities/humanoid-monster.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
-import { ENEMY_DATA } from './entities/enemy-data.js';
+
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
 

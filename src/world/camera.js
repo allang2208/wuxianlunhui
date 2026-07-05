@@ -23,10 +23,14 @@ const Camera = {
                 }
                 if (this.shakeIntensity > 0.5) { this.shakeX = (Math.random() - 0.5) * this.shakeIntensity; this.shakeY = (Math.random() - 0.5) * this.shakeIntensity; this.shakeIntensity *= this.shakeDecay; }
                 else { this.shakeX = 0; this.shakeY = 0; this.shakeIntensity = 0; }
-                // 边界限制：允许负坐标，只在世界尺寸处限制
+                // 边界限制：Camera 不能超出世界范围，确保屏幕始终显示世界内的内容
                 const halfW = CONFIG.VIEW_WIDTH / 2, halfH = CONFIG.VIEW_HEIGHT / 2;
-                this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x));
-                this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
+                const minX = Math.min(halfW, CONFIG.WORLD_WIDTH / 2);
+                const minY = Math.min(halfH, CONFIG.WORLD_HEIGHT / 2);
+                const maxX = Math.max(CONFIG.WORLD_WIDTH - halfW, CONFIG.WORLD_WIDTH / 2);
+                const maxY = Math.max(CONFIG.WORLD_HEIGHT - halfH, CONFIG.WORLD_HEIGHT / 2);
+                this.x = Math.max(minX, Math.min(maxX, this.x));
+                this.y = Math.max(minY, Math.min(maxY, this.y));
             },
             triggerShake(intensity) { this.shakeIntensity = intensity; }
         };

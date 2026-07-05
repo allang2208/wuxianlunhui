@@ -1,5 +1,6 @@
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { AIDevTool } from './ai-dev-tool.js';
+import { EnemySpriteTool } from './enemy-sprite-tool.js';
 
 // 交互式开发工具 - 武器定位与动画调试面板
 const DevTool = {
@@ -78,6 +79,9 @@ const DevTool = {
         this._draw();
         // 初始化 AI 开发工具
         AIDevTool.init();
+        // 初始化怪物贴图调整工具
+        EnemySpriteTool.init();
+        window.EnemySpriteTool = EnemySpriteTool; // 挂载到全局，供游戏代码读取
     },
 
     // Tab 切换
@@ -96,6 +100,10 @@ const DevTool = {
             AIDevTool.show();
         } else {
             AIDevTool.hide();
+        }
+        // 怪物贴图调整工具无需显式 show/hide，只需重绘
+        if (tabName === 'enemy') {
+            EnemySpriteTool._draw();
         }
         // 如果切换回武器 tab，重新绘制 Canvas
         if (tabName === 'weapon') {

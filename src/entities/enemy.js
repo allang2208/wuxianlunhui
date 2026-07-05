@@ -194,11 +194,6 @@ import aiConfigData from '../../data/ai-config.json';
                     if (this.attacks.ranged) this.attacks.ranged.update(dt);
                     this.updateWeaponAnim(dt);
                 }
-                // 状态效果更新（始终执行，无论外部系统是否存在）
-                this._updatePoison(dt);
-                this._updateBleed(dt);
-                this._updateMagicVulnerability(dt);
-                this._updateDroneVulnerability(dt);
             }
             // --- 中毒效果更新 ---
             _updatePoison(dt) {
@@ -425,13 +420,8 @@ import aiConfigData from '../../data/ai-config.json';
             render(ctx) {
                 const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
                 this.renderHealthBar(ctx);
-                // Phaser 同步：如果已有 Phaser Sprite，跳过 Canvas 实体渲染，保留名称和碰撞半径
-                if (this._phaserSprite && this._phaserSprite.active) {
-                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, x, y - 32);
-                    this.renderCollisionRadius(ctx);
+                // Phaser 同步
+                if (this._renderPhaserSync(ctx, x, y, 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_'))) {
                     return;
                 }
                 this._drawShadow(ctx, x, y, this.size);
@@ -522,6 +512,76 @@ import aiConfigData from '../../data/ai-config.json';
                     target.applyBleeding(1);
                 }
             }
+
+            // Phaser 同步渲染方法（提取所有子类重复代码）
+            /**
+             * Phaser 同步渲染：创建/更新 Phaser Sprite，如果成功则跳过 Canvas 渲染
+             * @param {CanvasRenderingContext2D} ctx - Canvas 上下文
+             * @param {number} x - 屏幕 X
+             * @param {number} y - 屏幕 Y
+             * @param {string} textureKey - Phaser 纹理键名（如 'enemy_zombie'）
+             * @param {Object} options - 可选参数
+             * @param {number} [options.spriteSize] - 渲染尺寸（默认 this.size * 3.5）
+             * @param {number} [options.rotation] - 旋转角度（默认 this.rotation + Math.PI/2）
+             * @param {number} [options.frame] - 帧索引（默认 0）
+             * @param {boolean} [options.flipX] - 水平翻转
+             * @param {boolean} [options.flipY] - 垂直翻转
+             * @param {number} [options.textOffsetY] - 名字标签偏移（默认 -32）
+             * @returns {boolean} true = Phaser 已处理，false = 需要 Canvas 渲染
+             */
+            _renderPhaserSync(ctx, x, y, textureKey, options = {}) {
+                const phaserScene = window.__phaserScene;
+                if (!phaserScene) return false;
+
+                const sprite = phaserScene.getOrCreateEnemySprite(this, textureKey);
+                if (!this.active) {
+                    sprite.setVisible(false);
+                    return true;
+                }
+
+                const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 3.5;
+                const rotation = options.rotation !== undefined ? options.rotation : this.rotation + Math.PI / 2;
+                const textOffsetY = options.textOffsetY !== undefined ? options.textOffsetY : -32;
+
+                sprite.setPosition(this.x, this.y);
+                
+                // 关键：设置 this.rotation 让 GameScene.update 同步正确旋转
+                // GameScene.update 中: entity._phaserSprite.setRotation(entity.rotation + Math.PI/2)
+                // 所以设置 this.rotation = options.rotation - Math.PI/2 即可让最终旋转 = options.rotation
+                if (options.rotation !== undefined) {
+                    this.rotation = options.rotation - Math.PI / 2;
+                }
+                // 不在这里设置 sprite.setRotation，由 GameScene.update 统一处理
+                // 这样可以避免两个系统冲突
+                
+                if (options.frame !== undefined) sprite.setFrame(options.frame);
+                // 注意：flip 通过 setScale 负值实现，不单独调用 setFlipX/setFlipY
+                // 避免 setScale 覆盖 flip 的符号导致双重翻转
+
+                const sourceImage = sprite.texture.getSourceImage();
+                const originalWidth = sprite.frame ? sprite.frame.width : (sourceImage ? sourceImage.width : 64);
+                const scale = spriteSize / originalWidth;
+                
+                // 关键：setScale 会覆盖 flipX/flipY 的符号，所以必须在 setScale 后重新应用 flip
+                // 或者直接在 scale 中考虑 flip 符号
+                const scaleX = options.flipX ? -scale : scale;
+                const scaleY = options.flipY ? -scale : scale;
+                sprite.setScale(scaleX, scaleY);
+                sprite.setVisible(true);
+                
+                // 同时保存到 _phaserSprite（兼容旧代码）
+                this._phaserSprite = sprite;
+
+                // 绘制名字和碰撞半径
+                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
+                ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, x, y + textOffsetY);
+                this.renderCollisionRadius(ctx);
+
+                return true;
+            }
+
         }
 
         // 无人机易伤红色圆圈收缩特效：从半径200px收缩至圆心，持续1.5s
@@ -556,4 +616,5 @@ import aiConfigData from '../../data/ai-config.json';
             }
         }
 
+            // Phaser 同步渲染方法（提取所有子类重复代码）
 export { Enemy };

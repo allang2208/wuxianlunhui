@@ -1,9 +1,11 @@
 import { Portal } from './portal.js';
 import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
 import FormationSystem from '../systems/formation-system.js';
+import { DungeonMapSystem } from './dungeon-map-system.js';
+import { ExpeditionSystem } from '../ui/expedition-system.js';
 
 export const SceneManager = {
-    currentScene: 'main',
+    currentScene: null,
     scenes: {},
     isLoading: false,
     loadProgress: 0,
@@ -15,7 +17,8 @@ export const SceneManager = {
             scene2: { name: '雪地', type: 'instance', width: 9000, height: 9000, background: '#b8c0c8', label: '场景二', origin: { x: 4500, y: 4500 } },
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
             scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
-            scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } }
+            scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } },
+            scene6: { name: '地牢测试', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景六', origin: { x: 512, y: 512 } }
         };
     },
 
@@ -128,6 +131,8 @@ export const SceneManager = {
                 this._loadScene4(player);
             } else if (sceneId === 'scene5') {
                 this._loadScene5(player);
+            } else if (sceneId === 'scene6') {
+                this._loadScene6(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -759,6 +764,88 @@ export const SceneManager = {
         spawnTacticalSquad(scene.width * 0.75, scene.height * 0.25, 80);
 
         if (player) QuickBar.refreshSpecialAttack(player);
+    },
+
+    _loadScene6(player) {
+        // 重置 Camera 状态，避免从其他场景带入偏移
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        // 地牢测试：1024x1024 简单地图，无墙壁
+        CONFIG.WORLD_WIDTH = 1024;
+        CONFIG.WORLD_HEIGHT = 1024;
+
+        // 创建地形纹理（1024x1024 全石砖地板，无边框黑背景）
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+
+        // 全屏深灰色地板
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, 1024, 1024);
+
+        // 地板纹理（石砖）
+        ctx.strokeStyle = 'rgba(50, 50, 50, 0.3)';
+        ctx.lineWidth = 1;
+        for (let bx = 0; bx < 1024; bx += 20) {
+            ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, 1024); ctx.stroke();
+        }
+        for (let by = 0; by < 1024; by += 20) {
+            ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(1024, by); ctx.stroke();
+        }
+
+        // 全地图边缘高光
+        ctx.strokeStyle = 'rgba(80, 80, 80, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, 1024, 1024);
+
+        Renderer.terrainTexture = canvas;
+        console.log('[scene6] terrainTexture set:', canvas.width, 'x', canvas.height, 'Renderer.terrainTexture:', Renderer.terrainTexture ? 'OK' : 'NULL');
+
+        // 添加边界墙壁，防止玩家走出地图
+        WallSystem.init(1024, 1024);
+        WallSystem.walls = [
+            { x: 0, y: 0, w: 1024, h: 20 },      // 上边界
+            { x: 0, y: 1004, w: 1024, h: 20 },   // 下边界
+            { x: 0, y: 0, w: 20, h: 1024 },      // 左边界
+            { x: 1004, y: 0, w: 20, h: 1024 },   // 右边界
+        ];
+        // 同步到 Phaser（确保物理碰撞体也更新）
+        if (WallSystem._syncWallsToPhaser) {
+            WallSystem._syncWallsToPhaser();
+        }
+
+        // 玩家放在地板中央
+        if (player) {
+            player.x = 512;
+            player.y = 512;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            console.log('[scene6] Player at', player.x, player.y, 'Camera at', Camera.x, Camera.y);
+        }
+
+        // 传送门放在地板右下角
+        const portal = new Portal(800, 800, 'main', '返回主神空间');
+        Game.entities.set('portal_return', portal);
+
+        // 同步快捷栏
+        if (player) {
+            QuickBar.refreshSpecialAttack(player);
+        }
+
+        // 打开背包和出征准备面板（两者同时从右侧弹出，出征在背包左边）
+        if (typeof SystemUI !== 'undefined') {
+            SystemUI.open('equip');
+        }
+        if (typeof ExpeditionSystem !== 'undefined') {
+            ExpeditionSystem.open(player);
+        }
     }
 };
 
