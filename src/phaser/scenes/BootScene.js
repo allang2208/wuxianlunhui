@@ -29,7 +29,6 @@ export class BootScene extends Scene {
         // ---- 敌人资源 ----
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
         this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215 });
-        this.load.spritesheet('enemy_black_wolf_updown', 'assets/enemies/black_wolf_updown.png', { frameWidth: 250, frameHeight: 215 });
 
         // ---- 环境资源 ----
 
