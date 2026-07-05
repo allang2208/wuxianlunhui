@@ -386,11 +386,55 @@ if (enemy._pathManager) {
 
 ---
 
+## 常见陷阱：isReachable 步数限制导致路径计算失败
+
+### 问题
+`PathFinder.isReachable()` 使用 Flood Fill 检查区域连通性，但步数限制太死：
+
+```javascript
+// 错误：步数 = ceil(maxDist / step) + 5
+// 目标距离 383px，gridSize=40，步数 = ceil(383/40)+5 = 15
+// 15 步 BFS 根本到不了目标，直接返回 false，A* 根本没跑
+const maxSteps = Math.ceil(maxDist / step) + 5;
+```
+
+这导致黑狼被卡在树木边缘（距离=53，总阻挡=53）时，路径计算完全失败，单位没有路径，只能直线移动 → 撞墙卡住。
+
+### 修复
+```javascript
+// 正确：步数 = ceil(maxDist / step) * 3 + 20
+// 383px 距离 → 49 步，BFS 能正常探索到目标
+const maxSteps = Math.ceil(maxDist / step) * 3 + 20;
+
+// 步数用完也不返回 false，让 A* 继续尝试（A* 有 maxIterations 超时保护）
+return true;
+```
+
+### 诊断方法
+```javascript
+// 检查单位附近障碍物
+WallSystem.trees.forEach(t => {
+    const d = Math.hypot(t.x - wolf.x, t.y - wolf.y);
+    const treeR = t.collisionRadius || t.radius * 0.6;
+    const inTree = d < treeR + wolf.collisionRadius;
+    console.log(`树: 距离=${d}, 在树内=${inTree}`);
+});
+
+// 检查四周可移动方向
+const dirs = [{x:10,y:0}, {x:-10,y:0}, {x:0,y:10}, {x:0,y:-10}];
+dirs.forEach((p, i) => {
+    console.log(`方向${i}: 可移动=${WallSystem.canMoveTo(wolf.x+p.x, wolf.y+p.y, wolf.collisionRadius)}`);
+});
+```
+
+---
+
 ## 变更记录
 
 - v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复
   - 新建 `src/ai/path-manager.js`：路径缓存 + 每 1.5-2.5 秒有效性检查 + 局部修复（障碍物附近搜索替代路线）
   - 增强 `src/ai/pathfinder.js`：地形权重（树木 1.5x，拥挤 1.3x）、区域连通性检查（Flood Fill）、全局路径缓存
+  - **修复**：`isReachable` Flood Fill 步数限制过死（`ceil(maxDist/step)+5` → `ceil(maxDist/step)*3+20`），导致路径计算完全失败，单位卡在树木边缘无法移动
   - 修改 `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）+ PathManager 集成
   - 修改 `src/entities/enemy.js`：fallback `_updateMovement` 兼容 PathManager
 
