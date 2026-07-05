@@ -122,8 +122,7 @@ class BlackWolf extends Enemy {
         this._attackDashOffset = 0; // 重置冲刺位移
     }
 
-    render(ctx) {
-        // 计算攻击冲刺位移（应用到渲染位置，不影响碰撞体）
+    _getRenderPosition() {
         let dashX = 0, dashY = 0;
         if (this._attackDashOffset > 0) {
             switch (this._facing) {
@@ -133,67 +132,37 @@ class BlackWolf extends Enemy {
                 case 'up':    dashY = -this._attackDashOffset; break;
             }
         }
-        const pos = Renderer.worldToScreen(this.x + dashX, this.y + dashY);
-        const x = pos.x, y = pos.y;
-        this.renderHealthBar(ctx);
+        return Renderer.worldToScreen(this.x + dashX, this.y + dashY);
+    }
 
-        // 直接使用原始精灵图，不旋转
-        // 原理：原始精灵图本身就是正确的朝向，不做任何旋转
-        // X轴（左右移动）：直接使用原始贴图 + flipX（水平镜像）区分方向
-        // Y轴（上下移动）：使用不同行的帧（后续调整）
-        // 攻击时：使用攻击精灵图 + 相同的 flipX 逻辑
-        let textureKey = 'enemy_black_wolf';
-        let currentSprite = this._sprites.side;
+    _getTextureKey() {
+        if (this._animState === 'attack') {
+            return 'enemy_black_wolf_attack';
+        }
+        return 'enemy_black_wolf';
+    }
+
+    _getPhaserOptions() {
         let flipX = false;
-        let actualFrame = this._animFrame;
-        let canvasRotation = 0;
-        let phaserRotation = 0;
-        
-        // 攻击状态：使用攻击精灵图
-        if (this._animState === 'attack') {
-            textureKey = 'enemy_black_wolf_attack';
-            currentSprite = this._sprites.attack;
-        }
-        
-        // 根据 facing 设置 flipX（攻击和移动使用相同逻辑）
-        if (this._facing === 'left') {
-            flipX = true;
-        } else if (this._facing === 'right') {
-            flipX = false;
-        }
-        const flipY = false; // 不再使用 flipY
-        
-        // 调试日志：确认攻击状态
-        if (this._animState === 'attack') {
-            console.log(`[BlackWolf attack] frame=${actualFrame} flipX=${flipX}`);
-        }
-
-        // Phaser 同步
-        if (this._renderPhaserSync(ctx, x, y, textureKey, {
+        if (this._facing === 'left') flipX = true;
+        else if (this._facing === 'right') flipX = false;
+        return {
             spriteSize: 216,
-            rotation: phaserRotation,
-            frame: actualFrame,
+            rotation: 0,
+            frame: this._animFrame,
             flipX: flipX,
-            flipY: flipY,
+            flipY: false,
             textOffsetY: -120
-        })) {
-            return;
-        }
-        ctx.save(); ctx.translate(x, y);
+        };
+    }
 
-        // 计算动画变换
-        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        let bounceY = 0;
-        let scaleX = 1, scaleY = 1;
-        let leanAngle = 0;
-        let swayX = 0;
+    _drawBody(ctx) {
+        let bounceY = 0; let scaleX = 1, scaleY = 1; let leanAngle = 0; let swayX = 0;
         const t = this.animTime;
-
         if (this._animState === 'attack') {
             const progress = 1 - Math.max(0, this._attackTimer) / 300;
             const scale = 1 + Math.sin(progress * Math.PI) * 0.15;
-            scaleX = scale;
-            scaleY = scale;
+            scaleX = scale; scaleY = scale;
             bounceY = -Math.sin(progress * Math.PI) * 5;
             leanAngle = 0.1;
         } else if (this._animState === 'run') {
@@ -202,52 +171,29 @@ class BlackWolf extends Enemy {
             leanAngle = Math.sin(runPhase) * 0.12;
             swayX = Math.sin(runPhase + Math.PI / 4) * 2;
             const stretch = Math.sin(runPhase * 2) * 0.015;
-            scaleX = 1 + stretch;
-            scaleY = 1 - stretch * 0.3;
+            scaleX = 1 + stretch; scaleY = 1 - stretch * 0.3;
         } else if (this._animState === 'walk') {
             bounceY = Math.sin(t) * 2;
         }
-
-        // 主要旋转（左右移动时旋转90°）
-        if (canvasRotation !== 0) ctx.rotate(canvasRotation);
-        // 水平翻转
-        if (flipX) ctx.scale(-1, 1);
-        // 保留身体倾斜效果
+        const currentSprite = this._animState === 'attack'
+            ? this._sprites.attack
+            : this._sprites.side;
+        if (this._facing === 'left') ctx.scale(-1, 1);
         ctx.rotate(leanAngle);
-
-        // 绘制精灵图帧动画
         if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
-            // 计算帧尺寸（每次渲染都重新计算，避免首次加载时 naturalWidth 为0）
             const frameW = currentSprite.naturalWidth / this._cols;
             const frameH = currentSprite.naturalHeight / this._rows;
-            const frameIdx = actualFrame;
-            const col = frameIdx % this._cols;
-            const row = Math.floor(frameIdx / this._cols);
-            const drawW = 216, drawH = 216;
+            const col = this._animFrame % this._cols;
+            const row = Math.floor(this._animFrame / this._cols);
             ctx.save();
             ctx.translate(0, swayX);
             ctx.scale(scaleX, scaleY);
             ctx.translate(0, bounceY);
-            ctx.drawImage(
-                currentSprite,
-                col * frameW, row * frameH, frameW, frameH,  // 裁剪源
-                -drawW / 2, -drawH / 2, drawW, drawH          // 目标位置
-            );
+            ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH, -108, -108, 216, 216);
             ctx.restore();
         } else {
-            // 备用：绘制圆形
-            ctx.fillStyle = this._color;
-            ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = this._highlightColor;
-            ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
+            super._drawBody(ctx);
         }
-
-        ctx.restore();
-        ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-        ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.name, x, y - 120);
-        this.renderCollisionRadius(ctx);
     }
 }
 

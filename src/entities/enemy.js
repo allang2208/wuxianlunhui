@@ -426,14 +426,56 @@ import aiConfigData from '../../data/ai-config.json';
                 }
             }
             render(ctx) {
-                const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
+                const pos = this._getRenderPosition();
+                const x = pos.x, y = pos.y;
+                
                 this.renderHealthBar(ctx);
-                // Phaser 同步
-                if (this._renderPhaserSync(ctx, x, y, 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_'))) {
+                
+                const textureKey = this._getTextureKey();
+                const phaserOptions = this._getPhaserOptions();
+                if (this._renderPhaserSync(ctx, x, y, textureKey, phaserOptions)) {
                     return;
                 }
+                
                 this._drawShadow(ctx, x, y, this.size);
-                // 4方向朝向判断
+                
+                ctx.save(); ctx.translate(x, y);
+                this._drawBody(ctx);
+                ctx.restore();
+                
+                this._renderNameTag(ctx, x, y);
+                this.renderCollisionRadius(ctx);
+                this._renderPoisonEffect(ctx, x, y);
+                this._renderHitFlash(ctx, x, y);
+            }
+            _getRenderPosition() {
+                return Renderer.worldToScreen(this.x, this.y);
+            }
+            _getTextureKey() {
+                return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
+            }
+            _getPhaserOptions() {
+                return { textOffsetY: -32 };
+            }
+            _renderNameTag(ctx, x, y) {
+                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
+                ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, x, y - 32);
+            }
+            _renderPoisonEffect(ctx, x, y) {
+                if (this._poisonStacks > 0 && this._poisonEffect) {
+                    this._poisonEffect.render(ctx, x, y - this.size);
+                }
+            }
+            _renderHitFlash(ctx, x, y) {
+                if (this.hitFlash > 0) {
+                    const flashAlpha = this.hitFlash / this.hitFlashDuration;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
+                    ctx.beginPath(); ctx.arc(x, y, this.size + 2, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+            _drawBody(ctx) {
                 let facingAngle = this.rotation;
                 if (this.isMoving && (Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1)) {
                     facingAngle = Math.atan2(this.vy, this.vx);
@@ -444,18 +486,15 @@ import aiConfigData from '../../data/ai-config.json';
                 if (deg >= 45 && deg < 135) { facing = 'down'; displayAngle = Math.PI / 2; }
                 else if (deg >= 135 && deg < 225) { facing = 'left'; displayAngle = 0; }
                 else if (deg >= 225 && deg < 315) { facing = 'up'; displayAngle = -Math.PI / 2; }
-                ctx.save(); ctx.translate(x, y);
                 ctx.rotate(displayAngle);
                 if (facing === 'left') ctx.scale(-1, 1);
                 ctx.fillStyle = this._color; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = this._highlightColor; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
                 this.renderWeapon(ctx);
-                // 方向箭头（仅当显示武器时）
                 if (this._showWeapon) {
                     ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
                 }
                 ctx.strokeStyle = this._highlightColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
-                // 近战攻击范围黄圈显示（提高对比度，雪地场景可见）
                 if (this.attacks && this.attacks.melee && this.attacks.melee.config && this.attacks.melee.config.range) {
                     ctx.strokeStyle = 'rgba(220, 160, 20, 0.75)';
                     ctx.lineWidth = 1.5;
@@ -464,19 +503,6 @@ import aiConfigData from '../../data/ai-config.json';
                     ctx.arc(0, 0, this.attacks.melee.config.range, 0, Math.PI * 2);
                     ctx.stroke();
                     ctx.setLineDash([]);
-                }
-                ctx.restore();
-                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.name, x, y - 32);
-                this.renderCollisionRadius(ctx);
-                // 中毒绿色粒子效果（与玩家一致）
-                if (this._poisonStacks > 0 && this._poisonEffect) {
-                    this._poisonEffect.render(ctx, x, y - this.size);
-                }
-                // 受击白光效果
-                if (this.hitFlash > 0) {
-                    const flashAlpha = this.hitFlash / this.hitFlashDuration;
-                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
-                    ctx.beginPath(); ctx.arc(x, y, this.size + 2, 0, Math.PI * 2); ctx.fill();
                 }
             }
             // 新增：计算战斗属性（使用与主角相同的公式）

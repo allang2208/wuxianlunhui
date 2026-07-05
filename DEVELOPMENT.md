@@ -364,5 +364,88 @@ game-dev/
 
 ---
 
-*文档生成时间：2026-06-22*
-*版本：V0.080 模块化重构完成版*
+*文档生成时间：2026-07-05*
+*版本：V0.198 怪物渲染模板重构完成版*
+
+---
+
+## 怪物渲染系统（方案B）
+
+### 设计目标
+- 新增怪物只需配置 JSON + 实现 4 个钩子方法
+- 所有通用渲染逻辑（血条、阴影、名字标签、中毒、受击白光）由基类统一处理
+- 子类只关注自身绘制逻辑（精灵图帧动画、自定义形状等）
+
+### 基类通用模板（Enemy.render）
+
+```javascript
+render(ctx) {
+    const pos = this._getRenderPosition();   // 1. 位置
+    const x = pos.x, y = pos.y;
+    this.renderHealthBar(ctx);               // 2. 血条
+    const textureKey = this._getTextureKey();
+    const phaserOptions = this._getPhaserOptions();
+    if (this._renderPhaserSync(ctx, x, y, textureKey, phaserOptions)) {
+        return;                              // 3. Phaser 同步
+    }
+    this._drawShadow(ctx, x, y, this.size);  // 4. 阴影
+    ctx.save(); ctx.translate(x, y);
+    this._drawBody(ctx);                     // 5. 子类绘制
+    ctx.restore();
+    this._renderNameTag(ctx, x, y);           // 6. 名字
+    this.renderCollisionRadius(ctx);       // 7. 碰撞半径
+    this._renderPoisonEffect(ctx, x, y);    // 8. 中毒
+    this._renderHitFlash(ctx, x, y);        // 9. 受击白光
+}
+```
+
+### 子类扩展方式
+
+```javascript
+class NewMonster extends Enemy {
+    constructor(x, y, config) {
+        super(x, y, { ...enemyConfigData.newMonster, ...config });
+        // 加载精灵图...
+    }
+    _getTextureKey() { return 'enemy_new_monster'; }
+    _getPhaserOptions() { return { spriteSize: 200, frame: 0, textOffsetY: -100 }; }
+    _drawBody(ctx) {
+        // 精灵图帧动画或自定义绘制
+    }
+}
+```
+
+### 属性配置（enemy-config.json）
+
+```json
+{
+  "newMonster": {
+    "hp": 150, "maxHp": 150, "size": 14, "collisionRadius": 12,
+    "speed": 62.4, "level": 5, "color": "#2a2a2a",
+    "attackRange": 100, "aiInterval": 300,
+    "attack": {
+      "type": "thrust", "cooldown": 1000, "range": 100, "width": 25,
+      "damageMin": 13, "damageMax": 22, "knockback": 13
+    },
+    "str": 23, "dex": 30, "con": 23, "int": 6, "wis": 6, "luck": 10
+  }
+}
+```
+
+### 当前怪物系统状态
+
+| 怪物类型 | 数量 | 渲染方式 | 说明 |
+|---------|------|---------|------|
+| 黑狼（BlackWolf） | 1 | 精灵图帧动画 | 使用基类模板，8帧攻击动画 |
+| 战术小队 | 6 | 独立渲染 | 继承自 Enemy，但覆盖完整 render() |
+
+### 未来扩展
+
+新增怪物时，推荐流程：
+1. 准备精灵图（spritesheet，2行×4列=8帧移动 + 2行×4列=8帧攻击）
+2. 在 `enemy-config.json` 中添加配置
+3. 在 `enemy-types.js` 中创建类，实现 4 个钩子方法
+4. 在 `BootScene.js` 中加载纹理
+5. 在生成逻辑中注册新怪物
+
+*战术小队（humanoid-monster.js）当前独立渲染，后续可改造为使用基类模板*
