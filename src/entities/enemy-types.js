@@ -15,28 +15,8 @@ class Zombie extends Enemy {
                 const pos = Renderer.worldToScreen(this.x, this.y);
                 const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
                 this.renderHealthBar(ctx);
-                // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-                const phaserScene = window.__phaserScene;
-                if (phaserScene) {
-                    const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_zombie');
-                    if (!this.active) {
-                        sprite.setVisible(false);
-                        return;
-                    }
-                    const spriteSize = this.size * 3.5;
-                    sprite.setPosition(this.x, this.y);
-                    sprite.setRotation(this.rotation + Math.PI / 2);
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 64;
-                    const scale = spriteSize / originalWidth;
-                    sprite.setScale(scale);
-                    sprite.setVisible(true);
-                    // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, x, y - 32);
-                    this.renderCollisionRadius(ctx);
+                                // Phaser 同步
+                if (this._renderPhaserSync(ctx, x, y, 'enemy_zombie')) {
                     return;
                 }
                 ctx.save(); ctx.translate(x, y);
@@ -67,28 +47,8 @@ class Zombie extends Enemy {
                 const pos = Renderer.worldToScreen(this.x, this.y);
                 const x = pos.x, y = pos.y + Math.sin(this.animTime * 2) * 3;
                 this.renderHealthBar(ctx);
-                // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-                const phaserScene = window.__phaserScene;
-                if (phaserScene) {
-                    const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_runner_zombie');
-                    if (!this.active) {
-                        sprite.setVisible(false);
-                        return;
-                    }
-                    const spriteSize = this.size * 3.5;
-                    sprite.setPosition(this.x, this.y);
-                    sprite.setRotation(this.rotation + Math.PI / 2);
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 64;
-                    const scale = spriteSize / originalWidth;
-                    sprite.setScale(scale);
-                    sprite.setVisible(true);
-                    // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, x, y - 32);
-                    this.renderCollisionRadius(ctx);
+                                // Phaser 同步
+                if (this._renderPhaserSync(ctx, x, y, 'enemy_runner_zombie')) {
                     return;
                 }
                 ctx.save(); ctx.translate(x, y);
@@ -120,28 +80,8 @@ class Zombie extends Enemy {
                 const pos = Renderer.worldToScreen(this.x, this.y);
                 const x = pos.x, y = pos.y + Math.sin(this.animTime) * 1.5;
                 this.renderHealthBar(ctx);
-                // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-                const phaserScene = window.__phaserScene;
-                if (phaserScene) {
-                    const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_fat_zombie');
-                    if (!this.active) {
-                        sprite.setVisible(false);
-                        return;
-                    }
-                    const spriteSize = this.size * 3.5;
-                    sprite.setPosition(this.x, this.y);
-                    sprite.setRotation(this.rotation + Math.PI / 2);
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 64;
-                    const scale = spriteSize / originalWidth;
-                    sprite.setScale(scale);
-                    sprite.setVisible(true);
-                    // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, x, y - 36);
-                    this.renderCollisionRadius(ctx);
+                                // Phaser 同步
+                if (this._renderPhaserSync(ctx, x, y, 'enemy_fat_zombie')) {
                     return;
                 }
                 ctx.save(); ctx.translate(x, y);
@@ -170,28 +110,8 @@ class Zombie extends Enemy {
                 const pos = Renderer.worldToScreen(this.x, this.y);
                 const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
                 this.renderHealthBar(ctx);
-                // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-                const phaserScene = window.__phaserScene;
-                if (phaserScene) {
-                    const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_spitter_zombie');
-                    if (!this.active) {
-                        sprite.setVisible(false);
-                        return;
-                    }
-                    const spriteSize = this.size * 3.5;
-                    sprite.setPosition(this.x, this.y);
-                    sprite.setRotation(this.rotation + Math.PI / 2);
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 64;
-                    const scale = spriteSize / originalWidth;
-                    sprite.setScale(scale);
-                    sprite.setVisible(true);
-                    // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-                    ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                    ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, x, y - 32);
-                    this.renderCollisionRadius(ctx);
+                                // Phaser 同步
+                if (this._renderPhaserSync(ctx, x, y, 'enemy_spitter_zombie')) {
                     return;
                 }
                 ctx.save(); ctx.translate(x, y);
@@ -222,28 +142,8 @@ class BabySpider extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_baby_spider');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_baby_spider')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -274,30 +174,8 @@ class Spider extends Enemy {
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
 
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_spider');
-            // 如果蜘蛛已死亡，隐藏 Phaser Sprite
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5; // 与原有 Canvas 渲染一致
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            // 基于纹理原始尺寸计算缩放
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 2048;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+        // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_spider')) {
             return;
         }
 
@@ -356,28 +234,8 @@ class WolfSpider extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_wolf_spider');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_wolf_spider')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -428,28 +286,8 @@ class BroodmotherSpider extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 1.5;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_broodmother_spider');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 48);
-            this.renderCollisionRadius(ctx);
+        // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_broodmother_spider')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -526,28 +364,8 @@ class SkeletonWarrior extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_skeleton_warrior');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_skeleton_warrior')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -570,28 +388,8 @@ class SkeletonArcher extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_skeleton_archer');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_skeleton_archer')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -614,28 +412,8 @@ class SkeletonDog extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime * 2) * 3;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_skeleton_dog');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_skeleton_dog')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -685,28 +463,8 @@ class Necromancer extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 2;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_necromancer');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 32);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_necromancer')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -749,28 +507,8 @@ class DeathKnight extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 1.5;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_death_knight');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 48);
-            this.renderCollisionRadius(ctx);
+                // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, 'enemy_death_knight')) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
@@ -795,17 +533,48 @@ class BlackWolf extends Enemy {
             ...enemyConfigData.blackWolf,
             ...config
         });
-        // 加载精灵图
-        this._sprite = new Image();
-        this._sprite.src = 'assets/enemies/black_wolf.png';
+        // 加载精灵图（挺进地牢风格：多方向）
+        this._sprites = {
+            side: new Image(),   // 侧视图（水平移动）— 已有
+            front: new Image(),  // 正面（向下移动）— 需要生成
+            back: new Image(),   // 背面（向上移动）— 需要生成
+        };
+        this._sprites.side.src = 'assets/enemies/black_wolf.png';
+        this._sprites.front.src = 'assets/enemies/black_wolf_updown.png';
+        this._sprites.back.src = 'assets/enemies/black_wolf_updown.png';
+        
+        // 当前 facing 方向（用于渲染和动画）
+        this._facing = 'right'; // right, left, up, down
+        
         // 动画状态
         this._animState = 'idle'; // idle, walk, run, attack
         this._attackTimer = 0;
+        // 帧动画
+        this._animFrame = 0;       // 当前帧索引 0-7
+        this._animTimer = 0;       // 帧计时器
+        this._frameW = 250;        // 单帧宽度（2行×4列，总宽1000）
+        this._frameH = 215;        // 单帧高度（2行×4列，总高430）
+        this._cols = 4;            // 每行4帧
+        this._rows = 2;            // 2行
     }
 
     update(dt, entities) {
         super.update(dt, entities);
-        // 根据速度更新动画状态
+        
+        // 根据主导速度方向确定 facing（避免微小波动导致频繁切换）
+        const absVx = Math.abs(this.vx);
+        const absVy = Math.abs(this.vy);
+        const threshold = 0.5; // 最小有效速度阈值
+        if (absVx >= threshold || absVy >= threshold) {
+            if (absVy > absVx) {
+                this._facing = this.vy > 0 ? 'down' : 'up';
+            } else {
+                this._facing = this.vx > 0 ? 'right' : 'left';
+            }
+        }
+        // 否则保持当前 facing（不更新）
+        
+        // 根据速度确定动画状态
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         if (this._attackTimer > 0) {
             this._animState = 'attack';
@@ -820,6 +589,17 @@ class BlackWolf extends Enemy {
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
         }
+        // 更新帧动画
+        this._animTimer += dt;
+        let frameDuration = 150;
+        if (this._animState === 'run') frameDuration = 80;
+        else if (this._animState === 'walk') frameDuration = 120;
+        else if (this._animState === 'idle') frameDuration = 200;
+        if (this._animTimer >= frameDuration) {
+            this._animTimer = 0;
+            const totalFrames = (this._animState === 'run' || this._animState === 'attack') ? 8 : 4;
+            this._animFrame = (this._animFrame + 1) % totalFrames;
+        }
     }
 
     triggerWeaponAnim() {
@@ -831,42 +611,61 @@ class BlackWolf extends Enemy {
         const pos = Renderer.worldToScreen(this.x, this.y);
         const x = pos.x, y = pos.y;
         this.renderHealthBar(ctx);
-        // Phaser 同步：如果 Phaser 已就绪，同步到 Phaser Sprite
-        const phaserScene = window.__phaserScene;
-        if (phaserScene) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_black_wolf');
-            if (!this.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            const spriteSize = 54;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 2048;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-            // 跳过 Canvas 渲染，让 Phaser 处理，但保留名字和碰撞半径显示
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 40);
-            this.renderCollisionRadius(ctx);
+
+        // 先对左右向的移动进行调整
+        // 使用工具数据（优先从 EnemySpriteTool 获取，否则使用默认值）
+        let textureKey = 'enemy_black_wolf';
+        let currentSprite = this._sprites.side;
+        let flipX = false;
+        let actualFrame = this._animFrame;
+        let canvasRotation = 0;
+        let phaserRotation = 0;
+        
+        // 直接使用原始精灵图，不旋转
+        // 原理：原始精灵图本身就是正确的朝向，不做任何旋转
+        // X轴（左右移动）：直接使用原始贴图 + flipX（水平镜像）区分方向
+        // Y轴（上下移动）：使用不同行的帧（后续调整）
+        const defaults = {
+            right: { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
+            left:  { textureKey: 'enemy_black_wolf', rotation: 0, flipX: true },
+            up:    { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
+            down:  { textureKey: 'enemy_black_wolf', rotation: 0, flipX: false },
+        };
+        
+        // 强制使用硬编码配置，忽略工具数据（工具数据可能有旧值）
+        const cfg = defaults[this._facing] || defaults.right;
+        
+        textureKey = cfg.textureKey || 'enemy_black_wolf';
+        canvasRotation = (cfg.rotation || 0) * Math.PI / 180;
+        phaserRotation = (cfg.rotation || 0) * Math.PI / 180;
+        flipX = cfg.flipX || false;
+        const flipY = false; // 不再使用 flipY
+        
+        // 调试日志：确认参数是否生效
+        console.log(`[BlackWolf render] facing=${this._facing} texture=${textureKey} rotation=${cfg.rotation}° flipX=${flipX}`);
+
+        // Phaser 同步
+        if (this._renderPhaserSync(ctx, x, y, textureKey, {
+            spriteSize: 216,
+            rotation: phaserRotation,
+            frame: actualFrame,
+            flipX: flipX,
+            flipY: flipY,
+            textOffsetY: -120
+        })) {
             return;
         }
         ctx.save(); ctx.translate(x, y);
 
-        // 计算动画变换（仅保留跑动的抖动效果）
+        // 计算动画变换
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         let bounceY = 0;
         let scaleX = 1, scaleY = 1;
         let leanAngle = 0;
-        let swayX = 0; // 左右摆动
+        let swayX = 0;
         const t = this.animTime;
 
         if (this._animState === 'attack') {
-            // 攻击动画：前冲 + 等比例放大
             const progress = 1 - Math.max(0, this._attackTimer) / 300;
             const scale = 1 + Math.sin(progress * Math.PI) * 0.15;
             scaleX = scale;
@@ -874,36 +673,42 @@ class BlackWolf extends Enemy {
             bounceY = -Math.sin(progress * Math.PI) * 5;
             leanAngle = 0.1;
         } else if (this._animState === 'run') {
-            // 跑动：明显弹跳 + 身体倾斜 + 轻微左右摆动 + 前后脚伸缩
             const runPhase = t * 2;
             bounceY = Math.sin(runPhase) * 4;
             leanAngle = Math.sin(runPhase) * 0.12;
-            // 左右摆动（重心偏移，2px）
             swayX = Math.sin(runPhase + Math.PI / 4) * 2;
-            // 前后脚伸缩（通过身体前后轻微拉伸模拟，1.5%）
             const stretch = Math.sin(runPhase * 2) * 0.015;
             scaleX = 1 + stretch;
             scaleY = 1 - stretch * 0.3;
         } else if (this._animState === 'walk') {
-            // 走路：轻微弹跳
             bounceY = Math.sin(t) * 2;
-            scaleX = 1;
-            scaleY = 1;
         }
 
-        // 旋转朝向目标
-        ctx.rotate(this.rotation + leanAngle);
+        // 主要旋转（左右移动时旋转90°）
+        if (canvasRotation !== 0) ctx.rotate(canvasRotation);
+        // 水平翻转
+        if (flipX) ctx.scale(-1, 1);
+        // 保留身体倾斜效果
+        ctx.rotate(leanAngle);
 
-        // 仅绘制精灵图（去掉阴影、速度线、攻击红光）
-        if (this._sprite && this._sprite.complete && this._sprite.naturalWidth > 0) {
+        // 绘制精灵图帧动画
+        if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
+            // 计算帧尺寸（每次渲染都重新计算，避免首次加载时 naturalWidth 为0）
+            const frameW = currentSprite.naturalWidth / this._cols;
+            const frameH = currentSprite.naturalHeight / this._rows;
+            const frameIdx = actualFrame;
+            const col = frameIdx % this._cols;
+            const row = Math.floor(frameIdx / this._cols);
+            const drawW = 216, drawH = 216;
             ctx.save();
-            ctx.translate(0, swayX); // 左右摆动
+            ctx.translate(0, swayX);
             ctx.scale(scaleX, scaleY);
             ctx.translate(0, bounceY);
-            // 图片是俯视的，头部朝上（-y方向），旋转 +90° 让头部朝 +x（目标方向）
-            ctx.rotate(+Math.PI / 2);
-            const w = 54, h = 54;
-            ctx.drawImage(this._sprite, -w/2, -h/2, w, h);
+            ctx.drawImage(
+                currentSprite,
+                col * frameW, row * frameH, frameW, frameH,  // 裁剪源
+                -drawW / 2, -drawH / 2, drawW, drawH          // 目标位置
+            );
             ctx.restore();
         } else {
             // 备用：绘制圆形
@@ -917,7 +722,7 @@ class BlackWolf extends Enemy {
         ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
         ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(this.name, x, y - 40);
+        ctx.fillText(this.name, x, y - 120);
         this.renderCollisionRadius(ctx);
     }
 }
@@ -1174,37 +979,17 @@ class BigBoss extends Enemy {
         const x = pos.x, y = pos.y + Math.sin(this.animTime) * 1.5;
         this.renderHealthBar(ctx);
 
-        const phaserScene = window.__phaserScene;
         // 只有当 Phaser 就绪且 enemy_big_boss 纹理存在时才使用 Phaser 渲染
-        const usePhaser = phaserScene && phaserScene.textures && phaserScene.textures.exists('enemy_big_boss');
-        if (usePhaser) {
-            const sprite = phaserScene.getOrCreateEnemySprite(this, 'enemy_big_boss');
-            if (!this.active) {
-                sprite.setVisible(false);
+        if (window.__phaserScene && window.__phaserScene.textures && window.__phaserScene.textures.exists('enemy_big_boss')) {
+            if (this._renderPhaserSync(ctx, x, y, 'enemy_big_boss', { textOffsetY: -52 })) {
+                // Draw skill effects on top of Phaser
+                if (this._skillState === 'charging_fan') {
+                    this._renderChargingFan(ctx, x, y);
+                } else if (this._skillState === 'charging_dash') {
+                    this._renderChargingDash(ctx, x, y);
+                }
                 return;
             }
-            const spriteSize = this.size * 3.5;
-            sprite.setPosition(this.x, this.y);
-            sprite.setRotation(this.rotation + Math.PI / 2);
-            const sourceImage = sprite.texture.getSourceImage();
-            const originalWidth = sourceImage ? sourceImage.width : 64;
-            const scale = spriteSize / originalWidth;
-            sprite.setScale(scale);
-            sprite.setVisible(true);
-
-            // Draw skill effects on top of Phaser
-            if (this._skillState === 'charging_fan') {
-                this._renderChargingFan(ctx, x, y);
-            } else if (this._skillState === 'charging_dash') {
-                this._renderChargingDash(ctx, x, y);
-            }
-
-            ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-            ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.name, x, y - 52);
-            this.renderCollisionRadius(ctx);
-            return;
         }
 
         ctx.save(); ctx.translate(x, y);

@@ -10,6 +10,7 @@ import { Enemy } from './entities/enemy.js';
 import SpatialPartitionSystem from './systems/spatial-partition-system.js';
 import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
+import { DungeonMapSystem } from './world/dungeon-map-system.js';
 
 export const Game = {
     VERSION: '0.198', // 游戏版本号（每次更新必须递增）
@@ -43,6 +44,10 @@ export const Game = {
             }
             await this.spawnPlayer();
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
+            // 测试黑狼（主神空间出生点附近生成）
+            const testWolf = new window.BlackWolf(this.player.x + 200, this.player.y + 100);
+            Game.entities.set('test_black_wolf', testWolf);
+            console.log('[BlackWolf] 测试黑狼已在主神空间出生点附近生成', this.player.x + 200, this.player.y + 100);
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             this.dropItem(CONFIG.WORLD_WIDTH/2 + 120, CONFIG.WORLD_HEIGHT/2, EquipDataManager.G18_PISTOL_ITEM);
@@ -80,7 +85,7 @@ export const Game = {
             const portalBaseY = 2363;
             const portalSpacing = 100;
             const portalLabels = ['场景二', '场景三', '场景四', '场景五', '场景六'];
-            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', null];
+            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', 'scene6'];
             for (let i = 0; i < 5; i++) {
                 const px = portalBaseX - (i + 1) * portalSpacing;
                 const py = portalBaseY;
@@ -226,6 +231,47 @@ export const Game = {
         const drop = new DropItem(x, y, itemInstance);
         this.entities.set('drop_' + Date.now() + '_' + Math.floor(Math.random() * 1000), drop);
     },
+    _showDungeonEntryConfirm(entity) {
+        if (document.getElementById('dungeonEntryConfirm')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'dungeonEntryConfirm';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.80); z-index: 10001;
+            display: flex; align-items: center; justify-content: center;
+            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
+        `;
+        overlay.innerHTML = `
+            <div style="background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px; padding: 30px; max-width: 400px; width: 90%; color: #d4c5a9; text-align: center;">
+                <h3 style="color: #e8c878; margin: 0 0 15px; font-size: 22px;">⚔ 地牢模式</h3>
+                <p style="margin: 0 0 25px; line-height: 1.6;">你即将进入杀戮尖塔风格的地牢探险。<br>选择路线，击败敌人，获取奖励。</p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="dungeonEntryConfirmBtn" style="padding: 12px 30px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;">进入地牢</button>
+                    <button id="dungeonEntryCancelBtn" style="padding: 12px 30px; background: #3a3a3a; border: 2px solid #5a5a5a; color: #888; border-radius: 5px; cursor: pointer; font-size: 15px;">离开</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const confirmBtn = document.getElementById('dungeonEntryConfirmBtn');
+        const cancelBtn = document.getElementById('dungeonEntryCancelBtn');
+        confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
+        confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";
+        cancelBtn.onmouseenter = () => cancelBtn.style.background = "#4a4a4a";
+        cancelBtn.onmouseleave = () => cancelBtn.style.background = "#3a3a3a";
+        confirmBtn.onclick = () => {
+            overlay.remove();
+            this._portalCooldown = Date.now() + 2000;
+            try {
+                SceneManager.switchScene(entity.targetScene, this.player);
+            } catch (err) {
+                console.error('[portal detection] switchScene error:', err);
+            }
+        };
+        cancelBtn.onclick = () => {
+            overlay.remove();
+            this._portalCooldown = Date.now() + 2000;
+        };
+    },
     // 武器生成位置管理器：从(5461, 2613)开始，向右排列，每10件向下200单位
     _weaponSpawnIndex: 0,
     spawnWeapon(itemTemplate) {
@@ -303,6 +349,33 @@ export const Game = {
         requestAnimationFrame(t => this.loop(t));
     },
     update(dt) {
+        // ===== 场景六：地牢地图系统拦截 =====
+        if (SceneManager.currentScene === 'scene6' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+            if (DungeonMapSystem.state === 'map') {
+                DungeonMapSystem.update(dt);
+                EffectManager.update(dt);
+                QuickBar.updateCooldowns(dt);
+                Input.update();
+                return;
+            } else if (DungeonMapSystem.state === 'combat' || DungeonMapSystem.state === 'boss') {
+                DungeonMapSystem.updateCombat(dt);
+                try {
+                    if (typeof NPCDialogue !== 'undefined' && NPCDialogue.active) {
+                        NPCDialogue.close();
+                    }
+                } catch (e) {
+                    console.error('[DungeonMapSystem] Failed to close NPCDialogue:', e);
+                }
+                // 继续执行下面的实体更新
+            } else if (DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'event') {
+                // 商店/事件模式：只更新输入和特效
+                EffectManager.update(dt);
+                QuickBar.updateCooldowns(dt);
+                Input.update();
+                return;
+            }
+        }
+
         // 无人机操控模式下镜头跟随无人机
         if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
             const drone = this.player.droneSystem;
@@ -507,15 +580,19 @@ export const Game = {
                         if (dist < 30) {
                             this._portalCooldown = now + 2000; // 2秒冷却
                             try {
-                                // 检查是否是任务返回传送门
-                                if (entity._isQuestReturn) {
-                                    // 完成任务，返回主神空间，发放奖励
-                                    QuestState.completeEvacuation();
-                                    QuestState.finishQuest();
+                                if (entity.targetScene === 'scene6') {
+                                    this._showDungeonEntryConfirm(entity);
+                                } else {
+                                    // 检查是否是任务返回传送门
+                                    if (entity._isQuestReturn) {
+                                        // 完成任务，返回主神空间，发放奖励
+                                        QuestState.completeEvacuation();
+                                        QuestState.finishQuest();
+                                        SceneManager.switchScene(entity.targetScene, this.player);
+                                        return;
+                                    }
                                     SceneManager.switchScene(entity.targetScene, this.player);
-                                    return;
                                 }
-                                SceneManager.switchScene(entity.targetScene, this.player);
                             } catch (err) {
                                 console.error('[portal detection] switchScene error:', err);
                             }
@@ -712,6 +789,13 @@ export const Game = {
         }
     },
     render() {
+        // ===== 场景六：地牢地图系统渲染拦截 =====
+        if (SceneManager.currentScene === 'scene6' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
+            Renderer.clear();
+            DungeonMapSystem.render(Renderer.ctx);
+            return;
+        }
+
         if (SceneManager.currentScene === 'scene3') {
             Renderer.renderTrainBackground();
         } else {

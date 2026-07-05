@@ -3897,8 +3897,18 @@ import { StatusBar } from '../ui/status-bar.js';
                         // walk_001 原始面朝下，需 -Math.PI/2 修正到面朝右后再应用朝向
                         sprite.setRotation(this.rotation - Math.PI / 2);
                     }
-                    sprite.setVisible(true);
-                    this._usePhaserSprite = true; // 标记：Phaser 已渲染角色，Canvas 跳过角色贴图
+                    // ===== 场景六地图模式：隐藏 Phaser 角色贴图 =====
+                    const _dms = window.DungeonMapSystem || (typeof DungeonMapSystem !== 'undefined' ? DungeonMapSystem : null);
+                    if (SceneManager.currentScene === 'scene6' && _dms && _dms.active && _dms.state === 'map') {
+                        sprite.setVisible(false);
+                        sprite.setActive(false);
+                        if (phaserScene.weaponSprite) { phaserScene.weaponSprite.setVisible(false); phaserScene.weaponSprite.setActive(false); }
+                        if (phaserScene.offhandWeaponSprite) { phaserScene.offhandWeaponSprite.setVisible(false); phaserScene.offhandWeaponSprite.setActive(false); }
+                        this._usePhaserSprite = false;
+                    } else {
+                        sprite.setVisible(true);
+                        this._usePhaserSprite = true; // 标记：Phaser 已渲染角色，Canvas 跳过角色贴图
+                    }
                     // 同步武器到 Phaser Sprite
                     const weaponAnim = this._getWeaponAnimParams();
                     const offhandAnim = this._getOffhandWeaponAnimParams();

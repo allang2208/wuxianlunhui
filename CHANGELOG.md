@@ -8,6 +8,31 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-05
+
+### 对话：黑狼贴图朝向调试 + 怪物贴图调整工具（v0.198）
+- **修改文件**（9 个文件）：
+  - `src/entities/enemy-types.js`：BlackWolf render 使用原始精灵图（不旋转），left 方向通过 flipX 水平镜像实现
+  - `src/entities/enemy.js`：修复 `_renderPhaserSync` — 旋转同步通过 `this.rotation` 让 GameScene.update 处理；flip 通过 `setScale` 负值实现，避免与 `setFlipX/Y` 冲突
+  - `src/ui/enemy-sprite-tool.js`：新建怪物贴图调整工具，支持选择怪物、方向、精灵图、大小、旋转、翻转，实时预览
+  - `src/ui/dev-tool.js`：导入并初始化 EnemySpriteTool，挂载到 `window`
+  - `index.html`：添加"怪物" Tab 和贴图调整界面
+  - `game-style.css`：添加怪物贴图调整工具样式
+  - `assets/enemies/black_wolf.png`：已重排为 2行×4列均匀网格
+  - `assets/enemies/black_wolf_updown.png`：新建上下向精灵图
+  - `src/phaser/scenes/BootScene.js`：加载黑狼精灵图
+- **修改内容摘要**：
+  1. 黑狼贴图朝向问题：原始精灵图是垂直方向（上下向），通过工具调试发现最佳方案是"不旋转，直接用原始贴图 + flipX 镜像区分左右"
+  2. 修复 Phaser flip 陷阱：`setScale(scale)` 会覆盖 `setFlipX/Y` 的符号，正确做法是通过 `setScale(scaleX, scaleY)` 负值实现 flip
+  3. 修复 Phaser 旋转同步：`_renderPhaserSync` 设置 `this.rotation = options.rotation - Math.PI/2`，让 `GameScene.update` 的 `setRotation(entity.rotation + Math.PI/2)` 正确工作
+  4. 新建怪物贴图调整工具：用户自行调整参数，导出 JSON，代码读取应用，降低沟通成本
+  5. 更新 `game-dev-workflow` SKILL.md：添加精灵图朝向调试经验章节
+- **测试结果**：right/left 方向贴图朝向正确，水平镜像成功
+- **预期效果**：黑狼左右移动贴图朝向正确，用户可通过工具自行调整其他怪物
+- **已知问题**：
+  - up/down 方向尚未调整（用户计划后续使用工具调整）
+  - 其他 14 个怪物的朝向仍使用默认配置，需要逐个调整
+
 ## 2026-07-03
 
 ### 对话 2：AI系统重构 + 50+怪物性能优化（v0.197）

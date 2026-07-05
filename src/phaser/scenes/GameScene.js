@@ -56,6 +56,38 @@ export class GameScene extends Scene {
     update(time, delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
+        
+        // 场景六地图模式：隐藏角色及武器贴图
+        const _game = window.Game;
+        const _dms = window.DungeonMapSystem;
+        if (SceneManager.currentScene === 'scene6' && _dms && _dms.active && _dms.state === 'map') {
+            if (this.playerSprite && this.playerSprite.visible) {
+                this.playerSprite.setVisible(false);
+                this.playerSprite.setActive(false);
+            }
+            if (this.weaponSprite && this.weaponSprite.visible) {
+                this.weaponSprite.setVisible(false);
+                this.weaponSprite.setActive(false);
+            }
+            if (this.offhandWeaponSprite && this.offhandWeaponSprite.visible) {
+                this.offhandWeaponSprite.setVisible(false);
+                this.offhandWeaponSprite.setActive(false);
+            }
+        } else {
+            if (this.playerSprite && _game && _game.player && !this.playerSprite.visible) {
+                this.playerSprite.setVisible(true);
+                this.playerSprite.setActive(true);
+            }
+            if (this.weaponSprite && !this.weaponSprite.visible) {
+                this.weaponSprite.setVisible(true);
+                this.weaponSprite.setActive(true);
+            }
+            if (this.offhandWeaponSprite && !this.offhandWeaponSprite.visible) {
+                this.offhandWeaponSprite.setVisible(true);
+                this.offhandWeaponSprite.setActive(true);
+            }
+        }
+        
         this._updateCamera();
         // 同步玩家位置到物理体（用于碰撞检测）
         this._syncBodiesToPhysics();
@@ -129,8 +161,12 @@ export class GameScene extends Scene {
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
 
-        // 更新相机边界（允许负坐标，3倍世界范围）
-        this.cameras.main.setBounds(-CONFIG.WORLD_WIDTH, -CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH * 3, CONFIG.WORLD_HEIGHT * 3);
+        // 每帧更新 viewport，确保分辨率改变后 Phaser 相机渲染区域与 Canvas 层保持一致
+        this.cameras.main.setViewport(0, 0, viewW, viewH);
+
+        // 更新相机边界（允许负坐标，边界需足够大以包含 Camera.x - viewW/2 的范围）
+        const boundSize = Math.max(CONFIG.WORLD_WIDTH, viewW, CONFIG.WORLD_HEIGHT, viewH) * 3;
+        this.cameras.main.setBounds(-boundSize, -boundSize, boundSize * 2, boundSize * 2);
 
         // 直接同步原有系统的相机位置，避免两个 Canvas 错位
         this.cameras.main.scrollX = Camera.x - viewW / 2;
@@ -461,6 +497,9 @@ export class GameScene extends Scene {
             body.setImmovable(false);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;
+        } else if (enemy._phaserSprite.texture.key !== texture) {
+            // 纹理变化时切换（如黑狼左右/上下精灵图切换）
+            enemy._phaserSprite.setTexture(texture);
         }
         return enemy._phaserSprite;
     }

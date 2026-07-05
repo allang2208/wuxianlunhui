@@ -400,7 +400,7 @@
     "maxHp": 160,
     "size": 19,
     "collisionRadius": 16,
-    "speed": 2.5,
+    "speed": 62.4,
     "level": 5,
     "color": "#2a2a2a",
     "highlightColor": "rgba(80, 80, 80, 0.3)",

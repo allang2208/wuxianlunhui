@@ -26,12 +26,15 @@ const Renderer = {
                 return { x: 3825, y: 1886 };
             },
             worldToDisplay(wx, wy) { const o = this._getSceneOrigin(); return { x: wx - o.x, y: wy - o.y }; },
-            clear() { if (!this.ctx) { return; } this.ctx.fillStyle = '#2a3520'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
+            clear() { if (!this.ctx) { return; } this.ctx.fillStyle = (SceneManager.currentScene === 'scene6') ? '#000000' : '#2a3520'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
             renderTerrain() {
                 if (!this.terrainTexture) return;
                 const ctx = this.ctx, offsetX = -Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, offsetY = -Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY;
                 ctx.drawImage(this.terrainTexture, offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
-                ctx.strokeStyle = '#8a4a4a'; ctx.lineWidth = 4; ctx.strokeRect(offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
+                // 场景六（256×256 小地图）不画边界框，避免黄框干扰
+                if (SceneManager.currentScene !== 'scene6') {
+                    ctx.strokeStyle = '#8a4a4a'; ctx.lineWidth = 4; ctx.strokeRect(offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
+                }
             },
             renderGrid() {
                 const ctx = this.ctx, offsetX = (-Camera.x + CONFIG.VIEW_WIDTH/2 + Camera.shakeX) % CONFIG.GRID_SIZE, offsetY = (-Camera.y + CONFIG.VIEW_HEIGHT/2 + Camera.shakeY) % CONFIG.GRID_SIZE;
