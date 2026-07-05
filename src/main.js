@@ -133,6 +133,7 @@ async function initModules() {
 
     // AI
     window.pathFinder = pathFinder;
+    window.PathManager = PathManager;
     window.TacticalSquadAI = TacticalSquadAI;
 
     // AI Systems (v0.197 重构)
@@ -244,6 +245,7 @@ import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { pathFinder } from './ai/pathfinder.js';
+import { PathManager } from './ai/path-manager.js';
 import { BlackWolf } from './entities/enemy-types.js';
 import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './entities/humanoid-monster.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';

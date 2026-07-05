@@ -10,6 +10,7 @@
  */
 
 import { MathUtils } from '../config/math-utils.js';
+import { PathManager } from '../ai/path-manager.js';
 
 /**
  * 移动系统核心实现
