@@ -24,6 +24,7 @@
   5. 区域连通性：findPath 前先用 Flood Fill 判断目标是否可达，避免无效 A* 计算
   6. 路径缓存：全局缓存计算结果，相同起点+终点+半径复用，3秒有效期，50条上限
   7. 向后兼容：旧 `enemy._path` 和 `enemy._pathIdx` 仍然保留，MovementSystem 和 Enemy fallback 模式自动回退
+  8. **修复**：`isReachable()` Flood Fill 步数限制过死（`ceil(maxDist/step)+5` → `ceil(maxDist/step)*3+20`），导致路径计算完全失败，单位卡在树木边缘无法移动
 - **测试结果**：node 语法验证通过（path-manager.js、pathfinder.js、movement-system.js 全部 OK）
 - **已知问题**：PathManager 的 `_getMoveCost` 检查其他单位时，可能因 Game.entities 遍历量较大而性能开销增加，后续可考虑优化
 
