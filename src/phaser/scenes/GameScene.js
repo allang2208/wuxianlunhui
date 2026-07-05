@@ -144,7 +144,16 @@ export class GameScene extends Scene {
             if (!entity || !entity.active || entity === Game.player) return;
             if (!entity._phaserSprite) return; // 没有 Phaser Sprite 的不自动创建
             if (entity._phaserSprite.body) {
-                entity._phaserSprite.body.reset(entity.x, entity.y);
+                // 如果实体有攻击冲刺偏移，同步到 Phaser 物理体
+                let syncX = entity.x, syncY = entity.y;
+                if (entity._attackDashOffset > 0 && !entity._dashBlocked) {
+                    const offset = typeof entity._getDashOffset === 'function'
+                        ? entity._getDashOffset()
+                        : { x: 0, y: 0 };
+                    syncX += offset.x;
+                    syncY += offset.y;
+                }
+                entity._phaserSprite.body.reset(syncX, syncY);
             }
             if (entity.rotation !== undefined) {
                 entity._phaserSprite.setRotation(entity.rotation + Math.PI / 2);

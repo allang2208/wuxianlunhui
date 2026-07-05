@@ -1,0 +1,408 @@
+# Sprite Pipeline 技能文档
+
+## 版本: 1.3
+
+## 核心规则
+
+1. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误
+2. **所有精灵图在入代码前必须跑标准化脚本** — 统一内容大小和中心位置，避免代码手动调 spriteSize
+3. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
+
+---
+
+## 流水线流程（以后每个新角色/怪物都走这套）
+
+### 步骤1: 制作原始精灵图
+
+在 Aseprite / Photoshop 中制作，帧大小固定（如 250×215）。
+
+不要求内容精确对齐，因为步骤3会处理。
+
+### 步骤2: 运行标准化脚本
+
+```bash
+cd tools
+python sprite-normalizer.py \
+  --input ../assets/enemies/raw/black_wolf.png ../assets/enemies/raw/black_wolf_attack.png \
+  --output ../assets/enemies/ \
+  --frame-width 250 --frame-height 215 \
+  --cols 4 --rows 2
+```
+
+脚本行为：
+- 分析每个精灵图的所有帧内容边界
+- 取所有输入中的**最大内容宽高**作为目标
+- 缩放每帧内容（保持比例，fit 模式）
+- 平移使内容中心对齐到帧中心
+- 输出到 `--output` 目录
+
+只输出报告不生成文件：
+```bash
+python sprite-normalizer.py --report ...
+```
+
+### 步骤3: BootScene 加载
+
+```javascript
+this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', {
+    frameWidth: 250, frameHeight: 215, endFrame: 7
+});
+```
+
+**必须带 `endFrame`**，Phaserv4 即使图片高度差1像素也能正确加载。
+
+### 步骤4: 怪物代码无需手动调 spriteSize
+
+标准化后所有精灵图内容大小一致，代码中统一 spriteSize，无需条件判断：
+
+```javascript
+_getPhaserOptions() {
+    return {
+        spriteSize: 216,  // 统一值，不再根据状态变化
+        frame: this._animFrame,
+        flipX: this._facing === 'left',
+        // ...
+    };
+}
+```
+
+---
+
+## 常见问题
+
+### 精灵图加载时报 "has no frame X"
+
+原因：图片高度不是 `frameHeight` 的整数倍，Phaser 只识别了整数行数。  
+解决：
+1. 短期：在 `load.spritesheet` 中加 `endFrame: N`
+2. 长期：运行 `sprite-normalizer.py` 自动填充到正确尺寸
+
+### 切换动画时贴图忽大忽小
+
+原因：不同精灵图的内容大小/中心位置不一致，Phaser 按整帧缩放导致内容大小差异。  
+解决：运行 `sprite-normalizer.py` 统一所有精灵图的内容大小和中心位置。
+
+---
+
+## 工具文件
+
+- `tools/sprite-normalizer.py` — 精灵图标准化脚本
+- `tools/sprite-meta.json` — 脚本输出元数据（记录目标参数）
+
+---
+
+## 怪物 AI 状态机（BlackWolf 示例）
+
+### 设计原则
+- **不硬编码**：AI 参数从 `enemy-config.json` 或构造函数 `config.ai` 读取
+- **外部系统驱动**：BlackWolf 的 `update()` 只设置目标属性（`target`、`_tacticalTarget`、`_lastKnownTargetPos`），`MovementSystem` 和 `CombatSystem` 在后续帧执行移动/攻击
+- **状态机模式**：`pacing` → `chasing` → `lost` → `pacing`
+
+### 状态定义
+
+| 状态 | 速度 | 目标 | 行为 |
+|------|------|------|------|
+| `pacing` | `maxSpeed * 0.5` | `_tacticalTarget`（200px 内随机点） | 在踱步中心半径 200px 内慢速漫游 |
+| `chasing` | `maxSpeed` | `target`（最近玩家） | 向玩家奔跑，进入攻击范围时触发攻击 |
+| `lost` | 无（计时中） | 保留 `target` | 目标跑出 800px 后持续 2s 计时，超时回 pacing |
+
+### 参数配置（enemy-config.json）
+
+```json
+{
+  "blackWolf": {
+    "speed": 93.6,
+    "dashDistance": 200,
+    "ai": {
+      "aggroRange": 800,
+      "pacingRange": 200,
+      "loseTimeout": 2000
+    }
+  }
+}
+```
+
+### 代码实现要点
+
+```javascript
+// 1. update() 中扫描 + 执行 AI
+this._aiScanTimer += dt;
+if (this._aiScanTimer >= this._aiScanInterval) {
+    this._aiScanTimer = 0;
+    this._updateAIState(dt, entities);  // 状态切换
+}
+this._executeAI(dt, entities);  // 设置 target / _tacticalTarget / maxSpeed
+
+// 2. pacing 状态：设置 _tacticalTarget，让 MovementSystem 读取
+this._tacticalTarget = this._pacingTarget;
+this.maxSpeed = this._baseSpeed * 0.5;
+
+// 3. chasing 状态：设置 target，让 CombatSystem 读取
+this.target = nearestPlayer;
+this.maxSpeed = this._baseSpeed;
+this._tacticalTarget = null;
+```
+
+---
+
+## 状态效果系统（DamageableEntity 统一驱动）
+
+### 设计原则
+- **单一来源**：所有伤害型状态效果（中毒、流血、魔法易伤、无人机易伤）的 `_update*` 方法**只存在于 DamageableEntity 基类**
+- **子类不重复**：`enemy.js` 和 `combat-system.js` 不再包含 `_updatePoison`/`_updateBleed` 等方法
+- **统一入口**：`DamageableEntity.update(dt)` 调用 `updateStatusEffects(dt)` + 4 个 `_update*` 方法
+
+### 属性初始化链
+```
+Combatant 构造函数 → DamageableEntity 构造函数
+  _poisonStacks, _poisonTimer, _poisonTickTimer, _poisonEffectId
+  _bleedStacks, _bleedTimer, _bleedTickTimer, _bleedEffectId
+  _magicVulnerabilityStacks, _magicVulnerabilityTimer
+  _droneVulnerabilityStacks, _droneVulnerabilityTimer
+
+Enemy 构造函数只保留特有属性：
+  this._poisonEffect = new PoisonEffect();  // 粒子效果（基类没有）
+```
+
+### 为什么之前重复？
+`enemy.js` 和 `combat-system.js` 各自维护了一套 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`。
+这意味着：当 `CombatSystem.update()` 和 `Enemy.update()` 都被调用时，**状态效果每帧被更新两次**，导致中毒/流血伤害翻倍。
+
+### 重构后调用链
+```
+Enemy.update() → DamageableEntity.update() → updateStatusEffects() + _updatePoison() + ...
+CombatSystem.update() → 不再调用状态效果更新（只负责战斗：眩晕、攻击、武器动画）
+```
+
+---
+
+## Dash 偏移计算（_getDashOffset 统一接口）
+
+### 问题
+`GameScene.js` 的 `_syncBodiesToPhysics` 中有一段 12 行的 switch 逻辑，用于根据 `_dashAngle` 或 `_dashStartFacing` 计算冲刺偏移量。这段逻辑在 `enemy-types.js`（BlackWolf）中也存在。
+
+### 解决
+在 `Enemy` 基类定义 `_getDashOffset()` 方法：
+```javascript
+_getDashOffset() {
+    if (this._attackDashOffset <= 0) return { x: 0, y: 0 };
+    if (this._dashAngle !== undefined) {
+        return {
+            x: Math.cos(this._dashAngle) * this._attackDashOffset,
+            y: Math.sin(this._dashAngle) * this._attackDashOffset
+        };
+    }
+    switch (this._dashStartFacing || this._facing) {
+        case 'right': return { x: this._attackDashOffset, y: 0 };
+        case 'left':  return { x: -this._attackDashOffset, y: 0 };
+        case 'down':  return { x: 0, y: this._attackDashOffset };
+        case 'up':    return { x: 0, y: -this._attackDashOffset };
+        default:      return { x: 0, y: 0 };
+    }
+}
+```
+
+`GameScene.js` 和 `enemy-types.js` 统一调用 `entity._getDashOffset()`，不再重复 switch 逻辑。
+
+---
+
+## 树木碰撞体优化（大怪物卡树问题）
+
+### 问题
+黑狼碰撞体积 38 虽然不大，但在树木（视觉半径 25，碰撞半径 25）间移动时仍会被卡住。因为 `canMoveTo` 判定的是 `tree.radius + entity.radius < distance`，视觉半径和碰撞半径未分离。
+
+### 解决
+1. **视觉半径和碰撞半径分离**：每棵树的 `collisionRadius = radius × 0.6`（主神空间树木从 25 降到 15）
+2. **滑动回退**：`WallSystem.resolve()` 在标准 X/Y 轴滑动都失败后，尝试按 75%/50%/25% 步长找到可移动的最远位置，避免完全卡住
+
+### 新增属性
+```javascript
+addTree(x, y, radius, ...) {
+    const collisionRadius = radius * 0.6;  // 碰撞半径仅为视觉的60%
+    // ...
+}
+```
+
+所有使用 `t.radius` 的位置（`canMoveTo`、`blocked`、Phaser 同步）统一使用 `t.collisionRadius || t.radius * 0.6`。
+
+---
+
+## 常见陷阱：anim.timer === 0（死代码）
+
+### 问题
+`enemy.js` 和 `combat-system.js` 的 swing 阶段都有：
+```javascript
+if (anim.timer === 0 && this._pendingThrust) this._pendingThrust.active = true;
+```
+
+这条代码**永远不会触发**：`anim.timer += dt` 后 `dt > 0`，`anim.timer` 不可能为 0。
+
+### 正确做法
+`ThrustAttack.execute()` 在创建 `_pendingThrust` 时已经设置 `active = true`：`triggerWeaponAnim()` 没有覆盖 `_pendingThrust`，所以 `active` 始终保持 `true`，无需重新设置。
+
+直接删除这条死代码即可。
+
+---
+
+## 常见陷阱：const 重复声明
+
+### 问题
+`shield-system.js` 的 `onDamageTaken` 方法中：
+```javascript
+const defense = shieldData.defense;  // 行53
+// ... 弹反逻辑 ...
+const defense = shieldData.defense;  // 行81 ← 重复声明！
+```
+
+在块级作用域中（`if` 块内部是 `const` 的作用域），同一个函数中两次 `const defense` 会导致语法错误。
+
+### 解决
+弹反逻辑中直接使用行53声明的 `defense` 变量，不再重复声明。或者在弹反块内部改声明为 `const defense = shieldData?.defense || {}`（如果外层 `defense` 不在作用域内）。
+
+---
+
+## 智能寻路系统（参考《环世界》PathManager）
+
+### 设计目标
+- **主动预规划**：看到目标时立即计算路径，而不是等卡住才反应
+- **定期路径检查**：每 1.5-2.5 秒扫描路径节点，检测新障碍物
+- **局部修复**：路径被阻挡时，在障碍物附近搜索替代路线，不重新计算整条路径
+- **地形权重**：树木附近增加移动成本，让单位自然绕行
+
+### 架构
+
+```
+Enemy
+  └── _pathManager: PathManager 实例
+        ├── path: {x,y}[]          // 当前路径
+        ├── pathIdx: number        // 当前索引
+        ├── checkInterval: 1500-2500ms  // 检查间隔（随机，避免同时检查）
+        ├── checkTimer: number     // 计时器
+        └── isValid: boolean       // 路径是否有效
+
+PathManager
+  ├── setPath(path)              // 设置新路径
+  ├── update(dt, pathPlanner)   // 每帧：检查有效性
+  ├── _checkValidity()         // 扫描路径节点，检测障碍物
+  ├── _repairPath(blockedIdx)  // 局部修复（核心）
+  ├── getCurrentWaypoint()     // 获取当前目标路径点
+  ├── advanceWaypoint()        // 前进到下一个路径点
+  └── forceRecalc()            // 强制重算路径
+
+PathPlanner（增强的 PathFinder）
+  ├── _getMoveCost(x, y, radius)   // 地形权重计算
+  ├── isReachable()               // 区域连通性检查（Flood Fill）
+  ├── _pathCache: Map             // 全局路径缓存（3秒有效期）
+  └── findPath()                  // A* + 权重 + 缓存
+```
+
+### 局部修复算法（核心）
+
+当 PathManager 检测到路径上的节点 `i` 被阻挡时：
+
+1. **策略1：小范围局部搜索**
+   - 取 `path[i-2]` 作为修复起点，`path[i+2]` 作为修复终点
+   - 在起点和终点之间用 `findPath` 搜索替代路径（搜索范围自然受限）
+   - 如果找到：拼接路径 = 前半段 + 替代段 + 后半段
+   - 调整 `pathIdx`：如果当前索引在修复范围内，回退到修复起点
+
+2. **策略2：从阻挡点到终点重新计算**
+   - 如果策略1失败，从 `path[i-2]` 重新计算到终点的完整路径
+   - 拼接：前半段 + 新路径（去掉起点）
+
+3. **策略3：完全失败**
+   - 连续 3 次修复失败，清除路径，让 MovementSystem 触发随机逃逸
+
+### 地形权重
+
+在 `PathFinder._buildGrid` 中，每个格子计算 `moveCost`：
+- 普通地面：`1.0`
+- 树木附近（碰撞半径 × 1.5 范围内）：`+0.5`（总计 1.5）
+- 其他单位附近（碰撞半径 × 2.5 范围内）：`+0.3`（总计 1.3）
+
+A* 中移动成本 = `baseMoveCost * terrainCost * gridSize`
+- 直线：`1.0 * terrainCost * 40`
+- 对角线：`1.414 * terrainCost * 40`
+
+### 区域连通性检查
+
+在 `findPath` 之前，先用 `isReachable` 做 Flood Fill：
+- 从起点向 8 方向扩展，检查是否可达目标附近
+- 如果不可达，直接返回 `null`，避免昂贵的 A* 计算
+- 限制最大步数，防止 Flood Fill 无限扩散
+
+### 路径缓存
+
+- 全局缓存：`Map<key, {path, timestamp}>`
+- 缓存 key：`量化起点 + 量化终点 + 碰撞半径`
+- 量化：坐标取 `floor(x / gridSize) * gridSize`
+- 有效期：3 秒
+- 最大容量：50 条路径
+- 墙壁变化时调用 `invalidateCache()` 清空缓存
+
+### 使用方式
+
+```javascript
+// 1. 在 MovementSystem.update 中主动预规划
+if (enemy._pathManager && dist > attackRange * 1.5) {
+    if (!enemy._pathManager.hasValidPath()) {
+        enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+    }
+}
+
+// 2. 每帧更新 PathManager（检查有效性 + 局部修复）
+if (enemy._pathManager) {
+    enemy._pathManager.update(dt, pathFinder);
+}
+
+// 3. 沿路径移动
+if (enemy._pathManager.hasValidPath()) {
+    const wp = enemy._pathManager.getCurrentWaypoint();
+    // ... 向 wp 移动 ...
+    if (距离 < 5) enemy._pathManager.advanceWaypoint();
+}
+
+// 4. 卡住时 fallback
+if (enemy._pathManager) {
+    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+}
+```
+
+### 与旧系统的兼容性
+
+- `enemy._path` 和 `enemy._pathIdx` 仍然保留，作为 fallback
+- MovementSystem 优先使用 `enemy._pathManager`，没有 PathManager 时使用旧路径
+- Enemy 的 `_updateMovement`（fallback 模式）也兼容 PathManager
+
+### 为什么之前被动寻路不好？
+
+旧系统只在卡住（500ms 移动 < 3px）时才触发寻路：
+- 单位先撞墙 → 被卡住 → 检测卡住 → 计算路径 → 开始移动
+- 这导致单位在撞墙后有明显的"停顿"感
+
+新系统：
+- 单位看到目标 → 立即计算路径 → 沿路径移动 → 遇到障碍物时 PathManager 自动修复
+- 单位更流畅，不会明显撞墙
+
+---
+
+## 变更记录
+
+- v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复
+  - 新建 `src/ai/path-manager.js`：路径缓存 + 每 1.5-2.5 秒有效性检查 + 局部修复（障碍物附近搜索替代路线）
+  - 增强 `src/ai/pathfinder.js`：地形权重（树木 1.5x，拥挤 1.3x）、区域连通性检查（Flood Fill）、全局路径缓存
+  - 修改 `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）+ PathManager 集成
+  - 修改 `src/entities/enemy.js`：fallback `_updateMovement` 兼容 PathManager
+
+- v1.4 (2026-07-05) — 硬编码清理：状态效果统一化、树木碰撞体优化、dash 偏移统一
+  - DamageableEntity 基类新增 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`，4种状态效果统一在基类 `update()` 中驱动
+  - Enemy 构造函数删除 15 行冗余属性初始化（已在 Combatant 中初始化）
+  - `combat-system.js` 删除 85 行重复状态效果代码 + 1 处死代码 `anim.timer === 0`
+  - GameScene.js dash 偏移逻辑统一：使用 `entity._getDashOffset()` 替代 inline switch 逻辑
+  - wall-system.js 树木碰撞体优化：视觉半径和碰撞半径分离（collisionRadius = radius × 0.6），resolve() 添加逐步缩减步长回退
+  - shield-system.js 修复 `const defense` 重复声明语法错误
+  - 黑狼碰撞体积从 88 缩小到 38
+
+- v1.3 (2026-07-05) — 增加 Sprite Pipeline 标准化流程，新增 `sprite-normalizer.py` 工具
+- v1.2 (2026-07-05) — 怪物渲染模板系统，提取 `Enemy.render()` 通用模板 + 7个钩子方法
+- v1.1 (2026-07-04) — 怪物统一配置（enemy-config.json），删除双系统

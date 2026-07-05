@@ -8,6 +8,52 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-05（智能寻路系统：参考《环世界》预规划 + 局部修复）
+
+### 对话：开发智能寻路系统（v0.198）
+- **修改文件**（5 个文件）：
+  - `src/ai/path-manager.js`：新建智能路径管理器，实现路径缓存、定期有效性检查（1.5-2.5秒）、局部修复（障碍物附近搜索替代路线）
+  - `src/ai/pathfinder.js`：增强 A* 寻路器，增加地形权重（树木1.5x/拥挤1.3x）、区域连通性检查（Flood Fill）、全局路径缓存（3秒/50条上限）
+  - `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）、PathManager 集成、`_followPath` 使用 PathManager API、`_updateStuckDetection` 使用 PathManager fallback
+  - `src/entities/enemy.js`：构造函数初始化 `_pathManager`（懒加载）、fallback `_updateMovement` 兼容 PathManager
+- **修改内容摘要**：
+  1. 主动预规划：单位看到目标时立即计算路径，而不是等卡住才反应
+  2. 定期路径检查：PathManager 每 1.5-2.5 秒扫描路径节点，检测新障碍物
+  3. 局部修复：路径被阻挡时，在障碍物前后 2 个节点范围内搜索替代路径，拼接回原路径；失败后从阻挡点重算到终点；连续3次失败清除路径
+  4. 地形权重：A* 中树木附近移动成本 1.5x，拥挤区域 1.3x，单位自然绕行
+  5. 区域连通性：findPath 前先用 Flood Fill 判断目标是否可达，避免无效 A* 计算
+  6. 路径缓存：全局缓存计算结果，相同起点+终点+半径复用，3秒有效期，50条上限
+  7. 向后兼容：旧 `enemy._path` 和 `enemy._pathIdx` 仍然保留，MovementSystem 和 Enemy fallback 模式自动回退
+- **测试结果**：node 语法验证通过（path-manager.js、pathfinder.js、movement-system.js 全部 OK）
+- **已知问题**：PathManager 的 `_getMoveCost` 检查其他单位时，可能因 Game.entities 遍历量较大而性能开销增加，后续可考虑优化
+
+---
+
+## 2026-07-05（硬编码清理 + 碰撞体积优化）
+
+### 对话：全面硬编码清理 + 黑狼碰撞体积缩小 + 树木碰撞优化（v0.198）
+- **修改文件**（13 个文件）：
+  - `data/enemy-config.json`：黑狼 `collisionRadius` 88→38（缩小一半以上）
+  - `src/world/wall-system.js`：树木碰撞体分离（`collisionRadius = radius × 0.6`），`resolve()` 添加逐步缩减步长回退，避免大怪物卡树
+  - `src/entities/damageable-entity.js`：新增 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`，4种状态效果统一在 `update()` 中驱动
+  - `src/entities/combatant.js`：补充缺失的状态效果属性初始化（`_bleedStacks`、`_magicVulnerabilityStacks` 等）
+  - `src/entities/enemy.js`：删除 15 行冗余状态效果属性 + 删除 114 行重复 `_update*` 方法 + 新增 `_getDashOffset()` 统一接口 + 删除死代码 `anim.timer === 0`
+  - `src/systems/combat-system.js`：删除 85 行重复状态效果代码 + 更新注释 + 删除死代码 `anim.timer === 0` + 修复 `class` 闭合括号缺失（Vite 500 错误）
+  - `src/phaser/scenes/GameScene.js`：dash 偏移逻辑统一为 `entity._getDashOffset()`，替代 inline switch
+  - `src/world/scene-manager.js`：删除未使用的战术小队类导入（`Commander`/`MachineGunner`/`Rifleman`/`FlankRifleman`/`ShieldBearer`）
+  - `src/entities/components/shield-system.js`：修复 `const defense` 重复声明导致的语法错误
+- **修改内容摘要**：
+  1. 状态效果系统重构：4种伤害型状态效果（中毒/流血/易伤）统一提取到 `DamageableEntity` 基类，消除 `enemy.js` 和 `combat-system.js` 中的重复代码（共删 200+ 行）
+  2. 消除重复执行 bug：之前状态效果每帧被更新两次（`Enemy.update` + `CombatSystem.update`），导致中毒/流血伤害翻倍
+  3. dash 偏移统一：基类定义 `_getDashOffset()`，所有调用方（GameScene.js、BlackWolf）统一使用
+  4. 树木碰撞优化：视觉半径和碰撞半径分离（60%），resolve() 添加滑动回退，大怪物（碰撞半径 38）在树木间移动更流畅
+  5. 死代码删除：`anim.timer === 0` 永远不会触发（因为 `dt > 0`），删除两条重复代码
+  6. 语法修复：shield-system.js `const defense` 重复声明修复；combat-system.js 类闭合括号缺失修复
+- **测试结果**：node 语法验证全部通过，Vite 编译通过
+- **已知问题**：humanoid-monster.js 武器配置仍有硬编码，战术小队未启用暂不处理
+
+---
+
 ## 2026-07-05（补充）
 
 ### 对话：删除普通怪物 + 方案B渲染模板重构（v0.198）

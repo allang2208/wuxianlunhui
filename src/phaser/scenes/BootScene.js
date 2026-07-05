@@ -28,8 +28,10 @@ export class BootScene extends Scene {
 
         // ---- 敌人资源 ----
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
-        this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215 });
-        this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215 });
+        this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
 
         // ---- 环境资源 ----
 

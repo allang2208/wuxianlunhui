@@ -6,7 +6,7 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
         class DamageableEntity extends Entity {
             constructor(x, y, config = {}) {
                 super(x, y); this._faction = config.faction || 'neutral'; this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
-                this.size = config.size || 20; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 300;
+                this.size = config.size || 20; this.collisionRadius = config.collisionRadius || this.size || 12; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 300;
                 this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.962;
                 // ===== 状态栏系统（每个实体独立） =====
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
@@ -273,9 +273,128 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
                 }
             }
+            // --- 状态效果：中毒 ---
+            _updatePoison(dt) {
+                if (this._poisonStacks <= 0) return;
+                this._poisonTimer -= dt;
+                this._poisonTickTimer -= dt;
+                if (this._poisonEffect) {
+                    this._poisonEffect.update(dt, 0, -this.size);
+                }
+                if (this._poisonTickTimer <= 0) {
+                    this.hp -= this._poisonStacks;
+                    if (typeof EffectManager !== 'undefined') {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#39ff14'));
+                    }
+                    this._poisonTickTimer = 1000;
+                    if (this.hp <= 0) {
+                        this.hp = 0;
+                        if (typeof this.onDeath === 'function') this.onDeath();
+                    }
+                }
+                if (this._poisonTimer <= 0) {
+                    this._poisonStacks = Math.max(0, this._poisonStacks - 1);
+                    if (this._poisonStacks > 0) {
+                        this._poisonTimer = 5000;
+                    } else {
+                        if (this._poisonEffectId && typeof StatusBar !== 'undefined') {
+                            StatusBar.removeEffect(this._poisonEffectId);
+                            this._poisonEffectId = null;
+                        }
+                        if (this._poisonEffect) this._poisonEffect.reset();
+                    }
+                }
+            }
+            applyPoison(stacks) {
+                this._poisonStacks += stacks;
+                this._poisonTimer = 5000;
+                if (this._poisonTickTimer <= 0) this._poisonTickTimer = 1000;
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#39ff14'));
+                }
+                if (this._poisonEffect) this._poisonEffect.reset();
+            }
+            // --- 状态效果：流血 ---
+            _updateBleed(dt) {
+                if (this._bleedStacks <= 0) return;
+                this._bleedTimer -= dt;
+                this._bleedTickTimer -= dt;
+                if (this._bleedTickTimer <= 0) {
+                    const dmg = Math.max(1, Math.floor(this.hp * 0.1));
+                    this.hp -= dmg;
+                    if (typeof EffectManager !== 'undefined') {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${dmg}`, '#9a3a3a'));
+                    }
+                    this._bleedTickTimer = 1000;
+                }
+                if (this._bleedTimer <= 0) {
+                    this._bleedStacks = Math.max(0, this._bleedStacks - 1);
+                    if (this._bleedStacks > 0) {
+                        this._bleedTimer = 5000;
+                        if (this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                            StatusBar.updateEffectStacks('bleed', this._bleedStacks);
+                        }
+                    } else {
+                        if (this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                            StatusBar.removeEffect(this._bleedEffectId);
+                            this._bleedEffectId = null;
+                        }
+                    }
+                }
+            }
+            applyBleeding(stacks) {
+                this._bleedStacks += stacks;
+                this._bleedTimer = 5000;
+                if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
+                if (!this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                    this._bleedEffectId = StatusBar.addEffect('bleed', 5000, { stacks: this._bleedStacks });
+                } else if (typeof StatusBar !== 'undefined') {
+                    StatusBar.updateEffectStacks('bleed', this._bleedStacks);
+                }
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🩸 流血 +${stacks}层`, '#9a3a3a'));
+                }
+            }
+            // --- 状态效果：魔法易伤 ---
+            _updateMagicVulnerability(dt) {
+                if (this._magicVulnerabilityStacks <= 0) return;
+                this._magicVulnerabilityTimer -= dt;
+                if (this._magicVulnerabilityTimer <= 0) {
+                    this._magicVulnerabilityStacks = Math.max(0, this._magicVulnerabilityStacks - 1);
+                    if (this._magicVulnerabilityStacks > 0) this._magicVulnerabilityTimer = 5000;
+                }
+            }
+            applyMagicVulnerability(stacks) {
+                this._magicVulnerabilityStacks += stacks;
+                this._magicVulnerabilityTimer = 5000;
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🔮 魔力易伤 +${stacks}层`, '#8a5a9a'));
+                }
+            }
+            // --- 状态效果：无人机易伤 ---
+            _updateDroneVulnerability(dt) {
+                if (this._droneVulnerabilityStacks <= 0) return;
+                this._droneVulnerabilityTimer -= dt;
+                if (this._droneVulnerabilityTimer <= 0) {
+                    this._droneVulnerabilityStacks = Math.max(0, this._droneVulnerabilityStacks - 1);
+                    if (this._droneVulnerabilityStacks > 0) this._droneVulnerabilityTimer = 5000;
+                }
+            }
+            applyDroneVulnerability(stacks) {
+                this._droneVulnerabilityStacks += stacks;
+                this._droneVulnerabilityTimer = 999999;
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🛸 无人机易伤 +${stacks}层`, '#5a7a9a'));
+                }
+            }
             update(dt) {
                 // 更新状态栏效果计时器
                 this.updateStatusEffects(dt);
+                // 更新伤害型状态效果（中毒、流血、易伤）
+                this._updatePoison(dt);
+                this._updateBleed(dt);
+                this._updateMagicVulnerability(dt);
+                this._updateDroneVulnerability(dt);
                 if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;

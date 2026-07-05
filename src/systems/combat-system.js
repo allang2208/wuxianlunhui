@@ -7,7 +7,7 @@
  * 3. 武器动画状态机
  * 4. 攻击冷却更新
  * 5. 换弹更新
- * 6. 状态效果更新（中毒、流血、魔法易伤、无人机易伤）
+ * （状态效果更新已统一移至 DamageableEntity.update() 处理）
  *
  * 设计原则：
  * - 通过操作 enemy 实例的属性来共享状态，不直接互相调用
@@ -45,11 +45,7 @@ class CombatSystemImpl {
         this._updateWeaponAnim(enemy, dt);
         this._updateReload(enemy, dt);
 
-        // 5. 状态效果更新
-        this._updatePoison(enemy, dt);
-        this._updateBleed(enemy, dt);
-        this._updateMagicVulnerability(enemy, dt);
-        this._updateDroneVulnerability(enemy, dt);
+        // [NOTE] 状态效果更新（中毒、流血、易伤）已移至 DamageableEntity.update() 统一处理
     }
 
     // --- Dash 眩晕 ---
@@ -144,7 +140,6 @@ class CombatSystemImpl {
                 break;
             case 'swing':
                 anim.timer += dt;
-                if (anim.timer === 0 && enemy._pendingThrust) enemy._pendingThrust.active = true;
                 if (enemy._pendingThrust && enemy._pendingThrust.active) {
                     if (Date.now() - enemy._pendingThrust.startTime <= 200) {
                         if (enemy.attacks.melee) enemy.attacks.melee.checkTriangleHit(enemy);
@@ -186,86 +181,6 @@ class CombatSystemImpl {
     _updateReload(enemy, dt) {
         if (typeof enemy._updateReload === 'function') {
             enemy._updateReload(dt);
-        }
-    }
-
-    // --- 状态效果：中毒 ---
-    _updatePoison(enemy, dt) {
-        if (enemy._poisonStacks <= 0) return;
-        enemy._poisonTimer -= dt;
-        enemy._poisonTickTimer -= dt;
-        if (enemy._poisonEffect) enemy._poisonEffect.update(dt, 0, -enemy.size);
-        if (enemy._poisonTickTimer <= 0) {
-            enemy.hp -= enemy._poisonStacks;
-            if (typeof EffectManager !== 'undefined' && EffectManager.add) {
-                EffectManager.add(new FloatingTextEffect(enemy.x, enemy.y - enemy.size, `-${enemy._poisonStacks}`, '#39ff14'));
-            }
-            enemy._poisonTickTimer = 1000;
-            if (enemy.hp <= 0) {
-                enemy.hp = 0;
-                if (typeof enemy.onDeath === 'function') enemy.onDeath();
-            }
-        }
-        if (enemy._poisonTimer <= 0) {
-            enemy._poisonStacks = Math.max(0, enemy._poisonStacks - 1);
-            if (enemy._poisonStacks > 0) {
-                enemy._poisonTimer = 5000;
-            } else {
-                if (enemy._poisonEffectId) {
-                    if (typeof StatusBar !== 'undefined' && StatusBar.removeEffect) StatusBar.removeEffect(enemy._poisonEffectId);
-                    enemy._poisonEffectId = null;
-                }
-                if (enemy._poisonEffect) enemy._poisonEffect.reset();
-            }
-        }
-    }
-
-    // --- 状态效果：流血 ---
-    _updateBleed(enemy, dt) {
-        if (enemy._bleedStacks <= 0) return;
-        enemy._bleedTimer -= dt;
-        enemy._bleedTickTimer -= dt;
-        if (enemy._bleedTickTimer <= 0) {
-            const dmg = Math.max(1, Math.floor(enemy.hp * 0.1));
-            enemy.hp -= dmg;
-            if (typeof EffectManager !== 'undefined' && EffectManager.add) {
-                EffectManager.add(new FloatingTextEffect(enemy.x, enemy.y - enemy.size, `-${dmg}`, '#9a3a3a'));
-            }
-            enemy._bleedTickTimer = 1000;
-        }
-        if (enemy._bleedTimer <= 0) {
-            enemy._bleedStacks = Math.max(0, enemy._bleedStacks - 1);
-            if (enemy._bleedStacks > 0) {
-                enemy._bleedTimer = 5000;
-                if (enemy._bleedEffectId && typeof StatusBar !== 'undefined' && StatusBar.updateEffectStacks) {
-                    StatusBar.updateEffectStacks('bleed', enemy._bleedStacks);
-                }
-            } else {
-                if (enemy._bleedEffectId) {
-                    if (typeof StatusBar !== 'undefined' && StatusBar.removeEffect) StatusBar.removeEffect(enemy._bleedEffectId);
-                    enemy._bleedEffectId = null;
-                }
-            }
-        }
-    }
-
-    // --- 状态效果：魔法易伤 ---
-    _updateMagicVulnerability(enemy, dt) {
-        if (enemy._magicVulnerabilityStacks <= 0) return;
-        enemy._magicVulnerabilityTimer -= dt;
-        if (enemy._magicVulnerabilityTimer <= 0) {
-            enemy._magicVulnerabilityStacks = Math.max(0, enemy._magicVulnerabilityStacks - 1);
-            if (enemy._magicVulnerabilityStacks > 0) enemy._magicVulnerabilityTimer = 5000;
-        }
-    }
-
-    // --- 状态效果：无人机易伤 ---
-    _updateDroneVulnerability(enemy, dt) {
-        if (enemy._droneVulnerabilityStacks <= 0) return;
-        enemy._droneVulnerabilityTimer -= dt;
-        if (enemy._droneVulnerabilityTimer <= 0) {
-            enemy._droneVulnerabilityStacks = Math.max(0, enemy._droneVulnerabilityStacks - 1);
-            if (enemy._droneVulnerabilityStacks > 0) enemy._droneVulnerabilityTimer = 5000;
         }
     }
 }
