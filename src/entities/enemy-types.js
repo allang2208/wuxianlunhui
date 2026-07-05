@@ -551,6 +551,7 @@ class BlackWolf extends Enemy {
         // 动画状态
         this._animState = 'idle'; // idle, walk, run, attack
         this._attackTimer = 0;
+        this._attackDashOffset = 0; // 攻击冲刺位移（向前100px）
         // 帧动画
         this._animFrame = 0;       // 当前帧索引 0-7
         this._animTimer = 0;       // 帧计时器
@@ -587,19 +588,25 @@ class BlackWolf extends Enemy {
         } else {
             this._animState = 'idle';
         }
-        // 攻击动画计时
+        // 攻击动画计时 + 冲刺位移
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
-        } else if (this._animState === 'attack') {
-            // 攻击结束，重置帧索引
-            this._animFrame = 0;
+            // 攻击冲刺位移：100px，使用正弦曲线（前400ms 向前加速，后400ms 减速返回）
+            const progress = 1 - (this._attackTimer / 800); // 0 → 1
+            this._attackDashOffset = 100 * Math.sin(progress * Math.PI);
+        } else {
+            this._attackDashOffset = 0;
+            if (this._animState === 'attack') {
+                // 攻击结束，重置帧索引
+                this._animFrame = 0;
+            }
         }
         // 更新帧动画
         this._animTimer += dt;
         let frameDuration = 150;
         if (this._animState === 'attack') {
-            // 攻击动画：300ms 内播完 8 帧，37.5ms/帧，不循环（只播一次）
-            frameDuration = 37.5;
+            // 攻击动画：800ms 内播完 8 帧，100ms/帧，整数避免精度问题
+            frameDuration = 100;
             if (this._animTimer >= frameDuration) {
                 this._animTimer = 0;
                 this._animFrame = (this._animFrame + 1) % 8;
@@ -622,12 +629,23 @@ class BlackWolf extends Enemy {
 
     triggerWeaponAnim() {
         super.triggerWeaponAnim();
-        this._attackTimer = 300; // 300ms 攻击动画
-        this._animFrame = 0;     // 从第一帧开始播放攻击动画
+        this._attackTimer = 800; // 800ms 攻击动画（8帧 × 100ms/帧）
+        this._animFrame = 0;     // 从第一帧开始
+        this._attackDashOffset = 0; // 重置冲刺位移
     }
 
     render(ctx) {
-        const pos = Renderer.worldToScreen(this.x, this.y);
+        // 计算攻击冲刺位移（应用到渲染位置，不影响碰撞体）
+        let dashX = 0, dashY = 0;
+        if (this._attackDashOffset > 0) {
+            switch (this._facing) {
+                case 'right': dashX = this._attackDashOffset; break;
+                case 'left':  dashX = -this._attackDashOffset; break;
+                case 'down':  dashY = this._attackDashOffset; break;
+                case 'up':    dashY = -this._attackDashOffset; break;
+            }
+        }
+        const pos = Renderer.worldToScreen(this.x + dashX, this.y + dashY);
         const x = pos.x, y = pos.y;
         this.renderHealthBar(ctx);
 
