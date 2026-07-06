@@ -37,6 +37,7 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
         this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
+        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
         this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 15 });
         this.load.spritesheet('enemy_red_wolf_king_changed_idle', 'assets/enemies/red_wolf_king_changed_idle.png', { frameWidth: 250, frameHeight: 215, endFrame: 3 });
 

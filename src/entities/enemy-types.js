@@ -435,7 +435,7 @@ class BlackWolf extends Enemy {
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
             offsetY: offsetY,
-            scale: this._isTransforming ? 2.68 : 1
+            scale: this._isTransforming || this._isHowling ? 2.68 : 1
         };
     }
 
@@ -532,7 +532,32 @@ class RedWolfKing extends Enemy {
             attack: new Image(),   // 攻击动画（复用奔跑图）
             pacing: new Image(),   // 踱步动画（慢速移动）
             idle: new Image(),     // 眩晕/待机动画（单张）
-            transform: new Image(), // 变身动画（16帧）
+            transform: new Image(), // 变身动画（8帧）
+            howl: new Image(),      // 嚎叫动画（8帧）
+            transformedIdle: new Image(), // 变身后待机动画
+            transformedRun: new Image(),    // 变身后奔跑动画
+        };
+        this._sprites.side.src = 'assets/enemies/red_wolf_king_run.png';
+        this._sprites.front.src = 'assets/enemies/red_wolf_king_run.png';
+        this._sprites.back.src = 'assets/enemies/red_wolf_king_run.png';
+        this._sprites.attack.src = 'assets/enemies/red_wolf_king_attack.png';
+        this._sprites.pacing.src = 'assets/enemies/red_wolf_king_pacing.png';
+        this._sprites.idle.src = 'assets/enemies/red_wolf_king_idle.png';
+        this._sprites.transform.src = 'assets/enemies/red_wolf_king_change.png';
+        this._sprites.howl.src = 'assets/enemies/red_wolf_king_howl.png';
+        this._sprites.transformedIdle.src = 'assets/enemies/red_wolf_king_changed_idle.png';
+        this._sprites.transformedRun.src = 'assets/enemies/red_wolf_king_changed_run.png';
+        
+        // 当前 facing 方向
+        this._facing = 'right';
+        this._lastHorizontalFacing = 'right'; // 供垂直移动/idle时保持水平朝向
+        
+        // ===== 变身系统 =====
+        const transformConfig = enemyConfigData.redWolfKing?.transform || {};
+        this._transformHpThreshold = transformConfig.hpThreshold || 0.5;
+        this._transformDuration = transformConfig.duration || 2000;
+        this._howlDuration = transformConfig.howlDuration || 2000;
+        this._transformDamageMultiplier = transformConfig.damageMultiplier || 2;
             transformedIdle: new Image(), // 变身后待机动画
             transformedRun: new Image(),    // 变身后奔跑动画
         };
@@ -557,6 +582,11 @@ class RedWolfKing extends Enemy {
         this._transformDamageMultiplier = transformConfig.damageMultiplier || 2;
         this._transformHpRecover = transformConfig.hpRecover !== undefined ? transformConfig.hpRecover : 1;
         this._isTransformed = false;      // 是否已完成变身
+        this._isTransforming = false;     // 是否正在变身动画中
+        this._isHowling = false;          // 是否正在嚎叫动画中
+        this._transformTimer = 0;         // 变身动画计时器
+        this._howlTimer = 0;              // 嚎叫动画计时器
+        this._transformTriggered = false; // 变身是否已触发过（只触发一次）
         this._isTransforming = false;     // 是否正在变身动画中
         this._transformTimer = 0;         // 变身动画计时器
         this._transformTriggered = false; // 变身是否已触发过（只触发一次）
@@ -629,9 +659,33 @@ class RedWolfKing extends Enemy {
                 this._animTimer = 0;
                 this._animFrame = (this._animFrame + 1) % 8;
             }
-            // 变身完成
+            // 变身完成 → 进入嚎叫阶段
             if (this._transformTimer <= 0) {
                 this._isTransforming = false;
+                this._isHowling = true;
+                this._howlTimer = this._howlDuration;
+                this._animState = 'howl';
+                this._animFrame = 0;
+                this._animTimer = 0;
+                console.log(`[${this.name}] 变身动画完成，开始嚎叫！`);
+            }
+            // 变身期间不执行正常 update
+            return;
+        }
+        
+        // === 嚎叫动画进行中 ===
+        if (this._isHowling) {
+            this._howlTimer -= dt;
+            // 更新嚎叫帧动画（8帧，2秒内播完）
+            this._animTimer += dt;
+            const howlFrameDuration = this._howlDuration / 8;
+            if (this._animTimer >= howlFrameDuration) {
+                this._animTimer = 0;
+                this._animFrame = (this._animFrame + 1) % 8;
+            }
+            // 嚎叫完成
+            if (this._howlTimer <= 0) {
+                this._isHowling = false;
                 this._isTransformed = true;
                 // 恢复 HP
                 this.hp = this.maxHp * this._transformHpRecover;
@@ -653,9 +707,9 @@ class RedWolfKing extends Enemy {
                 this._animState = 'idle';
                 this._animFrame = 0;
                 this._animTimer = 0;
-                console.log(`[${this.name}] 变身完成！HP恢复，攻击力翻倍！`);
+                console.log(`[${this.name}] 嚎叫完成！HP恢复，攻击力翻倍！`);
             }
-            // 变身期间不执行正常 update
+            // 嚎叫期间不执行正常 update
             return;
         }
         
@@ -856,8 +910,8 @@ class RedWolfKing extends Enemy {
     }
 
     triggerWeaponAnim() {
-        // 变身期间禁止攻击
-        if (this._isTransforming) return;
+        // 变身/嚎叫期间禁止攻击
+        if (this._isTransforming || this._isHowling) return;
         super.triggerWeaponAnim();
         if (this._attackTimer > 0) return;
         this._attackTimer = this._attackDuration;
@@ -966,6 +1020,9 @@ class RedWolfKing extends Enemy {
         if (this._isTransforming) {
             return 'enemy_red_wolf_king_change';
         }
+        if (this._isHowling) {
+            return 'enemy_red_wolf_king_howl';
+        }
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
             return 'enemy_red_wolf_king_idle';
         }
@@ -1017,7 +1074,7 @@ class RedWolfKing extends Enemy {
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
             offsetY: offsetY,
-            scale: this._isTransforming ? 2.68 : 1
+            scale: this._isTransforming || this._isHowling ? 2.68 : 1
         };
     }
 
@@ -1044,6 +1101,8 @@ class RedWolfKing extends Enemy {
         let currentSprite;
         if (this._isTransforming) {
             currentSprite = this._sprites.transform;
+        } else if (this._isHowling) {
+            currentSprite = this._sprites.howl;
         } else if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
             currentSprite = this._sprites.idle;
         } else if (this._animState === 'attack') {
@@ -1063,8 +1122,8 @@ class RedWolfKing extends Enemy {
         if (shouldFlip) ctx.scale(-1, 1);
         ctx.rotate(leanAngle);
         if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
-            if (this._isTransforming) {
-                // 变身动画：8帧，4x2 排列
+            if (this._isTransforming || this._isHowling) {
+                // 变身/嚎叫动画：8帧，4x2 排列
                 const frameW = currentSprite.naturalWidth / 4;
                 const frameH = currentSprite.naturalHeight / 2;
                 const col = this._animFrame % 4;
