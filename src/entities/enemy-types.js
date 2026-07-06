@@ -650,8 +650,13 @@ class RedWolfKing extends Enemy {
         // === 嚎叫动画进行中 ===
         if (this._isHowling) {
             this._howlTimer -= dt;
-            // 嚎叫动画：固定显示第4帧（仰头最高点），静态姿势不循环
-            this._animFrame = 4;
+            // 更新嚎叫帧动画（8帧，2秒内播完，底部对齐后脚不动）
+            this._animTimer += dt;
+            const howlFrameDuration = this._howlDuration / 8;
+            if (this._animTimer >= howlFrameDuration) {
+                this._animTimer = 0;
+                this._animFrame = (this._animFrame + 1) % 8;
+            }
             // 嚎叫完成
             if (this._howlTimer <= 0) {
                 this._isHowling = false;
