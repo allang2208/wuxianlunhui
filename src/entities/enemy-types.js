@@ -1006,6 +1006,13 @@ class RedWolfKing extends Enemy {
         if (this._animState === 'pacing') {
             return 'enemy_red_wolf_king_pacing';
         }
+        if (this._isTransformed) {
+            if (this._animState === 'idle') {
+                return 'enemy_red_wolf_king_changed_idle';
+            } else {
+                return 'enemy_red_wolf_king_changed_run';
+            }
+        }
         return 'enemy_red_wolf_king';
     }
 
@@ -1048,7 +1055,7 @@ class RedWolfKing extends Enemy {
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
             offsetY: offsetY,
-            scale: this._isTransforming || this._isHowling ? 2.68 : 1
+            scale: 1
         };
     }
 
@@ -1077,6 +1084,12 @@ class RedWolfKing extends Enemy {
             currentSprite = this._sprites.transform;
         } else if (this._isHowling) {
             currentSprite = this._sprites.howl;
+        } else if (this._isTransformed) {
+            if (this._animState === 'idle') {
+                currentSprite = this._sprites.transformedIdle;
+            } else {
+                currentSprite = this._sprites.transformedRun;
+            }
         } else if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
             currentSprite = this._sprites.idle;
         } else if (this._animState === 'attack') {
