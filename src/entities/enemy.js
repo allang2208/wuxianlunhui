@@ -508,7 +508,9 @@ import aiConfigData from '../../data/ai-config.json';
 
                 const sourceImage = sprite.texture.getSourceImage();
                 const originalWidth = sprite.frame ? sprite.frame.width : (sourceImage ? sourceImage.width : 64);
-                const scale = spriteSize / originalWidth;
+                const baseScale = spriteSize / originalWidth;
+                const contentScale = options.scale || 1;
+                const scale = baseScale * contentScale;
                 
                 // 关键：setScale 会覆盖 flipX/flipY 的符号，所以必须在 setScale 后重新应用 flip
                 // 或者直接在 scale 中考虑 flip 符号

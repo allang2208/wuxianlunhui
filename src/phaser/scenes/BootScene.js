@@ -32,6 +32,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
+        this.load.spritesheet('enemy_red_wolf_king', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
+        this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
+        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 250, frameHeight: 215, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_idle', 'assets/enemies/red_wolf_king_changed_idle.png', { frameWidth: 250, frameHeight: 215, endFrame: 3 });
 
         // ---- 环境资源 ----
 

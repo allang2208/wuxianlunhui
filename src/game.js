@@ -48,6 +48,10 @@ export const Game = {
             const testWolf = new window.BlackWolf(this.player.x + 200, this.player.y + 100);
             Game.entities.set('test_black_wolf', testWolf);
             console.log('[BlackWolf] 测试黑狼已在主神空间出生点附近生成', this.player.x + 200, this.player.y + 100);
+            // 测试红狼王（黑狼旁边生成）
+            const testRedWolf = new window.RedWolfKing(this.player.x + 350, this.player.y + 100);
+            Game.entities.set('test_red_wolf_king', testRedWolf);
+            console.log('[RedWolfKing] 测试红狼王已在主神空间出生点附近生成', this.player.x + 350, this.player.y + 100);
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             this.dropItem(CONFIG.WORLD_WIDTH/2 + 120, CONFIG.WORLD_HEIGHT/2, EquipDataManager.G18_PISTOL_ITEM);

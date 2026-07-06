@@ -429,7 +429,91 @@ dirs.forEach((p, i) => {
 
 ---
 
+## 常见陷阱：四方向 facing 但仅有两方向精灵图时的翻转逻辑
+
+### 问题
+怪物只有侧面精灵图（原始面向右），但 facing 逻辑按移动方向分 4 方向（right/left/up/down）。当目标在左上方或左下方时：
+- `|vy| > |vx|`，`_facing` 被设为 `up` 或 `down`
+- `flipX` 逻辑只处理 `left`/`right`，`up`/`down` 不翻转
+- 结果：sprite 始终面向右，但单位实际在向左移动 → 视觉方向与运动方向相反
+
+### 基础修复（v1.6）
+`up`/`down` 时，根据 `vx` 符号判断水平运动方向来决定是否翻转：
+
+```javascript
+// _getPhaserOptions（Phaser 渲染）
+if (this._facing === 'left') {
+    flipX = true;
+} else if (this._facing === 'right') {
+    flipX = false;
+} else {
+    // up/down：没有上下精灵图，根据 vx 判断水平方向
+    flipX = this.vx < 0;
+}
+
+// _drawBody（Canvas 渲染）
+const shouldFlip = this._facing === 'left' ||
+    ((this._facing === 'up' || this._facing === 'down') && this.vx < 0);
+if (shouldFlip) ctx.scale(-1, 1);
+```
+
+### 优化修复（v1.7）
+基础修复有两个问题：
+1. **攻击期间**：`_facing` 锁定为 `_dashStartFacing`，但 `up`/`down` 时的 flip 仍依赖 `vx`（攻击前的速度），而非实际冲刺方向 `_dashAngle`
+2. **纯垂直移动/idle**：`vx = 0` 时 `flipX = false`，狼永远朝右，无法保持之前的水平朝向
+
+**优化方案**：
+- 新增 `_lastHorizontalFacing` 属性，在每次 `_facing` 更新为 `left`/`right` 时保存
+- `up`/`down` 时的 flip 优先级：攻击期间用 `_dashAngle` → 移动期间用 `vx` → 静止/纯垂直用 `_lastHorizontalFacing`
+
+```javascript
+// 构造函数初始化
+this._lastHorizontalFacing = 'right';
+
+// update() 中保存水平朝向
+if (this._facing === 'left' || this._facing === 'right') {
+    this._lastHorizontalFacing = this._facing;
+}
+
+// _getPhaserOptions / _drawBody 中的 flip 逻辑
+if (this._facing === 'left') {
+    flipX = true;
+} else if (this._facing === 'right') {
+    flipX = false;
+} else {
+    // up/down：没有上下精灵图
+    if (this._attackTimer > 0 && this._dashAngle !== undefined) {
+        // 攻击期间使用冲刺方向决定水平朝向
+        flipX = Math.cos(this._dashAngle) < 0;
+    } else if (Math.abs(this.vx) > 0.1) {
+        flipX = this.vx < 0;
+    } else {
+        // 纯垂直移动/idle：保持上次水平朝向
+        flipX = this._lastHorizontalFacing === 'left';
+    }
+}
+```
+
+---
+
 ## 变更记录
+
+- v1.8 (2026-07-06) — 红狼王变身机制：
+  - **触发条件**：HP < 50%（配置 `transform.hpThreshold: 0.5`）
+  - **变身动画**：`redwolfchange.png` 16帧（4×4），3秒内播放完毕（`transform.duration: 3000ms`）
+  - **变身期间**：无法移动（`vx=vy=0`）、无法攻击（`triggerWeaponAnim` 直接返回）
+  - **变身后效果**：HP 完全恢复（`transform.hpRecover: 1`），攻击力翻倍（`transform.damageMultiplier: 2`）
+  - **变身后精灵图**：待机 `redwolfidle.png`（4帧）、奔跑 `2026-07-05-22_57_41.png`（16帧）
+  - **实现位置**：`enemy-types.js` RedWolfKing 类新增 `_isTransforming`/`_isTransformed`/`_transformTriggered` 状态，`_getTextureKey`/`_drawBody`/`_getPhaserOptions` 支持变身状态，`_updateAIState` 变身期间不执行，`_executeAI` 变身期间不执行
+  - **配置位置**：`enemy-config.json` `redWolfKing.transform` 对象
+  - **资源加载**：`BootScene.js` 新增 `enemy_red_wolf_king_change`、`enemy_red_wolf_king_changed_run`、`enemy_red_wolf_king_changed_idle` 三个 spritesheet
+  
+- v1.7 (2026-07-06) — 优化精灵图朝向翻转：
+  - 新增 `_lastHorizontalFacing` 保存机制，解决纯垂直移动/idle时狼永远朝右的问题
+  - 攻击期间 `up`/`down` 状态的 flip 改用 `_dashAngle` 而非 `vx`，确保冲刺方向与视觉一致
+  - 同步应用到 BlackWolf 和 RedWolfKing
+  
+- v1.6 (2026-07-06) — 修复黑狼 facing 翻转：四方向 facing 但仅有两方向精灵图时，`up`/`down` 状态下根据 `vx` 符号判断水平方向，确保 sprite 翻转与运动方向一致。修改 `enemy-types.js` 的 `_getPhaserOptions`（flipX）和 `_drawBody`（ctx.scale）
 
 - v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复
   - 新建 `src/ai/path-manager.js`：路径缓存 + 每 1.5-2.5 秒有效性检查 + 局部修复（障碍物附近搜索替代路线）

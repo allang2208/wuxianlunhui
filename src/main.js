@@ -101,6 +101,7 @@ async function initModules() {
     window.Player = Player;
     window.Enemy = Enemy;
     window.BlackWolf = BlackWolf;
+    window.RedWolfKing = RedWolfKing;
     window.HumanoidMonster = HumanoidMonster;
     window.Commander = Commander;
     window.MachineGunner = MachineGunner;
@@ -246,7 +247,7 @@ import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { pathFinder } from './ai/pathfinder.js';
 import { PathManager } from './ai/path-manager.js';
-import { BlackWolf } from './entities/enemy-types.js';
+import { BlackWolf, RedWolfKing } from './entities/enemy-types.js';
 import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './entities/humanoid-monster.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 
