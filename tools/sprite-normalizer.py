@@ -75,11 +75,38 @@ def analyze_sprite_sheet(path, frame_w, frame_h, cols, rows):
 
 def normalize_sprite_sheet(src_path, dst_path, frame_w, frame_h, cols, rows,
                            target_content_w, target_content_h,
-                           target_center_x, target_center_y):
-    """标准化单个精灵图：缩放+平移使内容一致"""
+                           target_center_x, target_center_y,
+                           align_mode='center'):
+    """标准化单个精灵图：缩放+平移使内容一致
+
+    align_mode:
+      - center: 内容中心对齐到 target_center（默认，适合原地动画）
+      - bottom: 内容底部对齐到统一位置（适合脚着地的动画，如走路、嚎叫）
+      - top:    内容顶部对齐到统一位置（适合从上往下看的动画）
+    """
     img = Image.open(src_path)
     if img.mode != 'RGBA':
         img = img.convert('RGBA')
+
+    # 先分析所有帧，获取对齐基准
+    all_frames = []
+    for r in range(rows):
+        for c in range(cols):
+            bounds = get_frame_bounds(img, frame_w, frame_h, c, r)
+            if bounds:
+                all_frames.append(bounds)
+
+    if not all_frames:
+        return None
+
+    # 计算对齐基准
+    if align_mode == 'bottom':
+        # 所有帧底部对齐到最靠下的底部
+        target_align_y = max(f['bottom'] for f in all_frames)
+    elif align_mode == 'top':
+        target_align_y = min(f['top'] for f in all_frames)
+    else:  # center
+        target_align_y = None  # 使用 target_center_y
 
     # 创建新画布
     new_img = Image.new('RGBA', (frame_w * cols, frame_h * rows), (0, 0, 0, 0))
@@ -110,9 +137,18 @@ def normalize_sprite_sheet(src_path, dst_path, frame_w, frame_h, cols, rows,
             else:
                 continue
 
-            # 计算平移位置：使缩放后内容的中心对齐到 target_center
-            dest_x = int(round(target_center_x - new_w / 2.0))
-            dest_y = int(round(target_center_y - new_h / 2.0))
+            # 根据对齐模式计算目标位置
+            if align_mode == 'bottom':
+                # 底部对齐：内容底部对齐到 target_align_y
+                dest_x = int(round(target_center_x - new_w / 2.0))
+                dest_y = int(round(target_align_y - new_h))
+            elif align_mode == 'top':
+                # 顶部对齐：内容顶部对齐到 target_align_y
+                dest_x = int(round(target_center_x - new_w / 2.0))
+                dest_y = int(round(target_align_y))
+            else:  # center
+                dest_x = int(round(target_center_x - new_w / 2.0))
+                dest_y = int(round(target_center_y - new_h / 2.0))
 
             # 在目标帧中的绝对位置
             frame_offset_x = c * frame_w + dest_x
@@ -143,6 +179,8 @@ def main():
     parser.add_argument('--rows', type=int, required=True, help='总行数')
     parser.add_argument('--mode', choices=['fit', 'fill'], default='fit',
                         help='fit=缩放适应到统一内容大小（保持比例，不裁剪）; fill=缩放到填满统一内容大小（可能变形）')
+    parser.add_argument('--align-mode', choices=['center', 'bottom', 'top'], default='center',
+                        help='center=内容中心对齐（默认，适合原地动画）; bottom=内容底部对齐（适合脚着地的动画，如走路/嚎叫）; top=内容顶部对齐（适合从上往下看的动画）')
     parser.add_argument('--target-content-w', type=float, help='目标内容宽度（默认取所有输入中的最大值）')
     parser.add_argument('--target-content-h', type=float, help='目标内容高度（默认取所有输入中的最大值）')
     parser.add_argument('--target-center-x', type=float, help='目标内容中心 X（默认取帧中心）')
@@ -173,7 +211,7 @@ def main():
     target_cx = args.target_center_x if args.target_center_x else args.frame_width / 2.0
     target_cy = args.target_center_y if args.target_center_y else args.frame_height / 2.0
 
-    print(f'[统一] 目标内容大小: {target_w:.1f}x{target_h:.1f}, 目标中心: ({target_cx:.1f}, {target_cy:.1f})')
+    print(f'[统一] 目标内容大小: {target_w:.1f}x{target_h:.1f}, 目标中心: ({target_cx:.1f}, {target_cy:.1f}), 对齐模式: {args.align_mode}')
 
     if args.report:
         report_path = os.path.join(args.output, 'sprite-normalize-report.json')
@@ -191,7 +229,8 @@ def main():
         dst = os.path.join(args.output, os.path.basename(src))
         new_size = normalize_sprite_sheet(
             src, dst, args.frame_width, args.frame_height, args.cols, args.rows,
-            target_w, target_h, target_cx, target_cy
+            target_w, target_h, target_cx, target_cy,
+            align_mode=args.align_mode
         )
         print(f'[输出] {os.path.basename(dst)} -> {new_size}')
 
@@ -201,6 +240,7 @@ def main():
         'frame_height': args.frame_height,
         'cols': args.cols,
         'rows': args.rows,
+        'align_mode': args.align_mode,
         'target_content': {'width': target_w, 'height': target_h, 'center_x': target_cx, 'center_y': target_cy},
         'sprites': [{'file': os.path.basename(a['file']), 'original_size': a['size']} for a in analyses]
     }
