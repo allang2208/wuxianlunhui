@@ -1048,11 +1048,15 @@ class RedWolfKing extends Enemy {
             }
         }
         // 嚎叫精灵图内容中心比变身低约 16px，通过 offsetY 补偿对齐
-        // 最后2帧（帧6、7）额外补偿
+        // 最后2帧（帧6、7）额外垂直补偿
+        // 帧6额外水平偏移（质心偏左约79px，显示后约18px）
         if (this._isHowling) {
             offsetY -= 16;
             if (this._animFrame >= 6) {
                 offsetY -= (this._animFrame === 6 ? 12 : 4);
+            }
+            if (this._animFrame === 6) {
+                offsetX += 18;
             }
         }
 
@@ -1138,11 +1142,16 @@ class RedWolfKing extends Enemy {
                 ctx.scale(scaleX, scaleY);
                 ctx.translate(0, bounceY);
                 // 嚎叫上移 16px 补偿内容中心差异，最后2帧额外补偿
+                // 帧6额外水平偏移（质心偏左约79px，显示后约18px）
                 let howlOffsetY = this._isHowling ? -16 : 0;
+                let howlOffsetX = 0;
                 if (this._isHowling && this._animFrame >= 6) {
                     howlOffsetY -= (this._animFrame === 6 ? 12 : 4);
                 }
-                ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH, -76, -76 + howlOffsetY, 151, 151);
+                if (this._isHowling && this._animFrame === 6) {
+                    howlOffsetX = 18;
+                }
+                ctx.drawImage(currentSprite, col * frameW, row * frameH, frameW, frameH, -76 + howlOffsetX, -76 + howlOffsetY, 151, 151);
                 ctx.restore();
             } else if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
                 ctx.save();
