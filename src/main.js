@@ -297,3 +297,27 @@ import { SkillLevelSystem } from './combat/skill-level-system.js';
 
 // 启动初始化
 initModules().catch(err => console.error('Module init failed:', err));
+
+// ===== 调试命令：控制台触发红狼变身 =====
+// 使用方式：在浏览器控制台输入 triggerRedWolfTransform()
+window.triggerRedWolfTransform = function() {
+    if (!Game.entities) return console.warn('[Debug] Game.entities not available');
+    let found = false;
+    Game.entities.forEach(e => {
+        if (e instanceof RedWolfKing && e.active && !e._isTransforming && !e._isHowling && !e._isTransformed) {
+            e._transformTriggered = true;
+            e._isTransforming = true;
+            e._transformTimer = e._transformDuration;
+            e._animState = 'transform';
+            e._animFrame = 0;
+            e._animTimer = 0;
+            e.vx = 0; e.vy = 0;
+            e._attackTimer = 0;
+            e._attackDashOffset = 0;
+            found = true;
+            console.log(`[Debug] [${e.name}] 强制变身触发！HP=${e.hp}/${e.maxHp}`);
+        }
+    });
+    if (!found) console.warn('[Debug] 未找到可变身状态的红狼王（可能已变身或未生成）');
+    return found;
+};

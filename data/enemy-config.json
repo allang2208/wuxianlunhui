@@ -73,6 +73,7 @@
     "transform": {
       "hpThreshold": 0.5,
       "duration": 2000,
+      "howlDuration": 2000,
       "damageMultiplier": 2,
       "hpRecover": 1
     }
