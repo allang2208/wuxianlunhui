@@ -434,7 +434,8 @@ class BlackWolf extends Enemy {
             textOffsetY: -64,
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
-            offsetY: offsetY
+            offsetY: offsetY,
+            scale: this._isTransforming ? 2.68 : 1
         };
     }
 
@@ -552,7 +553,7 @@ class RedWolfKing extends Enemy {
         // ===== 变身系统 =====
         const transformConfig = enemyConfigData.redWolfKing?.transform || {};
         this._transformHpThreshold = transformConfig.hpThreshold || 0.5;
-        this._transformDuration = transformConfig.duration || 4000;
+        this._transformDuration = transformConfig.duration || 2000;
         this._transformDamageMultiplier = transformConfig.damageMultiplier || 2;
         this._transformHpRecover = transformConfig.hpRecover !== undefined ? transformConfig.hpRecover : 1;
         this._isTransformed = false;      // 是否已完成变身
@@ -621,12 +622,12 @@ class RedWolfKing extends Enemy {
         // === 变身动画进行中 ===
         if (this._isTransforming) {
             this._transformTimer -= dt;
-            // 更新变身帧动画（16帧，3秒内播完）
+            // 更新变身帧动画（8帧，2秒内播完）
             this._animTimer += dt;
-            const transformFrameDuration = this._transformDuration / 16;
+            const transformFrameDuration = this._transformDuration / 8;
             if (this._animTimer >= transformFrameDuration) {
                 this._animTimer = 0;
-                this._animFrame = (this._animFrame + 1) % 16;
+                this._animFrame = (this._animFrame + 1) % 8;
             }
             // 变身完成
             if (this._transformTimer <= 0) {
@@ -1015,7 +1016,8 @@ class RedWolfKing extends Enemy {
             textOffsetY: -64,
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
-            offsetY: offsetY
+            offsetY: offsetY,
+            scale: this._isTransforming ? 2.68 : 1
         };
     }
 
@@ -1062,11 +1064,11 @@ class RedWolfKing extends Enemy {
         ctx.rotate(leanAngle);
         if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
             if (this._isTransforming) {
-                // 变身动画：16帧，1x16 水平排列
-                const frameW = currentSprite.naturalWidth / 16;
-                const frameH = currentSprite.naturalHeight;
-                const col = this._animFrame % 16;
-                const row = 0;
+                // 变身动画：8帧，4x2 排列
+                const frameW = currentSprite.naturalWidth / 4;
+                const frameH = currentSprite.naturalHeight / 2;
+                const col = this._animFrame % 4;
+                const row = Math.floor(this._animFrame / 4);
                 ctx.save();
                 ctx.translate(0, swayX);
                 ctx.scale(scaleX, scaleY);

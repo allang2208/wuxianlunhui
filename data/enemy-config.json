@@ -72,7 +72,7 @@
     },
     "transform": {
       "hpThreshold": 0.5,
-      "duration": 4000,
+      "duration": 2000,
       "damageMultiplier": 2,
       "hpRecover": 1
     }
