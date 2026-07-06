@@ -557,37 +557,12 @@ class RedWolfKing extends Enemy {
         this._transformDuration = transformConfig.duration || 2000;
         this._howlDuration = transformConfig.howlDuration || 2000;
         this._transformDamageMultiplier = transformConfig.damageMultiplier || 2;
-            transformedIdle: new Image(), // 变身后待机动画
-            transformedRun: new Image(),    // 变身后奔跑动画
-        };
-        this._sprites.side.src = 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.front.src = 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.back.src = 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.attack.src = 'assets/enemies/red_wolf_king_attack.png';
-        this._sprites.pacing.src = 'assets/enemies/red_wolf_king_pacing.png';
-        this._sprites.idle.src = 'assets/enemies/red_wolf_king_idle.png';
-        this._sprites.transform.src = 'assets/enemies/red_wolf_king_change.png';
-        this._sprites.transformedIdle.src = 'assets/enemies/red_wolf_king_changed_idle.png';
-        this._sprites.transformedRun.src = 'assets/enemies/red_wolf_king_changed_run.png';
-        
-        // 当前 facing 方向
-        this._facing = 'right';
-        this._lastHorizontalFacing = 'right'; // 供垂直移动/idle时保持水平朝向
-        
-        // ===== 变身系统 =====
-        const transformConfig = enemyConfigData.redWolfKing?.transform || {};
-        this._transformHpThreshold = transformConfig.hpThreshold || 0.5;
-        this._transformDuration = transformConfig.duration || 2000;
-        this._transformDamageMultiplier = transformConfig.damageMultiplier || 2;
         this._transformHpRecover = transformConfig.hpRecover !== undefined ? transformConfig.hpRecover : 1;
         this._isTransformed = false;      // 是否已完成变身
         this._isTransforming = false;     // 是否正在变身动画中
         this._isHowling = false;          // 是否正在嚎叫动画中
         this._transformTimer = 0;         // 变身动画计时器
         this._howlTimer = 0;              // 嚎叫动画计时器
-        this._transformTriggered = false; // 变身是否已触发过（只触发一次）
-        this._isTransforming = false;     // 是否正在变身动画中
-        this._transformTimer = 0;         // 变身动画计时器
         this._transformTriggered = false; // 变身是否已触发过（只触发一次）
         
         // 动画状态
