@@ -790,6 +790,9 @@ class RedWolfKing extends Enemy {
                 this._animTimer = 0;
                 this._animFrame = (this._animFrame + 1) % 8;
             }
+        } else if (this._isTransformed && this._animState === 'idle') {
+            // 变身后 idle：固定第 0 帧，不循环（避免精灵图帧偏移导致的抖动）
+            this._animFrame = 0;
         } else {
             if (this._animTimer >= frameDuration) {
                 this._animTimer = 0;
@@ -1048,7 +1051,7 @@ class RedWolfKing extends Enemy {
         return {
             spriteSize: 151,
             rotation: 0,
-            frame: this._animFrame,
+            frame: this._isTransformed && this._animState === 'idle' ? 0 : this._animFrame,
             flipX: flipX,
             flipY: false,
             textOffsetY: -64,
@@ -1070,13 +1073,18 @@ class RedWolfKing extends Enemy {
             leanAngle = 0.1;
         } else if (this._animState === 'run') {
             const runPhase = t * 2;
-            bounceY = Math.sin(runPhase) * 4;
+            // 变身后去掉上下弹跳，避免精灵图抖动（保留左右摇摆和拉伸效果）
+            if (!this._isTransformed) {
+                bounceY = Math.sin(runPhase) * 4;
+            }
             leanAngle = Math.sin(runPhase) * 0.12;
             swayX = Math.sin(runPhase + Math.PI / 4) * 2;
             const stretch = Math.sin(runPhase * 2) * 0.015;
             scaleX = 1 + stretch; scaleY = 1 - stretch * 0.3;
         } else if (this._animState === 'walk' || this._animState === 'pacing') {
-            bounceY = Math.sin(t) * 2;
+            if (!this._isTransformed) {
+                bounceY = Math.sin(t) * 2;
+            }
         }
         
         let currentSprite;
@@ -1087,6 +1095,8 @@ class RedWolfKing extends Enemy {
         } else if (this._isTransformed) {
             if (this._animState === 'idle') {
                 currentSprite = this._sprites.transformedIdle;
+            } else if (this._animState === 'attack') {
+                currentSprite = this._sprites.attack;
             } else {
                 currentSprite = this._sprites.transformedRun;
             }
@@ -1129,11 +1139,13 @@ class RedWolfKing extends Enemy {
                 ctx.drawImage(currentSprite, -76, -76, 151, 151);
                 ctx.restore();
             } else {
-                // 变身后精灵图布局：idle 1x4, run 1x16
+                // 变身后精灵图布局：idle 1x4, run 1x16, attack 4x2
                 let cols, rows;
                 if (this._isTransformed) {
                     if (this._animState === 'idle') {
                         cols = 4; rows = 1;
+                    } else if (this._animState === 'attack') {
+                        cols = 4; rows = 2;
                     } else {
                         cols = 16; rows = 1;
                     }
