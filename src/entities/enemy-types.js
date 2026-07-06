@@ -544,7 +544,7 @@ class RedWolfKing extends Enemy {
         this._sprites.idle.src = 'assets/enemies/red_wolf_king_idle.png';
         this._sprites.transform.src = 'assets/enemies/red_wolf_king_change.png';
         this._sprites.howl.src = 'assets/enemies/red_wolf_king_howl.png';
-        this._sprites.transformedIdle.src = 'assets/enemies/red_wolf_king_changed_idle.png';
+        this._sprites.transformedIdle.src = 'assets/enemies/red_wolf_king_transformed_idle.png';
         this._sprites.transformedRun.src = 'assets/enemies/red_wolf_king_changed_run.png';
         
         // 当前 facing 方向
@@ -676,7 +676,7 @@ class RedWolfKing extends Enemy {
                 this._sprites.side.src = 'assets/enemies/red_wolf_king_changed_run.png';
                 this._sprites.front.src = 'assets/enemies/red_wolf_king_changed_run.png';
                 this._sprites.back.src = 'assets/enemies/red_wolf_king_changed_run.png';
-                this._sprites.idle.src = 'assets/enemies/red_wolf_king_changed_idle.png';
+                this._sprites.idle.src = 'assets/enemies/red_wolf_king_transformed_idle.png';
                 // 变身后动画状态重置
                 this._animState = 'idle';
                 this._animFrame = 0;
@@ -1165,7 +1165,7 @@ class RedWolfKing extends Enemy {
                 let cols, rows;
                 if (this._isTransformed) {
                     if (this._animState === 'idle') {
-                        cols = 4; rows = 1;
+                        cols = 4; rows = 2;
                     } else if (this._animState === 'attack') {
                         cols = 4; rows = 2;
                     } else {
@@ -1192,9 +1192,11 @@ class RedWolfKing extends Enemy {
 
     _drawShadow(ctx, x, y, size) {
         const r = this.collisionRadius || size;
+        // 图片显示大小为 151x151，狼脚在底部 y + 75 处
+        const shadowY = y + 75;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
         ctx.beginPath();
-        ctx.ellipse(x, y + r * 0.5 + 15, r, r * 0.35, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, shadowY, r, r * 0.35, 0, 0, Math.PI * 2);
         ctx.fill();
     }
 }
