@@ -434,8 +434,7 @@ class BlackWolf extends Enemy {
             textOffsetY: -64,
             nameColor: 'rgba(255, 60, 60, 0.9)',
             offsetX: offsetX,
-            offsetY: offsetY,
-            scale: this._isTransforming || this._isHowling ? 2.68 : 1
+            offsetY: offsetY
         };
     }
 
