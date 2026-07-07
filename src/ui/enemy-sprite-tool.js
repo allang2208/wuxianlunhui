@@ -11,7 +11,9 @@ const EnemySpriteTool = {
     ENEMY_LIST: [
         { key: 'blackWolf', name: '黑狼' },
         { key: 'spider', name: '蜘蛛' },
-        { key: 'fatZombie', name: '肥僵尸' },
+        { key: 'fatZombie', name: '胖子僵尸' },
+        { key: 'fastZombie', name: '奔跑僵尸' },
+        { key: 'zombieDog', name: '僵尸犬' },
         { key: 'slime', name: '史莱姆' },
         { key: 'mushroom', name: '蘑菇怪' },
         { key: 'bat', name: '蝙蝠' },

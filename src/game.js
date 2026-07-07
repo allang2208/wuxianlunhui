@@ -44,14 +44,6 @@ export const Game = {
             }
             await this.spawnPlayer();
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
-            // 测试黑狼（主神空间出生点附近生成）
-            const testWolf = new window.BlackWolf(this.player.x + 200, this.player.y + 100);
-            Game.entities.set('test_black_wolf', testWolf);
-            console.log('[BlackWolf] 测试黑狼已在主神空间出生点附近生成', this.player.x + 200, this.player.y + 100);
-            // 测试红狼王（黑狼旁边生成）
-            const testRedWolf = new window.RedWolfKing(this.player.x + 350, this.player.y + 100);
-            Game.entities.set('test_red_wolf_king', testRedWolf);
-            console.log('[RedWolfKing] 测试红狼王已在主神空间出生点附近生成', this.player.x + 350, this.player.y + 100);
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             this.dropItem(CONFIG.WORLD_WIDTH/2 + 120, CONFIG.WORLD_HEIGHT/2, EquipDataManager.G18_PISTOL_ITEM);
@@ -77,6 +69,7 @@ export const Game = {
             EffectManager.add(new FloatingTextEffect(3478, 2363 - 20, '测试区域', '#000000'));
             // 初始化场景管理器
             SceneManager.init();
+            SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -205,8 +198,44 @@ export const Game = {
             const ty = npcY + (i % 2 === 0 ? -20 : 20) + 300;
             WallSystem.addTree(tx, ty, treeRadius, 5 + i, 'snow', Math.random() * Math.PI * 2);
         }
-        // 在出生点旁边生成一只蜘蛛，方便测试盾牌
-        /* 已删除：主神空间不再生成蜘蛛 */
+        // 在出生点旁边生成一只绿色火柴人僵尸，方便测试盾牌
+        const zombie = new Enemy(npcX + 200, npcY + 100, {
+            name: '僵尸',
+            hp: 80, maxHp: 80,
+            size: 14, collisionRadius: 12,
+            color: '#4a9a4a',
+            highlightColor: 'rgba(100, 180, 100, 0.3)',
+            speed: 25,
+            showWeapon: false,
+            _alertRange: Infinity, // 无限索敌距离
+            attack: { cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
+        });
+        this.entities.set('zombie_test', zombie);
+
+        // 在僵尸旁边生成一只毒液僵尸（紫色头绿色身体）
+        const spitter = new SpitterZombie(npcX + 350, npcY + 100, {
+            name: '毒液僵尸',
+            showWeapon: false,
+            _alertRange: Infinity // 无限索敌距离
+        });
+        this.entities.set('spitter_test', spitter);
+        // 在僵尸旁边生成一只胖子僵尸（棕色头深绿色身体）
+        const fatZombie = new FatZombie(npcX + 500, npcY + 100, {
+            name: '胖子僵尸'
+        });
+        this.entities.set('fatzombie_test', fatZombie);
+        // 在僵尸旁边生成一只奔跑僵尸（红色头绿色身体）
+        const fastZombie = new FastZombie(npcX + 650, npcY + 100, {
+            name: '奔跑僵尸',
+            showWeapon: false
+        });
+        this.entities.set('fastzombie_test', fastZombie);
+        // 在僵尸旁边生成一只僵尸犬（骨骼火柴人）
+        const zombieDog = new ZombieDog(npcX + 800, npcY + 100, {
+            name: '僵尸犬',
+            showWeapon: false
+        });
+        this.entities.set('zombiedog_test', zombieDog);
     },
     spawnTestTargets() {
         // 在坐标(4379, 2411)生成20个10HP不会移动的测试目标
@@ -347,7 +376,7 @@ export const Game = {
     },
     update(dt) {
         // ===== 场景六：地牢地图系统拦截 =====
-        if (SceneManager.currentScene === 'scene6' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+        if ((SceneManager.currentScene === 'scene6' || SceneManager.currentScene === 'scene7') && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
             if (DungeonMapSystem.state === 'map') {
                 DungeonMapSystem.update(dt);
                 EffectManager.update(dt);
@@ -577,7 +606,7 @@ export const Game = {
                         if (dist < 30) {
                             this._portalCooldown = now + 2000; // 2秒冷却
                             try {
-                                if (entity.targetScene === 'scene6') {
+                                if (entity.targetScene === 'scene6' || entity.targetScene === 'scene7') {
                                     this._showDungeonEntryConfirm(entity);
                                 } else {
                                     // 检查是否是任务返回传送门
@@ -766,7 +795,7 @@ export const Game = {
     },
     render() {
         // ===== 场景六：地牢地图系统渲染拦截 =====
-        if (SceneManager.currentScene === 'scene6' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
+        if ((SceneManager.currentScene === 'scene6' || SceneManager.currentScene === 'scene7') && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
             Renderer.clear();
             DungeonMapSystem.render(Renderer.ctx);
             return;

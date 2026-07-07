@@ -306,6 +306,13 @@
         .cd-value { color: #d4c5a9; font-weight: 600; }
         .cd-value.pos { color: #7a9a6a; }
         .cd-value.neg { color: #9a6a6a; }
+        .cd-stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid rgba(90,77,63,0.2); }
+        .cd-stat-row:last-child { border-bottom: none; }
+        .cd-stat-label { color: #8a7d6b; }
+        .cd-stat-val { color: #d4c5a9; font-weight: 600; text-align: right; }
+        .cd-stat-val.pos { color: #7a9a6a; }
+        .cd-stat-val.neg { color: #9a6a6a; }
+        .cd-family-tag { display: inline-block; font-size: 10px; padding: 1px 8px; border-radius: 8px; margin-left: 6px; background: rgba(90, 122, 90, 0.3); color: #7a9a6a; }
         /* 详情头部大图标 */
         .cd-hero { display: flex; align-items: center; gap: 14px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; }
         .cd-hero-icon { font-size: 48px; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); border-radius: 10px; flex-shrink: 0; }
@@ -1576,6 +1583,31 @@
     border: 1px solid #5a4d3f;
     border-radius: 8px;
     padding: 12px;
+}
+.expedition-dungeon-selector {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.expedition-dungeon-select {
+    flex: 1;
+    background: #2a2520;
+    border: 1px solid #5a4d3f;
+    border-radius: 5px;
+    color: #d4c5a9;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: SimHei, "Microsoft YaHei", sans-serif;
+    cursor: pointer;
+    outline: none;
+}
+.expedition-dungeon-select option {
+    background: #2a2520;
+    color: #d4c5a9;
+}
+.expedition-dungeon-select:focus {
+    border-color: #7a9a6a;
 }
 .expedition-dungeon-name {
     font-size: 18px;

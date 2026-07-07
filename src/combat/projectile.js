@@ -34,14 +34,18 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                 for (const entity of entityList) {
                     if (entity === this.source || !entity.active || !entity.hittable || this.hitTargets.has(entity)) continue;
                     const dist = Math.sqrt((entity.x - this.x) ** 2 + (entity.y - this.y) ** 2);
-                    if (dist < (entity.size || entity.collisionRadius || 0) + this.size) {
+                    if (dist < (entity.collisionRadius || 12) + this.size) {
                         // 友军伤害免疫：子弹穿透同阵营目标
                         if (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) {
                             continue;
                         }
                         this.hitTargets.add(entity);
                         const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
-                        entity.takeDamage(damage, this.source, this.damageType);
+                        entity.takeDamage(damage, this.source, 'ranged');
+                        // 毒液投射物：命中后给目标加一层中毒
+                        if (this.isSpit && typeof entity.applyPoison === 'function') {
+                            entity.applyPoison(1);
+                        }
                         // 通用附魔命中效果（支持远程武器如S12K的狼蛛附魔）
                         if (this.source) {
                             const weapon = this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null);

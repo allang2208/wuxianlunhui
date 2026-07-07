@@ -97,3 +97,50 @@ if (this.weaponMode === 'weapon') {
 - [ ] 双持时显示两把G18贴图
 - [ ] 图鉴中怪物等级和六维属性实时显示
 - [ ] 191浮窗显示攻击力公式（非 `-`）
+
+---
+
+## 新增内容（地牢模式 + 坐标工具）
+
+### 12. DevTool 坐标工具（dev-tool.js）
+- 全屏覆盖层测量坐标和尺寸
+- 左键按下→拖动→释放：生成矩形，自动复制到剪贴板
+- 右键：退出工具，清理所有元素
+- **应用**：小鼠商店按钮 (504,862, 183×65)、放弃按钮 (1231,866, 164×66)
+- **应用**：路线图区域 (260,94 → 1685,818, 1425×724)
+
+### 13. 地牢模式（dungeon-map-system.js + zombie-dungeon.js）
+- 4条路线汇聚到中心，3波战斗（5怪/波），80/20分布
+- 1024×1024 无障碍战斗区域，120px 深生成带
+- 10s 打扫战场倒计时（cleanupTimer + cleanupOverlay）
+- 死亡返回主神空间，击败返回路线图
+- 路线图居中显示在目标区域 (260,94 → 1685,818)
+- 小鼠商店按钮 + 放弃按钮（versionGlow 动画）
+
+### 14. 怪物数据源统一
+- 删除 `public/data/enemies.json` 和 `data/enemies.json`
+- 单一数据源：`data/enemy-config.json`（构建时 import）
+- `data-loader.js` 新增 `_convertEnemyConfig()` 转换格式供图鉴使用
+- 图鉴显示数值与实际游戏完全一致
+
+### 15. 中毒 Buff 修复（player.js）
+- **Bug 1**：StatusBar 计时器与 `_poisonTimer` 不同步，图标消失后毒仍生效
+- **修复**：减层时调用 `StatusBar.addEffect('poison', 5000, { stacks })` 重置倒计时
+- **Bug 2**：减层后 `_poisonTickTimer` 未重置，立即多扣一次血
+- **修复**：减层后添加 `this._poisonTickTimer = 1000`
+
+### 16. 图鉴分类（codex-manager.js）
+- 怪物按 `family` 字段分类：全部 / 僵尸 / 狼
+- 僵尸类：僵尸、奔跑僵尸、胖子僵尸、毒液僵尸、僵尸犬
+
+### 文件修改清单（新增）
+- `src/ui/dev-tool.js` - 坐标工具
+- `src/world/dungeon-map-system.js` - 地牢系统
+- `src/world/zombie-dungeon.js` - 僵尸地牢
+- `src/systems/data-loader.js` - 统一数据源
+- `src/entities/player.js` - 中毒修复
+- `src/ui/codex-manager.js` - 图鉴分类
+- `src/ai/region-index.js` - 区域索引寻路
+- `src/ai/pathfinder.js` - 寻路优化
+- `src/ai/path-manager.js` - 路径管理
+- `data/enemy-config.json` - 统一怪物数据（添加 display 字段）

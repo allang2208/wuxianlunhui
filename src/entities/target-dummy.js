@@ -50,7 +50,7 @@ import { Renderer } from '../world/renderer.js';
                     if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
                         const nx = this.x + this.knockbackX;
                         const ny = this.y + this.knockbackY;
-                        const radius = this.collisionRadius || this.size * 0.6 || 10;
+                        const radius = this.collisionRadius || 12;
                         if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
                             const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                             const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;
@@ -92,7 +92,7 @@ import { Renderer } from '../world/renderer.js';
                 if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;
-                    const radius = this.collisionRadius || this.size * 0.6 || 10;
+                    const radius = this.collisionRadius || 12;
                     if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                         const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;

@@ -247,6 +247,7 @@
                                 <div class="codex-grid" id="codexGrid"></div>
                             </div>
                             <div class="codex-sub-layout" id="codexMonsterLayout">
+                                <div class="codex-category-tabs" id="codexMonsterCatTabs"></div>
                                 <div class="codex-grid" id="codexMonsterGrid"></div>
                             </div>
                         </div>
@@ -487,6 +488,13 @@
                 <div class="expedition-body">
                     <!-- 地牢信息 -->
                     <div class="expedition-info">
+                        <div class="expedition-dungeon-selector">
+                            <label for="expeditionDungeonSelect" style="color:#8a7d6b; font-size:12px;">选择地牢：</label>
+                            <select id="expeditionDungeonSelect" class="expedition-dungeon-select" onchange="ExpeditionSystem.onDungeonSelect(this.value)">
+                                <option value="default">遗忘祭坛</option>
+                                <option value="zombie">☠ 僵尸地牢</option>
+                            </select>
+                        </div>
                         <div class="expedition-dungeon-name" id="expeditionDungeonName">遗忘祭坛</div>
                         <div class="expedition-dungeon-desc" id="expeditionDungeonDesc">古老教团的祭祀场所，如今只剩下扭曲的雕像与呢喃的低语。</div>
                         <div class="expedition-stats">

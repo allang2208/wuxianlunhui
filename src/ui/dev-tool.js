@@ -113,11 +113,12 @@ const DevTool = {
 
     // 加载图片
     _loadImages() {
+        // 使用新版角色待机贴图
         this.charImage = new Image();
-        this.charImage.src = 'assets/characters/walk/hero_001.png';
+        this.charImage.src = 'assets/characters/character_idle_new.png';
         this.charImage.onload = () => this._draw();
 
-        // 加载角色动画帧
+        // 加载角色动画帧（使用新版奔跑帧）
         this._loadCharacterFrames();
 
         // 预加载所有武器图片
@@ -311,14 +312,14 @@ const DevTool = {
     // 加载角色动画帧
     _loadCharacterFrames() {
         this._charFrames = {};
-        // 行走帧：24帧
+        // 使用新版奔跑帧（N方向，21帧）
         this._charFrames.walk = [];
-        for (let i = 1; i <= 24; i++) {
+        for (let i = 1; i <= 21; i++) {
             const img = new Image();
-            img.src = `assets/characters/walk/hero_${String(i).padStart(3, '0')}.png`;
+            img.src = `assets/characters/running/N/dir135.mp4${String(i).padStart(4, '0')}.png`;
             this._charFrames.walk.push(img);
         }
-        // 待机帧：使用默认图
+        // 待机帧：使用新版待机图
         this._charFrames.idle = [this.charImage];
     },
 
@@ -933,6 +934,7 @@ const DevTool = {
 
         const onMouseDown = (e) => {
             if (e.button !== 0) return; // 只响应左键
+            if (e.target.closest && e.target.closest('#coordPanel')) return; // 点击面板内元素不开始记录
             e.preventDefault();
             state.dragging = true;
             state.startX = e.clientX;

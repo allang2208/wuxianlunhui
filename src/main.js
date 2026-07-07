@@ -102,6 +102,10 @@ async function initModules() {
     window.Enemy = Enemy;
     window.BlackWolf = BlackWolf;
     window.RedWolfKing = RedWolfKing;
+    window.SpitterZombie = SpitterZombie;
+    window.FatZombie = FatZombie;
+    window.FastZombie = FastZombie;
+    window.ZombieDog = ZombieDog;
     window.HumanoidMonster = HumanoidMonster;
     window.Commander = Commander;
     window.MachineGunner = MachineGunner;
@@ -135,6 +139,7 @@ async function initModules() {
     // AI
     window.pathFinder = pathFinder;
     window.PathManager = PathManager;
+    window.regionIndex = regionIndex;
     window.TacticalSquadAI = TacticalSquadAI;
 
     // AI Systems (v0.197 重构)
@@ -247,7 +252,8 @@ import { Player } from './entities/player.js';
 import { Enemy } from './entities/enemy.js';
 import { pathFinder } from './ai/pathfinder.js';
 import { PathManager } from './ai/path-manager.js';
-import { BlackWolf, RedWolfKing } from './entities/enemy-types.js';
+import { regionIndex } from './ai/region-index.js';
+import { BlackWolf, RedWolfKing, SpitterZombie, FatZombie, FastZombie, ZombieDog } from './entities/enemy-types.js';
 import { HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from './entities/humanoid-monster.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 

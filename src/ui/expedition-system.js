@@ -14,6 +14,7 @@ export const ExpeditionSystem = {
         if (this._isOpen) return;
         this._isOpen = true;
         this._carriedItems = new Array(this.CAPACITY).fill(null);
+        this.selectedDungeon = 'default'; // 重置为默认地牢
 
         // 先打开背包（如果还没打开）
         if (typeof SystemUI !== 'undefined') {
@@ -38,6 +39,11 @@ export const ExpeditionSystem = {
         // 显示出征准备面板
         const panel = document.getElementById('expeditionPanel');
         if (panel) panel.classList.add('active');
+
+        // 重置地牢选择器
+        const select = document.getElementById('expeditionDungeonSelect');
+        if (select) select.value = 'default';
+        this._updateDungeonInfo('default');
 
         // 生成背包格子
         this._renderInventoryGrid();
@@ -319,6 +325,45 @@ export const ExpeditionSystem = {
         this._showMessage('已重置出征背包，所有物品已归还');
     },
 
+    // 地牢选择变更
+    onDungeonSelect(value) {
+        this.selectedDungeon = value;
+        this._updateDungeonInfo(value);
+    },
+
+    // 更新地牢信息面板
+    _updateDungeonInfo(dungeonType) {
+        const nameEl = document.getElementById('expeditionDungeonName');
+        const descEl = document.getElementById('expeditionDungeonDesc');
+        const levelEl = document.getElementById('expeditionLevel');
+        const diffEl = document.getElementById('expeditionDifficulty');
+        const rewardEl = document.getElementById('expeditionReward');
+
+        const info = {
+            default: {
+                name: '遗忘祭坛',
+                desc: '古老教团的祭祀场所，如今只剩下扭曲的雕像与呢喃的低语。',
+                level: 'Lv.5 ~ 15',
+                difficulty: '★★★☆☆',
+                reward: '4500 金币'
+            },
+            zombie: {
+                name: '☠ 僵尸地牢',
+                desc: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处的尸王巢穴。',
+                level: 'Lv.2 ~ 10',
+                difficulty: '★★★★☆',
+                reward: '6000 金币 + 稀有装备'
+            }
+        };
+
+        const d = info[dungeonType] || info.default;
+        if (nameEl) nameEl.textContent = d.name;
+        if (descEl) descEl.textContent = d.desc;
+        if (levelEl) levelEl.textContent = d.level;
+        if (diffEl) diffEl.textContent = d.difficulty;
+        if (rewardEl) rewardEl.textContent = d.reward;
+    },
+
     // 确认出征 — 物品已从背包真正移出，直接带走
     depart() {
         const carried = this._carriedItems.filter(c => c !== null);
@@ -349,10 +394,11 @@ export const ExpeditionSystem = {
             SystemUI.close();
         }
 
-        // 初始化地牢
+        // 初始化地牢（传入选中的地牢类型）
         if (typeof DungeonMapSystem !== 'undefined') {
             const player = Game.player;
-            DungeonMapSystem.init('scene6', player);
+            const dungeonType = this.selectedDungeon || 'default';
+            DungeonMapSystem.init('scene6', player, dungeonType);
         }
     },
 
