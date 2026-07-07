@@ -74,7 +74,9 @@ export class GameScene extends Scene {
                 this.offhandWeaponSprite.setActive(false);
             }
         } else {
-            if (this.playerSprite && _game && _game.player && !this.playerSprite.visible) {
+            // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
+            const _isStickFigure = _game && _game.player && _game.player._stickFigure;
+            if (this.playerSprite && _game && _game.player && !this.playerSprite.visible && !_isStickFigure) {
                 this.playerSprite.setVisible(true);
                 this.playerSprite.setActive(true);
             }
@@ -209,7 +211,11 @@ export class GameScene extends Scene {
     _onPlayerSpawn(data) {
         if (this.playerSprite) {
             this.playerSprite.setPosition(data.x, data.y);
-            this.playerSprite.setVisible(true);
+            // 火柴人模式：不显示 Phaser sprite
+            const _game = window.Game;
+            const _isStickFigure = _game && _game.player && _game.player._stickFigure;
+            this.playerSprite.setVisible(!_isStickFigure);
+            this.playerSprite.setActive(!_isStickFigure);
             this.playerSprite.play('player_walk');
         }
     }

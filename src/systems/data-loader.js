@@ -1,3 +1,5 @@
+import enemyConfigData from '../../data/enemy-config.json';
+
 // data-loader.js — 异步加载 JSON 配置数据
 
 const DataLoader = {
@@ -18,16 +20,53 @@ const DataLoader = {
     },
 
     async loadAll() {
-        const [equipment, skills, enemies] = await Promise.all([
+        const [equipment, skills] = await Promise.all([
             this.loadJSON('/data/equipment.json'),
-            this.loadJSON('/data/skills.json'),
-            this.loadJSON('/data/enemies.json')
+            this.loadJSON('/data/skills.json')
         ]);
         return {
             equipment: equipment ? equipment.equipment : null,
             skills: skills ? skills.skills : null,
-            enemies: enemies ? enemies.enemies : null
+            enemies: this._convertEnemyConfig(enemyConfigData)
         };
+    },
+
+    /** 将 enemy-config.json 转换为图鉴所需的 ENEMY_DATA 格式 */
+    _convertEnemyConfig(config) {
+        const enemies = {};
+        const rankMap = { normal: '普通', elite: '精英', boss: '首领' };
+        for (const [id, data] of Object.entries(config)) {
+            enemies[id] = {
+                id,
+                name: data.name,
+                type: data.type || rankMap[data.rank] || '普通',
+                category: data.category || 'monster',
+                family: data.family,
+                color: data.color,
+                size: data.size,
+                collisionRadius: data.collisionRadius,
+                hp: data.hp,
+                maxHp: data.maxHp,
+                speed: data.speed,
+                attackRange: data.attackRange,
+                attackCooldown: data.attack?.cooldown,
+                attackType: data.attackType || (data.attack?.type === 'thrust' ? '突刺' : data.attack?.type),
+                damageMin: data.attack?.damageMin,
+                damageMax: data.attack?.damageMax,
+                knockback: data.attack?.knockback,
+                level: data.level,
+                rank: data.rank,
+                str: data.str,
+                dex: data.dex,
+                con: data.con,
+                int: data.int,
+                wis: data.wis,
+                luck: data.luck,
+                skills: data.skills || [],
+                description: data.description || ''
+            };
+        }
+        return enemies;
     },
 
     /** 解析技能效果公式 */

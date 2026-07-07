@@ -140,10 +140,8 @@ import { StatusBar } from '../ui/status-bar.js';
                 this.saiga12kImage = new Image(); this.saiga12kImage.src = 'assets/weapons/S12k-equip.png';
                 this.energyLmgImage = new Image(); this.energyLmgImage.src = 'assets/weapons/devotion-equip.png';
                 this.shieldImage = new Image(); this.shieldImage.src = 'assets/weapons/woodshied-equip.png';
-                this.characterImage = new Image(); this.characterImage.src = 'assets/characters/character_idle_new.png';
-                this.characterFrames = [];
-                for (let i = 1; i <= 24; i++) { const img = new Image(); img.src = `assets/characters/walk/hero_${String(i).padStart(3, '0')}.png`; this.characterFrames.push(img); }
-                this.characterAnim = { frame: 0, timer: 0, frameInterval: 50 };
+                // 火柴人模式：不再加载角色精灵图
+                this._stickFigure = true;
                 this.equippedRangedType = null; // 'bow' | 'pistol' | 'pkm' | 'akm' | 'qbz191' | null，装备副武器时设置
                 this.arrowImage = new Image(); this.arrowImage.src = 'assets/ammo/arrow.png';
                 this.weaponEffect = new WeaponEffect(); // 武器符文发光粒子效果（已从 Player 中拆出）
@@ -450,11 +448,13 @@ import { StatusBar } from '../ui/status-bar.js';
                 this._ammoState = { weapon: null, offhand: null, weapon2: null, ring2: null };
                 // 重新初始化当前装备的弹药
                 ['weapon', 'offhand', 'weapon2', 'ring2'].forEach(slot => this._initAmmoForSlot(slot));
-                // 重生位置：主神空间出生点（小鼠大王位置，固定坐标）
-                const MAIN_SCENE_WIDTH = 7650, MAIN_SCENE_HEIGHT = 3800;
-                const respawnPos = { x: MAIN_SCENE_WIDTH / 2 + 120, y: MAIN_SCENE_HEIGHT / 2 - 150 };
+                // 重生位置：主神空间 origin 点（固定坐标）
+                const respawnPos = { x: SceneManager.scenes.main.origin.x, y: SceneManager.scenes.main.origin.y };
                 if (SceneManager.currentScene !== 'main') {
-                    // 从其他场景死亡回主神空间：使用独立的重生位置变量，不覆盖 _mainPlayerPos
+                    // 从其他场景死亡回主神空间：统一关闭地牢系统（如有），使用 origin 点重生
+                    if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+                        DungeonMapSystem.shutdown();
+                    }
                     SceneManager._respawnPos = respawnPos;
                     SceneManager.switchScene('main', this);
                 } else {
@@ -900,6 +900,7 @@ import { StatusBar } from '../ui/status-bar.js';
                 if (this.hitFlash > 0) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
+                this.updateStatusEffects(dt);
                 // 死亡状态处理
                 if (this._isDead) {
                     this._deathTimer -= dt;
@@ -947,8 +948,10 @@ import { StatusBar } from '../ui/status-bar.js';
                         if (this._poisonStacks > 0) {
                             // 还有剩余层数，重新启动计时器
                             this._poisonTimer = 5000;
+                            this._poisonTickTimer = 1000; // 重置 tick 计时器
                             if (StatusBar) {
-                                StatusBar.updateEffectStacks('poison', this._poisonStacks);
+                                // 重置 StatusBar 的 remaining 时间，保持图标显示同步
+                                StatusBar.addEffect('poison', 5000, { stacks: this._poisonStacks });
                             }
                         } else {
                             // 全部层数耗尽，完全清除
@@ -1016,6 +1019,8 @@ import { StatusBar } from '../ui/status-bar.js';
                     const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
                     if (isAttacking) sprint = false;
                     let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
+                    // 减速状态（致残）：移动速度减半
+                    if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
                     // 防御状态：移动速度减慢 50%
                     if (this.shieldSystem && this.shieldSystem.defending) targetSpeed *= 0.5;
                     const currentEquip = this.equipments[this.weaponMode];
@@ -1114,20 +1119,6 @@ import { StatusBar } from '../ui/status-bar.js';
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
                 if (this.isMoving && !this.isDodging) {
                     this.animTime += 0.15;
-                    // 角色行走动画更新
-                    const ca = this.characterAnim;
-                    ca.state = 'walk';
-                    ca.timer += dt;
-                    if (ca.timer >= ca.frameInterval) {
-                        ca.timer -= ca.frameInterval;
-                        if (ca.frame === 0) ca.frame = 1; // 从idle切换到walk时从第1帧开始
-                        else ca.frame = ca.frame >= 23 ? 1 : ca.frame + 1; // 循环 1~23
-                    }
-                } else {
-                    // 静止待机
-                    this.characterAnim.state = 'idle';
-                    this.characterAnim.frame = 0;
-                    this.characterAnim.timer = 0;
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
                     const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
@@ -2862,7 +2853,7 @@ import { StatusBar } from '../ui/status-bar.js';
             renderHealthBar(ctx, x, y) {
                 const barWidth = 40, barHeight = 6;
                 const hpPercent = Math.max(0, this.data.hp / this.data.maxHp);
-                const barY = y - this.size - 12;
+                const barY = y - this.size - 38;
                 // 背景
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                 ctx.fillRect(x - barWidth/2, barY, barWidth, barHeight);
@@ -3867,6 +3858,144 @@ import { StatusBar } from '../ui/status-bar.js';
                 ctx.fillText('0', -10, 10);
                 ctx.restore();
             }
+
+            /**
+             * 绘制黑色火柴人（伪骨骼）
+             * 角色坐标系：面向右侧（0弧度），Y+向下
+             */
+            _drawStickFigure(ctx, bodyScale = 1, bodyOffsetX = 0, bodyOffsetY = 0) {
+                // 与精灵图一致：反旋转回屏幕空间，保持直立；左右用水平翻转
+                ctx.save();
+                ctx.rotate(-this.rotation);
+                ctx.translate(bodyOffsetX, bodyOffsetY);
+                ctx.scale(bodyScale, bodyScale);
+
+                if (this._getFacingDirection() === 'left') ctx.scale(-1, 1);
+
+                const color = this.hitFlash > 0 ? '#ffffff' : '#111111';
+                const lw = this.hitFlash > 0 ? 4 : 3;
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = lw;
+
+                // ================================================================
+                // 基于用户提供的图像识别的关节坐标（直立姿态，Y+向下）
+                // 图像尺寸 199x420，红点标记的关节位置已按玩家比例缩放
+                // ================================================================
+                let J = {
+                    head:   { x: 0,  y: -28 },
+                    neck:   { x: 0,  y: -19 },
+                    shoulder:{x: 0,  y: -18 },
+                    lShldr: { x: -7, y: -18 },
+                    rShldr: { x: 7,  y: -18 },
+                    lElbow: { x: -12,y: -6  },
+                    rElbow: { x: 12, y: -3  },
+                    lHand:  { x: -8, y: 7   },
+                    rHand:  { x: 14, y: 7   },
+                    hip:    { x: 0,  y: 18  },
+                    lHip:   { x: -6, y: 18  },
+                    rHip:   { x: 6,  y: 18  },
+                    lKnee:  { x: -8, y: 35  },
+                    rKnee:  { x: 8,  y: 35  },
+                    lFoot:  { x: -10,y: 52  },
+                    rFoot:  { x: 10, y: 52  }
+                };
+
+                // ================================================================
+                // Walk 动画：2秒循环，左右脚交替走2步
+                // ================================================================
+                if (this.isMoving && !this.isDodging && !this._isWhirlwind) {
+                    const walkCycle = (Date.now() / 1000) % 2;          // 0 ~ 2 秒
+                    const phase = walkCycle * Math.PI;                  // 0 ~ 2π
+                    const sinP = Math.sin(phase);                       // 左腿主相位
+                    const cosP = Math.cos(phase);                       // 用于抬脚和臀部位移
+                    const sin2P = Math.sin(phase * 2);                // 2倍频，用于臀部起伏
+
+                    // ---- 臀部起伏（每步一次）----
+                    const hipBob = sin2P * 1.5;
+                    J.head.y   += hipBob * 0.3;
+                    J.neck.y   += hipBob * 0.4;
+                    J.shoulder.y += hipBob * 0.4;
+                    J.lShldr.y += hipBob * 0.4;
+                    J.rShldr.y += hipBob * 0.4;
+                    J.hip.y    += hipBob;
+                    J.lHip.y   += hipBob;
+                    J.rHip.y   += hipBob;
+
+                    // ---- 左腿（phase 0-π 时向前）----
+                    const lForward = Math.max(0, sinP);   // 0~1 向前阶段
+                    const lLift = Math.max(0, cosP);      // 抬脚阶段（与sin错开）
+                    const lFootX = sinP * 10;             // 前后摆动 10px
+                    const lFootY = -lLift * 4 - lForward * 2; // 抬脚+前伸
+                    J.lFoot.x  += lFootX;
+                    J.lFoot.y  += lFootY;
+                    J.lKnee.x  += lFootX * 0.55;          // 膝盖跟随
+                    J.lKnee.y  += lFootY * 0.6;
+
+                    // ---- 右腿（与左腿反相）----
+                    const rForward = Math.max(0, -sinP);
+                    const rLift = Math.max(0, -cosP);
+                    const rFootX = -sinP * 10;
+                    const rFootY = -rLift * 4 - rForward * 2;
+                    J.rFoot.x  += rFootX;
+                    J.rFoot.y  += rFootY;
+                    J.rKnee.x  += rFootX * 0.55;
+                    J.rKnee.y  += rFootY * 0.6;
+
+                    // ---- 手臂摆动（与对侧腿同向，自然摆臂）----
+                    const armSwing = 9;
+                    J.lHand.x  -= sinP * armSwing;       // 左臂与左腿反相
+                    J.lElbow.x -= sinP * armSwing * 0.65;
+                    J.rHand.x  += sinP * armSwing;       // 右臂与左腿同相
+                    J.rElbow.x += sinP * armSwing * 0.65;
+                }
+
+                // ---- 待机动画：呼吸（仅静止时）----
+                if (!this.isMoving) {
+                    const breath = Math.sin(Date.now() / 400) * 0.5;
+                    J.head.y   += breath;
+                    J.neck.y   += breath * 0.8;
+                    J.shoulder.y += breath * 0.8;
+                    J.lShldr.y += breath * 0.8;
+                    J.rShldr.y += breath * 0.8;
+                    J.hip.y    += breath * 0.3;
+                    J.lHip.y   += breath * 0.3;
+                    J.rHip.y   += breath * 0.3;
+                }
+
+                // ---- 绘制头部 ----
+                ctx.beginPath(); ctx.arc(J.head.x, J.head.y, 7, 0, Math.PI * 2); ctx.fill();
+
+                // ---- 绘制脊柱（neck → hip）----
+                ctx.beginPath(); ctx.moveTo(J.neck.x, J.neck.y); ctx.lineTo(J.hip.x, J.hip.y); ctx.stroke();
+
+                // ---- 绘制左臂（shoulder → elbow → hand）----
+                ctx.beginPath(); ctx.moveTo(J.lShldr.x, J.lShldr.y);
+                ctx.lineTo(J.lElbow.x, J.lElbow.y); ctx.lineTo(J.lHand.x, J.lHand.y); ctx.stroke();
+
+                // ---- 绘制右臂 ----
+                ctx.beginPath(); ctx.moveTo(J.rShldr.x, J.rShldr.y);
+                ctx.lineTo(J.rElbow.x, J.rElbow.y); ctx.lineTo(J.rHand.x, J.rHand.y); ctx.stroke();
+
+                // ---- 绘制左腿（hip → knee → foot）----
+                ctx.beginPath(); ctx.moveTo(J.lHip.x, J.lHip.y);
+                ctx.lineTo(J.lKnee.x, J.lKnee.y); ctx.lineTo(J.lFoot.x, J.lFoot.y); ctx.stroke();
+
+                // ---- 绘制右腿 ----
+                ctx.beginPath(); ctx.moveTo(J.rHip.x, J.rHip.y);
+                ctx.lineTo(J.rKnee.x, J.rKnee.y); ctx.lineTo(J.rFoot.x, J.rFoot.y); ctx.stroke();
+
+                // ---- 关节小圆点（手、脚）----
+                ctx.fillStyle = color;
+                [J.lHand, J.rHand, J.lFoot, J.rFoot].forEach(j => {
+                    ctx.beginPath(); ctx.arc(j.x, j.y, 2, 0, Math.PI * 2); ctx.fill();
+                });
+
+                ctx.restore();
+            }
+
             render(ctx) {
                 const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + (this.isDodging ? 0 : Math.sin(this.animTime) * 2);
 
@@ -3886,7 +4015,7 @@ import { StatusBar } from '../ui/status-bar.js';
                     const originalWidth = sourceImage ? sourceImage.width : 1440;
                     const scale = spriteSize / originalWidth;
                     sprite.setScale(scale);
-                    if (this.characterAnim.state === 'walk') {
+                    if (this.isMoving) {
                         if (!sprite.anims.isPlaying || sprite.anims.currentAnim.key !== 'player_walk') {
                             sprite.play('player_walk', true);
                         }
@@ -3904,6 +4033,11 @@ import { StatusBar } from '../ui/status-bar.js';
                         sprite.setActive(false);
                         if (phaserScene.weaponSprite) { phaserScene.weaponSprite.setVisible(false); phaserScene.weaponSprite.setActive(false); }
                         if (phaserScene.offhandWeaponSprite) { phaserScene.offhandWeaponSprite.setVisible(false); phaserScene.offhandWeaponSprite.setActive(false); }
+                        this._usePhaserSprite = false;
+                    } else if (this._stickFigure) {
+                        // 火柴人模式：强制 Canvas 绘制，隐藏 Phaser 角色贴图
+                        sprite.setVisible(false);
+                        sprite.setActive(false);
                         this._usePhaserSprite = false;
                     } else {
                         sprite.setVisible(true);
@@ -3995,97 +4129,23 @@ import { StatusBar } from '../ui/status-bar.js';
                 let bodyOffsetX = 0;
                 let bodyOffsetY = 0;
 
-                // 待机动画：呼吸抖动
-                if (!this.isMoving && !this.isDodging && !this._isWhirlwind) {
-                    const breathT = Date.now() / 400;
-                    bodyScale = 1 + Math.sin(breathT) * 0.03;
-                    bodyOffsetY = Math.sin(breathT) * 1.5;
-                    bodyOffsetX = Math.sin(breathT * 0.7) * 0.5;
-                }
-
-                // 移动动画：踏步
-                if (this.isMoving && !this.isDodging && !this._isWhirlwind) {
-                    bodyOffsetY = Math.sin(this.animTime * 6) * 2;
-                    bodyScale = 1 + Math.sin(this.animTime * 6) * 0.01;
-                }
+                // 火柴人绘制参数（新 _drawStickFigure 内部处理呼吸和行走动画）
+                bodyScale = 1;
+                bodyOffsetX = 0;
+                bodyOffsetY = 0;
 
                 // 剑类武器攻击：身体配合刺击动画
+                // [STICK FIGURE] 火柴人模式下攻击时身体不动，只动武器
+                // 攻击位移设为0，武器动画由 renderWeapon() 处理
                 const isMeleeEquipped = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
                 const isMeleeAttacking = isMeleeEquipped && this.weaponAnim.state !== 'idle';
                 if (isMeleeAttacking && !this._isWhirlwind && !this._isDashing && !this._specialAttackActive) {
-                    const wa = WEAPON_ANIM;
-                    const stab = WeaponAnimConfig.stab;
-                    const s = wa.size;
-                    if (this.weaponAnim.state === 'windup') {
-                        const t = this.weaponAnim.timer / this._getAnimMs(wa.windupMs);
-                        bodyOffsetX = -s * stab.windupDist * 0.3 * easeInCubic(t);
-                    } else if (this.weaponAnim.state === 'swing') {
-                        const t = this.weaponAnim.timer / this._getAnimMs(wa.swingMs);
-                        if (t < 0.6) {
-                            const pt = t / 0.6;
-                            bodyOffsetX = -s * stab.windupDist * 0.3 + s * (stab.stabDist * 0.3 + stab.windupDist * 0.3) * easeOutQuad(pt);
-                        } else {
-                            bodyOffsetX = s * stab.stabDist * 0.3;
-                        }
-                    } else if (this.weaponAnim.state === 'recover') {
-                        const t = this.weaponAnim.timer / this._getAnimMs(wa.recoverMs);
-                        const snapRatio = 0.15;
-                        if (t < snapRatio) {
-                            const pt = t / snapRatio;
-                            bodyOffsetX = s * stab.stabDist * 0.3 - (s * stab.stabDist * 0.3 + 5) * pt;
-                        } else {
-                            bodyOffsetX = -5 + 5 * ((t - snapRatio) / (1 - snapRatio));
-                        }
-                    }
+                    // body 保持不动
                 }
 
-                // 绘制角色精灵图（仅在 Phaser 未就绪时，Canvas 回退）
+                // 绘制火柴人（替代精灵图）
                 if (!this._usePhaserSprite) {
-                    const facingDir = this._getFacingDirection();
-                    const isLeft = facingDir === 'left';
-                    if (this.characterAnim.state === 'idle' && this.characterImage && this.characterImage.complete && this.characterImage.naturalWidth > 0) {
-                        const ca = this.characterAnim;
-                        const frameImg = this.characterFrames[ca.frame] || this.characterFrames[0];
-                        if (frameImg && frameImg.complete && frameImg.naturalWidth > 0) {
-                            ctx.save();
-                            ctx.imageSmoothingEnabled = false;
-                            ctx.imageSmoothingQuality = 'low';
-                            // 侧视角：反旋转使精灵图保持屏幕空间朝向
-                            ctx.rotate(-this.rotation);
-                            ctx.translate(isLeft ? -bodyOffsetX : bodyOffsetX, bodyOffsetY);
-                            ctx.scale(bodyScale, bodyScale);
-                            ctx.rotate(-Math.PI / 2); // 精灵图原始面朝下方，逆时针旋转90°面朝右侧（0点方向）
-                            if (isLeft) ctx.scale(-1, 1); // 水平翻转
-                            const spriteSize = this.size * 6.25;
-                            ctx.drawImage(frameImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                            ctx.restore();
-                        } else {
-                            // 帧加载中时回退到圆形
-                            ctx.fillStyle = this.isDodging ? '#a0c0a0' : CONFIG.PLAYER_COLOR;
-                            ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                            ctx.fillStyle = 'rgba(154, 186, 138, 0.3)';
-                            ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
-                        }
-                    } else if (this.characterImage && this.characterImage.complete && this.characterImage.naturalWidth > 0) {
-                        ctx.save();
-                        ctx.imageSmoothingEnabled = false;
-                        ctx.imageSmoothingQuality = 'low';
-                        // 侧视角：反旋转使精灵图保持屏幕空间朝向
-                        ctx.rotate(-this.rotation);
-                        ctx.translate(isLeft ? -bodyOffsetX : bodyOffsetX, bodyOffsetY);
-                        ctx.scale(bodyScale, bodyScale);
-                        ctx.rotate(-Math.PI / 2); // 精灵图原始面朝下方，逆时针旋转90°面朝右侧（0点方向）
-                        if (isLeft) ctx.scale(-1, 1); // 水平翻转
-                        const spriteSize = this.size * 6.25;
-                        ctx.drawImage(this.characterImage, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                        ctx.restore();
-                    } else {
-                        // 精灵图加载失败时回退到圆形
-                        ctx.fillStyle = this.isDodging ? '#a0c0a0' : CONFIG.PLAYER_COLOR;
-                        ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                        ctx.fillStyle = 'rgba(154, 186, 138, 0.3)';
-                        ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
-                    }
+                    this._drawStickFigure(ctx, bodyScale, bodyOffsetX, bodyOffsetY);
                 }
                 // ===== 边境长弓蓄力满闪光特效（人物） =====
                 if (this._chargeFlashActive) {
@@ -4302,7 +4362,7 @@ import { StatusBar } from '../ui/status-bar.js';
                 if (this.droneSystem && this.droneSystem.active) {
                     this.droneSystem.render(ctx);
                 }
-                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 32);
+                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 62);
             }
 
             // ===== 眩晕效果系统 =====

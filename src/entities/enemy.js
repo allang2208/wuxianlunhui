@@ -10,7 +10,7 @@ import aiConfigData from '../../data/ai-config.json';
             constructor(x, y, config = {}) {
                 super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: config.collisionRadius, name: config.name || '测试敌人' });
                 this.id = config.id || this.name;
-                this.speed = (config.speed || 0.3) * 2; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
+                this.speed = (config.speed || 0.3) * 3; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
                 this._baseSpeed = this.maxSpeed;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
@@ -22,7 +22,7 @@ import aiConfigData from '../../data/ai-config.json';
                     width: attackConfig.width || 20, 
                     damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : { min: 8, max: 15 }), 
                     knockback: attackConfig.knockback || 15,
-                    dynamicRange: attackConfig.dynamicRange || 0
+                    dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : attackConfig.range
                 }) };
                 this.weaponMode = 'melee';
                 this.level = config.level || 1;
@@ -44,10 +44,8 @@ import aiConfigData from '../../data/ai-config.json';
                 this._showWeapon = config.showWeapon !== false; // 是否显示武器
                 this._color = config.color || '#8a4a4a'; // 怪物颜色
                 this._highlightColor = config.highlightColor || 'rgba(180, 100, 100, 0.3)'; // 高光颜色
-                // A*寻路相关
-                this._path = null; // 当前路径（兼容性保留，实际由 _pathManager 管理）
-                this._pathIdx = 0; // 路径索引（兼容性保留）
-                this._pathRecalcTimer = 0; // 路径重算计时器（兼容性保留）
+                this._useStickFigure = true; // 火柴人模式：禁用 Phaser 精灵图，使用 Canvas 绘制
+                this._alertRange = config._alertRange || config.alertRange || 0; // 索敌范围：0 表示未设置，使用 PerceptionSystem 默认值
                 this._stuckTimer = 0; // 卡住计时器
                 this._lastX = x; this._lastY = y; // 上次位置（用于检测卡住）
                 // [ENHANCE] 智能路径管理器（参考《环世界》）：预规划 + 定期有效性检查 + 局部修复
@@ -381,20 +379,24 @@ import aiConfigData from '../../data/ai-config.json';
                 }
             }
             _drawBody(ctx) {
-                let facingAngle = this.rotation;
-                if (this.isMoving && (Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1)) {
-                    facingAngle = Math.atan2(this.vy, this.vx);
+                // 与主角一致：只做左右镜像翻转，不做上下旋转
+                // 注意：player.render() 中先 ctx.rotate(this.rotation) 再调用 _drawStickFigure
+                // 而 enemy.render() 中直接 ctx.translate(x, y) 调用 _drawBody，没有外层旋转
+                // 所以这里不需要 ctx.rotate(-this.rotation) 来抵消，只做水平翻转即可
+                ctx.save();
+
+                let facingDir = 'right';
+                if (this.isMoving && Math.abs(this.vx) > 0.1) {
+                    facingDir = this.vx > 0 ? 'right' : 'left';
+                } else {
+                    // 静止时根据朝向（对玩家方向）判断
+                    facingDir = Math.cos(this.rotation) > 0 ? 'right' : 'left';
                 }
-                const deg = (facingAngle * 180 / Math.PI + 360) % 360;
-                let facing = 'right';
-                let displayAngle = 0;
-                if (deg >= 45 && deg < 135) { facing = 'down'; displayAngle = Math.PI / 2; }
-                else if (deg >= 135 && deg < 225) { facing = 'left'; displayAngle = 0; }
-                else if (deg >= 225 && deg < 315) { facing = 'up'; displayAngle = -Math.PI / 2; }
-                ctx.rotate(displayAngle);
-                if (facing === 'left') ctx.scale(-1, 1);
-                ctx.fillStyle = this._color; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = this._highlightColor; ctx.beginPath(); ctx.arc(-3, -3, this.size * 0.5, 0, Math.PI*2); ctx.fill();
+                if (facingDir === 'left') ctx.scale(-1, 1);
+                
+                // 绿色火柴人
+                this._drawEnemyStickFigure(ctx);
+                
                 this.renderWeapon(ctx);
                 if (this._showWeapon) {
                     ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
@@ -409,6 +411,59 @@ import aiConfigData from '../../data/ai-config.json';
                     ctx.stroke();
                     ctx.setLineDash([]);
                 }
+                ctx.restore();
+            }
+            // 绘制绿色火柴人（敌人版）
+            // 支持双色：_headColor 头部颜色，_color 身体颜色（默认同色）
+            _drawEnemyStickFigure(ctx) {
+                const hitWhite = this.hitFlash > 0;
+                const headColor = hitWhite ? '#ffffff' : (this._headColor || this._color || '#4a9a4a');
+                const bodyColor = hitWhite ? '#ffffff' : (this._color || '#4a9a4a');
+                const lw = hitWhite ? 4 : 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = lw;
+
+                const t = this.animTime;
+                const walking = this.isMoving;
+                const s = walking ? Math.sin(t * 8) : 0;
+                const bob = walking ? Math.sin(t * 16) * 1.5 : Math.sin(t * 2) * 0.3;
+
+                const head   = { x: 0, y: -23 + bob };
+                const neck   = { x: 0, y: -17 + bob };
+                const shoulder = { x: 0, y: -15 + bob };
+                const hip    = { x: 0, y: 2 + bob };
+
+                // 头部（使用 headColor）
+                ctx.fillStyle = headColor;
+                ctx.beginPath(); ctx.arc(head.x, head.y, 6, 0, Math.PI * 2); ctx.fill();
+
+                // 身体（使用 bodyColor）
+                ctx.strokeStyle = bodyColor;
+                ctx.beginPath(); ctx.moveTo(neck.x, neck.y); ctx.lineTo(hip.x, hip.y); ctx.stroke();
+
+                const lElbow = { x: -5 + s * 3, y: -8 + bob };
+                const lHand  = { x: -7 + s * 4, y: -1 + bob };
+                ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.lineTo(lElbow.x, lElbow.y); ctx.lineTo(lHand.x, lHand.y); ctx.stroke();
+
+                const rElbow = { x: 6 - s * 3, y: -8 + bob };
+                const rHand  = { x: 11 - s * 4, y: -2 + bob };
+                ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.lineTo(rElbow.x, rElbow.y); ctx.lineTo(rHand.x, rHand.y); ctx.stroke();
+
+                const lKnee = { x: -3 + s * 5, y: 9 + bob };
+                const lFoot = { x: -4 + s * 6, y: 18 + bob };
+                ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.lineTo(lKnee.x, lKnee.y); ctx.lineTo(lFoot.x, lFoot.y); ctx.stroke();
+
+                const rKnee = { x: 3 - s * 5, y: 9 + bob };
+                const rFoot = { x: 4 - s * 6, y: 18 + bob };
+                ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.lineTo(rKnee.x, rKnee.y); ctx.lineTo(rFoot.x, rFoot.y); ctx.stroke();
+
+                // 关节点（使用 bodyColor）
+                ctx.fillStyle = bodyColor;
+                ctx.beginPath(); ctx.arc(lHand.x, lHand.y, 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(rHand.x, rHand.y, 1.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(lFoot.x, lFoot.y, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(rFoot.x, rFoot.y, 2, 0, Math.PI * 2); ctx.fill();
             }
             // 新增：计算战斗属性（使用与主角相同的公式）
             calculateCombatStats() {
@@ -476,6 +531,13 @@ import aiConfigData from '../../data/ai-config.json';
                 if (!this.active) {
                     sprite.setVisible(false);
                     return true;
+                }
+
+                // 火柴人模式：隐藏 Phaser sprite，由 Canvas 绘制火柴人
+                if (this._useStickFigure) {
+                    sprite.setVisible(false);
+                    // 注意：不要 setActive(false)，否则 getOrCreateEnemySprite 会每帧重新创建 sprite
+                    return false; // 返回 false 让 Canvas 继续渲染火柴人
                 }
 
                 const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 3.5;

@@ -188,7 +188,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     // 墙壁视线检测：不能攻击墙后的目标
                     if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                     // === 动态距离判定（优先于矩形判定）===
-                    const entityRadius = entity.collisionRadius || entity.size * 0.6 || 10;
+                    const entityRadius = entity.collisionRadius || 12;
                     if (pt.dynamicRange > 0) {
                         // 计算黑狼当前实际位置（含冲刺偏移）
                         let sourceX = source.x, sourceY = source.y;
@@ -346,7 +346,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 { let p = EffectManager._acquire('Projectile');
                         if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = this.config.projectileSpeed; p.maxRange = this.config.projectileRange; p.size = this.config.projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; p.isSpit = false; }
                         else p = new Projectile(source.x, source.y, angle, this.config.projectileSpeed, this.config.projectileRange, this.config.projectileSize, damage, piercing, source, entities, source.arrowImage, false, false, false, damageType);
-                        if (source.name === '毒液僵尸') p.isSpit = true;
+                        if (source.name === '毒液僵尸' || this.config.isSpit) p.isSpit = true;
                         EffectManager.add(p); }
                 return true;
             }

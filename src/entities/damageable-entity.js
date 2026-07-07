@@ -57,6 +57,10 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     if (damageType === 'magic' && this._magicVulnerabilityStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._magicVulnerabilityStacks * 0.05));
                     }
+                    // 远程伤害减免（在魔力易伤之后应用）
+                    if (damageType === 'ranged' && this._rangedDamageReduction > 0) {
+                        baseDamage = Math.floor(baseDamage * (1 - this._rangedDamageReduction));
+                    }
                     // 应用无人机易伤：所有伤害每层+10%（基础）+ 等级加成（在source上计算）
                     if (this._droneVulnerabilityStacks > 0) {
                         let droneBonus = 0.10 * this._droneVulnerabilityStacks;
@@ -143,12 +147,6 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 if (source) {
                     const angle = Math.atan2(source.y - this.y, source.x - this.x);
                     EffectManager.add(new BloodMistEffect(this.x, this.y, angle + Math.PI));
-                }
-                // 血池最后添加，确保在最上层渲染（不被血雾覆盖）
-                if (this.name && this.name.includes('僵尸')) {
-                    EffectManager.add(new ZombieBloodPool(this.x, this.y, { r: 45, g: 200, b: 35 }));
-                } else if (this._faction === 'enemy') {
-                    EffectManager.add(new ZombieBloodPool(this.x, this.y, { r: 180, g: 35, b: 35 }));
                 }
                 // 掉落金币（不再掉落 G18）
                 if (this instanceof Enemy) {
@@ -342,6 +340,17 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     }
                 }
             }
+            applyCripple(duration) {
+                // 状态栏显示
+                if (typeof StatusBar !== 'undefined') {
+                    this._crippleEffectId = StatusBar.addEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
+                }
+                // 内部状态数组（供 hasStatusEffect 查询）
+                this.addStatusEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
+                if (typeof EffectManager !== 'undefined') {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🦴 致残！', '#8a8a7a'));
+                }
+            }
             applyBleeding(stacks) {
                 this._bleedStacks += stacks;
                 this._bleedTimer = 5000;
@@ -399,7 +408,7 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;
                     // 击退时加入墙壁碰撞检测，防止穿墙
-                    const radius = this.collisionRadius || this.size * 0.6 || 10;
+                    const radius = this.collisionRadius || 12;
                     if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                         // 撞墙检测：如果resolve限制了移动，往反方向反弹5px

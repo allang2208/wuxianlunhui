@@ -1,3 +1,5 @@
+import { regionIndex } from './region-index.js';
+
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
  * 优化内容：
@@ -7,6 +9,8 @@
  * 4. 对角线剪切检测（防止穿角）
  * 5. 起点/终点被阻挡时自动寻找最近可用格子
  * 6. 路径平滑（简化冗余路径点）
+ * 7. [NEW] Region Index 连通性预检查（RimWorld 机制）
+ * 8. [NEW] 目标不可达时自动寻找最近出口
  * ================================================================ */
 
 /* ---------- 二叉堆优先队列 ---------- */
@@ -194,6 +198,15 @@ class PathFinder {
     invalidateCache() {
         this._hashValid = false;
         this._pathCache.clear();
+        // [NEW] 标记 RegionIndex 需要重算
+        regionIndex.markDirty();
+    }
+
+    // [NEW] 确保 RegionIndex 已构建（用于地牢战斗房间等封闭空间）
+    _ensureRegionIndex(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius) {
+        if (regionIndex.checkDirty()) {
+            regionIndex.rebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius);
+        }
     }
 
     _isBlocked(x, y, radius) {
@@ -202,7 +215,7 @@ class PathFinder {
     }
 
     // [ENHANCE] 地形权重计算：不同地形的移动成本
-    // 普通地面：1.0，树木附近：1.5，其他单位附近：1.3
+    // 普通地面：1.0，树木附近：1.5
     _getMoveCost(x, y, entityRadius) {
         let cost = 1.0;
         // 检查树木附近（增加移动成本，让单位自然绕行）
@@ -216,18 +229,8 @@ class PathFinder {
                 }
             }
         }
-        // 检查其他单位附近（避免拥挤）
-        if (typeof Game !== 'undefined' && Game.entities) {
-            for (const e of Game.entities.values()) {
-                if (!e || e === this || !e.active || e.hp <= 0) continue;
-                // 只检查同阵营单位（敌人不会互相排斥）
-                const d = Math.sqrt((x - e.x) ** 2 + (y - e.y) ** 2);
-                if (d < entityRadius * 2.5) {
-                    cost += 0.3;
-                    break;
-                }
-            }
-        }
+        // [NOTE] 已删除：每帧遍历所有实体的拥挤检测（性能杀手，O(N*M)）
+        // 实体排斥功能已在 MovementSystem._computeSeparation() 中实现，每帧移动时直接处理
         return cost;
     }
 
@@ -264,6 +267,40 @@ class PathFinder {
         }
         // [FIX] 步数用完不一定不可达，返回 true 让 A* 继续尝试（A* 有超时保护）
         return true;
+    }
+
+    // [NEW] 使用 RegionIndex 快速判断目标是否可达（O(1)，适用于封闭空间）
+    isReachableByRegion(startX, startY, endX, endY, worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius) {
+        this._ensureRegionIndex(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius);
+        return regionIndex.isSameRegion(startX, startY, endX, endY);
+    }
+
+    // [NEW] 当目标不可达时，找到当前区域边界上离目标最近的出口
+    // 返回 { path: [{x,y}, ...], isExitPath: true } 或 null
+    findPathToExit(startX, startY, targetX, targetY, entityRadius) {
+        // 先确保 RegionIndex 已构建（使用当前 WallSystem 的边界）
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        if (typeof WallSystem !== 'undefined' && WallSystem.walls) {
+            for (const w of WallSystem.walls) {
+                minX = Math.min(minX, w.x);
+                maxX = Math.max(maxX, w.x + w.w);
+                minY = Math.min(minY, w.y);
+                maxY = Math.max(maxY, w.y + w.h);
+            }
+        }
+        if (minX === Infinity) return null; // 没有墙壁，不需要出口
+
+        this._ensureRegionIndex(minX, minY, maxX, maxY, entityRadius);
+
+        // 找最近出口
+        const exit = regionIndex.findNearestExit(startX, startY, targetX, targetY, entityRadius);
+        if (!exit) return null;
+
+        // 用 A* 走到出口
+        const path = this.findPath(startX, startY, exit.x, exit.y, entityRadius);
+        if (!path) return null;
+
+        return { path, isExitPath: true, exitX: exit.x, exitY: exit.y };
     }
 
     // [ENHANCE] 缓存管理

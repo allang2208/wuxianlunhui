@@ -32,12 +32,14 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
 } from '../entities/humanoid-monster.js';
+import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG } from './zombie-dungeon.js';
 
 export const DungeonMapSystem = {
     active: false,
     state: "idle",
     player: null,
     sceneId: null,
+    dungeonType: 'default', // 'default' | 'zombie'
 
     nodes: [],
     edges: [],
@@ -70,6 +72,8 @@ export const DungeonMapSystem = {
         shop:   "#3a5a7a",
         event:  "#6a5a3a",
         boss:   "#7a0000",
+        converge: "#5a3a5a",
+        random: "#6a5a3a",
     },
     TYPE_BORDER_COLORS: {
         start:  "#6aca6a",
@@ -77,6 +81,8 @@ export const DungeonMapSystem = {
         shop:   "#5a8aaa",
         event:  "#9a8a5a",
         boss:   "#aa0000",
+        converge: "#8a5a8a",
+        random: "#9a8a5a",
     },
     TYPE_ICONS: {
         start:  "▶",
@@ -84,11 +90,13 @@ export const DungeonMapSystem = {
         shop:   "🏪",
         event:  "?",
         boss:   "☠",
+        converge: "◎",
+        random: "?",
     },
 
-    COMBAT_ROOM_SIZE: 420,
-    BOSS_ROOM_SIZE:   520,
-    WALL_THICKNESS:   24,
+    COMBAT_ROOM_SIZE: 1024,
+    BOSS_ROOM_SIZE:   1024,
+    WALL_THICKNESS:   20,
 
     _backupWalls: [],
     _backupCameraFollow: null,
@@ -98,11 +106,22 @@ export const DungeonMapSystem = {
     _combatCheckTimer: 0,
     _eventOverlay: null,
 
-    init(sceneId, player) {
+    // 僵尸地牢专用：波次管理
+    _zombieCombat: null,
+    _zombieWaveActive: false,
+    _zombieCombatNode: null,
+
+    // 打扫战场倒计时
+    _cleanupTimer: 0,
+    _cleanupActive: false,
+    _cleanupOverlay: null,
+
+    init(sceneId, player, dungeonType = 'default') {
         this.active = true;
         this.state = "map";
         this.sceneId = sceneId;
         this.player = player;
+        this.dungeonType = dungeonType;
         this.currentNodeId = null;
         this.visitedNodeIds.clear();
         this.hoveredNodeId = null;
@@ -110,14 +129,17 @@ export const DungeonMapSystem = {
         this._combatMonsterKeys = [];
         this._combatRoomWalls = [];
         this._combatCheckTimer = 0;
-
-        // 重置地图位置：居中显示
-        this.mapOffsetX = (CONFIG.VIEW_WIDTH - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = (CONFIG.VIEW_HEIGHT - this.MAP_HEIGHT) / 2;
-        this.mapScale = 1.0;
-        this.isDragging = false;
+        this._zombieCombat = null;
+        this._zombieWaveActive = false;
+        this._zombieCombatNode = null;
+        this._waveTransitioning = false;
+        this._cleanupTimer = 0;
+        this._cleanupActive = false;
+        this._cleanupOverlay = null;
 
         this.generateMap();
+        this._centerRouteMap();
+        this.isDragging = false;
 
         const startNode = this.nodes.find(n => n.type === "start");
         if (startNode) {
@@ -132,7 +154,13 @@ export const DungeonMapSystem = {
 
         this._bindEvents();
 
-        console.log("[DungeonMapSystem] Initialized", this.nodes.length, "nodes,", this.edges.length, "edges");
+        // 初始化时显示地图界面按钮（僵尸地牢）
+        if (dungeonType === 'zombie') {
+            this._createMouseShopButton();
+            this._createAbandonButton();
+        }
+
+        console.log(`[DungeonMapSystem] Initialized (${dungeonType})`, this.nodes.length, "nodes,", this.edges.length, "edges");
     },
 
     shutdown() {
@@ -141,6 +169,9 @@ export const DungeonMapSystem = {
         this.nodes = [];
         this.edges = [];
         this._cleanupEventUI();
+        this._removeCleanupOverlay();
+        this._removeMouseShopButton();
+        this._removeAbandonButton();
         this._unbindEvents();
 
         if (this._backupCameraFollow) {
@@ -159,51 +190,16 @@ export const DungeonMapSystem = {
         if (!canvas) return;
 
         const onMouseDown = (e) => {
-            this.isDragging = true;
+            this.isDragging = false;
             this.dragStartX = e.clientX;
             this.dragStartY = e.clientY;
-            this.dragStartOffsetX = this.mapOffsetX;
-            this.dragStartOffsetY = this.mapOffsetY;
             this._mouseDownTime = Date.now();
             this._mouseDownPos = { x: e.clientX, y: e.clientY };
         };
-        const onMouseMove = (e) => {
-            if (this.isDragging) {
-                const dx = e.clientX - this.dragStartX;
-                const dy = e.clientY - this.dragStartY;
-                this.mapOffsetX = this.dragStartOffsetX + dx;
-                this.mapOffsetY = this.dragStartOffsetY + dy;
-            }
-        };
-        const onMouseUp = () => {
-            this.isDragging = false;
-        };
-        const onWheel = (e) => {
-            e.preventDefault();
-            const zoomSpeed = 0.001;
-            const oldScale = this.mapScale;
-            let newScale = oldScale - e.deltaY * zoomSpeed;
-            newScale = Math.max(0.4, Math.min(2.0, newScale));
-
-            // 以鼠标位置为中心缩放
-            const mx = e.clientX;
-            const my = e.clientY;
-            const scaleRatio = newScale / oldScale;
-            this.mapOffsetX = mx - (mx - this.mapOffsetX) * scaleRatio;
-            this.mapOffsetY = my - (my - this.mapOffsetY) * scaleRatio;
-            this.mapScale = newScale;
-        };
-
+        // 不再绑定拖动和缩放事件，地图固定居中显示
         canvas.addEventListener("mousedown", onMouseDown);
-        window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mouseup", onMouseUp);
-        canvas.addEventListener("wheel", onWheel, { passive: false });
-
         this._eventListeners = [
             { el: canvas, type: "mousedown", fn: onMouseDown },
-            { el: window, type: "mousemove", fn: onMouseMove },
-            { el: window, type: "mouseup",   fn: onMouseUp },
-            { el: canvas, type: "wheel",     fn: onWheel },
         ];
     },
 
@@ -215,9 +211,18 @@ export const DungeonMapSystem = {
     },
 
     // ───────────────────────────────────────────────
-    // 地图生成：3行 × N列 的直线矩阵（暗黑地牢风格）
+    // 地图生成：根据 dungeonType 选择生成策略
     // ───────────────────────────────────────────────
     generateMap() {
+        if (this.dungeonType === 'zombie') {
+            this._generateZombieMap();
+            return;
+        }
+        this._generateDefaultMap();
+    },
+
+    // 默认地牢：3行 × N列 的直线矩阵（暗黑地牢风格）
+    _generateDefaultMap() {
         this.nodes = [];
         this.edges = [];
 
@@ -301,6 +306,20 @@ export const DungeonMapSystem = {
         }
     },
 
+    // 僵尸地牢：4条路线 converging to BOSS
+    _generateZombieMap() {
+        const generator = new ZombieDungeonMapGenerator();
+        const { nodes, edges } = generator.generate();
+        this.nodes = nodes;
+        this.edges = edges;
+        // 更新地图尺寸
+        this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
+        this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
+        // 重新居中
+        this.mapOffsetX = (CONFIG.VIEW_WIDTH - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = (CONFIG.VIEW_HEIGHT - this.MAP_HEIGHT) / 2;
+    },
+
     getCurrentNode() {
         return this.nodes.find(n => n.id === this.currentNodeId);
     },
@@ -335,6 +354,54 @@ export const DungeonMapSystem = {
     },
 
     // ───────────────────────────────────────────────
+    // 路线图居中：计算节点包围盒并居中显示
+    // ───────────────────────────────────────────────
+    _calculateNodeBounds() {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const node of this.nodes) {
+            if (node.x < minX) minX = node.x;
+            if (node.x > maxX) maxX = node.x;
+            if (node.y < minY) minY = node.y;
+            if (node.y > maxY) maxY = node.y;
+        }
+        return { minX, maxX, minY, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    },
+
+    _centerRouteMap() {
+        const vw = CONFIG.VIEW_WIDTH || window.innerWidth || 1920;
+        const vh = CONFIG.VIEW_HEIGHT || window.innerHeight || 1080;
+
+        // 目标显示区域（用户用坐标工具测量）
+        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
+
+        if (this.nodes.length === 0) {
+            // 无节点时，默认居中显示在目标区域内
+            const scaleX = TARGET_AREA.width / this.MAP_WIDTH;
+            const scaleY = TARGET_AREA.height / this.MAP_HEIGHT;
+            this.mapScale = Math.min(scaleX, scaleY);
+            this.mapOffsetX = TARGET_AREA.left + (TARGET_AREA.width - this.MAP_WIDTH * this.mapScale) / 2;
+            this.mapOffsetY = TARGET_AREA.top + (TARGET_AREA.height - this.MAP_HEIGHT * this.mapScale) / 2;
+            return;
+        }
+
+        const bounds = this._calculateNodeBounds();
+        const padding = 80; // 地图坐标边距，确保路线图不贴边
+
+        // 计算缩放比例，使路线图完整显示在目标区域中
+        const routeW = bounds.maxX - bounds.minX + padding * 2;
+        const routeH = bounds.maxY - bounds.minY + padding * 2;
+        const scaleX = TARGET_AREA.width / routeW;
+        const scaleY = TARGET_AREA.height / routeH;
+        this.mapScale = Math.min(scaleX, scaleY, 1.5); // 限制最大缩放1.5倍
+
+        // 计算偏移，使路线图在目标区域中居中
+        const routeCX = (bounds.minX + bounds.maxX) / 2;
+        const routeCY = (bounds.minY + bounds.maxY) / 2;
+        this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - routeCX * this.mapScale;
+        this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - routeCY * this.mapScale;
+    },
+
+    // ───────────────────────────────────────────────
     // 更新与交互
     // ───────────────────────────────────────────────
     update(dt) {
@@ -347,6 +414,23 @@ export const DungeonMapSystem = {
 
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
+
+        // 打扫战场倒计时中
+        if (this._cleanupActive) {
+            this._cleanupTimer -= dt;
+            if (this._cleanupTimer <= 0) {
+                this._cleanupTimer = 0;
+                this._cleanupActive = false;
+                this._removeCleanupOverlay();
+                this._cleanupCombat();
+                this._returnToMap();
+            } else if (this._cleanupOverlay) {
+                const seconds = Math.ceil(this._cleanupTimer / 1000);
+                this._cleanupOverlay.textContent = `打扫战场中... ${seconds}秒后返回地图`;
+            }
+            return;
+        }
+
         this._combatCheckTimer += dt;
         if (this._combatCheckTimer >= 500) {
             this._combatCheckTimer = 0;
@@ -357,13 +441,14 @@ export const DungeonMapSystem = {
     _updateHover() {
         const mx = Input.mouse.x;
         const my = Input.mouse.y;
-        const mapPos = this._screenToMap(mx, my);
         this.hoveredNodeId = null;
 
         const available = this.getAvailableNodes();
         for (const node of available) {
-            const dist = Math.sqrt((mapPos.x - node.x) ** 2 + (mapPos.y - node.y) ** 2);
-            if (dist < (this.NODE_RADIUS + 10) * this.mapScale) {
+            const screenPos = this._mapToScreen(node.x, node.y);
+            const dist = Math.sqrt((mx - screenPos.x) ** 2 + (my - screenPos.y) ** 2);
+            // 检测距离 = 节点屏幕半径 + 10px 缓冲
+            if (dist < this.NODE_RADIUS * this.mapScale + 10) {
                 this.hoveredNodeId = node.id;
                 break;
             }
@@ -372,17 +457,13 @@ export const DungeonMapSystem = {
     },
 
     _handleClick() {
-        // 区分点击和拖动：如果移动超过 5px 或时间超过 200ms，视为拖动
-        const dx = Input.mouse.x - this._mouseDownPos.x;
-        const dy = Input.mouse.y - this._mouseDownPos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const time = Date.now() - this._mouseDownTime;
-        if (dist > 5 || time > 200) return; // 拖动，不触发点击
+        // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
+        const mx = Input.mouse.x, my = Input.mouse.y;
+        const w = CONFIG.VIEW_WIDTH;
+        const h = CONFIG.VIEW_HEIGHT;
 
         // 检测退出按钮点击
-        const w = CONFIG.VIEW_WIDTH;
         const btnX = w - 110, btnY = 15, btnW = 90, btnH = 28;
-        const mx = Input.mouse.x, my = Input.mouse.y;
         if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
             this._showExitConfirm();
             return;
@@ -395,6 +476,10 @@ export const DungeonMapSystem = {
     },
 
     _enterNode(node) {
+        // 进入节点前隐藏地图按钮
+        this._removeMouseShopButton();
+        this._removeAbandonButton();
+
         this.currentNodeId = node.id;
         this.visitedNodeIds.add(node.id);
 
@@ -408,10 +493,22 @@ export const DungeonMapSystem = {
     },
 
     _returnToMap() {
+        if (this._cleanupActive) {
+            console.log('[DungeonMapSystem] Cleanup countdown active, delaying return to map');
+            return;
+        }
         this.state = "map";
         Camera.follow = () => {};
         Camera.x = 512;
         Camera.y = 512;
+
+        this._centerRouteMap();
+
+        // 显示地图界面按钮
+        if (this.dungeonType === 'zombie') {
+            this._createMouseShopButton();
+            this._createAbandonButton();
+        }
 
         const current = this.getCurrentNode();
         if (current && current.type === "boss" && this.visitedNodeIds.has(current.id)) {
@@ -420,13 +517,109 @@ export const DungeonMapSystem = {
     },
 
     _enterCombat(node) {
+        if (this.dungeonType === 'zombie') {
+            this._enterZombieCombat(node);
+            return;
+        }
         this._prepareCombatMode(false);
         this._generateRoom(false);
         this._spawnMonsters(3, false);
         EffectManager.add(new FloatingTextEffect(512, 400, "进入战斗！消灭所有敌人", "#ff4444"));
     },
 
+    _enterZombieCombat(node) {
+        this._zombieCombatNode = node;
+        this._zombieWaveActive = true;
+        import('./zombie-dungeon.js').then(mod => {
+            this._zombieCombat = new mod.ZombieDungeonCombat();
+            this._spawnZombieWave();
+        });
+    },
+
+    _spawnZombieWave() {
+        if (!this._zombieCombat || this._zombieCombat.isComplete) {
+            this._cleanupCombat();
+            this._returnToMap();
+            return;
+        }
+        this._prepareCombatMode(false);
+        // 第一波时生成房间并设置玩家位置，后续波次只生成怪物
+        if (this._zombieCombat.currentWave === 0) {
+            this._generateRoom(false);
+        }
+
+        const wave = this._zombieCombat.currentWave;
+        const total = this._zombieCombat.totalWaves;
+        EffectManager.add(new FloatingTextEffect(512, 400, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+
+        import('./zombie-dungeon.js').then(mod => {
+            const classes = this._zombieCombat.nextWaveMonsterClasses();
+            this._spawnZombieMonsters(classes);
+        });
+    },
+
+    _spawnZombieMonsters(classConfigs) {
+        this._combatMonsters = [];
+        this._combatMonsterKeys = [];
+
+        const margin = 40;
+        const safeMin = margin;
+        const safeMax = 1024 - margin;
+        const cx = 512, cy = 512;
+        const entranceEdge = this._combatEntrance || 2;
+        const oppositeEdge = (entranceEdge + 2) % 4;
+
+        let minX, maxX, minY, maxY;
+
+        if (oppositeEdge === 0) { // top
+            minX = safeMin;
+            maxX = safeMax;
+            minY = safeMin;
+            maxY = safeMin + 120;
+        } else if (oppositeEdge === 2) { // bottom
+            minX = safeMin;
+            maxX = safeMax;
+            minY = safeMax - 120;
+            maxY = safeMax;
+        } else if (oppositeEdge === 3) { // left
+            minX = safeMin;
+            maxX = safeMin + 120;
+            minY = safeMin;
+            maxY = safeMax;
+        } else if (oppositeEdge === 1) { // right
+            minX = safeMax - 120;
+            maxX = safeMax;
+            minY = safeMin;
+            maxY = safeMax;
+        }
+
+        for (let i = 0; i < classConfigs.length; i++) {
+            const mx = minX + Math.random() * (maxX - minX);
+            const my = minY + Math.random() * (maxY - minY);
+            const { MonsterClass, tier } = classConfigs[i];
+
+            let monster;
+            if (typeof MonsterClass === 'function' && MonsterClass.prototype && MonsterClass.prototype.constructor) {
+                monster = new MonsterClass(mx, my);
+            } else if (typeof MonsterClass === 'function') {
+                monster = MonsterClass(mx, my);
+            } else {
+                console.warn('[DungeonMapSystem] Invalid monster class:', MonsterClass);
+                continue;
+            }
+
+            const key = `zombie_dungeon_${Date.now()}_${i}_${Math.floor(Math.random()*1000)}`;
+            Game.entities.set(key, monster);
+            this._combatMonsters.push(monster);
+            this._combatMonsterKeys.push(key);
+        }
+    },
+
     _enterBoss(node) {
+        if (this.dungeonType === 'zombie') {
+            this._enterZombieCombat(node);
+            return;
+        }
         this._prepareCombatMode(true);
         this._generateRoom(true);
         this._spawnMonsters(1, true);
@@ -446,33 +639,44 @@ export const DungeonMapSystem = {
     },
 
     _generateRoom(isBoss) {
-        const roomSize = isBoss ? this.BOSS_ROOM_SIZE : this.COMBAT_ROOM_SIZE;
-        const t = this.WALL_THICKNESS;
+        const worldSize = 1024;
+        const margin = 20; // 边界墙壁厚度
+        const safeMin = margin;
+        const safeMax = worldSize - margin;
         const cx = 512, cy = 512;
-        const half = roomSize / 2;
-        const rx = cx - half;
-        const ry = cy - half;
-        const entranceW = 100;
-        const entranceX = cx - entranceW / 2;
 
-        const walls = [
-            { x: rx, y: ry, w: roomSize, h: t },
-            { x: rx, y: ry + t, w: t, h: roomSize - t * 2 },
-            { x: rx + roomSize - t, y: ry + t, w: t, h: roomSize - t * 2 },
-            { x: rx, y: ry + roomSize - t, w: entranceX - rx, h: t },
-            { x: entranceX + entranceW, y: ry + roomSize - t, w: rx + roomSize - (entranceX + entranceW), h: t },
-        ];
+        // 保留战斗场景的边界信息（用于怪物生成范围）
+        this._combatRoomBounds = { minX: safeMin, maxX: safeMax, minY: safeMin, maxY: safeMax, cx, cy };
 
-        this._combatRoomWalls = walls;
-        WallSystem.walls = walls;
+        // 随机选择玩家进入边界（0=上, 1=右, 2=下, 3=左）
+        const edge = Math.floor(Math.random() * 4);
+        this._combatEntrance = edge;
+        const offset = 60; // 从边界向内偏移
+        if (this.player) {
+            if (edge === 0) { // top
+                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = safeMin + offset;
+            } else if (edge === 1) { // right
+                this.player.x = safeMax - offset;
+                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+            } else if (edge === 2) { // bottom
+                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = safeMax - offset;
+            } else if (edge === 3) { // left
+                this.player.x = safeMin + offset;
+                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+            }
+        }
 
+        // 不生成任何墙壁和障碍物，只保留场景边界墙壁
+        WallSystem.walls = [...this._backupWalls];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }
 
-        if (this.player) {
-            this.player.x = cx;
-            this.player.y = ry + roomSize - t - 60;
+        // 标记 RegionIndex 需要重算
+        if (typeof pathFinder !== 'undefined') {
+            pathFinder.invalidateCache();
         }
     },
 
@@ -480,13 +684,36 @@ export const DungeonMapSystem = {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
 
-        const roomSize = isBoss ? this.BOSS_ROOM_SIZE : this.COMBAT_ROOM_SIZE;
-        const half = roomSize / 2;
-        const margin = 70;
-        const minX = 512 - half + margin;
-        const maxX = 512 + half - margin;
-        const minY = 512 - half + margin;
-        const maxY = 512 + half - 140;
+        const margin = 40;
+        const safeMin = margin;
+        const safeMax = 1024 - margin;
+        const cx = 512, cy = 512;
+        const entranceEdge = this._combatEntrance || 2;
+        const oppositeEdge = (entranceEdge + 2) % 4;
+
+        let minX, maxX, minY, maxY;
+
+        if (oppositeEdge === 0) { // top
+            minX = safeMin;
+            maxX = safeMax;
+            minY = safeMin;
+            maxY = safeMin + 120;
+        } else if (oppositeEdge === 2) { // bottom
+            minX = safeMin;
+            maxX = safeMax;
+            minY = safeMax - 120;
+            maxY = safeMax;
+        } else if (oppositeEdge === 3) { // left
+            minX = safeMin;
+            maxX = safeMin + 120;
+            minY = safeMin;
+            maxY = safeMax;
+        } else if (oppositeEdge === 1) { // right
+            minX = safeMax - 120;
+            maxX = safeMax;
+            minY = safeMin;
+            maxY = safeMax;
+        }
 
         // 普通怪物池（从现有怪物库中选择）
         const normalMonsters = [
@@ -520,15 +747,74 @@ export const DungeonMapSystem = {
 
     _checkCombatComplete() {
         if (this.state !== "combat" && this.state !== "boss") return;
+        if (this._cleanupActive) return;
 
         const allDead = this._combatMonsters.every(m => !m.active || m.hp <= 0);
         if (!allDead) return;
 
+        // 僵尸地牢：检查是否还有下一波
+        if (this.dungeonType === 'zombie' && this.state === "combat" && this._zombieWaveActive) {
+            if (this._zombieCombat && !this._zombieCombat.isComplete) {
+                // 防止重复设置过渡（多个setTimeout会导致_currentWave被连续增加）
+                if (this._waveTransitioning) return;
+                this._waveTransitioning = true;
+                // 短暂延迟后生成下一波
+                setTimeout(() => {
+                    this._waveTransitioning = false;
+                    if (this.active && this.state === "combat") {
+                        this._cleanupCombatWallsOnly();
+                        this._spawnZombieWave();
+                    }
+                }, 1500);
+                return;
+            }
+        }
+
+        // 所有波次/战斗完成，开始10秒打扫战场倒计时
+        this._cleanupActive = true;
+        this._cleanupTimer = 10000; // 10秒
+
         const gold = this.state === "boss" ? 300 : 50 + Math.floor(Math.random() * 100);
         EffectManager.add(new FloatingTextEffect(512, 400, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
 
-        this._cleanupCombat();
-        this._returnToMap();
+        // 在上方显示倒计时提示栏
+        this._showCleanupOverlay();
+    },
+
+    _cleanupCombatWallsOnly() {
+        // 只清理怪物，保留战斗房间和状态（用于下一波）
+        for (const key of this._combatMonsterKeys) {
+            Game.entities.delete(key);
+        }
+        this._combatMonsters = [];
+        this._combatMonsterKeys = [];
+    },
+
+    _showCleanupOverlay() {
+        this._removeCleanupOverlay();
+
+        const overlay = document.createElement("div");
+        overlay.id = "dungeonCleanupOverlay";
+        overlay.style.cssText = `
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.75); border: 2px solid #44ff44;
+            border-radius: 8px; padding: 12px 32px; z-index: 9000;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+            font-size: 18px; color: #44ff44; text-align: center;
+            pointer-events: none; user-select: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            transition: opacity 0.3s;
+        `;
+        overlay.textContent = `打扫战场中... 10秒后返回地图`;
+        document.body.appendChild(overlay);
+        this._cleanupOverlay = overlay;
+    },
+
+    _removeCleanupOverlay() {
+        if (this._cleanupOverlay) {
+            this._cleanupOverlay.remove();
+            this._cleanupOverlay = null;
+        }
     },
 
     _cleanupCombat() {
@@ -538,14 +824,32 @@ export const DungeonMapSystem = {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
         this._combatRoomWalls = [];
+        this._combatRoomObstacles = [];
+        this._combatEntrance = null;
+        this._zombieWaveActive = false;
+        this._zombieCombat = null;
+        this._zombieCombatNode = null;
+        this._waveTransitioning = false;
+        this._cleanupActive = false;
+        this._cleanupTimer = 0;
+        this._removeCleanupOverlay();
 
         WallSystem.walls = [...this._backupWalls];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }
+
+        // [NEW] 墙壁恢复后标记 RegionIndex 需要重算
+        if (typeof pathFinder !== 'undefined') {
+            pathFinder.invalidateCache();
+        }
     },
 
     _enterShop(node) {
+        if (this.dungeonType === 'zombie') {
+            this._enterZombieEvent(node);
+            return;
+        }
         this.state = "shop";
         const fakeNPC = {
             x: node.x, y: node.y,
@@ -563,7 +867,24 @@ export const DungeonMapSystem = {
         }, 300);
     },
 
+    _enterZombieShop(node) {
+        this.state = "shop";
+        import('./zombie-dungeon.js').then(mod => {
+            mod.ZombieDungeonShop.open();
+            const checkInterval = setInterval(() => {
+                if (mod.ZombieDungeonShop.isClosed()) {
+                    clearInterval(checkInterval);
+                    this._returnToMap();
+                }
+            }, 300);
+        });
+    },
+
     _enterEvent(node) {
+        if (this.dungeonType === 'zombie') {
+            this._enterZombieEvent(node);
+            return;
+        }
         this.state = "event";
         const events = [
             {
@@ -593,6 +914,13 @@ export const DungeonMapSystem = {
         ];
         const event = events[Math.floor(Math.random() * events.length)];
         this._showEventUI(event);
+    },
+
+    _enterZombieEvent(node) {
+        this.state = "event";
+        import('./zombie-dungeon.js').then(mod => {
+            mod.ZombieDungeonEvent.show(() => this._returnToMap());
+        });
     },
 
     _showEventUI(event) {
@@ -804,12 +1132,13 @@ export const DungeonMapSystem = {
         ctx.fillStyle = "#d4c5a9";
         ctx.font = '22px SimHei, "Microsoft YaHei", sans-serif';
         ctx.textAlign = "center";
-        ctx.fillText("⚔ 地牢深处 — 选择你的道路", w / 2, 40);
+        const dungeonTitle = this.dungeonType === 'zombie' ? '⚔ 僵尸地牢 — 选择你的道路' : '⚔ 地牢深处 — 选择你的道路';
+        ctx.fillText(dungeonTitle, w / 2, 40);
 
         // 提示文字
         ctx.fillStyle = "#888888";
         ctx.font = "14px sans-serif";
-        ctx.fillText("点击发光的相邻节点前进 · 拖动地图 · 滚轮缩放", w / 2, 68);
+        ctx.fillText("点击发光的相邻节点前进", w / 2, 68);
 
         // 进度
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
@@ -837,6 +1166,86 @@ export const DungeonMapSystem = {
         ctx.textBaseline = "middle";
         ctx.fillText("退出地牢", btnX + btnW / 2, btnY + btnH / 2);
         ctx.textBaseline = "alphabetic";
+    },
+
+    _createMouseShopButton() {
+        if (document.getElementById('mouseShopButton')) return;
+        const btn = document.createElement('div');
+        btn.id = 'mouseShopButton';
+        btn.textContent = '小鼠商店';
+        btn.style.cssText = `
+            position: fixed;
+            left: 504px;
+            top: 862px;
+            width: 183px;
+            height: 65px;
+            background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
+            background-size: 200% 200%;
+            animation: versionGlow 2s ease infinite;
+            border: 2px solid #5a8aaa;
+            border-radius: 12px;
+            color: #d4c5a9;
+            font-size: 20px;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9000;
+            pointer-events: auto;
+            user-select: none;
+        `;
+        btn.addEventListener('click', () => {
+            if (this.active && this.state === 'map') {
+                this._enterZombieShop();
+            }
+        });
+        document.body.appendChild(btn);
+    },
+
+    _removeMouseShopButton() {
+        const btn = document.getElementById('mouseShopButton');
+        if (btn) btn.remove();
+    },
+
+    _createAbandonButton() {
+        if (document.getElementById('abandonButton')) return;
+        const btn = document.createElement('div');
+        btn.id = 'abandonButton';
+        btn.textContent = '放弃并返回';
+        btn.style.cssText = `
+            position: fixed;
+            left: 1231px;
+            top: 866px;
+            width: 164px;
+            height: 66px;
+            background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
+            background-size: 200% 200%;
+            animation: versionGlow 2s ease infinite;
+            border: 2px solid #ff6b6b;
+            border-radius: 12px;
+            color: #d4c5a9;
+            font-size: 20px;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9000;
+            pointer-events: auto;
+            user-select: none;
+        `;
+        btn.addEventListener('click', () => {
+            if (this.active && this.state === 'map') {
+                this._showExitConfirm();
+            }
+        });
+        document.body.appendChild(btn);
+    },
+
+    _removeAbandonButton() {
+        const btn = document.getElementById('abandonButton');
+        if (btn) btn.remove();
     },
 
     _showVictory() {

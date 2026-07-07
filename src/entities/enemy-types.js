@@ -364,7 +364,7 @@ class BlackWolf extends Enemy {
             this.hitbox.renderDebug(ctx);
             return;
         }
-        const radius = this.collisionRadius || this.size * 0.6 || 10;
+        const radius = this.collisionRadius || 12;
         const worldPos = this._getDashWorldPos();
         const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
         ctx.save();
@@ -974,7 +974,7 @@ class RedWolfKing extends Enemy {
             this.hitbox.renderDebug(ctx);
             return;
         }
-        const radius = this.collisionRadius || this.size * 0.6 || 10;
+        const radius = this.collisionRadius || 12;
         const worldPos = this._getDashWorldPos();
         const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
         ctx.save();
@@ -1202,3 +1202,194 @@ class RedWolfKing extends Enemy {
 }
 
 export { RedWolfKing };
+
+class SpitterZombie extends Enemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            id: 'spitterZombie',
+            name: 'Spitter Zombie',
+            hp: 80,
+            maxHp: 80,
+            size: 12,
+            collisionRadius: 14,
+            speed: 25,
+            level: 3,
+            color: '#4a9a4a',
+            highlightColor: 'rgba(74, 154, 74, 0.3)',
+            str: 12,
+            dex: 10,
+            con: 12,
+            int: 4,
+            wis: 4,
+            luck: 6,
+            rank: 'normal',
+            attackRange: 600,
+            aiInterval: 1500,
+            _alertRange: Infinity, // 无限索敌距离
+            ...config
+        });
+
+        // Set stick figure rendering colors
+        this._color = '#4a9a4a';
+        this._headColor = '#8a30a0';
+        this._useStickFigure = true;
+        this._showWeapon = false;
+        this._circleRadius = 600; // 绕圈战斗距离：在目标周围 600px 绕圈移动，不贴身
+
+        // Replace base melee attack with ranged spit attack
+        this.attacks = {
+            ranged: new RangedAttack({
+                cooldown: 1500,
+                range: 300,
+                projectileSpeed: 150,
+                projectileRange: 1200,
+                projectileSize: 10,
+                damage: { min: 5, max: 12 },
+                isSpit: true
+            })
+        };
+    }
+}
+
+export { SpitterZombie };
+
+class FatZombie extends Enemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            ...enemyConfigData.fatZombie,
+            ...config
+        });
+        this._headColor = '#8B4513';
+        this._color = '#5a7a5a';
+        this._useStickFigure = true;
+        this._showWeapon = false;
+        this._alertRange = Infinity;
+        this._rangedDamageReduction = 0.5; // 50%远程伤害减免
+    }
+}
+
+export { FatZombie };
+
+class FastZombie extends Enemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            ...enemyConfigData.fastZombie,
+            ...config
+        });
+        this._headColor = '#c03030'; // 红色头
+        this._color = '#4a9a4a';     // 绿色身体
+        this._useStickFigure = true;
+        this._showWeapon = false;
+        this._alertRange = Infinity;
+    }
+}
+
+export { FastZombie };
+
+class ZombieDog extends Enemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            ...enemyConfigData.fastZombie,
+            name: '僵尸犬', // 覆盖 fastZombie 的默认名称
+            ...config
+        });
+        this._headColor = '#e8e0c8'; // 骨骼色头部
+        this._color = '#d4cfc0';     // 骨骼灰白身体
+        this._useStickFigure = true;
+        this._showWeapon = false;
+        this._alertRange = Infinity;
+        // 命中后施加致残 debuff（减速 50%，持续 3 秒）
+        this._onHitEntity = (entity) => {
+            if (typeof entity.applyCripple === 'function') {
+                entity.applyCripple(3000);
+            }
+        };
+    }
+
+    // 覆盖 _drawEnemyStickFigure，绘制四足骨骼狗
+    _drawEnemyStickFigure(ctx) {
+        const hitWhite = this.hitFlash > 0;
+        const headColor = hitWhite ? '#ffffff' : (this._headColor || '#e8e0c8');
+        const bodyColor = hitWhite ? '#ffffff' : (this._color || '#d4cfc0');
+        const lw = hitWhite ? 4 : 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = lw;
+
+        const t = this.animTime;
+        const walking = this.isMoving;
+        const s = walking ? Math.sin(t * 8) : 0;
+        const bob = walking ? Math.sin(t * 16) * 1.5 : Math.sin(t * 2) * 0.3;
+
+        // 四足骨骼狗的关键关节（侧视图，右侧面）
+        // 缩放比例适配 enemy size
+        const sc = 0.9;
+        // 头部：长嘴兽头骨
+        const skull = { x: 0, y: -18 + bob };
+        const snout = { x: 10, y: -14 + bob };
+        const jaw = { x: 9, y: -10 + bob };
+        // 颈部 → 脊柱
+        const neck = { x: -3, y: -14 + bob };
+        const spine = { x: -12, y: -10 + bob };  // 胸椎
+        const hip = { x: -22, y: -10 + bob };
+        // 肋骨
+        const ribTop = { x: -8, y: -16 + bob };
+        const ribBottom = { x: -8, y: -4 + bob };
+        const rib2Top = { x: -14, y: -16 + bob };
+        const rib2Bottom = { x: -14, y: -4 + bob };
+        // 前腿（肩膀）
+        const fShoulder = { x: -6 + s * 3, y: -9 + bob };
+        const fElbow = { x: -6 + s * 5, y: 2 + bob };
+        const fPaw = { x: -6 + s * 6, y: 12 + bob };
+        // 后腿（髋部）
+        const bHip = { x: -20 - s * 3, y: -9 + bob };
+        const bKnee = { x: -20 - s * 5, y: 2 + bob };
+        const bPaw = { x: -20 - s * 6, y: 12 + bob };
+        // 尾巴
+        const tail1 = { x: -26, y: -11 + bob };
+        const tail2 = { x: -32, y: -5 + bob };
+        const tail3 = { x: -36, y: -2 + bob };
+
+        // 绘制头骨（圆形 + 嘴）
+        ctx.fillStyle = headColor;
+        ctx.beginPath(); ctx.arc(skull.x, skull.y, 5, 0, Math.PI * 2); ctx.fill();
+        // 嘴部
+        ctx.strokeStyle = bodyColor;
+        ctx.beginPath(); ctx.moveTo(skull.x, skull.y); ctx.lineTo(snout.x, snout.y); ctx.lineTo(jaw.x, jaw.y); ctx.stroke();
+        // 下颚
+        ctx.beginPath(); ctx.moveTo(skull.x, skull.y); ctx.lineTo(jaw.x, jaw.y); ctx.stroke();
+        // 牙齿小点
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath(); ctx.arc(snout.x, snout.y, 1.5, 0, Math.PI * 2); ctx.fill();
+
+        // 脊柱
+        ctx.strokeStyle = bodyColor;
+        ctx.beginPath(); ctx.moveTo(neck.x, neck.y); ctx.lineTo(hip.x, hip.y); ctx.stroke();
+        // 肋骨（两根弧线）
+        ctx.beginPath(); ctx.moveTo(ribTop.x, ribTop.y); ctx.lineTo(ribBottom.x, ribBottom.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(rib2Top.x, rib2Top.y); ctx.lineTo(rib2Bottom.x, rib2Bottom.y); ctx.stroke();
+        // 髋部
+        ctx.beginPath(); ctx.arc(hip.x, hip.y, 3, 0, Math.PI * 2); ctx.fill();
+
+        // 前腿（肩膀 → 肘 → 爪）
+        ctx.beginPath(); ctx.moveTo(fShoulder.x, fShoulder.y); ctx.lineTo(fElbow.x, fElbow.y); ctx.lineTo(fPaw.x, fPaw.y); ctx.stroke();
+        // 后腿（髋 → 膝 → 爪）
+        ctx.beginPath(); ctx.moveTo(bHip.x, bHip.y); ctx.lineTo(bKnee.x, bKnee.y); ctx.lineTo(bPaw.x, bPaw.y); ctx.stroke();
+
+        // 尾巴（三段，带摆动）
+        const ts = walking ? Math.sin(t * 12) * 2 : 0;
+        ctx.beginPath(); ctx.moveTo(hip.x, hip.y);
+        ctx.lineTo(tail1.x + ts, tail1.y); ctx.lineTo(tail2.x + ts * 1.5, tail2.y); ctx.lineTo(tail3.x + ts * 2, tail3.y); ctx.stroke();
+
+        // 关节点
+        ctx.fillStyle = bodyColor;
+        [fShoulder, fElbow, fPaw, bHip, bKnee, bPaw].forEach(j => {
+            ctx.beginPath(); ctx.arc(j.x, j.y, 1.5, 0, Math.PI * 2); ctx.fill();
+        });
+        // 爪
+        ctx.beginPath(); ctx.arc(fPaw.x, fPaw.y, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(bPaw.x, bPaw.y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+}
+
+export { ZombieDog };

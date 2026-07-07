@@ -208,13 +208,50 @@ class PathManager {
         return dist;
     }
 
-    /**
-     * 强制重算路径（如目标位置变化较大时调用）
-     * @param {PathFinder} pathPlanner
-     * @param {number} targetX
-     * @param {number} targetY
-     */
-    forceRecalc(pathPlanner, targetX, targetY) {
+    // [ENHANCE] 强制重算路径（如目标位置变化较大时调用）
+    // 默认 500ms 间隔限制，避免每帧触发 A*
+    // 卡住时 bypassLimit = true 强制绕过限制
+    // [NEW] 当目标不可达时，自动寻找最近出口路径（RimWorld RegionIndex 机制）
+    forceRecalc(pathPlanner, targetX, targetY, bypassLimit = false) {
+        const minRecalcInterval = 500; // 500ms 最小重算间隔
+        if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
+            return; // 间隔不足，跳过
+        }
+        const radius = this.enemy.collisionRadius || 12;
+        let path = null;
+        try {
+            path = pathPlanner.findPath(this.enemy.x, this.enemy.y, targetX, targetY, radius);
+        } catch (e) {
+            console.warn('[PathManager] forceRecalc failed:', e.message);
+        }
+        if (path) {
+            this.setPath(path);
+            this._isExitPath = false;
+            return;
+        }
+
+        // [NEW] A* 失败：尝试 RegionIndex 找最近出口
+        // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
+        const exitResult = pathPlanner.findPathToExit(this.enemy.x, this.enemy.y, targetX, targetY, radius);
+        if (exitResult && exitResult.path) {
+            this.setPath(exitResult.path);
+            this._isExitPath = true;
+            this._exitTargetX = targetX;
+            this._exitTargetY = targetY;
+            return;
+        }
+
+        // 完全无法移动
+        this._clearPath();
+        this._isExitPath = false;
+    }
+    // 默认 500ms 间隔限制，避免每帧触发 A*
+    // 卡住时 bypassLimit = true 强制绕过限制
+    forceRecalc(pathPlanner, targetX, targetY, bypassLimit = false) {
+        const minRecalcInterval = 500; // 500ms 最小重算间隔
+        if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
+            return; // 间隔不足，跳过
+        }
         const radius = this.enemy.collisionRadius || 12;
         let path = null;
         try {

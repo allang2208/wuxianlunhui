@@ -36,8 +36,6 @@ const DEFAULT_PERCEPTION = {
 
 class PerceptionSystemImpl {
     constructor() {
-        // 缓存每帧的扫描结果，避免同一帧内重复扫描
-        this._scanCache = new Map();
     }
 
     /**

@@ -16,7 +16,13 @@ const CodexManager = {
         { key: 'accessory', label: '饰品' },
         { key: 'consumable', label: '消耗品' }
     ],
-    currentEquipCategory: 'all',
+    // 怪物子分类
+    monsterCategories: [
+        { key: 'all', label: '全部' },
+        { key: '僵尸', label: '僵尸' },
+        { key: '狼', label: '狼' },
+    ],
+    currentMonsterCategory: 'all',
     detailItem: null,
 
     /* ---- 运行时数据库 ---- */
@@ -29,6 +35,7 @@ const CodexManager = {
         this.renderMainTabs();
         this.renderEquipCategoryTabs();
         this.renderEquipGrid();
+        this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
         const backBtn = document.getElementById('codexBackBtn');
         if (backBtn) backBtn.addEventListener('click', () => this.closeDetail());
@@ -40,6 +47,7 @@ const CodexManager = {
         this.renderMainTabs();
         this.renderEquipCategoryTabs();
         this.renderEquipGrid();
+        this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
     },
 
@@ -117,10 +125,25 @@ const CodexManager = {
         }).join('');
     },
 
+    renderMonsterCategoryTabs() {
+        const container = document.getElementById('codexMonsterCatTabs');
+        if (!container) return;
+        container.innerHTML = this.monsterCategories.map(c =>
+            `<div class="codex-cat-tab ${c.key === this.currentMonsterCategory ? 'active' : ''}" data-cat="${c.key}">${c.label}</div>`
+        ).join('');
+        container.querySelectorAll('.codex-cat-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.currentMonsterCategory = tab.dataset.cat;
+                this.renderMonsterCategoryTabs();
+                this.renderMonsterGrid();
+            });
+        });
+    },
+
     renderMonsterGrid() {
         const grid = document.getElementById('codexMonsterGrid');
         if (!grid) return;
-        const items = Object.values(this.monsterDatabase);
+        const items = this.getMonsterByCategory(this.currentMonsterCategory);
         grid.innerHTML = items.map(item => {
             const iconHtml = `<div style="width:36px;height:36px;border-radius:50%;background:${item.color};box-shadow:0 0 8px ${item.color}80;"></div>`;
             return `<div class="codex-card codex-monster-card" data-id="${item.id}" onclick="CodexManager.openMonsterDetail('${item.id}')">
@@ -129,6 +152,12 @@ const CodexManager = {
                 <div class="cc-type">${item.type}</div>
             </div>`;
         }).join('');
+    },
+
+    getMonsterByCategory(cat) {
+        const items = Object.values(this.monsterDatabase);
+        if (cat === 'all') return items;
+        return items.filter(i => i.family === cat);
     },
 
     getEquipByCategory(cat) {
@@ -450,29 +479,29 @@ const CodexManager = {
     renderMonsterDetail(item) {
         const body = document.getElementById('codexDetailBody');
         if (!body) return;
-        // 添加滚动条样式到详情面板
         body.style.overflowY = 'auto';
         body.style.maxHeight = 'calc(100vh - 200px)';
 
-        // 从 ENEMY_DATA 实时获取最新数据
         const liveData = (typeof ENEMY_DATA !== 'undefined' && item.id && ENEMY_DATA[item.id]) ? ENEMY_DATA[item.id] : {};
         const d = { ...item, ...liveData };
 
         let html = '';
         const iconHtml = `<div style="width:64px;height:64px;border-radius:50%;background:${d.color || '#8a4a4a'};box-shadow:0 0 16px ${d.color || '#8a4a4a'}80;"></div>`;
+        // 家族标签
+        const familyTag = d.family ? `<span class="cd-family-tag">${d.family}类</span>` : '';
         html += `<div class="cd-hero">
             <div class="cd-hero-icon">${iconHtml}</div>
             <div class="cd-hero-info">
-                <div class="cd-hero-name">${d.name || '-'}</div>
+                <div class="cd-hero-name">${d.name || '-'}${familyTag}</div>
                 <div class="cd-hero-type">${d.type || '怪物'} · ${d.category === 'monster' ? '怪物' : '敌人'}</div>
                 <span class="cd-hero-rarity common">${d.type || '普通'}</span>
             </div>
         </div>`;
 
+        // 基本信息
         html += `<div class="cd-section"><h4>基本信息</h4>`;
         html += this.detailRow('名称', d.name);
         html += this.detailRow('类型', d.type);
-        // 等级：优先使用原始数据中的 level 字段，如果没有则计算
         let level = d.level;
         if (level === undefined || level === null) {
             const sixAttrs = (d.str || 0) + (d.dex || 0) + (d.int || 0) + (d.con || 0) + (d.wis || 0) + (d.luck || 0);
@@ -481,6 +510,7 @@ const CodexManager = {
         html += this.detailRow('等级', level);
         html += this.detailRow('生命值', `${d.hp || 0} / ${d.maxHp || 0}`);
         html += this.detailRow('经验值', d.expValue || (10 + (level || 1) * 5));
+        if (d.collisionRadius) html += this.detailRow('碰撞半径', `${d.collisionRadius}px`);
         html += `</div>`;
 
         // 六维属性
@@ -493,6 +523,7 @@ const CodexManager = {
         html += this.detailRow('幸运', d.luck || 0);
         html += `</div>`;
 
+        // 战斗属性
         html += `<div class="cd-section"><h4>战斗属性</h4>`;
         const str = d.str || 0, dex = d.dex || 0, int = d.int || 0, con = d.con || 0, wis = d.wis || 0, luck = d.luck || 0;
         const calcAtk = Math.round(10 + str * 0.05 + dex * 0.1);
@@ -514,19 +545,30 @@ const CodexManager = {
         html += this.detailRow('攻击距离', `${d.attackRange || 0}px`);
         html += this.detailRow('攻击冷却', `${d.attackCooldown || 0}ms`);
         html += this.detailRow('攻击方式', d.attackType || '-');
+        if (d.damageMin !== undefined && d.damageMax !== undefined) {
+            html += this.detailRow('伤害范围', `${d.damageMin} ~ ${d.damageMax}`);
+        }
         html += this.detailRow('击退', d.knockback ? `${d.knockback}px` : '无');
         html += `</div>`;
 
+        // 移动属性
         html += `<div class="cd-section"><h4>移动属性</h4>`;
         html += this.detailRow('移动速度', d.speed || 0);
         html += this.detailRow('体型', `${d.size || 0}px`);
         html += `</div>`;
 
-        // 特殊技能（如果有）
+        // 特殊机制（放在基础属性下面）
+        const mechanics = [];
+        if (d.id === 'fatZombie' || d.name === '胖子僵尸') {
+            mechanics.push({ name: '远程伤害减免', desc: '受到远程伤害时减免50%' });
+        }
         if (d.skills && d.skills.length > 0) {
-            html += `<div class="cd-section"><h4>特殊技能</h4>`;
-            for (const skill of d.skills) {
-                html += this.detailRow(skill.name, skill.desc);
+            for (const skill of d.skills) mechanics.push(skill);
+        }
+        if (mechanics.length > 0) {
+            html += `<div class="cd-section"><h4>特殊机制</h4>`;
+            for (const m of mechanics) {
+                html += this.detailRow(m.name, m.desc);
             }
             html += `</div>`;
         }

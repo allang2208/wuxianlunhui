@@ -18,7 +18,8 @@ export const SceneManager = {
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
             scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
             scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } },
-            scene6: { name: '地牢测试', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景六', origin: { x: 512, y: 512 } }
+            scene6: { name: '地牢测试', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景六', origin: { x: 512, y: 512 } },
+            scene7: { name: '僵尸地牢', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景七', origin: { x: 512, y: 512 }, dungeonType: 'zombie' }
         };
     },
 
@@ -132,7 +133,9 @@ export const SceneManager = {
             } else if (sceneId === 'scene5') {
                 this._loadScene5(player);
             } else if (sceneId === 'scene6') {
-                this._loadScene6(player);
+                this._loadScene6(player, 'default');
+            } else if (sceneId === 'scene7') {
+                this._loadScene7(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -329,24 +332,30 @@ export const SceneManager = {
                 // 同步树木到 Phaser（恢复碰撞体）
                 WallSystem._syncTreesToPhaser();
             }
-
+        } else {
+            // 兜底：如果主场景状态未保存（比如测试场景直接进入），重新生成主场景基础环境
+            CONFIG.WORLD_WIDTH = window.innerWidth * 4;
+            CONFIG.WORLD_HEIGHT = window.innerHeight * 4;
+            Renderer.generateWorld();
+            // 确保玩家实体在 entities 中
             if (player) {
                 Game.entities.set('player', player);
-                // 优先使用死亡重生位置，其次使用之前保存的主神空间位置
-                if (this._respawnPos) {
-                    player.x = this._respawnPos.x;
-                    player.y = this._respawnPos.y;
-                    this._respawnPos = null; // 使用后清除
-                } else if (this._mainPlayerPos) {
-                    player.x = this._mainPlayerPos.x;
-                    player.y = this._mainPlayerPos.y;
-                }
-                Camera.follow(player);
             }
+        }
 
-            if (player) {
-                QuickBar.refreshSpecialAttack(player);
+        if (player) {
+            Game.entities.set('player', player);
+            // 优先使用死亡重生位置，其次使用之前保存的主神空间位置
+            if (this._respawnPos) {
+                player.x = this._respawnPos.x;
+                player.y = this._respawnPos.y;
+                this._respawnPos = null; // 使用后清除
+            } else if (this._mainPlayerPos) {
+                player.x = this._mainPlayerPos.x;
+                player.y = this._mainPlayerPos.y;
             }
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
         }
 
         // 确保关键实体（靶子）存在，如果不存在则重新生成
@@ -766,7 +775,7 @@ export const SceneManager = {
         if (player) QuickBar.refreshSpecialAttack(player);
     },
 
-    _loadScene6(player) {
+    _loadScene6(player, dungeonType = 'default') {
         // 重置 Camera 状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
@@ -830,10 +839,6 @@ export const SceneManager = {
             console.log('[scene6] Player at', player.x, player.y, 'Camera at', Camera.x, Camera.y);
         }
 
-        // 传送门放在地板右下角
-        const portal = new Portal(800, 800, 'main', '返回主神空间');
-        Game.entities.set('portal_return', portal);
-
         // 同步快捷栏
         if (player) {
             QuickBar.refreshSpecialAttack(player);
@@ -846,6 +851,13 @@ export const SceneManager = {
         if (typeof ExpeditionSystem !== 'undefined') {
             ExpeditionSystem.open(player);
         }
+
+        // 地牢地图系统由出征面板的 depart() 调用，这里不再自动初始化
+    },
+
+    _loadScene7(player) {
+        // 僵尸地牢：复用 scene6 的加载逻辑，但指定 dungeonType 为 'zombie'
+        this._loadScene6(player, 'zombie');
     }
 };
 
