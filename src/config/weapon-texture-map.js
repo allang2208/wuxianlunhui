@@ -32,10 +32,10 @@ export function getWeaponTextureKey(item) {
  */
 export function getWeaponTextureLoadList() {
     return [
-        { key: 'weapon_rusty_sword', path: 'assets/icons/1-rusty_sword_macro.png' },
-        { key: 'weapon_knights_sword', path: 'assets/icons/knights_sword_v3_macro.png' },
-        { key: 'weapon_rune_sword', path: 'assets/icons/EXsword_icon.png' },
-        { key: 'weapon_night_flame', path: 'assets/icons/Nightandflame_macro.png' },
+        { key: 'weapon_rusty_sword', path: 'assets/weapons/1-rusty_sword_euip.png' },
+        { key: 'weapon_knights_sword', path: 'assets/weapons/knights_sword_v3_equip.png' },
+        { key: 'weapon_rune_sword', path: 'assets/weapons/EXsword_equipped_v2_.png' },
+        { key: 'weapon_night_flame', path: 'assets/weapons/Nightandflame_equip.png' },
         { key: 'weapon_g18', path: 'assets/icons/G18icon.png' },
         { key: 'weapon_deagle', path: 'assets/icons/DesertEagle_icon.png' },
         { key: 'weapon_p4040', path: 'assets/weapons/P4040-icon.png' },
@@ -46,7 +46,7 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_energy_lmg', path: 'assets/icons/devotion-icon.png' },
         { key: 'weapon_super90', path: 'assets/icons/M4s90_icon.png' },
         { key: 'weapon_saiga12k', path: 'assets/icons/S12k-icon.png' },
-        { key: 'weapon_bow', path: 'assets/icons/trainingBOW.png' },
-        { key: 'weapon_shield', path: 'assets/icons/woodshied.png' },
+        { key: 'weapon_bow', path: 'assets/weapons/trainingBOW.png' },
+        { key: 'weapon_shield', path: 'assets/weapons/woodshied-equip.png' },
     ];
 }

@@ -12,7 +12,7 @@
       "weaponCategory": "mainhand",
       "weaponType": "sword",
       "weaponTypeTag": "近战武器",
-      "equipImage": "assets/icons/1-rusty_sword_macro.png",
+      "equipImage": "assets/weapons/1-rusty_sword_euip.png",
       "stats": [
         {
           "name": "物理攻击",
@@ -60,7 +60,7 @@
       "weaponCategory": "mainhand",
       "weaponType": "sword",
       "weaponTypeTag": "近战武器",
-      "equipImage": "assets/icons/EXsword_icon.png",
+      "equipImage": "assets/weapons/EXsword_equipped_v2_.png",
       "stats": [
         {
           "name": "物理攻击",
@@ -108,7 +108,7 @@
       "weaponCategory": "mainhand",
       "weaponType": "sword",
       "weaponTypeTag": "近战武器",
-      "equipImage": "assets/icons/Nightandflame_macro.png",
+      "equipImage": "assets/weapons/Nightandflame_equip.png",
       "stats": [
         {
           "name": "物理攻击",
@@ -166,7 +166,7 @@
       "weaponCategory": "mainhand",
       "weaponType": "sword",
       "weaponTypeTag": "近战武器",
-      "equipImage": "assets/icons/knights_sword_v3_macro.png",
+      "equipImage": "assets/weapons/knights_sword_v3_equip.png",
       "stats": [
         {
           "name": "物理攻击",
@@ -220,7 +220,7 @@
       "type": "弓",
       "icon": "🏹",
       "iconImage": "assets/icons/trainingBOW.png",
-      "equipImage": "assets/icons/trainingBOW.png",
+      "equipImage": "assets/weapons/trainingBOW.png",
       "category": "weapon_ranged",
       "rarity": "common",
       "level": 1,
@@ -300,7 +300,7 @@
       "type": "弓",
       "icon": "🏹",
       "iconImage": "assets/icons/border_bow_icon.png",
-      "equipImage": "assets/icons/border_bow_icon.png",
+      "equipImage": "assets/weapons/borderbow.png",
       "dropImage": "assets/items/border_bow_dropped.png",
       "slotImage": "assets/icons/border_bow_icon.png",
       "category": "weapon_ranged",
@@ -368,7 +368,7 @@
       "type": "盾",
       "icon": "🛡",
       "iconImage": "assets/icons/woodshied.png",
-      "equipImage": "assets/icons/woodshied.png",
+      "equipImage": "assets/weapons/woodshied-equip.png",
       "dropImage": "assets/items/woodshied_dropped.png",
       "slotImage": "assets/icons/woodshied.png",
       "category": "weapon_shield",
