@@ -3254,6 +3254,10 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 // === 弓渲染 ===
                 else if (isBow) {
+                    // 弓攻击：已迁移到 Phaser syncWeapon（bow_attack spritesheet），Canvas 跳过
+                    if (this._usePhaserWeapon) {
+                        return;
+                    }
                     if (isAttacking && anim.state !== 'rotate' && anim.state !== 'idle_return') {
                         // windup / swing / recover 阶段：帧动画
                         let t = 0;
@@ -4182,23 +4186,32 @@ import { StatusBar } from '../ui/status-bar.js';
                     const dashProgress = this._dashTimer / 800;
                     const glowAlpha = dashProgress < 0.40 ? 0.6 : 0.6 * (1 - (dashProgress - 0.40) / 0.60);
                     // 冲刺方向指示器
+                    // 已迁移到 Phaser，Canvas 跳过
+                    /*
                     ctx.save();
                     const dashAngle = Math.atan2(this._dashDirection.y, this._dashDirection.x);
                     ctx.rotate(dashAngle);
                     ctx.fillStyle = `rgba(74, 158, 255, ${glowAlpha * 0.5})`;
                     ctx.beginPath(); ctx.moveTo(this.size + 8, 0); ctx.lineTo(this.size - 4, -5); ctx.lineTo(this.size - 4, 5); ctx.closePath(); ctx.fill();
                     ctx.restore();
+                    */
                 }
                 if (this._dashConvergeAuraActive) {
                     // 冲刺就绪金色光点：亮度闪烁
+                    // 已迁移到 Phaser，Canvas 跳过
+                    /*
                     const flicker = 0.4 + Math.sin(Date.now() / 120) * 0.25;
                     ctx.fillStyle = `rgba(255, 230, 100, ${flicker * 0.35})`;
                     ctx.beginPath(); ctx.arc(0, 0, this.size + 7, 0, Math.PI * 2); ctx.fill();
+                    */
                 }
                 // 中毒绿色粒子效果
+                // 已迁移到 Phaser，Canvas 跳过
+                /*
                 if (this._poisonStacks > 0 && this._poisonEffect) {
                     this._poisonEffect.render(ctx, 0, 0);
                 }
+                */
                 if (this._isWhirlwind) {
                     // 风车技能：人物和武器整体旋转（叠加在基础旋转之上）
                     // 前50ms不旋转（武器平移阶段），后750ms旋转4圈，使用easeOutQuad使速度逐步放慢
@@ -4385,9 +4398,12 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 */
                 // ===== 无人机渲染 =====
+                // 已迁移到 Phaser _syncDrone，Canvas 跳过
+                /*
                 if (this.droneSystem && this.droneSystem.active) {
                     this.droneSystem.render(ctx);
                 }
+                */
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 55);
             }
 
