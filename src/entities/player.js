@@ -3010,9 +3010,21 @@ import { StatusBar } from '../ui/status-bar.js';
                 const isSpecialAnim = this._isWhirlwind || this._isDashing || this._dashResetAnim || this._specialAttackActive || this._specialResetAnim || this._runeSwordSpecialActive || this._runeSwordResetAnim || isBowAttacking;
                 if (this._usePhaserWeapon && !isSpecialAnim) {
                     // Phase 1/2/3: 武器本体由 Phaser 渲染，Canvas 不再绘制任何武器
-                    // 保留：符文粒子特效（Phase 3 已迁移到 Phaser）
+                    // 保留符文粒子：在 return 前绘制常驻粒子效果
+                    if (currentItem && currentItem.weaponEffect === 'runeSword') {
+                        let animState = 'idle';
+                        if (this._isSprinting) animState = 'running';
+                        else if (this.isMoving) animState = 'walk';
+                        const swordCfg = getWeaponStateConfig('sword', animState);
+                        ctx.save();
+                        ctx.translate(-7, 0); // mainBaseX
+                        ctx.translate(swordCfg.holdOffsetX || wa.holdX, swordCfg.holdOffsetY || wa.holdY);
+                        ctx.rotate(Math.PI / 2);
+                        ctx.translate(0, -ms * 0.85);
+                        this.weaponEffect.render(ctx);
+                        ctx.restore();
+                    }
                     return;
-                }
                 }
                 // 预加载另一栏位装备的图片
                 const actualItem = this.equipments[this.weaponMode];

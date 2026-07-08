@@ -586,8 +586,21 @@ export class GameScene extends Scene {
         // 同步每把剑的位置和旋转
         this.runeSwordGroup.getChildren().forEach((sprite, i) => {
             const sword = player._runeSwordSwords[i];
-            if (!sword || !sword.active || sword.flyActive) {
+            if (!sword || !sword.active) {
                 sprite.setVisible(false);
+                return;
+            }
+            
+            // 贴图大小：与 Canvas 一致（84 * 0.6 = 50.4）
+            const BLADE_SIZE = 50;
+            sprite.setDisplaySize(BLADE_SIZE, BLADE_SIZE);
+            
+            if (sword.flyActive) {
+                // 飞行剑：使用世界坐标和 flyAngle
+                sprite.setPosition(sword.flyX, sword.flyY);
+                sprite.setRotation(sword.flyAngle + Math.PI / 2);
+                sprite.setAlpha(1);
+                sprite.setVisible(true);
                 return;
             }
             
