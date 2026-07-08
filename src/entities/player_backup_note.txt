@@ -1,2 +1,0 @@
-// Backup of player.js before fix
-// Line 3010-3030 had orphaned code from previous edit
