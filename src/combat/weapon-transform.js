@@ -31,7 +31,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'pistol',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     p4040: {
         mainBaseX: -15, mainBaseY: 16.5,
@@ -39,7 +39,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'p4040',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     deagle: {
         mainBaseX: -15, mainBaseY: 16.5,
@@ -47,7 +47,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'deagle',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     pkm: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -56,7 +56,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'pkm',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     akm: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -65,7 +65,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'akm',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     qbz191: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -74,7 +74,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'qbz191',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     qjb201: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -83,7 +83,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'qjb201',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     energy_lmg: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -92,7 +92,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'energy_lmg',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
     shotgun: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
@@ -101,7 +101,7 @@ const WEAPON_TRANSFORM_CONFIG = {
         holdOffsetKey: 'shotgun',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
-        baseRotation: Math.PI / 2,
+        baseRotation: 0,
     },
 };
 
