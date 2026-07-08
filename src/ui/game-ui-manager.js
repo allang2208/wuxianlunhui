@@ -1,3 +1,5 @@
+import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
 
@@ -190,7 +192,19 @@ export const GameUIManager = {
                 case 'detailCollisionRadius': el.textContent = (p.collisionRadius || 10) + item.unit; break;
                 case 'detailMoveSpeed': el.textContent = CONFIG.PLAYER_SPEED + item.unit; break;
                 case 'detailDodgeCooldown': el.textContent = CONFIG.DODGE_COOLDOWN + item.unit; break;
-                case 'detailAttackRange': el.textContent = (pa ? pa.config.range : 100) + item.unit; break;
+                case 'detailAttackRange': {
+                    let displayRange = pa ? pa.config.range : 100;
+                    if (currentWpn && (currentWpn.weaponType === 'sword' || currentWpn.category === 'weapon_melee')) {
+                        const hitBox = WeaponAnimConfig.sword.hitBox;
+                        const rangeBonus = (currentWpn.attack && currentWpn.attack.rangeBonus) ?? 50;
+                        displayRange = (hitBox ? hitBox.forwardRange : 155) + rangeBonus;
+                        if (currentWpn._craftEffects && currentWpn._craftEffects.rangeDelta) {
+                            displayRange += currentWpn._craftEffects.rangeDelta;
+                        }
+                    }
+                    el.textContent = displayRange + item.unit;
+                    break;
+                }
                 case 'detailKnockback': el.textContent = (pa ? pa.config.knockback : 20) + item.unit; break;
                 case 'detailViewRange': el.textContent = CONFIG.VIEW_WIDTH + item.unit; break;
             }

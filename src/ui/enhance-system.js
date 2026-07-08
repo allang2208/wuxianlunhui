@@ -174,6 +174,22 @@ const EnhanceSystem = {
             return;
         }
 
+        // 检查强化石
+        const bp = EquipManager.backpackItems || [];
+        const stoneIdx = bp.findIndex(i => i.name === '强化石');
+        if (stoneIdx === -1) {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '强化石不足！需要1颗强化石', '#ff4444'));
+            return;
+        }
+        // 消耗1颗强化石
+        const stoneItem = bp[stoneIdx];
+        if (stoneItem.stack > 1) {
+            stoneItem.stack -= 1;
+        } else {
+            bp.splice(stoneIdx, 1);
+        }
+        EquipManager.updateInventorySlots();
+
         const cost = Math.floor(this._baseCost * Math.pow(1.5, currentLevel));
         if (ShopSystem._getBackpackGold() < cost) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
@@ -245,6 +261,8 @@ const EnhanceSystem = {
             const item = this._equippedItem.item;
             const level = item.enhanceLevel || 0;
             const cost = Math.floor(this._baseCost * Math.pow(1.5, level));
+            const bp = EquipManager.backpackItems || [];
+            const hasStone = bp.some(i => i.name === '强化石');
             slot.innerHTML = `
                 <div class="slot-icon">${item.iconImage ? `<img src="${item.iconImage}" alt="${item.icon || '❓'}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon || '❓'}';">` : (item.icon || '❓')}</div>
                 <div class="slot-name">${item.name}</div>
@@ -256,7 +274,7 @@ const EnhanceSystem = {
                 <div class="enhance-info-level">当前强化等级: +${level} / ${this._maxEnhanceLevel}</div>
                 ${this._buildPredictedStats(item)}
             `;
-            costEl.textContent = `💰 ${cost}`;
+            costEl.innerHTML = `💰 ${cost} + 💎 强化石×1`;
             enhanceBtn.disabled = false;
             enhanceBtn.onclick = () => this.enhance();
             slot.onclick = () => this.removeItem();

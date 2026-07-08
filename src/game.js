@@ -4,6 +4,7 @@ import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
 import { EquipDataManager } from './ui/equip-data-manager.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantScrollItems, MagicDustItem } from './config/enchant-config.js';
+import { EnhancementItems } from './ui/reward-system.js';
 import { SynergySystem, DEFAULT_SYNERGY_RULES } from './ai/synergy-system.js';
 import { BattleCommander } from './ai/battle-commander.js';
 import { Enemy } from './entities/enemy.js';
@@ -60,6 +61,13 @@ export const Game = {
             // 生成一些魔法晶尘（供测试）
             this.dropItem(CONFIG.WORLD_WIDTH / 2 + 200, CONFIG.WORLD_HEIGHT / 2 + 40, MagicDustItem);
             this.dropItem(CONFIG.WORLD_WIDTH / 2 + 240, CONFIG.WORLD_HEIGHT / 2 + 40, { ...MagicDustItem, stack: 999 });
+            // 生成强化石和改造券（各10份，供测试）
+            const matBaseX = CONFIG.WORLD_WIDTH / 2 + 280;
+            const matBaseY = CONFIG.WORLD_HEIGHT / 2 + 40;
+            for (let i = 0; i < 10; i++) {
+                this.dropItem(matBaseX + i * 30, matBaseY, { ...EnhancementItems.enhance_stone });
+                this.dropItem(matBaseX + i * 30, matBaseY + 40, { ...EnhancementItems.modify_ticket });
+            }
             // EventBus 解耦：订阅 Player 的拾取事件（使用具名回调以便 toMenu 中取消订阅）
             this._onPickup = this._onPickup || ((px, py, range) => this.tryPickupItem(px, py, range));
             EventBus.off('player:pickup', this._onPickup); EventBus.on('player:pickup', this._onPickup);
@@ -345,7 +353,19 @@ export const Game = {
             if (entity instanceof DropItem && entity.active) {
                 const dx = entity.x - px, dy = entity.y - py;
                 if (Math.sqrt(dx * dx + dy * dy) <= range) {
-                    if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
+                    const itemData = entity.itemData;
+                    // 可堆叠物品（金币/强化石/改造券等）：即使背包格子已满，只要现有堆叠未满就可以拾取
+                    let canStack = false;
+                    if (itemData && itemData.maxStack && itemData.maxStack > 1) {
+                        const bp = EquipManager.backpackItems || [];
+                        for (const existing of bp) {
+                            if (existing.name === itemData.name && (existing.stack || 1) < itemData.maxStack) {
+                                canStack = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!canStack && EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
                         BackpackDialogManager._showBackpackFullNotice();
                         return false;
                     }
@@ -651,17 +671,13 @@ export const Game = {
                     const mx = Input.mouse.x, my = Input.mouse.y;
                     const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < 35;
                     if (hover) {
-                        // 检查背包是否已满
-                        if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
-                            BackpackDialogManager._showBackpackFullNotice();
+                        const added = EquipManager.addToBackpack(entity.itemData);
+                        if (added) {
+                            entity.active = false;
+                            this.entities.delete(key);
+                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
                             clickedPickup = true;
-                            return;
                         }
-                        EquipManager.addToBackpack(entity.itemData);
-                        entity.active = false;
-                        this.entities.delete(key);
-                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
-                        clickedPickup = true;
                     }
                 }
             });
@@ -743,11 +759,6 @@ export const Game = {
     pickupNearbyItems() {
         const px = this.player.x, py = this.player.y;
         const range = 75; // 半径75px，直径150px的圆
-        // 检查背包是否已满
-        if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
-            BackpackDialogManager._showBackpackFullNotice();
-            return;
-        }
         let pickedCount = 0;
         this.entities.forEach((entity, key) => {
             if (entity instanceof DropItem && entity.active) {

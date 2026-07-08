@@ -1,5 +1,7 @@
 import { isRifle } from '../../config/gun-ammo.js';
 import { DashFireTrailEffect } from '../../effects/dash-effects.js';
+import { WeaponTransform } from '../../combat/weapon-transform.js';
+import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 class DashSystem {
     constructor(player) {
         this.player = player;
@@ -47,8 +49,28 @@ class DashSystem {
     _getDashWeaponStateAt(timer, skillId) {
         // 未传入 skillId 时，根据当前装备自动判断
         const activeSkillId = skillId || this.player._getActiveDashSkillId();
-        const dashProgress = timer / 800;
+        const dashProgress = Math.min(1, timer / 800);
         let dashOffset = 0, dashAngle = 0;
+        
+        // 优先检查关键帧系统
+        const currentWeapon = this.player.equipments[this.player.weaponMode];
+        const weaponKey = currentWeapon?.weaponType || 'sword';
+        const kf = WeaponTransform.getKeyframeAt(weaponKey, dashProgress, 'dashAttack');
+        if (kf) {
+            // 关键帧系统：从关键帧的 holdOffset 推导 dashOffset
+            // dashOffset 对应于 rotate(π/2) 后 Y 轴的偏移（正=向后，负=向前）
+            // 关键帧的 holdOffsetY 影响前后位置，holdOffsetX 影响左右
+            const baseHoldX = WeaponAnimConfig.sword.holdOffsetX;
+            const baseHoldY = WeaponAnimConfig.sword.holdOffsetY;
+            // 转换关键帧偏移到 dash 坐标系：
+            // 在 rotate(π/2) 后，X轴向下，Y轴向左
+            // holdOffsetX 的变化 ≈ dash 坐标系的 Y 变化（左右移动）
+            // holdOffsetY 的变化 ≈ dash 坐标系的 -X 变化（前后移动）
+            dashOffset = -(kf.holdOffsetY - baseHoldY) * 0.5; // 前后位移
+            dashAngle = (kf.idleRotation - WeaponAnimConfig.sword.idleRotation) * Math.PI / 180;
+            return { dashOffset, dashAngle, keyframe: kf };
+        }
+        
         if (activeSkillId === 'dashAttackThrust') {
             // === 突刺动画（骑士长剑专属） ===
             // 坐标系：rotate(Math.PI/2) 后，Y轴向左（屏幕左），X轴向下
@@ -59,29 +81,18 @@ class DashSystem {
             dashOffset = -95 * easeOutQuad(t);
             dashAngle = 0;
         } else {
-            // === 默认 dashAttack：武器挥砍（原始 slash 动画） ===
-            if (dashProgress < 0.4375) {
-                const t = dashProgress / 0.4375;
-                if (t < 0.142857) {
-                    const pt = t / 0.142857;
-                    dashOffset = 15 * easeOutQuad(pt);
-                    dashAngle = 0;
-                } else {
-                    const pt = (t - 0.142857) / 0.857143;
-                    dashOffset = 15;
-                    dashAngle = Math.PI / 2 * easeInOutCubic(pt);
-                }
+            // === 默认 dashAttack：武器在朝向方向以120度扇形划过 ===
+            // dashAngle: -60° → +60°（以朝向为中心，总120°扇形）
+            dashAngle = -Math.PI / 3 + (2 * Math.PI / 3) * easeInOutCubic(dashProgress);
+            // dashOffset: 武器前后位移动画（蓄力前伸 → 挥砍 → 收回）
+            if (dashProgress < 0.25) {
+                const t = dashProgress / 0.25;
+                dashOffset = 15 * easeOutQuad(t);
+            } else if (dashProgress < 0.75) {
+                dashOffset = 15;
             } else {
-                const t = (dashProgress - 0.4375) / 0.5625;
-                if (t < 0.111111) {
-                    const pt = t / 0.111111;
-                    dashOffset = 15 - 60 * easeOutQuad(pt);
-                    dashAngle = Math.PI / 2;
-                } else {
-                    const pt = (t - 0.111111) / 0.888889;
-                    dashAngle = Math.PI / 2 - Math.PI * 4/3 * easeOutQuad(pt);
-                    dashOffset = -45 - 30 * (1 - easeInOutCubic(pt));
-                }
+                const t = (dashProgress - 0.75) / 0.25;
+                dashOffset = 15 - 60 * easeOutQuad(t);
             }
         }
         return { dashOffset, dashAngle };
@@ -137,9 +148,9 @@ class DashSystem {
                     EffectManager.add(this.player._goldenConvergeEffect);
                     if (Game.showAttackRange) {
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
-                        const rectWidth = this.player._getSkillParam('dashAttackThrust', 'hitCheck.width', 75);
                         const rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', 500) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', 0);
-                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, 'triangle', 1000, 0.5, true));
+                        const hitArc = 2 * Math.PI / 3; // 120度扇形
+                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, hitArc, 'sector', 1000, 0.5, true));
                     }
                 }
                 this.player._dashState = 'slash';

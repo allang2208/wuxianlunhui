@@ -541,16 +541,21 @@
                         </div>
                     </div>
                     
-                    <!-- 携带物资（背包式，10格） -->
+                    <!-- 祭品栏（背包式，10格） -->
                     <div class="expedition-supplies">
                         <div class="expedition-section-title">
-                            携带物资 <span class="expedition-hint">(从背包拖入)</span>
+                            祭品栏 <span class="expedition-hint">(从背包拖入)</span>
                             <span style="float:right; color:#8a7a6a; font-size:11px;">
                                 <span id="expeditionCapacityUsed">0</span>/<span id="expeditionCapacityMax">10</span>
                             </span>
                         </div>
                         <div class="expedition-inventory-grid" id="expeditionInventoryGrid">
                             <!-- 10个格子，由JS动态生成 -->
+                        </div>
+                        <!-- 祭品效果统计面板 -->
+                        <div class="expedition-tribute-stats" id="expeditionTributeStats" style="display:none;">
+                            <div class="expedition-tribute-stats-title">祭品效果统计</div>
+                            <div class="expedition-tribute-stats-list" id="expeditionTributeStatsList"></div>
                         </div>
                     </div>
                     
@@ -642,6 +647,9 @@
                         </select>
                     </div>
                     <button class="dev-tool-menu-btn" id="devToolSave">💾 保存</button>
+                    <button class="dev-tool-menu-btn" id="devToolApplyAll">📋 应用到所有帧</button>
+                    <button class="dev-tool-menu-btn" id="devToolInterpolate">📈 插值</button>
+                    <button class="dev-tool-menu-btn" id="devToolClearKf">🗑️ 清空关键帧</button>
                     <button class="dev-tool-menu-btn" id="devToolReset2">🔄 重置</button>
                     <button class="dev-tool-menu-btn" id="devToolCoord">📐 坐标工具</button>
                 </div>

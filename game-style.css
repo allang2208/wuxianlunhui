@@ -1771,6 +1771,52 @@
     pointer-events: none;
 }
 
+/* 祭品效果统计面板 */
+.expedition-tribute-stats {
+    margin-top: 8px;
+    padding: 10px;
+    background: rgba(20, 18, 15, 0.7);
+    border: 1px solid #4a4035;
+    border-radius: 6px;
+}
+.expedition-tribute-stats-title {
+    font-size: 13px;
+    color: #c4a76a;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #3a352a;
+}
+.expedition-tribute-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.expedition-tribute-stat-item {
+    font-size: 11px;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.expedition-tribute-stat-item .stat-label {
+    color: #8a7a6a;
+    min-width: 60px;
+}
+.expedition-tribute-stat-item .stat-value {
+    font-weight: bold;
+}
+.expedition-tribute-stat-item.benefit .stat-value {
+    color: #6aaa6a;
+}
+.expedition-tribute-stat-item.penalty .stat-value {
+    color: #c44a4a;
+}
+.expedition-tribute-stat-item .stat-source {
+    font-size: 10px;
+    color: #6a5a4a;
+    margin-left: auto;
+}
+
 /* 操作按钮 */
 .expedition-actions {
     display: flex;
@@ -2028,6 +2074,7 @@
     background: rgba(30, 26, 22, 0.8); cursor: pointer; min-width: 70px;
 }
 .dev-tool-frame-item:hover { border-color: #8a7d6b; }
+.dev-tool-frame-item.selected { border-color: #90d070; background: rgba(144,208,112,0.15); box-shadow: 0 0 6px rgba(144,208,112,0.3); }
 .dev-tool-frame-item img { max-width: 64px; max-height: 64px; display: block; }
 .dev-tool-frame-item .frame-label { font-size: 10px; color: #8a7d6b; }
 .dev-tool-frame-item .frame-anim { font-size: 9px; color: #6b5d4f; }

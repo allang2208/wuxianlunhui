@@ -916,11 +916,14 @@ const CraftSystem = {
         for (const opt of options) {
             const row = document.createElement('div');
             row.className = 'craft-mod-option' + (current === opt.id ? ' selected' : '');
+            const ticketCost = current ? 4 : 1;
+            const ticketLabel = current ? '🔧 替换需4张改造券' : '🔧 需1张改造券';
             row.innerHTML = `
                 <div class="craft-mod-option-icon">${opt.icon}</div>
                 <div class="craft-mod-option-info">
                     <div class="craft-mod-option-name">${opt.name}</div>
                     <div class="craft-mod-option-desc">${opt.desc}</div>
+                    <div class="craft-mod-option-cost" style="color:#e8a838;font-size:11px;margin-top:2px;">${ticketLabel}</div>
                 </div>
                 <div class="craft-mod-option-action">${current === opt.id ? '✓ 已装备' : '点击装备'}</div>
             `;
@@ -955,6 +958,31 @@ const CraftSystem = {
     _equipMod(slotId, modId) {
         // 将改造数据绑定到具体装备实例
         if (!this._equippedItem) return;
+
+        const hasExisting = this._equippedItem._craftData && this._equippedItem._craftData[slotId];
+        const ticketCost = hasExisting ? 4 : 1;
+        const ticketName = hasExisting ? '改造券×4（替换已改造配件）' : '改造券×1';
+
+        // 检查改造券
+        const bp = EquipManager.backpackItems || [];
+        const ticketIdx = bp.findIndex(i => i.name === '改造券');
+        if (ticketIdx === -1) {
+            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}`, '#ff4444'));
+            return;
+        }
+        const ticketItem = bp[ticketIdx];
+        if ((ticketItem.stack || 1) < ticketCost) {
+            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}，当前只有${ticketItem.stack || 1}张`, '#ff4444'));
+            return;
+        }
+        // 消耗改造券
+        if (ticketItem.stack > ticketCost) {
+            ticketItem.stack -= ticketCost;
+        } else {
+            bp.splice(ticketIdx, 1);
+        }
+        EquipManager.updateInventorySlots();
+
         if (!this._equippedItem._craftData) this._equippedItem._craftData = {};
         this._equippedItem._craftData[slotId] = modId;
         this._equippedItem._isCrafted = true;
@@ -964,6 +992,7 @@ const CraftSystem = {
         this._modifications[wid][slotId] = modId;
         this._applyModEffects();
         this._renderMods();
+        EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造成功！消耗${ticketName}`, '#ffd700'));
     },
 
     _applyModEffects() {

@@ -200,7 +200,90 @@ export const ExpeditionSystem = {
         if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
 
         this._updateCapacityDisplay();
-        this._showMessage(`${item.name} x${itemCount} 已放入出征背包`);
+        this._updateTributeStats();
+        this._showMessage(`${item.name} x${itemCount} 已放入祭品栏`);
+    },
+
+    // 更新祭品效果统计面板
+    _updateTributeStats() {
+        const statsEl = document.getElementById('expeditionTributeStats');
+        const listEl = document.getElementById('expeditionTributeStatsList');
+        if (!statsEl || !listEl) return;
+
+        const tributes = this._carriedItems.filter(c => c !== null);
+        if (tributes.length === 0) {
+            statsEl.style.display = 'none';
+            return;
+        }
+
+        statsEl.style.display = 'block';
+
+        // 效果名称统一映射（不同名称但同一概念）
+        const NAME_NORMALIZE = {
+            '防御加成': '防御',
+            '防御力': '防御',
+        };
+
+        // 收集所有祭品效果
+        const effects = [];
+        tributes.forEach(c => {
+            const item = c.item;
+            if (!item) return;
+            const stats = item.stats || [];
+            stats.forEach(s => {
+                const value = String(s.value);
+                const isPositive = value.includes('+');
+                const isNegative = value.includes('-');
+                const type = isNegative ? 'penalty' : 'benefit';
+                // 统一名称
+                const normalizedName = NAME_NORMALIZE[s.name] || s.name;
+                effects.push({
+                    name: normalizedName,
+                    rawName: s.name,
+                    value: s.value,
+                    type,
+                    source: item.name
+                });
+            });
+        });
+
+        // 合并同名效果（如多个相同祭品）
+        const merged = new Map();
+        effects.forEach(e => {
+            const key = e.name;
+            if (!merged.has(key)) {
+                merged.set(key, { ...e });
+            } else {
+                const existing = merged.get(key);
+                // 简单累加数值（如果都是百分比或都是数值）
+                const existingVal = parseFloat(existing.value);
+                const newVal = parseFloat(e.value);
+                if (!isNaN(existingVal) && !isNaN(newVal)) {
+                    const sum = existingVal + newVal;
+                    const sign = sum >= 0 ? '+' : '-';
+                    const suffix = existing.value.includes('%') ? '%' : '';
+                    existing.value = `${sign}${Math.abs(sum)}${suffix}`;
+                    existing.source += `, ${e.source}`;
+                }
+                // type: 如果任意一个是减益，合并后仍标记为减益（优先显示负面）
+                if (e.type === 'penalty') existing.type = 'penalty';
+            }
+        });
+
+        // 渲染
+        const items = Array.from(merged.values());
+        if (items.length === 0) {
+            statsEl.style.display = 'none';
+            return;
+        }
+
+        listEl.innerHTML = items.map(item => `
+            <div class="expedition-tribute-stat-item ${item.type}">
+                <span class="stat-label">${item.name}</span>
+                <span class="stat-value">${item.value}</span>
+                <span class="stat-source">${item.source}</span>
+            </div>
+        `).join('');
     },
 
     // 从格子移除物品 — 归还到背包（类似 EnhanceSystem._returnEquippedItem）
@@ -242,6 +325,7 @@ export const ExpeditionSystem = {
         if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
 
         this._updateCapacityDisplay();
+        this._updateTributeStats();
         this._showMessage(`${itemName} 已归还到背包`);
     },
 
@@ -328,7 +412,8 @@ export const ExpeditionSystem = {
         });
 
         this._updateCapacityDisplay();
-        this._showMessage('已重置出征背包，所有物品已归还');
+        this._updateTributeStats();
+        this._showMessage('已重置祭品栏，所有物品已归还');
     },
 
     // 地牢选择变更
@@ -374,7 +459,7 @@ export const ExpeditionSystem = {
     depart() {
         const carried = this._carriedItems.filter(c => c !== null);
         if (carried.length === 0) {
-            this._showMessage('请至少携带一种物资', 'error');
+            this._showMessage('请至少放入一种祭品', 'error');
             return;
         }
 

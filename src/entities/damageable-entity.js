@@ -20,8 +20,8 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 if (source && source.data && this.data) {
                     let atk, def;
                     if (damageType === 'magic') {
-                        // 魔法伤害：使用 matk 和 mdef
-                        atk = source.data.matk || 0;
+                        // 魔法伤害：使用传入的 damage 作为 atk（已包含技能公式计算），fallback 到 matk
+                        atk = (damage > 0) ? damage : (source.data.matk || 0);
                         def = this.data.mdef || 0;
                         // 应用改造魔法防御穿透效果
                         if (source && source.getCurrentWeapon) {

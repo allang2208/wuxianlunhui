@@ -24,8 +24,8 @@ export const EquipDataManager = {
         { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', iconImage: 'assets/items/mana_potion.png', dropImage: 'assets/items/mana_potion.png', category: 'consumable', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 },
         { slot: 2, name: '金币', type: '货币', icon: '💰', category: 'gold', stats: [{ name: '数量', value: '10000' }], desc: '金光闪闪的硬币', stack: 10000, price: 1 },
         { slot: 3, name: '麦穗', type: '祭品', icon: '🌾', iconImage: 'assets/items/麦穗.png', dropImage: 'assets/items/麦穗.png', category: 'tribute', stats: [{ name: '金币加成', value: '+25%' }, { name: '生命恢复', value: '+1/秒' }], desc: '一束金色的麦穗，蕴含着丰收的祝福。放入祭品池后，击杀怪物时掉落的金币增加25%，玩家生命值自然恢复每秒加1。', stack: 1, rarity: 'common', level: 1 },
-        { slot: 4, name: '大理石', type: '祭品', icon: '🗿', iconImage: 'assets/items/大理石.png', dropImage: 'assets/items/大理石.png', category: 'tribute', stats: [{ name: '防御加成', value: '+25%' }, { name: '击杀回血', value: '5%最大生命/秒' }], desc: '一块光滑的大理石，蕴含着大地的守护之力。放入祭品池后，玩家的防御力增加25%，击杀敌方单位后，1秒内回复最大生命值的5%。', stack: 1, rarity: 'common', level: 1 },
-        { slot: 5, name: '石头', type: '祭品', icon: '🪨', iconImage: 'assets/items/石头.png', dropImage: 'assets/items/石头.png', category: 'tribute', stats: [{ name: '移动速度', value: '-10%' }, { name: '防御力', value: '+5%' }], desc: '一块普通的石头，虽然沉重但能提供额外的防护。放入祭品池后，移动速度减少10%，防御力增加5%。', stack: 1, rarity: 'common', level: 1 }
+        { slot: 4, name: '大理石', type: '祭品', icon: '🗿', iconImage: 'assets/items/大理石.png', dropImage: 'assets/items/大理石.png', category: 'tribute', stats: [{ name: '防御', value: '+25%' }, { name: '击杀回血', value: '5%最大生命/秒' }], desc: '一块光滑的大理石，蕴含着大地的守护之力。放入祭品池后，玩家的防御力增加25%，击杀敌方单位后，1秒内回复最大生命值的5%。', stack: 1, rarity: 'common', level: 1 },
+        { slot: 5, name: '石头', type: '祭品', icon: '🪨', iconImage: 'assets/items/石头.png', dropImage: 'assets/items/石头.png', category: 'tribute', stats: [{ name: '移动速度', value: '-10%' }, { name: '防御', value: '+5%' }], desc: '一块普通的石头，虽然沉重但能提供额外的防护。放入祭品池后，移动速度减少10%，防御力增加5%。', stack: 1, rarity: 'common', level: 1 }
     ],
     TEST_BOW_ITEM: {
         name: '训练用弓', type: '远程武器', icon: '🏹', iconImage: 'assets/icons/bow_icon.png',
@@ -116,14 +116,14 @@ export const EquipDataManager = {
         weaponCategory: 'mainhand', weaponType: 'pkm',
         weaponTypeTag: '远程武器', isTwoHanded: true,
         weaponAsset: { image: 'assets/weapons/pkm_topdown.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '10-15' }, { name: '射程', value: '1200' }],
+        stats: [{ name: '物理攻击', value: '10+力量×0.5+精神×0.4' }, { name: '射程', value: '1200' }],
         desc: 'PKM通用机枪，650发/分钟，亮金色曳光弹，火力压制利器',
         equipSlot: 'weapon2',
         attack: { range: 1200, knockback: 3, attackInterval: 92, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         heatParams: { overheatTime: 5000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
         attackKey: 'pkm', animConfigKey: 'pkm', fireSound: 'assets/sounds/pkm_single_600ms.wav', canvasImageProp: 'pkmImage',
         ammoConfig: { max: 75, reloadTime: 3500 }, fireMode: 'fullAuto',
-        attackFormula: { base: 5, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.11, perEnhance: 0.001 }, { key: 'wis', base: 0.11, perEnhance: 0.002 }] },
+        attackFormula: { base: 10, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.5, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.12 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
     },
     AKM_ITEM: {
@@ -172,14 +172,14 @@ export const EquipDataManager = {
         weaponCategory: 'mainhand', weaponType: 'qjb201',
         weaponTypeTag: '远程武器', isTwoHanded: true,
         weaponAsset: { image: 'assets/weapons/201equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '3-6' }, { name: '射程', value: '1200' }],
+        stats: [{ name: '物理攻击', value: '7+力量×0.35+精神×0.5' }, { name: '射程', value: '1200' }],
         desc: 'QJB-201班用机枪，1000发/分钟，亮金色曳光弹，轻量化设计的国产机枪，机动性与火力兼备',
         equipSlot: 'weapon',
         attack: { range: 1200, knockback: 1, attackInterval: 60, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         heatParams: { overheatTime: 4000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
         attackKey: 'qjb201', animConfigKey: 'qjb201', fireSound: 'assets/sounds/qjb201_single_600ms.wav', canvasImageProp: 'qjb201Image',
         ammoConfig: { max: 60, reloadTime: 2000 }, fireMode: 'fullAuto',
-        attackFormula: { base: 3, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.08, perEnhance: 0.01 }, { key: 'wis', base: 0.15, perEnhance: 0.02 }] },
+        attackFormula: { base: 7, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.35, perEnhance: 0.10 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 30 }
     },
     SUPER90_ITEM: {
@@ -229,7 +229,7 @@ export const EquipDataManager = {
         stats: [{ name: '物理攻击', value: '18-23' }],
         desc: '骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。',
         equipSlot: 'weapon2',
-        attack: { range: 155, rangeBonus: 50, knockback: 8, attackInterval: 500, damageType: '物理' },
+        attack: { range: 77, rangeBonus: 25, knockback: 8, attackInterval: 500, damageType: '物理' },
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         attackFormula: { base: 20, enhanceFlat: 2, attrs: [{ key: 'str', base: 2, perEnhance: 0.35 }, { key: 'dex', base: 1.5, perEnhance: 0.25 }] },
         specialAttack: {
@@ -270,7 +270,7 @@ export const EquipDataManager = {
         stats: [{ name: '物理攻击', value: '45-55' }, { name: '暴击率', value: '+5%', pos: true }],
         desc: '剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。',
         equipSlot: 'weapon',
-        attack: { range: 155, rangeBonus: 100, knockback: 8, attackInterval: 500, damageType: '物理' },
+        attack: { range: 77, rangeBonus: 50, knockback: 8, attackInterval: 500, damageType: '物理' },
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         attackFormula: { base: 16, enhanceFlat: 2, attrs: [{ key: 'int', base: 2, perEnhance: 0.4 }, { key: 'str', base: 1.2, perEnhance: 0.2 }] },
         specialAttack: {
@@ -293,6 +293,7 @@ export const EquipDataManager = {
         stats: [{ name: '物理攻击', value: '60-75' }, { name: '暴击率', value: '+5%', pos: true }],
         desc: '一把在暗夜中燃烧着淡蓝色火焰的传奇之剑，传说中它同时寄宿着夜之力与火之力。持有者可以释放其中的火焰之力，发射毁灭性的光柱。',
         equipSlot: 'weapon',
+        attack: { range: 77, rangeBonus: 25, knockback: 8, attackInterval: 500, damageType: '物理' },
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         attackFormula: { base: 24, enhanceFlat: 2.2, attrs: [{ key: 'int', base: 2, perEnhance: 0.5 }, { key: 'str', base: 1.2, perEnhance: 0.2 }] },
         specialAttack: {

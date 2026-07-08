@@ -181,23 +181,6 @@ export const DungeonMapSystem = {
             Camera.follow(this.player);
         }
     },
-        this.active = false;
-        this.state = "idle";
-        this.nodes = [];
-        this.edges = [];
-        this._cleanupEventUI();
-        this._removeCleanupOverlay();
-        this._removeMouseShopButton();
-        this._removeAbandonButton();
-        this._unbindEvents();
-
-        if (this._backupCameraFollow) {
-            Camera.follow = this._backupCameraFollow;
-        }
-        if (this.player) {
-            Camera.follow(this.player);
-        }
-    },
 
     // ───────────────────────────────────────────────
     // 事件绑定：拖动 + 滚轮缩放
@@ -810,7 +793,7 @@ export const DungeonMapSystem = {
 
         const overlay = document.createElement("div");
         overlay.id = "dungeonCleanupOverlay";
-        overlay.style.cssText = 'position:fixed;top:120px;left:50%;transform:translateX(-50%);color:#44ff44;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:9000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
+        overlay.style.cssText = 'position:fixed;top:120px;left:50%;transform:translateX(-50%);color:#ff4444;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:9000;pointer-events:none;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         overlay.textContent = `打扫战场中... 10秒后返回地图`;
         document.body.appendChild(overlay);
         this._cleanupOverlay = overlay;
@@ -1189,7 +1172,7 @@ export const DungeonMapSystem = {
         btn.style.cssText = `
             position: fixed;
             left: 26.25vw;
-            bottom: 153px;
+            bottom: 20px;
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1229,7 +1212,7 @@ export const DungeonMapSystem = {
         btn.style.cssText = `
             position: fixed;
             left: 64.11vw;
-            bottom: 148px;
+            bottom: 20px;
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
