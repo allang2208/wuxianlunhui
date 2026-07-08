@@ -438,6 +438,8 @@ export class GameScene extends Scene {
         const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGun) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+            const flipY = Math.abs(rot) > Math.PI / 2;
+            this.weaponSprite.setFlipY(flipY);
         } else {
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
         }
@@ -566,6 +568,8 @@ export class GameScene extends Scene {
         const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunOff) {
             this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
+            const flipY = Math.abs(rot) > Math.PI / 2;
+            this.offhandWeaponSprite.setFlipY(flipY);
         } else {
             this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
         }
@@ -945,6 +949,8 @@ export class GameScene extends Scene {
         const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunSpecial) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+            const flipY = Math.abs(finalRot) > Math.PI / 2;
+            this.weaponSprite.setFlipY(flipY);
         } else {
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
         }

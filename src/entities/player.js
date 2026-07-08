@@ -226,6 +226,14 @@ import { StatusBar } from '../ui/status-bar.js';
                         d.def = Math.floor(d.def * (1 + sdEffect.defBonusPercent));
                     }
                 }
+                // 祭品效果：大理石 - 防御力增加25%
+                if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                    const tributes = DungeonMapSystem._carriedItems;
+                    const hasMarble = tributes.some(c => c && c.item && c.item.name === '大理石');
+                    if (hasMarble) {
+                        d.def = Math.floor(d.def * 1.25);
+                    }
+                }
                 d.matk = Math.floor(d.int * 1.5 + (d.wis + bonusWis) * 0.5); d.mdef = Math.floor((d.wis + bonusWis) * 1.2 + d.int * 0.3);
                 d.hit = 80 + Math.floor((d.dex + bonusDex) * 0.5); d.dodge = 5 + Math.floor((d.dex + bonusDex) * 0.3);
                 d.crit = 2 + Math.floor(d.luck * 1.0); d.aspd = 1.0 + (d.dex + bonusDex) * 0.02;
@@ -1238,7 +1246,27 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 // ===== 生命回复 =====
                 if (this.data.hp < this.data.maxHp) {
-                    this.data.hp = Math.min(this.data.maxHp, this.data.hp + this.data.hpRegen * (dt / 1000));
+                    let regen = this.data.hpRegen;
+                    // 祭品效果：麦穗 - 生命恢复每秒+1
+                    if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                        const tributes = DungeonMapSystem._carriedItems;
+                        const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
+                        if (hasWheat) regen += 1;
+                    }
+                    this.data.hp = Math.min(this.data.maxHp, this.data.hp + regen * (dt / 1000));
+                }
+                // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
+                if (this._marbleHealTimer > 0) {
+                    this._marbleHealTimer -= dt;
+                    const healPerTick = this._marbleHealTotal / (1000 / 16.67);
+                    this.data.hp = Math.min(this.data.maxHp, this.data.hp + healPerTick * (dt / 16.67));
+                    if (this._marbleHealTimer <= 0) {
+                        this._marbleHealTimer = 0;
+                        if (this._marbleHealEffectId && typeof StatusBar !== 'undefined') {
+                            StatusBar.removeEffect(this._marbleHealEffectId);
+                            this._marbleHealEffectId = null;
+                        }
+                    }
                 }
                 // ===== 魔法回复 =====
                 if (this.data.mp < this.data.maxMp) {

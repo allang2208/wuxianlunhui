@@ -151,7 +151,29 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 // 掉落金币（不再掉落 G18）
                 if (this instanceof Enemy) {
                     const level = this.level || 1;
-                    const goldAmount = 4 * level + Math.floor(Math.random() * 10 + 1);
+                    let goldAmount = 4 * level + Math.floor(Math.random() * 10 + 1);
+                    
+                    // 祭品效果：麦穗 - 金币增加25%
+                    if (source && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                        const tributes = DungeonMapSystem._carriedItems;
+                        const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
+                        if (hasWheat) {
+                            goldAmount = Math.floor(goldAmount * 1.25);
+                        }
+                        
+                        // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
+                        const hasMarble = tributes.some(c => c && c.item && c.item.name === '大理石');
+                        if (hasMarble && source && source.data) {
+                            source._marbleHealTimer = 1000; // 1秒
+                            source._marbleHealTotal = source.data.maxHp * 0.05;
+                            source._marbleHealPerTick = source._marbleHealTotal / (1000 / 16.67); // 每帧恢复量
+                            if (typeof StatusBar !== 'undefined') {
+                                if (source._marbleHealEffectId) StatusBar.removeEffect(source._marbleHealEffectId);
+                                source._marbleHealEffectId = StatusBar.addEffect('marbleHeal', 1000, { icon: '🗿', name: '大理石守护', color: '#8a9a8a' });
+                            }
+                        }
+                    }
+                    
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
                     Game.dropItem(this.x, this.y, goldItem);
                     // 新增：掉落经验值

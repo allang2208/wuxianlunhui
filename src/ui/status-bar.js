@@ -15,6 +15,7 @@ export const StatusBar = {
         bleed: { icon: '🩸', name: '流血', color: '#9a3a3a' },
         magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
         droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
+        marbleHeal: { icon: '🗿', name: '大理石守护', color: '#8a9a8a' },
     },
 
     init() {
