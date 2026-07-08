@@ -1170,7 +1170,7 @@ export const DungeonMapSystem = {
         btn.style.cssText = `
             position: fixed;
             left: 26.25vw;
-            bottom: 14.17vh;
+            bottom: 153px;
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1210,7 +1210,7 @@ export const DungeonMapSystem = {
         btn.style.cssText = `
             position: fixed;
             left: 64.11vw;
-            bottom: 13.70vh;
+            bottom: 148px;
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
