@@ -26,6 +26,11 @@ export class BootScene extends Scene {
             this.load.image(key, path);
         }
 
+        // ---- 特效资源 ----
+        this.load.image('runeSwordBlade', 'assets/weapons/blue_energy_sword_pure.png');
+        this.load.image('iceSpike', 'assets/skills/icearrow.png');
+        this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 8 });
+
         // ---- 敌人资源 ----
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
         this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });

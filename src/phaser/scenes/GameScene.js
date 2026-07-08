@@ -311,10 +311,10 @@ export class GameScene extends Scene {
         // 在浏览器控制台执行：__phaserScene._useCanvasWeapon = true 切换回 Canvas
         if (this._useCanvasWeapon === undefined) this._useCanvasWeapon = false;
         
-        // 如果玩家处于特殊动画状态，隐藏 Phaser 武器（由 Canvas 渲染）
+        // 如果玩家处于特殊动画状态，同步特殊动画位置到 Phaser（风车/冲刺/复位）
         const isSpecialAnim = player._isWhirlwind || player._isDashing || player._dashResetAnim || player._specialAttackActive || player._specialResetAnim;
         if (isSpecialAnim) {
-            if (this.weaponSprite) this.weaponSprite.setVisible(false);
+            this._syncSpecialWeaponAnim(player, wt, weaponAnim);
             return;
         }
         
@@ -797,6 +797,91 @@ export class GameScene extends Scene {
         this.fireballFlySprite.setVisible(true);
     }
 
+    // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
+    // 将 Canvas 变换链转换为世界坐标
+    _syncSpecialWeaponAnim(player, wt, weaponAnim) {
+        if (!this.weaponSprite) {
+            const texture = getWeaponTextureKey(player.equipments[player.weaponMode]);
+            this.weaponSprite = this.add.sprite(0, 0, texture);
+            this.weaponSprite.setDepth(150);
+        }
+        
+        const wa = WEAPON_ANIM;
+        const ms = wa.size * 0.75;
+        const cos = Math.cos(player.rotation);
+        const sin = Math.sin(player.rotation);
+        
+        // 基础偏移 (wa.holdX + 8, wa.holdY + 6) 在旋转坐标系中 → 世界坐标
+        const baseX = wa.holdX + 8;
+        const baseY = wa.holdY + 6;
+        let worldX = player.x + cos * baseX - sin * baseY;
+        let worldY = player.y + sin * baseX + cos * baseY;
+        
+        // 基础旋转 + 玩家旋转
+        let rot = player.rotation + Math.PI / 2;
+        
+        // 武器方向（垂直于玩家朝向）
+        const weaponDirX = -sin;
+        const weaponDirY = cos;
+        
+        // 额外偏移和角度（根据特殊动画状态）
+        let extraOffset = 0;
+        let extraAngle = 0;
+        
+        if (player._isWhirlwind) {
+            if (player._whirlwindTimer <= 50) {
+                extraOffset = 15 * Easing.easeOutQuad(player._whirlwindTimer / 50);
+            } else {
+                extraOffset = 15;
+            }
+        } else if (player._isDashing) {
+            const activeSkillId = player._getActiveDashSkillId ? player._getActiveDashSkillId() : null;
+            const state = player.dashSystem && activeSkillId ? player.dashSystem._getDashWeaponStateAt(player._dashTimer, activeSkillId) : { dashOffset: 0, dashAngle: 0 };
+            extraOffset = state.dashOffset || 0;
+            extraAngle = state.dashAngle || 0;
+        } else if (player._dashResetAnim) {
+            const elapsed = Date.now() - player._dashResetAnim.startTime;
+            const t = Math.min(1, elapsed / player._dashResetAnim.duration);
+            const easeT = Easing.easeOutQuart(t);
+            extraAngle = player._dashResetAnim.startAngle * (1 - easeT);
+            extraOffset = player._dashResetAnim.startOffset * (1 - easeT);
+            // 基础位置回位：攻击(-12, 17) -> 待机(-20, 11)
+            const attackBaseX = wa.holdX + 8;
+            const attackBaseY = wa.holdY + 6;
+            const idleBaseX = wa.holdX;
+            const idleBaseY = wa.holdY;
+            const currentBaseX = attackBaseX + (idleBaseX - attackBaseX) * easeT;
+            const currentBaseY = attackBaseY + (idleBaseY - attackBaseY) * easeT;
+            worldX = player.x + cos * currentBaseX - sin * currentBaseY;
+            worldY = player.y + sin * currentBaseX + cos * currentBaseY;
+        } else if (player._specialResetAnim) {
+            const elapsed = Date.now() - player._specialResetAnim.startTime;
+            const t = Math.min(1, elapsed / player._specialResetAnim.duration);
+            const easeT = Easing.easeOutQuart(t);
+            extraAngle = player._specialResetAnim.startAngle * (1 - easeT);
+            extraOffset = player._specialResetAnim.startOffset * (1 - easeT);
+            const attackBaseX = wa.holdX + 8;
+            const attackBaseY = wa.holdY + 6;
+            const idleBaseX = wa.holdX;
+            const idleBaseY = wa.holdY;
+            const currentBaseX = attackBaseX + (idleBaseX - attackBaseX) * easeT;
+            const currentBaseY = attackBaseY + (idleBaseY - attackBaseY) * easeT;
+            worldX = player.x + cos * currentBaseX - sin * currentBaseY;
+            worldY = player.y + sin * currentBaseX + cos * currentBaseY;
+        } else if (player._specialAttackActive) {
+            extraOffset = -15;
+        }
+        
+        // 最终位置：基础位置 + 额外偏移 * 武器方向 - 武器中心偏移 * 武器方向
+        const finalX = worldX + weaponDirX * (extraOffset - ms * 0.85);
+        const finalY = worldY + weaponDirY * (extraOffset - ms * 0.85);
+        const finalRot = rot + extraAngle;
+        
+        this.weaponSprite.setPosition(finalX, finalY);
+        this.weaponSprite.setRotation(finalRot);
+        this.weaponSprite.setVisible(true);
+    }
+    
     /**
      * 添加墙壁碰撞体
      */

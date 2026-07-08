@@ -3385,7 +3385,8 @@ import { StatusBar } from '../ui/status-bar.js';
                     const ms = s * 0.75;
                     if (this._isWhirlwind) {
                         // 风车技能：武器跟随人物整体旋转（旋转在 render() 中已处理）
-                        // 前50ms：武器远离人物平移15px；之后保持15px偏移
+                        // Phase 迁移：已迁移到 Phaser _syncSpecialWeaponAnim，Canvas 跳过
+                        /*
                         const w = ms * 0.63;
                         ctx.translate(wa.holdX + 8, wa.holdY + 6);
                         ctx.rotate(Math.PI / 2);
@@ -3403,36 +3404,36 @@ import { StatusBar } from '../ui/status-bar.js';
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
+                        */
                     } else if (this._isDashing) {
                         // ===== 冲刺攻击武器动画 =====
+                        // Phase 迁移：已迁移到 Phaser _syncSpecialWeaponAnim，Canvas 跳过
+                        /*
                         const activeSkillId = this._getActiveDashSkillId();
                         const state = this.dashSystem._getDashWeaponStateAt(this._dashTimer, activeSkillId);
                         const w = ms * 0.63;
-                        // 旋转中心在剑柄位置（主角处），与待机/攻击动画一致
                         ctx.translate(wa.holdX + 8, wa.holdY + 6);
-                        ctx.rotate(Math.PI / 2); // 基础旋转，使待机时武器水平朝右
+                        ctx.rotate(Math.PI / 2);
                         ctx.translate(0, state.dashOffset);
                         ctx.rotate(state.dashAngle);
-
-                        ctx.translate(0, -ms * 0.85); // 移到武器中心，确保位置与待机/攻击一致
+                        ctx.translate(0, -ms * 0.85);
                         if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) {
                             ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
                         }
-                        // weapon4 粒子：在武器变换后绘制，但粒子本身不旋转
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
+                        */
                     } else if (this._dashResetAnim) {
                         // 冲刺攻击后复位动画：旋转与回位同步进行（0-100%）
+                        // Phase 迁移：已迁移到 Phaser _syncSpecialWeaponAnim，Canvas 跳过
+                        /*
                         const elapsed = Date.now() - this._dashResetAnim.startTime;
                         const t = Math.min(1, elapsed / this._dashResetAnim.duration);
                         const w = ms * 0.63;
                         const easeT = easeOutQuart(t);
-                        // 武器自身角度回位：startAngle -> 0
                         const currentAngle = this._dashResetAnim.startAngle * (1 - easeT);
-                        // 武器偏移回位：startOffset -> 0
                         const currentOffset = this._dashResetAnim.startOffset * (1 - easeT);
-                        // 武器base位置回位：攻击(-12, 17) -> 待机(-20, 11)
                         const attackBaseX = wa.holdX + 8;
                         const attackBaseY = wa.holdY + 6;
                         const idleBaseX = wa.holdX;
@@ -3450,8 +3451,11 @@ import { StatusBar } from '../ui/status-bar.js';
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
+                        */
                     } else if (this._specialResetAnim) {
                         // 特殊攻击后复位动画：同步旋转+回位
+                        // Phase 迁移：已迁移到 Phaser _syncSpecialWeaponAnim，Canvas 跳过
+                        /*
                         const elapsed = Date.now() - this._specialResetAnim.startTime;
                         const t = Math.min(1, elapsed / this._specialResetAnim.duration);
                         const easeT = easeOutQuart(t);
@@ -3475,8 +3479,11 @@ import { StatusBar } from '../ui/status-bar.js';
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
+                        */
                     } else if (this._specialAttackActive) {
                         // 特殊攻击期间：武器前伸15px
+                        // Phase 迁移：已迁移到 Phaser _syncSpecialWeaponAnim，Canvas 跳过
+                        /*
                         const w = ms * 0.63;
                         ctx.translate(wa.holdX + 8, wa.holdY + 6);
                         ctx.rotate(Math.PI / 2);
@@ -3488,49 +3495,57 @@ import { StatusBar } from '../ui/status-bar.js';
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
+                        */
                     } else if (isAttacking) {
                         // 使用刺击动画配置（Stab Animation），可被所有剑类武器复用
+                        // Phase 2: 已迁移到 Phaser syncWeapon 刺击位移，Canvas 跳过
+                        // 保留符文粒子（Phase 3 已迁移）
+                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
+                            let animState = 'idle';
+                            if (this._isSprinting) animState = 'running';
+                            else if (this.isMoving) animState = 'walk';
+                            const swordCfg = getWeaponStateConfig('sword', animState);
+                            ctx.save();
+                            ctx.translate(-7, 0); // mainBaseX
+                            ctx.translate(swordCfg.holdOffsetX || wa.holdX, swordCfg.holdOffsetY || wa.holdY);
+                            ctx.rotate(Math.PI / 2);
+                            ctx.translate(0, -ms * 0.85);
+                            this.weaponEffect.render(ctx);
+                            ctx.restore();
+                        }
+                        /*
                         const stab = WeaponAnimConfig.stab;
                         ctx.translate(wa.holdX + 8, wa.holdY + 6);
                         ctx.rotate(Math.PI / 2);
-                        // 移动到武器中心（旋转中心在武器中心）
                         ctx.translate(0, -ms * 0.85);
                         let thrustOffset = 0;
                         if (anim.state === 'windup') {
                             const t = anim.timer / this._getAnimMs(wa.windupMs);
-                            // 蓄力：回退（靠近角色），使用正值
                             thrustOffset = ms * stab.windupDist * easeInCubic(t);
                         } else if (anim.state === 'swing') {
                             const t = anim.timer / this._getAnimMs(wa.swingMs);
-                            // 攻击：前刺（远离角色），使用负值
                             if (t < 0.6) {
                                 const pt = t / 0.6;
-                                // 从回退位置 (+29.4) 快速前刺到 -151.2
                                 thrustOffset = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * easeOutQuad(pt);
                             } else {
                                 thrustOffset = -ms * stab.stabDist;
                             }
-                        } else {
+                        } else if (anim.state === 'recover') {
                             const t = anim.timer / this._getAnimMs(wa.recoverMs);
-                            // 后摇：先瞬移回待机位置附近，再平滑过渡
-                            const snapRatio = 0.15; // 15%时间完成瞬移
+                            const snapRatio = 0.15;
                             if (t < snapRatio) {
                                 const pt = t / snapRatio;
-                                // 线性快速从最远点瞬移到 -8px
                                 thrustOffset = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
                             } else {
                                 const pt = (t - snapRatio) / (1 - snapRatio);
-                                // 平滑 easeOut 从 -8px 到 0
                                 thrustOffset = -stab.recoverSnapDist * (1 - easeOutQuad(pt));
                             }
                         }
-                        // Phase 2: 攻击动画已迁移到 Phaser，Canvas 不再绘制武器本体
-                        // const w = ms * 0.63;
-                        // if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
-                        // 保留符文粒子（Phase 3 会迁移）
-                        if (currentItem && currentItem.weaponEffect === 'runeSword') {
-                            this.weaponEffect.render(ctx);
-                        }
+                        ctx.translate(0, thrustOffset);
+                        ctx.rotate(anim.angle);
+                        const w = ms * 0.63;
+                        if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
+                        */
                     } else {
                         // 近战待机：武器固定在绑定位置，不随鼠标旋转
                         // Phase 1: 武器本体由 Phaser 渲染，Canvas 不再绘制
