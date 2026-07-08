@@ -433,9 +433,14 @@ export class GameScene extends Scene {
         this.weaponSprite.setRotation(rot);
         this.weaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
+        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
-        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGun) {
+            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+        } else {
+            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
     }
 
     /**
@@ -556,9 +561,14 @@ export class GameScene extends Scene {
         this.offhandWeaponSprite.setRotation(rot);
         this.offhandWeaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
+        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
         const wSize = WeaponTransform.getWeaponSize(wt);
-        this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGunOff) {
+            this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
+        } else {
+            this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
     }
 
     /**
@@ -932,7 +942,12 @@ export class GameScene extends Scene {
         const finalRot = rot + extraAngle;
         
         const wSize = WeaponTransform.getWeaponSize(wt);
-        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGunSpecial) {
+            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+        } else {
+            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
         this.weaponSprite.setPosition(finalX, finalY);
         this.weaponSprite.setRotation(finalRot);
         this.weaponSprite.setVisible(true);
