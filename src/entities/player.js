@@ -233,6 +233,31 @@ import { StatusBar } from '../ui/status-bar.js';
                     if (hasMarble) {
                         d.def = Math.floor(d.def * 1.25);
                     }
+                    // 祭品效果：石头 - 防御力增加5%
+                    const hasStone = tributes.some(c => c && c.item && c.item.name === '石头');
+                    if (hasStone) {
+                        d.def = Math.floor(d.def * 1.05);
+                    }
+                }
+                d.matk = Math.floor(d.int * 1.5 + (d.wis + bonusWis) * 0.5); d.mdef = Math.floor((d.wis + bonusWis) * 1.2 + d.int * 0.3);
+                d.hit = 80 + Math.floor((d.dex + bonusDex) * 0.5); d.dodge = 5 + Math.floor((d.dex + bonusDex) * 0.3);
+                d.crit = 2 + Math.floor(d.luck * 1.0); d.aspd = 1.0 + (d.dex + bonusDex) * 0.02;
+                d.speed = CONFIG.PLAYER_SPEED + (d.dex + bonusDex) * 0.05;
+                // 祭品效果：石头 - 移动速度减少10%
+                if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                    const tributes = DungeonMapSystem._carriedItems;
+                    const hasStone = tributes.some(c => c && c.item && c.item.name === '石头');
+                    if (hasStone) {
+                        d.speed = Math.floor(d.speed * 0.9);
+                    }
+                }
+                d.critRes = Math.floor(d.con * 1.0); // 暴击抵抗：每1点体质增加1%
+                if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                    const tributes = DungeonMapSystem._carriedItems;
+                    const hasMarble = tributes.some(c => c && c.item && c.item.name === '大理石');
+                    if (hasMarble) {
+                        d.def = Math.floor(d.def * 1.25);
+                    }
                 }
                 d.matk = Math.floor(d.int * 1.5 + (d.wis + bonusWis) * 0.5); d.mdef = Math.floor((d.wis + bonusWis) * 1.2 + d.int * 0.3);
                 d.hit = 80 + Math.floor((d.dex + bonusDex) * 0.5); d.dodge = 5 + Math.floor((d.dex + bonusDex) * 0.3);

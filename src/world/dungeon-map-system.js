@@ -171,6 +171,25 @@ export const DungeonMapSystem = {
         this._removeMouseShopButton();
         this._removeAbandonButton();
         this._unbindEvents();
+        // 清空携带的祭品，确保祭品效果只在当前地牢有效
+        this._carriedItems = [];
+
+        if (this._backupCameraFollow) {
+            Camera.follow = this._backupCameraFollow;
+        }
+        if (this.player) {
+            Camera.follow(this.player);
+        }
+    },
+        this.active = false;
+        this.state = "idle";
+        this.nodes = [];
+        this.edges = [];
+        this._cleanupEventUI();
+        this._removeCleanupOverlay();
+        this._removeMouseShopButton();
+        this._removeAbandonButton();
+        this._unbindEvents();
 
         if (this._backupCameraFollow) {
             Camera.follow = this._backupCameraFollow;
