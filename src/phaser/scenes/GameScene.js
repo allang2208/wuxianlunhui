@@ -47,6 +47,11 @@ export class GameScene extends Scene {
         this.iceSpikeGroup = this.add.group();
         this.fireballSprite = null;
 
+        // Phase 3 续：盾牌和飞行投射物
+        this.shieldSprite = null;
+        this.iceSpikeFlyGroup = this.add.group();
+        this.fireballFlySprite = null;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -84,6 +89,11 @@ export class GameScene extends Scene {
             this.runeSwordGroup.setVisible(false);
             this.iceSpikeGroup.setVisible(false);
             if (this.fireballSprite) this.fireballSprite.setVisible(false);
+            // Phase 3 续：场景六地图模式下隐藏盾牌和飞行投射物
+            if (this.shieldSprite) this.shieldSprite.setVisible(false);
+            if (this.defenseGlow) this.defenseGlow.clear();
+            this.iceSpikeFlyGroup.setVisible(false);
+            if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
         } else {
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
@@ -104,6 +114,10 @@ export class GameScene extends Scene {
                 this._syncRuneSwords(_game.player);
                 this._syncIceSpikes(_game.player);
                 this._syncFireball(_game.player);
+                // Phase 3 续：同步盾牌和飞行投射物
+                this._syncShield(_game.player);
+                this._syncFlyingIceSpikes(_game.player);
+                this._syncFlyingFireball(_game.player);
             }
         }
         
@@ -660,6 +674,127 @@ export class GameScene extends Scene {
         }
         
         this.fireballSprite.setVisible(true);
+    }
+
+    /**
+     * Phase 3 续：同步盾牌到 Phaser Sprite
+     */
+    _syncShield(player) {
+        const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+        const offhandItem = player.equipments[offhandSlot];
+        
+        if (!offhandItem || offhandItem.weaponType !== 'shield') {
+            if (this.shieldSprite) this.shieldSprite.setVisible(false);
+            return;
+        }
+        
+        if (!this.shieldSprite) {
+            this.shieldSprite = this.add.sprite(0, 0, 'shield');
+            this.shieldSprite.setDepth(148); // 低于武器(150)，高于角色(100)
+        }
+        
+        const s = player.size;
+        const sw = s * 6.25 * 0.55;
+        const sh = s * 6.25 * 0.7;
+        
+        // 计算盾牌世界位置（基于 player 旋转）
+        const offsetX = 20;
+        const offsetY = -20;
+        const cos = Math.cos(player.rotation);
+        const sin = Math.sin(player.rotation);
+        const worldX = player.x + cos * offsetX - sin * offsetY;
+        const worldY = player.y + sin * offsetX + cos * offsetY;
+        
+        let rot = player.rotation + Math.PI / 2;
+        if (player.shieldSystem && player.shieldSystem.defending) {
+            rot -= 0.3;
+        }
+        
+        this.shieldSprite.setPosition(worldX, worldY);
+        this.shieldSprite.setRotation(rot);
+        this.shieldSprite.setDisplaySize(sw, sh);
+        this.shieldSprite.setVisible(true);
+        
+        // 防御红光（用 Phaser 图形或 Sprite）
+        if (player.shieldSystem && player.shieldSystem.defending) {
+            // 创建或更新防御光环
+            if (!this.defenseGlow) {
+                this.defenseGlow = this.add.graphics();
+                this.defenseGlow.setDepth(90);
+            }
+            this.defenseGlow.clear();
+            const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25;
+            const r = player.size + 8;
+            this.defenseGlow.fillStyle(0xcc3333, flicker * 0.35);
+            this.defenseGlow.fillCircle(player.x, player.y, r);
+            this.defenseGlow.lineStyle(2, 0xff5555, flicker * 0.6);
+            this.defenseGlow.strokeCircle(player.x, player.y, r + 2);
+        } else if (this.defenseGlow) {
+            this.defenseGlow.clear();
+        }
+    }
+
+    /**
+     * Phase 3 续：同步飞行中的冰锥到 Phaser Sprite
+     */
+    _syncFlyingIceSpikes(player) {
+        if (!player._iceSpikeSpikes || !player._iceSpikeSpikes.some(s => s.flyActive)) {
+            this.iceSpikeFlyGroup.setVisible(false);
+            return;
+        }
+        
+        const activeSpikes = player._iceSpikeSpikes.filter(s => s.flyActive);
+        
+        // 确保 Group 中有足够的 Sprite
+        while (this.iceSpikeFlyGroup.countActive() < activeSpikes.length) {
+            const sprite = this.add.sprite(0, 0, 'iceSpike');
+            sprite.setDepth(150);
+            this.iceSpikeFlyGroup.add(sprite);
+        }
+        
+        let activeIdx = 0;
+        this.iceSpikeFlyGroup.getChildren().forEach(sprite => {
+            if (activeIdx < activeSpikes.length) {
+                const spike = activeSpikes[activeIdx];
+                sprite.setPosition(spike.flyX, spike.flyY);
+                sprite.setRotation(spike.flyAngle + Math.PI / 2);
+                sprite.setAlpha(0.9);
+                sprite.setVisible(true);
+                activeIdx++;
+            } else {
+                sprite.setVisible(false);
+            }
+        });
+    }
+
+    /**
+     * Phase 3 续：同步飞行中的火球到 Phaser Sprite
+     */
+    _syncFlyingFireball(player) {
+        if (!player._fireball || !player._fireball.flyActive) {
+            if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
+            return;
+        }
+        
+        const fb = player._fireball;
+        
+        if (!this.fireballFlySprite) {
+            this.fireballFlySprite = this.add.sprite(0, 0, 'fireball');
+            this.fireballFlySprite.setDepth(150);
+        }
+        
+        this.fireballFlySprite.setPosition(fb.flyX, fb.flyY);
+        this.fireballFlySprite.setRotation(fb.flyAngle + Math.PI / 2);
+        this.fireballFlySprite.setAlpha(0.9);
+        this.fireballFlySprite.setScale(fb.scale || 1);
+        
+        if (fb.frameIndex !== undefined) {
+            try {
+                this.fireballFlySprite.setFrame(fb.frameIndex);
+            } catch (e) {}
+        }
+        
+        this.fireballFlySprite.setVisible(true);
     }
 
     /**

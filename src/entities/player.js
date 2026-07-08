@@ -3009,7 +3009,10 @@ import { StatusBar } from '../ui/status-bar.js';
                 const isBowAttacking = currentItem.weaponType === 'bow' && anim.state !== 'idle';
                 const isSpecialAnim = this._isWhirlwind || this._isDashing || this._dashResetAnim || this._specialAttackActive || this._specialResetAnim || this._runeSwordSpecialActive || this._runeSwordResetAnim || isBowAttacking;
                 if (this._usePhaserWeapon && !isSpecialAnim) {
-                    if (isMeleeWeapon && currentItem.weaponEffect === 'runeSword' && this.weaponAnim.state === 'idle') {
+                    // Phase 1/2/3: 武器本体由 Phaser 渲染，Canvas 不再绘制任何武器
+                    // 保留：符文粒子特效（Phase 3 已迁移到 Phaser）
+                    return;
+                }
                         let animState = 'idle';
                         if (this._isSprinting) animState = 'running';
                         else if (this.isMoving) animState = 'walk';
@@ -4317,41 +4320,20 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 this.renderWeapon(ctx);
                 // === 盾牌渲染（副手栏装备盾牌时）===
+                // 统一迁移：盾牌由 Phaser 渲染，Canvas 跳过
+                /*
                 const _offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const _offhandItem = this.equipments[_offhandSlot];
                 if (_offhandItem && _offhandItem.weaponType === 'shield') {
-                    ctx.save();
-                    ctx.translate(20, -20); // 右上方（20, -20）
-                    ctx.rotate(Math.PI / 2); // 顺时针旋转 90 度
-                    const shieldImg = this.shieldImage;
-                    const sw = this.size * 6.25 * 0.55;
-                    const sh = this.size * 6.25 * 0.7;
-                    if (this.shieldSystem && this.shieldSystem.defending) {
-                        ctx.rotate(-0.3);
-                    }
-                    if (shieldImg && shieldImg.complete && shieldImg.naturalWidth > 0) {
-                        ctx.drawImage(shieldImg, -sw / 2, -sh / 2, sw, sh);
-                    } else {
-                        ctx.fillStyle = '#8a6a3a';
-                        ctx.beginPath();
-                        ctx.ellipse(0, 0, sw * 0.4, sh * 0.5, 0, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    ctx.restore();
+                    ...
                 }
-                // ===== 防御状态红光特效 =====
+                */
+                // 防御红光也迁移到 Phaser
+                /*
                 if (this.shieldSystem && this.shieldSystem.defending) {
-                    const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25; // 闪烁效果
-                    ctx.fillStyle = `rgba(200, 60, 60, ${flicker * 0.35})`;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.size + 8, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = `rgba(255, 80, 80, ${flicker * 0.6})`;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.size + 10, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ...
                 }
+                */
                 if (!this._usePhaserSprite) {
                     ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
                     ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
@@ -4367,62 +4349,26 @@ import { StatusBar } from '../ui/status-bar.js';
                     ctx.fill();
                 }
                 // ===== 符文长剑特殊攻击：渲染飞行中的剑（世界坐标）=====
+                // 已迁移到 Phaser _syncRuneSwords（飞行剑），Canvas 跳过
+                /*
                 if (this._runeSwordSpecialActive && this._runeSwordSwords.length > 0) {
-                    const img = this._runeSwordBladeImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const w = 84 * 0.6;
-                        const s = 84 * 0.6;
-                        this._runeSwordSwords.forEach(sword => {
-                            if (!sword.flyActive) return;
-                            const sp = Renderer.worldToScreen(sword.flyX, sword.flyY);
-                            ctx.save();
-                            ctx.translate(sp.x, sp.y);
-                            ctx.rotate(sword.flyAngle + Math.PI / 2);
-                            ctx.translate(0, -s * 0.85);
-                            ctx.drawImage(img, -w / 2, -s / 2, w, s);
-                            ctx.restore();
-                        });
-                    }
+                    ...
                 }
+                */
                 // ===== 冰锥技能：渲染飞行中的冰锥（世界坐标）=====
+                // 已迁移到 Phaser _syncFlyingIceSpikes，Canvas 跳过
+                /*
                 if (this._iceSpikeSpikes && this._iceSpikeSpikes.some(s => s.flyActive)) {
-                    const img = this._iceSpikeImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const w = 40;
-                        const h = 60;
-                        this._iceSpikeSpikes.forEach(spike => {
-                            if (!spike.flyActive) return;
-                            const sp = Renderer.worldToScreen(spike.flyX, spike.flyY);
-                            ctx.save();
-                            ctx.translate(sp.x, sp.y);
-                            ctx.rotate(spike.flyAngle + Math.PI / 2);
-                            ctx.globalAlpha = 0.9;
-                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
-                            ctx.restore();
-                        });
-                    }
+                    ...
                 }
+                */
                 // ===== 火球技能：渲染飞行中的火球（世界坐标）=====
+                // 已迁移到 Phaser _syncFlyingFireball，Canvas 跳过
+                /*
                 if (this._fireball && this._fireball.flyActive) {
-                    const img = this._fireballImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const fb = this._fireball;
-                        const sp = Renderer.worldToScreen(fb.flyX, fb.flyY);
-                        ctx.save();
-                        ctx.translate(sp.x, sp.y);
-                        ctx.rotate(fb.flyAngle + Math.PI / 2);
-                        ctx.globalAlpha = 0.95;
-                        const size = 50 * fb.scale;
-                        // 从 sprite sheet 中截取对应帧
-                        const cols = 9, frameW = 480, frameH = 480;
-                        const frameIndex = fb.frameIndex || 0;
-                        const col = frameIndex % cols;
-                        const row = Math.floor(frameIndex / cols);
-                        const sx = col * frameW, sy = row * frameH;
-                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
-                        ctx.restore();
-                    }
+                    ...
                 }
+                */
                 // ===== 无人机渲染 =====
                 if (this.droneSystem && this.droneSystem.active) {
                     this.droneSystem.render(ctx);
