@@ -130,6 +130,12 @@ export const ExpeditionSystem = {
             const item = bp.find(i => i.slot === bpSlot);
             if (!item) return;
 
+            // 祭品池限制：只能放入祭品（tribute）类别
+            if (item.category !== 'tribute') {
+                this._showMessage('祭品池只能放入祭品！', 'error');
+                return;
+            }
+
             // 检查是否还有空位
             const freeSlot = this._getFreeSlot();
             if (freeSlot === -1) {
