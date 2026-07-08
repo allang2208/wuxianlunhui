@@ -126,7 +126,8 @@ export class IceSpikeSystem {
         const d = this.player.data;
         const baseDamage = 30 + level * 5;
         const magicMul = 1.2 + 0.25 * level;
-        const damage = Math.floor(baseDamage + d.matk * magicMul + d.int * magicMul);
+        const intMul = 1.2 + 0.25 * level;
+        const damage = Math.floor(baseDamage + d.matk * magicMul + d.int * intMul);
 
         this.player._iceSpikeSpikes.forEach(spike => {
             if (!spike.flyActive) return;

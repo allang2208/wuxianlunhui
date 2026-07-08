@@ -1201,6 +1201,28 @@ import { CraftSystem } from './craft-system.js';
                 if (item && item.category === 'gold' && typeof GoldManager !== 'undefined') {
                     return GoldManager.mergeGold(item);
                 }
+                // 可堆叠物品（强化石、改造券等）：合并到已有堆叠，堆叠未满时不占新格子
+                const maxStack = item.maxStack || 1;
+                if (maxStack > 1 && item.stack) {
+                    let amount = item.stack;
+                    for (const existing of this.backpackItems) {
+                        if (existing.name === item.name && (existing.stack || 1) < maxStack) {
+                            const space = maxStack - (existing.stack || 1);
+                            const addAmount = Math.min(amount, space);
+                            existing.stack = (existing.stack || 1) + addAmount;
+                            amount -= addAmount;
+                            if (amount <= 0) {
+                                this.updateInventorySlots();
+                                this.triggerBackpackFlash(existing.slot);
+                                return true;
+                            }
+                        }
+                    }
+                    // 还有剩余，需要新格子
+                    if (amount > 0) {
+                        item.stack = amount;
+                    }
+                }
                 const usedSlots = new Set(this.backpackItems.map(i => i.slot));
                 let slot = 0;
                 while (usedSlots.has(slot) && slot < this.maxBackpackSlots) slot++;

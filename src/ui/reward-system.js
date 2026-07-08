@@ -201,7 +201,7 @@ export const EnhancementItems = {
         subCategory: 'stone',
         desc: '用于强化装备的特殊材料，蕴含神秘力量',
         stack: 1,
-        maxStack: 999,
+        maxStack: 9999,
         price: 100
     },
     modify_ticket: {
@@ -213,7 +213,7 @@ export const EnhancementItems = {
         subCategory: 'ticket',
         desc: '用于改造装备的凭证，可使装备获得特殊能力',
         stack: 1,
-        maxStack: 100,
+        maxStack: 9999,
         price: 200
     }
 };

@@ -368,7 +368,7 @@ export class GameScene extends Scene {
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -376,48 +376,8 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
-        // Phase 2: 攻击动画刺击位移计算（从 player.js 迁移到 Phaser）
-        let thrust = weaponAnim.thrust || 0;
-        if (weaponAnim.state && weaponAnim.state !== 'idle') {
-            const stab = WeaponAnimConfig.stab;
-            const swordCfg = WeaponAnimConfig.sword;
-            const timingMul = swordCfg?.timingMul ?? 1.0;
-            const windupMs = WEAPON_ANIM.windupMs * timingMul;
-            const swingMs = WEAPON_ANIM.swingMs * timingMul;
-            const recoverMs = WEAPON_ANIM.recoverMs * timingMul;
-            const ms = player.size * 0.75;
-            const state = weaponAnim.state;
-            const timer = weaponAnim.timer || 0;
-            
-            if (state === 'windup') {
-                const t = timer / windupMs;
-                thrust = ms * stab.windupDist * Easing.easeInCubic(t);
-            } else if (state === 'swing') {
-                const t = timer / swingMs;
-                if (t < 0.6) {
-                    const pt = t / 0.6;
-                    thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * Easing.easeOutQuad(pt);
-                } else {
-                    thrust = -ms * stab.stabDist;
-                }
-            } else if (state === 'recover') {
-                const t = timer / recoverMs;
-                const snapRatio = 0.15;
-                if (t < snapRatio) {
-                    const pt = t / snapRatio;
-                    thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-                } else {
-                    const pt = (t - snapRatio) / (1 - snapRatio);
-                    thrust = -stab.recoverSnapDist * (1 - Easing.easeOutQuad(pt));
-                }
-            }
-        }
-        
-        // 应用刺击位移（反向）
-        if (thrust) {
-            pos.x -= Math.cos(player.rotation) * thrust;
-            pos.y -= Math.sin(player.rotation) * thrust;
-        }
+        // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
+        let thrust = 0;
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {
@@ -498,7 +458,7 @@ export class GameScene extends Scene {
         if (player._isSprinting) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, offhandAnimState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -506,48 +466,8 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
-        // Phase 2: 攻击动画刺击位移计算（从 player.js 迁移到 Phaser）
-        let thrust = weaponAnim.thrust || 0;
-        if (weaponAnim.state && weaponAnim.state !== 'idle') {
-            const stab = WeaponAnimConfig.stab;
-            const swordCfg = WeaponAnimConfig.sword;
-            const timingMul = swordCfg?.timingMul ?? 1.0;
-            const windupMs = WEAPON_ANIM.windupMs * timingMul;
-            const swingMs = WEAPON_ANIM.swingMs * timingMul;
-            const recoverMs = WEAPON_ANIM.recoverMs * timingMul;
-            const ms = player.size * 0.75;
-            const state = weaponAnim.state;
-            const timer = weaponAnim.timer || 0;
-            
-            if (state === 'windup') {
-                const t = timer / windupMs;
-                thrust = ms * stab.windupDist * Easing.easeInCubic(t);
-            } else if (state === 'swing') {
-                const t = timer / swingMs;
-                if (t < 0.6) {
-                    const pt = t / 0.6;
-                    thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * Easing.easeOutQuad(pt);
-                } else {
-                    thrust = -ms * stab.stabDist;
-                }
-            } else if (state === 'recover') {
-                const t = timer / recoverMs;
-                const snapRatio = 0.15;
-                if (t < snapRatio) {
-                    const pt = t / snapRatio;
-                    thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-                } else {
-                    const pt = (t - snapRatio) / (1 - snapRatio);
-                    thrust = -stab.recoverSnapDist * (1 - Easing.easeOutQuad(pt));
-                }
-            }
-        }
-        
-        // 应用刺击位移（反向）
-        if (thrust) {
-            pos.x -= Math.cos(player.rotation) * thrust;
-            pos.y -= Math.sin(player.rotation) * thrust;
-        }
+        // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
+        let thrust = 0;
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {

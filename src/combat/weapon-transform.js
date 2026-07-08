@@ -289,15 +289,12 @@ class WeaponTransform {
                 recoilX = -s * (rp.recoilRecover || 0.04) * (1 - rt);
             }
         } else if (weaponType === 'sword') {
+            // 剑类攻击动画已禁用，武器保持静止
             // 刺击动画位移在 Canvas 中通过 ctx.translate 直接控制
-            // 这里返回角度变化
-            if (anim.state === 'windup') {
-                animAngle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / wa.windupMs);
-            } else if (anim.state === 'swing') {
-                animAngle = wa.swingAngle;
-            } else if (anim.state === 'recover') {
-                animAngle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / wa.recoverMs);
-            }
+            // 这里返回角度变化（已禁用）
+            // if (anim.state === 'windup') { ... }
+            // else if (anim.state === 'swing') { ... }
+            // else if (anim.state === 'recover') { ... }
         }
 
         return { recoilX, recoilY, animAngle };

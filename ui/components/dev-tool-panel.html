@@ -1,0 +1,221 @@
+            <div id="devToolPanel" class="dev-tool-panel">
+                <div class="dev-tool-header">
+                    <span class="dev-tool-title">🛠️ 交互开发工具</span>
+                    <button class="dev-tool-close" id="devToolClose">✕</button>
+                </div>
+                <!-- Tab 栏 -->
+                <div class="dev-tool-tabs">
+                    <div class="dev-tool-tab active" data-tab="weapon" onclick="DevTool.switchTab('weapon')">武器</div>
+                    <div class="dev-tool-tab" data-tab="enemy" onclick="DevTool.switchTab('enemy')">怪物</div>
+                </div>
+                <!-- Tab 内容：武器 -->
+                <div class="dev-tool-tab-content active" data-tab-content="weapon">
+                <!-- 上方菜单栏 -->
+                <div class="dev-tool-menu">
+                    <div class="dev-tool-menu-item">
+                        <label>动画:</label>
+                        <select id="devToolAnimSelect">
+                            <option value="idle">待机</option>
+                            <option value="walk">移动</option>
+                            <option value="running">奔跑</option>
+                            <option value="attack">攻击</option>
+                            <option value="bow_draw">拉弓</option>
+                            <option value="bow_release">射箭</option>
+                            <option value="gun_idle">持枪待机</option>
+                            <option value="gun_fire">射击</option>
+                            <option value="reload">换弹</option>
+                            <option value="hurt">受击</option>
+                            <option value="death">死亡</option>
+                        </select>
+                    </div>
+                    <div class="dev-tool-menu-item">
+                        <label>帧:</label>
+                        <input type="range" id="devToolFrameSlider" min="0" max="0" value="0">
+                        <span id="devToolFrameLabel">1 / 1</span>
+                        <button id="devToolPlayBtn" class="dev-tool-menu-btn">▶ 播放</button>
+                    </div>
+                    <div class="dev-tool-menu-item">
+                        <label>武器:</label>
+                        <select id="devToolWeaponSelect">
+                            <option value="sword">⚔️ 剑（生锈长剑）</option>
+                            <option value="bow">🏹 弓（训练弓）</option>
+                            <option value="pistol">🔫 手枪（G18）</option>
+                            <option value="deagle">🔫 沙漠之鹰</option>
+                            <option value="pkm">🔥 PKM</option>
+                            <option value="akm">🔥 AKM</option>
+                            <option value="qbz191">🔥 QBZ-191</option>
+                            <option value="qjb201">🔥 QJB-201</option>
+                            <option value="super90">🔫 Super90</option>
+                            <option value="saiga12k">🔫 S12K</option>
+                            <option value="energy_lmg">🔫 能量轻机枪</option>
+                        </select>
+                    </div>
+                    <button class="dev-tool-menu-btn" id="devToolSave">💾 保存</button>
+                    <button class="dev-tool-menu-btn" id="devToolApplyAll">📋 应用到所有帧</button>
+                    <button class="dev-tool-menu-btn" id="devToolInterpolate">📈 插值</button>
+                    <button class="dev-tool-menu-btn" id="devToolClearKf">🗑️ 清空关键帧</button>
+                    <button class="dev-tool-menu-btn" id="devToolReset2">🔄 重置</button>
+                    <button class="dev-tool-menu-btn" id="devToolCoord">📐 坐标工具</button>
+                </div>
+                <!-- 下方双栏 -->
+                <div class="dev-tool-content">
+                    <!-- 左栏：人物动画展示 -->
+                    <div class="dev-tool-left">
+                        <div class="dev-tool-canvas-wrap">
+                            <canvas id="devToolCanvas" width="640" height="520"></canvas>
+                            <div class="dev-tool-canvas-overlay">
+                                <div class="dev-tool-hint-text" id="devToolHint">
+                                    拖动武器到人物位置 → 按 <kbd>R</kbd> 进入调整模式
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 动画帧展示区 -->
+                        <div class="dev-tool-frame-strip" id="devToolFrameStrip"></div>
+                        <div class="dev-tool-info" id="devToolInfo">
+                            <div class="dev-tool-info-row">
+                                <span>状态:</span> <span id="devToolStatus">待机</span>
+                            </div>
+                            <div class="dev-tool-info-row">
+                                <span>武器:</span> <span id="devToolWeaponName">无</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右栏：武器选择和控制 -->
+                    <div class="dev-tool-right">
+                        <div class="dev-tool-section-title">武器贴图</div>
+                        <div class="dev-tool-weapon-preview" id="devToolWeaponPreview">
+                            <div class="dev-tool-weapon-placeholder">选择武器类型</div>
+                            <img id="devToolWeaponImg" src="" style="display:none; cursor: grab;" alt="weapon" draggable="true">
+                        </div>
+                        <div class="dev-tool-controls">
+                            <div class="dev-tool-control-row">
+                                <label>屏幕偏移X:</label>
+                                <input type="number" id="devToolOffX" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>屏幕偏移Y:</label>
+                                <input type="number" id="devToolOffY" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>Rotation:</label>
+                                <input type="number" id="devToolRot" value="0" step="1">
+                            </div>
+                            <div class="dev-tool-control-row">
+                                <label>Scale:</label>
+                                <input type="number" id="devToolScl" value="1" step="0.1">
+                            </div>
+                        </div>
+                        <div class="dev-tool-mode-hint" id="devToolModeHint">
+                            <div>🖱 左键拖动</div>
+                            <div>🔄 滚轮缩放</div>
+                            <div>按 <kbd>R</kbd> 切换旋转/缩放模式</div>
+                        </div>
+                        <div class="dev-tool-data-output" id="devToolDataOutput" style="display:none;"></div>
+                    </div>
+                </div>
+                </div>
+                <!-- Tab 内容：AI -->
+                <div class="dev-tool-tab-content" data-tab-content="ai" style="display:none;">
+                    <div class="ai-dev-tool">
+                        <div class="ai-dev-tool-header">
+                            <span>当前战术: <span id="aiCurrentTactic">骚扰</span></span>
+                            <span>怪物数量: <span id="aiEnemyCount">0</span></span>
+                        </div>
+                        <div class="ai-dev-tool-monsters" id="aiDevToolMonsterList">
+                            <div class="ai-monster-item">暂无活跃怪物</div>
+                        </div>
+                        <div class="ai-dev-tool-synergies">
+                            <h4>激活的协同</h4>
+                            <div id="aiDevToolSynergyList">
+                                <div class="ai-synergy-item">暂无激活的协同</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tab 内容：怪物贴图调整 -->
+                <div class="dev-tool-tab-content" data-tab-content="enemy" style="display:none;">
+                    <div class="enemy-sprite-tool">
+                        <!-- 上方菜单 -->
+                        <div class="enemy-sprite-menu">
+                            <div class="enemy-sprite-menu-item">
+                                <label>怪物:</label>
+                                <select id="enemySpriteSelect">
+                                    <option value="blackWolf">黑狼</option>
+                                    <option value="spider">蜘蛛</option>
+                                    <option value="fatZombie">肥僵尸</option>
+                                    <option value="slime">史莱姆</option>
+                                    <option value="mushroom">蘑菇怪</option>
+                                    <option value="bat">蝙蝠</option>
+                                    <option value="skeleton">骷髅</option>
+                                    <option value="ghost">幽灵</option>
+                                    <option value="wolf">灰狼</option>
+                                    <option value="goblin">哥布林</option>
+                                    <option value="demon">恶魔</option>
+                                    <option value="dragon">龙</option>
+                                    <option value="lich">巫妖</option>
+                                    <option value="bigBoss">大Boss</option>
+                                </select>
+                            </div>
+                            <button class="enemy-sprite-menu-btn" id="enemySpriteSave">💾 导出</button>
+                            <button class="enemy-sprite-menu-btn" id="enemySpriteLoad">📋 导入</button>
+                            <button class="enemy-sprite-menu-btn" id="enemySpriteReset">🔄 重置</button>
+                        </div>
+                        <!-- 主区域：预览 + 控制 -->
+                        <div class="enemy-sprite-content">
+                            <!-- 左栏：预览 -->
+                            <div class="enemy-sprite-left">
+                                <div class="enemy-sprite-canvas-wrap">
+                                    <canvas id="enemySpriteCanvas" width="400" height="400"></canvas>
+                                </div>
+                                <!-- 方向选择 -->
+                                <div class="enemy-sprite-directions">
+                                    <button class="enemy-direction-btn" data-dir="left">← 左</button>
+                                    <button class="enemy-direction-btn" data-dir="up">↑ 上</button>
+                                    <button class="enemy-direction-btn active" data-dir="right">→ 右</button>
+                                    <button class="enemy-direction-btn" data-dir="down">↓ 下</button>
+                                </div>
+                                <div class="enemy-sprite-output" id="enemySpriteOutput" style="display:none;"></div>
+                            </div>
+                            <!-- 右栏：参数控制 -->
+                            <div class="enemy-sprite-right">
+                                <div class="enemy-sprite-section-title">贴图参数</div>
+                                <div class="enemy-sprite-controls">
+                                    <div class="enemy-sprite-control-row">
+                                        <label>精灵图:</label>
+                                        <select id="enemySpriteTexture">
+                                            <option value="enemy_black_wolf">黑狼（移动）</option>
+                                            <option value="enemy_black_wolf_attack">黑狼（攻击）</option>
+                                            <option value="enemy_spider">蜘蛛</option>
+                                            <option value="enemy_slime">史莱姆</option>
+                                            <option value="enemy_skeleton">骷髅</option>
+                                            <option value="enemy_ghost">幽灵</option>
+                                        </select>
+                                    </div>
+                                    <div class="enemy-sprite-control-row">
+                                        <label>大小:</label>
+                                        <input type="number" id="enemySpriteSize" value="216" step="8" min="8" max="512">
+                                        <span>px</span>
+                                    </div>
+                                    <div class="enemy-sprite-control-row">
+                                        <label>旋转:</label>
+                                        <input type="number" id="enemySpriteRotation" value="0" step="15">
+                                        <span>°</span>
+                                    </div>
+                                    <div class="enemy-sprite-control-row">
+                                        <label>水平翻转:</label>
+                                        <input type="checkbox" id="enemySpriteFlipX">
+                                    </div>
+                                    <div class="enemy-sprite-control-row">
+                                        <label>垂直翻转:</label>
+                                        <input type="checkbox" id="enemySpriteFlipY">
+                                    </div>
+                                </div>
+                                <div class="enemy-sprite-hint">
+                                    <div>调整参数后实时预览</div>
+                                    <div>导出 JSON 后复制给我</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
