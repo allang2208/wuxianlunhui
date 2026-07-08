@@ -3013,19 +3013,6 @@ import { StatusBar } from '../ui/status-bar.js';
                     // 保留：符文粒子特效（Phase 3 已迁移到 Phaser）
                     return;
                 }
-                        let animState = 'idle';
-                        if (this._isSprinting) animState = 'running';
-                        else if (this.isMoving) animState = 'walk';
-                        const swordCfg = getWeaponStateConfig('sword', animState);
-                        ctx.save();
-                        ctx.translate(-7, 0); // mainBaseX
-                        ctx.translate(swordCfg.holdOffsetX || wa.holdX, swordCfg.holdOffsetY || wa.holdY);
-                        ctx.rotate(Math.PI / 2);
-                        ctx.translate(0, -ms * 0.85);
-                        this.weaponEffect.render(ctx);
-                        ctx.restore();
-                    }
-                    return; // 跳过 Canvas 武器贴图渲染（特殊动画除外）
                 }
                 // 预加载另一栏位装备的图片
                 const actualItem = this.equipments[this.weaponMode];
