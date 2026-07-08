@@ -296,8 +296,12 @@ export class GameScene extends Scene {
         }
         
         // 使用 WeaponTransform 统一计算位置和旋转
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0);
+        // 按玩家状态推断动画状态
+        let animState = 'idle';
+        if (player._isSprinting) animState = 'running';
+        else if (player.isMoving) animState = 'walk';
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -378,8 +382,12 @@ export class GameScene extends Scene {
         }
         
         // 使用 WeaponTransform 统一计算副手位置和旋转
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0);
+        // 按玩家状态推断动画状态（副手也可能为剑类）
+        let offhandAnimState = 'idle';
+        if (player._isSprinting) offhandAnimState = 'running';
+        else if (player.isMoving) offhandAnimState = 'walk';
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, offhandAnimState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {

@@ -608,6 +608,7 @@
                         <select id="devToolAnimSelect">
                             <option value="idle">待机</option>
                             <option value="walk">移动</option>
+                            <option value="running">奔跑</option>
                             <option value="attack">攻击</option>
                             <option value="bow_draw">拉弓</option>
                             <option value="bow_release">射箭</option>
@@ -617,6 +618,12 @@
                             <option value="hurt">受击</option>
                             <option value="death">死亡</option>
                         </select>
+                    </div>
+                    <div class="dev-tool-menu-item">
+                        <label>帧:</label>
+                        <input type="range" id="devToolFrameSlider" min="0" max="0" value="0">
+                        <span id="devToolFrameLabel">1 / 1</span>
+                        <button id="devToolPlayBtn" class="dev-tool-menu-btn">▶ 播放</button>
                     </div>
                     <div class="dev-tool-menu-item">
                         <label>武器:</label>
