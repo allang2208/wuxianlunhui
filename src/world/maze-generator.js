@@ -76,6 +76,7 @@ const MazeGenerator = {
         return result;
     },
     renderWalls(ctx, offsetX, offsetY) {
+        if (!ctx) return;
         ctx.save();
         const walls = WallSystem.getWallsInView(offsetX, offsetY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
         for (const w of walls) {

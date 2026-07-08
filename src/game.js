@@ -794,6 +794,9 @@ export const Game = {
         }
     },
     render() {
+        // ===== 渲染前置检查：Canvas 未就绪时跳过 =====
+        if (!Renderer.ctx) return;
+
         // ===== 场景六：地牢地图系统渲染拦截 =====
         if ((SceneManager.currentScene === 'scene6' || SceneManager.currentScene === 'scene7') && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
             Renderer.clear();
@@ -840,18 +843,20 @@ export const Game = {
             RiftSystem.render(Renderer.ctx);
         }
         // 实体受击白光效果（统一渲染，覆盖所有怪物）
-        sorted.forEach(e => {
-            if (e.hitFlash > 0 && e !== this.player) {
-                const flashAlpha = e.hitFlash / e.hitFlashDuration;
-                const pos = Renderer.worldToScreen(e.x, e.y);
-                Renderer.ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
-                Renderer.ctx.beginPath();
-                Renderer.ctx.arc(pos.x, pos.y, e.size + 2, 0, Math.PI * 2);
-                Renderer.ctx.fill();
-            }
-        });
+        if (Renderer.ctx) {
+            sorted.forEach(e => {
+                if (e.hitFlash > 0 && e !== this.player) {
+                    const flashAlpha = e.hitFlash / e.hitFlashDuration;
+                    const pos = Renderer.worldToScreen(e.x, e.y);
+                    Renderer.ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(pos.x, pos.y, e.size + 2, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                }
+            });
+        }
         // 玩家受击屏幕红光效果
-        if (this.player && this.player.hitFlash > 0) {
+        if (Renderer.ctx && this.player && this.player.hitFlash > 0) {
             const flashAlpha = this.player.hitFlash / this.player.hitFlashDuration;
             Renderer.ctx.fillStyle = `rgba(255, 30, 30, ${flashAlpha * 0.25})`;
             Renderer.ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);

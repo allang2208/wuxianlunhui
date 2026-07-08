@@ -28,7 +28,7 @@ const Renderer = {
             worldToDisplay(wx, wy) { const o = this._getSceneOrigin(); return { x: wx - o.x, y: wy - o.y }; },
             clear() { if (!this.ctx) { return; } this.ctx.fillStyle = (SceneManager.currentScene === 'scene6') ? '#000000' : '#2a3520'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
             renderTerrain() {
-                if (!this.terrainTexture) return;
+                if (!this.ctx || !this.terrainTexture) return;
                 const ctx = this.ctx, offsetX = -Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, offsetY = -Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY;
                 ctx.drawImage(this.terrainTexture, offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
                 // 场景六（256×256 小地图）不画边界框，避免黄框干扰
@@ -37,6 +37,7 @@ const Renderer = {
                 }
             },
             renderGrid() {
+                if (!this.ctx) return;
                 const ctx = this.ctx, offsetX = (-Camera.x + CONFIG.VIEW_WIDTH/2 + Camera.shakeX) % CONFIG.GRID_SIZE, offsetY = (-Camera.y + CONFIG.VIEW_HEIGHT/2 + Camera.shakeY) % CONFIG.GRID_SIZE;
                 ctx.strokeStyle = 'rgba(90, 77, 63, 0.15)'; ctx.lineWidth = 1; ctx.beginPath();
                 for (let x = offsetX; x < CONFIG.VIEW_WIDTH; x += CONFIG.GRID_SIZE) { ctx.moveTo(x, 0); ctx.lineTo(x, CONFIG.VIEW_HEIGHT); }
@@ -202,6 +203,7 @@ const Renderer = {
                 ctx.fillText('地图', mx + 4, my - 2);
             },
             renderTrainBackground() {
+                if (!this.ctx) return;
                 const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
                 const scroll = (Game && Game._trainScrollOffset) ? Game._trainScrollOffset : 0;
                 const interiorHeight = 300;

@@ -127,7 +127,7 @@ class WeaponTransform {
      * @param {boolean} isDualWield - 是否双持
      * @returns {object} {x, y, size, scale, baseRotation, idleRotation}
      */
-    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false) {
+    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null) {
         const cfg = this._getConfig(weaponType);
         const s = WEAPON_SIZE_BASE; // 105，不是 player.size（18）
         const ms = s * MELEE_SCALE; // 78.75
@@ -141,8 +141,20 @@ class WeaponTransform {
             ? cfg.offBaseY
             : (typeof cfg.mainBaseY === 'function' ? cfg.mainBaseY(isDualWield) : cfg.mainBaseY);
 
-        // 武器配置偏移（holdOffsetX/Y）
-        const wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
+        // 武器配置偏移（holdOffsetX/Y）——支持按状态读取
+        let wac;
+        if (animState && WeaponAnimConfig[cfg.holdOffsetKey] && typeof WeaponAnimConfig[cfg.holdOffsetKey] === 'object') {
+            const globalCfg = WeaponAnimConfig[cfg.holdOffsetKey];
+            const stateCfg = globalCfg[animState] || {};
+            wac = {
+                holdOffsetX: stateCfg.holdOffsetX !== undefined ? stateCfg.holdOffsetX : globalCfg.holdOffsetX,
+                holdOffsetY: stateCfg.holdOffsetY !== undefined ? stateCfg.holdOffsetY : globalCfg.holdOffsetY,
+                idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : globalCfg.idleRotation,
+                idleScale: stateCfg.idleScale !== undefined ? stateCfg.idleScale : globalCfg.idleScale,
+            };
+        } else {
+            wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
+        }
         const holdX = wac.holdOffsetX || 0;
         const holdY = wac.holdOffsetY || 0;
 
@@ -181,9 +193,18 @@ class WeaponTransform {
 
     // ==================== 旋转计算 ====================
 
-    static getWeaponRotation(playerRotation, weaponType, animAngle = 0) {
+    static getWeaponRotation(playerRotation, weaponType, animAngle = 0, animState = null) {
         const cfg = this._getConfig(weaponType);
-        const wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
+        let wac;
+        if (animState && WeaponAnimConfig[cfg.holdOffsetKey] && typeof WeaponAnimConfig[cfg.holdOffsetKey] === 'object') {
+            const globalCfg = WeaponAnimConfig[cfg.holdOffsetKey];
+            const stateCfg = globalCfg[animState] || {};
+            wac = {
+                idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : globalCfg.idleRotation,
+            };
+        } else {
+            wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
+        }
         let rot = playerRotation + cfg.baseRotation;
         if (wac.idleRotation) {
             rot += wac.idleRotation * Math.PI / 180;
@@ -208,8 +229,8 @@ class WeaponTransform {
         };
     }
 
-    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false) {
-        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield);
+    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null) {
+        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState);
         const world = this.localToWorld(player, local);
         return { ...local, x: world.x, y: world.y };
     }

@@ -20,7 +20,11 @@ import { Easing } from '../config/math-utils.js';
                 renderParams: { gunLXOffset: 24, gunLY: 0, muzzleOffset: 30, flashOffset: 38, shellCasingOffset: -10, recoilWindup: 0.03, recoilSwing: 0.08, recoilRecover: 0.03, shakeIntensity: 4 } },
             shotgun: { holdOffsetX: 0, holdOffsetY: 0, timingMul: 0.5, animType: 'recoil', recoilAmount: 0.15,
                 renderParams: { gunLXOffset: 24, gunLY: 0, muzzleOffset: 30, flashOffset: 38, shellCasingOffset: -10, recoilWindup: 0.04, recoilSwing: 0.12, recoilRecover: 0.04, shakeIntensity: 5 } },
-            sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 } },
+            sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 },
+                idle: { holdOffsetX: -43, holdOffsetY: -18, idleRotation: -65, idleScale: 1.3 },
+                walk: { holdOffsetX: -36, holdOffsetY: 18, idleRotation: 20, idleScale: 1.45 },
+                running: { holdOffsetX: -38, holdOffsetY: 16, idleRotation: 20, idleScale: 1.5 }
+            },
             stab: {
                 // 刺击动画通用配置（可被所有剑类武器复用）
                 windupMs: 150,      // 蓄力时间（ms）
@@ -37,6 +41,26 @@ import { Easing } from '../config/math-utils.js';
             }
         };
 
+        // 辅助函数：获取武器按状态分层的配置
+        // key: 武器配置键（如 'sword', 'pistol', 'bow'）
+        // state: 动画状态（如 'idle', 'walk', 'running'）
+        function getWeaponStateConfig(key, state) {
+            const cfg = WeaponAnimConfig[key];
+            if (!cfg) return null;
+            const stateCfg = cfg[state] || {};
+            return {
+                holdOffsetX: stateCfg.holdOffsetX !== undefined ? stateCfg.holdOffsetX : cfg.holdOffsetX,
+                holdOffsetY: stateCfg.holdOffsetY !== undefined ? stateCfg.holdOffsetY : cfg.holdOffsetY,
+                idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : cfg.idleRotation,
+                idleScale: stateCfg.idleScale !== undefined ? stateCfg.idleScale : cfg.idleScale,
+                timingMul: cfg.timingMul,
+                animType: cfg.animType,
+                hitBox: cfg.hitBox,
+                stab: cfg.stab,
+                renderParams: cfg.renderParams
+            };
+        }
+
         // ItemFactory — 物品工厂，为每个物品创建独立实例
 
-export { WeaponAnimConfig };
+export { WeaponAnimConfig, getWeaponStateConfig };
