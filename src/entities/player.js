@@ -3521,42 +3521,35 @@ import { StatusBar } from '../ui/status-bar.js';
                                 thrustOffset = -stab.recoverSnapDist * (1 - easeOutQuad(pt));
                             }
                         }
-                        ctx.translate(0, thrustOffset);
-                        ctx.rotate(anim.angle);
-                        const w = ms * 0.63;
-                        if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
-                        // weapon4 符文长剑：绘制蓝色发光粒子（紧密贴合剑身，50%透明度）
+                        // Phase 2: 攻击动画已迁移到 Phaser，Canvas 不再绘制武器本体
+                        // const w = ms * 0.63;
+                        // if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
+                        // 保留符文粒子（Phase 3 会迁移）
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
                             this.weaponEffect.render(ctx);
                         }
                     } else {
                         // 近战待机：武器固定在绑定位置，不随鼠标旋转
-                        let animState = 'idle';
-                        if (this._isSprinting) animState = 'running';
-                        else if (this.isMoving) animState = 'walk';
-                        const swordCfg = getWeaponStateConfig('sword', animState);
-                        ctx.translate(swordCfg.holdOffsetX || wa.holdX, swordCfg.holdOffsetY || wa.holdY);
-                        ctx.rotate(Math.PI / 2);
-                        // 先移动到武器中心，使旋转中心在武器中心
-                        ctx.translate(0, -ms * 0.85);
-                        // weapon4 符文长剑：在呼吸旋转前绘制粒子
+                        // Phase 1: 武器本体由 Phaser 渲染，Canvas 不再绘制
+                        // 保留符文粒子（Phase 3 会迁移到 Phaser）
                         if (currentItem && currentItem.weaponEffect === 'runeSword') {
+                            let animState = 'idle';
+                            if (this._isSprinting) animState = 'running';
+                            else if (this.isMoving) animState = 'walk';
+                            const swordCfg = getWeaponStateConfig('sword', animState);
+                            ctx.save();
+                            ctx.translate(-7, 0); // mainBaseX
+                            ctx.translate(swordCfg.holdOffsetX || wa.holdX, swordCfg.holdOffsetY || wa.holdY);
+                            ctx.rotate(Math.PI / 2);
+                            ctx.translate(0, -ms * 0.85);
                             this.weaponEffect.render(ctx);
+                            ctx.restore();
                         }
-                        // 武器固定角度：只使用 idleRotation，不随鼠标方向旋转
-                        let finalAngle = 0;
-                        // 可选：保留极微弱的呼吸摆动，不随鼠标
-                        // finalAngle += Math.sin(this.animTime * 0.4) * 0.02;
-                        // 应用配置的 idleRotation（固定偏移角度）
-                        if (swordCfg.idleRotation) {
-                            finalAngle += swordCfg.idleRotation * Math.PI / 180;
-                        }
-                        ctx.rotate(finalAngle);
-                        // 应用配置的 idleScale（开发工具调整值）
-                        const scale = swordCfg.idleScale || 1;
-                        const w = ms * 0.63 * scale;
-                        const h = ms * scale;
-                        if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -h / 2, w, h);
+                        // 不绘制武器本体（Phaser 已渲染）
+                        // const scale = swordCfg.idleScale || 1;
+                        // const w = ms * 0.63 * scale;
+                        // const h = ms * scale;
+                        // if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -h / 2, w, h);
                     }
                 }
                 ctx.restore(); // 恢复主手前的坐标系，副手将在角色原始坐标系中绘制
@@ -3670,11 +3663,15 @@ import { StatusBar } from '../ui/status-bar.js';
                     
                     ctx.rotate(offhandAnim.angle);
                     
-                    if (offhandImg && offhandImg.complete && offhandImg.naturalWidth > 0) {
-                        ctx.drawImage(offhandImg, -w / 2, drawY, w, drawH);
-                    } else {
-                        ctx.fillStyle = '#4a4a5a'; ctx.fillRect(-w/2, -s/2, w, s);
-                    }
+                    // Phase 2: 副手攻击动画已迁移到 Phaser，Canvas 不再绘制武器本体
+                    // if (offhandAnim.state !== 'idle') {
+                    //     if (offhandImg && offhandImg.complete && offhandImg.naturalWidth > 0) {
+                    //         ctx.drawImage(offhandImg, -w / 2, drawY, w, drawH);
+                    //     } else {
+                    //         ctx.fillStyle = '#4a4a5a'; ctx.fillRect(-w/2, -s/2, w, s);
+                    //     }
+                    // }
+                    // idle 状态：武器本体由 Phaser 渲染（Phase 2 已迁移攻击动画）
                     
                     ctx.restore();
                 }
@@ -4293,96 +4290,26 @@ import { StatusBar } from '../ui/status-bar.js';
                     ctx.globalCompositeOperation = 'source-over';
                 }
                 // ===== 符文长剑特殊攻击：渲染悬浮的剑 =====
+                // Phase 3: 已迁移到 Phaser _syncRuneSwords，Canvas 不再绘制
+                /*
                 if (this._runeSwordSpecialActive && this._runeSwordSwords.length > 0) {
-                    const img = this._runeSwordBladeImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const w = 84 * 0.6; // 剑缩小到60%
-                        const s = 84 * 0.6;
-                        this._runeSwordSwords.forEach(sword => {
-                            if (!sword.active || sword.flyActive) return;
-                            ctx.save();
-                            // 摇摆效果：前后左右小幅摆动
-                            const swayX = Math.sin(sword.swayTimer * sword.swayFreqX) * sword.swayAmpX;
-                            const swayY = Math.cos(sword.swayTimer * sword.swayFreqY) * sword.swayAmpY;
-                            // 后移对齐人物中心：s*0.3 + 额外50px
-                            ctx.translate(-s * 0.3 - 50 + swayX, sword.offsetX + swayY);
-                            // 每把剑独立朝向：从剑位置到鼠标位置
-                            const sp = Renderer.worldToScreen(this.x, this.y);
-                            let mouseLocalAngle = 0;
-                            if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
-                                // 计算鼠标在局部坐标系中的角度
-                                mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
-                            }
-                            // 从剑位置到鼠标位置的角度偏移（考虑剑的左右偏移）
-                            const swordWorldX = this.x + sword.offsetX * (-Math.sin(this.rotation));
-                            const swordWorldY = this.y + sword.offsetX * Math.cos(this.rotation);
-                            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-                            const aimAngle = Math.atan2(mouseWorld.y - swordWorldY, mouseWorld.x - swordWorldX) - this.rotation;
-                            ctx.rotate(aimAngle + Math.PI / 2);
-                            ctx.translate(0, -s * 0.85);
-                            ctx.globalAlpha = sword.fading ? Math.max(0, 1 - sword.fadeTimer / 300) : 1;
-                            ctx.drawImage(img, -w / 2, -s / 2, w, s);
-                            ctx.restore();
-                        });
-                    }
+                    ...
                 }
+                */
                 // ===== 冰锥技能：渲染悬浮的冰锥 =====
+                // Phase 3: 已迁移到 Phaser _syncIceSpikes，Canvas 不再绘制
+                /*
                 if (this._iceSpikeActive && this._iceSpikeSpikes && this._iceSpikeSpikes.length > 0) {
-                    const img = this._iceSpikeImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const w = 40;
-                        const h = 60;
-                        this._iceSpikeSpikes.forEach(spike => {
-                            if (!spike.active || spike.launched || spike.flyActive) return;
-                            ctx.save();
-                            // 摇摆效果
-                            const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
-                            const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
-                            // 渲染在角色身后左右位置
-                            ctx.translate(spike.offsetX + swayX, spike.offsetY + swayY);
-                            // 朝向鼠标
-                            const sp = Renderer.worldToScreen(this.x, this.y);
-                            let mouseLocalAngle = 0;
-                            if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
-                                mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
-                            }
-                            ctx.rotate(mouseLocalAngle + Math.PI / 2);
-                            ctx.globalAlpha = 0.85;
-                            ctx.drawImage(img, -w / 2, -h / 2, w, h);
-                            ctx.restore();
-                        });
-                    }
+                    ...
                 }
+                */
                 // ===== 火球技能：渲染悬浮的火球 =====
+                // Phase 3: 已迁移到 Phaser _syncFireball，Canvas 不再绘制
+                /*
                 if (this._fireballActive && this._fireball && !this._fireball.launched) {
-                    const img = this._fireballImg;
-                    if (img && img.complete && img.naturalWidth > 0) {
-                        const fb = this._fireball;
-                        ctx.save();
-                        // 摇摆效果
-                        const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
-                        const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
-                        // 渲染在角色身前
-                        ctx.translate(fb.offsetX + swayX, fb.offsetY + swayY);
-                        // 朝向鼠标
-                        const sp = Renderer.worldToScreen(this.x, this.y);
-                        let mouseLocalAngle = 0;
-                        if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
-                            mouseLocalAngle = Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x) - this.rotation;
-                        }
-                        ctx.rotate(mouseLocalAngle + Math.PI / 2);
-                        ctx.globalAlpha = 0.9;
-                        const size = 50 * fb.scale;
-                        // 从 sprite sheet 中截取对应帧
-                        const cols = 9, frameW = 480, frameH = 480;
-                        const frameIndex = fb.frameIndex || 0;
-                        const col = frameIndex % cols;
-                        const row = Math.floor(frameIndex / cols);
-                        const sx = col * frameW, sy = row * frameH;
-                        ctx.drawImage(img, sx, sy, frameW, frameH, -size / 2, -size / 2, size, size);
-                        ctx.restore();
-                    }
+                    ...
                 }
+                */
                 // 闪避时：恢复旋转为 this.rotation，避免武器随身体倾斜而错位
                 if (this.isDodging) {
                     const tilt = Math.atan2(this.dodgeDirection.y, this.dodgeDirection.x);

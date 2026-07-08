@@ -5,6 +5,8 @@ import { Scene } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
+import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -40,6 +42,11 @@ export class GameScene extends Scene {
             WallSystem._syncWallsToPhaser();
         }
 
+        // Phase 3: 创建特效 Sprite Group
+        this.runeSwordGroup = this.add.group();
+        this.iceSpikeGroup = this.add.group();
+        this.fireballSprite = null;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -73,6 +80,10 @@ export class GameScene extends Scene {
                 this.offhandWeaponSprite.setVisible(false);
                 this.offhandWeaponSprite.setActive(false);
             }
+            // Phase 3: 场景六地图模式下隐藏特效
+            this.runeSwordGroup.setVisible(false);
+            this.iceSpikeGroup.setVisible(false);
+            if (this.fireballSprite) this.fireballSprite.setVisible(false);
         } else {
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
@@ -87,6 +98,12 @@ export class GameScene extends Scene {
             if (this.offhandWeaponSprite && !this.offhandWeaponSprite.visible) {
                 this.offhandWeaponSprite.setVisible(true);
                 this.offhandWeaponSprite.setActive(true);
+            }
+            // Phase 3: 同步特效 Sprite
+            if (_game && _game.player) {
+                this._syncRuneSwords(_game.player);
+                this._syncIceSpikes(_game.player);
+                this._syncFireball(_game.player);
             }
         }
         
@@ -309,10 +326,47 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
+        // Phase 2: 攻击动画刺击位移计算（从 player.js 迁移到 Phaser）
+        let thrust = weaponAnim.thrust || 0;
+        if (weaponAnim.state && weaponAnim.state !== 'idle') {
+            const stab = WeaponAnimConfig.stab;
+            const swordCfg = WeaponAnimConfig.sword;
+            const timingMul = swordCfg?.timingMul ?? 1.0;
+            const windupMs = WEAPON_ANIM.windupMs * timingMul;
+            const swingMs = WEAPON_ANIM.swingMs * timingMul;
+            const recoverMs = WEAPON_ANIM.recoverMs * timingMul;
+            const ms = player.size * 0.75;
+            const state = weaponAnim.state;
+            const timer = weaponAnim.timer || 0;
+            
+            if (state === 'windup') {
+                const t = timer / windupMs;
+                thrust = ms * stab.windupDist * Easing.easeInCubic(t);
+            } else if (state === 'swing') {
+                const t = timer / swingMs;
+                if (t < 0.6) {
+                    const pt = t / 0.6;
+                    thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * Easing.easeOutQuad(pt);
+                } else {
+                    thrust = -ms * stab.stabDist;
+                }
+            } else if (state === 'recover') {
+                const t = timer / recoverMs;
+                const snapRatio = 0.15;
+                if (t < snapRatio) {
+                    const pt = t / snapRatio;
+                    thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
+                } else {
+                    const pt = (t - snapRatio) / (1 - snapRatio);
+                    thrust = -stab.recoverSnapDist * (1 - Easing.easeOutQuad(pt));
+                }
+            }
+        }
+        
         // 应用刺击位移（反向）
-        if (weaponAnim.thrust) {
-            pos.x -= Math.cos(player.rotation) * weaponAnim.thrust;
-            pos.y -= Math.sin(player.rotation) * weaponAnim.thrust;
+        if (thrust) {
+            pos.x -= Math.cos(player.rotation) * thrust;
+            pos.y -= Math.sin(player.rotation) * thrust;
         }
         
         // 应用 recoilAngle
@@ -395,10 +449,47 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
+        // Phase 2: 攻击动画刺击位移计算（从 player.js 迁移到 Phaser）
+        let thrust = weaponAnim.thrust || 0;
+        if (weaponAnim.state && weaponAnim.state !== 'idle') {
+            const stab = WeaponAnimConfig.stab;
+            const swordCfg = WeaponAnimConfig.sword;
+            const timingMul = swordCfg?.timingMul ?? 1.0;
+            const windupMs = WEAPON_ANIM.windupMs * timingMul;
+            const swingMs = WEAPON_ANIM.swingMs * timingMul;
+            const recoverMs = WEAPON_ANIM.recoverMs * timingMul;
+            const ms = player.size * 0.75;
+            const state = weaponAnim.state;
+            const timer = weaponAnim.timer || 0;
+            
+            if (state === 'windup') {
+                const t = timer / windupMs;
+                thrust = ms * stab.windupDist * Easing.easeInCubic(t);
+            } else if (state === 'swing') {
+                const t = timer / swingMs;
+                if (t < 0.6) {
+                    const pt = t / 0.6;
+                    thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * Easing.easeOutQuad(pt);
+                } else {
+                    thrust = -ms * stab.stabDist;
+                }
+            } else if (state === 'recover') {
+                const t = timer / recoverMs;
+                const snapRatio = 0.15;
+                if (t < snapRatio) {
+                    const pt = t / snapRatio;
+                    thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
+                } else {
+                    const pt = (t - snapRatio) / (1 - snapRatio);
+                    thrust = -stab.recoverSnapDist * (1 - Easing.easeOutQuad(pt));
+                }
+            }
+        }
+        
         // 应用刺击位移（反向）
-        if (weaponAnim.thrust) {
-            pos.x -= Math.cos(player.rotation) * weaponAnim.thrust;
-            pos.y -= Math.sin(player.rotation) * weaponAnim.thrust;
+        if (thrust) {
+            pos.x -= Math.cos(player.rotation) * thrust;
+            pos.y -= Math.sin(player.rotation) * thrust;
         }
         
         // 应用 recoilAngle
@@ -418,6 +509,157 @@ export class GameScene extends Scene {
         // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
         this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+    }
+
+    /**
+     * Phase 3: 同步符文长剑悬浮剑到 Phaser Sprite
+     */
+    _syncRuneSwords(player) {
+        if (!player._runeSwordSpecialActive || !player._runeSwordSwords) {
+            this.runeSwordGroup.setVisible(false);
+            return;
+        }
+        
+        // 确保 Group 中有足够的 Sprite
+        while (this.runeSwordGroup.countActive() < player._runeSwordSwords.length) {
+            const sprite = this.add.sprite(0, 0, 'runeSwordBlade');
+            sprite.setDepth(155);
+            this.runeSwordGroup.add(sprite);
+        }
+        
+        // 同步每把剑的位置和旋转
+        this.runeSwordGroup.getChildren().forEach((sprite, i) => {
+            const sword = player._runeSwordSwords[i];
+            if (!sword || !sword.active || sword.flyActive) {
+                sprite.setVisible(false);
+                return;
+            }
+            
+            const s = player.size;
+            const baseX = -s * 0.3 - 50;
+            const baseY = sword.offsetX;
+            const swayX = Math.sin(sword.swayTimer * sword.swayFreqX) * sword.swayAmpX;
+            const swayY = Math.cos(sword.swayTimer * sword.swayFreqY) * sword.swayAmpY;
+            
+            const localX = baseX + swayX;
+            const localY = baseY + swayY;
+            
+            const cos = Math.cos(player.rotation);
+            const sin = Math.sin(player.rotation);
+            const baseWorldX = player.x + cos * localX - sin * localY;
+            const baseWorldY = player.y + sin * localX + cos * localY;
+            
+            // 计算朝向鼠标的角度
+            const mouseX = window.Input?.mouse?.x ? window.Camera.x + window.Input.mouse.x : player.x;
+            const mouseY = window.Input?.mouse?.y ? window.Camera.y + window.Input.mouse.y : player.y;
+            const absoluteAngle = Math.atan2(mouseY - baseWorldY, mouseX - baseWorldX);
+            
+            // 应用旋转后的偏移（对应 Canvas 的 ctx.translate(0, -s * 0.85)）
+            const worldX = baseWorldX + Math.cos(absoluteAngle) * s * 0.85;
+            const worldY = baseWorldY + Math.sin(absoluteAngle) * s * 0.85;
+            
+            sprite.setPosition(worldX, worldY);
+            sprite.setRotation(absoluteAngle + Math.PI / 2);
+            sprite.setAlpha(sword.fading ? Math.max(0, 1 - sword.fadeTimer / 300) : 1);
+            sprite.setVisible(true);
+        });
+    }
+
+    /**
+     * Phase 3: 同步冰锥到 Phaser Sprite
+     */
+    _syncIceSpikes(player) {
+        if (!player._iceSpikeSpikes) {
+            this.iceSpikeGroup.setVisible(false);
+            return;
+        }
+        
+        // 确保 Group 中有足够的 Sprite
+        while (this.iceSpikeGroup.countActive() < player._iceSpikeSpikes.length) {
+            const sprite = this.add.sprite(0, 0, 'iceSpike');
+            sprite.setDepth(155);
+            this.iceSpikeGroup.add(sprite);
+        }
+        
+        // 同步每根冰锥的位置和旋转
+        this.iceSpikeGroup.getChildren().forEach((sprite, i) => {
+            const spike = player._iceSpikeSpikes[i];
+            if (!spike || !spike.active || spike.launched || spike.flyActive) {
+                sprite.setVisible(false);
+                return;
+            }
+            
+            const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
+            const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
+            
+            const localX = spike.offsetX + swayX;
+            const localY = spike.offsetY + swayY;
+            
+            const cos = Math.cos(player.rotation);
+            const sin = Math.sin(player.rotation);
+            const worldX = player.x + cos * localX - sin * localY;
+            const worldY = player.y + sin * localX + cos * localY;
+            
+            // 计算朝向鼠标的角度
+            const mouseX = window.Input?.mouse?.x ? window.Camera.x + window.Input.mouse.x : player.x;
+            const mouseY = window.Input?.mouse?.y ? window.Camera.y + window.Input.mouse.y : player.y;
+            const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
+            
+            sprite.setPosition(worldX, worldY);
+            sprite.setRotation(absoluteAngle + Math.PI / 2);
+            sprite.setAlpha(0.85);
+            sprite.setVisible(true);
+        });
+    }
+
+    /**
+     * Phase 3: 同步火球到 Phaser Sprite
+     */
+    _syncFireball(player) {
+        if (!player._fireballActive || !player._fireball || player._fireball.launched) {
+            if (this.fireballSprite) this.fireballSprite.setVisible(false);
+            return;
+        }
+        
+        const fb = player._fireball;
+        
+        if (!this.fireballSprite) {
+            this.fireballSprite = this.add.sprite(0, 0, 'fireball');
+            this.fireballSprite.setDepth(155);
+        }
+        
+        const s = player.size;
+        const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
+        const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
+        
+        const localX = fb.offsetX + swayX;
+        const localY = fb.offsetY + swayY;
+        
+        const cos = Math.cos(player.rotation);
+        const sin = Math.sin(player.rotation);
+        const worldX = player.x + cos * localX - sin * localY;
+        const worldY = player.y + sin * localX + cos * localY;
+        
+        // 计算朝向鼠标的角度
+        const mouseX = window.Input?.mouseX ? window.Camera.x + window.Input.mouseX : player.x;
+        const mouseY = window.Input?.mouseY ? window.Camera.y + window.Input.mouseY : player.y;
+        const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
+        
+        this.fireballSprite.setPosition(worldX, worldY);
+        this.fireballSprite.setRotation(absoluteAngle + Math.PI / 2);
+        this.fireballSprite.setAlpha(0.9);
+        this.fireballSprite.setScale(fb.scale || 1);
+        
+        // 如果 fireball 是 spritesheet，设置当前帧
+        if (fb.frameIndex !== undefined) {
+            try {
+                this.fireballSprite.setFrame(fb.frameIndex);
+            } catch (e) {
+                // 不是 spritesheet 或帧不存在，忽略
+            }
+        }
+        
+        this.fireballSprite.setVisible(true);
     }
 
     /**
