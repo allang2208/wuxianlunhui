@@ -437,11 +437,8 @@ export class GameScene extends Scene {
         const wSize = WeaponTransform.getWeaponSize(wt);
         const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGun) {
-            const mouseWorldX = this.cameras.main.scrollX + this.input.activePointer.x;
-            this.weaponSprite.setFlipX(mouseWorldX < player.x);
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
         } else {
-            this.weaponSprite.setFlipX(false);
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
         }
     }
@@ -568,11 +565,8 @@ export class GameScene extends Scene {
         const wSize = WeaponTransform.getWeaponSize(wt);
         const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunOff) {
-            const mouseWorldX = this.cameras.main.scrollX + this.input.activePointer.x;
-            this.offhandWeaponSprite.setFlipX(mouseWorldX < player.x);
             this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
         } else {
-            this.offhandWeaponSprite.setFlipX(false);
             this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
         }
     }
@@ -950,11 +944,8 @@ export class GameScene extends Scene {
         const wSize = WeaponTransform.getWeaponSize(wt);
         const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunSpecial) {
-            const mouseWorldX = this.cameras.main.scrollX + this.input.activePointer.x;
-            this.weaponSprite.setFlipX(mouseWorldX < player.x);
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
         } else {
-            this.weaponSprite.setFlipX(false);
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
         }
         this.weaponSprite.setPosition(finalX, finalY);
