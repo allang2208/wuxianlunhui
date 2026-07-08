@@ -3254,6 +3254,10 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 // === 弓渲染 ===
                 else if (isBow) {
+                    // 弓攻击：已迁移到 Phaser syncWeapon（bow_attack spritesheet），Canvas 跳过
+                    if (this._usePhaserWeapon) {
+                        return;
+                    }
                     if (isAttacking && anim.state !== 'rotate' && anim.state !== 'idle_return') {
                         // windup / swing / recover 阶段：帧动画
                         let t = 0;

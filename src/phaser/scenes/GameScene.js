@@ -299,10 +299,47 @@ export class GameScene extends Scene {
         const wt = currentItem.weaponType;
         
         if (wt === 'bow') {
-            // 弓：rotate 阶段显示静态贴图并旋转；windup/swing/recover 由 Canvas 渲染帧动画
-            if (weaponAnim.isAttacking) {
-                // 攻击时隐藏 Phaser 武器，让 Canvas 渲染 8 帧动画
-                if (this.weaponSprite) this.weaponSprite.setVisible(false);
+            // 弓攻击：使用 spritesheet 帧动画
+            if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') {
+                // 弓攻击动画帧映射
+                let frameIndex = 0;
+                if (weaponAnim.state === 'windup') {
+                    frameIndex = 0;
+                } else if (weaponAnim.state === 'swing') {
+                    const t = weaponAnim.timer / (WEAPON_ANIM.swingMs || 300);
+                    if (t < 0.33) frameIndex = 1;
+                    else if (t < 0.66) frameIndex = 2;
+                    else frameIndex = 3;
+                } else if (weaponAnim.state === 'recover') {
+                    frameIndex = 3;
+                }
+                
+                if (!this.weaponSprite) {
+                    this.weaponSprite = this.add.sprite(0, 0, 'bow_attack');
+                    this.weaponSprite.setDepth(150);
+                } else if (this.weaponSprite.texture.key !== 'bow_attack') {
+                    this.weaponSprite.setTexture('bow_attack');
+                }
+                
+                try {
+                    this.weaponSprite.setFrame(frameIndex);
+                } catch (e) {}
+                
+                // 同步位置和旋转（与 Canvas 一致）
+                let animState = 'idle';
+                if (player._isSprinting) animState = 'running';
+                else if (player.isMoving) animState = 'walk';
+                const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
+                let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
+                
+                // 弓攻击时添加旋转偏移
+                if (weaponAnim.rotateAngle) {
+                    rot += weaponAnim.rotateAngle;
+                }
+                
+                this.weaponSprite.setPosition(pos.x, pos.y);
+                this.weaponSprite.setRotation(rot);
+                this.weaponSprite.setVisible(true);
                 return;
             }
         }
