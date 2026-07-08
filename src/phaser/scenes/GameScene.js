@@ -104,14 +104,8 @@ export class GameScene extends Scene {
                 this.playerSprite.setVisible(true);
                 this.playerSprite.setActive(true);
             }
-            if (this.weaponSprite && !this.weaponSprite.visible) {
-                this.weaponSprite.setVisible(true);
-                this.weaponSprite.setActive(true);
-            }
-            if (this.offhandWeaponSprite && !this.offhandWeaponSprite.visible) {
-                this.offhandWeaponSprite.setVisible(true);
-                this.offhandWeaponSprite.setActive(true);
-            }
+            // 武器 Sprite 的可见性由 syncWeapon 控制，不在 update 中强制显示
+            // 避免覆盖 syncWeapon 的隐藏逻辑（如武器切换为空时）
             // Phase 3: 同步特效 Sprite
             if (_game && _game.player) {
                 this._syncRuneSwords(_game.player);
@@ -586,8 +580,21 @@ export class GameScene extends Scene {
         // 同步每把剑的位置和旋转
         this.runeSwordGroup.getChildren().forEach((sprite, i) => {
             const sword = player._runeSwordSwords[i];
-            if (!sword || !sword.active || sword.flyActive) {
+            if (!sword || !sword.active) {
                 sprite.setVisible(false);
+                return;
+            }
+            
+            // 贴图大小：与 Canvas 一致（84 * 0.6 = 50.4）
+            const BLADE_SIZE = 50;
+            sprite.setDisplaySize(BLADE_SIZE, BLADE_SIZE);
+            
+            if (sword.flyActive) {
+                // 飞行剑：使用世界坐标和 flyAngle
+                sprite.setPosition(sword.flyX, sword.flyY);
+                sprite.setRotation(sword.flyAngle + Math.PI / 2);
+                sprite.setAlpha(1);
+                sprite.setVisible(true);
                 return;
             }
             
@@ -605,9 +612,10 @@ export class GameScene extends Scene {
             const baseWorldX = player.x + cos * localX - sin * localY;
             const baseWorldY = player.y + sin * localX + cos * localY;
             
-            // 计算朝向鼠标的角度
-            const mouseX = window.Input?.mouse?.x ? window.Camera.x + window.Input.mouse.x : player.x;
-            const mouseY = window.Input?.mouse?.y ? window.Camera.y + window.Input.mouse.y : player.y;
+            // 计算朝向鼠标的角度（使用 Phaser 相机坐标，避免 window.Camera 偏移错误）
+            const camera = this.cameras.main;
+            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
+            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
             const absoluteAngle = Math.atan2(mouseY - baseWorldY, mouseX - baseWorldX);
             
             // 应用旋转后的偏移（对应 Canvas 的 ctx.translate(0, -s * 0.85)）
@@ -656,9 +664,10 @@ export class GameScene extends Scene {
             const worldX = player.x + cos * localX - sin * localY;
             const worldY = player.y + sin * localX + cos * localY;
             
-            // 计算朝向鼠标的角度
-            const mouseX = window.Input?.mouse?.x ? window.Camera.x + window.Input.mouse.x : player.x;
-            const mouseY = window.Input?.mouse?.y ? window.Camera.y + window.Input.mouse.y : player.y;
+            // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
+            const camera = this.cameras.main;
+            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
+            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
             const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
             
             sprite.setPosition(worldX, worldY);
@@ -696,9 +705,10 @@ export class GameScene extends Scene {
         const worldX = player.x + cos * localX - sin * localY;
         const worldY = player.y + sin * localX + cos * localY;
         
-        // 计算朝向鼠标的角度
-        const mouseX = window.Input?.mouseX ? window.Camera.x + window.Input.mouseX : player.x;
-        const mouseY = window.Input?.mouseY ? window.Camera.y + window.Input.mouseY : player.y;
+        // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
+        const camera = this.cameras.main;
+        const mouseX = camera.scrollX + ((window.Input?.mouse?.x) || 0);
+        const mouseY = camera.scrollY + ((window.Input?.mouse?.y) || 0);
         const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
         
         this.fireballSprite.setPosition(worldX, worldY);
