@@ -2840,7 +2840,14 @@ import { StatusBar } from '../ui/status-bar.js';
                         anim.spinEnd = 0; // 攻击打断旋转动画
                         anim.timer += dt;
                         if (anim.timer >= this._getAnimMs(wa.windupMs)) { anim.state = 'swing'; anim.timer = 0; }
-                        else anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                        else {
+                            const currentItem = this.equipments[this.weaponMode];
+                            if (currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword')) {
+                                // 攻击动画已禁用，武器保持静止
+                            } else {
+                                anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                            }
+                        }
                         break;
                     case 'swing':
                         // swing阶段：进行三角形攻击判定
@@ -2867,10 +2874,14 @@ import { StatusBar } from '../ui/status-bar.js';
                             }
                         }
                         else {
-                            anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
+                            const currentItem = this.equipments[this.weaponMode];
+                            if (currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword')) {
+                                // 攻击动画已禁用，武器保持静止
+                            } else {
+                                anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
+                            }
                             // swing阶段：根据当前装备类型决定发射逻辑
                             // 弓除外：弓在攻击动画（recover）结束后才射出箭矢
-                            const currentItem = this.equipments[this.weaponMode];
                             const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
                             const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
                             if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) this._fireRanged('main');
@@ -2896,7 +2907,14 @@ import { StatusBar } from '../ui/status-bar.js';
                             // 恢复阶段结束，完全清除攻击数据
                             this._pendingThrust = null;
                         }
-                        else anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / this._getAnimMs(wa.recoverMs));
+                        else {
+                            const currentItem = this.equipments[this.weaponMode];
+                            if (currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword')) {
+                                // 攻击动画已禁用，武器保持静止
+                            } else {
+                                anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / this._getAnimMs(wa.recoverMs));
+                            }
+                        }
                         break;
                     case 'idle_return':
                         // 攻击动画完毕后，弓从旋转角度回待机角度，200ms 平滑过渡
@@ -3569,39 +3587,6 @@ import { StatusBar } from '../ui/status-bar.js';
                             this.weaponEffect.render(ctx);
                             ctx.restore();
                         }
-                        /*
-                        const stab = WeaponAnimConfig.stab;
-                        ctx.translate(wa.holdX + 8, wa.holdY + 6);
-                        ctx.rotate(Math.PI / 2);
-                        ctx.translate(0, -ms * 0.85);
-                        let thrustOffset = 0;
-                        if (anim.state === 'windup') {
-                            const t = anim.timer / this._getAnimMs(wa.windupMs);
-                            thrustOffset = ms * stab.windupDist * easeInCubic(t);
-                        } else if (anim.state === 'swing') {
-                            const t = anim.timer / this._getAnimMs(wa.swingMs);
-                            if (t < 0.6) {
-                                const pt = t / 0.6;
-                                thrustOffset = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * easeOutQuad(pt);
-                            } else {
-                                thrustOffset = -ms * stab.stabDist;
-                            }
-                        } else if (anim.state === 'recover') {
-                            const t = anim.timer / this._getAnimMs(wa.recoverMs);
-                            const snapRatio = 0.15;
-                            if (t < snapRatio) {
-                                const pt = t / snapRatio;
-                                thrustOffset = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-                            } else {
-                                const pt = (t - snapRatio) / (1 - snapRatio);
-                                thrustOffset = -stab.recoverSnapDist * (1 - easeOutQuad(pt));
-                            }
-                        }
-                        ctx.translate(0, thrustOffset);
-                        ctx.rotate(anim.angle);
-                        const w = ms * 0.63;
-                        if (this.meleeImage && this.meleeImage.complete && this.meleeImage.naturalWidth > 0) ctx.drawImage(this.meleeImage, -w / 2, -ms / 2, w, ms);
-                        */
                     } else {
                         // 近战待机：武器固定在绑定位置，不随鼠标旋转
                         // Phase 1: 武器本体由 Phaser 渲染，Canvas 不再绘制
@@ -3841,34 +3826,9 @@ import { StatusBar } from '../ui/status-bar.js';
                         }
                         params.animAngle = animAngle;
                     } else {
-                        // 攻击时：正常传递刺击动画角度
-                        params.animAngle = anim.angle || 0;
-                        const stab = WeaponAnimConfig.stab;
-                        const ms = s * 0.75;
-                        let thrust = 0;
-                        if (anim.state === 'windup') {
-                            const t = anim.timer / this._getAnimMs(wa.windupMs);
-                            thrust = ms * stab.windupDist * easeInCubic(t);
-                        } else if (anim.state === 'swing') {
-                            const t = anim.timer / this._getAnimMs(wa.swingMs);
-                            if (t < 0.6) {
-                                const pt = t / 0.6;
-                                thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * easeOutQuad(pt);
-                            } else {
-                                thrust = -ms * stab.stabDist;
-                            }
-                        } else if (anim.state === 'recover') {
-                            const t = anim.timer / this._getAnimMs(wa.recoverMs);
-                            const snapRatio = 0.15;
-                            if (t < snapRatio) {
-                                const pt = t / snapRatio;
-                                thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-                            } else {
-                                const pt = (t - snapRatio) / (1 - snapRatio);
-                                thrust = -stab.recoverSnapDist * (1 - easeOutQuad(pt));
-                            }
-                        }
-                        params.thrust = thrust;
+                        // 攻击动画已禁用，武器保持静止
+                        params.animAngle = 0;
+                        // thrust 不再由 player.js 计算，GameScene.js 会根据 anim.state/timer 独立计算
                     }
                 }
 
@@ -3924,34 +3884,9 @@ import { StatusBar } from '../ui/status-bar.js';
                     params.recoilAngle = -recoil * 0.05;
                 }
 
-                // 副手刺击动画
+                // 副手刺击动画 - 已由 Phaser 全权处理，player.js 只传递状态和时间
                 if (isMelee && offhandAnim.state !== 'idle') {
-                    const stab = WeaponAnimConfig.stab;
-                    const ms = s * 0.75;
-                    let thrust = 0;
-                    if (offhandAnim.state === 'windup') {
-                        const t = offhandAnim.timer / this._getOffhandAnimMs(offhandItem, wa.windupMs);
-                        thrust = ms * stab.windupDist * easeInCubic(t);
-                    } else if (offhandAnim.state === 'swing') {
-                        const t = offhandAnim.timer / this._getOffhandAnimMs(offhandItem, wa.swingMs);
-                        if (t < 0.6) {
-                            const pt = t / 0.6;
-                            thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * easeOutQuad(pt);
-                        } else {
-                            thrust = -ms * stab.stabDist;
-                        }
-                    } else if (offhandAnim.state === 'recover') {
-                        const t = offhandAnim.timer / this._getOffhandAnimMs(offhandItem, wa.recoverMs);
-                        const snapRatio = 0.15;
-                        if (t < snapRatio) {
-                            const pt = t / snapRatio;
-                            thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-                        } else {
-                            const pt = (t - snapRatio) / (1 - snapRatio);
-                            thrust = -stab.recoverSnapDist * (1 - easeOutQuad(pt));
-                        }
-                    }
-                    params.thrust = thrust;
+                    // thrust 不再由 player.js 计算，GameScene.js 会根据 offhandAnim.state/timer 独立计算
                 }
 
                 // 副手缩放

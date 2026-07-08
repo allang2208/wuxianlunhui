@@ -52,23 +52,18 @@ class DashSystem {
         const dashProgress = Math.min(1, timer / 800);
         let dashOffset = 0, dashAngle = 0;
         
-        // 优先检查关键帧系统
-        const currentWeapon = this.player.equipments[this.player.weaponMode];
-        const weaponKey = currentWeapon?.weaponType || 'sword';
-        const kf = WeaponTransform.getKeyframeAt(weaponKey, dashProgress, 'dashAttack');
-        if (kf) {
-            // 关键帧系统：从关键帧的 holdOffset 推导 dashOffset
-            // dashOffset 对应于 rotate(π/2) 后 Y 轴的偏移（正=向后，负=向前）
-            // 关键帧的 holdOffsetY 影响前后位置，holdOffsetX 影响左右
-            const baseHoldX = WeaponAnimConfig.sword.holdOffsetX;
-            const baseHoldY = WeaponAnimConfig.sword.holdOffsetY;
-            // 转换关键帧偏移到 dash 坐标系：
-            // 在 rotate(π/2) 后，X轴向下，Y轴向左
-            // holdOffsetX 的变化 ≈ dash 坐标系的 Y 变化（左右移动）
-            // holdOffsetY 的变化 ≈ dash 坐标系的 -X 变化（前后移动）
-            dashOffset = -(kf.holdOffsetY - baseHoldY) * 0.5; // 前后位移
-            dashAngle = (kf.idleRotation - WeaponAnimConfig.sword.idleRotation) * Math.PI / 180;
-            return { dashOffset, dashAngle, keyframe: kf };
+        // 优先检查关键帧系统（仅当 WeaponTransform 支持时）
+        if (WeaponTransform.getKeyframeAt) {
+            const currentWeapon = this.player.equipments[this.player.weaponMode];
+            const weaponKey = currentWeapon?.weaponType || 'sword';
+            const kf = WeaponTransform.getKeyframeAt(weaponKey, dashProgress, 'dashAttack');
+            if (kf) {
+                const baseHoldX = WeaponAnimConfig.sword.holdOffsetX;
+                const baseHoldY = WeaponAnimConfig.sword.holdOffsetY;
+                dashOffset = -(kf.holdOffsetY - baseHoldY) * 0.5;
+                dashAngle = (kf.idleRotation - WeaponAnimConfig.sword.idleRotation) * Math.PI / 180;
+                return { dashOffset, dashAngle, keyframe: kf };
+            }
         }
         
         if (activeSkillId === 'dashAttackThrust') {
