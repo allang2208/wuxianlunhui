@@ -433,9 +433,14 @@ export class GameScene extends Scene {
         this.weaponSprite.setRotation(rot);
         this.weaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
+        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
-        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGun) {
+            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+        } else {
+            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
     }
 
     /**
@@ -556,9 +561,14 @@ export class GameScene extends Scene {
         this.offhandWeaponSprite.setRotation(rot);
         this.offhandWeaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
+        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
         const wSize = WeaponTransform.getWeaponSize(wt);
-        this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGunOff) {
+            this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
+        } else {
+            this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
     }
 
     /**
@@ -641,6 +651,7 @@ export class GameScene extends Scene {
         // 确保 Group 中有足够的 Sprite
         while (this.iceSpikeGroup.countActive() < player._iceSpikeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
+            sprite.setDisplaySize(40, 60);
             sprite.setDepth(155);
             this.iceSpikeGroup.add(sprite);
         }
@@ -714,7 +725,7 @@ export class GameScene extends Scene {
         this.fireballSprite.setPosition(worldX, worldY);
         this.fireballSprite.setRotation(absoluteAngle + Math.PI / 2);
         this.fireballSprite.setAlpha(0.9);
-        this.fireballSprite.setScale(fb.scale || 1);
+        this.fireballSprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
         
         // 如果 fireball 是 spritesheet，设置当前帧
         if (fb.frameIndex !== undefined) {
@@ -800,6 +811,7 @@ export class GameScene extends Scene {
         // 确保 Group 中有足够的 Sprite
         while (this.iceSpikeFlyGroup.countActive() < activeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
+            sprite.setDisplaySize(40, 60);
             sprite.setDepth(150);
             this.iceSpikeFlyGroup.add(sprite);
         }
@@ -838,7 +850,7 @@ export class GameScene extends Scene {
         this.fireballFlySprite.setPosition(fb.flyX, fb.flyY);
         this.fireballFlySprite.setRotation(fb.flyAngle + Math.PI / 2);
         this.fireballFlySprite.setAlpha(0.9);
-        this.fireballFlySprite.setScale(fb.scale || 1);
+        this.fireballFlySprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
         
         if (fb.frameIndex !== undefined) {
             try {
@@ -929,6 +941,13 @@ export class GameScene extends Scene {
         const finalY = worldY + weaponDirY * (extraOffset - ms * 0.85);
         const finalRot = rot + extraAngle;
         
+        const wSize = WeaponTransform.getWeaponSize(wt);
+        const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        if (isGunSpecial) {
+            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+        } else {
+            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+        }
         this.weaponSprite.setPosition(finalX, finalY);
         this.weaponSprite.setRotation(finalRot);
         this.weaponSprite.setVisible(true);
@@ -1035,6 +1054,7 @@ export class GameScene extends Scene {
         // 创建/更新无人机 Sprite
         if (!this.droneSprite) {
             this.droneSprite = this.add.sprite(0, 0, 'drone');
+            this.droneSprite.setDisplaySize(32, 32);
             this.droneSprite.setDepth(160);
         }
         this.droneSprite.setPosition(drone.x, drone.y);

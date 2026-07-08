@@ -154,11 +154,9 @@ export const DungeonMapSystem = {
 
         this._bindEvents();
 
-        // 初始化时显示地图界面按钮（僵尸地牢）
-        if (dungeonType === 'zombie') {
-            this._createMouseShopButton();
-            this._createAbandonButton();
-        }
+        // 初始化时显示地图界面按钮
+        this._createMouseShopButton();
+        this._createAbandonButton();
 
         console.log(`[DungeonMapSystem] Initialized (${dungeonType})`, this.nodes.length, "nodes,", this.edges.length, "edges");
     },
@@ -505,10 +503,8 @@ export const DungeonMapSystem = {
         this._centerRouteMap();
 
         // 显示地图界面按钮
-        if (this.dungeonType === 'zombie') {
-            this._createMouseShopButton();
-            this._createAbandonButton();
-        }
+        this._createMouseShopButton();
+        this._createAbandonButton();
 
         const current = this.getCurrentNode();
         if (current && current.type === "boss" && this.visitedNodeIds.has(current.id)) {
@@ -795,16 +791,7 @@ export const DungeonMapSystem = {
 
         const overlay = document.createElement("div");
         overlay.id = "dungeonCleanupOverlay";
-        overlay.style.cssText = `
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.75); border: 2px solid #44ff44;
-            border-radius: 8px; padding: 12px 32px; z-index: 9000;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            font-size: 18px; color: #44ff44; text-align: center;
-            pointer-events: none; user-select: none;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-            transition: opacity 0.3s;
-        `;
+        overlay.style.cssText = 'position:fixed;top:120px;left:50%;transform:translateX(-50%);color:#44ff44;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:9000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         overlay.textContent = `打扫战场中... 10秒后返回地图`;
         document.body.appendChild(overlay);
         this._cleanupOverlay = overlay;
@@ -1128,17 +1115,24 @@ export const DungeonMapSystem = {
         ctx.restore();
 
         // ── 绘制 UI 覆盖层（不受地图变换影响）─
+        // 标题和提示区域背景框（固定在指定位置 761,66 到 1156,133）
+        ctx.fillStyle = "rgba(20, 18, 14, 0.85)";
+        ctx.fillRect(761, 66, 395, 67);
+        ctx.strokeStyle = "rgba(90, 74, 58, 0.6)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(761, 66, 395, 67);
+
         // 标题
         ctx.fillStyle = "#d4c5a9";
         ctx.font = '22px SimHei, "Microsoft YaHei", sans-serif';
         ctx.textAlign = "center";
         const dungeonTitle = this.dungeonType === 'zombie' ? '⚔ 僵尸地牢 — 选择你的道路' : '⚔ 地牢深处 — 选择你的道路';
-        ctx.fillText(dungeonTitle, w / 2, 40);
+        ctx.fillText(dungeonTitle, 958.5, 90);
 
         // 提示文字
         ctx.fillStyle = "#888888";
         ctx.font = "14px sans-serif";
-        ctx.fillText("点击发光的相邻节点前进", w / 2, 68);
+        ctx.fillText("点击发光的相邻节点前进", 958.5, 115);
 
         // 进度
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
@@ -1175,8 +1169,8 @@ export const DungeonMapSystem = {
         btn.textContent = '小鼠商店';
         btn.style.cssText = `
             position: fixed;
-            left: 504px;
-            top: 862px;
+            left: 26.25vw;
+            bottom: 14.17vh;
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1215,8 +1209,8 @@ export const DungeonMapSystem = {
         btn.textContent = '放弃并返回';
         btn.style.cssText = `
             position: fixed;
-            left: 1231px;
-            top: 866px;
+            left: 64.11vw;
+            bottom: 13.70vh;
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
