@@ -795,16 +795,7 @@ export const DungeonMapSystem = {
 
         const overlay = document.createElement("div");
         overlay.id = "dungeonCleanupOverlay";
-        overlay.style.cssText = `
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.75); border: 2px solid #44ff44;
-            border-radius: 8px; padding: 12px 32px; z-index: 9000;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            font-size: 18px; color: #44ff44; text-align: center;
-            pointer-events: none; user-select: none;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-            transition: opacity 0.3s;
-        `;
+        overlay.style.cssText = 'position:fixed;top:120px;left:50%;transform:translateX(-50%);color:#44ff44;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:9000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         overlay.textContent = `打扫战场中... 10秒后返回地图`;
         document.body.appendChild(overlay);
         this._cleanupOverlay = overlay;
@@ -1175,8 +1166,8 @@ export const DungeonMapSystem = {
         btn.textContent = '小鼠商店';
         btn.style.cssText = `
             position: fixed;
-            left: 504px;
-            top: 862px;
+            left: 26.25vw;
+            bottom: 14.17vh;
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1215,8 +1206,8 @@ export const DungeonMapSystem = {
         btn.textContent = '放弃并返回';
         btn.style.cssText = `
             position: fixed;
-            left: 1231px;
-            top: 866px;
+            left: 64.11vw;
+            bottom: 13.70vh;
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
