@@ -147,7 +147,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     x: originX,                   // 攻击起始位置（固定，不随移动变化）
                     y: originY,
                     range: effectiveRange,         // 剑类武器使用武器配置射程
-                    width: this.config.width,      // 35px
+                    width: effectiveWidth,         // 修正：实际判定宽度与显示宽度一致
                     angle: attackAngle,
                     facingDir: source._facingDir || 'down', // 4方向朝向（用于矩形攻击判定）
                     hitSet: new Set(),             // 已命中目标

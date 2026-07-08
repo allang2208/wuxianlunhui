@@ -154,11 +154,9 @@ export const DungeonMapSystem = {
 
         this._bindEvents();
 
-        // 初始化时显示地图界面按钮（僵尸地牢）
-        if (dungeonType === 'zombie') {
-            this._createMouseShopButton();
-            this._createAbandonButton();
-        }
+        // 初始化时显示地图界面按钮
+        this._createMouseShopButton();
+        this._createAbandonButton();
 
         console.log(`[DungeonMapSystem] Initialized (${dungeonType})`, this.nodes.length, "nodes,", this.edges.length, "edges");
     },
@@ -505,10 +503,8 @@ export const DungeonMapSystem = {
         this._centerRouteMap();
 
         // 显示地图界面按钮
-        if (this.dungeonType === 'zombie') {
-            this._createMouseShopButton();
-            this._createAbandonButton();
-        }
+        this._createMouseShopButton();
+        this._createAbandonButton();
 
         const current = this.getCurrentNode();
         if (current && current.type === "boss" && this.visitedNodeIds.has(current.id)) {
@@ -1119,17 +1115,24 @@ export const DungeonMapSystem = {
         ctx.restore();
 
         // ── 绘制 UI 覆盖层（不受地图变换影响）─
+        // 标题和提示区域背景框（固定在指定位置 761,66 到 1156,133）
+        ctx.fillStyle = "rgba(20, 18, 14, 0.85)";
+        ctx.fillRect(761, 66, 395, 67);
+        ctx.strokeStyle = "rgba(90, 74, 58, 0.6)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(761, 66, 395, 67);
+
         // 标题
         ctx.fillStyle = "#d4c5a9";
         ctx.font = '22px SimHei, "Microsoft YaHei", sans-serif';
         ctx.textAlign = "center";
         const dungeonTitle = this.dungeonType === 'zombie' ? '⚔ 僵尸地牢 — 选择你的道路' : '⚔ 地牢深处 — 选择你的道路';
-        ctx.fillText(dungeonTitle, w / 2, 40);
+        ctx.fillText(dungeonTitle, 958.5, 90);
 
         // 提示文字
         ctx.fillStyle = "#888888";
         ctx.font = "14px sans-serif";
-        ctx.fillText("点击发光的相邻节点前进", w / 2, 68);
+        ctx.fillText("点击发光的相邻节点前进", 958.5, 115);
 
         // 进度
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;

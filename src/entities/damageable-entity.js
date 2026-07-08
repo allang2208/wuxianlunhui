@@ -151,7 +151,7 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                 // 掉落金币（不再掉落 G18）
                 if (this instanceof Enemy) {
                     const level = this.level || 1;
-                    const goldAmount = 5 + Math.floor(Math.random() * 10 + 1) * level;
+                    const goldAmount = 4 * level + Math.floor(Math.random() * 10 + 1);
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
                     Game.dropItem(this.x, this.y, goldItem);
                     // 新增：掉落经验值

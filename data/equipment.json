@@ -549,7 +549,7 @@
       "icon": "🔫",
       "iconImage": "assets/weapons/P4040-icon.png",
       "dropImage": "assets/weapons/P4040-equip.png",
-      "equipImage": "assets/weapons/P4040-equip.png",
+      "equipImage": "assets/weapons/P4040-icon.png",
       "slotImage": "assets/weapons/P4040-icon.png",
       "category": "weapon_ranged",
       "rarity": "epic",
@@ -835,7 +835,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/akm-equip.png",
       "slotImage": "assets/icons/akm-equip.png",
-      "equipImage": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+      "equipImage": "assets/weapons/AKm.png",
       "category": "weapon_ranged",
       "rarity": "rare",
       "level": 10,
@@ -844,7 +844,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+        "image": "assets/weapons/AKm.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [

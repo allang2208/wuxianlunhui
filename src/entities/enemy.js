@@ -488,9 +488,7 @@ import aiConfigData from '../../data/ai-config.json';
             getLevel() { return this.data ? this.data.level : 1; }
             // 新增：获取经验值（基于 rank 实时计算，不依赖构造函数时序）
             getExpValue() {
-                const rank = this._rank || 'normal';
-                const expTable = { minor: 1, normal: 2, elite: 6, boss: 20 };
-                return expTable[rank] || 2;
+                return 10 + (this.level || 1) * 5;
             }
             // 新增：获取当前武器攻击力（供攻击系统使用）
             getCurrentWeaponAtk() {
