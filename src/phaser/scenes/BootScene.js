@@ -31,6 +31,7 @@ export class BootScene extends Scene {
         this.load.image('iceSpike', 'assets/skills/icearrow.png');
         this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 8 });
         this.load.spritesheet('bow_attack', 'assets/weapons/borderbowspritesheet.png', { frameWidth: 1024, frameHeight: 1024, endFrame: 3 });
+        this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
         this.load.image('enemy_spider', 'assets/enemies/spider.png');

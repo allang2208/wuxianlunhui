@@ -94,6 +94,9 @@ export class GameScene extends Scene {
             if (this.defenseGlow) this.defenseGlow.clear();
             this.iceSpikeFlyGroup.setVisible(false);
             if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
+            if (this.droneSprite) this.droneSprite.setVisible(false);
+            if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
+            if (this.droneText) this.droneText.setVisible(false);
         } else {
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
@@ -118,6 +121,8 @@ export class GameScene extends Scene {
                 this._syncShield(_game.player);
                 this._syncFlyingIceSpikes(_game.player);
                 this._syncFlyingFireball(_game.player);
+                // Phase 续：同步无人机
+                this._syncDrone(_game.player);
             }
         }
         
@@ -1002,6 +1007,57 @@ export class GameScene extends Scene {
                 entity._phaserSprite = null;
             }
         });
+    }
+
+    /**
+     * 同步无人机到 Phaser Sprite
+     */
+    _syncDrone(player) {
+        if (!player.droneSystem || !player.droneSystem.active) {
+            if (this.droneSprite) this.droneSprite.setVisible(false);
+            if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
+            if (this.droneText) this.droneText.setVisible(false);
+            return;
+        }
+        
+        const drone = player.droneSystem;
+        
+        // 创建/更新无人机 Sprite
+        if (!this.droneSprite) {
+            this.droneSprite = this.add.sprite(0, 0, 'drone');
+            this.droneSprite.setDepth(160);
+        }
+        this.droneSprite.setPosition(drone.x, drone.y);
+        this.droneSprite.setVisible(true);
+        
+        // 操控模式下显示范围圈
+        if (drone.controlling && window.Game && window.Game.showAttackRange) {
+            if (!this.droneRangeGraphics) {
+                this.droneRangeGraphics = this.add.graphics();
+                this.droneRangeGraphics.setDepth(90);
+            }
+            this.droneRangeGraphics.clear();
+            this.droneRangeGraphics.lineStyle(1, 0x5a7a9a, 0.3);
+            this.droneRangeGraphics.strokeCircle(drone.x, drone.y, drone.radius);
+        } else if (this.droneRangeGraphics) {
+            this.droneRangeGraphics.clear();
+        }
+        
+        // 显示剩余时间
+        const remainingSec = Math.ceil(drone.duration / 1000);
+        if (!this.droneText) {
+            this.droneText = this.add.text(0, 0, '', {
+                fontFamily: 'SimHei, sans-serif',
+                fontSize: '10px',
+                color: '#d4c5a9',
+                align: 'center'
+            });
+            this.droneText.setOrigin(0.5, 1);
+            this.droneText.setDepth(165);
+        }
+        this.droneText.setPosition(drone.x, drone.y - 18);
+        this.droneText.setText(`${remainingSec}s`);
+        this.droneText.setVisible(true);
     }
 
     /**

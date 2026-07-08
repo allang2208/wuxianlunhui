@@ -4389,9 +4389,12 @@ import { StatusBar } from '../ui/status-bar.js';
                 }
                 */
                 // ===== 无人机渲染 =====
+                // 已迁移到 Phaser _syncDrone，Canvas 跳过
+                /*
                 if (this.droneSystem && this.droneSystem.active) {
                     this.droneSystem.render(ctx);
                 }
+                */
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 55);
             }
 
