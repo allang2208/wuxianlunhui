@@ -802,14 +802,19 @@ render(ctx) {
                     const scale = spriteSize / originalWidth;
                     sprite.setScale(scale);
                     if (this.isMoving) {
-                        if (!sprite.anims.isPlaying || sprite.anims.currentAnim.key !== 'player_walk') {
-                            sprite.play('player_walk', true);
+                        // 攻击动画播放时不覆盖
+                        const isPlayingAttack = sprite.anims.isPlaying && sprite.anims.currentAnim && sprite.anims.currentAnim.key === 'player_attack_sword';
+                        if (!isPlayingAttack) {
+                            sprite.setTexture('player_running');
                         }
                         sprite.setRotation(this.rotation - Math.PI / 2);
                     } else {
-                        if (sprite.anims.isPlaying) sprite.anims.stop();
-                        sprite.setTexture('walk_001');
-                        // walk_001 原始面朝下，需 -Math.PI/2 修正到面朝右后再应用朝向
+                        // 攻击动画播放时不停止
+                        const isPlayingAttack = sprite.anims.isPlaying && sprite.anims.currentAnim && sprite.anims.currentAnim.key === 'player_attack_sword';
+                        if (!isPlayingAttack) {
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            sprite.setTexture('player_idle');
+                        }
                         sprite.setRotation(this.rotation - Math.PI / 2);
                     }
                     // ===== 场景六地图模式：隐藏 Phaser 角色贴图 =====
@@ -938,6 +943,77 @@ render(ctx) {
                     // body 保持不动
                 }
 
+                // 绘制角色精灵图（替代火柴人）
+                if (!this._usePhaserSprite) {
+                    const isSpriteReady = this._runningSpriteSheet && this._runningSpriteSheet.complete && this._runningSpriteSheet.naturalWidth > 0;
+                    const isIdleReady = this._idleSprite && this._idleSprite.complete && this._idleSprite.naturalWidth > 0;
+                    if (isSpriteReady && isIdleReady) {
+                        const drawSize = this.size * 4.5; // 约 72px
+                        ctx.save();
+                        // 反旋转回直立
+                        ctx.rotate(-this.rotation);
+                        // 根据朝向水平翻转
+                        if (this._getFacingDirection() === 'left') {
+                            ctx.scale(-1, 1);
+                        }
+                        // 受击闪白
+                        if (this.hitFlash > 0) {
+                            ctx.globalAlpha = 0.4 + Math.sin((this.hitFlash / this.hitFlashDuration) * Math.PI) * 0.6;
+                        }
+
+                        if (this.isMoving && !this.isDodging && !this._isDashing && !this._isWhirlwind && !this._specialAttackActive) {
+                            if (this._isSprinting) {
+                                // ===== 奔跑动画（running.png 16帧） =====
+                                const FRAME_W = 512, FRAME_H = 512;
+                                const COLS = 8;
+                                const col = this._runningFrame % COLS;
+                                const row = Math.floor(this._runningFrame / COLS);
+                                const sx = col * FRAME_W;
+                                const sy = row * FRAME_H;
+                                ctx.drawImage(
+                                    this._runningSpriteSheet,
+                                    sx, sy, FRAME_W, FRAME_H,
+                                    -drawSize / 2, -drawSize / 2,
+                                    drawSize, drawSize
+                                );
+                            } else {
+                                // ===== 行走动画（walk.png 21帧，3x8网格） =====
+                                const WALK_W = 512, WALK_H = 516;
+                                const WALK_COLS = 8;
+                                const col = this._walkFrame % WALK_COLS;
+                                const row = Math.floor(this._walkFrame / WALK_COLS);
+                                const sx = col * WALK_W;
+                                const sy = row * WALK_H;
+                                ctx.drawImage(
+                                    this._walkSpriteSheet,
+                                    sx, sy, WALK_W, WALK_H,
+                                    -drawSize / 2, -drawSize / 2,
+                                    drawSize, drawSize
+                                );
+                            }
+                        } else {
+                            // ===== 待机动画：轻微抖动 =====
+                            const t = Date.now();
+                            // 呼吸感上下浮动 + 极轻微左右晃动
+                            const breatheY = Math.sin(t / 400) * 1.2;
+                            const swayX = Math.sin(t / 600) * 0.4;
+                            const breatheScale = 1.0 + Math.sin(t / 500) * 0.015;
+                            ctx.translate(swayX, breatheY);
+                            ctx.scale(breatheScale, breatheScale);
+                            const IDLE_W = 516, IDLE_H = 516;
+                            ctx.drawImage(
+                                this._idleSprite,
+                                0, 0, IDLE_W, IDLE_H,
+                                -drawSize / 2, -drawSize / 2,
+                                drawSize, drawSize
+                            );
+                        }
+                        ctx.restore();
+                    } else {
+                        // 精灵图未加载完成，回退到火柴人
+                        this._drawStickFigure(ctx, bodyScale, bodyOffsetX, bodyOffsetY);
+                    }
+                }
                 // ===== 边境长弓蓄力满闪光特效（人物） =====
                 if (this._chargeFlashActive) {
                     const flashAlpha = Math.min(1, this._chargeFlashTimer / 500);
