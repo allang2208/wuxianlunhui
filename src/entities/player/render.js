@@ -792,10 +792,10 @@ render(ctx) {
                     if (!phaserScene._useVelocityDrive) {
                         sprite.setPosition(this.x, this.y);
                     }
-                    // 基于纹理原始尺寸计算缩放
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 1440;
-                    const scale = spriteSize / originalWidth;
+                    // 统一缩放：所有角色动画帧的目标显示尺寸为 112.5px
+                    // 无论 idle 单图还是 spritesheet，都按单帧 512px 计算缩放
+                    const FRAME_SIZE = 512;
+                    const scale = spriteSize / FRAME_SIZE;
                     sprite.setScale(scale);
                     if (this.isMoving) {
                         // 攻击动画播放时不覆盖
