@@ -296,20 +296,6 @@ export class GameScene extends Scene {
             });
         }
     }
-        if (!this.playerSprite) return;
-        if (key === 'idle') {
-            this.playerSprite.anims.stop();
-            this.playerSprite.setTexture('player_idle');
-        } else if (key === 'walk') {
-            this.playerSprite.setTexture('player_running');
-        } else if (key === 'attack_sword') {
-            // 剑攻击动画：播放一次，完成后回到idle
-            this.playerSprite.play('player_attack_sword', true);
-            this.playerSprite.once('animationcomplete', () => {
-                this.setPlayerAnimation('idle');
-            });
-        }
-    }
 
     /**
      * 同步玩家武器到 Phaser Sprite
