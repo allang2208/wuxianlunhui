@@ -71,6 +71,16 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
                         }
                         baseDamage = Math.floor(baseDamage * (1 + droneBonus));
                     }
+                    // 装甲僵尸持盾防御：50%概率格挡，减少50%伤害
+                    if (this.data && this.data.equipShield === 'small_shield' && damageType !== 'magic') {
+                        if (Math.random() < 0.5) {
+                            baseDamage = Math.floor(baseDamage * 0.5);
+                            // 显示格挡特效
+                            if (typeof EffectManager !== 'undefined' && EffectManager.createDamageText) {
+                                EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#7a9a9a');
+                            }
+                        }
+                    }
                     // 暴击判定（仅用于精通技能经验，不额外应用伤害倍率——调用方已处理）
                     let critRate = source.data.crit || 0;
                     if (source && source.getCurrentWeapon && source.skills && source.skills.rifleMastery) {

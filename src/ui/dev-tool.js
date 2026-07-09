@@ -1339,6 +1339,21 @@ const DevTool = {
         document.getElementById('coordEnd').textContent = '--';
         document.getElementById('coordSize').textContent = '--';
 
+        // 获取游戏容器的边界和缩放比例
+        const gameContainer = document.getElementById('gameContainer');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const getGameScale = () => {
+            const container = gameContainer || document.body;
+            const containerRect = container.getBoundingClientRect();
+            if (!gameCanvas) return { scaleX: 1, scaleY: 1, rect: containerRect };
+            const canvasRect = gameCanvas.getBoundingClientRect();
+            return {
+                scaleX: gameCanvas.width / canvasRect.width || 1,
+                scaleY: gameCanvas.height / canvasRect.height || 1,
+                rect: containerRect
+            };
+        };
+
         let isDragging = false;
         let startX = 0, startY = 0;
         let rectPreview = null;
@@ -1349,21 +1364,22 @@ const DevTool = {
         const onMouseDown = (e) => {
             if (e.button !== 0) return; // 只响应左键
             isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
+            const scale = getGameScale();
+            startX = Math.round((e.clientX - scale.rect.left) * scale.scaleX);
+            startY = Math.round((e.clientY - scale.rect.top) * scale.scaleY);
 
-            // 创建起始标记
+            // 创建起始标记（使用屏幕坐标显示）
             startMarker = document.createElement('div');
             startMarker.className = 'start-marker';
-            startMarker.style.left = (startX - 4) + 'px';
-            startMarker.style.top = (startY - 4) + 'px';
+            startMarker.style.left = (e.clientX - 4) + 'px';
+            startMarker.style.top = (e.clientY - 4) + 'px';
             overlay.appendChild(startMarker);
 
             // 创建矩形预览
             rectPreview = document.createElement('div');
             rectPreview.className = 'rect-preview';
-            rectPreview.style.left = startX + 'px';
-            rectPreview.style.top = startY + 'px';
+            rectPreview.style.left = e.clientX + 'px';
+            rectPreview.style.top = e.clientY + 'px';
             rectPreview.style.width = '0px';
             rectPreview.style.height = '0px';
             overlay.appendChild(rectPreview);
@@ -1377,33 +1393,37 @@ const DevTool = {
         // 鼠标移动 - 更新预览
         const onMouseMove = (e) => {
             if (!isDragging) {
-                // 显示当前鼠标坐标
+                // 显示当前鼠标坐标（游戏坐标）
+                const scale = getGameScale();
+                const gameX = Math.round((e.clientX - scale.rect.left) * scale.scaleX);
+                const gameY = Math.round((e.clientY - scale.rect.top) * scale.scaleY);
                 if (!mouseLabel) {
                     mouseLabel = document.createElement('div');
                     mouseLabel.className = 'mouse-label';
                     overlay.appendChild(mouseLabel);
                 }
-                mouseLabel.textContent = `${e.clientX}, ${e.clientY}`;
+                mouseLabel.textContent = `${gameX}, ${Math.round(scale.rect.height * scale.scaleY - gameY)}`;
                 mouseLabel.style.left = (e.clientX + 12) + 'px';
                 mouseLabel.style.top = (e.clientY + 12) + 'px';
                 return;
             }
 
-            const currentX = e.clientX;
-            const currentY = e.clientY;
+            const scale = getGameScale();
+            const currentX = Math.round((e.clientX - scale.rect.left) * scale.scaleX);
+            const currentY = Math.round((e.clientY - scale.rect.top) * scale.scaleY);
             const left = Math.min(startX, currentX);
             const top = Math.min(startY, currentY);
             const width = Math.abs(currentX - startX);
             const height = Math.abs(currentY - startY);
 
-            rectPreview.style.left = left + 'px';
-            rectPreview.style.top = top + 'px';
+            rectPreview.style.left = (e.clientX - (currentX - left)) + 'px';
+            rectPreview.style.top = (e.clientY - (currentY - top)) + 'px';
             rectPreview.style.width = width + 'px';
             rectPreview.style.height = height + 'px';
 
             mouseLabel.textContent = `${width} x ${height}`;
-            mouseLabel.style.left = (currentX + 12) + 'px';
-            mouseLabel.style.top = (currentY + 12) + 'px';
+            mouseLabel.style.left = (e.clientX + 12) + 'px';
+            mouseLabel.style.top = (e.clientY + 12) + 'px';
         };
 
         // 鼠标释放 - 完成框选
@@ -1411,8 +1431,9 @@ const DevTool = {
             if (!isDragging) return;
             isDragging = false;
 
-            const endX = e.clientX;
-            const endY = e.clientY;
+            const scale = getGameScale();
+            const endX = Math.round((e.clientX - scale.rect.left) * scale.scaleX);
+            const endY = Math.round((e.clientY - scale.rect.top) * scale.scaleY);
             const left = Math.min(startX, endX);
             const top = Math.min(startY, endY);
             const width = Math.abs(endX - startX);
@@ -1432,9 +1453,14 @@ const DevTool = {
             finalRect.style.height = height + 'px';
             overlay.appendChild(finalRect);
 
-            // 更新面板显示
-            document.getElementById('coordStart').textContent = `${startX}, ${startY}`;
-            document.getElementById('coordEnd').textContent = `${endX}, ${endY}`;
+            // 更新面板显示（显示游戏坐标 - left/bottom 模式）
+            const containerHeight = scale.rect.height * scale.scaleY;
+            const startBottom = Math.round(containerHeight - startY);
+            const endBottom = Math.round(containerHeight - endY);
+            const bottom = Math.min(startBottom, endBottom);
+            
+            document.getElementById('coordStart').textContent = `${left}, ${bottom}`;
+            document.getElementById('coordEnd').textContent = `${left + width}, ${bottom + height}`;
             document.getElementById('coordSize').textContent = `${width} x ${height}`;
         };
 
@@ -1457,7 +1483,7 @@ const DevTool = {
                 const start = document.getElementById('coordStart').textContent;
                 const end = document.getElementById('coordEnd').textContent;
                 const size = document.getElementById('coordSize').textContent;
-                const text = `起始: ${start} | 结束: ${end} | 尺寸: ${size}`;
+                const text = `left: ${start.split(',')[0].trim()}px; bottom: ${start.split(',')[1].trim()}px; width: ${size.split('x')[0].trim()}px; height: ${size.split('x')[1].trim()}px;`;
                 navigator.clipboard.writeText(text).then(() => {
                     copyBtn.textContent = '✅ 已复制';
                     setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);

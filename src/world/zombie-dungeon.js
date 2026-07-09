@@ -10,6 +10,35 @@
 import { Enemy } from '../entities/enemy.js';
 import { SpitterZombie, FatZombie, FastZombie, ZombieDog } from '../entities/enemy-types.js';
 
+// ==================== 装甲僵尸工厂 ====================
+function createArmoredZombie(x, y) {
+    return new Enemy(x, y, {
+        name: '装甲僵尸',
+        hp: 200,
+        maxHp: 200,
+        size: 16,
+        collisionRadius: 14,
+        speed: 31.25,
+        level: 5,
+        color: '#7a8a9a',
+        headColor: '#c0c8d0',
+        highlightColor: 'rgba(122, 138, 154, 0.3)',
+        str: 18,
+        dex: 6,
+        con: 20,
+        int: 3,
+        wis: 3,
+        luck: 5,
+        rank: 'normal',
+        attackRange: 80,
+        aiInterval: 2000,
+        ai: { aggroRange: 9999, pacingRange: 120, loseTimeout: 3000 },
+        attack: { type: 'thrust', cooldown: 1000, dynamicRange: 80, width: 20, damageMin: 6, damageMax: 12, knockback: 8 },
+        showWeapon: false,
+        equipShield: 'small_shield'
+    });
+}
+
 // ==================== 怪物工厂 ====================
 function createBasicZombie(x, y) {
     // 基础僵尸：使用 Enemy 类 + zombie 配置
@@ -66,7 +95,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
 
     // 怪物池（按 tier 分类）—— 使用工厂函数或类引用
     monsterPool: {
-        normal: [createBasicZombie, FastZombie, ZombieDog],
+        normal: [createBasicZombie, FastZombie, ZombieDog, createArmoredZombie],
         elite: [SpitterZombie, FatZombie]
     },
 

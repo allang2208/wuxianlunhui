@@ -5,8 +5,6 @@ import { Scene } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
-import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
-import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -42,16 +40,6 @@ export class GameScene extends Scene {
             WallSystem._syncWallsToPhaser();
         }
 
-        // Phase 3: 创建特效 Sprite Group
-        this.runeSwordGroup = this.add.group();
-        this.iceSpikeGroup = this.add.group();
-        this.fireballSprite = null;
-
-        // Phase 3 续：盾牌和飞行投射物
-        this.shieldSprite = null;
-        this.iceSpikeFlyGroup = this.add.group();
-        this.fireballFlySprite = null;
-
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -85,18 +73,6 @@ export class GameScene extends Scene {
                 this.offhandWeaponSprite.setVisible(false);
                 this.offhandWeaponSprite.setActive(false);
             }
-            // Phase 3: 场景六地图模式下隐藏特效
-            this.runeSwordGroup.setVisible(false);
-            this.iceSpikeGroup.setVisible(false);
-            if (this.fireballSprite) this.fireballSprite.setVisible(false);
-            // Phase 3 续：场景六地图模式下隐藏盾牌和飞行投射物
-            if (this.shieldSprite) this.shieldSprite.setVisible(false);
-            if (this.defenseGlow) this.defenseGlow.clear();
-            this.iceSpikeFlyGroup.setVisible(false);
-            if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
-            if (this.droneSprite) this.droneSprite.setVisible(false);
-            if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
-            if (this.droneText) this.droneText.setVisible(false);
         } else {
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
@@ -104,19 +80,13 @@ export class GameScene extends Scene {
                 this.playerSprite.setVisible(true);
                 this.playerSprite.setActive(true);
             }
-            // 武器 Sprite 的可见性由 syncWeapon 控制，不在 update 中强制显示
-            // 避免覆盖 syncWeapon 的隐藏逻辑（如武器切换为空时）
-            // Phase 3: 同步特效 Sprite
-            if (_game && _game.player) {
-                this._syncRuneSwords(_game.player);
-                this._syncIceSpikes(_game.player);
-                this._syncFireball(_game.player);
-                // Phase 3 续：同步盾牌和飞行投射物
-                this._syncShield(_game.player);
-                this._syncFlyingIceSpikes(_game.player);
-                this._syncFlyingFireball(_game.player);
-                // Phase 续：同步无人机
-                this._syncDrone(_game.player);
+            if (this.weaponSprite && !this.weaponSprite.visible) {
+                this.weaponSprite.setVisible(true);
+                this.weaponSprite.setActive(true);
+            }
+            if (this.offhandWeaponSprite && !this.offhandWeaponSprite.visible) {
+                this.offhandWeaponSprite.setVisible(true);
+                this.offhandWeaponSprite.setActive(true);
             }
         }
         
@@ -298,47 +268,10 @@ export class GameScene extends Scene {
         const wt = currentItem.weaponType;
         
         if (wt === 'bow') {
-            // 弓攻击：使用 spritesheet 帧动画
-            if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') {
-                // 弓攻击动画帧映射
-                let frameIndex = 0;
-                if (weaponAnim.state === 'windup') {
-                    frameIndex = 0;
-                } else if (weaponAnim.state === 'swing') {
-                    const t = weaponAnim.timer / (WEAPON_ANIM.swingMs || 300);
-                    if (t < 0.33) frameIndex = 1;
-                    else if (t < 0.66) frameIndex = 2;
-                    else frameIndex = 3;
-                } else if (weaponAnim.state === 'recover') {
-                    frameIndex = 3;
-                }
-                
-                if (!this.weaponSprite) {
-                    this.weaponSprite = this.add.sprite(0, 0, 'bow_attack');
-                    this.weaponSprite.setDepth(150);
-                } else if (this.weaponSprite.texture.key !== 'bow_attack') {
-                    this.weaponSprite.setTexture('bow_attack');
-                }
-                
-                try {
-                    this.weaponSprite.setFrame(frameIndex);
-                } catch (e) {}
-                
-                // 同步位置和旋转（与 Canvas 一致）
-                let animState = 'idle';
-                if (player._isSprinting) animState = 'running';
-                else if (player.isMoving) animState = 'walk';
-                const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-                let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
-                
-                // 弓攻击时添加旋转偏移
-                if (weaponAnim.rotateAngle) {
-                    rot += weaponAnim.rotateAngle;
-                }
-                
-                this.weaponSprite.setPosition(pos.x, pos.y);
-                this.weaponSprite.setRotation(rot);
-                this.weaponSprite.setVisible(true);
+            // 弓：rotate 阶段显示静态贴图并旋转；windup/swing/recover 由 Canvas 渲染帧动画
+            if (weaponAnim.isAttacking) {
+                // 攻击时隐藏 Phaser 武器，让 Canvas 渲染 8 帧动画
+                if (this.weaponSprite) this.weaponSprite.setVisible(false);
                 return;
             }
         }
@@ -347,10 +280,10 @@ export class GameScene extends Scene {
         // 在浏览器控制台执行：__phaserScene._useCanvasWeapon = true 切换回 Canvas
         if (this._useCanvasWeapon === undefined) this._useCanvasWeapon = false;
         
-        // 如果玩家处于特殊动画状态，同步特殊动画位置到 Phaser（风车/冲刺/复位）
+        // 如果玩家处于特殊动画状态，隐藏 Phaser 武器（由 Canvas 渲染）
         const isSpecialAnim = player._isWhirlwind || player._isDashing || player._dashResetAnim || player._specialAttackActive || player._specialResetAnim;
         if (isSpecialAnim) {
-            this._syncSpecialWeaponAnim(player, wt, weaponAnim);
+            if (this.weaponSprite) this.weaponSprite.setVisible(false);
             return;
         }
         
@@ -368,7 +301,7 @@ export class GameScene extends Scene {
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -376,8 +309,11 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
-        // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
-        let thrust = 0;
+        // 应用刺击位移（反向）
+        if (weaponAnim.thrust) {
+            pos.x -= Math.cos(player.rotation) * weaponAnim.thrust;
+            pos.y -= Math.sin(player.rotation) * weaponAnim.thrust;
+        }
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {
@@ -393,16 +329,9 @@ export class GameScene extends Scene {
         this.weaponSprite.setRotation(rot);
         this.weaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
+        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
-        if (isGun) {
-            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
-            const flipY = Math.abs(rot) > Math.PI / 2;
-            this.weaponSprite.setFlipY(flipY);
-        } else {
-            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
-        }
+        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
     }
 
     /**
@@ -458,7 +387,7 @@ export class GameScene extends Scene {
         if (player._isSprinting) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState);
+        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, offhandAnimState);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -466,8 +395,11 @@ export class GameScene extends Scene {
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
         
-        // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
-        let thrust = 0;
+        // 应用刺击位移（反向）
+        if (weaponAnim.thrust) {
+            pos.x -= Math.cos(player.rotation) * weaponAnim.thrust;
+            pos.y -= Math.sin(player.rotation) * weaponAnim.thrust;
+        }
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {
@@ -483,402 +415,11 @@ export class GameScene extends Scene {
         this.offhandWeaponSprite.setRotation(rot);
         this.offhandWeaponSprite.setVisible(!this._useCanvasWeapon);
         
-        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
+        // 武器缩放：使用 setDisplaySize 匹配 Canvas 的绘制尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
-        if (isGunOff) {
-            this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
-            const flipY = Math.abs(rot) > Math.PI / 2;
-            this.offhandWeaponSprite.setFlipY(flipY);
-        } else {
-            this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
-        }
+        this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
     }
 
-    /**
-     * Phase 3: 同步符文长剑悬浮剑到 Phaser Sprite
-     */
-    _syncRuneSwords(player) {
-        if (!player._runeSwordSpecialActive || !player._runeSwordSwords) {
-            this.runeSwordGroup.setVisible(false);
-            return;
-        }
-        
-        // 确保 Group 中有足够的 Sprite
-        while (this.runeSwordGroup.countActive() < player._runeSwordSwords.length) {
-            const sprite = this.add.sprite(0, 0, 'runeSwordBlade');
-            sprite.setDepth(155);
-            this.runeSwordGroup.add(sprite);
-        }
-        
-        // 同步每把剑的位置和旋转
-        this.runeSwordGroup.getChildren().forEach((sprite, i) => {
-            const sword = player._runeSwordSwords[i];
-            if (!sword || !sword.active) {
-                sprite.setVisible(false);
-                return;
-            }
-            
-            // 贴图大小：与 Canvas 一致（84 * 0.6 = 50.4）
-            const BLADE_SIZE = 50;
-            sprite.setDisplaySize(BLADE_SIZE, BLADE_SIZE);
-            
-            if (sword.flyActive) {
-                // 飞行剑：使用世界坐标和 flyAngle
-                sprite.setPosition(sword.flyX, sword.flyY);
-                sprite.setRotation(sword.flyAngle + Math.PI / 2);
-                sprite.setAlpha(1);
-                sprite.setVisible(true);
-                return;
-            }
-            
-            const s = player.size;
-            const baseX = -s * 0.3 - 50;
-            const baseY = sword.offsetX;
-            const swayX = Math.sin(sword.swayTimer * sword.swayFreqX) * sword.swayAmpX;
-            const swayY = Math.cos(sword.swayTimer * sword.swayFreqY) * sword.swayAmpY;
-            
-            const localX = baseX + swayX;
-            const localY = baseY + swayY;
-            
-            const cos = Math.cos(player.rotation);
-            const sin = Math.sin(player.rotation);
-            const baseWorldX = player.x + cos * localX - sin * localY;
-            const baseWorldY = player.y + sin * localX + cos * localY;
-            
-            // 计算朝向鼠标的角度（使用 Phaser 相机坐标，避免 window.Camera 偏移错误）
-            const camera = this.cameras.main;
-            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
-            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
-            const absoluteAngle = Math.atan2(mouseY - baseWorldY, mouseX - baseWorldX);
-            
-            // 应用旋转后的偏移（对应 Canvas 的 ctx.translate(0, -s * 0.85)）
-            const worldX = baseWorldX + Math.cos(absoluteAngle) * s * 0.85;
-            const worldY = baseWorldY + Math.sin(absoluteAngle) * s * 0.85;
-            
-            sprite.setPosition(worldX, worldY);
-            sprite.setRotation(absoluteAngle + Math.PI / 2);
-            sprite.setAlpha(sword.fading ? Math.max(0, 1 - sword.fadeTimer / 300) : 1);
-            sprite.setVisible(true);
-        });
-    }
-
-    /**
-     * Phase 3: 同步冰锥到 Phaser Sprite
-     */
-    _syncIceSpikes(player) {
-        if (!player._iceSpikeSpikes) {
-            this.iceSpikeGroup.setVisible(false);
-            return;
-        }
-        
-        // 确保 Group 中有足够的 Sprite
-        while (this.iceSpikeGroup.countActive() < player._iceSpikeSpikes.length) {
-            const sprite = this.add.sprite(0, 0, 'iceSpike');
-            sprite.setDisplaySize(40, 60);
-            sprite.setDepth(155);
-            this.iceSpikeGroup.add(sprite);
-        }
-        
-        // 同步每根冰锥的位置和旋转
-        this.iceSpikeGroup.getChildren().forEach((sprite, i) => {
-            const spike = player._iceSpikeSpikes[i];
-            if (!spike || !spike.active || spike.launched || spike.flyActive) {
-                sprite.setVisible(false);
-                return;
-            }
-            
-            const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
-            const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
-            
-            const localX = spike.offsetX + swayX;
-            const localY = spike.offsetY + swayY;
-            
-            const cos = Math.cos(player.rotation);
-            const sin = Math.sin(player.rotation);
-            const worldX = player.x + cos * localX - sin * localY;
-            const worldY = player.y + sin * localX + cos * localY;
-            
-            // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
-            const camera = this.cameras.main;
-            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
-            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
-            const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
-            
-            sprite.setPosition(worldX, worldY);
-            sprite.setRotation(absoluteAngle + Math.PI / 2);
-            sprite.setAlpha(0.85);
-            sprite.setVisible(true);
-        });
-    }
-
-    /**
-     * Phase 3: 同步火球到 Phaser Sprite
-     */
-    _syncFireball(player) {
-        if (!player._fireballActive || !player._fireball || player._fireball.launched) {
-            if (this.fireballSprite) this.fireballSprite.setVisible(false);
-            return;
-        }
-        
-        const fb = player._fireball;
-        
-        if (!this.fireballSprite) {
-            this.fireballSprite = this.add.sprite(0, 0, 'fireball');
-            this.fireballSprite.setDepth(155);
-        }
-        
-        const s = player.size;
-        const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
-        const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
-        
-        const localX = fb.offsetX + swayX;
-        const localY = fb.offsetY + swayY;
-        
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
-        const worldX = player.x + cos * localX - sin * localY;
-        const worldY = player.y + sin * localX + cos * localY;
-        
-        // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
-        const camera = this.cameras.main;
-        const mouseX = camera.scrollX + ((window.Input?.mouse?.x) || 0);
-        const mouseY = camera.scrollY + ((window.Input?.mouse?.y) || 0);
-        const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
-        
-        this.fireballSprite.setPosition(worldX, worldY);
-        this.fireballSprite.setRotation(absoluteAngle + Math.PI / 2);
-        this.fireballSprite.setAlpha(0.9);
-        this.fireballSprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-        
-        // 如果 fireball 是 spritesheet，设置当前帧
-        if (fb.frameIndex !== undefined) {
-            try {
-                this.fireballSprite.setFrame(fb.frameIndex);
-            } catch (e) {
-                // 不是 spritesheet 或帧不存在，忽略
-            }
-        }
-        
-        this.fireballSprite.setVisible(true);
-    }
-
-    /**
-     * Phase 3 续：同步盾牌到 Phaser Sprite
-     */
-    _syncShield(player) {
-        const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-        const offhandItem = player.equipments[offhandSlot];
-        
-        if (!offhandItem || offhandItem.weaponType !== 'shield') {
-            if (this.shieldSprite) this.shieldSprite.setVisible(false);
-            return;
-        }
-        
-        if (!this.shieldSprite) {
-            this.shieldSprite = this.add.sprite(0, 0, 'shield');
-            this.shieldSprite.setDepth(148); // 低于武器(150)，高于角色(100)
-        }
-        
-        const s = player.size;
-        const sw = s * 6.25 * 0.55;
-        const sh = s * 6.25 * 0.7;
-        
-        // 计算盾牌世界位置（基于 player 旋转）
-        const offsetX = 20;
-        const offsetY = -20;
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
-        const worldX = player.x + cos * offsetX - sin * offsetY;
-        const worldY = player.y + sin * offsetX + cos * offsetY;
-        
-        let rot = player.rotation + Math.PI / 2;
-        if (player.shieldSystem && player.shieldSystem.defending) {
-            rot -= 0.3;
-        }
-        
-        this.shieldSprite.setPosition(worldX, worldY);
-        this.shieldSprite.setRotation(rot);
-        this.shieldSprite.setDisplaySize(sw, sh);
-        this.shieldSprite.setVisible(true);
-        
-        // 防御红光（用 Phaser 图形或 Sprite）
-        if (player.shieldSystem && player.shieldSystem.defending) {
-            // 创建或更新防御光环
-            if (!this.defenseGlow) {
-                this.defenseGlow = this.add.graphics();
-                this.defenseGlow.setDepth(90);
-            }
-            this.defenseGlow.clear();
-            const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25;
-            const r = player.size + 8;
-            this.defenseGlow.fillStyle(0xcc3333, flicker * 0.35);
-            this.defenseGlow.fillCircle(player.x, player.y, r);
-            this.defenseGlow.lineStyle(2, 0xff5555, flicker * 0.6);
-            this.defenseGlow.strokeCircle(player.x, player.y, r + 2);
-        } else if (this.defenseGlow) {
-            this.defenseGlow.clear();
-        }
-    }
-
-    /**
-     * Phase 3 续：同步飞行中的冰锥到 Phaser Sprite
-     */
-    _syncFlyingIceSpikes(player) {
-        if (!player._iceSpikeSpikes || !player._iceSpikeSpikes.some(s => s.flyActive)) {
-            this.iceSpikeFlyGroup.setVisible(false);
-            return;
-        }
-        
-        const activeSpikes = player._iceSpikeSpikes.filter(s => s.flyActive);
-        
-        // 确保 Group 中有足够的 Sprite
-        while (this.iceSpikeFlyGroup.countActive() < activeSpikes.length) {
-            const sprite = this.add.sprite(0, 0, 'iceSpike');
-            sprite.setDisplaySize(40, 60);
-            sprite.setDepth(150);
-            this.iceSpikeFlyGroup.add(sprite);
-        }
-        
-        let activeIdx = 0;
-        this.iceSpikeFlyGroup.getChildren().forEach(sprite => {
-            if (activeIdx < activeSpikes.length) {
-                const spike = activeSpikes[activeIdx];
-                sprite.setPosition(spike.flyX, spike.flyY);
-                sprite.setRotation(spike.flyAngle + Math.PI / 2);
-                sprite.setAlpha(0.9);
-                sprite.setVisible(true);
-                activeIdx++;
-            } else {
-                sprite.setVisible(false);
-            }
-        });
-    }
-
-    /**
-     * Phase 3 续：同步飞行中的火球到 Phaser Sprite
-     */
-    _syncFlyingFireball(player) {
-        if (!player._fireball || !player._fireball.flyActive) {
-            if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
-            return;
-        }
-        
-        const fb = player._fireball;
-        
-        if (!this.fireballFlySprite) {
-            this.fireballFlySprite = this.add.sprite(0, 0, 'fireball');
-            this.fireballFlySprite.setDepth(150);
-        }
-        
-        this.fireballFlySprite.setPosition(fb.flyX, fb.flyY);
-        this.fireballFlySprite.setRotation(fb.flyAngle + Math.PI / 2);
-        this.fireballFlySprite.setAlpha(0.9);
-        this.fireballFlySprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-        
-        if (fb.frameIndex !== undefined) {
-            try {
-                this.fireballFlySprite.setFrame(fb.frameIndex);
-            } catch (e) {}
-        }
-        
-        this.fireballFlySprite.setVisible(true);
-    }
-
-    // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
-    // 将 Canvas 变换链转换为世界坐标
-    _syncSpecialWeaponAnim(player, wt, weaponAnim) {
-        if (!this.weaponSprite) {
-            const texture = getWeaponTextureKey(player.equipments[player.weaponMode]);
-            this.weaponSprite = this.add.sprite(0, 0, texture);
-            this.weaponSprite.setDepth(150);
-        }
-        
-        const wa = WEAPON_ANIM;
-        const ms = wa.size * 0.75;
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
-        
-        // 基础偏移 (wa.holdX + 8, wa.holdY + 6) 在旋转坐标系中 → 世界坐标
-        const baseX = wa.holdX + 8;
-        const baseY = wa.holdY + 6;
-        let worldX = player.x + cos * baseX - sin * baseY;
-        let worldY = player.y + sin * baseX + cos * baseY;
-        
-        // 基础旋转 + 玩家旋转
-        let rot = player.rotation + Math.PI / 2;
-        
-        // 武器方向（垂直于玩家朝向）
-        const weaponDirX = -sin;
-        const weaponDirY = cos;
-        
-        // 额外偏移和角度（根据特殊动画状态）
-        let extraOffset = 0;
-        let extraAngle = 0;
-        
-        if (player._isWhirlwind) {
-            if (player._whirlwindTimer <= 50) {
-                extraOffset = 15 * Easing.easeOutQuad(player._whirlwindTimer / 50);
-            } else {
-                extraOffset = 15;
-            }
-        } else if (player._isDashing) {
-            const activeSkillId = player._getActiveDashSkillId ? player._getActiveDashSkillId() : null;
-            const state = player.dashSystem && activeSkillId ? player.dashSystem._getDashWeaponStateAt(player._dashTimer, activeSkillId) : { dashOffset: 0, dashAngle: 0 };
-            extraOffset = state.dashOffset || 0;
-            extraAngle = state.dashAngle || 0;
-        } else if (player._dashResetAnim) {
-            const elapsed = Date.now() - player._dashResetAnim.startTime;
-            const t = Math.min(1, elapsed / player._dashResetAnim.duration);
-            const easeT = Easing.easeOutQuart(t);
-            extraAngle = player._dashResetAnim.startAngle * (1 - easeT);
-            extraOffset = player._dashResetAnim.startOffset * (1 - easeT);
-            // 基础位置回位：攻击(-12, 17) -> 待机(-20, 11)
-            const attackBaseX = wa.holdX + 8;
-            const attackBaseY = wa.holdY + 6;
-            const idleBaseX = wa.holdX;
-            const idleBaseY = wa.holdY;
-            const currentBaseX = attackBaseX + (idleBaseX - attackBaseX) * easeT;
-            const currentBaseY = attackBaseY + (idleBaseY - attackBaseY) * easeT;
-            worldX = player.x + cos * currentBaseX - sin * currentBaseY;
-            worldY = player.y + sin * currentBaseX + cos * currentBaseY;
-        } else if (player._specialResetAnim) {
-            const elapsed = Date.now() - player._specialResetAnim.startTime;
-            const t = Math.min(1, elapsed / player._specialResetAnim.duration);
-            const easeT = Easing.easeOutQuart(t);
-            extraAngle = player._specialResetAnim.startAngle * (1 - easeT);
-            extraOffset = player._specialResetAnim.startOffset * (1 - easeT);
-            const attackBaseX = wa.holdX + 8;
-            const attackBaseY = wa.holdY + 6;
-            const idleBaseX = wa.holdX;
-            const idleBaseY = wa.holdY;
-            const currentBaseX = attackBaseX + (idleBaseX - attackBaseX) * easeT;
-            const currentBaseY = attackBaseY + (idleBaseY - attackBaseY) * easeT;
-            worldX = player.x + cos * currentBaseX - sin * currentBaseY;
-            worldY = player.y + sin * currentBaseX + cos * currentBaseY;
-        } else if (player._specialAttackActive) {
-            extraOffset = -15;
-        }
-        
-        // 最终位置：基础位置 + 额外偏移 * 武器方向 - 武器中心偏移 * 武器方向
-        const finalX = worldX + weaponDirX * (extraOffset - ms * 0.85);
-        const finalY = worldY + weaponDirY * (extraOffset - ms * 0.85);
-        const finalRot = rot + extraAngle;
-        
-        const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
-        if (isGunSpecial) {
-            this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
-            const flipY = Math.abs(finalRot) > Math.PI / 2;
-            this.weaponSprite.setFlipY(flipY);
-        } else {
-            this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
-        }
-        this.weaponSprite.setPosition(finalX, finalY);
-        this.weaponSprite.setRotation(finalRot);
-        this.weaponSprite.setVisible(true);
-    }
-    
     /**
      * 添加墙壁碰撞体
      */
@@ -962,58 +503,6 @@ export class GameScene extends Scene {
                 entity._phaserSprite = null;
             }
         });
-    }
-
-    /**
-     * 同步无人机到 Phaser Sprite
-     */
-    _syncDrone(player) {
-        if (!player.droneSystem || !player.droneSystem.active) {
-            if (this.droneSprite) this.droneSprite.setVisible(false);
-            if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
-            if (this.droneText) this.droneText.setVisible(false);
-            return;
-        }
-        
-        const drone = player.droneSystem;
-        
-        // 创建/更新无人机 Sprite
-        if (!this.droneSprite) {
-            this.droneSprite = this.add.sprite(0, 0, 'drone');
-            this.droneSprite.setDisplaySize(32, 32);
-            this.droneSprite.setDepth(160);
-        }
-        this.droneSprite.setPosition(drone.x, drone.y);
-        this.droneSprite.setVisible(true);
-        
-        // 操控模式下显示范围圈
-        if (drone.controlling && window.Game && window.Game.showAttackRange) {
-            if (!this.droneRangeGraphics) {
-                this.droneRangeGraphics = this.add.graphics();
-                this.droneRangeGraphics.setDepth(90);
-            }
-            this.droneRangeGraphics.clear();
-            this.droneRangeGraphics.lineStyle(1, 0x5a7a9a, 0.3);
-            this.droneRangeGraphics.strokeCircle(drone.x, drone.y, drone.radius);
-        } else if (this.droneRangeGraphics) {
-            this.droneRangeGraphics.clear();
-        }
-        
-        // 显示剩余时间
-        const remainingSec = Math.ceil(drone.duration / 1000);
-        if (!this.droneText) {
-            this.droneText = this.add.text(0, 0, '', {
-                fontFamily: 'SimHei, sans-serif',
-                fontSize: '10px',
-                color: '#d4c5a9',
-                align: 'center'
-            });
-            this.droneText.setOrigin(0.5, 1);
-            this.droneText.setDepth(165);
-        }
-        this.droneText.setPosition(drone.x, drone.y - 18);
-        this.droneText.setText(`${remainingSec}s`);
-        this.droneText.setVisible(true);
     }
 
     /**
