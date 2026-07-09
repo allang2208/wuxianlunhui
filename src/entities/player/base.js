@@ -104,7 +104,7 @@ _getEnergyLMGParams() {
                 };
             },
 
-getExpForLevel(level) { return 20 + level * 20 + level * 12; },
+getExpForLevel(level) { return (20 + level * 20 + level * 12) * 2; },
 
 updateMaxStats() {
                 const d = this.data;

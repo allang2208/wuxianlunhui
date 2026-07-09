@@ -19,6 +19,8 @@ export class BootScene extends Scene {
             const num = String(i).padStart(3, '0');
             this.load.image(`walk_${num}`, `assets/characters/walk/hero_${num}.png`);
         }
+        // 剑攻击spritesheet（8帧）
+        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -76,6 +78,14 @@ export class BootScene extends Scene {
             frames: walkFrames,
             frameRate: 12,  // 12fps = 每帧83ms
             repeat: -1,
+        });
+
+        // 创建剑攻击动画（8帧）
+        this.anims.create({
+            key: 'player_attack_sword',
+            frames: this.anims.generateFrameNumbers('player_attack_sword', { start: 0, end: 7 }),
+            frameRate: 12,  // 12fps，总时长约667ms
+            repeat: 0,      // 播放一次
         });
 
         // ---- 动态生成几何敌人纹理 ----

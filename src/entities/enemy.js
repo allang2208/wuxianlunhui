@@ -43,6 +43,7 @@ import aiConfigData from '../../data/ai-config.json';
                 this._dashStunTimer = 0; // 眩晕剩余时间
                 this._showWeapon = config.showWeapon !== false; // 是否显示武器
                 this._color = config.color || '#8a4a4a'; // 怪物颜色
+                this._headColor = config.headColor || config.color || '#8a4a4a'; // 头部颜色（默认与身体同色）
                 this._highlightColor = config.highlightColor || 'rgba(180, 100, 100, 0.3)'; // 高光颜色
                 this._useStickFigure = true; // 火柴人模式：禁用 Phaser 精灵图，使用 Canvas 绘制
                 this._alertRange = config._alertRange || config.alertRange || 0; // 索敌范围：0 表示未设置，使用 PerceptionSystem 默认值
