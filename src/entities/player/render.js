@@ -863,6 +863,14 @@ render(ctx) {
                         if (phaserScene.offhandWeaponSprite) { phaserScene.offhandWeaponSprite.setVisible(false); phaserScene.offhandWeaponSprite.setActive(false); }
                         this._usePhaserSprite = false;
                     } else if (this._stickFigure) {
+                        // 保留火柴人模式作为后备选项
+                        sprite.setVisible(false);
+                        sprite.setActive(false);
+                        this._usePhaserSprite = false;
+                    } else {
+                        sprite.setVisible(true);
+                        this._usePhaserSprite = true; // 标记：Phaser 已渲染角色，Canvas 跳过角色贴图
+                    }
                         // 火柴人模式：强制 Canvas 绘制，隐藏 Phaser 角色贴图
                         sprite.setVisible(false);
                         sprite.setActive(false);
@@ -961,18 +969,26 @@ render(ctx) {
                     }
                     ctx.rotate(spinAngle);
                 }
-                // ===== 角色精灵图渲染 + 动画 =====
+                // ===== 角色旋转（风车技能等）=====
+                let bodyScale = 1;
+                let bodyOffsetX = 0;
+                let bodyOffsetY = 0;
                 let bodyScale = 1;
                 let bodyOffsetX = 0;
                 let bodyOffsetY = 0;
 
-                // 火柴人绘制参数（新 _drawStickFigure 内部处理呼吸和行走动画）
+                // 身体偏移设置
+                bodyScale = 1;
+                bodyOffsetX = 0;
+                bodyOffsetY = -12; // 上移12px，使角色中心与hitbox中心对齐
+
+                // 剑类武器攻击：身体配合刺击动画
                 bodyScale = 1;
                 bodyOffsetX = 0;
                 bodyOffsetY = -12; // 上移12px，使火柴人中心与hitbox中心对齐
 
                 // 剑类武器攻击：身体配合刺击动画
-                // [STICK FIGURE] 火柴人模式下攻击时身体不动，只动武器
+                // 攻击位移设为0，武器动画由 renderWeapon() 处理
                 // 攻击位移设为0，武器动画由 renderWeapon() 处理
                 const isMeleeEquipped = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
                 const isMeleeAttacking = isMeleeEquipped && this.weaponAnim.state !== 'idle';
