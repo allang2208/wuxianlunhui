@@ -655,7 +655,7 @@ update(dt, entities) {
                     const isBow = effectiveItem && effectiveItem.weaponType === 'bow';
                     const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
                     const isShotgun = effectiveItem && effectiveItem.weaponType === 'shotgun';
-                    const isMelee = effectiveItem && effectiveItem.category === 'weapon_melee';
+                    const isMelee = effectiveItem && (effectiveItem.category === 'weapon_melee' || effectiveItem.weaponType === 'sword');
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
 
                     // ===== 计算副手状态（用于双持判断） =====
