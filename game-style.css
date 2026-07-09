@@ -117,7 +117,7 @@
         .attack-cd .cd-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); transition: height 0.1s linear; }
         .attack-cd .key-label { position: absolute; bottom: -16px; font-size: 10px; color: #6b5d4f; font-family: monospace; }
 
-        .controls-hint-left { position: absolute; top: 675px; left: 10px; color: rgba(212, 197, 169, 0.35); font-size: 11px; text-align: left; background: rgba(42, 37, 32, 0.5); padding: 10px 14px; border-radius: 8px; pointer-events: none; line-height: 1.8; border: 1px solid rgba(90, 77, 63, 0.3); }
+        .controls-hint-left { position: absolute; bottom: 60px; left: 10px; color: rgba(212, 197, 169, 0.35); font-size: 11px; text-align: left; background: rgba(42, 37, 32, 0.5); padding: 10px 14px; border-radius: 8px; pointer-events: none; line-height: 1.8; border: 1px solid rgba(90, 77, 63, 0.3); }
         .attack-range-toggle { position: absolute; bottom: 12px; left: 12px; width: 48px; height: 48px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 2px solid #5a4d3f; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #8a7d6b; font-size: 12px; cursor: pointer; pointer-events: auto; transition: all 0.2s; z-index: 11; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif; }
         .attack-range-toggle:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
         .attack-range-toggle.active { border-color: #7a9a6a; color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
