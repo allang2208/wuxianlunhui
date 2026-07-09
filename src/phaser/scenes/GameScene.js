@@ -74,6 +74,20 @@ export class GameScene extends Scene {
                 this.offhandWeaponSprite.setActive(false);
             }
         } else {
+            // Phaser Sprite 默认可见，不再强制火柴人模式
+            if (this.playerSprite && _game && _game.player && !this.playerSprite.visible) {
+                this.playerSprite.setVisible(true);
+                this.playerSprite.setActive(true);
+            }
+            if (this.weaponSprite && !this.weaponSprite.visible) {
+                this.weaponSprite.setVisible(true);
+                this.weaponSprite.setActive(true);
+            }
+            if (this.offhandWeaponSprite && !this.offhandWeaponSprite.visible) {
+                this.offhandWeaponSprite.setVisible(true);
+                this.offhandWeaponSprite.setActive(true);
+            }
+        }
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
             if (this.playerSprite && _game && _game.player && !this.playerSprite.visible && !_isStickFigure) {
@@ -209,6 +223,14 @@ export class GameScene extends Scene {
     }
 
     _onPlayerSpawn(data) {
+        if (this.playerSprite) {
+            this.playerSprite.setPosition(data.x, data.y);
+            // Phaser Sprite 默认可见
+            this.playerSprite.setVisible(true);
+            this.playerSprite.setActive(true);
+            this.playerSprite.play('player_walk');
+        }
+    }
         if (this.playerSprite) {
             this.playerSprite.setPosition(data.x, data.y);
             // 火柴人模式：不显示 Phaser sprite
