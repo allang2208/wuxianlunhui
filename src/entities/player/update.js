@@ -563,8 +563,10 @@ update(dt, entities) {
                     // 游戏开始冷却：防止点击"开始游戏"按钮的鼠标事件携带到游戏中导致自动攻击
                     if (this.gameStartCooldown > 0) {
                         this.gameStartCooldown -= dt;
-                        Input.mouse.leftPressed = false;
-                        Input.mouse.leftDown = false;
+                        if (this.gameStartCooldown > 0) {
+                            Input.mouse.leftPressed = false;
+                            Input.mouse.leftDown = false;
+                        }
                     }
                     // 防御状态下：跳过所有攻击输入处理（手枪+盾时允许手枪攻击）
                     const _mainItem = this.equipments[this.weaponMode];
@@ -655,7 +657,7 @@ update(dt, entities) {
                     const isBow = effectiveItem && effectiveItem.weaponType === 'bow';
                     const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
                     const isShotgun = effectiveItem && effectiveItem.weaponType === 'shotgun';
-                    const isMelee = effectiveItem && effectiveItem.category === 'weapon_melee';
+                    const isMelee = effectiveItem && (effectiveItem.category === 'weapon_melee' || effectiveItem.weaponType === 'sword');
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
 
                     // ===== 计算副手状态（用于双持判断） =====
