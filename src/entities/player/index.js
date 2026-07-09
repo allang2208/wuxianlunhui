@@ -3,6 +3,7 @@
 import { Combatant } from '../combatant.js';
 import { ThrustAttack, RangedAttack } from '../../combat/attack.js';
 import { WeaponEffect } from '../../effects/weapon-effect.js';
+import { PoisonEffect } from '../../effects/poison-effect.js';
 import { DashSystem } from '../components/dash-system.js';
 import { WhirlwindSystem } from '../components/whirlwind-system.js';
 import { PushStrikeSystem } from '../components/push-strike-system.js';
@@ -22,6 +23,7 @@ import { subsystemsMixin } from './subsystems.js';
 class Player extends Combatant {
   constructor(x, y) {
     super(x, y);
+            this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300; this._facingDir = 'down';
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
             this.weaponSwitchCooldown = 0; // 武器切换冷却：切换 G18 后防止立即开火
             this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）
