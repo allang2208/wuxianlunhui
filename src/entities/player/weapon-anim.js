@@ -1,3 +1,6 @@
+import { isTwoHanded } from '../../config/gun-ammo.js';
+import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+
 const weaponAnimMixin = {
 updateWeaponAnim(dt) {
                 const wa = WEAPON_ANIM, anim = this.weaponAnim;

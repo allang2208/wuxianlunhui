@@ -1,3 +1,5 @@
+import { computeWeaponAttack } from '../../config/attack-formula.js';
+
 const baseMixin = {
 calculateCombatStats() {
                 const d = this.data;

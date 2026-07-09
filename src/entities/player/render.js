@@ -1,3 +1,6 @@
+import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
+import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
+
 const renderMixin = {
 renderHealthBar(ctx, x, y) {
                 const barWidth = 40, barHeight = 6;

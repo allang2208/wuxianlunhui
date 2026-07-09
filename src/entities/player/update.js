@@ -1,3 +1,5 @@
+import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
+
 const updateMixin = {
 update(dt, entities) {
                 // 同步六边形顶点世界坐标（原 super.update(dt) 做的事情）

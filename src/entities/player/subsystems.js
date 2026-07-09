@@ -1,3 +1,6 @@
+import { isGunWeapon } from '../../config/gun-ammo.js';
+import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
+
 const subsystemsMixin = {
 gainExp(amount) {
                 if (amount <= 0) return;
