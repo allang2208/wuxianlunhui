@@ -170,6 +170,12 @@ async function initModules() {
     // 挂载立绘调整工具
     window.NpcPortraitTool = NpcPortraitTool;
 
+    // 初始化 UI 面板（动态创建 DOM）
+    const gameContainer = document.getElementById('gameContainer');
+    if (gameContainer) {
+        initUIPanels(gameContainer);
+    }
+
     // I. Game
     window.Game = Game;
     window.SkillLevelSystem = SkillLevelSystem;
@@ -284,6 +290,9 @@ import { Game } from './game.js';
 
 // Phaser 迁移系统
 import { PhaserGame } from './phaser/PhaserGame.js';
+
+// UI Panels (动态创建 DOM)
+import { initUIPanels } from './ui/panels/ui-panels.js';
 
 // NPC Systems
 import { NPCDialogue } from './ui/npc-dialogue.js';
