@@ -144,25 +144,8 @@ class Player extends Combatant {
             this.saiga12kImage = new Image(); this.saiga12kImage.src = 'assets/weapons/S12k-equip.png';
             this.energyLmgImage = new Image(); this.energyLmgImage.src = 'assets/weapons/devotion-equip.png';
             this.shieldImage = new Image(); this.shieldImage.src = 'assets/weapons/woodshied-equip.png';
-            // 火柴人模式：不再加载角色精灵图
-            this._stickFigure = true;
-            // 跑步精灵图（2x8=16帧，每帧512x512）
-            this._runningSpriteSheet = new Image();
-            this._runningSpriteSheet.src = 'assets/character/running.png';
-            this._runningFrame = 0;        // 当前帧索引 0-15
-            this._runningAnimTimer = 0;    // 动画计时器(ms)
-            this._runningFrameDuration = 45; // 每帧持续时间(ms)，16帧约720ms一个循环
-            this._runningSpriteLoaded = false;
-            // 待机精灵图（单帧，带轻微抖动动画）
-            this._idleSprite = new Image();
-            this._idleSprite.src = 'assets/character/idle.png';
-            this._idleShakeTimer = 0;
-            // 行走精灵图（3x8=24格，实际21帧，每帧512x516）
-            this._walkSpriteSheet = new Image();
-            this._walkSpriteSheet.src = 'assets/character/walk.png';
-            this._walkFrame = 0;        // 当前帧索引 0-20
-            this._walkAnimTimer = 0;    // 行走动画计时器
-            this._walkFrameDuration = 60; // 每帧60ms，21帧约1260ms一个循环
+            // 角色动画已由 Phaser 接管，不再加载 Canvas 精灵图
+            this._stickFigure = false;
             this.equippedRangedType = null;
             this.arrowImage = new Image(); this.arrowImage.src = 'assets/ammo/arrow.png';
             this.weaponEffect = new WeaponEffect(); // 武器符文发光粒子效果（已从 Player 中拆出）
