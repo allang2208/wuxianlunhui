@@ -786,48 +786,6 @@ render(ctx) {
                 const pos = Renderer.worldToScreen(this.x, this.y), x = pos.x, y = pos.y + (this.isDodging ? 0 : Math.sin(this.animTime) * 2);
 
                 // ===== Phaser 渲染同步（在 ctx.save() 之前，避免 Canvas 状态不匹配）=====
-                this._usePhaserSprite = true; // 默认 Phaser 渲染
-                const phaserScene = window.__phaserScene;
-                if (phaserScene && phaserScene.playerSprite) {
-                    const sprite = phaserScene.playerSprite;
-                    const spriteSize = this.size * 6.25; // 与原有 Canvas 渲染一致：112.5
-                    // 只有在非 Velocity 模式下才设置位置
-                    // Velocity 模式下位置由 Phaser 物理引擎控制，手动设置会覆盖物理引擎的计算
-                    if (!phaserScene._useVelocityDrive) {
-                        sprite.setPosition(this.x, this.y);
-                    }
-                    // 基于纹理原始尺寸计算缩放
-                    const sourceImage = sprite.texture.getSourceImage();
-                    const originalWidth = sourceImage ? sourceImage.width : 1440;
-                    const scale = spriteSize / originalWidth;
-                    sprite.setScale(scale);
-                    if (this.isMoving) {
-                        if (!sprite.anims.isPlaying || sprite.anims.currentAnim.key !== 'player_walk') {
-                            sprite.play('player_walk', true);
-                        }
-                        sprite.setRotation(this.rotation - Math.PI / 2);
-                    } else {
-                        if (sprite.anims.isPlaying) sprite.anims.stop();
-                        sprite.setTexture('walk_001');
-                        // walk_001 原始面朝下，需 -Math.PI/2 修正到面朝右后再应用朝向
-                        sprite.setRotation(this.rotation - Math.PI / 2);
-                    }
-                    // ===== 场景六地图模式：隐藏 Phaser 角色贴图 =====
-                    const _dms = window.DungeonMapSystem || (typeof DungeonMapSystem !== 'undefined' ? DungeonMapSystem : null);
-                    if (SceneManager.currentScene === 'scene6' && _dms && _dms.active && _dms.state === 'map') {
-                        sprite.setVisible(false);
-                        sprite.setActive(false);
-                        if (phaserScene.weaponSprite) { phaserScene.weaponSprite.setVisible(false); phaserScene.weaponSprite.setActive(false); }
-                        if (phaserScene.offhandWeaponSprite) { phaserScene.offhandWeaponSprite.setVisible(false); phaserScene.offhandWeaponSprite.setActive(false); }
-                        this._usePhaserSprite = false;
-                    } else {
-                        sprite.setVisible(true);
-                        this._usePhaserSprite = true; // Phaser 已渲染角色，Canvas 跳过角色贴图
-                    }
-                    // 同步武器到 Phaser Sprite
-                    const weaponAnim = this._getWeaponAnimParams();
-                    const offhandAnim = this._getOffhandWeaponAnimParams();
-                    phaserScene.syncWeapon(this, weaponAnim);
                 this._usePhaserSprite = false; // 默认 Canvas 渲染
                 const phaserScene = window.__phaserScene;
                 if (phaserScene && phaserScene.playerSprite) {
@@ -863,14 +821,6 @@ render(ctx) {
                         if (phaserScene.offhandWeaponSprite) { phaserScene.offhandWeaponSprite.setVisible(false); phaserScene.offhandWeaponSprite.setActive(false); }
                         this._usePhaserSprite = false;
                     } else if (this._stickFigure) {
-                        // 保留火柴人模式作为后备选项
-                        sprite.setVisible(false);
-                        sprite.setActive(false);
-                        this._usePhaserSprite = false;
-                    } else {
-                        sprite.setVisible(true);
-                        this._usePhaserSprite = true; // Phaser 已渲染角色，Canvas 跳过角色贴图
-                    }
                         // 火柴人模式：强制 Canvas 绘制，隐藏 Phaser 角色贴图
                         sprite.setVisible(false);
                         sprite.setActive(false);
@@ -1038,50 +988,14 @@ render(ctx) {
                     ...
                 }
                 */
-                // 方向指示器和光环已迁移到 Phaser
-                /*
                 if (!this._usePhaserSprite) {
-                    ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
-                    ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
-                }
-                */
-                ctx.restore();
-                ctx.globalAlpha = 1;
-                // 脚下阴影已迁移到 Phaser
-                /*
-                if (!this._usePhaserSprite) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-                    ctx.beginPath();
-                    const spriteDrawSize = this.size * 4.5;
-                    ctx.ellipse(x, y + spriteDrawSize / 2, spriteDrawSize * 0.25, spriteDrawSize * 0.1, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                */
                     ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
                     ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
                 }
                 ctx.restore();
                 ctx.globalAlpha = 1;
                 // 脚下阴影（紧贴脚底）
-                // 方向指示器和光环已迁移到 Phaser
-                /*
                 if (!this._usePhaserSprite) {
-                    ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
-                    ctx.strokeStyle = 'rgba(122, 154, 106, 0.25)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
-                }
-                */
-                ctx.restore();
-                ctx.globalAlpha = 1;
-                // 脚下阴影已迁移到 Phaser
-                /*
-                if (!this._usePhaserSprite) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-                    ctx.beginPath();
-                    const spriteDrawSize = this.size * 4.5;
-                    ctx.ellipse(x, y + spriteDrawSize / 2, spriteDrawSize * 0.25, spriteDrawSize * 0.1, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                */
                     ctx.fillStyle = 'rgba(0,0,0,0.25)';
                     ctx.beginPath();
                     const spriteDrawSize = this.size * 4.5;
@@ -1117,6 +1031,7 @@ render(ctx) {
                 }
                 */
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 55);
-}
+            }
+};
 
 export { renderMixin };
