@@ -1329,9 +1329,170 @@ const DevTool = {
         const overlay = document.getElementById('coordOverlay');
         const panel = document.getElementById('coordPanel');
         if (overlay) overlay.style.display = 'block';
-        if (panel) panel.style.display = 'block';
+        if (panel) panel.style.display = 'flex';
 
-        // 坐标工具逻辑...
+        // 清除之前的元素
+        overlay.querySelectorAll('.rect-preview, .mouse-label, .start-marker, .final-rect').forEach(el => el.remove());
+
+        // 重置显示
+        document.getElementById('coordStart').textContent = '--';
+        document.getElementById('coordEnd').textContent = '--';
+        document.getElementById('coordSize').textContent = '--';
+
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let rectPreview = null;
+        let mouseLabel = null;
+        let startMarker = null;
+
+        // 鼠标按下 - 开始框选
+        const onMouseDown = (e) => {
+            if (e.button !== 0) return; // 只响应左键
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            // 创建起始标记
+            startMarker = document.createElement('div');
+            startMarker.className = 'start-marker';
+            startMarker.style.left = (startX - 4) + 'px';
+            startMarker.style.top = (startY - 4) + 'px';
+            overlay.appendChild(startMarker);
+
+            // 创建矩形预览
+            rectPreview = document.createElement('div');
+            rectPreview.className = 'rect-preview';
+            rectPreview.style.left = startX + 'px';
+            rectPreview.style.top = startY + 'px';
+            rectPreview.style.width = '0px';
+            rectPreview.style.height = '0px';
+            overlay.appendChild(rectPreview);
+
+            // 创建鼠标标签
+            mouseLabel = document.createElement('div');
+            mouseLabel.className = 'mouse-label';
+            overlay.appendChild(mouseLabel);
+        };
+
+        // 鼠标移动 - 更新预览
+        const onMouseMove = (e) => {
+            if (!isDragging) {
+                // 显示当前鼠标坐标
+                if (!mouseLabel) {
+                    mouseLabel = document.createElement('div');
+                    mouseLabel.className = 'mouse-label';
+                    overlay.appendChild(mouseLabel);
+                }
+                mouseLabel.textContent = `${e.clientX}, ${e.clientY}`;
+                mouseLabel.style.left = (e.clientX + 12) + 'px';
+                mouseLabel.style.top = (e.clientY + 12) + 'px';
+                return;
+            }
+
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+            const left = Math.min(startX, currentX);
+            const top = Math.min(startY, currentY);
+            const width = Math.abs(currentX - startX);
+            const height = Math.abs(currentY - startY);
+
+            rectPreview.style.left = left + 'px';
+            rectPreview.style.top = top + 'px';
+            rectPreview.style.width = width + 'px';
+            rectPreview.style.height = height + 'px';
+
+            mouseLabel.textContent = `${width} x ${height}`;
+            mouseLabel.style.left = (currentX + 12) + 'px';
+            mouseLabel.style.top = (currentY + 12) + 'px';
+        };
+
+        // 鼠标释放 - 完成框选
+        const onMouseUp = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const endX = e.clientX;
+            const endY = e.clientY;
+            const left = Math.min(startX, endX);
+            const top = Math.min(startY, endY);
+            const width = Math.abs(endX - startX);
+            const height = Math.abs(endY - startY);
+
+            // 移除预览元素
+            if (rectPreview) rectPreview.remove();
+            if (mouseLabel) mouseLabel.remove();
+            if (startMarker) startMarker.remove();
+
+            // 创建最终矩形
+            const finalRect = document.createElement('div');
+            finalRect.className = 'final-rect';
+            finalRect.style.left = left + 'px';
+            finalRect.style.top = top + 'px';
+            finalRect.style.width = width + 'px';
+            finalRect.style.height = height + 'px';
+            overlay.appendChild(finalRect);
+
+            // 更新面板显示
+            document.getElementById('coordStart').textContent = `${startX}, ${startY}`;
+            document.getElementById('coordEnd').textContent = `${endX}, ${endY}`;
+            document.getElementById('coordSize').textContent = `${width} x ${height}`;
+        };
+
+        // 右键退出
+        const onContextMenu = (e) => {
+            e.preventDefault();
+            this._stopCoordTool();
+        };
+
+        // 绑定事件
+        overlay.addEventListener('mousedown', onMouseDown);
+        overlay.addEventListener('mousemove', onMouseMove);
+        overlay.addEventListener('mouseup', onMouseUp);
+        overlay.addEventListener('contextmenu', onContextMenu);
+
+        // 复制按钮
+        const copyBtn = document.getElementById('coordCopyBtn');
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                const start = document.getElementById('coordStart').textContent;
+                const end = document.getElementById('coordEnd').textContent;
+                const size = document.getElementById('coordSize').textContent;
+                const text = `起始: ${start} | 结束: ${end} | 尺寸: ${size}`;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.textContent = '✅ 已复制';
+                    setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
+                }).catch(() => {
+                    // fallback
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    copyBtn.textContent = '✅ 已复制';
+                    setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
+                });
+            };
+        }
+
+        // 保存引用以便后续清理
+        this._coordToolCleanup = () => {
+            overlay.removeEventListener('mousedown', onMouseDown);
+            overlay.removeEventListener('mousemove', onMouseMove);
+            overlay.removeEventListener('mouseup', onMouseUp);
+            overlay.removeEventListener('contextmenu', onContextMenu);
+            overlay.querySelectorAll('.rect-preview, .mouse-label, .start-marker, .final-rect').forEach(el => el.remove());
+            if (overlay) overlay.style.display = 'none';
+            if (panel) panel.style.display = 'none';
+            if (copyBtn) copyBtn.onclick = null;
+        };
+    },
+
+    _stopCoordTool() {
+        if (this._coordToolCleanup) {
+            this._coordToolCleanup();
+            this._coordToolCleanup = null;
+        }
     },
 
     // 加载帧图片
