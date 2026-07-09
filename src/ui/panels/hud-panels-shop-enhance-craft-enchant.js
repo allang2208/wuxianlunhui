@@ -208,7 +208,7 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     craftModContainer.id = 'craftModContainer';
     craftModContainer.style.display = 'none';
     const craftLinesSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    craftLinesSvg.className = 'craft-lines-svg';
+    craftLinesSvg.setAttribute('class', 'craft-lines-svg');
     craftLinesSvg.id = 'craftLinesSvg';
     const craftModGrid = document.createElement('div');
     craftModGrid.className = 'craft-mod-grid';

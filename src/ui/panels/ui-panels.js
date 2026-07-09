@@ -10,7 +10,7 @@ import { createHudPanelsSystemTabs } from './hud-panels-system-tabs.js';
 import { createHudPanelsNpc } from './hud-panels-npc.js';
 import { createHudPanelsShopEnhanceCraftEnchant } from './hud-panels-shop-enhance-craft-enchant.js';
 import { createHudPanelsExpeditionQuestReward } from './hud-panels-expedition-quest-reward.js';
-import { createHudPanelsDevTools } from './hud-panels-dev-tools.js';
+import { createDevToolPanel as createHudPanelsDevTools } from './hud-panels-dev-tools.js';
 import { createHudPanelsMisc } from './hud-panels-misc.js';
 import { createDevToolPanel } from './dev-tools.js';
 
