@@ -10,7 +10,6 @@ import { createHudPanelsSystemTabs } from './hud-panels-system-tabs.js';
 import { createHudPanelsNpc } from './hud-panels-npc.js';
 import { createHudPanelsShopEnhanceCraftEnchant } from './hud-panels-shop-enhance-craft-enchant.js';
 import { createHudPanelsExpeditionQuestReward } from './hud-panels-expedition-quest-reward.js';
-import { createDevToolPanel as createHudPanelsDevTools } from './hud-panels-dev-tools.js';
 import { createHudPanelsMisc } from './hud-panels-misc.js';
 import { createDevToolPanel } from './dev-tools.js';
 
@@ -62,12 +61,6 @@ export function initUIPanels(gameContainer) {
         uiLayer.appendChild(expeditionPanels.firstChild);
     }
 
-    // 开发工具面板
-    const devToolPanels = createHudPanelsDevTools();
-    while (devToolPanels.firstChild) {
-        uiLayer.appendChild(devToolPanels.firstChild);
-    }
-
     // 杂项面板（侧边菜单、快捷栏、经验条、操作提示等）
     const miscPanels = createHudPanelsMisc();
     while (miscPanels.firstChild) {
@@ -76,7 +69,7 @@ export function initUIPanels(gameContainer) {
 
     gameContainer.appendChild(uiLayer);
 
-    // ===== 开发工具独立面板（不在 uiLayer 内）=====
+    // ===== 开发工具面板 =====
     const devToolPanel = createDevToolPanel();
     gameContainer.appendChild(devToolPanel);
 
@@ -95,7 +88,6 @@ export {
     createHudPanelsNpc,
     createHudPanelsShopEnhanceCraftEnchant,
     createHudPanelsExpeditionQuestReward,
-    createHudPanelsDevTools,
     createHudPanelsMisc,
     createDevToolPanel
 };
