@@ -202,12 +202,10 @@ renderWeapon(ctx) {
                 ctx.save();
                 ctx.translate(mainBaseX, mainBaseY);
                 const wpnDir = this._getFacingDirection();
-                // 精灵图右手挂载点
-                if (this._runningSpriteSheet && this._runningSpriteSheet.complete && this._runningSpriteSheet.naturalWidth > 0) {
-                    const mountX = wpnDir === 'left' ? -15 : 15;
-                    const mountY = wpnDir === 'left' ? 10 : -10;
-                    ctx.translate(mountX, mountY);
-                }
+                // 武器挂载点（固定偏移，不再依赖精灵图）
+                const mountX = wpnDir === 'left' ? -15 : 15;
+                const mountY = wpnDir === 'left' ? 10 : -10;
+                ctx.translate(mountX, mountY);
                 if (wpnDir === 'left' || wpnDir === 'right') {
                     ctx.scale(-1, 1);
                 }
@@ -689,12 +687,10 @@ renderWeapon(ctx) {
                     const offIsAttacking = offhandAnim.state !== 'idle';
                     ctx.save();
                     ctx.translate(offBaseX, offBaseY); // 副手位置
-                    // 精灵图左手挂载点
-                    if (this._runningSpriteSheet && this._runningSpriteSheet.complete && this._runningSpriteSheet.naturalWidth > 0) {
-                        const mountX = wpnDir === 'left' ? 15 : -15;
-                        const mountY = wpnDir === 'left' ? 10 : -10;
-                        ctx.translate(mountX, mountY);
-                    }
+                    // 副手武器挂载点（固定偏移）
+                    const mountX = wpnDir === 'left' ? 15 : -15;
+                    const mountY = wpnDir === 'left' ? 10 : -10;
+                    ctx.translate(mountX, mountY);
                     if (wpnDir === 'left' || wpnDir === 'right') {
                         ctx.scale(-1, 1);
                     }
@@ -805,7 +801,12 @@ render(ctx) {
                         // 攻击动画播放时不覆盖
                         const isPlayingAttack = sprite.anims.isPlaying && sprite.anims.currentAnim && sprite.anims.currentAnim.key === 'player_attack_sword';
                         if (!isPlayingAttack) {
-                            sprite.setTexture('player_running');
+                            // 使用 Phaser 动画系统播放 walk/run
+                            const animKey = this._isSprinting ? 'player_run' : 'player_walk';
+                            const currentAnim = sprite.anims.currentAnim?.key;
+                            if (currentAnim !== animKey) {
+                                sprite.play(animKey, true);
+                            }
                         }
                         sprite.setRotation(this.rotation - Math.PI / 2);
                     } else {
@@ -924,96 +925,22 @@ render(ctx) {
                     }
                     ctx.rotate(spinAngle);
                 }
-                // ===== 角色精灵图渲染 + 动画 =====
-                let bodyScale = 1;
-                let bodyOffsetX = 0;
-                let bodyOffsetY = 0;
+                // ===== 角色渲染已迁移到 Phaser =====
+                // Phaser Sprite 在 render() 开头已同步位置和动画
+                // Canvas 不再绘制角色精灵图
+                // Character animation handled by Phaser, Canvas no longer needs these variables
 
-                // 火柴人绘制参数（新 _drawStickFigure 内部处理呼吸和行走动画）
-                bodyScale = 1;
-                bodyOffsetX = 0;
-                bodyOffsetY = -12; // 上移12px，使火柴人中心与hitbox中心对齐
-
-                // 剑类武器攻击：身体配合刺击动画
-                // [STICK FIGURE] 火柴人模式下攻击时身体不动，只动武器
-                // 攻击位移设为0，武器动画由 renderWeapon() 处理
-                const isMeleeEquipped = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
-                const isMeleeAttacking = isMeleeEquipped && this.weaponAnim.state !== 'idle';
-                if (isMeleeAttacking && !this._isWhirlwind && !this._isDashing && !this._specialAttackActive) {
-                    // body 保持不动
-                }
-
-                // 绘制角色精灵图（替代火柴人）
+                // 角色渲染已迁移到 Phaser，Canvas 跳过
+                // Phaser 同步逻辑在 render() 开头已完成
+                // 如果 Phaser 不可用，显示简单占位（不应发生）
                 if (!this._usePhaserSprite) {
-                    const isSpriteReady = this._runningSpriteSheet && this._runningSpriteSheet.complete && this._runningSpriteSheet.naturalWidth > 0;
-                    const isIdleReady = this._idleSprite && this._idleSprite.complete && this._idleSprite.naturalWidth > 0;
-                    if (isSpriteReady && isIdleReady) {
-                        const drawSize = this.size * 4.5; // 约 72px
-                        ctx.save();
-                        // 反旋转回直立
-                        ctx.rotate(-this.rotation);
-                        // 根据朝向水平翻转
-                        if (this._getFacingDirection() === 'left') {
-                            ctx.scale(-1, 1);
-                        }
-                        // 受击闪白
-                        if (this.hitFlash > 0) {
-                            ctx.globalAlpha = 0.4 + Math.sin((this.hitFlash / this.hitFlashDuration) * Math.PI) * 0.6;
-                        }
-
-                        if (this.isMoving && !this.isDodging && !this._isDashing && !this._isWhirlwind && !this._specialAttackActive) {
-                            if (this._isSprinting) {
-                                // ===== 奔跑动画（running.png 16帧） =====
-                                const FRAME_W = 512, FRAME_H = 512;
-                                const COLS = 8;
-                                const col = this._runningFrame % COLS;
-                                const row = Math.floor(this._runningFrame / COLS);
-                                const sx = col * FRAME_W;
-                                const sy = row * FRAME_H;
-                                ctx.drawImage(
-                                    this._runningSpriteSheet,
-                                    sx, sy, FRAME_W, FRAME_H,
-                                    -drawSize / 2, -drawSize / 2,
-                                    drawSize, drawSize
-                                );
-                            } else {
-                                // ===== 行走动画（walk.png 21帧，3x8网格） =====
-                                const WALK_W = 512, WALK_H = 516;
-                                const WALK_COLS = 8;
-                                const col = this._walkFrame % WALK_COLS;
-                                const row = Math.floor(this._walkFrame / WALK_COLS);
-                                const sx = col * WALK_W;
-                                const sy = row * WALK_H;
-                                ctx.drawImage(
-                                    this._walkSpriteSheet,
-                                    sx, sy, WALK_W, WALK_H,
-                                    -drawSize / 2, -drawSize / 2,
-                                    drawSize, drawSize
-                                );
-                            }
-                        } else {
-                            // ===== 待机动画：轻微抖动 =====
-                            const t = Date.now();
-                            // 呼吸感上下浮动 + 极轻微左右晃动
-                            const breatheY = Math.sin(t / 400) * 1.2;
-                            const swayX = Math.sin(t / 600) * 0.4;
-                            const breatheScale = 1.0 + Math.sin(t / 500) * 0.015;
-                            ctx.translate(swayX, breatheY);
-                            ctx.scale(breatheScale, breatheScale);
-                            const IDLE_W = 516, IDLE_H = 516;
-                            ctx.drawImage(
-                                this._idleSprite,
-                                0, 0, IDLE_W, IDLE_H,
-                                -drawSize / 2, -drawSize / 2,
-                                drawSize, drawSize
-                            );
-                        }
-                        ctx.restore();
-                    } else {
-                        // 精灵图未加载完成，回退到火柴人
-                        this._drawStickFigure(ctx, bodyScale, bodyOffsetX, bodyOffsetY);
-                    }
+                    // 回退：绘制简单圆形占位
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                    ctx.fill();
                 }
+                // All character animation migrated to Phaser
                 // ===== 边境长弓蓄力满闪光特效（人物） =====
                 if (this._chargeFlashActive) {
                     const flashAlpha = Math.min(1, this._chargeFlashTimer / 500);

@@ -246,7 +246,7 @@ export class GameScene extends Scene {
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
             this.playerSprite.setVisible(!_isStickFigure);
             this.playerSprite.setActive(!_isStickFigure);
-            this.playerSprite.play('player_walk');
+            this.playerSprite.setTexture('player_idle');
         }
     }
 
@@ -272,17 +272,36 @@ export class GameScene extends Scene {
      */
     setPlayerAnimation(key) {
         if (!this.playerSprite) return;
+        
+        const currentAnim = this.playerSprite.anims.currentAnim?.key;
+        
+        if (key === 'idle') {
+            if (currentAnim && currentAnim !== 'player_idle') {
+                this.playerSprite.anims.stop();
+            }
+            this.playerSprite.setTexture('player_idle');
+        } else if (key === 'walk') {
+            if (currentAnim !== 'player_walk') {
+                this.playerSprite.play('player_walk', true);
+            }
+        } else if (key === 'run') {
+            if (currentAnim !== 'player_run') {
+                this.playerSprite.play('player_run', true);
+            }
+        } else if (key === 'attack_sword') {
+            // 剑攻击动画：播放一次，完成后回到idle
+            this.playerSprite.play('player_attack_sword', true);
+            this.playerSprite.once('animationcomplete', () => {
+                this.setPlayerAnimation('idle');
+            });
+        }
+    }
+        if (!this.playerSprite) return;
         if (key === 'idle') {
             this.playerSprite.anims.stop();
             this.playerSprite.setTexture('player_idle');
-            this.playerSprite.anims.stop();
-            this.playerSprite.setTexture('player_attack_sword');
-            this.playerSprite.setFrame(0);
-            this.playerSprite.setTexture('character_idle');
         } else if (key === 'walk') {
             this.playerSprite.setTexture('player_running');
-        } else if (key === 'attack_sword') {
-            this.playerSprite.play('player_walk', true);
         } else if (key === 'attack_sword') {
             // 剑攻击动画：播放一次，完成后回到idle
             this.playerSprite.play('player_attack_sword', true);

@@ -228,30 +228,8 @@ update(dt, entities) {
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
                 const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
                 this._isSprinting = _sprintActive; // 保存供render使用
-                // ===== 行走/奔跑动画帧更新 =====
-                if (this.isMoving && !this.isDodging && !this._isDashing && !this._isWhirlwind && !this._specialAttackActive) {
-                    if (_sprintActive) {
-                        // 奔跑动画（running.png 16帧）
-                        this._runningAnimTimer += dt;
-                        if (this._runningAnimTimer >= this._runningFrameDuration) {
-                            this._runningAnimTimer = 0;
-                            this._runningFrame = (this._runningFrame + 1) % 16;
-                        }
-                    } else {
-                        // 行走动画（walk.png 21帧）
-                        this._walkAnimTimer += dt;
-                        if (this._walkAnimTimer >= this._walkFrameDuration) {
-                            this._walkAnimTimer = 0;
-                            this._walkFrame = (this._walkFrame + 1) % 21;
-                        }
-                    }
-                } else {
-                    // 静止：重置所有动画帧
-                    this._runningFrame = 0;
-                    this._runningAnimTimer = 0;
-                    this._walkFrame = 0;
-                    this._walkAnimTimer = 0;
-                }
+                // ===== 行走/奔跑动画已由 Phaser 处理 =====
+                // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
                 if (this.isMoving && !this.isDodging) {
                     this.animTime += 0.15;
                 }
