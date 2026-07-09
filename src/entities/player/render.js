@@ -1125,7 +1125,5 @@ render(ctx) {
                 }
                 */
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)'; ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.data.name, x, y - 55);
-            }
-};
 
 export { renderMixin };
