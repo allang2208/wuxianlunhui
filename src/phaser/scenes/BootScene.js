@@ -15,20 +15,12 @@ export class BootScene extends Scene {
         // ---- 角色资源 ----
         // 待机动画（单帧）
         this.load.image('player_idle', 'assets/character/idle.png');
-        // 行走动画spritesheet（21帧，3x8网格，每帧512x516）
+        // 行走动画spritesheet（21帧，3x8网格，实际尺寸4100x1548，每帧512x516）
         this.load.spritesheet('player_walk', 'assets/character/walk.png', { frameWidth: 512, frameHeight: 516, endFrame: 20 });
-        // 奔跑动画spritesheet（16帧，2x8网格，每帧512x512）
+        // 奔跑动画spritesheet（16帧，2x8网格，实际尺寸4096x1024，每帧512x512）
         this.load.spritesheet('player_run', 'assets/character/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        // 剑攻击spritesheet（8帧）
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
-        // 待机动画（单帧）
-        this.load.image('player_idle', 'assets/character/idle.png');
-        // 行走动画spritesheet（21帧，3x8网格，每帧512x516）
-        this.load.spritesheet('player_walk', 'assets/character/walk.png', { frameWidth: 512, frameHeight: 516, endFrame: 20 });
-        // 奔跑动画spritesheet（16帧，2x8网格，每帧512x512）
-        this.load.spritesheet('player_run', 'assets/character/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        // 剑攻击spritesheet（8帧）
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
+        // 剑攻击spritesheet（8帧，实际尺寸4100x1548，每帧512x516）
+        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 516, endFrame: 7 });
         // 待机、奔跑、攻击精灵图
         this.load.image('player_idle', 'assets/player/idle.png');
         this.load.image('player_running', 'assets/player/running.png');
