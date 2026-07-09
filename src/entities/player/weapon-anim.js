@@ -72,6 +72,15 @@ const weaponAnimMixin = {
         if (isMelee) {
             // 剑类武器：使用 Phaser Tween 驱动攻击动画
             this._playSwordAttackTween(scene, hand);
+            // 同时播放角色攻击动画
+            if (scene.playerSprite) {
+                scene.playerSprite.play('player_attack_sword', true);
+                scene.playerSprite.once('animationcomplete', () => {
+                    if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
+                        scene.playerSprite.setTexture('player_idle');
+                    }
+                });
+            }
         }
         // 其他武器类型（弓、枪械等）保持原有逻辑
     },
