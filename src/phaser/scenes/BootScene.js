@@ -106,12 +106,8 @@ export class BootScene extends Scene {
             frameRate: 12,  // 12fps，总时长约667ms
             repeat: 0,      // 播放一次
         });
-        this.anims.create({
-            key: 'player_attack_sword',
-            frames: this.anims.generateFrameNumbers('player_attack_sword', { start: 0, end: 7 }),
-            frameRate: 12,  // 12fps，总时长约667ms
-            repeat: 0,      // 播放一次
-        });
+
+        // ---- 动态生成几何敌人纹理 ----
 
         // ---- 动态生成几何敌人纹理 ----
         const generateEnemyTexture = (key, drawFn) => {
