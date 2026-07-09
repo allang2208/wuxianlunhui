@@ -797,6 +797,11 @@ render(ctx) {
                     const FRAME_SIZE = 512;
                     const scale = spriteSize / FRAME_SIZE;
                     sprite.setScale(scale);
+                    // 根据朝向设置左右翻转（只保留左右朝向）
+                    // rotation: 0=右, PI/2=下, PI=左, -PI/2=上
+                    const facingRight = Math.abs(this.rotation) < Math.PI / 2;
+                    sprite.setFlipX(!facingRight);
+                    
                     if (this.isMoving) {
                         // 攻击动画播放时不覆盖
                         const isPlayingAttack = sprite.anims.isPlaying && sprite.anims.currentAnim && sprite.anims.currentAnim.key === 'player_attack_sword';
@@ -808,7 +813,7 @@ render(ctx) {
                                 sprite.play(animKey, true);
                             }
                         }
-                        sprite.setRotation(this.rotation - Math.PI / 2);
+                        sprite.setRotation(0); // 不旋转，只用 flipX 控制朝向
                     } else {
                         // 攻击动画播放时不停止
                         const isPlayingAttack = sprite.anims.isPlaying && sprite.anims.currentAnim && sprite.anims.currentAnim.key === 'player_attack_sword';
@@ -816,7 +821,7 @@ render(ctx) {
                             if (sprite.anims.isPlaying) sprite.anims.stop();
                             sprite.setTexture('player_idle');
                         }
-                        sprite.setRotation(this.rotation - Math.PI / 2);
+                        sprite.setRotation(0); // 不旋转，只用 flipX 控制朝向
                     }
                     // ===== 场景六地图模式：隐藏 Phaser 角色贴图 =====
                     const _dms = window.DungeonMapSystem || (typeof DungeonMapSystem !== 'undefined' ? DungeonMapSystem : null);
