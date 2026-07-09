@@ -804,7 +804,7 @@ render(ctx) {
                             // 使用 Phaser 动画系统播放 walk/run
                             const animKey = this._isSprinting ? 'player_run' : 'player_walk';
                             const currentAnim = sprite.anims.currentAnim?.key;
-                            if (currentAnim !== animKey) {
+                            if (currentAnim !== animKey || !sprite.anims.isPlaying) {
                                 sprite.play(animKey, true);
                             }
                         }
