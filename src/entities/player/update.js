@@ -563,8 +563,10 @@ update(dt, entities) {
                     // 游戏开始冷却：防止点击"开始游戏"按钮的鼠标事件携带到游戏中导致自动攻击
                     if (this.gameStartCooldown > 0) {
                         this.gameStartCooldown -= dt;
-                        Input.mouse.leftPressed = false;
-                        Input.mouse.leftDown = false;
+                        if (this.gameStartCooldown > 0) {
+                            Input.mouse.leftPressed = false;
+                            Input.mouse.leftDown = false;
+                        }
                     }
                     // 防御状态下：跳过所有攻击输入处理（手枪+盾时允许手枪攻击）
                     const _mainItem = this.equipments[this.weaponMode];
