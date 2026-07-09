@@ -13,13 +13,12 @@ export class BootScene extends Scene {
         console.log('[BootScene] Preloading assets...');
 
         // ---- 角色资源 ----
-        this.load.image('character_idle', 'assets/characters/character_idle_new.png');
-        // 行走帧（24帧）- 暂时保持单文件加载，后续可合并为图集
-        for (let i = 1; i <= 24; i++) {
-            const num = String(i).padStart(3, '0');
-            this.load.image(`walk_${num}`, `assets/characters/walk/hero_${num}.png`);
-        }
+        // 待机、奔跑、攻击精灵图
+        this.load.image('player_idle', 'assets/player/idle.png');
+        this.load.image('player_running', 'assets/player/running.png');
         // 剑攻击spritesheet（8帧）
+        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
+        // 剑攻击spritesheet（8帧）- 目前唯一使用的角色动画资源
         this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
 
         // ---- 武器资源 ----
@@ -67,18 +66,6 @@ export class BootScene extends Scene {
 
     create() {
         console.log('[BootScene] Creating animations...');
-
-        // 创建玩家行走动画（24帧）
-        const walkFrames = [];
-        for (let i = 1; i <= 24; i++) {
-            walkFrames.push({ key: `walk_${String(i).padStart(3, '0')}` });
-        }
-        this.anims.create({
-            key: 'player_walk',
-            frames: walkFrames,
-            frameRate: 12,  // 12fps = 每帧83ms
-            repeat: -1,
-        });
 
         // 创建剑攻击动画（8帧）
         this.anims.create({
