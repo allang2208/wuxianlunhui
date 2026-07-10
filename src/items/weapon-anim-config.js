@@ -52,7 +52,8 @@ import { Easing } from '../config/math-utils.js';
                         { progress: 0.5, offsetX: -54, offsetY: -87, rotation: -75, scale: 1.5 },
                         { progress: 0.625, offsetX: -49, offsetY: -87, rotation: -85, scale: 1.5 },
                         { progress: 0.75, offsetX: -9, offsetY: -57, rotation: -55, scale: 1.5 },
-                        { progress: 0.875, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 }
+                        { progress: 0.875, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 },
+                        { progress: 1.0, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 }
                     ],
                     walk: [
                         { progress: 0.19047619047619047, offsetX: -22.5, offsetY: 23.078125, rotation: 20, scale: 1.5000000000000004 },
