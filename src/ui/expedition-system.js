@@ -425,33 +425,33 @@ export const ExpeditionSystem = {
     // 更新地牢信息面板
     _updateDungeonInfo(dungeonType) {
         const nameEl = document.getElementById('expeditionDungeonName');
-        const descEl = document.getElementById('expeditionDungeonDesc');
+        const nodeCountEl = document.getElementById('expeditionNodeCount');
+        const battleRatioEl = document.getElementById('expeditionBattleRatio');
         const levelEl = document.getElementById('expeditionLevel');
-        const diffEl = document.getElementById('expeditionDifficulty');
         const rewardEl = document.getElementById('expeditionReward');
 
         const info = {
             default: {
                 name: '遗忘祭坛',
-                desc: '古老教团的祭祀场所，35-40节点随机地图，9场战斗最短路径到Boss。',
-                level: 'Lv.5 ~ 15',
-                difficulty: '★★★☆☆',
-                reward: '4500 金币 + 三选一奖励'
+                nodeCount: '35~40',
+                battleRatio: '70%',
+                level: '5-15级',
+                reward: '4500金币'
             },
             zombie: {
                 name: '☠ 僵尸地牢',
-                desc: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处的尸王巢穴。',
-                level: 'Lv.2 ~ 10',
-                difficulty: '★★★★☆',
-                reward: '6000 金币 + 稀有装备'
+                nodeCount: '35~40',
+                battleRatio: '70%',
+                level: '1级',
+                reward: '1500金币'
             }
         };
 
         const d = info[dungeonType] || info.default;
         if (nameEl) nameEl.textContent = d.name;
-        if (descEl) descEl.textContent = d.desc;
+        if (nodeCountEl) nodeCountEl.textContent = d.nodeCount;
+        if (battleRatioEl) battleRatioEl.textContent = d.battleRatio;
         if (levelEl) levelEl.textContent = d.level;
-        if (diffEl) diffEl.textContent = d.difficulty;
         if (rewardEl) rewardEl.textContent = d.reward;
     },
 

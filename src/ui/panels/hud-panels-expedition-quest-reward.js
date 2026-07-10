@@ -50,38 +50,31 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionDungeonSelector.appendChild(dungeonLabel);
     expeditionDungeonSelector.appendChild(expeditionDungeonSelect);
     expeditionInfo.appendChild(expeditionDungeonSelector);
-    const expeditionDungeonName = document.createElement('div');
-    expeditionDungeonName.className = 'expedition-dungeon-name';
-    expeditionDungeonName.id = 'expeditionDungeonName';
-    expeditionDungeonName.textContent = '遗忘祭坛';
-    expeditionInfo.appendChild(expeditionDungeonName);
-    const expeditionDungeonDesc = document.createElement('div');
-    expeditionDungeonDesc.className = 'expedition-dungeon-desc';
-    expeditionDungeonDesc.id = 'expeditionDungeonDesc';
-    expeditionDungeonDesc.textContent = '古老教团的祭祀场所，如今只剩下扭曲的雕像与呢喃的低语。';
-    expeditionInfo.appendChild(expeditionDungeonDesc);
-    const expeditionStats = document.createElement('div');
-    expeditionStats.className = 'expedition-stats';
-    const expeditionStatDefs = [
-        { label: '推荐等级', id: 'expeditionLevel', val: 'Lv.5 ~ 15' },
-        { label: '难度', id: 'expeditionDifficulty', val: '★★★☆☆' },
-        { label: '预计奖励', id: 'expeditionReward', val: '4500 金币' }
+    // 水平信息行
+    const expeditionInfoRow = document.createElement('div');
+    expeditionInfoRow.className = 'expedition-info-row';
+    const expeditionInfoDefs = [
+        { label: '地牢名称', id: 'expeditionDungeonName', val: '遗忘祭坛' },
+        { label: '节点数', id: 'expeditionNodeCount', val: '35~40' },
+        { label: '战斗节点', id: 'expeditionBattleRatio', val: '70%' },
+        { label: '地牢等级', id: 'expeditionLevel', val: '5-15级' },
+        { label: '预计奖励', id: 'expeditionReward', val: '4500金币' }
     ];
-    expeditionStatDefs.forEach(sd => {
-        const stat = document.createElement('div');
-        stat.className = 'expedition-stat';
-        const statLabel = document.createElement('span');
-        statLabel.className = 'expedition-stat-label';
-        statLabel.textContent = sd.label;
-        const statValue = document.createElement('span');
-        statValue.className = 'expedition-stat-value';
-        statValue.id = sd.id;
-        statValue.textContent = sd.val;
-        stat.appendChild(statLabel);
-        stat.appendChild(statValue);
-        expeditionStats.appendChild(stat);
+    expeditionInfoDefs.forEach(sd => {
+        const item = document.createElement('div');
+        item.className = 'expedition-info-item';
+        const itemLabel = document.createElement('span');
+        itemLabel.className = 'expedition-info-label';
+        itemLabel.textContent = sd.label + '：';
+        const itemValue = document.createElement('span');
+        itemValue.className = 'expedition-info-value';
+        itemValue.id = sd.id;
+        itemValue.textContent = sd.val;
+        item.appendChild(itemLabel);
+        item.appendChild(itemValue);
+        expeditionInfoRow.appendChild(item);
     });
-    expeditionInfo.appendChild(expeditionStats);
+    expeditionInfo.appendChild(expeditionInfoRow);
     expeditionBody.appendChild(expeditionInfo);
     // 队伍
     const expeditionParty = document.createElement('div');
