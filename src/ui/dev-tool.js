@@ -44,6 +44,14 @@ const DevTool = {
         step: 0.25,
     },
 
+    // 关键帧系统（攻击动画每帧武器位置）
+    keyframeSystem: {
+        enabled: false,           // 是否启用关键帧模式
+        keyframes: [],            // 当前关键帧数组 [{progress, offsetX, offsetY, rotation, scale}]
+        selectedIndex: -1,        // 当前选中的关键帧索引
+        isRecording: false,       // 是否正在录制关键帧
+    },
+
     // 挂载点编辑系统
     handAnchorSystem: {
         enabled: false,       // 是否启用挂载点编辑模式
