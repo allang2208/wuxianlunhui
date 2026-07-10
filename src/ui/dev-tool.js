@@ -36,6 +36,14 @@ const DevTool = {
         startOffsetX: 0, startOffsetY: 0,
     },
 
+    // 画布缩放
+    zoom: {
+        scale: 1.0,
+        min: 0.5,
+        max: 3.0,
+        step: 0.25,
+    },
+
     // 关键帧系统（攻击动画每帧武器位置）
     keyframeSystem: {
         enabled: false,           // 是否启用关键帧模式
@@ -231,6 +239,16 @@ const DevTool = {
         // 坐标工具按钮
         const coordBtn = document.getElementById('devToolCoord');
         if (coordBtn) coordBtn.addEventListener('click', () => this._startCoordTool());
+
+        // 缩放按钮
+        const zoomInBtn = document.getElementById('devToolZoomIn');
+        if (zoomInBtn) zoomInBtn.addEventListener('click', () => this._zoomIn());
+        
+        const zoomOutBtn = document.getElementById('devToolZoomOut');
+        if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this._zoomOut());
+        
+        const zoomResetBtn = document.getElementById('devToolZoomReset');
+        if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this._zoomReset());
 
         // Canvas 鼠标交互
         this._canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -968,6 +986,34 @@ const DevTool = {
         if (elS) elS.value = this.weaponParams.scale.toFixed(2);
     },
 
+    // 画布缩放控制
+    _zoomIn() {
+        if (this.zoom.scale < this.zoom.max) {
+            this.zoom.scale = Math.min(this.zoom.max, this.zoom.scale + this.zoom.step);
+            this._applyZoom();
+        }
+    },
+    _zoomOut() {
+        if (this.zoom.scale > this.zoom.min) {
+            this.zoom.scale = Math.max(this.zoom.min, this.zoom.scale - this.zoom.step);
+            this._applyZoom();
+        }
+    },
+    _zoomReset() {
+        this.zoom.scale = 1.0;
+        this._applyZoom();
+    },
+    _applyZoom() {
+        // 更新画布 CSS 缩放
+        if (this._canvas) {
+            this._canvas.style.transform = `scale(${this.zoom.scale})`;
+            this._canvas.style.transformOrigin = 'center center';
+        }
+        // 更新标签
+        const label = document.getElementById('devToolZoomLabel');
+        if (label) label.textContent = `${Math.round(this.zoom.scale * 100)}%`;
+    },
+
     // 绘制
     _draw() {
         const ctx = this._ctx;
@@ -1102,9 +1148,9 @@ const DevTool = {
             };
             
             // 仅在攻击/行走动画 + 关键帧启用时，用插值结果覆盖
-            // 拖动时或旋转模式下禁用关键帧，使用 weaponParams（支持实时调整）
+            // 拖动时、旋转模式、缩放调整时禁用关键帧，使用 weaponParams（支持实时调整）
             let useKeyframes = false;
-            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active && this.state.mode !== 'rotate') {
+            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active) {
                 useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
                 if (useKeyframes) {
                     const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;

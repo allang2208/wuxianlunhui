@@ -2097,6 +2097,45 @@
     padding: 1px 5px; font-size: 10px; color: #c0a060;
 }
 .dev-tool-mode-hint .mode-active { color: #7a9a6a; font-weight: 600; }
+
+/* 缩放控制按钮 */
+.dev-tool-zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.dev-tool-zoom-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #5a4d3f;
+    border-radius: 4px;
+    background: #2a2520;
+    color: #d4c5a9;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.dev-tool-zoom-btn:hover {
+    background: #3d342b;
+    border-color: #8a7d6b;
+}
+.dev-tool-zoom-btn:active {
+    background: #4a3f35;
+}
+.dev-tool-zoom-label {
+    color: #d4c5a9;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 4px;
+    min-width: 50px;
+    text-align: center;
+    font-family: monospace;
+}
+
 .dev-tool-data-output {
     display: none; background: #1e1a16; border: 1px solid #5a4d3f;
     border-radius: 6px; padding: 8px; font-family: monospace; font-size: 11px;
