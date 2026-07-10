@@ -880,11 +880,10 @@ const DevTool = {
             anchor.x = sys.handAnchorStartX + dx;
             anchor.y = sys.handAnchorStartY + dy;
             
-            // 同步更新武器位置（武器跟随手部）
-            this.weaponParams.offsetX = anchor.x;
-            this.weaponParams.offsetY = anchor.y;
+            // 只更新挂载点，不更新武器位置（武器位置独立调整）
+            // this.weaponParams.offsetX = anchor.x;
+            // this.weaponParams.offsetY = anchor.y;
             
-            this._syncInputs();
             this._draw();
             return;
         }
