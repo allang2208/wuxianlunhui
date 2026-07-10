@@ -38,6 +38,21 @@ import { Easing } from '../config/math-utils.js';
                 easeRecover: Easing.easeInOutCubic, // 收回缓动：平滑
                 // 角度变化（可选，留空则使用 WEAPON_ANIM 默认值）
                 idleAngle: 0, windupAngle: Math.PI / 6, swingAngle: -Math.PI / 6,
+            },
+            // 关键帧配置：攻击动画每帧武器位置（用于开发工具设定）
+            // 结构：{ progress: 0-1, offsetX, offsetY, rotation, scale }
+            // progress 对应攻击进度（0=开始, 1=结束）
+            keyframes: {
+                // 示例：剑类攻击关键帧（可由开发工具编辑）
+                sword: {
+                    attack: [
+                        { progress: 0.00, offsetX: -30, offsetY: 5,  rotation: -45, scale: 1.3 },
+                        { progress: 0.25, offsetX: -20, offsetY: 0,  rotation: -20, scale: 1.4 },
+                        { progress: 0.50, offsetX: 40,  offsetY: -10, rotation: 30,  scale: 1.5 },
+                        { progress: 0.75, offsetX: 20,  offsetY: 0,  rotation: 10,  scale: 1.4 },
+                        { progress: 1.00, offsetX: -30, offsetY: 5,  rotation: -45, scale: 1.3 }
+                    ]
+                }
             }
         };
 

@@ -38,6 +38,14 @@ const DevTool = {
         startOffsetX: 0, startOffsetY: 0,
     },
 
+    // 关键帧系统（攻击动画每帧武器位置）
+    keyframeSystem: {
+        enabled: false,           // 是否启用关键帧模式
+        keyframes: [],            // 当前关键帧数组 [{progress, offsetX, offsetY, rotation, scale}]
+        selectedIndex: -1,        // 当前选中的关键帧索引
+        isRecording: false,       // 是否正在录制关键帧
+    },
+
     // 图片缓存
     images: {},
     charImage: null,
@@ -195,6 +203,7 @@ const DevTool = {
                 this.state.attackState = 'idle';
                 this.state.isPlaying = false;
                 this._stopFrameAnimation();
+                this._loadKeyframes(); // 加载关键帧
                 this._updateFrameSlider();
                 this._updateFrameLabel();
                 this._updatePlayBtn();
@@ -289,7 +298,33 @@ const DevTool = {
             if (e.key === 'Escape') {
                 this.hide();
             }
+            // 关键帧快捷键
+            if (this.state.anim === 'attack' && this.keyframeSystem.enabled) {
+                if (e.key === 'k' || e.key === 'K') {
+                    // K键：在当前进度添加关键帧
+                    e.preventDefault();
+                    this._addKeyframe(this.state.attackProgress);
+                    this._showToast(`✅ 关键帧已添加 @ ${Math.round(this.state.attackProgress * 100)}%`);
+                }
+            }
         });
+
+        // 关键帧按钮事件
+        const addKfBtn = document.getElementById('devToolAddKeyframe');
+        if (addKfBtn) addKfBtn.addEventListener('click', () => {
+            if (this.state.anim === 'attack') {
+                this._addKeyframe(this.state.attackProgress);
+                this._showToast(`✅ 关键帧已添加 @ ${Math.round(this.state.attackProgress * 100)}%`);
+            } else {
+                this._showToast('请在攻击动画模式下添加关键帧');
+            }
+        });
+
+        const interpolateBtn = document.getElementById('devToolInterpolate');
+        if (interpolateBtn) interpolateBtn.addEventListener('click', () => this._autoInterpolate());
+
+        const clearKfBtn = document.getElementById('devToolClearKf');
+        if (clearKfBtn) clearKfBtn.addEventListener('click', () => this._clearKeyframes());
 
         // 武器图片拖放
         const weaponImg = document.getElementById('devToolWeaponImg');
@@ -540,6 +575,201 @@ const DevTool = {
             }
         }
         return thrust;
+    },
+
+    // ===== 关键帧系统 =====
+    
+    // 线性插值：根据进度计算当前武器位置
+    _interpolateKeyframes(progress) {
+        const kfs = this.keyframeSystem.keyframes;
+        if (!kfs || kfs.length === 0) return null;
+        
+        // 边界处理
+        if (progress <= 0) return kfs[0];
+        if (progress >= 1) return kfs[kfs.length - 1];
+        
+        // 找到前后关键帧
+        let prev = kfs[0], next = kfs[kfs.length - 1];
+        let prevIdx = 0, nextIdx = kfs.length - 1;
+        
+        for (let i = 0; i < kfs.length - 1; i++) {
+            if (progress >= kfs[i].progress && progress <= kfs[i + 1].progress) {
+                prev = kfs[i];
+                next = kfs[i + 1];
+                prevIdx = i;
+                nextIdx = i + 1;
+                break;
+            }
+        }
+        
+        // 计算插值比例
+        const segmentDuration = next.progress - prev.progress;
+        if (segmentDuration === 0) return prev;
+        
+        const t = (progress - prev.progress) / segmentDuration;
+        
+        // 线性插值
+        return {
+            offsetX: prev.offsetX + (next.offsetX - prev.offsetX) * t,
+            offsetY: prev.offsetY + (next.offsetY - prev.offsetY) * t,
+            rotation: prev.rotation + (next.rotation - prev.rotation) * t,
+            scale: prev.scale + (next.scale - prev.scale) * t,
+        };
+    },
+    
+    // 从 WeaponAnimConfig 加载关键帧
+    _loadKeyframes() {
+        const wt = this.state.weaponType;
+        const anim = this.state.anim;
+        const cfg = WeaponAnimConfig.keyframes;
+        
+        if (cfg && cfg[wt] && cfg[wt][anim]) {
+            this.keyframeSystem.keyframes = JSON.parse(JSON.stringify(cfg[wt][anim]));
+            this.keyframeSystem.enabled = true;
+        } else {
+            // 没有关键帧时，从当前 weaponParams 创建一个默认关键帧
+            this.keyframeSystem.keyframes = [];
+            this.keyframeSystem.enabled = false;
+        }
+        this.keyframeSystem.selectedIndex = -1;
+    },
+    
+    // 添加关键帧（当前位置）
+    _addKeyframe(progress) {
+        const kf = {
+            progress: Math.max(0, Math.min(1, progress)),
+            offsetX: this.weaponParams.offsetX,
+            offsetY: this.weaponParams.offsetY,
+            rotation: this.weaponParams.rotation,
+            scale: this.weaponParams.scale,
+        };
+        
+        // 按 progress 排序插入
+        const kfs = this.keyframeSystem.keyframes;
+        let inserted = false;
+        for (let i = 0; i < kfs.length; i++) {
+            if (kf.progress < kfs[i].progress) {
+                kfs.splice(i, 0, kf);
+                this.keyframeSystem.selectedIndex = i;
+                inserted = true;
+                break;
+            } else if (Math.abs(kf.progress - kfs[i].progress) < 0.01) {
+                // 更新已有关键帧
+                kfs[i] = kf;
+                this.keyframeSystem.selectedIndex = i;
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            kfs.push(kf);
+            this.keyframeSystem.selectedIndex = kfs.length - 1;
+        }
+        
+        this.keyframeSystem.enabled = true;
+        this._updateKeyframeUI();
+        console.log('[DevTool] 关键帧已添加:', kf);
+    },
+    
+    // 删除选中关键帧
+    _deleteKeyframe() {
+        const idx = this.keyframeSystem.selectedIndex;
+        if (idx >= 0 && idx < this.keyframeSystem.keyframes.length) {
+            this.keyframeSystem.keyframes.splice(idx, 1);
+            this.keyframeSystem.selectedIndex = -1;
+            this._updateKeyframeUI();
+        }
+    },
+    
+    // 清空所有关键帧
+    _clearKeyframes() {
+        this.keyframeSystem.keyframes = [];
+        this.keyframeSystem.selectedIndex = -1;
+        this.keyframeSystem.enabled = false;
+        this._updateKeyframeUI();
+        console.log('[DevTool] 关键帧已清空');
+    },
+    
+    // 更新关键帧UI
+    _updateKeyframeUI() {
+        const listEl = document.getElementById('devToolKeyframeList');
+        if (!listEl) return;
+        
+        const kfs = this.keyframeSystem.keyframes;
+        if (kfs.length === 0) {
+            listEl.innerHTML = '<div style="color:#888;text-align:center;padding:10px;">暂无关键帧</div>';
+            return;
+        }
+        
+        listEl.innerHTML = kfs.map((kf, i) => {
+            const isSelected = i === this.keyframeSystem.selectedIndex;
+            return `<div class="keyframe-item ${isSelected ? 'selected' : ''}" data-index="${i}" style="
+                padding: 4px 8px; margin: 2px 0; border-radius: 4px; cursor: pointer; font-size: 12px;
+                background: ${isSelected ? 'rgba(144,208,112,0.2)' : 'rgba(60,60,60,0.5)'};
+                border: 1px solid ${isSelected ? 'rgba(144,208,112,0.5)' : 'transparent'};
+            ">
+                <span style="color:#d4c5a9;">#${i+1}</span> 
+                <span style="color:#90d070;">${Math.round(kf.progress * 100)}%</span>
+                <span style="color:#888;">XY(${Math.round(kf.offsetX)},${Math.round(kf.offsetY)})</span>
+                <span style="color:#888;">R${Math.round(kf.rotation)}°</span>
+                <span style="color:#888;">S${kf.scale.toFixed(2)}</span>
+            </div>`;
+        }).join('');
+        
+        // 绑定点击事件
+        listEl.querySelectorAll('.keyframe-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const idx = parseInt(el.dataset.index);
+                this.keyframeSystem.selectedIndex = idx;
+                this._applyKeyframeToWeapon(idx);
+                this._updateKeyframeUI();
+            });
+        });
+    },
+    
+    // 应用关键帧到武器参数
+    _applyKeyframeToWeapon(index) {
+        const kf = this.keyframeSystem.keyframes[index];
+        if (!kf) return;
+        
+        this.weaponParams.offsetX = kf.offsetX;
+        this.weaponParams.offsetY = kf.offsetY;
+        this.weaponParams.rotation = kf.rotation;
+        this.weaponParams.scale = kf.scale;
+        this._syncInputs();
+        this._draw();
+    },
+    
+    // 自动插值生成中间帧
+    _autoInterpolate() {
+        const kfs = this.keyframeSystem.keyframes;
+        if (kfs.length < 2) {
+            this._showToast('需要至少2个关键帧才能插值');
+            return;
+        }
+        
+        // 在关键帧之间均匀插入中间帧
+        const newKeyframes = [];
+        for (let i = 0; i < kfs.length - 1; i++) {
+            const prev = kfs[i];
+            const next = kfs[i + 1];
+            newKeyframes.push(prev);
+            
+            // 如果间隔大于 0.15，插入中间帧
+            if (next.progress - prev.progress > 0.15) {
+                const midProgress = (prev.progress + next.progress) / 2;
+                const mid = this._interpolateKeyframes(midProgress);
+                if (mid) {
+                    mid.progress = midProgress;
+                    newKeyframes.push(mid);
+                }
+            }
+        }
+        newKeyframes.push(kfs[kfs.length - 1]);
+        
+        this.keyframeSystem.keyframes = newKeyframes;
+        this._updateKeyframeUI();
+        this._showToast(`✅ 已生成 ${newKeyframes.length} 个关键帧`);
     },
 
     // 缓动函数（与 Easing 模块一致）
@@ -985,7 +1215,25 @@ const DevTool = {
             const isMelee = weaponType === 'melee';
             
             if (this.state.anim === 'attack' && isMelee) {
-                // ===== 攻击动画：使用 weaponParams 作为覆盖值 =====
+                // ===== 攻击动画：使用关键帧插值或 weaponParams =====
+                
+                // 判断是否启用关键帧系统
+                const useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
+                let currentParams = this.weaponParams;
+                
+                if (useKeyframes) {
+                    // 使用关键帧插值计算当前位置
+                    const interpolated = this._interpolateKeyframes(this.state.attackProgress);
+                    if (interpolated) {
+                        currentParams = {
+                            offsetX: interpolated.offsetX,
+                            offsetY: interpolated.offsetY,
+                            rotation: interpolated.rotation,
+                            scale: interpolated.scale
+                        };
+                    }
+                }
+                
                 // 绘制攻击阶段指示（屏幕坐标）
                 const stateColors = { windup: 'rgba(255,200,50,0.8)', swing: 'rgba(255,80,80,0.9)', recover: 'rgba(80,200,80,0.8)' };
                 const stateColor = stateColors[this.state.attackState] || 'rgba(200,200,200,0.8)';
@@ -994,28 +1242,38 @@ const DevTool = {
                 ctx.fillStyle = stateColor;
                 ctx.font = 'bold 14px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(`攻击: ${this.state.attackState} ${Math.round(this.state.attackProgress * 100)}%`, cx, 30);
+                const kfIndicator = useKeyframes ? ' [关键帧]' : '';
+                ctx.fillText(`攻击: ${this.state.attackState} ${Math.round(this.state.attackProgress * 100)}%${kfIndicator}`, cx, 30);
                 ctx.fillStyle = 'rgba(80,60,40,0.8)';
                 ctx.fillRect(cx - 100, 40, 200, 8);
                 ctx.fillStyle = stateColor;
                 ctx.fillRect(cx - 100, 40, 200 * this.state.attackProgress, 8);
-                const wa = WEAPON_ANIM;
-                const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
-                ctx.fillStyle = 'rgba(255,200,50,0.9)';
-                ctx.fillRect(cx - 100 + 200 * (wa.windupMs / totalMs) - 1, 38, 2, 12);
-                ctx.fillStyle = 'rgba(255,80,80,0.9)';
-                ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
+                
+                // 绘制关键帧标记
+                if (useKeyframes) {
+                    ctx.fillStyle = 'rgba(144,208,112,0.9)';
+                    this.keyframeSystem.keyframes.forEach(kf => {
+                        const x = cx - 100 + 200 * kf.progress;
+                        ctx.fillRect(x - 1, 36, 2, 16);
+                    });
+                } else {
+                    const wa = WEAPON_ANIM;
+                    const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
+                    ctx.fillStyle = 'rgba(255,200,50,0.9)';
+                    ctx.fillRect(cx - 100 + 200 * (wa.windupMs / totalMs) - 1, 38, 2, 12);
+                    ctx.fillStyle = 'rgba(255,80,80,0.9)';
+                    ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
+                }
                 ctx.restore();
                 
-                // 绘制武器（使用 weaponParams 作为覆盖值，与非攻击模式一致）
+                // 绘制武器（使用 currentParams，可能是关键帧插值结果或 weaponParams）
                 ctx.save();
                 
                 // 1. 玩家中心
                 ctx.translate(cx, cy);
                 
-                // 2. 使用 weaponParams.offsetX/Y 作为当前偏移（允许拖动调整）
-                // 注意：weaponParams 已经包含了 baseX 的偏移（通过 _save/_reset 转换）
-                ctx.translate(this.weaponParams.offsetX, this.weaponParams.offsetY);
+                // 2. 使用当前参数偏移
+                ctx.translate(currentParams.offsetX, currentParams.offsetY);
                 
                 // 3. 基础旋转 Math.PI / 2
                 ctx.rotate(Math.PI / 2);
@@ -1023,15 +1281,17 @@ const DevTool = {
                 // 4. 武器中心偏移 -ms * 0.85
                 ctx.translate(0, -ms * 0.85);
                 
-                // 5. 使用 weaponParams.rotation
-                ctx.rotate(this.weaponParams.rotation * Math.PI / 180);
+                // 5. 使用当前参数旋转
+                ctx.rotate(currentParams.rotation * Math.PI / 180);
                 
-                // 6. 刺击位移 thrust（在旋转后的坐标系中，Y轴是武器长度方向）
-                const thrust = this._getAttackThrust();
-                ctx.translate(0, thrust);
+                // 6. 如果没有关键帧，使用传统 thrust 位移
+                if (!useKeyframes) {
+                    const thrust = this._getAttackThrust();
+                    ctx.translate(0, thrust);
+                }
                 
                 // 7. 绘制武器
-                const scale = this.weaponParams.scale;
+                const scale = currentParams.scale;
                 const w = ms * 0.63 * scale;
                 const h = ms * scale;
                 ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
@@ -1168,19 +1428,26 @@ const DevTool = {
                     idleScale: cfg[currentAnim].idleScale,
                 });
             } else if (currentAnim === 'attack') {
-                // 攻击动画：保存到 stab 配置（调整位移参数，而非 holdOffset）
-                const stab = WeaponAnimConfig.stab;
-                if (stab) {
-                    // 开发工具中调整的是攻击时的基准位置和角度
-                    // 这些参数会被 GameScene.js 读取并用于计算 thrust
-                    console.log('[DevTool] 攻击动画参数已记录（实际位移由 GameScene.js 根据 stab 配置计算）:', {
-                        windupDist: stab.windupDist,
-                        stabDist: stab.stabDist,
-                        recoverSnapDist: stab.recoverSnapDist,
-                        windupMs: WEAPON_ANIM.windupMs,
-                        swingMs: WEAPON_ANIM.swingMs,
-                        recoverMs: WEAPON_ANIM.recoverMs,
-                    });
+                // 攻击动画：保存关键帧配置
+                if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
+                    // 保存关键帧到 WeaponAnimConfig
+                    if (!WeaponAnimConfig.keyframes) WeaponAnimConfig.keyframes = {};
+                    if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
+                    WeaponAnimConfig.keyframes[wt][currentAnim] = JSON.parse(JSON.stringify(this.keyframeSystem.keyframes));
+                    console.log('[DevTool] 关键帧已保存:', wt, currentAnim, this.keyframeSystem.keyframes);
+                } else {
+                    // 没有关键帧时，保存传统刺击参数
+                    const stab = WeaponAnimConfig.stab;
+                    if (stab) {
+                        console.log('[DevTool] 攻击动画参数已记录（实际位移由 GameScene.js 根据 stab 配置计算）:', {
+                            windupDist: stab.windupDist,
+                            stabDist: stab.stabDist,
+                            recoverSnapDist: stab.recoverSnapDist,
+                            windupMs: WEAPON_ANIM.windupMs,
+                            swingMs: WEAPON_ANIM.swingMs,
+                            recoverMs: WEAPON_ANIM.recoverMs,
+                        });
+                    }
                 }
             } else {
                 // 传统保存：保存到全局配置
@@ -1217,6 +1484,12 @@ const DevTool = {
             rotation: Math.round(this.weaponParams.rotation),
             scale: parseFloat(this.weaponParams.scale.toFixed(2)),
         };
+        
+        // 如果有关键帧，添加到输出
+        if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
+            output.keyframes = this.keyframeSystem.keyframes;
+        }
+        
         const json = JSON.stringify(output, null, 2);
 
         const outputEl = document.getElementById('devToolDataOutput');
