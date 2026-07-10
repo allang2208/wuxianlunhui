@@ -439,19 +439,22 @@ const DevTool = {
     // 更新帧滑块范围
     _updateFrameSlider() {
         const slider = document.getElementById('devToolFrameSlider');
-        if (!slider) return;
+        if (!slider) { console.log('[DevTool] _updateFrameSlider: slider not found'); return; }
         const currentAnim = this.state.anim;
         const frameData = this._charFrames[currentAnim];
+        console.log('[DevTool] _updateFrameSlider:', currentAnim, frameData);
         if (frameData && frameData.count && frameData.count > 1) {
             slider.max = frameData.count - 1;
             slider.min = 0;
             slider.value = this.state.frameIndex;
             slider.disabled = false;
+            console.log('[DevTool] _updateFrameSlider: enabled, count=', frameData.count);
         } else {
             slider.max = 0;
             slider.min = 0;
             slider.value = 0;
             slider.disabled = true;
+            console.log('[DevTool] _updateFrameSlider: disabled');
         }
     },
 
