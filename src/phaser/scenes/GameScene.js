@@ -452,9 +452,14 @@ export class GameScene extends Scene {
                     const segmentDuration = next.progress - prev.progress;
                     const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
                     // 线性插值
+                    // 支持 handOffsetX/Y（挂载点系统）和 offsetX/Y（旧系统）
+                    const prevOffsetX = prev.handOffsetX !== undefined ? prev.handOffsetX : prev.offsetX;
+                    const nextOffsetX = next.handOffsetX !== undefined ? next.handOffsetX : next.offsetX;
+                    const prevOffsetY = prev.handOffsetY !== undefined ? prev.handOffsetY : prev.offsetY;
+                    const nextOffsetY = next.handOffsetY !== undefined ? next.handOffsetY : next.offsetY;
                     keyframeOffset = {
-                        offsetX: prev.offsetX + (next.offsetX - prev.offsetX) * t,
-                        offsetY: prev.offsetY + (next.offsetY - prev.offsetY) * t,
+                        offsetX: prevOffsetX + (nextOffsetX - prevOffsetX) * t,
+                        offsetY: prevOffsetY + (nextOffsetY - prevOffsetY) * t,
                         rotation: prev.rotation + (next.rotation - prev.rotation) * t,
                         scale: prev.scale + (next.scale - prev.scale) * t
                     };
@@ -470,35 +475,68 @@ export class GameScene extends Scene {
         
         // 应用关键帧偏移（覆盖默认位置）
         if (keyframeOffset) {
-            // 关键帧的 offsetX/Y 直接替换 holdOffsetX/Y
-            // 临时修改 WeaponAnimConfig，然后调用 getWeaponWorldPosition
             const cfg = WeaponAnimConfig[wt];
-            const stateCfg = cfg[kfAnimState] || cfg;
-            const originalHoldX = stateCfg.holdOffsetX;
-            const originalHoldY = stateCfg.holdOffsetY;
-            const originalRot = stateCfg.idleRotation;
-            const originalScale = stateCfg.idleScale;
+            const hasHandAnchors = cfg.handAnchors && typeof cfg.handAnchors === 'object';
             
-            // 替换为关键帧值
-            if (!cfg[kfAnimState]) cfg[kfAnimState] = {};
-            cfg[kfAnimState].holdOffsetX = keyframeOffset.offsetX;
-            cfg[kfAnimState].holdOffsetY = keyframeOffset.offsetY;
-            cfg[kfAnimState].idleRotation = keyframeOffset.rotation;
-            cfg[kfAnimState].idleScale = keyframeOffset.scale;
-            
-            // 重新计算世界坐标
-            const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-            pos.x = worldPos.x;
-            pos.y = worldPos.y;
-            
-            // 恢复原始值
-            cfg[kfAnimState].holdOffsetX = originalHoldX;
-            cfg[kfAnimState].holdOffsetY = originalHoldY;
-            cfg[kfAnimState].idleRotation = originalRot;
-            cfg[kfAnimState].idleScale = originalScale;
-            
-            // 重新计算旋转（使用关键帧旋转值）
-            rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+            if (hasHandAnchors && kfAnimState) {
+                // ===== 挂载点系统（新）=====
+                // 获取基础挂载点
+                const handAnchors = cfg.handAnchors || {};
+                const anchor = handAnchors[kfAnimState] || handAnchors.idle || { x: 0, y: 0 };
+                
+                // 方向镜像
+                const anchorX = facingRight ? anchor.x : -anchor.x;
+                const anchorY = anchor.y;
+                
+                // 关键帧偏移（handOffsetX/Y）
+                const handOffsetX = keyframeOffset.offsetX || 0;
+                const handOffsetY = keyframeOffset.offsetY || 0;
+                
+                // 手部世界位置 = 玩家位置 + 挂载点 + 关键帧偏移
+                const playerX = player.x;
+                const playerY = player.y;
+                const handWorldX = playerX + anchorX + handOffsetX;
+                const handWorldY = playerY + anchorY + handOffsetY;
+                
+                // gripOffset 旋转后的位置
+                const gripOffset = cfg.gripOffset || { x: 0, y: 0 };
+                const rotationRad = (keyframeOffset.rotation || 0) * Math.PI / 180;
+                const cos = Math.cos(rotationRad);
+                const sin = Math.sin(rotationRad);
+                const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
+                const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
+                
+                // 武器位置 = 手部位置 + gripOffset 旋转后
+                pos.x = handWorldX + gripRotatedX;
+                pos.y = handWorldY + gripRotatedY;
+                
+                // 旋转
+                rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, kfAnimState, facingRight) + rotationRad;
+            } else {
+                // ===== 旧系统：直接替换 holdOffsetX/Y =====
+                const stateCfg = cfg[kfAnimState] || cfg;
+                const originalHoldX = stateCfg.holdOffsetX;
+                const originalHoldY = stateCfg.holdOffsetY;
+                const originalRot = stateCfg.idleRotation;
+                const originalScale = stateCfg.idleScale;
+                
+                if (!cfg[kfAnimState]) cfg[kfAnimState] = {};
+                cfg[kfAnimState].holdOffsetX = keyframeOffset.offsetX;
+                cfg[kfAnimState].holdOffsetY = keyframeOffset.offsetY;
+                cfg[kfAnimState].idleRotation = keyframeOffset.rotation;
+                cfg[kfAnimState].idleScale = keyframeOffset.scale;
+                
+                const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
+                pos.x = worldPos.x;
+                pos.y = worldPos.y;
+                
+                cfg[kfAnimState].holdOffsetX = originalHoldX;
+                cfg[kfAnimState].holdOffsetY = originalHoldY;
+                cfg[kfAnimState].idleRotation = originalRot;
+                cfg[kfAnimState].idleScale = originalScale;
+                
+                rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+            }
         }
         
         // 应用后坐力偏移
