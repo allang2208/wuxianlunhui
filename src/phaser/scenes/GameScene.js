@@ -313,6 +313,7 @@ export class GameScene extends Scene {
         // 根据 weaponType 和 weaponId 精确映射贴图
         let texture = getWeaponTextureKey(currentItem);
         const wt = currentItem.weaponType;
+        const isMelee = wt === 'sword' || wt === 'bow';
         
         if (wt === 'bow') {
             // 弓攻击：使用 spritesheet 帧动画
@@ -348,7 +349,6 @@ export class GameScene extends Scene {
                 const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
                 const facingRight = Math.abs(player.rotation) < Math.PI / 2;
                 // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-                const isMelee = wt === 'sword' || wt === 'bow';
                 const useFixedRot = isMelee;  // 所有近战状态都固定
                 let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, weaponAnim.animAngle || 0, animState, facingRight);
                 
@@ -393,12 +393,117 @@ export class GameScene extends Scene {
         let animState = 'idle';
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
+        
+        // ===== 关键帧插值：walk/attack 动画使用关键帧数据 =====
+        let keyframeOffset = null;
+        let kfAnimState = null; // 实际使用的关键帧动画类型
+        
+        // 计算攻击进度（如果有）
+        let attackProgress = null;
+        if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') {
+            const wa = { windupMs: 200, swingMs: 300, recoverMs: 400 };
+            const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
+            if (weaponAnim.state === 'windup') {
+                attackProgress = (weaponAnim.timer / wa.windupMs) * (wa.windupMs / totalMs);
+            } else if (weaponAnim.state === 'swing') {
+                attackProgress = (wa.windupMs + weaponAnim.timer) / totalMs;
+            } else if (weaponAnim.state === 'recover') {
+                attackProgress = (wa.windupMs + wa.swingMs + weaponAnim.timer) / totalMs;
+            }
+            // 限制在 0-1 范围内
+            attackProgress = Math.max(0, Math.min(1, attackProgress));
+        }
+        
+        // 确定使用哪个关键帧配置
+        if (isMelee) {
+            if (animState === 'walk') {
+                kfAnimState = 'walk';
+            } else if (attackProgress !== null) {
+                kfAnimState = 'attack';
+            }
+        }
+        
+        if (kfAnimState && WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[wt]) {
+            const kfConfig = WeaponAnimConfig.keyframes[wt][kfAnimState];
+            if (kfConfig && kfConfig.length >= 2) {
+                // 获取进度
+                let progress;
+                if (kfAnimState === 'attack') {
+                    progress = attackProgress;
+                } else if (kfAnimState === 'walk' && this.playerSprite && this.playerSprite.anims) {
+                    const currentAnim = this.playerSprite.anims.currentAnim;
+                    if (currentAnim && currentAnim.key === 'player_walk') {
+                        progress = this.playerSprite.anims.getProgress();
+                    }
+                }
+                
+                if (progress !== undefined && progress !== null) {
+                    // 线性插值找到当前关键帧
+                    let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
+                    for (let i = 0; i < kfConfig.length - 1; i++) {
+                        if (progress >= kfConfig[i].progress && progress <= kfConfig[i + 1].progress) {
+                            prev = kfConfig[i];
+                            next = kfConfig[i + 1];
+                            break;
+                        }
+                    }
+                    // 计算插值比例
+                    const segmentDuration = next.progress - prev.progress;
+                    const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
+                    // 线性插值
+                    keyframeOffset = {
+                        offsetX: prev.offsetX + (next.offsetX - prev.offsetX) * t,
+                        offsetY: prev.offsetY + (next.offsetY - prev.offsetY) * t,
+                        rotation: prev.rotation + (next.rotation - prev.rotation) * t,
+                        scale: prev.scale + (next.scale - prev.scale) * t
+                    };
+                }
+            }
+        }
+        
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
         // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-        const isMelee = wt === 'sword' || wt === 'bow';
         const useFixedRot = isMelee;  // 所有近战状态都固定
         let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+        
+        // 应用关键帧偏移（覆盖默认位置）
+        if (keyframeOffset) {
+            // 关键帧的 offsetX/Y 直接替换 holdOffsetX/Y
+            // 临时修改 WeaponAnimConfig，然后调用 getWeaponWorldPosition
+            const cfg = WeaponAnimConfig[wt];
+            const stateCfg = cfg[kfAnimState] || cfg;
+            const originalHoldX = stateCfg.holdOffsetX;
+            const originalHoldY = stateCfg.holdOffsetY;
+            const originalRot = stateCfg.idleRotation;
+            const originalScale = stateCfg.idleScale;
+            
+            // 替换为关键帧值
+            if (!cfg[kfAnimState]) cfg[kfAnimState] = {};
+            cfg[kfAnimState].holdOffsetX = keyframeOffset.offsetX;
+            cfg[kfAnimState].holdOffsetY = keyframeOffset.offsetY;
+            cfg[kfAnimState].idleRotation = keyframeOffset.rotation;
+            cfg[kfAnimState].idleScale = keyframeOffset.scale;
+            
+            // 重新计算世界坐标
+            const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
+            pos.x = worldPos.x;
+            pos.y = worldPos.y;
+            
+            // 恢复原始值
+            cfg[kfAnimState].holdOffsetX = originalHoldX;
+            cfg[kfAnimState].holdOffsetY = originalHoldY;
+            cfg[kfAnimState].idleRotation = originalRot;
+            cfg[kfAnimState].idleScale = originalScale;
+            
+            // 重新计算旋转（使用关键帧旋转值）
+            rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+            
+            // 应用关键帧缩放
+            if (this.weaponSprite) {
+                this.weaponSprite.setScale(keyframeOffset.scale);
+            }
+        }
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
