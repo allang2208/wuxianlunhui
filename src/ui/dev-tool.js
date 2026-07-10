@@ -1241,9 +1241,9 @@ const DevTool = {
             };
             
             // 仅在攻击/行走动画 + 关键帧启用时，用插值结果覆盖
-            // 拖动时禁用关键帧，使用 weaponParams（支持拖动）
+            // 拖动时或旋转模式下禁用关键帧，使用 weaponParams（支持实时调整）
             let useKeyframes = false;
-            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active) {
+            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active && this.state.mode !== 'rotate') {
                 useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
                 if (useKeyframes) {
                     const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
