@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.3
+## 版本: 1.4
 
 ## 核心规则
 
@@ -497,6 +497,14 @@ if (this._facing === 'left') {
 ---
 
 ## 变更记录
+
+- v1.9 (2026-07-07) — 攻击系统修复（Phaser 4 Tween API 兼容性）
+  - 修复 `scene.tweens.createTimeline()` 在 Phaser 4 中不存在的问题，改用 `scene.tweens.chain()` 链式 Tween
+  - 添加 `initWeaponAnim()` 调用初始化 `_activeAttackTweens` 数组，修复 `Cannot read properties of undefined (reading 'push')` 错误
+  - 延长近战攻击判定时间从 200ms 到 500ms，覆盖 windup + swing 完整阶段
+  - 修复 Tween 回调 `this` 绑定问题，使用 `self` 变量替代箭头函数中的 `this`
+  - 远程武器在 `triggerAttackAnimation` 中调用 `_fireRanged()` 发射子弹，修复远程攻击无法开枪问题
+  - 近战和远程攻击现在都能正常工作
 
 - v1.8 (2026-07-06) — 红狼王变身机制：
   - **触发条件**：HP < 50%（配置 `transform.hpThreshold: 0.5`）
