@@ -5,6 +5,7 @@
 
 import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { WeaponTransform } from '../../combat/weapon-transform.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态
@@ -155,20 +156,29 @@ const weaponAnimMixin = {
                     const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
                     const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
                     
-                    // 转换为世界坐标（相对于玩家当前位置）
-                    const playerRotation = self.rotation;
-                    const cos = Math.cos(playerRotation);
-                    const sin = Math.sin(playerRotation);
-                    const facingRight = Math.abs(playerRotation) < Math.PI / 2;
-                    const mirrorX = facingRight ? 1 : -1;
+                    // 使用 WeaponTransform 统一计算位置和旋转（与开发工具一致）
+                    const cfg = WeaponAnimConfig[weaponType] || {};
+                    const stateCfg = cfg['attack'] || cfg;
                     
-                    // 使用 WeaponTransform 计算位置
-                    const localX = offsetX * mirrorX;
-                    const localY = offsetY;
+                    // 临时修改配置用于计算
+                    const originalHoldX = stateCfg.holdOffsetX;
+                    const originalHoldY = stateCfg.holdOffsetY;
+                    const originalRot = stateCfg.idleRotation;
                     
-                    weaponSprite.x = self.x + (localX * cos - localY * sin);
-                    weaponSprite.y = self.y + (localX * sin + localY * cos);
-                    weaponSprite.rotation = (rotation * Math.PI / 180) * mirrorX;
+                    stateCfg.holdOffsetX = offsetX;
+                    stateCfg.holdOffsetY = offsetY;
+                    stateCfg.idleRotation = rotation;
+                    
+                    const worldPos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'attack');
+                    
+                    // 恢复原始值
+                    stateCfg.holdOffsetX = originalHoldX;
+                    stateCfg.holdOffsetY = originalHoldY;
+                    stateCfg.idleRotation = originalRot;
+                    
+                    weaponSprite.x = worldPos.x;
+                    weaponSprite.y = worldPos.y;
+                    weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', Math.abs(self.rotation) < Math.PI / 2);
                     
                     // 检测碰撞
                     if (self._pendingThrust && self._pendingThrust.active) {
@@ -182,6 +192,18 @@ const weaponAnimMixin = {
                 onComplete: function() {
                     anim.isAttacking = false;
                     anim.state = 'idle';
+                    
+                    // 平滑回到待机位置
+                    const idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
+                    scene.tweens.add({
+                        targets: weaponSprite,
+                        x: idlePos.x,
+                        y: idlePos.y,
+                        rotation: WeaponTransform.getWeaponRotation(0, weaponType, 0, 'idle', Math.abs(self.rotation) < Math.PI / 2),
+                        duration: 150,
+                        ease: 'Cubic.easeOut'
+                    });
+                    
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;
                         self.attacks.melee.giveExp(self);
