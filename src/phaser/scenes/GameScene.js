@@ -393,6 +393,7 @@ export class GameScene extends Scene {
         let animState = 'idle';
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
+        else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
         
         // ===== 关键帧插值：walk/attack 动画使用关键帧数据 =====
         let keyframeOffset = null;
@@ -498,11 +499,6 @@ export class GameScene extends Scene {
             
             // 重新计算旋转（使用关键帧旋转值）
             rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
-            
-            // 应用关键帧缩放
-            if (this.weaponSprite) {
-                this.weaponSprite.setScale(keyframeOffset.scale);
-            }
         }
         
         // 应用后坐力偏移
@@ -535,7 +531,7 @@ export class GameScene extends Scene {
         // this.weaponSprite.setFlipX(weaponFlipX);
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
-        const wSize = WeaponTransform.getWeaponSize(wt);
+        const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
         const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGun) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
