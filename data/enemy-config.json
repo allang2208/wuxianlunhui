@@ -86,7 +86,7 @@
   },
   "fatZombie": {
     "id": "fatZombie",
-    "name": "胖子僵尸",
+    "name": "Fat Zombie",
     "hp": 200,
     "maxHp": 200,
     "size": 18,
@@ -127,7 +127,7 @@
   },
   "fastZombie": {
     "id": "fastZombie",
-    "name": "奔跑僵尸",
+    "name": "Runner Zombie",
     "hp": 60,
     "maxHp": 60,
     "size": 12,
@@ -162,7 +162,7 @@
   },
   "zombieDog": {
     "id": "zombieDog",
-    "name": "僵尸犬",
+    "name": "Zombie Dog",
     "hp": 60,
     "maxHp": 60,
     "size": 12,
@@ -208,7 +208,7 @@
   },
   "zombie": {
     "id": "zombie",
-    "name": "僵尸",
+    "name": "Zombie",
     "type": "普通",
     "category": "monster",
     "family": "僵尸",
@@ -247,7 +247,7 @@
   },
   "runnerZombie": {
     "id": "runnerZombie",
-    "name": "奔跑僵尸",
+    "name": "Runner Zombie",
     "type": "普通",
     "category": "monster",
     "family": "僵尸",
@@ -286,7 +286,7 @@
   },
   "spitterZombie": {
     "id": "spitterZombie",
-    "name": "毒液僵尸",
+    "name": "Spitter Zombie",
     "type": "精英",
     "category": "monster",
     "family": "僵尸",

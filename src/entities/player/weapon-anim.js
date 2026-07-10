@@ -84,6 +84,51 @@ const weaponAnimMixin = {
             }
         } else {
             // 远程武器（弓、枪械等）：调用 _fireRanged 发射子弹
+            // 使用 Phaser Tween 实现平滑的后坐力动画
+            const anim = this.weaponAnim;
+            const weaponSprite = scene.weaponSprite;
+            
+            if (weaponSprite) {
+                const startX = weaponSprite.x;
+                const startY = weaponSprite.y;
+                const startRotation = weaponSprite.rotation;
+                
+                // 根据武器类型调整后坐力强度
+                const currentItem = this.equipments[this.weaponMode];
+                const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
+                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm');
+                
+                // 后坐力参数
+                const recoilDistance = isShotgun ? 20 : (isPkmOrAkm ? 15 : 10);
+                const recoilRotation = isShotgun ? 0.15 : (isPkmOrAkm ? 0.12 : 0.08);
+                
+                // 计算后坐力方向（与玩家朝向相反）
+                const recoilX = Math.cos(this.rotation + Math.PI) * recoilDistance;
+                const recoilY = Math.sin(this.rotation + Math.PI) * recoilDistance;
+                
+                // 阶段1：快速后坐（50ms）
+                scene.tweens.add({
+                    targets: weaponSprite,
+                    x: startX + recoilX,
+                    y: startY + recoilY,
+                    rotation: startRotation - recoilRotation,
+                    duration: 50,
+                    ease: 'Quad.easeOut',
+                    onComplete: function() {
+                        // 阶段2：弹性恢复（200ms）
+                        scene.tweens.add({
+                            targets: weaponSprite,
+                            x: startX,
+                            y: startY,
+                            rotation: startRotation,
+                            duration: 200,
+                            ease: 'Elastic.easeOut',
+                            delay: 50  // 稍微停顿后再恢复
+                        });
+                    }
+                });
+            }
+            
             this._fireRanged(hand);
         }
     },

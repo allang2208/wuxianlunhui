@@ -359,7 +359,15 @@ import aiConfigData from '../../data/ai-config.json';
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }
             _getPhaserOptions() {
-                return { textOffsetY: -32 };
+                // 根据移动方向或朝向决定水平翻转
+                let flipX = false;
+                if (this.isMoving && Math.abs(this.vx) > 0.1) {
+                    flipX = this.vx < 0; // 向左移动时翻转
+                } else if (this.rotation !== undefined) {
+                    // 静止时根据朝向判断
+                    flipX = Math.cos(this.rotation) < 0;
+                }
+                return { textOffsetY: -32, flipX: flipX };
             }
             _renderNameTag(ctx, x, y) {
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
@@ -539,8 +547,8 @@ import aiConfigData from '../../data/ai-config.json';
                     return false; // 返回 false 让 Canvas 继续渲染火柴人
                 }
 
-                const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 3.5;
-                const rotation = options.rotation !== undefined ? options.rotation : this.rotation + Math.PI / 2;
+                const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 7.0;
+                const rotation = 0; // 禁止旋转，仅水平翻转
                 const textOffsetY = options.textOffsetY !== undefined ? options.textOffsetY : -32;
 
                 sprite.setPosition(
@@ -548,11 +556,10 @@ import aiConfigData from '../../data/ai-config.json';
                     this.y + (options.offsetY || 0)
                 );
                 
-                // 关键：设置 this.rotation 让 GameScene.update 同步正确旋转
-                // GameScene.update 中: entity._phaserSprite.setRotation(entity.rotation + Math.PI/2)
-                // 所以设置 this.rotation = options.rotation - Math.PI/2 即可让最终旋转 = options.rotation
+                // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
+                // 强制 rotation = 0，不设置 this.rotation
                 if (options.rotation !== undefined) {
-                    this.rotation = options.rotation - Math.PI / 2;
+                    // 忽略外部传入的 rotation，保持不旋转
                 }
                 // 不在这里设置 sprite.setRotation，由 GameScene.update 统一处理
                 // 这样可以避免两个系统冲突

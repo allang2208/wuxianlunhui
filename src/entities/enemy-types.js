@@ -1232,7 +1232,7 @@ class SpitterZombie extends Enemy {
         // Set stick figure rendering colors
         this._color = '#4a9a4a';
         this._headColor = '#8a30a0';
-        this._useStickFigure = true;
+        this._useStickFigure = false;  // 使用图片贴图
         this._showWeapon = false;
         this._circleRadius = 600; // 绕圈战斗距离：在目标周围 600px 绕圈移动，不贴身
 
@@ -1261,7 +1261,7 @@ class FatZombie extends Enemy {
         });
         this._headColor = '#8B4513';
         this._color = '#5a7a5a';
-        this._useStickFigure = true;
+        this._useStickFigure = false;  // 使用图片贴图
         this._showWeapon = false;
         this._alertRange = Infinity;
         this._rangedDamageReduction = 0.5; // 50%远程伤害减免
@@ -1278,7 +1278,7 @@ class FastZombie extends Enemy {
         });
         this._headColor = '#c03030'; // 红色头
         this._color = '#4a9a4a';     // 绿色身体
-        this._useStickFigure = true;
+        this._useStickFigure = false;  // 使用图片贴图
         this._showWeapon = false;
         this._alertRange = Infinity;
     }
@@ -1290,12 +1290,12 @@ class ZombieDog extends Enemy {
     constructor(x, y, config = {}) {
         super(x, y, {
             ...enemyConfigData.fastZombie,
-            name: '僵尸犬', // 覆盖 fastZombie 的默认名称
+            name: 'Zombie Dog', // 覆盖 fastZombie 的默认名称
             ...config
         });
         this._headColor = '#e8e0c8'; // 骨骼色头部
         this._color = '#d4cfc0';     // 骨骼灰白身体
-        this._useStickFigure = true;
+        this._useStickFigure = false;  // 使用图片贴图
         this._showWeapon = false;
         this._alertRange = Infinity;
         // 命中后施加致残 debuff（减速 50%，持续 3 秒）

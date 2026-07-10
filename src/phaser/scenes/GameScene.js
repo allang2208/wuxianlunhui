@@ -187,9 +187,10 @@ export class GameScene extends Scene {
                 }
                 entity._phaserSprite.body.reset(syncX, syncY);
             }
-            if (entity.rotation !== undefined) {
-                entity._phaserSprite.setRotation(entity.rotation + Math.PI / 2);
-            }
+            // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
+            // if (entity.rotation !== undefined) {
+            //     entity._phaserSprite.setRotation(entity.rotation + Math.PI / 2);
+            // }
         });
     }
 
@@ -1238,7 +1239,7 @@ export class GameScene extends Scene {
             // 配置物理体：无重力，碰撞圆
             const body = sprite.body;
             body.setGravity(0, 0);
-            body.setCircle(enemy.collisionRadius || enemy.size || 20);
+            body.setCircle((enemy.collisionRadius || enemy.size || 20) * 2);
             body.setImmovable(false);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;

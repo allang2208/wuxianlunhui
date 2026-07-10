@@ -79,7 +79,36 @@ calculateCombatStats() {
                 d.critRes = Math.floor(d.con * 1.0); // 暴击抵抗：每1点体质增加1%
                 // 保存加成供其他系统使用
                 this._masteryBonus = { str: bonusStr, dex: bonusDex, wis: bonusWis };
+
+                // 应用地牢事件buff加成（女神祝福/恶魔祈祷）
+                this._applyDungeonBuffBonus();
             },
+
+    /**
+     * 应用地牢事件buff的攻击加成
+     * 在 calculateCombatStats 最后调用
+     */
+    _applyDungeonBuffBonus() {
+        const d = this.data;
+        let atkBonusPercent = 0;
+
+        // 检查地牢buff系统
+        if (this._dungeonBuffs) {
+            if (this._dungeonBuffs.goddessBless) {
+                atkBonusPercent += this._dungeonBuffs.goddessBless.atkPercent || 0;
+            }
+            if (this._dungeonBuffs.demonPrayer) {
+                atkBonusPercent += this._dungeonBuffs.demonPrayer.atkPercent || 0;
+            }
+        }
+
+        // 应用攻击加成
+        if (atkBonusPercent > 0) {
+            const multiplier = 1 + atkBonusPercent / 100;
+            d.atk = Math.floor(d.atk * multiplier);
+            d.matk = Math.floor(d.matk * multiplier);
+        }
+    },
 
 getCurrentWeaponAtk(itemOverride) {
                 const currentWpn = itemOverride || this.equipments[this.weaponMode];

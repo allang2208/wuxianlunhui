@@ -208,13 +208,14 @@ export const Game = {
         }
         // 在出生点旁边生成一只绿色火柴人僵尸，方便测试盾牌
         const zombie = new Enemy(npcX + 200, npcY + 100, {
-            name: '僵尸',
+            name: 'Zombie',
             hp: 80, maxHp: 80,
             size: 14, collisionRadius: 12,
             color: '#4a9a4a',
             highlightColor: 'rgba(100, 180, 100, 0.3)',
             speed: 25,
             showWeapon: false,
+            _useStickFigure: false,  // 使用图片贴图
             _alertRange: Infinity, // 无限索敌距离
             attack: { cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
         });
@@ -222,25 +223,25 @@ export const Game = {
 
         // 在僵尸旁边生成一只毒液僵尸（紫色头绿色身体）
         const spitter = new SpitterZombie(npcX + 350, npcY + 100, {
-            name: '毒液僵尸',
+            name: 'Spitter Zombie',
             showWeapon: false,
             _alertRange: Infinity // 无限索敌距离
         });
         this.entities.set('spitter_test', spitter);
         // 在僵尸旁边生成一只胖子僵尸（棕色头深绿色身体）
         const fatZombie = new FatZombie(npcX + 500, npcY + 100, {
-            name: '胖子僵尸'
+            name: 'Fat Zombie'
         });
         this.entities.set('fatzombie_test', fatZombie);
         // 在僵尸旁边生成一只奔跑僵尸（红色头绿色身体）
         const fastZombie = new FastZombie(npcX + 650, npcY + 100, {
-            name: '奔跑僵尸',
+            name: 'Runner Zombie',
             showWeapon: false
         });
         this.entities.set('fastzombie_test', fastZombie);
         // 在僵尸旁边生成一只僵尸犬（骨骼火柴人）
         const zombieDog = new ZombieDog(npcX + 800, npcY + 100, {
-            name: '僵尸犬',
+            name: 'Zombie Dog',
             showWeapon: false
         });
         this.entities.set('zombiedog_test', zombieDog);
