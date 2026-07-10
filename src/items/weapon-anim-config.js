@@ -43,14 +43,16 @@ import { Easing } from '../config/math-utils.js';
             // 结构：{ progress: 0-1, offsetX, offsetY, rotation, scale }
             // progress 对应攻击进度（0=开始, 1=结束）
             keyframes: {
-                // 示例：剑类攻击关键帧（可由开发工具编辑）
                 sword: {
                     attack: [
-                        { progress: 0.00, offsetX: -30, offsetY: 5,  rotation: -45, scale: 1.3 },
-                        { progress: 0.25, offsetX: -20, offsetY: 0,  rotation: -20, scale: 1.4 },
-                        { progress: 0.50, offsetX: 40,  offsetY: -10, rotation: 30,  scale: 1.5 },
-                        { progress: 0.75, offsetX: 20,  offsetY: 0,  rotation: 10,  scale: 1.4 },
-                        { progress: 1.00, offsetX: -30, offsetY: 5,  rotation: -45, scale: 1.3 }
+                        { progress: 0, offsetX: -43, offsetY: -29, rotation: -40, scale: 1.5 },
+                        { progress: 0.125, offsetX: -40, offsetY: -41, rotation: -40, scale: 1.5 },
+                        { progress: 0.25, offsetX: -53, offsetY: -68, rotation: -60, scale: 1.5 },
+                        { progress: 0.375, offsetX: -51, offsetY: -71, rotation: -60, scale: 1.5 },
+                        { progress: 0.5, offsetX: -54, offsetY: -87, rotation: -75, scale: 1.5 },
+                        { progress: 0.625, offsetX: -49, offsetY: -87, rotation: -85, scale: 1.5 },
+                        { progress: 0.75, offsetX: -9, offsetY: -57, rotation: -55, scale: 1.5 },
+                        { progress: 0.875, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 }
                     ],
                     walk: [
                         { progress: 0.19047619047619047, offsetX: -22.5, offsetY: 23.078125, rotation: 20, scale: 1.5000000000000004 },
