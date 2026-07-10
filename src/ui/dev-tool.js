@@ -477,6 +477,12 @@ const DevTool = {
             const totalMs = (wa.windupMs + wa.swingMs + wa.recoverMs) || 876;
             const loop = (timestamp) => {
                 if (!this.state.isPlaying) return;
+                // 拖动时暂停攻击进度更新，但继续绘制以显示拖动位置
+                if (this.drag.active) {
+                    this._draw();
+                    this._frameAnimId = requestAnimationFrame(loop);
+                    return;
+                }
                 if (!lastTime) lastTime = timestamp;
                 const elapsed = timestamp - lastTime;
                 const delta = elapsed / totalMs;
@@ -1221,19 +1227,26 @@ const DevTool = {
             const ms = s * 0.75;
             const weaponType = this.WEAPON_MAP[this.state.weaponType]?.type || 'melee';
             const isMelee = weaponType === 'melee';
+            const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
             
-            if (this.state.anim === 'attack' && isMelee) {
-                // ===== 攻击动画：使用关键帧插值或 weaponParams =====
-                
-                // 判断是否启用关键帧系统
-                const useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
-                let currentParams = this.weaponParams;
-                
+            // ===== 统一武器参数计算 =====
+            // 基础参数始终来自 weaponParams（支持鼠标拖动）
+            let drawParams = {
+                offsetX: this.weaponParams.offsetX,
+                offsetY: this.weaponParams.offsetY,
+                rotation: this.weaponParams.rotation,
+                scale: this.weaponParams.scale
+            };
+            
+            // 仅在攻击动画 + 关键帧启用时，用插值结果覆盖
+            // 拖动时禁用关键帧，使用 weaponParams（支持拖动）
+            let useKeyframes = false;
+            if (this.state.anim === 'attack' && isMelee && !this.drag.active) {
+                useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
                 if (useKeyframes) {
-                    // 使用关键帧插值计算当前位置
                     const interpolated = this._interpolateKeyframes(this.state.attackProgress);
                     if (interpolated) {
-                        currentParams = {
+                        drawParams = {
                             offsetX: interpolated.offsetX,
                             offsetY: interpolated.offsetY,
                             rotation: interpolated.rotation,
@@ -1241,8 +1254,10 @@ const DevTool = {
                         };
                     }
                 }
-                
-                // 绘制攻击阶段指示（屏幕坐标）
+            }
+            
+            // ===== 攻击状态指示器（仅在攻击动画显示） =====
+            if (this.state.anim === 'attack' && isMelee) {
                 const stateColors = { windup: 'rgba(255,200,50,0.8)', swing: 'rgba(255,80,80,0.9)', recover: 'rgba(80,200,80,0.8)' };
                 const stateColor = stateColors[this.state.attackState] || 'rgba(200,200,200,0.8)';
                 ctx.save();
@@ -1273,105 +1288,71 @@ const DevTool = {
                     ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
                 }
                 ctx.restore();
-                
-                // 绘制武器（使用 currentParams，可能是关键帧插值结果或 weaponParams）
-                ctx.save();
-                
-                // 1. 玩家中心
-                ctx.translate(cx, cy);
-                
-                // 2. 使用当前参数偏移
-                ctx.translate(currentParams.offsetX, currentParams.offsetY);
-                
-                // 3. 基础旋转 Math.PI / 2
-                ctx.rotate(Math.PI / 2);
-                
-                // 4. 武器中心偏移 -ms * 0.85
+            }
+            
+            // ===== 统一武器绘制 =====
+            ctx.save();
+            ctx.translate(cx, cy);
+            
+            // 使用统一参数偏移（支持拖动 + 关键帧覆盖）
+            ctx.translate(drawParams.offsetX, drawParams.offsetY);
+            
+            // 基础旋转
+            ctx.rotate(Math.PI / 2);
+            
+            // 武器类型相关的中心偏移
+            if (isMelee) {
                 ctx.translate(0, -ms * 0.85);
-                
-                // 5. 使用当前参数旋转
-                ctx.rotate(currentParams.rotation * Math.PI / 180);
-                
-                // 6. 如果没有关键帧，使用传统 thrust 位移
-                if (!useKeyframes) {
-                    const thrust = this._getAttackThrust();
-                    ctx.translate(0, thrust);
-                }
-                
-                // 7. 绘制武器
-                const scale = currentParams.scale;
+            } else if (isGun) {
+                ctx.translate(0, -s * 0.42);
+            }
+            
+            // 应用旋转
+            ctx.rotate(drawParams.rotation * Math.PI / 180);
+            
+            // 攻击动画传统 thrust 位移（仅非关键帧且非拖动时）
+            if (this.state.anim === 'attack' && isMelee && !useKeyframes && !this.drag.active) {
+                const thrust = this._getAttackThrust();
+                ctx.translate(0, thrust);
+            }
+            
+            // 绘制武器
+            const scale = drawParams.scale;
+            if (isMelee) {
                 const w = ms * 0.63 * scale;
                 const h = ms * scale;
                 ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
-                
-                // 绘制旋转中心
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
-                
-                ctx.restore();
-                
+            } else if (isGun) {
+                const w = s * 0.75 * scale;
+                const h = s * scale;
+                ctx.drawImage(this.weaponImage, -w / 2, 0, w, h);
             } else {
-                // ===== 非攻击动画：使用 weaponParams 作为覆盖值 =====
-                // 注意：weaponParams 在 _onMouseDown/_onMouseMove 中被修改
-                // 这里直接使用 weaponParams，允许拖动调整位置
-                
-                const weaponType = this.WEAPON_MAP[this.state.weaponType]?.type || 'melee';
-                const isMelee = weaponType === 'melee';
-                const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
-                
-                ctx.save();
-                ctx.translate(cx, cy);
-                
-                // 使用 weaponParams 作为当前偏移（允许拖动调整）
-                ctx.translate(this.weaponParams.offsetX, this.weaponParams.offsetY);
-                
-                // 基础旋转
-                ctx.rotate(Math.PI / 2);
-                
-                if (isMelee) {
-                    ctx.translate(0, -ms * 0.85);
-                } else if (isGun) {
-                    ctx.translate(0, -s * 0.42);
-                }
-                
-                // 使用 weaponParams.rotation
-                ctx.rotate(this.weaponParams.rotation * Math.PI / 180);
-                
-                // 绘制武器
-                const scale = this.weaponParams.scale;
-                if (isMelee) {
-                    const w = ms * 0.63 * scale;
-                    const h = ms * scale;
-                    ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
-                } else if (isGun) {
-                    const w = s * 0.75 * scale;
-                    const h = s * scale;
-                    ctx.drawImage(this.weaponImage, -w / 2, 0, w, h);
-                } else {
-                    const imgW = this.weaponImage.naturalWidth || 1024;
-                    const imgH = this.weaponImage.naturalHeight || 1024;
-                    const aspect = imgW / imgH;
-                    const h = s * scale;
-                    const w = h * aspect;
-                    ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
-                }
-                
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
-                ctx.restore();
+                const imgW = this.weaponImage.naturalWidth || 1024;
+                const imgH = this.weaponImage.naturalHeight || 1024;
+                const aspect = imgW / imgH;
+                const h = s * scale;
+                const w = h * aspect;
+                ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
             }
             
-            // 坐标标注（仅在非攻击状态显示）
-            if (this.state.anim !== 'attack') {
-                const wp = this.weaponParams;
-                // Canvas坐标系：Y向下为正，与实际绘制一致
-                const weaponScreenX = cx + wp.offsetX;
-                const weaponScreenY = cy + wp.offsetY;
-                ctx.fillStyle = '#d4c5a9';
-                ctx.font = '11px monospace';
-                ctx.fillText(`屏幕偏移: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, weaponScreenX + 8, weaponScreenY - 8);
-                ctx.fillText(`idleRotation: ${Math.round(wp.rotation)}°`, weaponScreenX + 8, weaponScreenY + 12);
+            // 绘制旋转中心
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+            
+            // ===== 坐标标注（所有状态都显示） =====
+            const wp = this.weaponParams;
+            const weaponScreenX = cx + wp.offsetX;
+            const weaponScreenY = cy + wp.offsetY;
+            ctx.fillStyle = '#d4c5a9';
+            ctx.font = '11px monospace';
+            ctx.fillText(`屏幕偏移: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, weaponScreenX + 8, weaponScreenY - 8);
+            ctx.fillText(`Rotation: ${Math.round(wp.rotation)}°`, weaponScreenX + 8, weaponScreenY + 12);
+            if (this.state.anim === 'attack' && useKeyframes) {
+                ctx.fillStyle = '#90d070';
+                ctx.fillText(`[关键帧模式]`, weaponScreenX + 8, weaponScreenY + 28);
             }
+            
         } else if (!this.state.weaponOnCanvas) {
             ctx.fillStyle = '#5a4d3f';
             ctx.font = '14px SimHei';

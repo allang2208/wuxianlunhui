@@ -23,7 +23,7 @@ import { Easing } from '../config/math-utils.js';
             sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 },
                 idle: { holdOffsetX: -43, holdOffsetY: -18, idleRotation: -65, idleScale: 1.3 },
                 walk: { holdOffsetX: -36, holdOffsetY: 18, idleRotation: 20, idleScale: 1.45 },
-                running: { holdOffsetX: -38, holdOffsetY: 16, idleRotation: 20, idleScale: 1.5 }
+                running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 }
             },
             stab: {
                 // 刺击动画通用配置（可被所有剑类武器复用）

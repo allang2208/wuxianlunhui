@@ -127,7 +127,7 @@ class WeaponTransform {
      * @param {boolean} isDualWield - 是否双持
      * @returns {object} {x, y, size, scale, baseRotation, idleRotation}
      */
-    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null) {
+    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, facingRight = true) {
         const cfg = this._getConfig(weaponType);
         const s = WEAPON_SIZE_BASE; // 105，不是 player.size（18）
         const ms = s * MELEE_SCALE; // 78.75
@@ -155,8 +155,17 @@ class WeaponTransform {
         } else {
             wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
         }
-        const holdX = wac.holdOffsetX || 0;
+        let holdX = wac.holdOffsetX || 0;
         const holdY = wac.holdOffsetY || 0;
+
+        // 方向镜像：朝左时，水平翻转 holdOffsetX
+        // 配置值是相对于角色朝右时的位置，朝左时自动镜像
+        // 注意：位置镜像现在在 localToWorld 中处理，这里不再镜像
+        /*
+        if (!facingRight) {
+            holdX = -holdX;
+        }
+        */
 
         // 旋转后偏移（translate(0, -offset) 在旋转后坐标系中的等价）
         const afterX = typeof cfg.afterRotateOffsetX === 'function' ? cfg.afterRotateOffsetX(s) : cfg.afterRotateOffsetX;
@@ -193,7 +202,7 @@ class WeaponTransform {
 
     // ==================== 旋转计算 ====================
 
-    static getWeaponRotation(playerRotation, weaponType, animAngle = 0, animState = null) {
+    static getWeaponRotation(playerRotation, weaponType, animAngle = 0, animState = null, facingRight = true) {
         const cfg = this._getConfig(weaponType);
         let wac;
         if (animState && WeaponAnimConfig[cfg.holdOffsetKey] && typeof WeaponAnimConfig[cfg.holdOffsetKey] === 'object') {
@@ -205,9 +214,16 @@ class WeaponTransform {
         } else {
             wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
         }
+        // 使用 playerRotation 计算基础旋转（远程武器跟随鼠标，近战武器固定）
         let rot = playerRotation + cfg.baseRotation;
         if (wac.idleRotation) {
-            rot += wac.idleRotation * Math.PI / 180;
+            let idleRot = wac.idleRotation * Math.PI / 180;
+            // 朝左时镜像 idleRotation（仅对 running 动画的近战武器）
+            const isMelee = weaponType === 'sword' || weaponType === 'bow';
+            if (!facingRight && animState === 'running' && isMelee) {
+                idleRot = Math.PI - idleRot;  // 调转方向（180度反转）
+            }
+            rot += idleRot;
         }
         rot += animAngle;
         return rot;
@@ -220,18 +236,30 @@ class WeaponTransform {
 
     // ==================== 世界坐标转换 ====================
 
-    static localToWorld(player, localOffset) {
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
+    static localToWorld(player, localOffset, fixedRotation = null, facingRight = true, animState = null, weaponType = null) {
+        const rot = fixedRotation !== null ? fixedRotation : player.rotation;
+        const cos = Math.cos(rot);
+        const sin = Math.sin(rot);
+        let x = player.x + cos * localOffset.x - sin * localOffset.y;
+        // 朝左时镜像武器位置（仅对 running 动画的近战武器）
+        const isMelee = weaponType === 'sword' || weaponType === 'bow';
+        if (!facingRight && animState === 'running' && isMelee) {
+            x = player.x - (x - player.x);
+        }
         return {
-            x: player.x + cos * localOffset.x - sin * localOffset.y,
+            x: x,
             y: player.y + sin * localOffset.x + cos * localOffset.y,
         };
     }
 
     static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null) {
-        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState);
-        const world = this.localToWorld(player, local);
+        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState, facingRight);
+        // 使用固定 rotation（朝右）计算世界坐标，武器不随鼠标旋转
+        // 仅对 running 动画的近战武器使用固定 rotation
+        const isMelee = weaponType === 'sword' || weaponType === 'bow';
+        const useFixedRotation = animState === 'running' && isMelee;
+        const world = this.localToWorld(player, local, useFixedRotation ? 0 : null, facingRight, animState, weaponType);
         return { ...local, x: world.x, y: world.y };
     }
 

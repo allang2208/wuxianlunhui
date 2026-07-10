@@ -346,7 +346,11 @@ export class GameScene extends Scene {
                 if (player._isSprinting) animState = 'running';
                 else if (player.isMoving) animState = 'walk';
                 const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-                let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, weaponAnim.animAngle || 0, animState);
+                const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+                // 近战武器使用固定 rotation，远程武器使用 player.rotation
+                const isMelee = wt === 'sword' || wt === 'bow';
+                const useFixedRot = animState === 'running' && isMelee;
+                let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, weaponAnim.animAngle || 0, animState, facingRight);
                 
                 // 弓攻击时添加旋转偏移
                 if (weaponAnim.rotateAngle) {
@@ -356,6 +360,11 @@ export class GameScene extends Scene {
                 this.weaponSprite.setPosition(pos.x, pos.y);
                 this.weaponSprite.setRotation(rot);
                 this.weaponSprite.setVisible(true);
+                
+                // 弓武器水平翻转：使用旋转镜像替代 setFlipX
+                // const bowFlipX = !facingRight;
+                // this.weaponSprite.setFlipX(bowFlipX);
+                
                 return;
             }
         }
@@ -385,7 +394,11 @@ export class GameScene extends Scene {
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState);
+        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+        // 近战武器使用固定 rotation，远程武器使用 player.rotation
+        const isMelee = wt === 'sword' || wt === 'bow';
+        const useFixedRot = animState === 'running' && isMelee;
+        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -409,6 +422,12 @@ export class GameScene extends Scene {
         this.weaponSprite.setPosition(pos.x, pos.y);
         this.weaponSprite.setRotation(rot);
         this.weaponSprite.setVisible(!this._useCanvasWeapon);
+        
+        // 武器水平翻转：使用 setScale(-1, 1) 替代 setFlipX，同时翻转位置和贴图
+        // 注意：位置已经在 localToWorld 中镜像，这里只需要翻转贴图
+        // 如果位置已镜像，不需要再翻转贴图
+        // const weaponFlipX = !facingRight;
+        // this.weaponSprite.setFlipX(weaponFlipX);
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt);
@@ -475,7 +494,11 @@ export class GameScene extends Scene {
         if (player._isSprinting) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
-        let rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState);
+        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+        // 近战武器使用固定 rotation，远程武器使用 player.rotation
+        const isMelee = wt === 'sword' || wt === 'bow';
+        const useFixedRot = offhandAnimState === 'running' && isMelee;
+        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, offhandAnimState, facingRight);
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -499,6 +522,10 @@ export class GameScene extends Scene {
         this.offhandWeaponSprite.setPosition(pos.x, pos.y);
         this.offhandWeaponSprite.setRotation(rot);
         this.offhandWeaponSprite.setVisible(!this._useCanvasWeapon);
+        
+        // 武器水平翻转：使用旋转镜像替代 setFlipX
+        // const offhandFlipX = !facingRight;
+        // this.offhandWeaponSprite.setFlipX(offhandFlipX);
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
         const wSize = WeaponTransform.getWeaponSize(wt);
@@ -881,6 +908,10 @@ export class GameScene extends Scene {
         const finalX = worldX + weaponDirX * (extraOffset - ms * 0.85);
         const finalY = worldY + weaponDirY * (extraOffset - ms * 0.85);
         const finalRot = rot + extraAngle;
+        
+        // 武器水平翻转：使用旋转镜像替代 setFlipX
+        // const specialFlipX = Math.abs(player.rotation) >= Math.PI / 2;
+        // this.weaponSprite.setFlipX(specialFlipX);
         
         const wSize = WeaponTransform.getWeaponSize(wt);
         const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
