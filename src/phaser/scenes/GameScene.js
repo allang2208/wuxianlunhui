@@ -530,7 +530,7 @@ export class GameScene extends Scene {
         // this.weaponSprite.setFlipX(weaponFlipX);
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
-        const wSize = WeaponTransform.getWeaponSize(wt);
+        const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
         const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGun) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);

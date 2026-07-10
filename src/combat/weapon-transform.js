@@ -330,12 +330,21 @@ class WeaponTransform {
 
     // ==================== 武器尺寸计算 ====================
 
-    static getWeaponSize(weaponType, scaleOverride = null) {
+    static getWeaponSize(weaponType, scaleOverride = null, animState = null) {
         // 武器尺寸基于 WEAPON_ANIM.size（105），不是 player.size（18）
         const s = WEAPON_ANIM.size; // 105
         const ms = s * MELEE_SCALE; // 78.75
-        const wac = WeaponAnimConfig[weaponType] || {};
-        const scale = scaleOverride !== null ? scaleOverride : (wac.idleScale || 1);
+        const cfg = WeaponAnimConfig[weaponType] || {};
+        
+        // 支持按状态读取缩放值
+        let scale;
+        if (scaleOverride !== null) {
+            scale = scaleOverride;
+        } else if (animState && cfg[animState] && cfg[animState].idleScale !== undefined) {
+            scale = cfg[animState].idleScale;
+        } else {
+            scale = cfg.idleScale || 1;
+        }
 
         if (weaponType === 'sword') {
             return { width: ms * 0.63 * scale, height: ms * scale };
