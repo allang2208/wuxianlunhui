@@ -68,6 +68,9 @@ const weaponAnimMixin = {
         const currentItem = this.equipments[this.weaponMode];
         if (!currentItem) return;
         
+        // 重置 rangedFired，允许新的远程攻击
+        this.rangedFired = false;
+        
         const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
         
         if (isMelee) {

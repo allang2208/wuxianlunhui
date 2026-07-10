@@ -635,7 +635,7 @@ update(dt, entities) {
                                 const atk = this.attacks.ranged;
                                 if (atk.canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                                     if (Input.isSprint() && this.data.stamina > 0) this._sprintDuration = 0;
-                                    this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities };
+                                    this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                                     atk.cooldown = atk.maxCooldown;
                                     this.triggerWeaponAnim();
                                 }
@@ -846,7 +846,7 @@ update(dt, entities) {
                                 if (Input.isSprint() && this.data.stamina > 0) {
                                     this._sprintDuration = 0;
                                 }
-                                this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities };
+                                this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                                 atk.cooldown = atk.maxCooldown;
                                 this.triggerWeaponAnim();
                             }

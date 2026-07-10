@@ -13,6 +13,29 @@ async function initModules() {
     if (data.equipment) {
         ItemDatabase.load(data.equipment);
     }
+
+    // 从 EquipDataManager 补充 ItemDatabase 中缺失的字段（ammoConfig, fireMode, attackFormula 等）
+    if (typeof EquipDataManager !== 'undefined' && ItemDatabase.items) {
+        const equipConfigs = Object.values(EquipDataManager).filter(v => v && typeof v === 'object' && v.weaponId);
+        for (const [id, item] of Object.entries(ItemDatabase.items)) {
+            const match = equipConfigs.find(cfg => cfg.weaponId === item.weaponId || cfg.name === item.name);
+            if (match) {
+                const fieldsToMerge = [
+                    'attackFormula', 'ammoConfig', 'spreadParams', 'heatParams',
+                    'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
+                    'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
+                    'weaponEffect', 'skillOverrides', 'craftConfig', 'chargeAttack',
+                    'sound', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
+                    'isDarkGold', 'dropImage', 'equipImage', 'slotImage'
+                ];
+                for (const field of fieldsToMerge) {
+                    if (match[field] !== undefined && item[field] === undefined) {
+                        item[field] = match[field];
+                    }
+                }
+            }
+        }
+    }
     if (data.skills) {
         window.SKILL_DATA = data.skills;
     }

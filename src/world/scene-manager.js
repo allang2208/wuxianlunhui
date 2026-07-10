@@ -322,8 +322,7 @@ export const SceneManager = {
 
     _loadMainScene(player) {
         if (this._mainEntities) {
-            CONFIG.WORLD_WIDTH = window.innerWidth * 4;
-            CONFIG.WORLD_HEIGHT = window.innerHeight * 4;
+            // 主神空间使用固定大小，不随分辨率变化
             Renderer.generateWorld();
             Game.entities = this._mainEntities;
             // 恢复主神空间的树木障碍物
@@ -334,8 +333,6 @@ export const SceneManager = {
             }
         } else {
             // 兜底：如果主场景状态未保存（比如测试场景直接进入），重新生成主场景基础环境
-            CONFIG.WORLD_WIDTH = window.innerWidth * 4;
-            CONFIG.WORLD_HEIGHT = window.innerHeight * 4;
             Renderer.generateWorld();
             // 确保玩家实体在 entities 中
             if (player) {
