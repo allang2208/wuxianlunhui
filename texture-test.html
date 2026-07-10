@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>纹理测试</title>
+    <style>
+        body { background: #333; color: #fff; font-family: monospace; padding: 20px; }
+        .texture-box { display: inline-block; margin: 10px; padding: 10px; border: 2px solid #666; text-align: center; }
+        .texture-box img { max-width: 128px; max-height: 128px; display: block; margin: 10px auto; }
+        .error { border-color: #f44 !important; color: #f44; }
+        .success { border-color: #4f4 !important; }
+    </style>
+</head>
+<body>
+    <h1>僵尸纹理测试</h1>
+    <div id="textures"></div>
+    <script>
+        const textures = [
+            'enemy_zombie',
+            'enemy_runner_zombie', 
+            'enemy_fat_zombie',
+            'enemy_spitter_zombie',
+            'enemy_zombie_dog'
+        ];
+        
+        const container = document.getElementById('textures');
+        
+        textures.forEach(name => {
+            const div = document.createElement('div');
+            div.className = 'texture-box';
+            
+            const img = document.createElement('img');
+            img.src = `assets/enemies/${name.replace('enemy_', '').replace('runner_', 'fast_').replace('spitter_', 'spitter_').replace('zombie_dog', 'zombie_dog')}.png`;
+            // 简化路径映射
+            const pathMap = {
+                'enemy_zombie': 'zombie.png',
+                'enemy_runner_zombie': 'fast_zombie.png',
+                'enemy_fat_zombie': 'fat_zombie.png',
+                'enemy_spitter_zombie': 'spitter_zombie.png',
+                'enemy_zombie_dog': 'zombie_dog.png'
+            };
+            img.src = 'assets/enemies/' + pathMap[name];
+            
+            img.onload = () => {
+                div.classList.add('success');
+                div.innerHTML += '<br>✅ 加载成功';
+            };
+            img.onerror = () => {
+                div.classList.add('error');
+                div.innerHTML += '<br>❌ 加载失败';
+            };
+            
+            div.innerHTML = `<strong>${name}</strong><br>`;
+            div.appendChild(img);
+            container.appendChild(div);
+        });
+    </script>
+</body>
+</html>

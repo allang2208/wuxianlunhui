@@ -1615,8 +1615,8 @@ _getWeaponAnimParams() {
                         const rt = anim.timer / this._getAnimMs(wa.recoverMs);
                         recoil = -s * 0.03 * (1 - rt);
                     }
-                    params.recoil = recoil;
-                    params.recoilAngle = -recoil * 0.05; // 轻微旋转角度
+                    params.recoil = 0;  // Tween控制位移，禁用旧后坐力
+                    params.recoilAngle = 0;  // Tween控制旋转，禁用旧旋转
                 }
 
                 // 枪械待机动画1：轻微摆动（Phaser 同步）

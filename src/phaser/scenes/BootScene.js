@@ -57,6 +57,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.spritesheet('enemy_red_wolf_king_changed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
 
+        // 僵尸类敌人使用实际图片
+        this.load.image('enemy_zombie', 'assets/enemies/zombie.png');
+        this.load.image('enemy_runner_zombie', 'assets/enemies/fast_zombie.png');
+        this.load.image('enemy_fat_zombie', 'assets/enemies/fat_zombie.png');
+        this.load.image('enemy_spitter_zombie', 'assets/enemies/spitter_zombie.png');
+        this.load.image('enemy_zombie_dog', 'assets/enemies/zombie_dog.png');
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -110,63 +117,16 @@ export class BootScene extends Scene {
         };
 
         // Zombie
-        generateEnemyTexture('enemy_zombie', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 20, 10);
-            g.fillStyle(0x5a8a4a, 1);
-            g.fillCircle(32, 32, 14);
-            g.fillStyle(0x5ac85a, 0.3);
-            g.fillCircle(29, 29, 7);
-            g.fillStyle(0xff3333, 1);
-            g.fillCircle(28, 30, 2);
-            g.fillCircle(36, 30, 2);
-        });
+        // 使用实际图片（已在preload中加载）
 
         // RunnerZombie
-        generateEnemyTexture('enemy_runner_zombie', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 16, 8);
-            g.fillStyle(0xa03030, 1);
-            g.fillCircle(32, 32, 12);
-            g.fillStyle(0xff7878, 0.3);
-            g.fillCircle(29, 29, 6);
-            g.fillStyle(0xff6600, 1);
-            g.fillCircle(29, 30, 2.5);
-            g.fillCircle(35, 30, 2.5);
-            g.lineStyle(2, 0xff6464, 0.4);
-            g.lineBetween(20, 28, 12, 30);
-            g.lineBetween(20, 34, 14, 35);
-        });
+        // 使用实际图片（已在preload中加载）
 
         // FatZombie
-        generateEnemyTexture('enemy_fat_zombie', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 46, 28, 14);
-            g.fillStyle(0x8B4513, 1);
-            g.fillCircle(32, 32, 20);
-            g.fillStyle(0xa07850, 0.3);
-            g.fillCircle(28, 28, 10);
-            g.fillStyle(0xffcc00, 1);
-            g.fillCircle(27, 29, 2);
-            g.fillCircle(37, 29, 2);
-            g.fillStyle(0x3a1a0a, 1);
-            g.fillCircle(32, 38, 4);
-        });
+        // 使用实际图片（已在preload中加载）
 
         // SpitterZombie
-        generateEnemyTexture('enemy_spitter_zombie', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 18, 9);
-            g.fillStyle(0x8a30a0, 1);
-            g.fillCircle(32, 32, 13);
-            g.fillStyle(0xb464dc, 0.3);
-            g.fillCircle(29, 29, 6.5);
-            g.fillStyle(0x00ff44, 1);
-            g.fillCircle(28, 30, 2);
-            g.fillCircle(36, 30, 2);
-            g.fillStyle(0x00ff64, 0.6);
-            g.fillCircle(32, 38, 2);
-        });
+        // 使用实际图片（已在preload中加载）
 
         // BabySpider
         generateEnemyTexture('enemy_baby_spider', (g) => {

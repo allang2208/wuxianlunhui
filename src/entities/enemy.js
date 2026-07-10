@@ -359,7 +359,15 @@ import aiConfigData from '../../data/ai-config.json';
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }
             _getPhaserOptions() {
-                return { textOffsetY: -32 };
+                // 根据移动方向或朝向决定水平翻转
+                let flipX = false;
+                if (this.isMoving && Math.abs(this.vx) > 0.1) {
+                    flipX = this.vx < 0; // 向左移动时翻转
+                } else if (this.rotation !== undefined) {
+                    // 静止时根据朝向判断
+                    flipX = Math.cos(this.rotation) < 0;
+                }
+                return { textOffsetY: -32, flipX: flipX };
             }
             _renderNameTag(ctx, x, y) {
                 ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
