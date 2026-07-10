@@ -313,6 +313,7 @@ export class GameScene extends Scene {
         // 根据 weaponType 和 weaponId 精确映射贴图
         let texture = getWeaponTextureKey(currentItem);
         const wt = currentItem.weaponType;
+        const isMelee = wt === 'sword' || wt === 'bow';
         
         if (wt === 'bow') {
             // 弓攻击：使用 spritesheet 帧动画
@@ -348,7 +349,6 @@ export class GameScene extends Scene {
                 const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
                 const facingRight = Math.abs(player.rotation) < Math.PI / 2;
                 // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-                const isMelee = wt === 'sword' || wt === 'bow';
                 const useFixedRot = isMelee;  // 所有近战状态都固定
                 let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, weaponAnim.animAngle || 0, animState, facingRight);
                 
@@ -393,12 +393,65 @@ export class GameScene extends Scene {
         let animState = 'idle';
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
+        
+        // ===== 关键帧插值：walk 动画使用关键帧数据 =====
+        let keyframeOffset = null;
+        if (animState === 'walk' && isMelee) {
+            const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[wt] && WeaponAnimConfig.keyframes[wt].walk;
+            if (kfConfig && kfConfig.length >= 2 && this.playerSprite && this.playerSprite.anims) {
+                // 获取 Phaser 动画当前进度
+                const currentAnim = this.playerSprite.anims.currentAnim;
+                if (currentAnim && currentAnim.key === 'player_walk') {
+                    const progress = this.playerSprite.anims.getProgress();
+                    // 线性插值找到当前关键帧
+                    let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
+                    for (let i = 0; i < kfConfig.length - 1; i++) {
+                        if (progress >= kfConfig[i].progress && progress <= kfConfig[i + 1].progress) {
+                            prev = kfConfig[i];
+                            next = kfConfig[i + 1];
+                            break;
+                        }
+                    }
+                    // 计算插值比例
+                    const segmentDuration = next.progress - prev.progress;
+                    const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
+                    // 线性插值
+                    keyframeOffset = {
+                        offsetX: prev.offsetX + (next.offsetX - prev.offsetX) * t,
+                        offsetY: prev.offsetY + (next.offsetY - prev.offsetY) * t,
+                        rotation: prev.rotation + (next.rotation - prev.rotation) * t,
+                        scale: prev.scale + (next.scale - prev.scale) * t
+                    };
+                }
+            }
+        }
+        
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
         // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-        const isMelee = wt === 'sword' || wt === 'bow';
         const useFixedRot = isMelee;  // 所有近战状态都固定
         let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+        
+        // 应用关键帧偏移（覆盖默认位置）
+        if (keyframeOffset) {
+            // 关键帧偏移是相对于玩家中心的局部偏移，需要转换到世界坐标
+            const playerRot = useFixedRot ? 0 : player.rotation;
+            const cos = Math.cos(playerRot);
+            const sin = Math.sin(playerRot);
+            // 镜像：朝左时水平翻转偏移
+            const mirrorX = facingRight ? 1 : -1;
+            const localX = keyframeOffset.offsetX * mirrorX;
+            const localY = keyframeOffset.offsetY;
+            // 转换到世界坐标（相对于玩家位置）
+            pos.x = player.x + (localX * cos - localY * sin);
+            pos.y = player.y + (localX * sin + localY * cos);
+            // 应用关键帧旋转
+            rot = (keyframeOffset.rotation * Math.PI / 180) * mirrorX;
+            // 应用关键帧缩放
+            if (this.weaponSprite) {
+                this.weaponSprite.setScale(keyframeOffset.scale);
+            }
+        }
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
