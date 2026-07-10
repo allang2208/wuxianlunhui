@@ -498,11 +498,6 @@ export class GameScene extends Scene {
             
             // 重新计算旋转（使用关键帧旋转值）
             rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
-            
-            // 应用关键帧缩放
-            if (this.weaponSprite) {
-                this.weaponSprite.setScale(keyframeOffset.scale);
-            }
         }
         
         // 应用后坐力偏移
