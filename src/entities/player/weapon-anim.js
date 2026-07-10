@@ -61,19 +61,26 @@ const weaponAnimMixin = {
 
     // 触发攻击动画（由外部攻击系统调用）
     triggerAttackAnimation(hand = 'main') {
+        console.log('[WeaponAnim] triggerAttackAnimation called');
         const scene = window.__phaserScene;
+        console.log('[WeaponAnim] scene:', scene ? 'exists' : 'null');
         if (!scene) return;
         
         const currentItem = this.equipments[this.weaponMode];
+        console.log('[WeaponAnim] currentItem:', currentItem ? currentItem.name : 'null');
         if (!currentItem) return;
         
         const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
+        console.log('[WeaponAnim] isMelee:', isMelee);
         
         if (isMelee) {
             // 剑类武器：使用 Phaser Tween 驱动攻击动画
+            console.log('[WeaponAnim] Playing sword attack tween');
             this._playSwordAttackTween(scene, hand);
             // 同时播放角色攻击动画
+            console.log('[WeaponAnim] playerSprite:', scene.playerSprite ? 'exists' : 'null');
             if (scene.playerSprite) {
+                console.log('[WeaponAnim] Playing player_attack_sword animation');
                 scene.playerSprite.play('player_attack_sword', true);
                 scene.playerSprite.once('animationcomplete', () => {
                     if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
@@ -121,72 +128,71 @@ const weaponAnimMixin = {
         const thrustX = Math.cos(playerRotation) * thrustDistance;
         const thrustY = Math.sin(playerRotation) * thrustDistance;
         
-        // 创建 Tween 链
-        const timeline = scene.tweens.createTimeline();
-        
-        // 阶段1：预备（windup）
-        timeline.add({
-            targets: weaponSprite,
-            rotation: windupAngle,
-            x: startX - thrustX * 0.3,
-            y: startY - thrustY * 0.3,
-            duration: windupMs,
-            ease: 'Quad.easeIn',
-            onStart: () => {
-                // 标记攻击开始，准备判定
-                if (this._pendingThrust) {
-                    this._pendingThrust.active = true;
-                    this._pendingThrust.startTime = Date.now();
-                }
-            }
-        });
-        
-        // 阶段2：挥砍（swing）
-        timeline.add({
-            targets: weaponSprite,
-            rotation: swingAngle,
-            x: startX + thrustX,
-            y: startY + thrustY,
-            duration: swingMs,
-            ease: 'Quad.easeOut',
-            onUpdate: () => {
-                // 进行攻击判定
-                if (this._pendingThrust && this._pendingThrust.active) {
-                    if (Date.now() - this._pendingThrust.startTime <= 200) {
-                        this.attacks.melee.checkTriangleHit(this);
-                    } else {
-                        this._pendingThrust.active = false;
+        // 创建 Tween 链（Phaser 4 兼容）
+        const chain = scene.tweens.chain({
+            tweens: [
+                // 阶段1：预备（windup）
+                {
+                    targets: weaponSprite,
+                    rotation: windupAngle,
+                    x: startX - thrustX * 0.3,
+                    y: startY - thrustY * 0.3,
+                    duration: windupMs,
+                    ease: 'Quad.easeIn',
+                    onStart: () => {
+                        // 标记攻击开始，准备判定
+                        if (this._pendingThrust) {
+                            this._pendingThrust.active = true;
+                            // 不重新设置 startTime，保留 execute 中设置的时间
+                        }
+                    }
+                },
+                // 阶段2：挥砍（swing）
+                {
+                    targets: weaponSprite,
+                    rotation: swingAngle,
+                    x: startX + thrustX,
+                    y: startY + thrustY,
+                    duration: swingMs,
+                    ease: 'Quad.easeOut',
+                    onUpdate: () => {
+                        // 进行攻击判定
+                        if (this._pendingThrust && this._pendingThrust.active) {
+                            // 延长判定时间到 500ms，确保在 windup + swing 期间都能判定
+                            if (Date.now() - this._pendingThrust.startTime <= 500) {
+                                this.attacks.melee.checkTriangleHit(this);
+                            } else {
+                                this._pendingThrust.active = false;
+                            }
+                        }
+                    }
+                },
+                // 阶段3：回位（recover）
+                {
+                    targets: weaponSprite,
+                    rotation: startRotation,
+                    x: startX,
+                    y: startY,
+                    duration: recoverMs,
+                    ease: 'Cubic.easeInOut',
+                    onComplete: () => {
+                        // 攻击结束
+                        anim.isAttacking = false;
+                        anim.state = 'idle';
+                        
+                        // 发放经验
+                        if (this._pendingThrust) {
+                            this._pendingThrust.active = false;
+                            this.attacks.melee.giveExp(this);
+                            this._pendingThrust = null;
+                        }
                     }
                 }
-            }
+            ]
         });
-        
-        // 阶段3：回位（recover）
-        timeline.add({
-            targets: weaponSprite,
-            rotation: startRotation,
-            x: startX,
-            y: startY,
-            duration: recoverMs,
-            ease: 'Cubic.easeInOut',
-            onComplete: () => {
-                // 攻击结束
-                anim.isAttacking = false;
-                anim.state = 'idle';
-                
-                // 发放经验
-                if (this._pendingThrust) {
-                    this._pendingThrust.active = false;
-                    this.attacks.melee.giveExp(this);
-                    this._pendingThrust = null;
-                }
-            }
-        });
-        
-        timeline.play();
         
         // 保存引用以便清理
-        this._activeAttackTweens.push(timeline);
+        this._activeAttackTweens.push(chain);
         
         // 同时播放玩家角色攻击动画
         if (scene.setPlayerAnimation) {

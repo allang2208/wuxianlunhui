@@ -179,8 +179,8 @@ class Player extends Combatant {
 
 Object.assign(Player.prototype, baseMixin);
 Object.assign(Player.prototype, updateMixin);
-Object.assign(Player.prototype, weaponAnimMixin);
 Object.assign(Player.prototype, renderMixin);
 Object.assign(Player.prototype, subsystemsMixin);
+Object.assign(Player.prototype, weaponAnimMixin);
 
 export { Player };

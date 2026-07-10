@@ -11,7 +11,6 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                 this.isDarkGold = isDarkGold; // 是否为深黄色曳光弹（沙漠之鹰）
                 this.isGreen = isGreen; // 是否为亮绿色曳光弹（能量轻机枪）
                 this.damageType = damageType; // 伤害类型：physical 或 magic
-                this.noRender = noRender; // 不渲染（训练用弓）
             }
             update(dt = 16.67) {
                 const scale = dt / 1000;
@@ -58,7 +57,6 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                 }
             }
             render(ctx) {
-                if (this.noRender) return; // 训练用弓：不渲染箭矢
                 if (this.isSpit) {
                     // 毒液僵尸投射物：亮绿色方块
                     const screenPos = Renderer.worldToScreen(this.x, this.y);

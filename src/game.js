@@ -334,7 +334,6 @@ export const Game = {
         EquipDataManager.QJB201_ITEM,                  // QJB-201 (weapon11)
         EquipDataManager.SUPER90_ITEM,                  // Super90 (weapon12)
         EquipDataManager.SAIGA12K_ITEM,                // SAIGA-12K (weapon13)
-        EquipDataManager.TEST_EQUIPMENTS.weapon2,      // 训练用弓 (weapon14)
         EquipDataManager.ENERGY_LMG_ITEM,              // 能量轻机枪 (weapon15)
     ],
     spawnAllWeapons() {

@@ -674,24 +674,6 @@ _shortestAngleDelta(from, to) {
                 return delta;
             },
 
-triggerWeaponAnim() {
-                // 动画打断机制：直接跳到 swing 阶段，跳过 windup 预备阶段
-                // 弓类武器：先进入 rotate 阶段（500ms），然后进入 windup 阶段
-                const currentItem = this.equipments[this.weaponMode];
-                if (currentItem && currentItem.weaponType === 'bow') {
-                    this.weaponAnim.state = 'rotate';
-                    this.weaponAnim.timer = 0;
-                    this.weaponAnim.rotateAngle = 0; // 旋转角度从0开始
-                    this.rangedFired = false;
-                } else {
-                    this.weaponAnim.state = 'swing';
-                    this.weaponAnim.timer = 0;
-                    this.rangedFired = false;
-                }
-                // 注意：不再同步副手动画，主手和副手完全独立
-                // 注意：_pendingThrust 在 execute() 中设置，不在此处清除
-                // swing 阶段会消费 _pendingThrust 并触发 ThrustEffect，消费后设为 null
-            },
 
 triggerOffhandWeaponAnim() {
                 // 仅触发副手动画

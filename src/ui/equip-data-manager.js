@@ -10,9 +10,6 @@ export const EquipDataManager = {
             attackFormula: { base: 12, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.8, perEnhance: 0.2 }, { key: 'dex', base: 0.8, perEnhance: 0.2 }] } },
         armor: { name: '旧皮甲', type: '盔甲', icon: '🛡', iconImage: 'assets/icons/armor_icon.png', equipSlot: 'armor', stats: [{ name: '物理防御', value: '+5', pos: true }, { name: '最大生命', value: '+25', pos: true }, { name: '韧性', value: '+2', pos: true }], desc: '不知道传了多少手的皮甲', level: 1, rarity: 'common' },
         offhand: null,
-        weapon2: { weaponId: 'weapon14', name: '训练用弓', type: '弓', icon: '🏹', iconImage: 'assets/icons/trainingBOW.png', equipImage: 'assets/weapons/trainingBOW.png', category: 'weapon_ranged', rarity: 'common', level: 1, isTwoHanded: true, weaponCategory: 'mainhand', weaponType: 'bow', weaponTypeTag: '远程武器', weaponAsset: { framePrefix: 'assets/weapons/training_bow_frame_', frameCount: 9, framePad: 2 }, stats: [{ name: '物理攻击', value: '50-85' }, { name: '射程', value: '1500' }], desc: '一把适合初学者练习的弓，经过改良后拥有更远的射程和更强的威力', equipSlot: 'weapon', attack: { range: 1500, projectileSpeed: 1248, knockback: 30, attackInterval: 1500, hitType: '箭矢（直线弹道）', damageType: '物理' },
-            attackKey: 'ranged', animConfigKey: 'bow', fireMode: 'charge',
-            attackFormula: { base: 50, enhanceFlat: 10, attrs: [{ key: 'dex', base: 2, perEnhance: 1.5 }, { key: 'str', base: 1.5, perEnhance: 1.5 }] } },
         ring1: null,
         gloves: { name: '皮手套', type: '手套', icon: '🧤', iconImage: 'assets/icons/gloves_icon.png', equipSlot: 'gloves', stats: [{ name: '物理攻击', value: '+2', pos: true }, { name: '攻击速度', value: '+3%', pos: true }], desc: '保护双手的皮手套', level: 1, rarity: 'common' },
         ring2: null,
@@ -27,16 +24,6 @@ export const EquipDataManager = {
         { slot: 4, name: '大理石', type: '祭品', icon: '🗿', iconImage: 'assets/items/大理石.png', dropImage: 'assets/items/大理石.png', category: 'tribute', stats: [{ name: '防御', value: '+25%' }, { name: '击杀回血', value: '5%最大生命/秒' }], desc: '一块光滑的大理石，蕴含着大地的守护之力。放入祭品池后，玩家的防御力增加25%，击杀敌方单位后，1秒内回复最大生命值的5%。', stack: 1, rarity: 'common', level: 1 },
         { slot: 5, name: '石头', type: '祭品', icon: '🪨', iconImage: 'assets/items/石头.png', dropImage: 'assets/items/石头.png', category: 'tribute', stats: [{ name: '移动速度', value: '-10%' }, { name: '防御', value: '+5%' }], desc: '一块普通的石头，虽然沉重但能提供额外的防护。放入祭品池后，移动速度减少10%，防御力增加5%。', stack: 1, rarity: 'common', level: 1 }
     ],
-    TEST_BOW_ITEM: {
-        name: '训练用弓', type: '远程武器', icon: '🏹', iconImage: 'assets/icons/bow_icon.png',
-        category: 'weapon_ranged', rarity: 'common', level: 1,
-        weaponCategory: 'mainhand', weaponType: 'bow', isTwoHanded: true,
-        weaponAsset: { framePrefix: 'assets/weapons/bow_frame_', frameCount: 8, framePad: 2 },
-        stats: [{ name: '物理攻击', value: '8-14' }, { name: '射程', value: '600' }],
-        desc: '一把简陋的弓，勉强能射出箭，适合初学者练习',
-        equipSlot: 'weapon2',
-        attackKey: 'ranged', animConfigKey: 'bow', fireMode: 'charge'
-    },
     G18_PISTOL_ITEM: {
         weaponId: 'weapon9',
         name: 'G18', type: '手枪', icon: '🔫', iconImage: 'assets/icons/G18icon.png',
