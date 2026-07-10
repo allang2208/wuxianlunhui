@@ -169,8 +169,8 @@ function applyEnchantOnHit(weapon, target, source) {
             checkTriangleHit(source) {
                 const pt = source._pendingThrust;
                 if (!pt || !pt.active) return;
-                // 攻击判定持续时间：200ms
-                if (Date.now() - pt.startTime > 200) { pt.active = false; return; }
+                // 攻击判定持续时间：500ms（覆盖 windup + swing 阶段）
+                if (Date.now() - pt.startTime > 500) { pt.active = false; return; }
                 const range = pt.range, width = pt.width, angle = pt.angle;
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
