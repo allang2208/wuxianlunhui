@@ -1152,13 +1152,8 @@ const DevTool = {
             const spriteSize = 120;
             const currentAnim = this.state.anim;
             if (currentAnim === 'idle') {
-                // 待机状态：idle.png 是站立朝上（头在上）
-                // 游戏中玩家朝右，需要顺时针旋转90度（π/2）使角色朝右
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(Math.PI / 2);  // 顺时针90度（从朝上转为朝右）
-                ctx.drawImage(charImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                ctx.restore();
+                // 待机状态：idle.png 本身是朝右的（脸朝右），无需旋转
+                ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
             } else if (currentAnim === 'walk' || currentAnim === 'running') {
                 // 从 sprite sheet 提取帧
                 const frameData = this._charFrames[currentAnim];
@@ -1178,12 +1173,13 @@ const DevTool = {
                     ctx.drawImage(this.charImage, cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
                 }
             } else {
-                // 攻击等其他状态：使用待机图，顺时针旋转90度（与idle一致）
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(Math.PI / 2);  // 顺时针90度，角色朝右
-                ctx.drawImage(charImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                ctx.restore();
+                // 攻击等其他状态：使用待机图，无需旋转（贴图本身朝右）
+                ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
+                
+                // DEBUG: 绘制角色边界框（红色）
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
             }
         } else {
             ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
