@@ -1139,32 +1139,17 @@ const DevTool = {
             const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
             
             // ===== 统一武器参数计算 =====
-            // 基础参数始终来自 weaponParams（支持鼠标拖动）
-            let drawParams = {
+            // 所有动画统一使用 weaponParams（支持鼠标拖动和滚轮调整）
+            // 关键帧仅用于保存和导出，不实时覆盖 weaponParams
+            const drawParams = {
                 offsetX: this.weaponParams.offsetX,
                 offsetY: this.weaponParams.offsetY,
                 rotation: this.weaponParams.rotation,
                 scale: this.weaponParams.scale
             };
             
-            // 仅在攻击/行走动画 + 关键帧启用时，用插值结果覆盖
-            // 拖动时、旋转模式、缩放调整时禁用关键帧，使用 weaponParams（支持实时调整）
-            let useKeyframes = false;
-            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active) {
-                useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
-                if (useKeyframes) {
-                    const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
-                    const interpolated = this._interpolateKeyframes(progress);
-                    if (interpolated) {
-                        drawParams = {
-                            offsetX: interpolated.offsetX,
-                            offsetY: interpolated.offsetY,
-                            rotation: interpolated.rotation,
-                            scale: interpolated.scale
-                        };
-                    }
-                }
-            }
+            // 关键帧系统状态（仅用于显示指示器，不覆盖绘制参数）
+            const useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
             
             // ===== 攻击/行走状态指示器 =====
             if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee) {
