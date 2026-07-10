@@ -19,7 +19,7 @@ export class WhirlwindSystem {
         this.player._whirlwindTimer = 0;
         this.player._whirlwindHitSet = new Set();
         this.player._whirlwindHitChecked = false;
-        this.player.weaponAnim.state = 'idle';
+        if (this.player.clearAttackTweens) { this.player.clearAttackTweens(); }
         // 显示风车范围提示（当范围提示开启时）
         if (Game.showAttackRange) {
             const skill = this.player.skills.whirlwind;

@@ -388,6 +388,30 @@ export class GameScene extends Scene {
             this.weaponSprite.setTexture(texture);
         }
         
+        // ===== Phaser Tween 攻击动画期间，跳过 syncWeapon 的位置更新 =====
+        // weapon-anim.js 的 _playSwordAttackTween 直接控制 weaponSprite 位置
+        if (weaponAnim.isAttacking) {
+            this.weaponSprite.setVisible(!this._useCanvasWeapon);
+            // 只更新缩放，位置由 Tween 控制
+            const wSize = WeaponTransform.getWeaponSize(wt, null, 'attack');
+            const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            if (isGun) {
+                this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
+            } else {
+                this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+            }
+            return;
+        }
+        
+        // 使用 WeaponTransform 统一计算位置和旋转
+        // 按玩家状态推断动画状态
+        if (!this.weaponSprite) {
+            this.weaponSprite = this.add.sprite(0, 0, texture);
+            this.weaponSprite.setDepth(150);
+        } else if (this.weaponSprite.texture.key !== texture) {
+            this.weaponSprite.setTexture(texture);
+        }
+        
         // 使用 WeaponTransform 统一计算位置和旋转
         // 按玩家状态推断动画状态
         let animState = 'idle';

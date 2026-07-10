@@ -1,6 +1,6 @@
 import { isRifle } from '../../config/gun-ammo.js';
 import { DashFireTrailEffect } from '../../effects/dash-effects.js';
-import { WeaponTransform } from '../../combat/weapon-transform.js';
+
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 class DashSystem {
     constructor(player) {
@@ -36,7 +36,7 @@ class DashSystem {
         if (staminaCost < 0) staminaCost = 0;
         this.player.data.stamina -= staminaCost;
         if (this.player.data.stamina < 0) this.player.data.stamina = 0;
-        this.player.weaponAnim.state = 'idle';
+        
         this.player._dashConvergeShown = false;
         this.player._dashConvergeAuraActive = false;
         // 初始化矩形突刺持续判定状态
@@ -52,19 +52,6 @@ class DashSystem {
         const dashProgress = Math.min(1, timer / 800);
         let dashOffset = 0, dashAngle = 0;
         
-        // 优先检查关键帧系统（仅当 WeaponTransform 支持时）
-        if (WeaponTransform.getKeyframeAt) {
-            const currentWeapon = this.player.equipments[this.player.weaponMode];
-            const weaponKey = currentWeapon?.weaponType || 'sword';
-            const kf = WeaponTransform.getKeyframeAt(weaponKey, dashProgress, 'dashAttack');
-            if (kf) {
-                const baseHoldX = WeaponAnimConfig.sword.holdOffsetX;
-                const baseHoldY = WeaponAnimConfig.sword.holdOffsetY;
-                dashOffset = -(kf.holdOffsetY - baseHoldY) * 0.5;
-                dashAngle = (kf.idleRotation - WeaponAnimConfig.sword.idleRotation) * Math.PI / 180;
-                return { dashOffset, dashAngle, keyframe: kf };
-            }
-        }
         
         if (activeSkillId === 'dashAttackThrust') {
             // === 突刺动画（骑士长剑专属） ===
