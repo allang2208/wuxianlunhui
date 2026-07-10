@@ -174,6 +174,7 @@ class Player extends Combatant {
             this._droneVulnerabilityTimer = 0;
             this.calculateCombatStats();
             this.updateMaxStats();
+            this.initWeaponAnim();
   }
 }
 
