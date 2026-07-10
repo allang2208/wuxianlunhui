@@ -59,12 +59,12 @@ import { Easing } from '../config/math-utils.js';
             keyframes: {
                 sword: {
                     attack: [
-                        { progress: 0, handOffsetX: -5.5, handOffsetY: -32.92, rotation: -40, scale: 1.5 },
-                        { progress: 0.25, handOffsetX: -0.5, handOffsetY: -58.92, rotation: -40, scale: 1.5 },
-                        { progress: 0.375, handOffsetX: 0.5, handOffsetY: -70.92, rotation: -40, scale: 1.5 },
-                        { progress: 0.5, handOffsetX: 4.5, handOffsetY: -78.92, rotation: -40, scale: 1.5 },
-                        { progress: 0.625, handOffsetX: 16.5, handOffsetY: -77.92, rotation: -40, scale: 1.5 },
-                        { progress: 0.75, handOffsetX: 37.5, handOffsetY: -55.92, rotation: -40, scale: 1.5 },
+                        { progress: 0, handOffsetX: -5.5, handOffsetY: -32.92, rotation: -45, scale: 1.5 },
+                        { progress: 0.25, handOffsetX: -0.5, handOffsetY: -58.92, rotation: -75, scale: 1.5 },
+                        { progress: 0.375, handOffsetX: 0.5, handOffsetY: -70.92, rotation: -90, scale: 1.5 },
+                        { progress: 0.5, handOffsetX: 4.5, handOffsetY: -78.92, rotation: -60, scale: 1.5 },
+                        { progress: 0.625, handOffsetX: 16.5, handOffsetY: -77.92, rotation: -30, scale: 1.5 },
+                        { progress: 0.75, handOffsetX: 37.5, handOffsetY: -55.92, rotation: -10, scale: 1.5 },
                         { progress: 0.875, handOffsetX: 45.5, handOffsetY: -25.92, rotation: -40, scale: 1.5 }
                     ],
                     walk: [
