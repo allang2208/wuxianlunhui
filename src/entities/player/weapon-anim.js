@@ -61,26 +61,19 @@ const weaponAnimMixin = {
 
     // 触发攻击动画（由外部攻击系统调用）
     triggerAttackAnimation(hand = 'main') {
-        console.log('[WeaponAnim] triggerAttackAnimation called');
         const scene = window.__phaserScene;
-        console.log('[WeaponAnim] scene:', scene ? 'exists' : 'null');
         if (!scene) return;
         
         const currentItem = this.equipments[this.weaponMode];
-        console.log('[WeaponAnim] currentItem:', currentItem ? currentItem.name : 'null');
         if (!currentItem) return;
         
         const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
-        console.log('[WeaponAnim] isMelee:', isMelee);
         
         if (isMelee) {
             // 剑类武器：使用 Phaser Tween 驱动攻击动画
-            console.log('[WeaponAnim] Playing sword attack tween');
             this._playSwordAttackTween(scene, hand);
             // 同时播放角色攻击动画
-            console.log('[WeaponAnim] playerSprite:', scene.playerSprite ? 'exists' : 'null');
             if (scene.playerSprite) {
-                console.log('[WeaponAnim] Playing player_attack_sword animation');
                 scene.playerSprite.play('player_attack_sword', true);
                 scene.playerSprite.once('animationcomplete', () => {
                     if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
@@ -90,7 +83,6 @@ const weaponAnimMixin = {
             }
         } else {
             // 远程武器（弓、枪械等）：调用 _fireRanged 发射子弹
-            console.log('[WeaponAnim] Firing ranged weapon');
             this._fireRanged(hand);
         }
     },
@@ -125,7 +117,6 @@ const weaponAnimMixin = {
         
         if (kfConfig && kfConfig.length >= 2) {
             // ===== 使用关键帧动画 =====
-            console.log('[WeaponAnim] Using keyframe animation, frames:', kfConfig.length);
             
             // 构建 Tween 数组（关键帧之间插值）
             const tweens = [];
@@ -197,7 +188,6 @@ const weaponAnimMixin = {
             
         } else {
             // ===== 使用传统动画（无关键帧时回退）=====
-            console.log('[WeaponAnim] Using traditional thrust animation');
             
             // 攻击参数
             const windupMs = 200;   // 预备时间
@@ -225,10 +215,8 @@ const weaponAnimMixin = {
                         duration: windupMs,
                         ease: 'Quad.easeIn',
                         onStart: function() {
-                            console.log('[WeaponAnim] Windup onStart, _pendingThrust:', !!self._pendingThrust);
                             if (self._pendingThrust) {
                                 self._pendingThrust.active = true;
-                                console.log('[WeaponAnim] _pendingThrust.active set to true');
                             }
                         }
                     },
