@@ -301,6 +301,18 @@ export function createDevToolPanel() {
         row.appendChild(input);
         controls.appendChild(row);
     });
+    
+    // 设置手部挂载点按钮
+    const handAnchorRow = document.createElement('div');
+    handAnchorRow.className = 'dev-tool-control-row';
+    const handAnchorBtn = document.createElement('button');
+    handAnchorBtn.className = 'dev-tool-menu-btn';
+    handAnchorBtn.id = 'devToolSetHandAnchor';
+    handAnchorBtn.textContent = '✋ 设置手部挂载点';
+    handAnchorBtn.style.cssText = 'width:100%;font-size:12px;';
+    handAnchorRow.appendChild(handAnchorBtn);
+    controls.appendChild(handAnchorRow);
+    
     right.appendChild(controls);
 
     const modeHint = document.createElement('div');

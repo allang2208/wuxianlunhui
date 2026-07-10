@@ -2002,7 +2002,8 @@
     padding: 10px 16px; border-bottom: 1px solid #5a4d3f;
     background: rgba(30, 26, 22, 0.4);
 }
-.dev-tool-menu-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #d4c5a9; }
+.dev-tool-menu-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #d4c5a9; user-select: text; }
+.dev-tool-menu-item input[type="range"] { user-select: auto; pointer-events: auto; cursor: pointer; }
 .dev-tool-menu-item label { color: #8a7d6b; font-size: 12px; }
 .dev-tool-menu-item select {
     padding: 4px 8px; background: #1e1a16; border: 1px solid #5a4d3f;
