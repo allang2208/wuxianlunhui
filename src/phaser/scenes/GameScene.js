@@ -394,15 +394,50 @@ export class GameScene extends Scene {
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
         
-        // ===== 关键帧插值：walk 动画使用关键帧数据 =====
+        // ===== 关键帧插值：walk/attack 动画使用关键帧数据 =====
         let keyframeOffset = null;
-        if (animState === 'walk' && isMelee) {
-            const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[wt] && WeaponAnimConfig.keyframes[wt].walk;
-            if (kfConfig && kfConfig.length >= 2 && this.playerSprite && this.playerSprite.anims) {
-                // 获取 Phaser 动画当前进度
-                const currentAnim = this.playerSprite.anims.currentAnim;
-                if (currentAnim && currentAnim.key === 'player_walk') {
-                    const progress = this.playerSprite.anims.getProgress();
+        let kfAnimState = null; // 实际使用的关键帧动画类型
+        
+        // 计算攻击进度（如果有）
+        let attackProgress = null;
+        if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') {
+            const wa = { windupMs: 200, swingMs: 300, recoverMs: 400 };
+            const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
+            if (weaponAnim.state === 'windup') {
+                attackProgress = (weaponAnim.timer / wa.windupMs) * (wa.windupMs / totalMs);
+            } else if (weaponAnim.state === 'swing') {
+                attackProgress = (wa.windupMs + weaponAnim.timer) / totalMs;
+            } else if (weaponAnim.state === 'recover') {
+                attackProgress = (wa.windupMs + wa.swingMs + weaponAnim.timer) / totalMs;
+            }
+            // 限制在 0-1 范围内
+            attackProgress = Math.max(0, Math.min(1, attackProgress));
+        }
+        
+        // 确定使用哪个关键帧配置
+        if (isMelee) {
+            if (animState === 'walk') {
+                kfAnimState = 'walk';
+            } else if (attackProgress !== null) {
+                kfAnimState = 'attack';
+            }
+        }
+        
+        if (kfAnimState && WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[wt]) {
+            const kfConfig = WeaponAnimConfig.keyframes[wt][kfAnimState];
+            if (kfConfig && kfConfig.length >= 2) {
+                // 获取进度
+                let progress;
+                if (kfAnimState === 'attack') {
+                    progress = attackProgress;
+                } else if (kfAnimState === 'walk' && this.playerSprite && this.playerSprite.anims) {
+                    const currentAnim = this.playerSprite.anims.currentAnim;
+                    if (currentAnim && currentAnim.key === 'player_walk') {
+                        progress = this.playerSprite.anims.getProgress();
+                    }
+                }
+                
+                if (progress !== undefined && progress !== null) {
                     // 线性插值找到当前关键帧
                     let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
                     for (let i = 0; i < kfConfig.length - 1; i++) {
@@ -437,17 +472,18 @@ export class GameScene extends Scene {
             // 关键帧的 offsetX/Y 直接替换 holdOffsetX/Y
             // 临时修改 WeaponAnimConfig，然后调用 getWeaponWorldPosition
             const cfg = WeaponAnimConfig[wt];
-            const originalHoldX = cfg.walk ? cfg.walk.holdOffsetX : cfg.holdOffsetX;
-            const originalHoldY = cfg.walk ? cfg.walk.holdOffsetY : cfg.holdOffsetY;
-            const originalRot = cfg.walk ? cfg.walk.idleRotation : cfg.idleRotation;
-            const originalScale = cfg.walk ? cfg.walk.idleScale : cfg.idleScale;
+            const stateCfg = cfg[kfAnimState] || cfg;
+            const originalHoldX = stateCfg.holdOffsetX;
+            const originalHoldY = stateCfg.holdOffsetY;
+            const originalRot = stateCfg.idleRotation;
+            const originalScale = stateCfg.idleScale;
             
             // 替换为关键帧值
-            if (!cfg.walk) cfg.walk = {};
-            cfg.walk.holdOffsetX = keyframeOffset.offsetX;
-            cfg.walk.holdOffsetY = keyframeOffset.offsetY;
-            cfg.walk.idleRotation = keyframeOffset.rotation;
-            cfg.walk.idleScale = keyframeOffset.scale;
+            if (!cfg[kfAnimState]) cfg[kfAnimState] = {};
+            cfg[kfAnimState].holdOffsetX = keyframeOffset.offsetX;
+            cfg[kfAnimState].holdOffsetY = keyframeOffset.offsetY;
+            cfg[kfAnimState].idleRotation = keyframeOffset.rotation;
+            cfg[kfAnimState].idleScale = keyframeOffset.scale;
             
             // 重新计算世界坐标
             const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
@@ -455,10 +491,10 @@ export class GameScene extends Scene {
             pos.y = worldPos.y;
             
             // 恢复原始值
-            cfg.walk.holdOffsetX = originalHoldX;
-            cfg.walk.holdOffsetY = originalHoldY;
-            cfg.walk.idleRotation = originalRot;
-            cfg.walk.idleScale = originalScale;
+            cfg[kfAnimState].holdOffsetX = originalHoldX;
+            cfg[kfAnimState].holdOffsetY = originalHoldY;
+            cfg[kfAnimState].idleRotation = originalRot;
+            cfg[kfAnimState].idleScale = originalScale;
             
             // 重新计算旋转（使用关键帧旋转值）
             rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
