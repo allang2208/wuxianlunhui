@@ -337,9 +337,14 @@ class WeaponTransform {
         const cfg = WeaponAnimConfig[weaponType] || {};
         
         // 支持按状态读取缩放值
+        // 优先顺序：scaleOverride > keyframes[animState] > cfg[animState] > cfg.idleScale
         let scale;
         if (scaleOverride !== null) {
             scale = scaleOverride;
+        } else if (animState && WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType][animState]) {
+            // 从关键帧配置读取缩放值（取第一帧的scale作为基准）
+            const kfList = WeaponAnimConfig.keyframes[weaponType][animState];
+            scale = kfList && kfList.length > 0 ? kfList[0].scale : 1;
         } else if (animState && cfg[animState] && cfg[animState].idleScale !== undefined) {
             scale = cfg[animState].idleScale;
         } else {
