@@ -660,14 +660,6 @@ update(dt, entities) {
                     const isMelee = effectiveItem && (effectiveItem.category === 'weapon_melee' || effectiveItem.weaponType === 'sword');
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
                     
-                    // 【诊断日志】
-                    if (Input.mouse.leftPressed) {
-                        console.log('[AttackDebug] === Attack Input Detected ===');
-                        console.log('[AttackDebug] effectiveItem:', effectiveItem ? effectiveItem.name : 'none');
-                        console.log('[AttackDebug] isPistol:', isPistol, 'isPkm:', isPkm, 'isShotgun:', isShotgun, 'isMelee:', isMelee, 'isBow:', isBow);
-                        console.log('[AttackDebug] leftPressed:', Input.mouse.leftPressed, 'leftDown:', Input.mouse.leftDown);
-                    }
-
                     // ===== 计算副手状态（用于双持判断） =====
                     const offhandSlot = currentSlot === 'weapon' ? 'offhand' : 'ring2';
                     const offhandItem = this.equipments[offhandSlot];
@@ -827,8 +819,6 @@ update(dt, entities) {
                             Input.mouse.leftPressed = false;
                         }
                     } else if (Input.mouse.leftPressed) {
-                        // 【诊断日志】
-                        console.log('[AttackDebug] leftPressed triggered, isMelee:', isMelee, 'weapon:', effectiveItem ? effectiveItem.name : 'none');
                         // 计算冲刺攻击触发时间：基础333ms，每级减少3%
                         const activeDashSkill = this._getActiveDashSkillId();
                         const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
@@ -838,17 +828,12 @@ update(dt, entities) {
                             this.dashSystem.trigger(entities);
                         } else if (isMelee) {
                             // 近战攻击：使用 ThrustAttack
-                            console.log('[AttackDebug] Melee attack attempt');
                             const atk = this.attacks.melee;
-                            console.log('[AttackDebug] atk.canUse():', atk.canUse());
                             if (atk.canUse()) {
                                 const success = atk.execute(this, mouseWorld.x, mouseWorld.y, entities);
-                                console.log('[AttackDebug] atk.execute success:', success);
                                 if (success) {
                                     atk.cooldown = atk.maxCooldown;
-                                    console.log('[AttackDebug] Calling triggerWeaponAnim...');
                                     this.triggerWeaponAnim();
-                                    console.log('[AttackDebug] triggerWeaponAnim called');
                                     // 符文长剑：攻击命中时减少技能CD
                                     this.runeSwordSystem._triggerCooldownReduction();
                                 }
