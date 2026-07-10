@@ -143,7 +143,6 @@ const weaponAnimMixin = {
                     x: targetX,
                     y: targetY,
                     rotation: targetRotation,
-                    scale: targetScale,
                     duration: duration,
                     ease: 'Linear',
                     onStart: i === 0 ? function() {
@@ -169,7 +168,6 @@ const weaponAnimMixin = {
                 x: startX,
                 y: startY,
                 rotation: startRotation,
-                scale: 1,
                 duration: 100,
                 ease: 'Cubic.easeInOut',
                 onComplete: function() {
