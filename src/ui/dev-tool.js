@@ -299,12 +299,13 @@ const DevTool = {
                 this.hide();
             }
             // 关键帧快捷键
-            if (this.state.anim === 'attack' && this.keyframeSystem.enabled) {
+            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && this.keyframeSystem.enabled) {
                 if (e.key === 'k' || e.key === 'K') {
                     // K键：在当前进度添加关键帧
                     e.preventDefault();
-                    this._addKeyframe(this.state.attackProgress);
-                    this._showToast(`✅ 关键帧已添加 @ ${Math.round(this.state.attackProgress * 100)}%`);
+                    const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                    this._addKeyframe(progress);
+                    this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
                 }
             }
         });
@@ -312,11 +313,12 @@ const DevTool = {
         // 关键帧按钮事件
         const addKfBtn = document.getElementById('devToolAddKeyframe');
         if (addKfBtn) addKfBtn.addEventListener('click', () => {
-            if (this.state.anim === 'attack') {
-                this._addKeyframe(this.state.attackProgress);
-                this._showToast(`✅ 关键帧已添加 @ ${Math.round(this.state.attackProgress * 100)}%`);
+            if (this.state.anim === 'attack' || this.state.anim === 'walk') {
+                const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                this._addKeyframe(progress);
+                this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
             } else {
-                this._showToast('请在攻击动画模式下添加关键帧');
+                this._showToast('请在攻击或行走动画模式下添加关键帧');
             }
         });
 
@@ -1238,13 +1240,14 @@ const DevTool = {
                 scale: this.weaponParams.scale
             };
             
-            // 仅在攻击动画 + 关键帧启用时，用插值结果覆盖
+            // 仅在攻击/行走动画 + 关键帧启用时，用插值结果覆盖
             // 拖动时禁用关键帧，使用 weaponParams（支持拖动）
             let useKeyframes = false;
-            if (this.state.anim === 'attack' && isMelee && !this.drag.active) {
+            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active) {
                 useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
                 if (useKeyframes) {
-                    const interpolated = this._interpolateKeyframes(this.state.attackProgress);
+                    const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                    const interpolated = this._interpolateKeyframes(progress);
                     if (interpolated) {
                         drawParams = {
                             offsetX: interpolated.offsetX,
@@ -1256,36 +1259,60 @@ const DevTool = {
                 }
             }
             
-            // ===== 攻击状态指示器（仅在攻击动画显示） =====
-            if (this.state.anim === 'attack' && isMelee) {
-                const stateColors = { windup: 'rgba(255,200,50,0.8)', swing: 'rgba(255,80,80,0.9)', recover: 'rgba(80,200,80,0.8)' };
-                const stateColor = stateColors[this.state.attackState] || 'rgba(200,200,200,0.8)';
+            // ===== 攻击/行走状态指示器 =====
+            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee) {
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.fillStyle = stateColor;
-                ctx.font = 'bold 14px monospace';
-                ctx.textAlign = 'center';
-                const kfIndicator = useKeyframes ? ' [关键帧]' : '';
-                ctx.fillText(`攻击: ${this.state.attackState} ${Math.round(this.state.attackProgress * 100)}%${kfIndicator}`, cx, 30);
-                ctx.fillStyle = 'rgba(80,60,40,0.8)';
-                ctx.fillRect(cx - 100, 40, 200, 8);
-                ctx.fillStyle = stateColor;
-                ctx.fillRect(cx - 100, 40, 200 * this.state.attackProgress, 8);
                 
-                // 绘制关键帧标记
-                if (useKeyframes) {
-                    ctx.fillStyle = 'rgba(144,208,112,0.9)';
-                    this.keyframeSystem.keyframes.forEach(kf => {
-                        const x = cx - 100 + 200 * kf.progress;
-                        ctx.fillRect(x - 1, 36, 2, 16);
-                    });
-                } else {
-                    const wa = WEAPON_ANIM;
-                    const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
-                    ctx.fillStyle = 'rgba(255,200,50,0.9)';
-                    ctx.fillRect(cx - 100 + 200 * (wa.windupMs / totalMs) - 1, 38, 2, 12);
-                    ctx.fillStyle = 'rgba(255,80,80,0.9)';
-                    ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
+                if (this.state.anim === 'attack') {
+                    const stateColors = { windup: 'rgba(255,200,50,0.8)', swing: 'rgba(255,80,80,0.9)', recover: 'rgba(80,200,80,0.8)' };
+                    const stateColor = stateColors[this.state.attackState] || 'rgba(200,200,200,0.8)';
+                    ctx.fillStyle = stateColor;
+                    ctx.font = 'bold 14px monospace';
+                    ctx.textAlign = 'center';
+                    const kfIndicator = useKeyframes ? ' [关键帧]' : '';
+                    ctx.fillText(`攻击: ${this.state.attackState} ${Math.round(this.state.attackProgress * 100)}%${kfIndicator}`, cx, 30);
+                    ctx.fillStyle = 'rgba(80,60,40,0.8)';
+                    ctx.fillRect(cx - 100, 40, 200, 8);
+                    ctx.fillStyle = stateColor;
+                    ctx.fillRect(cx - 100, 40, 200 * this.state.attackProgress, 8);
+                    
+                    // 绘制关键帧标记
+                    if (useKeyframes) {
+                        ctx.fillStyle = 'rgba(144,208,112,0.9)';
+                        this.keyframeSystem.keyframes.forEach(kf => {
+                            const x = cx - 100 + 200 * kf.progress;
+                            ctx.fillRect(x - 1, 36, 2, 16);
+                        });
+                    } else {
+                        const wa = WEAPON_ANIM;
+                        const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
+                        ctx.fillStyle = 'rgba(255,200,50,0.9)';
+                        ctx.fillRect(cx - 100 + 200 * (wa.windupMs / totalMs) - 1, 38, 2, 12);
+                        ctx.fillStyle = 'rgba(255,80,80,0.9)';
+                        ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
+                    }
+                } else if (this.state.anim === 'walk') {
+                    // 行走动画进度指示器
+                    const walkProgress = this.state.frameIndex / this._charFrames[this.state.anim].count;
+                    ctx.fillStyle = 'rgba(100,200,100,0.8)';
+                    ctx.font = 'bold 14px monospace';
+                    ctx.textAlign = 'center';
+                    const kfIndicator = useKeyframes ? ' [关键帧]' : '';
+                    ctx.fillText(`行走: 帧 ${this.state.frameIndex + 1}/${this._charFrames[this.state.anim].count}${kfIndicator}`, cx, 30);
+                    ctx.fillStyle = 'rgba(80,60,40,0.8)';
+                    ctx.fillRect(cx - 100, 40, 200, 8);
+                    ctx.fillStyle = 'rgba(100,200,100,0.9)';
+                    ctx.fillRect(cx - 100, 40, 200 * walkProgress, 8);
+                    
+                    // 绘制关键帧标记
+                    if (useKeyframes) {
+                        ctx.fillStyle = 'rgba(144,208,112,0.9)';
+                        this.keyframeSystem.keyframes.forEach(kf => {
+                            const x = cx - 100 + 200 * kf.progress;
+                            ctx.fillRect(x - 1, 36, 2, 16);
+                        });
+                    }
                 }
                 ctx.restore();
             }
@@ -1416,16 +1443,16 @@ const DevTool = {
                     idleRotation: cfg[currentAnim].idleRotation,
                     idleScale: cfg[currentAnim].idleScale,
                 });
-            } else if (currentAnim === 'attack') {
-                // 攻击动画：保存关键帧配置
+            } else if (currentAnim === 'attack' || currentAnim === 'walk') {
+                // 攻击/行走动画：保存关键帧配置
                 if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
                     // 保存关键帧到 WeaponAnimConfig
                     if (!WeaponAnimConfig.keyframes) WeaponAnimConfig.keyframes = {};
                     if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
                     WeaponAnimConfig.keyframes[wt][currentAnim] = JSON.parse(JSON.stringify(this.keyframeSystem.keyframes));
                     console.log('[DevTool] 关键帧已保存:', wt, currentAnim, this.keyframeSystem.keyframes);
-                } else {
-                    // 没有关键帧时，保存传统刺击参数
+                } else if (currentAnim === 'attack') {
+                    // 攻击动画没有关键帧时，保存传统刺击参数
                     const stab = WeaponAnimConfig.stab;
                     if (stab) {
                         console.log('[DevTool] 攻击动画参数已记录（实际位移由 GameScene.js 根据 stab 配置计算）:', {

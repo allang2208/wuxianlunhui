@@ -22,7 +22,7 @@ import { Easing } from '../config/math-utils.js';
                 renderParams: { gunLXOffset: 24, gunLY: 0, muzzleOffset: 30, flashOffset: 38, shellCasingOffset: -10, recoilWindup: 0.04, recoilSwing: 0.12, recoilRecover: 0.04, shakeIntensity: 5 } },
             sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 },
                 idle: { holdOffsetX: -43, holdOffsetY: -18, idleRotation: -65, idleScale: 1.3 },
-                walk: { holdOffsetX: -36, holdOffsetY: 18, idleRotation: 20, idleScale: 1.45 },
+                walk: { holdOffsetX: -15, holdOffsetY: 23, idleRotation: 20, idleScale: 1.5 },
                 running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 }
             },
             stab: {
@@ -51,6 +51,12 @@ import { Easing } from '../config/math-utils.js';
                         { progress: 0.50, offsetX: 40,  offsetY: -10, rotation: 30,  scale: 1.5 },
                         { progress: 0.75, offsetX: 20,  offsetY: 0,  rotation: 10,  scale: 1.4 },
                         { progress: 1.00, offsetX: -30, offsetY: 5,  rotation: -45, scale: 1.3 }
+                    ],
+                    walk: [
+                        { progress: 0.19047619047619047, offsetX: -22.5, offsetY: 23.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.3333333333333333, offsetX: -19.5, offsetY: 17.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.5238095238095238, offsetX: -27.5, offsetY: 19.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.8571428571428571, offsetX: -37.5, offsetY: 18.078125, rotation: 20, scale: 1.5000000000000004 }
                     ]
                 }
             }

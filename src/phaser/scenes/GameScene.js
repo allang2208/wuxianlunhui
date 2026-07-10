@@ -347,9 +347,9 @@ export class GameScene extends Scene {
                 else if (player.isMoving) animState = 'walk';
                 const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
                 const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-                // 近战武器使用固定 rotation，远程武器使用 player.rotation
+                // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
                 const isMelee = wt === 'sword' || wt === 'bow';
-                const useFixedRot = animState === 'running' && isMelee;
+                const useFixedRot = isMelee;  // 所有近战状态都固定
                 let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, weaponAnim.animAngle || 0, animState, facingRight);
                 
                 // 弓攻击时添加旋转偏移
@@ -395,9 +395,9 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation，远程武器使用 player.rotation
+        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
         const isMelee = wt === 'sword' || wt === 'bow';
-        const useFixedRot = animState === 'running' && isMelee;
+        const useFixedRot = isMelee;  // 所有近战状态都固定
         let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
         
         // 应用后坐力偏移
@@ -495,9 +495,9 @@ export class GameScene extends Scene {
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation，远程武器使用 player.rotation
+        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
         const isMelee = wt === 'sword' || wt === 'bow';
-        const useFixedRot = offhandAnimState === 'running' && isMelee;
+        const useFixedRot = isMelee;  // 所有近战状态都固定
         let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, offhandAnimState, facingRight);
         
         // 应用后坐力偏移
