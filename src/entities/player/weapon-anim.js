@@ -88,8 +88,11 @@ const weaponAnimMixin = {
                     }
                 });
             }
+        } else {
+            // 远程武器（弓、枪械等）：调用 _fireRanged 发射子弹
+            console.log('[WeaponAnim] Firing ranged weapon');
+            this._fireRanged(hand);
         }
-        // 其他武器类型（弓、枪械等）保持原有逻辑
     },
 
     // 剑类攻击 Tween 动画
@@ -129,6 +132,7 @@ const weaponAnimMixin = {
         const thrustY = Math.sin(playerRotation) * thrustDistance;
         
         // 创建 Tween 链（Phaser 4 兼容）
+        const self = this;
         const chain = scene.tweens.chain({
             tweens: [
                 // 阶段1：预备（windup）
@@ -139,10 +143,12 @@ const weaponAnimMixin = {
                     y: startY - thrustY * 0.3,
                     duration: windupMs,
                     ease: 'Quad.easeIn',
-                    onStart: () => {
+                    onStart: function() {
+                        console.log('[WeaponAnim] Windup onStart, _pendingThrust:', !!self._pendingThrust);
                         // 标记攻击开始，准备判定
-                        if (this._pendingThrust) {
-                            this._pendingThrust.active = true;
+                        if (self._pendingThrust) {
+                            self._pendingThrust.active = true;
+                            console.log('[WeaponAnim] _pendingThrust.active set to true');
                             // 不重新设置 startTime，保留 execute 中设置的时间
                         }
                     }
@@ -155,14 +161,14 @@ const weaponAnimMixin = {
                     y: startY + thrustY,
                     duration: swingMs,
                     ease: 'Quad.easeOut',
-                    onUpdate: () => {
+                    onUpdate: function() {
                         // 进行攻击判定
-                        if (this._pendingThrust && this._pendingThrust.active) {
+                        if (self._pendingThrust && self._pendingThrust.active) {
                             // 延长判定时间到 500ms，确保在 windup + swing 期间都能判定
-                            if (Date.now() - this._pendingThrust.startTime <= 500) {
-                                this.attacks.melee.checkTriangleHit(this);
+                            if (Date.now() - self._pendingThrust.startTime <= 500) {
+                                self.attacks.melee.checkTriangleHit(self);
                             } else {
-                                this._pendingThrust.active = false;
+                                self._pendingThrust.active = false;
                             }
                         }
                     }
@@ -175,16 +181,16 @@ const weaponAnimMixin = {
                     y: startY,
                     duration: recoverMs,
                     ease: 'Cubic.easeInOut',
-                    onComplete: () => {
+                    onComplete: function() {
                         // 攻击结束
                         anim.isAttacking = false;
                         anim.state = 'idle';
                         
                         // 发放经验
-                        if (this._pendingThrust) {
-                            this._pendingThrust.active = false;
-                            this.attacks.melee.giveExp(this);
-                            this._pendingThrust = null;
+                        if (self._pendingThrust) {
+                            self._pendingThrust.active = false;
+                            self.attacks.melee.giveExp(self);
+                            self._pendingThrust = null;
                         }
                     }
                 }
