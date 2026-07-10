@@ -1152,10 +1152,11 @@ const DevTool = {
             const spriteSize = 120;
             const currentAnim = this.state.anim;
             if (currentAnim === 'idle') {
-                // 待机状态：使用行走第一帧，需逆时针旋转90度（与游戏一致）
+                // 待机状态：idle.png 是站立朝上（头在上）
+                // 游戏中玩家朝右，需要顺时针旋转90度（π/2）使角色朝右
                 ctx.save();
                 ctx.translate(cx, cy);
-                ctx.rotate(-Math.PI / 2);
+                ctx.rotate(Math.PI / 2);  // 顺时针90度（从朝上转为朝右）
                 ctx.drawImage(charImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
                 ctx.restore();
             } else if (currentAnim === 'walk' || currentAnim === 'running') {
@@ -1177,7 +1178,12 @@ const DevTool = {
                     ctx.drawImage(this.charImage, cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
                 }
             } else {
-                ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
+                // 攻击等其他状态：使用待机图，顺时针旋转90度（与idle一致）
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(Math.PI / 2);  // 顺时针90度，角色朝右
+                ctx.drawImage(charImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
+                ctx.restore();
             }
         } else {
             ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
