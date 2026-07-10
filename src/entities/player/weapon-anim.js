@@ -202,10 +202,8 @@ const weaponAnimMixin = {
                         const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
                         
                         // 武器位置 = 手部位置 + gripOffset 旋转后
-                        // 注意：朝左时镜像水平位置
-                        const weaponWorldX = facingRight
-                            ? handWorldX + gripRotatedX
-                            : handWorldX - gripRotatedX;
+                        // handWorldX/Y 已经在 getHandAnchorPosition 中处理了镜像，不需要再次镜像
+                        const weaponWorldX = handWorldX + gripRotatedX;
                         const weaponWorldY = handWorldY + gripRotatedY;
                         
                         weaponSprite.x = weaponWorldX;
