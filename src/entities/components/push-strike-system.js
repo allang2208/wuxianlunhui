@@ -19,7 +19,7 @@ export class PushStrikeSystem {
         this.player._pushStrikeTimer = 0;
         this.player._pushStrikeHitSet = new Set();
         this.player._pushStrikeHitChecked = false;
-        this.player.weaponAnim.state = 'idle';
+        if (this.player.clearAttackTweens) { this.player.clearAttackTweens(); }
         // 显示推击范围提示（当范围提示开启时）
         if (Game.showAttackRange) {
             const skill = this.player.skills.pushStrike;

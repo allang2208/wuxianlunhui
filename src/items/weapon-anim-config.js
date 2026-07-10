@@ -21,14 +21,14 @@ import { Easing } from '../config/math-utils.js';
             shotgun: { holdOffsetX: 0, holdOffsetY: 0, timingMul: 0.5, animType: 'recoil', recoilAmount: 0.15,
                 renderParams: { gunLXOffset: 24, gunLY: 0, muzzleOffset: 30, flashOffset: 38, shellCasingOffset: -10, recoilWindup: 0.04, recoilSwing: 0.12, recoilRecover: 0.04, shakeIntensity: 5 } },
             sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 },
-                idle: { holdOffsetX: -43, holdOffsetY: -18, idleRotation: -65, idleScale: 1.3 },
+                idle: { holdOffsetX: -34, holdOffsetY: 4, idleRotation: 0, idleScale: 1.5 },
                 walk: { holdOffsetX: -15, holdOffsetY: 23, idleRotation: 20, idleScale: 1.5 },
                 running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 },
 
                 // 新增：手部挂载点（相对于玩家中心的偏移）
                 // 值与 holdOffsetX/Y 一致，确保挂载点系统与旧系统位置匹配
                 handAnchors: {
-                    idle:    { x: -43,  y: -18 },  // 与 idle.holdOffsetX/Y 一致
+                    idle:    { x: -34,  y: 4 },  // 与 idle.holdOffsetX/Y 一致
                     walk:    { x: -15,  y: 23 },   // 与 walk.holdOffsetX/Y 一致
                     running: { x: -76,  y: -11 },  // 与 running.holdOffsetX/Y 一致
                     attack:  { x: -35,  y: 4 },     // 与基础 holdOffsetX/Y 一致
