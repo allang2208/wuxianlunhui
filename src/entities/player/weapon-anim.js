@@ -118,58 +118,67 @@ const weaponAnimMixin = {
         if (kfConfig && kfConfig.length >= 2) {
             // ===== 使用关键帧动画 =====
             
-            // 构建 Tween 数组（关键帧之间插值）
-            const tweens = [];
-            const totalDuration = 900; // 总攻击时长 ms（windup + swing + recover）
+            anim.isAttacking = true;
+            anim.state = 'attacking';
             
-            for (let i = 0; i < kfConfig.length - 1; i++) {
-                const prev = kfConfig[i];
-                const next = kfConfig[i + 1];
-                const duration = (next.progress - prev.progress) * totalDuration;
-                
-                // 计算目标位置（关键帧是相对于玩家中心的偏移，需要转换到世界坐标）
-                const playerRotation = this.rotation;
-                const cos = Math.cos(playerRotation);
-                const sin = Math.sin(playerRotation);
-                
-                // 将关键帧偏移转换为世界坐标
-                const targetX = startX + (prev.offsetX * cos - prev.offsetY * sin) * 0.5; // 缩放系数调整
-                const targetY = startY + (prev.offsetX * sin + prev.offsetY * cos) * 0.5;
-                const targetRotation = startRotation + prev.rotation * Math.PI / 180;
-                const targetScale = prev.scale;
-                
-                tweens.push({
-                    targets: weaponSprite,
-                    x: targetX,
-                    y: targetY,
-                    rotation: targetRotation,
-                    duration: duration,
-                    ease: 'Linear',
-                    onStart: i === 0 ? function() {
-                        if (self._pendingThrust) {
-                            self._pendingThrust.active = true;
-                        }
-                    } : undefined,
-                    onUpdate: function() {
-                        if (self._pendingThrust && self._pendingThrust.active) {
-                            if (Date.now() - self._pendingThrust.startTime <= 500) {
-                                self.attacks.melee.checkTriangleHit(self);
-                            } else {
-                                self._pendingThrust.active = false;
-                            }
+            // 创建单个 Tween，在 onUpdate 中根据进度插值关键帧
+            const totalDuration = 900; // 总攻击时长 ms
+            
+            const attackTween = scene.tweens.add({
+                targets: { progress: 0 },
+                progress: 1,
+                duration: totalDuration,
+                ease: 'Linear',
+                onStart: function() {
+                    if (self._pendingThrust) {
+                        self._pendingThrust.active = true;
+                    }
+                },
+                onUpdate: function(tween) {
+                    const progress = tween.getValue();
+                    
+                    // 关键帧插值
+                    let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
+                    for (let i = 0; i < kfConfig.length - 1; i++) {
+                        if (progress >= kfConfig[i].progress && progress <= kfConfig[i + 1].progress) {
+                            prev = kfConfig[i];
+                            next = kfConfig[i + 1];
+                            break;
                         }
                     }
-                });
-            }
-            
-            // 最后回到初始位置
-            tweens.push({
-                targets: weaponSprite,
-                x: startX,
-                y: startY,
-                rotation: startRotation,
-                duration: 100,
-                ease: 'Cubic.easeInOut',
+                    
+                    const segmentDuration = next.progress - prev.progress;
+                    const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
+                    
+                    // 线性插值
+                    const offsetX = prev.offsetX + (next.offsetX - prev.offsetX) * t;
+                    const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
+                    const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+                    
+                    // 转换为世界坐标（相对于玩家当前位置）
+                    const playerRotation = self.rotation;
+                    const cos = Math.cos(playerRotation);
+                    const sin = Math.sin(playerRotation);
+                    const facingRight = Math.abs(playerRotation) < Math.PI / 2;
+                    const mirrorX = facingRight ? 1 : -1;
+                    
+                    // 使用 WeaponTransform 计算位置
+                    const localX = offsetX * mirrorX;
+                    const localY = offsetY;
+                    
+                    weaponSprite.x = self.x + (localX * cos - localY * sin);
+                    weaponSprite.y = self.y + (localX * sin + localY * cos);
+                    weaponSprite.rotation = (rotation * Math.PI / 180) * mirrorX;
+                    
+                    // 检测碰撞
+                    if (self._pendingThrust && self._pendingThrust.active) {
+                        if (Date.now() - self._pendingThrust.startTime <= 500) {
+                            self.attacks.melee.checkTriangleHit(self);
+                        } else {
+                            self._pendingThrust.active = false;
+                        }
+                    }
+                },
                 onComplete: function() {
                     anim.isAttacking = false;
                     anim.state = 'idle';
@@ -181,8 +190,7 @@ const weaponAnimMixin = {
                 }
             });
             
-            const chain = scene.tweens.chain({ tweens });
-            this._activeAttackTweens.push(chain);
+            this._activeAttackTweens.push(attackTween);
             
         } else {
             // ===== 使用传统动画（无关键帧时回退）=====
