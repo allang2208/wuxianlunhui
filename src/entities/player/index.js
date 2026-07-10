@@ -174,13 +174,14 @@ class Player extends Combatant {
             this._droneVulnerabilityTimer = 0;
             this.calculateCombatStats();
             this.updateMaxStats();
+            this.initWeaponAnim();
   }
 }
 
 Object.assign(Player.prototype, baseMixin);
 Object.assign(Player.prototype, updateMixin);
-Object.assign(Player.prototype, weaponAnimMixin);
 Object.assign(Player.prototype, renderMixin);
 Object.assign(Player.prototype, subsystemsMixin);
+Object.assign(Player.prototype, weaponAnimMixin);
 
 export { Player };

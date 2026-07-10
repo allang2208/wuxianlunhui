@@ -687,7 +687,7 @@ const CraftSystem = {
         // 3. 从 ItemDatabase 根据 weaponId 查找
         if (!imgSrc && item.weaponId && typeof ItemDatabase !== 'undefined') {
             const weaponIdMap = {
-                'weapon1': 'rusty_sword', 'weapon2': 'knights_sword', 'weapon3': 'training_bow', 'weapon14': 'training_bow',
+                'weapon1': 'rusty_sword', 'weapon2': 'knights_sword',
                 'weapon4': 'rune_sword', 'weapon5': 'night_flame_sword', 'weapon6': 'pkm',
                 'weapon7': 'akm', 'weapon8': 'qbz191', 'weapon9': 'g18_pistol',
                 'weapon10': 'desert_eagle', 'weapon11': 'qjb201', 'weapon12': 'super90'
