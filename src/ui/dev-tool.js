@@ -356,6 +356,11 @@ const DevTool = {
         this._charFrames.running = { sheet: new Image(), cols: 8, rows: 2, frameW: 512, frameH: 512, count: 16 };
         this._charFrames.running.sheet.src = 'assets/character/running.png';
         this._charFrames.running.sheet.onload = () => { this._draw(); };
+        
+        // 剑攻击：attack_sword.png 8帧，每帧 512×516（或 512×1548 总高度）
+        this._charFrames.attack = { sheet: new Image(), cols: 8, rows: 1, frameW: 512, frameH: 516, count: 8 };
+        this._charFrames.attack.sheet.src = 'assets/player/attack_sword.png';
+        this._charFrames.attack.sheet.onload = () => { this._draw(); };
     },
 
     // 更新帧展示条（角色帧 + 武器帧）
@@ -791,7 +796,7 @@ const DevTool = {
         if (currentAnim === 'idle') {
             return this.charImage;
         }
-        if ((currentAnim === 'walk' || currentAnim === 'running') && this._charFrames[currentAnim]) {
+        if ((currentAnim === 'walk' || currentAnim === 'running' || currentAnim === 'attack') && this._charFrames[currentAnim]) {
             const frameData = this._charFrames[currentAnim];
             if (frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
                 // 返回可绘制的帧数据对象
@@ -1154,11 +1159,17 @@ const DevTool = {
             if (currentAnim === 'idle') {
                 // 待机状态：idle.png 本身是朝右的（脸朝右），无需旋转
                 ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
-            } else if (currentAnim === 'walk' || currentAnim === 'running') {
-                // 从 sprite sheet 提取帧
+            } else if (currentAnim === 'walk' || currentAnim === 'running' || currentAnim === 'attack') {
+                // 从 sprite sheet 提取帧（walk/running/attack）
                 const frameData = this._charFrames[currentAnim];
                 if (frameData && frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
-                    const idx = this.state.frameIndex;
+                    // 攻击动画使用 frameIndex 映射到 spritesheet 帧
+                    let idx = this.state.frameIndex;
+                    if (currentAnim === 'attack') {
+                        // 攻击进度 0-1 映射到 0-7 帧
+                        const attackFrameCount = frameData.count;
+                        idx = Math.min(attackFrameCount - 1, Math.floor(this.state.attackProgress * attackFrameCount));
+                    }
                     const col = idx % frameData.cols;
                     const row = Math.floor(idx / frameData.cols);
                     const sx = col * frameData.frameW;
@@ -1173,13 +1184,8 @@ const DevTool = {
                     ctx.drawImage(this.charImage, cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
                 }
             } else {
-                // 攻击等其他状态：使用待机图，无需旋转（贴图本身朝右）
+                // 其他状态：使用待机图
                 ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
-                
-                // DEBUG: 绘制角色边界框（红色）
-                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
             }
         } else {
             ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
