@@ -237,8 +237,9 @@ class WeaponTransform {
         const x = facingRight ? anchor.x : -anchor.x;
         const y = anchor.y;
 
-        // 转换为世界坐标
-        return this.localToWorld(player, { x, y }, null, facingRight, animState, weaponType);
+        // 转换为世界坐标（近战武器使用固定旋转，不随鼠标旋转）
+        const isMelee = weaponType === 'sword' || weaponType === 'bow';
+        return this.localToWorld(player, { x, y }, isMelee ? 0 : null, facingRight, animState, weaponType);
     }
 
     // ==================== 旋转计算 ====================
