@@ -180,12 +180,48 @@ export function createDevToolPanel() {
 
     const canvasWrap = document.createElement('div');
     canvasWrap.className = 'dev-tool-canvas-wrap';
+    canvasWrap.style.position = 'relative';
 
     const canvas = document.createElement('canvas');
     canvas.id = 'devToolCanvas';
     canvas.width = 640;
     canvas.height = 520;
     canvasWrap.appendChild(canvas);
+
+    // 缩放控制按钮
+    const zoomControls = document.createElement('div');
+    zoomControls.className = 'dev-tool-zoom-controls';
+    zoomControls.style.cssText = 'position:absolute;bottom:8px;right:8px;display:flex;gap:4px;z-index:10;';
+    
+    const btnZoomOut = document.createElement('button');
+    btnZoomOut.className = 'dev-tool-zoom-btn';
+    btnZoomOut.id = 'devToolZoomOut';
+    btnZoomOut.textContent = '−';
+    btnZoomOut.title = '缩小';
+    zoomControls.appendChild(btnZoomOut);
+    
+    const zoomLabel = document.createElement('span');
+    zoomLabel.className = 'dev-tool-zoom-label';
+    zoomLabel.id = 'devToolZoomLabel';
+    zoomLabel.textContent = '100%';
+    zoomLabel.style.cssText = 'color:#d4c5a9;font-size:12px;padding:4px 8px;background:rgba(40,40,40,0.8);border-radius:4px;min-width:50px;text-align:center;';
+    zoomControls.appendChild(zoomLabel);
+    
+    const btnZoomIn = document.createElement('button');
+    btnZoomIn.className = 'dev-tool-zoom-btn';
+    btnZoomIn.id = 'devToolZoomIn';
+    btnZoomIn.textContent = '+';
+    btnZoomIn.title = '放大';
+    zoomControls.appendChild(btnZoomIn);
+    
+    const btnZoomReset = document.createElement('button');
+    btnZoomReset.className = 'dev-tool-zoom-btn';
+    btnZoomReset.id = 'devToolZoomReset';
+    btnZoomReset.textContent = '⟲';
+    btnZoomReset.title = '重置缩放';
+    zoomControls.appendChild(btnZoomReset);
+    
+    canvasWrap.appendChild(zoomControls);
 
     const overlay = document.createElement('div');
     overlay.className = 'dev-tool-canvas-overlay';

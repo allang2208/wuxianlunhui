@@ -17,9 +17,7 @@ const DevTool = {
         weaponType: 'sword', // 当前武器类型
         mode: 'move',        // 'move'=移动+缩放, 'rotate'=旋转
         weaponOnCanvas: false, // 武器是否已放到画布上
-        frameIndex: 0,      // 当前帧索引（walk/running）
-        attackProgress: 0,  // 攻击进度 0-1（windup/swing/recover）
-        attackState: 'idle', // 当前攻击阶段: idle/windup/swing/recover
+        frameIndex: 0,      // 当前帧索引（walk/running/attack）
         isPlaying: false,   // 是否正在播放动画
     },
 
@@ -36,6 +34,14 @@ const DevTool = {
         active: false,
         startX: 0, startY: 0,
         startOffsetX: 0, startOffsetY: 0,
+    },
+
+    // 画布缩放
+    zoom: {
+        scale: 1.0,
+        min: 0.5,
+        max: 3.0,
+        step: 0.25,
     },
 
     // 关键帧系统（攻击动画每帧武器位置）
@@ -199,8 +205,6 @@ const DevTool = {
             animSelect.addEventListener('change', (e) => {
                 this.state.anim = e.target.value;
                 this.state.frameIndex = 0;
-                this.state.attackProgress = 0;
-                this.state.attackState = 'idle';
                 this.state.isPlaying = false;
                 this._stopFrameAnimation();
                 this._loadKeyframes(); // 加载关键帧
@@ -236,6 +240,16 @@ const DevTool = {
         const coordBtn = document.getElementById('devToolCoord');
         if (coordBtn) coordBtn.addEventListener('click', () => this._startCoordTool());
 
+        // 缩放按钮
+        const zoomInBtn = document.getElementById('devToolZoomIn');
+        if (zoomInBtn) zoomInBtn.addEventListener('click', () => this._zoomIn());
+        
+        const zoomOutBtn = document.getElementById('devToolZoomOut');
+        if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this._zoomOut());
+        
+        const zoomResetBtn = document.getElementById('devToolZoomReset');
+        if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this._zoomReset());
+
         // Canvas 鼠标交互
         this._canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
         this._canvas.addEventListener('mousemove', (e) => this._onMouseMove(e));
@@ -261,12 +275,7 @@ const DevTool = {
         const frameSlider = document.getElementById('devToolFrameSlider');
         if (frameSlider) {
             frameSlider.addEventListener('input', (e) => {
-                if (this.state.anim === 'attack') {
-                    this.state.attackProgress = parseInt(e.target.value) / 100;
-                    this._updateAttackStateFromProgress();
-                } else {
-                    this.state.frameIndex = parseInt(e.target.value);
-                }
+                this.state.frameIndex = parseInt(e.target.value);
                 this.state.isPlaying = false;
                 this._updateFrameLabel();
                 this._updatePlayBtn();
@@ -303,7 +312,7 @@ const DevTool = {
                 if (e.key === 'k' || e.key === 'K') {
                     // K键：在当前进度添加关键帧
                     e.preventDefault();
-                    const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                    const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
                     this._addKeyframe(progress);
                     this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
                 }
@@ -314,7 +323,7 @@ const DevTool = {
         const addKfBtn = document.getElementById('devToolAddKeyframe');
         if (addKfBtn) addKfBtn.addEventListener('click', () => {
             if (this.state.anim === 'attack' || this.state.anim === 'walk') {
-                const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
                 this._addKeyframe(progress);
                 this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
             } else {
@@ -421,14 +430,6 @@ const DevTool = {
         const slider = document.getElementById('devToolFrameSlider');
         if (!slider) return;
         const currentAnim = this.state.anim;
-        if (currentAnim === 'attack') {
-            // 攻击动画：滑块控制进度 0-100%
-            slider.max = 100;
-            slider.min = 0;
-            slider.value = Math.round(this.state.attackProgress * 100);
-            slider.disabled = false;
-            return;
-        }
         const frameData = this._charFrames[currentAnim];
         if (frameData && frameData.count && frameData.count > 1) {
             slider.max = frameData.count - 1;
@@ -448,13 +449,6 @@ const DevTool = {
         const label = document.getElementById('devToolFrameLabel');
         if (!label) return;
         const currentAnim = this.state.anim;
-        if (currentAnim === 'attack') {
-            const pct = Math.round(this.state.attackProgress * 100);
-            const state = this.state.attackState;
-            const stateName = { idle: '待机', windup: '蓄力', swing: '刺击', recover: '收回' }[state] || state;
-            label.textContent = `${stateName} ${pct}%`;
-            return;
-        }
         const frameData = this._charFrames[currentAnim];
         const total = frameData && frameData.count ? frameData.count : 1;
         const current = this.state.frameIndex + 1;
@@ -471,39 +465,6 @@ const DevTool = {
     // 启动帧动画循环
     _startFrameAnimation() {
         if (this._frameAnimId) cancelAnimationFrame(this._frameAnimId);
-        
-        // 攻击动画：进度循环 0-1，调整 stab 参数
-        if (this.state.anim === 'attack') {
-            let lastTime = 0;
-            const wa = WEAPON_ANIM;
-            const totalMs = (wa.windupMs + wa.swingMs + wa.recoverMs) || 876;
-            const loop = (timestamp) => {
-                if (!this.state.isPlaying) return;
-                // 拖动时暂停攻击进度更新，但继续绘制以显示拖动位置
-                if (this.drag.active) {
-                    this._draw();
-                    this._frameAnimId = requestAnimationFrame(loop);
-                    return;
-                }
-                if (!lastTime) lastTime = timestamp;
-                const elapsed = timestamp - lastTime;
-                const delta = elapsed / totalMs;
-                this.state.attackProgress += delta;
-                if (this.state.attackProgress >= 1) {
-                    this.state.attackProgress = 1;
-                    this.state.isPlaying = false;
-                }
-                this._updateAttackStateFromProgress();
-                this._updateFrameLabel();
-                const slider = document.getElementById('devToolFrameSlider');
-                if (slider) slider.value = Math.round(this.state.attackProgress * 100);
-                this._draw();
-                lastTime = timestamp;
-                this._frameAnimId = requestAnimationFrame(loop);
-            };
-            this._frameAnimId = requestAnimationFrame(loop);
-            return;
-        }
         
         const frameData = this._charFrames[this.state.anim];
         if (!frameData || !frameData.count || frameData.count <= 1) return;
@@ -530,64 +491,6 @@ const DevTool = {
         };
         
         this._frameAnimId = requestAnimationFrame(loop);
-    },
-
-    // 根据攻击进度计算当前阶段
-    _updateAttackStateFromProgress() {
-        const p = this.state.attackProgress;
-        const wa = WEAPON_ANIM;
-        const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
-        const windupEnd = wa.windupMs / totalMs;
-        const swingEnd = (wa.windupMs + wa.swingMs) / totalMs;
-        if (p < windupEnd) {
-            this.state.attackState = 'windup';
-        } else if (p < swingEnd) {
-            this.state.attackState = 'swing';
-        } else {
-            this.state.attackState = 'recover';
-        }
-    },
-
-    // 计算攻击动画的刺击位移（与 GameScene.js 一致，用于可视化）
-    _getAttackThrust() {
-        const wa = WEAPON_ANIM;
-        const stab = WeaponAnimConfig.stab;
-        const ms = 105 * 0.75; // 与游戏中一致
-        const state = this.state.attackState;
-        const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
-        let timer = 0;
-        if (state === 'windup') {
-            timer = this.state.attackProgress * totalMs;
-        } else if (state === 'swing') {
-            timer = (this.state.attackProgress - wa.windupMs / totalMs) * totalMs;
-        } else if (state === 'recover') {
-            timer = (this.state.attackProgress - (wa.windupMs + wa.swingMs) / totalMs) * totalMs;
-        }
-        
-        let thrust = 0;
-        if (state === 'windup') {
-            const t = Math.min(1, timer / wa.windupMs);
-            thrust = ms * stab.windupDist * this._easeInCubic(t);
-        } else if (state === 'swing') {
-            const t = Math.min(1, timer / wa.swingMs);
-            if (t < 0.6) {
-                const pt = t / 0.6;
-                thrust = ms * stab.windupDist - ms * (stab.stabDist + stab.windupDist) * this._easeOutQuad(pt);
-            } else {
-                thrust = -ms * stab.stabDist;
-            }
-        } else if (state === 'recover') {
-            const t = Math.min(1, timer / wa.recoverMs);
-            const snapRatio = 0.15;
-            if (t < snapRatio) {
-                const pt = t / snapRatio;
-                thrust = -ms * stab.stabDist + (ms * stab.stabDist - stab.recoverSnapDist) * pt;
-            } else {
-                const pt = (t - snapRatio) / (1 - snapRatio);
-                thrust = -stab.recoverSnapDist * (1 - this._easeOutQuad(pt));
-            }
-        }
-        return thrust;
     },
 
     // ===== 关键帧系统 =====
@@ -1083,6 +986,34 @@ const DevTool = {
         if (elS) elS.value = this.weaponParams.scale.toFixed(2);
     },
 
+    // 画布缩放控制
+    _zoomIn() {
+        if (this.zoom.scale < this.zoom.max) {
+            this.zoom.scale = Math.min(this.zoom.max, this.zoom.scale + this.zoom.step);
+            this._applyZoom();
+        }
+    },
+    _zoomOut() {
+        if (this.zoom.scale > this.zoom.min) {
+            this.zoom.scale = Math.max(this.zoom.min, this.zoom.scale - this.zoom.step);
+            this._applyZoom();
+        }
+    },
+    _zoomReset() {
+        this.zoom.scale = 1.0;
+        this._applyZoom();
+    },
+    _applyZoom() {
+        // 更新画布 CSS 缩放
+        if (this._canvas) {
+            this._canvas.style.transform = `scale(${this.zoom.scale})`;
+            this._canvas.style.transformOrigin = 'center center';
+        }
+        // 更新标签
+        const label = document.getElementById('devToolZoomLabel');
+        if (label) label.textContent = `${Math.round(this.zoom.scale * 100)}%`;
+    },
+
     // 绘制
     _draw() {
         const ctx = this._ctx;
@@ -1171,13 +1102,7 @@ const DevTool = {
                 // 从 sprite sheet 提取帧（walk/running/attack）
                 const frameData = this._charFrames[currentAnim];
                 if (frameData && frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
-                    // 攻击动画使用 frameIndex 映射到 spritesheet 帧
-                    let idx = this.state.frameIndex;
-                    if (currentAnim === 'attack') {
-                        // 攻击进度 0-1 映射到 0-7 帧
-                        const attackFrameCount = frameData.count;
-                        idx = Math.min(attackFrameCount - 1, Math.floor(this.state.attackProgress * attackFrameCount));
-                    }
+                    const idx = this.state.frameIndex % frameData.count;
                     const col = idx % frameData.cols;
                     const row = Math.floor(idx / frameData.cols);
                     const sx = col * frameData.frameW;
@@ -1205,24 +1130,6 @@ const DevTool = {
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
 
-        // 绘制帧参考点（右手位置，帮助对齐武器）
-        const _currentAnim = this.state.anim;
-        if (_currentAnim === 'walk' || _currentAnim === 'running') {
-            const handRefX = cx + 25; // 角色右侧，参考点
-            const handRefY = cy - 15; // 略高于中心
-            ctx.fillStyle = 'rgba(255, 200, 50, 0.6)';
-            ctx.beginPath();
-            ctx.arc(handRefX, handRefY, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 200, 50, 0.9)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            // 标签
-            ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
-            ctx.font = '10px monospace';
-            ctx.fillText('右手', handRefX + 8, handRefY - 8);
-        }
-
         // 武器绘制
         if (this.state.weaponOnCanvas && this.weaponImage && this.weaponImage.complete) {
             const s = 105;
@@ -1241,12 +1148,12 @@ const DevTool = {
             };
             
             // 仅在攻击/行走动画 + 关键帧启用时，用插值结果覆盖
-            // 拖动时禁用关键帧，使用 weaponParams（支持拖动）
+            // 拖动时、旋转模式、缩放调整时禁用关键帧，使用 weaponParams（支持实时调整）
             let useKeyframes = false;
             if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee && !this.drag.active) {
                 useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
                 if (useKeyframes) {
-                    const progress = this.state.anim === 'attack' ? this.state.attackProgress : (this.state.frameIndex / this._charFrames[this.state.anim].count);
+                    const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
                     const interpolated = this._interpolateKeyframes(progress);
                     if (interpolated) {
                         drawParams = {
@@ -1264,46 +1171,21 @@ const DevTool = {
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 
-                if (this.state.anim === 'attack') {
-                    const stateColors = { windup: 'rgba(255,200,50,0.8)', swing: 'rgba(255,80,80,0.9)', recover: 'rgba(80,200,80,0.8)' };
-                    const stateColor = stateColors[this.state.attackState] || 'rgba(200,200,200,0.8)';
-                    ctx.fillStyle = stateColor;
+                if (this.state.anim === 'attack' || this.state.anim === 'walk') {
+                    // 攻击/行走动画进度指示器（统一）
+                    const currentAnim = this.state.anim;
+                    const frameData = this._charFrames[currentAnim];
+                    const progress = this.state.frameIndex / frameData.count;
+                    const animName = currentAnim === 'attack' ? '攻击' : '行走';
+                    ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.8)' : 'rgba(100,200,100,0.8)';
                     ctx.font = 'bold 14px monospace';
                     ctx.textAlign = 'center';
                     const kfIndicator = useKeyframes ? ' [关键帧]' : '';
-                    ctx.fillText(`攻击: ${this.state.attackState} ${Math.round(this.state.attackProgress * 100)}%${kfIndicator}`, cx, 30);
+                    ctx.fillText(`${animName}: 帧 ${this.state.frameIndex + 1}/${frameData.count}${kfIndicator}`, cx, 30);
                     ctx.fillStyle = 'rgba(80,60,40,0.8)';
                     ctx.fillRect(cx - 100, 40, 200, 8);
-                    ctx.fillStyle = stateColor;
-                    ctx.fillRect(cx - 100, 40, 200 * this.state.attackProgress, 8);
-                    
-                    // 绘制关键帧标记
-                    if (useKeyframes) {
-                        ctx.fillStyle = 'rgba(144,208,112,0.9)';
-                        this.keyframeSystem.keyframes.forEach(kf => {
-                            const x = cx - 100 + 200 * kf.progress;
-                            ctx.fillRect(x - 1, 36, 2, 16);
-                        });
-                    } else {
-                        const wa = WEAPON_ANIM;
-                        const totalMs = wa.windupMs + wa.swingMs + wa.recoverMs;
-                        ctx.fillStyle = 'rgba(255,200,50,0.9)';
-                        ctx.fillRect(cx - 100 + 200 * (wa.windupMs / totalMs) - 1, 38, 2, 12);
-                        ctx.fillStyle = 'rgba(255,80,80,0.9)';
-                        ctx.fillRect(cx - 100 + 200 * ((wa.windupMs + wa.swingMs) / totalMs) - 1, 38, 2, 12);
-                    }
-                } else if (this.state.anim === 'walk') {
-                    // 行走动画进度指示器
-                    const walkProgress = this.state.frameIndex / this._charFrames[this.state.anim].count;
-                    ctx.fillStyle = 'rgba(100,200,100,0.8)';
-                    ctx.font = 'bold 14px monospace';
-                    ctx.textAlign = 'center';
-                    const kfIndicator = useKeyframes ? ' [关键帧]' : '';
-                    ctx.fillText(`行走: 帧 ${this.state.frameIndex + 1}/${this._charFrames[this.state.anim].count}${kfIndicator}`, cx, 30);
-                    ctx.fillStyle = 'rgba(80,60,40,0.8)';
-                    ctx.fillRect(cx - 100, 40, 200, 8);
-                    ctx.fillStyle = 'rgba(100,200,100,0.9)';
-                    ctx.fillRect(cx - 100, 40, 200 * walkProgress, 8);
+                    ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.9)' : 'rgba(100,200,100,0.9)';
+                    ctx.fillRect(cx - 100, 40, 200 * progress, 8);
                     
                     // 绘制关键帧标记
                     if (useKeyframes) {
@@ -1336,12 +1218,6 @@ const DevTool = {
             
             // 应用旋转
             ctx.rotate(drawParams.rotation * Math.PI / 180);
-            
-            // 攻击动画传统 thrust 位移（仅非关键帧且非拖动时）
-            if (this.state.anim === 'attack' && isMelee && !useKeyframes && !this.drag.active) {
-                const thrust = this._getAttackThrust();
-                ctx.translate(0, thrust);
-            }
             
             // 绘制武器
             const scale = drawParams.scale;
@@ -1451,19 +1327,6 @@ const DevTool = {
                     if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
                     WeaponAnimConfig.keyframes[wt][currentAnim] = JSON.parse(JSON.stringify(this.keyframeSystem.keyframes));
                     console.log('[DevTool] 关键帧已保存:', wt, currentAnim, this.keyframeSystem.keyframes);
-                } else if (currentAnim === 'attack') {
-                    // 攻击动画没有关键帧时，保存传统刺击参数
-                    const stab = WeaponAnimConfig.stab;
-                    if (stab) {
-                        console.log('[DevTool] 攻击动画参数已记录（实际位移由 GameScene.js 根据 stab 配置计算）:', {
-                            windupDist: stab.windupDist,
-                            stabDist: stab.stabDist,
-                            recoverSnapDist: stab.recoverSnapDist,
-                            windupMs: WEAPON_ANIM.windupMs,
-                            swingMs: WEAPON_ANIM.swingMs,
-                            recoverMs: WEAPON_ANIM.recoverMs,
-                        });
-                    }
                 }
             } else {
                 // 传统保存：保存到全局配置
