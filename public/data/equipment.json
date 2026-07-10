@@ -410,7 +410,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/G18icon.png",
       "dropImage": "assets/weapons/G18equip.png",
-      "equipImage": "assets/weapons/G18equip.png",
+      "equipImage": "assets/icons/G18icon.png",
       "slotImage": "assets/icons/G18icon.png",
       "category": "weapon_ranged",
       "rarity": "rare",
@@ -454,6 +454,38 @@
         "timingMul": "0.06x (极速)",
         "recoilAmount": "0.15rad",
         "description": "G18 以1100RPM的射速连续射击，单次开火动画仅约55ms。可双持，双持时左右手同时开火。"
+      },
+      "attackKey": "pistol",
+      "offhandAttackKey": "pistolOffhand",
+      "animConfigKey": "pistol",
+      "fireSound": "assets/sounds/akm_burst.mp3",
+      "isDarkGold": false,
+      "canvasImageProp": "pistolImage",
+      "ammoConfig": {
+        "max": 12,
+        "reloadTime": 1000
+      },
+      "fireMode": "fullAuto",
+      "attackFormula": {
+        "base": 5,
+        "enhanceFlat": 1,
+        "attrs": [
+          {
+            "key": "dex",
+            "base": 0.35,
+            "perEnhance": 0.15
+          },
+          {
+            "key": "wis",
+            "base": 0.4,
+            "perEnhance": 0.15
+          }
+        ]
+      },
+      "spreadParams": {
+        "startDelay": 0,
+        "maxTime": 300,
+        "maxAngle": 25
       }
     },
     "desert_eagle": {
@@ -463,7 +495,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/DesertEagle_icon.png",
       "dropImage": "assets/weapons/DesertEagle_equip.png",
-      "equipImage": "assets/weapons/DesertEagle_equip.png",
+      "equipImage": "assets/icons/DesertEagle_icon.png",
       "slotImage": "assets/icons/DesertEagle_icon.png",
       "category": "weapon_ranged",
       "rarity": "epic",
@@ -517,13 +549,13 @@
       "icon": "🔫",
       "iconImage": "assets/weapons/P4040-icon.png",
       "dropImage": "assets/weapons/P4040-equip.png",
-      "equipImage": "assets/weapons/P4040-equip.png",
+      "equipImage": "assets/weapons/P4040-icon.png",
       "slotImage": "assets/weapons/P4040-icon.png",
       "category": "weapon_ranged",
       "rarity": "epic",
       "level": 15,
       "weaponCategory": "mainhand",
-      "weaponType": "p4040",
+      "weaponType": "pistol",
       "weaponTypeTag": "远程武器",
       "isTwoHanded": false,
       "weaponAsset": {
@@ -546,7 +578,7 @@
         "range": 750,
         "knockback": 2,
         "attackInterval": 300,
-        "hitType": "子弹（直线弹道）",
+        "hitType": "淡金色曳光弹（直线弹道）",
         "damageType": "物理",
         "projectileSpeed": 1248,
         "bulletSpeed": 1248
@@ -562,6 +594,38 @@
         "timingMul": "0.5x (慢速)",
         "recoilAmount": "0.08rad",
         "description": "P4040 以较慢射速开火，单次开火动画约300ms。后坐力抖动幅度较小，与射击频率一致。"
+      },
+      "attackKey": "p4040",
+      "offhandAttackKey": "p4040Offhand",
+      "animConfigKey": "p4040",
+      "fireSound": "assets/sounds/apex2_shot_1s.wav",
+      "isDarkGold": true,
+      "canvasImageProp": "pistolImage",
+      "ammoConfig": {
+        "max": 12,
+        "reloadTime": 1200
+      },
+      "fireMode": "semiAuto",
+      "attackFormula": {
+        "base": 8,
+        "enhanceFlat": 1,
+        "attrs": [
+          {
+            "key": "dex",
+            "base": 0.75,
+            "perEnhance": 0.15
+          },
+          {
+            "key": "wis",
+            "base": 1,
+            "perEnhance": 0.25
+          }
+        ]
+      },
+      "spreadParams": {
+        "startDelay": 0,
+        "maxTime": 0,
+        "maxAngle": 1
       }
     },
     "pkm": {
@@ -574,7 +638,7 @@
       "rarity": "rare",
       "level": 10,
       "dropImage": "assets/weapons/pkm_topdown.png",
-      "equipImage": "assets/weapons/pkm_topdown.png",
+      "equipImage": "assets/icons/pkm_side_clean.png",
       "weaponCategory": "mainhand",
       "weaponType": "pkm",
       "weaponTypeTag": "远程武器",
@@ -793,7 +857,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/akm-equip.png",
       "slotImage": "assets/icons/akm-equip.png",
-      "equipImage": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+      "equipImage": "assets/weapons/AKm.png",
       "category": "weapon_ranged",
       "rarity": "rare",
       "level": 10,
@@ -802,7 +866,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/akm_topdown_lowpoly_v2长枪管.png",
+        "image": "assets/weapons/AKm.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -845,7 +909,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/191icon.png",
       "slotImage": "assets/icons/191icon.png",
-      "equipImage": "assets/weapons/191equip_clean.png",
+      "equipImage": "assets/icons/191icon.png",
       "category": "weapon_ranged",
       "rarity": "rare",
       "level": 12,
@@ -897,7 +961,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/201-icon.png",
       "dropImage": "assets/weapons/201equip.png",
-      "equipImage": "assets/weapons/201equip.png",
+      "equipImage": "assets/icons/201-icon.png",
       "slotImage": "assets/icons/201-icon.png",
       "category": "weapon_ranged",
       "rarity": "rare",
@@ -950,7 +1014,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/M4s90_icon.png",
       "dropImage": "assets/weapons/M4s90_equip.png",
-      "equipImage": "assets/weapons/M4s90_equip.png",
+      "equipImage": "assets/icons/M4s90_icon.png",
       "slotImage": "assets/icons/M4s90_icon.png",
       "category": "weapon_ranged",
       "rarity": "epic",
@@ -1006,7 +1070,7 @@
       "rarity": "epic",
       "level": 15,
       "dropImage": "assets/weapons/devotion-equip.png",
-      "equipImage": "assets/weapons/devotion-equip.png",
+      "equipImage": "assets/icons/devotion-icon.png",
       "slotImage": "assets/icons/devotion-icon.png",
       "weaponCategory": "mainhand",
       "weaponType": "energy_lmg",
@@ -1066,7 +1130,7 @@
       "icon": "🔫",
       "iconImage": "assets/icons/S12k-icon.png",
       "dropImage": "assets/weapons/S12k-equip.png",
-      "equipImage": "assets/weapons/S12k-equip.png",
+      "equipImage": "assets/icons/S12k-icon.png",
       "slotImage": "assets/icons/S12k-icon.png",
       "category": "weapon_ranged",
       "rarity": "epic",

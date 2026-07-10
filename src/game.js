@@ -47,23 +47,25 @@ export const Game = {
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
-            this.dropItem(CONFIG.WORLD_WIDTH/2 + 120, CONFIG.WORLD_HEIGHT/2, EquipDataManager.G18_PISTOL_ITEM);
-            this.dropItem(CONFIG.WORLD_WIDTH/2 + 160, CONFIG.WORLD_HEIGHT/2, EquipDataManager.SAIGA12K_ITEM);
+            // 使用主神空间固定原点，不随分辨率变化
+            const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : { x: 3825, y: 1886 };
+            this.dropItem(origin.x + 120, origin.y, EquipDataManager.G18_PISTOL_ITEM);
+            this.dropItem(origin.x + 160, origin.y, EquipDataManager.SAIGA12K_ITEM);
             // 在主神空间(-874, -136)横向生成所有武器
             this.spawnAllWeapons();
             // 在出生点附近生成所有附魔卷轴（供测试拾取）
-            const scrollBaseX = CONFIG.WORLD_WIDTH / 2 + 200;
-            const scrollBaseY = CONFIG.WORLD_HEIGHT / 2;
+            const scrollBaseX = origin.x + 200;
+            const scrollBaseY = origin.y;
             this.dropItem(scrollBaseX, scrollBaseY, EnchantScrollItems.enchant_scroll_heavy);
             this.dropItem(scrollBaseX + 40, scrollBaseY, EnchantScrollItems.enchant_scroll_sharp);
             this.dropItem(scrollBaseX + 80, scrollBaseY, EnchantScrollItems.enchant_scroll_tarantula);
             this.dropItem(scrollBaseX + 120, scrollBaseY, EnchantScrollItems.enchant_scroll_skeleton);
             // 生成一些魔法晶尘（供测试）
-            this.dropItem(CONFIG.WORLD_WIDTH / 2 + 200, CONFIG.WORLD_HEIGHT / 2 + 40, MagicDustItem);
-            this.dropItem(CONFIG.WORLD_WIDTH / 2 + 240, CONFIG.WORLD_HEIGHT / 2 + 40, { ...MagicDustItem, stack: 999 });
+            this.dropItem(origin.x + 200, origin.y + 40, MagicDustItem);
+            this.dropItem(origin.x + 240, origin.y + 40, { ...MagicDustItem, stack: 999 });
             // 生成强化石和改造券（各10份，供测试）
-            const matBaseX = CONFIG.WORLD_WIDTH / 2 + 280;
-            const matBaseY = CONFIG.WORLD_HEIGHT / 2 + 40;
+            const matBaseX = origin.x + 280;
+            const matBaseY = origin.y + 40;
             for (let i = 0; i < 10; i++) {
                 this.dropItem(matBaseX + i * 30, matBaseY, { ...EnhancementItems.enhance_stone });
                 this.dropItem(matBaseX + i * 30, matBaseY + 40, { ...EnhancementItems.modify_ticket });
