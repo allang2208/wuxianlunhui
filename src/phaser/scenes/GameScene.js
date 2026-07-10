@@ -393,6 +393,7 @@ export class GameScene extends Scene {
         let animState = 'idle';
         if (player._isSprinting) animState = 'running';
         else if (player.isMoving) animState = 'walk';
+        else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
         
         // ===== 关键帧插值：walk/attack 动画使用关键帧数据 =====
         let keyframeOffset = null;
