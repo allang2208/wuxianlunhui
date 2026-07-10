@@ -273,6 +273,38 @@ export function createDevToolPanel() {
     modeHint.innerHTML = '<div>🖱 左键拖动</div><div>🔄 滚轮缩放</div><div>按 <kbd>R</kbd> 切换旋转/缩放模式</div>';
     right.appendChild(modeHint);
 
+    // 关键帧控制区域（仅在攻击动画显示）
+    const keyframeSection = document.createElement('div');
+    keyframeSection.className = 'dev-tool-keyframe-section';
+    keyframeSection.id = 'devToolKeyframeSection';
+    keyframeSection.style.cssText = 'margin-top:10px;padding:8px;background:rgba(40,40,40,0.8);border-radius:6px;border:1px solid #444;';
+    
+    const kfTitle = document.createElement('div');
+    kfTitle.style.cssText = 'font-size:12px;font-weight:bold;color:#d4c5a9;margin-bottom:6px;';
+    kfTitle.textContent = '🎬 关键帧编辑';
+    keyframeSection.appendChild(kfTitle);
+    
+    const kfHint = document.createElement('div');
+    kfHint.style.cssText = 'font-size:11px;color:#888;margin-bottom:6px;';
+    kfHint.innerHTML = '拖动武器到目标位置 → 按 <kbd>K</kbd> 添加关键帧';
+    keyframeSection.appendChild(kfHint);
+    
+    const addKfBtn = document.createElement('button');
+    addKfBtn.className = 'dev-tool-menu-btn';
+    addKfBtn.id = 'devToolAddKeyframe';
+    addKfBtn.textContent = '➕ 添加关键帧';
+    addKfBtn.style.cssText = 'width:100%;margin-bottom:4px;font-size:12px;padding:4px;';
+    keyframeSection.appendChild(addKfBtn);
+    
+    const kfList = document.createElement('div');
+    kfList.className = 'dev-tool-keyframe-list';
+    kfList.id = 'devToolKeyframeList';
+    kfList.style.cssText = 'max-height:120px;overflow-y:auto;margin-top:4px;';
+    kfList.innerHTML = '<div style="color:#888;text-align:center;padding:10px;">暂无关键帧</div>';
+    keyframeSection.appendChild(kfList);
+    
+    right.appendChild(keyframeSection);
+
     const dataOutput = document.createElement('div');
     dataOutput.className = 'dev-tool-data-output';
     dataOutput.id = 'devToolDataOutput';
