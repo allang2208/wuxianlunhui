@@ -434,19 +434,35 @@ export class GameScene extends Scene {
         
         // 应用关键帧偏移（覆盖默认位置）
         if (keyframeOffset) {
-            // 关键帧偏移是相对于玩家中心的局部偏移，需要转换到世界坐标
-            const playerRot = useFixedRot ? 0 : player.rotation;
-            const cos = Math.cos(playerRot);
-            const sin = Math.sin(playerRot);
-            // 镜像：朝左时水平翻转偏移
-            const mirrorX = facingRight ? 1 : -1;
-            const localX = keyframeOffset.offsetX * mirrorX;
-            const localY = keyframeOffset.offsetY;
-            // 转换到世界坐标（相对于玩家位置）
-            pos.x = player.x + (localX * cos - localY * sin);
-            pos.y = player.y + (localX * sin + localY * cos);
-            // 应用关键帧旋转
-            rot = (keyframeOffset.rotation * Math.PI / 180) * mirrorX;
+            // 关键帧的 offsetX/Y 直接替换 holdOffsetX/Y
+            // 临时修改 WeaponAnimConfig，然后调用 getWeaponWorldPosition
+            const cfg = WeaponAnimConfig[wt];
+            const originalHoldX = cfg.walk ? cfg.walk.holdOffsetX : cfg.holdOffsetX;
+            const originalHoldY = cfg.walk ? cfg.walk.holdOffsetY : cfg.holdOffsetY;
+            const originalRot = cfg.walk ? cfg.walk.idleRotation : cfg.idleRotation;
+            const originalScale = cfg.walk ? cfg.walk.idleScale : cfg.idleScale;
+            
+            // 替换为关键帧值
+            if (!cfg.walk) cfg.walk = {};
+            cfg.walk.holdOffsetX = keyframeOffset.offsetX;
+            cfg.walk.holdOffsetY = keyframeOffset.offsetY;
+            cfg.walk.idleRotation = keyframeOffset.rotation;
+            cfg.walk.idleScale = keyframeOffset.scale;
+            
+            // 重新计算世界坐标
+            const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
+            pos.x = worldPos.x;
+            pos.y = worldPos.y;
+            
+            // 恢复原始值
+            cfg.walk.holdOffsetX = originalHoldX;
+            cfg.walk.holdOffsetY = originalHoldY;
+            cfg.walk.idleRotation = originalRot;
+            cfg.walk.idleScale = originalScale;
+            
+            // 重新计算旋转（使用关键帧旋转值）
+            rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+            
             // 应用关键帧缩放
             if (this.weaponSprite) {
                 this.weaponSprite.setScale(keyframeOffset.scale);
