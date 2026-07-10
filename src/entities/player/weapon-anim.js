@@ -95,7 +95,7 @@ const weaponAnimMixin = {
         }
     },
 
-    // 剑类攻击 Tween 动画
+    // 剑类攻击 Tween 动画（支持关键帧）
     _playSwordAttackTween(scene, hand) {
         const anim = hand === 'offhand' ? this.offhandWeaponAnim : this.weaponAnim;
         if (anim.isAttacking) return; // 防止重复触发
@@ -116,55 +116,52 @@ const weaponAnimMixin = {
         const startX = weaponSprite.x;
         const startY = weaponSprite.y;
         
-        // 攻击参数
-        const windupMs = 200;   // 预备时间
-        const swingMs = 300;    // 挥砍时间
-        const recoverMs = 400;  // 回位时间
-        
-        // 攻击角度（基于玩家朝向）
-        const playerRotation = this.rotation;
-        const windupAngle = startRotation - 0.5;  // 向后扬起
-        const swingAngle = startRotation + 0.8;   // 向前挥砍
-        
-        // 攻击位移
-        const thrustDistance = 20;
-        const thrustX = Math.cos(playerRotation) * thrustDistance;
-        const thrustY = Math.sin(playerRotation) * thrustDistance;
-        
-        // 创建 Tween 链（Phaser 4 兼容）
         const self = this;
-        const chain = scene.tweens.chain({
-            tweens: [
-                // 阶段1：预备（windup）
-                {
+        
+        // 检查是否有关键帧配置
+        const currentWeapon = this.getCurrentWeapon ? this.getCurrentWeapon() : (this.equipments && this.weaponMode ? this.equipments[this.weaponMode] : null);
+        const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
+        const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType].attack;
+        
+        if (kfConfig && kfConfig.length >= 2) {
+            // ===== 使用关键帧动画 =====
+            console.log('[WeaponAnim] Using keyframe animation, frames:', kfConfig.length);
+            
+            // 构建 Tween 数组（关键帧之间插值）
+            const tweens = [];
+            const totalDuration = 900; // 总攻击时长 ms（windup + swing + recover）
+            
+            for (let i = 0; i < kfConfig.length - 1; i++) {
+                const prev = kfConfig[i];
+                const next = kfConfig[i + 1];
+                const duration = (next.progress - prev.progress) * totalDuration;
+                
+                // 计算目标位置（关键帧是相对于玩家中心的偏移，需要转换到世界坐标）
+                const playerRotation = this.rotation;
+                const cos = Math.cos(playerRotation);
+                const sin = Math.sin(playerRotation);
+                
+                // 将关键帧偏移转换为世界坐标
+                const targetX = startX + (prev.offsetX * cos - prev.offsetY * sin) * 0.5; // 缩放系数调整
+                const targetY = startY + (prev.offsetX * sin + prev.offsetY * cos) * 0.5;
+                const targetRotation = startRotation + prev.rotation * Math.PI / 180;
+                const targetScale = prev.scale;
+                
+                tweens.push({
                     targets: weaponSprite,
-                    rotation: windupAngle,
-                    x: startX - thrustX * 0.3,
-                    y: startY - thrustY * 0.3,
-                    duration: windupMs,
-                    ease: 'Quad.easeIn',
-                    onStart: function() {
-                        console.log('[WeaponAnim] Windup onStart, _pendingThrust:', !!self._pendingThrust);
-                        // 标记攻击开始，准备判定
+                    x: targetX,
+                    y: targetY,
+                    rotation: targetRotation,
+                    scale: targetScale,
+                    duration: duration,
+                    ease: 'Linear',
+                    onStart: i === 0 ? function() {
                         if (self._pendingThrust) {
                             self._pendingThrust.active = true;
-                            console.log('[WeaponAnim] _pendingThrust.active set to true');
-                            // 不重新设置 startTime，保留 execute 中设置的时间
                         }
-                    }
-                },
-                // 阶段2：挥砍（swing）
-                {
-                    targets: weaponSprite,
-                    rotation: swingAngle,
-                    x: startX + thrustX,
-                    y: startY + thrustY,
-                    duration: swingMs,
-                    ease: 'Quad.easeOut',
+                    } : undefined,
                     onUpdate: function() {
-                        // 进行攻击判定
                         if (self._pendingThrust && self._pendingThrust.active) {
-                            // 延长判定时间到 500ms，确保在 windup + swing 期间都能判定
                             if (Date.now() - self._pendingThrust.startTime <= 500) {
                                 self.attacks.melee.checkTriangleHit(self);
                             } else {
@@ -172,33 +169,110 @@ const weaponAnimMixin = {
                             }
                         }
                     }
-                },
-                // 阶段3：回位（recover）
-                {
-                    targets: weaponSprite,
-                    rotation: startRotation,
-                    x: startX,
-                    y: startY,
-                    duration: recoverMs,
-                    ease: 'Cubic.easeInOut',
-                    onComplete: function() {
-                        // 攻击结束
-                        anim.isAttacking = false;
-                        anim.state = 'idle';
-                        
-                        // 发放经验
-                        if (self._pendingThrust) {
-                            self._pendingThrust.active = false;
-                            self.attacks.melee.giveExp(self);
-                            self._pendingThrust = null;
-                        }
+                });
+            }
+            
+            // 最后回到初始位置
+            tweens.push({
+                targets: weaponSprite,
+                x: startX,
+                y: startY,
+                rotation: startRotation,
+                scale: 1,
+                duration: 100,
+                ease: 'Cubic.easeInOut',
+                onComplete: function() {
+                    anim.isAttacking = false;
+                    anim.state = 'idle';
+                    if (self._pendingThrust) {
+                        self._pendingThrust.active = false;
+                        self.attacks.melee.giveExp(self);
+                        self._pendingThrust = null;
                     }
                 }
-            ]
-        });
-        
-        // 保存引用以便清理
-        this._activeAttackTweens.push(chain);
+            });
+            
+            const chain = scene.tweens.chain({ tweens });
+            this._activeAttackTweens.push(chain);
+            
+        } else {
+            // ===== 使用传统动画（无关键帧时回退）=====
+            console.log('[WeaponAnim] Using traditional thrust animation');
+            
+            // 攻击参数
+            const windupMs = 200;   // 预备时间
+            const swingMs = 300;    // 挥砍时间
+            const recoverMs = 400;  // 回位时间
+            
+            // 攻击角度（基于玩家朝向）
+            const playerRotation = this.rotation;
+            const windupAngle = startRotation - 0.5;  // 向后扬起
+            const swingAngle = startRotation + 0.8;   // 向前挥砍
+            
+            // 攻击位移
+            const thrustDistance = 20;
+            const thrustX = Math.cos(playerRotation) * thrustDistance;
+            const thrustY = Math.sin(playerRotation) * thrustDistance;
+            
+            const chain = scene.tweens.chain({
+                tweens: [
+                    // 阶段1：预备（windup）
+                    {
+                        targets: weaponSprite,
+                        rotation: windupAngle,
+                        x: startX - thrustX * 0.3,
+                        y: startY - thrustY * 0.3,
+                        duration: windupMs,
+                        ease: 'Quad.easeIn',
+                        onStart: function() {
+                            console.log('[WeaponAnim] Windup onStart, _pendingThrust:', !!self._pendingThrust);
+                            if (self._pendingThrust) {
+                                self._pendingThrust.active = true;
+                                console.log('[WeaponAnim] _pendingThrust.active set to true');
+                            }
+                        }
+                    },
+                    // 阶段2：挥砍（swing）
+                    {
+                        targets: weaponSprite,
+                        rotation: swingAngle,
+                        x: startX + thrustX,
+                        y: startY + thrustY,
+                        duration: swingMs,
+                        ease: 'Quad.easeOut',
+                        onUpdate: function() {
+                            if (self._pendingThrust && self._pendingThrust.active) {
+                                if (Date.now() - self._pendingThrust.startTime <= 500) {
+                                    self.attacks.melee.checkTriangleHit(self);
+                                } else {
+                                    self._pendingThrust.active = false;
+                                }
+                            }
+                        }
+                    },
+                    // 阶段3：回位（recover）
+                    {
+                        targets: weaponSprite,
+                        rotation: startRotation,
+                        x: startX,
+                        y: startY,
+                        duration: recoverMs,
+                        ease: 'Cubic.easeInOut',
+                        onComplete: function() {
+                            anim.isAttacking = false;
+                            anim.state = 'idle';
+                            if (self._pendingThrust) {
+                                self._pendingThrust.active = false;
+                                self.attacks.melee.giveExp(self);
+                                self._pendingThrust = null;
+                            }
+                        }
+                    }
+                ]
+            });
+            
+            this._activeAttackTweens.push(chain);
+        }
         
         // 同时播放玩家角色攻击动画
         if (scene.setPlayerAnimation) {
