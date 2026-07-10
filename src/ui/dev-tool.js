@@ -44,6 +44,14 @@ const DevTool = {
         step: 0.25,
     },
 
+    // 关键帧系统（攻击动画每帧武器位置）
+    keyframeSystem: {
+        enabled: false,           // 是否启用关键帧模式
+        keyframes: [],            // 当前关键帧数组 [{progress, offsetX, offsetY, rotation, scale}]
+        selectedIndex: -1,        // 当前选中的关键帧索引
+        isRecording: false,       // 是否正在录制关键帧
+    },
+
     // 挂载点编辑系统
     handAnchorSystem: {
         enabled: false,       // 是否启用挂载点编辑模式
@@ -439,19 +447,22 @@ const DevTool = {
     // 更新帧滑块范围
     _updateFrameSlider() {
         const slider = document.getElementById('devToolFrameSlider');
-        if (!slider) return;
+        if (!slider) { console.log('[DevTool] _updateFrameSlider: slider not found'); return; }
         const currentAnim = this.state.anim;
         const frameData = this._charFrames[currentAnim];
+        console.log('[DevTool] _updateFrameSlider:', currentAnim, frameData);
         if (frameData && frameData.count && frameData.count > 1) {
             slider.max = frameData.count - 1;
             slider.min = 0;
             slider.value = this.state.frameIndex;
             slider.disabled = false;
+            console.log('[DevTool] _updateFrameSlider: enabled, count=', frameData.count);
         } else {
             slider.max = 0;
             slider.min = 0;
             slider.value = 0;
             slider.disabled = true;
+            console.log('[DevTool] _updateFrameSlider: disabled');
         }
     },
 
@@ -869,11 +880,10 @@ const DevTool = {
             anchor.x = sys.handAnchorStartX + dx;
             anchor.y = sys.handAnchorStartY + dy;
             
-            // 同步更新武器位置（武器跟随手部）
-            this.weaponParams.offsetX = anchor.x;
-            this.weaponParams.offsetY = anchor.y;
+            // 只更新挂载点，不更新武器位置（武器位置独立调整）
+            // this.weaponParams.offsetX = anchor.x;
+            // this.weaponParams.offsetY = anchor.y;
             
-            this._syncInputs();
             this._draw();
             return;
         }
@@ -1312,15 +1322,28 @@ const DevTool = {
             ctx.fillStyle = '#FFD700';
             ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
             
-            // 绘制手部挂载点（如果启用）
+            ctx.restore();
+            
+            // 绘制手部挂载点（如果启用）- 在武器坐标系之外绘制，避免随武器移动
             if (this.handAnchorSystem.enabled && isMelee) {
                 const sys = this.handAnchorSystem;
                 const currentAnim = this.state.anim;
                 const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
                 
                 // 挂载点位置（相对于玩家中心）
-                const handX = anchor.x;
-                const handY = anchor.y;
+                const handX = cx + anchor.x;
+                const handY = cy + anchor.y;
+                
+                // 武器中心位置（相对于画布）
+                const weaponX = cx + drawParams.offsetX;
+                const weaponY = cy + drawParams.offsetY;
+                
+                // 绘制连线到武器中心
+                ctx.strokeStyle = 'rgba(255, 200, 50, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath(); ctx.moveTo(handX, handY); ctx.lineTo(weaponX, weaponY); ctx.stroke();
+                ctx.setLineDash([]);
                 
                 // 绘制挂载点指示器（黄色圆点）
                 ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
@@ -1329,20 +1352,11 @@ const DevTool = {
                 ctx.beginPath(); ctx.arc(handX, handY, 8, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(handX, handY, 10, 0, Math.PI * 2); ctx.stroke();
                 
-                // 绘制连线到武器中心
-                ctx.strokeStyle = 'rgba(255, 200, 50, 0.4)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath(); ctx.moveTo(handX, handY); ctx.lineTo(0, 0); ctx.stroke();
-                ctx.setLineDash([]);
-                
                 // 标签
                 ctx.fillStyle = 'rgba(255, 200, 50, 0.9)';
                 ctx.font = '10px monospace';
-                ctx.fillText(`手 (${Math.round(handX)}, ${Math.round(handY)})`, handX + 12, handY - 8);
+                ctx.fillText(`手 (${Math.round(anchor.x)}, ${Math.round(anchor.y)})`, handX + 12, handY - 8);
             }
-            
-            ctx.restore();
             
             // ===== 坐标标注（所有状态都显示） =====
             const wp = this.weaponParams;
