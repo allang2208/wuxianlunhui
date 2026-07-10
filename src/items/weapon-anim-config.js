@@ -26,11 +26,12 @@ import { Easing } from '../config/math-utils.js';
                 running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 },
 
                 // 新增：手部挂载点（相对于玩家中心的偏移）
+                // 值与 holdOffsetX/Y 一致，确保挂载点系统与旧系统位置匹配
                 handAnchors: {
-                    idle:    { x: 8,  y: -5 },  // 待机时手的位置
-                    walk:    { x: 10, y: -3 },  // 行走时
-                    running: { x: 12, y: -8 },  // 奔跑时
-                    attack:  { x: 15, y: -12 }, // 攻击时（基础位置）
+                    idle:    { x: -43,  y: -18 },  // 与 idle.holdOffsetX/Y 一致
+                    walk:    { x: -15,  y: 23 },   // 与 walk.holdOffsetX/Y 一致
+                    running: { x: -76,  y: -11 },  // 与 running.holdOffsetX/Y 一致
+                    attack:  { x: -35,  y: 4 },     // 与基础 holdOffsetX/Y 一致
                 },
 
                 // 握把偏移：武器精灵中心到握把点的偏移
