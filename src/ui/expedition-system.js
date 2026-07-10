@@ -433,10 +433,10 @@ export const ExpeditionSystem = {
         const info = {
             default: {
                 name: '遗忘祭坛',
-                desc: '古老教团的祭祀场所，如今只剩下扭曲的雕像与呢喃的低语。',
+                desc: '古老教团的祭祀场所，35-40节点随机地图，9场战斗最短路径到Boss。',
                 level: 'Lv.5 ~ 15',
                 difficulty: '★★★☆☆',
-                reward: '4500 金币'
+                reward: '4500 金币 + 三选一奖励'
             },
             zombie: {
                 name: '☠ 僵尸地牢',

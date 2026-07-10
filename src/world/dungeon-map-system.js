@@ -10,22 +10,8 @@
  *
  * 依赖（全局）：
  *   Renderer, Camera, WallSystem, Game, Input, EffectManager,
- *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect
- */
-
-/**
- * ============================================================
- * DungeonMapSystem — 地牢地图系统（杀戮尖塔风格 · 可拖动大地图）
- * ============================================================
- *
- * 集成点（3 处）：
- *   1. scene-manager.js _loadScene6() 末尾：DungeonMapSystem.init("scene6", player)
- *   2. game.js update() 开头：拦截地图模式，让 DungeonMapSystem 接管
- *   3. game.js render() 开头：拦截地图模式，渲染节点网格而非游戏实体
- *
- * 依赖（全局）：
- *   Renderer, Camera, WallSystem, Game, Input, EffectManager,
- *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect
+ *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect,
+ *   RewardSystem, pathFinder
  */
 
 import { BlackWolf } from '../entities/enemy-types.js';
@@ -33,6 +19,9 @@ import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
 } from '../entities/humanoid-monster.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG } from './zombie-dungeon.js';
+import { DungeonMapGenerator, DungeonFogOfWar, DUNGEON_MAP_CONFIG } from './dungeon-map-generator.js';
+import { CombatRoomSystem } from './combat-room-system.js';
+import { BossRewardSystem } from './boss-reward-system.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -74,6 +63,8 @@ export const DungeonMapSystem = {
         boss:   "#7a0000",
         converge: "#5a3a5a",
         random: "#6a5a3a",
+        reward: "#5a3a7a",
+        empty:  "#3a3a3a",
     },
     TYPE_BORDER_COLORS: {
         start:  "#6aca6a",
@@ -83,6 +74,8 @@ export const DungeonMapSystem = {
         boss:   "#aa0000",
         converge: "#8a5a8a",
         random: "#9a8a5a",
+        reward: "#8a5aaa",
+        empty:  "#5a5a5a",
     },
     TYPE_ICONS: {
         start:  "▶",
@@ -92,6 +85,8 @@ export const DungeonMapSystem = {
         boss:   "☠",
         converge: "◎",
         random: "?",
+        reward: "💎",
+        empty:  "·",
     },
 
     COMBAT_ROOM_SIZE: 1024,
@@ -137,6 +132,9 @@ export const DungeonMapSystem = {
         this._cleanupActive = false;
         this._cleanupOverlay = null;
 
+        // 初始化迷雾系统
+        this.fogOfWar = new DungeonFogOfWar();
+
         this.generateMap();
         this._centerRouteMap();
         this.isDragging = false;
@@ -145,6 +143,7 @@ export const DungeonMapSystem = {
         if (startNode) {
             this.currentNodeId = startNode.id;
             this.visitedNodeIds.add(startNode.id);
+            this.fogOfWar.visit(startNode.id, this.nodes, this.edges);
         }
 
         this._backupCameraFollow = Camera.follow.bind(Camera);
@@ -173,6 +172,12 @@ export const DungeonMapSystem = {
         this._unbindEvents();
         // 清空携带的祭品，确保祭品效果只在当前地牢有效
         this._carriedItems = [];
+
+        // 清理地牢事件系统
+        import('./dungeon-event-system.js').then(mod => {
+            if (mod.onDungeonEnd) mod.onDungeonEnd(this.player);
+            if (mod.DungeonEventSystem) mod.DungeonEventSystem.cleanup();
+        }).catch(() => {});
 
         if (this._backupCameraFollow) {
             Camera.follow = this._backupCameraFollow;
@@ -221,89 +226,22 @@ export const DungeonMapSystem = {
         this._generateDefaultMap();
     },
 
-    // 默认地牢：3行 × N列 的直线矩阵（暗黑地牢风格）
+    // 默认地牢：使用新的 DungeonMapGenerator 生成 35-40 节点地图
     _generateDefaultMap() {
-        this.nodes = [];
-        this.edges = [];
+        const generator = new DungeonMapGenerator();
+        const result = generator.generate();
+        this.nodes = result.nodes;
+        this.edges = result.edges;
 
-        const ROWS = 3;
-        const COLS = this.COLUMN_COUNT;
-        const colSpacing = this.MAP_WIDTH / (COLS + 1);
-        const rowSpacing = this.MAP_HEIGHT / (ROWS + 1);
+        // 更新地图尺寸为生成器使用的尺寸
+        this.MAP_WIDTH = result.config.mapWidth;
+        this.MAP_HEIGHT = result.config.mapHeight;
 
-        // 类型分布
-        const colTypes = [
-            "start",  "combat", "event",  "combat", "shop",
-            "combat", "event",  "combat", "shop",   "combat",
-            "boss",   "boss"
-        ];
+        // 重新居中
+        this.mapOffsetX = (CONFIG.VIEW_WIDTH - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = (CONFIG.VIEW_HEIGHT - this.MAP_HEIGHT) / 2;
 
-        // 生成节点：固定网格，每列中间行(row=1)必须存在，确保主通道始终连通
-        for (let col = 0; col < COLS; col++) {
-            const type = colTypes[col] || "combat";
-            let selectedRows = [1]; // 中间行必须有
-
-            if (col > 0 && col < COLS - 1) {
-                // 中间列随机添加额外行（row=0 为上，row=2 为下）
-                if (Math.random() > 0.4) selectedRows.push(0);
-                if (Math.random() > 0.4) selectedRows.push(2);
-            }
-
-            // 去重并排序
-            selectedRows = [...new Set(selectedRows)].sort((a, b) => a - b);
-
-            for (const row of selectedRows) {
-                const x = colSpacing * (col + 1);
-                const y = rowSpacing * (row + 1);
-
-                this.nodes.push({
-                    id: `node_${col}_${row}`,
-                    col, row, x, y, type,
-                });
-            }
-        }
-
-        // 生成垂直边：同一列的相邻行之间（双向，可上下移动）
-        for (let col = 0; col < COLS; col++) {
-            const colNodes = this.nodes.filter(n => n.col === col).sort((a, b) => a.row - b.row);
-            for (let i = 0; i < colNodes.length - 1; i++) {
-                this.edges.push({ from: colNodes[i].id, to: colNodes[i + 1].id });
-                this.edges.push({ from: colNodes[i + 1].id, to: colNodes[i].id });
-            }
-        }
-
-        // 生成水平边：相邻列的同一行之间（单向，只能向右前进）
-        for (let col = 0; col < COLS - 1; col++) {
-            const colNodes = this.nodes.filter(n => n.col === col);
-            const nextColNodes = this.nodes.filter(n => n.col === col + 1);
-
-            for (const node of colNodes) {
-                const nextNode = nextColNodes.find(n => n.row === node.row);
-                if (nextNode) {
-                    this.edges.push({ from: node.id, to: nextNode.id });
-                }
-            }
-        }
-
-        // 保险：确保相邻列之间至少有一条横向连接（主通道 row=1 始终存在，通常不会触发）
-        for (let col = 0; col < COLS - 1; col++) {
-            const hasHorizontal = this.edges.some(e => {
-                const fromNode = this.nodes.find(n => n.id === e.from);
-                const toNode = this.nodes.find(n => n.id === e.to);
-                return fromNode && toNode && fromNode.col === col && toNode.col === col + 1;
-            });
-            if (!hasHorizontal) {
-                const colNodes = this.nodes.filter(n => n.col === col);
-                const nextColNodes = this.nodes.filter(n => n.col === col + 1);
-                if (colNodes.length > 0 && nextColNodes.length > 0) {
-                    const c = colNodes[0];
-                    const n = nextColNodes.reduce((best, curr) =>
-                        Math.abs(curr.row - c.row) < Math.abs(best.row - c.row) ? curr : best
-                    );
-                    this.edges.push({ from: c.id, to: n.id });
-                }
-            }
-        }
+        console.log('[DungeonMapSystem] Generated new dungeon map:', result.metadata);
     },
 
     // 僵尸地牢：4条路线 converging to BOSS
@@ -415,6 +353,16 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
+        // 使用 CombatRoomSystem 检测战斗完成
+        if (CombatRoomSystem.isCombatComplete()) {
+            // 战斗已完成，启动打扫战场倒计时
+            if (!this._cleanupActive) {
+                this._cleanupActive = true;
+                this._cleanupTimer = 10000; // 10秒倒计时
+                this._showCleanupOverlay();
+            }
+        }
+
         // 打扫战场倒计时中
         if (this._cleanupActive) {
             this._cleanupTimer -= dt;
@@ -429,12 +377,6 @@ export const DungeonMapSystem = {
                 this._cleanupOverlay.textContent = `打扫战场中... ${seconds}秒后返回地图`;
             }
             return;
-        }
-
-        this._combatCheckTimer += dt;
-        if (this._combatCheckTimer >= 500) {
-            this._combatCheckTimer = 0;
-            this._checkCombatComplete();
         }
     },
 
@@ -483,11 +425,29 @@ export const DungeonMapSystem = {
         this.currentNodeId = node.id;
         this.visitedNodeIds.add(node.id);
 
+        // 更新迷雾系统
+        if (this.fogOfWar) {
+            this.fogOfWar.visit(node.id, this.nodes, this.edges);
+        }
+
+        // 战斗节点完成后变为 empty
+        if (node.originalType === 'combat' && node.type === 'combat') {
+            // 标记为已完成，返回地图时转换
+            node._combatCompleted = true;
+        }
+
+        // 检查是否是已访问过的节点（empty 类型），直接返回地图
+        if (node.type === 'empty') {
+            this._returnToMap();
+            return;
+        }
+
         switch (node.type) {
             case "combat": this._enterCombat(node); break;
             case "boss":   this._enterBoss(node); break;
             case "shop":   this._enterShop(node); break;
             case "event":  this._enterEvent(node); break;
+            case "reward": this._enterReward(node); break;
             default:       this._returnToMap(); break;
         }
     },
@@ -519,9 +479,15 @@ export const DungeonMapSystem = {
             this._enterZombieCombat(node);
             return;
         }
-        this._prepareCombatMode(false);
-        this._generateRoom(false);
-        this._spawnMonsters(3, false);
+        // 使用新的 CombatRoomSystem 生成随机战斗场地
+        CombatRoomSystem.enterCombatRoom(this.player, false, {
+            onComplete: () => {
+                this._cleanupCombat();
+                this._returnToMap();
+            }
+        });
+        // 生成普通怪物
+        CombatRoomSystem.spawnMonsters(3, false);
         EffectManager.add(new FloatingTextEffect(512, 400, "进入战斗！消灭所有敌人", "#ff4444"));
     },
 
@@ -615,13 +581,30 @@ export const DungeonMapSystem = {
 
     _enterBoss(node) {
         if (this.dungeonType === 'zombie') {
-            this._enterZombieCombat(node);
+            this._enterZombieBoss(node);
             return;
         }
-        this._prepareCombatMode(true);
-        this._generateRoom(true);
-        this._spawnMonsters(1, true);
+        // 使用 BossRewardSystem 的大块头 Boss
+        BossRewardSystem.enterBossBattle(this.player, (result) => {
+            this._cleanupCombat();
+            // Boss 击败后，标记当前节点完成，并进入奖励节点
+            if (node) {
+                node.completed = true;
+                node.type = 'empty';
+            }
+            this._returnToMap();
+        });
         EffectManager.add(new FloatingTextEffect(512, 400, "Boss 战！", "#ff0000"));
+    },
+
+    _enterZombieBoss(node) {
+        // 僵尸地牢的 Boss 战（使用波次系统）
+        this._zombieCombatNode = node;
+        this._zombieWaveActive = true;
+        import('./zombie-dungeon.js').then(mod => {
+            this._zombieCombat = new mod.ZombieDungeonCombat();
+            this._spawnZombieWave();
+        });
     },
 
     _prepareCombatMode(isBoss) {
@@ -772,6 +755,13 @@ export const DungeonMapSystem = {
         this._cleanupActive = true;
         this._cleanupTimer = 10000; // 10秒
 
+        // 标记当前战斗节点为已完成（变为 empty）
+        const currentNode = this.getCurrentNode();
+        if (currentNode && currentNode.type === 'combat') {
+            currentNode.type = 'empty';
+            console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
+        }
+
         const gold = this.state === "boss" ? 300 : 50 + Math.floor(Math.random() * 100);
         EffectManager.add(new FloatingTextEffect(512, 400, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
 
@@ -807,6 +797,11 @@ export const DungeonMapSystem = {
     },
 
     _cleanupCombat() {
+        // 使用 CombatRoomSystem 清理战斗场地
+        if (CombatRoomSystem.active) {
+            CombatRoomSystem.cleanupRoom();
+        }
+
         for (const key of this._combatMonsterKeys) {
             Game.entities.delete(key);
         }
@@ -823,10 +818,10 @@ export const DungeonMapSystem = {
         this._cleanupTimer = 0;
         this._removeCleanupOverlay();
 
-        WallSystem.walls = [...this._backupWalls];
-        if (WallSystem._syncWallsToPhaser) {
-            WallSystem._syncWallsToPhaser();
-        }
+        // 战斗完成后消耗女神祝福层数
+        import('./dungeon-event-system.js').then(mod => {
+            if (mod.onCombatComplete) mod.onCombatComplete(this.player);
+        }).catch(() => {});
 
         // [NEW] 墙壁恢复后标记 RegionIndex 需要重算
         if (typeof pathFinder !== 'undefined') {
@@ -856,6 +851,14 @@ export const DungeonMapSystem = {
         }, 300);
     },
 
+    _enterReward(node) {
+        this.state = "reward";
+        // 使用 BossRewardSystem 的奖励节点管理器
+        BossRewardSystem.enterRewardNode(this.player, () => {
+            this._returnToMap();
+        });
+    },
+
     _enterZombieShop(node) {
         this.state = "shop";
         import('./zombie-dungeon.js').then(mod => {
@@ -875,6 +878,26 @@ export const DungeonMapSystem = {
             return;
         }
         this.state = "event";
+
+        // 使用新的 DungeonEventSystem
+        import('./dungeon-event-system.js').then(mod => {
+            mod.DungeonEventSystem.trigger(this.player, (result) => {
+                // 如果触发战斗，进入战斗状态
+                if (result && result.combat) {
+                    this._enterCombat(node);
+                } else {
+                    this._returnToMap();
+                }
+            });
+        }).catch(err => {
+            console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
+            // 降级到旧的事件系统
+            this._enterLegacyEvent(node);
+        });
+    },
+
+    // 旧版事件系统（降级方案）
+    _enterLegacyEvent(node) {
         const events = [
             {
                 title: "发现宝箱",
@@ -1047,6 +1070,17 @@ export const DungeonMapSystem = {
             const isAvailable = availableIds.has(node.id);
             const isHovered = node.id === this.hoveredNodeId;
 
+            // 迷雾系统：确定显示类型
+            let displayType = node.type;
+            let isRevealed = isVisited || isCurrent || isAvailable;
+            if (this.fogOfWar && this.fogOfWar.enabled !== false) {
+                const visibility = this.fogOfWar.getNodeVisibility(node.id);
+                isRevealed = visibility === 'visited' || visibility === 'revealed' || isCurrent || isAvailable;
+                if (!isRevealed && !isVisited) {
+                    displayType = 'unknown';
+                }
+            }
+
             let radius = this.NODE_RADIUS;
             let color = "#2a2a2a";
             let borderColor = "#1a1a1a";
@@ -1065,7 +1099,13 @@ export const DungeonMapSystem = {
                 color = this.TYPE_COLORS[node.type] || "#3a3a3a";
                 borderColor = this.TYPE_BORDER_COLORS[node.type] || "#aaaaaa";
                 glow = true;
+            } else if (isRevealed) {
+                // 已揭示但未访问：显示实际类型但暗淡
+                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
+                borderColor = "#444444";
+                ctx.globalAlpha = 0.4;
             } else {
+                // 未揭示：迷雾状态
                 color = "#1a1a1a";
                 borderColor = "#111111";
                 ctx.globalAlpha = 0.3;
@@ -1098,8 +1138,13 @@ export const DungeonMapSystem = {
             ctx.globalAlpha = 1.0;
 
             // 节点图标
-            const icon = this.TYPE_ICONS[node.type] || "•";
-            ctx.fillStyle = isAvailable || isCurrent ? "#ffffff" : "#555555";
+            let icon;
+            if (!isRevealed && !isVisited && !isCurrent) {
+                icon = "?"; // 迷雾：显示问号
+            } else {
+                icon = this.TYPE_ICONS[displayType] || "•";
+            }
+            ctx.fillStyle = (isAvailable || isCurrent || isRevealed) ? "#ffffff" : "#555555";
             ctx.font = `${isHovered ? 18 : 16}px "Microsoft YaHei", sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
