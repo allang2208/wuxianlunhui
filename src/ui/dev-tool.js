@@ -1056,13 +1056,7 @@ const DevTool = {
                 // 从 sprite sheet 提取帧（walk/running/attack）
                 const frameData = this._charFrames[currentAnim];
                 if (frameData && frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
-                    // 攻击动画使用 frameIndex 映射到 spritesheet 帧
-                    let idx = this.state.frameIndex;
-                    if (currentAnim === 'attack') {
-                        // 攻击进度 0-1 映射到 0-7 帧
-                        const attackFrameCount = frameData.count;
-                        idx = Math.min(attackFrameCount - 1, Math.floor(this.state.attackProgress * attackFrameCount));
-                    }
+                    const idx = this.state.frameIndex % frameData.count;
                     const col = idx % frameData.cols;
                     const row = Math.floor(idx / frameData.cols);
                     const sx = col * frameData.frameW;
@@ -1089,24 +1083,6 @@ const DevTool = {
         ctx.strokeStyle = 'rgba(200, 180, 100, 0.3)';
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 60, cy); ctx.stroke();
-
-        // 绘制帧参考点（右手位置，帮助对齐武器）
-        const _currentAnim = this.state.anim;
-        if (_currentAnim === 'walk' || _currentAnim === 'running') {
-            const handRefX = cx + 25; // 角色右侧，参考点
-            const handRefY = cy - 15; // 略高于中心
-            ctx.fillStyle = 'rgba(255, 200, 50, 0.6)';
-            ctx.beginPath();
-            ctx.arc(handRefX, handRefY, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 200, 50, 0.9)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            // 标签
-            ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
-            ctx.font = '10px monospace';
-            ctx.fillText('右手', handRefX + 8, handRefY - 8);
-        }
 
         // 武器绘制
         if (this.state.weaponOnCanvas && this.weaponImage && this.weaponImage.complete) {
