@@ -23,7 +23,19 @@ import { Easing } from '../config/math-utils.js';
             sword: { holdOffsetX: -35, holdOffsetY: 4, timingMul: 1.0, animType: 'thrust', idleRotation: -45, idleScale: 1.0, hitBox: { forwardRange: 155, backExtension: 55, width: 35 },
                 idle: { holdOffsetX: -43, holdOffsetY: -18, idleRotation: -65, idleScale: 1.3 },
                 walk: { holdOffsetX: -15, holdOffsetY: 23, idleRotation: 20, idleScale: 1.5 },
-                running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 }
+                running: { holdOffsetX: -76, holdOffsetY: -11, idleRotation: 110, idleScale: 1.5 },
+
+                // 新增：手部挂载点（相对于玩家中心的偏移）
+                handAnchors: {
+                    idle:    { x: 8,  y: -5 },  // 待机时手的位置
+                    walk:    { x: 10, y: -3 },  // 行走时
+                    running: { x: 12, y: -8 },  // 奔跑时
+                    attack:  { x: 15, y: -12 }, // 攻击时（基础位置）
+                },
+
+                // 握把偏移：武器精灵中心到握把点的偏移
+                // 剑的握把在精灵底部中央，所以gripOffset是(0, 正数)
+                gripOffset: { x: 0, y: 32 }, // 根据实际精灵调整
             },
             stab: {
                 // 刺击动画通用配置（可被所有剑类武器复用）
@@ -40,26 +52,27 @@ import { Easing } from '../config/math-utils.js';
                 idleAngle: 0, windupAngle: Math.PI / 6, swingAngle: -Math.PI / 6,
             },
             // 关键帧配置：攻击动画每帧武器位置（用于开发工具设定）
-            // 结构：{ progress: 0-1, offsetX, offsetY, rotation, scale }
+            // 结构：{ progress: 0-1, handOffsetX, handOffsetY, rotation, scale }
             // progress 对应攻击进度（0=开始, 1=结束）
+            // handOffsetX/Y 是相对于 attack 基础挂载点的偏移
             keyframes: {
                 sword: {
                     attack: [
-                        { progress: 0, offsetX: -43, offsetY: -29, rotation: -40, scale: 1.5 },
-                        { progress: 0.125, offsetX: -40, offsetY: -41, rotation: -40, scale: 1.5 },
-                        { progress: 0.25, offsetX: -53, offsetY: -68, rotation: -60, scale: 1.5 },
-                        { progress: 0.375, offsetX: -51, offsetY: -71, rotation: -60, scale: 1.5 },
-                        { progress: 0.5, offsetX: -54, offsetY: -87, rotation: -75, scale: 1.5 },
-                        { progress: 0.625, offsetX: -49, offsetY: -87, rotation: -85, scale: 1.5 },
-                        { progress: 0.75, offsetX: -9, offsetY: -57, rotation: -55, scale: 1.5 },
-                        { progress: 0.875, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 },
-                        { progress: 1.0, offsetX: 15, offsetY: 10, rotation: 5, scale: 1.5 }
+                        { progress: 0, handOffsetX: -58, handOffsetY: -17, rotation: -40, scale: 1.5 },
+                        { progress: 0.125, handOffsetX: -55, handOffsetY: -29, rotation: -40, scale: 1.5 },
+                        { progress: 0.25, handOffsetX: -68, handOffsetY: -56, rotation: -60, scale: 1.5 },
+                        { progress: 0.375, handOffsetX: -66, handOffsetY: -59, rotation: -60, scale: 1.5 },
+                        { progress: 0.5, handOffsetX: -69, handOffsetY: -75, rotation: -75, scale: 1.5 },
+                        { progress: 0.625, handOffsetX: -64, handOffsetY: -75, rotation: -85, scale: 1.5 },
+                        { progress: 0.75, handOffsetX: -24, handOffsetY: -45, rotation: -55, scale: 1.5 },
+                        { progress: 0.875, handOffsetX: 0, handOffsetY: 22, rotation: 5, scale: 1.5 },
+                        { progress: 1.0, handOffsetX: 0, handOffsetY: 22, rotation: 5, scale: 1.5 }
                     ],
                     walk: [
-                        { progress: 0.19047619047619047, offsetX: -22.5, offsetY: 23.078125, rotation: 20, scale: 1.5000000000000004 },
-                        { progress: 0.3333333333333333, offsetX: -19.5, offsetY: 17.078125, rotation: 20, scale: 1.5000000000000004 },
-                        { progress: 0.5238095238095238, offsetX: -27.5, offsetY: 19.078125, rotation: 20, scale: 1.5000000000000004 },
-                        { progress: 0.8571428571428571, offsetX: -37.5, offsetY: 18.078125, rotation: 20, scale: 1.5000000000000004 }
+                        { progress: 0.19047619047619047, handOffsetX: -37.5, handOffsetY: 26.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.3333333333333333, handOffsetX: -34.5, handOffsetY: 20.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.5238095238095238, handOffsetX: -42.5, handOffsetY: 22.078125, rotation: 20, scale: 1.5000000000000004 },
+                        { progress: 0.8571428571428571, handOffsetX: -52.5, handOffsetY: 21.078125, rotation: 20, scale: 1.5000000000000004 }
                     ]
                 }
             }
@@ -77,6 +90,8 @@ import { Easing } from '../config/math-utils.js';
                 holdOffsetY: stateCfg.holdOffsetY !== undefined ? stateCfg.holdOffsetY : cfg.holdOffsetY,
                 idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : cfg.idleRotation,
                 idleScale: stateCfg.idleScale !== undefined ? stateCfg.idleScale : cfg.idleScale,
+                handAnchors: cfg.handAnchors || null,
+                gripOffset: cfg.gripOffset || null,
                 timingMul: cfg.timingMul,
                 animType: cfg.animType,
                 hitBox: cfg.hitBox,

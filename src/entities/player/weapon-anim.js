@@ -116,6 +116,12 @@ const weaponAnimMixin = {
         const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
         const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType].attack;
         
+        // 检查是否使用挂载点系统（新系统）
+        const weaponCfg = WeaponAnimConfig[weaponType] || {};
+        const hasHandAnchors = weaponCfg.handAnchors && typeof weaponCfg.handAnchors === 'object';
+        const hasGripOffset = weaponCfg.gripOffset && typeof weaponCfg.gripOffset === 'object';
+        const facingRight = Math.abs(self.rotation) < Math.PI / 2;
+        
         if (kfConfig && kfConfig.length >= 2) {
             // ===== 使用关键帧动画 =====
             
@@ -151,34 +157,91 @@ const weaponAnimMixin = {
                     const segmentDuration = next.progress - prev.progress;
                     const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
                     
-                    // 线性插值
-                    const offsetX = prev.offsetX + (next.offsetX - prev.offsetX) * t;
-                    const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
-                    const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+                    // 判断使用新系统（handOffsetX/Y）还是旧系统（offsetX/Y）
+                    const useHandAnchorSystem = hasHandAnchors && (
+                        prev.handOffsetX !== undefined || next.handOffsetX !== undefined
+                    );
                     
-                    // 使用 WeaponTransform 统一计算位置和旋转（与开发工具一致）
-                    const cfg = WeaponAnimConfig[weaponType] || {};
-                    const stateCfg = cfg['attack'] || cfg;
-                    
-                    // 临时修改配置用于计算
-                    const originalHoldX = stateCfg.holdOffsetX;
-                    const originalHoldY = stateCfg.holdOffsetY;
-                    const originalRot = stateCfg.idleRotation;
-                    
-                    stateCfg.holdOffsetX = offsetX;
-                    stateCfg.holdOffsetY = offsetY;
-                    stateCfg.idleRotation = rotation;
-                    
-                    const worldPos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'attack');
-                    
-                    // 恢复原始值
-                    stateCfg.holdOffsetX = originalHoldX;
-                    stateCfg.holdOffsetY = originalHoldY;
-                    stateCfg.idleRotation = originalRot;
-                    
-                    weaponSprite.x = worldPos.x;
-                    weaponSprite.y = worldPos.y;
-                    weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', Math.abs(self.rotation) < Math.PI / 2);
+                    if (useHandAnchorSystem) {
+                        // ===== 挂载点系统（新）=====
+                        // 获取攻击基础挂载点
+                        const handAnchors = weaponCfg.handAnchors || {};
+                        const anchor = handAnchors.attack || handAnchors.idle || { x: 0, y: 0 };
+                        
+                        // 方向镜像
+                        const anchorX = facingRight ? anchor.x : -anchor.x;
+                        const anchorY = anchor.y;
+                        
+                        // 关键帧插值：handOffsetX/Y（相对于 attack 基础挂载点的偏移）
+                        const handOffsetX = (prev.handOffsetX !== undefined ? prev.handOffsetX : 0) +
+                            ((next.handOffsetX !== undefined ? next.handOffsetX : 0) -
+                             (prev.handOffsetX !== undefined ? prev.handOffsetX : 0)) * t;
+                        const handOffsetY = (prev.handOffsetY !== undefined ? prev.handOffsetY : 0) +
+                            ((next.handOffsetY !== undefined ? next.handOffsetY : 0) -
+                             (prev.handOffsetY !== undefined ? prev.handOffsetY : 0)) * t;
+                        
+                        // 手部世界位置 = 玩家位置 + 挂载点 + 关键帧偏移
+                        const playerX = self.x;
+                        const playerY = self.y;
+                        const handWorldX = playerX + anchorX + handOffsetX;
+                        const handWorldY = playerY + anchorY + handOffsetY;
+                        
+                        // 握把偏移（武器精灵中心到握把点）
+                        const gripOffset = weaponCfg.gripOffset || { x: 0, y: 0 };
+                        
+                        // 计算旋转角度（关键帧插值）
+                        const rotation = (prev.rotation !== undefined ? prev.rotation : 0) +
+                            ((next.rotation !== undefined ? next.rotation : 0) -
+                             (prev.rotation !== undefined ? prev.rotation : 0)) * t;
+                        const rotationRad = rotation * Math.PI / 180;
+                        
+                        // gripOffset 旋转后的位置
+                        const cos = Math.cos(rotationRad);
+                        const sin = Math.sin(rotationRad);
+                        const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
+                        const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
+                        
+                        // 武器位置 = 手部位置 + gripOffset 旋转后
+                        // 注意：朝左时镜像水平位置
+                        const weaponWorldX = facingRight
+                            ? handWorldX + gripRotatedX
+                            : handWorldX - gripRotatedX;
+                        const weaponWorldY = handWorldY + gripRotatedY;
+                        
+                        weaponSprite.x = weaponWorldX;
+                        weaponSprite.y = weaponWorldY;
+                        weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', facingRight) + rotationRad;
+                        
+                    } else {
+                        // ===== 旧系统：绝对偏移（向后兼容）=====
+                        const offsetX = prev.offsetX + (next.offsetX - prev.offsetX) * t;
+                        const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
+                        const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+                        
+                        // 使用 WeaponTransform 统一计算位置和旋转（与开发工具一致）
+                        const cfg = WeaponAnimConfig[weaponType] || {};
+                        const stateCfg = cfg['attack'] || cfg;
+                        
+                        // 临时修改配置用于计算
+                        const originalHoldX = stateCfg.holdOffsetX;
+                        const originalHoldY = stateCfg.holdOffsetY;
+                        const originalRot = stateCfg.idleRotation;
+                        
+                        stateCfg.holdOffsetX = offsetX;
+                        stateCfg.holdOffsetY = offsetY;
+                        stateCfg.idleRotation = rotation;
+                        
+                        const worldPos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'attack');
+                        
+                        // 恢复原始值
+                        stateCfg.holdOffsetX = originalHoldX;
+                        stateCfg.holdOffsetY = originalHoldY;
+                        stateCfg.idleRotation = originalRot;
+                        
+                        weaponSprite.x = worldPos.x;
+                        weaponSprite.y = worldPos.y;
+                        weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', Math.abs(self.rotation) < Math.PI / 2);
+                    }
                     
                     // 检测碰撞
                     if (self._pendingThrust && self._pendingThrust.active) {
@@ -194,7 +257,13 @@ const weaponAnimMixin = {
                     anim.state = 'idle';
                     
                     // 平滑回到待机位置
-                    const idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
+                    let idlePos;
+                    if (hasHandAnchors) {
+                        // 使用挂载点系统回到 idle 挂载点
+                        idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
+                    } else {
+                        idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
+                    }
                     scene.tweens.add({
                         targets: weaponSprite,
                         x: idlePos.x,

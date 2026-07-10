@@ -44,12 +44,19 @@ const DevTool = {
         step: 0.25,
     },
 
-    // 关键帧系统（攻击动画每帧武器位置）
-    keyframeSystem: {
-        enabled: false,           // 是否启用关键帧模式
-        keyframes: [],            // 当前关键帧数组 [{progress, offsetX, offsetY, rotation, scale}]
-        selectedIndex: -1,        // 当前选中的关键帧索引
-        isRecording: false,       // 是否正在录制关键帧
+    // 挂载点编辑系统
+    handAnchorSystem: {
+        enabled: false,       // 是否启用挂载点编辑模式
+        handAnchors: {        // 当前编辑的挂载点（相对于玩家中心）
+            idle:    { x: 8,  y: -5 },
+            walk:    { x: 10, y: -3 },
+            running: { x: 12, y: -8 },
+            attack:  { x: 15, y: -12 },
+        },
+        gripOffset: { x: 0, y: 32 }, // 握把偏移
+        dragHand: false,      // 是否正在拖动手图标
+        handStartX: 0, handStartY: 0,
+        handAnchorStartX: 0, handAnchorStartY: 0,
     },
 
     // 图片缓存
@@ -249,6 +256,10 @@ const DevTool = {
         
         const zoomResetBtn = document.getElementById('devToolZoomReset');
         if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this._zoomReset());
+
+        // 设置手部挂载点按钮
+        const handAnchorBtn = document.getElementById('devToolSetHandAnchor');
+        if (handAnchorBtn) handAnchorBtn.addEventListener('click', () => this._toggleHandAnchorMode());
 
         // Canvas 鼠标交互
         this._canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -729,6 +740,27 @@ const DevTool = {
         }
     },
 
+    _toggleHandAnchorMode() {
+        const sys = this.handAnchorSystem;
+        sys.enabled = !sys.enabled;
+        
+        const btn = document.getElementById('devToolSetHandAnchor');
+        if (btn) {
+            btn.style.background = sys.enabled ? '#4a7c59' : '';
+            btn.textContent = sys.enabled ? '✋ 退出挂载点编辑' : '✋ 设置手部挂载点';
+        }
+        
+        // 更新提示
+        const canvasHint = document.getElementById('devToolHint');
+        if (canvasHint) {
+            canvasHint.innerHTML = sys.enabled
+                ? `挂载点模式：拖动黄色圆点调整手部位置 · 武器自动跟随`
+                : `拖动武器到人物位置 → 按 <kbd>R</kbd> 进入调整模式`;
+        }
+        
+        this._draw();
+    },
+
     _updateModeHint() {
         const hint = document.getElementById('devToolModeHint');
         if (!hint) return;
@@ -759,6 +791,32 @@ const DevTool = {
         const my = e.clientY - rect.top;
         const cx = this._canvas.width / 2;
         const cy = this._canvas.height / 2;
+        
+        // ===== 挂载点模式：拖动手部位置 =====
+        if (this.handAnchorSystem.enabled) {
+            const sys = this.handAnchorSystem;
+            const currentAnim = this.state.anim;
+            const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
+            
+            // 手部位置在屏幕上的坐标
+            const handScreenX = cx + anchor.x;
+            const handScreenY = cy + anchor.y;
+            
+            // 检查是否点击在手部附近
+            const hitRadius = 20;
+            const dist = Math.sqrt((mx - handScreenX) ** 2 + (my - handScreenY) ** 2);
+            
+            if (dist < hitRadius) {
+                sys.dragHand = true;
+                sys.handStartX = mx;
+                sys.handStartY = my;
+                sys.handAnchorStartX = anchor.x;
+                sys.handAnchorStartY = anchor.y;
+                console.log('[DevTool] Hand anchor drag started');
+                return;
+            }
+        }
+        
         const wp = this.weaponParams;
 
         // 武器中心在屏幕上的位置（Canvas坐标系：Y向下为正）
@@ -792,10 +850,36 @@ const DevTool = {
 
     // 鼠标移动
     _onMouseMove(e) {
-        if (!this.drag.active) return;
         const rect = this._canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
+        const cx = this._canvas.width / 2;
+        const cy = this._canvas.height / 2;
+        
+        // ===== 挂载点模式：拖动手部 =====
+        if (this.handAnchorSystem.dragHand) {
+            const sys = this.handAnchorSystem;
+            const dx = mx - sys.handStartX;
+            const dy = my - sys.handStartY;
+            
+            const currentAnim = this.state.anim;
+            const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
+            
+            // 更新挂载点位置（相对于玩家中心）
+            anchor.x = sys.handAnchorStartX + dx;
+            anchor.y = sys.handAnchorStartY + dy;
+            
+            // 同步更新武器位置（武器跟随手部）
+            this.weaponParams.offsetX = anchor.x;
+            this.weaponParams.offsetY = anchor.y;
+            
+            this._syncInputs();
+            this._draw();
+            return;
+        }
+        
+        if (!this.drag.active) return;
+        
         const dx = mx - this.drag.startX;
         const dy = my - this.drag.startY;
 
@@ -809,6 +893,7 @@ const DevTool = {
     // 鼠标释放
     _onMouseUp() {
         this.drag.active = false;
+        this.handAnchorSystem.dragHand = false;
     },
 
     // 滚轮
@@ -1226,6 +1311,37 @@ const DevTool = {
             // 绘制旋转中心
             ctx.fillStyle = '#FFD700';
             ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+            
+            // 绘制手部挂载点（如果启用）
+            if (this.handAnchorSystem.enabled && isMelee) {
+                const sys = this.handAnchorSystem;
+                const currentAnim = this.state.anim;
+                const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
+                
+                // 挂载点位置（相对于玩家中心）
+                const handX = anchor.x;
+                const handY = anchor.y;
+                
+                // 绘制挂载点指示器（黄色圆点）
+                ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
+                ctx.strokeStyle = 'rgba(255, 200, 50, 1)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(handX, handY, 8, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(handX, handY, 10, 0, Math.PI * 2); ctx.stroke();
+                
+                // 绘制连线到武器中心
+                ctx.strokeStyle = 'rgba(255, 200, 50, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath(); ctx.moveTo(handX, handY); ctx.lineTo(0, 0); ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 标签
+                ctx.fillStyle = 'rgba(255, 200, 50, 0.9)';
+                ctx.font = '10px monospace';
+                ctx.fillText(`手 (${Math.round(handX)}, ${Math.round(handY)})`, handX + 12, handY - 8);
+            }
+            
             ctx.restore();
             
             // ===== 坐标标注（所有状态都显示） =====
