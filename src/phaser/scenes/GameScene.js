@@ -70,7 +70,7 @@ export class GameScene extends Scene {
         this.events.on('enemySpawn', this._onEnemySpawn, this);
     }
 
-    update(time, delta) {
+    update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
         
@@ -346,7 +346,9 @@ export class GameScene extends Scene {
                 
                 try {
                     this.weaponSprite.setFrame(frameIndex);
-                } catch (e) {}
+                } catch (_e) {
+                    // 帧索引可能无效，忽略
+                }
                 
                 // 同步位置和旋转（与 Canvas 一致）
                 let animState = 'idle';
@@ -575,7 +577,7 @@ export class GameScene extends Scene {
         }
         
         // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
-        let thrust = 0;
+        let _thrust = 0;
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {
@@ -675,7 +677,7 @@ export class GameScene extends Scene {
         }
         
         // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
-        let thrust = 0;
+        let _thrust = 0;
         
         // 应用 recoilAngle
         if (weaponAnim.recoilAngle) {
@@ -840,7 +842,7 @@ export class GameScene extends Scene {
             this.fireballSprite.setDepth(155);
         }
         
-        const s = player.size;
+        const _s = player.size;
         const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
         const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
         
@@ -867,7 +869,7 @@ export class GameScene extends Scene {
         if (fb.frameIndex !== undefined) {
             try {
                 this.fireballSprite.setFrame(fb.frameIndex);
-            } catch (e) {
+            } catch (_e) {
                 // 不是 spritesheet 或帧不存在，忽略
             }
         }
@@ -991,7 +993,9 @@ export class GameScene extends Scene {
         if (fb.frameIndex !== undefined) {
             try {
                 this.fireballFlySprite.setFrame(fb.frameIndex);
-            } catch (e) {}
+            } catch (_e) {
+                // 帧索引可能无效，忽略
+            }
         }
         
         this.fireballFlySprite.setVisible(true);
@@ -999,7 +1003,7 @@ export class GameScene extends Scene {
 
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
     // 将 Canvas 变换链转换为世界坐标
-    _syncSpecialWeaponAnim(player, wt, weaponAnim) {
+    _syncSpecialWeaponAnim(player, wt, _weaponAnim) {
         if (!this.weaponSprite) {
             const texture = getWeaponTextureKey(player.equipments[player.weaponMode]);
             this.weaponSprite = this.add.sprite(0, 0, texture);
@@ -1143,14 +1147,14 @@ export class GameScene extends Scene {
      */
     _setupEntityOverlap() {
         if (this.playerSprite) {
-            this.physics.add.overlap(this.playerSprite, this.enemies, (playerSprite, enemySprite) => {
+            this.physics.add.overlap(this.playerSprite, this.enemies, (_playerSprite, _enemySprite) => {
                 // 不自动响应，仅记录碰撞对
                 // 现有 Game.resolveCollisions() 仍负责实际的碰撞分离
                 // 未来可在此调用 Phaser 的物理响应，逐步替换
             });
         }
         // 敌人 vs 敌人 overlap
-        this.physics.add.overlap(this.enemies, this.enemies, (enemyA, enemyB) => {
+        this.physics.add.overlap(this.enemies, this.enemies, (_enemyA, _enemyB) => {
             // 同上，不做自动响应
         });
         console.log('[GameScene] Entity overlap set up');

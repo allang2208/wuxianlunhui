@@ -421,7 +421,7 @@ const CraftSystem = {
             dropZone.classList.add('drag-over');
         };
 
-        const handleDragLeave = (e) => {
+        const handleDragLeave = (_e) => {
             dropZone.classList.remove('drag-over');
         };
 
@@ -480,7 +480,7 @@ const CraftSystem = {
             }
         };
 
-        const handleDragEnd = (e) => {
+        const handleDragEnd = (_e) => {
             dropZone.classList.remove('dragging');
         };
 
@@ -839,7 +839,7 @@ const CraftSystem = {
                     const dropZone = document.getElementById('craftDropZone');
                     if (dropZone) dropZone.classList.add('dragging');
                 };
-                cell.ondragend = (e) => {
+                cell.ondragend = (_e) => {
                     const dropZone = document.getElementById('craftDropZone');
                     if (dropZone) dropZone.classList.remove('dragging');
                     if (!EquipManager._dragDropManager._dropHandled && EquipManager._dragDropManager._dragSrc) {
@@ -923,7 +923,7 @@ const CraftSystem = {
         for (const opt of options) {
             const row = document.createElement('div');
             row.className = 'craft-mod-option' + (current === opt.id ? ' selected' : '');
-            const ticketCost = current ? 4 : 1;
+            const _ticketCost = current ? 4 : 1;
             const ticketLabel = current ? '🔧 替换需4张改造券' : '🔧 需1张改造券';
             row.innerHTML = `
                 <div class="craft-mod-option-icon">${opt.icon}</div>

@@ -244,26 +244,6 @@ class PathManager {
         this._clearPath();
         this._isExitPath = false;
     }
-    // 默认 500ms 间隔限制，避免每帧触发 A*
-    // 卡住时 bypassLimit = true 强制绕过限制
-    forceRecalc(pathPlanner, targetX, targetY, bypassLimit = false) {
-        const minRecalcInterval = 500; // 500ms 最小重算间隔
-        if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
-            return; // 间隔不足，跳过
-        }
-        const radius = this.enemy.collisionRadius || 12;
-        let path = null;
-        try {
-            path = pathPlanner.findPath(this.enemy.x, this.enemy.y, targetX, targetY, radius);
-        } catch (e) {
-            console.warn('[PathManager] forceRecalc failed:', e.message);
-        }
-        if (path) {
-            this.setPath(path);
-        } else {
-            this._clearPath();
-        }
-    }
 }
 
 export { PathManager };

@@ -128,7 +128,7 @@ class WeaponTransform {
      * @param {boolean} isDualWield - 是否双持
      * @returns {object} {x, y, size, scale, baseRotation, idleRotation}
      */
-    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, facingRight = true) {
+    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, _facingRight = true) {
         const cfg = this._getConfig(weaponType);
         const s = WEAPON_SIZE_BASE; // 105，不是 player.size（18）
         const ms = s * MELEE_SCALE; // 78.75
@@ -279,7 +279,7 @@ class WeaponTransform {
 
     // ==================== 世界坐标转换 ====================
 
-    static localToWorld(player, localOffset, fixedRotation = null, facingRight = true, animState = null, weaponType = null) {
+    static localToWorld(player, localOffset, fixedRotation = null, facingRight = true, _animState = null, weaponType = null) {
         const rot = fixedRotation !== null ? fixedRotation : player.rotation;
         const cos = Math.cos(rot);
         const sin = Math.sin(rot);
@@ -302,7 +302,7 @@ class WeaponTransform {
 
         // 优先使用挂载点系统（如果配置了 handAnchors）
         if (handAnchors && animState && handAnchors[animState]) {
-            const anchor = handAnchors[animState];
+            const _anchor = handAnchors[animState];
             // 挂载点世界坐标
             const handWorld = this.getHandAnchorPosition(player, weaponType, animState, facingRight);
 

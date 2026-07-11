@@ -4,6 +4,7 @@ import { ItemDatabase } from '../items/item-database.js';
  * ================================================================ */
 import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
+import { ENEMY_DATA } from '../systems/data-loader.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -360,7 +361,7 @@ const CodexManager = {
         let result = null;
         // 优先通过 weaponId 查找
         if (item.weaponId) {
-            for (const [id, data] of Object.entries(items)) {
+            for (const [, data] of Object.entries(items)) {
                 if (data.weaponId === item.weaponId) {
                     result = { ...data };
                     break;
@@ -369,7 +370,7 @@ const CodexManager = {
         }
         // 其次通过 name 查找
         if (!result && item.name) {
-            for (const [id, data] of Object.entries(items)) {
+            for (const [, data] of Object.entries(items)) {
                 if (data.name === item.name) {
                     result = { ...data };
                     break;
@@ -531,8 +532,8 @@ const CodexManager = {
         const calcDef = Math.floor((con * 1.2 + str * 0.3) * 0.67 * 0.65);
         const calcMatk = Math.floor(int * 1.5 + wis * 0.5);
         const calcMdef = Math.floor(wis * 1.2 + int * 0.3);
-        const calcHit = 80 + Math.floor(dex * 0.5);
-        const calcDodge = 5 + Math.floor(dex * 0.3);
+        const _calcHit = 80 + Math.floor(dex * 0.5);
+        const _calcDodge = 5 + Math.floor(dex * 0.3);
         const calcCrit = 2 + Math.floor(luck * 1.0);
         const calcAspd = (1.0 + dex * 0.02).toFixed(2);
         const calcCritRes = Math.floor(con * 1.0);

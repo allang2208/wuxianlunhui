@@ -73,7 +73,7 @@ export class EnemyFSM {
      * @param {Enemy} enemy - 敌人实例
      * @param {Map|Array} entities - 实体集合
      */
-    update(dt, enemy, entities) {
+    update(dt, enemy, _entities) {
         this._checkPhaseTransition(enemy);
     }
 

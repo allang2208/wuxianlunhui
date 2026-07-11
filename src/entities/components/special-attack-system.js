@@ -12,7 +12,7 @@ class SpecialAttackSystem {
         this.player = player;
     }
 
-    trigger(targetX, targetY, entities) {
+    trigger(targetX, targetY, _entities) {
         const currentItem = this.player.equipments[this.player.weaponMode];
         if (!currentItem || currentItem.specialAttackType !== 'nightFlame') return;
         if (this.player._specialAttackCooldowns['nightFlame'] > 0 || this.player._specialAttackActive) return;
@@ -102,7 +102,7 @@ class SpecialAttackSystem {
         const ce = currentItem && currentItem._craftEffects || {};
         const specialDurationBonus = ce.specialDurationDelta || 0;
         if (this.player._specialAttackTimer >= (3000 + specialDurationBonus)) {
-            const stab = WeaponAnimConfig.stab;
+            const _stab = WeaponAnimConfig.stab;
             this.player._specialResetAnim = {
                 startOffset: -15, // 15px 前伸（减半）
                 startAngle: 0,

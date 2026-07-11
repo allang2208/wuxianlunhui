@@ -162,8 +162,8 @@ export class DroneSystem {
         const skill = this.player.skills && this.player.skills.droneSkill;
         if (!skill) return;
         const effect = skill.getEffect(skill.level);
-        const baseDamageBonus = effect.damageBonusPercent || 10;
-        const baseCritBonus = effect.critBonusPercent || 10;
+        const _baseDamageBonus = effect.damageBonusPercent || 10;
+        const _baseCritBonus = effect.critBonusPercent || 10;
         // 先收集当前在范围内的实体
         const inRangeEntities = new Set();
         entities.forEach(entity => {

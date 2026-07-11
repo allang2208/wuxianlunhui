@@ -29,7 +29,7 @@ export const BackpackDialogManager = {
         setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
     },
     
-    _showSplitDialog(item, slotIdx) {
+    _showSplitDialog(item, _slotIdx) {
         const self = this;
         // Remove existing dialog if any
         const existing = document.getElementById('splitDialog');

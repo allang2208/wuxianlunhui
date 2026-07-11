@@ -3,7 +3,7 @@ import { Renderer } from '../world/renderer.js';
 import { DamagePipeline } from './damage-pipeline.js';
 
         class Projectile {
-            constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', noRender = false, isGreen = false, isSpit = false) {
+            constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false) {
                 this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
                 this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
                 this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;

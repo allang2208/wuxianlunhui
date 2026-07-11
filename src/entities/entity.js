@@ -23,9 +23,9 @@ import { HexHitbox } from '../components/hitbox.js';
                 }
             }
             
-            render(ctx) {}
-            takeDamage(damage, source) {}
-            applyKnockback(angle, force) {}
+            render(_ctx) {}
+            takeDamage(_damage, _source) {}
+            applyKnockback(_angle, _force) {}
             
             renderCollisionRadius(ctx) {
                 // 优先使用六边形调试渲染，回退到圆形

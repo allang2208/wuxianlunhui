@@ -5,6 +5,7 @@ import { BloodEffect, BloodMistEffect, DodgeEffect, DustEffect } from './particl
 import { ShellCasingEffect } from './shell-casing.js';
 import { SmokeEffect } from './smoke-effect.js';
 import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
+import { Projectile } from '../combat/projectile.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},

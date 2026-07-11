@@ -179,8 +179,8 @@ class FormationSystemClass {
         }
     }
 
-    // 批量更新接口：update(dt, entities)
-    update(dt, entities) {
+    // 批量更新接口：updateAll(dt, entities)
+    updateAll(dt, entities) {
         for (const [id, formation] of this.formations) {
             formation.members = formation.members.filter(m => m && !m._destroyed);
 
@@ -197,7 +197,7 @@ class FormationSystemClass {
         }
     }
 
-    _updateFormationState(formation, dt, entities) {
+    _updateFormationState(formation, dt, _entities) {
         formation.timer += dt;
 
         switch (formation.state) {
@@ -250,7 +250,7 @@ class FormationSystemClass {
         return true;
     }
 
-    _updateLeader(enemy, formation, dt, entities) {
+    _updateLeader(enemy, formation, _dt, _entities) {
         if (formation.state === FORMATION_STATE.BROKEN) return;
 
         if (formation.targetPosition) {
@@ -259,7 +259,7 @@ class FormationSystemClass {
             const dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist > 5) {
-                const speed = (enemy._speed || 100) * 0.001;
+                const _speed = (enemy._speed || 100) * 0.001;
                 // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
                 // enemy.x += (dx / dist) * speed * dt;
                 // enemy.y += (dy / dist) * speed * dt;
@@ -275,7 +275,7 @@ class FormationSystemClass {
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist > 100) {
-                    const speed = (enemy._speed || 100) * 0.001;
+                    const _speed = (enemy._speed || 100) * 0.001;
                     // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
                     // enemy.x += (dx / dist) * speed * dt;
                     // enemy.y += (dy / dist) * speed * dt;
@@ -285,7 +285,7 @@ class FormationSystemClass {
         }
     }
 
-    _updateFollower(enemy, formation, dt, entities) {
+    _updateFollower(enemy, formation, _dt, _entities) {
         if (formation.state === FORMATION_STATE.BROKEN) {
             enemy._tacticalTarget = null;
             return;
@@ -321,7 +321,7 @@ class FormationSystemClass {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist > 5) {
-            const speed = (enemy._speed || 100) * 0.001;
+            const _speed = (enemy._speed || 100) * 0.001;
             // [FIX] 移除直接移动，由 MovementSystem 统一处理墙壁碰撞
             // enemy.x += (dx / dist) * speed * dt;
             // enemy.y += (dy / dist) * speed * dt;

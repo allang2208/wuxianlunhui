@@ -1,6 +1,7 @@
 
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
+import { pathFinder } from '../ai/pathfinder.js';
 
 import { SceneManager } from '../world/scene-manager.js';
 import { Camera } from '../world/camera.js';
@@ -27,8 +28,8 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
 } from '../entities/humanoid-monster.js';
-import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG } from './zombie-dungeon.js';
-import { DungeonMapGenerator, DungeonFogOfWar, DUNGEON_MAP_CONFIG } from './dungeon-map-generator.js';
+import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
+import { DungeonMapGenerator, DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -94,6 +95,29 @@ export const DungeonMapSystem = {
     BOSS_ROOM_SIZE:   1024,
     WALL_THICKNESS:   20,
 
+    // 视口与布局常量
+    DEFAULT_VIEWPORT_WIDTH:  1920,
+    DEFAULT_VIEWPORT_HEIGHT: 1080,
+    MAP_MARGIN_X: 280,
+    MAP_MARGIN_Y: 120,
+    COMBAT_MARGIN: 40,
+    COMBAT_EDGE_DEPTH: 120,
+    get CENTER_X() { return this.COMBAT_ROOM_SIZE / 2; },
+    get CENTER_Y() { return this.COMBAT_ROOM_SIZE / 2; },
+    FLOAT_TEXT_X: 512,
+    FLOAT_TEXT_Y: 400,
+
+    // 战斗奖励常量
+    BOSS_GOLD_REWARD: 300,
+    COMBAT_GOLD_BASE: 50,
+    COMBAT_GOLD_BONUS: 100,
+
+    // UI 点击区域
+    EXIT_BUTTON_X: 1685 - 110,
+    EXIT_BUTTON_Y: 15,
+    EXIT_BUTTON_W: 90,
+    EXIT_BUTTON_H: 28,
+
     _backupWalls: [],
     _backupCameraFollow: null,
     _combatMonsters: [],
@@ -149,8 +173,8 @@ export const DungeonMapSystem = {
 
         this._backupCameraFollow = Camera.follow.bind(Camera);
         Camera.follow = () => {};
-        Camera.x = 512;
-        Camera.y = 512;
+        Camera.x = this.CENTER_X;
+        Camera.y = this.CENTER_Y;
 
         this._bindEvents();
 
@@ -239,10 +263,10 @@ export const DungeonMapSystem = {
         this.MAP_HEIGHT = result.config.mapHeight;
 
         // 重新居中（使用实际窗口尺寸动态计算）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        const marginX = 280;
-        const marginY = 120;
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
+        const marginX = this.MAP_MARGIN_X;
+        const marginY = this.MAP_MARGIN_Y;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
         this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
 
@@ -259,10 +283,10 @@ export const DungeonMapSystem = {
         this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
         this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
         // 重新居中（使用实际窗口尺寸动态计算）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        const marginX = 280;
-        const marginY = 120;
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
+        const marginX = this.MAP_MARGIN_X;
+        const marginY = this.MAP_MARGIN_Y;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
         this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
     },
@@ -358,7 +382,7 @@ export const DungeonMapSystem = {
     // ───────────────────────────────────────────────
     // 更新与交互
     // ───────────────────────────────────────────────
-    update(dt) {
+    update(_dt) {
         if (!this.active || this.state !== "map") return;
         this._updateHover();
         if (Input.mouse.leftPressed) {
@@ -371,11 +395,9 @@ export const DungeonMapSystem = {
 
         // Boss 战模式：委托给 BossRewardSystem 更新
         if (this.state === "boss") {
-            import('./boss-reward-system.js').then(mod => {
-                if (mod.BossRewardSystem && mod.BossRewardSystem.isBossBattleActive && mod.BossRewardSystem.isBossBattleActive()) {
-                    mod.BossRewardSystem.update(dt);
-                }
-            }).catch(() => {});
+            if (BossRewardSystem.isBossBattleActive && BossRewardSystem.isBossBattleActive()) {
+                BossRewardSystem.update(dt);
+            }
             // Boss 战由 BossRewardSystem 自己的回调处理完成，这里不做额外检测
             return;
         }
@@ -439,11 +461,8 @@ export const DungeonMapSystem = {
     _handleClick() {
         // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
         const mx = Input.mouse.x, my = Input.mouse.y;
-        // 使用固定像素值（目标区域右下角），不随分辨率变化
-        const FIXED_RIGHT = 1685, FIXED_BOTTOM = 818;
-
         // 检测退出按钮点击
-        const btnX = FIXED_RIGHT - 110, btnY = 15, btnW = 90, btnH = 28;
+        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
         if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
             this._showExitConfirm();
             return;
@@ -496,8 +515,8 @@ export const DungeonMapSystem = {
         }
         this.state = "map";
         Camera.follow = () => {};
-        Camera.x = 512;
-        Camera.y = 512;
+        Camera.x = this.CENTER_X;
+        Camera.y = this.CENTER_Y;
 
         this._centerRouteMap();
 
@@ -526,16 +545,14 @@ export const DungeonMapSystem = {
         });
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
-        EffectManager.add(new FloatingTextEffect(512, 400, "进入战斗！消灭所有敌人", "#ff4444"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "进入战斗！消灭所有敌人", "#ff4444"));
     },
 
     _enterZombieCombat(node) {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
-        import('./zombie-dungeon.js').then(mod => {
-            this._zombieCombat = new mod.ZombieDungeonCombat();
-            this._spawnZombieWave();
-        });
+        this._zombieCombat = new ZombieDungeonCombat();
+        this._spawnZombieWave();
     },
 
     _spawnZombieWave() {
@@ -552,22 +569,20 @@ export const DungeonMapSystem = {
 
         const wave = this._zombieCombat.currentWave;
         const total = this._zombieCombat.totalWaves;
-        EffectManager.add(new FloatingTextEffect(512, 400, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
 
-        import('./zombie-dungeon.js').then(mod => {
-            const classes = this._zombieCombat.nextWaveMonsterClasses();
-            this._spawnZombieMonsters(classes);
-        });
+        const classes = this._zombieCombat.nextWaveMonsterClasses();
+        this._spawnZombieMonsters(classes);
     },
 
     _spawnZombieMonsters(classConfigs) {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
 
-        const margin = 40;
+        const margin = this.COMBAT_MARGIN;
         const safeMin = margin;
-        const safeMax = 1024 - margin;
-        const cx = 512, cy = 512;
+        const safeMax = this.COMBAT_ROOM_SIZE - margin;
+        const _cx = 512;
         const entranceEdge = this._combatEntrance || 2;
         const oppositeEdge = (entranceEdge + 2) % 4;
 
@@ -577,19 +592,19 @@ export const DungeonMapSystem = {
             minX = safeMin;
             maxX = safeMax;
             minY = safeMin;
-            maxY = safeMin + 120;
+            maxY = safeMin + this.COMBAT_EDGE_DEPTH;
         } else if (oppositeEdge === 2) { // bottom
             minX = safeMin;
             maxX = safeMax;
-            minY = safeMax - 120;
+            minY = safeMax - this.COMBAT_EDGE_DEPTH;
             maxY = safeMax;
         } else if (oppositeEdge === 3) { // left
             minX = safeMin;
-            maxX = safeMin + 120;
+            maxX = safeMin + this.COMBAT_EDGE_DEPTH;
             minY = safeMin;
             maxY = safeMax;
         } else if (oppositeEdge === 1) { // right
-            minX = safeMax - 120;
+            minX = safeMax - this.COMBAT_EDGE_DEPTH;
             maxX = safeMax;
             minY = safeMin;
             maxY = safeMax;
@@ -598,7 +613,7 @@ export const DungeonMapSystem = {
         for (let i = 0; i < classConfigs.length; i++) {
             const mx = minX + Math.random() * (maxX - minX);
             const my = minY + Math.random() * (maxY - minY);
-            const { MonsterClass, tier } = classConfigs[i];
+            const { MonsterClass } = classConfigs[i];
 
             let monster;
             if (typeof MonsterClass === 'function' && MonsterClass.prototype && MonsterClass.prototype.constructor) {
@@ -624,7 +639,7 @@ export const DungeonMapSystem = {
         }
         this.state = "boss";
         // 使用 BossRewardSystem 的大块头 Boss
-        BossRewardSystem.enterBossBattle(this.player, (result) => {
+        BossRewardSystem.enterBossBattle(this.player, (_result) => {
             this._cleanupCombat();
             // Boss 击败后，标记当前节点完成，并进入奖励节点
             if (node) {
@@ -633,17 +648,15 @@ export const DungeonMapSystem = {
             }
             this._returnToMap();
         });
-        EffectManager.add(new FloatingTextEffect(512, 400, "Boss 战！", "#ff0000"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
 
     _enterZombieBoss(node) {
         // 僵尸地牢的 Boss 战（使用波次系统）
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
-        import('./zombie-dungeon.js').then(mod => {
-            this._zombieCombat = new mod.ZombieDungeonCombat();
-            this._spawnZombieWave();
-        });
+        this._zombieCombat = new ZombieDungeonCombat();
+        this._spawnZombieWave();
     },
 
     _prepareCombatMode(isBoss) {
@@ -658,7 +671,7 @@ export const DungeonMapSystem = {
         }
     },
 
-    _generateRoom(isBoss) {
+    _generateRoom(_isBoss) {
         // 随机生成 1024-2048 大小的正方形场地（步长 256）
         const minSize = 1024;
         const maxSize = 2048;
@@ -726,7 +739,7 @@ export const DungeonMapSystem = {
         const margin = 40;
         const safeMin = margin;
         const safeMax = roomSize - margin;
-        const center = roomSize / 2;
+        const _center = roomSize / 2;
         const entranceEdge = this._combatEntrance || 2;
         const oppositeEdge = (entranceEdge + 2) % 4;
 
@@ -736,19 +749,19 @@ export const DungeonMapSystem = {
             minX = safeMin;
             maxX = safeMax;
             minY = safeMin;
-            maxY = safeMin + 120;
+            maxY = safeMin + this.COMBAT_EDGE_DEPTH;
         } else if (oppositeEdge === 2) { // bottom
             minX = safeMin;
             maxX = safeMax;
-            minY = safeMax - 120;
+            minY = safeMax - this.COMBAT_EDGE_DEPTH;
             maxY = safeMax;
         } else if (oppositeEdge === 3) { // left
             minX = safeMin;
-            maxX = safeMin + 120;
+            maxX = safeMin + this.COMBAT_EDGE_DEPTH;
             minY = safeMin;
             maxY = safeMax;
         } else if (oppositeEdge === 1) { // right
-            minX = safeMax - 120;
+            minX = safeMax - this.COMBAT_EDGE_DEPTH;
             maxX = safeMax;
             minY = safeMin;
             maxY = safeMax;
@@ -848,8 +861,8 @@ export const DungeonMapSystem = {
             console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
         }
 
-        const gold = this.state === "boss" ? 300 : 50 + Math.floor(Math.random() * 100);
-        EffectManager.add(new FloatingTextEffect(512, 400, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
+        const gold = this.state === "boss" ? this.BOSS_GOLD_REWARD : this.COMBAT_GOLD_BASE + Math.floor(Math.random() * this.COMBAT_GOLD_BONUS);
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
 
         // 在上方显示倒计时提示栏
         this._showCleanupOverlay();
@@ -937,7 +950,7 @@ export const DungeonMapSystem = {
         }, 300);
     },
 
-    _enterReward(node) {
+    _enterReward(_node) {
         this.state = "reward";
         // 使用 BossRewardSystem 的奖励节点管理器
         BossRewardSystem.enterRewardNode(this.player, () => {
@@ -945,17 +958,15 @@ export const DungeonMapSystem = {
         });
     },
 
-    _enterZombieShop(node) {
+    _enterZombieShop(_node) {
         this.state = "shop";
-        import('./zombie-dungeon.js').then(mod => {
-            mod.ZombieDungeonShop.open();
-            const checkInterval = setInterval(() => {
-                if (mod.ZombieDungeonShop.isClosed()) {
-                    clearInterval(checkInterval);
-                    this._returnToMap();
-                }
-            }, 300);
-        });
+        ZombieDungeonShop.open();
+        const checkInterval = setInterval(() => {
+            if (ZombieDungeonShop.isClosed()) {
+                clearInterval(checkInterval);
+                this._returnToMap();
+            }
+        }, 300);
     },
 
     _enterEvent(node) {
@@ -983,7 +994,7 @@ export const DungeonMapSystem = {
     },
 
     // 旧版事件系统（降级方案）
-    _enterLegacyEvent(node) {
+    _enterLegacyEvent(_node) {
         const events = [
             {
                 title: "发现宝箱",
@@ -1103,9 +1114,7 @@ export const DungeonMapSystem = {
     render(ctx) {
         if (!this.active || this.state !== "map") return;
 
-        // 使用固定像素值，不随分辨率变化
-        const FIXED_WIDTH = 1920, FIXED_HEIGHT = 1080;
-        const FIXED_RIGHT = 1685, FIXED_BOTTOM = 818;
+        const FIXED_WIDTH = this.DEFAULT_VIEWPORT_WIDTH, FIXED_HEIGHT = this.DEFAULT_VIEWPORT_HEIGHT;
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
@@ -1180,8 +1189,7 @@ export const DungeonMapSystem = {
             }
 
             let radius = this.NODE_RADIUS;
-            let color = "#2a2a2a";
-            let borderColor = "#1a1a1a";
+            let color, borderColor;
             let glow = false;
 
             if (isCurrent) {

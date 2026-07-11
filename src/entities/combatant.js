@@ -206,14 +206,14 @@ class Combatant extends DamageableEntity {
     }
 
     /** 检查指定槽位是否有弹药（默认：无限弹药，子类可覆盖） */
-    _hasAmmo(slot) {
+    _hasAmmo(_slot) {
         // 默认实现：弹药无限（适用于怪物）
         // Player 覆盖此方法来检查实际弹药
         return true;
     }
 
     /** 消耗指定槽位1发弹药（默认：不消耗，子类可覆盖） */
-    _consumeAmmo(slot) {
+    _consumeAmmo(_slot) {
         // 默认实现：不消耗弹药（适用于怪物）
         // Player 覆盖此方法来实际扣弹药
         return true;
@@ -406,7 +406,7 @@ class Combatant extends DamageableEntity {
     }
 
     /** 消耗体力（默认：不消耗，子类可覆盖） */
-    consumeStamina(amount) {
+    consumeStamina(_amount) {
         // 默认实现：不消耗体力（适用于怪物）
         // Player 覆盖此方法来实际扣体力
         return true;
@@ -605,7 +605,7 @@ class Combatant extends DamageableEntity {
 
     // ==================== 更新 ====================
 
-    update(dt, entities) {
+    update(dt, _entities) {
         super.update(dt);
 
         // 更新武器动画（只累加 timer，state 转换由子类 updateWeaponAnim 控制）
@@ -634,7 +634,7 @@ class Combatant extends DamageableEntity {
 
     // ==================== 受击 ====================
 
-    takeDamage(damage, source, damageType = 'physical', isMelee = false) {
+    takeDamage(damage, source, damageType = 'physical', _isMelee = false) {
         // 计算暴击
         const critRate = (source && source.data && source.data.crit) || 0;
         const critRes = (this.data && this.data.critRes) || 0;

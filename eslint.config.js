@@ -33,19 +33,7 @@ export default [
         COMBAT_CONFIG: 'readonly',
         COMBAT_FORMULAS: 'readonly',
         ANIMATION_CONFIG: 'readonly',
-        SKILL_DATA: 'readonly',
-        ENEMY_DATA: 'readonly',
-        HUMANOID_SQUAD_CONFIG: 'readonly',
 
-
-
-
-
-        Attack: 'readonly',
-        SlashAttack: 'readonly',
-        ThrustAttack: 'readonly',
-        RangedAttack: 'readonly',
-        Projectile: 'readonly',
         DamagePipeline: 'readonly',
 
         Entity: 'readonly',
@@ -96,14 +84,6 @@ export default [
 
 
 
-        pathFinder: 'readonly',
-        PathManager: 'readonly',
-        regionIndex: 'readonly',
-        TacticalSquadAI: 'readonly',
-        MovementSystem: 'readonly',
-        CombatSystem: 'readonly',
-        PerceptionSystem: 'readonly',
-
         DungeonMapSystem: 'readonly',
         ExpeditionSystem: 'readonly'
       }
@@ -111,7 +91,7 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-undef': ['error'],
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-dupe-class-members': 'warn',
       'no-useless-assignment': 'warn',

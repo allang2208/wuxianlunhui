@@ -117,7 +117,7 @@ renderWeapon(ctx) {
 
                 // 如果 Phaser 渲染武器，检查是否需要 Canvas 渲染特殊动画
                 const anim = this.weaponAnim;
-                const isMeleeWeapon = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
+                const _isMeleeWeapon = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const isBowAttacking = currentItem.weaponType === 'bow' && anim.state !== 'idle';
                 const isSpecialAnim = this._isWhirlwind || this._isDashing || this._dashResetAnim || this._specialAttackActive || this._specialResetAnim || this._runeSwordSpecialActive || this._runeSwordResetAnim || isBowAttacking;
                 if (this._usePhaserWeapon && !isSpecialAnim) {
@@ -224,7 +224,7 @@ renderWeapon(ctx) {
                     const rp = pCfg.renderParams || {};
                     const weaponImg = currentItem.canvasImageProp ? this[currentItem.canvasImageProp] : this.pistolImage;
                     if (isAttacking) {
-                        let recoil = 0, shakeY = 0;
+                        let recoil, shakeY;
                         if (anim.state === 'windup') {
                             recoil = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
@@ -275,7 +275,7 @@ renderWeapon(ctx) {
                     else if (currentItem.weaponType === 'energy_lmg') weaponImg = this.energyLmgImage;
                     else weaponImg = this.akmImage;
                     if (isAttacking) {
-                        let recoil = 0, shakeY = 0;
+                        let recoil, shakeY;
                         if (anim.state === 'windup') {
                             recoil = -s * 0.03 * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
@@ -321,7 +321,7 @@ renderWeapon(ctx) {
                     const currentItem = this.equipments[this.weaponMode];
                     const weaponImg = currentItem && currentItem.canvasImageProp ? this[currentItem.canvasImageProp] : null;
                     if (isAttacking) {
-                        let recoil = 0, shakeY = 0;
+                        let recoil, shakeY;
                         if (anim.state === 'windup') {
                             recoil = -s * 0.04 * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
@@ -368,12 +368,6 @@ renderWeapon(ctx) {
                         return;
                     }
                     if (isAttacking && anim.state !== 'rotate' && anim.state !== 'idle_return') {
-                        // windup / swing / recover 阶段：帧动画
-                        let t = 0;
-                        if (anim.state === 'windup') t = Easing.easeOutQuad(anim.timer / wa.windupMs);
-                        else if (anim.state === 'swing') t = 1;
-                        else if (anim.state === 'recover') t = 1 - Easing.easeInQuad(anim.timer / wa.recoverMs);
-
                         // 弓攻击动画：在旋转后的角度播放，固定朝向为 idleRotation + rotateAngle
                         const bowCfg = WeaponAnimConfig.bow;
                         ctx.translate(bowCfg.holdOffsetX || wa.holdX, bowCfg.holdOffsetY || wa.holdY);
@@ -705,15 +699,11 @@ renderWeapon(ctx) {
                     }
                     ctx.rotate(Math.PI / 2);
 
-                    let offhandImg, w, drawY, drawH = s;
                     if (offIsPistol) {
                         const offPCfg = WeaponAnimConfig[offhandItem.animConfigKey || 'pistol'];
                         const offRp = offPCfg.renderParams || {};
-                        const offPs = offPCfg.idleScale || 1;
-                        offhandImg = offhandItem.equipImage ? (() => { const img = new Image(); img.src = offhandItem.equipImage; return img; })() : this.pistolImage;
-                        const pw = s * 0.275 * offPs; const ph = s * 0.5 * offPs;
                         if (offIsAttacking) {
-                            let recoil = 0, shakeY = 0;
+                            let recoil, shakeY;
                             const offWindupMs = this._getOffhandAnimMs(offhandItem, wa.windupMs);
                             const offSwingMs = this._getOffhandAnimMs(offhandItem, wa.swingMs);
                             const offRecoverMs = this._getOffhandAnimMs(offhandItem, wa.recoverMs);
@@ -729,32 +719,16 @@ renderWeapon(ctx) {
                             }
                             ctx.translate(recoil, shakeY);
                             ctx.translate(0, -s * 0.42);
-                            w = pw; drawY = 0; drawH = ph;
                         } else {
                             ctx.translate(0, -s * 0.42);
-                            w = pw; drawY = -ph / 2; drawH = ph;
                         }
                     } else if (offIsPkmOrAkm) {
-                        if (offhandItem.weaponType === 'pkm') offhandImg = this.pkmImage;
-                        else if (offhandItem.weaponType === 'qbz191') offhandImg = this.qbz191Image;
-                        else if (offhandItem.weaponType === 'qjb201') offhandImg = this.qjb201Image;
-                        else offhandImg = this.akmImage;
-                        w = s * 0.75;
                         ctx.translate(0, -s * 0.42);
-                        drawY = 0;
                     } else if (offIsBow) {
-                        const frames = offhandItem.bowFrames || this.bowFrames;
-                        offhandImg = frames[0];
-                        w = s * 0.6;
                         ctx.translate(0, -s / 2);
-                        drawY = -s / 2;
                     } else if (offIsMelee) {
                         const ms = s * 0.75;
-                        offhandImg = offhandItem.equipImage ? (() => { const img = new Image(); img.src = offhandItem.equipImage; return img; })() : this.meleeImage;
-                        w = ms * 0.63;
                         ctx.translate(0, -ms * 0.85);
-                        drawY = -ms / 2;
-                        drawH = ms;
                     }
 
                     ctx.rotate(offhandAnim.angle);
@@ -892,12 +866,12 @@ render(ctx) {
                     else if (currentItem.weaponType === 'qbz191') attackType = 'qbz191';
                     else if (currentItem.weaponType === 'bow') attackType = 'ranged';
                 }
-                const attack = this.attacks[attackType];
+                const _attack = this.attacks[attackType];
                 if (this.isDodging) ctx.globalAlpha = 0.7;
                 if (this._isDashing) {
                     // 冲刺攻击：角色发光 + 拖尾效果（蓝色圆圈已删除）
                     const dashProgress = this._dashTimer / 800;
-                    const glowAlpha = dashProgress < 0.40 ? 0.6 : 0.6 * (1 - (dashProgress - 0.40) / 0.60);
+                    const _glowAlpha = dashProgress < 0.40 ? 0.6 : 0.6 * (1 - (dashProgress - 0.40) / 0.60);
                     // 冲刺方向指示器
                     // 已迁移到 Phaser，Canvas 跳过
                     /*

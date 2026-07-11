@@ -66,7 +66,7 @@ export class TacticalSquadAI {
     }
 
     // ===== 共享视野系统 =====
-    _updateSharedVision(dt, player, entities) {
+    _updateSharedVision(dt, player, _entities) {
         let someoneHasLOS = false;
         let bestPos = null;
         // 检查每个成员是否有视线
@@ -116,7 +116,7 @@ export class TacticalSquadAI {
     }
 
     // 搜索模式：所有成员以 _sharedTargetPos 为圆心，在附近巡逻搜索
-    _updateSearchMode(dt, player) {
+    _updateSearchMode(dt, _player) {
         if (!this._sharedTargetPos) return;
         // 每5秒重新随机一次搜索点
         this._searchTimer = (this._searchTimer || 0) - dt;
@@ -284,7 +284,7 @@ export class TacticalSquadAI {
         });
     }
 
-    _updateMachineGunner(dt, player, entities) {
+    _updateMachineGunner(dt, player, _entities) {
         const mg = this.members.find(m => m._tacticalRole === 'machineGunner');
         if (!mg || !mg.active) return;
         // [ENHANCE] 机枪手跟随指挥官，形成火力组
@@ -305,7 +305,7 @@ export class TacticalSquadAI {
         }
     }
 
-    _updateRiflemen(dt, player, entities) {
+    _updateRiflemen(dt, player, _entities) {
         const rifleman = this.members.find(m => m._tacticalRole === 'rifleman');
         if (rifleman && rifleman.active) {
             const dist = Math.sqrt((player.x - rifleman.x) ** 2 + (player.y - rifleman.y) ** 2);
@@ -346,7 +346,7 @@ export class TacticalSquadAI {
         }
     }
 
-    _updateShieldBearers(dt, player, entities) {
+    _updateShieldBearers(dt, player, _entities) {
         const shieldBearers = this.members.filter(m => m._tacticalRole === 'shieldBearer');
         if (shieldBearers.length === 0) return;
         for (let i = 0; i < shieldBearers.length; i++) {

@@ -147,7 +147,7 @@ update(dt, entities) {
                     const currentEquip = this.equipments[this.weaponMode];
                     const isPkmEquipped = currentEquip && (currentEquip.weaponType === 'pkm' || currentEquip.weaponType === 'qjb201' || currentEquip.weaponType === 'energy_lmg');
                     const isPistolEquipped = currentEquip && (currentEquip.weaponType === 'pistol' || currentEquip.rangedType === 'pistol');
-                    const isAkmOrQbz191 = currentEquip && (currentEquip.weaponType === 'akm' || currentEquip.weaponType === 'qjb201');
+                    const _isAkmOrQbz191 = currentEquip && (currentEquip.weaponType === 'akm' || currentEquip.weaponType === 'qjb201');
                     if (isPkmEquipped) {
                         let moveSpeedReduction = 0.50; // Base reduction 50%
                         const craftEffects = currentEquip && currentEquip._craftEffects;

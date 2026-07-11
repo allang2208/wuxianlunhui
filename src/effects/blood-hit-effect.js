@@ -87,6 +87,6 @@ import { Renderer } from '../world/renderer.js';
             }
         }
         // 保留旧类名引用，确保兼容
-        const HitEffect = BloodHitEffect;
+        const _HitEffect = BloodHitEffect;
 
 export { BloodHitEffect };

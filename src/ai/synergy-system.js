@@ -169,7 +169,7 @@ export class SynergySystem {
 
     // 渲染协同光环（可选，在 game.js 渲染循环中调用）
     render(ctx) {
-        for (const [id, synergy] of this.activeSynergies) {
+        for (const [, synergy] of this.activeSynergies) {
             for (const enemy of synergy.affected) {
                 if (!enemy.active) continue;
                 const sp = Renderer.worldToScreen(enemy.x, enemy.y);
