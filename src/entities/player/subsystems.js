@@ -9,10 +9,9 @@ import { Input } from '../../ui/input.js';
 import { StatusBar } from '../../ui/status-bar.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
-import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
-import { ShellCasingEffect } from '../../effects/shell-casing.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
@@ -1245,15 +1244,9 @@ _fireRanged(hand = 'main') {
                             }
                             const leftFlashX = this.x + c * (gunLX + 28) - sin * leftGunLY;
                             const leftFlashY = this.y + sin * (gunLX + 28) + c * leftGunLY;
-                            { let m2 = EffectManager._acquire('MuzzleFlashEffect');
-                            if (m2) { m2.x = leftFlashX; m2.y = leftFlashY; m2.angle = leftFinalAngle; m2.life = m2.maxLife; m2.active = true; m2.scale = 0.8; }
-                            else m2 = new MuzzleFlashEffect(leftFlashX, leftFlashY, leftFinalAngle, 0.8);
-                            EffectManager.add(m2); }
+                            EffectFactory.createMuzzleFlash(leftFlashX, leftFlashY, leftFinalAngle, 0.8);
                             { const offCSX = this.x + c * (gunLX - 8) - sin * (leftGunLY + 6), offCSY = this.y + sin * (gunLX - 8) + c * (leftGunLY + 6);
-                            let s2 = EffectManager._acquire('ShellCasingEffect');
-                            if (s2) { s2.x = offCSX; s2.y = offCSY; s2.life = s2.maxLife; s2.active = true; }
-                            else s2 = new ShellCasingEffect(offCSX, offCSY, leftFinalAngle);
-                            EffectManager.add(s2); }
+                            EffectFactory.createShellCasing(offCSX, offCSY, leftFinalAngle); }
                         }
                         delete d.fireOffhand;
                     }
@@ -1324,15 +1317,10 @@ _fireRanged(hand = 'main') {
                             // 主手枪口火焰特效
                             const flashX = this.x + c * (gunLX + 28) - sin * gunLY;
                             const flashY = this.y + sin * (gunLX + 28) + c * gunLY;
-                            const mainFlash = new MuzzleFlashEffect(flashX, flashY, finalAngle, 1.2);
-                            mainFlash.life = mainFlash.maxLife;
-                            EffectManager.add(mainFlash);
+                            EffectFactory.createMuzzleFlash(flashX, flashY, finalAngle, 1.2);
                             // 弹壳从抛壳窗弹出（枪身右侧后方）
                             { const cSX = this.x + c * (gunLX - 8) - sin * (gunLY + 6), cSY = this.y + sin * (gunLX - 8) + c * (gunLY + 6);
-                            let s = EffectManager._acquire('ShellCasingEffect');
-                            if (s) { s.x = cSX; s.y = cSY; s.life = s.maxLife; s.active = true; }
-                            else s = new ShellCasingEffect(cSX, cSY, angle);
-                            EffectManager.add(s); }
+                            EffectFactory.createShellCasing(cSX, cSY, angle); }
                         }
                         delete d.fireMainHand;
                     }
@@ -1437,20 +1425,13 @@ _fireRanged(hand = 'main') {
                         if (!hideMuzzle) {
                             const flashX = this.x + c * (gunLX + 38) - sin * gunLY;
                             const flashY = this.y + sin * (gunLX + 38) + c * gunLY;
-                            { let m = EffectManager._acquire('MuzzleFlashEffect');
-                            if (m) { m.x = flashX; m.y = flashY; m.angle = angle; m.life = m.maxLife; m.active = true; m.scale = isEnergyLMG ? 1.0 : 1.5; m.isGreen = isEnergyLMG; }
-                            else m = new MuzzleFlashEffect(flashX, flashY, angle, isEnergyLMG ? 1.0 : 1.5);
-                            if (isEnergyLMG) m.isGreen = true;
-                            EffectManager.add(m); }
+                            EffectFactory.createMuzzleFlash(flashX, flashY, angle, isEnergyLMG ? 1.0 : 1.5);
                         }
 
                         // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
                         if (!isEnergyLMG) {
                             { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
-                            let s = EffectManager._acquire('ShellCasingEffect');
-                            if (s) { s.x = cSX; s.y = cSY; s.life = s.maxLife; s.active = true; }
-                            else s = new ShellCasingEffect(cSX, cSY, angle);
-                            EffectManager.add(s); }
+                            EffectFactory.createShellCasing(cSX, cSY, angle); }
                         }
                         delete d.fireMainHand;
                     }
@@ -1556,17 +1537,11 @@ _fireRanged(hand = 'main') {
                             if (!hideMuzzle) {
                                 const flashX = this.x + c * (gunLX + 38) - sin * gunLY;
                                 const flashY = this.y + sin * (gunLX + 38) + c * gunLY;
-                                { let m = EffectManager._acquire('MuzzleFlashEffect');
-                                if (m) { m.x = flashX; m.y = flashY; m.angle = baseAngle; m.life = m.maxLife; m.active = true; m.scale = 1.8; }
-                                else m = new MuzzleFlashEffect(flashX, flashY, baseAngle, 1.8);
-                                EffectManager.add(m); }
+                                EffectFactory.createMuzzleFlash(flashX, flashY, baseAngle, 1.8);
                             }
                             // 弹壳
                             { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
-                            let s = EffectManager._acquire('ShellCasingEffect');
-                            if (s) { s.x = cSX; s.y = cSY; s.life = s.maxLife; s.active = true; }
-                            else s = new ShellCasingEffect(cSX, cSY, baseAngle);
-                            EffectManager.add(s); }
+                            EffectFactory.createShellCasing(cSX, cSY, baseAngle); }
                         }
                         delete d.fireMainHand;
                     }

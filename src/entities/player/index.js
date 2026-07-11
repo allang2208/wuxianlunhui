@@ -1,7 +1,7 @@
 // Player class - split into modules for maintainability
 
 import { Combatant } from '../combatant.js';
-import { ThrustAttack, RangedAttack } from '../../combat/attack.js';
+import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../config/weapon-attack-config.js';
 import { WeaponEffect } from '../../effects/weapon-effect.js';
 import { PoisonEffect } from '../../effects/poison-effect.js';
 import { DashSystem } from '../components/dash-system.js';
@@ -91,24 +91,10 @@ class Player extends Combatant {
             this._chargeFlashActive = false; // 是否正在闪光
             // ===== 装备-技能联动系统 =====
             this._skillOverrides = {}; // 当前装备的技能覆盖 { skillId: overrideData }
-            this.attacks = {
-                melee: new ThrustAttack({ cooldown: 500, range: 116, width: 25, damage: { min: 12, max: 20 }, knockback: 8 }),
-                ranged: new RangedAttack({ cooldown: 600, projectileSpeed: 1248, projectileRange: 1000, projectileSize: 9, damage: { min: 8, max: 16 }, piercing: false }),
-                pistol: new RangedAttack({ cooldown: 55, projectileSpeed: 1248, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                deagle: new RangedAttack({ cooldown: 800, projectileSpeed: 1248, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
-                // 副手独立攻击对象（双持时互不干扰）
-                pistolOffhand: new RangedAttack({ cooldown: 55, projectileSpeed: 1248, projectileRange: 650, projectileSize: 4, damage: { min: 4, max: 8 }, piercing: false, knockback: 0 }),
-                deagleOffhand: new RangedAttack({ cooldown: 800, projectileSpeed: 1248, projectileRange: 750, projectileSize: 5, damage: { min: 4, max: 8 }, piercing: false, knockback: 10 }),
-                p4040: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
-                p4040Offhand: new RangedAttack({ cooldown: 300, projectileSpeed: 1248, projectileRange: 750, projectileSize: 4, damage: { min: 2, max: 4 }, piercing: false, knockback: 2 }),
-                pkm: new RangedAttack({ cooldown: 92, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                akm: new RangedAttack({ cooldown: 100, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                qbz191: new RangedAttack({ cooldown: 70, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                qjb201: new RangedAttack({ cooldown: 60, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false }),
-                energy_lmg: new RangedAttack({ cooldown: 333, projectileSpeed: 1248, projectileRange: 1200, projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 0 }),
-                super90: new RangedAttack({ cooldown: 333, projectileSpeed: 1248, projectileRange: 500, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 }),
-                saiga12k: new RangedAttack({ cooldown: 150, projectileSpeed: 1248, projectileRange: 400, projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 12.5 })
-            };
+            this.attacks = {};
+            for (const [key, cfg] of Object.entries(WEAPON_ATTACK_CONFIG)) {
+                this.attacks[key] = createAttackFromConfig(cfg);
+            }
             // 应用剑精通的冷却缩减
             SkillManager.updateMeleeCooldown(this);
             // 应用弓精通的冷却缩减

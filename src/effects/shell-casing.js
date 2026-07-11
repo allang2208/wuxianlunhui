@@ -5,6 +5,9 @@ import { Renderer } from '../world/renderer.js';
                 this.life = 800; this.maxLife = 800; this.active = true;
                 if (!ShellCasingEffect._sharedImage) { ShellCasingEffect._sharedImage = new Image(); ShellCasingEffect._sharedImage.src = 'assets/ammo/shell_ground.png'; }
                 this.image = ShellCasingEffect._sharedImage;
+                this._initPhysics(angle);
+            }
+            _initPhysics(angle) {
                 // 弹壳从枪口右侧弹出，做抛物线
                 const ejectAngle = angle + Math.PI * 0.7 + (Math.random() - 0.5) * 0.5;
                 const speed = 156 + Math.random() * 124.8;
@@ -12,7 +15,12 @@ import { Renderer } from '../world/renderer.js';
                 this.vy = Math.sin(ejectAngle) * speed;
                 this.rot = 0; this.rotSpeed = (Math.random() - 0.5) * 0.4;
                 this.grounded = false;
-                this.groundY = y + (Math.random() * 5);
+                this.groundY = this.y + (Math.random() * 5);
+            }
+            reset(x, y, angle) {
+                this.x = x; this.y = y; this.angle = angle;
+                this.life = this.maxLife; this.active = true;
+                this._initPhysics(angle);
             }
             update(dt = 16.67) {
                 this.life -= dt;
