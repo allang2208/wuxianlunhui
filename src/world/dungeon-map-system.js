@@ -360,6 +360,13 @@ export const DungeonMapSystem = {
                 this._cleanupActive = true;
                 this._cleanupTimer = 10000; // 10秒倒计时
                 this._showCleanupOverlay();
+
+                // 标记当前战斗节点为已完成（变为 empty）
+                const currentNode = this.getCurrentNode();
+                if (currentNode && currentNode.type === 'combat') {
+                    currentNode.type = 'empty';
+                    console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
+                }
             }
         }
 
@@ -447,6 +454,7 @@ export const DungeonMapSystem = {
             case "boss":   this._enterBoss(node); break;
             case "shop":   this._enterShop(node); break;
             case "event":  this._enterEvent(node); break;
+            case "random": this._enterEvent(node); break;
             case "reward": this._enterReward(node); break;
             default:       this._returnToMap(); break;
         }
@@ -930,8 +938,19 @@ export const DungeonMapSystem = {
 
     _enterZombieEvent(node) {
         this.state = "event";
-        import('./zombie-dungeon.js').then(mod => {
-            mod.ZombieDungeonEvent.show(() => this._returnToMap());
+        // 使用 DungeonEventSystem 提供完整的随机事件
+        import('./dungeon-event-system.js').then(mod => {
+            mod.DungeonEventSystem.trigger(this.player, (result) => {
+                if (result && result.combat) {
+                    this._enterCombat(node);
+                } else {
+                    this._returnToMap();
+                }
+            });
+        }).catch(err => {
+            console.error('[DungeonMapSystem] Failed to load dungeon-event-system for zombie:', err);
+            // 降级到旧版事件系统
+            this._enterLegacyEvent(node);
         });
     },
 
