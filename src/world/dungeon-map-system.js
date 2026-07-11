@@ -354,8 +354,12 @@ export const DungeonMapSystem = {
             return;
         }
 
-        // 使用 CombatRoomSystem 检测战斗完成
-        if (CombatRoomSystem.isCombatComplete()) {
+        // 检测战斗完成（CombatRoomSystem 或僵尸地牢自己的系统）
+        const isCombatDone = this.dungeonType === 'zombie'
+            ? this._checkZombieCombatComplete()
+            : CombatRoomSystem.isCombatComplete();
+
+        if (isCombatDone) {
             // 战斗已完成，启动打扫战场倒计时
             if (!this._cleanupActive) {
                 this._cleanupActive = true;
@@ -733,6 +737,34 @@ export const DungeonMapSystem = {
             this._combatMonsters.push(monster);
             this._combatMonsterKeys.push(key);
         }
+    },
+
+    _checkZombieCombatComplete() {
+        if (this.state !== "combat" && this.state !== "boss") return false;
+        if (this._cleanupActive) return false;
+
+        const allDead = this._combatMonsters.every(m => !m.active || m.hp <= 0);
+        if (!allDead) return false;
+
+        // 僵尸地牢：检查是否还有下一波
+        if (this.dungeonType === 'zombie' && this.state === "combat" && this._zombieWaveActive) {
+            if (this._zombieCombat && !this._zombieCombat.isComplete) {
+                // 防止重复设置过渡
+                if (this._waveTransitioning) return false;
+                this._waveTransitioning = true;
+                // 短暂延迟后生成下一波
+                setTimeout(() => {
+                    this._waveTransitioning = false;
+                    if (this.active && this.state === "combat") {
+                        this._cleanupCombatWallsOnly();
+                        this._spawnZombieWave();
+                    }
+                }, 1500);
+                return false; // 还有下一波，战斗未完成
+            }
+        }
+
+        return true; // 所有怪物死亡且无下一波，战斗完成
     },
 
     _checkCombatComplete() {
