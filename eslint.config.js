@@ -24,48 +24,6 @@ export default [
         __phaserScene: 'readonly',
         __phaserSceneReady: 'readonly',
 
-        CONFIG: 'readonly',
-        MathUtils: 'readonly',
-        Easing: 'readonly',
-        AttackFormula: 'readonly',
-
-        GAME_CONFIG: 'readonly',
-        COMBAT_CONFIG: 'readonly',
-        COMBAT_FORMULAS: 'readonly',
-        ANIMATION_CONFIG: 'readonly',
-
-        DamagePipeline: 'readonly',
-
-        NPCDialogue: 'readonly',
-        ShopSystem: 'readonly',
-        EnhanceSystem: 'readonly',
-        CraftSystem: 'readonly',
-        EnchantSystem: 'readonly',
-        QuestSystem: 'readonly',
-        QuestState: 'readonly',
-        QuestTracker: 'readonly',
-        LevelUpSystem: 'readonly',
-        RiftSystem: 'readonly',
-        RewardSystem: 'readonly',
-        EnhancementItems: 'readonly',
-
-        SkillManager: 'readonly',
-        QuickBar: 'readonly',
-        EquipManager: 'readonly',
-        EquipTooltipManager: 'readonly',
-        BackpackDialogManager: 'readonly',
-        EquipDataManager: 'readonly',
-        GameUIManager: 'readonly',
-        CodexManager: 'readonly',
-        SystemUI: 'readonly',
-        UI_DATA_CONFIG: 'readonly',
-        DevTool: 'readonly',
-        NpcPortraitTool: 'readonly',
-
-
-
-        DungeonMapSystem: 'readonly',
-        ExpeditionSystem: 'readonly'
       }
     },
     rules: {

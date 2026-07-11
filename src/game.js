@@ -39,6 +39,14 @@ import { Player } from './entities/player.js';
 import { BlackWolf, SpitterZombie, FatZombie, FastZombie, ZombieDog } from './entities/enemy-types.js';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
+import { ShopSystem } from './ui/shop-system.js';
+import { EnhanceSystem } from './ui/enhance-system.js';
+import { QuestState, QuestTracker } from './ui/quest-system.js';
+import { RiftSystem } from './quest/rift-system.js';
+import { QuickBar } from './ui/quick-bar.js';
+import { EquipManager } from './ui/equip-manager.js';
+import { CodexManager } from './ui/codex-manager.js';
+import { SystemUI } from './ui/system-ui.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）

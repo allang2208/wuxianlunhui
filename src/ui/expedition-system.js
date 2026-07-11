@@ -8,6 +8,10 @@ import { SceneManager } from '../world/scene-manager.js';
 
 import { UIState } from './ui-state.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { EquipManager } from './equip-manager.js';
+import { BackpackDialogManager } from './backpack-dialog-manager.js';
+import { SystemUI } from './system-ui.js';
+import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,

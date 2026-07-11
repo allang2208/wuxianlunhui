@@ -21,6 +21,12 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
+import { QuestState } from '../../ui/quest-system.js';
+import { SkillManager } from '../../ui/skill-manager.js';
+import { QuickBar } from '../../ui/quick-bar.js';
+import { GameUIManager } from '../../ui/game-ui-manager.js';
+import { SystemUI } from '../../ui/system-ui.js';
+import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const subsystemsMixin = {
 gainExp(amount) {

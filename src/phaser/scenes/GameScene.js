@@ -13,6 +13,7 @@ import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
+import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -77,7 +78,7 @@ export class GameScene extends Scene {
         
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
-        const _dms = window.DungeonMapSystem;
+        const _dms = DungeonMapSystem;
         if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
             if (this.playerSprite && this.playerSprite.visible) {
                 this.playerSprite.setVisible(false);

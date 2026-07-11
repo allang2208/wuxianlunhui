@@ -7,6 +7,9 @@ import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { EquipManager } from './equip-manager.js';
+import { EquipTooltipManager } from './equip-tooltip-manager.js';
+import { SystemUI } from './system-ui.js';
 
 const ShopSystem = {
     _isOpen: false,

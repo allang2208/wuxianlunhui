@@ -1,3 +1,7 @@
+import { ShopSystem } from '../shop-system.js';
+import { EnhanceSystem } from '../enhance-system.js';
+import { CraftSystem } from '../craft-system.js';
+import { EnchantSystem } from '../enchant-system.js';
 /**
  * HUD Panels - Shop, Enhance, Craft, Enchant
  * 包含：商店面板、强化面板、改造面板、附魔面板

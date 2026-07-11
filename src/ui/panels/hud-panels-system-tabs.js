@@ -1,3 +1,4 @@
+import { SystemUI } from '../system-ui.js';
 export function createHudPanelsSystemTabs() {
     // 创建根元素
     const root = document.createElement('div');

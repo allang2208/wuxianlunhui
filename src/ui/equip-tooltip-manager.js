@@ -13,6 +13,7 @@ import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-ef
 import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { CodexManager } from './codex-manager.js';
 
 export const EquipTooltipManager = {
     player: null,

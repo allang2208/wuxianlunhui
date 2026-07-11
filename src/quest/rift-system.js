@@ -8,6 +8,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { QuestState } from '../ui/quest-system.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
     _progressBarEl: null,

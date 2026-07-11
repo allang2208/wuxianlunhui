@@ -3,6 +3,15 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { CONFIG } from '../config/config.js';
+import { NPCDialogue } from './npc-dialogue.js';
+import { ShopSystem } from './shop-system.js';
+import { EnhanceSystem } from './enhance-system.js';
+import { CraftSystem } from './craft-system.js';
+import { EnchantSystem } from './enchant-system.js';
+import { QuestSystem } from './quest-system.js';
+import { QuickBar } from './quick-bar.js';
+import { SystemUI } from './system-ui.js';
+import { ExpeditionSystem } from './expedition-system.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },

@@ -1,5 +1,7 @@
 import { Game } from '../game.js';
 import { getElement } from '../utils/dom-utils.js';
+import { SkillManager } from '../ui/skill-manager.js';
+import { SystemUI } from '../ui/system-ui.js';
 // Skill Level System - Extracted from SkillManager
 // Handles generic experience gain and level-up logic for skills
 

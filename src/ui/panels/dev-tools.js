@@ -1,3 +1,4 @@
+import { DevTool } from '../dev-tool.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -31,14 +32,14 @@ export function createDevToolPanel() {
     const tabWeapon = document.createElement('div');
     tabWeapon.className = 'dev-tool-tab active';
     tabWeapon.dataset.tab = 'weapon';
-    tabWeapon.setAttribute('onclick', "DevTool.switchTab('weapon')");
+    tabWeapon.addEventListener('click', () => DevTool.switchTab('weapon'));
     tabWeapon.textContent = '武器';
     tabs.appendChild(tabWeapon);
 
     const tabEnemy = document.createElement('div');
     tabEnemy.className = 'dev-tool-tab';
     tabEnemy.dataset.tab = 'enemy';
-    tabEnemy.setAttribute('onclick', "DevTool.switchTab('enemy')");
+    tabEnemy.addEventListener('click', () => DevTool.switchTab('enemy'));
     tabEnemy.textContent = '怪物';
     tabs.appendChild(tabEnemy);
 

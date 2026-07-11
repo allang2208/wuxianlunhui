@@ -6,6 +6,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
+import { NPCDialogue } from './npc-dialogue.js';
+import { ShopSystem } from './shop-system.js';
+import { EnhanceSystem } from './enhance-system.js';
+import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations

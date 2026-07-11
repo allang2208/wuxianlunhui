@@ -4,6 +4,9 @@ import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { ShopSystem } from './shop-system.js';
+import { EquipManager } from './equip-manager.js';
+import { SystemUI } from './system-ui.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,

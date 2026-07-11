@@ -12,6 +12,9 @@ import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
+import { GameUIManager } from '../../ui/game-ui-manager.js';
+import { SystemUI } from '../../ui/system-ui.js';
+import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const updateMixin = {
 update(dt, entities) {

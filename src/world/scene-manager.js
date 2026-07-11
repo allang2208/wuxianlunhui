@@ -14,6 +14,9 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
+import { RiftSystem } from '../quest/rift-system.js';
+import { QuickBar } from '../ui/quick-bar.js';
+import { SystemUI } from '../ui/system-ui.js';
 
 export const SceneManager = {
     currentScene: null,

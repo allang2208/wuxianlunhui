@@ -44,26 +44,35 @@ const globalMap = {
   // ANIMATION_CONFIG: 'config/animation-config.js',
   // DamagePipeline: 'combat/damage-pipeline.js'
 
-  // Batch B: entities
-  Entity: 'entities/entity.js',
-  DamageableEntity: 'entities/damageable-entity.js',
-  TargetDummy: 'entities/target-dummy.js',
-  Player: 'entities/player.js',
-  Enemy: 'entities/enemy.js',
-  BlackWolf: 'entities/enemy-types.js',
-  RedWolfKing: 'entities/enemy-types.js',
-  SpitterZombie: 'entities/enemy-types.js',
-  FatZombie: 'entities/enemy-types.js',
-  FastZombie: 'entities/enemy-types.js',
-  ZombieDog: 'entities/enemy-types.js',
-  HumanoidMonster: 'entities/humanoid-monster.js',
-  Commander: 'entities/humanoid-monster.js',
-  MachineGunner: 'entities/humanoid-monster.js',
-  Rifleman: 'entities/humanoid-monster.js',
-  FlankRifleman: 'entities/humanoid-monster.js',
-  ShieldBearer: 'entities/humanoid-monster.js',
-  DropItem: 'entities/drop-item.js',
-  NPC: 'entities/npc.js'
+  // Batch C: UI systems
+  NPCDialogue: 'ui/npc-dialogue.js',
+  ShopSystem: 'ui/shop-system.js',
+  EnhanceSystem: 'ui/enhance-system.js',
+  CraftSystem: 'ui/craft-system.js',
+  EnchantSystem: 'ui/enchant-system.js',
+  QuestSystem: 'ui/quest-system.js',
+  QuestState: 'ui/quest-system.js',
+  QuestTracker: 'ui/quest-system.js',
+  LevelUpSystem: 'ui/quest-system.js',
+  RiftSystem: 'quest/rift-system.js',
+  RewardSystem: 'ui/reward-system.js',
+  EnhancementItems: 'ui/reward-system.js',
+  SkillManager: 'ui/skill-manager.js',
+  QuickBar: 'ui/quick-bar.js',
+  EquipManager: 'ui/equip-manager.js',
+  EquipTooltipManager: 'ui/equip-tooltip-manager.js',
+  BackpackDialogManager: 'ui/backpack-dialog-manager.js',
+  EquipDataManager: 'ui/equip-data-manager.js',
+  GameUIManager: 'ui/game-ui-manager.js',
+  CodexManager: 'ui/codex-manager.js',
+  SystemUI: 'ui/system-ui.js',
+  UI_DATA_CONFIG: 'ui/system-ui.js',
+  DevTool: 'ui/dev-tool.js',
+  NpcPortraitTool: 'ui/npc-portrait-tool.js',
+
+  // Batch D: world systems
+  DungeonMapSystem: 'world/dungeon-map-system.js',
+  ExpeditionSystem: 'ui/expedition-system.js'
 };
 
 const files = findJsFiles('src');

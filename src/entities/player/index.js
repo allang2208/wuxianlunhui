@@ -22,6 +22,7 @@ import { weaponAnimMixin } from './weapon-anim.js';
 import { renderMixin } from './render.js';
 import { subsystemsMixin } from './subsystems.js';
 import { CONFIG } from '../../config/config.js';
+import { SkillManager } from '../../ui/skill-manager.js';
 
 class Player extends Combatant {
   constructor(x, y) {

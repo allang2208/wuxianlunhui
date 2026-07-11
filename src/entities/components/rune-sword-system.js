@@ -5,6 +5,7 @@ import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { QuickBar } from '../../ui/quick-bar.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;

@@ -5,6 +5,7 @@ import { isGunWeapon } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { loadImage } from '../../utils/image-loader.js';
+import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const renderMixin = {
 renderHealthBar(ctx, x, y) {

@@ -5,6 +5,9 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
+import { SkillManager } from './skill-manager.js';
+import { GameUIManager } from './game-ui-manager.js';
+import { CodexManager } from './codex-manager.js';
 
 export const UI_DATA_CONFIG = {
     topBar: [

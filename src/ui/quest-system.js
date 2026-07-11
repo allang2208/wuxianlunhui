@@ -9,6 +9,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { DropItem } from '../entities/drop-item.js';
+import { NPCDialogue } from './npc-dialogue.js';
+import { RewardSystem } from './reward-system.js';
+import { EquipManager } from './equip-manager.js';
+import { GameUIManager } from './game-ui-manager.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',

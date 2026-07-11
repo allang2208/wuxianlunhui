@@ -31,6 +31,8 @@ import { RewardSystem } from '../ui/reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
+import { EnhancementItems } from '../ui/reward-system.js';
+import { EquipManager } from '../ui/equip-manager.js';
 
 // ==================== 配置对象 ====================
 

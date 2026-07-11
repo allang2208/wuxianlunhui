@@ -8,6 +8,7 @@ import { Input } from '../ui/input.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { getElement } from '../utils/dom-utils.js';
 import { CONFIG } from '../config/config.js';
+import { RiftSystem } from '../quest/rift-system.js';
 
 const Renderer = {
     canvas: getElement('gameCanvas'), ctx: null, terrainTexture: null,
