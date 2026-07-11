@@ -1,6 +1,6 @@
 // ============================================================
-// Weapon Animation System - Phaser Tween Driven
-// 替换旧的状态机系统，使用 Phaser Tween 驱动攻击动画
+// Weapon Animation System - 状态机驱动（兼容旧系统）
+// 远程武器使用状态机驱动动画，近战武器使用 Phaser Tween
 // ============================================================
 
 import { isTwoHanded } from '../../config/gun-ammo.js';
@@ -22,129 +22,207 @@ const weaponAnimMixin = {
             timer: 0,
             isAttacking: false,
         };
-        // 当前活动的 Tweens
+        // 当前活动的 Tweens（仅近战武器使用）
         this._activeAttackTweens = [];
     },
 
-    // 每帧更新（仅处理待机和非攻击状态）
+    // 每帧更新武器动画状态机（兼容旧系统）
     updateWeaponAnim(dt) {
         const wa = WEAPON_ANIM, anim = this.weaponAnim;
         
-        // 攻击状态由 Phaser Tween 管理，这里只处理 idle
-        if (anim.isAttacking) return;
-        
-        // 待机状态：呼吸动画 + 旋转待机动画
-        if (anim.state === 'idle') {
-            anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;
-            
-            // 装备双手武器时不播放旋转待机动画
-            const _idleItem = this.equipments[this.weaponMode];
-            const _isTwoHandedIdle = _idleItem && isTwoHanded(_idleItem);
-            if (!_isTwoHandedIdle) {
-                if (!anim.nextSpin) anim.nextSpin = Date.now() + 3000 + Math.random() * 3000;
-                if (Date.now() >= anim.nextSpin) {
-                    anim.spinDuration = 650;
-                    anim.spinEnd = Date.now() + anim.spinDuration;
-                    anim.nextSpin = Date.now() + anim.spinDuration + 3000 + Math.random() * 3000;
-                }
+        // 攻击状态由状态机管理
+        switch (anim.state) {
+            case 'idle':
+                // 旋转待机动画
                 if (anim.spinEnd && Date.now() < anim.spinEnd) {
                     const t = 1 - (anim.spinEnd - Date.now()) / anim.spinDuration;
                     anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06 + t * Math.PI * 8;
+                } else {
+                    anim.spinEnd = 0;
+                    anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;
+                    
+                    // 装备双手武器时不播放旋转待机动画
+                    const _idleItem = this.equipments[this.weaponMode];
+                    const _isTwoHandedIdle = _idleItem && isTwoHanded(_idleItem);
+                    if (_isTwoHandedIdle) {
+                        anim.nextSpin = 0;
+                        anim.spinEnd = 0;
+                    } else if (!anim.nextSpin) {
+                        anim.nextSpin = Date.now() + 3000 + Math.random() * 3000;
+                    } else if (Date.now() >= anim.nextSpin) {
+                        anim.spinDuration = 650;
+                        anim.spinEnd = Date.now() + anim.spinDuration;
+                        anim.nextSpin = Date.now() + anim.spinDuration + 3000 + Math.random() * 3000;
+                    }
+                }
+                break;
+                
+            case 'rotate':
+                // 弓类旋转阶段
+                anim.timer += dt;
+                if (anim.timer >= 500) {
+                    anim.state = 'windup';
+                    anim.timer = 0;
+                    anim.rotateAngle = -14 * (Math.PI / 180);
+                    SoundManager.playFile('assets/sounds/rope_pull_1s.wav');
+                } else {
+                    const t = anim.timer / 500;
+                    const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                    anim.rotateAngle = -14 * easeT * (Math.PI / 180);
+                }
+                break;
+                
+            case 'windup':
+                anim.spinEnd = 0;
+                anim.timer += dt;
+                if (anim.timer >= this._getAnimMs(wa.windupMs)) {
+                    anim.state = 'swing';
+                    anim.timer = 0;
+                } else {
+                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                }
+                break;
+                
+            case 'swing':
+                // 近战判定
+                if (anim.timer === 0 && this._pendingThrust) {
+                    this._pendingThrust.active = true;
+                }
+                if (this._pendingThrust && this._pendingThrust.active) {
+                    if (Date.now() - this._pendingThrust.startTime <= 500) {
+                        this.attacks.melee.checkTriangleHit(this);
+                    } else {
+                        this._pendingThrust.active = false;
+                    }
+                }
+                
+                anim.timer += dt;
+                if (anim.timer >= this._getAnimMs(wa.swingMs)) {
+                    anim.state = 'recover';
+                    anim.timer = 0;
+                    if (this._pendingThrust) {
+                        this._pendingThrust.active = false;
+                        this.attacks.melee.giveExp(this);
+                    }
+                } else {
+                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
+                    
+                    // 远程武器在 swing 阶段发射子弹
+                    const currentItem = this.equipments[this.weaponMode];
+                    const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
+                    const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
+                    if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) {
+                        this._fireRanged('main');
+                    }
+                }
+                break;
+                
+            case 'recover':
+                anim.timer += dt;
+                if (anim.timer >= this._getAnimMs(wa.recoverMs)) {
+                    // 弓在 recover 结束后射出箭矢
+                    const currentItem = this.equipments[this.weaponMode];
+                    if (currentItem && currentItem.weaponType === 'bow' && !this.rangedFired && this.rangedFireData) {
+                        const mouseWorldX = Input.mouse.x + Camera.x - CONFIG.VIEW_WIDTH / 2;
+                        const mouseWorldY = Input.mouse.y + Camera.y - CONFIG.VIEW_HEIGHT / 2;
+                        this.rangedFireData.targetX = mouseWorldX;
+                        this.rangedFireData.targetY = mouseWorldY;
+                        SoundManager.playFile('assets/sounds/arrow_flyby_1s.mp3');
+                        this._fireRanged('main');
+                    }
+                    anim.state = 'idle_return';
+                    anim.timer = 0;
+                    this._pendingThrust = null;
+                } else {
+                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / this._getAnimMs(wa.recoverMs));
+                }
+                break;
+                
+            case 'idle_return':
+                anim.timer += dt;
+                if (anim.timer >= 200) {
+                    anim.state = 'idle';
+                    anim.timer = 0;
+                    anim.rotateAngle = 0;
+                } else {
+                    const t = anim.timer / 200;
+                    const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                    anim.rotateAngle = -14 * (1 - easeT) * (Math.PI / 180);
+                }
+                break;
+        }
+        
+        // 同步副手攻击动画
+        if (this.offhandWeaponAnim) {
+            const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+            const offhandItem = this.equipments[offhandSlot];
+            const isDualPistol = offhandItem && (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol');
+            if (isDualPistol) {
+                const offAnim = this.offhandWeaponAnim;
+                const offWindupMs = this._getOffhandAnimMs(offhandItem, wa.windupMs);
+                const offSwingMs = this._getOffhandAnimMs(offhandItem, wa.swingMs);
+                const offRecoverMs = this._getOffhandAnimMs(offhandItem, wa.recoverMs);
+                switch (offAnim.state) {
+                    case 'windup':
+                        offAnim.timer += dt;
+                        if (offAnim.timer >= offWindupMs) { offAnim.state = 'swing'; offAnim.timer = 0; }
+                        break;
+                    case 'swing':
+                        offAnim.timer += dt;
+                        if (offAnim.timer >= offSwingMs) { offAnim.state = 'recover'; offAnim.timer = 0; }
+                        else {
+                            const hasPendingOffhand = this.rangedFireData && this.rangedFireData.fireOffhand;
+                            if (hasPendingOffhand) this._fireRanged('offhand');
+                        }
+                        break;
+                    case 'recover':
+                        offAnim.timer += dt;
+                        if (offAnim.timer >= offRecoverMs) { offAnim.state = 'idle'; offAnim.timer = 0; }
+                        break;
                 }
             }
         }
     },
 
-    // 触发攻击动画（别名，兼容旧代码调用）
+    // 触发攻击动画（兼容旧代码调用）
     triggerWeaponAnim(hand = 'main') {
-        return this.triggerAttackAnimation(hand);
-    },
-
-    // 触发攻击动画（由外部攻击系统调用）
-    triggerAttackAnimation(hand = 'main') {
-        const scene = window.__phaserScene;
-        if (!scene) return;
-        
         const currentItem = this.equipments[this.weaponMode];
-        if (!currentItem) return;
-        
-        // 重置 rangedFired，允许新的远程攻击
+        if (currentItem && currentItem.weaponType === 'bow') {
+            this.weaponAnim.state = 'rotate';
+            this.weaponAnim.timer = 0;
+            this.weaponAnim.rotateAngle = 0;
+        } else {
+            this.weaponAnim.state = 'swing';
+            this.weaponAnim.timer = 0;
+        }
         this.rangedFired = false;
         
-        const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
-        
+        // 近战武器使用 Phaser Tween
+        const isMelee = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
         if (isMelee) {
-            // 剑类武器：使用 Phaser Tween 驱动攻击动画
-            this._playSwordAttackTween(scene, hand);
-            // 同时播放角色攻击动画
-            if (scene.playerSprite) {
-                scene.playerSprite.play('player_attack_sword', true);
-                scene.playerSprite.once('animationcomplete', () => {
-                    if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
-                        scene.playerSprite.setTexture('player_idle');
-                    }
-                });
+            const scene = window.__phaserScene;
+            if (scene) {
+                this._playSwordAttackTween(scene, hand);
+                if (scene.playerSprite) {
+                    scene.playerSprite.play('player_attack_sword', true);
+                    scene.playerSprite.once('animationcomplete', () => {
+                        if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
+                            scene.playerSprite.setTexture('player_idle');
+                        }
+                    });
+                }
             }
-        } else {
-            // 远程武器（弓、枪械等）：调用 _fireRanged 发射子弹
-            // 使用 Phaser Tween 实现平滑的后坐力动画
-            const anim = this.weaponAnim;
-            const weaponSprite = scene.weaponSprite;
-            
-            if (weaponSprite) {
-                const startX = weaponSprite.x;
-                const startY = weaponSprite.y;
-                const startRotation = weaponSprite.rotation;
-                
-                // 根据武器类型调整后坐力强度
-                const currentItem = this.equipments[this.weaponMode];
-                const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
-                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm');
-                
-                // 后坐力参数
-                const recoilDistance = isShotgun ? 20 : (isPkmOrAkm ? 15 : 10);
-                const recoilRotation = isShotgun ? 0.15 : (isPkmOrAkm ? 0.12 : 0.08);
-                
-                // 计算后坐力方向（与玩家朝向相反）
-                const recoilX = Math.cos(this.rotation + Math.PI) * recoilDistance;
-                const recoilY = Math.sin(this.rotation + Math.PI) * recoilDistance;
-                
-                // 阶段1：快速后坐（50ms）
-                scene.tweens.add({
-                    targets: weaponSprite,
-                    x: startX + recoilX,
-                    y: startY + recoilY,
-                    rotation: startRotation - recoilRotation,
-                    duration: 50,
-                    ease: 'Quad.easeOut',
-                    onComplete: function() {
-                        // 阶段2：弹性恢复（200ms）
-                        scene.tweens.add({
-                            targets: weaponSprite,
-                            x: startX,
-                            y: startY,
-                            rotation: startRotation,
-                            duration: 200,
-                            ease: 'Elastic.easeOut',
-                            delay: 50  // 稍微停顿后再恢复
-                        });
-                    }
-                });
-            }
-            
-            this._fireRanged(hand);
         }
     },
 
     // 剑类攻击 Tween 动画（支持关键帧）
     _playSwordAttackTween(scene, hand) {
         const anim = hand === 'offhand' ? this.offhandWeaponAnim : this.weaponAnim;
-        if (anim.isAttacking) return; // 防止重复触发
+        if (anim.isAttacking) return;
         
         anim.isAttacking = true;
         anim.state = 'attacking';
         
-        // 获取武器精灵
         const weaponSprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
         if (!weaponSprite) {
             anim.isAttacking = false;
@@ -152,32 +230,23 @@ const weaponAnimMixin = {
             return;
         }
         
-        // 保存初始状态
         const startRotation = weaponSprite.rotation;
         const startX = weaponSprite.x;
         const startY = weaponSprite.y;
-        
         const self = this;
         
-        // 检查是否有关键帧配置
         const currentWeapon = this.getCurrentWeapon ? this.getCurrentWeapon() : (this.equipments && this.weaponMode ? this.equipments[this.weaponMode] : null);
         const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
         const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType].attack;
         
-        // 检查是否使用挂载点系统（新系统）
         const weaponCfg = WeaponAnimConfig[weaponType] || {};
         const hasHandAnchors = weaponCfg.handAnchors && typeof weaponCfg.handAnchors === 'object';
-        const hasGripOffset = weaponCfg.gripOffset && typeof weaponCfg.gripOffset === 'object';
         const facingRight = Math.abs(self.rotation) < Math.PI / 2;
         
         if (kfConfig && kfConfig.length >= 2) {
-            // ===== 使用关键帧动画 =====
-            
             anim.isAttacking = true;
             anim.state = 'attacking';
-            
-            // 创建单个 Tween，在 onUpdate 中根据进度插值关键帧
-            const totalDuration = 900; // 总攻击时长 ms
+            const totalDuration = 900;
             
             const attackTween = scene.tweens.add({
                 targets: { progress: 0 },
@@ -185,14 +254,10 @@ const weaponAnimMixin = {
                 duration: totalDuration,
                 ease: 'Linear',
                 onStart: function() {
-                    if (self._pendingThrust) {
-                        self._pendingThrust.active = true;
-                    }
+                    if (self._pendingThrust) self._pendingThrust.active = true;
                 },
                 onUpdate: function(tween) {
                     const progress = tween.getValue();
-                    
-                    // 关键帧插值
                     let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
                     for (let i = 0; i < kfConfig.length - 1; i++) {
                         if (progress >= kfConfig[i].progress && progress <= kfConfig[i + 1].progress) {
@@ -205,22 +270,16 @@ const weaponAnimMixin = {
                     const segmentDuration = next.progress - prev.progress;
                     const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
                     
-                    // 判断使用新系统（handOffsetX/Y）还是旧系统（offsetX/Y）
                     const useHandAnchorSystem = hasHandAnchors && (
                         prev.handOffsetX !== undefined || next.handOffsetX !== undefined
                     );
                     
                     if (useHandAnchorSystem) {
-                        // ===== 挂载点系统（新）=====
-                        // 获取攻击基础挂载点
                         const handAnchors = weaponCfg.handAnchors || {};
                         const anchor = handAnchors.attack || handAnchors.idle || { x: 0, y: 0 };
-                        
-                        // 方向镜像
                         const anchorX = facingRight ? anchor.x : -anchor.x;
                         const anchorY = anchor.y;
                         
-                        // 关键帧插值：handOffsetX/Y（相对于 attack 基础挂载点的偏移）
                         const handOffsetX = (prev.handOffsetX !== undefined ? prev.handOffsetX : 0) +
                             ((next.handOffsetX !== undefined ? next.handOffsetX : 0) -
                              (prev.handOffsetX !== undefined ? prev.handOffsetX : 0)) * t;
@@ -228,47 +287,32 @@ const weaponAnimMixin = {
                             ((next.handOffsetY !== undefined ? next.handOffsetY : 0) -
                              (prev.handOffsetY !== undefined ? prev.handOffsetY : 0)) * t;
                         
-                        // 手部世界位置 = 玩家位置 + 挂载点 + 关键帧偏移
                         const playerX = self.x;
                         const playerY = self.y;
                         const handWorldX = playerX + anchorX + handOffsetX;
                         const handWorldY = playerY + anchorY + handOffsetY;
                         
-                        // 握把偏移（武器精灵中心到握把点）
                         const gripOffset = weaponCfg.gripOffset || { x: 0, y: 0 };
-                        
-                        // 计算旋转角度（关键帧插值）
                         const rotation = (prev.rotation !== undefined ? prev.rotation : 0) +
                             ((next.rotation !== undefined ? next.rotation : 0) -
                              (prev.rotation !== undefined ? prev.rotation : 0)) * t;
                         const rotationRad = rotation * Math.PI / 180;
                         
-                        // gripOffset 旋转后的位置
                         const cos = Math.cos(rotationRad);
                         const sin = Math.sin(rotationRad);
                         const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
                         const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
                         
-                        // 武器位置 = 手部位置 + gripOffset 旋转后
-                        // handWorldX/Y 已经在 getHandAnchorPosition 中处理了镜像，不需要再次镜像
-                        const weaponWorldX = handWorldX + gripRotatedX;
-                        const weaponWorldY = handWorldY + gripRotatedY;
-                        
-                        weaponSprite.x = weaponWorldX;
-                        weaponSprite.y = weaponWorldY;
+                        weaponSprite.x = handWorldX + gripRotatedX;
+                        weaponSprite.y = handWorldY + gripRotatedY;
                         weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', facingRight) + rotationRad;
-                        
                     } else {
-                        // ===== 旧系统：绝对偏移（向后兼容）=====
                         const offsetX = prev.offsetX + (next.offsetX - prev.offsetX) * t;
                         const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
                         const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
                         
-                        // 使用 WeaponTransform 统一计算位置和旋转（与开发工具一致）
                         const cfg = WeaponAnimConfig[weaponType] || {};
                         const stateCfg = cfg['attack'] || cfg;
-                        
-                        // 临时修改配置用于计算
                         const originalHoldX = stateCfg.holdOffsetX;
                         const originalHoldY = stateCfg.holdOffsetY;
                         const originalRot = stateCfg.idleRotation;
@@ -279,7 +323,6 @@ const weaponAnimMixin = {
                         
                         const worldPos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'attack');
                         
-                        // 恢复原始值
                         stateCfg.holdOffsetX = originalHoldX;
                         stateCfg.holdOffsetY = originalHoldY;
                         stateCfg.idleRotation = originalRot;
@@ -289,7 +332,6 @@ const weaponAnimMixin = {
                         weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', Math.abs(self.rotation) < Math.PI / 2);
                     }
                     
-                    // 检测碰撞
                     if (self._pendingThrust && self._pendingThrust.active) {
                         if (Date.now() - self._pendingThrust.startTime <= 500) {
                             self.attacks.melee.checkTriangleHit(self);
@@ -301,15 +343,7 @@ const weaponAnimMixin = {
                 onComplete: function() {
                     anim.isAttacking = false;
                     anim.state = 'idle';
-                    
-                    // 平滑回到待机位置
-                    let idlePos;
-                    if (hasHandAnchors) {
-                        // 使用挂载点系统回到 idle 挂载点
-                        idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
-                    } else {
-                        idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
-                    }
+                    const idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
                     scene.tweens.add({
                         targets: weaponSprite,
                         x: idlePos.x,
@@ -318,7 +352,6 @@ const weaponAnimMixin = {
                         duration: 150,
                         ease: 'Cubic.easeOut'
                     });
-                    
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;
                         self.attacks.melee.giveExp(self);
@@ -328,28 +361,19 @@ const weaponAnimMixin = {
             });
             
             this._activeAttackTweens.push(attackTween);
-            
         } else {
-            // ===== 使用传统动画（无关键帧时回退）=====
-            
-            // 攻击参数
-            const windupMs = 200;   // 预备时间
-            const swingMs = 300;    // 挥砍时间
-            const recoverMs = 400;  // 回位时间
-            
-            // 攻击角度（基于玩家朝向）
+            const windupMs = 200;
+            const swingMs = 300;
+            const recoverMs = 400;
             const playerRotation = this.rotation;
-            const windupAngle = startRotation - 0.5;  // 向后扬起
-            const swingAngle = startRotation + 0.8;   // 向前挥砍
-            
-            // 攻击位移
+            const windupAngle = startRotation - 0.5;
+            const swingAngle = startRotation + 0.8;
             const thrustDistance = 20;
             const thrustX = Math.cos(playerRotation) * thrustDistance;
             const thrustY = Math.sin(playerRotation) * thrustDistance;
             
             const chain = scene.tweens.chain({
                 tweens: [
-                    // 阶段1：预备（windup）
                     {
                         targets: weaponSprite,
                         rotation: windupAngle,
@@ -358,12 +382,9 @@ const weaponAnimMixin = {
                         duration: windupMs,
                         ease: 'Quad.easeIn',
                         onStart: function() {
-                            if (self._pendingThrust) {
-                                self._pendingThrust.active = true;
-                            }
+                            if (self._pendingThrust) self._pendingThrust.active = true;
                         }
                     },
-                    // 阶段2：挥砍（swing）
                     {
                         targets: weaponSprite,
                         rotation: swingAngle,
@@ -381,7 +402,6 @@ const weaponAnimMixin = {
                             }
                         }
                     },
-                    // 阶段3：回位（recover）
                     {
                         targets: weaponSprite,
                         rotation: startRotation,
@@ -405,7 +425,6 @@ const weaponAnimMixin = {
             this._activeAttackTweens.push(chain);
         }
         
-        // 同时播放玩家角色攻击动画
         if (scene.setPlayerAnimation) {
             scene.setPlayerAnimation('attack_sword');
         }
@@ -424,7 +443,7 @@ const weaponAnimMixin = {
         this.offhandWeaponAnim.state = 'idle';
     },
 
-    // 获取动画时长（用于外部系统计算冷却）
+    // 获取动画时长
     _getAnimMs(baseMs) {
         const currentItem = this.equipments[this.weaponMode];
         let cfgKey = 'sword';
@@ -446,5 +465,10 @@ const weaponAnimMixin = {
         return Math.round(baseMs * mul);
     }
 };
+
+// 简单缓动函数
+function easeInQuad(t) { return t * t; }
+function easeOutQuad(t) { return t * (2 - t); }
+function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
 export { weaponAnimMixin };

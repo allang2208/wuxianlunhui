@@ -1605,20 +1605,20 @@ _getWeaponAnimParams() {
 
                 // 枪械后坐力
                 if ((isPistol || isPkmOrAkm || isShotgun) && anim.state !== 'idle') {
-                    let recoil = 0;
+                    let recoil = 0, shakeY = 0;
                     if (anim.state === 'windup') {
                         recoil = -s * 0.03 * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                     } else if (anim.state === 'swing') {
                         const st = anim.timer / this._getAnimMs(wa.swingMs);
                         recoil = s * 0.1 * (1 - st);
+                        shakeY = (Math.random() - 0.5) * 3 * (1 - st);
                     } else if (anim.state === 'recover') {
                         const rt = anim.timer / this._getAnimMs(wa.recoverMs);
                         recoil = -s * 0.03 * (1 - rt);
                     }
-                    params.recoil = 0;  // Tween控制位移，禁用旧后坐力
-                    params.recoilAngle = 0;  // Tween控制旋转，禁用旧旋转
+                    params.recoil = recoil;
+                    params.recoilAngle = shakeY * 0.02;
                 }
-
                 // 枪械待机动画1：轻微摆动（Phaser 同步）
                 if ((isPistol || isPkmOrAkm || isShotgun) && anim.state === 'idle' && !anim.spinEnd) {
                     let swayAngle = Math.sin(this.animTime * 0.4) * 0.02;

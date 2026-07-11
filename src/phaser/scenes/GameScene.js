@@ -390,18 +390,17 @@ export class GameScene extends Scene {
         }
         
         // ===== Phaser Tween 攻击动画期间，跳过 syncWeapon 的位置更新 =====
-        // weapon-anim.js 的 _playSwordAttackTween 直接控制 weaponSprite 位置
+        // 但远程武器使用状态机驱动，需要继续执行以应用后坐力
         if (weaponAnim.isAttacking) {
-            this.weaponSprite.setVisible(!this._useCanvasWeapon);
-            // 只更新缩放，位置由 Tween 控制
-            const wSize = WeaponTransform.getWeaponSize(wt, null, 'attack');
             const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
-            if (isGun) {
-                this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
-            } else {
+            if (!isGun) {
+                // 近战武器：Tween 控制位置，直接返回
+                this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                const wSize = WeaponTransform.getWeaponSize(wt, null, 'attack');
                 this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+                return;
             }
-            return;
+            // 远程武器：继续执行，让状态机驱动的后坐力生效
         }
         
         // 使用 WeaponTransform 统一计算位置和旋转
