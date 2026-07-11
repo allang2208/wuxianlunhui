@@ -9,7 +9,7 @@ import { EnhanceSystem } from './enhance-system.js';
 import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
-import { EquipDataManager } from './equip-data-manager.js';
+
 import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 

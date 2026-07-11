@@ -1,7 +1,7 @@
-import { MapGenerator } from '../world/map-generator.js';
+
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
-import { Renderer } from '../world/renderer.js';
+
 import { SceneManager } from '../world/scene-manager.js';
 import { Camera } from '../world/camera.js';
 import { Input } from '../ui/input.js';

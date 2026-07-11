@@ -11,7 +11,7 @@ import { WallSystem } from '../world/wall-system.js';
  * - 对全局对象（WallSystem、pathFinder、Game 等）始终使用 typeof 检查
  */
 
-import { MathUtils } from '../config/math-utils.js';
+
 import aiConfigData from '../../data/ai-config.json';
 
 class DecisionSystemImpl {

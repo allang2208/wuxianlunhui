@@ -5,7 +5,7 @@ import { Camera } from '../world/camera.js';
 import { Portal } from './portal.js';
 import { BlackWolf } from '../entities/enemy-types.js';
 import FormationSystem from '../systems/formation-system.js';
-import { DungeonMapSystem } from './dungeon-map-system.js';
+
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';

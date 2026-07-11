@@ -1,4 +1,4 @@
-import { Game } from '../../game.js';
+
 /**
  * UI Panels 主入口
  * 统一导入所有 UI 面板创建函数，提供初始化入口

@@ -1,7 +1,7 @@
 import { DataLoader } from '../../systems/data-loader.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { WEAPON_ANIM } from '../../config/math-utils.js';
-import { Game } from '../../game.js';
+
 import { Renderer } from '../../world/renderer.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { Camera } from '../../world/camera.js';

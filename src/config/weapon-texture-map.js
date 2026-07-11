@@ -1,4 +1,4 @@
-import { Game } from '../game.js';
+
 // 武器纹理映射配置
 // 统一 Phaser 纹理键与武器数据的映射，避免在 GameScene.js / BootScene.js 中重复硬编码
 

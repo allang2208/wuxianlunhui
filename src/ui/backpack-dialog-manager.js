@@ -1,4 +1,4 @@
-import { Input } from '../ui/input.js';
+
 // Backpack Dialog Manager - Extracted from EquipManager
 // Handles split dialog and backpack full notifications
 

@@ -1,6 +1,6 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { EnchantConfig, EnchantScrollItems, MagicDustItem } from '../config/enchant-config.js';
-import { ItemFactory } from '../items/item-factory.js';
+import { EnchantConfig, MagicDustItem } from '../config/enchant-config.js';
+
 import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
 import { Game } from '../game.js';

@@ -1,4 +1,4 @@
-import { Game } from '../game.js';
+
 // AI 开发工具 - 整合进 DevTool
 // 在 DevTool 面板中添加"AI"选项卡，显示：
 // 1. 当前场景中的怪物列表（类型、HP、阶段）

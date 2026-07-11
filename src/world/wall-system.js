@@ -1,6 +1,6 @@
 import { MazeGenerator } from '../world/maze-generator.js';
 import { Renderer } from '../world/renderer.js';
-import { Camera } from '../world/camera.js';
+
 const WallSystem = {
     walls: [],
     mazeEndY: 0,

@@ -1,8 +1,8 @@
 import { WEAPON_ANIM } from '../config/math-utils.js';
-import { Game } from '../game.js';
+
 import { WallSystem } from '../world/wall-system.js';
 import { Combatant } from './combatant.js';
-import { ThrustAttack, RangedAttack } from '../combat/attack.js';
+import { ThrustAttack } from '../combat/attack.js';
 import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { Renderer } from '../world/renderer.js';

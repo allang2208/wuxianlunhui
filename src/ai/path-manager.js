@@ -1,4 +1,3 @@
-import { PathFinder } from './pathfinder.js';
 
 /**
  * PathManager — 智能路径管理器（参考《环世界》）

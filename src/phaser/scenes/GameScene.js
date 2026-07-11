@@ -1,8 +1,8 @@
-import { PhaserGame } from '../../phaser/PhaserGame.js';
+
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
-import { Camera } from '../../world/camera.js';
-import { Input } from '../../ui/input.js';
+
+
 // ============================================================
 // GameScene - 主游戏场景：替代原有的 renderer.js + game.js 渲染部分
 // ============================================================

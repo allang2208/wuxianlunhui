@@ -1,13 +1,12 @@
 import { SoundManager } from '../ui/sound-manager.js';
 import { Game } from '../game.js';
-import { Input } from '../ui/input.js';
+
 import { DamageableEntity } from './damageable-entity.js';
-import { ThrustAttack, RangedAttack } from '../combat/attack.js';
+import { ThrustAttack } from '../combat/attack.js';
 import { isGunWeapon, getAmmoConfig, isMachineGun } from '../config/gun-ammo.js';
-import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+
 import { WEAPON_ANIM } from '../config/math-utils.js';
 import { Projectile } from '../combat/projectile.js';
-import { Renderer } from '../world/renderer.js';
 
 /**
  * Combatant 基类 — 通用战斗者接口

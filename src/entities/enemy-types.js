@@ -1,10 +1,10 @@
 import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
-import { Player } from './player.js';
-import { ThrustAttack } from '../combat/attack.js';
+
+
 import { RangedAttack } from '../combat/attack.js';
-import { Renderer } from '../world/renderer.js';
-import { MathUtils } from '../config/math-utils.js';
+
+
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
 

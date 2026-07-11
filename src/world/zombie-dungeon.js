@@ -1,4 +1,4 @@
-import { MapGenerator } from '../world/map-generator.js';
+
 /**
  * ZombieDungeon — 僵尸地牢模块
  * 

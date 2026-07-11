@@ -1,5 +1,5 @@
 import { SoundManager } from '../../ui/sound-manager.js';
-import { Game } from '../../game.js';
+
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { SceneManager } from '../../world/scene-manager.js';
@@ -9,7 +9,7 @@ import { StatusBar } from '../../ui/status-bar.js';
 import { DashConvergeEffect } from '../../effects/dash-effects.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { DustEffect } from '../../effects/particle-effects.js';
-import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
+import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 
 const updateMixin = {

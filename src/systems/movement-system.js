@@ -11,7 +11,7 @@ import { WallSystem } from '../world/wall-system.js';
  * 4. 状态通过 enemy 属性共享
  */
 
-import { MathUtils } from '../config/math-utils.js';
+
 import { PathManager } from '../ai/path-manager.js';
 
 /**
