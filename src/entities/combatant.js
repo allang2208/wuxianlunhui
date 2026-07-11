@@ -2,6 +2,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { ThrustAttack } from '../combat/attack.js';
 import { isGunWeapon, getAmmoConfig, isMachineGun } from '../config/gun-ammo.js';
+import { loadImage } from '../utils/image-loader.js';
 
 import { WEAPON_ANIM } from '../config/math-utils.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
@@ -144,8 +145,7 @@ class Combatant extends DamageableEntity {
     /** 加载武器贴图（子类调用） */
     _loadWeaponImage(weaponType, src) {
         if (!this.weaponImages[weaponType]) {
-            this.weaponImages[weaponType] = new Image();
-            this.weaponImages[weaponType].src = src;
+            this.weaponImages[weaponType] = loadImage(src);
         }
     }
 

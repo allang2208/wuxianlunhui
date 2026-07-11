@@ -10,6 +10,7 @@ import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { loadImage } from '../utils/image-loader.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -42,7 +43,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 if (w2 && w2.bowFrames) {
                     const frames = [];
                     for (let i = 0; i < w2.bowFrames.length; i++) {
-                        const img = new Image(); img.src = w2.bowFrames[i]; frames.push(img);
+                        frames.push(loadImage(w2.bowFrames[i]));
                     }
                     player.equippedBowFrames = frames;
                     player.equippedRangedType = 'bow';
@@ -52,7 +53,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                     const startFrame = w2.weaponAsset.startFrame || 1;
                     for (let i = 0; i < w2.weaponAsset.frameCount; i++) {
                         const num = String(startFrame + i).padStart(w2.weaponAsset.framePad || 2, '0');
-                        const img = new Image(); img.src = w2.weaponAsset.framePrefix + num + '.png'; frames.push(img);
+                        frames.push(loadImage(w2.weaponAsset.framePrefix + num + '.png'));
                     }
                     player.equippedBowFrames = frames;
                     player.equippedRangedType = 'bow';
@@ -466,12 +467,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
                                     const frames = [];
                                     if (item.bowFrames) {
-                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                        for (let i = 0; i < item.bowFrames.length; i++) { frames.push(loadImage(item.bowFrames[i])); }
                                     } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
                                         const startFrame = item.weaponAsset.startFrame || 1;
                                         for (let i = 0; i < item.weaponAsset.frameCount; i++) {
                                             const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
-                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                            frames.push(loadImage(item.weaponAsset.framePrefix + num + '.png'));
                                         }
                                     }
                                     this.player.equippedBowFrames = frames;
@@ -479,12 +480,10 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = new Image();
-                                        this.player.pistolImage.src = item.equipImage;
+                                        this.player.pistolImage = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
-                                        this.player.muzzleFlashImg = new Image();
-                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                        this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                                     }
                                 } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                                     this.player.hasMeleeWeapon = true;
@@ -595,12 +594,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
                                     const frames = [];
                                     if (item.bowFrames) {
-                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                        for (let i = 0; i < item.bowFrames.length; i++) { frames.push(loadImage(item.bowFrames[i])); }
                                     } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
                                         const startFrame = item.weaponAsset.startFrame || 1;
                                         for (let i = 0; i < item.weaponAsset.frameCount; i++) {
                                             const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
-                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                            frames.push(loadImage(item.weaponAsset.framePrefix + num + '.png'));
                                         }
                                     }
                                     this.player.equippedBowFrames = frames;
@@ -608,12 +607,10 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = new Image();
-                                        this.player.pistolImage.src = item.equipImage;
+                                        this.player.pistolImage = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
-                                        this.player.muzzleFlashImg = new Image();
-                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                        this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                                     }
                                 } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                                     this.player.hasMeleeWeapon = true;
@@ -823,12 +820,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 if (item.bowFrames || (item.weaponAsset && item.weaponAsset.framePrefix)) {
                                     const frames = [];
                                     if (item.bowFrames) {
-                                        for (let i = 0; i < item.bowFrames.length; i++) { const im = new Image(); im.src = item.bowFrames[i]; frames.push(im); }
+                                        for (let i = 0; i < item.bowFrames.length; i++) { frames.push(loadImage(item.bowFrames[i])); }
                                     } else if (item.weaponAsset && item.weaponAsset.framePrefix) {
                                         const startFrame = item.weaponAsset.startFrame || 1;
                                         for (let i = 0; i < item.weaponAsset.frameCount; i++) {
                                             const num = String(startFrame + i).padStart(item.weaponAsset.framePad || 2, '0');
-                                            const im = new Image(); im.src = item.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                            frames.push(loadImage(item.weaponAsset.framePrefix + num + '.png'));
                                         }
                                     }
                                     this.player.equippedBowFrames = frames;
@@ -836,12 +833,10 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = new Image();
-                                        this.player.pistolImage.src = item.equipImage;
+                                        this.player.pistolImage = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
-                                        this.player.muzzleFlashImg = new Image();
-                                        this.player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                                        this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                                     }
                                 } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                                     this.player.hasMeleeWeapon = true;
@@ -963,12 +958,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                     if (currentItem.bowFrames || (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix)) {
                         const frames = [];
                         if (currentItem.bowFrames) {
-                            for (let i = 0; i < currentItem.bowFrames.length; i++) { const im = new Image(); im.src = currentItem.bowFrames[i]; frames.push(im); }
+                            for (let i = 0; i < currentItem.bowFrames.length; i++) { frames.push(loadImage(currentItem.bowFrames[i])); }
                         } else if (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix) {
                             const startFrame = currentItem.weaponAsset.startFrame || 1;
                             for (let i = 0; i < currentItem.weaponAsset.frameCount; i++) {
                                 const num = String(startFrame + i).padStart(currentItem.weaponAsset.framePad || 2, '0');
-                                const im = new Image(); im.src = currentItem.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                frames.push(loadImage(currentItem.weaponAsset.framePrefix + num + '.png'));
                             }
                         }
                         player.equippedBowFrames = frames;
@@ -1011,12 +1006,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                     if (currentItem.bowFrames || (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix)) {
                         const frames = [];
                         if (currentItem.bowFrames) {
-                            for (let i = 0; i < currentItem.bowFrames.length; i++) { const im = new Image(); im.src = currentItem.bowFrames[i]; frames.push(im); }
+                            for (let i = 0; i < currentItem.bowFrames.length; i++) { frames.push(loadImage(currentItem.bowFrames[i])); }
                         } else if (currentItem.weaponAsset && currentItem.weaponAsset.framePrefix) {
                             const startFrame = currentItem.weaponAsset.startFrame || 1;
                             for (let i = 0; i < currentItem.weaponAsset.frameCount; i++) {
                                 const num = String(startFrame + i).padStart(currentItem.weaponAsset.framePad || 2, '0');
-                                const im = new Image(); im.src = currentItem.weaponAsset.framePrefix + num + '.png'; frames.push(im);
+                                frames.push(loadImage(currentItem.weaponAsset.framePrefix + num + '.png'));
                             }
                         }
                         player.equippedBowFrames = frames;
@@ -1026,16 +1021,13 @@ import { EffectManager } from '../effects/effect-manager.js';
                         // 同步手枪贴图（G18/沙漠之鹰等）
                         if (currentItem.equipImage) {
                             if (currentItem.canvasImageProp === 'deagleImage') {
-                                player.deagleImage = new Image();
-                                player.deagleImage.src = currentItem.equipImage;
+                                player.deagleImage = loadImage(currentItem.equipImage);
                             } else {
-                                player.pistolImage = new Image();
-                                player.pistolImage.src = currentItem.equipImage;
+                                player.pistolImage = loadImage(currentItem.equipImage);
                             }
                         }
                         if (currentItem.weaponAsset && currentItem.weaponAsset.muzzleImage) {
-                            player.muzzleFlashImg = new Image();
-                            player.muzzleFlashImg.src = currentItem.weaponAsset.muzzleImage;
+                            player.muzzleFlashImg = loadImage(currentItem.weaponAsset.muzzleImage);
                         }
                     } else if (currentItem.weaponType === 'pkm') {
                         player.equippedRangedType = 'pkm';
@@ -1404,7 +1396,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                         const frames = [];
                         const framePaths = item.bowFrames || [];
                         for (let i = 0; i < framePaths.length; i++) {
-                            const img = new Image(); img.src = framePaths[i]; frames.push(img);
+                            frames.push(loadImage(framePaths[i]));
                         }
                         player.equippedBowFrames = frames;
                         player.equippedRangedType = 'bow';
@@ -1412,24 +1404,21 @@ import { EffectManager } from '../effects/effect-manager.js';
                         player.equippedRangedType = 'pistol';
                         if (item.equipImage) {
                             if (item.canvasImageProp === 'deagleImage') {
-                                player.deagleImage = new Image();
-                                player.deagleImage.src = item.equipImage;
+                                player.deagleImage = loadImage(item.equipImage);
                             } else {
-                                player.pistolImage = new Image();
-                                player.pistolImage.src = item.equipImage;
+                                player.pistolImage = loadImage(item.equipImage);
                             }
                         }
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
-                            player.muzzleFlashImg = new Image(); player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                            player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                         }
                     } else if (item.weaponType === 'shotgun') {
                         player.equippedRangedType = 'shotgun';
                         if (item.equipImage && item.canvasImageProp) {
-                            player[item.canvasImageProp] = new Image();
-                            player[item.canvasImageProp].src = item.equipImage;
+                            player[item.canvasImageProp] = loadImage(item.equipImage);
                         }
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
-                            player.muzzleFlashImg = new Image(); player.muzzleFlashImg.src = item.weaponAsset.muzzleImage;
+                            player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                         }
                         // 装备Super90时播放枪栓音效
                         if (item.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {

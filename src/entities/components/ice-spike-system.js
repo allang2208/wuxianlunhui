@@ -2,6 +2,7 @@ import { SkillLevelSystem } from '../../combat/skill-level-system.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
+import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 export class IceSpikeSystem {
@@ -68,8 +69,7 @@ export class IceSpikeSystem {
         const GAME_ICE_SPIKE_SRC = 'assets/skills/icearrow.png';
         if (!this.player._iceSpikeImg || this.player._iceSpikeImg.naturalWidth === 0 ||
             this.player._iceSpikeImg.src !== GAME_ICE_SPIKE_SRC) {
-            this.player._iceSpikeImg = new Image();
-            this.player._iceSpikeImg.src = GAME_ICE_SPIKE_SRC;
+            this.player._iceSpikeImg = loadImage(GAME_ICE_SPIKE_SRC);
         }
         EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 40, `❄ 冰锥凝聚 x${count}`, '#5a8aaa'));
     }

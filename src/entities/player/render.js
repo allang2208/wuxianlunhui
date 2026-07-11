@@ -4,6 +4,7 @@ import { SceneManager } from '../../world/scene-manager.js';
 import { isGunWeapon } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
+import { loadImage } from '../../utils/image-loader.js';
 
 const renderMixin = {
 renderHealthBar(ctx, x, y) {
@@ -145,34 +146,26 @@ renderWeapon(ctx) {
                         this._lastFallbackItem = currentItem.equipImage;
                         if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
                             if (currentItem.canvasImageProp === 'deagleImage') {
-                                this.deagleImage = new Image();
-                                this.deagleImage.src = currentItem.equipImage;
+                                this.deagleImage = loadImage(currentItem.equipImage);
                             } else {
-                                this.pistolImage = new Image();
-                                this.pistolImage.src = currentItem.equipImage;
+                                this.pistolImage = loadImage(currentItem.equipImage);
                             }
                         } else if (currentItem.weaponType === 'pkm') {
-                            this.pkmImage = new Image();
-                            this.pkmImage.src = currentItem.equipImage;
+                            this.pkmImage = loadImage(currentItem.equipImage);
                         } else if (currentItem.weaponType === 'akm') {
-                            this.akmImage = new Image();
-                            this.akmImage.src = currentItem.weaponAsset?.image || currentItem.equipImage;
+                            this.akmImage = loadImage(currentItem.weaponAsset?.image || currentItem.equipImage);
                         } else if (currentItem.weaponType === 'qbz191') {
-                            this.qbz191Image = new Image();
-                            this.qbz191Image.src = currentItem.equipImage;
+                            this.qbz191Image = loadImage(currentItem.equipImage);
                         } else if (currentItem.weaponType === 'qjb201') {
-                            this.qjb201Image = new Image();
-                            this.qjb201Image.src = currentItem.equipImage;
+                            this.qjb201Image = loadImage(currentItem.equipImage);
                         } else if (currentItem.weaponType === 'shotgun') {
                             if (currentItem.canvasImageProp) {
-                                this[currentItem.canvasImageProp] = new Image();
-                                this[currentItem.canvasImageProp].src = currentItem.equipImage;
+                                this[currentItem.canvasImageProp] = loadImage(currentItem.equipImage);
                             }
                         } else if (currentItem.weaponType === 'bow') {
                             // 弓帧动画在 switchWeaponMode 中处理
                         } else {
-                            this.meleeImage = new Image();
-                            this.meleeImage.src = currentItem.equipImage;
+                            this.meleeImage = loadImage(currentItem.equipImage);
                         }
                     }
                 }

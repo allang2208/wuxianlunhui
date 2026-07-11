@@ -2,6 +2,7 @@ import { SkillLevelSystem } from '../../combat/skill-level-system.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
+import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 export class FireballSystem {
@@ -59,8 +60,7 @@ export class FireballSystem {
         };
         // 加载火球贴图（sprite sheet）
         if (!this.player._fireballImg || this.player._fireballImg.naturalWidth === 0) {
-            this.player._fireballImg = new Image();
-            this.player._fireballImg.src = 'assets/skills/fireball_spritesheet.png';
+            this.player._fireballImg = loadImage('assets/skills/fireball_spritesheet.png');
         }
         EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 40, '🔥 火球凝聚', '#ff6b35'));
     }

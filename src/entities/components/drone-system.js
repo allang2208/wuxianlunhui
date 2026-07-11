@@ -3,6 +3,7 @@ import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 
 import { Input } from '../../ui/input.js';
+import { loadImage } from '../../utils/image-loader.js';
 // 无人机技能系统
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
@@ -20,8 +21,7 @@ export class DroneSystem {
         this.vy = 0;
         this.speed = 500;
         this.radius = 300;
-        this.image = new Image();
-        this.image.src = 'assets/skills/drone.png';
+        this.image = loadImage('assets/skills/drone.png');
         // 保存玩家原始镜头目标
         this._savedCameraTarget = null;
         // 跟踪当前被无人机影响的实体

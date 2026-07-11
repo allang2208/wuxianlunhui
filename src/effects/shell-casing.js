@@ -1,9 +1,10 @@
 import { Renderer } from '../world/renderer.js';
+import { loadImage } from '../utils/image-loader.js';
         class ShellCasingEffect {
             constructor(x, y, angle) {
                 this.x = x; this.y = y; this.angle = angle;
                 this.life = 800; this.maxLife = 800; this.active = true;
-                if (!ShellCasingEffect._sharedImage) { ShellCasingEffect._sharedImage = new Image(); ShellCasingEffect._sharedImage.src = 'assets/ammo/shell_ground.png'; }
+                if (!ShellCasingEffect._sharedImage) { ShellCasingEffect._sharedImage = loadImage('assets/ammo/shell_ground.png'); }
                 this.image = ShellCasingEffect._sharedImage;
                 this._initPhysics(angle);
             }

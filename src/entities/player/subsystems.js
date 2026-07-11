@@ -11,6 +11,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
+import { loadImage } from '../../utils/image-loader.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
@@ -788,71 +789,60 @@ switchWeaponMode() {
                 if (nextItem && nextItem.bowFrames) {
                     const frames = [];
                     for (let i = 0; i < nextItem.bowFrames.length; i++) {
-                        const img = new Image(); img.src = nextItem.bowFrames[i]; frames.push(img);
+                        frames.push(loadImage(nextItem.bowFrames[i]));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (nextItem.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = nextItem.equipImage;
+                        this.bowEquipImage = loadImage(nextItem.equipImage);
                     }
                 } else if (nextItem && nextItem.weaponAsset && nextItem.weaponAsset.framePrefix) {
                     const frames = [];
                     for (let i = 1; i <= nextItem.weaponAsset.frameCount; i++) {
                         const num = String(i).padStart(nextItem.weaponAsset.framePad || 2, '0');
-                        const img = new Image(); img.src = nextItem.weaponAsset.framePrefix + num + '.png'; frames.push(img);
+                        frames.push(loadImage(nextItem.weaponAsset.framePrefix + num + '.png'));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (nextItem.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = nextItem.equipImage;
+                        this.bowEquipImage = loadImage(nextItem.equipImage);
                     }
                 } else if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol')) {
                     this.equippedRangedType = 'pistol';
                     if (nextItem.equipImage) {
                         if (nextItem.canvasImageProp === 'deagleImage') {
-                            this.deagleImage = new Image();
-                            this.deagleImage.src = nextItem.equipImage;
+                            this.deagleImage = loadImage(nextItem.equipImage);
                         } else {
-                            this.pistolImage = new Image();
-                            this.pistolImage.src = nextItem.equipImage;
+                            this.pistolImage = loadImage(nextItem.equipImage);
                         }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
-                        this.muzzleFlashImg = new Image();
-                        this.muzzleFlashImg.src = nextItem.weaponAsset.muzzleImage;
+                        this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                 } else if (nextItem && (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
                     this.equippedRangedType = nextItem.weaponType;
                     if (nextItem.equipImage) {
                         if (nextItem.weaponType === 'pkm') {
-                            this.pkmImage = new Image();
-                            this.pkmImage.src = nextItem.equipImage;
+                            this.pkmImage = loadImage(nextItem.equipImage);
                         } else if (nextItem.weaponType === 'qbz191') {
-                            this.qbz191Image = new Image();
-                            this.qbz191Image.src = nextItem.equipImage;
+                            this.qbz191Image = loadImage(nextItem.equipImage);
                         } else if (nextItem.weaponType === 'qjb201') {
-                            this.qjb201Image = new Image();
-                            this.qjb201Image.src = nextItem.equipImage;
+                            this.qjb201Image = loadImage(nextItem.equipImage);
                         } else {
-                            this.akmImage = new Image();
-                            this.akmImage.src = nextItem.weaponAsset?.image || nextItem.equipImage;
+                            this.akmImage = loadImage(nextItem.weaponAsset?.image || nextItem.equipImage);
                         }
                     }
                 } else if (nextItem && nextItem.weaponType === 'shotgun') {
                     this.equippedRangedType = 'shotgun';
                     if (nextItem.equipImage) {
                         if (nextItem.canvasImageProp) {
-                            this[nextItem.canvasImageProp] = new Image();
-                            this[nextItem.canvasImageProp].src = nextItem.equipImage;
+                            this[nextItem.canvasImageProp] = loadImage(nextItem.equipImage);
                         }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
-                        this.muzzleFlashImg = new Image();
-                        this.muzzleFlashImg.src = nextItem.weaponAsset.muzzleImage;
+                        this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                     // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
                     if (nextItem.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
@@ -900,23 +890,22 @@ loadWeaponAssets(item) {
                     const frames = [];
                     for (let i = 1; i <= wa.frameCount; i++) {
                         const num = String(i).padStart(wa.framePad || 2, '0');
-                        const img = new Image(); img.src = wa.framePrefix + num + '.png'; frames.push(img);
+                        frames.push(loadImage(wa.framePrefix + num + '.png'));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (item.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = item.equipImage;
+                        this.bowEquipImage = loadImage(item.equipImage);
                     }
                 } else if (wt === 'pistol' && wa.image) {
                     if (item.canvasImageProp === 'deagleImage') {
-                        this.deagleImage = new Image(); this.deagleImage.src = wa.image;
+                        this.deagleImage = loadImage(wa.image);
                     } else {
-                        this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                        this.pistolImage = loadImage(wa.image);
                     }
                     this.equippedRangedType = 'pistol';
-                    if (wa.muzzleImage) { this.muzzleFlashImg = new Image(); this.muzzleFlashImg.src = wa.muzzleImage; }
+                    if (wa.muzzleImage) { this.muzzleFlashImg = loadImage(wa.muzzleImage); }
                 }
             },
 
