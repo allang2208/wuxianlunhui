@@ -508,7 +508,8 @@ if (this._facing === 'left') {
 
 - v1.12 (2026-07-11) — 地牢地图居中显示修复：
   - **问题**：`_centerRouteMap`、`_generateDefaultMap`、`_generateZombieMap` 使用硬编码 `TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 }`，导致地图位置固定，不随窗口大小变化
-  - **修复**：改用 `CONFIG.VIEW_WIDTH` 和 `CONFIG.VIEW_HEIGHT` 动态计算地图显示区域，水平垂直均居中显示，留出 `marginX=280`/`marginY=120` 边距给侧边栏
+  - **修复**：改用 `window.innerWidth` 和 `window.innerHeight` 动态计算地图显示区域，水平垂直均居中显示，留出 `marginX=280`/`marginY=120` 边距给侧边栏
+  - **注意**：`CONFIG.VIEW_WIDTH/HEIGHT` 保持固定 1920x1080（用户要求固定像素），但地图居中使用实际窗口尺寸
   - **文件**：`src/world/dungeon-map-system.js`
 
 - v1.11 (2026-07-10) — 修复所有枪械无法开火的问题：
