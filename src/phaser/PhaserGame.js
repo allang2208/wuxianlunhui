@@ -6,6 +6,8 @@
 import { Game as PhaserGameClass, AUTO, Scale } from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 let _phaserGame = null;
 
@@ -20,7 +22,7 @@ export const PhaserGame = {
             return _phaserGame;
         }
 
-        const parentEl = document.getElementById('gameCanvas')?.parentElement || document.body;
+        const parentEl = getElement('gameCanvas')?.parentElement || document.body;
 
         _phaserGame = new PhaserGameClass({
             type: AUTO,           // 自动选择 WebGL / Canvas
@@ -85,10 +87,10 @@ export const PhaserGame = {
         const trySetup = () => {
             if (_setupCanvasCSS()) return;
             attempts++;
-            if (attempts < 10) setTimeout(trySetup, 100);
+            if (attempts < 10) TimerManager.setTimeout(trySetup, 100);
             else console.warn('[PhaserGame] Failed to find Phaser canvas after 10 attempts');
         };
-        setTimeout(trySetup, 100);
+        TimerManager.setTimeout(trySetup, 100);
 
         console.log('[PhaserGame] Phaser initialized');
         return _phaserGame;

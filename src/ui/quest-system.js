@@ -6,6 +6,8 @@ import { SceneManager } from '../world/scene-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',
@@ -36,12 +38,12 @@ export const QuestSystem = {
     open() {
         UIState.open('quest');
         this._isOpen = true;
-        const panel = document.getElementById('questPanel');
+        const panel = getElement('questPanel');
         if (panel) {
             panel.classList.add('active');
         }
         // 打开面板时隐藏右侧侧边栏图标
-        document.querySelectorAll('.side-menu').forEach(m => m.classList.add('hidden'));
+        queryAllElements('.side-menu').forEach(m => m.classList.add('hidden'));
         this._render();
     },
 
@@ -49,11 +51,11 @@ export const QuestSystem = {
         UIState.close('quest');
         this._isOpen = false;
         this._fromNPC = false; // 关闭时重置来源标记
-        const panel = document.getElementById('questPanel');
+        const panel = getElement('questPanel');
         if (panel) {
             panel.classList.remove('active');
         }
-        document.querySelectorAll('.side-menu').forEach(m => m.classList.remove('hidden'));
+        queryAllElements('.side-menu').forEach(m => m.classList.remove('hidden'));
         if (NPCDialogue.active) {
             NPCDialogue.exitCompactMode();
         }
@@ -96,8 +98,8 @@ export const QuestSystem = {
     },
 
     _render() {
-        const listCol = document.getElementById('questListCol');
-        const detailCol = document.getElementById('questDetailCol');
+        const listCol = getElement('questListCol');
+        const detailCol = getElement('questDetailCol');
         if (!listCol || !detailCol) return;
 
         // 渲染任务列表
@@ -232,7 +234,7 @@ export const QuestState = {
         // 打开奖励结算界面（三选一）
         if (typeof RewardSystem !== 'undefined' && RewardSystem.open) {
             // 延迟打开，确保场景切换完成
-            setTimeout(() => RewardSystem.open(), 800);
+            TimerManager.setTimeout(() => RewardSystem.open(), 800);
         } else {
             // 后备：直接发放奖励
             this._grantRewards();
@@ -304,7 +306,7 @@ export const QuestTracker = {
     },
 
     _createElement() {
-        const existing = document.getElementById('questTracker');
+        const existing = getElement('questTracker');
         if (existing) return;
         const tracker = document.createElement('div');
         tracker.id = 'questTracker';
@@ -313,11 +315,11 @@ export const QuestTracker = {
             <div class="quest-tracker-title">📜 任务追踪</div>
             <div class="quest-tracker-content" id="questTrackerContent"></div>
         `;
-        document.getElementById('gameContainer').appendChild(tracker);
+        getElement('gameContainer').appendChild(tracker);
     },
 
     update() {
-        const content = document.getElementById('questTrackerContent');
+        const content = getElement('questTrackerContent');
         if (!content) return;
 
         const quest = QuestSystem.QUESTS['explore_rift_1'];

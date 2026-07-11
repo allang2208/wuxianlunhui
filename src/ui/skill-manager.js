@@ -2,6 +2,8 @@ import { Game } from '../game.js';
 import { LevelUpEffectQueue } from '../effects/level-up-queue.js';
 import { SkillLevelSystem } from '../combat/skill-level-system.js';
 import { isSwordCategory } from '../config/gun-ammo.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
@@ -188,7 +190,7 @@ export const SkillManager = {
             onShow: onShowCallback
         });
         // 刷新UI
-        const detail2 = document.getElementById('skillDetail');
+        const detail2 = getElement('skillDetail');
         const detailOpen2 = detail2 && detail2.style.display !== 'none' && detail2.style.display !== '';
         if (detailOpen2 || (SystemUI.isOpen && SystemUI.currentTab === 'skill')) {
             this.renderSkillGrid();
@@ -346,13 +348,13 @@ export const SkillManager = {
         });
     },
     renderSkillGrid() {
-        const grid = document.getElementById('skillGrid');
+        const grid = getElement('skillGrid');
         if (!grid) return;
         const player = Game.player;
         if (!player || !player.skills) { grid.innerHTML = '<p style="color:#8a7d6b;text-align:center;padding:40px;">技能系统加载中...</p>'; return; }
         grid.innerHTML = '';
         // 渲染筛选按钮
-        const filterBar = document.getElementById('skillFilterBar');
+        const filterBar = getElement('skillFilterBar');
         if (filterBar) {
             filterBar.innerHTML = `
                 <button class="skill-filter-btn ${this._currentFilter === 'all' ? 'active' : ''}" data-filter="all">全部</button>
@@ -417,7 +419,7 @@ export const SkillManager = {
                     if (icon) {
                         e.dataTransfer.setDragImage(icon, icon.offsetWidth / 2, icon.offsetHeight / 2);
                     }
-                    setTimeout(() => SystemUI.close(), 50);
+                    TimerManager.setTimeout(() => SystemUI.close(), 50);
                 };
                 card.ondragend = () => {
                     card.classList.remove('dragging');
@@ -428,8 +430,8 @@ export const SkillManager = {
     },
     renderSkillDetail(skill) {
         this._currentDetailSkillId = skill.id;
-        const detail = document.getElementById('skillDetail');
-        const body = document.getElementById('sdBody');
+        const detail = getElement('skillDetail');
+        const body = getElement('sdBody');
         if (!detail || !body) return;
         // dashAttackThrust 共享 dashAttack 的等级和效果
         let displaySkill = skill;
@@ -779,7 +781,7 @@ export const SkillManager = {
         html += `</div>`;
         body.innerHTML = html;
         detail.style.display = 'block';
-        const backBtn = document.getElementById('sdBackBtn');
+        const backBtn = getElement('sdBackBtn');
         if (backBtn) {
             backBtn.onclick = () => {
                 detail.style.display = 'none';

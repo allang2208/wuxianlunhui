@@ -5,6 +5,7 @@ import { ItemDatabase } from '../items/item-database.js';
 import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { ENEMY_DATA } from '../systems/data-loader.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -39,7 +40,7 @@ const CodexManager = {
         this.renderEquipGrid();
         this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
-        const backBtn = document.getElementById('codexBackBtn');
+        const backBtn = getElement('codexBackBtn');
         if (backBtn) backBtn.addEventListener('click', () => this.closeDetail());
     },
 
@@ -80,7 +81,7 @@ const CodexManager = {
     },
 
     renderMainTabs() {
-        const tabs = document.querySelectorAll('.codex-main-tab');
+        const tabs = queryAllElements('.codex-main-tab');
         tabs.forEach(tab => {
             tab.classList.toggle('active', tab.dataset.section === this.currentSection);
             tab.onclick = () => {
@@ -92,12 +93,12 @@ const CodexManager = {
     },
 
     showSection(section) {
-        document.getElementById('codexEquipLayout').classList.toggle('active', section === 'equipment');
-        document.getElementById('codexMonsterLayout').classList.toggle('active', section === 'monster');
+        getElement('codexEquipLayout').classList.toggle('active', section === 'equipment');
+        getElement('codexMonsterLayout').classList.toggle('active', section === 'monster');
     },
 
     renderEquipCategoryTabs() {
-        const container = document.getElementById('codexCatTabs');
+        const container = getElement('codexCatTabs');
         if (!container) return;
         container.innerHTML = this.equipCategories.map(c =>
             `<div class="codex-cat-tab ${c.key === this.currentEquipCategory ? 'active' : ''}" data-cat="${c.key}">${c.label}</div>`
@@ -112,7 +113,7 @@ const CodexManager = {
     },
 
     renderEquipGrid() {
-        const grid = document.getElementById('codexGrid');
+        const grid = getElement('codexGrid');
         if (!grid) return;
         const items = this.getEquipByCategory(this.currentEquipCategory);
         grid.innerHTML = items.map(item => {
@@ -128,7 +129,7 @@ const CodexManager = {
     },
 
     renderMonsterCategoryTabs() {
-        const container = document.getElementById('codexMonsterCatTabs');
+        const container = getElement('codexMonsterCatTabs');
         if (!container) return;
         container.innerHTML = this.monsterCategories.map(c =>
             `<div class="codex-cat-tab ${c.key === this.currentMonsterCategory ? 'active' : ''}" data-cat="${c.key}">${c.label}</div>`
@@ -143,7 +144,7 @@ const CodexManager = {
     },
 
     renderMonsterGrid() {
-        const grid = document.getElementById('codexMonsterGrid');
+        const grid = getElement('codexMonsterGrid');
         if (!grid) return;
         const items = this.getMonsterByCategory(this.currentMonsterCategory);
         grid.innerHTML = items.map(item => {
@@ -178,7 +179,7 @@ const CodexManager = {
         const item = this.getEquipByName(itemName);
         if (!item) return;
         this.detailItem = item;
-        const title = document.getElementById('codexDetailTitle');
+        const title = getElement('codexDetailTitle');
         if (title) title.textContent = item.name;
         this.renderEquipDetail(item);
     },
@@ -187,21 +188,21 @@ const CodexManager = {
         const item = this.getMonsterById(monsterId);
         if (!item) return;
         this.detailItem = item;
-        const title = document.getElementById('codexDetailTitle');
+        const title = getElement('codexDetailTitle');
         if (title) title.textContent = item.name;
         this.renderMonsterDetail(item);
     },
 
     closeDetail() {
         this.detailItem = null;
-        const body = document.getElementById('codexDetailBody');
-        const title = document.getElementById('codexDetailTitle');
+        const body = getElement('codexDetailBody');
+        const title = getElement('codexDetailTitle');
         if (body) body.innerHTML = '<div style="color:#8a7d6b;text-align:center;padding:40px 20px;">点击左侧条目查看详情</div>';
         if (title) title.textContent = '详情';
     },
 
     renderEquipDetail(item) {
-        const body = document.getElementById('codexDetailBody');
+        const body = getElement('codexDetailBody');
         if (!body) return;
 
         // 从 ItemDatabase 实时获取最新数据
@@ -479,7 +480,7 @@ const CodexManager = {
     },
 
     renderMonsterDetail(item) {
-        const body = document.getElementById('codexDetailBody');
+        const body = getElement('codexDetailBody');
         if (!body) return;
         body.style.overflowY = 'auto';
         body.style.maxHeight = 'calc(100vh - 200px)';

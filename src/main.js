@@ -204,7 +204,7 @@ async function initModules() {
     window.NpcPortraitTool = NpcPortraitTool;
 
     // 初始化 UI 面板（动态创建 DOM）
-    const gameContainer = document.getElementById('gameContainer');
+    const gameContainer = getElement('gameContainer');
     if (gameContainer) {
         initUIPanels(gameContainer);
     }
@@ -216,11 +216,11 @@ async function initModules() {
     window.PhaserGame = PhaserGame;
 
     // 绑定按钮事件（替代 HTML 内联 onclick，避免 ES6 模块加载前引用未定义的 Game）
-    const startBtn = document.getElementById('startGameBtn');
+    const startBtn = getElement('startGameBtn');
     if (startBtn) startBtn.addEventListener('click', () => { startBtn.blur(); Game.start(); });
-    const helpBtn = document.getElementById('showHelpBtn');
+    const helpBtn = getElement('showHelpBtn');
     if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); Game.showHelp(); });
-    const backBtn = document.getElementById('backMenuBtn');
+    const backBtn = getElement('backMenuBtn');
     if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); Game.toMenu(); });
     // 初始化开发工具
     DevTool.init();
@@ -342,6 +342,7 @@ import { GoldManager } from './systems/gold-manager.js';
 
 // Skill Level System
 import { SkillLevelSystem } from './combat/skill-level-system.js';
+import { getElement } from './utils/dom-utils.js';
 
 // 启动初始化
 initModules().catch(err => console.error('Module init failed:', err));

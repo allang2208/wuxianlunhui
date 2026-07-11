@@ -2,6 +2,8 @@ import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -14,7 +16,7 @@ const EnhanceSystem = {
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
-        const panel = document.getElementById('enhancePanel');
+        const panel = getElement('enhancePanel');
         if (panel) panel.classList.add('active');
         this._setupDragDrop();
         this._updateUI();
@@ -25,9 +27,9 @@ const EnhanceSystem = {
         this._isOpen = false;
         this._currentNPC = null;
         this._returnEquippedItem();
-        const panel = document.getElementById('enhancePanel');
+        const panel = getElement('enhancePanel');
         if (panel) panel.classList.remove('active');
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             if (!UIState.isOpen('enhance') && !UIState.isOpen('shop') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
@@ -40,7 +42,7 @@ const EnhanceSystem = {
     },
 
     _setupDragDrop() {
-        const slot = document.getElementById('enhanceSlot');
+        const slot = getElement('enhanceSlot');
         if (!slot) return;
         slot.ondragover = (e) => {
             e.preventDefault();
@@ -231,7 +233,7 @@ const EnhanceSystem = {
 
         this._playEnhanceEffect();
 
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `强化成功！+${item.enhanceLevel}`, '#ffd700'));
             this._updateUI();
             EquipManager.updateEquipSlots();
@@ -240,10 +242,10 @@ const EnhanceSystem = {
     },
 
     _playEnhanceEffect() {
-        const slot = document.getElementById('enhanceSlot');
+        const slot = getElement('enhanceSlot');
         if (!slot) return;
         slot.classList.add('enhancing');
-        setTimeout(() => slot.classList.remove('enhancing'), 900);
+        TimerManager.setTimeout(() => slot.classList.remove('enhancing'), 900);
     },
 
     removeItem() {
@@ -253,13 +255,13 @@ const EnhanceSystem = {
 
     _updateUI() {
         const player = Game.player;
-        const moneyEl = document.getElementById('enhanceMoney');
+        const moneyEl = getElement('enhanceMoney');
         if (moneyEl && player) moneyEl.textContent = `💰 ${ShopSystem._getBackpackGold()}`;
 
-        const slot = document.getElementById('enhanceSlot');
-        const slotInfo = document.getElementById('enhanceSlotInfo');
-        const enhanceBtn = document.getElementById('enhanceBtn');
-        const costEl = document.getElementById('enhanceCost');
+        const slot = getElement('enhanceSlot');
+        const slotInfo = getElement('enhanceSlotInfo');
+        const enhanceBtn = getElement('enhanceBtn');
+        const costEl = getElement('enhanceCost');
 
         if (!slot || !slotInfo || !enhanceBtn || !costEl) return;
 

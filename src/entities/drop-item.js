@@ -1,6 +1,7 @@
 import { Renderer } from '../world/renderer.js';
 import { Input } from '../ui/input.js';
 import { Entity } from './entity.js';
+import { loadImage } from '../utils/image-loader.js';
 
         class DropItem extends Entity {
             constructor(x, y, itemData) {
@@ -8,20 +9,19 @@ import { Entity } from './entity.js';
                 this.x = x; this.y = y; this.itemData = itemData || {};
                 this.size = 0; this.active = true; this.life = Infinity;
                 this.bobOffset = 0;
-                this.image = new Image();
                 // 金币使用新的动画贴图
+                let imageSrc = 'assets/items/scroll.png';
                 if (itemData.category === 'gold' || itemData.name === '金币') {
-                    this.image.src = 'assets/items/gold_transparent_07.png';
+                    imageSrc = 'assets/items/gold_transparent_07.png';
                 } else if (itemData.iconImage) {
-                    this.image.src = itemData.iconImage;
+                    imageSrc = itemData.iconImage;
                 } else if (itemData.equipImage) {
                     // 所有装备一律使用持有的贴图（equipImage）
-                    this.image.src = itemData.equipImage;
+                    imageSrc = itemData.equipImage;
                 } else if (itemData.dropImage) {
-                    this.image.src = itemData.dropImage;
-                } else {
-                    this.image.src = 'assets/items/scroll.png';
+                    imageSrc = itemData.dropImage;
                 }
+                this.image = loadImage(imageSrc);
                 this.pickupRange = 30;
             }
             update(dt) {

@@ -6,6 +6,8 @@ import { SceneManager } from '../world/scene-manager.js';
 // Rift System - 时空裂隙系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
     _progressBarEl: null,
@@ -140,7 +142,7 @@ export const RiftSystem = {
 
     // 显示进度条
     _showProgressBar(progress) {
-        let container = document.getElementById('riftProgressBar');
+        let container = getElement('riftProgressBar');
         if (!container) {
             container = document.createElement('div');
             container.id = 'riftProgressBar';
@@ -149,13 +151,13 @@ export const RiftSystem = {
             document.body.appendChild(container);
         }
         container.style.display = 'block';
-        const fill = document.getElementById('riftProgressFill');
+        const fill = getElement('riftProgressFill');
         if (fill) fill.style.width = (progress * 100) + '%';
     },
 
     // 隐藏进度条
     _hideProgressBar() {
-        const container = document.getElementById('riftProgressBar');
+        const container = getElement('riftProgressBar');
         if (container) container.style.display = 'none';
     },
 
@@ -170,7 +172,7 @@ export const RiftSystem = {
         label.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#5a9a5a;font-size:32px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         label.textContent = '时空裂隙已调查';
         document.body.appendChild(label);
-        setTimeout(() => { if (label && label.parentNode) label.remove(); }, 3000);
+        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, 3000);
     },
 
     // 所有裂隙完成
@@ -180,7 +182,7 @@ export const RiftSystem = {
         label.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#ffd700;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 4s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         label.textContent = '返回传送门已开启，请撤离！';
         document.body.appendChild(label);
-        setTimeout(() => { if (label && label.parentNode) label.remove(); }, 4000);
+        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, 4000);
 
         // 生成返回传送门
         this._spawnReturnPortal();
@@ -222,7 +224,7 @@ export const RiftSystem = {
     clear() {
         this.rifts = [];
         this._hideProgressBar();
-        const container = document.getElementById('riftProgressBar');
+        const container = getElement('riftProgressBar');
         if (container && container.parentNode) container.remove();
     }
 };

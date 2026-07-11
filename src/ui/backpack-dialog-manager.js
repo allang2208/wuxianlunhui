@@ -1,3 +1,5 @@
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // Backpack Dialog Manager - Extracted from EquipManager
 // Handles split dialog and backpack full notifications
@@ -18,7 +20,7 @@ export const BackpackDialogManager = {
 
     // 显示背包已满的系统提示（位于屏幕上方，与场景切换提示风格一致）
     _showBackpackFullNotice() {
-        let el = document.getElementById('backpackFullNotice');
+        let el = getElement('backpackFullNotice');
         if (el) { el.remove(); }
         el = document.createElement('div');
         el.id = 'backpackFullNotice';
@@ -26,13 +28,13 @@ export const BackpackDialogManager = {
         el.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#d4c5a9;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         el.textContent = '背包已满！';
         document.body.appendChild(el);
-        setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
+        TimerManager.setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
     },
     
     _showSplitDialog(item, _slotIdx) {
         const self = this;
         // Remove existing dialog if any
-        const existing = document.getElementById('splitDialog');
+        const existing = getElement('splitDialog');
         if (existing) existing.remove();
         
         const dialog = document.createElement('div');
@@ -56,10 +58,10 @@ export const BackpackDialogManager = {
         `;
         document.body.appendChild(dialog);
         
-        const slider = document.getElementById('splitSlider');
-        const input = document.getElementById('splitInput');
-        const confirmBtn = document.getElementById('splitConfirmBtn');
-        const cancelBtn = document.getElementById('splitCancelBtn');
+        const slider = getElement('splitSlider');
+        const input = getElement('splitInput');
+        const confirmBtn = getElement('splitConfirmBtn');
+        const cancelBtn = getElement('splitCancelBtn');
         
         slider.oninput = () => { input.value = slider.value; };
         input.oninput = () => { 

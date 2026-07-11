@@ -33,6 +33,8 @@ import { DungeonMapGenerator, DungeonFogOfWar } from './dungeon-map-generator.js
 import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -216,7 +218,7 @@ export const DungeonMapSystem = {
     // 事件绑定：拖动 + 滚轮缩放
     // ───────────────────────────────────────────────
     _bindEvents() {
-        const canvas = document.getElementById("gameCanvas");
+        const canvas = getElement("gameCanvas");
         if (!canvas) return;
 
         const onMouseDown = (e) => {
@@ -811,7 +813,7 @@ export const DungeonMapSystem = {
                 if (this._waveTransitioning) return false;
                 this._waveTransitioning = true;
                 // 短暂延迟后生成下一波
-                setTimeout(() => {
+                TimerManager.setTimeout(() => {
                     this._waveTransitioning = false;
                     if (this.active && this.state === "combat") {
                         this._cleanupCombatWallsOnly();
@@ -839,7 +841,7 @@ export const DungeonMapSystem = {
                 if (this._waveTransitioning) return;
                 this._waveTransitioning = true;
                 // 短暂延迟后生成下一波
-                setTimeout(() => {
+                TimerManager.setTimeout(() => {
                     this._waveTransitioning = false;
                     if (this.active && this.state === "combat") {
                         this._cleanupCombatWallsOnly();
@@ -942,9 +944,9 @@ export const DungeonMapSystem = {
         };
         ShopSystem.open(fakeNPC);
 
-        const checkInterval = setInterval(() => {
+        const checkInterval = TimerManager.setInterval(() => {
             if (!UIState.isOpen('shop')) {
-                clearInterval(checkInterval);
+                TimerManager.clearInterval(checkInterval);
                 this._returnToMap();
             }
         }, 300);
@@ -961,9 +963,9 @@ export const DungeonMapSystem = {
     _enterZombieShop(_node) {
         this.state = "shop";
         ZombieDungeonShop.open();
-        const checkInterval = setInterval(() => {
+        const checkInterval = TimerManager.setInterval(() => {
             if (ZombieDungeonShop.isClosed()) {
-                clearInterval(checkInterval);
+                TimerManager.clearInterval(checkInterval);
                 this._returnToMap();
             }
         }, 300);
@@ -1317,7 +1319,7 @@ export const DungeonMapSystem = {
     },
 
     _createMouseShopButton() {
-        if (document.getElementById('mouseShopButton')) return;
+        if (getElement('mouseShopButton')) return;
         const btn = document.createElement('div');
         btn.id = 'mouseShopButton';
         btn.textContent = '小鼠商店';
@@ -1352,12 +1354,12 @@ export const DungeonMapSystem = {
     },
 
     _removeMouseShopButton() {
-        const btn = document.getElementById('mouseShopButton');
+        const btn = getElement('mouseShopButton');
         if (btn) btn.remove();
     },
 
     _createAbandonButton() {
-        if (document.getElementById('abandonButton')) return;
+        if (getElement('abandonButton')) return;
         const btn = document.createElement('div');
         btn.id = 'abandonButton';
         btn.textContent = '放弃并返回';
@@ -1392,7 +1394,7 @@ export const DungeonMapSystem = {
     },
 
     _removeAbandonButton() {
-        const btn = document.getElementById('abandonButton');
+        const btn = getElement('abandonButton');
         if (btn) btn.remove();
     },
 
@@ -1412,7 +1414,7 @@ export const DungeonMapSystem = {
         `;
         document.body.appendChild(overlay);
 
-        const btn = document.getElementById("dungeonVictoryBtn");
+        const btn = getElement("dungeonVictoryBtn");
         btn.onmouseenter = () => btn.style.background = "#5a7a4a";
         btn.onmouseleave = () => btn.style.background = "#4a6a3a";
         btn.onclick = async () => {
@@ -1436,7 +1438,7 @@ export const DungeonMapSystem = {
     },
 
     _showExitConfirm() {
-        if (document.getElementById("dungeonExitConfirm")) return;
+        if (getElement("dungeonExitConfirm")) return;
 
         const overlay = document.createElement("div");
         overlay.id = "dungeonExitConfirm";
@@ -1458,8 +1460,8 @@ export const DungeonMapSystem = {
         `;
         document.body.appendChild(overlay);
 
-        const confirmBtn = document.getElementById("dungeonExitConfirmBtn");
-        const cancelBtn = document.getElementById("dungeonExitCancelBtn");
+        const confirmBtn = getElement("dungeonExitConfirmBtn");
+        const cancelBtn = getElement("dungeonExitCancelBtn");
 
         confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
         confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";
@@ -1486,7 +1488,7 @@ export const DungeonMapSystem = {
     },
 
     _showEntryConfirm() {
-        if (document.getElementById("dungeonEntryConfirm")) return;
+        if (getElement("dungeonEntryConfirm")) return;
         return new Promise((resolve) => {
             const overlay = document.createElement("div");
             overlay.id = "dungeonEntryConfirm";
@@ -1508,8 +1510,8 @@ export const DungeonMapSystem = {
             `;
             document.body.appendChild(overlay);
 
-            const confirmBtn = document.getElementById("dungeonEntryConfirmBtn");
-            const cancelBtn = document.getElementById("dungeonEntryCancelBtn");
+            const confirmBtn = getElement("dungeonEntryConfirmBtn");
+            const cancelBtn = getElement("dungeonEntryCancelBtn");
 
             confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
             confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";

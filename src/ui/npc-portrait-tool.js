@@ -1,3 +1,4 @@
+import { getElement } from '../utils/dom-utils.js';
 
 // ============================================
 // NPC 立绘调整工具（NpcPortraitTool）
@@ -29,9 +30,9 @@ export const NpcPortraitTool = {
     // 在 main.js 中游戏启动时调用
     // 获取DOM元素、绑定事件监听器
     init() {
-        this._canvas = document.getElementById('npcPortraitCanvas');
+        this._canvas = getElement('npcPortraitCanvas');
         this._ctx = this._canvas ? this._canvas.getContext('2d') : null;
-        this._panel = document.getElementById('npcPortraitTool');
+        this._panel = getElement('npcPortraitTool');
 
         // 绑定 Canvas 鼠标事件（拖动）
         if (this._canvas) {
@@ -43,7 +44,7 @@ export const NpcPortraitTool = {
         }
 
         // 缩放滑动条
-        const scaleInput = document.getElementById('npcPortraitScale');
+        const scaleInput = getElement('npcPortraitScale');
         if (scaleInput) {
             scaleInput.addEventListener('input', (e) => {
                 this._params.scale = parseFloat(e.target.value);
@@ -54,7 +55,7 @@ export const NpcPortraitTool = {
         }
 
         // 旋转滑动条
-        const rotInput = document.getElementById('npcPortraitRotation');
+        const rotInput = getElement('npcPortraitRotation');
         if (rotInput) {
             rotInput.addEventListener('input', (e) => {
                 this._params.rotation = parseInt(e.target.value, 10);
@@ -65,7 +66,7 @@ export const NpcPortraitTool = {
         }
 
         // 镜像按钮
-        const flipBtn = document.getElementById('npcPortraitFlipX');
+        const flipBtn = getElement('npcPortraitFlipX');
         if (flipBtn) {
             flipBtn.addEventListener('click', () => {
                 this._params.flipX = !this._params.flipX;
@@ -75,19 +76,19 @@ export const NpcPortraitTool = {
         }
 
         // 重置按钮
-        const resetBtn = document.getElementById('npcPortraitReset');
+        const resetBtn = getElement('npcPortraitReset');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => this.reset());
         }
 
         // 保存按钮
-        const saveBtn = document.getElementById('npcPortraitSave');
+        const saveBtn = getElement('npcPortraitSave');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.save());
         }
 
         // 关闭按钮
-        const closeBtn = document.getElementById('npcPortraitToolClose');
+        const closeBtn = getElement('npcPortraitToolClose');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hide());
         }
@@ -158,7 +159,7 @@ export const NpcPortraitTool = {
         if (this._active) {
             this.hide();
         } else if (this._npcId) {
-            const npcPortrait = document.getElementById('npcPortrait');
+            const npcPortrait = getElement('npcPortrait');
             const src = npcPortrait ? npcPortrait.src : '';
             if (src) {
                 this.show(this._npcId, src);
@@ -170,7 +171,7 @@ export const NpcPortraitTool = {
     // 将当前参数实时应用到 NPC 立绘 DOM 元素（#npcPortrait）
     // 使用 CSS transform: translateX(...) translateY(...) scale(...) rotate(...) scaleX(...)
     applyToDom(params) {
-        const npcPortrait = document.getElementById('npcPortrait');
+        const npcPortrait = getElement('npcPortrait');
         if (!npcPortrait) return;
         npcPortrait.style.transform =
             `translateX(${params.offsetX}px) translateY(${params.offsetY}px) ` +
@@ -342,10 +343,10 @@ export const NpcPortraitTool = {
     // --------------- 同步输入控件 ---------------
     // 将 _params 的值同步到 range input 和 span 显示
     _syncInputs() {
-        const scaleInput = document.getElementById('npcPortraitScale');
-        const scaleVal = document.getElementById('npcPortraitScaleVal');
-        const rotInput = document.getElementById('npcPortraitRotation');
-        const rotVal = document.getElementById('npcPortraitRotationVal');
+        const scaleInput = getElement('npcPortraitScale');
+        const scaleVal = getElement('npcPortraitScaleVal');
+        const rotInput = getElement('npcPortraitRotation');
+        const rotVal = getElement('npcPortraitRotationVal');
 
         if (scaleInput) scaleInput.value = this._params.scale;
         if (scaleVal) scaleVal.textContent = this._params.scale.toFixed(2);

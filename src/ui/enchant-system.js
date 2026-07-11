@@ -8,6 +8,8 @@ import { SoundManager } from './sound-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryElement, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const EnchantSystem = {
     _isOpen: false,
@@ -38,7 +40,7 @@ const EnchantSystem = {
             UIState.open('enchant');
             this._isOpen = true;
             this._currentNPC = npc;
-            const panel = document.getElementById('enchantPanel');
+            const panel = getElement('enchantPanel');
             if (panel) panel.classList.add('active');
             SystemUI.open('equip');
             this._setupDragDrop();
@@ -52,9 +54,9 @@ const EnchantSystem = {
 
     // 显示附魔栏说明文字
     _showInstruction() {
-        const enchantBody = document.querySelector('#enchantPanel .enchant-body');
+        const enchantBody = queryElement('#enchantPanel .enchant-body');
         if (!enchantBody) return;
-        let instructionEl = document.getElementById('enchantInstruction');
+        let instructionEl = getElement('enchantInstruction');
         if (!instructionEl) {
             instructionEl = document.createElement('div');
             instructionEl.id = 'enchantInstruction';
@@ -74,14 +76,14 @@ const EnchantSystem = {
             UIState.close('enchant');
             this._isOpen = false;
             // 隐藏说明文字
-            const instructionEl = document.getElementById('enchantInstruction');
+            const instructionEl = getElement('enchantInstruction');
             if (instructionEl) instructionEl.style.display = 'none';
             // 刷新背包和装备栏显示
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
-            const panel = document.getElementById('enchantPanel');
+            const panel = getElement('enchantPanel');
             if (panel) panel.classList.remove('active');
-            setTimeout(() => {
+            TimerManager.setTimeout(() => {
                 if (!UIState.isOpen('enchant') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft')) {
                     SystemUI.close();
                 }
@@ -93,8 +95,8 @@ const EnchantSystem = {
 
     // 设置拖放
     _setupDragDrop() {
-        const scrollSlot = document.getElementById('enchantScrollSlot');
-        const equipSlot = document.getElementById('enchantEquipSlot');
+        const scrollSlot = getElement('enchantScrollSlot');
+        const equipSlot = getElement('enchantEquipSlot');
         if (!scrollSlot || !equipSlot) return;
 
         // 卷轴槽拖出
@@ -424,17 +426,17 @@ const EnchantSystem = {
 
     // 更新UI
     _updateUI() {
-        const scrollSlot = document.getElementById('enchantScrollSlot');
-        const equipSlot = document.getElementById('enchantEquipSlot');
-        const scrollPlaceholder = document.getElementById('enchantScrollPlaceholder');
-        const equipPlaceholder = document.getElementById('enchantEquipPlaceholder');
-        const scrollDisplay = document.getElementById('enchantScrollDisplay');
-        const equipDisplay = document.getElementById('enchantEquipDisplay');
-        const scrollInfo = document.getElementById('enchantScrollInfo');
-        const equipInfo = document.getElementById('enchantEquipInfo');
-        const preview = document.getElementById('enchantPreview');
-        const previewContent = document.getElementById('enchantPreviewContent');
-        const doBtn = document.getElementById('enchantDoBtn');
+        const scrollSlot = getElement('enchantScrollSlot');
+        const equipSlot = getElement('enchantEquipSlot');
+        const scrollPlaceholder = getElement('enchantScrollPlaceholder');
+        const equipPlaceholder = getElement('enchantEquipPlaceholder');
+        const scrollDisplay = getElement('enchantScrollDisplay');
+        const equipDisplay = getElement('enchantEquipDisplay');
+        const scrollInfo = getElement('enchantScrollInfo');
+        const equipInfo = getElement('enchantEquipInfo');
+        const preview = getElement('enchantPreview');
+        const previewContent = getElement('enchantPreviewContent');
+        const doBtn = getElement('enchantDoBtn');
 
         // 更新卷轴槽
         if (this._scrollItem) {
@@ -573,7 +575,7 @@ const EnchantSystem = {
 
     // 更新魔法晶尘显示
     _updateDustDisplay() {
-        const dustEl = document.getElementById('enchantDust');
+        const dustEl = getElement('enchantDust');
         if (!dustEl) {
             console.error('[EnchantSystem._updateDustDisplay] enchantDust element not found');
             return;
@@ -584,11 +586,11 @@ const EnchantSystem = {
 
     // 显示消息
     _showMessage(text, type = 'normal') {
-        const msgEl = document.getElementById('enchantMessage');
+        const msgEl = getElement('enchantMessage');
         if (msgEl) {
             msgEl.textContent = text;
             msgEl.className = 'enchant-message ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
-            setTimeout(() => { msgEl.textContent = ''; msgEl.className = 'enchant-message'; }, 3000);
+            TimerManager.setTimeout(() => { msgEl.textContent = ''; msgEl.className = 'enchant-message'; }, 3000);
         }
     },
 

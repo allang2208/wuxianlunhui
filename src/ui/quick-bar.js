@@ -3,6 +3,8 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipManager } from './equip-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -23,8 +25,8 @@ export const QuickBar = {
     cooldowns: {}, // skillId -> remainingMs
     specialAttack: { enabled: false, item: null, cooldown: 0 },
     init() {
-        const skillGroup = document.getElementById('skillGroup');
-        const itemGroup = document.getElementById('itemGroup');
+        const skillGroup = getElement('skillGroup');
+        const itemGroup = getElement('itemGroup');
         if (!skillGroup || !itemGroup) return;
         QUICK_BAR_CONFIG.forEach(config => {
             const slot = document.createElement('div');
@@ -328,7 +330,7 @@ export const QuickBar = {
         };
         slot.ondragend = () => {
             slot.classList.remove('dragging');
-            document.querySelectorAll('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
         };
     },
     _updateItemSlot(slot, item) {
@@ -349,7 +351,7 @@ export const QuickBar = {
         };
         slot.ondragend = () => {
             slot.classList.remove('dragging');
-            document.querySelectorAll('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
         };
     },
     useSlot(keyCode) {
@@ -408,7 +410,7 @@ export const QuickBar = {
                     hint.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(120,50,50,0.9);color:#d4c5a9;font-size:18px;padding:10px 24px;border-radius:8px;border:2px solid #9a5a5a;z-index:99999;pointer-events:none;font-family:SimHei, "Microsoft YaHei", "黑体", sans-serif;white-space:nowrap;transition:opacity 0.5s;';
                     hint.textContent = '⚠ 持有远程武器才可使用！';
                     document.body.appendChild(hint);
-                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
+                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
                     return;
                 }
                 player.triggerPushStrike();
@@ -437,7 +439,7 @@ export const QuickBar = {
                 // 冷却时间由 FireballSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
-            setTimeout(() => slot.element.style.transform = '', 100);
+            TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
             return;
         }
         // Item usage
@@ -470,12 +472,12 @@ export const QuickBar = {
                 EquipManager.updateInventorySlots();
             }
             slot.element.style.transform = 'scale(0.95)';
-            setTimeout(() => slot.element.style.transform = '', 100);
+            TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
             return;
         }
         // No skill or item assigned
         slot.element.style.transform = 'scale(0.95)';
-        setTimeout(() => slot.element.style.transform = '', 100);
+        TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
     },
     updateCooldowns(dt) {
         for (const skillId in this.cooldowns) {
@@ -520,7 +522,7 @@ export const QuickBar = {
                 const overlay = slot.element.querySelector('.cooldown-overlay');
                 if (overlay) {
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
-                    setTimeout(() => {
+                    TimerManager.setTimeout(() => {
                         overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
                     }, 150);
                 }
@@ -546,7 +548,7 @@ export const QuickBar = {
                     if (remaining <= 0 && text.textContent !== '') {
                         // CD刚结束，触发闪光
                         if (flash) flash.classList.add('active');
-                        setTimeout(() => { if (flash) flash.classList.remove('active'); }, 600);
+                        TimerManager.setTimeout(() => { if (flash) flash.classList.remove('active'); }, 600);
                     }
                 }
                 return;
@@ -571,7 +573,7 @@ export const QuickBar = {
                 // CD刚结束，触发白色闪光
                 if (hadText && text.textContent === '' && flash) {
                     flash.classList.add('active');
-                    setTimeout(() => flash.classList.remove('active'), 600);
+                    TimerManager.setTimeout(() => flash.classList.remove('active'), 600);
                 }
             }
         });

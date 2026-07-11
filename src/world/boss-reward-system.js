@@ -29,6 +29,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Enemy } from '../entities/enemy.js';
 import { RewardSystem } from '../ui/reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // ==================== 配置对象 ====================
 
@@ -1194,9 +1195,9 @@ export class RewardNodeManager {
     }
 
     _waitForRewardClose(onComplete) {
-        const checkInterval = setInterval(() => {
+        const checkInterval = TimerManager.setInterval(() => {
             if (!RewardSystem._isOpen) {
-                clearInterval(checkInterval);
+                TimerManager.clearInterval(checkInterval);
                 this._isShowingReward = false;
 
                 // 恢复原始卡牌

@@ -7,6 +7,7 @@ import { RangedAttack } from '../combat/attack.js';
 
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
+import { loadImage } from '../utils/image-loader.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -26,19 +27,13 @@ class BlackWolf extends Enemy {
 
         // 加载精灵图
         this._sprites = {
-            side: new Image(),     // 侧视图（奔跑/正常移动）
-            front: new Image(),    // 正面（向下移动）
-            back: new Image(),     // 背面（向上移动）
-            attack: new Image(),   // 攻击动画（8帧撕咬）
-            pacing: new Image(),   // 踱步动画（慢速移动）
-            idle: new Image(),     // 眩晕/待机动画（单张）
+            side: loadImage(spritePaths.side || 'assets/enemies/black_wolf.png'),
+            front: loadImage(spritePaths.front || 'assets/enemies/black_wolf_updown.png'),
+            back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
+            attack: loadImage(spritePaths.attack || 'assets/enemies/black_wolf_attack.png'),
+            pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_pacing.png'),
+            idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
         };
-        this._sprites.side.src = spritePaths.side || 'assets/enemies/black_wolf.png';
-        this._sprites.front.src = spritePaths.front || 'assets/enemies/black_wolf_updown.png';
-        this._sprites.back.src = spritePaths.back || 'assets/enemies/black_wolf_updown.png';
-        this._sprites.attack.src = spritePaths.attack || 'assets/enemies/black_wolf_attack.png';
-        this._sprites.pacing.src = spritePaths.pacing || 'assets/enemies/black_wolf_pacing.png';
-        this._sprites.idle.src = spritePaths.idle || 'assets/enemies/black_wolf_idle.png';
         
         // 当前 facing 方向
         this._facing = 'right'; // right, left, up, down
@@ -357,27 +352,17 @@ class RedWolfKing extends Enemy {
 
         // 加载精灵图
         this._sprites = {
-            side: new Image(),     // 侧视图（奔跑/正常移动）
-            front: new Image(),    // 正面（向下移动）
-            back: new Image(),     // 背面（向上移动）
-            attack: new Image(),   // 攻击动画（复用奔跑图）
-            pacing: new Image(),   // 踱步动画（慢速移动）
-            idle: new Image(),     // 眩晕/待机动画（单张）
-            transform: new Image(), // 变身动画（8帧）
-            howl: new Image(),      // 嚎叫动画（8帧）
-            transformedIdle: new Image(), // 变身后待机动画
-            transformedRun: new Image(),    // 变身后奔跑动画
+            side: loadImage(spritePaths.side || 'assets/enemies/red_wolf_king_run.png'),
+            front: loadImage(spritePaths.front || 'assets/enemies/red_wolf_king_run.png'),
+            back: loadImage(spritePaths.back || 'assets/enemies/red_wolf_king_run.png'),
+            attack: loadImage(spritePaths.attack || 'assets/enemies/red_wolf_king_attack.png'),
+            pacing: loadImage(spritePaths.pacing || 'assets/enemies/red_wolf_king_pacing.png'),
+            idle: loadImage(spritePaths.idle || 'assets/enemies/red_wolf_king_idle.png'),
+            transform: loadImage(spritePaths.transform || 'assets/enemies/red_wolf_king_change.png'),
+            howl: loadImage(spritePaths.howl || 'assets/enemies/red_wolf_king_howl.png'),
+            transformedIdle: loadImage(spritePaths.transformedIdle || 'assets/enemies/red_wolf_king_transformed_idle.png'),
+            transformedRun: loadImage(spritePaths.transformedRun || 'assets/enemies/red_wolf_king_changed_run.png')
         };
-        this._sprites.side.src = spritePaths.side || 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.front.src = spritePaths.front || 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.back.src = spritePaths.back || 'assets/enemies/red_wolf_king_run.png';
-        this._sprites.attack.src = spritePaths.attack || 'assets/enemies/red_wolf_king_attack.png';
-        this._sprites.pacing.src = spritePaths.pacing || 'assets/enemies/red_wolf_king_pacing.png';
-        this._sprites.idle.src = spritePaths.idle || 'assets/enemies/red_wolf_king_idle.png';
-        this._sprites.transform.src = spritePaths.transform || 'assets/enemies/red_wolf_king_change.png';
-        this._sprites.howl.src = spritePaths.howl || 'assets/enemies/red_wolf_king_howl.png';
-        this._sprites.transformedIdle.src = spritePaths.transformedIdle || 'assets/enemies/red_wolf_king_transformed_idle.png';
-        this._sprites.transformedRun.src = spritePaths.transformedRun || 'assets/enemies/red_wolf_king_changed_run.png';
         
         // 当前 facing 方向
         this._facing = 'right';

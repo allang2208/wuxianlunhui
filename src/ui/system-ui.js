@@ -4,6 +4,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
 
 export const UI_DATA_CONFIG = {
     topBar: [
@@ -68,13 +69,13 @@ export const SystemUI = {
     isOpen: false, currentTab: null,
     init() {
         // 绑定遮罩层点击事件：点击面板外部区域关闭（子页面打开时不关闭）
-        const overlay = document.getElementById('panelOverlay');
+        const overlay = getElement('panelOverlay');
         if (overlay) overlay.addEventListener('click', () => {
             if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant')) return;
             this.close();
         });
         // 绑定属性加号按钮点击事件
-        document.querySelectorAll('.attr-plus').forEach(btn => {
+        queryAllElements('.attr-plus').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const attr = btn.dataset.attr;
@@ -99,7 +100,7 @@ export const SystemUI = {
             wis: { title: '精神', lines: [{ name: '每1点增加', val: '10 魔法值' }, { name: '每1点增加', val: '1.2 魔法防御' }, { name: '每1点增加', val: '0.5 魔法攻击' }] },
             luck: { title: '幸运', lines: [{ name: '每1点增加', val: '1% 暴击率' }, { name: '每1点增加', val: '0.2 暴击' }] }
         };
-        document.querySelectorAll('.attr-item[data-attr]').forEach(item => {
+        queryAllElements('.attr-item[data-attr]').forEach(item => {
             const attr = item.dataset.attr;
             const data = attrTooltipData[attr];
             if (!data) return;
@@ -123,7 +124,7 @@ export const SystemUI = {
             aspd: { title: '攻击间隔', lines: [{ name: '说明', val: '两次攻击之间的毫秒数' }, { name: '来源', val: '武器基础冷却时间' }] },
             spd: { title: '移动速度', lines: [{ name: '说明', val: '每帧移动的像素数×60' }, { name: '加成', val: '每点敏捷+0.05' }] }
         };
-        document.querySelectorAll('.attr-item[data-combat-attr]').forEach(item => {
+        queryAllElements('.attr-item[data-combat-attr]').forEach(item => {
             const attr = item.dataset.combatAttr;
             const data = combatTooltipData[attr];
             if (!data) return;
@@ -144,15 +145,15 @@ export const SystemUI = {
         if (tab === 'inventory') tab = 'equip';
         this.isOpen = true; this.currentTab = tab;
         // 打开面板时隐藏右侧侧边栏图标
-        document.querySelectorAll('.side-menu').forEach(m => m.classList.add('hidden'));
-        const panel = document.getElementById('systemPanel'), overlay = document.getElementById('panelOverlay');
+        queryAllElements('.side-menu').forEach(m => m.classList.add('hidden'));
+        const panel = getElement('systemPanel'), overlay = getElement('panelOverlay');
         if (!panel || !overlay) return;
-        const pt = document.getElementById('panelTitle');
+        const pt = getElement('panelTitle');
         const titles = { status: '📊 角色状态', equip: '⚔ 装备与背包', skill: '✦ 技能系统', codex: '📖 武器图鉴' };
         if (pt) pt.textContent = titles[tab] || '角色系统';
-        document.querySelectorAll('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-        document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
-        const tabPage = document.querySelector(`.tab-page[data-page="${tab}"]`);
+        queryAllElements('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        queryAllElements('.tab-page').forEach(p => p.classList.remove('active'));
+        const tabPage = queryElement(`.tab-page[data-page="${tab}"]`);
         if (tabPage) tabPage.classList.add('active');
         panel.classList.add('active'); overlay.classList.add('active'); this.updateQuickSlots();
         // 技能页打开时渲染技能列表
@@ -163,20 +164,20 @@ export const SystemUI = {
         // SoundManager.play('panel_close');
         this.isOpen = false; this.currentTab = null;
         try {
-            const panel = document.getElementById('systemPanel'), overlay = document.getElementById('panelOverlay');
+            const panel = getElement('systemPanel'), overlay = getElement('panelOverlay');
             if (panel) panel.classList.remove('active');
             if (overlay) overlay.classList.remove('active');
             // 关闭面板时显示右侧侧边栏图标
-            document.querySelectorAll('.side-menu').forEach(m => m.classList.remove('hidden'));
+            queryAllElements('.side-menu').forEach(m => m.classList.remove('hidden'));
             this.updateQuickSlots();
         } catch (e) { console.error('SystemUI.close error:', e); }
     },
     switchTab(tab) { this.open(tab); },
     updateQuickSlots() {
-        const btnStatus = document.getElementById('btnStatus');
-        const btnEquip = document.getElementById('btnEquip');
-        const btnSkill = document.getElementById('btnSkill');
-        const btnCodex = document.getElementById('btnCodex');
+        const btnStatus = getElement('btnStatus');
+        const btnEquip = getElement('btnEquip');
+        const btnSkill = getElement('btnSkill');
+        const btnCodex = getElement('btnCodex');
         if (btnStatus) btnStatus.classList.toggle('active', this.currentTab === 'status');
         if (btnEquip) btnEquip.classList.toggle('active', this.currentTab === 'equip');
         if (btnSkill) btnSkill.classList.toggle('active', this.currentTab === 'skill');

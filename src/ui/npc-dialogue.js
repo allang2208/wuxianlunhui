@@ -1,6 +1,8 @@
 import { Game } from '../game.js';
 import { NpcPortraitTool } from './npc-portrait-tool.js';
 import { UIState } from './ui-state.js';
+import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const NPCDialogue = {
     _active: false,
@@ -20,10 +22,10 @@ const NPCDialogue = {
         this._currentNPC = npc;
         this._displayedText = '';
 
-        const dialogueBox = document.getElementById('npcDialogueBox');
-        const dialogueText = document.getElementById('npcDialogueText');
-        const npcPortrait = document.getElementById('npcPortrait');
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueBox = getElement('npcDialogueBox');
+        const dialogueText = getElement('npcDialogueText');
+        const npcPortrait = getElement('npcPortrait');
+        const dialogueOptions = getElement('npcDialogueOptions');
 
         if (dialogueBox) {
             dialogueBox.style.display = 'flex';
@@ -76,9 +78,9 @@ const NPCDialogue = {
         }
 
         // 隐藏小地图、任务追踪、返回主菜单按钮
-        const backMenuBtn = document.getElementById('backMenuBtn');
+        const backMenuBtn = getElement('backMenuBtn');
         if (backMenuBtn) backMenuBtn.style.display = 'none';
-        const questTracker = document.getElementById('questTracker');
+        const questTracker = getElement('questTracker');
         if (questTracker) questTracker.style.display = 'none';
 
         // 暂停游戏（可选）
@@ -92,7 +94,7 @@ const NPCDialogue = {
 
     // 根据NPC类型更新对话框按钮
     _updateDialogueButtons(npc) {
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueOptions = getElement('npcDialogueOptions');
         if (!dialogueOptions) return;
         const npcType = npc.npcType || 'shop';
         if (npcType === 'quest') {
@@ -134,7 +136,7 @@ const NPCDialogue = {
             if (self._isInPostQuestDialogue) return;
             // 立绘调整工具打开时不退出（防止点击面板内按钮关闭对话框）
             if (NpcPortraitTool._active) return;
-            const dialogueBox = document.getElementById('npcDialogueBox');
+            const dialogueBox = getElement('npcDialogueBox');
             if (!dialogueBox) return;
             // 点击对话框外部时退出
             if (!dialogueBox.contains(e.target)) {
@@ -172,7 +174,7 @@ const NPCDialogue = {
         if (!entry) {
             // 对话结束，显示选项按钮
             this._isInPostQuestDialogue = false;
-            const dialogueOptions = document.getElementById('npcDialogueOptions');
+            const dialogueOptions = getElement('npcDialogueOptions');
             if (dialogueOptions) dialogueOptions.style.display = 'flex';
             return;
         }
@@ -182,13 +184,13 @@ const NPCDialogue = {
         this._lastCharTime = Date.now();
 
         // 控制立绘显示/隐藏
-        const npcPortrait = document.getElementById('npcPortrait');
+        const npcPortrait = getElement('npcPortrait');
         if (npcPortrait) {
             npcPortrait.style.display = entry.speaker === 'npc' ? 'block' : 'none';
         }
 
         // 更新文本前缀
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
     },
 
@@ -214,8 +216,8 @@ const NPCDialogue = {
             this._clickOutsideHandler = null;
         }
 
-        const dialogueBox = document.getElementById('npcDialogueBox');
-        const npcPortrait = document.getElementById('npcPortrait');
+        const dialogueBox = getElement('npcDialogueBox');
+        const npcPortrait = getElement('npcPortrait');
         if (dialogueBox) {
             dialogueBox.style.display = 'none';
             dialogueBox.classList.remove('active');
@@ -228,9 +230,9 @@ const NPCDialogue = {
         }
 
         // 恢复小地图、任务追踪、返回主菜单按钮
-        const backMenuBtn = document.getElementById('backMenuBtn');
+        const backMenuBtn = getElement('backMenuBtn');
         if (backMenuBtn) backMenuBtn.style.display = 'block';
-        const questTracker = document.getElementById('questTracker');
+        const questTracker = getElement('questTracker');
         if (questTracker) questTracker.style.display = 'block';
 
         // 恢复游戏
@@ -239,7 +241,7 @@ const NPCDialogue = {
 
     exitCompactMode() {
         // 从子页面回到对话主界面
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
     },
 
@@ -253,11 +255,11 @@ const NPCDialogue = {
         // 如果之前打开了子页面，回到对话主界面
         if (this._active) this.exitCompactMode();
         // 触发向左滑出动画，动画结束后真正关闭
-        const dialogueBox = document.getElementById('npcDialogueBox');
+        const dialogueBox = getElement('npcDialogueBox');
         if (dialogueBox) {
             dialogueBox.classList.remove('active');
             // 等待 CSS 过渡动画完成（300ms）后彻底关闭
-            setTimeout(() => {
+            TimerManager.setTimeout(() => {
                 if (!this._active) return;
                 this.close();
             }, 300);
@@ -269,7 +271,7 @@ const NPCDialogue = {
     // 逐字更新
     update() {
         if (!this._active) return;
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (!dialogueText) return;
 
         if (this._charIndex < this._currentText.length) {
@@ -311,7 +313,7 @@ const NPCDialogue = {
             // 当前文本还没完全显示，瞬间显示全部
             this._charIndex = this._currentText.length;
             this._displayedText = this._currentText;
-            const dialogueText = document.getElementById('npcDialogueText');
+            const dialogueText = getElement('npcDialogueText');
             if (dialogueText) {
                 if (this._isInPostQuestDialogue) {
                     const prefix = this._dialogueMode === 'player' ? '玩家：' : '小鼠侍从：';
@@ -348,7 +350,7 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
     },
 
@@ -357,7 +359,7 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
     },
 
@@ -369,7 +371,7 @@ const NPCDialogue = {
             this._displayedText = '';
             this._charIndex = 0;
             this._lastCharTime = Date.now();
-            const dialogueText = document.getElementById('npcDialogueText');
+            const dialogueText = getElement('npcDialogueText');
             if (dialogueText) dialogueText.textContent = '';
             return;
         }
@@ -389,7 +391,7 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
         
         ShopSystem.open(npc);
@@ -408,10 +410,10 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
         // 保留对话选项按钮可见，支持页面跳转
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
         
         EnhanceSystem.open(npc);
@@ -430,10 +432,10 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
         // 保留对话选项按钮可见，支持页面跳转
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
         
         CraftSystem.open(npc);
@@ -452,10 +454,10 @@ const NPCDialogue = {
         this._displayedText = '';
         this._charIndex = 0;
         this._lastCharTime = Date.now();
-        const dialogueText = document.getElementById('npcDialogueText');
+        const dialogueText = getElement('npcDialogueText');
         if (dialogueText) dialogueText.textContent = '';
         // 保留对话选项按钮可见，支持页面跳转
-        const dialogueOptions = document.getElementById('npcDialogueOptions');
+        const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
         
         EnchantSystem.open(npc);

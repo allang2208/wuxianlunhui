@@ -1,4 +1,5 @@
 import { Game } from '../game.js';
+import { getElement } from '../utils/dom-utils.js';
 // Skill Level System - Extracted from SkillManager
 // Handles generic experience gain and level-up logic for skills
 
@@ -23,7 +24,7 @@ export const SkillLevelSystem = {
 
     // Refresh skill UI if panels are open
     refreshUI(currentSkillId, extraSkillId) {
-        const detail = document.getElementById('skillDetail');
+        const detail = getElement('skillDetail');
         const detailOpen = detail && detail.style.display !== 'none' && detail.style.display !== '';
         if (detailOpen || (typeof SystemUI !== 'undefined' && SystemUI.isOpen && SystemUI.currentTab === 'skill')) {
             if (typeof SkillManager !== 'undefined') {

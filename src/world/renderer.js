@@ -6,10 +6,11 @@ import { SceneManager } from './scene-manager.js';
 import { isGunWeapon } from '../config/gun-ammo.js';
 import { Input } from '../ui/input.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { getElement } from '../utils/dom-utils.js';
 
 const Renderer = {
-    canvas: document.getElementById('gameCanvas'), ctx: null, terrainTexture: null,
-    init() { if (!this.canvas) this.canvas = document.getElementById('gameCanvas'); if (!this.canvas) { console.error('gameCanvas not found'); return; } this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
+    canvas: getElement('gameCanvas'), ctx: null, terrainTexture: null,
+    init() { if (!this.canvas) this.canvas = getElement('gameCanvas'); if (!this.canvas) { console.error('gameCanvas not found'); return; } this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
     resize() { if (!this.canvas || !this.ctx) return; const defaultRes = GAME_CONFIG.display?.defaultResolution || { width: 1920, height: 1080 }; const w = window.innerWidth || defaultRes.width || 1920, h = window.innerHeight || defaultRes.height || 1080; if (w > 0 && h > 0) { this.canvas.width = w; this.canvas.height = h; } },
     generateWorld() { if (!this.canvas || !this.ctx) return; const displayCfg = GAME_CONFIG.display || {}; const viewW = displayCfg.viewWidth || 1920; const viewH = displayCfg.viewHeight || 1080; const cw = this.canvas.width || window.innerWidth || viewW, ch = this.canvas.height || window.innerHeight || viewH; this.canvas.width = cw; this.canvas.height = ch; CONFIG.VIEW_WIDTH = viewW; CONFIG.VIEW_HEIGHT = viewH; const worldCfg = GAME_CONFIG.world || {}; const sm = (typeof SceneManager !== 'undefined') ? SceneManager : ((typeof window !== 'undefined' && window.SceneManager) ? window.SceneManager : null); if (sm && sm.currentScene === 'main') { CONFIG.WORLD_WIDTH = (worldCfg.main && worldCfg.main.width) || 7650; CONFIG.WORLD_HEIGHT = (worldCfg.main && worldCfg.main.height) || 3800; } else { CONFIG.WORLD_WIDTH = (worldCfg.default && worldCfg.default.width) || (viewW * 4); CONFIG.WORLD_HEIGHT = (worldCfg.default && worldCfg.default.height) || (viewH * 4); } if (typeof console !== 'undefined' && console.log) { console.log('[WorldGen] canvasSize=' + cw + 'x' + ch + ', VIEW=' + CONFIG.VIEW_WIDTH + 'x' + CONFIG.VIEW_HEIGHT + ', WORLD=' + CONFIG.WORLD_WIDTH + 'x' + CONFIG.WORLD_HEIGHT + ', scene=' + (sm ? sm.currentScene : 'none') + ', canvas=' + (this.canvas ? 'OK' : 'NULL')); } this.terrainTexture = MapGenerator.generateTerrainTexture(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); },
     // 渲染坐标转换：保持原始公式不变，所有世界坐标正常渲染
