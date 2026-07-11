@@ -26,7 +26,8 @@ function isDeclared(code, name) {
     `\\bclass\\s+${name}\\b`,
     `\\bfunction\\s+${name}\\b`,
     `\\b(?:const|let|var)\\s+${name}\\b`,
-    `\\bimport\\s+\\{[^}]*\\b${name}\\b[^}]*\\}\\s+from\\s+['"]`
+    `\\bimport\\s+\\{[^}]*\\b${name}\\b[^}]*\\}\\s+from\\s+['"]`,
+    `\\bimport\\s+${name}\\b\\s+from\\s+['"]`
   ];
   return patterns.some(p => new RegExp(p).test(code));
 }
