@@ -513,6 +513,7 @@ export const Game = {
         const npcHoverDist = interactCfg.npcHover || 40;
         const pickupClickDist = interactCfg.pickupClick || 150;
         const pickupHoverDist = interactCfg.pickupHover || 35;
+
         if (Input.mouse.leftPressed) {
             // NPC 对话检测（优先于拾取）
             if (NPCDialogue.active) {
@@ -521,12 +522,13 @@ export const Game = {
                 return;
             }
             let clickedNPC = false;
-            this.entities.forEach((entity) => {
-                if (clickedNPC) return;
-                if (entity instanceof NPC && entity.active) {
+            let clickedPickup = false;
+            for (const entity of this.entities.values()) {
+                if (clickedNPC && clickedPickup) break;
+                if (!clickedNPC && entity instanceof NPC && entity.active) {
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
                     const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > npcClickDist) return;
+                    if (playerDist > npcClickDist) continue;
                     const pos = Renderer.worldToScreen(entity.x, entity.y);
                     const mx = Input.mouse.x, my = Input.mouse.y;
                     const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
@@ -536,16 +538,10 @@ export const Game = {
                         Input.mouse.leftPressed = false;
                     }
                 }
-            });
-            if (clickedNPC) return;
-            // === 拾取逻辑：在 entities 更新之前处理，避免 Player.update() 消耗 leftPressed ===
-            let clickedPickup = false;
-            this.entities.forEach((entity, key) => {
-                if (clickedPickup) return;
-                if (entity instanceof DropItem && entity.active) {
+                if (!clickedPickup && entity instanceof DropItem && entity.active) {
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
                     const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > pickupClickDist) return;
+                    if (playerDist > pickupClickDist) continue;
                     const pos = Renderer.worldToScreen(entity.x, entity.y);
                     const bobY = Math.sin(entity.bobOffset) * 4;
                     const mx = Input.mouse.x, my = Input.mouse.y;
@@ -554,7 +550,7 @@ export const Game = {
                         const added = EquipManager.addToBackpack(entity.itemData);
                         if (added) {
                             entity.active = false;
-                            this.entities.delete(key);
+                            // key unavailable in for-of, rely on cleanup pass
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
                             clickedPickup = true;
                             Input.mouse.leftPressed = false;
@@ -563,69 +559,62 @@ export const Game = {
                         }
                     }
                 }
-            });
-        }
-        this.entities.forEach(e => { if (e.active) e.update(dt, this.entities); });
-        // === [REFACTOR-START] 实体基础 update 后，集成外部系统驱动 ===
-        // 说明：Enemy 原先在 update() 内部调用 _updateMovement/_updateAttack，
-        // 现改为由外部系统驱动，便于集中管理与扩展。
-        this._battleCommanderEnemies = [];
-        this.entities.forEach(e => {
-            if (!e.active) return;
-            // 仅对 Enemy 实例调用外部系统（替代内部旧逻辑）
-            if (e instanceof Enemy) {
-                // 收集存活敌人供 BattleCommander 使用，避免再次遍历
-                if (e.hp > 0) this._battleCommanderEnemies.push(e);
-                // 感知系统：目标选择 / LOS 检测
-                if (typeof PerceptionSystem !== 'undefined') {
-                    PerceptionSystem.update(e, dt, this.entities);
-                }
-                // 移动系统：移动 / 寻路 / 墙壁碰撞
-                if (typeof MovementSystem !== 'undefined') {
-                    MovementSystem.update(e, dt, this.entities);
-                }
-                // 战斗系统：攻击 / 冷却 / 状态效果
-                if (typeof CombatSystem !== 'undefined') {
-                    CombatSystem.update(e, dt, this.entities);
-                }
             }
-        });
+            if (clickedNPC) return;
+        }
+
+        // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
+        this._battleCommanderEnemies = [];
+        for (const e of this.entities.values()) {
+            if (!e.active) continue;
+            e.update(dt, this.entities);
+            if (e instanceof Enemy) {
+                if (e.hp > 0) this._battleCommanderEnemies.push(e);
+                if (typeof PerceptionSystem !== 'undefined') PerceptionSystem.update(e, dt, this.entities);
+                if (typeof MovementSystem !== 'undefined') MovementSystem.update(e, dt, this.entities);
+                if (typeof CombatSystem !== 'undefined') CombatSystem.update(e, dt, this.entities);
+            }
+        }
         // === [REFACTOR-END] ===
+
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
         if (typeof FormationSystem !== 'undefined') {
-            this.entities.forEach(e => {
+            for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
-            });
+            }
         }
-        // ===== 空间分区重建（所有AI系统的前置条件）=====
+
         // ===== 空间分区重建（所有AI系统的前置条件）=====
         if (typeof SpatialPartitionSystem !== 'undefined') {
             SpatialPartitionSystem.update(dt, this.entities);
         }
+
         // 协同效应系统更新
         if (this._synergySystem) {
             this._synergySystem.update(dt, this.entities);
         }
+
         // 指挥AI（BattleCommander）更新：根据战场态势选择战术并分配目标位置
-        // 敌人数组在上面外部系统循环中已收集，避免再次遍历
         if (this._battleCommander && this.player && this._battleCommanderEnemies.length > 0) {
             this._battleCommander.update(dt, this.player, this._battleCommanderEnemies);
         }
+
         // 战术小队AI更新：控制类人型战术小队的协同行动
         if (this._tacticalSquadAI) {
             this._tacticalSquadAI.update(dt, this.player, this.entities);
         }
+
         // 战术小队角色动态切换（指挥官死亡后自动晋升）
         if (typeof TacticalSquadRoleSwitch !== 'undefined') {
             TacticalSquadRoleSwitch.update(dt, this.entities);
         }
-        // ===== 金币自动拾取 =====
+
+        // ===== 单次遍历：金币自动拾取 + 清理死亡实体 + 传送门检测 =====
         const pickupCfg = GAME_CONFIG.pickup || {};
         const goldAutoRange = pickupCfg.goldAutoRange || 80;
         const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
         const goldAutoRangeSq = goldAutoRange * goldAutoRange;
         const goldThrowOutRangeSq = goldThrowOutRange * goldThrowOutRange;
-        // 预查找第一个可堆叠金币槽位，避免每个金币都扫描背包
         const goldMaxStack = pickupCfg.goldMaxStack || 999;
         let goldStackItem = null;
         for (const bpItem of EquipManager.backpackItems) {
@@ -634,29 +623,72 @@ export const Game = {
                 break;
             }
         }
-        this.entities.forEach((entity, key) => {
-            if (entity instanceof DropItem && entity.active && entity.itemData && entity.itemData.category === 'gold') {
+
+        const portalCfg = GAME_CONFIG.portals?.mainHub || {};
+        const portalTriggerDist = portalCfg.triggerDistance || interactCfg.portalTrigger || 30;
+        const portalCooldownMs = portalCfg.cooldownMs || 2000;
+        const now = Date.now();
+        const portalReady = this.player && !SceneManager.isLoading && now > this._portalCooldown;
+
+        for (const [key, entity] of this.entities) {
+            if (!entity.active) {
+                if (entity._deathTime && now - entity._deathTime > (entity._deathRemoveDelay || 0)) {
+                    this.entities.delete(key);
+                }
+                continue;
+            }
+
+            // 金币自动拾取
+            if (entity instanceof DropItem && entity.itemData && entity.itemData.category === 'gold') {
                 const dx = entity.x - this.player.x;
                 const dy = entity.y - this.player.y;
                 const distSq = dx * dx + dy * dy;
-                // 新增：扔出的金币需要先离开范围再回来才能拾取
                 if (entity.itemData._droppedByPlayer) {
                     if (distSq > goldThrowOutRangeSq) {
                         entity.itemData._wasOutOfRange = true;
                     }
                     if (!entity.itemData._wasOutOfRange) {
-                        return; // 还在范围内，不拾取
+                        // still in throw-out range, skip
+                    } else if (distSq <= goldAutoRangeSq) {
+                        // try stack/add
+                        let stacked = false;
+                        if (goldStackItem && goldStackItem.stack < (goldStackItem.maxStack || goldMaxStack)) {
+                            goldStackItem.stack += entity.itemData.stack;
+                            stacked = true;
+                        } else {
+                            for (const bpItem of EquipManager.backpackItems) {
+                                if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
+                                    bpItem.stack += entity.itemData.stack;
+                                    stacked = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (stacked) {
+                            entity.active = false;
+                            this.entities.delete(key);
+                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
+                            if (typeof SoundManager !== 'undefined') {
+                                SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                            }
+                        } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
+                            EquipManager.addToBackpack(entity.itemData);
+                            entity.active = false;
+                            this.entities.delete(key);
+                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
+                            if (typeof SoundManager !== 'undefined') {
+                                SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                            }
+                        } else {
+                            BackpackDialogManager._showBackpackFullNotice();
+                        }
                     }
-                }
-                if (distSq <= goldAutoRangeSq) {
-                    // Check if we can stack with existing gold
+                } else if (distSq <= goldAutoRangeSq) {
                     let stacked = false;
-                    // 优先使用预查找到的可堆叠金币槽位
                     if (goldStackItem && goldStackItem.stack < (goldStackItem.maxStack || goldMaxStack)) {
                         goldStackItem.stack += entity.itemData.stack;
                         stacked = true;
                     } else {
-                        // 预查找槽位已满时回退到线性扫描
                         for (const bpItem of EquipManager.backpackItems) {
                             if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
                                 bpItem.stack += entity.itemData.stack;
@@ -682,58 +714,40 @@ export const Game = {
                         }
                     } else {
                         BackpackDialogManager._showBackpackFullNotice();
-                        return;
                     }
                 }
             }
-        });
-        // ===== 清理死亡实体（尸体）=====
-        const now = Date.now();
-        this.entities.forEach((entity, key) => {
-            if (!entity.active && entity._deathTime && now - entity._deathTime > (entity._deathRemoveDelay || 0)) {
-                this.entities.delete(key);
+
+            // 传送门检测
+            if (portalReady && entity.targetScene) {
+                const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < portalTriggerDist) {
+                    this._portalCooldown = now + portalCooldownMs;
+                    try {
+                        if (entity.targetScene === 'scene7') {
+                            this._showDungeonEntryConfirm(entity);
+                        } else {
+                            if (entity._isQuestReturn) {
+                                QuestState.completeEvacuation();
+                                QuestState.finishQuest();
+                                SceneManager.switchScene(entity.targetScene, this.player);
+                            } else {
+                                SceneManager.switchScene(entity.targetScene, this.player);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('[portal detection] switchScene error:', err);
+                    }
+                }
             }
-        });
-        this.resolveCollisions();
+        }
+
+this.resolveCollisions();
         EffectManager.update(dt);
         // ===== 状态栏更新 =====
         if (typeof StatusBar !== 'undefined') {
             StatusBar.update(dt);
-        }
-        // 传送门检测：走入传送门范围自动传送，无碰撞体积
-        const portalCfg = GAME_CONFIG.portals?.mainHub || {};
-        const portalTriggerDist = portalCfg.triggerDistance || interactCfg.portalTrigger || 30;
-        const portalCooldownMs = portalCfg.cooldownMs || 2000;
-        if (this.player && !SceneManager.isLoading) {
-            const now = Date.now();
-            if (now > this._portalCooldown) {
-                this.entities.forEach(entity => {
-                    if (entity.active && entity.targetScene) {
-                        const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < portalTriggerDist) {
-                            this._portalCooldown = now + portalCooldownMs;
-                            try {
-                                if (entity.targetScene === 'scene7') {
-                                    this._showDungeonEntryConfirm(entity);
-                                } else {
-                                    // 检查是否是任务返回传送门
-                                    if (entity._isQuestReturn) {
-                                        // 完成任务，返回主神空间，发放奖励
-                                        QuestState.completeEvacuation();
-                                        QuestState.finishQuest();
-                                        SceneManager.switchScene(entity.targetScene, this.player);
-                                        return;
-                                    }
-                                    SceneManager.switchScene(entity.targetScene, this.player);
-                                }
-                            } catch (err) {
-                                console.error('[portal detection] switchScene error:', err);
-                            }
-                        }
-                    }
-                });
-            }
         }
         // 裂隙系统更新（仅在任务模式的雪地场景）
         if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {

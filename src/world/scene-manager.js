@@ -26,13 +26,14 @@ export const SceneManager = {
     _sceneLabel: null, // 当前场景名称标签
 
     init() {
+        const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
-            main: { name: '主神空间', type: 'main', label: '场景一', origin: GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 } },
-            scene2: { name: '雪地', type: 'instance', width: 9000, height: 9000, background: '#b8c0c8', label: '场景二', origin: { x: 4500, y: 4500 } },
-            scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
-            scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
-            scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } },
-            scene7: { name: '僵尸地牢', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景七', origin: { x: 512, y: 512 }, dungeonType: 'zombie' }
+            main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 7650, height: 3800, background: '#2a3520', origin: { x: 3825, y: 1886 } },
+            scene2: cfg.scene2 || { name: '雪地', type: 'instance', label: '场景二', width: 9000, height: 9000, background: '#b8c0c8', origin: { x: 4500, y: 4500 } },
+            scene3: cfg.scene3 || { name: '列车上', type: 'instance', label: '场景三', width: 3000, height: 1200, background: '#4a4538', origin: { x: 1500, y: 600 } },
+            scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
+            scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
+            scene7: cfg.scene7 || { name: '僵尸地牢', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' }
         };
     },
 
