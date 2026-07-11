@@ -66,7 +66,7 @@ class DecisionSystemImpl {
         }
 
         // 视线检测
-        const hasLOS = (typeof WallSystem === 'undefined')
+        const hasLOS = (!WallSystem)
             ? true
             : !WallSystem.blocked(enemy.x, enemy.y, enemy.target.x, enemy.target.y);
 
@@ -126,7 +126,7 @@ class DecisionSystemImpl {
             if (distSq > alertRangeSq) continue;
 
             // 检查视线
-            const hasLOS = (typeof WallSystem === 'undefined')
+            const hasLOS = (!WallSystem)
                 ? true
                 : !WallSystem.blocked(enemy.x, enemy.y, e.x, e.y);
 
@@ -172,7 +172,7 @@ class DecisionSystemImpl {
         if (dist > attackRange * 1.2) return;
 
         // 检查视线阻挡
-        const isBlocked = (typeof WallSystem !== 'undefined')
+        const isBlocked = (WallSystem)
             && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
         if (isBlocked) return;
 
@@ -219,7 +219,7 @@ class DecisionSystemImpl {
         }
 
         // BattleCommander 全局战术指令
-        if (typeof Game !== 'undefined' && Game._battleCommander) {
+        if (Game && Game._battleCommander) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 enemy._decisionMoveToX = tp.targetX;
@@ -249,7 +249,7 @@ class DecisionSystemImpl {
         if (enemy._stuckTimer >= 500) {
             if (movedDist < 3) {
                 // 卡住：尝试寻路
-                if (enemy.target && typeof pathFinder !== 'undefined') {
+                if (enemy.target && pathFinder) {
                     enemy._path = pathFinder.findPath(
                         enemy.x, enemy.y,
                         enemy.target.x, enemy.target.y,

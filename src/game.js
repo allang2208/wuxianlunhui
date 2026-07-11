@@ -62,13 +62,13 @@ export const Game = {
     // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
     init() {
-        if (typeof SoundManager === 'undefined' || typeof Input === 'undefined' || typeof Renderer === 'undefined' || typeof SystemUI === 'undefined' || typeof QuickBar === 'undefined' || typeof GameUIManager === 'undefined') {
+        if (!SoundManager || !Input || !Renderer || !SystemUI || !QuickBar || !GameUIManager) {
             console.error('[Game.init] 核心模块未加载，无法初始化');
             return;
         }
         SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
         GameUIManager.init(this.player); GameUIManager.initHitboxToggle(); GameUIManager.initAttackRangeToggle();
-        if (typeof QuestTracker !== 'undefined') QuestTracker.init();
+        if (QuestTracker) QuestTracker.init();
     },
     async start() {
         try {
@@ -82,7 +82,7 @@ export const Game = {
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             Renderer.generateWorld();
             // 初始化 Phaser 渲染系统（渐进式迁移）
-            if (typeof PhaserGame !== 'undefined' && !PhaserGame.isReady) {
+            if (PhaserGame && !PhaserGame.isReady) {
                 PhaserGame.init();
             }
             await this.spawnPlayer();
@@ -90,7 +90,7 @@ export const Game = {
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             // 使用主神空间固定原点，不随分辨率变化
-            const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
                 GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
             );
             const lootCfg = GAME_CONFIG.loot?.drops?.mainHub || {};
@@ -406,7 +406,7 @@ export const Game = {
     ],
     spawnAllWeapons() {
         // 使用主神空间中心（origin）为参考点的相对坐标
-        const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
         const cfg = GAME_CONFIG.weaponSpawn?.allWeapons || { offset: { x: -874, y: -136 }, spacing: 50 };
@@ -468,7 +468,7 @@ export const Game = {
     },
     update(dt) {
         // ===== 地牢模式：地牢地图系统拦截 =====
-        if (SceneManager.currentScene === 'scene7' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+        if (SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active) {
             if (DungeonMapSystem.state === 'map') {
                 DungeonMapSystem.update(dt);
                 EffectManager.update(dt);
@@ -482,7 +482,7 @@ export const Game = {
                     Camera.update(this.player);
                 }
                 try {
-                    if (typeof NPCDialogue !== 'undefined' && NPCDialogue.active) {
+                    if (NPCDialogue && NPCDialogue.active) {
                         NPCDialogue.close();
                     }
                 } catch (e) {
@@ -568,22 +568,22 @@ export const Game = {
             e.update(dt, this.entities);
             if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);
-                if (typeof PerceptionSystem !== 'undefined') PerceptionSystem.update(e, dt, this.entities);
-                if (typeof MovementSystem !== 'undefined') MovementSystem.update(e, dt, this.entities);
-                if (typeof CombatSystem !== 'undefined') CombatSystem.update(e, dt, this.entities);
+                if (PerceptionSystem) PerceptionSystem.update(e, dt, this.entities);
+                if (MovementSystem) MovementSystem.update(e, dt, this.entities);
+                if (CombatSystem) CombatSystem.update(e, dt, this.entities);
             }
         }
         // === [REFACTOR-END] ===
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
-        if (typeof FormationSystem !== 'undefined') {
+        if (FormationSystem) {
             for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
             }
         }
 
         // ===== 空间分区重建（所有AI系统的前置条件）=====
-        if (typeof SpatialPartitionSystem !== 'undefined') {
+        if (SpatialPartitionSystem) {
             SpatialPartitionSystem.update(dt, this.entities);
         }
 
@@ -603,7 +603,7 @@ export const Game = {
         }
 
         // 战术小队角色动态切换（指挥官死亡后自动晋升）
-        if (typeof TacticalSquadRoleSwitch !== 'undefined') {
+        if (TacticalSquadRoleSwitch) {
             TacticalSquadRoleSwitch.update(dt, this.entities);
         }
 
@@ -666,7 +666,7 @@ export const Game = {
                             entity.active = false;
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                            if (typeof SoundManager !== 'undefined') {
+                            if (SoundManager) {
                                 SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                             }
                         } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
@@ -674,7 +674,7 @@ export const Game = {
                             entity.active = false;
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                            if (typeof SoundManager !== 'undefined') {
+                            if (SoundManager) {
                                 SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                             }
                         } else {
@@ -699,7 +699,7 @@ export const Game = {
                         entity.active = false;
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                        if (typeof SoundManager !== 'undefined') {
+                        if (SoundManager) {
                             SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                         }
                     } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
@@ -707,7 +707,7 @@ export const Game = {
                         entity.active = false;
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                        if (typeof SoundManager !== 'undefined') {
+                        if (SoundManager) {
                             SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                         }
                     } else {
@@ -744,11 +744,11 @@ export const Game = {
 this.resolveCollisions();
         EffectManager.update(dt);
         // ===== 状态栏更新 =====
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.update(dt);
         }
         // 裂隙系统更新（仅在任务模式的雪地场景）
-        if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {
+        if (SceneManager.currentScene === 'scene2' && QuestState && QuestState.isInQuest() && RiftSystem) {
             RiftSystem.update(dt, this.player);
         }
         QuickBar.updateCooldowns(dt);
@@ -766,7 +766,7 @@ this.resolveCollisions();
             const questCfg = scene2Cfg.quest || { firstDelay: 40000, interval: 40000, count: 3, radius: 1500 };
             const freeCfg = scene2Cfg.freeExplore || { interval: 5000, count: 3, radius: 2000 };
             // 任务模式：特殊怪物生成规则
-            if (typeof QuestState !== 'undefined' && QuestState.isInQuest()) {
+            if (QuestState && QuestState.isInQuest()) {
                 if (!this._questSpawnTimer) this._questSpawnTimer = 0;
                 this._questSpawnTimer += dt;
                 const firstDelay = this._questFirstSpawnDelay || questCfg.firstDelay;
@@ -882,7 +882,7 @@ this.resolveCollisions();
         if (!Renderer.ctx) return;
 
         // ===== 地牢模式：地牢地图系统渲染拦截 =====
-        if (SceneManager.currentScene === 'scene7' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
+        if (SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
             Renderer.clear();
             DungeonMapSystem.render(Renderer.ctx);
             return;
@@ -941,7 +941,7 @@ this.resolveCollisions();
             this._synergySystem.render(Renderer.ctx);
         }
         // 裂隙系统渲染（仅在任务模式的雪地场景）
-        if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {
+        if (SceneManager.currentScene === 'scene2' && QuestState && QuestState.isInQuest() && RiftSystem) {
             RiftSystem.render(Renderer.ctx);
         }
         // 玩家受击屏幕红光效果

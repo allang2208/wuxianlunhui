@@ -117,7 +117,7 @@ export const RewardSystem = {
                 player.data.attrPoints += 3;
             }
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '等级提升！', '#ffd700'));
-            if (typeof GameUIManager !== 'undefined' && GameUIManager.updateUI) {
+            if (GameUIManager && GameUIManager.updateUI) {
                 GameUIManager.updateUI();
             }
         }

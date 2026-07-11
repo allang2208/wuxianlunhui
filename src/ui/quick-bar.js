@@ -137,7 +137,7 @@ export const QuickBar = {
             const player = Game.player;
             if (!player) return;
             // Mark drop as handled to prevent equip-manager discard
-            if (typeof EquipManager !== 'undefined') {
+            if (EquipManager) {
                 EquipManager._dropHandled = true;
             }
             // 快捷栏内部拖动（任意类型交换）
@@ -268,7 +268,7 @@ export const QuickBar = {
             }
             // Try item drop (inventory slot number)
             const bpSlot = parseInt(data);
-            if (!isNaN(bpSlot) && typeof EquipManager !== 'undefined') {
+            if (!isNaN(bpSlot) && EquipManager) {
                 const item = EquipManager.backpackItems.find(i => i.slot === bpSlot);
                 if (item && item.category === 'consumable') {
                     // 唯一性：如果该物品已经绑定到别的快捷栏，处理原位置
@@ -468,7 +468,7 @@ export const QuickBar = {
                 slot.element.classList.add('empty');
                 slot.element.innerHTML = `<span style="font-size:20px">${slot.config.icon}</span><span class="key-hint">${slot.config.key}</span>`;
             }
-            if (typeof EquipManager !== 'undefined' && EquipManager.updateInventorySlots) {
+            if (EquipManager && EquipManager.updateInventorySlots) {
                 EquipManager.updateInventorySlots();
             }
             slot.element.style.transform = 'scale(0.95)';

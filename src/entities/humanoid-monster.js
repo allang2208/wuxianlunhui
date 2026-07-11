@@ -285,7 +285,7 @@ export class HumanoidMonster extends Enemy {
         if (!state || state.reloading) return false;
         // 播放换弹音效（如果配置了 reloadSound）
         const weapon = this.equipments[slot];
-        if (weapon && weapon.reloadSound && typeof SoundManager !== 'undefined') {
+        if (weapon && weapon.reloadSound && SoundManager) {
             if (weapon.reloadSound.startsWith('assets/')) {
                 SoundManager.playFile(weapon.reloadSound);
             } else {
@@ -321,7 +321,7 @@ export class HumanoidMonster extends Enemy {
         if (dist > this.attackRange) return;
 
         // 视线检测：如果视线被墙阻挡则不攻击
-        const isBlocked = typeof WallSystem !== 'undefined' &&
+        const isBlocked = WallSystem &&
             WallSystem.blocked(this.x, this.y, targetX, targetY);
         if (isBlocked) return;
 

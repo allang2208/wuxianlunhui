@@ -202,7 +202,7 @@ import { GameUIManager } from './game-ui-manager.js';
                                 this.callbacks.clearWeaponState(src.slot);
                                 if (src.slot === Game.player.weaponMode && Game.player._clearSkillOverrides) {
                                     Game.player._clearSkillOverrides();
-                                    if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                    if (SkillManager && SkillManager.renderSkillGrid) {
                                         SkillManager.renderSkillGrid();
                                     }
                                 }
@@ -465,7 +465,7 @@ import { GameUIManager } from './game-ui-manager.js';
                             this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
                             if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
                                 this.player._applySkillOverrides(item);
-                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                if (SkillManager && SkillManager.renderSkillGrid) {
                                     SkillManager.renderSkillGrid();
                                 }
                             }
@@ -592,7 +592,7 @@ import { GameUIManager } from './game-ui-manager.js';
                             this.player.equipments[targetSlot] = JSON.parse(JSON.stringify(item));
                             if (targetSlot === this.player.weaponMode && this.player._applySkillOverrides) {
                                 this.player._applySkillOverrides(item);
-                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                if (SkillManager && SkillManager.renderSkillGrid) {
                                     SkillManager.renderSkillGrid();
                                 }
                             }
@@ -818,7 +818,7 @@ import { GameUIManager } from './game-ui-manager.js';
                             this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
                             if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
                                 this.player._applySkillOverrides(item);
-                                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                                if (SkillManager && SkillManager.renderSkillGrid) {
                                     SkillManager.renderSkillGrid();
                                 }
                             }
@@ -898,7 +898,7 @@ import { GameUIManager } from './game-ui-manager.js';
                     showBackpackFullNotice: () => BackpackDialogManager._showBackpackFullNotice()
                 });
                 // 初始化 GoldManager 引用和回调
-                if (typeof GoldManager !== 'undefined') {
+                if (GoldManager) {
                     GoldManager.setBackpackRef(this.backpackItems);
                     GoldManager.setMaxBackpackSlots(this.maxBackpackSlots);
                     GoldManager.setCallbacks({
@@ -1192,7 +1192,7 @@ import { GameUIManager } from './game-ui-manager.js';
             addToInventory(item) {
                 if (!this.backpackItems) this.backpackItems = [];
                 // 金币特殊处理：使用 GoldManager 合并到已有金币堆叠中
-                if (item && item.category === 'gold' && typeof GoldManager !== 'undefined') {
+                if (item && item.category === 'gold' && GoldManager) {
                     return GoldManager.mergeGold(item);
                 }
                 // 可堆叠物品（强化石、改造券等）：合并到已有堆叠，堆叠未满时不占新格子
@@ -1427,7 +1427,7 @@ import { GameUIManager } from './game-ui-manager.js';
                             player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                         }
                         // 装备Super90时播放枪栓音效
-                        if (item.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                        if (item.equipSound && SoundManager && SoundManager.playFile) {
                             SoundManager.playFile(item.equipSound);
                         }
                     } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
@@ -1513,7 +1513,7 @@ import { GameUIManager } from './game-ui-manager.js';
                                     if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
                                 }
                                 this.updateInventorySlots();
-                                if (typeof GameUIManager !== 'undefined') GameUIManager.updateUI();
+                                if (GameUIManager) GameUIManager.updateUI();
                             };
                         }
                     }

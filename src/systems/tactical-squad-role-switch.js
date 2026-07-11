@@ -196,7 +196,7 @@ class TacticalSquadRoleSwitchImpl {
             this._resetRoleState(member, newRole);
 
             // 视觉反馈
-            if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+            if (EffectManager && EffectManager.add) {
                 const label = this._getRoleLabel(newRole);
                 EffectManager.add(new FloatingTextEffect(
                     member.x, member.y - member.size - 10,

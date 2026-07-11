@@ -543,7 +543,7 @@ const CraftSystem = {
         }
         this._equippedSlot = { type: 'inventory', idx: idx };
         // 刷新背包显示
-        if (typeof EquipManager !== 'undefined' && EquipManager.updateInventorySlots) {
+        if (EquipManager && EquipManager.updateInventorySlots) {
             EquipManager.updateInventorySlots();
         }
         this._updateUI();
@@ -590,7 +590,7 @@ const CraftSystem = {
         this._equippedSlot = { type: 'equip', slot: slotKey };
         
         // 刷新装备栏和背包显示（关键：装备栏必须立即更新）
-        if (typeof EquipManager !== 'undefined') {
+        if (EquipManager) {
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
             if (EquipManager._syncWeaponVisual) EquipManager._syncWeaponVisual();
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
@@ -638,7 +638,7 @@ const CraftSystem = {
         this._equippedItem = null;
         this._equippedSlot = null;
         // 刷新所有栏位显示
-        if (typeof EquipManager !== 'undefined') {
+        if (EquipManager) {
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
             if (EquipManager._syncWeaponVisual) EquipManager._syncWeaponVisual();
@@ -685,7 +685,7 @@ const CraftSystem = {
         else if (item.iconImage) imgSrc = item.iconImage;
 
         // 2. 从 ItemDatabase 根据 id 查找
-        if (!imgSrc && item.id && typeof ItemDatabase !== 'undefined') {
+        if (!imgSrc && item.id && ItemDatabase) {
             const dbItem = ItemDatabase.get(item.id);
             if (dbItem) {
                 if (dbItem.weaponAsset && typeof dbItem.weaponAsset.image === 'string') {
@@ -696,7 +696,7 @@ const CraftSystem = {
         }
 
         // 3. 从 ItemDatabase 根据 weaponId 查找
-        if (!imgSrc && item.weaponId && typeof ItemDatabase !== 'undefined') {
+        if (!imgSrc && item.weaponId && ItemDatabase) {
             const weaponIdMap = {
                 'weapon1': 'rusty_sword', 'weapon2': 'knights_sword',
                 'weapon4': 'rune_sword', 'weapon5': 'night_flame_sword', 'weapon6': 'pkm',

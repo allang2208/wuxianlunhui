@@ -41,7 +41,7 @@ export const EquipTooltipManager = {
         if (!ttName || !ttType || !ttStats || !ttExtra || !ttDesc) return;
          // Cache bust
         // 从 CodexManager 合并完整的武器数据
-        const codexItem = (typeof CodexManager !== 'undefined' && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
+        const codexItem = (CodexManager && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
         // 安全初始化 fullItem
         let fullItem = {};
         try {
@@ -136,7 +136,7 @@ export const EquipTooltipManager = {
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击力公式</span><span class="tt-stat-val">${atkFormula || '-'}</span></div>`;
             // 从 codexItem 或 fullItem 获取 attack 数据，如没有则尝试 ItemDatabase
             let attackParams = item.attack || fullItem.attack || (codexItem ? codexItem.attack : null);
-            if (!attackParams && typeof ItemDatabase !== 'undefined' && ItemDatabase.items) {
+            if (!attackParams && ItemDatabase && ItemDatabase.items) {
                 const dbItem = Object.values(ItemDatabase.items).find(i => i.name === fullItem.name);
                 attackParams = dbItem ? dbItem.attack : null;
             }

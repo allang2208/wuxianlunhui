@@ -221,7 +221,7 @@ export const CombatRoomSystem = {
             }
 
             const key = `combat_monster_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
-            if (typeof Game !== 'undefined' && Game.entities) {
+            if (Game && Game.entities) {
                 Game.entities.set(key, monster);
             }
             this._combatMonsters.push(monster);
@@ -261,7 +261,7 @@ export const CombatRoomSystem = {
 
         // 删除所有战斗怪物
         for (const key of this._combatMonsterKeys) {
-            if (typeof Game !== 'undefined' && Game.entities) {
+            if (Game && Game.entities) {
                 Game.entities.delete(key);
             }
         }
@@ -288,7 +288,7 @@ export const CombatRoomSystem = {
      */
     cleanupMonstersOnly() {
         for (const key of this._combatMonsterKeys) {
-            if (typeof Game !== 'undefined' && Game.entities) {
+            if (Game && Game.entities) {
                 Game.entities.delete(key);
             }
         }
@@ -319,18 +319,18 @@ export const CombatRoomSystem = {
 
     _backupSceneState() {
         // 备份墙壁
-        if (typeof WallSystem !== 'undefined' && WallSystem.walls) {
+        if (WallSystem && WallSystem.walls) {
             this._backupWalls = [...WallSystem.walls];
             this._backupTrees = WallSystem.trees ? [...WallSystem.trees] : [];
         }
 
         // 备份地形纹理
-        if (typeof Renderer !== 'undefined' && Renderer.terrainTexture) {
+        if (Renderer && Renderer.terrainTexture) {
             this._backupTerrain = Renderer.terrainTexture;
         }
 
         // 备份世界尺寸
-        if (typeof CONFIG !== 'undefined') {
+        if (CONFIG) {
             this._backupWorldSize = {
                 width: CONFIG.WORLD_WIDTH || 1024,
                 height: CONFIG.WORLD_HEIGHT || 1024
@@ -338,7 +338,7 @@ export const CombatRoomSystem = {
         }
 
         // 备份相机跟随函数
-        if (typeof Camera !== 'undefined') {
+        if (Camera) {
             this._backupCameraFollow = Camera.follow.bind(Camera);
         }
 
@@ -347,7 +347,7 @@ export const CombatRoomSystem = {
 
     _restoreSceneState() {
         // 恢复墙壁
-        if (typeof WallSystem !== 'undefined') {
+        if (WallSystem) {
             WallSystem.walls = [...this._backupWalls];
             if (WallSystem.trees) {
                 WallSystem.trees = [...this._backupTrees];
@@ -358,18 +358,18 @@ export const CombatRoomSystem = {
         }
 
         // 恢复地形纹理
-        if (typeof Renderer !== 'undefined' && this._backupTerrain) {
+        if (Renderer && this._backupTerrain) {
             Renderer.terrainTexture = this._backupTerrain;
         }
 
         // 恢复世界尺寸
-        if (typeof CONFIG !== 'undefined') {
+        if (CONFIG) {
             CONFIG.WORLD_WIDTH = this._backupWorldSize.width;
             CONFIG.WORLD_HEIGHT = this._backupWorldSize.height;
         }
 
         // 恢复相机跟随
-        if (typeof Camera !== 'undefined' && this._backupCameraFollow) {
+        if (Camera && this._backupCameraFollow) {
             Camera.follow = this._backupCameraFollow;
             if (this._player) {
                 Camera.follow(this._player);
@@ -377,7 +377,7 @@ export const CombatRoomSystem = {
         }
 
         // 标记路径缓存失效
-        if (typeof pathFinder !== 'undefined' && pathFinder.invalidateCache) {
+        if (pathFinder && pathFinder.invalidateCache) {
             pathFinder.invalidateCache();
         }
 
@@ -436,19 +436,19 @@ export const CombatRoomSystem = {
         ctx.strokeRect(0, 0, size, size);
 
         // 应用到渲染器
-        if (typeof Renderer !== 'undefined') {
+        if (Renderer) {
             Renderer.terrainTexture = canvas;
         }
 
         // 更新世界尺寸
-        if (typeof CONFIG !== 'undefined') {
+        if (CONFIG) {
             CONFIG.WORLD_WIDTH = size;
             CONFIG.WORLD_HEIGHT = size;
         }
     },
 
     _generateWalls(size) {
-        if (typeof WallSystem === 'undefined') return;
+        if (!WallSystem) return;
 
         const t = this.config.walls.thickness;
 
@@ -501,7 +501,7 @@ export const CombatRoomSystem = {
         }
 
         // 确保玩家在 entities 中
-        if (typeof Game !== 'undefined' && Game.entities) {
+        if (Game && Game.entities) {
             Game.entities.set('player', player);
         }
     },
@@ -563,7 +563,7 @@ export const CombatRoomSystem = {
     },
 
     _setupCamera(player) {
-        if (typeof Camera === 'undefined' || !player) return;
+        if (!Camera || !player) return;
 
         // 恢复原始 follow 函数（如果之前被覆盖）
         if (this._backupCameraFollow) {

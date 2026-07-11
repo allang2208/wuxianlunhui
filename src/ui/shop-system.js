@@ -69,15 +69,15 @@ const ShopSystem = {
 
     // 金币操作方法（使用 GoldManager 集中管理）
     _getBackpackGold() {
-        return (typeof GoldManager !== 'undefined') ? GoldManager.getGold() : 0;
+        return (GoldManager) ? GoldManager.getGold() : 0;
     },
 
     _deductGold(amount) {
-        return (typeof GoldManager !== 'undefined') ? GoldManager.deductGold(amount) : false;
+        return (GoldManager) ? GoldManager.deductGold(amount) : false;
     },
 
     _addGold(amount) {
-        return (typeof GoldManager !== 'undefined') ? GoldManager.addGold(amount) : false;
+        return (GoldManager) ? GoldManager.addGold(amount) : false;
     },
 
     buy(itemId) {
@@ -185,7 +185,7 @@ const ShopSystem = {
         }
         this._addGold(totalGold);
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `卖出 ${this._selectedSellItems.length} 件物品，获得 ${totalGold} 金币`, '#ffd700'));
-        if (typeof SoundManager !== 'undefined') {
+        if (SoundManager) {
             SoundManager.playFile('assets/sounds/sell.wav');
         }
         this._selectedSellItems = [];

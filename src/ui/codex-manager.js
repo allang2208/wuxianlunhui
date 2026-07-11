@@ -73,7 +73,7 @@ const CodexManager = {
 
     syncMonsterDatabase() {
         this.monsterDatabase = {};
-        if (typeof ENEMY_DATA !== 'undefined') {
+        if (ENEMY_DATA) {
             for (const [id, data] of Object.entries(ENEMY_DATA)) {
                 this.monsterDatabase[id] = { ...data, id };
             }
@@ -485,7 +485,7 @@ const CodexManager = {
         body.style.overflowY = 'auto';
         body.style.maxHeight = 'calc(100vh - 200px)';
 
-        const liveData = (typeof ENEMY_DATA !== 'undefined' && item.id && ENEMY_DATA[item.id]) ? ENEMY_DATA[item.id] : {};
+        const liveData = (ENEMY_DATA && item.id && ENEMY_DATA[item.id]) ? ENEMY_DATA[item.id] : {};
         const d = { ...item, ...liveData };
 
         let html = '';

@@ -15,7 +15,7 @@ export const SkillLevelSystem = {
             skill.exp -= skill.maxExp;
             skill.level++;
             skill.maxExp = skill.getExpForNext(skill.level);
-            if (typeof SkillManager !== 'undefined' && SkillManager.onLevelUp) {
+            if (SkillManager && SkillManager.onLevelUp) {
                 SkillManager.onLevelUp(player, skill);
             }
             leveledUp = true;
@@ -28,8 +28,8 @@ export const SkillLevelSystem = {
     refreshUI(currentSkillId, extraSkillId) {
         const detail = getElement('skillDetail');
         const detailOpen = detail && detail.style.display !== 'none' && detail.style.display !== '';
-        if (detailOpen || (typeof SystemUI !== 'undefined' && SystemUI.isOpen && SystemUI.currentTab === 'skill')) {
-            if (typeof SkillManager !== 'undefined') {
+        if (detailOpen || (SystemUI && SystemUI.isOpen && SystemUI.currentTab === 'skill')) {
+            if (SkillManager) {
                 SkillManager.renderSkillGrid();
                 if (SkillManager._currentDetailSkillId === currentSkillId ||
                     (extraSkillId && SkillManager._currentDetailSkillId === extraSkillId)) {
@@ -41,7 +41,7 @@ export const SkillLevelSystem = {
     },
 
     _getSkillById(id) {
-        if (typeof Game !== 'undefined' && Game.player && Game.player.skills) {
+        if (Game && Game.player && Game.player.skills) {
             return Game.player.skills[id] || null;
         }
         return null;

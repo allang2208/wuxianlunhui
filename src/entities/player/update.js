@@ -129,7 +129,7 @@ update(dt, entities) {
                         const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.collisionRadius);
                         this.x = dr.x; this.y = dr.y;
                         // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
-                        if (typeof SceneManager !== 'undefined' && SceneManager.currentScene === 'main') {
+                        if (SceneManager && SceneManager.currentScene === 'main') {
                             this.x = Math.max(0, Math.min(CONFIG.WORLD_WIDTH, this.x)); this.y = Math.max(0, Math.min(CONFIG.WORLD_HEIGHT, this.y));
                         } else {
                             this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
@@ -211,7 +211,7 @@ update(dt, entities) {
                         }
                         this.x = resolved.x; this.y = resolved.y;
                         // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
-                        if (typeof SceneManager !== 'undefined' && SceneManager.currentScene === 'main') {
+                        if (SceneManager && SceneManager.currentScene === 'main') {
                             this.x = Math.max(0, Math.min(CONFIG.WORLD_WIDTH, this.x)); this.y = Math.max(0, Math.min(CONFIG.WORLD_HEIGHT, this.y));
                         } else {
                             this.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, this.x)); this.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, this.y));
@@ -318,7 +318,7 @@ update(dt, entities) {
                 if (this.data.hp < this.data.maxHp) {
                     let regen = this.data.hpRegen;
                     // 祭品效果：麦穗 - 生命恢复每秒+1
-                    if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                    if (DungeonMapSystem && DungeonMapSystem._carriedItems) {
                         const tributes = DungeonMapSystem._carriedItems;
                         const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
                         if (hasWheat) regen += 1;
@@ -332,7 +332,7 @@ update(dt, entities) {
                     this.data.hp = Math.min(this.data.maxHp, this.data.hp + healPerTick * (dt / 16.67));
                     if (this._marbleHealTimer <= 0) {
                         this._marbleHealTimer = 0;
-                        if (this._marbleHealEffectId && typeof StatusBar !== 'undefined') {
+                        if (this._marbleHealEffectId && StatusBar) {
                             StatusBar.removeEffect(this._marbleHealEffectId);
                             this._marbleHealEffectId = null;
                         }
@@ -521,7 +521,7 @@ update(dt, entities) {
                             if (recoverTimer < 500) recoverTimer = 500;
                             this._overheatRecoverTimer = recoverTimer;
                             // 过热音效
-                            if (typeof SoundManager !== 'undefined') {
+                            if (SoundManager) {
                                 if (_currentWep2.weaponType === 'energy_lmg') {
                                     SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
                                     SoundManager.playFile('assets/sounds/apex_reload_4s_raw.mp3');
@@ -608,7 +608,7 @@ update(dt, entities) {
                         this.equipments[_offhandSlot] = null;
                         this._initAmmoForSlot(currentSlot);
                         this._initAmmoForSlot(_offhandSlot);
-                        if (typeof GameUIManager !== 'undefined') {
+                        if (GameUIManager) {
                             GameUIManager.updateEquipmentUI();
                         }
                         // 重新获取当前武器状态

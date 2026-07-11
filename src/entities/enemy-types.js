@@ -123,7 +123,7 @@ class BlackWolf extends Enemy {
                 const targetX = this.x + offset.x;
                 const targetY = this.y + offset.y;
                 // [FIX] 冲刺终点碰撞检测：防止卡到墙/树内
-                if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+                if (WallSystem && WallSystem.resolve) {
                     const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.collisionRadius || 12);
                     this.x = resolved.x;
                     this.y = resolved.y;
@@ -546,7 +546,7 @@ class RedWolfKing extends Enemy {
                 const offset = this._getDashOffset();
                 const targetX = this.x + offset.x;
                 const targetY = this.y + offset.y;
-                if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+                if (WallSystem && WallSystem.resolve) {
                     const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.collisionRadius || 12);
                     this.x = resolved.x;
                     this.y = resolved.y;

@@ -19,7 +19,7 @@ async function initModules() {
     }
 
     // 从 EquipDataManager 补充 ItemDatabase 中缺失的字段（ammoConfig, fireMode, attackFormula 等）
-    if (typeof EquipDataManager !== 'undefined' && ItemDatabase.items) {
+    if (EquipDataManager && ItemDatabase.items) {
         const equipConfigs = Object.values(EquipDataManager).filter(v => v && typeof v === 'object' && v.weaponId);
         for (const [, item] of Object.entries(ItemDatabase.items)) {
             const match = equipConfigs.find(cfg => cfg.weaponId === item.weaponId || cfg.name === item.name);

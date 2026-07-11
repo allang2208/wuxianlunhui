@@ -391,7 +391,7 @@ import { loadImage } from '../utils/image-loader.js';
                 // 预判：检查冲刺路线是否通畅，如果被墙阻挡则原地攻击
                 const dx = Math.cos(this._dashAngle) * this._dashDistance;
                 const dy = Math.sin(this._dashAngle) * this._dashDistance;
-                if (typeof WallSystem !== 'undefined' && WallSystem.blocked) {
+                if (WallSystem && WallSystem.blocked) {
                     this._dashBlocked = WallSystem.blocked(this.x, this.y, this.x + dx, this.y + dy);
                 } else {
                     this._dashBlocked = false;
@@ -403,7 +403,7 @@ import { loadImage } from '../utils/image-loader.js';
                 // 默认在控制台输出阶段切换
                 
                 // 触发视觉特效（如屏幕震动、粒子效果）
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new PhaseChangeEffect(this.x, this.y, phase.name));
                 }
             }
@@ -463,7 +463,7 @@ import { loadImage } from '../utils/image-loader.js';
             applyDroneVulnerability(_stacks) {
                 this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
                 this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
-                if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+                if (EffectManager && EffectManager.add) {
                     EffectManager.add(new DroneVulnerabilityEffect(this.x, this.y));
                 }
             }
@@ -575,7 +575,7 @@ import { loadImage } from '../utils/image-loader.js';
                 if (!attack || !attack.canUse()) return;
                 // 视线检测：检查攻击是否被墙阻挡
                 const targetX = this.target.x, targetY = this.target.y;
-                const isBlocked = typeof WallSystem !== 'undefined' &&
+                const isBlocked = WallSystem &&
                     WallSystem.blocked(this.x, this.y, targetX, targetY);
                 if (isBlocked) return; // 视线被墙完全挡住，无法攻击
                 // 执行攻击

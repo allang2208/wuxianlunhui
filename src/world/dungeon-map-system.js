@@ -724,13 +724,13 @@ export const DungeonMapSystem = {
         }
 
         // 更新世界尺寸和摄像机边界
-        if (typeof CONFIG !== 'undefined') {
+        if (CONFIG) {
             CONFIG.WORLD_WIDTH = worldSize;
             CONFIG.WORLD_HEIGHT = worldSize;
         }
 
         // 标记 RegionIndex 需要重算
-        if (typeof pathFinder !== 'undefined') {
+        if (pathFinder) {
             pathFinder.invalidateCache();
         }
     },
@@ -927,7 +927,7 @@ export const DungeonMapSystem = {
         }).catch(() => {});
 
         // [NEW] 墙壁恢复后标记 RegionIndex 需要重算
-        if (typeof pathFinder !== 'undefined') {
+        if (pathFinder) {
             pathFinder.invalidateCache();
         }
     },

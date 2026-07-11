@@ -30,12 +30,12 @@ export const RiftSystem = {
                 active: false
             });
             // 绿圈范围内（200px半径）摧毁障碍物（树木）
-            if (typeof WallSystem !== 'undefined' && WallSystem.removeTreesInRadius) {
+            if (WallSystem && WallSystem.removeTreesInRadius) {
                 WallSystem.removeTreesInRadius(pos.x, pos.y, 200);
             }
         });
         // 加载保存的进度
-        if (typeof QuestState !== 'undefined' && QuestState.riftProgress) {
+        if (QuestState && QuestState.riftProgress) {
             this.rifts.forEach((rift, idx) => {
                 rift.progress = QuestState.riftProgress[idx] || 0;
                 rift.completed = QuestState.riftCompleted[idx] || false;
@@ -95,7 +95,7 @@ export const RiftSystem = {
                     this._onRiftComplete(i);
                 }
                 // 保存进度到QuestState
-                if (typeof QuestState !== 'undefined') {
+                if (QuestState) {
                     QuestState.riftProgress[i] = rift.progress;
                 }
             }
@@ -110,7 +110,7 @@ export const RiftSystem = {
         }
 
         // 检查是否所有裂隙完成
-        if (typeof QuestState !== 'undefined' && !QuestState.questCompleted) {
+        if (QuestState && !QuestState.questCompleted) {
             const allCompleted = this.rifts.every(r => r.completed);
             if (allCompleted && this.rifts.length > 0) {
                 QuestState.questCompleted = true;
@@ -161,7 +161,7 @@ export const RiftSystem = {
 
     // 单个裂隙完成
     _onRiftComplete(index) {
-        if (typeof QuestState !== 'undefined') {
+        if (QuestState) {
             QuestState.completeRift(index);
         }
         this._hideProgressBar();
@@ -188,7 +188,7 @@ export const RiftSystem = {
 
     // 生成返回传送门
     _spawnReturnPortal() {
-        if (typeof QuestState !== 'undefined') {
+        if (QuestState) {
             if (QuestState.returnPortalSpawned) return;
             QuestState.returnPortalSpawned = true;
         }

@@ -14,7 +14,7 @@ const Renderer = {
     canvas: getElement('gameCanvas'), ctx: null, terrainTexture: null,
     init() { if (!this.canvas) this.canvas = getElement('gameCanvas'); if (!this.canvas) { console.error('gameCanvas not found'); return; } this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
     resize() { if (!this.canvas || !this.ctx) return; const defaultRes = GAME_CONFIG.display?.defaultResolution || { width: 1920, height: 1080 }; const w = window.innerWidth || defaultRes.width || 1920, h = window.innerHeight || defaultRes.height || 1080; if (w > 0 && h > 0) { this.canvas.width = w; this.canvas.height = h; } },
-    generateWorld() { if (!this.canvas || !this.ctx) return; const displayCfg = GAME_CONFIG.display || {}; const viewW = displayCfg.viewWidth || 1920; const viewH = displayCfg.viewHeight || 1080; const cw = this.canvas.width || window.innerWidth || viewW, ch = this.canvas.height || window.innerHeight || viewH; this.canvas.width = cw; this.canvas.height = ch; CONFIG.VIEW_WIDTH = viewW; CONFIG.VIEW_HEIGHT = viewH; const worldCfg = GAME_CONFIG.world || {}; const sm = (typeof SceneManager !== 'undefined') ? SceneManager : ((typeof window !== 'undefined' && window.SceneManager) ? window.SceneManager : null); if (sm && sm.currentScene === 'main') { CONFIG.WORLD_WIDTH = (worldCfg.main && worldCfg.main.width) || 7650; CONFIG.WORLD_HEIGHT = (worldCfg.main && worldCfg.main.height) || 3800; } else { CONFIG.WORLD_WIDTH = (worldCfg.default && worldCfg.default.width) || (viewW * 4); CONFIG.WORLD_HEIGHT = (worldCfg.default && worldCfg.default.height) || (viewH * 4); } this.terrainTexture = MapGenerator.generateTerrainTexture(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); },
+    generateWorld() { if (!this.canvas || !this.ctx) return; const displayCfg = GAME_CONFIG.display || {}; const viewW = displayCfg.viewWidth || 1920; const viewH = displayCfg.viewHeight || 1080; const cw = this.canvas.width || window.innerWidth || viewW, ch = this.canvas.height || window.innerHeight || viewH; this.canvas.width = cw; this.canvas.height = ch; CONFIG.VIEW_WIDTH = viewW; CONFIG.VIEW_HEIGHT = viewH; const worldCfg = GAME_CONFIG.world || {}; const sm = (SceneManager) ? SceneManager : ((typeof window !== 'undefined' && window.SceneManager) ? window.SceneManager : null); if (sm && sm.currentScene === 'main') { CONFIG.WORLD_WIDTH = (worldCfg.main && worldCfg.main.width) || 7650; CONFIG.WORLD_HEIGHT = (worldCfg.main && worldCfg.main.height) || 3800; } else { CONFIG.WORLD_WIDTH = (worldCfg.default && worldCfg.default.width) || (viewW * 4); CONFIG.WORLD_HEIGHT = (worldCfg.default && worldCfg.default.height) || (viewH * 4); } this.terrainTexture = MapGenerator.generateTerrainTexture(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); },
     // 渲染坐标转换：保持原始公式不变，所有世界坐标正常渲染
     worldToScreen(wx, wy) {
         const cw = this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH;
@@ -34,7 +34,7 @@ const Renderer = {
             return wsm.scenes[wsm.currentScene].origin;
         }
         // 回退：使用导入的 SceneManager（如果可用）
-        const sm = (typeof SceneManager !== 'undefined' && SceneManager) ? SceneManager : null;
+        const sm = (SceneManager && SceneManager) ? SceneManager : null;
         if (sm && sm.currentScene && sm.scenes && sm.scenes[sm.currentScene] && sm.scenes[sm.currentScene].origin) {
             return sm.scenes[sm.currentScene].origin;
         }
@@ -84,7 +84,7 @@ const Renderer = {
             document.body.style.cursor = 'default';
             return;
         }
-        if (typeof Game === 'undefined' || !Game.player) {
+        if (!Game || !Game.player) {
             document.body.style.cursor = 'default';
             return;
         }
@@ -158,7 +158,7 @@ const Renderer = {
     },
     renderMinimap() {
         if (!this.ctx || !this.canvas) return;
-        if (typeof Game === 'undefined' || !Game.player) return;
+        if (!Game || !Game.player) return;
         if (Game._npcDialoguePaused) return; // 对话时隐藏小地图
         const ctx = this.ctx;
         const minimapCfg = GAME_CONFIG.minimap || {};
@@ -182,7 +182,7 @@ const Renderer = {
         ctx.lineWidth = bg.lineWidth || 1;
         ctx.strokeRect(mx, my, minimapW, minimapH);
         // 绘制墙壁
-        if (typeof WallSystem !== 'undefined' && WallSystem.walls) {
+        if (WallSystem && WallSystem.walls) {
             ctx.fillStyle = styles.wall || 'rgba(80, 80, 80, 0.5)';
             for (const w of WallSystem.walls) {
                 const wx = mx + w.x * scale;
@@ -201,7 +201,7 @@ const Renderer = {
         ctx.lineWidth = 1;
         ctx.strokeRect(viewX, viewY, viewW, viewH);
         // 绘制裂隙（任务模式雪地场景）
-        if (SceneManager.currentScene === 'scene2' && typeof RiftSystem !== 'undefined' && RiftSystem.rifts) {
+        if (SceneManager.currentScene === 'scene2' && RiftSystem && RiftSystem.rifts) {
             for (const rift of RiftSystem.rifts) {
                 if (rift.completed) continue;
                 const rx = mx + rift.x * scale;

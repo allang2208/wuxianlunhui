@@ -42,7 +42,7 @@ class RegionIndex {
 
     // 计算墙壁配置的简单哈希
     _computeWallHash() {
-        if (typeof WallSystem === 'undefined' || !WallSystem.walls) return 'empty';
+        if (!WallSystem || !WallSystem.walls) return 'empty';
         let hash = 0;
         for (const w of WallSystem.walls) {
             hash = (hash * 31 + Math.floor(w.x) + Math.floor(w.y) * 17 + Math.floor(w.w) * 13 + Math.floor(w.h) * 7) & 0x7FFFFFFF;
@@ -125,7 +125,7 @@ class RegionIndex {
 
     // 快速阻挡检测（不使用 SpatialHash，避免循环依赖）
     _isBlockedQuick(x, y, radius) {
-        if (typeof WallSystem === 'undefined' || !WallSystem.walls) return false;
+        if (!WallSystem || !WallSystem.walls) return false;
         for (const w of WallSystem.walls) {
             if (x + radius > w.x && x - radius < w.x + w.w &&
                 y + radius > w.y && y - radius < w.y + w.h) {

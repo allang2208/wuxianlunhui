@@ -44,14 +44,14 @@ gainExp(amount) {
                     this.onLevelUp(d.level);
                 }
                 // 同步更新经验值UI（底部经验条）
-                if (typeof GameUIManager !== 'undefined' && GameUIManager.updateUI) {
+                if (GameUIManager && GameUIManager.updateUI) {
                     GameUIManager.updateUI();
                 }
             },
 
 onLevelUp(level) {
                 // 播放升级音效
-                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
                 }
                 // 使用特效队列顺序播放
@@ -162,7 +162,7 @@ onDeath() {
                 // 显示死亡提示
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '你死了！3秒后重生', '#ff4444'));
                 // 如果在任务模式中死亡，重置任务状态
-                if (typeof QuestState !== 'undefined' && QuestState.isInQuest()) {
+                if (QuestState && QuestState.isInQuest()) {
                     QuestState.reset();
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '任务失败，请重新与侍从对话', '#ff4444'));
                 }
@@ -242,7 +242,7 @@ respawn() {
                 const respawnPos = { x: SceneManager.scenes.main.origin.x, y: SceneManager.scenes.main.origin.y };
                 if (SceneManager.currentScene !== 'main') {
                     // 从其他场景死亡回主神空间：统一关闭地牢系统（如有），使用 origin 点重生
-                    if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+                    if (DungeonMapSystem && DungeonMapSystem.active) {
                         DungeonMapSystem.shutdown();
                     }
                     SceneManager._respawnPos = respawnPos;
@@ -273,7 +273,7 @@ _initSkills() {
                 if (typeof window !== 'undefined' && window.SKILL_DATA) {
                     const skills = {};
                     for (const [id, data] of Object.entries(window.SKILL_DATA)) {
-                        if (typeof DataLoader !== 'undefined' && DataLoader.buildSkillFromJSON) {
+                        if (DataLoader && DataLoader.buildSkillFromJSON) {
                             skills[id] = DataLoader.buildSkillFromJSON(id, data);
                         } else {
                             // fallback: 手动构建技能对象
@@ -848,7 +848,7 @@ switchWeaponMode() {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                     // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
-                    if (nextItem.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    if (nextItem.equipSound && SoundManager && SoundManager.playFile) {
                         SoundManager.playFile(nextItem.equipSound);
                     }
                 } else {
@@ -871,7 +871,7 @@ switchWeaponMode() {
                 // 附魔效果：攻击间隔调整
                 this._applyEnchantAttackInterval(nextItem);
                 // 刷新技能栏显示（根据当前武器显示对应的冲刺攻击技能）
-                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                if (SkillManager && SkillManager.renderSkillGrid) {
                     SkillManager.renderSkillGrid();
                 }
             },
@@ -1017,7 +1017,7 @@ _startReload(slot) {
                 } else {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
-                    if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    if (SoundManager && SoundManager.playFile) {
                         SoundManager.playFile('assets/sounds/reload_sharp.mp3', 1.69);
                     }
                 }
@@ -1060,7 +1060,7 @@ _updateReload(dt) {
                                 this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
                                 this._gunSpreadTimerOff = 0; // 同时重置副手散布
                                 // 单发装填满弹时播放枪栓音效
-                                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                                if (SoundManager && SoundManager.playFile) {
                                     SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
                                 }
                             } else {
@@ -1189,7 +1189,7 @@ _getEffectivePiercing(basePiercing, item) {
 
 _playFireSound(item, defaultSound = 'gun_fire') {
                 const sound = item && item.fireSound ? item.fireSound : defaultSound;
-                if (typeof SoundManager === 'undefined') return;
+                if (!SoundManager) return;
                 if (sound.startsWith('assets/')) {
                     SoundManager.playFile(sound);
                 } else {
@@ -1374,7 +1374,7 @@ _fireRanged(hand = 'main') {
                         Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
 
                         // 音效播放
-                        if (typeof SoundManager !== 'undefined') {
+                        if (SoundManager) {
                             const lmgSound = lmgCfg.soundMap[attackKey];
                             if (lmgSound) SoundManager.playFile(lmgSound);
                         }

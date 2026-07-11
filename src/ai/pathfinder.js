@@ -109,7 +109,7 @@ class SpatialHash {
     // 从 WallSystem 重建空间哈希
     rebuild() {
         this.clear();
-        if (typeof WallSystem === 'undefined') return;
+        if (!WallSystem) return;
         // 矩形墙壁
         if (WallSystem.walls) {
             for (const w of WallSystem.walls) {
@@ -194,7 +194,7 @@ class PathFinder {
             this.spatialHash.rebuild();
             // 预计算最大树木半径，供 _getMoveCost 的 SpatialHash 查询使用
             this._maxTreeRadius = 0;
-            if (typeof WallSystem !== 'undefined' && WallSystem.trees) {
+            if (WallSystem && WallSystem.trees) {
                 for (const t of WallSystem.trees) {
                     if (t.radius > this._maxTreeRadius) this._maxTreeRadius = t.radius;
                 }
@@ -303,7 +303,7 @@ class PathFinder {
     findPathToExit(startX, startY, targetX, targetY, entityRadius) {
         // 先确保 RegionIndex 已构建（使用当前 WallSystem 的边界）
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        if (typeof WallSystem !== 'undefined' && WallSystem.walls) {
+        if (WallSystem && WallSystem.walls) {
             for (const w of WallSystem.walls) {
                 minX = Math.min(minX, w.x);
                 maxX = Math.max(maxX, w.x + w.w);

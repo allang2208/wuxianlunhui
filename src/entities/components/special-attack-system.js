@@ -43,7 +43,7 @@ class SpecialAttackSystem {
         const endY = centerY + maxLength * sin;
         // 障碍物判定：起点到终点间如果有障碍物则截断
         let clampedLength = maxLength;
-        if (typeof WallSystem !== 'undefined' && WallSystem.walls) {
+        if (WallSystem && WallSystem.walls) {
             for (const w of WallSystem.walls) {
                 const hit = this.player._lineRectIntersection(centerX, centerY, endX, endY, w);
                 if (hit !== null && hit > 0 && hit < 1) {
