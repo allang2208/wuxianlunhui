@@ -9,6 +9,7 @@ import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { createBasicZombie } from './zombie-dungeon.js';
+import { pathFinder } from '../ai/pathfinder.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
  * ============================================================

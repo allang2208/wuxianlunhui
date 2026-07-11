@@ -1,6 +1,7 @@
 
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
+import { pathFinder } from '../ai/pathfinder.js';
 
 import { SceneManager } from '../world/scene-manager.js';
 import { Camera } from '../world/camera.js';

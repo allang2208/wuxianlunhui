@@ -2,6 +2,7 @@ import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
+import { pathFinder } from '../ai/pathfinder.js';
 /**
  * ============================================================
  * CombatRoomSystem — 战斗场地系统

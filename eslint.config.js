@@ -33,13 +33,6 @@ export default [
         COMBAT_CONFIG: 'readonly',
         COMBAT_FORMULAS: 'readonly',
         ANIMATION_CONFIG: 'readonly',
-        SKILL_DATA: 'readonly',
-        ENEMY_DATA: 'readonly',
-        HUMANOID_SQUAD_CONFIG: 'readonly',
-
-
-
-
 
         DamagePipeline: 'readonly',
 
@@ -90,14 +83,6 @@ export default [
         NpcPortraitTool: 'readonly',
 
 
-
-        pathFinder: 'readonly',
-        PathManager: 'readonly',
-        regionIndex: 'readonly',
-        TacticalSquadAI: 'readonly',
-        MovementSystem: 'readonly',
-        CombatSystem: 'readonly',
-        PerceptionSystem: 'readonly',
 
         DungeonMapSystem: 'readonly',
         ExpeditionSystem: 'readonly'

@@ -13,6 +13,7 @@ import { WallSystem } from '../world/wall-system.js';
 
 
 import { PathManager } from '../ai/path-manager.js';
+import { pathFinder } from '../ai/pathfinder.js';
 
 /**
  * 移动系统核心实现

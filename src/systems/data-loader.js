@@ -232,4 +232,6 @@ const DataLoader = {
     }
 };
 
-export { DataLoader };
+const ENEMY_DATA = DataLoader._convertEnemyConfig(enemyConfigData);
+
+export { DataLoader, ENEMY_DATA };

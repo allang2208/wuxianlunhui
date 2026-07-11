@@ -4,6 +4,7 @@ import { ItemDatabase } from '../items/item-database.js';
  * ================================================================ */
 import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
+import { ENEMY_DATA } from '../systems/data-loader.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
