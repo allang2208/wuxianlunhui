@@ -1,3 +1,6 @@
+import { NpcPortraitTool } from './npc-portrait-tool.js';
+import { UIState } from './ui-state.js';
+
 const NPCDialogue = {
     _active: false,
     _currentNPC: null,
@@ -29,16 +32,14 @@ const NPCDialogue = {
         if (npcPortrait) {
             npcPortrait.src = npc.portrait;
             // 设置当前 NPC ID 到立绘工具，供 toggle 使用
-            if (window.NpcPortraitTool) {
-                window.NpcPortraitTool._npcId = npc.id;
-            }
+            NpcPortraitTool._npcId = npc.id;
             // 加载已保存的立绘参数并应用；若无保存则使用默认参数
-            if (npc.id && window.NpcPortraitTool && window.NpcPortraitTool._settings && window.NpcPortraitTool._settings[npc.id]) {
-                const saved = window.NpcPortraitTool._settings[npc.id];
+            if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
+                const saved = NpcPortraitTool._settings[npc.id];
                 npcPortrait.style.transform = `translateX(${saved.offsetX}px) translateY(${saved.offsetY}px) scale(${saved.scale}) rotate(${saved.rotation}deg) scaleX(${saved.flipX ? -1 : 1})`;
             } else {
                 // 使用默认参数（通过肖像路径匹配）
-                const defaults = window.NpcPortraitTool ? window.NpcPortraitTool.getDefaultParams(npc.portrait) : null;
+                const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
                 if (defaults) {
                     npcPortrait.style.transform = `translateX(${defaults.offsetX}px) translateY(${defaults.offsetY}px) scale(${defaults.scale}) rotate(${defaults.rotation}deg) scaleX(${defaults.flipX ? -1 : 1})`;
                 } else {
@@ -123,7 +124,7 @@ const NPCDialogue = {
         }
         this._clickOutsideHandler = function(e) {
             // 子页面打开时不退出
-            if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen || EnchantSystem._isOpen) return;
+            if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen || UIState.isOpen('enchant')) return;
             // 任务面板打开时不退出
             if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) return;
             // 背包打开时不退出
@@ -131,7 +132,7 @@ const NPCDialogue = {
             // 任务后对话模式下点击外部不退出
             if (self._isInPostQuestDialogue) return;
             // 立绘调整工具打开时不退出（防止点击面板内按钮关闭对话框）
-            if (typeof window.NpcPortraitTool !== 'undefined' && window.NpcPortraitTool._active) return;
+            if (NpcPortraitTool._active) return;
             const dialogueBox = document.getElementById('npcDialogueBox');
             if (!dialogueBox) return;
             // 点击对话框外部时退出
@@ -198,13 +199,13 @@ const NPCDialogue = {
         if (ShopSystem._isOpen) ShopSystem.close();
         if (EnhanceSystem._isOpen) EnhanceSystem.close();
         if (CraftSystem._isOpen) CraftSystem.close();
-        if (EnchantSystem._isOpen) EnchantSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
         // 关闭任务面板
         if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) QuestSystem.close();
         // 强制关闭背包
         SystemUI.close();
         // 关闭立绘调整工具
-        if (typeof window.NpcPortraitTool !== 'undefined') window.NpcPortraitTool.hide();
+        NpcPortraitTool.hide();
 
         // 移除点击外部退出事件
         if (this._clickOutsideHandler) {

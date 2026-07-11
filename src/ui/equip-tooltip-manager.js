@@ -6,6 +6,7 @@ import { CraftSystem } from './craft-system.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { EquipDataManager } from './equip-data-manager.js';
+import { EventBus } from '../core/event-bus.js';
 
 export const EquipTooltipManager = {
     player: null,
@@ -564,9 +565,7 @@ export const EquipTooltipManager = {
                 if (item.scrollId) {
                     const enchantPanel = document.getElementById('enchantPanel');
                     if (enchantPanel && enchantPanel.classList.contains('active')) {
-                        if (typeof window !== 'undefined' && window.EnchantSystem && window.EnchantSystem._equipScrollFromBackpack) {
-                            window.EnchantSystem._equipScrollFromBackpack(idx);
-                        }
+                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
                     }
                     return;
                 }
@@ -588,9 +587,7 @@ export const EquipTooltipManager = {
                 if (item.scrollId) {
                     const enchantPanel = document.getElementById('enchantPanel');
                     if (enchantPanel && enchantPanel.classList.contains('active')) {
-                        if (typeof window !== 'undefined' && window.EnchantSystem && window.EnchantSystem._equipScrollFromBackpack) {
-                            window.EnchantSystem._equipScrollFromBackpack(idx);
-                        }
+                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
                     }
                     return;
                 }

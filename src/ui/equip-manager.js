@@ -3,6 +3,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
+import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
         export const EquipManager = {
@@ -164,23 +165,15 @@ import { CraftSystem } from './craft-system.js';
                         }
                         // 附魔栏拖出：归还物品到背包
                         if (src.type === 'enchantScroll') {
-                            if (typeof window !== 'undefined' && window.EnchantSystem) {
-                                console.log(`[EquipManager._doDiscard] returning enchant scroll to backpack`);
-                                window.EnchantSystem._returnScrollItem();
-                                window.EnchantSystem._updateUI();
-                            } else {
-                                console.error(`[EquipManager._doDiscard] EnchantSystem not available`);
-                            }
+                            console.log(`[EquipManager._doDiscard] returning enchant scroll to backpack`);
+                            EventBus.emit('enchant:returnScrollItem');
+                            EventBus.emit('enchant:updateUI');
                             return true;
                         }
                         if (src.type === 'enchantEquip') {
-                            if (typeof window !== 'undefined' && window.EnchantSystem) {
-                                console.log(`[EquipManager._doDiscard] returning enchant equip to backpack`);
-                                window.EnchantSystem._returnEquipItem();
-                                window.EnchantSystem._updateUI();
-                            } else {
-                                console.error(`[EquipManager._doDiscard] EnchantSystem not available`);
-                            }
+                            console.log(`[EquipManager._doDiscard] returning enchant equip to backpack`);
+                            EventBus.emit('enchant:returnEquipItem');
+                            EventBus.emit('enchant:updateUI');
                             return true;
                         }
                         let item = null;
@@ -389,14 +382,12 @@ import { CraftSystem } from './craft-system.js';
                         
                         // 附魔槽 → 背包/装备栏：退回物品
                         if (src.type === 'enchantScroll' || src.type === 'enchantEquip') {
-                            if (typeof window !== 'undefined' && window.EnchantSystem) {
-                                if (src.type === 'enchantScroll') {
-                                    window.EnchantSystem._returnScrollItem();
-                                } else {
-                                    window.EnchantSystem._returnEquipItem();
-                                }
-                                if (window.EnchantSystem._updateUI) window.EnchantSystem._updateUI();
+                            if (src.type === 'enchantScroll') {
+                                EventBus.emit('enchant:returnScrollItem');
+                            } else {
+                                EventBus.emit('enchant:returnEquipItem');
                             }
+                            EventBus.emit('enchant:updateUI');
                             return;
                         }
                         if (src.type === 'inventory' && targetType === 'inventory') {
