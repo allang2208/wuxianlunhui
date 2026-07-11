@@ -1,6 +1,7 @@
 import { Game } from '../game.js';
 
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+import { loadImage } from '../utils/image-loader.js';
 
 import { AIDevTool } from './ai-dev-tool.js';
 import { EnemySpriteTool } from './enemy-sprite-tool.js';
@@ -156,9 +157,7 @@ const DevTool = {
 
         // 预加载所有武器图片
         for (const key in this.WEAPON_MAP) {
-            const img = new Image();
-            img.src = this.WEAPON_MAP[key].img;
-            this.images[key] = img;
+            this.images[key] = loadImage(this.WEAPON_MAP[key].img);
         }
 
         // 加载默认武器
@@ -170,8 +169,7 @@ const DevTool = {
         if (!cfg) return;
         this.weaponImage = this.images[type];
         if (!this.weaponImage) {
-            this.weaponImage = new Image();
-            this.weaponImage.src = cfg.img;
+            this.weaponImage = loadImage(cfg.img);
             this.images[type] = this.weaponImage;
         }
         this.weaponImage.onload = () => {
@@ -1708,9 +1706,7 @@ const DevTool = {
             if (Array.isArray(paths)) {
                 paths.forEach(path => {
                     if (!this.images[path]) {
-                        const img = new Image();
-                        img.src = path;
-                        this.images[path] = img;
+                        this.images[path] = loadImage(path);
                     }
                 });
             }
