@@ -407,6 +407,10 @@ export const Game = {
                 return;
             } else if (DungeonMapSystem.state === 'combat' || DungeonMapSystem.state === 'boss') {
                 DungeonMapSystem.updateCombat(dt);
+                // 地牢战斗中摄像机跟随玩家
+                if (this.player) {
+                    Camera.update(this.player);
+                }
                 try {
                     if (typeof NPCDialogue !== 'undefined' && NPCDialogue.active) {
                         NPCDialogue.close();

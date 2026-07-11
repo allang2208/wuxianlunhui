@@ -29,7 +29,11 @@ const Renderer = {
             clear() { if (!this.ctx) { return; } this.ctx.fillStyle = (SceneManager.currentScene === 'scene7') ? '#000000' : '#2a3520'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
             renderTerrain() {
                 if (!this.ctx || !this.terrainTexture) return;
-                const ctx = this.ctx, offsetX = -Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, offsetY = -Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY;
+                const ctx = this.ctx;
+                const cw = this.canvas.width || CONFIG.VIEW_WIDTH || 1920;
+                const ch = this.canvas.height || CONFIG.VIEW_HEIGHT || 1080;
+                const offsetX = -Camera.x + cw / 2 + Camera.shakeX;
+                const offsetY = -Camera.y + ch / 2 + Camera.shakeY;
                 ctx.drawImage(this.terrainTexture, offsetX, offsetY, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
                 // 地牢模式（1024×1024 小地图）不画边界框，避免黄框干扰
                 if (SceneManager.currentScene !== 'scene7') {
@@ -38,10 +42,14 @@ const Renderer = {
             },
             renderGrid() {
                 if (!this.ctx) return;
-                const ctx = this.ctx, offsetX = (-Camera.x + CONFIG.VIEW_WIDTH/2 + Camera.shakeX) % CONFIG.GRID_SIZE, offsetY = (-Camera.y + CONFIG.VIEW_HEIGHT/2 + Camera.shakeY) % CONFIG.GRID_SIZE;
+                const ctx = this.ctx;
+                const cw = this.canvas.width || CONFIG.VIEW_WIDTH || 1920;
+                const ch = this.canvas.height || CONFIG.VIEW_HEIGHT || 1080;
+                const offsetX = (-Camera.x + cw / 2 + Camera.shakeX) % CONFIG.GRID_SIZE;
+                const offsetY = (-Camera.y + ch / 2 + Camera.shakeY) % CONFIG.GRID_SIZE;
                 ctx.strokeStyle = 'rgba(90, 77, 63, 0.15)'; ctx.lineWidth = 1; ctx.beginPath();
-                for (let x = offsetX; x < CONFIG.VIEW_WIDTH; x += CONFIG.GRID_SIZE) { ctx.moveTo(x, 0); ctx.lineTo(x, CONFIG.VIEW_HEIGHT); }
-                for (let y = offsetY; y < CONFIG.VIEW_HEIGHT; y += CONFIG.GRID_SIZE) { ctx.moveTo(0, y); ctx.lineTo(CONFIG.VIEW_WIDTH, y); }
+                for (let x = offsetX; x < cw; x += CONFIG.GRID_SIZE) { ctx.moveTo(x, 0); ctx.lineTo(x, ch); }
+                for (let y = offsetY; y < ch; y += CONFIG.GRID_SIZE) { ctx.moveTo(0, y); ctx.lineTo(cw, y); }
                 ctx.stroke();
             },
             drawCrosshair() {
