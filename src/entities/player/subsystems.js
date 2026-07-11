@@ -3,7 +3,7 @@ import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
 import { ShellCasingEffect } from '../../effects/shell-casing.js';
-import { isGunWeapon } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
 

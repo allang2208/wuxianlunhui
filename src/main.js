@@ -167,6 +167,7 @@ async function initModules() {
 
     // 兼容别名
     window.HitEffect = BloodHitEffect;
+    window.CritEffect = BloodHitEffect;
 
     // AI
     window.pathFinder = pathFinder;
