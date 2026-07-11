@@ -550,10 +550,13 @@ export const Game = {
         // === [REFACTOR-START] 实体基础 update 后，集成外部系统驱动 ===
         // 说明：Enemy 原先在 update() 内部调用 _updateMovement/_updateAttack，
         // 现改为由外部系统驱动，便于集中管理与扩展。
+        this._battleCommanderEnemies = [];
         this.entities.forEach(e => {
             if (!e.active) return;
             // 仅对 Enemy 实例调用外部系统（替代内部旧逻辑）
             if (e instanceof Enemy) {
+                // 收集存活敌人供 BattleCommander 使用，避免再次遍历
+                if (e.hp > 0) this._battleCommanderEnemies.push(e);
                 // 感知系统：目标选择 / LOS 检测
                 if (typeof PerceptionSystem !== 'undefined') {
                     PerceptionSystem.update(e, dt, this.entities);
@@ -585,12 +588,9 @@ export const Game = {
             this._synergySystem.update(dt, this.entities);
         }
         // 指挥AI（BattleCommander）更新：根据战场态势选择战术并分配目标位置
-        if (this._battleCommander) {
-            const enemies = [];
-            this.entities.forEach(e => { if (e instanceof Enemy && e.active && e.hp > 0) enemies.push(e); });
-            if (this.player && enemies.length > 0) {
-                this._battleCommander.update(dt, this.player, enemies);
-            }
+        // 敌人数组在上面外部系统循环中已收集，避免再次遍历
+        if (this._battleCommander && this.player && this._battleCommanderEnemies.length > 0) {
+            this._battleCommander.update(dt, this.player, this._battleCommanderEnemies);
         }
         // 战术小队AI更新：控制类人型战术小队的协同行动
         if (this._tacticalSquadAI) {
@@ -604,39 +604,56 @@ export const Game = {
         const pickupCfg = GAME_CONFIG.pickup || {};
         const goldAutoRange = pickupCfg.goldAutoRange || 80;
         const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
+        const goldAutoRangeSq = goldAutoRange * goldAutoRange;
+        const goldThrowOutRangeSq = goldThrowOutRange * goldThrowOutRange;
+        // 预查找第一个可堆叠金币槽位，避免每个金币都扫描背包
+        const goldMaxStack = 999;
+        let goldStackItem = null;
+        for (const bpItem of EquipManager.backpackItems) {
+            if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
+                goldStackItem = bpItem;
+                break;
+            }
+        }
         this.entities.forEach((entity, key) => {
             if (entity instanceof DropItem && entity.active && entity.itemData && entity.itemData.category === 'gold') {
-                const dist = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
+                const dx = entity.x - this.player.x;
+                const dy = entity.y - this.player.y;
+                const distSq = dx * dx + dy * dy;
                 // 新增：扔出的金币需要先离开范围再回来才能拾取
                 if (entity.itemData._droppedByPlayer) {
-                    if (dist > goldThrowOutRange) {
+                    if (distSq > goldThrowOutRangeSq) {
                         entity.itemData._wasOutOfRange = true;
                     }
                     if (!entity.itemData._wasOutOfRange) {
                         return; // 还在范围内，不拾取
                     }
                 }
-                if (dist <= goldAutoRange) {
+                if (distSq <= goldAutoRangeSq) {
                     // Check if we can stack with existing gold
                     let stacked = false;
-                    for (const bpItem of EquipManager.backpackItems) {
-                        if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || 999)) {
-                            bpItem.stack += entity.itemData.stack;
-                            entity.active = false;
-                            this.entities.delete(key);
-                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                            if (typeof SoundManager !== 'undefined') {
-                                SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                    // 优先使用预查找到的可堆叠金币槽位
+                    if (goldStackItem && goldStackItem.stack < (goldStackItem.maxStack || goldMaxStack)) {
+                        goldStackItem.stack += entity.itemData.stack;
+                        stacked = true;
+                    } else {
+                        // 预查找槽位已满时回退到线性扫描
+                        for (const bpItem of EquipManager.backpackItems) {
+                            if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
+                                bpItem.stack += entity.itemData.stack;
+                                stacked = true;
+                                break;
                             }
-                            stacked = true;
-                            break;
                         }
                     }
-                    if (!stacked) {
-                        if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
-                            BackpackDialogManager._showBackpackFullNotice();
-                            return;
+                    if (stacked) {
+                        entity.active = false;
+                        this.entities.delete(key);
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
+                        if (typeof SoundManager !== 'undefined') {
+                            SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                         }
+                    } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
                         EquipManager.addToBackpack(entity.itemData);
                         entity.active = false;
                         this.entities.delete(key);
@@ -644,6 +661,9 @@ export const Game = {
                         if (typeof SoundManager !== 'undefined') {
                             SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
                         }
+                    } else {
+                        BackpackDialogManager._showBackpackFullNotice();
+                        return;
                     }
                 }
             }
@@ -852,15 +872,24 @@ export const Game = {
         // 墙壁侧视渲染（在 terrain 之后、实体之前）
         WallSystem.renderWalls(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
         const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
-        // 实体渲染：每个实体自行处理 Phaser/Canvas 分层（body 由 Phaser 渲染，overlay 由 Canvas 渲染）
-        sorted.forEach(e => e.render(Renderer.ctx));
-        // 六边形碰撞盒调试渲染（showHitbox 开关控制）
-        if (this.showHitbox) {
-            sorted.forEach(e => {
-                if (e.hitbox || e.renderCollisionRadius) {
+        // 实体渲染：合并渲染、碰撞盒调试、受击白光效果到单次遍历
+        if (Renderer.ctx) {
+            for (const e of sorted) {
+                e.render(Renderer.ctx);
+                if (this.showHitbox && (e.hitbox || e.renderCollisionRadius)) {
                     e.renderCollisionRadius(Renderer.ctx);
                 }
-            });
+                if (e.hitFlash > 0 && e !== this.player) {
+                    const flashAlpha = e.hitFlash / e.hitFlashDuration;
+                    const pos = Renderer.worldToScreen(e.x, e.y);
+                    Renderer.ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(pos.x, pos.y, e.size + 2, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                }
+            }
+        } else {
+            sorted.forEach(e => e.render(Renderer.ctx));
         }
         EffectManager.render(Renderer.ctx);
         // 战术小队无人机渲染
@@ -874,19 +903,6 @@ export const Game = {
         // 裂隙系统渲染（仅在任务模式的雪地场景）
         if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {
             RiftSystem.render(Renderer.ctx);
-        }
-        // 实体受击白光效果（统一渲染，覆盖所有怪物）
-        if (Renderer.ctx) {
-            sorted.forEach(e => {
-                if (e.hitFlash > 0 && e !== this.player) {
-                    const flashAlpha = e.hitFlash / e.hitFlashDuration;
-                    const pos = Renderer.worldToScreen(e.x, e.y);
-                    Renderer.ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
-                    Renderer.ctx.beginPath();
-                    Renderer.ctx.arc(pos.x, pos.y, e.size + 2, 0, Math.PI * 2);
-                    Renderer.ctx.fill();
-                }
-            });
         }
         // 玩家受击屏幕红光效果
         if (Renderer.ctx && this.player && this.player.hitFlash > 0) {
