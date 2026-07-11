@@ -8,8 +8,16 @@ const Renderer = {
             resize() { const w = window.innerWidth || 1920, h = window.innerHeight || 1080; if (w > 0 && h > 0) { this.canvas.width = w; this.canvas.height = h; } },
             generateWorld() { const cw = this.canvas.width || window.innerWidth || 1920, ch = this.canvas.height || window.innerHeight || 1080; this.canvas.width = cw; this.canvas.height = ch; CONFIG.VIEW_WIDTH = 1920; CONFIG.VIEW_HEIGHT = 1080; const sm = (typeof SceneManager !== 'undefined') ? SceneManager : ((typeof window !== 'undefined' && window.SceneManager) ? window.SceneManager : null); if (sm && sm.currentScene === 'main') { CONFIG.WORLD_WIDTH = 7650; CONFIG.WORLD_HEIGHT = 3800; } else { CONFIG.WORLD_WIDTH = 1920 * 4; CONFIG.WORLD_HEIGHT = 1080 * 4; } console.log('[WorldGen] canvasSize=' + cw + 'x' + ch + ', VIEW=' + CONFIG.VIEW_WIDTH + 'x' + CONFIG.VIEW_HEIGHT + ', WORLD=' + CONFIG.WORLD_WIDTH + 'x' + CONFIG.WORLD_HEIGHT + ', scene=' + (sm ? sm.currentScene : 'none') + ', canvas=' + (this.canvas ? 'OK' : 'NULL')); this.terrainTexture = MapGenerator.generateTerrainTexture(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT); },
             // 渲染坐标转换：保持原始公式不变，所有世界坐标正常渲染
-            worldToScreen(wx, wy) { return { x: wx - Camera.x + CONFIG.VIEW_WIDTH / 2 + Camera.shakeX, y: wy - Camera.y + CONFIG.VIEW_HEIGHT / 2 + Camera.shakeY }; },
-            screenToWorld(sx, sy) { return { x: sx + Camera.x - CONFIG.VIEW_WIDTH / 2, y: sy + Camera.y - CONFIG.VIEW_HEIGHT / 2 }; },
+            worldToScreen(wx, wy) {
+                const cw = this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH;
+                const ch = this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT;
+                return { x: wx - Camera.x + cw / 2 + Camera.shakeX, y: wy - Camera.y + ch / 2 + Camera.shakeY };
+            },
+            screenToWorld(sx, sy) {
+                const cw = this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH;
+                const ch = this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT;
+                return { x: sx + Camera.x - cw / 2, y: sy + Camera.y - ch / 2 };
+            },
             // 坐标显示转换：根据当前场景动态获取原点，向右为+X，向上为+Y
             _getSceneOrigin() {
                 // 优先使用 window.SceneManager（main.js 已挂载到全局）

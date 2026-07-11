@@ -446,16 +446,14 @@ export const CombatRoomSystem = {
 
         const t = this.config.walls.thickness;
 
-        // 初始化墙壁系统
-        WallSystem.init(size, size);
-
-        // 生成四边边界墙壁（使用厚度参数，确保碰撞正确）
+        // 直接设置四边边界墙壁（不调用 init()，避免生成迷宫）
         WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: t },           // 上边界
-            { x: 0, y: size - t, w: size, h: t },    // 下边界
-            { x: 0, y: 0, w: t, h: size },           // 左边界
-            { x: size - t, y: 0, w: t, h: size },    // 右边界
+            { x: 0, y: 0, w: size, h: t, height: 60 },           // 上边界
+            { x: 0, y: size - t, w: size, h: t, height: 60 },    // 下边界
+            { x: 0, y: 0, w: t, h: size, height: 60 },           // 左边界
+            { x: size - t, y: 0, w: t, h: size, height: 60 },    // 右边界
         ];
+        WallSystem.trees = []; // 清空树木
 
         // 同步到 Phaser
         if (WallSystem._syncWallsToPhaser) {

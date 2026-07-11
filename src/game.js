@@ -829,12 +829,16 @@ export const Game = {
         // 重置 Canvas 变换矩阵，防止 Phaser 同步导致的 ctx 状态累积
         if (Renderer.ctx) Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
         Renderer.renderTerrain();
+        const canvasW = Renderer.canvas ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
+        const canvasH = Renderer.canvas ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
         if (SceneManager.currentScene !== 'scene3' && SceneManager.currentScene !== 'scene2') {
             Renderer.renderGrid();
-            MazeGenerator.render(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
+            MazeGenerator.render(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
         }
         // 墙壁侧视渲染（在 terrain 之后、实体之前）
-        WallSystem.renderWalls(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
+        const canvasW = Renderer.canvas ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
+        const canvasH = Renderer.canvas ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
+        WallSystem.renderWalls(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
         const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
         // 实体渲染：每个实体自行处理 Phaser/Canvas 分层（body 由 Phaser 渲染，overlay 由 Canvas 渲染）
         sorted.forEach(e => e.render(Renderer.ctx));
