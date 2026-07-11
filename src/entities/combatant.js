@@ -1,3 +1,4 @@
+import { SoundManager } from '../ui/sound-manager.js';
 import { Game } from '../game.js';
 import { Input } from '../ui/input.js';
 import { DamageableEntity } from './damageable-entity.js';

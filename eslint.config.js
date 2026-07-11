@@ -27,13 +27,6 @@ export default [
         CONFIG: 'readonly',
         MathUtils: 'readonly',
         Easing: 'readonly',
-        WEAPON_ANIM: 'readonly',
-        Z_INDEX: 'readonly',
-        CSS_Z_INDEX: 'readonly',
-        DataLoader: 'readonly',
-        EnchantConfig: 'readonly',
-        EnchantScrollItems: 'readonly',
-        MagicDustItem: 'readonly',
         AttackFormula: 'readonly',
 
         GAME_CONFIG: 'readonly',
@@ -44,13 +37,9 @@ export default [
         ENEMY_DATA: 'readonly',
         HUMANOID_SQUAD_CONFIG: 'readonly',
 
-        MapGenerator: 'readonly',
-        MazeGenerator: 'readonly',
-        Portal: 'readonly',
 
-        ItemFactory: 'readonly',
-        ItemDatabase: 'readonly',
-        WeaponAnimConfig: 'readonly',
+
+
 
         Attack: 'readonly',
         SlashAttack: 'readonly',
@@ -92,11 +81,8 @@ export default [
         RewardSystem: 'readonly',
         EnhancementItems: 'readonly',
 
-        EventBus: 'readonly',
-
         SkillManager: 'readonly',
         QuickBar: 'readonly',
-        QUICK_BAR_CONFIG: 'readonly',
         EquipManager: 'readonly',
         EquipTooltipManager: 'readonly',
         BackpackDialogManager: 'readonly',
@@ -105,14 +91,10 @@ export default [
         CodexManager: 'readonly',
         SystemUI: 'readonly',
         UI_DATA_CONFIG: 'readonly',
-        SoundManager: 'readonly',
         DevTool: 'readonly',
         NpcPortraitTool: 'readonly',
 
-        GoldManager: 'readonly',
 
-        SkillLevelSystem: 'readonly',
-        PhaserGame: 'readonly',
 
         pathFinder: 'readonly',
         PathManager: 'readonly',

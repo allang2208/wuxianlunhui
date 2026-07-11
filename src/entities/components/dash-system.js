@@ -1,3 +1,4 @@
+import { WEAPON_ANIM } from '../../config/math-utils.js';
 import { Game } from '../../game.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';

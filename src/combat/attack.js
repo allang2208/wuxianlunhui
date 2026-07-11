@@ -1,3 +1,4 @@
+import { SoundManager } from '../ui/sound-manager.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AttackRangeEffect } from '../effects/attack-range-effect.js';

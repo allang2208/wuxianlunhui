@@ -1,3 +1,4 @@
+import { WEAPON_ANIM } from '../config/math-utils.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Easing } from '../config/math-utils.js';
 

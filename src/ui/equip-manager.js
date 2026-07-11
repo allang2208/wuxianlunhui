@@ -1,3 +1,5 @@
+import { GoldManager } from '../systems/gold-manager.js';
+import { SoundManager } from '../ui/sound-manager.js';
 import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { FloatingTextEffect } from '../effects/floating-text.js';

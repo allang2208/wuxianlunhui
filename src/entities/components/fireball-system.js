@@ -1,3 +1,4 @@
+import { SkillLevelSystem } from '../../combat/skill-level-system.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';

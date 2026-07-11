@@ -1,3 +1,4 @@
+import { SoundManager } from '../ui/sound-manager.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
 import { RangedAttack } from '../combat/attack.js';

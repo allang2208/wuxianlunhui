@@ -1,3 +1,4 @@
+import { MapGenerator } from '../world/map-generator.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Camera } from '../world/camera.js';

@@ -1,3 +1,4 @@
+import { SoundManager } from '../ui/sound-manager.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Renderer } from '../world/renderer.js';

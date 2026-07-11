@@ -1,3 +1,5 @@
+import { Portal } from '../world/portal.js';
+import { ItemDatabase } from '../items/item-database.js';
 import { Game } from '../game.js';
 import { SceneManager } from '../world/scene-manager.js';
 // Quest System - 任务日志系统

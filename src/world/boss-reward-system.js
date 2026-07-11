@@ -1,3 +1,8 @@
+import { GoldManager } from '../systems/gold-manager.js';
+import { EnchantConfig } from '../config/enchant-config.js';
+import { EnchantScrollItems } from '../config/enchant-config.js';
+import { MagicDustItem } from '../config/enchant-config.js';
+import { ItemDatabase } from '../items/item-database.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';

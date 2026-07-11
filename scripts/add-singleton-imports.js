@@ -3,7 +3,17 @@ const path = require('path');
 
 // singleton name -> relative module path from src/
 const SINGLETONS = {
-    Game: 'game.js'
+    GoldManager: 'systems/gold-manager.js',
+    SkillLevelSystem: 'combat/skill-level-system.js',
+    PhaserGame: 'phaser/PhaserGame.js',
+    DataLoader: 'systems/data-loader.js',
+    AttackFormula: 'combat/attack-formula.js',
+    EnchantConfig: 'config/enchant-config.js',
+    EnchantScrollItems: 'config/enchant-config.js',
+    MagicDustItem: 'config/enchant-config.js',
+    MapGenerator: 'world/map-generator.js',
+    MazeGenerator: 'world/maze-generator.js',
+    Portal: 'world/portal.js'
 };
 
 const filesToUpdate = [];

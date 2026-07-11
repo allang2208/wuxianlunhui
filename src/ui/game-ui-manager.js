@@ -1,3 +1,4 @@
+import { EventBus } from '../core/event-bus.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';

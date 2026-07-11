@@ -1,3 +1,4 @@
+import { ItemDatabase } from '../items/item-database.js';
 import { Game } from '../game.js';
 // Equip Tooltip System - Extracted from EquipManager
 // Pure functions for rendering and managing equipment tooltips

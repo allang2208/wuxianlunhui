@@ -1,3 +1,9 @@
+import { PhaserGame } from './phaser/PhaserGame.js';
+import { MazeGenerator } from './world/maze-generator.js';
+import { Portal } from './world/portal.js';
+import { EventBus } from './core/event-bus.js';
+import { SoundManager } from './ui/sound-manager.js';
+import { ItemFactory } from './items/item-factory.js';
 import { Renderer } from './world/renderer.js';
 import { SceneManager } from './world/scene-manager.js';
 import { Camera } from './world/camera.js';

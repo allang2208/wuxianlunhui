@@ -1,3 +1,4 @@
+import { PhaserGame } from '../../phaser/PhaserGame.js';
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { Camera } from '../../world/camera.js';

@@ -1,3 +1,5 @@
+import { SoundManager } from '../../ui/sound-manager.js';
+import { WEAPON_ANIM } from '../../config/math-utils.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
 // ============================================================
