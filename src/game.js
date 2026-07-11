@@ -58,6 +58,7 @@ export const Game = {
     showHitbox: false, // 六边形碰撞盒调试显示开关
     _npcDialoguePaused: false,
     _gameStartTime: null, // 游戏开始时间戳
+    _renderList: [], // 可复用的渲染排序数组，减少每帧 GC
     // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
     init() {
@@ -906,7 +907,14 @@ this.resolveCollisions();
         }
         // 墙壁侧视渲染（在 terrain 之后、实体之前）
         WallSystem.renderWalls(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
-        const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
+        // 实体渲染：复用数组并排序，避免每帧创建新数组
+        const sorted = this._renderList;
+        let renderCount = 0;
+        for (const e of this.entities.values()) {
+            if (e.active) sorted[renderCount++] = e;
+        }
+        sorted.length = renderCount;
+        sorted.sort((a, b) => a.y - b.y);
         // 实体渲染：合并渲染、碰撞盒调试、受击白光效果到单次遍历
         if (Renderer.ctx) {
             for (const e of sorted) {
