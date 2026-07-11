@@ -237,9 +237,10 @@ export const DungeonMapSystem = {
         this.MAP_WIDTH = result.config.mapWidth;
         this.MAP_HEIGHT = result.config.mapHeight;
 
-        // 重新居中
-        this.mapOffsetX = (CONFIG.VIEW_WIDTH - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = (CONFIG.VIEW_HEIGHT - this.MAP_HEIGHT) / 2;
+        // 重新居中（使用固定目标区域，不随分辨率变化）
+        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
+        this.mapOffsetX = TARGET_AREA.left + (TARGET_AREA.width - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = TARGET_AREA.top + (TARGET_AREA.height - this.MAP_HEIGHT) / 2;
 
         console.log('[DungeonMapSystem] Generated new dungeon map:', result.metadata);
     },
@@ -253,9 +254,10 @@ export const DungeonMapSystem = {
         // 更新地图尺寸
         this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
         this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
-        // 重新居中
-        this.mapOffsetX = (CONFIG.VIEW_WIDTH - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = (CONFIG.VIEW_HEIGHT - this.MAP_HEIGHT) / 2;
+        // 重新居中（使用固定目标区域，不随分辨率变化）
+        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
+        this.mapOffsetX = TARGET_AREA.left + (TARGET_AREA.width - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = TARGET_AREA.top + (TARGET_AREA.height - this.MAP_HEIGHT) / 2;
     },
 
     getCurrentNode() {
@@ -306,10 +308,7 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        const vw = CONFIG.VIEW_WIDTH || window.innerWidth || 1920;
-        const vh = CONFIG.VIEW_HEIGHT || window.innerHeight || 1080;
-
-        // 目标显示区域（用户用坐标工具测量）
+        // 目标显示区域（固定像素，不随分辨率变化）
         const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
 
         if (this.nodes.length === 0) {
@@ -353,6 +352,17 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
+        // Boss 战模式：委托给 BossRewardSystem 更新
+        if (this.state === "boss") {
+            import('./boss-reward-system.js').then(mod => {
+                if (mod.BossRewardSystem && mod.BossRewardSystem.isBossBattleActive && mod.BossRewardSystem.isBossBattleActive()) {
+                    mod.BossRewardSystem.update(dt);
+                }
+            }).catch(() => {});
+            // Boss 战由 BossRewardSystem 自己的回调处理完成，这里不做额外检测
+            return;
+        }
+
         // 使用 CombatRoomSystem 检测战斗完成
         if (CombatRoomSystem.isCombatComplete()) {
             // 战斗已完成，启动打扫战场倒计时
@@ -360,6 +370,13 @@ export const DungeonMapSystem = {
                 this._cleanupActive = true;
                 this._cleanupTimer = 10000; // 10秒倒计时
                 this._showCleanupOverlay();
+
+                // 标记当前战斗节点为已完成（变为 empty）
+                const currentNode = this.getCurrentNode();
+                if (currentNode && currentNode.type === 'combat') {
+                    currentNode.type = 'empty';
+                    console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
+                }
             }
         }
 
@@ -401,11 +418,11 @@ export const DungeonMapSystem = {
     _handleClick() {
         // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
         const mx = Input.mouse.x, my = Input.mouse.y;
-        const w = CONFIG.VIEW_WIDTH;
-        const h = CONFIG.VIEW_HEIGHT;
+        // 使用固定像素值（目标区域右下角），不随分辨率变化
+        const FIXED_RIGHT = 1685, FIXED_BOTTOM = 818;
 
         // 检测退出按钮点击
-        const btnX = w - 110, btnY = 15, btnW = 90, btnH = 28;
+        const btnX = FIXED_RIGHT - 110, btnY = 15, btnW = 90, btnH = 28;
         if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
             this._showExitConfirm();
             return;
@@ -447,6 +464,7 @@ export const DungeonMapSystem = {
             case "boss":   this._enterBoss(node); break;
             case "shop":   this._enterShop(node); break;
             case "event":  this._enterEvent(node); break;
+            case "random": this._enterEvent(node); break;
             case "reward": this._enterReward(node); break;
             default:       this._returnToMap(); break;
         }
@@ -480,6 +498,7 @@ export const DungeonMapSystem = {
             return;
         }
         // 使用新的 CombatRoomSystem 生成随机战斗场地
+        this.state = "combat";
         CombatRoomSystem.enterCombatRoom(this.player, false, {
             onComplete: () => {
                 this._cleanupCombat();
@@ -584,6 +603,7 @@ export const DungeonMapSystem = {
             this._enterZombieBoss(node);
             return;
         }
+        this.state = "boss";
         // 使用 BossRewardSystem 的大块头 Boss
         BossRewardSystem.enterBossBattle(this.player, (result) => {
             this._cleanupCombat();
@@ -930,8 +950,19 @@ export const DungeonMapSystem = {
 
     _enterZombieEvent(node) {
         this.state = "event";
-        import('./zombie-dungeon.js').then(mod => {
-            mod.ZombieDungeonEvent.show(() => this._returnToMap());
+        // 使用 DungeonEventSystem 提供完整的随机事件
+        import('./dungeon-event-system.js').then(mod => {
+            mod.DungeonEventSystem.trigger(this.player, (result) => {
+                if (result && result.combat) {
+                    this._enterCombat(node);
+                } else {
+                    this._returnToMap();
+                }
+            });
+        }).catch(err => {
+            console.error('[DungeonMapSystem] Failed to load dungeon-event-system for zombie:', err);
+            // 降级到旧版事件系统
+            this._enterLegacyEvent(node);
         });
     },
 
@@ -1006,8 +1037,9 @@ export const DungeonMapSystem = {
     render(ctx) {
         if (!this.active || this.state !== "map") return;
 
-        const w = CONFIG.VIEW_WIDTH;
-        const h = CONFIG.VIEW_HEIGHT;
+        // 使用固定像素值，不随分辨率变化
+        const FIXED_WIDTH = 1920, FIXED_HEIGHT = 1080;
+        const FIXED_RIGHT = 1685, FIXED_BOTTOM = 818;
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
@@ -1185,17 +1217,17 @@ export const DungeonMapSystem = {
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
         ctx.fillStyle = "#666666";
         ctx.font = "13px sans-serif";
-        ctx.fillText(`进度: ${progress} 节点`, w / 2, h - 20);
+        ctx.fillText(`进度: ${progress} 节点`, FIXED_WIDTH / 2, FIXED_HEIGHT - 20);
 
         // 缩放指示
         ctx.fillStyle = "#444444";
         ctx.font = "11px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, w - 20, h - 20);
+        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, FIXED_WIDTH - 20, FIXED_HEIGHT - 20);
         ctx.textAlign = "center";
 
         // 退出按钮
-        const btnX = w - 110, btnY = 15, btnW = 90, btnH = 28;
+        const btnX = FIXED_WIDTH - 110, btnY = 15, btnW = 90, btnH = 28;
         ctx.fillStyle = "#3a5a3a";
         ctx.fillRect(btnX, btnY, btnW, btnH);
         ctx.strokeStyle = "#6a8a5a";
