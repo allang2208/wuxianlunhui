@@ -14,7 +14,7 @@ export const ExpeditionSystem = {
         if (this._isOpen) return;
         this._isOpen = true;
         this._carriedItems = new Array(this.CAPACITY).fill(null);
-        this.selectedDungeon = 'default'; // 重置为默认地牢
+        this.selectedDungeon = 'zombie'; // 只保留僵尸地牢
 
         // 先打开背包（如果还没打开）
         if (typeof SystemUI !== 'undefined') {
@@ -42,8 +42,8 @@ export const ExpeditionSystem = {
 
         // 重置地牢选择器
         const select = document.getElementById('expeditionDungeonSelect');
-        if (select) select.value = 'default';
-        this._updateDungeonInfo('default');
+        if (select) select.value = 'zombie';
+        this._updateDungeonInfo('zombie');
 
         // 生成背包格子
         this._renderInventoryGrid();
@@ -431,13 +431,6 @@ export const ExpeditionSystem = {
         const rewardEl = document.getElementById('expeditionReward');
 
         const info = {
-            default: {
-                name: '遗忘祭坛',
-                nodeCount: '35~40',
-                battleRatio: '70%',
-                level: '5-15级',
-                reward: '4500金币'
-            },
             zombie: {
                 name: '☠ 僵尸地牢',
                 nodeCount: '35~40',
@@ -447,7 +440,7 @@ export const ExpeditionSystem = {
             }
         };
 
-        const d = info[dungeonType] || info.default;
+        const d = info.zombie;
         if (nameEl) nameEl.textContent = d.name;
         if (nodeCountEl) nodeCountEl.textContent = d.nodeCount;
         if (battleRatioEl) battleRatioEl.textContent = d.battleRatio;
@@ -488,7 +481,7 @@ export const ExpeditionSystem = {
         // 初始化地牢（传入选中的地牢类型）
         if (typeof DungeonMapSystem !== 'undefined') {
             const player = Game.player;
-            const dungeonType = this.selectedDungeon || 'default';
+            const dungeonType = this.selectedDungeon || 'zombie';
             DungeonMapSystem.init('scene7', player, dungeonType);
         }
     },
