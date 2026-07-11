@@ -836,8 +836,6 @@ export const Game = {
             MazeGenerator.render(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
         }
         // 墙壁侧视渲染（在 terrain 之后、实体之前）
-        const canvasW = Renderer.canvas ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
-        const canvasH = Renderer.canvas ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
         WallSystem.renderWalls(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
         const sorted = Array.from(this.entities.values()).filter(e => e.active).sort((a, b) => a.y - b.y);
         // 实体渲染：每个实体自行处理 Phaser/Canvas 分层（body 由 Phaser 渲染，overlay 由 Canvas 渲染）
