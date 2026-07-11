@@ -9,6 +9,7 @@ import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
+import { Enemy } from './enemy.js';
 
         class DamageableEntity extends Entity {
             constructor(x, y, config = {}) {

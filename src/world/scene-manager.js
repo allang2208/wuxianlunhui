@@ -12,6 +12,8 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
+import { TargetDummy } from '../entities/target-dummy.js';
+import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
 
 export const SceneManager = {
     currentScene: null,

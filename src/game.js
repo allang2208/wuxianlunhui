@@ -34,6 +34,11 @@ import { PerceptionSystem } from './systems/perception-system.js';
 import { MovementSystem } from './systems/movement-system.js';
 import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
+import { TargetDummy } from './entities/target-dummy.js';
+import { Player } from './entities/player.js';
+import { BlackWolf, SpitterZombie, FatZombie, FastZombie, ZombieDog } from './entities/enemy-types.js';
+import { DropItem } from './entities/drop-item.js';
+import { NPC } from './entities/npc.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -757,7 +762,7 @@ export const Game = {
                         const sy = this.player.y + Math.sin(angle) * radius;
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
                         const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        const monster = new window.BlackWolf(mx, my);
+                        const monster = new BlackWolf(mx, my);
                         Game.entities.set(`scene2_quest_${Date.now()}_${i}_${Math.random()}`, monster);
                     }
                 }
@@ -774,7 +779,7 @@ export const Game = {
                         const sy = this.player.y + Math.sin(angle) * dist;
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
                         const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        const monster = new window.BlackWolf(mx, my);
+                        const monster = new BlackWolf(mx, my);
                         Game.entities.set(`scene2_monster_${Date.now()}_${i}_${Math.random()}`, monster);
                     }
                 }

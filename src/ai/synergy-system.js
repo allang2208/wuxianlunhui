@@ -1,4 +1,5 @@
 import { Renderer } from '../world/renderer.js';
+import { Enemy } from '../entities/enemy.js';
 /**
  * 怪物协同效应系统（SynergySystem）
  * 每帧扫描场上怪物，检测协同条件，应用协同效果
