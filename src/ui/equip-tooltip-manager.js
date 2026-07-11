@@ -1,6 +1,7 @@
 // Equip Tooltip System - Extracted from EquipManager
 // Pure functions for rendering and managing equipment tooltips
 
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { CraftSystem } from './craft-system.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';

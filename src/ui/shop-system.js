@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 const ShopSystem = {
     _isOpen: false,
     _currentNPC: null,

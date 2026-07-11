@@ -1,5 +1,5 @@
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
-import { WEAPON_ANIM } from '../config/math-utils.js';
+import { WEAPON_ANIM, Easing } from '../config/math-utils.js';
 
 const WEAPON_SIZE_BASE = WEAPON_ANIM.size; // 105
 const MELEE_SCALE = 0.75;
@@ -355,7 +355,7 @@ class WeaponTransform {
 
         if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040') {
             if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.04) * easeOutQuad(anim.timer / wa.windupMs);
+                recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
                 const st = anim.timer / wa.swingMs;
                 recoilX = s * (rp.recoilSwing || 0.1) * (1 - st);
@@ -366,7 +366,7 @@ class WeaponTransform {
             }
         } else if (weaponType === 'pkm' || weaponType === 'akm' || weaponType === 'qbz191' || weaponType === 'qjb201' || weaponType === 'energy_lmg') {
             if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.03) * easeOutQuad(anim.timer / wa.windupMs);
+                recoilX = -s * (rp.recoilWindup || 0.03) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
                 const st = anim.timer / wa.swingMs;
                 recoilX = s * (rp.recoilSwing || 0.08) * (1 - st);
@@ -377,7 +377,7 @@ class WeaponTransform {
             }
         } else if (weaponType === 'shotgun') {
             if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.04) * easeOutQuad(anim.timer / wa.windupMs);
+                recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
                 const st = anim.timer / wa.swingMs;
                 recoilX = s * (rp.recoilSwing || 0.12) * (1 - st);
@@ -438,9 +438,5 @@ class WeaponTransform {
         return WeaponAnimConfig.sword.hitBox;
     }
 }
-
-// 简单缓动函数（避免循环依赖）
-function easeOutQuad(t) { return t * (2 - t); }
-function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
 export { WeaponTransform };

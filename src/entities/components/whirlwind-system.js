@@ -1,3 +1,4 @@
+import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 export class WhirlwindSystem {
     constructor(player) {
         this.player = player;

@@ -1,4 +1,7 @@
 import enemyConfigData from '../../data/enemy-config.json';
+import { GAME_CONFIG as gameConfigData } from '../config/game-config.js';
+import { COMBAT_FORMULAS as combatFormulasData } from '../config/combat-formulas.js';
+import { COMBAT_CONFIG as combatConfigData } from '../config/combat-config.js';
 
 // data-loader.js — 异步加载 JSON 配置数据
 
@@ -27,8 +30,32 @@ const DataLoader = {
         return {
             equipment: equipment ? equipment.equipment : null,
             skills: skills ? skills.skills : null,
-            enemies: this._convertEnemyConfig(enemyConfigData)
+            enemies: this._convertEnemyConfig(enemyConfigData),
+            gameConfig: this._cloneObject(gameConfigData),
+            combatFormulas: this._cloneObject(combatFormulasData),
+            combatConfig: this._cloneObject(combatConfigData)
         };
+    },
+
+    /** 获取游戏全局配置（已加载的静态副本） */
+    getGameConfig() {
+        return this._cloneObject(gameConfigData);
+    },
+
+    /** 获取战斗公式配置（已加载的静态副本） */
+    getCombatFormulas() {
+        return this._cloneObject(combatFormulasData);
+    },
+
+    /** 获取战斗参数配置（已加载的静态副本） */
+    getCombatConfig() {
+        return this._cloneObject(combatConfigData);
+    },
+
+    /** 浅克隆对象，防止外部修改影响原始配置 */
+    _cloneObject(obj) {
+        if (obj === null || typeof obj !== 'object') return obj;
+        return JSON.parse(JSON.stringify(obj));
     },
 
     /** 将 enemy-config.json 转换为图鉴所需的 ENEMY_DATA 格式 */
@@ -71,9 +98,21 @@ const DataLoader = {
 
     /** 解析技能效果公式 */
     parseSkillFormula(formulaStr, level) {
+        // 类型与空值检查
+        if (typeof formulaStr !== 'string' || !formulaStr.trim()) return 0;
+        const lvl = Number(level) || 0;
+        // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量
+        const allowedPattern = /^[0-9+\-*/().\s]+$/i;
+        const mathPattern = /\b(Math\.[a-zA-Z]+|Math\.[A-Z]+|level|PI|E)\b/g;
+        const stripped = formulaStr.replace(mathPattern, '');
+        if (!allowedPattern.test(stripped)) {
+            console.error('Formula contains disallowed characters:', formulaStr);
+            return 0;
+        }
         try {
-            const fn = new Function('level', `return ${formulaStr};`);
-            return fn(level);
+            const fn = new Function('level', `return (${formulaStr});`);
+            const result = fn(lvl);
+            return Number.isFinite(result) ? result : 0;
         } catch (e) {
             console.error('Formula parse error:', formulaStr, e);
             return 0;

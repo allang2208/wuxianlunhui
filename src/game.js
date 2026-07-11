@@ -1,3 +1,6 @@
+import { FloatingTextEffect } from './effects/floating-text.js';
+import { LevelUpEffectQueue } from './effects/level-up-queue.js';
+import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
@@ -12,9 +15,10 @@ import SpatialPartitionSystem from './systems/spatial-partition-system.js';
 import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
+import { GAME_CONFIG } from './config/game-config.js';
 
 export const Game = {
-    VERSION: '0.198', // 游戏版本号（每次更新必须递增）
+    VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
     isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
     _synergySystem: null,
     _battleCommander: null, // 指挥AI实例
@@ -23,9 +27,17 @@ export const Game = {
     showHitbox: false, // 六边形碰撞盒调试显示开关
     _npcDialoguePaused: false,
     _gameStartTime: null, // 游戏开始时间戳
-    _timerInterval: null, // 秒表定时器ID
+    // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
-    init() { SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init(); GameUIManager.init(this.player); GameUIManager.initHitboxToggle(); GameUIManager.initAttackRangeToggle(); if (typeof QuestTracker !== 'undefined') QuestTracker.init(); },
+    init() {
+        if (typeof SoundManager === 'undefined' || typeof Input === 'undefined' || typeof Renderer === 'undefined' || typeof SystemUI === 'undefined' || typeof QuickBar === 'undefined' || typeof GameUIManager === 'undefined') {
+            console.error('[Game.init] 核心模块未加载，无法初始化');
+            return;
+        }
+        SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
+        GameUIManager.init(this.player); GameUIManager.initHitboxToggle(); GameUIManager.initAttackRangeToggle();
+        if (typeof QuestTracker !== 'undefined') QuestTracker.init();
+    },
     async start() {
         try {
             // 自动同步版本号到页面
@@ -33,10 +45,8 @@ export const Game = {
             if (versionBadge) versionBadge.textContent = 'V' + this.VERSION;
             // 防止重复启动：游戏已在运行时直接返回
             if (this.isRunning) {
-                console.log('[Game.start] Already running, skipping');
                 return;
             }
-            console.log('[Game.start] Starting...');
             const menuLayer = document.getElementById('menuLayer'); const uiLayer = document.getElementById('uiLayer'); const gameLayer = document.getElementById('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             Renderer.generateWorld();
             // 初始化 Phaser 渲染系统（渐进式迁移）
@@ -48,35 +58,44 @@ export const Game = {
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             // 使用主神空间固定原点，不随分辨率变化
-            const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : { x: 3825, y: 1886 };
-            this.dropItem(origin.x + 120, origin.y, EquipDataManager.G18_PISTOL_ITEM);
-            this.dropItem(origin.x + 160, origin.y, EquipDataManager.SAIGA12K_ITEM);
-            // 在主神空间(-874, -136)横向生成所有武器
+            const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+                GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+            );
+            const lootCfg = GAME_CONFIG.loot?.drops?.mainHub || {};
+            const g18 = lootCfg.g18 || { x: 120, y: 0 };
+            const saiga12k = lootCfg.saiga12k || { x: 160, y: 0 };
+            this.dropItem(origin.x + g18.x, origin.y + g18.y, EquipDataManager.G18_PISTOL_ITEM);
+            this.dropItem(origin.x + saiga12k.x, origin.y + saiga12k.y, EquipDataManager.SAIGA12K_ITEM);
+            // 在主神空间横向生成所有武器
             this.spawnAllWeapons();
             // 在出生点附近生成所有附魔卷轴（供测试拾取）
-            const scrollBaseX = origin.x + 200;
-            const scrollBaseY = origin.y;
+            const scrollCfg = lootCfg.scrollBase || { x: 200, y: 0, spacing: 40 };
+            const scrollBaseX = origin.x + scrollCfg.x;
+            const scrollBaseY = origin.y + scrollCfg.y;
             this.dropItem(scrollBaseX, scrollBaseY, EnchantScrollItems.enchant_scroll_heavy);
-            this.dropItem(scrollBaseX + 40, scrollBaseY, EnchantScrollItems.enchant_scroll_sharp);
-            this.dropItem(scrollBaseX + 80, scrollBaseY, EnchantScrollItems.enchant_scroll_tarantula);
-            this.dropItem(scrollBaseX + 120, scrollBaseY, EnchantScrollItems.enchant_scroll_skeleton);
+            this.dropItem(scrollBaseX + scrollCfg.spacing, scrollBaseY, EnchantScrollItems.enchant_scroll_sharp);
+            this.dropItem(scrollBaseX + scrollCfg.spacing * 2, scrollBaseY, EnchantScrollItems.enchant_scroll_tarantula);
+            this.dropItem(scrollBaseX + scrollCfg.spacing * 3, scrollBaseY, EnchantScrollItems.enchant_scroll_skeleton);
             // 生成一些魔法晶尘（供测试）
-            this.dropItem(origin.x + 200, origin.y + 40, MagicDustItem);
-            this.dropItem(origin.x + 240, origin.y + 40, { ...MagicDustItem, stack: 999 });
+            const magicDusts = lootCfg.magicDust || [{ x: 200, y: 40 }, { x: 240, y: 40, stack: 999 }];
+            for (const md of magicDusts) {
+                const item = md.stack ? { ...MagicDustItem, stack: md.stack } : MagicDustItem;
+                this.dropItem(origin.x + md.x, origin.y + md.y, item);
+            }
             // 生成强化石和改造券（各10份，供测试）
-            const matBaseX = origin.x + 280;
-            const matBaseY = origin.y + 40;
-            for (let i = 0; i < 10; i++) {
-                this.dropItem(matBaseX + i * 30, matBaseY, { ...EnhancementItems.enhance_stone });
-                this.dropItem(matBaseX + i * 30, matBaseY + 40, { ...EnhancementItems.modify_ticket });
+            const matCfg = lootCfg.materials || { baseX: 280, baseY: 40, spacingX: 30, spacingY: 40, count: 10 };
+            for (let i = 0; i < matCfg.count; i++) {
+                this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY, { ...EnhancementItems.enhance_stone });
+                this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY + matCfg.spacingY, { ...EnhancementItems.modify_ticket });
             }
             // EventBus 解耦：订阅 Player 的拾取事件（使用具名回调以便 toMenu 中取消订阅）
             this._onPickup = this._onPickup || ((px, py, range) => this.tryPickupItem(px, py, range));
             EventBus.off('player:pickup', this._onPickup); EventBus.on('player:pickup', this._onPickup);
             GameUIManager.setupWeaponSwitchButtons();
-            // 生成左到右渐进显示参考特效（在 3478, 2363 位置），同时生成黑色测试区域标记
-            EffectManager.add(new SweepEffect(3478, 2363, 100, 100, 10, 5000));
-            EffectManager.add(new FloatingTextEffect(3478, 2363 - 20, '测试区域', '#000000'));
+            // 生成测试区域参考特效
+            const testAreaCfg = GAME_CONFIG.effects?.testArea || { x: 3478, y: 2363, width: 100, height: 100, thickness: 10, duration: 5000, label: '测试区域', labelColor: '#000000' };
+            EffectManager.add(new SweepEffect(testAreaCfg.x, testAreaCfg.y, testAreaCfg.width, testAreaCfg.height, testAreaCfg.thickness, testAreaCfg.duration));
+            EffectManager.add(new FloatingTextEffect(testAreaCfg.x, testAreaCfg.y - 20, testAreaCfg.label, testAreaCfg.labelColor));
             // 初始化场景管理器
             SceneManager.init();
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
@@ -87,18 +106,19 @@ export const Game = {
             this._battleCommander = new BattleCommander();
             // 初始化战术小队AI系统
             this._tacticalSquadAI = new TacticalSquadAI();
-            // 在当前地图测试区域左边生成5个传送门（场景二、三、四、五、僵尸地牢）
-            const portalBaseX = 3478;
-            const portalBaseY = 2363;
-            const portalSpacing = 100;
-            const portalLabels = ['场景二', '场景三', '场景四', '场景五', '僵尸地牢'];
-            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', 'scene7'];
-            for (let i = 0; i < 5; i++) {
-                const px = portalBaseX - (i + 1) * portalSpacing;
-                const py = portalBaseY;
-                const portal = new Portal(px, py, portalTargets[i], portalLabels[i]);
+            // 在当前地图测试区域左边生成传送门
+            const portalCfg = GAME_CONFIG.portals?.mainHub || { base: { x: 3478, y: 2363 }, spacing: 100, direction: 'left', entries: [] };
+            const portalBase = portalCfg.base || { x: 3478, y: 2363 };
+            const portalSpacing = portalCfg.spacing || 100;
+            const portalDir = portalCfg.direction === 'right' ? 1 : -1;
+            const portalEntries = portalCfg.entries || [];
+            for (let i = 0; i < portalEntries.length; i++) {
+                const entry = portalEntries[i];
+                const px = portalBase.x + (i + 1) * portalSpacing * portalDir;
+                const py = portalBase.y;
+                const portal = new Portal(px, py, entry.targetScene, entry.label);
                 this.entities.set(`portal_scene_${i + 2}`, portal);
-                EffectManager.add(new FloatingTextEffect(px, py - 30, portalLabels[i], '#5a9a8a'));
+                EffectManager.add(new FloatingTextEffect(px, py - 30, entry.label, '#5a9a8a'));
             }
             this.isRunning = true; this.lastTime = performance.now(); this.loop(this.lastTime);
         } catch(e) {
@@ -121,27 +141,29 @@ export const Game = {
     },
     spawnTargets() {
         // 靶子放在迷宫下方的开放平原（上方相对出生点）
-        const cx = CONFIG.WORLD_WIDTH / 2;
-        const mazeEndY = WallSystem.mazeEndY || CONFIG.WORLD_HEIGHT * 0.37;
-        const startX = 3821, startY = 2365;
-        const cols = 3, rows = 3, spacing = 120;
+        const cfg = GAME_CONFIG.targets?.training || { base: { x: 3821, y: 2365 }, cols: 3, rows: 3, spacing: 120, baseHp: 150, hpIncrement: 30, namePrefix: '训练靶' };
+        const base = cfg.base || { x: 3821, y: 2365 };
+        const cols = cfg.cols || 3, rows = cfg.rows || 3, spacing = cfg.spacing || 120;
+        const baseHp = cfg.baseHp || 150, hpIncrement = cfg.hpIncrement || 30;
+        const namePrefix = cfg.namePrefix || '训练靶';
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const i = r * cols + c;
-                const tx = startX + c * spacing, ty = startY + r * spacing;
-                const target = new TargetDummy(tx, ty, { hp: 150 + i * 30, maxHp: 150 + i * 30, name: `训练靶 ${i + 1}` });
+                const tx = base.x + c * spacing, ty = base.y + r * spacing;
+                const target = new TargetDummy(tx, ty, { hp: baseHp + i * hpIncrement, maxHp: baseHp + i * hpIncrement, name: `${namePrefix} ${i + 1}` });
                 this.entities.set(`target_${i}`, target);
             }
         }
     },
     spawnEnemy() {
-        // DPS测试靶子：无限生命值，显示DPS和总伤害（显示坐标 -581, 7 → 世界坐标 3244, 1879）
-        const dpsTarget = new TargetDummy(3244, 1879, {
-            hp: 999999, maxHp: 999999,
-            size: 32, collisionRadius: 28,
-            name: 'DPS测试靶',
-            expValue: 0,
-            dpsTracking: true
+        // DPS测试靶子：无限生命值，显示DPS和总伤害
+        const cfg = GAME_CONFIG.targets?.dpsTest || { x: 3244, y: 1879, hp: 999999, maxHp: 999999, size: 32, collisionRadius: 28, name: 'DPS测试靶', expValue: 0, dpsTracking: true };
+        const dpsTarget = new TargetDummy(cfg.x, cfg.y, {
+            hp: cfg.hp, maxHp: cfg.maxHp,
+            size: cfg.size, collisionRadius: cfg.collisionRadius,
+            name: cfg.name,
+            expValue: cfg.expValue,
+            dpsTracking: cfg.dpsTracking
         });
         this.entities.set('dps_target', dpsTarget);
     },
@@ -150,15 +172,18 @@ export const Game = {
         SystemUI.open('status');
     },
     spawnNPC() {
-        const npcX = CONFIG.WORLD_WIDTH / 2 + 120;
-        const npcY = CONFIG.WORLD_HEIGHT / 2 - 150;
+        const npcCfg = GAME_CONFIG.npcs || {};
+        const shopCfg = npcCfg.shopMouseKing || { offset: { x: 120, y: -150 }, name: '小鼠大王', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/ui/npc_portrait.png', npcType: 'shop' };
+        const attendantCfg = npcCfg.mouseAttendant || { relativeTo: 'shopMouseKing', offset: { x: -100, y: 0 }, name: '小鼠侍从', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/npc/mouse_attendant.png', npcType: 'quest' };
+        const npcX = CONFIG.WORLD_WIDTH / 2 + shopCfg.offset.x;
+        const npcY = CONFIG.WORLD_HEIGHT / 2 + shopCfg.offset.y;
         const npc = new NPC(npcX, npcY, {
-            name: '小鼠大王',
-            size: 20,
-            collisionRadius: 14,
-            color: '#c4a35a',
-            portrait: 'assets/ui/npc_portrait.png',
-            npcType: 'shop',
+            name: shopCfg.name,
+            size: shopCfg.size,
+            collisionRadius: shopCfg.collisionRadius,
+            color: shopCfg.color,
+            portrait: shopCfg.portrait,
+            npcType: shopCfg.npcType,
             greetings: [
                 '你好，冒险者！欢迎来到无限轮回。',
                 '今天的天空格外晴朗呢。',
@@ -173,14 +198,15 @@ export const Game = {
             ]
         });
         this.entities.set('npc_test', npc);
-        // 在小鼠大王左侧100px生成小鼠侍从
-        const attendant = new NPC(npcX - 100, npcY, {
-            name: '小鼠侍从',
-            size: 20,
-            collisionRadius: 14,
-            color: '#c4a35a',
-            portrait: 'assets/npc/mouse_attendant.png',
-            npcType: 'quest',
+        const attendantX = attendantCfg.relativeTo === 'shopMouseKing' ? npcX + attendantCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + attendantCfg.offset.x;
+        const attendantY = attendantCfg.relativeTo === 'shopMouseKing' ? npcY + attendantCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + attendantCfg.offset.y;
+        const attendant = new NPC(attendantX, attendantY, {
+            name: attendantCfg.name,
+            size: attendantCfg.size,
+            collisionRadius: attendantCfg.collisionRadius,
+            color: attendantCfg.color,
+            portrait: attendantCfg.portrait,
+            npcType: attendantCfg.npcType,
             greetings: [
                 '主人正在处理事务，请问有什么可以帮您的吗？',
                 '听说最近发生了一些时空异常，请多加小心。',
@@ -195,18 +221,15 @@ export const Game = {
             ]
         });
         this.entities.set('npc_attendant', attendant);
-        // 在小鼠大王右侧生成5棵不同类型的树木（普通场景合集）
-        const treeRadius = 25;
-        for (let i = 0; i < 5; i++) {
-            const tx = npcX + 300 + i * 300;
-            const ty = npcY + (i % 2 === 0 ? -20 : 20);
-            WallSystem.addTree(tx, ty, treeRadius, i, 'normal', Math.random() * Math.PI * 2);
-        }
-        // 在5棵旧树下方300px处生成3棵新雪地树木（雪地场景合集）
-        for (let i = 0; i < 3; i++) {
-            const tx = npcX + 300 + i * 300;
-            const ty = npcY + (i % 2 === 0 ? -20 : 20) + 300;
-            WallSystem.addTree(tx, ty, treeRadius, 5 + i, 'snow', Math.random() * Math.PI * 2);
+        // 在小鼠大王右侧生成演示树木
+        const treeCfg = GAME_CONFIG.trees?.demoLayout || { treeRadius: 25, groups: [] };
+        const treeRadius = treeCfg.treeRadius || 25;
+        for (const group of treeCfg.groups) {
+            for (let i = 0; i < group.count; i++) {
+                const tx = npcX + group.baseX + i * group.spacingX;
+                const ty = npcY + group.baseY + (i % 2 === 0 ? -group.yJitter : group.yJitter);
+                WallSystem.addTree(tx, ty, treeRadius, (group.startIndex || 0) + i, group.type, Math.random() * Math.PI * 2);
+            }
         }
         // 在出生点旁边生成一只绿色火柴人僵尸，方便测试盾牌
         const zombie = new Enemy(npcX + 200, npcY + 100, {
@@ -249,16 +272,18 @@ export const Game = {
         this.entities.set('zombiedog_test', zombieDog);
     },
     spawnTestTargets() {
-        // 在坐标(4379, 2411)生成20个10HP不会移动的测试目标
-        const baseX = 4379, baseY = 2411;
-        const spacing = 60; // 间隔60px，避免堆叠
-        const perRow = 5;
-        for (let i = 0; i < 20; i++) {
+        // 生成20个10HP不会移动的测试目标
+        const cfg = GAME_CONFIG.targets?.testTargets || { base: { x: 4379, y: 2411 }, spacing: 60, perRow: 5, count: 20, hp: 10, maxHp: 10, size: 14, collisionRadius: 10, namePrefix: '测试目标', expValue: 10 };
+        const base = cfg.base || { x: 4379, y: 2411 };
+        const spacing = cfg.spacing || 60;
+        const perRow = cfg.perRow || 5;
+        const count = cfg.count || 20;
+        for (let i = 0; i < count; i++) {
             const row = Math.floor(i / perRow);
             const col = i % perRow;
-            const tx = baseX + col * spacing;
-            const ty = baseY + row * spacing;
-            const target = new TargetDummy(tx, ty, { hp: 10, maxHp: 10, size: 14, collisionRadius: 10, name: `测试目标${i + 1}`, expValue: 10 });
+            const tx = base.x + col * spacing;
+            const ty = base.y + row * spacing;
+            const target = new TargetDummy(tx, ty, { hp: cfg.hp, maxHp: cfg.maxHp, size: cfg.size, collisionRadius: cfg.collisionRadius, name: `${cfg.namePrefix}${i + 1}`, expValue: cfg.expValue });
             this.entities.set(`test_target_${i}`, target);
         }
     },
@@ -291,13 +316,18 @@ export const Game = {
         document.body.appendChild(overlay);
         const confirmBtn = document.getElementById('dungeonEntryConfirmBtn');
         const cancelBtn = document.getElementById('dungeonEntryCancelBtn');
+        if (!confirmBtn || !cancelBtn) {
+            console.error('[Game._showDungeonEntryConfirm] 地牢确认/取消按钮未找到');
+            return;
+        }
         confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
         confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";
         cancelBtn.onmouseenter = () => cancelBtn.style.background = "#4a4a4a";
         cancelBtn.onmouseleave = () => cancelBtn.style.background = "#3a3a3a";
         confirmBtn.onclick = () => {
             overlay.remove();
-            this._portalCooldown = Date.now() + 2000;
+            const portalCooldownMs = GAME_CONFIG.portals?.mainHub?.cooldownMs || 2000;
+        this._portalCooldown = Date.now() + portalCooldownMs;
             try {
                 SceneManager.switchScene(entity.targetScene, this.player);
             } catch (err) {
@@ -306,22 +336,25 @@ export const Game = {
         };
         cancelBtn.onclick = () => {
             overlay.remove();
-            this._portalCooldown = Date.now() + 2000;
+            const portalCooldownMs = GAME_CONFIG.portals?.mainHub?.cooldownMs || 2000;
+        this._portalCooldown = Date.now() + portalCooldownMs;
         };
     },
-    // 武器生成位置管理器：从(5461, 2613)开始，向右排列，每10件向下200单位
+    // 武器生成位置管理器：从固定坐标开始，向右排列，每10件向下200单位
     _weaponSpawnIndex: 0,
     spawnWeapon(itemTemplate) {
-        const baseX = -1356, baseY = 3;
-        const col = this._weaponSpawnIndex % 10;
-        const row = Math.floor(this._weaponSpawnIndex / 10);
-        const x = baseX + col * 100;
-        const y = baseY + row * 200;
+        const cfg = GAME_CONFIG.weaponSpawn?.grid || { base: { x: -1356, y: 3 }, cols: 10, spacingX: 100, spacingY: 200 };
+        const base = cfg.base || { x: -1356, y: 3 };
+        const cols = cfg.cols || 10;
+        const col = this._weaponSpawnIndex % cols;
+        const row = Math.floor(this._weaponSpawnIndex / cols);
+        const x = base.x + col * cfg.spacingX;
+        const y = base.y + row * cfg.spacingY;
         this.dropItem(x, y, itemTemplate);
         this._weaponSpawnIndex++;
         return { x, y };
     },
-    // 武器横向生成：在坐标(-874, -136)横向生成所有武器，间隔50px
+    // 武器横向生成：在主神空间相对位置横向生成所有武器
     // 按顺序添加新武器，自动扩展
     _WEAPON_SPAWN_LIST: [
         EquipDataManager.TEST_EQUIPMENTS.weapon,      // 生锈的长剑 (weapon1)
@@ -341,12 +374,19 @@ export const Game = {
     ],
     spawnAllWeapons() {
         // 使用主神空间中心（origin）为参考点的相对坐标
-        const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : { x: 3825, y: 1886 };
-        const baseX = origin.x + (-874), baseY = origin.y + (-136), spacing = 50;
+        const origin = (typeof Renderer !== 'undefined' && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = GAME_CONFIG.weaponSpawn?.allWeapons || { offset: { x: -874, y: -136 }, spacing: 50 };
+        const baseX = origin.x + cfg.offset.x;
+        const baseY = origin.y + cfg.offset.y;
+        const spacing = cfg.spacing || 50;
         for (let i = 0; i < this._WEAPON_SPAWN_LIST.length; i++) {
             this.dropItem(baseX + i * spacing, baseY, this._WEAPON_SPAWN_LIST[i]);
         }
-        console.log(`[Game] 已生成 ${this._WEAPON_SPAWN_LIST.length} 把武器在坐标 (${baseX}, ${baseY})，间隔 ${spacing}px（相对于主神空间中心 origin=${origin.x},${origin.y}）`);
+        if (typeof console !== 'undefined' && console.log) {
+            console.log(`[Game] 已生成 ${this._WEAPON_SPAWN_LIST.length} 把武器在坐标 (${baseX}, ${baseY})，间隔 ${spacing}px（相对于主神空间中心 origin=${origin.x},${origin.y}）`);
+        }
     },
     tryPickupItem(px, py, range) {
         let picked = false;
@@ -387,7 +427,8 @@ export const Game = {
         if (!this.isRunning) return;
         if (this._paused) { this.lastTime = timestamp; requestAnimationFrame(t => this.loop(t)); return; }
         try {
-            const dt = Math.max(0, Math.min(timestamp - this.lastTime, 100)); this.lastTime = timestamp;
+            const maxDt = GAME_CONFIG.gameLoop?.maxDtMs || 100;
+            const dt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
             this.frameCount++; this.fpsTimer += dt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
             this.update(dt); this.render(); GameUIManager.updateUI(); Input.update();
@@ -435,6 +476,12 @@ export const Game = {
         } else {
             Camera.update(this.player);
         }
+        // 读取交互距离配置
+        const interactCfg = GAME_CONFIG.interactionDistances || {};
+        const npcClickDist = interactCfg.npcClick || 200;
+        const npcHoverDist = interactCfg.npcHover || 40;
+        const pickupClickDist = interactCfg.pickupClick || 150;
+        const pickupHoverDist = interactCfg.pickupHover || 35;
         if (Input.mouse.leftPressed) {
             // NPC 对话检测（优先于拾取）
             if (NPCDialogue.active) {
@@ -448,10 +495,10 @@ export const Game = {
                 if (entity instanceof NPC && entity.active) {
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
                     const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > 200) return;
+                    if (playerDist > npcClickDist) return;
                     const pos = Renderer.worldToScreen(entity.x, entity.y);
                     const mx = Input.mouse.x, my = Input.mouse.y;
-                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < 40;
+                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
                     if (hover) {
                         NPCDialogue.open(entity);
                         clickedNPC = true;
@@ -460,40 +507,18 @@ export const Game = {
                 }
             });
             if (clickedNPC) return;
-        }
-        // === 拾取逻辑优先：在 entities 更新之前处理，避免 Player.update() 消耗 leftPressed ===
-        if (Input.mouse.leftPressed) {
+            // === 拾取逻辑：在 entities 更新之前处理，避免 Player.update() 消耗 leftPressed ===
             let clickedPickup = false;
-            // NPC 点击检测（第二处）
-            let clickedNPC2 = false;
-            this.entities.forEach((entity) => {
-                if (clickedNPC2) return;
-                if (entity instanceof NPC && entity.active) {
-                    const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
-                    const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > 200) return;
-                    const pos = Renderer.worldToScreen(entity.x, entity.y);
-                    const mx = Input.mouse.x, my = Input.mouse.y;
-                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < 40;
-                    if (hover) {
-                        NPCDialogue.open(entity);
-                        clickedNPC2 = true;
-                    }
-                }
-            });
-            if (clickedNPC2) return;
             this.entities.forEach((entity, key) => {
                 if (clickedPickup) return;
                 if (entity instanceof DropItem && entity.active) {
-                    // 检查玩家与装备距离是否 <= 150px
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
                     const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > 150) return;
-                    // 检查鼠标是否悬停在装备上（金色特效区域，与render中的hover一致）
+                    if (playerDist > pickupClickDist) return;
                     const pos = Renderer.worldToScreen(entity.x, entity.y);
                     const bobY = Math.sin(entity.bobOffset) * 4;
                     const mx = Input.mouse.x, my = Input.mouse.y;
-                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < 35;
+                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < pickupHoverDist;
                     if (hover) {
                         const added = EquipManager.addToBackpack(entity.itemData);
                         if (added) {
@@ -564,19 +589,22 @@ export const Game = {
             TacticalSquadRoleSwitch.update(dt, this.entities);
         }
         // ===== 金币自动拾取 =====
+        const pickupCfg = GAME_CONFIG.pickup || {};
+        const goldAutoRange = pickupCfg.goldAutoRange || 80;
+        const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
         this.entities.forEach((entity, key) => {
             if (entity instanceof DropItem && entity.active && entity.itemData && entity.itemData.category === 'gold') {
                 const dist = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
                 // 新增：扔出的金币需要先离开范围再回来才能拾取
                 if (entity.itemData._droppedByPlayer) {
-                    if (dist > 80) {
+                    if (dist > goldThrowOutRange) {
                         entity.itemData._wasOutOfRange = true;
                     }
                     if (!entity.itemData._wasOutOfRange) {
                         return; // 还在范围内，不拾取
                     }
                 }
-                if (dist <= 80) {
+                if (dist <= goldAutoRange) {
                     // Check if we can stack with existing gold
                     let stacked = false;
                     for (const bpItem of EquipManager.backpackItems) {
@@ -621,7 +649,8 @@ export const Game = {
         if (typeof StatusBar !== 'undefined') {
             StatusBar.update(dt);
         }
-        // 传送门检测：走入传送门范围（30px）自动传送，无碰撞体积，冷却2秒
+        // 传送门检测：走入传送门范围自动传送，无碰撞体积
+        const portalTriggerDist = interactCfg.portalTrigger || 30;
         if (this.player && !SceneManager.isLoading) {
             const now = Date.now();
             if (now > this._portalCooldown) {
@@ -629,7 +658,7 @@ export const Game = {
                     if (entity.active && entity.targetScene) {
                         const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 30) {
+                        if (dist < portalTriggerDist) {
                             this._portalCooldown = now + 2000; // 2秒冷却
                             try {
                                 if (entity.targetScene === 'scene7') {
@@ -657,68 +686,37 @@ export const Game = {
         if (SceneManager.currentScene === 'scene2' && typeof QuestState !== 'undefined' && QuestState.isInQuest() && typeof RiftSystem !== 'undefined') {
             RiftSystem.update(dt, this.player);
         }
-        NPCDialogue.update();
         QuickBar.updateCooldowns(dt);
-        // NPC 距离检测：离开 200px 自动关闭所有相关界面
-        this._checkNPCDistance();
-        // 鼠标悬停+点击拾取：鼠标移动到装备上触发金色特效，且在150px范围内，点击左键拾取
-        if (Input.mouse.leftPressed) {
-            let clickedPickup = false;
-            this.entities.forEach((entity, key) => {
-                if (clickedPickup) return;
-                if (entity instanceof DropItem && entity.active) {
-                    // 检查玩家与装备距离是否 <= 150px
-                    const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
-                    const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > 150) return;
-                    // 检查鼠标是否悬停在装备上（金色特效区域，与render中的hover一致）
-                    const pos = Renderer.worldToScreen(entity.x, entity.y);
-                    const bobY = Math.sin(entity.bobOffset) * 4;
-                    const mx = Input.mouse.x, my = Input.mouse.y;
-                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < 35;
-                    if (hover) {
-                        const added = EquipManager.addToBackpack(entity.itemData);
-                        if (added) {
-                            entity.active = false;
-                            this.entities.delete(key);
-                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
-                            clickedPickup = true;
-                        }
-                    }
-                }
-            });
-        }
         // Z键范围拾取：检测并执行
         if (this._pickupNearbyFlag) { this._pickupNearbyFlag = false; this.pickupNearbyItems(); }
-        // NPC 距离检测：离开 200px 自动关闭所有相关界面
-        this._checkNPCDistance();
-        // NPC 对话逐字更新
-        NPCDialogue.update();
         // 列车场景滚动背景
         if (SceneManager.currentScene === 'scene3') {
             if (!this._trainScrollOffset) this._trainScrollOffset = 0;
-            this._trainScrollOffset += 500 * (dt / 1000);
+            const scene3Cfg = GAME_CONFIG.scene3 || { scrollSpeed: 500 };
+            this._trainScrollOffset += scene3Cfg.scrollSpeed * (dt / 1000);
         }
         // 雪地场景怪物定时生成
         if (SceneManager.currentScene === 'scene2') {
+            const scene2Cfg = GAME_CONFIG.scene2?.spawning || {};
+            const questCfg = scene2Cfg.quest || { firstDelay: 40000, interval: 40000, count: 3, radius: 1500 };
+            const freeCfg = scene2Cfg.freeExplore || { interval: 5000, count: 3, radius: 2000 };
             // 任务模式：特殊怪物生成规则
             if (typeof QuestState !== 'undefined' && QuestState.isInQuest()) {
                 if (!this._questSpawnTimer) this._questSpawnTimer = 0;
                 this._questSpawnTimer += dt;
-                const firstDelay = this._questFirstSpawnDelay || 40000;
-                const interval = this._questSpawnInterval || 40000;
-                const count = this._questSpawnCount || 3;
+                const firstDelay = this._questFirstSpawnDelay || questCfg.firstDelay;
+                const interval = questCfg.interval;
+                const count = questCfg.count;
                 if (this._questSpawnTimer >= firstDelay) {
                     this._questSpawnTimer = 0;
                     this._questFirstSpawnDelay = interval; // 首次之后使用间隔
                     for (let i = 0; i < count; i++) {
                         const angle = Math.random() * Math.PI * 2;
-                        const radius = 1500;
+                        const radius = questCfg.radius;
                         const sx = this.player.x + Math.cos(angle) * radius;
                         const sy = this.player.y + Math.sin(angle) * radius;
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
                         const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        // 普通60%（僵尸80%，奔跑僵尸20%）、精英30%（毒液僵尸）、首领10%（胖子僵尸）
                         const monster = new window.BlackWolf(mx, my);
                         Game.entities.set(`scene2_quest_${Date.now()}_${i}_${Math.random()}`, monster);
                     }
@@ -727,12 +725,11 @@ export const Game = {
                 // 自由探索模式：原有逻辑
                 if (!this._scene2SpawnTimer) this._scene2SpawnTimer = 0;
                 this._scene2SpawnTimer += dt;
-                if (this._scene2SpawnTimer >= 5000) {
+                if (this._scene2SpawnTimer >= freeCfg.interval) {
                     this._scene2SpawnTimer = 0;
-                    const spawnRadius = 2000;
-                    for (let i = 0; i < 3; i++) {
+                    for (let i = 0; i < freeCfg.count; i++) {
                         const angle = Math.random() * Math.PI * 2;
-                        const dist = spawnRadius;
+                        const dist = freeCfg.radius;
                         const sx = this.player.x + Math.cos(angle) * dist;
                         const sy = this.player.y + Math.sin(angle) * dist;
                         const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
@@ -743,6 +740,10 @@ export const Game = {
                 }
             }
         }
+        // NPC 距离检测：离开配置距离自动关闭所有相关界面
+        this._checkNPCDistance();
+        // NPC 对话逐字更新
+        NPCDialogue.update();
     },
     _checkNPCDistance() {
         if (!this.player) return;
@@ -753,7 +754,8 @@ export const Game = {
         const dx = activeNPC.x - this.player.x;
         const dy = activeNPC.y - this.player.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > 200) {
+        const npcAutoCloseDist = GAME_CONFIG.interactionDistances?.npcAutoClose || 200;
+        if (dist > npcAutoCloseDist) {
             NPCDialogue.close();
             ShopSystem.close();
             EnhanceSystem.close();
@@ -764,7 +766,7 @@ export const Game = {
 
     pickupNearbyItems() {
         const px = this.player.x, py = this.player.y;
-        const range = 75; // 半径75px，直径150px的圆
+        const range = GAME_CONFIG.pickup?.nearbyRange || 75; // 默认半径75px
         let pickedCount = 0;
         this.entities.forEach((entity, key) => {
             if (entity instanceof DropItem && entity.active) {

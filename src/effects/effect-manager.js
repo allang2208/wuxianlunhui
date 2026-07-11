@@ -1,3 +1,7 @@
+import { MuzzleFlashEffect } from './muzzle-flash.js';
+import { BloodEffect, BloodMistEffect, DodgeEffect, DustEffect } from './particle-effects.js';
+import { ShellCasingEffect } from './shell-casing.js';
+import { SmokeEffect } from './smoke-effect.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},

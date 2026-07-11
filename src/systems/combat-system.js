@@ -1,3 +1,5 @@
+import { Easing } from '../config/math-utils.js';
+
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
  *
@@ -131,11 +133,8 @@ class CombatSystemImpl {
                 if (anim.timer >= wa.windupMs) {
                     anim.state = 'swing';
                     anim.timer = 0;
-                } else if (typeof easeInQuad === 'function') {
-                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / wa.windupMs);
                 } else {
-                    const t = anim.timer / wa.windupMs;
-                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * (t * t);
+                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(anim.timer / wa.windupMs);
                 }
                 break;
             case 'swing':
@@ -154,11 +153,8 @@ class CombatSystemImpl {
                         enemy._pendingThrust.active = false;
                         if (enemy.attacks.melee) enemy.attacks.melee.giveExp(enemy);
                     }
-                } else if (typeof easeOutQuad === 'function') {
-                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / wa.swingMs);
                 } else {
-                    const t = anim.timer / wa.swingMs;
-                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * (1 - (1 - t) * (1 - t));
+                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(anim.timer / wa.swingMs);
                 }
                 break;
             case 'recover':
@@ -166,12 +162,8 @@ class CombatSystemImpl {
                 if (anim.timer >= wa.recoverMs) {
                     anim.state = 'idle';
                     anim.timer = 0;
-                } else if (typeof easeInOutCubic === 'function') {
-                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / wa.recoverMs);
                 } else {
-                    const t = anim.timer / wa.recoverMs;
-                    const et = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * et;
+                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(anim.timer / wa.recoverMs);
                 }
                 break;
         }

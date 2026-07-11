@@ -1,5 +1,6 @@
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
+import { Easing } from '../../config/math-utils.js';
 
 const renderMixin = {
 renderHealthBar(ctx, x, y) {
@@ -222,7 +223,7 @@ renderWeapon(ctx) {
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
-                            recoil = -s * (rp.recoilWindup || 0.04) * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                            recoil = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
                             const st = anim.timer / this._getAnimMs(wa.swingMs);
                             recoil = s * (rp.recoilSwing || 0.1) * (1 - st);
@@ -273,7 +274,7 @@ renderWeapon(ctx) {
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
-                            recoil = -s * 0.03 * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                            recoil = -s * 0.03 * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
                             const st = anim.timer / this._getAnimMs(wa.swingMs);
                             recoil = s * 0.08 * (1 - st);
@@ -319,7 +320,7 @@ renderWeapon(ctx) {
                     if (isAttacking) {
                         let recoil = 0, shakeY = 0;
                         if (anim.state === 'windup') {
-                            recoil = -s * 0.04 * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                            recoil = -s * 0.04 * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                         } else if (anim.state === 'swing') {
                             const st = anim.timer / this._getAnimMs(wa.swingMs);
                             recoil = s * 0.12 * (1 - st);
@@ -366,9 +367,9 @@ renderWeapon(ctx) {
                     if (isAttacking && anim.state !== 'rotate' && anim.state !== 'idle_return') {
                         // windup / swing / recover 阶段：帧动画
                         let t = 0;
-                        if (anim.state === 'windup') t = easeOutQuad(anim.timer / wa.windupMs);
+                        if (anim.state === 'windup') t = Easing.easeOutQuad(anim.timer / wa.windupMs);
                         else if (anim.state === 'swing') t = 1;
-                        else if (anim.state === 'recover') t = 1 - easeInQuad(anim.timer / wa.recoverMs);
+                        else if (anim.state === 'recover') t = 1 - Easing.easeInQuad(anim.timer / wa.recoverMs);
 
                         // 弓攻击动画：在旋转后的角度播放，固定朝向为 idleRotation + rotateAngle
                         const bowCfg = WeaponAnimConfig.bow;
@@ -501,7 +502,7 @@ renderWeapon(ctx) {
                         ctx.rotate(Math.PI / 2);
                         let whirlwindOffset = 0;
                         if (this._whirlwindTimer <= 50) {
-                            whirlwindOffset = 15 * easeOutQuad(this._whirlwindTimer / 50);
+                            whirlwindOffset = 15 * Easing.easeOutQuad(this._whirlwindTimer / 50);
                         } else {
                             whirlwindOffset = 15;
                         }
@@ -540,7 +541,7 @@ renderWeapon(ctx) {
                         const elapsed = Date.now() - this._dashResetAnim.startTime;
                         const t = Math.min(1, elapsed / this._dashResetAnim.duration);
                         const w = ms * 0.63;
-                        const easeT = easeOutQuart(t);
+                        const easeT = Easing.easeOutQuart(t);
                         const currentAngle = this._dashResetAnim.startAngle * (1 - easeT);
                         const currentOffset = this._dashResetAnim.startOffset * (1 - easeT);
                         const attackBaseX = wa.holdX + 8;
@@ -567,7 +568,7 @@ renderWeapon(ctx) {
                         /*
                         const elapsed = Date.now() - this._specialResetAnim.startTime;
                         const t = Math.min(1, elapsed / this._specialResetAnim.duration);
-                        const easeT = easeOutQuart(t);
+                        const easeT = Easing.easeOutQuart(t);
                         const w = ms * 0.63;
                         const currentAngle = this._specialResetAnim.startAngle * (1 - easeT);
                         const currentOffset = this._specialResetAnim.startOffset * (1 - easeT);
@@ -714,7 +715,7 @@ renderWeapon(ctx) {
                             const offSwingMs = this._getOffhandAnimMs(offhandItem, wa.swingMs);
                             const offRecoverMs = this._getOffhandAnimMs(offhandItem, wa.recoverMs);
                             if (offhandAnim.state === 'windup') {
-                                recoil = -s * (offRp.recoilWindup || 0.04) * easeOutQuad(offhandAnim.timer / offWindupMs);
+                                recoil = -s * (offRp.recoilWindup || 0.04) * Easing.easeOutQuad(offhandAnim.timer / offWindupMs);
                             } else if (offhandAnim.state === 'swing') {
                                 const st = offhandAnim.timer / offSwingMs;
                                 recoil = s * (offRp.recoilSwing || 0.1) * (1 - st);
@@ -862,19 +863,19 @@ render(ctx) {
                     const elapsed = Date.now() - this._dashResetAnim.startTime;
                     const t = Math.min(1, elapsed / this._dashResetAnim.duration);
                     const delta = this._shortestAngleDelta(this._dashResetAnim.startRotation, this._dashResetAnim.targetRotation);
-                    ctx.rotate(this._dashResetAnim.startRotation + delta * easeOutQuart(t));
+                    ctx.rotate(this._dashResetAnim.startRotation + delta * Easing.easeOutQuart(t));
                 }
                 else if (this._specialResetAnim) {
                     const elapsed = Date.now() - this._specialResetAnim.startTime;
                     const t = Math.min(1, elapsed / this._specialResetAnim.duration);
                     const delta = this._shortestAngleDelta(this._specialResetAnim.startRotation, this._specialResetAnim.targetRotation);
-                    ctx.rotate(this._specialResetAnim.startRotation + delta * easeOutQuart(t));
+                    ctx.rotate(this._specialResetAnim.startRotation + delta * Easing.easeOutQuart(t));
                 }
                 else if (this._runeSwordResetAnim) {
                     const elapsed = Date.now() - this._runeSwordResetAnim.startTime;
                     const t = Math.min(1, elapsed / this._runeSwordResetAnim.duration);
                     const delta = this._shortestAngleDelta(this._runeSwordResetAnim.startRotation, this._runeSwordResetAnim.targetRotation);
-                    ctx.rotate(this._runeSwordResetAnim.startRotation + delta * easeOutQuart(t));
+                    ctx.rotate(this._runeSwordResetAnim.startRotation + delta * Easing.easeOutQuart(t));
                 }
                 else ctx.rotate(this.rotation);
                 // 调试坐标系（用于对比工具中的坐标系）
@@ -927,7 +928,7 @@ render(ctx) {
                     let spinAngle = 0;
                     if (this._whirlwindTimer > 50) {
                         const t = Math.min(1, (this._whirlwindTimer - 50) / (this._whirlwindDuration - 50));
-                        spinAngle = easeOutQuad(t) * 4 * Math.PI * 2;
+                        spinAngle = Easing.easeOutQuad(t) * 4 * Math.PI * 2;
                     }
                     ctx.rotate(spinAngle);
                 }

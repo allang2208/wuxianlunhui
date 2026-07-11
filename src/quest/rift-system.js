@@ -1,4 +1,5 @@
 // Rift System - 时空裂隙系统
+import { FloatingTextEffect } from '../effects/floating-text.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
     _progressBarEl: null,

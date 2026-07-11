@@ -14,6 +14,7 @@
  *   RewardSystem, pathFinder
  */
 
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BlackWolf } from '../entities/enemy-types.js';
 import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer

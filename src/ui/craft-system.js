@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isCraftableWeapon, getGunAmmoCapacity } from '../config/gun-ammo.js';
 
 const CraftSystem = {

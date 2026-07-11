@@ -5,6 +5,10 @@ import { DataLoader } from './systems/data-loader.js';
 import { MovementSystem } from './systems/movement-system.js';
 import { CombatSystem } from './systems/combat-system.js';
 import { PerceptionSystem } from './systems/perception-system.js';
+import { GAME_CONFIG } from './config/game-config.js';
+import { COMBAT_FORMULAS } from './config/combat-formulas.js';
+import { COMBAT_CONFIG } from './config/combat-config.js';
+import { ANIMATION_CONFIG } from './config/animation-config.js';
 
 // 异步加载所有数据，然后初始化模块
 async function initModules() {
@@ -43,16 +47,25 @@ async function initModules() {
         window.ENEMY_DATA = data.enemies;
     }
 
+    // 暴露全局配置（向后兼容：内部模块已改为显式导入）
+    window.GAME_CONFIG = GAME_CONFIG;
+    window.COMBAT_FORMULAS = COMBAT_FORMULAS;
+    window.COMBAT_CONFIG = COMBAT_CONFIG;
+    window.ANIMATION_CONFIG = ANIMATION_CONFIG;
+
     // 加载战术小队配置
     const squadConfig = await DataLoader.loadJSON('/data/humanoid-squad-config.json');
     if (squadConfig) {
         window.HUMANOID_SQUAD_CONFIG = squadConfig;
     }
 
-    // 挂载到全局（保持与原 legacy.js 相同的运行时行为）
+    // 挂载到全局（保持与原 legacy.js 相同的运行时行为，内部模块已逐步改为显式导入）
     // A. Config & Utils
+    // DEPRECATED: 内部模块请直接 import { CONFIG } from './config/config.js'
     window.CONFIG = CONFIG;
+    // DEPRECATED: 内部模块请直接 import { MathUtils } from './config/math-utils.js'
     window.MathUtils = MathUtils;
+    // DEPRECATED: 内部模块请直接 import { Easing } from './config/math-utils.js'
     window.Easing = Easing;
     window.WEAPON_ANIM = WEAPON_ANIM;
     window.Z_INDEX = Z_INDEX;
@@ -62,12 +75,7 @@ async function initModules() {
     window.EnchantScrollItems = EnchantScrollItems;
     window.MagicDustItem = MagicDustItem;
     window.AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun };
-    // 兼容旧代码直接引用的 easing 函数（player.js / enemy.js 中使用）
-    window.easeInQuad = Easing.easeInQuad;
-    window.easeOutQuad = Easing.easeOutQuad;
-    window.easeInCubic = Easing.easeInCubic;
-    window.easeInOutCubic = Easing.easeInOutCubic;
-    window.easeOutQuart = Easing.easeOutQuart;
+    // 注：缓动别名（easeInQuad 等）已从全局移除，内部代码请使用 Easing.easeInQuad
 
     // B. World
     window.Renderer = Renderer;
@@ -77,6 +85,7 @@ async function initModules() {
     window.WallSystem = WallSystem;
 
     // C. Effects
+    // DEPRECATED: 内部模块请直接 import { XXXEffect } from './effects/xxx-effect.js'
     window.EffectManager = EffectManager;
     window.WeaponEffect = WeaponEffect;
     window.SlashEffect = SlashEffect;
@@ -230,6 +239,7 @@ async function initModules() {
 // 导入所有模块（导入顺序不影响运行时，因为挂载在 initModules 中执行）
 // A. Config & Utils
 import { CONFIG } from './config/config.js';
+
 import { MathUtils, Easing, WEAPON_ANIM } from './config/math-utils.js';
 import { Z_INDEX, CSS_Z_INDEX } from './config/ui-constants.js';
 import { EnchantConfig, EnchantScrollItems, MagicDustItem } from './config/enchant-config.js';
@@ -353,7 +363,6 @@ window.triggerRedWolfTransform = function() {
             e._attackTimer = 0;
             e._attackDashOffset = 0;
             found = true;
-            console.log(`[Debug] [${e.name}] 强制变身触发！HP=${e.hp}/${e.maxHp}`);
         }
     });
     if (!found) console.warn('[Debug] 未找到可变身状态的红狼王（可能已变身或未生成）');

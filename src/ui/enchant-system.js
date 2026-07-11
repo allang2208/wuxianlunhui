@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EnchantConfig, EnchantScrollItems, MagicDustItem } from '../config/enchant-config.js';
 import { ItemFactory } from '../items/item-factory.js';
 import { EquipManager } from './equip-manager.js';
@@ -328,7 +329,7 @@ const EnchantSystem = {
             if (player) {
                 Game.dropItem(player.x, player.y, this._scrollItem);
                 // 使用游戏内浮动文字显示消息
-                if (typeof EffectManager !== 'undefined' && typeof FloatingTextEffect !== 'undefined') {
+                if (typeof EffectManager !== 'undefined') {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，卷轴掉落在地上'));
                 }
                 this._showMessage('背包已满，卷轴掉落在地上', 'error');
@@ -397,7 +398,7 @@ const EnchantSystem = {
             if (player) {
                 Game.dropItem(player.x, player.y, this._equipItem);
                 // 使用游戏内浮动文字显示消息
-                if (typeof EffectManager !== 'undefined' && typeof FloatingTextEffect !== 'undefined') {
+                if (typeof EffectManager !== 'undefined') {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，装备掉落在地上'));
                 }
                 this._showMessage('背包已满，装备掉落在地上', 'error');

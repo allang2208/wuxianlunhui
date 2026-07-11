@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,

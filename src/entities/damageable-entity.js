@@ -1,6 +1,8 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { SmokeEffect } from '../effects/smoke-effect.js';
 import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { ZombieBloodPool } from '../effects/particle-effects.js';
+import { BloodMistEffect, DeathEffect, ZombieBloodPool } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 
         class DamageableEntity extends Entity {

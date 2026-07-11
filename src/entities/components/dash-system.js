@@ -1,6 +1,8 @@
+import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
+import { SmokeEffect } from '../../effects/smoke-effect.js';
 import { isRifle } from '../../config/gun-ammo.js';
-import { DashFireTrailEffect } from '../../effects/dash-effects.js';
-
+import { DashFireTrailEffect, GoldenConvergeEffect } from '../../effects/dash-effects.js';
+import { MathUtils, Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 class DashSystem {
     constructor(player) {
@@ -60,21 +62,21 @@ class DashSystem {
             // dashOffset < 0 = 向右（远离玩家）= "前"
             const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', 600);
             const t = Math.min(1, timer / totalMs);
-            dashOffset = -95 * easeOutQuad(t);
+            dashOffset = -95 * Easing.easeOutQuad(t);
             dashAngle = 0;
         } else {
             // === 默认 dashAttack：武器在朝向方向以120度扇形划过 ===
             // dashAngle: -60° → +60°（以朝向为中心，总120°扇形）
-            dashAngle = -Math.PI / 3 + (2 * Math.PI / 3) * easeInOutCubic(dashProgress);
+            dashAngle = -Math.PI / 3 + (2 * Math.PI / 3) * Easing.easeInOutCubic(dashProgress);
             // dashOffset: 武器前后位移动画（蓄力前伸 → 挥砍 → 收回）
             if (dashProgress < 0.25) {
                 const t = dashProgress / 0.25;
-                dashOffset = 15 * easeOutQuad(t);
+                dashOffset = 15 * Easing.easeOutQuad(t);
             } else if (dashProgress < 0.75) {
                 dashOffset = 15;
             } else {
                 const t = (dashProgress - 0.75) / 0.25;
-                dashOffset = 15 - 60 * easeOutQuad(t);
+                dashOffset = 15 - 60 * Easing.easeOutQuad(t);
             }
         }
         return { dashOffset, dashAngle };
@@ -166,7 +168,7 @@ class DashSystem {
             const dashDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', 188);
             if (progress < 0.40) {
                 const moveProgress = progress / 0.40;
-                const easedProgress = easeOutQuad(moveProgress);
+                const easedProgress = Easing.easeOutQuad(moveProgress);
                 const speedMul = 0.75;
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
@@ -250,7 +252,7 @@ class DashSystem {
             const dashDist = 188;
             if (progress < 0.40) {
                 const moveProgress = progress / 0.40;
-                const easedProgress = easeOutQuad(moveProgress);
+                const easedProgress = Easing.easeOutQuad(moveProgress);
                 const speedMul = 0.75;
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;

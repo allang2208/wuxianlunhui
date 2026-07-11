@@ -1,0 +1,95 @@
+{
+  "$schema": "./combat-config.schema.json",
+  "attack": {
+    "defaults": {
+      "cooldown": 1000,
+      "range": 0,
+      "width": 0,
+      "weaponOffset": 0,
+      "staminaMeleeCostConfigKey": "STAMINA_MELEE_COST",
+      "staminaRangedCostConfigKey": "STAMINA_RANGED_COST"
+    }
+  },
+  "slashAttack": {
+    "cooldown": 500,
+    "range": 100,
+    "arc": 1.2566370614359172,
+    "damage": { "min": 10, "max": 18 },
+    "knockback": 31,
+    "sword": {
+      "baseRange": 155,
+      "rangeBonus": 50
+    }
+  },
+  "thrustAttack": {
+    "cooldown": 600,
+    "range": 117,
+    "width": 23,
+    "damage": { "min": 12, "max": 20 },
+    "knockback": 19,
+    "damageType": "physical",
+    "hitDurationMs": 500,
+    "sword": {
+      "rangeBonus": 50
+    },
+    "enemy": {
+      "cooldown": 600,
+      "range": 80,
+      "width": 20,
+      "damage": { "min": 8, "max": 15 },
+      "knockback": 15
+    }
+  },
+  "rangedAttack": {
+    "cooldown": 800,
+    "projectileSpeed": 10,
+    "projectileRange": 625,
+    "projectileSize": 6,
+    "damage": { "min": 6, "max": 14 },
+    "piercing": false,
+    "damageType": "physical"
+  },
+  "projectile": {
+    "defaults": {
+      "speed": 10,
+      "range": 625,
+      "size": 6
+    }
+  },
+  "enemyDefaults": {
+    "hp": 150,
+    "maxHp": 150,
+    "size": 14,
+    "speedMultiplier": 3,
+    "accel": 0.7,
+    "friction": 0.82,
+    "aiInterval": 300,
+    "attackRange": 70,
+    "level": 1,
+    "stamina": 9999,
+    "maxStamina": 9999,
+    "stats": {
+      "str": 10,
+      "dex": 10,
+      "int": 10,
+      "con": 10,
+      "wis": 10,
+      "luck": 10
+    }
+  },
+  "weaponAnim": {
+    "enemy": {
+      "pendingThrustHitWindowMs": 200
+    }
+  },
+  "energyLMG": {
+    "baseCooldown": 333,
+    "maxCooldown": 50,
+    "rampUpTime": 2500,
+    "overheatTime": 4000,
+    "overheatRecoverTime": 2500,
+    "overheatCooldownTime": 4000,
+    "spreadMaxTime": 2500,
+    "maxSpreadAngle": 15
+  }
+}

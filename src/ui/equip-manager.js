@@ -1,4 +1,5 @@
         // Item Tooltip System v2 - Cache Bust
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';

@@ -1,4 +1,5 @@
 // Quest System - 任务日志系统
+import { FloatingTextEffect } from '../effects/floating-text.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',

@@ -1,4 +1,5 @@
 /**
+import { FloatingTextEffect } from '../effects/floating-text.js';
  * TacticalSquadRoleSwitch — 战术小队角色动态切换系统
  *
  * 职责：监控战术小队成员的生存状态，当关键角色缺失时，

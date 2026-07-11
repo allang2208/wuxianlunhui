@@ -1,3 +1,6 @@
+import { DashConvergeEffect } from '../../effects/dash-effects.js';
+import { FloatingTextEffect } from '../../effects/floating-text.js';
+import { DustEffect } from '../../effects/particle-effects.js';
 import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
 
 const updateMixin = {

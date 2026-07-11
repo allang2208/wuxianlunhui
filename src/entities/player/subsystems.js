@@ -1,5 +1,11 @@
+import { FloatingTextEffect } from '../../effects/floating-text.js';
+import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
+import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
+import { DodgeEffect } from '../../effects/particle-effects.js';
+import { ShellCasingEffect } from '../../effects/shell-casing.js';
 import { isGunWeapon } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
+import { Easing } from '../../config/math-utils.js';
 
 const subsystemsMixin = {
 gainExp(amount) {
@@ -1592,7 +1598,7 @@ _getWeaponAnimParams() {
                     let recoil = 0;
                     if (anim.state === 'windup') {
                         const t = anim.timer / this._getAnimMs(wa.windupMs);
-                        recoil = -s * 0.08 * easeOutQuad(t); // 拉弓后移
+                        recoil = -s * 0.08 * Easing.easeOutQuad(t); // 拉弓后移
                     } else if (anim.state === 'swing') {
                         const st = anim.timer / this._getAnimMs(wa.swingMs);
                         recoil = s * 0.05 * (1 - st); // 释放后轻微前移
@@ -1607,7 +1613,7 @@ _getWeaponAnimParams() {
                 if ((isPistol || isPkmOrAkm || isShotgun) && anim.state !== 'idle') {
                     let recoil = 0, shakeY = 0;
                     if (anim.state === 'windup') {
-                        recoil = -s * 0.03 * easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                        recoil = -s * 0.03 * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.windupMs));
                     } else if (anim.state === 'swing') {
                         const st = anim.timer / this._getAnimMs(wa.swingMs);
                         recoil = s * 0.1 * (1 - st);
@@ -1683,7 +1689,7 @@ _getOffhandWeaponAnimParams() {
                     const offSwingMs = this._getOffhandAnimMs(offhandItem, wa.swingMs);
                     const offRecoverMs = this._getOffhandAnimMs(offhandItem, wa.recoverMs);
                     if (offhandAnim.state === 'windup') {
-                        recoil = -s * 0.03 * easeOutQuad(offhandAnim.timer / offWindupMs);
+                        recoil = -s * 0.03 * Easing.easeOutQuad(offhandAnim.timer / offWindupMs);
                     } else if (offhandAnim.state === 'swing') {
                         const st = offhandAnim.timer / offSwingMs;
                         recoil = s * 0.1 * (1 - st);

@@ -1,4 +1,8 @@
+import { AttackRangeEffect } from '../effects/attack-range-effect.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+import { DamagePipeline } from './damage-pipeline.js';
+import { COMBAT_CONFIG } from '../config/combat-config.js';
+import { MathUtils } from '../config/math-utils.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -25,7 +29,17 @@ function applyEnchantOnHit(weapon, target, source) {
 }
 
         class Attack {
-            constructor(config) { this.config = config; this.cooldown = 0; this.maxCooldown = config.cooldown !== undefined ? config.cooldown : 1000; this.range = config.range || 0; this.width = config.width || 0; this.projectileSpeed = config.projectileSpeed || 0; this.projectileRange = config.projectileRange || 0; this.active = true; }
+            constructor(config) { 
+                this.config = config; 
+                this.cooldown = 0; 
+                const defaultCooldown = COMBAT_CONFIG.attack?.defaults?.cooldown || 1000;
+                this.maxCooldown = config.cooldown !== undefined ? config.cooldown : defaultCooldown; 
+                this.range = config.range || 0; 
+                this.width = config.width || 0; 
+                this.projectileSpeed = config.projectileSpeed || 0; 
+                this.projectileRange = config.projectileRange || 0; 
+                this.active = true; 
+            }
             canUse() { return this.cooldown <= 0; }
             use(source, targetX, targetY, entities) { if (!this.canUse()) return false; const success = this.execute(source, targetX, targetY, entities); if (success) this.cooldown = this.maxCooldown; return success; }
             execute(source, targetX, targetY, entities) {}
@@ -35,7 +49,15 @@ function applyEnchantOnHit(weapon, target, source) {
 
         class SlashAttack extends Attack {
             constructor(config = {}) {
-                super({ cooldown: config.cooldown || 500, range: config.range || 100, arc: config.arc || Math.PI / 2.5, damage: config.damage || { min: 10, max: 18 }, knockback: config.knockback || 31, ...config });
+                const cfg = COMBAT_CONFIG.slashAttack || { cooldown: 500, range: 100, arc: Math.PI / 2.5, damage: { min: 10, max: 18 }, knockback: 31 };
+                super({ 
+                    cooldown: config.cooldown || cfg.cooldown, 
+                    range: config.range || cfg.range, 
+                    arc: config.arc || cfg.arc, 
+                    damage: config.damage || cfg.damage, 
+                    knockback: config.knockback || cfg.knockback, 
+                    ...config 
+                });
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
@@ -53,8 +75,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 }
                 // 剑类武器攻击范围调整：根据武器配置使用对应射程
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? 50;
-                let effectiveRange = isSword ? ((currentWeapon.attack?.range || 155) + rangeBonus) : this.config.range;
+                const swordCfg = COMBAT_CONFIG.slashAttack?.sword || { baseRange: 155, rangeBonus: 50 };
+                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? swordCfg.rangeBonus;
+                let effectiveRange = isSword ? ((currentWeapon.attack?.range || swordCfg.baseRange) + rangeBonus) : this.config.range;
                 // 应用改造效果：攻击距离
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
@@ -65,12 +88,14 @@ function applyEnchantOnHit(weapon, target, source) {
                     console.warn('SlashAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
                     return true;
                 }
-                // 攻击范围起始位置与主角坐标重叠（偏移0px）
-                const WEAPON_OFFSET = 0;
-                const originX = source.x + Math.cos(attackAngle) * WEAPON_OFFSET;
-                const originY = source.y + Math.sin(attackAngle) * WEAPON_OFFSET;
+                // 攻击范围起始位置与主角坐标重叠
+                const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
+                const originX = source.x + Math.cos(attackAngle) * weaponOffset;
+                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
                 EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, arc, 'sector'));
                 let hitCount = 0, killCount = 0;
+                const hitCountRef = { value: 0 };
+                const killCountRef = { value: 0 };
                 entities.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     // 新增：怪物之间不互相攻击
@@ -78,19 +103,17 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (MathUtils.pointInSector(entity.x, entity.y, originX, originY, attackAngle, effectiveRange, arc)) {
                         const baseDamage = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                         const damage = baseDamage;
-                        const wasAlive = entity.hp > 0;
-                        entity.takeDamage(damage, source, 'physical', true);
-                        if (wasAlive && entity.hp <= 0) killCount++;
+                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                            damage,
+                            damageType: 'physical',
+                            knockback: this.config.knockback,
+                            angle: attackAngle,
+                            currentWeapon,
+                            hitCountRef,
+                            killCountRef
+                        });
+                        if (killed) killCount++;
                         hitCount++;
-                        entity.applyKnockback(attackAngle, this.config.knockback);
-                        source._triggerRuneSwordCooldownReduction && source._triggerRuneSwordCooldownReduction();
-                        // 通用附魔命中效果（非硬编码）
-                        applyEnchantOnHit(currentWeapon, entity, source);
-                        if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
-                        // 改造效果：流血
-                        if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
-                            entity.applyBleeding(1);
-                        }
                     }
                 });
                 // 剑精通经验（普通斩击命中）
@@ -101,7 +124,17 @@ function applyEnchantOnHit(weapon, target, source) {
 
         class ThrustAttack extends Attack {
             constructor(config = {}) {
-                super({ cooldown: config.cooldown || 600, range: config.range || 117, width: config.width || 23, damage: config.damage || { min: 12, max: 20 }, knockback: config.knockback || 19, damageType: config.damageType || 'physical', ...config });
+                const cfg = COMBAT_CONFIG.thrustAttack || { cooldown: 600, range: 117, width: 23, damage: { min: 12, max: 20 }, knockback: 19, damageType: 'physical', hitDurationMs: 500 };
+                super({ 
+                    cooldown: config.cooldown || cfg.cooldown, 
+                    range: config.range || cfg.range, 
+                    width: config.width || cfg.width, 
+                    damage: config.damage || cfg.damage, 
+                    knockback: config.knockback || cfg.knockback, 
+                    damageType: config.damageType || cfg.damageType, 
+                    hitDurationMs: config.hitDurationMs || cfg.hitDurationMs,
+                    ...config 
+                });
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
@@ -126,7 +159,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? 50;
+                const swordCfg = COMBAT_CONFIG.thrustAttack?.sword || { rangeBonus: 50 };
+                const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? swordCfg.rangeBonus;
                 const hitBox = WeaponAnimConfig.sword.hitBox;
                 let effectiveRange = isSword ? (hitBox.forwardRange + rangeBonus) : this.config.range;
                 // 应用改造效果：攻击距离
@@ -134,10 +168,10 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const effectiveWidth = isSword ? hitBox.width * 2 : this.config.width; // hitBox.width 是半宽，显示用全宽
-                // 攻击范围起始位置与主角坐标重叠（偏移0px）
-                const WEAPON_OFFSET = 0;
-                const originX = source.x + Math.cos(attackAngle) * WEAPON_OFFSET;
-                const originY = source.y + Math.sin(attackAngle) * WEAPON_OFFSET;
+                // 攻击范围起始位置与主角坐标重叠（偏移从全局配置读取）
+                const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
+                const originX = source.x + Math.cos(attackAngle) * weaponOffset;
+                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
                 // 白色攻击范围可视化：使用统一 hitBox 配置
                 if (Game.showAttackRange) {
                     EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, effectiveWidth, 'triangle', 1000));
@@ -169,8 +203,9 @@ function applyEnchantOnHit(weapon, target, source) {
             checkTriangleHit(source) {
                 const pt = source._pendingThrust;
                 if (!pt || !pt.active) return;
-                // 攻击判定持续时间：500ms（覆盖 windup + swing 阶段）
-                if (Date.now() - pt.startTime > 500) { pt.active = false; return; }
+                // 攻击判定持续时间：覆盖 windup + swing 阶段
+                const hitDurationMs = this.config.hitDurationMs || 500;
+                if (Date.now() - pt.startTime > hitDurationMs) { pt.active = false; return; }
                 const range = pt.range, width = pt.width, angle = pt.angle;
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
@@ -207,33 +242,19 @@ function applyEnchantOnHit(weapon, target, source) {
                         }
                         const realDist = Math.sqrt((entity.x - sourceX)**2 + (entity.y - sourceY)**2);
                         if (realDist <= pt.dynamicRange + entityRadius) {
-                            // 命中：走正常伤害流程
+                            // 命中：走统一伤害管道
                             pt.hitSet.add(entity);
-                            hitCount++;
-                            // 通用附魔命中效果
-                            applyEnchantOnHit(currentWeapon, entity, source);
-                            if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
                             let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                             const damage = baseDamage + pt.damageBonus;
-                            const wasAlive = entity.hp > 0;
-                            entity.takeDamage(damage, source, pt.damageType || 'physical', true);
-                            if (wasAlive && entity.hp <= 0) killCount++;
-                            entity.applyKnockback(angle, pt.knockback);
-                            // 改造效果：流血
-                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
-                                entity.applyBleeding(1);
-                            }
-                            // 改造效果：魔力易伤
-                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
-                                const stacks = currentWeapon._craftEffects.magicVulnerabilityStacks || 1;
-                                entity.applyMagicVulnerability(stacks);
-                            }
-                            // 改造效果：附魔刀刃
-                            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.enchantedBlade) {
-                                const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
-                                entity.takeDamage(weaponAtk, source, 'magic');
-                            }
-                            source._triggerRuneSwordCooldownReduction && source._triggerRuneSwordCooldownReduction();
+                            const { killed } = DamagePipeline.applyHit(source, entity, {
+                                damage,
+                                damageType: pt.damageType || 'physical',
+                                knockback: pt.knockback,
+                                angle,
+                                currentWeapon
+                            });
+                            if (killed) killCount++;
+                            hitCount++;
                             return; // 命中后直接处理下一个实体
                         }
                         // 动态距离未命中：跳过矩形判定，继续下一个
@@ -258,31 +279,17 @@ function applyEnchantOnHit(weapon, target, source) {
                     }
                     if (inRange) {
                         pt.hitSet.add(entity);
-                        hitCount++;
-                        // 通用附魔命中效果（非硬编码，替代硬编码的 _onHitEntity）
-                        applyEnchantOnHit(currentWeapon, entity, source);
-                        if (typeof source._onHitEntity === 'function') source._onHitEntity(entity);
                         let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                         const damage = baseDamage + pt.damageBonus;
-                        const wasAlive = entity.hp > 0;
-                        entity.takeDamage(damage, source, pt.damageType || 'physical', true);
-                        if (wasAlive && entity.hp <= 0) killCount++;
-                        entity.applyKnockback(angle, pt.knockback);
-                        // 改造效果：流血
-                        if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
-                            entity.applyBleeding(1);
-                        }
-                        // 改造效果：魔力易伤（符文长剑/夜与火之剑）
-                        if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
-                            const stacks = currentWeapon._craftEffects.magicVulnerabilityStacks || 1;
-                            entity.applyMagicVulnerability(stacks);
-                        }
-                        // 改造效果：附魔刀刃（夜与火之剑）
-                        if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.enchantedBlade) {
-                            const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
-                            entity.takeDamage(weaponAtk, source, 'magic');
-                        }
-                        source._triggerRuneSwordCooldownReduction && source._triggerRuneSwordCooldownReduction();
+                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                            damage,
+                            damageType: pt.damageType || 'physical',
+                            knockback: pt.knockback,
+                            angle,
+                            currentWeapon
+                        });
+                        if (killed) killCount++;
+                        hitCount++;
                     }
                 });
                 // 累计命中/击杀数（不直接给经验，经验在swing结束时统一发放）
@@ -302,7 +309,17 @@ function applyEnchantOnHit(weapon, target, source) {
 
         class RangedAttack extends Attack {
             constructor(config = {}) {
-                super({ cooldown: config.cooldown || 800, projectileSpeed: config.projectileSpeed || 10, projectileRange: config.projectileRange || 625, projectileSize: config.projectileSize || 6, damage: config.damage || { min: 6, max: 14 }, piercing: config.piercing || false, damageType: config.damageType || 'physical', ...config });
+                const cfg = COMBAT_CONFIG.rangedAttack || { cooldown: 800, projectileSpeed: 10, projectileRange: 625, projectileSize: 6, damage: { min: 6, max: 14 }, piercing: false, damageType: 'physical' };
+                super({ 
+                    cooldown: config.cooldown || cfg.cooldown, 
+                    projectileSpeed: config.projectileSpeed || cfg.projectileSpeed, 
+                    projectileRange: config.projectileRange || cfg.projectileRange, 
+                    projectileSize: config.projectileSize || cfg.projectileSize, 
+                    damage: config.damage || cfg.damage, 
+                    piercing: config.piercing || cfg.piercing, 
+                    damageType: config.damageType || cfg.damageType, 
+                    ...config 
+                });
             }
             execute(source, targetX, targetY, entities) {
                 if (source.consumeStamina) {
@@ -343,9 +360,13 @@ function applyEnchantOnHit(weapon, target, source) {
                         }
                     }
                 }
+                const projDefaults = COMBAT_CONFIG.projectile?.defaults || { speed: 10, range: 625, size: 6 };
+                const projectileSpeed = this.config.projectileSpeed || projDefaults.speed;
+                const projectileRange = this.config.projectileRange || projDefaults.range;
+                const projectileSize = this.config.projectileSize || projDefaults.size;
                 { let p = EffectManager._acquire('Projectile');
-                        if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = this.config.projectileSpeed; p.maxRange = this.config.projectileRange; p.size = this.config.projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; p.isSpit = false; }
-                        else p = new Projectile(source.x, source.y, angle, this.config.projectileSpeed, this.config.projectileRange, this.config.projectileSize, damage, piercing, source, entities, source.arrowImage, false, false, false, damageType);
+                        if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = projectileSpeed; p.maxRange = projectileRange; p.size = projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; p.isSpit = false; }
+                        else p = new Projectile(source.x, source.y, angle, projectileSpeed, projectileRange, projectileSize, damage, piercing, source, entities, source.arrowImage, false, false, false, damageType);
                         if (source.name === '毒液僵尸' || this.config.isSpit) p.isSpit = true;
                         EffectManager.add(p); }
                 return true;

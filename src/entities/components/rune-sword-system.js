@@ -1,3 +1,4 @@
+import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;

@@ -1,0 +1,266 @@
+{
+  "$schema": "./game-config.schema.json",
+  "meta": {
+    "version": "0.198"
+  },
+  "display": {
+    "defaultResolution": { "width": 1920, "height": 1080 },
+    "viewWidth": 1920,
+    "viewHeight": 1080,
+    "clearColors": {
+      "main": "#2a3520",
+      "dungeon": "#000000"
+    }
+  },
+  "world": {
+    "main": { "width": 7650, "height": 3800 },
+    "default": { "width": 7680, "height": 4320 }
+  },
+  "camera": {
+    "smooth": 0.12
+  },
+  "grid": {
+    "size": 60,
+    "strokeStyle": "rgba(90, 77, 63, 0.15)",
+    "lineWidth": 1
+  },
+  "scenes": {
+    "mainHub": {
+      "origin": { "x": 3825, "y": 1886 }
+    }
+  },
+  "loot": {
+    "drops": {
+      "mainHub": {
+        "g18": { "x": 120, "y": 0 },
+        "saiga12k": { "x": 160, "y": 0 },
+        "scrollBase": { "x": 200, "y": 0, "spacing": 40 },
+        "magicDust": [
+          { "x": 200, "y": 40 },
+          { "x": 240, "y": 40, "stack": 999 }
+        ],
+        "materials": {
+          "baseX": 280,
+          "baseY": 40,
+          "spacingX": 30,
+          "spacingY": 40,
+          "count": 10
+        }
+      }
+    }
+  },
+  "portals": {
+    "mainHub": {
+      "base": { "x": 3478, "y": 2363 },
+      "spacing": 100,
+      "direction": "left",
+      "cooldownMs": 2000,
+      "triggerDistance": 30,
+      "entries": [
+        { "targetScene": "scene2", "label": "场景二" },
+        { "targetScene": "scene3", "label": "场景三" },
+        { "targetScene": "scene4", "label": "场景四" },
+        { "targetScene": "scene5", "label": "场景五" },
+        { "targetScene": "scene7", "label": "僵尸地牢" }
+      ]
+    }
+  },
+  "targets": {
+    "training": {
+      "base": { "x": 3821, "y": 2365 },
+      "cols": 3,
+      "rows": 3,
+      "spacing": 120,
+      "baseHp": 150,
+      "hpIncrement": 30,
+      "namePrefix": "训练靶"
+    },
+    "dpsTest": {
+      "x": 3244,
+      "y": 1879,
+      "hp": 999999,
+      "maxHp": 999999,
+      "size": 32,
+      "collisionRadius": 28,
+      "name": "DPS测试靶",
+      "expValue": 0,
+      "dpsTracking": true
+    },
+    "testTargets": {
+      "base": { "x": 4379, "y": 2411 },
+      "spacing": 60,
+      "perRow": 5,
+      "count": 20,
+      "hp": 10,
+      "maxHp": 10,
+      "size": 14,
+      "collisionRadius": 10,
+      "namePrefix": "测试目标",
+      "expValue": 10
+    }
+  },
+  "npcs": {
+    "shopMouseKing": {
+      "offset": { "x": 120, "y": -150 },
+      "name": "小鼠大王",
+      "size": 20,
+      "collisionRadius": 14,
+      "color": "#c4a35a",
+      "portrait": "assets/ui/npc_portrait.png",
+      "npcType": "shop"
+    },
+    "mouseAttendant": {
+      "relativeTo": "shopMouseKing",
+      "offset": { "x": -100, "y": 0 },
+      "name": "小鼠侍从",
+      "size": 20,
+      "collisionRadius": 14,
+      "color": "#c4a35a",
+      "portrait": "assets/npc/mouse_attendant.png",
+      "npcType": "quest"
+    }
+  },
+  "trees": {
+    "demoLayout": {
+      "treeRadius": 25,
+      "groups": [
+        { "count": 5, "baseX": 300, "baseY": 0, "spacingX": 300, "spacingY": 0, "yJitter": 20, "type": "normal", "startIndex": 0 },
+        { "count": 3, "baseX": 300, "baseY": 300, "spacingX": 300, "spacingY": 0, "yJitter": 20, "type": "snow", "startIndex": 5 }
+      ]
+    }
+  },
+  "weaponSpawn": {
+    "grid": {
+      "base": { "x": -1356, "y": 3 },
+      "cols": 10,
+      "spacingX": 100,
+      "spacingY": 200
+    },
+    "allWeapons": {
+      "offset": { "x": -874, "y": -136 },
+      "spacing": 50
+    }
+  },
+  "interactionDistances": {
+    "npcClick": 200,
+    "npcHover": 40,
+    "pickupClick": 150,
+    "pickupHover": 35,
+    "npcAutoClose": 200,
+    "portalTrigger": 30
+  },
+  "pickup": {
+    "nearbyRange": 75,
+    "goldAutoRange": 80,
+    "goldThrowOutRange": 80
+  },
+  "gameLoop": {
+    "maxDtMs": 100
+  },
+  "scene2": {
+    "spawning": {
+      "freeExplore": {
+        "interval": 5000,
+        "count": 3,
+        "radius": 2000,
+        "monsterType": "BlackWolf"
+      },
+      "quest": {
+        "firstDelay": 40000,
+        "interval": 40000,
+        "count": 3,
+        "radius": 1500,
+        "monsterType": "BlackWolf"
+      }
+    }
+  },
+  "scene3": {
+    "scrollSpeed": 500,
+    "trainBackground": {
+      "interiorHeight": 300,
+      "skyColor": "#1a2518",
+      "groundColor": "#2a3520",
+      "railColor": "#5a5a4a",
+      "railLineWidth": 2,
+      "railGap": 6,
+      "sleeperSpacing": 60,
+      "sleeperWidth": 5,
+      "sleeperHeight": 10,
+      "sleeperColor": "#4a4a3a"
+    },
+    "groundVegetation": {
+      "spacing": 150,
+      "treeOffsetMax": 150,
+      "minTreeSize": 8,
+      "maxTreeSize": 20,
+      "topOffsetY": -95,
+      "bottomOffsetY": 95,
+      "color": "#1a2a0a"
+    }
+  },
+  "minimap": {
+    "width": 150,
+    "height": 150,
+    "padding": 10,
+    "offsetY": 50,
+    "title": "地图",
+    "background": "rgba(0, 0, 0, 0.6)",
+    "border": "rgba(255, 255, 255, 0.4)",
+    "styles": {
+      "wall": "rgba(80, 80, 80, 0.5)",
+      "viewFrame": "rgba(255, 200, 0, 0.6)",
+      "rift": "#00008B",
+      "portal": "#00aaff",
+      "boss": "#ff0000",
+      "enemy": "#ff4444",
+      "drop": "#ffd700",
+      "player": "#00ff00",
+      "playerArrow": "#00ff00"
+    },
+    "sizes": {
+      "wallMin": 0.5,
+      "portalRadius": 2.5,
+      "enemyRadius": 1.5,
+      "dropRadius": 1,
+      "playerRadius": 3,
+      "playerArrowLength": 6,
+      "riftRadius": 2
+    }
+  },
+  "crosshair": {
+    "lerpSpeed": 0.3,
+    "geometry": {
+      "baseGap": 4,
+      "maxGapExtra": 16,
+      "lineLen": 6,
+      "lineWidth": 2.5,
+      "outlineWidth": 2.5
+    },
+    "colors": {
+      "outline": "#000",
+      "main": "#00ff00",
+      "centerOuter": "#000",
+      "centerInner": "#00ff00"
+    },
+    "centerDot": {
+      "outerRadius": 1.5,
+      "innerRadius": 0.8
+    }
+  },
+  "worldBorder": {
+    "strokeStyle": "#8a4a4a",
+    "lineWidth": 4
+  },
+  "effects": {
+    "testArea": {
+      "x": 3478,
+      "y": 2363,
+      "width": 100,
+      "height": 100,
+      "thickness": 10,
+      "duration": 5000,
+      "label": "测试区域",
+      "labelColor": "#000000"
+    }
+  }
+}

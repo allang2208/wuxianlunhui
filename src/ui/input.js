@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },

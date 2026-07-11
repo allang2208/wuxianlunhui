@@ -3,6 +3,7 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import FormationSystem from '../systems/formation-system.js';
 import { DungeonMapSystem } from './dungeon-map-system.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -13,7 +14,7 @@ export const SceneManager = {
 
     init() {
         this.scenes = {
-            main: { name: '主神空间', type: 'main', label: '场景一', origin: { x: 3825, y: 1886 } },
+            main: { name: '主神空间', type: 'main', label: '场景一', origin: GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 } },
             scene2: { name: '雪地', type: 'instance', width: 9000, height: 9000, background: '#b8c0c8', label: '场景二', origin: { x: 4500, y: 4500 } },
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
             scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
@@ -62,9 +63,7 @@ export const SceneManager = {
     },
 
     async switchScene(sceneId, player, mode) {
-        console.log('[switchScene] sceneId=', sceneId, 'currentScene=', this.currentScene, 'mode=', mode, '_enterMode=', this._enterMode);
         if (this.isLoading || this.currentScene === sceneId) {
-            console.log('[switchScene] blocked: isLoading=', this.isLoading, 'currentScene===sceneId=', this.currentScene === sceneId);
             return;
         }
         try {
@@ -111,11 +110,13 @@ export const SceneManager = {
 
             // 销毁无人机并触发CD
             if (player && player.droneSystem && player.droneSystem.active) {
-                player.droneSystem._deactivate();
-                // 设置无人机技能CD
+                if (typeof player.droneSystem._deactivate === 'function') {
+                    player.droneSystem._deactivate();
+                }
                 if (typeof QuickBar !== 'undefined' && player.skills && player.skills.droneSkill) {
-                    const effect = player.skills.droneSkill.getEffect(player.skills.droneSkill.level);
-                    QuickBar.cooldowns['droneSkill'] = (effect.cooldown || 15) * 1000;
+                    const getEffect = player.skills.droneSkill.getEffect;
+                    const effect = typeof getEffect === 'function' ? getEffect(player.skills.droneSkill.level) : null;
+                    QuickBar.cooldowns['droneSkill'] = (effect && effect.cooldown || 15) * 1000;
                 }
             }
 
@@ -148,10 +149,19 @@ export const SceneManager = {
             console.error('[switchScene] ERROR:', err);
             this.isLoading = false;
             this.hideLoadingScreen();
-            // 恢复当前场景的实体（如果 _mainEntities 存在）
             if (this._mainEntities) {
                 Game.entities = this._mainEntities;
                 if (player) Game.entities.set('player', player);
+            }
+            if (typeof EffectManager !== 'undefined' && this._mainEffects) {
+                EffectManager.effects = this._mainEffects;
+            }
+            if (typeof WallSystem !== 'undefined' && this._mainTrees) {
+                WallSystem.trees = this._mainTrees;
+            }
+            if (typeof Camera !== 'undefined' && this._mainCamera) {
+                Camera.x = this._mainCamera.x;
+                Camera.y = this._mainCamera.y;
             }
             throw err;
         }
@@ -176,14 +186,29 @@ export const SceneManager = {
         this._mainPlayerPos = Game.player ? { x: Game.player.x, y: Game.player.y } : null;
         // 保存所有树木（不限于 sceneGroup，避免遗漏）
         this._mainTrees = WallSystem.trees ? WallSystem.trees.map(t => ({ ...t })) : [];
+        this._mainEffects = typeof EffectManager !== 'undefined' ? [...EffectManager.effects] : [];
+        this._mainCamera = typeof Camera !== 'undefined' ? { x: Camera.x, y: Camera.y } : null;
+    },
+
+    _resolveWorldSize(scene) {
+        const fallbackWidth = scene.width || CONFIG.WORLD_WIDTH;
+        const fallbackHeight = scene.height || CONFIG.WORLD_HEIGHT;
+        if (!GAME_CONFIG.world) {
+            return { width: fallbackWidth, height: fallbackHeight };
+        }
+        const cfg = scene.type === 'main' ? GAME_CONFIG.world.main : GAME_CONFIG.world.default;
+        return {
+            width: cfg?.width || fallbackWidth,
+            height: cfg?.height || fallbackHeight
+        };
     },
 
     _loadScene2(player, mode) {
-        console.log('[_loadScene2] player=', player, 'mode=', mode, 'isQuestMode=', mode === 'quest');
         const scene = this.scenes.scene2;
         const isQuestMode = mode === 'quest';
-        CONFIG.WORLD_WIDTH = scene.width;
-        CONFIG.WORLD_HEIGHT = scene.height;
+        const worldSize = this._resolveWorldSize(scene);
+        CONFIG.WORLD_WIDTH = worldSize.width;
+        CONFIG.WORLD_HEIGHT = worldSize.height;
 
         // 雪地地形纹理
         const canvas = document.createElement('canvas');
@@ -259,7 +284,6 @@ export const SceneManager = {
         }
 
         if (!isQuestMode) {
-            console.log('free explore mode');
             // 自由探索模式：添加返回传送门、生成所有怪物和区域BOSS
             const portal = new Portal(scene.width / 2, scene.height - 100, 'main', '返回主神空间');
             Game.entities.set('portal_return', portal);
@@ -299,7 +323,6 @@ export const SceneManager = {
             const bigBoss = new BlackWolf(bbx, bby);
             Game.entities.set('big_boss', bigBoss);
         } else {
-            console.log('quest mode');
             // 任务模式：不生成传送门和怪物，生成时空裂隙
             if (typeof RiftSystem !== 'undefined') {
                 RiftSystem.spawnRifts(scene.width, scene.height);
@@ -318,6 +341,10 @@ export const SceneManager = {
     },
 
     _loadMainScene(player) {
+        const mainSize = this._resolveWorldSize(this.scenes.main);
+        CONFIG.WORLD_WIDTH = mainSize.width;
+        CONFIG.WORLD_HEIGHT = mainSize.height;
+
         if (this._mainEntities) {
             // 主神空间使用固定大小，不随分辨率变化
             Renderer.generateWorld();
@@ -372,8 +399,9 @@ export const SceneManager = {
         const totalWidth = carriageWidth * numCarriages;
         const wallThickness = 20;
 
-        CONFIG.WORLD_WIDTH = totalWidth;
-        CONFIG.WORLD_HEIGHT = scene.height;
+        const worldSize = this._resolveWorldSize(scene);
+        CONFIG.WORLD_WIDTH = worldSize.width || totalWidth;
+        CONFIG.WORLD_HEIGHT = worldSize.height || scene.height;
 
         // 列车内部地形纹理（透明 outside，车内内容在中间）
         const canvas = document.createElement('canvas');
@@ -506,8 +534,9 @@ export const SceneManager = {
 
     _loadScene4(player) {
         const scene = this.scenes.scene4;
-        CONFIG.WORLD_WIDTH = scene.width;
-        CONFIG.WORLD_HEIGHT = scene.height;
+        const worldSize = this._resolveWorldSize(scene);
+        CONFIG.WORLD_WIDTH = worldSize.width;
+        CONFIG.WORLD_HEIGHT = worldSize.height;
 
         // 古堡地形纹理：深灰色地板，黑色墙壁
         const canvas = document.createElement('canvas');
@@ -641,8 +670,9 @@ export const SceneManager = {
 
     _loadScene5(player) {
         const scene = this.scenes.scene5;
-        CONFIG.WORLD_WIDTH = scene.width;
-        CONFIG.WORLD_HEIGHT = scene.height;
+        const worldSize = this._resolveWorldSize(scene);
+        CONFIG.WORLD_WIDTH = worldSize.width;
+        CONFIG.WORLD_HEIGHT = worldSize.height;
 
         // 灰色地形纹理
         const canvas = document.createElement('canvas');
@@ -780,44 +810,45 @@ export const SceneManager = {
         Camera.yLockedValue = 0;
 
         // 僵尸地牢：1024x1024 简单地图，无墙壁
-        CONFIG.WORLD_WIDTH = 1024;
-        CONFIG.WORLD_HEIGHT = 1024;
+        const worldSize = this._resolveWorldSize(this.scenes.scene7);
+        CONFIG.WORLD_WIDTH = worldSize.width;
+        CONFIG.WORLD_HEIGHT = worldSize.height;
+        const size = CONFIG.WORLD_WIDTH;
 
         // 创建地形纹理（1024x1024 全石砖地板，无边框黑背景）
         const canvas = document.createElement('canvas');
-        canvas.width = 1024;
-        canvas.height = 1024;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext('2d');
 
         // 全屏深灰色地板
         ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, 1024, 1024);
+        ctx.fillRect(0, 0, size, size);
 
         // 地板纹理（石砖）
         ctx.strokeStyle = 'rgba(50, 50, 50, 0.3)';
         ctx.lineWidth = 1;
-        for (let bx = 0; bx < 1024; bx += 20) {
-            ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, 1024); ctx.stroke();
+        for (let bx = 0; bx < size; bx += 20) {
+            ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, size); ctx.stroke();
         }
-        for (let by = 0; by < 1024; by += 20) {
-            ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(1024, by); ctx.stroke();
+        for (let by = 0; by < size; by += 20) {
+            ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(size, by); ctx.stroke();
         }
 
         // 全地图边缘高光
         ctx.strokeStyle = 'rgba(80, 80, 80, 0.5)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, 1024, 1024);
+        ctx.strokeRect(0, 0, size, size);
 
         Renderer.terrainTexture = canvas;
-        console.log('[scene7] terrainTexture set:', canvas.width, 'x', canvas.height, 'Renderer.terrainTexture:', Renderer.terrainTexture ? 'OK' : 'NULL');
 
         // 添加边界墙壁，防止玩家走出地图
-        WallSystem.init(1024, 1024);
+        WallSystem.init(size, size);
         WallSystem.walls = [
-            { x: 0, y: 0, w: 1024, h: 20 },      // 上边界
-            { x: 0, y: 1004, w: 1024, h: 20 },   // 下边界
-            { x: 0, y: 0, w: 20, h: 1024 },      // 左边界
-            { x: 1004, y: 0, w: 20, h: 1024 },   // 右边界
+            { x: 0, y: 0, w: size, h: 20 },      // 上边界
+            { x: 0, y: size - 20, w: size, h: 20 },   // 下边界
+            { x: 0, y: 0, w: 20, h: size },      // 左边界
+            { x: size - 20, y: 0, w: 20, h: size },   // 右边界
         ];
         // 同步到 Phaser（确保物理碰撞体也更新）
         if (WallSystem._syncWallsToPhaser) {
@@ -826,11 +857,10 @@ export const SceneManager = {
 
         // 玩家放在地板中央
         if (player) {
-            player.x = 512;
-            player.y = 512;
+            player.x = size / 2;
+            player.y = size / 2;
             Game.entities.set('player', player);
             Camera.follow(player);
-            console.log('[scene7] Player at', player.x, player.y, 'Camera at', Camera.x, Camera.y);
         }
 
         // 同步快捷栏

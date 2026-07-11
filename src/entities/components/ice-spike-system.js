@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../../effects/floating-text.js';
 export class IceSpikeSystem {
     constructor(player) {
         this.player = player;
