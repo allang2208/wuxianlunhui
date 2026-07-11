@@ -3,6 +3,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipManager } from './equip-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -23,8 +24,8 @@ export const QuickBar = {
     cooldowns: {}, // skillId -> remainingMs
     specialAttack: { enabled: false, item: null, cooldown: 0 },
     init() {
-        const skillGroup = document.getElementById('skillGroup');
-        const itemGroup = document.getElementById('itemGroup');
+        const skillGroup = getElement('skillGroup');
+        const itemGroup = getElement('itemGroup');
         if (!skillGroup || !itemGroup) return;
         QUICK_BAR_CONFIG.forEach(config => {
             const slot = document.createElement('div');
@@ -328,7 +329,7 @@ export const QuickBar = {
         };
         slot.ondragend = () => {
             slot.classList.remove('dragging');
-            document.querySelectorAll('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
         };
     },
     _updateItemSlot(slot, item) {
@@ -349,7 +350,7 @@ export const QuickBar = {
         };
         slot.ondragend = () => {
             slot.classList.remove('dragging');
-            document.querySelectorAll('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
         };
     },
     useSlot(keyCode) {

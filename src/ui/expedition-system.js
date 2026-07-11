@@ -7,6 +7,7 @@ import { SceneManager } from '../world/scene-manager.js';
  */
 
 import { UIState } from './ui-state.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -27,8 +28,8 @@ export const ExpeditionSystem = {
         }
 
         // 确保系统面板在覆盖层之上（DOM 顺序 + z-index）
-        const sp = document.getElementById('systemPanel');
-        const eo = document.getElementById('expeditionOverlay');
+        const sp = getElement('systemPanel');
+        const eo = getElement('expeditionOverlay');
         if (sp && eo) {
             // 将系统面板移到覆盖层之后（DOM 顺序决定层级）
             if (sp.nextElementSibling !== eo && eo.parentElement === document.body) {
@@ -38,15 +39,15 @@ export const ExpeditionSystem = {
         }
 
         // 显示全黑背景覆盖层
-        const overlay = document.getElementById('expeditionOverlay');
+        const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.add('active');
 
         // 显示出征准备面板
-        const panel = document.getElementById('expeditionPanel');
+        const panel = getElement('expeditionPanel');
         if (panel) panel.classList.add('active');
 
         // 重置地牢选择器
-        const select = document.getElementById('expeditionDungeonSelect');
+        const select = getElement('expeditionDungeonSelect');
         if (select) select.value = 'zombie';
         this._updateDungeonInfo('zombie');
 
@@ -70,9 +71,9 @@ export const ExpeditionSystem = {
         this._returnAllItemsToBackpack();
 
         // 隐藏面板和覆盖层
-        const panel = document.getElementById('expeditionPanel');
+        const panel = getElement('expeditionPanel');
         if (panel) panel.classList.remove('active');
-        const overlay = document.getElementById('expeditionOverlay');
+        const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
     },
 
@@ -84,7 +85,7 @@ export const ExpeditionSystem = {
 
     // 渲染背包格子（10个空格子）
     _renderInventoryGrid() {
-        const grid = document.getElementById('expeditionInventoryGrid');
+        const grid = getElement('expeditionInventoryGrid');
         if (!grid) return;
         grid.innerHTML = '';
         for (let i = 0; i < this.CAPACITY; i++) {
@@ -98,7 +99,7 @@ export const ExpeditionSystem = {
 
     // 设置拖放事件
     _setupDragDrop() {
-        const cells = document.querySelectorAll('.expedition-inv-cell');
+        const cells = queryAllElements('.expedition-inv-cell');
         cells.forEach(cell => {
             cell.ondragover = (e) => {
                 e.preventDefault();
@@ -212,8 +213,8 @@ export const ExpeditionSystem = {
 
     // 更新祭品效果统计面板
     _updateTributeStats() {
-        const statsEl = document.getElementById('expeditionTributeStats');
-        const listEl = document.getElementById('expeditionTributeStatsList');
+        const statsEl = getElement('expeditionTributeStats');
+        const listEl = getElement('expeditionTributeStatsList');
         if (!statsEl || !listEl) return;
 
         const tributes = this._carriedItems.filter(c => c !== null);
@@ -369,17 +370,17 @@ export const ExpeditionSystem = {
     // 更新容量显示
     _updateCapacityDisplay() {
         const used = this._carriedItems.filter(c => c !== null).length;
-        const usedEl = document.getElementById('expeditionCapacityUsed');
-        const maxEl = document.getElementById('expeditionCapacityMax');
+        const usedEl = getElement('expeditionCapacityUsed');
+        const maxEl = getElement('expeditionCapacityMax');
         if (usedEl) usedEl.textContent = used;
         if (maxEl) maxEl.textContent = this.CAPACITY;
     },
 
     // 更新队伍列表（3个槽位：主角 + 2空位）
     _updatePartyList(player) {
-        const leader = document.getElementById('expeditionPartyLeader');
-        const _slot1 = document.getElementById('expeditionPartySlot1');
-        const _slot2 = document.getElementById('expeditionPartySlot2');
+        const leader = getElement('expeditionPartyLeader');
+        const _slot1 = getElement('expeditionPartySlot1');
+        const _slot2 = getElement('expeditionPartySlot2');
 
         if (leader && player) {
             const mainItem = player.equipments[player.weaponMode];
@@ -397,7 +398,7 @@ export const ExpeditionSystem = {
 
     // 显示消息
     _showMessage(text, type = 'normal') {
-        const el = document.getElementById('expeditionMessage');
+        const el = getElement('expeditionMessage');
         if (!el) return;
         el.textContent = text;
         el.className = 'expedition-message' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
@@ -408,7 +409,7 @@ export const ExpeditionSystem = {
         this._returnAllItemsToBackpack();
 
         // 清空所有格子视觉
-        const cells = document.querySelectorAll('.expedition-inv-cell');
+        const cells = queryAllElements('.expedition-inv-cell');
         cells.forEach(cell => {
             delete cell.dataset.occupied;
             cell.classList.remove('occupied');
@@ -430,11 +431,11 @@ export const ExpeditionSystem = {
 
     // 更新地牢信息面板
     _updateDungeonInfo(_dungeonType) {
-        const nameEl = document.getElementById('expeditionDungeonName');
-        const nodeCountEl = document.getElementById('expeditionNodeCount');
-        const battleRatioEl = document.getElementById('expeditionBattleRatio');
-        const levelEl = document.getElementById('expeditionLevel');
-        const rewardEl = document.getElementById('expeditionReward');
+        const nameEl = getElement('expeditionDungeonName');
+        const nodeCountEl = getElement('expeditionNodeCount');
+        const battleRatioEl = getElement('expeditionBattleRatio');
+        const levelEl = getElement('expeditionLevel');
+        const rewardEl = getElement('expeditionReward');
 
         const info = {
             zombie: {
@@ -471,9 +472,9 @@ export const ExpeditionSystem = {
 
         // 关闭面板和覆盖层（不归还物品，已确认带走）
         this._isOpen = false;
-        const panel = document.getElementById('expeditionPanel');
+        const panel = getElement('expeditionPanel');
         if (panel) panel.classList.remove('active');
-        const overlay = document.getElementById('expeditionOverlay');
+        const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
 
         // 清空出征数据（物品已确认带走）

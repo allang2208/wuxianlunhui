@@ -5,6 +5,7 @@ import { loadImage } from '../utils/image-loader.js';
 
 import { AIDevTool } from './ai-dev-tool.js';
 import { EnemySpriteTool } from './enemy-sprite-tool.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 // 交互式开发工具 - 武器定位与动画调试面板
 const DevTool = {
@@ -104,8 +105,8 @@ const DevTool = {
     },
 
     init() {
-        this._panel = document.getElementById('devToolPanel');
-        this._canvas = document.getElementById('devToolCanvas');
+        this._panel = getElement('devToolPanel');
+        this._canvas = getElement('devToolCanvas');
         // 增大画布以容纳与游戏一致的角色缩放（703px）
         this._canvas.width = 640;
         this._canvas.height = 520;
@@ -128,11 +129,11 @@ const DevTool = {
     switchTab(tabName) {
         this._currentTab = tabName;
         // 更新 tab 按钮状态
-        document.querySelectorAll('.dev-tool-tab').forEach(tab => {
+        queryAllElements('.dev-tool-tab').forEach(tab => {
             tab.classList.toggle('active', tab.dataset.tab === tabName);
         });
         // 更新 tab 内容显示
-        document.querySelectorAll('.dev-tool-tab-content').forEach(content => {
+        queryAllElements('.dev-tool-tab-content').forEach(content => {
             const contentTab = content.dataset.tabContent || content.dataset.tab;
             content.style.display = contentTab === tabName ? 'flex' : 'none';
             content.classList.toggle('active', contentTab === tabName);
@@ -188,8 +189,8 @@ const DevTool = {
     },
 
     _updateWeaponPreview() {
-        const preview = document.getElementById('devToolWeaponPreview');
-        const img = document.getElementById('devToolWeaponImg');
+        const preview = getElement('devToolWeaponPreview');
+        const img = getElement('devToolWeaponImg');
         const placeholder = preview.querySelector('.dev-tool-weapon-placeholder');
         if (this.weaponImage && this.weaponImage.complete && this.weaponImage.naturalWidth > 0) {
             img.src = this.weaponImage.src;
@@ -200,22 +201,22 @@ const DevTool = {
             if (placeholder) placeholder.style.display = 'block';
         }
         // 更新武器名称
-        const nameEl = document.getElementById('devToolWeaponName');
+        const nameEl = getElement('devToolWeaponName');
         if (nameEl) nameEl.textContent = this.WEAPON_MAP[this.state.weaponType]?.name || '无';
     },
 
     // 绑定事件
     _bindEvents() {
         // 触发按钮
-        const trigger = document.getElementById('devToolTrigger');
+        const trigger = getElement('devToolTrigger');
         if (trigger) trigger.addEventListener('click', () => this.toggle());
 
         // 关闭按钮
-        const closeBtn = document.getElementById('devToolClose');
+        const closeBtn = getElement('devToolClose');
         if (closeBtn) closeBtn.addEventListener('click', () => this.hide());
 
         // 动画选择
-        const animSelect = document.getElementById('devToolAnimSelect');
+        const animSelect = getElement('devToolAnimSelect');
         if (animSelect) {
             animSelect.addEventListener('change', (e) => {
                 this.state.anim = e.target.value;
@@ -233,7 +234,7 @@ const DevTool = {
         }
 
         // 武器选择
-        const weaponSelect = document.getElementById('devToolWeaponSelect');
+        const weaponSelect = getElement('devToolWeaponSelect');
         if (weaponSelect) {
             weaponSelect.addEventListener('change', (e) => {
                 this.state.weaponType = e.target.value;
@@ -244,29 +245,29 @@ const DevTool = {
         }
 
         // 保存按钮
-        const saveBtn = document.getElementById('devToolSave');
+        const saveBtn = getElement('devToolSave');
         if (saveBtn) saveBtn.addEventListener('click', () => this._save());
 
         // 重置按钮
-        const resetBtn = document.getElementById('devToolReset2');
+        const resetBtn = getElement('devToolReset2');
         if (resetBtn) resetBtn.addEventListener('click', () => this._reset());
 
         // 坐标工具按钮
-        const coordBtn = document.getElementById('devToolCoord');
+        const coordBtn = getElement('devToolCoord');
         if (coordBtn) coordBtn.addEventListener('click', () => this._startCoordTool());
 
         // 缩放按钮
-        const zoomInBtn = document.getElementById('devToolZoomIn');
+        const zoomInBtn = getElement('devToolZoomIn');
         if (zoomInBtn) zoomInBtn.addEventListener('click', () => this._zoomIn());
         
-        const zoomOutBtn = document.getElementById('devToolZoomOut');
+        const zoomOutBtn = getElement('devToolZoomOut');
         if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this._zoomOut());
         
-        const zoomResetBtn = document.getElementById('devToolZoomReset');
+        const zoomResetBtn = getElement('devToolZoomReset');
         if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this._zoomReset());
 
         // 设置手部挂载点按钮
-        const handAnchorBtn = document.getElementById('devToolSetHandAnchor');
+        const handAnchorBtn = getElement('devToolSetHandAnchor');
         if (handAnchorBtn) handAnchorBtn.addEventListener('click', () => this._toggleHandAnchorMode());
 
         // Canvas 鼠标交互
@@ -278,7 +279,7 @@ const DevTool = {
 
         // 输入框实时同步
         ['devToolOffX', 'devToolOffY', 'devToolRot', 'devToolScl'].forEach((id, idx) => {
-            const el = document.getElementById(id);
+            const el = getElement(id);
             if (!el) return;
             const keys = ['offsetX', 'offsetY', 'rotation', 'scale'];
             el.addEventListener('input', () => {
@@ -291,7 +292,7 @@ const DevTool = {
         });
 
         // 帧滑块
-        const frameSlider = document.getElementById('devToolFrameSlider');
+        const frameSlider = getElement('devToolFrameSlider');
         if (frameSlider) {
             frameSlider.addEventListener('input', (e) => {
                 this.state.frameIndex = parseInt(e.target.value);
@@ -303,7 +304,7 @@ const DevTool = {
         }
 
         // 播放/暂停按钮
-        const playBtn = document.getElementById('devToolPlayBtn');
+        const playBtn = getElement('devToolPlayBtn');
         if (playBtn) {
             playBtn.addEventListener('click', () => {
                 this.state.isPlaying = !this.state.isPlaying;
@@ -339,7 +340,7 @@ const DevTool = {
         });
 
         // 关键帧按钮事件
-        const addKfBtn = document.getElementById('devToolAddKeyframe');
+        const addKfBtn = getElement('devToolAddKeyframe');
         if (addKfBtn) addKfBtn.addEventListener('click', () => {
             if (this.state.anim === 'attack' || this.state.anim === 'walk') {
                 const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
@@ -350,14 +351,14 @@ const DevTool = {
             }
         });
 
-        const interpolateBtn = document.getElementById('devToolInterpolate');
+        const interpolateBtn = getElement('devToolInterpolate');
         if (interpolateBtn) interpolateBtn.addEventListener('click', () => this._autoInterpolate());
 
-        const clearKfBtn = document.getElementById('devToolClearKf');
+        const clearKfBtn = getElement('devToolClearKf');
         if (clearKfBtn) clearKfBtn.addEventListener('click', () => this._clearKeyframes());
 
         // 武器图片拖放
-        const weaponImg = document.getElementById('devToolWeaponImg');
+        const weaponImg = getElement('devToolWeaponImg');
         if (weaponImg) {
             weaponImg.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('weapon', this.state.weaponType);
@@ -365,7 +366,7 @@ const DevTool = {
         }
 
         // Tab 切换
-        document.querySelectorAll('.dev-tool-tab').forEach(tab => {
+        queryAllElements('.dev-tool-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
     },
@@ -395,7 +396,7 @@ const DevTool = {
 
     // 更新帧展示条（角色帧 + 武器帧）
     _updateFrameStrip() {
-        const strip = document.getElementById('devToolFrameStrip');
+        const strip = getElement('devToolFrameStrip');
         if (!strip) return;
         strip.innerHTML = '';
         const currentAnim = this.state.anim;
@@ -443,7 +444,7 @@ const DevTool = {
 
     // 更新帧滑块范围
     _updateFrameSlider() {
-        const slider = document.getElementById('devToolFrameSlider');
+        const slider = getElement('devToolFrameSlider');
         if (!slider) { console.log('[DevTool] _updateFrameSlider: slider not found'); return; }
         const currentAnim = this.state.anim;
         const frameData = this._charFrames[currentAnim];
@@ -465,7 +466,7 @@ const DevTool = {
 
     // 更新帧编号显示
     _updateFrameLabel() {
-        const label = document.getElementById('devToolFrameLabel');
+        const label = getElement('devToolFrameLabel');
         if (!label) return;
         const currentAnim = this.state.anim;
         const frameData = this._charFrames[currentAnim];
@@ -476,7 +477,7 @@ const DevTool = {
 
     // 更新播放按钮文字
     _updatePlayBtn() {
-        const btn = document.getElementById('devToolPlayBtn');
+        const btn = getElement('devToolPlayBtn');
         if (!btn) return;
         btn.textContent = this.state.isPlaying ? '⏸ 暂停' : '▶ 播放';
     },
@@ -500,7 +501,7 @@ const DevTool = {
                 this.state.frameIndex = (this.state.frameIndex + 1) % frameData.count;
                 this._updateFrameLabel();
                 // 同步滑块
-                const slider = document.getElementById('devToolFrameSlider');
+                const slider = getElement('devToolFrameSlider');
                 if (slider) slider.value = this.state.frameIndex;
                 this._draw();
                 lastTime = timestamp;
@@ -623,7 +624,7 @@ const DevTool = {
     
     // 更新关键帧UI
     _updateKeyframeUI() {
-        const listEl = document.getElementById('devToolKeyframeList');
+        const listEl = getElement('devToolKeyframeList');
         if (!listEl) return;
         
         const kfs = this.keyframeSystem.keyframes;
@@ -748,14 +749,14 @@ const DevTool = {
         const sys = this.handAnchorSystem;
         sys.enabled = !sys.enabled;
         
-        const btn = document.getElementById('devToolSetHandAnchor');
+        const btn = getElement('devToolSetHandAnchor');
         if (btn) {
             btn.style.background = sys.enabled ? '#4a7c59' : '';
             btn.textContent = sys.enabled ? '✋ 退出挂载点编辑' : '✋ 设置手部挂载点';
         }
         
         // 更新提示
-        const canvasHint = document.getElementById('devToolHint');
+        const canvasHint = getElement('devToolHint');
         if (canvasHint) {
             canvasHint.innerHTML = sys.enabled
                 ? `挂载点模式：拖动黄色圆点调整手部位置 · 武器自动跟随`
@@ -766,7 +767,7 @@ const DevTool = {
     },
 
     _updateModeHint() {
-        const hint = document.getElementById('devToolModeHint');
+        const hint = getElement('devToolModeHint');
         if (!hint) return;
         const isRotate = this.state.mode === 'rotate';
         hint.innerHTML = `
@@ -775,7 +776,7 @@ const DevTool = {
             <div>按 <kbd>R</kbd> 切换${isRotate ? '缩放' : '旋转'}模式</div>
         `;
         // 也更新浮层提示
-        const canvasHint = document.getElementById('devToolHint');
+        const canvasHint = getElement('devToolHint');
         if (canvasHint) {
             canvasHint.innerHTML = isRotate
                 ? `旋转模式：滚轮旋转 · 左键拖动 · <kbd>R</kbd> 切换`
@@ -784,7 +785,7 @@ const DevTool = {
     },
 
     _updateStatus() {
-        const statusEl = document.getElementById('devToolStatus');
+        const statusEl = getElement('devToolStatus');
         if (statusEl) statusEl.textContent = this.ANIM_NAME[this.state.anim] || this.state.anim;
     },
 
@@ -917,10 +918,10 @@ const DevTool = {
     },
 
     _syncInputs() {
-        const elX = document.getElementById('devToolOffX');
-        const elY = document.getElementById('devToolOffY');
-        const elR = document.getElementById('devToolRot');
-        const elS = document.getElementById('devToolScl');
+        const elX = getElement('devToolOffX');
+        const elY = getElement('devToolOffY');
+        const elR = getElement('devToolRot');
+        const elS = getElement('devToolScl');
         if (elX) elX.value = Math.round(this.weaponParams.offsetX);
         if (elY) elY.value = Math.round(this.weaponParams.offsetY);
         if (elR) elR.value = Math.round(this.weaponParams.rotation);
@@ -932,7 +933,7 @@ const DevTool = {
     
     // 更新缩放信息面板
     _updateScaleInfo() {
-        const panel = document.getElementById('devToolScaleInfo');
+        const panel = getElement('devToolScaleInfo');
         if (!panel) return;
         
         const wt = this.state.weaponType;
@@ -1014,7 +1015,7 @@ const DevTool = {
             this._canvas.style.transformOrigin = 'center center';
         }
         // 更新标签
-        const label = document.getElementById('devToolZoomLabel');
+        const label = getElement('devToolZoomLabel');
         if (label) label.textContent = `${Math.round(this.zoom.scale * 100)}%`;
     },
 
@@ -1395,7 +1396,7 @@ const DevTool = {
         
         const json = JSON.stringify(output, null, 2);
 
-        const outputEl = document.getElementById('devToolDataOutput');
+        const outputEl = getElement('devToolDataOutput');
         if (outputEl) {
             outputEl.textContent = json;
             outputEl.style.display = 'block';
@@ -1478,7 +1479,7 @@ const DevTool = {
     show() {
         this._active = true;
         if (this._panel) this._panel.classList.add('active');
-        const trigger = document.getElementById('devToolTrigger');
+        const trigger = getElement('devToolTrigger');
         if (trigger) trigger.classList.add('active');
         // 默认切换到武器 tab
         this.switchTab('weapon');
@@ -1487,7 +1488,7 @@ const DevTool = {
     hide() {
         this._active = false;
         if (this._panel) this._panel.classList.remove('active');
-        const trigger = document.getElementById('devToolTrigger');
+        const trigger = getElement('devToolTrigger');
         if (trigger) trigger.classList.remove('active');
         AIDevTool.hide();
     },
@@ -1502,8 +1503,8 @@ const DevTool = {
     _startCoordTool() {
         this.hide(); // 关闭交互开发工具
 
-        const overlay = document.getElementById('coordOverlay');
-        const panel = document.getElementById('coordPanel');
+        const overlay = getElement('coordOverlay');
+        const panel = getElement('coordPanel');
         if (overlay) overlay.style.display = 'block';
         if (panel) panel.style.display = 'flex';
 
@@ -1511,13 +1512,13 @@ const DevTool = {
         overlay.querySelectorAll('.rect-preview, .mouse-label, .start-marker, .final-rect').forEach(el => el.remove());
 
         // 重置显示
-        document.getElementById('coordStart').textContent = '--';
-        document.getElementById('coordEnd').textContent = '--';
-        document.getElementById('coordSize').textContent = '--';
+        getElement('coordStart').textContent = '--';
+        getElement('coordEnd').textContent = '--';
+        getElement('coordSize').textContent = '--';
 
         // 获取游戏容器的边界和缩放比例
-        const gameContainer = document.getElementById('gameContainer');
-        const gameCanvas = document.getElementById('gameCanvas');
+        const gameContainer = getElement('gameContainer');
+        const gameCanvas = getElement('gameCanvas');
         const getGameScale = () => {
             const container = gameContainer || document.body;
             const containerRect = container.getBoundingClientRect();
@@ -1635,9 +1636,9 @@ const DevTool = {
             const endBottom = Math.round(containerHeight - endY);
             const bottom = Math.min(startBottom, endBottom);
             
-            document.getElementById('coordStart').textContent = `${left}, ${bottom}`;
-            document.getElementById('coordEnd').textContent = `${left + width}, ${bottom + height}`;
-            document.getElementById('coordSize').textContent = `${width} x ${height}`;
+            getElement('coordStart').textContent = `${left}, ${bottom}`;
+            getElement('coordEnd').textContent = `${left + width}, ${bottom + height}`;
+            getElement('coordSize').textContent = `${width} x ${height}`;
         };
 
         // 右键退出
@@ -1653,12 +1654,12 @@ const DevTool = {
         overlay.addEventListener('contextmenu', onContextMenu);
 
         // 复制按钮
-        const copyBtn = document.getElementById('coordCopyBtn');
+        const copyBtn = getElement('coordCopyBtn');
         if (copyBtn) {
             copyBtn.onclick = () => {
-                const start = document.getElementById('coordStart').textContent;
-                const _end = document.getElementById('coordEnd').textContent;
-                const size = document.getElementById('coordSize').textContent;
+                const start = getElement('coordStart').textContent;
+                const _end = getElement('coordEnd').textContent;
+                const size = getElement('coordSize').textContent;
                 const text = `left: ${start.split(',')[0].trim()}px; bottom: ${start.split(',')[1].trim()}px; width: ${size.split('x')[0].trim()}px; height: ${size.split('x')[1].trim()}px;`;
                 navigator.clipboard.writeText(text).then(() => {
                     copyBtn.textContent = '✅ 已复制';

@@ -7,6 +7,7 @@ import { Game } from '../game.js';
 // Reward System - 奖励结算界面
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,
@@ -48,7 +49,7 @@ export const RewardSystem = {
     open() {
         this._isOpen = true;
         this._selected = null;
-        const panel = document.getElementById('rewardPanel');
+        const panel = getElement('rewardPanel');
         if (panel) {
             panel.style.display = 'flex';
             panel.classList.add('active');
@@ -58,7 +59,7 @@ export const RewardSystem = {
 
     close() {
         this._isOpen = false;
-        const panel = document.getElementById('rewardPanel');
+        const panel = getElement('rewardPanel');
         if (panel) {
             panel.style.display = 'none';
             panel.classList.remove('active');
@@ -179,7 +180,7 @@ export const RewardSystem = {
     },
 
     _render() {
-        const container = document.getElementById('rewardCardsContainer');
+        const container = getElement('rewardCardsContainer');
         if (!container) return;
         container.innerHTML = this.CARDS.map((card, idx) => {
             const selected = this._selected === idx;

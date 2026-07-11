@@ -12,6 +12,7 @@ import { Enemy } from '../entities/enemy.js';
 import { SpitterZombie, FatZombie, FastZombie, ZombieDog } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
+import { getElement } from '../utils/dom-utils.js';
 
 // ==================== 装甲僵尸工厂 ====================
 function createArmoredZombie(x, y) {
@@ -407,7 +408,7 @@ export class ZombieDungeonEvent {
     }
 
     static cleanup() {
-        const overlay = document.getElementById('zombieDungeonEventOverlay');
+        const overlay = getElement('zombieDungeonEventOverlay');
         if (overlay) overlay.remove();
     }
 }

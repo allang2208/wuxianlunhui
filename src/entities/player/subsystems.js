@@ -18,6 +18,7 @@ import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { getElement } from '../../utils/dom-utils.js';
 
 const subsystemsMixin = {
 gainExp(amount) {
@@ -755,7 +756,7 @@ switchWeaponMode() {
                     this.weaponSwitchCooldown = 300;
                 }
                 // 视觉反馈：屏幕中央显示切换提示
-                const oldHint = document.getElementById('_weaponSwitchHint');
+                const oldHint = getElement('_weaponSwitchHint');
                 if (oldHint) oldHint.remove();
                 const hint = document.createElement('div');
                 hint.id = '_weaponSwitchHint';

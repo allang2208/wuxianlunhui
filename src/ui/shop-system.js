@@ -5,6 +5,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
 
 const ShopSystem = {
     _isOpen: false,
@@ -37,7 +38,7 @@ const ShopSystem = {
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
-        const panel = document.getElementById('shopPanel');
+        const panel = getElement('shopPanel');
         if (panel) panel.classList.add('active');
         this._setupSellGridDrop();
         this._updateUI();
@@ -48,7 +49,7 @@ const ShopSystem = {
         this._isOpen = false;
         this._currentNPC = null;
         this._returnAllSellItems();
-        const panel = document.getElementById('shopPanel');
+        const panel = getElement('shopPanel');
         if (panel) panel.classList.remove('active');
         setTimeout(() => {
             if (!UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
@@ -189,7 +190,7 @@ const ShopSystem = {
 
     // 设置出售栏为拖放目标
     _setupSellGridDrop() {
-        const sellGrid = document.getElementById('shopSellGrid');
+        const sellGrid = getElement('shopSellGrid');
         if (!sellGrid) return;
         sellGrid.ondragover = (e) => {
             if (!EquipManager._dragDropManager._dragSrc) return;
@@ -226,12 +227,12 @@ const ShopSystem = {
 
     _updateUI() {
         const player = Game.player;
-        const moneyEl = document.getElementById('shopMoney');
+        const moneyEl = getElement('shopMoney');
         if (moneyEl && player) moneyEl.textContent = `💰 ${this._getBackpackGold()}`;
 
         const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
 
-        const buyGrid = document.getElementById('shopBuyGrid');
+        const buyGrid = getElement('shopBuyGrid');
         if (buyGrid) {
             buyGrid.innerHTML = '';
             this._items.forEach(item => {
@@ -250,7 +251,7 @@ const ShopSystem = {
                 cell.ondblclick = () => this.buy(item.id);
                 cell.oncontextmenu = (e) => { e.preventDefault(); this.buy(item.id); };
                 // 浮窗事件绑定
-                const tooltip = document.getElementById('equipTooltip');
+                const tooltip = getElement('equipTooltip');
                 cell.onmouseenter = function(e) {
                     if (tooltip._pinned) return;
                     EquipTooltipManager.renderTooltip(item);
@@ -288,7 +289,7 @@ const ShopSystem = {
             });
         }
 
-        const sellGrid = document.getElementById('shopSellGrid');
+        const sellGrid = getElement('shopSellGrid');
         if (sellGrid) {
             sellGrid.innerHTML = '';
             if (this._selectedSellItems.length === 0) {
@@ -333,7 +334,7 @@ const ShopSystem = {
                         EquipManager._dragDropManager._dragSrc = null;
                     };
                     // 浮窗事件绑定
-                    const tooltip = document.getElementById('equipTooltip');
+                    const tooltip = getElement('equipTooltip');
                     cell.onmouseenter = function(e) {
                         if (tooltip._pinned) return;
                         EquipTooltipManager.renderTooltip(item);

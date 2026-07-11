@@ -12,6 +12,7 @@ import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-ef
 
 import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 export const EquipTooltipManager = {
     player: null,
@@ -31,11 +32,11 @@ export const EquipTooltipManager = {
     },
 
     renderTooltip(item) {
-        const ttName = document.getElementById('ttName');
-        const ttType = document.getElementById('ttType');
-        const ttStats = document.getElementById('ttStats');
-        const ttExtra = document.getElementById('ttExtra');
-        const ttDesc = document.getElementById('ttDesc');
+        const ttName = getElement('ttName');
+        const ttType = getElement('ttType');
+        const ttStats = getElement('ttStats');
+        const ttExtra = getElement('ttExtra');
+        const ttDesc = getElement('ttDesc');
         if (!ttName || !ttType || !ttStats || !ttExtra || !ttDesc) return;
         console.log('TOOLTIP V2 LOADED'); // Cache bust
         // 从 CodexManager 合并完整的武器数据
@@ -303,7 +304,7 @@ export const EquipTooltipManager = {
         ttExtra.innerHTML = extraHtml;
         ttDesc.textContent = fullItem.desc || '';
         // ===== 改造详情面板（左侧） =====
-        const ttCraft = document.getElementById('ttCraft');
+        const ttCraft = getElement('ttCraft');
         if (ttCraft) {
             const weaponId = fullItem.weaponId;
             const hasCraft = fullItem._craftData && Object.keys(fullItem._craftData).length > 0;
@@ -348,7 +349,7 @@ export const EquipTooltipManager = {
             }
         }
         // ===== 附魔详情面板（左侧） =====
-        const ttEnchant = document.getElementById('ttEnchant');
+        const ttEnchant = getElement('ttEnchant');
         if (ttEnchant) {
             const hasEnchant = fullItem._isEnchanted && fullItem._enchantData;
             if (hasEnchant) {
@@ -385,10 +386,10 @@ export const EquipTooltipManager = {
         // 实时散布数据更新循环已移除（可能导致浮窗问题）
     },
     _positionTooltip(e) {
-        const tooltip = document.getElementById('equipTooltip');
+        const tooltip = getElement('equipTooltip');
         if (!tooltip) return;
-        const ttCraft = document.getElementById('ttCraft');
-        const ttEnchant = document.getElementById('ttEnchant');
+        const ttCraft = getElement('ttCraft');
+        const ttEnchant = getElement('ttEnchant');
         const hasCraft = ttCraft && ttCraft.classList.contains('visible');
         const hasEnchant = ttEnchant && ttEnchant.classList.contains('visible');
         const craftW = hasCraft ? 486 : 0; // 480px + 6px margin
@@ -422,10 +423,10 @@ export const EquipTooltipManager = {
         }
     },
     bindEquipTooltip() {
-        const tooltip = document.getElementById('equipTooltip');
+        const tooltip = getElement('equipTooltip');
         const self = this;
         // 关闭按钮
-        const closeBtn = document.getElementById('ttCloseBtn');
+        const closeBtn = getElement('ttCloseBtn');
         if (closeBtn) {
             closeBtn.onclick = function(e) {
                 e.stopPropagation();
@@ -440,7 +441,7 @@ export const EquipTooltipManager = {
                 tooltip._pinned = false;
             }
         });
-        document.querySelectorAll('.diablo-slot').forEach(slot => {
+        queryAllElements('.diablo-slot').forEach(slot => {
             slot.onmouseenter = function(e) {
                 if (tooltip._pinned) return; // 固定时不响应hover
                 const key = slot.dataset.slot;
@@ -481,7 +482,7 @@ export const EquipTooltipManager = {
                 e.stopPropagation();
                 const key = slot.dataset.slot;
                 const item = self.player.equipments[key];
-                const enchantPanel = document.getElementById('enchantPanel');
+                const enchantPanel = getElement('enchantPanel');
                 const enchantOpen = enchantPanel && enchantPanel.classList.contains('active');
                 if (UIState.isOpen('enhance')) {
                     if (item) {
@@ -499,7 +500,7 @@ export const EquipTooltipManager = {
             slot.ondblclick = function(_e) {
                 const key = slot.dataset.slot;
                 const item = self.player.equipments[key];
-                const enchantPanel = document.getElementById('enchantPanel');
+                const enchantPanel = getElement('enchantPanel');
                 const enchantOpen = enchantPanel && enchantPanel.classList.contains('active');
                 if (UIState.isOpen('enhance')) {
                     if (item) {
@@ -518,9 +519,9 @@ export const EquipTooltipManager = {
         });
     },
     bindInventoryTooltip() {
-        const tooltip = document.getElementById('equipTooltip');
+        const tooltip = getElement('equipTooltip');
         const self = this;
-        document.querySelectorAll('.inv-cell').forEach(cell => {
+        queryAllElements('.inv-cell').forEach(cell => {
             cell.onmouseenter = function(e) {
                 if (tooltip._pinned) return;
                 const idx = parseInt(cell.dataset.slot);
@@ -567,7 +568,7 @@ export const EquipTooltipManager = {
                 if (!item) return;
                 // 附魔卷轴：只在附魔栏打开时可双击放入
                 if (item.scrollId) {
-                    const enchantPanel = document.getElementById('enchantPanel');
+                    const enchantPanel = getElement('enchantPanel');
                     if (enchantPanel && enchantPanel.classList.contains('active')) {
                         EventBus.emit('enchant:equipScrollFromBackpack', idx);
                     }
@@ -589,7 +590,7 @@ export const EquipTooltipManager = {
                 if (!item) return;
                 // 附魔卷轴：只在附魔栏打开时可右键放入
                 if (item.scrollId) {
-                    const enchantPanel = document.getElementById('enchantPanel');
+                    const enchantPanel = getElement('enchantPanel');
                     if (enchantPanel && enchantPanel.classList.contains('active')) {
                         EventBus.emit('enchant:equipScrollFromBackpack', idx);
                     }

@@ -1,3 +1,4 @@
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 
 // 怪物贴图调整工具
 const EnemySpriteTool = {
@@ -107,7 +108,7 @@ const EnemySpriteTool = {
     // 绑定事件
     _bindEvents() {
         // 怪物选择
-        const enemySelect = document.getElementById('enemySpriteSelect');
+        const enemySelect = getElement('enemySpriteSelect');
         if (enemySelect) {
             enemySelect.addEventListener('change', (e) => {
                 this._currentEnemy = e.target.value;
@@ -117,7 +118,7 @@ const EnemySpriteTool = {
         }
         
         // 方向选择按钮
-        document.querySelectorAll('.enemy-direction-btn').forEach(btn => {
+        queryAllElements('.enemy-direction-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this._currentDirection = e.target.dataset.dir;
                 this._updateDirectionButtons();
@@ -127,7 +128,7 @@ const EnemySpriteTool = {
         });
         
         // 精灵图选择
-        const textureSelect = document.getElementById('enemySpriteTexture');
+        const textureSelect = getElement('enemySpriteTexture');
         if (textureSelect) {
             textureSelect.addEventListener('change', (e) => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -138,7 +139,7 @@ const EnemySpriteTool = {
         }
         
         // 大小
-        const sizeInput = document.getElementById('enemySpriteSize');
+        const sizeInput = getElement('enemySpriteSize');
         if (sizeInput) {
             sizeInput.addEventListener('input', (e) => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -149,7 +150,7 @@ const EnemySpriteTool = {
         }
         
         // 旋转角度
-        const rotInput = document.getElementById('enemySpriteRotation');
+        const rotInput = getElement('enemySpriteRotation');
         if (rotInput) {
             rotInput.addEventListener('input', (e) => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -160,7 +161,7 @@ const EnemySpriteTool = {
         }
         
         // 水平翻转
-        const flipXInput = document.getElementById('enemySpriteFlipX');
+        const flipXInput = getElement('enemySpriteFlipX');
         if (flipXInput) {
             flipXInput.addEventListener('change', (e) => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -171,7 +172,7 @@ const EnemySpriteTool = {
         }
         
         // 垂直翻转
-        const flipYInput = document.getElementById('enemySpriteFlipY');
+        const flipYInput = getElement('enemySpriteFlipY');
         if (flipYInput) {
             flipYInput.addEventListener('change', (e) => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -182,19 +183,19 @@ const EnemySpriteTool = {
         }
         
         // 保存按钮
-        const saveBtn = document.getElementById('enemySpriteSave');
+        const saveBtn = getElement('enemySpriteSave');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this._export());
         }
         
         // 加载按钮
-        const loadBtn = document.getElementById('enemySpriteLoad');
+        const loadBtn = getElement('enemySpriteLoad');
         if (loadBtn) {
             loadBtn.addEventListener('click', () => this._import());
         }
         
         // 重置当前方向
-        const resetBtn = document.getElementById('enemySpriteReset');
+        const resetBtn = getElement('enemySpriteReset');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 const params = this._getParams(this._currentEnemy, this._currentDirection);
@@ -208,7 +209,7 @@ const EnemySpriteTool = {
     
     // 更新方向按钮状态
     _updateDirectionButtons() {
-        document.querySelectorAll('.enemy-direction-btn').forEach(btn => {
+        queryAllElements('.enemy-direction-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.dir === this._currentDirection);
         });
     },
@@ -217,19 +218,19 @@ const EnemySpriteTool = {
     _syncUI() {
         const params = this._getParams(this._currentEnemy, this._currentDirection);
         
-        const textureSelect = document.getElementById('enemySpriteTexture');
+        const textureSelect = getElement('enemySpriteTexture');
         if (textureSelect) textureSelect.value = params.textureKey;
         
-        const sizeInput = document.getElementById('enemySpriteSize');
+        const sizeInput = getElement('enemySpriteSize');
         if (sizeInput) sizeInput.value = params.size;
         
-        const rotInput = document.getElementById('enemySpriteRotation');
+        const rotInput = getElement('enemySpriteRotation');
         if (rotInput) rotInput.value = params.rotation;
         
-        const flipXInput = document.getElementById('enemySpriteFlipX');
+        const flipXInput = getElement('enemySpriteFlipX');
         if (flipXInput) flipXInput.checked = params.flipX;
         
-        const flipYInput = document.getElementById('enemySpriteFlipY');
+        const flipYInput = getElement('enemySpriteFlipY');
         if (flipYInput) flipYInput.checked = params.flipY;
         
         this._updateDirectionButtons();
@@ -237,7 +238,7 @@ const EnemySpriteTool = {
     
     // 绘制预览
     _draw() {
-        const canvas = document.getElementById('enemySpriteCanvas');
+        const canvas = getElement('enemySpriteCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
@@ -333,7 +334,7 @@ const EnemySpriteTool = {
         navigator.clipboard.writeText(json).then(() => {
             this._showToast('✅ 已复制到剪贴板');
         }).catch(() => {
-            const output = document.getElementById('enemySpriteOutput');
+            const output = getElement('enemySpriteOutput');
             if (output) {
                 output.textContent = json;
                 output.style.display = 'block';

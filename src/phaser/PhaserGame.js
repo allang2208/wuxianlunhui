@@ -6,6 +6,7 @@
 import { Game as PhaserGameClass, AUTO, Scale } from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
+import { getElement } from '../utils/dom-utils.js';
 
 let _phaserGame = null;
 
@@ -20,7 +21,7 @@ export const PhaserGame = {
             return _phaserGame;
         }
 
-        const parentEl = document.getElementById('gameCanvas')?.parentElement || document.body;
+        const parentEl = getElement('gameCanvas')?.parentElement || document.body;
 
         _phaserGame = new PhaserGameClass({
             type: AUTO,           // 自动选择 WebGL / Canvas

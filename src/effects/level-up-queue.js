@@ -1,3 +1,4 @@
+import { queryAllElements } from '../utils/dom-utils.js';
 // 效果队列系统：用于顺序播放升级/技能提升等特效
 // 避免多个特效同时叠加显示
 
@@ -76,7 +77,7 @@ const LevelUpEffectQueue = {
         }
         this._isPlaying = false;
         // 清除当前正在显示的 level-up-text
-        document.querySelectorAll('.level-up-text').forEach(el => el.remove());
+        queryAllElements('.level-up-text').forEach(el => el.remove());
     },
 
     // 获取队列长度

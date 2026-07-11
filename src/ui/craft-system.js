@@ -4,6 +4,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isCraftableWeapon } from '../config/gun-ammo.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
 
 const CraftSystem = {
     _isOpen: false,
@@ -283,7 +284,7 @@ const CraftSystem = {
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
-        const panel = document.getElementById('craftPanel');
+        const panel = getElement('craftPanel');
         if (panel) panel.classList.add('active');
         this._setupDragDrop();
         this._updateUI();
@@ -303,7 +304,7 @@ const CraftSystem = {
         } catch (e) {
             console.error('[CraftSystem.close] error:', e);
         }
-        const panel = document.getElementById('craftPanel');
+        const panel = getElement('craftPanel');
         if (panel) panel.classList.remove('active');
         setTimeout(() => {
             if (!UIState.isOpen('craft') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('enchant')) {
@@ -319,11 +320,11 @@ const CraftSystem = {
 
     // ===== 编辑栏控制 =====
     _updateEditBar() {
-        const editBar = document.getElementById('craftEditBar');
-        const editBtn = document.getElementById('craftEditBtn');
-        const saveBtn = document.getElementById('craftSaveBtn');
-        const cancelBtn = document.getElementById('craftCancelBtn');
-        const editHint = document.getElementById('craftEditHint');
+        const editBar = getElement('craftEditBar');
+        const editBtn = getElement('craftEditBtn');
+        const saveBtn = getElement('craftSaveBtn');
+        const cancelBtn = getElement('craftCancelBtn');
+        const editHint = getElement('craftEditHint');
         if (!editBar) return;
 
         const hasWeapon = this._equippedItem && isCraftableWeapon(this._equippedItem);
@@ -387,8 +388,8 @@ const CraftSystem = {
     },
 
     _setupDragDrop() {
-        const dropZone = document.getElementById('craftDropZone');
-        const modContainer = document.getElementById('craftModContainer');
+        const dropZone = getElement('craftDropZone');
+        const modContainer = getElement('craftModContainer');
         if (!dropZone) return;
 
         // 共用：拖入改造栏的处理逻辑
@@ -614,7 +615,7 @@ const CraftSystem = {
         } else {
             // 背包满：装备掉落在地上，并显示与背包已满一致的提示
             Game.dropItem(Game.player.x, Game.player.y, this._equippedItem);
-            let el = document.getElementById('backpackFullNotice');
+            let el = getElement('backpackFullNotice');
             if (el) el.remove();
             el = document.createElement('div');
             el.id = 'backpackFullNotice';
@@ -642,10 +643,10 @@ const CraftSystem = {
     },
 
     _updateUI() {
-        const dropZone = document.getElementById('craftDropZone');
-        const placeholder = document.getElementById('craftDropPlaceholder');
-        const weaponDisplay = document.getElementById('craftWeaponDisplay');
-        const modContainer = document.getElementById('craftModContainer');
+        const dropZone = getElement('craftDropZone');
+        const placeholder = getElement('craftDropPlaceholder');
+        const weaponDisplay = getElement('craftWeaponDisplay');
+        const modContainer = getElement('craftModContainer');
 
         // 清除旧图片
         if (weaponDisplay) weaponDisplay.innerHTML = '';
@@ -738,9 +739,9 @@ const CraftSystem = {
     },
 
     _renderMods() {
-        const modContainer = document.getElementById('craftModContainer');
-        const modGrid = document.getElementById('craftModGrid');
-        const svg = document.getElementById('craftLinesSvg');
+        const modContainer = getElement('craftModContainer');
+        const modGrid = getElement('craftModGrid');
+        const svg = getElement('craftLinesSvg');
         if (!modContainer || !modGrid || !svg) return;
         if (!this._equippedItem) return; // 无装备时不渲染改造格子
 
@@ -836,11 +837,11 @@ const CraftSystem = {
                     EquipManager._dragDropManager._dropHandled = false;
                     e.dataTransfer.setData('text/plain', 'craft');
                     e.dataTransfer.effectAllowed = 'move';
-                    const dropZone = document.getElementById('craftDropZone');
+                    const dropZone = getElement('craftDropZone');
                     if (dropZone) dropZone.classList.add('dragging');
                 };
                 cell.ondragend = (_e) => {
-                    const dropZone = document.getElementById('craftDropZone');
+                    const dropZone = getElement('craftDropZone');
                     if (dropZone) dropZone.classList.remove('dragging');
                     if (!EquipManager._dragDropManager._dropHandled && EquipManager._dragDropManager._dragSrc) {
                         this._returnEquippedItem();
@@ -878,7 +879,7 @@ const CraftSystem = {
         const dx = clientX - this._editDragOffset.x;
         const dy = clientY - this._editDragOffset.y;
 
-        const modContainer = document.getElementById('craftModContainer');
+        const modContainer = getElement('craftModContainer');
         const rect = modContainer.getBoundingClientRect();
         const w = rect.width || 340;
         const h = rect.height || 400;
@@ -912,8 +913,8 @@ const CraftSystem = {
         const options = config.options[slotId];
         if (!options || options.length === 0) return;
 
-        const popup = document.getElementById('craftModPopup');
-        const body = document.getElementById('craftModPopupBody');
+        const popup = getElement('craftModPopup');
+        const body = getElement('craftModPopupBody');
         if (!popup || !body) return;
 
         body.innerHTML = '';
@@ -954,7 +955,7 @@ const CraftSystem = {
     },
 
     _closeModPopup() {
-        const popup = document.getElementById('craftModPopup');
+        const popup = getElement('craftModPopup');
         if (popup) popup.style.display = 'none';
         if (this._popupCloseHandler) {
             document.removeEventListener('mousedown', this._popupCloseHandler);

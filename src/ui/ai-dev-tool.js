@@ -7,6 +7,7 @@
 // 4. 可调整的参数（阶段阈值、协同范围等）
 
 import { Enemy } from '../entities/enemy.js';
+import { getElement } from '../utils/dom-utils.js';
 
 export const AIDevTool = {
     _active: false,
@@ -18,11 +19,11 @@ export const AIDevTool = {
     _refreshInterval: null,
 
     init() {
-        this._panel = document.getElementById('aiDevToolPanel');
-        this._monsterList = document.getElementById('aiDevToolMonsterList');
-        this._synergyList = document.getElementById('aiDevToolSynergyList');
-        this._tacticName = document.getElementById('aiCurrentTactic');
-        this._enemyCount = document.getElementById('aiEnemyCount');
+        this._panel = getElement('aiDevToolPanel');
+        this._monsterList = getElement('aiDevToolMonsterList');
+        this._synergyList = getElement('aiDevToolSynergyList');
+        this._tacticName = getElement('aiCurrentTactic');
+        this._enemyCount = getElement('aiEnemyCount');
     },
 
     show() {

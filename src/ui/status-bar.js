@@ -1,3 +1,4 @@
+import { getElement } from '../utils/dom-utils.js';
 // 状态栏管理器 - 管理玩家身上的状态效果（眩晕、中毒等）
 export const StatusBar = {
     // 状态效果列表：{ id, icon, name, duration, remaining, color }
@@ -22,7 +23,7 @@ export const StatusBar = {
 
     init() {
         if (this.initialized) return;
-        this.container = document.getElementById('statusBarContainer');
+        this.container = getElement('statusBarContainer');
         if (!this.container) {
             console.warn('[StatusBar] 状态栏容器未找到，请检查 HTML 中是否有 id="statusBarContainer" 的元素');
         }
@@ -169,7 +170,7 @@ export const StatusBar = {
      */
     render() {
         if (!this.container) {
-            this.container = document.getElementById('statusBarContainer');
+            this.container = getElement('statusBarContainer');
             if (!this.container) return;
         }
 

@@ -6,6 +6,7 @@ import { SceneManager } from '../world/scene-manager.js';
 // Rift System - 时空裂隙系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
     _progressBarEl: null,
@@ -140,7 +141,7 @@ export const RiftSystem = {
 
     // 显示进度条
     _showProgressBar(progress) {
-        let container = document.getElementById('riftProgressBar');
+        let container = getElement('riftProgressBar');
         if (!container) {
             container = document.createElement('div');
             container.id = 'riftProgressBar';
@@ -149,13 +150,13 @@ export const RiftSystem = {
             document.body.appendChild(container);
         }
         container.style.display = 'block';
-        const fill = document.getElementById('riftProgressFill');
+        const fill = getElement('riftProgressFill');
         if (fill) fill.style.width = (progress * 100) + '%';
     },
 
     // 隐藏进度条
     _hideProgressBar() {
-        const container = document.getElementById('riftProgressBar');
+        const container = getElement('riftProgressBar');
         if (container) container.style.display = 'none';
     },
 
@@ -222,7 +223,7 @@ export const RiftSystem = {
     clear() {
         this.rifts = [];
         this._hideProgressBar();
-        const container = document.getElementById('riftProgressBar');
+        const container = getElement('riftProgressBar');
         if (container && container.parentNode) container.remove();
     }
 };

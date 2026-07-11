@@ -11,6 +11,7 @@ import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
+import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -76,7 +77,7 @@ import { loadImage } from '../utils/image-loader.js';
                     player._applySkillOverrides(currentWeapon);
                 }
                 // ===== FIX 1: 先创建背包格子，再更新显示 =====
-                const grid = document.getElementById('inventoryGrid');
+                const grid = getElement('inventoryGrid');
                 if (grid && grid.children.length === 0) {
                     for (let i = 0; i < this.maxBackpackSlots; i++) {
                         const cell = document.createElement('div');
@@ -125,7 +126,7 @@ import { loadImage } from '../utils/image-loader.js';
 
                     setupDragAndDrop() {
                         this._dragSrc = null;
-                        const equipGrid = document.querySelector('.equip-grid');
+                        const equipGrid = queryElement('.equip-grid');
                         if (equipGrid) {
                             equipGrid.ondragover = function(e) { e.preventDefault(); };
                             equipGrid.ondragenter = function(e) {
@@ -141,7 +142,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 e.preventDefault();
                                 e.stopPropagation();
                                 const slot = e.target.closest('.diablo-slot');
-                                document.querySelectorAll('.equip-grid .diablo-slot').forEach(s => s.classList.remove('drag-over'));
+                                queryAllElements('.equip-grid .diablo-slot').forEach(s => s.classList.remove('drag-over'));
                                 self._dropHandled = true;
                                 if (!slot) return;
                                 const src = self._dragSrc;
@@ -150,7 +151,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 self._dragSrc = null;
                             };
                         }
-                        document.querySelectorAll('.diablo-slot, .inv-cell').forEach(cell => {
+                        queryAllElements('.diablo-slot, .inv-cell').forEach(cell => {
                             this.bindDragToCell(cell);
                         });
                         this.bindCanvasDiscard();
@@ -222,12 +223,12 @@ import { loadImage } from '../utils/image-loader.js';
                     },
 
                     _isInGameArea(clientX) {
-                        const panel = document.getElementById('systemPanel');
+                        const panel = getElement('systemPanel');
                         if (!panel || !panel.classList.contains('active')) return true;
                         const panelLeft = window.innerWidth * 0.55;
                         if (clientX >= panelLeft) return false;
                         // 附魔栏打开时，附魔栏区域也不视为丢弃区域
-                        const enchantPanel = document.getElementById('enchantPanel');
+                        const enchantPanel = getElement('enchantPanel');
                         if (enchantPanel && enchantPanel.classList.contains('active')) {
                             // enchantPanel is at right: 45vw, width: 380px
                             // enchant panel is in the left side from clientX perspective? No, it's on the right
@@ -252,7 +253,7 @@ import { loadImage } from '../utils/image-loader.js';
 
                     bindCanvasDiscard() {
                         const self = this;
-                        const canvas = document.getElementById('gameCanvas');
+                        const canvas = getElement('gameCanvas');
                         if (canvas) {
                             canvas.ondragover = function(e) { e.preventDefault(); };
                             canvas.ondrop = function(e) {
@@ -261,7 +262,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 self._doDiscard();
                             };
                         }
-                        const overlay = document.getElementById('panelOverlay');
+                        const overlay = getElement('panelOverlay');
                         if (overlay) {
                             overlay.ondragover = function(e) { e.preventDefault(); };
                             overlay.ondrop = function(e) {
@@ -270,7 +271,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 self._doDiscard();
                             };
                         }
-                        const panel = document.getElementById('systemPanel');
+                        const panel = getElement('systemPanel');
                         if (panel) {
                             panel.ondragover = function(e) { e.preventDefault(); };
                             panel.ondrop = function(e) {
@@ -278,7 +279,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 self._dropHandled = true;
                             };
                         }
-                        const uiLayer = document.getElementById('uiLayer');
+                        const uiLayer = getElement('uiLayer');
                         if (uiLayer) {
                             uiLayer.ondragover = function(e) { e.preventDefault(); };
                             uiLayer.ondrop = function(e) {
@@ -286,7 +287,7 @@ import { loadImage } from '../utils/image-loader.js';
                                 self._dropHandled = true;
                             };
                         }
-                        document.querySelectorAll('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid').forEach(el => {
+                        queryAllElements('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid').forEach(el => {
                             el.ondragover = function(e) { e.preventDefault(); };
                             el.ondrop = function(e) {
                                 e.preventDefault();
@@ -309,7 +310,7 @@ import { loadImage } from '../utils/image-loader.js';
                             e.dataTransfer.setData('text/plain', cell.dataset.slot);
                             e.dataTransfer.effectAllowed = 'move';
                             cell.classList.add('dragging');
-                            const tooltip = document.getElementById('equipTooltip');
+                            const tooltip = getElement('equipTooltip');
                             if (tooltip) {
                                 tooltip.classList.remove('visible', 'pinned');
                                 tooltip._pinned = false;
@@ -323,8 +324,8 @@ import { loadImage } from '../utils/image-loader.js';
                                 e.dataTransfer.setDragImage(cell, cell.offsetWidth / 2, cell.offsetHeight / 2);
                                 // 延迟隐藏面板，确保快照已捕获
                                 requestAnimationFrame(() => {
-                                    const panel = document.getElementById('systemPanel');
-                                    const overlay = document.getElementById('panelOverlay');
+                                    const panel = getElement('systemPanel');
+                                    const overlay = getElement('panelOverlay');
                                     if (panel) {
                                         panel.dataset._wasDisplay = panel.style.display || '';
                                         panel.style.display = 'none';
@@ -338,15 +339,15 @@ import { loadImage } from '../utils/image-loader.js';
                         };
                         cell.ondragend = function(e) {
                             cell.classList.remove('dragging');
-                            document.querySelectorAll('.inv-cell, .diablo-slot').forEach(s => s.classList.remove('drag-over'));
+                            queryAllElements('.inv-cell, .diablo-slot').forEach(s => s.classList.remove('drag-over'));
                             if (!self._dropHandled && self._dragSrc && self._isInGameArea(e.clientX)) {
                                 self._doDiscard();
                             }
                             self._dropHandled = false;
                             self._dragSrc = null;
                             // 恢复面板和覆盖层
-                            const panel = document.getElementById('systemPanel');
-                            const overlay = document.getElementById('panelOverlay');
+                            const panel = getElement('systemPanel');
+                            const overlay = getElement('panelOverlay');
                             if (panel) {
                                 panel.style.display = panel.dataset._wasDisplay || '';
                                 delete panel.dataset._wasDisplay;
@@ -915,7 +916,7 @@ import { loadImage } from '../utils/image-loader.js';
             // 触发装备动画
             triggerEquipFlash(slotKey) {
                 if (!slotKey) return;
-                const slot = document.querySelector(`.equip-grid .diablo-slot[data-slot="${slotKey}"]`);
+                const slot = queryElement(`.equip-grid .diablo-slot[data-slot="${slotKey}"]`);
                 if (!slot) return;
                 slot.classList.remove('equip-flash', 'equip-pop');
                 void slot.offsetWidth; // 强制重绘，重置动画
@@ -924,7 +925,7 @@ import { loadImage } from '../utils/image-loader.js';
             },
             // === 触发背包格子动画 ===
             triggerBackpackFlash(slotIdx) {
-                const cell = document.querySelector(`.gear-inventory-col .inv-cell[data-slot="${slotIdx}"]`);
+                const cell = queryElement(`.gear-inventory-col .inv-cell[data-slot="${slotIdx}"]`);
                 if (!cell) return;
                 cell.classList.remove('equip-pop');
                 void cell.offsetWidth;
@@ -1056,7 +1057,7 @@ import { loadImage } from '../utils/image-loader.js';
             updateEquipSlots() {
                 const eq = this.player.equipments;
                 const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
-                document.querySelectorAll('.diablo-slot').forEach(slot => {
+                queryAllElements('.diablo-slot').forEach(slot => {
                     const key = slot.dataset.slot;
                     const item = eq[key];
                     const iconEl = slot.querySelector('.slot-icon');
@@ -1457,7 +1458,7 @@ import { loadImage } from '../utils/image-loader.js';
             backpackItems: [],
             updateInventorySlots() {
                 const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
-                document.querySelectorAll('.inv-cell').forEach((cell, idx) => {
+                queryAllElements('.inv-cell').forEach((cell, idx) => {
                     cell.classList.remove('occupied');
                     cell.innerHTML = '';
                     cell.dataset.itemName = '';
@@ -1516,7 +1517,7 @@ import { loadImage } from '../utils/image-loader.js';
                         this._dragDropManager.bindDragToCell(cell);
                     }
                 });
-                const invCountEl = document.getElementById('invCount'); if (invCountEl) invCountEl.textContent = `${this.backpackItems.length}/${this.maxBackpackSlots}`;
+                const invCountEl = getElement('invCount'); if (invCountEl) invCountEl.textContent = `${this.backpackItems.length}/${this.maxBackpackSlots}`;
                 // 重新绑定tooltip（使用 onmouseenter/onmouseleave 直接赋值覆盖旧值）
                 EquipTooltipManager.bindInventoryTooltip();
             }
