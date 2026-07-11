@@ -352,6 +352,17 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
+        // Boss 战模式：委托给 BossRewardSystem 更新
+        if (this.state === "boss") {
+            import('./boss-reward-system.js').then(mod => {
+                if (mod.BossRewardSystem && mod.BossRewardSystem.isBossBattleActive && mod.BossRewardSystem.isBossBattleActive()) {
+                    mod.BossRewardSystem.update(dt);
+                }
+            }).catch(() => {});
+            // Boss 战由 BossRewardSystem 自己的回调处理完成，这里不做额外检测
+            return;
+        }
+
         // 使用 CombatRoomSystem 检测战斗完成
         if (CombatRoomSystem.isCombatComplete()) {
             // 战斗已完成，启动打扫战场倒计时
@@ -487,6 +498,7 @@ export const DungeonMapSystem = {
             return;
         }
         // 使用新的 CombatRoomSystem 生成随机战斗场地
+        this.state = "combat";
         CombatRoomSystem.enterCombatRoom(this.player, false, {
             onComplete: () => {
                 this._cleanupCombat();
@@ -591,6 +603,7 @@ export const DungeonMapSystem = {
             this._enterZombieBoss(node);
             return;
         }
+        this.state = "boss";
         // 使用 BossRewardSystem 的大块头 Boss
         BossRewardSystem.enterBossBattle(this.player, (result) => {
             this._cleanupCombat();
