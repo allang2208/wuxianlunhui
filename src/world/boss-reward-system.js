@@ -30,6 +30,7 @@ import { Enemy } from '../entities/enemy.js';
 import { RewardSystem } from '../ui/reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { CONFIG } from '../config/config.js';
 
 // ==================== 配置对象 ====================
 

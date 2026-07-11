@@ -8,6 +8,7 @@ import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
+import { CONFIG } from '../config/config.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果

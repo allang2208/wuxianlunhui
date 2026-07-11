@@ -11,6 +11,7 @@ import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { Easing } from '../../config/math-utils.js';
+import { CONFIG } from '../../config/config.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态

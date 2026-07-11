@@ -33,6 +33,7 @@ import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
 import { MovementSystem } from './systems/movement-system.js';
 import { CombatSystem } from './systems/combat-system.js';
+import { CONFIG } from './config/config.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）

@@ -12,6 +12,7 @@ import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
+import { CONFIG } from '../../config/config.js';
 
 export class GameScene extends Scene {
     constructor() {

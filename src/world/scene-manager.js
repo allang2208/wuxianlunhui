@@ -11,6 +11,7 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { CONFIG } from '../config/config.js';
 
 export const SceneManager = {
     currentScene: null,

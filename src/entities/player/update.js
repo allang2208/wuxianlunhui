@@ -11,6 +11,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
+import { CONFIG } from '../../config/config.js';
 
 const updateMixin = {
 update(dt, entities) {

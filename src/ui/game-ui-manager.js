@@ -5,6 +5,7 @@ import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { CONFIG } from '../config/config.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
