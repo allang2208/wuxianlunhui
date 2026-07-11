@@ -1,5 +1,6 @@
 import { MazeGenerator } from '../world/maze-generator.js';
 import { Renderer } from '../world/renderer.js';
+import { CONFIG } from '../config/config.js';
 
 const WallSystem = {
     walls: [],

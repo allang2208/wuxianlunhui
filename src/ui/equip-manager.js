@@ -13,6 +13,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { ShopSystem } from './shop-system.js';
+import { SkillManager } from './skill-manager.js';
+import { QuickBar } from './quick-bar.js';
+import { GameUIManager } from './game-ui-manager.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;

@@ -1,4 +1,6 @@
 import { Game } from '../../game.js';
+import { QuestSystem } from '../quest-system.js';
+import { SystemUI } from '../system-ui.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 

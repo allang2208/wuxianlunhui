@@ -1,4 +1,5 @@
 import { SoundManager } from '../../ui/sound-manager.js';
+import { SkillManager } from '../../ui/skill-manager.js';
 export class ShieldSystem {
     constructor(player) {
         this.player = player;

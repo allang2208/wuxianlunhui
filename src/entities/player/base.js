@@ -1,6 +1,8 @@
 import { computeWeaponAttack } from '../../config/attack-formula.js';
 import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../../config/combat-formulas.js';
+import { CONFIG } from '../../config/config.js';
+import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const baseMixin = {
     calculateCombatStats() {

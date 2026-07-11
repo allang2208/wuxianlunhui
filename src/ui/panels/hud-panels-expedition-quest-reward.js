@@ -1,3 +1,5 @@
+import { QuestSystem } from '../quest-system.js';
+import { ExpeditionSystem } from '../expedition-system.js';
 export function createHudPanelsExpeditionQuestReward() {
     // 创建根元素
     const root = document.createElement('div');

@@ -9,6 +9,8 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { EquipManager } from './equip-manager.js';
+import { GameUIManager } from './game-ui-manager.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,

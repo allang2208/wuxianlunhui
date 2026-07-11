@@ -11,6 +11,7 @@ import { MathUtils, Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
+import { SkillManager } from '../../ui/skill-manager.js';
 class DashSystem {
     constructor(player) {
         this.player = player;

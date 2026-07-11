@@ -1,3 +1,4 @@
+import { CodexManager } from '../ui/codex-manager.js';
         const ItemDatabase = {
             items: {},
 

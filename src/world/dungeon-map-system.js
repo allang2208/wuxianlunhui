@@ -35,6 +35,8 @@ import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { CONFIG } from '../config/config.js';
+import { ShopSystem } from '../ui/shop-system.js';
 
 export const DungeonMapSystem = {
     active: false,

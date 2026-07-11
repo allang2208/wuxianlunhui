@@ -20,6 +20,7 @@ import { pathFinder } from '../ai/pathfinder.js';
  *   替代原有的 _generateRoom() 方法
  */
 
+import { CONFIG } from '../config/config.js';
 import { BlackWolf } from '../entities/enemy-types.js';
 import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer

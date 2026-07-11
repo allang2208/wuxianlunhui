@@ -3,6 +3,12 @@ import { NpcPortraitTool } from './npc-portrait-tool.js';
 import { UIState } from './ui-state.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { ShopSystem } from './shop-system.js';
+import { EnhanceSystem } from './enhance-system.js';
+import { CraftSystem } from './craft-system.js';
+import { EnchantSystem } from './enchant-system.js';
+import { QuestSystem, QuestState } from './quest-system.js';
+import { SystemUI } from './system-ui.js';
 
 const NPCDialogue = {
     _active: false,

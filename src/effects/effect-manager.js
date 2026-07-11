@@ -8,6 +8,7 @@ import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
 import { Projectile } from '../combat/projectile.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { CONFIG } from '../config/config.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},

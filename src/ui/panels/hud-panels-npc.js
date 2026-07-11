@@ -1,3 +1,4 @@
+import { NPCDialogue } from '../npc-dialogue.js';
 /**
  * NPC 面板模块
  * 包含：NPC 立绘、NPC 对话框（含交互选项按钮）

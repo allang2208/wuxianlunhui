@@ -139,3 +139,4 @@ function isMachineGun(weaponType) {
 }
 
 export { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun };
+export const AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun };
