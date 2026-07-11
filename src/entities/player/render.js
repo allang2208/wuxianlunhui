@@ -838,6 +838,7 @@ render(ctx) {
                         this._usePhaserSprite = false;
                     } else {
                         sprite.setVisible(true);
+                        sprite.setActive(true);
                         this._usePhaserSprite = true; // 标记：Phaser 已渲染角色，Canvas 跳过角色贴图
                     }
                     // 同步武器到 Phaser Sprite
