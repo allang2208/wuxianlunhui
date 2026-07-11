@@ -58,33 +58,24 @@ export const DungeonMapSystem = {
     TYPE_COLORS: {
         start:  "#3a5a3a",
         combat: "#7a3a3a",
-        shop:   "#3a5a7a",
         event:  "#6a5a3a",
         boss:   "#7a0000",
-        converge: "#5a3a5a",
-        random: "#6a5a3a",
         reward: "#5a3a7a",
         empty:  "#3a3a3a",
     },
     TYPE_BORDER_COLORS: {
         start:  "#6aca6a",
         combat: "#aa5a5a",
-        shop:   "#5a8aaa",
         event:  "#9a8a5a",
         boss:   "#aa0000",
-        converge: "#8a5a8a",
-        random: "#9a8a5a",
         reward: "#8a5aaa",
         empty:  "#5a5a5a",
     },
     TYPE_ICONS: {
         start:  "▶",
         combat: "⚔",
-        shop:   "🏪",
         event:  "?",
         boss:   "☠",
-        converge: "◎",
-        random: "?",
         reward: "💎",
         empty:  "·",
     },
@@ -462,9 +453,7 @@ export const DungeonMapSystem = {
         switch (node.type) {
             case "combat": this._enterCombat(node); break;
             case "boss":   this._enterBoss(node); break;
-            case "shop":   this._enterShop(node); break;
             case "event":  this._enterEvent(node); break;
-            case "random": this._enterEvent(node); break;
             case "reward": this._enterReward(node); break;
             default:       this._returnToMap(); break;
         }
@@ -908,7 +897,7 @@ export const DungeonMapSystem = {
                 } else {
                     this._returnToMap();
                 }
-            });
+            }, null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
             // 降级到旧的事件系统
@@ -958,7 +947,7 @@ export const DungeonMapSystem = {
                 } else {
                     this._returnToMap();
                 }
-            });
+            }, null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system for zombie:', err);
             // 降级到旧版事件系统
@@ -1104,10 +1093,11 @@ export const DungeonMapSystem = {
 
             // 迷雾系统：确定显示类型
             let displayType = node.type;
-            let isRevealed = isVisited || isCurrent || isAvailable;
+            let isRevealed = isVisited || isCurrent;
             if (this.fogOfWar && this.fogOfWar.enabled !== false) {
                 const visibility = this.fogOfWar.getNodeVisibility(node.id);
-                isRevealed = visibility === 'visited' || visibility === 'revealed' || isCurrent || isAvailable;
+                // 只有已访问节点显示实际内容；相邻节点和未访问节点都显示 "?"
+                isRevealed = visibility === 'visited' || isCurrent;
                 if (!isRevealed && !isVisited) {
                     displayType = 'unknown';
                 }
@@ -1128,14 +1118,10 @@ export const DungeonMapSystem = {
                 borderColor = "#5a5a5a";
                 ctx.globalAlpha = 0.5;
             } else if (isAvailable) {
-                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
-                borderColor = this.TYPE_BORDER_COLORS[node.type] || "#aaaaaa";
+                // 相邻可点击节点：显示为未知（"?"），但高亮提示可点击
+                color = "#2a2a2a";
+                borderColor = "#9a8a5a";
                 glow = true;
-            } else if (isRevealed) {
-                // 已揭示但未访问：显示实际类型但暗淡
-                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
-                borderColor = "#444444";
-                ctx.globalAlpha = 0.4;
             } else {
                 // 未揭示：迷雾状态
                 color = "#1a1a1a";
@@ -1171,12 +1157,12 @@ export const DungeonMapSystem = {
 
             // 节点图标
             let icon;
-            if (!isRevealed && !isVisited && !isCurrent) {
-                icon = "?"; // 迷雾：显示问号
+            if (!isVisited && !isCurrent) {
+                icon = "?"; // 未访问节点：显示问号
             } else {
                 icon = this.TYPE_ICONS[displayType] || "•";
             }
-            ctx.fillStyle = (isAvailable || isCurrent || isRevealed) ? "#ffffff" : "#555555";
+            ctx.fillStyle = (isAvailable || isCurrent || isVisited) ? "#ffffff" : "#555555";
             ctx.font = `${isHovered ? 18 : 16}px "Microsoft YaHei", sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
