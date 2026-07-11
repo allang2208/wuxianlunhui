@@ -8,9 +8,9 @@ import { Input } from '../../ui/input.js';
 import { StatusBar } from '../../ui/status-bar.js';
 import { DashConvergeEffect } from '../../effects/dash-effects.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
-import { DustEffect } from '../../effects/particle-effects.js';
 import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 
 const updateMixin = {
 update(dt, entities) {
@@ -259,21 +259,13 @@ update(dt, entities) {
                             // SoundManager.play('step');
                             const offsetX = -this.vx * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 8;
                             const offsetY = -this.vy * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 4;
-                            { let d = EffectManager._acquire('DustEffect');
                             const dInt = sprint ? 1.5 : 0.8;
-                            if (d) { d.x = this.x + offsetX; d.y = this.y + offsetY + 10; d.life = d.maxLife; d.active = true;
-                                d.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 49.92+Math.random()*124.8+dInt*49.92; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
-                            else d = new DustEffect(this.x + offsetX, this.y + offsetY + 10, dInt);
-                            EffectManager.add(d); }
+                            EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY + 10, dInt);
                             // PKM 装备时奔跑额外生成更浓密的烟尘
                             const currentItem = this.equipments[this.weaponMode];
                             if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg')) {
-                                { let d2 = EffectManager._acquire('DustEffect');
                                 const pkmDInt = sprint ? 2.2 : 1.2;
-                                if (d2) { d2.x = this.x + offsetX * 0.7; d2.y = this.y + offsetY * 0.7 + 10; d2.life = d2.maxLife; d2.active = true;
-                                    d2.particles.forEach(p => { const pa = Math.PI+(Math.random()-0.5)*Math.PI; const ps = 49.92+Math.random()*124.8+pkmDInt*49.92; p.vx = Math.cos(pa)*ps*0.6; p.vy = Math.sin(pa)*ps*0.4-0.3-Math.random()*0.6; p.alpha = 0.4+Math.random()*0.35; }); }
-                                else d2 = new DustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 + 10, pkmDInt);
-                                EffectManager.add(d2); }
+                                EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 + 10, pkmDInt);
                             }
                         }
                     } else {

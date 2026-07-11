@@ -12,10 +12,10 @@ import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { DodgeEffect } from '../../effects/particle-effects.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
+import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 
@@ -666,11 +666,8 @@ triggerDodge(moveInput) {
                 this.dodgeDirection = { x: dirX, y: dirY }; this.isDodging = true; this.dodgeTimer = CONFIG.DODGE_DURATION;
                 this.dodgeCooldown = CONFIG.DODGE_COOLDOWN; this.dodgeInvincible = true; this.data.stamina -= CONFIG.STAMINA_DODGE_COST;
                 // SoundManager.play('dodge');
-                this.vx = 0; this.vy = 0; { let d = EffectManager._acquire('DodgeEffect');
-                if (d) { d.x = this.x; d.y = this.y; d.dirX = dirX; d.dirY = dirY; d.life = 300; d.active = true;
-                    d.trails.forEach((t,i) => { t.x = this.x - dirX*i*8; t.y = this.y - dirY*i*8; t.alpha = 1-i*0.15; }); }
-                else d = new DodgeEffect(this.x, this.y, dirX, dirY);
-                EffectManager.add(d); }
+                this.vx = 0; this.vy = 0;
+                EffectFactory.createDodgeEffect(this.x, this.y, dirX, dirY);
             },
 
 _lineRectIntersection(x1, y1, x2, y2, rect) {
@@ -1363,14 +1360,8 @@ _fireRanged(hand = 'main') {
                         let weaponDamage;
                         if (this.getCurrentWeaponAtk) {
                             weaponDamage = this.getCurrentWeaponAtk();
-                        } else if (attackKey === 'pkm') {
-                            weaponDamage = Math.round(5 + this.data.str * 0.1 + this.data.stamina * 0.1);
-                        } else if (attackKey === 'qbz191') {
-                            weaponDamage = Math.round(3 + this.data.str * 0.04 + this.data.wis * 0.18);
-                        } else if (attackKey === 'qjb201') {
-                            weaponDamage = Math.round(3 + this.data.str * 0.08 + this.data.wis * 0.15);
                         } else {
-                            weaponDamage = Math.round(3 + this.data.str * 0.05 + this.data.wis * 0.15);
+                            weaponDamage = calculateFallbackDamage(attackKey, this.data) || WEAPON_DAMAGE_FORMULAS.akm(this.data);
                         }
                         const damage = { min: weaponDamage, max: weaponDamage };
 
@@ -1443,7 +1434,7 @@ _fireRanged(hand = 'main') {
                             if (this.getCurrentWeaponAtk) {
                                 weaponDamage = this.getCurrentWeaponAtk();
                             } else {
-                                weaponDamage = Math.round(1 + this.data.con * 0.1 + this.data.wis * 0.2);
+                                weaponDamage = calculateFallbackDamage('shotgun', this.data);
                             }
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）
