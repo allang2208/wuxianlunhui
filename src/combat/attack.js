@@ -7,7 +7,7 @@ import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { Projectile } from './projectile.js';
+import { ProjectileFactory } from '../utils/projectile-factory.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -369,11 +369,14 @@ function applyEnchantOnHit(weapon, target, source) {
                 const projectileSpeed = this.config.projectileSpeed || projDefaults.speed;
                 const projectileRange = this.config.projectileRange || projDefaults.range;
                 const projectileSize = this.config.projectileSize || projDefaults.size;
-                { let p = EffectManager._acquire('Projectile');
-                        if (p) { p.x = source.x; p.y = source.y; p.angle = angle; p.speed = projectileSpeed; p.maxRange = projectileRange; p.size = projectileSize; p.damage = damage; p.piercing = piercing; p.source = source; p.entities = entities; p.image = source.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.damageType = damageType; p.isSpit = false; }
-                        else p = new Projectile(source.x, source.y, angle, projectileSpeed, projectileRange, projectileSize, damage, piercing, source, entities, source.arrowImage, false, false, false, damageType);
-                        if (source.name === '毒液僵尸' || this.config.isSpit) p.isSpit = true;
-                        EffectManager.add(p); }
+                ProjectileFactory.create({
+                    x: source.x, y: source.y, angle,
+                    speed: projectileSpeed, maxRange: projectileRange, size: projectileSize,
+                    damage, piercing, source, entities,
+                    image: source.arrowImage,
+                    damageType,
+                    isSpit: source.name === '毒液僵尸' || this.config.isSpit
+                });
                 return true;
             }
         }

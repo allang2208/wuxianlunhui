@@ -1,12 +1,10 @@
 import { SoundManager } from '../ui/sound-manager.js';
-import { Game } from '../game.js';
-
 import { DamageableEntity } from './damageable-entity.js';
 import { ThrustAttack } from '../combat/attack.js';
 import { isGunWeapon, getAmmoConfig, isMachineGun } from '../config/gun-ammo.js';
 
 import { WEAPON_ANIM } from '../config/math-utils.js';
-import { Projectile } from '../combat/projectile.js';
+import { ProjectileFactory } from '../utils/projectile-factory.js';
 
 /**
  * Combatant 基类 — 通用战斗者接口
@@ -489,21 +487,17 @@ class Combatant extends DamageableEntity {
         // 创建弹丸
         // 敌人使用曳光弹效果，确保弹道可见
         const isEnemy = this._faction === 'enemy';
-        const projectile = new Projectile(
-            this.x, this.y, angle, speed, range, size,
-            damage, piercing, this, entities, projectileImage,
-            isEnemy, // isTracer：敌人使用曳光弹
-            isMachineGun(weaponType), // isGold（机枪类金色曳光弹）
-            weaponType === 'deagle', // isDarkGold
-            'physical', // damageType
-            false, // noRender
-            false // isGreen
-        );
-
-        // 将弹丸添加到实体管理
-        if (typeof Game !== 'undefined' && Game.entities) {
-            Game.entities.set(`projectile_${Date.now()}_${Math.random()}`, projectile);
-        }
+        ProjectileFactory.create({
+            x: this.x, y: this.y, angle,
+            speed, maxRange: range, size,
+            damage, piercing,
+            source: this, entities,
+            image: projectileImage,
+            isTracer: isEnemy,
+            isGold: isMachineGun(weaponType),
+            isDarkGold: weaponType === 'deagle',
+            damageType: 'physical'
+        });
 
         // 触发武器动画
         this.triggerWeaponAnim();

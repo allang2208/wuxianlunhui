@@ -6,6 +6,10 @@ import { Renderer } from '../world/renderer.js';
                 if (!MuzzleFlashEffect._sharedImage) { MuzzleFlashEffect._sharedImage = new Image(); MuzzleFlashEffect._sharedImage.src = 'assets/effects/muzzle_flash_01.png'; }
                 this.image = MuzzleFlashEffect._sharedImage;
             }
+            reset(x, y, angle, scale = 1.0) {
+                this.x = x; this.y = y; this.angle = angle; this.scale = scale;
+                this.life = this.maxLife; this.active = true;
+            }
             update(dt = 16.67) { this.life -= dt; if (this.life <= 0) this.active = false; }
             render(ctx) {
                 const alpha = this.life / this.maxLife;
