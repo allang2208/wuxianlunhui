@@ -8,6 +8,7 @@ import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,
@@ -76,7 +77,7 @@ export const RewardSystem = {
         // 渲染选中状态
         this._render();
         // 2秒后关闭
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             this.close();
         }, 2000);
     },

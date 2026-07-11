@@ -6,6 +6,7 @@ import { loadImage } from '../utils/image-loader.js';
 import { AIDevTool } from './ai-dev-tool.js';
 import { EnemySpriteTool } from './enemy-sprite-tool.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // 交互式开发工具 - 武器定位与动画调试面板
 const DevTool = {
@@ -1418,7 +1419,7 @@ const DevTool = {
         toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(40,60,30,0.95);color:#90d070;padding:10px 20px;border-radius:6px;font-size:14px;z-index:10000;pointer-events:none;animation:toastFade 2s ease-out forwards;font-family:SimHei,"Microsoft YaHei",sans-serif;border:1px solid rgba(144,208,112,0.3);';
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2000);
+        TimerManager.setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2000);
     },
 
     // 重置
@@ -1663,7 +1664,7 @@ const DevTool = {
                 const text = `left: ${start.split(',')[0].trim()}px; bottom: ${start.split(',')[1].trim()}px; width: ${size.split('x')[0].trim()}px; height: ${size.split('x')[1].trim()}px;`;
                 navigator.clipboard.writeText(text).then(() => {
                     copyBtn.textContent = '✅ 已复制';
-                    setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
+                    TimerManager.setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
                 }).catch(() => {
                     // fallback
                     const ta = document.createElement('textarea');
@@ -1673,7 +1674,7 @@ const DevTool = {
                     document.execCommand('copy');
                     document.body.removeChild(ta);
                     copyBtn.textContent = '✅ 已复制';
-                    setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
+                    TimerManager.setTimeout(() => copyBtn.textContent = '📋 复制坐标', 1500);
                 });
             };
         }

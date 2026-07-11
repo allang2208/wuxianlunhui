@@ -5,6 +5,7 @@ import { isCraftableWeapon } from '../config/gun-ammo.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const CraftSystem = {
     _isOpen: false,
@@ -306,7 +307,7 @@ const CraftSystem = {
         }
         const panel = getElement('craftPanel');
         if (panel) panel.classList.remove('active');
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             if (!UIState.isOpen('craft') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
@@ -622,7 +623,7 @@ const CraftSystem = {
             el.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#d4c5a9;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
             el.textContent = '当前背包已满，装备自动掉落附近地上';
             document.body.appendChild(el);
-            setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
+            TimerManager.setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
             console.log('[CraftSystem] 背包满，装备已掉落在地上');
         }
         // 如果来自装备槽，清空该装备槽（防止视觉上仍显示）

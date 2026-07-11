@@ -10,6 +10,7 @@ import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -55,7 +56,7 @@ export const SceneManager = {
         const overlay = getElement('loadingOverlay');
         if (overlay) {
             overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            TimerManager.setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
         this.isLoading = false;
     },
@@ -200,7 +201,7 @@ export const SceneManager = {
         label.textContent = name;
         document.body.appendChild(label);
         this._sceneLabel = label;
-        setTimeout(() => { if (label && label.parentNode) label.remove(); }, 3000);
+        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, 3000);
     },
 
     _saveMainSceneState() {
@@ -687,7 +688,7 @@ export const SceneManager = {
     },
 
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise(resolve => TimerManager.setTimeout(resolve, ms));
     },
 
     _loadScene5(player) {

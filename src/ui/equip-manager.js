@@ -12,6 +12,7 @@ import { CraftSystem } from './craft-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -921,7 +922,7 @@ import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.j
                 slot.classList.remove('equip-flash', 'equip-pop');
                 void slot.offsetWidth; // 强制重绘，重置动画
                 slot.classList.add('equip-flash');
-                setTimeout(() => slot.classList.remove('equip-flash'), 650);
+                TimerManager.setTimeout(() => slot.classList.remove('equip-flash'), 650);
             },
             // === 触发背包格子动画 ===
             triggerBackpackFlash(slotIdx) {
@@ -930,7 +931,7 @@ import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.j
                 cell.classList.remove('equip-pop');
                 void cell.offsetWidth;
                 cell.classList.add('equip-pop');
-                setTimeout(() => cell.classList.remove('equip-pop'), 550);
+                TimerManager.setTimeout(() => cell.classList.remove('equip-pop'), 550);
             },
             /** 设置拖放事件 */
             /** 清除玩家手上持有的武器状态（与 loadWeaponAssets 逆操作对应）

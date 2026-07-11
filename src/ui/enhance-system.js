@@ -3,6 +3,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -28,7 +29,7 @@ const EnhanceSystem = {
         this._returnEquippedItem();
         const panel = getElement('enhancePanel');
         if (panel) panel.classList.remove('active');
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             if (!UIState.isOpen('enhance') && !UIState.isOpen('shop') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
@@ -232,7 +233,7 @@ const EnhanceSystem = {
 
         this._playEnhanceEffect();
 
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `强化成功！+${item.enhanceLevel}`, '#ffd700'));
             this._updateUI();
             EquipManager.updateEquipSlots();
@@ -244,7 +245,7 @@ const EnhanceSystem = {
         const slot = getElement('enhanceSlot');
         if (!slot) return;
         slot.classList.add('enhancing');
-        setTimeout(() => slot.classList.remove('enhancing'), 900);
+        TimerManager.setTimeout(() => slot.classList.remove('enhancing'), 900);
     },
 
     removeItem() {

@@ -1,4 +1,5 @@
 import { queryAllElements } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 // 效果队列系统：用于顺序播放升级/技能提升等特效
 // 避免多个特效同时叠加显示
 
@@ -35,7 +36,7 @@ const LevelUpEffectQueue = {
         const effect = this._queue.shift();
         this._renderEffect(effect);
         const duration = effect.duration || this._DEFAULT_DURATION;
-        this._currentTimer = setTimeout(() => {
+        this._currentTimer = TimerManager.setTimeout(() => {
             this._currentTimer = null;
             this._playNext();
         }, duration);
@@ -46,7 +47,7 @@ const LevelUpEffectQueue = {
         const flash = document.createElement('div');
         flash.className = 'screen-flash';
         document.body.appendChild(flash);
-        setTimeout(() => { if (flash && flash.parentNode) flash.remove(); }, 500);
+        TimerManager.setTimeout(() => { if (flash && flash.parentNode) flash.remove(); }, 500);
 
         // 升级文字提示
         const text = document.createElement('div');
@@ -60,7 +61,7 @@ const LevelUpEffectQueue = {
             <span class="lu-effect">${effect.effectText || ''}</span>
         `;
         document.body.appendChild(text);
-        setTimeout(() => { if (text && text.parentNode) text.remove(); }, 2500);
+        TimerManager.setTimeout(() => { if (text && text.parentNode) text.remove(); }, 2500);
 
         // 执行回调（如属性更新）
         if (effect.onShow && typeof effect.onShow === 'function') {
@@ -72,7 +73,7 @@ const LevelUpEffectQueue = {
     clear() {
         this._queue = [];
         if (this._currentTimer) {
-            clearTimeout(this._currentTimer);
+            TimerManager.clearTimeout(this._currentTimer);
             this._currentTimer = null;
         }
         this._isPlaying = false;

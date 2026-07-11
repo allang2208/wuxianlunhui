@@ -1,4 +1,5 @@
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // Backpack Dialog Manager - Extracted from EquipManager
 // Handles split dialog and backpack full notifications
@@ -27,7 +28,7 @@ export const BackpackDialogManager = {
         el.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#d4c5a9;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
         el.textContent = '背包已满！';
         document.body.appendChild(el);
-        setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
+        TimerManager.setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
     },
     
     _showSplitDialog(item, _slotIdx) {

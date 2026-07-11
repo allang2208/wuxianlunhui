@@ -2,6 +2,7 @@ import { Game } from '../game.js';
 import { NpcPortraitTool } from './npc-portrait-tool.js';
 import { UIState } from './ui-state.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const NPCDialogue = {
     _active: false,
@@ -258,7 +259,7 @@ const NPCDialogue = {
         if (dialogueBox) {
             dialogueBox.classList.remove('active');
             // 等待 CSS 过渡动画完成（300ms）后彻底关闭
-            setTimeout(() => {
+            TimerManager.setTimeout(() => {
                 if (!this._active) return;
                 this.close();
             }, 300);

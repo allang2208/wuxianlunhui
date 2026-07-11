@@ -9,6 +9,7 @@ import { EventBus } from '../core/event-bus.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryElement, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const EnchantSystem = {
     _isOpen: false,
@@ -82,7 +83,7 @@ const EnchantSystem = {
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
             const panel = getElement('enchantPanel');
             if (panel) panel.classList.remove('active');
-            setTimeout(() => {
+            TimerManager.setTimeout(() => {
                 if (!UIState.isOpen('enchant') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft')) {
                     SystemUI.close();
                 }
@@ -589,7 +590,7 @@ const EnchantSystem = {
         if (msgEl) {
             msgEl.textContent = text;
             msgEl.className = 'enchant-message ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
-            setTimeout(() => { msgEl.textContent = ''; msgEl.className = 'enchant-message'; }, 3000);
+            TimerManager.setTimeout(() => { msgEl.textContent = ''; msgEl.className = 'enchant-message'; }, 3000);
         }
     },
 

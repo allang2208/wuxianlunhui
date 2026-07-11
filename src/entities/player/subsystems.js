@@ -19,6 +19,7 @@ import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/we
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { getElement } from '../../utils/dom-utils.js';
+import { TimerManager } from '../../utils/timer-manager.js';
 
 const subsystemsMixin = {
 gainExp(amount) {
@@ -730,7 +731,7 @@ switchWeaponMode() {
                     hint.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(120,50,50,0.9);color:#d4c5a9;font-size:18px;padding:10px 24px;border-radius:8px;border:2px solid #9a5a5a;z-index:99999;pointer-events:none;font-family:SimHei, "Microsoft YaHei", "黑体", sans-serif;white-space:nowrap;transition:opacity 0.5s;';
                     hint.textContent = '⚠ 无可用武器栏';
                     document.body.appendChild(hint);
-                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
+                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
                     return;
                 }
                 if (!nextHasWeapon) {
@@ -740,7 +741,7 @@ switchWeaponMode() {
                     hint.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(120,50,50,0.9);color:#d4c5a9;font-size:18px;padding:10px 24px;border-radius:8px;border:2px solid #9a5a5a;z-index:99999;pointer-events:none;font-family:SimHei, "Microsoft YaHei", "黑体", sans-serif;white-space:nowrap;transition:opacity 0.5s;';
                     hint.textContent = '⚠ 目标栏位无装备';
                     document.body.appendChild(hint);
-                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
+                    requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
                     return;
                 }
                 this.weaponMode = nextMode;
@@ -771,7 +772,7 @@ switchWeaponMode() {
                 }
                 hint.textContent = `${modeIcon} ${modeName}`;
                 document.body.appendChild(hint);
-                requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
+                requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
                 // 切换武器后150ms触发一次待机动画2（旋转动画）—— 双手武器不触发旋转
                 if (nextItem && !isTwoHanded(nextItem)) {
                     this.weaponAnim.nextSpin = Date.now() + WEAPON_FX_CONFIG.switchSpinDelayMs;

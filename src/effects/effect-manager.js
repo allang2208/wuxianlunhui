@@ -7,6 +7,7 @@ import { SmokeEffect } from './smoke-effect.js';
 import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
 import { Projectile } from '../combat/projectile.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},
@@ -49,7 +50,7 @@ const EffectManager = {
         const el = document.createElement('div'); el.className = 'combat-text'; el.textContent = isCrit ? `暴击! ${damage}` : `${damage}`;
         el.style.color = isCrit ? '#ffaa44' : '#ff6666'; el.style.fontSize = isCrit ? '22px' : '18px';
         const screenPos = Renderer.worldToScreen(x, y); el.style.left = screenPos.x + 'px'; el.style.top = screenPos.y + 'px';
-        const uiLayer = getElement('uiLayer'); if (uiLayer) uiLayer.appendChild(el); setTimeout(() => { if (el) el.remove(); }, 1000);
+        const uiLayer = getElement('uiLayer'); if (uiLayer) uiLayer.appendChild(el); TimerManager.setTimeout(() => { if (el) el.remove(); }, 1000);
     },
     triggerCritEffects() { this.critFlash = 1.0; Camera.triggerShake(12); }
 };

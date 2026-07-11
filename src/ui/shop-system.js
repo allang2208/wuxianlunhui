@@ -6,6 +6,7 @@ import { UIState } from './ui-state.js';
 import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 const ShopSystem = {
     _isOpen: false,
@@ -51,7 +52,7 @@ const ShopSystem = {
         this._returnAllSellItems();
         const panel = getElement('shopPanel');
         if (panel) panel.classList.remove('active');
-        setTimeout(() => {
+        TimerManager.setTimeout(() => {
             if (!UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }

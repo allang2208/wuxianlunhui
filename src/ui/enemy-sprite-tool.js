@@ -1,4 +1,5 @@
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // 怪物贴图调整工具
 const EnemySpriteTool = {
@@ -374,7 +375,7 @@ const EnemySpriteTool = {
         toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(40,60,30,0.95);color:#90d070;padding:10px 20px;border-radius:6px;font-size:14px;z-index:10000;pointer-events:none;animation:toastFade 2s ease-out forwards;font-family:SimHei,"Microsoft YaHei",sans-serif;border:1px solid rgba(144,208,112,0.3);';
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2000);
+        TimerManager.setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2000);
     },
 };
 

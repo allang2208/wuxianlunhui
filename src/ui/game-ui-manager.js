@@ -4,6 +4,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -232,7 +233,7 @@ export const GameUIManager = {
         if (timerEl) timerEl.style.display = 'flex';
         const textEl = getElement('timerText');
         if (textEl) textEl.textContent = '00:00:00';
-        this._timerInterval = setInterval(() => {
+        this._timerInterval = TimerManager.setInterval(() => {
             if (!this._gameStartTime) return;
             const elapsed = Date.now() - this._gameStartTime;
             const tEl = getElement('timerText');
@@ -240,7 +241,7 @@ export const GameUIManager = {
         }, 1000);
     },
     stopTimer() {
-        if (this._timerInterval) { clearInterval(this._timerInterval); this._timerInterval = null; }
+        if (this._timerInterval) { TimerManager.clearInterval(this._timerInterval); this._timerInterval = null; }
         this._gameStartTime = null;
         const timerEl = getElement('gameTimer');
         if (timerEl) timerEl.style.display = 'none';

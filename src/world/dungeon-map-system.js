@@ -34,6 +34,7 @@ import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -812,7 +813,7 @@ export const DungeonMapSystem = {
                 if (this._waveTransitioning) return false;
                 this._waveTransitioning = true;
                 // 短暂延迟后生成下一波
-                setTimeout(() => {
+                TimerManager.setTimeout(() => {
                     this._waveTransitioning = false;
                     if (this.active && this.state === "combat") {
                         this._cleanupCombatWallsOnly();
@@ -840,7 +841,7 @@ export const DungeonMapSystem = {
                 if (this._waveTransitioning) return;
                 this._waveTransitioning = true;
                 // 短暂延迟后生成下一波
-                setTimeout(() => {
+                TimerManager.setTimeout(() => {
                     this._waveTransitioning = false;
                     if (this.active && this.state === "combat") {
                         this._cleanupCombatWallsOnly();
@@ -943,9 +944,9 @@ export const DungeonMapSystem = {
         };
         ShopSystem.open(fakeNPC);
 
-        const checkInterval = setInterval(() => {
+        const checkInterval = TimerManager.setInterval(() => {
             if (!UIState.isOpen('shop')) {
-                clearInterval(checkInterval);
+                TimerManager.clearInterval(checkInterval);
                 this._returnToMap();
             }
         }, 300);
@@ -962,9 +963,9 @@ export const DungeonMapSystem = {
     _enterZombieShop(_node) {
         this.state = "shop";
         ZombieDungeonShop.open();
-        const checkInterval = setInterval(() => {
+        const checkInterval = TimerManager.setInterval(() => {
             if (ZombieDungeonShop.isClosed()) {
-                clearInterval(checkInterval);
+                TimerManager.clearInterval(checkInterval);
                 this._returnToMap();
             }
         }, 300);

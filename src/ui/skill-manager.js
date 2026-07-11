@@ -3,6 +3,7 @@ import { LevelUpEffectQueue } from '../effects/level-up-queue.js';
 import { SkillLevelSystem } from '../combat/skill-level-system.js';
 import { isSwordCategory } from '../config/gun-ammo.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
@@ -418,7 +419,7 @@ export const SkillManager = {
                     if (icon) {
                         e.dataTransfer.setDragImage(icon, icon.offsetWidth / 2, icon.offsetHeight / 2);
                     }
-                    setTimeout(() => SystemUI.close(), 50);
+                    TimerManager.setTimeout(() => SystemUI.close(), 50);
                 };
                 card.ondragend = () => {
                     card.classList.remove('dragging');

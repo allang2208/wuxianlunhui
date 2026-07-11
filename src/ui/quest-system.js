@@ -7,6 +7,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',
@@ -233,7 +234,7 @@ export const QuestState = {
         // 打开奖励结算界面（三选一）
         if (typeof RewardSystem !== 'undefined' && RewardSystem.open) {
             // 延迟打开，确保场景切换完成
-            setTimeout(() => RewardSystem.open(), 800);
+            TimerManager.setTimeout(() => RewardSystem.open(), 800);
         } else {
             // 后备：直接发放奖励
             this._grantRewards();

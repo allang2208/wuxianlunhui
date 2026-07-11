@@ -8,6 +8,7 @@
 
 import { Enemy } from '../entities/enemy.js';
 import { getElement } from '../utils/dom-utils.js';
+import { TimerManager } from '../utils/timer-manager.js';
 
 export const AIDevTool = {
     _active: false,
@@ -41,13 +42,13 @@ export const AIDevTool = {
 
     _startRefresh() {
         if (this._refreshInterval) return;
-        this._refreshInterval = setInterval(() => this.update(), 500);
+        this._refreshInterval = TimerManager.setInterval(() => this.update(), 500);
         this.update(); // 立即刷新一次
     },
 
     _stopRefresh() {
         if (this._refreshInterval) {
-            clearInterval(this._refreshInterval);
+            TimerManager.clearInterval(this._refreshInterval);
             this._refreshInterval = null;
         }
     },
