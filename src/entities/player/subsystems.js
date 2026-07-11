@@ -14,6 +14,7 @@ import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
+import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 
@@ -1182,24 +1183,52 @@ _getOffhandAnimMs(offhandItem, baseMs) {
                 return Math.round(baseMs * mul);
             },
 
+_getEffectivePiercing(basePiercing, item) {
+                let result = (typeof basePiercing === 'number') ? basePiercing : 0;
+                if (item) {
+                    if (item._enchantEffects && item._enchantEffects.piercingBonus) {
+                        result += item._enchantEffects.piercingBonus;
+                    }
+                    if (item._craftEffects && item._craftEffects.piercingBonus) {
+                        result += item._craftEffects.piercingBonus;
+                    }
+                }
+                return result;
+            },
+
+_playFireSound(item, defaultSound = 'gun_fire') {
+                const sound = item && item.fireSound ? item.fireSound : defaultSound;
+                if (typeof SoundManager === 'undefined') return;
+                if (sound.startsWith('assets/')) {
+                    SoundManager.playFile(sound);
+                } else {
+                    SoundManager.play(sound);
+                }
+            },
+
+_getMuzzlePosition(gunLX, gunLY, forwardOffset = 0) {
+                const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
+                return {
+                    x: this.x + c * (gunLX + forwardOffset) - sin * gunLY,
+                    y: this.y + sin * (gunLX + forwardOffset) + c * gunLY
+                };
+            },
+
+_spawnMuzzleFlash(gunLX, gunLY, forwardOffset, angle, scale) {
+                const pos = this._getMuzzlePosition(gunLX, gunLY, forwardOffset);
+                EffectFactory.createMuzzleFlash(pos.x, pos.y, angle, scale);
+            },
+
+_spawnShellCasing(gunLX, gunLY, shellOffset, angle) {
+                const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
+                const x = this.x + c * (gunLX + shellOffset.fx) - sin * (gunLY + shellOffset.fy);
+                const y = this.y + sin * (gunLX + shellOffset.fx) + c * (gunLY + shellOffset.fy);
+                EffectFactory.createShellCasing(x, y, angle);
+            },
+
 _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
-                const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
-
-                // 计算有效穿透值（附魔+改造的穿透加成）
-                const getEffectivePiercing = (basePiercing, item) => {
-                    let result = (typeof basePiercing === 'number') ? basePiercing : 0;
-                    if (item) {
-                        if (item._enchantEffects && item._enchantEffects.piercingBonus) {
-                            result += item._enchantEffects.piercingBonus;
-                        }
-                        if (item._craftEffects && item._craftEffects.piercingBonus) {
-                            result += item._craftEffects.piercingBonus;
-                        }
-                    }
-                    return result;
-                };
 
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {
@@ -1211,11 +1240,11 @@ _fireRanged(hand = 'main') {
                             this._consumeAmmo(offhandSlot);
                             const offhandAttackKey = offhandItem.offhandAttackKey || 'pistolOffhand';
                             const offPC = this.attacks[offhandAttackKey].config;
-                            const gunLX = this.size + 20;
-                            const leftGunLY = -13;
-                            const leftMuzzleX = this.x + c * (gunLX + 22) - sin * leftGunLY;
-                            const leftMuzzleY = this.y + sin * (gunLX + 22) + c * leftGunLY;
-                            const leftAngle = Math.atan2(d.targetY - leftMuzzleY, d.targetX - leftMuzzleX);
+                            const fxCfg = WEAPON_FX_CONFIG.pistolOffhand;
+                            const gunLX = this.size + fxCfg.gunLX;
+                            const leftGunLY = fxCfg.gunLY;
+                            const muzzlePos = this._getMuzzlePosition(gunLX, leftGunLY, fxCfg.muzzleForward);
+                            const leftAngle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             let offhandSpreadFactor = this._currentSpreadFactorOff;
                             const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || 25;
                             const leftSpreadRad = (Math.random() - 0.5) * 2 * (offhandMaxSpreadAngle * Math.PI / 180) * offhandSpreadFactor;
@@ -1227,26 +1256,15 @@ _fireRanged(hand = 'main') {
                             const offhandDamageObj = { min: offhandDamage, max: offhandDamage };
                             const offIsDarkGold = offhandItem.isDarkGold || false;
                             ProjectileFactory.create({
-                                x: leftMuzzleX, y: leftMuzzleY, angle: leftFinalAngle,
+                                x: muzzlePos.x, y: muzzlePos.y, angle: leftFinalAngle,
                                 speed: offPC.projectileSpeed, maxRange: offPC.projectileRange, size: offPC.projectileSize,
-                                damage: offhandDamageObj, piercing: getEffectivePiercing(offPC.piercing, offhandItem),
+                                damage: offhandDamageObj, piercing: this._getEffectivePiercing(offPC.piercing, offhandItem),
                                 source: this, entities: d.entities, image: null,
                                 isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold
                             });
-                            if (offhandItem.fireSound) {
-                                if (offhandItem.fireSound.startsWith('assets/')) {
-                                    SoundManager.playFile(offhandItem.fireSound);
-                                } else {
-                                    SoundManager.play(offhandItem.fireSound);
-                                }
-                            } else {
-                                SoundManager.play('gun_fire');
-                            }
-                            const leftFlashX = this.x + c * (gunLX + 28) - sin * leftGunLY;
-                            const leftFlashY = this.y + sin * (gunLX + 28) + c * leftGunLY;
-                            EffectFactory.createMuzzleFlash(leftFlashX, leftFlashY, leftFinalAngle, 0.8);
-                            { const offCSX = this.x + c * (gunLX - 8) - sin * (leftGunLY + 6), offCSY = this.y + sin * (gunLX - 8) + c * (leftGunLY + 6);
-                            EffectFactory.createShellCasing(offCSX, offCSY, leftFinalAngle); }
+                            this._playFireSound(offhandItem, fxCfg.defaultSound);
+                            this._spawnMuzzleFlash(gunLX, leftGunLY, fxCfg.flashForward, leftFinalAngle, fxCfg.muzzleScale);
+                            this._spawnShellCasing(gunLX, leftGunLY, fxCfg.shellOffset, leftFinalAngle);
                         }
                         delete d.fireOffhand;
                     }
@@ -1274,16 +1292,16 @@ _fireRanged(hand = 'main') {
                     const offhandSlot = d.offhandSlot || (this.weaponMode === 'weapon' ? 'offhand' : 'ring2');
                     const offhandItem = this.equipments[offhandSlot];
                     const _offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
-                    const gunLX = this.size + 20, gunLY = 13;
+                    const fxCfg = WEAPON_FX_CONFIG.pistol;
+                    const gunLX = this.size + fxCfg.gunLX, gunLY = fxCfg.gunLY;
 
                     // === 左键：主手开火 ===
                     if (d.fireMainHand) {
                         const mainHasAmmo = this._hasAmmo(mainSlot);
                         if (mainHasAmmo) {
                             this._consumeAmmo(mainSlot);
-                            const muzzleX = this.x + c * (gunLX + 22) - sin * gunLY;
-                            const muzzleY = this.y + sin * (gunLX + 22) + c * gunLY;
-                            const angle = Math.atan2(d.targetY - muzzleY, d.targetX - muzzleX);
+                            const muzzlePos = this._getMuzzlePosition(gunLX, gunLY, fxCfg.muzzleForward);
+                            const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             // 散布：使用统一的散布系统（所有枪械散布计算时间0.5s）
                             const mainSpreadFactor = this._currentSpreadFactor;
                             const maxSpreadAngle = this._currentSpreadMaxAngle || 25;
@@ -1298,29 +1316,18 @@ _fireRanged(hand = 'main') {
                             // 创建主手弹丸
                             const mainIsDarkGold = currentItem.isDarkGold || false;
                             ProjectileFactory.create({
-                                x: muzzleX, y: muzzleY, angle: finalAngle,
+                                x: muzzlePos.x, y: muzzlePos.y, angle: finalAngle,
                                 speed: mainPC.projectileSpeed, maxRange: mainPC.projectileRange, size: mainPC.projectileSize,
-                                damage: mainDamageObj, piercing: getEffectivePiercing(mainPC.piercing, currentItem),
+                                damage: mainDamageObj, piercing: this._getEffectivePiercing(mainPC.piercing, currentItem),
                                 source: this, entities: d.entities, image: null,
                                 isTracer: !mainIsDarkGold, isDarkGold: mainIsDarkGold
                             });
                             // 主手开火音效
-                            if (currentItem.fireSound) {
-                                if (currentItem.fireSound.startsWith('assets/')) {
-                                    SoundManager.playFile(currentItem.fireSound);
-                                } else {
-                                    SoundManager.play(currentItem.fireSound);
-                                }
-                            } else {
-                                SoundManager.play('gun_fire');
-                            }
+                            this._playFireSound(currentItem, fxCfg.defaultSound);
                             // 主手枪口火焰特效
-                            const flashX = this.x + c * (gunLX + 28) - sin * gunLY;
-                            const flashY = this.y + sin * (gunLX + 28) + c * gunLY;
-                            EffectFactory.createMuzzleFlash(flashX, flashY, finalAngle, 1.2);
+                            this._spawnMuzzleFlash(gunLX, gunLY, fxCfg.flashForward, finalAngle, fxCfg.muzzleScale);
                             // 弹壳从抛壳窗弹出（枪身右侧后方）
-                            { const cSX = this.x + c * (gunLX - 8) - sin * (gunLY + 6), cSY = this.y + sin * (gunLX - 8) + c * (gunLY + 6);
-                            EffectFactory.createShellCasing(cSX, cSY, angle); }
+                            this._spawnShellCasing(gunLX, gunLY, fxCfg.shellOffset, angle);
                         }
                         delete d.fireMainHand;
                     }
@@ -1340,9 +1347,9 @@ _fireRanged(hand = 'main') {
                             }
                         }
 
-                        const gunLX = this.size + 24, gunLY = holdY;
-                        const spawnX = this.x + c * (gunLX + 30) - sin * gunLY;
-                        const spawnY = this.y + sin * (gunLX + 30) + c * gunLY;
+                        const lmgCfg = WEAPON_FX_CONFIG.lmg;
+                        const gunLX = this.size + lmgCfg.gunLX, gunLY = holdY;
+                        const spawnPos = this._getMuzzlePosition(gunLX, gunLY, lmgCfg.muzzleForward);
                         const baseAngle = Math.atan2(d.targetY - this.y, d.targetX - this.x);
 
                         // 散布：能量轻机枪从配置读取，其他使用统一散布系统
@@ -1383,17 +1390,8 @@ _fireRanged(hand = 'main') {
 
                         // 音效播放
                         if (typeof SoundManager !== 'undefined') {
-                            if (isEnergyLMG) {
-                                SoundManager.playFile('assets/sounds/apex_shot_600ms.wav');
-                            } else if (attackKey === 'pkm') {
-                                SoundManager.playFile('assets/sounds/pkm_half_sec.wav');
-                            } else if (attackKey === 'qbz191') {
-                                SoundManager.playFile('assets/sounds/qbz191_shot6_valley.mp3');
-                            } else if (attackKey === 'qjb201') {
-                                SoundManager.playFile('assets/sounds/qjb201_single_600ms.wav');
-                            } else {
-                                SoundManager.playFile('assets/sounds/akm_burst.mp3');
-                            }
+                            const lmgSound = lmgCfg.soundMap[attackKey];
+                            if (lmgSound) SoundManager.playFile(lmgSound);
                         }
 
                         // 应用改造效果
@@ -1411,9 +1409,9 @@ _fireRanged(hand = 'main') {
 
                         // 创建弹丸
                         ProjectileFactory.create({
-                            x: spawnX, y: spawnY, angle: angle,
+                            x: spawnPos.x, y: spawnPos.y, angle: angle,
                             speed: effectiveProjectileSpeed, maxRange: effectiveRange, size: pc.projectileSize,
-                            damage: damage, piercing: getEffectivePiercing(pc.piercing, currentItem),
+                            damage: damage, piercing: this._getEffectivePiercing(pc.piercing, currentItem),
                             source: this, entities: d.entities, image: null,
                             isGold: !isEnergyLMG, isGreen: isEnergyLMG,
                             damageType: isEnergyLMG ? 'magic' : 'physical',
@@ -1423,15 +1421,12 @@ _fireRanged(hand = 'main') {
                         // 枪口火焰特效
                         const hideMuzzle = !isEnergyLMG && craftEffects && craftEffects.hideMuzzleFlash;
                         if (!hideMuzzle) {
-                            const flashX = this.x + c * (gunLX + 38) - sin * gunLY;
-                            const flashY = this.y + sin * (gunLX + 38) + c * gunLY;
-                            EffectFactory.createMuzzleFlash(flashX, flashY, angle, isEnergyLMG ? 1.0 : 1.5);
+                            this._spawnMuzzleFlash(gunLX, gunLY, lmgCfg.flashForward, angle, isEnergyLMG ? lmgCfg.muzzleScaleEnergy : lmgCfg.muzzleScale);
                         }
 
                         // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
                         if (!isEnergyLMG) {
-                            { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
-                            EffectFactory.createShellCasing(cSX, cSY, angle); }
+                            this._spawnShellCasing(gunLX, gunLY, lmgCfg.shellOffset, angle);
                         }
                         delete d.fireMainHand;
                     }
@@ -1442,18 +1437,17 @@ _fireRanged(hand = 'main') {
                     const isSlug = craftEffects && craftEffects.slugMode;
                     const isFlechette = craftEffects && craftEffects.flechetteMode;
                     const attackKey = currentItem.attackKey || 'super90';
-                    const pelletCount = currentItem.pelletCount || 6;
-                    const baseSpreadAngle = 20; // 所有散弹枪统一基础散布±20°
-                    const fireSound = currentItem.fireSound || 'assets/sounds/gunshot_600ms_clean.wav';
+                    const sgCfg = WEAPON_FX_CONFIG.shotgun;
+                    const pelletCount = currentItem.pelletCount || sgCfg.defaultPelletCount;
+                    const baseSpreadAngle = sgCfg.baseSpreadAngle;
                     // 散弹枪：一次击发多发弹丸（普通模式）或单发弹丸（独头弹模式）
                     if (d.fireMainHand) {
                         const mainSlot = d.mainSlot || this.weaponMode;
                         if (this._hasAmmo(mainSlot)) {
                             this._consumeAmmo(mainSlot);
                             const pc = this.attacks[attackKey].config;
-                            const gunLX = this.size + 24, gunLY = holdY;
-                            const spawnX = this.x + c * (gunLX + 30) - sin * gunLY;
-                            const spawnY = this.y + sin * (gunLX + 30) + c * gunLY;
+                            const gunLX = this.size + sgCfg.gunLX, gunLY = holdY;
+                            const spawnPos = this._getMuzzlePosition(gunLX, gunLY, sgCfg.muzzleForward);
                             const baseAngle = Math.atan2(d.targetY - this.y, d.targetX - this.x);
                             // 动态计算伤害（优先使用 getCurrentWeaponAtk 包含强化和改造加成）
                             let weaponDamage;
@@ -1480,22 +1474,20 @@ _fireRanged(hand = 'main') {
                             // 屏幕抖动
                             Camera.triggerShake(6);
                             // 开火音效
-                            if (typeof SoundManager !== 'undefined') {
-                                SoundManager.playFile(fireSound);
-                            }
+                            this._playFireSound(currentItem, sgCfg.defaultSound);
                             // 确定穿透值（箭型弹模式基础1层 + 附魔/改造加成）
                             let piercing = 0;
                             if (isFlechette) {
                                 piercing = 1;
                             }
-                            piercing = getEffectivePiercing(piercing, currentItem);
+                            piercing = this._getEffectivePiercing(piercing, currentItem);
                             if (isSlug) {
                                 // 独头弹模式：单发弹丸，后坐力层数控制散布（应用改造效果）
                                 this._slugRecoilLayers++;
                                 let slugSpreadAngle = 0;
                                 if (this._slugRecoilLayers > 1) {
                                     // 第一层（_slugRecoilLayers=1）基础散布为零，之后每层+5°
-                                    slugSpreadAngle = (this._slugRecoilLayers - 1) * 5;
+                                    slugSpreadAngle = (this._slugRecoilLayers - 1) * sgCfg.slugRecoilAnglePerLayer;
                                 }
                                 // 应用改造散布效果（收束器 -5° 等）
                                 if (craftEffects && craftEffects.maxSpreadAngleDelta) {
@@ -1505,7 +1497,7 @@ _fireRanged(hand = 'main') {
                                 const slugSpreadRad = (Math.random() - 0.5) * 2 * (slugSpreadAngle * Math.PI / 180);
                                 const angle = baseAngle + slugSpreadRad;
                                 ProjectileFactory.create({
-                                    x: spawnX, y: spawnY, angle: angle,
+                                    x: spawnPos.x, y: spawnPos.y, angle: angle,
                                     speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                     damage: damage, piercing: piercing,
                                     source: this, entities: d.entities, image: null,
@@ -1523,7 +1515,7 @@ _fireRanged(hand = 'main') {
                                     const spreadRad = (Math.random() - 0.5) * 2 * (spreadAngle * Math.PI / 180);
                                     const angle = baseAngle + spreadRad;
                                     ProjectileFactory.create({
-                                        x: spawnX, y: spawnY, angle: angle,
+                                        x: spawnPos.x, y: spawnPos.y, angle: angle,
                                         speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                         damage: damage, piercing: piercing,
                                         source: this, entities: d.entities, image: null,
@@ -1535,23 +1527,20 @@ _fireRanged(hand = 'main') {
                             // 枪口火焰（消音器隐藏）
                             const hideMuzzle = craftEffects && craftEffects.hideMuzzleFlash;
                             if (!hideMuzzle) {
-                                const flashX = this.x + c * (gunLX + 38) - sin * gunLY;
-                                const flashY = this.y + sin * (gunLX + 38) + c * gunLY;
-                                EffectFactory.createMuzzleFlash(flashX, flashY, baseAngle, 1.8);
+                                this._spawnMuzzleFlash(gunLX, gunLY, sgCfg.flashForward, baseAngle, sgCfg.muzzleScale);
                             }
                             // 弹壳
-                            { const cSX = this.x + c * (gunLX - 10) - sin * (gunLY + 8), cSY = this.y + sin * (gunLX - 10) + c * (gunLY + 8);
-                            EffectFactory.createShellCasing(cSX, cSY, baseAngle); }
+                            this._spawnShellCasing(gunLX, gunLY, sgCfg.shellOffset, baseAngle);
                         }
                         delete d.fireMainHand;
                     }
                 } else if (isBow) {
                     const cfg = this.attacks.ranged.config;
                     const weaponCfg = (currentItem && currentItem.attack) || {};
-                    const bowLX = this.size + 15, bowLY = holdY;
-                    const spawnX = this.x + c * bowLX - sin * bowLY;
-                    const spawnY = this.y + sin * bowLX + c * bowLY;
-                    const angle = Math.atan2(d.targetY - spawnY, d.targetX - spawnX);
+                    const bowCfg = WEAPON_FX_CONFIG.bow;
+                    const bowLX = this.size + bowCfg.bowLX, bowLY = holdY;
+                    const spawnPos = this._getMuzzlePosition(bowLX, bowLY, 0);
+                    const angle = Math.atan2(d.targetY - spawnPos.y, d.targetX - spawnPos.x);
                     // 动态计算伤害（优先使用 getCurrentWeaponAtk 包含强化加成）
                     let weaponDamage = cfg.damage.min;
                     if (this.getCurrentWeaponAtk) {
@@ -1561,9 +1550,9 @@ _fireRanged(hand = 'main') {
                     const projSpeed = weaponCfg.projectileSpeed || cfg.projectileSpeed;
                     const projRange = weaponCfg.range || cfg.projectileRange;
                     const projSize = weaponCfg.projectileSize || cfg.projectileSize;
-                    const projPiercing = getEffectivePiercing(weaponCfg.piercing !== undefined ? weaponCfg.piercing : cfg.piercing, currentItem);
+                    const projPiercing = this._getEffectivePiercing(weaponCfg.piercing !== undefined ? weaponCfg.piercing : cfg.piercing, currentItem);
                     ProjectileFactory.create({
-                        x: spawnX, y: spawnY, angle: angle,
+                        x: spawnPos.x, y: spawnPos.y, angle: angle,
                         speed: projSpeed, maxRange: projRange, size: projSize,
                         damage: damage, piercing: projPiercing,
                         source: this, entities: d.entities, image: this.arrowImage
