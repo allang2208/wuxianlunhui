@@ -18,7 +18,6 @@ export const SceneManager = {
             scene3: { name: '列车上', type: 'instance', width: 3000, height: 1200, background: '#4a4538', label: '场景三', origin: { x: 1500, y: 600 } },
             scene4: { name: '古堡', type: 'instance', width: 9000, height: 9000, background: '#000000', label: '场景四', origin: { x: 4500, y: 4500 } },
             scene5: { name: 'AI测试场', type: 'instance', width: 6120, height: 3040, background: '#3a3a3a', label: '场景五', origin: { x: 3060, y: 1520 } },
-            scene6: { name: '地牢测试', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景六', origin: { x: 512, y: 512 } },
             scene7: { name: '僵尸地牢', type: 'dungeon', width: 1024, height: 1024, background: '#000000', label: '场景七', origin: { x: 512, y: 512 }, dungeonType: 'zombie' }
         };
     },
@@ -132,10 +131,8 @@ export const SceneManager = {
                 this._loadScene4(player);
             } else if (sceneId === 'scene5') {
                 this._loadScene5(player);
-            } else if (sceneId === 'scene6') {
-                this._loadScene6(player, 'default');
             } else if (sceneId === 'scene7') {
-                this._loadScene7(player);
+                this._loadScene7(player, 'zombie');
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -772,7 +769,7 @@ export const SceneManager = {
         if (player) QuickBar.refreshSpecialAttack(player);
     },
 
-    _loadScene6(player, dungeonType = 'default') {
+    _loadScene7(player, dungeonType = 'zombie') {
         // 重置 Camera 状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
@@ -782,7 +779,7 @@ export const SceneManager = {
         Camera.lockY = false;
         Camera.yLockedValue = 0;
 
-        // 地牢测试：1024x1024 简单地图，无墙壁
+        // 僵尸地牢：1024x1024 简单地图，无墙壁
         CONFIG.WORLD_WIDTH = 1024;
         CONFIG.WORLD_HEIGHT = 1024;
 
@@ -812,7 +809,7 @@ export const SceneManager = {
         ctx.strokeRect(0, 0, 1024, 1024);
 
         Renderer.terrainTexture = canvas;
-        console.log('[scene6] terrainTexture set:', canvas.width, 'x', canvas.height, 'Renderer.terrainTexture:', Renderer.terrainTexture ? 'OK' : 'NULL');
+        console.log('[scene7] terrainTexture set:', canvas.width, 'x', canvas.height, 'Renderer.terrainTexture:', Renderer.terrainTexture ? 'OK' : 'NULL');
 
         // 添加边界墙壁，防止玩家走出地图
         WallSystem.init(1024, 1024);
@@ -833,7 +830,7 @@ export const SceneManager = {
             player.y = 512;
             Game.entities.set('player', player);
             Camera.follow(player);
-            console.log('[scene6] Player at', player.x, player.y, 'Camera at', Camera.x, Camera.y);
+            console.log('[scene7] Player at', player.x, player.y, 'Camera at', Camera.x, Camera.y);
         }
 
         // 同步快捷栏
@@ -852,10 +849,6 @@ export const SceneManager = {
         // 地牢地图系统由出征面板的 depart() 调用，这里不再自动初始化
     },
 
-    _loadScene7(player) {
-        // 僵尸地牢：复用 scene6 的加载逻辑，但指定 dungeonType 为 'zombie'
-        this._loadScene6(player, 'zombie');
-    }
 };
 
 // 传送门实体

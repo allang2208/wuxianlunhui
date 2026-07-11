@@ -39,13 +39,9 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionDungeonSelect.id = 'expeditionDungeonSelect';
     expeditionDungeonSelect.className = 'expedition-dungeon-select';
     expeditionDungeonSelect.onchange = function() { ExpeditionSystem.onDungeonSelect(this.value); };
-    const optDefault = document.createElement('option');
-    optDefault.value = 'default';
-    optDefault.textContent = '遗忘祭坛';
     const optZombie = document.createElement('option');
     optZombie.value = 'zombie';
     optZombie.textContent = '☠ 僵尸地牢';
-    expeditionDungeonSelect.appendChild(optDefault);
     expeditionDungeonSelect.appendChild(optZombie);
     expeditionDungeonSelector.appendChild(dungeonLabel);
     expeditionDungeonSelector.appendChild(expeditionDungeonSelect);
@@ -54,11 +50,11 @@ export function createHudPanelsExpeditionQuestReward() {
     const expeditionInfoRow = document.createElement('div');
     expeditionInfoRow.className = 'expedition-info-row';
     const expeditionInfoDefs = [
-        { label: '地牢名称', id: 'expeditionDungeonName', val: '遗忘祭坛' },
+        { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢' },
         { label: '节点数', id: 'expeditionNodeCount', val: '35~40' },
         { label: '战斗节点', id: 'expeditionBattleRatio', val: '70%' },
-        { label: '地牢等级', id: 'expeditionLevel', val: '5-15级' },
-        { label: '预计奖励', id: 'expeditionReward', val: '4500金币' }
+        { label: '地牢等级', id: 'expeditionLevel', val: '1级' },
+        { label: '预计奖励', id: 'expeditionReward', val: '1500金币' }
     ];
     expeditionInfoDefs.forEach(sd => {
         const item = document.createElement('div');

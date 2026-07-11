@@ -823,9 +823,9 @@ render(ctx) {
                         }
                         sprite.setRotation(0); // 不旋转，只用 flipX 控制朝向
                     }
-                    // ===== 场景六地图模式：隐藏 Phaser 角色贴图 =====
+                    // ===== 地牢模式：隐藏 Phaser 角色贴图 =====
                     const _dms = window.DungeonMapSystem || (typeof DungeonMapSystem !== 'undefined' ? DungeonMapSystem : null);
-                    if (SceneManager.currentScene === 'scene6' && _dms && _dms.active && _dms.state === 'map') {
+                    if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
                         sprite.setVisible(false);
                         sprite.setActive(false);
                         if (phaserScene.weaponSprite) { phaserScene.weaponSprite.setVisible(false); phaserScene.weaponSprite.setActive(false); }

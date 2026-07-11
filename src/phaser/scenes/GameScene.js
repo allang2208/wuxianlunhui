@@ -69,10 +69,10 @@ export class GameScene extends Scene {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
         
-        // 场景六地图模式：隐藏角色及武器贴图
+        // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
         const _dms = window.DungeonMapSystem;
-        if (SceneManager.currentScene === 'scene6' && _dms && _dms.active && _dms.state === 'map') {
+        if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
             if (this.playerSprite && this.playerSprite.visible) {
                 this.playerSprite.setVisible(false);
                 this.playerSprite.setActive(false);
