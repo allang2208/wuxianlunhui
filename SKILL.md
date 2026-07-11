@@ -2,6 +2,30 @@
 
 ## 版本: 1.4
 
+## 阶段性进度总结（2026-07-11）
+
+### 本次完成
+1. **NPC 对话与交互修复**：修复 Phaser viewport 与鼠标坐标换算不一致，NPC 点击正常进入对话。
+2. **掉落物拾取**：左键/Z 键拾取后正确销毁 Phaser Sprite 并从实体列表删除，无视觉残留。
+3. **玩家与武器显示**：玩家贴图与逻辑位置同步偏差 0.00；武器 Sprite 每帧同步位置/旋转/贴图；根据 `_facingDir` 自动翻转并加入 80ms idle 缓冲避免动画抖动。
+4. **HUD 布局还原**：恢复 DOM HUD（顶部栏、底部 HP/体力、武器信息、操作提示、小地图），Phaser 仅保留经验条、Buff/Debuff、屏幕特效。
+5. **NPC 名字去重**：`_syncEntityHud` 跳过自带标签的 NPC/训练靶/掉落物。
+6. **移动卡顿/瞬移修复（核心）**：敌人 A* 寻路对远距离目标会生成巨大网格，单次 `findPath` 可达 150ms+，跑动越久触发越多导致卡顿。已在 `PathFinder` 限制 `maxSearchRange=800px`，并在 `MovementSystem` 中目标距离超过 800px 时跳过寻路、直接直线移动。
+
+### 关键改动文件
+- `src/ai/pathfinder.js`
+- `src/systems/movement-system.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/game.js`
+- `src/utils/perf-monitor.js`（临时调试计时器，可后续清理）
+
+### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
+- 实机测试：持续跑动不再卡顿
+
+---
+
 ## 核心规则
 
 1. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误

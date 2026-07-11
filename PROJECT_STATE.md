@@ -1,7 +1,42 @@
 # 项目状态
 
 ## 版本号
-- 当前版本：0.7.8（等待 build 触发递增）
+- 当前版本：0.198
+- 当前日期：2026-07-11
+- 最近工作：Phaser 迁移收尾 + Canvas 渲染路径清理
+
+## 最近完成（2026-07-11）
+
+### Phaser 迁移完成
+- **主世界渲染**：地形、网格、边界、墙壁、树木、敌人、玩家、投射物、掉落物、训练靶、NPC 全部由 Phaser 接管。
+- **HUD 迁移**：计时器、HP/MP/体力条、经验条、武器信息、操作提示迁移到 `HudScene`；复杂面板保留 DOM overlay。
+- **屏幕特效迁移**：crit 闪光、受击红屏、玩家/敌人受击白光、长弓蓄力满闪光改为 Phaser 实现。
+- **小地图/准星优化**：静态内容烘焙、状态变化时才设置 `body.cursor`。
+- **实体渲染去重**：`Game.render` 不再遍历实体 Canvas 循环，避免双重渲染。
+
+### Canvas 死代码清理
+- 删除所有不再被主循环调用的 `render(ctx)` 方法及辅助方法（projectile、drop-item、portal、drone-system、enemy 绘制辅助、combatant 武器渲染、entity hitbox 调试等）。
+- 删除 `PhaseChangeEffect`、`showHitbox` 等已失效代码。
+- 保留合理 Canvas 路径：地牢地图 `DungeonMapSystem.render(ctx)`、特殊场景地形 Canvas 覆盖。
+
+### 技术债务处理
+- `MapGenerator` 主场景改为 Phaser Graphics 直接生成 Texture，不再手动创建 `HTMLCanvasElement`。
+- `Game.render` 非地牢模式下隐藏底层 `gameCanvas`，停止无意义 `clear()`。
+- `GameUIManager.updateUI()` 使用静默查询，避免对已删除/隐藏 DOM 元素的 `console.warn`。
+
+### 构建验证
+- `npx eslint src --max-warnings=0`：通过
+- `npx vite build`：通过，产物 `index.js` 约 2.26 MB（gzipped ~587 KB）
+
+## 已知遗留
+- `scene3` 火车背景 Canvas 实现已删除，待后续重新实现。
+- 部分特效（如 `FloatingTextEffect`）只剩 `update`、没有 Phaser 渲染，需后续处理。
+
+---
+
+## 已完成的功能（不要重复做）
+
+### 彻底方案：px/秒 + dt/1000（2026-06-30）
 - 备份计数：3（v2026-07-01_03-44-02 / v2026-07-01_03-17-33 / v2026-07-01_03-01-52）
 - 上次备份：2026-07-01 03:44:02（药水系统+属性修复）
 

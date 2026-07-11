@@ -15,20 +15,13 @@ export class BootScene extends Scene {
 
         // ---- 角色资源 ----
         // 待机动画（单帧）
-        this.load.image('player_idle', 'assets/character/idle.png');
+        this.load.image('player_idle', 'assets/player/idle.png');
         // 行走动画spritesheet（21帧，3x8网格，实际尺寸4100x1548，每帧512x516）
         this.load.spritesheet('player_walk', 'assets/character/walk.png', { frameWidth: 512, frameHeight: 516, endFrame: 20 });
         // 奔跑动画spritesheet（16帧，2x8网格，实际尺寸4096x1024，每帧512x512）
         this.load.spritesheet('player_run', 'assets/character/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         // 剑攻击spritesheet（8帧，实际尺寸4100x1548，每帧512x516）
         this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 516, endFrame: 7 });
-        // 待机、奔跑、攻击精灵图
-        this.load.image('player_idle', 'assets/player/idle.png');
-        this.load.image('player_running', 'assets/player/running.png');
-        // 剑攻击spritesheet（8帧）
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
-        // 剑攻击spritesheet（8帧）- 目前唯一使用的角色动画资源
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 1548, endFrame: 7 });
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -40,34 +33,22 @@ export class BootScene extends Scene {
         this.load.image('runeSwordBlade', 'assets/weapons/blue_energy_sword_pure.png');
         this.load.image('iceSpike', 'assets/skills/icearrow.png');
         this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 8 });
-        // this.load.spritesheet('bow_attack', 'assets/weapons/borderbowspritesheet.png', { frameWidth: 1024, frameHeight: 1024, endFrame: 3 }); // 弓攻击spritesheet已停用
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
+        // 蜘蛛与黑狼保留，其它敌人使用程序化 enemy_circle
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
         this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_changed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png', { frameWidth: 672, frameHeight: 576, endFrame: 7 });
-
-        // 僵尸类敌人使用实际图片
-        this.load.image('enemy_zombie', 'assets/enemies/zombie.png');
-        this.load.image('enemy_runner_zombie', 'assets/enemies/fast_zombie.png');
-        this.load.image('enemy_fat_zombie', 'assets/enemies/fat_zombie.png');
-        this.load.image('enemy_spitter_zombie', 'assets/enemies/spitter_zombie.png');
-        this.load.image('enemy_zombie_dog', 'assets/enemies/zombie_dog.png');
 
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
+        this.load.image('muzzle_flash_01', 'assets/effects/muzzle_flash_01.png');
+        this.load.image('shell_ground', 'assets/ammo/shell_ground.png');
+        this.load.image('sword_hilt_icon', 'assets/icons/sword_hilt_icon.png');
         // 粒子用程序化生成，暂不需要加载图片
 
     }
@@ -75,20 +56,20 @@ export class BootScene extends Scene {
     create() {
         
 
-        // 创建行走动画（21帧）
+        // 创建行走动画：侧视角，只使用 spritesheet 第一行（向右），通过 flipX 控制左右
         this.anims.create({
             key: 'player_walk',
-            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 20 }),
-            frameRate: 21,  // 21fps，1秒播放完
-            repeat: -1,     // 循环播放
+            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: -1,
         });
 
-        // 创建奔跑动画（16帧）
+        // 创建奔跑动画：侧视角，只使用 spritesheet 第一行（向右），通过 flipX 控制左右
         this.anims.create({
             key: 'player_run',
-            frames: this.anims.generateFrameNumbers('player_run', { start: 0, end: 15 }),
-            frameRate: 16,  // 16fps，1秒播放完
-            repeat: -1,     // 循环播放
+            frames: this.anims.generateFrameNumbers('player_run', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: -1,
         });
 
         // 创建剑攻击动画（8帧）
@@ -100,26 +81,132 @@ export class BootScene extends Scene {
         });
 
         // ---- 动态生成几何敌人纹理 ----
-
-        // ---- 动态生成几何敌人纹理 ----
-        const generateEnemyTexture = (key, drawFn) => {
+        const generateEnemyTexture = (key, drawFn, width = 64, height = 64) => {
             const g = this.make.graphics({ x: 0, y: 0, add: false });
             drawFn(g);
-            g.generateTexture(key, 64, 64);
+            g.generateTexture(key, width, height);
             g.destroy();
         };
 
-        // Zombie
-        // 使用实际图片（已在preload中加载）
+        // 通用圆盘敌人：白色圆+阴影，运行时用 tint 着色
+        generateEnemyTexture('enemy_circle', (g) => {
+            g.fillStyle(0x000000, 0.25);
+            g.fillEllipse(32, 46, 28, 10);
+            g.fillStyle(0xffffff, 1);
+            g.fillCircle(32, 32, 26);
+            g.fillStyle(0xeeeeee, 1);
+            g.fillCircle(32, 30, 10);
+            g.fillStyle(0x000000, 0.6);
+            g.fillCircle(29, 27, 3);
+            g.fillCircle(35, 27, 3);
+        });
 
-        // RunnerZombie
-        // 使用实际图片（已在preload中加载）
+        // 掉落物占位纹理
+        generateEnemyTexture('drop_placeholder', (g) => {
+            g.fillStyle(0xc4a55a, 1);
+            g.fillCircle(32, 32, 14);
+            g.fillStyle(0xffd700, 0.8);
+            g.fillCircle(32, 28, 6);
+        });
 
-        // FatZombie
-        // 使用实际图片（已在preload中加载）
+        // 弓攻击占位纹理（解决外部弓 spritesheet 缺失）
+        generateEnemyTexture('bow_attack', (g) => {
+            g.fillStyle(0x8b5a2b, 1);
+            g.fillRoundedRect(8, 8, 48, 48, 6);
+            g.fillStyle(0xffffff, 0.8);
+            g.beginPath();
+            g.moveTo(24, 24);
+            g.lineTo(40, 32);
+            g.lineTo(24, 40);
+            g.closePath();
+            g.fillPath();
+        });
 
-        // SpitterZombie
-        // 使用实际图片（已在preload中加载）
+        // 2.5D 墙壁视觉纹理
+        generateEnemyTexture('wall_face', (g) => {
+            g.fillStyle(0x5a5a5a, 1);
+            g.fillRect(0, 0, 64, 128);
+            g.fillStyle(0x6e6e6e, 1);
+            g.fillRect(0, 0, 64, 4);
+            g.fillStyle(0x4a4a4a, 1);
+            g.fillRect(0, 124, 64, 4);
+        }, 64, 128);
+        generateEnemyTexture('wall_top', (g) => {
+            g.fillStyle(0x6e6e6e, 1);
+            g.fillRect(0, 0, 64, 8);
+            g.fillStyle(0x7e7e7e, 1);
+            g.fillRect(0, 0, 64, 2);
+        }, 64, 8);
+
+        // 树木视觉纹理（单张包含树干+树冠，底部居中锚点）
+        generateEnemyTexture('tree_canopy', (g) => {
+            g.fillStyle(0x5a3a1a, 1);
+            g.fillRect(30, 64, 4, 48);
+            g.fillStyle(0x4a2a0a, 1);
+            g.fillRect(30, 64, 2, 48);
+            g.fillStyle(0x2d8a3e, 1);
+            g.fillCircle(32, 36, 30);
+            g.fillStyle(0x3da84e, 0.6);
+            g.fillCircle(24, 28, 14);
+        }, 64, 128);
+        generateEnemyTexture('tree_canopy_snow', (g) => {
+            g.fillStyle(0x5a3a1a, 1);
+            g.fillRect(30, 64, 4, 48);
+            g.fillStyle(0x4a2a0a, 1);
+            g.fillRect(30, 64, 2, 48);
+            g.fillStyle(0xe0e8f0, 1);
+            g.fillCircle(32, 36, 30);
+            g.fillStyle(0xffffff, 0.6);
+            g.fillCircle(24, 28, 14);
+            g.fillStyle(0x2d8a3e, 1);
+            g.fillCircle(32, 44, 22);
+        }, 64, 128);
+
+        // ---- 投射物纹理 ----
+        generateEnemyTexture('projectile_arrow', (g) => {
+            g.fillStyle(0xd4c5a9, 1);
+            // 箭头向右，中心在 (32,32)
+            g.beginPath();
+            g.moveTo(44, 32);
+            g.lineTo(36, 26);
+            g.lineTo(36, 29);
+            g.lineTo(20, 29);
+            g.lineTo(20, 35);
+            g.lineTo(36, 35);
+            g.lineTo(36, 38);
+            g.closePath();
+            g.fillPath();
+            g.fillStyle(0xb5a58a, 1);
+            g.fillRect(20, 30, 18, 4);
+        });
+
+        generateEnemyTexture('projectile_bullet', (g) => {
+            g.fillStyle(0xffffff, 1);
+            g.fillCircle(32, 32, 14);
+            g.fillStyle(0xeeeeee, 0.8);
+            g.fillCircle(28, 28, 6);
+        });
+
+        generateEnemyTexture('projectile_spit', (g) => {
+            g.fillStyle(0x00ff00, 1);
+            g.fillRect(8, 8, 48, 48);
+            g.fillStyle(0xccffcc, 1);
+            g.fillRect(18, 18, 28, 28);
+        });
+
+        // 曳光弹：白色发光条，运行时通过 tint 着色
+        generateEnemyTexture('projectile_tracer', (g) => {
+            g.fillStyle(0xffffff, 0.2);
+            g.fillRect(0, 20, 128, 24);
+            g.fillStyle(0xffffff, 0.5);
+            g.fillRect(0, 24, 128, 16);
+            g.fillStyle(0xffffff, 0.95);
+            g.fillRect(0, 28, 128, 8);
+            g.fillStyle(0xffffff, 1);
+            g.fillCircle(120, 32, 10);
+            g.fillStyle(0xffffff, 0.7);
+            g.fillCircle(120, 32, 6);
+        }, 128, 64);
 
         // BabySpider
         generateEnemyTexture('enemy_baby_spider', (g) => {

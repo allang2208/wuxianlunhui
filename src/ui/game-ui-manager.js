@@ -3,7 +3,7 @@ import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { queryAllElements, getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { NPCDialogue } from './npc-dialogue.js';
@@ -16,13 +16,14 @@ import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
 
 export const GameUIManager = {
     player: null,
-    showHitbox: false,
     showAttackRange: false,
     _gameStartTime: null,
     _timerInterval: null,
 
     init(player) {
         this.player = player;
+        // 简版 HUD 恢复为 DOM 显示：检测到顶部栏存在即视为 DOM HUD 可用
+        this._domSimpleHudAvailable = !!getElementIfExists('topBar');
     },
 
     updateEquipmentUI() {
@@ -31,16 +32,6 @@ export const GameUIManager = {
         this.updateUI();
     },
 
-    initHitboxToggle() {
-        // 默认通过 F12 / 控制台 Game.showHitbox = true 开启，或后续绑定UI按钮
-        queryAllElements('.hitbox-toggle').forEach(btn => {
-            btn.onclick = () => {
-                this.showHitbox = !this.showHitbox;
-                if (Game) Game.showHitbox = this.showHitbox;
-                queryAllElements('.hitbox-toggle').forEach(b => b.classList.toggle('active', this.showHitbox));
-            };
-        });
-    },
     initAttackRangeToggle() {
         queryAllElements('.attack-range-toggle').forEach(btn => {
             btn.onclick = () => {
@@ -53,19 +44,22 @@ export const GameUIManager = {
     updateUI() {
         if (!this.player) return;
         const d = this.player.data, p = this.player;
-        // 数据驱动更新顶部栏
-        UI_DATA_CONFIG.topBar.forEach(item => {
-            const el = getElement(item.id);
-            if (el) el.textContent = item.getValue(p);
-        });
-        // 数据驱动更新顶部状态栏 (HP/MP)
-        UI_DATA_CONFIG.topStatus.forEach(item => {
-            const bar = getElement(item.barId);
-            const val = getElement(item.valId);
-            if (bar) bar.style.width = item.getPercent(d);
-            if (val) val.textContent = item.getValue(d);
-        });
-        // 攻击冷却指示器
+        // 简版 HUD 已迁移到 Phaser：若 DOM 简单 HUD 存在才更新，否则跳过
+        if (this._domSimpleHudAvailable) {
+            // 数据驱动更新顶部栏
+            UI_DATA_CONFIG.topBar.forEach(item => {
+                const el = getElementIfExists(item.id);
+                if (el) el.textContent = item.getValue(p);
+            });
+            // 数据驱动更新顶部状态栏 (HP/MP)
+            UI_DATA_CONFIG.topStatus.forEach(item => {
+                const bar = getElementIfExists(item.barId);
+                const val = getElementIfExists(item.valId);
+                if (bar) bar.style.width = item.getPercent(d);
+                if (val) val.textContent = item.getValue(d);
+            });
+
+            // 攻击冷却指示器
         const currentItem = p.equipments[p.weaponMode];
         let attackType = 'melee';
         if (currentItem) {
@@ -74,9 +68,9 @@ export const GameUIManager = {
         }
         const currentAttack = p.attacks[attackType];
         const attackCD = currentAttack.getCooldownPercent();
-        const cdOverlay = getElement('cdAttackOverlay');
+        const cdOverlay = getElementIfExists('cdAttackOverlay');
         if (cdOverlay) cdOverlay.style.height = (attackCD * 100) + '%';
-        const cdAttack = getElement('cdAttack');
+        const cdAttack = getElementIfExists('cdAttack');
         if (cdAttack) cdAttack.classList.toggle('ready', attackCD <= 0);
         let attackIcon = '⚔';
         if (currentItem) {
@@ -85,17 +79,17 @@ export const GameUIManager = {
         }
         const attackLabel = p.weaponMode === 'weapon' ? '武器栏1' : '武器栏2';
         if (cdAttack && cdAttack.childNodes[0]) cdAttack.childNodes[0].textContent = attackIcon;
-        const attackLabelEl = getElement('attackLabel');
+        const attackLabelEl = getElementIfExists('attackLabel');
         if (attackLabelEl) attackLabelEl.textContent = attackLabel;
         // 底部状态条更新
-        const hpBar = getElement('hpBar'), hpText = getElement('hpText');
-        const staminaBar = getElement('staminaBar'), staminaText = getElement('staminaText');
+        const hpBar = getElementIfExists('hpBar'), hpText = getElementIfExists('hpText');
+        const staminaBar = getElementIfExists('staminaBar'), staminaText = getElementIfExists('staminaText');
         if (hpBar) hpBar.style.width = (d.maxHp ? (d.hp / d.maxHp * 100) : 0) + '%';
         if (hpText) hpText.textContent = `${Math.ceil(d.hp)}/${d.maxHp}`;
         if (staminaBar) staminaBar.style.width = (d.maxStamina ? (d.stamina / d.maxStamina * 100) : 0) + '%';
         if (staminaText) staminaText.textContent = `${Math.ceil(d.stamina)}/${d.maxStamina}`;
         // 武器信息显示
-        const weaponModeEl = getElement('weaponMode'), weaponNameEl = getElement('weaponName');
+        const weaponModeEl = getElementIfExists('weaponMode'), weaponNameEl = getElementIfExists('weaponName');
         if (weaponModeEl) weaponModeEl.textContent = p.weaponMode === 'weapon' ? '武器栏1' : '武器栏2';
         // 武器栏指示器（红色边框表示当前使用的武器栏）
         if (weaponModeEl) {
@@ -107,20 +101,22 @@ export const GameUIManager = {
             weaponNameEl.textContent = weaponItem ? weaponItem.name : '空手';
         }
         // 经验值条（屏幕底部金色细线）
-        const expBar = getElement('expBar');
-        if (expBar) {
-            const expPercent = d.maxExp ? (d.exp / d.maxExp * 100) : 0;
-            expBar.style.width = Math.min(100, expPercent) + '%';
+            const expBar = getElementIfExists('expBar');
+            if (expBar) {
+                const expPercent = d.maxExp ? (d.exp / d.maxExp * 100) : 0;
+                expBar.style.width = Math.min(100, expPercent) + '%';
+            }
         }
-        // 头部信息（面板可能未打开，元素可能为null）
-        const charNameEl = getElement('charName');
-        const charClassEl = getElement('charClass');
-        const charLevelEl = getElement('charLevel');
+
+        // 头部信息（面板可能未打开，使用静默查询避免警告）
+        const charNameEl = getElementIfExists('charName');
+        const charClassEl = getElementIfExists('charClass');
+        const charLevelEl = getElementIfExists('charLevel');
         if (charNameEl) charNameEl.textContent = d.name;
         if (charClassEl) charClassEl.textContent = d.class;
         if (charLevelEl) charLevelEl.textContent = 'Lv.' + d.level;
         // 显示属性点
-        const attrPointsEl = getElement('attrPoints');
+        const attrPointsEl = getElementIfExists('attrPoints');
         if (attrPointsEl) attrPointsEl.textContent = '属性点: ' + d.attrPoints;
         // 显示/隐藏属性加号按钮
         const attrPlusBtns = queryAllElements('.attr-plus');
@@ -128,22 +124,22 @@ export const GameUIManager = {
             btn.style.display = (d.attrPoints > 0) ? 'inline-flex' : 'none';
         });
         // 显示/隐藏右侧属性点按钮
-        const addPointBtn = getElement('addPointBtn');
+        const addPointBtn = getElementIfExists('addPointBtn');
         if (addPointBtn) {
             addPointBtn.classList.toggle('hidden', d.attrPoints <= 0);
         }
         UI_DATA_CONFIG.statusPage.bars.forEach(item => {
-            const bar = getElement(item.barId);
-            const val = getElement(item.valId);
+            const bar = getElementIfExists(item.barId);
+            const val = getElementIfExists(item.valId);
             if (bar) bar.style.width = item.getPercent(d);
             if (val) val.textContent = item.getValue(d);
         });
         UI_DATA_CONFIG.statusPage.baseAttrs.forEach(item => {
-            const el = getElement(item.id);
+            const el = getElementIfExists(item.id);
             if (el) el.textContent = d[item.key];
         });
         UI_DATA_CONFIG.statusPage.combatAttrs.forEach(item => {
-            const el = getElement(item.id);
+            const el = getElementIfExists(item.id);
             if (!el) return;
             if (item.id === 'combatAtk') {
                 // 物理攻击：从当前武器实时计算
@@ -182,12 +178,12 @@ export const GameUIManager = {
             }
         });
         UI_DATA_CONFIG.statusPage.loopInfo.forEach(item => {
-            const el = getElement(item.id);
+            const el = getElementIfExists(item.id);
             if (el) el.textContent = d[item.key];
         });
         // 详细属性渲染
         UI_DATA_CONFIG.statusPage.detailAttrs.forEach(item => {
-            const el = getElement(item.id);
+            const el = getElementIfExists(item.id);
             if (!el) return;
             const currentWpn = p.equipments[p.weaponMode];
             let paType = 'melee';
@@ -234,23 +230,23 @@ export const GameUIManager = {
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
     startTimer() {
         this._gameStartTime = Date.now();
-        const timerEl = getElement('gameTimer');
+        const timerEl = getElementIfExists('gameTimer');
         if (timerEl) timerEl.style.display = 'flex';
-        const textEl = getElement('timerText');
+        const textEl = getElementIfExists('timerText');
         if (textEl) textEl.textContent = '00:00:00';
         this._timerInterval = TimerManager.setInterval(() => {
             if (!this._gameStartTime) return;
             const elapsed = Date.now() - this._gameStartTime;
-            const tEl = getElement('timerText');
+            const tEl = getElementIfExists('timerText');
             if (tEl) tEl.textContent = this._formatTime(elapsed);
         }, 1000);
     },
     stopTimer() {
         if (this._timerInterval) { TimerManager.clearInterval(this._timerInterval); this._timerInterval = null; }
         this._gameStartTime = null;
-        const timerEl = getElement('gameTimer');
+        const timerEl = getElementIfExists('gameTimer');
         if (timerEl) timerEl.style.display = 'none';
-        const textEl = getElement('timerText');
+        const textEl = getElementIfExists('timerText');
         if (textEl) textEl.textContent = '00:00:00';
     },
     _formatTime(ms) {

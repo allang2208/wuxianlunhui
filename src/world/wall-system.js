@@ -1,11 +1,11 @@
 import { MazeGenerator } from '../world/maze-generator.js';
-import { Renderer } from '../world/renderer.js';
 import { CONFIG } from '../config/config.js';
 
 const WallSystem = {
     walls: [],
     mazeEndY: 0,
     _wallHeight: 60,
+    _phaserVisualsEnabled: false,
     init(ww, wh) {
         this.walls = [];
         this.trees = [];
@@ -38,17 +38,39 @@ const WallSystem = {
         if (phaserScene.walls && phaserScene.walls.countActive(true) > 0) {
             phaserScene.walls.clear(true, true);
         }
-        // 创建矩形墙壁物理体
+        // 清除旧视觉墙壁
+        if (phaserScene.visualWalls) {
+            phaserScene.visualWalls.clear(true, true);
+        }
+        // 创建矩形墙壁物理体 + 2.5D 视觉精灵
         for (const w of this.walls) {
             const wall = phaserScene.add.rectangle(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 0x000000, 0);
             phaserScene.physics.add.existing(wall, true); // true = static
             phaserScene.walls.add(wall);
+
+            if (phaserScene.visualWalls) {
+                const face = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h, 'wall_face');
+                face.setOrigin(0.5, 1);
+                face.setDisplaySize(w.w, w.height);
+                face.setDepth(w.y + w.h);
+                phaserScene.visualWalls.add(face);
+
+                const top = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h - w.height, 'wall_top');
+                top.setOrigin(0.5, 1);
+                top.setDisplaySize(w.w, 4);
+                top.setDepth(w.y + w.h);
+                phaserScene.visualWalls.add(top);
+
+                w.visualSprite = face;
+                w.topSprite = top;
+            }
         }
-        
-        // 重新同步树木碰撞体
+
+        // 重新同步树木（包括视觉精灵）
         this._syncTreesToPhaser();
         // 设置碰撞关系
         phaserScene.setupColliders();
+        this._phaserVisualsEnabled = true;
     },
     /**
      * 将树木同步到 Phaser 的 staticGroup
@@ -56,46 +78,33 @@ const WallSystem = {
     _syncTreesToPhaser() {
         const phaserScene = window.__phaserScene;
         if (!phaserScene) return;
+        if (phaserScene.visualTrees) {
+            phaserScene.visualTrees.clear(true, true);
+        }
         // 创建树木圆形碰撞体（用不可见圆形表示），使用独立的 collisionRadius
         for (const t of this.trees) {
             const tree = phaserScene.add.circle(t.x, t.y, t.collisionRadius || t.radius * 0.6, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
-            t.phaserSprite = tree;
-        }
-        
-    },
-    getWallsInView(vx, vy, vw, vh) {
-        const result = [];
-        for (const w of this.walls) {
-            if (w.x + w.w > vx && w.x < vx + vw && w.y + w.h > vy && w.y < vy + vh) result.push(w);
-        }
-        return result;
-    },
-    /**
-     * 侧视角墙壁渲染：绘制墙面（立面矩形）+ 墙顶（小矩形）
-     * 按 y 深度排序（y 小的先画，即后面的先画）
-     */
-    renderWalls(ctx, cameraX, cameraY) {
-        const cw = (Renderer && Renderer.canvas) ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
-        const ch = (Renderer && Renderer.canvas) ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
-        const visible = [];
-        for (const w of this.walls) {
-            if (w.x + w.w > cameraX && w.x < cameraX + cw && w.y + w.h > cameraY && w.y < cameraY + ch) {
-                visible.push(w);
+            t.phaserBody = tree;
+
+            if (phaserScene.visualTrees) {
+                const isSnow = t.sceneGroup === 'snow';
+                const key = isSnow ? 'tree_canopy_snow' : 'tree_canopy';
+                const sprite = phaserScene.add.sprite(t.x, t.y, key);
+                sprite.setOrigin(0.5, 1);
+                const canopyR = t.canopyRadius || t.radius * 1.2;
+                const trunkH = t.trunkHeight || t.radius * 2;
+                const displayW = canopyR * 2.2;
+                const displayH = trunkH + canopyR * 1.8;
+                sprite.setDisplaySize(displayW, displayH);
+                sprite.setDepth(t.sortY || t.y + t.radius * 2);
+                phaserScene.visualTrees.add(sprite);
+                t.visualSprite = sprite;
             }
         }
-        visible.sort((a, b) => a.y - b.y);
-        for (const w of visible) {
-            const sx = w.x - cameraX;
-            const sy = w.y - cameraY;
-            // 墙面（立面）：从 footprint 后沿向上延伸
-            ctx.fillStyle = '#5a5a5a';
-            ctx.fillRect(sx, sy - w.height, w.w, w.height);
-            // 墙顶（小矩形，厚度 4px）
-            ctx.fillStyle = '#6e6e6e';
-            ctx.fillRect(sx, sy - w.height - 4, w.w, 4);
-        }
+
+        if (this.trees.length > 0) this._phaserVisualsEnabled = true;
     },
     circleRect(cx, cy, r, rect) {
         const clX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
@@ -180,7 +189,21 @@ const WallSystem = {
             const tree = phaserScene.add.circle(x, y, collisionRadius, 0x000000, 0);
             phaserScene.physics.add.existing(tree, true);
             phaserScene.walls.add(tree);
-            treeData.phaserSprite = tree;
+            treeData.phaserBody = tree;
+
+            if (phaserScene.visualTrees) {
+                const isSnow = sceneGroup === 'snow';
+                const key = isSnow ? 'tree_canopy_snow' : 'tree_canopy';
+                const sprite = phaserScene.add.sprite(x, y, key);
+                sprite.setOrigin(0.5, 1);
+                const displayW = treeData.canopyRadius * 2.2;
+                const displayH = treeData.trunkHeight + treeData.canopyRadius * 1.8;
+                sprite.setDisplaySize(displayW, displayH);
+                sprite.setDepth(treeData.sortY);
+                phaserScene.visualTrees.add(sprite);
+                treeData.visualSprite = sprite;
+            }
+            this._phaserVisualsEnabled = true;
         }
     },
     /**
@@ -197,8 +220,11 @@ const WallSystem = {
             const dx = t.x - cx;
             const dy = t.y - cy;
             if (Math.sqrt(dx * dx + dy * dy) <= radius) {
-                if (t.phaserSprite) {
-                    t.phaserSprite.destroy();
+                if (t.visualSprite) {
+                    t.visualSprite.destroy();
+                }
+                if (t.phaserBody) {
+                    t.phaserBody.destroy();
                 }
                 this.trees.splice(i, 1);
                 removed++;
@@ -214,6 +240,7 @@ const WallSystem = {
         return result;
     },
     renderTrees(ctx, cameraX, cameraY) {
+        if (this._phaserVisualsEnabled) return;
         const trees = this.getTreesInView(cameraX, cameraY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
         trees.sort((a, b) => (a.sortY || a.y) - (b.sortY || b.y));
         for (const t of trees) {

@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-11（Phaser 迁移收尾 + Canvas 死代码清理）
+
+### 对话：完成 Phaser 迁移并清理中优先级技术债务（v0.198）
+- **修改文件**（15+ 个文件）：
+  - `src/world/map-generator.js`：地形生成改为 Phaser Graphics API，删除手动 Canvas 创建。
+  - `src/world/renderer.js`：删除 `MapGenerator` 导入、地形生成、`_bakeGridAndBorder`；保留 `terrainTexture` 作为特殊场景覆盖入口。
+  - `src/phaser/scenes/GameScene.js`：`_syncTerrain()` 优先使用 `Renderer.terrainTexture` 覆盖，否则用 Phaser Graphics 生成；新增 `_drawGridAndBorder()`。
+  - `src/game.js`：非地牢地图模式下隐藏 `gameCanvas`，停止无意义 `clear()`。
+  - `src/entities/entity.js`：删除 `render(_ctx)`、`renderCollisionRadius(ctx)` 及 `Renderer` 导入。
+  - `src/components/hitbox.js`：删除 `renderDebug(ctx)` 及 `Renderer` 导入。
+  - `src/ai/enemy-fsm.js`：删除 `PhaseChangeEffect` 类及导出。
+  - `src/entities/enemy.js`：删除 `PhaseChangeEffect` 引用与导入。
+  - `src/ui/game-ui-manager.js` / `src/utils/dom-utils.js`：新增 `getElementIfExists`，简化 HUD 跳过逻辑，避免 DOM 缺失警告。
+  - `src/game.js` / `src/ui/game-ui-manager.js`：删除 `showHitbox` 死代码。
+  - `src/game.js`：删除对 `GameUIManager.initHitboxToggle()` 的调用，修复启动时报错。
+  - `PHASER_MIGRATION_PLAN.md`、`PROJECT_STATE.md`、`CHANGELOG.md`：更新迁移状态。
+- **修改内容摘要**：
+  1. 主场景地形由 Phaser Graphics 直接生成 Texture，不再经过 `HTMLCanvasElement` 中间层。
+  2. 保留 `Renderer.terrainTexture` 覆盖机制，兼容战斗场地、BOSS、雪地/火车等特殊场景。
+  3. `Game.render` 仅在 `scene7` 地牢地图模式下显示并清屏 `gameCanvas`。
+  4. 删除所有确认失效的 `render(ctx)` / 绘制辅助方法 / 调试渲染代码。
+  5. `GameUIManager` 对缺失/隐藏的简单 HUD 元素使用静默查询，消除控制台警告。
+- **测试结果**：`npx eslint src --max-warnings=0` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - `scene3` 火车背景已删除 Canvas 实现，待后续重新设计。
+  - `FloatingTextEffect` 等部分特效只剩 `update`、没有渲染，需后续 Phaser 化或删除。
+
+---
+
 ## 2026-07-05（智能寻路系统：参考《环世界》预规划 + 局部修复）
 
 ### 对话：开发智能寻路系统（v0.198）

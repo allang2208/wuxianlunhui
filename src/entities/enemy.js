@@ -5,8 +5,7 @@ import { Combatant } from './combatant.js';
 import { ThrustAttack } from '../combat/attack.js';
 import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
-import { Renderer } from '../world/renderer.js';
-import { EnemyFSM, PhaseChangeEffect } from '../ai/enemy-fsm.js';
+import { EnemyFSM } from '../ai/enemy-fsm.js';
 import aiConfigData from '../../data/ai-config.json';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
@@ -118,20 +117,6 @@ import { loadImage } from '../utils/image-loader.js';
                 }
 
                 // 自动包装子类 render 方法，在渲染后添加中毒粒子效果
-                // 所有子类（Zombie, Spider 等）都覆盖了 render 不调用 super.render()
-                const proto = Object.getPrototypeOf(this);
-                if (proto && proto.render && !proto._poisonRenderWrapped && proto !== Enemy.prototype) {
-                    const originalRender = proto.render;
-                    proto._poisonRenderWrapped = true;
-                    proto.render = function(ctx) {
-                        originalRender.call(this, ctx);
-                        if (this._poisonStacks > 0 && this._poisonEffect) {
-                            const pos = Renderer.worldToScreen(this.x, this.y);
-                            this._poisonEffect.render(ctx, pos.x, pos.y - this.size);
-                        }
-                    };
-                }
-
             }
             triggerWeaponAnim() {
                 // 动画打断机制：无论当前动画状态，立即重置为 windup
@@ -177,21 +162,6 @@ import { loadImage } from '../utils/image-loader.js';
                         else anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(anim.timer / wa.recoverMs);
                         break;
                 }
-            }
-            renderWeapon(ctx) {
-                if (!this._showWeapon || !this.weaponImage || !this.weaponImage.complete) return;
-                const wa = WEAPON_ANIM, s = wa.size, w = s * 0.84;
-                ctx.save();
-                ctx.translate(wa.holdX, wa.holdY);
-                ctx.rotate(Math.PI / 2);
-                let finalAngle = this.weaponAnim.angle;
-                if (this.isMoving && this.weaponAnim.state === 'idle') {
-                    const mSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                    finalAngle += Math.sin(this.animTime * 0.3) * Math.min(0.15, mSpeed * 0.04);
-                }
-                ctx.rotate(finalAngle);
-                if (this.weaponImage && this.weaponImage.complete && this.weaponImage.naturalWidth > 0) ctx.drawImage(this.weaponImage, -w / 2, -s / 2, w, s);
-                ctx.restore();
             }
             // --- 冲刺偏移计算（默认实现，子类可覆盖） ---
             _getDashOffset() {
@@ -320,47 +290,7 @@ import { loadImage } from '../utils/image-loader.js';
             _getDashWorldPos() {
                 const offset = this._getDashOffset();
                 return { x: this.x + offset.x, y: this.y + offset.y };
-            }
-            // --- 血条渲染（含冲刺偏移） ---
-            renderHealthBar(ctx) {
-                if (this.hp >= this.maxHp) return;
-                const worldPos = this._getDashWorldPos();
-                const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
-                const hb = this._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
-                const barWidth = hb.width, barHeight = hb.height, border = 1;
-                const x = screenPos.x - barWidth / 2, y = screenPos.y - this.size + hb.offsetY;
-                const hpPercent = this.hp / this.maxHp;
-                ctx.fillStyle = '#1a0a0a';
-                ctx.fillRect(x - border, y - border, barWidth + border * 2, barHeight + border * 2);
-                ctx.fillStyle = '#5a1010';
-                ctx.fillRect(x, y, barWidth, barHeight);
-                ctx.fillStyle = hpPercent > 0.5 ? '#c04040' : hpPercent > 0.25 ? '#a03030' : '#8a1a1a';
-                ctx.fillRect(x, y, barWidth * hpPercent, barHeight);
-            }
-            // --- 碰撞半径渲染（含冲刺偏移） ---
-            renderCollisionRadius(ctx) {
-                if (this.hitbox) {
-                    this.hitbox.renderDebug(ctx);
-                    return;
-                }
-                const radius = this.collisionRadius || 12;
-                const worldPos = this._getDashWorldPos();
-                const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
-                ctx.save();
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
-                ctx.beginPath();
-                ctx.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.restore();
-            }
-            _getRenderPosition() {
-                const offset = this._getDashOffset();
-                return Renderer.worldToScreen(this.x + offset.x, this.y + offset.y);
-            }
-            // --- 冲刺准备公共逻辑 ---
+            }            // --- 碰撞半径渲染（含冲刺偏移） ---
             _prepareDashAttack(target) {
                 if (this._attackTimer > 0) return;
                 this._attackTimer = this._attackDuration;
@@ -399,13 +329,8 @@ import { loadImage } from '../utils/image-loader.js';
             }
             // === AI 系统：移动寻路 与 攻击指令 完全分离 ===
             // 阶段切换回调：子类可覆盖以实现自定义特效
-            onPhaseChange(phase) {
-                // 默认在控制台输出阶段切换
-                
-                // 触发视觉特效（如屏幕震动、粒子效果）
-                if (EffectManager) {
-                    EffectManager.add(new PhaseChangeEffect(this.x, this.y, phase.name));
-                }
+            onPhaseChange(_phase) {
+                // 默认空实现，子类可覆盖以实现自定义阶段特效
             }
             update(dt, entities) {
                 super.update(dt);
@@ -583,32 +508,7 @@ import { loadImage } from '../utils/image-loader.js';
                 if (attack.use(this, targetX, targetY, Array.from(entities.values()))) {
                     this.triggerWeaponAnim();
                 }
-            }
-            render(ctx) {
-                const pos = this._getRenderPosition();
-                const x = pos.x, y = pos.y;
-                
-                this.renderHealthBar(ctx);
-                
-                // 阴影在 Phaser 之前画（确保不被跳过）
-                this._drawShadow(ctx, x, y, this.size);
-                
-                const textureKey = this._getTextureKey();
-                const phaserOptions = this._getPhaserOptions();
-                if (this._renderPhaserSync(ctx, x, y, textureKey, phaserOptions)) {
-                    return;
-                }
-                
-                ctx.save(); ctx.translate(x, y);
-                this._drawBody(ctx);
-                ctx.restore();
-                
-                this._renderNameTag(ctx, x, y);
-                this.renderCollisionRadius(ctx);
-                this._renderPoisonEffect(ctx, x, y);
-                this._renderHitFlash(ctx, x, y);
-            }
-            _getTextureKey() {
+            }            _getTextureKey() {
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }
             _getPhaserOptions() {
@@ -621,111 +521,6 @@ import { loadImage } from '../utils/image-loader.js';
                     flipX = Math.cos(this.rotation) < 0;
                 }
                 return { textOffsetY: -32, flipX: flipX };
-            }
-            _renderNameTag(ctx, x, y) {
-                ctx.fillStyle = 'rgba(212, 197, 169, 0.8)';
-                ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(this.name, x, y - 32);
-            }
-            _renderPoisonEffect(ctx, x, y) {
-                if (this._poisonStacks > 0 && this._poisonEffect) {
-                    this._poisonEffect.render(ctx, x, y - this.size);
-                }
-            }
-            _renderHitFlash(ctx, x, y) {
-                if (this.hitFlash > 0) {
-                    const flashAlpha = this.hitFlash / this.hitFlashDuration;
-                    ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
-                    ctx.beginPath(); ctx.arc(x, y, this.size + 2, 0, Math.PI * 2); ctx.fill();
-                }
-            }
-            _drawBody(ctx) {
-                // 与主角一致：只做左右镜像翻转，不做上下旋转
-                // 注意：player.render() 中先 ctx.rotate(this.rotation) 再调用 _drawStickFigure
-                // 而 enemy.render() 中直接 ctx.translate(x, y) 调用 _drawBody，没有外层旋转
-                // 所以这里不需要 ctx.rotate(-this.rotation) 来抵消，只做水平翻转即可
-                ctx.save();
-
-                let facingDir;
-                if (this.isMoving && Math.abs(this.vx) > 0.1) {
-                    facingDir = this.vx > 0 ? 'right' : 'left';
-                } else {
-                    // 静止时根据朝向（对玩家方向）判断
-                    facingDir = Math.cos(this.rotation) > 0 ? 'right' : 'left';
-                }
-                if (facingDir === 'left') ctx.scale(-1, 1);
-                
-                // 绿色火柴人
-                this._drawEnemyStickFigure(ctx);
-                
-                this.renderWeapon(ctx);
-                if (this._showWeapon) {
-                    ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.moveTo(this.size + 5, 0); ctx.lineTo(this.size - 1, -4); ctx.lineTo(this.size - 1, 4); ctx.closePath(); ctx.fill();
-                }
-                ctx.strokeStyle = this._highlightColor; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, this.size + 5 + Math.sin(Date.now()/300)*1.5, 0, Math.PI*2); ctx.stroke();
-                if (this.attacks && this.attacks.melee && this.attacks.melee.config && this.attacks.melee.config.range) {
-                    ctx.strokeStyle = 'rgba(220, 160, 20, 0.75)';
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([5, 5]);
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.attacks.melee.config.range, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-                ctx.restore();
-            }
-            // 绘制绿色火柴人（敌人版）
-            // 支持双色：_headColor 头部颜色，_color 身体颜色（默认同色）
-            _drawEnemyStickFigure(ctx) {
-                const hitWhite = this.hitFlash > 0;
-                const headColor = hitWhite ? '#ffffff' : (this._headColor || this._color || '#4a9a4a');
-                const bodyColor = hitWhite ? '#ffffff' : (this._color || '#4a9a4a');
-                const lw = hitWhite ? 4 : 3;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.lineWidth = lw;
-
-                const t = this.animTime;
-                const walking = this.isMoving;
-                const s = walking ? Math.sin(t * 8) : 0;
-                const bob = walking ? Math.sin(t * 16) * 1.5 : Math.sin(t * 2) * 0.3;
-
-                const head   = { x: 0, y: -23 + bob };
-                const neck   = { x: 0, y: -17 + bob };
-                const shoulder = { x: 0, y: -15 + bob };
-                const hip    = { x: 0, y: 2 + bob };
-
-                // 头部（使用 headColor）
-                ctx.fillStyle = headColor;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 6, 0, Math.PI * 2); ctx.fill();
-
-                // 身体（使用 bodyColor）
-                ctx.strokeStyle = bodyColor;
-                ctx.beginPath(); ctx.moveTo(neck.x, neck.y); ctx.lineTo(hip.x, hip.y); ctx.stroke();
-
-                const lElbow = { x: -5 + s * 3, y: -8 + bob };
-                const lHand  = { x: -7 + s * 4, y: -1 + bob };
-                ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.lineTo(lElbow.x, lElbow.y); ctx.lineTo(lHand.x, lHand.y); ctx.stroke();
-
-                const rElbow = { x: 6 - s * 3, y: -8 + bob };
-                const rHand  = { x: 11 - s * 4, y: -2 + bob };
-                ctx.beginPath(); ctx.moveTo(shoulder.x, shoulder.y); ctx.lineTo(rElbow.x, rElbow.y); ctx.lineTo(rHand.x, rHand.y); ctx.stroke();
-
-                const lKnee = { x: -3 + s * 5, y: 9 + bob };
-                const lFoot = { x: -4 + s * 6, y: 18 + bob };
-                ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.lineTo(lKnee.x, lKnee.y); ctx.lineTo(lFoot.x, lFoot.y); ctx.stroke();
-
-                const rKnee = { x: 3 - s * 5, y: 9 + bob };
-                const rFoot = { x: 4 - s * 6, y: 18 + bob };
-                ctx.beginPath(); ctx.moveTo(hip.x, hip.y); ctx.lineTo(rKnee.x, rKnee.y); ctx.lineTo(rFoot.x, rFoot.y); ctx.stroke();
-
-                // 关节点（使用 bodyColor）
-                ctx.fillStyle = bodyColor;
-                ctx.beginPath(); ctx.arc(lHand.x, lHand.y, 1.5, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(rHand.x, rHand.y, 1.5, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(lFoot.x, lFoot.y, 2, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(rFoot.x, rFoot.y, 2, 0, Math.PI * 2); ctx.fill();
             }
             // 新增：计算战斗属性（使用与主角相同的公式）
             calculateCombatStats() {
@@ -814,76 +609,6 @@ import { loadImage } from '../utils/image-loader.js';
              * @param {number} [options.textOffsetY] - 名字标签偏移（默认 -32）
              * @returns {boolean} true = Phaser 已处理，false = 需要 Canvas 渲染
              */
-            _renderPhaserSync(ctx, x, y, textureKey, options = {}) {
-                const phaserScene = window.__phaserScene;
-                if (!phaserScene) return false;
-
-                const sprite = phaserScene.getOrCreateEnemySprite(this, textureKey);
-                if (!this.active) {
-                    sprite.setVisible(false);
-                    return true;
-                }
-
-                // 火柴人模式：隐藏 Phaser sprite，由 Canvas 绘制火柴人
-                if (this._useStickFigure) {
-                    sprite.setVisible(false);
-                    // 注意：不要 setActive(false)，否则 getOrCreateEnemySprite 会每帧重新创建 sprite
-                    return false; // 返回 false 让 Canvas 继续渲染火柴人
-                }
-
-                const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 7.0;
-                const _rotation = 0; // 禁止旋转，仅水平翻转
-                const textOffsetY = options.textOffsetY !== undefined ? options.textOffsetY : -32;
-
-                sprite.setPosition(
-                    this.x + (options.offsetX || 0),
-                    this.y + (options.offsetY || 0)
-                );
-                
-                // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
-                // 强制 rotation = 0，不设置 this.rotation
-                if (options.rotation !== undefined) {
-                    // 忽略外部传入的 rotation，保持不旋转
-                }
-                // 不在这里设置 sprite.setRotation，由 GameScene.update 统一处理
-                // 这样可以避免两个系统冲突
-                
-                if (options.frame !== undefined) {
-                    // 只对 spritesheet 设置 frame（单张图片如 idle 不设置）
-                    const texture = sprite.texture;
-                    if (texture && texture.frameTotal > 1) {
-                        sprite.setFrame(options.frame);
-                    }
-                }
-                // 注意：flip 通过 setScale 负值实现，不单独调用 setFlipX/setFlipY
-                // 避免 setScale 覆盖 flip 的符号导致双重翻转
-
-                const sourceImage = sprite.texture.getSourceImage();
-                const originalWidth = sprite.frame ? sprite.frame.width : (sourceImage ? sourceImage.width : 64);
-                const baseScale = spriteSize / originalWidth;
-                const contentScale = options.scale || 1;
-                const scale = baseScale * contentScale;
-                
-                // 关键：setScale 会覆盖 flipX/flipY 的符号，所以必须在 setScale 后重新应用 flip
-                // 或者直接在 scale 中考虑 flip 符号
-                const scaleX = options.flipX ? -scale : scale;
-                const scaleY = options.flipY ? -scale : scale;
-                sprite.setScale(scaleX, scaleY);
-                sprite.setVisible(true);
-                
-                // 同时保存到 _phaserSprite（兼容旧代码）
-                this._phaserSprite = sprite;
-
-                // 绘制名字和碰撞半径
-                const nameColor = options.nameColor || 'rgba(212, 197, 169, 0.8)';
-                ctx.fillStyle = nameColor;
-                ctx.font = '12px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(this.name, x, y + textOffsetY);
-                this.renderCollisionRadius(ctx);
-
-                return true;
-            }
 
         }
 
@@ -897,27 +622,7 @@ import { loadImage } from '../utils/image-loader.js';
             update(dt = 16.67) {
                 this.life -= dt;
                 if (this.life <= 0) this.active = false;
-            }
-            render(ctx) {
-                const progress = 1 - this.life / this.maxLife; // 0 → 1
-                const currentRadius = this.maxRadius * (1 - progress);
-                if (currentRadius <= 0) return;
-                const screenPos = Renderer.worldToScreen(this.x, this.y);
-                ctx.save();
-                ctx.strokeStyle = `rgba(255, 60, 60, ${0.7 * (1 - progress)})`;
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(screenPos.x, screenPos.y, currentRadius, 0, Math.PI * 2);
-                ctx.stroke();
-                // 内圈发光
-                ctx.strokeStyle = `rgba(255, 100, 100, ${0.3 * (1 - progress)})`;
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.arc(screenPos.x, screenPos.y, currentRadius + 3, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-            }
-        }
+            }        }
 
             // Phaser 同步渲染方法（提取所有子类重复代码）
 export { Enemy };

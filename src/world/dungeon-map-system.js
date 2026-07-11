@@ -24,10 +24,7 @@ import { Input } from '../ui/input.js';
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from '../ui/ui-state.js';
-import { BlackWolf } from '../entities/enemy-types.js';
-import {
-    HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
-} from '../entities/humanoid-monster.js';
+import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonMapGenerator, DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -773,12 +770,12 @@ export const DungeonMapSystem = {
 
         // 普通怪物池（从现有怪物库中选择）
         const normalMonsters = [
-            BlackWolf, Rifleman, MachineGunner, FlankRifleman, ShieldBearer
+            BlackWolf, CircleEnemy
         ];
 
         // Boss 怪物池（从现有怪物库中选择）
         const bossMonsters = [
-            Commander, HumanoidMonster, BlackWolf
+            BlackWolf, CircleEnemy
         ];
 
         for (let i = 0; i < count; i++) {

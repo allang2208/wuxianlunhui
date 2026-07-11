@@ -8,15 +8,14 @@
  * 战斗：3波，每波5只怪物，按 tier 概率生成（70%普通 / 20%精英 / 10%首领）
  */
 
-import { Enemy } from '../entities/enemy.js';
-import { SpitterZombie, FatZombie, FastZombie, ZombieDog } from '../entities/enemy-types.js';
+import { CircleEnemy } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 import { getElement } from '../utils/dom-utils.js';
 
 // ==================== 装甲僵尸工厂 ====================
 function createArmoredZombie(x, y) {
-    return new Enemy(x, y, {
+    return new CircleEnemy(x, y, {
         name: '装甲僵尸',
         hp: 200,
         maxHp: 200,
@@ -45,8 +44,8 @@ function createArmoredZombie(x, y) {
 
 // ==================== 怪物工厂 ====================
 export function createBasicZombie(x, y) {
-    // 基础僵尸：使用 Enemy 类 + zombie 配置
-    return new Enemy(x, y, {
+    // 基础僵尸：使用 CircleEnemy 以实心圆渲染
+    return new CircleEnemy(x, y, {
         name: '僵尸',
         hp: 80,
         maxHp: 80,
@@ -67,6 +66,82 @@ export function createBasicZombie(x, y) {
         aiInterval: 2000,
         ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
         attack: { type: 'thrust', cooldown: 1000, dynamicRange: 80, width: 20, damageMin: 5, damageMax: 10, knockback: 8 },
+        showWeapon: false
+    });
+}
+
+function createFastZombie(x, y) {
+    return new CircleEnemy(x, y, {
+        name: 'Runner Zombie',
+        hp: 60, maxHp: 60,
+        size: 12, collisionRadius: 10,
+        speed: 56.25,
+        level: 2,
+        color: '#c03030',
+        highlightColor: 'rgba(192, 48, 48, 0.3)',
+        str: 10, dex: 20, con: 10, int: 2, wis: 2, luck: 4,
+        rank: 'normal',
+        attackRange: 70,
+        aiInterval: 2000,
+        ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
+        attack: { type: 'thrust', cooldown: 600, dynamicRange: 70, width: 18, damageMin: 4, damageMax: 8, knockback: 5 },
+        showWeapon: false
+    });
+}
+
+function createZombieDog(x, y) {
+    return new CircleEnemy(x, y, {
+        name: 'Zombie Dog',
+        hp: 60, maxHp: 60,
+        size: 12, collisionRadius: 10,
+        speed: 56.25,
+        level: 2,
+        color: '#d4cfc0',
+        highlightColor: 'rgba(212, 207, 192, 0.3)',
+        str: 10, dex: 20, con: 10, int: 2, wis: 2, luck: 4,
+        rank: 'normal',
+        attackRange: 70,
+        aiInterval: 2000,
+        ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
+        attack: { type: 'thrust', cooldown: 600, dynamicRange: 70, width: 18, damageMin: 4, damageMax: 8, knockback: 5 },
+        showWeapon: false
+    });
+}
+
+function createSpitterZombie(x, y) {
+    return new CircleEnemy(x, y, {
+        name: 'Spitter Zombie',
+        hp: 120, maxHp: 120,
+        size: 14, collisionRadius: 12,
+        speed: 25,
+        level: 3,
+        color: '#7a3a8a',
+        highlightColor: 'rgba(122, 58, 138, 0.3)',
+        str: 14, dex: 10, con: 14, int: 3, wis: 3, luck: 5,
+        rank: 'elite',
+        attackRange: 250,
+        aiInterval: 2000,
+        ai: { aggroRange: 9999, pacingRange: 150, loseTimeout: 3000 },
+        attack: { type: 'ranged', cooldown: 1500, range: 250, projectileSpeed: 8, damageMin: 8, damageMax: 15, knockback: 4 },
+        showWeapon: false
+    });
+}
+
+function createFatZombie(x, y) {
+    return new CircleEnemy(x, y, {
+        name: 'Fat Zombie',
+        hp: 200, maxHp: 200,
+        size: 18, collisionRadius: 16,
+        speed: 18.75,
+        level: 4,
+        color: '#5a7a5a',
+        highlightColor: 'rgba(90, 122, 90, 0.3)',
+        str: 18, dex: 6, con: 20, int: 3, wis: 3, luck: 5,
+        rank: 'elite',
+        attackRange: 90,
+        aiInterval: 2000,
+        ai: { aggroRange: 9999, pacingRange: 150, loseTimeout: 3000 },
+        attack: { type: 'thrust', cooldown: 1200, dynamicRange: 90, width: 25, damageMin: 8, damageMax: 15, knockback: 10 },
         showWeapon: false
     });
 }
@@ -99,8 +174,8 @@ const ZOMBIE_DUNGEON_CONFIG = {
 
     // 怪物池（按 tier 分类）—— 使用工厂函数或类引用
     monsterPool: {
-        normal: [createBasicZombie, FastZombie, ZombieDog, createArmoredZombie],
-        elite: [SpitterZombie, FatZombie]
+        normal: [createBasicZombie, createFastZombie, createZombieDog, createArmoredZombie],
+        elite: [createSpitterZombie, createFatZombie]
     },
 
     // 地图尺寸

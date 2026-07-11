@@ -6,6 +6,7 @@
 import { Game as PhaserGameClass, AUTO, Scale } from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
+import { HudScene } from './scenes/HudScene.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 
@@ -51,7 +52,7 @@ export const PhaserGame = {
                 keyboard: false,  // 禁用 Phaser 键盘插件，防止拦截原有 Input 系统的键盘事件
                 mouse: false,     // 禁用 Phaser 鼠标插件，防止拦截原有 Input 系统的鼠标事件
             },
-            scene: [BootScene, GameScene],
+            scene: [BootScene, GameScene, HudScene],
             ...config,
         });
 

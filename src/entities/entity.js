@@ -1,4 +1,3 @@
-import { Renderer } from '../world/renderer.js';
 import { HexHitbox } from '../components/hitbox.js';
 
         class Entity {
@@ -23,28 +22,9 @@ import { HexHitbox } from '../components/hitbox.js';
                 }
             }
             
-            render(_ctx) {}
             takeDamage(_damage, _source) {}
             applyKnockback(_angle, _force) {}
-            
-            renderCollisionRadius(ctx) {
-                // 优先使用六边形调试渲染，回退到圆形
-                if (this.hitbox) {
-                    this.hitbox.renderDebug(ctx);
-                    return;
-                }
-                const radius = this.collisionRadius || this.size * 0.6 || 10;
-                const screenPos = Renderer.worldToScreen(this.x, this.y);
-                ctx.save();
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
-                ctx.beginPath();
-                ctx.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.restore();
-            }
+
             
             /**
              * 获取碰撞形状（用于兼容现有系统）

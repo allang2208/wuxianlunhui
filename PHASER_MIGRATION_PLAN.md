@@ -1,5 +1,48 @@
 # Phaser 完整迁移计划（v0.193 → v0.200）
 
+## 迁移完成状态（v0.198）
+
+本次迁移已结束，Canvas 渲染路径基本清除，Phaser 接管主游戏渲染。
+
+| 模块 | 渲染方式 | 状态 |
+|------|----------|------|
+| 角色（player） | Phaser Sprite + Phaser Graphics 武器发光 | ✅ 完成 |
+| 相机系统 | Phaser Camera | ✅ 完成 |
+| 墙壁碰撞 | Phaser ArcadePhysics + WallSystem | ✅ 完成 |
+| 敌人 | Phaser Sprite | ✅ 完成 |
+| 树木/环境 | Phaser visualWalls / visualTrees | ✅ 完成 |
+| 地形/网格/边界 | Phaser Graphics 生成 Texture（主场景） | ✅ 完成 |
+| 粒子特效 | 部分 Phaser Graphics（weapon/poison），部分仍待迁移 | ⚠️ 部分完成 |
+| 训练靶 / NPC | Phaser Container | ✅ 完成 |
+| 掉落物 / 投射物 | Phaser Sprite | ✅ 完成 |
+| HUD（简单） | Phaser HudScene | ✅ 完成 |
+| 屏幕特效 | Phaser HudScene | ✅ 完成 |
+| 小地图 | Phaser Graphics | ✅ 完成 |
+| 地牢地图 | Canvas 兜底（DungeonMapSystem） | ✅ 合理保留 |
+| 火车场景背景 | 待重做 | ⏸️ 搁置 |
+
+**已删除的 Canvas 渲染路径**：
+- `Renderer.renderTerrain / renderGrid / renderTrainBackground`
+- `TacticalSquadAI.renderDrone`
+- `SynergySystem.render`
+- `RiftSystem.render`
+- `Projectile.render / DropItem.render / Portal.render / DroneSystem.render`
+- `Enemy` 系列 Canvas 绘制辅助方法（`_drawBody`、`_drawEnemyStickFigure` 等）
+- `Combatant.renderWeapon / getWeaponImage`
+- `Entity.render / renderCollisionRadius`、`HexHitbox.renderDebug`
+- `PhaseChangeEffect.render`、`BattleCommander.render`
+- 大部分特效类的 `render(ctx)` 兜底分支
+
+**仍保留的 Canvas 路径**：
+- `DungeonMapSystem.render(ctx)`：地牢地图模式节点/连线绘制。
+- `Renderer.terrainTexture` 覆盖：战斗场地、BOSS、雪地/火车等特殊场景临时地形仍用 Canvas 生成，由 `GameScene._syncTerrain()` 通过 `addCanvas` 接入 Phaser。
+
+**已知遗留**：
+- `FloatingTextEffect` 等部分特效只剩 `update`、没有渲染，需后续 Phaser 化或删除。
+- `scene3` 火车背景已删除 Canvas 实现，待后续重新设计。
+
+---
+
 ## 当前状态（v0.193）
 
 | 模块 | 渲染方式 | 状态 |

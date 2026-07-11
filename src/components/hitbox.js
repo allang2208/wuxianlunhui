@@ -1,5 +1,3 @@
-import { Renderer } from '../world/renderer.js';
-
 /**
  * HexHitbox - 六边形包围盒（6点判定点系统）
  * 
@@ -162,73 +160,6 @@ class HexHitbox {
         // 内切圆半径 = circumradius * cos(30°)
         const inradius = circumradius * 0.866025;
         return (circumradius + inradius) / 2;
-    }
-    
-    /**
-     * 绘制调试图形（红色半透明六边形+顶点编号）
-     * @param {CanvasRenderingContext2D} ctx
-     */
-    renderDebug(ctx) {
-        const v = this.vertices;
-        if (!v[0]) return; // 未初始化
-        
-        // 转换到屏幕坐标
-        const sv = v.map(p => Renderer.worldToScreen(p.x, p.y));
-        const sc = Renderer.worldToScreen(this.getCenter().x, this.getCenter().y);
-        
-        ctx.save();
-        
-        // 填充六边形
-        ctx.fillStyle = 'rgba(255, 80, 80, 0.12)';
-        ctx.beginPath();
-        ctx.moveTo(sv[0].x, sv[0].y);
-        for (let i = 1; i < 6; i++) ctx.lineTo(sv[i].x, sv[i].y);
-        ctx.closePath();
-        ctx.fill();
-        
-        // 描边
-        ctx.strokeStyle = 'rgba(255, 80, 80, 0.5)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        // 绘制顶点（不同颜色区分）
-        const colors = [
-            '#ff4444', // 0° 前方 - 红色
-            '#ffaa44', // 60° - 橙色
-            '#44ff44', // 120° - 绿色
-            '#4444ff', // 180° 后方 - 蓝色（背刺）
-            '#44ff44', // 240° - 绿色
-            '#ffaa44'  // 300° - 橙色
-        ];
-        
-        for (let i = 0; i < 6; i++) {
-            ctx.fillStyle = colors[i];
-            ctx.beginPath();
-            ctx.arc(sv[i].x, sv[i].y, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 顶点编号
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.font = '9px monospace';
-            ctx.fillText(i.toString(), sv[i].x + 5, sv[i].y - 5);
-        }
-        
-        // 中心点
-        ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
-        ctx.beginPath();
-        ctx.arc(sc.x, sc.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // 绘制方向指示线（前方=0°顶点）
-        ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
-        ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(sc.x, sc.y);
-        ctx.lineTo(sv[0].x, sv[0].y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        
-        ctx.restore();
     }
     
     /**

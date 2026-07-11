@@ -135,6 +135,7 @@ export function createHudCore() {
 
     // ===== 状态条 =====
     const statusBar = document.createElement('div');
+    statusBar.id = 'statusBar';
     statusBar.className = 'status-bar';
 
     // HP 条

@@ -4,7 +4,6 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
-import { Renderer } from '../world/renderer.js';
 import { EffectManager } from '../effects/effect-manager.js';
 
         class TargetDummy extends DamageableEntity {
@@ -124,46 +123,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 if (this.hitFlash > 0) this.hitFlash -= 16;
                 this.wobble += 0.05;
                 this.y = this.baseY + Math.sin(this.wobble) * 3;
-            }
-            render(ctx) {
-                const screenPos = Renderer.worldToScreen(this.x, this.y), x = screenPos.x, y = screenPos.y;
-                ctx.save(); ctx.translate(x, y);
-                ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(0, this.size + 4, this.size * 0.8, 6, 0, 0, Math.PI*2); ctx.fill();
-                if (this._dpsTracking) {
-                    // DPS测试靶：红色外观
-                    ctx.fillStyle = this.hitFlash > 0 ? '#ffaaaa' : '#8a3a3a'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#5a2a2a'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.5, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#d4a5a5'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.25, 0, Math.PI*2); ctx.fill();
-                } else {
-                    ctx.fillStyle = this.hitFlash > 0 ? '#ffaaaa' : '#8a7d6b'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#5a4d3f'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.5, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#d4c5a9'; ctx.beginPath(); ctx.arc(0, 0, this.size * 0.25, 0, Math.PI*2); ctx.fill();
-                }
-                ctx.strokeStyle = '#5a4d3f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI*2); ctx.stroke();
-                ctx.restore();
-                if (!this._dpsTracking) {
-                    this.renderHealthBar(ctx);
-                }
-                // 名称显示
-                if (this._dpsTracking) {
-                    // DPS测试靶：上方红色字体显示DPS和总伤害
-                    ctx.fillStyle = '#ff4444'; 
-                    ctx.font = 'bold 12px SimHei, "Microsoft YaHei", "黑体", sans-serif'; 
-                    ctx.textAlign = 'center';
-                    ctx.fillText(`DPS: ${this._dpsDisplay.dps} | 总伤害: ${this._dpsDisplay.total}`, x, y - this.size - 18);
-                    ctx.font = '10px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                    ctx.fillStyle = '#ff6666';
-                    ctx.fillText(this.name, x, y - this.size - 30);
-                } else {
-                    ctx.fillStyle = '#d4c5a9'; ctx.font = '11px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`${this.name} ${this.hp}/${this.maxHp}`, x, y - this.size - 18);
-                }
-                this.renderCollisionRadius(ctx);
-                // 中毒绿色粒子效果
-                if (this._poisonStacks > 0 && this._poisonEffect) {
-                    this._poisonEffect.render(ctx, x, y - this.size);
-                }
-            }
-            // 应用中毒（支持狼蛛附魔）
+            }            // 应用中毒（支持狼蛛附魔）
             applyPoison(stacks) {
                 this._poisonStacks += stacks;
                 this._poisonTimer = 5000;
@@ -182,7 +142,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                     this._poisonTickTimer -= dt;
                     // 更新粒子效果
                     if (this._poisonEffect) {
-                        this._poisonEffect.update(dt, 0, 0);
+                        this._poisonEffect.update(dt, this.x, this.y - this.size);
                     }
                     if (this._poisonTickTimer <= 0) {
                         this.hp -= this._poisonStacks;

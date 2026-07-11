@@ -8,12 +8,19 @@ import { SceneManager } from '../../world/scene-manager.js';
 // ============================================================
 import { Scene } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { MapGenerator } from '../../world/map-generator.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
+import { Camera } from '../../world/camera.js';
+import { Input } from '../../ui/input.js';
+import { RiftSystem } from '../../quest/rift-system.js';
+import { isGunWeapon } from '../../config/gun-ammo.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -44,6 +51,10 @@ export class GameScene extends Scene {
         // 创建碰撞层（墙壁/障碍物）
         this.walls = this.physics.add.staticGroup();
 
+        // 视觉墙壁/树木组（2.5D 透视渲染）
+        this.visualWalls = this.add.group();
+        this.visualTrees = this.add.group();
+
         // 同步墙壁到 Phaser（WallSystem.init() 在 PhaserGame.init() 之前调用，所以这里补同步）
         if (WallSystem.walls && WallSystem.walls.length > 0) {
             WallSystem._syncWallsToPhaser();
@@ -59,6 +70,45 @@ export class GameScene extends Scene {
         this.iceSpikeFlyGroup = this.add.group();
         this.fireballFlySprite = null;
 
+        // 投射物精灵组
+        this.projectilesGroup = this.add.group();
+
+        // 掉落物精灵组（用于与墙壁正确透视排序）
+        this.dropItemsGroup = this.add.group();
+
+        // 世界空间特效组（攻击范围、枪口火焰等）
+        this.worldEffectsGroup = this.add.group();
+
+        // HUD：世界空间（血条/名字）与屏幕空间（准星/小地图）
+        this.worldHudGraphics = this.add.graphics();
+        this.worldHudGraphics.setDepth(100000);
+        this.screenHudGraphics = this.add.graphics();
+        this.screenHudGraphics.setDepth(100001);
+        this.screenHudGraphics.setScrollFactor(0);
+        // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
+        this._neutralSprites = new Map();
+
+        // 小地图静态层（背景/边界/墙壁），只在墙壁变化时重绘
+        this._minimapStaticGraphics = this.add.graphics();
+        this._minimapStaticGraphics.setDepth(99999);
+        this._minimapStaticGraphics.setScrollFactor(0);
+        this._minimapStaticWallsCount = -1;
+        this.minimapTitle = this.add.text(0, 0, '地图', {
+            fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+            fontSize: '10px',
+            color: '#d4c5a9cc'
+        });
+        this.minimapTitle.setDepth(100001);
+        this.minimapTitle.setScrollFactor(0);
+        this._entityHudTexts = new Map();
+        this._hudReady = false;
+
+        // 地形 Sprite（优先使用 Renderer.terrainTexture 覆盖，否则由 Phaser Graphics 直接生成）
+        this._terrainSprite = null;
+        this._terrainSource = null;
+        this._terrainWorldWidth = 0;
+        this._terrainWorldHeight = 0;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -70,12 +120,17 @@ export class GameScene extends Scene {
         // 事件监听：外部系统通知
         this.events.on('playerSpawn', this._onPlayerSpawn, this);
         this.events.on('enemySpawn', this._onEnemySpawn, this);
+
+        // 启动 HUD 场景（屏幕空间 UI）
+        this.scene.run('HudScene');
     }
 
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
-        
+
+        this._syncTerrain();
+
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
         const _dms = DungeonMapSystem;
@@ -104,6 +159,19 @@ export class GameScene extends Scene {
             if (this.droneSprite) this.droneSprite.setVisible(false);
             if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
             if (this.droneText) this.droneText.setVisible(false);
+            // 地图模式下隐藏 2.5D 墙壁/树木与地形
+            if (this.visualWalls) this.visualWalls.setVisible(false);
+            if (this.visualTrees) this.visualTrees.setVisible(false);
+            if (this._terrainSprite) this._terrainSprite.setVisible(false);
+            if (this.projectilesGroup) this.projectilesGroup.setVisible(false);
+            if (this.dropItemsGroup) this.dropItemsGroup.setVisible(false);
+            if (this.worldEffectsGroup) this.worldEffectsGroup.setVisible(false);
+            // 地图模式下隐藏 HUD
+            if (this.worldHudGraphics) this.worldHudGraphics.setVisible(false);
+            if (this.screenHudGraphics) this.screenHudGraphics.setVisible(false);
+            if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(false);
+            if (this.minimapTitle) this.minimapTitle.setVisible(false);
+            this._entityHudTexts.forEach(t => t.setVisible(false));
         } else {
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
@@ -113,6 +181,21 @@ export class GameScene extends Scene {
             }
             // 武器 Sprite 的可见性由 syncWeapon 控制，不在 update 中强制显示
             // 避免覆盖 syncWeapon 的隐藏逻辑（如武器切换为空时）
+            // 恢复 2.5D 墙壁/树木与地形显示
+            if (this.visualWalls) this.visualWalls.setVisible(true);
+            if (this.visualTrees) this.visualTrees.setVisible(true);
+            if (this._terrainSprite) this._terrainSprite.setVisible(true);
+            if (this.projectilesGroup) this.projectilesGroup.setVisible(true);
+            if (this.dropItemsGroup) this.dropItemsGroup.setVisible(true);
+            if (this.worldEffectsGroup) this.worldEffectsGroup.setVisible(true);
+            // 恢复并同步 HUD
+            if (this.worldHudGraphics) this.worldHudGraphics.setVisible(true);
+            if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
+            if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
+            if (this.minimapTitle) this.minimapTitle.setVisible(true);
+            this._syncHud(_game);
+            this._syncHitFlashAndCharge(_game);
+            this._syncNeutralEntities(_game);
             // Phase 3: 同步特效 Sprite
             if (_game && _game.player) {
                 this._syncRuneSwords(_game.player);
@@ -124,12 +207,18 @@ export class GameScene extends Scene {
                 this._syncFlyingFireball(_game.player);
                 // Phase 续：同步无人机
                 this._syncDrone(_game.player);
+                // 同步主手/副手武器 Sprite
+                this.syncWeapon(_game.player, _game.player.weaponAnim);
+                this.syncOffhandWeapon(_game.player, _game.player.offhandWeaponAnim);
             }
         }
-        
-        this._updateCamera();
-        // 同步玩家位置到物理体（用于碰撞检测）
+
+        // 同步玩家精灵图动画状态
+        this._updatePlayerAnimation(_game);
+
+        // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        this._updateCamera();
     }
 
     /**
@@ -137,6 +226,32 @@ export class GameScene extends Scene {
      * 保持逻辑层权威，物理体仅用于检测
      * 如果启用了 velocity 驱动，从 Phaser 同步位置回逻辑层
      */
+    _syncHitFlashAndCharge(_game) {
+        if (!_game) return;
+        const player = _game.player;
+        if (player && this.playerSprite && this.playerSprite.active) {
+            if (player._chargeFlashActive) {
+                this.playerSprite.setTint(0xffffff);
+                if (this.weaponSprite && this.weaponSprite.active) this.weaponSprite.setTint(0xffffff);
+            } else {
+                this.playerSprite.clearTint();
+                if (this.weaponSprite && this.weaponSprite.active) this.weaponSprite.clearTint();
+            }
+        }
+        if (_game.entities) {
+            _game.entities.forEach(e => {
+                if (!e || !e.active || e === player) return;
+                const sprite = e._phaserSprite;
+                if (!sprite || !sprite.active) return;
+                if (e.hitFlash > 0) {
+                    sprite.setTint(0xffffff);
+                } else {
+                    sprite.clearTint();
+                }
+            });
+        }
+    }
+
     _syncBodiesToPhysics() {
         const Game = window.Game;
         if (!Game) return;
@@ -175,23 +290,25 @@ export class GameScene extends Scene {
         
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
+            this.playerSprite.setPosition(Game.player.x, Game.player.y);
             this.playerSprite.body.reset(Game.player.x, Game.player.y);
         }
-        
+
         // 同步所有敌人（只有已创建 Phaser Sprite 的才同步，不自动创建）
         Game.entities.forEach((entity) => {
             if (!entity || !entity.active || entity === Game.player) return;
             if (!entity._phaserSprite) return; // 没有 Phaser Sprite 的不自动创建
+            // 直接同步 Sprite 位置，确保贴图与逻辑位置一致
+            let syncX = entity.x, syncY = entity.y;
+            if (entity._attackDashOffset > 0 && !entity._dashBlocked) {
+                const offset = typeof entity._getDashOffset === 'function'
+                    ? entity._getDashOffset()
+                    : { x: 0, y: 0 };
+                syncX += offset.x;
+                syncY += offset.y;
+            }
+            entity._phaserSprite.setPosition(syncX, syncY);
             if (entity._phaserSprite.body) {
-                // 如果实体有攻击冲刺偏移，同步到 Phaser 物理体
-                let syncX = entity.x, syncY = entity.y;
-                if (entity._attackDashOffset > 0 && !entity._dashBlocked) {
-                    const offset = typeof entity._getDashOffset === 'function'
-                        ? entity._getDashOffset()
-                        : { x: 0, y: 0 };
-                    syncX += offset.x;
-                    syncY += offset.y;
-                }
                 entity._phaserSprite.body.reset(syncX, syncY);
             }
             // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
@@ -204,18 +321,21 @@ export class GameScene extends Scene {
     // ---- 相机系统 ----
 
     _updateCamera() {
-        const Camera = window.Camera;
+        // Camera 已作为 ES module 导入
         if (!Camera) return;
 
-        const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
-        const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
+        // 使用 Phaser 实际渲染尺寸，避免 viewport 与 CSS 缩放不一致导致错位
+        const viewW = this.scale.width || window.innerWidth || 1920;
+        const viewH = this.scale.height || window.innerHeight || 1080;
 
-        // 每帧更新 viewport，确保分辨率改变后 Phaser 相机渲染区域与 Canvas 层保持一致
-        this.cameras.main.setViewport(0, 0, viewW, viewH);
-
-        // 更新相机边界（允许负坐标，边界需足够大以包含 Camera.x - viewW/2 的范围）
-        const boundSize = Math.max(CONFIG.WORLD_WIDTH, viewW, CONFIG.WORLD_HEIGHT, viewH) * 3;
-        this.cameras.main.setBounds(-boundSize, -boundSize, boundSize * 2, boundSize * 2);
+        // 仅在尺寸变化时更新 viewport / bounds，减少每帧开销
+        if (this._lastCameraViewW !== viewW || this._lastCameraViewH !== viewH) {
+            this._lastCameraViewW = viewW;
+            this._lastCameraViewH = viewH;
+            this.cameras.main.setViewport(0, 0, viewW, viewH);
+            const boundSize = Math.max(CONFIG.WORLD_WIDTH, viewW, CONFIG.WORLD_HEIGHT, viewH) * 3;
+            this.cameras.main.setBounds(-boundSize, -boundSize, boundSize * 2, boundSize * 2);
+        }
 
         // 直接同步原有系统的相机位置，避免两个 Canvas 错位
         this.cameras.main.scrollX = Camera.x - viewW / 2;
@@ -226,7 +346,11 @@ export class GameScene extends Scene {
 
     _createPlayerSprite() {
         // 创建占位精灵，后续由外部 Player 系统接管控制
+        // 锚点设在脚底中心（0.5,1），使贴图位置与碰撞体积中心对齐
+        const PLAYER_SPRITE_SIZE = 120;
         this.playerSprite = this.physics.add.sprite(0, 0, 'player_idle');
+        this.playerSprite.setOrigin(0.5, 1);
+        this.playerSprite.setDisplaySize(PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE);
         this.playerSprite.setDepth(100);
         this.playerSprite.setVisible(false); // 初始隐藏，等玩家生成后再显示
         // 配置物理体：无重力（俯视角），设置碰撞圆，消除阻力
@@ -244,6 +368,8 @@ export class GameScene extends Scene {
         // 关键：使用 velocity 时，物理引擎会积分位置，但阻力会导致速度衰减
         // 设置 mass 为 1，避免质量影响
         body.setMass(1);
+        // 位置由代码完全控制，关闭物理引擎自动积分，避免碰撞导致抖动/瞬移
+        body.moves = false;
     }
 
     _onPlayerSpawn(data) {
@@ -260,6 +386,7 @@ export class GameScene extends Scene {
 
     _onEnemySpawn(data) {
         const enemySprite = this.physics.add.sprite(data.x, data.y, data.texture || 'enemy_spider');
+        enemySprite.setOrigin(0.5, 1);
         enemySprite.setData('enemyId', data.id);
         this.enemies.add(enemySprite);
     }
@@ -280,9 +407,20 @@ export class GameScene extends Scene {
      */
     setPlayerAnimation(key) {
         if (!this.playerSprite) return;
-        
+
+        this._lastPlayerAnimKey = key;
         const currentAnim = this.playerSprite.anims.currentAnim?.key;
-        
+
+        // 根据朝向翻转（侧视精灵图默认朝右）
+        const player = window.Game && window.Game.player;
+        if (player && player._facingDir) {
+            if (player._facingDir === 'left') {
+                this.playerSprite.setFlipX(true);
+            } else if (player._facingDir === 'right') {
+                this.playerSprite.setFlipX(false);
+            }
+        }
+
         if (key === 'idle') {
             if (currentAnim && currentAnim !== 'player_idle') {
                 this.playerSprite.anims.stop();
@@ -303,6 +441,48 @@ export class GameScene extends Scene {
                 this.setPlayerAnimation('idle');
             });
         }
+    }
+
+    /**
+     * 根据玩家移动状态自动切换 walk/run/idle 动画
+     * 攻击/特殊动画期间不覆盖
+     */
+    _updatePlayerAnimation(_game) {
+        if (!_game || !_game.player || !this.playerSprite || !this.playerSprite.active) return;
+        const player = _game.player;
+        if (player._isDead) return;
+
+        // 攻击/特殊动画期间不覆盖
+        const weaponAnim = player.weaponAnim || {};
+        if (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle')) return;
+        if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
+
+        let key = 'idle';
+        if (player._isSprinting && player.isMoving) {
+            key = 'run';
+        } else if (player.isMoving) {
+            key = 'walk';
+        }
+
+        // 加入短暂停顿缓冲：停止移动后 80ms 再切回 idle，避免速度抖动导致动画反复重启
+        const now = performance.now();
+        if (key === 'idle') {
+            if (!this._playerAnimIdleStart) this._playerAnimIdleStart = now;
+            if (now - this._playerAnimIdleStart < 80) return;
+        } else {
+            this._playerAnimIdleStart = 0;
+        }
+
+        // 即使动画状态未变，也同步朝向翻转
+        if (player._facingDir) {
+            if (player._facingDir === 'left') {
+                this.playerSprite.setFlipX(true);
+            } else if (player._facingDir === 'right') {
+                this.playerSprite.setFlipX(false);
+            }
+        }
+        if (this._lastPlayerAnimKey === key) return;
+        this.setPlayerAnimation(key);
     }
 
     /**
@@ -764,8 +944,8 @@ export class GameScene extends Scene {
             
             // 计算朝向鼠标的角度（使用 Phaser 相机坐标，避免 window.Camera 偏移错误）
             const camera = this.cameras.main;
-            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
-            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
+            const mouseX = camera.scrollX + (Input.mouse?.x || 0);
+            const mouseY = camera.scrollY + (Input.mouse?.y || 0);
             const absoluteAngle = Math.atan2(mouseY - baseWorldY, mouseX - baseWorldX);
             
             // 应用旋转后的偏移（对应 Canvas 的 ctx.translate(0, -s * 0.85)）
@@ -817,8 +997,8 @@ export class GameScene extends Scene {
             
             // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
             const camera = this.cameras.main;
-            const mouseX = camera.scrollX + (window.Input?.mouse?.x || 0);
-            const mouseY = camera.scrollY + (window.Input?.mouse?.y || 0);
+            const mouseX = camera.scrollX + (Input.mouse?.x || 0);
+            const mouseY = camera.scrollY + (Input.mouse?.y || 0);
             const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
             
             sprite.setPosition(worldX, worldY);
@@ -858,8 +1038,8 @@ export class GameScene extends Scene {
         
         // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
         const camera = this.cameras.main;
-        const mouseX = camera.scrollX + ((window.Input?.mouse?.x) || 0);
-        const mouseY = camera.scrollY + ((window.Input?.mouse?.y) || 0);
+        const mouseX = camera.scrollX + ((Input.mouse?.x) || 0);
+        const mouseY = camera.scrollY + ((Input.mouse?.y) || 0);
         const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
         
         this.fireballSprite.setPosition(worldX, worldY);
@@ -1239,11 +1419,616 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 同步 HUD：血条/名字标签/准星/小地图
+     */
+    _syncHud(_game) {
+        if (!_game || !_game.player) return;
+        this._hudReady = true;
+        const gWorld = this.worldHudGraphics;
+        const gScreen = this.screenHudGraphics;
+        gWorld.clear();
+        gScreen.clear();
+
+        const activeEntities = new Set();
+        // 实体血条与名字
+        for (const entity of _game.entities.values()) {
+            if (!entity || !entity.active || entity === _game.player) continue;
+            if (typeof entity.x !== 'number' || typeof entity.y !== 'number') continue;
+            activeEntities.add(entity);
+            this._syncEntityHud(entity);
+        }
+        // 玩家血条/体力条
+        activeEntities.add(_game.player);
+        this._syncPlayerHud(_game.player);
+
+        // 清理已失效实体的文本
+        for (const [key, text] of this._entityHudTexts.entries()) {
+            if (!activeEntities.has(key.entity)) {
+                text.destroy();
+                this._entityHudTexts.delete(key);
+            }
+        }
+
+        // 准星
+        this._syncCrosshair(gScreen);
+        // 小地图
+        this._syncMinimap(gScreen);
+    }
+
+    _syncEntityHud(entity) {
+        const isBoss = entity.rank === 'boss';
+        const maxHp = entity.maxHp || entity.data?.maxHp || 1;
+        const hp = entity.hp ?? entity.data?.hp ?? maxHp;
+        if (maxHp <= 0) return;
+        const hpPercent = Math.max(0, Math.min(1, hp / maxHp));
+        const size = entity.size || 14;
+        const x = entity.x;
+        const y = entity.y;
+
+        if (isBoss) {
+            const barW = 80, barH = 8, border = 2;
+            const barX = x - barW / 2;
+            const barY = y - size - 50;
+            // 背景
+            this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
+            this.worldHudGraphics.fillRect(barX - border, barY - border, barW + border * 2, barH + border * 2);
+            // 底色
+            this.worldHudGraphics.fillStyle(0x3a1010, 1);
+            this.worldHudGraphics.fillRect(barX, barY, barW, barH);
+            // 血量
+            const hpColor = hpPercent > 0.5 ? 0xc04040 : hpPercent > 0.25 ? 0xa03030 : 0xff2020;
+            this.worldHudGraphics.fillStyle(hpColor, 1);
+            this.worldHudGraphics.fillRect(barX, barY, barW * hpPercent, barH);
+            // 召唤阶段标记线
+            const summonCfg = GAME_CONFIG.bossReward?.boss?.skills?.summon;
+            const summonThreshold = summonCfg ? summonCfg.summonHpPercent : 0.5;
+            const summonX = barX + barW * summonThreshold;
+            this.worldHudGraphics.lineStyle(2, 0x44ff44, 1);
+            this.worldHudGraphics.beginPath();
+            this.worldHudGraphics.moveTo(summonX, barY - 2);
+            this.worldHudGraphics.lineTo(summonX, barY + barH + 2);
+            this.worldHudGraphics.strokePath();
+            // HP 数值
+            const text = this._getEntityHudText(entity, 'bossHp');
+            text.setText(`${Math.floor(hp)}/${maxHp}`);
+            text.setPosition(x, barY - 6);
+            text.setVisible(true);
+            // Boss 名字+等级
+            const nameText = this._getEntityHudText(entity, 'bossName');
+            nameText.setText(`${entity.name}\nLv.${entity.level || '?'} 首领`);
+            nameText.setPosition(x, y - size - 48);
+            nameText.setVisible(true);
+            return;
+        }
+
+        // 普通敌人血条：受伤时才显示
+        if (hp < maxHp) {
+            const cfg = entity._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
+            const barW = cfg.width || 28;
+            const barH = cfg.height || 4;
+            const barY = y - size + (cfg.offsetY || -30);
+            const barX = x - barW / 2;
+            this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
+            this.worldHudGraphics.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+            this.worldHudGraphics.fillStyle(0x5a1010, 1);
+            this.worldHudGraphics.fillRect(barX, barY, barW, barH);
+            const hpColor = hpPercent > 0.5 ? 0xc04040 : hpPercent > 0.25 ? 0xa03030 : 0x8a1a1a;
+            this.worldHudGraphics.fillStyle(hpColor, 1);
+            this.worldHudGraphics.fillRect(barX, barY, barW * hpPercent, barH);
+        }
+
+        // 名字标签：掉落物、NPC、训练靶等自带标签，跳过避免重叠
+        const hasOwnLabel = entity.npcType || entity._dpsTracking !== undefined || (entity.itemData !== undefined);
+        if (hasOwnLabel) {
+            // 隐藏之前可能已创建的名字文本
+            for (const [key, text] of this._entityHudTexts.entries()) {
+                if (key.entity === entity && key.type === 'name') {
+                    text.setVisible(false);
+                }
+            }
+            return;
+        }
+        const nameText = this._getEntityHudText(entity, 'name');
+        nameText.setText(entity.name || '');
+        nameText.setPosition(x, y - size - 32);
+        nameText.setVisible(true);
+    }
+
+    _syncPlayerHud(player) {
+        const data = player.data || {};
+        const maxHp = data.maxHp || 1;
+        const hp = data.hp ?? maxHp;
+        const hpPercent = Math.max(0, Math.min(1, hp / maxHp));
+        const size = player.size || 18;
+        const x = player.x;
+        const y = player.y;
+        const barW = 40, barH = 6;
+        const barY = y - size - 28;
+        const barX = x - barW / 2;
+
+        // 血量背景
+        this.worldHudGraphics.fillStyle(0x000000, 0.7);
+        this.worldHudGraphics.fillRect(barX, barY, barW, barH);
+        // 血量填充
+        const hpColor = hpPercent > 0.6 ? 0x4ade80 : hpPercent > 0.3 ? 0xfacc15 : 0xef4444;
+        this.worldHudGraphics.fillStyle(hpColor, 1);
+        this.worldHudGraphics.fillRect(barX, barY, barW * hpPercent, barH);
+        // 边框
+        this.worldHudGraphics.lineStyle(1, 0x3c3228, 0.9);
+        this.worldHudGraphics.strokeRect(barX, barY, barW, barH);
+        // 血量文字
+        const hpText = this._getEntityHudText(player, 'hp');
+        if (hpPercent < 1) {
+            hpText.setText(`${Math.ceil(hp)}`);
+            hpText.setPosition(x, barY + barH / 2);
+            hpText.setVisible(true);
+        } else {
+            hpText.setVisible(false);
+        }
+
+        // 体力条
+        const stBarW = 36, stBarH = 5;
+        const stMax = data.maxStamina || 1;
+        const st = data.stamina ?? stMax;
+        const stPercent = Math.max(0, Math.min(1, st / stMax));
+        const stY = y + size + 36;
+        const stX = x - stBarW / 2;
+        this.worldHudGraphics.fillStyle(0x000000, 0.6);
+        this.worldHudGraphics.fillRect(stX, stY, stBarW, stBarH);
+        const stColor = stPercent > 0.5 ? 0xa09060 : stPercent > 0.25 ? 0xa08040 : 0x8a4a4a;
+        this.worldHudGraphics.fillStyle(stColor, 1);
+        this.worldHudGraphics.fillRect(stX, stY, stBarW * stPercent, stBarH);
+        this.worldHudGraphics.lineStyle(1, 0x5a4d3f, 0.8);
+        this.worldHudGraphics.strokeRect(stX, stY, stBarW, stBarH);
+
+        // 过热条
+        let nextY = stY + stBarH + 3;
+        if (player._overheatActive) {
+            const ohPercent = Math.max(0, Math.min(1, player._overheatValue || 0));
+            this.worldHudGraphics.fillStyle(0x000000, 0.6);
+            this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
+            // 简化为纯色条（左浅右深）
+            this.worldHudGraphics.fillStyle(0xff6b6b, 1);
+            this.worldHudGraphics.fillRect(stX, nextY, stBarW * ohPercent, stBarH);
+            this.worldHudGraphics.lineStyle(1, 0x5a4d3f, 0.8);
+            this.worldHudGraphics.strokeRect(stX, nextY, stBarW, stBarH);
+            if (player._overheatOverheated) {
+                const flicker = 0.5 + Math.sin(Date.now() / 100) * 0.3;
+                this.worldHudGraphics.fillStyle(0xff6464, flicker * 0.3);
+                this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
+            }
+            nextY += stBarH + 3;
+        }
+
+        // 换弹进度条
+        const currentSlot = player.weaponMode;
+        const currentItem = player.equipments && player.equipments[currentSlot];
+        if (currentItem && isGunWeapon(currentItem)) {
+            const mainState = player._ammoState && player._ammoState[currentSlot];
+            if (mainState && mainState.reloading) {
+                const reloadPercent = 1 - (mainState.reloadTimer / mainState.reloadTime);
+                this.worldHudGraphics.fillStyle(0x000000, 0.6);
+                this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
+                this.worldHudGraphics.fillStyle(0xffffff, 1);
+                this.worldHudGraphics.fillRect(stX, nextY, stBarW * reloadPercent, stBarH);
+                this.worldHudGraphics.lineStyle(1, 0x5a4d3f, 0.8);
+                this.worldHudGraphics.strokeRect(stX, nextY, stBarW, stBarH);
+                nextY += stBarH + 3;
+            }
+            const offhandSlot = currentSlot === 'weapon' ? 'offhand' : 'ring2';
+            const offhandItem = player.equipments[offhandSlot];
+            const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded;
+            if (isDualWield) {
+                const offState = player._ammoState && player._ammoState[offhandSlot];
+                if (offState && offState.reloading) {
+                    const offReloadPercent = 1 - (offState.reloadTimer / offState.reloadTime);
+                    this.worldHudGraphics.fillStyle(0x000000, 0.6);
+                    this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
+                    this.worldHudGraphics.fillStyle(0xcccccc, 1);
+                    this.worldHudGraphics.fillRect(stX, nextY, stBarW * offReloadPercent, stBarH);
+                    this.worldHudGraphics.lineStyle(1, 0x5a4d3f, 0.8);
+                    this.worldHudGraphics.strokeRect(stX, nextY, stBarW, stBarH);
+                }
+            }
+        }
+    }
+
+    _getEntityHudText(entity, role = 'value') {
+        // name 文本与数值文本分别缓存，Map key 使用 {entity, role} 对象
+        let cache = null;
+        for (const [key, text] of this._entityHudTexts.entries()) {
+            if (key.entity === entity && key.role === role) {
+                cache = text;
+                break;
+            }
+        }
+        if (!cache) {
+            const styleMap = {
+                name: { fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif', fontSize: '12px', color: '#d4c5a9cc' },
+                bossName: { fontFamily: 'SimHei, "Microsoft YaHei", sans-serif', fontSize: '14px', color: '#ff5050e6', fontStyle: 'bold', align: 'center' },
+                bossHp: { fontFamily: 'SimHei, "Microsoft YaHei", sans-serif', fontSize: '11px', color: '#d4c5a9', fontStyle: 'bold' },
+                hp: { fontSize: '9px', color: '#ffffff', fontStyle: 'bold' }
+            };
+            cache = this.add.text(0, 0, '', styleMap[role] || {
+                fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+                fontSize: '12px',
+                color: '#ffffff'
+            });
+            cache.setOrigin(0.5, 0.5);
+            cache.setDepth(100001);
+            this._entityHudTexts.set({ entity, role }, cache);
+        }
+        return cache;
+    }
+
+    /**
+     * 解析颜色字符串（#rrggbb / #rgb / rgb(...) / rgba(...)）
+     */
+    _parseColor(str, defaultColor = 0xffffff, defaultAlpha = 1) {
+        if (!str) return { color: defaultColor, alpha: defaultAlpha };
+        if (str[0] === '#') {
+            let hex = str.slice(1);
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const color = parseInt(hex, 16) || defaultColor;
+            return { color, alpha: defaultAlpha };
+        }
+        const m = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/i);
+        if (m) {
+            const color = (parseInt(m[1]) << 16) | (parseInt(m[2]) << 8) | parseInt(m[3]);
+            const alpha = m[4] !== undefined ? parseFloat(m[4]) : defaultAlpha;
+            return { color, alpha };
+        }
+        return { color: defaultColor, alpha: defaultAlpha };
+    }
+
+    _syncCrosshair(g) {
+        const player = window.Game && window.Game.player;
+        if (!player) return;
+        const currentWeapon = player.equipments[player.weaponMode];
+        const isBowWeapon = currentWeapon && currentWeapon.weaponType === 'bow';
+        const wantCursor = (!currentWeapon || (!isGunWeapon(currentWeapon) && !isBowWeapon)) ? 'default' : 'none';
+        if (this._lastCursorStyle !== wantCursor) {
+            document.body.style.cursor = wantCursor;
+            this._lastCursorStyle = wantCursor;
+        }
+        if (wantCursor === 'default') return;
+        const mx = Input.mouse.x;
+        const my = Input.mouse.y;
+        let spreadFactor = player._currentSpreadFactor || 0;
+        if (!this._crosshairSpread) this._crosshairSpread = 0;
+        const crosshairCfg = GAME_CONFIG.crosshair || {};
+        const lerpSpeed = crosshairCfg.lerpSpeed || 0.3;
+        this._crosshairSpread += (spreadFactor - this._crosshairSpread) * lerpSpeed;
+        const spread = this._crosshairSpread;
+        const geometry = crosshairCfg.geometry || { baseGap: 4, maxGapExtra: 16, lineLen: 6, lineWidth: 2.5, outlineWidth: 2.5 };
+        const baseGap = geometry.baseGap || 4;
+        const maxGapExtra = geometry.maxGapExtra || 16;
+        const gap = baseGap + spread * maxGapExtra;
+        const lineLen = geometry.lineLen || 6;
+        const lineWidth = geometry.lineWidth || 2.5;
+        const outlineWidth = geometry.outlineWidth || 2.5;
+        const colors = crosshairCfg.colors || { outline: '#000000', main: '#00ff00' };
+        const centerDot = crosshairCfg.centerDot || { outerRadius: 1.5, innerRadius: 0.8 };
+
+        // 描边
+        g.lineStyle(lineWidth + outlineWidth, parseInt((colors.outline || '#000000').replace('#', ''), 16), 1);
+        this._drawCrosshairLines(g, mx, my, gap, lineLen);
+        // 主体
+        g.lineStyle(lineWidth, parseInt((colors.main || '#00ff00').replace('#', ''), 16), 1);
+        this._drawCrosshairLines(g, mx, my, gap, lineLen);
+        // 中心点
+        g.fillStyle(parseInt((colors.outline || '#000000').replace('#', ''), 16), 1);
+        g.fillCircle(mx, my, centerDot.outerRadius || 1.5);
+        g.fillStyle(parseInt((colors.main || '#00ff00').replace('#', ''), 16), 1);
+        g.fillCircle(mx, my, centerDot.innerRadius || 0.8);
+    }
+
+    _drawCrosshairLines(g, mx, my, gap, lineLen) {
+        g.beginPath();
+        g.moveTo(mx, my - gap); g.lineTo(mx, my - gap - lineLen);
+        g.moveTo(mx, my + gap); g.lineTo(mx, my + gap + lineLen);
+        g.moveTo(mx - gap, my); g.lineTo(mx - gap - lineLen, my);
+        g.moveTo(mx + gap, my); g.lineTo(mx + gap + lineLen, my);
+        g.strokePath();
+    }
+
+    _redrawMinimapStatic() {
+        const g = this._minimapStaticGraphics;
+        if (!g) return;
+        g.clear();
+        const minimapCfg = GAME_CONFIG.minimap || {};
+        const minimapW = minimapCfg.width || 150;
+        const minimapH = minimapCfg.height || 150;
+        const pad = minimapCfg.padding || 10;
+        const offsetY = minimapCfg.offsetY || 50;
+        const mx = pad;
+        const my = pad + offsetY;
+        const worldW = CONFIG.WORLD_WIDTH;
+        const worldH = CONFIG.WORLD_HEIGHT;
+        const scaleX = minimapW / worldW;
+        const scaleY = minimapH / worldH;
+        const scale = Math.min(scaleX, scaleY);
+        const styles = minimapCfg.styles || {};
+        const bg = minimapCfg.background || {};
+
+        // 背景
+        const bgColor = this._parseColor(bg.fill || 'rgba(0,0,0,0.6)', 0x000000, 0.6);
+        g.fillStyle(bgColor.color, bgColor.alpha);
+        g.fillRect(mx, my, minimapW, minimapH);
+        const borderColor = this._parseColor(bg.border || 'rgba(255,255,255,0.4)', 0xffffff, 0.4);
+        g.lineStyle(bg.lineWidth || 1, borderColor.color, borderColor.alpha);
+        g.strokeRect(mx, my, minimapW, minimapH);
+
+        // 墙壁
+        if (WallSystem && WallSystem.walls) {
+            const wallColor = this._parseColor(styles.wall || 'rgba(80,80,80,0.5)', 0x505050, 0.5);
+            g.fillStyle(wallColor.color, wallColor.alpha);
+            for (const w of WallSystem.walls) {
+                const wx = mx + w.x * scale;
+                const wy = my + w.y * scale;
+                const ww = Math.max(0.5, w.w * scale);
+                const wh = Math.max(0.5, w.h * scale);
+                g.fillRect(wx, wy, ww, wh);
+            }
+        }
+    }
+
+    _syncMinimap(g) {
+        const game = window.Game;
+        if (!game || !game.player || game._npcDialoguePaused) return;
+        const minimapCfg = GAME_CONFIG.minimap || {};
+        const minimapW = minimapCfg.width || 150;
+        const minimapH = minimapCfg.height || 150;
+        const pad = minimapCfg.padding || 10;
+        const offsetY = minimapCfg.offsetY || 50;
+        const mx = pad;
+        const my = pad + offsetY;
+        const worldW = CONFIG.WORLD_WIDTH;
+        const worldH = CONFIG.WORLD_HEIGHT;
+        const scaleX = minimapW / worldW;
+        const scaleY = minimapH / worldH;
+        const scale = Math.min(scaleX, scaleY);
+        const styles = minimapCfg.styles || {};
+        const sizes = minimapCfg.sizes || {};
+
+        // 墙壁数量变化时才重绘静态层
+        const wallCount = WallSystem && WallSystem.walls ? WallSystem.walls.length : 0;
+        if (wallCount !== this._minimapStaticWallsCount) {
+            this._redrawMinimapStatic();
+            this._minimapStaticWallsCount = wallCount;
+        }
+
+        // 相机视野框
+        const camX = mx + (Camera.x - CONFIG.VIEW_WIDTH / 2) * scale;
+        const camY = my + (Camera.y - CONFIG.VIEW_HEIGHT / 2) * scale;
+        const viewW = Math.max(1, CONFIG.VIEW_WIDTH * scale);
+        const viewH = Math.max(1, CONFIG.VIEW_HEIGHT * scale);
+        const viewColor = this._parseColor(styles.viewFrame || 'rgba(255,200,0,0.6)', 0xffc800, 0.6);
+        g.lineStyle(1, viewColor.color, viewColor.alpha);
+        g.strokeRect(camX, camY, viewW, viewH);
+
+        // 裂隙
+        if (SceneManager.currentScene === 'scene2' && RiftSystem && RiftSystem.rifts) {
+            const riftColor = this._parseColor(styles.rift || '#00008B', 0x00008B, 1);
+            g.fillStyle(riftColor.color, riftColor.alpha);
+            for (const rift of RiftSystem.rifts) {
+                if (rift.completed) continue;
+                const rx = mx + rift.x * scale;
+                const ry = my + rift.y * scale;
+                g.fillCircle(rx, ry, sizes.rift || 2);
+            }
+        }
+
+        // 其它实体
+        if (game.entities && typeof game.entities.forEach === 'function') {
+            game.entities.forEach(e => {
+                if (!e || e === game.player || !e.active) return;
+                if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
+                const ex = mx + e.x * scale;
+                const ey = my + e.y * scale;
+                if (e.targetScene) {
+                    const portalColor = this._parseColor(styles.portal || '#00aaff', 0x00aaff, 1);
+                    g.fillStyle(portalColor.color, portalColor.alpha);
+                    g.fillCircle(ex, ey, sizes.portal || 2.5);
+                } else if (e.name === '大块头') {
+                    const bossColor = this._parseColor(styles.boss || '#ff0000', 0xff0000, 1);
+                    g.fillStyle(bossColor.color, bossColor.alpha);
+                    g.fillCircle(ex, ey, (sizes.enemy || 1.5) * 2);
+                } else if (e._faction === 'enemy') {
+                    const enemyColor = this._parseColor(styles.enemy || '#ff4444', 0xff4444, 1);
+                    g.fillStyle(enemyColor.color, enemyColor.alpha);
+                    g.fillCircle(ex, ey, sizes.enemy || 1.5);
+                } else if (e.itemData) {
+                    const itemColor = this._parseColor(styles.item || '#ffd700', 0xffd700, 1);
+                    g.fillStyle(itemColor.color, itemColor.alpha);
+                    g.fillCircle(ex, ey, sizes.item || 1);
+                }
+            });
+        }
+
+        // 玩家
+        const px = mx + game.player.x * scale;
+        const py = my + game.player.y * scale;
+        const playerColor = this._parseColor(styles.player || '#00ff00', 0x00ff00, 1);
+        g.fillStyle(playerColor.color, playerColor.alpha);
+        g.fillCircle(px, py, sizes.player || 3);
+        const dir = game.player.rotation || 0;
+        g.lineStyle(sizes.arrowLineWidth || 1.5, playerColor.color, playerColor.alpha);
+        g.beginPath();
+        g.moveTo(px, py);
+        g.lineTo(px + Math.cos(dir) * (sizes.arrowLen || 6), py + Math.sin(dir) * (sizes.arrowLen || 6));
+        g.strokePath();
+
+        // 标题
+        const title = minimapCfg.title || {};
+        this.minimapTitle.setPosition(mx + (title.offsetX || 4), my + (title.offsetY || -2));
+        this.minimapTitle.setStyle({ fontSize: '10px', color: title.color || '#d4c5a9cc', fontFamily: 'SimHei, "Microsoft YaHei", sans-serif' });
+        this.minimapTitle.setText(title.text || '地图');
+        this.minimapTitle.setVisible(true);
+    }
+
+    /**
+     * 同步无专属 Phaser Sprite 的实体（训练靶、NPC 等）
+     */
+    _syncNeutralEntities(_game) {
+        if (!_game || !_game.entities) return;
+        const active = new Set();
+        const player = _game.player;
+        for (const e of _game.entities.values()) {
+            if (!e || e === player) continue;
+            if (e._phaserSprite && e._phaserSprite.active) continue;
+            if (!e.active) continue;
+            active.add(e);
+
+            let data = this._neutralSprites.get(e);
+            if (!data) {
+                if (!this.textures.exists('neutral_circle')) {
+                    const g = this.add.graphics();
+                    g.fillStyle(0xffffff, 1);
+                    g.fillCircle(16, 16, 16);
+                    g.generateTexture('neutral_circle', 32, 32);
+                    g.destroy();
+                }
+                const size = e.size || 16;
+                const sprite = this.add.sprite(e.x, e.y, 'neutral_circle');
+                sprite.setOrigin(0.5, 0.5);
+                sprite.setDisplaySize(size * 2, size * 2);
+                sprite.setDepth(e.y);
+                const label = this.add.text(e.x, e.y - size - 8, '', {
+                    fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+                    fontSize: '11px',
+                    color: '#d4c5a9',
+                    align: 'center'
+                });
+                label.setOrigin(0.5, 1);
+                label.setDepth(e.y + 1);
+                data = { sprite, label };
+                this._neutralSprites.set(e, data);
+            }
+            const { sprite, label } = data;
+            const size = e.size || 16;
+            sprite.setPosition(e.x, e.y);
+            sprite.setDepth(e.y);
+            sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
+
+            let text = e.name || '';
+            let color = '#d4c5a9';
+            if (e.npcType) {
+                color = '#ffffff';
+                if (player) {
+                    const dx = e.x - player.x;
+                    const dy = e.y - player.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= (e.interactionRange || 200)) {
+                        text += '\n左键对话';
+                    }
+                }
+            } else if (e._dpsTracking) {
+                color = '#ff6666';
+                text = `${e.name}\nDPS: ${e._dpsDisplay?.dps || 0} | 总伤害: ${e._dpsDisplay?.total || 0}`;
+            } else if (e.hp !== undefined && e.maxHp !== undefined) {
+                text = `${e.name} ${e.hp}/${e.maxHp}`;
+            }
+            label.setPosition(e.x, e.y - size - 8);
+            label.setDepth(e.y + 1);
+            if (label.text !== text) {
+                label.setText(text);
+            }
+            if (label.style?.color !== color) {
+                label.setColor(color);
+            }
+            sprite.setVisible(true);
+            label.setVisible(true);
+        }
+        for (const [e, data] of this._neutralSprites.entries()) {
+            if (!active.has(e)) {
+                data.sprite.destroy();
+                data.label.destroy();
+                this._neutralSprites.delete(e);
+            }
+        }
+    }
+
+    /**
+     * 同步地形 Sprite：
+     * - 若 Renderer.terrainTexture 存在且尺寸匹配，直接使用该 Canvas 覆盖（兼容战斗场地/特殊场景）
+     * - 否则使用 Phaser Graphics 直接生成地形 Texture（主场景，无 Canvas 中间件）
+     */
+    _syncTerrain() {
+        const w = CONFIG.WORLD_WIDTH;
+        const h = CONFIG.WORLD_HEIGHT;
+        if (!w || !h) return;
+
+        const override = Renderer.terrainTexture;
+        if (this._terrainSource === override &&
+            this._terrainWorldWidth === w &&
+            this._terrainWorldHeight === h &&
+            this.textures.exists('terrain')) {
+            return;
+        }
+        this._terrainSource = override;
+        this._terrainWorldWidth = w;
+        this._terrainWorldHeight = h;
+
+        if (this.textures.exists('terrain')) {
+            this.textures.remove('terrain');
+        }
+
+        if (override && override.width === w && override.height === h) {
+            this.textures.addCanvas('terrain', override);
+        } else {
+            const g = this.make.graphics({ x: 0, y: 0, add: false });
+            MapGenerator.drawTerrain(g, w, h);
+            this._drawGridAndBorder(g, w, h);
+            g.generateTexture('terrain', w, h);
+            g.destroy();
+        }
+
+        if (!this._terrainSprite) {
+            this._terrainSprite = this.add.image(w / 2, h / 2, 'terrain');
+            this._terrainSprite.setOrigin(0.5, 0.5);
+            this._terrainSprite.setDepth(-1000);
+        } else {
+            this._terrainSprite.setTexture('terrain');
+            this._terrainSprite.setPosition(w / 2, h / 2);
+        }
+    }
+
+    /**
+     * 在地形 Texture 上烘焙网格与世界边界
+     */
+    _drawGridAndBorder(g, w, h) {
+        const currentScene = SceneManager.currentScene;
+        // 网格
+        if (currentScene !== 'scene3' && currentScene !== 'scene2') {
+            const gridCfg = GAME_CONFIG.grid || {};
+            const gridSize = gridCfg.size || CONFIG.GRID_SIZE || 64;
+            g.lineStyle(gridCfg.lineWidth || 1, 0x5a4d3f, 0.15);
+            g.beginPath();
+            for (let x = 0; x <= w; x += gridSize) {
+                g.moveTo(x, 0);
+                g.lineTo(x, h);
+            }
+            for (let y = 0; y <= h; y += gridSize) {
+                g.moveTo(0, y);
+                g.lineTo(w, y);
+            }
+            g.strokePath();
+        }
+        // 边界
+        if (currentScene !== 'scene7') {
+            const borderCfg = GAME_CONFIG.worldBorder || {};
+            g.lineStyle(borderCfg.lineWidth || 4, 0x8a4a4a, 1);
+            g.strokeRect(0, 0, w, h);
+        }
+    }
+
+    /**
      * 为敌人创建或获取 Phaser Sprite
      */
     getOrCreateEnemySprite(enemy, texture = 'enemy_spider') {
         if (!enemy._phaserSprite || !enemy._phaserSprite.active) {
             const sprite = this.physics.add.sprite(enemy.x, enemy.y, texture);
+            sprite.setOrigin(0.5, 1);
             sprite.setData('enemyId', enemy.id || enemy.name);
             sprite.setDepth(50);
             // 配置物理体：无重力，碰撞圆

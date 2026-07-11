@@ -1,32 +1,57 @@
-// 中毒粒子效果系统 — 参考 WeaponEffect 简化版，绿色调
-export class PoisonEffect {
+function _parseHexColor(hex) {
+    const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+    if (!m) return { r: 160, g: 255, b: 160, hex: 0xa0ffa0 };
+    const r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+    return { r, g, b, hex: (r << 16) | (g << 8) | b };
+}
+
+class PoisonEffect {
     constructor() {
         this.particles = [];
+        this._graphics = null;
+        this._x = 0;
+        this._y = 0;
+    }
+
+    _ensureGraphics() {
+        const scene = window.__phaserScene;
+        if (this._graphics || !scene) return;
+        this._graphics = scene.add.graphics();
+        this._graphics.setDepth(this._y + 45);
+        if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
+    }
+
+    _destroyGraphics() {
+        if (this._graphics) {
+            this._graphics.destroy();
+            this._graphics = null;
+        }
     }
 
     _spawnParticle(x, y) {
         const colors = ['#4a8a3a', '#5a9a4a', '#3d7a2d', '#6aaa5a', '#2a6a1a', '#7aba6a', '#8aca7a', '#a0da8a'];
         const angle = Math.random() * Math.PI * 2;
-        const speed = 6.24 + Math.random() * 9.36; // 速度减半
+        const speed = 6.24 + Math.random() * 9.36;
         this.particles.push({
-            x: x + (Math.random() - 0.5) * 6, // 初始扩散范围减半
+            x: x + (Math.random() - 0.5) * 6,
             y: y + (Math.random() - 0.5) * 6,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 0.075, // 上浮速度减半
+            vy: Math.sin(angle) * speed - 0.075,
             size: 1.5 + Math.random() * 1.5,
-            color: colors[Math.floor(Math.random() * colors.length)],
+            color: _parseHexColor(colors[Math.floor(Math.random() * colors.length)]),
             life: 800 + Math.random() * 600,
             maxLife: 800 + Math.random() * 600,
             pulseOffset: Math.random() * Math.PI * 2
         });
     }
 
-    update(dt, x, y) {
-        // 持续生成粒子（生成率减半）
-        if (Math.random() < 0.35) this._spawnParticle(x, y);
-        if (Math.random() < 0.25) this._spawnParticle(x, y);
+    update(dt, worldX, worldY) {
+        this._x = worldX;
+        this._y = worldY;
+        this._ensureGraphics();
+        if (Math.random() < 0.35) this._spawnParticle(worldX, worldY);
+        if (Math.random() < 0.25) this._spawnParticle(worldX, worldY);
 
-        // 更新粒子
         this.particles.forEach(p => {
             p.life -= dt;
             p.x += p.vx * (dt / 1000);
@@ -34,10 +59,19 @@ export class PoisonEffect {
             p.size *= 0.997;
         });
         this.particles = this.particles.filter(p => p.life > 0);
+        this._redraw();
+        if (this.particles.length === 0 && !this._graphics) {
+            // 保留 graphics 以便下一帧继续生成
+        }
     }
 
-    render(ctx, screenX, screenY) {
+    _redraw() {
+        if (!this._graphics || !this._graphics.active) return;
         const now = Date.now();
+        const g = this._graphics;
+        g.clear();
+        g.setPosition(0, 0);
+        g.setDepth(this._y + 45);
         this.particles.forEach(p => {
             const lifeRatio = p.life / p.maxLife;
             const fadeIn = Math.min(1, (1 - lifeRatio) * 3);
@@ -45,37 +79,22 @@ export class PoisonEffect {
             const alpha = Math.min(fadeIn, fadeOut) * 0.6;
             const pulse = 1 + Math.sin(now * 0.004 + p.pulseOffset) * 0.2;
             const size = p.size * pulse;
-
-            // 主粒子
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(screenX + p.x, screenY + p.y, size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 中层光晕
-            ctx.globalAlpha = alpha * 0.3;
-            ctx.beginPath();
-            ctx.arc(screenX + p.x, screenY + p.y, size * 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 外层光晕
-            ctx.globalAlpha = alpha * 0.12;
-            ctx.beginPath();
-            ctx.arc(screenX + p.x, screenY + p.y, size * 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 核心亮点
-            ctx.globalAlpha = alpha * 0.8;
-            ctx.fillStyle = '#a0e8a0';
-            ctx.beginPath();
-            ctx.arc(screenX + p.x, screenY + p.y, size * 0.4, 0, Math.PI * 2);
-            ctx.fill();
+            g.fillStyle(p.color.hex, alpha);
+            g.fillCircle(p.x, p.y, size);
+            g.fillStyle(p.color.hex, alpha * 0.3);
+            g.fillCircle(p.x, p.y, size * 2.5);
+            g.fillStyle(p.color.hex, alpha * 0.12);
+            g.fillCircle(p.x, p.y, size * 4);
+            g.fillStyle(0xa0e8a0, alpha * 0.8);
+            g.fillCircle(p.x, p.y, size * 0.4);
         });
-        ctx.globalAlpha = 1;
     }
 
+    
     reset() {
         this.particles = [];
+        this._destroyGraphics();
     }
 }
+
+export { PoisonEffect };

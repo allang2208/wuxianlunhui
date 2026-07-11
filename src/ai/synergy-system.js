@@ -1,4 +1,3 @@
-import { Renderer } from '../world/renderer.js';
 import { Enemy } from '../entities/enemy.js';
 /**
  * 怪物协同效应系统（SynergySystem）
@@ -166,23 +165,6 @@ export class SynergySystem {
             }
         }
         this.activeSynergies.delete(ruleId);
-    }
-
-    // 渲染协同光环（可选，在 game.js 渲染循环中调用）
-    render(ctx) {
-        for (const [, synergy] of this.activeSynergies) {
-            for (const enemy of synergy.affected) {
-                if (!enemy.active) continue;
-                const sp = Renderer.worldToScreen(enemy.x, enemy.y);
-                ctx.save();
-                ctx.strokeStyle = 'rgba(255, 80, 80, 0.3)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(sp.x, sp.y, enemy.size + 8, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-            }
-        }
     }
 }
 

@@ -119,9 +119,4 @@ export class BattleCommander {
         return Array.from(this._assignments.entries());
     }
 
-    // 渲染战术标记（可选，开发工具中显示）
-    render(_ctx) {
-        // 在场景中显示当前战术名称
-        // 可由开发工具调用
-    }
 }

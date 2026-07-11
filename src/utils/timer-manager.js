@@ -7,6 +7,7 @@ const activeTimeouts = new Set();
 const activeIntervals = new Set();
 
 export const TimerManager = {
+    activeTimeouts,
     /**
      * @param {Function} callback
      * @param {number} delayMs
