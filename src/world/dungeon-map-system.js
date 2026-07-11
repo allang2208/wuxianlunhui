@@ -1093,11 +1093,10 @@ export const DungeonMapSystem = {
 
             // 迷雾系统：确定显示类型
             let displayType = node.type;
-            let isRevealed = isVisited || isCurrent;
+            let isRevealed = isVisited || isCurrent || isAvailable;
             if (this.fogOfWar && this.fogOfWar.enabled !== false) {
                 const visibility = this.fogOfWar.getNodeVisibility(node.id);
-                // 只有已访问节点显示实际内容；相邻节点和未访问节点都显示 "?"
-                isRevealed = visibility === 'visited' || isCurrent;
+                isRevealed = visibility === 'visited' || visibility === 'revealed' || isCurrent || isAvailable;
                 if (!isRevealed && !isVisited) {
                     displayType = 'unknown';
                 }
@@ -1118,10 +1117,15 @@ export const DungeonMapSystem = {
                 borderColor = "#5a5a5a";
                 ctx.globalAlpha = 0.5;
             } else if (isAvailable) {
-                // 相邻可点击节点：显示为未知（"?"），但高亮提示可点击
-                color = "#2a2a2a";
-                borderColor = "#9a8a5a";
+                // 相邻可点击节点：显示实际类型
+                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
+                borderColor = this.TYPE_BORDER_COLORS[node.type] || "#aaaaaa";
                 glow = true;
+            } else if (isRevealed) {
+                // 已揭示但未访问：显示实际类型但暗淡
+                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
+                borderColor = "#444444";
+                ctx.globalAlpha = 0.4;
             } else {
                 // 未揭示：迷雾状态
                 color = "#1a1a1a";
@@ -1157,12 +1161,12 @@ export const DungeonMapSystem = {
 
             // 节点图标
             let icon;
-            if (!isVisited && !isCurrent) {
-                icon = "?"; // 未访问节点：显示问号
+            if (!isRevealed && !isVisited && !isCurrent) {
+                icon = "?"; // 迷雾：显示问号
             } else {
                 icon = this.TYPE_ICONS[displayType] || "•";
             }
-            ctx.fillStyle = (isAvailable || isCurrent || isVisited) ? "#ffffff" : "#555555";
+            ctx.fillStyle = (isAvailable || isCurrent || isRevealed) ? "#ffffff" : "#555555";
             ctx.font = `${isHovered ? 18 : 16}px "Microsoft YaHei", sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
