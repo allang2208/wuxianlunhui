@@ -228,10 +228,13 @@ export const DungeonMapSystem = {
         this.MAP_WIDTH = result.config.mapWidth;
         this.MAP_HEIGHT = result.config.mapHeight;
 
-        // 重新居中（使用固定目标区域，不随分辨率变化）
-        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
-        this.mapOffsetX = TARGET_AREA.left + (TARGET_AREA.width - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = TARGET_AREA.top + (TARGET_AREA.height - this.MAP_HEIGHT) / 2;
+        // 重新居中（使用 CONFIG 视图尺寸动态计算）
+        const viewW = CONFIG.VIEW_WIDTH || 1920;
+        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        const marginX = 280;
+        const marginY = 120;
+        this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
 
         console.log('[DungeonMapSystem] Generated new dungeon map:', result.metadata);
     },
@@ -245,10 +248,13 @@ export const DungeonMapSystem = {
         // 更新地图尺寸
         this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
         this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
-        // 重新居中（使用固定目标区域，不随分辨率变化）
-        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
-        this.mapOffsetX = TARGET_AREA.left + (TARGET_AREA.width - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = TARGET_AREA.top + (TARGET_AREA.height - this.MAP_HEIGHT) / 2;
+        // 重新居中（使用 CONFIG 视图尺寸动态计算）
+        const viewW = CONFIG.VIEW_WIDTH || 1920;
+        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        const marginX = 280;
+        const marginY = 120;
+        this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
+        this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
     },
 
     getCurrentNode() {
@@ -299,8 +305,18 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 目标显示区域（固定像素，不随分辨率变化）
-        const TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 };
+        // 使用 CONFIG 中的视图尺寸动态计算居中区域
+        const viewW = CONFIG.VIEW_WIDTH || 1920;
+        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        // 地图显示区域：水平居中，垂直居中，留出边距
+        const marginX = 280;  // 左右边距（给侧边栏留空间）
+        const marginY = 120;  // 上下边距
+        const TARGET_AREA = {
+            left: marginX,
+            top: marginY,
+            width: viewW - marginX * 2,
+            height: viewH - marginY * 2
+        };
 
         if (this.nodes.length === 0) {
             // 无节点时，默认居中显示在目标区域内
