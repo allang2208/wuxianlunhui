@@ -1,4 +1,5 @@
 import { Renderer } from '../world/renderer.js';
+import { loadImage } from '../utils/image-loader.js';
         // 烟雾图片预加载（本地管理）
         const SMOKE_FRAMES = [
             'assets/effects/smoke_01_start.png','assets/effects/smoke_02_expand.png',
@@ -6,7 +7,7 @@ import { Renderer } from '../world/renderer.js';
             'assets/effects/smoke_05_fade.png','assets/effects/smoke_06_shrink.png',
             'assets/effects/smoke_07_wisp.png','assets/effects/smoke_08_gone.png',
         ];
-        const smokeImages = SMOKE_FRAMES.map(src => { const img = new Image(); img.src = src; return img; });
+        const smokeImages = SMOKE_FRAMES.map(src => loadImage(src));
 
         class SmokeEffect {
             constructor(x, y, size = 60) {

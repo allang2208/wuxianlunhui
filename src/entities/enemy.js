@@ -12,6 +12,7 @@ import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { Easing } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { loadImage } from '../utils/image-loader.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
@@ -56,7 +57,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                     kills: 0
                 });
                 this.calculateCombatStats();
-                this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
+                this.weaponImage = loadImage('assets/weapons/1-rusty_sword_euip.png');
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 this.aiTimer = 0;
                 this.aiInterval = config.aiInterval ?? defaults.aiInterval ?? 300;

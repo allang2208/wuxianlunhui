@@ -2,6 +2,7 @@ import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
+import { loadImage } from '../../utils/image-loader.js';
 import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 export class RuneSwordSystem {
@@ -56,7 +57,7 @@ export class RuneSwordSystem {
         }));
         // 加载蓝色能量剑贴图
         if (!this.player._runeSwordBladeImg) {
-            this.player._runeSwordBladeImg = Object.assign(new Image(), { src: 'assets/weapons/blue_energy_sword_pure.png' });
+            this.player._runeSwordBladeImg = loadImage('assets/weapons/blue_energy_sword_pure.png');
         }
     }
 

@@ -2,7 +2,15 @@ import { Renderer } from '../world/renderer.js';
         class DodgeEffect {
             constructor(x, y, dirX, dirY) {
                 this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY; this.life = 300; this.maxLife = 300; this.active = true; this.trails = [];
-                for (let i = 0; i < 5; i++) this.trails.push({ x: x - dirX * i * 8, y: y - dirY * i * 8, alpha: 1 - i * 0.15, size: 14 - i * 1.5 });
+                this._initTrails();
+            }
+            _initTrails() {
+                this.trails = [];
+                for (let i = 0; i < 5; i++) this.trails.push({ x: this.x - this.dirX * i * 8, y: this.y - this.dirY * i * 8, alpha: 1 - i * 0.15, size: 14 - i * 1.5 });
+            }
+            reset(x, y, dirX, dirY) {
+                this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY; this.life = this.maxLife; this.active = true;
+                this._initTrails();
             }
             update(dt = 16.67) { this.life -= dt; if (this.life <= 0) this.active = false; this.trails.forEach(t => t.alpha -= 1.872 * (dt / 1000)); }
             render(ctx) {
@@ -123,6 +131,10 @@ import { Renderer } from '../world/renderer.js';
             constructor(x, y, intensity) {
                 this.x = x; this.y = y; this.life = 450; this.maxLife = 450; this.active = true;
                 this.particles = [];
+                this._initParticles(intensity);
+            }
+            _initParticles(intensity) {
+                this.particles = [];
                 const count = Math.floor(5 + intensity * 6);
                 for (let i = 0; i < count; i++) {
                     const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
@@ -136,6 +148,10 @@ import { Renderer } from '../world/renderer.js';
                         alpha: 0.4 + Math.random() * 0.35
                     });
                 }
+            }
+            reset(x, y, intensity) {
+                this.x = x; this.y = y; this.life = this.maxLife; this.active = true;
+                this._initParticles(intensity);
             }
             update(dt = 16.67) {
                 this.life -= dt;

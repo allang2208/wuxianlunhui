@@ -152,7 +152,8 @@
   "pickup": {
     "nearbyRange": 75,
     "goldAutoRange": 80,
-    "goldThrowOutRange": 80
+    "goldThrowOutRange": 80,
+    "goldMaxStack": 999
   },
   "gameLoop": {
     "maxDtMs": 100

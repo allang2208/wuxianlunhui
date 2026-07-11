@@ -11,10 +11,11 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
-import { DodgeEffect } from '../../effects/particle-effects.js';
+import { loadImage } from '../../utils/image-loader.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
+import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 
@@ -665,11 +666,8 @@ triggerDodge(moveInput) {
                 this.dodgeDirection = { x: dirX, y: dirY }; this.isDodging = true; this.dodgeTimer = CONFIG.DODGE_DURATION;
                 this.dodgeCooldown = CONFIG.DODGE_COOLDOWN; this.dodgeInvincible = true; this.data.stamina -= CONFIG.STAMINA_DODGE_COST;
                 // SoundManager.play('dodge');
-                this.vx = 0; this.vy = 0; { let d = EffectManager._acquire('DodgeEffect');
-                if (d) { d.x = this.x; d.y = this.y; d.dirX = dirX; d.dirY = dirY; d.life = 300; d.active = true;
-                    d.trails.forEach((t,i) => { t.x = this.x - dirX*i*8; t.y = this.y - dirY*i*8; t.alpha = 1-i*0.15; }); }
-                else d = new DodgeEffect(this.x, this.y, dirX, dirY);
-                EffectManager.add(d); }
+                this.vx = 0; this.vy = 0;
+                EffectFactory.createDodgeEffect(this.x, this.y, dirX, dirY);
             },
 
 _lineRectIntersection(x1, y1, x2, y2, rect) {
@@ -775,7 +773,7 @@ switchWeaponMode() {
                 requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
                 // 切换武器后150ms触发一次待机动画2（旋转动画）—— 双手武器不触发旋转
                 if (nextItem && !isTwoHanded(nextItem)) {
-                    this.weaponAnim.nextSpin = Date.now() + 150;
+                    this.weaponAnim.nextSpin = Date.now() + WEAPON_FX_CONFIG.switchSpinDelayMs;
                 } else {
                     this.weaponAnim.nextSpin = 0;
                     this.weaponAnim.spinEnd = 0;
@@ -788,71 +786,60 @@ switchWeaponMode() {
                 if (nextItem && nextItem.bowFrames) {
                     const frames = [];
                     for (let i = 0; i < nextItem.bowFrames.length; i++) {
-                        const img = new Image(); img.src = nextItem.bowFrames[i]; frames.push(img);
+                        frames.push(loadImage(nextItem.bowFrames[i]));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (nextItem.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = nextItem.equipImage;
+                        this.bowEquipImage = loadImage(nextItem.equipImage);
                     }
                 } else if (nextItem && nextItem.weaponAsset && nextItem.weaponAsset.framePrefix) {
                     const frames = [];
                     for (let i = 1; i <= nextItem.weaponAsset.frameCount; i++) {
                         const num = String(i).padStart(nextItem.weaponAsset.framePad || 2, '0');
-                        const img = new Image(); img.src = nextItem.weaponAsset.framePrefix + num + '.png'; frames.push(img);
+                        frames.push(loadImage(nextItem.weaponAsset.framePrefix + num + '.png'));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (nextItem.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = nextItem.equipImage;
+                        this.bowEquipImage = loadImage(nextItem.equipImage);
                     }
                 } else if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol')) {
                     this.equippedRangedType = 'pistol';
                     if (nextItem.equipImage) {
                         if (nextItem.canvasImageProp === 'deagleImage') {
-                            this.deagleImage = new Image();
-                            this.deagleImage.src = nextItem.equipImage;
+                            this.deagleImage = loadImage(nextItem.equipImage);
                         } else {
-                            this.pistolImage = new Image();
-                            this.pistolImage.src = nextItem.equipImage;
+                            this.pistolImage = loadImage(nextItem.equipImage);
                         }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
-                        this.muzzleFlashImg = new Image();
-                        this.muzzleFlashImg.src = nextItem.weaponAsset.muzzleImage;
+                        this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                 } else if (nextItem && (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
                     this.equippedRangedType = nextItem.weaponType;
                     if (nextItem.equipImage) {
                         if (nextItem.weaponType === 'pkm') {
-                            this.pkmImage = new Image();
-                            this.pkmImage.src = nextItem.equipImage;
+                            this.pkmImage = loadImage(nextItem.equipImage);
                         } else if (nextItem.weaponType === 'qbz191') {
-                            this.qbz191Image = new Image();
-                            this.qbz191Image.src = nextItem.equipImage;
+                            this.qbz191Image = loadImage(nextItem.equipImage);
                         } else if (nextItem.weaponType === 'qjb201') {
-                            this.qjb201Image = new Image();
-                            this.qjb201Image.src = nextItem.equipImage;
+                            this.qjb201Image = loadImage(nextItem.equipImage);
                         } else {
-                            this.akmImage = new Image();
-                            this.akmImage.src = nextItem.weaponAsset?.image || nextItem.equipImage;
+                            this.akmImage = loadImage(nextItem.weaponAsset?.image || nextItem.equipImage);
                         }
                     }
                 } else if (nextItem && nextItem.weaponType === 'shotgun') {
                     this.equippedRangedType = 'shotgun';
                     if (nextItem.equipImage) {
                         if (nextItem.canvasImageProp) {
-                            this[nextItem.canvasImageProp] = new Image();
-                            this[nextItem.canvasImageProp].src = nextItem.equipImage;
+                            this[nextItem.canvasImageProp] = loadImage(nextItem.equipImage);
                         }
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
-                        this.muzzleFlashImg = new Image();
-                        this.muzzleFlashImg.src = nextItem.weaponAsset.muzzleImage;
+                        this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                     // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
                     if (nextItem.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
@@ -900,23 +887,22 @@ loadWeaponAssets(item) {
                     const frames = [];
                     for (let i = 1; i <= wa.frameCount; i++) {
                         const num = String(i).padStart(wa.framePad || 2, '0');
-                        const img = new Image(); img.src = wa.framePrefix + num + '.png'; frames.push(img);
+                        frames.push(loadImage(wa.framePrefix + num + '.png'));
                     }
                     this.equippedBowFrames = frames;
                     this.equippedRangedType = 'bow';
                     // 设置弓类待机贴图
                     if (item.equipImage) {
-                        this.bowEquipImage = new Image();
-                        this.bowEquipImage.src = item.equipImage;
+                        this.bowEquipImage = loadImage(item.equipImage);
                     }
                 } else if (wt === 'pistol' && wa.image) {
                     if (item.canvasImageProp === 'deagleImage') {
-                        this.deagleImage = new Image(); this.deagleImage.src = wa.image;
+                        this.deagleImage = loadImage(wa.image);
                     } else {
-                        this.pistolImage = new Image(); this.pistolImage.src = wa.image;
+                        this.pistolImage = loadImage(wa.image);
                     }
                     this.equippedRangedType = 'pistol';
-                    if (wa.muzzleImage) { this.muzzleFlashImg = new Image(); this.muzzleFlashImg.src = wa.muzzleImage; }
+                    if (wa.muzzleImage) { this.muzzleFlashImg = loadImage(wa.muzzleImage); }
                 }
             },
 
@@ -1246,7 +1232,7 @@ _fireRanged(hand = 'main') {
                             const muzzlePos = this._getMuzzlePosition(gunLX, leftGunLY, fxCfg.muzzleForward);
                             const leftAngle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             let offhandSpreadFactor = this._currentSpreadFactorOff;
-                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || 25;
+                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const leftSpreadRad = (Math.random() - 0.5) * 2 * (offhandMaxSpreadAngle * Math.PI / 180) * offhandSpreadFactor;
                             const leftFinalAngle = leftAngle + leftSpreadRad;
                             let offhandDamage = offPC.damage.min;
@@ -1304,7 +1290,7 @@ _fireRanged(hand = 'main') {
                             const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             // 散布：使用统一的散布系统（所有枪械散布计算时间0.5s）
                             const mainSpreadFactor = this._currentSpreadFactor;
-                            const maxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            const maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * mainSpreadFactor;
                             const finalAngle = angle + spreadRad;
                             const mainPC = this.attacks[mainAttackKey].config;
@@ -1364,7 +1350,7 @@ _fireRanged(hand = 'main') {
                             angle = baseAngle + spreadRad;
                         } else {
                             spreadFactor = this._currentSpreadFactor;
-                            maxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
                             angle = baseAngle + spreadRad;
                         }
@@ -1374,19 +1360,13 @@ _fireRanged(hand = 'main') {
                         let weaponDamage;
                         if (this.getCurrentWeaponAtk) {
                             weaponDamage = this.getCurrentWeaponAtk();
-                        } else if (attackKey === 'pkm') {
-                            weaponDamage = Math.round(5 + this.data.str * 0.1 + this.data.stamina * 0.1);
-                        } else if (attackKey === 'qbz191') {
-                            weaponDamage = Math.round(3 + this.data.str * 0.04 + this.data.wis * 0.18);
-                        } else if (attackKey === 'qjb201') {
-                            weaponDamage = Math.round(3 + this.data.str * 0.08 + this.data.wis * 0.15);
                         } else {
-                            weaponDamage = Math.round(3 + this.data.str * 0.05 + this.data.wis * 0.15);
+                            weaponDamage = calculateFallbackDamage(attackKey, this.data) || WEAPON_DAMAGE_FORMULAS.akm(this.data);
                         }
                         const damage = { min: weaponDamage, max: weaponDamage };
 
                         // 屏幕抖动
-                        Camera.triggerShake(isEnergyLMG ? 2 : 4);
+                        Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
 
                         // 音效播放
                         if (typeof SoundManager !== 'undefined') {
@@ -1454,7 +1434,7 @@ _fireRanged(hand = 'main') {
                             if (this.getCurrentWeaponAtk) {
                                 weaponDamage = this.getCurrentWeaponAtk();
                             } else {
-                                weaponDamage = Math.round(1 + this.data.con * 0.1 + this.data.wis * 0.2);
+                                weaponDamage = calculateFallbackDamage('shotgun', this.data);
                             }
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）
@@ -1472,7 +1452,7 @@ _fireRanged(hand = 'main') {
                                 effectiveKnockback += sm.knockbackBonus || 0;
                             }
                             // 屏幕抖动
-                            Camera.triggerShake(6);
+                            Camera.triggerShake(sgCfg.cameraShake);
                             // 开火音效
                             this._playFireSound(currentItem, sgCfg.defaultSound);
                             // 确定穿透值（箭型弹模式基础1层 + 附魔/改造加成）

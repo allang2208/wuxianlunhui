@@ -2,6 +2,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Renderer } from '../world/renderer.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { loadImage } from '../utils/image-loader.js';
 
 /**
  * 战术小队AI系统
@@ -33,9 +34,7 @@ export class TacticalSquadAI {
             _image: null
         };
         // 预加载无人机贴图
-        const img = new Image();
-        img.src = 'assets/skills/drone.png';
-        this._drone._image = img;
+        this._drone._image = loadImage('assets/skills/drone.png');
     }
 
     addMember(member, role) {

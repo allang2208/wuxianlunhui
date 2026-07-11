@@ -612,7 +612,7 @@ export const Game = {
         const goldAutoRangeSq = goldAutoRange * goldAutoRange;
         const goldThrowOutRangeSq = goldThrowOutRange * goldThrowOutRange;
         // 预查找第一个可堆叠金币槽位，避免每个金币都扫描背包
-        const goldMaxStack = 999;
+        const goldMaxStack = pickupCfg.goldMaxStack || 999;
         let goldStackItem = null;
         for (const bpItem of EquipManager.backpackItems) {
             if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
@@ -687,7 +687,9 @@ export const Game = {
             StatusBar.update(dt);
         }
         // 传送门检测：走入传送门范围自动传送，无碰撞体积
-        const portalTriggerDist = interactCfg.portalTrigger || 30;
+        const portalCfg = GAME_CONFIG.portals?.mainHub || {};
+        const portalTriggerDist = portalCfg.triggerDistance || interactCfg.portalTrigger || 30;
+        const portalCooldownMs = portalCfg.cooldownMs || 2000;
         if (this.player && !SceneManager.isLoading) {
             const now = Date.now();
             if (now > this._portalCooldown) {
@@ -696,7 +698,7 @@ export const Game = {
                         const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < portalTriggerDist) {
-                            this._portalCooldown = now + 2000; // 2秒冷却
+                            this._portalCooldown = now + portalCooldownMs;
                             try {
                                 if (entity.targetScene === 'scene7') {
                                     this._showDungeonEntryConfirm(entity);

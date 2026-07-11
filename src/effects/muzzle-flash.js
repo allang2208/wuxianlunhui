@@ -1,9 +1,10 @@
 import { Renderer } from '../world/renderer.js';
+import { loadImage } from '../utils/image-loader.js';
         class MuzzleFlashEffect {
             constructor(x, y, angle, scale = 1.0) {
                 this.x = x; this.y = y; this.angle = angle; this.scale = scale;
                 this.life = 80; this.maxLife = 80; this.active = true;
-                if (!MuzzleFlashEffect._sharedImage) { MuzzleFlashEffect._sharedImage = new Image(); MuzzleFlashEffect._sharedImage.src = 'assets/effects/muzzle_flash_01.png'; }
+                if (!MuzzleFlashEffect._sharedImage) { MuzzleFlashEffect._sharedImage = loadImage('assets/effects/muzzle_flash_01.png'); }
                 this.image = MuzzleFlashEffect._sharedImage;
             }
             reset(x, y, angle, scale = 1.0) {

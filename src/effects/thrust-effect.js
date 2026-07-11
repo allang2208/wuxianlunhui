@@ -1,5 +1,6 @@
 import { WEAPON_ANIM } from '../config/math-utils.js';
 import { Renderer } from '../world/renderer.js';
+import { loadImage } from '../utils/image-loader.js';
         class ThrustEffect {
             constructor(source, range, width) {
                 this.source = source; this.range = range || 100; this.width = width || 20;
@@ -10,8 +11,7 @@ import { Renderer } from '../world/renderer.js';
                     this.active = false; this.source = { x: 0, y: 0, rotation: 0 };
                 }
                 if (!ThrustEffect._img) {
-                    ThrustEffect._img = new Image();
-                    ThrustEffect._img.src = 'assets/icons/sword_hilt_icon.png';
+                    ThrustEffect._img = loadImage('assets/icons/sword_hilt_icon.png');
                 }
             }
             update(dt = 16.67) {

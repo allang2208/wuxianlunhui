@@ -6,6 +6,7 @@
 import { EffectManager } from '../effects/effect-manager.js';
 import { MuzzleFlashEffect } from '../effects/muzzle-flash.js';
 import { ShellCasingEffect } from '../effects/shell-casing.js';
+import { DodgeEffect, DustEffect } from '../effects/particle-effects.js';
 
 export const EffectFactory = {
     /**
@@ -40,6 +41,43 @@ export const EffectFactory = {
             e.reset(x, y, angle);
         } else {
             e = new ShellCasingEffect(x, y, angle);
+        }
+        EffectManager.add(e);
+        return e;
+    },
+
+    /**
+     * 创建闪避拖尾特效。
+     * @param {number} x
+     * @param {number} y
+     * @param {number} dirX
+     * @param {number} dirY
+     * @returns {DodgeEffect}
+     */
+    createDodgeEffect(x, y, dirX, dirY) {
+        let e = EffectManager._acquire('DodgeEffect');
+        if (e) {
+            e.reset(x, y, dirX, dirY);
+        } else {
+            e = new DodgeEffect(x, y, dirX, dirY);
+        }
+        EffectManager.add(e);
+        return e;
+    },
+
+    /**
+     * 创建扬尘特效。
+     * @param {number} x
+     * @param {number} y
+     * @param {number} intensity
+     * @returns {DustEffect}
+     */
+    createDustEffect(x, y, intensity) {
+        let e = EffectManager._acquire('DustEffect');
+        if (e) {
+            e.reset(x, y, intensity);
+        } else {
+            e = new DustEffect(x, y, intensity);
         }
         EffectManager.add(e);
         return e;
