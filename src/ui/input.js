@@ -1,4 +1,5 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from './ui-state.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
@@ -22,22 +23,22 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
                 }
                 if (code === CONFIG.KEYS.MENU) {
                     // 任务栏打开时按ESC关闭任务栏
-                    if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) {
+                    if (UIState.isOpen('quest')) {
                         QuestSystem.close();
                         return;
                     }
                     // 有子页面打开：按 Esc 回到初始对话
-                    if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen) {
-                        if (ShopSystem._isOpen) ShopSystem.close();
-                        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-                        if (CraftSystem._isOpen) CraftSystem.close();
-                        if (EnchantSystem._isOpen) EnchantSystem.close();
+                    if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant')) {
+                        if (UIState.isOpen('shop')) ShopSystem.close();
+                        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+                        if (UIState.isOpen('craft')) CraftSystem.close();
+                        if (UIState.isOpen('enchant')) EnchantSystem.close();
                         if (NPCDialogue._active) NPCDialogue.exitCompactMode();
                         return;
                     }
                     if (SystemUI.isOpen) {
                     // 如果出征面板打开，ESC只关闭出征面板，不关闭背包
-                    if (typeof ExpeditionSystem !== 'undefined' && ExpeditionSystem._isOpen) {
+                    if (UIState.isOpen('expedition')) {
                         ExpeditionSystem.close();
                         return;
                     }

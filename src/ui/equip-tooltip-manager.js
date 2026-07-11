@@ -3,6 +3,8 @@
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { CraftSystem } from './craft-system.js';
+import { EnhanceSystem } from './enhance-system.js';
+import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { EquipDataManager } from './equip-data-manager.js';
@@ -479,7 +481,7 @@ export const EquipTooltipManager = {
                 const item = self.player.equipments[key];
                 const enchantPanel = document.getElementById('enchantPanel');
                 const enchantOpen = enchantPanel && enchantPanel.classList.contains('active');
-                if (EnhanceSystem._isOpen) {
+                if (UIState.isOpen('enhance')) {
                     if (item) {
                         EnhanceSystem.equipFromSlot(key);
                     }
@@ -497,7 +499,7 @@ export const EquipTooltipManager = {
                 const item = self.player.equipments[key];
                 const enchantPanel = document.getElementById('enchantPanel');
                 const enchantOpen = enchantPanel && enchantPanel.classList.contains('active');
-                if (EnhanceSystem._isOpen) {
+                if (UIState.isOpen('enhance')) {
                     if (item) {
                         EnhanceSystem.equipFromSlot(key);
                     }
@@ -569,9 +571,9 @@ export const EquipTooltipManager = {
                     }
                     return;
                 }
-                if (ShopSystem._isOpen && item.category !== 'gold') {
-                    ShopSystem.addToSellGrid(idx);
-                } else if (EnhanceSystem._isOpen && item.category !== 'gold') {
+                if (UIState.isOpen('shop') && item.category !== 'gold') {
+                    EventBus.emit('shop:addToSellGrid', idx);
+                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
                     EnhanceSystem.equipFromBackpack(idx);
                 } else {
                     self.callbacks.equipFromBackpack(idx);
@@ -591,11 +593,11 @@ export const EquipTooltipManager = {
                     }
                     return;
                 }
-                if (ShopSystem._isOpen && item.category !== 'gold') {
-                    ShopSystem.addToSellGrid(idx);
-                } else if (EnhanceSystem._isOpen && item.category !== 'gold') {
+                if (UIState.isOpen('shop') && item.category !== 'gold') {
+                    EventBus.emit('shop:addToSellGrid', idx);
+                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
                     EnhanceSystem.equipFromBackpack(idx);
-                } else if (CraftSystem._isOpen) {
+                } else if (UIState.isOpen('craft')) {
                     CraftSystem._equipFromBackpack(idx);
                 } else {
                     self.callbacks.equipFromBackpack(idx);

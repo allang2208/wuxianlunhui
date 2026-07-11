@@ -1,5 +1,6 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isCraftableWeapon, getGunAmmoCapacity } from '../config/gun-ammo.js';
+import { UIState } from './ui-state.js';
 
 const CraftSystem = {
     _isOpen: false,
@@ -275,6 +276,7 @@ const CraftSystem = {
     },
 
     open(npc) {
+        UIState.open('craft');
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
@@ -290,6 +292,7 @@ const CraftSystem = {
             if (this._equippedItem) {
                 this._returnEquippedItem();
             }
+            UIState.close('craft');
             this._isOpen = false;
             this._currentNPC = null;
             this._closeModPopup();
@@ -300,14 +303,14 @@ const CraftSystem = {
         const panel = document.getElementById('craftPanel');
         if (panel) panel.classList.remove('active');
         setTimeout(() => {
-            if (!this._isOpen && !ShopSystem._isOpen && !EnhanceSystem._isOpen && !EnchantSystem._isOpen) {
+            if (!UIState.isOpen('craft') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
         }, 300);
     },
 
     toggle() {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('craft')) this.close();
         else this.open();
     },
 

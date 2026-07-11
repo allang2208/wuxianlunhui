@@ -1,4 +1,5 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from './ui-state.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -7,6 +8,7 @@ const EnhanceSystem = {
     _baseCost: 100,
 
     open(npc) {
+        UIState.open('enhance');
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
@@ -17,20 +19,21 @@ const EnhanceSystem = {
     },
 
     close() {
+        UIState.close('enhance');
         this._isOpen = false;
         this._currentNPC = null;
         this._returnEquippedItem();
         const panel = document.getElementById('enhancePanel');
         if (panel) panel.classList.remove('active');
         setTimeout(() => {
-            if (!this._isOpen && !ShopSystem._isOpen && !CraftSystem._isOpen && !EnchantSystem._isOpen) {
+            if (!UIState.isOpen('enhance') && !UIState.isOpen('shop') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
         }, 300);
     },
 
     toggle() {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('enhance')) this.close();
         else this.open();
     },
 

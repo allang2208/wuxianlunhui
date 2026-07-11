@@ -68,7 +68,7 @@ export const SystemUI = {
         // 绑定遮罩层点击事件：点击面板外部区域关闭（子页面打开时不关闭）
         const overlay = document.getElementById('panelOverlay');
         if (overlay) overlay.addEventListener('click', () => {
-            if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen || UIState.isOpen('enchant')) return;
+            if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant')) return;
             this.close();
         });
         // 绑定属性加号按钮点击事件

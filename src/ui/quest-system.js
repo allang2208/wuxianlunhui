@@ -1,5 +1,6 @@
 // Quest System - 任务日志系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from './ui-state.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',
@@ -28,6 +29,7 @@ export const QuestSystem = {
     },
 
     open() {
+        UIState.open('quest');
         this._isOpen = true;
         const panel = document.getElementById('questPanel');
         if (panel) {
@@ -39,6 +41,7 @@ export const QuestSystem = {
     },
 
     close() {
+        UIState.close('quest');
         this._isOpen = false;
         this._fromNPC = false; // 关闭时重置来源标记
         const panel = document.getElementById('questPanel');
@@ -52,7 +55,7 @@ export const QuestSystem = {
     },
 
     toggle() {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('quest')) this.close();
         else this.open();
     },
 

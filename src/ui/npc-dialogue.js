@@ -124,9 +124,9 @@ const NPCDialogue = {
         }
         this._clickOutsideHandler = function(e) {
             // 子页面打开时不退出
-            if (ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen || UIState.isOpen('enchant')) return;
+            if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant')) return;
             // 任务面板打开时不退出
-            if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) return;
+            if (UIState.isOpen('quest')) return;
             // 背包打开时不退出
             if (SystemUI.isOpen) return;
             // 任务后对话模式下点击外部不退出
@@ -196,12 +196,12 @@ const NPCDialogue = {
         this._active = false;
         this._currentNPC = null;
         // 关闭所有子页面
-        if (ShopSystem._isOpen) ShopSystem.close();
-        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-        if (CraftSystem._isOpen) CraftSystem.close();
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
         // 关闭任务面板
-        if (typeof QuestSystem !== 'undefined' && QuestSystem._isOpen) QuestSystem.close();
+        if (UIState.isOpen('quest')) QuestSystem.close();
         // 强制关闭背包
         SystemUI.close();
         // 关闭立绘调整工具
@@ -244,10 +244,10 @@ const NPCDialogue = {
 
     goodbye() {
         // 先关闭所有子页面和背包
-        if (ShopSystem._isOpen) ShopSystem.close();
-        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-        if (CraftSystem._isOpen) CraftSystem.close();
-        if (EnchantSystem._isOpen) EnchantSystem.close();
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
         if (SystemUI.isOpen) SystemUI.close();
         // 如果之前打开了子页面，回到对话主界面
         if (this._active) this.exitCompactMode();
@@ -378,10 +378,10 @@ const NPCDialogue = {
     // 选择商店
     openShop() {
         const npc = this._currentNPC;
-        if (ShopSystem._isOpen) { ShopSystem.close(); return; }
-        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-        if (CraftSystem._isOpen) CraftSystem.close();
-        if (EnchantSystem._isOpen) EnchantSystem.close();
+        if (UIState.isOpen('shop')) { ShopSystem.close(); return; }
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
         
         // 恢复随机问候语
         this._currentText = npc.getRandomGreeting();
@@ -397,10 +397,10 @@ const NPCDialogue = {
     // 选择强化
     openEnhance() {
         const npc = this._currentNPC;
-        if (EnhanceSystem._isOpen) { EnhanceSystem.close(); return; }
-        if (ShopSystem._isOpen) ShopSystem.close();
-        if (CraftSystem._isOpen) CraftSystem.close();
-        if (EnchantSystem._isOpen) EnchantSystem.close();
+        if (UIState.isOpen('enhance')) { EnhanceSystem.close(); return; }
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
         
         // 显示强化提示
         this._currentText = '改造可以强化武器基础伤害，同时也会强化人物属性的影响数值，改造完后不可退回。';
@@ -419,10 +419,10 @@ const NPCDialogue = {
     // 选择改造
     openCraft() {
         const npc = this._currentNPC;
-        if (CraftSystem._isOpen) { CraftSystem.close(); return; }
-        if (ShopSystem._isOpen) ShopSystem.close();
-        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-        if (EnchantSystem._isOpen) EnchantSystem.close();
+        if (UIState.isOpen('craft')) { CraftSystem.close(); return; }
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
         
         // 清除当前对话并显示改造提示
         this._currentText = '因为神秘力量，改造完装备之后，可以使装备获得一些特殊的能力，就不能再进行更改，请慎重选择。';
@@ -441,10 +441,10 @@ const NPCDialogue = {
     // 选择附魔
     openEnchant() {
         const npc = this._currentNPC;
-        if (EnchantSystem._isOpen) { EnchantSystem.close(); return; }
-        if (ShopSystem._isOpen) ShopSystem.close();
-        if (EnhanceSystem._isOpen) EnhanceSystem.close();
-        if (CraftSystem._isOpen) CraftSystem.close();
+        if (UIState.isOpen('enchant')) { EnchantSystem.close(); return; }
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
         
         // 显示附魔提示
         this._currentText = '附魔可以为你的装备注入神秘力量，但需要消耗魔法晶尘。请放入装备和附魔卷轴，我会为你进行附魔。';

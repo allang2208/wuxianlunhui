@@ -81,7 +81,7 @@ const EnchantSystem = {
             const panel = document.getElementById('enchantPanel');
             if (panel) panel.classList.remove('active');
             setTimeout(() => {
-                if (!UIState.isOpen('enchant') && !ShopSystem._isOpen && !EnhanceSystem._isOpen && !CraftSystem._isOpen) {
+                if (!UIState.isOpen('enchant') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft')) {
                     SystemUI.close();
                 }
             }, 300);

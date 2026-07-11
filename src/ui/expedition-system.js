@@ -4,6 +4,8 @@
  * 从背包拖入 = 真正从背包移出；关闭/取消 = 归还到背包
  */
 
+import { UIState } from './ui-state.js';
+
 export const ExpeditionSystem = {
     _isOpen: false,
     _carriedItems: [], // 长度为 CAPACITY 的数组，每个元素 { item, count } 或 null
@@ -11,7 +13,8 @@ export const ExpeditionSystem = {
 
     // 打开出征准备面板
     open(player) {
-        if (this._isOpen) return;
+        if (UIState.isOpen('expedition')) return;
+        UIState.open('expedition');
         this._isOpen = true;
         this._carriedItems = new Array(this.CAPACITY).fill(null);
         this.selectedDungeon = 'zombie'; // 只保留僵尸地牢
@@ -57,7 +60,8 @@ export const ExpeditionSystem = {
 
     // 关闭出征准备面板 — 归还所有物品到背包
     close() {
-        if (!this._isOpen) return;
+        if (!UIState.isOpen('expedition')) return;
+        UIState.close('expedition');
         this._isOpen = false;
 
         // 归还所有已放入出征栏的物品到背包
@@ -72,7 +76,7 @@ export const ExpeditionSystem = {
 
     // 切换面板
     toggle(player) {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('expedition')) this.close();
         else this.open(player);
     },
 

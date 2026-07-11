@@ -1,4 +1,7 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from './ui-state.js';
+import { EventBus } from '../core/event-bus.js';
+
 const ShopSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -26,6 +29,7 @@ const ShopSystem = {
     ],
 
     open(npc) {
+        UIState.open('shop');
         this._isOpen = true;
         this._currentNPC = npc;
         SystemUI.open('equip');
@@ -36,20 +40,21 @@ const ShopSystem = {
     },
 
     close() {
+        UIState.close('shop');
         this._isOpen = false;
         this._currentNPC = null;
         this._returnAllSellItems();
         const panel = document.getElementById('shopPanel');
         if (panel) panel.classList.remove('active');
         setTimeout(() => {
-            if (!this._isOpen && !EnhanceSystem._isOpen && !CraftSystem._isOpen && !EnchantSystem._isOpen) {
+            if (!UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
             }
         }, 300);
     },
 
     toggle() {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('shop')) this.close();
         else this.open();
     },
 
@@ -364,5 +369,8 @@ const ShopSystem = {
         }
     }
 };
+
+// 模块加载时注册跨 UI 事件监听
+EventBus.on('shop:addToSellGrid', (idx) => ShopSystem.addToSellGrid(idx));
 
 export { ShopSystem };
