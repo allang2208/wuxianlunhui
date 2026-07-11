@@ -338,7 +338,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 const wType = source.equippedRangedType;
                 // 播放武器开火音效
                 if (wType === 'pkm') {
-                    console.log('[PKM] Playing sound:', 'assets/sounds/pkm_half_sec.wav');
+                    
                     SoundManager.playFile('assets/sounds/pkm_half_sec.wav');
                 } else if (wType === 'qbz191') {
                     SoundManager.playFile('assets/sounds/qbz191_shot6_valley.mp3');

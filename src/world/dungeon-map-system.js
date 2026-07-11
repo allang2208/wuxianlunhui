@@ -186,7 +186,7 @@ export const DungeonMapSystem = {
         this._createMouseShopButton();
         this._createAbandonButton();
 
-        console.log(`[DungeonMapSystem] Initialized (${dungeonType})`, this.nodes.length, "nodes,", this.edges.length, "edges");
+        
     },
 
     shutdown() {
@@ -274,7 +274,7 @@ export const DungeonMapSystem = {
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
         this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
 
-        console.log('[DungeonMapSystem] Generated new dungeon map:', result.metadata);
+        
     },
 
     // 僵尸地牢：4条路线 converging to BOSS
@@ -422,7 +422,7 @@ export const DungeonMapSystem = {
                 const currentNode = this.getCurrentNode();
                 if (currentNode && currentNode.type === 'combat') {
                     currentNode.type = 'empty';
-                    console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
+                    
                 }
             }
         }
@@ -514,7 +514,7 @@ export const DungeonMapSystem = {
 
     _returnToMap() {
         if (this._cleanupActive) {
-            console.log('[DungeonMapSystem] Cleanup countdown active, delaying return to map');
+            
             return;
         }
         this.state = "map";
@@ -862,7 +862,7 @@ export const DungeonMapSystem = {
         const currentNode = this.getCurrentNode();
         if (currentNode && currentNode.type === 'combat') {
             currentNode.type = 'empty';
-            console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
+            
         }
 
         const gold = this.state === "boss" ? this.BOSS_GOLD_REWARD : this.COMBAT_GOLD_BASE + Math.floor(Math.random() * this.COMBAT_GOLD_BONUS);
@@ -1420,7 +1420,7 @@ export const DungeonMapSystem = {
         btn.onmouseenter = () => btn.style.background = "#5a7a4a";
         btn.onmouseleave = () => btn.style.background = "#4a6a3a";
         btn.onclick = async () => {
-            console.log('[DungeonMapSystem] Victory button clicked');
+            
             overlay.remove();
             this.shutdown();
             const player = Game.player || this.player;
@@ -1431,7 +1431,7 @@ export const DungeonMapSystem = {
             }
             try {
                 await SceneManager.switchScene("main", player);
-                console.log('[DungeonMapSystem] Successfully returned to main');
+                
             } catch (err) {
                 console.error('[DungeonMapSystem] Failed to return to main:', err);
                 alert('返回主神空间失败: ' + (err.message || '未知错误'));

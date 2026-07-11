@@ -234,7 +234,7 @@ async function initModules() {
         window.onload = () => Game.init();
     }
 
-    console.log('✅ Module system initialized. 32 modules loaded. Data-driven config active.');
+    
 }
 
 // 导入所有模块（导入顺序不影响运行时，因为挂载在 initModules 中执行）

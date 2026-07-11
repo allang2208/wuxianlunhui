@@ -863,16 +863,16 @@ update(dt, entities) {
                     }
                     // ===== 右键特殊攻击：夜与火之剑 / 符文长剑 =====
                     if (Input.mouse.rightPressed && isMelee) {
-                        console.log('[SpecialAttack] Right-click detected, effectiveItem:', effectiveItem ? { name: effectiveItem.name, weaponId: effectiveItem.weaponId, category: effectiveItem.category } : 'null');
+                        
                         if (effectiveItem && effectiveItem.specialAttackType === 'nightFlame') {
                             // 夜与火之剑
-                            console.log('[SpecialAttack] NightFlame check:', { cooldown: this._specialAttackCooldowns['nightFlame'] || 0, active: this._specialAttackActive, runeActive: this._runeSwordSpecialActive });
+                            
                             if ((this._specialAttackCooldowns['nightFlame'] || 0) <= 0 && !this._specialAttackActive && !this._runeSwordSpecialActive) {
                                 this.specialAttackSystem.trigger(mouseWorld.x, mouseWorld.y, entities);
                             }
                         } else if (effectiveItem && effectiveItem.specialAttackType === 'runeSword') {
                             // 符文长剑
-                            console.log('[SpecialAttack] RuneSword check:', { active: this._runeSwordSpecialActive, cooldown: this._specialAttackCooldowns['runeSword'] || 0, specialActive: this._specialAttackActive });
+                            
                             if (this._runeSwordSpecialActive) {
                                 // 已激活：发射一把剑
                                 this.runeSwordSystem._launchBlade();

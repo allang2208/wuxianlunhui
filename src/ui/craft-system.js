@@ -386,7 +386,7 @@ const CraftSystem = {
         if (!this._isEditing || !this._editTempSlots) return;
         // 保存临时数据到当前武器的配置
         this._getCraftConfig(this._equippedItem.weaponId).slots = JSON.parse(JSON.stringify(this._editTempSlots));
-        console.log('[CraftSystem] 布局已保存:', this._equippedItem.weaponId, JSON.stringify(this._editTempSlots, null, 2));
+        
         this.exitEditMode();
     },
 
@@ -507,7 +507,7 @@ const CraftSystem = {
 
     _equipFromBackpack(idx) {
         const item = EquipManager.backpackItems.find(i => i.slot === idx);
-        console.log('[CraftSystem] _equipFromBackpack:', idx, item ? item.name : 'null', 'equipImage:', item ? item.equipImage : 'null', 'weaponAsset:', item ? item.weaponAsset : 'null');
+        
         if (!item || !isCraftableWeapon(item)) return;
         // 先归还当前装备
         if (this._equippedItem) this._returnEquippedItem();
@@ -551,7 +551,7 @@ const CraftSystem = {
 
     _equipFromSlot(slotKey) {
         const item = Game.player.equipments[slotKey];
-        console.log('[CraftSystem] _equipFromSlot:', slotKey, item ? item.name : 'null', 'equipImage:', item ? item.equipImage : 'null', 'weaponAsset:', item ? item.weaponAsset : 'null');
+        
         if (!item || !isCraftableWeapon(item)) return;
         // 先归还当前装备到背包
         if (this._equippedItem) this._returnEquippedItem();
@@ -588,7 +588,7 @@ const CraftSystem = {
             this._applyModEffects();
         }
         this._equippedSlot = { type: 'equip', slot: slotKey };
-        console.log('[CraftSystem] 改造槽装备:', this._equippedItem.name, 'equipImage:', this._equippedItem.equipImage);
+        
         // 刷新装备栏和背包显示（关键：装备栏必须立即更新）
         if (typeof EquipManager !== 'undefined') {
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
@@ -603,18 +603,18 @@ const CraftSystem = {
             console.warn('[CraftSystem] _returnEquippedItem: _equippedItem 为 null');
             return;
         }
-        console.log('[CraftSystem] 归还装备:', this._equippedItem.name, 'from', this._equippedSlot);
+        
         // 安全获取背包数组
         if (!EquipManager.backpackItems) {
             EquipManager.backpackItems = [];
         }
         // 归还到背包（找第一个空位）
         const emptySlot = EquipManager._findFirstEmptySlot ? EquipManager._findFirstEmptySlot() : -1;
-        console.log('[CraftSystem] 空位:', emptySlot, '背包物品数:', EquipManager.backpackItems.length);
+        
         if (emptySlot !== -1) {
             this._equippedItem.slot = emptySlot;
             EquipManager.backpackItems.push(this._equippedItem);
-            console.log('[CraftSystem] 已放入背包 slot', emptySlot);
+            
         } else {
             // 背包满：装备掉落在地上，并显示与背包已满一致的提示
             Game.dropItem(Game.player.x, Game.player.y, this._equippedItem);
@@ -626,7 +626,7 @@ const CraftSystem = {
             el.textContent = '当前背包已满，装备自动掉落附近地上';
             document.body.appendChild(el);
             TimerManager.setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
-            console.log('[CraftSystem] 背包满，装备已掉落在地上');
+            
         }
         // 如果来自装备槽，清空该装备槽（防止视觉上仍显示）
         if (this._equippedSlot && this._equippedSlot.type === 'equip') {
@@ -715,7 +715,7 @@ const CraftSystem = {
             }
         }
 
-        console.log('[CraftSystem] _updateUI imgSrc:', imgSrc, 'item:', item.name, 'equipImage:', item.equipImage, 'slotImage:', item.slotImage, 'iconImage:', item.iconImage);
+        
 
         if (imgSrc) {
             const imgEl = document.createElement('img');

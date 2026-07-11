@@ -560,20 +560,17 @@ _onHitEntity(_entity) {
             },
 
 _applySkillOverrides(item) {
-                console.log('[SkillOverride] _applySkillOverrides called with:', item ? { name: item.name, hasOverrides: !!item.skillOverrides, overrideKeys: item.skillOverrides ? Object.keys(item.skillOverrides) : [] } : 'null item');
+                
                 if (!item || !item.skillOverrides) {
-                    console.log('[SkillOverride] Clearing overrides (no skillOverrides on item)');
+                    
                     this._clearSkillOverrides();
                     return;
                 }
                 this._skillOverrides = JSON.parse(JSON.stringify(item.skillOverrides));
-                console.log(`[SkillOverride] ✅ 应用 ${item.name} 的技能覆盖:`, JSON.parse(JSON.stringify(item.skillOverrides)));
+                
             },
 
 _clearSkillOverrides() {
-                if (Object.keys(this._skillOverrides).length > 0) {
-                    console.log('[SkillOverride] 恢复默认技能');
-                }
                 this._skillOverrides = {};
             },
 
@@ -869,7 +866,7 @@ switchWeaponMode() {
                 // 切换武器时初始化弹药系统
                 this._initAmmoForSlot(nextMode);
                 // 应用/恢复装备的技能覆盖
-                console.log('[SkillOverride] switchWeaponMode: nextItem =', nextItem ? { name: nextItem.name, slot: nextMode, hasOverrides: !!nextItem.skillOverrides } : 'null');
+                
                 this._applySkillOverrides(nextItem);
                 // 附魔效果：攻击间隔调整
                 this._applyEnchantAttackInterval(nextItem);
@@ -992,7 +989,7 @@ _consumeAmmo(slot) {
 _startReload(slot) {
                 const state = this._ammoState[slot];
                 if (!state || state.reloading || state.current >= state.max) {
-                    console.log(`[_startReload] slot=${slot} skipped: state=${!!state}, reloading=${state?.reloading}, current=${state?.current}, max=${state?.max}`);
+                    
                     return false;
                 }
                 const item = this.equipments[slot];
@@ -1012,7 +1009,7 @@ _startReload(slot) {
                     }
                 }
                 state.reloadTimer = actualReloadTime;
-                console.log(`[_startReload] slot=${slot}, weaponId=${item?.weaponId}, singleReloadMode=${singleReloadMode}, reloadTime=${actualReloadTime}, current=${state.current}, max=${state.max}`);
+                
                 if (singleReloadMode) {
                     // 单发装填模式（如Super90）
                     state.singleReloadMode = true;
@@ -1029,7 +1026,7 @@ _startReload(slot) {
 
 _interruptReload(slot) {
                 const state = this._ammoState[slot];
-                console.log(`[_interruptReload] slot=${slot}, reloading=${state?.reloading}, singleReloadMode=${state?.singleReloadMode}, current=${state?.current}`);
+                
                 if (!state || !state.reloading || !state.singleReloadMode) return false;
                 state.reloading = false;
                 state.reloadTimer = 0;
@@ -1042,7 +1039,7 @@ _updateReload(dt) {
                     // 如果槽位有枪械但没有弹药状态，自动初始化
                     const item = this.equipments[slot];
                     if (item && isGunWeapon(item) && (!this._ammoState[slot] || this._ammoState[slot].weaponId !== item.weaponId)) {
-                        console.log(`[_updateReload] slot=${slot} reinit ammoState: weaponId=${item?.weaponId}, oldWeaponId=${this._ammoState[slot]?.weaponId}`);
+                        
                         this._initAmmoForSlot(slot);
                     }
                     const state = this._ammoState[slot];
@@ -1052,12 +1049,11 @@ _updateReload(dt) {
                         state.reloadTimer = 0;
                         if (state.singleReloadMode) {
                             // 单发装填模式：支持快速装填器（每次装2发）
-                            const oldCurrent = state.current;
                             const item = this.equipments[slot];
                             const ce = item && item._craftEffects;
                             const reloadCount = (ce && ce.fastReload) ? 2 : 1;
                             state.current = Math.min(state.max, state.current + reloadCount);
-                            console.log(`[_updateReload] slot=${slot} singleReload: current ${oldCurrent}→${state.current}, max=${state.max}, reloadCount=${reloadCount}`);
+                            
                             if (state.current >= state.max) {
                                 state.reloading = false;
                                 state.singleReloadMode = false;
@@ -1074,7 +1070,7 @@ _updateReload(dt) {
                             }
                         } else {
                             // 普通武器：一次性装满
-                            console.log(`[_updateReload] slot=${slot} bulkReload: current ${state.current}→${state.max}`);
+                            
                             state.reloading = false;
                             state.current = state.max;
                             this._gunSpreadTimer = 0; // 主手换弹后重置主手散布

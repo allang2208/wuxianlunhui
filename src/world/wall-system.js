@@ -44,7 +44,7 @@ const WallSystem = {
             phaserScene.physics.add.existing(wall, true); // true = static
             phaserScene.walls.add(wall);
         }
-        console.log('[WallSystem] Synced', this.walls.length, 'walls to Phaser');
+        
         // 重新同步树木碰撞体
         this._syncTreesToPhaser();
         // 设置碰撞关系
@@ -63,7 +63,7 @@ const WallSystem = {
             phaserScene.walls.add(tree);
             t.phaserSprite = tree;
         }
-        console.log('[WallSystem] Synced', this.trees.length, 'trees to Phaser');
+        
     },
     getWallsInView(vx, vy, vw, vh) {
         const result = [];

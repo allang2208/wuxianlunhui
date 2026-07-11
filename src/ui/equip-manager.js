@@ -165,7 +165,7 @@ import { GameUIManager } from './game-ui-manager.js';
                     _doDiscard() {
                         const src = this._dragSrc;
                         if (!src || !Game.player) return false;
-                        console.log(`[EquipManager._doDiscard] src.type=${src.type}, src.slot=${src.slot}`);
+                        
                         // 改造槽拖出：归还装备到背包/装备栏，不是丢弃
                         if (src.type === 'craft') {
                             if (CraftSystem._equippedItem) {
@@ -176,13 +176,13 @@ import { GameUIManager } from './game-ui-manager.js';
                         }
                         // 附魔栏拖出：归还物品到背包
                         if (src.type === 'enchantScroll') {
-                            console.log(`[EquipManager._doDiscard] returning enchant scroll to backpack`);
+                            
                             EventBus.emit('enchant:returnScrollItem');
                             EventBus.emit('enchant:updateUI');
                             return true;
                         }
                         if (src.type === 'enchantEquip') {
-                            console.log(`[EquipManager._doDiscard] returning enchant equip to backpack`);
+                            
                             EventBus.emit('enchant:returnEquipItem');
                             EventBus.emit('enchant:updateUI');
                             return true;

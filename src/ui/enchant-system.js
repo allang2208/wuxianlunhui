@@ -182,7 +182,7 @@ const EnchantSystem = {
         scrollSlot.oncontextmenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log(`[EnchantSystem] scrollSlot right-click: _scrollItem=${this._scrollItem ? this._scrollItem.name : 'null'}`);
+            
             if (this._scrollItem) {
                 this._returnScrollItem();
                 this._updateUI();
@@ -191,7 +191,7 @@ const EnchantSystem = {
         equipSlot.oncontextmenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log(`[EnchantSystem] equipSlot right-click: _equipItem=${this._equipItem ? this._equipItem.name : 'null'}`);
+            
             if (this._equipItem) {
                 this._returnEquipItem();
                 this._updateUI();
@@ -201,23 +201,23 @@ const EnchantSystem = {
 
     // 从背包放入卷轴
     _equipScrollFromBackpack(index) {
-        console.log(`[EnchantSystem._equipScrollFromBackpack] index=${index}, _scrollItem=${this._scrollItem ? this._scrollItem.name : 'null'}`);
+        
         const bp = EquipManager.backpackItems;
         const item = bp.find(i => i.slot === parseInt(index));
         if (!item) {
-            console.log(`[EnchantSystem._equipScrollFromBackpack] item not found at index ${index}`);
+            
             return;
         }
         if (item.category !== 'consumable' || !item.scrollId) {
             this._showMessage('这不是附魔卷轴');
-            console.log(`[EnchantSystem._equipScrollFromBackpack] not a scroll: category=${item.category}, scrollId=${item.scrollId}`);
+            
             return;
         }
         // 检查已有装备是否匹配
         if (this._equipItem) {
             if (!EnchantConfig.canEnchant(this._equipItem, item.scrollId)) {
                 this._showMessage('不符合附魔条件');
-                console.log(`[EnchantSystem._equipScrollFromBackpack] cannot enchant`);
+                
                 return;
             }
         }
@@ -227,7 +227,7 @@ const EnchantSystem = {
         bp.splice(bp.indexOf(item), 1);
         this._scrollItem = JSON.parse(JSON.stringify(item));
         this._scrollSource = { type: 'backpack', slot: parseInt(index) };
-        console.log(`[EnchantSystem._equipScrollFromBackpack] success: item=${item.name}, bp.length=${bp.length}`);
+        
         this._checkCompatibility();
         this._updateUI();
     },
@@ -304,12 +304,12 @@ const EnchantSystem = {
     // 退回卷轴
     _returnScrollItem() {
         if (!this._scrollItem) {
-            console.log('[EnchantSystem._returnScrollItem] no scroll item to return');
+            
             return;
         }
         const bp = EquipManager.backpackItems;
         let returned = false;
-        console.log(`[EnchantSystem._returnScrollItem] scrollSource=${JSON.stringify(this._scrollSource)}, bp.length=${bp.length}`);
+        
         if (this._scrollSource && this._scrollSource.type === 'backpack') {
             const originalSlot = parseInt(this._scrollSource.slot);
             const existing = bp.find(i => i.slot === originalSlot);
@@ -317,7 +317,7 @@ const EnchantSystem = {
                 this._scrollItem.slot = originalSlot;
                 bp.push(this._scrollItem);
                 returned = true;
-                console.log(`[EnchantSystem._returnScrollItem] returned to original slot ${originalSlot}`);
+                
             } else {
                 // 找第一个空位
                 const emptySlot = EquipManager._findFirstEmptySlot();
@@ -325,7 +325,7 @@ const EnchantSystem = {
                     this._scrollItem.slot = emptySlot;
                     bp.push(this._scrollItem);
                     returned = true;
-                    console.log(`[EnchantSystem._returnScrollItem] returned to empty slot ${emptySlot}`);
+                    
                 }
             }
         } else {
@@ -335,7 +335,7 @@ const EnchantSystem = {
                 this._scrollItem.slot = emptySlot;
                 bp.push(this._scrollItem);
                 returned = true;
-                console.log(`[EnchantSystem._returnScrollItem] returned to empty slot ${emptySlot} (no source)`);
+                
             }
         }
         if (!returned) {
@@ -348,7 +348,7 @@ const EnchantSystem = {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，卷轴掉落在地上'));
                 }
                 this._showMessage('背包已满，卷轴掉落在地上', 'error');
-                console.log(`[EnchantSystem._returnScrollItem] dropped on ground`);
+                
             }
         }
         this._scrollItem = null;
@@ -358,19 +358,19 @@ const EnchantSystem = {
     // 退回装备
     _returnEquipItem() {
         if (!this._equipItem) {
-            console.log('[EnchantSystem._returnEquipItem] no equip item to return');
+            
             return;
         }
         const bp = EquipManager.backpackItems;
         let returned = false;
-        console.log(`[EnchantSystem._returnEquipItem] equipSource=${JSON.stringify(this._equipSource)}, bp.length=${bp.length}`);
+        
         if (this._equipSource && this._equipSource.type === 'equip') {
             // 放回装备栏
             const player = Game.player;
             if (player && !player.equipments[this._equipSource.slot]) {
                 player.equipments[this._equipSource.slot] = this._equipItem;
                 returned = true;
-                console.log(`[EnchantSystem._returnEquipItem] returned to equip slot ${this._equipSource.slot}`);
+                
             } else {
                 // 找空位放背包
                 const emptySlot = EquipManager._findFirstEmptySlot();
@@ -378,7 +378,7 @@ const EnchantSystem = {
                     this._equipItem.slot = emptySlot;
                     bp.push(this._equipItem);
                     returned = true;
-                    console.log(`[EnchantSystem._returnEquipItem] returned to backpack slot ${emptySlot}`);
+                    
                 }
             }
         } else if (this._equipSource && this._equipSource.type === 'backpack') {
@@ -388,14 +388,14 @@ const EnchantSystem = {
                 this._equipItem.slot = originalSlot;
                 bp.push(this._equipItem);
                 returned = true;
-                console.log(`[EnchantSystem._returnEquipItem] returned to original backpack slot ${originalSlot}`);
+                
             } else {
                 const emptySlot = EquipManager._findFirstEmptySlot();
                 if (emptySlot !== -1) {
                     this._equipItem.slot = emptySlot;
                     bp.push(this._equipItem);
                     returned = true;
-                    console.log(`[EnchantSystem._returnEquipItem] returned to backpack slot ${emptySlot}`);
+                    
                 }
             }
         } else {
@@ -404,7 +404,7 @@ const EnchantSystem = {
                 this._equipItem.slot = emptySlot;
                 bp.push(this._equipItem);
                 returned = true;
-                console.log(`[EnchantSystem._returnEquipItem] returned to backpack slot ${emptySlot} (no source)`);
+                
             }
         }
         if (!returned) {
@@ -417,7 +417,7 @@ const EnchantSystem = {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，装备掉落在地上'));
                 }
                 this._showMessage('背包已满，装备掉落在地上', 'error');
-                console.log(`[EnchantSystem._returnEquipItem] dropped on ground`);
+                
             }
         }
         this._equipItem = null;
@@ -636,7 +636,7 @@ const EnchantSystem = {
 
         // 检查魔法晶尘
         const dust = this._getDustCount();
-        console.log(`[EnchantSystem.doEnchant] dust=${dust}, scroll.cost=${scroll.cost}, scrollId=${this._scrollItem.scrollId}`);
+        
         if (dust < scroll.cost) {
             this._showMessage(`魔法晶尘不足 (需要 ${scroll.cost}, 当前 ${dust})`, 'error');
             return;

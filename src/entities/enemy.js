@@ -401,7 +401,7 @@ import { loadImage } from '../utils/image-loader.js';
             // 阶段切换回调：子类可覆盖以实现自定义特效
             onPhaseChange(phase) {
                 // 默认在控制台输出阶段切换
-                console.log(`[${this.name}] 进入阶段: ${phase.name}`);
+                
                 // 触发视觉特效（如屏幕震动、粒子效果）
                 if (typeof EffectManager !== 'undefined') {
                     EffectManager.add(new PhaseChangeEffect(this.x, this.y, phase.name));

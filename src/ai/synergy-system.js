@@ -136,7 +136,7 @@ export class SynergySystem {
             }
         }
 
-        console.log(`[Synergy] ${rule.name} 激活！影响 ${affected.length} 个怪物`);
+        
     }
 
     // 移除协同效果

@@ -214,7 +214,7 @@ export class BigBoss extends Enemy {
         // 召唤的小僵尸追踪
         this._summonedMinions = [];
 
-        console.log(`[BigBoss] 生成: ${this.name} HP=${this.hp}/${this.maxHp} 位置=(${x.toFixed(0)}, ${y.toFixed(0)})`);
+        
     }
 
     update(dt, entities) {
@@ -312,7 +312,7 @@ export class BigBoss extends Enemy {
         this.rotation = Math.atan2(player.y - this.y, player.x - this.x);
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '⚔️ 蓄力扇形斩！', '#ff4444'));
-        console.log(`[BigBoss] 开始蓄力扇形斩`);
+        
     }
 
     _updateFanSlashWindup(dt, entities) {
@@ -369,7 +369,7 @@ export class BigBoss extends Enemy {
         }
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '💥 扇形斩！', '#ff0000'));
-        console.log(`[BigBoss] 扇形斩释放`);
+        
     }
 
     // --- 蓄力冲锋 ---
@@ -387,7 +387,7 @@ export class BigBoss extends Enemy {
         this.rotation = this._skills.charge.chargeDir;
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '🐂 蓄力冲锋！', '#ff8800'));
-        console.log(`[BigBoss] 开始蓄力冲锋`);
+        
     }
 
     _updateChargeWindup(dt, _entities) {
@@ -409,7 +409,7 @@ export class BigBoss extends Enemy {
         this._animTimer = 0;
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '💨 冲锋！', '#ff6600'));
-        console.log(`[BigBoss] 冲锋释放`);
+        
     }
 
     _updateChargeDash(dt, entities) {
@@ -531,7 +531,7 @@ export class BigBoss extends Enemy {
         }
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '☠️ 召唤小僵尸！', '#44ff44'));
-        console.log(`[BigBoss] 召唤 ${config.count} 只小僵尸`);
+        
     }
 
     // --- 辅助方法 ---
@@ -710,7 +710,7 @@ export class BigBoss extends Enemy {
             }
         }
         this._summonedMinions = [];
-        console.log(`[BigBoss] ${this.name} 被击败！`);
+        
     }
 }
 
@@ -768,7 +768,7 @@ export class DungeonBuffSystem {
         }
 
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `✨ 女神祝福！物攻+${config.atkBonusPercent}%`, config.color));
-        console.log(`[DungeonBuffSystem] 女神祝福 applied: ATK+${atkBonus}, MATK+${matkBonus}, ${config.maxBattles}场战斗`);
+        
 
         return buff;
     }
@@ -829,7 +829,7 @@ export class DungeonBuffSystem {
         }
 
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🔥 恶魔祈祷！物攻+${config.atkBonusPercent}% 但失去 ${config.hpCostPercent}% HP`, config.color));
-        console.log(`[DungeonBuffSystem] 恶魔祈祷 applied: ATK+${atkBonus}, MATK+${matkBonus}, HP-${hpCost}, MP-${mpCost}`);
+        
 
         return buff;
     }
@@ -887,7 +887,7 @@ export class DungeonBuffSystem {
             StatusBar.removeEffectByType('buff');
         }
 
-        console.log(`[DungeonBuffSystem] Buff removed: ${buff.name}`);
+        
     }
 
     /**
@@ -901,7 +901,7 @@ export class DungeonBuffSystem {
         if (typeof StatusBar !== 'undefined') {
             StatusBar.removeEffectByType('buff');
         }
-        console.log('[DungeonBuffSystem] All buffs cleared');
+        
     }
 
     /**
@@ -960,7 +960,7 @@ export class BossBattleManager {
         Camera.follow = this._backupCameraFollow;
         if (player) Camera.follow(player);
 
-        console.log('[BossBattleManager] Boss 战开始！场地=4096x4096');
+        
     }
 
     _setupArena() {
@@ -1104,7 +1104,7 @@ export class BossBattleManager {
     }
 
     _onBossDefeated() {
-        console.log('[BossBattleManager] Boss 被击败！');
+        
 
         // 发放基础奖励
         const gold = BOSS_REWARD_CONFIG.reward.baseGold + Math.floor(Math.random() * BOSS_REWARD_CONFIG.reward.goldVariance);
@@ -1149,7 +1149,7 @@ export class BossBattleManager {
         this.active = false;
         this._onCompleteCallback = null;
 
-        console.log('[BossBattleManager] 清理完成');
+        
     }
 
     isActive() {
@@ -1185,7 +1185,7 @@ export class RewardNodeManager {
         // 监听面板关闭
         this._waitForRewardClose(onComplete);
 
-        console.log('[RewardNodeManager] 奖励节点打开');
+        
     }
 
     _setupBossRewardCards() {
@@ -1353,7 +1353,7 @@ export const BossRewardSystem = {
         this.bossBattle.cleanup();
         this.buffSystem.clearAllBuffs();
         this._isShowingReward = false;
-        console.log('[BossRewardSystem] 全部清理完成');
+        
     },
 };
 

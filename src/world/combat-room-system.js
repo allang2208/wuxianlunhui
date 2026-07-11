@@ -168,7 +168,7 @@ export const CombatRoomSystem = {
         // 7. 设置相机跟随
         this._setupCamera(player);
 
-        console.log(`[CombatRoomSystem] Entered ${isBoss ? 'BOSS' : 'combat'} room: ${roomSize}x${roomSize}, entrance=${entranceEdge}`);
+        
 
         return {
             size: roomSize,
@@ -228,7 +228,7 @@ export const CombatRoomSystem = {
             this._combatMonsterKeys.push(key);
         }
 
-        console.log(`[CombatRoomSystem] Spawned ${this._combatMonsters.length} monsters`);
+        
         return this._combatMonsters;
     },
 
@@ -257,7 +257,7 @@ export const CombatRoomSystem = {
      * 调用此方法后，场地将被销毁，玩家回到地图模式
      */
     cleanupRoom() {
-        console.log('[CombatRoomSystem] Cleaning up combat room...');
+        
 
         // 删除所有战斗怪物
         for (const key of this._combatMonsterKeys) {
@@ -280,7 +280,7 @@ export const CombatRoomSystem = {
         this._oppositeEdge = null;
         this._player = null;
 
-        console.log('[CombatRoomSystem] Room cleaned up, scene restored');
+        
     },
 
     /**
@@ -294,7 +294,7 @@ export const CombatRoomSystem = {
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
-        console.log('[CombatRoomSystem] Monsters cleaned up only');
+        
     },
 
     /**
@@ -342,7 +342,7 @@ export const CombatRoomSystem = {
             this._backupCameraFollow = Camera.follow.bind(Camera);
         }
 
-        console.log('[CombatRoomSystem] Scene state backed up');
+        
     },
 
     _restoreSceneState() {
@@ -381,7 +381,7 @@ export const CombatRoomSystem = {
             pathFinder.invalidateCache();
         }
 
-        console.log('[CombatRoomSystem] Scene state restored');
+        
     },
 
     // ============================================================

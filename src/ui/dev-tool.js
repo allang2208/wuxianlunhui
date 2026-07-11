@@ -446,22 +446,22 @@ const DevTool = {
     // 更新帧滑块范围
     _updateFrameSlider() {
         const slider = getElement('devToolFrameSlider');
-        if (!slider) { console.log('[DevTool] _updateFrameSlider: slider not found'); return; }
+        if (!slider) {  return; }
         const currentAnim = this.state.anim;
         const frameData = this._charFrames[currentAnim];
-        console.log('[DevTool] _updateFrameSlider:', currentAnim, frameData);
+        
         if (frameData && frameData.count && frameData.count > 1) {
             slider.max = frameData.count - 1;
             slider.min = 0;
             slider.value = this.state.frameIndex;
             slider.disabled = false;
-            console.log('[DevTool] _updateFrameSlider: enabled, count=', frameData.count);
+            
         } else {
             slider.max = 0;
             slider.min = 0;
             slider.value = 0;
             slider.disabled = true;
-            console.log('[DevTool] _updateFrameSlider: disabled');
+            
         }
     },
 
@@ -601,7 +601,7 @@ const DevTool = {
         
         this.keyframeSystem.enabled = true;
         this._updateKeyframeUI();
-        console.log('[DevTool] 关键帧已添加:', kf);
+        
     },
     
     // 删除选中关键帧
@@ -620,7 +620,7 @@ const DevTool = {
         this.keyframeSystem.selectedIndex = -1;
         this.keyframeSystem.enabled = false;
         this._updateKeyframeUI();
-        console.log('[DevTool] 关键帧已清空');
+        
     },
     
     // 更新关键帧UI
@@ -818,7 +818,7 @@ const DevTool = {
                 sys.handStartY = my;
                 sys.handAnchorStartX = anchor.x;
                 sys.handAnchorStartY = anchor.y;
-                console.log('[DevTool] Hand anchor drag started');
+                
                 return;
             }
         }
@@ -840,7 +840,7 @@ const DevTool = {
             this.drag.startOffsetX = wp.offsetX;
             this.drag.startOffsetY = wp.offsetY;
             this.state.weaponOnCanvas = true;
-            console.log('[DevTool] Drag started');
+            
         } else {
             // 点击空白区域：直接设置武器位置为鼠标位置
             if (!this.state.weaponOnCanvas) {
@@ -1339,12 +1339,7 @@ const DevTool = {
                 cfg[currentAnim].holdOffsetY = Math.round(holdOffsetY);
                 cfg[currentAnim].idleRotation = Math.round(this.weaponParams.rotation);
                 cfg[currentAnim].idleScale = parseFloat(this.weaponParams.scale.toFixed(2));
-                console.log('[DevTool] WeaponAnimConfig[' + wt + '].' + currentAnim + ' updated:', {
-                    holdOffsetX: cfg[currentAnim].holdOffsetX,
-                    holdOffsetY: cfg[currentAnim].holdOffsetY,
-                    idleRotation: cfg[currentAnim].idleRotation,
-                    idleScale: cfg[currentAnim].idleScale,
-                });
+                
             } else if (currentAnim === 'attack' || currentAnim === 'walk') {
                 // 攻击/行走动画：保存关键帧配置
                 if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
@@ -1352,7 +1347,7 @@ const DevTool = {
                     if (!WeaponAnimConfig.keyframes) WeaponAnimConfig.keyframes = {};
                     if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
                     WeaponAnimConfig.keyframes[wt][currentAnim] = JSON.parse(JSON.stringify(this.keyframeSystem.keyframes));
-                    console.log('[DevTool] 关键帧已保存:', wt, currentAnim, this.keyframeSystem.keyframes);
+                    
                 }
             } else {
                 // 传统保存：保存到全局配置
@@ -1360,12 +1355,7 @@ const DevTool = {
                 cfg.holdOffsetY = Math.round(holdOffsetY);
                 cfg.idleRotation = Math.round(this.weaponParams.rotation);
                 cfg.idleScale = parseFloat(this.weaponParams.scale.toFixed(2));
-                console.log('[DevTool] WeaponAnimConfig updated:', wt, {
-                    holdOffsetX: cfg.holdOffsetX,
-                    holdOffsetY: cfg.holdOffsetY,
-                    idleRotation: cfg.idleRotation,
-                    idleScale: cfg.idleScale,
-                });
+                
             }
             
             // 通知 Phaser 重新同步武器
@@ -1405,10 +1395,10 @@ const DevTool = {
 
         // 复制到剪贴板
         navigator.clipboard.writeText(json).then(() => {
-            console.log('[DevTool] 数据已复制:', json);
+            
             this._showToast('✅ 已应用到游戏并复制到剪贴板');
         }).catch(() => {
-            console.log('[DevTool] 复制失败');
+            
             this._showToast('✅ 已应用到游戏（复制失败）');
         });
     },

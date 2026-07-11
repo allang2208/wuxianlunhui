@@ -31,10 +31,7 @@ export const RiftSystem = {
             });
             // 绿圈范围内（200px半径）摧毁障碍物（树木）
             if (typeof WallSystem !== 'undefined' && WallSystem.removeTreesInRadius) {
-                const removed = WallSystem.removeTreesInRadius(pos.x, pos.y, 200);
-                if (removed > 0) {
-                    console.log('[RiftSystem] 裂隙', idx, '清除树木:', removed, '棵');
-                }
+                WallSystem.removeTreesInRadius(pos.x, pos.y, 200);
             }
         });
         // 加载保存的进度

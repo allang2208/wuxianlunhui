@@ -416,9 +416,6 @@ export const Game = {
         for (let i = 0; i < this._WEAPON_SPAWN_LIST.length; i++) {
             this.dropItem(baseX + i * spacing, baseY, this._WEAPON_SPAWN_LIST[i]);
         }
-        if (typeof console !== 'undefined' && console.log) {
-            console.log(`[Game] 已生成 ${this._WEAPON_SPAWN_LIST.length} 把武器在坐标 (${baseX}, ${baseY})，间隔 ${spacing}px（相对于主神空间中心 origin=${origin.x},${origin.y}）`);
-        }
     },
     tryPickupItem(px, py, range) {
         let picked = false;

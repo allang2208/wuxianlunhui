@@ -39,7 +39,7 @@ export const EquipTooltipManager = {
         const ttExtra = getElement('ttExtra');
         const ttDesc = getElement('ttDesc');
         if (!ttName || !ttType || !ttStats || !ttExtra || !ttDesc) return;
-        console.log('TOOLTIP V2 LOADED'); // Cache bust
+         // Cache bust
         // 从 CodexManager 合并完整的武器数据
         const codexItem = (typeof CodexManager !== 'undefined' && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
         // 安全初始化 fullItem

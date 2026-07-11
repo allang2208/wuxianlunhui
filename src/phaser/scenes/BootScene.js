@@ -11,7 +11,7 @@ export class BootScene extends Scene {
     }
 
     preload() {
-        console.log('[BootScene] Preloading assets...');
+        
 
         // ---- 角色资源 ----
         // 待机动画（单帧）
@@ -70,18 +70,10 @@ export class BootScene extends Scene {
         // ---- 特效资源 ----
         // 粒子用程序化生成，暂不需要加载图片
 
-        // ---- 加载进度提示 ----
-        this.load.on('progress', (value) => {
-            console.log(`[BootScene] Loading progress: ${Math.floor(value * 100)}%`);
-        });
-
-        this.load.on('complete', () => {
-            console.log('[BootScene] All assets loaded');
-        });
     }
 
     create() {
-        console.log('[BootScene] Creating animations...');
+        
 
         // 创建行走动画（21帧）
         this.anims.create({
