@@ -4,7 +4,7 @@
  * ============================================================
  *
  * 集成点（3 处）：
- *   1. scene-manager.js _loadScene6() 末尾：DungeonMapSystem.init("scene6", player)
+ *   1. scene-manager.js _loadScene7() 末尾：DungeonMapSystem.init("scene7", player)
  *   2. game.js update() 开头：拦截地图模式，让 DungeonMapSystem 接管
  *   3. game.js render() 开头：拦截地图模式，渲染节点网格而非游戏实体
  *

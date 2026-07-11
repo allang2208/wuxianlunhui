@@ -489,7 +489,7 @@ export const ExpeditionSystem = {
         if (typeof DungeonMapSystem !== 'undefined') {
             const player = Game.player;
             const dungeonType = this.selectedDungeon || 'default';
-            DungeonMapSystem.init('scene6', player, dungeonType);
+            DungeonMapSystem.init('scene7', player, dungeonType);
         }
     },
 

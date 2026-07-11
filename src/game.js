@@ -87,12 +87,12 @@ export const Game = {
             this._battleCommander = new BattleCommander();
             // 初始化战术小队AI系统
             this._tacticalSquadAI = new TacticalSquadAI();
-            // 在当前地图测试区域左边生成5个传送门（场景二至六）
+            // 在当前地图测试区域左边生成5个传送门（场景二、三、四、五、僵尸地牢）
             const portalBaseX = 3478;
             const portalBaseY = 2363;
             const portalSpacing = 100;
-            const portalLabels = ['场景二', '场景三', '场景四', '场景五', '场景六'];
-            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', 'scene6'];
+            const portalLabels = ['场景二', '场景三', '场景四', '场景五', '僵尸地牢'];
+            const portalTargets = ['scene2', 'scene3', 'scene4', 'scene5', 'scene7'];
             for (let i = 0; i < 5; i++) {
                 const px = portalBaseX - (i + 1) * portalSpacing;
                 const py = portalBaseY;
@@ -397,8 +397,8 @@ export const Game = {
         requestAnimationFrame(t => this.loop(t));
     },
     update(dt) {
-        // ===== 场景六：地牢地图系统拦截 =====
-        if ((SceneManager.currentScene === 'scene6' || SceneManager.currentScene === 'scene7') && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+        // ===== 地牢模式：地牢地图系统拦截 =====
+        if (SceneManager.currentScene === 'scene7' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
             if (DungeonMapSystem.state === 'map') {
                 DungeonMapSystem.update(dt);
                 EffectManager.update(dt);
@@ -628,7 +628,7 @@ export const Game = {
                         if (dist < 30) {
                             this._portalCooldown = now + 2000; // 2秒冷却
                             try {
-                                if (entity.targetScene === 'scene6' || entity.targetScene === 'scene7') {
+                                if (entity.targetScene === 'scene7') {
                                     this._showDungeonEntryConfirm(entity);
                                 } else {
                                     // 检查是否是任务返回传送门
@@ -810,8 +810,8 @@ export const Game = {
         // ===== 渲染前置检查：Canvas 未就绪时跳过 =====
         if (!Renderer.ctx) return;
 
-        // ===== 场景六：地牢地图系统渲染拦截 =====
-        if ((SceneManager.currentScene === 'scene6' || SceneManager.currentScene === 'scene7') && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
+        // ===== 地牢模式：地牢地图系统渲染拦截 =====
+        if (SceneManager.currentScene === 'scene7' && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
             Renderer.clear();
             DungeonMapSystem.render(Renderer.ctx);
             return;
