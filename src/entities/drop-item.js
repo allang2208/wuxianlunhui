@@ -1,4 +1,3 @@
-import { Renderer } from '../world/renderer.js';
 import { Input } from '../ui/input.js';
 import { Entity } from './entity.js';
 import { loadImage } from '../utils/image-loader.js';
@@ -27,36 +26,78 @@ import { loadImage } from '../utils/image-loader.js';
             update(dt) {
                 // 装备不随时间消失（life = Infinity）
                 this.bobOffset += dt * 0.003;
+                this._syncPhaserSprite();
+                if (!this.active) this._destroyPhaserSprite();
             }
-            render(ctx) {
-                const pos = Renderer.worldToScreen(this.x, this.y);
+            _syncPhaserSprite() {
+                const phaserScene = window.__phaserScene;
+                if (!phaserScene || !phaserScene.dropItemsGroup) return;
+                if (!this._phaserSprite || !this._phaserSprite.active) {
+                    let key = 'drop_placeholder';
+                    if (this.image && this.image.complete && this.image.naturalWidth > 0) {
+                        const keyBase = this.image.src || 'drop';
+                        key = 'drop_' + keyBase.replace(/[^a-zA-Z0-9]/g, '_');
+                        if (!phaserScene.textures.exists(key)) {
+                            phaserScene.textures.addImage(key, this.image);
+                        }
+                    }
+                    const sprite = phaserScene.add.sprite(this.x, this.y, key);
+                    sprite.setOrigin(0.5, 0.5);
+                    sprite.setDepth(this.y);
+                    phaserScene.dropItemsGroup.add(sprite);
+                    // 掉落物不需要物理驱动，关闭自动移动减少开销
+                    if (sprite.body) {
+                        sprite.body.moves = false;
+                        sprite.body.immovable = true;
+                    }
+                    const label = phaserScene.add.text(this.x, this.y + 20, '', {
+                        fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
+                        fontSize: '11px',
+                        color: '#d4c5a9e6',
+                        align: 'center'
+                    });
+                    label.setOrigin(0.5, 0);
+                    label.setDepth(this.y + 1);
+                    this._phaserSprite = sprite;
+                    this._phaserLabel = label;
+                }
+
                 const bobY = Math.sin(this.bobOffset) * 4;
-                ctx.save(); ctx.translate(pos.x, pos.y + bobY);
-                // 鼠标悬停检测
-                const mx = Input.mouse.x, my = Input.mouse.y;
-                const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < 35;
-                // 发光效果
-                ctx.shadowColor = hover ? 'rgba(255, 215, 0, 0.8)' : 'rgba(200, 170, 100, 0.5)';
-                ctx.shadowBlur = hover ? 20 : 12;
-                if (this.image && this.image.complete && this.image.naturalWidth > 0) {
-                    const s = hover ? 40 : 32;
-                    if (this.image && this.image.complete && this.image.naturalWidth > 0) ctx.drawImage(this.image, -s/2, -s/2, s, s);
-                } else {
-                    ctx.fillStyle = '#c4a55a'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+                const camera = phaserScene.cameras.main;
+                const mx = Input.mouse.x + camera.scrollX;
+                const my = Input.mouse.y + camera.scrollY;
+                const hover = Math.sqrt((mx - this.x) ** 2 + (my - (this.y + bobY)) ** 2) < 35;
+                const size = hover ? 40 : 32;
+
+                this._phaserSprite.setPosition(this.x, this.y + bobY);
+                this._phaserSprite.setDepth(this.y + bobY);
+                this._phaserSprite.setDisplaySize(size, size);
+                if (this._lastHover !== hover) {
+                    this._lastHover = hover;
+                    this._phaserSprite.setTint(hover ? 0xffffaa : 0xffffff);
+
+                    const name = this.itemData.name || '';
+                    const labelText = hover ? `${name}\n[点击拾取]` : name;
+                    this._phaserLabel.setText(labelText);
+                    this._phaserLabel.setStyle({
+                        fontSize: hover ? '13px' : '11px',
+                        color: hover ? '#ffeb96' : '#d4c5a9e6'
+                    });
                 }
-                ctx.shadowBlur = 0;
-                // 金色轮廓高亮
-                if (hover) {
-                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.9)'; ctx.lineWidth = 2.5;
-                    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.stroke();
+                this._phaserLabel.setPosition(this.x, this.y + bobY + size / 2 + 4);
+                this._phaserLabel.setDepth(this.y + bobY + 1);
+                this._phaserLabel.setVisible(true);
+            }
+
+            _destroyPhaserSprite() {
+                if (this._phaserSprite) {
+                    this._phaserSprite.destroy();
+                    this._phaserSprite = null;
                 }
-                // 标签
-                ctx.fillStyle = hover ? 'rgba(255, 235, 150, 1)' : 'rgba(212, 197, 169, 0.9)';
-                ctx.font = hover ? '13px SimHei, "Microsoft YaHei", "黑体", sans-serif' : '11px SimHei, "Microsoft YaHei", "黑体", sans-serif'; ctx.textAlign = 'center';
-                ctx.fillText(this.itemData.name, 0, 28);
-                ctx.fillStyle = 'rgba(138, 125, 107, 0.7)'; ctx.font = '10px SimHei, "Microsoft YaHei", "黑体", sans-serif';
-                ctx.fillText('[点击拾取]', 0, 42);
-                ctx.restore();
+                if (this._phaserLabel) {
+                    this._phaserLabel.destroy();
+                    this._phaserLabel = null;
+                }
             }
         }
 

@@ -78,6 +78,7 @@ export function createHudPanelsMisc() {
 
     // ===== 操作提示 =====
     const controlsHintLeft = document.createElement('div');
+    controlsHintLeft.id = 'controlsHintLeft';
     controlsHintLeft.className = 'controls-hint-left';
     const controlsLines = [
         'WASD - 移动 | 鼠标 - 瞄准',

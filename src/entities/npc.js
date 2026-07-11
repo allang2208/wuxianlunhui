@@ -1,5 +1,3 @@
-import { Game } from '../game.js';
-import { Renderer } from '../world/renderer.js';
 import { Entity } from './entity.js';
 
 class NPC extends Entity {
@@ -39,37 +37,6 @@ class NPC extends Entity {
 
     getRandomGreeting() {
         return this.greetings[Math.floor(Math.random() * this.greetings.length)];
-    }
-
-    render(ctx) {
-        const screenPos = Renderer.worldToScreen(this.x, this.y);
-        const y = screenPos.y + this.floatOffset;
-        // NPC 身体（圆形）
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(screenPos.x, y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        // 边框
-        ctx.strokeStyle = '#8a6a4a';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        // 名称标签
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.name, screenPos.x, y - this.size - 8);
-        // 交互提示（如果玩家靠近）
-        if (Game.player) {
-            const dx = this.x - Game.player.x;
-            const dy = this.y - Game.player.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= this.interactionRange) {
-                ctx.fillStyle = 'rgba(255, 255, 200, 0.8)';
-                ctx.font = '10px "Microsoft YaHei", sans-serif';
-                ctx.fillText('左键对话', screenPos.x, y + this.size + 16);
-            }
-        }
-        ctx.textAlign = 'left';
     }
 }
 

@@ -1,5 +1,4 @@
 import { PhaserGame } from './phaser/PhaserGame.js';
-import { MazeGenerator } from './world/maze-generator.js';
 import { Portal } from './world/portal.js';
 import { EventBus } from './core/event-bus.js';
 import { SoundManager } from './ui/sound-manager.js';
@@ -28,6 +27,7 @@ import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
 import { GAME_CONFIG } from './config/game-config.js';
 import { EffectManager } from './effects/effect-manager.js';
+import { PerfMonitor } from './utils/perf-monitor.js';
 import { getElement } from './utils/dom-utils.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
@@ -36,7 +36,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, SpitterZombie, FatZombie, FastZombie, ZombieDog } from './entities/enemy-types.js';
+import { BlackWolf, CircleEnemy } from './entities/enemy-types.js';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
@@ -55,10 +55,8 @@ export const Game = {
     _battleCommander: null, // 指挥AI实例
     _tacticalSquadAI: null, // 战术小队AI实例
     showAttackRange: false, // 攻击范围显示开关
-    showHitbox: false, // 六边形碰撞盒调试显示开关
     _npcDialoguePaused: false,
     _gameStartTime: null, // 游戏开始时间戳
-    _renderList: [], // 可复用的渲染排序数组，减少每帧 GC
     // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
     init() {
@@ -67,7 +65,7 @@ export const Game = {
             return;
         }
         SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
-        GameUIManager.init(this.player); GameUIManager.initHitboxToggle(); GameUIManager.initAttackRangeToggle();
+        GameUIManager.init(this.player); GameUIManager.initAttackRangeToggle();
         if (QuestTracker) QuestTracker.init();
     },
     async start() {
@@ -263,45 +261,26 @@ export const Game = {
                 WallSystem.addTree(tx, ty, treeRadius, (group.startIndex || 0) + i, group.type, Math.random() * Math.PI * 2);
             }
         }
-        // 在出生点旁边生成一只绿色火柴人僵尸，方便测试盾牌
-        const zombie = new Enemy(npcX + 200, npcY + 100, {
-            name: 'Zombie',
-            hp: 80, maxHp: 80,
-            size: 14, collisionRadius: 12,
-            color: '#4a9a4a',
-            highlightColor: 'rgba(100, 180, 100, 0.3)',
-            speed: 25,
-            showWeapon: false,
-            _useStickFigure: false,  // 使用图片贴图
-            _alertRange: Infinity, // 无限索敌距离
-            attack: { cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
-        });
-        this.entities.set('zombie_test', zombie);
-
-        // 在僵尸旁边生成一只毒液僵尸（紫色头绿色身体）
-        const spitter = new SpitterZombie(npcX + 350, npcY + 100, {
-            name: 'Spitter Zombie',
-            showWeapon: false,
-            _alertRange: Infinity // 无限索敌距离
-        });
-        this.entities.set('spitter_test', spitter);
-        // 在僵尸旁边生成一只胖子僵尸（棕色头深绿色身体）
-        const fatZombie = new FatZombie(npcX + 500, npcY + 100, {
-            name: 'Fat Zombie'
-        });
-        this.entities.set('fatzombie_test', fatZombie);
-        // 在僵尸旁边生成一只奔跑僵尸（红色头绿色身体）
-        const fastZombie = new FastZombie(npcX + 650, npcY + 100, {
-            name: 'Runner Zombie',
-            showWeapon: false
-        });
-        this.entities.set('fastzombie_test', fastZombie);
-        // 在僵尸旁边生成一只僵尸犬（骨骼火柴人）
-        const zombieDog = new ZombieDog(npcX + 800, npcY + 100, {
-            name: 'Zombie Dog',
-            showWeapon: false
-        });
-        this.entities.set('zombiedog_test', zombieDog);
+        // 在出生点旁边生成几只不同颜色的圆形敌人用于测试
+        const testEnemies = [
+            { x: 200, color: '#4a9a4a', name: 'Zombie', size: 14 },
+            { x: 350, color: '#7a3a8a', name: 'Spitter Zombie', size: 14 },
+            { x: 500, color: '#5a7a5a', name: 'Fat Zombie', size: 18 },
+            { x: 650, color: '#c03030', name: 'Runner Zombie', size: 12 },
+            { x: 800, color: '#d4cfc0', name: 'Zombie Dog', size: 12 }
+        ];
+        for (const t of testEnemies) {
+            const e = new CircleEnemy(npcX + t.x, npcY + 100, {
+                name: t.name,
+                hp: 80, maxHp: 80,
+                size: t.size, collisionRadius: t.size,
+                color: t.color,
+                showWeapon: false,
+                _alertRange: Infinity,
+                attack: { cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
+            });
+            this.entities.set(`enemy_test_${t.x}`, e);
+        }
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -443,6 +422,7 @@ export const Game = {
                     const added = EquipManager.addToBackpack(entity.itemData);
                     if (added) {
                         entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
                         picked = true;
@@ -460,7 +440,16 @@ export const Game = {
             const dt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
             this.frameCount++; this.fpsTimer += dt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
-            this.update(dt); this.render(); GameUIManager.updateUI(); Input.update();
+            const tUpdate = performance.now();
+            this.update(dt);
+            PerfMonitor.record('game:update', performance.now() - tUpdate);
+            const tRender = performance.now();
+            this.render();
+            PerfMonitor.record('game:render', performance.now() - tRender);
+            const tUi = performance.now();
+            GameUIManager.updateUI();
+            Input.update();
+            PerfMonitor.record('game:ui', performance.now() - tUi);
         } catch (e) {
             console.error('Game loop error:', e);
         }
@@ -499,12 +488,15 @@ export const Game = {
         }
 
         // 无人机操控模式下镜头跟随无人机
+        const tCamera = performance.now();
         if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
             const drone = this.player.droneSystem;
             Camera.update({ x: drone.x, y: drone.y });
         } else {
             Camera.update(this.player);
         }
+        PerfMonitor.record('game:camera', performance.now() - tCamera);
+
         // 读取交互距离配置
         const interactCfg = GAME_CONFIG.interactionDistances || {};
         const npcClickDist = interactCfg.npcClick || 200;
@@ -512,6 +504,7 @@ export const Game = {
         const pickupClickDist = interactCfg.pickupClick || 150;
         const pickupHoverDist = interactCfg.pickupHover || 35;
 
+        const tInput = performance.now();
         if (Input.mouse.leftPressed) {
             // NPC 对话检测（优先于拾取）
             if (NPCDialogue.active) {
@@ -521,7 +514,8 @@ export const Game = {
             }
             let clickedNPC = false;
             let clickedPickup = false;
-            for (const entity of this.entities.values()) {
+            const dropKeysToDelete = [];
+            for (const [key, entity] of this.entities) {
                 if (clickedNPC && clickedPickup) break;
                 if (!clickedNPC && entity instanceof NPC && entity.active) {
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
@@ -548,7 +542,8 @@ export const Game = {
                         const added = EquipManager.addToBackpack(entity.itemData);
                         if (added) {
                             entity.active = false;
-                            // key unavailable in for-of, rely on cleanup pass
+                            if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                            dropKeysToDelete.push(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
                             clickedPickup = true;
                             Input.mouse.leftPressed = false;
@@ -558,24 +553,53 @@ export const Game = {
                     }
                 }
             }
+            for (const key of dropKeysToDelete) {
+                this.entities.delete(key);
+            }
             if (clickedNPC) return;
         }
+        PerfMonitor.record('game:input', performance.now() - tInput);
 
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
+        const tEntityUpdate = performance.now();
+        let tEntityBaseAcc = 0;
+        let tPerceptionAcc = 0;
+        let tMovementAcc = 0;
+        let tCombatAcc = 0;
         this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             if (!e.active) continue;
+            const tBase = performance.now();
             e.update(dt, this.entities);
+            tEntityBaseAcc += performance.now() - tBase;
             if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);
-                if (PerceptionSystem) PerceptionSystem.update(e, dt, this.entities);
-                if (MovementSystem) MovementSystem.update(e, dt, this.entities);
-                if (CombatSystem) CombatSystem.update(e, dt, this.entities);
+                if (PerceptionSystem) {
+                    const tP = performance.now();
+                    PerceptionSystem.update(e, dt, this.entities);
+                    tPerceptionAcc += performance.now() - tP;
+                }
+                if (MovementSystem) {
+                    const tM = performance.now();
+                    MovementSystem.update(e, dt, this.entities);
+                    tMovementAcc += performance.now() - tM;
+                }
+                if (CombatSystem) {
+                    const tC = performance.now();
+                    CombatSystem.update(e, dt, this.entities);
+                    tCombatAcc += performance.now() - tC;
+                }
             }
         }
+        PerfMonitor.record('game:entityBase', tEntityBaseAcc);
+        PerfMonitor.record('game:perception', tPerceptionAcc);
+        PerfMonitor.record('game:movement', tMovementAcc);
+        PerfMonitor.record('game:combat', tCombatAcc);
         // === [REFACTOR-END] ===
+        PerfMonitor.record('game:entityUpdate', performance.now() - tEntityUpdate);
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
+        const tSystems = performance.now();
         if (FormationSystem) {
             for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
@@ -606,8 +630,10 @@ export const Game = {
         if (TacticalSquadRoleSwitch) {
             TacticalSquadRoleSwitch.update(dt, this.entities);
         }
+        PerfMonitor.record('game:systems', performance.now() - tSystems);
 
         // ===== 单次遍历：金币自动拾取 + 清理死亡实体 + 传送门检测 =====
+        const tSecondLoop = performance.now();
         const pickupCfg = GAME_CONFIG.pickup || {};
         const goldAutoRange = pickupCfg.goldAutoRange || 80;
         const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
@@ -664,6 +690,7 @@ export const Game = {
                         }
                         if (stacked) {
                             entity.active = false;
+                            if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                             if (SoundManager) {
@@ -672,6 +699,7 @@ export const Game = {
                         } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
                             EquipManager.addToBackpack(entity.itemData);
                             entity.active = false;
+                            if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                             if (SoundManager) {
@@ -697,6 +725,7 @@ export const Game = {
                     }
                     if (stacked) {
                         entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                         if (SoundManager) {
@@ -705,6 +734,7 @@ export const Game = {
                     } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
                         EquipManager.addToBackpack(entity.itemData);
                         entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                         if (SoundManager) {
@@ -740,8 +770,13 @@ export const Game = {
                 }
             }
         }
+        PerfMonitor.record('game:secondLoop', performance.now() - tSecondLoop);
 
+        const tCollisions = performance.now();
 this.resolveCollisions();
+        PerfMonitor.record('game:collisions', performance.now() - tCollisions);
+
+        const tEffects = performance.now();
         EffectManager.update(dt);
         // ===== 状态栏更新 =====
         if (StatusBar) {
@@ -754,7 +789,19 @@ this.resolveCollisions();
         QuickBar.updateCooldowns(dt);
         // Z键范围拾取：检测并执行
         if (this._pickupNearbyFlag) { this._pickupNearbyFlag = false; this.pickupNearbyItems(); }
+
+        // 清理已失效但仍在 entities 中的掉落物（销毁 Phaser Sprite 并从 Map 移除）
+        for (const [key, entity] of this.entities) {
+            if (!entity.active && entity instanceof DropItem) {
+                if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                this.entities.delete(key);
+            }
+        }
+
+        PerfMonitor.record('game:effectsCleanup', performance.now() - tEffects);
+
         // 列车场景滚动背景
+        const tSceneSpawns = performance.now();
         if (SceneManager.currentScene === 'scene3') {
             if (!this._trainScrollOffset) this._trainScrollOffset = 0;
             const scene3Cfg = GAME_CONFIG.scene3 || { scrollSpeed: 500 };
@@ -805,6 +852,8 @@ this.resolveCollisions();
                 }
             }
         }
+        PerfMonitor.record('game:sceneSpawns', performance.now() - tSceneSpawns);
+
         // NPC 距离检测：离开配置距离自动关闭所有相关界面
         this._checkNPCDistance();
         // NPC 对话逐字更新
@@ -840,6 +889,7 @@ this.resolveCollisions();
                     const added = EquipManager.addToBackpack(entity.itemData);
                     if (added) {
                         entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `拾取: ${entity.itemData.name}`));
                         pickedCount++;
@@ -879,83 +929,18 @@ this.resolveCollisions();
     },
     render() {
         // ===== 渲染前置检查：Canvas 未就绪时跳过 =====
-        if (!Renderer.ctx) return;
+        if (!Renderer.ctx || !Renderer.canvas) return;
 
-        // ===== 地牢模式：地牢地图系统渲染拦截 =====
-        if (SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map') {
+        // ===== 地牢模式：显示 gameCanvas 并渲染地牢地图 =====
+        const isDungeonMap = SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map';
+        if (isDungeonMap) {
+            if (Renderer.canvas.style.display !== 'block') Renderer.canvas.style.display = 'block';
             Renderer.clear();
             DungeonMapSystem.render(Renderer.ctx);
             return;
         }
 
-        if (SceneManager.currentScene === 'scene3') {
-            Renderer.renderTrainBackground();
-        } else {
-            Renderer.clear();
-        }
-        // 重置 Canvas 变换矩阵，防止 Phaser 同步导致的 ctx 状态累积
-        if (Renderer.ctx) Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        Renderer.renderTerrain();
-        const canvasW = Renderer.canvas ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
-        const canvasH = Renderer.canvas ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
-        if (SceneManager.currentScene !== 'scene3' && SceneManager.currentScene !== 'scene2') {
-            Renderer.renderGrid();
-            MazeGenerator.render(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
-        }
-        // 墙壁侧视渲染（在 terrain 之后、实体之前）
-        WallSystem.renderWalls(Renderer.ctx, Camera.x - canvasW/2, Camera.y - canvasH/2);
-        // 实体渲染：复用数组并排序，避免每帧创建新数组
-        const sorted = this._renderList;
-        let renderCount = 0;
-        for (const e of this.entities.values()) {
-            if (e.active) sorted[renderCount++] = e;
-        }
-        sorted.length = renderCount;
-        sorted.sort((a, b) => a.y - b.y);
-        // 实体渲染：合并渲染、碰撞盒调试、受击白光效果到单次遍历
-        if (Renderer.ctx) {
-            for (const e of sorted) {
-                e.render(Renderer.ctx);
-                if (this.showHitbox && (e.hitbox || e.renderCollisionRadius)) {
-                    e.renderCollisionRadius(Renderer.ctx);
-                }
-                if (e.hitFlash > 0 && e !== this.player) {
-                    const flashAlpha = e.hitFlash / e.hitFlashDuration;
-                    const pos = Renderer.worldToScreen(e.x, e.y);
-                    Renderer.ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha * 0.6})`;
-                    Renderer.ctx.beginPath();
-                    Renderer.ctx.arc(pos.x, pos.y, e.size + 2, 0, Math.PI * 2);
-                    Renderer.ctx.fill();
-                }
-            }
-        } else {
-            sorted.forEach(e => e.render(Renderer.ctx));
-        }
-        EffectManager.render(Renderer.ctx);
-        // 战术小队无人机渲染
-        if (this._tacticalSquadAI) {
-            this._tacticalSquadAI.renderDrone(Renderer.ctx);
-        }
-        // 协同效应系统渲染
-        if (this._synergySystem) {
-            this._synergySystem.render(Renderer.ctx);
-        }
-        // 裂隙系统渲染（仅在任务模式的雪地场景）
-        if (SceneManager.currentScene === 'scene2' && QuestState && QuestState.isInQuest() && RiftSystem) {
-            RiftSystem.render(Renderer.ctx);
-        }
-        // 玩家受击屏幕红光效果
-        if (Renderer.ctx && this.player && this.player.hitFlash > 0) {
-            const flashAlpha = this.player.hitFlash / this.player.hitFlashDuration;
-            Renderer.ctx.fillStyle = `rgba(255, 30, 30, ${flashAlpha * 0.25})`;
-            Renderer.ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
-        }
-        // 树木在实体上方渲染（覆盖人物，但排除人物位置形成透视效果）
-        if (SceneManager.currentScene !== 'scene3') {
-            WallSystem.renderTrees(Renderer.ctx, Camera.x - CONFIG.VIEW_WIDTH/2, Camera.y - CONFIG.VIEW_HEIGHT/2);
-        }
-        // 绘制准星
-        Renderer.drawCrosshair();
-        Renderer.renderMinimap();
+        // 所有世界渲染已迁移到 Phaser；非地牢地图模式下隐藏底层 gameCanvas 以节省 clear/合成开销
+        if (Renderer.canvas.style.display !== 'none') Renderer.canvas.style.display = 'none';
     },
 };

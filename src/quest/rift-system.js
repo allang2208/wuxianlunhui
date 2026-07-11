@@ -1,7 +1,6 @@
 import { Portal } from '../world/portal.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
-import { Renderer } from '../world/renderer.js';
 import { SceneManager } from '../world/scene-manager.js';
 // Rift System - 时空裂隙系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -116,25 +115,6 @@ export const RiftSystem = {
                 QuestState.questCompleted = true;
                 this._onAllRiftsComplete();
             }
-        }
-    },
-
-    // 渲染裂隙（在游戏渲染循环中调用）
-    render(ctx) {
-        for (const rift of this.rifts) {
-            if (rift.completed) continue;
-            const sp = Renderer.worldToScreen(rift.x, rift.y);
-            // 浅蓝色实心圆（半径100px）
-            ctx.fillStyle = 'rgba(135, 206, 250, 0.6)';
-            ctx.beginPath();
-            ctx.arc(sp.x, sp.y, 100, 0, Math.PI * 2);
-            ctx.fill();
-            // 绿色外圈（半径200px）
-            ctx.strokeStyle = 'rgba(50, 205, 50, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(sp.x, sp.y, 200, 0, Math.PI * 2);
-            ctx.stroke();
         }
     },
 

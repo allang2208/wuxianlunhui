@@ -18,6 +18,15 @@ export function getElement(id) {
 }
 
 /**
+ * 静默获取元素，不存在时不输出警告。用于可选的 DOM 元素（如未打开的面板）。
+ * @param {string} id
+ * @returns {HTMLElement | null}
+ */
+export function getElementIfExists(id) {
+    return document.getElementById(id) || null;
+}
+
+/**
  * 安全查询单个元素。
  * @param {string} selector
  * @param {ParentNode} [parent=document]

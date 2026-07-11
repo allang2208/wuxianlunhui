@@ -4,7 +4,6 @@ import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { Portal } from './portal.js';
 import { BlackWolf } from '../entities/enemy-types.js';
-import FormationSystem from '../systems/formation-system.js';
 
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
@@ -13,7 +12,6 @@ import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
-import { Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer } from '../entities/humanoid-monster.js';
 import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
@@ -766,65 +764,6 @@ export const SceneManager = {
         // 返回传送门
         const portal = new Portal(scene.width / 2, scene.height - 50, 'main', '返回主神空间');
         Game.entities.set('portal_return', portal);
-
-        // 仅生成战术小队，删除其他怪物
-        // ===== 6人战术小队测试生成 =====
-        const spawnTacticalSquad = (centerX, centerY, radius) => {
-            // 先清空旧的战术小队AI成员和FormationSystem编队
-            if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
-            if (FormationSystem) {
-                FormationSystem.getAllFormationIds().forEach(id => FormationSystem.disbandFormation(id));
-            }
-            const roles = [
-                { Class: Commander, role: 'commander', name: 'commander' },
-                { Class: MachineGunner, role: 'machineGunner', name: 'machineGunner' },
-                { Class: Rifleman, role: 'rifleman', name: 'rifleman' },
-                { Class: FlankRifleman, role: 'flankRifleman', name: 'flankRifleman' },
-                { Class: ShieldBearer, role: 'shieldBearer', name: 'shieldBearer_A' },
-                { Class: ShieldBearer, role: 'shieldBearer', name: 'shieldBearer_B' }
-            ];
-            const members = [];
-            let commander = null;
-            // 以 centerX, centerY 为圆心，radius 为半径环形排列
-            for (let i = 0; i < roles.length; i++) {
-                const angle = (Math.PI * 2 / roles.length) * i;
-                let sx = centerX + Math.cos(angle) * radius;
-                let sy = centerY + Math.sin(angle) * radius;
-
-                // 检查生成位置是否在墙壁内，如果是则重新选择
-                if (WallSystem && WallSystem.canMoveTo) {
-                    let attempts = 0;
-                    const checkRadius = 25; // 最小安全半径
-                    while (!WallSystem.canMoveTo(sx, sy, checkRadius) && attempts < 20) {
-                        sx = centerX + (Math.random() - 0.5) * radius * 3;
-                        sy = centerY + (Math.random() - 0.5) * radius * 3;
-                        attempts++;
-                    }
-                    if (attempts >= 20) {
-                        console.warn(`[spawnTacticalSquad] 无法为 ${roles[i].name} 找到安全生成位置，使用默认位置`);
-                    }
-                }
-
-                const member = new roles[i].Class(sx, sy);
-                Game.entities.set(`tactical_squad_${roles[i].name}_${i}`, member);
-                members.push(member);
-                if (roles[i].role === 'commander') commander = member;
-                // 绑定到战术小队AI
-                if (Game._tacticalSquadAI) {
-                    Game._tacticalSquadAI.addMember(member, roles[i].role);
-                }
-            }
-            // 创建阵型编队（指挥官为leader，其他为成员）
-            if (FormationSystem && commander && members.length > 1) {
-                const followers = members.filter(m => m !== commander);
-                const fid = FormationSystem.createFormation(commander, 'wedge', followers);
-                if (fid) {
-                    FormationSystem.setTargetPosition(fid, centerX, centerY);
-                }
-            }
-        };
-        // 在场景五右上角生成战术小队（与原有怪物错开位置）
-        spawnTacticalSquad(scene.width * 0.75, scene.height * 0.25, 80);
 
         if (player) QuickBar.refreshSpecialAttack(player);
     },

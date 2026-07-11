@@ -1883,6 +1883,20 @@ _updateSubsystems(dt, entities) {
                 if (_currentWep && _currentWep.weaponEffect === 'runeSword') {
                     const isAttacking = this.weaponAnim.state !== 'idle';
                     const isUsingSkill = this._isWhirlwind || this._isDashing || this._specialAttackActive || this._runeSwordSpecialActive;
+                    const animState = this._isSprinting ? 'running' : this.isMoving ? 'walk' : 'idle';
+                    const swordCfg = getWeaponStateConfig('sword', animState);
+                    const wa = WEAPON_ANIM.sword;
+                    const holdX = swordCfg.holdOffsetX ?? wa.holdX;
+                    const holdY = swordCfg.holdOffsetY ?? wa.holdY;
+                    const mainBaseX = -7;
+                    const ms = WEAPON_ANIM.size;
+                    const localX = mainBaseX + holdX;
+                    const localY = holdY;
+                    const cos = Math.cos(this.rotation), sin = Math.sin(this.rotation);
+                    const x1 = cos * localX - sin * localY;
+                    const y1 = sin * localX + cos * localY;
+                    const hiltX = this.x + x1 + ms * 0.85;
+                    const hiltY = this.y + y1;
                     this.weaponEffect.update({
                         dt,
                         size: WEAPON_ANIM.size,
@@ -1892,6 +1906,8 @@ _updateSubsystems(dt, entities) {
                         weaponAnimState: this.weaponAnim.state,
                         x: this.x,
                         y: this.y,
+                        hiltX,
+                        hiltY,
                         mouseX: Input.mouse.x,
                         mouseY: Input.mouse.y,
                         screenToWorld: Renderer.screenToWorld.bind(Renderer)

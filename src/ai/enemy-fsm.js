@@ -1,4 +1,3 @@
-import { Renderer } from '../world/renderer.js';
 /**
  * EnemyFSM - 敌人有限状态机（FSM）框架
  * Phase 1：实现阶段切换系统（Boss血量阶段）
@@ -6,57 +5,6 @@ import { Renderer } from '../world/renderer.js';
  * 每帧由 enemy.js 的 update() 调用，根据血量百分比切换阶段
  * 阶段效果只应用一次，通过 _phaseEffectsApplied 记录
  */
-
-/**
- * 阶段切换视觉特效：简单的脉冲光圈
- */
-class PhaseChangeEffect {
-    constructor(x, y, phaseName) {
-        this.x = x;
-        this.y = y;
-        this.phaseName = phaseName;
-        this.life = 800;
-        this.maxLife = 800;
-        this.active = true;
-        this.maxRadius = 60;
-    }
-
-    update(dt = 16.67) {
-        this.life -= dt;
-        if (this.life <= 0) this.active = false;
-    }
-
-    render(ctx) {
-        const progress = 1 - this.life / this.maxLife;
-        const currentRadius = this.maxRadius * progress;
-        if (currentRadius <= 0) return;
-
-        // 需要 Renderer 将世界坐标转为屏幕坐标
-        const screenPos = Renderer
-            ? Renderer.worldToScreen(this.x, this.y)
-            : { x: this.x, y: this.y };
-
-        ctx.save();
-        // 阶段颜色：愤怒=橙红，狂暴=深红，普通=白色
-        let color = '255, 255, 255';
-        if ((this.phaseName || '').includes('愤怒')) color = '255, 120, 60';
-        if ((this.phaseName || '').includes('狂暴')) color = '220, 40, 40';
-
-        ctx.strokeStyle = `rgba(${color}, ${0.8 * (1 - progress)})`;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(screenPos.x, screenPos.y, currentRadius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 内圈发光
-        ctx.fillStyle = `rgba(${color}, ${0.15 * (1 - progress)})`;
-        ctx.beginPath();
-        ctx.arc(screenPos.x, screenPos.y, currentRadius * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-    }
-}
 
 export class EnemyFSM {
     constructor(config = {}) {
@@ -169,5 +117,3 @@ export class EnemyFSM {
         }
     }
 }
-
-export { PhaseChangeEffect };

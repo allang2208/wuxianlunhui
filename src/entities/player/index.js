@@ -19,7 +19,6 @@ import { ShieldSystem } from '../components/shield-system.js';
 import { baseMixin } from './base.js';
 import { updateMixin } from './update.js';
 import { weaponAnimMixin } from './weapon-anim.js';
-import { renderMixin } from './render.js';
 import { subsystemsMixin } from './subsystems.js';
 import { CONFIG } from '../../config/config.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -165,7 +164,6 @@ class Player extends Combatant {
 
 Object.assign(Player.prototype, baseMixin);
 Object.assign(Player.prototype, updateMixin);
-Object.assign(Player.prototype, renderMixin);
 Object.assign(Player.prototype, subsystemsMixin);
 Object.assign(Player.prototype, weaponAnimMixin);
 

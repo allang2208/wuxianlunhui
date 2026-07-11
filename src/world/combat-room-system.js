@@ -1,4 +1,3 @@
-import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
@@ -21,10 +20,9 @@ import { pathFinder } from '../ai/pathfinder.js';
  */
 
 import { CONFIG } from '../config/config.js';
-import { BlackWolf } from '../entities/enemy-types.js';
-import {
-    HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
-} from '../entities/humanoid-monster.js';
+import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
+
+const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
 // ==================== 配置对象 ====================
 export const COMBAT_ROOM_CONFIG = {
@@ -68,18 +66,14 @@ export const COMBAT_ROOM_CONFIG = {
         edgeHighlight: 'rgba(80, 80, 80, 0.5)'
     },
 
-    // 怪物池
+    // 怪物池（使用 getter 延迟解析，避免循环依赖导致的 TDZ）
     monsterPool: {
-        normal: [
-            BlackWolf, Rifleman, MachineGunner, FlankRifleman, ShieldBearer
-        ],
-        boss: [
-            Commander, HumanoidMonster, BlackWolf
-        ],
-        zombie: [
+        get normal() { return [BlackWolf, CircleEnemy]; },
+        get boss() { return [BlackWolf, CircleEnemy]; },
+        get zombie() {
             // 僵尸地牢怪物池（动态导入避免循环依赖）
-            null // 占位，实际使用时从 zombie-dungeon.js 获取
-        ]
+            return [null]; // 占位，实际使用时从 zombie-dungeon.js 获取
+        }
     },
 
     // 打扫战场配置
@@ -221,6 +215,7 @@ export const CombatRoomSystem = {
             }
 
             const key = `combat_monster_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
+            const Game = gameRef();
             if (Game && Game.entities) {
                 Game.entities.set(key, monster);
             }
@@ -261,6 +256,7 @@ export const CombatRoomSystem = {
 
         // 删除所有战斗怪物
         for (const key of this._combatMonsterKeys) {
+            const Game = gameRef();
             if (Game && Game.entities) {
                 Game.entities.delete(key);
             }
@@ -288,6 +284,7 @@ export const CombatRoomSystem = {
      */
     cleanupMonstersOnly() {
         for (const key of this._combatMonsterKeys) {
+            const Game = gameRef();
             if (Game && Game.entities) {
                 Game.entities.delete(key);
             }
@@ -501,6 +498,7 @@ export const CombatRoomSystem = {
         }
 
         // 确保玩家在 entities 中
+        const Game = gameRef();
         if (Game && Game.entities) {
             Game.entities.set('player', player);
         }

@@ -93,7 +93,7 @@ update(dt, entities) {
                 }
                 // 更新中毒粒子效果
                 if (this._poisonStacks > 0 && this._poisonEffect) {
-                    this._poisonEffect.update(dt, 0, 0);
+                    this._poisonEffect.update(dt, this.x, this.y);
                 }
                 // ===== 无人机易伤效果更新 =====
                 if (this._droneVulnerabilityStacks > 0) {

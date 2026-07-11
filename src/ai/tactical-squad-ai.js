@@ -1,6 +1,5 @@
 import { WallSystem } from '../world/wall-system.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { Renderer } from '../world/renderer.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 
@@ -370,59 +369,6 @@ export class TacticalSquadAI {
             if (dist > 400) {
                 sb.maxSpeed = sb._originalMaxSpeed * 1.2;
             }
-        }
-    }
-
-    // 渲染指挥官无人机（实体）
-    renderDrone(ctx) {
-        const drone = this._drone;
-        if (!drone.active) {
-            // 无人机未激活，显示冷却状态（如果指挥官存在）
-            const cmd = this.members.find(m => m._tacticalRole === 'commander');
-            if (cmd && cmd.active && drone.cooldown > 0) {
-                const screenPos = Renderer.worldToScreen(cmd.x, cmd.y);
-                const cdSec = Math.ceil(drone.cooldown / 1000);
-                ctx.fillStyle = 'rgba(150, 150, 150, 0.5)';
-                ctx.font = '12px SimHei, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(`🛸 ${cdSec}s`, screenPos.x, screenPos.y - 25);
-            }
-            return;
-        }
-        // 绘制无人机实体
-        const screenPos = Renderer.worldToScreen(drone.x, drone.y);
-        if (drone._image && drone._image.complete && drone._image.naturalWidth > 0) {
-            const size = 32;
-            ctx.drawImage(drone._image, screenPos.x - size / 2, screenPos.y - size / 2, size, size);
-        } else {
-            ctx.fillStyle = '#5a7a9a';
-            ctx.beginPath();
-            ctx.arc(screenPos.x, screenPos.y, 12, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        // 绘制范围圈（300px半径）
-        const radiusScreen = drone.radius * Renderer.zoom;
-        ctx.strokeStyle = 'rgba(90, 122, 154, 0.3)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(screenPos.x, screenPos.y, radiusScreen, 0, Math.PI * 2);
-        ctx.stroke();
-        // 显示剩余时间
-        const remainingSec = Math.ceil(drone.duration / 1000);
-        ctx.fillStyle = '#d4c5a9';
-        ctx.font = '10px SimHei, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${remainingSec}s`, screenPos.x, screenPos.y - 18);
-        // 绘制连线到指挥官（如果指挥官存在）
-        const cmd = this.members.find(m => m._tacticalRole === 'commander');
-        if (cmd && cmd.active) {
-            const cmdScreen = Renderer.worldToScreen(cmd.x, cmd.y);
-            ctx.strokeStyle = 'rgba(90, 122, 154, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(screenPos.x, screenPos.y);
-            ctx.lineTo(cmdScreen.x, cmdScreen.y);
-            ctx.stroke();
         }
     }
 

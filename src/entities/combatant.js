@@ -134,14 +134,6 @@ class Combatant extends DamageableEntity {
         return this.weaponMode;
     }
 
-    /** 获取当前武器贴图 Image */
-    getWeaponImage() {
-        const weapon = this.getCurrentWeapon();
-        if (!weapon) return null;
-        const wt = weapon.weaponType || weapon.rangedType;
-        return this.weaponImages[wt] || null;
-    }
-
     /** 加载武器贴图（子类调用） */
     _loadWeaponImage(weaponType, src) {
         if (!this.weaponImages[weaponType]) {
@@ -567,34 +559,6 @@ class Combatant extends DamageableEntity {
             return Math.floor((weapon.damage.min + weapon.damage.max) / 2);
         }
         return this.data.atk || 0;
-    }
-
-    // ==================== 基础渲染 ====================
-
-    /** 基础武器渲染（子类可覆盖） */
-    renderWeapon(ctx) {
-        const weapon = this.getCurrentWeapon();
-        if (!weapon) return;
-
-        const img = this.getWeaponImage();
-        if (!img || !img.complete || img.naturalWidth === 0) return;
-
-        const wt = weapon.weaponType;
-        const s = 20; // 基础尺寸
-
-        ctx.save();
-        ctx.translate(0, 0);
-        ctx.rotate(this.rotation + Math.PI / 2);
-
-        if (wt === 'pistol' || wt === 'deagle' || wt === 'p4040') {
-            ctx.drawImage(img, -s * 0.3, -s * 0.5, s * 0.6, s);
-        } else if (wt === 'pkm' || wt === 'akm' || wt === 'qbz191' || wt === 'qjb201' || wt === 'energy_lmg') {
-            ctx.drawImage(img, -s * 0.4, -s * 0.6, s * 0.8, s * 1.2);
-        } else {
-            ctx.drawImage(img, -s * 0.3, -s * 0.5, s * 0.6, s);
-        }
-
-        ctx.restore();
     }
 
     // ==================== 更新 ====================

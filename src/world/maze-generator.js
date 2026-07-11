@@ -1,5 +1,3 @@
-import { WallSystem } from '../world/wall-system.js';
-import { CONFIG } from '../config/config.js';
 const MazeGenerator = {
     CELL_SIZE: 120,
     WALL_THICKNESS: 16,
@@ -77,31 +75,6 @@ const MazeGenerator = {
         }
         return result;
     },
-    renderWalls(ctx, offsetX, offsetY) {
-        if (!ctx) return;
-        ctx.save();
-        const walls = WallSystem.getWallsInView(offsetX, offsetY, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT);
-        for (const w of walls) {
-            const sx = w.x - offsetX, sy = w.y - offsetY;
-            // 墙壁主体：深棕色石墙
-            ctx.fillStyle = '#6b5a4a';
-            ctx.fillRect(sx, sy, w.w, w.h);
-            // 墙壁高光边缘
-            ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 1;
-            ctx.strokeRect(sx, sy, w.w, w.h);
-            // 砖块纹理效果（每隔一段画一条线）
-            ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 0.5;
-            if (w.w > w.h) { // 水平墙
-                for (let bx = sx + 20; bx < sx + w.w; bx += 30) { ctx.beginPath(); ctx.moveTo(bx, sy); ctx.lineTo(bx, sy + w.h); ctx.stroke(); }
-            } else { // 垂直墙
-                for (let by = sy + 20; by < sy + w.h; by += 20) { ctx.beginPath(); ctx.moveTo(sx, by); ctx.lineTo(sx + w.w, by); ctx.stroke(); }
-            }
-        }
-        ctx.restore();
-    },
-    render(ctx, offsetX, offsetY) {
-        this.renderWalls(ctx, offsetX, offsetY);
-    }
 };
 
 // ==================== 墙壁管理系统 ====================

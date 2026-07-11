@@ -319,7 +319,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 this._poisonTimer -= dt;
                 this._poisonTickTimer -= dt;
                 if (this._poisonEffect) {
-                    this._poisonEffect.update(dt, 0, -this.size);
+                    this._poisonEffect.update(dt, this.x, this.y - this.size);
                 }
                 if (this._poisonTickTimer <= 0) {
                     this.hp -= this._poisonStacks;

@@ -186,7 +186,8 @@ export const BOSS_REWARD_CONFIG = {
 
 // ==================== 大块头 Boss 类 ====================
 
-export class BigBoss extends Enemy {
+function createBigBossClass() {
+    return class BigBoss extends Enemy {
     constructor(x, y, config = {}) {
         const mergedConfig = { ...BOSS_REWARD_CONFIG.boss, ...config };
         super(x, y, mergedConfig);
@@ -713,6 +714,13 @@ export class BigBoss extends Enemy {
         
     }
 }
+}
+
+let BigBossClass = null;
+export function getBigBossClass() {
+    if (!BigBossClass) BigBossClass = createBigBossClass();
+    return BigBossClass;
+}
 
 // ==================== Buff 系统 ====================
 
@@ -1076,7 +1084,7 @@ export class BossBattleManager {
         const bx = size / 2 + (Math.random() - 0.5) * 400;
         const by = size / 2 + (Math.random() - 0.5) * 400;
 
-        this.boss = new BigBoss(bx, by);
+        this.boss = new (getBigBossClass())(bx, by);
         this.bossKey = `dungeon_boss_${Date.now()}`;
 
         if (Game.entities) {
@@ -1360,7 +1368,7 @@ export const BossRewardSystem = {
 // 全局挂载
 if (typeof window !== 'undefined' && !window.BossRewardSystem) {
     window.BossRewardSystem = BossRewardSystem;
-    window.BigBoss = BigBoss;
+    window.BigBoss = getBigBossClass;
     window.BossBattleManager = BossBattleManager;
     window.RewardNodeManager = RewardNodeManager;
     window.DungeonBuffSystem = DungeonBuffSystem;
@@ -1369,7 +1377,7 @@ if (typeof window !== 'undefined' && !window.BossRewardSystem) {
 // 默认导出
 export default {
     BossRewardSystem,
-    BigBoss,
+    getBigBossClass,
     BossBattleManager,
     RewardNodeManager,
     DungeonBuffSystem,

@@ -74,6 +74,7 @@ export const ProjectileFactory = {
             p.traveled = 0;
             p.active = true;
             p.hitTargets = new Set();
+            p.syncPhaserSprite();
         } else {
             p = new Projectile(
                 x, y, angle, speed, maxRange, size,

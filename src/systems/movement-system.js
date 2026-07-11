@@ -14,6 +14,10 @@ import { WallSystem } from '../world/wall-system.js';
 
 import { PathManager } from '../ai/path-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { PerfMonitor } from '../utils/perf-monitor.js';
+
+/** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
+const MAX_PATHFIND_RANGE = 800;
 
 /**
  * 移动系统核心实现
@@ -58,7 +62,9 @@ const MovementSystem = {
         }
 
         // 计算目标方向和距离
+        const tDir = performance.now();
         const moveData = this._computeMoveDirection(enemy, entities);
+        PerfMonitor.record('movement:computeDir', performance.now() - tDir);
         if (!moveData) {
             enemy.vx *= enemy.friction || 0.82;
             enemy.vy *= enemy.friction || 0.82;
@@ -75,41 +81,58 @@ const MovementSystem = {
 
         // [ENHANCE] 主动预规划：有目标且路径缺失或路径终点严重偏离目标时，重新计算路径
         if (enemy._pathManager && enemy.target && enemy.target.active) {
-            let targetX = enemy.target.x, targetY = enemy.target.y;
-            let shouldRecalc = !enemy._pathManager.hasValidPath();
+            const targetX = enemy.target.x;
+            const targetY = enemy.target.y;
+            const distToTarget = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
 
-            // 路径终点检查：如果路径终点与目标偏差 > 100px，路径已过时，需要重新计算
-            if (!shouldRecalc && enemy._pathManager.path) {
-                const pathEnd = enemy._pathManager.path[enemy._pathManager.path.length - 1];
-                const endDx = pathEnd.x - targetX;
-                const endDy = pathEnd.y - targetY;
-                const endDist = Math.sqrt(endDx * endDx + endDy * endDy);
-                if (endDist > 100) {
-                    shouldRecalc = true;
+            // 目标太远时直接移动，不做 A*，避免生成巨大网格造成卡顿
+            if (distToTarget > MAX_PATHFIND_RANGE) {
+                enemy._pathManager._clearPath();
+            } else {
+                let shouldRecalc = !enemy._pathManager.hasValidPath();
+
+                // 路径终点检查：如果路径终点与目标偏差 > 100px，路径已过时，需要重新计算
+                if (!shouldRecalc && enemy._pathManager.path) {
+                    const pathEnd = enemy._pathManager.path[enemy._pathManager.path.length - 1];
+                    const endDx = pathEnd.x - targetX;
+                    const endDy = pathEnd.y - targetY;
+                    const endDist = Math.sqrt(endDx * endDx + endDy * endDy);
+                    if (endDist > 100) {
+                        shouldRecalc = true;
+                    }
                 }
-            }
 
-            if (shouldRecalc && (targetX !== enemy.x || targetY !== enemy.y)) {
-                enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+                if (shouldRecalc && (targetX !== enemy.x || targetY !== enemy.y)) {
+                    const tRecalc = performance.now();
+                    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+                    PerfMonitor.record('movement:recalc', performance.now() - tRecalc);
+                }
             }
         }
 
         // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
         if (enemy._pathManager && pathFinder) {
+            const tPathUpdate = performance.now();
             enemy._pathManager.update(dt, pathFinder);
+            PerfMonitor.record('movement:pathUpdate', performance.now() - tPathUpdate);
         }
 
         // 卡住检测与寻路触发（保留原有逻辑，作为 fallback）
+        const tStuck = performance.now();
         this._updateStuckDetection(enemy, dt, dx, dy, dist);
+        PerfMonitor.record('movement:stuckDetect', performance.now() - tStuck);
 
         // 路径跟随（使用 PathManager）
+        const tMoveApply = performance.now();
         if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
             this._followPath(enemy, dt);
+            PerfMonitor.record('movement:moveApply', performance.now() - tMoveApply);
             return;
         }
 
         // 正常移动
         this._applyNormalMovement(enemy, dt, dx, dy, dist);
+        PerfMonitor.record('movement:moveApply', performance.now() - tMoveApply);
 
         // 攻击范围内减速
         if (dist <= enemy.attackRange && enemy.target && enemy.target.active) {
@@ -118,7 +141,9 @@ const MovementSystem = {
         }
 
         // 更新移动动画状态
+        const tAnim = performance.now();
         this._updateMovementAnim(enemy, dt);
+        PerfMonitor.record('movement:anim', performance.now() - tAnim);
     },
 
     /**
@@ -236,7 +261,8 @@ const MovementSystem = {
                 }
                 
                 // [ENHANCE] 卡住时强制触发 PathManager 重算（绕过频率限制）
-                if (enemy._pathManager && pathFinder) {
+                const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
+                if (enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
                 }
 

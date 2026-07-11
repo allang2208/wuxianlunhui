@@ -1,5 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
+import { PerfMonitor } from '../utils/perf-monitor.js';
 
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
@@ -179,6 +180,7 @@ class PathFinder {
     constructor() {
         this.gridSize = 40;  // [MODIFIED] 优化grid分辨率：20→40，减少网格数量提高性能
         this.minSearchRange = 300;
+        this.maxSearchRange = 800; // [NEW] 限制搜索范围，避免远距离目标产生巨大网格
         this.spatialHash = new SpatialHash(40);
         this._hashValid = false;
         this._maxTreeRadius = 0; // 用于 _getMoveCost SpatialHash 查询范围
@@ -362,7 +364,10 @@ class PathFinder {
 
     _buildGrid(startX, startY, endX, endY, entityRadius) {
         const directDist = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
-        const searchRange = Math.max(this.minSearchRange, directDist + 200);
+        const searchRange = Math.min(
+            this.maxSearchRange,
+            Math.max(this.minSearchRange, directDist + 200)
+        );
         const minX = Math.min(startX, endX) - searchRange;
         const maxX = Math.max(startX, endX) + searchRange;
         const minY = Math.min(startY, endY) - searchRange;
@@ -465,82 +470,87 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
-        // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
-        if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
-            return null;
-        }
-        // [ENHANCE] 尝试从缓存获取
-        const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius);
-        const cachedPath = this._getFromCache(cacheKey);
-        if (cachedPath) {
-            return cachedPath;
-        }
-        const { grid, minX, minY, cols, rows } = this._buildGrid(startX, startY, endX, endY, entityRadius);
-        const startC = Math.floor((startX - minX) / this.gridSize);
-        const startR = Math.floor((startY - minY) / this.gridSize);
-        const endC = Math.floor((endX - minX) / this.gridSize);
-        const endR = Math.floor((endY - minY) / this.gridSize);
-        if (startR < 0 || startR >= rows || startC < 0 || startC >= cols) return null;
-        if (endR < 0 || endR >= rows || endC < 0 || endC >= cols) return null;
-        const startOpen = this._findNearestOpen(grid, rows, cols, startR, startC);
-        const endOpen = this._findNearestOpen(grid, rows, cols, endR, endC);
-        if (!startOpen || !endOpen) return null;
-        const startNode = grid[startOpen.r][startOpen.c];
-        const endNode = grid[endOpen.r][endOpen.c];
-        startNode.g = 0;
-        startNode.h = Math.max(Math.abs(endX - startNode.x), Math.abs(endY - startNode.y));
-        startNode.f = startNode.h;
-        startNode.parent = null;
-        const openHeap = new BinaryHeap(node => node.f);
-        const closedSet = new Set();
-        let iterations = 0;
-        const maxIterations = Math.min(cols * rows * 2, 5000);
-        let bestNode = startNode;
-        openHeap.push(startNode);
-        while (openHeap.size() > 0) {
-            if (++iterations > maxIterations) {
-                // 超时回退：返回通往当前最接近目标节点的路径
-                console.warn('[PathFinder] A* iteration limit reached, returning best-effort path');
-                return this._reconstructPath(bestNode, entityRadius, cacheKey);
+        const t0 = performance.now();
+        try {
+            // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
+            if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
+                return null;
             }
-            const current = openHeap.pop();
-            closedSet.add(`${current.r},${current.c}`);
-            if (!bestNode || current.h < bestNode.h) {
-                bestNode = current;
+            // [ENHANCE] 尝试从缓存获取
+            const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius);
+            const cachedPath = this._getFromCache(cacheKey);
+            if (cachedPath) {
+                return cachedPath;
             }
-            if (current === endNode || (Math.abs(current.x - endNode.x) < this.gridSize && Math.abs(current.y - endNode.y) < this.gridSize)) {
-                return this._reconstructPath(current, entityRadius, cacheKey);
-            }
-            const neighbors = [
-                [-1, -1], [-1, 0], [-1, 1],
-                [0, -1],           [0, 1],
-                [1, -1],  [1, 0],  [1, 1]
-            ];
-            for (const [dr, dc] of neighbors) {
-                const nr = current.r + dr;
-                const nc = current.c + dc;
-                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
-                const neighbor = grid[nr][nc];
-                if (neighbor.blocked) continue;
-                if (closedSet.has(`${nr},${nc}`)) continue;
-                if (this._isCornerCut(grid, rows, cols, current.r, current.c, dr, dc)) continue;
-                const isDiagonal = dr !== 0 && dc !== 0;
-                // [ENHANCE] 使用格子的 moveCost 权重
-                const baseMoveCost = isDiagonal ? 1.414 : 1;
-                const terrainCost = neighbor.moveCost || 1.0;
-                const moveCost = baseMoveCost * terrainCost * this.gridSize;
-                const tentativeG = current.g + moveCost;
-                if (tentativeG < neighbor.g) {
-                    neighbor.g = tentativeG;
-                    neighbor.h = Math.max(Math.abs(endX - neighbor.x), Math.abs(endY - neighbor.y));
-                    neighbor.f = neighbor.g + neighbor.h;
-                    neighbor.parent = current;
-                    openHeap.remove(neighbor);
-                    openHeap.push(neighbor);
+            const { grid, minX, minY, cols, rows } = this._buildGrid(startX, startY, endX, endY, entityRadius);
+            const startC = Math.floor((startX - minX) / this.gridSize);
+            const startR = Math.floor((startY - minY) / this.gridSize);
+            const endC = Math.floor((endX - minX) / this.gridSize);
+            const endR = Math.floor((endY - minY) / this.gridSize);
+            if (startR < 0 || startR >= rows || startC < 0 || startC >= cols) return null;
+            if (endR < 0 || endR >= rows || endC < 0 || endC >= cols) return null;
+            const startOpen = this._findNearestOpen(grid, rows, cols, startR, startC);
+            const endOpen = this._findNearestOpen(grid, rows, cols, endR, endC);
+            if (!startOpen || !endOpen) return null;
+            const startNode = grid[startOpen.r][startOpen.c];
+            const endNode = grid[endOpen.r][endOpen.c];
+            startNode.g = 0;
+            startNode.h = Math.max(Math.abs(endX - startNode.x), Math.abs(endY - startNode.y));
+            startNode.f = startNode.h;
+            startNode.parent = null;
+            const openHeap = new BinaryHeap(node => node.f);
+            const closedSet = new Set();
+            let iterations = 0;
+            const maxIterations = Math.min(cols * rows * 2, 5000);
+            let bestNode = startNode;
+            openHeap.push(startNode);
+            while (openHeap.size() > 0) {
+                if (++iterations > maxIterations) {
+                    // 超时回退：返回通往当前最接近目标节点的路径
+                    console.warn('[PathFinder] A* iteration limit reached, returning best-effort path');
+                    return this._reconstructPath(bestNode, entityRadius, cacheKey);
+                }
+                const current = openHeap.pop();
+                closedSet.add(`${current.r},${current.c}`);
+                if (!bestNode || current.h < bestNode.h) {
+                    bestNode = current;
+                }
+                if (current === endNode || (Math.abs(current.x - endNode.x) < this.gridSize && Math.abs(current.y - endNode.y) < this.gridSize)) {
+                    return this._reconstructPath(current, entityRadius, cacheKey);
+                }
+                const neighbors = [
+                    [-1, -1], [-1, 0], [-1, 1],
+                    [0, -1],           [0, 1],
+                    [1, -1],  [1, 0],  [1, 1]
+                ];
+                for (const [dr, dc] of neighbors) {
+                    const nr = current.r + dr;
+                    const nc = current.c + dc;
+                    if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+                    const neighbor = grid[nr][nc];
+                    if (neighbor.blocked) continue;
+                    if (closedSet.has(`${nr},${nc}`)) continue;
+                    if (this._isCornerCut(grid, rows, cols, current.r, current.c, dr, dc)) continue;
+                    const isDiagonal = dr !== 0 && dc !== 0;
+                    // [ENHANCE] 使用格子的 moveCost 权重
+                    const baseMoveCost = isDiagonal ? 1.414 : 1;
+                    const terrainCost = neighbor.moveCost || 1.0;
+                    const moveCost = baseMoveCost * terrainCost * this.gridSize;
+                    const tentativeG = current.g + moveCost;
+                    if (tentativeG < neighbor.g) {
+                        neighbor.g = tentativeG;
+                        neighbor.h = Math.max(Math.abs(endX - neighbor.x), Math.abs(endY - neighbor.y));
+                        neighbor.f = neighbor.g + neighbor.h;
+                        neighbor.parent = current;
+                        openHeap.remove(neighbor);
+                        openHeap.push(neighbor);
+                    }
                 }
             }
+            return null;
+        } finally {
+            PerfMonitor.record('path:findPath', performance.now() - t0);
         }
-        return null;
     }
 }
 

@@ -102,7 +102,8 @@ const DataLoader = {
         if (typeof formulaStr !== 'string' || !formulaStr.trim()) return 0;
         const lvl = Number(level) || 0;
         // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量
-        const allowedPattern = /^[0-9+\-*/().,\s]+$/i;
+        // 使用 * 允许纯 level / Math.PI 等公式剥离后为空字符串的情况
+        const allowedPattern = /^[0-9+\-*/().,\s]*$/i;
         const mathPattern = /\b(Math\.[a-zA-Z]+|Math\.[A-Z]+|level|PI|E)\b/g;
         const stripped = formulaStr.replace(mathPattern, '');
         if (!allowedPattern.test(stripped)) {

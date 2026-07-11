@@ -1,14 +1,11 @@
-import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { MuzzleFlashEffect } from './muzzle-flash.js';
 import { BloodEffect, BloodMistEffect, DodgeEffect, DustEffect } from './particle-effects.js';
 import { ShellCasingEffect } from './shell-casing.js';
 import { SmokeEffect } from './smoke-effect.js';
 import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
+import { FloatingTextEffect } from './floating-text.js';
 import { Projectile } from '../combat/projectile.js';
-import { getElement } from '../utils/dom-utils.js';
-import { TimerManager } from '../utils/timer-manager.js';
-import { CONFIG } from '../config/config.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},
@@ -28,6 +25,7 @@ const EffectManager = {
         let obj = this._pools[type].pop();
         if (!obj) obj = this._factories[type] ? this._factories[type]() : {};
         obj.active = true;
+        obj._effectType = type;
         return obj;
     },
     _release(type, obj) {
@@ -36,22 +34,23 @@ const EffectManager = {
     },
     add(effect) { this.effects.push(effect); },
     update(dt) {
-        this.effects = this.effects.filter(e => { e.update(dt); return e.active; });
+        // 原地清理失效特效，避免每帧创建新数组
+        for (let i = this.effects.length - 1; i >= 0; i--) {
+            const e = this.effects[i];
+            e.update(dt);
+            if (!e.active) {
+                if (e._effectType) this._release(e._effectType, e);
+                this.effects.splice(i, 1);
+            }
+        }
         if (this.critFlash > 0) { this.critFlash -= 4.992 * (dt / 1000); if (this.critFlash < 0) this.critFlash = 0; }
     },
-    render(ctx) {
-        ctx.save();
-        // 按 y 坐标深度排序，确保侧视角正确遮挡关系
-        this.effects.sort((a, b) => (a.y || 0) - (b.y || 0));
-        this.effects.forEach(e => e.render(ctx));
-        if (this.critFlash > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${this.critFlash * 0.4})`; ctx.fillRect(0, 0, CONFIG.VIEW_WIDTH, CONFIG.VIEW_HEIGHT); }
-        ctx.restore();
-    },
     createDamageText(x, y, damage, isCrit) {
-        const el = document.createElement('div'); el.className = 'combat-text'; el.textContent = isCrit ? `暴击! ${damage}` : `${damage}`;
-        el.style.color = isCrit ? '#ffaa44' : '#ff6666'; el.style.fontSize = isCrit ? '22px' : '18px';
-        const screenPos = Renderer.worldToScreen(x, y); el.style.left = screenPos.x + 'px'; el.style.top = screenPos.y + 'px';
-        const uiLayer = getElement('uiLayer'); if (uiLayer) uiLayer.appendChild(el); TimerManager.setTimeout(() => { if (el) el.remove(); }, 1000);
+        // 使用 FloatingTextEffect 替代 DOM 伤害数字，统一走 Phaser 渲染管线
+        const text = isCrit ? `暴击! ${damage}` : `${damage}`;
+        const color = isCrit ? '#ffaa44' : '#ff6666';
+        const fontSize = isCrit ? 22 : 18;
+        this.add(new FloatingTextEffect(x, y - 20, text, color, fontSize));
     },
     triggerCritEffects() { this.critFlash = 1.0; Camera.triggerShake(12); }
 };

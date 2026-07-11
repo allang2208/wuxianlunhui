@@ -1,4 +1,3 @@
-import { Game } from '../../game.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 
@@ -201,33 +200,4 @@ export class DroneSystem {
         });
     }
 
-    render(ctx) {
-        if (!this.active) return;
-        const screenPos = Renderer.worldToScreen(this.x, this.y);
-        // 绘制无人机
-        if (this.image && this.image.complete && this.image.naturalWidth > 0) {
-            const size = 32;
-            ctx.drawImage(this.image, screenPos.x - size / 2, screenPos.y - size / 2, size, size);
-        } else {
-            ctx.fillStyle = '#5a7a9a';
-            ctx.beginPath();
-            ctx.arc(screenPos.x, screenPos.y, 12, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        // 操控模式下显示范围圈
-        if (this.controlling && Game.showAttackRange) {
-            const radiusScreen = this.radius * Renderer.zoom;
-            ctx.strokeStyle = 'rgba(90, 122, 154, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(screenPos.x, screenPos.y, radiusScreen, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-        // 显示剩余时间
-        const remainingSec = Math.ceil(this.duration / 1000);
-        ctx.fillStyle = '#d4c5a9';
-        ctx.font = '10px SimHei, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${remainingSec}s`, screenPos.x, screenPos.y - 18);
-    }
 }
