@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class AttackRangeEffect {
             constructor(x, y, angle, range, width, type = 'line', duration = 200, alphaMul = 0.7, showStroke = true) {
                 this.x = x; this.y = y; this.angle = angle; this.range = range; this.width = width;

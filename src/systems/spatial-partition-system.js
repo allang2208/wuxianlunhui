@@ -15,7 +15,6 @@
  * - 全局变量使用 typeof 检查
  */
 
-import { MathUtils } from '../config/math-utils.js';
 
 /**
  * 网格配置参数

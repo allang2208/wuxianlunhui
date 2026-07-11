@@ -1,6 +1,10 @@
+import { GoldManager } from '../systems/gold-manager.js';
+import { SoundManager } from '../ui/sound-manager.js';
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EventBus } from '../core/event-bus.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 const ShopSystem = {
     _isOpen: false,

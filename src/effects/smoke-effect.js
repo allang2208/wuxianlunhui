@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         // 烟雾图片预加载（本地管理）
         const SMOKE_FRAMES = [
             'assets/effects/smoke_01_start.png','assets/effects/smoke_02_expand.png',

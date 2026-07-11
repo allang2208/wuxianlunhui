@@ -1,5 +1,7 @@
+import { Game } from '../game.js';
+
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
-import { WEAPON_ANIM } from '../config/math-utils.js';
+
 import { AIDevTool } from './ai-dev-tool.js';
 import { EnemySpriteTool } from './enemy-sprite-tool.js';
 

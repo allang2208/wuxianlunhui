@@ -1,3 +1,4 @@
+
 /**
  * Game Layer Panel
  * Creates the game canvas container DOM structure.

@@ -1,3 +1,4 @@
+import { WallSystem } from '../world/wall-system.js';
 /* ================================================================
  * RegionIndex — 连通区域索引系统（参考 RimWorld Reachability）
  * 

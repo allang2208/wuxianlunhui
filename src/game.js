@@ -1,3 +1,14 @@
+import { PhaserGame } from './phaser/PhaserGame.js';
+import { MazeGenerator } from './world/maze-generator.js';
+import { Portal } from './world/portal.js';
+import { EventBus } from './core/event-bus.js';
+import { SoundManager } from './ui/sound-manager.js';
+import { ItemFactory } from './items/item-factory.js';
+import { Renderer } from './world/renderer.js';
+import { SceneManager } from './world/scene-manager.js';
+import { Camera } from './world/camera.js';
+import { Input } from './ui/input.js';
+import { StatusBar } from './ui/status-bar.js';
 import { FloatingTextEffect } from './effects/floating-text.js';
 import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
@@ -16,6 +27,7 @@ import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
 import { GAME_CONFIG } from './config/game-config.js';
+import { EffectManager } from './effects/effect-manager.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）

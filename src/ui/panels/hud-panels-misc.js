@@ -1,3 +1,4 @@
+import { Game } from '../../game.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 

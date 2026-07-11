@@ -1,3 +1,8 @@
+
+import { Game } from '../../game.js';
+import { SceneManager } from '../../world/scene-manager.js';
+
+
 // ============================================================
 // GameScene - 主游戏场景：替代原有的 renderer.js + game.js 渲染部分
 // ============================================================

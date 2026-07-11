@@ -1,3 +1,4 @@
+import { SoundManager } from '../../ui/sound-manager.js';
 export class ShieldSystem {
     constructor(player) {
         this.player = player;

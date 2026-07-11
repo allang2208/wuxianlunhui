@@ -1,4 +1,9 @@
+import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { Input } from '../../ui/input.js';
 import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;

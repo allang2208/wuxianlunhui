@@ -1,3 +1,5 @@
+import { Renderer } from '../world/renderer.js';
+import { Input } from '../ui/input.js';
 import { Entity } from './entity.js';
 
         class DropItem extends Entity {

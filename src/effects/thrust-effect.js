@@ -1,3 +1,5 @@
+import { WEAPON_ANIM } from '../config/math-utils.js';
+import { Renderer } from '../world/renderer.js';
         class ThrustEffect {
             constructor(source, range, width) {
                 this.source = source; this.range = range || 100; this.width = width || 20;

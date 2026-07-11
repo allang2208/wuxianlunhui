@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
 /**
  * DecisionSystem — 敌人 AI 决策系统
  *
@@ -9,7 +11,7 @@
  * - 对全局对象（WallSystem、pathFinder、Game 等）始终使用 typeof 检查
  */
 
-import { MathUtils } from '../config/math-utils.js';
+
 import aiConfigData from '../../data/ai-config.json';
 
 class DecisionSystemImpl {

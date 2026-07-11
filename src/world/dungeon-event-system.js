@@ -1,4 +1,7 @@
+import { Game } from '../game.js';
+import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { EffectManager } from '../effects/effect-manager.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统

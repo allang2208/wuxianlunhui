@@ -1,7 +1,10 @@
+import { Renderer } from '../world/renderer.js';
+import { Camera } from '../world/camera.js';
 import { MuzzleFlashEffect } from './muzzle-flash.js';
 import { BloodEffect, BloodMistEffect, DodgeEffect, DustEffect } from './particle-effects.js';
 import { ShellCasingEffect } from './shell-casing.js';
 import { SmokeEffect } from './smoke-effect.js';
+import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},
@@ -14,7 +17,7 @@ const EffectManager = {
         'SmokeEffect': () => new SmokeEffect(0, 0),
         'MuzzleFlashEffect': () => new MuzzleFlashEffect(0, 0, 0),
         'ShellCasingEffect': () => new ShellCasingEffect(0, 0, 0),
-        'HitEffect': () => new HitEffect(0, 0),
+        'HitEffect': () => new HitEffect(0, 0)
     },
     _acquire(type) {
         if (!this._pools[type]) this._pools[type] = [];

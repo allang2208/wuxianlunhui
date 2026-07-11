@@ -1,3 +1,5 @@
+import { WallSystem } from '../world/wall-system.js';
+import { Renderer } from '../world/renderer.js';
 import { DamagePipeline } from './damage-pipeline.js';
 
         class Projectile {

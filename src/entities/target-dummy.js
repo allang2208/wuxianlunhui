@@ -1,8 +1,11 @@
+import { WallSystem } from '../world/wall-system.js';
+import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { Renderer } from '../world/renderer.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
         class TargetDummy extends DamageableEntity {
             constructor(x, y, config = {}) { 

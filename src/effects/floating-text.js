@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class FloatingTextEffect {
             constructor(x, y, text, color) {
                 this.x = x; this.y = y; this.text = text;

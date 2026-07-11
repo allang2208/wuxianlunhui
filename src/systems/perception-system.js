@@ -1,3 +1,4 @@
+import { WallSystem } from '../world/wall-system.js';
 /**
  * PerceptionSystem — 敌人感知子系统
  *

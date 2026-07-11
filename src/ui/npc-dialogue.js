@@ -1,3 +1,4 @@
+import { Game } from '../game.js';
 import { NpcPortraitTool } from './npc-portrait-tool.js';
 import { UIState } from './ui-state.js';
 

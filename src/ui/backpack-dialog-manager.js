@@ -1,3 +1,4 @@
+
 // Backpack Dialog Manager - Extracted from EquipManager
 // Handles split dialog and backpack full notifications
 

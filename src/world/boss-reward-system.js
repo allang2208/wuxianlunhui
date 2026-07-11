@@ -1,3 +1,13 @@
+import { GoldManager } from '../systems/gold-manager.js';
+import { EnchantConfig } from '../config/enchant-config.js';
+import { EnchantScrollItems } from '../config/enchant-config.js';
+import { MagicDustItem } from '../config/enchant-config.js';
+import { ItemDatabase } from '../items/item-database.js';
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
+import { Renderer } from '../world/renderer.js';
+import { Camera } from '../world/camera.js';
+import { StatusBar } from '../ui/status-bar.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
  * ============================================================
@@ -16,6 +26,7 @@
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Enemy } from '../entities/enemy.js';
 import { RewardSystem } from '../ui/reward-system.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 // ==================== 配置对象 ====================
 

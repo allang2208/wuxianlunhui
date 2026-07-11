@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class ShellCasingEffect {
             constructor(x, y, angle) {
                 this.x = x; this.y = y; this.angle = angle;

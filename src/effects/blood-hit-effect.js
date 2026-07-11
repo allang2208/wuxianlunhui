@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class BloodHitEffect {
             constructor(x, y, angle = null) {
                 this.x = x; this.y = y;
