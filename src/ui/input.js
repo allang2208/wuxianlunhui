@@ -1,5 +1,7 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },

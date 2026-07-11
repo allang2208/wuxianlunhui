@@ -1,3 +1,4 @@
+import { Game } from '../../game.js';
 /**
  * 菜单层面板 - 动态创建模块
  * 对应 index.html 中的 menu-layer 部分

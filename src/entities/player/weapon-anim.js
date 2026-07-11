@@ -1,3 +1,5 @@
+import { Camera } from '../../world/camera.js';
+import { Input } from '../../ui/input.js';
 // ============================================================
 // Weapon Animation System - 状态机驱动（兼容旧系统）
 // 远程武器使用状态机驱动动画，近战武器使用 Phaser Tween

@@ -1,3 +1,4 @@
+import { Game } from '../game.js';
 // Equip Tooltip System - Extracted from EquipManager
 // Pure functions for rendering and managing equipment tooltips
 
@@ -9,6 +10,7 @@ import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { EventBus } from '../core/event-bus.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 export const EquipTooltipManager = {
     player: null,

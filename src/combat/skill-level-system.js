@@ -1,3 +1,4 @@
+import { Game } from '../game.js';
 // Skill Level System - Extracted from SkillManager
 // Handles generic experience gain and level-up logic for skills
 

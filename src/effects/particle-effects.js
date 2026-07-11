@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class DodgeEffect {
             constructor(x, y, dirX, dirY) {
                 this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY; this.life = 300; this.maxLife = 300; this.active = true; this.trails = [];

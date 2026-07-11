@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
 class NightFlameBeamEffect {
     constructor(x, y, angle, width, length, duration) {
         this.x = x; this.y = y;

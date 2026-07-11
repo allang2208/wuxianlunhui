@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
 
 class SlashEffect {
             constructor(x, y, angle, range, arc) {

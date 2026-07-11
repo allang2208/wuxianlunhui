@@ -1,4 +1,8 @@
+import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { Input } from '../../ui/input.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 export class FireballSystem {
     constructor(player) {
         this.player = player;

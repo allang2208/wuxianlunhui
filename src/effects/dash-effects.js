@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
 import { Easing } from '../config/math-utils.js';
 
         class DashConvergeEffect {

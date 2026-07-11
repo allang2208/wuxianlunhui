@@ -1,8 +1,11 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
 import { AttackRangeEffect } from '../effects/attack-range-effect.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { MathUtils } from '../config/math-utils.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果

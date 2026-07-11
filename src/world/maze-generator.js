@@ -1,3 +1,4 @@
+import { WallSystem } from '../world/wall-system.js';
 const MazeGenerator = {
     CELL_SIZE: 120,
     WALL_THICKNESS: 16,

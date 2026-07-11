@@ -1,4 +1,6 @@
+import { Game } from '../../game.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 export class WhirlwindSystem {
     constructor(player) {
         this.player = player;

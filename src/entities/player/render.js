@@ -1,3 +1,5 @@
+import { Renderer } from '../../world/renderer.js';
+import { SceneManager } from '../../world/scene-manager.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';

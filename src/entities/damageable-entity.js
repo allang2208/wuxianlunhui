@@ -1,3 +1,7 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
+import { Renderer } from '../world/renderer.js';
+import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
 import { Entity } from './entity.js';

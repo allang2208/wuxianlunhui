@@ -1,5 +1,10 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
+import { Renderer } from '../world/renderer.js';
+import { SceneManager } from '../world/scene-manager.js';
 // Rift System - 时空裂隙系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { EffectManager } from '../effects/effect-manager.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
     _progressBarEl: null,

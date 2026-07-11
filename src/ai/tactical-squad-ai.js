@@ -1,5 +1,7 @@
+import { WallSystem } from '../world/wall-system.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Renderer } from '../world/renderer.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 /**
  * 战术小队AI系统

@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
 const Camera = {
             x: 0, y: 0, shakeX: 0, shakeY: 0, shakeIntensity: 0, shakeDecay: 0.85,
             lockY: false,

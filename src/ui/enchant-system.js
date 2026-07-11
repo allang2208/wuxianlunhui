@@ -7,6 +7,7 @@ import { Game } from '../game.js';
 import { SoundManager } from './sound-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 const EnchantSystem = {
     _isOpen: false,

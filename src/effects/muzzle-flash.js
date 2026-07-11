@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class MuzzleFlashEffect {
             constructor(x, y, angle, scale = 1.0) {
                 this.x = x; this.y = y; this.angle = angle; this.scale = scale;

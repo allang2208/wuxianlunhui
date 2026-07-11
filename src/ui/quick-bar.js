@@ -1,6 +1,8 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipManager } from './equip-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },

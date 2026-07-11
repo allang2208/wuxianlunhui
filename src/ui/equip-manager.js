@@ -1,3 +1,4 @@
+import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipDataManager } from './equip-data-manager.js';
@@ -6,6 +7,7 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
+import { EffectManager } from '../effects/effect-manager.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;

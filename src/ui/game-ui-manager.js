@@ -1,5 +1,7 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations

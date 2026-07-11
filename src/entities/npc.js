@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { Renderer } from '../world/renderer.js';
 import { Entity } from './entity.js';
 
 class NPC extends Entity {

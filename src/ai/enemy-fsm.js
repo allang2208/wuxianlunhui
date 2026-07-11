@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
 /**
  * EnemyFSM - 敌人有限状态机（FSM）框架
  * Phase 1：实现阶段切换系统（Boss血量阶段）

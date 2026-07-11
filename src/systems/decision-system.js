@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
 /**
  * DecisionSystem — 敌人 AI 决策系统
  *

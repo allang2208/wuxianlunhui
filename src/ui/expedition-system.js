@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { SceneManager } from '../world/scene-manager.js';
 /**
  * ExpeditionSystem — 出征准备系统
  * 全黑背景覆盖，背包式物资管理（10格），3个队友槽位，支持任意物品拖入

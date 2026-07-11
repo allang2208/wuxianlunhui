@@ -1,5 +1,11 @@
+import { Game } from '../../game.js';
+import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { Camera } from '../../world/camera.js';
+import { Input } from '../../ui/input.js';
 // 无人机技能系统
 import { FloatingTextEffect } from '../../effects/floating-text.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 export class DroneSystem {
     constructor(player) {
         this.player = player;

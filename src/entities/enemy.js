@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
 import { Combatant } from './combatant.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
@@ -8,6 +10,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { Easing } from '../config/math-utils.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {

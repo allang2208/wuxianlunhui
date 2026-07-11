@@ -1,3 +1,4 @@
+import { Renderer } from '../world/renderer.js';
         class SweepEffect {
             constructor(x, y, w, h, colCount, duration) {
                 this.x = x; this.y = y;

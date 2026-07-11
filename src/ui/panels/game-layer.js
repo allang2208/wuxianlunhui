@@ -1,3 +1,4 @@
+import { Game } from '../../game.js';
 /**
  * Game Layer Panel
  * Creates the game canvas container DOM structure.

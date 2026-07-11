@@ -1,5 +1,7 @@
+import { Game } from '../game.js';
 // Reward System - 奖励结算界面
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { EffectManager } from '../effects/effect-manager.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,

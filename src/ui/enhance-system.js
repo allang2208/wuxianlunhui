@@ -1,5 +1,7 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,

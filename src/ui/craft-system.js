@@ -1,6 +1,8 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isCraftableWeapon, getGunAmmoCapacity } from '../config/gun-ammo.js';
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 const CraftSystem = {
     _isOpen: false,

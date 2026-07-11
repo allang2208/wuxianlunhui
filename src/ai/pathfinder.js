@@ -1,3 +1,4 @@
+import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
 
 /* ================================================================

@@ -1,3 +1,9 @@
+import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
+import { Renderer } from '../world/renderer.js';
+import { SceneManager } from '../world/scene-manager.js';
+import { Camera } from '../world/camera.js';
+import { Input } from '../ui/input.js';
 /**
  * ============================================================
  * DungeonMapSystem — 地牢地图系统（杀戮尖塔风格 · 可拖动大地图）
@@ -24,6 +30,7 @@ import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG } from './zombie-dunge
 import { DungeonMapGenerator, DungeonFogOfWar, DUNGEON_MAP_CONFIG } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 export const DungeonMapSystem = {
     active: false,

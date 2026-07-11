@@ -1,3 +1,4 @@
+import { Input } from '../ui/input.js';
 // 怪物贴图调整工具
 const EnemySpriteTool = {
     _panel: null,

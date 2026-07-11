@@ -1,3 +1,4 @@
+import { Input } from '../ui/input.js';
 // ============================================
 // NPC 立绘调整工具（NpcPortraitTool）
 // 参考 dev-tool.js 的 Canvas 拖动模式设计

@@ -1,5 +1,10 @@
+import { Game } from '../../game.js';
+import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { Input } from '../../ui/input.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { NightFlameBeamEffect } from '../../effects/nightflame-effect.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 class SpecialAttackSystem {
     constructor(player) {
         this.player = player;

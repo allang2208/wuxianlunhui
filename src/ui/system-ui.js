@@ -1,7 +1,9 @@
+import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Renderer } from '../world/renderer.js';
 
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
 
 export const UI_DATA_CONFIG = {
     topBar: [

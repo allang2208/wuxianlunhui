@@ -1,3 +1,9 @@
+import { Game } from '../../game.js';
+import { Renderer } from '../../world/renderer.js';
+import { SceneManager } from '../../world/scene-manager.js';
+import { Camera } from '../../world/camera.js';
+import { Input } from '../../ui/input.js';
+import { StatusBar } from '../../ui/status-bar.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
@@ -6,6 +12,7 @@ import { ShellCasingEffect } from '../../effects/shell-casing.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
+import { EffectManager } from '../../effects/effect-manager.js';
 
 const subsystemsMixin = {
 gainExp(amount) {

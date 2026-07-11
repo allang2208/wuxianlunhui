@@ -1,9 +1,15 @@
+import { Game } from '../../game.js';
+import { WallSystem } from '../../world/wall-system.js';
+import { Renderer } from '../../world/renderer.js';
+import { Input } from '../../ui/input.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { SmokeEffect } from '../../effects/smoke-effect.js';
 import { isRifle } from '../../config/gun-ammo.js';
 import { DashFireTrailEffect, GoldenConvergeEffect } from '../../effects/dash-effects.js';
 import { MathUtils, Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { EffectManager } from '../../effects/effect-manager.js';
+import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
 class DashSystem {
     constructor(player) {
         this.player = player;

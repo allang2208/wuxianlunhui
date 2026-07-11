@@ -1,6 +1,9 @@
+import { Game } from '../game.js';
+import { SceneManager } from '../world/scene-manager.js';
 // Quest System - 任务日志系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
+import { EffectManager } from '../effects/effect-manager.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',

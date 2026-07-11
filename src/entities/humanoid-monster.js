@@ -1,3 +1,4 @@
+import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
 import { RangedAttack } from '../combat/attack.js';
 import { Renderer } from '../world/renderer.js';

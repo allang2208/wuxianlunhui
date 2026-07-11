@@ -1,3 +1,5 @@
+import { Game } from '../game.js';
+import { Input } from '../ui/input.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { isGunWeapon, getAmmoConfig, isMachineGun } from '../config/gun-ammo.js';
