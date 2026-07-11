@@ -61,7 +61,7 @@ const baseMixin = {
         }
 
         // 祭品效果：只检查一次，先大理石再石头
-        const tributeItems = (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) || null;
+        const tributeItems = (DungeonMapSystem && DungeonMapSystem._carriedItems) || null;
         const hasMarble = tributeItems && tributeItems.some(c => c && c.item && c.item.name === '大理石');
         const hasStone = tributeItems && tributeItems.some(c => c && c.item && c.item.name === '石头');
 

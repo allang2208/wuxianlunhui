@@ -247,7 +247,7 @@ export const DungeonBuffSystem = {
         };
 
         // 添加状态栏效果
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.addEffect('goddessBless', 999999, {
                 icon: this.BUFF_CONFIG.goddessBless.icon,
                 name: `${this.BUFF_CONFIG.goddessBless.name} (${battles}场)`,
@@ -288,7 +288,7 @@ export const DungeonBuffSystem = {
         };
 
         // 添加状态栏效果（永久显示）
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.addEffect('demonPrayer', 999999, {
                 icon: this.BUFF_CONFIG.demonPrayer.icon,
                 name: this.BUFF_CONFIG.demonPrayer.name,
@@ -331,7 +331,7 @@ export const DungeonBuffSystem = {
             delete player._dungeonBuffs.goddessBless;
 
             // 移除状态栏效果
-            if (typeof StatusBar !== 'undefined') {
+            if (StatusBar) {
                 StatusBar.removeEffectByType('goddessBless');
             }
 
@@ -349,7 +349,7 @@ export const DungeonBuffSystem = {
         }
 
         // 更新状态栏显示
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             const effect = StatusBar.effects.find(e => e.type === 'goddessBless');
             if (effect) {
                 effect.name = `${this.BUFF_CONFIG.goddessBless.name} (${buff.remainingBattles}场)`;
@@ -391,7 +391,7 @@ export const DungeonBuffSystem = {
         delete player._dungeonBuffs;
 
         // 移除状态栏效果
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.removeEffectByType('goddessBless');
             StatusBar.removeEffectByType('demonPrayer');
         }
@@ -957,7 +957,7 @@ export const DungeonEventSystem = {
         if (!result.rewards) return;
 
         // 金币奖励
-        if (result.rewards.gold && typeof Game !== 'undefined' && Game.player && Game.player.data) {
+        if (result.rewards.gold && Game && Game.player && Game.player.data) {
             Game.player.data.gold = (Game.player.data.gold || 0) + result.rewards.gold;
         }
 
@@ -970,7 +970,7 @@ export const DungeonEventSystem = {
         }
 
         // 材料奖励（添加到背包）
-        if (result.rewards.material && typeof Game !== 'undefined' && Game.dropItem) {
+        if (result.rewards.material && Game && Game.dropItem) {
             const { type, count } = result.rewards.material;
             for (let i = 0; i < count; i++) {
                 const item = {
@@ -984,15 +984,15 @@ export const DungeonEventSystem = {
         }
 
         // 宝箱特殊材料奖励：强化石、改造券、魔法粉尘
-        if (result.rewards.enhancementStone && typeof Game !== 'undefined' && Game.dropItem) {
+        if (result.rewards.enhancementStone && Game && Game.dropItem) {
             const item = { ...DUNGEON_EVENT_CONFIG.specialItems.enhancement_stone, stack: result.rewards.enhancementStone };
             Game.dropItem(player.x, player.y, item);
         }
-        if (result.rewards.reforgeTicket && typeof Game !== 'undefined' && Game.dropItem) {
+        if (result.rewards.reforgeTicket && Game && Game.dropItem) {
             const item = { ...DUNGEON_EVENT_CONFIG.specialItems.reforge_ticket, stack: result.rewards.reforgeTicket };
             Game.dropItem(player.x, player.y, item);
         }
-        if (result.rewards.magicDust && typeof Game !== 'undefined' && Game.dropItem) {
+        if (result.rewards.magicDust && Game && Game.dropItem) {
             const item = { ...DUNGEON_EVENT_CONFIG.specialItems.magic_dust, stack: result.rewards.magicDust };
             Game.dropItem(player.x, player.y, item);
         }
@@ -1165,7 +1165,7 @@ export const DungeonEventSystem = {
         this._eventOverlay = overlay;
 
         // 显示浮动文字效果
-        if (typeof EffectManager !== 'undefined') {
+        if (EffectManager) {
             const color = result.type === 'success' || result.type === 'heal' || result.type === 'bless'
                 ? '#44ff44' : result.type === 'fail' ? '#ff4444' : '#ffd700';
             EffectManager.add(new FloatingTextEffect(512, 400, result.text.split('\n')[0], color));

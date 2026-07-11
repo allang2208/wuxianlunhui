@@ -33,7 +33,7 @@ import { CodexManager } from '../ui/codex-manager.js';
             /** 新增物品并同步刷新图鉴 */
             addItem(id, itemData) {
                 this.items[id] = itemData;
-                if (typeof CodexManager !== 'undefined' && CodexManager.refresh) {
+                if (CodexManager && CodexManager.refresh) {
                     CodexManager.refresh();
                 }
             }

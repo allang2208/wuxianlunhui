@@ -21,7 +21,7 @@ import { DamagePipeline } from './damage-pipeline.js';
                 this.x += dx; this.y += dy; this.traveled += this.speed * scale;
                 if (this.traveled >= this.maxRange) { this.active = false; return; }
                 // 墙壁碰撞检测
-                if (typeof WallSystem !== 'undefined' && WallSystem.blocked && WallSystem.blocked(prevX, prevY, this.x, this.y)) {
+                if (WallSystem && WallSystem.blocked && WallSystem.blocked(prevX, prevY, this.x, this.y)) {
                     this.active = false; return;
                 }
                 // 清理已失效目标的命中记录

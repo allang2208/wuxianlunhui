@@ -27,7 +27,7 @@ export const ExpeditionSystem = {
         this.selectedDungeon = 'zombie'; // 只保留僵尸地牢
 
         // 先打开背包（如果还没打开）
-        if (typeof SystemUI !== 'undefined') {
+        if (SystemUI) {
             SystemUI.open('equip');
         }
 
@@ -468,7 +468,7 @@ export const ExpeditionSystem = {
         }
 
         // 保存携带物品到 DungeonMapSystem（物品已从背包移出，直接带走）
-        if (typeof DungeonMapSystem !== 'undefined') {
+        if (DungeonMapSystem) {
             DungeonMapSystem._carriedItems = carried;
         }
 
@@ -485,12 +485,12 @@ export const ExpeditionSystem = {
         this._carriedItems = new Array(this.CAPACITY).fill(null);
 
         // 关闭背包
-        if (typeof SystemUI !== 'undefined') {
+        if (SystemUI) {
             SystemUI.close();
         }
 
         // 初始化地牢（传入选中的地牢类型）
-        if (typeof DungeonMapSystem !== 'undefined') {
+        if (DungeonMapSystem) {
             const player = Game.player;
             const dungeonType = this.selectedDungeon || 'zombie';
             DungeonMapSystem.init('scene7', player, dungeonType);
@@ -500,8 +500,8 @@ export const ExpeditionSystem = {
     // 从出征准备返回主神空间（保留，用于外部调用）
     returnToMain() {
         this.close(); // 关闭时会归还所有物品
-        if (typeof SystemUI !== 'undefined') SystemUI.close();
-        if (typeof SceneManager !== 'undefined') {
+        if (SystemUI) SystemUI.close();
+        if (SceneManager) {
             SceneManager.switchScene('main', Game.player);
         }
     }

@@ -77,7 +77,7 @@ export const PhaserGame = {
                 if (document.activeElement === phaserCanvas) {
                     document.body.focus();
                 }
-                console.log('[PhaserGame] Canvas CSS set: z-index=2, pointer-events=none, tabindex=-1');
+                
                 return true;
             }
             return false;
@@ -92,7 +92,7 @@ export const PhaserGame = {
         };
         TimerManager.setTimeout(trySetup, 100);
 
-        console.log('[PhaserGame] Phaser initialized');
+        
         return _phaserGame;
     },
 

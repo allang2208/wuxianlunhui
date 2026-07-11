@@ -71,7 +71,7 @@ export class TacticalSquadAI {
         // 检查每个成员是否有视线
         for (const m of this.members) {
             if (!m.active || !m.target) continue;
-            const hasLOS = typeof WallSystem === 'undefined' || !WallSystem.blocked(m.x, m.y, player.x, player.y);
+            const hasLOS = !WallSystem || !WallSystem.blocked(m.x, m.y, player.x, player.y);
             if (hasLOS) {
                 someoneHasLOS = true;
                 bestPos = { x: player.x, y: player.y };
@@ -216,7 +216,7 @@ export class TacticalSquadAI {
         if (!drone._affectedEntities) drone._affectedEntities = new Set();
         else drone._affectedEntities.clear();
         // 释放提示
-        if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+        if (EffectManager && EffectManager.add) {
             EffectManager.add(new FloatingTextEffect(drone.x, drone.y - 20, '🛸 无人机已部署', '#5a7a9a'));
         }
     }
@@ -233,7 +233,7 @@ export class TacticalSquadAI {
             });
             drone._affectedEntities.clear();
         }
-        if (typeof EffectManager !== 'undefined' && EffectManager.add) {
+        if (EffectManager && EffectManager.add) {
             EffectManager.add(new FloatingTextEffect(drone.x, drone.y - 20, '🛸 无人机已回收', '#5a7a9a'));
         }
     }

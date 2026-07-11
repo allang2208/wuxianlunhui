@@ -78,7 +78,7 @@ class CombatSystemImpl {
             isBlocked = !enemy._perception.lastLOSResult;
         } else {
             // 缓存未命中：fallback 到 WallSystem 直接检测
-            isBlocked = typeof WallSystem !== 'undefined' && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
+            isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
         }
         // === END REFACTOR ===
         if (isBlocked) return;
@@ -122,7 +122,7 @@ class CombatSystemImpl {
 
     // --- 武器动画 ---
     _updateWeaponAnim(enemy, dt) {
-        const wa = typeof WEAPON_ANIM !== 'undefined' ? WEAPON_ANIM : null;
+        const wa = WEAPON_ANIM ? WEAPON_ANIM : null;
         if (!wa) return;
         const anim = enemy.weaponAnim;
         if (!anim) return;

@@ -36,7 +36,7 @@ export const GameUIManager = {
         queryAllElements('.hitbox-toggle').forEach(btn => {
             btn.onclick = () => {
                 this.showHitbox = !this.showHitbox;
-                if (typeof Game !== 'undefined') Game.showHitbox = this.showHitbox;
+                if (Game) Game.showHitbox = this.showHitbox;
                 queryAllElements('.hitbox-toggle').forEach(b => b.classList.toggle('active', this.showHitbox));
             };
         });
@@ -45,7 +45,7 @@ export const GameUIManager = {
         queryAllElements('.attack-range-toggle').forEach(btn => {
             btn.onclick = () => {
                 this.showAttackRange = !this.showAttackRange;
-                if (typeof Game !== 'undefined') Game.showAttackRange = this.showAttackRange;
+                if (Game) Game.showAttackRange = this.showAttackRange;
                 queryAllElements('.attack-range-toggle').forEach(b => b.classList.toggle('active', this.showAttackRange));
             };
         });
@@ -264,9 +264,9 @@ export const GameUIManager = {
     toMenu() {
         this.stopTimer();
         this.isRunning = false; this.entities.clear(); this.player = null; SystemUI.close();
-        if (typeof NPCDialogue !== 'undefined') NPCDialogue.close();
-        if (typeof ShopSystem !== 'undefined') ShopSystem.close();
-        if (typeof EnhanceSystem !== 'undefined') EnhanceSystem.close();
+        if (NPCDialogue) NPCDialogue.close();
+        if (ShopSystem) ShopSystem.close();
+        if (EnhanceSystem) EnhanceSystem.close();
         // EventBus 解耦：取消拾取事件订阅，避免重复
         if (this._onPickup) EventBus.off('player:pickup', this._onPickup);
         const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.remove('hidden'); if (uiLayer) uiLayer.style.display = 'none'; if (gameLayer) gameLayer.style.display = 'none';

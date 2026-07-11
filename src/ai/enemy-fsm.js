@@ -32,7 +32,7 @@ class PhaseChangeEffect {
         if (currentRadius <= 0) return;
 
         // 需要 Renderer 将世界坐标转为屏幕坐标
-        const screenPos = typeof Renderer !== 'undefined'
+        const screenPos = Renderer
             ? Renderer.worldToScreen(this.x, this.y)
             : { x: this.x, y: this.y };
 

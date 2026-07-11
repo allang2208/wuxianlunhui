@@ -19,7 +19,7 @@ async function initModules() {
     }
 
     // 从 EquipDataManager 补充 ItemDatabase 中缺失的字段（ammoConfig, fireMode, attackFormula 等）
-    if (typeof EquipDataManager !== 'undefined' && ItemDatabase.items) {
+    if (EquipDataManager && ItemDatabase.items) {
         const equipConfigs = Object.values(EquipDataManager).filter(v => v && typeof v === 'object' && v.weaponId);
         for (const [, item] of Object.entries(ItemDatabase.items)) {
             const match = equipConfigs.find(cfg => cfg.weaponId === item.weaponId || cfg.name === item.name);
@@ -234,7 +234,7 @@ async function initModules() {
         window.onload = () => Game.init();
     }
 
-    console.log('✅ Module system initialized. 32 modules loaded. Data-driven config active.');
+    
 }
 
 // 导入所有模块（导入顺序不影响运行时，因为挂载在 initModules 中执行）

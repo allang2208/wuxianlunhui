@@ -52,7 +52,7 @@ const MovementSystem = {
         // [ENHANCE] 初始化 PathManager（懒加载）
         if (!enemy._pathManager) {
             // 动态导入，避免循环依赖
-            if (typeof PathManager !== 'undefined') {
+            if (PathManager) {
                 enemy._pathManager = new PathManager(enemy);
             }
         }
@@ -95,7 +95,7 @@ const MovementSystem = {
         }
 
         // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
-        if (enemy._pathManager && typeof pathFinder !== 'undefined') {
+        if (enemy._pathManager && pathFinder) {
             enemy._pathManager.update(dt, pathFinder);
         }
 
@@ -141,7 +141,7 @@ const MovementSystem = {
             hasTarget = true;
         }
         // 2. 战斗指挥官目标
-        else if (typeof Game !== 'undefined' && Game._battleCommander) {
+        else if (Game && Game._battleCommander) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 tx = tp.targetX;
@@ -236,7 +236,7 @@ const MovementSystem = {
                 }
                 
                 // [ENHANCE] 卡住时强制触发 PathManager 重算（绕过频率限制）
-                if (enemy._pathManager && typeof pathFinder !== 'undefined') {
+                if (enemy._pathManager && pathFinder) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
                 }
 
@@ -280,7 +280,7 @@ const MovementSystem = {
      */
     _computeSeparation(enemy, minDist) {
         let rdx = 0, rdy = 0, count = 0;
-        if (typeof Game === 'undefined' || !Game.entities) return { dx: 0, dy: 0 };
+        if (!Game || !Game.entities) return { dx: 0, dy: 0 };
         const entities = Game.entities;
         let checked = 0;
         for (const other of entities.values()) {
@@ -370,7 +370,7 @@ const MovementSystem = {
             const sc = dt / 1000;
             let nx = enemy.x + enemy.vx * sc;
             let ny = enemy.y + enemy.vy * sc;
-            if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+            if (WallSystem && WallSystem.resolve) {
                 const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
                 if (er.x !== enemy.x || er.y !== enemy.y) {
                     const maxStep = maxSpd * sc;
@@ -451,7 +451,7 @@ const MovementSystem = {
         const maxStep = maxSpd * sc;
 
         // 墙壁碰撞解析
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
 
             if (er.x === enemy.x && er.y === enemy.y) {
@@ -598,7 +598,7 @@ const MovementSystem = {
      */
     isBlockedToTarget(enemy, target) {
         if (!target) return true;
-        if (typeof WallSystem === 'undefined' || !WallSystem.blocked) return false;
+        if (!WallSystem || !WallSystem.blocked) return false;
         return WallSystem.blocked(enemy.x, enemy.y, target.x, target.y);
     },
 
@@ -614,12 +614,12 @@ const MovementSystem = {
         const r = enemy.collisionRadius || 12;
 
         // 尝试X方向
-        const xRes = typeof WallSystem !== 'undefined' && WallSystem.resolve
+        const xRes = WallSystem && WallSystem.resolve
             ? WallSystem.resolve(enemy.x, enemy.y, enemy.x + desiredVx * sc, enemy.y, r)
             : { x: enemy.x + desiredVx * sc, y: enemy.y };
 
         // 尝试Y方向
-        const yRes = typeof WallSystem !== 'undefined' && WallSystem.resolve
+        const yRes = WallSystem && WallSystem.resolve
             ? WallSystem.resolve(enemy.x, enemy.y, enemy.x, enemy.y + desiredVy * sc, r)
             : { x: enemy.x, y: enemy.y + desiredVy * sc };
 
@@ -670,7 +670,7 @@ const MovementSystem = {
         const nx = enemy.x + enemy.vx * sc;
         const ny = enemy.y + enemy.vy * sc;
 
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
             const maxStep = maxSpd * sc;
             const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
@@ -721,7 +721,7 @@ const MovementSystem = {
         const nx = enemy.x + enemy.vx * sc;
         const ny = enemy.y + enemy.vy * sc;
 
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
             const maxStep = maxSpd * sc;
             const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
@@ -777,7 +777,7 @@ const MovementSystem = {
         const nx = enemy.x + enemy.vx * sc;
         const ny = enemy.y + enemy.vy * sc;
 
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
             const maxStep = maxSpd * sc;
             const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);
@@ -834,7 +834,7 @@ const MovementSystem = {
         const nx = enemy.x + enemy.vx * sc;
         const ny = enemy.y + enemy.vy * sc;
 
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.collisionRadius || 12);
             const maxStep = maxSpd * sc;
             const clamped = this._clampMoveDistance(enemy.x, enemy.y, er.x, er.y, maxStep);

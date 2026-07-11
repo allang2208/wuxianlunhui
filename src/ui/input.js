@@ -65,7 +65,7 @@ import { ExpeditionSystem } from './expedition-system.js';
                     if (code === CONFIG.KEYS.STATUS) { SystemUI.toggle('status'); return; }
                     if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
                     if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
-                    if (code === CONFIG.KEYS.QUEST) { if (typeof QuestSystem !== 'undefined') QuestSystem.toggle(); return; }
+                    if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); return; }
                     if (code === 'KeyF' && Game.player) { Game.player.switchWeaponMode(); return; }
                     if (code === 'KeyZ' && Game.isRunning) { Game._pickupNearbyFlag = true; return; }
                     return; // 其他按键在面板打开时忽略
@@ -74,7 +74,7 @@ import { ExpeditionSystem } from './expedition-system.js';
                 if (code === CONFIG.KEYS.STATUS) SystemUI.toggle('status');
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
-                if (code === CONFIG.KEYS.QUEST) { if (typeof QuestSystem !== 'undefined') QuestSystem.toggle(); }
+                if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
                 if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) QuickBar.useSlot(code);
                 if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);
                 if (code === 'KeyF' && Game.player) {

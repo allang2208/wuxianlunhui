@@ -131,7 +131,7 @@ export class DroneSystem {
             const nextX = this.x + this.vx * dtSec;
             const nextY = this.y + this.vy * dtSec;
             // 墙壁碰撞
-            if (typeof WallSystem !== 'undefined') {
+            if (WallSystem) {
                 const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, 10);
                 this.x = resolved.x;
                 this.y = resolved.y;

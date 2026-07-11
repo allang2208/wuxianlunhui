@@ -44,7 +44,7 @@ const WallSystem = {
             phaserScene.physics.add.existing(wall, true); // true = static
             phaserScene.walls.add(wall);
         }
-        console.log('[WallSystem] Synced', this.walls.length, 'walls to Phaser');
+        
         // 重新同步树木碰撞体
         this._syncTreesToPhaser();
         // 设置碰撞关系
@@ -63,7 +63,7 @@ const WallSystem = {
             phaserScene.walls.add(tree);
             t.phaserSprite = tree;
         }
-        console.log('[WallSystem] Synced', this.trees.length, 'trees to Phaser');
+        
     },
     getWallsInView(vx, vy, vw, vh) {
         const result = [];
@@ -77,8 +77,8 @@ const WallSystem = {
      * 按 y 深度排序（y 小的先画，即后面的先画）
      */
     renderWalls(ctx, cameraX, cameraY) {
-        const cw = (typeof Renderer !== 'undefined' && Renderer.canvas) ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
-        const ch = (typeof Renderer !== 'undefined' && Renderer.canvas) ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
+        const cw = (Renderer && Renderer.canvas) ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
+        const ch = (Renderer && Renderer.canvas) ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
         const visible = [];
         for (const w of this.walls) {
             if (w.x + w.w > cameraX && w.x < cameraX + cw && w.y + w.h > cameraY && w.y < cameraY + ch) {

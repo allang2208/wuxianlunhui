@@ -32,7 +32,7 @@ export class BattleCommander {
         else if (playerHp < 0.3) newTactic = 'press';
 
         if (newTactic !== this.currentTactic) {
-            console.log(`[BattleCommander] 切换战术: ${this.tactics[newTactic].name}`);
+            
             this.currentTactic = newTactic;
         }
 

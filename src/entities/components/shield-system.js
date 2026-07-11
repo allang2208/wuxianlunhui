@@ -136,14 +136,14 @@ export class ShieldSystem {
 
     // 辅助：安全播放音效
     _playSound(path) {
-        if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+        if (SoundManager && SoundManager.playFile) {
             SoundManager.playFile(path);
         }
     }
 
     // 辅助：安全添加防御经验
     _addShieldExp(isMelee, isParry) {
-        if (typeof SkillManager !== 'undefined' && SkillManager.addShieldDefenseExp) {
+        if (SkillManager && SkillManager.addShieldDefenseExp) {
             SkillManager.addShieldDefenseExp(this.player, isMelee, isParry);
         }
     }

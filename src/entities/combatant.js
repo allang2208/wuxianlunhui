@@ -503,7 +503,7 @@ class Combatant extends DamageableEntity {
         this.triggerWeaponAnim();
 
         // 播放开火音效
-        if (typeof SoundManager !== 'undefined') {
+        if (SoundManager) {
             const fireSound = item.fireSound;
             if (fireSound) {
                 if (fireSound.startsWith('assets/')) {

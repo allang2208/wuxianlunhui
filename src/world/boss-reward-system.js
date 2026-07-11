@@ -214,7 +214,7 @@ export class BigBoss extends Enemy {
         // 召唤的小僵尸追踪
         this._summonedMinions = [];
 
-        console.log(`[BigBoss] 生成: ${this.name} HP=${this.hp}/${this.maxHp} 位置=(${x.toFixed(0)}, ${y.toFixed(0)})`);
+        
     }
 
     update(dt, entities) {
@@ -312,7 +312,7 @@ export class BigBoss extends Enemy {
         this.rotation = Math.atan2(player.y - this.y, player.x - this.x);
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '⚔️ 蓄力扇形斩！', '#ff4444'));
-        console.log(`[BigBoss] 开始蓄力扇形斩`);
+        
     }
 
     _updateFanSlashWindup(dt, entities) {
@@ -364,12 +364,12 @@ export class BigBoss extends Enemy {
         }
 
         // 屏幕震动
-        if (typeof Camera !== 'undefined' && Camera.shake) {
+        if (Camera && Camera.shake) {
             Camera.shake(8, 300);
         }
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '💥 扇形斩！', '#ff0000'));
-        console.log(`[BigBoss] 扇形斩释放`);
+        
     }
 
     // --- 蓄力冲锋 ---
@@ -387,7 +387,7 @@ export class BigBoss extends Enemy {
         this.rotation = this._skills.charge.chargeDir;
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '🐂 蓄力冲锋！', '#ff8800'));
-        console.log(`[BigBoss] 开始蓄力冲锋`);
+        
     }
 
     _updateChargeWindup(dt, _entities) {
@@ -409,7 +409,7 @@ export class BigBoss extends Enemy {
         this._animTimer = 0;
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '💨 冲锋！', '#ff6600'));
-        console.log(`[BigBoss] 冲锋释放`);
+        
     }
 
     _updateChargeDash(dt, entities) {
@@ -424,7 +424,7 @@ export class BigBoss extends Enemy {
         const newX = this.x + moveX;
         const newY = this.y + moveY;
 
-        if (typeof WallSystem !== 'undefined' && WallSystem.resolve) {
+        if (WallSystem && WallSystem.resolve) {
             const resolved = WallSystem.resolve(this.x, this.y, newX, newY, this.collisionRadius || 80);
             // 如果撞墙，停止冲锋
             if (Math.abs(resolved.x - newX) > 5 || Math.abs(resolved.y - newY) > 5) {
@@ -474,7 +474,7 @@ export class BigBoss extends Enemy {
 
         if (hitWall) {
             // 撞墙：屏幕震动 + 眩晕自己短暂时间
-            if (typeof Camera !== 'undefined' && Camera.shake) {
+            if (Camera && Camera.shake) {
                 Camera.shake(12, 400);
             }
             EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '💢 撞墙！', '#888888'));
@@ -531,7 +531,7 @@ export class BigBoss extends Enemy {
         }
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '☠️ 召唤小僵尸！', '#44ff44'));
-        console.log(`[BigBoss] 召唤 ${config.count} 只小僵尸`);
+        
     }
 
     // --- 辅助方法 ---
@@ -710,7 +710,7 @@ export class BigBoss extends Enemy {
             }
         }
         this._summonedMinions = [];
-        console.log(`[BigBoss] ${this.name} 被击败！`);
+        
     }
 }
 
@@ -759,7 +759,7 @@ export class DungeonBuffSystem {
         this.activeBuffs.set(buff.playerId, buff);
 
         // 添加到状态栏
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.addEffect('buff', -1, {
                 icon: config.icon,
                 name: `${config.name} (${config.maxBattles}场)`,
@@ -768,7 +768,7 @@ export class DungeonBuffSystem {
         }
 
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `✨ 女神祝福！物攻+${config.atkBonusPercent}%`, config.color));
-        console.log(`[DungeonBuffSystem] 女神祝福 applied: ATK+${atkBonus}, MATK+${matkBonus}, ${config.maxBattles}场战斗`);
+        
 
         return buff;
     }
@@ -820,7 +820,7 @@ export class DungeonBuffSystem {
         this.activeBuffs.set(buff.playerId, buff);
 
         // 添加到状态栏（永久效果，不显示倒计时）
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.addEffect('buff', 999999999, {
                 icon: config.icon,
                 name: config.name,
@@ -829,7 +829,7 @@ export class DungeonBuffSystem {
         }
 
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🔥 恶魔祈祷！物攻+${config.atkBonusPercent}% 但失去 ${config.hpCostPercent}% HP`, config.color));
-        console.log(`[DungeonBuffSystem] 恶魔祈祷 applied: ATK+${atkBonus}, MATK+${matkBonus}, HP-${hpCost}, MP-${mpCost}`);
+        
 
         return buff;
     }
@@ -847,7 +847,7 @@ export class DungeonBuffSystem {
         if (buff.type === 'goddessBlessing') {
             buff.remainingBattles--;
             // 更新状态栏显示
-            if (typeof StatusBar !== 'undefined') {
+            if (StatusBar) {
                 StatusBar.removeEffectByType('buff');
                 if (buff.remainingBattles > 0) {
                     StatusBar.addEffect('buff', -1, {
@@ -883,11 +883,11 @@ export class DungeonBuffSystem {
         this.activeBuffs.delete(playerId);
 
         // 从状态栏移除
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.removeEffectByType('buff');
         }
 
-        console.log(`[DungeonBuffSystem] Buff removed: ${buff.name}`);
+        
     }
 
     /**
@@ -898,10 +898,10 @@ export class DungeonBuffSystem {
             // 无法直接获取 player 对象，只清理记录
             this.activeBuffs.delete(playerId);
         }
-        if (typeof StatusBar !== 'undefined') {
+        if (StatusBar) {
             StatusBar.removeEffectByType('buff');
         }
-        console.log('[DungeonBuffSystem] All buffs cleared');
+        
     }
 
     /**
@@ -960,7 +960,7 @@ export class BossBattleManager {
         Camera.follow = this._backupCameraFollow;
         if (player) Camera.follow(player);
 
-        console.log('[BossBattleManager] Boss 战开始！场地=4096x4096');
+        
     }
 
     _setupArena() {
@@ -1023,7 +1023,7 @@ export class BossBattleManager {
         }
 
         // 标记路径缓存失效
-        if (typeof pathFinder !== 'undefined') {
+        if (pathFinder) {
             pathFinder.invalidateCache();
         }
     }
@@ -1104,11 +1104,11 @@ export class BossBattleManager {
     }
 
     _onBossDefeated() {
-        console.log('[BossBattleManager] Boss 被击败！');
+        
 
         // 发放基础奖励
         const gold = BOSS_REWARD_CONFIG.reward.baseGold + Math.floor(Math.random() * BOSS_REWARD_CONFIG.reward.goldVariance);
-        if (typeof GoldManager !== 'undefined') {
+        if (GoldManager) {
             GoldManager.addGold(gold);
         }
 
@@ -1142,14 +1142,14 @@ export class BossBattleManager {
             WallSystem._syncWallsToPhaser();
         }
 
-        if (typeof pathFinder !== 'undefined') {
+        if (pathFinder) {
             pathFinder.invalidateCache();
         }
 
         this.active = false;
         this._onCompleteCallback = null;
 
-        console.log('[BossBattleManager] 清理完成');
+        
     }
 
     isActive() {
@@ -1178,14 +1178,14 @@ export class RewardNodeManager {
         this._setupBossRewardCards();
 
         // 打开奖励面板
-        if (typeof RewardSystem !== 'undefined') {
+        if (RewardSystem) {
             RewardSystem.open();
         }
 
         // 监听面板关闭
         this._waitForRewardClose(onComplete);
 
-        console.log('[RewardNodeManager] 奖励节点打开');
+        
     }
 
     _setupBossRewardCards() {
@@ -1225,27 +1225,27 @@ export class RewardNodeManager {
         for (const reward of rewards) {
             switch (reward.type) {
                 case 'gold':
-                    if (typeof GoldManager !== 'undefined') {
+                    if (GoldManager) {
                         GoldManager.addGold(reward.count);
                     }
                     break;
                 case 'stone':
                     // 强化石
-                    if (typeof EnhancementItems !== 'undefined' && EnhancementItems.enhance_stone) {
+                    if (EnhancementItems && EnhancementItems.enhance_stone) {
                         const stone = { ...EnhancementItems.enhance_stone, stack: reward.count };
                         this._addToBackpackOrDrop(stone);
                     }
                     break;
                 case 'dust':
                     // 魔法晶尘
-                    if (typeof MagicDustItem !== 'undefined') {
+                    if (MagicDustItem) {
                         const dust = { ...MagicDustItem, stack: reward.count };
                         this._addToBackpackOrDrop(dust);
                     }
                     break;
                 case 'scroll':
                     // 附魔卷轴
-                    if (typeof EnchantConfig !== 'undefined') {
+                    if (EnchantConfig) {
                         const scrolls = EnchantConfig.getAllScrolls().filter(s => s.grade === reward.grade);
                         if (scrolls.length > 0) {
                             const scroll = scrolls[Math.floor(Math.random() * scrolls.length)];
@@ -1264,7 +1264,7 @@ export class RewardNodeManager {
 
     _addToBackpackOrDrop(item) {
         if (!item) return;
-        if (typeof EquipManager !== 'undefined' && EquipManager.backpackItems &&
+        if (EquipManager && EquipManager.backpackItems &&
             EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
             EquipManager.addToBackpack(item);
         } else if (Game.player && Game.dropItem) {
@@ -1273,7 +1273,7 @@ export class RewardNodeManager {
     }
 
     _giveRandomWeapon(rarity) {
-        if (typeof ItemDatabase === 'undefined' || !ItemDatabase.items) return;
+        if (!ItemDatabase || !ItemDatabase.items) return;
         const weapons = Object.values(ItemDatabase.items).filter(item =>
             item.rarity === rarity && (item.type === 'weapon' || item.category === 'weapon')
         );
@@ -1353,7 +1353,7 @@ export const BossRewardSystem = {
         this.bossBattle.cleanup();
         this.buffSystem.clearAllBuffs();
         this._isShowingReward = false;
-        console.log('[BossRewardSystem] 全部清理完成');
+        
     },
 };
 

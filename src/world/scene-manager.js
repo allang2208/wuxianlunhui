@@ -122,14 +122,14 @@ export const SceneManager = {
                 phaserScene.clearAllEntitySprites();
             }
             // 清除裂隙系统
-            if (typeof RiftSystem !== 'undefined') RiftSystem.clear();
+            if (RiftSystem) RiftSystem.clear();
 
             // 销毁无人机并触发CD
             if (player && player.droneSystem && player.droneSystem.active) {
                 if (typeof player.droneSystem._deactivate === 'function') {
                     player.droneSystem._deactivate();
                 }
-                if (typeof QuickBar !== 'undefined' && player.skills && player.skills.droneSkill) {
+                if (QuickBar && player.skills && player.skills.droneSkill) {
                     const getEffect = player.skills.droneSkill.getEffect;
                     const effect = typeof getEffect === 'function' ? getEffect(player.skills.droneSkill.level) : null;
                     QuickBar.cooldowns['droneSkill'] = (effect && effect.cooldown || 15) * 1000;
@@ -216,8 +216,8 @@ export const SceneManager = {
         this._mainPlayerPos = Game.player ? { x: Game.player.x, y: Game.player.y } : null;
         // 保存所有树木（不限于 sceneGroup，避免遗漏）
         this._mainTrees = WallSystem.trees ? WallSystem.trees.map(t => ({ ...t })) : [];
-        this._mainEffects = typeof EffectManager !== 'undefined' ? [...EffectManager.effects] : [];
-        this._mainCamera = typeof Camera !== 'undefined' ? { x: Camera.x, y: Camera.y } : null;
+        this._mainEffects = EffectManager ? [...EffectManager.effects] : [];
+        this._mainCamera = Camera ? { x: Camera.x, y: Camera.y } : null;
     },
 
     _resolveWorldSize(scene) {
@@ -354,7 +354,7 @@ export const SceneManager = {
             Game.entities.set('big_boss', bigBoss);
         } else {
             // 任务模式：不生成传送门和怪物，生成时空裂隙
-            if (typeof RiftSystem !== 'undefined') {
+            if (RiftSystem) {
                 RiftSystem.spawnRifts(scene.width, scene.height);
             }
             // 初始化任务模式怪物生成计时器
@@ -410,7 +410,7 @@ export const SceneManager = {
         }
 
         // 确保关键实体（靶子）存在，如果不存在则重新生成
-        if (typeof Game !== 'undefined' && Game.spawnTargets && Game.spawnEnemy) {
+        if (Game && Game.spawnTargets && Game.spawnEnemy) {
             let hasTargets = false, hasDpsTarget = false;
             Game.entities.forEach(e => {
                 if (e instanceof TargetDummy && e.name && e.name.startsWith('训练靶')) hasTargets = true;
@@ -745,7 +745,7 @@ export const SceneManager = {
             let px = scene.width / 2;
             let py = scene.height / 2;
             // 检查玩家位置是否在墙壁内，如果是则重新选择
-            if (typeof WallSystem !== 'undefined' && WallSystem.canMoveTo) {
+            if (WallSystem && WallSystem.canMoveTo) {
                 const playerRadius = player.collisionRadius || player.size || 15;
                 let attempts = 0;
                 while (!WallSystem.canMoveTo(px, py, playerRadius) && attempts < 50) {
@@ -772,7 +772,7 @@ export const SceneManager = {
         const spawnTacticalSquad = (centerX, centerY, radius) => {
             // 先清空旧的战术小队AI成员和FormationSystem编队
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
-            if (typeof FormationSystem !== 'undefined') {
+            if (FormationSystem) {
                 FormationSystem.getAllFormationIds().forEach(id => FormationSystem.disbandFormation(id));
             }
             const roles = [
@@ -792,7 +792,7 @@ export const SceneManager = {
                 let sy = centerY + Math.sin(angle) * radius;
 
                 // 检查生成位置是否在墙壁内，如果是则重新选择
-                if (typeof WallSystem !== 'undefined' && WallSystem.canMoveTo) {
+                if (WallSystem && WallSystem.canMoveTo) {
                     let attempts = 0;
                     const checkRadius = 25; // 最小安全半径
                     while (!WallSystem.canMoveTo(sx, sy, checkRadius) && attempts < 20) {
@@ -815,7 +815,7 @@ export const SceneManager = {
                 }
             }
             // 创建阵型编队（指挥官为leader，其他为成员）
-            if (typeof FormationSystem !== 'undefined' && commander && members.length > 1) {
+            if (FormationSystem && commander && members.length > 1) {
                 const followers = members.filter(m => m !== commander);
                 const fid = FormationSystem.createFormation(commander, 'wedge', followers);
                 if (fid) {
@@ -899,10 +899,10 @@ export const SceneManager = {
         }
 
         // 打开背包和出征准备面板（两者同时从右侧弹出，出征在背包左边）
-        if (typeof SystemUI !== 'undefined') {
+        if (SystemUI) {
             SystemUI.open('equip');
         }
-        if (typeof ExpeditionSystem !== 'undefined') {
+        if (ExpeditionSystem) {
             ExpeditionSystem.open(player);
         }
 

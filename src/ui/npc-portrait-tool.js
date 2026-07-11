@@ -190,8 +190,8 @@ export const NpcPortraitTool = {
         npcPortraitSettings[this._npcId] = { ...this._params };
 
         const json = JSON.stringify(this._params, null, 2);
-        console.log(`[NpcPortraitTool] 已保存 NPC "${this._npcId}" 的立绘参数：`);
-        console.log(json);
+        
+        
 
         // 尝试复制到剪贴板
         if (navigator.clipboard && navigator.clipboard.writeText) {

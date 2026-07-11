@@ -23,7 +23,7 @@ export class GameScene extends Scene {
     // ---- 生命周期 ----
 
     create() {
-        console.log('[GameScene] Scene created');
+        
 
         // 标记场景就绪，通知外部系统（必须提前，因为后续代码依赖 window.__phaserScene）
         window.__phaserSceneReady = true;
@@ -150,7 +150,7 @@ export class GameScene extends Scene {
             );
             if (distToPlayer > 100) {
                 this.playerSprite.body.reset(Game.player.x, Game.player.y);
-                console.log('[Velocity Drive] Init position:', Game.player.x, Game.player.y);
+                
             }
             
             // 如果玩家在闪避，Player 直接设置位置，需要同步到 Phaser
@@ -1140,7 +1140,7 @@ export class GameScene extends Scene {
         // 实体间碰撞：使用 overlap 检测但不自动响应，保持现有逻辑处理
         this._setupEntityOverlap();
         this._collidersSet = true;
-        console.log('[GameScene] Colliders set up');
+        
     }
 
     /**
@@ -1159,7 +1159,7 @@ export class GameScene extends Scene {
         this.physics.add.overlap(this.enemies, this.enemies, (_enemyA, _enemyB) => {
             // 同上，不做自动响应
         });
-        console.log('[GameScene] Entity overlap set up');
+        
     }
 
     getPlayerSprite() { return this.playerSprite; }

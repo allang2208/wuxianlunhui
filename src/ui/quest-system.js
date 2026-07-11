@@ -82,7 +82,7 @@ export const QuestSystem = {
         if (quest) {
             quest.accepted = true;
             // 任务栏版本：不传送，仅更新追踪栏
-            if (typeof QuestTracker !== 'undefined') QuestTracker.update();
+            if (QuestTracker) QuestTracker.update();
         }
         this.close();
         if (NPCDialogue.active) NPCDialogue.close();
@@ -93,8 +93,8 @@ export const QuestSystem = {
         const quest = this.QUESTS[this._selectedQuest];
         if (quest) {
             quest.accepted = true;
-            if (typeof QuestTracker !== 'undefined') QuestTracker.update();
-            if (typeof QuestState !== 'undefined') {
+            if (QuestTracker) QuestTracker.update();
+            if (QuestState) {
                 QuestState.startQuest(quest.scene, 'quest');
             }
         }
@@ -217,7 +217,7 @@ export const QuestState = {
                 QuestSystem.QUESTS['explore_rift_1'].objectives[0].current = this.riftCompleted.filter(Boolean).length;
             }
             // 更新追踪栏
-            if (typeof QuestTracker !== 'undefined') QuestTracker.update();
+            if (QuestTracker) QuestTracker.update();
         }
     },
 
@@ -227,7 +227,7 @@ export const QuestState = {
         if (QuestSystem.QUESTS['explore_rift_1']) {
             QuestSystem.QUESTS['explore_rift_1'].objectives[1].current = 1;
         }
-        if (typeof QuestTracker !== 'undefined') QuestTracker.update();
+        if (QuestTracker) QuestTracker.update();
     },
 
     // 完成任务
@@ -237,14 +237,14 @@ export const QuestState = {
             QuestSystem.QUESTS['explore_rift_1'].completed = true;
         }
         // 打开奖励结算界面（三选一）
-        if (typeof RewardSystem !== 'undefined' && RewardSystem.open) {
+        if (RewardSystem && RewardSystem.open) {
             // 延迟打开，确保场景切换完成
             TimerManager.setTimeout(() => RewardSystem.open(), 800);
         } else {
             // 后备：直接发放奖励
             this._grantRewards();
         }
-        if (typeof QuestTracker !== 'undefined') QuestTracker.update();
+        if (QuestTracker) QuestTracker.update();
     },
 
     // 发放奖励
@@ -253,7 +253,7 @@ export const QuestState = {
         const p = Game.player;
 
         // 1. 提升一级（保留经验值）
-        if (typeof LevelUpSystem !== 'undefined') {
+        if (LevelUpSystem) {
             LevelUpSystem.levelUp(p);
         } else {
             // 备用方案
@@ -272,7 +272,7 @@ export const QuestState = {
 
         // 显示完成提示
         EffectManager.add(new FloatingTextEffect(p.x, p.y - 50, '任务完成！', '#ffd700'));
-        if (typeof GameUIManager !== 'undefined') GameUIManager.updateUI();
+        if (GameUIManager) GameUIManager.updateUI();
     },
 
     // 发放随机优质武器
@@ -296,7 +296,7 @@ export const QuestState = {
             EquipManager.updateInventorySlots();
         } else {
             // 背包满，放在地上
-            if (typeof DropItem !== 'undefined') {
+            if (DropItem) {
                 DropItem.create(player.x + 20, player.y, instance);
             }
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，武器已放在地上', '#ff6666'));
@@ -354,6 +354,6 @@ export const LevelUpSystem = {
         player.data.exp = Math.min(savedExp, player.data.maxExp);
         player.data.attrPoints += 2;
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 50, `等级提升！Lv.${player.data.level}`, '#ffd700'));
-        if (typeof GameUIManager !== 'undefined') GameUIManager.updateUI();
+        if (GameUIManager) GameUIManager.updateUI();
     }
 };

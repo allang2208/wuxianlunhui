@@ -86,7 +86,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                         if (Math.random() < 0.5) {
                             baseDamage = Math.floor(baseDamage * 0.5);
                             // 显示格挡特效
-                            if (typeof EffectManager !== 'undefined' && EffectManager.createDamageText) {
+                            if (EffectManager && EffectManager.createDamageText) {
                                 EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#7a9a9a');
                             }
                         }
@@ -126,7 +126,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 this.hp -= baseDamage;
                 this.hitFlash = this.hitFlashDuration;
                 // 显示伤害数字
-                if (typeof EffectManager !== 'undefined' && EffectManager.createDamageText) {
+                if (EffectManager && EffectManager.createDamageText) {
                     EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit);
                 }
                 const isKill = this.hp <= 0;
@@ -159,7 +159,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
             }
             onDeath(source) {
                 this.active = false;
-                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/knockdown_1.mp3');
                 }
                 if (source && source.data) source.data.kills++;
@@ -174,7 +174,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                     let goldAmount = 4 * level + Math.floor(Math.random() * 10 + 1);
                     
                     // 祭品效果：麦穗 - 金币增加25%
-                    if (source && typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem._carriedItems) {
+                    if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
                         const tributes = DungeonMapSystem._carriedItems;
                         const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
                         if (hasWheat) {
@@ -187,7 +187,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                             source._marbleHealTimer = 1000; // 1秒
                             source._marbleHealTotal = source.data.maxHp * 0.05;
                             source._marbleHealPerTick = source._marbleHealTotal / (1000 / 16.67); // 每帧恢复量
-                            if (typeof StatusBar !== 'undefined') {
+                            if (StatusBar) {
                                 if (source._marbleHealEffectId) StatusBar.removeEffect(source._marbleHealEffectId);
                                 source._marbleHealEffectId = StatusBar.addEffect('marbleHeal', 1000, { icon: '🗿', name: '大理石守护', color: '#8a9a8a' });
                             }
@@ -309,7 +309,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 if (this._isDead) return;
                 this.addStatusEffect('stun', duration);
                 // 显示眩晕浮动文字
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
                 }
             }
@@ -323,7 +323,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 }
                 if (this._poisonTickTimer <= 0) {
                     this.hp -= this._poisonStacks;
-                    if (typeof EffectManager !== 'undefined') {
+                    if (EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#39ff14'));
                     }
                     this._poisonTickTimer = 1000;
@@ -337,7 +337,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                     if (this._poisonStacks > 0) {
                         this._poisonTimer = 5000;
                     } else {
-                        if (this._poisonEffectId && typeof StatusBar !== 'undefined') {
+                        if (this._poisonEffectId && StatusBar) {
                             StatusBar.removeEffect(this._poisonEffectId);
                             this._poisonEffectId = null;
                         }
@@ -349,7 +349,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 this._poisonStacks += stacks;
                 this._poisonTimer = 5000;
                 if (this._poisonTickTimer <= 0) this._poisonTickTimer = 1000;
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#39ff14'));
                 }
                 if (this._poisonEffect) this._poisonEffect.reset();
@@ -362,7 +362,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 if (this._bleedTickTimer <= 0) {
                     const dmg = Math.max(1, Math.floor(this.hp * 0.1));
                     this.hp -= dmg;
-                    if (typeof EffectManager !== 'undefined') {
+                    if (EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${dmg}`, '#9a3a3a'));
                     }
                     this._bleedTickTimer = 1000;
@@ -371,11 +371,11 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                     this._bleedStacks = Math.max(0, this._bleedStacks - 1);
                     if (this._bleedStacks > 0) {
                         this._bleedTimer = 5000;
-                        if (this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                        if (this._bleedEffectId && StatusBar) {
                             StatusBar.updateEffectStacks('bleed', this._bleedStacks);
                         }
                     } else {
-                        if (this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                        if (this._bleedEffectId && StatusBar) {
                             StatusBar.removeEffect(this._bleedEffectId);
                             this._bleedEffectId = null;
                         }
@@ -384,12 +384,12 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
             }
             applyCripple(duration) {
                 // 状态栏显示
-                if (typeof StatusBar !== 'undefined') {
+                if (StatusBar) {
                     this._crippleEffectId = StatusBar.addEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
                 }
                 // 内部状态数组（供 hasStatusEffect 查询）
                 this.addStatusEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🦴 致残！', '#8a8a7a'));
                 }
             }
@@ -397,12 +397,12 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 this._bleedStacks += stacks;
                 this._bleedTimer = 5000;
                 if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
-                if (!this._bleedEffectId && typeof StatusBar !== 'undefined') {
+                if (!this._bleedEffectId && StatusBar) {
                     this._bleedEffectId = StatusBar.addEffect('bleed', 5000, { stacks: this._bleedStacks });
-                } else if (typeof StatusBar !== 'undefined') {
+                } else if (StatusBar) {
                     StatusBar.updateEffectStacks('bleed', this._bleedStacks);
                 }
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🩸 流血 +${stacks}层`, '#9a3a3a'));
                 }
             }
@@ -418,7 +418,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
             applyMagicVulnerability(stacks) {
                 this._magicVulnerabilityStacks += stacks;
                 this._magicVulnerabilityTimer = 5000;
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🔮 魔力易伤 +${stacks}层`, '#8a5a9a'));
                 }
             }
@@ -434,7 +434,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
             applyDroneVulnerability(stacks) {
                 this._droneVulnerabilityStacks += stacks;
                 this._droneVulnerabilityTimer = 999999;
-                if (typeof EffectManager !== 'undefined') {
+                if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🛸 无人机易伤 +${stacks}层`, '#5a7a9a'));
                 }
             }
@@ -451,7 +451,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                     const ny = this.y + this.knockbackY;
                     // 击退时加入墙壁碰撞检测，防止穿墙
                     const radius = this.collisionRadius || 12;
-                    if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
+                    if (WallSystem && WallSystem.walls && WallSystem.walls.length > 0) {
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                         // 撞墙检测：如果resolve限制了移动，往反方向反弹5px
                         const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;
@@ -460,7 +460,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                             this.x = resolved.x - Math.cos(angle) * 5;
                             this.y = resolved.y - Math.sin(angle) * 5;
                             // 撞墙烟雾效果：在墙面位置产生
-                            if (typeof EffectManager !== 'undefined') EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                            if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                             this.knockbackX = 0;
                             this.knockbackY = 0;
                         } else {

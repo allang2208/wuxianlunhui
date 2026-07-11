@@ -64,7 +64,7 @@ const NPCDialogue = {
         }
 
         // 检查是否是任务后对话
-        if (npc.npcType === 'quest' && typeof QuestState !== 'undefined' && QuestState.questCompleted) {
+        if (npc.npcType === 'quest' && QuestState && QuestState.questCompleted) {
             this._startPostQuestDialogue();
             if (dialogueOptions) dialogueOptions.style.display = 'none';
         } else {
@@ -345,7 +345,7 @@ const NPCDialogue = {
 
     // ===== 任务NPC功能 =====
     openQuest() {
-        if (typeof QuestSystem === 'undefined') return;
+        if (!QuestSystem) return;
         // 小鼠侍从打开任务栏：标记来源为NPC，然后打开任务面板
         QuestSystem._fromNPC = true;
         QuestSystem.open();
@@ -370,7 +370,7 @@ const NPCDialogue = {
     },
 
     teleportToQuest() {
-        if (typeof QuestSystem === 'undefined' || typeof QuestState === 'undefined') return;
+        if (!QuestSystem || !QuestState) return;
         const quest = QuestSystem.QUESTS['explore_rift_1'];
         if (!quest || !quest.accepted) {
             this._currentText = '您还没有接受任务，请先点击"📜 开始任务"按钮接受任务。';

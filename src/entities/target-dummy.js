@@ -56,14 +56,14 @@ import { EffectManager } from '../effects/effect-manager.js';
                         const nx = this.x + this.knockbackX;
                         const ny = this.y + this.knockbackY;
                         const radius = this.collisionRadius || 12;
-                        if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
+                        if (WallSystem && WallSystem.walls && WallSystem.walls.length > 0) {
                             const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                             const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;
                             if (hitWall) {
                                 const angle = Math.atan2(this.knockbackY, this.knockbackX);
                                 this.x = resolved.x - Math.cos(angle) * 5;
                                 this.baseY += (resolved.y - this.y) - Math.sin(angle) * 5;
-                                if (typeof EffectManager !== 'undefined') EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                                if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                                 this.knockbackX = 0;
                                 this.knockbackY = 0;
                             } else {
@@ -98,14 +98,14 @@ import { EffectManager } from '../effects/effect-manager.js';
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;
                     const radius = this.collisionRadius || 12;
-                    if (typeof WallSystem !== 'undefined' && WallSystem.walls && WallSystem.walls.length > 0) {
+                    if (WallSystem && WallSystem.walls && WallSystem.walls.length > 0) {
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                         const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;
                         if (hitWall) {
                             const angle = Math.atan2(this.knockbackY, this.knockbackX);
                             this.x = resolved.x - Math.cos(angle) * 5;
                             this.baseY += (resolved.y - this.y) - Math.sin(angle) * 5;
-                            if (typeof EffectManager !== 'undefined') EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                            if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                             this.knockbackX = 0;
                             this.knockbackY = 0;
                         } else {
@@ -171,7 +171,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#39ff14'));
                 if (this._poisonEffect) this._poisonEffect.reset();
                 // 状态栏效果
-                if (typeof StatusBar !== 'undefined') {
+                if (StatusBar) {
                     this._poisonEffectId = StatusBar.addEffect('poison', 5000, { stacks: this._poisonStacks });
                 }
             }
@@ -198,11 +198,11 @@ import { EffectManager } from '../effects/effect-manager.js';
                         this._poisonStacks = Math.max(0, this._poisonStacks - 1);
                         if (this._poisonStacks > 0) {
                             this._poisonTimer = 5000;
-                            if (typeof StatusBar !== 'undefined') {
+                            if (StatusBar) {
                                 StatusBar.updateEffectStacks('poison', this._poisonStacks);
                             }
                         } else {
-                            if (this._poisonEffectId && typeof StatusBar !== 'undefined') {
+                            if (this._poisonEffectId && StatusBar) {
                                 StatusBar.removeEffect(this._poisonEffectId);
                                 this._poisonEffectId = null;
                             }

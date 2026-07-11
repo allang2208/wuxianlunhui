@@ -44,14 +44,14 @@ gainExp(amount) {
                     this.onLevelUp(d.level);
                 }
                 // 同步更新经验值UI（底部经验条）
-                if (typeof GameUIManager !== 'undefined' && GameUIManager.updateUI) {
+                if (GameUIManager && GameUIManager.updateUI) {
                     GameUIManager.updateUI();
                 }
             },
 
 onLevelUp(level) {
                 // 播放升级音效
-                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
                 }
                 // 使用特效队列顺序播放
@@ -162,7 +162,7 @@ onDeath() {
                 // 显示死亡提示
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '你死了！3秒后重生', '#ff4444'));
                 // 如果在任务模式中死亡，重置任务状态
-                if (typeof QuestState !== 'undefined' && QuestState.isInQuest()) {
+                if (QuestState && QuestState.isInQuest()) {
                     QuestState.reset();
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '任务失败，请重新与侍从对话', '#ff4444'));
                 }
@@ -242,7 +242,7 @@ respawn() {
                 const respawnPos = { x: SceneManager.scenes.main.origin.x, y: SceneManager.scenes.main.origin.y };
                 if (SceneManager.currentScene !== 'main') {
                     // 从其他场景死亡回主神空间：统一关闭地牢系统（如有），使用 origin 点重生
-                    if (typeof DungeonMapSystem !== 'undefined' && DungeonMapSystem.active) {
+                    if (DungeonMapSystem && DungeonMapSystem.active) {
                         DungeonMapSystem.shutdown();
                     }
                     SceneManager._respawnPos = respawnPos;
@@ -273,7 +273,7 @@ _initSkills() {
                 if (typeof window !== 'undefined' && window.SKILL_DATA) {
                     const skills = {};
                     for (const [id, data] of Object.entries(window.SKILL_DATA)) {
-                        if (typeof DataLoader !== 'undefined' && DataLoader.buildSkillFromJSON) {
+                        if (DataLoader && DataLoader.buildSkillFromJSON) {
                             skills[id] = DataLoader.buildSkillFromJSON(id, data);
                         } else {
                             // fallback: 手动构建技能对象
@@ -560,20 +560,17 @@ _onHitEntity(_entity) {
             },
 
 _applySkillOverrides(item) {
-                console.log('[SkillOverride] _applySkillOverrides called with:', item ? { name: item.name, hasOverrides: !!item.skillOverrides, overrideKeys: item.skillOverrides ? Object.keys(item.skillOverrides) : [] } : 'null item');
+                
                 if (!item || !item.skillOverrides) {
-                    console.log('[SkillOverride] Clearing overrides (no skillOverrides on item)');
+                    
                     this._clearSkillOverrides();
                     return;
                 }
                 this._skillOverrides = JSON.parse(JSON.stringify(item.skillOverrides));
-                console.log(`[SkillOverride] ✅ 应用 ${item.name} 的技能覆盖:`, JSON.parse(JSON.stringify(item.skillOverrides)));
+                
             },
 
 _clearSkillOverrides() {
-                if (Object.keys(this._skillOverrides).length > 0) {
-                    console.log('[SkillOverride] 恢复默认技能');
-                }
                 this._skillOverrides = {};
             },
 
@@ -851,7 +848,7 @@ switchWeaponMode() {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
                     // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
-                    if (nextItem.equipSound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    if (nextItem.equipSound && SoundManager && SoundManager.playFile) {
                         SoundManager.playFile(nextItem.equipSound);
                     }
                 } else {
@@ -869,12 +866,12 @@ switchWeaponMode() {
                 // 切换武器时初始化弹药系统
                 this._initAmmoForSlot(nextMode);
                 // 应用/恢复装备的技能覆盖
-                console.log('[SkillOverride] switchWeaponMode: nextItem =', nextItem ? { name: nextItem.name, slot: nextMode, hasOverrides: !!nextItem.skillOverrides } : 'null');
+                
                 this._applySkillOverrides(nextItem);
                 // 附魔效果：攻击间隔调整
                 this._applyEnchantAttackInterval(nextItem);
                 // 刷新技能栏显示（根据当前武器显示对应的冲刺攻击技能）
-                if (typeof SkillManager !== 'undefined' && SkillManager.renderSkillGrid) {
+                if (SkillManager && SkillManager.renderSkillGrid) {
                     SkillManager.renderSkillGrid();
                 }
             },
@@ -992,7 +989,7 @@ _consumeAmmo(slot) {
 _startReload(slot) {
                 const state = this._ammoState[slot];
                 if (!state || state.reloading || state.current >= state.max) {
-                    console.log(`[_startReload] slot=${slot} skipped: state=${!!state}, reloading=${state?.reloading}, current=${state?.current}, max=${state?.max}`);
+                    
                     return false;
                 }
                 const item = this.equipments[slot];
@@ -1012,7 +1009,7 @@ _startReload(slot) {
                     }
                 }
                 state.reloadTimer = actualReloadTime;
-                console.log(`[_startReload] slot=${slot}, weaponId=${item?.weaponId}, singleReloadMode=${singleReloadMode}, reloadTime=${actualReloadTime}, current=${state.current}, max=${state.max}`);
+                
                 if (singleReloadMode) {
                     // 单发装填模式（如Super90）
                     state.singleReloadMode = true;
@@ -1020,7 +1017,7 @@ _startReload(slot) {
                 } else {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
-                    if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    if (SoundManager && SoundManager.playFile) {
                         SoundManager.playFile('assets/sounds/reload_sharp.mp3', 1.69);
                     }
                 }
@@ -1029,7 +1026,7 @@ _startReload(slot) {
 
 _interruptReload(slot) {
                 const state = this._ammoState[slot];
-                console.log(`[_interruptReload] slot=${slot}, reloading=${state?.reloading}, singleReloadMode=${state?.singleReloadMode}, current=${state?.current}`);
+                
                 if (!state || !state.reloading || !state.singleReloadMode) return false;
                 state.reloading = false;
                 state.reloadTimer = 0;
@@ -1042,7 +1039,7 @@ _updateReload(dt) {
                     // 如果槽位有枪械但没有弹药状态，自动初始化
                     const item = this.equipments[slot];
                     if (item && isGunWeapon(item) && (!this._ammoState[slot] || this._ammoState[slot].weaponId !== item.weaponId)) {
-                        console.log(`[_updateReload] slot=${slot} reinit ammoState: weaponId=${item?.weaponId}, oldWeaponId=${this._ammoState[slot]?.weaponId}`);
+                        
                         this._initAmmoForSlot(slot);
                     }
                     const state = this._ammoState[slot];
@@ -1052,19 +1049,18 @@ _updateReload(dt) {
                         state.reloadTimer = 0;
                         if (state.singleReloadMode) {
                             // 单发装填模式：支持快速装填器（每次装2发）
-                            const oldCurrent = state.current;
                             const item = this.equipments[slot];
                             const ce = item && item._craftEffects;
                             const reloadCount = (ce && ce.fastReload) ? 2 : 1;
                             state.current = Math.min(state.max, state.current + reloadCount);
-                            console.log(`[_updateReload] slot=${slot} singleReload: current ${oldCurrent}→${state.current}, max=${state.max}, reloadCount=${reloadCount}`);
+                            
                             if (state.current >= state.max) {
                                 state.reloading = false;
                                 state.singleReloadMode = false;
                                 this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
                                 this._gunSpreadTimerOff = 0; // 同时重置副手散布
                                 // 单发装填满弹时播放枪栓音效
-                                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                                if (SoundManager && SoundManager.playFile) {
                                     SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
                                 }
                             } else {
@@ -1074,7 +1070,7 @@ _updateReload(dt) {
                             }
                         } else {
                             // 普通武器：一次性装满
-                            console.log(`[_updateReload] slot=${slot} bulkReload: current ${state.current}→${state.max}`);
+                            
                             state.reloading = false;
                             state.current = state.max;
                             this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
@@ -1193,7 +1189,7 @@ _getEffectivePiercing(basePiercing, item) {
 
 _playFireSound(item, defaultSound = 'gun_fire') {
                 const sound = item && item.fireSound ? item.fireSound : defaultSound;
-                if (typeof SoundManager === 'undefined') return;
+                if (!SoundManager) return;
                 if (sound.startsWith('assets/')) {
                     SoundManager.playFile(sound);
                 } else {
@@ -1378,7 +1374,7 @@ _fireRanged(hand = 'main') {
                         Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
 
                         // 音效播放
-                        if (typeof SoundManager !== 'undefined') {
+                        if (SoundManager) {
                             const lmgSound = lmgCfg.soundMap[attackKey];
                             if (lmgSound) SoundManager.playFile(lmgSound);
                         }

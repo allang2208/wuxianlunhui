@@ -796,7 +796,7 @@ render(ctx) {
                         sprite.setRotation(0); // 不旋转，只用 flipX 控制朝向
                     }
                     // ===== 地牢模式：隐藏 Phaser 角色贴图 =====
-                    const _dms = window.DungeonMapSystem || (typeof DungeonMapSystem !== 'undefined' ? DungeonMapSystem : null);
+                    const _dms = window.DungeonMapSystem || (DungeonMapSystem ? DungeonMapSystem : null);
                     if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
                         sprite.setVisible(false);
                         sprite.setActive(false);

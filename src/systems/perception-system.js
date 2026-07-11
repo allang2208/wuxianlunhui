@@ -243,7 +243,7 @@ class PerceptionSystemImpl {
         p.lastLOSTargetId = target.id;
 
         // 使用 WallSystem 检测视线阻挡
-        if (typeof WallSystem !== 'undefined' && WallSystem.blocked) {
+        if (WallSystem && WallSystem.blocked) {
             const blocked = WallSystem.blocked(enemy.x, enemy.y, target.x, target.y);
             p.lastLOSResult = !blocked;
             return !blocked;
