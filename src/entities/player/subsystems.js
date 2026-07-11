@@ -776,7 +776,7 @@ switchWeaponMode() {
                 requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
                 // 切换武器后150ms触发一次待机动画2（旋转动画）—— 双手武器不触发旋转
                 if (nextItem && !isTwoHanded(nextItem)) {
-                    this.weaponAnim.nextSpin = Date.now() + 150;
+                    this.weaponAnim.nextSpin = Date.now() + WEAPON_FX_CONFIG.switchSpinDelayMs;
                 } else {
                     this.weaponAnim.nextSpin = 0;
                     this.weaponAnim.spinEnd = 0;
@@ -1235,7 +1235,7 @@ _fireRanged(hand = 'main') {
                             const muzzlePos = this._getMuzzlePosition(gunLX, leftGunLY, fxCfg.muzzleForward);
                             const leftAngle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             let offhandSpreadFactor = this._currentSpreadFactorOff;
-                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || 25;
+                            const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const leftSpreadRad = (Math.random() - 0.5) * 2 * (offhandMaxSpreadAngle * Math.PI / 180) * offhandSpreadFactor;
                             const leftFinalAngle = leftAngle + leftSpreadRad;
                             let offhandDamage = offPC.damage.min;
@@ -1293,7 +1293,7 @@ _fireRanged(hand = 'main') {
                             const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             // 散布：使用统一的散布系统（所有枪械散布计算时间0.5s）
                             const mainSpreadFactor = this._currentSpreadFactor;
-                            const maxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            const maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * mainSpreadFactor;
                             const finalAngle = angle + spreadRad;
                             const mainPC = this.attacks[mainAttackKey].config;
@@ -1353,7 +1353,7 @@ _fireRanged(hand = 'main') {
                             angle = baseAngle + spreadRad;
                         } else {
                             spreadFactor = this._currentSpreadFactor;
-                            maxSpreadAngle = this._currentSpreadMaxAngle || 25;
+                            maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
                             angle = baseAngle + spreadRad;
                         }
@@ -1375,7 +1375,7 @@ _fireRanged(hand = 'main') {
                         const damage = { min: weaponDamage, max: weaponDamage };
 
                         // 屏幕抖动
-                        Camera.triggerShake(isEnergyLMG ? 2 : 4);
+                        Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
 
                         // 音效播放
                         if (typeof SoundManager !== 'undefined') {
@@ -1461,7 +1461,7 @@ _fireRanged(hand = 'main') {
                                 effectiveKnockback += sm.knockbackBonus || 0;
                             }
                             // 屏幕抖动
-                            Camera.triggerShake(6);
+                            Camera.triggerShake(sgCfg.cameraShake);
                             // 开火音效
                             this._playFireSound(currentItem, sgCfg.defaultSound);
                             // 确定穿透值（箭型弹模式基础1层 + 附魔/改造加成）

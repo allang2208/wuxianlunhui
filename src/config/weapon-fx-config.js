@@ -4,6 +4,10 @@
  */
 
 export const WEAPON_FX_CONFIG = {
+    // 通用默认值
+    defaultMaxSpreadAngle: 25,
+    switchSpinDelayMs: 150,
+
     // 手枪（主手）
     pistol: {
         gunLX: 20,
@@ -12,7 +16,8 @@ export const WEAPON_FX_CONFIG = {
         flashForward: 28,
         shellOffset: { fx: -8, fy: 6 },
         muzzleScale: 1.2,
-        defaultSound: 'gun_fire'
+        defaultSound: 'gun_fire',
+        cameraShake: 0
     },
 
     // 手枪（副手）
@@ -35,6 +40,8 @@ export const WEAPON_FX_CONFIG = {
         muzzleScale: 1.5,
         muzzleScaleEnergy: 1.0,
         defaultSound: 'gun_fire',
+        cameraShake: 4,
+        cameraShakeEnergy: 2,
         soundMap: {
             energy_lmg: 'assets/sounds/apex_shot_600ms.wav',
             pkm: 'assets/sounds/pkm_half_sec.wav',
@@ -54,7 +61,8 @@ export const WEAPON_FX_CONFIG = {
         defaultSound: 'assets/sounds/gunshot_600ms_clean.wav',
         baseSpreadAngle: 20,
         slugRecoilAnglePerLayer: 5,
-        defaultPelletCount: 6
+        defaultPelletCount: 6,
+        cameraShake: 6
     },
 
     // 弓
