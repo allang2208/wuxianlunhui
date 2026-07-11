@@ -24,7 +24,10 @@ const Camera = {
                 if (this.shakeIntensity > 0.5) { this.shakeX = (Math.random() - 0.5) * this.shakeIntensity; this.shakeY = (Math.random() - 0.5) * this.shakeIntensity; this.shakeIntensity *= this.shakeDecay; }
                 else { this.shakeX = 0; this.shakeY = 0; this.shakeIntensity = 0; }
                 // 边界限制：Camera 不能超出世界范围，确保屏幕始终显示世界内的内容
-                const halfW = CONFIG.VIEW_WIDTH / 2, halfH = CONFIG.VIEW_HEIGHT / 2;
+                // 使用实际 canvas 尺寸（如果可用）
+                const canvasW = (typeof Renderer !== 'undefined' && Renderer.canvas) ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
+                const canvasH = (typeof Renderer !== 'undefined' && Renderer.canvas) ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
+                const halfW = canvasW / 2, halfH = canvasH / 2;
                 const minX = Math.min(halfW, CONFIG.WORLD_WIDTH / 2);
                 const minY = Math.min(halfH, CONFIG.WORLD_HEIGHT / 2);
                 const maxX = Math.max(CONFIG.WORLD_WIDTH - halfW, CONFIG.WORLD_WIDTH / 2);

@@ -656,8 +656,8 @@ export const DungeonMapSystem = {
         const worldSize = minSize + Math.floor(Math.random() * steps) * 256;
 
         const margin = 20; // 边界墙壁厚度
-        const safeMin = margin;
-        const safeMax = worldSize - margin;
+        const safeMin = margin + 40; // 留出额外空间防止卡在墙里
+        const safeMax = worldSize - margin - 40;
         const center = worldSize / 2;
 
         // 保留战斗场景的边界信息（用于怪物生成范围）
@@ -667,7 +667,7 @@ export const DungeonMapSystem = {
         // 随机选择玩家进入边界（0=上, 1=右, 2=下, 3=左）
         const edge = Math.floor(Math.random() * 4);
         this._combatEntrance = edge;
-        const offset = 60; // 从边界向内偏移
+        const offset = 80; // 从边界向内偏移（增加距离防止卡在墙里）
         if (this.player) {
             if (edge === 0) { // top
                 this.player.x = center;
@@ -684,10 +684,22 @@ export const DungeonMapSystem = {
             }
         }
 
-        // 不生成任何墙壁和障碍物，只保留场景边界墙壁
-        WallSystem.walls = [...this._backupWalls];
+        // 生成战斗场景边界墙壁（防止玩家走出地图）
+        const wallThickness = margin;
+        WallSystem.walls = [
+            { x: 0, y: 0, w: worldSize, h: wallThickness },           // 上边界
+            { x: 0, y: worldSize - wallThickness, w: worldSize, h: wallThickness }, // 下边界
+            { x: 0, y: 0, w: wallThickness, h: worldSize },           // 左边界
+            { x: worldSize - wallThickness, y: 0, w: wallThickness, h: worldSize }, // 右边界
+        ];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
+        }
+
+        // 更新世界尺寸和摄像机边界
+        if (typeof CONFIG !== 'undefined') {
+            CONFIG.WORLD_WIDTH = worldSize;
+            CONFIG.WORLD_HEIGHT = worldSize;
         }
 
         // 标记 RegionIndex 需要重算
