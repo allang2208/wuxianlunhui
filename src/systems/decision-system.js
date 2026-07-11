@@ -12,7 +12,6 @@ import { WallSystem } from '../world/wall-system.js';
  */
 
 
-import aiConfigData from '../../data/ai-config.json';
 
 class DecisionSystemImpl {
     constructor() {
@@ -144,7 +143,7 @@ class DecisionSystemImpl {
 
     // ==================== 攻击决策 ====================
 
-    _updateAttackDecision(enemy, dt, entities) {
+    _updateAttackDecision(enemy, dt, _entities) {
         // 重置攻击决策标记
         enemy._decisionShouldAttack = false;
         enemy._decisionAttackTargetX = 0;
@@ -185,7 +184,7 @@ class DecisionSystemImpl {
 
     // ==================== 移动策略决策 ====================
 
-    _updateMovementDecision(enemy, dt, entities) {
+    _updateMovementDecision(enemy, _dt, _entities) {
         enemy._decisionShouldMove = false;
 
         // 无目标但有最后已知位置：继续追击
@@ -237,7 +236,7 @@ class DecisionSystemImpl {
 
     // ==================== 路径与卡住检测决策 ====================
 
-    _updatePathDecision(enemy, dt, entities) {
+    _updatePathDecision(enemy, dt, _entities) {
         // 初始化卡住检测状态
         if (enemy._stuckTimer === undefined) enemy._stuckTimer = 0;
         if (enemy._lastX === undefined) enemy._lastX = enemy.x;
@@ -276,7 +275,7 @@ class DecisionSystemImpl {
 
     // ==================== 战术行为决策 ====================
 
-    _updateTacticalDecision(enemy, dt, entities) {
+    _updateTacticalDecision(enemy, dt, _entities) {
         // 更新闪避计时器（用于步枪手等角色的横向机动）
         if (enemy._evadeTimer !== undefined) {
             enemy._evadeTimer -= dt;

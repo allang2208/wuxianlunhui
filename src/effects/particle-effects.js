@@ -248,7 +248,7 @@ class RuneSwordExplodeEffect {
         ctx.save(); ctx.translate(screenPos.x, screenPos.y);
         this.lines.forEach(line => {
             const t = line.elapsed;
-            let alpha = 0, currentLen = 0;
+            let alpha, currentLen;
             if (t < line.growDuration) {
                 const p = t / line.growDuration;
                 currentLen = line.length * p;

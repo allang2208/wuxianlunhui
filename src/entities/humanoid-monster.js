@@ -251,7 +251,7 @@ export class HumanoidMonster extends Enemy {
      * 技能结束时的回调，子类可覆盖以处理结束逻辑
      * @param {Object} skill - 技能对象
      */
-    _onSkillEnd(skill) {
+    _onSkillEnd(_skill) {
         // 子类可覆盖此方法处理技能结束后的清理逻辑
     }
 

@@ -105,7 +105,7 @@ export const ExpeditionSystem = {
                 e.dataTransfer.dropEffect = 'move';
                 cell.classList.add('drag-over');
             };
-            cell.ondragleave = (e) => {
+            cell.ondragleave = (_e) => {
                 cell.classList.remove('drag-over');
             };
             cell.ondrop = (e) => {
@@ -163,7 +163,7 @@ export const ExpeditionSystem = {
     },
 
     // 放置物品到格子 — 从背包中真正移除（类似 EnhanceSystem.equipFromBackpack）
-    _placeItemInCell(cell, item, backpackSlot) {
+    _placeItemInCell(cell, item, _backpackSlot) {
         const slotIdx = parseInt(cell.dataset.slot);
 
         // 如果格子已有物品，先移除并归还
@@ -238,7 +238,7 @@ export const ExpeditionSystem = {
             const stats = item.stats || [];
             stats.forEach(s => {
                 const value = String(s.value);
-                const isPositive = value.includes('+');
+                const _isPositive = value.includes('+');
                 const isNegative = value.includes('-');
                 const type = isNegative ? 'penalty' : 'benefit';
                 // 统一名称
@@ -378,8 +378,8 @@ export const ExpeditionSystem = {
     // 更新队伍列表（3个槽位：主角 + 2空位）
     _updatePartyList(player) {
         const leader = document.getElementById('expeditionPartyLeader');
-        const slot1 = document.getElementById('expeditionPartySlot1');
-        const slot2 = document.getElementById('expeditionPartySlot2');
+        const _slot1 = document.getElementById('expeditionPartySlot1');
+        const _slot2 = document.getElementById('expeditionPartySlot2');
 
         if (leader && player) {
             const mainItem = player.equipments[player.weaponMode];
@@ -429,7 +429,7 @@ export const ExpeditionSystem = {
     },
 
     // 更新地牢信息面板
-    _updateDungeonInfo(dungeonType) {
+    _updateDungeonInfo(_dungeonType) {
         const nameEl = document.getElementById('expeditionDungeonName');
         const nodeCountEl = document.getElementById('expeditionNodeCount');
         const battleRatioEl = document.getElementById('expeditionBattleRatio');

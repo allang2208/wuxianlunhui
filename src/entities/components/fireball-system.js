@@ -213,7 +213,7 @@ export class FireballSystem {
         // 火焰粒子效果
         for (let i = 0; i < 8; i++) {
             const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.5;
-            const speed = 100 + Math.random() * 200;
+            const _speed = 100 + Math.random() * 200;
             const px = x + Math.cos(angle) * (radius * 0.3);
             const py = y + Math.sin(angle) * (radius * 0.3);
             EffectManager.add(new FloatingTextEffect(px, py, '🔥', '#ff8844'));

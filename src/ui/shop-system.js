@@ -197,7 +197,7 @@ const ShopSystem = {
             e.dataTransfer.dropEffect = 'move';
             sellGrid.classList.add('drag-over');
         };
-        sellGrid.ondragleave = (e) => {
+        sellGrid.ondragleave = (_e) => {
             sellGrid.classList.remove('drag-over');
         };
         sellGrid.ondrop = (e) => {
@@ -324,7 +324,7 @@ const ShopSystem = {
                         e.dataTransfer.effectAllowed = 'move';
                         cell.classList.add('dragging');
                     };
-                    cell.ondragend = (e) => {
+                    cell.ondragend = (_e) => {
                         cell.classList.remove('dragging');
                         if (!EquipManager._dragDropManager._dropHandled && EquipManager._dragDropManager._dragSrc) {
                             this.removeFromSellGrid(index);

@@ -184,7 +184,7 @@ class BlackWolf extends Enemy {
     }
 
     _getPhaserOptions() {
-        let flipX = false;
+        let flipX;
         if (this._facing === 'left') {
             flipX = true;
         } else if (this._facing === 'right') {
@@ -639,7 +639,7 @@ class RedWolfKing extends Enemy {
     }
 
     _getPhaserOptions() {
-        let flipX = false;
+        let flipX;
         if (this._facing === 'left') {
             flipX = true;
         } else if (this._facing === 'right') {
@@ -979,14 +979,14 @@ class ZombieDog extends Enemy {
 
         // 四足骨骼狗的关键关节（侧视图，右侧面）
         // 缩放比例适配 enemy size
-        const sc = 0.9;
+        const _sc = 0.9;
         // 头部：长嘴兽头骨
         const skull = { x: 0, y: -18 + bob };
         const snout = { x: 10, y: -14 + bob };
         const jaw = { x: 9, y: -10 + bob };
         // 颈部 → 脊柱
         const neck = { x: -3, y: -14 + bob };
-        const spine = { x: -12, y: -10 + bob };  // 胸椎
+        const _spine = { x: -12, y: -10 + bob };  // 胸椎
         const hip = { x: -22, y: -10 + bob };
         // 肋骨
         const ribTop = { x: -8, y: -16 + bob };

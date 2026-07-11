@@ -44,7 +44,7 @@ export const EquipTooltipManager = {
         let fullItem = {};
         try {
             fullItem = codexItem ? { ...codexItem } : { ...(item || {}) };
-        } catch (e) {
+        } catch (_e) {
             fullItem = { ...(item || {}) };
         }
         if (codexItem && item) {
@@ -130,8 +130,7 @@ export const EquipTooltipManager = {
                 extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🎯 攻击参数</span></div>`;
             // 攻击力计算公式（含强化等级）
             const el = (item.enhanceLevel || fullItem.enhanceLevel || 0);
-            let atkFormula = '';
-            atkFormula = this._buildFormulaDisplay(fullItem.attackFormula, el, fullItem._craftEffects);
+            let atkFormula = this._buildFormulaDisplay(fullItem.attackFormula, el, fullItem._craftEffects);
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击力公式</span><span class="tt-stat-val">${atkFormula || '-'}</span></div>`;
             // 从 codexItem 或 fullItem 获取 attack 数据，如没有则尝试 ItemDatabase
             let attackParams = item.attack || fullItem.attack || (codexItem ? codexItem.attack : null);
@@ -497,7 +496,7 @@ export const EquipTooltipManager = {
                     EffectManager.add(new FloatingTextEffect(self.player.x, self.player.y - 20, '已卸下装备'));
                 }
             };
-            slot.ondblclick = function(e) {
+            slot.ondblclick = function(_e) {
                 const key = slot.dataset.slot;
                 const item = self.player.equipments[key];
                 const enchantPanel = document.getElementById('enchantPanel');
@@ -562,7 +561,7 @@ export const EquipTooltipManager = {
                     self._removeMoveHandler(cell);
                 }
             };
-            cell.ondblclick = function(e) {
+            cell.ondblclick = function(_e) {
                 const idx = parseInt(cell.dataset.slot);
                 const item = self.backpackItems.find(i => i.slot === idx);
                 if (!item) return;

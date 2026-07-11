@@ -157,7 +157,7 @@ class RegionIndex {
 
     // 找到当前区域边界上，离目标点最近的出口格子
     // 返回 { x, y, dist } 或 null
-    findNearestExit(currentX, currentY, targetX, targetY, entityRadius) {
+    findNearestExit(currentX, currentY, targetX, targetY, _entityRadius) {
         const currentRegionId = this.getRegionId(currentX, currentY);
         if (currentRegionId <= 0) return null;
 
@@ -167,7 +167,7 @@ class RegionIndex {
         // 找到区域边界格子中，离目标最近的
         let nearest = null;
         let minDist = Infinity;
-        const step = this.gridSize;
+        const _step = this.gridSize;
 
         for (const cell of region.cells) {
             const cx = cell.x;

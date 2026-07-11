@@ -405,17 +405,14 @@ const DevTool = {
         // 角色帧展示
         const charFrames = this._charFrames && this._charFrames[currentAnim];
         if (charFrames) {
-            let hasFrames = false;
             if (Array.isArray(charFrames) && charFrames.length > 1) {
                 // 多帧数组（如旧版帧序列）
                 this._showFrameItem(strip, charFrames[0].src, '第1帧', '角色-' + (this.ANIM_NAME[currentAnim] || currentAnim));
                 this._showFrameItem(strip, charFrames[charFrames.length - 1].src, `第${charFrames.length}帧`, '角色-' + (this.ANIM_NAME[currentAnim] || currentAnim));
-                hasFrames = true;
             } else if (charFrames.sheet && charFrames.sheet.complete) {
                 // Sprite sheet：展示第1帧和最后一帧
                 this._showFrameItem(strip, charFrames.sheet.src, '第1帧', '角色-' + (this.ANIM_NAME[currentAnim] || currentAnim));
                 this._showFrameItem(strip, charFrames.sheet.src, `第${charFrames.count}帧`, '角色-' + (this.ANIM_NAME[currentAnim] || currentAnim));
-                hasFrames = true;
             }
         }
 
@@ -530,14 +527,10 @@ const DevTool = {
         
         // 找到前后关键帧
         let prev = kfs[0], next = kfs[kfs.length - 1];
-        let prevIdx = 0, nextIdx = kfs.length - 1;
-        
         for (let i = 0; i < kfs.length - 1; i++) {
             if (progress >= kfs[i].progress && progress <= kfs[i + 1].progress) {
                 prev = kfs[i];
                 next = kfs[i + 1];
-                prevIdx = i;
-                nextIdx = i + 1;
                 break;
             }
         }
@@ -866,8 +859,8 @@ const DevTool = {
         const rect = this._canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        const cx = this._canvas.width / 2;
-        const cy = this._canvas.height / 2;
+        const _cx = this._canvas.width / 2;
+        const _cy = this._canvas.height / 2;
         
         // ===== 挂载点模式：拖动手部 =====
         if (this.handAnchorSystem.dragHand) {
@@ -925,7 +918,6 @@ const DevTool = {
         this._draw();
     },
 
-    // 同步输入框
     _syncInputs() {
         const elX = document.getElementById('devToolOffX');
         const elY = document.getElementById('devToolOffY');
@@ -998,89 +990,6 @@ const DevTool = {
                 基础尺寸: ${Math.round(baseW)}×${Math.round(baseH)}px
             </div>
         `;
-    },
-    _syncInputs() {
-        const elX = document.getElementById('devToolOffX');
-        const elY = document.getElementById('devToolOffY');
-        const elR = document.getElementById('devToolRot');
-        const elS = document.getElementById('devToolScl');
-        if (elX) elX.value = Math.round(this.weaponParams.offsetX);
-        if (elY) elY.value = Math.round(this.weaponParams.offsetY);
-        if (elR) elR.value = Math.round(this.weaponParams.rotation);
-        if (elS) elS.value = this.weaponParams.scale.toFixed(2);
-        
-        // 更新缩放信息面板
-        this._updateScaleInfo();
-    },
-    
-    // 更新缩放信息面板
-    _updateScaleInfo() {
-        const panel = document.getElementById('devToolScaleInfo');
-        if (!panel) return;
-        
-        const wt = this.state.weaponType;
-        const cfg = WeaponAnimConfig[wt];
-        if (!cfg) return;
-        
-        // 获取各状态的缩放值
-        const globalScale = cfg.idleScale !== undefined ? cfg.idleScale : 1.0;
-        const idleScale = cfg.idle && cfg.idle.idleScale !== undefined ? cfg.idle.idleScale : globalScale;
-        const walkScale = cfg.walk && cfg.walk.idleScale !== undefined ? cfg.walk.idleScale : globalScale;
-        const runningScale = cfg.running && cfg.running.idleScale !== undefined ? cfg.running.idleScale : globalScale;
-        
-        // 计算实际像素尺寸
-        const s = 105;
-        const ms = s * 0.75;
-        const weaponType = this.WEAPON_MAP[wt]?.type || 'melee';
-        const isMelee = weaponType === 'melee';
-        
-        let baseW, baseH;
-        if (isMelee) {
-            baseW = ms * 0.63;
-            baseH = ms;
-        } else if (weaponType === 'bow') {
-            baseW = s * 1.10;
-            baseH = s * 1.10;
-        } else {
-            baseW = s * 0.75;
-            baseH = s;
-        }
-        
-        // 当前调整的缩放值
-        const currentScale = this.weaponParams.scale;
-        
-        panel.innerHTML = `
-            <div style="font-weight:bold;margin-bottom:6px;color:#d4c5a9;">📐 缩放比例参考</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">
-                <div style="color:#888;">当前调整:</div>
-                <div style="color:#90d070;font-weight:bold;">${currentScale.toFixed(2)}x</div>
-                
-                <div style="color:#888;">全局默认:</div>
-                <div style="color:#d4c5a9;">${globalScale.toFixed(2)}x (${Math.round(baseW * globalScale)}×${Math.round(baseH * globalScale)}px)</div>
-                
-                <div style="color:#888;">待机 (idle):</div>
-                <div style="color:#d4c5a9;">${idleScale.toFixed(2)}x (${Math.round(baseW * idleScale)}×${Math.round(baseH * idleScale)}px)</div>
-                
-                <div style="color:#888;">行走 (walk):</div>
-                <div style="color:#d4c5a9;">${walkScale.toFixed(2)}x (${Math.round(baseW * walkScale)}×${Math.round(baseH * walkScale)}px)</div>
-                
-                <div style="color:#888;">奔跑 (running):</div>
-                <div style="color:#d4c5a9;">${runningScale.toFixed(2)}x (${Math.round(baseW * runningScale)}×${Math.round(baseH * runningScale)}px)</div>
-            </div>
-            <div style="margin-top:6px;font-size:11px;color:#888;border-top:1px solid #444;padding-top:4px;">
-                基础尺寸: ${Math.round(baseW)}×${Math.round(baseH)}px
-            </div>
-        `;
-    },
-    _syncInputs() {
-        const elX = document.getElementById('devToolOffX');
-        const elY = document.getElementById('devToolOffY');
-        const elR = document.getElementById('devToolRot');
-        const elS = document.getElementById('devToolScl');
-        if (elX) elX.value = Math.round(this.weaponParams.offsetX);
-        if (elY) elY.value = Math.round(this.weaponParams.offsetY);
-        if (elR) elR.value = Math.round(this.weaponParams.rotation);
-        if (elS) elS.value = this.weaponParams.scale.toFixed(2);
     },
 
     // 画布缩放控制
@@ -1386,7 +1295,7 @@ const DevTool = {
     // 保存数据
     _save() {
         const s = 105;
-        const ms = s * 0.75; // 78.75
+        const _ms = s * 0.75; // 78.75
         const wt = this.state.weaponType;
         const weaponType = this.WEAPON_MAP[wt]?.type || 'melee';
         const isMelee = weaponType === 'melee';
@@ -1750,7 +1659,7 @@ const DevTool = {
         if (copyBtn) {
             copyBtn.onclick = () => {
                 const start = document.getElementById('coordStart').textContent;
-                const end = document.getElementById('coordEnd').textContent;
+                const _end = document.getElementById('coordEnd').textContent;
                 const size = document.getElementById('coordSize').textContent;
                 const text = `left: ${start.split(',')[0].trim()}px; bottom: ${start.split(',')[1].trim()}px; width: ${size.split('x')[0].trim()}px; height: ${size.split('x')[1].trim()}px;`;
                 navigator.clipboard.writeText(text).then(() => {

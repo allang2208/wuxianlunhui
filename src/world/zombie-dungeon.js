@@ -43,7 +43,7 @@ function createArmoredZombie(x, y) {
 }
 
 // ==================== 怪物工厂 ====================
-function createBasicZombie(x, y) {
+export function createBasicZombie(x, y) {
     // 基础僵尸：使用 Enemy 类 + zombie 配置
     return new Enemy(x, y, {
         name: '僵尸',
@@ -284,7 +284,7 @@ export class ZombieDungeonCombat {
         if (this.isComplete) return [];
         this._currentWave++;
 
-        const { monstersPerWave, tierWeights, monsterPool } = this.config;
+        const { monstersPerWave, monsterPool } = this.config;
         const classes = [];
 
         for (let i = 0; i < monstersPerWave; i++) {

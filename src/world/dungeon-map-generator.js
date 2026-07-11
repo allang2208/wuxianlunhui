@@ -164,7 +164,7 @@ export class DungeonMapGenerator {
 
     /** 生成分层节点 */
     _generateLayers() {
-        const { layerNodeCounts, mapWidth, mapHeight, layerSpacingX, nodeSpacingY } = this.config;
+        const { layerNodeCounts, mapWidth, mapHeight, nodeSpacingY } = this.config;
         const layers = [];
 
         // 1. 确定每层节点数
@@ -206,7 +206,6 @@ export class DungeonMapGenerator {
         const startX = mapWidth / (numLayers + 1);
         const centerY = mapHeight / 2;
 
-        let nodeId = 0;
         for (let layer = 0; layer < numLayers; layer++) {
             const count = layers[layer];
             const layerX = startX * (layer + 1);
@@ -228,13 +227,12 @@ export class DungeonMapGenerator {
                     connections: [], // 出边目标节点id
                 };
                 this.nodes.push(node);
-                nodeId++;
             }
         }
     }
 
     /** 确定节点类型 */
-    _determineNodeType(layer, totalLayers, index) {
+    _determineNodeType(layer, totalLayers, _index) {
         // 第一层：起点
         if (layer === 0) return 'start';
         // 最后一层：Boss
@@ -422,7 +420,7 @@ export class DungeonMapGenerator {
 
         while (queue.length > 0) {
             const current = queue.shift();
-            const currentNode = this.nodes.find(n => n.id === current.id);
+            const _currentNode = this.nodes.find(n => n.id === current.id);
 
             // 到达 Boss
             if (current.id === bossNode.id) {

@@ -94,7 +94,7 @@ export const AIDevTool = {
 
         let html = '';
         if (typeof window !== 'undefined' && window.Game && window.Game._synergySystem && window.Game._synergySystem.activeSynergies) {
-            for (const [id, synergy] of window.Game._synergySystem.activeSynergies) {
+            for (const [, synergy] of window.Game._synergySystem.activeSynergies) {
                 html += `<div class="ai-synergy-item">
                     <strong>${synergy.rule.name}</strong>（${synergy.affected.length}个怪物）
                 </div>`;

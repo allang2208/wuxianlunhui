@@ -41,11 +41,6 @@ export default [
 
 
 
-        Attack: 'readonly',
-        SlashAttack: 'readonly',
-        ThrustAttack: 'readonly',
-        RangedAttack: 'readonly',
-        Projectile: 'readonly',
         DamagePipeline: 'readonly',
 
         Entity: 'readonly',
@@ -111,7 +106,7 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       'no-undef': ['error'],
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-dupe-class-members': 'warn',
       'no-useless-assignment': 'warn',

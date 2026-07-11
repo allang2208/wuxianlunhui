@@ -47,7 +47,7 @@ const EnhanceSystem = {
             e.dataTransfer.dropEffect = 'move';
             slot.classList.add('drag-over');
         };
-        slot.ondragleave = (e) => {
+        slot.ondragleave = (_e) => {
             slot.classList.remove('drag-over');
         };
         slot.ondrop = (e) => {
@@ -82,7 +82,7 @@ const EnhanceSystem = {
             e.dataTransfer.effectAllowed = 'move';
             slot.classList.add('dragging');
         };
-        slot.ondragend = (e) => {
+        slot.ondragend = (_e) => {
             slot.classList.remove('dragging');
             if (!EquipManager._dragDropManager._dropHandled && EquipManager._dragDropManager._dragSrc) {
                 // 拖到空白处：归还到背包
@@ -131,7 +131,7 @@ const EnhanceSystem = {
         if (!this._equippedItem) return;
         const { item, source, slotKey } = this._equippedItem;
         // 如果来自装备槽，优先归还到装备槽
-        if (source === 'equip' && slotKey && Game.player.equipments.hasOwnProperty(slotKey)) {
+        if (source === 'equip' && slotKey && Object.prototype.hasOwnProperty.call(Game.player.equipments, slotKey)) {
             // 检查装备槽是否为空
             if (!Game.player.equipments[slotKey] || !Game.player.equipments[slotKey].name) {
                 Game.player.equipments[slotKey] = JSON.parse(JSON.stringify(item));
@@ -268,7 +268,7 @@ const EnhanceSystem = {
             const level = item.enhanceLevel || 0;
             const cost = Math.floor(this._baseCost * Math.pow(1.5, level));
             const bp = EquipManager.backpackItems || [];
-            const hasStone = bp.some(i => i.name === '强化石');
+            const _hasStone = bp.some(i => i.name === '强化石');
             slot.innerHTML = `
                 <div class="slot-icon">${item.iconImage ? `<img src="${item.iconImage}" alt="${item.icon || '❓'}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon || '❓'}';">` : (item.icon || '❓')}</div>
                 <div class="slot-name">${item.name}</div>

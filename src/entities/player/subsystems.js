@@ -10,6 +10,7 @@ import { StatusBar } from '../../ui/status-bar.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
+import { Projectile } from '../../combat/projectile.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
 import { ShellCasingEffect } from '../../effects/shell-casing.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
@@ -63,7 +64,7 @@ onLevelUp(level) {
                 });
             },
 
-takeDamage(damage, source, damageType = 'physical', isMelee = false) {
+takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 // 主神空间（场景一）无敌
                 if (SceneManager.currentScene === 'main') return;
                 // 闪避无敌期间不受伤害
@@ -128,7 +129,7 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                 }
             },
 
-applyDroneVulnerability(stacks) {
+applyDroneVulnerability(_stacks) {
                 this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
                 this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
                 if (StatusBar) {
@@ -281,16 +282,16 @@ _initSkills() {
                                     const result = {};
                                     if (data.effectFormula) {
                                         for (const [key, formula] of Object.entries(data.effectFormula)) {
-                                            try { result[key] = new Function('level', `return ${formula}`)(level); }
-                                            catch (e) { result[key] = 0; }
+                                            const value = DataLoader.parseSkillFormula(String(formula), level);
+                                            result[key] = Number.isFinite(value) ? value : 0;
                                         }
                                     }
                                     return result;
                                 },
                                 getExpForNext(level) {
                                     if (data.expFormula) {
-                                        try { return new Function('level', `return ${data.expFormula}`)(level); }
-                                        catch (e) { return 100; }
+                                        const value = DataLoader.parseSkillFormula(String(data.expFormula), level);
+                                        if (Number.isFinite(value) && value > 0) return value;
                                     }
                                     return 100 + (level - 1) * 100;
                                 }
@@ -544,7 +545,7 @@ _applyEnchantAttackInterval(item) {
                 }
             },
 
-_onHitEntity(entity) {
+_onHitEntity(_entity) {
                 // 所有附魔命中效果已迁移至 attack.js 的通用附魔系统，避免硬编码
             },
 
@@ -882,7 +883,7 @@ switchWeaponMode() {
                 }
             },
 
-checkDualWieldUnequip(slotKey) {
+checkDualWieldUnequip(_slotKey) {
                 // 主手1/副手1/主手2/副手2 各自独立，卸载时不影响其他槽位
                 // 此函数保留仅用于兼容性，不再执行任何联动操作
                 return;
@@ -1211,7 +1212,7 @@ _fireRanged(hand = 'main') {
                             this._consumeAmmo(offhandSlot);
                             const offhandAttackKey = offhandItem.offhandAttackKey || 'pistolOffhand';
                             const offPC = this.attacks[offhandAttackKey].config;
-                            const gunLX = this.size + 20, gunLY = 13;
+                            const gunLX = this.size + 20;
                             const leftGunLY = -13;
                             const leftMuzzleX = this.x + c * (gunLX + 22) - sin * leftGunLY;
                             const leftMuzzleY = this.y + sin * (gunLX + 22) + c * leftGunLY;
@@ -1267,7 +1268,7 @@ _fireRanged(hand = 'main') {
                 const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg');
                 const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
                 const wac = WeaponAnimConfig[isPistol ? 'pistol' : (isBow ? 'bow' : (isPkmOrAkm ? currentItem.weaponType : (isShotgun ? 'shotgun' : 'sword')))];
-                const holdX = wac ? wac.holdOffsetX : WEAPON_ANIM.holdX;
+                const _holdX = wac ? wac.holdOffsetX : WEAPON_ANIM.holdX;
                 const holdY = wac ? wac.holdOffsetY : WEAPON_ANIM.holdY;
                 if (isPistol) {
                     // 检测是否双持手枪（任何手枪组合均可）
@@ -1276,7 +1277,7 @@ _fireRanged(hand = 'main') {
                     const mainSlot = d.mainSlot || this.weaponMode;
                     const offhandSlot = d.offhandSlot || (this.weaponMode === 'weapon' ? 'offhand' : 'ring2');
                     const offhandItem = this.equipments[offhandSlot];
-                    const offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
+                    const _offhandAttackKey = offhandItem && offhandItem.offhandAttackKey || 'pistolOffhand';
                     const gunLX = this.size + 20, gunLY = 13;
 
                     // === 左键：主手开火 ===
@@ -1687,8 +1688,8 @@ _getOffhandWeaponAnimParams() {
 
                 const offhandAnim = this.offhandWeaponAnim || { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 const isPistol = offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol';
-                const isPkmOrAkm = offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201';
-                const isShotgun = offhandItem.weaponType === 'shotgun';
+                const _isPkmOrAkm = offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201';
+                const _isShotgun = offhandItem.weaponType === 'shotgun';
                 const isMelee = offhandItem.category === 'weapon_melee' || offhandItem.weaponType === 'sword';
                 const s = wa.size;
 

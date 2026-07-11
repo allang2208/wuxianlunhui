@@ -8,21 +8,6 @@ export class ShieldSystem {
         this.parryWindow = 1000;    // 弹反窗口 ms
     }
 
-    // 检查是否装备盾（只检查当前武器模式对应的副手槽）
-    checkEquipped() {
-        const currentMode = this.player.weaponMode;
-        const offhandSlot = currentMode === 'weapon' ? 'offhand' : 'ring2';
-        const item = this.player.equipments[offhandSlot];
-        const newActive = !!(item && item.weaponType === 'shield');
-        if (this.active !== newActive) {
-            this.active = newActive;
-            if (this.player.calculateCombatStats) {
-                this.player.calculateCombatStats();
-            }
-        }
-        return this.active;
-    }
-
     // 进入防御状态
     enterDefense() {
         if (!this.active || this.defending) return;

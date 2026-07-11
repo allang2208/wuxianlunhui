@@ -140,6 +140,7 @@ class HitDetector {
         if (hexHitbox.containsPoint(x2, y2)) {
             const d = hexHitbox.distanceToCenter(x2, y2);
             if (d < bestDist) {
+                // eslint-disable-next-line no-useless-assignment
                 bestDist = d;
                 bestHit = { x: x2, y: y2 };
             }
@@ -463,7 +464,7 @@ class HitDetector {
      * @param {HitResult} hitResult
      * @param {number} duration - 显示时长(ms)
      */
-    static renderHitPoint(ctx, hitResult, duration = 500) {
+    static renderHitPoint(ctx, hitResult, _duration = 500) {
         const sp = Renderer.worldToScreen(hitResult.x, hitResult.y);
         const colors = {
             front: '#ff4444',

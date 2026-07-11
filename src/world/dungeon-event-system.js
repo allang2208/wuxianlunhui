@@ -814,7 +814,7 @@ function handleDemonStatue(player, choiceId) {
         // 随机奖励
         const rewardRoll = Math.random();
         const weights = config.rewardTypeWeights;
-        let rewardText = '';
+        let rewardText;
         const rewards = {};
 
         if (rewardRoll < weights.attackBuff) {
@@ -1068,7 +1068,7 @@ export const DungeonEventSystem = {
     /**
      * 创建选择按钮
      */
-    _createChoiceButton(choice, player, overlay) {
+    _createChoiceButton(choice, player, _overlay) {
         const btn = document.createElement('button');
 
         // 构建按钮文本（包含属性检定提示）
@@ -1098,7 +1098,7 @@ export const DungeonEventSystem = {
     /**
      * 显示结果UI
      */
-    _showResultUI(result, player) {
+    _showResultUI(result, _player) {
         // 清除旧UI
         this._cleanupUI();
 

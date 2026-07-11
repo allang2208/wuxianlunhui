@@ -359,10 +359,10 @@ import { EffectManager } from '../effects/effect-manager.js';
                             e.preventDefault();
                             e.dataTransfer.dropEffect = 'move';
                         };
-                        cell.ondragenter = function(e) {
+                        cell.ondragenter = function(_e) {
                             cell.classList.add('drag-over');
                         };
-                        cell.ondragleave = function(e) {
+                        cell.ondragleave = function(_e) {
                             cell.classList.remove('drag-over');
                         };
                         cell.ondrop = function(e) {
@@ -1315,7 +1315,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                         }
                     }
                 }
-                if (!targetSlot || !player.equipments.hasOwnProperty(targetSlot)) return;
+                if (!targetSlot || !Object.prototype.hasOwnProperty.call(player.equipments, targetSlot)) return;
 
                 const replacedItem = player.equipments[targetSlot];
                 // 先从背包移除原物品

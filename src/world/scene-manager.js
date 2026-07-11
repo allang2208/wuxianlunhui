@@ -159,7 +159,7 @@ export const SceneManager = {
         }
     },
 
-    _saveRollbackState(player) {
+    _saveRollbackState(_player) {
         this._rollbackEntities = Game.entities ? new Map(Game.entities) : null;
         this._rollbackEffects = EffectManager.effects ? EffectManager.effects.slice() : null;
         this._rollbackTrees = WallSystem.trees ? WallSystem.trees.slice() : null;
@@ -820,7 +820,7 @@ export const SceneManager = {
         if (player) QuickBar.refreshSpecialAttack(player);
     },
 
-    _loadScene7(player, dungeonType = 'zombie') {
+    _loadScene7(player, _dungeonType = 'zombie') {
         // 重置 Camera 状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;

@@ -7,6 +7,7 @@ import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { Projectile } from './projectile.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -46,7 +47,7 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             canUse() { return this.cooldown <= 0; }
             use(source, targetX, targetY, entities) { if (!this.canUse()) return false; const success = this.execute(source, targetX, targetY, entities); if (success) this.cooldown = this.maxCooldown; return success; }
-            execute(source, targetX, targetY, entities) {}
+            execute(_source, _targetX, _targetY, _entities) {}
             update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
             getCooldownPercent() { return Math.max(0, this.cooldown / this.maxCooldown); }
         }

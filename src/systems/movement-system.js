@@ -124,7 +124,7 @@ const MovementSystem = {
      * 计算移动方向（目标、最后已知位置、战术目标、战斗指挥官目标）
      * @returns {{dx:number, dy:number, dist:number}|null}
      */
-    _computeMoveDirection(enemy, entities) {
+    _computeMoveDirection(enemy, _entities) {
         let tx = 0, ty = 0, hasTarget = false;
 
         // 0. [FIX] 特殊战术目标（TacticalSquadAI 设置）优先级最高
@@ -210,7 +210,7 @@ const MovementSystem = {
     /**
      * 卡住检测：定期记录位置，若长时间未移动则触发寻路或随机转向
      */
-    _updateStuckDetection(enemy, dt, dx, dy, dist) {
+    _updateStuckDetection(enemy, dt, _dx, _dy, _dist) {
         enemy._stuckTimer = (enemy._stuckTimer || 0) + dt;
 
         if (enemy._stuckTimer >= 500) {
@@ -506,7 +506,7 @@ const MovementSystem = {
     /**
      * 更新移动动画状态
      */
-    _updateMovementAnim(enemy, dt) {
+    _updateMovementAnim(enemy, _dt) {
         if (enemy.isMoving) {
             enemy.animTime += 0.15;
         }
@@ -749,7 +749,7 @@ const MovementSystem = {
     orbit(enemy, targetX, targetY, orbitRadius, dt, clockwise = true) {
         const dx = enemy.x - targetX;
         const dy = enemy.y - targetY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const _dist = Math.sqrt(dx * dx + dy * dy);
 
         // 计算当前角度
         let angle = Math.atan2(dy, dx);
@@ -807,8 +807,7 @@ const MovementSystem = {
         const dy = enemy.y - targetY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        let moveDx = 0;
-        let moveDy = 0;
+        let moveDx, moveDy;
 
         if (dist < minDist) {
             // 太远，需要远离

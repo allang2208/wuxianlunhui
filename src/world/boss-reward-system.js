@@ -8,6 +8,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { StatusBar } from '../ui/status-bar.js';
+import { createBasicZombie } from './zombie-dungeon.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
  * ============================================================
@@ -321,7 +322,7 @@ export class BigBoss extends Enemy {
 
     _executeFanSlash(entities) {
         const config = BOSS_REWARD_CONFIG.boss.skills.fanSlash;
-        const player = this._findPlayer(entities);
+        const _player = this._findPlayer(entities);
 
         this._skills.fanSlash.isWindingUp = false;
         this._skills.fanSlash.lastUsed = Date.now();
@@ -384,7 +385,7 @@ export class BigBoss extends Enemy {
         console.log(`[BigBoss] 开始蓄力冲锋`);
     }
 
-    _updateChargeWindup(dt, entities) {
+    _updateChargeWindup(dt, _entities) {
         this._skills.charge.windupTimer -= dt;
         this._animTimer += dt;
 
@@ -477,7 +478,7 @@ export class BigBoss extends Enemy {
 
     // --- 召唤小僵尸 ---
 
-    _startSummon(entities) {
+    _startSummon(_entities) {
         this._skills.summon.hasSummoned = true;
         this._skills.summon.lastUsed = Date.now();
         this._animState = 'summon';
@@ -495,16 +496,14 @@ export class BigBoss extends Enemy {
             const sy = this.y + Math.sin(angle) * dist;
 
             // 使用现有的僵尸配置
-            import('./zombie-dungeon.js').then(mod => {
-                const zombie = mod.createBasicZombie ? mod.createBasicZombie(sx, sy) : null;
-                if (zombie && Game.entities) {
-                    const key = `boss_minion_${Date.now()}_${i}`;
-                    Game.entities.set(key, zombie);
-                    this._summonedMinions.push({ key, entity: zombie });
-                }
-            }).catch(() => {
+            let zombie = null;
+            try {
+                zombie = createBasicZombie(sx, sy);
+            } catch (_err) {
                 // 如果 zombie-dungeon.js 不可用，使用基础 Enemy
-                const zombie = new Enemy(sx, sy, {
+            }
+            if (!zombie) {
+                zombie = new Enemy(sx, sy, {
                     name: '小僵尸',
                     hp: 60,
                     maxHp: 60,
@@ -518,12 +517,12 @@ export class BigBoss extends Enemy {
                     attack: { type: 'thrust', cooldown: 800, dynamicRange: 60, width: 18, damageMin: 3, damageMax: 7, knockback: 5 },
                     ai: { aggroRange: 9999, pacingRange: 80, loseTimeout: 3000 },
                 });
-                if (Game.entities) {
-                    const key = `boss_minion_${Date.now()}_${i}`;
-                    Game.entities.set(key, zombie);
-                    this._summonedMinions.push({ key, entity: zombie });
-                }
-            });
+            }
+            if (Game.entities) {
+                const key = `boss_minion_${Date.now()}_${i}`;
+                Game.entities.set(key, zombie);
+                this._summonedMinions.push({ key, entity: zombie });
+            }
         }
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 40, '☠️ 召唤小僵尸！', '#44ff44'));
@@ -890,7 +889,7 @@ export class DungeonBuffSystem {
      * 清理所有 buff（地牢结束时）
      */
     clearAllBuffs() {
-        for (const [playerId, buff] of this.activeBuffs) {
+        for (const playerId of this.activeBuffs.keys()) {
             // 无法直接获取 player 对象，只清理记录
             this.activeBuffs.delete(playerId);
         }

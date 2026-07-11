@@ -270,7 +270,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 }
             }
             // ===== AI 执行：设置目标与速度 =====
-            _executeAI(dt, entities) {
+            _executeAI(dt, _entities) {
                 switch (this._aiState) {
                     case 'pacing': {
                         // 踱步速度 = 正常 1/2
@@ -459,7 +459,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 }
             }
             // 应用无人机易伤（无人机技能）
-            applyDroneVulnerability(stacks) {
+            applyDroneVulnerability(_stacks) {
                 this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
                 this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
                 if (typeof EffectManager !== 'undefined' && EffectManager.add) {
@@ -607,9 +607,6 @@ import { EffectManager } from '../effects/effect-manager.js';
                 this._renderPoisonEffect(ctx, x, y);
                 this._renderHitFlash(ctx, x, y);
             }
-            _getRenderPosition() {
-                return Renderer.worldToScreen(this.x, this.y);
-            }
             _getTextureKey() {
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }
@@ -649,7 +646,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 // 所以这里不需要 ctx.rotate(-this.rotation) 来抵消，只做水平翻转即可
                 ctx.save();
 
-                let facingDir = 'right';
+                let facingDir;
                 if (this.isMoving && Math.abs(this.vx) > 0.1) {
                     facingDir = this.vx > 0 ? 'right' : 'left';
                 } else {
@@ -834,7 +831,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 }
 
                 const spriteSize = options.spriteSize !== undefined ? options.spriteSize : this.size * 7.0;
-                const rotation = 0; // 禁止旋转，仅水平翻转
+                const _rotation = 0; // 禁止旋转，仅水平翻转
                 const textOffsetY = options.textOffsetY !== undefined ? options.textOffsetY : -32;
 
                 sprite.setPosition(

@@ -189,8 +189,8 @@ export class IceSpikeSystem {
     _spawnIceBreakEffect(x, y) {
         // 简单白色冰屑特效
         for (let i = 0; i < 5; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 50 + Math.random() * 100;
+            const _angle = Math.random() * Math.PI * 2;
+            const _speed = 50 + Math.random() * 100;
             EffectManager.add(new FloatingTextEffect(x, y, '❄', '#aaddff'));
         }
     }

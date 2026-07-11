@@ -16,7 +16,7 @@ class DashSystem {
         this.player = player;
     }
 
-    trigger(entities) {
+    trigger(_entities) {
         if (this.player._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止冲刺攻击
         // 使用鼠标方向（当前朝向）作为冲刺方向
         let dirX = Math.cos(this.player.rotation), dirY = Math.sin(this.player.rotation);
@@ -59,7 +59,7 @@ class DashSystem {
         // 未传入 skillId 时，根据当前装备自动判断
         const activeSkillId = skillId || this.player._getActiveDashSkillId();
         const dashProgress = Math.min(1, timer / 800);
-        let dashOffset = 0, dashAngle = 0;
+        let dashOffset, dashAngle;
         
         
         if (activeSkillId === 'dashAttackThrust') {
@@ -112,7 +112,7 @@ class DashSystem {
         }
         this.player._dashTimer += dt;
         const skill = this.player.skills[activeSkillId];
-        const effect = skill.getEffect(skill.level);
+        const _effect = skill.getEffect(skill.level);
         if (isThrust) {
             // === 冲刺攻击-突刺（骑士长剑专属）===
             const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', 600);
@@ -365,7 +365,6 @@ class DashSystem {
             const damage = Math.floor(baseAtk * damageMul + levelBonus);
             // 改造效果：大马士革钢 - 冲刺突刺双倍伤害
             const dashDoubleHit = currentItem && currentItem._craftEffects && currentItem._craftEffects.dashDoubleHit;
-            let hitCount = 0;
             if (hitIndex === 0) {
                 // 第一次判定：矩形范围判定，记录命中目标
                 const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', 0);
@@ -376,7 +375,6 @@ class DashSystem {
                     const forward = dx * cos + dy * sin;
                     const lateral = dx * (-sin) + dy * cos;
                     if (forward >= backOffset && forward <= rectLength && lateral >= -halfW && lateral <= halfW) {
-                        hitCount++;
                         phase.hitTargets.add(entity);
                         if (!this.player._dashHitSet.has(entity)) this.player._dashHitSet.add(entity);
                         const wasAlive = entity.hp > 0;
@@ -417,7 +415,6 @@ class DashSystem {
                 // 第二、三次判定：不再做范围判定，直接对第一次命中的目标造成伤害
                 phase.hitTargets.forEach(entity => {
                     if (entity === this.player || !entity.active || !entity.hittable) return;
-                    hitCount++;
                     if (!this.player._dashHitSet.has(entity)) this.player._dashHitSet.add(entity);
                     const wasAlive = entity.hp > 0;
                     const targetCritRes2 = (entity.data && entity.data.critRes) || 0;
