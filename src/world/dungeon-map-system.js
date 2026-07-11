@@ -633,14 +633,20 @@ export const DungeonMapSystem = {
     },
 
     _generateRoom(isBoss) {
-        const worldSize = 1024;
+        // 随机生成 1024-2048 大小的正方形场地（步长 256）
+        const minSize = 1024;
+        const maxSize = 2048;
+        const steps = Math.floor((maxSize - minSize) / 256) + 1;
+        const worldSize = minSize + Math.floor(Math.random() * steps) * 256;
+
         const margin = 20; // 边界墙壁厚度
         const safeMin = margin;
         const safeMax = worldSize - margin;
-        const cx = 512, cy = 512;
+        const center = worldSize / 2;
 
         // 保留战斗场景的边界信息（用于怪物生成范围）
-        this._combatRoomBounds = { minX: safeMin, maxX: safeMax, minY: safeMin, maxY: safeMax, cx, cy };
+        this._combatRoomBounds = { minX: safeMin, maxX: safeMax, minY: safeMin, maxY: safeMax, cx: center, cy: center };
+        this._combatRoomSize = worldSize;
 
         // 随机选择玩家进入边界（0=上, 1=右, 2=下, 3=左）
         const edge = Math.floor(Math.random() * 4);
@@ -648,17 +654,17 @@ export const DungeonMapSystem = {
         const offset = 60; // 从边界向内偏移
         if (this.player) {
             if (edge === 0) { // top
-                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.x = center;
                 this.player.y = safeMin + offset;
             } else if (edge === 1) { // right
                 this.player.x = safeMax - offset;
-                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = center;
             } else if (edge === 2) { // bottom
-                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.x = center;
                 this.player.y = safeMax - offset;
             } else if (edge === 3) { // left
                 this.player.x = safeMin + offset;
-                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = center;
             }
         }
 
@@ -678,10 +684,11 @@ export const DungeonMapSystem = {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
 
+        const roomSize = this._combatRoomSize || 1024;
         const margin = 40;
         const safeMin = margin;
-        const safeMax = 1024 - margin;
-        const cx = 512, cy = 512;
+        const safeMax = roomSize - margin;
+        const center = roomSize / 2;
         const entranceEdge = this._combatEntrance || 2;
         const oppositeEdge = (entranceEdge + 2) % 4;
 
