@@ -2,6 +2,8 @@
 
 import { Combatant } from '../combatant.js';
 import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../config/weapon-attack-config.js';
+import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
+import { loadImage, loadImageFrames } from '../../utils/image-loader.js';
 import { WeaponEffect } from '../../effects/weapon-effect.js';
 import { PoisonEffect } from '../../effects/poison-effect.js';
 import { DashSystem } from '../components/dash-system.js';
@@ -23,9 +25,10 @@ import { subsystemsMixin } from './subsystems.js';
 class Player extends Combatant {
   constructor(x, y) {
     super(x, y);
-            this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = 15; this.initHitbox(15, [1.2, 1.0, 0.8, 1.5, 0.8, 1.0]); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = 0.7; this.friction = 0.82; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = 300; this._facingDir = 'down';
+            const defs = PLAYER_DEFAULTS;
+            this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = defs.physics.collisionRadius; this.initHitbox(defs.physics.hitboxRadius, defs.physics.hitboxMultipliers); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = defs.physics.accel; this.friction = defs.physics.friction; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = defs.combat.hitFlashDuration; this._facingDir = 'down';
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
-            this.weaponSwitchCooldown = 0; // 武器切换冷却：切换 G18 后防止立即开火
+            this.weaponSwitchCooldown = defs.combat.weaponSwitchCooldown; // 武器切换冷却：切换 G18 后防止立即开火
             this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）
             this._isDashing = false; // 是否正在执行冲刺攻击
             this._dashState = 'idle'; // dash状态: idle/charge/slash/recover
@@ -44,7 +47,7 @@ class Player extends Combatant {
             this._isWhirlwind = false; // 是否正在执行风车
             this._whirlwindTimer = 0; // 风车计时器
             this._whirlwindHitSet = new Set(); // 风车已命中目标
-            this._whirlwindDuration = 800; // 风车总时长 800ms
+            this._whirlwindDuration = defs.whirlwind.duration; // 风车总时长
             this._whirlwindHitChecked = false; // 风车攻击判定是否已执行
             this._whirlwindRangeEffect = null; // 风车范围提示效果引用
             // ===== 推击技能状态 =====
@@ -64,7 +67,7 @@ class Player extends Combatant {
             this._specialAttackAngle = 0; // 光柱方向
             this._specialAttackBeam = null; // 光柱特效实例
             this._specialAttackLockedAngle = 0; // 特殊攻击锁定朝向
-            this._specialAttackClampedLength = 1500; // 特殊攻击被障碍物截断后的长度（已放大25%）
+            this._specialAttackClampedLength = defs.specialAttack.clampedLength; // 特殊攻击被障碍物截断后的长度（已放大25%）
             this._specialResetAnim = null; // 特殊攻击后复位动画
             // ===== 符文长剑特殊攻击状态 =====
             this._runeSwordSpecialActive = false; // 符文长剑特殊攻击是否激活
@@ -99,41 +102,35 @@ class Player extends Combatant {
             SkillManager.updateMeleeCooldown(this);
             // 应用弓精通的冷却缩减
             SkillManager.updateBowCooldown(this);
-            this.gameStartCooldown = 500; // 游戏开始后500ms内禁止攻击，防止点击"开始游戏"的鼠标事件携带到游戏中
+            this.gameStartCooldown = defs.combat.gameStartCooldown; // 游戏开始后禁止攻击，防止点击"开始游戏"的鼠标事件携带到游戏中
             this.data = {
-                name: '轮回者', level: 1, class: '初心者', hp: 100, maxHp: 100, mp: 100, maxMp: 100,
-                stamina: CONFIG.STAMINA_MAX, maxStamina: CONFIG.STAMINA_MAX, exp: 0, maxExp: 52,
-                str: 10, dex: 10, int: 10, con: 10, wis: 10, luck: 10,
-                atk: 0, def: 0, matk: 0, mdef: 0, hit: 0, dodge: 0, crit: 0, critRes: 0, aspd: 0, speed: 0,
-                loopCount: 0, surviveDays: 1, kills: 0, quests: 0, geneLock: '未开启', rank: 'F',
-                attrPoints: 0,
-                hpRegen: 1, // 每秒生命回复
-                mpRegen: 1  // 每3秒魔法回复（实际为1/3点/秒）
+                ...defs.data,
+                stamina: CONFIG.STAMINA_MAX,
+                maxStamina: CONFIG.STAMINA_MAX
             };
             this._faction = 'player'; // 新增：阵营标识
             this.skills = this._initSkills();
             this.equipments = {};
             this.hasMeleeWeapon = true; // 是否有主武器（剑），false = 空手
-            this.meleeImage = new Image(); this.meleeImage.src = 'assets/weapons/1-rusty_sword_euip.png';
-            this.bowFrames = [];
-            for (let i = 1; i <= 8; i++) { const img = new Image(); img.src = `assets/weapons/bow_frame_${String(i).padStart(2, '0')}.png`; this.bowFrames.push(img); }
+            this.meleeImage = loadImage(defs.images.melee);
+            this.bowFrames = loadImageFrames(defs.bowFrames.prefix, defs.bowFrames.count);
             this.equippedBowFrames = null; // 装备后的弓贴图，null表示使用默认弓
-            this.bowEquipImage = new Image(); this.bowEquipImage.src = 'assets/weapons/trainingBOW.png'; // 弓装备栏贴图
-            this.pistolImage = new Image(); this.pistolImage.src = 'assets/weapons/G18equip.png';
-            this.deagleImage = new Image(); this.deagleImage.src = 'assets/weapons/Desert eagle-eqiup.png';
-            this.p4040Image = new Image(); this.p4040Image.src = 'assets/weapons/P4040-equip.png';
-            this.pkmImage = new Image(); this.pkmImage.src = 'assets/weapons/pkm_topdown.png';
-            this.akmImage = new Image(); this.akmImage.src = 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png';
-            this.qbz191Image = new Image(); this.qbz191Image.src = 'assets/weapons/191equip_clean.png';
-            this.qjb201Image = new Image(); this.qjb201Image.src = 'assets/weapons/201equip.png';
-            this.super90Image = new Image(); this.super90Image.src = 'assets/weapons/M4s90_equip.png';
-            this.saiga12kImage = new Image(); this.saiga12kImage.src = 'assets/weapons/S12k-equip.png';
-            this.energyLmgImage = new Image(); this.energyLmgImage.src = 'assets/weapons/devotion-equip.png';
-            this.shieldImage = new Image(); this.shieldImage.src = 'assets/weapons/woodshied-equip.png';
+            this.bowEquipImage = loadImage(defs.images.bowEquip);
+            this.pistolImage = loadImage(defs.images.pistol);
+            this.deagleImage = loadImage(defs.images.deagle);
+            this.p4040Image = loadImage(defs.images.p4040);
+            this.pkmImage = loadImage(defs.images.pkm);
+            this.akmImage = loadImage(defs.images.akm);
+            this.qbz191Image = loadImage(defs.images.qbz191);
+            this.qjb201Image = loadImage(defs.images.qjb201);
+            this.super90Image = loadImage(defs.images.super90);
+            this.saiga12kImage = loadImage(defs.images.saiga12k);
+            this.energyLmgImage = loadImage(defs.images.energyLmg);
+            this.shieldImage = loadImage(defs.images.shield);
             // 角色动画已由 Phaser 接管，不再加载 Canvas 精灵图
             this._stickFigure = false;
             this.equippedRangedType = null;
-            this.arrowImage = new Image(); this.arrowImage.src = 'assets/ammo/arrow.png';
+            this.arrowImage = loadImage(defs.images.arrow);
             this.weaponEffect = new WeaponEffect(); // 武器符文发光粒子效果（已从 Player 中拆出）
             this.dashSystem = new DashSystem(this); // 冲刺攻击系统
             this.whirlwindSystem = new WhirlwindSystem(this); // 风车技能系统
