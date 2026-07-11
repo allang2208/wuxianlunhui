@@ -506,6 +506,11 @@ if (this._facing === 'left') {
   - 远程武器在 `triggerAttackAnimation` 中调用 `_fireRanged()` 发射子弹，修复远程攻击无法开枪问题
   - 近战和远程攻击现在都能正常工作
 
+- v1.12 (2026-07-11) — 地牢地图居中显示修复：
+  - **问题**：`_centerRouteMap`、`_generateDefaultMap`、`_generateZombieMap` 使用硬编码 `TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 }`，导致地图位置固定，不随窗口大小变化
+  - **修复**：改用 `CONFIG.VIEW_WIDTH` 和 `CONFIG.VIEW_HEIGHT` 动态计算地图显示区域，水平垂直均居中显示，留出 `marginX=280`/`marginY=120` 边距给侧边栏
+  - **文件**：`src/world/dungeon-map-system.js`
+
 - v1.11 (2026-07-10) — 修复所有枪械无法开火的问题：
   - **根因**：`data/equipment.json` 中 PKM/AKM/QBZ191/QJB201/Super90/SAIGA-12K 等武器缺少 `ammoConfig`、`fireMode`、`attackFormula`、`attackKey` 等关键字段
   - **修复**：在 `main.js` 中添加 `EquipDataManager` 到 `ItemDatabase` 的字段合并逻辑，确保所有武器配置完整
