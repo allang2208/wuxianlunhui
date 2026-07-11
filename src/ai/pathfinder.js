@@ -452,6 +452,18 @@ class PathFinder {
         return smoothed;
     }
 
+    _reconstructPath(endNode, entityRadius, cacheKey) {
+        const path = [];
+        let node = endNode;
+        while (node) {
+            path.unshift({ x: node.x, y: node.y });
+            node = node.parent;
+        }
+        const smoothed = this._smoothPath(path, entityRadius);
+        this._setCache(cacheKey, smoothed);
+        return smoothed;
+    }
+
     findPath(startX, startY, endX, endY, entityRadius) {
         // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
         if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
@@ -483,22 +495,21 @@ class PathFinder {
         const closedSet = new Set();
         let iterations = 0;
         const maxIterations = Math.min(cols * rows * 2, 5000);
+        let bestNode = startNode;
         openHeap.push(startNode);
         while (openHeap.size() > 0) {
-            if (++iterations > maxIterations) return null;
+            if (++iterations > maxIterations) {
+                // 超时回退：返回通往当前最接近目标节点的路径
+                console.warn('[PathFinder] A* iteration limit reached, returning best-effort path');
+                return this._reconstructPath(bestNode, entityRadius, cacheKey);
+            }
             const current = openHeap.pop();
             closedSet.add(`${current.r},${current.c}`);
+            if (!bestNode || current.h < bestNode.h) {
+                bestNode = current;
+            }
             if (current === endNode || (Math.abs(current.x - endNode.x) < this.gridSize && Math.abs(current.y - endNode.y) < this.gridSize)) {
-                const path = [];
-                let node = current;
-                while (node) {
-                    path.unshift({ x: node.x, y: node.y });
-                    node = node.parent;
-                }
-                const smoothed = this._smoothPath(path, entityRadius);
-                // [ENHANCE] 缓存路径
-                this._setCache(cacheKey, smoothed);
-                return smoothed;
+                return this._reconstructPath(current, entityRadius, cacheKey);
             }
             const neighbors = [
                 [-1, -1], [-1, 0], [-1, 1],

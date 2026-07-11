@@ -97,13 +97,12 @@ const DataLoader = {
         return enemies;
     },
 
-    /** 解析技能效果公式 */
+    /** 解析技能效果公式（安全数学表达式求值，不使用 new Function） */
     parseSkillFormula(formulaStr, level) {
-        // 类型与空值检查
         if (typeof formulaStr !== 'string' || !formulaStr.trim()) return 0;
         const lvl = Number(level) || 0;
         // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量
-        const allowedPattern = /^[0-9+\-*/().\s]+$/i;
+        const allowedPattern = /^[0-9+\-*/().,\s]+$/i;
         const mathPattern = /\b(Math\.[a-zA-Z]+|Math\.[A-Z]+|level|PI|E)\b/g;
         const stripped = formulaStr.replace(mathPattern, '');
         if (!allowedPattern.test(stripped)) {
@@ -111,13 +110,96 @@ const DataLoader = {
             return 0;
         }
         try {
-            const fn = new Function('level', `return (${formulaStr});`);
-            const result = fn(lvl);
+            const result = this._evaluateMathExpression(formulaStr, lvl);
             return Number.isFinite(result) ? result : 0;
         } catch (e) {
             console.error('Formula parse error:', formulaStr, e);
             return 0;
         }
+    },
+
+    /** 安全求值数学表达式 */
+    _evaluateMathExpression(expr, level) {
+        // 1. 替换 Math 常量和 level 为具体数值
+        let prepared = expr
+            .replace(/\bMath\.PI\b/g, String(Math.PI))
+            .replace(/\bMath\.E\b/g, String(Math.E))
+            .replace(/\blevel\b/g, `(${level})`);
+
+        // 2. 替换 Math 函数调用为可执行的函数引用（通过映射表）
+        const mathFnNames = [];
+        prepared = prepared.replace(/\bMath\.([a-zA-Z]+)\b/g, (match, name) => {
+            if (typeof Math[name] !== 'function') return match;
+            const idx = mathFnNames.length;
+            mathFnNames.push({ name, fn: Math[name] });
+            return `__MATH_FN_${idx}__`;
+        });
+
+        // 3. 使用 JSON 解析数字字面量并递归求值
+        const tokens = this._tokenizeExpression(prepared);
+        const { value } = this._parseExpression(tokens, mathFnNames);
+        return value;
+    },
+
+    _tokenizeExpression(expr) {
+        const tokens = [];
+        const regex = /(__MATH_FN_\d+__|\d+\.?\d*|[+\-*/()])/g;
+        let m;
+        while ((m = regex.exec(expr)) !== null) {
+            tokens.push(m[1]);
+        }
+        return tokens;
+    },
+
+    _parseExpression(tokens, mathFnNames) {
+        // 使用调度场算法将中缀转后缀再求值
+        const output = [];
+        const ops = [];
+        const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+
+        for (const token of tokens) {
+            if (token.match(/^\d+\.?\d*$/)) {
+                output.push(parseFloat(token));
+            } else if (token.startsWith('__MATH_FN_')) {
+                ops.push(token);
+            } else if (token === '(') {
+                ops.push(token);
+            } else if (token === ')') {
+                while (ops.length && ops[ops.length - 1] !== '(') {
+                    output.push(ops.pop());
+                }
+                ops.pop(); // remove '('
+                if (ops.length && ops[ops.length - 1].startsWith('__MATH_FN_')) {
+                    output.push(ops.pop());
+                }
+            } else if ('+-*/'.includes(token)) {
+                while (ops.length && ops[ops.length - 1] !== '(' &&
+                       precedence[ops[ops.length - 1]] >= precedence[token]) {
+                    output.push(ops.pop());
+                }
+                ops.push(token);
+            }
+        }
+        while (ops.length) output.push(ops.pop());
+
+        // 求值后缀表达式
+        const stack = [];
+        for (const item of output) {
+            if (typeof item === 'number') {
+                stack.push(item);
+            } else if (typeof item === 'string' && item.startsWith('__MATH_FN_')) {
+                const idx = parseInt(item.match(/\d+/)[0], 10);
+                const a = stack.pop();
+                const result = mathFnNames[idx].fn(a);
+                stack.push(result);
+            } else if ('+-*/'.includes(item)) {
+                const b = stack.pop();
+                const a = stack.pop();
+                if (item === '/' && b === 0) { stack.push(0); continue; }
+                stack.push(item === '+' ? a + b : item === '-' ? a - b : item === '*' ? a * b : a / b);
+            }
+        }
+        return { value: stack.length ? stack[0] : 0 };
     },
 
     /** 从 JSON 构建技能对象（兼容原有 Player.skills 结构） */

@@ -71,6 +71,8 @@ export const SceneManager = {
         if (this.isLoading || this.currentScene === sceneId) {
             return;
         }
+        // 保存回滚状态，部分失败时恢复
+        this._saveRollbackState(player);
         try {
             this.showLoadingScreen();
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
@@ -78,7 +80,7 @@ export const SceneManager = {
             const scene = this.scenes[sceneId];
             if (!scene) {
                 console.error('Scene not found:', sceneId);
-                this.hideLoadingScreen();
+                this._rollback(player);
                 return;
             }
 
@@ -152,27 +154,41 @@ export const SceneManager = {
             this._showSceneLabel(scene.name);
         } catch (err) {
             console.error('[switchScene] ERROR:', err);
-            this.isLoading = false;
-            this.hideLoadingScreen();
-            if (this._mainEntities) {
-                Game.entities = this._mainEntities;
-                if (player) Game.entities.set('player', player);
-            }
-            if (typeof EffectManager !== 'undefined' && this._mainEffects) {
-                EffectManager.effects = this._mainEffects;
-            }
-            if (typeof WallSystem !== 'undefined' && this._mainTrees) {
-                WallSystem.trees = this._mainTrees;
-            }
-            if (typeof Camera !== 'undefined' && this._mainCamera) {
-                Camera.x = this._mainCamera.x;
-                Camera.y = this._mainCamera.y;
-            }
+            this._rollback(player);
             throw err;
         }
     },
 
+    _saveRollbackState(player) {
+        this._rollbackEntities = Game.entities ? new Map(Game.entities) : null;
+        this._rollbackEffects = EffectManager.effects ? EffectManager.effects.slice() : null;
+        this._rollbackTrees = WallSystem.trees ? WallSystem.trees.slice() : null;
+        this._rollbackCamera = { x: Camera.x, y: Camera.y };
+        this._rollbackCurrentScene = this.currentScene;
+    },
+
+    _rollback(player) {
+        this.isLoading = false;
+        this.hideLoadingScreen();
+        if (this._rollbackEntities) {
+            Game.entities = this._rollbackEntities;
+            if (player && !Game.entities.has('player')) Game.entities.set('player', player);
+        }
+        if (EffectManager.effects && this._rollbackEffects) {
+            EffectManager.effects = this._rollbackEffects;
+        }
+        if (WallSystem.trees && this._rollbackTrees) {
+            WallSystem.trees = this._rollbackTrees;
+        }
+        if (this._rollbackCamera) {
+            Camera.x = this._rollbackCamera.x;
+            Camera.y = this._rollbackCamera.y;
+        }
+        this.currentScene = this._rollbackCurrentScene;
+    },
+
     _showSceneLabel(name) {
+        if (typeof document === 'undefined' || !document.body) return;
         // 移除旧标签
         if (this._sceneLabel) {
             this._sceneLabel.remove();
