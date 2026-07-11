@@ -28,6 +28,7 @@ import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
 import { GAME_CONFIG } from './config/game-config.js';
 import { EffectManager } from './effects/effect-manager.js';
+import { getElement } from './utils/dom-utils.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
 import { MovementSystem } from './systems/movement-system.js';
@@ -57,13 +58,13 @@ export const Game = {
     async start() {
         try {
             // 自动同步版本号到页面
-            const versionBadge = document.getElementById('versionBadge');
+            const versionBadge = getElement('versionBadge');
             if (versionBadge) versionBadge.textContent = 'V' + this.VERSION;
             // 防止重复启动：游戏已在运行时直接返回
             if (this.isRunning) {
                 return;
             }
-            const menuLayer = document.getElementById('menuLayer'); const uiLayer = document.getElementById('uiLayer'); const gameLayer = document.getElementById('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
+            const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             Renderer.generateWorld();
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (typeof PhaserGame !== 'undefined' && !PhaserGame.isReady) {
@@ -310,7 +311,7 @@ export const Game = {
         this.entities.set('drop_' + Date.now() + '_' + Math.floor(Math.random() * 1000), drop);
     },
     _showDungeonEntryConfirm(entity) {
-        if (document.getElementById('dungeonEntryConfirm')) return;
+        if (getElement('dungeonEntryConfirm')) return;
         const overlay = document.createElement('div');
         overlay.id = 'dungeonEntryConfirm';
         overlay.style.cssText = `
@@ -330,8 +331,8 @@ export const Game = {
             </div>
         `;
         document.body.appendChild(overlay);
-        const confirmBtn = document.getElementById('dungeonEntryConfirmBtn');
-        const cancelBtn = document.getElementById('dungeonEntryCancelBtn');
+        const confirmBtn = getElement('dungeonEntryConfirmBtn');
+        const cancelBtn = getElement('dungeonEntryCancelBtn');
         if (!confirmBtn || !cancelBtn) {
             console.error('[Game._showDungeonEntryConfirm] 地牢确认/取消按钮未找到');
             return;

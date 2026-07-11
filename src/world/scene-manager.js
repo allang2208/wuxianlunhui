@@ -9,6 +9,7 @@ import FormationSystem from '../systems/formation-system.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getElement } from '../utils/dom-utils.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -31,7 +32,7 @@ export const SceneManager = {
     showLoadingScreen() {
         this.isLoading = true;
         this.loadProgress = 0;
-        let overlay = document.getElementById('loadingOverlay');
+        let overlay = getElement('loadingOverlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'loadingOverlay';
@@ -51,7 +52,7 @@ export const SceneManager = {
     },
 
     hideLoadingScreen() {
-        const overlay = document.getElementById('loadingOverlay');
+        const overlay = getElement('loadingOverlay');
         if (overlay) {
             overlay.style.opacity = '0';
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
@@ -61,8 +62,8 @@ export const SceneManager = {
 
     setProgress(pct) {
         this.loadProgress = Math.min(100, Math.max(0, pct));
-        const bar = document.getElementById('loadingProgressBar');
-        const text = document.getElementById('loadingProgressText');
+        const bar = getElement('loadingProgressBar');
+        const text = getElement('loadingProgressText');
         if (bar) bar.style.width = this.loadProgress + '%';
         if (text) text.textContent = Math.floor(this.loadProgress) + '%';
     },

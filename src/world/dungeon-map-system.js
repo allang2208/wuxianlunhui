@@ -95,6 +95,29 @@ export const DungeonMapSystem = {
     BOSS_ROOM_SIZE:   1024,
     WALL_THICKNESS:   20,
 
+    // 视口与布局常量
+    DEFAULT_VIEWPORT_WIDTH:  1920,
+    DEFAULT_VIEWPORT_HEIGHT: 1080,
+    MAP_MARGIN_X: 280,
+    MAP_MARGIN_Y: 120,
+    COMBAT_MARGIN: 40,
+    COMBAT_EDGE_DEPTH: 120,
+    get CENTER_X() { return this.COMBAT_ROOM_SIZE / 2; },
+    get CENTER_Y() { return this.COMBAT_ROOM_SIZE / 2; },
+    FLOAT_TEXT_X: 512,
+    FLOAT_TEXT_Y: 400,
+
+    // 战斗奖励常量
+    BOSS_GOLD_REWARD: 300,
+    COMBAT_GOLD_BASE: 50,
+    COMBAT_GOLD_BONUS: 100,
+
+    // UI 点击区域
+    EXIT_BUTTON_X: 1685 - 110,
+    EXIT_BUTTON_Y: 15,
+    EXIT_BUTTON_W: 90,
+    EXIT_BUTTON_H: 28,
+
     _backupWalls: [],
     _backupCameraFollow: null,
     _combatMonsters: [],
@@ -150,8 +173,8 @@ export const DungeonMapSystem = {
 
         this._backupCameraFollow = Camera.follow.bind(Camera);
         Camera.follow = () => {};
-        Camera.x = 512;
-        Camera.y = 512;
+        Camera.x = this.CENTER_X;
+        Camera.y = this.CENTER_Y;
 
         this._bindEvents();
 
@@ -240,10 +263,10 @@ export const DungeonMapSystem = {
         this.MAP_HEIGHT = result.config.mapHeight;
 
         // 重新居中（使用实际窗口尺寸动态计算）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        const marginX = 280;
-        const marginY = 120;
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
+        const marginX = this.MAP_MARGIN_X;
+        const marginY = this.MAP_MARGIN_Y;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
         this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
 
@@ -260,10 +283,10 @@ export const DungeonMapSystem = {
         this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
         this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
         // 重新居中（使用实际窗口尺寸动态计算）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        const marginX = 280;
-        const marginY = 120;
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
+        const marginX = this.MAP_MARGIN_X;
+        const marginY = this.MAP_MARGIN_Y;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
         this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
     },
@@ -438,11 +461,8 @@ export const DungeonMapSystem = {
     _handleClick() {
         // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
         const mx = Input.mouse.x, my = Input.mouse.y;
-        // 使用固定像素值（目标区域右下角），不随分辨率变化
-        const FIXED_RIGHT = 1685;
-
         // 检测退出按钮点击
-        const btnX = FIXED_RIGHT - 110, btnY = 15, btnW = 90, btnH = 28;
+        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
         if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
             this._showExitConfirm();
             return;
@@ -495,8 +515,8 @@ export const DungeonMapSystem = {
         }
         this.state = "map";
         Camera.follow = () => {};
-        Camera.x = 512;
-        Camera.y = 512;
+        Camera.x = this.CENTER_X;
+        Camera.y = this.CENTER_Y;
 
         this._centerRouteMap();
 
@@ -525,7 +545,7 @@ export const DungeonMapSystem = {
         });
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
-        EffectManager.add(new FloatingTextEffect(512, 400, "进入战斗！消灭所有敌人", "#ff4444"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "进入战斗！消灭所有敌人", "#ff4444"));
     },
 
     _enterZombieCombat(node) {
@@ -549,7 +569,7 @@ export const DungeonMapSystem = {
 
         const wave = this._zombieCombat.currentWave;
         const total = this._zombieCombat.totalWaves;
-        EffectManager.add(new FloatingTextEffect(512, 400, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
 
         const classes = this._zombieCombat.nextWaveMonsterClasses();
         this._spawnZombieMonsters(classes);
@@ -559,9 +579,9 @@ export const DungeonMapSystem = {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
 
-        const margin = 40;
+        const margin = this.COMBAT_MARGIN;
         const safeMin = margin;
-        const safeMax = 1024 - margin;
+        const safeMax = this.COMBAT_ROOM_SIZE - margin;
         const _cx = 512;
         const entranceEdge = this._combatEntrance || 2;
         const oppositeEdge = (entranceEdge + 2) % 4;
@@ -572,19 +592,19 @@ export const DungeonMapSystem = {
             minX = safeMin;
             maxX = safeMax;
             minY = safeMin;
-            maxY = safeMin + 120;
+            maxY = safeMin + this.COMBAT_EDGE_DEPTH;
         } else if (oppositeEdge === 2) { // bottom
             minX = safeMin;
             maxX = safeMax;
-            minY = safeMax - 120;
+            minY = safeMax - this.COMBAT_EDGE_DEPTH;
             maxY = safeMax;
         } else if (oppositeEdge === 3) { // left
             minX = safeMin;
-            maxX = safeMin + 120;
+            maxX = safeMin + this.COMBAT_EDGE_DEPTH;
             minY = safeMin;
             maxY = safeMax;
         } else if (oppositeEdge === 1) { // right
-            minX = safeMax - 120;
+            minX = safeMax - this.COMBAT_EDGE_DEPTH;
             maxX = safeMax;
             minY = safeMin;
             maxY = safeMax;
@@ -628,7 +648,7 @@ export const DungeonMapSystem = {
             }
             this._returnToMap();
         });
-        EffectManager.add(new FloatingTextEffect(512, 400, "Boss 战！", "#ff0000"));
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
 
     _enterZombieBoss(node) {
@@ -729,19 +749,19 @@ export const DungeonMapSystem = {
             minX = safeMin;
             maxX = safeMax;
             minY = safeMin;
-            maxY = safeMin + 120;
+            maxY = safeMin + this.COMBAT_EDGE_DEPTH;
         } else if (oppositeEdge === 2) { // bottom
             minX = safeMin;
             maxX = safeMax;
-            minY = safeMax - 120;
+            minY = safeMax - this.COMBAT_EDGE_DEPTH;
             maxY = safeMax;
         } else if (oppositeEdge === 3) { // left
             minX = safeMin;
-            maxX = safeMin + 120;
+            maxX = safeMin + this.COMBAT_EDGE_DEPTH;
             minY = safeMin;
             maxY = safeMax;
         } else if (oppositeEdge === 1) { // right
-            minX = safeMax - 120;
+            minX = safeMax - this.COMBAT_EDGE_DEPTH;
             maxX = safeMax;
             minY = safeMin;
             maxY = safeMax;
@@ -841,8 +861,8 @@ export const DungeonMapSystem = {
             console.log('[DungeonMapSystem] Combat node completed:', currentNode.id, '-> empty');
         }
 
-        const gold = this.state === "boss" ? 300 : 50 + Math.floor(Math.random() * 100);
-        EffectManager.add(new FloatingTextEffect(512, 400, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
+        const gold = this.state === "boss" ? this.BOSS_GOLD_REWARD : this.COMBAT_GOLD_BASE + Math.floor(Math.random() * this.COMBAT_GOLD_BONUS);
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `战斗完成！获得 ${gold} 金币`, "#44ff44"));
 
         // 在上方显示倒计时提示栏
         this._showCleanupOverlay();
@@ -1094,9 +1114,7 @@ export const DungeonMapSystem = {
     render(ctx) {
         if (!this.active || this.state !== "map") return;
 
-        // 使用固定像素值，不随分辨率变化
-        const FIXED_WIDTH = 1920, FIXED_HEIGHT = 1080;
-        const _FIXED_RIGHT = 1685;
+        const FIXED_WIDTH = this.DEFAULT_VIEWPORT_WIDTH, FIXED_HEIGHT = this.DEFAULT_VIEWPORT_HEIGHT;
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 

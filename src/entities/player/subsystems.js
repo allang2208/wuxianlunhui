@@ -10,7 +10,7 @@ import { StatusBar } from '../../ui/status-bar.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { MuzzleFlashEffect } from '../../effects/muzzle-flash.js';
-import { Projectile } from '../../combat/projectile.js';
+import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { DodgeEffect } from '../../effects/particle-effects.js';
 import { ShellCasingEffect } from '../../effects/shell-casing.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
@@ -1227,10 +1227,13 @@ _fireRanged(hand = 'main') {
                             }
                             const offhandDamageObj = { min: offhandDamage, max: offhandDamage };
                             const offIsDarkGold = offhandItem.isDarkGold || false;
-                            { let p2 = EffectManager._acquire('Projectile');
-                            if (p2) { p2.x = leftMuzzleX; p2.y = leftMuzzleY; p2.angle = leftFinalAngle; p2.speed = offPC.projectileSpeed; p2.maxRange = offPC.projectileRange; p2.size = offPC.projectileSize; p2.damage = offhandDamageObj; p2.piercing = getEffectivePiercing(offPC.piercing, offhandItem); p2.source = this; p2.entities = d.entities; p2.image = null; p2.isTracer = !offIsDarkGold; p2.isDarkGold = offIsDarkGold; p2.traveled = 0; p2.active = true; p2.hitTargets = new Set(); }
-                            else p2 = new Projectile(leftMuzzleX, leftMuzzleY, leftFinalAngle, offPC.projectileSpeed, offPC.projectileRange, offPC.projectileSize, offhandDamageObj, getEffectivePiercing(offPC.piercing, offhandItem), this, d.entities, null, !offIsDarkGold, false, offIsDarkGold);
-                            EffectManager.add(p2); }
+                            ProjectileFactory.create({
+                                x: leftMuzzleX, y: leftMuzzleY, angle: leftFinalAngle,
+                                speed: offPC.projectileSpeed, maxRange: offPC.projectileRange, size: offPC.projectileSize,
+                                damage: offhandDamageObj, piercing: getEffectivePiercing(offPC.piercing, offhandItem),
+                                source: this, entities: d.entities, image: null,
+                                isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold
+                            });
                             if (offhandItem.fireSound) {
                                 if (offhandItem.fireSound.startsWith('assets/')) {
                                     SoundManager.playFile(offhandItem.fireSound);
@@ -1301,10 +1304,13 @@ _fireRanged(hand = 'main') {
                             const mainDamageObj = { min: mainDamage, max: mainDamage };
                             // 创建主手弹丸
                             const mainIsDarkGold = currentItem.isDarkGold || false;
-                            { let p = EffectManager._acquire('Projectile');
-                            if (p) { p.x = muzzleX; p.y = muzzleY; p.angle = finalAngle; p.speed = mainPC.projectileSpeed; p.maxRange = mainPC.projectileRange; p.size = mainPC.projectileSize; p.damage = mainDamageObj; p.piercing = getEffectivePiercing(mainPC.piercing, currentItem); p.source = this; p.entities = d.entities; p.image = null; p.isTracer = !mainIsDarkGold; p.isDarkGold = mainIsDarkGold; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
-                            else p = new Projectile(muzzleX, muzzleY, finalAngle, mainPC.projectileSpeed, mainPC.projectileRange, mainPC.projectileSize, mainDamageObj, getEffectivePiercing(mainPC.piercing, currentItem), this, d.entities, null, !mainIsDarkGold, false, mainIsDarkGold);
-                            EffectManager.add(p); }
+                            ProjectileFactory.create({
+                                x: muzzleX, y: muzzleY, angle: finalAngle,
+                                speed: mainPC.projectileSpeed, maxRange: mainPC.projectileRange, size: mainPC.projectileSize,
+                                damage: mainDamageObj, piercing: getEffectivePiercing(mainPC.piercing, currentItem),
+                                source: this, entities: d.entities, image: null,
+                                isTracer: !mainIsDarkGold, isDarkGold: mainIsDarkGold
+                            });
                             // 主手开火音效
                             if (currentItem.fireSound) {
                                 if (currentItem.fireSound.startsWith('assets/')) {
@@ -1416,11 +1422,15 @@ _fireRanged(hand = 'main') {
                         }
 
                         // 创建弹丸
-                        { let p = EffectManager._acquire('Projectile');
-                        if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = effectiveProjectileSpeed; p.maxRange = effectiveRange; p.size = pc.projectileSize; p.damage = damage; p.piercing = getEffectivePiercing(pc.piercing, currentItem); p.source = this; p.entities = d.entities; p.image = null; p.isTracer = false; p.isGold = !isEnergyLMG; p.isGreen = isEnergyLMG; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.knockback = effectiveKnockback; p.damageType = isEnergyLMG ? 'magic' : 'physical'; }
-                        else p = new Projectile(spawnX, spawnY, angle, effectiveProjectileSpeed, effectiveRange, pc.projectileSize, damage, getEffectivePiercing(pc.piercing, currentItem), this, d.entities, null, false, !isEnergyLMG, false, isEnergyLMG ? 'magic' : 'physical', false, isEnergyLMG);
-                        if (effectiveKnockback > 0 && p) p.knockback = effectiveKnockback;
-                        EffectManager.add(p); }
+                        ProjectileFactory.create({
+                            x: spawnX, y: spawnY, angle: angle,
+                            speed: effectiveProjectileSpeed, maxRange: effectiveRange, size: pc.projectileSize,
+                            damage: damage, piercing: getEffectivePiercing(pc.piercing, currentItem),
+                            source: this, entities: d.entities, image: null,
+                            isGold: !isEnergyLMG, isGreen: isEnergyLMG,
+                            damageType: isEnergyLMG ? 'magic' : 'physical',
+                            knockback: effectiveKnockback
+                        });
 
                         // 枪口火焰特效
                         const hideMuzzle = !isEnergyLMG && craftEffects && craftEffects.hideMuzzleFlash;
@@ -1513,11 +1523,14 @@ _fireRanged(hand = 'main') {
                                 if (slugSpreadAngle < 0) slugSpreadAngle = 0;
                                 const slugSpreadRad = (Math.random() - 0.5) * 2 * (slugSpreadAngle * Math.PI / 180);
                                 const angle = baseAngle + slugSpreadRad;
-                                { let p = EffectManager._acquire('Projectile');
-                                if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = effectiveSpeed; p.maxRange = effectiveRange; p.size = pc.projectileSize; p.damage = damage; p.piercing = piercing; p.source = this; p.entities = d.entities; p.image = null; p.isTracer = false; p.isGold = true; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.knockback = effectiveKnockback; }
-                                else p = new Projectile(spawnX, spawnY, angle, effectiveSpeed, effectiveRange, pc.projectileSize, damage, piercing, this, d.entities, null, false, true);
-                                if (p) p.knockback = effectiveKnockback;
-                                EffectManager.add(p); }
+                                ProjectileFactory.create({
+                                    x: spawnX, y: spawnY, angle: angle,
+                                    speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
+                                    damage: damage, piercing: piercing,
+                                    source: this, entities: d.entities, image: null,
+                                    isGold: true,
+                                    knockback: effectiveKnockback
+                                });
                             } else {
                                 // 普通模式：多发弹丸，每发随机散布（应用改造效果）
                                 let spreadAngle = baseSpreadAngle;
@@ -1528,11 +1541,14 @@ _fireRanged(hand = 'main') {
                                 for (let pellet = 0; pellet < pelletCount; pellet++) {
                                     const spreadRad = (Math.random() - 0.5) * 2 * (spreadAngle * Math.PI / 180);
                                     const angle = baseAngle + spreadRad;
-                                    { let p = EffectManager._acquire('Projectile');
-                                    if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = effectiveSpeed; p.maxRange = effectiveRange; p.size = pc.projectileSize; p.damage = damage; p.piercing = piercing; p.source = this; p.entities = d.entities; p.image = null; p.isTracer = false; p.isGold = true; p.traveled = 0; p.active = true; p.hitTargets = new Set(); p.knockback = effectiveKnockback; }
-                                    else p = new Projectile(spawnX, spawnY, angle, effectiveSpeed, effectiveRange, pc.projectileSize, damage, piercing, this, d.entities, null, false, true);
-                                    if (p) p.knockback = effectiveKnockback;
-                                    EffectManager.add(p); }
+                                    ProjectileFactory.create({
+                                        x: spawnX, y: spawnY, angle: angle,
+                                        speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
+                                        damage: damage, piercing: piercing,
+                                        source: this, entities: d.entities, image: null,
+                                        isGold: true,
+                                        knockback: effectiveKnockback
+                                    });
                                 }
                             }
                             // 枪口火焰（消音器隐藏）
@@ -1571,10 +1587,12 @@ _fireRanged(hand = 'main') {
                     const projRange = weaponCfg.range || cfg.projectileRange;
                     const projSize = weaponCfg.projectileSize || cfg.projectileSize;
                     const projPiercing = getEffectivePiercing(weaponCfg.piercing !== undefined ? weaponCfg.piercing : cfg.piercing, currentItem);
-                    { let p = EffectManager._acquire('Projectile');
-                    if (p) { p.x = spawnX; p.y = spawnY; p.angle = angle; p.speed = projSpeed; p.maxRange = projRange; p.size = projSize; p.damage = damage; p.piercing = projPiercing; p.source = this; p.entities = d.entities; p.image = this.arrowImage; p.traveled = 0; p.active = true; p.hitTargets = new Set(); }
-                    else p = new Projectile(spawnX, spawnY, angle, projSpeed, projRange, projSize, damage, projPiercing, this, d.entities, this.arrowImage);
-                    EffectManager.add(p); }
+                    ProjectileFactory.create({
+                        x: spawnX, y: spawnY, angle: angle,
+                        speed: projSpeed, maxRange: projRange, size: projSize,
+                        damage: damage, piercing: projPiercing,
+                        source: this, entities: d.entities, image: this.arrowImage
+                    });
                 }
                 if (d && !d.fireMainHand && !d.fireOffhand) {
                     this.rangedFired = true; this.rangedFireData = null;
