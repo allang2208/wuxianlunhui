@@ -228,9 +228,9 @@ export const DungeonMapSystem = {
         this.MAP_WIDTH = result.config.mapWidth;
         this.MAP_HEIGHT = result.config.mapHeight;
 
-        // 重新居中（使用 CONFIG 视图尺寸动态计算）
-        const viewW = CONFIG.VIEW_WIDTH || 1920;
-        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        // 重新居中（使用实际窗口尺寸动态计算）
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
         const marginX = 280;
         const marginY = 120;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
@@ -248,9 +248,9 @@ export const DungeonMapSystem = {
         // 更新地图尺寸
         this.MAP_WIDTH = ZOMBIE_DUNGEON_CONFIG.mapWidth;
         this.MAP_HEIGHT = ZOMBIE_DUNGEON_CONFIG.mapHeight;
-        // 重新居中（使用 CONFIG 视图尺寸动态计算）
-        const viewW = CONFIG.VIEW_WIDTH || 1920;
-        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        // 重新居中（使用实际窗口尺寸动态计算）
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
         const marginX = 280;
         const marginY = 120;
         this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
@@ -305,9 +305,9 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 使用 CONFIG 中的视图尺寸动态计算居中区域
-        const viewW = CONFIG.VIEW_WIDTH || 1920;
-        const viewH = CONFIG.VIEW_HEIGHT || 1080;
+        // 使用实际窗口尺寸动态计算居中区域（确保地图在当前窗口中居中）
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
         // 地图显示区域：水平居中，垂直居中，留出边距
         const marginX = 280;  // 左右边距（给侧边栏留空间）
         const marginY = 120;  // 上下边距
