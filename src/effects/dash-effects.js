@@ -1,3 +1,5 @@
+import { Easing } from '../config/math-utils.js';
+
         class DashConvergeEffect {
             constructor(x, y, target) {
                 this.x = x; this.y = y;
@@ -34,7 +36,7 @@
                 this.particles.forEach(p => {
                     if (elapsed < p.delay) return;
                     const t = Math.min(1, (elapsed - p.delay) / (this.maxLife - p.delay));
-                    const easeT = easeOutQuad(t);
+                    const easeT = Easing.easeOutQuad(t);
                     const px = p.sx * (1 - easeT);
                     const py = p.sy * (1 - easeT);
                     const alpha = t < 0.3 ? t / 0.3 : (1 - t) * 1.5;
@@ -168,7 +170,7 @@
                 for (let i = 0; i < this.lineCount; i++) {
                     const angle = startAngle + i * angleStep;
                     // 每条线使用自己的随机半径，从最大长度逐渐收缩到 0
-                    const currentRadius = this.lines[i].radius * (1 - easeOutQuad(progress));
+                    const currentRadius = this.lines[i].radius * (1 - Easing.easeOutQuad(progress));
                     const ex = Math.cos(angle) * currentRadius;
                     const ey = Math.sin(angle) * currentRadius;
                     // 线条从外围向内汇聚到武器中心
@@ -234,7 +236,7 @@ class DashFireTrailEffect {
         this.particles.forEach(p => {
             if (elapsed < p.delay) return;
             const t = Math.min(1, (elapsed - p.delay) / (this.maxLife - p.delay));
-            const easeT = easeOutQuad(t);
+            const easeT = Easing.easeOutQuad(t);
             const px = p.sx * (1 - easeT * 0.5);
             const py = p.sy * (1 - easeT * 0.5);
             // 火焰闪烁效果

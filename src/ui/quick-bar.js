@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipManager } from './equip-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
 

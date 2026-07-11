@@ -6,6 +6,7 @@
 import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
+import { Easing } from '../../config/math-utils.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态
@@ -79,7 +80,7 @@ const weaponAnimMixin = {
                     anim.state = 'swing';
                     anim.timer = 0;
                 } else {
-                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / this._getAnimMs(wa.windupMs));
+                    anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(anim.timer / this._getAnimMs(wa.windupMs));
                 }
                 break;
                 
@@ -105,7 +106,7 @@ const weaponAnimMixin = {
                         this.attacks.melee.giveExp(this);
                     }
                 } else {
-                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
+                    anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
                     
                     // 远程武器在 swing 阶段发射子弹
                     const currentItem = this.equipments[this.weaponMode];
@@ -134,7 +135,7 @@ const weaponAnimMixin = {
                     anim.timer = 0;
                     this._pendingThrust = null;
                 } else {
-                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / this._getAnimMs(wa.recoverMs));
+                    anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(anim.timer / this._getAnimMs(wa.recoverMs));
                 }
                 break;
                 
@@ -465,10 +466,5 @@ const weaponAnimMixin = {
         return Math.round(baseMs * mul);
     }
 };
-
-// 简单缓动函数
-function easeInQuad(t) { return t * t; }
-function easeOutQuad(t) { return t * (2 - t); }
-function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
 export { weaponAnimMixin };

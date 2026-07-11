@@ -1,4 +1,5 @@
 // 无人机技能系统
+import { FloatingTextEffect } from '../../effects/floating-text.js';
 export class DroneSystem {
     constructor(player) {
         this.player = player;

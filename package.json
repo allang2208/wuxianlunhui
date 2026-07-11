@@ -13,18 +13,23 @@
     "build:win": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder --win",
     "build:portable": "node scripts/bump-version.js && node scripts/backup.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" CSC_IDENTITY_AUTO_DISCOVERY=false vite build && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" node scripts/copy-assets.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" electron-builder --win portable",
     "prebuild": "node scripts/backup.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "dependencies": {
     "phaser": "^4.0.0",
     "vite": "^8.0.16"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "acorn": "^8.17.0",
     "concurrently": "^9.0.0",
     "cross-env": "^7.0.3",
     "electron": "^35.0.0",
     "electron-builder": "^26.0.0",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
     "wait-on": "^8.0.0"
   }
 }

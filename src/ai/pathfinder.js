@@ -180,6 +180,7 @@ class PathFinder {
         this.minSearchRange = 300;
         this.spatialHash = new SpatialHash(40);
         this._hashValid = false;
+        this._maxTreeRadius = 0; // 用于 _getMoveCost SpatialHash 查询范围
         // [ENHANCE] 全局路径缓存：减少重复计算
         this._pathCache = new Map(); // key -> { path, timestamp }
         this._cacheMaxAge = 3000;    // 缓存有效期 3 秒
@@ -190,6 +191,13 @@ class PathFinder {
     _ensureHash() {
         if (!this._hashValid) {
             this.spatialHash.rebuild();
+            // 预计算最大树木半径，供 _getMoveCost 的 SpatialHash 查询使用
+            this._maxTreeRadius = 0;
+            if (typeof WallSystem !== 'undefined' && WallSystem.trees) {
+                for (const t of WallSystem.trees) {
+                    if (t.radius > this._maxTreeRadius) this._maxTreeRadius = t.radius;
+                }
+            }
             this._hashValid = true;
         }
     }
@@ -197,6 +205,7 @@ class PathFinder {
     // 墙壁变化时调用（如动态生成墙壁后）
     invalidateCache() {
         this._hashValid = false;
+        this._maxTreeRadius = 0;
         this._pathCache.clear();
         // [NEW] 标记 RegionIndex 需要重算
         regionIndex.markDirty();
@@ -219,13 +228,26 @@ class PathFinder {
     _getMoveCost(x, y, entityRadius) {
         let cost = 1.0;
         // 检查树木附近（增加移动成本，让单位自然绕行）
-        if (typeof WallSystem !== 'undefined' && WallSystem.trees) {
-            for (const t of WallSystem.trees) {
-                const treeR = t.collisionRadius || t.radius * 0.6;
-                const d = Math.sqrt((x - t.x) ** 2 + (y - t.y) ** 2);
-                if (d < treeR + entityRadius * 1.5) {
-                    cost += 0.5;
-                    break; // 只计算最近的一棵树
+        // [OPTIMIZE] 使用 SpatialHash 替代遍历 WallSystem.trees，从 O(T) 降到 O(1)
+        this._ensureHash();
+        const cellSize = this.spatialHash.cellSize;
+        const [baseCX, baseCY] = this.spatialHash._getCell(x, y);
+        const searchR = entityRadius * 1.5 + this._maxTreeRadius;
+        const range = Math.ceil(searchR / cellSize) + 1;
+        for (let dx = -range; dx <= range; dx++) {
+            for (let dy = -range; dy <= range; dy++) {
+                const key = this.spatialHash._getKey(baseCX + dx, baseCY + dy);
+                const items = this.spatialHash.cells.get(key);
+                if (!items) continue;
+                for (const item of items) {
+                    if (item.type !== 'tree') continue;
+                    const t = item.obj;
+                    const treeR = t.collisionRadius || t.radius * 0.6;
+                    const d = Math.sqrt((x - t.x) ** 2 + (y - t.y) ** 2);
+                    if (d < treeR + entityRadius * 1.5) {
+                        cost += 0.5;
+                        return cost; // 只计算最近的一棵树
+                    }
                 }
             }
         }
@@ -459,7 +481,7 @@ class PathFinder {
         const openHeap = new BinaryHeap(node => node.f);
         const closedSet = new Set();
         let iterations = 0;
-        const maxIterations = cols * rows * 2;
+        const maxIterations = Math.min(cols * rows * 2, 5000);
         openHeap.push(startNode);
         while (openHeap.size() > 0) {
             if (++iterations > maxIterations) return null;

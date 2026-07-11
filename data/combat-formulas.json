@@ -1,0 +1,160 @@
+{
+  "$schema": "./combat-formulas.schema.json",
+  "player": {
+    "attack": {
+      "base": 10,
+      "strMultiplier": 0.05,
+      "dexMultiplier": 0.1,
+      "round": true
+    },
+    "defense": {
+      "conMultiplier": 1.2,
+      "strMultiplier": 0.3,
+      "floor": true
+    },
+    "magicAttack": {
+      "intMultiplier": 1.5,
+      "wisMultiplier": 0.5,
+      "floor": true
+    },
+    "magicDefense": {
+      "wisMultiplier": 1.2,
+      "intMultiplier": 0.3,
+      "floor": true
+    },
+    "hit": {
+      "base": 80,
+      "dexMultiplier": 0.5,
+      "floor": true
+    },
+    "dodge": {
+      "base": 5,
+      "dexMultiplier": 0.3,
+      "floor": true
+    },
+    "crit": {
+      "base": 2,
+      "luckMultiplier": 1.0,
+      "floor": true
+    },
+    "attackSpeed": {
+      "base": 1.0,
+      "dexMultiplier": 0.02
+    },
+    "speed": {
+      "usePlayerSpeedConfig": true,
+      "dexMultiplier": 0.05
+    },
+    "critResist": {
+      "conMultiplier": 1.0,
+      "floor": true
+    },
+    "maxHp": {
+      "base": 100,
+      "conMultiplier": 10
+    },
+    "maxMp": {
+      "base": 100,
+      "wisMultiplier": 10,
+      "intMultiplier": 5
+    },
+    "expPerLevel": {
+      "base": 20,
+      "levelMultiplier": 20,
+      "levelSquareMultiplier": 12,
+      "finalMultiplier": 2
+    },
+    "staminaRegen": {
+      "dexMultiplier": 0.01
+    },
+    "initialStats": {
+      "level": 1,
+      "hp": 100,
+      "mp": 100,
+      "maxHp": 100,
+      "maxMp": 100,
+      "str": 10,
+      "dex": 10,
+      "int": 10,
+      "con": 10,
+      "wis": 10,
+      "luck": 10,
+      "hpRegen": 1,
+      "mpRegen": 1
+    }
+  },
+  "enemy": {
+    "calculateCombatStats": {
+      "attack": {
+        "strMultiplier": 2.0,
+        "dexMultiplier": 0.5,
+        "luckMultiplier": 0.2,
+        "floor": true
+      },
+      "defense": {
+        "conMultiplier": 1.5,
+        "strMultiplier": 0.3,
+        "floor": true
+      },
+      "magicAttack": {
+        "intMultiplier": 1.5,
+        "wisMultiplier": 0.5,
+        "floor": true
+      },
+      "magicDefense": {
+        "wisMultiplier": 1.2,
+        "intMultiplier": 0.3,
+        "floor": true
+      },
+      "hit": {
+        "base": 80,
+        "dexMultiplier": 0.5,
+        "floor": true
+      },
+      "dodge": {
+        "base": 5,
+        "dexMultiplier": 0.3,
+        "floor": true
+      },
+      "crit": {
+        "base": 2,
+        "luckMultiplier": 1.0,
+        "floor": true
+      },
+      "critResist": {
+        "conMultiplier": 1.0,
+        "floor": true
+      },
+      "speed": {
+        "dexMultiplier": 0.5
+      },
+      "attackSpeed": {
+        "base": 1.0,
+        "dexMultiplier": 0.02
+      }
+    },
+    "expValue": {
+      "base": 10,
+      "levelMultiplier": 5
+    }
+  },
+  "tributes": {
+    "marble": {
+      "defenseMultiplier": 1.25,
+      "appliesOnce": true
+    },
+    "stone": {
+      "defenseMultiplier": 1.05,
+      "speedMultiplier": 0.9,
+      "appliesOnce": false
+    }
+  },
+  "dungeonBuffs": {
+    "goddessBless": {
+      "atkPercent": 20
+    },
+    "demonPrayer": {
+      "atkPercent": 30
+    }
+  }
+}

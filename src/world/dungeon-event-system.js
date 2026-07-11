@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -1161,7 +1162,7 @@ export const DungeonEventSystem = {
         this._eventOverlay = overlay;
 
         // 显示浮动文字效果
-        if (typeof EffectManager !== 'undefined' && typeof FloatingTextEffect !== 'undefined') {
+        if (typeof EffectManager !== 'undefined') {
             const color = result.type === 'success' || result.type === 'heal' || result.type === 'bless'
                 ? '#44ff44' : result.type === 'fail' ? '#ff4444' : '#ffd700';
             EffectManager.add(new FloatingTextEffect(512, 400, result.text.split('\n')[0], color));

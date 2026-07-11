@@ -1,4 +1,4 @@
-import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
+import { DamagePipeline } from './damage-pipeline.js';
 
         class Projectile {
             constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', noRender = false, isGreen = false, isSpit = false) {
@@ -40,16 +40,16 @@ import { EnchantOnHitRegistry, applyEnchantOnHit } from './attack.js';
                         }
                         this.hitTargets.add(entity);
                         const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
-                        entity.takeDamage(damage, this.source, 'ranged');
                         // 毒液投射物：命中后给目标加一层中毒
                         if (this.isSpit && typeof entity.applyPoison === 'function') {
                             entity.applyPoison(1);
                         }
-                        // 通用附魔命中效果（支持远程武器如S12K的狼蛛附魔）
-                        if (this.source) {
-                            const weapon = this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null);
-                            applyEnchantOnHit(weapon, entity, this.source);
-                        }
+                        const weapon = this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null;
+                        DamagePipeline.applyHit(this.source, entity, {
+                            damage,
+                            damageType: this.damageType || 'ranged',
+                            currentWeapon: weapon
+                        });
                         if (this.piercing) { this.piercing--; if (this.piercing < 0) this.active = false; }
                         else { this.active = false; }
                         if (!this.active) return;

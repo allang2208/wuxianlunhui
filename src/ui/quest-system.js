@@ -1,4 +1,6 @@
 // Quest System - 任务日志系统
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from './ui-state.js';
 export const QuestSystem = {
     _isOpen: false,
     _selectedQuest: 'explore_rift_1',
@@ -27,6 +29,7 @@ export const QuestSystem = {
     },
 
     open() {
+        UIState.open('quest');
         this._isOpen = true;
         const panel = document.getElementById('questPanel');
         if (panel) {
@@ -38,6 +41,7 @@ export const QuestSystem = {
     },
 
     close() {
+        UIState.close('quest');
         this._isOpen = false;
         this._fromNPC = false; // 关闭时重置来源标记
         const panel = document.getElementById('questPanel');
@@ -51,7 +55,7 @@ export const QuestSystem = {
     },
 
     toggle() {
-        if (this._isOpen) this.close();
+        if (UIState.isOpen('quest')) this.close();
         else this.open();
     },
 
@@ -269,15 +273,21 @@ export const QuestState = {
         const instance = ItemDatabase.createInstance ? ItemDatabase.createInstance(weapon.id) : { ...weapon };
 
         // 尝试放入背包
-        if (typeof Inventory !== 'undefined' && Inventory.addItem) {
-            const added = Inventory.addItem(instance);
-            if (!added) {
-                // 背包满，放在地上
-                if (typeof DropItem !== 'undefined') {
-                    DropItem.create(player.x + 20, player.y, instance);
-                }
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，武器已放在地上', '#ff6666'));
+        const maxSlots = EquipManager.maxBackpackSlots || 36;
+        const backpack = EquipManager.backpackItems || (EquipManager.backpackItems = []);
+        const usedSlots = new Set(backpack.map(i => i.slot));
+        let slot = 0;
+        while (usedSlots.has(slot) && slot < maxSlots) slot++;
+        if (slot < maxSlots) {
+            instance.slot = slot;
+            backpack.push(instance);
+            EquipManager.updateInventorySlots();
+        } else {
+            // 背包满，放在地上
+            if (typeof DropItem !== 'undefined') {
+                DropItem.create(player.x + 20, player.y, instance);
             }
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，武器已放在地上', '#ff6666'));
         }
     }
 };

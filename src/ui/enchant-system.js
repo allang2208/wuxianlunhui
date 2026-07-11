@@ -1,9 +1,12 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EnchantConfig, EnchantScrollItems, MagicDustItem } from '../config/enchant-config.js';
 import { ItemFactory } from '../items/item-factory.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
 import { Game } from '../game.js';
 import { SoundManager } from './sound-manager.js';
+import { EventBus } from '../core/event-bus.js';
+import { UIState } from './ui-state.js';
 
 const EnchantSystem = {
     _isOpen: false,
@@ -18,11 +21,20 @@ const EnchantSystem = {
     // 初始化
     init() {
         this._setupDragDrop();
+        this._bindEventBus();
+    },
+
+    _bindEventBus() {
+        EventBus.on('enchant:returnScrollItem', () => { this._returnScrollItem(); });
+        EventBus.on('enchant:returnEquipItem', () => { this._returnEquipItem(); });
+        EventBus.on('enchant:updateUI', () => { this._updateUI(); });
+        EventBus.on('enchant:equipScrollFromBackpack', (idx) => { this._equipScrollFromBackpack(idx); });
     },
 
     // 打开附魔界面
     open(npc) {
         try {
+            UIState.open('enchant');
             this._isOpen = true;
             this._currentNPC = npc;
             const panel = document.getElementById('enchantPanel');
@@ -55,9 +67,10 @@ const EnchantSystem = {
     // 关闭附魔界面
     close() {
         try {
-            if (!this._isOpen) return;
+            if (!UIState.isOpen('enchant')) return;
             this._returnScrollItem();
             this._returnEquipItem();
+            UIState.close('enchant');
             this._isOpen = false;
             // 隐藏说明文字
             const instructionEl = document.getElementById('enchantInstruction');
@@ -68,7 +81,7 @@ const EnchantSystem = {
             const panel = document.getElementById('enchantPanel');
             if (panel) panel.classList.remove('active');
             setTimeout(() => {
-                if (!this._isOpen && !ShopSystem._isOpen && !EnhanceSystem._isOpen && !CraftSystem._isOpen) {
+                if (!UIState.isOpen('enchant') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('craft')) {
                     SystemUI.close();
                 }
             }, 300);
@@ -328,7 +341,7 @@ const EnchantSystem = {
             if (player) {
                 Game.dropItem(player.x, player.y, this._scrollItem);
                 // 使用游戏内浮动文字显示消息
-                if (typeof EffectManager !== 'undefined' && typeof FloatingTextEffect !== 'undefined') {
+                if (typeof EffectManager !== 'undefined') {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，卷轴掉落在地上'));
                 }
                 this._showMessage('背包已满，卷轴掉落在地上', 'error');
@@ -397,7 +410,7 @@ const EnchantSystem = {
             if (player) {
                 Game.dropItem(player.x, player.y, this._equipItem);
                 // 使用游戏内浮动文字显示消息
-                if (typeof EffectManager !== 'undefined' && typeof FloatingTextEffect !== 'undefined') {
+                if (typeof EffectManager !== 'undefined') {
                     EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，装备掉落在地上'));
                 }
                 this._showMessage('背包已满，装备掉落在地上', 'error');

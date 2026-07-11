@@ -9,6 +9,8 @@
 
 import { Enemy } from '../entities/enemy.js';
 import { SpitterZombie, FatZombie, FastZombie, ZombieDog } from '../entities/enemy-types.js';
+import { UIState } from '../ui/ui-state.js';
+import { NPCDialogue } from '../ui/npc-dialogue.js';
 
 // ==================== 装甲僵尸工厂 ====================
 function createArmoredZombie(x, y) {
@@ -328,7 +330,7 @@ export class ZombieDungeonShop {
             }
         };
 
-        if (typeof NPCDialogue !== 'undefined') {
+        if (NPCDialogue) {
             NPCDialogue.open(fakeNPC);
         } else {
             console.warn('[ZombieDungeonShop] NPCDialogue not available');
@@ -339,7 +341,7 @@ export class ZombieDungeonShop {
      * 检查商店是否关闭（用于地牢地图系统的轮询）
      */
     static isClosed() {
-        return !(NPCDialogue._active || ShopSystem._isOpen || EnhanceSystem._isOpen || CraftSystem._isOpen || EnchantSystem._isOpen);
+        return !(NPCDialogue._active || UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant'));
     }
 }
 

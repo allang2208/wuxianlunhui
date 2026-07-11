@@ -1,4 +1,5 @@
 // Reward System - 奖励结算界面
+import { FloatingTextEffect } from '../effects/floating-text.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,

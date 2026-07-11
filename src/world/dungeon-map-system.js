@@ -14,6 +14,8 @@
  *   RewardSystem, pathFinder
  */
 
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { UIState } from '../ui/ui-state.js';
 import { BlackWolf } from '../entities/enemy-types.js';
 import {
     HumanoidMonster, Commander, MachineGunner, Rifleman, FlankRifleman, ShieldBearer
@@ -920,7 +922,7 @@ export const DungeonMapSystem = {
         ShopSystem.open(fakeNPC);
 
         const checkInterval = setInterval(() => {
-            if (!ShopSystem._isOpen) {
+            if (!UIState.isOpen('shop')) {
                 clearInterval(checkInterval);
                 this._returnToMap();
             }

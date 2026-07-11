@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Renderer } from '../world/renderer.js';
 
 /**

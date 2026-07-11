@@ -13,6 +13,7 @@
  *   - 战斗完成后 → BossRewardSystem.showReward() → RewardSystem.open()
  */
 
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Enemy } from '../entities/enemy.js';
 import { RewardSystem } from '../ui/reward-system.js';
 

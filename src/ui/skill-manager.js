@@ -1,3 +1,4 @@
+import { LevelUpEffectQueue } from '../effects/level-up-queue.js';
 import { SkillLevelSystem } from '../combat/skill-level-system.js';
 import { isSwordCategory } from '../config/gun-ammo.js';
 export const SkillManager = {

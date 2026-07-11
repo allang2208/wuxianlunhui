@@ -1,3 +1,4 @@
+import { FloatingTextEffect } from '../../effects/floating-text.js';
 export class FireballSystem {
     constructor(player) {
         this.player = player;

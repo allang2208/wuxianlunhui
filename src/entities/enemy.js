@@ -5,37 +5,59 @@ import { PoisonEffect } from '../effects/poison-effect.js';
 import { Renderer } from '../world/renderer.js';
 import { EnemyFSM, PhaseChangeEffect } from '../ai/enemy-fsm.js';
 import aiConfigData from '../../data/ai-config.json';
+import { COMBAT_CONFIG } from '../config/combat-config.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { Easing } from '../config/math-utils.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
-                super(x, y, { faction: 'enemy', hp: config.hp || 150, maxHp: config.maxHp || 150, size: config.size || 14, collisionRadius: config.collisionRadius, name: config.name || '测试敌人' });
+                const defaults = COMBAT_CONFIG.enemyDefaults || {};
+                const hp = config.hp ?? defaults.hp ?? 150;
+                const maxHp = config.maxHp ?? defaults.maxHp ?? 150;
+                const size = config.size ?? defaults.size ?? 14;
+                const name = config.name ?? defaults.name ?? '测试敌人';
+                super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
                 this.id = config.id || this.name;
-                this.speed = (config.speed || 0.3) * 3; this.maxSpeed = this.speed; this.accel = 0.7; this.friction = 0.82;
+                this.speed = (config.speed ?? defaults.speed ?? 0.3) * (defaults.speedMultiplier ?? 3);
+                this.maxSpeed = this.speed;
+                this.accel = config.accel ?? defaults.accel ?? 0.7;
+                this.friction = config.friction ?? defaults.friction ?? 0.82;
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
                 this._baseSpeed = this.maxSpeed;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
-                // 使用 config.attack 中的配置（如果提供），否则使用默认值
+                // 使用 COMBAT_CONFIG.thrustAttack.enemy 默认配置，config.attack 可覆盖
+                const thrustCfg = COMBAT_CONFIG.thrustAttack?.enemy || {};
                 const attackConfig = config.attack || {};
-                this.attacks = { melee: new ThrustAttack({ 
-                    cooldown: attackConfig.cooldown || 600, 
-                    range: attackConfig.range || 80, 
-                    width: attackConfig.width || 20, 
-                    damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : { min: 8, max: 15 }), 
-                    knockback: attackConfig.knockback || 15,
-                    dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : attackConfig.range
+                this.attacks = { melee: new ThrustAttack({
+                    cooldown: attackConfig.cooldown ?? thrustCfg.cooldown ?? 600,
+                    range: attackConfig.range ?? thrustCfg.range ?? 80,
+                    width: attackConfig.width ?? thrustCfg.width ?? 20,
+                    damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : (thrustCfg.damage || { min: 8, max: 15 })),
+                    knockback: attackConfig.knockback ?? thrustCfg.knockback ?? 15,
+                    dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80)
                 }) };
                 this.weaponMode = 'melee';
-                this.level = config.level || 1;
+                this.level = config.level ?? defaults.level ?? 1;
                 // 新增：6维基础属性（合并到 Combatant 已创建的 this.data）
+                const statDefaults = defaults.stats || {};
                 Object.assign(this.data, {
-                    str: config.str || 10, dex: config.dex || 10, int: config.int || 10,
-                    con: config.con || 10, wis: config.wis || 10, luck: config.luck || 10,
-                    stamina: 9999, maxStamina: 9999, kills: 0
+                    str: config.str ?? statDefaults.str ?? 10,
+                    dex: config.dex ?? statDefaults.dex ?? 10,
+                    int: config.int ?? statDefaults.int ?? 10,
+                    con: config.con ?? statDefaults.con ?? 10,
+                    wis: config.wis ?? statDefaults.wis ?? 10,
+                    luck: config.luck ?? statDefaults.luck ?? 10,
+                    stamina: config.stamina ?? defaults.stamina ?? 9999,
+                    maxStamina: config.maxStamina ?? defaults.maxStamina ?? 9999,
+                    kills: 0
                 });
                 this.calculateCombatStats();
                 this.weaponImage = new Image(); this.weaponImage.src = 'assets/weapons/1-rusty_sword_euip.png';
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
-                this.aiTimer = 0; this.aiInterval = 300; this.target = null; this.attackRange = config.attackRange || config.dashDistance || 70;
+                this.aiTimer = 0;
+                this.aiInterval = config.aiInterval ?? defaults.aiInterval ?? 300;
+                this.target = null;
+                this.attackRange = config.attackRange || config.dashDistance || defaults.attackRange || 70;
                 // 保存原始 AI 属性，供 FSM 阶段切换时计算倍率
                 this._baseAiInterval = this.aiInterval;
                 this._baseAttackRange = this.attackRange;
@@ -53,6 +75,33 @@ import aiConfigData from '../../data/ai-config.json';
                 this._pathManager = null; // 由 MovementSystem 懒加载创建
                 // ===== 状态效果：中毒粒子效果（Enemy 特有，Combatant 基类未包含）=====
                 this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
+
+                // ===== 通用 AI 状态机（pacing/chasing）默认值 =====
+                this._aiState = 'pacing';
+                this._pacingTimer = 0;
+                this._pacingInterval = 1000 + Math.random() * 1000;
+                this._lostTimer = 0;
+                this._pacingTarget = { x: x, y: y };
+                this._pacingOrigin = { x: x, y: y };
+                this._dashAngle = 0;
+                this._dashDistance = 0;
+                this._dashStartFacing = null;
+                this._attackTimer = 0;
+                this._animFrame = 0;
+                this._animTimer = 0;
+                this._attackDashOffset = 0;
+                this._dashBlocked = false;
+                // AI 配置读取（子类可通过 config.ai 注入；默认 0 表示不启用 pacing AI）
+                const pacingAiConfig = config.ai || {};
+                this._aggroRange = pacingAiConfig.aggroRange || 0;
+                this._pacingRange = pacingAiConfig.pacingRange || 0;
+                this._loseTimeout = pacingAiConfig.loseTimeout || 2000;
+                this._pacingIntervalMin = pacingAiConfig.pacingIntervalMin || 1000;
+                this._pacingIntervalMax = pacingAiConfig.pacingIntervalMax || 2000;
+                this._aiScanTimer = 0;
+                this._aiScanInterval = 200;
+                this._lastKnownTargetPos = null;
+                this._usePacingAI = config.usePacingAI === true;
 
                 // ===== FSM 阶段系统 =====
                 this._fsm = null;      // FSM 实例
@@ -83,20 +132,25 @@ import aiConfigData from '../../data/ai-config.json';
                 // 动画打断机制：无论当前动画状态，立即重置为 windup
                 this.weaponAnim.state = 'windup';
                 this.weaponAnim.timer = 0;
+                if (this._usePacingAI) {
+                    this._prepareDashAttack(this.target);
+                }
             }
             updateWeaponAnim(dt) {
                 const wa = WEAPON_ANIM, anim = this.weaponAnim;
+                const weaponAnimCfg = COMBAT_CONFIG.weaponAnim?.enemy || {};
+                const pendingThrustHitWindowMs = weaponAnimCfg.pendingThrustHitWindowMs ?? 200;
                 switch (anim.state) {
                     case 'idle': anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06; break;
                     case 'windup':
                         anim.timer += dt;
                         if (anim.timer >= wa.windupMs) { anim.state = 'swing'; anim.timer = 0; }
-                        else anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * easeInQuad(anim.timer / wa.windupMs);
+                        else anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(anim.timer / wa.windupMs);
                         break;
                     case 'swing':
                         anim.timer += dt;
                         if (this._pendingThrust && this._pendingThrust.active) {
-                            if (Date.now() - this._pendingThrust.startTime <= 200) {
+                            if (Date.now() - this._pendingThrust.startTime <= pendingThrustHitWindowMs) {
                                 this.attacks.melee.checkTriangleHit(this);
                             } else {
                                 this._pendingThrust.active = false;
@@ -110,12 +164,12 @@ import aiConfigData from '../../data/ai-config.json';
                                 this.attacks.melee.giveExp(this);
                             }
                         }
-                        else anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * easeOutQuad(anim.timer / wa.swingMs);
+                        else anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(anim.timer / wa.swingMs);
                         break;
                     case 'recover':
                         anim.timer += dt;
                         if (anim.timer >= wa.recoverMs) { anim.state = 'idle'; anim.timer = 0; }
-                        else anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * easeInOutCubic(anim.timer / wa.recoverMs);
+                        else anim.angle = wa.swingAngle + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(anim.timer / wa.recoverMs);
                         break;
                 }
             }
@@ -151,6 +205,193 @@ import aiConfigData from '../../data/ai-config.json';
                     default:      return { x: 0, y: 0 };
                 }
             }
+            // --- 查找最近玩家 ---
+            _findNearestPlayer(entities) {
+                let nearestPlayer = null;
+                let nearestDist = Infinity;
+                const arr = entities && entities.values ? Array.from(entities.values()) : entities;
+                if (!arr) return { entity: null, distance: Infinity };
+                for (const e of arr) {
+                    if (e && e._faction === 'player' && e.active) {
+                        const dx = e.x - this.x;
+                        const dy = e.y - this.y;
+                        const d = Math.sqrt(dx * dx + dy * dy);
+                        if (d < nearestDist) {
+                            nearestDist = d;
+                            nearestPlayer = e;
+                        }
+                    }
+                }
+                return { entity: nearestPlayer, distance: nearestDist };
+            }
+            // ===== AI 状态机：扫描与状态切换 =====
+            _updateAIState(dt, entities) {
+                const { entity: nearestPlayer, distance: nearestDist } = this._findNearestPlayer(entities);
+                switch (this._aiState) {
+                    case 'pacing':
+                        if (nearestPlayer && nearestDist <= this._aggroRange) {
+                            this._aiState = 'chasing';
+                            this.target = nearestPlayer;
+                            this._lostTimer = 0;
+                            this._lastKnownTargetPos = { x: nearestPlayer.x, y: nearestPlayer.y };
+                            // 清除踱步战术目标，让 MovementSystem 跟随 target
+                            this._tacticalTarget = null;
+                        }
+                        break;
+                    case 'chasing':
+                        if (nearestPlayer && nearestDist <= this._aggroRange) {
+                            // 目标仍在范围内，更新目标
+                            this.target = nearestPlayer;
+                            this._lastKnownTargetPos = { x: nearestPlayer.x, y: nearestPlayer.y };
+                            this._lostTimer = 0;
+                        } else {
+                            // 目标跑出范围，开始丢失计时
+                            this._lostTimer += this._aiScanInterval;
+                            if (this._lostTimer >= this._loseTimeout) {
+                                // 持续 loseTimeout 超出范围，放弃追击，回踱步
+                                this._aiState = 'pacing';
+                                this.target = null;
+                                this._lastKnownTargetPos = null;
+                                this._pacingOrigin = { x: this.x, y: this.y };
+                                this._lostTimer = 0;
+                                this._pacingTimer = 0;
+                                if (typeof this._resetPacingInterval === 'function') {
+                                    this._resetPacingInterval();
+                                } else {
+                                    this._pacingInterval = this._pacingIntervalMin + Math.random() * (this._pacingIntervalMax - this._pacingIntervalMin);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+            // ===== AI 执行：设置目标与速度 =====
+            _executeAI(dt, entities) {
+                switch (this._aiState) {
+                    case 'pacing': {
+                        // 踱步速度 = 正常 1/2
+                        this.maxSpeed = this._baseSpeed * 0.5;
+                        // 更新踱步目标
+                        this._pacingTimer += dt;
+                        if (this._pacingTimer >= this._pacingInterval) {
+                            this._pacingTimer = 0;
+                            if (typeof this._resetPacingInterval === 'function') {
+                                this._resetPacingInterval();
+                            } else {
+                                this._pacingInterval = this._pacingIntervalMin + Math.random() * (this._pacingIntervalMax - this._pacingIntervalMin);
+                            }
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = Math.random() * this._pacingRange;
+                            this._pacingTarget = {
+                                x: this._pacingOrigin.x + Math.cos(angle) * dist,
+                                y: this._pacingOrigin.y + Math.sin(angle) * dist
+                            };
+                        }
+                        // 设置战术目标，让 MovementSystem 读取
+                        this._tacticalTarget = this._pacingTarget;
+                        // 清除追击相关状态
+                        this.target = null;
+                        this._lastKnownTargetPos = null;
+                        break;
+                    }
+                    case 'chasing': {
+                        // 正常奔跑速度
+                        this.maxSpeed = this._baseSpeed;
+                        // 清除战术目标，让 MovementSystem 读取 this.target
+                        this._tacticalTarget = null;
+                        break;
+                    }
+                }
+            }
+            _facingToAngle(facing) {
+                switch (facing) {
+                    case 'right': return 0;
+                    case 'left':  return Math.PI;
+                    case 'down':  return Math.PI / 2;
+                    case 'up':    return -Math.PI / 2;
+                    default:      return 0;
+                }
+            }
+            _getDashWorldPos() {
+                const offset = this._getDashOffset();
+                return { x: this.x + offset.x, y: this.y + offset.y };
+            }
+            // --- 血条渲染（含冲刺偏移） ---
+            renderHealthBar(ctx) {
+                if (this.hp >= this.maxHp) return;
+                const worldPos = this._getDashWorldPos();
+                const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
+                const hb = this._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
+                const barWidth = hb.width, barHeight = hb.height, border = 1;
+                const x = screenPos.x - barWidth / 2, y = screenPos.y - this.size + hb.offsetY;
+                const hpPercent = this.hp / this.maxHp;
+                ctx.fillStyle = '#1a0a0a';
+                ctx.fillRect(x - border, y - border, barWidth + border * 2, barHeight + border * 2);
+                ctx.fillStyle = '#5a1010';
+                ctx.fillRect(x, y, barWidth, barHeight);
+                ctx.fillStyle = hpPercent > 0.5 ? '#c04040' : hpPercent > 0.25 ? '#a03030' : '#8a1a1a';
+                ctx.fillRect(x, y, barWidth * hpPercent, barHeight);
+            }
+            // --- 碰撞半径渲染（含冲刺偏移） ---
+            renderCollisionRadius(ctx) {
+                if (this.hitbox) {
+                    this.hitbox.renderDebug(ctx);
+                    return;
+                }
+                const radius = this.collisionRadius || 12;
+                const worldPos = this._getDashWorldPos();
+                const screenPos = Renderer.worldToScreen(worldPos.x, worldPos.y);
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+                ctx.beginPath();
+                ctx.arc(screenPos.x, screenPos.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+            }
+            _getRenderPosition() {
+                const offset = this._getDashOffset();
+                return Renderer.worldToScreen(this.x + offset.x, this.y + offset.y);
+            }
+            // --- 冲刺准备公共逻辑 ---
+            _prepareDashAttack(target) {
+                if (this._attackTimer > 0) return;
+                this._attackTimer = this._attackDuration;
+                this._animFrame = 0;
+                this._animTimer = 0;
+                this._attackDashOffset = 0;
+                // 精确朝向目标冲刺
+                if (target && target.active) {
+                    const targetX = target.x;
+                    const targetY = target.y;
+                    this._dashAngle = Math.atan2(targetY - this.y, targetX - this.x);
+                    // 冲刺距离 = 到目标距离（精确到目标位置）
+                    this._dashDistance = Math.sqrt((targetX - this.x)**2 + (targetY - this.y)**2);
+                    // 更新面向以匹配冲刺角度
+                    const absCos = Math.abs(Math.cos(this._dashAngle));
+                    const absSin = Math.abs(Math.sin(this._dashAngle));
+                    if (absSin > absCos) {
+                        this._dashStartFacing = Math.sin(this._dashAngle) > 0 ? 'down' : 'up';
+                    } else {
+                        this._dashStartFacing = Math.cos(this._dashAngle) > 0 ? 'right' : 'left';
+                    }
+                    this._facing = this._dashStartFacing;
+                    this._facingDir = this._dashStartFacing;
+                } else {
+                    // 无目标：fallback 到当前面向
+                    this._dashAngle = this._facingToAngle(this._facing);
+                }
+                // 预判：检查冲刺路线是否通畅，如果被墙阻挡则原地攻击
+                const dx = Math.cos(this._dashAngle) * this._dashDistance;
+                const dy = Math.sin(this._dashAngle) * this._dashDistance;
+                if (typeof WallSystem !== 'undefined' && WallSystem.blocked) {
+                    this._dashBlocked = WallSystem.blocked(this.x, this.y, this.x + dx, this.y + dy);
+                } else {
+                    this._dashBlocked = false;
+                }
+            }
             // === AI 系统：移动寻路 与 攻击指令 完全分离 ===
             // 阶段切换回调：子类可覆盖以实现自定义特效
             onPhaseChange(phase) {
@@ -181,12 +422,22 @@ import aiConfigData from '../../data/ai-config.json';
                     return;
                 }
 
+                // 通用 pacing/chasing AI（狼类等启用 usePacingAI 的子类）
+                if (this._usePacingAI) {
+                    this._aiScanTimer += dt;
+                    if (this._aiScanTimer >= this._aiScanInterval) {
+                        this._aiScanTimer = 0;
+                        this._updateAIState(dt, entities);
+                    }
+                    this._executeAI(dt, entities);
+                }
+
                 // [REFACTOR] 外部系统驱动：如果 game.js 已调用 MovementSystem/CombatSystem/PerceptionSystem，
                 // 则 enemy.js 不再重复处理移动/攻击/目标选择，避免每帧重复调用。
                 // 如果没有外部系统（fallback），使用旧逻辑。
                 if (typeof window !== 'undefined' && (!window.MovementSystem || !window.CombatSystem)) {
-                    // 1. 寻找目标
-                    if (!this.target) {
+                    // 1. 寻找目标（pacing AI 子类已自行管理 target）
+                    if (!this.target && !this._usePacingAI) {
                         entities.forEach(e => { if (e instanceof Player) this.target = e; });
                     }
                     if (!this.target || !this.target.active) return;
@@ -477,27 +728,58 @@ import aiConfigData from '../../data/ai-config.json';
             // 新增：计算战斗属性（使用与主角相同的公式）
             calculateCombatStats() {
                 const d = this.data;
-                d.maxHp = 100 + d.con * 5;
+                const formulas = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
+
+                const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 5 };
+                const atkFormula = formulas.attack || { base: 10, strMultiplier: 0.05, dexMultiplier: 0.1, round: true };
+                const defFormula = formulas.defense || { conMultiplier: 1.2, strMultiplier: 0.3, round: 'floor' };
+                const matkFormula = formulas.magicAttack || { intMultiplier: 1.5, wisMultiplier: 0.5, round: 'floor' };
+                const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
+                const hitFormula = formulas.hit || { base: 80, dexMultiplier: 0.5, round: 'floor' };
+                const dodgeFormula = formulas.dodge || { base: 5, dexMultiplier: 0.3, round: 'floor' };
+                const critFormula = formulas.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
+                const aspdFormula = formulas.attackSpeed || { base: 1.0, dexMultiplier: 0.02 };
+                const critResFormula = formulas.critResist || { conMultiplier: 1.0, round: 'floor' };
+                const levelFormula = formulas.level || { base: 1, strMultiplier: 0.05, conMultiplier: 0.06, dexMultiplier: 0.04, intMultiplier: 0.02, wisMultiplier: 0.015, luckMultiplier: 0.015, round: 'floor' };
+
+                d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier;
                 d.hp = d.maxHp;
-                d.atk = Math.round(10 + d.str * 0.05 + d.dex * 0.1);
-                d.def = Math.floor(d.con * 1.2 + d.str * 0.3);
-                d.matk = Math.floor(d.int * 1.5 + d.wis * 0.5);
-                d.mdef = Math.floor(d.wis * 1.2 + d.int * 0.3);
-                d.hit = 80 + Math.floor(d.dex * 0.5);
-                d.dodge = 5 + Math.floor(d.dex * 0.3);
-                d.crit = 2 + Math.floor(d.luck * 1.0);
-                d.aspd = 1.0 + d.dex * 0.02;
-                d.critRes = Math.floor(d.con * 1.0);
-                d.level = Math.floor(1 + d.str * 0.05 + d.con * 0.06 + d.dex * 0.04 + d.int * 0.02 + d.wis * 0.015 + d.luck * 0.015);
+                d.atk = atkFormula.round
+                    ? Math.round(atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier)
+                    : atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier;
+                d.def = this._applyRounding(d.con * defFormula.conMultiplier + d.str * defFormula.strMultiplier, defFormula.round);
+                d.matk = this._applyRounding(d.int * matkFormula.intMultiplier + d.wis * matkFormula.wisMultiplier, matkFormula.round);
+                d.mdef = this._applyRounding(d.wis * mdefFormula.wisMultiplier + d.int * mdefFormula.intMultiplier, mdefFormula.round);
+                d.hit = this._applyRounding(hitFormula.base + d.dex * hitFormula.dexMultiplier, hitFormula.round);
+                d.dodge = this._applyRounding(dodgeFormula.base + d.dex * dodgeFormula.dexMultiplier, dodgeFormula.round);
+                d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
+                d.aspd = aspdFormula.base + d.dex * aspdFormula.dexMultiplier;
+                d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
+                d.level = this._applyRounding(
+                    levelFormula.base
+                    + d.str * levelFormula.strMultiplier
+                    + d.con * levelFormula.conMultiplier
+                    + d.dex * levelFormula.dexMultiplier
+                    + d.int * levelFormula.intMultiplier
+                    + d.wis * levelFormula.wisMultiplier
+                    + d.luck * levelFormula.luckMultiplier,
+                    levelFormula.round
+                );
                 this.maxHp = d.maxHp;
                 this.hp = d.hp;
                 this.level = d.level;
+            }
+            _applyRounding(value, method) {
+                if (method === 'round') return Math.round(value);
+                if (method === 'ceil') return Math.ceil(value);
+                return Math.floor(value);
             }
             // 新增：获取等级
             getLevel() { return this.data ? this.data.level : 1; }
             // 新增：获取经验值（基于 rank 实时计算，不依赖构造函数时序）
             getExpValue() {
-                return 10 + (this.level || 1) * 5;
+                const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
+                return formula.base + (this.level || 1) * formula.levelMultiplier;
             }
             // 新增：获取当前武器攻击力（供攻击系统使用）
             getCurrentWeaponAtk() {

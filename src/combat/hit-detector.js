@@ -290,12 +290,6 @@ class HitDetector {
                 }
             }
         }
-            const hit = this.lineToHex(edge.x1, edge.y1, edge.x2, edge.y2, hexHitbox);
-            if (hit && hit.distance < bestScore) {
-                bestScore = hit.distance;
-                bestHit = { x: hit.x, y: hit.y, index: hit.vertexIndex };
-            }
-        }
         
         if (!bestHit) return null;
         
