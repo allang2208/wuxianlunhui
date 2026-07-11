@@ -58,33 +58,24 @@ export const DungeonMapSystem = {
     TYPE_COLORS: {
         start:  "#3a5a3a",
         combat: "#7a3a3a",
-        shop:   "#3a5a7a",
         event:  "#6a5a3a",
         boss:   "#7a0000",
-        converge: "#5a3a5a",
-        random: "#6a5a3a",
         reward: "#5a3a7a",
         empty:  "#3a3a3a",
     },
     TYPE_BORDER_COLORS: {
         start:  "#6aca6a",
         combat: "#aa5a5a",
-        shop:   "#5a8aaa",
         event:  "#9a8a5a",
         boss:   "#aa0000",
-        converge: "#8a5a8a",
-        random: "#9a8a5a",
         reward: "#8a5aaa",
         empty:  "#5a5a5a",
     },
     TYPE_ICONS: {
         start:  "▶",
         combat: "⚔",
-        shop:   "🏪",
         event:  "?",
         boss:   "☠",
-        converge: "◎",
-        random: "?",
         reward: "💎",
         empty:  "·",
     },
@@ -363,8 +354,12 @@ export const DungeonMapSystem = {
             return;
         }
 
-        // 使用 CombatRoomSystem 检测战斗完成
-        if (CombatRoomSystem.isCombatComplete()) {
+        // 检测战斗完成（CombatRoomSystem 或僵尸地牢自己的系统）
+        const isCombatDone = this.dungeonType === 'zombie'
+            ? this._checkZombieCombatComplete()
+            : CombatRoomSystem.isCombatComplete();
+
+        if (isCombatDone) {
             // 战斗已完成，启动打扫战场倒计时
             if (!this._cleanupActive) {
                 this._cleanupActive = true;
@@ -462,9 +457,7 @@ export const DungeonMapSystem = {
         switch (node.type) {
             case "combat": this._enterCombat(node); break;
             case "boss":   this._enterBoss(node); break;
-            case "shop":   this._enterShop(node); break;
             case "event":  this._enterEvent(node); break;
-            case "random": this._enterEvent(node); break;
             case "reward": this._enterReward(node); break;
             default:       this._returnToMap(); break;
         }
@@ -640,14 +633,20 @@ export const DungeonMapSystem = {
     },
 
     _generateRoom(isBoss) {
-        const worldSize = 1024;
+        // 随机生成 1024-2048 大小的正方形场地（步长 256）
+        const minSize = 1024;
+        const maxSize = 2048;
+        const steps = Math.floor((maxSize - minSize) / 256) + 1;
+        const worldSize = minSize + Math.floor(Math.random() * steps) * 256;
+
         const margin = 20; // 边界墙壁厚度
         const safeMin = margin;
         const safeMax = worldSize - margin;
-        const cx = 512, cy = 512;
+        const center = worldSize / 2;
 
         // 保留战斗场景的边界信息（用于怪物生成范围）
-        this._combatRoomBounds = { minX: safeMin, maxX: safeMax, minY: safeMin, maxY: safeMax, cx, cy };
+        this._combatRoomBounds = { minX: safeMin, maxX: safeMax, minY: safeMin, maxY: safeMax, cx: center, cy: center };
+        this._combatRoomSize = worldSize;
 
         // 随机选择玩家进入边界（0=上, 1=右, 2=下, 3=左）
         const edge = Math.floor(Math.random() * 4);
@@ -655,17 +654,17 @@ export const DungeonMapSystem = {
         const offset = 60; // 从边界向内偏移
         if (this.player) {
             if (edge === 0) { // top
-                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.x = center;
                 this.player.y = safeMin + offset;
             } else if (edge === 1) { // right
                 this.player.x = safeMax - offset;
-                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = center;
             } else if (edge === 2) { // bottom
-                this.player.x = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.x = center;
                 this.player.y = safeMax - offset;
             } else if (edge === 3) { // left
                 this.player.x = safeMin + offset;
-                this.player.y = safeMin + Math.random() * (safeMax - safeMin);
+                this.player.y = center;
             }
         }
 
@@ -685,10 +684,11 @@ export const DungeonMapSystem = {
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
 
+        const roomSize = this._combatRoomSize || 1024;
         const margin = 40;
         const safeMin = margin;
-        const safeMax = 1024 - margin;
-        const cx = 512, cy = 512;
+        const safeMax = roomSize - margin;
+        const center = roomSize / 2;
         const entranceEdge = this._combatEntrance || 2;
         const oppositeEdge = (entranceEdge + 2) % 4;
 
@@ -744,6 +744,34 @@ export const DungeonMapSystem = {
             this._combatMonsters.push(monster);
             this._combatMonsterKeys.push(key);
         }
+    },
+
+    _checkZombieCombatComplete() {
+        if (this.state !== "combat" && this.state !== "boss") return false;
+        if (this._cleanupActive) return false;
+
+        const allDead = this._combatMonsters.every(m => !m.active || m.hp <= 0);
+        if (!allDead) return false;
+
+        // 僵尸地牢：检查是否还有下一波
+        if (this.dungeonType === 'zombie' && this.state === "combat" && this._zombieWaveActive) {
+            if (this._zombieCombat && !this._zombieCombat.isComplete) {
+                // 防止重复设置过渡
+                if (this._waveTransitioning) return false;
+                this._waveTransitioning = true;
+                // 短暂延迟后生成下一波
+                setTimeout(() => {
+                    this._waveTransitioning = false;
+                    if (this.active && this.state === "combat") {
+                        this._cleanupCombatWallsOnly();
+                        this._spawnZombieWave();
+                    }
+                }, 1500);
+                return false; // 还有下一波，战斗未完成
+            }
+        }
+
+        return true; // 所有怪物死亡且无下一波，战斗完成
     },
 
     _checkCombatComplete() {
@@ -908,7 +936,7 @@ export const DungeonMapSystem = {
                 } else {
                     this._returnToMap();
                 }
-            });
+            }, null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
             // 降级到旧的事件系统
@@ -958,7 +986,7 @@ export const DungeonMapSystem = {
                 } else {
                     this._returnToMap();
                 }
-            });
+            }, null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system for zombie:', err);
             // 降级到旧版事件系统
@@ -1128,6 +1156,7 @@ export const DungeonMapSystem = {
                 borderColor = "#5a5a5a";
                 ctx.globalAlpha = 0.5;
             } else if (isAvailable) {
+                // 相邻可点击节点：显示实际类型
                 color = this.TYPE_COLORS[node.type] || "#3a3a3a";
                 borderColor = this.TYPE_BORDER_COLORS[node.type] || "#aaaaaa";
                 glow = true;

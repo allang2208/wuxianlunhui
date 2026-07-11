@@ -112,6 +112,10 @@ export const DUNGEON_EVENT_CONFIG = {
                 baseRate: 25,
                 successText: '你发现了隐藏的暗格，里面有一些金币和材料！',
                 failText: '暗格里的东西已经被搜刮一空了。',
+                revealNodes: {
+                    enabled: true,
+                    description: '你还发现了周围道路的线索：',
+                },
             },
         ],
         // 奖励配置
@@ -125,6 +129,8 @@ export const DUNGEON_EVENT_CONFIG = {
                 { type: 'material', min: 1, max: 3, chance: 0.3 },
             ],
         },
+        // 探查巡逻成功时揭示相邻节点及其再下一层节点
+        inspectRevealDepth: 2,
         failReward: { type: 'gold', min: 5, max: 15 },
     },
 
@@ -133,8 +139,12 @@ export const DUNGEON_EVENT_CONFIG = {
         title: '神秘宝箱',
         description: '一个镶嵌着奇异符文的宝箱静静地放在石台上，散发着诱人的光芒。',
         outcomes: [
-            { type: 'gold', chance: 0.50, min: 50, max: 200 },
-            { type: 'material', chance: 0.25, min: 1, max: 5 },
+            { type: 'gold', chance: 0.50, amount: 500 },
+            { type: 'materials', chance: 0.25, rewards: [
+                { type: 'enhancement_stone', count: 1 },
+                { type: 'reforge_ticket', count: 1 },
+                { type: 'magic_dust', count: 200 },
+            ]},
             { type: 'combat', chance: 0.25 },
         ],
         combatText: '宝箱突然张开，里面钻出了一只宝箱怪！',
@@ -171,6 +181,25 @@ export const DUNGEON_EVENT_CONFIG = {
     materialTypes: [
         '铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片',
     ],
+
+    // 强化石、改造券、魔法粉尘的物品配置（用于宝箱奖励）
+    specialItems: {
+        enhancement_stone: {
+            name: '强化石',
+            icon: '💎',
+            category: 'enhancement',
+        },
+        reforge_ticket: {
+            name: '改造券',
+            icon: '🎫',
+            category: 'enhancement',
+        },
+        magic_dust: {
+            name: '魔法粉尘',
+            icon: '✨',
+            category: 'material',
+        },
+    },
 };
 
 // ==================== Buff系统 ====================
@@ -545,7 +574,7 @@ function handleTrap(player, choiceId) {
 /**
  * 补给堆事件处理器
  */
-function handleSupplyPile(player, choiceId) {
+function handleSupplyPile(player, choiceId, dungeonMapSystem) {
     const config = DUNGEON_EVENT_CONFIG.supplyPile;
     const choice = config.choices.find(c => c.id === choiceId);
 
@@ -584,6 +613,14 @@ function handleSupplyPile(player, choiceId) {
             }
         }
 
+        // 探查巡逻：显示相邻节点及其再下一层节点的内容
+        if (choice.id === 'inspect' && dungeonMapSystem) {
+            const revealedInfo = getRevealedNodeInfo(dungeonMapSystem);
+            if (revealedInfo) {
+                text += `\n\n${choice.revealNodes?.description || '你还发现了周围道路的线索：'}\n${revealedInfo}`;
+            }
+        }
+
         return {
             type: 'success',
             text: `${text}\n${AttributeCheckSystem.getResultText(checkResult)}`,
@@ -602,6 +639,74 @@ function handleSupplyPile(player, choiceId) {
             checkResult,
         };
     }
+}
+
+/**
+ * 获取探查巡逻揭示的节点信息
+ * 显示相邻前后左右节点及其再之后两个节点的内容
+ * @param {Object} dungeonMapSystem - 地牢地图系统实例
+ * @returns {string|null} 节点信息文本
+ */
+function getRevealedNodeInfo(dungeonMapSystem) {
+    if (!dungeonMapSystem || !dungeonMapSystem.nodes || !dungeonMapSystem.edges || !dungeonMapSystem.currentNodeId) {
+        return null;
+    }
+
+    const currentNode = dungeonMapSystem.nodes.find(n => n.id === dungeonMapSystem.currentNodeId);
+    if (!currentNode) return null;
+
+    // 获取相邻节点（直接连接的节点）
+    const adjacentIds = new Set();
+    const adjacentEdges = dungeonMapSystem.edges.filter(e => e.from === currentNode.id || e.to === currentNode.id);
+    for (const edge of adjacentEdges) {
+        const adjacentId = edge.from === currentNode.id ? edge.to : edge.from;
+        adjacentIds.add(adjacentId);
+    }
+
+    // 获取再下一层节点（相邻节点的相邻节点，排除当前节点和已访问的）
+    const secondLayerIds = new Set();
+    for (const adjId of adjacentIds) {
+        const adjNode = dungeonMapSystem.nodes.find(n => n.id === adjId);
+        if (!adjNode) continue;
+
+        const deeperEdges = dungeonMapSystem.edges.filter(e => e.from === adjId || e.to === adjId);
+        for (const edge of deeperEdges) {
+            const deeperId = edge.from === adjId ? edge.to : edge.from;
+            // 排除当前节点和第一层相邻节点
+            if (deeperId !== currentNode.id && !adjacentIds.has(deeperId)) {
+                secondLayerIds.add(deeperId);
+            }
+        }
+    }
+
+    // 限制最多显示6个节点（4个相邻 + 2个再下一层）
+    const allRevealedIds = [...adjacentIds].slice(0, 4);
+    const remainingSlots = 6 - allRevealedIds.length;
+    if (remainingSlots > 0) {
+        const secondLayerArray = [...secondLayerIds].slice(0, remainingSlots);
+        allRevealedIds.push(...secondLayerArray);
+    }
+
+    // 生成节点信息文本
+    const typeLabels = {
+        combat: '⚔ 战斗',
+        event: '? 事件',
+        boss: '☠ Boss',
+        reward: '💎 奖励',
+        empty: '· 空',
+        start: '▶ 起点',
+    };
+
+    const lines = [];
+    for (const nodeId of allRevealedIds) {
+        const node = dungeonMapSystem.nodes.find(n => n.id === nodeId);
+        if (!node) continue;
+        const label = typeLabels[node.type] || `? ${node.type}`;
+        lines.push(`  • ${label}`);
+    }
+
+    if (lines.length === 0) return null;
+    return lines.join('\n');
 }
 
 /**
@@ -628,7 +733,7 @@ function handleTreasureChest() {
 
     switch (outcome.type) {
         case 'gold': {
-            const gold = outcome.min + Math.floor(Math.random() * (outcome.max - outcome.min + 1));
+            const gold = outcome.amount;
             return {
                 type: 'gold',
                 text: `宝箱里装满了金币！你获得了 ${gold} 金币。`,
@@ -636,15 +741,27 @@ function handleTreasureChest() {
             };
         }
 
-        case 'material': {
-            const count = outcome.min + Math.floor(Math.random() * (outcome.max - outcome.min + 1));
-            const materialType = DUNGEON_EVENT_CONFIG.materialTypes[
-                Math.floor(Math.random() * DUNGEON_EVENT_CONFIG.materialTypes.length)
-            ];
+        case 'materials': {
+            const rewards = {};
+            let text = '宝箱里放着一些珍贵的材料：';
+            const parts = [];
+            for (const item of outcome.rewards) {
+                if (item.type === 'enhancement_stone') {
+                    rewards.enhancementStone = item.count;
+                    parts.push(`${item.count} 颗强化石`);
+                } else if (item.type === 'reforge_ticket') {
+                    rewards.reforgeTicket = item.count;
+                    parts.push(`${item.count} 张改造券`);
+                } else if (item.type === 'magic_dust') {
+                    rewards.magicDust = item.count;
+                    parts.push(`${item.count} 魔法粉尘`);
+                }
+            }
+            text += parts.join('、') + '。';
             return {
-                type: 'material',
-                text: `宝箱里放着一些珍贵的材料：${materialType} x${count}。`,
-                rewards: { material: { type: materialType, count } },
+                type: 'materials',
+                text,
+                rewards,
             };
         }
 
@@ -732,6 +849,7 @@ export const DungeonEventSystem = {
     _currentEventType: null,
     _eventOverlay: null,
     _onComplete: null,
+    _dungeonMapSystem: null, // 地牢地图系统引用（用于探查巡逻）
 
     /**
      * 随机选择一个事件类型
@@ -765,9 +883,10 @@ export const DungeonEventSystem = {
      * @param {Player} player - 玩家对象
      * @param {Function} onComplete - 完成回调
      * @param {string|null} forcedType - 强制指定事件类型（用于测试）
+     * @param {Object} dungeonMapSystem - 地牢地图系统实例（用于探查巡逻）
      * @returns {Object} 事件对象
      */
-    trigger(player, onComplete, forcedType = null) {
+    trigger(player, onComplete, forcedType = null, dungeonMapSystem = null) {
         const eventType = forcedType || this.rollEventType();
         const config = this.getEventConfig(eventType);
 
@@ -780,6 +899,7 @@ export const DungeonEventSystem = {
         this._currentEventType = eventType;
         this._currentEvent = config;
         this._onComplete = onComplete;
+        this._dungeonMapSystem = dungeonMapSystem; // 保存地牢地图系统引用
 
         // 显示事件UI
         this._showEventUI(eventType, config, player);
@@ -805,7 +925,7 @@ export const DungeonEventSystem = {
                 result = handleTrap(player, choiceId);
                 break;
             case 'supplyPile':
-                result = handleSupplyPile(player, choiceId);
+                result = handleSupplyPile(player, choiceId, this._dungeonMapSystem);
                 break;
             case 'treasureChest':
                 result = handleTreasureChest();
@@ -857,6 +977,20 @@ export const DungeonEventSystem = {
                 };
                 Game.dropItem(player.x, player.y, item);
             }
+        }
+
+        // 宝箱特殊材料奖励：强化石、改造券、魔法粉尘
+        if (result.rewards.enhancementStone && typeof Game !== 'undefined' && Game.dropItem) {
+            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.enhancement_stone, stack: result.rewards.enhancementStone };
+            Game.dropItem(player.x, player.y, item);
+        }
+        if (result.rewards.reforgeTicket && typeof Game !== 'undefined' && Game.dropItem) {
+            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.reforge_ticket, stack: result.rewards.reforgeTicket };
+            Game.dropItem(player.x, player.y, item);
+        }
+        if (result.rewards.magicDust && typeof Game !== 'undefined' && Game.dropItem) {
+            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.magic_dust, stack: result.rewards.magicDust };
+            Game.dropItem(player.x, player.y, item);
         }
     },
 
@@ -1052,6 +1186,7 @@ export const DungeonEventSystem = {
         this._currentEvent = null;
         this._currentEventType = null;
         this._onComplete = null;
+        this._dungeonMapSystem = null;
     },
 
     /**

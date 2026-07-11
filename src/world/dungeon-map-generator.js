@@ -131,6 +131,7 @@ export class DungeonMapGenerator {
             this._clear();
             this._generateLayers();
             this._generateEdges();
+            this._addRewardNode();
 
             if (this._validatePathLength()) {
                 const metadata = this._computeMetadata();
@@ -237,8 +238,6 @@ export class DungeonMapGenerator {
         if (layer === 0) return 'start';
         // 最后一层：Boss
         if (layer === totalLayers - 1) return 'boss';
-        // Boss 后一层：奖励（如果启用）
-        if (layer === totalLayers && this.config.hasRewardNode) return 'reward';
 
         // 中间层：按权重随机
         const weights = this.config.nodeTypeWeights;
@@ -249,6 +248,31 @@ export class DungeonMapGenerator {
             if (roll < cumulative) return type;
         }
         return 'combat';
+    }
+
+    /** 添加奖励节点（Boss 之后） */
+    _addRewardNode() {
+        if (!this.config.hasRewardNode) return;
+
+        // 找到 Boss 节点
+        const bossNode = this.nodes.find(n => n.type === 'boss');
+        if (!bossNode) return;
+
+        // 在 Boss 节点右侧添加奖励节点
+        const rewardNode = {
+            id: `node_reward_${Date.now()}`,
+            layer: bossNode.layer + 1,
+            index: 0,
+            x: bossNode.x + this.config.layerSpacingX,
+            y: bossNode.y,
+            type: 'reward',
+            originalType: 'reward',
+            connections: [],
+        };
+        this.nodes.push(rewardNode);
+
+        // 添加从 Boss 到奖励的边
+        this._addEdge(bossNode.id, rewardNode.id);
     }
 
     /** 生成边（连接） */

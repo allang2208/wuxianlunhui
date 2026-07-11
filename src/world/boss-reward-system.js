@@ -1176,22 +1176,9 @@ export class RewardNodeManager {
         // 保存原始卡牌
         this._originalCards = RewardSystem.CARDS ? [...RewardSystem.CARDS] : null;
 
-        // 使用 Boss 奖励配置中的卡牌
-        const bossCards = BOSS_REWARD_CONFIG.reward.bonusCards;
-
-        // 转换为 RewardSystem 格式
-        const formattedCards = bossCards.map(card => ({
-            id: card.id,
-            title: card.title,
-            icon: card.icon,
-            rewards: card.rewards,
-            desc: card.desc,
-        }));
-
-        // 追加到现有卡牌或替换
-        if (RewardSystem.CARDS) {
-            RewardSystem.CARDS = [...RewardSystem.CARDS, ...formattedCards];
-        }
+        // 复用剧情模式 RewardSystem 的原始卡牌（不追加额外卡牌）
+        // 用户要求：复用剧情模式下雪地场景完成后奖励界面
+        // 因此不修改 CARDS，直接使用 RewardSystem 原有的三张卡牌
     }
 
     _waitForRewardClose(onComplete) {

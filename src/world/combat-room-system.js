@@ -39,8 +39,9 @@ export const COMBAT_ROOM_CONFIG = {
 
     // 玩家生成配置
     playerSpawn: {
-        offsetFromEdge: 60,  // 从边界向内偏移距离
-        edgeCandidates: [0, 1, 2, 3] // 0=上, 1=右, 2=下, 3=左
+        offsetFromEdge: 60,  // 从边界向内偏移距离（使用固定像素 bottom）
+        edgeCandidates: [0, 1, 2, 3], // 0=上, 1=右, 2=下, 3=左
+        fixedCenter: true,   // 固定在边中间位置
     },
 
     // 怪物生成配置
@@ -469,29 +470,30 @@ export const CombatRoomSystem = {
         const margin = this.config.walls.margin;
         const safeMin = margin;
         const safeMax = roomSize - margin;
+        const center = roomSize / 2;
 
-        // 在四边中间位置随机生成玩家
+        // 在四边中间位置生成玩家（固定像素，使用 bottom 定位）
         switch (edge) {
             case 0: // 上边
-                player.x = safeMin + Math.random() * (safeMax - safeMin);
+                player.x = center;
                 player.y = safeMin + offset;
                 break;
             case 1: // 右边
                 player.x = safeMax - offset;
-                player.y = safeMin + Math.random() * (safeMax - safeMin);
+                player.y = center;
                 break;
             case 2: // 下边
-                player.x = safeMin + Math.random() * (safeMax - safeMin);
+                player.x = center;
                 player.y = safeMax - offset;
                 break;
             case 3: // 左边
                 player.x = safeMin + offset;
-                player.y = safeMin + Math.random() * (safeMax - safeMin);
+                player.y = center;
                 break;
             default:
                 // 默认中心
-                player.x = roomSize / 2;
-                player.y = roomSize / 2;
+                player.x = center;
+                player.y = center;
         }
 
         // 确保玩家在 entities 中
