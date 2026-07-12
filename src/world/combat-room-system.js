@@ -21,6 +21,9 @@ import { pathFinder } from '../ai/pathfinder.js';
 
 import { CONFIG } from '../config/config.js';
 import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -76,15 +79,38 @@ export const COMBAT_ROOM_CONFIG = {
         }
     },
 
-    // 打扫战场配置
+    // 战斗奖励配置（已移除旧版倒计时，改为出口传送门）
     cleanup: {
-        countdownMs: 10000,  // 战斗完成后倒计时（毫秒）
         goldReward: {
             normal: { min: 50, max: 150 },
             boss: 300
         }
     }
 };
+
+// 将 JSON 配置映射为 CombatRoomSystem 使用的内部结构
+function createCombatRoomConfig() {
+    const cfg = { ...COMBAT_ROOM_CONFIG };
+    cfg.walls = { ...COMBAT_ROOM_CONFIG.walls };
+    cfg.playerSpawn = { ...COMBAT_ROOM_CONFIG.playerSpawn };
+    cfg.monsterSpawn = { ...COMBAT_ROOM_CONFIG.monsterSpawn, count: { ...COMBAT_ROOM_CONFIG.monsterSpawn.count } };
+    cfg.cleanup = { ...COMBAT_ROOM_CONFIG.cleanup, goldReward: { ...COMBAT_ROOM_CONFIG.cleanup.goldReward, normal: { ...COMBAT_ROOM_CONFIG.cleanup.goldReward.normal } } };
+
+    const json = DungeonConfig.getCombatRoomConfig();
+    if (json.normalSize) {
+        cfg.roomSize.min = json.normalSize.min ?? cfg.roomSize.min;
+        cfg.roomSize.max = json.normalSize.max ?? cfg.roomSize.max;
+        cfg.roomSize.step = json.normalSize.step ?? 256;
+    }
+    if (json.bossSize != null) cfg.roomSize.boss = json.bossSize;
+    if (json.wallThickness != null) cfg.walls.thickness = json.wallThickness;
+    if (json.spawn) {
+        cfg.playerSpawn.offsetFromEdge = json.spawn.playerOffsetFromEdge ?? cfg.playerSpawn.offsetFromEdge;
+        cfg.monsterSpawn.margin = json.spawn.monsterMargin ?? cfg.monsterSpawn.margin;
+        cfg.monsterSpawn.spawnDepth = json.spawn.monsterSpawnDepth ?? cfg.monsterSpawn.spawnDepth;
+    }
+    return cfg;
+}
 
 // ==================== 战斗场地系统 ====================
 export const CombatRoomSystem = {
@@ -110,8 +136,11 @@ export const CombatRoomSystem = {
     _combatMonsterKeys: [],
     _player: null,
 
-    // 配置引用（可运行时替换）
-    config: COMBAT_ROOM_CONFIG,
+    // 出口传送门
+    _exitPortal: null,
+
+    // 配置引用（从 data/dungeon-config.json 加载）
+    config: createCombatRoomConfig(),
 
     // ============================================================
     // 公共 API
@@ -150,16 +179,19 @@ export const CombatRoomSystem = {
         // 4. 生成边界墙壁
         this._generateWalls(roomSize);
 
-        // 5. 确定玩家生成边并放置玩家
+        // 5. 清除可能残留的出口传送门
+        this.removeExitPortal();
+
+        // 6. 确定玩家生成边并放置玩家
         const entranceEdge = this._rollEntranceEdge();
         this._entranceEdge = entranceEdge;
         this._oppositeEdge = (entranceEdge + 2) % 4;
         this._spawnPlayer(player, entranceEdge, roomSize);
 
-        // 6. 计算战斗区域边界
+        // 7. 计算战斗区域边界
         this._roomBounds = this._calculateRoomBounds(roomSize);
 
-        // 7. 设置相机跟随
+        // 8. 设置相机跟随
         this._setupCamera(player);
 
         
@@ -254,6 +286,12 @@ export const CombatRoomSystem = {
     cleanupRoom() {
         
 
+        // 移除出口传送门
+        this.removeExitPortal();
+
+        // 清理掉落物（金币、装备等）
+        this.cleanupDrops();
+
         // 删除所有战斗怪物
         for (const key of this._combatMonsterKeys) {
             const Game = gameRef();
@@ -275,6 +313,7 @@ export const CombatRoomSystem = {
         this._entranceEdge = null;
         this._oppositeEdge = null;
         this._player = null;
+        this._exitPortal = null;
 
         
     },
@@ -387,10 +426,10 @@ export const CombatRoomSystem = {
 
     _rollRoomSize(isBoss) {
         if (isBoss) return this.config.roomSize.boss;
-        const { min, max } = this.config.roomSize;
-        // 随机生成 1024-2048 之间的正方形大小（步长 256）
-        const steps = Math.floor((max - min) / 256) + 1;
-        return min + Math.floor(Math.random() * steps) * 256;
+        const { min, max, step = 256 } = this.config.roomSize;
+        // 随机生成 min-max 之间的正方形大小（按配置步长）
+        const steps = Math.floor((max - min) / step) + 1;
+        return min + Math.floor(Math.random() * steps) * step;
     },
 
     _rollEntranceEdge() {
@@ -568,8 +607,82 @@ export const CombatRoomSystem = {
             Camera.follow = this._backupCameraFollow;
         }
         Camera.follow(player);
+    },
+
+    /**
+     * 战斗结束后在场地中央生成出口传送门
+     */
+    spawnExitPortal() {
+        if (this._exitPortal || !this._roomBounds) return null;
+        const bounds = this._roomBounds;
+        const portal = new CombatExitPortal(bounds.cx, bounds.cy);
+        this._exitPortal = portal;
+        const Game = gameRef();
+        if (Game && Game.entities) {
+            Game.entities.set('combat_exit_portal', portal);
+        }
+        // 使用浮动文字提示玩家
+        if (EffectManager && FloatingTextEffect) {
+            EffectManager.add(new FloatingTextEffect(bounds.cx, bounds.cy - 40, '出口传送门已开启', '#7a9aff'));
+        }
+        return portal;
+    },
+
+    /**
+     * 移除出口传送门
+     */
+    removeExitPortal() {
+        if (!this._exitPortal) return;
+        const Game = gameRef();
+        if (Game && Game.entities) {
+            Game.entities.delete('combat_exit_portal');
+        }
+        this._exitPortal = null;
+    },
+
+    /**
+     * 清理所有掉落物（包括金币、装备等）并销毁对应 Phaser Sprite
+     */
+    cleanupDrops() {
+        const Game = gameRef();
+        if (!Game || !Game.entities) return;
+        for (const [key, entity] of Game.entities.entries()) {
+            if (!key.startsWith('drop_')) continue;
+            if (entity && typeof entity._destroyPhaserSprite === 'function') {
+                entity._destroyPhaserSprite();
+            }
+            Game.entities.delete(key);
+        }
+    },
+
+    /**
+     * 获取当前出口传送门信息
+     */
+    getExitPortal() {
+        return this._exitPortal;
     }
 };
+
+/**
+ * 战斗出口传送门（进入后离开战斗并清理当前地图）
+ */
+class CombatExitPortal {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 40;
+        this.size = 30;
+        this.active = true;
+        this.noCollision = true;
+        this.pulseTimer = 0;
+        this.name = '出口传送门';
+        this.color = '#7a9aff';
+        this.noNameLabel = true;
+    }
+    update(dt) {
+        this.pulseTimer += dt / 1000;
+    }
+}
 
 // ==================== 便捷函数 ====================
 

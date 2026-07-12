@@ -31,7 +31,7 @@ export const ExpeditionSystem = {
             SystemUI.open('equip');
         }
 
-        // 确保系统面板在覆盖层之上（DOM 顺序 + z-index）
+        // 确保系统面板在覆盖层之上，但低于出征面板（DOM 顺序 + z-index）
         const sp = getElement('systemPanel');
         const eo = getElement('expeditionOverlay');
         if (sp && eo) {
@@ -39,7 +39,8 @@ export const ExpeditionSystem = {
             if (sp.nextElementSibling !== eo && eo.parentElement === document.body) {
                 document.body.insertBefore(sp, eo.nextElementSibling);
             }
-            sp.style.zIndex = '9999';
+            // 出征面板 z-index 为 4000，系统面板保持在其下方，确保鼠标层正确
+            sp.style.zIndex = '100';
         }
 
         // 显示全黑背景覆盖层
@@ -61,6 +62,7 @@ export const ExpeditionSystem = {
         // 更新UI
         this._updatePartyList(player);
         this._setupDragDrop();
+        this._setupClickHandlers();
         this._updateCapacityDisplay();
         this._showMessage('请从背包拖入物品，点击已放入的格子可移除');
     },
@@ -70,6 +72,9 @@ export const ExpeditionSystem = {
         if (!UIState.isOpen('expedition')) return;
         UIState.close('expedition');
         this._isOpen = false;
+
+        // 移除点击/右键事件监听
+        this._removeClickHandlers();
 
         // 归还所有已放入出征栏的物品到背包
         this._returnAllItemsToBackpack();
@@ -127,6 +132,87 @@ export const ExpeditionSystem = {
                 }
             };
         });
+    },
+
+    // 设置双击/右键快捷操作（不破坏拖拽）
+    _setupClickHandlers() {
+        const backpackGrid = getElement('inventoryGrid');
+        const expeditionGrid = getElement('expeditionInventoryGrid');
+
+        this._backpackDblClick = (e) => {
+            const cell = e.target.closest('.inv-cell');
+            if (!cell) return;
+            const slot = parseInt(cell.dataset.slot);
+            const item = (EquipManager.backpackItems || []).find(i => i.slot === slot);
+            if (!item || item.category !== 'tribute') return;
+            e.preventDefault();
+            e.stopPropagation();
+            this._addTributeFromBackpack(item);
+        };
+        this._backpackContextMenu = (e) => {
+            const cell = e.target.closest('.inv-cell');
+            if (!cell) return;
+            const slot = parseInt(cell.dataset.slot);
+            const item = (EquipManager.backpackItems || []).find(i => i.slot === slot);
+            if (!item || item.category !== 'tribute') return;
+            e.preventDefault();
+            e.stopPropagation();
+            this._addTributeFromBackpack(item);
+        };
+        this._expeditionDblClick = (e) => {
+            const cell = e.target.closest('.expedition-inv-cell');
+            if (!cell || !cell.dataset.occupied) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this._removeItemFromCell(cell);
+        };
+        this._expeditionContextMenu = (e) => {
+            const cell = e.target.closest('.expedition-inv-cell');
+            if (!cell || !cell.dataset.occupied) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this._removeItemFromCell(cell);
+        };
+
+        if (backpackGrid) {
+            backpackGrid.addEventListener('dblclick', this._backpackDblClick);
+            backpackGrid.addEventListener('contextmenu', this._backpackContextMenu);
+        }
+        if (expeditionGrid) {
+            expeditionGrid.addEventListener('dblclick', this._expeditionDblClick);
+            expeditionGrid.addEventListener('contextmenu', this._expeditionContextMenu);
+        }
+    },
+
+    _removeClickHandlers() {
+        const backpackGrid = getElement('inventoryGrid');
+        const expeditionGrid = getElement('expeditionInventoryGrid');
+        if (backpackGrid) {
+            if (this._backpackDblClick) backpackGrid.removeEventListener('dblclick', this._backpackDblClick);
+            if (this._backpackContextMenu) backpackGrid.removeEventListener('contextmenu', this._backpackContextMenu);
+        }
+        if (expeditionGrid) {
+            if (this._expeditionDblClick) expeditionGrid.removeEventListener('dblclick', this._expeditionDblClick);
+            if (this._expeditionContextMenu) expeditionGrid.removeEventListener('contextmenu', this._expeditionContextMenu);
+        }
+        this._backpackDblClick = null;
+        this._backpackContextMenu = null;
+        this._expeditionDblClick = null;
+        this._expeditionContextMenu = null;
+    },
+
+    // 从背包快捷添加一个祭品到第一个空格
+    _addTributeFromBackpack(item) {
+        const freeSlot = this._getFreeSlot();
+        if (freeSlot === -1) {
+            this._showMessage('携带空间已满！', 'error');
+            return;
+        }
+        const expeditionGrid = getElement('expeditionInventoryGrid');
+        if (!expeditionGrid) return;
+        const cell = expeditionGrid.querySelector(`.expedition-inv-cell[data-slot="${freeSlot}"]`);
+        if (!cell) return;
+        this._placeItemInCell(cell, item);
     },
 
     // 处理拖放 — 从背包真正移出物品放入出征栏

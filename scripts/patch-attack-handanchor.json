@@ -1,0 +1,75 @@
+{
+  "weaponType": "sword",
+  "weaponName": "生锈长剑",
+  "anim": "attack",
+  "mode": "handAnchor",
+  "rotation": -10,
+  "scale": 1.5,
+  "handAnchor": {
+    "x": 48,
+    "y": 4
+  },
+  "gripOffset": {
+    "x": -26,
+    "y": -5
+  },
+  "keyframeCount": 8,
+  "keyframes": [
+    {
+      "progress": 0,
+      "handOffsetX": -23,
+      "handOffsetY": 0,
+      "rotation": 15,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.125,
+      "handOffsetX": -50,
+      "handOffsetY": -11,
+      "rotation": -5,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.25,
+      "handOffsetX": -52,
+      "handOffsetY": -28,
+      "rotation": -60,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.375,
+      "handOffsetX": -53,
+      "handOffsetY": -39,
+      "rotation": -80,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.5,
+      "handOffsetX": -49,
+      "handOffsetY": -50,
+      "rotation": -110,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.625,
+      "handOffsetX": -34,
+      "handOffsetY": -45,
+      "rotation": -100,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.75,
+      "handOffsetX": -10,
+      "handOffsetY": -29,
+      "rotation": -80,
+      "scale": 1.5
+    },
+    {
+      "progress": 0.875,
+      "handOffsetX": 0,
+      "handOffsetY": 0,
+      "rotation": -10,
+      "scale": 1.5
+    }
+  ]
+}

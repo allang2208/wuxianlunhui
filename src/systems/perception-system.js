@@ -445,8 +445,9 @@ class PerceptionSystemImpl {
         const aiCfg = aiConfigData[enemy.id] || aiConfigData[enemy.name] || {};
         const perceptionCfg = aiCfg.perception || {};
 
+        const alertRange = perceptionCfg.alertRange || enemy._alertRange || enemy._aggroRange || DEFAULT_PERCEPTION.alertRange;
         enemy._perception = {
-            alertRange: perceptionCfg.alertRange || enemy._alertRange || DEFAULT_PERCEPTION.alertRange,
+            alertRange,
             losCheckInterval: perceptionCfg.losCheckInterval || DEFAULT_PERCEPTION.losCheckInterval,
             memoryDuration: perceptionCfg.memoryDuration || DEFAULT_PERCEPTION.memoryDuration,
             searchDuration: perceptionCfg.searchDuration || DEFAULT_PERCEPTION.searchDuration,
@@ -460,7 +461,7 @@ class PerceptionSystemImpl {
 
         // 如果敌人没有 _alertRange，使用感知配置中的值
         if (!enemy._alertRange) {
-            enemy._alertRange = enemy._perception.alertRange;
+            enemy._alertRange = alertRange;
         }
     }
 

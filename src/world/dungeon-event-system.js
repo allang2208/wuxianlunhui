@@ -2,6 +2,7 @@ import { Game } from '../game.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -21,190 +22,135 @@ import { EffectManager } from '../effects/effect-manager.js';
  *   EffectManager, FloatingTextEffect, StatusBar, Game, DungeonMapSystem
  */
 
+// ==================== 配置加载 ====================
+
+function deepMerge(target, source) {
+    if (!source || typeof source !== 'object') return target;
+    // 数组与对象混用时（如 choices：defaults 为数组，JSON 为对象），直接用 source 覆盖，
+    // 避免 defaults 的数组索引与 JSON 的 id 键混合导致选择按钮重复。
+    if (Array.isArray(target) || Array.isArray(source)) return source;
+    const result = { ...target };
+    for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            result[key] = deepMerge(result[key] || {}, source[key]);
+        } else {
+            result[key] = source[key];
+        }
+    }
+    return result;
+}
+
+function normalizeChoices(choices) {
+    if (!choices) return [];
+    if (Array.isArray(choices)) return choices;
+    return Object.entries(choices).map(([id, cfg]) => ({ id, ...cfg }));
+}
+
+function createEventConfig() {
+    const defaults = {
+        attributeCheck: {
+            baseSuccessRate: 20,
+            attrMultiplier: 1,
+            maxSuccessRate: 95,
+            minSuccessRate: 5,
+        },
+        eventWeights: {
+            goddessStatue: 1,
+            trap: 1,
+            supplyPile: 1,
+            treasureChest: 1,
+            demonStatue: 1,
+        },
+        goddessStatue: {
+            title: '古老女神像',
+            description: '一尊散发着柔和光芒的女神像矗立在石台上，她的双手捧着一颗晶莹的水滴。',
+            choices: [
+                { id: 'heal', label: '祈求恢复', description: '恢复全部生命值和魔法值', type: 'heal' },
+                { id: 'bless', label: '请求祝福', description: '获得女神祝福：+15%物攻/魔攻，持续3场战斗', type: 'bless' },
+                { id: 'reward', label: '接受馈赠', description: '获得随机金币奖励（50-150）', type: 'reward' },
+            ],
+            healPercent: 100,
+            blessAtkPercent: 15,
+            blessDuration: 3,
+            rewardMinGold: 50,
+            rewardMaxGold: 150,
+        },
+        trap: {
+            title: '古老陷阱',
+            description: '前方的地面看起来不太对劲，隐约能看到细线连接着墙壁上的机关。',
+            choices: [
+                { id: 'disarm', label: '尝试解除', attribute: 'dex', baseRate: 20, successText: '你灵巧地剪断了触发线，陷阱被安全解除。', failText: '触发线突然断裂，锋利的刀片从墙壁射出！' },
+                { id: 'cross', label: '强行跨越', attribute: 'con', baseRate: 20, successText: '你咬牙承受了毒箭的擦伤，成功通过了陷阱区域。', failText: '毒箭深深刺入你的肩膀，剧痛让你几乎昏厥！' },
+            ],
+            failDamagePercent: 25,
+        },
+        supplyPile: {
+            title: '冒险者遗物',
+            description: '一堆散落的装备和包裹躺在角落，似乎是一位不幸的冒险者留下的。',
+            choices: [
+                { id: 'search', label: '仔细搜寻', attribute: 'wis', baseRate: 25, successText: '你在包裹夹层中发现了一瓶高级治疗药水！', failText: '你只找到了一些发霉的干粮。' },
+                { id: 'inspect', label: '探查四周', attribute: 'dex', baseRate: 25, successText: '你发现了隐藏的暗格，里面有一些金币和材料！', failText: '暗格里的东西已经被搜刮一空了。', revealNodes: { enabled: true, description: '你还发现了周围道路的线索：' } },
+            ],
+            successRewards: {
+                search: [
+                    { type: 'hpPotion', min: 30, max: 50, chance: 0.6 },
+                    { type: 'mpPotion', min: 20, max: 40, chance: 0.4 },
+                ],
+                inspect: [
+                    { type: 'gold', min: 30, max: 80, chance: 0.7 },
+                    { type: 'material', min: 1, max: 3, chance: 0.3 },
+                ],
+            },
+            inspectRevealDepth: 2,
+            failReward: { type: 'gold', min: 5, max: 15 },
+        },
+        treasureChest: {
+            title: '神秘宝箱',
+            description: '一个镶嵌着奇异符文的宝箱静静地放在石台上，散发着诱人的光芒。',
+            outcomes: [
+                { type: 'gold', chance: 0.50, amount: 500 },
+                { type: 'materials', chance: 0.25, rewards: [
+                    { type: 'enhancement_stone', count: 1 },
+                    { type: 'reforge_ticket', count: 1 },
+                    { type: 'magic_dust', count: 200 },
+                ]},
+                { type: 'combat', chance: 0.25 },
+            ],
+            combatText: '宝箱突然张开，里面钻出了一只宝箱怪！',
+        },
+        demonStatue: {
+            title: '恶魔雕像',
+            description: '一尊狰狞的恶魔雕像散发着暗红色的光芒，它的眼睛似乎在注视着你。',
+            choices: [
+                { id: 'sacrifice', label: '献祭血魔', description: '失去50%当前生命值和魔法值', type: 'sacrifice' },
+                { id: 'leave', label: '离开', description: '什么都不发生', type: 'leave' },
+            ],
+            sacrificeHpPercent: 50,
+            sacrificeMpPercent: 50,
+            rewardTypeWeights: { attackBuff: 0.5, materials: 0.5 },
+            demonBuffAtkPercent: 33,
+        },
+        materialTypes: ['铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片'],
+        specialItems: {
+            enhancement_stone: { name: '强化石', icon: '💎', category: 'enhancement' },
+            reforge_ticket: { name: '改造券', icon: '🎫', category: 'enhancement' },
+            magic_dust: { name: '魔法粉尘', icon: '✨', category: 'material' },
+        },
+    };
+
+    const fromJson = (DungeonConfig.raw && DungeonConfig.raw.events) || {};
+    const merged = deepMerge(defaults, fromJson);
+
+    // 配置中的 choices 可能是对象，统一转成数组
+    if (merged.trap) merged.trap.choices = normalizeChoices(merged.trap.choices);
+    if (merged.supplyPile) merged.supplyPile.choices = normalizeChoices(merged.supplyPile.choices);
+    if (merged.demonStatue) merged.demonStatue.choices = normalizeChoices(merged.demonStatue.choices);
+
+    return merged;
+}
+
 // ==================== 配置对象 ====================
-export const DUNGEON_EVENT_CONFIG = {
-    // 属性检定
-    attributeCheck: {
-        baseSuccessRate: 20,      // 基础成功率20%
-        attrMultiplier: 1,      // 每点属性+1%
-        maxSuccessRate: 95,     // 上限95%
-        minSuccessRate: 5,      // 下限5%
-    },
-
-    // 事件类型权重
-    eventWeights: {
-        goddessStatue: 1,
-        trap: 1,
-        supplyPile: 1,
-        treasureChest: 1,
-        demonStatue: 1,
-    },
-
-    // 女神像事件
-    goddessStatue: {
-        title: '古老女神像',
-        description: '一尊散发着柔和光芒的女神像矗立在石台上，她的双手捧着一颗晶莹的水滴。',
-        choices: [
-            {
-                id: 'heal',
-                label: '祈求恢复',
-                description: '恢复全部生命值和魔法值',
-                type: 'heal',
-            },
-            {
-                id: 'bless',
-                label: '请求祝福',
-                description: '获得女神祝福：+15%物攻/魔攻，持续3场战斗',
-                type: 'bless',
-            },
-            {
-                id: 'reward',
-                label: '接受馈赠',
-                description: '获得随机金币奖励（50-150）',
-                type: 'reward',
-            },
-        ],
-        healPercent: 100,       // 恢复百分比
-        blessAtkPercent: 15,    // 祝福攻击加成%
-        blessDuration: 3,       // 祝福持续战斗场数
-        rewardMinGold: 50,      // 最小金币
-        rewardMaxGold: 150,     // 最大金币
-    },
-
-    // 陷阱事件
-    trap: {
-        title: '古老陷阱',
-        description: '前方的地面看起来不太对劲，隐约能看到细线连接着墙壁上的机关。',
-        choices: [
-            {
-                id: 'disarm',
-                label: '尝试解除',
-                attribute: 'dex',   // 依赖敏捷
-                baseRate: 20,
-                successText: '你灵巧地剪断了触发线，陷阱被安全解除。',
-                failText: '触发线突然断裂，锋利的刀片从墙壁射出！',
-            },
-            {
-                id: 'cross',
-                label: '强行跨越',
-                attribute: 'con',   // 依赖体质
-                baseRate: 20,
-                successText: '你咬牙承受了毒箭的擦伤，成功通过了陷阱区域。',
-                failText: '毒箭深深刺入你的肩膀，剧痛让你几乎昏厥！',
-            },
-        ],
-        failDamagePercent: 25,  // 失败扣血%
-    },
-
-    // 补给堆事件
-    supplyPile: {
-        title: '冒险者遗物',
-        description: '一堆散落的装备和包裹躺在角落，似乎是一位不幸的冒险者留下的。',
-        choices: [
-            {
-                id: 'search',
-                label: '仔细搜寻',
-                attribute: 'wis',   // 依赖精神
-                baseRate: 25,
-                successText: '你在包裹夹层中发现了一瓶高级治疗药水！',
-                failText: '你只找到了一些发霉的干粮。',
-            },
-            {
-                id: 'inspect',
-                label: '探查四周',
-                attribute: 'dex',   // 依赖敏捷
-                baseRate: 25,
-                successText: '你发现了隐藏的暗格，里面有一些金币和材料！',
-                failText: '暗格里的东西已经被搜刮一空了。',
-                revealNodes: {
-                    enabled: true,
-                    description: '你还发现了周围道路的线索：',
-                },
-            },
-        ],
-        // 奖励配置
-        successRewards: {
-            search: [
-                { type: 'hpPotion', min: 30, max: 50, chance: 0.6 },
-                { type: 'mpPotion', min: 20, max: 40, chance: 0.4 },
-            ],
-            inspect: [
-                { type: 'gold', min: 30, max: 80, chance: 0.7 },
-                { type: 'material', min: 1, max: 3, chance: 0.3 },
-            ],
-        },
-        // 探查巡逻成功时揭示相邻节点及其再下一层节点
-        inspectRevealDepth: 2,
-        failReward: { type: 'gold', min: 5, max: 15 },
-    },
-
-    // 宝箱事件
-    treasureChest: {
-        title: '神秘宝箱',
-        description: '一个镶嵌着奇异符文的宝箱静静地放在石台上，散发着诱人的光芒。',
-        outcomes: [
-            { type: 'gold', chance: 0.50, amount: 500 },
-            { type: 'materials', chance: 0.25, rewards: [
-                { type: 'enhancement_stone', count: 1 },
-                { type: 'reforge_ticket', count: 1 },
-                { type: 'magic_dust', count: 200 },
-            ]},
-            { type: 'combat', chance: 0.25 },
-        ],
-        combatText: '宝箱突然张开，里面钻出了一只宝箱怪！',
-    },
-
-    // 恶魔雕像事件
-    demonStatue: {
-        title: '恶魔雕像',
-        description: '一尊狰狞的恶魔雕像散发着暗红色的光芒，它的眼睛似乎在注视着你。',
-        choices: [
-            {
-                id: 'sacrifice',
-                label: '献祭血魔',
-                description: '失去50%当前生命值和魔法值',
-                type: 'sacrifice',
-            },
-            {
-                id: 'leave',
-                label: '离开',
-                description: '什么都不发生',
-                type: 'leave',
-            },
-        ],
-        sacrificeHpPercent: 50,     // 献祭扣血%
-        sacrificeMpPercent: 50,     // 献祭扣魔%
-        rewardTypeWeights: {
-            attackBuff: 0.5,          // 50%概率获得攻击buff
-            materials: 0.5,           // 50%概率获得材料
-        },
-        demonBuffAtkPercent: 33,    // 恶魔祈祷攻击加成%
-    },
-
-    // 材料类型（用于奖励）
-    materialTypes: [
-        '铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片',
-    ],
-
-    // 强化石、改造券、魔法粉尘的物品配置（用于宝箱奖励）
-    specialItems: {
-        enhancement_stone: {
-            name: '强化石',
-            icon: '💎',
-            category: 'enhancement',
-        },
-        reforge_ticket: {
-            name: '改造券',
-            icon: '🎫',
-            category: 'enhancement',
-        },
-        magic_dust: {
-            name: '魔法粉尘',
-            icon: '✨',
-            category: 'material',
-        },
-    },
-};
+export const DUNGEON_EVENT_CONFIG = createEventConfig();
 
 // ==================== Buff系统 ====================
 
@@ -276,7 +222,7 @@ export const DungeonBuffSystem = {
      * 为玩家添加恶魔祈祷
      * @param {Player} player - 玩家对象
      */
-    applyDemonPrayer(player) {
+    applyDemonPrayer(player, atkPercent) {
         if (!player || !player.data) return false;
 
         if (!player._dungeonBuffs) player._dungeonBuffs = {};
@@ -284,7 +230,7 @@ export const DungeonBuffSystem = {
         player._dungeonBuffs.demonPrayer = {
             type: 'demonPrayer',
             permanent: true,
-            atkPercent: DUNGEON_EVENT_CONFIG.demonStatue.demonBuffAtkPercent,
+            atkPercent: atkPercent ?? DUNGEON_EVENT_CONFIG.demonStatue.demonBuffAtkPercent,
         };
 
         // 添加状态栏效果（永久显示）
@@ -524,6 +470,30 @@ function handleGoddessStatue(player, choiceId) {
         }
 
         case 'reward': {
+            // 优先使用配置中的道具奖励
+            if (config.reward && Array.isArray(config.reward.items) && config.reward.items.length > 0) {
+                const items = config.reward.items;
+                const parts = [];
+                const rewards = {};
+                for (const item of items) {
+                    if (!item || !item.type) continue;
+                    const special = DUNGEON_EVENT_CONFIG.specialItems[item.type];
+                    if (special) {
+                        rewards[item.type] = (rewards[item.type] || 0) + item.count;
+                        parts.push(`${special.name} x${item.count}`);
+                    } else if (item.type === 'gold') {
+                        rewards.gold = (rewards.gold || 0) + item.count;
+                        parts.push(`${item.count} 金币`);
+                    }
+                }
+                return {
+                    type: 'materials',
+                    text: `女神像底座打开，露出了馈赠：${parts.join('、')}。`,
+                    rewards,
+                };
+            }
+
+            // 兼容旧配置：随机金币
             const gold = config.rewardMinGold + Math.floor(Math.random() * (config.rewardMaxGold - config.rewardMinGold + 1));
             return {
                 type: 'gold',
@@ -588,13 +558,26 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
     const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate);
 
     if (checkResult.success) {
-        // 成功奖励
         const rewards = {};
         let text = choice.successText;
 
-        const rewardConfig = config.successRewards[choice.id];
-        if (rewardConfig) {
-            for (const reward of rewardConfig) {
+        // 搜寻补给：按配置给予药水
+        if (choice.id === 'search' && config.searchReward) {
+            const reward = config.searchReward;
+            const roll = Math.random();
+            if (roll < (reward.hpChance || 0)) {
+                rewards.hpPotion = reward.count || 1;
+                text += `\n获得治疗药水 x${rewards.hpPotion}！`;
+            } else if (roll < (reward.hpChance || 0) + (reward.mpChance || 0)) {
+                rewards.mpPotion = reward.count || 1;
+                text += `\n获得魔力药水 x${rewards.mpPotion}！`;
+            }
+        }
+
+        // 兼容旧配置中的 successRewards
+        const legacyRewardConfig = config.successRewards && config.successRewards[choice.id];
+        if (legacyRewardConfig) {
+            for (const reward of legacyRewardConfig) {
                 if (Math.random() < reward.chance) {
                     const amount = reward.min + Math.floor(Math.random() * (reward.max - reward.min + 1));
                     if (reward.type === 'gold') {
@@ -632,14 +615,22 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
             checkResult,
         };
     } else {
-        // 失败也有少量安慰奖
+        // 失败安慰奖（按配置）
         const failReward = config.failReward;
-        const amount = failReward.min + Math.floor(Math.random() * (failReward.max - failReward.min + 1));
+        if (failReward && failReward.type === 'gold') {
+            const amount = failReward.min + Math.floor(Math.random() * (failReward.max - failReward.min + 1));
+            return {
+                type: 'fail',
+                text: `${choice.failText}\n${AttributeCheckSystem.getResultText(checkResult)}\n不过你还是找到了 ${amount} 金币。`,
+                rewards: { gold: amount },
+                checkResult,
+            };
+        }
 
         return {
             type: 'fail',
-            text: `${choice.failText}\n${AttributeCheckSystem.getResultText(checkResult)}\n不过你还是找到了 ${amount} 金币。`,
-            rewards: { gold: amount },
+            text: `${choice.failText}\n${AttributeCheckSystem.getResultText(checkResult)}`,
+            rewards: {},
             checkResult,
         };
     }
@@ -788,8 +779,11 @@ function handleTreasureChest() {
  */
 function handleDemonStatue(player, choiceId) {
     const config = DUNGEON_EVENT_CONFIG.demonStatue;
+    const choice = config.choices.find(c => c.id === choiceId);
 
-    if (choiceId === 'leave') {
+    if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
+
+    if (choice.type === 'leave') {
         return {
             type: 'none',
             text: '你感觉到一股不祥的气息，决定离开这里。',
@@ -797,39 +791,63 @@ function handleDemonStatue(player, choiceId) {
         };
     }
 
-    if (choiceId === 'sacrifice') {
+    if (choice.type === 'sacrifice') {
         if (!player || !player.data) {
             return { type: 'none', text: '无法献祭', rewards: {} };
         }
 
         // 扣血扣魔
-        const hpLoss = Math.floor(player.data.hp * (config.sacrificeHpPercent / 100));
-        const mpLoss = Math.floor(player.data.mp * (config.sacrificeMpPercent / 100));
+        const hpPercent = choice.sacrificeHpPercent ?? config.sacrificeHpPercent ?? 50;
+        const mpPercent = choice.sacrificeMpPercent ?? config.sacrificeMpPercent ?? 50;
+        const hpLoss = Math.floor(player.data.hp * (hpPercent / 100));
+        const mpLoss = Math.floor(player.data.mp * (mpPercent / 100));
         const oldHp = player.data.hp;
         const oldMp = player.data.mp;
 
         player.data.hp = Math.max(1, player.data.hp - hpLoss);
         player.data.mp = Math.max(0, player.data.mp - mpLoss);
 
-        // 随机奖励
-        const rewardRoll = Math.random();
-        const weights = config.rewardTypeWeights;
-        let rewardText;
         const rewards = {};
+        let rewardText;
 
-        if (rewardRoll < weights.attackBuff) {
-            // 获得恶魔祈祷buff
-            DungeonBuffSystem.applyDemonPrayer(player);
-            rewardText = `恶魔接受了你的献祭！\n获得恶魔祈祷：物攻/魔攻 +${config.demonBuffAtkPercent}%（永久）`;
+        // 向恶魔祈祷：获得攻击buff
+        if (choice.buff) {
+            const atkPercent = choice.buff.atkPercent ?? config.demonBuffAtkPercent ?? 33;
+            DungeonBuffSystem.applyDemonPrayer(player, atkPercent);
+            rewardText = `恶魔接受了你的祈祷！\n获得恶魔祈祷：物攻/魔攻 +${atkPercent}%（永久）`;
             rewards.buff = 'demonPrayer';
-        } else {
-            // 获得材料
-            const materialType = DUNGEON_EVENT_CONFIG.materialTypes[
-                Math.floor(Math.random() * DUNGEON_EVENT_CONFIG.materialTypes.length)
-            ];
-            const count = 2 + Math.floor(Math.random() * 4);
-            rewards.material = { type: materialType, count };
-            rewardText = `恶魔接受了你的献祭！\n获得 ${materialType} x${count}`;
+        }
+        // 恶魔祈求奖励：获得道具
+        else if (choice.items && choice.items.length > 0) {
+            const parts = [];
+            for (const item of choice.items) {
+                if (!item || !item.type) continue;
+                const special = DUNGEON_EVENT_CONFIG.specialItems[item.type];
+                if (special) {
+                    rewards[item.type] = (rewards[item.type] || 0) + item.count;
+                    parts.push(`${special.name} x${item.count}`);
+                } else if (item.type === 'gold') {
+                    rewards.gold = (rewards.gold || 0) + item.count;
+                    parts.push(`${item.count} 金币`);
+                }
+            }
+            rewardText = `恶魔接受了你的祈求！\n获得 ${parts.join('、')}`;
+        }
+        // 兼容旧配置：随机奖励
+        else {
+            const weights = config.rewardTypeWeights || { attackBuff: 0.5, materials: 0.5 };
+            if (Math.random() < weights.attackBuff) {
+                DungeonBuffSystem.applyDemonPrayer(player);
+                rewardText = `恶魔接受了你的献祭！\n获得恶魔祈祷：物攻/魔攻 +${config.demonBuffAtkPercent}%（永久）`;
+                rewards.buff = 'demonPrayer';
+            } else {
+                const materialType = DUNGEON_EVENT_CONFIG.materialTypes[
+                    Math.floor(Math.random() * DUNGEON_EVENT_CONFIG.materialTypes.length)
+                ];
+                const count = 2 + Math.floor(Math.random() * 4);
+                rewards.material = { type: materialType, count };
+                rewardText = `恶魔接受了你的献祭！\n获得 ${materialType} x${count}`;
+            }
         }
 
         return {
@@ -839,7 +857,7 @@ function handleDemonStatue(player, choiceId) {
         };
     }
 
-    return { type: 'none', text: '无效选择', rewards: {} };
+    return { type: 'none', text: '什么都没有发生', rewards: {} };
 }
 
 // ==================== 主事件系统 ====================
@@ -1180,6 +1198,9 @@ export const DungeonEventSystem = {
             this._eventOverlay.remove();
             this._eventOverlay = null;
         }
+        // 安全清理：也移除旧版地牢事件覆盖层，避免重复
+        const legacy = document.getElementById('dungeonEventOverlay');
+        if (legacy) legacy.remove();
     },
 
     /**

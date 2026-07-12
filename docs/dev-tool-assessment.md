@@ -329,3 +329,46 @@ DevTool
 ---
 
 **总结**：当前开发工具**可以用于挂载点的基础对齐**，但要做精确的"每帧手对齐"需要**方案 A（帧导航+动画预览）**或**方案 B（按帧独立挂载点）**。建议先用方案 D 快速验证效果，再决定是否投入时间做更精细的方案。
+
+
+---
+
+## 八、2026-07 JSON 化持久化重构
+
+本次重构（对应 `plan/banshee-atom-static.md` 的 Plan B）将武器动画配置迁移到 `public/data/weapon-anim-config.json`，并完成以下改造：
+
+1. **数据源迁移**
+   - `WeaponAnimConfig` 从 `src/items/weapon-anim-config.js` 的硬编码对象改为从 `public/data/weapon-anim-config.json` 异步加载的可变单例。
+   - Electron 环境下通过 `electronAPI.loadWeaponConfig()` 读取用户数据目录的覆盖配置，浏览器环境回退到 `fetch('/data/weapon-anim-config.json')`。
+
+2. **开发工具统一使用 `WeaponTransform`**
+   - `src/ui/dev-tool.js` 的 `_draw()`、`_reset()`、`_save()` 不再使用硬编码的 Canvas 变换链和反向公式，而是调用 `WeaponTransform.getWeaponLocalOffset()` / `getWeaponRotation()`。
+   - 新增 `_buildPreviewOverrides()`，让开发工具可以在不修改全局配置的情况下实时预览用户调整。
+
+3. **手部挂载点系统可持久化且可分开编辑**
+   - 开发工具的挂载点编辑模式现在读取并保存 `WeaponAnimConfig[weaponType].handAnchors` 和 `.gripOffset`。
+   - 挂载点模式下：
+     - 拖动**黄色圆点** = 调整手部挂载点（`handAnchors`），武器会随手动；
+     - 拖动**武器贴图** = 调整握把偏移（`gripOffset`），手部位置保持不变；
+     - 两者独立保存，符合“手在哪里”与“武器相对于手握在哪里”的物理语义。
+   - 退出挂载点模式时自动切回武器中心/握把位置。
+
+4. **关键帧语义统一**
+   - 关键帧在保存时根据当前模式转换为：
+     - 挂载点模式 → `handOffsetX/Y`（相对 handAnchor 的偏移）
+     - 传统模式 → `holdOffsetX/Y`（相对武器类型基准的偏移）
+   - 加载关键帧时反向转换为屏幕坐标，保证 UI 与运行时语义一致。
+
+5. **运行时关键帧计算集中化**
+   - 新增 `WeaponTransform.getKeyframedWeaponPosition()`，统一处理挂载点/传统两种关键帧系统的世界位置与旋转计算。
+   - `src/phaser/scenes/GameScene.js` 与 `src/entities/player/weapon-anim.js` 的关键帧逻辑已替换为调用该接口，消除重复代码。
+
+6. **Electron 文件写入桥接**
+   - `electron/preload.js` 暴露 `saveWeaponConfig(config)` / `loadWeaponConfig()`。
+   - `electron/main.js` 在开发模式写入 `public/data/weapon-anim-config.json`，在生产模式写入 `userData/weapon-anim-config.json`，避免修改只读的安装目录。
+
+> 注：第 3、4、5 节中描述的硬编码转换链与风险已在本次重构后解决。
+
+7. **修复：传统模式下武器拖动不同步**
+   - 原因：`WeaponTransform.getWeaponLocalOffset()` 在配置存在 `handAnchors` 时无条件优先使用挂载点，导致传统 `holdOffsetX/Y` 覆盖失效。
+   - 修复：当调用方显式传入 `overrides.holdOffsetX/Y` 时，优先使用传统偏移，保证普通模式下的拖动预览与运行时一致。

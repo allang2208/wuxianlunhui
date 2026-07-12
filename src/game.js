@@ -27,7 +27,6 @@ import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
 import { GAME_CONFIG } from './config/game-config.js';
 import { EffectManager } from './effects/effect-manager.js';
-import { PerfMonitor } from './utils/perf-monitor.js';
 import { getElement } from './utils/dom-utils.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
@@ -36,7 +35,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, CircleEnemy } from './entities/enemy-types.js';
+import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
@@ -129,6 +128,7 @@ export const Game = {
             // 初始化场景管理器
             SceneManager.init();
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
+            SceneManager._inMainHub = true;
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -261,26 +261,42 @@ export const Game = {
                 WallSystem.addTree(tx, ty, treeRadius, (group.startIndex || 0) + i, group.type, Math.random() * Math.PI * 2);
             }
         }
-        // 在出生点旁边生成几只不同颜色的圆形敌人用于测试
-        const testEnemies = [
-            { x: 200, color: '#4a9a4a', name: 'Zombie', size: 14 },
-            { x: 350, color: '#7a3a8a', name: 'Spitter Zombie', size: 14 },
-            { x: 500, color: '#5a7a5a', name: 'Fat Zombie', size: 18 },
-            { x: 650, color: '#c03030', name: 'Runner Zombie', size: 12 },
-            { x: 800, color: '#d4cfc0', name: 'Zombie Dog', size: 12 }
-        ];
-        for (const t of testEnemies) {
-            const e = new CircleEnemy(npcX + t.x, npcY + 100, {
-                name: t.name,
-                hp: 80, maxHp: 80,
-                size: t.size, collisionRadius: t.size,
-                color: t.color,
-                showWeapon: false,
-                _alertRange: Infinity,
-                attack: { cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
-            });
-            this.entities.set(`enemy_test_${t.x}`, e);
+        // 在主神空间生成一只僵尸犬，用于测试动画
+        this.spawnMainZombieDog();
+    },
+
+    /**
+     * 清理主神空间所有怪物并生成一只僵尸犬
+     */
+    clearMainMonstersAndSpawnDog() {
+        // 删除所有阵营为 enemy 的实体（怪物）
+        for (const [key, e] of this.entities.entries()) {
+            if (e && e._faction === 'enemy') {
+                if (e._phaserSprite && e._phaserSprite.active) {
+                    e._phaserSprite.destroy();
+                }
+                this.entities.delete(key);
+            }
         }
+        this.spawnMainZombieDog();
+    },
+
+    spawnMainZombieDog() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const dog = new ZombieDogEnemy(origin.x + 250, origin.y + 120, {
+            name: '僵尸犬',
+            hp: 80, maxHp: 80,
+            size: 12, collisionRadius: 12,
+            speed: 100,
+            color: '#d4cfc0',
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 },
+            attack: { type: 'thrust', cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
+        });
+        this.entities.set('enemy_main_zombie_dog', dog);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -440,16 +456,7 @@ export const Game = {
             const dt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
             this.frameCount++; this.fpsTimer += dt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
-            const tUpdate = performance.now();
-            this.update(dt);
-            PerfMonitor.record('game:update', performance.now() - tUpdate);
-            const tRender = performance.now();
-            this.render();
-            PerfMonitor.record('game:render', performance.now() - tRender);
-            const tUi = performance.now();
-            GameUIManager.updateUI();
-            Input.update();
-            PerfMonitor.record('game:ui', performance.now() - tUi);
+            this.update(dt); this.render(); GameUIManager.updateUI(); Input.update();
         } catch (e) {
             console.error('Game loop error:', e);
         }
@@ -488,14 +495,12 @@ export const Game = {
         }
 
         // 无人机操控模式下镜头跟随无人机
-        const tCamera = performance.now();
-        if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
+if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
             const drone = this.player.droneSystem;
             Camera.update({ x: drone.x, y: drone.y });
         } else {
             Camera.update(this.player);
         }
-        PerfMonitor.record('game:camera', performance.now() - tCamera);
 
         // 读取交互距离配置
         const interactCfg = GAME_CONFIG.interactionDistances || {};
@@ -503,9 +508,7 @@ export const Game = {
         const npcHoverDist = interactCfg.npcHover || 40;
         const pickupClickDist = interactCfg.pickupClick || 150;
         const pickupHoverDist = interactCfg.pickupHover || 35;
-
-        const tInput = performance.now();
-        if (Input.mouse.leftPressed) {
+if (Input.mouse.leftPressed) {
             // NPC 对话检测（优先于拾取）
             if (NPCDialogue.active) {
                 NPCDialogue.skip();
@@ -558,49 +561,29 @@ export const Game = {
             }
             if (clickedNPC) return;
         }
-        PerfMonitor.record('game:input', performance.now() - tInput);
 
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
-        const tEntityUpdate = performance.now();
-        let tEntityBaseAcc = 0;
-        let tPerceptionAcc = 0;
-        let tMovementAcc = 0;
-        let tCombatAcc = 0;
-        this._battleCommanderEnemies = [];
+this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             if (!e.active) continue;
-            const tBase = performance.now();
-            e.update(dt, this.entities);
-            tEntityBaseAcc += performance.now() - tBase;
-            if (e instanceof Enemy) {
+e.update(dt, this.entities);
+if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);
                 if (PerceptionSystem) {
-                    const tP = performance.now();
-                    PerceptionSystem.update(e, dt, this.entities);
-                    tPerceptionAcc += performance.now() - tP;
-                }
+PerceptionSystem.update(e, dt, this.entities);
+}
                 if (MovementSystem) {
-                    const tM = performance.now();
-                    MovementSystem.update(e, dt, this.entities);
-                    tMovementAcc += performance.now() - tM;
-                }
+MovementSystem.update(e, dt, this.entities);
+}
                 if (CombatSystem) {
-                    const tC = performance.now();
-                    CombatSystem.update(e, dt, this.entities);
-                    tCombatAcc += performance.now() - tC;
-                }
+CombatSystem.update(e, dt, this.entities);
+}
             }
         }
-        PerfMonitor.record('game:entityBase', tEntityBaseAcc);
-        PerfMonitor.record('game:perception', tPerceptionAcc);
-        PerfMonitor.record('game:movement', tMovementAcc);
-        PerfMonitor.record('game:combat', tCombatAcc);
         // === [REFACTOR-END] ===
-        PerfMonitor.record('game:entityUpdate', performance.now() - tEntityUpdate);
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
-        const tSystems = performance.now();
-        if (FormationSystem) {
+if (FormationSystem) {
             for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
             }
@@ -630,11 +613,9 @@ export const Game = {
         if (TacticalSquadRoleSwitch) {
             TacticalSquadRoleSwitch.update(dt, this.entities);
         }
-        PerfMonitor.record('game:systems', performance.now() - tSystems);
 
         // ===== 单次遍历：金币自动拾取 + 清理死亡实体 + 传送门检测 =====
-        const tSecondLoop = performance.now();
-        const pickupCfg = GAME_CONFIG.pickup || {};
+const pickupCfg = GAME_CONFIG.pickup || {};
         const goldAutoRange = pickupCfg.goldAutoRange || 80;
         const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
         const goldAutoRangeSq = goldAutoRange * goldAutoRange;
@@ -770,14 +751,8 @@ export const Game = {
                 }
             }
         }
-        PerfMonitor.record('game:secondLoop', performance.now() - tSecondLoop);
-
-        const tCollisions = performance.now();
 this.resolveCollisions();
-        PerfMonitor.record('game:collisions', performance.now() - tCollisions);
-
-        const tEffects = performance.now();
-        EffectManager.update(dt);
+EffectManager.update(dt);
         // ===== 状态栏更新 =====
         if (StatusBar) {
             StatusBar.update(dt);
@@ -798,11 +773,9 @@ this.resolveCollisions();
             }
         }
 
-        PerfMonitor.record('game:effectsCleanup', performance.now() - tEffects);
 
         // 列车场景滚动背景
-        const tSceneSpawns = performance.now();
-        if (SceneManager.currentScene === 'scene3') {
+if (SceneManager.currentScene === 'scene3') {
             if (!this._trainScrollOffset) this._trainScrollOffset = 0;
             const scene3Cfg = GAME_CONFIG.scene3 || { scrollSpeed: 500 };
             this._trainScrollOffset += scene3Cfg.scrollSpeed * (dt / 1000);
@@ -852,7 +825,6 @@ this.resolveCollisions();
                 }
             }
         }
-        PerfMonitor.record('game:sceneSpawns', performance.now() - tSceneSpawns);
 
         // NPC 距离检测：离开配置距离自动关闭所有相关界面
         this._checkNPCDistance();

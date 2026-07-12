@@ -43,6 +43,12 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
 
+        // 僵尸犬精灵图动画
+        this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');
+        this.load.spritesheet('enemy_zombie_dog_walk', 'assets/enemies/zombie_dog_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 7 });
+        this.load.spritesheet('enemy_zombie_dog_run', 'assets/enemies/zombie_dog_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 4 });
+        this.load.spritesheet('enemy_zombie_dog_attack', 'assets/enemies/zombie_dog_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 5 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -56,11 +62,11 @@ export class BootScene extends Scene {
     create() {
         
 
-        // 创建行走动画：侧视角，只使用 spritesheet 第一行（向右），通过 flipX 控制左右
+        // 创建行走动画：使用完整 21 帧 spritesheet（3x8 网格），通过 flipX 控制左右
         this.anims.create({
             key: 'player_walk',
-            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 7 }),
-            frameRate: 10,
+            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 20 }),
+            frameRate: 24,
             repeat: -1,
         });
 
@@ -78,6 +84,26 @@ export class BootScene extends Scene {
             frames: this.anims.generateFrameNumbers('player_attack_sword', { start: 0, end: 7 }),
             frameRate: 12,  // 12fps，总时长约667ms
             repeat: 0,      // 播放一次
+        });
+
+        // 僵尸犬动画
+        this.anims.create({
+            key: 'zombie_dog_walk',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_dog_walk', { start: 0, end: 7 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'zombie_dog_run',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_dog_run', { start: 0, end: 4 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'zombie_dog_attack',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_dog_attack', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: 0,
         });
 
         // ---- 动态生成几何敌人纹理 ----
@@ -189,9 +215,7 @@ export class BootScene extends Scene {
 
         generateEnemyTexture('projectile_spit', (g) => {
             g.fillStyle(0x00ff00, 1);
-            g.fillRect(8, 8, 48, 48);
-            g.fillStyle(0xccffcc, 1);
-            g.fillRect(18, 18, 28, 28);
+            g.fillCircle(32, 32, 24);
         });
 
         // 曳光弹：白色发光条，运行时通过 tint 着色

@@ -86,10 +86,16 @@ export class HudScene extends Scene {
         if (!player) return;
         const d = player.data;
         const w = this.scale.width;
+        const h = this.scale.height;
 
         // 仅同步经验条（其余 HUD 已恢复为 DOM 显示）
+        // 使用固定像素 bottom 定位，并在窗口缩放时重新对齐
         const expPercent = d.maxExp ? Math.min(1, d.exp / d.maxExp) : 0;
-        this._expBarFill.setSize((w - 24) * expPercent, 4);
+        const barW = Math.max(0, w - 24);
+        this._expBarBg.setPosition(w / 2, h - 8);
+        this._expBarBg.setSize(barW, 4);
+        this._expBarFill.setPosition(12, h - 8);
+        this._expBarFill.setSize(barW * expPercent, 4);
     }
 
     // ---- 屏幕特效 ----

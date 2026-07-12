@@ -14,7 +14,6 @@ import { WallSystem } from '../world/wall-system.js';
 
 import { PathManager } from '../ai/path-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
-import { PerfMonitor } from '../utils/perf-monitor.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -62,9 +61,7 @@ const MovementSystem = {
         }
 
         // 计算目标方向和距离
-        const tDir = performance.now();
-        const moveData = this._computeMoveDirection(enemy, entities);
-        PerfMonitor.record('movement:computeDir', performance.now() - tDir);
+const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
             enemy.vx *= enemy.friction || 0.82;
             enemy.vy *= enemy.friction || 0.82;
@@ -103,36 +100,27 @@ const MovementSystem = {
                 }
 
                 if (shouldRecalc && (targetX !== enemy.x || targetY !== enemy.y)) {
-                    const tRecalc = performance.now();
-                    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
-                    PerfMonitor.record('movement:recalc', performance.now() - tRecalc);
+enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
                 }
             }
         }
 
         // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
         if (enemy._pathManager && pathFinder) {
-            const tPathUpdate = performance.now();
-            enemy._pathManager.update(dt, pathFinder);
-            PerfMonitor.record('movement:pathUpdate', performance.now() - tPathUpdate);
+enemy._pathManager.update(dt, pathFinder);
         }
 
         // 卡住检测与寻路触发（保留原有逻辑，作为 fallback）
-        const tStuck = performance.now();
-        this._updateStuckDetection(enemy, dt, dx, dy, dist);
-        PerfMonitor.record('movement:stuckDetect', performance.now() - tStuck);
+this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 路径跟随（使用 PathManager）
-        const tMoveApply = performance.now();
-        if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
+if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
             this._followPath(enemy, dt);
-            PerfMonitor.record('movement:moveApply', performance.now() - tMoveApply);
             return;
         }
 
         // 正常移动
         this._applyNormalMovement(enemy, dt, dx, dy, dist);
-        PerfMonitor.record('movement:moveApply', performance.now() - tMoveApply);
 
         // 攻击范围内减速
         if (dist <= enemy.attackRange && enemy.target && enemy.target.active) {
@@ -141,9 +129,7 @@ const MovementSystem = {
         }
 
         // 更新移动动画状态
-        const tAnim = performance.now();
-        this._updateMovementAnim(enemy, dt);
-        PerfMonitor.record('movement:anim', performance.now() - tAnim);
+this._updateMovementAnim(enemy, dt);
     },
 
     /**

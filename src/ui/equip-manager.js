@@ -9,6 +9,8 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
+import { UIState } from './ui-state.js';
+import { EnhanceSystem } from './enhance-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
@@ -28,6 +30,10 @@ import { GameUIManager } from './game-ui-manager.js';
                 if (player.equipments) {
                     const copy = JSON.parse(JSON.stringify(EquipDataManager.TEST_EQUIPMENTS));
                     Object.assign(player.equipments, copy);
+                    // 兼容旧存档：确保第二武器栏存在
+                    if (!Object.prototype.hasOwnProperty.call(player.equipments, 'weapon2')) {
+                        player.equipments.weapon2 = null;
+                    }
                     // 初始化槽位验证：双手武器不能放在副手栏
                     ['offhand', 'ring2'].forEach(slot => {
                         const item = player.equipments[slot];
@@ -103,6 +109,12 @@ import { GameUIManager } from './game-ui-manager.js';
                 EquipTooltipManager.bindEquipTooltip();
                 this._syncWeaponVisual();
                 EquipTooltipManager.bindInventoryTooltip();
+                // 通过事件委托统一处理背包格子的双击/右键，避免动态重建导致绑定丢失
+                if (!this._inventoryInteractionsBound) {
+                    document.addEventListener('contextmenu', (e) => this._onInventoryContextMenu(e));
+                    document.addEventListener('dblclick', (e) => this._onInventoryDblClick(e));
+                    this._inventoryInteractionsBound = true;
+                }
                 // 内联 DragDropManager 定义，绕过 Vite 模块缓存问题
                 this._dragDropManager = {
                     player: null,
@@ -1231,6 +1243,63 @@ import { GameUIManager } from './game-ui-manager.js';
                 this.triggerBackpackFlash(slot);
                 return true;
             },
+            _onInventoryContextMenu(e) {
+                const cell = e.target.closest('.inv-cell');
+                if (!cell || !cell.closest('.inventory-grid')) return;
+                const idx = parseInt(cell.dataset.slot, 10);
+                if (Number.isNaN(idx)) return;
+                const item = this.backpackItems.find(i => i.slot === idx);
+                if (!item) return;
+                // 附魔卷轴：只在附魔栏打开时放入
+                if (item.scrollId) {
+                    const enchantPanel = getElement('enchantPanel');
+                    if (enchantPanel && enchantPanel.classList.contains('active')) {
+                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                if (UIState.isOpen('shop') && item.category !== 'gold') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    EventBus.emit('shop:addToSellGrid', idx);
+                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    EnhanceSystem.equipFromBackpack(idx);
+                } else if (UIState.isOpen('craft')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    CraftSystem._equipFromBackpack(idx);
+                } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.equipFromBackpack(idx);
+                }
+            },
+            _onInventoryDblClick(e) {
+                const cell = e.target.closest('.inv-cell');
+                if (!cell || !cell.closest('.inventory-grid')) return;
+                const idx = parseInt(cell.dataset.slot, 10);
+                if (Number.isNaN(idx)) return;
+                const item = this.backpackItems.find(i => i.slot === idx);
+                if (!item) return;
+                if (item.scrollId) {
+                    const enchantPanel = getElement('enchantPanel');
+                    if (enchantPanel && enchantPanel.classList.contains('active')) {
+                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
+                    }
+                    return;
+                }
+                if (UIState.isOpen('shop') && item.category !== 'gold') {
+                    EventBus.emit('shop:addToSellGrid', idx);
+                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
+                    EnhanceSystem.equipFromBackpack(idx);
+                } else {
+                    this.equipFromBackpack(idx);
+                }
+            },
             equipFromBackpack(backpackIdx) {
                 const item = this.backpackItems.find(i => i.slot === backpackIdx);
                 if (!item) return;
@@ -1266,11 +1335,13 @@ import { GameUIManager } from './game-ui-manager.js';
                 if (isWeapon) {
                     const isOneHandedWeapon = item && isOneHanded(item);
                     if (isOneHandedWeapon) {
+                        const currentMainSlot = player.weaponMode; // 'weapon' 或 'weapon2'
+                        const offhandSlot = currentMainSlot === 'weapon' ? 'offhand' : 'ring2';
+                        const currentMainItem = player.equipments[currentMainSlot];
+                        const currentMainIsTwoHanded = currentMainItem && currentMainItem.isTwoHanded === true;
                         if (item.weaponType === 'shield') {
                             // 盾类：始终装备到对应副手栏；若主手是双手武器则卸下主手
-                            const currentMainSlot = player.weaponMode; // 'weapon' 或 'weapon2'
-                            const currentMainItem = player.equipments[currentMainSlot];
-                            if (currentMainItem && currentMainItem.isTwoHanded === true) {
+                            if (currentMainIsTwoHanded) {
                                 const oldClone = JSON.parse(JSON.stringify(currentMainItem));
                                 const used = new Set(this.backpackItems.map(i => i.slot));
                                 let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
@@ -1282,22 +1353,22 @@ import { GameUIManager } from './game-ui-manager.js';
                                     player._clearSkillOverrides();
                                 }
                             }
-                            const offhandSlot = currentMainSlot === 'weapon' ? 'offhand' : 'ring2';
                             targetSlot = offhandSlot;
                         } else {
-                            // 单手武器（手枪等）
-                            const currentMainSlot = player.weaponMode; // 'weapon' 或 'weapon2'
-                            const currentMainItem = player.equipments[currentMainSlot];
-                            // 使用 item.isTwoHanded 属性（数据定义中设置）
-                            // isOneHanded()/isTwoHanded() 现已支持 item 对象判断
-                            const currentMainIsTwoHanded = currentMainItem && currentMainItem.isTwoHanded === true;
-                            if (currentMainIsTwoHanded) {
-                                // 当前主武器栏是双手武器，单手武器替换当前主武器栏
+                            // 单手武器（手枪等）：优先装当前主手栏；主手空则主手，主手满再看副手
+                            if (!currentMainItem || !currentMainItem.name) {
                                 targetSlot = currentMainSlot;
                             } else {
-                                // 当前主武器栏是单手武器，单手武器优先装备到对应副武器栏
-                                const offhandSlot = currentMainSlot === 'weapon' ? 'offhand' : 'ring2';
-                                targetSlot = offhandSlot;
+                                const offhandItem = player.equipments[offhandSlot];
+                                if (!offhandItem || !offhandItem.name) {
+                                    targetSlot = offhandSlot;
+                                } else if (currentMainIsTwoHanded) {
+                                    // 主手是双手武器，替换主手
+                                    targetSlot = currentMainSlot;
+                                } else {
+                                    // 主手单手且副手有装备，替换副手
+                                    targetSlot = offhandSlot;
+                                }
                             }
                         }
                     } else {
@@ -1461,6 +1532,7 @@ import { GameUIManager } from './game-ui-manager.js';
                 }
             },
             backpackItems: [],
+            _inventoryInteractionsBound: false,
             updateInventorySlots() {
                 const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
                 queryAllElements('.inv-cell').forEach((cell, idx) => {
@@ -1493,6 +1565,7 @@ import { GameUIManager } from './game-ui-manager.js';
                         if (item.category === 'consumable') {
                             cell.oncontextmenu = (e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
                                 const player = this.player;
                                 if (!player) return;
                                 if (item.name === '治疗药水') {

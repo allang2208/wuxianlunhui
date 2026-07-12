@@ -103,7 +103,7 @@ import { DamagePipeline } from './damage-pipeline.js';
                 }
                 this._phaserSprite.setVisible(true);
                 if (this.isSpit) {
-                    const s = this.size * 2;
+                    const s = this.size * 1.4;
                     this._phaserSprite.setDisplaySize(s, s);
                 } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {
                     const tailLen = this.isGreen ? 55 : this.isGold ? 50 : this.isDarkGold ? 45 : 40;

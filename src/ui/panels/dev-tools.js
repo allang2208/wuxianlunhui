@@ -1,4 +1,4 @@
-import { DevTool } from '../dev-tool.js';
+import DevTool from '../dev-tool.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -42,6 +42,13 @@ export function createDevToolPanel() {
     tabEnemy.addEventListener('click', () => DevTool.switchTab('enemy'));
     tabEnemy.textContent = '怪物';
     tabs.appendChild(tabEnemy);
+
+    const tabAI = document.createElement('div');
+    tabAI.className = 'dev-tool-tab';
+    tabAI.dataset.tab = 'ai';
+    tabAI.addEventListener('click', () => DevTool.switchTab('ai'));
+    tabAI.textContent = 'AI';
+    tabs.appendChild(tabAI);
 
     root.appendChild(tabs);
 
@@ -366,6 +373,7 @@ export function createDevToolPanel() {
 
     // ===== Tab 内容：AI =====
     const contentAI = document.createElement('div');
+    contentAI.id = 'aiDevToolPanel';
     contentAI.className = 'dev-tool-tab-content';
     contentAI.dataset.tabContent = 'ai';
     contentAI.style.cssText = 'display:none;';

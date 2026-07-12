@@ -12,6 +12,7 @@ import { QuestSystem } from './quest-system.js';
 import { QuickBar } from './quick-bar.js';
 import { SystemUI } from './system-ui.js';
 import { ExpeditionSystem } from './expedition-system.js';
+import DevTool from './dev-tool.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
@@ -85,6 +86,9 @@ import { ExpeditionSystem } from './expedition-system.js';
                 }
                 if (code === 'KeyZ' && Game.isRunning) {
                     Game._pickupNearbyFlag = true;
+                }
+                if (code === CONFIG.KEYS.DEV_TOOL) {
+                    DevTool.toggle();
                 }
             },
             update() { this.mouse.leftPressed = false; this.mouse.rightPressed = false; },

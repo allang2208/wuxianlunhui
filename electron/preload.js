@@ -15,7 +15,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         node: process.versions.node,
         electron: process.versions.electron,
         chrome: process.versions.chrome
-    }
+    },
+
+    // 武器动画配置持久化
+    loadWeaponConfig: () => ipcRenderer.invoke('load-weapon-config'),
+    saveWeaponConfig: (config) => ipcRenderer.invoke('save-weapon-config', config)
 });
 
 // 监听主进程的 ESC 指令
