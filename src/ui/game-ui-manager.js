@@ -84,10 +84,10 @@ export const GameUIManager = {
         // 底部状态条更新
         const hpBar = getElementIfExists('hpBar'), hpText = getElementIfExists('hpText');
         const staminaBar = getElementIfExists('staminaBar'), staminaText = getElementIfExists('staminaText');
-        if (hpBar) hpBar.style.width = (d.maxHp ? (d.hp / d.maxHp * 100) : 0) + '%';
-        if (hpText) hpText.textContent = `${Math.ceil(d.hp)}/${d.maxHp}`;
-        if (staminaBar) staminaBar.style.width = (d.maxStamina ? (d.stamina / d.maxStamina * 100) : 0) + '%';
-        if (staminaText) staminaText.textContent = `${Math.ceil(d.stamina)}/${d.maxStamina}`;
+        if (hpBar) hpBar.style.width = (d.maxHp ? ((d.hp || 0) / d.maxHp * 100) : 0) + '%';
+        if (hpText) hpText.textContent = `${Math.ceil(d.hp || 0)}/${d.maxHp || 0}`;
+        if (staminaBar) staminaBar.style.width = (d.maxStamina ? ((d.stamina || 0) / d.maxStamina * 100) : 0) + '%';
+        if (staminaText) staminaText.textContent = `${Math.ceil(d.stamina || 0)}/${d.maxStamina || 0}`;
         // 武器信息显示
         const weaponModeEl = getElementIfExists('weaponMode'), weaponNameEl = getElementIfExists('weaponName');
         if (weaponModeEl) weaponModeEl.textContent = p.weaponMode === 'weapon' ? '武器栏1' : '武器栏2';

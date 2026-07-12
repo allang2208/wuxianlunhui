@@ -370,4 +370,48 @@ class CircleEnemy extends Enemy {
     }
 }
 
-export { BlackWolf, CircleEnemy };
+class ZombieDogEnemy extends CircleEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, config);
+        this._animState = 'idle';
+        this._lastHorizontalFacing = 'right';
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (this._attackTimer <= 0 && Math.abs(this.vx) >= 0.1) {
+            this._lastHorizontalFacing = this.vx > 0 ? 'right' : 'left';
+        }
+        if (this._attackTimer > 0) {
+            this._animState = 'attack';
+        } else if (speed > 1.2) {
+            this._animState = 'run';
+        } else if (speed > 0.1) {
+            this._animState = 'walk';
+        } else {
+            this._animState = 'idle';
+        }
+    }
+
+    _getTextureKey() {
+        switch (this._animState) {
+            case 'attack': return 'enemy_zombie_dog_attack';
+            case 'run':    return 'enemy_zombie_dog_run';
+            case 'walk':   return 'enemy_zombie_dog_walk';
+            default:       return 'enemy_zombie_dog_idle';
+        }
+    }
+
+    _getPhaserOptions() {
+        const spriteSize = 120;
+        return {
+            spriteSize,
+            textOffsetY: -spriteSize / 2 - 10,
+            flipX: this._lastHorizontalFacing === 'left',
+            animState: this._animState
+        };
+    }
+}
+
+export { BlackWolf, CircleEnemy, ZombieDogEnemy };

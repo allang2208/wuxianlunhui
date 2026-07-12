@@ -1,6 +1,5 @@
 import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
-import { PerfMonitor } from '../utils/perf-monitor.js';
 
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
@@ -470,8 +469,6 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
-        const t0 = performance.now();
-        try {
             // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
             if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
                 return null;
@@ -547,11 +544,7 @@ class PathFinder {
                     }
                 }
             }
-            return null;
-        } finally {
-            PerfMonitor.record('path:findPath', performance.now() - t0);
-        }
-    }
+            return null;    }
 }
 
 const pathFinder = new PathFinder();

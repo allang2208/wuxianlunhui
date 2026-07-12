@@ -118,6 +118,64 @@ class WeaponTransform {
         return WEAPON_TRANSFORM_CONFIG[weaponType] || WEAPON_TRANSFORM_CONFIG.sword;
     }
 
+    /**
+     * 获取武器变换配置（开发工具用于反向计算）
+     * @param {string} weaponType - 武器类型
+     * @returns {object} WEAPON_TRANSFORM_CONFIG 中的配置项
+     */
+    static getWeaponTransformConfig(weaponType) {
+        return this._getConfig(weaponType);
+    }
+
+    /**
+     * 获取武器基础偏移和旋转后偏移（开发工具使用）
+     * @param {string} weaponType - 武器类型
+     * @param {boolean} isOffhand - 是否为副手
+     * @param {boolean} isDualWield - 是否双持
+     * @returns {object} {baseX, baseY, afterX, afterY}
+     */
+    static getWeaponBaseOffset(weaponType, isOffhand = false, isDualWield = false) {
+        const cfg = this._getConfig(weaponType);
+        const s = WEAPON_SIZE_BASE;
+        const baseX = isOffhand
+            ? cfg.offBaseX
+            : (typeof cfg.mainBaseX === 'function' ? cfg.mainBaseX(isDualWield) : cfg.mainBaseX);
+        const baseY = isOffhand
+            ? cfg.offBaseY
+            : (typeof cfg.mainBaseY === 'function' ? cfg.mainBaseY(isDualWield) : cfg.mainBaseY);
+        const afterX = typeof cfg.afterRotateOffsetX === 'function' ? cfg.afterRotateOffsetX(s) : cfg.afterRotateOffsetX;
+        const afterY = typeof cfg.afterRotateOffsetY === 'function' ? cfg.afterRotateOffsetY(s) : cfg.afterRotateOffsetY;
+        return { baseX, baseY, afterX, afterY };
+    }
+
+    /**
+     * 按状态读取武器动画配置，支持 overrides 覆盖（开发工具使用）
+     * @param {string} weaponType - 武器类型
+     * @param {string} animState - 动画状态
+     * @param {object} overrides - 可选覆盖字段 {holdOffsetX, holdOffsetY, idleRotation, idleScale, handAnchors, gripOffset}
+     * @returns {object} 合并后的状态配置
+     */
+    static _getStateConfig(weaponType, animState, overrides = {}) {
+        const cfg = this._getConfig(weaponType);
+        const globalCfg = WeaponAnimConfig[cfg.holdOffsetKey] || {};
+        const stateCfg = globalCfg[animState] || {};
+
+        const pick = (key) => {
+            if (overrides[key] !== undefined) return overrides[key];
+            if (stateCfg[key] !== undefined) return stateCfg[key];
+            return globalCfg[key];
+        };
+
+        return {
+            holdOffsetX: pick('holdOffsetX') || 0,
+            holdOffsetY: pick('holdOffsetY') || 0,
+            idleRotation: pick('idleRotation') || 0,
+            idleScale: pick('idleScale') || 1,
+            handAnchors: overrides.handAnchors !== undefined ? overrides.handAnchors : (globalCfg.handAnchors || {}),
+            gripOffset: overrides.gripOffset !== undefined ? overrides.gripOffset : globalCfg.gripOffset,
+        };
+    }
+
     // ==================== 基础本地偏移（待机状态） ====================
 
     /**
@@ -126,9 +184,12 @@ class WeaponTransform {
      * @param {number} playerSize - 玩家尺寸（默认 WEAPON_ANIM.size = 105）
      * @param {boolean} isOffhand - 是否为副手
      * @param {boolean} isDualWield - 是否双持
+     * @param {string} animState - 动画状态（idle/walk/running/attack）
+     * @param {boolean} _facingRight - 是否朝右（本地偏移不使用，保持接口一致）
+     * @param {object} overrides - 开发工具覆盖字段
      * @returns {object} {x, y, size, scale, baseRotation, idleRotation}
      */
-    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, _facingRight = true) {
+    static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, _facingRight = true, overrides = {}) {
         const cfg = this._getConfig(weaponType);
         const s = WEAPON_SIZE_BASE; // 105，不是 player.size（18）
         const ms = s * MELEE_SCALE; // 78.75
@@ -142,27 +203,18 @@ class WeaponTransform {
             ? cfg.offBaseY
             : (typeof cfg.mainBaseY === 'function' ? cfg.mainBaseY(isDualWield) : cfg.mainBaseY);
 
-        // 武器配置偏移（holdOffsetX/Y）——支持按状态读取
-        let wac;
-        if (animState && WeaponAnimConfig[cfg.holdOffsetKey] && typeof WeaponAnimConfig[cfg.holdOffsetKey] === 'object') {
-            const globalCfg = WeaponAnimConfig[cfg.holdOffsetKey];
-            const stateCfg = globalCfg[animState] || {};
-            wac = {
-                holdOffsetX: stateCfg.holdOffsetX !== undefined ? stateCfg.holdOffsetX : globalCfg.holdOffsetX,
-                holdOffsetY: stateCfg.holdOffsetY !== undefined ? stateCfg.holdOffsetY : globalCfg.holdOffsetY,
-                idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : globalCfg.idleRotation,
-                idleScale: stateCfg.idleScale !== undefined ? stateCfg.idleScale : globalCfg.idleScale,
-            };
-        } else {
-            wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
-        }
+        // 武器配置偏移（holdOffsetX/Y）——支持按状态读取和 overrides
+        const wac = this._getStateConfig(weaponType, animState, overrides);
 
         // ===== 新增：手部挂载点系统 =====
         const handAnchors = wac.handAnchors || {};
         const gripOffset = wac.gripOffset || null;
         let holdX, holdY;
 
-        if (handAnchors && animState && handAnchors[animState]) {
+        // 如果调用方显式传入了 holdOffsetX/Y 覆盖，优先使用传统 holdOffset（开发工具需要）
+        const useHoldOffsetOverride = overrides && (overrides.holdOffsetX !== undefined || overrides.holdOffsetY !== undefined);
+
+        if (!useHoldOffsetOverride && handAnchors && animState && handAnchors[animState]) {
             // 使用挂载点系统
             const anchor = handAnchors[animState];
             // 握把偏移旋转后的位置（握把在武器精灵坐标系中）
@@ -245,18 +297,9 @@ class WeaponTransform {
 
     // ==================== 旋转计算 ====================
 
-    static getWeaponRotation(playerRotation, weaponType, animAngle = 0, animState = null, facingRight = true) {
+    static getWeaponRotation(playerRotation, weaponType, animAngle = 0, animState = null, facingRight = true, overrides = {}) {
         const cfg = this._getConfig(weaponType);
-        let wac;
-        if (animState && WeaponAnimConfig[cfg.holdOffsetKey] && typeof WeaponAnimConfig[cfg.holdOffsetKey] === 'object') {
-            const globalCfg = WeaponAnimConfig[cfg.holdOffsetKey];
-            const stateCfg = globalCfg[animState] || {};
-            wac = {
-                idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : globalCfg.idleRotation,
-            };
-        } else {
-            wac = WeaponAnimConfig[cfg.holdOffsetKey] || {};
-        }
+        const wac = this._getStateConfig(weaponType, animState, overrides);
         // 使用 playerRotation 计算基础旋转（远程武器跟随鼠标，近战武器固定）
         let rot = playerRotation + cfg.baseRotation;
         if (wac.idleRotation) {
@@ -295,7 +338,7 @@ class WeaponTransform {
         };
     }
 
-    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null) {
+    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null, overrides = {}) {
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
         const wac = WeaponAnimConfig[weaponType] || {};
         const handAnchors = wac.handAnchors || {};
@@ -327,7 +370,7 @@ class WeaponTransform {
         }
 
         // 回退到现有 holdOffsetX/Y 系统（向后兼容）
-        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState, facingRight);
+        const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState, facingRight, overrides);
         const isMelee = weaponType === 'sword' || weaponType === 'bow';
         const useFixedRotation = isMelee;
         const world = this.localToWorld(player, local, useFixedRotation ? 0 : null, facingRight, animState, weaponType);
@@ -337,6 +380,169 @@ class WeaponTransform {
     // 兼容旧接口
     static getMeleeWorldPosition(player, isOffhand = false) {
         return this.getWeaponWorldPosition(player, 'sword', isOffhand, false);
+    }
+
+    /**
+     * 根据关键帧偏移计算武器世界位置和旋转（统一挂载点 / holdOffset 两套系统）
+     * @param {object} player - 玩家对象
+     * @param {string} weaponType - 武器类型
+     * @param {string} animState - 动画状态
+     * @param {object} keyframeOffset - {offsetX, offsetY, rotation, scale}
+     * @param {number} playerRotation - 玩家旋转（近战传 0，远程传 player.rotation）
+     * @param {boolean} facingRight - 是否朝右
+     * @returns {object} {x, y, rotation}
+     */
+    static getKeyframedWeaponPosition(player, weaponType, animState, keyframeOffset, playerRotation, facingRight) {
+        const cfg = WeaponAnimConfig[weaponType] || {};
+        const hasHandAnchors = cfg.handAnchors && typeof cfg.handAnchors === 'object';
+
+        if (hasHandAnchors && animState) {
+            const handAnchors = cfg.handAnchors || {};
+            const anchor = handAnchors[animState] || handAnchors.idle || { x: 0, y: 0 };
+            const anchorX = facingRight ? anchor.x : -anchor.x;
+            const anchorY = anchor.y;
+            // 关键帧偏移是相对 handAnchor 的世界空间偏移，朝左时同样要镜像
+            const handOffsetX = (facingRight ? 1 : -1) * (keyframeOffset.offsetX || 0);
+            const handOffsetY = keyframeOffset.offsetY || 0;
+            const handWorldX = player.x + anchorX + handOffsetX;
+            const handWorldY = player.y + anchorY + handOffsetY;
+            const gripOffset = cfg.gripOffset || { x: 0, y: 0 };
+            const rotationRad = (keyframeOffset.rotation || 0) * Math.PI / 180;
+            const cos = Math.cos(rotationRad);
+            const sin = Math.sin(rotationRad);
+            const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
+            const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
+            return {
+                x: handWorldX + gripRotatedX,
+                y: handWorldY + gripRotatedY,
+                rotation: this.getWeaponRotation(playerRotation, weaponType, 0, animState, facingRight) + rotationRad,
+            };
+        }
+
+        // 旧系统：使用 overrides 替换 holdOffset/idleRotation/idleScale，避免修改原始配置
+        const overrides = {
+            holdOffsetX: keyframeOffset.offsetX,
+            holdOffsetY: keyframeOffset.offsetY,
+            idleRotation: keyframeOffset.rotation,
+            idleScale: keyframeOffset.scale,
+        };
+        const worldPos = this.getWeaponWorldPosition(player, weaponType, false, false, animState, overrides);
+        return {
+            x: worldPos.x,
+            y: worldPos.y,
+            rotation: this.getWeaponRotation(playerRotation, weaponType, 0, animState, facingRight, overrides),
+        };
+    }
+
+    /**
+     * 逐帧模式：直接读取配置中每一帧的武器偏移/旋转/缩放
+     * 坐标系为玩家本地屏幕坐标（X向右，Y向下），朝左时镜像X并翻转角度
+     * @param {object} player - 玩家对象
+     * @param {string} weaponType - 武器类型
+     * @param {number} frameIndex - 帧索引
+     * @param {boolean} facingRight - 是否朝右
+     * @returns {object|null} {x, y, rotation, scale}
+     */
+    static getPerFrameWeaponPosition(player, weaponType, frameIndex, facingRight = true) {
+        return this.getInterpolatedPerFramePosition(player, weaponType, frameIndex / Math.max(1, (WeaponAnimConfig[weaponType]?.attack?.frames?.length || 1) - 1), facingRight);
+    }
+
+    /**
+     * 逐帧模式：按进度平滑插值 8 帧武器状态（Catmull-Rom 曲线）
+     * @param {object} player - 玩家对象
+     * @param {string} weaponType - 武器类型
+     * @param {number} progress - 0~1
+     * @param {boolean} facingRight - 是否朝右
+     * @returns {object|null} {x, y, rotation, scale}
+     */
+    static getInterpolatedPerFramePosition(player, weaponType, progress, facingRight = true) {
+        const cfg = WeaponAnimConfig[weaponType] || {};
+        const perFrame = cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
+        if (!perFrame || perFrame.length === 0) return null;
+
+        progress = Math.max(0, Math.min(1, progress));
+        const n = perFrame.length;
+        if (progress <= 0) {
+            const f = perFrame[0];
+            return this._applyPerFrameToWorld(player, f, facingRight);
+        }
+        if (progress >= 1) {
+            const f = perFrame[n - 1];
+            return this._applyPerFrameToWorld(player, f, facingRight);
+        }
+
+        // 位置：线性插值，保证武器严格经过每个配置点并与玩家手部贴合
+        const pos = this._lerpPerFrame2D(perFrame, progress);
+
+        // 旋转：先解卷绕，再线性插值
+        let angles = perFrame.map(f => (f.rotation || 0) * Math.PI / 180);
+        for (let i = 1; i < angles.length; i++) {
+            let delta = angles[i] - angles[i - 1];
+            while (delta > Math.PI) delta -= Math.PI * 2;
+            while (delta < -Math.PI) delta += Math.PI * 2;
+            angles[i] = angles[i - 1] + delta;
+        }
+        const rotation = this._lerpPerFrame1D(angles, progress);
+
+        // 缩放：线性插值
+        const scales = perFrame.map(f => f.scale !== undefined ? f.scale : 1);
+        const scale = this._lerpPerFrame1D(scales, progress);
+
+        return this._applyPerFrameToWorld(player, { offsetX: pos.x, offsetY: pos.y, rotation: rotation * 180 / Math.PI, scale }, facingRight);
+    }
+
+    /**
+     * 一维线性插值
+     */
+    static _lerpPerFrame1D(values, progress) {
+        const n = values.length;
+        if (n === 0) return 0;
+        if (n === 1 || progress <= 0) return values[0];
+        if (progress >= 1) return values[n - 1];
+
+        const raw = progress * (n - 1);
+        const i = Math.floor(raw);
+        const t = raw - i;
+
+        const p1 = values[i];
+        const p2 = values[i + 1];
+        return p1 + (p2 - p1) * t;
+    }
+
+    /**
+     * 二维线性插值
+     */
+    static _lerpPerFrame2D(perFrame, progress) {
+        const n = perFrame.length;
+        if (n === 0) return { x: 0, y: 0 };
+        if (n === 1 || progress <= 0) return { x: perFrame[0].offsetX || 0, y: perFrame[0].offsetY || 0 };
+        if (progress >= 1) return { x: perFrame[n - 1].offsetX || 0, y: perFrame[n - 1].offsetY || 0 };
+
+        const raw = progress * (n - 1);
+        const i = Math.floor(raw);
+        const t = raw - i;
+
+        const p1 = perFrame[i];
+        const p2 = perFrame[i + 1];
+        return {
+            x: (p1.offsetX || 0) + ((p2.offsetX || 0) - (p1.offsetX || 0)) * t,
+            y: (p1.offsetY || 0) + ((p2.offsetY || 0) - (p1.offsetY || 0)) * t,
+        };
+    }
+
+    static _applyPerFrameToWorld(player, frame, facingRight) {
+        const offsetX = (facingRight ? 1 : -1) * (frame.offsetX || 0);
+        const offsetY = frame.offsetY || 0;
+        let rotation = (frame.rotation || 0) * Math.PI / 180;
+        if (!facingRight) {
+            rotation = Math.PI - rotation;
+        }
+        return {
+            x: player.x + offsetX,
+            y: player.y + offsetY,
+            rotation,
+            scale: frame.scale !== undefined ? frame.scale : 1,
+        };
     }
 
     // ==================== 攻击动画偏移（动态） ====================

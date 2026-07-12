@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // 禁用 Windows 系统 DPI 缩放，确保游戏内坐标一致
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
@@ -73,6 +74,45 @@ function createWindow() {
 }
 
 // IPC 通信：处理前端发来的全屏切换和退出请求
+
+function getWeaponConfigPaths() {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+        return {
+            read: path.join(__dirname, '../public/data/weapon-anim-config.json'),
+            write: path.join(__dirname, '../public/data/weapon-anim-config.json')
+        };
+    }
+    const userDataPath = path.join(app.getPath('userData'), 'weapon-anim-config.json');
+    return {
+        read: fs.existsSync(userDataPath) ? userDataPath : path.join(__dirname, '../dist/data/weapon-anim-config.json'),
+        write: userDataPath
+    };
+}
+
+ipcMain.handle('load-weapon-config', async () => {
+    const paths = getWeaponConfigPaths();
+    try {
+        const data = await fs.promises.readFile(paths.read, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.error('[main] Failed to load weapon config:', err);
+        throw err;
+    }
+});
+
+ipcMain.handle('save-weapon-config', async (_event, config) => {
+    const paths = getWeaponConfigPaths();
+    try {
+        await fs.promises.mkdir(path.dirname(paths.write), { recursive: true });
+        await fs.promises.writeFile(paths.write, JSON.stringify(config, null, 2), 'utf8');
+        return { success: true, path: paths.write };
+    } catch (err) {
+        console.error('[main] Failed to save weapon config:', err);
+        throw err;
+    }
+});
+
 ipcMain.on('toggle-fullscreen', () => {
     if (mainWindow) {
         if (mainWindow.isFullScreen()) {

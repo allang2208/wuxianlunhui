@@ -45,12 +45,12 @@ const NPCDialogue = {
             // 加载已保存的立绘参数并应用；若无保存则使用默认参数
             if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
                 const saved = NpcPortraitTool._settings[npc.id];
-                npcPortrait.style.transform = `translateX(${saved.offsetX}px) translateY(${saved.offsetY}px) scale(${saved.scale}) rotate(${saved.rotation}deg) scaleX(${saved.flipX ? -1 : 1})`;
+                npcPortrait.style.transform = `translateX(-50%) translateX(${saved.offsetX}px) translateY(${saved.offsetY}px) scale(${saved.scale}) rotate(${saved.rotation}deg) scaleX(${saved.flipX ? -1 : 1})`;
             } else {
                 // 使用默认参数（通过肖像路径匹配）
                 const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
                 if (defaults) {
-                    npcPortrait.style.transform = `translateX(${defaults.offsetX}px) translateY(${defaults.offsetY}px) scale(${defaults.scale}) rotate(${defaults.rotation}deg) scaleX(${defaults.flipX ? -1 : 1})`;
+                    npcPortrait.style.transform = `translateX(-50%) translateX(${defaults.offsetX}px) translateY(${defaults.offsetY}px) scale(${defaults.scale}) rotate(${defaults.rotation}deg) scaleX(${defaults.flipX ? -1 : 1})`;
                 } else {
                     npcPortrait.style.transform = ''; // 清除旧变换
                 }

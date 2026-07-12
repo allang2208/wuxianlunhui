@@ -22,6 +22,7 @@ export const SceneManager = {
     isLoading: false,
     loadProgress: 0,
     _sceneLabel: null, // 当前场景名称标签
+    _inMainHub: false, // 主神空间无敌保护开关，避免依赖 currentScene 产生泄漏
 
     init() {
         const cfg = GAME_CONFIG.scenes || {};
@@ -156,6 +157,7 @@ export const SceneManager = {
             await this.delay(200);
 
             this.currentScene = sceneId;
+            this._inMainHub = (sceneId === 'main');
             this.hideLoadingScreen();
             // 显示场景名称
             this._showSceneLabel(scene.name);
@@ -192,6 +194,7 @@ export const SceneManager = {
             Camera.y = this._rollbackCamera.y;
         }
         this.currentScene = this._rollbackCurrentScene;
+        this._inMainHub = (this._rollbackCurrentScene === 'main');
     },
 
     _showSceneLabel(name) {
@@ -416,6 +419,11 @@ export const SceneManager = {
             });
             if (!hasTargets) Game.spawnTargets();
             if (!hasDpsTarget) Game.spawnEnemy();
+        }
+
+        // 主神空间：清理所有怪物并生成一只测试用僵尸犬
+        if (Game && Game.clearMainMonstersAndSpawnDog) {
+            Game.clearMainMonstersAndSpawnDog();
         }
     },
 

@@ -118,6 +118,8 @@ update(dt, entities) {
                 const move = Input.getMovement();
                 // 无人机操控模式下：禁用玩家移动，但继续更新其他逻辑
                 const isDroneControlling = this.droneSystem && this.droneSystem.controlling;
+                // 近战攻击期间禁止转向，变量供下方移动/旋转逻辑共享
+                let isMeleeAttacking = false;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown -= dt;
                 if (this.weaponSwitchCooldown > 0) this.weaponSwitchCooldown -= dt;
                 if (this.isDodging) {
@@ -187,8 +189,17 @@ update(dt, entities) {
                     if (this._isPushStrike) targetSpeed = 0.1;
                     // 特殊攻击动画期间：完全不能移动
                     if (this._specialAttackActive) targetSpeed = 0;
-                    this.vx += (move.x * targetSpeed - this.vx) * this.accel; this.vy += (move.y * targetSpeed - this.vy) * this.accel;
-                    if (move.x === 0) this.vx *= this.friction; if (move.y === 0) this.vy *= this.friction;
+
+                    // 近战攻击期间：完全禁止移动（但可以用闪避取消）
+                    isMeleeAttacking = this.weaponAnim && this.weaponAnim.isAttacking && currentEquip && (currentEquip.category === 'weapon_melee' || currentEquip.weaponType === 'sword');
+                    let moveInput = move;
+                    if (isMeleeAttacking) {
+                        targetSpeed = 0;
+                        moveInput = { x: 0, y: 0 };
+                    }
+
+                    this.vx += (moveInput.x * targetSpeed - this.vx) * this.accel; this.vy += (moveInput.y * targetSpeed - this.vy) * this.accel;
+                    if (moveInput.x === 0) this.vx *= this.friction; if (moveInput.y === 0) this.vy *= this.friction;
 
                     // ===== Velocity 驱动模式（可选）=====
                     const phaserScene = window.__phaserScene;
@@ -218,10 +229,16 @@ update(dt, entities) {
                         }
                     }
                     if (sprint && this.isMoving) { this.data.stamina -= CONFIG.STAMINA_SPRINT_COST * (dt / 1000); if (this.data.stamina < 0) this.data.stamina = 0; }
-                    if (Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) this.triggerDodge(move);
+                    // 闪避：近战攻击期间按空格可取消攻击动画并闪避
+                    if (Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) {
+                        if (this.weaponAnim && this.weaponAnim.isAttacking) this.clearAttackTweens();
+                        this.triggerDodge(moveInput);
+                    }
                 }
                 const screenPos = Renderer.worldToScreen(this.x, this.y), dx = Input.mouse.x - screenPos.x, dy = Input.mouse.y - screenPos.y;
-                if (this._isDashing) {
+                if (isMeleeAttacking) {
+                    // 近战攻击期间锁定朝向，动画结束后再恢复跟随鼠标
+                } else if (this._isDashing) {
                     // 冲刺时不改变武器朝向
                     // this.rotation = Math.atan2(this._dashDirection.y, this._dashDirection.x);
                 } else if (this._specialAttackActive) {
@@ -355,8 +372,8 @@ update(dt, entities) {
                     this._gunSpreadTimer += dt;
                     this._gunSpreadWeapon = _currentWep2.weaponType;
                 } else {
-                    this._gunSpreadTimer = 0;
-                    this._gunSpreadWeapon = null;
+                    this._gunSpreadTimer = Math.max(0, this._gunSpreadTimer - dt * 2);
+                    if (this._gunSpreadTimer <= 0) this._gunSpreadWeapon = null;
                 }
                 // 副手散布计时：双持时右键按下且副手为枪械时累计散布
                 const _offIsGun = _offItem && isGunWeapon(_offItem);
@@ -364,8 +381,12 @@ update(dt, entities) {
                     this._gunSpreadTimerOff += dt;
                     this._gunSpreadWeaponOff = _offItem.weaponType;
                 } else {
-                    this._gunSpreadTimerOff = 0;
-                    this._gunSpreadWeaponOff = null;
+                    this._gunSpreadTimerOff = Math.max(0, this._gunSpreadTimerOff - dt * 2);
+                    if (this._gunSpreadTimerOff <= 0) this._gunSpreadWeaponOff = null;
+                }
+                // 准星单发 kick 衰减
+                if (this._crosshairShotKick > 0) {
+                    this._crosshairShotKick = Math.max(0, this._crosshairShotKick - dt / 80);
                 }
                 // 预计算主手散布因子（供准星显示与主手开火使用）
                 if (_isGun) {

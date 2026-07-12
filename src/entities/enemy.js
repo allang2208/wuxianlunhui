@@ -2,7 +2,7 @@ import { WEAPON_ANIM } from '../config/math-utils.js';
 
 import { WallSystem } from '../world/wall-system.js';
 import { Combatant } from './combatant.js';
-import { ThrustAttack } from '../combat/attack.js';
+import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
@@ -22,7 +22,10 @@ import { loadImage } from '../utils/image-loader.js';
                 const name = config.name ?? defaults.name ?? '测试敌人';
                 super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
                 this.id = config.id || this.name;
-                this.speed = (config.speed ?? defaults.speed ?? 0.3) * (defaults.speedMultiplier ?? 3);
+                const defaultSpeed = (defaults.speed ?? 45) * (defaults.speedMultiplier ?? 1);
+                this.speed = config.speed ?? defaultSpeed;
+                // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动
+                if (this.speed < 1) this.speed = 45;
                 this.maxSpeed = this.speed;
                 this.accel = config.accel ?? defaults.accel ?? 0.7;
                 this.friction = config.friction ?? defaults.friction ?? 0.82;
@@ -32,15 +35,32 @@ import { loadImage } from '../utils/image-loader.js';
                 // 使用 COMBAT_CONFIG.thrustAttack.enemy 默认配置，config.attack 可覆盖
                 const thrustCfg = COMBAT_CONFIG.thrustAttack?.enemy || {};
                 const attackConfig = config.attack || {};
-                this.attacks = { melee: new ThrustAttack({
-                    cooldown: attackConfig.cooldown ?? thrustCfg.cooldown ?? 600,
-                    range: attackConfig.range ?? thrustCfg.range ?? 80,
-                    width: attackConfig.width ?? thrustCfg.width ?? 20,
-                    damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : (thrustCfg.damage || { min: 8, max: 15 })),
-                    knockback: attackConfig.knockback ?? thrustCfg.knockback ?? 15,
-                    dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80)
-                }) };
-                this.weaponMode = 'melee';
+                if (attackConfig.type === 'ranged') {
+                    // 远程/毒液僵尸：创建 RangedAttack
+                    this.attacks = { ranged: new RangedAttack({
+                        cooldown: attackConfig.cooldown ?? 1500,
+                        projectileSpeed: attackConfig.projectileSpeed ?? 8,
+                        projectileRange: attackConfig.range ?? attackConfig.projectileRange ?? 350,
+                        projectileSize: attackConfig.width ?? 18,
+                        damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : { min: 15, max: 15 }),
+                        knockback: attackConfig.knockback ?? 0,
+                        damageType: attackConfig.damageType || 'physical',
+                        isSpit: attackConfig.isSpit ?? (this.name === '毒液僵尸'),
+                        ...attackConfig
+                    }) };
+                    this.weaponMode = 'ranged';
+                    this.equippedRangedType = attackConfig.rangedType || 'spit';
+                } else {
+                    this.attacks = { melee: new ThrustAttack({
+                        cooldown: attackConfig.cooldown ?? thrustCfg.cooldown ?? 600,
+                        range: attackConfig.range ?? thrustCfg.range ?? 80,
+                        width: attackConfig.width ?? thrustCfg.width ?? 20,
+                        damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : (thrustCfg.damage || { min: 8, max: 15 })),
+                        knockback: attackConfig.knockback ?? thrustCfg.knockback ?? 15,
+                        dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80)
+                    }) };
+                    this.weaponMode = 'melee';
+                }
                 this.level = config.level ?? defaults.level ?? 1;
                 // 新增：6维基础属性（合并到 Combatant 已创建的 this.data）
                 const statDefaults = defaults.stats || {};
@@ -102,6 +122,15 @@ import { loadImage } from '../utils/image-loader.js';
                 this._loseTimeout = pacingAiConfig.loseTimeout || 2000;
                 this._pacingIntervalMin = pacingAiConfig.pacingIntervalMin || 1000;
                 this._pacingIntervalMax = pacingAiConfig.pacingIntervalMax || 2000;
+                // 未显式设置警戒范围时，使用 AI 仇恨范围，避免 PerceptionSystem 用默认 400 覆盖 aggroRange
+                if (!this._alertRange && this._aggroRange) {
+                    this._alertRange = this._aggroRange;
+                }
+                // 绕圈/风筝 AI：配置 circleRadius 后在目标周围保持距离移动
+                if (pacingAiConfig.circleRadius) {
+                    this._circleRadius = pacingAiConfig.circleRadius;
+                    this._circleDir = Math.random() > 0.5 ? 1 : -1;
+                }
                 this._aiScanTimer = 0;
                 this._aiScanInterval = 200;
                 this._lastKnownTargetPos = null;
@@ -503,6 +532,9 @@ import { loadImage } from '../utils/image-loader.js';
                 const isBlocked = WallSystem &&
                     WallSystem.blocked(this.x, this.y, targetX, targetY);
                 if (isBlocked) return; // 视线被墙完全挡住，无法攻击
+                // 远程攻击需要目标在射程内
+                const dist = Math.hypot(targetX - this.x, targetY - this.y);
+                if (this.attacks.ranged && dist > this.attackRange) return;
                 // 执行攻击
                 this.aiTimer = 0;
                 if (attack.use(this, targetX, targetY, Array.from(entities.values()))) {
@@ -529,6 +561,7 @@ import { loadImage } from '../utils/image-loader.js';
 
                 const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 5 };
                 const atkFormula = formulas.attack || { base: 10, strMultiplier: 0.05, dexMultiplier: 0.1, round: true };
+                atkFormula.base = atkFormula.base ?? 10;
                 const defFormula = formulas.defense || { conMultiplier: 1.2, strMultiplier: 0.3, round: 'floor' };
                 const matkFormula = formulas.magicAttack || { intMultiplier: 1.5, wisMultiplier: 0.5, round: 'floor' };
                 const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };

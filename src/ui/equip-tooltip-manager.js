@@ -10,7 +10,6 @@ import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 
-import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { CodexManager } from './codex-manager.js';
@@ -563,50 +562,8 @@ export const EquipTooltipManager = {
                     self._removeMoveHandler(cell);
                 }
             };
-            cell.ondblclick = function(_e) {
-                const idx = parseInt(cell.dataset.slot);
-                const item = self.backpackItems.find(i => i.slot === idx);
-                if (!item) return;
-                // 附魔卷轴：只在附魔栏打开时可双击放入
-                if (item.scrollId) {
-                    const enchantPanel = getElement('enchantPanel');
-                    if (enchantPanel && enchantPanel.classList.contains('active')) {
-                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
-                    }
-                    return;
-                }
-                if (UIState.isOpen('shop') && item.category !== 'gold') {
-                    EventBus.emit('shop:addToSellGrid', idx);
-                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
-                    EnhanceSystem.equipFromBackpack(idx);
-                } else {
-                    self.callbacks.equipFromBackpack(idx);
-                }
-            };
-            cell.oncontextmenu = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const idx = parseInt(cell.dataset.slot);
-                const item = self.backpackItems.find(i => i.slot === idx);
-                if (!item) return;
-                // 附魔卷轴：只在附魔栏打开时可右键放入
-                if (item.scrollId) {
-                    const enchantPanel = getElement('enchantPanel');
-                    if (enchantPanel && enchantPanel.classList.contains('active')) {
-                        EventBus.emit('enchant:equipScrollFromBackpack', idx);
-                    }
-                    return;
-                }
-                if (UIState.isOpen('shop') && item.category !== 'gold') {
-                    EventBus.emit('shop:addToSellGrid', idx);
-                } else if (UIState.isOpen('enhance') && item.category !== 'gold') {
-                    EnhanceSystem.equipFromBackpack(idx);
-                } else if (UIState.isOpen('craft')) {
-                    CraftSystem._equipFromBackpack(idx);
-                } else {
-                    self.callbacks.equipFromBackpack(idx);
-                }
-            };
+            // 双击/右键装备已改为事件委托（EquipManager.init 中统一绑定），
+            // 这里只负责提示框，避免重复绑定或绑定丢失。
         });
     },
 

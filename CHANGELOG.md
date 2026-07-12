@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-12（怪物贴图兜底、僵尸犬动画、AI 与地牢问题排查）
+
+### 对话：修复怪物显示问题并接入僵尸犬素材（v0.198+）
+- **修改文件**：
+  - `src/phaser/scenes/GameScene.js`：自动为缺失 Sprite 的敌人创建 `enemy_circle` 占位；`_configureEnemyBody` 碰撞半径翻倍；新增 `_syncEnemyAnimation` 同步敌人动画/翻转/纹理；`_syncEntityHud` 识别 `noNameLabel` 去重；限定动画同步只处理 `_faction === 'enemy'`，修复武器/中立实体被强制变圆的 Bug。
+  - `src/phaser/scenes/BootScene.js`：加载僵尸犬精灵图并注册 `zombie_dog_walk/run/attack` 动画；`projectile_spit` 改为绿色实心圆。
+  - `src/entities/enemy-types.js`：新增 `ZombieDogEnemy` 类。
+  - `src/world/zombie-dungeon.js`：所有地牢怪物覆盖全图索敌参数。
+  - `src/world/scene-manager.js`：回到主神空间时清理怪物并重新生成僵尸犬。
+  - `src/game.js`：删除主神空间原 5 只测试圆形敌人，改为生成一只僵尸犬。
+  - `src/combat/projectile.js`：毒液投射物显示尺寸缩小 30%。
+  - `data/enemy-config.json`：毒液僵尸投射物速度 540 → 270。
+  - `SKILL.md`、`CHANGELOG.md`、`.gitignore`：更新文档与忽略 `.venv/`。
+- **修改内容摘要**：
+  1. 所有怪物恢复为 `enemy_circle` 占位显示，碰撞体积扩大一倍。
+  2. 毒液僵尸投射物速度再降 50%，并改为绿色实心小圆。
+  3. 地牢怪物全局仇恨，不会丢失目标。
+  4. 战后出口传送门名称不再重复显示。
+  5. 接入僵尸犬外部素材，统一 512×512 帧并制作 walk/run/attack/idle 动画。
+  6. 主神空间仅保留一只测试用僵尸犬，便于动画调试。
+  7. 排查地牢怪物卡墙根因：出生带贴墙 + `WallSystem.resolve` 无脱困逻辑。
+  8. 排查近战 AI 迂回根因：`separation` 排斥过强 + 攻击范围内摩擦与排斥冲突 + 路径跟随/墙体滑动问题。
+- **测试结果**：`npx eslint src --max-warnings=0` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - 地牢怪物卡墙与近战 AI 迂回尚未实际修复，已输出完整缺陷与改进方向，待后续实施。
+  - 僵尸犬 idle 状态使用单帧图片，未注册 idle 动画。
+
+---
+
 ## 2026-07-11（Phaser 迁移收尾 + Canvas 死代码清理）
 
 ### 对话：完成 Phaser 迁移并清理中优先级技术债务（v0.198）

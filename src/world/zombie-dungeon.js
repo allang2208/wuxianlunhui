@@ -1,166 +1,85 @@
 
 /**
  * ZombieDungeon — 僵尸地牢模块
- * 
- * 非交叉网格布局：4行 × 12列，水平/垂直边 only
- * 左侧4个起点（每行一个），右侧1个BOSS
- * 事件分布：战斗85% / 随机事件15%（无商店）
- * 战斗：3波，每波5只怪物，按 tier 概率生成（70%普通 / 20%精英 / 10%首领）
+ *
+ * 非交叉网格布局：4行 × N列，水平/垂直边 only
+ * 左侧4个起点（每行一个），右侧1个BOSS，BOSS之后1个奖励节点
+ * 中间节点：第1行为必经主通道（保证最短9场战斗），其余行随机生成作为分支
+ * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 import { getElement } from '../utils/dom-utils.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
+import enemyConfigData from '../../data/enemy-config.json';
 
-// ==================== 装甲僵尸工厂 ====================
-function createArmoredZombie(x, y) {
+// ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
+function createZombieFromConfig(key, x, y, overrides = {}) {
+    const cfg = enemyConfigData[key];
+    if (!cfg) {
+        console.warn(`[ZombieDungeon] Missing enemy config: ${key}`);
+        return new CircleEnemy(x, y, { name: key, hp: 50, maxHp: 50, size: 14, showWeapon: false });
+    }
     return new CircleEnemy(x, y, {
-        name: '装甲僵尸',
-        hp: 200,
-        maxHp: 200,
-        size: 16,
-        collisionRadius: 14,
-        speed: 31.25,
-        level: 5,
-        color: '#7a8a9a',
-        headColor: '#c0c8d0',
-        highlightColor: 'rgba(122, 138, 154, 0.3)',
-        str: 18,
-        dex: 6,
-        con: 20,
-        int: 3,
-        wis: 3,
-        luck: 5,
-        rank: 'normal',
-        attackRange: 80,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 120, loseTimeout: 3000 },
-        attack: { type: 'thrust', cooldown: 1000, dynamicRange: 80, width: 20, damageMin: 6, damageMax: 12, knockback: 8 },
+        ...cfg,
         showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        },
+        ...overrides
+    });
+}
+
+function createArmoredZombie(x, y) {
+    return createZombieFromConfig('armoredZombie', x, y, {
+        headColor: '#c0c8d0',
         equipShield: 'small_shield'
     });
 }
 
-// ==================== 怪物工厂 ====================
 export function createBasicZombie(x, y) {
-    // 基础僵尸：使用 CircleEnemy 以实心圆渲染
-    return new CircleEnemy(x, y, {
-        name: '僵尸',
-        hp: 80,
-        maxHp: 80,
-        size: 14,
-        collisionRadius: 12,
-        speed: 31.25,
-        level: 1,
-        color: '#4a9a4a',
-        highlightColor: 'rgba(74, 154, 74, 0.3)',
-        str: 12,
-        dex: 8,
-        con: 12,
-        int: 2,
-        wis: 2,
-        luck: 3,
-        rank: 'normal',
-        attackRange: 80,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
-        attack: { type: 'thrust', cooldown: 1000, dynamicRange: 80, width: 20, damageMin: 5, damageMax: 10, knockback: 8 },
-        showWeapon: false
-    });
+    return createZombieFromConfig('zombie', x, y);
 }
 
 function createFastZombie(x, y) {
-    return new CircleEnemy(x, y, {
-        name: 'Runner Zombie',
-        hp: 60, maxHp: 60,
-        size: 12, collisionRadius: 10,
-        speed: 56.25,
-        level: 2,
-        color: '#c03030',
-        highlightColor: 'rgba(192, 48, 48, 0.3)',
-        str: 10, dex: 20, con: 10, int: 2, wis: 2, luck: 4,
-        rank: 'normal',
-        attackRange: 70,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
-        attack: { type: 'thrust', cooldown: 600, dynamicRange: 70, width: 18, damageMin: 4, damageMax: 8, knockback: 5 },
-        showWeapon: false
-    });
+    return createZombieFromConfig('runnerZombie', x, y);
 }
 
 function createZombieDog(x, y) {
-    return new CircleEnemy(x, y, {
-        name: 'Zombie Dog',
-        hp: 60, maxHp: 60,
-        size: 12, collisionRadius: 10,
-        speed: 56.25,
-        level: 2,
-        color: '#d4cfc0',
-        highlightColor: 'rgba(212, 207, 192, 0.3)',
-        str: 10, dex: 20, con: 10, int: 2, wis: 2, luck: 4,
-        rank: 'normal',
-        attackRange: 70,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 100, loseTimeout: 3000 },
-        attack: { type: 'thrust', cooldown: 600, dynamicRange: 70, width: 18, damageMin: 4, damageMax: 8, knockback: 5 },
-        showWeapon: false
+    const cfg = enemyConfigData.zombieDog;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: zombieDog');
+        return new ZombieDogEnemy(x, y, { name: 'zombieDog', hp: 60, maxHp: 60, size: 12, showWeapon: false });
+    }
+    return new ZombieDogEnemy(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
     });
 }
 
 function createSpitterZombie(x, y) {
-    return new CircleEnemy(x, y, {
-        name: 'Spitter Zombie',
-        hp: 120, maxHp: 120,
-        size: 14, collisionRadius: 12,
-        speed: 25,
-        level: 3,
-        color: '#7a3a8a',
-        highlightColor: 'rgba(122, 58, 138, 0.3)',
-        str: 14, dex: 10, con: 14, int: 3, wis: 3, luck: 5,
-        rank: 'elite',
-        attackRange: 250,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 150, loseTimeout: 3000 },
-        attack: { type: 'ranged', cooldown: 1500, range: 250, projectileSpeed: 8, damageMin: 8, damageMax: 15, knockback: 4 },
-        showWeapon: false
-    });
+    return createZombieFromConfig('spitterZombie', x, y);
 }
 
 function createFatZombie(x, y) {
-    return new CircleEnemy(x, y, {
-        name: 'Fat Zombie',
-        hp: 200, maxHp: 200,
-        size: 18, collisionRadius: 16,
-        speed: 18.75,
-        level: 4,
-        color: '#5a7a5a',
-        highlightColor: 'rgba(90, 122, 90, 0.3)',
-        str: 18, dex: 6, con: 20, int: 3, wis: 3, luck: 5,
-        rank: 'elite',
-        attackRange: 90,
-        aiInterval: 2000,
-        ai: { aggroRange: 9999, pacingRange: 150, loseTimeout: 3000 },
-        attack: { type: 'thrust', cooldown: 1200, dynamicRange: 90, width: 25, damageMin: 8, damageMax: 15, knockback: 10 },
-        showWeapon: false
-    });
+    return createZombieFromConfig('fatZombie', x, y);
 }
 
 
 const ZOMBIE_DUNGEON_CONFIG = {
     name: '僵尸地牢',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
-
-    // 路线配置
-    routeCount: 4,
-    minEventsPerRoute: 5,
-    maxEventsPerRoute: 8,
-
-    // 事件概率
-    eventWeights: {
-        combat: 0.85,
-        random: 0.15
-    },
 
     // 战斗波次
     combatWaves: 3,
@@ -178,7 +97,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
         elite: [createSpitterZombie, createFatZombie]
     },
 
-    // 地图尺寸
+    // 地图尺寸（视觉范围，节点坐标由此推算）
     mapWidth: 2000,
     mapHeight: 1600,
 
@@ -186,33 +105,37 @@ const ZOMBIE_DUNGEON_CONFIG = {
     typeColors: {
         start:  '#3a5a3a',
         combat: '#7a3a3a',
+        event:  '#6a5a3a',
         shop:   '#3a5a7a',
-        random: '#6a5a3a',
         boss:   '#7a0000',
+        reward: '#5a3a7a',
         converge: '#5a3a5a'
     },
     typeBorderColors: {
         start:  '#6aca6a',
         combat: '#aa5a5a',
+        event:  '#9a8a5a',
         shop:   '#5a8aaa',
-        random: '#9a8a5a',
         boss:   '#aa0000',
+        reward: '#8a5aaa',
         converge: '#8a5a8a'
     },
     typeIcons: {
         start:  '▶',
         combat: '⚔',
+        event:  '?',
         shop:   '🏪',
-        random: '?',
         boss:   '☠',
+        reward: '🎁',
         converge: '◎'
     },
     typeLabels: {
         start:  '起点',
         combat: '战斗',
+        event:  '事件',
         shop:   '商店',
-        random: '事件',
         boss:   'BOSS',
+        reward: '奖励',
         converge: '汇合'
     }
 };
@@ -221,59 +144,174 @@ const ZOMBIE_DUNGEON_CONFIG = {
 export class ZombieDungeonMapGenerator {
     constructor(config = ZOMBIE_DUNGEON_CONFIG) {
         this.config = config;
+        this._genCfg = DungeonConfig.getZombieDungeonConfig();
     }
 
     /**
      * 生成地图节点和边
-     * 非交叉网格布局：4行 × N列，水平/垂直边 only
-     * 左侧4个起点（每行一个），右侧1个BOSS
+     * 非交叉网格布局：rows行 × N列，水平/垂直边 only
+     * 左侧起点，右侧BOSS，BOSS之后奖励节点
+     * 主通道（mainRow）保证最短路径上有 shortestCombatPath 场战斗
      */
     generate() {
-        const nodes = [];
-        const edges = [];
-        const { mapWidth, mapHeight } = this.config;
+        const cfg = this._genCfg;
+        const rows = cfg.grid.rows;
+        const mainRow = cfg.grid.mainRow ?? 1;
+        const shortestCombatPath = cfg.shortestCombatPath;
+        const startRows = (cfg.startRows ?? [0, 1, 2, 3]).slice(0, rows);
 
-        const ROWS = 4;
-        const COLS = 12;
-        const colSpacing = mapWidth / (COLS + 1);
-        const rowSpacing = mapHeight / (ROWS + 1);
+        // 列：起点 + shortestCombatPath 个中间列 + boss + reward
+        const combatStartCol = 1;
+        const bossCol = combatStartCol + shortestCombatPath;
+        const rewardCol = bossCol + 1;
+        const totalCols = rewardCol + 1;
+
+        const colSpacing = cfg.grid.colSpacing;
+        const rowSpacing = cfg.grid.rowSpacing;
 
         // 生成节点
-        for (let col = 0; col < COLS; col++) {
-            let type;
-            if (col === 0) type = 'start';
-            else if (col === COLS - 1) type = 'boss';
-            else type = this._rollEventType();
+        const nodes = [];
 
-            let selectedRows;
-            if (col === 0) {
-                // 起点：4行各一个
-                selectedRows = [0, 1, 2, 3];
-            } else if (col === COLS - 1) {
-                // BOSS：单列中间
-                selectedRows = [1];
-            } else {
-                // 中间列：确保第1、2行存在（主通道），随机添加第0、3行
-                selectedRows = [1, 2];
-                if (Math.random() > 0.4) selectedRows.push(0);
-                if (Math.random() > 0.4) selectedRows.push(3);
-                selectedRows = [...new Set(selectedRows)].sort((a, b) => a - b);
-            }
+        // 起点列：所有起始行
+        for (const row of startRows) {
+            nodes.push(this._createNode(0, row, colSpacing, rowSpacing, 'start'));
+        }
 
+        // 中间列：主通道必有节点，其余行随机出现
+        const intermediateRowSets = [];
+        for (let col = combatStartCol; col < bossCol; col++) {
+            const selectedRows = this._rollIntermediateRows(rows, mainRow);
+            intermediateRowSets.push({ col, selectedRows });
+        }
+
+        // 调整节点总数到目标区间
+        this._adjustNodeCount(intermediateRowSets, rows, mainRow);
+
+        for (const { col, selectedRows } of intermediateRowSets) {
             for (const row of selectedRows) {
-                const x = colSpacing * (col + 1);
-                const y = rowSpacing * (row + 1);
-                nodes.push({
-                    id: `node_${col}_${row}`,
-                    col, row, x, y, type,
-                    route: row,
-                    stage: col
-                });
+                const isMain = row === mainRow;
+                const type = isMain ? 'combat' : this._rollIntermediateType(cfg.typeRatios);
+                nodes.push(this._createNode(col, row, colSpacing, rowSpacing, type));
             }
         }
 
+        // Boss 列
+        nodes.push(this._createNode(bossCol, mainRow, colSpacing, rowSpacing, 'boss'));
+
+        // 奖励节点列
+        nodes.push(this._createNode(rewardCol, mainRow, colSpacing, rowSpacing, 'reward'));
+
+        // 建边
+        const edges = this._buildEdges(nodes, totalCols);
+
+        return { nodes, edges };
+    }
+
+    _createNode(col, row, colSpacing, rowSpacing, type) {
+        return {
+            id: `node_${col}_${row}`,
+            col,
+            row,
+            x: colSpacing * (col + 1),
+            y: rowSpacing * (row + 1),
+            type,
+            originalType: type,
+            route: row,
+            stage: col,
+            completed: false,
+            revealed: false
+        };
+    }
+
+    /**
+     * 随机选择中间列的行集合
+     * 必须包含主通道行，再随机包含 1~rows-1 个其他行
+     */
+    _rollIntermediateRows(rows, mainRow) {
+        const otherRows = [];
+        for (let r = 0; r < rows; r++) {
+            if (r !== mainRow) otherRows.push(r);
+        }
+        const count = 1 + Math.floor(Math.random() * otherRows.length);
+        for (let i = otherRows.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [otherRows[i], otherRows[j]] = [otherRows[j], otherRows[i]];
+        }
+        const selected = otherRows.slice(0, count);
+        selected.push(mainRow);
+        return selected.sort((a, b) => a - b);
+    }
+
+    /** 按配置比例随机抽取中间节点类型 */
+    _rollIntermediateType(ratios) {
+        const roll = Math.random();
+        const combatWeight = ratios?.combat ?? 0.7;
+        return roll < combatWeight ? 'combat' : 'event';
+    }
+
+    /**
+     * 调整中间列行集合，使总节点数落在配置区间内
+     * 主通道行不会被移除
+     */
+    _adjustNodeCount(intermediateRowSets, rows, mainRow) {
+        const cfg = this._genCfg;
+        const min = cfg.nodeCount.min;
+        const max = cfg.nodeCount.max;
+        const fixedCount = cfg.startRows.length + 2; // 起点 + boss + reward
+
+        const countNodes = () => fixedCount + intermediateRowSets.reduce((sum, rs) => sum + rs.selectedRows.length, 0);
+
+        const otherRowsFor = () => {
+            const all = [];
+            for (let r = 0; r < rows; r++) {
+                if (r !== mainRow) all.push(r);
+            }
+            return all;
+        };
+
+        // 先扩容：如果总数不足，向已有集合添加缺失的额外行
+        let total = countNodes();
+        while (total < min) {
+            const candidates = intermediateRowSets.filter(rs => {
+                const extras = rs.selectedRows.filter(r => r !== mainRow).length;
+                return extras < rows - 1;
+            });
+            if (candidates.length === 0) break;
+            const rs = candidates[Math.floor(Math.random() * candidates.length)];
+            const missing = otherRowsFor().filter(r => !rs.selectedRows.includes(r));
+            if (missing.length > 0) {
+                rs.selectedRows.push(missing[Math.floor(Math.random() * missing.length)]);
+                rs.selectedRows.sort((a, b) => a - b);
+            }
+            total = countNodes();
+        }
+
+        // 再缩容：如果总数过多，从有多余额外行的列中移除一个额外行
+        while (total > max) {
+            const candidates = intermediateRowSets.filter(rs => {
+                const extras = rs.selectedRows.filter(r => r !== mainRow).length;
+                return extras > 1;
+            });
+            if (candidates.length === 0) break;
+            const rs = candidates[Math.floor(Math.random() * candidates.length)];
+            const extras = rs.selectedRows.filter(r => r !== mainRow);
+            const remove = extras[Math.floor(Math.random() * extras.length)];
+            rs.selectedRows = rs.selectedRows.filter(r => r !== remove);
+            total = countNodes();
+        }
+    }
+
+    /** 构建水平/垂直边，确保无交叉 */
+    _buildEdges(nodes, totalCols) {
+        const nodeMap = new Map();
+        for (const n of nodes) {
+            nodeMap.set(n.id, n);
+        }
+
+        const edges = [];
+
         // 垂直边：同一列相邻行之间（双向）
-        for (let col = 0; col < COLS; col++) {
+        for (let col = 0; col < totalCols; col++) {
             const colNodes = nodes.filter(n => n.col === col).sort((a, b) => a.row - b.row);
             for (let i = 0; i < colNodes.length - 1; i++) {
                 edges.push({ from: colNodes[i].id, to: colNodes[i + 1].id });
@@ -281,24 +319,24 @@ export class ZombieDungeonMapGenerator {
             }
         }
 
-        // 水平边：相邻列同一行之间（单向，只能向右）
-        for (let col = 0; col < COLS - 1; col++) {
+        // 水平边：相邻列同一行之间（单向向右）
+        for (let col = 0; col < totalCols - 1; col++) {
             const colNodes = nodes.filter(n => n.col === col);
             const nextColNodes = nodes.filter(n => n.col === col + 1);
             for (const node of colNodes) {
-                const nextNode = nextColNodes.find(n => n.row === node.row);
-                if (nextNode) {
-                    edges.push({ from: node.id, to: nextNode.id });
+                const next = nextColNodes.find(n => n.row === node.row);
+                if (next) {
+                    edges.push({ from: node.id, to: next.id });
                 }
             }
         }
 
         // 保险：确保相邻列之间至少有一条横向连接
-        for (let col = 0; col < COLS - 1; col++) {
+        for (let col = 0; col < totalCols - 1; col++) {
             const hasHorizontal = edges.some(e => {
-                const fromNode = nodes.find(n => n.id === e.from);
-                const toNode = nodes.find(n => n.id === e.to);
-                return fromNode && toNode && fromNode.col === col && toNode.col === col + 1;
+                const from = nodeMap.get(e.from);
+                const to = nodeMap.get(e.to);
+                return from && to && from.col === col && to.col === col + 1;
             });
             if (!hasHorizontal) {
                 const colNodes = nodes.filter(n => n.col === col);
@@ -313,19 +351,7 @@ export class ZombieDungeonMapGenerator {
             }
         }
 
-        return { nodes, edges };
-    }
-
-    /** 按权重随机抽取事件类型 */
-    _rollEventType() {
-        const weights = this.config.eventWeights;
-        const roll = Math.random();
-        let cumulative = 0;
-        for (const [type, weight] of Object.entries(weights)) {
-            cumulative += weight;
-            if (roll < cumulative) return type;
-        }
-        return 'combat';
+        return edges;
     }
 }
 

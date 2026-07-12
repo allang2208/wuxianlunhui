@@ -8,6 +8,7 @@ export const EquipDataManager = {
         weapon: { weaponId: 'weapon1', name: '生锈的长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', equipImage: 'assets/weapons/1-rusty_sword_euip.png', category: 'weapon_melee', equipSlot: 'weapon', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%', pos: true }], desc: '一把锈迹斑斑的旧剑', level: 1, rarity: 'common', weaponType: 'sword',
             attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
             attackFormula: { base: 12, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.8, perEnhance: 0.2 }, { key: 'dex', base: 0.8, perEnhance: 0.2 }] } },
+        weapon2: null,
         armor: { name: '旧皮甲', type: '盔甲', icon: '🛡', iconImage: 'assets/icons/armor_icon.png', equipSlot: 'armor', stats: [{ name: '物理防御', value: '+5', pos: true }, { name: '最大生命', value: '+25', pos: true }, { name: '韧性', value: '+2', pos: true }], desc: '不知道传了多少手的皮甲', level: 1, rarity: 'common' },
         offhand: null,
         ring1: null,

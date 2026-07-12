@@ -63,11 +63,17 @@ export const TWO_HANDED_WEAPONS = ['pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 
 
 export const isOneHanded = (arg) => {
     if (typeof arg === 'string') return ONE_HANDED_WEAPONS.includes(arg); // 旧接口兼容
-    return arg && !arg.isTwoHanded;
+    if (!arg) return false;
+    if (typeof arg.isTwoHanded === 'boolean') return !arg.isTwoHanded;
+    if (arg.weaponType) return ONE_HANDED_WEAPONS.includes(arg.weaponType);
+    return false;
 };
 export const isTwoHanded = (arg) => {
     if (typeof arg === 'string') return TWO_HANDED_WEAPONS.includes(arg); // 旧接口兼容
-    return arg && !!arg.isTwoHanded;
+    if (!arg) return false;
+    if (typeof arg.isTwoHanded === 'boolean') return arg.isTwoHanded;
+    if (arg.weaponType) return TWO_HANDED_WEAPONS.includes(arg.weaponType);
+    return false;
 };
 
 export function getGunAmmoCapacity(weaponId) {

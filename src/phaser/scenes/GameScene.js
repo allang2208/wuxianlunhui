@@ -16,11 +16,13 @@ import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
+import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
 import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon } from '../../config/gun-ammo.js';
+import { ExpeditionSystem } from '../../ui/expedition-system.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -38,6 +40,8 @@ export class GameScene extends Scene {
 
         // 初始化标志（必须在 setupColliders 之前）
         this._collidersSet = false;
+        this._playerAttackStartTime = 0;
+        this._playerAttackDuration = 667;
         // Velocity 驱动开关（默认关闭，避免与原有移动逻辑冲突）
         // 如需手动测试，可在控制台执行：__phaserScene._useVelocityDrive = true
         this._useVelocityDrive = false;
@@ -207,9 +211,11 @@ export class GameScene extends Scene {
                 this._syncFlyingFireball(_game.player);
                 // Phase 续：同步无人机
                 this._syncDrone(_game.player);
-                // 同步主手/副手武器 Sprite
-                this.syncWeapon(_game.player, _game.player.weaponAnim);
-                this.syncOffhandWeapon(_game.player, _game.player.offhandWeaponAnim);
+                // 同步主手/副手武器 Sprite（传入后坐力/抖动参数）
+                const mainParams = { ..._game.player._getWeaponAnimParams(), state: _game.player.weaponAnim.state, timer: _game.player.weaponAnim.timer, isAttacking: _game.player.weaponAnim.isAttacking };
+                const offParams = { ..._game.player._getOffhandWeaponAnimParams(), state: _game.player.offhandWeaponAnim.state, timer: _game.player.offhandWeaponAnim.timer, isAttacking: _game.player.offhandWeaponAnim.isAttacking };
+                this.syncWeapon(_game.player, mainParams);
+                this.syncOffhandWeapon(_game.player, offParams);
             }
         }
 
@@ -294,10 +300,16 @@ export class GameScene extends Scene {
             this.playerSprite.body.reset(Game.player.x, Game.player.y);
         }
 
-        // 同步所有敌人（只有已创建 Phaser Sprite 的才同步，不自动创建）
+        // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
         Game.entities.forEach((entity) => {
             if (!entity || !entity.active || entity === Game.player) return;
-            if (!entity._phaserSprite) return; // 没有 Phaser Sprite 的不自动创建
+            if (entity._faction === 'enemy' && (!entity._phaserSprite || !entity._phaserSprite.active)) {
+                const wanted = (typeof entity._getTextureKey === 'function')
+                    ? entity._getTextureKey()
+                    : 'enemy_circle';
+                this.getOrCreateEnemySprite(entity, wanted);
+            }
+            if (!entity._phaserSprite) return;
             // 直接同步 Sprite 位置，确保贴图与逻辑位置一致
             let syncX = entity.x, syncY = entity.y;
             if (entity._attackDashOffset > 0 && !entity._dashBlocked) {
@@ -310,6 +322,9 @@ export class GameScene extends Scene {
             entity._phaserSprite.setPosition(syncX, syncY);
             if (entity._phaserSprite.body) {
                 entity._phaserSprite.body.reset(syncX, syncY);
+            }
+            if (entity._faction === 'enemy') {
+                this._syncEnemyAnimation(entity);
             }
             // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
             // if (entity.rotation !== undefined) {
@@ -346,17 +361,20 @@ export class GameScene extends Scene {
 
     _createPlayerSprite() {
         // 创建占位精灵，后续由外部 Player 系统接管控制
-        // 锚点设在脚底中心（0.5,1），使贴图位置与碰撞体积中心对齐
+        // 锚点设在贴图中心（0.5,0.5），使碰撞圆中心与贴图中心、逻辑位置三者对齐
         const PLAYER_SPRITE_SIZE = 120;
         this.playerSprite = this.physics.add.sprite(0, 0, 'player_idle');
-        this.playerSprite.setOrigin(0.5, 1);
+        this.playerSprite.setOrigin(0.5, 0.5);
         this.playerSprite.setDisplaySize(PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE);
         this.playerSprite.setDepth(100);
         this.playerSprite.setVisible(false); // 初始隐藏，等玩家生成后再显示
         // 配置物理体：无重力（俯视角），设置碰撞圆，消除阻力
         const body = this.playerSprite.body;
         body.setGravity(0, 0);
-        body.setCircle(18); // 与 Player.collisionRadius 一致
+        const worldRadius = PLAYER_DEFAULTS.physics.collisionRadius;
+        const scale = this.playerSprite.scaleX || 1;
+        const bodyR = Math.max(1, Math.round(worldRadius / scale));
+        body.setCircle(bodyR);
         body.setImmovable(false);
         // 消除物理引擎的阻力，让速度完全由代码控制
         body.setDrag(0);
@@ -386,9 +404,38 @@ export class GameScene extends Scene {
 
     _onEnemySpawn(data) {
         const enemySprite = this.physics.add.sprite(data.x, data.y, data.texture || 'enemy_spider');
-        enemySprite.setOrigin(0.5, 1);
+        enemySprite.setOrigin(0.5, 0.5);
         enemySprite.setData('enemyId', data.id);
+        this._configureEnemyBody(enemySprite, data.enemyRef || { size: 14, collisionRadius: 14 });
         this.enemies.add(enemySprite);
+    }
+
+    /**
+     * 统一配置敌人 Sprite 的显示尺寸与碰撞体，使碰撞圆中心对齐贴图中心
+     */
+    _configureEnemyBody(sprite, enemy) {
+        const body = sprite.body;
+        if (!body) return;
+        body.setGravity(0, 0);
+        const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
+        const spriteSize = options.spriteSize || (enemy.size || 14) * 4;
+        sprite.setDisplaySize(spriteSize, spriteSize);
+        sprite.setOrigin(0.5, 0.5);
+        const worldRadius = (enemy.collisionRadius || enemy.size || 14) * 2;
+        const scale = sprite.scaleX || 1;
+        const bodyR = Math.max(1, Math.round(worldRadius / scale));
+        body.setCircle(bodyR);
+        body.setImmovable(false);
+        if (options.tint !== undefined) {
+            sprite.setTint(options.tint);
+        }
+        if (options.frame !== undefined) {
+            try {
+                sprite.setFrame(options.frame);
+            } catch (_e) {
+                // 帧索引无效时忽略
+            }
+        }
     }
 
     // ---- 公共 API（供外部系统调用） ----
@@ -422,21 +469,25 @@ export class GameScene extends Scene {
         }
 
         if (key === 'idle') {
-            if (currentAnim && currentAnim !== 'player_idle') {
+            if (currentAnim && currentAnim.key !== 'player_idle') {
                 this.playerSprite.anims.stop();
             }
             this.playerSprite.setTexture('player_idle');
         } else if (key === 'walk') {
-            if (currentAnim !== 'player_walk') {
+            if (!currentAnim || currentAnim.key !== 'player_walk') {
                 this.playerSprite.play('player_walk', true);
             }
         } else if (key === 'run') {
-            if (currentAnim !== 'player_run') {
+            if (!currentAnim || currentAnim.key !== 'player_run') {
                 this.playerSprite.play('player_run', true);
             }
         } else if (key === 'attack_sword') {
             // 剑攻击动画：播放一次，完成后回到idle
+            if (currentAnim === 'player_attack_sword' && this.playerSprite.anims.isPlaying) return;
             this.playerSprite.play('player_attack_sword', true);
+            const animDef = this.anims.get('player_attack_sword');
+            this._playerAttackDuration = animDef ? (animDef.duration || 667) : 667;
+            this._playerAttackStartTime = performance.now();
             this.playerSprite.once('animationcomplete', () => {
                 this.setPlayerAnimation('idle');
             });
@@ -454,6 +505,15 @@ export class GameScene extends Scene {
 
         // 攻击/特殊动画期间不覆盖
         const weaponAnim = player.weaponAnim || {};
+        const currentItem = player.equipments[player.weaponMode];
+        const isMeleeWeapon = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
+        const currentAnimKey = this.playerSprite.anims.currentAnim?.key;
+        // 仅对近战武器做安全防护：逻辑层标记为攻击中，但剑攻击动画已停止，说明状态卡住，强制恢复
+        const isPlayingAttackAnim = isMeleeWeapon && currentAnimKey === 'player_attack_sword' && this.playerSprite.anims.isPlaying;
+        if (isMeleeWeapon && weaponAnim.isAttacking && !isPlayingAttackAnim) {
+            weaponAnim.isAttacking = false;
+            weaponAnim.state = 'idle';
+        }
         if (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle')) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
@@ -550,10 +610,7 @@ export class GameScene extends Scene {
                 this.weaponSprite.setPosition(pos.x, pos.y);
                 this.weaponSprite.setRotation(rot);
                 this.weaponSprite.setVisible(true);
-                
-                // 弓武器水平翻转：使用旋转镜像替代 setFlipX
-                // const bowFlipX = !facingRight;
-                // this.weaponSprite.setFlipX(bowFlipX);
+                this.weaponSprite.setFlipX(false);
                 
                 return;
             }
@@ -583,7 +640,34 @@ export class GameScene extends Scene {
         if (weaponAnim.isAttacking) {
             const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGun) {
-                // 近战武器：Tween 控制位置，直接返回
+                // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
+                const perFrameCfg = WeaponAnimConfig[wt]?.attack;
+                if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
+                    this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                    let progress = 0;
+                    if (this._playerAttackStartTime && this._playerAttackDuration > 0) {
+                        progress = Math.min(1, (performance.now() - this._playerAttackStartTime) / this._playerAttackDuration);
+                    } else {
+                        const currentAnim = this.playerSprite.anims.currentAnim;
+                        if (currentAnim && currentAnim.key === 'player_attack_sword' && this.playerSprite.anims.getProgress) {
+                            progress = this.playerSprite.anims.getProgress();
+                        }
+                    }
+                    const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+                    // 以右攻击为参考，朝左时翻转贴图并镜像位置/旋转
+                    const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true);
+                    if (pfPos) {
+                        const wx = facingRight ? pfPos.x : 2 * player.x - pfPos.x;
+                        const wrot = facingRight ? pfPos.rotation : -pfPos.rotation;
+                        this.weaponSprite.setPosition(wx, pfPos.y);
+                        this.weaponSprite.setRotation(wrot);
+                        this.weaponSprite.setFlipX(!facingRight);
+                        const wSize = WeaponTransform.getWeaponSize(wt, pfPos.scale, 'attack');
+                        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+                    }
+                    return;
+                }
+                // 否则：Tween 控制位置，直接返回
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
                 const wSize = WeaponTransform.getWeaponSize(wt, null, 'attack');
                 this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
@@ -687,69 +771,13 @@ export class GameScene extends Scene {
         let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
         
         // 应用关键帧偏移（覆盖默认位置）
-        if (keyframeOffset) {
-            const cfg = WeaponAnimConfig[wt];
-            const hasHandAnchors = cfg.handAnchors && typeof cfg.handAnchors === 'object';
-            
-            if (hasHandAnchors && kfAnimState) {
-                // ===== 挂载点系统（新）=====
-                // 获取基础挂载点
-                const handAnchors = cfg.handAnchors || {};
-                const anchor = handAnchors[kfAnimState] || handAnchors.idle || { x: 0, y: 0 };
-                
-                // 方向镜像
-                const anchorX = facingRight ? anchor.x : -anchor.x;
-                const anchorY = anchor.y;
-                
-                // 关键帧偏移（handOffsetX/Y）
-                const handOffsetX = keyframeOffset.offsetX || 0;
-                const handOffsetY = keyframeOffset.offsetY || 0;
-                
-                // 手部世界位置 = 玩家位置 + 挂载点 + 关键帧偏移
-                const playerX = player.x;
-                const playerY = player.y;
-                const handWorldX = playerX + anchorX + handOffsetX;
-                const handWorldY = playerY + anchorY + handOffsetY;
-                
-                // gripOffset 旋转后的位置
-                const gripOffset = cfg.gripOffset || { x: 0, y: 0 };
-                const rotationRad = (keyframeOffset.rotation || 0) * Math.PI / 180;
-                const cos = Math.cos(rotationRad);
-                const sin = Math.sin(rotationRad);
-                const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
-                const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
-                
-                // 武器位置 = 手部位置 + gripOffset 旋转后
-                pos.x = handWorldX + gripRotatedX;
-                pos.y = handWorldY + gripRotatedY;
-                
-                // 旋转
-                rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, kfAnimState, facingRight) + rotationRad;
-            } else {
-                // ===== 旧系统：直接替换 holdOffsetX/Y =====
-                const stateCfg = cfg[kfAnimState] || cfg;
-                const originalHoldX = stateCfg.holdOffsetX;
-                const originalHoldY = stateCfg.holdOffsetY;
-                const originalRot = stateCfg.idleRotation;
-                const originalScale = stateCfg.idleScale;
-                
-                if (!cfg[kfAnimState]) cfg[kfAnimState] = {};
-                cfg[kfAnimState].holdOffsetX = keyframeOffset.offsetX;
-                cfg[kfAnimState].holdOffsetY = keyframeOffset.offsetY;
-                cfg[kfAnimState].idleRotation = keyframeOffset.rotation;
-                cfg[kfAnimState].idleScale = keyframeOffset.scale;
-                
-                const worldPos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-                pos.x = worldPos.x;
-                pos.y = worldPos.y;
-                
-                cfg[kfAnimState].holdOffsetX = originalHoldX;
-                cfg[kfAnimState].holdOffsetY = originalHoldY;
-                cfg[kfAnimState].idleRotation = originalRot;
-                cfg[kfAnimState].idleScale = originalScale;
-                
-                rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
-            }
+        if (keyframeOffset && kfAnimState) {
+            const kfPos = WeaponTransform.getKeyframedWeaponPosition(
+                player, wt, kfAnimState, keyframeOffset, useFixedRot ? 0 : player.rotation, facingRight
+            );
+            pos.x = kfPos.x;
+            pos.y = kfPos.y;
+            rot = kfPos.rotation;
         }
         
         // 应用后坐力偏移
@@ -774,6 +802,7 @@ export class GameScene extends Scene {
         this.weaponSprite.setPosition(pos.x, pos.y);
         this.weaponSprite.setRotation(rot);
         this.weaponSprite.setVisible(!this._useCanvasWeapon);
+        this.weaponSprite.setFlipX(false);
         
         // 武器水平翻转：使用 setScale(-1, 1) 替代 setFlipX，同时翻转位置和贴图
         // 注意：位置已经在 localToWorld 中镜像，这里只需要翻转贴图
@@ -1464,11 +1493,14 @@ export class GameScene extends Scene {
         const size = entity.size || 14;
         const x = entity.x;
         const y = entity.y;
+        const displayH = (entity._phaserSprite && entity._phaserSprite.active)
+            ? entity._phaserSprite.displayHeight
+            : size * 3;
 
         if (isBoss) {
             const barW = 80, barH = 8, border = 2;
             const barX = x - barW / 2;
-            const barY = y - size - 50;
+            const barY = y - displayH / 2 - 12;
             // 背景
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - border, barY - border, barW + border * 2, barH + border * 2);
@@ -1496,7 +1528,7 @@ export class GameScene extends Scene {
             // Boss 名字+等级
             const nameText = this._getEntityHudText(entity, 'bossName');
             nameText.setText(`${entity.name}\nLv.${entity.level || '?'} 首领`);
-            nameText.setPosition(x, y - size - 48);
+            nameText.setPosition(x, y - displayH / 2 - 10);
             nameText.setVisible(true);
             return;
         }
@@ -1506,7 +1538,7 @@ export class GameScene extends Scene {
             const cfg = entity._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
             const barW = cfg.width || 28;
             const barH = cfg.height || 4;
-            const barY = y - size + (cfg.offsetY || -30);
+            const barY = y - displayH / 2 + (cfg.offsetY || -8);
             const barX = x - barW / 2;
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
@@ -1518,7 +1550,7 @@ export class GameScene extends Scene {
         }
 
         // 名字标签：掉落物、NPC、训练靶等自带标签，跳过避免重叠
-        const hasOwnLabel = entity.npcType || entity._dpsTracking !== undefined || (entity.itemData !== undefined);
+        const hasOwnLabel = entity.noNameLabel || entity.npcType || entity._dpsTracking !== undefined || (entity.itemData !== undefined);
         if (hasOwnLabel) {
             // 隐藏之前可能已创建的名字文本
             for (const [key, text] of this._entityHudTexts.entries()) {
@@ -1530,7 +1562,7 @@ export class GameScene extends Scene {
         }
         const nameText = this._getEntityHudText(entity, 'name');
         nameText.setText(entity.name || '');
-        nameText.setPosition(x, y - size - 32);
+        nameText.setPosition(x, y - displayH / 2 - 6);
         nameText.setVisible(true);
     }
 
@@ -1542,8 +1574,12 @@ export class GameScene extends Scene {
         const size = player.size || 18;
         const x = player.x;
         const y = player.y;
+        // 以实际贴图高度为基准，避免状态条与贴图错位
+        const displayH = (this.playerSprite && this.playerSprite.active)
+            ? this.playerSprite.displayHeight
+            : size * 3;
         const barW = 40, barH = 6;
-        const barY = y - size - 28;
+        const barY = y - displayH / 2 - 8; // 头顶上方
         const barX = x - barW / 2;
 
         // 血量背景
@@ -1571,7 +1607,7 @@ export class GameScene extends Scene {
         const stMax = data.maxStamina || 1;
         const st = data.stamina ?? stMax;
         const stPercent = Math.max(0, Math.min(1, st / stMax));
-        const stY = y + size + 36;
+        const stY = y + displayH / 2 + 6; // 紧贴脚底下方
         const stX = x - stBarW / 2;
         this.worldHudGraphics.fillStyle(0x000000, 0.6);
         this.worldHudGraphics.fillRect(stX, stY, stBarW, stBarH);
@@ -1681,9 +1717,48 @@ export class GameScene extends Scene {
         return { color: defaultColor, alpha: defaultAlpha };
     }
 
+    /**
+     * 清理战斗场景残留的视觉对象（传送门、敌人、掉落物 Sprite）
+     * 供 DungeonMapSystem 在离开战斗/清理战斗时调用
+     */
+    clearCombatView() {
+        // 清理中立 Sprite（传送门标签等）
+        if (this._neutralSprites) {
+            for (const data of this._neutralSprites.values()) {
+                if (data.sprite && data.sprite.active) data.sprite.destroy();
+                if (data.label && data.label.active) data.label.destroy();
+            }
+            this._neutralSprites.clear();
+        }
+        // 清理敌人 Sprite
+        if (this.enemies) {
+            this.enemies.clear(true, true);
+        }
+        // 清理掉落物 Sprite/标签
+        if (this.dropItemsGroup) {
+            this.dropItemsGroup.clear(true, true);
+        }
+        // 清理世界 HUD 文本缓存中指向已销毁对象的条目
+        for (const text of this._entityHudTexts.values()) {
+            if (text && text.active) text.destroy();
+        }
+        this._entityHudTexts.clear();
+    }
+
     _syncCrosshair(g) {
         const player = window.Game && window.Game.player;
         if (!player) return;
+        // 出征面板或地牢地图模式：强制恢复默认鼠标指针，避免与地图/面板交互冲突
+        const isDungeonNonCombat = DungeonMapSystem && DungeonMapSystem.active &&
+            (DungeonMapSystem.state === 'map' || DungeonMapSystem.state === 'event' ||
+             DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'reward');
+        if ((ExpeditionSystem && ExpeditionSystem._isOpen) || isDungeonNonCombat) {
+            if (this._lastCursorStyle !== 'default') {
+                document.body.style.cursor = 'default';
+                this._lastCursorStyle = 'default';
+            }
+            return;
+        }
         const currentWeapon = player.equipments[player.weaponMode];
         const isBowWeapon = currentWeapon && currentWeapon.weaponType === 'bow';
         const wantCursor = (!currentWeapon || (!isGunWeapon(currentWeapon) && !isBowWeapon)) ? 'default' : 'none';
@@ -1694,7 +1769,8 @@ export class GameScene extends Scene {
         if (wantCursor === 'default') return;
         const mx = Input.mouse.x;
         const my = Input.mouse.y;
-        let spreadFactor = player._currentSpreadFactor || 0;
+        let spreadFactor = (player._currentSpreadFactor || 0) + (player._crosshairShotKick || 0);
+        spreadFactor = Math.min(1, spreadFactor);
         if (!this._crosshairSpread) this._crosshairSpread = 0;
         const crosshairCfg = GAME_CONFIG.crosshair || {};
         const lerpSpeed = crosshairCfg.lerpSpeed || 0.3;
@@ -1878,6 +1954,8 @@ export class GameScene extends Scene {
             if (!e || e === player) continue;
             if (e._phaserSprite && e._phaserSprite.active) continue;
             if (!e.active) continue;
+            // 敌人由 _syncEntityHud 统一绘制名字/血条，避免重复标签
+            if (e._faction === 'enemy') continue;
             active.add(e);
 
             let data = this._neutralSprites.get(e);
@@ -2025,23 +2103,56 @@ export class GameScene extends Scene {
     /**
      * 为敌人创建或获取 Phaser Sprite
      */
-    getOrCreateEnemySprite(enemy, texture = 'enemy_spider') {
+    getOrCreateEnemySprite(enemy, texture = 'enemy_circle') {
+        const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
         if (!enemy._phaserSprite || !enemy._phaserSprite.active) {
-            const sprite = this.physics.add.sprite(enemy.x, enemy.y, texture);
-            sprite.setOrigin(0.5, 1);
+            const sprite = this.physics.add.sprite(enemy.x, enemy.y, safeTexture);
+            sprite.setOrigin(0.5, 0.5);
             sprite.setData('enemyId', enemy.id || enemy.name);
             sprite.setDepth(50);
-            // 配置物理体：无重力，碰撞圆
-            const body = sprite.body;
-            body.setGravity(0, 0);
-            body.setCircle((enemy.collisionRadius || enemy.size || 20) * 2);
-            body.setImmovable(false);
+            this._configureEnemyBody(sprite, enemy);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;
-        } else if (enemy._phaserSprite.texture.key !== texture) {
+        } else if (enemy._phaserSprite.texture.key !== safeTexture) {
             // 纹理变化时切换（如黑狼左右/上下精灵图切换）
-            enemy._phaserSprite.setTexture(texture);
+            enemy._phaserSprite.setTexture(safeTexture);
         }
         return enemy._phaserSprite;
+    }
+
+    /**
+     * 同步敌人动画状态与水平朝向（用于僵尸犬等带帧动画的敌人）
+     */
+    _syncEnemyAnimation(enemy) {
+        const sprite = enemy._phaserSprite;
+        if (!sprite || !sprite.active) return;
+        const options = (typeof enemy._getPhaserOptions === 'function') ? enemy._getPhaserOptions() : {};
+        // 同步纹理键（动画状态变化时需要切到对应 spritesheet/image）
+        const wanted = (typeof enemy._getTextureKey === 'function') ? enemy._getTextureKey() : 'enemy_circle';
+        const safeTexture = this.textures.exists(wanted) ? wanted : 'enemy_circle';
+        if (sprite.texture.key !== safeTexture) {
+            sprite.setTexture(safeTexture);
+        }
+        if (options.flipX !== undefined) {
+            sprite.setFlipX(options.flipX);
+        }
+        if (options.frame !== undefined) {
+            try {
+                sprite.setFrame(options.frame);
+            } catch (_e) {
+                // 帧索引无效时忽略
+            }
+        }
+        const animState = options.animState;
+        if (!animState) return;
+        const animKey = 'zombie_dog_' + animState;
+        if (!this.anims.exists(animKey)) {
+            sprite.anims.stop();
+            return;
+        }
+        const current = sprite.anims.currentAnim;
+        if (!current || current.key !== animKey) {
+            sprite.anims.play(animKey, true);
+        }
     }
 }

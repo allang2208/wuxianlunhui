@@ -75,12 +75,18 @@ onLevelUp(level) {
             },
 
 takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
-                // 主神空间（场景一）无敌
-                if (SceneManager.currentScene === 'main') return;
+                // 主神空间（场景一）无敌：使用独立标志，避免 currentScene 不同步导致泄漏
+                if (SceneManager._inMainHub) return;
                 // 闪避无敌期间不受伤害
                 if (this.dodgeInvincible) return;
                 // 已死亡不处理
                 if (this._isDead) return;
+                // 伤害值安全校验，防止 undefined/NaN 导致 HP 异常
+                let finalDamage = Number(damage);
+                if (!Number.isFinite(finalDamage) || finalDamage < 0) {
+                    console.warn('[Player.takeDamage] 非法伤害值:', damage);
+                    finalDamage = 0;
+                }
                 const d = this.data;
                 const critRate = (source && source.data && source.data.crit) || 0;
                 const critRes = (d && d.critRes) || 0;
@@ -95,7 +101,6 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 const finalCritRate = Math.max(0, critRate + enchantCritBonus - critRes);
                 const isCrit = Math.random() * 100 < finalCritRate;
                 // 应用暴击伤害加成
-                let finalDamage = damage;
                 // 次级格挡：装备宽十字护手时，受到攻击有50%概率减少50%伤害
                 if (this.equipments && this.weaponMode) {
                     const currentWpn = this.equipments[this.weaponMode];
@@ -107,7 +112,7 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 }
                 if (isCrit && source && source.skills && source.skills.criticalStrike) {
                     const csEffect = source.skills.criticalStrike.getEffect(source.skills.criticalStrike.level);
-                    finalDamage = Math.floor(damage * (1 + csEffect.damageBonus));
+                    finalDamage = Math.floor(finalDamage * (1 + csEffect.damageBonus));
                 }
                 // 盾防御系统处理
                 if (this.shieldSystem && this.shieldSystem.active && this.shieldSystem.defending) {
@@ -128,6 +133,10 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                     finalDamage = Math.floor(finalDamage * (1 + droneBonus));
                 }
                 d.hp -= finalDamage;
+                if (Number.isNaN(d.hp)) {
+                    console.error('[Player.takeDamage] HP 异常，已重置为 0', { finalDamage, previousHp: d.hp });
+                    d.hp = 0;
+                }
                 this.hitFlash = this.hitFlashDuration;
                 EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
                 if (isCrit) EffectManager.triggerCritEffects();
@@ -666,6 +675,10 @@ addAttribute(attr) {
 triggerDodge(moveInput) {
                 if (this._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止闪避
                 if (this.shieldSystem && this.shieldSystem.defending) return; // 防御状态禁止闪避
+                // 闪避取消当前攻击动画/Tween
+                if (this.weaponAnim && this.weaponAnim.isAttacking) {
+                    this.clearAttackTweens();
+                }
                 let dirX = moveInput.x, dirY = moveInput.y;
                 if (dirX === 0 && dirY === 0) { dirX = Math.cos(this.rotation); dirY = Math.sin(this.rotation); }
                 const len = Math.sqrt(dirX*dirX + dirY*dirY); if (len > 0) { dirX /= len; dirY /= len; }
@@ -701,6 +714,7 @@ triggerOffhandWeaponAnim() {
                 if (this.offhandWeaponAnim) {
                     this.offhandWeaponAnim.state = 'swing';
                     this.offhandWeaponAnim.timer = 0;
+                    this.offhandWeaponAnim.isAttacking = true;
                 }
             },
 
@@ -1220,6 +1234,9 @@ _spawnShellCasing(gunLX, gunLY, shellOffset, angle) {
 _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
+
+                // 每次实际开火给准星一个瞬时 kick
+                this._crosshairShotKick = 1.0;
 
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {

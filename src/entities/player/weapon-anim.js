@@ -101,7 +101,17 @@ const weaponAnimMixin = {
                         this._pendingThrust.active = false;
                     }
                 }
-                
+
+                // 远程武器在 swing 阶段发射子弹（放在 timer 检查之前，避免高射速武器 dt 过大跳过射击）
+                {
+                    const currentItem = this.equipments[this.weaponMode];
+                    const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
+                    const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
+                    if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) {
+                        this._fireRanged('main');
+                    }
+                }
+
                 anim.timer += dt;
                 if (anim.timer >= this._getAnimMs(wa.swingMs)) {
                     anim.state = 'recover';
@@ -112,14 +122,6 @@ const weaponAnimMixin = {
                     }
                 } else {
                     anim.angle = wa.windupAngle + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(anim.timer / this._getAnimMs(wa.swingMs));
-                    
-                    // 远程武器在 swing 阶段发射子弹
-                    const currentItem = this.equipments[this.weaponMode];
-                    const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
-                    const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
-                    if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) {
-                        this._fireRanged('main');
-                    }
                 }
                 break;
                 
@@ -150,6 +152,7 @@ const weaponAnimMixin = {
                     anim.state = 'idle';
                     anim.timer = 0;
                     anim.rotateAngle = 0;
+                    anim.isAttacking = false;
                 } else {
                     const t = anim.timer / 200;
                     const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -183,7 +186,7 @@ const weaponAnimMixin = {
                         break;
                     case 'recover':
                         offAnim.timer += dt;
-                        if (offAnim.timer >= offRecoverMs) { offAnim.state = 'idle'; offAnim.timer = 0; }
+                        if (offAnim.timer >= offRecoverMs) { offAnim.state = 'idle'; offAnim.timer = 0; offAnim.isAttacking = false; }
                         break;
                 }
             }
@@ -201,6 +204,7 @@ const weaponAnimMixin = {
             this.weaponAnim.state = 'swing';
             this.weaponAnim.timer = 0;
         }
+        this.weaponAnim.isAttacking = true;
         this.rangedFired = false;
         
         // 近战武器使用 Phaser Tween
@@ -209,14 +213,6 @@ const weaponAnimMixin = {
             const scene = window.__phaserScene;
             if (scene) {
                 this._playSwordAttackTween(scene, hand);
-                if (scene.playerSprite) {
-                    scene.playerSprite.play('player_attack_sword', true);
-                    scene.playerSprite.once('animationcomplete', () => {
-                        if (scene.playerSprite.anims.currentAnim?.key === 'player_attack_sword') {
-                            scene.playerSprite.setTexture('player_idle');
-                        }
-                    });
-                }
             }
         }
     },
@@ -224,11 +220,17 @@ const weaponAnimMixin = {
     // 剑类攻击 Tween 动画（支持关键帧）
     _playSwordAttackTween(scene, hand) {
         const anim = hand === 'offhand' ? this.offhandWeaponAnim : this.weaponAnim;
-        if (anim.isAttacking) return;
-        
+        // 防止同一手重复启动 Tween：只有当前没在攻击动画中才启动
+        if (anim.state === 'attacking') return;
+
         anim.isAttacking = true;
         anim.state = 'attacking';
-        
+
+        // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
+        if (hand === 'main' && scene.setPlayerAnimation) {
+            scene.setPlayerAnimation('attack_sword');
+        }
+
         const weaponSprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
         if (!weaponSprite) {
             anim.isAttacking = false;
@@ -245,9 +247,44 @@ const weaponAnimMixin = {
         const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
         const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType].attack;
         
-        const weaponCfg = WeaponAnimConfig[weaponType] || {};
-        const hasHandAnchors = weaponCfg.handAnchors && typeof weaponCfg.handAnchors === 'object';
         const facingRight = Math.abs(self.rotation) < Math.PI / 2;
+
+        // 逐帧模式：武器位置/旋转由 GameScene 按玩家攻击动画当前帧同步，Tween 只负责命中判定与状态重置
+        const perFrameCfg = WeaponAnimConfig[weaponType]?.attack;
+        if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
+            const animDef = scene.anims.get('player_attack_sword');
+            const totalDuration = animDef ? (animDef.duration || 900) : 900;
+
+            const attackTween = scene.tweens.add({
+                targets: { progress: 0 },
+                progress: 1,
+                duration: totalDuration,
+                ease: 'Linear',
+                onStart: function() {
+                    if (self._pendingThrust) self._pendingThrust.active = true;
+                },
+                onUpdate: function() {
+                    if (self._pendingThrust && self._pendingThrust.active) {
+                        if (Date.now() - self._pendingThrust.startTime <= 500) {
+                            self.attacks.melee.checkTriangleHit(self);
+                        } else {
+                            self._pendingThrust.active = false;
+                        }
+                    }
+                },
+                onComplete: function() {
+                    anim.isAttacking = false;
+                    anim.state = 'idle';
+                    if (self._pendingThrust) {
+                        self._pendingThrust.active = false;
+                        self.attacks.melee.giveExp(self);
+                        self._pendingThrust = null;
+                    }
+                }
+            });
+            this._activeAttackTweens.push(attackTween);
+            return;
+        }
         
         if (kfConfig && kfConfig.length >= 2) {
             anim.isAttacking = true;
@@ -276,67 +313,36 @@ const weaponAnimMixin = {
                     const segmentDuration = next.progress - prev.progress;
                     const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
                     
-                    const useHandAnchorSystem = hasHandAnchors && (
-                        prev.handOffsetX !== undefined || next.handOffsetX !== undefined
-                    );
-                    
-                    if (useHandAnchorSystem) {
-                        const handAnchors = weaponCfg.handAnchors || {};
-                        const anchor = handAnchors.attack || handAnchors.idle || { x: 0, y: 0 };
-                        const anchorX = facingRight ? anchor.x : -anchor.x;
-                        const anchorY = anchor.y;
-                        
-                        const handOffsetX = (prev.handOffsetX !== undefined ? prev.handOffsetX : 0) +
-                            ((next.handOffsetX !== undefined ? next.handOffsetX : 0) -
-                             (prev.handOffsetX !== undefined ? prev.handOffsetX : 0)) * t;
-                        const handOffsetY = (prev.handOffsetY !== undefined ? prev.handOffsetY : 0) +
-                            ((next.handOffsetY !== undefined ? next.handOffsetY : 0) -
-                             (prev.handOffsetY !== undefined ? prev.handOffsetY : 0)) * t;
-                        
-                        const playerX = self.x;
-                        const playerY = self.y;
-                        const handWorldX = playerX + anchorX + handOffsetX;
-                        const handWorldY = playerY + anchorY + handOffsetY;
-                        
-                        const gripOffset = weaponCfg.gripOffset || { x: 0, y: 0 };
-                        const rotation = (prev.rotation !== undefined ? prev.rotation : 0) +
-                            ((next.rotation !== undefined ? next.rotation : 0) -
-                             (prev.rotation !== undefined ? prev.rotation : 0)) * t;
-                        const rotationRad = rotation * Math.PI / 180;
-                        
-                        const cos = Math.cos(rotationRad);
-                        const sin = Math.sin(rotationRad);
-                        const gripRotatedX = cos * gripOffset.x - sin * gripOffset.y;
-                        const gripRotatedY = sin * gripOffset.x + cos * gripOffset.y;
-                        
-                        weaponSprite.x = handWorldX + gripRotatedX;
-                        weaponSprite.y = handWorldY + gripRotatedY;
-                        weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', facingRight) + rotationRad;
-                    } else {
-                        const offsetX = prev.offsetX + (next.offsetX - prev.offsetX) * t;
-                        const offsetY = prev.offsetY + (next.offsetY - prev.offsetY) * t;
-                        const rotation = prev.rotation + (next.rotation - prev.rotation) * t;
-                        
-                        const cfg = WeaponAnimConfig[weaponType] || {};
-                        const stateCfg = cfg['attack'] || cfg;
-                        const originalHoldX = stateCfg.holdOffsetX;
-                        const originalHoldY = stateCfg.holdOffsetY;
-                        const originalRot = stateCfg.idleRotation;
-                        
-                        stateCfg.holdOffsetX = offsetX;
-                        stateCfg.holdOffsetY = offsetY;
-                        stateCfg.idleRotation = rotation;
-                        
-                        const worldPos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'attack');
-                        
-                        stateCfg.holdOffsetX = originalHoldX;
-                        stateCfg.holdOffsetY = originalHoldY;
-                        stateCfg.idleRotation = originalRot;
-                        
-                        weaponSprite.x = worldPos.x;
-                        weaponSprite.y = worldPos.y;
-                        weaponSprite.rotation = WeaponTransform.getWeaponRotation(0, weaponType, 0, 'attack', Math.abs(self.rotation) < Math.PI / 2);
-                    }
+                    const rotation = (prev.rotation !== undefined ? prev.rotation : 0) +
+                        ((next.rotation !== undefined ? next.rotation : 0) -
+                         (prev.rotation !== undefined ? prev.rotation : 0)) * t;
+                    const scale = (prev.scale !== undefined ? prev.scale : 1) +
+                        ((next.scale !== undefined ? next.scale : 1) -
+                         (prev.scale !== undefined ? prev.scale : 1)) * t;
+
+                    // 关键帧数据优先使用 holdOffsetX/Y（当前主配置），并兼容 handOffsetX/Y / offsetX/Y
+                    const prevOffsetX = prev.holdOffsetX !== undefined ? prev.holdOffsetX :
+                        (prev.handOffsetX !== undefined ? prev.handOffsetX : prev.offsetX);
+                    const nextOffsetX = next.holdOffsetX !== undefined ? next.holdOffsetX :
+                        (next.handOffsetX !== undefined ? next.handOffsetX : next.offsetX);
+                    const prevOffsetY = prev.holdOffsetY !== undefined ? prev.holdOffsetY :
+                        (prev.handOffsetY !== undefined ? prev.handOffsetY : prev.offsetY);
+                    const nextOffsetY = next.holdOffsetY !== undefined ? next.holdOffsetY :
+                        (next.handOffsetY !== undefined ? next.handOffsetY : next.offsetY);
+
+                    const offsetX = (prevOffsetX !== undefined ? prevOffsetX : 0) +
+                        ((nextOffsetX !== undefined ? nextOffsetX : 0) -
+                         (prevOffsetX !== undefined ? prevOffsetX : 0)) * t;
+                    const offsetY = (prevOffsetY !== undefined ? prevOffsetY : 0) +
+                        ((nextOffsetY !== undefined ? nextOffsetY : 0) -
+                         (prevOffsetY !== undefined ? prevOffsetY : 0)) * t;
+
+                    const kfOffset = { offsetX, offsetY, rotation, scale };
+
+                    const kfPos = WeaponTransform.getKeyframedWeaponPosition(self, weaponType, 'attack', kfOffset, 0, facingRight);
+                    weaponSprite.x = kfPos.x;
+                    weaponSprite.y = kfPos.y;
+                    weaponSprite.rotation = kfPos.rotation;
                     
                     if (self._pendingThrust && self._pendingThrust.active) {
                         if (Date.now() - self._pendingThrust.startTime <= 500) {

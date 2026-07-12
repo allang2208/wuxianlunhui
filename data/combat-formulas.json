@@ -86,6 +86,7 @@
   "enemy": {
     "calculateCombatStats": {
       "attack": {
+        "base": 10,
         "strMultiplier": 2.0,
         "dexMultiplier": 0.5,
         "luckMultiplier": 0.2,

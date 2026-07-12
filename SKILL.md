@@ -1,6 +1,31 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.4
+## 版本: 1.5
+
+## 阶段性进度总结（2026-07-12）
+
+### 本次完成
+1. **怪物贴图兜底与碰撞扩大**：敌人无 Phaser Sprite 时自动创建 `enemy_circle` 占位；`getOrCreateEnemySprite` 默认纹理改为 `enemy_circle` 并加入缺失回退；敌人碰撞半径在 `_configureEnemyBody` 中扩大一倍。
+2. **毒液僵尸投射物调整**：速度从 `1080` → `540` → `270`，纹理改为绿色实心圆，显示尺寸缩小 30%（`this.size * 1.4`）。
+3. **地牢全图索敌**：`zombie-dungeon.js` 工厂给所有地牢僵尸覆盖 `aggroRange: 9999`、`alertRange: 9999`、`loseTimeout: 999999`。
+4. **战后传送门名称去重**：`_syncEntityHud` 识别 `entity.noNameLabel`，避免 `CombatExitPortal` 被重复画名字。
+5. **僵尸犬精灵图动画**：从外部素材库统一为 512×512 帧，输出 `zombie_dog_idle/walk/run/attack.png`；`BootScene` 加载并注册动画；新增 `ZombieDogEnemy` 类；`GameScene` 新增 `_syncEnemyAnimation` 同步纹理/翻转/动画状态。
+6. **主神空间测试用怪清理**：删除原来的 5 只测试圆形敌人，改为生成一只僵尸犬；每次回到主神空间自动清理怪物并重新生成。
+7. **Bug 修复（武器变圆）**：`_syncEnemyAnimation` 被错误对所有 `_phaserSprite` 实体执行，导致中立实体贴图被强制改为 `enemy_circle`。已限定为 `entity._faction === 'enemy'`。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/entities/enemy-types.js`
+- `src/world/zombie-dungeon.js`
+- `src/world/scene-manager.js`
+- `src/game.js`
+- `src/combat/projectile.js`
+- `data/enemy-config.json`
+
+### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
 
 ## 阶段性进度总结（2026-07-11）
 
@@ -31,6 +56,8 @@
 1. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误
 2. **所有精灵图在入代码前必须跑标准化脚本** — 统一内容大小和中心位置，避免代码手动调 spriteSize
 3. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
+4. **敌人动画同步必须限定 `_faction === 'enemy'`** — `_syncEnemyAnimation` 这类按实体刷新的逻辑只能作用于敌人，否则会把中立实体/掉落物/特效 Sprite 的纹理错误覆盖为 `enemy_circle`
+5. **外部素材导入前先检查实际帧布局** — 如僵尸犬 4096×4096 合并图是 8×8 的 512×512 网格，但有效帧可能只有一行；导入前用脚本/工具确认非空帧数，避免加载空白帧
 
 ---
 

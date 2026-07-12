@@ -64,13 +64,17 @@ class CombatSystemImpl {
         enemy.aiTimer += dt;
         if (enemy.aiTimer < enemy.aiInterval) return;
         // 需要目标存在
-        if (!enemy.target || !enemy.target.active) return;
+        if (!enemy.target || !enemy.target.active) {
+            return;
+        }
         const targetX = enemy.target.x;
         const targetY = enemy.target.y;
         // 距离检查：超出攻击范围不攻击
         const dx = targetX - enemy.x, dy = targetY - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > enemy.attackRange) return;
+        if (dist > enemy.attackRange) {
+            return;
+        }
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
         let isBlocked;
         if (enemy._perception && enemy._perception.lastLOSTargetId === enemy.target.id) {
@@ -81,7 +85,9 @@ class CombatSystemImpl {
             isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
         }
         // === END REFACTOR ===
-        if (isBlocked) return;
+        if (isBlocked) {
+            return;
+        }
 
         // === 真实武器系统路径（HumanoidMonster 等使用玩家同款武器）===
         if (enemy._isHumanoid && typeof enemy.fireProjectile === 'function') {
@@ -106,7 +112,9 @@ class CombatSystemImpl {
 
         // === 传统敌人路径 ===
         const attack = enemy.attacks.ranged || enemy.attacks.melee;
-        if (!attack || !attack.canUse()) return;
+        if (!attack || !attack.canUse()) {
+            return;
+        }
         enemy.aiTimer = 0;
         if (attack.use(enemy, targetX, targetY, Array.from(entities.values()))) {
             if (typeof enemy.triggerWeaponAnim === 'function') enemy.triggerWeaponAnim();
