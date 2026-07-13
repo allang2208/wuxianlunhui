@@ -171,12 +171,14 @@ const baseMixin = {
     },
 
     getExpForLevel(level) {
-        const formula = COMBAT_FORMULAS.player?.expPerLevel || { base: 20, levelMultiplier: 20, levelSquareMultiplier: 12, finalMultiplier: 2 };
+        const formula = COMBAT_FORMULAS.player?.expPerLevel
+            || { base: 20, levelMultiplier: 20, levelSquareMultiplier: 12, finalMultiplier: 2, globalMultiplier: 2 };
         const base = formula.base ?? 20;
         const levelMul = formula.levelMultiplier ?? 20;
         const levelSquareMul = formula.levelSquareMultiplier ?? 12;
         const finalMul = formula.finalMultiplier ?? 2;
-        return (base + level * levelMul + level * levelSquareMul) * finalMul;
+        const globalMul = formula.globalMultiplier ?? 1;
+        return (base + level * levelMul + level * levelSquareMul) * finalMul * globalMul;
     },
 
     updateMaxStats() {
@@ -199,6 +201,9 @@ const baseMixin = {
 
         // 体力恢复速度：每点敏捷 +1%
         this._staminaRegenMul = staminaFormula.base + d.dex * staminaFormula.dexMultiplier;
+
+        // 升级所需经验：按公式动态计算
+        d.maxExp = this.getExpForLevel(d.level);
     }
 };
 

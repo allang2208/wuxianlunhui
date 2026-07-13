@@ -55,7 +55,7 @@ export function createHudPanelsExpeditionQuestReward() {
         { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢' },
         { label: '节点数', id: 'expeditionNodeCount', val: '35~40' },
         { label: '战斗节点', id: 'expeditionBattleRatio', val: '70%' },
-        { label: '地牢等级', id: 'expeditionLevel', val: '1级' },
+        { label: '地牢等级', id: 'expeditionLevel', val: '1级', highlight: true },
         { label: '预计奖励', id: 'expeditionReward', val: '1500金币' }
     ];
     expeditionInfoDefs.forEach(sd => {
@@ -65,7 +65,9 @@ export function createHudPanelsExpeditionQuestReward() {
         itemLabel.className = 'expedition-info-label';
         itemLabel.textContent = sd.label + '：';
         const itemValue = document.createElement('span');
-        itemValue.className = 'expedition-info-value';
+        itemValue.className = sd.highlight
+            ? 'expedition-info-value expedition-info-value--level'
+            : 'expedition-info-value';
         itemValue.id = sd.id;
         itemValue.textContent = sd.val;
         item.appendChild(itemLabel);

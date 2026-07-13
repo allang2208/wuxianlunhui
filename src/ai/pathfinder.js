@@ -290,8 +290,8 @@ class PathFinder {
                 queue.push({ x: nx, y: ny });
             }
         }
-        // [ENHANCE] 步数用完仍未能到达目标附近，认为不可达，避免昂贵的 A*
-        return false;
+        // 步数用完仍未到达目标附近，让 A* 自己判断（避免 BFS 预算不足导致误判）
+        return true;
     }
 
     // [NEW] 使用 RegionIndex 快速判断目标是否可达（O(1)，适用于封闭空间）

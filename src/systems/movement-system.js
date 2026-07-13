@@ -254,8 +254,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
 
         let result = null;
-        // 同伴不足时不偏移，避免单对单也绕侧
-        if (nearbyCount >= 2) {
+        // 同伴不足或开阔房间有清晰视线时不偏移，避免单对单/无障碍时也绕侧
+        const hasLOS = enemy._perception && enemy._perception.hasLOS;
+        const minFlankCount = hasLOS ? 4 : 2;
+        if (nearbyCount >= minFlankCount) {
             // 选择人数更少的一侧；若已有记忆侧翼且人数差不悬殊，保持稳定
             let side;
             if (enemy._flankSide !== undefined) {
@@ -553,7 +555,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             if (repel.dx !== 0 || repel.dy !== 0) {
                 // 若分离方向与路径方向反向（>90°），说明前方被同伴堵住，允许更大幅度偏离路径
                 const dot = moveX * repel.dx + moveY * repel.dy;
-                const separationWeight = dot < 0 ? 0.9 : 0.45;
+                const hasLOS = enemy._perception && enemy._perception.hasLOS;
+                const separationWeight = hasLOS ? 0.2 : (dot < 0 ? 0.9 : 0.45);
                 // 仅当周围确实拥挤时才显著偏离路径
                 moveX += repel.dx * separationWeight;
                 moveY += repel.dy * separationWeight;
@@ -613,8 +616,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyAttackRangeFriction(enemy, dist) {
         const range = enemy.attackRange || 70;
-        const halfRange = range * 0.5;
-        const brakeStart = range * 0.9;
+        const halfRange = range * 0.35;
+        const brakeStart = range * 0.95;
         if (dist <= halfRange) {
             enemy.vx *= enemy.friction || 0.82;
             enemy.vy *= enemy.friction || 0.82;
@@ -662,8 +665,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // [ENHANCE] 单位间排斥：使用动态半径与衰减权重
         const repel = this._computeSeparation(enemy, 0, entities);
         if (repel.dx !== 0 || repel.dy !== 0) {
-            // 无路径时分离权重更高，让怪物更容易绕过停下的同伴
-            const separationWeight = 0.7;
+            // 有清晰视线时降低分离权重，让怪物直线冲锋；否则保持较高权重避免堆叠
+            const hasLOS = enemy._perception && enemy._perception.hasLOS;
+            const separationWeight = hasLOS ? 0.25 : 0.7;
             moveX += repel.dx * separationWeight;
             moveY += repel.dy * separationWeight;
             const len = Math.sqrt(moveX * moveX + moveY * moveY);

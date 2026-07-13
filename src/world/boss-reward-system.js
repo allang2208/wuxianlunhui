@@ -923,6 +923,25 @@ export class DungeonBuffSystem {
     }
 }
 
+// ==================== Boss 出口传送门 ====================
+class BossExitPortal {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 40;
+        this.size = 30;
+        this.active = true;
+        this.noCollision = true;
+        this.pulseTimer = 0;
+        this.name = '出口传送门';
+        this.color = '#7a9aff';
+        this.noNameLabel = true;
+    }
+    update(dt) {
+        this.pulseTimer += dt / 1000;
+    }
+}
+
 // ==================== Boss 战斗管理器 ====================
 
 export class BossBattleManager {
@@ -934,6 +953,9 @@ export class BossBattleManager {
         this._backupCameraFollow = null;
         this._onCompleteCallback = null;
         this._combatCheckTimer = 0;
+        this._exitPortal = null;
+        this._exitPortalKey = null;
+        this._waitingForExit = false;
     }
 
     /**
@@ -1112,7 +1134,8 @@ export class BossBattleManager {
     }
 
     _onBossDefeated() {
-        
+        if (this._waitingForExit) return; // 已生成传送门，避免重复触发
+        this._waitingForExit = true;
 
         // 发放基础奖励
         const gold = BOSS_REWARD_CONFIG.reward.baseGold + Math.floor(Math.random() * BOSS_REWARD_CONFIG.reward.goldVariance);
@@ -1125,12 +1148,47 @@ export class BossBattleManager {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🎉 击败 Boss！获得 ${gold} 金币`, '#ffd700'));
         }
 
-        // 清理
+        // 生成出口传送门，等待玩家进入
+        this.spawnExitPortal();
+    }
+
+    spawnExitPortal() {
+        if (this._exitPortal) return this._exitPortal;
+        const cfg = BOSS_REWARD_CONFIG.arena;
+        const x = cfg.size / 2;
+        const y = cfg.size / 2;
+        const portal = new BossExitPortal(x, y);
+        this._exitPortal = portal;
+        this._exitPortalKey = `boss_exit_portal_${Date.now()}`;
+        if (Game.entities) {
+            Game.entities.set(this._exitPortalKey, portal);
+        }
+        if (EffectManager && FloatingTextEffect) {
+            EffectManager.add(new FloatingTextEffect(x, y - 40, '出口传送门已开启', '#7a9aff'));
+        }
+        return portal;
+    }
+
+    getExitPortal() {
+        return this._exitPortal;
+    }
+
+    leaveBossBattle() {
+        // 删除传送门
+        if (this._exitPortalKey && Game.entities) {
+            Game.entities.delete(this._exitPortalKey);
+        }
+        this._exitPortal = null;
+        this._exitPortalKey = null;
+        this._waitingForExit = false;
+
+        // 清理 Boss 战场地
         this.cleanup();
 
         // 回调
         if (this._onCompleteCallback) {
             this._onCompleteCallback();
+            this._onCompleteCallback = null;
         }
     }
 
@@ -1143,6 +1201,14 @@ export class BossBattleManager {
         }
         this.boss = null;
         this.bossKey = null;
+
+        // 删除传送门
+        if (this._exitPortalKey && Game.entities) {
+            Game.entities.delete(this._exitPortalKey);
+        }
+        this._exitPortal = null;
+        this._exitPortalKey = null;
+        this._waitingForExit = false;
 
         // 恢复墙壁
         WallSystem.walls = [...this._backupWalls];
@@ -1324,6 +1390,20 @@ export const BossRewardSystem = {
      */
     update(dt) {
         this.bossBattle.update(dt);
+    },
+
+    /**
+     * 获取 Boss 战出口传送门
+     */
+    getExitPortal() {
+        return this.bossBattle.getExitPortal();
+    },
+
+    /**
+     * 离开 Boss 战（玩家进入传送门）
+     */
+    leaveBossBattle() {
+        this.bossBattle.leaveBossBattle();
     },
 
     /**

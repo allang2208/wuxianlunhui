@@ -1618,26 +1618,34 @@
 }
 /* 水平信息行布局 */
 .expedition-info-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     align-items: center;
-    gap: 10px 16px;
-    padding-top: 6px;
+    gap: 8px 12px;
+    padding-top: 8px;
 }
 .expedition-info-item {
     display: flex;
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    overflow: hidden;
 }
 .expedition-info-label {
     font-size: 11px;
     color: #8a7d6b;
+    flex-shrink: 0;
 }
 .expedition-info-value {
     font-size: 12px;
     color: #d4c5a9;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.expedition-info-value--level {
+    font-size: 14px;
+    color: #e8c878;
 }
 .expedition-dungeon-name {
     font-size: 18px;

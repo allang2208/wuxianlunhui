@@ -26,6 +26,15 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
+
+// 默认技能经验公式与辅助函数（应用全局技能经验倍率）
+const DEFAULT_SKILL_EXP_FORMULA = '100 + (level - 1) * 100';
+function getDefaultSkillMaxExp() {
+    return DataLoader.parseSkillExpFormula(DEFAULT_SKILL_EXP_FORMULA, 1);
+}
+function getDefaultSkillExpForNext(level) {
+    return DataLoader.parseSkillExpFormula(DEFAULT_SKILL_EXP_FORMULA, level);
+}
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const subsystemsMixin = {
@@ -295,7 +304,7 @@ _initSkills() {
                                 level: 1,
                                 maxLevel: data.maxLevel || 20,
                                 exp: 0,
-                                maxExp: 100,
+                                maxExp: getDefaultSkillMaxExp(),
                                 tags: data.tags || [],
                                 getEffect(level) {
                                     const result = {};
@@ -309,10 +318,9 @@ _initSkills() {
                                 },
                                 getExpForNext(level) {
                                     if (data.expFormula) {
-                                        const value = DataLoader.parseSkillFormula(String(data.expFormula), level);
-                                        if (Number.isFinite(value) && value > 0) return value;
+                                        return DataLoader.parseSkillExpFormula(String(data.expFormula), level);
                                     }
-                                    return 100 + (level - 1) * 100;
+                                    return getDefaultSkillExpForNext(level);
                                 }
                             };
                         }
@@ -322,10 +330,10 @@ _initSkills() {
                         skills.criticalStrike = {
                             id: 'criticalStrike', name: '暴击', icon: '💥', iconImage: 'assets/skills/暴击.png',
                             description: '精通暴击之道，每次暴击都能造成更致命的打击',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '暴击', type: 'passive' }, { name: '被动', type: 'passive' }],
                             getEffect(level) { return { damageBonus: 0.50 + level * 0.05, luckBonus: level }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     // 兜底：确保冲刺攻击-火始终存在（即使JSON缓存了旧版本）
@@ -333,10 +341,10 @@ _initSkills() {
                         skills.dashAttackFire = {
                             id: 'dashAttackFire', name: '冲刺攻击-火', icon: '🔥', iconImage: 'assets/skills/冲刺攻击-火.png',
                             description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                             getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     if (skills.dashAttackFire) {
@@ -347,10 +355,10 @@ _initSkills() {
                         skills.dashAttackThrust = {
                             id: 'dashAttackThrust', name: '冲刺攻击-突刺', icon: '⚔', iconImage: 'assets/skills/冲刺突击.png',
                             description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                             getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     if (skills.dashAttackThrust) {
@@ -361,10 +369,10 @@ _initSkills() {
                         skills.iceSpike = {
                             id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
                             description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                             getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     // 兜底：确保持盾防御技能始终存在
@@ -372,10 +380,10 @@ _initSkills() {
                         skills.shieldDefense = {
                             id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
                             description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
                             getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     // 兜底：确保火球技能始终存在
@@ -383,10 +391,10 @@ _initSkills() {
                         skills.fireball = {
                             id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
                             description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                             getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     // 兜底：确保无人机技能始终存在（即使JSON中没有定义）
@@ -394,10 +402,10 @@ _initSkills() {
                         skills.droneSkill = {
                             id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/drone_skill.png',
                             description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
-                            level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
                             getEffect(level) { return { damageBonus: 0.10 + level * 0.02, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5 }; },
-                            getExpForNext(level) { return 100 + (level - 1) * 100; }
+                            getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
                     return skills;
@@ -407,130 +415,130 @@ _initSkills() {
                     swordMastery: {
                         id: 'swordMastery', name: '剑精通', icon: '⚔',
                         description: '精通剑术，每次挥舞都更加致命',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '剑类武器', type: 'weapon' }, { name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { atkBonus: level, cooldownReduction: level * 0.01, dexBonus: level }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttack: {
                         id: 'dashAttack', name: '冲刺攻击', icon: '💨',
                         description: '在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackFire: {
                         id: 'dashAttackFire', name: '冲刺攻击-火', icon: '🔥', iconImage: 'assets/skills/冲刺攻击-火.png',
                         description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackThrust: {
                         id: 'dashAttackThrust', name: '冲刺攻击-突刺', icon: '⚔', iconImage: 'assets/skills/冲刺突击.png',
                         description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     whirlwind: {
                         id: 'whirlwind', name: '风车', icon: '🌀',
                         description: '以自身为中心高速旋转武器，对周围敌人造成毁灭性打击',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '主动', type: 'active' }],
                         getEffect(level) { return { damageMul: 1.5 + level * 0.10, strBonus: level, cooldown: 10 - level * 0.2, staminaCost: 20 + level * 1, radius: 188 + level * 6, knockback: 312 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     pushStrike: {
                         id: 'pushStrike', name: '推击', icon: '💥',
                         description: '使用远程武器向前方扇形区域释放强力推击，击退并眩晕敌人',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '远程', type: 'ranged' }, { name: '主动', type: 'active' }],
                         getEffect(level) { return { damageMul: 0.5 + level * 0.1, cooldown: 8 - level * 0.1, staminaCost: 15 + level * 0.5, radius: 100 + level * 1, knockback: 70 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     criticalStrike: {
                         id: 'criticalStrike', name: '暴击', icon: '💥', iconImage: 'assets/skills/暴击.png',
                         description: '精通暴击之道，每次暴击都能造成更致命的打击',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '暴击', type: 'passive' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageBonus: 0.50 + level * 0.05, luckBonus: level }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     machineGunMastery: {
                         id: 'machineGunMastery', name: '机枪精通', icon: '🔫', iconImage: 'assets/skills/machine_gun_mastery.png',
                         description: '精通机枪的操控艺术，每次射击都更加致命',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '机枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { strBonus: level, damagePercent: level * 0.01, damageBonus: level, spreadDelayBonus: level * 0.1 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     rifleMastery: {
                         id: 'rifleMastery', name: '步枪精通', icon: '🎯', iconImage: 'assets/skills/步枪精通.png',
                         description: '精通步枪的精准射击，每颗子弹都命中要害',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '步枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { wisBonus: level, damagePercent: level * 0.01, damageBonus: level, critRateBonus: level }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     pistolMastery: {
                         id: 'pistolMastery', name: '手枪精通', icon: '🔫', iconImage: 'assets/skills/pistol_mastery.png',
                         description: '精通手枪的快速射击，在移动中也能精准命中',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '手枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { dexBonus: level, damagePercent: level * 0.01, damageBonus: level, speedPercent: level * 0.01 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     shotgunMastery: {
                         id: 'shotgunMastery', name: '散弹枪精通', icon: '🔫',
                         description: '精通散弹枪的毁灭性火力，每一发弹丸都更具威力',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '散弹枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { conBonus: level, damagePercent: level * 0.01, knockbackBonus: level * 0.5 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     bowMastery: {
                         id: 'bowMastery', name: '弓精通', icon: '🏹', iconImage: 'assets/skills/弓精通.png',
                         description: '精通弓箭射击之道，每次拉弓都更加致命',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '弓类武器', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { damageBonus: level * 5, damagePercent: level * 0.01, cooldownReduction: level * 0.01, dexBonus: level }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     droneSkill: {
                         id: 'droneSkill', name: '无人机', icon: '🛸', iconImage: 'assets/skills/无人机.png',
                         description: '释放一架无人机，操控时对范围内敌人施加易伤效果',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '主动', type: 'active' }],
                         getEffect(level) { return { duration: 30 + (level - 1) * 2, damageBonusPercent: 10 + (level - 1) * 2, critBonusPercent: 10 + (level - 1) * 2, moveSpeed: 500 + Math.floor((level - 1) / 5) * 50, radius: 300 + Math.floor((level - 1) / 5) * 100, cooldown: 15 - level * 0.2 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     iceSpike: {
                         id: 'iceSpike', name: '冰锥', icon: '❄', iconImage: 'assets/skills/Icearrow-skill.png',
                         description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                         getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     shieldDefense: {
                         id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
                         description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
                         getEffect(level) { return { defBonusPercent: level * 0.02, damageReductionBonus: level * 0.02, parryStunBonus: Math.floor(level / 5) * 0.25 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     },
                     fireball: {
                         id: 'fireball', name: '火球', icon: '🔥', iconImage: 'assets/skills/fireball_icon.png',
                         description: '释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害',
-                        level: 1, maxLevel: 20, exp: 0, maxExp: 100,
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                         getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
-                        getExpForNext(level) { return 100 + (level - 1) * 100; }
+                        getExpForNext: getDefaultSkillExpForNext,
                     }
                 };
             },

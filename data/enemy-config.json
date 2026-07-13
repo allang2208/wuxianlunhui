@@ -21,7 +21,7 @@
     "aiInterval": 2000,
     "dashDistance": 200,
     "ai": {
-      "aggroRange": 800,
+      "aggroRange": 2500,
       "pacingRange": 200,
       "loseTimeout": 2000
     },

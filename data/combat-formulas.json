@@ -62,7 +62,8 @@
       "base": 20,
       "levelMultiplier": 20,
       "levelSquareMultiplier": 12,
-      "finalMultiplier": 2
+      "finalMultiplier": 2,
+      "globalMultiplier": 2
     },
     "staminaRegen": {
       "dexMultiplier": 0.01
@@ -83,7 +84,19 @@
       "mpRegen": 1
     }
   },
+  "skill": {
+    "expMultiplier": 2
+  },
   "enemy": {
+    "goldDrop": {
+      "base": 0,
+      "levelMultiplier": 4,
+      "randomMin": 1,
+      "randomMax": 10,
+      "globalMultiplier": 0.5,
+      "tributeMultiplier": 1.25,
+      "tributeName": "麦穗"
+    },
     "calculateCombatStats": {
       "attack": {
         "base": 10,

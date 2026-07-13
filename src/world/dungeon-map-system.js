@@ -453,12 +453,20 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
-        // Boss 战模式：委托给 BossRewardSystem 更新
+        // Boss 战模式：委托给 BossRewardSystem 更新，并检测传送门
         if (this.state === "boss") {
             if (BossRewardSystem.isBossBattleActive && BossRewardSystem.isBossBattleActive()) {
                 BossRewardSystem.update(dt);
             }
-            // Boss 战由 BossRewardSystem 自己的回调处理完成，这里不做额外检测
+
+            const portal = BossRewardSystem.getExitPortal && BossRewardSystem.getExitPortal();
+            if (portal && portal.active && this.player) {
+                const dx = this.player.x - portal.x;
+                const dy = this.player.y - portal.y;
+                if (Math.sqrt(dx * dx + dy * dy) <= portal.radius) {
+                    this._leaveBossViaPortal();
+                }
+            }
             return;
         }
 
@@ -623,6 +631,27 @@ export const DungeonMapSystem = {
         this._returnToMap();
     },
 
+    // 通过出口传送门离开 Boss 战：清理场地并返回地图
+    _leaveBossViaPortal() {
+        const player = this.player || Game.player;
+        if (!player) return;
+
+        // 离开 Boss 战（清理场地、触发完成回调）
+        BossRewardSystem.leaveBossBattle();
+
+        // 清理 Phaser 战斗视觉残留
+        const phaserScene = window.__phaserScene;
+        if (phaserScene && phaserScene.clearCombatView) {
+            phaserScene.clearCombatView();
+        }
+
+        // 重置传送门生成标记
+        this._exitPortalSpawned = false;
+
+        // 返回地图模式
+        this._returnToMap();
+    },
+
     _enterCombat(node) {
         this.state = "combat";
         // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物
@@ -683,14 +712,12 @@ export const DungeonMapSystem = {
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
         // 所有 Boss 战统一使用 BossRewardSystem 的大块头 Boss
-        BossRewardSystem.enterBossBattle(this.player, (_result) => {
-            this._cleanupCombat();
-            // Boss 击败后，标记当前节点完成，并进入奖励节点
+        BossRewardSystem.enterBossBattle(this.player, () => {
+            // Boss 击败且玩家通过传送门离开后，标记节点完成
             if (node) {
                 node.completed = true;
                 node.type = 'empty';
             }
-            this._returnToMap();
         });
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
@@ -764,7 +791,7 @@ export const DungeonMapSystem = {
     },
 
     /**
-     * 统一清理战斗场景残留：传送门、掉落物、重置标记
+     * 统一清理战斗场景残留：传送门、掉落物、浮动文字、Phaser 视觉对象、重置标记
      */
     _cleanupCombatScene() {
         if (CombatRoomSystem.active) {
@@ -772,6 +799,15 @@ export const DungeonMapSystem = {
         } else {
             CombatRoomSystem.cleanupDrops();
         }
+
+        const phaserScene = window.__phaserScene;
+        if (phaserScene && phaserScene.clearCombatView) {
+            phaserScene.clearCombatView();
+        }
+        if (EffectManager && EffectManager.clearFloatingTexts) {
+            EffectManager.clearFloatingTexts();
+        }
+
         this._exitPortalSpawned = false;
     },
 
@@ -1265,11 +1301,17 @@ export const DungeonMapSystem = {
         el.id = 'dungeonMapNameLabel';
         el.style.cssText = `
             position: fixed;
-            top: 15px;
-            left: 15px;
+            left: 1031px;
+            bottom: 1174px;
+            width: 505px;
+            height: 64px;
             z-index: 9002;
             pointer-events: none;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             font-family: SimHei, "Microsoft YaHei", sans-serif;
             color: #d4c5a9;
             font-size: 18px;

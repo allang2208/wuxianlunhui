@@ -169,14 +169,18 @@ export const NpcPortraitTool = {
 
     // --------------- 参数应用 ---------------
     // 将当前参数实时应用到 NPC 立绘 DOM 元素（#npcPortrait）
-    // 使用 CSS transform: translateX(...) translateY(...) scale(...) rotate(...) scaleX(...)
+    // 使用 CSS transform: translateX(-50%) translateX(...) translateY(...) scale(...) rotate(...) scaleX(...)
+    // 注意：#npcPortrait 使用 left: 50% 居中，必须保留 translateX(-50%)
+    formatTransform(params) {
+        return `translateX(-50%) translateX(${params.offsetX}px) translateY(${params.offsetY}px) ` +
+            `scale(${params.scale}) rotate(${params.rotation}deg) ` +
+            `scaleX(${params.flipX ? -1 : 1})`;
+    },
+
     applyToDom(params) {
         const npcPortrait = getElement('npcPortrait');
         if (!npcPortrait) return;
-        npcPortrait.style.transform =
-            `translateX(${params.offsetX}px) translateY(${params.offsetY}px) ` +
-            `scale(${params.scale}) rotate(${params.rotation}deg) ` +
-            `scaleX(${params.flipX ? -1 : 1})`;
+        npcPortrait.style.transform = this.formatTransform(params);
     },
 
     // --------------- 保存 ---------------
