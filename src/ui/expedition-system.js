@@ -65,6 +65,10 @@ export const ExpeditionSystem = {
         this._setupClickHandlers();
         this._updateCapacityDisplay();
         this._showMessage('请从背包拖入物品，点击已放入的格子可移除');
+
+        // 出征界面隐藏任务追踪栏
+        const questTracker = getElement('questTracker');
+        if (questTracker) questTracker.style.display = 'none';
     },
 
     // 关闭出征准备面板 — 归还所有物品到背包
@@ -84,6 +88,10 @@ export const ExpeditionSystem = {
         if (panel) panel.classList.remove('active');
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
+
+        // 恢复任务追踪栏
+        const questTracker = getElement('questTracker');
+        if (questTracker) questTracker.style.display = 'block';
     },
 
     // 切换面板

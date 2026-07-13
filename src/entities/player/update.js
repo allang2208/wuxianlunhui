@@ -292,7 +292,7 @@ update(dt, entities) {
                     } else {
                         this.dustTimer = 0;
                     }
-                const isAttacking = this.weaponAnim.state !== 'idle';
+                const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
                 const isSprinting = Input.isSprint() && this.data.stamina > 0 && this.isMoving && this._isFacingMouse();
                 // 冲刺攻击计时：追踪长按Shift持续时间
                 if (isSprinting && !this._isDashing) {
@@ -324,7 +324,9 @@ update(dt, entities) {
                 if (!this.isDodging && !isAttacking && !isSprinting && !(this.shieldSystem && this.shieldSystem.defending) && this.data.stamina < this.data.maxStamina) {
                     this.staminaRegenDelay -= dt;
                     if (this.staminaRegenDelay <= 0) {
-                        const mul = this._staminaRegenMul || 1.0;
+                        let mul = this._staminaRegenMul;
+                        if (!isFinite(mul) || mul < 0) mul = 1.0;
+                        if (!isFinite(this.data.stamina) || this.data.stamina < 0) this.data.stamina = 0;
                         this.data.stamina += CONFIG.STAMINA_REGEN * (dt / 1000) * mul;
                         if (this.data.stamina > this.data.maxStamina) this.data.stamina = this.data.maxStamina;
                     }

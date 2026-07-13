@@ -12,6 +12,7 @@ import { QuestSystem } from './quest-system.js';
 import { QuickBar } from './quick-bar.js';
 import { SystemUI } from './system-ui.js';
 import { ExpeditionSystem } from './expedition-system.js';
+import { GameUIManager } from './game-ui-manager.js';
 import DevTool from './dev-tool.js';
         export const Input = {
             keys: new Set(),
@@ -19,6 +20,7 @@ import DevTool from './dev-tool.js';
             init() {
                 window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code); });
                 window.addEventListener('keyup', e => this.keys.delete(e.code));
+                window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
                     const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn');
@@ -50,15 +52,15 @@ import DevTool from './dev-tool.js';
                         return;
                     }
                     if (SystemUI.isOpen) {
-                    // 如果出征面板打开，ESC只关闭出征面板，不关闭背包
+                    // 如果出征面板打开，ESC返回主城
                     if (UIState.isOpen('expedition')) {
-                        ExpeditionSystem.close();
+                        ExpeditionSystem.returnToMain();
                         return;
                     }
                     SystemUI.close(); return;
                 }
                     if (NPCDialogue._active) { NPCDialogue.goodbye(); return; }
-                    Game.toMenu(); return;
+                    GameUIManager.toMenu(); return;
                 }
                 if (SystemUI.isOpen) {
                     // 面板打开时：允许Tab切换快捷键，允许F切换武器，允许Z范围拾取，其他按键拦截

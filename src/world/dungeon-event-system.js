@@ -1,6 +1,6 @@
-import { Game } from '../game.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { EquipManager } from '../ui/equip-manager.js';
+import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 /**
  * ============================================================
@@ -987,9 +987,9 @@ export const DungeonEventSystem = {
     _applyRewards(result, player) {
         if (!result.rewards) return;
 
-        // 金币奖励
-        if (result.rewards.gold && Game && Game.player && Game.player.data) {
-            Game.player.data.gold = (Game.player.data.gold || 0) + result.rewards.gold;
+        // 金币奖励（统一进入背包）
+        if (result.rewards.gold && GoldManager) {
+            GoldManager.addGold(result.rewards.gold);
         }
 
         // 治疗药水（直接恢复）

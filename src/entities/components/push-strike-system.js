@@ -33,10 +33,12 @@ export class PushStrikeSystem {
                 const effect = skill.getEffect(skill.level);
                 const radius = effect.radius;
                 const attackAngle = this.player.rotation;
-                const hitArc = 2 * Math.PI / 3; // 120度
-                this.player._pushStrikeRangeEffect = new AttackRangeEffect(this.player.x, this.player.y, attackAngle, radius, hitArc, 'sector', 200, 0.5, true);
-                this.player._pushStrikeRangeEffect.maxLife = 200;
-                this.player._pushStrikeRangeEffect.life = 200;
+                const hitArc = effect.hitArc;
+                const rangeEffectLife = effect.rangeEffectLife;
+                const rangeEffectAlpha = effect.rangeEffectAlpha;
+                this.player._pushStrikeRangeEffect = new AttackRangeEffect(this.player.x, this.player.y, attackAngle, radius, hitArc, 'sector', rangeEffectLife, rangeEffectAlpha, true);
+                this.player._pushStrikeRangeEffect.maxLife = rangeEffectLife;
+                this.player._pushStrikeRangeEffect.life = rangeEffectLife;
                 EffectManager.add(this.player._pushStrikeRangeEffect);
             }
         }
@@ -51,20 +53,21 @@ export class PushStrikeSystem {
                 this.player._pushStrikeRangeEffect.x = this.player.x;
                 this.player._pushStrikeRangeEffect.y = this.player.y;
                 this.player._pushStrikeRangeEffect.angle = this.player.rotation;
-                this.player._pushStrikeRangeEffect.life = 200;
+                this.player._pushStrikeRangeEffect.life = this.player.skills.pushStrike.getEffect(this.player.skills.pushStrike.level).rangeEffectLife;
                 this.player._pushStrikeRangeEffect.active = true;
             } else {
                 this.player._pushStrikeRangeEffect.active = false;
                 this.player._pushStrikeRangeEffect = null;
             }
         }
-        // 攻击判定：在50ms时执行一次扇形判定
-        if (!this.player._pushStrikeHitChecked && this.player._pushStrikeTimer >= 50) {
+        const psEffect = this.player.skills.pushStrike.getEffect(this.player.skills.pushStrike.level);
+        // 攻击判定：在指定延迟时执行一次扇形判定
+        if (!this.player._pushStrikeHitChecked && this.player._pushStrikeTimer >= psEffect.hitCheckDelay) {
             this._checkHit(entities);
             this.player._pushStrikeHitChecked = true;
         }
-        // 推击结束：300ms后结束（短暂动画）
-        if (this.player._pushStrikeTimer >= 300) {
+        // 推击结束：指定动画时间后结束（短暂动画）
+        if (this.player._pushStrikeTimer >= psEffect.animationDuration) {
             this.player._isPushStrike = false;
             this.player._pushStrikeTimer = 0;
             this.player._pushStrikeHitChecked = false;
@@ -84,7 +87,8 @@ export class PushStrikeSystem {
         const damageMul = effect.damageMul;
         const damage = Math.round(this.player.data.str * damageMul);
         const attackAngle = this.player.rotation;
-        const hitArc = 2 * Math.PI / 3; // 120度
+        const hitArc = effect.hitArc;
+        const stunDuration = effect.stunDuration;
         let hitCount = 0, killCount = 0;
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
@@ -98,10 +102,10 @@ export class PushStrikeSystem {
                 hitCount++;
                 const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
                 entity.applyKnockback(kbAngle, knockback);
-                // 1.5秒眩晕
+                // 眩晕
                 if (entity._dashStunned !== undefined) {
                     entity._dashStunned = true;
-                    entity._dashStunTimer = 1500;
+                    entity._dashStunTimer = stunDuration;
                 }
                 EffectManager.add(new HitEffect(entity.x, entity.y));
                 EffectManager.createDamageText(entity.x, entity.y - entity.size, damage, false);

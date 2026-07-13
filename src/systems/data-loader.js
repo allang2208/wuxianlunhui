@@ -1,5 +1,6 @@
 
 import enemyConfigData from '../../data/enemy-config.json';
+import aiConfigData from '../../data/ai-config.json';
 import { GAME_CONFIG as gameConfigData } from '../config/game-config.js';
 import { COMBAT_FORMULAS as combatFormulasData } from '../config/combat-formulas.js';
 import { COMBAT_CONFIG as combatConfigData } from '../config/combat-config.js';
@@ -91,6 +92,9 @@ const DataLoader = {
                 wis: data.wis,
                 luck: data.luck,
                 skills: data.skills || [],
+                transform: data.transform,
+                equipShield: data.equipShield,
+                aiPhases: aiConfigData[id]?.phases,
                 description: data.description || ''
             };
         }
@@ -99,6 +103,7 @@ const DataLoader = {
 
     /** 解析技能效果公式（安全数学表达式求值，不使用 new Function） */
     parseSkillFormula(formulaStr, level) {
+        if (typeof formulaStr === 'number' || typeof formulaStr === 'boolean') return formulaStr;
         if (typeof formulaStr !== 'string' || !formulaStr.trim()) return 0;
         const lvl = Number(level) || 0;
         // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量

@@ -19,12 +19,8 @@ const CodexManager = {
         { key: 'accessory', label: '饰品' },
         { key: 'consumable', label: '消耗品' }
     ],
-    // 怪物子分类
-    monsterCategories: [
-        { key: 'all', label: '全部' },
-        { key: '僵尸', label: '僵尸' },
-        { key: '狼', label: '狼' },
-    ],
+    // 怪物子分类（动态生成，见 _buildMonsterCategories）
+    monsterCategories: [],
     currentMonsterCategory: 'all',
     currentEquipCategory: 'all',
     detailItem: null,
@@ -129,7 +125,20 @@ const CodexManager = {
         }).join('');
     },
 
+    _buildMonsterCategories() {
+        const families = new Set();
+        if (ENEMY_DATA) {
+            Object.values(ENEMY_DATA).forEach(e => {
+                if (e.family) families.add(e.family);
+            });
+        }
+        const categories = [{ key: 'all', label: '全部' }];
+        Array.from(families).sort().forEach(f => categories.push({ key: f, label: f }));
+        this.monsterCategories = categories;
+    },
+
     renderMonsterCategoryTabs() {
+        this._buildMonsterCategories();
         const container = getElement('codexMonsterCatTabs');
         if (!container) return;
         container.innerHTML = this.monsterCategories.map(c =>
@@ -537,14 +546,12 @@ const CodexManager = {
         const _calcHit = 80 + Math.floor(dex * 0.5);
         const _calcDodge = 5 + Math.floor(dex * 0.3);
         const calcCrit = 2 + Math.floor(luck * 1.0);
-        const calcAspd = (1.0 + dex * 0.02).toFixed(2);
         const calcCritRes = Math.floor(con * 1.0);
         html += this.detailRow('物理攻击', calcAtk);
         html += this.detailRow('物理防御', calcDef);
         html += this.detailRow('魔法攻击', calcMatk);
         html += this.detailRow('魔法防御', calcMdef);
         html += this.detailRow('暴击率', calcCrit + '%');
-        html += this.detailRow('攻击速度', calcAspd + 'x');
         html += this.detailRow('暴击抵抗', calcCritRes + '%');
         html += this.detailRow('攻击距离', `${d.attackRange || 0}px`);
         html += this.detailRow('攻击冷却', `${d.attackCooldown || 0}ms`);
@@ -563,11 +570,33 @@ const CodexManager = {
 
         // 特殊机制（放在基础属性下面）
         const mechanics = [];
-        if (d.id === 'fatZombie' || d.name === '胖子僵尸') {
-            mechanics.push({ name: '远程伤害减免', desc: '受到远程伤害时减免50%' });
-        }
         if (d.skills && d.skills.length > 0) {
             for (const skill of d.skills) mechanics.push(skill);
+        }
+        if (d.equipShield) {
+            mechanics.push({ name: '持盾防御', desc: '受到非魔法伤害时，有50%概率举起盾牌格挡，减少50%伤害' });
+        }
+        if (d.transform) {
+            const t = d.transform;
+            const parts = [];
+            if (t.hpThreshold) parts.push(`生命值低于 ${Math.round(t.hpThreshold * 100)}% 时变身`);
+            if (t.damageMultiplier) parts.push(`伤害提升 ${Math.round((t.damageMultiplier - 1) * 100)}%`);
+            if (t.hpRecover) parts.push('恢复生命值');
+            if (t.howlDuration) parts.push(`嚎叫持续 ${t.howlDuration / 1000} 秒`);
+            mechanics.push({ name: '变身', desc: parts.join('；') });
+        }
+        if (d.aiPhases && d.aiPhases.length > 0) {
+            const phaseDesc = d.aiPhases.map(p => {
+                let s = `${p.name}（HP≤${Math.round(p.hpThreshold * 100)}%）`;
+                const effects = [];
+                if (p.speedMul) effects.push(`移速x${p.speedMul}`);
+                if (p.attackSpeedMul) effects.push(`攻速x${p.attackSpeedMul}`);
+                if (p.attackRangeMul) effects.push(`射程x${p.attackRangeMul}`);
+                if (p.newSkill) effects.push(`习得 ${p.newSkill}`);
+                if (effects.length) s += '：' + effects.join('，');
+                return s;
+            }).join('；');
+            mechanics.push({ name: '阶段转换', desc: phaseDesc });
         }
         if (mechanics.length > 0) {
             html += `<div class="cd-section"><h4>特殊机制</h4>`;

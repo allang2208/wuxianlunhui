@@ -3,6 +3,29 @@
     "nodeCount": { "min": 35, "max": 40 },
     "shortestCombatPath": 9,
     "typeRatios": { "combat": 0.70, "event": 0.30 },
+    "eliteCombatChance": 0.20,
+    "encounters": {
+      "normal": {
+        "combatWaves": 3,
+        "monstersPerWave": 5,
+        "tierWeights": { "normal": 1, "elite": 0 },
+        "guaranteeAtLeastOneElite": false
+      },
+      "elite": {
+        "combatWaves": 1,
+        "monstersPerWave": 6,
+        "monsterComposition": { "elite": 1, "normal": 5 },
+        "tierWeights": { "normal": 0, "elite": 1 },
+        "guaranteeAtLeastOneElite": false
+      }
+    },
+    "eliteChestReward": {
+      "items": [
+        { "type": "gold", "count": 100 },
+        { "type": "reforge_ticket", "count": 1 },
+        { "type": "weapon", "rarity": "common", "count": 1 }
+      ]
+    },
     "grid": { "rows": 4, "colSpacing": 160, "rowSpacing": 140, "mainRow": 1 },
     "startRows": [0, 1, 2, 3],
     "bossReward": { "bossBeforeLastCol": true, "rewardAfterBoss": true },
@@ -18,7 +41,8 @@
     "spawn": {
       "playerOffsetFromEdge": 60,
       "monsterSpawnDepth": 120,
-      "monsterMargin": 40
+      "monsterMargin": 40,
+      "minWallDistance": 150
     }
   },
   "events": {

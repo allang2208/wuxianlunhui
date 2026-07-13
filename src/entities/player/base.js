@@ -200,7 +200,9 @@ const baseMixin = {
         else d.mp = d.maxMp;
 
         // 体力恢复速度：每点敏捷 +1%
-        this._staminaRegenMul = staminaFormula.base + d.dex * staminaFormula.dexMultiplier;
+        let regenMul = staminaFormula.base + d.dex * staminaFormula.dexMultiplier;
+        if (!isFinite(regenMul) || regenMul < 0) regenMul = 1.0;
+        this._staminaRegenMul = regenMul;
 
         // 升级所需经验：按公式动态计算
         d.maxExp = this.getExpForLevel(d.level);

@@ -137,7 +137,7 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                     let droneBonus = 0.10 * this._droneVulnerabilityStacks;
                     if (source && source.skills && source.skills.droneSkill) {
                         const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                        droneBonus = (effect.damageBonusPercent / 100) * this._droneVulnerabilityStacks;
+                        droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
                     }
                     finalDamage = Math.floor(finalDamage * (1 + droneBonus));
                 }
@@ -343,7 +343,7 @@ _initSkills() {
                             description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                            getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
+                            getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -357,7 +357,7 @@ _initSkills() {
                             description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                            getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02 }; },
+                            getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 600, chargeMs: 0, dashDist: 188, thrustMs: 600, hitLength: 438, hitLengthBonus: 0, hitWidth: 94, hitBackOffset: 0, hitTickInterval: 199, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 1.5, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, thrustMaxHits: 3, thrustLevelBonusEarly: level * 0.05, thrustLevelBonusLate: level * 0.10 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -371,7 +371,7 @@ _initSkills() {
                             description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
-                            getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                            getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 1600, maxRange: 800 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -404,7 +404,18 @@ _initSkills() {
                             description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
-                            getEffect(level) { return { damageBonus: 0.10 + level * 0.02, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5 }; },
+                            getEffect(level) { return { damageBonusPercent: 10 + level * 2, critBonusPercent: 10 + level * 1, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5, moveSpeed: 500, radius: 300 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保夜与火之剑技能始终存在
+                    if (!skills.nightFlame) {
+                        skills.nightFlame = {
+                            id: 'nightFlame', name: '夜与火之剑', icon: '🌙', iconImage: 'assets/skills/fireball_icon.png',
+                            description: '夜与火之剑专属：释放一道贯穿敌人的火焰光束，造成持续魔法伤害并附加魔力易伤',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(_level) { return { cooldown: 15, mpCost: 80, beamLength: 1500, beamDuration: 3000, beamWidth: 56, tickInterval: 200, damageBase: 60, strMul: 1.5, intMul: 1.25, tickDamageMul: 0.25, magicVulnStacks: 2, resetOffset: -15, recoverMs: 500, rangeEffectAlpha: 0.4, rangeEffectShape: 'triangle', rangeEffectFilled: true, rangeEffectLife: 100 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -425,7 +436,7 @@ _initSkills() {
                         description: '在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02 }; },
+                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5) }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackFire: {
@@ -433,7 +444,7 @@ _initSkills() {
                         description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02 }; },
+                        getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackThrust: {
@@ -441,7 +452,7 @@ _initSkills() {
                         description: '骑士长剑专属：冲刺后向前突刺，对路径上敌人造成多次伤害',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02 }; },
+                        getEffect(level) { return { damageMul: 0.80 + level * 0.03, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 600, chargeMs: 0, dashDist: 188, thrustMs: 600, hitLength: 438, hitLengthBonus: 0, hitWidth: 94, hitBackOffset: 0, hitTickInterval: 199, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 1.5, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, thrustMaxHits: 3, thrustLevelBonusEarly: level * 0.05, thrustLevelBonusLate: level * 0.10 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     whirlwind: {
@@ -449,7 +460,7 @@ _initSkills() {
                         description: '以自身为中心高速旋转武器，对周围敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '主动', type: 'active' }],
-                        getEffect(level) { return { damageMul: 1.5 + level * 0.10, strBonus: level, cooldown: 10 - level * 0.2, staminaCost: 20 + level * 1, radius: 188 + level * 6, knockback: 312 }; },
+                        getEffect(level) { return { damageMul: 1.5 + level * 0.10, strBonus: level, cooldown: 10 - level * 0.2, staminaCost: 20 + level * 1, radius: 120 + level * 5, swordRadiusBonus: 80, knockback: 250, stunDuration: 2500, duration: 800 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     pushStrike: {
@@ -457,7 +468,7 @@ _initSkills() {
                         description: '使用远程武器向前方扇形区域释放强力推击，击退并眩晕敌人',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '远程', type: 'ranged' }, { name: '主动', type: 'active' }],
-                        getEffect(level) { return { damageMul: 0.5 + level * 0.1, cooldown: 8 - level * 0.1, staminaCost: 15 + level * 0.5, radius: 100 + level * 1, knockback: 70 }; },
+                        getEffect(level) { return { damageMul: 0.5 + level * 0.1, cooldown: 8 - level * 0.1, staminaCost: 15 + level * 0.5, radius: 100 + level * 1, knockback: 70, hitArc: 2 * Math.PI / 3, hitCheckDelay: 50, animationDuration: 300, stunDuration: 1500, rangeEffectLife: 200, rangeEffectAlpha: 0.5 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     criticalStrike: {
@@ -497,7 +508,7 @@ _initSkills() {
                         description: '精通散弹枪的毁灭性火力，每一发弹丸都更具威力',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '散弹枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { conBonus: level, damagePercent: level * 0.01, knockbackBonus: level * 0.5 }; },
+                        getEffect(level) { return { conBonus: level, damagePercent: level * 0.01, knockbackBonus: level }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     bowMastery: {
@@ -509,11 +520,11 @@ _initSkills() {
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     droneSkill: {
-                        id: 'droneSkill', name: '无人机', icon: '🛸', iconImage: 'assets/skills/无人机.png',
-                        description: '释放一架无人机，操控时对范围内敌人施加易伤效果',
+                        id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/drone_skill.png',
+                        description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
-                        tags: [{ name: '主动', type: 'active' }],
-                        getEffect(level) { return { duration: 30 + (level - 1) * 2, damageBonusPercent: 10 + (level - 1) * 2, critBonusPercent: 10 + (level - 1) * 2, moveSpeed: 500 + Math.floor((level - 1) / 5) * 50, radius: 300 + Math.floor((level - 1) / 5) * 100, cooldown: 15 - level * 0.2 }; },
+                        tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
+                        getEffect(level) { return { damageBonusPercent: 10 + level * 2, critBonusPercent: 10 + level * 1, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5, moveSpeed: 500, radius: 300 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     iceSpike: {
@@ -521,7 +532,7 @@ _initSkills() {
                         description: '释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
-                        getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 800, maxRange: 800 }; },
+                        getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 1600, maxRange: 800 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     shieldDefense: {
@@ -538,6 +549,14 @@ _initSkills() {
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                         getEffect(level) { return { damageBase: 80 + level * 10, magicMul: 2 + 0.5 * level, intMul: 2.5 + 0.75 * level, cooldown: 20, mpCost: 50, explosionRadius: 80 + level * 5, duration: 30, flySpeed: 1600, maxRange: 1200 }; },
+                        getExpForNext: getDefaultSkillExpForNext,
+                    },
+                    nightFlame: {
+                        id: 'nightFlame', name: '夜与火之剑', icon: '🌙', iconImage: 'assets/skills/fireball_icon.png',
+                        description: '夜与火之剑专属：释放一道贯穿敌人的火焰光束，造成持续魔法伤害并附加魔力易伤',
+                        level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                        tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                        getEffect(_level) { return { cooldown: 15, mpCost: 80, beamLength: 1500, beamDuration: 3000, beamWidth: 56, tickInterval: 200, damageBase: 60, strMul: 1.5, intMul: 1.25, tickDamageMul: 0.25, magicVulnStacks: 2, resetOffset: -15, recoverMs: 500, rangeEffectAlpha: 0.4, rangeEffectShape: 'triangle', rangeEffectFilled: true, rangeEffectLife: 100 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     }
                 };

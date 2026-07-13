@@ -1332,6 +1332,13 @@ export class RewardNodeManager {
                     // 随机武器
                     this._giveRandomWeapon(reward.rarity);
                     break;
+                case 'reforge_ticket':
+                    // 改造券
+                    if (EnhancementItems && EnhancementItems.modify_ticket) {
+                        const ticket = { ...EnhancementItems.modify_ticket, stack: reward.count };
+                        this._addToBackpackOrDrop(ticket);
+                    }
+                    break;
             }
         }
     }
@@ -1347,13 +1354,9 @@ export class RewardNodeManager {
     }
 
     _giveRandomWeapon(rarity) {
-        if (!ItemDatabase || !ItemDatabase.items) return;
-        const weapons = Object.values(ItemDatabase.items).filter(item =>
-            item.rarity === rarity && (item.type === 'weapon' || item.category === 'weapon')
-        );
-        if (weapons.length === 0) return;
-        const weapon = weapons[Math.floor(Math.random() * weapons.length)];
-        const instance = ItemDatabase.createInstance ? ItemDatabase.createInstance(weapon.id || weapon._id) : { ...weapon };
+        if (!ItemDatabase || !ItemDatabase.getRandomWeaponByRarity) return;
+        const instance = ItemDatabase.getRandomWeaponByRarity(rarity);
+        if (!instance) return;
         this._addToBackpackOrDrop(instance);
     }
 }

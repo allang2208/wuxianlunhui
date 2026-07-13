@@ -49,6 +49,17 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_zombie_dog_run', 'assets/enemies/zombie_dog_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 4 });
         this.load.spritesheet('enemy_zombie_dog_attack', 'assets/enemies/zombie_dog_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 5 });
 
+        // 僵尸巫师精灵图动画（3×8 网格）
+        this.load.spritesheet('enemy_zombie_wizard_idle', 'assets/enemies/zombie_wizard/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_zombie_wizard_walk', 'assets/enemies/zombie_wizard/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
+        this.load.spritesheet('enemy_zombie_wizard_attack', 'assets/enemies/zombie_wizard/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_zombie_wizard_summon', 'assets/enemies/zombie_wizard/summoning.png', { frameWidth: 512, frameHeight: 512, endFrame: 6 });
+
+        // 突变体-3 精灵图动画（3×8 网格）
+        this.load.spritesheet('enemy_mutant3_idle', 'assets/enemies/mutant3/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_mutant3_walk', 'assets/enemies/mutant3/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 8 });
+        this.load.spritesheet('enemy_mutant3_attack', 'assets/enemies/mutant3/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 20 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -109,6 +120,66 @@ export class BootScene extends Scene {
             key: 'zombie_dog_attack',
             frames: this.anims.generateFrameNumbers('enemy_zombie_dog_attack', { start: 0, end: 5 }),
             frameRate: 10,
+            repeat: 0,
+        });
+
+        // 僵尸巫师动画
+        this.anims.create({
+            key: 'enemy_zombie_wizard_idle',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_wizard_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_zombie_wizard_walk',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_wizard_walk', { start: 0, end: 9 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_zombie_wizard_attack',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_wizard_attack', { start: 0, end: 10 }),
+            duration: 600,
+            repeat: 0,
+        });
+        const summonFrames = this.anims.generateFrameNumbers('enemy_zombie_wizard_summon', { start: 0, end: 6 });
+        this.anims.create({
+            key: 'enemy_zombie_wizard_summon',
+            frames: summonFrames,
+            frameRate: 7,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_zombie_wizard_summon_reverse',
+            frames: [...summonFrames].reverse(),
+            frameRate: 7,
+            repeat: 0,
+        });
+
+        // 突变体-3 动画
+        this.anims.create({
+            key: 'enemy_mutant3_idle',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_mutant3_walk',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_walk', { start: 0, end: 8 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        // 飞扑攻击拆成两段：蓄力 1-8 帧（1s），冲锋后续帧（1s）
+        this.anims.create({
+            key: 'enemy_mutant3_attack_prepare',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack', { start: 0, end: 7 }),
+            duration: 1000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_mutant3_attack_charge',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack', { start: 8, end: 20 }),
+            duration: 1000,
             repeat: 0,
         });
 

@@ -3,12 +3,12 @@
  * ZombieDungeon — 僵尸地牢模块
  *
  * 非交叉网格布局：4行 × N列，水平/垂直边 only
- * 左侧4个起点（每行一个），右侧1个BOSS，BOSS之后1个奖励节点
+ * 左侧1个居中起点，右侧1个BOSS，BOSS之后1个奖励节点
  * 中间节点：第1行为必经主通道（保证最短9场战斗），其余行随机生成作为分支
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3 } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 import { getElement } from '../utils/dom-utils.js';
@@ -37,10 +37,12 @@ function createZombieFromConfig(key, x, y, overrides = {}) {
 }
 
 function createArmoredZombie(x, y) {
-    return createZombieFromConfig('armoredZombie', x, y, {
+    const zombie = createZombieFromConfig('armoredZombie', x, y, {
         headColor: '#c0c8d0',
         equipShield: 'small_shield'
     });
+    zombie._rangedDamageReduction = 0.5;
+    return zombie;
 }
 
 export function createBasicZombie(x, y) {
@@ -74,9 +76,48 @@ function createSpitterZombie(x, y) {
 }
 
 function createFatZombie(x, y) {
-    return createZombieFromConfig('fatZombie', x, y);
+    const zombie = createZombieFromConfig('fatZombie', x, y);
+    zombie._rangedDamageReduction = 0.5;
+    return zombie;
 }
 
+export function createZombieWizard(x, y) {
+    const cfg = enemyConfigData.zombieWizard;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: zombieWizard');
+        return new ZombieWizard(x, y, { name: 'zombieWizard', hp: 500, maxHp: 500, size: 18 });
+    }
+    const wizard = new ZombieWizard(x, y, {
+        ...cfg,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+    wizard._createZombieDog = createZombieDog;
+    return wizard;
+}
+
+export function createMutant3(x, y) {
+    const cfg = enemyConfigData.mutant3;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: mutant3');
+        return new Mutant3(x, y, { name: 'mutant3', hp: 750, maxHp: 750, size: 22 });
+    }
+    const mutant = new Mutant3(x, y, {
+        ...cfg,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+    mutant._createZombieDog = createZombieDog;
+    return mutant;
+}
 
 const ZOMBIE_DUNGEON_CONFIG = {
     name: '僵尸地牢',
@@ -94,8 +135,8 @@ const ZOMBIE_DUNGEON_CONFIG = {
 
     // 怪物池（按 tier 分类）—— 使用工厂函数或类引用
     monsterPool: {
-        normal: [createBasicZombie, createFastZombie, createZombieDog, createArmoredZombie],
-        elite: [createSpitterZombie, createFatZombie]
+        normal: [createBasicZombie, createFastZombie, createZombieDog, createArmoredZombie, createSpitterZombie, createFatZombie],
+        elite: [createZombieWizard, createMutant3]
     },
 
     // 地图尺寸（视觉范围，节点坐标由此推算）
@@ -159,7 +200,7 @@ export class ZombieDungeonMapGenerator {
         const rows = cfg.grid.rows;
         const mainRow = cfg.grid.mainRow ?? 1;
         const shortestCombatPath = cfg.shortestCombatPath;
-        const startRows = (cfg.startRows ?? [0, 1, 2, 3]).slice(0, rows);
+        const startRow = rows > 1 ? (rows - 1) / 2 : mainRow;
 
         // 列：起点 + shortestCombatPath 个中间列 + boss + reward
         const combatStartCol = 1;
@@ -173,10 +214,8 @@ export class ZombieDungeonMapGenerator {
         // 生成节点
         const nodes = [];
 
-        // 起点列：所有起始行
-        for (const row of startRows) {
-            nodes.push(this._createNode(0, row, colSpacing, rowSpacing, 'start'));
-        }
+        // 起点列：单一居中起点
+        nodes.push(this._createNode(0, startRow, colSpacing, rowSpacing, 'start'));
 
         // 中间列：主通道必有节点，其余行随机出现
         const intermediateRowSets = [];
@@ -204,6 +243,17 @@ export class ZombieDungeonMapGenerator {
 
         // 建边
         const edges = this._buildEdges(nodes, totalCols);
+
+        // 随机标记精英战斗节点
+        const eliteCombatChance = DungeonConfig.getEliteCombatChance('zombie');
+        for (const node of nodes) {
+            if (node.type === 'combat') {
+                node.eliteChance = eliteCombatChance;
+                if (Math.random() < eliteCombatChance) {
+                    node.isElite = true;
+                }
+            }
+        }
 
         return { nodes, edges };
     }
@@ -258,7 +308,7 @@ export class ZombieDungeonMapGenerator {
         const cfg = this._genCfg;
         const min = cfg.nodeCount.min;
         const max = cfg.nodeCount.max;
-        const fixedCount = cfg.startRows.length + 2; // 起点 + boss + reward
+        const fixedCount = 1 + 2; // 起点 + boss + reward
 
         const countNodes = () => fixedCount + intermediateRowSets.reduce((sum, rs) => sum + rs.selectedRows.length, 0);
 
@@ -332,6 +382,15 @@ export class ZombieDungeonMapGenerator {
             }
         }
 
+        // 单一起点必须连接到第 1 列所有节点，形成 4 条分支
+        const startNode = nodes.find(n => n.col === 0 && n.type === 'start');
+        if (startNode) {
+            const firstColNodes = nodes.filter(n => n.col === 1);
+            for (const next of firstColNodes) {
+                edges.push({ from: startNode.id, to: next.id });
+            }
+        }
+
         // 保险：确保相邻列之间至少有一条横向连接
         for (let col = 0; col < totalCols - 1; col++) {
             const hasHorizontal = edges.some(e => {
@@ -358,10 +417,12 @@ export class ZombieDungeonMapGenerator {
 
 // ==================== 战斗波次生成器 ====================
 export class ZombieDungeonCombat {
-    constructor(config = ZOMBIE_DUNGEON_CONFIG) {
+    constructor(config = ZOMBIE_DUNGEON_CONFIG, isElite = false) {
         this.config = config;
+        this._isElite = isElite;
+        this._encounter = DungeonConfig.getZombieEncounterConfig(isElite);
         this._currentWave = 0;
-        this._totalWaves = config.combatWaves;
+        this._totalWaves = this._encounter.combatWaves;
     }
 
     reset() {
@@ -387,21 +448,54 @@ export class ZombieDungeonCombat {
         if (this.isComplete) return [];
         this._currentWave++;
 
-        const { monstersPerWave, monsterPool } = this.config;
+        const { monsterPool } = this.config;
+        const monstersPerWave = this._encounter.monstersPerWave;
+        const composition = this._encounter.monsterComposition;
         const classes = [];
 
-        for (let i = 0; i < monstersPerWave; i++) {
-            const tier = this._rollTier();
-            const pool = monsterPool[tier] || monsterPool.normal;
-            const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
-            classes.push({ MonsterClass, tier });
+        if (composition && typeof composition === 'object') {
+            // 数据驱动固定配比：例如 { elite: 1, normal: 5 }
+            for (const [tier, count] of Object.entries(composition)) {
+                const pool = monsterPool[tier] || monsterPool.normal;
+                for (let i = 0; i < count; i++) {
+                    const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
+                    classes.push({ MonsterClass, tier });
+                }
+            }
+            // 如果总数不足，用普通怪物补齐
+            while (classes.length < monstersPerWave) {
+                const pool = monsterPool.normal;
+                const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
+                classes.push({ MonsterClass, tier: 'normal' });
+            }
+            // 打乱顺序，避免固定站位
+            for (let i = classes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [classes[i], classes[j]] = [classes[j], classes[i]];
+            }
+        } else {
+            const guaranteeAtLeastOneElite = this._encounter.guaranteeAtLeastOneElite;
+            for (let i = 0; i < monstersPerWave; i++) {
+                const tier = this._rollTier();
+                const pool = monsterPool[tier] || monsterPool.normal;
+                const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
+                classes.push({ MonsterClass, tier });
+            }
+
+            // 确保至少一个精英
+            if (guaranteeAtLeastOneElite && !classes.some(c => c.tier === 'elite')) {
+                const idx = Math.floor(Math.random() * classes.length);
+                const pool = monsterPool.elite || monsterPool.normal;
+                classes[idx] = { MonsterClass: pool[Math.floor(Math.random() * pool.length)], tier: 'elite' };
+            }
         }
+
         return classes;
     }
 
     /** 按 tier 权重随机抽取 */
     _rollTier() {
-        const weights = this.config.tierWeights;
+        const weights = this._encounter.tierWeights;
         const roll = Math.random();
         let cumulative = 0;
         for (const [tier, weight] of Object.entries(weights)) {

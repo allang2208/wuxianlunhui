@@ -66,6 +66,7 @@
       "globalMultiplier": 2
     },
     "staminaRegen": {
+      "base": 1.0,
       "dexMultiplier": 0.01
     },
     "initialStats": {

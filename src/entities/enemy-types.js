@@ -4,6 +4,8 @@ import { Enemy } from './enemy.js';
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
 import { loadImage } from '../utils/image-loader.js';
+import { ZombieWizard } from './enemy-types/zombie-wizard.js';
+import { Mutant3 } from './enemy-types/mutant-3.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -453,7 +455,7 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 
     _getPhaserOptions() {
-        const spriteSize = 120;
+        const spriteSize = 90;
         return {
             spriteSize,
             textOffsetY: -spriteSize / 2 - 10,
@@ -463,4 +465,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy };
+export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3 };

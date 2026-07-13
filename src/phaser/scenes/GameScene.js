@@ -74,6 +74,9 @@ export class GameScene extends Scene {
         this.iceSpikeFlyGroup = this.add.group();
         this.fireballFlySprite = null;
 
+        // 通用施法者特效精灵注册表（支持玩家与敌人）
+        this._magicSprites = new Map();
+
         // 投射物精灵组
         this.projectilesGroup = this.add.group();
 
@@ -215,6 +218,9 @@ export class GameScene extends Scene {
                 this._syncFlyingFireball(_game.player);
                 // Phase 续：同步无人机
                 this._syncDrone(_game.player);
+
+                // 同步其他施法者（如僵尸巫师）的冰锥/火球特效
+                this._syncOtherMagicCasters(_game);
                 // 同步主手/副手武器 Sprite（传入后坐力/抖动参数）
                 const mainParams = { ..._game.player._getWeaponAnimParams(), state: _game.player.weaponAnim.state, timer: _game.player.weaponAnim.timer, isAttacking: _game.player.weaponAnim.isAttacking };
                 const offParams = { ..._game.player._getOffhandWeaponAnimParams(), state: _game.player.offhandWeaponAnim.state, timer: _game.player.offhandWeaponAnim.timer, isAttacking: _game.player.offhandWeaponAnim.isAttacking };
@@ -993,47 +999,98 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 同步非玩家施法者的冰锥/火球特效
+     */
+    _syncOtherMagicCasters(_game) {
+        if (!_game.entities) return;
+        const activeCasters = new Set();
+        _game.entities.forEach(entity => {
+            if (entity === _game.player) return;
+            const hasIce = entity._iceSpikeActive || (entity._iceSpikeSpikes && entity._iceSpikeSpikes.some(s => s.active));
+            const hasFire = entity._fireballActive || (entity._fireball && entity._fireball.active);
+            if (!hasIce && !hasFire) return;
+            activeCasters.add(entity);
+            this._syncIceSpikes(entity);
+            this._syncFireball(entity);
+            this._syncFlyingIceSpikes(entity);
+            this._syncFlyingFireball(entity);
+        });
+        // 清理不再施法的注册表条目
+        for (const [caster, sprites] of this._magicSprites.entries()) {
+            if (activeCasters.has(caster)) continue;
+            if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.destroy());
+            if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.destroy());
+            if (sprites.fireball) sprites.fireball.destroy();
+            if (sprites.fireballFly) sprites.fireballFly.destroy();
+            this._magicSprites.delete(caster);
+        }
+    }
+
+    _getMagicSprites(caster) {
+        if (!this._magicSprites.has(caster)) {
+            this._magicSprites.set(caster, {
+                iceSpikes: [],
+                iceSpikeFly: [],
+                fireball: null,
+                fireballFly: null
+            });
+        }
+        return this._magicSprites.get(caster);
+    }
+
+    /**
      * Phase 3: 同步冰锥到 Phaser Sprite
      */
-    _syncIceSpikes(player) {
-        if (!player._iceSpikeSpikes) {
-            this.iceSpikeGroup.setVisible(false);
+    _syncIceSpikes(caster) {
+        const sprites = this._getMagicSprites(caster);
+        if (!caster._iceSpikeSpikes) {
+            sprites.iceSpikes.forEach(s => s.setVisible(false));
             return;
         }
-        
-        // 确保 Group 中有足够的 Sprite
-        while (this.iceSpikeGroup.countActive() < player._iceSpikeSpikes.length) {
+
+        // 确保有足够 Sprite
+        while (sprites.iceSpikes.length < caster._iceSpikeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
             sprite.setDisplaySize(40, 60);
             sprite.setDepth(155);
-            this.iceSpikeGroup.add(sprite);
+            sprites.iceSpikes.push(sprite);
         }
-        
+
         // 同步每根冰锥的位置和旋转
-        this.iceSpikeGroup.getChildren().forEach((sprite, i) => {
-            const spike = player._iceSpikeSpikes[i];
+        sprites.iceSpikes.forEach((sprite, i) => {
+            const spike = caster._iceSpikeSpikes[i];
             if (!spike || !spike.active || spike.launched || spike.flyActive) {
                 sprite.setVisible(false);
                 return;
             }
-            
+
             const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
             const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
-            
+
             const localX = spike.offsetX + swayX;
             const localY = spike.offsetY + swayY;
-            
-            const cos = Math.cos(player.rotation);
-            const sin = Math.sin(player.rotation);
-            const worldX = player.x + cos * localX - sin * localY;
-            const worldY = player.y + sin * localX + cos * localY;
-            
-            // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
-            const camera = this.cameras.main;
-            const mouseX = camera.scrollX + (Input.mouse?.x || 0);
-            const mouseY = camera.scrollY + (Input.mouse?.y || 0);
-            const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
-            
+
+            const cos = Math.cos(caster.rotation || 0);
+            const sin = Math.sin(caster.rotation || 0);
+            const worldX = caster.x + cos * localX - sin * localY;
+            const worldY = caster.y + sin * localX + cos * localY;
+
+            // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target
+            let absoluteAngle;
+            if (caster === Game.player) {
+                const camera = this.cameras.main;
+                const mouseX = camera.scrollX + (Input.mouse?.x || 0);
+                const mouseY = camera.scrollY + (Input.mouse?.y || 0);
+                absoluteAngle = Math.atan2(mouseY - caster.y, mouseX - caster.x);
+            } else {
+                const target = caster.target;
+                if (target && target.active) {
+                    absoluteAngle = Math.atan2(target.y - caster.y, target.x - caster.x);
+                } else {
+                    absoluteAngle = caster.rotation || 0;
+                }
+            }
+
             sprite.setPosition(worldX, worldY);
             sprite.setRotation(absoluteAngle + Math.PI / 2);
             sprite.setAlpha(0.85);
@@ -1044,52 +1101,62 @@ export class GameScene extends Scene {
     /**
      * Phase 3: 同步火球到 Phaser Sprite
      */
-    _syncFireball(player) {
-        if (!player._fireballActive || !player._fireball || player._fireball.launched) {
-            if (this.fireballSprite) this.fireballSprite.setVisible(false);
+    _syncFireball(caster) {
+        const sprites = this._getMagicSprites(caster);
+        if (!caster._fireballActive || !caster._fireball || caster._fireball.launched) {
+            if (sprites.fireball) sprites.fireball.setVisible(false);
             return;
         }
-        
-        const fb = player._fireball;
-        
-        if (!this.fireballSprite) {
-            this.fireballSprite = this.add.sprite(0, 0, 'fireball');
-            this.fireballSprite.setDepth(155);
+
+        const fb = caster._fireball;
+
+        if (!sprites.fireball) {
+            sprites.fireball = this.add.sprite(0, 0, 'fireball');
+            sprites.fireball.setDepth(155);
         }
-        
-        const _s = player.size;
+
         const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
         const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
-        
+
         const localX = fb.offsetX + swayX;
         const localY = fb.offsetY + swayY;
-        
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
-        const worldX = player.x + cos * localX - sin * localY;
-        const worldY = player.y + sin * localX + cos * localY;
-        
-        // 计算朝向鼠标的角度（使用 Phaser 相机坐标）
-        const camera = this.cameras.main;
-        const mouseX = camera.scrollX + ((Input.mouse?.x) || 0);
-        const mouseY = camera.scrollY + ((Input.mouse?.y) || 0);
-        const absoluteAngle = Math.atan2(mouseY - player.y, mouseX - player.x);
-        
-        this.fireballSprite.setPosition(worldX, worldY);
-        this.fireballSprite.setRotation(absoluteAngle + Math.PI / 2);
-        this.fireballSprite.setAlpha(0.9);
-        this.fireballSprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-        
+
+        const cos = Math.cos(caster.rotation || 0);
+        const sin = Math.sin(caster.rotation || 0);
+        const worldX = caster.x + cos * localX - sin * localY;
+        const worldY = caster.y + sin * localX + cos * localY;
+
+        // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target
+        let absoluteAngle;
+        if (caster === Game.player) {
+            const camera = this.cameras.main;
+            const mouseX = camera.scrollX + ((Input.mouse?.x) || 0);
+            const mouseY = camera.scrollY + ((Input.mouse?.y) || 0);
+            absoluteAngle = Math.atan2(mouseY - caster.y, mouseX - caster.x);
+        } else {
+            const target = caster.target;
+            if (target && target.active) {
+                absoluteAngle = Math.atan2(target.y - caster.y, target.x - caster.x);
+            } else {
+                absoluteAngle = caster.rotation || 0;
+            }
+        }
+
+        sprites.fireball.setPosition(worldX, worldY);
+        sprites.fireball.setRotation(absoluteAngle + Math.PI / 2);
+        sprites.fireball.setAlpha(0.9);
+        sprites.fireball.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
+
         // 如果 fireball 是 spritesheet，设置当前帧
         if (fb.frameIndex !== undefined) {
             try {
-                this.fireballSprite.setFrame(fb.frameIndex);
+                sprites.fireball.setFrame(fb.frameIndex);
             } catch (_e) {
                 // 不是 spritesheet 或帧不存在，忽略
             }
         }
-        
-        this.fireballSprite.setVisible(true);
+
+        sprites.fireball.setVisible(true);
     }
 
     /**
@@ -1153,24 +1220,25 @@ export class GameScene extends Scene {
     /**
      * Phase 3 续：同步飞行中的冰锥到 Phaser Sprite
      */
-    _syncFlyingIceSpikes(player) {
-        if (!player._iceSpikeSpikes || !player._iceSpikeSpikes.some(s => s.flyActive)) {
-            this.iceSpikeFlyGroup.setVisible(false);
+    _syncFlyingIceSpikes(caster) {
+        const sprites = this._getMagicSprites(caster);
+        if (!caster._iceSpikeSpikes || !caster._iceSpikeSpikes.some(s => s.flyActive)) {
+            sprites.iceSpikeFly.forEach(s => s.setVisible(false));
             return;
         }
-        
-        const activeSpikes = player._iceSpikeSpikes.filter(s => s.flyActive);
-        
-        // 确保 Group 中有足够的 Sprite
-        while (this.iceSpikeFlyGroup.countActive() < activeSpikes.length) {
+
+        const activeSpikes = caster._iceSpikeSpikes.filter(s => s.flyActive);
+
+        // 确保有足够 Sprite
+        while (sprites.iceSpikeFly.length < activeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
             sprite.setDisplaySize(40, 60);
             sprite.setDepth(150);
-            this.iceSpikeFlyGroup.add(sprite);
+            sprites.iceSpikeFly.push(sprite);
         }
-        
+
         let activeIdx = 0;
-        this.iceSpikeFlyGroup.getChildren().forEach(sprite => {
+        sprites.iceSpikeFly.forEach(sprite => {
             if (activeIdx < activeSpikes.length) {
                 const spike = activeSpikes[activeIdx];
                 sprite.setPosition(spike.flyX, spike.flyY);
@@ -1187,33 +1255,34 @@ export class GameScene extends Scene {
     /**
      * Phase 3 续：同步飞行中的火球到 Phaser Sprite
      */
-    _syncFlyingFireball(player) {
-        if (!player._fireball || !player._fireball.flyActive) {
-            if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
+    _syncFlyingFireball(caster) {
+        const sprites = this._getMagicSprites(caster);
+        if (!caster._fireball || !caster._fireball.flyActive) {
+            if (sprites.fireballFly) sprites.fireballFly.setVisible(false);
             return;
         }
-        
-        const fb = player._fireball;
-        
-        if (!this.fireballFlySprite) {
-            this.fireballFlySprite = this.add.sprite(0, 0, 'fireball');
-            this.fireballFlySprite.setDepth(150);
+
+        const fb = caster._fireball;
+
+        if (!sprites.fireballFly) {
+            sprites.fireballFly = this.add.sprite(0, 0, 'fireball');
+            sprites.fireballFly.setDepth(150);
         }
-        
-        this.fireballFlySprite.setPosition(fb.flyX, fb.flyY);
-        this.fireballFlySprite.setRotation(fb.flyAngle + Math.PI / 2);
-        this.fireballFlySprite.setAlpha(0.9);
-        this.fireballFlySprite.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-        
+
+        sprites.fireballFly.setPosition(fb.flyX, fb.flyY);
+        sprites.fireballFly.setRotation(fb.flyAngle + Math.PI / 2);
+        sprites.fireballFly.setAlpha(0.9);
+        sprites.fireballFly.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
+
         if (fb.frameIndex !== undefined) {
             try {
-                this.fireballFlySprite.setFrame(fb.frameIndex);
+                sprites.fireballFly.setFrame(fb.frameIndex);
             } catch (_e) {
                 // 帧索引可能无效，忽略
             }
         }
-        
-        this.fireballFlySprite.setVisible(true);
+
+        sprites.fireballFly.setVisible(true);
     }
 
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
@@ -1415,6 +1484,16 @@ export class GameScene extends Scene {
             if (text && text.active) text.destroy();
         }
         this._entityHudTexts.clear();
+        // 清除通用施法者特效注册表
+        if (this._magicSprites) {
+            for (const sprites of this._magicSprites.values()) {
+                if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.destroy());
+                if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.destroy());
+                if (sprites.fireball) sprites.fireball.destroy();
+                if (sprites.fireballFly) sprites.fireballFly.destroy();
+            }
+            this._magicSprites.clear();
+        }
     }
 
     /**
@@ -2191,7 +2270,10 @@ export class GameScene extends Scene {
         }
         const animState = options.animState;
         if (!animState) return;
-        const animKey = 'zombie_dog_' + animState;
+        let animKey = options.animKey || ('zombie_dog_' + animState);
+        if (animState === 'summon' && options.summonReverse) {
+            animKey = 'enemy_zombie_wizard_summon_reverse';
+        }
         if (!this.anims.exists(animKey)) {
             // 没有对应动画时保持当前静态帧，不要强制 stop，避免冻结在动画最后一帧
             return;

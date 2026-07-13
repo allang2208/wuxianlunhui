@@ -76,7 +76,18 @@ import { loadImage } from '../utils/image-loader.js';
                     maxStamina: config.maxStamina ?? defaults.maxStamina ?? 9999,
                     kills: 0
                 });
+                // 记录配置中的显式 HP，避免被六维公式覆盖
+                const explicitHp = config.hp;
+                const explicitMaxHp = config.maxHp;
                 this.calculateCombatStats();
+                if (explicitHp !== undefined) {
+                    this.hp = explicitHp;
+                    this.data.hp = explicitHp;
+                }
+                if (explicitMaxHp !== undefined) {
+                    this.maxHp = explicitMaxHp;
+                    this.data.maxHp = explicitMaxHp;
+                }
                 this.weaponImage = loadImage('assets/weapons/1-rusty_sword_euip.png');
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 this.aiTimer = 0;

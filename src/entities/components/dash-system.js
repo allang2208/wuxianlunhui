@@ -24,6 +24,10 @@ class DashSystem {
         this.player._isDashing = true;
         this.player._dashState = 'charge';
         this.player._dashTimer = 0;
+        // [FIX] 冲刺攻击开始时清理正在进行的近战攻击 Tween，避免 weaponAnim.state 卡在 'attacking'
+        if (typeof this.player.clearAttackTweens === 'function') {
+            this.player.clearAttackTweens();
+        }
         this.player._dashDirection = { x: dirX, y: dirY };
         this.player._dashStartPos = { x: this.player.x, y: this.player.y };
         this.player._dashHitSet = new Set();
@@ -36,8 +40,10 @@ class DashSystem {
         this.player._goldenConvergeEffect = null; // 重置金色汇聚特效引用
         this.player._sprintDuration = 0;
         // 应用改造效果：技能体力消耗
+        const activeSkillId = this.player._getActiveDashSkillId();
+        const dashSkill = this.player.skills[activeSkillId];
         const currentWeapon = this.player.equipments[this.player.weaponMode];
-        let staminaCost = 20;
+        let staminaCost = dashSkill ? dashSkill.getEffect(dashSkill.level).staminaCost : 20;
         if (currentWeapon && currentWeapon._craftEffects) {
             const ce = currentWeapon._craftEffects;
             if (ce.skillStaminaCostDelta) staminaCost += ce.skillStaminaCostDelta;
@@ -59,23 +65,26 @@ class DashSystem {
     _getDashWeaponStateAt(timer, skillId) {
         // 未传入 skillId 时，根据当前装备自动判断
         const activeSkillId = skillId || this.player._getActiveDashSkillId();
-        const dashProgress = Math.min(1, timer / 800);
+        const skill = this.player.skills[activeSkillId];
+        const effect = skill ? skill.getEffect(skill.level) : {};
+        const totalMs = effect.totalMs || 800;
+        const dashProgress = Math.min(1, timer / totalMs);
+        const hitArc = effect.hitArc || (2 * Math.PI / 3);
         let dashOffset, dashAngle;
-        
-        
+
+
         if (activeSkillId === 'dashAttackThrust') {
             // === 突刺动画（骑士长剑专属） ===
             // 坐标系：rotate(Math.PI/2) 后，Y轴向左（屏幕左），X轴向下
             // dashOffset > 0 = 向左（靠近玩家）= "后"
             // dashOffset < 0 = 向右（远离玩家）= "前"
-            const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', 600);
             const t = Math.min(1, timer / totalMs);
             dashOffset = -95 * Easing.easeOutQuad(t);
             dashAngle = 0;
         } else {
             // === 默认 dashAttack：武器在朝向方向以120度扇形划过 ===
             // dashAngle: -60° → +60°（以朝向为中心，总120°扇形）
-            dashAngle = -Math.PI / 3 + (2 * Math.PI / 3) * Easing.easeInOutCubic(dashProgress);
+            dashAngle = -hitArc / 2 + hitArc * Easing.easeInOutCubic(dashProgress);
             // dashOffset: 武器前后位移动画（蓄力前伸 → 挥砍 → 收回）
             if (dashProgress < 0.25) {
                 const t = dashProgress / 0.25;
@@ -113,12 +122,12 @@ class DashSystem {
         }
         this.player._dashTimer += dt;
         const skill = this.player.skills[activeSkillId];
-        const _effect = skill.getEffect(skill.level);
+        const effect = skill.getEffect(skill.level);
         if (isThrust) {
             // === 冲刺攻击-突刺（骑士长剑专属）===
-            const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', 600);
+            const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', effect.totalMs);
             const progress = this.player._dashTimer / totalMs;
-            const chargeMs = this.player._getSkillParam('dashAttackThrust', 'animation.chargeMs', 0);
+            const chargeMs = this.player._getSkillParam('dashAttackThrust', 'animation.chargeMs', effect.chargeMs);
             const chargeRatio = chargeMs / totalMs;
             if (progress < chargeRatio) {
                 this.player._dashState = 'rotate';
@@ -135,14 +144,14 @@ class DashSystem {
                     const convergeY = (WEAPON_ANIM.holdY + 6);
                     const effectX = this.player.x;
                     const effectY = this.player.y;
-                    const speedDuration = Math.round(1600 / 1.5); // 播放速度提高50%
+                    const speedDuration = effect.goldenConvergeDuration; // 播放速度提高50%
                     this.player._goldenConvergeEffect = new GoldenConvergeEffect(effectX, effectY, this.player._dashDirection.x, this.player._dashDirection.y, this.player, speedDuration, convergeX, convergeY);
                     EffectManager.add(this.player._goldenConvergeEffect);
                     if (Game.showAttackRange) {
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
-                        const rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', 500) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', 0);
-                        const hitArc = 2 * Math.PI / 3; // 120度扇形
-                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, hitArc, 'sector', 1000, 0.5, true));
+                        const rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
+                        const hitArc = effect.hitArc; // 120度扇形
+                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, hitArc, 'sector', effect.rangeEffectLife, effect.rangeEffectAlpha, true));
                     }
                 }
                 this.player._dashState = 'slash';
@@ -156,7 +165,7 @@ class DashSystem {
                 this.player._dashSlashEffect = null;
                 this.player._dashThrustPhase = null;
                 this.player._goldenConvergeEffect = null;
-            this.player._dashSlashStartTime = null;
+                this.player._dashSlashStartTime = null;
                 this.player._dashResetAnim = {
                     startOffset: endState.dashOffset,
                     startAngle: endState.dashAngle || Math.PI / 1800,
@@ -165,6 +174,12 @@ class DashSystem {
                     startTime: Date.now(),
                     duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
                 };
+                // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
+                if (this.player.weaponAnim) {
+                    this.player.weaponAnim.state = 'idle';
+                    this.player.weaponAnim.isAttacking = false;
+                    this.player.weaponAnim.timer = 0;
+                }
                 SkillManager.addDashThrustExp(this.player, this.player._dashHitSet.size, 0);
                 // 剑精通经验（突刺攻击命中）
                 if (this.player._dashThrustPhase) {
@@ -172,19 +187,21 @@ class DashSystem {
                 }
                 return;
             }
-            // 移动：前40%时间完成150px位移，速度递减
-            const dashDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', 188);
-            if (progress < 0.40) {
-                const moveProgress = progress / 0.40;
+            // 移动：前40%时间完成位移，速度递减
+            const dashDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist);
+            const movePhaseRatio = effect.movePhaseRatio;
+            const speedMul = effect.speedMul;
+            const bounceRatio = effect.bounceRatio;
+            if (progress < movePhaseRatio) {
+                const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);
-                const speedMul = 0.75;
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
                 const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
-                    const bounceDist = dashDist * speedMul * easedProgress * 0.3;
+                    const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
                     const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
@@ -196,7 +213,7 @@ class DashSystem {
             }
             // 突刺阶段：判定窗口
             if (this.player._dashState === 'slash') {
-                const thrustMs = this.player._getSkillParam('dashAttackThrust', 'animation.thrustMs', 600);
+                const thrustMs = this.player._getSkillParam('dashAttackThrust', 'animation.thrustMs', effect.thrustMs);
                 const slashStart = chargeMs;
                 const slashEnd = chargeMs + thrustMs;
                 if (this.player._dashTimer >= slashStart && this.player._dashTimer <= slashEnd) {
@@ -205,9 +222,9 @@ class DashSystem {
             }
         } else {
             // === 原始冲刺攻击（dashAttack）===
-            const totalMs = 800;
+            const totalMs = effect.totalMs;
             const progress = this.player._dashTimer / totalMs;
-            const chargeRatio = 350 / 800;
+            const chargeRatio = effect.chargeMs / totalMs;
             if (progress < chargeRatio) {
                 this.player._dashState = 'charge';
             } else if (progress < 1.0) {
@@ -219,10 +236,10 @@ class DashSystem {
                             || (this.player.attacks.melee && this.player.attacks.melee.config && this.player.attacks.melee.config.range)
                             || 206;
                         const skillLevel = skill.level;
-                        const range = baseRange + 6 + skillLevel * 6 + 30;
+                        const range = baseRange + effect.rangeBonusBase + skillLevel * effect.rangeLevelBonus + effect.rangeBonusFlat;
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
-                        const hitArc = 2 * Math.PI / 3;
-                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc, 'sector', 1000, 0.5, true));
+                        const hitArc = effect.hitArc;
+                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc, 'sector', effect.rangeEffectLife, effect.rangeEffectAlpha, true));
                     }
                 }
                 this.player._dashState = 'slash';
@@ -242,7 +259,7 @@ class DashSystem {
                 this.player._dashSlashEffect = null;
                 this.player._dashThrustPhase = null;
                 this.player._goldenConvergeEffect = null;
-            this.player._dashSlashStartTime = null;
+                this.player._dashSlashStartTime = null;
                 this.player._dashResetAnim = {
                     startOffset: endState.dashOffset,
                     startAngle: endState.dashAngle || Math.PI / 1800,
@@ -251,24 +268,32 @@ class DashSystem {
                     startTime: Date.now(),
                     duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
                 };
+                // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
+                if (this.player.weaponAnim) {
+                    this.player.weaponAnim.state = 'idle';
+                    this.player.weaponAnim.isAttacking = false;
+                    this.player.weaponAnim.timer = 0;
+                }
                 SkillManager.addDashExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
                 // 剑精通经验（冲刺攻击命中，只在攻击结束时发放一次）
                 SkillManager.addMeleeExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
                 return;
             }
             // 移动：前40%时间完成位移，速度递减
-            const dashDist = 188;
-            if (progress < 0.40) {
-                const moveProgress = progress / 0.40;
+            const dashDist = effect.dashDist;
+            const movePhaseRatio = effect.movePhaseRatio;
+            const speedMul = effect.speedMul;
+            const bounceRatio = effect.bounceRatio;
+            if (progress < movePhaseRatio) {
+                const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);
-                const speedMul = 0.75;
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
                 const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
-                    const bounceDist = dashDist * speedMul * easedProgress * 0.3;
+                    const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
                     const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
@@ -314,7 +339,7 @@ class DashSystem {
                     this.player._goldenConvergeEffect.setConverge(convergeX, convergeY);
                 }
                 const slashElapsed = this.player._dashSlashStartTime ? Date.now() - this.player._dashSlashStartTime : 0;
-                if (slashElapsed <= 400) {
+                if (slashElapsed <= effect.slashWindowMs) {
                     this._checkHit(entities, activeSkillId);
                 }
             }
@@ -331,15 +356,16 @@ class DashSystem {
             || 8;
         const skill = this.player.skills[activeSkillId];
         const skillLevel = skill.level;
-        const knockback = baseKnockback + 188 + skillLevel * 6;
+        const effect = skill.getEffect(skillLevel);
+        const knockback = baseKnockback + effect.knockbackBonus + skillLevel * effect.knockbackLevelBonus;
         const baseRange = (currentItem && currentItem.attack && currentItem.attack.range)
             || (this.player.attacks.melee && this.player.attacks.melee.config && this.player.attacks.melee.config.range)
             || 206;
-        const range = baseRange + 6 + skillLevel * 6 + 30;
+        const range = baseRange + effect.rangeBonusBase + skillLevel * effect.rangeLevelBonus + effect.rangeBonusFlat;
         if (isThrust) {
             // === 矩形持续判定（冲刺攻击-突刺）===
-            const rectWidth = this.player._getSkillParam('dashAttackThrust', 'hitCheck.width', 94);
-            let rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', 438) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', 0);
+            const rectWidth = this.player._getSkillParam('dashAttackThrust', 'hitCheck.width', effect.hitWidth);
+            let rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
             // 应用改造效果：攻击距离
             if (currentItem && currentItem._craftEffects && currentItem._craftEffects.rangeDelta) {
                 rectLength += currentItem._craftEffects.rangeDelta;
@@ -351,24 +377,23 @@ class DashSystem {
             }
             const phase = this.player._dashThrustPhase;
             const elapsed = Date.now() - phase.startTime;
-            const hitIndex = Math.floor(elapsed / 199);
-            if (hitIndex >= 3 || hitIndex <= phase.lastHitIndex) return;
+            const hitTickInterval = effect.hitTickInterval;
+            const thrustMaxHits = effect.thrustMaxHits;
+            const hitIndex = Math.floor(elapsed / hitTickInterval);
+            if (hitIndex >= thrustMaxHits || hitIndex <= phase.lastHitIndex) return;
             phase.lastHitIndex = hitIndex;
             const baseAtk = this.player.getCurrentWeaponAtk();
             // 从 skills.json 获取 damageMul: 0.80 + level * 0.03
             const damageMul = skill.getEffect(skillLevel).damageMul;
-            let levelBonus;
-            if (hitIndex === 0 || hitIndex === 1) {
-                levelBonus = skillLevel * 0.05;
-            } else {
-                levelBonus = skillLevel * 0.10;
-            }
+            const levelBonus = (hitIndex === 0 || hitIndex === 1)
+                ? skillLevel * effect.thrustLevelBonusEarly
+                : skillLevel * effect.thrustLevelBonusLate;
             const damage = Math.floor(baseAtk * damageMul + levelBonus);
             // 改造效果：大马士革钢 - 冲刺突刺双倍伤害
             const dashDoubleHit = currentItem && currentItem._craftEffects && currentItem._craftEffects.dashDoubleHit;
             if (hitIndex === 0) {
                 // 第一次判定：矩形范围判定，记录命中目标
-                const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', 0);
+                const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', effect.hitBackOffset);
                 entities.forEach(entity => {
                     if (entity === this.player || !entity.active || !entity.hittable) return;
                     const dx = entity.x - this.player._dashSlashPos.x;
@@ -389,23 +414,23 @@ class DashSystem {
                         }
                         const finalCritRate = Math.max(0, playerCrit - targetCritRes);
                         const isCrit = Math.random() * 100 < finalCritRate;
-                        let critMul = 1.5;
+                        let critMul = effect.critMul;
                         if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
                             const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
                             critMul = 1 + csEffect.damageBonus;
                         }
                         const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                         entity.takeDamage(finalDamage, this.player);
-                    // 大马士革钢：只在第一次判定触发双倍伤害
-                    if (dashDoubleHit && hitIndex === 0) {
-                        entity.takeDamage(finalDamage, this.player);
-                    }
+                        // 大马士革钢：只在第一次判定触发双倍伤害
+                        if (dashDoubleHit && hitIndex === 0) {
+                            entity.takeDamage(finalDamage, this.player);
+                        }
                         if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
                         phase.totalHitCount++;
                         entity._dashStunned = true;
-                        entity._dashStunTimer = 500;
-                        // 击退距离 = 主角突刺移动距离（173 * 0.75 = 130px）
-                        const thrustMoveDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', 173) * 0.75;
+                        entity._dashStunTimer = effect.stunDuration;
+                        // 击退距离 = 主角突刺移动距离
+                        const thrustMoveDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist) * effect.speedMul;
                         entity.applyKnockback(attackAngle, thrustMoveDist);
                         EffectManager.add(new HitEffect(entity.x, entity.y));
                         EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
@@ -428,7 +453,7 @@ class DashSystem {
                     }
                     const finalCritRate2 = Math.max(0, playerCrit2 - targetCritRes2);
                     const isCrit = Math.random() * 100 < finalCritRate2;
-                    let critMul = 1.5;
+                    let critMul = effect.critMul;
                     if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
                         const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
                         critMul = 1 + csEffect.damageBonus;
@@ -439,7 +464,7 @@ class DashSystem {
                     if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
                     phase.totalHitCount++;
                     entity._dashStunned = true;
-                    entity._dashStunTimer = 500;
+                    entity._dashStunTimer = effect.stunDuration;
                     EffectManager.add(new HitEffect(entity.x, entity.y));
                     EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
                     this.player._triggerRuneSwordCooldownReduction();
@@ -448,7 +473,7 @@ class DashSystem {
         } else {
             // === 扇形单次判定（原始冲刺攻击 / 冲刺攻击-火）===
             const isFire = activeSkillId === 'dashAttackFire';
-            const hitArc = 2 * Math.PI / 3;
+            const hitArc = effect.hitArc;
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
                 if (this.player._dashHitSet.has(entity)) return;
@@ -457,10 +482,10 @@ class DashSystem {
                     const effect = skill.getEffect(skillLevel);
                     let damage;
                     if (isFire) {
-                        // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * (1.5+技能等级*0.05)
+                        // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * damageMul
                         const physAtk = this.player.getCurrentWeaponAtk();
                         const magicAtk = this.player.data.matk || 0;
-                        const fireMul = 1.5 + skillLevel * 0.05;
+                        const fireMul = effect.damageMul;
                         damage = Math.floor((physAtk + magicAtk) * fireMul);
                     } else {
                         const baseDamage = this.player.getCurrentWeaponAtk();
@@ -476,7 +501,7 @@ class DashSystem {
                     }
                     const finalCritRate3 = Math.max(0, playerCrit3 - targetCritRes3);
                     const isCrit = Math.random() * 100 < finalCritRate3;
-                    let critMul = 2;
+                    let critMul = effect.critMul;
                     if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
                         const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
                         critMul = 1 + csEffect.damageBonus;
@@ -503,8 +528,10 @@ class DashSystem {
     // 冲刺攻击-火：在武器路径上生成火焰粒子
     _spawnFireTrail() {
         if (!this.player._dashFireTrailTimer) this.player._dashFireTrailTimer = 0;
+        const skill = this.player.skills.dashAttackFire;
+        const effect = skill ? skill.getEffect(skill.level) : {};
         this.player._dashFireTrailTimer += 16.67; // 约60fps
-        if (this.player._dashFireTrailTimer < 50) return; // 每50ms生成一次
+        if (this.player._dashFireTrailTimer < (effect.fireTrailSpawnInterval || 50)) return; // 按配置间隔生成
         this.player._dashFireTrailTimer = 0;
         // 在武器位置生成火焰粒子
         const state = this._getDashWeaponStateAt(this.player._dashTimer, 'dashAttackFire');
@@ -512,7 +539,7 @@ class DashSystem {
         const cos = Math.cos(this.player.rotation);
         const sin = Math.sin(this.player.rotation);
         // 武器偏移量（基于dash状态）
-        const offsetDist = 60 + state.dashOffset;
+        const offsetDist = (effect.fireTrailWeaponOffset || 60) + state.dashOffset;
         const wx = this.player.x + cos * offsetDist;
         const wy = this.player.y + sin * offsetDist;
         EffectManager.add(new DashFireTrailEffect(wx, wy, this.player._dashDirection.x, this.player._dashDirection.y, null));
