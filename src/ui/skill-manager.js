@@ -8,6 +8,11 @@ import { SystemUI } from './system-ui.js';
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
+    _addSkillExp(player, skill, gained) {
+        if (!skill || skill.level >= skill.maxLevel || gained <= 0) return;
+        SkillLevelSystem.addExp(skill, gained, player);
+        SkillLevelSystem.refreshUI(skill.id);
+    },
     addMeleeExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
         // 检查当前武器是否为剑类（剑精通只对剑类武器生效）
@@ -15,25 +20,22 @@ export const SkillManager = {
         if (!currentWeapon || !isSwordCategory(currentWeapon.weaponType)) return;
         const sm = player.skills.swordMastery;
         if (!sm || sm.level >= sm.maxLevel) return;
+        const rw = sm.expRewards || {};
         let gained = 0;
-        // 每次击中敌人积累1点经验，击中多个敌人则获得多次经验
-        gained += hitCount * 1;
-        // 同时攻击到两个以上敌人时，额外获得3点经验
-        if (hitCount >= 2) gained += 3;
-        // 每次击杀目标增加10点经验
-        gained += killCount * 10;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(sm, gained, player);
-        SkillLevelSystem.refreshUI(sm.id);
+        gained += hitCount * (rw.hit || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        gained += killCount * (rw.kill || 0);
+        this._addSkillExp(player, sm, gained);
     },
     addDashExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
         const da = player.skills.dashAttack;
         if (!da || da.level >= da.maxLevel) return;
+        const rw = da.expRewards || {};
         let gained = 0;
-        gained += hitCount * 1;
-        if (hitCount >= 2) gained += 3;
-        gained += killCount * 15;
+        gained += hitCount * (rw.hit || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        gained += killCount * (rw.kill || 0);
         if (gained <= 0) return;
         SkillLevelSystem.addExp(da, gained, player);
         // 同步 dashAttackThrust 和 dashAttackFire 的等级和经验
@@ -57,10 +59,11 @@ export const SkillManager = {
         const da = player.skills.dashAttack;
         const dt = player.skills.dashAttackThrust;
         if (!da || !dt || da.level >= da.maxLevel) return;
+        const rw = da.expRewards || {};
         let gained = 0;
-        gained += hitCount * 1;
-        if (hitCount >= 2) gained += 3;
-        gained += killCount * 15;
+        gained += hitCount * (rw.hit || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        gained += killCount * (rw.kill || 0);
         if (gained <= 0) return;
         SkillLevelSystem.addExp(da, gained, player);
         // 同步到 dashAttackThrust 和 dashAttackFire
@@ -79,26 +82,24 @@ export const SkillManager = {
         if (!player || !player.skills) return;
         const ww = player.skills.whirlwind;
         if (!ww || ww.level >= ww.maxLevel) return;
+        const rw = ww.expRewards || {};
         let gained = 0;
-        gained += hitCount * 1;
-        if (hitCount >= 2) gained += 3;
-        gained += killCount * 15;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(ww, gained, player);
-        SkillLevelSystem.refreshUI(ww.id);
+        gained += hitCount * (rw.hit || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        gained += killCount * (rw.kill || 0);
+        this._addSkillExp(player, ww, gained);
     },
     addPushStrikeExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
         const ps = player.skills.pushStrike;
         if (!ps || ps.level >= ps.maxLevel) return;
+        const rw = ps.expRewards || {};
         let gained = 0;
-        gained += hitCount * 1;
-        if (hitCount >= 2) gained += 3;
-        if (hitCount >= 5) gained += 10;
-        gained += killCount * 15;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(ps, gained, player);
-        SkillLevelSystem.refreshUI(ps.id);
+        gained += hitCount * (rw.hit || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        if (hitCount >= (rw.multiHitThreshold || 5)) gained += rw.multiHitBonus || 0;
+        gained += killCount * (rw.kill || 0);
+        this._addSkillExp(player, ps, gained);
     },
     onLevelUp(player, skill) {
         const effect = skill.getEffect(skill.level);
@@ -204,68 +205,62 @@ export const SkillManager = {
         if (!player || !player.skills) return;
         const cs = player.skills.criticalStrike;
         if (!cs || cs.level >= cs.maxLevel) return;
+        const rw = cs.expRewards || {};
         let gained = 0;
-        if (isCrit) gained += 1;
-        if (isCrit && isKill) gained += 10;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(cs, gained, player);
-        SkillLevelSystem.refreshUI(cs.id);
+        if (isCrit) gained += rw.crit || 0;
+        if (isCrit && isKill) gained += rw.critKill || 0;
+        this._addSkillExp(player, cs, gained);
     },
     addMachineGunMasteryExp(player, isKill, isCrit) {
         if (!player || !player.skills) return;
         const mg = player.skills.machineGunMastery;
         if (!mg || mg.level >= mg.maxLevel) return;
+        const rw = mg.expRewards || {};
         let gained = 0;
-        if (isKill) gained += 10;
-        if (isCrit) gained += 5;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(mg, gained, player);
-        SkillLevelSystem.refreshUI(mg.id);
+        if (isKill) gained += rw.kill || 0;
+        if (isCrit) gained += rw.crit || 0;
+        this._addSkillExp(player, mg, gained);
     },
     addRifleMasteryExp(player, isKill, isCrit) {
         if (!player || !player.skills) return;
         const rm = player.skills.rifleMastery;
         if (!rm || rm.level >= rm.maxLevel) return;
+        const rw = rm.expRewards || {};
         let gained = 0;
-        if (isKill) gained += 10;
-        if (isCrit) gained += 5;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(rm, gained, player);
-        SkillLevelSystem.refreshUI(rm.id);
+        if (isKill) gained += rw.kill || 0;
+        if (isCrit) gained += rw.crit || 0;
+        this._addSkillExp(player, rm, gained);
     },
     addPistolMasteryExp(player, isKill, isCrit) {
         if (!player || !player.skills) return;
         const pm = player.skills.pistolMastery;
         if (!pm || pm.level >= pm.maxLevel) return;
+        const rw = pm.expRewards || {};
         let gained = 0;
-        if (isKill) gained += 10;
-        if (isCrit) gained += 5;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(pm, gained, player);
-        SkillLevelSystem.refreshUI(pm.id);
+        if (isKill) gained += rw.kill || 0;
+        if (isCrit) gained += rw.crit || 0;
+        this._addSkillExp(player, pm, gained);
     },
     addShotgunMasteryExp(player, isKill, isCrit) {
         if (!player || !player.skills) return;
         const sm = player.skills.shotgunMastery;
         if (!sm || sm.level >= sm.maxLevel) return;
+        const rw = sm.expRewards || {};
         let gained = 0;
-        if (isKill) gained += 10;
-        if (isCrit) gained += 5;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(sm, gained, player);
-        SkillLevelSystem.refreshUI(sm.id);
+        if (isKill) gained += rw.kill || 0;
+        if (isCrit) gained += rw.crit || 0;
+        this._addSkillExp(player, sm, gained);
     },
     addBowExp(player, isHit, isCrit, isKill) {
         if (!player || !player.skills) return;
         const bm = player.skills.bowMastery;
         if (!bm || bm.level >= bm.maxLevel) return;
+        const rw = bm.expRewards || {};
         let gained = 0;
-        if (isHit) gained += 1;
-        if (isCrit) gained += 4; // 暴击总计 5
-        if (isKill) gained += 9; // 击杀总计 10
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(bm, gained, player);
-        SkillLevelSystem.refreshUI(bm.id);
+        if (isHit) gained += rw.hit || 0;
+        if (isCrit) gained += rw.crit || 0;
+        if (isKill) gained += rw.kill || 0;
+        this._addSkillExp(player, bm, gained);
     },
     addDroneExp(player, entity) {
         if (!player || !player.skills) return;
@@ -273,47 +268,40 @@ export const SkillManager = {
         if (!ds || ds.level >= ds.maxLevel) return;
         // 只有击杀被无人机影响的敌人才能获得经验
         if (entity && entity._droneVulnerabilityStacks > 0) {
-            SkillLevelSystem.addExp(ds, 10, player);
-            SkillLevelSystem.refreshUI(ds.id);
+            const rw = ds.expRewards || {};
+            this._addSkillExp(player, ds, rw.kill || 0);
         }
     },
     addIceSpikeExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
-        const is = player.skills.iceSpike;
-        if (!is || is.level >= is.maxLevel) return;
-        let gained = 0;
-        gained += hitCount * 3;
-        gained += killCount * 10;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(is, gained, player);
-        SkillLevelSystem.refreshUI(is.id);
+        const sk = player.skills.iceSpike;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        const gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        this._addSkillExp(player, sk, gained);
     },
     addFireballExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
-        const fb = player.skills.fireball;
-        if (!fb || fb.level >= fb.maxLevel) return;
-        let gained = 0;
-        gained += hitCount * 3;
-        gained += killCount * 10;
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(fb, gained, player);
-        SkillLevelSystem.refreshUI(fb.id);
+        const sk = player.skills.fireball;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        const gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        this._addSkillExp(player, sk, gained);
     },
     addShieldDefenseExp(player, isMelee, isParry) {
         if (!player || !player.skills) return;
         const sd = player.skills.shieldDefense;
         if (!sd || sd.level >= sd.maxLevel) return;
+        const rw = sd.expRewards || {};
         let gained = 0;
         if (isParry) {
-            gained += 5;
+            gained += rw.parry || 0;
         } else if (isMelee) {
-            gained += 1;
+            gained += rw.meleeBlock || 0;
         } else {
-            gained += 3; // 远程攻击防御
+            gained += rw.rangedBlock || 0; // 远程攻击防御
         }
-        if (gained <= 0) return;
-        SkillLevelSystem.addExp(sd, gained, player);
-        SkillLevelSystem.refreshUI(sd.id);
+        this._addSkillExp(player, sd, gained);
     },
     updateMeleeCooldown(player) {
         if (!player || !player.skills) return;

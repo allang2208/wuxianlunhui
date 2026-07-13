@@ -47,6 +47,22 @@ const MovementSystem = {
             return;
         }
 
+        // 施法/召唤动画锁定：禁止移动，避免滑步
+        if (enemy._frozenForCast) {
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.isMoving = false;
+            return;
+        }
+
+        // [FIX] 攻击动画锁定：僵尸巫师等攻击动画期间禁止移动
+        if (enemy._attackAnimTimer > 0) {
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.isMoving = false;
+            return;
+        }
+
         // 处理击退（优先于正常移动）
         if (this._applyKnockback(enemy, dt)) {
             return;
@@ -529,30 +545,36 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
                 const angleToTarget = Math.atan2(tdy, tdx);
                 const targetDist = enemy._circleRadius;
-                if (tdist > targetDist + 80) {
+                const pathNoApproach = !!enemy._circleNoApproach;
+                if (tdist > targetDist + 80 && !pathNoApproach) {
                     // 太远：正常路径靠近（moveX/moveY 已计算）
                 } else if (tdist < targetDist - 80) {
                     // 太近：后退
                     moveX = -Math.cos(angleToTarget);
                     moveY = -Math.sin(angleToTarget);
                 } else {
-                    // 在绕圈范围内：路径方向与绕圈方向融合
-                    const circleDir = enemy._circleDir || (enemy._circleDir = Math.random() > 0.5 ? 1 : -1);
-                    const circleAngle = angleToTarget + circleDir * Math.PI / 2;
-                    // 微调距离到目标半径
-                    const distDiff = tdist - targetDist;
-                    const adjustStrength = Math.max(-0.5, Math.min(0.5, distDiff / 100));
-                    moveX = Math.cos(circleAngle) * 0.8 + Math.cos(angleToTarget) * adjustStrength * 0.2;
-                    moveY = Math.sin(circleAngle) * 0.8 + Math.sin(angleToTarget) * adjustStrength * 0.2;
-                    // 归一化
-                    const len = Math.sqrt(moveX * moveX + moveY * moveY);
-                    if (len > 0) { moveX /= len; moveY /= len; }
+                    // 在绕圈范围内：路径方向与绕圈方向融合（带墙壁规避）
+                    const circleMove = this._computeCircleMove(enemy, angleToTarget, targetDist, tdist, pathNoApproach);
+                    moveX = circleMove.moveX;
+                    moveY = circleMove.moveY;
                 }
             }
 
             // [ENHANCE] 路径跟随期间也应用单位分离，避免多只怪物沿同一路径堆叠
-            const repel = this._computeSeparation(enemy, 0, entities);
+            let repel = this._computeSeparation(enemy, 0, entities);
             if (repel.dx !== 0 || repel.dy !== 0) {
+                // 近战怪物接近目标时，若分离方向会把它们推离目标（反向跑），则极大削弱该力
+                if (enemy.target && enemy.target.active && !enemy._circleRadius) {
+                    const tdx = enemy.target.x - enemy.x;
+                    const tdy = enemy.target.y - enemy.y;
+                    const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+                    if (tdist <= (enemy.attackRange || 70) * 1.2) {
+                        const tdot = moveX * repel.dx + moveY * repel.dy;
+                        if (tdot < 0) {
+                            repel = { dx: repel.dx * 0.1, dy: repel.dy * 0.1 };
+                        }
+                    }
+                }
                 // 若分离方向与路径方向反向（>90°），说明前方被同伴堵住，允许更大幅度偏离路径
                 const dot = moveX * repel.dx + moveY * repel.dy;
                 const hasLOS = enemy._perception && enemy._perception.hasLOS;
@@ -630,6 +652,54 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     },
 
     /**
+     * 计算带墙壁规避的绕圈移动方向
+     * @returns {{moveX: number, moveY: number}}
+     */
+    _computeCircleMove(enemy, angleToTarget, targetDist, tdist, noApproach = false) {
+        let circleDir = enemy._circleDir || (enemy._circleDir = Math.random() > 0.5 ? 1 : -1);
+        const distDiff = tdist - targetDist;
+        // noApproach：只后退不主动靠近，用于僵尸巫师等“纯环绕”单位
+        let adjustStrength = Math.max(-0.5, Math.min(0.5, distDiff / 100));
+        if (noApproach) {
+            adjustStrength = Math.min(0, adjustStrength);
+        }
+
+        const build = (dir) => {
+            const circleAngle = angleToTarget + dir * Math.PI / 2;
+            let mx = Math.cos(circleAngle) * 0.8 + Math.cos(angleToTarget) * adjustStrength * 0.2;
+            let my = Math.sin(circleAngle) * 0.8 + Math.sin(angleToTarget) * adjustStrength * 0.2;
+            const len = Math.sqrt(mx * mx + my * my);
+            if (len > 0) { mx /= len; my /= len; }
+            return { mx, my };
+        };
+
+        let { mx, my } = build(circleDir);
+        if (WallSystem && WallSystem.resolve) {
+            const r = enemy.collisionRadius || 12;
+            const probeDist = r + 4;
+            const probe = WallSystem.resolve(enemy.x, enemy.y, enemy.x + mx * probeDist, enemy.y + my * probeDist, r);
+            const blocked = probe.x === enemy.x && probe.y === enemy.y;
+            if (blocked) {
+                const opp = build(-circleDir);
+                const probeOpp = WallSystem.resolve(enemy.x, enemy.y, enemy.x + opp.mx * probeDist, enemy.y + opp.my * probeDist, r);
+                const oppBlocked = probeOpp.x === enemy.x && probeOpp.y === enemy.y;
+                if (!oppBlocked) {
+                    enemy._circleDir = -circleDir;
+                    mx = opp.mx;
+                    my = opp.my;
+                } else {
+                    // 墙角：临时外推，远离目标以脱离边缘
+                    mx = mx * 0.3 - Math.cos(angleToTarget) * 0.7;
+                    my = my * 0.3 - Math.sin(angleToTarget) * 0.7;
+                    const len2 = Math.sqrt(mx * mx + my * my);
+                    if (len2 > 0) { mx /= len2; my /= len2; }
+                }
+            }
+        }
+        return { moveX: mx, moveY: my };
+    },
+
+    /**
      * 应用正常移动（加速度 + 摩擦 + 墙壁碰撞）
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
@@ -641,30 +711,36 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy._circleRadius && enemy.target && enemy.target.active && dist > 0) {
             const targetDist = enemy._circleRadius;
             const angleToTarget = Math.atan2(dy, dx);
-            if (dist > targetDist + 80) {
+            const noApproach = !!enemy._circleNoApproach;
+            if (dist > targetDist + 80 && !noApproach) {
                 // 距离太远：正常靠近（moveX/moveY 已计算）
             } else if (dist < targetDist - 80) {
                 // 距离太近：后退
                 moveX = -Math.cos(angleToTarget);
                 moveY = -Math.sin(angleToTarget);
             } else {
-                // 在目标距离范围内：绕圈移动
-                const circleDir = enemy._circleDir || (enemy._circleDir = Math.random() > 0.5 ? 1 : -1);
-                const circleAngle = angleToTarget + circleDir * Math.PI / 2;
-                // 微调距离到目标半径
-                const distDiff = dist - targetDist;
-                const adjustStrength = Math.max(-0.5, Math.min(0.5, distDiff / 100));
-                moveX = Math.cos(circleAngle) * 0.8 + Math.cos(angleToTarget) * adjustStrength * 0.2;
-                moveY = Math.sin(circleAngle) * 0.8 + Math.sin(angleToTarget) * adjustStrength * 0.2;
-                // 归一化
-                const len = Math.sqrt(moveX * moveX + moveY * moveY);
-                if (len > 0) { moveX /= len; moveY /= len; }
+                // 在目标距离范围内：绕圈移动（带墙壁规避）
+                const circleMove = this._computeCircleMove(enemy, angleToTarget, targetDist, dist, noApproach);
+                moveX = circleMove.moveX;
+                moveY = circleMove.moveY;
             }
         }
 
         // [ENHANCE] 单位间排斥：使用动态半径与衰减权重
-        const repel = this._computeSeparation(enemy, 0, entities);
+        let repel = this._computeSeparation(enemy, 0, entities);
         if (repel.dx !== 0 || repel.dy !== 0) {
+            // 近战怪物接近目标时，若分离方向会把它们推离目标（反向跑），则极大削弱该力
+            if (enemy.target && enemy.target.active && !enemy._circleRadius) {
+                const tdx = enemy.target.x - enemy.x;
+                const tdy = enemy.target.y - enemy.y;
+                const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+                if (tdist <= (enemy.attackRange || 70) * 1.2) {
+                    const dot = moveX * repel.dx + moveY * repel.dy;
+                    if (dot < 0) {
+                        repel = { dx: repel.dx * 0.1, dy: repel.dy * 0.1 };
+                    }
+                }
+            }
             // 有清晰视线时降低分离权重，让怪物直线冲锋；否则保持较高权重避免堆叠
             const hasLOS = enemy._perception && enemy._perception.hasLOS;
             const separationWeight = hasLOS ? 0.25 : 0.7;

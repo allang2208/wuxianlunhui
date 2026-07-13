@@ -1,54 +1,87 @@
-import { SkillLevelSystem } from '../../combat/skill-level-system.js';
+import { SkillManager } from '../../ui/skill-manager.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { AimHelper } from '../../utils/aim-helper.js';
+
+/**
+ * 火球系统（通用版）
+ * 支持玩家与敌人作为施法者（source）。
+ * 玩家通过鼠标瞄准；非玩家单位自动瞄准 source.target。
+ */
 export class FireballSystem {
-    constructor(player) {
-        this.player = player;
+    constructor(source, options = {}) {
+        this.source = source;
+        this.options = options;
+    }
+
+    _isPlayer() {
+        return this.source && this.source._faction === 'player';
+    }
+
+    _isHostile(entity) {
+        if (!entity || entity === this.source) return false;
+        return entity._faction !== this.source._faction;
+    }
+
+    _getAimTarget() {
+        if (this._isPlayer()) {
+            return Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+        }
+        const target = this.source.target;
+        if (!target || !target.active) return null;
+        const skill = this.source.skills && this.source.skills.fireball;
+        const effect = skill ? skill.getEffect(skill.level) : {};
+        const speed = effect.flySpeed || 1600;
+        return AimHelper.lead(this.source.x, this.source.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
     }
 
     trigger() {
         // 如果有飞行中的火球，禁止再次操作
-        if (this.player._fireball && this.player._fireball.flyActive) {
+        if (this.source._fireball && this.source._fireball.flyActive) {
             return;
         }
         // 如果已有悬浮火球，发射它
-        if (this.player._fireballActive && this.player._fireball && !this.player._fireball.launched) {
+        if (this.source._fireballActive && this.source._fireball && !this.source._fireball.launched) {
             this._launch();
             return;
         }
         // 检查冷却
-        if (this.player._fireballCooldown > 0) return;
-        // 检查魔法值
-        const skill = this.player.skills.fireball;
+        if (this.source._fireballCooldown > 0) return;
+
+        const skill = this.source.skills && this.source.skills.fireball;
         if (!skill) return;
-        const effect = skill.getEffect ? skill.getEffect(skill.level) : skill.effectFormula;
-        const mpCost = effect.mpCost || 50;
-        if (this.player.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 30, '魔法不足！', '#ff6b35'));
-            return;
+
+        const effect = skill.getEffect(skill.level);
+
+        // 玩家消耗魔法值；敌人不消耗
+        if (this._isPlayer()) {
+            if (this.source.data.mp < effect.mpCost) {
+                EffectManager.add(new FloatingTextEffect(this.source.x, this.source.y - 30, '魔法不足！', '#ff6b35'));
+                return;
+            }
+            this.source.data.mp -= effect.mpCost;
         }
-        this.player.data.mp -= mpCost;
-        this._spawnFireball();
+        this._spawnFireball(effect);
     }
 
-    _spawnFireball() {
-        const skill = this.player.skills.fireball;
+    _spawnFireball(effect) {
+        const skill = this.source.skills && this.source.skills.fireball;
         if (!skill) return;
-        this.player._fireballActive = true;
-        this.player._fireballTimer = 0;
+        this.source._fireballActive = true;
+        this.source._fireballTimer = 0;
         // 在身前30px生成火球
-        this.player._fireball = {
+        this.source._fireball = {
             active: true,
             launched: false,
-            offsetX: 30, // 身前30px
+            offsetX: 30, // 身前30px（纯视觉偏移）
             offsetY: 0,
             flyX: 0, flyY: 0,
             flyAngle: 0,
-            flySpeed: 1600,
+            flySpeed: effect.flySpeed,
             flyDistance: 0,
             flyActive: false,
             animTimer: 0,
@@ -59,36 +92,39 @@ export class FireballSystem {
             scale: 1.0
         };
         // 加载火球贴图（sprite sheet）
-        if (!this.player._fireballImg || this.player._fireballImg.naturalWidth === 0) {
-            this.player._fireballImg = loadImage('assets/skills/fireball_spritesheet.png');
+        if (!this.source._fireballImg || this.source._fireballImg.naturalWidth === 0) {
+            this.source._fireballImg = loadImage('assets/skills/fireball_spritesheet.png');
         }
-        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 40, '🔥 火球凝聚', '#ff6b35'));
+        EffectManager.add(new FloatingTextEffect(this.source.x, this.source.y - 40, '🔥 火球凝聚', '#ff6b35'));
     }
 
     _launch() {
-        if (!this.player._fireball || this.player._fireball.launched) return;
-        const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-        const mx = mouseWorld.x, my = mouseWorld.y;
-        const fb = this.player._fireball;
+        if (!this.source._fireball || this.source._fireball.launched) return;
+        const target = this._getAimTarget();
+        if (!target) return;
+        const mx = target.x, my = target.y;
+        const fb = this.source._fireball;
         fb.launched = true;
         fb.flyActive = true;
         // 计算起点（世界坐标）
-        const cos = Math.cos(this.player.rotation);
-        const sin = Math.sin(this.player.rotation);
-        fb.flyX = this.player.x + fb.offsetX * cos - fb.offsetY * sin;
-        fb.flyY = this.player.y + fb.offsetX * sin + fb.offsetY * cos;
-        // 朝向鼠标
+        const cos = Math.cos(this.source.rotation || 0);
+        const sin = Math.sin(this.source.rotation || 0);
+        fb.flyX = this.source.x + fb.offsetX * cos - fb.offsetY * sin;
+        fb.flyY = this.source.y + fb.offsetX * sin + fb.offsetY * cos;
+        // 朝向目标
         fb.flyAngle = Math.atan2(my - fb.flyY, mx - fb.flyX);
-        this.player._fireballTimer = 0;
+        this.source._fireballTimer = 0;
     }
 
     update(dt, entities) {
+        const skill = this.source.skills && this.source.skills.fireball;
+        const effect = skill ? skill.getEffect(skill.level) : {};
         // 更新悬浮计时
-        if (this.player._fireballActive) {
-            this.player._fireballTimer += dt;
-            // 30秒超时：只在悬浮状态（未发射）下强制结束
-            const fb = this.player._fireball;
-            if (fb && !fb.launched && this.player._fireballTimer >= 30000) {
+        if (this.source._fireballActive) {
+            this.source._fireballTimer += dt;
+            // 配置时长超时：只在悬浮状态（未发射）下强制结束
+            const fb = this.source._fireball;
+            if (fb && !fb.launched && this.source._fireballTimer >= effect.duration * 1000) {
                 this._end(true);
                 return;
             }
@@ -112,7 +148,7 @@ export class FireballSystem {
         // 更新飞行中的火球
         this._updateFlyingFireball(dt, entities);
         // 检查是否全部结束
-        const fb = this.player._fireball;
+        const fb = this.source._fireball;
         const hasFlying = fb && fb.flyActive;
         const hasUnlaunched = fb && fb.active && !fb.launched;
         if (!hasUnlaunched && !hasFlying && fb) {
@@ -121,17 +157,17 @@ export class FireballSystem {
     }
 
     _updateFlyingFireball(dt, entities) {
-        const fb = this.player._fireball;
+        const fb = this.source._fireball;
         if (!fb || !fb.flyActive) return;
         const dtSec = dt / 1000;
-        const skill = this.player.skills.fireball;
-        const level = skill ? skill.level : 1;
-        const d = this.player.data;
-        const baseDamage = 80 + level * 10;
-        const magicMul = 2 + 0.5 * level;
-        const intMul = 2.5 + 0.75 * level;
+        const skill = this.source.skills && this.source.skills.fireball;
+        const effect = skill ? skill.getEffect(skill.level) : {};
+        const d = this.source.data;
+        const baseDamage = effect.damageBase;
+        const magicMul = effect.magicMul;
+        const intMul = effect.intMul;
         const damage = Math.floor(baseDamage + d.matk * magicMul + d.int * intMul);
-        const explosionRadius = 80 + level * 5; // 爆炸范围随等级增加
+        const explosionRadius = effect.explosionRadius;
 
         const cos = Math.cos(fb.flyAngle), sin = Math.sin(fb.flyAngle);
         const moveDist = fb.flySpeed * dtSec;
@@ -139,8 +175,8 @@ export class FireballSystem {
         const nextY = fb.flyY + sin * moveDist;
         fb.flyDistance += moveDist;
 
-        // 最大飞行距离1200px
-        if (fb.flyDistance >= 1200) {
+        // 最大飞行距离
+        if (fb.flyDistance >= effect.maxRange) {
             this._explode(fb.flyX, fb.flyY, damage, explosionRadius, entities, skill);
             fb.flyActive = false;
             fb.active = false;
@@ -164,7 +200,7 @@ export class FireballSystem {
         // entities 可能是 Map，需要转换为数组
         const entityList = Array.from(entities.values ? entities.values() : entities);
         for (const entity of entityList) {
-            if (entity === this.player || !entity.active || !entity.hittable) continue;
+            if (!this._isHostile(entity) || !entity.active || !entity.hittable) continue;
             const dist = Math.sqrt((entity.x - fb.flyX) ** 2 + (entity.y - fb.flyY) ** 2);
             if (dist < (entity.size || entity.collisionRadius || 0) + 20) {
                 hitEntity = entity;
@@ -186,24 +222,23 @@ export class FireballSystem {
         // 范围伤害
         let hitCount = 0;
         let killCount = 0;
-        entities.forEach(entity => {
-            if (entity === this.player || !entity.active || !entity.hittable) return;
+        const entityList = Array.from(entities.values ? entities.values() : entities);
+        entityList.forEach(entity => {
+            if (!this._isHostile(entity) || !entity.active || !entity.hittable) return;
             const dist = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
             if (dist < radius) {
                 const wasAlive = entity.hp > 0;
                 // 距离衰减：距离中心越近伤害越高
                 const distRatio = 1 - Math.min(dist / radius, 1);
                 const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-                entity.takeDamage(finalDamage, this.player, 'magic');
+                entity.takeDamage(finalDamage, this.source, 'magic');
                 hitCount++;
                 if (wasAlive && entity.hp <= 0) killCount++;
             }
         });
-        // 经验
-        if (hitCount > 0 && skill) {
-            let exp = hitCount * 3 + killCount * 10;
-            SkillLevelSystem.addExp(skill, exp, this.player);
-            SkillLevelSystem.refreshUI(skill.id);
+        // 经验（仅玩家获得）
+        if (hitCount > 0 && skill && this._isPlayer()) {
+            SkillManager.addFireballExp(this.source, hitCount, killCount);
         }
     }
 
@@ -223,19 +258,21 @@ export class FireballSystem {
     }
 
     _end(forced) {
+        const skill = this.source.skills && this.source.skills.fireball;
+        const effect = skill ? skill.getEffect(skill.level) : {};
         if (forced) {
-            const fb = this.player._fireball;
+            const fb = this.source._fireball;
             if (fb && fb.active && !fb.launched) {
                 fb.active = false;
             }
         }
         // 检查是否还有飞行中的火球
-        const fb = this.player._fireball;
+        const fb = this.source._fireball;
         if (fb && fb.flyActive) return;
         // 全部结束，设置冷却
-        this.player._fireballActive = false;
-        this.player._fireballTimer = 0;
-        this.player._fireball = null;
-        this.player._fireballCooldown = 20000; // 20秒冷却
+        this.source._fireballActive = false;
+        this.source._fireballTimer = 0;
+        this.source._fireball = null;
+        this.source._fireballCooldown = effect.cooldown * 1000;
     }
 }

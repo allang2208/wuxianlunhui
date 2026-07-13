@@ -36,6 +36,8 @@ import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
 import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
+import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
+import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -264,12 +266,12 @@ export const Game = {
                 WallSystem.addTree(tx, ty, treeRadius, (group.startIndex || 0) + i, group.type, Math.random() * Math.PI * 2);
             }
         }
-        // 在主神空间生成一只僵尸犬，用于测试动画
-        this.spawnMainZombieDog();
+        // 在主神空间生成一只突变体-3，用于测试动画
+        this.spawnMainMutant3();
     },
 
     /**
-     * 清理主神空间所有怪物并生成一只僵尸犬
+     * 清理主神空间所有怪物并重新生成测试怪物
      */
     clearMainMonstersAndSpawnDog() {
         // 删除所有阵营为 enemy 的实体（怪物）
@@ -281,7 +283,7 @@ export const Game = {
                 this.entities.delete(key);
             }
         }
-        this.spawnMainZombieDog();
+        this.spawnMainMutant3();
     },
 
     spawnMainZombieDog() {
@@ -297,9 +299,63 @@ export const Game = {
             hp: 80, maxHp: 80,
             showWeapon: false,
             _alertRange: Infinity,
-            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
+            ai: { ...(zombieDogCfg.ai || {}), aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_dog', dog);
+    },
+    spawnMainZombieWizard() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const wizardCfg = enemyConfigData.zombieWizard || {};
+        const wizard = new ZombieWizard(origin.x + 400, origin.y + 120, {
+            ...wizardCfg,
+            name: '僵尸巫师',
+            hp: 500, maxHp: 500,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(wizardCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        wizard._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
+            ...enemyConfigData.zombieDog,
+            name: '僵尸犬',
+            hp: 80, maxHp: 80,
+            showWeapon: false,
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
+        });
+        this.entities.set('enemy_main_zombie_wizard', wizard);
+    },
+    spawnMainMutant3() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const mutantCfg = enemyConfigData.mutant3 || {};
+        const mutant = new Mutant3(origin.x + 400, origin.y + 120, {
+            ...mutantCfg,
+            name: '突变体-3',
+            hp: 750, maxHp: 750,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(mutantCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        mutant._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
+            ...enemyConfigData.zombieDog,
+            name: '僵尸犬',
+            hp: 80, maxHp: 80,
+            showWeapon: false,
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
+        });
+        this.entities.set('enemy_main_mutant3', mutant);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标

@@ -144,7 +144,19 @@ export class DroneSystem {
                 Renderer.cameraTarget.y = this.y;
             }
         } else {
-            // 非操控模式：保持当前位置，不跟随玩家
+            // 非操控模式：跟随玩家，保持在其正前方
+            const followAngle = this.player.rotation;
+            const targetX = this.player.x + Math.cos(followAngle) * 50;
+            const targetY = this.player.y + Math.sin(followAngle) * 50;
+            const dx = targetX - this.x;
+            const dy = targetY - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 5) {
+                const maxMove = this.speed * dtSec;
+                const move = Math.min(dist, maxMove);
+                this.x += (dx / dist) * move;
+                this.y += (dy / dist) * move;
+            }
             this.vx *= 0.9;
             this.vy *= 0.9;
         }
@@ -161,8 +173,8 @@ export class DroneSystem {
         const skill = this.player.skills && this.player.skills.droneSkill;
         if (!skill) return;
         const effect = skill.getEffect(skill.level);
-        const _baseDamageBonus = effect.damageBonusPercent || 10;
-        const _baseCritBonus = effect.critBonusPercent || 10;
+        const _baseDamageBonus = (effect && effect.damageBonusPercent) || 10;
+        const _baseCritBonus = (effect && effect.critBonusPercent) || 10;
         // 先收集当前在范围内的实体
         const inRangeEntities = new Set();
         entities.forEach(entity => {

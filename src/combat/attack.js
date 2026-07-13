@@ -10,6 +10,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
 import { CONFIG } from '../config/config.js';
 import { SkillManager } from '../ui/skill-manager.js';
+import { AimHelper } from '../utils/aim-helper.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -353,7 +354,6 @@ function applyEnchantOnHit(weapon, target, source) {
                 } else {
                     SoundManager.play('bow_fire');
                 }
-                const angle = Math.atan2(targetY - source.y, targetX - source.x);
                 // [FIX] 统一使用 getCurrentWeaponAtk，敌人优先读取 enemy-config.json 的 damageMin/damageMax，
                 // 确保实际伤害与图鉴显示一致。
                 const baseDamage = source.getCurrentWeaponAtk
@@ -378,6 +378,15 @@ function applyEnchantOnHit(weapon, target, source) {
                 const projectileSpeed = this.config.projectileSpeed || projDefaults.speed;
                 const projectileRange = this.config.projectileRange || projDefaults.range;
                 const projectileSize = this.config.projectileSize || projDefaults.size;
+
+                // [ENHANCE] 对移动目标使用预判瞄准
+                let aimX = targetX, aimY = targetY;
+                if (source.target && source.target.active && source.target.vx !== undefined) {
+                    const lead = AimHelper.lead(source.x, source.y, source.target.x, source.target.y, source.target.vx || 0, source.target.vy || 0, projectileSpeed);
+                    aimX = lead.x; aimY = lead.y;
+                }
+                const angle = Math.atan2(aimY - source.y, aimX - source.x);
+
                 ProjectileFactory.create({
                     x: source.x, y: source.y, angle,
                     speed: projectileSpeed, maxRange: projectileRange, size: projectileSize,

@@ -47,7 +47,7 @@
     "projectileSize": 6,
     "damage": { "min": 6, "max": 14 },
     "piercing": false,
-    "damageType": "physical"
+    "damageType": "ranged"
   },
   "projectile": {
     "defaults": {

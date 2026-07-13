@@ -222,7 +222,7 @@ export const CombatRoomSystem = {
             return [];
         }
 
-        const spawnArea = this._calculateSpawnArea(bounds, this._oppositeEdge, cfg.margin, cfg.spawnDepth);
+        const spawnArea = this._calculateSpawnArea(bounds, this._oppositeEdge, cfg.margin, cfg.spawnDepth, cfg.minWallDistance);
         const monsterCount = count || (isBoss ? cfg.count.boss : cfg.count.normal);
 
         const monsterClasses = customClasses || (isBoss ? this.config.monsterPool.boss : this.config.monsterPool.normal);
@@ -252,6 +252,23 @@ export const CombatRoomSystem = {
                 const safe = WallSystem.findSafeSpawn(monster.x, monster.y, r);
                 monster.x = safe.x;
                 monster.y = safe.y;
+            }
+
+            // 强制保持与墙壁的最小缓冲距离
+            const minD = cfg.minWallDistance || 0;
+            if (minD > 0) {
+                const innerMinX = bounds.minX + minD;
+                const innerMaxX = bounds.maxX - minD;
+                const innerMinY = bounds.minY + minD;
+                const innerMaxY = bounds.maxY - minD;
+                monster.x = Math.max(innerMinX, Math.min(innerMaxX, monster.x));
+                monster.y = Math.max(innerMinY, Math.min(innerMaxY, monster.y));
+                // 如果修正后进入墙体，再尝试一次安全搜索
+                if (WallSystem && WallSystem.findSafeSpawn && !WallSystem.canMoveTo(monster.x, monster.y, r)) {
+                    const safe = WallSystem.findSafeSpawn(monster.x, monster.y, r);
+                    monster.x = Math.max(innerMinX, Math.min(innerMaxX, safe.x));
+                    monster.y = Math.max(innerMinY, Math.min(innerMaxY, safe.y));
+                }
             }
 
             const key = `combat_monster_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
@@ -565,43 +582,45 @@ export const CombatRoomSystem = {
         };
     },
 
-    _calculateSpawnArea(bounds, oppositeEdge, margin, spawnDepth) {
-        const safeMin = bounds.minX;
-        const safeMax = bounds.maxX;
+    _calculateSpawnArea(bounds, oppositeEdge, margin, spawnDepth, minWallDistance = 0) {
+        const safeMinX = bounds.minX + minWallDistance;
+        const safeMaxX = bounds.maxX - minWallDistance;
+        const safeMinY = bounds.minY + minWallDistance;
+        const safeMaxY = bounds.maxY - minWallDistance;
 
         let minX, maxX, minY, maxY;
 
         switch (oppositeEdge) {
             case 0: // 对边 = 上边
-                minX = safeMin;
-                maxX = safeMax;
-                minY = safeMin;
-                maxY = safeMin + spawnDepth;
+                minX = safeMinX;
+                maxX = safeMaxX;
+                minY = safeMinY;
+                maxY = safeMinY + spawnDepth;
                 break;
             case 2: // 对边 = 下边
-                minX = safeMin;
-                maxX = safeMax;
-                minY = safeMax - spawnDepth;
-                maxY = safeMax;
+                minX = safeMinX;
+                maxX = safeMaxX;
+                minY = safeMaxY - spawnDepth;
+                maxY = safeMaxY;
                 break;
             case 3: // 对边 = 左边
-                minX = safeMin;
-                maxX = safeMin + spawnDepth;
-                minY = safeMin;
-                maxY = safeMax;
+                minX = safeMinX;
+                maxX = safeMinX + spawnDepth;
+                minY = safeMinY;
+                maxY = safeMaxY;
                 break;
             case 1: // 对边 = 右边
-                minX = safeMax - spawnDepth;
-                maxX = safeMax;
-                minY = safeMin;
-                maxY = safeMax;
+                minX = safeMaxX - spawnDepth;
+                maxX = safeMaxX;
+                minY = safeMinY;
+                maxY = safeMaxY;
                 break;
             default:
-                // 默认中心区域
-                minX = bounds.cx - 200;
-                maxX = bounds.cx + 200;
-                minY = bounds.cy - 200;
-                maxY = bounds.cy + 200;
+                // 默认中心区域，同时受最小墙壁距离约束
+                minX = Math.max(safeMinX, bounds.cx - 200);
+                maxX = Math.min(safeMaxX, bounds.cx + 200);
+                minY = Math.max(safeMinY, bounds.cy - 200);
+                maxY = Math.min(safeMaxY, bounds.cy + 200);
         }
 
         return { minX, maxX, minY, maxY };

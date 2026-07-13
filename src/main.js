@@ -16,6 +16,7 @@ import { initUIPanels } from './ui/panels/ui-panels.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { QuestSystem } from './ui/quest-system.js';
 import { NpcPortraitTool } from './ui/npc-portrait-tool.js';
+import { GameUIManager } from './ui/game-ui-manager.js';
 import DevTool from './ui/dev-tool.js';
 
 import { getElement } from './utils/dom-utils.js';
@@ -78,9 +79,9 @@ async function initModules() {
     const startBtn = getElement('startGameBtn');
     if (startBtn) startBtn.addEventListener('click', () => { startBtn.blur(); Game.start(); });
     const helpBtn = getElement('showHelpBtn');
-    if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); Game.showHelp(); });
+    if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); GameUIManager.showHelp(); });
     const backBtn = getElement('backMenuBtn');
-    if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); Game.toMenu(); });
+    if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); GameUIManager.toMenu(); });
 
     DevTool.init();
     NpcPortraitTool.init();

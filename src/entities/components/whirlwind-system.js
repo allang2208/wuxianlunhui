@@ -24,18 +24,17 @@ export class WhirlwindSystem {
         this.player._whirlwindHitSet = new Set();
         this.player._whirlwindHitChecked = false;
         if (this.player.clearAttackTweens) { this.player.clearAttackTweens(); }
+        // 从技能数据读取风车参数，避免硬编码
+        const skill = this.player.skills.whirlwind;
+        if (skill) {
+            const effect = skill.getEffect(skill.level);
+            this.player._whirlwindDuration = effect.duration || 800;
+        }
         // 显示风车范围提示（当范围提示开启时）
         if (Game.showAttackRange) {
-            const skill = this.player.skills.whirlwind;
             if (skill) {
                 const effect = skill.getEffect(skill.level);
-                const currentWeapon = this.player.equipments[this.player.weaponMode];
-                const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-                let radius = isSword ? effect.radius + 80 : effect.radius;
-                // 应用改造效果：攻击距离
-                if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
-                    radius += currentWeapon._craftEffects.rangeDelta;
-                }
+                const radius = this._getRadius(effect);
                 this.player._whirlwindRangeEffect = new AttackRangeEffect(this.player.x, this.player.y, 0, radius, 0, 'circle', 100, 0.5, true);
                 this.player._whirlwindRangeEffect.maxLife = 100;
                 this.player._whirlwindRangeEffect.life = 100;
@@ -77,18 +76,24 @@ export class WhirlwindSystem {
         }
     }
 
-    _checkHit(entities) {
-        const skill = this.player.skills.whirlwind;
-        if (!skill) return;
-        const effect = skill.getEffect(skill.level);
+    _getRadius(effect) {
         const currentWeapon = this.player.equipments[this.player.weaponMode];
         const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
-        let radius = isSword ? effect.radius + 80 : effect.radius;
+        let radius = isSword ? effect.radius + (effect.swordRadiusBonus || 80) : effect.radius;
         // 应用改造效果：攻击距离
         if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
             radius += currentWeapon._craftEffects.rangeDelta;
         }
+        return radius;
+    }
+
+    _checkHit(entities) {
+        const skill = this.player.skills.whirlwind;
+        if (!skill) return;
+        const effect = skill.getEffect(skill.level);
+        const radius = this._getRadius(effect);
         const knockback = effect.knockback;
+        const stunDuration = effect.stunDuration || 2500;
         const damageMul = effect.damageMul;
         const baseDamage = this.player.getCurrentWeaponAtk();
         const finalDamage = Math.round(baseDamage * damageMul);
@@ -106,8 +111,10 @@ export class WhirlwindSystem {
                 hitCount++;
                 const kbAngle = Math.atan2(dy, dx);
                 entity.applyKnockback(kbAngle, knockback);
+                if (entity.applyStun) entity.applyStun(stunDuration);
                 this.player._triggerRuneSwordCooldownReduction();
                 // 改造效果：流血
+                const currentWeapon = this.player.equipments[this.player.weaponMode];
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
                     entity.applyBleeding(1);
                 }

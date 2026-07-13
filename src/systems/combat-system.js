@@ -52,6 +52,20 @@ class CombatSystemImpl {
         // [NOTE] 状态效果更新（中毒、流血、易伤）已移至 DamageableEntity.update() 统一处理
     }
 
+    // --- 朝向检查 ---
+    _isFacingTarget(enemy, targetX, targetY) {
+        if (enemy.rotation === undefined) return true;
+        const dx = targetX - enemy.x;
+        const dy = targetY - enemy.y;
+        if (dx === 0 && dy === 0) return true;
+        const targetAngle = Math.atan2(dy, dx);
+        let diff = targetAngle - enemy.rotation;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        // 允许 30° 误差，避免轻微抖动导致无法攻击
+        return Math.abs(diff) <= Math.PI / 6;
+    }
+
     // --- Dash 眩晕 ---
     _updateDashStun(enemy, dt) {
         if (!enemy._dashStunned) return;
@@ -88,6 +102,11 @@ class CombatSystemImpl {
         // === END REFACTOR ===
         if (isBlocked) {
             return;
+        }
+
+        // [ENHANCE] 攻击前必须面向目标；若朝向偏差过大，先瞬间转向目标再出手
+        if (!this._isFacingTarget(enemy, targetX, targetY)) {
+            enemy.rotation = Math.atan2(dy, dx);
         }
 
         // === 真实武器系统路径（HumanoidMonster 等使用玩家同款武器）===

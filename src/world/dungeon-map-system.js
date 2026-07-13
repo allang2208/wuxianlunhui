@@ -24,6 +24,8 @@ import { Input } from '../ui/input.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from '../ui/ui-state.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
+import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonMapGenerator, DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
@@ -31,6 +33,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { ShopSystem } from '../ui/shop-system.js';
+import { GoldManager } from '../systems/gold-manager.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -132,6 +135,10 @@ export const DungeonMapSystem = {
     // 出口传送门（战斗结束后生成）
     _exitPortalSpawned: false,
 
+    // 精英战斗奖励宝箱
+    _eliteChest: null,
+    _eliteChestOpened: false,
+
     init(sceneId, player, dungeonType = 'default') {
         this.active = true;
         this.state = "map";
@@ -151,6 +158,8 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
+        this._eliteChest = null;
+        this._eliteChestOpened = false;
 
         // 初始化迷雾系统
         this.fogOfWar = new DungeonFogOfWar();
@@ -476,20 +485,49 @@ export const DungeonMapSystem = {
             : CombatRoomSystem.isCombatComplete();
 
         if (isCombatDone) {
-            // 战斗已完成，在可移动区域中央生成出口传送门
-            if (!this._exitPortalSpawned) {
-                this._exitPortalSpawned = true;
-                CombatRoomSystem.spawnExitPortal();
+            const currentNode = this.getCurrentNode();
+            const isEliteNode = currentNode && currentNode.isElite;
 
-                // 标记当前战斗节点为已完成（变为 empty）
-                const currentNode = this.getCurrentNode();
-                if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
-                    currentNode.type = 'empty';
+            if (isEliteNode) {
+                // 精英节点：先刷出宝箱，打开后再生成传送门
+                if (!this._eliteChest && !this._eliteChestOpened) {
+                    const bounds = CombatRoomSystem._roomBounds;
+                    const cx = bounds ? bounds.cx : this.player.x;
+                    const cy = bounds ? bounds.cy : this.player.y;
+                    const chest = new DungeonChest(cx, cy, {
+                        openRange: 60,
+                        onOpen: () => this._openEliteChest(currentNode)
+                    });
+                    this._eliteChest = chest;
+                    Game.entities.set('elite_chest', chest);
+                    if (SceneManager && SceneManager.showTopNotification) {
+                        SceneManager.showTopNotification('精英敌人已被消灭，打开宝箱获取奖励');
+                    }
                 }
 
-                // 上方提示栏：已完成战斗，寻找传送门离开
-                if (SceneManager && SceneManager.showTopNotification) {
-                    SceneManager.showTopNotification('已完成战斗，寻找传送门离开');
+                // 检测玩家靠近宝箱并自动打开
+                if (this._eliteChest && this._eliteChest.active && !this._eliteChest.opened) {
+                    const dx = this.player.x - this._eliteChest.x;
+                    const dy = this.player.y - this._eliteChest.y;
+                    if (Math.sqrt(dx * dx + dy * dy) <= this._eliteChest.openRange) {
+                        this._eliteChest.open();
+                    }
+                }
+            } else {
+                // 普通节点：直接生成出口传送门
+                if (!this._exitPortalSpawned) {
+                    this._exitPortalSpawned = true;
+                    CombatRoomSystem.spawnExitPortal();
+
+                    // 标记当前战斗节点为已完成（变为 empty）
+                    if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
+                        currentNode.type = 'empty';
+                    }
+
+                    // 上方提示栏：已完成战斗，寻找传送门离开
+                    if (SceneManager && SceneManager.showTopNotification) {
+                        SceneManager.showTopNotification('已完成战斗，寻找传送门离开');
+                    }
                 }
             }
         }
@@ -609,8 +647,8 @@ export const DungeonMapSystem = {
         const isBoss = currentNode && currentNode.type === 'boss';
         if (!isBoss) {
             const gold = CombatRoomSystem.getGoldReward(false);
-            if (gold > 0 && player.data) {
-                player.data.gold = (player.data.gold || 0) + gold;
+            if (gold > 0 && GoldManager) {
+                GoldManager.addGold(gold);
                 EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `获得 ${gold} 金币`, '#ffd700'));
             }
         }
@@ -652,11 +690,41 @@ export const DungeonMapSystem = {
         this._returnToMap();
     },
 
+    // 打开精英战斗奖励宝箱：发放配置奖励并生成出口传送门
+    _openEliteChest(currentNode) {
+        if (this._eliteChestOpened) return;
+        this._eliteChestOpened = true;
+
+        // 从配置读取奖励
+        const cfg = DungeonConfig.getZombieDungeonConfig();
+        const rewards = cfg.eliteChestReward && cfg.eliteChestReward.items ? cfg.eliteChestReward.items : [];
+        if (rewards.length > 0 && BossRewardSystem && BossRewardSystem.rewardNode) {
+            BossRewardSystem.rewardNode.giveReward(this.player, rewards);
+        }
+
+        if (EffectManager && FloatingTextEffect) {
+            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 50, '宝箱已开启！', '#ffd700'));
+        }
+
+        // 标记节点完成并生成出口传送门
+        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
+            currentNode.type = 'empty';
+        }
+        this._exitPortalSpawned = true;
+        CombatRoomSystem.spawnExitPortal();
+
+        if (SceneManager && SceneManager.showTopNotification) {
+            SceneManager.showTopNotification('宝箱已开启，通过传送门离开');
+        }
+    },
+
     _enterCombat(node) {
         this.state = "combat";
-        // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物
+        // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物/宝箱
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
+        this._eliteChest = null;
+        this._eliteChestOpened = false;
 
         if (this.dungeonType === 'zombie') {
             this._enterZombieCombat(node);
@@ -673,7 +741,7 @@ export const DungeonMapSystem = {
     _enterZombieCombat(node) {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
-        this._zombieCombat = new ZombieDungeonCombat();
+        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite);
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false);
@@ -769,6 +837,8 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
+        this._eliteChest = null;
+        this._eliteChestOpened = false;
 
         // 战斗完成后消耗女神祝福层数
         import('./dungeon-event-system.js').then(mod => {
@@ -808,6 +878,13 @@ export const DungeonMapSystem = {
             EffectManager.clearFloatingTexts();
         }
 
+        // 清理可能残留的精英宝箱
+        if (this._eliteChest) {
+            if (this._eliteChest._destroyPhaserSprite) this._eliteChest._destroyPhaserSprite();
+            Game.entities.delete('elite_chest');
+            this._eliteChest = null;
+        }
+        this._eliteChestOpened = false;
         this._exitPortalSpawned = false;
     },
 
@@ -1173,6 +1250,21 @@ export const DungeonMapSystem = {
             ctx.textBaseline = "middle";
             ctx.fillText(icon, node.x, node.y);
 
+            // 精英节点标记（遵循迷雾规则，未揭示时不显示）
+            if (node.isElite && isRevealed) {
+                ctx.strokeStyle = "#8a3a9a";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 4, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = "#d08ae0";
+                ctx.font = "bold 14px \"Microsoft YaHei\", sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("★", node.x, node.y - radius - 10);
+            }
+
             // 当前节点标记
             if (isCurrent) {
                 ctx.fillStyle = "#ffffff";
@@ -1217,13 +1309,15 @@ export const DungeonMapSystem = {
 
     _createMouseShopButton() {
         if (getElement('mouseShopButton')) return;
+        const container = document.querySelector('#gameContainer .bottom-bar') || document.body;
         const btn = document.createElement('div');
         btn.id = 'mouseShopButton';
         btn.textContent = '小鼠商店';
         btn.style.cssText = `
-            position: fixed;
-            left: 26.25vw;
-            bottom: 20px;
+            position: absolute;
+            right: calc(100% + 50px);
+            top: 50%;
+            transform: translateY(-50%);
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1247,7 +1341,7 @@ export const DungeonMapSystem = {
                 this._enterZombieShop();
             }
         });
-        document.body.appendChild(btn);
+        container.appendChild(btn);
     },
 
     _removeMouseShopButton() {
@@ -1257,13 +1351,15 @@ export const DungeonMapSystem = {
 
     _createAbandonButton() {
         if (getElement('abandonButton')) return;
+        const container = document.querySelector('#gameContainer .bottom-bar') || document.body;
         const btn = document.createElement('div');
         btn.id = 'abandonButton';
         btn.textContent = '放弃并返回';
         btn.style.cssText = `
-            position: fixed;
-            left: 64.11vw;
-            bottom: 20px;
+            position: absolute;
+            left: calc(100% + 50px);
+            top: 50%;
+            transform: translateY(-50%);
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
@@ -1287,7 +1383,7 @@ export const DungeonMapSystem = {
                 this._showExitConfirm();
             }
         });
-        document.body.appendChild(btn);
+        container.appendChild(btn);
     },
 
     _removeAbandonButton() {

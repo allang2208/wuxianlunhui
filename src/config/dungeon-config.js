@@ -5,6 +5,29 @@ const DEFAULTS = {
         nodeCount: { min: 35, max: 40 },
         shortestCombatPath: 9,
         typeRatios: { combat: 0.70, event: 0.30 },
+        eliteCombatChance: 0.20,
+        encounters: {
+            normal: {
+                combatWaves: 3,
+                monstersPerWave: 5,
+                tierWeights: { normal: 0.80, elite: 0.20 },
+                guaranteeAtLeastOneElite: false
+            },
+            elite: {
+                combatWaves: 1,
+                monstersPerWave: 6,
+                monsterComposition: { elite: 1, normal: 5 },
+                tierWeights: { normal: 0, elite: 1 },
+                guaranteeAtLeastOneElite: false
+            }
+        },
+        eliteChestReward: {
+            items: [
+                { type: 'gold', count: 100 },
+                { type: 'reforge_ticket', count: 1 },
+                { type: 'weapon', rarity: 'common', count: 1 }
+            ]
+        },
         grid: { rows: 4, colSpacing: 160, rowSpacing: 140, mainRow: 1 },
         startRows: [0, 1, 2, 3],
         bossReward: { bossBeforeLastCol: true, rewardAfterBoss: true },
@@ -15,7 +38,7 @@ const DEFAULTS = {
         bossSize: 4096,
         wallThickness: 20,
         cleanupCountdownMs: 10000,
-        spawn: { playerOffsetFromEdge: 60, monsterSpawnDepth: 120, monsterMargin: 40 }
+        spawn: { playerOffsetFromEdge: 60, monsterSpawnDepth: 120, monsterMargin: 40, minWallDistance: 150 }
     }
 };
 
@@ -36,6 +59,18 @@ export const DungeonConfig = {
 
     getZombieDungeonConfig() {
         return deepMerge(DEFAULTS.zombieDungeon, dungeonConfigData.zombieDungeon || {});
+    },
+
+    getZombieEncounterConfig(isElite) {
+        const encounters = (dungeonConfigData.zombieDungeon && dungeonConfigData.zombieDungeon.encounters) || {};
+        return encounters[isElite ? 'elite' : 'normal'] || DEFAULTS.zombieDungeon.encounters[isElite ? 'elite' : 'normal'];
+    },
+
+    getEliteCombatChance(dungeonType) {
+        if (dungeonType === 'zombie') {
+            return (dungeonConfigData.zombieDungeon && dungeonConfigData.zombieDungeon.eliteCombatChance) ?? 0.20;
+        }
+        return 0;
     },
 
     getCombatRoomConfig() {

@@ -35,7 +35,14 @@ const weaponAnimMixin = {
     // 每帧更新武器动画状态机（兼容旧系统）
     updateWeaponAnim(dt) {
         const wa = WEAPON_ANIM, anim = this.weaponAnim;
-        
+
+        // [FIX] 任意非 idle 状态卡住超过 5 秒，强制恢复 idle，避免体力回复等逻辑被永久阻塞
+        if (anim.state !== 'idle' && anim.timer > 5000) {
+            anim.state = 'idle';
+            anim.timer = 0;
+            anim.isAttacking = false;
+        }
+
         // 攻击状态由状态机管理
         switch (anim.state) {
             case 'idle':
@@ -158,6 +165,29 @@ const weaponAnimMixin = {
                     const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
                     anim.rotateAngle = -14 * (1 - easeT) * (Math.PI / 180);
                 }
+                break;
+
+            case 'attacking':
+                // 近战 Tween 负责驱动；清理已结束的 Tween
+                if (this._activeAttackTweens) {
+                    this._activeAttackTweens = this._activeAttackTweens.filter(t => t && !t.hasFinished && t.isPlaying());
+                }
+                // 若 Tween 已被清理或结束但状态未复位，安全回退到 idle
+                if (!this._activeAttackTweens || this._activeAttackTweens.length === 0) {
+                    anim.state = 'idle';
+                    anim.timer = 0;
+                    anim.isAttacking = false;
+                } else {
+                    // 累计计时，让上方的 5 秒卡住保护能够生效
+                    anim.timer += dt;
+                }
+                break;
+
+            default:
+                // 未知状态安全回退
+                anim.state = 'idle';
+                anim.timer = 0;
+                anim.isAttacking = false;
                 break;
         }
         

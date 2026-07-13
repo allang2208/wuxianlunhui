@@ -76,15 +76,14 @@ import { loadImage } from '../utils/image-loader.js';
                 if (this._lastHover !== hover) {
                     this._lastHover = hover;
                     this._phaserSprite.setTint(hover ? 0xffffaa : 0xffffff);
-
-                    const name = this.itemData.name || '';
-                    const labelText = hover ? `${name}\n[点击拾取]` : name;
-                    this._phaserLabel.setText(labelText);
-                    this._phaserLabel.setStyle({
-                        fontSize: hover ? '13px' : '11px',
-                        color: hover ? '#ffeb96' : '#d4c5a9e6'
-                    });
                 }
+                const name = this.itemData.name || '';
+                const labelText = hover ? `${name}\n[点击拾取]` : name;
+                this._phaserLabel.setText(labelText);
+                this._phaserLabel.setStyle({
+                    fontSize: hover ? '13px' : '11px',
+                    color: hover ? '#ffeb96' : '#d4c5a9e6'
+                });
                 this._phaserLabel.setPosition(this.x, this.y + bobY + size / 2 + 4);
                 this._phaserLabel.setDepth(this.y + bobY + 1);
                 this._phaserLabel.setVisible(true);

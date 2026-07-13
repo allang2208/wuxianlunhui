@@ -2447,8 +2447,10 @@
     display: none;
     box-shadow: 0 8px 30px rgba(0,0,0,0.6);
     overflow: hidden;
+    pointer-events: auto;
 }
 .npc-portrait-tool.active { display: block; }
+.npc-portrait-tool * { pointer-events: auto; }
 
 /* 头部 */
 .npc-portrait-tool-header {

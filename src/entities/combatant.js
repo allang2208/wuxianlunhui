@@ -1,4 +1,5 @@
 import { SoundManager } from '../ui/sound-manager.js';
+import { AimHelper } from '../utils/aim-helper.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { ThrustAttack } from '../combat/attack.js';
 import { isGunWeapon, getAmmoConfig, isMachineGun } from '../config/gun-ammo.js';
@@ -459,15 +460,20 @@ class Combatant extends DamageableEntity {
             spreadAngle = (Math.random() - 0.5) * 2 * factor * maxAngle * (Math.PI / 180);
         }
 
-        // 计算发射方向
-        const angle = Math.atan2(targetY - this.y, targetX - this.x) + spreadAngle;
-
         // 获取武器配置
         const weaponType = item.weaponType;
         const damage = attack.config.damage || { min: 1, max: 3 };
         const speed = attack.config.projectileSpeed || 1248;
         const range = attack.config.projectileRange || 800;
         const size = attack.config.projectileSize || 4;
+
+        // 计算发射方向（敌人对移动目标使用预判瞄准；玩家仍按鼠标/输入瞄准）
+        let aimX = targetX, aimY = targetY;
+        if (this._faction === 'enemy' && this.target && this.target.active) {
+            const lead = AimHelper.lead(this.x, this.y, this.target.x, this.target.y, this.target.vx || 0, this.target.vy || 0, speed);
+            aimX = lead.x; aimY = lead.y;
+        }
+        const angle = Math.atan2(aimY - this.y, aimX - this.x) + spreadAngle;
         const piercing = attack.config.piercing || false;
 
         // 获取弹丸贴图（默认绿色曳光弹）
@@ -617,7 +623,7 @@ class Combatant extends DamageableEntity {
             let droneBonus = 0.10 * this._droneVulnerabilityStacks;
             if (source && source.skills && source.skills.droneSkill) {
                 const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                droneBonus = (effect.damageBonusPercent / 100) * this._droneVulnerabilityStacks;
+                droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
             }
             finalDamage = Math.floor(finalDamage * (1 + droneBonus));
         }

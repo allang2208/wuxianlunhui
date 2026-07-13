@@ -8,11 +8,14 @@ import { getElement } from '../utils/dom-utils.js';
 
 // 全局存储：每个NPC的立绘参数 { [npcId]: { offsetX, offsetY, scale, rotation, flipX } }
 const npcPortraitSettings = {};
+const STORAGE_KEY = 'npcPortraitSettings';
 
 // 默认立绘参数：按NPC肖像路径匹配（用于首次打开时自动应用）
 const DEFAULT_PORTRAIT_PARAMS = {
     // 小鼠侍从：默认偏移，使立绘在对话框中位置合适
-    'mouse_attendant': { offsetX: -42, offsetY: -113, scale: 1.0, rotation: 0, flipX: false }
+    'mouse_attendant': { offsetX: -1009, offsetY: 12, scale: 2.04, rotation: 0, flipX: false },
+    // 小鼠大王：默认立绘参数
+    'npc_portrait': { offsetX: -1010, offsetY: -128, scale: 1.56, rotation: 0, flipX: false }
 };
 
 export const NpcPortraitTool = {
@@ -25,21 +28,33 @@ export const NpcPortraitTool = {
     _ctx: null,
     _image: null,
     _panel: null,
+    _boundMouseMove: null,
+    _boundMouseUp: null,
 
     // --------------- 初始化 ---------------
     // 在 main.js 中游戏启动时调用
     // 获取DOM元素、绑定事件监听器
     init() {
+        // 从 localStorage 恢复保存的立绘参数
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(npcPortraitSettings, parsed);
+            }
+        } catch (_e) {
+            // ignore storage errors
+        }
+
         this._canvas = getElement('npcPortraitCanvas');
         this._ctx = this._canvas ? this._canvas.getContext('2d') : null;
         this._panel = getElement('npcPortraitTool');
 
         // 绑定 Canvas 鼠标事件（拖动）
         if (this._canvas) {
+            this._boundMouseMove = this._onMouseMove.bind(this);
+            this._boundMouseUp = this._onMouseUp.bind(this);
             this._canvas.addEventListener('mousedown', this._onMouseDown.bind(this));
-            this._canvas.addEventListener('mousemove', this._onMouseMove.bind(this));
-            this._canvas.addEventListener('mouseup', this._onMouseUp.bind(this));
-            this._canvas.addEventListener('mouseleave', this._onMouseUp.bind(this));
             this._canvas.addEventListener('wheel', this._onWheel.bind(this));
         }
 
@@ -194,8 +209,14 @@ export const NpcPortraitTool = {
         npcPortraitSettings[this._npcId] = { ...this._params };
 
         const json = JSON.stringify(this._params, null, 2);
-        
-        
+        console.log(`[NpcPortraitTool] 已保存 NPC(${this._npcId}) 立绘参数:`, json);
+
+        // 持久化到 localStorage
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(npcPortraitSettings));
+        } catch (_e) {
+            // ignore storage errors
+        }
 
         // 尝试复制到剪贴板
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -305,6 +326,9 @@ export const NpcPortraitTool = {
             this._drag.startY = my;
             this._drag.startOffsetX = this._params.offsetX;
             this._drag.startOffsetY = this._params.offsetY;
+            // 拖动期间监听全局鼠标事件，允许拖出调整框到全屏
+            document.addEventListener('mousemove', this._boundMouseMove);
+            document.addEventListener('mouseup', this._boundMouseUp);
         }
     },
 
@@ -328,6 +352,8 @@ export const NpcPortraitTool = {
 
     _onMouseUp() {
         this._drag.active = false;
+        document.removeEventListener('mousemove', this._boundMouseMove);
+        document.removeEventListener('mouseup', this._boundMouseUp);
     },
 
     // --------------- 滚轮缩放 ---------------

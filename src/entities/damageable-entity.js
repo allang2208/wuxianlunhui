@@ -110,7 +110,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                         // 如果source有无人机技能，应用等级加成
                         if (source && source.skills && source.skills.droneSkill) {
                             const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                            droneBonus = (effect.damageBonusPercent / 100) * this._droneVulnerabilityStacks;
+                            droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
                         }
                         baseDamage = Math.floor(baseDamage * (1 + droneBonus));
                     }
@@ -144,7 +144,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                         let droneCritBonus = 10 * this._droneVulnerabilityStacks;
                         if (source && source.skills && source.skills.droneSkill) {
                             const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                            droneCritBonus = effect.critBonusPercent * this._droneVulnerabilityStacks;
+                            droneCritBonus = (effect.critBonusPercent || 10) * this._droneVulnerabilityStacks;
                         }
                         critRate += droneCritBonus;
                     }
