@@ -246,6 +246,14 @@ export const CombatRoomSystem = {
                 continue;
             }
 
+            // [SAFE-SPAWN] 若生成点贴墙/被阻挡，沿螺旋外推寻找合法位置
+            const r = monster.collisionRadius || monster.size || 12;
+            if (WallSystem && WallSystem.findSafeSpawn && !WallSystem.canMoveTo(monster.x, monster.y, r)) {
+                const safe = WallSystem.findSafeSpawn(monster.x, monster.y, r);
+                monster.x = safe.x;
+                monster.y = safe.y;
+            }
+
             const key = `combat_monster_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
             const Game = gameRef();
             if (Game && Game.entities) {

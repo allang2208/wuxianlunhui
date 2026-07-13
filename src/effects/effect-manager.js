@@ -33,6 +33,19 @@ const EffectManager = {
         this._pools[type].push(obj);
     },
     add(effect) { this.effects.push(effect); },
+    /**
+     * 清理所有浮动文字效果（事件/场景切换时调用，避免残留）
+     */
+    clearFloatingTexts() {
+        for (let i = this.effects.length - 1; i >= 0; i--) {
+            const e = this.effects[i];
+            if (e instanceof FloatingTextEffect) {
+                e.active = false;
+                if (e._destroyPhaserText) e._destroyPhaserText();
+                this.effects.splice(i, 1);
+            }
+        }
+    },
     update(dt) {
         // 原地清理失效特效，避免每帧创建新数组
         for (let i = this.effects.length - 1; i >= 0; i--) {

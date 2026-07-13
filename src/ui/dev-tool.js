@@ -1835,12 +1835,33 @@ const DevTool = {
 
     // ===== 坐标工具 =====
     _startCoordTool() {
+        console.log('[DevTool] _startCoordTool called');
+
+        // 先清理旧状态，防止重复绑定事件
+        if (this._coordToolCleanup) {
+            this._coordToolCleanup();
+            this._coordToolCleanup = null;
+        }
+
         this.hide(); // 关闭交互开发工具
 
         const overlay = getElement('coordOverlay');
         const panel = getElement('coordPanel');
-        if (overlay) overlay.style.display = 'block';
-        if (panel) panel.style.display = 'flex';
+        if (!overlay || !panel) {
+            console.error('[DevTool] coordOverlay or coordPanel not found', { overlay: !!overlay, panel: !!panel });
+            this._showToast('❌ 坐标工具 DOM 缺失');
+            this.show();
+            return;
+        }
+
+        // 将坐标层移动到 body，避免受 uiLayer pointer-events:none 影响
+        if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
+        if (panel.parentElement !== document.body) document.body.appendChild(panel);
+
+        overlay.classList.add('active');
+        panel.classList.add('active');
+        overlay.style.display = 'block';
+        panel.style.display = 'flex';
 
         // 清除之前的元素
         overlay.querySelectorAll('.rect-preview, .mouse-label, .start-marker, .final-rect').forEach(el => el.remove());
@@ -1850,7 +1871,11 @@ const DevTool = {
         getElement('coordEnd').textContent = '--';
         getElement('coordSize').textContent = '--';
 
+        console.log('[DevTool] coord tool activated');
+
         // 获取游戏容器的边界和缩放比例
+        // 注意：原始 gameCanvas 在非地牢模式下会被 Renderer 设为 display:none，
+        // 因此必须检测 rect 尺寸，避免除以 0 得到 Infinity/NaN。
         const gameContainer = getElement('gameContainer');
         const gameCanvas = getElement('gameCanvas');
         const getGameScale = () => {
@@ -1858,11 +1883,15 @@ const DevTool = {
             const containerRect = container.getBoundingClientRect();
             if (!gameCanvas) return { scaleX: 1, scaleY: 1, rect: containerRect };
             const canvasRect = gameCanvas.getBoundingClientRect();
-            return {
-                scaleX: gameCanvas.width / canvasRect.width || 1,
-                scaleY: gameCanvas.height / canvasRect.height || 1,
-                rect: containerRect
-            };
+            let scaleX = 1;
+            let scaleY = 1;
+            if (canvasRect.width > 0 && canvasRect.height > 0) {
+                const sx = gameCanvas.width / canvasRect.width;
+                const sy = gameCanvas.height / canvasRect.height;
+                if (Number.isFinite(sx) && sx > 0) scaleX = sx;
+                if (Number.isFinite(sy) && sy > 0) scaleY = sy;
+            }
+            return { scaleX, scaleY, rect: containerRect };
         };
 
         let isDragging = false;
@@ -1916,7 +1945,8 @@ const DevTool = {
                     mouseLabel.className = 'mouse-label';
                     overlay.appendChild(mouseLabel);
                 }
-                mouseLabel.textContent = `${gameX}, ${Math.round(scale.rect.height * scale.scaleY - gameY)}`;
+                const labelY = Number.isFinite(scale.scaleY) ? Math.round(scale.rect.height * scale.scaleY - gameY) : Math.round(scale.rect.height - gameY);
+                mouseLabel.textContent = `${gameX}, ${labelY}`
                 mouseLabel.style.left = (e.clientX + 12) + 'px';
                 mouseLabel.style.top = (e.clientY + 12) + 'px';
                 return;
@@ -1980,10 +2010,13 @@ const DevTool = {
             const startBottom = Math.round(containerHeight - startY);
             const endBottom = Math.round(containerHeight - endY);
             const bottom = Math.min(startBottom, endBottom);
-            
-            getElement('coordStart').textContent = `${left}, ${bottom}`;
-            getElement('coordEnd').textContent = `${left + width}, ${bottom + height}`;
-            getElement('coordSize').textContent = `${width} x ${height}`;
+
+            const safe = (n) => Number.isFinite(n) ? Math.round(n) : 0;
+            getElement('coordStart').textContent = `${safe(left)}, ${safe(bottom)}`;
+            getElement('coordEnd').textContent = `${safe(left + width)}, ${safe(bottom + height)}`;
+            getElement('coordSize').textContent = `${safe(width)} x ${safe(height)}`;
+
+            console.log('[DevTool] coord recorded:', { left: safe(left), bottom: safe(bottom), width: safe(width), height: safe(height) });
         };
 
         // 右键退出
@@ -1992,10 +2025,10 @@ const DevTool = {
             this._stopCoordTool();
         };
 
-        // 绑定事件
+        // 绑定事件（overlay 负责 mousedown/move/contextmenu；window 负责 mouseup，防止拖出窗口丢失）
         overlay.addEventListener('mousedown', onMouseDown);
         overlay.addEventListener('mousemove', onMouseMove);
-        overlay.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('mouseup', onMouseUp);
         overlay.addEventListener('contextmenu', onContextMenu);
 
         // 复制按钮
@@ -2027,9 +2060,11 @@ const DevTool = {
         this._coordToolCleanup = () => {
             overlay.removeEventListener('mousedown', onMouseDown);
             overlay.removeEventListener('mousemove', onMouseMove);
-            overlay.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener('mouseup', onMouseUp);
             overlay.removeEventListener('contextmenu', onContextMenu);
             overlay.querySelectorAll('.rect-preview, .mouse-label, .start-marker, .final-rect').forEach(el => el.remove());
+            overlay.classList.remove('active');
+            panel.classList.remove('active');
             if (overlay) overlay.style.display = 'none';
             if (panel) panel.style.display = 'none';
             if (copyBtn) copyBtn.onclick = null;
@@ -2037,6 +2072,7 @@ const DevTool = {
     },
 
     _stopCoordTool() {
+        console.log('[DevTool] _stopCoordTool called');
         if (this._coordToolCleanup) {
             this._coordToolCleanup();
             this._coordToolCleanup = null;

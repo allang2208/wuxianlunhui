@@ -477,6 +477,11 @@ export const DungeonMapSystem = {
                 if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
                     currentNode.type = 'empty';
                 }
+
+                // 上方提示栏：已完成战斗，寻找传送门离开
+                if (SceneManager && SceneManager.showTopNotification) {
+                    SceneManager.showTopNotification('已完成战斗，寻找传送门离开');
+                }
             }
         }
 
@@ -565,6 +570,11 @@ export const DungeonMapSystem = {
         Camera.follow = () => {};
         Camera.x = this.CENTER_X;
         Camera.y = this.CENTER_Y;
+
+        // 清理事件/战斗残留的浮动文字
+        if (EffectManager && EffectManager.clearFloatingTexts) {
+            EffectManager.clearFloatingTexts();
+        }
 
         this._centerRouteMap();
 
@@ -819,6 +829,11 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
+                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
+                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
+                        node.type = 'empty';
+                    }
                     this._returnToMap();
                 }
             }, null, this); // 传入 dungeonMapSystem = this
@@ -869,6 +884,11 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
+                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
+                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
+                        node.type = 'empty';
+                    }
                     this._returnToMap();
                 }
             }, null, this); // 传入 dungeonMapSystem = this

@@ -1,4 +1,3 @@
-import { CodexManager } from '../ui/codex-manager.js';
         const ItemDatabase = {
             items: {},
 
@@ -33,9 +32,12 @@ import { CodexManager } from '../ui/codex-manager.js';
             /** 新增物品并同步刷新图鉴 */
             addItem(id, itemData) {
                 this.items[id] = itemData;
-                if (CodexManager && CodexManager.refresh) {
-                    CodexManager.refresh();
-                }
+                // 动态导入避免与 codex-manager 形成循环依赖
+                import('../ui/codex-manager.js').then(m => {
+                    if (m.CodexManager && m.CodexManager.refresh) {
+                        m.CodexManager.refresh();
+                    }
+                }).catch(() => {});
             }
         };
 

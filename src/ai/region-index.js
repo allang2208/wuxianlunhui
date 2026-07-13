@@ -135,7 +135,8 @@ class RegionIndex {
         if (WallSystem.trees) {
             for (const t of WallSystem.trees) {
                 const dx = x - t.x, dy = y - t.y;
-                if (Math.sqrt(dx * dx + dy * dy) < t.radius + radius) return true;
+                const treeR = t.collisionRadius || t.radius * 0.6;
+                if (Math.sqrt(dx * dx + dy * dy) < treeR + radius) return true;
             }
         }
         return false;

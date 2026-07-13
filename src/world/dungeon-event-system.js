@@ -1,7 +1,5 @@
 import { Game } from '../game.js';
 import { StatusBar } from '../ui/status-bar.js';
-import { FloatingTextEffect } from '../effects/floating-text.js';
-import { EffectManager } from '../effects/effect-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 /**
  * ============================================================
@@ -19,7 +17,7 @@ import { DungeonConfig } from '../config/dungeon-config.js';
  * Buff系统：女神祝福(+15%物攻/魔攻,3场) / 恶魔祈祷(+33%物攻/魔攻,永久)
  *
  * 依赖（全局）：
- *   EffectManager, FloatingTextEffect, StatusBar, Game, DungeonMapSystem
+ *   StatusBar, Game, DungeonMapSystem
  */
 
 // ==================== 配置加载 ====================
@@ -63,11 +61,11 @@ function createEventConfig() {
         },
         goddessStatue: {
             title: '古老女神像',
-            description: '一尊散发着柔和光芒的女神像矗立在石台上，她的双手捧着一颗晶莹的水滴。',
+            description: '你拨开垂落的藤蔓，一座被岁月侵蚀却依然圣洁的女神像出现在眼前。她的双眼由两颗失去光泽的蓝宝石镶嵌而成，但当你靠近时，水滴状的水晶开始泛起柔和的乳白色光芒。空气中弥漫着净化的气息，你感到疲惫的身躯正在渴望这份神圣的馈赠。石台边缘刻着古老的符文：「祈求者，择一而受。」',
             choices: [
-                { id: 'heal', label: '祈求恢复', description: '恢复全部生命值和魔法值', type: 'heal' },
-                { id: 'bless', label: '请求祝福', description: '获得女神祝福：+15%物攻/魔攻，持续3场战斗', type: 'bless' },
-                { id: 'reward', label: '接受馈赠', description: '获得随机金币奖励（50-150）', type: 'reward' },
+                { id: 'heal', label: '祈求恢复', description: '女神的光芒将治愈所有伤痛，恢复全部生命值与魔法值', type: 'heal' },
+                { id: 'bless', label: '请求祝福', description: '获得女神祝福：物攻/魔攻 +15%，持续 3 场战斗', type: 'bless' },
+                { id: 'reward', label: '接受馈赠', description: '女神像底座开启，获得强化石、改造券与魔法粉尘', type: 'reward' },
             ],
             healPercent: 100,
             blessAtkPercent: 15,
@@ -77,19 +75,19 @@ function createEventConfig() {
         },
         trap: {
             title: '古老陷阱',
-            description: '前方的地面看起来不太对劲，隐约能看到细线连接着墙壁上的机关。',
+            description: '通道在这里骤然变窄，地面上的石板有几处微微下沉。你敏锐地注意到几根几乎透明的丝线横亘在脚踝高度，连接着两侧墙缝中锈迹斑斑的金属机关。一阵微风从深处吹来，丝线发出几乎不可闻的颤动声。你可以选择小心解除这些致命装置，或者赌上体魄强行冲过去。',
             choices: [
-                { id: 'disarm', label: '尝试解除', attribute: 'dex', baseRate: 20, successText: '你灵巧地剪断了触发线，陷阱被安全解除。', failText: '触发线突然断裂，锋利的刀片从墙壁射出！' },
-                { id: 'cross', label: '强行跨越', attribute: 'con', baseRate: 20, successText: '你咬牙承受了毒箭的擦伤，成功通过了陷阱区域。', failText: '毒箭深深刺入你的肩膀，剧痛让你几乎昏厥！' },
+                { id: 'disarm', label: '解除陷阱', attribute: 'dex', baseRate: 25, successText: '你屏住呼吸，用匕首挑开最后一根触发线。机关发出沉闷的咔哒声，彻底哑火了。', failText: '你的手指刚碰到丝线，机关便轰然启动！锋利的刀片从墙壁射出，在你身上留下数道血痕。' },
+                { id: 'cross', label: '强行跨越', attribute: 'con', baseRate: 30, successText: '你护住要害，以最快的速度冲过陷阱区域。几支毒箭擦过铠甲，但终究是过来了。', failText: '你低估了陷阱的密集程度。毒箭深深刺入你的肩膀，剧痛让你眼前发黑，几乎跪倒在地。' },
             ],
             failDamagePercent: 25,
         },
         supplyPile: {
             title: '冒险者遗物',
-            description: '一堆散落的装备和包裹躺在角落，似乎是一位不幸的冒险者留下的。',
+            description: '角落的阴影中散落着一只破损的皮背包、半卷绳索和一件被撕裂的链甲。从装备上看，这曾是一位经验丰富的冒险者，但现在只剩下无声的遗物。血迹已经发黑，延伸向另一条通道。也许补给品还藏在背包夹层里，或者你可以搜索周围寻找他留下的路线线索——但要小心，地牢从不放过粗心的人。',
             choices: [
-                { id: 'search', label: '仔细搜寻', attribute: 'wis', baseRate: 25, successText: '你在包裹夹层中发现了一瓶高级治疗药水！', failText: '你只找到了一些发霉的干粮。' },
-                { id: 'inspect', label: '探查四周', attribute: 'dex', baseRate: 25, successText: '你发现了隐藏的暗格，里面有一些金币和材料！', failText: '暗格里的东西已经被搜刮一空了。', revealNodes: { enabled: true, description: '你还发现了周围道路的线索：' } },
+                { id: 'search', label: '仔细搜寻', attribute: 'wis', baseRate: 40, successText: '你耐心地翻找每一处夹层，终于在背包底部发现了一瓶尚未开封的药水。', failText: '你把背包翻了个底朝天，只找到一些发霉的干粮和一张被虫蛀坏的地图残片。' },
+                { id: 'inspect', label: '探查四周', attribute: 'dex', baseRate: 35, successText: '你压低身形，借着微弱的火光检查地面与墙壁。一处被碎石遮掩的暗格引起了你的注意。', failText: '你仔细检查了每一个角落，但暗格里的东西早已被搜刮一空，只剩下一层薄薄的灰尘。', revealNodes: { enabled: true, description: '你还发现了周围道路的线索：' } },
             ],
             successRewards: {
                 search: [
@@ -106,7 +104,7 @@ function createEventConfig() {
         },
         treasureChest: {
             title: '神秘宝箱',
-            description: '一个镶嵌着奇异符文的宝箱静静地放在石台上，散发着诱人的光芒。',
+            description: '石室的中央突兀地立着一口宝箱，胡桃木的外壳上镶嵌着仍在微微发光的银色符文。锁扣已经锈蚀，但箱盖缝隙中透出温暖的金色光芒，伴随着金属碰撞般的轻响。你隐约记得老冒险者的警告：「地牢里的每一口宝箱都在等待贪婪者。」然而那光芒实在太过诱人……',
             outcomes: [
                 { type: 'gold', chance: 0.50, amount: 500 },
                 { type: 'materials', chance: 0.25, rewards: [
@@ -120,7 +118,7 @@ function createEventConfig() {
         },
         demonStatue: {
             title: '恶魔雕像',
-            description: '一尊狰狞的恶魔雕像散发着暗红色的光芒，它的眼睛似乎在注视着你。',
+            description: '空气变得灼热而粘稠，一尊由黑曜石雕琢而成的恶魔雕像踞坐在血红色的基座上。它的双眼是两枚不断转动的暗红宝石，仿佛能直视你灵魂最深处的欲望。雕像底座刻着一行小字：「以血与魔为祭，换取深渊的馈赠。」你感到一种古老而邪恶的力量正在邀请你进行一场危险的交易。',
             choices: [
                 { id: 'sacrifice', label: '献祭血魔', description: '失去50%当前生命值和魔法值', type: 'sacrifice' },
                 { id: 'leave', label: '离开', description: '什么都不发生', type: 'leave' },
@@ -524,6 +522,7 @@ function handleTrap(player, choiceId) {
             type: 'success',
             text: `${choice.successText}\n${AttributeCheckSystem.getResultText(checkResult)}`,
             rewards: {},
+            success: true,
             checkResult,
         };
     } else {
@@ -539,6 +538,7 @@ function handleTrap(player, choiceId) {
             type: 'fail',
             text: `${choice.failText}\n${AttributeCheckSystem.getResultText(checkResult)}\n${damageText}`,
             rewards: {},
+            success: false,
             damage: config.failDamagePercent,
             checkResult,
         };
@@ -1025,59 +1025,66 @@ export const DungeonEventSystem = {
         const overlay = document.createElement('div');
         overlay.id = 'dungeonEventSystemOverlay';
         overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 8000;
-            display: flex; align-items: center; justify-content: center;
+            position: fixed; inset: 0; z-index: 8000;
+            background: rgba(0,0,0,1);
             font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
         `;
 
+        // 事件面板：固定在地牢模式坐标工具测得的位置
         const panel = document.createElement('div');
         panel.style.cssText = `
-            background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px;
-            padding: 35px; max-width: 560px; width: 90%; color: #d4c5a9;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            position: fixed; left: 151px; bottom: 88px; width: 1567px; height: 243px;
+            background: rgba(42, 37, 32, 0.98); border: 2px solid #5a4a3a; border-radius: 12px;
+            padding: 22px 32px; color: #d4c5a9;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
+            display: flex; flex-direction: row; gap: 32px; overflow: hidden;
+            box-sizing: border-box;
         `;
 
-        // 标题
+        // 左侧：标题 + 剧情描述
+        const leftCol = document.createElement('div');
+        leftCol.style.cssText = 'flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0;';
+
         const title = document.createElement('h3');
         title.textContent = config.title;
-        title.style.cssText = 'margin: 0 0 18px 0; color: #e8c878; font-size: 24px; text-align: center;';
+        title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
-        // 描述
         const text = document.createElement('p');
         text.textContent = config.description;
-        text.style.cssText = 'margin: 0 0 28px 0; line-height: 1.7; font-size: 16px; text-align: center;';
+        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px;';
 
-        // 选择按钮
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;';
+        leftCol.appendChild(title);
+        leftCol.appendChild(text);
 
-        // 根据不同事件类型生成选择
+        // 右侧：选择按钮
+        const rightCol = document.createElement('div');
+        rightCol.style.cssText = 'width: 420px; display: flex; flex-direction: column; gap: 10px; justify-content: center;';
+
         if (config.choices) {
             for (const choice of config.choices) {
                 const btn = this._createChoiceButton(choice, player, overlay);
-                btnRow.appendChild(btn);
+                rightCol.appendChild(btn);
             }
         }
 
         // 宝箱特殊处理（直接开启）
         if (eventType === 'treasureChest') {
             const btn = document.createElement('button');
-            btn.textContent = '打开宝箱';
             btn.style.cssText = `
-                padding: 12px 32px; background: #3a4530; border: 1px solid #5a6a4a;
-                color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;
-                transition: background 0.15s;
+                padding: 14px 20px; background: #3a4530; border: 1px solid #5a6a4a;
+                color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 15px;
+                transition: background 0.15s; text-align: left;
+                display: flex; flex-direction: column; gap: 4px;
             `;
+            btn.innerHTML = `<span style="font-size: 16px; font-weight: bold;">打开宝箱</span><span style="font-size: 13px; color: #a09080;">50% 金币 / 25% 材料 / 25% 遭遇宝箱怪</span>`;
             btn.onmouseenter = () => btn.style.background = '#4a5540';
             btn.onmouseleave = () => btn.style.background = '#3a4530';
             btn.onclick = () => this.handleChoice('open', player);
-            btnRow.appendChild(btn);
+            rightCol.appendChild(btn);
         }
 
-        panel.appendChild(title);
-        panel.appendChild(text);
-        panel.appendChild(btnRow);
+        panel.appendChild(leftCol);
+        panel.appendChild(rightCol);
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
@@ -1088,27 +1095,35 @@ export const DungeonEventSystem = {
      */
     _createChoiceButton(choice, player, _overlay) {
         const btn = document.createElement('button');
-
-        // 构建按钮文本（包含属性检定提示）
-        let btnText = choice.label;
-        if (choice.attribute) {
-            const attrNames = { str: '力', dex: '敏', con: '体', int: '智', wis: '精', luck: '幸' };
-            const attrName = attrNames[choice.attribute] || choice.attribute;
-
-            // 计算实际成功率
-            const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate || 20);
-            btnText += ` (${attrName} ${checkResult.attrValue} | ${checkResult.rate.toFixed(0)}%)`;
-        }
-
-        btn.textContent = btnText;
         btn.style.cssText = `
-            padding: 12px 24px; background: #3a4530; border: 1px solid #5a6a4a;
-            color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 14px;
-            transition: background 0.15s; min-width: 140px; text-align: center;
+            padding: 12px 18px; background: #3a4530; border: 1px solid #5a6a4a;
+            color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 15px;
+            transition: background 0.15s; text-align: left;
+            display: flex; flex-direction: column; gap: 4px;
         `;
         btn.onmouseenter = () => btn.style.background = '#4a5540';
         btn.onmouseleave = () => btn.style.background = '#3a4530';
         btn.onclick = () => this.handleChoice(choice.id, player);
+
+        // 主标签
+        const labelSpan = document.createElement('span');
+        labelSpan.textContent = choice.label;
+        labelSpan.style.cssText = 'font-size: 16px; font-weight: bold;';
+        btn.appendChild(labelSpan);
+
+        // 副标签：描述 或 检定提示
+        const subSpan = document.createElement('span');
+        subSpan.style.cssText = 'font-size: 13px; color: #a09080;';
+
+        if (choice.attribute) {
+            const attrNames = { str: '力量', dex: '敏捷', con: '体质', int: '智力', wis: '精神', luck: '幸运' };
+            const attrName = attrNames[choice.attribute] || choice.attribute;
+            const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate || 20);
+            subSpan.textContent = `${choice.description || ''} 检定：${attrName} ${checkResult.attrValue} 点 | 成功率 ${checkResult.rate.toFixed(0)}%`;
+        } else {
+            subSpan.textContent = choice.description || '';
+        }
+        btn.appendChild(subSpan);
 
         return btn;
     },
@@ -1123,17 +1138,19 @@ export const DungeonEventSystem = {
         const overlay = document.createElement('div');
         overlay.id = 'dungeonEventResultOverlay';
         overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 8000;
-            display: flex; align-items: center; justify-content: center;
+            position: fixed; inset: 0; z-index: 8000;
+            background: rgba(0,0,0,1);
             font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
         `;
 
         const panel = document.createElement('div');
         panel.style.cssText = `
-            background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px;
-            padding: 35px; max-width: 560px; width: 90%; color: #d4c5a9;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            position: fixed; left: 151px; bottom: 88px; width: 1567px; height: 243px;
+            background: rgba(42, 37, 32, 0.98); border: 2px solid #5a4a3a; border-radius: 12px;
+            padding: 22px 32px; color: #d4c5a9;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
+            display: flex; flex-direction: row; gap: 32px; overflow: hidden;
+            box-sizing: border-box;
         `;
 
         // 结果图标
@@ -1143,27 +1160,32 @@ export const DungeonEventSystem = {
         };
         const icon = iconMap[result.type] || '❓';
 
-        // 标题
+        // 左侧：标题 + 结果文本
+        const leftCol = document.createElement('div');
+        leftCol.style.cssText = 'flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0;';
+
         const title = document.createElement('h3');
         title.textContent = `${icon} 事件结果`;
-        title.style.cssText = 'margin: 0 0 18px 0; color: #e8c878; font-size: 24px; text-align: center;';
+        title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
-        // 结果文本
         const text = document.createElement('p');
         text.innerHTML = result.text.replace(/\n/g, '<br>');
-        text.style.cssText = 'margin: 0 0 28px 0; line-height: 1.7; font-size: 16px; text-align: center;';
+        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px;';
 
-        // 继续按钮
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;';
+        leftCol.appendChild(title);
+        leftCol.appendChild(text);
+
+        // 右侧：继续按钮
+        const rightCol = document.createElement('div');
+        rightCol.style.cssText = 'width: 420px; display: flex; flex-direction: column; justify-content: center; gap: 12px;';
 
         const btn = document.createElement('button');
         btn.textContent = result.combat ? '进入战斗！' : '继续探索';
         btn.style.cssText = `
-            padding: 12px 32px; background: ${result.combat ? '#7a3a3a' : '#3a4530'};
+            padding: 16px 32px; background: ${result.combat ? '#7a3a3a' : '#3a4530'};
             border: 1px solid ${result.combat ? '#9a5a5a' : '#5a6a4a'};
-            color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;
-            transition: background 0.15s;
+            color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 17px;
+            transition: background 0.15s; font-weight: bold;
         `;
         btn.onmouseenter = () => btn.style.background = result.combat ? '#9a5a5a' : '#4a5540';
         btn.onmouseleave = () => btn.style.background = result.combat ? '#7a3a3a' : '#3a4530';
@@ -1173,21 +1195,14 @@ export const DungeonEventSystem = {
                 this._onComplete(result);
             }
         };
-        btnRow.appendChild(btn);
+        rightCol.appendChild(btn);
 
-        panel.appendChild(title);
-        panel.appendChild(text);
-        panel.appendChild(btnRow);
+        panel.appendChild(leftCol);
+        panel.appendChild(rightCol);
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
 
-        // 显示浮动文字效果
-        if (EffectManager) {
-            const color = result.type === 'success' || result.type === 'heal' || result.type === 'bless'
-                ? '#44ff44' : result.type === 'fail' ? '#ff4444' : '#ffd700';
-            EffectManager.add(new FloatingTextEffect(512, 400, result.text.split('\n')[0], color));
-        }
     },
 
     /**

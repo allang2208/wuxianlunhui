@@ -61,6 +61,17 @@ const MovementSystem = {
         }
 
         // 计算目标方向和距离
+        // [ENHANCE] 临时 reposition 目标倒计时
+        if (enemy._repositionTimer !== undefined && enemy._repositionTimer > 0) {
+            enemy._repositionTimer -= dt;
+            if (enemy._repositionTimer <= 0) {
+                enemy._repositionTimer = 0;
+                if (enemy._tacticalTarget && enemy._tacticalTarget._isReposition) {
+                    enemy._tacticalTarget = null;
+                }
+            }
+        }
+
 const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
             enemy.vx *= enemy.friction || 0.82;
@@ -114,22 +125,23 @@ enemy._pathManager.update(dt, pathFinder);
 this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 路径跟随（使用 PathManager）
-if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
-            this._followPath(enemy, dt);
-            return;
+        if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
+            this._followPath(enemy, dt, entities);
+        } else {
+            // 正常移动
+            this._applyNormalMovement(enemy, dt, dx, dy, dist, entities);
         }
 
-        // 正常移动
-        this._applyNormalMovement(enemy, dt, dx, dy, dist);
-
-        // 攻击范围内减速
-        if (dist <= enemy.attackRange && enemy.target && enemy.target.active) {
-            enemy.vx *= enemy.friction || 0.82;
-            enemy.vy *= enemy.friction || 0.82;
+        // [ENHANCE] 攻击范围内渐进减速：冲到更近位置再停车，避免前排一进入范围就堵死
+        if (enemy.target && enemy.target.active) {
+            this._applyAttackRangeFriction(enemy, dist);
         }
+
+        // [UNSTUCK] 卡死恢复：长时间未移动时尝试小幅瞬移到合法方向
+        this._tryUnstuck(enemy);
 
         // 更新移动动画状态
-this._updateMovementAnim(enemy, dt);
+        this._updateMovementAnim(enemy, dt);
     },
 
     /**
@@ -175,9 +187,22 @@ this._updateMovementAnim(enemy, dt);
 
         if (!hasTarget) return null;
 
-        const dx = tx - enemy.x;
-        const dy = ty - enemy.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        let dx = tx - enemy.x;
+        let dy = ty - enemy.y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+
+        // [ENHANCE] 近战包抄：当目标正面已被同伴占据时，向侧面偏移寻找攻击位
+        // 仅对非远程/非绕圈敌人、且距离尚远时生效，避免攻击时抖动
+        if (enemy.target && enemy.target.active && dist > (enemy.attackRange || 70) * 0.6 && !enemy._circleRadius) {
+            const flank = this._computeFlankOffset(enemy, enemy.target, _entities);
+            if (flank) {
+                tx += flank.dx;
+                ty += flank.dy;
+                dx = tx - enemy.x;
+                dy = ty - enemy.y;
+                dist = Math.sqrt(dx * dx + dy * dy);
+            }
+        }
 
         // 到达最后已知位置后清除
         if (!enemy.target && enemy._lastKnownTargetPos && dist < 10) {
@@ -186,6 +211,78 @@ this._updateMovementAnim(enemy, dt);
         }
 
         return { dx, dy, dist };
+    },
+
+    /**
+     * [ENHANCE] 计算侧翼偏移：当目标周围已有 ≥2 个同伴时，向人数更少的一侧偏移
+     * - 使用平方距离避免每帧开方
+     * - 每 200ms 才重新统计一次，中间复用上一次结果
+     * - 返回 {dx, dy} 偏移量，若无偏移需要返回 null
+     */
+    _computeFlankOffset(enemy, target, _entities) {
+        if (!Game || !Game.entities) return null;
+        const now = Date.now();
+        const cooldown = 200;
+        // 复用缓存结果，避免每帧遍历全部实体
+        if (enemy._flankCache && now - enemy._flankCache.time < cooldown) {
+            return enemy._flankCache.value;
+        }
+
+        const attackRange = enemy.attackRange || 70;
+        const nearbyThresholdSq = (attackRange * 1.3) ** 2;
+        let nearbyCount = 0;
+        let leftCount = 0, rightCount = 0;
+        const cosA = (target.x - enemy.x) / Math.max(1, Math.sqrt((target.x - enemy.x) ** 2 + (target.y - enemy.y) ** 2));
+        const sinA = (target.y - enemy.y) / Math.max(1, Math.sqrt((target.x - enemy.x) ** 2 + (target.y - enemy.y) ** 2));
+
+        // 性能保护：最多遍历 80 个实体，防止极端场景
+        let iterated = 0;
+        const maxIterate = 80;
+        for (const other of Game.entities.values()) {
+            if (++iterated > maxIterate) break;
+            if (other === enemy || !other.active || other.hp <= 0) continue;
+            if (other._faction !== enemy._faction) continue;
+            const odx = other.x - target.x;
+            const ody = other.y - target.y;
+            const odistSq = odx * odx + ody * ody;
+            if (odistSq < nearbyThresholdSq) {
+                nearbyCount++;
+                // 以目标→敌人为基准，判断同伴在左侧还是右侧
+                const cross = cosA * ody - sinA * odx;
+                if (cross > 0) leftCount++; else rightCount++;
+            }
+        }
+
+        let result = null;
+        // 同伴不足时不偏移，避免单对单也绕侧
+        if (nearbyCount >= 2) {
+            // 选择人数更少的一侧；若已有记忆侧翼且人数差不悬殊，保持稳定
+            let side;
+            if (enemy._flankSide !== undefined) {
+                side = enemy._flankSide;
+                // 只有当另一侧明显空旷（差 ≥2）时才切换
+                if ((side > 0 && leftCount < rightCount - 1) || (side < 0 && rightCount < leftCount - 1)) {
+                    side = leftCount < rightCount ? 1 : -1;
+                    enemy._flankSide = side;
+                }
+            } else {
+                side = leftCount < rightCount ? 1 : -1;
+                enemy._flankSide = side;
+            }
+
+            // 偏移角度：45°~75° 之间，根据拥挤程度调整
+            const baseAngle = Math.PI / 3; // 60°
+            const congestion = Math.min(1, (nearbyCount - 2) / 4); // 2→0, 6→1
+            const flankAngle = Math.atan2(sinA, cosA) + side * (baseAngle + congestion * Math.PI / 12);
+            const offsetDist = attackRange * (0.65 + congestion * 0.25);
+            result = {
+                dx: Math.cos(flankAngle) * offsetDist,
+                dy: Math.sin(flankAngle) * offsetDist
+            };
+        }
+
+        enemy._flankCache = { time: now, value: result };
+        return result;
     },
 
     /**
@@ -252,11 +349,14 @@ this._updateMovementAnim(enemy, dt);
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
                 }
 
-                // 寻路失败时随机转向
+                // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
                 if (!enemy._pathManager?.hasValidPath()) {
-                    const ra = Math.random() * Math.PI * 2;
-                    enemy.vx = Math.cos(ra) * (enemy.maxSpeed || enemy.speed || 100) * 0.5;
-                    enemy.vy = Math.sin(ra) * (enemy.maxSpeed || enemy.speed || 100) * 0.5;
+                    this._setStuckRepositionTarget(enemy, targetX, targetY);
+                } else {
+                    // 寻路成功时清除旧的临时 reposition 目标
+                    if (enemy._repositionTimer !== undefined) {
+                        enemy._repositionTimer = 0;
+                    }
                 }
             }
 
@@ -264,6 +364,38 @@ this._updateMovementAnim(enemy, dt);
             enemy._lastX = enemy.x;
             enemy._lastY = enemy.y;
         }
+    },
+
+    /**
+     * [ENHANCE] 卡住时设置临时侧向 reposition 目标，让怪物绕开障碍/同伴
+     * @param {number} targetX - 原始目标 X
+     * @param {number} targetY - 原始目标 Y
+     */
+    _setStuckRepositionTarget(enemy, targetX, targetY) {
+        const dx = targetX - enemy.x;
+        const dy = targetY - enemy.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1) return;
+
+        // 选择左右一侧：优先选 _flankSide，否则随机
+        let side = enemy._flankSide || (Math.random() > 0.5 ? 1 : -1);
+        // 偶尔切换，避免一直卡在同一侧
+        if (enemy._repositionSideSwitches !== undefined && enemy._repositionSideSwitches > 2) {
+            side = -side;
+            enemy._repositionSideSwitches = 0;
+        }
+
+        const angleToTarget = Math.atan2(dy, dx);
+        const repositionAngle = angleToTarget + side * Math.PI / 2;
+        const distance = Math.min(150, Math.max(60, enemy.attackRange || 70));
+        enemy._tacticalTarget = {
+            x: enemy.x + Math.cos(repositionAngle) * distance,
+            y: enemy.y + Math.sin(repositionAngle) * distance,
+            _isReposition: true
+        };
+        enemy._repositionTimer = 600; // ms
+        enemy._repositionSide = side;
+        enemy._repositionSideSwitches = (enemy._repositionSideSwitches || 0) + 1;
     },
 
     /**
@@ -287,37 +419,77 @@ this._updateMovementAnim(enemy, dt);
     },
 
     /**
-     * [FIX] 单位间排斥：避免多个敌人堆叠在一起
-     * 只检查附近 5 个单位（性能考虑），返回排斥方向
+     * [ENHANCE] 单位间排斥：避免多个敌人堆叠在一起
+     * - 使用传入的 entities（修复原先忽略参数的 bug），失败时回退到 Game.entities
+     * - 动态半径：默认 collisionRadius * 1.8，最低 24，最高 80
+     * - 距离衰减：越近排斥越强（反平方），远处柔和
+     * - 贴身战斗时自动降低分离权重，避免近战抖动
+     * - 加入微小随机抖动，打破对称拥堵
      */
-    _computeSeparation(enemy, minDist) {
-        let rdx = 0, rdy = 0, count = 0;
-        if (!Game || !Game.entities) return { dx: 0, dy: 0 };
-        const entities = Game.entities;
-        let checked = 0;
-        for (const other of entities.values()) {
+    _computeSeparation(enemy, minDist, entities) {
+        const list = entities || (Game && Game.entities);
+        if (!list) return { dx: 0, dy: 0 };
+
+        const separationRadius = minDist > 0
+            ? minDist
+            : Math.max(24, Math.min(80, (enemy.collisionRadius || 12) * 1.8));
+        const maxCount = 12;
+        const epsilon = 0.0001;
+
+        // 贴身战斗时降低分离比重，避免围绕玩家抖动
+        const target = enemy.target;
+        let inCombatRange = false;
+        if (target && target.active) {
+            const tdx = target.x - enemy.x;
+            const tdy = target.y - enemy.y;
+            const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+            inCombatRange = tdist <= (enemy.attackRange || 70);
+        }
+        const strength = inCombatRange ? 0.6 : 1.4;
+
+        let sumX = 0, sumY = 0, count = 0;
+        for (const other of list.values()) {
             if (other === enemy || !other.active || other.hp <= 0) continue;
             if (other._faction !== enemy._faction) continue;
             const dx = enemy.x - other.x;
             const dy = enemy.y - other.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < minDist && dist > 0) {
-                rdx += dx / dist;
-                rdy += dy / dist;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < separationRadius * separationRadius && distSq > epsilon) {
+                const dist = Math.sqrt(distSq);
+                // 反平方加权：越近越强
+                const inv = 1 / dist - 1 / separationRadius;
+                sumX += (dx / dist) * inv;
+                sumY += (dy / dist) * inv;
                 count++;
             }
-            if (++checked >= 5) break; // 性能：只检查 5 个单位
+            if (count >= maxCount) break;
         }
         if (count === 0) return { dx: 0, dy: 0 };
+
+        let rdx = sumX * strength;
+        let rdy = sumY * strength;
+        // 限制最大分离力，避免过度漂移
+        const maxSep = inCombatRange ? 1.0 : 1.8;
         const len = Math.sqrt(rdx * rdx + rdy * rdy);
-        if (len > 0) { rdx /= len; rdy /= len; }
-        return { dx: rdx, dy: rdy };
+        if (len > maxSep) {
+            rdx = (rdx / len) * maxSep;
+            rdy = (rdy / len) * maxSep;
+        }
+
+        // 微小随机抖动，打破完全对称的堆叠
+        const jitterAngle = (Math.random() - 0.5) * 0.3; // ±~8.6°
+        const cosJ = Math.cos(jitterAngle);
+        const sinJ = Math.sin(jitterAngle);
+        return {
+            dx: rdx * cosJ - rdy * sinJ,
+            dy: rdx * sinJ + rdy * cosJ
+        };
     },
 
     /**
      * 沿路径移动（支持 PathManager 和旧路径兼容）
      */
-    _followPath(enemy, dt) {
+    _followPath(enemy, dt, entities) {
         // [ENHANCE] 优先使用 PathManager
         if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
             const wp = enemy._pathManager.getCurrentWaypoint();
@@ -376,6 +548,19 @@ this._updateMovementAnim(enemy, dt);
                 }
             }
 
+            // [ENHANCE] 路径跟随期间也应用单位分离，避免多只怪物沿同一路径堆叠
+            const repel = this._computeSeparation(enemy, 0, entities);
+            if (repel.dx !== 0 || repel.dy !== 0) {
+                // 若分离方向与路径方向反向（>90°），说明前方被同伴堵住，允许更大幅度偏离路径
+                const dot = moveX * repel.dx + moveY * repel.dy;
+                const separationWeight = dot < 0 ? 0.9 : 0.45;
+                // 仅当周围确实拥挤时才显著偏离路径
+                moveX += repel.dx * separationWeight;
+                moveY += repel.dy * separationWeight;
+                const len = Math.sqrt(moveX * moveX + moveY * moveY);
+                if (len > 0) { moveX /= len; moveY /= len; }
+            }
+
             const maxSpd = enemy.maxSpeed || enemy.speed || 100;
             enemy.vx += (moveX * maxSpd - enemy.vx) * (enemy.accel || 0.7);
             enemy.vy += (moveY * maxSpd - enemy.vy) * (enemy.accel || 0.7);
@@ -404,6 +589,14 @@ this._updateMovementAnim(enemy, dt);
             }
             enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
             if (enemy.isMoving) enemy.animTime += 0.15;
+
+            // [ENHANCE] 路径跟随期间也做渐进减速
+            if (enemy.target && enemy.target.active) {
+                const tdx = enemy.target.x - enemy.x;
+                const tdy = enemy.target.y - enemy.y;
+                const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+                this._applyAttackRangeFriction(enemy, tdist);
+            }
             return;
         }
 
@@ -413,9 +606,30 @@ this._updateMovementAnim(enemy, dt);
     },
 
     /**
+     * [ENHANCE] 攻击范围渐进摩擦
+     * - dist <= attackRange * 0.5：完全摩擦（停车攻击）
+     * - dist <= attackRange * 0.9：线性递增摩擦
+     * - dist > attackRange * 0.9：不额外摩擦，继续冲锋到更近位置
+     */
+    _applyAttackRangeFriction(enemy, dist) {
+        const range = enemy.attackRange || 70;
+        const halfRange = range * 0.5;
+        const brakeStart = range * 0.9;
+        if (dist <= halfRange) {
+            enemy.vx *= enemy.friction || 0.82;
+            enemy.vy *= enemy.friction || 0.82;
+        } else if (dist <= brakeStart) {
+            const t = (brakeStart - dist) / (brakeStart - halfRange); // 0~1
+            const f = 1 - (1 - (enemy.friction || 0.82)) * t;
+            enemy.vx *= f;
+            enemy.vy *= f;
+        }
+    },
+
+    /**
      * 应用正常移动（加速度 + 摩擦 + 墙壁碰撞）
      */
-    _applyNormalMovement(enemy, dt, dx, dy, dist) {
+    _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
         const maxSpd = enemy.maxSpeed || enemy.speed || 100;
         let moveX = dx / Math.max(dist, 1);
         let moveY = dy / Math.max(dist, 1);
@@ -445,11 +659,13 @@ this._updateMovementAnim(enemy, dt);
             }
         }
 
-        // [FIX] 单位间简单排斥：避免多个敌人堆叠
-        const repel = this._computeSeparation(enemy, 30);
+        // [ENHANCE] 单位间排斥：使用动态半径与衰减权重
+        const repel = this._computeSeparation(enemy, 0, entities);
         if (repel.dx !== 0 || repel.dy !== 0) {
-            moveX += repel.dx * 0.5;
-            moveY += repel.dy * 0.5;
+            // 无路径时分离权重更高，让怪物更容易绕过停下的同伴
+            const separationWeight = 0.7;
+            moveX += repel.dx * separationWeight;
+            moveY += repel.dy * separationWeight;
             const len = Math.sqrt(moveX * moveX + moveY * moveY);
             if (len > 0) { moveX /= len; moveY /= len; }
         }
@@ -514,6 +730,58 @@ this._updateMovementAnim(enemy, dt);
         }
 
         enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
+    },
+
+    /**
+     * [UNSTUCK] 卡死恢复：敌人长时间未移动时，尝试沿 8 个方向小幅瞬移
+     */
+    _tryUnstuck(enemy) {
+        if (!WallSystem || !WallSystem.canMoveTo) return;
+
+        // 只有真正在尝试移动时才计数：有速度 或 有目标且距离大于攻击范围
+        const hasTarget = enemy.target && enemy.target.active;
+        const distToTarget = hasTarget
+            ? Math.sqrt((enemy.target.x - enemy.x) ** 2 + (enemy.target.y - enemy.y) ** 2)
+            : Infinity;
+        const isTryingToMove = enemy.isMoving || (hasTarget && distToTarget > (enemy.attackRange || 70));
+        if (!isTryingToMove) {
+            enemy._stuckFrames = 0;
+            enemy._lastUnstuckX = enemy.x;
+            enemy._lastUnstuckY = enemy.y;
+            return;
+        }
+
+        enemy._stuckFrames = (enemy._stuckFrames || 0) + 1;
+        const lastX = enemy._lastUnstuckX !== undefined ? enemy._lastUnstuckX : enemy.x;
+        const lastY = enemy._lastUnstuckY !== undefined ? enemy._lastUnstuckY : enemy.y;
+        const moved = Math.sqrt((enemy.x - lastX) ** 2 + (enemy.y - lastY) ** 2);
+
+        if (moved >= 0.5) {
+            enemy._stuckFrames = 0;
+            enemy._lastUnstuckX = enemy.x;
+            enemy._lastUnstuckY = enemy.y;
+            return;
+        }
+
+        if (enemy._stuckFrames <= 30) return;
+
+        const r = enemy.collisionRadius || 12;
+        const distance = 30;
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const tx = enemy.x + Math.cos(angle) * distance;
+            const ty = enemy.y + Math.sin(angle) * distance;
+            if (WallSystem.canMoveTo(tx, ty, r)) {
+                enemy.x = tx;
+                enemy.y = ty;
+                enemy.vx = 0;
+                enemy.vy = 0;
+                enemy._stuckFrames = 0;
+                enemy._lastUnstuckX = enemy.x;
+                enemy._lastUnstuckY = enemy.y;
+                return;
+            }
+        }
     },
 
     /**
