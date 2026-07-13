@@ -13,6 +13,7 @@ import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 import { getElement } from '../utils/dom-utils.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 import enemyConfigData from '../../data/enemy-config.json';
 
 // ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
@@ -417,10 +418,11 @@ export class ZombieDungeonShop {
      * 打开地牢商店（NPC小鼠大王对话模式）
      */
     static open() {
+        const mouseKingCfg = GAME_CONFIG.npcs?.shopMouseKing || {};
         const fakeNPC = {
             id: 'mouse_king_dungeon',
-            name: '小鼠大王',
-            portrait: 'assets/portraits/mouse_attendant.png',
+            name: mouseKingCfg.name || '小鼠大王',
+            portrait: mouseKingCfg.portrait || 'assets/ui/npc_portrait.png',
             npcType: 'shop',
             getRandomGreeting() {
                 const greetings = [

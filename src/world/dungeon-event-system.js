@@ -1,5 +1,6 @@
 import { Game } from '../game.js';
 import { StatusBar } from '../ui/status-bar.js';
+import { EquipManager } from '../ui/equip-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 /**
  * ============================================================
@@ -21,6 +22,12 @@ import { DungeonConfig } from '../config/dungeon-config.js';
  */
 
 // ==================== 配置加载 ====================
+
+const SPECIAL_ITEM_KEY_MAP = {
+    enhancement_stone: 'enhancementStone',
+    reforge_ticket: 'reforgeTicket',
+    magic_dust: 'magicDust',
+};
 
 function deepMerge(target, source) {
     if (!source || typeof source !== 'object') return target;
@@ -130,9 +137,9 @@ function createEventConfig() {
         },
         materialTypes: ['铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片'],
         specialItems: {
-            enhancement_stone: { name: '强化石', icon: '💎', category: 'enhancement' },
-            reforge_ticket: { name: '改造券', icon: '🎫', category: 'enhancement' },
-            magic_dust: { name: '魔法粉尘', icon: '✨', category: 'material' },
+            enhancement_stone: { name: '强化石', icon: '💎', category: 'enhancement', maxStack: 9999 },
+            reforge_ticket: { name: '改造券', icon: '🎫', category: 'enhancement', maxStack: 9999 },
+            magic_dust: { name: '魔法粉尘', icon: '✨', category: 'material', maxStack: 9999 },
         },
     };
 
@@ -477,7 +484,8 @@ function handleGoddessStatue(player, choiceId) {
                     if (!item || !item.type) continue;
                     const special = DUNGEON_EVENT_CONFIG.specialItems[item.type];
                     if (special) {
-                        rewards[item.type] = (rewards[item.type] || 0) + item.count;
+                        const rewardKey = SPECIAL_ITEM_KEY_MAP[item.type] || item.type;
+                        rewards[rewardKey] = (rewards[rewardKey] || 0) + item.count;
                         parts.push(`${special.name} x${item.count}`);
                     } else if (item.type === 'gold') {
                         rewards.gold = (rewards.gold || 0) + item.count;
@@ -824,7 +832,8 @@ function handleDemonStatue(player, choiceId) {
                 if (!item || !item.type) continue;
                 const special = DUNGEON_EVENT_CONFIG.specialItems[item.type];
                 if (special) {
-                    rewards[item.type] = (rewards[item.type] || 0) + item.count;
+                    const rewardKey = SPECIAL_ITEM_KEY_MAP[item.type] || item.type;
+                    rewards[rewardKey] = (rewards[rewardKey] || 0) + item.count;
                     parts.push(`${special.name} x${item.count}`);
                 } else if (item.type === 'gold') {
                     rewards.gold = (rewards.gold || 0) + item.count;
@@ -959,6 +968,10 @@ export const DungeonEventSystem = {
                 result = { type: 'none', text: '未知事件', rewards: {} };
         }
 
+        // 记录事件类型与选择，供地图系统判断节点状态
+        result.eventType = this._currentEventType;
+        result.choiceId = choiceId;
+
         // 显示结果
         this._showResultUI(result, player);
 
@@ -987,32 +1000,34 @@ export const DungeonEventSystem = {
             player.data.mp = Math.min(player.data.maxMp, player.data.mp + result.rewards.mpPotion);
         }
 
-        // 材料奖励（添加到背包）
-        if (result.rewards.material && Game && Game.dropItem) {
+        // 材料奖励（直接加入背包）
+        if (result.rewards.material && EquipManager && EquipManager.addToBackpack) {
             const { type, count } = result.rewards.material;
-            for (let i = 0; i < count; i++) {
-                const item = {
-                    name: type,
-                    category: 'material',
-                    icon: '💎',
-                    stack: 1,
-                };
-                Game.dropItem(player.x, player.y, item);
-            }
+            const item = {
+                name: type,
+                category: 'material',
+                icon: '💎',
+                stack: count || 1,
+                maxStack: 9999,
+            };
+            EquipManager.addToBackpack(item);
         }
 
-        // 宝箱特殊材料奖励：强化石、改造券、魔法粉尘
-        if (result.rewards.enhancementStone && Game && Game.dropItem) {
-            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.enhancement_stone, stack: result.rewards.enhancementStone };
-            Game.dropItem(player.x, player.y, item);
-        }
-        if (result.rewards.reforgeTicket && Game && Game.dropItem) {
-            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.reforge_ticket, stack: result.rewards.reforgeTicket };
-            Game.dropItem(player.x, player.y, item);
-        }
-        if (result.rewards.magicDust && Game && Game.dropItem) {
-            const item = { ...DUNGEON_EVENT_CONFIG.specialItems.magic_dust, stack: result.rewards.magicDust };
-            Game.dropItem(player.x, player.y, item);
+        // 特殊材料奖励：强化石、改造券、魔法粉尘（兼容 camelCase 与 snake_case）
+        const specialRewardEntries = [
+            { key: 'enhancementStone', alt: 'enhancement_stone', configKey: 'enhancement_stone' },
+            { key: 'reforgeTicket', alt: 'reforge_ticket', configKey: 'reforge_ticket' },
+            { key: 'magicDust', alt: 'magic_dust', configKey: 'magic_dust' },
+        ];
+        for (const { key, alt, configKey } of specialRewardEntries) {
+            const count = result.rewards[key] || result.rewards[alt];
+            if (count && EquipManager && EquipManager.addToBackpack) {
+                const item = {
+                    ...DUNGEON_EVENT_CONFIG.specialItems[configKey],
+                    stack: count,
+                };
+                EquipManager.addToBackpack(item);
+            }
         }
     },
 

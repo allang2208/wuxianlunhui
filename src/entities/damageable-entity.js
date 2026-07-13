@@ -12,6 +12,39 @@ import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../c
 import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+
+        /**
+         * 根据配置计算怪物金币掉落
+         * @param {number} level - 怪物等级
+         * @param {Object} source - 击杀来源（用于检测祭品效果）
+         * @returns {number} 金币数量
+         */
+        function getEnemyGoldDrop(level, source) {
+            const cfg = COMBAT_FORMULAS.enemy?.goldDrop || {};
+            const base = cfg.base ?? 0;
+            const levelMul = cfg.levelMultiplier ?? 4;
+            const randomMin = cfg.randomMin ?? 1;
+            const randomMax = cfg.randomMax ?? 10;
+            let amount = base + (level || 1) * levelMul + Math.floor(Math.random() * (randomMax - randomMin + 1)) + randomMin;
+
+            // 全局倍率
+            const globalMul = cfg.globalMultiplier ?? 1;
+            amount = Math.floor(amount * globalMul);
+
+            // 祭品效果
+            const tributeName = cfg.tributeName || '麦穗';
+            const tributeMul = cfg.tributeMultiplier ?? 1.25;
+            if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
+                const tributes = DungeonMapSystem._carriedItems;
+                const hasTribute = tributes.some(c => c && c.item && c.item.name === tributeName);
+                if (hasTribute) {
+                    amount = Math.floor(amount * tributeMul);
+                }
+            }
+
+            return Math.max(0, amount);
+        }
 
         class DamageableEntity extends Entity {
             constructor(x, y, config = {}) {
@@ -170,18 +203,11 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                 }
                 // 掉落金币（不再掉落 G18）
                 if (this instanceof Enemy) {
-                    const level = this.level || 1;
-                    let goldAmount = 4 * level + Math.floor(Math.random() * 10 + 1);
-                    
-                    // 祭品效果：麦穗 - 金币增加25%
+                    let goldAmount = getEnemyGoldDrop(this.level, source);
+
+                    // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
                     if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
                         const tributes = DungeonMapSystem._carriedItems;
-                        const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
-                        if (hasWheat) {
-                            goldAmount = Math.floor(goldAmount * 1.25);
-                        }
-                        
-                        // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
                         const hasMarble = tributes.some(c => c && c.item && c.item.name === '大理石');
                         if (hasMarble && source && source.data) {
                             source._marbleHealTimer = 1000; // 1秒
@@ -193,7 +219,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
                             }
                         }
                     }
-                    
+
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
                     Game.dropItem(this.x, this.y, goldItem);
                     // 新增：掉落经验值

@@ -3,6 +3,7 @@ import { Entity } from './entity.js';
 class NPC extends Entity {
     constructor(x, y, config = {}) {
         super(x, y);
+        if (config.id) this.id = config.id;
         this.size = config.size || 24;
         this.collisionRadius = config.collisionRadius || 16;
         this.hittable = false; // 不可被攻击

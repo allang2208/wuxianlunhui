@@ -203,6 +203,18 @@ const DataLoader = {
         return { value: stack.length ? stack[0] : 0 };
     },
 
+    /**
+     * 解析技能经验公式，自动应用全局技能经验倍率
+     * @param {string} formula - 经验公式字符串
+     * @param {number} level - 技能等级
+     * @returns {number} 升级所需经验
+     */
+    parseSkillExpFormula(formula, level) {
+        const base = this.parseSkillFormula(formula, level);
+        const multiplier = combatFormulasData.skill?.expMultiplier ?? 1;
+        return Math.floor(base * multiplier);
+    },
+
     /** 从 JSON 构建技能对象（兼容原有 Player.skills 结构） */
     buildSkillFromJSON(skillId, skillData) {
         const effectFormula = skillData.effectFormula || {};
@@ -217,7 +229,7 @@ const DataLoader = {
             level: 1,
             maxLevel: skillData.maxLevel,
             exp: 0,
-            maxExp: this.parseSkillFormula(expFormula, 1),
+            maxExp: this.parseSkillExpFormula(expFormula, 1),
             tags: skillData.tags || [],
             getEffect(level) {
                 const result = {};
@@ -227,7 +239,7 @@ const DataLoader = {
                 return result;
             },
             getExpForNext(level) {
-                return DataLoader.parseSkillFormula(expFormula, level);
+                return DataLoader.parseSkillExpFormula(expFormula, level);
             }
         };
     }

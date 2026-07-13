@@ -37,7 +37,7 @@ export const PLAYER_DEFAULTS = {
         stamina: null, // 运行时使用 CONFIG.STAMINA_MAX
         maxStamina: null, // 运行时使用 CONFIG.STAMINA_MAX
         exp: 0,
-        maxExp: 52,
+        maxExp: null, // 由 Player.updateMaxStats 根据公式动态计算
         str: 10,
         dex: 10,
         int: 10,

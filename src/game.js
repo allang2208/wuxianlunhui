@@ -209,6 +209,7 @@ export const Game = {
         const npcX = CONFIG.WORLD_WIDTH / 2 + shopCfg.offset.x;
         const npcY = CONFIG.WORLD_HEIGHT / 2 + shopCfg.offset.y;
         const npc = new NPC(npcX, npcY, {
+            id: 'npc_mouse_king',
             name: shopCfg.name,
             size: shopCfg.size,
             collisionRadius: shopCfg.collisionRadius,
@@ -232,6 +233,7 @@ export const Game = {
         const attendantX = attendantCfg.relativeTo === 'shopMouseKing' ? npcX + attendantCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + attendantCfg.offset.x;
         const attendantY = attendantCfg.relativeTo === 'shopMouseKing' ? npcY + attendantCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + attendantCfg.offset.y;
         const attendant = new NPC(attendantX, attendantY, {
+            id: 'npc_mouse_attendant',
             name: attendantCfg.name,
             size: attendantCfg.size,
             collisionRadius: attendantCfg.collisionRadius,

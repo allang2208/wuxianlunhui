@@ -27,7 +27,7 @@ const PERCEPTION_WEIGHTS = {
 
 /** 默认感知参数 */
 const DEFAULT_PERCEPTION = {
-    alertRange: 400,          // 警戒范围（像素）
+    alertRange: 1500,         // 警戒范围（像素）
     losCheckInterval: 200,    // 视线检测间隔（ms）
     memoryDuration: 6000,     // 记忆持续时间（ms）
     searchDuration: 4000,     // 搜索持续时间（ms）

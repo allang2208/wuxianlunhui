@@ -111,15 +111,19 @@ export const SceneManager = {
             await this.delay(100);
 
             // 清理当前场景
+            // 先清理 Phaser 视觉对象，再清空实体数组，避免残留 Sprite/文字
+            const phaserScene = window.__phaserScene;
+            if (phaserScene) {
+                if (phaserScene.clearCombatView) phaserScene.clearCombatView();
+                if (phaserScene.clearAllEntitySprites) phaserScene.clearAllEntitySprites();
+            }
+            if (EffectManager && EffectManager.clearFloatingTexts) {
+                EffectManager.clearFloatingTexts();
+            }
             Game.entities.clear();
             EffectManager.effects = [];
             // 清除战术小队AI
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
-            // 清除 Phaser 层的旧 Sprite
-            const phaserScene = window.__phaserScene;
-            if (phaserScene && phaserScene.clearAllEntitySprites) {
-                phaserScene.clearAllEntitySprites();
-            }
             // 清除裂隙系统
             if (RiftSystem) RiftSystem.clear();
 

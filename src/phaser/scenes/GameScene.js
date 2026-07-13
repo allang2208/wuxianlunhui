@@ -1386,18 +1386,35 @@ export class GameScene extends Scene {
         if (this.enemies) {
             this.enemies.clear(true, true);
         }
+        // 清除掉落物 Sprite/标签
+        if (this.dropItemsGroup) {
+            this.dropItemsGroup.clear(true, true);
+        }
+        // 清除世界特效 Sprite
+        if (this.worldEffectsGroup) {
+            this.worldEffectsGroup.clear(true, true);
+        }
         // 清除玩家 Sprite
         if (this._playerSprite) {
             this._playerSprite.destroy();
             this._playerSprite = null;
         }
-        // 清除实体引用
+        // 清除实体引用（包括掉落物标签等未加入分组的 Phaser 对象）
         Game.entities.forEach(entity => {
             if (entity._phaserSprite) {
                 entity._phaserSprite.destroy();
                 entity._phaserSprite = null;
             }
+            if (entity._phaserLabel) {
+                entity._phaserLabel.destroy();
+                entity._phaserLabel = null;
+            }
         });
+        // 清除世界 HUD 文本
+        for (const text of this._entityHudTexts.values()) {
+            if (text && text.active) text.destroy();
+        }
+        this._entityHudTexts.clear();
     }
 
     /**
@@ -1788,19 +1805,13 @@ export class GameScene extends Scene {
             (DungeonMapSystem.state === 'map' || DungeonMapSystem.state === 'event' ||
              DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'reward');
         if ((ExpeditionSystem && ExpeditionSystem._isOpen) || isDungeonNonCombat) {
-            if (this._lastCursorStyle !== 'default') {
-                document.body.style.cursor = 'default';
-                this._lastCursorStyle = 'default';
-            }
+            document.body.style.cursor = 'default';
             return;
         }
         const currentWeapon = player.equipments[player.weaponMode];
         const isBowWeapon = currentWeapon && currentWeapon.weaponType === 'bow';
         const wantCursor = (!currentWeapon || (!isGunWeapon(currentWeapon) && !isBowWeapon)) ? 'default' : 'none';
-        if (this._lastCursorStyle !== wantCursor) {
-            document.body.style.cursor = wantCursor;
-            this._lastCursorStyle = wantCursor;
-        }
+        document.body.style.cursor = wantCursor;
         if (wantCursor === 'default') return;
         const mx = Input.mouse.x;
         const my = Input.mouse.y;

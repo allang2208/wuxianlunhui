@@ -1,4 +1,5 @@
 import { Game } from '../game.js';
+import { WallSystem } from '../world/wall-system.js';
 
 /* ================================================================
  * DynamicObstacleMap — 动态障碍图
@@ -67,7 +68,31 @@ class DynamicObstacleMap {
         });
     }
 
+    _isOpenRoom() {
+        // 仅边界墙的开阔房间：墙壁数量 <= 4 且均为贴边墙壁
+        if (!WallSystem || !WallSystem.walls || WallSystem.walls.length > 4) return false;
+        const w = WallSystem.walls;
+        const minX = Math.min(...w.map(wall => wall.x));
+        const minY = Math.min(...w.map(wall => wall.y));
+        const maxX = Math.max(...w.map(wall => wall.x + wall.w));
+        const maxY = Math.max(...w.map(wall => wall.y + wall.h));
+        for (const wall of w) {
+            const atLeft = wall.x <= minX && wall.y <= minY && wall.y + wall.h >= maxY;
+            const atRight = wall.x + wall.w >= maxX && wall.y <= minY && wall.y + wall.h >= maxY;
+            const atTop = wall.y <= minY && wall.x <= minX && wall.x + wall.w >= maxX;
+            const atBottom = wall.y + wall.h >= maxY && wall.x <= minX && wall.x + wall.w >= maxX;
+            if (!atLeft && !atRight && !atTop && !atBottom) return false;
+        }
+        return true;
+    }
+
     _rebuild(now) {
+        // 开阔房间（仅边界墙）不生成动态障碍，避免怪物绕路
+        if (this._isOpenRoom()) {
+            this.cells.clear();
+            return;
+        }
+
         // 1. 衰减旧 cell
         for (const [key, cell] of this.cells) {
             const age = (now - cell.updatedAt) / 1000;

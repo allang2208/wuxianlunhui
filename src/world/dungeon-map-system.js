@@ -42,6 +42,7 @@ export const DungeonMapSystem = {
     nodes: [],
     edges: [],
     currentNodeId: null,
+    previousNodeId: null,
     visitedNodeIds: new Set(),
     hoveredNodeId: null,
 
@@ -452,12 +453,20 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
-        // Boss 战模式：委托给 BossRewardSystem 更新
+        // Boss 战模式：委托给 BossRewardSystem 更新，并检测传送门
         if (this.state === "boss") {
             if (BossRewardSystem.isBossBattleActive && BossRewardSystem.isBossBattleActive()) {
                 BossRewardSystem.update(dt);
             }
-            // Boss 战由 BossRewardSystem 自己的回调处理完成，这里不做额外检测
+
+            const portal = BossRewardSystem.getExitPortal && BossRewardSystem.getExitPortal();
+            if (portal && portal.active && this.player) {
+                const dx = this.player.x - portal.x;
+                const dy = this.player.y - portal.y;
+                if (Math.sqrt(dx * dx + dy * dy) <= portal.radius) {
+                    this._leaveBossViaPortal();
+                }
+            }
             return;
         }
 
@@ -536,6 +545,14 @@ export const DungeonMapSystem = {
         this._removeMouseShopButton();
         this._removeAbandonButton();
 
+        // empty 节点仅用于通行，不移动当前位置，避免切断前进路线
+        if (node.type === 'empty') {
+            this._returnToMap();
+            return;
+        }
+
+        // 记录上一个节点，用于陷阱解除失败等回退场景
+        this.previousNodeId = this.currentNodeId;
         this.currentNodeId = node.id;
         this.visitedNodeIds.add(node.id);
 
@@ -548,12 +565,6 @@ export const DungeonMapSystem = {
         if (node.originalType === 'combat' && node.type === 'combat') {
             // 标记为已完成，返回地图时转换
             node._combatCompleted = true;
-        }
-
-        // 检查是否是已访问过的节点（empty 类型），直接返回地图
-        if (node.type === 'empty') {
-            this._returnToMap();
-            return;
         }
 
         switch (node.type) {
@@ -608,6 +619,27 @@ export const DungeonMapSystem = {
         this._cleanupCombatScene();
 
         // 清理 Phaser 战斗视觉残留（敌人/掉落物/传送门 Sprite）
+        const phaserScene = window.__phaserScene;
+        if (phaserScene && phaserScene.clearCombatView) {
+            phaserScene.clearCombatView();
+        }
+
+        // 重置传送门生成标记
+        this._exitPortalSpawned = false;
+
+        // 返回地图模式
+        this._returnToMap();
+    },
+
+    // 通过出口传送门离开 Boss 战：清理场地并返回地图
+    _leaveBossViaPortal() {
+        const player = this.player || Game.player;
+        if (!player) return;
+
+        // 离开 Boss 战（清理场地、触发完成回调）
+        BossRewardSystem.leaveBossBattle();
+
+        // 清理 Phaser 战斗视觉残留
         const phaserScene = window.__phaserScene;
         if (phaserScene && phaserScene.clearCombatView) {
             phaserScene.clearCombatView();
@@ -680,14 +712,12 @@ export const DungeonMapSystem = {
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
         // 所有 Boss 战统一使用 BossRewardSystem 的大块头 Boss
-        BossRewardSystem.enterBossBattle(this.player, (_result) => {
-            this._cleanupCombat();
-            // Boss 击败后，标记当前节点完成，并进入奖励节点
+        BossRewardSystem.enterBossBattle(this.player, () => {
+            // Boss 击败且玩家通过传送门离开后，标记节点完成
             if (node) {
                 node.completed = true;
                 node.type = 'empty';
             }
-            this._returnToMap();
         });
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
@@ -761,7 +791,7 @@ export const DungeonMapSystem = {
     },
 
     /**
-     * 统一清理战斗场景残留：传送门、掉落物、重置标记
+     * 统一清理战斗场景残留：传送门、掉落物、浮动文字、Phaser 视觉对象、重置标记
      */
     _cleanupCombatScene() {
         if (CombatRoomSystem.active) {
@@ -769,6 +799,15 @@ export const DungeonMapSystem = {
         } else {
             CombatRoomSystem.cleanupDrops();
         }
+
+        const phaserScene = window.__phaserScene;
+        if (phaserScene && phaserScene.clearCombatView) {
+            phaserScene.clearCombatView();
+        }
+        if (EffectManager && EffectManager.clearFloatingTexts) {
+            EffectManager.clearFloatingTexts();
+        }
+
         this._exitPortalSpawned = false;
     },
 
@@ -829,8 +868,16 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
-                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
-                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    const isTrap = result && result.eventType === 'trap';
+                    const isDisarm = isTrap && result.choiceId === 'disarm';
+
+                    // 陷阱解除失败：回退到上一个节点，保持节点原状
+                    if (isDisarm && result.success === false) {
+                        this.currentNodeId = this.previousNodeId || this.currentNodeId;
+                    }
+
+                    // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
+                    const shouldEmpty = !isTrap || (isDisarm && result.success === true);
                     if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
                         node.type = 'empty';
                     }
@@ -884,8 +931,16 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
-                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
-                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    const isTrap = result && result.eventType === 'trap';
+                    const isDisarm = isTrap && result.choiceId === 'disarm';
+
+                    // 陷阱解除失败：回退到上一个节点，保持节点原状
+                    if (isDisarm && result.success === false) {
+                        this.currentNodeId = this.previousNodeId || this.currentNodeId;
+                    }
+
+                    // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
+                    const shouldEmpty = !isTrap || (isDisarm && result.success === true);
                     if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
                         node.type = 'empty';
                     }
@@ -1246,11 +1301,17 @@ export const DungeonMapSystem = {
         el.id = 'dungeonMapNameLabel';
         el.style.cssText = `
             position: fixed;
-            top: 15px;
-            left: 15px;
+            left: 1031px;
+            bottom: 1174px;
+            width: 505px;
+            height: 64px;
             z-index: 9002;
             pointer-events: none;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             font-family: SimHei, "Microsoft YaHei", sans-serif;
             color: #d4c5a9;
             font-size: 18px;

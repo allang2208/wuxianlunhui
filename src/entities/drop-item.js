@@ -58,6 +58,7 @@ import { loadImage } from '../utils/image-loader.js';
                     });
                     label.setOrigin(0.5, 0);
                     label.setDepth(this.y + 1);
+                    phaserScene.dropItemsGroup.add(label);
                     this._phaserSprite = sprite;
                     this._phaserLabel = label;
                 }
