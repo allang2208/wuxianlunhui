@@ -88,6 +88,12 @@ export class BootScene extends Scene {
 
         // 僵尸犬动画
         this.anims.create({
+            key: 'zombie_dog_idle',
+            frames: [{ key: 'enemy_zombie_dog_idle', frame: 0 }],
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
             key: 'zombie_dog_walk',
             frames: this.anims.generateFrameNumbers('enemy_zombie_dog_walk', { start: 0, end: 7 }),
             frameRate: 8,

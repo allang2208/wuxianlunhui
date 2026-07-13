@@ -89,6 +89,8 @@ export class GameScene extends Scene {
         this.screenHudGraphics = this.add.graphics();
         this.screenHudGraphics.setDepth(100001);
         this.screenHudGraphics.setScrollFactor(0);
+        // 碰撞体积可视化（点击左下角“范围”按钮后显示半透明红圈）
+        this._collisionRadiusGraphics = null;
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
 
@@ -163,6 +165,7 @@ export class GameScene extends Scene {
             if (this.droneSprite) this.droneSprite.setVisible(false);
             if (this.droneRangeGraphics) this.droneRangeGraphics.clear();
             if (this.droneText) this.droneText.setVisible(false);
+            if (this._collisionRadiusGraphics) this._collisionRadiusGraphics.clear();
             // 地图模式下隐藏 2.5D 墙壁/树木与地形
             if (this.visualWalls) this.visualWalls.setVisible(false);
             if (this.visualTrees) this.visualTrees.setVisible(false);
@@ -198,6 +201,7 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
             if (this.minimapTitle) this.minimapTitle.setVisible(true);
             this._syncHud(_game);
+            this._syncCollisionRadii(_game);
             this._syncHitFlashAndCharge(_game);
             this._syncNeutralEntities(_game);
             // Phase 3: 同步特效 Sprite
@@ -1340,12 +1344,13 @@ export class GameScene extends Scene {
      */
     setupColliders() {
         if (this._collidersSet) return;
-        // 玩家 vs 墙壁（让 Phaser 物理阻挡，但现有逻辑也处理）
+        // 玩家 vs 墙壁（保留 Phaser 物理阻挡，与现有逻辑共同处理）
         if (this.playerSprite) {
             this.physics.add.collider(this.playerSprite, this.walls);
         }
-        // 敌人 vs 墙壁
-        this.physics.add.collider(this.enemies, this.walls);
+        // [FIX] 敌人 vs 墙壁：移除此 collider，让 WallSystem.resolve() 成为唯一权威。
+        // 双重碰撞系统会导致贴墙/墙角刷新的敌人被 Phaser 物理钉死，而手动解析又返回原坐标。
+        // this.physics.add.collider(this.enemies, this.walls);
         // 实体间碰撞：使用 overlap 检测但不自动响应，保持现有逻辑处理
         this._setupEntityOverlap();
         this._collidersSet = true;
@@ -1482,6 +1487,36 @@ export class GameScene extends Scene {
         this._syncCrosshair(gScreen);
         // 小地图
         this._syncMinimap(gScreen);
+    }
+
+    /**
+     * 点击左下角“范围”按钮后，用半透明红圈显示怪物碰撞体积
+     */
+    _syncCollisionRadii(_game) {
+        if (!_game || !_game.entities) return;
+        const show = _game.showAttackRange;
+        if (!show) {
+            if (this._collisionRadiusGraphics) {
+                this._collisionRadiusGraphics.clear();
+                this._collisionRadiusGraphics.setVisible(false);
+            }
+            return;
+        }
+        if (!this._collisionRadiusGraphics) {
+            this._collisionRadiusGraphics = this.add.graphics();
+            this._collisionRadiusGraphics.setDepth(99999);
+        }
+        this._collisionRadiusGraphics.clear();
+        this._collisionRadiusGraphics.setVisible(true);
+        this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
+        this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
+        for (const entity of _game.entities.values()) {
+            if (!entity || !entity.active || entity === _game.player) continue;
+            if (entity._faction !== 'enemy') continue;
+            const r = entity.collisionRadius || entity.size || 12;
+            this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
+            this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
+        }
     }
 
     _syncEntityHud(entity) {
@@ -2147,11 +2182,12 @@ export class GameScene extends Scene {
         if (!animState) return;
         const animKey = 'zombie_dog_' + animState;
         if (!this.anims.exists(animKey)) {
-            sprite.anims.stop();
+            // 没有对应动画时保持当前静态帧，不要强制 stop，避免冻结在动画最后一帧
             return;
         }
         const current = sprite.anims.currentAnim;
-        if (!current || current.key !== animKey) {
+        // [FIX] 增加 isPlaying 检查：动画意外停止时自动重新播放
+        if (!current || current.key !== animKey || !sprite.anims.isPlaying) {
             sprite.anims.play(animKey, true);
         }
     }

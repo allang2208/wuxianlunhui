@@ -36,6 +36,7 @@ import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
 import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
+import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
@@ -285,16 +286,16 @@ export const Game = {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
+        const zombieDogCfg = enemyConfigData.zombieDog || {};
+        // [FIX] 主城测试犬不再硬编码攻击/速度/碰撞等属性，直接复用 zombieDog 配置，
+        // 仅保留较高的 80 HP 作为测试目标。
         const dog = new ZombieDogEnemy(origin.x + 250, origin.y + 120, {
+            ...zombieDogCfg,
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            size: 12, collisionRadius: 12,
-            speed: 100,
-            color: '#d4cfc0',
             showWeapon: false,
             _alertRange: Infinity,
-            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 },
-            attack: { type: 'thrust', cooldown: 800, range: 70, width: 20, dynamicRange: 70, damageMin: 5, damageMax: 10, knockback: 8 }
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_dog', dog);
     },

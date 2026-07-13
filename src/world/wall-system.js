@@ -137,6 +137,20 @@ const WallSystem = {
                     return { x: stepX, y: stepY };
                 }
             }
+            // [UNSTUCK] 尝试沿移动方向切线方向侧向滑动，帮助走出墙角/窄缝
+            const nxNorm = dx / dist;
+            const nyNorm = dy / dist;
+            for (const side of [-1, 1]) {
+                const tx = -nyNorm * side;
+                const ty = nxNorm * side;
+                for (let ratio = 0.75; ratio >= 0.25; ratio -= 0.25) {
+                    const sx = x + dx * ratio + tx * r;
+                    const sy = y + dy * ratio + ty * r;
+                    if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
+                        return { x: sx, y: sy };
+                    }
+                }
+            }
         }
         return { x, y };
     },
@@ -231,6 +245,25 @@ const WallSystem = {
             }
         }
         return removed;
+    },
+    /**
+     * 寻找安全的生成位置：若 (x,y) 被阻挡，则沿螺旋方向外推直到找到合法点
+     * @param {number} x - 初始 X
+     * @param {number} y - 初始 Y
+     * @param {number} radius - 实体碰撞半径
+     * @param {number} [maxAttempts=8] - 最大尝试次数
+     * @returns {{x:number, y:number}} 安全坐标
+     */
+    findSafeSpawn(x, y, radius, maxAttempts = 8) {
+        if (this.canMoveTo(x, y, radius)) return { x, y };
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            const angle = (Math.PI * 2 * attempt) / maxAttempts;
+            const dist = radius * attempt * 0.8;
+            const tx = x + Math.cos(angle) * dist;
+            const ty = y + Math.sin(angle) * dist;
+            if (this.canMoveTo(tx, ty, radius)) return { x: tx, y: ty };
+        }
+        return { x, y };
     },
     getTreesInView(vx, vy, vw, vh) {
         const result = [];

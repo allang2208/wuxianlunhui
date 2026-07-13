@@ -1,5 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
+import { dynamicObstacleMap } from './dynamic-obstacle-map.js';
 
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
@@ -289,8 +290,8 @@ class PathFinder {
                 queue.push({ x: nx, y: ny });
             }
         }
-        // [FIX] 步数用完不一定不可达，返回 true 让 A* 继续尝试（A* 有超时保护）
-        return true;
+        // [ENHANCE] 步数用完仍未能到达目标附近，认为不可达，避免昂贵的 A*
+        return false;
     }
 
     // [NEW] 使用 RegionIndex 快速判断目标是否可达（O(1)，适用于封闭空间）
@@ -379,12 +380,14 @@ class PathFinder {
             for (let c = 0; c < cols; c++) {
                 const x = minX + c * this.gridSize + this.gridSize / 2;
                 const y = minY + r * this.gridSize + this.gridSize / 2;
-                // [ENHANCE] 增加 moveCost 属性
+                // [ENHANCE] 增加 moveCost 属性，并叠加动态障碍成本
                 const blocked = this._isBlocked(x, y, entityRadius);
+                const staticCost = blocked ? Infinity : this._getMoveCost(x, y, entityRadius);
+                const dynamicCost = blocked ? 1.0 : dynamicObstacleMap.getCost(x, y);
                 grid[r][c] = {
                     x, y, r, c,
                     blocked,
-                    moveCost: blocked ? Infinity : this._getMoveCost(x, y, entityRadius),
+                    moveCost: blocked ? Infinity : staticCost * dynamicCost,
                     g: Infinity, h: 0, f: Infinity,
                     parent: null, visited: false
                 };
@@ -469,13 +472,22 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
+            // [ENHANCE] 刷新动态障碍图
+            dynamicObstacleMap.update(Date.now());
+
             // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
             if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
                 return null;
             }
             // [ENHANCE] 尝试从缓存获取
+            // 如果起点/终点附近有动态障碍，跳过缓存，避免使用过期的低成本路径
+            const dynamicCostStart = dynamicObstacleMap.getCost(startX, startY);
+            const dynamicCostEnd = dynamicObstacleMap.getCost(endX, endY);
             const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius);
-            const cachedPath = this._getFromCache(cacheKey);
+            let cachedPath = null;
+            if (dynamicCostStart <= 1.1 && dynamicCostEnd <= 1.1) {
+                cachedPath = this._getFromCache(cacheKey);
+            }
             if (cachedPath) {
                 return cachedPath;
             }

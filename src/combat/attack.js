@@ -260,6 +260,9 @@ function applyEnchantOnHit(weapon, target, source) {
                                 angle,
                                 currentWeapon
                             });
+                            if (this.config.crippleDuration && entity.applyCripple) {
+                                entity.applyCripple(this.config.crippleDuration);
+                            }
                             if (killed) killCount++;
                             hitCount++;
                             return; // 命中后直接处理下一个实体
@@ -295,6 +298,9 @@ function applyEnchantOnHit(weapon, target, source) {
                             angle,
                             currentWeapon
                         });
+                        if (this.config.crippleDuration && entity.applyCripple) {
+                            entity.applyCripple(this.config.crippleDuration);
+                        }
                         if (killed) killCount++;
                         hitCount++;
                     }
@@ -348,9 +354,10 @@ function applyEnchantOnHit(weapon, target, source) {
                     SoundManager.play('bow_fire');
                 }
                 const angle = Math.atan2(targetY - source.y, targetX - source.x);
-                // 新增：怪物使用属性攻击力，玩家保持配置值
-                const baseDamage = source._faction === 'enemy' && source.data && source.data.atk
-                    ? source.data.atk
+                // [FIX] 统一使用 getCurrentWeaponAtk，敌人优先读取 enemy-config.json 的 damageMin/damageMax，
+                // 确保实际伤害与图鉴显示一致。
+                const baseDamage = source.getCurrentWeaponAtk
+                    ? source.getCurrentWeaponAtk()
                     : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                 const damage = { min: baseDamage, max: baseDamage };
                 const damageType = this.config.damageType || 'physical';

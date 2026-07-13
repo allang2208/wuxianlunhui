@@ -59,10 +59,12 @@
             left: 130px;
             display: flex;
             flex-direction: row;
+            flex-wrap: wrap;
             gap: 6px;
             align-items: center;
             z-index: 11;
             pointer-events: none;
+            max-width: calc(100vw - 150px);
         }
         .status-effect-item {
             position: relative;
@@ -77,8 +79,10 @@
             font-size: 12px;
             font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
             overflow: hidden;
-            min-width: 70px;
+            width: 90px;
             height: 32px;
+            flex-shrink: 0;
+            box-sizing: border-box;
             transition: all 0.2s ease;
         }
         .status-effect-item .status-effect-icon {
@@ -89,6 +93,9 @@
             font-weight: 600;
             font-size: 12px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 44px;
         }
         .status-effect-item .status-effect-time {
             margin-left: auto;

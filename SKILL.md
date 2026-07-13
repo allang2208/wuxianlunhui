@@ -1,6 +1,109 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.5
+## 版本: 1.6
+
+## 阶段性进度总结（2026-07-13）
+
+### 本次完成：AI 寻路优化 + 僵尸犬修复 + 图鉴修复 + 地牢事件与怪物碰撞优化
+
+#### 一、AI 寻路与怪物拥堵优化
+1. **路径跟随期间启用分离力**：`_followPath()` 调用增强版 `_computeSeparation()`，拥挤时允许偏离路径点绕过同伴。
+2. **分离力增强**：半径改为 `collisionRadius * 1.8`（24~80），检查数量从 5 提升到 12，加入距离衰减与随机抖动。
+3. **攻击范围渐进减速**：`dist <= attackRange * 0.9` 才开始减速，`dist <= attackRange * 0.5` 完全停车，前排不再一进入范围就堵死道路。
+4. **CombatSystem 攻击缓冲**：攻击判定距离放宽到 `attackRange * 1.15`。
+5. **缩短近战 AI 决策间隔**：普通/次级近战怪 `aiInterval` 从 2000ms 降到 800~1200ms。
+6. **侧翼包抄**：`_computeMoveDirection` 中当目标周围 ≥2 个同伴时，向人数更少的一侧偏移 45°~75°，选择 persisted in `_flankSide`。
+7. **卡住 reposition**：寻路失败时设置 600ms 临时侧向 `_tacticalTarget`，而不是随机乱转。
+8. **动态障碍图**：新增 `src/ai/dynamic-obstacle-map.js`，每 250ms 采样敌人位置，密集区域（≥3 敌人）在 A* 中增加 3.5x 移动成本，让后续怪物主动绕行。
+9. **寻路缓存适配动态障碍**：起点/终点附近有动态障碍时跳过缓存，避免使用过期低成本路径。
+10. **BFS 预检收紧**：`isReachable()` 步数耗尽后返回 `false`，避免对不可达目标执行昂贵 A*。
+11. **性能保护**：侧翼统计每 200ms 缓存一次，使用平方距离避免每帧开方，并限制最多遍历 80 个实体；动态障碍图每 250ms 重建一次，cell 自动衰减清理。
+
+#### 二、僵尸犬攻击动画修复与参数调整
+1. **攻击动画不显示修复**：`ZombieDogEnemy` 之前继承 `CircleEnemy`，攻击时 `_attackTimer` 永远不会被设置，导致 `_animState` 无法进入 `attack`。已新增 `_attackDuration = 600` 并覆盖 `triggerWeaponAnim()` 设置 `_attackTimer`；`update()` 中递减 `_attackTimer`。
+2. **参数调整**：`aiInterval` 和 `attack.cooldown` 均改为 1500ms（攻击间隔 1.5s）；`speed` 从 168.75 提升到 219.375（+30%）。
+
+#### 三、图鉴模块修复
+1. **根因**：`src/items/item-database.js` 静态导入了 `CodexManager`，而 `codex-manager.js` 又静态导入 `ItemDatabase`，形成循环依赖，导致 `ItemDatabase` 在图鉴初始化时为 `undefined`。
+2. **修复**：移除 `item-database.js` 的静态导入，改为 `addItem()` 中动态导入刷新；同时初始化 `currentEquipCategory: "all"`，避免装备页默认空白。
+
+#### 四、交互开发工具坐标工具修复
+1. **现象**：点击「📐 坐标工具」按钮后，遮罩层/面板无法显示，框选矩形不出现，坐标值不更新，无法记录。
+2. **根因**：`coordOverlay` 与 `coordPanel` 被创建在 `uiLayer` 内部，而 `uiLayer` 设置了 `pointer-events: none`；坐标工具代码仅依赖内联 `style.display` 切换显示，未使用 CSS 的 `.active` 类，也未将层提升到 `document.body`，导致事件可能被父层截断或层级受限于 `uiLayer`。
+3. **修复**：
+   - `_startCoordTool()` 启动时把 `coordOverlay` / `coordPanel` 移动到 `document.body`，脱离 `uiLayer` 的 `pointer-events: none`。
+   - 同时添加 `.active` 类并设置 `style.display`，与 CSS 规则保持一致。
+   - 启动前调用旧的 `_coordToolCleanup()`，防止重复绑定事件。
+   - `mouseup` 事件绑定到 `window`，避免拖出窗口后释放导致框选丢失。
+   - 增加 `overlay` / `panel` 缺失的防御性检查，并在控制台输出调试日志。
+4. **二次修复（Infinity/NaN）**：
+   - 根因：非地牢地图模式下 `Renderer` 会把原始 `gameCanvas` 设为 `display: none`，`getBoundingClientRect()` 返回宽高为 0，导致 `gameCanvas.width / 0 = Infinity`，所有坐标计算变成 `Infinity/NaN`。
+   - 修复：`getGameScale()` 中仅当 `canvasRect.width/height > 0` 且计算结果有限时才使用缩放，否则回退到 `scaleX/Y = 1`（即 CSS 像素）。
+   - 最终输出统一经过 `safe()` 函数处理，防止任何异常值写入面板。
+
+#### 五、地牢随机事件对话框落地坐标
+1. **需求**：将地牢随机事件对话框/选择框/结果框按坐标工具测得的位置摆放：`left: 151px; bottom: 88px; width: 1567px; height: 243px`。
+2. **实现**：
+   - `DungeonEventSystem._showEventUI()` 与 `_showResultUI()` 的事件面板改为固定定位在上述坐标，不再居中显示。
+   - 面板内部改为左右分栏：左侧占满剩余宽度展示标题与剧情描述，右侧固定 420px 放置选择按钮/继续按钮。
+   - 全屏遮罩改为半透明暗色（`rgba(0,0,0,0.45)`），保留点击拦截但不遮挡游戏画面。
+3. **剧情与判定数值完善**：
+   - 5 个事件（女神像、陷阱、补给堆、宝箱、恶魔雕像）的剧情描述扩展为更具氛围的长文本。
+   - 陷阱/补给堆选择按钮新增「描述 + 检定属性 + 当前属性值 + 成功率」的副标题。
+   - 判定基础成功率调整：解除陷阱 25%（敏）、强行跨越 30%（体）、仔细搜寻 40%（精）、探查四周 35%（敏）。
+   - `data/dungeon-config.json` 与 `src/world/dungeon-event-system.js` 默认配置保持一致。
+
+#### 六、地牢事件 UI/流程修复
+1. **事件结果不再创建浮动文字**：`_showResultUI()` 中移除 `FloatingTextEffect`，避免事件结束后残留黄/红文字。
+2. **事件遮罩改为不透明纯黑**：`_showEventUI()` 与 `_showResultUI()` 的全屏遮罩从 `rgba(0,0,0,0.45)` 改为 `rgba(0,0,0,1)`。
+3. **浮动文字主动清理**：`EffectManager.clearFloatingTexts()` 会遍历并销毁 Phaser 文本对象；`DungeonMapSystem._returnToMap()` 调用该方法，确保返回地图时无残留。
+4. **事件节点状态流转**：事件结束后节点变为 `empty`；陷阱节点仅在成功解除（`result.success === true`）后才变 `empty`，失败保留可再次尝试。
+
+#### 七、怪物寻路/碰撞优化
+1. **分离力修复**：`_computeSeparation` 改为优先使用传入的 `entities` 参数（修复忽略参数的 bug），并回退到 `Game.entities`。
+2. **分离力增强**：从加权平均改为反平方累加，近距离排斥更强；贴身战斗时自动降低分离权重，限制最大分离力避免过度漂移。
+3. **敌人墙壁碰撞单一权威**：`GameScene.setupColliders()` 移除 `enemies-vs-walls` 的 Phaser collider，保留 `player-vs-walls`，让 `WallSystem.resolve()` 成为敌人碰撞唯一权威，解决贴墙/墙角怪物被 Phaser 物理钉死的问题。
+4. **墙壁解析脱困 fallback**：`WallSystem.resolve()` 在标准滑动与步长回退均失败后，尝试沿移动方向切线方向侧向滑动。
+5. **卡死恢复**：`MovementSystem._tryUnstuck(enemy)` 在敌人尝试移动但连续 30 帧位移 < 0.5px 时，沿 8 个方向寻找合法位置小幅瞬移；静止或目标在攻击范围内时不触发。
+6. **安全生成边距**：`CombatRoomSystem.spawnMonsters()` 生成怪物后，若其碰撞半径位置被墙/障碍阻挡，则调用 `WallSystem.findSafeSpawn()` 沿螺旋外推重新定位。
+7. **RegionIndex 树木半径对齐**：`region-index.js` 中树木阻挡半径与 `WallSystem` 一致，使用 `t.collisionRadius || t.radius * 0.6`。
+
+#### 八、僵尸犬奔跑贴图再次修复
+1. **补齐 idle 动画**：`BootScene.js` 为 `enemy_zombie_dog_idle` 创建单帧循环动画 `zombie_dog_idle`，避免 idle 状态时调用 `sprite.anims.stop()` 中断动画系统。
+2. **动画同步增加 isPlaying 检查**：`GameScene._syncEnemyAnimation()` 在 `current.key !== animKey` 之外增加 `!sprite.anims.isPlaying`，动画意外停止时自动重新播放；找不到动画时不再强制 stop。
+3. **相对阈值与滞后**：`ZombieDogEnemy.update()` 将 `run/walk/idle` 阈值从固定 `1.2/0.1` 改为基于 `maxSpeed` 的比例（run≈30%、walk≈5%），并加入滞后区间与 80ms 最小保持时间，防止在攻击范围边缘因摩擦反复切换动画状态导致奔跑贴图“卡住”。
+
+#### 九、战斗完成顶部提示栏
+1. **复用场景切换提示样式**：`SceneManager` 新增 `showTopNotification(text, options)`，与 `_showSceneLabel()` 使用相同的 DOM/CSS/动画（`top:210px` 居中、`#d4c5a9`、`48px`、字重 700、`sceneLabelFade` 3 秒淡出）。
+2. **战斗完成触发提示**：`DungeonMapSystem.updateCombat()` 在战斗完成并生成出口传送门后，调用 `SceneManager.showTopNotification('已完成战斗，寻找传送门离开')`。
+
+### 关键改动文件
+- `src/systems/movement-system.js`
+- `src/systems/combat-system.js`
+- `src/ai/dynamic-obstacle-map.js`（新增）
+- `src/ai/pathfinder.js`
+- `src/ai/region-index.js`
+- `src/entities/enemy-types.js`
+- `src/effects/effect-manager.js`
+- `src/items/item-database.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/ui/codex-manager.js`
+- `src/ui/dev-tool.js`
+- `src/world/combat-room-system.js`
+- `src/world/dungeon-event-system.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/scene-manager.js`
+- `src/world/wall-system.js`
+- `data/enemy-config.json`
+- `data/dungeon-config.json`
+
+### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
+
+---
+
 
 ## 阶段性进度总结（2026-07-12）
 
@@ -544,6 +647,110 @@ if (this._facing === 'left') {
     }
 }
 ```
+
+---
+
+## 交互式开发工具（DevTool）与攻击动画插帧系统
+
+> 阅读 `src/ui/dev-tool.js`、`src/combat/weapon-transform.js`、`src/entities/player/weapon-anim.js`、`src/items/weapon-anim-config.js`、`src/phaser/scenes/GameScene.js` 后的结构梳理。
+
+### 一、DevTool 整体结构
+
+`src/ui/dev-tool.js` 是一个基于 Canvas 2D 的独立调试面板，与 Phaser 游戏循环解耦，用于武器/动画参数的可视化与持久化。
+
+**核心状态：**
+```js
+state: { anim, weaponType, frameIndex, playProgress, isPlaying }
+weaponParams: { offsetX, offsetY, rotation, scale }
+keyframeSystem: { enabled, keyframes, selectedIndex, isRecording }
+handAnchorSystem: { enabled, handAnchors: { idle/walk/running/attack }, gripOffset }
+```
+
+**四大子系统：**
+1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置。
+2. **关键帧录制面板**：录制并编辑关键帧，每帧包含 `progress`、`holdOffsetX/Y`、`rotation`、`scale`。
+3. **手部挂载点面板**：按 `idle/walk/running/attack` 编辑手部锚点 `handAnchors`，配合 `gripOffset` 让武器跟随手部。
+4. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
+
+**关键方法：**
+- `_loadCharacterFrames()`：加载 idle/walk/running/attack 精灵图。
+- `_getPerFrameTransform()` / `_getRuntimeKeyframeTransform()`：按进度插值逐帧配置或运行时关键帧。
+- `_buildPreviewOverrides()`：把面板中的调整打包成 `WeaponTransform` 可消费的参数。
+- `_save()`：写回 `WeaponAnimConfig`，并通过 `window.electronAPI.saveWeaponConfig` 持久化到 `public/data/weapon-anim-config.json`。
+- `_draw()`：用 `WeaponTransform` 在 Canvas 上绘制角色、武器与轨迹。
+
+### 二、攻击动画插帧的两条技术路径
+
+#### 路径 A：关键帧系统（Keyframes）
+- **配置位置**：`WeaponAnimConfig[weaponType].attack.keyframes`（少量关键帧）。
+- **结构**：`{ progress, holdOffsetX/Y, rotation, scale }`（兼容 `handOffsetX/Y`、`offsetX/Y`）。
+- **插值**：线性插值。
+  - `dev-tool.js`：`_getRuntimeKeyframeTransform()` 负责编辑时预览插值。
+  - `weapon-anim.js`：`_playSwordAttackTween()` 在 Tween `onUpdate` 中按 progress 找相邻关键帧并插值，然后调用 `WeaponTransform.getKeyframedWeaponPosition()`。
+- **适用**：攻击动作有明确阶段（起手 / 挥击 / 收回），需要程序化控制武器轨迹。
+
+#### 路径 B：逐帧系统（Per-Frame）
+- **配置位置**：`WeaponAnimConfig[weaponType].attack.frames`。
+- **结构**：`{ offsetX, offsetY, rotation, scale }` 数组，每帧对应攻击动画的一帧。
+- **插值**：按 `playProgress` 在相邻两帧之间做线性插值。
+  - `weapon-transform.js`：`getInterpolatedPerFramePosition()` 用 `_lerpPerFrame1D/2D` 插值。
+  - `weapon-anim.js`：检测到 `attack.type === 'perFrame'` 后，Tween 只驱动 progress；武器 Sprite 的位置/旋转/缩放由 `GameScene.syncWeapon()` 按当前动画帧同步，Tween 只负责命中判定窗口与状态重置。
+- **适用**：美术已做出完整攻击动画序列，想让武器完全贴合每帧画面。
+
+| 维度 | 关键帧系统 | 逐帧系统 |
+|---|---|---|
+| 配置量 | 少（几个关键帧） | 多（每帧一个配置） |
+| 插值驱动 | `weapon-anim.js` Tween 直接计算并更新 Sprite | Tween 只提供 progress，`GameScene.syncWeapon` 按帧读取 |
+| 与美术动画关系 | 程序控制轨迹，与美术动画解耦 | 与美术动画逐帧绑定 |
+| 缓动 | 当前实现为 Linear（可扩展） | Linear |
+
+### 三、坐标变换链
+
+```
+dev-tool 调整参数
+    ↓
+保存为 WeaponAnimConfig[weapon].attack / handAnchors / gripOffset
+    ↓
+WeaponTransform.getKeyframedWeaponPosition() / getInterpolatedPerFramePosition()
+    ↓
+GameScene.syncWeapon() / weapon-anim.js Tween
+    ↓
+Phaser Sprite.x / y / rotation / scale
+```
+
+**镜像处理：**
+- 玩家朝左时，`facingRight = false`。
+- `WeaponTransform` 内部把本地 X 坐标取反，并把旋转角度处理为 `Math.PI - rotation`。
+- **不**对武器 Sprite 直接使用 `setFlipX`，避免旋转中心错乱。
+
+**手部挂载链：**
+- `handAnchors[state]`：手部在角色本地空间的位置。
+- `gripOffset`：武器握把点到武器原点的偏移。
+- 最终武器世界位置 ≈ 角色世界位置 + 手部锚点 + 当前帧武器偏移 + 握把修正。
+
+### 四、玩家攻击动画驱动流程
+
+1. 输入触发：`triggerWeaponAnim('main')`。
+2. 状态机进入 `swing`。
+3. 剑类武器调用 `_playSwordAttackTween()`：
+   - 若 `attack.type === 'perFrame'`：Tween 驱动 progress，`syncWeapon()` 逐帧同步。
+   - 若存在关键帧：Tween `onUpdate` 直接插值并更新 Sprite。
+   - 否则走默认 windup/swing/recover 路径。
+4. `onStart` 激活 `_pendingThrust`，在攻击前 500ms 内做命中判定。
+5. `onComplete` 结束攻击状态、给经验、武器回到 idle 位置。
+
+### 五、与怪物攻击动画的对比
+
+- **玩家**：由 `weapon-anim.js` Tween + `WeaponAnimConfig` 精确控制武器 Sprite 的位移/旋转/缩放。
+- **怪物（如 ZombieDogEnemy）**：仅覆盖 `triggerWeaponAnim()` 设置 `_attackTimer`，用 `_animState = 'attack'` 驱动纹理/帧切换；攻击判定由 `ThrustAttack` 的矩形/动态距离判定处理，**没有**类似玩家的武器 Sprite 插帧系统。
+
+### 六、后续扩展方向
+
+如需为怪物引入攻击动画插帧（例如让 ZombieDog 的爪击也使用逐帧动画）：
+1. 在 `enemy-config.json` / `enemy-types.js` 中为怪物增加攻击动画资源引用。
+2. 在 `WeaponAnimConfig` 中新增怪物武器/爪击配置，或复用 `perFrame` 结构。
+3. 在 `_syncEnemyAnimation()` 中根据 `_animState === 'attack'` 播放对应 spritesheet。
+4. 让 `ZombieDogEnemy.triggerWeaponAnim()` 不只是一个 timer，而是真正驱动一帧一帧的动画 progress。
 
 ---
 

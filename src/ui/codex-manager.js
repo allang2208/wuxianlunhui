@@ -26,6 +26,7 @@ const CodexManager = {
         { key: '狼', label: '狼' },
     ],
     currentMonsterCategory: 'all',
+    currentEquipCategory: 'all',
     detailItem: null,
 
     /* ---- 运行时数据库 ---- */
@@ -588,5 +589,9 @@ const CodexManager = {
         return map[slot] || slot;
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.CodexManager = CodexManager;
+}
 
 export { CodexManager };

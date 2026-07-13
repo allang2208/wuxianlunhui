@@ -145,7 +145,7 @@
     "luck": 4,
     "rank": "normal",
     "attackRange": 70,
-    "aiInterval": 2000,
+    "aiInterval": 800,
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 100,
@@ -167,8 +167,8 @@
     "hp": 60,
     "maxHp": 60,
     "size": 12,
-    "collisionRadius": 10,
-    "speed": 168.75,
+    "collisionRadius": 20,
+    "speed": 250,
     "level": 2,
     "color": "#d4cfc0",
     "highlightColor": "rgba(212, 207, 192, 0.3)",
@@ -180,7 +180,7 @@
     "luck": 4,
     "rank": "normal",
     "attackRange": 70,
-    "aiInterval": 2000,
+    "aiInterval": 1500,
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 100,
@@ -188,12 +188,13 @@
     },
     "attack": {
       "type": "thrust",
-      "cooldown": 600,
+      "cooldown": 1500,
       "dynamicRange": 70,
       "width": 18,
       "damageMin": 4,
       "damageMax": 8,
-      "knockback": 5
+      "knockback": 5,
+      "crippleDuration": 3000
     },
     "type": "普通",
     "category": "monster",
@@ -229,7 +230,7 @@
     "wis": 4,
     "luck": 5,
     "attackRange": 60,
-    "aiInterval": 2000,
+    "aiInterval": 1000,
     "attack": {
       "type": "thrust",
       "cooldown": 800,
@@ -270,7 +271,7 @@
     "wis": 3,
     "luck": 4,
     "attackRange": 70,
-    "aiInterval": 2000,
+    "aiInterval": 800,
     "attack": {
       "type": "thrust",
       "cooldown": 600,
@@ -354,7 +355,7 @@
     "wis": 2,
     "luck": 4,
     "attackRange": 55,
-    "aiInterval": 2000,
+    "aiInterval": 800,
     "attack": {
       "type": "thrust",
       "cooldown": 500,
@@ -393,7 +394,7 @@
     "wis": 5,
     "luck": 5,
     "attackRange": 65,
-    "aiInterval": 2000,
+    "aiInterval": 1000,
     "attack": {
       "type": "thrust",
       "cooldown": 800,
@@ -432,7 +433,7 @@
     "wis": 6,
     "luck": 4,
     "attackRange": 95,
-    "aiInterval": 2000,
+    "aiInterval": 1200,
     "attack": {
       "type": "thrust",
       "cooldown": 1000,
@@ -471,7 +472,7 @@
     "wis": 10,
     "luck": 6,
     "attackRange": 100,
-    "aiInterval": 2000,
+    "aiInterval": 1200,
     "attack": {
       "type": "thrust",
       "cooldown": 1200,
@@ -510,7 +511,7 @@
     "wis": 3,
     "luck": 4,
     "attackRange": 60,
-    "aiInterval": 2000,
+    "aiInterval": 1000,
     "attack": {
       "type": "thrust",
       "cooldown": 800,
@@ -588,7 +589,7 @@
     "wis": 5,
     "luck": 6,
     "attackRange": 88,
-    "aiInterval": 2000,
+    "aiInterval": 800,
     "attack": {
       "type": "thrust",
       "cooldown": 312,
@@ -627,7 +628,7 @@
     "wis": 8,
     "luck": 4,
     "attackRange": 95,
-    "aiInterval": 2000,
+    "aiInterval": 1200,
     "attack": {
       "type": "thrust",
       "cooldown": 1000,
@@ -666,7 +667,7 @@
     "wis": 12,
     "luck": 8,
     "attackRange": 100,
-    "aiInterval": 2000,
+    "aiInterval": 1200,
     "attack": {
       "type": "thrust",
       "cooldown": 1200,
@@ -704,7 +705,7 @@
     "luck": 5,
     "rank": "normal",
     "attackRange": 80,
-    "aiInterval": 2000,
+    "aiInterval": 1200,
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 120,

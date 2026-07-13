@@ -375,23 +375,72 @@ class ZombieDogEnemy extends CircleEnemy {
         super(x, y, config);
         this._animState = 'idle';
         this._lastHorizontalFacing = 'right';
+        // [FIX] 僵尸犬攻击动画时长，与 BootScene 中 zombie_dog_attack 动画匹配
+        // 6 帧 @ 10fps = 600ms
+        this._attackDuration = 600;
     }
 
     update(dt, entities) {
         super.update(dt, entities);
+        // 递减攻击动画计时器；计时器归零后不再显示 attack 动画
+        if (this._attackTimer > 0) {
+            this._attackTimer -= dt;
+            if (this._attackTimer < 0) this._attackTimer = 0;
+        }
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         if (this._attackTimer <= 0 && Math.abs(this.vx) >= 0.1) {
             this._lastHorizontalFacing = this.vx > 0 ? 'right' : 'left';
         }
+
+        // [FIX] 动画状态优先级：攻击动画 > 奔跑追击 > 近距离调整位置 > 待机
+        // 使用相对于 maxSpeed 的阈值，并加入滞后（hysteresis）与最小保持时间，
+        // 避免在攻击范围边缘因摩擦导致 run/walk/idle 高频切换，使奔跑贴图看起来“卡住”。
+        let nextState = this._animState;
         if (this._attackTimer > 0) {
-            this._animState = 'attack';
-        } else if (speed > 1.2) {
-            this._animState = 'run';
-        } else if (speed > 0.1) {
-            this._animState = 'walk';
+            nextState = 'attack';
         } else {
-            this._animState = 'idle';
+            const maxSpd = this.maxSpeed || this.speed || 250;
+            const runThreshold = maxSpd * 0.30;
+            const walkThreshold = maxSpd * 0.05;
+            // 滞后：从 run 降到 walk 需要速度低于 runThreshold 一定比例
+            const runToWalkThreshold = runThreshold * 0.65;
+            const walkToRunThreshold = runThreshold * 1.05;
+
+            if (this._animState === 'run') {
+                if (speed < runToWalkThreshold) nextState = speed < walkThreshold ? 'idle' : 'walk';
+            } else if (this._animState === 'walk') {
+                if (speed > walkToRunThreshold) nextState = 'run';
+                else if (speed < walkThreshold * 0.6) nextState = 'idle';
+            } else {
+                // idle -> run/walk
+                if (speed > walkToRunThreshold) nextState = 'run';
+                else if (speed > walkThreshold) nextState = 'walk';
+                else nextState = 'idle';
+            }
         }
+
+        // 状态变化时重置保持计时器；未变化时累计时间
+        this._animStateTimer = (this._animStateTimer || 0) + dt;
+        const minHoldTime = 80; // ms，防止每帧在阈值边缘抖动
+        if (nextState !== this._animState) {
+            if (this._animStateTimer >= minHoldTime) {
+                this._animState = nextState;
+                this._animStateTimer = 0;
+            }
+        }
+    }
+
+    /**
+     * 僵尸犬攻击动画触发入口。
+     * 只在 CombatSystem 真正触发攻击后调用；若当前仍处于上一段 attack 动画（600ms）中，
+     * 则忽略重复触发，因此不会以 600ms 为周期循环播放攻击动画。
+     */
+    triggerWeaponAnim() {
+        if (this._attackTimer > 0) return;
+        super.triggerWeaponAnim();
+        this._attackTimer = this._attackDuration || 600;
+        this._animFrame = 0;
+        this._animTimer = 0;
     }
 
     _getTextureKey() {

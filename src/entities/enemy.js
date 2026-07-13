@@ -57,7 +57,8 @@ import { loadImage } from '../utils/image-loader.js';
                         width: attackConfig.width ?? thrustCfg.width ?? 20,
                         damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : (thrustCfg.damage || { min: 8, max: 15 })),
                         knockback: attackConfig.knockback ?? thrustCfg.knockback ?? 15,
-                        dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80)
+                        dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80),
+                        ...attackConfig
                     }) };
                     this.weaponMode = 'melee';
                 }
@@ -612,7 +613,13 @@ import { loadImage } from '../utils/image-loader.js';
                 return formula.base + (this.level || 1) * formula.levelMultiplier;
             }
             // 新增：获取当前武器攻击力（供攻击系统使用）
+            // [FIX] 优先使用 enemy-config.json 中配置的 damageMin/damageMax，
+            // 确保实际伤害与图鉴显示一致，避免被 STR/DEX 公式二次计算。
             getCurrentWeaponAtk() {
+                const attack = this.attacks && (this.attacks.melee || this.attacks.ranged);
+                if (attack && attack.config && attack.config.damage) {
+                    return Math.floor((attack.config.damage.min + attack.config.damage.max) / 2);
+                }
                 return this.data ? this.data.atk : 0;
             }
             // 攻击命中回调：供毒伤等效果使用

@@ -69,10 +69,11 @@ class CombatSystemImpl {
         }
         const targetX = enemy.target.x;
         const targetY = enemy.target.y;
-        // 距离检查：超出攻击范围不攻击
+        // [ENHANCE] 距离检查：增加 15% 攻击缓冲，让怪物在接近过程中就能出手
         const dx = targetX - enemy.x, dy = targetY - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > enemy.attackRange) {
+        const effectiveRange = enemy.attackRange * 1.15;
+        if (dist > effectiveRange) {
             return;
         }
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
