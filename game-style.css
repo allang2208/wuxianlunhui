@@ -79,8 +79,7 @@
             font-size: 12px;
             font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
             overflow: hidden;
-            width: 90px;
-            height: 32px;
+            min-height: 32px;
             flex-shrink: 0;
             box-sizing: border-box;
             transition: all 0.2s ease;
@@ -95,7 +94,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 44px;
         }
         .status-effect-item .status-effect-time {
             margin-left: auto;

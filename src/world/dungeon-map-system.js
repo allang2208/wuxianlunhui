@@ -42,6 +42,7 @@ export const DungeonMapSystem = {
     nodes: [],
     edges: [],
     currentNodeId: null,
+    previousNodeId: null,
     visitedNodeIds: new Set(),
     hoveredNodeId: null,
 
@@ -536,6 +537,14 @@ export const DungeonMapSystem = {
         this._removeMouseShopButton();
         this._removeAbandonButton();
 
+        // empty 节点仅用于通行，不移动当前位置，避免切断前进路线
+        if (node.type === 'empty') {
+            this._returnToMap();
+            return;
+        }
+
+        // 记录上一个节点，用于陷阱解除失败等回退场景
+        this.previousNodeId = this.currentNodeId;
         this.currentNodeId = node.id;
         this.visitedNodeIds.add(node.id);
 
@@ -548,12 +557,6 @@ export const DungeonMapSystem = {
         if (node.originalType === 'combat' && node.type === 'combat') {
             // 标记为已完成，返回地图时转换
             node._combatCompleted = true;
-        }
-
-        // 检查是否是已访问过的节点（empty 类型），直接返回地图
-        if (node.type === 'empty') {
-            this._returnToMap();
-            return;
         }
 
         switch (node.type) {
@@ -829,8 +832,16 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
-                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
-                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    const isTrap = result && result.eventType === 'trap';
+                    const isDisarm = isTrap && result.choiceId === 'disarm';
+
+                    // 陷阱解除失败：回退到上一个节点，保持节点原状
+                    if (isDisarm && result.success === false) {
+                        this.currentNodeId = this.previousNodeId || this.currentNodeId;
+                    }
+
+                    // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
+                    const shouldEmpty = !isTrap || (isDisarm && result.success === true);
                     if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
                         node.type = 'empty';
                     }
@@ -884,8 +895,16 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     this._enterCombat(node);
                 } else {
-                    // 事件结束后节点变 empty；陷阱节点仅在成功解除后才变 empty
-                    const shouldEmpty = node.type !== 'trap' || (result && result.success === true);
+                    const isTrap = result && result.eventType === 'trap';
+                    const isDisarm = isTrap && result.choiceId === 'disarm';
+
+                    // 陷阱解除失败：回退到上一个节点，保持节点原状
+                    if (isDisarm && result.success === false) {
+                        this.currentNodeId = this.previousNodeId || this.currentNodeId;
+                    }
+
+                    // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
+                    const shouldEmpty = !isTrap || (isDisarm && result.success === true);
                     if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
                         node.type = 'empty';
                     }
