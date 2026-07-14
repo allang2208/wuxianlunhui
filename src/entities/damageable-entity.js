@@ -261,6 +261,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     stun: { icon: '💫', name: '眩晕', color: '#9a7a5a' },
                     poison: { icon: '☠️', name: '中毒', color: '#7a9a5a' },
                     slow: { icon: '🐌', name: '减速', color: '#5a7a9a' },
+                    bind: { icon: '⛓️', name: '束缚', color: '#7a5a8a' },
                     buff: { icon: '✨', name: '增益', color: '#9a9a5a' },
                     shield: { icon: '🛡️', name: '护盾', color: '#5a8a9a' },
                     bleed: { icon: '🩸', name: '流血', color: '#9a3a3a' },
@@ -417,6 +418,15 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 this.addStatusEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🦴 致残！', '#8a8a7a'));
+                }
+            }
+            applyBind(duration) {
+                if (StatusBar) {
+                    this._bindEffectId = StatusBar.addEffect('bind', duration, { name: '束缚', icon: '⛓️', color: '#7a5a8a' });
+                }
+                this.addStatusEffect('bind', duration, { name: '束缚', icon: '⛓️', color: '#7a5a8a' });
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '⛓️ 束缚！', '#7a5a8a'));
                 }
             }
             applyBleeding(stacks) {

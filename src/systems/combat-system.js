@@ -75,6 +75,7 @@ class CombatSystemImpl {
 
     // --- 攻击执行 ---
     _updateAttack(enemy, dt, entities) {
+        if (enemy._attackAnimTimer > 0 || enemy._frozenForCast) return;
         enemy.aiTimer += dt;
         if (enemy.aiTimer < enemy.aiInterval) return;
         // 需要目标存在
@@ -86,7 +87,8 @@ class CombatSystemImpl {
         // [ENHANCE] 距离检查：增加 15% 攻击缓冲，让怪物在接近过程中就能出手
         const dx = targetX - enemy.x, dy = targetY - enemy.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const effectiveRange = enemy.attackRange * 1.15;
+        // 优先使用新的攻击距离字段；若未配置则回退到 attackRange
+        const effectiveRange = enemy.attackDistance !== undefined ? enemy.attackDistance : enemy.attackRange * 1.15;
         if (dist > effectiveRange) {
             return;
         }

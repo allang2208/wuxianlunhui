@@ -43,13 +43,19 @@ class DashSystem {
         const activeSkillId = this.player._getActiveDashSkillId();
         const dashSkill = this.player.skills[activeSkillId];
         const currentWeapon = this.player.equipments[this.player.weaponMode];
-        let staminaCost = dashSkill ? dashSkill.getEffect(dashSkill.level).staminaCost : 20;
+        let staminaCost = 20;
+        if (dashSkill && typeof dashSkill.getEffect === 'function') {
+            const effect = dashSkill.getEffect(dashSkill.level);
+            if (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) {
+                staminaCost = effect.staminaCost;
+            }
+        }
         if (currentWeapon && currentWeapon._craftEffects) {
             const ce = currentWeapon._craftEffects;
-            if (ce.skillStaminaCostDelta) staminaCost += ce.skillStaminaCostDelta;
-            if (ce.staminaCostDelta) staminaCost += ce.staminaCostDelta;
+            if (typeof ce.skillStaminaCostDelta === 'number' && isFinite(ce.skillStaminaCostDelta)) staminaCost += ce.skillStaminaCostDelta;
+            if (typeof ce.staminaCostDelta === 'number' && isFinite(ce.staminaCostDelta)) staminaCost += ce.staminaCostDelta;
         }
-        if (staminaCost < 0) staminaCost = 0;
+        if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
         this.player.data.stamina -= staminaCost;
         if (this.player.data.stamina < 0) this.player.data.stamina = 0;
         

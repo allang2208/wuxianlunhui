@@ -57,8 +57,9 @@ export class BootScene extends Scene {
 
         // 突变体-3 精灵图动画（3×8 网格）
         this.load.spritesheet('enemy_mutant3_idle', 'assets/enemies/mutant3/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_mutant3_walk', 'assets/enemies/mutant3/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 8 });
+        this.load.spritesheet('enemy_mutant3_walk', 'assets/enemies/mutant3/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
         this.load.spritesheet('enemy_mutant3_attack', 'assets/enemies/mutant3/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 20 });
+        this.load.spritesheet('enemy_mutant3_attack_normal', 'assets/enemies/mutant3/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
 
         // ---- 环境资源 ----
 
@@ -165,9 +166,16 @@ export class BootScene extends Scene {
         });
         this.anims.create({
             key: 'enemy_mutant3_walk',
-            frames: this.anims.generateFrameNumbers('enemy_mutant3_walk', { start: 0, end: 8 }),
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_walk', { start: 0, end: 9 }),
             frameRate: 10,
             repeat: -1,
+        });
+        // 普通 5 连击动画（22 帧，1.5s）
+        this.anims.create({
+            key: 'enemy_mutant3_attack_normal',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack_normal', { start: 0, end: 21 }),
+            duration: 1500,
+            repeat: 0,
         });
         // 飞扑攻击拆成两段：蓄力 1-8 帧（1s），冲锋后续帧（1s）
         this.anims.create({

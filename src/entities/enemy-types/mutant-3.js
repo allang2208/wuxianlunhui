@@ -6,8 +6,10 @@ import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
  * 怪物突变体-3（精英）
- * 技能：飞扑（蓄力 1 秒 → 高速冲锋 → 命中眩晕 2 秒）
- * 额外技能：每 30 秒召唤 2 只僵尸犬
+ * 技能：
+ * - 普通攻击：5 连击（1.5s 动画，第 6/11/13/16/18 帧各造成 1 次伤害并致残 2s）
+ * - 飞扑：蓄力 1 秒 → 高速冲锋（方向锁定） → 命中眩晕 2 秒
+ * - 召唤：每 30 秒召唤 2 只僵尸犬
  */
 export class Mutant3 extends Enemy {
     constructor(x, y, config = {}) {
@@ -21,41 +23,72 @@ export class Mutant3 extends Enemy {
         this._pounceState = 'idle'; // idle | prepare | charge
         this._pounceTimer = 0;
         this._pounceCooldown = 0;
-        this._summonCooldown = 0;
         this._pounceTarget = null;
+        this._pounceGhostTimer = 0;
         this._pounceDir = { x: 0, y: 0 };
         this._pounceStartPos = { x: 0, y: 0 };
+
+        // 5 连击状态
+        this._comboState = 'idle'; // idle | attacking
+        this._comboTimer = 0;
+        this._comboCooldown = 0;
+        this._comboTarget = null;
+        this._comboHitMask = 0;
+        this._attackAnimPhase = null; // null | normal
     }
 
     update(dt, entities) {
         if (this._pounceCooldown > 0) this._pounceCooldown -= dt;
-        if (this._summonCooldown > 0) this._summonCooldown -= dt;
+        if (this._comboCooldown > 0) this._comboCooldown -= dt;
 
-        // 召唤
-        if (this._summonCooldown <= 0 && this.target && this.target.active) {
-            this._summonZombieDogs(entities);
+        // 统一更新状态效果（中毒、流血等）
+        this.updateStatusEffects(dt);
+
+        // 眩晕时强制中断所有动作
+        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+            if (this._comboState !== 'idle') this._endCombo();
+            if (this._pounceState !== 'idle') this._endPounce();
+            this.vx = 0; this.vy = 0; this.isMoving = false;
+            return;
+        }
+
+        // 5 连击优先
+        if (this._comboState === 'attacking') {
+            this._updateCombo(dt, entities);
+            return;
         }
 
         // 飞扑状态机
         if (this._pounceState === 'idle') {
             // 普通 AI 更新
             super.update(dt, entities);
-            // 尝试开始飞扑
-            if (this._pounceCooldown <= 0 && this.target && this.target.active) {
-                const dist = Math.sqrt((this.target.x - this.x) ** 2 + (this.target.y - this.y) ** 2);
-                if (dist <= 500) {
-                    this._startPounce();
+
+            // 尝试开始 5 连击
+            if (this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
+                const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
+                if (dist <= this._getAttackDistance()) {
+                    this._startCombo();
+                    return;
                 }
             }
 
-            // 根据移动状态切换待机动画/移动动画
-            if (this._pounceState === 'idle') {
+            // 尝试开始飞扑
+            if (this._pounceCooldown <= 0 && this.target && this.target.active) {
+                const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
+                if (dist <= 500) {
+                    this._startPounce();
+                    return;
+                }
+            }
+
+            if (this._pounceState === 'idle' && this._comboState === 'idle') {
                 this._animState = this.isMoving ? 'walk' : 'idle';
             }
         } else if (this._pounceState === 'prepare') {
             this._pounceTimer -= dt;
             this.vx = 0;
             this.vy = 0;
+            this.isMoving = false;
             // 朝向目标
             if (this.target && this.target.active) {
                 this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
@@ -66,15 +99,7 @@ export class Mutant3 extends Enemy {
         } else if (this._pounceState === 'charge') {
             const dtSec = dt / 1000;
 
-            // 冲锋过程中始终朝向当前目标
-            if (this.target && this.target.active) {
-                const dx = this.target.x - this.x;
-                const dy = this.target.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0) {
-                    this._pounceDir = { x: dx / dist, y: dy / dist };
-                }
-            }
+            // 冲锋方向在起点已锁定，过程中不再追随目标
             this.rotation = Math.atan2(this._pounceDir.y, this._pounceDir.x);
 
             const nextX = this.x + this._pounceDir.x * 1200 * dtSec;
@@ -84,39 +109,128 @@ export class Mutant3 extends Enemy {
             this.y = resolved.y;
 
             // 最远距离 1200px
-            const traveled = Math.sqrt((this.x - this._pounceStartPos.x) ** 2 + (this.y - this._pounceStartPos.y) ** 2);
+            const traveled = Math.hypot(this.x - this._pounceStartPos.x, this.y - this._pounceStartPos.y);
             if (traveled >= 1200) {
                 this._endPounce();
                 return;
             }
 
-            // 命中检测
-            if (this.target && this.target.active && this.target.hittable) {
-                const dist = Math.sqrt((this.target.x - this.x) ** 2 + (this.target.y - this.y) ** 2);
-                if (dist < (this.target.size || this.target.collisionRadius || 0) + this.size + 10) {
-                    // 造成伤害并眩晕
-                    const wasAlive = this.target.hp > 0;
-                    this.target.takeDamage(this._getPounceDamage(), this, 'physical');
-                    if (this.target.applyStun) this.target.applyStun(2000);
-                    if (wasAlive && this.target.hp <= 0) {
+            // 命中检测（距离判定）
+            const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
+            if (hitTarget && hitTarget.active && hitTarget.hittable) {
+                const dist = Math.hypot(hitTarget.x - this.x, hitTarget.y - this.y);
+                if (dist <= this._getAttackDistance()) {
+                    const wasAlive = hitTarget.hp > 0;
+                    hitTarget.takeDamage(this._getPounceDamage(), this, 'physical');
+                    if (hitTarget.applyStun) hitTarget.applyStun(2000);
+                    if (wasAlive && hitTarget.hp <= 0) {
                         // 击杀经验等由 takeDamage 内部处理
                     }
                     this._endPounce();
+                    return;
                 }
             }
 
+            // 飞扑残影
+            this._pounceGhostTimer -= dt;
+            if (this._pounceGhostTimer <= 0) {
+                this._spawnPounceGhost();
+                this._pounceGhostTimer = 60;
+            }
+
             this._pounceTimer -= dt;
+            this._attackAnimTimer = Math.max(0, this._pounceTimer);
             if (this._pounceTimer <= 0) {
                 this._endPounce();
             }
         }
     }
 
+    // ===== 5 连击 =====
+    _startCombo() {
+        this._comboState = 'attacking';
+        this._comboTimer = 1500;
+        this._comboCooldown = 3000;
+        this._comboTarget = this.target;
+        this._comboHitMask = 0;
+        this._animState = 'attack';
+        this._attackAnimPhase = 'normal';
+        this._pounceAnimPhase = null;
+        this._frozenForCast = true;
+        this._attackAnimTimer = 1500;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '💢 连击！', '#8a4a2a'));
+    }
+
+    _updateCombo(dt, entities) {
+        this._comboTimer -= dt;
+        this._attackAnimTimer = Math.max(0, this._comboTimer);
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+
+        // 始终面向目标
+        if (this._comboTarget && this._comboTarget.active) {
+            this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
+        }
+
+        const elapsed = 1500 - this._comboTimer;
+        // 22 帧 / 1500ms ≈ 68.18ms/帧；伤害触发在第 6/11/13/16/18 帧
+        const thresholds = [409, 750, 886, 1091, 1227];
+        for (let i = 0; i < 5; i++) {
+            const bit = 1 << i;
+            if ((this._comboHitMask & bit) === 0 && elapsed >= thresholds[i]) {
+                this._comboHitMask |= bit;
+                this._dealComboHit(i, entities);
+            }
+        }
+
+        if (this._comboTimer <= 0 || this._comboHitMask === 0b11111) {
+            this._endCombo();
+        }
+    }
+
+    _dealComboHit(_hitIndex, entities) {
+        const target = this._comboTarget;
+        if (!target || !target.active || !target.hittable) return;
+
+        const dist = Math.hypot(target.x - this.x, target.y - this.y);
+        if (dist > this._getAttackDistance()) return;
+
+        const attack = this.attacks && this.attacks.melee;
+        const dmgCfg = attack && attack.config && attack.config.damage;
+        const base = dmgCfg ? Math.floor((dmgCfg.min + dmgCfg.max) / 2) : (this.data.atk || this.data.str || 20);
+        const damage = Math.max(1, base);
+        target.takeDamage(damage, this, 'physical');
+        if (target.applyBind) target.applyBind(200);
+    }
+
+    _getAttackDistance() {
+        return this.attackDistance || this.attackRange || 100;
+    }
+
+    _endCombo() {
+        this._comboState = 'idle';
+        this._comboTimer = 0;
+        this._comboTarget = null;
+        this._comboHitMask = 0;
+        this._attackAnimPhase = null;
+        this._frozenForCast = false;
+        this._attackAnimTimer = 0;
+        if (this._pounceState === 'idle') {
+            this._animState = 'idle';
+        }
+    }
+
+    // ===== 飞扑 =====
     _startPounce() {
         this._pounceState = 'prepare';
         this._animState = 'attack';
         this._pounceAnimPhase = 'prepare';
-        this._frozenForCast = true; // 蓄力期间禁止移动，与僵尸巫师保持一致
+        this._attackAnimPhase = null;
+        this._frozenForCast = true;
         this._pounceTimer = 1000;
         this._pounceStartPos = { x: this.x, y: this.y };
         this._pounceCooldown = 20000;
@@ -128,12 +242,16 @@ export class Mutant3 extends Enemy {
         this._pounceState = 'charge';
         this._animState = 'attack';
         this._pounceAnimPhase = 'charge';
-        this._frozenForCast = false; // 冲锋阶段由本类直接控制位置
-        this._pounceTimer = 1500; // 最大冲锋时间
-        if (this.target && this.target.active) {
-            const dx = this.target.x - this.x;
-            const dy = this.target.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+        this._attackAnimPhase = null;
+        this._frozenForCast = false;
+        this._attackAnimTimer = 1500; // 阻止 MovementSystem 在冲锋中转向目标
+        this._pounceTimer = 1500;
+        this._pounceGhostTimer = 0;
+        const target = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
+        if (target && target.active) {
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            const dist = Math.hypot(dx, dy);
             if (dist > 0) {
                 this._pounceDir = { x: dx / dist, y: dy / dist };
             } else {
@@ -147,41 +265,50 @@ export class Mutant3 extends Enemy {
 
     _endPounce() {
         this._pounceState = 'idle';
-        this._animState = 'idle';
         this._pounceAnimPhase = null;
         this._frozenForCast = false;
+        this._attackAnimTimer = 0;
         this._pounceTimer = 0;
+        this._pounceGhostTimer = 0;
         this._pounceStartPos = { x: 0, y: 0 };
         this._pounceTarget = null;
+        if (this._comboState === 'idle') {
+            this._animState = 'idle';
+        }
     }
 
     _getPounceDamage() {
-        // 基于物攻的爆发伤害
         const base = this.data.atk || this.data.str || 20;
         return Math.floor(base * 2.5);
     }
 
-    _summonZombieDogs(entities) {
-        this._summonCooldown = 30000;
-        EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🐕 召唤僵尸犬', '#8a8a4a'));
-        const angle = this.rotation || 0;
-        for (let i = 0; i < 2; i++) {
-            const offset = (i === 0 ? 1 : -1) * 30;
-            const sx = this.x + Math.cos(angle) * 100 - Math.sin(angle) * offset;
-            const sy = this.y + Math.sin(angle) * 100 + Math.cos(angle) * offset;
-            const dog = this._createZombieDog ? this._createZombieDog(sx, sy) : null;
-            if (dog && entities && typeof entities.set === 'function') {
-                entities.set(dog.id || `zombieDog_${Date.now()}_${i}`, dog);
-            } else if (dog && Array.isArray(entities)) {
-                entities.push(dog);
-            }
-        }
+    _spawnPounceGhost() {
+        const sprite = this._phaserSprite;
+        const scene = window.__phaserScene;
+        if (!sprite || !scene) return;
+        const textureKey = this._getTextureKey();
+        if (!scene.textures.exists(textureKey)) return;
+        const frame = sprite.frame ? sprite.frame.name : 0;
+        const ghost = scene.add.sprite(this.x, this.y, textureKey, frame)
+            .setAlpha(0.5)
+            .setScale(sprite.scaleX, sprite.scaleY)
+            .setFlipX(sprite.flipX)
+            .setRotation(this.rotation || 0)
+            .setDepth((sprite.depth || 0) - 1);
+        scene.tweens.add({
+            targets: ghost,
+            alpha: 0,
+            duration: 250,
+            onComplete: () => { if (ghost && ghost.active) ghost.destroy(); }
+        });
     }
 
     _getTextureKey() {
         switch (this._animState) {
             case 'walk': return 'enemy_mutant3_walk';
-            case 'attack': return 'enemy_mutant3_attack';
+            case 'attack':
+                if (this._attackAnimPhase === 'normal') return 'enemy_mutant3_attack_normal';
+                return 'enemy_mutant3_attack';
             default: return 'enemy_mutant3_idle';
         }
     }
@@ -199,7 +326,7 @@ export class Mutant3 extends Enemy {
             flipX,
             animState: this._animState,
             animKey: this._animState === 'attack'
-                ? `enemy_mutant3_attack_${this._pounceAnimPhase || 'prepare'}`
+                ? `enemy_mutant3_attack_${this._attackAnimPhase || this._pounceAnimPhase || 'prepare'}`
                 : `enemy_mutant3_${this._animState}`,
         };
     }

@@ -72,9 +72,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
-                    if (ce.staminaCostDelta) staminaCost += ce.staminaCostDelta;
+                    if (typeof ce.staminaCostDelta === 'number' && isFinite(ce.staminaCostDelta)) staminaCost += ce.staminaCostDelta;
                 }
-                if (staminaCost < 0) staminaCost = 0;
+                if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
                 if (source.consumeStamina) {
                     if (!source.consumeStamina(staminaCost)) return false;
                 } else if (source.data && source.data.stamina !== undefined) {
@@ -149,9 +149,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
-                    if (ce.staminaCostDelta) staminaCost += ce.staminaCostDelta;
+                    if (typeof ce.staminaCostDelta === 'number' && isFinite(ce.staminaCostDelta)) staminaCost += ce.staminaCostDelta;
                 }
-                if (staminaCost < 0) staminaCost = 0;
+                if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
                 if (source.consumeStamina) {
                     if (!source.consumeStamina(staminaCost)) return false;
                 } else if (source.data && source.data.stamina !== undefined) {

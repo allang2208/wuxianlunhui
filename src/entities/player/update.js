@@ -148,6 +148,8 @@ update(dt, entities) {
                     let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
                     // 减速状态（致残）：移动速度减半
                     if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
+                    // 束缚状态：无法移动
+                    if (this.hasStatusEffect && this.hasStatusEffect('bind')) targetSpeed = 0;
                     // 防御状态：移动速度减慢 50%
                     if (this.shieldSystem && this.shieldSystem.defending) targetSpeed *= 0.5;
                     const currentEquip = this.equipments[this.weaponMode];
@@ -294,6 +296,8 @@ update(dt, entities) {
                     }
                 const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
                 const isSprinting = Input.isSprint() && this.data.stamina > 0 && this.isMoving && this._isFacingMouse();
+                // 体力值异常时先复位，防止 NaN 永久阻塞恢复
+                if (!isFinite(this.data.stamina) || this.data.stamina < 0) this.data.stamina = 0;
                 // 冲刺攻击计时：追踪长按Shift持续时间
                 if (isSprinting && !this._isDashing) {
                     this._sprintDuration += dt;

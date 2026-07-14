@@ -47,6 +47,14 @@ const MovementSystem = {
             return;
         }
 
+        // 束缚状态：无法移动
+        if (enemy.hasStatusEffect && enemy.hasStatusEffect('bind')) {
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.isMoving = false;
+            return;
+        }
+
         // 施法/召唤动画锁定：禁止移动，避免滑步
         if (enemy._frozenForCast) {
             enemy.vx = 0;

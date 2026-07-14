@@ -36,6 +36,11 @@ const weaponAnimMixin = {
     updateWeaponAnim(dt) {
         const wa = WEAPON_ANIM, anim = this.weaponAnim;
 
+        // 清理已停止的攻击 Tween，避免僵尸 Tween 残留
+        if (this._activeAttackTweens) {
+            this._activeAttackTweens = this._activeAttackTweens.filter(t => t && typeof t.isPlaying === 'function' && t.isPlaying());
+        }
+
         // [FIX] 任意非 idle 状态卡住超过 5 秒，强制恢复 idle，避免体力回复等逻辑被永久阻塞
         if (anim.state !== 'idle' && anim.timer > 5000) {
             anim.state = 'idle';
