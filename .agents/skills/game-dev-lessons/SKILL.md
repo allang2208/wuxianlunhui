@@ -77,7 +77,29 @@ description: >
 - 同一攻击动作拆成多个动画 key（如 `enemy_mutant3_attack_prepare`、`enemy_mutant3_attack_charge`）。
 - 在 `_getPhaserOptions()` 中根据当前 `_pounceAnimPhase` 返回对应 key，保持渲染与逻辑一致。
 
-## 10. 常用调试/验证清单
+## 10. 动画素材与实现要点
+
+- **工作前先复制素材**：把外部 `素材库/怪物/xxx/*.png` 复制到项目 `assets/enemies/xxx/` 再开始改代码，避免路径错乱和版本不一致。
+- **`_getTextureKey()` 必须与动画源 spritesheet 一致**：`_syncEnemyAnimation` 每帧先 `setTexture(textureKey)` 再 `play(animKey)`。如果 `textureKey` 和动画实际引用的 spritesheet 不是同一张图，动画会卡在第一帧。
+- **用 `_attackAnimTimer` 锁住 `MovementSystem` 的朝向覆盖**：特殊冲刺/飞扑阶段把 `_attackAnimTimer` 设为非 0，`MovementSystem` 会提前返回，不会把 `enemy.rotation` 重新指向当前目标。
+- **Phaser 残影**：在特殊移动中每隔几十 ms 用当前 `textureKey`/`frame`/`scale`/`flipX`/`rotation` 克隆一个 `scene.add.sprite()`，alpha 0.5，再用 tween 淡出销毁即可。
+
+## 11. 新增状态效果（debuff）流程
+
+以“束缚”为例：
+1. 在 `DamageableEntity.addStatusEffect` 的 `STATUS_CONFIG` 里加 `bind`。
+2. 加 `applyBind(duration)` 方法，调用 `addStatusEffect('bind', ...)` 并显示 `StatusBar` / `FloatingText`。
+3. 在 `MovementSystem.update` 早期判断 `hasStatusEffect('bind')`，直接 `vx=vy=0` 返回。
+4. 在玩家 `update.js` 的速度计算处也把 `bind` 的 `targetSpeed` 置 0。
+5. 实际调用时传入毫秒，例如 `target.applyBind(200)` 表示 0.2 秒。
+
+## 12. 攻击判定改为距离判定
+
+- 在 `enemy-config.json` 中用 `attackDistance` 表示纯距离判定（不再乘 1.15、不再做扇形/矩形范围判定），例如 `"attackDistance": 200`。
+- `CombatSystem._updateAttack` 优先读取 `enemy.attackDistance`，未配置时回退到 `enemy.attackRange * 1.15`。
+- 特殊攻击（如飞扑、连击）内部也统一调用 `_getAttackDistance()`，只判断 `dist <= attackDistance`，不再做朝向、视线、碰撞体积判定。
+
+## 12. 常用调试/验证清单
 
 - 改完敌人数值后，确认 `data/enemy-config.json` 与 `BootScene` 中动画注册一致。
 - 召唤/生成新实体后，检查 `entities` Map 中 key 是否唯一。

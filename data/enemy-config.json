@@ -834,7 +834,8 @@
     "int": 5,
     "wis": 10,
     "luck": 6,
-    "attackRange": 100,
+    "attackRange": 200,
+    "attackDistance": 200,
     "aiInterval": 1000,
     "ai": {
       "aggroRange": 9999,
@@ -850,15 +851,15 @@
       "damageMax": 28,
       "knockback": 25
     },
-    "description": "经过变异的精英僵尸，拥有极强的爆发力和速度，能够飞扑眩晕目标并召唤僵尸犬。",
+    "description": "经过变异的精英僵尸，拥有极强的爆发力和速度，能够飞扑眩晕目标，普通攻击附带束缚效果。",
     "skills": [
       {
         "name": "飞扑",
         "desc": "蓄力后向目标高速飞扑，命中后眩晕目标 2 秒"
       },
       {
-        "name": "召唤僵尸犬",
-        "desc": "在身前召唤 2 只僵尸犬协助作战"
+        "name": "束缚连击",
+        "desc": "普通攻击命中后使目标束缚，移动速度变为 0，持续 0.2 秒"
       }
     ],
     "attackType": "重击突刺"

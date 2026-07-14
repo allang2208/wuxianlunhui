@@ -373,13 +373,13 @@ export const QuickBar = {
             // Check stamina for whirlwind
             if (skillId === 'whirlwind') {
                 // 应用改造效果：技能体力消耗
-                let staminaCost = effect.staminaCost;
+                let staminaCost = (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) ? effect.staminaCost : 0;
                 const currentWeapon = player.equipments[player.weaponMode];
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
-                    if (ce.skillStaminaCostDelta) staminaCost += ce.skillStaminaCostDelta;
+                    if (typeof ce.skillStaminaCostDelta === 'number' && isFinite(ce.skillStaminaCostDelta)) staminaCost += ce.skillStaminaCostDelta;
                 }
-                if (staminaCost < 0) staminaCost = 0;
+                if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
                 if (player.data.stamina < staminaCost) return;
                 // Check melee weapon (including offhand when main is empty)
                 const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
@@ -391,9 +391,10 @@ export const QuickBar = {
                 player.data.stamina -= staminaCost;
                 if (player.data.stamina < 0) player.data.stamina = 0;
                 // Set cooldown in ms
-                this.cooldowns[skillId] = effect.cooldown * 1000;
+                this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
             } else if (skillId === 'pushStrike') {
-                if (player.data.stamina < effect.staminaCost) return;
+                const pushCost = (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) ? effect.staminaCost : 0;
+                if (player.data.stamina < pushCost) return;
                 // Check ranged weapon (including offhand when main is empty)
                 const currentWeapon = player.equipments[player.weaponMode];
                 const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
@@ -414,10 +415,10 @@ export const QuickBar = {
                     return;
                 }
                 player.triggerPushStrike();
-                player.data.stamina -= effect.staminaCost;
+                player.data.stamina -= pushCost;
                 if (player.data.stamina < 0) player.data.stamina = 0;
                 // Set cooldown in ms
-                this.cooldowns[skillId] = effect.cooldown * 1000;
+                this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
             } else if (skillId === 'droneSkill') {
                 // 无人机技能
                 if (player.droneSystem) {
