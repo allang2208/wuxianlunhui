@@ -28,6 +28,10 @@ class Player extends Combatant {
     super(x, y);
             const defs = PLAYER_DEFAULTS;
             this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = defs.physics.collisionRadius; this.initHitbox(defs.physics.hitboxRadius, defs.physics.hitboxMultipliers); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = defs.physics.accel; this.friction = defs.physics.friction; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = defs.combat.hitFlashDuration; this._facingDir = 'down';
+            // 玩家受击/碰撞体积：由配置驱动的矩形，避免硬编码
+            this.collisionShape = 'rect';
+            this.collisionWidth = defs.physics.collisionWidth;
+            this.collisionHeight = defs.physics.collisionHeight;
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
             this.weaponSwitchCooldown = defs.combat.weaponSwitchCooldown; // 武器切换冷却：切换 G18 后防止立即开火
             this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）

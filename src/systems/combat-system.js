@@ -1,6 +1,7 @@
 import { WEAPON_ANIM } from '../config/math-utils.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Easing } from '../config/math-utils.js';
+import { distanceToEntityShape } from '../utils/collision-helpers.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -84,12 +85,10 @@ class CombatSystemImpl {
         }
         const targetX = enemy.target.x;
         const targetY = enemy.target.y;
-        // [ENHANCE] 距离检查：增加 15% 攻击缓冲，让怪物在接近过程中就能出手
-        const dx = targetX - enemy.x, dy = targetY - enemy.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        // [ENHANCE] 距离检查：使用目标碰撞形状计算最短距离，增加 15% 攻击缓冲
         // 优先使用新的攻击距离字段；若未配置则回退到 attackRange
         const effectiveRange = enemy.attackDistance !== undefined ? enemy.attackDistance : enemy.attackRange * 1.15;
-        if (dist > effectiveRange) {
+        if (distanceToEntityShape(enemy.target, enemy.x, enemy.y) > effectiveRange) {
             return;
         }
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
@@ -108,6 +107,8 @@ class CombatSystemImpl {
 
         // [ENHANCE] 攻击前必须面向目标；若朝向偏差过大，先瞬间转向目标再出手
         if (!this._isFacingTarget(enemy, targetX, targetY)) {
+            const dx = targetX - enemy.x;
+            const dy = targetY - enemy.y;
             enemy.rotation = Math.atan2(dy, dx);
         }
 

@@ -463,38 +463,89 @@ export const CombatRoomSystem = {
     },
 
     _generateTerrain(size) {
-        // 创建正方形石砖地板纹理
+        // 使用 blackbrick.png 平铺战斗场地地板，背景纯黑，边缘做渐变过渡
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
-        const tc = this.config.terrain;
-
-        // 全屏深灰色地板
-        ctx.fillStyle = tc.floorColor;
+        // 1. 全屏纯黑背景
+        ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, size, size);
 
-        // 石砖网格纹理
-        ctx.strokeStyle = tc.gridColor;
-        ctx.lineWidth = 1;
-        for (let bx = 0; bx < size; bx += tc.gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(bx, 0);
-            ctx.lineTo(bx, size);
-            ctx.stroke();
-        }
-        for (let by = 0; by < size; by += tc.gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, by);
-            ctx.lineTo(size, by);
-            ctx.stroke();
-        }
+        // 2. 获取 blackbrick 贴图（从 Phaser 已加载纹理中读取）
+        const scene = (typeof window !== 'undefined' && window.__phaserScene) ? window.__phaserScene : null;
+        const texture = scene && scene.textures && scene.textures.exists('blackbrick') ? scene.textures.get('blackbrick') : null;
+        const source = texture ? texture.getSourceImage() : null;
 
-        // 全地图边缘高光
-        ctx.strokeStyle = tc.edgeHighlight;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, size, size);
+        if (source && source.width > 0 && source.height > 0) {
+            const tileSize = 256;
+            const margin = this.config.walls.margin;
+            const floorMin = margin;
+            const floorMax = size - margin;
+            const floorW = floorMax - floorMin;
+            const floorH = floorMax - floorMin;
+
+            // 将 blackbrick 缩放到 256×256 后创建重复 pattern
+            const patternCanvas = document.createElement('canvas');
+            patternCanvas.width = tileSize;
+            patternCanvas.height = tileSize;
+            const pctx = patternCanvas.getContext('2d');
+            pctx.drawImage(source, 0, 0, tileSize, tileSize);
+
+            const pattern = ctx.createPattern(patternCanvas, 'repeat');
+            ctx.fillStyle = pattern;
+            ctx.fillRect(floorMin, floorMin, floorW, floorH);
+
+            // 3. 边缘过渡：在地板四周叠加黑->透明的渐变，实现与纯黑背景的融合
+            const fade = 64;
+            let grad;
+
+            // 上
+            grad = ctx.createLinearGradient(0, floorMin, 0, floorMin + fade);
+            grad.addColorStop(0, 'rgba(0,0,0,1)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(floorMin, floorMin, floorW, fade);
+
+            // 下
+            grad = ctx.createLinearGradient(0, floorMax - fade, 0, floorMax);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,1)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(floorMin, floorMax - fade, floorW, fade);
+
+            // 左
+            grad = ctx.createLinearGradient(floorMin, 0, floorMin + fade, 0);
+            grad.addColorStop(0, 'rgba(0,0,0,1)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(floorMin, floorMin, fade, floorH);
+
+            // 右
+            grad = ctx.createLinearGradient(floorMax - fade, 0, floorMax, 0);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,1)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(floorMax - fade, floorMin, fade, floorH);
+        } else {
+            // 贴图未加载时回退到旧版网格地板
+            console.warn('[CombatRoomSystem] blackbrick 贴图未加载，使用回退网格地板');
+            const tc = this.config.terrain;
+            ctx.fillStyle = tc.floorColor;
+            ctx.fillRect(0, 0, size, size);
+            ctx.strokeStyle = tc.gridColor;
+            ctx.lineWidth = 1;
+            for (let bx = 0; bx < size; bx += tc.gridSize) {
+                ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, size); ctx.stroke();
+            }
+            for (let by = 0; by < size; by += tc.gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(size, by); ctx.stroke();
+            }
+            ctx.strokeStyle = tc.edgeHighlight;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, size, size);
+        }
 
         // 应用到渲染器
         if (Renderer) {

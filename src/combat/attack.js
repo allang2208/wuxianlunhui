@@ -11,6 +11,7 @@ import { ProjectileFactory } from '../utils/projectile-factory.js';
 import { CONFIG } from '../config/config.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { AimHelper } from '../utils/aim-helper.js';
+import { distanceToEntityShape, isEntityInAttackRect } from '../utils/collision-helpers.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -231,7 +232,6 @@ function applyEnchantOnHit(weapon, target, source) {
                     // 墙壁视线检测：不能攻击墙后的目标
                     if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                     // === 动态距离判定（优先于矩形判定）===
-                    const entityRadius = entity.collisionRadius || 12;
                     if (pt.dynamicRange > 0) {
                         // 计算黑狼当前实际位置（含冲刺偏移）
                         let sourceX = source.x, sourceY = source.y;
@@ -248,8 +248,7 @@ function applyEnchantOnHit(weapon, target, source) {
                                 }
                             }
                         }
-                        const realDist = Math.sqrt((entity.x - sourceX)**2 + (entity.y - sourceY)**2);
-                        if (realDist <= pt.dynamicRange + entityRadius) {
+                        if (distanceToEntityShape(entity, sourceX, sourceY) <= pt.dynamicRange) {
                             // 命中：走统一伤害管道
                             pt.hitSet.add(entity);
                             let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
@@ -271,23 +270,9 @@ function applyEnchantOnHit(weapon, target, source) {
                         // 动态距离未命中：跳过矩形判定，继续下一个
                         return;
                     }
-                    // 矩形命中判定：根据4方向确定攻击矩形范围
-                    const dx = entity.x - ax, dy = entity.y - ay;
+                    // 矩形命中判定：与目标碰撞矩形做 AABB 相交检测
                     const backExt = isSword ? hitBox.backExtension : 0;
-                    let inRange = false;
-                    if (facingDir === 'right') {
-                        inRange = dx >= -backExt - entityRadius && dx <= range + entityRadius &&
-                                  Math.abs(dy) <= width + entityRadius;
-                    } else if (facingDir === 'left') {
-                        inRange = dx <= backExt + entityRadius && dx >= -range - entityRadius &&
-                                  Math.abs(dy) <= width + entityRadius;
-                    } else if (facingDir === 'down') {
-                        inRange = dy >= -backExt - entityRadius && dy <= range + entityRadius &&
-                                  Math.abs(dx) <= width + entityRadius;
-                    } else if (facingDir === 'up') {
-                        inRange = dy <= backExt + entityRadius && dy >= -range - entityRadius &&
-                                  Math.abs(dx) <= width + entityRadius;
-                    }
+                    const inRange = isEntityInAttackRect(entity, ax, ay, range, width, backExt, facingDir);
                     if (inRange) {
                         pt.hitSet.add(entity);
                         let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);

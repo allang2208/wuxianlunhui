@@ -22,6 +22,10 @@ import { loadImage } from '../utils/image-loader.js';
                 const name = config.name ?? defaults.name ?? '测试敌人';
                 super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
                 this.id = config.id || this.name;
+                // 统一使用配置中的 rank 作为唯一精英/普通判定来源
+                this.rank = config.rank || 'normal';
+                this.type = config.type || '普通';
+                this.category = config.category || 'monster';
                 const defaultSpeed = (defaults.speed ?? 45) * (defaults.speedMultiplier ?? 1);
                 this.speed = config.speed ?? defaultSpeed;
                 // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动
@@ -129,6 +133,7 @@ import { loadImage } from '../utils/image-loader.js';
                 this._dashBlocked = false;
                 // AI 配置读取（子类可通过 config.ai 注入；默认 0 表示不启用 pacing AI）
                 const pacingAiConfig = config.ai || {};
+                this.ai = config.ai || {}; // 供 MovementSystem 等外部系统读取 ai 标志（如 chargeStraight）
                 this._aggroRange = pacingAiConfig.aggroRange || 0;
                 this._pacingRange = pacingAiConfig.pacingRange || 0;
                 this._loseTimeout = pacingAiConfig.loseTimeout || 2000;

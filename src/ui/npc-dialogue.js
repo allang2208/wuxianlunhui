@@ -43,15 +43,17 @@ const NPCDialogue = {
             // 设置当前 NPC ID 到立绘工具，供 toggle 使用
             NpcPortraitTool._npcId = npc.id;
             // 加载已保存的立绘参数并应用；若无保存则使用默认参数
+            // 统一使用固定 bottom 像素定位，不再通过 translateY 偏移
             if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
-                npcPortrait.style.transform = NpcPortraitTool.formatTransform(NpcPortraitTool._settings[npc.id]);
+                NpcPortraitTool.applyToDom(NpcPortraitTool._settings[npc.id]);
             } else {
-                // 使用默认参数（通过肖像路径匹配）
                 const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
                 if (defaults) {
-                    npcPortrait.style.transform = NpcPortraitTool.formatTransform(defaults);
+                    NpcPortraitTool.applyToDom(defaults);
                 } else {
-                    npcPortrait.style.transform = 'translateX(-50%)'; // 仅保留居中，清除旧偏移
+                    // 仅保留居中，垂直方向使用固定 bottom 220px
+                    npcPortrait.style.transform = 'translateX(-50%)';
+                    npcPortrait.style.bottom = '220px';
                 }
             }
             // 小鼠侍从立绘放大300%

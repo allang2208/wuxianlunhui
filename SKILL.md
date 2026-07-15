@@ -2,6 +2,52 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-13 续）
+
+### 本次完成：僵尸地牢地板/路线地图修复 + 精英判定/投射物/怪物机制收尾
+
+#### 一、僵尸地牢地板与背景
+1. **blackbrick 地板**：`CombatRoomSystem._generateTerrain()` 改为纯黑背景 + `blackbrick.png` 平铺地板（256×256 repeat），并在地板四周叠加 64px 黑→透明渐变，实现与纯黑背景的自然过渡。
+2. **贴图加载**：`BootScene.js` 已加载 `assets/terrain/blackbrick.png`；`GameScene._syncTerrain()` 直接使用 `Renderer.terrainTexture` 覆盖地形。
+3. **相机背景**：`GameScene` 在非地图模式保持 `setBackgroundColor('#000000')`，确保战斗/主场景外区域纯黑。
+
+#### 二、路线选择地图可见性修复
+1. **问题**：设置纯黑相机背景后，路线选择地图被 Phaser Canvas 黑色背景遮挡。
+2. **修复**：在 `GameScene.update()` 的地图模式分支中，将相机背景设为透明 `rgba(0,0,0,0)`，露出下方 `Renderer.canvas` 绘制的路线地图；战斗/非地图模式恢复纯黑。
+
+#### 三、起点路线数量修复
+1. **问题**：僵尸地牢起点只出现 2 条路线（第 1 列节点随机生成 2~4 个）。
+2. **修复**：`ZombieDungeonMapGenerator.generate()` 在节点数调整完成后，强制第 1 列包含所有行（`rows=4`），配合 `_buildEdges` 中“起点连接第 1 列所有节点”的逻辑，确保起点始终 4 条分支。
+
+#### 四、怪物与战斗机制收尾
+1. **Mutant-3 五连击突进**：判定距离放宽到 350，突进改为插帧平滑移动（500 px/s，每段最多 35px），带 `WallSystem.resolve` 撞墙校验，不再瞬移。
+2. **毒液僵尸投射物**：从头部射出，延迟到攻击动画第 12 帧发射；投射物碰撞与贴图大小统一为配置 `attack.width` 的 3 倍；`projectile.js` 对矩形碰撞体使用 AABB 相交判定。
+3. **NPC 立绘**：统一使用固定 `bottom` 像素定位，调整工具仅保留水平拖动；`npc-portrait-tool.js` 默认参数使用 `bottom`。
+4. **精英判定唯一来源**：以 `data/enemy-config.json` 的 `rank` 为唯一来源；`ZombieDungeonCombat` 怪物池按 `rank` 动态构建；`Enemy` 实例继承 `rank`/`type`/`category`。
+5. **主神空间清理**：移除主神空间的突变体-3 和毒液僵尸测试生成。
+6. **毒液僵尸 walking 贴图替换**，并新增独立 `spitter-zombie.js` 类管理延迟吐息。
+
+### 关键改动文件
+- `src/world/combat-room-system.js`
+- `src/world/zombie-dungeon.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/entities/enemy-types/spitter-zombie.js`
+- `src/entities/enemy.js`
+- `src/combat/projectile.js`
+- `src/ui/npc-portrait-tool.js`
+- `src/game.js`
+- `data/enemy-config.json`
+- `assets/terrain/blackbrick.png`（新增）
+- `assets/enemies/spitter_zombie/walking.png`（新增/替换）
+
+### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+---
+
 ## 阶段性进度总结（2026-07-13）
 
 ### 本次完成：AI 寻路优化 + 僵尸犬修复 + 图鉴修复 + 地牢事件与怪物碰撞优化

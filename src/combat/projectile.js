@@ -1,5 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
+import { isPointInEntityShape } from '../utils/collision-helpers.js';
 
         class Projectile {
             constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false) {
@@ -36,8 +37,7 @@ import { DamagePipeline } from './damage-pipeline.js';
                     const entityList = Array.from(this.entities.values());
                     for (const entity of entityList) {
                         if (entity === this.source || !entity.active || !entity.hittable || this.hitTargets.has(entity)) continue;
-                        const dist = Math.sqrt((entity.x - this.x) ** 2 + (entity.y - this.y) ** 2);
-                        if (dist < (entity.collisionRadius || 12) + this.size) {
+                        if (this._isHittingEntity(entity)) {
                             // 友军伤害免疫：子弹穿透同阵营目标
                             if (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) {
                                 continue;
@@ -52,7 +52,8 @@ import { DamagePipeline } from './damage-pipeline.js';
                             DamagePipeline.applyHit(this.source, entity, {
                                 damage,
                                 damageType: this.damageType || 'ranged',
-                                currentWeapon: weapon
+                                currentWeapon: weapon,
+                                isMelee: false
                             });
                             if (this.piercing) { this.piercing--; if (this.piercing < 0) this.active = false; }
                             else { this.active = false; }
@@ -63,15 +64,39 @@ import { DamagePipeline } from './damage-pipeline.js';
                 this._updatePhaserSprite();
                 if (!this.active) this._destroyPhaserSprite();
             }
+            /**
+             * 投射物与实体的命中判定。
+             * 若目标是矩形碰撞体，则按矩形-矩形（AABB）相交判定；
+             * 否则回退到 isPointInEntityShape 的圆形/近似判定。
+             */
+            _isHittingEntity(entity) {
+                if (!entity || !entity.active) return false;
+                if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
+                    // 投射物视为以当前位置为中心、边长 2*size 的正方形（与 spit 等视觉比例一致）
+                    const phw = this.size;
+                    const pminX = this.x - phw;
+                    const pmaxX = this.x + phw;
+                    const pminY = this.y - phw;
+                    const pmaxY = this.y + phw;
+                    const eminX = entity.x - entity.collisionWidth / 2;
+                    const emaxX = entity.x + entity.collisionWidth / 2;
+                    const eminY = entity.y - entity.collisionHeight / 2;
+                    const emaxY = entity.y + entity.collisionHeight / 2;
+                    return !(pmaxX < eminX || pminX > emaxX || pmaxY < eminY || pminY > emaxY);
+                }
+                return isPointInEntityShape(entity, this.x, this.y, this.size);
+            }
+
             _getProjectileTextureKey() {
-                if (this.isSpit) return 'projectile_spit';
+                if (this.isSpit) return 'projectile_poison';
                 if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) return 'projectile_tracer';
                 if (this.image) return 'projectile_arrow';
                 return 'projectile_bullet';
             }
 
             _getProjectileTint() {
-                if (this.isSpit) return 0x00ff00;
+                // 毒液投射物使用 project.png 自带颜色，不再叠加绿色 tint
+                if (this.isSpit) return undefined;
                 if (this.isGreen) return 0xa0ffc0;
                 if (this.isGold) return 0xfff8a0;
                 if (this.isDarkGold) return 0xffd040;
@@ -103,7 +128,7 @@ import { DamagePipeline } from './damage-pipeline.js';
                 }
                 this._phaserSprite.setVisible(true);
                 if (this.isSpit) {
-                    const s = this.size * 1.4;
+                    const s = this.size * 2.5;
                     this._phaserSprite.setDisplaySize(s, s);
                 } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {
                     const tailLen = this.isGreen ? 55 : this.isGold ? 50 : this.isDarkGold ? 45 : 40;

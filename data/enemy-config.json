@@ -108,7 +108,8 @@
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 150,
-      "loseTimeout": 3000
+      "loseTimeout": 3000,
+      "chargeStraight": true
     },
     "attack": {
       "type": "thrust",
@@ -302,7 +303,7 @@
     "hp": 150,
     "maxHp": 150,
     "def": 10,
-    "speed": 187.5,
+    "speed": 100,
     "level": 5,
     "rank": "normal",
     "str": 22,
@@ -319,7 +320,7 @@
       "range": 930,
       "projectileSpeed": 270,
       "projectileRange": 930,
-      "width": 18,
+      "width": 54,
       "damageMin": 15,
       "damageMax": 15,
       "knockback": 0
@@ -834,13 +835,14 @@
     "int": 5,
     "wis": 10,
     "luck": 6,
-    "attackRange": 200,
+    "attackRange": 80,
     "attackDistance": 200,
     "aiInterval": 1000,
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 150,
-      "loseTimeout": 3000
+      "loseTimeout": 3000,
+      "chargeStraight": true
     },
     "attack": {
       "type": "thrust",
@@ -859,7 +861,7 @@
       },
       {
         "name": "束缚连击",
-        "desc": "普通攻击命中后使目标束缚，移动速度变为 0，持续 0.2 秒"
+        "desc": "普通攻击命中后使目标束缚，移动速度变为 0，持续 0.5 秒"
       }
     ],
     "attackType": "重击突刺"

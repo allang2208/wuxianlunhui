@@ -106,6 +106,11 @@ const moveData = this._computeMoveDirection(enemy, entities);
 
         let { dx, dy, dist } = moveData;
 
+        // [CHARGE-STRAIGHT] 有清晰视线时直接走直线，不依赖路径点（避免被寻路拐角拉偏）
+        if (enemy.ai && enemy.ai.chargeStraight && enemy._perception && enemy._perception.hasLOS && enemy._pathManager) {
+            enemy._pathManager._clearPath();
+        }
+
         // 更新朝向
         if (dist > 0.1) {
             enemy.rotation = Math.atan2(dy, dx);
@@ -174,21 +179,22 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _computeMoveDirection(enemy, _entities) {
         let tx = 0, ty = 0, hasTarget = false;
+        const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
 
         // 0. [FIX] 特殊战术目标（TacticalSquadAI 设置）优先级最高
-        if (enemy._specialTacticalTarget) {
+        if (enemy._specialTacticalTarget && !chargeStraight) {
             tx = enemy._specialTacticalTarget.x;
             ty = enemy._specialTacticalTarget.y;
             hasTarget = true;
         }
         // 1. 战术目标
-        else if (enemy._tacticalTarget) {
+        else if (enemy._tacticalTarget && !chargeStraight) {
             tx = enemy._tacticalTarget.x;
             ty = enemy._tacticalTarget.y;
             hasTarget = true;
         }
         // 2. 战斗指挥官目标
-        else if (Game && Game._battleCommander) {
+        else if (Game && Game._battleCommander && !chargeStraight) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 tx = tp.targetX;
@@ -217,7 +223,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // [ENHANCE] 近战包抄：当目标正面已被同伴占据时，向侧面偏移寻找攻击位
         // 仅对非远程/非绕圈敌人、且距离尚远时生效，避免攻击时抖动
-        if (enemy.target && enemy.target.active && dist > (enemy.attackRange || 70) * 0.6 && !enemy._circleRadius) {
+        if (enemy.target && enemy.target.active && dist > (enemy.attackRange || 70) * 0.6 && !enemy._circleRadius && !(enemy.ai && enemy.ai.chargeStraight)) {
             const flank = this._computeFlankOffset(enemy, enemy.target, _entities);
             if (flank) {
                 tx += flank.dx;
@@ -376,7 +382,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 }
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
-                if (!enemy._pathManager?.hasValidPath()) {
+                // 直冲型怪物不做侧向 reposition，避免瞬间反向调头
+                if (!enemy._pathManager?.hasValidPath() && !(enemy.ai && enemy.ai.chargeStraight)) {
                     this._setStuckRepositionTarget(enemy, targetX, targetY);
                 } else {
                     // 寻路成功时清除旧的临时 reposition 目标
@@ -470,6 +477,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             const tdy = target.y - enemy.y;
             const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
             inCombatRange = tdist <= (enemy.attackRange || 70);
+        }
+        // 直冲型怪物在攻击范围内完全关闭分离，避免被其他单位推开导致无法攻击
+        if ((enemy.ai && enemy.ai.chargeStraight) && inCombatRange) {
+            return { dx: 0, dy: 0 };
         }
         const strength = inCombatRange ? 0.6 : 1.4;
 
@@ -569,6 +580,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             }
 
             // [ENHANCE] 路径跟随期间也应用单位分离，避免多只怪物沿同一路径堆叠
+            const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
             let repel = this._computeSeparation(enemy, 0, entities);
             if (repel.dx !== 0 || repel.dy !== 0) {
                 // 近战怪物接近目标时，若分离方向会把它们推离目标（反向跑），则极大削弱该力
@@ -586,7 +598,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 // 若分离方向与路径方向反向（>90°），说明前方被同伴堵住，允许更大幅度偏离路径
                 const dot = moveX * repel.dx + moveY * repel.dy;
                 const hasLOS = enemy._perception && enemy._perception.hasLOS;
-                const separationWeight = hasLOS ? 0.2 : (dot < 0 ? 0.9 : 0.45);
+                const separationWeight = chargeStraight
+                    ? 0.05
+                    : (hasLOS ? 0.2 : (dot < 0 ? 0.9 : 0.45));
                 // 仅当周围确实拥挤时才显著偏离路径
                 moveX += repel.dx * separationWeight;
                 moveY += repel.dy * separationWeight;
@@ -594,7 +608,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 if (len > 0) { moveX /= len; moveY /= len; }
             }
 
-            const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+            let maxSpd = enemy.maxSpeed || enemy.speed || 100;
+            if (chargeStraight) {
+                maxSpd *= 1.3;
+            }
             enemy.vx += (moveX * maxSpd - enemy.vx) * (enemy.accel || 0.7);
             enemy.vy += (moveY * maxSpd - enemy.vy) * (enemy.accel || 0.7);
             const sc = dt / 1000;
@@ -646,6 +663,14 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyAttackRangeFriction(enemy, dist) {
         const range = enemy.attackRange || 70;
+        // 直冲型怪物：只在极近距离（10px）减速，避免提前刹车导致无法贴近攻击
+        if (enemy.ai && enemy.ai.chargeStraight) {
+            if (dist <= 10) {
+                enemy.vx *= enemy.friction || 0.82;
+                enemy.vy *= enemy.friction || 0.82;
+            }
+            return;
+        }
         const halfRange = range * 0.35;
         const brakeStart = range * 0.95;
         if (dist <= halfRange) {
@@ -711,7 +736,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * 应用正常移动（加速度 + 摩擦 + 墙壁碰撞）
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
-        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
+        let maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
+        if (chargeStraight && dist > (enemy.attackRange || 70)) {
+            maxSpd *= 1.3;
+        }
         let moveX = dx / Math.max(dist, 1);
         let moveY = dy / Math.max(dist, 1);
 
@@ -751,7 +781,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             }
             // 有清晰视线时降低分离权重，让怪物直线冲锋；否则保持较高权重避免堆叠
             const hasLOS = enemy._perception && enemy._perception.hasLOS;
-            const separationWeight = hasLOS ? 0.25 : 0.7;
+            const inCombatRange = dist <= (enemy.attackRange || 70);
+            const separationWeight = chargeStraight
+                ? (inCombatRange ? 0 : 0.1)
+                : (hasLOS ? 0.25 : 0.7);
             moveX += repel.dx * separationWeight;
             moveY += repel.dy * separationWeight;
             const len = Math.sqrt(moveX * moveX + moveY * moveY);

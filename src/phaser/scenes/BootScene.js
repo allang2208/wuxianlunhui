@@ -13,6 +13,11 @@ export class BootScene extends Scene {
     preload() {
         
 
+        // 资源加载失败时打印日志，方便排查贴图黑块/丢失问题
+        this.load.on('loaderror', (file) => {
+            console.warn('[BootScene] 资源加载失败:', file?.key, file?.url);
+        });
+
         // ---- 角色资源 ----
         // 待机动画（单帧）
         this.load.image('player_idle', 'assets/player/idle.png');
@@ -61,12 +66,19 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_mutant3_attack', 'assets/enemies/mutant3/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 20 });
         this.load.spritesheet('enemy_mutant3_attack_normal', 'assets/enemies/mutant3/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
 
+        // 毒液僵尸精灵图动画（3×8 网格）
+        this.load.spritesheet('enemy_spitter_zombie_idle', 'assets/enemies/spitter_zombie/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
+        this.load.spritesheet('enemy_spitter_zombie_walk', 'assets/enemies/spitter_zombie/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
+        this.load.spritesheet('enemy_spitter_zombie_attack', 'assets/enemies/spitter_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
+        this.load.image('projectile_poison', 'assets/enemies/spitter_zombie/project.png');
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
         this.load.image('muzzle_flash_01', 'assets/effects/muzzle_flash_01.png');
         this.load.image('shell_ground', 'assets/ammo/shell_ground.png');
         this.load.image('sword_hilt_icon', 'assets/icons/sword_hilt_icon.png');
+        this.load.image('blackbrick', 'assets/terrain/blackbrick.png');
         // 粒子用程序化生成，暂不需要加载图片
 
     }
@@ -177,16 +189,32 @@ export class BootScene extends Scene {
             duration: 1500,
             repeat: 0,
         });
-        // 飞扑攻击拆成两段：蓄力 1-8 帧（1s），冲锋后续帧（1s）
+        // 飞扑攻击：蓄力阶段播放 attacking.png 的前 8 帧，飞扑阶段继续播放后 13 帧。
+        // 使用同一个动画 key 横跨两个阶段，避免进入飞扑时重新播放一次新动画。
+        // 蓄力 1s + 冲锋 1s = 2s
         this.anims.create({
-            key: 'enemy_mutant3_attack_prepare',
-            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack', { start: 0, end: 7 }),
-            duration: 1000,
+            key: 'enemy_mutant3_attack_pounce',
+            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack', { start: 0, end: 20 }),
+            duration: 2000,
             repeat: 0,
         });
+
+        // 毒液僵尸动画（24 帧待机 / 13 帧行走 / 22 帧攻击）
         this.anims.create({
-            key: 'enemy_mutant3_attack_charge',
-            frames: this.anims.generateFrameNumbers('enemy_mutant3_attack', { start: 8, end: 20 }),
+            key: 'enemy_spitter_zombie_idle',
+            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 23 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_spitter_zombie_walk',
+            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_walk', { start: 0, end: 12 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_spitter_zombie_attack',
+            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_attack', { start: 0, end: 21 }),
             duration: 1000,
             repeat: 0,
         });

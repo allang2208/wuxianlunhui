@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3 } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 import { getElement } from '../utils/dom-utils.js';
@@ -72,7 +72,21 @@ function createZombieDog(x, y) {
 }
 
 function createSpitterZombie(x, y) {
-    return createZombieFromConfig('spitterZombie', x, y);
+    const cfg = enemyConfigData.spitterZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: spitterZombie');
+        return new SpitterZombie(x, y, { name: '毒液僵尸', hp: 150, maxHp: 150, size: 13, showWeapon: false });
+    }
+    return new SpitterZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
 }
 
 function createFatZombie(x, y) {
@@ -119,6 +133,18 @@ export function createMutant3(x, y) {
     return mutant;
 }
 
+// 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
+const ZOMBIE_FACTORY_MAP = {
+    zombie: createBasicZombie,
+    runnerZombie: createFastZombie,
+    zombieDog: createZombieDog,
+    armoredZombie: createArmoredZombie,
+    spitterZombie: createSpitterZombie,
+    fatZombie: createFatZombie,
+    zombieWizard: createZombieWizard,
+    mutant3: createMutant3
+};
+
 const ZOMBIE_DUNGEON_CONFIG = {
     name: '僵尸地牢',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
@@ -133,10 +159,20 @@ const ZOMBIE_DUNGEON_CONFIG = {
         elite: 0.20
     },
 
-    // 怪物池（按 tier 分类）—— 使用工厂函数或类引用
+    // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
+    // normal：普通僵尸、僵尸犬、装甲僵尸、毒液僵尸、肥僵尸
+    // elite：僵尸巫师、突变体-3
     monsterPool: {
-        normal: [createBasicZombie, createFastZombie, createZombieDog, createArmoredZombie, createSpitterZombie, createFatZombie],
-        elite: [createZombieWizard, createMutant3]
+        get normal() {
+            return Object.entries(enemyConfigData)
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank !== 'elite' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
+        },
+        get elite() {
+            return Object.entries(enemyConfigData)
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
+        }
     },
 
     // 地图尺寸（视觉范围，节点坐标由此推算）
@@ -226,6 +262,9 @@ export class ZombieDungeonMapGenerator {
 
         // 调整节点总数到目标区间
         this._adjustNodeCount(intermediateRowSets, rows, mainRow);
+
+        // 强制第 1 列（起点右侧）包含所有行，确保起点始终有 4 条分支
+        intermediateRowSets[0].selectedRows = Array.from({ length: rows }, (_, r) => r);
 
         for (const { col, selectedRows } of intermediateRowSets) {
             for (const row of selectedRows) {
@@ -487,6 +526,18 @@ export class ZombieDungeonCombat {
                 const idx = Math.floor(Math.random() * classes.length);
                 const pool = monsterPool.elite || monsterPool.normal;
                 classes[idx] = { MonsterClass: pool[Math.floor(Math.random() * pool.length)], tier: 'elite' };
+            }
+        }
+
+        // 防御性兜底：精英战斗波次必须至少包含一只精英怪物，防止配置/池异常导致无精英
+        if (this._isElite && !classes.some(c => c.tier === 'elite')) {
+            const pool = monsterPool.elite || monsterPool.normal;
+            const eliteClass = pool[Math.floor(Math.random() * pool.length)];
+            if (classes.length > 0) {
+                const idx = Math.floor(Math.random() * classes.length);
+                classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
+            } else {
+                classes.push({ MonsterClass: eliteClass, tier: 'elite' });
             }
         }
 
