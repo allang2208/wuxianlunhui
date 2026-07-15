@@ -17,6 +17,7 @@ class DamagePipeline {
      * @param {object} [options.currentWeapon] 当前武器（未提供则自动解析）
      * @param {{value:number}} [options.hitCountRef] 命中计数引用
      * @param {{value:number}} [options.killCountRef] 击杀计数引用
+     * @param {boolean} [options.isMelee=true] 是否为近战攻击（影响盾牌弹反效果）
      * @returns {{hit:boolean,killed:boolean}}
      */
     static applyHit(source, target, options = {}) {
@@ -27,7 +28,8 @@ class DamagePipeline {
             angle,
             currentWeapon,
             hitCountRef,
-            killCountRef
+            killCountRef,
+            isMelee = true
         } = options;
 
         const weapon = currentWeapon !== undefined
@@ -43,8 +45,11 @@ class DamagePipeline {
         }
 
         const wasAlive = target.hp > 0;
-        target.takeDamage(damage, source, damageType, true);
+        target.takeDamage(damage, source, damageType, isMelee);
         const killed = wasAlive && target.hp <= 0;
+
+        // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
+        const parried = target.shieldSystem && target.shieldSystem._lastParried;
 
         if (hitCountRef && typeof hitCountRef.value === 'number') {
             hitCountRef.value++;
@@ -53,11 +58,11 @@ class DamagePipeline {
             killCountRef.value++;
         }
 
-        if (isValidKnockback(knockback, angle) && typeof target.applyKnockback === 'function') {
+        if (!parried && isValidKnockback(knockback, angle) && typeof target.applyKnockback === 'function') {
             target.applyKnockback(angle, knockback);
         }
 
-        if (weapon && weapon._craftEffects && target) {
+        if (!parried && weapon && weapon._craftEffects && target) {
             const ce = weapon._craftEffects;
             if (ce.bleedingOnHit && typeof target.applyBleeding === 'function') {
                 target.applyBleeding(1);

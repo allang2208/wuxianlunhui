@@ -100,11 +100,10 @@
     },
     "calculateCombatStats": {
       "attack": {
-        "base": 10,
-        "strMultiplier": 2.0,
+        "base": 0,
+        "strMultiplier": 0.5,
         "dexMultiplier": 0.5,
-        "luckMultiplier": 0.2,
-        "floor": true
+        "round": true
       },
       "defense": {
         "conMultiplier": 1.5,
@@ -112,7 +111,8 @@
         "floor": true
       },
       "magicAttack": {
-        "intMultiplier": 1.5,
+        "base": 0,
+        "intMultiplier": 0.5,
         "wisMultiplier": 0.5,
         "floor": true
       },
@@ -126,11 +126,6 @@
         "dexMultiplier": 0.5,
         "floor": true
       },
-      "dodge": {
-        "base": 5,
-        "dexMultiplier": 0.3,
-        "floor": true
-      },
       "crit": {
         "base": 2,
         "luckMultiplier": 1.0,
@@ -139,13 +134,6 @@
       "critResist": {
         "conMultiplier": 1.0,
         "floor": true
-      },
-      "speed": {
-        "dexMultiplier": 0.5
-      },
-      "attackSpeed": {
-        "base": 1.0,
-        "dexMultiplier": 0.02
       }
     },
     "expValue": {

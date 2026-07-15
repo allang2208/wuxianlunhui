@@ -1,6 +1,7 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
 
+
         class Projectile {
             constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false) {
                 this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
@@ -35,13 +36,11 @@ import { DamagePipeline } from './damage-pipeline.js';
                     // 实体碰撞检测（this.entities 是 Map，需遍历 .values()）
                     const entityList = Array.from(this.entities.values());
                     for (const entity of entityList) {
-                        if (entity === this.source || !entity.active || !entity.hittable || this.hitTargets.has(entity)) continue;
-                        const dist = Math.sqrt((entity.x - this.x) ** 2 + (entity.y - this.y) ** 2);
-                        if (dist < (entity.collisionRadius || 12) + this.size) {
-                            // 友军伤害免疫：子弹穿透同阵营目标
-                            if (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) {
-                                continue;
-                            }
+                        // 友军伤害免疫：跳过同阵营目标（放在 hitTargets 检查之前，避免同一友军被反复判断）
+                        if (entity === this.source || !entity.active || !entity.hittable ||
+                            (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
+                            this.hitTargets.has(entity)) continue;
+                        if (this._isHittingEntity(entity, prevX, prevY)) {
                             this.hitTargets.add(entity);
                             const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
                             // 毒液投射物：命中后给目标加一层中毒
@@ -52,9 +51,10 @@ import { DamagePipeline } from './damage-pipeline.js';
                             DamagePipeline.applyHit(this.source, entity, {
                                 damage,
                                 damageType: this.damageType || 'ranged',
-                                currentWeapon: weapon
+                                currentWeapon: weapon,
+                                isMelee: false
                             });
-                            if (this.piercing) { this.piercing--; if (this.piercing < 0) this.active = false; }
+                            if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
                             else { this.active = false; }
                             if (!this.active) break;
                         }
@@ -63,15 +63,71 @@ import { DamagePipeline } from './damage-pipeline.js';
                 this._updatePhaserSprite();
                 if (!this.active) this._destroyPhaserSprite();
             }
+            /**
+             * 投射物与实体的命中判定（支持 swept，防止高速穿体/穿墙）。
+             * 矩形碰撞体：将 entity 按投射物 size 扩张后，检测当前点/前一点是否在扩张矩形内，
+             *            或前一点到当前点的线段是否穿过扩张矩形边。
+             * 圆形/其他：将 entity 半径按投射物 size 扩张后，检测线段到圆心最近距离。
+             */
+            _isHittingEntity(entity, prevX, prevY) {
+                if (!entity || !entity.active) return false;
+                const usePrev = prevX !== undefined && prevY !== undefined;
+                // 投射物命中边界：用 size/2 作为半径扩展，避免过大的视觉投射物把命中框撑得比实际大一圈
+                const hitMargin = this.size / 2;
+                if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
+                    const eminX = entity.x - entity.collisionWidth / 2 - hitMargin;
+                    const emaxX = entity.x + entity.collisionWidth / 2 + hitMargin;
+                    const eminY = entity.y - entity.collisionHeight / 2 - hitMargin;
+                    const emaxY = entity.y + entity.collisionHeight / 2 + hitMargin;
+                    // 当前点命中
+                    if (this.x >= eminX && this.x <= emaxX && this.y >= eminY && this.y <= emaxY) return true;
+                    if (usePrev) {
+                        // 前一点命中
+                        if (prevX >= eminX && prevX <= emaxX && prevY >= eminY && prevY <= emaxY) return true;
+                        // 线段穿过扩张矩形四条边
+                        if (
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, eminY, emaxX, eminY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, emaxY, emaxX, emaxY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, eminY, eminX, emaxY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, emaxX, eminY, emaxX, emaxY)
+                        ) return true;
+                    }
+                    return false;
+                }
+                // 圆形/其他：扩张半径 = collisionRadius + projectile hit margin
+                const expandedR = (entity.collisionRadius || entity.size * 0.6 || 10) + hitMargin;
+                const distToCenter = usePrev
+                    ? this._segmentPointDistance(prevX, prevY, this.x, this.y, entity.x, entity.y)
+                    : Math.hypot(this.x - entity.x, this.y - entity.y);
+                return distToCenter <= expandedR;
+            }
+
+            _segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+                const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+                if (d === 0) return false;
+                const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+                const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+                return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+            }
+
+            _segmentPointDistance(ax, ay, bx, by, px, py) {
+                const len2 = (bx - ax) ** 2 + (by - ay) ** 2;
+                if (len2 === 0) return Math.hypot(px - ax, py - ay);
+                let t = ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / len2;
+                t = Math.max(0, Math.min(1, t));
+                return Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay)));
+            }
+
             _getProjectileTextureKey() {
-                if (this.isSpit) return 'projectile_spit';
+                if (this.isSpit) return 'projectile_poison';
                 if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) return 'projectile_tracer';
                 if (this.image) return 'projectile_arrow';
                 return 'projectile_bullet';
             }
 
             _getProjectileTint() {
-                if (this.isSpit) return 0x00ff00;
+                // 毒液投射物使用 project.png 自带颜色，不再叠加绿色 tint
+                if (this.isSpit) return undefined;
                 if (this.isGreen) return 0xa0ffc0;
                 if (this.isGold) return 0xfff8a0;
                 if (this.isDarkGold) return 0xffd040;
@@ -103,7 +159,7 @@ import { DamagePipeline } from './damage-pipeline.js';
                 }
                 this._phaserSprite.setVisible(true);
                 if (this.isSpit) {
-                    const s = this.size * 1.4;
+                    const s = this.size * 2.5;
                     this._phaserSprite.setDisplaySize(s, s);
                 } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {
                     const tailLen = this.isGreen ? 55 : this.isGold ? 50 : this.isDarkGold ? 45 : 40;

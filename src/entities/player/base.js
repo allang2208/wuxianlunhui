@@ -3,6 +3,7 @@ import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../../config/combat-formulas.js';
 import { CONFIG } from '../../config/config.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
+import { DungeonBuffSystem } from '../../world/dungeon-event-system.js';
 
 const baseMixin = {
     calculateCombatStats() {
@@ -111,28 +112,36 @@ const baseMixin = {
     },
 
     /**
-     * 应用地牢事件buff的攻击加成
+     * 应用地牢事件buff的攻击/防御/移速加成
      * 在 calculateCombatStats 最后调用
      */
     _applyDungeonBuffBonus() {
         const d = this.data;
-        let atkBonusPercent = 0;
 
-        // 检查地牢buff系统
-        if (this._dungeonBuffs) {
-            if (this._dungeonBuffs.goddessBless) {
-                atkBonusPercent += this._dungeonBuffs.goddessBless.atkPercent || 0;
-            }
-            if (this._dungeonBuffs.demonPrayer) {
-                atkBonusPercent += this._dungeonBuffs.demonPrayer.atkPercent || 0;
-            }
-        }
+        // 先恢复基础移速，再由临时 buff 叠加
+        this.maxSpeed = CONFIG.PLAYER_SPEED;
 
-        // 应用攻击加成
-        if (atkBonusPercent > 0) {
+        const atkBonusPercent = DungeonBuffSystem.getAtkBonusPercent(this);
+        if (atkBonusPercent !== 0) {
             const multiplier = 1 + atkBonusPercent / 100;
             d.atk = Math.floor(d.atk * multiplier);
+        }
+
+        const matkBonusPercent = DungeonBuffSystem.getMatkBonusPercent(this);
+        if (matkBonusPercent !== 0) {
+            const multiplier = 1 + matkBonusPercent / 100;
             d.matk = Math.floor(d.matk * multiplier);
+        }
+
+        const defBonusPercent = DungeonBuffSystem.getDefBonusPercent(this);
+        if (defBonusPercent !== 0) {
+            d.def = Math.floor(d.def * (1 + defBonusPercent / 100));
+        }
+
+        const moveBonusPercent = DungeonBuffSystem.getMoveSpeedBonusPercent(this);
+        if (moveBonusPercent !== 0) {
+            const multiplier = 1 + moveBonusPercent / 100;
+            this.maxSpeed = Math.max(CONFIG.PLAYER_SPEED * 0.5, CONFIG.PLAYER_SPEED * multiplier);
         }
     },
 

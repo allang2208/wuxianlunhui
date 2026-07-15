@@ -17,6 +17,7 @@ import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
+
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
@@ -118,12 +119,19 @@ export class GameScene extends Scene {
         this._terrainWorldWidth = 0;
         this._terrainWorldHeight = 0;
 
+        // 地图模式状态缓存，避免每帧切换相机背景色
+        this._mapModeActive = false;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
         this.cameras.main.setBounds(-CONFIG.WORLD_WIDTH, -CONFIG.WORLD_HEIGHT, CONFIG.WORLD_WIDTH * 3, CONFIG.WORLD_HEIGHT * 3);
         this.cameras.main.setZoom(1);
         this.cameras.main.setViewport(0, 0, viewW, viewH);
+        this.cameras.main.setBackgroundColor('#000000');
+
+        // 初始同步地形（后续由场景切换/战斗房生成主动调用 syncTerrain()）
+        this.syncTerrain();
 
 
         // 事件监听：外部系统通知
@@ -138,12 +146,16 @@ export class GameScene extends Scene {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
 
-        this._syncTerrain();
-
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
         const _dms = DungeonMapSystem;
-        if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
+        const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
+        if (isMapMode) {
+            // 地图模式下 Phaser 相机背景透明，露出下方 Canvas 绘制的路线地图
+            if (!this._mapModeActive) {
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+                this._mapModeActive = true;
+            }
             if (this.playerSprite && this.playerSprite.visible) {
                 this.playerSprite.setVisible(false);
                 this.playerSprite.setActive(false);
@@ -182,7 +194,28 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(false);
             if (this.minimapTitle) this.minimapTitle.setVisible(false);
             this._entityHudTexts.forEach(t => t.setVisible(false));
+            // 地图模式下隐藏敌人/中立实体/其他施法者特效，避免战斗残留覆盖地图
+            if (this.enemies) this.enemies.setVisible(false);
+            if (this._neutralSprites) {
+                for (const data of this._neutralSprites.values()) {
+                    if (data.sprite) data.sprite.setVisible(false);
+                    if (data.label) data.label.setVisible(false);
+                }
+            }
+            if (this._magicSprites) {
+                for (const sprites of this._magicSprites.values()) {
+                    if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.setVisible(false));
+                    if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.setVisible(false));
+                    if (sprites.fireball) sprites.fireball.setVisible(false);
+                    if (sprites.fireballFly) sprites.fireballFly.setVisible(false);
+                }
+            }
         } else {
+            // 非地图模式保持纯黑背景
+            if (this._mapModeActive) {
+                this.cameras.main.setBackgroundColor('#000000');
+                this._mapModeActive = false;
+            }
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
             if (this.playerSprite && _game && _game.player && !this.playerSprite.visible && !_isStickFigure) {
@@ -198,6 +231,22 @@ export class GameScene extends Scene {
             if (this.projectilesGroup) this.projectilesGroup.setVisible(true);
             if (this.dropItemsGroup) this.dropItemsGroup.setVisible(true);
             if (this.worldEffectsGroup) this.worldEffectsGroup.setVisible(true);
+            // 恢复敌人/中立实体/其他施法者特效显示
+            if (this.enemies) this.enemies.setVisible(true);
+            if (this._neutralSprites) {
+                for (const data of this._neutralSprites.values()) {
+                    if (data.sprite) data.sprite.setVisible(true);
+                    if (data.label) data.label.setVisible(true);
+                }
+            }
+            if (this._magicSprites) {
+                for (const sprites of this._magicSprites.values()) {
+                    if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.setVisible(true));
+                    if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.setVisible(true));
+                    if (sprites.fireball) sprites.fireball.setVisible(true);
+                    if (sprites.fireballFly) sprites.fireballFly.setVisible(true);
+                }
+            }
             // 恢复并同步 HUD
             if (this.worldHudGraphics) this.worldHudGraphics.setVisible(true);
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
@@ -371,33 +420,29 @@ export class GameScene extends Scene {
 
     _createPlayerSprite() {
         // 创建占位精灵，后续由外部 Player 系统接管控制
-        // 锚点设在贴图中心（0.5,0.5），使碰撞圆中心与贴图中心、逻辑位置三者对齐
-        const PLAYER_SPRITE_SIZE = 120;
+        // 锚点设在贴图中心（0.5,0.5），使碰撞矩形中心与贴图中心、逻辑位置三者对齐
+        const { spriteSize, collisionWidth, collisionHeight } = PLAYER_DEFAULTS.physics;
         this.playerSprite = this.physics.add.sprite(0, 0, 'player_idle');
         this.playerSprite.setOrigin(0.5, 0.5);
-        this.playerSprite.setDisplaySize(PLAYER_SPRITE_SIZE, PLAYER_SPRITE_SIZE);
+        this.playerSprite.setDisplaySize(spriteSize, spriteSize);
         this.playerSprite.setDepth(100);
         this.playerSprite.setVisible(false); // 初始隐藏，等玩家生成后再显示
-        // 配置物理体：无重力（俯视角），设置碰撞圆，消除阻力
+        // 配置物理体：无重力（俯视角），设置与配置一致的矩形碰撞体，消除阻力
         const body = this.playerSprite.body;
         body.setGravity(0, 0);
-        const worldRadius = PLAYER_DEFAULTS.physics.collisionRadius;
-        const scale = this.playerSprite.scaleX || 1;
-        const bodyR = Math.max(1, Math.round(worldRadius / scale));
-        body.setCircle(bodyR);
+        // 物理体尺寸直接使用配置里的碰撞矩形（60x120），不再取原始纹理尺寸
+        body.setSize(collisionWidth, collisionHeight);
         body.setImmovable(false);
         // 消除物理引擎的阻力，让速度完全由代码控制
         body.setDrag(0);
         body.setFriction(0, 0);
         body.setBounce(0, 0);
         body.setDamping(false);
-        // 禁用物理引擎的自动移动（moves = false 时物理引擎不会自动积分位置）
-        // 但我们需要物理引擎积分位置，所以保持 moves = true
-        // 关键：使用 velocity 时，物理引擎会积分位置，但阻力会导致速度衰减
         // 设置 mass 为 1，避免质量影响
         body.setMass(1);
         // 位置由代码完全控制，关闭物理引擎自动积分，避免碰撞导致抖动/瞬移
-        body.moves = false;
+        // 仅在 Velocity 驱动模式下开启物理自动积分
+        body.moves = this._useVelocityDrive;
     }
 
     _onPlayerSpawn(data) {
@@ -409,7 +454,66 @@ export class GameScene extends Scene {
             this.playerSprite.setVisible(!_isStickFigure);
             this.playerSprite.setActive(!_isStickFigure);
             this.playerSprite.setTexture('player_idle');
+
+            // 玩家碰撞/受击体积由配置驱动，保持与 Player 逻辑实体一致
+            const { collisionWidth, collisionHeight } = PLAYER_DEFAULTS.physics;
+            if (_game && _game.player) {
+                _game.player.collisionShape = 'rect';
+                _game.player.collisionWidth = collisionWidth;
+                _game.player.collisionHeight = collisionHeight;
+                _game.player.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
+            }
+            if (this.playerSprite.body) {
+                this.playerSprite.body.setSize(collisionWidth, collisionHeight);
+            }
         }
+    }
+
+    /**
+     * 计算纹理帧中不透明像素的包围盒
+     * @returns {{x:number, y:number, w:number, h:number}|null}
+     */
+    _getFrameVisibleBounds(textureKey, frameName) {
+        const texture = this.textures.get(textureKey);
+        if (!texture) return null;
+        const frame = texture.get(frameName);
+        if (!frame || !frame.source || !frame.source.image) return null;
+        const img = frame.source.image;
+        const cutX = frame.cutX || 0;
+        const cutY = frame.cutY || 0;
+        const cutW = frame.cutWidth || img.width;
+        const cutH = frame.cutHeight || img.height;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = cutW;
+        canvas.height = cutH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(img, cutX, cutY, cutW, cutH, 0, 0, cutW, cutH);
+        let data;
+        try {
+            data = ctx.getImageData(0, 0, cutW, cutH).data;
+        } catch (_e) {
+            return null;
+        }
+
+        let minX = cutW, minY = cutH, maxX = 0, maxY = 0;
+        let hasPixel = false;
+        const threshold = 10; // alpha 阈值
+        for (let y = 0; y < cutH; y++) {
+            for (let x = 0; x < cutW; x++) {
+                const alpha = data[(y * cutW + x) * 4 + 3];
+                if (alpha > threshold) {
+                    hasPixel = true;
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        if (!hasPixel) return null;
+        return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
     }
 
     _onEnemySpawn(data) {
@@ -421,20 +525,31 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 统一配置敌人 Sprite 的显示尺寸与碰撞体，使碰撞圆中心对齐贴图中心
+     * 统一配置敌人 Sprite 的显示尺寸与碰撞体，使碰撞体中心对齐贴图中心
+     * 碰撞体改为与贴图匹配的矩形（collisionShape='rect'），并用 collisionRadius 作为圆形回退。
      */
     _configureEnemyBody(sprite, enemy) {
         const body = sprite.body;
         if (!body) return;
         body.setGravity(0, 0);
         const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
-        const spriteSize = options.spriteSize || (enemy.size || 14) * 4;
+        // 新规则：优先使用 enemy.config.render 里的显示/碰撞尺寸（由精灵图分析脚本生成），
+        // 其次回退到 _getPhaserOptions 硬编码值，最后按 size*4 兜底。
+        const renderCfg = enemy.config?.render || {};
+        const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
         sprite.setDisplaySize(spriteSize, spriteSize);
         sprite.setOrigin(0.5, 0.5);
-        const worldRadius = (enemy.collisionRadius || enemy.size || 14) * 2;
-        const scale = sprite.scaleX || 1;
-        const bodyR = Math.max(1, Math.round(worldRadius / scale));
-        body.setCircle(bodyR);
+
+        // 设置逻辑碰撞体积为矩形；优先级：options > config.render > size*4
+        const collisionWidth = options.collisionWidth || renderCfg.collisionWidth || spriteSize;
+        const collisionHeight = options.collisionHeight || renderCfg.collisionHeight || spriteSize;
+        enemy.collisionShape = 'rect';
+        enemy.collisionWidth = collisionWidth;
+        enemy.collisionHeight = collisionHeight;
+        enemy.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
+
+        // Phaser 物理体改为矩形，大小与逻辑碰撞体积一致
+        body.setSize(collisionWidth, collisionHeight);
         body.setImmovable(false);
         if (options.tint !== undefined) {
             sprite.setTint(options.tint);
@@ -1171,9 +1286,12 @@ export class GameScene extends Scene {
             return;
         }
         
+        const texture = getWeaponTextureKey(offhandItem);
         if (!this.shieldSprite) {
-            this.shieldSprite = this.add.sprite(0, 0, 'shield');
+            this.shieldSprite = this.add.sprite(0, 0, texture);
             this.shieldSprite.setDepth(148); // 低于武器(150)，高于角色(100)
+        } else if (this.shieldSprite.texture.key !== texture) {
+            this.shieldSprite.setTexture(texture);
         }
         
         const s = player.size;
@@ -1413,8 +1531,10 @@ export class GameScene extends Scene {
      */
     setupColliders() {
         if (this._collidersSet) return;
-        // 玩家 vs 墙壁（保留 Phaser 物理阻挡，与现有逻辑共同处理）
-        if (this.playerSprite) {
+        // 玩家 vs 墙壁：仅在 Velocity 驱动模式下启用 Phaser 物理阻挡。
+        // 默认模式下位置由 WallSystem.resolve 权威处理，body.moves=false，
+        // 保留 collider 会与 WallSystem 形成双重阻挡/抖动。
+        if (this.playerSprite && this._useVelocityDrive) {
             this.physics.add.collider(this.playerSprite, this.walls);
         }
         // [FIX] 敌人 vs 墙壁：移除此 collider，让 WallSystem.resolve() 成为唯一权威。
@@ -1586,7 +1706,10 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 点击左下角“范围”按钮后，用半透明红圈显示怪物碰撞体积
+     * 点击左下角“范围”按钮后，用半透明红色图形显示实体的碰撞/受击体积
+     * - 矩形碰撞体：画外接矩形
+     * - 圆形/无显式形状：画圆（半径取 collisionRadius）
+     * - 玩家也显示，方便对齐受击体积与贴图
      */
     _syncCollisionRadii(_game) {
         if (!_game || !_game.entities) return;
@@ -1606,12 +1729,29 @@ export class GameScene extends Scene {
         this._collisionRadiusGraphics.setVisible(true);
         this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
         this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
+
+        const drawEntity = (entity) => {
+            if (!entity || !entity.active) return;
+            if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
+                const hw = entity.collisionWidth / 2;
+                const hh = entity.collisionHeight / 2;
+                this._collisionRadiusGraphics.strokeRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
+                this._collisionRadiusGraphics.fillRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
+            } else {
+                const r = entity.collisionRadius || entity.size || 12;
+                this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
+                this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
+            }
+        };
+
+        // 玩家
+        if (_game.player) drawEntity(_game.player);
+
+        // 敌人
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
             if (entity._faction !== 'enemy') continue;
-            const r = entity.collisionRadius || entity.size || 12;
-            this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
-            this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
+            drawEntity(entity);
         }
     }
 
@@ -2152,6 +2292,14 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 公共入口：由 scene-manager / combat-room-system 在场景/战斗房切换后调用，
+     * 避免每帧检查地形纹理。
+     */
+    syncTerrain() {
+        this._syncTerrain();
+    }
+
+    /**
      * 同步地形 Sprite：
      * - 若 Renderer.terrainTexture 存在且尺寸匹配，直接使用该 Canvas 覆盖（兼容战斗场地/特殊场景）
      * - 否则使用 Phaser Graphics 直接生成地形 Texture（主场景，无 Canvas 中间件）
@@ -2280,7 +2428,9 @@ export class GameScene extends Scene {
         }
         const current = sprite.anims.currentAnim;
         // [FIX] 增加 isPlaying 检查：动画意外停止时自动重新播放
-        if (!current || current.key !== animKey || !sprite.anims.isPlaying) {
+        // 攻击动画是一次性的，播完后停在最後一帧即可，不要重新播放，否则会重复触发视觉表现
+        const shouldReplay = !current || current.key !== animKey || (!sprite.anims.isPlaying && animState !== 'attack');
+        if (shouldReplay) {
             sprite.anims.play(animKey, true);
         }
     }

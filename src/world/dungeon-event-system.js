@@ -2,6 +2,8 @@ import { StatusBar } from '../ui/status-bar.js';
 import { EquipManager } from '../ui/equip-manager.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { TypewriterText } from '../ui/typewriter-text.js';
+import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, handleNewDungeonEvent } from './dungeon-event-definitions.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -150,6 +152,10 @@ function createEventConfig() {
     if (merged.trap) merged.trap.choices = normalizeChoices(merged.trap.choices);
     if (merged.supplyPile) merged.supplyPile.choices = normalizeChoices(merged.supplyPile.choices);
     if (merged.demonStatue) merged.demonStatue.choices = normalizeChoices(merged.demonStatue.choices);
+
+    // 合并新增事件
+    Object.assign(merged, NEW_EVENT_CONFIGS);
+    merged.eventWeights = { ...merged.eventWeights, ...NEW_EVENT_WEIGHTS };
 
     return merged;
 }
@@ -312,24 +318,85 @@ export const DungeonBuffSystem = {
     },
 
     /**
-     * 获取当前攻击加成百分比
+     * 获取当前攻击加成百分比（遍历所有 Buff 条目）
      * @param {Player} player - 玩家对象
      * @returns {number} 总攻击加成百分比
      */
     getAtkBonusPercent(player) {
         if (!player || !player._dungeonBuffs) return 0;
+        return Object.values(player._dungeonBuffs).reduce((total, buff) => {
+            return total + (buff && buff.atkPercent ? buff.atkPercent : 0);
+        }, 0);
+    },
 
-        let total = 0;
+    /**
+     * 获取当前魔法攻击加成百分比
+     * @param {Player} player - 玩家对象
+     * @returns {number} 总魔攻加成百分比
+     */
+    getMatkBonusPercent(player) {
+        if (!player || !player._dungeonBuffs) return 0;
+        return Object.values(player._dungeonBuffs).reduce((total, buff) => {
+            return total + (buff && buff.matkPercent ? buff.matkPercent : 0);
+        }, 0);
+    },
+
+    /**
+     * 获取当前防御加成百分比
+     * @param {Player} player - 玩家对象
+     * @returns {number} 总防御加成百分比（可负）
+     */
+    getDefBonusPercent(player) {
+        if (!player || !player._dungeonBuffs) return 0;
+        return Object.values(player._dungeonBuffs).reduce((total, buff) => {
+            return total + (buff && buff.defPercent ? buff.defPercent : 0);
+        }, 0);
+    },
+
+    /**
+     * 获取当前移动速度加成百分比
+     * @param {Player} player - 玩家对象
+     * @returns {number} 总移速加成百分比（可负）
+     */
+    getMoveSpeedBonusPercent(player) {
+        if (!player || !player._dungeonBuffs) return 0;
+        return Object.values(player._dungeonBuffs).reduce((total, buff) => {
+            return total + (buff && buff.moveSpeedPercent ? buff.moveSpeedPercent : 0);
+        }, 0);
+    },
+
+    /**
+     * 战斗完成后消耗所有有层数的临时 Buff
+     * @param {Player} player - 玩家对象
+     */
+    consumeBattleBuffs(player) {
+        if (!player || !player._dungeonBuffs) return;
+
         const buffs = player._dungeonBuffs;
+        let changed = false;
 
-        if (buffs.goddessBless) {
-            total += buffs.goddessBless.atkPercent || 0;
-        }
-        if (buffs.demonPrayer) {
-            total += buffs.demonPrayer.atkPercent || 0;
+        for (const [key, buff] of Object.entries(buffs)) {
+            if (!buff || buff.permanent || typeof buff.remainingBattles !== 'number') continue;
+
+            buff.remainingBattles--;
+            changed = true;
+
+            if (buff.remainingBattles <= 0) {
+                delete buffs[key];
+                if (StatusBar) StatusBar.removeEffectByType(key);
+                if (player.removeStatusEffect) player.removeStatusEffect('buff');
+            } else if (key === 'goddessBless' && StatusBar) {
+                const effect = StatusBar.effects.find(e => e.type === 'goddessBless');
+                if (effect) {
+                    effect.name = `${this.BUFF_CONFIG.goddessBless.name} (${buff.remainingBattles}场)`;
+                    StatusBar.render();
+                }
+            }
         }
 
-        return total;
+        if (changed && player.calculateCombatStats) {
+            player.calculateCombatStats();
+        }
     },
 
     /**
@@ -339,13 +406,14 @@ export const DungeonBuffSystem = {
     clearAllBuffs(player) {
         if (!player) return;
 
-        delete player._dungeonBuffs;
-
         // 移除状态栏效果
-        if (StatusBar) {
-            StatusBar.removeEffectByType('goddessBless');
-            StatusBar.removeEffectByType('demonPrayer');
+        if (StatusBar && player._dungeonBuffs) {
+            for (const key of Object.keys(player._dungeonBuffs)) {
+                StatusBar.removeEffectByType(key);
+            }
         }
+
+        delete player._dungeonBuffs;
 
         // 移除实体状态效果
         if (player.removeStatusEffect) {
@@ -879,6 +947,7 @@ export const DungeonEventSystem = {
     _currentEvent: null,
     _currentEventType: null,
     _eventOverlay: null,
+    _eventTypewriter: null,
     _onComplete: null,
     _dungeonMapSystem: null, // 地牢地图系统引用（用于探查巡逻）
 
@@ -965,7 +1034,7 @@ export const DungeonEventSystem = {
                 result = handleDemonStatue(player, choiceId);
                 break;
             default:
-                result = { type: 'none', text: '未知事件', rewards: {} };
+                result = handleNewDungeonEvent(player, choiceId, this._currentEventType, this._dungeonMapSystem);
         }
 
         // 记录事件类型与选择，供地图系统判断节点状态
@@ -987,9 +1056,13 @@ export const DungeonEventSystem = {
     _applyRewards(result, player) {
         if (!result.rewards) return;
 
-        // 金币奖励（统一进入背包）
-        if (result.rewards.gold && GoldManager) {
-            GoldManager.addGold(result.rewards.gold);
+        // 金币奖励/扣除
+        if (result.rewards.gold !== undefined && result.rewards.gold !== 0 && GoldManager) {
+            if (result.rewards.gold > 0) {
+                GoldManager.addGold(result.rewards.gold);
+            } else {
+                GoldManager.deductGold(-result.rewards.gold);
+            }
         }
 
         // 治疗药水（直接恢复）
@@ -1065,7 +1138,6 @@ export const DungeonEventSystem = {
         title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
         const text = document.createElement('p');
-        text.textContent = config.description;
         text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px;';
 
         leftCol.appendChild(title);
@@ -1103,6 +1175,10 @@ export const DungeonEventSystem = {
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
+
+        // 使用通用打字机组件显示剧情描述
+        this._eventTypewriter = new TypewriterText(text, { clickTarget: overlay });
+        this._eventTypewriter.setText(config.description);
     },
 
     /**
@@ -1184,8 +1260,7 @@ export const DungeonEventSystem = {
         title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
         const text = document.createElement('p');
-        text.innerHTML = result.text.replace(/\n/g, '<br>');
-        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px;';
+        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px; white-space: pre-line;';
 
         leftCol.appendChild(title);
         leftCol.appendChild(text);
@@ -1218,12 +1293,19 @@ export const DungeonEventSystem = {
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
 
+        // 使用通用打字机组件显示结果文本
+        this._eventTypewriter = new TypewriterText(text, { clickTarget: overlay });
+        this._eventTypewriter.setText(result.text);
     },
 
     /**
      * 清理UI
      */
     _cleanupUI() {
+        if (this._eventTypewriter) {
+            this._eventTypewriter.destroy();
+            this._eventTypewriter = null;
+        }
         if (this._eventOverlay) {
             this._eventOverlay.remove();
             this._eventOverlay = null;
@@ -1277,7 +1359,7 @@ export function enterDungeonEvent(player, onComplete) {
  */
 export function onCombatComplete(player) {
     if (player) {
-        DungeonBuffSystem.consumeGoddessBless(player);
+        DungeonBuffSystem.consumeBattleBuffs(player);
     }
 }
 

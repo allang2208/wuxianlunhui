@@ -90,7 +90,7 @@ class RegionIndex {
 
                 while (queue.length > 0) {
                     const { gx: cx, gy: cy } = queue.shift();
-                    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
                     for (const [dx, dy] of dirs) {
                         const ngx = cx + dx;
                         const ngy = cy + dy;

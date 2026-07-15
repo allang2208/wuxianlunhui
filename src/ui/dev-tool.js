@@ -1,4 +1,5 @@
 import { Game } from '../game.js';
+import { PLAYER_DEFAULTS } from '../config/player-defaults.js';
 
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WeaponTransform } from '../combat/weapon-transform.js';
@@ -1392,11 +1393,11 @@ const DevTool = {
         ctx.font = '11px monospace';
         ctx.fillText('玩家位置 (0, 0) | 参数: Canvas坐标系 (Y向下)', cx + 5, cy - 5);
 
-        // 角色碰撞圆
-        const charRadius = 60; // 120 / 2 = 60
+        // 角色碰撞范围（使用配置值，避免硬编码）
+        const { spriteSize, collisionWidth, collisionHeight } = PLAYER_DEFAULTS.physics;
         ctx.strokeStyle = 'rgba(100, 200, 100, 0.4)';
         ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(cx, cy, charRadius, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeRect(cx - collisionWidth / 2, cy - collisionHeight / 2, collisionWidth, collisionHeight);
 
         // 角色贴图（根据动画状态选择）
         const charImg = this._getCharacterImage();
@@ -1404,8 +1405,6 @@ const DevTool = {
         const isFrameData = charImg && charImg.sheet && charImg.sheet instanceof Image;
         const isReady = isImage ? charImg.complete : (isFrameData ? charImg.sheet.complete : false);
         if (isReady) {
-            // 与游戏中一致的缩放：size * 6.25 = 703.125
-            const spriteSize = 120;
             const currentAnim = this.state.anim;
             if (currentAnim === 'idle') {
                 // 待机状态：idle.png 本身是朝右的（脸朝右），无需旋转

@@ -84,8 +84,6 @@ onLevelUp(level) {
             },
 
 takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
-                // 主神空间（场景一）无敌：使用独立标志，避免 currentScene 不同步导致泄漏
-                if (SceneManager._inMainHub) return;
                 // 闪避无敌期间不受伤害
                 if (this.dodgeInvincible) return;
                 // 已死亡不处理
@@ -123,7 +121,7 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                     const csEffect = source.skills.criticalStrike.getEffect(source.skills.criticalStrike.level);
                     finalDamage = Math.floor(finalDamage * (1 + csEffect.damageBonus));
                 }
-                // 盾防御系统处理
+                // 盾防御系统处理（主神空间也允许弹反测试，因此放在无敌判定之前）
                 if (this.shieldSystem && this.shieldSystem.active && this.shieldSystem.defending) {
                     const result = this.shieldSystem.onDamageTaken(finalDamage, source, isMelee);
                     finalDamage = result.damage;
@@ -132,6 +130,8 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                         return;
                     }
                 }
+                // 主神空间（场景一）无敌：仅对未弹反/未格挡的实际伤害生效，避免 currentScene 不同步导致泄漏
+                if (SceneManager._inMainHub) return;
                 // 应用无人机易伤：受到的所有伤害增加
                 if (this._droneVulnerabilityStacks > 0) {
                     let droneBonus = 0.10 * this._droneVulnerabilityStacks;

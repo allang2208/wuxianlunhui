@@ -38,6 +38,7 @@ import { Player } from './entities/player.js';
 import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
+import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -171,6 +172,10 @@ export const Game = {
         Camera.follow(this.player);
         await EquipManager.init(this.player);
         CodexManager.init();
+        // 通知 Phaser 场景玩家已生成，确保贴图/碰撞体正确初始化
+        if (window.__phaserScene && typeof window.__phaserScene._onPlayerSpawn === 'function') {
+            window.__phaserScene._onPlayerSpawn({ x: startX, y: startY });
+        }
     },
     spawnTargets() {
         // 靶子放在迷宫下方的开放平原（上方相对出生点）
@@ -204,6 +209,15 @@ export const Game = {
         // 打开角色状态面板（属性点分配页面）
         SystemUI.open('status');
     },
+    spawnSpitterZombieForTest() {
+        if (!this.player) return;
+        // 主神空间：在玩家右侧 250px 处生成一个毒液僵尸，用于测试贴图/动画/弹反
+        const x = this.player.x + 250;
+        const y = this.player.y;
+        const spitter = new SpitterZombie(x, y);
+        this.entities.set('spitter_test', spitter);
+    },
+
     spawnNPC() {
         const npcCfg = GAME_CONFIG.npcs || {};
         const shopCfg = npcCfg.shopMouseKing || { offset: { x: 120, y: -150 }, name: '小鼠大王', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/ui/npc_portrait.png', npcType: 'shop' };
@@ -266,12 +280,10 @@ export const Game = {
                 WallSystem.addTree(tx, ty, treeRadius, (group.startIndex || 0) + i, group.type, Math.random() * Math.PI * 2);
             }
         }
-        // 在主神空间生成一只突变体-3，用于测试动画
-        this.spawnMainMutant3();
     },
 
     /**
-     * 清理主神空间所有怪物并重新生成测试怪物
+     * 清理主神空间所有怪物（返回主神空间时调用）
      */
     clearMainMonstersAndSpawnDog() {
         // 删除所有阵营为 enemy 的实体（怪物）
@@ -283,7 +295,6 @@ export const Game = {
                 this.entities.delete(key);
             }
         }
-        this.spawnMainMutant3();
     },
 
     spawnMainZombieDog() {
@@ -930,28 +941,110 @@ if (SceneManager.currentScene === 'scene3') {
         });
         if (pickedCount > 0) { EffectManager.add(new FloatingTextEffect(px, py - 40, `范围拾取 ${pickedCount} 件物品`)); } else { EffectManager.add(new FloatingTextEffect(px, py - 40, '范围内无物品')); }
     },
-    // 实体碰撞体积解析：防止目标间堆叠（兼容六边形与圆形）
+    // 判断敌人是否正锁定某个目标并已进入攻击范围（用于关闭该组合的玩家-敌人推开）
+    _isEnemyAttackingTarget(enemy, target) {
+        if (!enemy || !target || enemy.faction !== 'enemy') return false;
+        if (enemy.target !== target && enemy._comboTarget !== target && enemy._pounceTarget !== target) return false;
+        const attackDist = enemy.attackRange ?? 80;
+        const dx = enemy.x - target.x, dy = enemy.y - target.y;
+        return dx * dx + dy * dy <= attackDist * attackDist;
+    },
+    // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
     resolveCollisions() {
-        const entities = Array.from(this.entities.values()).filter(e => e.active && (e.size || e.collisionRadius || e.hitbox) && !e.noCollision);
+        const entities = Array.from(this.entities.values()).filter(e => e.active && (e.size || e.collisionRadius || e.hitbox || (e.collisionShape === 'rect' && e.collisionWidth)) && !e.noCollision);
+        const player = this.player;
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
                 const a = entities[i], b = entities[j];
-                // 使用 getCollisionShape 获取兼容半径
+                // 玩家与正在攻击自己的敌人不再互相推开，避免近战攻击时把目标小幅挤开
+                if (player && (
+                    (a === player && this._isEnemyAttackingTarget(b, player)) ||
+                    (b === player && this._isEnemyAttackingTarget(a, player))
+                )) continue;
+                // 使用 getCollisionShape 获取碰撞形状
                 const shapeA = a.getCollisionShape ? a.getCollisionShape() : { type: 'circle', radius: a.size || a.collisionRadius || 10 };
                 const shapeB = b.getCollisionShape ? b.getCollisionShape() : { type: 'circle', radius: b.size || b.collisionRadius || 10 };
-                const aRadius = shapeA.radius;
-                const bRadius = shapeB.radius;
-                const minDist = aRadius + bRadius;
-                const dx = b.x - a.x, dy = b.y - a.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0 && dist < minDist) {
-                    const overlap = minDist - dist;
-                    const ratio = overlap / dist / 2;
-                    const moveX = dx * ratio, moveY = dy * ratio;
-                    const wallRadiusA = a.collisionRadius || (a.hitbox ? a.hitbox.getApproxRadius() : aRadius * 0.6);
-                    const wallRadiusB = b.collisionRadius || (b.hitbox ? b.hitbox.getApproxRadius() : bRadius * 0.6);
-                    const na = WallSystem.resolve(a.x, a.y, a.x - moveX, a.y - moveY, wallRadiusA);
-                    const nb = WallSystem.resolve(b.x, b.y, b.x + moveX, b.y + moveY, wallRadiusB);
+
+                let moveA = { x: 0, y: 0 }, moveB = { x: 0, y: 0 };
+                let separated = false;
+
+                if (shapeA.type === 'rect' && shapeB.type === 'rect') {
+                    // 矩形 vs 矩形：按 AABB 最小穿透轴分离
+                    const hwA = shapeA.width / 2, hhA = shapeA.height / 2;
+                    const hwB = shapeB.width / 2, hhB = shapeB.height / 2;
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const overlapX = hwA + hwB - Math.abs(dx);
+                    const overlapY = hhA + hhB - Math.abs(dy);
+                    if (overlapX > 0 && overlapY > 0) {
+                        separated = true;
+                        if (overlapX < overlapY) {
+                            const sx = (dx >= 0 ? 1 : -1) * overlapX / 2;
+                            moveA.x = -sx; moveB.x = sx;
+                        } else {
+                            const sy = (dy >= 0 ? 1 : -1) * overlapY / 2;
+                            moveA.y = -sy; moveB.y = sy;
+                        }
+                    }
+                } else if (shapeA.type !== 'rect' && shapeB.type !== 'rect') {
+                    // 圆形/六边形 vs 圆形/六边形：用等效半径做圆形分离
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minDist = shapeA.radius + shapeB.radius;
+                    if (dist > 0 && dist < minDist) {
+                        separated = true;
+                        const overlap = minDist - dist;
+                        const ratio = overlap / dist / 2;
+                        moveA.x = -dx * ratio; moveA.y = -dy * ratio;
+                        moveB.x = dx * ratio; moveB.y = dy * ratio;
+                    }
+                } else {
+                    // 矩形 vs 圆形/六边形
+                    const rectShape = shapeA.type === 'rect' ? shapeA : shapeB;
+                    const rectEntity = shapeA.type === 'rect' ? a : b;
+                    const circEntity = shapeA.type === 'rect' ? b : a;
+                    const circShape = shapeA.type === 'rect' ? shapeB : shapeA;
+                    const hw = rectShape.width / 2, hh = rectShape.height / 2;
+                    const dx = circEntity.x - rectEntity.x;
+                    const dy = circEntity.y - rectEntity.y;
+                    const closestX = Math.max(-hw, Math.min(hw, dx));
+                    const closestY = Math.max(-hh, Math.min(hh, dy));
+                    const cdx = dx - closestX;
+                    const cdy = dy - closestY;
+                    const distSq = cdx * cdx + cdy * cdy;
+                    if (distSq < circShape.radius * circShape.radius) {
+                        separated = true;
+                        const dist = Math.sqrt(distSq);
+                        let nx, ny, overlap;
+                        if (dist > 0) {
+                            nx = cdx / dist; ny = cdy / dist;
+                            overlap = circShape.radius - dist;
+                        } else {
+                            // 圆心在矩形内部：沿最短穿透轴推出
+                            const penX = circShape.radius + hw - Math.abs(dx);
+                            const penY = circShape.radius + hh - Math.abs(dy);
+                            if (penX < penY) {
+                                nx = dx >= 0 ? 1 : -1; ny = 0; overlap = penX;
+                            } else {
+                                nx = 0; ny = dy >= 0 ? 1 : -1; overlap = penY;
+                            }
+                        }
+                        const mx = nx * overlap / 2;
+                        const my = ny * overlap / 2;
+                        if (shapeA.type === 'rect') {
+                            moveA.x = -mx; moveA.y = -my;
+                            moveB.x = mx; moveB.y = my;
+                        } else {
+                            moveA.x = mx; moveA.y = my;
+                            moveB.x = -mx; moveB.y = -my;
+                        }
+                    }
+                }
+
+                if (separated) {
+                    const wallRadiusA = a.collisionRadius || Math.max(shapeA.width || 0, shapeA.height || 0) / 2 || (a.hitbox ? a.hitbox.getApproxRadius() : shapeA.radius * 0.6);
+                    const wallRadiusB = b.collisionRadius || Math.max(shapeB.width || 0, shapeB.height || 0) / 2 || (b.hitbox ? b.hitbox.getApproxRadius() : shapeB.radius * 0.6);
+                    const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, wallRadiusA);
+                    const nb = WallSystem.resolve(b.x, b.y, b.x + moveB.x, b.y + moveB.y, wallRadiusB);
                     a.x = na.x; a.y = na.y;
                     b.x = nb.x; b.y = nb.y;
                 }

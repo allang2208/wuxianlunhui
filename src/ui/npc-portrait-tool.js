@@ -6,23 +6,23 @@ import { getElement } from '../utils/dom-utils.js';
 // 功能：拖动、缩放、旋转、镜像翻转 NPC 立绘
 // ============================================
 
-// 全局存储：每个NPC的立绘参数 { [npcId]: { offsetX, offsetY, scale, rotation, flipX } }
+// 全局存储：每个NPC的立绘参数 { [npcId]: { offsetX, bottom, scale, rotation, flipX } }
 const npcPortraitSettings = {};
 const STORAGE_KEY = 'npcPortraitSettings';
 
 // 默认立绘参数：按NPC肖像路径匹配（用于首次打开时自动应用）
 const DEFAULT_PORTRAIT_PARAMS = {
-    // 小鼠侍从：默认偏移，使立绘在对话框中位置合适
-    'mouse_attendant': { offsetX: -1009, offsetY: 12, scale: 2.04, rotation: 0, flipX: false },
-    // 小鼠大王：默认立绘参数
-    'npc_portrait': { offsetX: -1010, offsetY: -128, scale: 1.56, rotation: 0, flipX: false }
+    // 小鼠侍从：固定 bottom 200px，水平偏移和缩放保持原效果
+    'mouse_attendant': { offsetX: -1009, bottom: 200, scale: 2.04, rotation: 0, flipX: false },
+    // 小鼠大王：固定 bottom 220px
+    'npc_portrait': { offsetX: -1010, bottom: 220, scale: 1.56, rotation: 0, flipX: false }
 };
 
 export const NpcPortraitTool = {
     // --------------- 状态字段 ---------------
     _active: false,
     _npcId: null,
-    _params: { offsetX: 0, offsetY: 0, scale: 1.0, rotation: 0, flipX: false },
+    _params: { offsetX: 0, bottom: 220, scale: 1.0, rotation: 0, flipX: false },
     _drag: { active: false, startX: 0, startY: 0, startOffsetX: 0, startOffsetY: 0 },
     _canvas: null,
     _ctx: null,
@@ -139,7 +139,17 @@ export const NpcPortraitTool = {
             this._params = { ...npcPortraitSettings[npcId] };
         } else {
             const defaults = this.getDefaultParams(portraitSrc);
-            this._params = defaults || { offsetX: 0, offsetY: 0, scale: 1.0, rotation: 0, flipX: false };
+            this._params = defaults || { offsetX: 0, bottom: 220, scale: 1.0, rotation: 0, flipX: false };
+        }
+
+        // 兼容旧数据：若保存的参数没有 bottom，则使用默认值或 220px
+        if (this._params.bottom === undefined) {
+            const defaults = this.getDefaultParams(portraitSrc);
+            this._params.bottom = defaults?.bottom ?? 220;
+        }
+        // 旧版的 offsetY 不再用于 DOM 定位，避免破坏固定 bottom
+        if ('offsetY' in this._params) {
+            delete this._params.offsetY;
         }
 
         // 加载立绘图片
@@ -184,10 +194,10 @@ export const NpcPortraitTool = {
 
     // --------------- 参数应用 ---------------
     // 将当前参数实时应用到 NPC 立绘 DOM 元素（#npcPortrait）
-    // 使用 CSS transform: translateX(-50%) translateX(...) translateY(...) scale(...) rotate(...) scaleX(...)
-    // 注意：#npcPortrait 使用 left: 50% 居中，必须保留 translateX(-50%)
+    // 垂直位置使用固定 bottom 像素，不再使用 translateY 偏移
+    // transform 仅保留水平居中/偏移、缩放、旋转、镜像
     formatTransform(params) {
-        return `translateX(-50%) translateX(${params.offsetX}px) translateY(${params.offsetY}px) ` +
+        return `translateX(-50%) translateX(${params.offsetX || 0}px) ` +
             `scale(${params.scale}) rotate(${params.rotation}deg) ` +
             `scaleX(${params.flipX ? -1 : 1})`;
     },
@@ -196,6 +206,7 @@ export const NpcPortraitTool = {
         const npcPortrait = getElement('npcPortrait');
         if (!npcPortrait) return;
         npcPortrait.style.transform = this.formatTransform(params);
+        npcPortrait.style.bottom = (params.bottom ?? 220) + 'px';
     },
 
     // --------------- 保存 ---------------
@@ -227,7 +238,7 @@ export const NpcPortraitTool = {
     // --------------- 重置 ---------------
     // 重置所有参数为默认值，并刷新UI和立绘
     reset() {
-        this._params = { offsetX: 0, offsetY: 0, scale: 1.0, rotation: 0, flipX: false };
+        this._params = { offsetX: 0, bottom: 220, scale: 1.0, rotation: 0, flipX: false };
         this._syncInputs();
         this._draw();
         this.applyToDom(this._params);
@@ -235,7 +246,7 @@ export const NpcPortraitTool = {
 
     // --------------- Canvas 绘制 ---------------
     // 绘制背景网格（20px间距灰色线）+ 中心十字线 + 立绘图片
-    // 立绘位置：canvas中心 + offsetX + offsetY
+    // 立绘位置：canvas中心 + offsetX（垂直方向由固定 bottom 像素控制）
     // 立绘变换：scale * (flipX?-1:1) + rotation
     _draw() {
         const ctx = this._ctx;
@@ -280,17 +291,13 @@ export const NpcPortraitTool = {
         ctx.lineTo(cx, cy + 15);
         ctx.stroke();
 
-        // 绘制立绘图片
+        // 绘制立绘图片（垂直方向固定居中预览，水平方向可拖动）
         if (this._image && this._image.complete) {
             ctx.save();
-            // 平移到中心 + 偏移
-            ctx.translate(cx + this._params.offsetX, cy + this._params.offsetY);
-            // 旋转
+            ctx.translate(cx + (this._params.offsetX || 0), cy);
             ctx.rotate(this._params.rotation * Math.PI / 180);
-            // 缩放（包含水平翻转）
             const scaleX = this._params.scale * (this._params.flipX ? -1 : 1);
             ctx.scale(scaleX, this._params.scale);
-            // 绘制图片，居中
             ctx.drawImage(this._image, -this._image.width / 2, -this._image.height / 2);
             ctx.restore();
         }
@@ -299,7 +306,7 @@ export const NpcPortraitTool = {
     // --------------- 拖动事件 ---------------
     // 参考 dev-tool.js 的 _onMouseDown / _onMouseMove / _onMouseUp
     // mousedown：检测点击位置是否在立绘区域内（基于当前参数计算的矩形）
-    // mousemove：如果拖动中，更新 offsetX/offsetY，调用 _draw() 和 applyToDom()
+    // mousemove：如果拖动中，仅更新 offsetX，调用 _draw() 和 applyToDom()
     // mouseup：停止拖动
     _onMouseDown(e) {
         // 修复Bug：阻止事件冒泡到NPC对话框，防止拖动时对话框消失
@@ -311,8 +318,8 @@ export const NpcPortraitTool = {
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
-        const cx = this._canvas.width / 2 + this._params.offsetX;
-        const cy = this._canvas.height / 2 + this._params.offsetY;
+        const cx = this._canvas.width / 2 + (this._params.offsetX || 0);
+        const cy = this._canvas.height / 2;
 
         // 检测半径：以立绘中心为圆心，半径 = Math.max(宽, 高) * scale / 2 * 0.5
         const imgW = this._image.width * this._params.scale;
@@ -325,7 +332,6 @@ export const NpcPortraitTool = {
             this._drag.startX = mx;
             this._drag.startY = my;
             this._drag.startOffsetX = this._params.offsetX;
-            this._drag.startOffsetY = this._params.offsetY;
             // 拖动期间监听全局鼠标事件，允许拖出调整框到全屏
             document.addEventListener('mousemove', this._boundMouseMove);
             document.addEventListener('mouseup', this._boundMouseUp);
@@ -337,13 +343,10 @@ export const NpcPortraitTool = {
 
         const rect = this._canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
         const dx = mx - this._drag.startX;
-        const dy = my - this._drag.startY;
 
-        // 更新偏移量（Canvas 坐标系，无需 Y 轴反转）
+        // 仅保留水平偏移；垂直方向由固定 bottom 像素控制
         this._params.offsetX = this._drag.startOffsetX + dx;
-        this._params.offsetY = this._drag.startOffsetY + dy;
 
         this._syncInputs();
         this._draw();

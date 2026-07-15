@@ -30,6 +30,7 @@ export class ShieldSystem {
     // 处理受伤：返回 { damage, parried }
     // 在 player.takeDamage 中调用
     onDamageTaken(damage, attacker, isMelee) {
+        this._lastParried = false; // 每帧重置，供调用方判断后续效果
         if (!this.defending) return { damage, parried: false };
 
         const shieldData = this.getShieldData();
@@ -47,18 +48,19 @@ export class ShieldSystem {
         }
         const remainingDamageRatio = Math.max(0.05, baseReduction - skillReductionBonus);
 
-        // 弹反判定：防御后弹反窗口内 + 近战攻击 + 面朝角度限制
-        if (this.canParry() && isMelee) {
+        // 弹反判定：防御后弹反窗口内 + 面朝角度限制（不再限制仅近战可弹反）
+        if (this.canParry()) {
             // 检查面朝角度：只有面朝攻击者一定角度内才能弹反
             const parryAngle = (defense.parryAngle || 120) * Math.PI / 180;
             const angleToAttacker = Math.atan2(attacker.y - this.player.y, attacker.x - this.player.x);
             const playerFacing = this._getPlayerFacingAngle();
             let angleDiff = Math.abs(angleToAttacker - playerFacing);
             while (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
-            
+
             if (angleDiff <= parryAngle) {
-                this.triggerParry(attacker);
+                this.triggerParry(attacker, isMelee);
                 this._addShieldExp(isMelee, true);
+                this._lastParried = true;
                 return { damage: 0, parried: true };
             }
             // 面朝角度不足：回退到普通防御
@@ -84,14 +86,17 @@ export class ShieldSystem {
         return { damage: reducedDamage, parried: false };
     }
 
-    // 触发弹反效果：攻击者眩晕 + 击退
-    triggerParry(attacker) {
+    // 触发弹反效果：近战攻击才会眩晕 + 击退；远程/魔法只抵消伤害、不耗体力
+    triggerParry(attacker, isMelee) {
         if (!attacker) return;
         const shieldData = this.getShieldData();
         const defense = shieldData?.defense || {};
 
         // 播放弹反音效
         this._playSound('assets/sounds/wood_thud_1s.wav');
+
+        // 只有近战攻击才施加眩晕、击退、打断冲刺
+        if (!isMelee) return;
 
         // 攻击者眩晕（基础时间 + 持盾防御技能加成）
         let stunDuration = defense.parryStun || 2000;

@@ -2,6 +2,158 @@
 
 ## 版本: 1.6
 
+## 技术回顾与清理（2026-07-13）
+
+### 审查范围
+对 2026-07-11 至 2026-07-13 的提交进行了渲染、碰撞/AI、地牢流程三个方向的并行审查，重点排查并行系统、冗余代码和潜在 bug。
+
+### 发现并修复的高优先级问题
+
+#### 1. 渲染层：地图模式下 Phaser 对象残留
+- **问题**：`GameScene.update()` 的地图模式分支只隐藏了玩家/武器/特效/地形/HUD，遗漏了敌人精灵组、中立实体（NPC/训练靶/传送门标签）和其他施法者特效（僵尸巫师的冰锥/火球）。
+- **修复**：在该分支追加隐藏 `this.enemies`、`this._neutralSprites`、`this._magicSprites`；非地图模式恢复显示。
+- **优化**：新增 `_mapModeActive` 缓存，避免每帧重复调用 `setBackgroundColor`。
+
+#### 2. 双重碰撞系统：玩家 Phaser collider 与 WallSystem
+- **问题**：`setupColliders()` 始终添加 `playerSprite-vs-walls` 的 Phaser collider，但默认模式下 `body.moves=false`，由 `WallSystem.resolve` 处理；若误开 `_useVelocityDrive` 会产生双重阻挡/抖动。
+- **修复**：仅在 `_useVelocityDrive === true` 时启用该 collider；`body.moves` 初始值与 `_useVelocityDrive` 同步。
+
+#### 3. 动态障碍图：每帧多次刷新
+- **问题**：`PathFinder.findPath()` 每次调用都执行 `dynamicObstacleMap.update()`，每个敌人寻路都会触发一次（内部有 250ms 节流，但仍属多余）。
+- **修复**：将刷新移到 `MovementSystem.update()`，每帧最多一次；`PathFinder` 不再主动刷新。
+
+#### 4. Mutant-3 连击突进无限累加
+- **问题**：五连击每次命中都向 `_comboLungeDx/Dy` 累加，目标后退时单次连击总突进可能远超预期。
+- **修复**：增加单次连击总突进上限 80px，命中时按剩余预算计算本次突进距离。
+
+#### 5. 投射物：阵营检查顺序与 piercing 语义
+- **问题**：友军免疫判断在 `hitTargets.has(entity)` 之后，逻辑顺序不当；`piercing < 0` 使 `piercing=1` 需要再命中一次才消失。
+- **修复**：将阵营检查提到最早 continue 条件；piercing 判定改为 `<= 0`。
+
+#### 6. 地牢流程 bug
+- **empty 节点截断路线**：点击 empty 节点后未更新 `currentNodeId`，导致无法继续向后续节点前进。已改为更新当前节点并揭示邻居。
+- **奖励节点卡死**：`_enterReward` 回调未标记节点完成/胜利，玩家领取奖励后卡住。已改为标记 `empty` 并调用 `_showVictory()`。
+- **女神祝福不消耗**：`_cleanupCombat()` 是 dead code，正常离开战斗的 `_leaveCombatViaPortal` / `_leaveBossViaPortal` 未调用 `onCombatComplete`。已提取 `_consumeCombatBuffs()` 并在三条离开路径调用。
+
+#### 7. 战斗房配置：`minWallDistance` 未读取
+- **问题**：`data/dungeon-config.json` 中的 `spawn.minWallDistance` 未被 `createCombatRoomConfig()` 读取，怪物生成时失效。
+- **修复**：在默认配置中增加 `minWallDistance: 0`，并从 JSON 读取覆盖。
+
+### 冗余清理
+
+#### 1. 移除废弃的默认地牢分支
+- `DungeonMapSystem.generateMap()` 中 `dungeonType` 分支已废弃（`expedition-system.js` 写死为 `'zombie'`）。
+- 删除 `_generateDefaultMap()` 方法、`DungeonMapGenerator` 导入，并将 `generateMap()` 简化为直接调用 `_generateZombieMap()`。
+
+#### 2. 移除僵尸地牢中的占位/死代码
+- 删除 `ZombieDungeonEvent` 占位类及其默认导出。
+- 删除 `DungeonMapSystem` 中的 `_enterShop()`（无 `shop` 节点调用）、`_enterLegacyEvent()`、`_showEventUI()`、`_showEntryConfirm()` 等死代码。
+- 移除不再使用的 `UIState`、`ShopSystem` 导入。
+
+#### 3. 归档一次性脚本
+- 将 `scripts/` 下的迁移/重构一次性脚本移入 `scripts/archive/`，保留可复用脚本（`backup.js`、`bump-version.js`、`copy-assets.js`、`diagnose-coordinates.js`、`fps-test-tool.js`）在根目录。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/combat/projectile.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/ai/pathfinder.js`
+- `src/systems/movement-system.js`
+- `src/world/combat-room-system.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/zombie-dungeon.js`
+- `scripts/archive/`（新增归档目录）
+
+### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+### 已完成的后续优化（2026-07-13 续）
+
+#### 1. 投射物 swept 检测
+- 在 `projectile.js` 中改为 `_isHittingEntity(entity, prevX, prevY)`：
+  - 矩形目标：将碰撞体按投射物 `size` 扩张后，检测线段是否穿过扩张矩形边或端点是否在内。
+  - 圆形/其他目标：计算前一点到当前点线段到圆心最近距离，并与扩张半径比较。
+- 新增 `_segmentsIntersect` 和 `_segmentPointDistance` 辅助函数。
+
+#### 2. `_tryUnstuck` 瞬移距离缩短
+- `MovementSystem._tryUnstuck` 的瞬移距离从固定 `30px` 改为 `Math.max(r * 1.5, 12)`，降低越过薄墙风险。
+
+#### 3. `RegionIndex` 8 方向 Flood Fill
+- `region-index.js` 的 Flood Fill 方向从 4 方向扩展为 8 方向，与 `PathFinder` 移动方向一致。
+
+#### 4. `PathFinder` 网格对象池
+- 在 `PathFinder` 构造函数中预分配 64×64 的格子对象池。
+- `_buildGrid` 在尺寸不超过池大小时复用对象，避免每帧为每个寻路敌人创建大量临时对象。
+
+#### 5. `NPCDialogue` 私有字段访问
+- 在 `npc-dialogue.js` 增加公开方法 `isActive()`。
+- `ZombieDungeonShop.isClosed()` 改用 `NPCDialogue.isActive()`。
+
+#### 6. 地形纹理同步时机
+- `GameScene.update()` 中移除每帧 `_syncTerrain()` 调用。
+- `GameScene` 新增公开 `syncTerrain()` 方法，在 `create()` 中调用一次。
+- `scene-manager.js` 各 `_loadSceneX()` 设置 `Renderer.terrainTexture` 后调用 `syncTerrain()`。
+- `combat-room-system.js` 生成战斗房地板后调用 `syncTerrain()`。
+
+### 新增地牢随机事件（待审核后接入）
+- 新增 `src/world/dungeon-event-definitions.js`，定义 10 个互不重复的地牢随机事件。
+- 每个事件至少 2 个选择分支，使用力量/敏捷/体质/智力/精神/幸运进行检定。
+- 通用处理器 `handleNewDungeonEvent` 支持属性检定、金币/药水/材料/特殊道具、伤害/恢复、战斗、揭示节点、临时 Buff 等结果。
+- 接入方式：在 `dungeon-event-system.js` 的 `eventWeights` 注册权重，并在 `handleChoice` 中增加 default 分支调用 `handleNewDungeonEvent`。
+
+### 仍待后续跟进
+- 新事件的临时 Buff 需要在 `DungeonBuffSystem.getAtkBonusPercent` 或战斗系统中纳入加成计算。
+- 新事件接入后需实机测试检定概率与奖励平衡。
+
+---
+
+## 阶段性进度总结（2026-07-13 续）
+
+### 本次完成：僵尸地牢地板/路线地图修复 + 精英判定/投射物/怪物机制收尾
+
+#### 一、僵尸地牢地板与背景
+1. **blackbrick 地板**：`CombatRoomSystem._generateTerrain()` 改为纯黑背景 + `blackbrick.png` 平铺地板（256×256 repeat），并在地板四周叠加 64px 黑→透明渐变，实现与纯黑背景的自然过渡。
+2. **贴图加载**：`BootScene.js` 已加载 `assets/terrain/blackbrick.png`；`GameScene._syncTerrain()` 直接使用 `Renderer.terrainTexture` 覆盖地形。
+3. **相机背景**：`GameScene` 在非地图模式保持 `setBackgroundColor('#000000')`，确保战斗/主场景外区域纯黑。
+
+#### 二、路线选择地图可见性修复
+1. **问题**：设置纯黑相机背景后，路线选择地图被 Phaser Canvas 黑色背景遮挡。
+2. **修复**：在 `GameScene.update()` 的地图模式分支中，将相机背景设为透明 `rgba(0,0,0,0)`，露出下方 `Renderer.canvas` 绘制的路线地图；战斗/非地图模式恢复纯黑。
+
+#### 三、起点路线数量修复
+1. **问题**：僵尸地牢起点只出现 2 条路线（第 1 列节点随机生成 2~4 个）。
+2. **修复**：`ZombieDungeonMapGenerator.generate()` 在节点数调整完成后，强制第 1 列包含所有行（`rows=4`），配合 `_buildEdges` 中“起点连接第 1 列所有节点”的逻辑，确保起点始终 4 条分支。
+
+#### 四、怪物与战斗机制收尾
+1. **Mutant-3 五连击突进**：判定距离放宽到 350，突进改为插帧平滑移动（500 px/s，每段最多 35px），带 `WallSystem.resolve` 撞墙校验，不再瞬移。
+2. **毒液僵尸投射物**：从头部射出，延迟到攻击动画第 12 帧发射；投射物碰撞与贴图大小统一为配置 `attack.width` 的 3 倍；`projectile.js` 对矩形碰撞体使用 AABB 相交判定。
+3. **NPC 立绘**：统一使用固定 `bottom` 像素定位，调整工具仅保留水平拖动；`npc-portrait-tool.js` 默认参数使用 `bottom`。
+4. **精英判定唯一来源**：以 `data/enemy-config.json` 的 `rank` 为唯一来源；`ZombieDungeonCombat` 怪物池按 `rank` 动态构建；`Enemy` 实例继承 `rank`/`type`/`category`。
+5. **主神空间清理**：移除主神空间的突变体-3 和毒液僵尸测试生成。
+6. **毒液僵尸 walking 贴图替换**，并新增独立 `spitter-zombie.js` 类管理延迟吐息。
+
+### 关键改动文件
+- `src/world/combat-room-system.js`
+- `src/world/zombie-dungeon.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/entities/enemy-types/spitter-zombie.js`
+- `src/entities/enemy.js`
+- `src/combat/projectile.js`
+- `src/ui/npc-portrait-tool.js`
+- `src/game.js`
+- `data/enemy-config.json`
+- `assets/terrain/blackbrick.png`（新增）
+- `assets/enemies/spitter_zombie/walking.png`（新增/替换）
+
+### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+---
+
 ## 阶段性进度总结（2026-07-13）
 
 ### 本次完成：AI 寻路优化 + 僵尸犬修复 + 图鉴修复 + 地牢事件与怪物碰撞优化

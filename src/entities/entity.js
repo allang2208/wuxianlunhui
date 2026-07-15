@@ -28,9 +28,18 @@ import { HexHitbox } from '../components/hitbox.js';
             
             /**
              * 获取碰撞形状（用于兼容现有系统）
-             * @returns {{type:string, data:Object}} 
+             * 优先使用显式设置的矩形碰撞体；没有矩形再回退到六边形/圆形。
+             * @returns {{type:string, radius:number, width?:number, height?:number}}
              */
             getCollisionShape() {
+                if (this.collisionShape === 'rect' && this.collisionWidth > 0 && this.collisionHeight > 0) {
+                    return {
+                        type: 'rect',
+                        width: this.collisionWidth,
+                        height: this.collisionHeight,
+                        radius: Math.max(this.collisionWidth, this.collisionHeight) / 2
+                    };
+                }
                 if (this.hitbox) {
                     return { type: 'hex', radius: this.hitbox.getApproxRadius() };
                 }

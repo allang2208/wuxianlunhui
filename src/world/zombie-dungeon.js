@@ -8,10 +8,10 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3 } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
-import { getElement } from '../utils/dom-utils.js';
+
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import enemyConfigData from '../../data/enemy-config.json';
@@ -72,7 +72,21 @@ function createZombieDog(x, y) {
 }
 
 function createSpitterZombie(x, y) {
-    return createZombieFromConfig('spitterZombie', x, y);
+    const cfg = enemyConfigData.spitterZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: spitterZombie');
+        return new SpitterZombie(x, y, { name: '毒液僵尸', hp: 150, maxHp: 150, size: 13, showWeapon: false });
+    }
+    return new SpitterZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
 }
 
 function createFatZombie(x, y) {
@@ -119,6 +133,18 @@ export function createMutant3(x, y) {
     return mutant;
 }
 
+// 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
+const ZOMBIE_FACTORY_MAP = {
+    zombie: createBasicZombie,
+    runnerZombie: createFastZombie,
+    zombieDog: createZombieDog,
+    armoredZombie: createArmoredZombie,
+    spitterZombie: createSpitterZombie,
+    fatZombie: createFatZombie,
+    zombieWizard: createZombieWizard,
+    mutant3: createMutant3
+};
+
 const ZOMBIE_DUNGEON_CONFIG = {
     name: '僵尸地牢',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
@@ -133,10 +159,20 @@ const ZOMBIE_DUNGEON_CONFIG = {
         elite: 0.20
     },
 
-    // 怪物池（按 tier 分类）—— 使用工厂函数或类引用
+    // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
+    // normal：普通僵尸、僵尸犬、装甲僵尸、毒液僵尸、肥僵尸
+    // elite：僵尸巫师、突变体-3
     monsterPool: {
-        normal: [createBasicZombie, createFastZombie, createZombieDog, createArmoredZombie, createSpitterZombie, createFatZombie],
-        elite: [createZombieWizard, createMutant3]
+        get normal() {
+            return Object.entries(enemyConfigData)
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank !== 'elite' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
+        },
+        get elite() {
+            return Object.entries(enemyConfigData)
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
+        }
     },
 
     // 地图尺寸（视觉范围，节点坐标由此推算）
@@ -226,6 +262,9 @@ export class ZombieDungeonMapGenerator {
 
         // 调整节点总数到目标区间
         this._adjustNodeCount(intermediateRowSets, rows, mainRow);
+
+        // 强制第 1 列（起点右侧）包含所有行，确保起点始终有 4 条分支
+        intermediateRowSets[0].selectedRows = Array.from({ length: rows }, (_, r) => r);
 
         for (const { col, selectedRows } of intermediateRowSets) {
             for (const row of selectedRows) {
@@ -490,6 +529,18 @@ export class ZombieDungeonCombat {
             }
         }
 
+        // 防御性兜底：精英战斗波次必须至少包含一只精英怪物，防止配置/池异常导致无精英
+        if (this._isElite && !classes.some(c => c.tier === 'elite')) {
+            const pool = monsterPool.elite || monsterPool.normal;
+            const eliteClass = pool[Math.floor(Math.random() * pool.length)];
+            if (classes.length > 0) {
+                const idx = Math.floor(Math.random() * classes.length);
+                classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
+            } else {
+                classes.push({ MonsterClass: eliteClass, tier: 'elite' });
+            }
+        }
+
         return classes;
     }
 
@@ -540,73 +591,7 @@ export class ZombieDungeonShop {
      * 检查商店是否关闭（用于地牢地图系统的轮询）
      */
     static isClosed() {
-        return !(NPCDialogue._active || UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant'));
-    }
-}
-
-// ==================== 随机事件占位符 ====================
-export class ZombieDungeonEvent {
-    /**
-     * 显示随机事件占位符UI
-     */
-    static show(callback) {
-        const overlay = document.createElement('div');
-        overlay.id = 'zombieDungeonEventOverlay';
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.80); z-index: 8000;
-            display: flex; align-items: center; justify-content: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
-
-        const panel = document.createElement('div');
-        panel.style.cssText = `
-            background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px;
-            padding: 35px; max-width: 520px; width: 90%; color: #d4c5a9;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-        `;
-
-        const title = document.createElement('h3');
-        title.textContent = '神秘事件';
-        title.style.cssText = 'margin: 0 0 18px 0; color: #e8c878; font-size: 24px; text-align: center;';
-
-        const text = document.createElement('p');
-        text.textContent = '你在阴暗的走廊中发现了一些奇怪的痕迹，但暂时无法判断发生了什么。这里似乎曾经发生过某些事情……';
-        text.style.cssText = 'margin: 0 0 28px 0; line-height: 1.7; font-size: 16px; text-align: center;';
-
-        const placeholder = document.createElement('p');
-        placeholder.textContent = '【随机事件系统开发中】';
-        placeholder.style.cssText = 'margin: 0 0 20px 0; color: #8a7a6a; font-size: 14px; text-align: center; font-style: italic;';
-
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;';
-
-        const btn = document.createElement('button');
-        btn.textContent = '继续探索';
-        btn.style.cssText = `
-            padding: 12px 32px; background: #3a4530; border: 1px solid #5a6a4a;
-            color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;
-            transition: background 0.15s;
-        `;
-        btn.onmouseenter = () => btn.style.background = '#4a5540';
-        btn.onmouseleave = () => btn.style.background = '#3a4530';
-        btn.onclick = () => {
-            overlay.remove();
-            if (callback) callback();
-        };
-        btnRow.appendChild(btn);
-
-        panel.appendChild(title);
-        panel.appendChild(text);
-        panel.appendChild(placeholder);
-        panel.appendChild(btnRow);
-        overlay.appendChild(panel);
-        document.body.appendChild(overlay);
-    }
-
-    static cleanup() {
-        const overlay = getElement('zombieDungeonEventOverlay');
-        if (overlay) overlay.remove();
+        return !(NPCDialogue.isActive() || UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant'));
     }
 }
 
@@ -618,6 +603,5 @@ export default {
     config: ZOMBIE_DUNGEON_CONFIG,
     MapGenerator: ZombieDungeonMapGenerator,
     Combat: ZombieDungeonCombat,
-    Shop: ZombieDungeonShop,
-    Event: ZombieDungeonEvent
+    Shop: ZombieDungeonShop
 };

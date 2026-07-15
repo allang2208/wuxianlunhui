@@ -403,6 +403,8 @@ export class ZombieWizard extends Enemy {
         }
         const options = {
             spriteSize: 120,
+            collisionWidth: 30,
+            collisionHeight: 90,
             textOffsetY: -70,
             flipX,
             animState: this._animState,
