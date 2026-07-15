@@ -27,7 +27,7 @@ class Player extends Combatant {
   constructor(x, y) {
     super(x, y);
             const defs = PLAYER_DEFAULTS;
-            this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = defs.physics.collisionRadius; this.initHitbox(defs.physics.hitboxRadius, defs.physics.hitboxMultipliers); this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = defs.physics.accel; this.friction = defs.physics.friction; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = defs.combat.hitFlashDuration; this._facingDir = 'down';
+            this.size = CONFIG.PLAYER_SIZE; this.collisionRadius = defs.physics.collisionRadius; this.speed = CONFIG.PLAYER_SPEED; this.maxSpeed = CONFIG.PLAYER_SPEED; this.accel = defs.physics.accel; this.friction = defs.physics.friction; this.animTime = 0; this.isMoving = false; this.hittable = true; this._isDead = false; this._deathTimer = 0; this.hitFlash = 0; this.hitFlashDuration = defs.combat.hitFlashDuration; this._facingDir = 'down';
             // 玩家受击/碰撞体积：由配置驱动的矩形，避免硬编码
             this.collisionShape = 'rect';
             this.collisionWidth = defs.physics.collisionWidth;
@@ -156,8 +156,8 @@ class Player extends Combatant {
             this._poisonEffect = new PoisonEffect(); // 中毒绿色粒子效果
             this._ammoDisplayEl = null;
             this._initAmmoDisplay();
-            this._usePhaserSprite = false;
-            this._usePhaserWeapon = false;
+            this._usePhaserSprite = true;
+            this._usePhaserWeapon = true;
             this._droneVulnerabilityStacks = 0;
             this._droneVulnerabilityTimer = 0;
             this.calculateCombatStats();

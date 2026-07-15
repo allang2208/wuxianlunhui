@@ -27,6 +27,12 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
+// 僵尸地牢地板贴图键（3 张图等概率，4 方向旋转，相邻不重复）
+const FLOOR_TEXTURE_KEYS = ['blackbrick', 'blackbrick2', 'blackbrick3'];
+const FLOOR_TILE_SIZE = 256;
+// 将三张略有偏色的贴图统一为灰黑色（null = 保留原图；填写颜色则统一色调）
+const FLOOR_TINT_COLOR = '#333333';
+
 // ==================== 配置对象 ====================
 export const COMBAT_ROOM_CONFIG = {
     // 场地大小范围（正方形）
@@ -233,7 +239,9 @@ export const CombatRoomSystem = {
             const mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
             const my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
 
-            const MonsterClass = monsterClasses[Math.floor(Math.random() * monsterClasses.length)];
+            const MonsterClass = customClasses
+                ? monsterClasses[i % monsterClasses.length]
+                : monsterClasses[Math.floor(Math.random() * monsterClasses.length)];
             let monster;
 
             try {
@@ -465,7 +473,8 @@ export const CombatRoomSystem = {
     },
 
     _generateTerrain(size) {
-        // 使用 blackbrick.png 平铺战斗场地地板，背景纯黑，边缘做渐变过渡
+        // 使用 blackbrick / blackbrick2 / blackbrick3 三张图随机平铺战斗场地
+        // 相邻地块贴图不同，每张地块随机 4 个朝向；墙壁与地板一起烘焙到同一张贴图
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
@@ -475,64 +484,95 @@ export const CombatRoomSystem = {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, size, size);
 
-        // 2. 获取 blackbrick 贴图（从 Phaser 已加载纹理中读取）
+        // 2. 获取三种 blackbrick 贴图
         const scene = (typeof window !== 'undefined' && window.__phaserScene) ? window.__phaserScene : null;
-        const texture = scene && scene.textures && scene.textures.exists('blackbrick') ? scene.textures.get('blackbrick') : null;
-        const source = texture ? texture.getSourceImage() : null;
+        const sources = FLOOR_TEXTURE_KEYS.map(key => {
+            if (!scene || !scene.textures || !scene.textures.exists(key)) return null;
+            const tex = scene.textures.get(key);
+            const img = tex ? tex.getSourceImage() : null;
+            return (img && img.width > 0 && img.height > 0) ? img : null;
+        });
+        const allLoaded = sources.every(s => s);
 
-        if (source && source.width > 0 && source.height > 0) {
-            const tileSize = 256;
-            const margin = this.config.walls.margin;
-            const floorMin = margin;
-            const floorMax = size - margin;
-            const floorW = floorMax - floorMin;
-            const floorH = floorMax - floorMin;
+        if (allLoaded) {
+            const tileSize = FLOOR_TILE_SIZE;
+            const cols = Math.ceil(size / tileSize);
+            const rows = Math.ceil(size / tileSize);
 
-            // 将 blackbrick 缩放到 256×256 后创建重复 pattern
-            const patternCanvas = document.createElement('canvas');
-            patternCanvas.width = tileSize;
-            patternCanvas.height = tileSize;
-            const pctx = patternCanvas.getContext('2d');
-            pctx.drawImage(source, 0, 0, tileSize, tileSize);
+            // 生成贴图/旋转网格：相邻（上、左）贴图不能相同
+            const textureGrid = Array.from({ length: rows }, () => []);
+            const rotationGrid = Array.from({ length: rows }, () => []);
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const top = r > 0 ? textureGrid[r - 1][c] : null;
+                    const left = c > 0 ? textureGrid[r][c - 1] : null;
+                    const candidates = FLOOR_TEXTURE_KEYS.filter(k => k !== top && k !== left);
+                    textureGrid[r][c] = candidates[Math.floor(Math.random() * candidates.length)];
+                    rotationGrid[r][c] = Math.floor(Math.random() * 4); // 0/1/2/3 × 90°
+                }
+            }
 
-            const pattern = ctx.createPattern(patternCanvas, 'repeat');
-            ctx.fillStyle = pattern;
-            ctx.fillRect(floorMin, floorMin, floorW, floorH);
+            // 绘制地块
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, size, size);
+            ctx.clip();
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const sx = c * tileSize;
+                    const sy = r * tileSize;
+                    const cx = sx + tileSize / 2;
+                    const cy = sy + tileSize / 2;
+                    const keyIdx = FLOOR_TEXTURE_KEYS.indexOf(textureGrid[r][c]);
+                    const source = sources[keyIdx];
+                    const rot = rotationGrid[r][c];
 
-            // 3. 边缘过渡：在地板四周叠加黑->透明的渐变，实现与纯黑背景的融合
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate((rot * Math.PI) / 2);
+                    ctx.drawImage(source, -tileSize / 2, -tileSize / 2, tileSize, tileSize);
+                    if (FLOOR_TINT_COLOR) {
+                        // 使用 'color' 合成：保留原图明暗，只替换色相/饱和度，统一为灰黑色
+                        ctx.globalCompositeOperation = 'color';
+                        ctx.fillStyle = FLOOR_TINT_COLOR;
+                        ctx.fillRect(-tileSize / 2, -tileSize / 2, tileSize, tileSize);
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+                    ctx.restore();
+                }
+            }
+            ctx.restore();
+
+            // 3. 边缘过渡：在场地四周叠加黑->透明的渐变，与纯黑背景融合
             const fade = 64;
             let grad;
 
-            // 上
-            grad = ctx.createLinearGradient(0, floorMin, 0, floorMin + fade);
+            grad = ctx.createLinearGradient(0, 0, 0, fade);
             grad.addColorStop(0, 'rgba(0,0,0,1)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
-            ctx.fillRect(floorMin, floorMin, floorW, fade);
+            ctx.fillRect(0, 0, size, fade);
 
-            // 下
-            grad = ctx.createLinearGradient(0, floorMax - fade, 0, floorMax);
+            grad = ctx.createLinearGradient(0, size - fade, 0, size);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(1, 'rgba(0,0,0,1)');
             ctx.fillStyle = grad;
-            ctx.fillRect(floorMin, floorMax - fade, floorW, fade);
+            ctx.fillRect(0, size - fade, size, fade);
 
-            // 左
-            grad = ctx.createLinearGradient(floorMin, 0, floorMin + fade, 0);
+            grad = ctx.createLinearGradient(0, 0, fade, 0);
             grad.addColorStop(0, 'rgba(0,0,0,1)');
             grad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grad;
-            ctx.fillRect(floorMin, floorMin, fade, floorH);
+            ctx.fillRect(0, 0, fade, size);
 
-            // 右
-            grad = ctx.createLinearGradient(floorMax - fade, 0, floorMax, 0);
+            grad = ctx.createLinearGradient(size - fade, 0, size, 0);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(1, 'rgba(0,0,0,1)');
             ctx.fillStyle = grad;
-            ctx.fillRect(floorMax - fade, floorMin, fade, floorH);
+            ctx.fillRect(size - fade, 0, fade, size);
         } else {
-            // 贴图未加载时回退到旧版网格地板
-            console.warn('[CombatRoomSystem] blackbrick 贴图未加载，使用回退网格地板');
+            // 贴图未全部加载时回退到旧版网格地板
+            console.warn('[CombatRoomSystem] blackbrick 系列贴图未全部加载，使用回退网格地板');
             const tc = this.config.terrain;
             ctx.fillStyle = tc.floorColor;
             ctx.fillRect(0, 0, size, size);
@@ -549,18 +589,18 @@ export const CombatRoomSystem = {
             ctx.strokeRect(0, 0, size, size);
         }
 
+        // 更新世界尺寸（必须先设置，否则 syncTerrain 会用旧尺寸生成绿色默认地形）
+        if (CONFIG) {
+            CONFIG.WORLD_WIDTH = size;
+            CONFIG.WORLD_HEIGHT = size;
+        }
+
         // 应用到渲染器
         if (Renderer) {
             Renderer.terrainTexture = canvas;
         }
         if (window.__phaserScene) {
             window.__phaserScene.syncTerrain();
-        }
-
-        // 更新世界尺寸
-        if (CONFIG) {
-            CONFIG.WORLD_WIDTH = size;
-            CONFIG.WORLD_HEIGHT = size;
         }
     },
 
@@ -578,9 +618,15 @@ export const CombatRoomSystem = {
         ];
         WallSystem.trees = []; // 清空树木
 
-        // 同步到 Phaser
+        // 同步到 Phaser（保留碰撞体）
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
+        }
+
+        // 战斗房墙壁已烘焙进地形贴图，清除默认 2.5D 墙体贴图避免错位
+        const phaserScene = window.__phaserScene;
+        if (phaserScene && phaserScene.visualWalls) {
+            phaserScene.visualWalls.clear(true, true);
         }
     },
 

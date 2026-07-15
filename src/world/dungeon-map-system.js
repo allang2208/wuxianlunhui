@@ -203,6 +203,12 @@ export const DungeonMapSystem = {
         // 清空携带的祭品，确保祭品效果只在当前地牢有效
         this._carriedItems = [];
 
+        // 重新计算玩家属性，移除祭品带来的临时加成
+        const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
+        if (player && typeof player.calculateCombatStats === 'function') {
+            player.calculateCombatStats();
+        }
+
         // 清理地牢事件系统
         import('./dungeon-event-system.js').then(mod => {
             if (mod.onDungeonEnd) mod.onDungeonEnd(this.player);
@@ -712,25 +718,27 @@ export const DungeonMapSystem = {
         this._eliteChest = null;
         this._eliteChestOpened = false;
 
+        const combatOptions = node.isElite ? { roomSize: 2048 } : {};
+
         if (this.dungeonType === 'zombie') {
-            this._enterZombieCombat(node);
+            this._enterZombieCombat(node, combatOptions);
             return;
         }
 
         // 使用 CombatRoomSystem 生成随机战斗场地
-        CombatRoomSystem.enterCombatRoom(this.player, false);
+        CombatRoomSystem.enterCombatRoom(this.player, false, combatOptions);
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "进入战斗！消灭所有敌人", "#ff4444"));
     },
 
-    _enterZombieCombat(node) {
+    _enterZombieCombat(node, options = {}) {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite);
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
-        CombatRoomSystem.enterCombatRoom(this.player, false);
+        CombatRoomSystem.enterCombatRoom(this.player, false, options);
         this._spawnZombieWave();
     },
 
@@ -914,6 +922,7 @@ export const DungeonMapSystem = {
         import('./dungeon-event-system.js').then(mod => {
             mod.DungeonEventSystem.trigger(this.player, (result) => {
                 if (result && result.combat) {
+                    if (result.elite) node.isElite = true;
                     this._enterCombat(node);
                 } else {
                     const isTrap = result && result.eventType === 'trap';

@@ -9,14 +9,13 @@ import { CraftSystem } from './craft-system.js';
 import { EnchantSystem } from './enchant-system.js';
 import { QuestSystem, QuestState } from './quest-system.js';
 import { SystemUI } from './system-ui.js';
+import { TypewriterText } from './typewriter-text.js';
 
 const NPCDialogue = {
     _active: false,
     _currentNPC: null,
     _currentText: '',
-    _displayedText: '',
-    _charIndex: 0,
-    _typewriterSpeed: 40, // 每字符间隔 ms
+    _typewriter: null,
     _dialogueMode: 'npc', // 'player' 或 'npc'
     _dialogueQueue: [], // 对话队列
     _dialogueIndex: 0, // 当前对话索引
@@ -26,7 +25,6 @@ const NPCDialogue = {
     open(npc) {
         this._active = true;
         this._currentNPC = npc;
-        this._displayedText = '';
 
         const dialogueBox = getElement('npcDialogueBox');
         const dialogueText = getElement('npcDialogueText');
@@ -38,6 +36,9 @@ const NPCDialogue = {
             dialogueBox.classList.add('active');
         }
         if (dialogueText) dialogueText.textContent = '';
+        if (dialogueText && !this._typewriter) {
+            this._typewriter = new TypewriterText(dialogueText, { highlight: '不能再进行更改' });
+        }
         if (npcPortrait) {
             npcPortrait.src = npc.portrait;
             // 设置当前 NPC ID 到立绘工具，供 toggle 使用
@@ -73,9 +74,8 @@ const NPCDialogue = {
             this._dialogueMode = 'npc';
             this._isInPostQuestDialogue = false;
             this._currentText = npc.getRandomGreeting();
-            this._charIndex = 0;
-            this._lastCharTime = Date.now();
             this._optionsVisible = true;
+            if (this._typewriter) this._typewriter.setText(this._currentText);
 
             if (npcPortrait) npcPortrait.style.display = 'block';
             if (dialogueOptions) {
@@ -186,9 +186,8 @@ const NPCDialogue = {
             return;
         }
         this._dialogueMode = entry.speaker;
-        this._currentText = entry.text;
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
+        const prefix = entry.speaker === 'player' ? '玩家：' : '小鼠侍从：';
+        this._currentText = prefix + entry.text;
 
         // 控制立绘显示/隐藏
         const npcPortrait = getElement('npcPortrait');
@@ -196,9 +195,7 @@ const NPCDialogue = {
             npcPortrait.style.display = entry.speaker === 'npc' ? 'block' : 'none';
         }
 
-        // 更新文本前缀
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
     },
 
     // 对话是否处于打开状态（供外部系统查询，避免直接访问 _active）
@@ -210,6 +207,10 @@ const NPCDialogue = {
     close() {
         this._active = false;
         this._currentNPC = null;
+        if (this._typewriter) {
+            this._typewriter.destroy();
+            this._typewriter = null;
+        }
         // 关闭所有子页面
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
@@ -283,65 +284,16 @@ const NPCDialogue = {
     // 逐字更新
     update() {
         if (!this._active) return;
-        const dialogueText = getElement('npcDialogueText');
-        if (!dialogueText) return;
-
-        if (this._charIndex < this._currentText.length) {
-            const now = Date.now();
-            if (now - this._lastCharTime >= this._typewriterSpeed) {
-                this._charIndex++;
-                this._lastCharTime = now;
-            }
-        }
-
-        const raw = this._currentText.substring(0, this._charIndex);
-
-        if (this._isInPostQuestDialogue) {
-            const prefix = this._dialogueMode === 'player' ? '玩家：' : '小鼠侍从：';
-            dialogueText.textContent = prefix + raw;
-        } else {
-            const highlight = '不能再进行更改';
-            const idx = raw.indexOf(highlight);
-            if (idx !== -1) {
-                const before = raw.substring(0, idx);
-                const after = raw.substring(idx + highlight.length);
-                const newHTML = before + '<span class="red-bold-shake">' + highlight + '</span>' + after;
-                if (dialogueText.innerHTML !== newHTML) {
-                    dialogueText.innerHTML = newHTML;
-                }
-            } else {
-                if (dialogueText.textContent !== raw) {
-                    dialogueText.textContent = raw;
-                }
-            }
-        }
+        if (this._typewriter) this._typewriter.update();
     },
 
     // 跳过逐字动画（点击时）
     skip() {
         if (!this._active) return;
 
-        if (this._charIndex < this._currentText.length) {
+        if (this._typewriter && !this._typewriter.isComplete()) {
             // 当前文本还没完全显示，瞬间显示全部
-            this._charIndex = this._currentText.length;
-            this._displayedText = this._currentText;
-            const dialogueText = getElement('npcDialogueText');
-            if (dialogueText) {
-                if (this._isInPostQuestDialogue) {
-                    const prefix = this._dialogueMode === 'player' ? '玩家：' : '小鼠侍从：';
-                    dialogueText.textContent = prefix + this._currentText;
-                } else {
-                    const highlight = '不能再进行更改';
-                    const idx = this._currentText.indexOf(highlight);
-                    if (idx !== -1) {
-                        const before = this._currentText.substring(0, idx);
-                        const after = this._currentText.substring(idx + highlight.length);
-                        dialogueText.innerHTML = before + '<span class="red-bold-shake">' + highlight + '</span>' + after;
-                    } else {
-                        dialogueText.textContent = this._currentText;
-                    }
-                }
-            }
+            this._typewriter.skip();
         } else if (this._isInPostQuestDialogue) {
             // 当前文本已完全显示，跳到下一句
             this._dialogueIndex++;
@@ -359,20 +311,12 @@ const NPCDialogue = {
 
     showInfo() {
         this._currentText = '关于各个世界的信息正在收集中……目前可以告诉您的是，时空裂隙的出现频率越来越高，请务必小心。';
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
     },
 
     showHelp() {
         this._currentText = '帮助功能正在开发中，敬请期待。您可以先尝试接受任务前往其他世界探险。';
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
     },
 
     teleportToQuest() {
@@ -380,11 +324,7 @@ const NPCDialogue = {
         const quest = QuestSystem.QUESTS['explore_rift_1'];
         if (!quest || !quest.accepted) {
             this._currentText = '您还没有接受任务，请先点击"📜 开始任务"按钮接受任务。';
-            this._displayedText = '';
-            this._charIndex = 0;
-            this._lastCharTime = Date.now();
-            const dialogueText = getElement('npcDialogueText');
-            if (dialogueText) dialogueText.textContent = '';
+                if (this._typewriter) this._typewriter.setText(this._currentText);
             return;
         }
         QuestState.startQuest(quest.scene, 'quest');
@@ -400,11 +340,7 @@ const NPCDialogue = {
         
         // 恢复随机问候语
         this._currentText = npc.getRandomGreeting();
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
         
         ShopSystem.open(npc);
     },
@@ -419,11 +355,7 @@ const NPCDialogue = {
         
         // 显示强化提示
         this._currentText = '改造可以强化武器基础伤害，同时也会强化人物属性的影响数值，改造完后不可退回。';
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
@@ -441,11 +373,7 @@ const NPCDialogue = {
         
         // 清除当前对话并显示改造提示
         this._currentText = '因为神秘力量，改造完装备之后，可以使装备获得一些特殊的能力，就不能再进行更改，请慎重选择。';
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';
@@ -463,11 +391,7 @@ const NPCDialogue = {
         
         // 显示附魔提示
         this._currentText = '附魔可以为你的装备注入神秘力量，但需要消耗魔法晶尘。请放入装备和附魔卷轴，我会为你进行附魔。';
-        this._displayedText = '';
-        this._charIndex = 0;
-        this._lastCharTime = Date.now();
-        const dialogueText = getElement('npcDialogueText');
-        if (dialogueText) dialogueText.textContent = '';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';

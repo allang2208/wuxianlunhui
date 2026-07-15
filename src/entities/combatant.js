@@ -119,8 +119,8 @@ class Combatant extends DamageableEntity {
         this._droneVulnerabilityStacks = 0;
         this._droneVulnerabilityTimer = 0;
 
-        // ===== 计算初始战斗属性 =====
-        this.calculateCombatStats();
+        // 注：子类（Player / Enemy）会在设置完真实属性后自行调用 calculateCombatStats()，
+        // 基类不再提前计算，避免重复调用和默认值覆盖。
     }
 
     // ==================== 装备/武器接口 ====================
@@ -541,20 +541,8 @@ class Combatant extends DamageableEntity {
 
     // ==================== 战斗属性 ====================
 
-    /** 计算战斗属性（默认：基于六维属性，子类可覆盖） */
-    calculateCombatStats() {
-        const d = this.data;
-        d.atk = Math.round(10 + d.str * 0.05 + d.dex * 0.1);
-        d.def = Math.floor(d.con * 1.2 + d.str * 0.3);
-        d.matk = Math.round(10 + d.int * 1.5 + d.wis * 0.5);
-        d.mdef = Math.floor(d.wis * 1.2 + d.int * 0.3);
-        d.hit = Math.round(d.dex * 0.5);
-        d.dodge = Math.round(d.dex * 0.3);
-        d.crit = Math.round(d.luck * 1.0);
-        d.critRes = Math.round(d.con * 1.0);
-        d.aspd = Math.round(d.dex * 0.02);
-        d.speed = this.maxSpeed || 0;
-    }
+    // 注：calculateCombatStats() 由子类（Player / Enemy）各自实现，
+    // 基类不再提供默认实现，避免公式分散和重复计算。
 
     /** 获取当前武器攻击力 */
     getCurrentWeaponAtk(itemOverride) {

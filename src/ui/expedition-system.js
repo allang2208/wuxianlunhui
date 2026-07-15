@@ -26,6 +26,11 @@ export const ExpeditionSystem = {
         this._carriedItems = new Array(this.CAPACITY).fill(null);
         this.selectedDungeon = 'zombie'; // 只保留僵尸地牢
 
+        // 打开面板时刷新玩家属性，确保没有残留祭品加成
+        if (player && typeof player.calculateCombatStats === 'function') {
+            player.calculateCombatStats();
+        }
+
         // 先打开背包（如果还没打开）
         if (SystemUI) {
             SystemUI.open('equip');
@@ -574,6 +579,7 @@ export const ExpeditionSystem = {
         if (panel) panel.classList.remove('active');
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
+        UIState.close('expedition');
 
         // 清空出征数据（物品已确认带走）
         this._carriedItems = new Array(this.CAPACITY).fill(null);

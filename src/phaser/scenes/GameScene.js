@@ -533,13 +533,16 @@ export class GameScene extends Scene {
         if (!body) return;
         body.setGravity(0, 0);
         const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
-        const spriteSize = options.spriteSize || (enemy.size || 14) * 4;
+        // 新规则：优先使用 enemy.config.render 里的显示/碰撞尺寸（由精灵图分析脚本生成），
+        // 其次回退到 _getPhaserOptions 硬编码值，最后按 size*4 兜底。
+        const renderCfg = enemy.config?.render || {};
+        const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
         sprite.setDisplaySize(spriteSize, spriteSize);
         sprite.setOrigin(0.5, 0.5);
 
-        // 设置逻辑碰撞体积为矩形；敌人可通过 options.collisionWidth/Height 覆盖，否则默认与 spriteSize 一致
-        const collisionWidth = options.collisionWidth || spriteSize;
-        const collisionHeight = options.collisionHeight || spriteSize;
+        // 设置逻辑碰撞体积为矩形；优先级：options > config.render > size*4
+        const collisionWidth = options.collisionWidth || renderCfg.collisionWidth || spriteSize;
+        const collisionHeight = options.collisionHeight || renderCfg.collisionHeight || spriteSize;
         enemy.collisionShape = 'rect';
         enemy.collisionWidth = collisionWidth;
         enemy.collisionHeight = collisionHeight;

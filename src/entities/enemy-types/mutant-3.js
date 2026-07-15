@@ -528,8 +528,8 @@ export class Mutant3 extends Enemy {
     }
 
     _getPounceDamage() {
-        const base = this.data.atk || this.data.str || 20;
-        return Math.floor(base * 2.5);
+        // 飞扑只造成一次等于其物理攻击的伤害
+        return this.data.atk || this.data.str || 20;
     }
 
     _spawnPounceGhost() {

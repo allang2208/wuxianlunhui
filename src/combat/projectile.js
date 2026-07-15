@@ -72,11 +72,13 @@ import { DamagePipeline } from './damage-pipeline.js';
             _isHittingEntity(entity, prevX, prevY) {
                 if (!entity || !entity.active) return false;
                 const usePrev = prevX !== undefined && prevY !== undefined;
+                // 投射物命中边界：用 size/2 作为半径扩展，避免过大的视觉投射物把命中框撑得比实际大一圈
+                const hitMargin = this.size / 2;
                 if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
-                    const eminX = entity.x - entity.collisionWidth / 2 - this.size;
-                    const emaxX = entity.x + entity.collisionWidth / 2 + this.size;
-                    const eminY = entity.y - entity.collisionHeight / 2 - this.size;
-                    const emaxY = entity.y + entity.collisionHeight / 2 + this.size;
+                    const eminX = entity.x - entity.collisionWidth / 2 - hitMargin;
+                    const emaxX = entity.x + entity.collisionWidth / 2 + hitMargin;
+                    const eminY = entity.y - entity.collisionHeight / 2 - hitMargin;
+                    const emaxY = entity.y + entity.collisionHeight / 2 + hitMargin;
                     // 当前点命中
                     if (this.x >= eminX && this.x <= emaxX && this.y >= eminY && this.y <= emaxY) return true;
                     if (usePrev) {
@@ -92,8 +94,8 @@ import { DamagePipeline } from './damage-pipeline.js';
                     }
                     return false;
                 }
-                // 圆形/其他：扩张半径 = collisionRadius + projectile size
-                const expandedR = (entity.collisionRadius || entity.size * 0.6 || 10) + this.size;
+                // 圆形/其他：扩张半径 = collisionRadius + projectile hit margin
+                const expandedR = (entity.collisionRadius || entity.size * 0.6 || 10) + hitMargin;
                 const distToCenter = usePrev
                     ? this._segmentPointDistance(prevX, prevY, this.x, this.y, entity.x, entity.y)
                     : Math.hypot(this.x - entity.x, this.y - entity.y);

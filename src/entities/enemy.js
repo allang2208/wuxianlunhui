@@ -21,6 +21,8 @@ import { loadImage } from '../utils/image-loader.js';
                 const size = config.size ?? defaults.size ?? 14;
                 const name = config.name ?? defaults.name ?? '测试敌人';
                 super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
+                // 保存原始配置，供渲染/碰撞体系统读取
+                this.config = config;
                 this.id = config.id || this.name;
                 // 统一使用配置中的 rank 作为唯一精英/普通判定来源
                 this.rank = config.rank || 'normal';
@@ -571,21 +573,20 @@ import { loadImage } from '../utils/image-loader.js';
                 }
                 return { textOffsetY: -32, flipX: flipX };
             }
-            // 新增：计算战斗属性（使用与主角相同的公式）
+            // 计算怪物战斗属性（唯一入口）
             calculateCombatStats() {
                 const d = this.data;
                 const formulas = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
 
                 const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 5 };
-                const atkFormula = formulas.attack || { base: 10, strMultiplier: 0.05, dexMultiplier: 0.1, round: true };
-                atkFormula.base = atkFormula.base ?? 10;
-                const defFormula = formulas.defense || { conMultiplier: 1.2, strMultiplier: 0.3, round: 'floor' };
-                const matkFormula = formulas.magicAttack || { intMultiplier: 1.5, wisMultiplier: 0.5, round: 'floor' };
+                const atkFormula = formulas.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true };
+                atkFormula.base = atkFormula.base ?? 0;
+                const defFormula = formulas.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' };
+                const matkFormula = formulas.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' };
+                matkFormula.base = matkFormula.base ?? 0;
                 const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
                 const hitFormula = formulas.hit || { base: 80, dexMultiplier: 0.5, round: 'floor' };
-                const dodgeFormula = formulas.dodge || { base: 5, dexMultiplier: 0.3, round: 'floor' };
                 const critFormula = formulas.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
-                const aspdFormula = formulas.attackSpeed || { base: 1.0, dexMultiplier: 0.02 };
                 const critResFormula = formulas.critResist || { conMultiplier: 1.0, round: 'floor' };
                 const levelFormula = formulas.level || { base: 1, strMultiplier: 0.05, conMultiplier: 0.06, dexMultiplier: 0.04, intMultiplier: 0.02, wisMultiplier: 0.015, luckMultiplier: 0.015, round: 'floor' };
 
@@ -595,12 +596,10 @@ import { loadImage } from '../utils/image-loader.js';
                     ? Math.round(atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier)
                     : atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier;
                 d.def = this._applyRounding(d.con * defFormula.conMultiplier + d.str * defFormula.strMultiplier, defFormula.round);
-                d.matk = this._applyRounding(d.int * matkFormula.intMultiplier + d.wis * matkFormula.wisMultiplier, matkFormula.round);
+                d.matk = this._applyRounding(matkFormula.base + d.int * matkFormula.intMultiplier + d.wis * matkFormula.wisMultiplier, matkFormula.round);
                 d.mdef = this._applyRounding(d.wis * mdefFormula.wisMultiplier + d.int * mdefFormula.intMultiplier, mdefFormula.round);
                 d.hit = this._applyRounding(hitFormula.base + d.dex * hitFormula.dexMultiplier, hitFormula.round);
-                d.dodge = this._applyRounding(dodgeFormula.base + d.dex * dodgeFormula.dexMultiplier, dodgeFormula.round);
                 d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
-                d.aspd = aspdFormula.base + d.dex * aspdFormula.dexMultiplier;
                 d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
                 d.level = this._applyRounding(
                     levelFormula.base
@@ -628,15 +627,17 @@ import { loadImage } from '../utils/image-loader.js';
                 const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
                 return formula.base + (this.level || 1) * formula.levelMultiplier;
             }
-            // 新增：获取当前武器攻击力（供攻击系统使用）
-            // [FIX] 优先使用 enemy-config.json 中配置的 damageMin/damageMax，
-            // 确保实际伤害与图鉴显示一致，避免被 STR/DEX 公式二次计算。
+            // 获取当前武器/普攻攻击力：
+            // - 普通怪物（近战/远程物理）= 面板物理攻击 data.atk
+            // - 特殊魔法普攻（毒液僵尸、僵尸巫师等 damageType 为 magic）= 面板魔法攻击 data.matk
             getCurrentWeaponAtk() {
+                const d = this.data;
+                if (!d) return 0;
                 const attack = this.attacks && (this.attacks.melee || this.attacks.ranged);
-                if (attack && attack.config && attack.config.damage) {
-                    return Math.floor((attack.config.damage.min + attack.config.damage.max) / 2);
+                if (attack && attack.config && attack.config.damageType === 'magic') {
+                    return d.matk;
                 }
-                return this.data ? this.data.atk : 0;
+                return d.atk;
             }
             // 攻击命中回调：供毒伤等效果使用
             _onHitEntity(target) {

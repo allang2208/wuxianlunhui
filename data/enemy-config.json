@@ -30,8 +30,6 @@
       "cooldown": 1000,
       "dynamicRange": 160,
       "width": 18,
-      "damageMin": 13,
-      "damageMax": 22,
       "knockback": 13
     },
     "type": "普通",
@@ -39,7 +37,12 @@
     "family": null,
     "description": "",
     "skills": [],
-    "attackType": "撕咬"
+    "attackType": "撕咬",
+    "render": {
+      "spriteSize": 151,
+      "collisionWidth": 133,
+      "collisionHeight": 78
+    }
   },
   "redWolfKing": {
     "id": "redWolfKing",
@@ -72,8 +75,6 @@
       "cooldown": 2000,
       "dynamicRange": 240,
       "width": 22,
-      "damageMin": 20,
-      "damageMax": 33,
       "knockback": 20
     },
     "transform": {
@@ -116,8 +117,6 @@
       "cooldown": 1200,
       "dynamicRange": 120,
       "width": 25,
-      "damageMin": 8,
-      "damageMax": 15,
       "knockback": 10
     },
     "type": "普通",
@@ -157,8 +156,6 @@
       "cooldown": 600,
       "dynamicRange": 70,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 5
     }
   },
@@ -192,8 +189,6 @@
       "cooldown": 1500,
       "dynamicRange": 100,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 5,
       "crippleDuration": 3000
     },
@@ -207,7 +202,12 @@
         "desc": "命中后使目标致残，移动速度降低50%，持续3秒"
       }
     ],
-    "attackType": "骨爪撕咬"
+    "attackType": "骨爪撕咬",
+    "render": {
+      "spriteSize": 90,
+      "collisionWidth": 80,
+      "collisionHeight": 79
+    }
   },
   "zombie": {
     "id": "zombie",
@@ -237,8 +237,6 @@
       "cooldown": 800,
       "dynamicRange": 90,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 10
     },
     "ai": {
@@ -278,8 +276,6 @@
       "cooldown": 600,
       "dynamicRange": 100,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 5
     },
     "ai": {
@@ -321,8 +317,7 @@
       "projectileSpeed": 270,
       "projectileRange": 930,
       "width": 54,
-      "damageMin": 15,
-      "damageMax": 15,
+      "damageType": "magic",
       "knockback": 0
     },
     "ai": {
@@ -338,7 +333,12 @@
         "desc": "向目标发射剧毒液体，命中后造成持续腐蚀伤害"
       }
     ],
-    "attackType": "毒液喷射"
+    "attackType": "毒液喷射",
+    "render": {
+      "spriteSize": 90,
+      "collisionWidth": 32,
+      "collisionHeight": 79
+    }
   },
   "babySpider": {
     "id": "babySpider",
@@ -367,8 +367,6 @@
       "cooldown": 500,
       "dynamicRange": 55,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 8
     },
     "ai": {
@@ -406,8 +404,6 @@
       "cooldown": 800,
       "dynamicRange": 65,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 10
     },
     "ai": {
@@ -450,8 +446,6 @@
       "cooldown": 1000,
       "dynamicRange": 95,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 20
     },
     "ai": {
@@ -489,8 +483,6 @@
       "cooldown": 1200,
       "dynamicRange": 100,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 25
     },
     "ai": {
@@ -533,8 +525,6 @@
       "cooldown": 800,
       "dynamicRange": 60,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 15
     },
     "ai": {
@@ -577,8 +567,6 @@
       "cooldown": 1500,
       "dynamicRange": 350,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 0
     },
     "ai": {
@@ -616,8 +604,6 @@
       "cooldown": 312,
       "dynamicRange": 88,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 19
     },
     "ai": {
@@ -660,8 +646,6 @@
       "cooldown": 1000,
       "dynamicRange": 95,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 26
     },
     "ai": {
@@ -699,8 +683,6 @@
       "cooldown": 1200,
       "dynamicRange": 100,
       "width": 18,
-      "damageMin": 4,
-      "damageMax": 8,
       "knockback": 37
     },
     "ai": {
@@ -742,8 +724,6 @@
       "cooldown": 1000,
       "dynamicRange": 110,
       "width": 20,
-      "damageMin": 6,
-      "damageMax": 12,
       "knockback": 8
     },
     "type": "普通",
@@ -794,8 +774,7 @@
       "projectileSpeed": 600,
       "projectileRange": 1500,
       "width": 18,
-      "damageMin": 15,
-      "damageMax": 25,
+      "damageType": "magic",
       "knockback": 0
     },
     "description": "掌握亡灵与元素魔法的僵尸巫师，能够释放冰锥、火球并召唤僵尸犬。",
@@ -813,7 +792,12 @@
         "desc": "在身前召唤 3 只僵尸犬协助作战"
       }
     ],
-    "attackType": "魔法远程"
+    "attackType": "魔法远程",
+    "render": {
+      "spriteSize": 120,
+      "collisionWidth": 61,
+      "collisionHeight": 109
+    }
   },
   "mutant3": {
     "id": "mutant3",
@@ -849,8 +833,6 @@
       "cooldown": 1000,
       "dynamicRange": 100,
       "width": 22,
-      "damageMin": 18,
-      "damageMax": 28,
       "knockback": 25
     },
     "description": "经过变异的精英僵尸，拥有极强的爆发力和速度，能够飞扑眩晕目标，普通攻击附带束缚效果。",
@@ -864,6 +846,11 @@
         "desc": "普通攻击命中后使目标束缚，移动速度变为 0，持续 0.5 秒"
       }
     ],
-    "attackType": "重击突刺"
+    "attackType": "重击突刺",
+    "render": {
+      "spriteSize": 120,
+      "collisionWidth": 80,
+      "collisionHeight": 96
+    }
   }
 }

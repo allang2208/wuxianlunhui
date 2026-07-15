@@ -6,6 +6,7 @@ import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { ENEMY_DATA } from '../systems/data-loader.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -536,29 +537,47 @@ const CodexManager = {
         html += this.detailRow('幸运', d.luck || 0);
         html += `</div>`;
 
-        // 战斗属性
+        // 战斗属性（使用与运行时一致的公式，避免硬编码）
         html += `<div class="cd-section"><h4>战斗属性</h4>`;
         const str = d.str || 0, dex = d.dex || 0, int = d.int || 0, con = d.con || 0, wis = d.wis || 0, luck = d.luck || 0;
-        const calcAtk = Math.round(10 + str * 0.05 + dex * 0.1);
-        const calcDef = Math.floor((con * 1.2 + str * 0.3) * 0.67 * 0.65);
-        const calcMatk = Math.floor(int * 1.5 + wis * 0.5);
-        const calcMdef = Math.floor(wis * 1.2 + int * 0.3);
-        const _calcHit = 80 + Math.floor(dex * 0.5);
-        const _calcDodge = 5 + Math.floor(dex * 0.3);
-        const calcCrit = 2 + Math.floor(luck * 1.0);
-        const calcCritRes = Math.floor(con * 1.0);
+        const eform = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
+        const applyRound = (value, method) => {
+            if (method === 'round') return Math.round(value);
+            if (method === 'ceil') return Math.ceil(value);
+            return Math.floor(value);
+        };
+        const calcFrom = (formula, extras = {}) => {
+            const f = formula || {};
+            let v = (f.base || 0)
+                + str * (f.strMultiplier || 0)
+                + dex * (f.dexMultiplier || 0)
+                + con * (f.conMultiplier || 0)
+                + int * (f.intMultiplier || 0)
+                + wis * (f.wisMultiplier || 0)
+                + luck * (f.luckMultiplier || 0);
+            for (const key of Object.keys(extras)) v += extras[key];
+            return applyRound(v, f.round || 'floor');
+        };
+        const calcAtk = calcFrom(eform.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true });
+        const calcDef = calcFrom(eform.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' });
+        const calcMatk = calcFrom(eform.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' });
+        const calcMdef = calcFrom(eform.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' });
+        const calcHit = calcFrom(eform.hit || { base: 80, dexMultiplier: 0.5, round: 'floor' });
+        const calcCrit = calcFrom(eform.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' });
+        const calcCritRes = calcFrom(eform.critResist || { conMultiplier: 1.0, round: 'floor' });
+        const attackType = (d.attack && d.attack.damageType) || 'physical';
+        const normalDamage = attackType === 'magic' ? calcMatk : calcAtk;
         html += this.detailRow('物理攻击', calcAtk);
         html += this.detailRow('物理防御', calcDef);
         html += this.detailRow('魔法攻击', calcMatk);
         html += this.detailRow('魔法防御', calcMdef);
+        html += this.detailRow('命中率', calcHit);
         html += this.detailRow('暴击率', calcCrit + '%');
         html += this.detailRow('暴击抵抗', calcCritRes + '%');
         html += this.detailRow('攻击距离', `${d.attackRange || 0}px`);
         html += this.detailRow('攻击冷却', `${d.attackCooldown || 0}ms`);
         html += this.detailRow('攻击方式', d.attackType || '-');
-        if (d.damageMin !== undefined && d.damageMax !== undefined) {
-            html += this.detailRow('伤害范围', `${d.damageMin} ~ ${d.damageMax}`);
-        }
+        html += this.detailRow(attackType === 'magic' ? '普攻魔法伤害' : '普攻物理伤害', normalDamage);
         html += this.detailRow('击退', d.knockback ? `${d.knockback}px` : '无');
         html += `</div>`;
 

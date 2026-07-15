@@ -233,10 +233,10 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 // 延迟删除尸体（3秒后从 entities 中移除）
                 this._deathTime = Date.now();
                 this._deathRemoveDelay = 3000; // 3秒后删除
-                // 隐藏 Phaser Sprite
-                const phaserScene = window.__phaserScene;
-                if (phaserScene && this._phaserSprite) {
-                    this._phaserSprite.setVisible(false);
+                // 销毁 Phaser Sprite，防止残留或被 group setVisible(true) 重新显示
+                if (this._phaserSprite) {
+                    this._phaserSprite.destroy();
+                    this._phaserSprite = null;
                 }
             }
             applyKnockback(angle, totalPx) {

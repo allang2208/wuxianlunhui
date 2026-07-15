@@ -7,13 +7,12 @@ export const PLAYER_DEFAULTS = {
     physics: {
         // 玩家贴图显示尺寸（单位：像素），所有显示/碰撞尺寸均由此推导，避免硬编码
         spriteSize: 120,
-        // 玩家碰撞/受击体积：宽度 30、高度 90 的矩形（竖向人物贴图）
+        // 玩家碰撞/受击体积：宽度 30、高度 60 的矩形（竖向人物贴图）
+        // 之前 90 过高，导致投射物在玩家头顶/脚下附近也被判定命中
         // collisionRadius 作为圆形回退和墙壁碰撞的等效半径，取长边的一半
         collisionWidth: 30,
-        collisionHeight: 90,
-        collisionRadius: 45,
-        hitboxRadius: 60,
-        hitboxMultipliers: [1.2, 1.0, 0.8, 1.5, 0.8, 1.0],
+        collisionHeight: 60,
+        collisionRadius: 30,
         accel: 0.7,
         friction: 0.82
     },

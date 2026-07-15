@@ -409,6 +409,11 @@ export const SceneManager = {
             }
         }
 
+        // 恢复主神空间地形，避免残留地牢 blackbrick 贴图
+        if (window.__phaserScene) {
+            window.__phaserScene.syncTerrain();
+        }
+
         if (player) {
             Game.entities.set('player', player);
             // 优先使用死亡重生位置，其次使用之前保存的主神空间位置

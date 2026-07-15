@@ -37,7 +37,9 @@ export class BootScene extends Scene {
         // ---- 特效资源 ----
         this.load.image('runeSwordBlade', 'assets/weapons/blue_energy_sword_pure.png');
         this.load.image('iceSpike', 'assets/skills/icearrow.png');
-        this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 8 });
+        this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 72 });
+        this.load.image('blackbrick2', 'assets/terrain/blackbrick2.png');
+        this.load.image('blackbrick3', 'assets/terrain/blackbrick3.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
