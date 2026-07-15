@@ -278,6 +278,7 @@ export const SceneManager = {
             ctx.beginPath(); ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2); ctx.fill();
         }
         Renderer.terrainTexture = canvas;
+        if (window.__phaserScene) window.__phaserScene.syncTerrain();
 
         // 重置墙壁系统并添加边界
         WallSystem.init(scene.width, scene.height);
@@ -532,6 +533,7 @@ export const SceneManager = {
         ctx.fillRect(0, interiorBottom, CONFIG.WORLD_WIDTH, 10);
 
         Renderer.terrainTexture = canvas;
+        if (window.__phaserScene) window.__phaserScene.syncTerrain();
 
         // 设置墙壁系统
         WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
@@ -664,6 +666,7 @@ export const SceneManager = {
         }
 
         Renderer.terrainTexture = canvas;
+        if (window.__phaserScene) window.__phaserScene.syncTerrain();
 
         // 设置墙壁系统
         WallSystem.init(scene.width, scene.height);
@@ -740,6 +743,7 @@ export const SceneManager = {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(scene.width, y); ctx.stroke();
         }
         Renderer.terrainTexture = canvas;
+        if (window.__phaserScene) window.__phaserScene.syncTerrain();
 
         // 墙壁系统
         WallSystem.init(scene.width, scene.height);
@@ -831,6 +835,7 @@ export const SceneManager = {
         ctx.strokeRect(0, 0, size, size);
 
         Renderer.terrainTexture = canvas;
+        if (window.__phaserScene) window.__phaserScene.syncTerrain();
 
         // 添加边界墙壁，防止玩家走出地图
         WallSystem.init(size, size);

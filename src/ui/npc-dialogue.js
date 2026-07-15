@@ -201,6 +201,11 @@ const NPCDialogue = {
         if (dialogueText) dialogueText.textContent = '';
     },
 
+    // 对话是否处于打开状态（供外部系统查询，避免直接访问 _active）
+    isActive() {
+        return this._active;
+    },
+
     // 关闭对话界面
     close() {
         this._active = false;

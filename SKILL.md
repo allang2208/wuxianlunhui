@@ -68,13 +68,43 @@
 - `npm run lint` ✅
 - `npx vite build` ✅
 
-### 仍待后续跟进（中/低优先级）
-1. **投射物 swept 检测**：高速投射物可能穿薄敌人，建议改用线段-矩形/圆相交。
-2. **`_tryUnstuck` 30px 瞬移可能穿薄墙**：可降到 `r*1.5` 或分步滑动。
-3. **`RegionIndex` 4 方向与 `PathFinder` 8 方向不一致**：建议统一为 8 方向 Flood Fill。
-4. **`PathFinder` 大网格分配**：远距离目标时网格过大，可引入对象池或进一步限制 `maxSearchRange`。
-5. **NPCDialogue._active 私有字段访问**：`ZombieDungeonShop.isClosed()` 直接访问私有字段，建议改为公开接口。
-6. **地形纹理生成时机**：`_syncTerrain()` 仍在 `update()` 中每帧调用，虽能提前返回，但最佳做法是场景切换事件驱动。
+### 已完成的后续优化（2026-07-13 续）
+
+#### 1. 投射物 swept 检测
+- 在 `projectile.js` 中改为 `_isHittingEntity(entity, prevX, prevY)`：
+  - 矩形目标：将碰撞体按投射物 `size` 扩张后，检测线段是否穿过扩张矩形边或端点是否在内。
+  - 圆形/其他目标：计算前一点到当前点线段到圆心最近距离，并与扩张半径比较。
+- 新增 `_segmentsIntersect` 和 `_segmentPointDistance` 辅助函数。
+
+#### 2. `_tryUnstuck` 瞬移距离缩短
+- `MovementSystem._tryUnstuck` 的瞬移距离从固定 `30px` 改为 `Math.max(r * 1.5, 12)`，降低越过薄墙风险。
+
+#### 3. `RegionIndex` 8 方向 Flood Fill
+- `region-index.js` 的 Flood Fill 方向从 4 方向扩展为 8 方向，与 `PathFinder` 移动方向一致。
+
+#### 4. `PathFinder` 网格对象池
+- 在 `PathFinder` 构造函数中预分配 64×64 的格子对象池。
+- `_buildGrid` 在尺寸不超过池大小时复用对象，避免每帧为每个寻路敌人创建大量临时对象。
+
+#### 5. `NPCDialogue` 私有字段访问
+- 在 `npc-dialogue.js` 增加公开方法 `isActive()`。
+- `ZombieDungeonShop.isClosed()` 改用 `NPCDialogue.isActive()`。
+
+#### 6. 地形纹理同步时机
+- `GameScene.update()` 中移除每帧 `_syncTerrain()` 调用。
+- `GameScene` 新增公开 `syncTerrain()` 方法，在 `create()` 中调用一次。
+- `scene-manager.js` 各 `_loadSceneX()` 设置 `Renderer.terrainTexture` 后调用 `syncTerrain()`。
+- `combat-room-system.js` 生成战斗房地板后调用 `syncTerrain()`。
+
+### 新增地牢随机事件（待审核后接入）
+- 新增 `src/world/dungeon-event-definitions.js`，定义 10 个互不重复的地牢随机事件。
+- 每个事件至少 2 个选择分支，使用力量/敏捷/体质/智力/精神/幸运进行检定。
+- 通用处理器 `handleNewDungeonEvent` 支持属性检定、金币/药水/材料/特殊道具、伤害/恢复、战斗、揭示节点、临时 Buff 等结果。
+- 接入方式：在 `dungeon-event-system.js` 的 `eventWeights` 注册权重，并在 `handleChoice` 中增加 default 分支调用 `handleNewDungeonEvent`。
+
+### 仍待后续跟进
+- 新事件的临时 Buff 需要在 `DungeonBuffSystem.getAtkBonusPercent` 或战斗系统中纳入加成计算。
+- 新事件接入后需实机测试检定概率与奖励平衡。
 
 ---
 

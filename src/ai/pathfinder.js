@@ -184,6 +184,10 @@ class PathFinder {
         this.spatialHash = new SpatialHash(40);
         this._hashValid = false;
         this._maxTreeRadius = 0; // 用于 _getMoveCost SpatialHash 查询范围
+        // 网格对象池：避免每帧 A* 分配大量格子对象（maxSearchRange=800, gridSize=40 => 约 60×60）
+        this._gridPool = Array.from({ length: 64 }, () =>
+            Array.from({ length: 64 }, () => ({ x: 0, y: 0, r: 0, c: 0, blocked: false, moveCost: 1, g: Infinity, h: 0, f: Infinity, parent: null }))
+        );
         // [ENHANCE] 全局路径缓存：减少重复计算
         this._pathCache = new Map(); // key -> { path, timestamp }
         this._cacheMaxAge = 3000;    // 缓存有效期 3 秒
@@ -374,9 +378,11 @@ class PathFinder {
         const maxY = Math.max(startY, endY) + searchRange;
         const cols = Math.ceil((maxX - minX) / this.gridSize);
         const rows = Math.ceil((maxY - minY) / this.gridSize);
+        // 若对象池足够大则复用格子对象，否则回退到动态分配
+        const usePool = rows <= this._gridPool.length && cols <= this._gridPool[0].length;
         const grid = [];
         for (let r = 0; r < rows; r++) {
-            grid[r] = [];
+            grid[r] = usePool ? this._gridPool[r] : [];
             for (let c = 0; c < cols; c++) {
                 const x = minX + c * this.gridSize + this.gridSize / 2;
                 const y = minY + r * this.gridSize + this.gridSize / 2;
@@ -384,13 +390,21 @@ class PathFinder {
                 const blocked = this._isBlocked(x, y, entityRadius);
                 const staticCost = blocked ? Infinity : this._getMoveCost(x, y, entityRadius);
                 const dynamicCost = blocked ? 1.0 : dynamicObstacleMap.getCost(x, y);
-                grid[r][c] = {
-                    x, y, r, c,
-                    blocked,
-                    moveCost: blocked ? Infinity : staticCost * dynamicCost,
-                    g: Infinity, h: 0, f: Infinity,
-                    parent: null, visited: false
-                };
+                if (usePool) {
+                    const cell = this._gridPool[r][c];
+                    cell.x = x; cell.y = y; cell.r = r; cell.c = c;
+                    cell.blocked = blocked;
+                    cell.moveCost = blocked ? Infinity : staticCost * dynamicCost;
+                    cell.g = Infinity; cell.h = 0; cell.f = Infinity; cell.parent = null;
+                } else {
+                    grid[r][c] = {
+                        x, y, r, c,
+                        blocked,
+                        moveCost: blocked ? Infinity : staticCost * dynamicCost,
+                        g: Infinity, h: 0, f: Infinity,
+                        parent: null
+                    };
+                }
             }
         }
         return { grid, minX, minY, cols, rows };

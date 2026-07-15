@@ -899,7 +899,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy._stuckFrames <= 30) return;
 
         const r = enemy.collisionRadius || 12;
-        const distance = 30;
+        // 缩短瞬移距离，防止越过薄墙（如 20px 厚的墙壁）
+        const distance = Math.max(r * 1.5, 12);
         for (let i = 0; i < 8; i++) {
             const angle = (Math.PI * 2 * i) / 8;
             const tx = enemy.x + Math.cos(angle) * distance;

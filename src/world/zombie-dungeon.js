@@ -591,7 +591,7 @@ export class ZombieDungeonShop {
      * 检查商店是否关闭（用于地牢地图系统的轮询）
      */
     static isClosed() {
-        return !(NPCDialogue._active || UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant'));
+        return !(NPCDialogue.isActive() || UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant'));
     }
 }
 

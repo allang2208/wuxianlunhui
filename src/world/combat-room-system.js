@@ -553,6 +553,9 @@ export const CombatRoomSystem = {
         if (Renderer) {
             Renderer.terrainTexture = canvas;
         }
+        if (window.__phaserScene) {
+            window.__phaserScene.syncTerrain();
+        }
 
         // 更新世界尺寸
         if (CONFIG) {

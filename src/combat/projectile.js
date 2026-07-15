@@ -1,6 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
-import { isPointInEntityShape } from '../utils/collision-helpers.js';
+
 
         class Projectile {
             constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false) {
@@ -40,7 +40,7 @@ import { isPointInEntityShape } from '../utils/collision-helpers.js';
                         if (entity === this.source || !entity.active || !entity.hittable ||
                             (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
                             this.hitTargets.has(entity)) continue;
-                        if (this._isHittingEntity(entity)) {
+                        if (this._isHittingEntity(entity, prevX, prevY)) {
                             this.hitTargets.add(entity);
                             const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
                             // 毒液投射物：命中后给目标加一层中毒
@@ -64,26 +64,56 @@ import { isPointInEntityShape } from '../utils/collision-helpers.js';
                 if (!this.active) this._destroyPhaserSprite();
             }
             /**
-             * 投射物与实体的命中判定。
-             * 若目标是矩形碰撞体，则按矩形-矩形（AABB）相交判定；
-             * 否则回退到 isPointInEntityShape 的圆形/近似判定。
+             * 投射物与实体的命中判定（支持 swept，防止高速穿体/穿墙）。
+             * 矩形碰撞体：将 entity 按投射物 size 扩张后，检测当前点/前一点是否在扩张矩形内，
+             *            或前一点到当前点的线段是否穿过扩张矩形边。
+             * 圆形/其他：将 entity 半径按投射物 size 扩张后，检测线段到圆心最近距离。
              */
-            _isHittingEntity(entity) {
+            _isHittingEntity(entity, prevX, prevY) {
                 if (!entity || !entity.active) return false;
+                const usePrev = prevX !== undefined && prevY !== undefined;
                 if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
-                    // 投射物视为以当前位置为中心、边长 2*size 的正方形（与 spit 等视觉比例一致）
-                    const phw = this.size;
-                    const pminX = this.x - phw;
-                    const pmaxX = this.x + phw;
-                    const pminY = this.y - phw;
-                    const pmaxY = this.y + phw;
-                    const eminX = entity.x - entity.collisionWidth / 2;
-                    const emaxX = entity.x + entity.collisionWidth / 2;
-                    const eminY = entity.y - entity.collisionHeight / 2;
-                    const emaxY = entity.y + entity.collisionHeight / 2;
-                    return !(pmaxX < eminX || pminX > emaxX || pmaxY < eminY || pminY > emaxY);
+                    const eminX = entity.x - entity.collisionWidth / 2 - this.size;
+                    const emaxX = entity.x + entity.collisionWidth / 2 + this.size;
+                    const eminY = entity.y - entity.collisionHeight / 2 - this.size;
+                    const emaxY = entity.y + entity.collisionHeight / 2 + this.size;
+                    // 当前点命中
+                    if (this.x >= eminX && this.x <= emaxX && this.y >= eminY && this.y <= emaxY) return true;
+                    if (usePrev) {
+                        // 前一点命中
+                        if (prevX >= eminX && prevX <= emaxX && prevY >= eminY && prevY <= emaxY) return true;
+                        // 线段穿过扩张矩形四条边
+                        if (
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, eminY, emaxX, eminY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, emaxY, emaxX, emaxY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, eminX, eminY, eminX, emaxY) ||
+                            this._segmentsIntersect(prevX, prevY, this.x, this.y, emaxX, eminY, emaxX, emaxY)
+                        ) return true;
+                    }
+                    return false;
                 }
-                return isPointInEntityShape(entity, this.x, this.y, this.size);
+                // 圆形/其他：扩张半径 = collisionRadius + projectile size
+                const expandedR = (entity.collisionRadius || entity.size * 0.6 || 10) + this.size;
+                const distToCenter = usePrev
+                    ? this._segmentPointDistance(prevX, prevY, this.x, this.y, entity.x, entity.y)
+                    : Math.hypot(this.x - entity.x, this.y - entity.y);
+                return distToCenter <= expandedR;
+            }
+
+            _segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+                const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+                if (d === 0) return false;
+                const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+                const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+                return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+            }
+
+            _segmentPointDistance(ax, ay, bx, by, px, py) {
+                const len2 = (bx - ax) ** 2 + (by - ay) ** 2;
+                if (len2 === 0) return Math.hypot(px - ax, py - ay);
+                let t = ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / len2;
+                t = Math.max(0, Math.min(1, t));
+                return Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay)));
             }
 
             _getProjectileTextureKey() {

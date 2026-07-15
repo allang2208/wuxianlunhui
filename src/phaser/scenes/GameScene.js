@@ -130,6 +130,9 @@ export class GameScene extends Scene {
         this.cameras.main.setViewport(0, 0, viewW, viewH);
         this.cameras.main.setBackgroundColor('#000000');
 
+        // 初始同步地形（后续由场景切换/战斗房生成主动调用 syncTerrain()）
+        this.syncTerrain();
+
 
         // 事件监听：外部系统通知
         this.events.on('playerSpawn', this._onPlayerSpawn, this);
@@ -142,8 +145,6 @@ export class GameScene extends Scene {
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
-
-        this._syncTerrain();
 
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
@@ -2285,6 +2286,14 @@ export class GameScene extends Scene {
                 this._neutralSprites.delete(e);
             }
         }
+    }
+
+    /**
+     * 公共入口：由 scene-manager / combat-room-system 在场景/战斗房切换后调用，
+     * 避免每帧检查地形纹理。
+     */
+    syncTerrain() {
+        this._syncTerrain();
     }
 
     /**
