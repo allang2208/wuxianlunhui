@@ -2,6 +2,82 @@
 
 ## 版本: 1.6
 
+## 技术回顾与清理（2026-07-13）
+
+### 审查范围
+对 2026-07-11 至 2026-07-13 的提交进行了渲染、碰撞/AI、地牢流程三个方向的并行审查，重点排查并行系统、冗余代码和潜在 bug。
+
+### 发现并修复的高优先级问题
+
+#### 1. 渲染层：地图模式下 Phaser 对象残留
+- **问题**：`GameScene.update()` 的地图模式分支只隐藏了玩家/武器/特效/地形/HUD，遗漏了敌人精灵组、中立实体（NPC/训练靶/传送门标签）和其他施法者特效（僵尸巫师的冰锥/火球）。
+- **修复**：在该分支追加隐藏 `this.enemies`、`this._neutralSprites`、`this._magicSprites`；非地图模式恢复显示。
+- **优化**：新增 `_mapModeActive` 缓存，避免每帧重复调用 `setBackgroundColor`。
+
+#### 2. 双重碰撞系统：玩家 Phaser collider 与 WallSystem
+- **问题**：`setupColliders()` 始终添加 `playerSprite-vs-walls` 的 Phaser collider，但默认模式下 `body.moves=false`，由 `WallSystem.resolve` 处理；若误开 `_useVelocityDrive` 会产生双重阻挡/抖动。
+- **修复**：仅在 `_useVelocityDrive === true` 时启用该 collider；`body.moves` 初始值与 `_useVelocityDrive` 同步。
+
+#### 3. 动态障碍图：每帧多次刷新
+- **问题**：`PathFinder.findPath()` 每次调用都执行 `dynamicObstacleMap.update()`，每个敌人寻路都会触发一次（内部有 250ms 节流，但仍属多余）。
+- **修复**：将刷新移到 `MovementSystem.update()`，每帧最多一次；`PathFinder` 不再主动刷新。
+
+#### 4. Mutant-3 连击突进无限累加
+- **问题**：五连击每次命中都向 `_comboLungeDx/Dy` 累加，目标后退时单次连击总突进可能远超预期。
+- **修复**：增加单次连击总突进上限 80px，命中时按剩余预算计算本次突进距离。
+
+#### 5. 投射物：阵营检查顺序与 piercing 语义
+- **问题**：友军免疫判断在 `hitTargets.has(entity)` 之后，逻辑顺序不当；`piercing < 0` 使 `piercing=1` 需要再命中一次才消失。
+- **修复**：将阵营检查提到最早 continue 条件；piercing 判定改为 `<= 0`。
+
+#### 6. 地牢流程 bug
+- **empty 节点截断路线**：点击 empty 节点后未更新 `currentNodeId`，导致无法继续向后续节点前进。已改为更新当前节点并揭示邻居。
+- **奖励节点卡死**：`_enterReward` 回调未标记节点完成/胜利，玩家领取奖励后卡住。已改为标记 `empty` 并调用 `_showVictory()`。
+- **女神祝福不消耗**：`_cleanupCombat()` 是 dead code，正常离开战斗的 `_leaveCombatViaPortal` / `_leaveBossViaPortal` 未调用 `onCombatComplete`。已提取 `_consumeCombatBuffs()` 并在三条离开路径调用。
+
+#### 7. 战斗房配置：`minWallDistance` 未读取
+- **问题**：`data/dungeon-config.json` 中的 `spawn.minWallDistance` 未被 `createCombatRoomConfig()` 读取，怪物生成时失效。
+- **修复**：在默认配置中增加 `minWallDistance: 0`，并从 JSON 读取覆盖。
+
+### 冗余清理
+
+#### 1. 移除废弃的默认地牢分支
+- `DungeonMapSystem.generateMap()` 中 `dungeonType` 分支已废弃（`expedition-system.js` 写死为 `'zombie'`）。
+- 删除 `_generateDefaultMap()` 方法、`DungeonMapGenerator` 导入，并将 `generateMap()` 简化为直接调用 `_generateZombieMap()`。
+
+#### 2. 移除僵尸地牢中的占位/死代码
+- 删除 `ZombieDungeonEvent` 占位类及其默认导出。
+- 删除 `DungeonMapSystem` 中的 `_enterShop()`（无 `shop` 节点调用）、`_enterLegacyEvent()`、`_showEventUI()`、`_showEntryConfirm()` 等死代码。
+- 移除不再使用的 `UIState`、`ShopSystem` 导入。
+
+#### 3. 归档一次性脚本
+- 将 `scripts/` 下的迁移/重构一次性脚本移入 `scripts/archive/`，保留可复用脚本（`backup.js`、`bump-version.js`、`copy-assets.js`、`diagnose-coordinates.js`、`fps-test-tool.js`）在根目录。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/combat/projectile.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/ai/pathfinder.js`
+- `src/systems/movement-system.js`
+- `src/world/combat-room-system.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/zombie-dungeon.js`
+- `scripts/archive/`（新增归档目录）
+
+### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+### 仍待后续跟进（中/低优先级）
+1. **投射物 swept 检测**：高速投射物可能穿薄敌人，建议改用线段-矩形/圆相交。
+2. **`_tryUnstuck` 30px 瞬移可能穿薄墙**：可降到 `r*1.5` 或分步滑动。
+3. **`RegionIndex` 4 方向与 `PathFinder` 8 方向不一致**：建议统一为 8 方向 Flood Fill。
+4. **`PathFinder` 大网格分配**：远距离目标时网格过大，可引入对象池或进一步限制 `maxSearchRange`。
+5. **NPCDialogue._active 私有字段访问**：`ZombieDungeonShop.isClosed()` 直接访问私有字段，建议改为公开接口。
+6. **地形纹理生成时机**：`_syncTerrain()` 仍在 `update()` 中每帧调用，虽能提前返回，但最佳做法是场景切换事件驱动。
+
+---
+
 ## 阶段性进度总结（2026-07-13 续）
 
 ### 本次完成：僵尸地牢地板/路线地图修复 + 精英判定/投射物/怪物机制收尾

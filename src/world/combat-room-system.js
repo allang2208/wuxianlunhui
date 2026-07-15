@@ -55,6 +55,7 @@ export const COMBAT_ROOM_CONFIG = {
     monsterSpawn: {
         margin: 40,          // 怪物距离边界的最低距离
         spawnDepth: 120,     // 对边生成区域的深度（从对边向内延伸）
+        minWallDistance: 0,  // 怪物与墙壁的最小距离（0 表示不额外限制）
         count: {
             normal: 3,       // 普通战斗怪物数量
             boss: 1          // Boss 战怪物数量
@@ -108,6 +109,7 @@ function createCombatRoomConfig() {
         cfg.playerSpawn.offsetFromEdge = json.spawn.playerOffsetFromEdge ?? cfg.playerSpawn.offsetFromEdge;
         cfg.monsterSpawn.margin = json.spawn.monsterMargin ?? cfg.monsterSpawn.margin;
         cfg.monsterSpawn.spawnDepth = json.spawn.monsterSpawnDepth ?? cfg.monsterSpawn.spawnDepth;
+        cfg.monsterSpawn.minWallDistance = json.spawn.minWallDistance ?? cfg.monsterSpawn.minWallDistance;
     }
     return cfg;
 }

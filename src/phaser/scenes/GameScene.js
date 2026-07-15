@@ -119,6 +119,9 @@ export class GameScene extends Scene {
         this._terrainWorldWidth = 0;
         this._terrainWorldHeight = 0;
 
+        // 地图模式状态缓存，避免每帧切换相机背景色
+        this._mapModeActive = false;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -145,9 +148,13 @@ export class GameScene extends Scene {
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
         const _dms = DungeonMapSystem;
-        if (SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map') {
+        const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
+        if (isMapMode) {
             // 地图模式下 Phaser 相机背景透明，露出下方 Canvas 绘制的路线地图
-            this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+            if (!this._mapModeActive) {
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+                this._mapModeActive = true;
+            }
             if (this.playerSprite && this.playerSprite.visible) {
                 this.playerSprite.setVisible(false);
                 this.playerSprite.setActive(false);
@@ -186,9 +193,28 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(false);
             if (this.minimapTitle) this.minimapTitle.setVisible(false);
             this._entityHudTexts.forEach(t => t.setVisible(false));
+            // 地图模式下隐藏敌人/中立实体/其他施法者特效，避免战斗残留覆盖地图
+            if (this.enemies) this.enemies.setVisible(false);
+            if (this._neutralSprites) {
+                for (const data of this._neutralSprites.values()) {
+                    if (data.sprite) data.sprite.setVisible(false);
+                    if (data.label) data.label.setVisible(false);
+                }
+            }
+            if (this._magicSprites) {
+                for (const sprites of this._magicSprites.values()) {
+                    if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.setVisible(false));
+                    if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.setVisible(false));
+                    if (sprites.fireball) sprites.fireball.setVisible(false);
+                    if (sprites.fireballFly) sprites.fireballFly.setVisible(false);
+                }
+            }
         } else {
             // 非地图模式保持纯黑背景
-            this.cameras.main.setBackgroundColor('#000000');
+            if (this._mapModeActive) {
+                this.cameras.main.setBackgroundColor('#000000');
+                this._mapModeActive = false;
+            }
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;
             if (this.playerSprite && _game && _game.player && !this.playerSprite.visible && !_isStickFigure) {
@@ -204,6 +230,22 @@ export class GameScene extends Scene {
             if (this.projectilesGroup) this.projectilesGroup.setVisible(true);
             if (this.dropItemsGroup) this.dropItemsGroup.setVisible(true);
             if (this.worldEffectsGroup) this.worldEffectsGroup.setVisible(true);
+            // 恢复敌人/中立实体/其他施法者特效显示
+            if (this.enemies) this.enemies.setVisible(true);
+            if (this._neutralSprites) {
+                for (const data of this._neutralSprites.values()) {
+                    if (data.sprite) data.sprite.setVisible(true);
+                    if (data.label) data.label.setVisible(true);
+                }
+            }
+            if (this._magicSprites) {
+                for (const sprites of this._magicSprites.values()) {
+                    if (sprites.iceSpikes) sprites.iceSpikes.forEach(s => s.setVisible(true));
+                    if (sprites.iceSpikeFly) sprites.iceSpikeFly.forEach(s => s.setVisible(true));
+                    if (sprites.fireball) sprites.fireball.setVisible(true);
+                    if (sprites.fireballFly) sprites.fireballFly.setVisible(true);
+                }
+            }
             // 恢复并同步 HUD
             if (this.worldHudGraphics) this.worldHudGraphics.setVisible(true);
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
@@ -398,7 +440,8 @@ export class GameScene extends Scene {
         // 设置 mass 为 1，避免质量影响
         body.setMass(1);
         // 位置由代码完全控制，关闭物理引擎自动积分，避免碰撞导致抖动/瞬移
-        body.moves = false;
+        // 仅在 Velocity 驱动模式下开启物理自动积分
+        body.moves = this._useVelocityDrive;
     }
 
     _onPlayerSpawn(data) {
@@ -1484,8 +1527,10 @@ export class GameScene extends Scene {
      */
     setupColliders() {
         if (this._collidersSet) return;
-        // 玩家 vs 墙壁（保留 Phaser 物理阻挡，与现有逻辑共同处理）
-        if (this.playerSprite) {
+        // 玩家 vs 墙壁：仅在 Velocity 驱动模式下启用 Phaser 物理阻挡。
+        // 默认模式下位置由 WallSystem.resolve 权威处理，body.moves=false，
+        // 保留 collider 会与 WallSystem 形成双重阻挡/抖动。
+        if (this.playerSprite && this._useVelocityDrive) {
             this.physics.add.collider(this.playerSprite, this.walls);
         }
         // [FIX] 敌人 vs 墙壁：移除此 collider，让 WallSystem.resolve() 成为唯一权威。

@@ -358,10 +358,15 @@ export class Mutant3 extends Enemy {
         const d = Math.hypot(dx, dy);
         const startDist = this._getAttackStartDistance();
         if (d > startDist && d > 0) {
-            const lunge = Math.min(35, d - startDist);
-            this._comboLungeDx += (dx / d) * lunge;
-            this._comboLungeDy += (dy / d) * lunge;
-            this._comboLungeRemaining = Math.hypot(this._comboLungeDx, this._comboLungeDy);
+            const maxTotal = 80; // 单次连击总突进上限，避免目标后退时被无限追击
+            const currentTotal = Math.hypot(this._comboLungeDx, this._comboLungeDy);
+            const remainingBudget = Math.max(0, maxTotal - currentTotal);
+            const lunge = Math.min(35, d - startDist, remainingBudget);
+            if (lunge > 0) {
+                this._comboLungeDx += (dx / d) * lunge;
+                this._comboLungeDy += (dy / d) * lunge;
+                this._comboLungeRemaining = Math.hypot(this._comboLungeDx, this._comboLungeDy);
+            }
         }
     }
 

@@ -14,6 +14,7 @@ import { WallSystem } from '../world/wall-system.js';
 
 import { PathManager } from '../ai/path-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { dynamicObstacleMap } from '../ai/dynamic-obstacle-map.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -22,6 +23,8 @@ const MAX_PATHFIND_RANGE = 800;
  * 移动系统核心实现
  */
 const MovementSystem = {
+    _lastObstacleUpdate: 0,
+
     /**
      * 每帧更新敌人移动状态
      * @param {Enemy} enemy - 敌人实例
@@ -30,6 +33,15 @@ const MovementSystem = {
      */
     update(enemy, dt, entities) {
         if (!enemy || !enemy.active) return;
+
+        // 统一刷新动态障碍图（每帧仅一次，内部有 250ms 节流）
+        if (dynamicObstacleMap) {
+            const now = Date.now();
+            if (now - this._lastObstacleUpdate >= 250) {
+                dynamicObstacleMap.update(now);
+                this._lastObstacleUpdate = now;
+            }
+        }
 
         // 死亡状态不移动
         if (enemy.hp <= 0) {

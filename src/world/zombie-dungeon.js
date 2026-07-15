@@ -11,7 +11,7 @@
 import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
-import { getElement } from '../utils/dom-utils.js';
+
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import enemyConfigData from '../../data/enemy-config.json';
@@ -595,72 +595,6 @@ export class ZombieDungeonShop {
     }
 }
 
-// ==================== 随机事件占位符 ====================
-export class ZombieDungeonEvent {
-    /**
-     * 显示随机事件占位符UI
-     */
-    static show(callback) {
-        const overlay = document.createElement('div');
-        overlay.id = 'zombieDungeonEventOverlay';
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.80); z-index: 8000;
-            display: flex; align-items: center; justify-content: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
-
-        const panel = document.createElement('div');
-        panel.style.cssText = `
-            background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px;
-            padding: 35px; max-width: 520px; width: 90%; color: #d4c5a9;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-        `;
-
-        const title = document.createElement('h3');
-        title.textContent = '神秘事件';
-        title.style.cssText = 'margin: 0 0 18px 0; color: #e8c878; font-size: 24px; text-align: center;';
-
-        const text = document.createElement('p');
-        text.textContent = '你在阴暗的走廊中发现了一些奇怪的痕迹，但暂时无法判断发生了什么。这里似乎曾经发生过某些事情……';
-        text.style.cssText = 'margin: 0 0 28px 0; line-height: 1.7; font-size: 16px; text-align: center;';
-
-        const placeholder = document.createElement('p');
-        placeholder.textContent = '【随机事件系统开发中】';
-        placeholder.style.cssText = 'margin: 0 0 20px 0; color: #8a7a6a; font-size: 14px; text-align: center; font-style: italic;';
-
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;';
-
-        const btn = document.createElement('button');
-        btn.textContent = '继续探索';
-        btn.style.cssText = `
-            padding: 12px 32px; background: #3a4530; border: 1px solid #5a6a4a;
-            color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;
-            transition: background 0.15s;
-        `;
-        btn.onmouseenter = () => btn.style.background = '#4a5540';
-        btn.onmouseleave = () => btn.style.background = '#3a4530';
-        btn.onclick = () => {
-            overlay.remove();
-            if (callback) callback();
-        };
-        btnRow.appendChild(btn);
-
-        panel.appendChild(title);
-        panel.appendChild(text);
-        panel.appendChild(placeholder);
-        panel.appendChild(btnRow);
-        overlay.appendChild(panel);
-        document.body.appendChild(overlay);
-    }
-
-    static cleanup() {
-        const overlay = getElement('zombieDungeonEventOverlay');
-        if (overlay) overlay.remove();
-    }
-}
-
 // ==================== 导出配置 ====================
 export { ZOMBIE_DUNGEON_CONFIG };
 
@@ -669,6 +603,5 @@ export default {
     config: ZOMBIE_DUNGEON_CONFIG,
     MapGenerator: ZombieDungeonMapGenerator,
     Combat: ZombieDungeonCombat,
-    Shop: ZombieDungeonShop,
-    Event: ZombieDungeonEvent
+    Shop: ZombieDungeonShop
 };

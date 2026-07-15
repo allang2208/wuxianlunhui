@@ -36,12 +36,11 @@ import { isPointInEntityShape } from '../utils/collision-helpers.js';
                     // 实体碰撞检测（this.entities 是 Map，需遍历 .values()）
                     const entityList = Array.from(this.entities.values());
                     for (const entity of entityList) {
-                        if (entity === this.source || !entity.active || !entity.hittable || this.hitTargets.has(entity)) continue;
+                        // 友军伤害免疫：跳过同阵营目标（放在 hitTargets 检查之前，避免同一友军被反复判断）
+                        if (entity === this.source || !entity.active || !entity.hittable ||
+                            (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
+                            this.hitTargets.has(entity)) continue;
                         if (this._isHittingEntity(entity)) {
-                            // 友军伤害免疫：子弹穿透同阵营目标
-                            if (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) {
-                                continue;
-                            }
                             this.hitTargets.add(entity);
                             const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
                             // 毒液投射物：命中后给目标加一层中毒
@@ -55,7 +54,7 @@ import { isPointInEntityShape } from '../utils/collision-helpers.js';
                                 currentWeapon: weapon,
                                 isMelee: false
                             });
-                            if (this.piercing) { this.piercing--; if (this.piercing < 0) this.active = false; }
+                            if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
                             else { this.active = false; }
                             if (!this.active) break;
                         }

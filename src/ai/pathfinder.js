@@ -472,9 +472,6 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
-            // [ENHANCE] 刷新动态障碍图
-            dynamicObstacleMap.update(Date.now());
-
             // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
             if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
                 return null;

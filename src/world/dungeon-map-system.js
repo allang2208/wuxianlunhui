@@ -17,22 +17,22 @@ import { Input } from '../ui/input.js';
  *
  * 依赖（全局）：
  *   Renderer, Camera, WallSystem, Game, Input, EffectManager,
- *   ShopSystem, NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect,
+ *   NPCDialogue, SceneManager, CONFIG, Enemy, FloatingTextEffect,
  *   RewardSystem, pathFinder
  */
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { UIState } from '../ui/ui-state.js';
+
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { DungeonChest } from '../entities/dungeon-chest.js';
-import { DungeonMapGenerator, DungeonFogOfWar } from './dungeon-map-generator.js';
+import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { ShopSystem } from '../ui/shop-system.js';
+
 import { GoldManager } from '../systems/gold-manager.js';
 
 export const DungeonMapSystem = {
@@ -279,39 +279,13 @@ export const DungeonMapSystem = {
     },
 
     // ───────────────────────────────────────────────
-    // 地图生成：根据 dungeonType 选择生成策略
+    // 地图生成：当前仅实现僵尸地牢
     // ───────────────────────────────────────────────
     generateMap() {
-        if (this.dungeonType === 'zombie') {
-            this._generateZombieMap();
-            return;
-        }
-        this._generateDefaultMap();
+        this._generateZombieMap();
     },
 
-    // 默认地牢：使用新的 DungeonMapGenerator 生成 35-40 节点地图
-    _generateDefaultMap() {
-        const generator = new DungeonMapGenerator();
-        const result = generator.generate();
-        this.nodes = result.nodes;
-        this.edges = result.edges;
-
-        // 固定路线选择界面尺寸为 2048×2048
-        this.MAP_WIDTH = 2048;
-        this.MAP_HEIGHT = 2048;
-
-        // 重新居中（使用实际窗口尺寸动态计算）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
-        const marginX = this.MAP_MARGIN_X;
-        const marginY = this.MAP_MARGIN_Y;
-        this.mapOffsetX = marginX + (viewW - marginX * 2 - this.MAP_WIDTH) / 2;
-        this.mapOffsetY = marginY + (viewH - marginY * 2 - this.MAP_HEIGHT) / 2;
-
-        
-    },
-
-    // 僵尸地牢：4条路线 converging to BOSS
+    // 僵尸地牢：rows 条路线 converging to BOSS
     _generateZombieMap() {
         const generator = new ZombieDungeonMapGenerator();
         const { nodes, edges } = generator.generate();
@@ -583,8 +557,14 @@ export const DungeonMapSystem = {
         this._removeMouseShopButton();
         this._removeAbandonButton();
 
-        // empty 节点仅用于通行，不移动当前位置，避免切断前进路线
+        // empty 节点仅用于通行；需要把当前位置移到该节点，否则无法继续向后续节点前进
         if (node.type === 'empty') {
+            this.previousNodeId = this.currentNodeId;
+            this.currentNodeId = node.id;
+            this.visitedNodeIds.add(node.id);
+            if (this.fogOfWar) {
+                this.fogOfWar.visit(node.id, this.nodes, this.edges);
+            }
             this._returnToMap();
             return;
         }
@@ -642,6 +622,9 @@ export const DungeonMapSystem = {
         const player = this.player || Game.player;
         if (!player) return;
 
+        // 战斗完成后消耗女神祝福层数
+        this._consumeCombatBuffs(player);
+
         // 普通战斗奖励金币
         const currentNode = this.getCurrentNode();
         const isBoss = currentNode && currentNode.type === 'boss';
@@ -673,6 +656,9 @@ export const DungeonMapSystem = {
     _leaveBossViaPortal() {
         const player = this.player || Game.player;
         if (!player) return;
+
+        // 战斗完成后消耗女神祝福层数
+        this._consumeCombatBuffs(player);
 
         // 离开 Boss 战（清理场地、触发完成回调）
         BossRewardSystem.leaveBossBattle();
@@ -817,6 +803,15 @@ export const DungeonMapSystem = {
         return true; // 所有怪物死亡且无下一波，战斗完成
     },
 
+    /**
+     * 战斗完成后消耗女神祝福等一次性战斗增益
+     */
+    _consumeCombatBuffs(player) {
+        import('./dungeon-event-system.js').then(mod => {
+            if (mod.onCombatComplete) mod.onCombatComplete(player);
+        }).catch(() => {});
+    },
+
     _cleanupCombat() {
         // 使用 CombatRoomSystem 清理战斗场地（包含掉落物、传送门）
         if (CombatRoomSystem.active) {
@@ -841,9 +836,7 @@ export const DungeonMapSystem = {
         this._eliteChestOpened = false;
 
         // 战斗完成后消耗女神祝福层数
-        import('./dungeon-event-system.js').then(mod => {
-            if (mod.onCombatComplete) mod.onCombatComplete(this.player);
-        }).catch(() => {});
+        this._consumeCombatBuffs(this.player);
 
         // 统一清理残留的战斗场景对象
         this._cleanupCombatScene();
@@ -888,32 +881,16 @@ export const DungeonMapSystem = {
         this._exitPortalSpawned = false;
     },
 
-    _enterShop(node) {
-        if (this.dungeonType === 'zombie') {
-            this._enterZombieEvent(node);
-            return;
-        }
-        this.state = "shop";
-        const fakeNPC = {
-            x: node.x, y: node.y,
-            name: "地牢商人",
-            portrait: "assets/ui/npc_portrait.png",
-            npcType: "shop"
-        };
-        ShopSystem.open(fakeNPC);
-
-        const checkInterval = TimerManager.setInterval(() => {
-            if (!UIState.isOpen('shop')) {
-                TimerManager.clearInterval(checkInterval);
-                this._returnToMap();
-            }
-        }, 300);
-    },
-
-    _enterReward(_node) {
+    _enterReward(node) {
         this.state = "reward";
         // 使用 BossRewardSystem 的奖励节点管理器
         BossRewardSystem.enterRewardNode(this.player, () => {
+            // 奖励领取完毕后标记节点完成并触发胜利
+            if (node) {
+                node.completed = true;
+                node.type = 'empty';
+            }
+            this._showVictory();
             this._returnToMap();
         });
     },
@@ -932,75 +909,6 @@ export const DungeonMapSystem = {
     },
 
     _enterEvent(node) {
-        if (this.dungeonType === 'zombie') {
-            this._enterZombieEvent(node);
-            return;
-        }
-        this.state = "event";
-
-        // 使用新的 DungeonEventSystem
-        import('./dungeon-event-system.js').then(mod => {
-            mod.DungeonEventSystem.trigger(this.player, (result) => {
-                // 如果触发战斗，进入战斗状态
-                if (result && result.combat) {
-                    this._enterCombat(node);
-                } else {
-                    const isTrap = result && result.eventType === 'trap';
-                    const isDisarm = isTrap && result.choiceId === 'disarm';
-
-                    // 陷阱解除失败：回退到上一个节点，保持节点原状
-                    if (isDisarm && result.success === false) {
-                        this.currentNodeId = this.previousNodeId || this.currentNodeId;
-                    }
-
-                    // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
-                    const shouldEmpty = !isTrap || (isDisarm && result.success === true);
-                    if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
-                        node.type = 'empty';
-                    }
-                    this._returnToMap();
-                }
-            }, null, this); // 传入 dungeonMapSystem = this
-        }).catch(err => {
-            console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
-            // 降级到旧的事件系统
-            this._enterLegacyEvent(node);
-        });
-    },
-
-    // 旧版事件系统（降级方案）
-    _enterLegacyEvent(_node) {
-        const events = [
-            {
-                title: "发现宝箱",
-                text: "你在黑暗的角落里发现了一个破旧的木箱，上面刻着古老的符文。",
-                choices: ["打开", "离开"],
-                reward: { gold: 60, text: "获得 60 金币！" }
-            },
-            {
-                title: "神秘祭坛",
-                text: "一个散发着微弱蓝光的古老祭坛出现在你面前，空气中弥漫着魔力。",
-                choices: ["触摸", "无视"],
-                reward: { gold: 0, text: "魔力涌入体内，获得临时增益！" }
-            },
-            {
-                title: "受伤的冒险者",
-                text: "一位满身是血的冒险者靠在墙边，看到你后艰难地伸出手。",
-                choices: ["帮助", "离开"],
-                reward: { gold: 40, text: "冒险者赠予你 40 金币作为谢礼。" }
-            },
-            {
-                title: "古老陷阱",
-                text: "你触发了地面上的压力板，四周的墙壁开始渗出毒气！",
-                choices: ["躲避", "硬抗"],
-                reward: { gold: 0, text: "你成功躲避了陷阱。" }
-            },
-        ];
-        const event = events[Math.floor(Math.random() * events.length)];
-        this._showEventUI(event);
-    },
-
-    _enterZombieEvent(node) {
         this.state = "event";
         // 使用 DungeonEventSystem 提供完整的随机事件
         import('./dungeon-event-system.js').then(mod => {
@@ -1025,68 +933,9 @@ export const DungeonMapSystem = {
                 }
             }, null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
-            console.error('[DungeonMapSystem] Failed to load dungeon-event-system for zombie:', err);
-            // 降级到旧版事件系统
-            this._enterLegacyEvent(node);
+            console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
+            this._returnToMap();
         });
-    },
-
-    _showEventUI(event) {
-        this._cleanupEventUI();
-
-        const overlay = document.createElement("div");
-        overlay.id = "dungeonEventOverlay";
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.80); z-index: 8000;
-            display: flex; align-items: center; justify-content: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
-
-        const panel = document.createElement("div");
-        panel.style.cssText = `
-            background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px;
-            padding: 35px; max-width: 520px; width: 90%; color: #d4c5a9;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-        `;
-
-        const title = document.createElement("h3");
-        title.textContent = event.title;
-        title.style.cssText = "margin: 0 0 18px 0; color: #e8c878; font-size: 24px; text-align: center;";
-
-        const text = document.createElement("p");
-        text.textContent = event.text;
-        text.style.cssText = "margin: 0 0 28px 0; line-height: 1.7; font-size: 16px; text-align: center;";
-
-        const btnRow = document.createElement("div");
-        btnRow.style.cssText = "display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;";
-
-        for (const choice of event.choices) {
-            const btn = document.createElement("button");
-            btn.textContent = choice;
-            btn.style.cssText = `
-                padding: 12px 32px; background: #3a4530; border: 1px solid #5a6a4a;
-                color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;
-                transition: background 0.15s;
-            `;
-            btn.onmouseenter = () => btn.style.background = "#4a5540";
-            btn.onmouseleave = () => btn.style.background = "#3a4530";
-            btn.onclick = () => {
-                if (choice !== "离开" && choice !== "无视") {
-                    EffectManager.add(new FloatingTextEffect(512, 512, event.reward.text, "#ffd700"));
-                }
-                this._cleanupEventUI();
-                this._returnToMap();
-            };
-            btnRow.appendChild(btn);
-        }
-
-        panel.appendChild(title);
-        panel.appendChild(text);
-        panel.appendChild(btnRow);
-        overlay.appendChild(panel);
-        document.body.appendChild(overlay);
-        this._eventOverlay = overlay;
     },
 
     _cleanupEventUI() {
@@ -1512,48 +1361,6 @@ export const DungeonMapSystem = {
         };
     },
 
-    _showEntryConfirm() {
-        if (getElement("dungeonEntryConfirm")) return;
-        return new Promise((resolve) => {
-            const overlay = document.createElement("div");
-            overlay.id = "dungeonEntryConfirm";
-            overlay.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.80); z-index: 10001;
-                display: flex; align-items: center; justify-content: center;
-                font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-            `;
-            overlay.innerHTML = `
-                <div style="background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px; padding: 30px; max-width: 400px; width: 90%; color: #d4c5a9; text-align: center;">
-                    <h3 style="color: #e8c878; margin: 0 0 15px; font-size: 22px;">⚔ 地牢模式</h3>
-                    <p style="margin: 0 0 25px; line-height: 1.6;">你即将进入杀戮尖塔风格的地牢探险。<br>选择路线，击败敌人，获取奖励。</p>
-                    <div style="display: flex; gap: 15px; justify-content: center;">
-                        <button id="dungeonEntryConfirmBtn" style="padding: 12px 30px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;">进入地牢</button>
-                        <button id="dungeonEntryCancelBtn" style="padding: 12px 30px; background: #3a3a3a; border: 2px solid #5a5a5a; color: #888; border-radius: 5px; cursor: pointer; font-size: 15px;">离开</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            const confirmBtn = getElement("dungeonEntryConfirmBtn");
-            const cancelBtn = getElement("dungeonEntryCancelBtn");
-
-            confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
-            confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";
-            cancelBtn.onmouseenter = () => cancelBtn.style.background = "#4a4a4a";
-            cancelBtn.onmouseleave = () => cancelBtn.style.background = "#3a3a3a";
-
-            confirmBtn.onclick = () => {
-                overlay.remove();
-                resolve(true);
-            };
-
-            cancelBtn.onclick = () => {
-                overlay.remove();
-                resolve(false);
-            };
-        });
-    },
 };
 
 // 将 DungeonMapSystem 挂载到全局，供其他模块（如 GameScene.js、player.js）访问
