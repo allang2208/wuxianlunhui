@@ -18,7 +18,7 @@ import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
-import { PERSPECTIVE_SCALE_Y, PERSPECTIVE_SCALE_Z } from '../../config/perspective-config.js';
+import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -2033,38 +2033,33 @@ export class GameScene extends Scene {
             this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
             this._collisionRadiusGraphics.fillEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
 
-            // 2) 上方 3D 胶囊体：橙色，底部与红色 footprint 相切
+            // 2) 上方垂直圆柱体：橙色，底面与红色 footprint 完全重合，高度 = bodyHeight
+            // 地面实体的有效受击体积就是“footprint 沿 Z 轴拉伸成圆柱”，近战/投射物都按此判定。
             const h = entity.bodyHeight || r * 2;
-            const zScale = PERSPECTIVE_SCALE_Z;
-            const bodyH = Math.max(0, (h - 2 * r) * zScale);
-            const bottomCenterY = footY - r * zScale; // 下盖圆心，使胶囊体底部正好落在 footY
-            const topCenterY = bottomCenterY - bodyH;
-            const capH = r * 2 * zScale;
+            const topY = footY - h;
+            const rx = r * 2;
+            const ry = r * 2 * PERSPECTIVE_SCALE_Y;
 
-            this._collisionRadiusGraphics.fillStyle(0xff6600, 0.12);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, bottomCenterY, r * 2, capH);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, topCenterY, r * 2, capH);
-            if (bodyH > 0) {
-                this._collisionRadiusGraphics.fillRect(entity.x - r, topCenterY, r * 2, bodyH);
-            }
+            this._collisionRadiusGraphics.fillStyle(0xff6600, 0.10);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, footY, rx, ry);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, topY, rx, ry);
+            this._collisionRadiusGraphics.fillRect(entity.x - r, topY, r * 2, footY - topY);
 
             this._collisionRadiusGraphics.lineStyle(1.5, 0xff8800, 0.75);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, bottomCenterY, r * 2, capH);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, topCenterY, r * 2, capH);
-            if (bodyH > 0) {
-                this._collisionRadiusGraphics.beginPath();
-                this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
-                this._collisionRadiusGraphics.lineTo(entity.x - r, bottomCenterY);
-                this._collisionRadiusGraphics.moveTo(entity.x + r, topCenterY);
-                this._collisionRadiusGraphics.lineTo(entity.x + r, bottomCenterY);
-                this._collisionRadiusGraphics.strokePath();
-            }
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, rx, ry);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, topY, rx, ry);
+            this._collisionRadiusGraphics.beginPath();
+            this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
+            this._collisionRadiusGraphics.lineTo(entity.x - r, footY);
+            this._collisionRadiusGraphics.moveTo(entity.x + r, topY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
+            this._collisionRadiusGraphics.strokePath();
 
             // 顶部/底部水平参考线
             this._collisionRadiusGraphics.lineStyle(1, 0xffaa00, 0.6);
             this._collisionRadiusGraphics.beginPath();
-            this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, topCenterY);
+            this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, topY);
             this._collisionRadiusGraphics.moveTo(entity.x - r, footY);
             this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
             this._collisionRadiusGraphics.strokePath();

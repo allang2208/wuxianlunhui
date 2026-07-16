@@ -32,6 +32,13 @@ class Player extends Combatant {
             this.collisionShape = 'rect';
             this.collisionWidth = defs.physics.collisionWidth;
             this.collisionHeight = defs.physics.collisionHeight;
+            // 让 Collider 高度与贴图 spriteSize 一致（120），否则只取 collisionHeight=60，
+            // 导致调试胶囊体和受击判定都只有贴图一半高。
+            this.config = {
+                ...(this.config || {}),
+                height: defs.physics.spriteSize,
+                render: { ...(this.config?.render || {}), spriteSize: defs.physics.spriteSize }
+            };
             // 根据最终碰撞字段重建统一 3D Collider（地面 footprint 与胶囊体）
             this.rebuildCollider();
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
