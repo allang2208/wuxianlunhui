@@ -557,6 +557,8 @@ export class GameScene extends Scene {
         // Phaser 物理体改为矩形，大小与逻辑碰撞体积一致
         body.setSize(collisionWidth, collisionHeight);
         body.setImmovable(false);
+        // 碰撞字段已最终确定，重建统一 3D Collider
+        enemy.rebuildCollider();
         if (options.tint !== undefined) {
             sprite.setTint(options.tint);
         }
