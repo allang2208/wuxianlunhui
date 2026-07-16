@@ -90,16 +90,43 @@ class Projectile {
     }
 
     /**
-     * 投射物与实体的 3D 命中判定。
-     * 投射物视为半径 size/2 的球体，本帧轨迹为 3D 线段；
-     * 目标使用统一 Collider 的胶囊体做精确检测。
+     * 投射物与实体的命中判定。
+     *
+     * 地面投射物（z=0）改用 2D footprint 检测：
+     * 之前把投射物当成 z=0 的 3D 球体去撞垂直胶囊体，结果只能碰到胶囊体底端
+     * 一个点，导致绝大多数子弹“穿过”橙色圆柱体。
+     *
+     * 现在：
+     * - 目标 elevation 为 ground/air 时，用本帧轨迹线段到 footprint 圆心的 2D
+     *   距离判定，半径 = collider.radius + projectileRadius，与红色 footprint 一致；
+     * - 飞行/空中目标仍保留 3D 胶囊体检测。
      */
     _isHittingEntity(entity, prevX, prevY) {
         if (!entity || !entity.active || !entity.collider) return false;
+        const c = entity.collider;
         const projectileRadius = this.size / 2;
+
+        if (c.elevation === 'ground' || c.elevation === 'air') {
+            const sx = this.x - prevX;
+            const sy = this.y - prevY;
+            const dx = c.x - prevX;
+            const dy = c.y - prevY;
+            const len2 = sx * sx + sy * sy;
+            let t = 0;
+            if (len2 > 1e-6) {
+                t = Math.max(0, Math.min(1, (dx * sx + dy * sy) / len2));
+            }
+            const cx = prevX + sx * t;
+            const cy = prevY + sy * t;
+            const ddx = c.x - cx;
+            const ddy = c.y - cy;
+            const rr = c.radius + projectileRadius;
+            return ddx * ddx + ddy * ddy <= rr * rr;
+        }
+
         const segA = { x: prevX, y: prevY, z: this.prevZ };
         const segB = { x: this.x, y: this.y, z: this.z };
-        const capsule = entity.collider.getCapsuleSegment();
+        const capsule = c.getCapsuleSegment();
         return segmentIntersectsCapsule(segA, segB, capsule, projectileRadius);
     }
 

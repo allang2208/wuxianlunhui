@@ -23,6 +23,9 @@ import { loadImage } from '../utils/image-loader.js';
                 super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
                 // 保存原始配置，供渲染/碰撞体系统读取
                 this.config = config;
+                // DamageableEntity 在 config 赋值前已重建 Collider，这里用完整配置再重建一次，
+                // 使 radius/height 能取到 config.render.spriteSize / collisionRadius 等字段。
+                this.rebuildCollider();
                 this.id = config.id || this.name;
                 // 统一使用配置中的 rank 作为唯一精英/普通判定来源
                 this.rank = config.rank || 'normal';

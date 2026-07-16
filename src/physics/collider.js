@@ -80,8 +80,8 @@ export class Collider {
 
     syncPosition() {
         if (!this._entity) return;
-        this.x = this._entity.x || 0;
-        this.y = this._entity.y || 0;
+        this.x = (this._entity.x || 0) + (this._entity.colliderOffsetX || 0);
+        this.y = (this._entity.y || 0) + (this._entity.colliderOffsetY || 0);
         this.z = this._entity.z || 0;
         this.elevation = this._entity.elevation || ELEVATION.GROUND;
     }

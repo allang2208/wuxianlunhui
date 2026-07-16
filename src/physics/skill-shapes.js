@@ -35,6 +35,31 @@ export class GroundCircle {
 }
 
 /**
+ * 地面椭圆 AOE（例如胖子僵尸尸体腐蚀领域）
+ * rx/ry 分别为地面椭圆 X/Y 半径；把实体 footprint 半径膨胀进轴长做保守判定。
+ */
+export class GroundEllipse {
+    constructor(x, y, rx, ry) {
+        this.x = x;
+        this.y = y;
+        this.rx = rx;
+        this.ry = ry;
+    }
+
+    intersectsEntity(entity) {
+        if (!entity || !entity.collider) return false;
+        if (!entity.collider.isGroundTarget) return false;
+        const c = entity.collider;
+        const dx = c.x - this.x;
+        const dy = c.y - this.y;
+        const rx = this.rx + c.radius;
+        const ry = this.ry + c.radius;
+        if (rx <= 0 || ry <= 0) return false;
+        return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1;
+    }
+}
+
+/**
  * 地面矩形 AOE（例如胖子僵尸尸体腐蚀领域）
  */
 export class GroundRect {

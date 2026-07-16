@@ -8,5 +8,7 @@
 // 地面圆在屏幕 Y 方向的压缩比：0.5 表示椭圆短轴为长轴的一半
 export const PERSPECTIVE_SCALE_Y = 0.5;
 
-// 垂直高度（z 轴）在屏幕 Y 方向的压缩比，与地面使用同一视角
-export const PERSPECTIVE_SCALE_Z = PERSPECTIVE_SCALE_Y;
+// 垂直高度（z 轴）在屏幕 Y 方向的压缩比。
+// 地面圆使用 PERSPECTIVE_SCALE_Y 做透视压缩，但实体贴图是 billboard（不受透视），
+// 因此调试用的 3D 胶囊体高度按 1:1 匹配贴图高度，避免视觉上只有贴图一半高。
+export const PERSPECTIVE_SCALE_Z = 1;
