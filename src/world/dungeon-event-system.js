@@ -205,10 +205,11 @@ export const DungeonBuffSystem = {
 
         // 添加状态栏效果
         if (StatusBar) {
-            StatusBar.addEffect('goddessBless', 999999, {
+            StatusBar.addEffect('goddessBless', 0, {
                 icon: this.BUFF_CONFIG.goddessBless.icon,
-                name: `${this.BUFF_CONFIG.goddessBless.name} (${battles}场)`,
+                name: this.BUFF_CONFIG.goddessBless.name,
                 color: this.BUFF_CONFIG.goddessBless.color,
+                battleRemaining: battles,
             });
         }
 
@@ -385,10 +386,12 @@ export const DungeonBuffSystem = {
                 delete buffs[key];
                 if (StatusBar) StatusBar.removeEffectByType(key);
                 if (player.removeStatusEffect) player.removeStatusEffect('buff');
-            } else if (key === 'goddessBless' && StatusBar) {
-                const effect = StatusBar.effects.find(e => e.type === 'goddessBless');
+            } else if (StatusBar) {
+                const effect = StatusBar.effects.find(e => e.type === key);
                 if (effect) {
-                    effect.name = `${this.BUFF_CONFIG.goddessBless.name} (${buff.remainingBattles}场)`;
+                    const baseName = buff.name || this.BUFF_CONFIG[key]?.name || effect.name;
+                    effect.name = baseName;
+                    effect.battleRemaining = buff.remainingBattles;
                     StatusBar.render();
                 }
             }

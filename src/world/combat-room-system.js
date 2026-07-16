@@ -257,7 +257,7 @@ export const CombatRoomSystem = {
             }
 
             // [SAFE-SPAWN] 若生成点贴墙/被阻挡，沿螺旋外推寻找合法位置
-            const r = monster.collisionRadius || monster.size || 12;
+            const r = monster.groundRadius;
             if (WallSystem && WallSystem.findSafeSpawn && !WallSystem.canMoveTo(monster.x, monster.y, r)) {
                 const safe = WallSystem.findSafeSpawn(monster.x, monster.y, r);
                 monster.x = safe.x;

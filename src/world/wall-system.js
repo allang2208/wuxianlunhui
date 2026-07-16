@@ -188,6 +188,7 @@ const WallSystem = {
         const collisionRadius = radius * 0.6;
         const treeData = {
             x, y, radius, collisionRadius,
+            height: radius * 3,
             type: treeType || 0,
             sceneGroup: sceneGroup || 'normal',
             rotation: rotation || 0,

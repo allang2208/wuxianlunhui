@@ -139,7 +139,7 @@ export class Mutant3 extends Enemy {
                 const step = Math.min(this._pounceSpeed * dtSec, distToEnd);
                 const nextX = this.x + this._pounceDir.x * step;
                 const nextY = this.y + this._pounceDir.y * step;
-                const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, this.collisionRadius || 20);
+                const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, this.groundRadius);
                 this.x = resolved.x;
                 this.y = resolved.y;
             }
@@ -218,7 +218,7 @@ export class Mutant3 extends Enemy {
             const desired = Math.max(35, startDist - 10);
             const nx = t.x - (dx / d) * desired;
             const ny = t.y - (dy / d) * desired;
-            const r = WallSystem.resolve(this.x, this.y, nx, ny, this.collisionRadius || 20);
+            const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
             this.x = r.x;
             this.y = r.y;
         }
@@ -264,7 +264,7 @@ export class Mutant3 extends Enemy {
                 const step = Math.min(speed * (dt / 1000), d);
                 const nx = this.x + (dx / d) * step;
                 const ny = this.y + (dy / d) * step;
-                const r = WallSystem.resolve(this.x, this.y, nx, ny, this.collisionRadius || 20);
+                const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
                 this.x = r.x;
                 this.y = r.y;
             }
@@ -296,7 +296,7 @@ export class Mutant3 extends Enemy {
             const ratio = this._comboLungeRemaining > 0 ? step / this._comboLungeRemaining : 0;
             const mx = this._comboLungeDx * ratio;
             const my = this._comboLungeDy * ratio;
-            const r = WallSystem.resolve(this.x, this.y, this.x + mx, this.y + my, this.collisionRadius || 20);
+            const r = WallSystem.resolve(this.x, this.y, this.x + mx, this.y + my, this.groundRadius);
             this.x = r.x;
             this.y = r.y;
             this._comboLungeDx -= mx;

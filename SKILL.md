@@ -2,6 +2,94 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-13 晚间收尾）
+
+### 本次完成：胖子僵尸、按场次 Buff/Debuff、地牢流程与受击粒子修复
+
+#### 一、胖子僵尸（Fat Zombie）完整机制
+1. **贴图放大 25%**：`data/enemy-config.json` 中 `fatZombie.render.spriteSize` 150（120→150），碰撞体积保持 90×120。
+2. **尸体腐蚀领域**：死亡后进入 corpse 阶段，继续执行 `_updateAura`；腐蚀区域改为 100×25 并向下偏移 70px，与尸体贴图对齐。
+3. **攻击/命中**：`attackRange` 100，`dynamicRange` 120，解决胖子攻击频繁落空问题。
+
+#### 二、战斗系统收尾
+1. **远程物理减伤**：`src/entities/damageable-entity.js` 对 `!isMelee && physical` 类型伤害也应用远程减伤。
+2. **按场次 buff/debuff 状态栏**：`src/ui/status-bar.js` 支持 `battleRemaining`；统一消耗所有非永久 buff。
+3. **僵尸巫师 AI**：`src/entities/enemy-types/zombie-wizard.js` 冰锥/火球入口增加 `castRange` 检查，未进入射程时先普攻/召唤。
+
+#### 三、地牢流程与资源配置
+1. **empty 节点通行**：统一在 `_leaveCombatViaPortal` 中标记节点完成，移除普通分支提前置空。
+2. **精灵图偏移配置**：`scripts/generate-sprite-offsets.js` 扩展为所有敌人动画表生成 `data/sprite-offsets.json`。
+3. **图鉴 idle 放大截取**：使用 `idleSheetColumns` 计算背景尺寸，修正第一帧显示过小。
+
+#### 四、主神空间测试
+1. 生成原设定数值的胖子僵尸。
+2. 左下角新增“无敌”切换按钮；`SceneManager._mainHubInvincible` 控制主神空间是否受伤。
+
+#### 五、僵尸受击绿色粒子修复
+1. **统一触发**：在 `src/entities/damageable-entity.js` `takeDamage()` 扣血后统一调用 `triggerZombieHitParticles`，移除各技能系统的重复触发。
+2. **Phaser 4 粒子坐标陷阱**：
+   - `this.add.particles(x, y, texture, config)` 把发射器放在 `(x,y)`，但 `explode(count, x, y)` 的参数是相对于发射器的**本地坐标**。
+   - 错误写法会让粒子世界坐标变成 `(2x, 2y)`，从而飞出视野。
+   - 正确写法：`this.add.particles(0, 0, texture, config)` + `particles.explode(count, worldX, worldY)`。
+3. **必须加入 UpdateList**：`this.add.particles()` 默认不会把发射器加入 Scene 的 UpdateList，需要手动调用 `particles.addToUpdateList()`，否则粒子只会静止一帧，不会运动/死亡。
+4. 修复后手动调用 `scene.playZombieHitParticles(worldX, worldY, angle)` 可看到绿色粒子爆发。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/entities/damageable-entity.js`
+- `src/entities/enemy-types/fat-zombie.js`
+- `src/entities/enemy-types/zombie-wizard.js`
+- `src/ui/status-bar.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/scene-manager.js`
+- `scripts/generate-sprite-offsets.js`
+- `data/enemy-config.json`
+- `data/sprite-offsets.json`
+
+### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+---
+
+## 伪 3D 碰撞重构记录（进行中）
+
+### Phase 0：统一 Collider 数据层 ✅
+1. 新增 `src/physics/collider.js`：
+   - 地面 footprint 为圆形（`groundRadius`）。
+   - 垂直体积为胶囊体（`height` + `radius`）。
+   - 默认高度推导：`config.height > render.spriteSize > collisionHeight > radius*2`。
+2. 新增 `src/physics/collision-3d.js`：
+   - 3D 线段到胶囊体距离（用于投射物/近战）。
+   - 线段到线段最短距离、球体相交等辅助函数。
+3. 新增 `src/physics/spatial-grid.js`：2D 空间网格 broadphase。
+4. `Entity` 基类接入 `collider`、新增 `groundRadius` / `bodyHeight` 统一入口，不改动现有属性。
+5. Player 与 Enemy 在碰撞字段最终确定后调用 `rebuildCollider()`。
+6. 新增 `scripts/test-collider.mjs` 跑通推导、3D 命中、空间网格测试。
+
+### Phase 1：地面碰撞统一为圆形 footprint ✅
+1. `game.js::resolveCollisions()` 从“矩形/六边形/圆形多套分离”简化为统一的圆-圆分离，使用 `groundRadius`。
+2. `MovementSystem`、玩家移动、敌人 AI、冲刺、击退、`PathManager`、`DynamicObstacleMap` 全部改用 `groundRadius`。
+3. `WallSystem` 的树木新增 `height` 字段，为未来飞行单位做准备。
+4. 玩家 footprint 按方案 A 改为圆形，半径保持 30（与原 `collisionRadius` 一致）。
+
+### Phase 2：投射物判定 3D 化 + 空间网格 broadphase ✅
+1. `src/combat/projectile.js` 重写命中判定：
+   - 投射物增加 `z` / `prevZ`，轨迹视为 3D 线段。
+   - 使用 `segmentIntersectsCapsule` 与目标 Collider 胶囊体做精确检测。
+   - 移除旧的 2D 矩形扩张 / 圆心距离判定。
+2. Broadphase：
+   - 复用现有 `SpatialPartitionSystem.queryRadius`。
+   - 以投射物本帧路径中点为中心，查询半径 = `stepLen + 160`，只检测附近实体。
+   - SpatialPartitionSystem 不可用时回退到全量遍历。
+3. 自然支持高低差：地面投射物 z=0，飞行单位 z>0 时自动打不到；未来抛物线/对空投射物只需设置 z。
+
+### 仍待完成
+- Phase 3：近战 / 技能 AOE 3D 化
+- Phase 4：场景贴图 Y 深度排序
+
+---
+
 ## 技术回顾与清理（2026-07-13）
 
 ### 审查范围

@@ -1,6 +1,7 @@
 import { Game } from '../../game.js';
 import { QuestSystem } from '../quest-system.js';
 import { SystemUI } from '../system-ui.js';
+import { SceneManager } from '../../world/scene-manager.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 
@@ -116,6 +117,21 @@ export function createHudPanelsMisc() {
     devToolSpan.textContent = '🛠';
     devToolTrigger.appendChild(devToolSpan);
     root.appendChild(devToolTrigger);
+
+    // ===== 无敌模式切换按钮 =====
+    const invincibleToggle = document.createElement('div');
+    invincibleToggle.className = 'invincible-toggle active';
+    invincibleToggle.id = 'invincibleToggle';
+    invincibleToggle.title = '无敌模式（主神空间生效）';
+    const invincibleSpan = document.createElement('span');
+    invincibleSpan.textContent = '无敌';
+    invincibleToggle.appendChild(invincibleSpan);
+    invincibleToggle.addEventListener('click', () => {
+        SceneManager._mainHubInvincible = !SceneManager._mainHubInvincible;
+        invincibleToggle.classList.toggle('active', SceneManager._mainHubInvincible);
+        invincibleSpan.textContent = SceneManager._mainHubInvincible ? '无敌' : '可伤';
+    });
+    root.appendChild(invincibleToggle);
 
     // ===== 游戏秒表计时器 =====
     const gameTimer = document.createElement('div');

@@ -10,6 +10,7 @@ import { NPCDialogue } from './npc-dialogue.js';
 import { ShopSystem } from './shop-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
+import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -170,8 +171,8 @@ export const GameUIManager = {
                 }
                 el.textContent = Math.round(cd) + 'ms';
             } else if (item.id === 'combatSpd') {
-                // 移动速度：px/s（假设60fps，每帧速度*60）
-                const speed = p.data.speed || 0;
+                // 移动速度：使用实际最大移动速度（px/s）
+                const speed = p.maxSpeed || p.data.speed || 0;
                 el.textContent = (speed * 60).toFixed(0) + 'px/s';
             } else {
                 el.textContent = item.suffix ? d[item.key] + item.suffix : (item.fixed ? d[item.key].toFixed(item.fixed) : d[item.key]);
@@ -193,11 +194,25 @@ export const GameUIManager = {
             }
             const pa = p.attacks[paType];
             switch (item.id) {
-                case 'detailStaminaRegen': el.textContent = CONFIG.STAMINA_REGEN + item.unit; break;
-                case 'detailHpRegen': el.textContent = d.hpRegen + item.unit; break;
+                case 'detailStaminaRegen': {
+                    const staminaBase = CONFIG.STAMINA_REGEN || 1;
+                    const mul = p._staminaRegenMul || 1;
+                    el.textContent = (staminaBase * mul).toFixed(2) + item.unit;
+                    break;
+                }
+                case 'detailHpRegen': {
+                    const tributeItems = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
+                    const hasWheat = tributeItems.some(c => c && c.item && c.item.name === '麦穗');
+                    el.textContent = ((d.hpRegen || 0) + (hasWheat ? 1 : 0)) + item.unit;
+                    break;
+                }
                 case 'detailMpRegen': el.textContent = d.mpRegen + item.unit; break;
                 case 'detailCollisionRadius': el.textContent = (p.collisionRadius || 10) + item.unit; break;
-                case 'detailMoveSpeed': el.textContent = CONFIG.PLAYER_SPEED + item.unit; break;
+                case 'detailMoveSpeed': {
+                    const speed = p.maxSpeed || CONFIG.PLAYER_SPEED || 0;
+                    el.textContent = (speed * 60).toFixed(0) + item.unit;
+                    break;
+                }
                 case 'detailDodgeCooldown': el.textContent = CONFIG.DODGE_COOLDOWN + item.unit; break;
                 case 'detailAttackRange': {
                     let displayRange = pa ? pa.config.range : 100;

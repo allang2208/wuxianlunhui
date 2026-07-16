@@ -586,7 +586,7 @@ class Combatant extends DamageableEntity {
 
     // ==================== 受击 ====================
 
-    takeDamage(damage, source, damageType = 'physical', _isMelee = false) {
+    takeDamage(damage, source, damageType = 'physical', _isMelee = true) {
         // 计算暴击
         const critRate = (source && source.data && source.data.crit) || 0;
         const critRes = (this.data && this.data.critRes) || 0;
@@ -616,7 +616,7 @@ class Combatant extends DamageableEntity {
             finalDamage = Math.floor(finalDamage * (1 + droneBonus));
         }
 
-        super.takeDamage(finalDamage, source, damageType);
+        super.takeDamage(finalDamage, source, damageType, _isMelee);
     }
 }
 

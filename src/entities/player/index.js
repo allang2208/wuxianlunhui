@@ -32,6 +32,8 @@ class Player extends Combatant {
             this.collisionShape = 'rect';
             this.collisionWidth = defs.physics.collisionWidth;
             this.collisionHeight = defs.physics.collisionHeight;
+            // 根据最终碰撞字段重建统一 3D Collider（地面 footprint 与胶囊体）
+            this.rebuildCollider();
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
             this.weaponSwitchCooldown = defs.combat.weaponSwitchCooldown; // 武器切换冷却：切换 G18 后防止立即开火
             this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）

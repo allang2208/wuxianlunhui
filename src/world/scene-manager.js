@@ -23,6 +23,7 @@ export const SceneManager = {
     loadProgress: 0,
     _sceneLabel: null, // 当前场景名称标签
     _inMainHub: false, // 主神空间无敌保护开关，避免依赖 currentScene 产生泄漏
+    _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
 
     init() {
         const cfg = GAME_CONFIG.scenes || {};
@@ -440,9 +441,12 @@ export const SceneManager = {
             if (!hasDpsTarget) Game.spawnEnemy();
         }
 
-        // 主神空间：清理所有怪物并生成一只测试用僵尸犬
+        // 主神空间：清理所有怪物并生成测试用胖子僵尸
         if (Game && Game.clearMainMonstersAndSpawnDog) {
             Game.clearMainMonstersAndSpawnDog();
+        }
+        if (Game && Game.spawnMainFatZombie) {
+            Game.spawnMainFatZombie();
         }
     },
 
@@ -774,7 +778,7 @@ export const SceneManager = {
             let py = scene.height / 2;
             // 检查玩家位置是否在墙壁内，如果是则重新选择
             if (WallSystem && WallSystem.canMoveTo) {
-                const playerRadius = player.collisionRadius || player.size || 15;
+                const playerRadius = player.groundRadius;
                 let attempts = 0;
                 while (!WallSystem.canMoveTo(px, py, playerRadius) && attempts < 50) {
                     px = 100 + Math.random() * (scene.width - 200);

@@ -52,7 +52,8 @@ export class ZombieWizard extends Enemy {
                     spikeCount: 2 + Math.floor((level - 1) / 5),
                     duration: 30,
                     flySpeed: 1600,
-                    maxRange: 800
+                    maxRange: 800,
+                    castRange: 450
                 };
             }
         };
@@ -68,7 +69,8 @@ export class ZombieWizard extends Enemy {
                     mpCost: 50,
                     duration: 30,
                     flySpeed: 1600,
-                    maxRange: 1200
+                    maxRange: 1200,
+                    castRange: 550
                 };
             }
         };
@@ -184,9 +186,9 @@ export class ZombieWizard extends Enemy {
             return;
         }
 
-        // 尝试进入施法循环
-        if (this.target && this.target.active) {
-            if (this._iceSpikeCooldown <= 0 && this._castState === 'idle') {
+        // 尝试进入施法循环（只有进入魔法射程才读条）
+        if (this.target && this.target.active && this._iceSpikeCooldown <= 0 && this._castState === 'idle') {
+            if (this._isTargetInSpellRange(this.skills.iceSpike)) {
                 this._startIceCast();
             }
         }
@@ -204,6 +206,26 @@ export class ZombieWizard extends Enemy {
         } else {
             this._animState = this.isMoving ? 'walk' : 'idle';
         }
+    }
+
+    _isTargetInSpellRange(skill) {
+        if (!this.target || !this.target.active) return false;
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const level = skill && skill.level ? skill.level : 1;
+        const effect = skill && typeof skill.getEffect === 'function' ? skill.getEffect(level) : null;
+        let maxRange = 500;
+        if (effect && typeof effect.castRange === 'number') {
+            maxRange = effect.castRange;
+        } else if (effect && typeof effect.maxRange === 'number') {
+            maxRange = effect.maxRange;
+        } else if (skill && skill.id === 'fireball') {
+            maxRange = 800;
+        } else if (skill && skill.id === 'iceSpike') {
+            maxRange = 500;
+        }
+        return dist <= maxRange;
     }
 
     _startIceCast() {
@@ -237,7 +259,7 @@ export class ZombieWizard extends Enemy {
             this._castTimer = 500;
             this._animState = 'attack';
             this._iceSpikeSystem.trigger(); // 发射已凝聚的冰锥
-            if (this._fireballCooldown <= 0) {
+            if (this._fireballCooldown <= 0 && this._isTargetInSpellRange(this.skills.fireball)) {
                 this._startFireCast();
             }
         } else if (this._castState === 'fire') {

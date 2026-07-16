@@ -8,6 +8,7 @@ import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.j
 import { SkillManager } from './skill-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
 import { CodexManager } from './codex-manager.js';
+import { StatusTooltipHelper } from './status-tooltip-helper.js';
 
 export const UI_DATA_CONFIG = {
     topBar: [
@@ -95,50 +96,17 @@ export const SystemUI = {
         this._initAttrTooltips();
     },
     _initAttrTooltips() {
-        const attrTooltipData = {
-            str: { title: '力量', lines: [{ name: '每1点增加', val: '0.05 物理攻击' }, { name: '每1点增加', val: '0.3 物理防御' }] },
-            dex: { title: '敏捷', lines: [{ name: '每1点增加', val: '0.1 物理攻击' }, { name: '每1点增加', val: '0.5 命中' }, { name: '每1点增加', val: '0.3 闪避' }, { name: '每1点增加', val: '0.3 体力恢复' }, { name: '每1点增加', val: '0.02 攻击速度' }] },
-            int: { title: '智力', lines: [{ name: '每1点增加', val: '1.5 魔法攻击' }, { name: '每1点增加', val: '0.3 魔法防御' }] },
-            con: { title: '体质', lines: [{ name: '每1点增加', val: '10 生命值' }, { name: '每1点增加', val: '1.2 物理防御' }, { name: '每1点增加', val: '1% 暴击抵抗' }] },
-            wis: { title: '精神', lines: [{ name: '每1点增加', val: '10 魔法值' }, { name: '每1点增加', val: '1.2 魔法防御' }, { name: '每1点增加', val: '0.5 魔法攻击' }] },
-            luck: { title: '幸运', lines: [{ name: '每1点增加', val: '1% 暴击率' }, { name: '每1点增加', val: '0.2 暴击' }] }
-        };
-        queryAllElements('.attr-item[data-attr]').forEach(item => {
-            const attr = item.dataset.attr;
-            const data = attrTooltipData[attr];
-            if (!data) return;
-            let html = `<div class="tt-title">${data.title}</div>`;
-            data.lines.forEach(line => {
-                html += `<div class="tt-line"><span class="tt-name">${line.name}</span><span class="tt-val">${line.val}</span></div>`;
-            });
+        // 为所有带 data-tooltip-key 的状态词条创建浮窗，内容从公式/配置实时生成
+        queryAllElements('[data-tooltip-key]').forEach(item => {
+            const key = item.dataset.tooltipKey;
+            if (!key) return;
             const tooltip = document.createElement('div');
             tooltip.className = 'attr-tooltip';
-            tooltip.innerHTML = html;
             item.appendChild(tooltip);
-        });
-        // 战斗属性浮窗
-        const combatTooltipData = {
-            atk: { title: '物理攻击', lines: [{ name: '说明', val: '当前武器攻击力' }, { name: '来源', val: '武器基础+属性加成+精通加成' }] },
-            def: { title: '物理防御', lines: [{ name: '计算公式', val: '体质×1.2 + 力量×0.3' }, { name: '作用', val: '减少物理伤害，公式=atk²/(atk+def)' }] },
-            matk: { title: '魔法攻击', lines: [{ name: '计算公式', val: '智力×1.5 + 精神×0.5' }, { name: '作用', val: '提升魔法伤害' }] },
-            mdef: { title: '魔法防御', lines: [{ name: '计算公式', val: '精神×1.2 + 智力×0.3' }, { name: '作用', val: '减少魔法伤害' }] },
-            crit: { title: '暴击率', lines: [{ name: '基础值', val: '2%' }, { name: '加成', val: '每点幸运+1%' }] },
-            critRes: { title: '暴击抵抗', lines: [{ name: '计算公式', val: '体质×1%' }, { name: '作用', val: '降低被暴击概率' }] },
-            aspd: { title: '攻击间隔', lines: [{ name: '说明', val: '两次攻击之间的毫秒数' }, { name: '来源', val: '武器基础冷却时间' }] },
-            spd: { title: '移动速度', lines: [{ name: '说明', val: '每帧移动的像素数×60' }, { name: '加成', val: '每点敏捷+0.05' }] }
-        };
-        queryAllElements('.attr-item[data-combat-attr]').forEach(item => {
-            const attr = item.dataset.combatAttr;
-            const data = combatTooltipData[attr];
-            if (!data) return;
-            let html = `<div class="tt-title">${data.title}</div>`;
-            data.lines.forEach(line => {
-                html += `<div class="tt-line"><span class="tt-name">${line.name}</span><span class="tt-val">${line.val}</span></div>`;
+            item.addEventListener('mouseenter', () => {
+                const player = Game.player;
+                tooltip.innerHTML = StatusTooltipHelper.render(key, player);
             });
-            const tooltip = document.createElement('div');
-            tooltip.className = 'attr-tooltip';
-            tooltip.innerHTML = html;
-            item.appendChild(tooltip);
         });
     },
     toggle(tab) { if (tab === 'inventory') tab = 'equip'; if (this.isOpen && this.currentTab === tab) { this.close(); return; } this.open(tab); },

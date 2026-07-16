@@ -203,14 +203,14 @@ class DashSystem {
                 const easedProgress = Easing.easeOutQuad(moveProgress);
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
-                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
+                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.groundRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
                     const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
-                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
+                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.groundRadius);
                     this.player.x = br.x; this.player.y = br.y;
                     EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                 } else {
@@ -295,14 +295,14 @@ class DashSystem {
                 const easedProgress = Easing.easeOutQuad(moveProgress);
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
-                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
+                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.groundRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
                     const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
-                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
+                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.groundRadius);
                     this.player.x = br.x; this.player.y = br.y;
                     EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                 } else {
@@ -466,6 +466,7 @@ class DashSystem {
                     }
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                     entity.takeDamage(finalDamage, this.player);
+                    if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害（hitIndex === 0 已处理，这里不触发）
                     if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
                     phase.totalHitCount++;
@@ -515,6 +516,7 @@ class DashSystem {
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                     const wasAlive = entity.hp > 0;
                     entity.takeDamage(finalDamage, this.player);
+                    if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;
                     const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
                     entity.applyKnockback(kbAngle, knockback);

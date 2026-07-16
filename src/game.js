@@ -39,6 +39,7 @@ import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
+import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -133,6 +134,9 @@ export const Game = {
             SceneManager.init();
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             SceneManager._inMainHub = true;
+            SceneManager._mainHubInvincible = true;
+            // 主神空间生成测试用胖子僵尸
+            this.spawnMainFatZombie();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -367,6 +371,25 @@ export const Game = {
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_mutant3', mutant);
+    },
+    spawnMainFatZombie() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const fatCfg = enemyConfigData.fatZombie || {};
+        // 使用原设定数值，仅保留永久警戒便于测试
+        const fat = new FatZombie(origin.x + 250, origin.y + 250, {
+            ...fatCfg,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(fatCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_fat_zombie', fat);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -635,7 +658,8 @@ if (Input.mouse.leftPressed) {
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
-            if (!e.active) continue;
+            const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0);
+            if (!e.active && !isCorpse) continue;
 e.update(dt, this.entities);
 if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);
@@ -951,7 +975,7 @@ if (SceneManager.currentScene === 'scene3') {
     },
     // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
     resolveCollisions() {
-        const entities = Array.from(this.entities.values()).filter(e => e.active && (e.size || e.collisionRadius || e.hitbox || (e.collisionShape === 'rect' && e.collisionWidth)) && !e.noCollision);
+        const entities = Array.from(this.entities.values()).filter(e => e.active && e.groundRadius > 0 && !e.noCollision);
         const player = this.player;
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
@@ -961,90 +985,23 @@ if (SceneManager.currentScene === 'scene3') {
                     (a === player && this._isEnemyAttackingTarget(b, player)) ||
                     (b === player && this._isEnemyAttackingTarget(a, player))
                 )) continue;
-                // 使用 getCollisionShape 获取碰撞形状
-                const shapeA = a.getCollisionShape ? a.getCollisionShape() : { type: 'circle', radius: a.size || a.collisionRadius || 10 };
-                const shapeB = b.getCollisionShape ? b.getCollisionShape() : { type: 'circle', radius: b.size || b.collisionRadius || 10 };
+                // Phase 1：统一使用地面圆形 footprint 做实体间分离
+                const radiusA = a.groundRadius;
+                const radiusB = b.groundRadius;
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = radiusA + radiusB;
 
-                let moveA = { x: 0, y: 0 }, moveB = { x: 0, y: 0 };
-                let separated = false;
+                if (dist > 0 && dist < minDist) {
+                    const overlap = minDist - dist;
+                    const ratio = overlap / dist / 2;
+                    const moveA = { x: -dx * ratio, y: -dy * ratio };
+                    const moveB = { x: dx * ratio, y: dy * ratio };
 
-                if (shapeA.type === 'rect' && shapeB.type === 'rect') {
-                    // 矩形 vs 矩形：按 AABB 最小穿透轴分离
-                    const hwA = shapeA.width / 2, hhA = shapeA.height / 2;
-                    const hwB = shapeB.width / 2, hhB = shapeB.height / 2;
-                    const dx = b.x - a.x, dy = b.y - a.y;
-                    const overlapX = hwA + hwB - Math.abs(dx);
-                    const overlapY = hhA + hhB - Math.abs(dy);
-                    if (overlapX > 0 && overlapY > 0) {
-                        separated = true;
-                        if (overlapX < overlapY) {
-                            const sx = (dx >= 0 ? 1 : -1) * overlapX / 2;
-                            moveA.x = -sx; moveB.x = sx;
-                        } else {
-                            const sy = (dy >= 0 ? 1 : -1) * overlapY / 2;
-                            moveA.y = -sy; moveB.y = sy;
-                        }
-                    }
-                } else if (shapeA.type !== 'rect' && shapeB.type !== 'rect') {
-                    // 圆形/六边形 vs 圆形/六边形：用等效半径做圆形分离
-                    const dx = b.x - a.x, dy = b.y - a.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const minDist = shapeA.radius + shapeB.radius;
-                    if (dist > 0 && dist < minDist) {
-                        separated = true;
-                        const overlap = minDist - dist;
-                        const ratio = overlap / dist / 2;
-                        moveA.x = -dx * ratio; moveA.y = -dy * ratio;
-                        moveB.x = dx * ratio; moveB.y = dy * ratio;
-                    }
-                } else {
-                    // 矩形 vs 圆形/六边形
-                    const rectShape = shapeA.type === 'rect' ? shapeA : shapeB;
-                    const rectEntity = shapeA.type === 'rect' ? a : b;
-                    const circEntity = shapeA.type === 'rect' ? b : a;
-                    const circShape = shapeA.type === 'rect' ? shapeB : shapeA;
-                    const hw = rectShape.width / 2, hh = rectShape.height / 2;
-                    const dx = circEntity.x - rectEntity.x;
-                    const dy = circEntity.y - rectEntity.y;
-                    const closestX = Math.max(-hw, Math.min(hw, dx));
-                    const closestY = Math.max(-hh, Math.min(hh, dy));
-                    const cdx = dx - closestX;
-                    const cdy = dy - closestY;
-                    const distSq = cdx * cdx + cdy * cdy;
-                    if (distSq < circShape.radius * circShape.radius) {
-                        separated = true;
-                        const dist = Math.sqrt(distSq);
-                        let nx, ny, overlap;
-                        if (dist > 0) {
-                            nx = cdx / dist; ny = cdy / dist;
-                            overlap = circShape.radius - dist;
-                        } else {
-                            // 圆心在矩形内部：沿最短穿透轴推出
-                            const penX = circShape.radius + hw - Math.abs(dx);
-                            const penY = circShape.radius + hh - Math.abs(dy);
-                            if (penX < penY) {
-                                nx = dx >= 0 ? 1 : -1; ny = 0; overlap = penX;
-                            } else {
-                                nx = 0; ny = dy >= 0 ? 1 : -1; overlap = penY;
-                            }
-                        }
-                        const mx = nx * overlap / 2;
-                        const my = ny * overlap / 2;
-                        if (shapeA.type === 'rect') {
-                            moveA.x = -mx; moveA.y = -my;
-                            moveB.x = mx; moveB.y = my;
-                        } else {
-                            moveA.x = mx; moveA.y = my;
-                            moveB.x = -mx; moveB.y = -my;
-                        }
-                    }
-                }
-
-                if (separated) {
-                    const wallRadiusA = a.collisionRadius || Math.max(shapeA.width || 0, shapeA.height || 0) / 2 || (a.hitbox ? a.hitbox.getApproxRadius() : shapeA.radius * 0.6);
-                    const wallRadiusB = b.collisionRadius || Math.max(shapeB.width || 0, shapeB.height || 0) / 2 || (b.hitbox ? b.hitbox.getApproxRadius() : shapeB.radius * 0.6);
-                    const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, wallRadiusA);
-                    const nb = WallSystem.resolve(b.x, b.y, b.x + moveB.x, b.y + moveB.y, wallRadiusB);
+                    // 用 WallSystem 校验，避免分离把实体推进墙里
+                    const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, radiusA);
+                    const nb = WallSystem.resolve(b.x, b.y, b.x + moveB.x, b.y + moveB.y, radiusB);
                     a.x = na.x; a.y = na.y;
                     b.x = nb.x; b.y = nb.y;
                 }

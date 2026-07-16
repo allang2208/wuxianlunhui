@@ -426,7 +426,7 @@ function createBigBossClass() {
         const newY = this.y + moveY;
 
         if (WallSystem && WallSystem.resolve) {
-            const resolved = WallSystem.resolve(this.x, this.y, newX, newY, this.collisionRadius || 80);
+            const resolved = WallSystem.resolve(this.x, this.y, newX, newY, this.groundRadius);
             // 如果撞墙，停止冲锋
             if (Math.abs(resolved.x - newX) > 5 || Math.abs(resolved.y - newY) > 5) {
                 this._endCharge(entities, true);
@@ -446,7 +446,7 @@ function createBigBossClass() {
             const dx = e.x - this.x;
             const dy = e.y - this.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const collisionDist = (this.collisionRadius || 80) + (e.collisionRadius || 15);
+            const collisionDist = (this.groundRadius) + (e.groundRadius);
             if (dist < collisionDist) {
                 const damage = this._calculateSkillDamage(config.damageMultiplier);
                 if (e.takeDamage) {
@@ -642,8 +642,8 @@ function createBigBossClass() {
         ctx.restore();
     }
 
-    _drawShadow(ctx, x, y, size) {
-        const r = this.collisionRadius || size;
+    _drawShadow(ctx, x, y, _size) {
+        const r = this.groundRadius;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
         ctx.beginPath();
         ctx.ellipse(x, y + r * 0.5 + 20, r * 1.2, r * 0.4, 0, 0, Math.PI * 2);

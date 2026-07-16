@@ -42,6 +42,9 @@
       "spriteSize": 151,
       "collisionWidth": 133,
       "collisionHeight": 78
+    },
+    "textures": {
+      "idle": "assets/enemies/black_wolf_idle.png"
     }
   },
   "redWolfKing": {
@@ -93,7 +96,7 @@
     "def": 25,
     "size": 18,
     "collisionRadius": 16,
-    "speed": 200,
+    "speed": 110,
     "level": 4,
     "color": "#6a4a2a",
     "highlightColor": "rgba(106, 74, 42, 0.3)",
@@ -104,8 +107,24 @@
     "wis": 3,
     "luck": 5,
     "rank": "normal",
-    "attackRange": 120,
+    "attackRange": 100,
     "aiInterval": 2000,
+    "rangedDamageReduction": 0.5,
+    "render": {
+      "spriteSize": 150,
+      "collisionWidth": 90,
+      "collisionHeight": 120
+    },
+    "textures": {
+      "idle": "assets/enemies/fat_zombie/idle.png",
+      "walk": "assets/enemies/fat_zombie/walking.png",
+      "attack": "assets/enemies/fat_zombie/attacking.png",
+      "melt": "assets/enemies/fat_zombie/melting.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
     "ai": {
       "aggroRange": 9999,
       "pacingRange": 150,
@@ -114,7 +133,7 @@
     },
     "attack": {
       "type": "thrust",
-      "cooldown": 1200,
+      "cooldown": 2000,
       "dynamicRange": 120,
       "width": 25,
       "knockback": 10
@@ -122,7 +141,7 @@
     "type": "普通",
     "category": "monster",
     "family": "僵尸",
-    "description": "体型庞大的僵尸，行动缓慢但力大无穷，重击能造成巨大伤害并击退目标。",
+    "description": "体型庞大的僵尸，行动缓慢但力大无穷。周身散发腐化肉瘤，50×25 范围内的敌对目标每 0.5 秒受到 8 点魔法伤害；受到远程物理伤害减少 50%。",
     "skills": [],
     "attackType": "重击碾压"
   },
@@ -207,6 +226,9 @@
       "spriteSize": 90,
       "collisionWidth": 80,
       "collisionHeight": 79
+    },
+    "textures": {
+      "idle": "assets/enemies/zombie_dog_idle.png"
     }
   },
   "zombie": {
@@ -338,6 +360,13 @@
       "spriteSize": 90,
       "collisionWidth": 32,
       "collisionHeight": 79
+    },
+    "textures": {
+      "idle": "assets/enemies/spitter_zombie/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 24,
+      "idleSheetColumns": 8
     }
   },
   "babySpider": {
@@ -756,7 +785,7 @@
     "str": 10,
     "dex": 20,
     "con": 30,
-    "int": 60,
+    "int": 35,
     "wis": 40,
     "luck": 8,
     "attackRange": 1500,
@@ -797,6 +826,13 @@
       "spriteSize": 120,
       "collisionWidth": 61,
       "collisionHeight": 109
+    },
+    "textures": {
+      "idle": "assets/enemies/zombie_wizard/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
     }
   },
   "mutant3": {
@@ -810,7 +846,7 @@
     "collisionRadius": 20,
     "hp": 750,
     "maxHp": 750,
-    "speed": 300,
+    "speed": 200,
     "level": 9,
     "rank": "elite",
     "str": 50,
@@ -851,6 +887,13 @@
       "spriteSize": 120,
       "collisionWidth": 80,
       "collisionHeight": 96
+    },
+    "textures": {
+      "idle": "assets/enemies/mutant3/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
     }
   }
 }
