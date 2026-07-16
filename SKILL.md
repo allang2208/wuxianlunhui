@@ -1078,3 +1078,14 @@ Phaser Sprite.x / y / rotation / scale
     - 胖子僵尸腐蚀光环 `fat-zombie.js` → `GroundRect`
   - 近战判定复用 `SpatialPartitionSystem.queryRadius` 做 broadphase
   - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
+
+- v2.1 (2026-07-13) — 3D 碰撞/命中体系 Phase 4：动态实体 Y-sort 深度排序
+  - 在 `GameScene.update` 中 `_syncBodiesToPhysics()` 后新增 `_updateDynamicDepths()`，每帧统一刷新玩家/敌人/武器/特效深度
+  - 玩家与敌人 Sprite 深度基于脚底 Y（`y + displayHeight/2 + bias`），与环境墙壁/树木（`w.y + w.h`、`t.sortY`）使用同一坐标空间
+  - 尸体使用较低 bias（+2），存活实体 +10，保持尸体被站立角色遮挡的透视关系
+  - 手持武器、盾牌、副手武器跟随玩家深度 + 小偏移，保证武器始终与角色正确分层
+  - 防御光环位于玩家深度下方；符文剑/冰锥/火球/飞行投射物/无人机等技能特效按自身 `y + 15` 排序
+  - 其他施法者（敌人巫师）的 `_magicSprites` 也纳入同一排序
+  - 受击绿色粒子深度改为 `y + 1000`，继续高于普通实体
+  - 移除 `GameScene` 中所有硬编码的 `setDepth(50/100/148/149/150/155/160/165)`，避免与动态排序冲突
+  - 验证：`npm run lint`、`npx vite build` 通过
