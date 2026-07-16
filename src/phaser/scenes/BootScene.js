@@ -261,17 +261,32 @@ export class BootScene extends Scene {
             g.destroy();
         };
 
-        // 通用圆盘敌人：白色圆+阴影，运行时用 tint 着色
+        // 通用占位敌人：胶囊体身体 + 椭圆阴影，运行时用 tint 着色
+        // 锚点 (0.5,0.5) 对应贴图中心；脚底在贴图底部 (y≈56)，与 Collider 地面圆对齐。
         generateEnemyTexture('enemy_circle', (g) => {
+            const cx = 32;
+            const cy = 32;
+            const radius = 12;
+            const innerHalf = 12; // 胶囊体总高 = 2*radius + 2*innerHalf = 48
+            const topY = cy - innerHalf;
+            const bottomY = cy + innerHalf;
+
+            // 脚底椭圆阴影
             g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 46, 28, 10);
+            g.fillEllipse(cx, 56, 28, 10);
+
+            // 垂直胶囊体身体
             g.fillStyle(0xffffff, 1);
-            g.fillCircle(32, 32, 26);
+            g.fillCircle(cx, topY, radius);
+            g.fillCircle(cx, bottomY, radius);
+            g.fillRect(cx - radius, topY, radius * 2, bottomY - topY);
+
+            // 高光/眼睛
             g.fillStyle(0xeeeeee, 1);
-            g.fillCircle(32, 30, 10);
+            g.fillCircle(cx, topY + 4, 6);
             g.fillStyle(0x000000, 0.6);
-            g.fillCircle(29, 27, 3);
-            g.fillCircle(35, 27, 3);
+            g.fillCircle(cx - 3, topY + 2, 2);
+            g.fillCircle(cx + 3, topY + 2, 2);
         });
 
         // 掉落物占位纹理

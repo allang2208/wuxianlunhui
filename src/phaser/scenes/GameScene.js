@@ -261,7 +261,6 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
             if (this.minimapTitle) this.minimapTitle.setVisible(true);
             this._syncHud(_game);
-            this._syncCollisionRadii(_game);
             this._syncHitFlashAndCharge(_game);
             this._syncNeutralEntities(_game);
             // Phase 3: 同步特效 Sprite
@@ -293,6 +292,8 @@ export class GameScene extends Scene {
         this._syncBodiesToPhysics();
         // 同步可移动实体脚底阴影
         this._syncEntityShadows(_game);
+        // 调试范围圈与阴影使用同一脚底坐标，避免错位
+        this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
         this._updateCamera();
@@ -335,39 +336,43 @@ export class GameScene extends Scene {
         
         // 玩家：如果启用 velocity 驱动，从 Phaser 同步位置回 Player
         if (this._useVelocityDrive && Game.player && this.playerSprite && this.playerSprite.body) {
+            const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+
             // 初始化：如果 playerSprite 在 (0,0) 或远离玩家，同步一次位置
+            // playerSprite.y 是贴图中心，Game.player.y 是逻辑脚底，需要减去 footOffsetY
             const distToPlayer = Math.sqrt(
                 (this.playerSprite.x - Game.player.x) ** 2 +
-                (this.playerSprite.y - Game.player.y) ** 2
+                (this.playerSprite.y - (Game.player.y - playerShift)) ** 2
             );
             if (distToPlayer > 100) {
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
-                
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
             }
-            
+
             // 如果玩家在闪避，Player 直接设置位置，需要同步到 Phaser
             if (Game.player.isDodging) {
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
                 this.playerSprite.body.setVelocity(0, 0);
             }
-            
+
             // 正常：从 Phaser 同步位置到 Player
             // 注意：只同步位置，不同步速度！
+            // 把贴图中心坐标转回逻辑脚底坐标
             Game.player.x = this.playerSprite.x;
-            Game.player.y = this.playerSprite.y;
+            Game.player.y = this.playerSprite.y + playerShift;
             // 边界检查
             if (Game.player.x < -CONFIG.WORLD_WIDTH || Game.player.x > CONFIG.WORLD_WIDTH * 2 ||
                 Game.player.y < -CONFIG.WORLD_HEIGHT || Game.player.y > CONFIG.WORLD_HEIGHT * 2) {
                 Game.player.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, Game.player.x));
                 Game.player.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, Game.player.y));
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
             }
             return;
         }
         
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
-            this.playerSprite.setPosition(Game.player.x, Game.player.y);
+            const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+            this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
             this.playerSprite.body.reset(Game.player.x, Game.player.y);
         }
 
@@ -384,7 +389,7 @@ export class GameScene extends Scene {
                 this.getOrCreateEnemySprite(entity, wanted);
             }
             if (!entity._phaserSprite) return;
-            // 直接同步 Sprite 位置，确保贴图与逻辑位置一致
+            // 直接同步 Sprite 位置；若配置了 footOffsetY，把逻辑位置对齐到贴图脚底
             let syncX = entity.x, syncY = entity.y;
             if (entity._attackDashOffset > 0 && !entity._dashBlocked) {
                 const offset = typeof entity._getDashOffset === 'function'
@@ -393,7 +398,8 @@ export class GameScene extends Scene {
                 syncX += offset.x;
                 syncY += offset.y;
             }
-            entity._phaserSprite.setPosition(syncX, syncY);
+            const shiftY = this._getFootOffsetY(entity, entity._phaserSprite);
+            entity._phaserSprite.setPosition(syncX, syncY - shiftY);
             if (entity._phaserSprite.body) {
                 entity._phaserSprite.body.reset(syncX, syncY);
             }
@@ -416,10 +422,10 @@ export class GameScene extends Scene {
         const Game = window.Game;
         if (!Game) return;
 
-        // 1. 玩家：深度基于脚底 Y（Sprite 中心 + 半高）
+        // 1. 玩家：深度基于脚底 Y（Sprite.y + footOffsetY）
         if (this.playerSprite && this.playerSprite.active) {
-            const footOffset = this.playerSprite.displayHeight * 0.5;
-            this.playerSprite.setDepth(Game.player.y + footOffset + 10);
+            const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
+            this.playerSprite.setDepth(this.playerSprite.y + footOffsetY + 10);
         }
 
         // 2. 敌人 / 尸体
@@ -431,8 +437,8 @@ export class GameScene extends Scene {
                 if (!e.active && !isCorpse) return;
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
-                const footOffset = sprite.displayHeight * 0.5;
-                sprite.setDepth(e.y + footOffset + (isCorpse ? 2 : 10));
+                const footOffsetY = this._getFootOffsetY(e, sprite);
+                sprite.setDepth(sprite.y + footOffsetY + (isCorpse ? 2 : 10));
             });
         }
 
@@ -498,8 +504,8 @@ export class GameScene extends Scene {
         if (this._neutralSprites) {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
-                const footOffset = data.sprite.displayHeight * 0.5;
-                const depth = e.y + footOffset + 10;
+                const footOffsetY = this._getFootOffsetY(e, data.sprite);
+                const depth = data.sprite.y + footOffsetY + 10;
                 data.sprite.setDepth(depth);
                 if (data.label && data.label.active) data.label.setDepth(depth + 1);
             }
@@ -516,6 +522,25 @@ export class GameScene extends Scene {
         g.fillCircle(32, 32, 32);
         g.generateTexture('entity_shadow', 64, 64);
         g.destroy();
+    }
+
+    /**
+     * 获取实体脚底相对于 Sprite 中心的偏移（像素）。
+     * - 如果 render 或实体上显式配置了 footOffsetY，则使用配置值。
+     * - 否则默认按 Sprite 显示高度的一半（即贴图方格底部）兜底。
+     */
+    _getFootOffsetY(entity, sprite) {
+        if (!sprite) return 0;
+        const configured = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
+        if (typeof configured === 'number') return configured;
+        return sprite.displayHeight * 0.5;
+    }
+
+    /**
+     * 判断实体是否显式配置了 footOffsetY（用于决定是否上移 Sprite 使逻辑位置落在脚底）。
+     */
+    _hasConfiguredFootOffset(entity) {
+        return typeof (entity.footOffsetY ?? entity.config?.render?.footOffsetY) === 'number';
     }
 
     /**
@@ -547,9 +572,10 @@ export class GameScene extends Scene {
         if (_game.player && this.playerSprite && this.playerSprite.active) {
             const e = _game.player;
             active.add(e);
-            const footOffset = this.playerSprite.displayHeight * 0.5;
-            const depth = e.y + footOffset + 9; // 比实体本身低 1
-            ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+            const footOffsetY = this._getFootOffsetY(e, this.playerSprite);
+            const footY = this.playerSprite.y + footOffsetY;
+            const depth = footY + 9; // 比实体本身低 1
+            ensureShadow(e, this.playerSprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
         }
 
         // 敌人
@@ -560,9 +586,10 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
-                const footOffset = sprite.displayHeight * 0.5;
-                const depth = e.y + footOffset + 9;
-                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+                const footOffsetY = this._getFootOffsetY(e, sprite);
+                const footY = sprite.y + footOffsetY;
+                const depth = footY + 9;
+                ensureShadow(e, sprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
             });
         }
 
@@ -571,9 +598,10 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 active.add(e);
-                const footOffset = data.sprite.displayHeight * 0.5;
-                const depth = e.y + footOffset + 9;
-                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+                const footOffsetY = this._getFootOffsetY(e, data.sprite);
+                const footY = data.sprite.y + footOffsetY;
+                const depth = footY + 9;
+                ensureShadow(e, data.sprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
             }
         }
 
@@ -767,7 +795,8 @@ export class GameScene extends Scene {
      */
     syncPlayerPosition(x, y, rotation) {
         if (!this.playerSprite) return;
-        this.playerSprite.setPosition(x, y);
+        const shift = this._getFootOffsetY(window.Game && window.Game.player, this.playerSprite);
+        this.playerSprite.setPosition(x, y - shift);
         this.playerSprite.setRotation(rotation);
     }
 
@@ -1988,34 +2017,58 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
-            // Phase 1 后逻辑 footprint 已统一为圆形，可视化直接画 groundRadius
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
 
-            // 同步显示上方 3D 胶囊体体积（ footprint + 垂直高度）
+            // 取对应 Sprite，统一把调试图形画在“视觉脚底”，即阴影位置。
+            // 这样即使实体未配置 footOffsetY，红色 footprint 也能和黑色阴影对齐。
+            const sprite = entity === _game.player
+                ? this.playerSprite
+                : entity._phaserSprite;
+            const footOffsetY = this._getFootOffsetY(entity, sprite);
+            const footY = (sprite && sprite.active)
+                ? sprite.y + footOffsetY
+                : entity.y;
+
+            // 1) 地面 footprint：红色半透明椭圆
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+
+            // 2) 上方 3D 胶囊体：橙色，底部与红色 footprint 相切
             const h = entity.bodyHeight || r * 2;
             const zScale = PERSPECTIVE_SCALE_Z;
             const bodyH = Math.max(0, (h - 2 * r) * zScale);
-            const topY = entity.y - (h - r) * zScale;
-            const midY = entity.y - r * zScale;
-            this._collisionRadiusGraphics.fillStyle(0xff0000, 0.12);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, topY, r * 2, r * 2 * zScale);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+            const bottomCenterY = footY - r * zScale; // 下盖圆心，使胶囊体底部正好落在 footY
+            const topCenterY = bottomCenterY - bodyH;
+            const capH = r * 2 * zScale;
+
+            this._collisionRadiusGraphics.fillStyle(0xff6600, 0.12);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, bottomCenterY, r * 2, capH);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, topCenterY, r * 2, capH);
             if (bodyH > 0) {
-                this._collisionRadiusGraphics.fillRect(entity.x - r, topY, r * 2, bodyH);
+                this._collisionRadiusGraphics.fillRect(entity.x - r, topCenterY, r * 2, bodyH);
             }
-            this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.4);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, topY, r * 2, r * 2 * zScale);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+
+            this._collisionRadiusGraphics.lineStyle(1.5, 0xff8800, 0.75);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, bottomCenterY, r * 2, capH);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, topCenterY, r * 2, capH);
             if (bodyH > 0) {
                 this._collisionRadiusGraphics.beginPath();
-                this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
-                this._collisionRadiusGraphics.lineTo(entity.x - r, midY);
-                this._collisionRadiusGraphics.moveTo(entity.x + r, topY);
-                this._collisionRadiusGraphics.lineTo(entity.x + r, midY);
+                this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
+                this._collisionRadiusGraphics.lineTo(entity.x - r, bottomCenterY);
+                this._collisionRadiusGraphics.moveTo(entity.x + r, topCenterY);
+                this._collisionRadiusGraphics.lineTo(entity.x + r, bottomCenterY);
                 this._collisionRadiusGraphics.strokePath();
             }
+
+            // 顶部/底部水平参考线
+            this._collisionRadiusGraphics.lineStyle(1, 0xffaa00, 0.6);
+            this._collisionRadiusGraphics.beginPath();
+            this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, topCenterY);
+            this._collisionRadiusGraphics.moveTo(entity.x - r, footY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
+            this._collisionRadiusGraphics.strokePath();
+
             // 恢复地面圆的填充样式，供下一个实体使用
             this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
             this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
@@ -2039,16 +2092,16 @@ export class GameScene extends Scene {
         if (maxHp <= 0) return;
         const hpPercent = Math.max(0, Math.min(1, hp / maxHp));
         const size = entity.size || 14;
-        const x = entity.x;
-        const y = entity.y;
-        const displayH = (entity._phaserSprite && entity._phaserSprite.active)
-            ? entity._phaserSprite.displayHeight
-            : size * 3;
+        const sprite = (entity._phaserSprite && entity._phaserSprite.active) ? entity._phaserSprite : null;
+        const x = sprite ? sprite.x : entity.x;
+        const topY = sprite
+            ? sprite.y - sprite.displayHeight * 0.5
+            : entity.y - size * 1.5;
 
         if (isBoss) {
             const barW = 80, barH = 8, border = 2;
             const barX = x - barW / 2;
-            const barY = y - displayH / 2 - 12;
+            const barY = topY - 12;
             // 背景
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - border, barY - border, barW + border * 2, barH + border * 2);
@@ -2076,7 +2129,7 @@ export class GameScene extends Scene {
             // Boss 名字+等级
             const nameText = this._getEntityHudText(entity, 'bossName');
             nameText.setText(`${entity.name}\nLv.${entity.level || '?'} 首领`);
-            nameText.setPosition(x, y - displayH / 2 - 10);
+            nameText.setPosition(x, topY - 10);
             nameText.setVisible(true);
             return;
         }
@@ -2086,7 +2139,7 @@ export class GameScene extends Scene {
             const cfg = entity._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
             const barW = cfg.width || 28;
             const barH = cfg.height || 4;
-            const barY = y - displayH / 2 + (cfg.offsetY || -8);
+            const barY = topY + (cfg.offsetY || -8);
             const barX = x - barW / 2;
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
@@ -2110,7 +2163,7 @@ export class GameScene extends Scene {
         }
         const nameText = this._getEntityHudText(entity, 'name');
         nameText.setText(entity.name || '');
-        nameText.setPosition(x, y - displayH / 2 - 6);
+        nameText.setPosition(x, topY - 6);
         nameText.setVisible(true);
     }
 
@@ -2120,14 +2173,14 @@ export class GameScene extends Scene {
         const hp = data.hp ?? maxHp;
         const hpPercent = Math.max(0, Math.min(1, hp / maxHp));
         const size = player.size || 18;
-        const x = player.x;
-        const y = player.y;
-        // 以实际贴图高度为基准，避免状态条与贴图错位
-        const displayH = (this.playerSprite && this.playerSprite.active)
-            ? this.playerSprite.displayHeight
-            : size * 3;
+        const sprite = (this.playerSprite && this.playerSprite.active) ? this.playerSprite : null;
+        const x = sprite ? sprite.x : player.x;
+        const displayH = sprite ? sprite.displayHeight : size * 3;
+        const footOffsetY = sprite ? this._getFootOffsetY(player, sprite) : displayH * 0.5;
+        const topY = sprite ? sprite.y - displayH / 2 : player.y - size * 1.5;
+        const footY = sprite ? sprite.y + footOffsetY : player.y + displayH / 2;
         const barW = 40, barH = 6;
-        const barY = y - displayH / 2 - 8; // 头顶上方
+        const barY = topY - 8; // 头顶上方
         const barX = x - barW / 2;
 
         // 血量背景
@@ -2155,7 +2208,7 @@ export class GameScene extends Scene {
         const stMax = data.maxStamina || 1;
         const st = data.stamina ?? stMax;
         const stPercent = Math.max(0, Math.min(1, st / stMax));
-        const stY = y + displayH / 2 + 6; // 紧贴脚底下方
+        const stY = footY + 6; // 紧贴脚底下方
         const stX = x - stBarW / 2;
         this.worldHudGraphics.fillStyle(0x000000, 0.6);
         this.worldHudGraphics.fillRect(stX, stY, stBarW, stBarH);
@@ -2526,7 +2579,8 @@ export class GameScene extends Scene {
             }
             const { sprite, label } = data;
             const size = e.size || 16;
-            sprite.setPosition(e.x, e.y);
+            const shift = this._getFootOffsetY(e, sprite);
+            sprite.setPosition(e.x, e.y - shift);
             sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
 
             let text = e.name || '';
@@ -2546,7 +2600,7 @@ export class GameScene extends Scene {
             } else if (e.hp !== undefined && e.maxHp !== undefined) {
                 text = `${e.name} ${e.hp}/${e.maxHp}`;
             }
-            label.setPosition(e.x, e.y - size - 8);
+            label.setPosition(e.x, sprite.y - size - 8);
             if (label.text !== text) {
                 label.setText(text);
             }
