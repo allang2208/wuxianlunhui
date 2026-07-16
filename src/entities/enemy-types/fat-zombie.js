@@ -119,6 +119,8 @@ export class FatZombie extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
+        // 必须触发通用武器动画状态机，才能在 swing 阶段执行 ThrustAttack.checkTriangleHit
+        super.triggerWeaponAnim();
     }
 
     _getAuraDimensions() {
