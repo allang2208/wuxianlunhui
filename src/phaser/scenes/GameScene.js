@@ -333,10 +333,22 @@ export class GameScene extends Scene {
     _syncBodiesToPhysics() {
         const Game = window.Game;
         if (!Game) return;
-        
+
+        // 让 Arcade Body 的碰撞中心保持在逻辑脚底，同时 Sprite 中心向上偏移 footOffsetY。
+        // 注意：body.reset(x,y) 会把 GameObject 也移到 (x,y)，所以必须传入偏移后的 Sprite 坐标。
+        const applyBodyFootOffset = (sprite, shiftY) => {
+            const body = sprite.body;
+            if (!body) return;
+            // Arcade offset 是“源像素”单位，需要除以 scaleY。
+            const scaleY = Math.abs(sprite.scaleY) || 1;
+            body.setOffset(body.offset.x, shiftY / scaleY);
+        };
+
         // 玩家：如果启用 velocity 驱动，从 Phaser 同步位置回 Player
         if (this._useVelocityDrive && Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+            Game.player.footOffsetY = playerShift;
+            applyBodyFootOffset(this.playerSprite, playerShift);
 
             // 初始化：如果 playerSprite 在 (0,0) 或远离玩家，同步一次位置
             // playerSprite.y 是贴图中心，Game.player.y 是逻辑脚底，需要减去 footOffsetY
@@ -368,12 +380,14 @@ export class GameScene extends Scene {
             }
             return;
         }
-        
+
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+            Game.player.footOffsetY = playerShift;
             this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
-            this.playerSprite.body.reset(Game.player.x, Game.player.y);
+            applyBodyFootOffset(this.playerSprite, playerShift);
+            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
         }
 
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
@@ -399,9 +413,11 @@ export class GameScene extends Scene {
                 syncY += offset.y;
             }
             const shiftY = this._getFootOffsetY(entity, entity._phaserSprite);
+            entity.footOffsetY = shiftY;
             entity._phaserSprite.setPosition(syncX, syncY - shiftY);
             if (entity._phaserSprite.body) {
-                entity._phaserSprite.body.reset(syncX, syncY);
+                applyBodyFootOffset(entity._phaserSprite, shiftY);
+                entity._phaserSprite.body.reset(syncX, syncY - shiftY);
             }
             if (entity._faction === 'enemy') {
                 this._syncEnemyAnimation(entity);
@@ -573,7 +589,9 @@ export class GameScene extends Scene {
             const e = _game.player;
             active.add(e);
             const depth = e.y + 9; // 比实体本身低 1
-            ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
+            const cx = e.collider ? e.collider.x : e.x;
+            const cy = e.collider ? e.collider.y : e.y;
+            ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
         }
 
         // 敌人
@@ -585,7 +603,9 @@ export class GameScene extends Scene {
                 if (!sprite || !sprite.active) return;
                 active.add(e);
                 const depth = e.y + 9;
-                ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
+                const cx = e.collider ? e.collider.x : e.x;
+                const cy = e.collider ? e.collider.y : e.y;
+                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
             });
         }
 
@@ -595,7 +615,9 @@ export class GameScene extends Scene {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 active.add(e);
                 const depth = e.y + 9;
-                ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
+                const cx = e.collider ? e.collider.x : e.x;
+                const cy = e.collider ? e.collider.y : e.y;
+                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
             }
         }
 
@@ -2013,9 +2035,9 @@ export class GameScene extends Scene {
             if (!entity || !entity.active) return;
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
 
-            // 阴影和 footprint 都回到逻辑脚底（entity.x/y），不跟随 collider 偏移。
-            const cx = entity.x;
-            const cy = entity.y;
+            // footprint / 圆柱体使用 collider 坐标，支持前倾/攻击时的 footprint 偏移。
+            const cx = entity.collider ? entity.collider.x : entity.x;
+            const cy = entity.collider ? entity.collider.y : entity.y;
 
             // 1) 地面 footprint：红色半透明椭圆
             this._collisionRadiusGraphics.strokeEllipse(cx, cy, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);

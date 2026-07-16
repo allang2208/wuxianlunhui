@@ -1251,6 +1251,30 @@ _spawnMuzzleFlash(gunLX, gunLY, forwardOffset, angle, scale) {
                 EffectFactory.createMuzzleFlash(pos.x, pos.y, angle, scale);
             },
 
+_spawnMuzzleFlashAt(x, y, angle, scale) {
+                EffectFactory.createMuzzleFlash(x, y, angle, scale);
+            },
+
+/**
+ * 从 Phaser 武器精灵计算真实枪口世界坐标。
+ * 枪械贴图以 barrel 朝右绘制，枪口在贴图右侧中心；取 displayWidth/2 作为枪管长度。
+ * 如果当前没有对应的武器精灵，返回 null，由调用方回退到旧的脚底相对算法。
+ */
+_getMuzzleWorldPosition(hand = 'main') {
+                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                if (!scene) return null;
+                const sprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
+                if (!sprite || !sprite.active || !sprite.visible || !sprite.texture) return null;
+                const halfLen = sprite.displayWidth * 0.5;
+                const cos = Math.cos(sprite.rotation);
+                const sin = Math.sin(sprite.rotation);
+                return {
+                    x: sprite.x + cos * halfLen,
+                    y: sprite.y + sin * halfLen,
+                    angle: sprite.rotation
+                };
+            },
+
 _spawnShellCasing(gunLX, gunLY, shellOffset, angle) {
                 const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
                 const x = this.x + c * (gunLX + shellOffset.fx) - sin * (gunLY + shellOffset.fy);
@@ -1278,7 +1302,8 @@ _fireRanged(hand = 'main') {
                             const fxCfg = WEAPON_FX_CONFIG.pistolOffhand;
                             const gunLX = this.size + fxCfg.gunLX;
                             const leftGunLY = fxCfg.gunLY;
-                            const muzzlePos = this._getMuzzlePosition(gunLX, leftGunLY, fxCfg.muzzleForward);
+                            let muzzlePos = this._getMuzzleWorldPosition('offhand');
+                            if (!muzzlePos) muzzlePos = this._getMuzzlePosition(gunLX, leftGunLY, fxCfg.muzzleForward);
                             const leftAngle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             let offhandSpreadFactor = this._currentSpreadFactorOff;
                             const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
@@ -1298,7 +1323,7 @@ _fireRanged(hand = 'main') {
                                 isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold
                             });
                             this._playFireSound(offhandItem, fxCfg.defaultSound);
-                            this._spawnMuzzleFlash(gunLX, leftGunLY, fxCfg.flashForward, leftFinalAngle, fxCfg.muzzleScale);
+                            this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, leftFinalAngle, fxCfg.muzzleScale);
                             this._spawnShellCasing(gunLX, leftGunLY, fxCfg.shellOffset, leftFinalAngle);
                         }
                         delete d.fireOffhand;
@@ -1335,7 +1360,8 @@ _fireRanged(hand = 'main') {
                         const mainHasAmmo = this._hasAmmo(mainSlot);
                         if (mainHasAmmo) {
                             this._consumeAmmo(mainSlot);
-                            const muzzlePos = this._getMuzzlePosition(gunLX, gunLY, fxCfg.muzzleForward);
+                            let muzzlePos = this._getMuzzleWorldPosition('main');
+                            if (!muzzlePos) muzzlePos = this._getMuzzlePosition(gunLX, gunLY, fxCfg.muzzleForward);
                             const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
                             // 散布：使用统一的散布系统（所有枪械散布计算时间0.5s）
                             const mainSpreadFactor = this._currentSpreadFactor;
@@ -1360,7 +1386,7 @@ _fireRanged(hand = 'main') {
                             // 主手开火音效
                             this._playFireSound(currentItem, fxCfg.defaultSound);
                             // 主手枪口火焰特效
-                            this._spawnMuzzleFlash(gunLX, gunLY, fxCfg.flashForward, finalAngle, fxCfg.muzzleScale);
+                            this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, finalAngle, fxCfg.muzzleScale);
                             // 弹壳从抛壳窗弹出（枪身右侧后方）
                             this._spawnShellCasing(gunLX, gunLY, fxCfg.shellOffset, angle);
                         }
@@ -1384,8 +1410,9 @@ _fireRanged(hand = 'main') {
 
                         const lmgCfg = WEAPON_FX_CONFIG.lmg;
                         const gunLX = this.size + lmgCfg.gunLX, gunLY = holdY;
-                        const spawnPos = this._getMuzzlePosition(gunLX, gunLY, lmgCfg.muzzleForward);
-                        const baseAngle = Math.atan2(d.targetY - this.y, d.targetX - this.x);
+                        let spawnPos = this._getMuzzleWorldPosition('main');
+                        if (!spawnPos) spawnPos = this._getMuzzlePosition(gunLX, gunLY, lmgCfg.muzzleForward);
+                        const baseAngle = Math.atan2(d.targetY - spawnPos.y, d.targetX - spawnPos.x);
 
                         // 散布：能量轻机枪从配置读取，其他使用统一散布系统
                         let spreadFactor, maxSpreadAngle, spreadRad, angle;
@@ -1450,7 +1477,7 @@ _fireRanged(hand = 'main') {
                         // 枪口火焰特效
                         const hideMuzzle = !isEnergyLMG && craftEffects && craftEffects.hideMuzzleFlash;
                         if (!hideMuzzle) {
-                            this._spawnMuzzleFlash(gunLX, gunLY, lmgCfg.flashForward, angle, isEnergyLMG ? lmgCfg.muzzleScaleEnergy : lmgCfg.muzzleScale);
+                            this._spawnMuzzleFlashAt(spawnPos.x, spawnPos.y, angle, isEnergyLMG ? lmgCfg.muzzleScaleEnergy : lmgCfg.muzzleScale);
                         }
 
                         // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
@@ -1476,8 +1503,9 @@ _fireRanged(hand = 'main') {
                             this._consumeAmmo(mainSlot);
                             const pc = this.attacks[attackKey].config;
                             const gunLX = this.size + sgCfg.gunLX, gunLY = holdY;
-                            const spawnPos = this._getMuzzlePosition(gunLX, gunLY, sgCfg.muzzleForward);
-                            const baseAngle = Math.atan2(d.targetY - this.y, d.targetX - this.x);
+                            let spawnPos = this._getMuzzleWorldPosition('main');
+                            if (!spawnPos) spawnPos = this._getMuzzlePosition(gunLX, gunLY, sgCfg.muzzleForward);
+                            const baseAngle = Math.atan2(d.targetY - spawnPos.y, d.targetX - spawnPos.x);
                             // 动态计算伤害（优先使用 getCurrentWeaponAtk 包含强化和改造加成）
                             let weaponDamage;
                             if (this.getCurrentWeaponAtk) {
@@ -1556,7 +1584,7 @@ _fireRanged(hand = 'main') {
                             // 枪口火焰（消音器隐藏）
                             const hideMuzzle = craftEffects && craftEffects.hideMuzzleFlash;
                             if (!hideMuzzle) {
-                                this._spawnMuzzleFlash(gunLX, gunLY, sgCfg.flashForward, baseAngle, sgCfg.muzzleScale);
+                                this._spawnMuzzleFlashAt(spawnPos.x, spawnPos.y, baseAngle, sgCfg.muzzleScale);
                             }
                             // 弹壳
                             this._spawnShellCasing(gunLX, gunLY, sgCfg.shellOffset, baseAngle);

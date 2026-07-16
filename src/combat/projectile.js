@@ -1,6 +1,8 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { segmentIntersectsCapsule } from '../physics/collision-3d.js';
+import { ELEVATION } from '../physics/collider.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 class Projectile {
@@ -92,40 +94,72 @@ class Projectile {
     /**
      * 投射物与实体的命中判定。
      *
-     * 地面投射物（z=0）改用 2D footprint 检测：
-     * 之前把投射物当成 z=0 的 3D 球体去撞垂直胶囊体，结果只能碰到胶囊体底端
-     * 一个点，导致绝大多数子弹“穿过”橙色圆柱体。
+     * 双重判定：
+     * 1. 地面 footprint 椭圆：把本帧轨迹和 footprint 中心按 PERSPECTIVE_SCALE_Y
+     *    做逆透视变换后，计算线段到圆心的距离。这样与红色 footprint 椭圆视觉一致。
+     * 2. 身体圆柱/胶囊：把贴地飞行的投射物视为竖直厚度为 size 的圆柱
+     *    （中心 z = size/2），与实体的 3D 胶囊体做连续碰撞检测。
      *
-     * 现在：
-     * - 目标 elevation 为 ground/air 时，用本帧轨迹线段到 footprint 圆心的 2D
-     *   距离判定，半径 = collider.radius + projectileRadius，与红色 footprint 一致；
-     * - 飞行/空中目标仍保留 3D 胶囊体检测。
+     * 地面/低空目标： footprint 椭圆 OR 身体圆柱 任一命中即算命中。
+     * 飞行目标：只使用身体圆柱，避免 footprint 命中空中单位脚部。
      */
     _isHittingEntity(entity, prevX, prevY) {
         if (!entity || !entity.active || !entity.collider) return false;
         const c = entity.collider;
-        const projectileRadius = this.size / 2;
 
-        if (c.elevation === 'ground' || c.elevation === 'air') {
-            const sx = this.x - prevX;
-            const sy = this.y - prevY;
-            const dx = c.x - prevX;
-            const dy = c.y - prevY;
-            const len2 = sx * sx + sy * sy;
-            let t = 0;
-            if (len2 > 1e-6) {
-                t = Math.max(0, Math.min(1, (dx * sx + dy * sy) / len2));
-            }
-            const cx = prevX + sx * t;
-            const cy = prevY + sy * t;
-            const ddx = c.x - cx;
-            const ddy = c.y - cy;
-            const rr = c.radius + projectileRadius;
-            return ddx * ddx + ddy * ddy <= rr * rr;
+        if (c.elevation === ELEVATION.FLYING) {
+            return this._hitBodyCapsule(entity, prevX, prevY);
         }
 
-        const segA = { x: prevX, y: prevY, z: this.prevZ };
-        const segB = { x: this.x, y: this.y, z: this.z };
+        return this._hitFootprintEllipse(entity, prevX, prevY) ||
+               this._hitBodyCapsule(entity, prevX, prevY);
+    }
+
+    /**
+     * 地面 footprint 椭圆判定。
+     * 在“逆透视”空间把椭圆变成圆，再做线段到圆心的最近距离判定。
+     */
+    _hitFootprintEllipse(entity, prevX, prevY) {
+        const c = entity.collider;
+        const projectileRadius = this.size / 2;
+        const invScale = 1 / PERSPECTIVE_SCALE_Y;
+
+        const ax = prevX;
+        const ay = prevY * invScale;
+        const bx = this.x;
+        const by = this.y * invScale;
+        const cx = c.x;
+        const cy = c.y * invScale;
+
+        const sx = bx - ax;
+        const sy = by - ay;
+        const dx = cx - ax;
+        const dy = cy - ay;
+        const len2 = sx * sx + sy * sy;
+
+        let t = 0;
+        if (len2 > 1e-6) {
+            t = Math.max(0, Math.min(1, (dx * sx + dy * sy) / len2));
+        }
+
+        const closestX = ax + sx * t;
+        const closestY = ay + sy * t;
+        const ddx = cx - closestX;
+        const dy2 = cy - closestY;
+        const rr = c.radius + projectileRadius;
+        return ddx * ddx + dy2 * dy2 <= rr * rr;
+    }
+
+    /**
+     * 身体 3D 胶囊体判定。
+     * 贴地投射物 z=0，直接撞胶囊体底端会漏判；这里把投射物中心抬升
+     * size/2，使其竖直范围为 [z, z + size]，能够打到圆柱体下段。
+     */
+    _hitBodyCapsule(entity, prevX, prevY) {
+        const c = entity.collider;
+        const projectileRadius = this.size / 2;
+        const segA = { x: prevX, y: prevY, z: this.prevZ + projectileRadius };
+        const segB = { x: this.x, y: this.y, z: this.z + projectileRadius };
         const capsule = c.getCapsuleSegment();
         return segmentIntersectsCapsule(segA, segB, capsule, projectileRadius);
     }

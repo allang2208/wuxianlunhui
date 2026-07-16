@@ -105,10 +105,11 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const arc = this.config.arc;
-                // 攻击范围起始位置与主角坐标重叠
+                // 攻击范围起始位置：从视觉身体中心（脚底 - footOffsetY）发出，与武器位置同步
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
+                const footOffsetY = source.footOffsetY ?? source.config?.render?.footOffsetY ?? 0;
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
-                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
+                const originY = source.y - footOffsetY + Math.sin(attackAngle) * weaponOffset;
                 EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, arc, 'sector'));
                 let hitCount = 0, killCount = 0;
                 const hitCountRef = { value: 0 };
@@ -187,10 +188,11 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const effectiveWidth = isSword ? hitBox.width * 2 : this.config.width; // hitBox.width 是半宽，显示用全宽
-                // 攻击范围起始位置与主角坐标重叠（偏移从全局配置读取）
+                // 攻击范围起始位置：从视觉身体中心发出，与武器位置同步
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
+                const footOffsetY = source.footOffsetY ?? source.config?.render?.footOffsetY ?? 0;
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
-                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
+                const originY = source.y - footOffsetY + Math.sin(attackAngle) * weaponOffset;
                 // 白色攻击范围可视化：使用统一 hitBox 配置
                 if (Game.showAttackRange) {
                     EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, effectiveWidth, 'triangle', 1000));
