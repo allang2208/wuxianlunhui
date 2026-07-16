@@ -137,6 +137,11 @@ import { loadImage } from '../utils/image-loader.js';
                 this._animTimer = 0;
                 this._attackDashOffset = 0;
                 this._dashBlocked = false;
+                // ===== 配置驱动的线性突进（attack.lungeDistance > 0 时启用）=====
+                this._lungeActive = false;
+                this._lungeDistance = 0;
+                this._lungeApplied = 0;
+                this._lungeAngle = 0;
                 // AI 配置读取（子类可通过 config.ai 注入；默认 0 表示不启用 pacing AI）
                 const pacingAiConfig = config.ai || {};
                 this.ai = config.ai || {}; // 供 MovementSystem 等外部系统读取 ai 标志（如 chargeStraight）
@@ -176,6 +181,19 @@ import { loadImage } from '../utils/image-loader.js';
                 this.weaponAnim.timer = 0;
                 if (this._usePacingAI) {
                     this._prepareDashAttack(this.target);
+                }
+                // 配置驱动的线性突进：attack.lungeDistance > 0 时，
+                // 在攻击动画持续期间向锁定方向匀速位移（见 _updateLunge）
+                const lungeDistance = this.config?.attack?.lungeDistance ?? 0;
+                if (lungeDistance > 0) {
+                    this._lungeActive = true;
+                    this._lungeDistance = lungeDistance;
+                    this._lungeApplied = 0;
+                    if (this.target && this.target.active) {
+                        this._lungeAngle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+                    } else {
+                        this._lungeAngle = this.rotation ?? 0;
+                    }
                 }
             }
             updateWeaponAnim(dt) {
@@ -230,6 +248,32 @@ import { loadImage } from '../utils/image-loader.js';
                     case 'down':  return { x: 0, y: this._attackDashOffset };
                     case 'up':    return { x: 0, y: -this._attackDashOffset };
                     default:      return { x: 0, y: 0 };
+                }
+            }
+            // --- 配置驱动的线性突进（attack.lungeDistance > 0 时启用） ---
+            // 攻击动画持续期间（_attackTimer）按线性进度匀速位移；
+            // 增量式应用，不覆盖击退/分离等外部位移；每帧 WallSystem.resolve 撞墙校验。
+            _updateLunge() {
+                if (!this._lungeActive) return;
+                if (this._attackTimer <= 0 || this._attackDuration <= 0) {
+                    this._lungeActive = false;
+                    return;
+                }
+                const progress = Math.min(1, Math.max(0, 1 - (this._attackTimer / this._attackDuration)));
+                const targetOffset = this._lungeDistance * progress;
+                const delta = targetOffset - this._lungeApplied;
+                if (delta <= 0) return;
+                const nx = this.x + Math.cos(this._lungeAngle) * delta;
+                const ny = this.y + Math.sin(this._lungeAngle) * delta;
+                if (WallSystem && WallSystem.resolve) {
+                    const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+                    this._lungeApplied += Math.hypot(resolved.x - this.x, resolved.y - this.y);
+                    this.x = resolved.x;
+                    this.y = resolved.y;
+                } else {
+                    this.x = nx;
+                    this.y = ny;
+                    this._lungeApplied = targetOffset;
                 }
             }
             // --- 查找最近玩家 ---
@@ -403,6 +447,9 @@ import { loadImage } from '../utils/image-loader.js';
                     this.isMoving = false;
                     return;
                 }
+
+                // 配置驱动的线性突进（attack.lungeDistance > 0，攻击动画期间匀速位移）
+                this._updateLunge();
 
                 // 通用 pacing/chasing AI（狼类等启用 usePacingAI 的子类）
                 if (this._usePacingAI) {

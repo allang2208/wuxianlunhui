@@ -277,6 +277,7 @@
       "type": "thrust",
       "cooldown": 2000,
       "dynamicRange": 100,
+      "lungeDistance": 100,
       "width": 18,
       "knockback": 10
     },

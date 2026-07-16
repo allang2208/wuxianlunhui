@@ -10,6 +10,21 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：僵尸攻击线性突进 + 地牢同步接入精灵图僵尸（v0.198+）
+- **修改文件**：
+  - `src/entities/enemy.js`：基类新增**配置驱动的通用线性突进机制**——构造函数初始化 `_lungeActive/_lungeDistance/_lungeApplied/_lungeAngle`；`triggerWeaponAnim()` 在 `config.attack.lungeDistance > 0` 时锁定朝目标（无目标用 rotation）的突进角度；`update()` 在眩晕检查后调用新增的 `_updateLunge()`，攻击动画期间按 `1 - _attackTimer/_attackDuration` 线性推进，增量式位移（不覆盖击退/分离等外部位移），每帧 `WallSystem.resolve` 撞墙校验。任何怪物只要在 enemy-config.json 配置 `attack.lungeDistance` 即在任何场景自动获得该行为，无硬编码。
+  - `data/enemy-config.json`：`zombie.attack` 新增 `lungeDistance: 100`。
+  - `src/world/zombie-dungeon.js`：`createBasicZombie` 从 `CircleEnemy` 圆形占位改用新 `Zombie` 类（仿 createFatZombie 工厂模式，含缺失配置 fallback），地牢普通僵尸同步获得精灵图动画与突进。
+  - `CHANGELOG.md`：本记录。
+- **修改内容摘要**：
+  1. 僵尸攻击时，1 秒攻击动画期间向攻击开始时锁定的方向匀速突进 100px，撞墙沿墙滑/停下。
+  2. 地牢普通僵尸与主神空间测试僵尸使用同一 `Zombie` 类 + 同一 JSON 配置，行为完全一致。
+  3. 黑狼 pacing 冲刺机制（`_prepareDashAttack`/`_attackDashOffset`）未改动。
+- **测试结果**：`npm run lint` 通过；`npx vite build` 通过；`node scripts/test-collider.mjs` 全部通过。
+- **已知问题**：
+  - 实机效果未验证：突进距离/时长手感、突进撞墙表现、贴脸后分离力推开表现需实机确认。
+  - 地牢中的 `runnerZombie`（奔跑僵尸）与 `armoredZombie`（装甲僵尸）仍为 CircleEnemy 圆形占位，如需精灵图需各自接入。
+
 ### 对话：僵尸 idle/walking/attacking 精灵图接入（v0.198+）
 - **修改文件**：
   - `assets/enemies/zombie/`（新建）：idle.png（1 帧）/ walking.png（15 帧）/ attacking.png（15 帧），统一 8×4 网格 512×512 帧；内容高度统一约 440px（hRatio≈0.86，与胖子僵尸/毒液僵尸/僵尸巫师一致），水平居中、底部对齐 y=496。
