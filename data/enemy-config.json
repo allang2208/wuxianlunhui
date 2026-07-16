@@ -41,7 +41,8 @@
     "render": {
       "spriteSize": 151,
       "collisionWidth": 133,
-      "collisionHeight": 78
+      "collisionHeight": 78,
+      "footOffsetY": 41
     },
     "textures": {
       "idle": "assets/enemies/black_wolf_idle.png"
@@ -113,7 +114,8 @@
     "render": {
       "spriteSize": 150,
       "collisionWidth": 60,
-      "collisionHeight": 50
+      "collisionHeight": 50,
+      "footOffsetY": 70
     },
     "textures": {
       "idle": "assets/enemies/fat_zombie/idle.png",
@@ -225,7 +227,8 @@
     "render": {
       "spriteSize": 90,
       "collisionWidth": 80,
-      "collisionHeight": 79
+      "collisionHeight": 79,
+      "footOffsetY": 43
     },
     "textures": {
       "idle": "assets/enemies/zombie_dog_idle.png"
@@ -359,7 +362,8 @@
     "render": {
       "spriteSize": 90,
       "collisionWidth": 32,
-      "collisionHeight": 79
+      "collisionHeight": 79,
+      "footOffsetY": 41
     },
     "textures": {
       "idle": "assets/enemies/spitter_zombie/idle.png",
@@ -446,7 +450,10 @@
         "name": "剧毒撕咬",
         "desc": "命中目标时附加中毒效果，持续造成伤害"
       }
-    ]
+    ],
+    "render": {
+      "footOffsetY": 23
+    }
   },
   "wolfSpider": {
     "id": "wolfSpider",
@@ -825,7 +832,8 @@
     "render": {
       "spriteSize": 120,
       "collisionWidth": 61,
-      "collisionHeight": 109
+      "collisionHeight": 109,
+      "footOffsetY": 56
     },
     "textures": {
       "idle": "assets/enemies/zombie_wizard/idle.png",
@@ -886,7 +894,8 @@
     "render": {
       "spriteSize": 120,
       "collisionWidth": 80,
-      "collisionHeight": 96
+      "collisionHeight": 96,
+      "footOffsetY": 56
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",
