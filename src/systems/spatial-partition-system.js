@@ -35,7 +35,7 @@ class SpatialPartitionSystemImpl {
         this._queryResults = [];      // 复用查询结果数组（减少GC）
         this._tempSet = new Set();    // 临时集合去重
         this._bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-        this._rebuildInterval = 100;  // 全量重建间隔（ms）
+        this._rebuildInterval = 0;    // 每帧全量重建，避免 AI/战斗/投射物使用陈旧网格
         this._rebuildTimer = 0;
         this._version = 0;            // 网格版本号，用于增量更新检测
     }
@@ -116,7 +116,7 @@ class SpatialPartitionSystemImpl {
                 }
             }
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**
@@ -129,7 +129,7 @@ class SpatialPartitionSystemImpl {
      */
     queryRadius(x, y, radius, exclude) {
         this._queryResults.length = 0;
-        if (radius <= 0) return this._queryResults;
+        if (radius <= 0) return this._queryResults.slice(0);
 
         const rSq = radius * radius;
         const minCX = Math.floor((x - radius) * this.invCellSize);
@@ -149,7 +149,7 @@ class SpatialPartitionSystemImpl {
                     if (dx * dx + dy * dy <= rSq) {
                         this._queryResults.push(entity);
                         if (this._queryResults.length >= GRID_CONFIG.maxQueryResults) {
-                            return this._queryResults;
+                            return this._queryResults.slice(0);
                         }
                     }
                 }
@@ -168,7 +168,7 @@ class SpatialPartitionSystemImpl {
      */
     queryRadiusPlayers(x, y, radius, exclude) {
         this._queryResults.length = 0;
-        if (radius <= 0) return this._queryResults;
+        if (radius <= 0) return this._queryResults.slice(0);
 
         const rSq = radius * radius;
         const minCX = Math.floor((x - radius) * this.invCellSize);
@@ -189,7 +189,7 @@ class SpatialPartitionSystemImpl {
                     if (dx * dx + dy * dy <= rSq) {
                         this._queryResults.push(entity);
                         if (this._queryResults.length >= GRID_CONFIG.maxQueryResults) {
-                            return this._queryResults;
+                            return this._queryResults.slice(0);
                         }
                     }
                 }
@@ -209,7 +209,7 @@ class SpatialPartitionSystemImpl {
      */
     queryRect(x, y, width, height, exclude) {
         this._queryResults.length = 0;
-        if (width <= 0 || height <= 0) return this._queryResults;
+        if (width <= 0 || height <= 0) return this._queryResults.slice(0);
 
         const minCX = Math.floor(x * this.invCellSize);
         const maxCX = Math.floor((x + width) * this.invCellSize);
@@ -226,7 +226,7 @@ class SpatialPartitionSystemImpl {
                     if (entity.x >= x && entity.x <= x + width && entity.y >= y && entity.y <= y + height) {
                         this._queryResults.push(entity);
                         if (this._queryResults.length >= GRID_CONFIG.maxQueryResults) {
-                            return this._queryResults;
+                            return this._queryResults.slice(0);
                         }
                     }
                 }
@@ -279,7 +279,7 @@ class SpatialPartitionSystemImpl {
      */
     queryCone(x, y, radius, angle, fov, exclude) {
         this._queryResults.length = 0;
-        if (radius <= 0 || fov <= 0) return this._queryResults;
+        if (radius <= 0 || fov <= 0) return this._queryResults.slice(0);
 
         const halfFov = fov * 0.5;
         const cosHalfFov = Math.cos(halfFov);
@@ -313,7 +313,7 @@ class SpatialPartitionSystemImpl {
                     if (nx * cosDir + ny * sinDir >= cosHalfFov) {
                         this._queryResults.push(entity);
                         if (this._queryResults.length >= GRID_CONFIG.maxQueryResults) {
-                            return this._queryResults;
+                            return this._queryResults.slice(0);
                         }
                     }
                 }
