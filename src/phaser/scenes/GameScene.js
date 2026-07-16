@@ -333,10 +333,21 @@ export class GameScene extends Scene {
     _syncBodiesToPhysics() {
         const Game = window.Game;
         if (!Game) return;
-        
+
+        // 让 Arcade Body 的碰撞中心保持在逻辑脚底，同时 Sprite 中心向上偏移 footOffsetY。
+        // 注意：body.reset(x,y) 会把 GameObject 也移到 (x,y)，所以必须传入偏移后的 Sprite 坐标。
+        const applyBodyFootOffset = (sprite, shiftY) => {
+            const body = sprite.body;
+            if (!body) return;
+            // Arcade offset 是“源像素”单位，需要除以 scaleY。
+            const scaleY = Math.abs(sprite.scaleY) || 1;
+            body.setOffset(body.offset.x, shiftY / scaleY);
+        };
+
         // 玩家：如果启用 velocity 驱动，从 Phaser 同步位置回 Player
         if (this._useVelocityDrive && Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+            applyBodyFootOffset(this.playerSprite, playerShift);
 
             // 初始化：如果 playerSprite 在 (0,0) 或远离玩家，同步一次位置
             // playerSprite.y 是贴图中心，Game.player.y 是逻辑脚底，需要减去 footOffsetY
@@ -368,12 +379,13 @@ export class GameScene extends Scene {
             }
             return;
         }
-        
+
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
             this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
-            this.playerSprite.body.reset(Game.player.x, Game.player.y);
+            applyBodyFootOffset(this.playerSprite, playerShift);
+            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
         }
 
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
@@ -401,7 +413,8 @@ export class GameScene extends Scene {
             const shiftY = this._getFootOffsetY(entity, entity._phaserSprite);
             entity._phaserSprite.setPosition(syncX, syncY - shiftY);
             if (entity._phaserSprite.body) {
-                entity._phaserSprite.body.reset(syncX, syncY);
+                applyBodyFootOffset(entity._phaserSprite, shiftY);
+                entity._phaserSprite.body.reset(syncX, syncY - shiftY);
             }
             if (entity._faction === 'enemy') {
                 this._syncEnemyAnimation(entity);
