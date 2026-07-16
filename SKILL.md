@@ -73,8 +73,18 @@
 3. `WallSystem` 的树木新增 `height` 字段，为未来飞行单位做准备。
 4. 玩家 footprint 按方案 A 改为圆形，半径保持 30（与原 `collisionRadius` 一致）。
 
+### Phase 2：投射物判定 3D 化 + 空间网格 broadphase ✅
+1. `src/combat/projectile.js` 重写命中判定：
+   - 投射物增加 `z` / `prevZ`，轨迹视为 3D 线段。
+   - 使用 `segmentIntersectsCapsule` 与目标 Collider 胶囊体做精确检测。
+   - 移除旧的 2D 矩形扩张 / 圆心距离判定。
+2. Broadphase：
+   - 复用现有 `SpatialPartitionSystem.queryRadius`。
+   - 以投射物本帧路径中点为中心，查询半径 = `stepLen + 160`，只检测附近实体。
+   - SpatialPartitionSystem 不可用时回退到全量遍历。
+3. 自然支持高低差：地面投射物 z=0，飞行单位 z>0 时自动打不到；未来抛物线/对空投射物只需设置 z。
+
 ### 仍待完成
-- Phase 2：投射物 3D 化 + 空间网格 broadphase
 - Phase 3：近战 / 技能 AOE 3D 化
 - Phase 4：场景贴图 Y 深度排序
 
