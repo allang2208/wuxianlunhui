@@ -7,8 +7,9 @@ import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { SmokeEffect } from '../../effects/smoke-effect.js';
 import { isRifle } from '../../config/gun-ammo.js';
 import { DashFireTrailEffect, GoldenConvergeEffect } from '../../effects/dash-effects.js';
-import { MathUtils, Easing } from '../../config/math-utils.js';
+import { Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { VerticalSector, VerticalRect } from '../../physics/skill-shapes.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -376,8 +377,6 @@ class DashSystem {
             if (currentItem && currentItem._craftEffects && currentItem._craftEffects.rangeDelta) {
                 rectLength += currentItem._craftEffects.rangeDelta;
             }
-            const cos = Math.cos(attackAngle), sin = Math.sin(attackAngle);
-            const halfW = rectWidth / 2;
             if (!this.player._dashThrustPhase) {
                 this.player._dashThrustPhase = { startTime: Date.now(), lastHitIndex: -1, totalHitCount: 0, totalKillCount: 0, hitTargets: new Set() };
             }
@@ -400,48 +399,44 @@ class DashSystem {
             if (hitIndex === 0) {
                 // 第一次判定：矩形范围判定，记录命中目标
                 const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', effect.hitBackOffset);
+                const shape = new VerticalRect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, 0, this.player.bodyHeight || 150, backOffset);
                 entities.forEach(entity => {
                     if (entity === this.player || !entity.active || !entity.hittable) return;
-                    const dx = entity.x - this.player._dashSlashPos.x;
-                    const dy = entity.y - this.player._dashSlashPos.y;
-                    const forward = dx * cos + dy * sin;
-                    const lateral = dx * (-sin) + dy * cos;
-                    if (forward >= backOffset && forward <= rectLength && lateral >= -halfW && lateral <= halfW) {
-                        phase.hitTargets.add(entity);
-                        if (!this.player._dashHitSet.has(entity)) this.player._dashHitSet.add(entity);
-                        const wasAlive = entity.hp > 0;
-                        const targetCritRes = (entity.data && entity.data.critRes) || 0;
-                        let playerCrit = this.player.data.crit || 0;
-                        if (this.player.skills && this.player.skills.rifleMastery) {
-                            const currentWpn = this.player.equipments[this.player.weaponMode];
-                            if (currentWpn && isRifle(currentWpn.weaponType)) {
-                                playerCrit += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
-                            }
+                    if (!shape.intersectsEntity(entity)) return;
+                    phase.hitTargets.add(entity);
+                    if (!this.player._dashHitSet.has(entity)) this.player._dashHitSet.add(entity);
+                    const wasAlive = entity.hp > 0;
+                    const targetCritRes = (entity.data && entity.data.critRes) || 0;
+                    let playerCrit = this.player.data.crit || 0;
+                    if (this.player.skills && this.player.skills.rifleMastery) {
+                        const currentWpn = this.player.equipments[this.player.weaponMode];
+                        if (currentWpn && isRifle(currentWpn.weaponType)) {
+                            playerCrit += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
                         }
-                        const finalCritRate = Math.max(0, playerCrit - targetCritRes);
-                        const isCrit = Math.random() * 100 < finalCritRate;
-                        let critMul = effect.critMul;
-                        if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
-                            const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
-                            critMul = 1 + csEffect.damageBonus;
-                        }
-                        const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
-                        entity.takeDamage(finalDamage, this.player);
-                        // 大马士革钢：只在第一次判定触发双倍伤害
-                        if (dashDoubleHit && hitIndex === 0) {
-                            entity.takeDamage(finalDamage, this.player);
-                        }
-                        if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
-                        phase.totalHitCount++;
-                        entity._dashStunned = true;
-                        entity._dashStunTimer = effect.stunDuration;
-                        // 击退距离 = 主角突刺移动距离
-                        const thrustMoveDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist) * effect.speedMul;
-                        entity.applyKnockback(attackAngle, thrustMoveDist);
-                        EffectManager.add(new HitEffect(entity.x, entity.y));
-                        EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
-                        this.player._triggerRuneSwordCooldownReduction();
                     }
+                    const finalCritRate = Math.max(0, playerCrit - targetCritRes);
+                    const isCrit = Math.random() * 100 < finalCritRate;
+                    let critMul = effect.critMul;
+                    if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
+                        const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
+                        critMul = 1 + csEffect.damageBonus;
+                    }
+                    const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
+                    entity.takeDamage(finalDamage, this.player);
+                    // 大马士革钢：只在第一次判定触发双倍伤害
+                    if (dashDoubleHit && hitIndex === 0) {
+                        entity.takeDamage(finalDamage, this.player);
+                    }
+                    if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
+                    phase.totalHitCount++;
+                    entity._dashStunned = true;
+                    entity._dashStunTimer = effect.stunDuration;
+                    // 击退距离 = 主角突刺移动距离
+                    const thrustMoveDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist) * effect.speedMul;
+                    entity.applyKnockback(attackAngle, thrustMoveDist);
+                    EffectManager.add(new HitEffect(entity.x, entity.y));
+                    EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
+                    this.player._triggerRuneSwordCooldownReduction();
                 });
             } else {
                 // 第二、三次判定：不再做范围判定，直接对第一次命中的目标造成伤害
@@ -481,54 +476,54 @@ class DashSystem {
             // === 扇形单次判定（原始冲刺攻击 / 冲刺攻击-火）===
             const isFire = activeSkillId === 'dashAttackFire';
             const hitArc = effect.hitArc;
+            const shape = new VerticalSector(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc, 0, this.player.bodyHeight || 150);
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
                 if (this.player._dashHitSet.has(entity)) return;
-                if (MathUtils.pointInSector(entity.x, entity.y, this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc)) {
-                    this.player._dashHitSet.add(entity);
-                    const effect = skill.getEffect(skillLevel);
-                    let damage;
-                    if (isFire) {
-                        // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * damageMul
-                        const physAtk = this.player.getCurrentWeaponAtk();
-                        const magicAtk = this.player.data.matk || 0;
-                        const fireMul = effect.damageMul;
-                        damage = Math.floor((physAtk + magicAtk) * fireMul);
-                    } else {
-                        const baseDamage = this.player.getCurrentWeaponAtk();
-                        damage = Math.floor(baseDamage * effect.damageMul);
-                    }
-                    const targetCritRes3 = (entity.data && entity.data.critRes) || 0;
-                    let playerCrit3 = this.player.data.crit || 0;
-                    if (this.player.skills && this.player.skills.rifleMastery) {
-                        const currentWpn3 = this.player.equipments[this.player.weaponMode];
-                        if (currentWpn3 && isRifle(currentWpn3.weaponType)) {
-                            playerCrit3 += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
-                        }
-                    }
-                    const finalCritRate3 = Math.max(0, playerCrit3 - targetCritRes3);
-                    const isCrit = Math.random() * 100 < finalCritRate3;
-                    let critMul = effect.critMul;
-                    if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
-                        const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
-                        critMul = 1 + csEffect.damageBonus;
-                    }
-                    const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
-                    const wasAlive = entity.hp > 0;
-                    entity.takeDamage(finalDamage, this.player);
-                    if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
-                    if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;
-                    const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
-                    entity.applyKnockback(kbAngle, knockback);
-                    EffectManager.add(new HitEffect(entity.x, entity.y));
-                    EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
-                    if (isCrit) EffectManager.add(new CritEffect(entity.x, entity.y - entity.size * 1.5));
-                    if (isFire) {
-                        // 火焰特效：命中时额外生成火焰爆炸
-                        EffectManager.add(new DashFireTrailEffect(entity.x, entity.y, 0, 0, null));
-                    }
-                    this.player._triggerRuneSwordCooldownReduction();
+                if (!shape.intersectsEntity(entity)) return;
+                this.player._dashHitSet.add(entity);
+                const effect = skill.getEffect(skillLevel);
+                let damage;
+                if (isFire) {
+                    // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * damageMul
+                    const physAtk = this.player.getCurrentWeaponAtk();
+                    const magicAtk = this.player.data.matk || 0;
+                    const fireMul = effect.damageMul;
+                    damage = Math.floor((physAtk + magicAtk) * fireMul);
+                } else {
+                    const baseDamage = this.player.getCurrentWeaponAtk();
+                    damage = Math.floor(baseDamage * effect.damageMul);
                 }
+                const targetCritRes3 = (entity.data && entity.data.critRes) || 0;
+                let playerCrit3 = this.player.data.crit || 0;
+                if (this.player.skills && this.player.skills.rifleMastery) {
+                    const currentWpn3 = this.player.equipments[this.player.weaponMode];
+                    if (currentWpn3 && isRifle(currentWpn3.weaponType)) {
+                        playerCrit3 += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
+                    }
+                }
+                const finalCritRate3 = Math.max(0, playerCrit3 - targetCritRes3);
+                const isCrit = Math.random() * 100 < finalCritRate3;
+                let critMul = effect.critMul;
+                if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
+                    const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
+                    critMul = 1 + csEffect.damageBonus;
+                }
+                const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
+                const wasAlive = entity.hp > 0;
+                entity.takeDamage(finalDamage, this.player);
+                if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
+                if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;
+                const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
+                entity.applyKnockback(kbAngle, knockback);
+                EffectManager.add(new HitEffect(entity.x, entity.y));
+                EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
+                if (isCrit) EffectManager.add(new CritEffect(entity.x, entity.y - entity.size * 1.5));
+                if (isFire) {
+                    // 火焰特效：命中时额外生成火焰爆炸
+                    EffectManager.add(new DashFireTrailEffect(entity.x, entity.y, 0, 0, null));
+                }
+                this.player._triggerRuneSwordCooldownReduction();
             });
         }
     }

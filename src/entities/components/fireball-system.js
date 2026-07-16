@@ -6,6 +6,7 @@ import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
+import { GroundCircle } from '../../physics/skill-shapes.js';
 
 /**
  * 火球系统（通用版）
@@ -199,10 +200,10 @@ export class FireballSystem {
         let hitEntity = null;
         // entities 可能是 Map，需要转换为数组
         const entityList = Array.from(entities.values ? entities.values() : entities);
+        const hitShape = new GroundCircle(fb.flyX, fb.flyY, 20);
         for (const entity of entityList) {
             if (!this._isHostile(entity) || !entity.active || !entity.hittable) continue;
-            const dist = Math.sqrt((entity.x - fb.flyX) ** 2 + (entity.y - fb.flyY) ** 2);
-            if (dist < (entity.size || entity.collisionRadius || 0) + 20) {
+            if (hitShape.intersectsEntity(entity)) {
                 hitEntity = entity;
                 break;
             }
@@ -223,18 +224,18 @@ export class FireballSystem {
         let hitCount = 0;
         let killCount = 0;
         const entityList = Array.from(entities.values ? entities.values() : entities);
+        const explosionShape = new GroundCircle(x, y, radius);
         entityList.forEach(entity => {
             if (!this._isHostile(entity) || !entity.active || !entity.hittable) return;
+            if (!explosionShape.intersectsEntity(entity)) return;
+            const wasAlive = entity.hp > 0;
+            // 距离衰减：距离中心越近伤害越高
             const dist = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
-            if (dist < radius) {
-                const wasAlive = entity.hp > 0;
-                // 距离衰减：距离中心越近伤害越高
-                const distRatio = 1 - Math.min(dist / radius, 1);
-                const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-                entity.takeDamage(finalDamage, this.source, 'magic');
-                hitCount++;
-                if (wasAlive && entity.hp <= 0) killCount++;
-            }
+            const distRatio = 1 - Math.min(dist / radius, 1);
+            const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
+            entity.takeDamage(finalDamage, this.source, 'magic');
+            hitCount++;
+            if (wasAlive && entity.hp <= 0) killCount++;
         });
         // 经验（仅玩家获得）
         if (hitCount > 0 && skill && this._isPlayer()) {

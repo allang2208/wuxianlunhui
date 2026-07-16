@@ -6,6 +6,7 @@ import { loadImage } from '../../utils/image-loader.js';
 // 无人机技能系统
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { GroundCircle } from '../../physics/skill-shapes.js';
 export class DroneSystem {
     constructor(player) {
         this.player = player;
@@ -177,10 +178,10 @@ export class DroneSystem {
         const _baseCritBonus = (effect && effect.critBonusPercent) || 10;
         // 先收集当前在范围内的实体
         const inRangeEntities = new Set();
+        const shape = new GroundCircle(this.x, this.y, this.radius);
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
-            const dist = Math.sqrt((entity.x - this.x) ** 2 + (entity.y - this.y) ** 2);
-            if (dist <= this.radius) {
+            if (shape.intersectsEntity(entity)) {
                 inRangeEntities.add(entity);
             }
         });

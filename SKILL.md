@@ -1061,3 +1061,20 @@ Phaser Sprite.x / y / rotation / scale
 - v1.3 (2026-07-05) — 增加 Sprite Pipeline 标准化流程，新增 `sprite-normalizer.py` 工具
 - v1.2 (2026-07-05) — 怪物渲染模板系统，提取 `Enemy.render()` 通用模板 + 7个钩子方法
 - v1.1 (2026-07-04) — 怪物统一配置（enemy-config.json），删除双系统
+
+- v2.0 (2026-07-13) — 3D 碰撞/命中体系 Phase 3：近战与技能 AOE 3D 化
+  - 统一技能命中形状：`src/physics/skill-shapes.js` 新增 `GroundCircle` / `GroundRect` / `VerticalSector` / `VerticalRect` / `Sphere`
+  - 所有形状通过 `entity.collider` 做 3D（Z 轴高度 + footprint 半径）检测，地面 AOЕ 不再命中飞行单位
+  - `SlashAttack` 扇形改为 `VerticalSector`，`ThrustAttack` 矩形改为 `VerticalRect`（支持后摆 backExtension）
+  - 技能系统全部迁移：
+    - 旋风 `whirlwind-system.js` → `GroundCircle`
+    - 火球爆炸/直接命中 `fireball-system.js` → `GroundCircle`
+    - 推击 `push-strike-system.js` → `VerticalSector`
+    - 夜与火之光束 `special-attack-system.js` → `VerticalRect`
+    - 冰锥 `ice-spike-system.js` → `GroundCircle`
+    - 无人机 `drone-system.js` → `GroundCircle`
+    - 符文剑 `rune-sword-system.js` → `GroundCircle`
+    - 冲刺攻击-扇形/突刺 `dash-system.js` → `VerticalSector` / `VerticalRect`
+    - 胖子僵尸腐蚀光环 `fat-zombie.js` → `GroundRect`
+  - 近战判定复用 `SpatialPartitionSystem.queryRadius` 做 broadphase
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过

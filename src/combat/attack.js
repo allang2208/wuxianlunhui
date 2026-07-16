@@ -5,13 +5,15 @@ import { AttackRangeEffect } from '../effects/attack-range-effect.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
-import { MathUtils } from '../config/math-utils.js';
+
 import { EffectManager } from '../effects/effect-manager.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
 import { CONFIG } from '../config/config.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { AimHelper } from '../utils/aim-helper.js';
-import { distanceToEntityShape, isEntityInAttackRect } from '../utils/collision-helpers.js';
+import { distanceToEntityShape } from '../utils/collision-helpers.js';
+import { VerticalSector, VerticalRect } from '../physics/skill-shapes.js';
+import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -54,6 +56,12 @@ function applyEnchantOnHit(weapon, target, source) {
             execute(_source, _targetX, _targetY, _entities) {}
             update(dt) { if (this.cooldown > 0) this.cooldown -= dt; }
             getCooldownPercent() { return Math.max(0, this.cooldown / this.maxCooldown); }
+            _queryNearbyEntities(x, y, radius, exclude, entities) {
+                if (SpatialPartitionSystem && typeof SpatialPartitionSystem.queryRadius === 'function') {
+                    return SpatialPartitionSystem.queryRadius(x, y, radius, exclude);
+                }
+                return entities ? Array.from(entities.values()) : [];
+            }
         }
 
         class SlashAttack extends Attack {
@@ -105,11 +113,13 @@ function applyEnchantOnHit(weapon, target, source) {
                 let hitCount = 0, killCount = 0;
                 const hitCountRef = { value: 0 };
                 const killCountRef = { value: 0 };
-                entities.forEach(entity => {
+                const slashShape = new VerticalSector(originX, originY, attackAngle, effectiveRange, arc, 0, source.bodyHeight || 150);
+                const candidates = this._queryNearbyEntities(originX, originY, effectiveRange + 100, source, entities);
+                candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     // 新增：怪物之间不互相攻击
                     if (source._faction === 'enemy' && entity._faction === 'enemy') return;
-                    if (MathUtils.pointInSector(entity.x, entity.y, originX, originY, attackAngle, effectiveRange, arc)) {
+                    if (slashShape.intersectsEntity(entity)) {
                         const baseDamage = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                         const damage = baseDamage;
                         const { killed } = DamagePipeline.applyHit(source, entity, {
@@ -223,8 +233,10 @@ function applyEnchantOnHit(weapon, target, source) {
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;
-                const facingDir = pt.facingDir || 'down';
-                pt.entities.forEach(entity => {
+                const backExt = isSword ? (hitBox.backExtension || 0) : 0;
+                const thrustShape = new VerticalRect(ax, ay, angle, range, width, 0, source.bodyHeight || 150, backExt);
+                const candidates = this._queryNearbyEntities(ax, ay, range + 100, source, pt.entities);
+                candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     if (pt.hitSet.has(entity)) return; // 已命中过
                     // 新增：怪物之间不互相攻击
@@ -248,48 +260,26 @@ function applyEnchantOnHit(weapon, target, source) {
                                 }
                             }
                         }
-                        if (distanceToEntityShape(entity, sourceX, sourceY) <= pt.dynamicRange) {
-                            // 命中：走统一伤害管道
-                            pt.hitSet.add(entity);
-                            let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
-                            const damage = baseDamage + pt.damageBonus;
-                            const { killed } = DamagePipeline.applyHit(source, entity, {
-                                damage,
-                                damageType: pt.damageType || 'physical',
-                                knockback: pt.knockback,
-                                angle,
-                                currentWeapon
-                            });
-                            if (this.config.crippleDuration && entity.applyCripple) {
-                                entity.applyCripple(this.config.crippleDuration);
-                            }
-                            if (killed) killCount++;
-                            hitCount++;
-                            return; // 命中后直接处理下一个实体
-                        }
-                        // 动态距离未命中：跳过矩形判定，继续下一个
+                        if (distanceToEntityShape(entity, sourceX, sourceY) > pt.dynamicRange) return;
+                        // 命中：走统一伤害管道
+                    } else if (!thrustShape.intersectsEntity(entity)) {
                         return;
                     }
-                    // 矩形命中判定：与目标碰撞矩形做 AABB 相交检测
-                    const backExt = isSword ? hitBox.backExtension : 0;
-                    const inRange = isEntityInAttackRect(entity, ax, ay, range, width, backExt, facingDir);
-                    if (inRange) {
-                        pt.hitSet.add(entity);
-                        let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
-                        const damage = baseDamage + pt.damageBonus;
-                        const { killed } = DamagePipeline.applyHit(source, entity, {
-                            damage,
-                            damageType: pt.damageType || 'physical',
-                            knockback: pt.knockback,
-                            angle,
-                            currentWeapon
-                        });
-                        if (this.config.crippleDuration && entity.applyCripple) {
-                            entity.applyCripple(this.config.crippleDuration);
-                        }
-                        if (killed) killCount++;
-                        hitCount++;
+                    pt.hitSet.add(entity);
+                    let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
+                    const damage = baseDamage + pt.damageBonus;
+                    const { killed } = DamagePipeline.applyHit(source, entity, {
+                        damage,
+                        damageType: pt.damageType || 'physical',
+                        knockback: pt.knockback,
+                        angle,
+                        currentWeapon
+                    });
+                    if (this.config.crippleDuration && entity.applyCripple) {
+                        entity.applyCripple(this.config.crippleDuration);
                     }
+                    if (killed) killCount++;
+                    hitCount++;
                 });
                 // 累计命中/击杀数（不直接给经验，经验在swing结束时统一发放）
                 pt.totalHitCount += hitCount;

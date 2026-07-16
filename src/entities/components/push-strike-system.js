@@ -1,9 +1,9 @@
 import { Game } from '../../game.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
-import { MathUtils } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import { VerticalSector } from '../../physics/skill-shapes.js';
 export class PushStrikeSystem {
     constructor(player) {
         this.player = player;
@@ -90,27 +90,27 @@ export class PushStrikeSystem {
         const hitArc = effect.hitArc;
         const stunDuration = effect.stunDuration;
         let hitCount = 0, killCount = 0;
+        const shape = new VerticalSector(this.player.x, this.player.y, attackAngle, radius, hitArc, 0, this.player.bodyHeight || 150);
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (this.player._pushStrikeHitSet.has(entity)) return;
             // 扇形判定：前方120度，半径范围内
-            if (MathUtils.pointInSector(entity.x, entity.y, this.player.x, this.player.y, attackAngle, radius, hitArc)) {
-                this.player._pushStrikeHitSet.add(entity);
-                const wasAlive = entity.hp > 0;
-                entity.takeDamage(damage, this.player);
-                if (wasAlive && entity.hp <= 0) killCount++;
-                hitCount++;
-                const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
-                entity.applyKnockback(kbAngle, knockback);
-                // 眩晕
-                if (entity._dashStunned !== undefined) {
-                    entity._dashStunned = true;
-                    entity._dashStunTimer = stunDuration;
-                }
-                EffectManager.add(new HitEffect(entity.x, entity.y));
-                EffectManager.createDamageText(entity.x, entity.y - entity.size, damage, false);
-                this.player._triggerRuneSwordCooldownReduction();
+            if (!shape.intersectsEntity(entity)) return;
+            this.player._pushStrikeHitSet.add(entity);
+            const wasAlive = entity.hp > 0;
+            entity.takeDamage(damage, this.player);
+            if (wasAlive && entity.hp <= 0) killCount++;
+            hitCount++;
+            const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
+            entity.applyKnockback(kbAngle, knockback);
+            // 眩晕
+            if (entity._dashStunned !== undefined) {
+                entity._dashStunned = true;
+                entity._dashStunTimer = stunDuration;
             }
+            EffectManager.add(new HitEffect(entity.x, entity.y));
+            EffectManager.createDamageText(entity.x, entity.y - entity.size, damage, false);
+            this.player._triggerRuneSwordCooldownReduction();
         });
         // 推击技能经验
         SkillManager.addPushStrikeExp(this.player, hitCount, killCount);
