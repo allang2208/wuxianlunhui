@@ -49,11 +49,6 @@ export class FatZombie extends Enemy {
         this._corpseAuraHeight = 25;
         this._corpseAuraOffsetY = 0;
 
-        // 前倾/攻击时的 footprint 重心偏移（屏幕 X 方向），可在 enemy-config.json render 中覆盖
-        const render = this.config?.render || {};
-        this._walkLeanOffset = render.walkLeanOffset ?? 22;
-        this._attackLeanOffset = render.attackLeanOffset ?? 28;
-
         // 范围提示可视化
         this._auraRangeEffect = null;
     }
@@ -66,9 +61,6 @@ export class FatZombie extends Enemy {
                 this._updateAura(dt, entities);
             }
             this._updateAuraRangeEffect();
-            // 尸体阶段不需要前倾偏移
-            this.colliderOffsetX = 0;
-            this.colliderOffsetY = 0;
             return;
         }
 
@@ -116,9 +108,6 @@ export class FatZombie extends Enemy {
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
         }
-
-        // 根据动画状态更新 footprint 重心偏移，让阴影/受击体积对齐视觉身体
-        this._updateLeanOffset();
     }
 
     triggerWeaponAnim() {
@@ -244,33 +233,6 @@ export class FatZombie extends Enemy {
             case 'death': return 'enemy_fat_zombie_melt';
             default: return 'enemy_fat_zombie_idle';
         }
-    }
-
-    _getFacingSign() {
-        if (this._attackTimer > 0 && this.target && this.target.active) {
-            return this.target.x < this.x ? -1 : 1;
-        }
-        if (this.isMoving && Math.abs(this.vx) > 0.1) {
-            return this.vx < 0 ? -1 : 1;
-        }
-        if (this.rotation !== undefined) {
-            return Math.cos(this.rotation) < 0 ? -1 : 1;
-        }
-        return 1;
-    }
-
-    _updateLeanOffset() {
-        const sign = this._getFacingSign();
-        if (this._animState === 'walk') {
-            // walking 前倾：重心/阴影相对脚底向后偏移
-            this.colliderOffsetX = -this._walkLeanOffset * sign;
-        } else if (this._animState === 'attack') {
-            // 攻击时前扑：重心/阴影向前偏移
-            this.colliderOffsetX = this._attackLeanOffset * sign;
-        } else {
-            this.colliderOffsetX = 0;
-        }
-        this.colliderOffsetY = 0;
     }
 
     _getPhaserOptions() {

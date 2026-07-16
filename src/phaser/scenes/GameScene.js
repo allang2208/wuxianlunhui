@@ -572,10 +572,8 @@ export class GameScene extends Scene {
         if (_game.player && this.playerSprite && this.playerSprite.active) {
             const e = _game.player;
             active.add(e);
-            const cx = e.collider ? e.collider.x : this.playerSprite.x;
-            const cy = e.collider ? e.collider.y : this.playerSprite.y + this._getFootOffsetY(e, this.playerSprite);
-            const depth = cy + 9; // 比实体本身低 1
-            ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
+            const depth = e.y + 9; // 比实体本身低 1
+            ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
         }
 
         // 敌人
@@ -586,10 +584,8 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
-                const cx = e.collider ? e.collider.x : sprite.x;
-                const cy = e.collider ? e.collider.y : sprite.y + this._getFootOffsetY(e, sprite);
-                const depth = cy + 9;
-                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
+                const depth = e.y + 9;
+                ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
             });
         }
 
@@ -598,10 +594,8 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 active.add(e);
-                const cx = e.collider ? e.collider.x : data.sprite.x;
-                const cy = e.collider ? e.collider.y : data.sprite.y + this._getFootOffsetY(e, data.sprite);
-                const depth = cy + 9;
-                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
+                const depth = e.y + 9;
+                ensureShadow(e, e.x, e.y, e.groundRadius || 10, depth, !isMapMode);
             }
         }
 
@@ -2019,9 +2013,9 @@ export class GameScene extends Scene {
             if (!entity || !entity.active) return;
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
 
-            // 使用 Collider 的世界坐标（已包含前倾/攻击偏移），确保 footprint、圆柱体、阴影完全重合。
-            const cx = entity.collider ? entity.collider.x : entity.x;
-            const cy = entity.collider ? entity.collider.y : entity.y;
+            // 阴影和 footprint 都回到逻辑脚底（entity.x/y），不跟随 collider 偏移。
+            const cx = entity.x;
+            const cy = entity.y;
 
             // 1) 地面 footprint：红色半透明椭圆
             this._collisionRadiusGraphics.strokeEllipse(cx, cy, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
