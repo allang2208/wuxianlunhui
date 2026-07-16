@@ -494,7 +494,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;
                     // 击退时加入墙壁碰撞检测，防止穿墙
-                    const radius = this.collisionRadius || 12;
+                    const radius = this.groundRadius;
                     if (WallSystem && WallSystem.walls && WallSystem.walls.length > 0) {
                         const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
                         // 撞墙检测：如果resolve限制了移动，往反方向反弹5px

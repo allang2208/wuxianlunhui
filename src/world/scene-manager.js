@@ -778,7 +778,7 @@ export const SceneManager = {
             let py = scene.height / 2;
             // 检查玩家位置是否在墙壁内，如果是则重新选择
             if (WallSystem && WallSystem.canMoveTo) {
-                const playerRadius = player.collisionRadius || player.size || 15;
+                const playerRadius = player.groundRadius;
                 let attempts = 0;
                 while (!WallSystem.canMoveTo(px, py, playerRadius) && attempts < 50) {
                     px = 100 + Math.random() * (scene.width - 200);

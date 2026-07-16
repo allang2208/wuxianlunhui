@@ -107,7 +107,7 @@ class DynamicObstacleMap {
         const counts = new Map();
         for (const e of Game.entities.values()) {
             if (!e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
-            const r = e.collisionRadius || 12;
+            const r = e.groundRadius;
             const [cx, cy] = this._getCell(e.x, e.y);
             const range = Math.max(0, Math.ceil(r / this.gridSize));
             for (let dx = -range; dx <= range; dx++) {

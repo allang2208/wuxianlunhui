@@ -52,6 +52,34 @@
 
 ---
 
+## 伪 3D 碰撞重构记录（进行中）
+
+### Phase 0：统一 Collider 数据层 ✅
+1. 新增 `src/physics/collider.js`：
+   - 地面 footprint 为圆形（`groundRadius`）。
+   - 垂直体积为胶囊体（`height` + `radius`）。
+   - 默认高度推导：`config.height > render.spriteSize > collisionHeight > radius*2`。
+2. 新增 `src/physics/collision-3d.js`：
+   - 3D 线段到胶囊体距离（用于投射物/近战）。
+   - 线段到线段最短距离、球体相交等辅助函数。
+3. 新增 `src/physics/spatial-grid.js`：2D 空间网格 broadphase。
+4. `Entity` 基类接入 `collider`、新增 `groundRadius` / `bodyHeight` 统一入口，不改动现有属性。
+5. Player 与 Enemy 在碰撞字段最终确定后调用 `rebuildCollider()`。
+6. 新增 `scripts/test-collider.mjs` 跑通推导、3D 命中、空间网格测试。
+
+### Phase 1：地面碰撞统一为圆形 footprint ✅
+1. `game.js::resolveCollisions()` 从“矩形/六边形/圆形多套分离”简化为统一的圆-圆分离，使用 `groundRadius`。
+2. `MovementSystem`、玩家移动、敌人 AI、冲刺、击退、`PathManager`、`DynamicObstacleMap` 全部改用 `groundRadius`。
+3. `WallSystem` 的树木新增 `height` 字段，为未来飞行单位做准备。
+4. 玩家 footprint 按方案 A 改为圆形，半径保持 30（与原 `collisionRadius` 一致）。
+
+### 仍待完成
+- Phase 2：投射物 3D 化 + 空间网格 broadphase
+- Phase 3：近战 / 技能 AOE 3D 化
+- Phase 4：场景贴图 Y 深度排序
+
+---
+
 ## 技术回顾与清理（2026-07-13）
 
 ### 审查范围

@@ -483,7 +483,7 @@ import { loadImage } from '../utils/image-loader.js';
                             this.vx += (wdx/wdist * maxSpd - this.vx) * this.accel;
                             this.vy += (wdy/wdist * maxSpd - this.vy) * this.accel;
                             const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
-                            const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
+                            const er = WallSystem.resolve(this.x, this.y, enx, eny, this.groundRadius);
                             const clamped = this._clampMoveDistance(this.x, this.y, er.x, er.y, maxStep);
                             this.x = clamped.x; this.y = clamped.y;
                             this.isMoving = true; this.animTime += 0.15; return;
@@ -499,7 +499,7 @@ import { loadImage } from '../utils/image-loader.js';
                         this.vx += (wdx/wdist * maxSpd - this.vx) * this.accel;
                         this.vy += (wdy/wdist * maxSpd - this.vy) * this.accel;
                         const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
-                        const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
+                        const er = WallSystem.resolve(this.x, this.y, enx, eny, this.groundRadius);
                         const clamped = this._clampMoveDistance(this.x, this.y, er.x, er.y, maxStep);
                         this.x = clamped.x; this.y = clamped.y;
                         this.isMoving = true; this.animTime += 0.15; return;
@@ -510,20 +510,20 @@ import { loadImage } from '../utils/image-loader.js';
                 this.vx += (moveX * maxSpd - this.vx) * this.accel;
                 this.vy += (moveY * maxSpd - this.vy) * this.accel;
                 const enx = this.x + this.vx * sc, eny = this.y + this.vy * sc;
-                const er = WallSystem.resolve(this.x, this.y, enx, eny, this.collisionRadius || 12);
+                const er = WallSystem.resolve(this.x, this.y, enx, eny, this.groundRadius);
                 if (er.x === this.x && er.y === this.y) {
                     // 被墙困住：切线滑动
                     this.vx *= 0.5; this.vy *= 0.5;
                     const tx = -moveY, ty = moveX;
                     const saX = this.x + tx * maxSpd * 2, saY = this.y + ty * maxSpd * 2;
-                    const saR = WallSystem.resolve(this.x, this.y, saX, saY, this.collisionRadius || 12);
+                    const saR = WallSystem.resolve(this.x, this.y, saX, saY, this.groundRadius);
                     if (saR.x !== this.x || saR.y !== this.y) {
                         const clamped = this._clampMoveDistance(this.x, this.y, saR.x, saR.y, maxStep);
                         this.x = clamped.x; this.y = clamped.y;
                         this.vx = tx * maxSpd * 0.5; this.vy = ty * maxSpd * 0.5;
                     } else {
                         const sbX = this.x - tx * maxSpd * 2, sbY = this.y - ty * maxSpd * 2;
-                        const sbR = WallSystem.resolve(this.x, this.y, sbX, sbY, this.collisionRadius || 12);
+                        const sbR = WallSystem.resolve(this.x, this.y, sbX, sbY, this.groundRadius);
                         if (sbR.x !== this.x || sbR.y !== this.y) {
                             const clamped = this._clampMoveDistance(this.x, this.y, sbR.x, sbR.y, maxStep);
                             this.x = clamped.x; this.y = clamped.y;

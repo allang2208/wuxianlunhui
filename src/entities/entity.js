@@ -67,6 +67,31 @@ class Entity {
     }
 
     /**
+     * 地面 footprint 半径（统一入口）
+     * 优先使用 Collider，回退到旧字段。
+     */
+    get groundRadius() {
+        if (this.collider) return this.collider.radius;
+        if (this.collisionRadius > 0) return this.collisionRadius;
+        if (this.collisionShape === 'rect' && this.collisionWidth > 0 && this.collisionHeight > 0) {
+            return Math.max(this.collisionWidth, this.collisionHeight) / 2;
+        }
+        if (this.size > 0) return this.size * 0.6;
+        return 10;
+    }
+
+    /**
+     * 实体高度（统一入口）
+     */
+    get bodyHeight() {
+        if (this.collider) return this.collider.height;
+        if (this.collisionHeight > 0) return this.collisionHeight;
+        const render = this.config?.render;
+        if (render?.spriteSize > 0) return render.spriteSize;
+        return (this.size || 10) * 2;
+    }
+
+    /**
      * 获取碰撞形状（用于兼容现有系统）
      * 优先使用显式设置的矩形碰撞体；没有矩形再回退到六边形/圆形。
      * @returns {{type:string, radius:number, width?:number, height?:number}}

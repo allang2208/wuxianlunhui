@@ -75,7 +75,7 @@ class PathManager {
      */
     _checkValidity(pathPlanner) {
         if (!pathPlanner || !pathPlanner._isBlocked) return;
-        const radius = this.enemy.collisionRadius || 12;
+        const radius = this.enemy.groundRadius;
         // 从当前索引+1开始检查（当前节点可能正在移动中，不需要严格检查）
         for (let i = this.pathIdx + 1; i < this.path.length; i++) {
             const node = this.path[i];
@@ -100,7 +100,7 @@ class PathManager {
      * @param {PathFinder} pathPlanner - 路径规划器
      */
     _repairPath(blockedIdx, pathPlanner) {
-        const radius = this.enemy.collisionRadius || 12;
+        const radius = this.enemy.groundRadius;
         const prevIdx = Math.max(0, blockedIdx - 2); // 向前看 2 个节点
         const nextIdx = Math.min(this.path.length - 1, blockedIdx + 2); // 向后看 2 个节点
         const start = this.path[prevIdx];
@@ -216,7 +216,7 @@ class PathManager {
         if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
             return; // 间隔不足，跳过
         }
-        const radius = this.enemy.collisionRadius || 12;
+        const radius = this.enemy.groundRadius;
         let path = null;
         try {
             path = pathPlanner.findPath(this.enemy.x, this.enemy.y, targetX, targetY, radius);

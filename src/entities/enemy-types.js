@@ -124,7 +124,7 @@ class BlackWolf extends Enemy {
                 const targetY = this.y + offset.y;
                 // [FIX] 冲刺终点碰撞检测：防止卡到墙/树内
                 if (WallSystem && WallSystem.resolve) {
-                    const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.collisionRadius || 12);
+                    const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
                     this.x = resolved.x;
                     this.y = resolved.y;
                 } else {
@@ -278,9 +278,9 @@ class BlackWolf extends Enemy {
         }
     }
 
-    _drawShadow(ctx, x, y, size) {
+    _drawShadow(ctx, x, y, _size) {
         // 阴影绑定碰撞体积位置：使用碰撞半径，随冲刺同步
-        const r = this.collisionRadius || size;
+        const r = this.groundRadius;
         const shadowCfg = this._animCfg?.render?.shadow || {};
         ctx.fillStyle = shadowCfg.color || 'rgba(0, 0, 0, 0.25)';
         ctx.beginPath();

@@ -203,14 +203,14 @@ class DashSystem {
                 const easedProgress = Easing.easeOutQuad(moveProgress);
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
-                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
+                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.groundRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
                     const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
-                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
+                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.groundRadius);
                     this.player.x = br.x; this.player.y = br.y;
                     EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                 } else {
@@ -295,14 +295,14 @@ class DashSystem {
                 const easedProgress = Easing.easeOutQuad(moveProgress);
                 const targetX = this.player._dashStartPos.x + this.player._dashDirection.x * dashDist * speedMul * easedProgress;
                 const targetY = this.player._dashStartPos.y + this.player._dashDirection.y * dashDist * speedMul * easedProgress;
-                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.collisionRadius);
+                const resolved = WallSystem.resolve(this.player._dashStartPos.x, this.player._dashStartPos.y, targetX, targetY, this.player.groundRadius);
                 const hitWall = Math.abs(resolved.x - targetX) > 1 || Math.abs(resolved.y - targetY) > 1;
                 if (hitWall && !this.player._dashBounceApplied) {
                     this.player._dashBounceApplied = true;
                     const bounceDist = dashDist * speedMul * easedProgress * bounceRatio;
                     const bounceX = this.player.x - this.player._dashDirection.x * bounceDist;
                     const bounceY = this.player.y - this.player._dashDirection.y * bounceDist;
-                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.collisionRadius);
+                    const br = WallSystem.resolve(this.player.x, this.player.y, bounceX, bounceY, this.player.groundRadius);
                     this.player.x = br.x; this.player.y = br.y;
                     EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
                 } else {
