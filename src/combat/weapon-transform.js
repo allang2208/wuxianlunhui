@@ -322,6 +322,17 @@ class WeaponTransform {
 
     // ==================== 世界坐标转换 ====================
 
+    /**
+     * 获取玩家/实体的脚底偏移，用于把武器从逻辑脚底坐标系提升到视觉身体坐标系。
+     */
+    static _getFootOffsetY(player) {
+        if (!player) return 0;
+        if (typeof player.footOffsetY === 'number') return player.footOffsetY;
+        const render = player.config?.render || {};
+        if (typeof render.footOffsetY === 'number') return render.footOffsetY;
+        return 0;
+    }
+
     static localToWorld(player, localOffset, fixedRotation = null, facingRight = true, _animState = null, weaponType = null) {
         const rot = fixedRotation !== null ? fixedRotation : player.rotation;
         const cos = Math.cos(rot);
@@ -334,7 +345,8 @@ class WeaponTransform {
         }
         return {
             x: x,
-            y: player.y + sin * localOffset.x + cos * localOffset.y,
+            // 玩家贴图中心已上移到 y - footOffsetY，武器也要同步上移
+            y: player.y + sin * localOffset.x + cos * localOffset.y - this._getFootOffsetY(player),
         };
     }
 
@@ -404,8 +416,9 @@ class WeaponTransform {
             // 关键帧偏移是相对 handAnchor 的世界空间偏移，朝左时同样要镜像
             const handOffsetX = (facingRight ? 1 : -1) * (keyframeOffset.offsetX || 0);
             const handOffsetY = keyframeOffset.offsetY || 0;
+            const footOffsetY = this._getFootOffsetY(player);
             const handWorldX = player.x + anchorX + handOffsetX;
-            const handWorldY = player.y + anchorY + handOffsetY;
+            const handWorldY = player.y + anchorY + handOffsetY - footOffsetY;
             const gripOffset = cfg.gripOffset || { x: 0, y: 0 };
             const rotationRad = (keyframeOffset.rotation || 0) * Math.PI / 180;
             const cos = Math.cos(rotationRad);
@@ -539,7 +552,7 @@ class WeaponTransform {
         }
         return {
             x: player.x + offsetX,
-            y: player.y + offsetY,
+            y: player.y + offsetY - this._getFootOffsetY(player),
             rotation,
             scale: frame.scale !== undefined ? frame.scale : 1,
         };
