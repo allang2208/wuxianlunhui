@@ -336,41 +336,42 @@ export class GameScene extends Scene {
         
         // 玩家：如果启用 velocity 驱动，从 Phaser 同步位置回 Player
         if (this._useVelocityDrive && Game.player && this.playerSprite && this.playerSprite.body) {
+            const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+
             // 初始化：如果 playerSprite 在 (0,0) 或远离玩家，同步一次位置
+            // playerSprite.y 是贴图中心，Game.player.y 是逻辑脚底，需要减去 footOffsetY
             const distToPlayer = Math.sqrt(
                 (this.playerSprite.x - Game.player.x) ** 2 +
-                (this.playerSprite.y - Game.player.y) ** 2
+                (this.playerSprite.y - (Game.player.y - playerShift)) ** 2
             );
             if (distToPlayer > 100) {
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
-                
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
             }
-            
+
             // 如果玩家在闪避，Player 直接设置位置，需要同步到 Phaser
             if (Game.player.isDodging) {
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
                 this.playerSprite.body.setVelocity(0, 0);
             }
-            
+
             // 正常：从 Phaser 同步位置到 Player
             // 注意：只同步位置，不同步速度！
+            // 把贴图中心坐标转回逻辑脚底坐标
             Game.player.x = this.playerSprite.x;
-            Game.player.y = this.playerSprite.y;
+            Game.player.y = this.playerSprite.y + playerShift;
             // 边界检查
             if (Game.player.x < -CONFIG.WORLD_WIDTH || Game.player.x > CONFIG.WORLD_WIDTH * 2 ||
                 Game.player.y < -CONFIG.WORLD_HEIGHT || Game.player.y > CONFIG.WORLD_HEIGHT * 2) {
                 Game.player.x = Math.max(-CONFIG.WORLD_WIDTH, Math.min(CONFIG.WORLD_WIDTH * 2, Game.player.x));
                 Game.player.y = Math.max(-CONFIG.WORLD_HEIGHT, Math.min(CONFIG.WORLD_HEIGHT * 2, Game.player.y));
-                this.playerSprite.body.reset(Game.player.x, Game.player.y);
+                this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
             }
             return;
         }
         
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
-            const playerShift = this._hasConfiguredFootOffset(Game.player)
-                ? this._getFootOffsetY(Game.player, this.playerSprite)
-                : 0;
+            const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
             this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
             this.playerSprite.body.reset(Game.player.x, Game.player.y);
         }
@@ -397,9 +398,7 @@ export class GameScene extends Scene {
                 syncX += offset.x;
                 syncY += offset.y;
             }
-            const shiftY = this._hasConfiguredFootOffset(entity)
-                ? this._getFootOffsetY(entity, entity._phaserSprite)
-                : 0;
+            const shiftY = this._getFootOffsetY(entity, entity._phaserSprite);
             entity._phaserSprite.setPosition(syncX, syncY - shiftY);
             if (entity._phaserSprite.body) {
                 entity._phaserSprite.body.reset(syncX, syncY);
@@ -796,9 +795,7 @@ export class GameScene extends Scene {
      */
     syncPlayerPosition(x, y, rotation) {
         if (!this.playerSprite) return;
-        const shift = this._hasConfiguredFootOffset(window.Game && window.Game.player)
-            ? this._getFootOffsetY(window.Game.player, this.playerSprite)
-            : 0;
+        const shift = this._getFootOffsetY(window.Game && window.Game.player, this.playerSprite);
         this.playerSprite.setPosition(x, y - shift);
         this.playerSprite.setRotation(rotation);
     }
@@ -2582,7 +2579,8 @@ export class GameScene extends Scene {
             }
             const { sprite, label } = data;
             const size = e.size || 16;
-            sprite.setPosition(e.x, e.y);
+            const shift = this._getFootOffsetY(e, sprite);
+            sprite.setPosition(e.x, e.y - shift);
             sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
 
             let text = e.name || '';
@@ -2602,7 +2600,7 @@ export class GameScene extends Scene {
             } else if (e.hp !== undefined && e.maxHp !== undefined) {
                 text = `${e.name} ${e.hp}/${e.maxHp}`;
             }
-            label.setPosition(e.x, e.y - size - 8);
+            label.setPosition(e.x, sprite.y - size - 8);
             if (label.text !== text) {
                 label.setText(text);
             }
