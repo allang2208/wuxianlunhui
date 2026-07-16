@@ -2002,6 +2002,18 @@
 }
 .dev-tool-trigger:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
 .dev-tool-trigger.active { border-color: #7a9a6a; color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
+.invincible-toggle {
+    position: absolute; bottom: 12px; left: 124px; width: 48px; height: 48px;
+    background: linear-gradient(to bottom, #3d342b, #2a2520);
+    border: 2px solid #5a4d3f; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #8a7d6b; font-size: 12px; cursor: pointer;
+    pointer-events: auto; transition: all 0.2s; z-index: 11;
+    font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+}
+.invincible-toggle:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
+.invincible-toggle.active { border-color: #d4b060; color: #d4b060; background: linear-gradient(to bottom, #4a3f2b, #3d342b); box-shadow: 0 0 8px rgba(212, 176, 96, 0.3); }
+.invincible-toggle span { pointer-events: none; }
 .dev-tool-panel {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 1000px; height: 720px;

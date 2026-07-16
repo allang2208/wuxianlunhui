@@ -466,6 +466,7 @@ class DashSystem {
                     }
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                     entity.takeDamage(finalDamage, this.player);
+                    if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害（hitIndex === 0 已处理，这里不触发）
                     if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
                     phase.totalHitCount++;
@@ -515,6 +516,7 @@ class DashSystem {
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                     const wasAlive = entity.hp > 0;
                     entity.takeDamage(finalDamage, this.player);
+                    if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;
                     const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
                     entity.applyKnockback(kbAngle, knockback);

@@ -23,6 +23,7 @@ export const SceneManager = {
     loadProgress: 0,
     _sceneLabel: null, // 当前场景名称标签
     _inMainHub: false, // 主神空间无敌保护开关，避免依赖 currentScene 产生泄漏
+    _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
 
     init() {
         const cfg = GAME_CONFIG.scenes || {};
@@ -440,9 +441,12 @@ export const SceneManager = {
             if (!hasDpsTarget) Game.spawnEnemy();
         }
 
-        // 主神空间：清理所有怪物并生成一只测试用僵尸犬
+        // 主神空间：清理所有怪物并生成测试用胖子僵尸
         if (Game && Game.clearMainMonstersAndSpawnDog) {
             Game.clearMainMonstersAndSpawnDog();
+        }
+        if (Game && Game.spawnMainFatZombie) {
+            Game.spawnMainFatZombie();
         }
     },
 

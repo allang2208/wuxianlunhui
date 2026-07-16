@@ -121,14 +121,15 @@ export function createHudPanelsSystemTabs() {
     statusSection1.appendChild(h4Status);
 
     const statusBars = [
-        { label: '生命', cls: 'hp', id: 'barHp', valId: 'valHp', val: '100/100' },
-        { label: '魔法', cls: 'mp', id: 'barMp', valId: 'valMp', val: '100/100' },
-        { label: '体力', cls: 'stamina', id: 'barStamina', valId: 'valStamina', val: '200/200' },
-        { label: '经验', cls: 'exp', id: 'barExp', valId: 'valExp', val: '0%' }
+        { label: '生命', cls: 'hp', id: 'barHp', valId: 'valHp', val: '100/100', tooltipKey: 'hp' },
+        { label: '魔法', cls: 'mp', id: 'barMp', valId: 'valMp', val: '100/100', tooltipKey: 'mp' },
+        { label: '体力', cls: 'stamina', id: 'barStamina', valId: 'valStamina', val: '200/200', tooltipKey: 'stamina' },
+        { label: '经验', cls: 'exp', id: 'barExp', valId: 'valExp', val: '0%', tooltipKey: 'exp' }
     ];
     statusBars.forEach(sb => {
         const sbRow = document.createElement('div');
         sbRow.className = 'status-bar';
+        sbRow.dataset.tooltipKey = sb.tooltipKey;
         const sbLabel = document.createElement('span');
         sbLabel.className = 'bar-label';
         sbLabel.textContent = sb.label;
@@ -173,6 +174,7 @@ export function createHudPanelsSystemTabs() {
         const attrItem = document.createElement('div');
         attrItem.className = 'attr-item';
         attrItem.dataset.attr = a.attr;
+        attrItem.dataset.tooltipKey = a.attr;
         const attrName = document.createElement('span');
         attrName.className = 'attr-name';
         attrName.textContent = a.name;
@@ -205,18 +207,19 @@ export function createHudPanelsSystemTabs() {
     const combatList = document.createElement('div');
     combatList.className = 'attr-list';
     const combatAttrs = [
-        { name: '物理攻击', id: 'combatAtk', val: '0' },
-        { name: '物理防御', id: 'combatDef', val: '0' },
-        { name: '魔法攻击', id: 'combatMatk', val: '0' },
-        { name: '魔法防御', id: 'combatMdef', val: '0' },
-        { name: '暴击率', id: 'combatCrit', val: '0%' },
-        { name: '暴击抵抗', id: 'combatCritRes', val: '0%' },
-        { name: '攻击间隔', id: 'combatAspd', val: '0' },
-        { name: '移动速度', id: 'combatSpd', val: '0' }
+        { name: '物理攻击', id: 'combatAtk', val: '0', tooltipKey: 'atk' },
+        { name: '物理防御', id: 'combatDef', val: '0', tooltipKey: 'def' },
+        { name: '魔法攻击', id: 'combatMatk', val: '0', tooltipKey: 'matk' },
+        { name: '魔法防御', id: 'combatMdef', val: '0', tooltipKey: 'mdef' },
+        { name: '暴击率', id: 'combatCrit', val: '0%', tooltipKey: 'crit' },
+        { name: '暴击抵抗', id: 'combatCritRes', val: '0%', tooltipKey: 'critRes' },
+        { name: '攻击间隔', id: 'combatAspd', val: '0', tooltipKey: 'attackInterval' },
+        { name: '移动速度', id: 'combatSpd', val: '0', tooltipKey: 'moveSpeed' }
     ];
     combatAttrs.forEach(a => {
         const attrItem = document.createElement('div');
         attrItem.className = 'attr-item';
+        attrItem.dataset.tooltipKey = a.tooltipKey;
         const attrName = document.createElement('span');
         attrName.className = 'attr-name';
         attrName.textContent = a.name;
@@ -240,19 +243,20 @@ export function createHudPanelsSystemTabs() {
     const detailList = document.createElement('div');
     detailList.className = 'attr-list';
     const detailAttrs = [
-        { name: '体力恢复', id: 'detailStaminaRegen', val: '0/秒' },
-        { name: '生命回复', id: 'detailHpRegen', val: '1/秒' },
-        { name: '魔法回复', id: 'detailMpRegen', val: '1/3秒' },
-        { name: '碰撞体积', id: 'detailCollisionRadius', val: '0px' },
-        { name: '移动速度', id: 'detailMoveSpeed', val: '0px/帧' },
-        { name: '闪避冷却', id: 'detailDodgeCooldown', val: '0ms' },
-        { name: '攻击距离', id: 'detailAttackRange', val: '0px' },
-        { name: '击退距离', id: 'detailKnockback', val: '0px' },
-        { name: '视野宽度', id: 'detailViewRange', val: '0px' }
+        { name: '体力恢复', id: 'detailStaminaRegen', val: '0/秒', tooltipKey: 'staminaRegen' },
+        { name: '生命回复', id: 'detailHpRegen', val: '1/秒', tooltipKey: 'hpRegen' },
+        { name: '魔法回复', id: 'detailMpRegen', val: '1/3秒', tooltipKey: 'mpRegen' },
+        { name: '碰撞体积', id: 'detailCollisionRadius', val: '0px', tooltipKey: 'collisionRadius' },
+        { name: '移动速度', id: 'detailMoveSpeed', val: '0px/帧', tooltipKey: 'moveSpeedDetail' },
+        { name: '闪避冷却', id: 'detailDodgeCooldown', val: '0ms', tooltipKey: 'dodgeCooldown' },
+        { name: '攻击距离', id: 'detailAttackRange', val: '0px', tooltipKey: 'attackRange' },
+        { name: '击退距离', id: 'detailKnockback', val: '0px', tooltipKey: 'knockback' },
+        { name: '视野宽度', id: 'detailViewRange', val: '0px', tooltipKey: 'viewRange' }
     ];
     detailAttrs.forEach(a => {
         const attrItem = document.createElement('div');
         attrItem.className = 'attr-item';
+        attrItem.dataset.tooltipKey = a.tooltipKey;
         const attrName = document.createElement('span');
         attrName.className = 'attr-name';
         attrName.textContent = a.name;
@@ -276,16 +280,17 @@ export function createHudPanelsSystemTabs() {
     const loopList = document.createElement('div');
     loopList.className = 'attr-list';
     const loopAttrs = [
-        { name: '轮回次数', id: 'infoLoop', val: '0' },
-        { name: '存活天数', id: 'infoDays', val: '1' },
-        { name: '击杀数', id: 'infoKills', val: '0' },
-        { name: '完成任务', id: 'infoQuests', val: '0' },
-        { name: '基因锁', id: 'infoGene', val: '未开启' },
-        { name: '主神评价', id: 'infoRank', val: 'F' }
+        { name: '轮回次数', id: 'infoLoop', val: '0', tooltipKey: 'loopCount' },
+        { name: '存活天数', id: 'infoDays', val: '1', tooltipKey: 'surviveDays' },
+        { name: '击杀数', id: 'infoKills', val: '0', tooltipKey: 'kills' },
+        { name: '完成任务', id: 'infoQuests', val: '0', tooltipKey: 'quests' },
+        { name: '基因锁', id: 'infoGene', val: '未开启', tooltipKey: 'geneLock' },
+        { name: '主神评价', id: 'infoRank', val: 'F', tooltipKey: 'rank' }
     ];
     loopAttrs.forEach(a => {
         const attrItem = document.createElement('div');
         attrItem.className = 'attr-item';
+        attrItem.dataset.tooltipKey = a.tooltipKey;
         const attrName = document.createElement('span');
         attrName.className = 'attr-name';
         attrName.textContent = a.name;

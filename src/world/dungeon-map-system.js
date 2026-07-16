@@ -499,11 +499,6 @@ export const DungeonMapSystem = {
                     this._exitPortalSpawned = true;
                     CombatRoomSystem.spawnExitPortal();
 
-                    // 标记当前战斗节点为已完成（变为 empty）
-                    if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
-                        currentNode.type = 'empty';
-                    }
-
                     // 上方提示栏：已完成战斗，寻找传送门离开
                     if (SceneManager && SceneManager.showTopNotification) {
                         SceneManager.showTopNotification('已完成战斗，寻找传送门离开');
@@ -631,6 +626,9 @@ export const DungeonMapSystem = {
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(player);
 
+        // 统一标记当前节点已完成
+        this._markCurrentNodeCompleted();
+
         // 普通战斗奖励金币
         const currentNode = this.getCurrentNode();
         const isBoss = currentNode && currentNode.type === 'boss';
@@ -680,6 +678,17 @@ export const DungeonMapSystem = {
 
         // 返回地图模式
         this._returnToMap();
+    },
+
+    /**
+     * 统一标记当前节点已完成（变为 empty），供普通/精英战斗共用
+     */
+    _markCurrentNodeCompleted() {
+        const currentNode = this.getCurrentNode();
+        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
+            currentNode.type = 'empty';
+            currentNode.completed = true;
+        }
     },
 
     // 打开精英战斗奖励宝箱：发放配置奖励并生成出口传送门

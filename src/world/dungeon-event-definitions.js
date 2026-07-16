@@ -760,10 +760,11 @@ function _applyTemporaryBuff(player, buffCfg) {
     player._dungeonBuffs[buffCfg.id] = entry;
 
     if (StatusBar) {
-        StatusBar.addEffect(buffCfg.id, 999999, {
+        StatusBar.addEffect(buffCfg.id, 0, {
             icon: buffCfg.icon || '✨',
-            name: `${buffCfg.name} (${buffCfg.durationBattles || 1}场)`,
+            name: buffCfg.name,
             color: buffCfg.color || '#e8c878',
+            battleRemaining: buffCfg.durationBattles || 1,
         });
     }
     if (player.addStatusEffect) {

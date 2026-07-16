@@ -6,7 +6,7 @@ import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { ENEMY_DATA } from '../systems/data-loader.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
-import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { CodexFormulaHelper } from './codex-formula-helper.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -159,7 +159,7 @@ const CodexManager = {
         if (!grid) return;
         const items = this.getMonsterByCategory(this.currentMonsterCategory);
         grid.innerHTML = items.map(item => {
-            const iconHtml = `<div style="width:36px;height:36px;border-radius:50%;background:${item.color};box-shadow:0 0 8px ${item.color}80;"></div>`;
+            const iconHtml = this._renderCodexIcon(item, 36);
             return `<div class="codex-card codex-monster-card" data-id="${item.id}" onclick="CodexManager.openMonsterDetail('${item.id}')">
                 <div class="cc-icon">${iconHtml}</div>
                 <div class="cc-name">${item.name}</div>
@@ -500,7 +500,7 @@ const CodexManager = {
         const d = { ...item, ...liveData };
 
         let html = '';
-        const iconHtml = `<div style="width:64px;height:64px;border-radius:50%;background:${d.color || '#8a4a4a'};box-shadow:0 0 16px ${d.color || '#8a4a4a'}80;"></div>`;
+        const iconHtml = this._renderCodexIcon(d, 64);
         // 家族标签
         const familyTag = d.family ? `<span class="cd-family-tag">${d.family}类</span>` : '';
         html += `<div class="cd-hero">
@@ -516,15 +516,14 @@ const CodexManager = {
         html += `<div class="cd-section"><h4>基本信息</h4>`;
         html += this.detailRow('名称', d.name);
         html += this.detailRow('类型', d.type);
-        let level = d.level;
-        if (level === undefined || level === null) {
-            const sixAttrs = (d.str || 0) + (d.dex || 0) + (d.int || 0) + (d.con || 0) + (d.wis || 0) + (d.luck || 0);
-            level = Math.round(sixAttrs / 8);
-        }
-        html += this.detailRow('等级', level);
+        html += this.detailRow('等级', d.level != null ? d.level : '-');
         html += this.detailRow('生命值', `${d.hp || 0} / ${d.maxHp || 0}`);
-        html += this.detailRow('经验值', d.expValue || (10 + (level || 1) * 5));
-        if (d.collisionRadius) html += this.detailRow('碰撞半径', `${d.collisionRadius}px`);
+        html += this.detailRow('经验值', CodexFormulaHelper.calculateExpValue(d));
+        if (d.render?.collisionWidth && d.render?.collisionHeight) {
+            html += this.detailRow('碰撞体积', `${d.render.collisionWidth}×${d.render.collisionHeight}px`);
+        } else if (d.collisionRadius) {
+            html += this.detailRow('碰撞半径', `${d.collisionRadius}px`);
+        }
         html += `</div>`;
 
         // 六维属性
@@ -539,46 +538,21 @@ const CodexManager = {
 
         // 战斗属性（使用与运行时一致的公式，避免硬编码）
         html += `<div class="cd-section"><h4>战斗属性</h4>`;
-        const str = d.str || 0, dex = d.dex || 0, int = d.int || 0, con = d.con || 0, wis = d.wis || 0, luck = d.luck || 0;
-        const eform = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
-        const applyRound = (value, method) => {
-            if (method === 'round') return Math.round(value);
-            if (method === 'ceil') return Math.ceil(value);
-            return Math.floor(value);
-        };
-        const calcFrom = (formula, extras = {}) => {
-            const f = formula || {};
-            let v = (f.base || 0)
-                + str * (f.strMultiplier || 0)
-                + dex * (f.dexMultiplier || 0)
-                + con * (f.conMultiplier || 0)
-                + int * (f.intMultiplier || 0)
-                + wis * (f.wisMultiplier || 0)
-                + luck * (f.luckMultiplier || 0);
-            for (const key of Object.keys(extras)) v += extras[key];
-            return applyRound(v, f.round || 'floor');
-        };
-        const calcAtk = calcFrom(eform.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true });
-        const calcDef = calcFrom(eform.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' });
-        const calcMatk = calcFrom(eform.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' });
-        const calcMdef = calcFrom(eform.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' });
-        const calcHit = calcFrom(eform.hit || { base: 80, dexMultiplier: 0.5, round: 'floor' });
-        const calcCrit = calcFrom(eform.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' });
-        const calcCritRes = calcFrom(eform.critResist || { conMultiplier: 1.0, round: 'floor' });
+        const stats = CodexFormulaHelper.calculateCombatStats(d);
         const attackType = (d.attack && d.attack.damageType) || 'physical';
-        const normalDamage = attackType === 'magic' ? calcMatk : calcAtk;
-        html += this.detailRow('物理攻击', calcAtk);
-        html += this.detailRow('物理防御', calcDef);
-        html += this.detailRow('魔法攻击', calcMatk);
-        html += this.detailRow('魔法防御', calcMdef);
-        html += this.detailRow('命中率', calcHit);
-        html += this.detailRow('暴击率', calcCrit + '%');
-        html += this.detailRow('暴击抵抗', calcCritRes + '%');
+        const normalDamage = attackType === 'magic' ? stats.matk : stats.atk;
+        html += this.detailRow('物理攻击', stats.atk);
+        html += this.detailRow('物理防御', stats.def);
+        html += this.detailRow('魔法攻击', stats.matk);
+        html += this.detailRow('魔法防御', stats.mdef);
+        html += this.detailRow('暴击率', stats.crit + '%');
+        html += this.detailRow('暴击抵抗', stats.critRes + '%');
         html += this.detailRow('攻击距离', `${d.attackRange || 0}px`);
         html += this.detailRow('攻击冷却', `${d.attackCooldown || 0}ms`);
         html += this.detailRow('攻击方式', d.attackType || '-');
         html += this.detailRow(attackType === 'magic' ? '普攻魔法伤害' : '普攻物理伤害', normalDamage);
         html += this.detailRow('击退', d.knockback ? `${d.knockback}px` : '无');
+        if (d.rangedDamageReduction) html += this.detailRow('远程物理减伤', `${Math.round(d.rangedDamageReduction * 100)}%`);
         html += `</div>`;
 
         // 移动属性
@@ -627,6 +601,24 @@ const CodexManager = {
 
         if (d.description) html += `<div class="cd-section"><h4>描述</h4><div class="cd-desc">${d.description}</div></div>`;
         body.innerHTML = html;
+    },
+
+    /**
+     * 渲染图鉴图标：若 idle 是 spritesheet，则只截取第一帧并放大显示
+     */
+    _renderCodexIcon(d, size) {
+        if (!d.idleTexture) {
+            return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${d.color || '#8a4a4a'};box-shadow:0 0 8px ${d.color || '#8a4a4a'}80;"></div>`;
+        }
+        const isSheet = d.idleFrameWidth && d.idleSheetColumns && d.idleSheetColumns > 0;
+        if (!isSheet) {
+            return `<img src="${d.idleTexture}" style="width:${size}px;height:${size}px;object-fit:contain;filter:drop-shadow(0 0 4px ${d.color || '#8a4a4a'});" alt="">`;
+        }
+        // 只显示 spritesheet 第一帧：按列数缩放，使单帧填满容器
+        const fw = d.idleFrameWidth;
+        const scale = size / fw;
+        const bgW = fw * d.idleSheetColumns * scale;
+        return `<div style="width:${size}px;height:${size}px;background-image:url('${d.idleTexture}');background-repeat:no-repeat;background-size:${bgW}px auto;background-position:0 0;filter:drop-shadow(0 0 4px ${d.color || '#8a4a4a'});" title=""></div>`;
     },
 
     detailRow(label, value, cls = '') {

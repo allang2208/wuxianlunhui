@@ -121,11 +121,6 @@
         "intMultiplier": 0.3,
         "floor": true
       },
-      "hit": {
-        "base": 80,
-        "dexMultiplier": 0.5,
-        "floor": true
-      },
       "crit": {
         "base": 2,
         "luckMultiplier": 1.0,

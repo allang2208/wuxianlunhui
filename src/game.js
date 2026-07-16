@@ -39,6 +39,7 @@ import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
+import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -133,6 +134,9 @@ export const Game = {
             SceneManager.init();
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             SceneManager._inMainHub = true;
+            SceneManager._mainHubInvincible = true;
+            // 主神空间生成测试用胖子僵尸
+            this.spawnMainFatZombie();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -367,6 +371,25 @@ export const Game = {
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_mutant3', mutant);
+    },
+    spawnMainFatZombie() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const fatCfg = enemyConfigData.fatZombie || {};
+        // 使用原设定数值，仅保留永久警戒便于测试
+        const fat = new FatZombie(origin.x + 250, origin.y + 250, {
+            ...fatCfg,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(fatCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_fat_zombie', fat);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -635,7 +658,8 @@ if (Input.mouse.leftPressed) {
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
-            if (!e.active) continue;
+            const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0);
+            if (!e.active && !isCorpse) continue;
 e.update(dt, this.entities);
 if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);

@@ -54,7 +54,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 // ===== 状态栏系统（每个实体独立） =====
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
             }
-            takeDamage(damage, source, damageType = 'physical') {
+            takeDamage(damage, source, damageType = 'physical', isMelee = true) {
                 // 新增：怪物之间不互相攻击
                 if (this._faction === 'enemy' && source && source._faction === 'enemy') return;
                 // 应用伤害公式：伤害 = 攻击力² / (攻击力 + 防御力)
@@ -100,8 +100,9 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     if (damageType === 'magic' && this._magicVulnerabilityStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._magicVulnerabilityStacks * 0.05));
                     }
-                    // 远程伤害减免（在魔力易伤之后应用）
-                    if (damageType === 'ranged' && this._rangedDamageReduction > 0) {
+                    // 远程物理伤害减免（在魔力易伤之后应用）
+                    // 枪械等远程物理攻击的 damageType 为 'physical' 且 isMelee=false
+                    if (!isMelee && (damageType === 'ranged' || damageType === 'physical') && this._rangedDamageReduction > 0) {
                         baseDamage = Math.floor(baseDamage * (1 - this._rangedDamageReduction));
                     }
                     // 应用无人机易伤：所有伤害每层+10%（基础）+ 等级加成（在source上计算）
@@ -158,6 +159,11 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 // 扣血
                 this.hp -= baseDamage;
                 this.hitFlash = this.hitFlashDuration;
+                // 僵尸类怪物受击绿色粒子（统一入口，确保所有伤害路径都会触发）
+                const scene = typeof window !== 'undefined' && window.__phaserScene;
+                if (scene && typeof scene.triggerZombieHitParticles === 'function') {
+                    scene.triggerZombieHitParticles(this, source);
+                }
                 // 显示伤害数字
                 if (EffectManager && EffectManager.createDamageText) {
                     EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit);
@@ -204,6 +210,7 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 // 掉落金币（不再掉落 G18）
                 if (this instanceof Enemy) {
                     let goldAmount = getEnemyGoldDrop(this.level, source);
+                    if (this.rank === 'elite') goldAmount *= 2;
 
                     // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
                     if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
@@ -232,9 +239,10 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 }
                 // 延迟删除尸体（3秒后从 entities 中移除）
                 this._deathTime = Date.now();
-                this._deathRemoveDelay = 3000; // 3秒后删除
+                if (!this._deathRemoveDelay) this._deathRemoveDelay = 3000; // 默认 3 秒，子类可覆盖
                 // 销毁 Phaser Sprite，防止残留或被 group setVisible(true) 重新显示
-                if (this._phaserSprite) {
+                // 需要保留尸体播放死亡动画的敌人可设置 _preserveCorpse = true
+                if (this._phaserSprite && !this._preserveCorpse) {
                     this._phaserSprite.destroy();
                     this._phaserSprite = null;
                 }

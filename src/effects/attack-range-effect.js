@@ -77,6 +77,14 @@ class AttackRangeEffect {
                 g.lineStyle(2, 0xffffff, strokeAlpha);
                 g.strokeCircle(0, 0, this.range);
             }
+        } else if (this.type === 'rect') {
+            const hw = this.range / 2;
+            const hh = this.width / 2;
+            g.fillRect(-hw, -hh, this.range, this.width);
+            if (this.showStroke) {
+                g.lineStyle(2, 0xff6464, strokeAlpha);
+                g.strokeRect(-hw, -hh, this.range, this.width);
+            }
         } else {
             const cos = Math.cos(this.angle), sin = Math.sin(this.angle);
             const ex = cos * this.range, ey = sin * this.range;

@@ -44,9 +44,17 @@ export const StatusBar = {
         
         // 检查是否已有同类型的状态效果，如果有则更新剩余时间（取较大值）
         const existing = this.effects.find(e => e.type === type);
+        const hasBattleRemaining = options.battleRemaining !== undefined;
         if (existing) {
-            existing.remaining = Math.max(existing.remaining, duration);
-            existing.duration = Math.max(existing.duration, duration);
+            if (hasBattleRemaining) {
+                existing.battleRemaining = options.battleRemaining;
+                existing.remaining = 0;
+                existing.duration = 0;
+                if (options.name) existing.name = options.name;
+            } else {
+                existing.remaining = Math.max(existing.remaining, duration);
+                existing.duration = Math.max(existing.duration, duration);
+            }
             if (options.stacks !== undefined) {
                 existing.stacks = options.stacks;
                 existing.name = `${config.name} x${options.stacks}`;
@@ -69,6 +77,7 @@ export const StatusBar = {
             duration: duration,
             remaining: duration,
             stacks: options.stacks,
+            battleRemaining: hasBattleRemaining ? options.battleRemaining : undefined,
         });
 
         this.render();
@@ -143,6 +152,11 @@ export const StatusBar = {
         let changed = false;
         for (let i = this.effects.length - 1; i >= 0; i--) {
             const effect = this.effects[i];
+            // 按战斗场次持续的效果不参与毫秒倒计时
+            if (effect.battleRemaining !== undefined) {
+                changed = true;
+                continue;
+            }
             effect.remaining -= dt;
             if (effect.remaining <= 0) {
                 this.effects.splice(i, 1);
@@ -183,13 +197,20 @@ export const StatusBar = {
         this.container.style.display = 'flex';
         let html = '';
         for (const effect of this.effects) {
-            const seconds = Math.ceil(effect.remaining / 1000);
-            const progress = effect.duration > 0 ? (effect.remaining / effect.duration) : 0;
+            let timeText;
+            let progress = 0;
+            if (effect.battleRemaining !== undefined) {
+                timeText = `${effect.battleRemaining}场`;
+            } else {
+                const seconds = Math.ceil(effect.remaining / 1000);
+                timeText = `${seconds}s`;
+                progress = effect.duration > 0 ? (effect.remaining / effect.duration) : 0;
+            }
             html += `
                 <div class="status-effect-item" style="--effect-color: ${effect.color};">
                     <span class="status-effect-icon">${effect.icon}</span>
                     <span class="status-effect-name">${effect.name}</span>
-                    <span class="status-effect-time">${seconds}s</span>
+                    <span class="status-effect-time">${timeText}</span>
                     <div class="status-effect-progress" style="width: ${progress * 100}%;"></div>
                 </div>
             `;

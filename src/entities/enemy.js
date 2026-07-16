@@ -33,6 +33,7 @@ import { loadImage } from '../utils/image-loader.js';
                 // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动
                 if (this.speed < 1) this.speed = 45;
                 this.maxSpeed = this.speed;
+                this._rangedDamageReduction = config.rangedDamageReduction ?? 0;
                 this.accel = config.accel ?? defaults.accel ?? 0.7;
                 this.friction = config.friction ?? defaults.friction ?? 0.82;
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
@@ -585,7 +586,6 @@ import { loadImage } from '../utils/image-loader.js';
                 const matkFormula = formulas.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' };
                 matkFormula.base = matkFormula.base ?? 0;
                 const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
-                const hitFormula = formulas.hit || { base: 80, dexMultiplier: 0.5, round: 'floor' };
                 const critFormula = formulas.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
                 const critResFormula = formulas.critResist || { conMultiplier: 1.0, round: 'floor' };
                 const levelFormula = formulas.level || { base: 1, strMultiplier: 0.05, conMultiplier: 0.06, dexMultiplier: 0.04, intMultiplier: 0.02, wisMultiplier: 0.015, luckMultiplier: 0.015, round: 'floor' };
@@ -598,7 +598,6 @@ import { loadImage } from '../utils/image-loader.js';
                 d.def = this._applyRounding(d.con * defFormula.conMultiplier + d.str * defFormula.strMultiplier, defFormula.round);
                 d.matk = this._applyRounding(matkFormula.base + d.int * matkFormula.intMultiplier + d.wis * matkFormula.wisMultiplier, matkFormula.round);
                 d.mdef = this._applyRounding(d.wis * mdefFormula.wisMultiplier + d.int * mdefFormula.intMultiplier, mdefFormula.round);
-                d.hit = this._applyRounding(hitFormula.base + d.dex * hitFormula.dexMultiplier, hitFormula.round);
                 d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
                 d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
                 d.level = this._applyRounding(
@@ -625,7 +624,9 @@ import { loadImage } from '../utils/image-loader.js';
             // 新增：获取经验值（基于 rank 实时计算，不依赖构造函数时序）
             getExpValue() {
                 const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
-                return formula.base + (this.level || 1) * formula.levelMultiplier;
+                let value = formula.base + (this.level || 1) * formula.levelMultiplier;
+                if (this.rank === 'elite') value *= 2;
+                return Math.floor(value);
             }
             // 获取当前武器/普攻攻击力：
             // - 普通怪物（近战/远程物理）= 面板物理攻击 data.atk

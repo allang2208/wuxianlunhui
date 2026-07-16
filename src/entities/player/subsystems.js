@@ -130,8 +130,8 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                         return;
                     }
                 }
-                // 主神空间（场景一）无敌：仅对未弹反/未格挡的实际伤害生效，避免 currentScene 不同步导致泄漏
-                if (SceneManager._inMainHub) return;
+                // 主神空间（场景一）无敌：默认开启，可通过左下角按钮关闭
+                if (SceneManager._inMainHub && SceneManager._mainHubInvincible) return;
                 // 应用无人机易伤：受到的所有伤害增加
                 if (this._droneVulnerabilityStacks > 0) {
                     let droneBonus = 0.10 * this._droneVulnerabilityStacks;

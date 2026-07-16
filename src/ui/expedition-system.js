@@ -31,6 +31,10 @@ export const ExpeditionSystem = {
             player.calculateCombatStats();
         }
 
+        // 清空旧的祭品统计 UI（死亡后重新打开时，上次的 DOM 可能还在）
+        this._updateTributeStats();
+        this._updateCapacityDisplay();
+
         // 先打开背包（如果还没打开）
         if (SystemUI) {
             SystemUI.open('equip');

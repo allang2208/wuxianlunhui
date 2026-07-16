@@ -74,6 +74,12 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_spitter_zombie_attack', 'assets/enemies/spitter_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
         this.load.image('projectile_poison', 'assets/enemies/spitter_zombie/project.png');
 
+        // 胖子僵尸精灵图动画（实际尺寸：idle 4096x2048 / walking 4100x1536 / attacking 4100x1536 / melting 4096x2048，均按 512x512 切帧）
+        this.load.spritesheet('enemy_fat_zombie_idle',   'assets/enemies/fat_zombie/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_fat_zombie_walk',   'assets/enemies/fat_zombie/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_fat_zombie_attack', 'assets/enemies/fat_zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_fat_zombie_melt',   'assets/enemies/fat_zombie/melting.png',  { frameWidth: 512, frameHeight: 512, endFrame: 20 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -218,6 +224,32 @@ export class BootScene extends Scene {
             key: 'enemy_spitter_zombie_attack',
             frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_attack', { start: 0, end: 21 }),
             duration: 1000,
+            repeat: 0,
+        });
+
+        // 胖子僵尸动画
+        this.anims.create({
+            key: 'enemy_fat_zombie_idle',
+            frames: this.anims.generateFrameNumbers('enemy_fat_zombie_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_fat_zombie_walk',
+            frames: this.anims.generateFrameNumbers('enemy_fat_zombie_walk', { start: 0, end: 10 }),
+            frameRate: 11,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_fat_zombie_attack',
+            frames: this.anims.generateFrameNumbers('enemy_fat_zombie_attack', { start: 0, end: 13 }),
+            duration: 1000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_fat_zombie_death',
+            frames: this.anims.generateFrameNumbers('enemy_fat_zombie_melt', { start: 0, end: 20 }),
+            duration: 1500,
             repeat: 0,
         });
 

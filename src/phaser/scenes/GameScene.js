@@ -16,6 +16,7 @@ import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
+import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -133,6 +134,8 @@ export class GameScene extends Scene {
         // 初始同步地形（后续由场景切换/战斗房生成主动调用 syncTerrain()）
         this.syncTerrain();
 
+        // 预生成僵尸受击绿色粒子纹理
+        this._ensureZombieHitTexture();
 
         // 事件监听：外部系统通知
         this.events.on('playerSpawn', this._onPlayerSpawn, this);
@@ -361,7 +364,10 @@ export class GameScene extends Scene {
 
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
         Game.entities.forEach((entity) => {
-            if (!entity || !entity.active || entity === Game.player) return;
+            if (!entity || entity === Game.player) return;
+            const isCorpse = entity._preserveCorpse && !entity.active &&
+                (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
+            if (!entity.active && !isCorpse) return;
             if (entity._faction === 'enemy' && (!entity._phaserSprite || !entity._phaserSprite.active)) {
                 const wanted = (typeof entity._getTextureKey === 'function')
                     ? entity._getTextureKey()
@@ -1130,6 +1136,8 @@ export class GameScene extends Scene {
             this._syncFlyingIceSpikes(entity);
             this._syncFlyingFireball(entity);
         });
+        // 玩家也由主循环单独同步，必须加入 activeCasters，避免清理循环误删玩家魔法精灵
+        if (_game.player) activeCasters.add(_game.player);
         // 清理不再施法的注册表条目
         for (const [caster, sprites] of this._magicSprites.entries()) {
             if (activeCasters.has(caster)) continue;
@@ -1522,6 +1530,77 @@ export class GameScene extends Scene {
             blendMode: 'ADD',
         });
         return particles;
+    }
+
+    /**
+     * 预生成僵尸受击绿色粒子纹理
+     */
+    _ensureZombieHitTexture() {
+        if (this.textures.exists('zombie_hit_dot')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0x55ff55, 1);
+        g.fillCircle(4, 4, 4);
+        g.generateTexture('zombie_hit_dot', 8, 8);
+        g.destroy();
+    }
+
+    /**
+     * 播放僵尸类怪物受击绿色粒子
+     * @param {number} x
+     * @param {number} y
+     * @param {number} [angle] 受击方向（弧度），未提供时随机散射
+     */
+    playZombieHitParticles(x, y, angle) {
+        if (!this.textures.exists('zombie_hit_dot')) this._ensureZombieHitTexture();
+        // 在 (0,0) 创建发射器，随后用 explode(x,y) 在世界坐标一次性爆发，
+        // 避免把发射器位置与爆发坐标叠加导致粒子飞到屏幕外。
+        const particles = this.add.particles(0, 0, 'zombie_hit_dot', {
+            speed: { min: 80, max: 220 },
+            scale: { start: 1.4, end: 0 },
+            lifespan: 600,
+            quantity: 12,
+            tint: 0x55ff55,
+            blendMode: 'ADD',
+            angle: angle != null ? { min: (angle * 180 / Math.PI) - 45, max: (angle * 180 / Math.PI) + 45 } : { min: 0, max: 360 },
+            gravityY: 120,
+            emitting: false
+        });
+        // 确保粒子会被更新（移动/死亡），否则只会在一帧静止
+        particles.addToUpdateList();
+        // 高于敌人/地面排序深度，确保可见
+        particles.setDepth(10000);
+        particles.explode(12, x, y);
+        // 短暂延迟后销毁发射器，避免内存泄漏
+        this.time.delayedCall(800, () => {
+            if (particles && particles.active) particles.destroy();
+        });
+    }
+
+    /**
+     * 统一触发僵尸类怪物受击绿色粒子
+     * @param {object} target 被击中的目标
+     * @param {object} [source] 伤害来源，用于计算受击方向
+     */
+    triggerZombieHitParticles(target, source) {
+        if (!target || !target.config || target.config.family !== '僵尸') return;
+        const angle = source && target
+            ? Math.atan2(target.y - source.y, target.x - source.x)
+            : null;
+        // 在受击目标朝向来源的一侧边缘生成特效，更贴近实际受击点
+        // 优先使用配置的渲染尺寸计算半径，避免小 size 导致特效贴在中心
+        const render = target.config?.render;
+        let radius = target.collisionRadius;
+        if (!radius && render) {
+            radius = Math.max(render.collisionWidth || 0, render.collisionHeight || 0, render.spriteSize || 0) / 2;
+        }
+        if (!radius) radius = target.size || 12;
+        let hitX = target.x;
+        let hitY = target.y;
+        if (angle != null) {
+            hitX = target.x - Math.cos(angle) * radius * 0.75;
+            hitY = target.y - Math.sin(angle) * radius * 0.75;
+        }
+        this.playZombieHitParticles(hitX, hitY, angle);
     }
 
     /**
@@ -2394,6 +2473,25 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 根据当前动画/帧对 Sprite 进行内容中心对齐偏移
+     * 解决精灵图有效贴图不在切分方格中央导致的抖动问题
+     */
+    _applySpriteFrameOffset(sprite, animKey) {
+        const frame = sprite.anims.currentFrame || sprite.frame;
+        const frameIndex = frame ? frame.index : null;
+        if (frameIndex == null || !animKey) return;
+        const offset = getSpriteFrameOffset(animKey, frameIndex);
+        if (!offset) return;
+        const scale = sprite.scaleX || 1;
+        const desired = { x: -Math.round(offset.x * scale), y: -Math.round(offset.y * scale) };
+        const current = sprite.getData('frameOffset') || { x: 0, y: 0 };
+        if (current.x === desired.x && current.y === desired.y) return;
+        sprite.x = sprite.x - current.x + desired.x;
+        sprite.y = sprite.y - current.y + desired.y;
+        sprite.setData('frameOffset', desired);
+    }
+
+    /**
      * 同步敌人动画状态与水平朝向（用于僵尸犬等带帧动画的敌人）
      */
     _syncEnemyAnimation(enemy) {
@@ -2428,10 +2526,19 @@ export class GameScene extends Scene {
         }
         const current = sprite.anims.currentAnim;
         // [FIX] 增加 isPlaying 检查：动画意外停止时自动重新播放
-        // 攻击动画是一次性的，播完后停在最後一帧即可，不要重新播放，否则会重复触发视觉表现
-        const shouldReplay = !current || current.key !== animKey || (!sprite.anims.isPlaying && animState !== 'attack');
+        // 攻击/死亡动画是一次性的，播完后停在最后一帧即可，不要重新播放
+        const isLoopAnim = animState !== 'attack' && animState !== 'death';
+        const shouldReplay = !current || current.key !== animKey || (!sprite.anims.isPlaying && isLoopAnim);
         if (shouldReplay) {
-            sprite.anims.play(animKey, true);
+            // 死亡动画结束后进入尸体阶段，不要再播放
+            if (animState === 'death' && enemy._deathAnimTimer <= 0) {
+                sprite.anims.stop();
+            } else {
+                sprite.anims.play(animKey, true);
+            }
         }
+
+        // 运行时动态偏移：按当前帧把有效贴图对齐到同一位置
+        this._applySpriteFrameOffset(sprite, animKey);
     }
 }
