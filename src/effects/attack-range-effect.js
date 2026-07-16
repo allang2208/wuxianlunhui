@@ -90,6 +90,14 @@ class AttackRangeEffect {
                 g.lineStyle(2, 0xffffff, strokeAlpha);
                 g.strokeEllipse(0, 0, this.range * 2, this.range * 2 * PERSPECTIVE_SCALE_Y);
             }
+        } else if (this.type === 'ellipse') {
+            // range = 椭圆 X 半径 rx，width = 椭圆 Y 半径 ry
+            g.fillStyle(0xff4444, fillAlpha);
+            g.fillEllipse(0, 0, this.range * 2, this.width * 2 * PERSPECTIVE_SCALE_Y);
+            if (this.showStroke) {
+                g.lineStyle(2, 0xff6464, strokeAlpha);
+                g.strokeEllipse(0, 0, this.range * 2, this.width * 2 * PERSPECTIVE_SCALE_Y);
+            }
         } else if (this.type === 'rect') {
             const hw = this.range / 2;
             const hh = this.width / 2;

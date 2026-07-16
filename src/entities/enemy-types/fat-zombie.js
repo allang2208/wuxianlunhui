@@ -2,7 +2,7 @@ import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
-import { GroundRect } from '../../physics/skill-shapes.js';
+import { GroundEllipse } from '../../physics/skill-shapes.js';
 
 /**
  * 胖子僵尸（FatZombie）
@@ -140,7 +140,7 @@ export class FatZombie extends Enemy {
         const dims = this._getAuraDimensions();
         const cx = this.x;
         const cy = this.y + dims.offsetY;
-        const shape = new GroundRect(cx, cy, dims.width, dims.height);
+        const shape = new GroundEllipse(cx, cy, dims.width / 2, dims.height / 2);
 
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
         for (const entity of list) {
@@ -165,13 +165,15 @@ export class FatZombie extends Enemy {
         }
 
         const dims = this._getAuraDimensions();
+        const rx = dims.width / 2;
+        const ry = dims.height / 2;
         if (!this._auraRangeEffect ||
-            this._auraRangeEffect.range !== dims.width ||
-            this._auraRangeEffect.width !== dims.height) {
+            this._auraRangeEffect.range !== rx ||
+            this._auraRangeEffect.width !== ry) {
             if (this._auraRangeEffect) {
                 this._auraRangeEffect.active = false;
             }
-            this._auraRangeEffect = new AttackRangeEffect(this.x, this.y + dims.offsetY, 0, dims.width, dims.height, 'rect', 100, 0.5, true);
+            this._auraRangeEffect = new AttackRangeEffect(this.x, this.y + dims.offsetY, 0, rx, ry, 'ellipse', 100, 0.5, true);
             this._auraRangeEffect.maxLife = 100;
             EffectManager.add(this._auraRangeEffect);
         }

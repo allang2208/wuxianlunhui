@@ -6,4 +6,4 @@ export {
     distancePointToCapsule,
     spheresIntersect
 } from './collision-3d.js';
-export { GroundCircle, GroundRect, VerticalSector, VerticalRect, Sphere } from './skill-shapes.js';
+export { GroundCircle, GroundEllipse, GroundRect, VerticalSector, VerticalRect, Sphere } from './skill-shapes.js';
