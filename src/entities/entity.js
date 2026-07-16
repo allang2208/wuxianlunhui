@@ -22,6 +22,9 @@ class Entity {
         // 伪 3D 高度系统（新增，不影响现有属性）
         this.z = 0;
         this.elevation = ELEVATION.GROUND;
+        // 碰撞体相对于逻辑坐标的偏移，用于前倾/攻击等动画让 footprint 对齐视觉重心
+        this.colliderOffsetX = 0;
+        this.colliderOffsetY = 0;
         this.collider = Collider.fromEntity(this);
         this.collider.attach(this);
     }

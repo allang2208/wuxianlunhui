@@ -572,10 +572,10 @@ export class GameScene extends Scene {
         if (_game.player && this.playerSprite && this.playerSprite.active) {
             const e = _game.player;
             active.add(e);
-            const footOffsetY = this._getFootOffsetY(e, this.playerSprite);
-            const footY = this.playerSprite.y + footOffsetY;
-            const depth = footY + 9; // 比实体本身低 1
-            ensureShadow(e, this.playerSprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
+            const cx = e.collider ? e.collider.x : this.playerSprite.x;
+            const cy = e.collider ? e.collider.y : this.playerSprite.y + this._getFootOffsetY(e, this.playerSprite);
+            const depth = cy + 9; // 比实体本身低 1
+            ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
         }
 
         // 敌人
@@ -586,10 +586,10 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
-                const footOffsetY = this._getFootOffsetY(e, sprite);
-                const footY = sprite.y + footOffsetY;
-                const depth = footY + 9;
-                ensureShadow(e, sprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
+                const cx = e.collider ? e.collider.x : sprite.x;
+                const cy = e.collider ? e.collider.y : sprite.y + this._getFootOffsetY(e, sprite);
+                const depth = cy + 9;
+                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
             });
         }
 
@@ -598,10 +598,10 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 active.add(e);
-                const footOffsetY = this._getFootOffsetY(e, data.sprite);
-                const footY = data.sprite.y + footOffsetY;
-                const depth = footY + 9;
-                ensureShadow(e, data.sprite.x, footY, e.groundRadius || 10, depth, !isMapMode);
+                const cx = e.collider ? e.collider.x : data.sprite.x;
+                const cy = e.collider ? e.collider.y : data.sprite.y + this._getFootOffsetY(e, data.sprite);
+                const depth = cy + 9;
+                ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
             }
         }
 
@@ -2019,49 +2019,43 @@ export class GameScene extends Scene {
             if (!entity || !entity.active) return;
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
 
-            // 取对应 Sprite，统一把调试图形画在“视觉脚底”，即阴影位置。
-            // 这样即使实体未配置 footOffsetY，红色 footprint 也能和黑色阴影对齐。
-            const sprite = entity === _game.player
-                ? this.playerSprite
-                : entity._phaserSprite;
-            const footOffsetY = this._getFootOffsetY(entity, sprite);
-            const footY = (sprite && sprite.active)
-                ? sprite.y + footOffsetY
-                : entity.y;
+            // 使用 Collider 的世界坐标（已包含前倾/攻击偏移），确保 footprint、圆柱体、阴影完全重合。
+            const cx = entity.collider ? entity.collider.x : entity.x;
+            const cy = entity.collider ? entity.collider.y : entity.y;
 
             // 1) 地面 footprint：红色半透明椭圆
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            this._collisionRadiusGraphics.strokeEllipse(cx, cy, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            this._collisionRadiusGraphics.fillEllipse(cx, cy, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
 
             // 2) 上方垂直圆柱体：橙色，底面与红色 footprint 完全重合，高度 = bodyHeight
             // 地面实体的有效受击体积就是“footprint 沿 Z 轴拉伸成圆柱”，近战/投射物都按此判定。
             const h = entity.bodyHeight || r * 2;
-            const topY = footY - h;
+            const topY = cy - h;
             const rx = r * 2;
             const ry = r * 2 * PERSPECTIVE_SCALE_Y;
 
             this._collisionRadiusGraphics.fillStyle(0xff6600, 0.10);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, footY, rx, ry);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, topY, rx, ry);
-            this._collisionRadiusGraphics.fillRect(entity.x - r, topY, r * 2, footY - topY);
+            this._collisionRadiusGraphics.fillEllipse(cx, cy, rx, ry);
+            this._collisionRadiusGraphics.fillEllipse(cx, topY, rx, ry);
+            this._collisionRadiusGraphics.fillRect(cx - r, topY, r * 2, cy - topY);
 
             this._collisionRadiusGraphics.lineStyle(1.5, 0xff8800, 0.75);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, rx, ry);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, topY, rx, ry);
+            this._collisionRadiusGraphics.strokeEllipse(cx, cy, rx, ry);
+            this._collisionRadiusGraphics.strokeEllipse(cx, topY, rx, ry);
             this._collisionRadiusGraphics.beginPath();
-            this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
-            this._collisionRadiusGraphics.lineTo(entity.x - r, footY);
-            this._collisionRadiusGraphics.moveTo(entity.x + r, topY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
+            this._collisionRadiusGraphics.moveTo(cx - r, topY);
+            this._collisionRadiusGraphics.lineTo(cx - r, cy);
+            this._collisionRadiusGraphics.moveTo(cx + r, topY);
+            this._collisionRadiusGraphics.lineTo(cx + r, cy);
             this._collisionRadiusGraphics.strokePath();
 
             // 顶部/底部水平参考线
             this._collisionRadiusGraphics.lineStyle(1, 0xffaa00, 0.6);
             this._collisionRadiusGraphics.beginPath();
-            this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, topY);
-            this._collisionRadiusGraphics.moveTo(entity.x - r, footY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
+            this._collisionRadiusGraphics.moveTo(cx - r, topY);
+            this._collisionRadiusGraphics.lineTo(cx + r, topY);
+            this._collisionRadiusGraphics.moveTo(cx - r, cy);
+            this._collisionRadiusGraphics.lineTo(cx + r, cy);
             this._collisionRadiusGraphics.strokePath();
 
             // 恢复地面圆的填充样式，供下一个实体使用

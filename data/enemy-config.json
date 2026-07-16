@@ -96,7 +96,7 @@
     "maxHp": 200,
     "def": 25,
     "size": 18,
-    "collisionRadius": 16,
+    "collisionRadius": 30,
     "speed": 110,
     "level": 4,
     "color": "#6a4a2a",
@@ -115,7 +115,9 @@
       "spriteSize": 150,
       "collisionWidth": 60,
       "collisionHeight": 50,
-      "footOffsetY": 70
+      "footOffsetY": 70,
+      "walkLeanOffset": 22,
+      "attackLeanOffset": 28
     },
     "textures": {
       "idle": "assets/enemies/fat_zombie/idle.png",
