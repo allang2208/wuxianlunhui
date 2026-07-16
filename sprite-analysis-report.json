@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-07-16T08:20:12.232Z",
+  "grid": null,
+  "threshold": 10,
+  "minArea": 50,
+  "files": [
+    {
+      "file": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\enemies\\fat_zombie\\idle.png",
+      "width": 4096,
+      "height": 2048,
+      "components": [
+        {
+          "index": 0,
+          "x": 95,
+          "y": 27,
+          "width": 150,
+          "height": 469,
+          "centerX": 170,
+          "centerY": 261.5,
+          "pixelCount": 38447
+        }
+      ],
+      "summary": {
+        "count": 1,
+        "avgWidth": 150,
+        "avgHeight": 469,
+        "avgCenterX": 170,
+        "avgCenterY": 261.5
+      }
+    }
+  ]
+}
