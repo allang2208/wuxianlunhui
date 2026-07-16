@@ -4,6 +4,7 @@ import {
     segmentIntersectsCapsule
 } from '../src/physics/collision-3d.js';
 import { SpatialGrid } from '../src/physics/spatial-grid.js';
+import { PERSPECTIVE_SCALE_Y } from '../src/config/perspective-config.js';
 
 function assert(cond, msg) {
     if (!cond) throw new Error(`FAIL: ${msg}`);
@@ -80,5 +81,36 @@ const d2 = distanceSquaredSegmentToSegment(
     { x: 5, y: 3, z: 0 }, { x: 5, y: 3, z: 4 }
 );
 assert(Math.abs(d2 - 9) < 0.001, 'perpendicular distance 3 -> squared 9');
+
+// --- Projectile footprint ellipse sanity (mirrors projectile._hitFootprintEllipse) ---
+function segmentHitsFootprint(prevX, prevY, x, y, cx, cy, radius, projectileRadius) {
+    const invScale = 1 / PERSPECTIVE_SCALE_Y;
+    const ax = prevX;
+    const ay = prevY * invScale;
+    const bx = x;
+    const by = y * invScale;
+    const ex = cx;
+    const ey = cy * invScale;
+    const sx = bx - ax;
+    const sy = by - ay;
+    const dx = ex - ax;
+    const dy = ey - ay;
+    const len2 = sx * sx + sy * sy;
+    let t = 0;
+    if (len2 > 1e-6) {
+        t = Math.max(0, Math.min(1, (dx * sx + dy * sy) / len2));
+    }
+    const closestX = ax + sx * t;
+    const closestY = ay + sy * t;
+    const ddx = ex - closestX;
+    const ddy = ey - closestY;
+    const rr = radius + projectileRadius;
+    return ddx * ddx + ddy * ddy <= rr * rr;
+}
+
+assert(segmentHitsFootprint(-100, 0, 100, 0, 0, 0, 30, 2), 'shot through footprint center hits');
+assert(segmentHitsFootprint(-100, 0, 100, 0, 0, 15, 30, 2), 'shot through footprint Y-edge hits');
+assert(!segmentHitsFootprint(-100, 0, 100, 0, 0, 20, 30, 2), 'shot outside footprint Y-edge misses');
+assert(!segmentHitsFootprint(-100, 0, 100, 0, 150, 0, 30, 2), 'shot outside footprint X-edge misses');
 
 console.log('\nAll Collider / 3D collision tests passed.');
