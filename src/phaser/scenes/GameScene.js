@@ -261,7 +261,6 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
             if (this.minimapTitle) this.minimapTitle.setVisible(true);
             this._syncHud(_game);
-            this._syncCollisionRadii(_game);
             this._syncHitFlashAndCharge(_game);
             this._syncNeutralEntities(_game);
             // Phase 3: 同步特效 Sprite
@@ -293,6 +292,8 @@ export class GameScene extends Scene {
         this._syncBodiesToPhysics();
         // 同步可移动实体脚底阴影
         this._syncEntityShadows(_game);
+        // 调试范围圈与阴影使用同一脚底坐标，避免错位
+        this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
         this._updateCamera();
@@ -2019,44 +2020,58 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
-            // Phase 1 后逻辑 footprint 已统一为圆形，可视化直接画 groundRadius
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
 
-            // 同步显示上方 3D 胶囊体体积（footprint + 垂直高度）
+            // 取对应 Sprite，统一把调试图形画在“视觉脚底”，即阴影位置。
+            // 这样即使实体未配置 footOffsetY，红色 footprint 也能和黑色阴影对齐。
+            const sprite = entity === _game.player
+                ? this.playerSprite
+                : entity._phaserSprite;
+            const footOffsetY = this._getFootOffsetY(entity, sprite);
+            const footY = (sprite && sprite.active)
+                ? sprite.y + footOffsetY
+                : entity.y;
+
+            // 1) 地面 footprint：红色半透明椭圆
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, footY, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+
+            // 2) 上方 3D 胶囊体：橙色，底部与红色 footprint 相切
             const h = entity.bodyHeight || r * 2;
             const zScale = PERSPECTIVE_SCALE_Z;
             const bodyH = Math.max(0, (h - 2 * r) * zScale);
-            const topY = entity.y - (h - r) * zScale;
-            const midY = entity.y - r * zScale;
-            const bottomY = entity.y; // 胶囊体接地线
-            // 胶囊体用橙色描边 + 浅填充，避免和地面红椭圆混淆
-            this._collisionRadiusGraphics.fillStyle(0xff6600, 0.10);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, topY, r * 2, r * 2 * zScale);
-            this._collisionRadiusGraphics.fillEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+            const bottomCenterY = footY - r * zScale; // 下盖圆心，使胶囊体底部正好落在 footY
+            const topCenterY = bottomCenterY - bodyH;
+            const capH = r * 2 * zScale;
+
+            this._collisionRadiusGraphics.fillStyle(0xff6600, 0.12);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, bottomCenterY, r * 2, capH);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, topCenterY, r * 2, capH);
             if (bodyH > 0) {
-                this._collisionRadiusGraphics.fillRect(entity.x - r, topY, r * 2, bodyH);
+                this._collisionRadiusGraphics.fillRect(entity.x - r, topCenterY, r * 2, bodyH);
             }
+
             this._collisionRadiusGraphics.lineStyle(1.5, 0xff8800, 0.75);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, topY, r * 2, r * 2 * zScale);
-            this._collisionRadiusGraphics.strokeEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, bottomCenterY, r * 2, capH);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, topCenterY, r * 2, capH);
             if (bodyH > 0) {
                 this._collisionRadiusGraphics.beginPath();
-                this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
-                this._collisionRadiusGraphics.lineTo(entity.x - r, midY);
-                this._collisionRadiusGraphics.moveTo(entity.x + r, topY);
-                this._collisionRadiusGraphics.lineTo(entity.x + r, midY);
+                this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
+                this._collisionRadiusGraphics.lineTo(entity.x - r, bottomCenterY);
+                this._collisionRadiusGraphics.moveTo(entity.x + r, topCenterY);
+                this._collisionRadiusGraphics.lineTo(entity.x + r, bottomCenterY);
                 this._collisionRadiusGraphics.strokePath();
             }
-            // 顶部/底部水平参考线，让胶囊体高度更容易辨认
+
+            // 顶部/底部水平参考线
             this._collisionRadiusGraphics.lineStyle(1, 0xffaa00, 0.6);
             this._collisionRadiusGraphics.beginPath();
-            this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, topY);
-            this._collisionRadiusGraphics.moveTo(entity.x - r, bottomY);
-            this._collisionRadiusGraphics.lineTo(entity.x + r, bottomY);
+            this._collisionRadiusGraphics.moveTo(entity.x - r, topCenterY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, topCenterY);
+            this._collisionRadiusGraphics.moveTo(entity.x - r, footY);
+            this._collisionRadiusGraphics.lineTo(entity.x + r, footY);
             this._collisionRadiusGraphics.strokePath();
+
             // 恢复地面圆的填充样式，供下一个实体使用
             this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
             this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
