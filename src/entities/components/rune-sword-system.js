@@ -156,25 +156,24 @@ export class RuneSwordSystem {
             const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15);
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
-                if (!hitShape.intersectsEntity(entity)) {
-                    const d = this.player.data;
-                    const physAtk = this.player.getCurrentWeaponAtk();
-                    const magicAtk = d.matk || 0;
-                    const damage = Math.floor((physAtk + magicAtk) * 1.2);
-                    const wasAlive = entity.hp > 0;
-                    entity.takeDamage(damage, this.player, 'magic');
-                    if (wasAlive && entity.hp <= 0) {
-                        this._triggerCooldownReduction();
-                    }
-                    // 毁灭符文：击中后附加魔力易伤
-                    if (ce.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
-                        const stacks = ce.magicVulnerabilityStacks || 2;
-                        entity.applyMagicVulnerability(stacks);
-                    }
-                    EffectManager.add(new RuneSwordExplodeEffect(sword.flyX, sword.flyY));
-                    sword.flyActive = false;
-                    sword.active = false;
+                if (!hitShape.intersectsEntity(entity)) return;
+                const d = this.player.data;
+                const physAtk = this.player.getCurrentWeaponAtk();
+                const magicAtk = d.matk || 0;
+                const damage = Math.floor((physAtk + magicAtk) * 1.2);
+                const wasAlive = entity.hp > 0;
+                entity.takeDamage(damage, this.player, 'magic');
+                if (wasAlive && entity.hp <= 0) {
+                    this._triggerCooldownReduction();
                 }
+                // 毁灭符文：击中后附加魔力易伤
+                if (ce.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
+                    const stacks = ce.magicVulnerabilityStacks || 2;
+                    entity.applyMagicVulnerability(stacks);
+                }
+                EffectManager.add(new RuneSwordExplodeEffect(sword.flyX, sword.flyY));
+                sword.flyActive = false;
+                sword.active = false;
             });
         });
     }

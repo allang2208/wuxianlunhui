@@ -125,7 +125,7 @@ class Projectile {
         if (!phaserScene || !phaserScene.projectilesGroup) return;
         const key = this._getProjectileTextureKey();
         const sprite = phaserScene.add.sprite(this.x, this.y, key);
-        sprite.setDepth(this.y || 0);
+        sprite.setDepth((this.y || 0) + 12);
         const tint = this._getProjectileTint();
         if (tint !== undefined) sprite.setTint(tint);
         phaserScene.projectilesGroup.add(sprite);
@@ -137,7 +137,7 @@ class Projectile {
         if (!this._phaserSprite || !this._phaserSprite.active) return;
         this._phaserSprite.setPosition(this.x, this.y);
         this._phaserSprite.setRotation(this.angle);
-        this._phaserSprite.setDepth(this.y || 0);
+        this._phaserSprite.setDepth((this.y || 0) + 12);
         if (this._noRender) {
             this._phaserSprite.setVisible(false);
             return;

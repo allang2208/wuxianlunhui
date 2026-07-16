@@ -23,7 +23,7 @@
 const GRID_CONFIG = {
     cellSize: 128,      // 每个网格单元大小（像素），覆盖视野范围
     maxEntities: 2048,  // 最大支持实体数（预分配优化）
-    maxQueryResults: 64 // 单次查询最大返回结果数（避免数组膨胀）
+    maxQueryResults: 2048 // 单次查询最大返回结果数，与 maxEntities 对齐，避免密集场景漏命中
 };
 
 class SpatialPartitionSystemImpl {
@@ -155,7 +155,7 @@ class SpatialPartitionSystemImpl {
                 }
             }
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**
@@ -195,7 +195,7 @@ class SpatialPartitionSystemImpl {
                 }
             }
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**
@@ -232,7 +232,7 @@ class SpatialPartitionSystemImpl {
                 }
             }
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**
@@ -264,7 +264,7 @@ class SpatialPartitionSystemImpl {
         for (let i = 0; i < Math.min(maxCount, scored.length); i++) {
             this._queryResults.push(scored[i].entity);
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**
@@ -319,7 +319,7 @@ class SpatialPartitionSystemImpl {
                 }
             }
         }
-        return this._queryResults;
+        return this._queryResults.slice(0);
     }
 
     /**

@@ -1099,3 +1099,25 @@ Phaser Sprite.x / y / rotation / scale
   - `src/effects/attack-range-effect.js` 新增 `backExtension` 参数，支持绘制带后摆的定向矩形
   - `src/entities/components/dash-system.js` 冲刺-突刺范围提示从扇形改为矩形（`triangle` + `backExtension`），与 `VerticalRect` 命中形状一致
   - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
+
+- v2.3 (2026-07-13) — 全 Phase 0-5 回顾检查与 bug 修复
+  - **严重问题修复：**
+    1. `src/entities/components/rune-sword-system.js`：命中条件被逻辑取反（`!intersectsEntity`），导致符文剑命中范围外目标、范围内目标反而无伤。已修正为 `intersectsEntity` 命中。
+    2. `src/systems/spatial-partition-system.js`：
+       - `queryRadius` 等返回内部复用数组，并发查询会篡改遍历结果；现每次返回 `.slice(0)` 副本。
+       - `maxQueryResults: 64` 在密集场景会静默截断命中目标；已提升至 `2048`。
+    3. `src/entities/drop-item.js`：掉落物未排除在实体碰撞分离外，会挤开玩家/敌人；已设置 `this.noCollision = true`。
+    4. `src/entities/damageable-entity.js`：子类在 `super()` 后才设置 `size/collisionRadius`，导致 `Collider` 仍是默认半径；已在构造函数末尾调用 `this.rebuildCollider()`。
+    5. `src/phaser/scenes/GameScene.js::_configureEnemyBody`：曾把敌人 `collisionWidth/Height` 覆盖为 `spriteSize`（`size*4`），导致 footprint 被放大数倍；现优先保留配置/选项中的 gameplay 尺寸，fallback 使用 `collisionRadius/size` 推导。
+  - **深度排序统一：**
+    - `src/phaser/scenes/GameScene.js::_syncNeutralEntities` 不再硬编码 `e.y`，改由 `_updateDynamicDepths()` 统一按脚底 Y + 10 排序。
+    - `src/combat/projectile.js` 投射物深度从 `this.y` 改为 `this.y + 12`。
+    - `src/entities/drop-item.js`、`src/entities/dungeon-chest.js` 掉落物/宝箱深度改为 `y + 5/+6`。
+    - `src/phaser/scenes/GameScene.js::_syncCollisionRadii` 调试可视化改为统一画 `groundRadius` 圆，移除矩形分支。
+  - **其他修正：**
+    - `src/entities/components/special-attack-system.js`：移除 `update()` 中每帧创建范围提示的代码，避免夜与火之剑持续期间堆积特效。
+    - `src/combat/attack.js`：`SlashAttack` / `ThrustAttack` 非法角度检查移到消耗体力/CD 之前，避免无意义消耗。
+    - `src/entities/components/dash-system.js`：修复变量遮蔽、移除冗余 `hitIndex === 0` 判断。
+    - `src/entities/enemy-types/mutant-3.js`：`_spawnBloodMist` 临时精灵深度改为 `y + 10`。
+    - `src/physics/index.js`：移除未使用的 `SpatialGrid` 导出（文件保留供测试直接引用）。
+  - **验证：** `npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过。

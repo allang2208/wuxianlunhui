@@ -486,6 +486,17 @@ export class GameScene extends Scene {
                 this.droneText.setDepth(droneDepth + 1);
             }
         }
+
+        // 7. 中立实体（NPC / 训练靶）统一深度
+        if (this._neutralSprites) {
+            for (const [e, data] of this._neutralSprites.entries()) {
+                if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                const footOffset = data.sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 10;
+                data.sprite.setDepth(depth);
+                if (data.label && data.label.active) data.label.setDepth(depth + 1);
+            }
+        }
     }
 
     // ---- 相机系统 ----
@@ -628,16 +639,18 @@ export class GameScene extends Scene {
         if (!body) return;
         body.setGravity(0, 0);
         const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
-        // 新规则：优先使用 enemy.config.render 里的显示/碰撞尺寸（由精灵图分析脚本生成），
-        // 其次回退到 _getPhaserOptions 硬编码值，最后按 size*4 兜底。
+        // 显示尺寸：优先使用 enemy.config.render 里的 spriteSize，其次按 size*4 兜底
         const renderCfg = enemy.config?.render || {};
         const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
         sprite.setDisplaySize(spriteSize, spriteSize);
         sprite.setOrigin(0.5, 0.5);
 
-        // 设置逻辑碰撞体积为矩形；优先级：options > config.render > size*4
-        const collisionWidth = options.collisionWidth || renderCfg.collisionWidth || spriteSize;
-        const collisionHeight = options.collisionHeight || renderCfg.collisionHeight || spriteSize;
+        // 逻辑碰撞体积：优先保留配置里已有的 gameplay 尺寸或 enemy 类型选项，
+        // 其次按 collisionRadius / size 推导，不再直接用 spriteSize 放大 footprint
+        const gameplayRadius = enemy.collisionRadius > 0 ? enemy.collisionRadius : (enemy.size || 14) * 0.6;
+        const fallbackSize = gameplayRadius * 2;
+        const collisionWidth = options.collisionWidth || enemy.collisionWidth || fallbackSize;
+        const collisionHeight = options.collisionHeight || enemy.collisionHeight || fallbackSize;
         enemy.collisionShape = 'rect';
         enemy.collisionWidth = collisionWidth;
         enemy.collisionHeight = collisionHeight;
@@ -1888,16 +1901,10 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
-            if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
-                const hw = entity.collisionWidth / 2;
-                const hh = entity.collisionHeight / 2;
-                this._collisionRadiusGraphics.strokeRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
-                this._collisionRadiusGraphics.fillRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
-            } else {
-                const r = entity.collisionRadius || entity.size || 12;
-                this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
-                this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
-            }
+            // Phase 1 后逻辑 footprint 已统一为圆形，可视化直接画 groundRadius
+            const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
+            this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
+            this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
         };
 
         // 玩家
@@ -2392,7 +2399,6 @@ export class GameScene extends Scene {
                 const sprite = this.add.sprite(e.x, e.y, 'neutral_circle');
                 sprite.setOrigin(0.5, 0.5);
                 sprite.setDisplaySize(size * 2, size * 2);
-                sprite.setDepth(e.y);
                 const label = this.add.text(e.x, e.y - size - 8, '', {
                     fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
                     fontSize: '11px',
@@ -2407,7 +2413,6 @@ export class GameScene extends Scene {
             const { sprite, label } = data;
             const size = e.size || 16;
             sprite.setPosition(e.x, e.y);
-            sprite.setDepth(e.y);
             sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
 
             let text = e.name || '';
@@ -2428,7 +2433,6 @@ export class GameScene extends Scene {
                 text = `${e.name} ${e.hp}/${e.maxHp}`;
             }
             label.setPosition(e.x, e.y - size - 8);
-            label.setDepth(e.y + 1);
             if (label.text !== text) {
                 label.setText(text);
             }
