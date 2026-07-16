@@ -242,7 +242,7 @@
     "family": "僵尸",
     "color": "#5a8a4a",
     "size": 14,
-    "collisionRadius": 10,
+    "collisionRadius": 15,
     "hp": 100,
     "maxHp": 100,
     "def": 7,
@@ -255,12 +255,28 @@
     "int": 3,
     "wis": 4,
     "luck": 5,
-    "attackRange": 90,
+    "attackRange": 100,
+    "attackDistance": 100,
     "aiInterval": 1000,
+    "render": {
+      "spriteSize": 120,
+      "collisionWidth": 30,
+      "collisionHeight": 50,
+      "footOffsetY": 56
+    },
+    "textures": {
+      "idle": "assets/enemies/zombie/idle.png",
+      "walk": "assets/enemies/zombie/walking.png",
+      "attack": "assets/enemies/zombie/attacking.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
     "attack": {
       "type": "thrust",
-      "cooldown": 800,
-      "dynamicRange": 90,
+      "cooldown": 2000,
+      "dynamicRange": 100,
       "width": 18,
       "knockback": 10
     },

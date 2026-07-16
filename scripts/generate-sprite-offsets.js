@@ -44,6 +44,10 @@ const SHEETS = [
     { key: 'enemy_spitter_zombie_idle',   file: 'assets/enemies/spitter_zombie/idle.png',      frameWidth: 512, frameHeight: 512, endFrame: 23 },
     { key: 'enemy_spitter_zombie_walk',   file: 'assets/enemies/spitter_zombie/walking.png',   frameWidth: 512, frameHeight: 512, endFrame: 12 },
     { key: 'enemy_spitter_zombie_attack', file: 'assets/enemies/spitter_zombie/attacking.png', frameWidth: 512, frameHeight: 512, endFrame: 21 },
+    // 普通僵尸
+    { key: 'enemy_zombie_idle',   file: 'assets/enemies/zombie/idle.png',     frameWidth: 512, frameHeight: 512, endFrame: 0 },
+    { key: 'enemy_zombie_walk',   file: 'assets/enemies/zombie/walking.png',  frameWidth: 512, frameHeight: 512, endFrame: 14 },
+    { key: 'enemy_zombie_attack', file: 'assets/enemies/zombie/attacking.png',frameWidth: 512, frameHeight: 512, endFrame: 14 },
 ];
 
 function analyzeFrame(png, col, row, frameW, frameH) {

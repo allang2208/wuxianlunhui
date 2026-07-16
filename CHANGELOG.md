@@ -8,6 +8,33 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
+
+### 对话：僵尸 idle/walking/attacking 精灵图接入（v0.198+）
+- **修改文件**：
+  - `assets/enemies/zombie/`（新建）：idle.png（1 帧）/ walking.png（15 帧）/ attacking.png（15 帧），统一 8×4 网格 512×512 帧；内容高度统一约 440px（hRatio≈0.86，与胖子僵尸/毒液僵尸/僵尸巫师一致），水平居中、底部对齐 y=496。
+  - `scripts/archive/prepare-zombie-sprites.py`（新增一次性脚本）：素材重排与内容尺寸统一处理。
+  - `data/enemy-config.json`：`zombie` 条目新增 `render`（spriteSize 120 / collisionWidth 30 / collisionHeight 50 / footOffsetY 56）、`textures`（含 idleSheetColumns: 8 图鉴截取）、`attackDistance: 100`；`attackRange` 90→100、`attack.cooldown` 800→2000、`attack.dynamicRange` 90→100、`collisionRadius` 10→15。
+  - `src/phaser/scenes/BootScene.js`：加载 `enemy_zombie_idle/walk/attack` 三张 spritesheet（endFrame 0/14/14）并注册同名动画；攻击动画 `duration: 1000, repeat: 0`（1 秒）。
+  - `src/entities/enemy-types/zombie.js`（新建）：`Zombie` 类继承 `Enemy`，仿 fat-zombie 模式；`_attackDuration = 1000`，`triggerWeaponAnim()` 调 super 保证 ThrustAttack 命中判定；显式 `animKey: enemy_zombie_${state}`。
+  - `src/entities/enemy-types.js`：import 并导出 `Zombie`。
+  - `src/game.js`：import `Zombie`，新增 `spawnMainZombie()`（主神原点 +250/+120，永久警戒），初始化时调用。
+  - `src/world/scene-manager.js`：返回主神空间时调用 `spawnMainZombie()`。
+  - `src/ui/enemy-sprite-tool.js`：`ENEMY_LIST` 新增 `{ key: 'zombie', name: '僵尸' }`。
+  - `scripts/generate-sprite-offsets.js`：SHEETS 新增普通僵尸 3 条；重跑生成 `data/sprite-offsets.json` 并同步 `public/data/sprite-offsets.json`。
+- **修改内容摘要**：
+  1. 普通僵尸从圆形占位升级为精灵图动画（待机 1 帧 / 移动 15 帧 / 攻击 15 帧）。
+  2. 攻击动画固定 1 秒、攻击间隔 2 秒、攻击距离判定 100px（走 CombatSystem 现有 `attackDistance` 逻辑，无硬编码）。
+  3. 素材原始面向右，翻转逻辑与胖子僵尸一致（朝左时 flipX）。
+  4. 主神空间生成一只普通僵尸用于测试（与胖子僵尸并列），返回主神空间时自动重生。
+  5. 地牢普通僵尸生成工厂未改动，仍走旧 CircleEnemy 逻辑。
+- **测试结果**：`npm run lint` 通过；`npx vite build` 通过；`node scripts/generate-sprite-offsets.js` 重跑成功（idle 1 帧 / walk 15 帧 / attack 15 帧）。
+- **已知问题**：
+  - 实机效果未验证：待机/移动/攻击切换是否自然、footOffsetY=56 与阴影对齐、攻击判定距离手感，需实机确认后可用 DevTool 微调。
+  - 地牢中的普通僵尸仍是圆形占位，如需替换为精灵图需改 `zombie-dungeon.js` 的 `ZOMBIE_FACTORY_MAP.zombie`。
+
+---
+
 ## 2026-07-12（怪物贴图兜底、僵尸犬动画、AI 与地牢问题排查）
 
 ### 对话：修复怪物显示问题并接入僵尸犬素材（v0.198+）
