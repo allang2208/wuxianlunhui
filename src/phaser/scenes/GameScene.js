@@ -18,6 +18,7 @@ import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
+import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -535,7 +536,7 @@ export class GameScene extends Scene {
                 this._shadowSprites.set(key, sprite);
             }
             sprite.setPosition(x, y);
-            sprite.setDisplaySize(radius * 2, radius * 2);
+            sprite.setDisplaySize(radius * 2, radius * 2 * PERSPECTIVE_SCALE_Y);
             sprite.setDepth(depth);
             sprite.setAlpha(0.35);
             sprite.setVisible(visible);
@@ -1516,9 +1517,9 @@ export class GameScene extends Scene {
             const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25;
             const r = player.size + 8;
             this.defenseGlow.fillStyle(0xcc3333, flicker * 0.35);
-            this.defenseGlow.fillCircle(player.x, player.y, r);
+            this.defenseGlow.fillEllipse(player.x, player.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
             this.defenseGlow.lineStyle(2, 0xff5555, flicker * 0.6);
-            this.defenseGlow.strokeCircle(player.x, player.y, r + 2);
+            this.defenseGlow.strokeEllipse(player.x, player.y, (r + 2) * 2, (r + 2) * 2 * PERSPECTIVE_SCALE_Y);
         } else if (this.defenseGlow) {
             this.defenseGlow.clear();
         }
@@ -1902,7 +1903,7 @@ export class GameScene extends Scene {
             }
             this.droneRangeGraphics.clear();
             this.droneRangeGraphics.lineStyle(1, 0x5a7a9a, 0.3);
-            this.droneRangeGraphics.strokeCircle(drone.x, drone.y, drone.radius);
+            this.droneRangeGraphics.strokeEllipse(drone.x, drone.y, drone.radius * 2, drone.radius * 2 * PERSPECTIVE_SCALE_Y);
         } else if (this.droneRangeGraphics) {
             this.droneRangeGraphics.clear();
         }
@@ -1989,8 +1990,8 @@ export class GameScene extends Scene {
             if (!entity || !entity.active) return;
             // Phase 1 后逻辑 footprint 已统一为圆形，可视化直接画 groundRadius
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
-            this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
-            this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
         };
 
         // 玩家
