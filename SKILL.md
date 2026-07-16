@@ -1061,3 +1061,41 @@ Phaser Sprite.x / y / rotation / scale
 - v1.3 (2026-07-05) — 增加 Sprite Pipeline 标准化流程，新增 `sprite-normalizer.py` 工具
 - v1.2 (2026-07-05) — 怪物渲染模板系统，提取 `Enemy.render()` 通用模板 + 7个钩子方法
 - v1.1 (2026-07-04) — 怪物统一配置（enemy-config.json），删除双系统
+
+- v2.0 (2026-07-13) — 3D 碰撞/命中体系 Phase 3：近战与技能 AOE 3D 化
+  - 统一技能命中形状：`src/physics/skill-shapes.js` 新增 `GroundCircle` / `GroundRect` / `VerticalSector` / `VerticalRect` / `Sphere`
+  - 所有形状通过 `entity.collider` 做 3D（Z 轴高度 + footprint 半径）检测，地面 AOЕ 不再命中飞行单位
+  - `SlashAttack` 扇形改为 `VerticalSector`，`ThrustAttack` 矩形改为 `VerticalRect`（支持后摆 backExtension）
+  - 技能系统全部迁移：
+    - 旋风 `whirlwind-system.js` → `GroundCircle`
+    - 火球爆炸/直接命中 `fireball-system.js` → `GroundCircle`
+    - 推击 `push-strike-system.js` → `VerticalSector`
+    - 夜与火之光束 `special-attack-system.js` → `VerticalRect`
+    - 冰锥 `ice-spike-system.js` → `GroundCircle`
+    - 无人机 `drone-system.js` → `GroundCircle`
+    - 符文剑 `rune-sword-system.js` → `GroundCircle`
+    - 冲刺攻击-扇形/突刺 `dash-system.js` → `VerticalSector` / `VerticalRect`
+    - 胖子僵尸腐蚀光环 `fat-zombie.js` → `GroundRect`
+  - 近战判定复用 `SpatialPartitionSystem.queryRadius` 做 broadphase
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
+
+- v2.1 (2026-07-13) — 3D 碰撞/命中体系 Phase 4：动态实体 Y-sort 深度排序
+  - 在 `GameScene.update` 中 `_syncBodiesToPhysics()` 后新增 `_updateDynamicDepths()`，每帧统一刷新玩家/敌人/武器/特效深度
+  - 玩家与敌人 Sprite 深度基于脚底 Y（`y + displayHeight/2 + bias`），与环境墙壁/树木（`w.y + w.h`、`t.sortY`）使用同一坐标空间
+  - 尸体使用较低 bias（+2），存活实体 +10，保持尸体被站立角色遮挡的透视关系
+  - 手持武器、盾牌、副手武器跟随玩家深度 + 小偏移，保证武器始终与角色正确分层
+  - 防御光环位于玩家深度下方；符文剑/冰锥/火球/飞行投射物/无人机等技能特效按自身 `y + 15` 排序
+  - 其他施法者（敌人巫师）的 `_magicSprites` 也纳入同一排序
+  - 受击绿色粒子深度改为 `y + 1000`，继续高于普通实体
+  - 移除 `GameScene` 中所有硬编码的 `setDepth(50/100/148/149/150/155/160/165)`，避免与动态排序冲突
+  - 验证：`npm run lint`、`npx vite build` 通过
+
+- v2.2 (2026-07-13) — 3D 碰撞/命中体系 Phase 5：清理旧命中系统与可视化对齐
+  - 删除 legacy `src/components/hitbox.js`（`HexHitbox`）和 `src/combat/hit-detector.js`（`HitDetector`）
+  - `src/entities/entity.js` 移除 `hitbox` 字段、`initHitbox` 方法、`getCollisionShape` 六边形分支
+  - `src/entities/player/update.js` 移除每帧同步 `hitbox` 的代码
+  - `src/utils/collision-helpers.js` 精简为仅保留 `distanceToEntityShape`，内部改用统一 `Collider.groundRadius`
+  - `src/entities/enemy-types/mutant-3.js` 攻击范围判定改用 `target.groundRadius`，移除旧矩形/圆形分支
+  - `src/effects/attack-range-effect.js` 新增 `backExtension` 参数，支持绘制带后摆的定向矩形
+  - `src/entities/components/dash-system.js` 冲刺-突刺范围提示从扇形改为矩形（`triangle` + `backExtension`），与 `VerticalRect` 命中形状一致
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过

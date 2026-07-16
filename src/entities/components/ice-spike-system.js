@@ -6,6 +6,7 @@ import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
+import { GroundCircle } from '../../physics/skill-shapes.js';
 
 /**
  * 冰锥系统（通用版）
@@ -203,19 +204,18 @@ export class IceSpikeSystem {
             let hitCount = 0;
             let killCount = 0;
             const entityList = Array.from(entities.values ? entities.values() : entities);
+            const hitShape = new GroundCircle(spike.flyX, spike.flyY, 12);
             entityList.forEach(entity => {
                 if (!this._isHostile(entity) || !entity.active || !entity.hittable) return;
-                const dist = Math.sqrt((entity.x - spike.flyX) ** 2 + (entity.y - spike.flyY) ** 2);
-                if (dist < entity.size + 12) {
-                    const wasAlive = entity.hp > 0;
-                    entity.takeDamage(damage, this.source, 'magic');
-                    hitCount++;
-                    if (wasAlive && entity.hp <= 0) killCount++;
-                    // 冰锥破碎特效
-                    this._spawnIceBreakEffect(spike.flyX, spike.flyY);
-                    spike.flyActive = false;
-                    spike.active = false;
-                }
+                if (!hitShape.intersectsEntity(entity)) return;
+                const wasAlive = entity.hp > 0;
+                entity.takeDamage(damage, this.source, 'magic');
+                hitCount++;
+                if (wasAlive && entity.hp <= 0) killCount++;
+                // 冰锥破碎特效
+                this._spawnIceBreakEffect(spike.flyX, spike.flyY);
+                spike.flyActive = false;
+                spike.active = false;
             });
             // 经验（仅玩家获得）
             if (hitCount > 0 && skill && this._isPlayer()) {

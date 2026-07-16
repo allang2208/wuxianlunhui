@@ -1,9 +1,10 @@
 
 class AttackRangeEffect {
-    constructor(x, y, angle, range, width, type = 'line', duration = 200, alphaMul = 0.7, showStroke = true) {
+    constructor(x, y, angle, range, width, type = 'line', duration = 200, alphaMul = 0.7, showStroke = true, backExtension = 0) {
         this.x = x; this.y = y; this.angle = angle; this.range = range; this.width = width;
         this.type = type; this.life = duration; this.maxLife = duration; this.active = true;
         this.alphaMul = alphaMul; this.showStroke = showStroke;
+        this.backExtension = backExtension || 0;
         this._graphics = null;
         this._createPhaserGraphics();
     }
@@ -58,8 +59,10 @@ class AttackRangeEffect {
             const halfW = this.width / 2;
             const cos = Math.cos(this.angle), sin = Math.sin(this.angle);
             const perpX = -sin * halfW, perpY = cos * halfW;
-            const v1x = perpX, v1y = perpY;
-            const v2x = -perpX, v2y = -perpY;
+            const backX = -cos * this.backExtension;
+            const backY = -sin * this.backExtension;
+            const v1x = backX + perpX, v1y = backY + perpY;
+            const v2x = backX - perpX, v2y = backY - perpY;
             const v3x = cos * this.range - perpX, v3y = sin * this.range - perpY;
             const v4x = cos * this.range + perpX, v4y = sin * this.range + perpY;
             g.beginPath();
@@ -90,11 +93,13 @@ class AttackRangeEffect {
             const ex = cos * this.range, ey = sin * this.range;
             const hw = this.width / 2;
             const perpX = -sin * hw, perpY = cos * hw;
+            const backX = -cos * this.backExtension;
+            const backY = -sin * this.backExtension;
             g.beginPath();
-            g.moveTo(perpX, perpY);
+            g.moveTo(backX + perpX, backY + perpY);
             g.lineTo(ex + perpX, ey + perpY);
             g.lineTo(ex - perpX, ey - perpY);
-            g.lineTo(-perpX, -perpY);
+            g.lineTo(backX - perpX, backY - perpY);
             g.closePath();
             g.fillPath();
             if (this.showStroke) g.strokePath();

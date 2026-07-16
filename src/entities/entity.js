@@ -1,4 +1,3 @@
-import { HexHitbox } from '../components/hitbox.js';
 import { Collider, ELEVATION } from '../physics/collider.js';
 
 class Entity {
@@ -12,7 +11,6 @@ class Entity {
         this.active = true;
         this.hittable = false;
         this.components = new Map();
-        this.hitbox = null;
 
         // 兼容旧字段：子类会在 super 之后覆盖这些值
         this.size = 0;
@@ -33,22 +31,7 @@ class Entity {
         comp.entity = this;
     }
 
-    /**
-     * 初始化六边形包围盒
-     * @param {number} radius - 六边形半径
-     * @param {number[]} damageMultipliers - 6点伤害倍率
-     * @param {number[]} radii - 6点独立半径（可选）
-     */
-    initHitbox(radius, damageMultipliers, radii) {
-        this.hitbox = new HexHitbox(radius, damageMultipliers, radii);
-        this.hitbox.updateWorldPosition(this);
-    }
-
     update() {
-        // 每帧同步六边形顶点世界坐标
-        if (this.hitbox) {
-            this.hitbox.updateWorldPosition(this);
-        }
         // 同步 3D 碰撞体位置
         if (this.collider) {
             this.collider.syncPosition();
@@ -104,9 +87,6 @@ class Entity {
                 height: this.collisionHeight,
                 radius: Math.max(this.collisionWidth, this.collisionHeight) / 2
             };
-        }
-        if (this.hitbox) {
-            return { type: 'hex', radius: this.hitbox.getApproxRadius() };
         }
         return { type: 'circle', radius: this.collider ? this.collider.radius : (this.collisionRadius || this.size * 0.6 || 10) };
     }

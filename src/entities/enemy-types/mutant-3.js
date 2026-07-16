@@ -385,29 +385,14 @@ export class Mutant3 extends Enemy {
 
     /**
      * 判定目标是否在指定攻击范围内。
-     * 若目标是矩形碰撞体，使用圆（攻击范围）与矩形的相交检测；
-     * 否则回退到中心距 + 目标碰撞半径。
+     * 统一使用 Collider 地面 footprint 半径。
      */
     _isTargetInRange(target, range) {
         if (!target) return false;
         const r = Math.max(0, range);
-        if (target.collisionShape === 'rect' && target.collisionWidth > 0 && target.collisionHeight > 0) {
-            const hw = target.collisionWidth / 2;
-            const hh = target.collisionHeight / 2;
-            const rx = target.x - hw;
-            const ry = target.y - hh;
-            return this._circleRectIntersect(this.x, this.y, r, rx, ry, target.collisionWidth, target.collisionHeight);
-        }
+        const targetR = target.groundRadius || target.collisionRadius || target.size * 0.6 || 0;
         const dist = Math.hypot(target.x - this.x, target.y - this.y);
-        return dist <= r + (target.collisionRadius || 0);
-    }
-
-    _circleRectIntersect(cx, cy, cr, rx, ry, rw, rh) {
-        const closestX = Math.max(rx, Math.min(cx, rx + rw));
-        const closestY = Math.max(ry, Math.min(cy, ry + rh));
-        const dx = cx - closestX;
-        const dy = cy - closestY;
-        return dx * dx + dy * dy <= cr * cr;
+        return dist <= r + targetR;
     }
 
     _spawnBloodMist(x, y) {
@@ -417,7 +402,7 @@ export class Mutant3 extends Enemy {
             .setTint(0xb03030)
             .setAlpha(0.5)
             .setScale(1.2)
-            .setDepth(100);
+            .setDepth(y + 10);
         scene.tweens.add({
             targets: mist,
             scale: 2.5,

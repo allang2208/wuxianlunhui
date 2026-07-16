@@ -2,6 +2,7 @@ import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { GroundRect } from '../../physics/skill-shapes.js';
 
 /**
  * 胖子僵尸（FatZombie）
@@ -135,20 +136,15 @@ export class FatZombie extends Enemy {
         this._auraTimer = this._auraInterval;
 
         const dims = this._getAuraDimensions();
-        const halfW = dims.width / 2;
-        const halfH = dims.height / 2;
         const cx = this.x;
         const cy = this.y + dims.offsetY;
-        const minX = cx - halfW;
-        const maxX = cx + halfW;
-        const minY = cy - halfH;
-        const maxY = cy + halfH;
+        const shape = new GroundRect(cx, cy, dims.width, dims.height);
 
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
         for (const entity of list) {
             if (!entity || entity === this || !entity.active || !entity.hittable) continue;
             if (entity._faction === this._faction) continue;
-            if (entity.x >= minX && entity.x <= maxX && entity.y >= minY && entity.y <= maxY) {
+            if (shape.intersectsEntity(entity)) {
                 entity.takeDamage(this._auraDamage, this, 'magic');
             }
         }

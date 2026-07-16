@@ -2,6 +2,7 @@ import { Game } from '../../game.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import { GroundCircle } from '../../physics/skill-shapes.js';
 export class WhirlwindSystem {
     constructor(player) {
         this.player = player;
@@ -98,26 +99,25 @@ export class WhirlwindSystem {
         const baseDamage = this.player.getCurrentWeaponAtk();
         const finalDamage = Math.round(baseDamage * damageMul);
         let hitCount = 0, killCount = 0;
+        const shape = new GroundCircle(this.player.x, this.player.y, radius);
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (this.player._whirlwindHitSet.has(entity)) return;
+            if (!shape.intersectsEntity(entity)) return;
+            this.player._whirlwindHitSet.add(entity);
+            const wasAlive = entity.hp > 0;
+            entity.takeDamage(finalDamage, this.player);
+            if (wasAlive && entity.hp <= 0) killCount++;
+            hitCount++;
             const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= radius) {
-                this.player._whirlwindHitSet.add(entity);
-                const wasAlive = entity.hp > 0;
-                entity.takeDamage(finalDamage, this.player);
-                if (wasAlive && entity.hp <= 0) killCount++;
-                hitCount++;
-                const kbAngle = Math.atan2(dy, dx);
-                entity.applyKnockback(kbAngle, knockback);
-                if (entity.applyStun) entity.applyStun(stunDuration);
-                this.player._triggerRuneSwordCooldownReduction();
-                // 改造效果：流血
-                const currentWeapon = this.player.equipments[this.player.weaponMode];
-                if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
-                    entity.applyBleeding(1);
-                }
+            const kbAngle = Math.atan2(dy, dx);
+            entity.applyKnockback(kbAngle, knockback);
+            if (entity.applyStun) entity.applyStun(stunDuration);
+            this.player._triggerRuneSwordCooldownReduction();
+            // 改造效果：流血
+            const currentWeapon = this.player.equipments[this.player.weaponMode];
+            if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.bleedingOnHit && entity.applyBleeding) {
+                entity.applyBleeding(1);
             }
         });
         // 剑精通经验（风车攻击命中）

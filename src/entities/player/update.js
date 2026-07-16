@@ -18,10 +18,6 @@ import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const updateMixin = {
 update(dt, entities) {
-                // 同步六边形顶点世界坐标（原 super.update(dt) 做的事情）
-                if (this.hitbox) {
-                    this.hitbox.updateWorldPosition(this);
-                }
                 if (this.hitFlash > 0) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }

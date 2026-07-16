@@ -6,6 +6,7 @@ import { loadImage } from '../../utils/image-loader.js';
 import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { QuickBar } from '../../ui/quick-bar.js';
+import { GroundCircle } from '../../physics/skill-shapes.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;
@@ -152,10 +153,10 @@ export class RuneSwordSystem {
             sword.flyX = resolved.x;
             sword.flyY = resolved.y;
             // 目标碰撞检测
+            const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15);
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
-                const dist = Math.sqrt((entity.x - sword.flyX) ** 2 + (entity.y - sword.flyY) ** 2);
-                if (dist < entity.size + 15) {
+                if (!hitShape.intersectsEntity(entity)) {
                     const d = this.player.data;
                     const physAtk = this.player.getCurrentWeaponAtk();
                     const magicAtk = d.matk || 0;

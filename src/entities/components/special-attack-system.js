@@ -7,6 +7,7 @@ import { Input } from '../../ui/input.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { NightFlameBeamEffect } from '../../effects/nightflame-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { VerticalRect } from '../../physics/skill-shapes.js';
 class SpecialAttackSystem {
     constructor(player) {
         this.player = player;
@@ -135,8 +136,6 @@ class SpecialAttackSystem {
         const baseDamage = Math.round(effect.damageBase + d.str * effect.strMul + d.int * effect.intMul);
         const damage = Math.round(baseDamage * effect.tickDamageMul);
         const angle = this.player._specialAttackAngle;
-        const cos = Math.cos(angle), sin = Math.sin(angle);
-        const halfW = effect.beamWidth / 2;
         // 使用截断后的长度
         const length = this.player._specialAttackClampedLength || effect.beamLength;
         // 计算武器贴图中心世界坐标（与渲染一致）
@@ -144,26 +143,19 @@ class SpecialAttackSystem {
         const s = wa.size;
         const localCenterX = wa.holdX + 8 + s * 0.85 + 30;
         const localCenterY = wa.holdY + 6;
+        const cos = Math.cos(angle), sin = Math.sin(angle);
         const effectX = this.player.x + localCenterX * cos - localCenterY * sin;
         const effectY = this.player.y + localCenterX * sin + localCenterY * cos;
-        // 矩形区域检测：以特效圆心为中心，沿angle方向延伸length，宽度45px
-        // 每200ms对范围内所有目标造成伤害（持续判定，非一次性）
+        const shape = new VerticalRect(effectX, effectY, angle, length, effect.beamWidth, 0, this.player.bodyHeight || 150);
+        // 矩形区域检测：每 tick 对范围内所有目标造成伤害（持续判定，非一次性）
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
-            // 将实体坐标转换到光柱局部坐标系
-            const dx = entity.x - effectX, dy = entity.y - effectY;
-            // 投影到光柱方向
-            const proj = dx * cos + dy * sin;
-            // 投影到垂直方向
-            const perp = -dx * sin + dy * cos;
-            // 检测是否在矩形内：0 <= proj <= length, -halfW <= perp <= halfW
-            if (proj >= 0 && proj <= length && perp >= -halfW && perp <= halfW) {
-                entity.takeDamage(damage, this.player, 'magic');
-                // 毁灭符文：击中后附加魔力易伤
-                if (ce.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
-                    const stacks = ce.magicVulnerabilityStacks || effect.magicVulnStacks;
-                    entity.applyMagicVulnerability(stacks);
-                }
+            if (!shape.intersectsEntity(entity)) return;
+            entity.takeDamage(damage, this.player, 'magic');
+            // 毁灭符文：击中后附加魔力易伤
+            if (ce.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
+                const stacks = ce.magicVulnerabilityStacks || effect.magicVulnStacks;
+                entity.applyMagicVulnerability(stacks);
             }
         });
     }

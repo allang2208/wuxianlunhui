@@ -286,6 +286,8 @@ export class GameScene extends Scene {
 
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        // Phase 4: 根据世界 Y 坐标统一动态实体深度
+        this._updateDynamicDepths();
         this._updateCamera();
     }
 
@@ -398,6 +400,94 @@ export class GameScene extends Scene {
         });
     }
 
+    /**
+     * Phase 4: 统一动态实体深度排序
+     * 让玩家、敌人、武器、技能特效都按世界 Y 坐标与环境墙壁/树木在同一深度空间排序。
+     * 在 _syncBodiesToPhysics 之后调用，确保 Sprite 位置已更新。
+     */
+    _updateDynamicDepths() {
+        const Game = window.Game;
+        if (!Game) return;
+
+        // 1. 玩家：深度基于脚底 Y（Sprite 中心 + 半高）
+        if (this.playerSprite && this.playerSprite.active) {
+            const footOffset = this.playerSprite.displayHeight * 0.5;
+            this.playerSprite.setDepth(Game.player.y + footOffset + 10);
+        }
+
+        // 2. 敌人 / 尸体
+        if (Game.entities) {
+            Game.entities.forEach(e => {
+                if (!e || e === Game.player) return;
+                const isCorpse = e._preserveCorpse && !e.active &&
+                    (e._deathAnimTimer > 0 || e._corpseTimer > 0);
+                if (!e.active && !isCorpse) return;
+                const sprite = e._phaserSprite;
+                if (!sprite || !sprite.active) return;
+                const footOffset = sprite.displayHeight * 0.5;
+                sprite.setDepth(e.y + footOffset + (isCorpse ? 2 : 10));
+            });
+        }
+
+        // 3. 玩家手持武器 / 盾牌跟随玩家深度，保持相对层级
+        const playerDepth = (this.playerSprite && this.playerSprite.active) ? this.playerSprite.depth : 0;
+        if (this.weaponSprite && this.weaponSprite.active) {
+            this.weaponSprite.setDepth(playerDepth + 2);
+        }
+        if (this.offhandWeaponSprite && this.offhandWeaponSprite.active) {
+            this.offhandWeaponSprite.setDepth(playerDepth + 1);
+        }
+        if (this.shieldSprite && this.shieldSprite.active) {
+            this.shieldSprite.setDepth(playerDepth + 1);
+        }
+
+        // 4. 防御光环位于玩家下方
+        if (this.defenseGlow && this.defenseGlow.active) {
+            this.defenseGlow.setDepth(playerDepth - 2);
+        }
+
+        // 5. 魔法/技能特效按自身世界 Y 排序
+        [...this.runeSwordGroup.getChildren(), ...this.iceSpikeGroup.getChildren()].forEach(s => {
+            if (s && s.active) s.setDepth(s.y + 15);
+        });
+        if (this.fireballSprite && this.fireballSprite.active) {
+            this.fireballSprite.setDepth(this.fireballSprite.y + 15);
+        }
+        [...this.iceSpikeFlyGroup.getChildren()].forEach(s => {
+            if (s && s.active) s.setDepth(s.y + 15);
+        });
+        if (this.fireballFlySprite && this.fireballFlySprite.active) {
+            this.fireballFlySprite.setDepth(this.fireballFlySprite.y + 15);
+        }
+
+        // 其他施法者（敌人巫师等）的特效
+        if (this._magicSprites) {
+            for (const sprites of this._magicSprites.values()) {
+                if (sprites.iceSpikes) {
+                    sprites.iceSpikes.forEach(s => { if (s && s.active) s.setDepth(s.y + 15); });
+                }
+                if (sprites.iceSpikeFly) {
+                    sprites.iceSpikeFly.forEach(s => { if (s && s.active) s.setDepth(s.y + 15); });
+                }
+                if (sprites.fireball && sprites.fireball.active) {
+                    sprites.fireball.setDepth(sprites.fireball.y + 15);
+                }
+                if (sprites.fireballFly && sprites.fireballFly.active) {
+                    sprites.fireballFly.setDepth(sprites.fireballFly.y + 15);
+                }
+            }
+        }
+
+        // 6. 无人机及其文字
+        if (this.droneSprite && this.droneSprite.active) {
+            const droneDepth = this.droneSprite.y + 18;
+            this.droneSprite.setDepth(droneDepth);
+            if (this.droneText && this.droneText.active) {
+                this.droneText.setDepth(droneDepth + 1);
+            }
+        }
+    }
+
     // ---- 相机系统 ----
 
     _updateCamera() {
@@ -431,7 +521,6 @@ export class GameScene extends Scene {
         this.playerSprite = this.physics.add.sprite(0, 0, 'player_idle');
         this.playerSprite.setOrigin(0.5, 0.5);
         this.playerSprite.setDisplaySize(spriteSize, spriteSize);
-        this.playerSprite.setDepth(100);
         this.playerSprite.setVisible(false); // 初始隐藏，等玩家生成后再显示
         // 配置物理体：无重力（俯视角），设置与配置一致的矩形碰撞体，消除阻力
         const body = this.playerSprite.body;
@@ -714,7 +803,6 @@ export class GameScene extends Scene {
                 
                 if (!this.weaponSprite) {
                     this.weaponSprite = this.add.sprite(0, 0, 'bow_attack');
-                    this.weaponSprite.setDepth(150);
                 } else if (this.weaponSprite.texture.key !== 'bow_attack') {
                     this.weaponSprite.setTexture('bow_attack');
                 }
@@ -763,7 +851,6 @@ export class GameScene extends Scene {
         // 创建或更新武器 Sprite
         if (!this.weaponSprite) {
             this.weaponSprite = this.add.sprite(0, 0, texture);
-            this.weaponSprite.setDepth(150);
         } else if (this.weaponSprite.texture.key !== texture) {
             this.weaponSprite.setTexture(texture);
         }
@@ -813,7 +900,6 @@ export class GameScene extends Scene {
         // 按玩家状态推断动画状态
         if (!this.weaponSprite) {
             this.weaponSprite = this.add.sprite(0, 0, texture);
-            this.weaponSprite.setDepth(150);
         } else if (this.weaponSprite.texture.key !== texture) {
             this.weaponSprite.setTexture(texture);
         }
@@ -997,7 +1083,6 @@ export class GameScene extends Scene {
         // 创建或更新副手武器 Sprite
         if (!this.offhandWeaponSprite) {
             this.offhandWeaponSprite = this.add.sprite(0, 0, texture);
-            this.offhandWeaponSprite.setDepth(149); // 略低于主手
         } else if (this.offhandWeaponSprite.texture.key !== texture) {
             this.offhandWeaponSprite.setTexture(texture);
         }
@@ -1065,7 +1150,6 @@ export class GameScene extends Scene {
         // 确保 Group 中有足够的 Sprite
         while (this.runeSwordGroup.countActive() < player._runeSwordSwords.length) {
             const sprite = this.add.sprite(0, 0, 'runeSwordBlade');
-            sprite.setDepth(155);
             this.runeSwordGroup.add(sprite);
         }
         
@@ -1177,7 +1261,6 @@ export class GameScene extends Scene {
         while (sprites.iceSpikes.length < caster._iceSpikeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
             sprite.setDisplaySize(40, 60);
-            sprite.setDepth(155);
             sprites.iceSpikes.push(sprite);
         }
 
@@ -1237,7 +1320,6 @@ export class GameScene extends Scene {
 
         if (!sprites.fireball) {
             sprites.fireball = this.add.sprite(0, 0, 'fireball');
-            sprites.fireball.setDepth(155);
         }
 
         const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
@@ -1299,7 +1381,6 @@ export class GameScene extends Scene {
         const texture = getWeaponTextureKey(offhandItem);
         if (!this.shieldSprite) {
             this.shieldSprite = this.add.sprite(0, 0, texture);
-            this.shieldSprite.setDepth(148); // 低于武器(150)，高于角色(100)
         } else if (this.shieldSprite.texture.key !== texture) {
             this.shieldSprite.setTexture(texture);
         }
@@ -1331,7 +1412,6 @@ export class GameScene extends Scene {
             // 创建或更新防御光环
             if (!this.defenseGlow) {
                 this.defenseGlow = this.add.graphics();
-                this.defenseGlow.setDepth(90);
             }
             this.defenseGlow.clear();
             const flicker = 0.5 + Math.sin(Date.now() / 200) * 0.25;
@@ -1361,7 +1441,6 @@ export class GameScene extends Scene {
         while (sprites.iceSpikeFly.length < activeSpikes.length) {
             const sprite = this.add.sprite(0, 0, 'iceSpike');
             sprite.setDisplaySize(40, 60);
-            sprite.setDepth(150);
             sprites.iceSpikeFly.push(sprite);
         }
 
@@ -1394,7 +1473,6 @@ export class GameScene extends Scene {
 
         if (!sprites.fireballFly) {
             sprites.fireballFly = this.add.sprite(0, 0, 'fireball');
-            sprites.fireballFly.setDepth(150);
         }
 
         sprites.fireballFly.setPosition(fb.flyX, fb.flyY);
@@ -1419,7 +1497,6 @@ export class GameScene extends Scene {
         if (!this.weaponSprite) {
             const texture = getWeaponTextureKey(player.equipments[player.weaponMode]);
             this.weaponSprite = this.add.sprite(0, 0, texture);
-            this.weaponSprite.setDepth(150);
         }
         
         const wa = WEAPON_ANIM;
@@ -1569,8 +1646,8 @@ export class GameScene extends Scene {
         });
         // 确保粒子会被更新（移动/死亡），否则只会在一帧静止
         particles.addToUpdateList();
-        // 高于敌人/地面排序深度，确保可见
-        particles.setDepth(10000);
+        // 按爆发位置 Y 排序，并高于普通实体，确保可见
+        particles.setDepth(y + 1000);
         particles.explode(12, x, y);
         // 短暂延迟后销毁发射器，避免内存泄漏
         this.time.delayedCall(800, () => {
@@ -1714,7 +1791,6 @@ export class GameScene extends Scene {
         if (!this.droneSprite) {
             this.droneSprite = this.add.sprite(0, 0, 'drone');
             this.droneSprite.setDisplaySize(32, 32);
-            this.droneSprite.setDepth(160);
         }
         this.droneSprite.setPosition(drone.x, drone.y);
         this.droneSprite.setVisible(true);
@@ -1742,7 +1818,6 @@ export class GameScene extends Scene {
                 align: 'center'
             });
             this.droneText.setOrigin(0.5, 1);
-            this.droneText.setDepth(165);
         }
         this.droneText.setPosition(drone.x, drone.y - 18);
         this.droneText.setText(`${remainingSec}s`);
@@ -2463,7 +2538,6 @@ export class GameScene extends Scene {
             const sprite = this.physics.add.sprite(enemy.x, enemy.y, safeTexture);
             sprite.setOrigin(0.5, 0.5);
             sprite.setData('enemyId', enemy.id || enemy.name);
-            sprite.setDepth(50);
             this._configureEnemyBody(sprite, enemy);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;
