@@ -99,6 +99,10 @@ export class GameScene extends Scene {
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
 
+        // 可移动实体脚底阴影：按 groundRadius 绘制黑色圆影
+        this._shadowSprites = new Map();
+        this._ensureShadowTexture();
+
         // 小地图静态层（背景/边界/墙壁），只在墙壁变化时重绘
         this._minimapStaticGraphics = this.add.graphics();
         this._minimapStaticGraphics.setDepth(99999);
@@ -286,6 +290,8 @@ export class GameScene extends Scene {
 
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        // 同步可移动实体脚底阴影
+        this._syncEntityShadows(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
         this._updateCamera();
@@ -495,6 +501,86 @@ export class GameScene extends Scene {
                 const depth = e.y + footOffset + 10;
                 data.sprite.setDepth(depth);
                 if (data.label && data.label.active) data.label.setDepth(depth + 1);
+            }
+        }
+    }
+
+    /**
+     * 生成可复用的黑色圆影纹理
+     */
+    _ensureShadowTexture() {
+        if (this.textures.exists('entity_shadow')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0x000000, 1);
+        g.fillCircle(32, 32, 32);
+        g.generateTexture('entity_shadow', 64, 64);
+        g.destroy();
+    }
+
+    /**
+     * 为所有可移动实体（玩家、敌人、中立实体）在脚下生成黑色圆影，
+     * 圆影半径匹配统一 Collider 的 groundRadius，深度低于实体本身。
+     */
+    _syncEntityShadows(_game) {
+        if (!_game) return;
+        const dms = DungeonMapSystem;
+        const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        const active = new Set();
+
+        const ensureShadow = (key, x, y, radius, depth, visible) => {
+            let sprite = this._shadowSprites.get(key);
+            if (!sprite || !sprite.active) {
+                sprite = this.add.sprite(0, 0, 'entity_shadow');
+                sprite.setOrigin(0.5, 0.5);
+                this._shadowSprites.set(key, sprite);
+            }
+            sprite.setPosition(x, y);
+            sprite.setDisplaySize(radius * 2, radius * 2);
+            sprite.setDepth(depth);
+            sprite.setAlpha(0.35);
+            sprite.setVisible(visible);
+            return sprite;
+        };
+
+        // 玩家
+        if (_game.player && this.playerSprite && this.playerSprite.active) {
+            const e = _game.player;
+            active.add(e);
+            const footOffset = this.playerSprite.displayHeight * 0.5;
+            const depth = e.y + footOffset + 9; // 比实体本身低 1
+            ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+        }
+
+        // 敌人
+        if (_game.entities) {
+            _game.entities.forEach(e => {
+                if (!e || !e.active || e === _game.player) return;
+                if (e._faction !== 'enemy') return;
+                const sprite = e._phaserSprite;
+                if (!sprite || !sprite.active) return;
+                active.add(e);
+                const footOffset = sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 9;
+                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+            });
+        }
+
+        // 中立实体（NPC / 训练靶）
+        if (this._neutralSprites) {
+            for (const [e, data] of this._neutralSprites.entries()) {
+                if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                active.add(e);
+                const footOffset = data.sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 9;
+                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+            }
+        }
+
+        // 清理已失效实体的阴影
+        for (const [key, sprite] of this._shadowSprites.entries()) {
+            if (!active.has(key)) {
+                sprite.destroy();
+                this._shadowSprites.delete(key);
             }
         }
     }

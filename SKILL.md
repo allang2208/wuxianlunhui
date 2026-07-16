@@ -1121,3 +1121,11 @@ Phaser Sprite.x / y / rotation / scale
     - `src/entities/enemy-types/mutant-3.js`：`_spawnBloodMist` 临时精灵深度改为 `y + 10`。
     - `src/physics/index.js`：移除未使用的 `SpatialGrid` 导出（文件保留供测试直接引用）。
   - **验证：** `npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过。
+
+- v2.4 (2026-07-13) — 可移动实体脚底阴影
+  - `GameScene` 新增 `entity_shadow` 纹理与 `_shadowSprites` 映射表
+  - 新增 `_syncEntityShadows()`，每帧为玩家、敌人、中立实体在脚下生成黑色圆影
+  - 阴影半径匹配统一 `Collider.groundRadius`，深度低于实体（`entityDepth - 1`），透明度 0.35
+  - 地图模式下自动隐藏所有阴影
+  - 阴影随实体移除自动销毁，避免内存泄漏
+  - 验证：`npm run lint`、`npx vite build` 通过

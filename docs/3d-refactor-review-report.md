@@ -62,3 +62,14 @@
 2. **`SpatialPartitionSystem` 调用时机**：网格更新在实体更新之后，快速移动目标有极轻微的 broadphase 偏差（已在设计范围内）。
 3. **`VerticalSector` / `VerticalRect` 的半径扩展近似**：在弧形边缘和矩形四角存在少量过度膨胀，属于可接受的近似。
 4. **飞行单位**：当前无实际飞行敌人；`collider.z/elevation` 已预留，未来只需设置 `z > 0` 即可让地面 AOE/近战无法命中。
+
+## 六、新增：可移动实体脚底阴影（v2.4）
+
+- 文件：`src/phaser/scenes/GameScene.js`
+- 实现：
+  - 创建可复用 `entity_shadow` 黑色圆形纹理。
+  - 新增 `_syncEntityShadows(_game)`，每帧为玩家、敌人、中立实体在脚下生成圆影。
+  - 圆影半径 = `entity.groundRadius`（统一 Collider 地面 footprint）。
+  - 阴影位置位于实体脚底（`entity.y + displayHeight/2`），深度 = 实体深度 - 1，确保显示在实体下方。
+  - 地图模式下隐藏；实体失效时阴影自动销毁。
+- 验证：`npm run lint`、`npx vite build` 通过。
