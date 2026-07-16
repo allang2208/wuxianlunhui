@@ -115,9 +115,7 @@
       "spriteSize": 150,
       "collisionWidth": 60,
       "collisionHeight": 50,
-      "footOffsetY": 70,
-      "walkLeanOffset": 22,
-      "attackLeanOffset": 28
+      "footOffsetY": 70
     },
     "textures": {
       "idle": "assets/enemies/fat_zombie/idle.png",
