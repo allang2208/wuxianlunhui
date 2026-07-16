@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -46,7 +46,21 @@ function createArmoredZombie(x, y) {
 }
 
 export function createBasicZombie(x, y) {
-    return createZombieFromConfig('zombie', x, y);
+    const cfg = enemyConfigData.zombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: zombie');
+        return new CircleEnemy(x, y, { name: 'zombie', hp: 50, maxHp: 50, size: 14, showWeapon: false });
+    }
+    return new Zombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
 }
 
 function createFastZombie(x, y) {

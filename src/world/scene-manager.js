@@ -448,6 +448,9 @@ export const SceneManager = {
         if (Game && Game.spawnMainFatZombie) {
             Game.spawnMainFatZombie();
         }
+        if (Game && Game.spawnMainZombie) {
+            Game.spawnMainZombie();
+        }
     },
 
     _loadScene3(player) {

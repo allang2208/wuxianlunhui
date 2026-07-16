@@ -8,6 +8,7 @@ import { ZombieWizard } from './enemy-types/zombie-wizard.js';
 import { Mutant3 } from './enemy-types/mutant-3.js';
 import { SpitterZombie } from './enemy-types/spitter-zombie.js';
 import { FatZombie } from './enemy-types/fat-zombie.js';
+import { Zombie } from './enemy-types/zombie.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -467,4 +468,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie };
+export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie };

@@ -80,6 +80,11 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_fat_zombie_attack', 'assets/enemies/fat_zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 13 });
         this.load.spritesheet('enemy_fat_zombie_melt',   'assets/enemies/fat_zombie/melting.png',  { frameWidth: 512, frameHeight: 512, endFrame: 20 });
 
+        // 普通僵尸精灵图动画（8×4 网格 512×512 切帧：idle 1 帧 / walking 15 帧 / attacking 15 帧）
+        this.load.spritesheet('enemy_zombie_idle',   'assets/enemies/zombie/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_zombie_walk',   'assets/enemies/zombie/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        this.load.spritesheet('enemy_zombie_attack', 'assets/enemies/zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 14 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -250,6 +255,26 @@ export class BootScene extends Scene {
             key: 'enemy_fat_zombie_death',
             frames: this.anims.generateFrameNumbers('enemy_fat_zombie_melt', { start: 0, end: 20 }),
             duration: 1500,
+            repeat: 0,
+        });
+
+        // 普通僵尸动画（攻击动画固定 1 秒）
+        this.anims.create({
+            key: 'enemy_zombie_idle',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_zombie_walk',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_walk', { start: 0, end: 14 }),
+            frameRate: 15,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_zombie_attack',
+            frames: this.anims.generateFrameNumbers('enemy_zombie_attack', { start: 0, end: 14 }),
+            duration: 1000,
             repeat: 0,
         });
 
