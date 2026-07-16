@@ -18,7 +18,7 @@ import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
-import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { PERSPECTIVE_SCALE_Y, PERSPECTIVE_SCALE_Z } from '../../config/perspective-config.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -1992,6 +1992,33 @@ export class GameScene extends Scene {
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
             this._collisionRadiusGraphics.strokeEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
             this._collisionRadiusGraphics.fillEllipse(entity.x, entity.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+
+            // 同步显示上方 3D 胶囊体体积（ footprint + 垂直高度）
+            const h = entity.bodyHeight || r * 2;
+            const zScale = PERSPECTIVE_SCALE_Z;
+            const bodyH = Math.max(0, (h - 2 * r) * zScale);
+            const topY = entity.y - (h - r) * zScale;
+            const midY = entity.y - r * zScale;
+            this._collisionRadiusGraphics.fillStyle(0xff0000, 0.12);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, topY, r * 2, r * 2 * zScale);
+            this._collisionRadiusGraphics.fillEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+            if (bodyH > 0) {
+                this._collisionRadiusGraphics.fillRect(entity.x - r, topY, r * 2, bodyH);
+            }
+            this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.4);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, topY, r * 2, r * 2 * zScale);
+            this._collisionRadiusGraphics.strokeEllipse(entity.x, midY, r * 2, r * 2 * zScale);
+            if (bodyH > 0) {
+                this._collisionRadiusGraphics.beginPath();
+                this._collisionRadiusGraphics.moveTo(entity.x - r, topY);
+                this._collisionRadiusGraphics.lineTo(entity.x - r, midY);
+                this._collisionRadiusGraphics.moveTo(entity.x + r, topY);
+                this._collisionRadiusGraphics.lineTo(entity.x + r, midY);
+                this._collisionRadiusGraphics.strokePath();
+            }
+            // 恢复地面圆的填充样式，供下一个实体使用
+            this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
+            this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
         };
 
         // 玩家

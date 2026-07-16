@@ -7,3 +7,6 @@
 
 // 地面圆在屏幕 Y 方向的压缩比：0.5 表示椭圆短轴为长轴的一半
 export const PERSPECTIVE_SCALE_Y = 0.5;
+
+// 垂直高度（z 轴）在屏幕 Y 方向的压缩比，与地面使用同一视角
+export const PERSPECTIVE_SCALE_Z = PERSPECTIVE_SCALE_Y;
