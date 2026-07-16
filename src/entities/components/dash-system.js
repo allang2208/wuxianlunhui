@@ -157,8 +157,9 @@ class DashSystem {
                     if (Game.showAttackRange) {
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
                         const rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
-                        const hitArc = effect.hitArc; // 120度扇形
-                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, hitArc, 'sector', effect.rangeEffectLife, effect.rangeEffectAlpha, true));
+                        const rectWidth = this.player._getSkillParam('dashAttackThrust', 'hitCheck.width', effect.hitWidth);
+                        const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', effect.hitBackOffset) || 0;
+                        EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, 'triangle', effect.rangeEffectLife, effect.rangeEffectAlpha, true, backOffset));
                     }
                 }
                 this.player._dashState = 'slash';

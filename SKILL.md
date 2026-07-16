@@ -1089,3 +1089,13 @@ Phaser Sprite.x / y / rotation / scale
   - 受击绿色粒子深度改为 `y + 1000`，继续高于普通实体
   - 移除 `GameScene` 中所有硬编码的 `setDepth(50/100/148/149/150/155/160/165)`，避免与动态排序冲突
   - 验证：`npm run lint`、`npx vite build` 通过
+
+- v2.2 (2026-07-13) — 3D 碰撞/命中体系 Phase 5：清理旧命中系统与可视化对齐
+  - 删除 legacy `src/components/hitbox.js`（`HexHitbox`）和 `src/combat/hit-detector.js`（`HitDetector`）
+  - `src/entities/entity.js` 移除 `hitbox` 字段、`initHitbox` 方法、`getCollisionShape` 六边形分支
+  - `src/entities/player/update.js` 移除每帧同步 `hitbox` 的代码
+  - `src/utils/collision-helpers.js` 精简为仅保留 `distanceToEntityShape`，内部改用统一 `Collider.groundRadius`
+  - `src/entities/enemy-types/mutant-3.js` 攻击范围判定改用 `target.groundRadius`，移除旧矩形/圆形分支
+  - `src/effects/attack-range-effect.js` 新增 `backExtension` 参数，支持绘制带后摆的定向矩形
+  - `src/entities/components/dash-system.js` 冲刺-突刺范围提示从扇形改为矩形（`triangle` + `backExtension`），与 `VerticalRect` 命中形状一致
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
