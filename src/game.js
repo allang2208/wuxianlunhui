@@ -660,12 +660,22 @@ if (Input.mouse.leftPressed) {
             SpatialPartitionSystem.update(dt, this.entities);
         }
 
+        // 预同步所有 Collider：子类 update 经常覆盖 super.update，导致 collider 位置停留在出生点。
+        // 在战斗/AI 前统一同步一次，确保近战、投射物命中判定使用最新坐标。
+        for (const e of this.entities.values()) {
+            if (e.collider) e.collider.syncPosition();
+        }
+
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0);
             if (!e.active && !isCorpse) continue;
 e.update(dt, this.entities);
+// 玩家 update 会移动并触发攻击，同步其 Collider 供后续敌人 AI/战斗作为目标使用
+            if (e === this.player && e.collider) {
+                e.collider.syncPosition();
+            }
 if (e instanceof Enemy) {
                 if (e.hp > 0) this._battleCommanderEnemies.push(e);
                 if (PerceptionSystem) {
@@ -674,6 +684,11 @@ PerceptionSystem.update(e, dt, this.entities);
                 if (MovementSystem) {
 MovementSystem.update(e, dt, this.entities);
 }
+                // 敌人在 MovementSystem 移动后、CombatSystem 判定前同步 Collider，
+                // 保证敌人自身攻击形状原点与目标 Collider 都为当前帧位置。
+                if (e.collider) {
+                    e.collider.syncPosition();
+                }
                 if (CombatSystem) {
 CombatSystem.update(e, dt, this.entities);
 }
