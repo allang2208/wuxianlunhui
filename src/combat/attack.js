@@ -78,6 +78,11 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
+                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
+                if (!isFinite(attackAngle)) {
+                    console.warn('SlashAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
+                    return false;
+                }
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
@@ -100,11 +105,6 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const arc = this.config.arc;
-                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
-                if (!isFinite(attackAngle)) {
-                    console.warn('SlashAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
-                    return true;
-                }
                 // 攻击范围起始位置与主角坐标重叠
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
@@ -157,6 +157,11 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
+                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
+                if (!isFinite(attackAngle)) {
+                    console.warn('ThrustAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
+                    return false;
+                }
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
@@ -168,11 +173,6 @@ function applyEnchantOnHit(weapon, target, source) {
                 } else if (source.data && source.data.stamina !== undefined) {
                     if (source.data.stamina < staminaCost) return false;
                     source.data.stamina -= staminaCost;
-                }
-                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
-                if (!isFinite(attackAngle)) {
-                    console.warn('ThrustAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
-                    return true;
                 }
                 // 计算武器攻击力（包含属性加成和剑精通）
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);

@@ -51,6 +51,8 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 super(x, y); this._faction = config.faction || 'neutral'; this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
                 this.size = config.size || 20; this.collisionRadius = config.collisionRadius || this.size || 12; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 300;
                 this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.962;
+                // 子类在 super() 后才设置碰撞字段，需要重建统一 Collider
+                this.rebuildCollider();
                 // ===== 状态栏系统（每个实体独立） =====
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
             }

@@ -22,6 +22,8 @@ import { loadImage } from '../utils/image-loader.js';
                 }
                 this.image = loadImage(imageSrc);
                 this.pickupRange = 30;
+                // 掉落物不参与实体间碰撞分离
+                this.noCollision = true;
             }
             update(dt) {
                 // 装备不随时间消失（life = Infinity）
@@ -43,7 +45,7 @@ import { loadImage } from '../utils/image-loader.js';
                     }
                     const sprite = phaserScene.add.sprite(this.x, this.y, key);
                     sprite.setOrigin(0.5, 0.5);
-                    sprite.setDepth(this.y);
+                    sprite.setDepth(this.y + 5);
                     phaserScene.dropItemsGroup.add(sprite);
                     // 掉落物不需要物理驱动，关闭自动移动减少开销
                     if (sprite.body) {
@@ -57,7 +59,7 @@ import { loadImage } from '../utils/image-loader.js';
                         align: 'center'
                     });
                     label.setOrigin(0.5, 0);
-                    label.setDepth(this.y + 1);
+                    label.setDepth(this.y + 6);
                     phaserScene.dropItemsGroup.add(label);
                     this._phaserSprite = sprite;
                     this._phaserLabel = label;
@@ -71,7 +73,7 @@ import { loadImage } from '../utils/image-loader.js';
                 const size = hover ? 40 : 32;
 
                 this._phaserSprite.setPosition(this.x, this.y + bobY);
-                this._phaserSprite.setDepth(this.y + bobY);
+                this._phaserSprite.setDepth(this.y + bobY + 5);
                 this._phaserSprite.setDisplaySize(size, size);
                 if (this._lastHover !== hover) {
                     this._lastHover = hover;
@@ -85,7 +87,7 @@ import { loadImage } from '../utils/image-loader.js';
                     color: hover ? '#ffeb96' : '#d4c5a9e6'
                 });
                 this._phaserLabel.setPosition(this.x, this.y + bobY + size / 2 + 4);
-                this._phaserLabel.setDepth(this.y + bobY + 1);
+                this._phaserLabel.setDepth(this.y + bobY + 6);
                 this._phaserLabel.setVisible(true);
             }
 

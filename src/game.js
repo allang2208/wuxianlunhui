@@ -655,6 +655,11 @@ if (Input.mouse.leftPressed) {
             if (clickedNPC) return;
         }
 
+        // ===== 空间分区重建：必须在实体/战斗/AI/投射物更新前完成 =====
+        if (SpatialPartitionSystem) {
+            SpatialPartitionSystem.update(dt, this.entities);
+        }
+
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
@@ -681,11 +686,6 @@ if (FormationSystem) {
             for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
             }
-        }
-
-        // ===== 空间分区重建（所有AI系统的前置条件）=====
-        if (SpatialPartitionSystem) {
-            SpatialPartitionSystem.update(dt, this.entities);
         }
 
         // 协同效应系统更新

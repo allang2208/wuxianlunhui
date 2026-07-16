@@ -86,18 +86,6 @@ class SpecialAttackSystem {
             this.player._specialAttackBeam.x = this.player.x + localCenterX * cos - localCenterY * sin;
             this.player._specialAttackBeam.y = this.player.y + localCenterX * sin + localCenterY * cos;
         }
-        // 范围提示持续显示（从武器贴图中心开始，使用截断后的长度）
-        if (Game.showAttackRange) {
-            const wa = WEAPON_ANIM;
-            const s = wa.size;
-            const cos = Math.cos(this.player._specialAttackAngle), sin = Math.sin(this.player._specialAttackAngle);
-            const localCenterX = wa.holdX + 8 + s * 0.85 + 30;
-            const localCenterY = wa.holdY + 6;
-            const effectX = this.player.x + localCenterX * cos - localCenterY * sin;
-            const effectY = this.player.y + localCenterX * sin + localCenterY * cos;
-            const length = this.player._specialAttackClampedLength || effect.beamLength;
-            EffectManager.add(new AttackRangeEffect(effectX, effectY, this.player._specialAttackAngle, length, effect.beamWidth, effect.rangeEffectShape, effect.rangeEffectLife, effect.rangeEffectAlpha, effect.rangeEffectFilled));
-        }
         // 按配置间隔进行一次伤害判定
         if (this.player._specialAttackTimer - this.player._specialAttackLastTick >= effect.tickInterval) {
             this.player._specialAttackLastTick = this.player._specialAttackTimer;

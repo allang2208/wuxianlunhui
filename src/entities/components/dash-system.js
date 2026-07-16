@@ -425,7 +425,7 @@ class DashSystem {
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                     entity.takeDamage(finalDamage, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害
-                    if (dashDoubleHit && hitIndex === 0) {
+                    if (dashDoubleHit) {
                         entity.takeDamage(finalDamage, this.player);
                     }
                     if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
@@ -483,17 +483,17 @@ class DashSystem {
                 if (this.player._dashHitSet.has(entity)) return;
                 if (!shape.intersectsEntity(entity)) return;
                 this.player._dashHitSet.add(entity);
-                const effect = skill.getEffect(skillLevel);
+                const dashEffect = skill.getEffect(skillLevel);
                 let damage;
                 if (isFire) {
                     // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * damageMul
                     const physAtk = this.player.getCurrentWeaponAtk();
                     const magicAtk = this.player.data.matk || 0;
-                    const fireMul = effect.damageMul;
+                    const fireMul = dashEffect.damageMul;
                     damage = Math.floor((physAtk + magicAtk) * fireMul);
                 } else {
                     const baseDamage = this.player.getCurrentWeaponAtk();
-                    damage = Math.floor(baseDamage * effect.damageMul);
+                    damage = Math.floor(baseDamage * dashEffect.damageMul);
                 }
                 const targetCritRes3 = (entity.data && entity.data.critRes) || 0;
                 let playerCrit3 = this.player.data.crit || 0;
@@ -505,7 +505,7 @@ class DashSystem {
                 }
                 const finalCritRate3 = Math.max(0, playerCrit3 - targetCritRes3);
                 const isCrit = Math.random() * 100 < finalCritRate3;
-                let critMul = effect.critMul;
+                let critMul = dashEffect.critMul;
                 if (isCrit && this.player.skills && this.player.skills.criticalStrike) {
                     const csEffect = this.player.skills.criticalStrike.getEffect(this.player.skills.criticalStrike.level);
                     critMul = 1 + csEffect.damageBonus;

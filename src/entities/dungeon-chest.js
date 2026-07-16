@@ -53,7 +53,7 @@ export class DungeonChest extends Entity {
                 align: 'center'
             });
             sprite.setOrigin(0.5, 0.5);
-            sprite.setDepth(this.y);
+            sprite.setDepth(this.y + 5);
             phaserScene.dropItemsGroup.add(sprite);
 
             const label = phaserScene.add.text(this.x, this.y + 28, '精英宝箱', {
@@ -63,7 +63,7 @@ export class DungeonChest extends Entity {
                 align: 'center'
             });
             label.setOrigin(0.5, 0);
-            label.setDepth(this.y + 1);
+            label.setDepth(this.y + 6);
             phaserScene.dropItemsGroup.add(label);
 
             this._phaserSprite = sprite;
@@ -72,9 +72,9 @@ export class DungeonChest extends Entity {
 
         const bobY = Math.sin(this.bobOffset) * 4;
         this._phaserSprite.setPosition(this.x, this.y + bobY);
-        this._phaserSprite.setDepth(this.y + bobY);
+        this._phaserSprite.setDepth(this.y + bobY + 5);
         this._phaserLabel.setPosition(this.x, this.y + bobY + 24);
-        this._phaserLabel.setDepth(this.y + bobY + 1);
+        this._phaserLabel.setDepth(this.y + bobY + 6);
     }
 
     _destroyPhaserSprite() {

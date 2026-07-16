@@ -99,6 +99,10 @@ export class GameScene extends Scene {
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
 
+        // 可移动实体脚底阴影：按 groundRadius 绘制黑色圆影
+        this._shadowSprites = new Map();
+        this._ensureShadowTexture();
+
         // 小地图静态层（背景/边界/墙壁），只在墙壁变化时重绘
         this._minimapStaticGraphics = this.add.graphics();
         this._minimapStaticGraphics.setDepth(99999);
@@ -286,6 +290,8 @@ export class GameScene extends Scene {
 
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        // 同步可移动实体脚底阴影
+        this._syncEntityShadows(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
         this._updateCamera();
@@ -486,6 +492,97 @@ export class GameScene extends Scene {
                 this.droneText.setDepth(droneDepth + 1);
             }
         }
+
+        // 7. 中立实体（NPC / 训练靶）统一深度
+        if (this._neutralSprites) {
+            for (const [e, data] of this._neutralSprites.entries()) {
+                if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                const footOffset = data.sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 10;
+                data.sprite.setDepth(depth);
+                if (data.label && data.label.active) data.label.setDepth(depth + 1);
+            }
+        }
+    }
+
+    /**
+     * 生成可复用的黑色圆影纹理
+     */
+    _ensureShadowTexture() {
+        if (this.textures.exists('entity_shadow')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0x000000, 1);
+        g.fillCircle(32, 32, 32);
+        g.generateTexture('entity_shadow', 64, 64);
+        g.destroy();
+    }
+
+    /**
+     * 为所有可移动实体（玩家、敌人、中立实体）在脚下生成黑色圆影，
+     * 圆影半径匹配统一 Collider 的 groundRadius，深度低于实体本身。
+     */
+    _syncEntityShadows(_game) {
+        if (!_game) return;
+        const dms = DungeonMapSystem;
+        const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        const active = new Set();
+
+        const ensureShadow = (key, x, y, radius, depth, visible) => {
+            let sprite = this._shadowSprites.get(key);
+            if (!sprite || !sprite.active) {
+                sprite = this.add.sprite(0, 0, 'entity_shadow');
+                sprite.setOrigin(0.5, 0.5);
+                this._shadowSprites.set(key, sprite);
+            }
+            sprite.setPosition(x, y);
+            sprite.setDisplaySize(radius * 2, radius * 2);
+            sprite.setDepth(depth);
+            sprite.setAlpha(0.35);
+            sprite.setVisible(visible);
+            return sprite;
+        };
+
+        // 玩家
+        if (_game.player && this.playerSprite && this.playerSprite.active) {
+            const e = _game.player;
+            active.add(e);
+            const footOffset = this.playerSprite.displayHeight * 0.5;
+            const depth = e.y + footOffset + 9; // 比实体本身低 1
+            ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+        }
+
+        // 敌人
+        if (_game.entities) {
+            _game.entities.forEach(e => {
+                if (!e || !e.active || e === _game.player) return;
+                if (e._faction !== 'enemy') return;
+                const sprite = e._phaserSprite;
+                if (!sprite || !sprite.active) return;
+                active.add(e);
+                const footOffset = sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 9;
+                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+            });
+        }
+
+        // 中立实体（NPC / 训练靶）
+        if (this._neutralSprites) {
+            for (const [e, data] of this._neutralSprites.entries()) {
+                if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                active.add(e);
+                const footOffset = data.sprite.displayHeight * 0.5;
+                const depth = e.y + footOffset + 9;
+                ensureShadow(e, e.x, e.y + footOffset, e.groundRadius || 10, depth, !isMapMode);
+            }
+        }
+
+        // 清理已失效实体的阴影
+        for (const [key, sprite] of this._shadowSprites.entries()) {
+            if (!active.has(key)) {
+                sprite.destroy();
+                this._shadowSprites.delete(key);
+            }
+        }
     }
 
     // ---- 相机系统 ----
@@ -628,16 +725,18 @@ export class GameScene extends Scene {
         if (!body) return;
         body.setGravity(0, 0);
         const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
-        // 新规则：优先使用 enemy.config.render 里的显示/碰撞尺寸（由精灵图分析脚本生成），
-        // 其次回退到 _getPhaserOptions 硬编码值，最后按 size*4 兜底。
+        // 显示尺寸：优先使用 enemy.config.render 里的 spriteSize，其次按 size*4 兜底
         const renderCfg = enemy.config?.render || {};
         const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
         sprite.setDisplaySize(spriteSize, spriteSize);
         sprite.setOrigin(0.5, 0.5);
 
-        // 设置逻辑碰撞体积为矩形；优先级：options > config.render > size*4
-        const collisionWidth = options.collisionWidth || renderCfg.collisionWidth || spriteSize;
-        const collisionHeight = options.collisionHeight || renderCfg.collisionHeight || spriteSize;
+        // 逻辑碰撞体积：优先保留配置里已有的 gameplay 尺寸或 enemy 类型选项，
+        // 其次按 collisionRadius / size 推导，不再直接用 spriteSize 放大 footprint
+        const gameplayRadius = enemy.collisionRadius > 0 ? enemy.collisionRadius : (enemy.size || 14) * 0.6;
+        const fallbackSize = gameplayRadius * 2;
+        const collisionWidth = options.collisionWidth || enemy.collisionWidth || fallbackSize;
+        const collisionHeight = options.collisionHeight || enemy.collisionHeight || fallbackSize;
         enemy.collisionShape = 'rect';
         enemy.collisionWidth = collisionWidth;
         enemy.collisionHeight = collisionHeight;
@@ -1888,16 +1987,10 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
-            if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
-                const hw = entity.collisionWidth / 2;
-                const hh = entity.collisionHeight / 2;
-                this._collisionRadiusGraphics.strokeRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
-                this._collisionRadiusGraphics.fillRect(entity.x - hw, entity.y - hh, entity.collisionWidth, entity.collisionHeight);
-            } else {
-                const r = entity.collisionRadius || entity.size || 12;
-                this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
-                this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
-            }
+            // Phase 1 后逻辑 footprint 已统一为圆形，可视化直接画 groundRadius
+            const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
+            this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, r);
+            this._collisionRadiusGraphics.fillCircle(entity.x, entity.y, r);
         };
 
         // 玩家
@@ -2392,7 +2485,6 @@ export class GameScene extends Scene {
                 const sprite = this.add.sprite(e.x, e.y, 'neutral_circle');
                 sprite.setOrigin(0.5, 0.5);
                 sprite.setDisplaySize(size * 2, size * 2);
-                sprite.setDepth(e.y);
                 const label = this.add.text(e.x, e.y - size - 8, '', {
                     fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
                     fontSize: '11px',
@@ -2407,7 +2499,6 @@ export class GameScene extends Scene {
             const { sprite, label } = data;
             const size = e.size || 16;
             sprite.setPosition(e.x, e.y);
-            sprite.setDepth(e.y);
             sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
 
             let text = e.name || '';
@@ -2428,7 +2519,6 @@ export class GameScene extends Scene {
                 text = `${e.name} ${e.hp}/${e.maxHp}`;
             }
             label.setPosition(e.x, e.y - size - 8);
-            label.setDepth(e.y + 1);
             if (label.text !== text) {
                 label.setText(text);
             }
