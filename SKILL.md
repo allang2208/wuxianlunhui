@@ -88,6 +88,27 @@
 - Phase 3：近战 / 技能 AOE 3D 化
 - Phase 4：场景贴图 Y 深度排序
 
+### 补充：投射物躯干矩形判定（方案 B，2026-07-17）✅
+
+**问题**：投射物命中只看脚下 footprint 椭圆（+ 3D 世界胶囊），玩家与目标同一水平轴时，瞄准贴图身体（躯干/头部）子弹会穿过——子弹在地面平面飞行，贴图躯干在"身后"的屏幕行。
+
+**方案**：新增屏幕空间**躯干矩形**判定，仅投射物使用；近战判定（attack.js / skill-shapes.js）不变。
+
+**共享模块 `src/physics/torso-hitbox.js`（唯一推导口径，禁止重复编码）**：
+- `getTorsoRect(entity)`：取 `config.render.projectileHitbox`（width/height/offsetX/bottom，锚定 collider 脚底中心）；缺省 = `collisionWidth × 身高`（新怪物零配置自动获得）。
+- `segmentHitsTorso(entity, x1, y1, x2, y2, expand)`：枪械投射物扫掠线段判定。
+- `pointHitsTorso(entity, px, py, expand)`：技能投射物逐帧点判定，FLYING 免疫（与 GroundCircle 语义对齐）。
+
+**判定并集**：
+- 枪械投射物（projectile.js）：footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱；飞行目标仍只查 3D 胶囊。
+- 技能投射物飞行命中：冰锥(r=12)/火球(r=20)/符文剑(r=15) = GroundCircle ∪ 躯干矩形；火球爆炸 AOE 维持 GroundCircle 不动。
+
+**逐怪数值**：7 只精灵图怪物按首帧内容边界实测（`scripts/archive/measure-projectile-hitbox.py`，内容宽高 × spriteSize/帧宽）写入 `enemy-config.json` 的 `render.projectileHitbox`。
+
+**调试可视化**：左下"范围"按钮显示**绿色躯干矩形**（GameScene._syncCollisionRadii，与判定同一推导）。
+
+**单测**：`scripts/test-collider.mjs` 22 个躯干矩形用例（含推导/点判定/缺省/FLYING 免疫）。
+
 ---
 
 ## 技术回顾与清理（2026-07-13）
@@ -1129,3 +1150,16 @@ Phaser Sprite.x / y / rotation / scale
   - 地图模式下自动隐藏所有阴影
   - 阴影随实体移除自动销毁，避免内存泄漏
   - 验证：`npm run lint`、`npx vite build` 通过
+
+- v2.5 (2026-07-17) — 普通僵尸精灵图接入 + 攻击线性突进
+  - `assets/enemies/zombie/`：idle 1 帧 / walking 15 帧 / attacking 15 帧，8×4 网格 512×512，素材经 `scripts/archive/prepare-zombie-sprites.py` 统一内容高度（~440px）并对齐底部，与既有僵尸素材比例一致
+  - 新建 `src/entities/enemy-types/zombie.js`：`Zombie` 类仿 fat-zombie 模式，攻击动画 1s、间隔 2s（attack.cooldown 2000）、判定距离 100px（attackDistance），显式 `animKey: enemy_zombie_${state}`
+  - `enemy.js` 基类新增**配置驱动线性突进**（`attack.lungeDistance`，僵尸配 100）：`triggerWeaponAnim` 锁定突进方向，`_updateLunge` 按攻击计时线性推进，增量式位移 + 每帧 `WallSystem.resolve` 撞墙校验；任何怪物配置后全场景生效
+  - 地牢 `createBasicZombie` 从 `CircleEnemy` 圆形占位改用 `Zombie` 类；主神空间 `spawnMainZombie()` 生成测试僵尸
+  - 验证：lint / build / test-collider 全部通过
+- v2.6 (2026-07-17) — 投射物躯干矩形判定（方案 B）
+  - 新建 `src/physics/torso-hitbox.js` 共享模块（详见上方"补充：投射物躯干矩形判定"小节）
+  - `projectile.js`：地面目标命中 = footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱
+  - 冰锥/火球/符文剑飞行命中接入；爆炸 AOE 与近战判定不变
+  - 7 只精灵图怪物写入实测 `render.projectileHitbox`；GameScene 绿色调试矩形
+  - 验证：22 个躯干单测全过、lint / build 通过
