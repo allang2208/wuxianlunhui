@@ -8,6 +8,105 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-17（尸体保留修复 + 技能public副本同步 + 背景图cover）
+
+### 对话：胖子尸体不被波次强清 + 技能经验第二断点 + 背景图 cover + 地牢机制汇报（v0.198+）
+- **任务2 根因（尸体波次推进即消失）**：上一轮修复让 `cleanupMonstersOnly()` 波次切换时经 `removeEntity` 连实体带贴图一起删除，尸体被强制清除，违背"尸体保留持续造成伤害"的设计。
+- **任务3 根因（技能经验仍不累积）**：运行时 `window.SKILL_DATA` 来自 `fetch('/data/skills.json')`，Vite 实际提供 `public/data/skills.json`——该副本是过期旧版（仅 11 技能，缺 dashAttackFire/shotgunMastery/iceSpike/shieldDefense/fireball/nightFlame，且全部无 expRewards）。上一轮修 `buildSkillFromJSON` 补字段正确，但数据源是旧副本故仍未生效。**钩稽提醒**：skills.json 与 equipment.json 一样存在 data/ ↔ public/data/ 双份，今后改技能数据必须双份同步。
+- **修改文件**：
+  - `src/game.js`：新增共享判定 `isPreservedCorpse(entity)`（与实体更新循环同口径：`_preserveCorpse && !active && (deathAnimTimer>0 || corpseTimer>0)`）。
+  - `src/world/combat-room-system.js`：`cleanupMonstersOnly()`、`cleanupRoom()` 清理循环命中存活尸体时跳过删除。
+  - `src/world/dungeon-map-system.js`：`_cleanupCombat()` 同样跳过。
+  - `public/data/skills.json`：用 `data/skills.json` 覆盖同步（11 → 17 技能，expRewards 齐全，已校验两份一致）。
+  - `src/world/dungeon-event-system.js`：`_createEventBgLayer` 的 `background-size: auto` 改为 `cover`（等比铺满全屏、不变形、无黑边，边缘少量裁切；用户已选此方案）。
+- **效果**：
+  - 胖子僵尸尸体不再被波次推进/离开房间强制清除，按自身计时器走完生命周期（腐蚀光环持续伤害、7.5s 自毁贴图、8s 扫描移除）；地图模式下计时器冻结、贴图随敌人组隐藏，进下一战斗房后继续。
+  - 步枪精通等全部技能恢复经验累积；冰锥/火球/盾防/霰弹精通/冲刺攻击-火/夜与火 6 个曾缺失技能恢复出现。
+  - 僵尸地牢及所有地牢事件背景图 cover 铺满（同一共享函数，强绑定全场景）。
+- **bottom 固定像素审计（无改动）**：NPC 立绘（bottom:200/220px）、事件面板×2（bottom:88px）、事件背景层（bottom:0）、右下通知栈（bottom:20px）、dev toast（bottom:100px）均合规；场景标签（top:210px）/提示 toast（top:30%）/居中对话框属瞬态通知，设计豁免。
+- **测试结果**：public/data/skills.json 与 data 版一致性校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①多波次战斗胖子尸体波次切换后保留并持续腐蚀、7.5s 后消失；②步枪精通击杀/暴击经验累积升级、6 个曾缺失技能出现；③事件背景图 cover 铺满无黑边。
+
+## 2026-07-17（配置全场景生效 + 事件面板/旧5事件图 + 经验与被动技能）
+
+### 对话：毒液/胖子配置修复 + 事件背景图调整 + 经验翻倍/升级回满/被动技能修复（v0.198+）
+- **任务1 根因**：①`enemy.js` 从未映射 `attackDistance`（死配置，胖子实际按 115 触发）；②`GameScene._configureEnemyBody` 无条件用矩形推导覆盖 `collisionRadius`（毒液实际 footprint 45，配置 7.07 从未生效；巫师 45/普通僵尸 25/突变体 45 同病）。
+- **任务4 根因（被动技能无法升级）**：`DataLoader.buildSkillFromJSON` 构建技能对象漏拷 `expRewards` → 所有 `add*Exp` 计算 gained=0 → 全部技能（含所有武器精通）永不获得经验；skills.json 数据齐全、击杀/暴击路由正常，唯一断点即构建器。
+- **修改文件**：
+  - `src/entities/enemy.js`：构造函数新增 `this.attackDistance = config.attackDistance` 映射 → 胖子僵尸真正只在 100 攻击范围发动攻击；普通僵尸 attackDistance 100 同步激活。
+  - `src/phaser/scenes/GameScene.js::_configureEnemyBody`：collisionRadius 改配置优先（仅未配置时矩形推导）→ 毒液 45→7.07、巫师 45→20、普通僵尸 25→15、突变体3 45→20（回归设计配置值；胖子 30/僵尸犬 40 不变）。
+  - `spitter-zombie.js` / `zombie-wizard.js`：`_getPhaserOptions` 硬编码 30×90 改读 `config.render`（32×79 / 61×109，缺省兜底）。
+  - `assets/scenes/dungeon-events/`：新增 5 张旧事件图（goddess-statue/trap/supply-pile/treasure-chest/demon-statue，复制自素材库，共 15 张）。
+  - `dungeon-event-definitions.js`：`NEW_EVENT_BG_IMAGES` 重命名为 `EVENT_BG_IMAGES` 并追加 5 个旧事件键；`dungeon-event-system.js` 导入同步。
+  - `dungeon-event-system.js`：背景层改为 `background-size: auto; position: center`（原图比例/大小不变居中平铺，其余纯黑）；事件/结果面板去硬编码宽度（`left:151px; right:151px; bottom:88px; height:243px` 固定像素、随视口全宽拉伸，2K 不再只占一半）；选择副标题简化为 `检定<属性>-成功率<xx>%`（省略属性点数与长说明）。
+  - `data/combat-formulas.json`：`player.expPerLevel.globalMultiplier` 2→4（升级所需经验整体翻倍，maxExp 重算同步）。
+  - `subsystems.js gainExp`：升级循环内 `updateMaxStats()` 后 `d.hp=d.maxHp; d.mp=d.maxMp`（每级回满血蓝，连升同样生效）。
+  - `data-loader.js buildSkillFromJSON` + `subsystems.js` fallback 构建器：补 `expRewards` 字段 → 全部技能恢复击杀/暴击经验获取。
+- **测试结果**：combat-formulas.json 校验通过（globalMultiplier=4）；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①地牢毒液 footprint/阴影明显变小、胖子 100 范围外不抬手；②事件背景原比例居中、2K 面板全宽、选择栏新格式；③旧 5 事件背景图；④升级回满血蓝、步枪精通击杀获得经验。技能经验恢复后升级节奏明显变化（此前全技能经验恒为 0），属修复本意。
+
+## 2026-07-17（胖子尸体残留修复 + 地牢枪口同步 + 强绑定规则）
+
+### 对话：两个场景差异 Bug 修复 + 新增强绑定工作规则（v0.198+）
+- **Bug 1 根因（胖子僵尸死后黄色贴图残留）**：多波次战斗中一波全灭 1.5s 后 `CombatRoomSystem.cleanupMonstersOnly()` 直接 `Game.entities.delete(key)` 不销毁 `_phaserSprite` → 尸体 Sprite 成孤儿，`_updateCorpse` 随实体删除永不执行，黄色尸体在后续波次永久残留（单波房间等够 7.5s 会正常自毁，主神空间因场景切换清理而不显现）。
+- **Bug 2 根因（地牢子弹不从枪口射出）**：地牢路线图模式把 `weaponSprite.setActive(false)`（GameScene.js），进入战斗房后 `syncWeapon` 每帧只恢复 `setVisible(true)`，全代码无任何 `setActive(true)` 恢复（玩家贴图有、武器没有）→ `_getMuzzleWorldPosition` 的 `sprite.active` 守卫失败返回 null → 回退脚底相对算法。主神空间不进地图模式所以正常。`_spawnShellCasing` 同病。
+- **修改文件**：
+  - `src/game.js`：新增统一实体移除入口 `removeEntity(key)`——删除前销毁 `_phaserSprite`/`_phaserLabel` 并调用 `_destroyPhaserSprite()`（如有），强绑定、场景无关。
+  - `src/world/combat-room-system.js`：`cleanupMonstersOnly()`（核心泄漏点）与 `cleanupRoom()` 改用 `Game.removeEntity(key)`。
+  - `src/world/dungeon-map-system.js`：`_cleanupCombat()` 怪物清理改用 `Game.removeEntity(key)`。
+  - `src/world/boss-reward-system.js`：小怪（onDeath）、Boss（cleanup）、出口传送门（leaveBossBattle/cleanup 两处）共 4 处改用 `Game.removeEntity(key)`。
+  - `src/phaser/scenes/GameScene.js`：`update()` 非地图模式分支追加武器/副手贴图 `setActive(true)` 恢复（与 playerSprite 恢复同模式，可见性仍由 syncWeapon 控制）。
+  - `src/entities/player/subsystems.js`：`_getMuzzleWorldPosition` 与 `_spawnShellCasing` 守卫去掉 `!sprite.active` 条件（保留 visible/texture 检查，双保险）。
+  - `WORKING-GUIDELINES.md`：新增**原则 10：修改强绑定全场景生效** + 提交检查清单对应项。
+  - `docs/work-rules.md`：第一节最高优先级规则追加**规则 5** 同内容。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①地牢多波次战斗第一波杀胖子僵尸，尸体贴图在波次切换时消失；②地牢战斗房开枪子弹/蛋壳从枪口射出；③主神空间开枪枪口与胖子尸体 7.5s 自毁回归正常。
+
+## 2026-07-17（僵尸地牢事件背景图 + 地形贴图替换）
+
+### 对话：10 张事件背景图接入 + 3 张地形图替换（v0.198+）
+- **素材（规则 4：先复制进项目再开发）**：
+  - 新建 `assets/scenes/dungeon-events/`，从素材库复制 10 张事件背景图（3072×2048）并按事件键重命名为英文：collapsed-archway / undead-scholar-notes / blood-altar / misty-crossroad / cursed-armor / poison-mushroom-circle / abyssal-gambler / blessed-fountain / locked-armory / phantom-mirror。
+  - `assets/terrain/blackbrick.png`、`blackbrick2.png`、`blackbrick3.png` 用素材库 3 张 512×512 新图覆盖替换（旧 256×256 图即被删除）；BootScene 加载键/路径不变。
+- **修改文件**：
+  - `src/world/dungeon-event-definitions.js`：新增导出 `NEW_EVENT_BG_IMAGES` 映射表（事件键 → 背景图路径，配置驱动；旧 5 事件无对应图片未配置，保持原样）。
+  - `src/world/dungeon-event-system.js`：新增 `_createEventBgLayer(eventType)`——全屏背景层（`position:fixed; left:0; bottom:0; 100vw×100vh; background-size:100% 100%` 平铺拉伸，bottom 固定像素定位符合规则 3）；`_showEventUI` 与 `_showResultUI`（经 `this._currentEventType` 查表）均在面板之下插入背景层，有背景图时面板背景由 0.98 调为 0.85 半透明透出底图。
+  - `src/world/combat-room-system.js`：新增 `FLOOR_TILE_DRAW_SIZE`（32-2=30，四边各内缩 1px → 相邻小砖留 2px 纯黑缝隙）与 `FLOOR_TILE_RADIUS`（4，圆角矩形裁剪，小砖边缘圆滑，`roundRect` 缺失时回退直角）；32 切分、8 随机朝向、均匀概率、相邻不同块、64px 外圈黑渐变、灰黑 tint 均不变；新图 512×512 由现有逻辑自动推导为 16×16=256 子块/图（候选池 768）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅（仅已知动态导入警告）；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：
+  - 实机待验证：事件全屏背景图与半透明面板观感；地牢地板圆角砖 + 2px 黑缝视觉。
+  - 10 张背景图共约 65MB 原图，如需瘦身可后续在隔离环境批量缩放至 1920 宽。
+
+## 2026-07-17（毒液判定缩小/胖子攻击触发/近战动画锁/怪物HP/地牢地板32×32）
+
+### 对话：四项战斗与地牢调整（v0.198+）
+- **修改文件**：
+  - `data/enemy-config.json`：
+    - `spitterZombie.collisionRadius` 10 → 7.07（脚部 footprint 椭圆判定**面积**减少 50%：面积 ∝ r²，故 r × √0.5 ≈ 0.707；groundRadius 为阴影/分离/命中判定唯一来源，随动缩小）；`hp/maxHp` 150 → 120。
+    - `fatZombie` 新增 `"attackDistance": 100`（= attackRange）：胖子僵尸只有目标进入攻击范围才发动攻击（原触发距离为 attackRange × 1.15 = 115）。
+    - `zombieDog.hp/maxHp` 60 → 100；`zombie.hp/maxHp` 100 → 120；`zombieWizard.hp/maxHp` 500 → 600。
+  - `src/entities/player/update.js`：近战普通攻击增加输入闸门——攻击动画未播放完（`weaponAnim.state === 'attacking'`，三条近战 Tween 路径全覆盖）时忽略左键输入：不重播攻击动画、不产生新的攻击判定；冲刺攻击/弓箭/枪械分支不受影响。
+  - `src/world/combat-room-system.js`：僵尸地牢地板由 256×256 整图平铺改为将三张 blackbrick 源图切割为 32×32 子块（3 × 8 × 8 = 192 块候选池）随机拼铺；每块随机 8 种朝向（4 旋转 × 水平翻转，覆盖全部二面体群朝向），相邻（上/左）不使用同一子块；边缘黑渐变与灰黑 tint 逻辑不变，烘焙仍为一整张贴图（一次性开销）。
+- **钩稽确认**：enemy-config.json 无 `public/` 副本（单源，Vite 打包导入）；地牢工厂 `zombie-dungeon.js` 与主神空间 `spawnMain*` 均展开 `...cfg` 继承配置，HP/判定改动自动生效；图鉴经 DataLoader 读同一配置自动同步。
+- **测试结果**：enemy-config.json JSON 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：
+  - 毒液僵尸 collisionRadius 7.07 会同步缩小阴影/实体分离/近战地面判定（与 groundRadius 强绑定设计一致）；若只需缩小投射物椭圆判定需另提方案。
+  - 实机待验证：胖子僵尸攻击触发距离手感、近战连点锁定手感、32×32 地板视觉。
+
+## 2026-07-17（工作规则文档修订）
+
+### 对话：删除过时规则 + 新增 4 条最高优先级规则
+- **修改文件**：
+  - `docs/work-rules.md`：整体重写。删除 legacy.js 单文件时代的全部过时内容（单文件架构禁令、legacy 备份命令、旧 DOM/CSS 限制、legacy 语境的对话迁移机制、旧命令速查）；保留仍有效的开发工作流、代码修改安全规则（数值保护/先注释后删/深拷贝/onmouseenter）、冒烟测试清单、沟通规则、质量门禁；备份命令更新为 `node scripts/backup.js`，验证三件套更新为 lint / build / test-collider。
+  - `WORKING-GUIDELINES.md`：版本号更新为 V0.198+；新增原则 6-9；提交检查清单同步增加 4 项自查。
+- **新增 4 条规则（与旧规则冲突时以新规则为准）**：
+  1. 能不硬编码就不硬编码（数值/路径/坐标入配置，唯一真相源；改数值仍需用户确认）。
+  2. 开发功能前注意冲突和钩稽关系（同步链路示例：equipment.json 双份、enemy-config ↔ 地牢工厂 ↔ 图鉴 ↔ BootScene、判定逻辑 ↔ 调试可视化）。
+  3. 窗口贴图与实体生成固定显示统一使用 `bottom: 固定像素`。
+  4. 素材先复制进项目 `assets/` 子文件夹再开展工作，禁止引用项目外路径。
+- **测试结果**：纯文档改动，无代码变更，未触发 lint/build。
+- **已知问题**：无。
+
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
 ### 对话：弹反恢复（旧木盾数据补全）+ 掉落物显示/拾取更新（v0.198+）

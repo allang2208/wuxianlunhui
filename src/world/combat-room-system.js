@@ -27,9 +27,13 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
-// 僵尸地牢地板贴图键（3 张图等概率，4 方向旋转，相邻不重复）
+// 僵尸地牢地板贴图键（源图切割为 32×32 小砖随机拼铺，相邻小砖不使用同一子块）
 const FLOOR_TEXTURE_KEYS = ['blackbrick', 'blackbrick2', 'blackbrick3'];
-const FLOOR_TILE_SIZE = 256;
+const FLOOR_TILE_SIZE = 32;
+// 小砖实际绘制尺寸：四边各内缩 1px，相邻小砖之间形成 2px 纯黑缝隙
+const FLOOR_TILE_DRAW_SIZE = FLOOR_TILE_SIZE - 2;
+// 小砖圆角半径（边缘圆滑处理）
+const FLOOR_TILE_RADIUS = 4;
 // 将三张略有偏色的贴图统一为灰黑色（null = 保留原图；填写颜色则统一色调）
 const FLOOR_TINT_COLOR = '#333333';
 
@@ -332,11 +336,13 @@ export const CombatRoomSystem = {
         // 清理掉落物（金币、装备等）
         this.cleanupDrops();
 
-        // 删除所有战斗怪物
+        // 删除所有战斗怪物（经统一入口，同步销毁贴图，避免尸体残留）；
+        // 存活尸体（如胖子僵尸尸体）跳过删除，只会因持续时间到而消失
         for (const key of this._combatMonsterKeys) {
             const Game = gameRef();
-            if (Game && Game.entities) {
-                Game.entities.delete(key);
+            if (Game && typeof Game.removeEntity === 'function') {
+                if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
+                Game.removeEntity(key);
             }
         }
         this._combatMonsters = [];
@@ -362,10 +368,13 @@ export const CombatRoomSystem = {
      * 仅清理怪物（保留场地，用于多波次战斗）
      */
     cleanupMonstersOnly() {
+        // 经统一入口删除，同步销毁贴图（修复多波次战斗胖子僵尸尸体残留）；
+        // 存活尸体（如胖子僵尸尸体）跳过删除，按自身计时器走完生命周期、持续造成腐蚀伤害
         for (const key of this._combatMonsterKeys) {
             const Game = gameRef();
-            if (Game && Game.entities) {
-                Game.entities.delete(key);
+            if (Game && typeof Game.removeEntity === 'function') {
+                if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
+                Game.removeEntity(key);
             }
         }
         this._combatMonsters = [];
@@ -478,8 +487,9 @@ export const CombatRoomSystem = {
     },
 
     _generateTerrain(size) {
-        // 使用 blackbrick / blackbrick2 / blackbrick3 三张图随机平铺战斗场地
-        // 相邻地块贴图不同，每张地块随机 4 个朝向；墙壁与地板一起烘焙到同一张贴图
+        // 使用 blackbrick / blackbrick2 / blackbrick3 三张 256×256 源图，
+        // 切割为 32×32 小砖随机拼铺战斗场地：每块随机子块、随机朝向（4 旋转 × 水平翻转），
+        // 相邻（上/左）不使用同一子块；墙壁与地板一起烘焙到同一张贴图
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
@@ -504,16 +514,32 @@ export const CombatRoomSystem = {
             const cols = Math.ceil(size / tileSize);
             const rows = Math.ceil(size / tileSize);
 
-            // 生成贴图/旋转网格：相邻（上、左）贴图不能相同
-            const textureGrid = Array.from({ length: rows }, () => []);
-            const rotationGrid = Array.from({ length: rows }, () => []);
+            // 将三张 256×256 源图切割为 32×32 子块，组成候选池（3 × 8 × 8 = 192 块）
+            const tilePool = [];
+            for (const img of sources) {
+                const subCols = Math.max(1, Math.floor(img.width / tileSize));
+                const subRows = Math.max(1, Math.floor(img.height / tileSize));
+                for (let sr = 0; sr < subRows; sr++) {
+                    for (let sc = 0; sc < subCols; sc++) {
+                        tilePool.push({ img, sx: sc * tileSize, sy: sr * tileSize });
+                    }
+                }
+            }
+
+            // 生成子块/朝向网格：相邻（上、左）子块不能相同；朝向 = 4 旋转 × 水平翻转共 8 种
+            const pickGrid = Array.from({ length: rows }, () => []);
+            const orientGrid = Array.from({ length: rows }, () => []);
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    const top = r > 0 ? textureGrid[r - 1][c] : null;
-                    const left = c > 0 ? textureGrid[r][c - 1] : null;
-                    const candidates = FLOOR_TEXTURE_KEYS.filter(k => k !== top && k !== left);
-                    textureGrid[r][c] = candidates[Math.floor(Math.random() * candidates.length)];
-                    rotationGrid[r][c] = Math.floor(Math.random() * 4); // 0/1/2/3 × 90°
+                    const top = r > 0 ? pickGrid[r - 1][c] : null;
+                    const left = c > 0 ? pickGrid[r][c - 1] : null;
+                    let pick = tilePool[Math.floor(Math.random() * tilePool.length)];
+                    // 候选池足够大，重试几次即可避开与上/左相同的子块
+                    for (let attempt = 0; attempt < 8 && (pick === top || pick === left); attempt++) {
+                        pick = tilePool[Math.floor(Math.random() * tilePool.length)];
+                    }
+                    pickGrid[r][c] = pick;
+                    orientGrid[r][c] = Math.floor(Math.random() * 8); // bit0-1: 旋转 0/90/180/270，bit2: 水平翻转
                 }
             }
 
@@ -524,23 +550,35 @@ export const CombatRoomSystem = {
             ctx.clip();
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    const sx = c * tileSize;
-                    const sy = r * tileSize;
-                    const cx = sx + tileSize / 2;
-                    const cy = sy + tileSize / 2;
-                    const keyIdx = FLOOR_TEXTURE_KEYS.indexOf(textureGrid[r][c]);
-                    const source = sources[keyIdx];
-                    const rot = rotationGrid[r][c];
+                    const dx = c * tileSize;
+                    const dy = r * tileSize;
+                    const cx = dx + tileSize / 2;
+                    const cy = dy + tileSize / 2;
+                    const tile = pickGrid[r][c];
+                    const orient = orientGrid[r][c];
+                    const rot = orient & 3;
+                    const flipX = (orient & 4) !== 0;
 
                     ctx.save();
                     ctx.translate(cx, cy);
                     ctx.rotate((rot * Math.PI) / 2);
-                    ctx.drawImage(source, -tileSize / 2, -tileSize / 2, tileSize, tileSize);
+                    if (flipX) ctx.scale(-1, 1);
+                    // 圆角矩形裁剪：小砖边缘圆滑；四边内缩 1px，相邻小砖留 2px 纯黑缝隙
+                    const half = FLOOR_TILE_DRAW_SIZE / 2;
+                    ctx.beginPath();
+                    if (typeof ctx.roundRect === 'function') {
+                        ctx.roundRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_RADIUS);
+                    } else {
+                        ctx.rect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
+                    }
+                    ctx.clip();
+                    // 从源图切出对应 32×32 子块绘制（源取整 32，目标内缩为 30×30）
+                    ctx.drawImage(tile.img, tile.sx, tile.sy, tileSize, tileSize, -half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
                     if (FLOOR_TINT_COLOR) {
                         // 使用 'color' 合成：保留原图明暗，只替换色相/饱和度，统一为灰黑色
                         ctx.globalCompositeOperation = 'color';
                         ctx.fillStyle = FLOOR_TINT_COLOR;
-                        ctx.fillRect(-tileSize / 2, -tileSize / 2, tileSize, tileSize);
+                        ctx.fillRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
                         ctx.globalCompositeOperation = 'source-over';
                     }
                     ctx.restore();

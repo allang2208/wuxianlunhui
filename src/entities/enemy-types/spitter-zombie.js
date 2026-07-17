@@ -206,7 +206,8 @@ export class SpitterZombie extends Enemy {
     }
 
     _getPhaserOptions() {
-        const spriteSize = 90;
+        const renderCfg = this.config?.render || {};
+        const spriteSize = renderCfg.spriteSize || 90;
         let flipX = false;
         if (this.target && this.target.active) {
             flipX = this.target.x < this.x;
@@ -217,8 +218,8 @@ export class SpitterZombie extends Enemy {
         }
         return {
             spriteSize,
-            collisionWidth: 30,
-            collisionHeight: 90,
+            collisionWidth: renderCfg.collisionWidth || 30,
+            collisionHeight: renderCfg.collisionHeight || 90,
             textOffsetY: -spriteSize / 2 - 10,
             flipX,
             animState: this._animState,

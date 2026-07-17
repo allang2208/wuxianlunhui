@@ -63,7 +63,7 @@
       "levelMultiplier": 20,
       "levelSquareMultiplier": 12,
       "finalMultiplier": 2,
-      "globalMultiplier": 2
+      "globalMultiplier": 4
     },
     "staminaRegen": {
       "base": 1.0,

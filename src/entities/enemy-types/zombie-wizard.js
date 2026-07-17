@@ -423,10 +423,11 @@ export class ZombieWizard extends Enemy {
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
         }
+        const renderCfg = this.config?.render || {};
         const options = {
-            spriteSize: 120,
-            collisionWidth: 30,
-            collisionHeight: 90,
+            spriteSize: renderCfg.spriteSize || 120,
+            collisionWidth: renderCfg.collisionWidth || 30,
+            collisionHeight: renderCfg.collisionHeight || 90,
             textOffsetY: -70,
             flipX,
             animState: this._animState,

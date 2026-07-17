@@ -3,7 +3,7 @@ import { EquipManager } from '../ui/equip-manager.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { TypewriterText } from '../ui/typewriter-text.js';
-import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, handleNewDungeonEvent } from './dungeon-event-definitions.js';
+import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, handleNewDungeonEvent } from './dungeon-event-definitions.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -1110,6 +1110,22 @@ export const DungeonEventSystem = {
     /**
      * 显示事件UI
      */
+    /**
+     * 创建事件全屏背景层（仅 EVENT_BG_IMAGES 中配置的事件）
+     * cover 等比铺满全屏（不变形、无黑边，边缘少量裁切），left:0 / bottom:0 固定像素定位
+     */
+    _createEventBgLayer(eventType) {
+        const bgImage = EVENT_BG_IMAGES[eventType];
+        if (!bgImage) return null;
+        const bg = document.createElement('div');
+        bg.style.cssText = `
+            position: fixed; left: 0; bottom: 0; width: 100vw; height: 100vh;
+            background-image: url('${bgImage}'); background-size: cover;
+            background-position: center center; background-repeat: no-repeat;
+        `;
+        return bg;
+    },
+
     _showEventUI(eventType, config, player) {
         this._cleanupUI();
 
@@ -1121,11 +1137,15 @@ export const DungeonEventSystem = {
             font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
         `;
 
-        // 事件面板：固定在地牢模式坐标工具测得的位置
+        // 新事件：全屏背景图（位于事件面板之下）
+        const bgLayer = this._createEventBgLayer(eventType);
+        if (bgLayer) overlay.appendChild(bgLayer);
+
+        // 事件面板：left/right/bottom/height 固定像素，宽度随视口全宽拉伸
         const panel = document.createElement('div');
         panel.style.cssText = `
-            position: fixed; left: 151px; bottom: 88px; width: 1567px; height: 243px;
-            background: rgba(42, 37, 32, 0.98); border: 2px solid #5a4a3a; border-radius: 12px;
+            position: fixed; left: 151px; right: 151px; bottom: 88px; height: 243px;
+            background: ${bgLayer ? 'rgba(42, 37, 32, 0.85)' : 'rgba(42, 37, 32, 0.98)'}; border: 2px solid #5a4a3a; border-radius: 12px;
             padding: 22px 32px; color: #d4c5a9;
             box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
             display: flex; flex-direction: row; gap: 32px; overflow: hidden;
@@ -1213,7 +1233,8 @@ export const DungeonEventSystem = {
             const attrNames = { str: '力量', dex: '敏捷', con: '体质', int: '智力', wis: '精神', luck: '幸运' };
             const attrName = attrNames[choice.attribute] || choice.attribute;
             const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate || 20);
-            subSpan.textContent = `${choice.description || ''} 检定：${attrName} ${checkResult.attrValue} 点 | 成功率 ${checkResult.rate.toFixed(0)}%`;
+            // 副标题简化：检定<属性>-成功率<xx%>（省略属性点数与长说明）
+            subSpan.textContent = `检定${attrName}-成功率${checkResult.rate.toFixed(0)}%`;
         } else {
             subSpan.textContent = choice.description || '';
         }
@@ -1237,10 +1258,14 @@ export const DungeonEventSystem = {
             font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
         `;
 
+        // 新事件：结果页同样显示全屏背景图（位于面板之下）
+        const bgLayer = this._createEventBgLayer(this._currentEventType);
+        if (bgLayer) overlay.appendChild(bgLayer);
+
         const panel = document.createElement('div');
         panel.style.cssText = `
-            position: fixed; left: 151px; bottom: 88px; width: 1567px; height: 243px;
-            background: rgba(42, 37, 32, 0.98); border: 2px solid #5a4a3a; border-radius: 12px;
+            position: fixed; left: 151px; right: 151px; bottom: 88px; height: 243px;
+            background: ${bgLayer ? 'rgba(42, 37, 32, 0.85)' : 'rgba(42, 37, 32, 0.98)'}; border: 2px solid #5a4a3a; border-radius: 12px;
             padding: 22px 32px; color: #d4c5a9;
             box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
             display: flex; flex-direction: row; gap: 32px; overflow: hidden;

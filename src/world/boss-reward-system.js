@@ -706,8 +706,8 @@ function createBigBossClass() {
             if (minion.entity && minion.entity.active) {
                 minion.entity.active = false;
             }
-            if (Game.entities && Game.entities.has(minion.key)) {
-                Game.entities.delete(minion.key);
+            if (Game.entities && Game.entities.has(minion.key) && typeof Game.removeEntity === 'function') {
+                Game.removeEntity(minion.key);
             }
         }
         this._summonedMinions = [];
@@ -1175,8 +1175,8 @@ export class BossBattleManager {
 
     leaveBossBattle() {
         // 删除传送门
-        if (this._exitPortalKey && Game.entities) {
-            Game.entities.delete(this._exitPortalKey);
+        if (this._exitPortalKey && Game.entities && typeof Game.removeEntity === 'function') {
+            Game.removeEntity(this._exitPortalKey);
         }
         this._exitPortal = null;
         this._exitPortalKey = null;
@@ -1196,15 +1196,15 @@ export class BossBattleManager {
         if (!this.active) return;
 
         // 删除 Boss 实体
-        if (this.bossKey && Game.entities) {
-            Game.entities.delete(this.bossKey);
+        if (this.bossKey && Game.entities && typeof Game.removeEntity === 'function') {
+            Game.removeEntity(this.bossKey);
         }
         this.boss = null;
         this.bossKey = null;
 
         // 删除传送门
-        if (this._exitPortalKey && Game.entities) {
-            Game.entities.delete(this._exitPortalKey);
+        if (this._exitPortalKey && Game.entities && typeof Game.removeEntity === 'function') {
+            Game.removeEntity(this._exitPortalKey);
         }
         this._exitPortal = null;
         this._exitPortalKey = null;

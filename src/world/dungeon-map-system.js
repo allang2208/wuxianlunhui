@@ -838,7 +838,11 @@ export const DungeonMapSystem = {
         }
 
         for (const key of this._combatMonsterKeys) {
-            Game.entities.delete(key);
+            if (typeof Game.removeEntity === 'function') {
+                // 存活尸体（如胖子僵尸尸体）跳过删除，按自身计时器走完生命周期
+                if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
+                Game.removeEntity(key);
+            }
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];

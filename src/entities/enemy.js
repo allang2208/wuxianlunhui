@@ -104,6 +104,8 @@ import { loadImage } from '../utils/image-loader.js';
                 this.aiInterval = config.aiInterval ?? defaults.aiInterval ?? 300;
                 this.target = null;
                 this.attackRange = config.attackRange || config.dashDistance || defaults.attackRange || 70;
+                // 纯距离攻击判定（CombatSystem 优先读取；undefined 时回退 attackRange * 1.15）
+                this.attackDistance = config.attackDistance;
                 // 保存原始 AI 属性，供 FSM 阶段切换时计算倍率
                 this._baseAiInterval = this.aiInterval;
                 this._baseAttackRange = this.attackRange;
