@@ -1165,3 +1165,17 @@ Phaser Sprite.x / y / rotation / scale
   - 冰锥/火球/符文剑飞行命中接入；爆炸 AOE 与近战判定不变
   - 7 只精灵图怪物写入实测 `render.projectileHitbox`；GameScene 绿色调试矩形
   - 验证：22 个躯干单测全过、lint / build 通过
+
+- v2.7 (2026-07-17) — 战斗/视觉六项调整 + 弹反修复 + 掉落物更新
+  - **近战判定地面化**：`skill-shapes.js` 新增 `GroundSector` / `GroundDirectedRect`（只看 footprint、不查 Z、飞行免疫）；`attack.js` 斩击/突刺判定原点归回攻击者脚底（移除 footOffsetY 上移），范围可视化同步；推击/夜与火/冲刺/mutant-3 未动
+  - **枪械精准对准**：`syncWeapon` 远程武器贴图旋转改为 `atan2(鼠标世界 − 武器位置)`（主手+副手），消除"脚底→鼠标"枢轴视差导致的固定角度偏移；弹道原本即朝准心，改后贴图=弹道=准心三者一致
+  - **玩家 footprint 缩小 25%**：`player-defaults.js` collisionRadius 30→22.5；`Entity.groundRadius` 注释为阴影/footprint/分离/命中判定唯一来源（强绑定，阴影随动缩小）
+  - **胖子僵尸攻击位移取消**：`_updateLeanOffset` 攻击分支归 0，攻击时阴影/footprint 不再前移（walk 前倾保留）
+  - **僵尸受击粒子**：锚点从脚底改为贴图中心（y − footOffsetY），保留朝源侧偏
+  - **枪械蛋壳**：从武器贴图中心弹出，向上抛起后受重力（1000）落至脚下；`shell-casing.js` 新增可选 groundY 参数
+  - **地牢刷怪特效**：`playDungeonSpawnParticles`——纯黑、更慢、1.5s、数量+30%，NORMAL 混合（黑色在 ADD 下不可见）；`combat-room-system.spawnMonsters` 逐怪脚下触发
+  - **删除金属/奔跑僵尸**：enemy-config 删 armoredZombie/runnerZombie/fastZombie，zombie-dungeon 工厂+映射级联清理，图鉴自动同步
+  - **弹反修复（数据缺陷）**：根因非碰撞系统——`旧木盾`装备条目缺 `weaponType: 'shield'` + 整个 `defense` 块，`checkEquipped()` 永远 false 致盾系统不激活；已补全（数值与小圆盾一致，弹反属性未改），双份 equipment.json 同步。**教训**：系统逻辑完好的"功能失效"优先查数据/配置完整性
+  - **掉落物**：贴图×1.5（48/悬停60）保持浮动，装备文字固定不浮动；悬停拾取 35→52、Z 键范围 75→112、pickupRange 30→45 匹配
+  - **遗留未决**：复活后子弹不从枪口射出——两条死亡路径实测枪口均完好，未复现，待具体场景线索
+  - 验证：35 个单测全过（含 13 个地面形状用例）、lint / build 通过
