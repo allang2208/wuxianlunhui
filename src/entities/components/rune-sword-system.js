@@ -7,6 +7,7 @@ import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { pointHitsTorso } from '../../physics/torso-hitbox.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;
@@ -156,7 +157,8 @@ export class RuneSwordSystem {
             const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15);
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
-                if (!hitShape.intersectsEntity(entity)) return;
+                // 地面 footprint 或 躯干矩形（投射物贴图身体位置）任一命中即算命中
+                if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, sword.flyX, sword.flyY, 15)) return;
                 const d = this.player.data;
                 const physAtk = this.player.getCurrentWeaponAtk();
                 const magicAtk = d.matk || 0;

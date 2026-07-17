@@ -138,4 +138,31 @@ assert(segmentIntersectsExpandedRect(0, 0, 0, 0, 0, zCy, zHalfW, zHalfH, 2),
 assert(!segmentIntersectsExpandedRect(0, 50, 0, 50, 0, zCy, zHalfW, zHalfH, 2),
     'zero-length segment outside rect misses');
 
+// --- Shared torso-hitbox module (skill projectiles point check) ---
+const { getTorsoRect, pointHitsTorso, segmentHitsTorso } = await import('../src/physics/torso-hitbox.js');
+const zombieLike = {
+    collisionWidth: 30,
+    config: { render: { projectileHitbox: { width: 31, height: 103, offsetX: 0, bottom: 0 } } },
+    collider: { x: 100, y: 200, radius: 25, height: 120, elevation: ELEVATION.GROUND },
+};
+const torso = getTorsoRect(zombieLike);
+assert(torso && torso.cx === 100 && Math.abs(torso.cy - (200 - 51.5)) < 1e-9 && torso.halfW === 15.5,
+    'torso rect derives from projectileHitbox config');
+assert(pointHitsTorso(zombieLike, 100, 160, 12), 'skill point at torso height hits');
+assert(pointHitsTorso(zombieLike, 100, 105, 12), 'skill point near head within radius hits');
+assert(!pointHitsTorso(zombieLike, 100, 60, 12), 'skill point far above torso misses');
+assert(!pointHitsTorso(zombieLike, 150, 160, 12), 'skill point beside torso misses');
+assert(segmentHitsTorso(zombieLike, 0, 160, 300, 160, 2), 'segment through torso hits');
+// 缺省推导：无 projectileHitbox 时取 collisionWidth × 身高
+const defaultDerive = {
+    collisionWidth: 30,
+    config: { render: {} },
+    collider: { x: 0, y: 0, radius: 25, height: 120, elevation: ELEVATION.GROUND },
+};
+const dRect = getTorsoRect(defaultDerive);
+assert(dRect && dRect.halfW === 15 && dRect.halfH === 60, 'torso rect falls back to collisionWidth x height');
+// 飞行单位免疫点判定（与 GroundCircle 语义一致）
+const flyingLike = { ...zombieLike, collider: { ...zombieLike.collider, elevation: ELEVATION.FLYING } };
+assert(!pointHitsTorso(flyingLike, 100, 160, 12), 'flying entity immune to torso point check');
+
 console.log('\nAll Collider / 3D collision tests passed.');

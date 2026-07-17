@@ -10,6 +10,25 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：技能投射物接入躯干矩形判定（冰锥/火球/符文剑）（v0.198+）
+- **修改文件**：
+  - `src/physics/torso-hitbox.js`（新建）：躯干矩形**共享判定模块**——`getTorsoRect`（唯一推导口径：render.projectileHitbox，缺省 collisionWidth × 身高）、`segmentHitsTorso`（扫掠线段）、`pointHitsTorso`（逐帧点判定，FLYING 免疫与 GroundCircle 语义对齐）。
+  - `src/combat/projectile.js`：`_hitTorsoRect` 改为调用共享模块，行为不变。
+  - `src/entities/components/ice-spike-system.js`：冰锥飞行命中改为 GroundCircle ∪ 躯干矩形（r=12）。
+  - `src/entities/components/fireball-system.js`：火球**飞行**命中改为 GroundCircle ∪ 躯干矩形（r=20）；爆炸 AOE（GroundCircle）未动。
+  - `src/entities/components/rune-sword-system.js`：符文剑飞行命中改为 GroundCircle ∪ 躯干矩形（r=15）。
+  - `src/phaser/scenes/GameScene.js`：绿色调试矩形改用共享模块推导，与判定口径一致。
+  - `scripts/test-collider.mjs`：新增 10 个共享模块用例（推导/点判定/缺省/FLYING 免疫）。
+  - `CHANGELOG.md`：本记录。
+- **修改内容摘要**：
+  1. 冰锥/火球/符文剑命中贴图身体位置（躯干高度）现在有效，与枪械同一判定口径。
+  2. 判定推导集中在 torso-hitbox.js 一处，投射物/技能/调试可视化三方共用，无重复编码。
+  3. 爆炸 AOE、近战判定未做任何改动。
+- **测试结果**：`node scripts/test-collider.mjs` 全部通过（累计 22 个躯干用例）；`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - 实机手感未验证：技能投射物躯干命中是否过宽，可用"范围"按钮绿矩形对照微调。
+  - 无人机/旋风/推击/夜与光柱等 AOE 类技能维持原判定，未纳入（非投射物）。
+
 ### 对话：投射物新增躯干矩形判定（方案 B，仅投射物）（v0.198+）
 - **修改文件**：
   - `src/physics/collision-3d.js`：新增 `segmentIntersectsExpandedRect`（Liang-Barsky 线段-膨胀矩形相交，零长线段退化为点包含）。

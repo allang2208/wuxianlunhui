@@ -7,6 +7,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { pointHitsTorso } from '../../physics/torso-hitbox.js';
 
 /**
  * 火球系统（通用版）
@@ -203,7 +204,8 @@ export class FireballSystem {
         const hitShape = new GroundCircle(fb.flyX, fb.flyY, 20);
         for (const entity of entityList) {
             if (!this._isHostile(entity) || !entity.active || !entity.hittable) continue;
-            if (hitShape.intersectsEntity(entity)) {
+            // 地面 footprint 或 躯干矩形（投射物贴图身体位置）任一命中即算命中
+            if (hitShape.intersectsEntity(entity) || pointHitsTorso(entity, fb.flyX, fb.flyY, 20)) {
                 hitEntity = entity;
                 break;
             }
