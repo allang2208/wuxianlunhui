@@ -50,6 +50,10 @@ gainExp(amount) {
                     d.level++;
                     d.maxExp = this.getExpForLevel(d.level);
                     d.attrPoints += 2;
+                    // 升级时回复满生命值和魔法值
+                    this.updateMaxStats();
+                    d.hp = d.maxHp;
+                    d.mp = d.maxMp;
                     this.onLevelUp(d.level);
                 }
                 // 同步更新经验值UI（底部经验条）
@@ -305,6 +309,8 @@ _initSkills() {
                                 maxLevel: data.maxLevel || 20,
                                 exp: 0,
                                 maxExp: getDefaultSkillMaxExp(),
+                                // 击杀/暴击等经验奖励（与 buildSkillFromJSON 同口径）
+                                expRewards: data.expRewards || {},
                                 tags: data.tags || [],
                                 getEffect(level) {
                                     const result = {};
@@ -1264,7 +1270,8 @@ _getMuzzleWorldPosition(hand = 'main') {
                 const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
                 if (!scene) return null;
                 const sprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
-                if (!sprite || !sprite.active || !sprite.visible || !sprite.texture) return null;
+                // 不检查 sprite.active：地图模式曾置 false，位置仍由 syncWeapon 每帧同步，可见即可用
+                if (!sprite || !sprite.visible || !sprite.texture) return null;
                 const halfLen = sprite.displayWidth * 0.5;
                 const cos = Math.cos(sprite.rotation);
                 const sin = Math.sin(sprite.rotation);
@@ -1279,7 +1286,8 @@ _spawnShellCasing(hand, gunLX, gunLY, shellOffset, angle) {
                 // 优先：蛋壳从枪械贴图中心弹出，向上抛起后受重力掉落至脚下（2026-07-17 调整）
                 const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
                 const sprite = scene ? (hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite) : null;
-                if (sprite && sprite.active && sprite.visible && sprite.texture) {
+                // 不检查 sprite.active：与 _getMuzzleWorldPosition 同口径，可见即可用
+                if (sprite && sprite.visible && sprite.texture) {
                     EffectFactory.createShellCasing(sprite.x, sprite.y, angle, this.y);
                     return;
                 }

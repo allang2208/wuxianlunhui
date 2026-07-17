@@ -49,6 +49,30 @@ export const NEW_EVENT_WEIGHTS = {
 };
 
 // ============================================================
+// 事件背景图（assets/scenes/dungeon-events/，与事件键一一对应）
+// 10 个新事件 + 5 个旧事件（goddessStatue/trap/supplyPile/treasureChest/demonStatue）
+// ============================================================
+
+export const EVENT_BG_IMAGES = {
+    collapsedArchway: 'assets/scenes/dungeon-events/collapsed-archway.png',
+    undeadScholarNotes: 'assets/scenes/dungeon-events/undead-scholar-notes.png',
+    bloodAltar: 'assets/scenes/dungeon-events/blood-altar.png',
+    mistyCrossroad: 'assets/scenes/dungeon-events/misty-crossroad.png',
+    cursedArmor: 'assets/scenes/dungeon-events/cursed-armor.png',
+    poisonMushroomCircle: 'assets/scenes/dungeon-events/poison-mushroom-circle.png',
+    abyssalGambler: 'assets/scenes/dungeon-events/abyssal-gambler.png',
+    blessedFountain: 'assets/scenes/dungeon-events/blessed-fountain.png',
+    lockedArmory: 'assets/scenes/dungeon-events/locked-armory.png',
+    phantomMirror: 'assets/scenes/dungeon-events/phantom-mirror.png',
+    // 旧 5 事件
+    goddessStatue: 'assets/scenes/dungeon-events/goddess-statue.png',
+    trap: 'assets/scenes/dungeon-events/trap.png',
+    supplyPile: 'assets/scenes/dungeon-events/supply-pile.png',
+    treasureChest: 'assets/scenes/dungeon-events/treasure-chest.png',
+    demonStatue: 'assets/scenes/dungeon-events/demon-statue.png',
+};
+
+// ============================================================
 // 事件配置
 // ============================================================
 

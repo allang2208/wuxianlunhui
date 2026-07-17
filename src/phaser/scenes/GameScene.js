@@ -231,6 +231,10 @@ export class GameScene extends Scene {
                 this.playerSprite.setVisible(true);
                 this.playerSprite.setActive(true);
             }
+            // 武器/副手贴图：地图模式曾 setActive(false)，在此统一恢复 active
+            // （可见性仍由 syncWeapon 控制；枪口计算 _getMuzzleWorldPosition 依赖 active 标志）
+            if (this.weaponSprite && !this.weaponSprite.active) this.weaponSprite.setActive(true);
+            if (this.offhandWeaponSprite && !this.offhandWeaponSprite.active) this.offhandWeaponSprite.setActive(true);
             // 武器 Sprite 的可见性由 syncWeapon 控制，不在 update 中强制显示
             // 避免覆盖 syncWeapon 的隐藏逻辑（如武器切换为空时）
             // 恢复 2.5D 墙壁/树木与地形显示
@@ -786,7 +790,11 @@ export class GameScene extends Scene {
         enemy.collisionShape = 'rect';
         enemy.collisionWidth = collisionWidth;
         enemy.collisionHeight = collisionHeight;
-        enemy.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
+        // footprint（阴影/分离/命中椭圆）以配置 collisionRadius 为准（强绑定唯一来源）；
+        // 仅在未配置（<=0）时回退矩形推导，不再无条件覆盖配置值
+        if (!(enemy.collisionRadius > 0)) {
+            enemy.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
+        }
 
         // Phaser 物理体改为矩形，大小与逻辑碰撞体积一致
         body.setSize(collisionWidth, collisionHeight);

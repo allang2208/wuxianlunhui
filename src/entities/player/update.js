@@ -859,14 +859,18 @@ update(dt, entities) {
                             this.dashSystem.trigger(entities);
                         } else if (isMelee) {
                             // 近战攻击：使用 ThrustAttack
-                            const atk = this.attacks.melee;
-                            if (atk.canUse()) {
-                                const success = atk.execute(this, mouseWorld.x, mouseWorld.y, entities);
-                                if (success) {
-                                    atk.cooldown = atk.maxCooldown;
-                                    this.triggerWeaponAnim();
-                                    // 符文长剑：攻击命中时减少技能CD
-                                    this.runeSwordSystem._triggerCooldownReduction();
+                            // 攻击动画未播放完之前，忽略新的普通攻击输入：
+                            // 不重播攻击动画，也不产生新的攻击判定
+                            if (this.weaponAnim.state !== 'attacking') {
+                                const atk = this.attacks.melee;
+                                if (atk.canUse()) {
+                                    const success = atk.execute(this, mouseWorld.x, mouseWorld.y, entities);
+                                    if (success) {
+                                        atk.cooldown = atk.maxCooldown;
+                                        this.triggerWeaponAnim();
+                                        // 符文长剑：攻击命中时减少技能CD
+                                        this.runeSwordSystem._triggerCooldownReduction();
+                                    }
                                 }
                             }
                         } else if (isBow) {

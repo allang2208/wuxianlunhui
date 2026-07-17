@@ -304,6 +304,39 @@ export const Game = {
         }
     },
 
+    /**
+     * 统一实体移除入口（强绑定，场景无关）：
+     * 从 entities 删除前，先销毁该实体的 Phaser 贴图/标签，避免孤儿贴图残留。
+     * 任何场景（主神空间/地牢/未来场景）删除实体都应走此入口。
+     */
+    removeEntity(key) {
+        const entity = this.entities.get(key);
+        if (entity) {
+            if (entity._phaserSprite) {
+                entity._phaserSprite.destroy();
+                entity._phaserSprite = null;
+            }
+            if (entity._phaserLabel) {
+                entity._phaserLabel.destroy();
+                entity._phaserLabel = null;
+            }
+            if (typeof entity._destroyPhaserSprite === 'function') {
+                entity._destroyPhaserSprite();
+            }
+        }
+        this.entities.delete(key);
+    },
+
+    /**
+     * 是否为"存活尸体"（保留尸体机制，如胖子僵尸）：
+     * 与实体更新循环同口径——尸体在死亡动画/尸体持续期间不被清理，
+     * 只会因自身持续时间到而消失（腐蚀光环继续造成伤害）。
+     */
+    isPreservedCorpse(entity) {
+        return !!(entity && entity._preserveCorpse && !entity.active &&
+            (entity._deathAnimTimer > 0 || entity._corpseTimer > 0));
+    },
+
     spawnMainZombieDog() {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }

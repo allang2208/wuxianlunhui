@@ -254,6 +254,8 @@ const DataLoader = {
             maxLevel: skillData.maxLevel,
             exp: 0,
             maxExp: this.parseSkillExpFormula(expFormula, 1),
+            // 击杀/暴击等经验奖励（此前漏拷导致全技能无法获得经验）
+            expRewards: skillData.expRewards || {},
             tags: skillData.tags || [],
             getEffect(level) {
                 const result = {};

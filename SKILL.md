@@ -1179,3 +1179,25 @@ Phaser Sprite.x / y / rotation / scale
   - **掉落物**：贴图×1.5（48/悬停60）保持浮动，装备文字固定不浮动；悬停拾取 35→52、Z 键范围 75→112、pickupRange 30→45 匹配
   - **遗留未决**：复活后子弹不从枪口射出——两条死亡路径实测枪口均完好，未复现，待具体场景线索
   - 验证：35 个单测全过（含 13 个地面形状用例）、lint / build 通过
+
+- v2.8 (2026-07-17) — 配置链路修复/实体生命周期/事件背景图/技能经验（五轮合并）
+  - **战斗与判定**
+    - 近战普攻输入锁：攻击动画未播完（`weaponAnim.state === 'attacking'`）忽略左键，不重播动画、不产生新判定（`player/update.js`；三条近战 Tween 路径均以 attacking 贯穿全程）
+    - 胖子僵尸 `attackDistance: 100` 真正生效：`enemy.js` 构造函数补 `attackDistance` 映射——此前 config→实例断链，所有敌人 attackDistance 均为死配置，CombatSystem 实际按 attackRange×1.15 触发
+    - footprint 配置优先：`GameScene._configureEnemyBody` 不再无条件用矩形推导覆盖 `collisionRadius`（仅未配置时回退）；毒液 45→7.07（面积-50% 落地）、巫师 45→20、普通僵尸 25→15、突变体3 45→20；spitter/wizard 的 `_getPhaserOptions` 硬编码 30×90 改读 `config.render`
+    - HP 调整：僵尸犬 100/僵尸 120/毒液 120/巫师 600（enemy-config.json 单源，地牢工厂/图鉴自动同步）
+  - **实体生命周期（重要模式）**
+    - `Game.removeEntity(key)`：删除实体前必销毁 `_phaserSprite`/`_phaserLabel`——统一入口，所有清理循环（combat-room/dungeon-map/boss-reward）走这里，杜绝孤儿贴图残留
+    - `Game.isPreservedCorpse(e)`：存活尸体（`_preserveCorpse` 且计时器未走完）在波次/房间清理中**跳过删除**——胖子僵尸尸体保留在地面持续腐蚀，只会因持续时间到而消失（7.5s 自毁贴图、8s 扫描移除）
+    - **教训**：实体删除 = 贴图销毁 + 尸体豁免，二者都必须经统一入口；贴图孤儿化是"贴图残留"类 bug 的统一根因
+  - **场景共享状态陷阱（地牢枪口不同步根因）**
+    - 地图模式 `weaponSprite.setActive(false)` 后全代码无任何恢复 → `_getMuzzleWorldPosition` 的 active 守卫失败 → 回退脚底相对算法（主神空间不进地图模式故正常）
+    - 修复：非地图模式分支统一 `setActive(true)`（与 playerSprite 同模式）+ 守卫放宽不查 active；**教训**：修改必须落在共享链路上全场景生效（工作规则 原则10/规则5）
+  - **地牢视觉**
+    - 地板：blackbrick 三张 512×512 覆盖替换（旧 256 图删除）；切割 32×32 小砖（候选池 768）、8 随机朝向（4 旋转×翻转）、均匀概率、相邻不同块、圆角 4px、四边内缩 1px 留 2px 纯黑缝隙、外圈 64px 黑渐变不变
+    - 事件背景图：15 事件（10 新 + 5 旧）全覆盖，`assets/scenes/dungeon-events/` 英文命名，`EVENT_BG_IMAGES` 配置映射；`cover` 等比铺满、bottom:0 固定像素；事件/结果面板 `left/right/bottom/height` 固定像素全宽拉伸（2K 不再半宽）；选择副标题简化为 `检定X-成功率Y%`
+  - **技能经验修复（两个断点，均沿数据链排查）**
+    - 断点1：`DataLoader.buildSkillFromJSON` 漏拷 `expRewards` → 全技能经验恒 0
+    - 断点2：运行时 `fetch('/data/skills.json')` 实际由 Vite 提供 `public/data/skills.json`（过期副本：11 技能、无 expRewards、缺 6 技能）→ 已双份同步；**教训**：skills.json 与 equipment.json 同为 `data/ ↔ public/data/` 双份副本，改数据必须双同步（规则2 钩稽链路）
+  - **玩家数值**：升级经验 `globalMultiplier` 2→4（翻倍，combat-formulas.json）；升级回满 HP/MP（gainExp 循环内）
+  - 验证：lint / build / test-collider 全部通过
