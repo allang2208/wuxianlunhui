@@ -10,6 +10,15 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：枪械蛋壳从贴图中心弹出并落至脚下（v0.198+）
+- **修改文件**：
+  - `src/effects/shell-casing.js`：构造/reset 新增可选 `groundY` 参数；传入时蛋壳先向上抛起（vy −120~−200）再受重力（1000 px/s²）落至脚下，未传入时保持旧贴地漂移行为（回退）。
+  - `src/utils/effect-factory.js`：`createShellCasing` 透传 `groundY`。
+  - `src/entities/player/subsystems.js`：`_spawnShellCasing` 新增 `hand` 参数，优先从对应武器贴图中心（`weaponSprite`/`offhandWeaponSprite`）弹出、落点为玩家脚底 `this.y`；无武器贴图时回退旧的脚底相对算法。4 个调用点（主手手枪/副手手枪/机枪/霰弹）同步更新。
+  - `CHANGELOG.md`：本记录。
+- **测试结果**：`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：实机需验证抛壳弧线手感（抛起高度/重力/侧向速度），数值在 `shell-casing.js` 的 `_initPhysics` 可调。
+
 ### 对话：六项战斗/视觉调整（v0.198+）
 - **修改文件**：
   - `src/entities/enemy-types/fat-zombie.js`：`_updateLeanOffset()` 攻击分支归 0——胖子僵尸攻击时脚下阴影与 footprint 椭圆判定保持在脚底，不再前移（walk 前倾保留）。

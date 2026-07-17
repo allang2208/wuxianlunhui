@@ -30,17 +30,18 @@ export const EffectFactory = {
 
     /**
      * 创建弹壳特效。
-     * @param {number} x
-     * @param {number} y
-     * @param {number} angle
+     * @param {number} x 弹出位置 X
+     * @param {number} y 弹出位置 Y
+     * @param {number} angle 开火方向
+     * @param {number} [groundY] 落地的脚底 Y（从枪械贴图中心弹出并落下时传入）
      * @returns {ShellCasingEffect}
      */
-    createShellCasing(x, y, angle) {
+    createShellCasing(x, y, angle, groundY) {
         let e = EffectManager._acquire('ShellCasingEffect');
         if (e) {
-            e.reset(x, y, angle);
+            e.reset(x, y, angle, groundY);
         } else {
-            e = new ShellCasingEffect(x, y, angle);
+            e = new ShellCasingEffect(x, y, angle, groundY);
         }
         EffectManager.add(e);
         return e;
