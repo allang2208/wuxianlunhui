@@ -1,6 +1,7 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { segmentIntersectsCapsule } from '../physics/collision-3d.js';
+import { segmentHitsTorso } from '../physics/torso-hitbox.js';
 import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
@@ -100,7 +101,11 @@ class Projectile {
      * 2. 身体圆柱/胶囊：把贴地飞行的投射物视为竖直厚度为 size 的圆柱
      *    （中心 z = size/2），与实体的 3D 胶囊体做连续碰撞检测。
      *
-     * 地面/低空目标： footprint 椭圆 OR 身体圆柱 任一命中即算命中。
+     * 3. 躯干矩形（屏幕空间）：把实体身体近似为锚定脚底的竖直矩形
+     *    （render.projectileHitbox，缺省取 collisionWidth × 身高），
+     *    让瞄准贴图身体位置的弹道也能命中（不影响近战判定）。
+     *
+     * 地面/低空目标： footprint 椭圆 OR 躯干矩形 OR 身体圆柱 任一命中即算命中。
      * 飞行目标：只使用身体圆柱，避免 footprint 命中空中单位脚部。
      */
     _isHittingEntity(entity, prevX, prevY) {
@@ -112,7 +117,17 @@ class Projectile {
         }
 
         return this._hitFootprintEllipse(entity, prevX, prevY) ||
+               this._hitTorsoRect(entity, prevX, prevY) ||
                this._hitBodyCapsule(entity, prevX, prevY);
+    }
+
+    /**
+     * 躯干矩形判定（屏幕空间，仅投射物使用）。
+     * 判定数据推导共享自 physics/torso-hitbox.js（render.projectileHitbox，
+     * 缺省 collisionWidth × 身高）。矩形按投射物半径外扩后做线段相交。
+     */
+    _hitTorsoRect(entity, prevX, prevY) {
+        return segmentHitsTorso(entity, prevX, prevY, this.x, this.y, this.size / 2);
     }
 
     /**

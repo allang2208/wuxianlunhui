@@ -7,6 +7,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { pointHitsTorso } from '../../physics/torso-hitbox.js';
 
 /**
  * 冰锥系统（通用版）
@@ -207,7 +208,8 @@ export class IceSpikeSystem {
             const hitShape = new GroundCircle(spike.flyX, spike.flyY, 12);
             entityList.forEach(entity => {
                 if (!this._isHostile(entity) || !entity.active || !entity.hittable) return;
-                if (!hitShape.intersectsEntity(entity)) return;
+                // 地面 footprint 或 躯干矩形（投射物贴图身体位置）任一命中即算命中
+                if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, spike.flyX, spike.flyY, 12)) return;
                 const wasAlive = entity.hp > 0;
                 entity.takeDamage(damage, this.source, 'magic');
                 hitCount++;

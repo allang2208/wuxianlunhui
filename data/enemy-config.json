@@ -42,7 +42,8 @@
       "spriteSize": 151,
       "collisionWidth": 133,
       "collisionHeight": 78,
-      "footOffsetY": 41
+      "footOffsetY": 41,
+      "projectileHitbox": { "width": 120, "height": 65, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/black_wolf_idle.png"
@@ -115,7 +116,8 @@
       "spriteSize": 150,
       "collisionWidth": 60,
       "collisionHeight": 50,
-      "footOffsetY": 70
+      "footOffsetY": 70,
+      "projectileHitbox": { "width": 44, "height": 137, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/fat_zombie/idle.png",
@@ -228,7 +230,8 @@
       "spriteSize": 90,
       "collisionWidth": 80,
       "collisionHeight": 79,
-      "footOffsetY": 43
+      "footOffsetY": 43,
+      "projectileHitbox": { "width": 81, "height": 83, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/zombie_dog_idle.png"
@@ -262,7 +265,8 @@
       "spriteSize": 120,
       "collisionWidth": 30,
       "collisionHeight": 50,
-      "footOffsetY": 56
+      "footOffsetY": 56,
+      "projectileHitbox": { "width": 31, "height": 103, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/zombie/idle.png",
@@ -380,7 +384,8 @@
       "spriteSize": 90,
       "collisionWidth": 32,
       "collisionHeight": 79,
-      "footOffsetY": 41
+      "footOffsetY": 41,
+      "projectileHitbox": { "width": 29, "height": 81, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/spitter_zombie/idle.png",
@@ -850,7 +855,8 @@
       "spriteSize": 120,
       "collisionWidth": 61,
       "collisionHeight": 109,
-      "footOffsetY": 56
+      "footOffsetY": 56,
+      "projectileHitbox": { "width": 46, "height": 112, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/zombie_wizard/idle.png",
@@ -912,7 +918,8 @@
       "spriteSize": 120,
       "collisionWidth": 80,
       "collisionHeight": 96,
-      "footOffsetY": 56
+      "footOffsetY": 56,
+      "projectileHitbox": { "width": 68, "height": 110, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",

@@ -19,6 +19,7 @@ import { GAME_CONFIG } from '../../config/game-config.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { getTorsoRect } from '../../physics/torso-hitbox.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -2073,6 +2074,17 @@ export class GameScene extends Scene {
             this._collisionRadiusGraphics.moveTo(cx - r, cy);
             this._collisionRadiusGraphics.lineTo(cx + r, cy);
             this._collisionRadiusGraphics.strokePath();
+
+            // 3) 投射物躯干矩形：绿色描边（仅投射物判定使用，与近战无关）
+            // 推导共享自 physics/torso-hitbox.js，与判定口径一致
+            const torso = getTorsoRect(entity);
+            if (torso) {
+                this._collisionRadiusGraphics.lineStyle(1.5, 0x00ff66, 0.8);
+                this._collisionRadiusGraphics.strokeRect(
+                    torso.cx - torso.halfW, torso.cy - torso.halfH,
+                    torso.halfW * 2, torso.halfH * 2
+                );
+            }
 
             // 恢复地面圆的填充样式，供下一个实体使用
             this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
