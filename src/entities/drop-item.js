@@ -21,7 +21,7 @@ import { loadImage } from '../utils/image-loader.js';
                     imageSrc = itemData.dropImage;
                 }
                 this.image = loadImage(imageSrc);
-                this.pickupRange = 30;
+                this.pickupRange = 45;
                 // 掉落物不参与实体间碰撞分离
                 this.noCollision = true;
             }
@@ -69,8 +69,9 @@ import { loadImage } from '../utils/image-loader.js';
                 const camera = phaserScene.cameras.main;
                 const mx = Input.mouse.x + camera.scrollX;
                 const my = Input.mouse.y + camera.scrollY;
-                const hover = Math.sqrt((mx - this.x) ** 2 + (my - (this.y + bobY)) ** 2) < 35;
-                const size = hover ? 40 : 32;
+                const hover = Math.sqrt((mx - this.x) ** 2 + (my - (this.y + bobY)) ** 2) < 52;
+                // 贴图放大 50%：32→48，悬停 40→60；贴图保持上下浮动
+                const size = hover ? 60 : 48;
 
                 this._phaserSprite.setPosition(this.x, this.y + bobY);
                 this._phaserSprite.setDepth(this.y + bobY + 5);
@@ -86,8 +87,9 @@ import { loadImage } from '../utils/image-loader.js';
                     fontSize: hover ? '13px' : '11px',
                     color: hover ? '#ffeb96' : '#d4c5a9e6'
                 });
-                this._phaserLabel.setPosition(this.x, this.y + bobY + size / 2 + 4);
-                this._phaserLabel.setDepth(this.y + bobY + 6);
+                // 装备文字固定在物品原始位置下方，不随贴图浮动
+                this._phaserLabel.setPosition(this.x, this.y + 28);
+                this._phaserLabel.setDepth(this.y + 11);
                 this._phaserLabel.setVisible(true);
             }
 
