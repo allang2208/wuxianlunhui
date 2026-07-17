@@ -200,12 +200,12 @@
     "npcClick": 200,
     "npcHover": 40,
     "pickupClick": 150,
-    "pickupHover": 35,
+    "pickupHover": 52,
     "npcAutoClose": 200,
     "portalTrigger": 30
   },
   "pickup": {
-    "nearbyRange": 75,
+    "nearbyRange": 112,
     "goldAutoRange": 80,
     "goldThrowOutRange": 80,
     "goldMaxStack": 999

@@ -10,6 +10,20 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：弹反恢复（旧木盾数据补全）+ 掉落物显示/拾取更新（v0.198+）
+- **排查结论（弹反失效根因）**：ShieldSystem 代码、弹反窗口、角度判定、isMelee 传递、右键防御输入链路全部完好（WebBridge 运行时实测：有完整 defense 数据的盾牌可正常弹反——伤害归 0、眩晕 2000ms、击退）。真正缺陷是**装备数据**：`旧木盾`（初始盾牌）条目缺少 `weaponType: 'shield'` 和整个 `defense` 块，`checkEquipped()` 永远 false，盾系统完全不激活。与新体积判定无关。`小圆盾` 数据完整，工作正常。
+- **排查结论（复活后子弹不从枪口射出）**：未复现。主神空间死亡与地牢死亡→switchScene 复活两条路径实测（手动泵游戏循环验证），武器贴图/可见性/枪口计算复活后全部完好，子弹路径（_fireRanged 贴图枪口）未被改动。暂停排查，待用户提供具体复现场景。
+- **修改文件**：
+  - `data/equipment.json` + `public/data/equipment.json`：`old_wooden_shield` 新增 `"weaponType": "shield"` 与 `defense` 块（base 15 / perEnhance 1.5 / damageReduction 0.5 / staminaCost 20 / parryWindow 1000 / parryStun 1000 / parryKnockback 100，数值与小圆盾一致，未改变任何弹反属性）。
+  - `src/entities/drop-item.js`：掉落物贴图放大 50%（32→48 / 悬停 40→60），贴图保持上下浮动；装备文字固定在物品原位下方，**不再随贴图浮动**；悬停判定半径 35→52（×1.5 匹配）；`pickupRange` 30→45。
+  - `data/game-config.json`：`interactionDistances.pickupHover` 35→52（点击/悬停拾取判定匹配）；`pickup.nearbyRange` 75→112（Z 键范围拾取匹配 ×1.5）。
+  - `CHANGELOG.md`：本记录。
+- **测试结果**：两份 equipment.json 与 game-config.json JSON 校验通过；`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - 弹反实机验证：装备旧木盾，右键防御状态下被近战命中应触发"🛡️ 弹反！"+ 攻击者眩晕击退（弹反窗口 1 秒）。
+  - 掉落物实机验证：贴图大小/浮动、文字静止、悬停拾取与 Z 键范围手感。
+  - 复活枪口问题待复现线索（哪把枪、哪个场景、子弹出现位置截图）。
+
 ### 对话：地牢刷怪黑色粒子特效 + 删除金属/奔跑僵尸（v0.198+）
 - **修改文件**：
   - `src/phaser/scenes/GameScene.js`：新增 `_ensureDungeonSpawnTexture()`（纯黑圆点 `dungeon_spawn_dot`）与 `playDungeonSpawnParticles(x, y)`——速度 30~90（更慢）、持续 1500ms（更久）、数量 16（多 30%）、纯黑 tint、NORMAL 混合（黑色在 ADD 下不可见）、gravityY −40 轻微上飘、1600ms 后销毁发射器。

@@ -292,7 +292,17 @@
         }
       ],
       "desc": "用木板拼成的盾牌",
-      "equipSlot": "offhand"
+      "equipSlot": "offhand",
+      "weaponType": "shield",
+      "defense": {
+        "base": 15,
+        "perEnhance": 1.5,
+        "damageReduction": 0.5,
+        "staminaCost": 20,
+        "parryWindow": 1000,
+        "parryStun": 1000,
+        "parryKnockback": 100
+      }
     },
     "weapon16": {
       "weaponId": "weapon16",
