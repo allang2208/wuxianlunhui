@@ -287,6 +287,11 @@ export const CombatRoomSystem = {
                 Game.entities.set(key, monster);
             }
             this._combatMonsters.push(monster);
+            // 地牢刷怪：在怪物脚下生成黑色粒子特效（持续 1.5 秒）
+            const spawnScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (spawnScene && typeof spawnScene.playDungeonSpawnParticles === 'function') {
+                spawnScene.playDungeonSpawnParticles(monster.x, monster.y);
+            }
             this._combatMonsterKeys.push(key);
         }
 

@@ -10,6 +10,21 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：地牢刷怪黑色粒子特效 + 删除金属/奔跑僵尸（v0.198+）
+- **修改文件**：
+  - `src/phaser/scenes/GameScene.js`：新增 `_ensureDungeonSpawnTexture()`（纯黑圆点 `dungeon_spawn_dot`）与 `playDungeonSpawnParticles(x, y)`——速度 30~90（更慢）、持续 1500ms（更久）、数量 16（多 30%）、纯黑 tint、NORMAL 混合（黑色在 ADD 下不可见）、gravityY −40 轻微上飘、1600ms 后销毁发射器。
+  - `src/world/combat-room-system.js`：`spawnMonsters()` 每只怪生成后在最终脚底位置调用 `playDungeonSpawnParticles`（该方法仅被地牢 dungeon-map-system 调用）。
+  - `data/enemy-config.json`：删除 `armoredZombie`（装甲/金属僵尸）、`runnerZombie`（奔跑僵尸）、`fastZombie`（"Runner Zombie" 遗留重复项）三条；图鉴经 DataLoader 读同一配置，自动同步删除。
+  - `src/world/zombie-dungeon.js`：删除 `createArmoredZombie`、`createFastZombie`、`ZOMBIE_FACTORY_MAP` 对应两条；级联删除无人使用的 `createZombieFromConfig`；怪物池注释同步。
+  - `src/ui/enemy-sprite-tool.js`：ENEMY_LIST 删除 fastZombie 条目。
+  - `CHANGELOG.md`：本记录。
+- **修改内容摘要**：
+  1. 地牢战斗房刷新怪物时，每只怪脚下生成 1.5 秒纯黑粒子爆发特效。
+  2. 金属僵尸（armoredZombie）与奔跑僵尸（runnerZombie/fastZombie）及其工厂、工厂映射、配置、精灵工具条目全部删除；地牢普通池现为：普通僵尸、僵尸犬、毒液僵尸、胖子僵尸。
+  3. CHANGELOG / SKILL.md 历史记录未改动（保留历史事实）。
+- **测试结果**：enemy-config.json JSON 校验通过（17 条）；全库无残留引用；`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：实机需验证刷怪粒子视觉（浓度/速度/上飘），数值在 `GameScene.playDungeonSpawnParticles` 可调。
+
 ### 对话：枪械蛋壳从贴图中心弹出并落至脚下（v0.198+）
 - **修改文件**：
   - `src/effects/shell-casing.js`：构造/reset 新增可选 `groundY` 参数；传入时蛋壳先向上抛起（vy −120~−200）再受重力（1000 px/s²）落至脚下，未传入时保持旧贴地漂移行为（回退）。

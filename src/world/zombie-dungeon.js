@@ -17,34 +17,6 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import enemyConfigData from '../../data/enemy-config.json';
 
 // ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
-function createZombieFromConfig(key, x, y, overrides = {}) {
-    const cfg = enemyConfigData[key];
-    if (!cfg) {
-        console.warn(`[ZombieDungeon] Missing enemy config: ${key}`);
-        return new CircleEnemy(x, y, { name: key, hp: 50, maxHp: 50, size: 14, showWeapon: false });
-    }
-    return new CircleEnemy(x, y, {
-        ...cfg,
-        showWeapon: false,
-        ai: {
-            ...(cfg.ai || {}),
-            aggroRange: 9999,
-            loseTimeout: 999999,
-            alertRange: 9999
-        },
-        ...overrides
-    });
-}
-
-function createArmoredZombie(x, y) {
-    const zombie = createZombieFromConfig('armoredZombie', x, y, {
-        headColor: '#c0c8d0',
-        equipShield: 'small_shield'
-    });
-    zombie._rangedDamageReduction = 0.5;
-    return zombie;
-}
-
 export function createBasicZombie(x, y) {
     const cfg = enemyConfigData.zombie;
     if (!cfg) {
@@ -61,10 +33,6 @@ export function createBasicZombie(x, y) {
             alertRange: 9999
         }
     });
-}
-
-function createFastZombie(x, y) {
-    return createZombieFromConfig('runnerZombie', x, y);
 }
 
 function createZombieDog(x, y) {
@@ -162,9 +130,7 @@ export function createMutant3(x, y) {
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
-    runnerZombie: createFastZombie,
     zombieDog: createZombieDog,
-    armoredZombie: createArmoredZombie,
     spitterZombie: createSpitterZombie,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
@@ -186,7 +152,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
     },
 
     // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
-    // normal：普通僵尸、僵尸犬、装甲僵尸、毒液僵尸、肥僵尸
+    // normal：普通僵尸、僵尸犬、毒液僵尸、肥僵尸
     // elite：僵尸巫师、突变体-3
     monsterPool: {
         get normal() {

@@ -1819,6 +1819,47 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 预生成地牢刷怪黑色粒子纹理
+     */
+    _ensureDungeonSpawnTexture() {
+        if (this.textures.exists('dungeon_spawn_dot')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0x000000, 1);
+        g.fillCircle(4, 4, 4);
+        g.generateTexture('dungeon_spawn_dot', 8, 8);
+        g.destroy();
+    }
+
+    /**
+     * 播放地牢刷怪黑色粒子（怪物脚下生成，持续 1.5 秒）。
+     * 与僵尸受击粒子相比：速度更慢、持续更久、数量多 30%（12→16）、颜色纯黑。
+     * 注意：纯黑粒子必须用 NORMAL 混合，ADD 模式下黑色不可见。
+     * @param {number} x 怪物脚底 X
+     * @param {number} y 怪物脚底 Y
+     */
+    playDungeonSpawnParticles(x, y) {
+        if (!this.textures.exists('dungeon_spawn_dot')) this._ensureDungeonSpawnTexture();
+        const particles = this.add.particles(0, 0, 'dungeon_spawn_dot', {
+            speed: { min: 30, max: 90 },
+            scale: { start: 1.6, end: 0 },
+            lifespan: 1500,
+            quantity: 16,
+            tint: 0x000000,
+            blendMode: 'NORMAL',
+            angle: { min: 0, max: 360 },
+            gravityY: -40,
+            emitting: false
+        });
+        particles.addToUpdateList();
+        particles.setDepth(y + 1000);
+        particles.explode(16, x, y);
+        // 粒子寿命 1.5 秒，随后销毁发射器，避免内存泄漏
+        this.time.delayedCall(1600, () => {
+            if (particles && particles.active) particles.destroy();
+        });
+    }
+
+    /**
      * 统一触发僵尸类怪物受击绿色粒子
      * @param {object} target 被击中的目标
      * @param {object} [source] 伤害来源，用于计算受击方向
