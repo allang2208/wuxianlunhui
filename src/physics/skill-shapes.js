@@ -153,6 +153,74 @@ export class VerticalRect {
 }
 
 /**
+ * 地面扇形（近战斩击：从攻击者脚下出发，平铺地面判定）。
+ * 与 VerticalSector 的区别：不做 Z 区间检查，改用 isGroundTarget（飞行单位免疫），
+ * 命中口径与"脚下 footprint 椭圆平铺地面"一致。
+ */
+export class GroundSector {
+    /**
+     * @param {number} x 扇形原点 X（攻击者脚底）
+     * @param {number} y 扇形原点 Y
+     * @param {number} angle 扇形朝向（弧度）
+     * @param {number} radius 扇形半径
+     * @param {number} arcAngle 扇形张角（弧度）
+     */
+    constructor(x, y, angle, radius, arcAngle) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.radius = radius;
+        this.arcAngle = arcAngle;
+    }
+
+    intersectsEntity(entity) {
+        const c = entity?.collider;
+        if (!c || !c.isGroundTarget) return false;
+        // 把实体 footprint 半径加进扇形半径，避免边缘只擦到 footprint 中心 miss
+        return MathUtils.pointInSector(c.x, c.y, this.x, this.y, this.angle, this.radius + c.radius, this.arcAngle);
+    }
+}
+
+/**
+ * 地面有向矩形（近战突刺：从攻击者脚下出发，平铺地面判定，支持后摆）。
+ * 与 VerticalRect 的区别：不做 Z 区间检查，改用 isGroundTarget（飞行单位免疫）。
+ */
+export class GroundDirectedRect {
+    /**
+     * @param {number} x 矩形起点 X（攻击者脚底）
+     * @param {number} y 矩形起点 Y
+     * @param {number} angle 矩形朝向（弧度）
+     * @param {number} length 矩形向前长度
+     * @param {number} width 矩形宽度
+     * @param {number} backExtension 向起点后方延伸的长度（默认 0）
+     */
+    constructor(x, y, angle, length, width, backExtension = 0) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.length = length;
+        this.width = width;
+        this.backExtension = backExtension ?? 0;
+    }
+
+    intersectsEntity(entity) {
+        const c = entity?.collider;
+        if (!c || !c.isGroundTarget) return false;
+
+        // 把实体中心转换到矩形本地坐标系
+        const dx = c.x - this.x;
+        const dy = c.y - this.y;
+        const cos = Math.cos(-this.angle);
+        const sin = Math.sin(-this.angle);
+        const lx = dx * cos - dy * sin;
+        const ly = dx * sin + dy * cos;
+
+        const halfW = this.width / 2;
+        return lx >= -this.backExtension - c.radius && lx <= this.length + c.radius && Math.abs(ly) <= halfW + c.radius;
+    }
+}
+
+/**
  * 球体（用于爆炸中心等需要 3D 球型检测的场景）
  */
 export class Sphere {

@@ -1131,14 +1131,23 @@ export class GameScene extends Scene {
         
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-        const useFixedRot = isMelee;  // 所有近战状态都固定
-        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+        // 近战武器使用固定 rotation（所有状态）；
+        // 远程武器（枪械）贴图旋转 = 武器位置 → 鼠标准心的精确连线角，
+        // 不再使用 player.rotation（脚底→鼠标连线角），消除手部锚点视差导致的固定角度偏移。
+        let rot;
+        if (isMelee) {
+            rot = WeaponTransform.getWeaponRotation(0, wt, 0, animState, facingRight);
+        } else if (typeof Input !== 'undefined' && Input.mouse) {
+            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+        } else {
+            rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState, facingRight);
+        }
         
         // 应用关键帧偏移（覆盖默认位置）
         if (keyframeOffset && kfAnimState) {
             const kfPos = WeaponTransform.getKeyframedWeaponPosition(
-                player, wt, kfAnimState, keyframeOffset, useFixedRot ? 0 : player.rotation, facingRight
+                player, wt, kfAnimState, keyframeOffset, 0, facingRight
             );
             pos.x = kfPos.x;
             pos.y = kfPos.y;
@@ -1240,10 +1249,18 @@ export class GameScene extends Scene {
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
+        // 近战武器使用固定 rotation（所有状态）；
+        // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
         const isMelee = wt === 'sword' || wt === 'bow';
-        const useFixedRot = isMelee;  // 所有近战状态都固定
-        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, offhandAnimState, facingRight);
+        let rot;
+        if (isMelee) {
+            rot = WeaponTransform.getWeaponRotation(0, wt, 0, offhandAnimState, facingRight);
+        } else if (typeof Input !== 'undefined' && Input.mouse) {
+            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+        } else {
+            rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState, facingRight);
+        }
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -1802,6 +1819,47 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 预生成地牢刷怪黑色粒子纹理
+     */
+    _ensureDungeonSpawnTexture() {
+        if (this.textures.exists('dungeon_spawn_dot')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0x000000, 1);
+        g.fillCircle(4, 4, 4);
+        g.generateTexture('dungeon_spawn_dot', 8, 8);
+        g.destroy();
+    }
+
+    /**
+     * 播放地牢刷怪黑色粒子（怪物脚下生成，持续 1.5 秒）。
+     * 与僵尸受击粒子相比：速度更慢、持续更久、数量多 30%（12→16）、颜色纯黑。
+     * 注意：纯黑粒子必须用 NORMAL 混合，ADD 模式下黑色不可见。
+     * @param {number} x 怪物脚底 X
+     * @param {number} y 怪物脚底 Y
+     */
+    playDungeonSpawnParticles(x, y) {
+        if (!this.textures.exists('dungeon_spawn_dot')) this._ensureDungeonSpawnTexture();
+        const particles = this.add.particles(0, 0, 'dungeon_spawn_dot', {
+            speed: { min: 30, max: 90 },
+            scale: { start: 1.6, end: 0 },
+            lifespan: 1500,
+            quantity: 16,
+            tint: 0x000000,
+            blendMode: 'NORMAL',
+            angle: { min: 0, max: 360 },
+            gravityY: -40,
+            emitting: false
+        });
+        particles.addToUpdateList();
+        particles.setDepth(y + 1000);
+        particles.explode(16, x, y);
+        // 粒子寿命 1.5 秒，随后销毁发射器，避免内存泄漏
+        this.time.delayedCall(1600, () => {
+            if (particles && particles.active) particles.destroy();
+        });
+    }
+
+    /**
      * 统一触发僵尸类怪物受击绿色粒子
      * @param {object} target 被击中的目标
      * @param {object} [source] 伤害来源，用于计算受击方向
@@ -1819,11 +1877,14 @@ export class GameScene extends Scene {
             radius = Math.max(render.collisionWidth || 0, render.collisionHeight || 0, render.spriteSize || 0) / 2;
         }
         if (!radius) radius = target.size || 12;
+        // 粒子产生位置绑定受击实体的贴图中心（脚底上移 footOffsetY），不再以脚底为锚点
+        const footOffsetY = target.footOffsetY ?? target.config?.render?.footOffsetY ?? 0;
+        const centerY = target.y - footOffsetY;
         let hitX = target.x;
-        let hitY = target.y;
+        let hitY = centerY;
         if (angle != null) {
             hitX = target.x - Math.cos(angle) * radius * 0.75;
-            hitY = target.y - Math.sin(angle) * radius * 0.75;
+            hitY = centerY - Math.sin(angle) * radius * 0.75;
         }
         this.playZombieHitParticles(hitX, hitY, angle);
     }

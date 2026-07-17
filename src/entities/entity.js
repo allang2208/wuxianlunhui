@@ -53,8 +53,15 @@ class Entity {
     }
 
     /**
-     * 地面 footprint 半径（统一入口）
+     * 地面 footprint 半径（统一入口 / 唯一来源）
      * 优先使用 Collider，回退到旧字段。
+     *
+     * 【强绑定约定】以下四处只允许读取本 getter，禁止各自独立取值，
+     * 修改任何一处的半径配置（如 collisionRadius）会同步传导到其余全部：
+     * 1. 脚下阴影面积（GameScene._syncEntityShadows）
+     * 2. 脚下椭圆判定/调试红椭圆（GameScene._syncCollisionRadii）
+     * 3. 实体间圆-圆分离（game.js resolveCollisions）
+     * 4. 墙壁/树木碰撞与被近战、投射物命中的 footprint 判定
      */
     get groundRadius() {
         if (this.collider) return this.collider.radius;

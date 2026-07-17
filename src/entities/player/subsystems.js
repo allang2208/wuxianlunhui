@@ -1275,7 +1275,15 @@ _getMuzzleWorldPosition(hand = 'main') {
                 };
             },
 
-_spawnShellCasing(gunLX, gunLY, shellOffset, angle) {
+_spawnShellCasing(hand, gunLX, gunLY, shellOffset, angle) {
+                // 优先：蛋壳从枪械贴图中心弹出，向上抛起后受重力掉落至脚下（2026-07-17 调整）
+                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                const sprite = scene ? (hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite) : null;
+                if (sprite && sprite.active && sprite.visible && sprite.texture) {
+                    EffectFactory.createShellCasing(sprite.x, sprite.y, angle, this.y);
+                    return;
+                }
+                // 回退：无武器贴图时使用旧的脚底相对算法
                 const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
                 const x = this.x + c * (gunLX + shellOffset.fx) - sin * (gunLY + shellOffset.fy);
                 const y = this.y + sin * (gunLX + shellOffset.fx) + c * (gunLY + shellOffset.fy);
@@ -1324,7 +1332,7 @@ _fireRanged(hand = 'main') {
                             });
                             this._playFireSound(offhandItem, fxCfg.defaultSound);
                             this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, leftFinalAngle, fxCfg.muzzleScale);
-                            this._spawnShellCasing(gunLX, leftGunLY, fxCfg.shellOffset, leftFinalAngle);
+                            this._spawnShellCasing('offhand', gunLX, leftGunLY, fxCfg.shellOffset, leftFinalAngle);
                         }
                         delete d.fireOffhand;
                     }
@@ -1388,7 +1396,7 @@ _fireRanged(hand = 'main') {
                             // 主手枪口火焰特效
                             this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, finalAngle, fxCfg.muzzleScale);
                             // 弹壳从抛壳窗弹出（枪身右侧后方）
-                            this._spawnShellCasing(gunLX, gunLY, fxCfg.shellOffset, angle);
+                            this._spawnShellCasing('main', gunLX, gunLY, fxCfg.shellOffset, angle);
                         }
                         delete d.fireMainHand;
                     }
@@ -1482,7 +1490,7 @@ _fireRanged(hand = 'main') {
 
                         // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
                         if (!isEnergyLMG) {
-                            this._spawnShellCasing(gunLX, gunLY, lmgCfg.shellOffset, angle);
+                            this._spawnShellCasing('main', gunLX, gunLY, lmgCfg.shellOffset, angle);
                         }
                         delete d.fireMainHand;
                     }
@@ -1587,7 +1595,7 @@ _fireRanged(hand = 'main') {
                                 this._spawnMuzzleFlashAt(spawnPos.x, spawnPos.y, baseAngle, sgCfg.muzzleScale);
                             }
                             // 弹壳
-                            this._spawnShellCasing(gunLX, gunLY, sgCfg.shellOffset, baseAngle);
+                            this._spawnShellCasing('main', gunLX, gunLY, sgCfg.shellOffset, baseAngle);
                         }
                         delete d.fireMainHand;
                     }

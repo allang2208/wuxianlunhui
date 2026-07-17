@@ -165,4 +165,27 @@ assert(dRect && dRect.halfW === 15 && dRect.halfH === 60, 'torso rect falls back
 const flyingLike = { ...zombieLike, collider: { ...zombieLike.collider, elevation: ELEVATION.FLYING } };
 assert(!pointHitsTorso(flyingLike, 100, 160, 12), 'flying entity immune to torso point check');
 
+// --- GroundSector / GroundDirectedRect (melee ground-flat detection) ---
+const { GroundSector, GroundDirectedRect } = await import('../src/physics/skill-shapes.js');
+const mkEntity = (x, y, r = 20, ground = true) => ({ collider: { x, y, radius: r, isGroundTarget: ground } });
+
+// 地面扇形：原点 (0,0)，朝右，半径 100，张角 60°
+const sector = new GroundSector(0, 0, 0, 100, Math.PI / 3);
+assert(sector.intersectsEntity(mkEntity(80, 0)), 'ground sector: target dead ahead hits');
+assert(sector.intersectsEntity(mkEntity(115, 0)), 'ground sector: edge within footprint radius hits');
+assert(!sector.intersectsEntity(mkEntity(130, 0)), 'ground sector: beyond range misses');
+assert(!sector.intersectsEntity(mkEntity(70, 70)), 'ground sector: outside arc misses');
+assert(!sector.intersectsEntity(mkEntity(-80, 0)), 'ground sector: behind origin misses');
+assert(!sector.intersectsEntity(mkEntity(80, 0, 20, false)), 'ground sector: flying target immune');
+
+// 地面有向矩形：起点 (0,0)，朝右，长 100，宽 40，后摆 20
+const gRect = new GroundDirectedRect(0, 0, 0, 100, 40, 20);
+assert(gRect.intersectsEntity(mkEntity(60, 0)), 'ground rect: center hits');
+assert(gRect.intersectsEntity(mkEntity(60, 30)), 'ground rect: within width + footprint hits');
+assert(!gRect.intersectsEntity(mkEntity(60, 50)), 'ground rect: outside width misses');
+assert(!gRect.intersectsEntity(mkEntity(140, 0)), 'ground rect: beyond length misses');
+assert(gRect.intersectsEntity(mkEntity(-10, 0)), 'ground rect: backExtension hits behind');
+assert(!gRect.intersectsEntity(mkEntity(-50, 0)), 'ground rect: beyond backExtension misses');
+assert(!gRect.intersectsEntity(mkEntity(60, 0, 20, false)), 'ground rect: flying target immune');
+
 console.log('\nAll Collider / 3D collision tests passed.');
