@@ -1131,14 +1131,23 @@ export class GameScene extends Scene {
         
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
-        const useFixedRot = isMelee;  // 所有近战状态都固定
-        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, animState, facingRight);
+        // 近战武器使用固定 rotation（所有状态）；
+        // 远程武器（枪械）贴图旋转 = 武器位置 → 鼠标准心的精确连线角，
+        // 不再使用 player.rotation（脚底→鼠标连线角），消除手部锚点视差导致的固定角度偏移。
+        let rot;
+        if (isMelee) {
+            rot = WeaponTransform.getWeaponRotation(0, wt, 0, animState, facingRight);
+        } else if (typeof Input !== 'undefined' && Input.mouse) {
+            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+        } else {
+            rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState, facingRight);
+        }
         
         // 应用关键帧偏移（覆盖默认位置）
         if (keyframeOffset && kfAnimState) {
             const kfPos = WeaponTransform.getKeyframedWeaponPosition(
-                player, wt, kfAnimState, keyframeOffset, useFixedRot ? 0 : player.rotation, facingRight
+                player, wt, kfAnimState, keyframeOffset, 0, facingRight
             );
             pos.x = kfPos.x;
             pos.y = kfPos.y;
@@ -1240,10 +1249,18 @@ export class GameScene extends Scene {
         else if (player.isMoving) offhandAnimState = 'walk';
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
-        // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
+        // 近战武器使用固定 rotation（所有状态）；
+        // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
         const isMelee = wt === 'sword' || wt === 'bow';
-        const useFixedRot = isMelee;  // 所有近战状态都固定
-        let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, 0, offhandAnimState, facingRight);
+        let rot;
+        if (isMelee) {
+            rot = WeaponTransform.getWeaponRotation(0, wt, 0, offhandAnimState, facingRight);
+        } else if (typeof Input !== 'undefined' && Input.mouse) {
+            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+        } else {
+            rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState, facingRight);
+        }
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
@@ -1819,11 +1836,14 @@ export class GameScene extends Scene {
             radius = Math.max(render.collisionWidth || 0, render.collisionHeight || 0, render.spriteSize || 0) / 2;
         }
         if (!radius) radius = target.size || 12;
+        // 粒子产生位置绑定受击实体的贴图中心（脚底上移 footOffsetY），不再以脚底为锚点
+        const footOffsetY = target.footOffsetY ?? target.config?.render?.footOffsetY ?? 0;
+        const centerY = target.y - footOffsetY;
         let hitX = target.x;
-        let hitY = target.y;
+        let hitY = centerY;
         if (angle != null) {
             hitX = target.x - Math.cos(angle) * radius * 0.75;
-            hitY = target.y - Math.sin(angle) * radius * 0.75;
+            hitY = centerY - Math.sin(angle) * radius * 0.75;
         }
         this.playZombieHitParticles(hitX, hitY, angle);
     }

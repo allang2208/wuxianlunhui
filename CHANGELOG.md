@@ -10,6 +10,28 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：六项战斗/视觉调整（v0.198+）
+- **修改文件**：
+  - `src/entities/enemy-types/fat-zombie.js`：`_updateLeanOffset()` 攻击分支归 0——胖子僵尸攻击时脚下阴影与 footprint 椭圆判定保持在脚底，不再前移（walk 前倾保留）。
+  - `src/phaser/scenes/GameScene.js`：
+    - `syncWeapon`（主手+副手）：远程武器贴图旋转改为 `atan2(鼠标世界坐标 − 武器位置)`，枪管精确穿过准心，消除手部锚点视差导致的固定角度偏移；近战不变。
+    - `triggerZombieHitParticles`：受击绿色粒子锚点从脚底改为贴图中心（`y − footOffsetY`），保留朝向来源的侧向偏移。
+  - `src/config/player-defaults.js`：`collisionRadius` 30 → 22.5，玩家脚下椭圆判定缩小 25%，阴影/分离/墙碰/被命中判定随动。
+  - `src/entities/entity.js`：`groundRadius` 标注为阴影/footprint 椭圆/分离/墙碰与命中判定的**唯一来源**（强绑定约定注释）。
+  - `src/physics/skill-shapes.js`：新增 `GroundSector`（地面扇形）与 `GroundDirectedRect`（地面有向矩形，含 backExtension）——只看目标 footprint，不查 Z，飞行单位免疫。
+  - `src/combat/attack.js`：`SlashAttack` → `GroundSector`、`ThrustAttack.checkTriangleHit` → `GroundDirectedRect`，判定原点从"视觉身体中心"归回**攻击者脚底**（移除 footOffsetY 上移），范围可视化原点同步；推击/夜与火/冲刺技能/mutant-3 自定义攻击未动。
+  - `scripts/test-collider.mjs`：新增 13 个地面形状用例。
+  - `CHANGELOG.md`：本记录。
+- **修改内容摘要**：
+  1. 枪械（含双持副手）贴图朝向始终精准对准鼠标准心；弹道原本即朝准心，改后"贴图 = 弹道 = 准心"三者一致。
+  2. 近战斩击/突刺判定从脚下椭圆出发平铺地面，判定与范围可视化、footprint 调试椭圆口径统一。
+  3. 玩家 footprint 缩小 25%（30→22.5），阴影面积同步缩小（groundRadius 单一驱动）。
+  4. 僵尸受击绿粒子从身体中心爆出，不再出现在脚下地面。
+- **测试结果**：`node scripts/test-collider.mjs` 全部通过（累计 35 个用例）；`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - 实机需验证：枪械各距离/垂直瞄准的贴图对准、近战范围圈与 footprint 的对齐手感、胖子攻击影子位置、粒子位置。
+  - 近战判定原点下移后，攻击范围的屏幕位置整体下移一个 footOffsetY，若觉得"够不到上方目标"可再议 weaponOffset 前伸补偿。
+
 ### 对话：技能投射物接入躯干矩形判定（冰锥/火球/符文剑）（v0.198+）
 - **修改文件**：
   - `src/physics/torso-hitbox.js`（新建）：躯干矩形**共享判定模块**——`getTorsoRect`（唯一推导口径：render.projectileHitbox，缺省 collisionWidth × 身高）、`segmentHitsTorso`（扫掠线段）、`pointHitsTorso`（逐帧点判定，FLYING 免疫与 GroundCircle 语义对齐）。

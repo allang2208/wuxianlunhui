@@ -256,10 +256,8 @@ export class FatZombie extends Enemy {
         if (this._animState === 'walk') {
             // walking 前倾：重心/阴影相对脚底向后偏移
             this.colliderOffsetX = -this._walkLeanOffset * sign;
-        } else if (this._animState === 'attack') {
-            // 攻击时前扑：重心/阴影向前偏移
-            this.colliderOffsetX = this._attackLeanOffset * sign;
         } else {
+            // 攻击/待机/尸体：脚下阴影与 footprint 椭圆判定保持在脚底，不做位移（2026-07-17 调整）
             this.colliderOffsetX = 0;
         }
         this.colliderOffsetY = 0;

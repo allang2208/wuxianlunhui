@@ -12,7 +12,7 @@ import { CONFIG } from '../config/config.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
-import { VerticalSector, VerticalRect } from '../physics/skill-shapes.js';
+import { GroundSector, GroundDirectedRect } from '../physics/skill-shapes.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 // ===== 通用附魔命中效果系统 =====
@@ -105,16 +105,15 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const arc = this.config.arc;
-                // 攻击范围起始位置：从视觉身体中心（脚底 - footOffsetY）发出，与武器位置同步
+                // 攻击范围起始位置：从攻击者脚下 footprint 发出，平铺地面判定（2026-07-17 调整）
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
-                const footOffsetY = source.footOffsetY ?? source.config?.render?.footOffsetY ?? 0;
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
-                const originY = source.y - footOffsetY + Math.sin(attackAngle) * weaponOffset;
+                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
                 EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, arc, 'sector'));
                 let hitCount = 0, killCount = 0;
                 const hitCountRef = { value: 0 };
                 const killCountRef = { value: 0 };
-                const slashShape = new VerticalSector(originX, originY, attackAngle, effectiveRange, arc, 0, source.bodyHeight || 150);
+                const slashShape = new GroundSector(originX, originY, attackAngle, effectiveRange, arc);
                 const candidates = this._queryNearbyEntities(originX, originY, effectiveRange + 100, source, entities);
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
@@ -188,11 +187,10 @@ function applyEnchantOnHit(weapon, target, source) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
                 const effectiveWidth = isSword ? hitBox.width * 2 : this.config.width; // hitBox.width 是半宽，显示用全宽
-                // 攻击范围起始位置：从视觉身体中心发出，与武器位置同步
+                // 攻击范围起始位置：从攻击者脚下 footprint 发出，平铺地面判定（2026-07-17 调整）
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
-                const footOffsetY = source.footOffsetY ?? source.config?.render?.footOffsetY ?? 0;
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
-                const originY = source.y - footOffsetY + Math.sin(attackAngle) * weaponOffset;
+                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
                 // 白色攻击范围可视化：使用统一 hitBox 配置
                 if (Game.showAttackRange) {
                     EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, effectiveWidth, 'triangle', 1000));
@@ -236,7 +234,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;
                 const backExt = isSword ? (hitBox.backExtension || 0) : 0;
-                const thrustShape = new VerticalRect(ax, ay, angle, range, width, 0, source.bodyHeight || 150, backExt);
+                const thrustShape = new GroundDirectedRect(ax, ay, angle, range, width, backExt);
                 const candidates = this._queryNearbyEntities(ax, ay, range + 100, source, pt.entities);
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;

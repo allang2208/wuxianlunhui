@@ -9,10 +9,12 @@ export const PLAYER_DEFAULTS = {
         spriteSize: 120,
         // 玩家碰撞/受击体积：宽度 30、高度 60 的矩形（竖向人物贴图）
         // 之前 90 过高，导致投射物在玩家头顶/脚下附近也被判定命中
-        // collisionRadius 作为圆形回退和墙壁碰撞的等效半径，取长边的一半
+        // collisionRadius 作为圆形回退和墙壁碰撞的等效半径；
+        // 2026-07-17：脚下椭圆判定（footprint）缩小 25%（30 → 22.5），
+        // 阴影/分离/墙壁碰撞/被近战与投射物命中均由此值单一驱动，随动缩小
         collisionWidth: 30,
         collisionHeight: 60,
-        collisionRadius: 30,
+        collisionRadius: 22.5,
         accel: 0.7,
         friction: 0.82
     },
