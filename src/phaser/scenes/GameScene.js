@@ -2074,6 +2074,20 @@ export class GameScene extends Scene {
             this._collisionRadiusGraphics.lineTo(cx + r, cy);
             this._collisionRadiusGraphics.strokePath();
 
+            // 3) 投射物躯干矩形：绿色描边（仅投射物判定使用，与近战无关）
+            const hb = entity.config?.render?.projectileHitbox || null;
+            const hbW = (hb && hb.width > 0) ? hb.width
+                : (entity.collisionWidth > 0 ? entity.collisionWidth : r * 2);
+            const hbH = (hb && hb.height > 0) ? hb.height : h;
+            const hbOX = (hb && hb.offsetX) || 0;
+            const hbBottom = (hb && hb.bottom) || 0;
+            if (hbW > 0 && hbH > 0) {
+                const rectCx = cx + hbOX;
+                const rectTop = cy - hbBottom - hbH;
+                this._collisionRadiusGraphics.lineStyle(1.5, 0x00ff66, 0.8);
+                this._collisionRadiusGraphics.strokeRect(rectCx - hbW / 2, rectTop, hbW, hbH);
+            }
+
             // 恢复地面圆的填充样式，供下一个实体使用
             this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
             this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);

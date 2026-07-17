@@ -1,7 +1,8 @@
 import { Collider, ELEVATION } from '../src/physics/collider.js';
 import {
     distanceSquaredSegmentToSegment,
-    segmentIntersectsCapsule
+    segmentIntersectsCapsule,
+    segmentIntersectsExpandedRect
 } from '../src/physics/collision-3d.js';
 import { SpatialGrid } from '../src/physics/spatial-grid.js';
 import { PERSPECTIVE_SCALE_Y } from '../src/config/perspective-config.js';
@@ -112,5 +113,29 @@ assert(segmentHitsFootprint(-100, 0, 100, 0, 0, 0, 30, 2), 'shot through footpri
 assert(segmentHitsFootprint(-100, 0, 100, 0, 0, 15, 30, 2), 'shot through footprint Y-edge hits');
 assert(!segmentHitsFootprint(-100, 0, 100, 0, 0, 20, 30, 2), 'shot outside footprint Y-edge misses');
 assert(!segmentHitsFootprint(-100, 0, 100, 0, 150, 0, 30, 2), 'shot outside footprint X-edge misses');
+
+// --- Projectile torso rect (segmentIntersectsExpandedRect, mirrors projectile._hitTorsoRect) ---
+// 僵尸躯干：宽 31 高 103，矩形中心在 (0, -51.5)（脚底原点向上）
+const zHalfW = 31 / 2, zHalfH = 103 / 2, zCy = -103 / 2;
+assert(segmentIntersectsExpandedRect(-100, -60, 100, -60, 0, zCy, zHalfW, zHalfH, 2),
+    'torso shot through chest height hits');
+assert(segmentIntersectsExpandedRect(-100, -100, 100, -100, 0, zCy, zHalfW, zHalfH, 2),
+    'torso shot near head (still inside 103 tall) hits');
+assert(!segmentIntersectsExpandedRect(-100, -110, 100, -110, 0, zCy, zHalfW, zHalfH, 2),
+    'shot above torso rect misses');
+assert(!segmentIntersectsExpandedRect(-100, -60, -30, -60, 0, zCy, zHalfW, zHalfH, 2),
+    'shot stopping before torso misses');
+assert(segmentIntersectsExpandedRect(-100, -60, -5, -60, 0, zCy, zHalfW, zHalfH, 2),
+    'shot entering torso edge hits');
+assert(segmentIntersectsExpandedRect(16.5, -60, 16.5, 60, 0, zCy, zHalfW, zHalfH, 2),
+    'shot beside torso within bullet radius hits (expand)');
+assert(!segmentIntersectsExpandedRect(20, -60, 20, 60, 0, zCy, zHalfW, zHalfH, 2),
+    'shot beyond torso side + bullet radius misses');
+assert(segmentIntersectsExpandedRect(0, -200, 0, 200, 0, zCy, zHalfW, zHalfH, 2),
+    'vertical falling shot through torso hits');
+assert(segmentIntersectsExpandedRect(0, 0, 0, 0, 0, zCy, zHalfW, zHalfH, 2),
+    'zero-length segment inside rect hits');
+assert(!segmentIntersectsExpandedRect(0, 50, 0, 50, 0, zCy, zHalfW, zHalfH, 2),
+    'zero-length segment outside rect misses');
 
 console.log('\nAll Collider / 3D collision tests passed.');

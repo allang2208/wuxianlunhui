@@ -1,6 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
-import { segmentIntersectsCapsule } from '../physics/collision-3d.js';
+import { segmentIntersectsCapsule, segmentIntersectsExpandedRect } from '../physics/collision-3d.js';
 import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
@@ -100,7 +100,11 @@ class Projectile {
      * 2. 身体圆柱/胶囊：把贴地飞行的投射物视为竖直厚度为 size 的圆柱
      *    （中心 z = size/2），与实体的 3D 胶囊体做连续碰撞检测。
      *
-     * 地面/低空目标： footprint 椭圆 OR 身体圆柱 任一命中即算命中。
+     * 3. 躯干矩形（屏幕空间）：把实体身体近似为锚定脚底的竖直矩形
+     *    （render.projectileHitbox，缺省取 collisionWidth × 身高），
+     *    让瞄准贴图身体位置的弹道也能命中（不影响近战判定）。
+     *
+     * 地面/低空目标： footprint 椭圆 OR 躯干矩形 OR 身体圆柱 任一命中即算命中。
      * 飞行目标：只使用身体圆柱，避免 footprint 命中空中单位脚部。
      */
     _isHittingEntity(entity, prevX, prevY) {
@@ -112,7 +116,32 @@ class Projectile {
         }
 
         return this._hitFootprintEllipse(entity, prevX, prevY) ||
+               this._hitTorsoRect(entity, prevX, prevY) ||
                this._hitBodyCapsule(entity, prevX, prevY);
+    }
+
+    /**
+     * 躯干矩形判定（屏幕空间，仅投射物使用）。
+     * 矩形锚定 collider 脚底中心：宽/高/偏移取 render.projectileHitbox；
+     * 未配置时缺省为 collisionWidth（回退 collider 直径）× collider 身高，
+     * 新怪物零配置即获得合理躯干判定。矩形按投射物半径外扩后做线段相交。
+     */
+    _hitTorsoRect(entity, prevX, prevY) {
+        const c = entity.collider;
+        const hb = entity.config?.render?.projectileHitbox || null;
+        const width = (hb && hb.width > 0) ? hb.width
+            : (entity.collisionWidth > 0 ? entity.collisionWidth : c.radius * 2);
+        const height = (hb && hb.height > 0) ? hb.height : c.height;
+        const offsetX = (hb && hb.offsetX) || 0;
+        const bottom = (hb && hb.bottom) || 0;
+        if (width <= 0 || height <= 0) return false;
+
+        const cx = c.x + offsetX;
+        const cy = c.y - bottom - height / 2;
+        return segmentIntersectsExpandedRect(
+            prevX, prevY, this.x, this.y,
+            cx, cy, width / 2, height / 2, this.size / 2
+        );
     }
 
     /**

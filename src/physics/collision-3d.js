@@ -141,3 +141,61 @@ export function spheresIntersect(c1, r1, c2, r2) {
     const rr = r1 + r2;
     return dx * dx + dy * dy + dz * dz <= rr * rr;
 }
+
+/**
+ * 2D 屏幕空间：线段与轴对齐矩形（按 expand 四向外扩）相交判定。
+ * 用于投射物躯干矩形命中：矩形以 (cx, cy) 为中心，半宽 halfW、半高 halfH，
+ * expand 为投射物半径（让子弹中心线段与"膨胀矩形"相交即可）。
+ * 使用 Liang-Barsky 裁剪；零长线段退化为点包含测试。
+ *
+ * @param {number} x1 线段起点 x
+ * @param {number} y1 线段起点 y
+ * @param {number} x2 线段终点 x
+ * @param {number} y2 线段终点 y
+ * @param {number} cx 矩形中心 x
+ * @param {number} cy 矩形中心 y
+ * @param {number} halfW 矩形半宽
+ * @param {number} halfH 矩形半高
+ * @param {number} expand 四向外扩量（投射物半径）
+ * @returns {boolean}
+ */
+export function segmentIntersectsExpandedRect(x1, y1, x2, y2, cx, cy, halfW, halfH, expand = 0) {
+    const minX = cx - halfW - expand;
+    const maxX = cx + halfW + expand;
+    const minY = cy - halfH - expand;
+    const maxY = cy + halfH + expand;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    // 零长线段：退化为点包含测试
+    if (Math.abs(dx) < 1e-9 && Math.abs(dy) < 1e-9) {
+        return x1 >= minX && x1 <= maxX && y1 >= minY && y1 <= maxY;
+    }
+
+    let tMin = 0;
+    let tMax = 1;
+    // Liang-Barsky：对四条边分别裁剪参数区间 [tMin, tMax]
+    const edges = [
+        [-dx, x1 - minX], // 左：x >= minX
+        [ dx, maxX - x1], // 右：x <= maxX
+        [-dy, y1 - minY], // 上：y >= minY
+        [ dy, maxY - y1], // 下：y <= maxY
+    ];
+    for (const [p, q] of edges) {
+        if (Math.abs(p) < 1e-9) {
+            // 线段与该边平行：若不在范围内则无交
+            if (q < 0) return false;
+        } else {
+            const t = q / p;
+            if (p < 0) {
+                if (t > tMax) return false;
+                if (t > tMin) tMin = t;
+            } else {
+                if (t < tMin) return false;
+                if (t < tMax) tMax = t;
+            }
+        }
+    }
+    return true;
+}

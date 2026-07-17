@@ -10,6 +10,25 @@
 
 ## 2026-07-17（普通僵尸精灵图导入与主神空间测试生成）
 
+### 对话：投射物新增躯干矩形判定（方案 B，仅投射物）（v0.198+）
+- **修改文件**：
+  - `src/physics/collision-3d.js`：新增 `segmentIntersectsExpandedRect`（Liang-Barsky 线段-膨胀矩形相交，零长线段退化为点包含）。
+  - `src/combat/projectile.js`：新增 `_hitTorsoRect`——屏幕空间躯干矩形判定，锚定 collider 脚底中心，取 `render.projectileHitbox`（宽/高/offsetX/bottom），缺省为 `collisionWidth × 身高`，新怪物零配置自动获得；地面目标命中改为 **footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱** 任一命中，飞行目标不变。**近战判定（attack.js/skill-shapes.js）未做任何改动**。
+  - `data/enemy-config.json`：7 个精灵图怪物的 `render` 新增实测 `projectileHitbox`（zombie 31×103、fatZombie 44×137、spitterZombie 29×81、zombieWizard 46×112、mutant3 68×110、zombieDog 81×83、blackWolf 120×65），数值来自首帧内容边界按 spriteSize 换算。
+  - `src/phaser/scenes/GameScene.js`："范围"调试层新增绿色描边矩形，实时显示每个实体的投射物躯干矩形。
+  - `scripts/archive/measure-projectile-hitbox.py`（新增一次性测量脚本）、`scripts/archive/prepare-zombie-sprites.py`（前次归档）。
+  - `scripts/test-collider.mjs`：新增 12 个躯干矩形判定用例。
+  - `CHANGELOG.md`：本记录。
+- **修改内容摘要**：
+  1. 枪械瞄准敌人贴图身体（躯干/头部）现在可以命中，不再需要瞄脚下 footprint 椭圆。
+  2. 判定仅作用于投射物（玩家枪械、毒液投射物等对玩家同样生效）；近战斩击/突刺的 Z 区间判定完全不变。
+  3. 躯干矩形逐怪按贴图内容实测配置，未配置的实体使用缺省推导，无硬编码。
+- **测试结果**：`node scripts/test-collider.mjs` 全部通过（含 12 个新用例）；`npm run lint` 通过；`npx vite build` 通过。
+- **已知问题**：
+  - 实机手感未验证：躯干命中区间是否过宽/过窄，可用"范围"按钮的绿色矩形对照贴图逐怪微调 `projectileHitbox`。
+  - redWolfKing 无 render 配置，走缺省推导（collisionRadius×2），未实测。
+  - 冰锥/火球/符文剑等技能投射物仍走各自 GroundCircle 地面判定，未纳入本次范围。
+
 ### 对话：僵尸攻击线性突进 + 地牢同步接入精灵图僵尸（v0.198+）
 - **修改文件**：
   - `src/entities/enemy.js`：基类新增**配置驱动的通用线性突进机制**——构造函数初始化 `_lungeActive/_lungeDistance/_lungeApplied/_lungeAngle`；`triggerWeaponAnim()` 在 `config.attack.lungeDistance > 0` 时锁定朝目标（无目标用 rotation）的突进角度；`update()` 在眩晕检查后调用新增的 `_updateLunge()`，攻击动画期间按 `1 - _attackTimer/_attackDuration` 线性推进，增量式位移（不覆盖击退/分离等外部位移），每帧 `WallSystem.resolve` 撞墙校验。任何怪物只要在 enemy-config.json 配置 `attack.lungeDistance` 即在任何场景自动获得该行为，无硬编码。
