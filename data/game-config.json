@@ -219,7 +219,7 @@
     "costGrowth": 1.5
   },
   "input": {
-    "skillLongPressMs": 300
+    "skillLongPressMs": 1500
   },
   "scene2": {
     "spawning": {

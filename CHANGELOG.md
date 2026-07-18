@@ -8,6 +8,23 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（七项修复与优化）
+
+### 对话：换弹中断/按钮布局/无人机/初级地牢/骑士音效/清怪/冲锋速度
+- **Super90 换弹切枪中断**：`switchWeaponMode` 成功后遍历四槽取消全部换弹状态（reloading/reloadTimer/singleReloadMode 清零），切枪立即中断换弹动作。
+- **秒杀按钮遮挡修复**：根因=两按钮共用 `.invincible-toggle`（同坐标 left:124px）。game-style.css 新增 `#oneHitKillToggle { left: 180px; }`，无敌还原、秒杀居右。
+- **无人机**：
+  - 时长根因=skills.json duration 公式 `5+level×0.5`（lv1 仅 5.5s），按拍板改 `15+level×1`（lv1=16s/lv20=35s，双份 JSON 同步）；
+  - 贴图根因=iconImage 指向从未存在的 drone_skill.png/shotgun_mastery.png（404→emoji 兜底），改为已存在的 `assets/skills/无人机.png`、`assets/icons/S12k-icon.png`（subsystems 兜底 3 处同步）；
+  - 长按阈值 `input.skillLongPressMs` 300→1500；
+  - 新增 `_holdPosition` 悬停：长按飞到鼠标点后原地停留、不再跟随玩家，再次长按飞往下一点，重新部署时重置；短按维持原 toggle（部署/操控/退出）。
+- **僵尸地牢-初级精英混入**：根因=beginner 缺 `encounters` 键，普通战斗回退 DEFAULTS（20% 精英）。补 encounters：normal 全普通怪（3 波×5，tierWeights 1/0），elite 显式复制精英构成备用；boss 战 bossEncounter 不受影响。
+- **铠甲骑士音效**（sounds 配置块驱动）：素材 3 个 mp3 复制到 `assets/sounds/enemies/armored_knight/`；walk 每 500ms 播 walking.mp3；combo 帧 6/17 播 attacking.mp3（与伤害帧 12/25 独立）；格挡每次受击播 defending.mp3（替换原通用 wood_thud）；冲锋每 300ms 播 walking.mp3、撞中目标播 defending.mp3。
+- **主神空间清怪**：删除胖子僵尸/普通僵尸/集合体三个生成调用（方法保留备用），只留铠甲骑士与测试靶/DPS 靶。
+- **冲锋速度**：charge.speed 900→300（配置）。
+- **测试结果**：全部 JSON 校验 ✅（skills 双份同步一致）；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①切枪中断换弹手感；②两按钮不再重叠；③无人机 16s 时长/新图标/长按 1.5s 飞行+悬停；④初级地牢普通战斗不再出精英；⑤骑士音效各触发点；⑥300px 冲锋速度观感。
+
 ## 2026-07-18（新怪物：铠甲骑士）
 
 ### 对话：新增精英怪铠甲骑士（按添加怪物工作流）

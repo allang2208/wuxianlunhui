@@ -46,6 +46,11 @@ export class ArmoredKnight extends Enemy {
 
         // 弹反管线代理：格挡期间命中按弹反处理（供 DamagePipeline 抑制击退/craft 命中效果）
         this.shieldSystem = { _lastParried: false };
+
+        // 音效计时（enemy-config.json 的 sounds 块驱动）
+        this._walkSoundTimer = 0;
+        this._chargeSoundTimer = 0;
+        this._comboSoundsDone = new Set();
     }
 
     _getSkillConfigs() {
@@ -55,6 +60,14 @@ export class ArmoredKnight extends Enemy {
             charge: s.charge || {},
             block: s.block || {},
         };
+    }
+
+    // 播放配置音效（enemy-config.json 的 sounds 块驱动）
+    _playSound(key) {
+        const path = this.config?.sounds?.[key];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     update(dt, entities) {
@@ -89,6 +102,17 @@ export class ArmoredKnight extends Enemy {
         }
         if (this._animState !== 'combo' && this._animState !== 'charge' && this._animState !== 'defend') {
             this._animState = this.isMoving ? 'walk' : 'idle';
+        }
+
+        // 移动音效：walk 状态按间隔持续播放脚步声
+        if (this._animState === 'walk') {
+            this._walkSoundTimer -= dt;
+            if (this._walkSoundTimer <= 0) {
+                this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
+                this._playSound('walk');
+            }
+        } else {
+            this._walkSoundTimer = 0;
         }
     }
 
@@ -129,6 +153,7 @@ export class ArmoredKnight extends Enemy {
         this._comboTimer = cfg.duration ?? 2000;
         this._comboCooldown = cfg.cooldown ?? 4000;
         this._comboHitsDone = new Set();
+        this._comboSoundsDone = new Set();
         this._comboTarget = this.target;
         this.vx = 0;
         this.vy = 0;
@@ -149,6 +174,16 @@ export class ArmoredKnight extends Enemy {
         }
         const elapsed = (cfg.duration || 0) - this._comboTimer;
         const frames = cfg.frames || 1;
+        // 挥砍音效帧（独立于伤害帧，互不干扰）
+        const soundFrames = this.config?.sounds?.comboSoundFrames || [];
+        for (let i = 0; i < soundFrames.length; i++) {
+            if (this._comboSoundsDone.has(i)) continue;
+            const st = ((soundFrames[i] - 1) / frames) * (cfg.duration || 0);
+            if (elapsed >= st) {
+                this._comboSoundsDone.add(i);
+                this._playSound('combo');
+            }
+        }
         const hitFrames = cfg.hitFrames || [];
         for (let i = 0; i < hitFrames.length; i++) {
             if (this._comboHitsDone.has(i)) continue;
@@ -186,6 +221,7 @@ export class ArmoredKnight extends Enemy {
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._chargeCooldown = cfg.cooldown ?? 10000;
+        this._chargeSoundTimer = 0;
         // 冲锋期间弹反免疫（与集合体同机制），结束后还原
         this._parryImmune = true;
         this.vx = 0;
@@ -199,6 +235,12 @@ export class ArmoredKnight extends Enemy {
     _updateCharge(dt) {
         const cfg = this._getSkillConfigs().charge;
         const dtSec = dt / 1000;
+        // 冲锋脚步声：按间隔循环播放
+        this._chargeSoundTimer -= dt;
+        if (this._chargeSoundTimer <= 0) {
+            this._chargeSoundTimer = this.config?.sounds?.chargeStepInterval ?? 300;
+            this._playSound('walk');
+        }
         const speed = cfg.speed ?? 900;
         const maxDist = cfg.maxDistance ?? 1800;
         const t = this._chargeTarget && this._chargeTarget.active ? this._chargeTarget : this.target;
@@ -233,6 +275,7 @@ export class ArmoredKnight extends Enemy {
 
     _dealChargeHit(t) {
         const cfg = this._getSkillConfigs().charge;
+        this._playSound('block'); // 撞击到目标：播放一次盾击音
         const atk = this.data?.atk || 0;
         t.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         // 目标弹反成功：不受伤（takeDamage 已免伤）不眩晕，只保留击退；
@@ -296,9 +339,8 @@ export class ArmoredKnight extends Enemy {
     }
 
     _triggerBlockParry(attacker, isMelee) {
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/wood_thud_1s.wav');
-        }
+        // 格挡受击音效（防御状态每次受击播放）
+        this._playSound('block');
         // 与玩家盾系统 triggerParry 同口径：远程/魔法只抵消伤害；近战才眩晕+击退；弹反免疫单位不受影响
         if (!isMelee) return;
         if (!attacker || attacker._parryImmune) return;

@@ -897,7 +897,7 @@
       },
       "charge": {
         "cooldown": 10000,
-        "speed": 900,
+        "speed": 300,
         "maxDistance": 1800,
         "triggerRange": 550,
         "hitRange": 60,
@@ -931,6 +931,14 @@
       }
     ],
     "attackType": "挥砍",
+    "sounds": {
+      "walk": "assets/sounds/enemies/armored_knight/walking.mp3",
+      "walkInterval": 500,
+      "combo": "assets/sounds/enemies/armored_knight/attacking.mp3",
+      "comboSoundFrames": [6, 17],
+      "block": "assets/sounds/enemies/armored_knight/defending.mp3",
+      "chargeStepInterval": 300
+    },
     "render": {
       "spriteSize": 220,
       "collisionWidth": 44,

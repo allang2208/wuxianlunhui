@@ -29,6 +29,8 @@ export class DroneSystem {
         // 长按技能键命令的飞行目标点（null=无命令）
         this._moveTarget = null;
         this._moveStallMs = 0; // 被墙挡停累积时间（防卡死）
+        // 长按命令后悬停：到达目标点后原地停留，不再跟随玩家（再次长按重新定位）
+        this._holdPosition = false;
     }
 
     // 切换无人机状态
@@ -52,6 +54,7 @@ export class DroneSystem {
         if (!this.active) return; // 技能缺失等防御
         this._moveTarget = { x: mw.x, y: mw.y };
         this._moveStallMs = 0;
+        this._holdPosition = true; // 到达后悬停，不再跟随玩家
         EffectManager.add(new FloatingTextEffect(mw.x, mw.y - 12, '🛸 飞往目标点', '#5a7a9a'));
     }
 
@@ -72,6 +75,9 @@ export class DroneSystem {
         this.y = this.player.y + Math.sin(angle) * 50;
         this.vx = 0;
         this.vy = 0;
+        this._moveTarget = null;
+        this._moveStallMs = 0;
+        this._holdPosition = false; // 重新部署时清除悬停状态
         // 显示提示
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 20, '🛸 无人机已部署', '#5a7a9a'));
     }
@@ -201,6 +207,10 @@ export class DroneSystem {
                 Renderer.cameraTarget.x = this.x;
                 Renderer.cameraTarget.y = this.y;
             }
+        } else if (this._holdPosition) {
+            // 长按命令后悬停：原地停留（再次长按重新定位）
+            this.vx *= 0.82;
+            this.vy *= 0.82;
         } else {
             // 非操控模式：跟随玩家，保持在其正前方
             const followAngle = this.player.rotation;
