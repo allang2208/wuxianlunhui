@@ -820,7 +820,7 @@
         "duration": 2000,
         "frames": 25,
         "fireFrame": 16,
-        "soundPreMs": 1500,
+        "soundPreMs": 750,
         "impactRadius": 45,
         "damageMul": 1.0,
         "flyDuration": 600,
