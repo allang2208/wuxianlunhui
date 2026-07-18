@@ -8,6 +8,22 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（集合体投掷音效前置 + 首领经验确认）
+
+### 对话：投掷音效再前移 1.5s + bossMultiplier 确认
+- **投掷音效前置调度**：`attackSkills.throw` 配置 `soundPreMs`（当前 750）；`amalgam-zombie.js` 新增投掷预备机制——`_decideAttack` 命中投掷时立即播放 throwing 音效并置 `_throwPending = soundPreMs`（同时进入冷却防止重复触发），update 循环倒计时到点后 `_startAttack('throw')` 才开始攻击动作，`_throwSoundPlayed` 抑制攻击内重复播放。音效起点 = 攻击动作前 soundPreMs。预备期间目标丢失则自然取消。（初版 1500ms，实测后后移 750ms 对齐听感）
+- **首领经验 ×10（确认无需改动）**：`enemy.js getExpValue()` 已按 `rank === 'boss'` 应用 `combat-formulas.json` 的 `bossMultiplier: 10`；amalgamZombie（rank boss、level 7、无 expValue 覆盖）击杀经验 = (10 + 7×5) × 10 = **450**，召唤物闸门不受影响。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机待验证——音效起点与抬手/出手的听感对齐（不合适改 `soundPreMs`）；注意攻击动作整体后移 1.5s（玩家多 1.5s 反应时间）。
+
+## 2026-07-18（集合体投掷音效）
+
+### 对话：集合体投掷音效启用 throwing.mp3 + 音效前移
+- `data/enemy-config.json` amalgamZombie `sounds.throw` 由占位 `idle.mp3` 改为 `assets/sounds/enemies/amalgam/throwing.mp3`（素材早已复制到项目，仅配置未接）。
+- **音效前移（音画同步）**：`attackSkills.throw` 新增 `soundLeadMs: 2000`；`amalgam-zombie.js _updateThrowFire` 拆出独立音效触发点 `max(0, fireT - soundLeadMs)`（`_throwSoundPlayed` 标志，`_startAttack` 重置）——出手帧 16/25（1200ms）减去 2000ms 前移量后锚定到攻击动画起点，音头覆盖抬手过程，出手/落地与画面对齐。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机听感待确认（如前移量不合适，改 `soundLeadMs` 即可）。
+
 ## 2026-07-17（遗留 bug 与技术债务分批清理）
 
 ### 对话：7 阶段 19 项清理（v0.198+）
