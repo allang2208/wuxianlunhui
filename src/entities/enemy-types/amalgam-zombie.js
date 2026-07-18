@@ -214,6 +214,7 @@ export class AmalgamZombie extends Enemy {
                 this._throwTarget = { x: this.x, y: this.y };
             }
             this._throwFired = false;
+            this._throwSoundPlayed = false;
             this._createWarning(this._throwTarget.x, this._throwTarget.y, cfg.impactRadius || 45);
         }
     }
@@ -259,9 +260,14 @@ export class AmalgamZombie extends Enemy {
     _updateThrowFire(elapsed) {
         const cfg = this._getSkillConfigs().throw;
         const fireT = (((cfg.fireFrame || 1) - 1) / (cfg.frames || 1)) * (cfg.duration || 0);
+        // 投掷音效前移：按 soundLeadMs 提前于出手帧播放（音头覆盖抬手过程，音画同步）
+        const soundT = Math.max(0, fireT - (cfg.soundLeadMs ?? 0));
+        if (!this._throwSoundPlayed && elapsed >= soundT) {
+            this._throwSoundPlayed = true;
+            this._playSound('throw');
+        }
         if (!this._throwFired && elapsed >= fireT) {
             this._throwFired = true;
-            this._playSound('throw');
             this._launchProjectile(this._throwTarget.x, this._throwTarget.y);
         }
     }

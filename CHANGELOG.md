@@ -10,10 +10,11 @@
 
 ## 2026-07-18（集合体投掷音效）
 
-### 对话：集合体投掷音效启用 throwing.mp3
-- `data/enemy-config.json` amalgamZombie `sounds.throw` 由占位 `idle.mp3` 改为 `assets/sounds/enemies/amalgam/throwing.mp3`（素材早已复制到项目，仅配置未接）。触发点不变：投掷动画第 16 帧发射投射物时 `_playSound('throw')`。
-- **测试结果**：enemy-config.json 校验通过；`npx vite build` ✅。
-- **已知问题**：实机听感待确认（音量/时长是否需调整）。
+### 对话：集合体投掷音效启用 throwing.mp3 + 音效前移
+- `data/enemy-config.json` amalgamZombie `sounds.throw` 由占位 `idle.mp3` 改为 `assets/sounds/enemies/amalgam/throwing.mp3`（素材早已复制到项目，仅配置未接）。
+- **音效前移（音画同步）**：`attackSkills.throw` 新增 `soundLeadMs: 2000`；`amalgam-zombie.js _updateThrowFire` 拆出独立音效触发点 `max(0, fireT - soundLeadMs)`（`_throwSoundPlayed` 标志，`_startAttack` 重置）——出手帧 16/25（1200ms）减去 2000ms 前移量后锚定到攻击动画起点，音头覆盖抬手过程，出手/落地与画面对齐。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机听感待确认（如前移量不合适，改 `soundLeadMs` 即可）。
 
 ## 2026-07-17（遗留 bug 与技术债务分批清理）
 
