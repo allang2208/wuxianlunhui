@@ -51,6 +51,13 @@ export class ArmoredKnight extends Enemy {
         this._walkSoundTimer = 0;
         this._chargeSoundTimer = 0;
         this._comboSoundsDone = new Set();
+
+        // 二连击突进插帧（参考突变体-3连击突进）
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
+        // 冲锋朝向死区：|dx| 过小时保持上次朝向，防止贴身抖动回头
+        this._chargeFaceDir = 1;
     }
 
     _getSkillConfigs() {
@@ -137,9 +144,9 @@ export class ArmoredKnight extends Enemy {
             }
         }
 
-        // 连击：近身发动
+        // 连击：近身才发动（triggerRange 比伤害判定 range 小，避免空挥）
         if (this._comboCooldown <= 0 && cfg.combo.duration) {
-            if (this._isTargetInRange(t, cfg.combo.range ?? 125)) {
+            if (this._isTargetInRange(t, cfg.combo.triggerRange ?? 75)) {
                 this._startCombo();
             }
         }
@@ -161,6 +168,22 @@ export class ArmoredKnight extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
+        // 连击突进：向目标方向设置 lungeDistance 总位移，_updateCombo 逐帧插值执行
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
+        const t = this._comboTarget;
+        if (t && t.active) {
+            const dx = t.x - this.x;
+            const dy = t.y - this.y;
+            const d = Math.hypot(dx, dy);
+            const lunge = cfg.lungeDistance ?? 30;
+            if (d > 0 && lunge > 0) {
+                this._comboLungeDx = (dx / d) * lunge;
+                this._comboLungeDy = (dy / d) * lunge;
+                this._comboLungeRemaining = lunge;
+            }
+        }
     }
 
     _updateCombo(dt) {
@@ -169,6 +192,23 @@ export class ArmoredKnight extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+
+        // 连击突进：逐帧插值执行（参考突变体-3，移动连贯不瞬移）
+        if (this._comboLungeRemaining > 0.1) {
+            const dtSec = dt / 1000;
+            const lungeSpeed = cfg.lungeSpeed ?? 500;
+            const step = Math.min(this._comboLungeRemaining, lungeSpeed * dtSec);
+            const ratio = this._comboLungeRemaining > 0 ? step / this._comboLungeRemaining : 0;
+            const mx = this._comboLungeDx * ratio;
+            const my = this._comboLungeDy * ratio;
+            const r = WallSystem.resolve(this.x, this.y, this.x + mx, this.y + my, this.groundRadius);
+            this.x = r.x;
+            this.y = r.y;
+            this._comboLungeDx -= mx;
+            this._comboLungeDy -= my;
+            this._comboLungeRemaining -= step;
+        }
+
         if (this._comboTarget && this._comboTarget.active) {
             this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
         }
@@ -210,6 +250,9 @@ export class ArmoredKnight extends Enemy {
         this._comboTimer = 0;
         this._comboTarget = null;
         this._comboHitsDone = new Set();
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
     }
 
     // ========== 持盾冲锋 ==========
@@ -227,7 +270,10 @@ export class ArmoredKnight extends Enemy {
         this.vx = 0;
         this.vy = 0;
         if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            const dx = this.target.x - this.x;
+            this.rotation = Math.atan2(this.target.y - this.y, dx);
+            // 冲锋朝向初始锁定目标侧（死区更新，见 _updateCharge）
+            if (Math.abs(dx) > 1e-3) this._chargeFaceDir = dx > 0 ? 1 : -1;
         }
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🛡️ 冲锋！', '#7a8a9a'));
     }
@@ -252,6 +298,8 @@ export class ArmoredKnight extends Enemy {
             const d = Math.hypot(dx, dy);
             if (d > 0) {
                 this.rotation = Math.atan2(dy, dx);
+                // 朝向死区：|dx| > 20px 才更新水平朝向，防止贴身/正上下方时 flipX 抖动回头
+                if (Math.abs(dx) > 20) this._chargeFaceDir = dx > 0 ? 1 : -1;
                 const step = Math.min(speed * dtSec, d);
                 const nx = this.x + (dx / d) * step;
                 const ny = this.y + (dy / d) * step;
@@ -378,7 +426,10 @@ export class ArmoredKnight extends Enemy {
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
         let flipX = false;
-        if (this.isMoving && Math.abs(this.vx) > 0.1) {
+        if (this._animState === 'charge') {
+            // 冲锋期间：使用死区朝向（避免追踪 flipX 抖动回头）
+            flipX = this._chargeFaceDir < 0;
+        } else if (this.isMoving && Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;

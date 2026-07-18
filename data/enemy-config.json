@@ -892,8 +892,11 @@
         "duration": 2000,
         "frames": 32,
         "hitFrames": [12, 25],
+        "triggerRange": 75,
         "range": 125,
-        "damageMul": 1.0
+        "damageMul": 1.0,
+        "lungeDistance": 30,
+        "lungeSpeed": 500
       },
       "charge": {
         "cooldown": 10000,
@@ -908,7 +911,7 @@
       },
       "block": {
         "cooldown": 6000,
-        "duration": 2000,
+        "duration": 1500,
         "triggerRange": 260,
         "frames": 14,
         "parryStunMs": 2000,
