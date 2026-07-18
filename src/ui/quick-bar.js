@@ -5,6 +5,7 @@ import { ItemDatabase } from '../items/item-database.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -24,6 +25,9 @@ export const QuickBar = {
     itemAssignments: {}, // keyCode -> { bpSlot, itemName, icon }
     cooldowns: {}, // skillId -> remainingMs
     specialAttack: { enabled: false, item: null, cooldown: 0 },
+    // 无人机技能键长按检测状态
+    _droneKeyDownTime: 0,
+    _droneKeyCode: null,
     init() {
         const skillGroup = getElement('skillGroup');
         const itemGroup = getElement('itemGroup');
@@ -479,6 +483,40 @@ export const QuickBar = {
         // No skill or item assigned
         slot.element.style.transform = 'scale(0.95)';
         TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
+    },
+    // ===== 无人机技能键：短按 toggle / 长按指挥飞行 =====
+    isDroneSkillKey(keyCode) {
+        return !!(this.skillAssignments && this.skillAssignments[keyCode] === 'droneSkill');
+    },
+    droneKeyDown(keyCode) {
+        this._droneKeyDownTime = performance.now();
+        this._droneKeyCode = keyCode;
+    },
+    droneKeyUp(keyCode) {
+        if (this._droneKeyCode !== keyCode) return;
+        this._droneKeyCode = null;
+        const longPressMs = (GAME_CONFIG.input && GAME_CONFIG.input.skillLongPressMs) ?? 300;
+        if (performance.now() - this._droneKeyDownTime >= longPressMs) {
+            this._droneMoveCommand();
+        } else {
+            this.useSlot(keyCode); // 短按：维持原 toggle 行为
+        }
+    },
+    // 长按：命令无人机飞往鼠标指针位置（未部署则先部署，部署等同施放受冷却限制）
+    _droneMoveCommand() {
+        const player = Game.player;
+        if (!player || !player.droneSystem) return;
+        if (player.weaponAnim && player.weaponAnim.state !== 'idle') return;
+        if (player._specialAttackActive) return;
+        const skill = player.skills && player.skills.droneSkill;
+        if (!skill) return;
+        const ds = player.droneSystem;
+        if (!ds.active) {
+            if (this.cooldowns['droneSkill'] > 0) return;
+            const effect = skill.getEffect(skill.level);
+            this.cooldowns['droneSkill'] = ((effect && effect.cooldown) || 15) * 1000;
+        }
+        ds.commandFlyToMouse();
     },
     updateCooldowns(dt) {
         for (const skillId in this.cooldowns) {

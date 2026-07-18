@@ -598,7 +598,16 @@ class Combatant extends DamageableEntity {
                 enchantCritBonus = weapon._enchantEffects.critRate * 100;
             }
         }
-        const finalCritRate = Math.max(0, critRate + enchantCritBonus - critRes);
+        // 无人机易伤：暴击率加成（与 DamageableEntity 经验判定同口径，此前缺失导致易伤只加伤不加暴）
+        let droneCritBonus = 0;
+        if (this._droneVulnerabilityStacks > 0) {
+            droneCritBonus = 10 * this._droneVulnerabilityStacks;
+            if (source && source.skills && source.skills.droneSkill) {
+                const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
+                droneCritBonus = (effect.critBonusPercent || 10) * this._droneVulnerabilityStacks;
+            }
+        }
+        const finalCritRate = Math.max(0, critRate + enchantCritBonus + droneCritBonus - critRes);
         const isCrit = Math.random() * 100 < finalCritRate;
 
         let finalDamage = damage;
@@ -607,16 +616,7 @@ class Combatant extends DamageableEntity {
             finalDamage = Math.floor(damage * (1 + csEffect.damageBonus));
         }
 
-        // 无人机易伤
-        if (this._droneVulnerabilityStacks > 0) {
-            let droneBonus = 0.10 * this._droneVulnerabilityStacks;
-            if (source && source.skills && source.skills.droneSkill) {
-                const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
-            }
-            finalDamage = Math.floor(finalDamage * (1 + droneBonus));
-        }
-
+        // 无人机易伤（伤害加成）由 DamageableEntity.takeDamage 统一应用，此处不再重复
         super.takeDamage(finalDamage, source, damageType, _isMelee);
     }
 }

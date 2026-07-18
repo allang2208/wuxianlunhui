@@ -17,10 +17,18 @@ import DevTool from './dev-tool.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
+            _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
             init() {
                 window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code); });
-                window.addEventListener('keyup', e => this.keys.delete(e.code));
-                window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; });
+                window.addEventListener('keyup', e => {
+                    this.keys.delete(e.code);
+                    // 无人机技能键松开：短按/长按在 QuickBar 侧判定
+                    if (this._droneKeyHeldCode === e.code) {
+                        this._droneKeyHeldCode = null;
+                        QuickBar.droneKeyUp(e.code);
+                    }
+                });
+                window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; this._droneKeyHeldCode = null; });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
                     const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn');
@@ -78,7 +86,17 @@ import DevTool from './dev-tool.js';
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
                 if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
-                if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) QuickBar.useSlot(code);
+                if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) {
+                    // 无人机技能键：按下只记录，松开时按持有时长区分短按(toggle)/长按(指挥飞行)
+                    if (QuickBar.isDroneSkillKey(code)) {
+                        if (!this._droneKeyHeldCode) {
+                            this._droneKeyHeldCode = code;
+                            QuickBar.droneKeyDown(code);
+                        }
+                    } else {
+                        QuickBar.useSlot(code);
+                    }
+                }
                 if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);
                 if (code === 'KeyF' && Game.player) {
                     Game.player.switchWeaponMode();

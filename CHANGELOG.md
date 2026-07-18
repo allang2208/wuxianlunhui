@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（无人机长按指挥飞行 + 易伤暴击修复）
+
+### 对话：无人机操作优化 + 易伤 buff 暴击率排查
+- **排查结论（两个真 bug）**：
+  1. **易伤暴击率加成未进实际伤害判定**：`Combatant.takeDamage` 的真实暴击率只算 `source.crit + 附魔 - critRes`，漏加 `droneCritBonus`；`DamageableEntity` 里虽加了无人机暴击率，但那条 isCrit 只喂 criticalStrike 经验、不影响伤害。修复：`combatant.js` finalCritRate 补 `droneCritBonus`（与经验判定同口径）。
+  2. **易伤伤害加成双重应用**：`Combatant.takeDamage` 与 `DamageableEntity.takeDamage` 各乘了一次 `(1 + droneBonus)`（Enemy 继承链两级都走），实际增伤高于描述（如 12% 变 25.4%）。修复：删除 Combatant 层的重复块，统一由 DamageableEntity 在防御计算后应用一次。
+- **长按指挥飞行**：`game-config.json` 新增 `input.skillLongPressMs: 300`；input.js 对无人机技能键按下只记录、松开时交 `QuickBar.droneKeyUp` 按时长分流——短按维持原 toggle（部署/操控/退出），长按 `_droneMoveCommand` 调 `DroneSystem.commandFlyToMouse()`：`Renderer.screenToWorld` 取鼠标世界坐标设 `_moveTarget`，无人机自动飞往（撞墙用 WallSystem.resolve，0.5s 无进展放弃防卡死，到达 12px 内停止；操控模式 WASD 输入立即取消命令）。未部署时长按 = 先部署再飞行（部署等同施放，受冷却限制）。
+- **测试结果**：game-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①长按下无人机飞鼠标点、短按原行为不回归；②被易伤目标的暴击触发率上升；③易伤增伤数值与技能描述一致（不再双倍）。
+
 ## 2026-07-18（集合体投掷音效前置 + 首领经验确认）
 
 ### 对话：投掷音效再前移 1.5s + bossMultiplier 确认
