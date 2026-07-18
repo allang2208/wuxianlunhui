@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（改造系统深化：registry 驱动聚合 + craft-system 拆分）
+
+### 对话：技术债清理——三角机制重构 + craft-system.js 拆分
+- **registry 三角重构**：新建 `src/ui/craft/craft-effects.js`——`aggregateCraftEffects` 按 `CRAFT_EFFECT_REGISTRY[key].applyMode` 聚合（flag=布尔 OR / override=后选覆盖 / add·multiply=求和），替代 `_applyModEffects` 中 44 行人工逐键收集；返回稀疏对象（与旧全量零值对象在消费端 falsy 判断下等价，语义抽样测试 PASS）。**新增改造效果只需 craft-config.json 加 effects + registry 注册条目，聚合自动生效**（`applyModEffectsToPlayer` 同迁弹药重初始化）。
+- **craft-system.js 拆分**：891 → 741 行。贴图回退链抽为 `src/ui/craft/weapon-image.js`（`resolveWeaponImageSrc`，含 ItemDatabase.getByWeaponId 反查）；`_applyModEffects` 变为薄封装；删除已无用的 ItemDatabase 导入。DOM 拖拽/编辑模式/弹窗保留在 craft-system.js（UI 控制器），外部 API（open/close/_updateUI/_getCraftConfig 等）不变。
+- **test-craft-sync.mjs 适配**：收集腿改为结构性断言（craft-effects.js 引用 CRAFT_EFFECT_REGISTRY+applyMode，收集≡注册），保留配置⊆注册、配置⊆消费两腿，新增 registry 条目结构校验（applyMode 合法 + display 存在）。
+- **测试结果**：`node scripts/test-craft-sync.mjs` ✅（38 配置键/39 注册/聚合驱动✓/38 消费）；聚合语义抽样（flag/override/add）PASS；`npm run lint` ✅；`npx vite build` ✅；`test-collider` ✅。
+- **已知问题**：实机待验证——改造面板装配/替换配件后效果与 tooltip 显示与重构前一致。
+
 ## 2026-07-18（无人机长按指挥飞行 + 易伤暴击修复）
 
 ### 对话：无人机操作优化 + 易伤 buff 暴击率排查

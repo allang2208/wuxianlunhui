@@ -1297,3 +1297,9 @@ Phaser Sprite.x / y / rotation / scale
   - **材料按 id 匹配**：强化石 `enhancement_stone`/改造券 `reforge_ticket` 模板与地牢事件奖励创建点补 `id`，消耗匹配 id 优先、无 id 旧实例名称兜底
   - **死代码批删**（grep 确认零调用）：`_combatCompleted`、`ZOMBIE_DUNGEON_CONFIG` 三残留字段、`consumeGoddessBless`、`getGradeCost`、Player 空 `_onHitEntity` 覆盖（敌人版是活的，damage-pipeline 调用保留）、`_ticketCost`/`_modifications`/`getWeaponEffects`、registry 五函数、codex `_craftEffects` 死分支、spitter 敌人端 `_craftEffects` 残留
   - 验证：每阶段 lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.2 (2026-07-18) — 改造系统深化：registry 驱动聚合 + craft-system 拆分
+  - **三角机制重构（registry 驱动聚合）**：`src/ui/craft/craft-effects.js` 的 `aggregateCraftEffects` 按 registry `applyMode` 聚合（flag=OR / override=后选覆盖 / add·multiply=求和），替代 44 行人工收集；**新增改造效果工作流变为：① craft-config.json 加 effects ② craft-effect-registry.js 注册条目（applyMode+display）③ 消费端读 `_craftEffects.X`——聚合无需再动**
+  - **拆分**：`craft/weapon-image.js`（resolveWeaponImageSrc 回退链）；craft-system.js 891→741 行，仅作 UI 控制器，外部 API 不变
+  - **test-craft-sync.mjs 适配**：收集腿改结构断言（聚合≡注册），新增 registry 条目结构校验（applyMode 合法+display 存在）
+  - 验证：lint / build / test-collider / test-craft-sync / 聚合语义抽样 全部通过
