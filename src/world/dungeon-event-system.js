@@ -124,7 +124,7 @@ function createEventConfig() {
                 ]},
                 { type: 'combat', chance: 0.25 },
             ],
-            combatText: '宝箱突然张开，里面钻出了一只宝箱怪！',
+            combatText: '宝箱突然张开，里面钻出了一群怪物！',
         },
         demonStatue: {
             title: '恶魔雕像',
@@ -216,7 +216,7 @@ export const DungeonBuffSystem = {
 
         // 添加实体状态效果
         if (player.addStatusEffect) {
-            player.addStatusEffect('buff', 999999, {
+            player.addStatusEffect('goddessBless', 999999, {
                 icon: '✨',
                 name: `女神祝福 ${battles}场`,
                 color: '#e8c878',
@@ -257,7 +257,7 @@ export const DungeonBuffSystem = {
 
         // 添加实体状态效果
         if (player.addStatusEffect) {
-            player.addStatusEffect('buff', 999999, {
+            player.addStatusEffect('demonPrayer', 999999, {
                 icon: '🔥',
                 name: '恶魔祈祷',
                 color: '#9a3a3a',
@@ -267,53 +267,6 @@ export const DungeonBuffSystem = {
         // 重新计算属性
         if (player.calculateCombatStats) {
             player.calculateCombatStats();
-        }
-
-        return true;
-    },
-
-    /**
-     * 消耗一场女神祝福
-     * @param {Player} player - 玩家对象
-     * @returns {boolean} 是否还有剩余层数
-     */
-    consumeGoddessBless(player) {
-        if (!player || !player._dungeonBuffs || !player._dungeonBuffs.goddessBless) {
-            return false;
-        }
-
-        const buff = player._dungeonBuffs.goddessBless;
-        buff.remainingBattles--;
-
-        if (buff.remainingBattles <= 0) {
-            // 移除buff
-            delete player._dungeonBuffs.goddessBless;
-
-            // 移除状态栏效果
-            if (StatusBar) {
-                StatusBar.removeEffectByType('goddessBless');
-            }
-
-            // 移除实体状态效果
-            if (player.removeStatusEffect) {
-                player.removeStatusEffect('buff');
-            }
-
-            // 重新计算属性
-            if (player.calculateCombatStats) {
-                player.calculateCombatStats();
-            }
-
-            return false;
-        }
-
-        // 更新状态栏显示
-        if (StatusBar) {
-            const effect = StatusBar.effects.find(e => e.type === 'goddessBless');
-            if (effect) {
-                effect.name = `${this.BUFF_CONFIG.goddessBless.name} (${buff.remainingBattles}场)`;
-                StatusBar.render();
-            }
         }
 
         return true;
@@ -386,7 +339,7 @@ export const DungeonBuffSystem = {
             if (buff.remainingBattles <= 0) {
                 delete buffs[key];
                 if (StatusBar) StatusBar.removeEffectByType(key);
-                if (player.removeStatusEffect) player.removeStatusEffect('buff');
+                if (player.removeStatusEffect) player.removeStatusEffect(key);
             } else if (StatusBar) {
                 const effect = StatusBar.effects.find(e => e.type === key);
                 if (effect) {
@@ -410,17 +363,20 @@ export const DungeonBuffSystem = {
     clearAllBuffs(player) {
         if (!player) return;
 
+        const buffKeys = player._dungeonBuffs ? Object.keys(player._dungeonBuffs) : [];
+
         // 移除状态栏效果
-        if (StatusBar && player._dungeonBuffs) {
-            for (const key of Object.keys(player._dungeonBuffs)) {
+        if (StatusBar) {
+            for (const key of buffKeys) {
                 StatusBar.removeEffectByType(key);
             }
         }
 
         delete player._dungeonBuffs;
 
-        // 移除实体状态效果
+        // 移除实体状态效果（按 buff 键逐一移除；'buff' 为旧版兼容清理）
         if (player.removeStatusEffect) {
+            for (const key of buffKeys) player.removeStatusEffect(key);
             player.removeStatusEffect('buff');
         }
 
@@ -1107,6 +1063,7 @@ export const DungeonEventSystem = {
             if (count && EquipManager && EquipManager.addToBackpack) {
                 const item = {
                     ...DUNGEON_EVENT_CONFIG.specialItems[configKey],
+                    id: configKey,
                     stack: count,
                 };
                 EquipManager.addToBackpack(item);

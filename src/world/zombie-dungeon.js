@@ -145,16 +145,6 @@ const ZOMBIE_DUNGEON_CONFIG = {
     name: '僵尸地牢',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
 
-    // 战斗波次
-    combatWaves: 3,
-    monstersPerWave: 5,
-
-    // 怪物 tier 概率
-    tierWeights: {
-        normal: 0.80,
-        elite: 0.20
-    },
-
     // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
     // normal：普通僵尸、僵尸犬、毒液僵尸、肥僵尸
     // elite：僵尸巫师、突变体-3

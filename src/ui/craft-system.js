@@ -15,7 +15,6 @@ const CraftSystem = {
     _currentNPC: null,
     _equippedItem: null,
     _equippedSlot: null,
-    _modifications: {}, // 每个装备的改造数据 { weaponId: { slot1: 'muzzle_brake', ... } }
 
     // 编辑模式状态
     _isEditing: false,
@@ -444,23 +443,14 @@ const CraftSystem = {
             }
         }
 
-        // 3. 从 ItemDatabase 根据 weaponId 查找
-        if (!imgSrc && item.weaponId && ItemDatabase) {
-            const weaponIdMap = {
-                'weapon1': 'rusty_sword', 'weapon2': 'knights_sword',
-                'weapon4': 'rune_sword', 'weapon5': 'night_flame_sword', 'weapon6': 'pkm',
-                'weapon7': 'akm', 'weapon8': 'qbz191', 'weapon9': 'g18_pistol',
-                'weapon10': 'desert_eagle', 'weapon11': 'qjb201', 'weapon12': 'super90'
-            };
-            const itemId = weaponIdMap[item.weaponId];
-            if (itemId) {
-                const dbItem = ItemDatabase.get(itemId);
-                if (dbItem) {
-                    if (dbItem.weaponAsset && typeof dbItem.weaponAsset.image === 'string') {
-                        imgSrc = dbItem.weaponAsset.image;
-                    }
-                    if (!imgSrc) imgSrc = dbItem.equipImage || dbItem.slotImage || dbItem.iconImage;
+        // 3. 从 ItemDatabase 根据 weaponId 反查（索引由 ItemDatabase 维护，新武器无需登记）
+        if (!imgSrc && item.weaponId && ItemDatabase && ItemDatabase.getByWeaponId) {
+            const dbItem = ItemDatabase.getByWeaponId(item.weaponId);
+            if (dbItem) {
+                if (dbItem.weaponAsset && typeof dbItem.weaponAsset.image === 'string') {
+                    imgSrc = dbItem.weaponAsset.image;
                 }
+                if (!imgSrc) imgSrc = dbItem.equipImage || dbItem.slotImage || dbItem.iconImage;
             }
         }
 
@@ -683,7 +673,6 @@ const CraftSystem = {
         for (const opt of options) {
             const row = document.createElement('div');
             row.className = 'craft-mod-option' + (current === opt.id ? ' selected' : '');
-            const _ticketCost = current ? 4 : 1;
             const ticketLabel = current ? '🔧 替换需4张改造券' : '🔧 需1张改造券';
             row.innerHTML = `
                 <div class="craft-mod-option-icon">${opt.icon}</div>
@@ -733,9 +722,9 @@ const CraftSystem = {
         const ticketCost = hasExisting ? 4 : 1;
         const ticketName = hasExisting ? '改造券×4（替换已改造配件）' : '改造券×1';
 
-        // 检查改造券
+        // 检查改造券（优先按物品 id，无 id 的旧实例回退按名称）
         const bp = EquipManager.backpackItems || [];
-        const ticketIdx = bp.findIndex(i => i.name === '改造券');
+        const ticketIdx = bp.findIndex(i => i.id === 'reforge_ticket' || (!i.id && i.name === '改造券'));
         if (ticketIdx === -1) {
             EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}`, '#ff4444'));
             return;
@@ -756,10 +745,6 @@ const CraftSystem = {
         if (!this._equippedItem._craftData) this._equippedItem._craftData = {};
         this._equippedItem._craftData[slotId] = modId;
         this._equippedItem._isCrafted = true;
-        // 同步到全局 _modifications（仅用于UI渲染参考）
-        const wid = this._equippedItem.weaponId || 'weapon6';
-        if (!this._modifications[wid]) this._modifications[wid] = {};
-        this._modifications[wid][slotId] = modId;
         this._applyModEffects();
         this._renderMods();
         EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造成功！消耗${ticketName}`, '#ffd700'));
@@ -901,23 +886,6 @@ const CraftSystem = {
     _getCraftConfig(weaponId) {
         return this._WEAPON_CRAFT_CONFIGS[weaponId] || null;
     },
-
-    // 获取某武器当前的改造效果（供外部调用）
-    getWeaponEffects(weaponId) {
-        // 从当前装备实例获取改造效果
-        if (this._equippedItem && this._equippedItem.weaponId === weaponId) {
-            return this._equippedItem._craftEffects || null;
-        }
-        // 从玩家装备槽中查找
-        const slots = ['weapon', 'offhand', 'weapon2', 'ring2'];
-        for (const slot of slots) {
-            const item = Game.player.equipments[slot];
-            if (item && item.weaponId === weaponId && item._craftEffects) {
-                return item._craftEffects;
-            }
-        }
-        return null;
-    }
 }
 
 export { CraftSystem };

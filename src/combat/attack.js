@@ -44,7 +44,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 this.config = config; 
                 this.cooldown = 0; 
                 const defaultCooldown = COMBAT_CONFIG.attack?.defaults?.cooldown || 1000;
-                this.maxCooldown = config.cooldown !== undefined ? config.cooldown : defaultCooldown; 
+                this.maxCooldown = config.cooldown !== undefined ? config.cooldown : defaultCooldown;
+                this.baseMaxCooldown = this.maxCooldown; // 基准冷却：附魔/改造/射速 ramp 变化的还原基准（创建时原始值）
                 this.range = config.range || 0; 
                 this.width = config.width || 0; 
                 this.projectileSpeed = config.projectileSpeed || 0; 

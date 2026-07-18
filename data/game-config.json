@@ -213,6 +213,11 @@
   "gameLoop": {
     "maxDtMs": 100
   },
+  "enhance": {
+    "maxLevel": 15,
+    "baseCost": 100,
+    "costGrowth": 1.5
+  },
   "scene2": {
     "spawning": {
       "freeExplore": {

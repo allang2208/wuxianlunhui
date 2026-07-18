@@ -5,10 +5,26 @@
             load(data) {
                 if (data) {
                     this.items = data;
+                    this._weaponIdIndex = null; // 失效 weaponId 反查索引
                 }
             },
 
             get(id) { return this.items[id] ? { ...this.items[id], _id: id } : null; },
+
+            /** 按 weaponId 反查物品（懒构建索引，load/addItem 后自动失效重建） */
+            getByWeaponId(weaponId) {
+                if (!weaponId) return null;
+                if (!this._weaponIdIndex) {
+                    this._weaponIdIndex = {};
+                    for (const [id, item] of Object.entries(this.items)) {
+                        if (item && item.weaponId && !this._weaponIdIndex[item.weaponId]) {
+                            this._weaponIdIndex[item.weaponId] = id;
+                        }
+                    }
+                }
+                const id = this._weaponIdIndex[weaponId];
+                return id ? this.get(id) : null;
+            },
             getDefaultEquip() {
                 return {
                     helmet: this.get('novice_cap'),
@@ -32,6 +48,7 @@
             /** 新增物品并同步刷新图鉴 */
             addItem(id, itemData) {
                 this.items[id] = itemData;
+                this._weaponIdIndex = null; // 失效 weaponId 反查索引
                 // 动态导入避免与 codex-manager 形成循环依赖
                 import('../ui/codex-manager.js').then(m => {
                     if (m.CodexManager && m.CodexManager.refresh) {

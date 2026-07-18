@@ -335,7 +335,7 @@ export const EquipTooltipManager = {
                         const reg = CRAFT_EFFECT_REGISTRY[name];
                         if (!reg) continue;
                         hasSummary = true;
-                        const display = getCraftEffectDisplay(name, value);
+                        const display = getCraftEffectDisplay(name, value, effects);
                         const colorClass = (typeof value === 'number' && value < 0) ? 'tt-craft-stat-neg' : 'tt-craft-stat-pos';
                         const categoryLabel = { damage: '伤害', range: '射程', mobility: '机动', ammo: '弹药', spread: '散布', overheat: '过热', defense: '防御', special: '特殊', mode: '模式' }[reg.category] || '属性';
                         summaryHtml += `<div class="tt-craft-row"><span class="tt-craft-name">${categoryLabel}</span><span class="${colorClass}">${display}</span></div>`;

@@ -9,13 +9,13 @@ const EnchantConfig = {
             type: 'prefix',
             cost: 100, // 魔法晶尘
             restrictions: {
-                weaponTypes: ['sword', 'melee'], // 只能近战武器
+                weaponTypes: ['sword'], // 只能近战武器
             },
             effects: {
                 damagePercent: 0.60, // 攻击力+60%
                 attackIntervalMul: 1.35, // 攻击间隔×1.35（速度-35%）
             },
-            desc: '攻击力增加60%，攻击速度减慢35%',
+            desc: '攻击力增加60%，攻击速度降低约26%',
             icon: '⚓',
             color: '#8a7a6a',
         },
@@ -108,12 +108,6 @@ const EnchantConfig = {
     // 计算转换晶尘数量
     getConversionReward(scrollId) {
         return Math.floor(this.getCost(scrollId) / 2);
-    },
-
-    // 获取等级对应的晶尘消耗
-    getGradeCost(grade) {
-        const gradeMap = { F: 100, E: 200, D: 400, C: 800, B: 1600, A: 3200, S: 6400 };
-        return gradeMap[grade] || 100;
     },
 };
 

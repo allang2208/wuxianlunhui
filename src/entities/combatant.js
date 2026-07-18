@@ -218,9 +218,11 @@ class Combatant extends DamageableEntity {
         if (!weapon) return false;
         const ammoCfg = getAmmoConfig(weapon);
         if (!ammoCfg) return false;
+        // 换弹时间读 state（_initAmmoForSlot 已计入改造效果），原始配置仅作兜底
+        const reloadTime = state.reloadTime || ammoCfg.reloadTime || 1000;
         state.reloading = true;
-        state.reloadTimer = ammoCfg.reloadTime || 1000;
-        state.reloadTime = ammoCfg.reloadTime || 1000;
+        state.reloadTimer = reloadTime;
+        state.reloadTime = reloadTime;
         return true;
     }
 
@@ -240,9 +242,8 @@ class Combatant extends DamageableEntity {
             if (!state || !state.reloading) continue;
             state.reloadTimer -= dt;
             if (state.reloadTimer <= 0) {
-                const weapon = this.equipments[slot];
-                const ammoCfg = getAmmoConfig(weapon);
-                state.current = ammoCfg ? ammoCfg.max : 30;
+                // 弹匣容量读 state.max（_initAmmoForSlot 已计入改造效果），不再直读原始配置
+                state.current = state.max || 30;
                 state.reloading = false;
                 state.reloadTimer = 0;
             }

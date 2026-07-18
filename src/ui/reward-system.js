@@ -205,6 +205,7 @@ export const RewardSystem = {
 // 强化大类物品定义
 export const EnhancementItems = {
     enhance_stone: {
+        id: 'enhancement_stone',
         name: '强化石',
         type: '强化材料',
         icon: '💎',
@@ -217,6 +218,7 @@ export const EnhancementItems = {
         price: 100
     },
     modify_ticket: {
+        id: 'reforge_ticket',
         name: '改造券',
         type: '强化材料',
         icon: '🔧',

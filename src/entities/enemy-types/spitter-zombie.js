@@ -153,9 +153,6 @@ export class SpitterZombie extends Enemy {
                 if (weapon._enchantEffects && weapon._enchantEffects.piercingBonus) {
                     piercing = (piercing || 0) + weapon._enchantEffects.piercingBonus;
                 }
-                if (weapon._craftEffects && weapon._craftEffects.piercingBonus) {
-                    piercing = (piercing || 0) + weapon._craftEffects.piercingBonus;
-                }
             }
         }
 

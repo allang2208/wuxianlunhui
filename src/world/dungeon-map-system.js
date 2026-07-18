@@ -599,12 +599,6 @@ export const DungeonMapSystem = {
             this.fogOfWar.visit(node.id, this.nodes, this.edges);
         }
 
-        // 战斗节点完成后变为 empty
-        if (node.originalType === 'combat' && node.type === 'combat') {
-            // 标记为已完成，返回地图时转换
-            node._combatCompleted = true;
-        }
-
         switch (node.type) {
             case "combat": this._enterCombat(node); break;
             case "boss":   this._enterBoss(node); break;
@@ -1023,6 +1017,12 @@ export const DungeonMapSystem = {
     },
 
     _cleanupEventUI() {
+        // 先让事件系统销毁打字机并移除自身覆盖层，防止打字机定时器在 DOM 移除后继续运行
+        import('./dungeon-event-system.js').then(mod => {
+            if (mod.DungeonEventSystem && typeof mod.DungeonEventSystem._cleanupUI === 'function') {
+                mod.DungeonEventSystem._cleanupUI();
+            }
+        }).catch(() => {});
         if (this._eventOverlay) {
             this._eventOverlay.remove();
             this._eventOverlay = null;

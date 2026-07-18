@@ -8,12 +8,32 @@ import { ShopSystem } from './shop-system.js';
 import { EquipManager } from './equip-manager.js';
 import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { SystemUI } from './system-ui.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
     _equippedItem: null,
-    _maxEnhanceLevel: 15,
-    _baseCost: 100,
+
+    // 强化参数统一读 data/game-config.json 的 enhance 节（?? 回退仅为配置缺失兜底）
+    _getEnhanceConfig() {
+        const cfg = (GAME_CONFIG && GAME_CONFIG.enhance) || {};
+        return {
+            maxLevel: cfg.maxLevel ?? 15,
+            baseCost: cfg.baseCost ?? 100,
+            costGrowth: cfg.costGrowth ?? 1.5,
+        };
+    },
+
+    // 计算当前等级的强化金币消耗
+    _getEnhanceCost(level) {
+        const cfg = this._getEnhanceConfig();
+        return Math.floor(cfg.baseCost * Math.pow(cfg.costGrowth, level));
+    },
+
+    // 强化石匹配：优先按物品 id，无 id 的旧实例回退按名称
+    _isEnhanceStone(item) {
+        return item && (item.id === 'enhancement_stone' || (!item.id && item.name === '强化石'));
+    },
 
     open(npc) {
         UIState.open('enhance');
@@ -181,21 +201,21 @@ const EnhanceSystem = {
         if (!player) return;
 
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._maxEnhanceLevel) {
+        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '已达最高强化等级！', '#ff4444'));
             return;
         }
 
         // 检查强化石存在（先不消耗）
         const bp = EquipManager.backpackItems || [];
-        const stoneIdx = bp.findIndex(i => i.name === '强化石');
+        const stoneIdx = bp.findIndex(i => this._isEnhanceStone(i));
         if (stoneIdx === -1) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '强化石不足！需要1颗强化石', '#ff4444'));
             return;
         }
 
         // 先校验并扣除金币，成功后再消耗强化石（修复：金币不足时强化石被白扣）
-        const cost = Math.floor(this._baseCost * Math.pow(1.5, currentLevel));
+        const cost = this._getEnhanceCost(currentLevel);
         if (!ShopSystem._deductGold(cost)) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
             return;
@@ -251,9 +271,9 @@ const EnhanceSystem = {
         if (this._equippedItem) {
             const item = this._equippedItem.item;
             const level = item.enhanceLevel || 0;
-            const cost = Math.floor(this._baseCost * Math.pow(1.5, level));
+            const cost = this._getEnhanceCost(level);
             const bp = EquipManager.backpackItems || [];
-            const _hasStone = bp.some(i => i.name === '强化石');
+            const _hasStone = bp.some(i => this._isEnhanceStone(i));
             slot.innerHTML = `
                 <div class="slot-icon">${item.iconImage ? `<img src="${item.iconImage}" alt="${item.icon || '❓'}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon || '❓'}';">` : (item.icon || '❓')}</div>
                 <div class="slot-name">${item.name}</div>
@@ -262,7 +282,7 @@ const EnhanceSystem = {
             slot.classList.add('has-item');
             slotInfo.innerHTML = `
                 <div class="enhance-info-name">${item.name}</div>
-                <div class="enhance-info-level">当前强化等级: +${level} / ${this._maxEnhanceLevel}</div>
+                <div class="enhance-info-level">当前强化等级: +${level} / ${this._getEnhanceConfig().maxLevel}</div>
                 ${this._buildPredictedStats(item)}
             `;
             costEl.innerHTML = `💰 ${cost} + 💎 强化石×1`;
@@ -297,7 +317,7 @@ const EnhanceSystem = {
     _buildPredictedStats(item) {
         if (!item.weaponId || !Game.player || !Game.player.getCurrentWeaponAtk) return '';
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._maxEnhanceLevel) {
+        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
             return '<div class="enhance-predicted" style="margin-top:8px;color:#7a9a6a;font-size:12px;">已达到最高强化等级</div>';
         }
         // 计算当前攻击力

@@ -253,24 +253,11 @@ const CodexManager = {
             html += this.detailRow('攻击间隔', d.attack && d.attack.attackInterval ? `${d.attack.attackInterval}ms` : '');
             html += this.detailRow('伤害类型', d.attack && d.attack.damageType ? d.attack.damageType : '');
             html += this.detailRow('击退距离', d.attack && d.attack.knockback !== undefined ? `${d.attack.knockback}px` : '');
-            // 散布参数：根据武器类型和改造状态显示不同格式
-            const ce = d._craftEffects || {};
-            if (d.weaponType === 'shotgun' && ce.slugMode) {
-                // 独头弹模式：显示每次射击散布增加和后坐力恢复时间
-                const baseShotSpread = 5;
-                const shotSpread = Math.max(0, baseShotSpread + (ce.shotSpreadDelta || 0));
-                const baseRecovery = 500;
-                const recovery = Math.max(100, baseRecovery + (ce.slugRecoilRecovery || 0));
-                html += this.detailRow('每次射击散布增加', `+${shotSpread}°`);
-                html += this.detailRow('后坐力恢复时间', `${recovery}ms`);
-            } else if (getFireMode(d) === 'semiAuto') {
+            // 散布参数：根据武器开火模式显示不同格式
+            if (getFireMode(d) === 'semiAuto') {
                 // 半自动武器：显示每次射击散布增加和后坐力恢复时间
-                const baseShotSpread = 5;
-                const shotSpread = Math.max(0, baseShotSpread + (ce.shotSpreadDelta || 0));
-                const baseRecovery = 500;
-                const recovery = Math.max(100, baseRecovery + (ce.recoilRecoveryDelta || 0));
-                html += this.detailRow('每次射击散布增加', `+${shotSpread}°`);
-                html += this.detailRow('后坐力恢复时间', `${recovery}ms`);
+                html += this.detailRow('每次射击散布增加', '+5°');
+                html += this.detailRow('后坐力恢复时间', '500ms');
             } else {
                 html += this.detailRow('射击散布开始时间', this._getSpreadStart(d));
                 html += this.detailRow('达到最大散布时间', this._getSpreadMax(d));
@@ -401,11 +388,7 @@ const CodexManager = {
     _getAtkFormula(item) {
         if (!item || !item.attackFormula) return '';
         const formula = item.attackFormula;
-        let effectiveFormula = formula;
-        const ce = item._craftEffects;
-        if (ce && ce.slugMode && formula.variants && formula.variants.slugMode) {
-            effectiveFormula = formula.variants.slugMode;
-        }
+        const effectiveFormula = formula;
         const base = effectiveFormula.base || 0;
         const parts = [`${base}`];
         const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
@@ -426,11 +409,7 @@ const CodexManager = {
             return `(${baseFormula}) + 强化等级×1`;
         }
         const formula = item.attackFormula;
-        let effectiveFormula = formula;
-        const ce = item._craftEffects;
-        if (ce && ce.slugMode && formula.variants && formula.variants.slugMode) {
-            effectiveFormula = formula.variants.slugMode;
-        }
+        const effectiveFormula = formula;
         const base = effectiveFormula.base || 0;
         const enhanceFlat = effectiveFormula.enhanceFlat || 0;
         const parts = [];

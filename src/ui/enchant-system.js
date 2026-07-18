@@ -284,6 +284,11 @@ const EnchantSystem = {
         this._returnEquipItem();
         // 从装备栏移除
         player.equipments[slotKey] = null;
+        // 拖出装备槽等同卸下：立即刷新技能覆盖/攻击间隔（沉重附魔不再残留）与武器贴图
+        if (player._applySkillOverrides) {
+            player._applySkillOverrides(player.equipments[player.weaponMode]);
+        }
+        if (EquipManager && EquipManager._syncWeaponVisual) EquipManager._syncWeaponVisual();
         this._equipItem = JSON.parse(JSON.stringify(item));
         if (item.weaponAsset) this._equipItem.weaponAsset = item.weaponAsset;
         this._equipSource = { type: 'equip', slot: slotKey };
@@ -700,8 +705,8 @@ const EnchantSystem = {
         }
 
         // 播放音效
-        if (SoundManager && SoundManager.play) {
-            SoundManager.play('enchant_success');
+        if (SoundManager && SoundManager.playFile) {
+            SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
         }
 
         this._showMessage('附魔成功！', 'success');

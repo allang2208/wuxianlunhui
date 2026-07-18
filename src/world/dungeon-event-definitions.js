@@ -792,7 +792,7 @@ function _applyTemporaryBuff(player, buffCfg) {
         });
     }
     if (player.addStatusEffect) {
-        player.addStatusEffect('buff', 999999, {
+        player.addStatusEffect(buffCfg.id, 999999, {
             icon: buffCfg.icon || '✨',
             name: buffCfg.name,
             color: buffCfg.color || '#e8c878',

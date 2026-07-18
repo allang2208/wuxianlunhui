@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-17（遗留 bug 与技术债务分批清理）
+
+### 对话：7 阶段 19 项清理（v0.198+）
+- **文案/键值级（6 项）**：宝箱怪战斗文案与实刷 3 只一致；附魔成功音效由不存在的 `SoundManager.play('enchant_success')` 改为 `playFile(levelup_cyber_5s.wav)`；「沉重」文案改"攻击速度降低约26%"（×1.35 间隔的真实口径）；enchant-config 卷轴 weaponTypes 删死值 `'melee'`；符文重构文案 20px→40px（与实现一致，双份 craft-config.json 同步）；锐利符文文案删"右键特殊攻击"前缀（魔抗穿透作用于一切魔法伤害）。
+- **附魔系（3 项）**：投射物发射时快照 `_enchantEffects/_craftEffects` 到 `_effectSnapshot`（projectile-factory 统一注入），命中按快照判定，杜绝飞行中切枪改效果；`_baseCooldowns` 首缓存污染修复——`Attack` 构造时固化 `baseMaxCooldown`，`_applyEnchantAttackInterval` 改读创建基准（能量轻机枪 ramp 运行时值不再被当基准缓存）；附魔界面从装备槽拖出武器补调 `_applySkillOverrides` + `_syncWeaponVisual`（沉重/冷却/贴图立即还原）。
+- **改造系（5 项）**：次级格挡实现补 `isMelee` 判定（与描述一致），registry tooltip 同步；冲刺体力删 `staminaCostDelta` 双用（只吃 `skillStaminaCostDelta`）；基类 `combatant.js` `_startReload/_updateReload` 改读 state（`_initAmmoForSlot` 已计入改造），不再直读 ammoCfg 原值；`getCraftEffectDisplay` 透传聚合效果，`magicVulnerabilityOnHit` 显示真实层数、`magicVulnerabilityStacks` 不再渲染空行；craft-system 武器贴图 weaponIdMap 硬编码表删除，`ItemDatabase.getByWeaponId` 懒索引反查（新武器免登记，load/addItem 自动失效重建）。
+- **地牢系（2 项）**：`_cleanupEventUI` 先调 `DungeonEventSystem._cleanupUI()` 销毁打字机再移除 DOM；地牢 buff 实体状态键 `'buff'` 改唯一键（`goddessBless`/`demonPrayer`/`buffCfg.id`），`consumeBattleBuffs/clearAllBuffs` 按同键移除，多 buff 不再互删图标。
+- **死代码批删（逐条 grep 确认零调用）**：`node._combatCompleted` 只写不读；`ZOMBIE_DUNGEON_CONFIG` 残留 `combatWaves/monstersPerWave/tierWeights`（实际读 `DungeonConfig.getZombieEncounterConfig`）；`consumeGoddessBless`；`EnchantConfig.getGradeCost`；Player 空 `_onHitEntity` 覆盖（**注意**：`damage-pipeline.js` 的 `_onHitEntity` 调用保留——enemy.js 敌人实现是活的，毒伤/协同流血依赖它）；craft-system `_ticketCost`/`_modifications`/`getWeaponEffects`；registry 五个零调用函数（保留 `getCraftEffectDisplay`）；codex `_craftEffects` 展示死分支（图鉴为 DB 合并物品永无实例改造数据）；spitter-zombie 敌人端 `_craftEffects` 复制残留。
+- **配置化（3 项）**：强化三常量（maxLevel 15/baseCost 100/costGrowth 1.5）移入 `data/game-config.json` 新增 `enhance` 节，`enhance-system.js` 统一 `_getEnhanceConfig()` 读取（`??` 回退）；强化石/改造券模板补 `id`（reward-system 模板 + 地牢事件奖励创建点注入 `id: configKey`），消耗匹配改 id 优先、无 id 旧实例名称兜底；`weapon-damage-formulas.js` 补注释标明最小回退定位（核查与 attack-formula.js 无重复，不合并）。
+- **测试结果**：每阶段跑 `npm run lint` / `npx vite build` / `test-collider.mjs` / `test-craft-sync.mjs` 全部通过（registry 三角计数 38/39/39/38 不变，确认只删函数未动效果条目）。
+- **已知问题**：待用户拍板——enhanceFlat 倍率、bossMultiplier、投掷音效（idle vs throwing）；椭圆分离手感需实机回归。
+
 ## 2026-07-17（受击粒子落地黄/眩晕双星/召唤物统一标签与闸门）
 
 ### 对话：集合体两项 + 召唤物系统性调整（v0.198+）

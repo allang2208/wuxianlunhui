@@ -54,7 +54,6 @@ class DashSystem {
         if (currentWeapon && currentWeapon._craftEffects) {
             const ce = currentWeapon._craftEffects;
             if (typeof ce.skillStaminaCostDelta === 'number' && isFinite(ce.skillStaminaCostDelta)) staminaCost += ce.skillStaminaCostDelta;
-            if (typeof ce.staminaCostDelta === 'number' && isFinite(ce.staminaCostDelta)) staminaCost += ce.staminaCostDelta;
         }
         if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
         this.player.data.stamina -= staminaCost;

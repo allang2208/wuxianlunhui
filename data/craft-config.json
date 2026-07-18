@@ -430,7 +430,7 @@
           "id": "rune_restructure",
           "name": "符文重构",
           "icon": "✨",
-          "desc": "右键特殊攻击额外生成2把魔法剑，依次向外20px",
+          "desc": "右键特殊攻击额外生成2把魔法剑，依次向外40px",
           "effects": {
             "runeRestructureCount": 2
           }
@@ -439,7 +439,7 @@
           "id": "sharp_rune",
           "name": "锐利符文",
           "icon": "⚔",
-          "desc": "右键特殊攻击魔法防御穿透+20%",
+          "desc": "魔法防御穿透+20%",
           "effects": {
             "magicPenetrationPercent": 0.2
           }
@@ -469,7 +469,7 @@
           "id": "rune_restructure",
           "name": "符文重构",
           "icon": "✨",
-          "desc": "右键特殊攻击额外生成2把魔法剑，依次向外20px",
+          "desc": "右键特殊攻击额外生成2把魔法剑，依次向外40px",
           "effects": {
             "runeRestructureCount": 2
           }
@@ -478,7 +478,7 @@
           "id": "sharp_rune",
           "name": "锐利符文",
           "icon": "⚔",
-          "desc": "右键特殊攻击魔法防御穿透+20%",
+          "desc": "魔法防御穿透+20%",
           "effects": {
             "magicPenetrationPercent": 0.2
           }
@@ -713,7 +713,7 @@
           "id": "sharp_rune",
           "name": "锐利符文",
           "icon": "⚔",
-          "desc": "右键特殊攻击魔法防御穿透+20%",
+          "desc": "魔法防御穿透+20%",
           "effects": {
             "magicPenetrationPercent": 0.2
           }
@@ -752,7 +752,7 @@
           "id": "sharp_rune",
           "name": "锐利符文",
           "icon": "⚔",
-          "desc": "右键特殊攻击魔法防御穿透+20%",
+          "desc": "魔法防御穿透+20%",
           "effects": {
             "magicPenetrationPercent": 0.2
           }

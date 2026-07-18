@@ -1284,3 +1284,16 @@ Phaser Sprite.x / y / rotation / scale
   - **召唤物统一 `_summoned` 标签（一劳永逸）**：集合体召唤/投掷生成、巫师召唤犬打标；金币+经验（onDeath）、暴击/武器精通/无人机经验（takeDamage 三分支）、7 处技能击杀计数（attack/whirlwind/ice-spike/dash/push-strike/fireball）全部加 `!entity._summoned` 闸门；**未来召唤方打标即被全部闸门拦截，无需改判定**
   - **调试工具**：左下新增「秒杀」按钮（`Game._oneHitKill`，takeDamage 中玩家伤害提到致死量，正常结算）
   - 验证：lint / build / test-collider 全部通过
+
+- v3.1 (2026-07-17) — 遗留 bug 与技术债务分批清理（19 项）
+  - **投射物命中快照**：`Projectile._effectSnapshot` 在 `ProjectileFactory.create` 统一快照发射武器的 `_enchantEffects/_craftEffects`，命中按快照判定（切枪不再改弹道效果）；非工厂创建的投射物回退原逻辑
+  - **攻击冷却基准固化**：`Attack.baseMaxCooldown` 构造时固化，`_applyEnchantAttackInterval` 改读创建基准并废弃 `_baseCooldowns` 缓存（修复 ramp/改造运行时值被当基准缓存的污染）
+  - **附魔界面拖出即刷新**：附魔槽从装备槽拖出武器补 `_applySkillOverrides(equipments[weaponMode])` + `_syncWeaponVisual`
+  - **次级格挡**补 `isMelee` 判定；**冲刺体力**删 `staminaCostDelta` 双用；**基类换弹**读 state 存值（计入改造）
+  - **registry tooltip**：`getCraftEffectDisplay(name, value, allEffects)` 透传聚合效果；`magicVulnerabilityOnHit` 显示真实层数；`magicVulnerabilityStacks` 显示 `易伤层数×N`
+  - **ItemDatabase.getByWeaponId**：懒索引反查替代 craft-system 硬编码 weaponIdMap（load/addItem 自动失效重建，新武器免登记）
+  - **地牢 buff 状态键唯一化**：`addStatusEffect` 键 `'buff'` → `goddessBless`/`demonPrayer`/`buffCfg.id`，消耗/清理按同键移除（多 buff 不再互删图标）；`_cleanupEventUI` 先销毁事件打字机再移除 DOM
+  - **强化配置化**：`data/game-config.json` 新增 `enhance` 节（maxLevel/baseCost/costGrowth），`enhance-system.js` 经 `_getEnhanceConfig()` 读取（`??` 回退）
+  - **材料按 id 匹配**：强化石 `enhancement_stone`/改造券 `reforge_ticket` 模板与地牢事件奖励创建点补 `id`，消耗匹配 id 优先、无 id 旧实例名称兜底
+  - **死代码批删**（grep 确认零调用）：`_combatCompleted`、`ZOMBIE_DUNGEON_CONFIG` 三残留字段、`consumeGoddessBless`、`getGradeCost`、Player 空 `_onHitEntity` 覆盖（敌人版是活的，damage-pipeline 调用保留）、`_ticketCost`/`_modifications`/`getWeaponEffects`、registry 五函数、codex `_craftEffects` 死分支、spitter 敌人端 `_craftEffects` 残留
+  - 验证：每阶段 lint / build / test-collider / test-craft-sync 全部通过

@@ -51,14 +51,14 @@ export const CRAFT_EFFECT_REGISTRY = {
     magicVulnerabilityOnHit: {
         category: 'damage',
         applyMode: 'flag',
-        display: (v, stacks) => `魔法易伤${stacks || 1}层`,
+        display: (v, allEffects) => `魔法易伤${(allEffects && allEffects.magicVulnerabilityStacks) || 1}层`,
         tooltip: '命中时使目标受到更多魔法伤害',
     },
     magicVulnerabilityStacks: {
         category: 'damage',
         applyMode: 'add',
-        display: () => '', // companion to magicVulnerabilityOnHit
-        tooltip: '',
+        display: (v) => `易伤层数×${v}`, // companion to magicVulnerabilityOnHit
+        tooltip: '魔法易伤的叠加层数',
     },
 
     // ========== 射程/速度类 ==========
@@ -213,8 +213,8 @@ export const CRAFT_EFFECT_REGISTRY = {
     secondaryBlock: {
         category: 'defense',
         applyMode: 'flag',
-        display: () => '副手格挡',
-        tooltip: '副手武器也能触发格挡',
+        display: () => '次级格挡',
+        tooltip: '受到近战攻击时 50% 概率减少 50% 伤害',
     },
 
     // ========== 消耗/技能类 ==========
@@ -259,87 +259,14 @@ export const CRAFT_EFFECT_REGISTRY = {
 };
 
 /**
- * 应用改造效果到基础值
- * @param {number} baseValue - 基础值
- * @param {string} effectName - 效果名称
- * @param {number} effectValue - 效果值
- * @returns {number} 应用后的值
- */
-export function applyCraftEffect(baseValue, effectName, effectValue) {
-    const reg = CRAFT_EFFECT_REGISTRY[effectName];
-    if (!reg || effectValue === undefined || effectValue === null) return baseValue;
-    switch (reg.applyMode) {
-        case 'add': return baseValue + effectValue;
-        case 'multiply': return baseValue * (1 + effectValue);
-        case 'override': return effectValue;
-        case 'flag': return effectValue ? true : baseValue; // flags are booleans
-        default: return baseValue + effectValue;
-    }
-}
-
-/**
  * 获取改造效果的显示文本
  * @param {string} effectName - 效果名称
  * @param {number} effectValue - 效果值
+ * @param {object} [allEffects] - 全部聚合效果（供联动显示取值，如易伤层数）
  * @returns {string} 显示文本
  */
-export function getCraftEffectDisplay(effectName, effectValue) {
+export function getCraftEffectDisplay(effectName, effectValue, allEffects) {
     const reg = CRAFT_EFFECT_REGISTRY[effectName];
     if (!reg || !reg.display) return `${effectName}: ${effectValue}`;
-    return reg.display(effectValue);
-}
-
-/**
- * 获取改造效果的 tooltip 说明
- * @param {string} effectName - 效果名称
- * @returns {string} 说明文本
- */
-export function getCraftEffectTooltip(effectName) {
-    const reg = CRAFT_EFFECT_REGISTRY[effectName];
-    return reg?.tooltip || '';
-}
-
-/**
- * 遍历所有生效的改造效果
- * @param {object} craftEffects - item._craftEffects
- * @param {function} callback - (effectName, effectValue, registryEntry) => void
- */
-export function forEachCraftEffect(craftEffects, callback) {
-    if (!craftEffects || typeof callback !== 'function') return;
-    for (const [name, value] of Object.entries(craftEffects)) {
-        const reg = CRAFT_EFFECT_REGISTRY[name];
-        if (reg) callback(name, value, reg);
-    }
-}
-
-/**
- * 检查是否包含指定类别的改造效果
- * @param {object} craftEffects - item._craftEffects
- * @param {string} category - 类别名
- * @returns {boolean}
- */
-export function hasCraftEffectCategory(craftEffects, category) {
-    if (!craftEffects) return false;
-    return Object.entries(craftEffects).some(([name, value]) => {
-        const reg = CRAFT_EFFECT_REGISTRY[name];
-        return reg && reg.category === category && value !== undefined && value !== null && value !== false;
-    });
-}
-
-/**
- * 获取指定类别的所有改造效果
- * @param {object} craftEffects - item._craftEffects
- * @param {string} category - 类别名
- * @returns {Array<{name, value, registryEntry}>}
- */
-export function getCraftEffectsByCategory(craftEffects, category) {
-    if (!craftEffects) return [];
-    const results = [];
-    for (const [name, value] of Object.entries(craftEffects)) {
-        const reg = CRAFT_EFFECT_REGISTRY[name];
-        if (reg && reg.category === category && value !== undefined && value !== null && value !== false) {
-            results.push({ name, value, registryEntry: reg });
-        }
-    }
-    return results;
+    return reg.display(effectValue, allEffects);
 }
