@@ -293,7 +293,7 @@
       "id": "shotgunMastery",
       "name": "散弹枪精通",
       "icon": "🔫",
-      "iconImage": "assets/skills/shotgun_mastery.png",
+      "iconImage": "assets/icons/S12k-icon.png",
       "description": "精通散弹枪的近距离爆发，每次射击都能造成更强的击退",
       "maxLevel": 20,
       "tags": [
@@ -597,7 +597,7 @@
       "id": "droneSkill",
       "name": "无人机",
       "icon": "🚁",
-      "iconImage": "assets/skills/drone_skill.png",
+      "iconImage": "assets/skills/无人机.png",
       "description": "释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加",
       "maxLevel": 20,
       "tags": [
@@ -615,7 +615,7 @@
         "critBonusPercent": "10 + level * 1",
         "cooldown": 20,
         "mpCost": 50,
-        "duration": "5 + level * 0.5",
+        "duration": "15 + level * 1",
         "moveSpeed": 500,
         "radius": 300
       },

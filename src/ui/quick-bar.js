@@ -363,6 +363,8 @@ export const QuickBar = {
         if (!slot) return;
         const player = Game.player;
         if (!player) return;
+        // 眩晕状态：不可使用技能/物品
+        if (player.isStunned) return;
         // 攻击期间禁止使用技能
         if (player.weaponAnim && player.weaponAnim.state !== 'idle') return;
         // 夜与火之剑特殊攻击期间禁止释放技能

@@ -345,7 +345,7 @@ export class BootScene extends Scene {
         this.anims.create({
             key: 'enemy_armored_knight_defend',
             frames: this.anims.generateFrameNumbers('enemy_armored_knight_defend', { start: 0, end: 13 }),
-            duration: 2000,
+            duration: 1500,
             repeat: 0,
         });
 

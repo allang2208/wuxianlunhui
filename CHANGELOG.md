@@ -8,6 +8,34 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（骑士冲锋朝向/二连击突进/格挡与玩家眩晕规则）
+
+### 对话：铠甲骑士三项 + 玩家眩晕两项
+- **冲锋回头根因**：追踪冲锋每帧 `flipX = cos(rotation) < 0`，目标贴近正上/下方时 cos 近 0 符号抖动、越过目标瞬间方向翻转 180°。修复：`_chargeFaceDir` 死区朝向——仅 `|dx| > 20px` 才更新水平朝向，冲锋期间 flipX 只读死区值，移动仍全量追踪。
+- **二连击突进**：参考突变体-3 连击突进——`_startCombo` 向目标方向记录 `lungeDistance: 30` 总位移，`_updateCombo` 每帧按 `lungeSpeed: 500` 插值执行（WallSystem 碰撞，不瞬移）；新增 `combo.triggerRange: 75`（发动条件，伤害判定 range 仍 125），减少空挥。
+- **格挡 1.5s**：`block.duration` 2000→1500，BootScene defend 动画 duration 同步 1500；格挡弹反眩晕 2s/击退 100px 与玩家盾基础弹反属性一致（此前已实现，本次确认）。
+- **眩晕禁止技能/物品**：`QuickBar.useSlot` 加 `player.isStunned` 拦截（技能与物品同一入口）。
+- **玩家眩晕终止所有动作**：`applyStun` 调用新 `_cancelAllActionsForStun()`——主副手攻击动画回 idle、闪避/冲刺(_dashState)/风车(含范围特效)/推击/特殊攻击/蓄力全部复位、四槽换弹中断（含单发装填）、退出无人机操控、速度清零——眩晕期间只播放 idle 精灵图（update 眩晕分支本就阻断移动/攻击输入）。
+- **测试结果**：enemy-config.json 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①冲锋全程不再回头；②二连击 30px 插帧突进观感与 75px 触发；③格挡 1.5s 动画对齐；④玩家被眩晕后动作全断、只播 idle、技能/物品禁用。
+
+## 2026-07-18（七项修复与优化）
+
+### 对话：换弹中断/按钮布局/无人机/初级地牢/骑士音效/清怪/冲锋速度
+- **Super90 换弹切枪中断**：`switchWeaponMode` 成功后遍历四槽取消全部换弹状态（reloading/reloadTimer/singleReloadMode 清零），切枪立即中断换弹动作。
+- **秒杀按钮遮挡修复**：根因=两按钮共用 `.invincible-toggle`（同坐标 left:124px）。game-style.css 新增 `#oneHitKillToggle { left: 180px; }`，无敌还原、秒杀居右。
+- **无人机**：
+  - 时长根因=skills.json duration 公式 `5+level×0.5`（lv1 仅 5.5s），按拍板改 `15+level×1`（lv1=16s/lv20=35s，双份 JSON 同步）；
+  - 贴图根因=iconImage 指向从未存在的 drone_skill.png/shotgun_mastery.png（404→emoji 兜底），改为已存在的 `assets/skills/无人机.png`、`assets/icons/S12k-icon.png`（subsystems 兜底 3 处同步）；
+  - 长按阈值 `input.skillLongPressMs` 300→1500；
+  - 新增 `_holdPosition` 悬停：长按飞到鼠标点后原地停留、不再跟随玩家，再次长按飞往下一点，重新部署时重置；短按维持原 toggle（部署/操控/退出）。
+- **僵尸地牢-初级精英混入**：根因=beginner 缺 `encounters` 键，普通战斗回退 DEFAULTS（20% 精英）。补 encounters：normal 全普通怪（3 波×5，tierWeights 1/0），elite 显式复制精英构成备用；boss 战 bossEncounter 不受影响。
+- **铠甲骑士音效**（sounds 配置块驱动）：素材 3 个 mp3 复制到 `assets/sounds/enemies/armored_knight/`；walk 每 500ms 播 walking.mp3；combo 帧 6/17 播 attacking.mp3（与伤害帧 12/25 独立）；格挡每次受击播 defending.mp3（替换原通用 wood_thud）；冲锋每 300ms 播 walking.mp3、撞中目标播 defending.mp3。
+- **主神空间清怪**：删除胖子僵尸/普通僵尸/集合体三个生成调用（方法保留备用），只留铠甲骑士与测试靶/DPS 靶。
+- **冲锋速度**：charge.speed 900→300（配置）。
+- **测试结果**：全部 JSON 校验 ✅（skills 双份同步一致）；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①切枪中断换弹手感；②两按钮不再重叠；③无人机 16s 时长/新图标/长按 1.5s 飞行+悬停；④初级地牢普通战斗不再出精英；⑤骑士音效各触发点；⑥300px 冲锋速度观感。
+
 ## 2026-07-18（新怪物：铠甲骑士）
 
 ### 对话：新增精英怪铠甲骑士（按添加怪物工作流）

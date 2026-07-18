@@ -44,6 +44,21 @@
     "mainRowMinCombat": 3,
     "typeRatios": { "combat": 0.40, "event": 0.60 },
     "eliteCombatChance": 0,
+    "encounters": {
+      "normal": {
+        "combatWaves": 3,
+        "monstersPerWave": 5,
+        "tierWeights": { "normal": 1, "elite": 0 },
+        "guaranteeAtLeastOneElite": false
+      },
+      "elite": {
+        "combatWaves": 1,
+        "monstersPerWave": 6,
+        "monsterComposition": { "elite": 1, "normal": 5 },
+        "tierWeights": { "normal": 0, "elite": 1 },
+        "guaranteeAtLeastOneElite": false
+      }
+    },
     "grid": { "rows": 3, "colSpacing": 160, "rowSpacing": 140, "mainRow": 1 },
     "startRows": [0, 1, 2],
     "bossReward": { "bossBeforeLastCol": true, "rewardAfterBoss": true },

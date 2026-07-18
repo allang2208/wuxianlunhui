@@ -139,13 +139,7 @@ export const Game = {
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             SceneManager._inMainHub = true;
             SceneManager._mainHubInvincible = true;
-            // 主神空间生成测试用胖子僵尸
-            this.spawnMainFatZombie();
-            // 主神空间生成测试用普通僵尸
-            this.spawnMainZombie();
-            // 主神空间生成测试用集合体（首领）
-            this.spawnMainAmalgam();
-            // 主神空间生成测试用铠甲骑士（精英）
+            // 主神空间只保留铠甲骑士用于测试（其余测试怪已清除，spawn 方法保留备用）
             this.spawnMainArmoredKnight();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();

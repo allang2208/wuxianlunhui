@@ -2014,6 +2014,8 @@
 .invincible-toggle:hover { border-color: #8a7d6b; background: linear-gradient(to bottom, #4a3f35, #3d342b); }
 .invincible-toggle.active { border-color: #d4b060; color: #d4b060; background: linear-gradient(to bottom, #4a3f2b, #3d342b); box-shadow: 0 0 8px rgba(212, 176, 96, 0.3); }
 .invincible-toggle span { pointer-events: none; }
+/* 秒杀按钮：放在无敌按钮右侧（无敌 left:124px + 48 宽 + 8 间距），bottom 沿用 12px */
+#oneHitKillToggle { left: 180px; }
 .dev-tool-panel {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 1000px; height: 720px;

@@ -406,7 +406,7 @@ _initSkills() {
                     // 兜底：确保无人机技能始终存在（即使JSON中没有定义）
                     if (!skills.droneSkill) {
                         skills.droneSkill = {
-                            id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/drone_skill.png',
+                            id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/无人机.png',
                             description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
@@ -510,7 +510,7 @@ _initSkills() {
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     shotgunMastery: {
-                        id: 'shotgunMastery', name: '散弹枪精通', icon: '🔫',
+                        id: 'shotgunMastery', name: '散弹枪精通', icon: '🔫', iconImage: 'assets/icons/S12k-icon.png',
                         description: '精通散弹枪的毁灭性火力，每一发弹丸都更具威力',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '散弹枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
@@ -526,7 +526,7 @@ _initSkills() {
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     droneSkill: {
-                        id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/drone_skill.png',
+                        id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/无人机.png',
                         description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
@@ -799,6 +799,15 @@ switchWeaponMode() {
                     return;
                 }
                 this.weaponMode = nextMode;
+                // 切换武器栏：立即中断所有槽位的换弹动作（含 Super90 单发装填）
+                for (const slot of ['weapon', 'offhand', 'weapon2', 'ring2']) {
+                    const state = this._ammoState && this._ammoState[slot];
+                    if (state && state.reloading) {
+                        state.reloading = false;
+                        state.reloadTimer = 0;
+                        state.singleReloadMode = false;
+                    }
+                }
                 // 切换武器时重置蓄力状态
                 if (this._chargeState !== 'idle') {
                     this._chargeState = 'idle';
@@ -1959,6 +1968,8 @@ applyStun(duration) {
                 if (this._isDead) return; // 死亡状态不眩晕
                 this.isStunned = true;
                 this.stunTimer = duration;
+                // 终止所有进行中的动作，眩晕期间只保留待机
+                this._cancelAllActionsForStun();
                 // 在状态栏显示眩晕效果
                 if (StatusBar) {
                     if (this._stunEffectId) {
@@ -1968,6 +1979,58 @@ applyStun(duration) {
                 }
                 // 显示眩晕浮动文字
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 50, '💫 眩晕！', '#9a7a5a'));
+            },
+
+// 眩晕时终止所有动作：攻击动画/闪避/技能/特殊攻击/蓄力/换弹/无人机操控全部中断
+_cancelAllActionsForStun() {
+                // 攻击动画回待机（主手+副手）
+                if (this.weaponAnim) {
+                    this.weaponAnim.state = 'idle';
+                    this.weaponAnim.timer = 0;
+                    this.weaponAnim.isAttacking = false;
+                }
+                if (this.offhandWeaponAnim) {
+                    this.offhandWeaponAnim.state = 'idle';
+                    this.offhandWeaponAnim.timer = 0;
+                    this.offhandWeaponAnim.isAttacking = false;
+                }
+                // 闪避/冲刺/风车/推击/特殊攻击
+                this.isDodging = false;
+                this._isDashing = false;
+                this._dashState = 'idle';
+                this._dashTimer = 0;
+                this._isWhirlwind = false;
+                if (this._whirlwindRangeEffect) {
+                    this._whirlwindRangeEffect.active = false;
+                    this._whirlwindRangeEffect = null;
+                }
+                this._isPushStrike = false;
+                this._specialAttackActive = false;
+                this._specialAttackTimer = 0;
+                // 蓄力状态
+                if (this._chargeState !== 'idle') {
+                    this._chargeState = 'idle';
+                    this._chargeTimer = 0;
+                    this._chargeFlashActive = false;
+                    this._chargeFlashTimer = 0;
+                }
+                // 换弹中断（含单发装填）
+                for (const slot of ['weapon', 'offhand', 'weapon2', 'ring2']) {
+                    const state = this._ammoState && this._ammoState[slot];
+                    if (state && state.reloading) {
+                        state.reloading = false;
+                        state.reloadTimer = 0;
+                        state.singleReloadMode = false;
+                    }
+                }
+                // 退出无人机操控
+                if (this.droneSystem && this.droneSystem.controlling) {
+                    this.droneSystem._exitControl();
+                }
+                // 速度清零，只播放 idle 精灵图
+                this.vx = 0;
+                this.vy = 0;
+                this.isMoving = false;
             },
 
 _updateSubsystems(dt, entities) {

@@ -46,6 +46,18 @@ export class ArmoredKnight extends Enemy {
 
         // 弹反管线代理：格挡期间命中按弹反处理（供 DamagePipeline 抑制击退/craft 命中效果）
         this.shieldSystem = { _lastParried: false };
+
+        // 音效计时（enemy-config.json 的 sounds 块驱动）
+        this._walkSoundTimer = 0;
+        this._chargeSoundTimer = 0;
+        this._comboSoundsDone = new Set();
+
+        // 二连击突进插帧（参考突变体-3连击突进）
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
+        // 冲锋朝向死区：|dx| 过小时保持上次朝向，防止贴身抖动回头
+        this._chargeFaceDir = 1;
     }
 
     _getSkillConfigs() {
@@ -55,6 +67,14 @@ export class ArmoredKnight extends Enemy {
             charge: s.charge || {},
             block: s.block || {},
         };
+    }
+
+    // 播放配置音效（enemy-config.json 的 sounds 块驱动）
+    _playSound(key) {
+        const path = this.config?.sounds?.[key];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     update(dt, entities) {
@@ -90,6 +110,17 @@ export class ArmoredKnight extends Enemy {
         if (this._animState !== 'combo' && this._animState !== 'charge' && this._animState !== 'defend') {
             this._animState = this.isMoving ? 'walk' : 'idle';
         }
+
+        // 移动音效：walk 状态按间隔持续播放脚步声
+        if (this._animState === 'walk') {
+            this._walkSoundTimer -= dt;
+            if (this._walkSoundTimer <= 0) {
+                this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
+                this._playSound('walk');
+            }
+        } else {
+            this._walkSoundTimer = 0;
+        }
     }
 
     _decideSkills() {
@@ -113,9 +144,9 @@ export class ArmoredKnight extends Enemy {
             }
         }
 
-        // 连击：近身发动
+        // 连击：近身才发动（triggerRange 比伤害判定 range 小，避免空挥）
         if (this._comboCooldown <= 0 && cfg.combo.duration) {
-            if (this._isTargetInRange(t, cfg.combo.range ?? 125)) {
+            if (this._isTargetInRange(t, cfg.combo.triggerRange ?? 75)) {
                 this._startCombo();
             }
         }
@@ -129,12 +160,29 @@ export class ArmoredKnight extends Enemy {
         this._comboTimer = cfg.duration ?? 2000;
         this._comboCooldown = cfg.cooldown ?? 4000;
         this._comboHitsDone = new Set();
+        this._comboSoundsDone = new Set();
         this._comboTarget = this.target;
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        }
+        // 连击突进：向目标方向设置 lungeDistance 总位移，_updateCombo 逐帧插值执行
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
+        const t = this._comboTarget;
+        if (t && t.active) {
+            const dx = t.x - this.x;
+            const dy = t.y - this.y;
+            const d = Math.hypot(dx, dy);
+            const lunge = cfg.lungeDistance ?? 30;
+            if (d > 0 && lunge > 0) {
+                this._comboLungeDx = (dx / d) * lunge;
+                this._comboLungeDy = (dy / d) * lunge;
+                this._comboLungeRemaining = lunge;
+            }
         }
     }
 
@@ -144,11 +192,38 @@ export class ArmoredKnight extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+
+        // 连击突进：逐帧插值执行（参考突变体-3，移动连贯不瞬移）
+        if (this._comboLungeRemaining > 0.1) {
+            const dtSec = dt / 1000;
+            const lungeSpeed = cfg.lungeSpeed ?? 500;
+            const step = Math.min(this._comboLungeRemaining, lungeSpeed * dtSec);
+            const ratio = this._comboLungeRemaining > 0 ? step / this._comboLungeRemaining : 0;
+            const mx = this._comboLungeDx * ratio;
+            const my = this._comboLungeDy * ratio;
+            const r = WallSystem.resolve(this.x, this.y, this.x + mx, this.y + my, this.groundRadius);
+            this.x = r.x;
+            this.y = r.y;
+            this._comboLungeDx -= mx;
+            this._comboLungeDy -= my;
+            this._comboLungeRemaining -= step;
+        }
+
         if (this._comboTarget && this._comboTarget.active) {
             this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
         }
         const elapsed = (cfg.duration || 0) - this._comboTimer;
         const frames = cfg.frames || 1;
+        // 挥砍音效帧（独立于伤害帧，互不干扰）
+        const soundFrames = this.config?.sounds?.comboSoundFrames || [];
+        for (let i = 0; i < soundFrames.length; i++) {
+            if (this._comboSoundsDone.has(i)) continue;
+            const st = ((soundFrames[i] - 1) / frames) * (cfg.duration || 0);
+            if (elapsed >= st) {
+                this._comboSoundsDone.add(i);
+                this._playSound('combo');
+            }
+        }
         const hitFrames = cfg.hitFrames || [];
         for (let i = 0; i < hitFrames.length; i++) {
             if (this._comboHitsDone.has(i)) continue;
@@ -175,6 +250,9 @@ export class ArmoredKnight extends Enemy {
         this._comboTimer = 0;
         this._comboTarget = null;
         this._comboHitsDone = new Set();
+        this._comboLungeDx = 0;
+        this._comboLungeDy = 0;
+        this._comboLungeRemaining = 0;
     }
 
     // ========== 持盾冲锋 ==========
@@ -186,12 +264,16 @@ export class ArmoredKnight extends Enemy {
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._chargeCooldown = cfg.cooldown ?? 10000;
+        this._chargeSoundTimer = 0;
         // 冲锋期间弹反免疫（与集合体同机制），结束后还原
         this._parryImmune = true;
         this.vx = 0;
         this.vy = 0;
         if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            const dx = this.target.x - this.x;
+            this.rotation = Math.atan2(this.target.y - this.y, dx);
+            // 冲锋朝向初始锁定目标侧（死区更新，见 _updateCharge）
+            if (Math.abs(dx) > 1e-3) this._chargeFaceDir = dx > 0 ? 1 : -1;
         }
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🛡️ 冲锋！', '#7a8a9a'));
     }
@@ -199,6 +281,12 @@ export class ArmoredKnight extends Enemy {
     _updateCharge(dt) {
         const cfg = this._getSkillConfigs().charge;
         const dtSec = dt / 1000;
+        // 冲锋脚步声：按间隔循环播放
+        this._chargeSoundTimer -= dt;
+        if (this._chargeSoundTimer <= 0) {
+            this._chargeSoundTimer = this.config?.sounds?.chargeStepInterval ?? 300;
+            this._playSound('walk');
+        }
         const speed = cfg.speed ?? 900;
         const maxDist = cfg.maxDistance ?? 1800;
         const t = this._chargeTarget && this._chargeTarget.active ? this._chargeTarget : this.target;
@@ -210,6 +298,8 @@ export class ArmoredKnight extends Enemy {
             const d = Math.hypot(dx, dy);
             if (d > 0) {
                 this.rotation = Math.atan2(dy, dx);
+                // 朝向死区：|dx| > 20px 才更新水平朝向，防止贴身/正上下方时 flipX 抖动回头
+                if (Math.abs(dx) > 20) this._chargeFaceDir = dx > 0 ? 1 : -1;
                 const step = Math.min(speed * dtSec, d);
                 const nx = this.x + (dx / d) * step;
                 const ny = this.y + (dy / d) * step;
@@ -233,6 +323,7 @@ export class ArmoredKnight extends Enemy {
 
     _dealChargeHit(t) {
         const cfg = this._getSkillConfigs().charge;
+        this._playSound('block'); // 撞击到目标：播放一次盾击音
         const atk = this.data?.atk || 0;
         t.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         // 目标弹反成功：不受伤（takeDamage 已免伤）不眩晕，只保留击退；
@@ -296,9 +387,8 @@ export class ArmoredKnight extends Enemy {
     }
 
     _triggerBlockParry(attacker, isMelee) {
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/wood_thud_1s.wav');
-        }
+        // 格挡受击音效（防御状态每次受击播放）
+        this._playSound('block');
         // 与玩家盾系统 triggerParry 同口径：远程/魔法只抵消伤害；近战才眩晕+击退；弹反免疫单位不受影响
         if (!isMelee) return;
         if (!attacker || attacker._parryImmune) return;
@@ -336,7 +426,10 @@ export class ArmoredKnight extends Enemy {
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
         let flipX = false;
-        if (this.isMoving && Math.abs(this.vx) > 0.1) {
+        if (this._animState === 'charge') {
+            // 冲锋期间：使用死区朝向（避免追踪 flipX 抖动回头）
+            flipX = this._chargeFaceDir < 0;
+        } else if (this.isMoving && Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
