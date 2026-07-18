@@ -69,6 +69,7 @@ export class AmalgamZombie extends Enemy {
         // 投掷状态
         this._throwTarget = null;
         this._throwFired = false;
+        this._throwPending = 0; // 音效前置预备计时（>0：已播音效，等待进入攻击动作）
         this._throwWarning = null;
         this._throwSprite = null;
 
@@ -131,6 +132,15 @@ export class AmalgamZombie extends Enemy {
         if (this._throwCd > 0) this._throwCd = Math.max(0, this._throwCd - dt);
         if (this._summonCd > 0) this._summonCd = Math.max(0, this._summonCd - dt);
 
+        // 投掷预备倒计时：音效已在决策时播放，到点后进入攻击动作
+        if (this._throwPending > 0) {
+            this._throwPending = Math.max(0, this._throwPending - dt);
+            if (this._throwPending <= 0 && this.target && this.target.active) {
+                this._startAttack('throw');
+                this._throwSoundPlayed = true; // 音效已在预备期播放，攻击内不再重复
+            }
+        }
+
         if (this._attackTimer > 0) {
             // 攻击动画推进中
             this._attackTimer = Math.max(0, this._attackTimer - dt);
@@ -177,13 +187,23 @@ export class AmalgamZombie extends Enemy {
 
     _decideAttack() {
         if (!this.target || !this.target.active) return;
+        if (this._throwPending > 0) return; // 投掷预备中（音效已播，等待动作开始）
         const skills = this._getSkillConfigs();
         // 砸地攻击：CD 一旦满足立即释放（有目标即可，不再受 triggerRange 限制——
         // 此前 footprint 扩大后玩家无法进入 250 触发范围，导致砸地永远放不出来）
         if (this._slamCd <= 0 && skills.slam.duration) {
             this._startAttack('slam');
         } else if (this._throwCd <= 0 && skills.throw.duration) {
-            this._startAttack('throw');
+            const preMs = skills.throw.soundPreMs ?? 0;
+            if (preMs > 0) {
+                // 音效前置：先播放投掷音效，preMs 后才进入攻击动作（音画同步）
+                this._throwPending = preMs;
+                this._throwCd = skills.throw.cooldown ?? 15000;
+                this._throwSoundPlayed = true;
+                this._playSound('throw');
+            } else {
+                this._startAttack('throw');
+            }
         }
     }
 
