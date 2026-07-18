@@ -28,8 +28,8 @@ const SPECIAL_ITEM_CONFIG = {
 const MATERIAL_TYPES = ['铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片'];
 
 // 一瓶标准药水恢复的数值（事件奖励里用 HP/MP 数值代替“瓶数”）
-const POTION_HEAL = 30;
-const POTION_MP = 25;
+export const POTION_HEAL = 30;
+export const POTION_MP = 25;
 
 // ============================================================
 // 事件权重

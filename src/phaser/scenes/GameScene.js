@@ -799,8 +799,10 @@ export class GameScene extends Scene {
         // Phaser 物理体改为矩形，大小与逻辑碰撞体积一致
         body.setSize(collisionWidth, collisionHeight);
         body.setImmovable(false);
-        // 碰撞字段已最终确定，重建统一 3D Collider
-        enemy.rebuildCollider();
+        // 碰撞字段已最终确定，重建统一 3D Collider（兜底对象可能没有该方法）
+        if (typeof enemy.rebuildCollider === 'function') {
+            enemy.rebuildCollider();
+        }
         if (options.tint !== undefined) {
             sprite.setTint(options.tint);
         }
@@ -2241,7 +2243,7 @@ export class GameScene extends Scene {
         if (hasOwnLabel) {
             // 隐藏之前可能已创建的名字文本
             for (const [key, text] of this._entityHudTexts.entries()) {
-                if (key.entity === entity && key.type === 'name') {
+                if (key.entity === entity && key.role === 'name') {
                     text.setVisible(false);
                 }
             }

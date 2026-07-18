@@ -254,7 +254,7 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     const enchantDust = document.createElement('span');
     enchantDust.className = 'enchant-dust';
     enchantDust.id = 'enchantDust';
-    enchantDust.textContent = '✨ 魔法晶尘: 0';
+    enchantDust.textContent = '✨ 魔法粉尘: 0';
     const enchantClose = document.createElement('button');
     enchantClose.className = 'enchant-close';
     enchantClose.onclick = function() { EnchantSystem.close(); };

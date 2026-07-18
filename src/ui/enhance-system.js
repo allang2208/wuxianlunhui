@@ -6,6 +6,7 @@ import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { ShopSystem } from './shop-system.js';
 import { EquipManager } from './equip-manager.js';
+import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { SystemUI } from './system-ui.js';
 const EnhanceSystem = {
     _isOpen: false,
@@ -185,11 +186,18 @@ const EnhanceSystem = {
             return;
         }
 
-        // 检查强化石
+        // 检查强化石存在（先不消耗）
         const bp = EquipManager.backpackItems || [];
         const stoneIdx = bp.findIndex(i => i.name === '强化石');
         if (stoneIdx === -1) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '强化石不足！需要1颗强化石', '#ff4444'));
+            return;
+        }
+
+        // 先校验并扣除金币，成功后再消耗强化石（修复：金币不足时强化石被白扣）
+        const cost = Math.floor(this._baseCost * Math.pow(1.5, currentLevel));
+        if (!ShopSystem._deductGold(cost)) {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
             return;
         }
         // 消耗1颗强化石
@@ -200,39 +208,11 @@ const EnhanceSystem = {
             bp.splice(stoneIdx, 1);
         }
         EquipManager.updateInventorySlots();
-
-        const cost = Math.floor(this._baseCost * Math.pow(1.5, currentLevel));
-        if (ShopSystem._getBackpackGold() < cost) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
-            return;
-        }
-        if (!ShopSystem._deductGold(cost)) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
-            return;
-        }
         item.enhanceLevel = (item.enhanceLevel || 0) + 1;
 
-        if (item.category === 'weapon_melee' || item.category === 'weapon_ranged' || item.weaponType) {
-            const el = item.enhanceLevel || 0;
-            const atkStat = item.stats.find(s => s.name === '物理攻击');
-            // 强化效果已统一在 getCurrentWeaponAtk() 中计算，这里只更新 stats 的显示值
-            // 读取原始基础值（未强化时），然后加上强化等级
-            let baseMin = 0, baseMax = 0;
-            if (atkStat && atkStat.value) {
-                const match = String(atkStat.value).match(/(\d+)(?:-(\d+))?/);
-                if (match) { baseMin = parseInt(match[1]); baseMax = match[2] ? parseInt(match[2]) : baseMin; }
-            }
-            const enhanceFlat = (item.attackFormula && item.attackFormula.enhanceFlat) || 1;
-            if (baseMin > 0) {
-                const displayMin = Math.round(baseMin + el * enhanceFlat);
-                const displayMax = Math.round(baseMax + el * enhanceFlat);
-                if (atkStat) {
-                    atkStat.value = displayMin === displayMax ? `${displayMin}` : `${displayMin}-${displayMax}`;
-                } else {
-                    item.stats.push({ name: '物理攻击', value: `${displayMin}-${displayMax}` });
-                }
-            }
-        }
+        // 强化加成统一由 getCurrentWeaponAtk()/computeWeaponAttack 按 attackFormula 派生，
+        // 不再改写 item.stats 显示值（修复：stats 被反复改写导致基础值滚动累加；
+        // 无 attackFormula 武器经 getAttackFormula 回退把污染值当 base 参与实战，造成平方级膨胀）
 
         this._playEnhanceEffect();
 
@@ -310,21 +290,8 @@ const EnhanceSystem = {
     },
 
     _buildFormulaDisplay(formula, el, craftEffects) {
-        if (!formula) return '';
-        let effectiveFormula = formula;
-        if (craftEffects && craftEffects.slugMode && formula.variants && formula.variants.slugMode) {
-            effectiveFormula = formula.variants.slugMode;
-        }
-        const base = (effectiveFormula.base || 0) + el * (effectiveFormula.enhanceFlat || 0);
-        const parts = [`${base}`];
-        const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
-        for (const attr of effectiveFormula.attrs || []) {
-            const coeff = attr.base + (attr.perEnhance || 0) * el;
-            if (Math.abs(coeff) < 0.001) continue;
-            const name = attrNames[attr.key] || attr.key;
-            parts.push(`${coeff >= 0 ? '+' : '-'} ${name}×${Math.abs(coeff).toFixed(2)}`);
-        }
-        return parts.join(' ');
+        // 统一委托共享实现（config/attack-formula.js），消除三处复制漂移
+        return buildFormulaDisplay(formula, el, craftEffects);
     },
 
     _buildPredictedStats(item) {

@@ -41,6 +41,7 @@ import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
 import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import { Zombie } from './entities/enemy-types/zombie.js';
+import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -140,6 +141,8 @@ export const Game = {
             this.spawnMainFatZombie();
             // 主神空间生成测试用普通僵尸
             this.spawnMainZombie();
+            // 主神空间生成测试用集合体（首领）
+            this.spawnMainAmalgam();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -337,6 +340,19 @@ export const Game = {
             (entity._deathAnimTimer > 0 || entity._corpseTimer > 0));
     },
 
+    /**
+     * 按 key 前缀统一移除实体（经 removeEntity，跳过存活尸体）。
+     * 用于清理战斗召唤物（zombieDog_ / amalgam_fat_ / amalgam_zombie_ 等），
+     * 这些实体不进入战斗追踪列表，需在清理路径按前缀兜底，避免战斗结束后泄漏。
+     */
+    removeEntitiesByPrefix(...prefixes) {
+        for (const key of Array.from(this.entities.keys())) {
+            if (!prefixes.some(p => typeof key === 'string' && key.startsWith(p))) continue;
+            if (this.isPreservedCorpse(this.entities.get(key))) continue;
+            this.removeEntity(key);
+        }
+    },
+
     spawnMainZombieDog() {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
@@ -445,6 +461,36 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_zombie', zombie);
+    },
+    spawnMainAmalgam() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const amalgamCfg = enemyConfigData.amalgamZombie || {};
+        // 使用原设定数值，仅保留永久警戒便于测试
+        const amalgam = new AmalgamZombie(origin.x + 650, origin.y + 120, {
+            ...amalgamCfg,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(amalgamCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        // 注入召唤/生成工厂（主神空间测试用，沿用永久警戒配置）
+        amalgam._createBasicZombie = (x, y) => new Zombie(x, y, {
+            ...enemyConfigData.zombie,
+            showWeapon: false,
+            ai: { ...(enemyConfigData.zombie?.ai || {}), aggroRange: 9999, loseTimeout: 999999 }
+        });
+        amalgam._createFatZombie = (x, y) => new FatZombie(x, y, {
+            ...enemyConfigData.fatZombie,
+            showWeapon: false,
+            ai: { ...(enemyConfigData.fatZombie?.ai || {}), aggroRange: 9999, loseTimeout: 999999 }
+        });
+        this.entities.set('enemy_main_amalgam', amalgam);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -633,8 +679,8 @@ export const Game = {
                     console.error('[DungeonMapSystem] Failed to close NPCDialogue:', e);
                 }
                 // 继续执行下面的实体更新
-            } else if (DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'event') {
-                // 商店/事件模式：只更新输入和特效
+            } else if (DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'event' || DungeonMapSystem.state === 'reward') {
+                // 商店/事件/奖励模式：只更新输入和特效（奖励面板打开时实体不更新）
                 EffectManager.update(dt);
                 QuickBar.updateCooldowns(dt);
                 Input.update();
@@ -1064,10 +1110,14 @@ if (SceneManager.currentScene === 'scene3') {
                 const minDist = radiusA + radiusB;
 
                 if (dist > 0 && dist < minDist) {
+                    // 不可分离单位（如站桩 Boss）：自身纹丝不动，由对方承担全部重叠位移；双方均不可动则跳过
+                    const immA = !!a.noSeparation;
+                    const immB = !!b.noSeparation;
+                    if (immA && immB) continue;
                     const overlap = minDist - dist;
                     const ratio = overlap / dist / 2;
-                    const moveA = { x: -dx * ratio, y: -dy * ratio };
-                    const moveB = { x: dx * ratio, y: dy * ratio };
+                    const moveA = immA ? { x: 0, y: 0 } : { x: -dx * ratio * (immB ? 2 : 1), y: -dy * ratio * (immB ? 2 : 1) };
+                    const moveB = immB ? { x: 0, y: 0 } : { x: dx * ratio * (immA ? 2 : 1), y: dy * ratio * (immA ? 2 : 1) };
 
                     // 用 WallSystem 校验，避免分离把实体推进墙里
                     const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, radiusA);

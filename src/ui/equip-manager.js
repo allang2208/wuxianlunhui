@@ -475,6 +475,8 @@ import { GameUIManager } from './game-ui-manager.js';
                                 }
                             }
                             this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
+                            // 弹药状态随装备立即初始化（magazine/attackInterval 改造不再等切枪才生效）
+                            if (this.player._initAmmoForSlot) this.player._initAmmoForSlot(eKey);
                             if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
                                 this.player._applySkillOverrides(item);
                                 if (SkillManager && SkillManager.renderSkillGrid) {
@@ -828,6 +830,8 @@ import { GameUIManager } from './game-ui-manager.js';
                                 }
                             }
                             this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
+                            // 弹药状态随装备立即初始化（magazine/attackInterval 改造不再等切枪才生效）
+                            if (this.player._initAmmoForSlot) this.player._initAmmoForSlot(eKey);
                             if (eKey === this.player.weaponMode && this.player._applySkillOverrides) {
                                 this.player._applySkillOverrides(item);
                                 if (SkillManager && SkillManager.renderSkillGrid) {

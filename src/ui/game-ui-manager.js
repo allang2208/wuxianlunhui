@@ -9,6 +9,7 @@ import { CONFIG } from '../config/config.js';
 import { NPCDialogue } from './npc-dialogue.js';
 import { ShopSystem } from './shop-system.js';
 import { EnhanceSystem } from './enhance-system.js';
+import { EquipManager } from './equip-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 
@@ -234,12 +235,47 @@ export const GameUIManager = {
     },
     load() {
         const save = localStorage.getItem('infiniteLoop_save');
-        if (save) { let data; try { data = JSON.parse(save); } catch (e) { console.error('Load failed:', e); EffectManager.add(new FloatingTextEffect(this.player ? this.player.x : CONFIG.WORLD_WIDTH/2, this.player ? this.player.y - 20 : CONFIG.WORLD_HEIGHT/2, '读档失败: 存档损坏')); return; } alert(`读取存档: ${data.player?.name || '未知'}\n等级: ${data.player?.level || 1}`); }
-        else alert('没有找到存档');
+        if (!save) { alert('没有找到存档'); return; }
+        let data;
+        try { data = JSON.parse(save); } catch (e) {
+            console.error('Load failed:', e);
+            EffectManager.add(new FloatingTextEffect(this.player ? this.player.x : CONFIG.WORLD_WIDTH/2, this.player ? this.player.y - 20 : CONFIG.WORLD_HEIGHT/2, '读档失败: 存档损坏'));
+            return;
+        }
+        if (!this.player) return;
+        // 恢复玩家数据与位置
+        if (data.player) Object.assign(this.player.data, data.player);
+        if (data.position && Number.isFinite(data.position.x) && Number.isFinite(data.position.y)) {
+            this.player.x = data.position.x;
+            this.player.y = data.position.y;
+        }
+        // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
+        if (data.equipments) this.player.equipments = data.equipments;
+        if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
+            EquipManager.backpackItems = data.backpack;
+            if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
+            if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
+        }
+        // 重算派生状态（属性/弹药/附魔攻击间隔/技能覆盖）
+        if (this.player.calculateCombatStats) this.player.calculateCombatStats();
+        if (this.player.updateMaxStats) this.player.updateMaxStats();
+        const curWeapon = (this.player.equipments && this.player.weaponMode) ? this.player.equipments[this.player.weaponMode] : null;
+        if (this.player._applySkillOverrides) this.player._applySkillOverrides(curWeapon);
+        if (this.player._initAmmoForSlot && this.player.weaponMode) this.player._initAmmoForSlot(this.player.weaponMode);
+        if (this.updateUI) this.updateUI();
+        alert(`读档成功: ${this.player.data?.name || '未知'} Lv.${this.player.data?.level || 1}`);
     },
     save() {
         if (!this.player) return;
-        const saveData = { version: '1.0', timestamp: Date.now(), player: this.player.data, position: { x: this.player.x, y: this.player.y } };
+        const saveData = {
+            version: '1.0',
+            timestamp: Date.now(),
+            player: this.player.data,
+            position: { x: this.player.x, y: this.player.y },
+            // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
+            equipments: this.player.equipments,
+            backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : []
+        };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },

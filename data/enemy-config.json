@@ -749,6 +749,96 @@
       "idleSheetColumns": 8
     }
   },
+  "amalgamZombie": {
+    "id": "amalgamZombie",
+    "name": "集合体",
+    "type": "首领",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#5a3a3a",
+    "size": 120,
+    "collisionRadius": 120,
+    "hp": 5000,
+    "maxHp": 5000,
+    "speed": 0,
+    "level": 7,
+    "rank": "boss",
+    "str": 100,
+    "dex": 20,
+    "con": 12,
+    "int": 0,
+    "wis": 1,
+    "luck": 5,
+    "mdef": 58,
+    "attackRange": 120,
+    "attackDistance": 120,
+    "aiInterval": 1000,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2000,
+      "dynamicRange": 140,
+      "width": 30,
+      "knockback": 20
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 0,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 660,
+      "collisionWidth": 300,
+      "collisionHeight": 540,
+      "footOffsetY": 309,
+      "projectileHitbox": { "width": 360, "height": 570, "offsetX": 0, "bottom": 0 }
+    },
+    "textures": {
+      "idle": "assets/enemies/amalgam/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 14,
+      "idleSheetColumns": 8
+    },
+    "attackSkills": {
+      "slam": {
+        "cooldown": 7000,
+        "duration": 2000,
+        "frames": 32,
+        "triggerRange": 250,
+        "hitFrames": [7, 12, 17, 20, 24, 27],
+        "zones": [
+          { "radius": 100, "damageMul": 1.2 },
+          { "radius": 200, "damageMul": 0.7 },
+          { "radius": 500, "damageMul": 0.2 }
+        ]
+      },
+      "throw": {
+        "cooldown": 15000,
+        "duration": 2000,
+        "frames": 25,
+        "fireFrame": 16,
+        "impactRadius": 45,
+        "damageMul": 1.0,
+        "flyDuration": 600,
+        "arcHeight": 120,
+        "projectileSize": 64
+      },
+      "summon": {
+        "cooldown": 15000,
+        "count": 2,
+        "offsetY": 150,
+        "spreadX": 40
+      }
+    },
+    "deathAnim": {
+      "duration": 2800,
+      "corpseHold": 2000,
+      "lastFrame": 27
+    },
+    "description": "由无数尸体融合而成的巨大集合体，扎根于地牢深处无法移动，以纯粹的力量碾碎靠近的一切。",
+    "skills": [],
+    "attackType": "集合体重击"
+  },
   "mutant3": {
     "id": "mutant3",
     "name": "怪物突变体-3",

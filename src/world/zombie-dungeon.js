@@ -21,7 +21,7 @@ export function createBasicZombie(x, y) {
     const cfg = enemyConfigData.zombie;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: zombie');
-        return new CircleEnemy(x, y, { name: 'zombie', hp: 50, maxHp: 50, size: 14, showWeapon: false });
+        return new CircleEnemy(x, y, { name: 'zombie', hp: 120, maxHp: 120, size: 14, showWeapon: false });
     }
     return new Zombie(x, y, {
         ...cfg,
@@ -39,7 +39,7 @@ function createZombieDog(x, y) {
     const cfg = enemyConfigData.zombieDog;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: zombieDog');
-        return new ZombieDogEnemy(x, y, { name: 'zombieDog', hp: 60, maxHp: 60, size: 12, showWeapon: false });
+        return new ZombieDogEnemy(x, y, { name: 'zombieDog', hp: 100, maxHp: 100, size: 12, showWeapon: false });
     }
     return new ZombieDogEnemy(x, y, {
         ...cfg,
@@ -57,7 +57,7 @@ function createSpitterZombie(x, y) {
     const cfg = enemyConfigData.spitterZombie;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: spitterZombie');
-        return new SpitterZombie(x, y, { name: '毒液僵尸', hp: 150, maxHp: 150, size: 13, showWeapon: false });
+        return new SpitterZombie(x, y, { name: '毒液僵尸', hp: 120, maxHp: 120, size: 13, showWeapon: false });
     }
     return new SpitterZombie(x, y, {
         ...cfg,
@@ -71,7 +71,7 @@ function createSpitterZombie(x, y) {
     });
 }
 
-function createFatZombie(x, y) {
+export function createFatZombie(x, y) {
     const cfg = enemyConfigData.fatZombie;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: fatZombie');
@@ -93,7 +93,9 @@ export function createZombieWizard(x, y) {
     const cfg = enemyConfigData.zombieWizard;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: zombieWizard');
-        return new ZombieWizard(x, y, { name: 'zombieWizard', hp: 500, maxHp: 500, size: 18 });
+        const fallbackWizard = new ZombieWizard(x, y, { name: 'zombieWizard', hp: 600, maxHp: 600, size: 18 });
+        fallbackWizard._createZombieDog = createZombieDog;
+        return fallbackWizard;
     }
     const wizard = new ZombieWizard(x, y, {
         ...cfg,
@@ -112,7 +114,9 @@ export function createMutant3(x, y) {
     const cfg = enemyConfigData.mutant3;
     if (!cfg) {
         console.warn('[ZombieDungeon] Missing enemy config: mutant3');
-        return new Mutant3(x, y, { name: 'mutant3', hp: 750, maxHp: 750, size: 22 });
+        const fallbackMutant = new Mutant3(x, y, { name: 'mutant3', hp: 750, maxHp: 750, size: 22 });
+        fallbackMutant._createZombieDog = createZombieDog;
+        return fallbackMutant;
     }
     const mutant = new Mutant3(x, y, {
         ...cfg,
@@ -212,9 +216,10 @@ const ZOMBIE_DUNGEON_CONFIG = {
 
 // ==================== 路线生成器 ====================
 export class ZombieDungeonMapGenerator {
-    constructor(config = ZOMBIE_DUNGEON_CONFIG) {
+    constructor(config = ZOMBIE_DUNGEON_CONFIG, dungeonType = 'zombie') {
         this.config = config;
-        this._genCfg = DungeonConfig.getZombieDungeonConfig();
+        this._genCfg = DungeonConfig.getZombieDungeonConfig(dungeonType);
+        this._dungeonType = dungeonType;
     }
 
     /**
@@ -252,16 +257,29 @@ export class ZombieDungeonMapGenerator {
             intermediateRowSets.push({ col, selectedRows });
         }
 
+        // 强制第 1 列（起点右侧）包含所有行，确保起点始终有 4 条分支；
+        // 必须先于节点数调整，否则强制补行会让总数超出配置区间
+        intermediateRowSets[0].selectedRows = Array.from({ length: rows }, (_, r) => r);
+
         // 调整节点总数到目标区间
         this._adjustNodeCount(intermediateRowSets, rows, mainRow);
 
-        // 强制第 1 列（起点右侧）包含所有行，确保起点始终有 4 条分支
-        intermediateRowSets[0].selectedRows = Array.from({ length: rows }, (_, r) => r);
+        // 主通道最少战斗数（缺省 = shortestCombatPath，即主通道全战斗，向后兼容）
+        // 如 zombieDungeonBeginner.mainRowMinCombat = 3：主通道随机 3 列强制战斗
+        const mainRowMinCombat = Math.min(cfg.mainRowMinCombat ?? shortestCombatPath, shortestCombatPath);
+        const mainCombatCols = new Set();
+        const colIdx = [];
+        for (let col = combatStartCol; col < bossCol; col++) colIdx.push(col);
+        for (let i = colIdx.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [colIdx[i], colIdx[j]] = [colIdx[j], colIdx[i]];
+        }
+        for (let i = 0; i < mainRowMinCombat; i++) mainCombatCols.add(colIdx[i]);
 
         for (const { col, selectedRows } of intermediateRowSets) {
             for (const row of selectedRows) {
                 const isMain = row === mainRow;
-                const type = isMain ? 'combat' : this._rollIntermediateType(cfg.typeRatios);
+                const type = (isMain && mainCombatCols.has(col)) ? 'combat' : this._rollIntermediateType(cfg.typeRatios);
                 nodes.push(this._createNode(col, row, colSpacing, rowSpacing, type));
             }
         }
@@ -275,8 +293,8 @@ export class ZombieDungeonMapGenerator {
         // 建边
         const edges = this._buildEdges(nodes, totalCols);
 
-        // 随机标记精英战斗节点
-        const eliteCombatChance = DungeonConfig.getEliteCombatChance('zombie');
+        // 随机标记精英战斗节点（按地牢类型读取对应配置，如初级地牢为 0）
+        const eliteCombatChance = DungeonConfig.getEliteCombatChance(this._dungeonType);
         for (const node of nodes) {
             if (node.type === 'combat') {
                 node.eliteChance = eliteCombatChance;
@@ -333,7 +351,7 @@ export class ZombieDungeonMapGenerator {
 
     /**
      * 调整中间列行集合，使总节点数落在配置区间内
-     * 主通道行不会被移除
+     * 主通道行不会被移除；第 1 列（起点分支列）已被强制全行，不再参与增删
      */
     _adjustNodeCount(intermediateRowSets, rows, mainRow) {
         const cfg = this._genCfg;
@@ -351,10 +369,11 @@ export class ZombieDungeonMapGenerator {
             return all;
         };
 
-        // 先扩容：如果总数不足，向已有集合添加缺失的额外行
+        // 先扩容：如果总数不足，向已有集合添加缺失的额外行（跳过第 1 列分支列）
         let total = countNodes();
         while (total < min) {
-            const candidates = intermediateRowSets.filter(rs => {
+            const candidates = intermediateRowSets.filter((rs, i) => {
+                if (i === 0) return false;
                 const extras = rs.selectedRows.filter(r => r !== mainRow).length;
                 return extras < rows - 1;
             });
@@ -368,9 +387,10 @@ export class ZombieDungeonMapGenerator {
             total = countNodes();
         }
 
-        // 再缩容：如果总数过多，从有多余额外行的列中移除一个额外行
+        // 再缩容：如果总数过多，从有多余额外行的列中移除一个额外行（跳过第 1 列分支列）
         while (total > max) {
-            const candidates = intermediateRowSets.filter(rs => {
+            const candidates = intermediateRowSets.filter((rs, i) => {
+                if (i === 0) return false;
                 const extras = rs.selectedRows.filter(r => r !== mainRow).length;
                 return extras > 1;
             });
@@ -448,10 +468,11 @@ export class ZombieDungeonMapGenerator {
 
 // ==================== 战斗波次生成器 ====================
 export class ZombieDungeonCombat {
-    constructor(config = ZOMBIE_DUNGEON_CONFIG, isElite = false) {
+    constructor(config = ZOMBIE_DUNGEON_CONFIG, isElite = false, encounterOverride = null, dungeonType = 'zombie') {
         this.config = config;
         this._isElite = isElite;
-        this._encounter = DungeonConfig.getZombieEncounterConfig(isElite);
+        // encounterOverride：Boss 战等独立遭遇配置（如 zombieDungeonBeginner.bossEncounter）
+        this._encounter = encounterOverride || DungeonConfig.getZombieEncounterConfig(isElite, dungeonType);
         this._currentWave = 0;
         this._totalWaves = this._encounter.combatWaves;
     }

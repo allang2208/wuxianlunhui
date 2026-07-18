@@ -35,7 +35,7 @@ const DEFAULTS = {
     },
     combatRoom: {
         normalSize: { min: 1024, max: 2048, step: 256 },
-        bossSize: 4096,
+        bossSize: 1024,
         wallThickness: 20,
         cleanupCountdownMs: 10000,
         spawn: { playerOffsetFromEdge: 60, monsterSpawnDepth: 120, monsterMargin: 40, minWallDistance: 150 }
@@ -57,20 +57,36 @@ function deepMerge(target, source) {
 export const DungeonConfig = {
     raw: dungeonConfigData,
 
-    getZombieDungeonConfig() {
-        return deepMerge(DEFAULTS.zombieDungeon, dungeonConfigData.zombieDungeon || {});
+    // 地牢类型 → 配置键映射（新增地牢在此登记）
+    _keyFor(dungeonType) {
+        if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
+        return 'zombieDungeon';
     },
 
-    getZombieEncounterConfig(isElite) {
-        const encounters = (dungeonConfigData.zombieDungeon && dungeonConfigData.zombieDungeon.encounters) || {};
+    getZombieDungeonConfig(dungeonType) {
+        return deepMerge(DEFAULTS.zombieDungeon, dungeonConfigData[this._keyFor(dungeonType)] || {});
+    },
+
+    getZombieEncounterConfig(isElite, dungeonType) {
+        const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        const encounters = cfg.encounters || {};
         return encounters[isElite ? 'elite' : 'normal'] || DEFAULTS.zombieDungeon.encounters[isElite ? 'elite' : 'normal'];
     },
 
+    // Boss 战遭遇配置（独立副本，如 zombieDungeonBeginner.bossEncounter）
+    getBossEncounterConfig(dungeonType) {
+        const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        return cfg.bossEncounter || null;
+    },
+
     getEliteCombatChance(dungeonType) {
-        if (dungeonType === 'zombie') {
-            return (dungeonConfigData.zombieDungeon && dungeonConfigData.zombieDungeon.eliteCombatChance) ?? 0.20;
-        }
-        return 0;
+        const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        return cfg.eliteCombatChance ?? (dungeonType === 'zombie' ? 0.20 : 0);
+    },
+
+    // 出征界面地牢列表（展示元数据）
+    getDungeonList() {
+        return dungeonConfigData.dungeonList || {};
     },
 
     getCombatRoomConfig() {

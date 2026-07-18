@@ -25,7 +25,7 @@ export const RewardSystem = {
                 { type: 'scroll', grade: 'F', count: 1 },
                 { type: 'dust', count: 200 }
             ],
-            desc: '获得随机 F 级附魔卷轴和 200 魔法晶尘'
+            desc: '获得随机 F 级附魔卷轴和 200 魔法粉尘'
         },
         {
             id: 'card2',

@@ -340,7 +340,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const sc = dt / 1000;
 
         // [ANTI-TELEPORT] 限制击退每帧最大移动距离
-        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
         const maxStep = maxSpd * sc;
         const nextX = enemy.x + (enemy.knockbackX || 0) * sc;
         const nextY = enemy.y + (enemy.knockbackY || 0) * sc;
@@ -620,7 +620,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 if (len > 0) { moveX /= len; moveY /= len; }
             }
 
-            let maxSpd = enemy.maxSpeed || enemy.speed || 100;
+            let maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
             if (chargeStraight) {
                 maxSpd *= 1.3;
             }
@@ -749,7 +749,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
-        let maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        let maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
         // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
         if (chargeStraight && dist > (enemy.attackRange || 70)) {
             maxSpd *= 1.3;
@@ -870,6 +870,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _tryUnstuck(enemy) {
         if (!WallSystem || !WallSystem.canMoveTo) return;
+
+        // 站桩单位（speed/maxSpeed 均为 0，如首领"集合体"）不是"卡死"：跳过瞬移恢复
+        if (!(enemy.maxSpeed > 0) && !(enemy.speed > 0)) {
+            enemy._stuckFrames = 0;
+            return;
+        }
 
         // 只有真正在尝试移动时才计数：有速度 或 有目标且距离大于攻击范围
         const hasTarget = enemy.target && enemy.target.active;
@@ -1076,7 +1082,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 0.1) return;
 
-        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1127,7 +1133,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = (enemy.maxSpeed || enemy.speed || 100) * 0.3;
+        const maxSpd = (enemy.maxSpeed ?? enemy.speed ?? 100) * 0.3;
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1183,7 +1189,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         if (moveDist < 0.1) return;
 
-        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
         enemy.vx += (moveDx / moveDist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy / moveDist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1240,7 +1246,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = enemy.maxSpeed || enemy.speed || 100;
+        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
         enemy.vx += (moveDx * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 

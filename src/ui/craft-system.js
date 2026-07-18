@@ -8,6 +8,7 @@ import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
+import craftConfigData from '../../data/craft-config.json';
 
 const CraftSystem = {
     _isOpen: false,
@@ -24,263 +25,7 @@ const CraftSystem = {
     _editTempSlots: null, // 编辑时使用的临时副本
 
     // 枪械改造配置（每种武器独立的slots和options）
-    _WEAPON_CRAFT_CONFIGS: {
-        weapon2: {
-            slots: [
-                { id: 'blade', name: '剑刃', x: 0.08, y: 0.12, lineTarget: { x: 0.49712643678160917, y: 0.11543624161073829 } },
-                { id: 'guard', name: '护手', x: 0.08, y: 0.42, lineTarget: { x: 0.49712643678160917, y: 0.6748322147651015 } },
-                { id: 'grip', name: '握把', x: 0.074712643678161, y: 0.661275167785234, lineTarget: { x: 0.5, y: 0.793288590604029 } },
-                { id: 'blade_body_1', name: '剑身', x: 0.92, y: 0.12, lineTarget: { x: 0.5, y: 0.35 } },
-                { id: 'blade_body_2', name: '剑身', x: 0.92, y: 0.4, lineTarget: { x: 0.5, y: 0.4 } },
-                { id: 'pommel', name: '配重', x: 0.92, y: 0.7, lineTarget: { x: 0.5028735632183908, y: 0.8969798657718135 } },
-            ],
-            options: {
-                blade: [
-                    { id: 'light_blade', name: '轻量化剑刃', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'hardened_edge', name: '淬火硬化刃口', icon: '🔥', desc: '增加 10% 暴击率',
-                      effects: { critChancePercent: 0.10 } },
-                    { id: 'heavy_blunt', name: '厚重钝化', icon: '🛡️', desc: '增加 20% 防御穿透',
-                      effects: { armorPenetrationPercent: 0.20 } },
-                    { id: 'sharpened_edge', name: '精细研磨开锋', icon: '✨', desc: '增加 5% 伤害',
-                      effects: { damagePercent: 0.05 } },
-                ],
-                guard: [
-                    { id: 'small_disc_guard', name: '小型圆盘护手', icon: '🔘', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'wide_cross_guard', name: '宽十字护手', icon: '⚔️', desc: '装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害',
-                      effects: { secondaryBlock: true } },
-                    { id: 'no_guard', name: '无护手', icon: '❌', desc: '减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%',
-                      effects: { attackIntervalDelta: -100, staminaCostDelta: -5, defensePercent: -0.25 } },
-                ],
-                grip: [
-                    { id: 'wrapped_long_grip', name: '缠绳附加长柄', icon: '🧵', desc: '减少 5 点攻击和技能体力消耗',
-                      effects: { staminaCostDelta: -5, skillStaminaCostDelta: -5 } },
-                    { id: 'short_compact_grip', name: '短柄紧凑型握把', icon: '✂️', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                ],
-                blade_body_1: [
-                    { id: 'damascus_steel', name: '大马士革钢', icon: '🌊', desc: '冲刺突刺多造成一次伤害',
-                      effects: { dashDoubleHit: true } },
-                    { id: 'quench_hardened', name: '淬火硬化', icon: '🔥', desc: '防御穿透 +20%',
-                      effects: { armorPenetrationPercent: 0.20 } },
-                    { id: 'extended_blade', name: '延长剑身', icon: '📏', desc: '攻击距离 +25px（包括技能）',
-                      effects: { rangeDelta: 25 } },
-                    { id: 'light_blade_body', name: '轻量化剑身', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'hollow_blade', name: '镂空', icon: '💀', desc: '攻击敌人时附加流血效果：每秒受到当前生命值 10% 的物理伤害',
-                      effects: { bleedingOnHit: true } },
-                ],
-                blade_body_2: [
-                    { id: 'damascus_steel', name: '大马士革钢', icon: '🌊', desc: '冲刺突刺多造成一次伤害',
-                      effects: { dashDoubleHit: true } },
-                    { id: 'quench_hardened', name: '淬火硬化', icon: '🔥', desc: '防御穿透 +20%',
-                      effects: { armorPenetrationPercent: 0.20 } },
-                    { id: 'extended_blade', name: '延长剑身', icon: '📏', desc: '攻击距离 +25px（包括技能）',
-                      effects: { rangeDelta: 25 } },
-                    { id: 'light_blade_body', name: '轻量化剑身', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'hollow_blade', name: '镂空', icon: '💀', desc: '攻击敌人时附加流血效果：每秒受到当前生命值 10% 的物理伤害',
-                      effects: { bleedingOnHit: true } },
-                ],
-                pommel: [
-                    { id: 'weighted_pommel', name: '配重锤增重', icon: '⚒️', desc: '增加 5 点攻击体力消耗，攻击 +8%',
-                      effects: { staminaCostDelta: 5, damagePercent: 0.08 } },
-                    { id: 'hollow_orb', name: '镂空小球', icon: '🔮', desc: '减少 5 点攻击体力消耗',
-                      effects: { staminaCostDelta: -5 } },
-                ],
-            }
-        },
-        weapon4: {
-            slots: [
-                { id: 'blade', name: '剑刃', x: 0.08, y: 0.12, lineTarget: { x: 0.49712643678160917, y: 0.11543624161073829 } },
-                { id: 'guard', name: '护手', x: 0.08, y: 0.42, lineTarget: { x: 0.49712643678160917, y: 0.6748322147651015 } },
-                { id: 'grip', name: '握把', x: 0.074712643678161, y: 0.661275167785234, lineTarget: { x: 0.5, y: 0.793288590604029 } },
-                { id: 'blade_body_1', name: '剑身', x: 0.92, y: 0.12, lineTarget: { x: 0.5, y: 0.35 } },
-                { id: 'blade_body_2', name: '剑身', x: 0.92, y: 0.4, lineTarget: { x: 0.5, y: 0.4 } },
-                { id: 'pommel', name: '配重', x: 0.92, y: 0.7, lineTarget: { x: 0.5028735632183908, y: 0.8969798657718135 } },
-            ],
-            options: {
-                blade: [
-                    { id: 'light_blade', name: '轻量化剑刃', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'hardened_edge', name: '淬火硬化刃口', icon: '🔥', desc: '增加 10% 暴击率',
-                      effects: { critChancePercent: 0.10 } },
-                    { id: 'heavy_blunt', name: '厚重钝化', icon: '🛡️', desc: '增加 20% 防御穿透',
-                      effects: { armorPenetrationPercent: 0.20 } },
-                    { id: 'magic_blade', name: '魔力刀刃', icon: '🔮', desc: '攻击时给目标添加1层魔力易伤，持续5秒',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 1 } },
-                ],
-                guard: [
-                    { id: 'small_disc_guard', name: '小型圆盘护手', icon: '🔘', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'wide_cross_guard', name: '宽十字护手', icon: '⚔️', desc: '装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害',
-                      effects: { secondaryBlock: true } },
-                    { id: 'no_guard', name: '无护手', icon: '❌', desc: '减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%',
-                      effects: { attackIntervalDelta: -100, staminaCostDelta: -5, defensePercent: -0.25 } },
-                ],
-                grip: [
-                    { id: 'wrapped_long_grip', name: '缠绳附加长柄', icon: '🧵', desc: '减少 5 点攻击和技能体力消耗',
-                      effects: { staminaCostDelta: -5, skillStaminaCostDelta: -5 } },
-                    { id: 'short_compact_grip', name: '短柄紧凑型握把', icon: '✂️', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                ],
-                blade_body_1: [
-                    { id: 'rune_restructure', name: '符文重构', icon: '✨', desc: '右键特殊攻击额外生成2把魔法剑，依次向外20px',
-                      effects: { runeRestructureCount: 2 } },
-                    { id: 'sharp_rune', name: '锐利符文', icon: '⚔', desc: '右键特殊攻击魔法防御穿透+20%',
-                      effects: { magicPenetrationPercent: 0.20 } },
-                    { id: 'eagle_eye_rune', name: '鹰眼符文', icon: '👁', desc: '右键特殊攻击魔法剑攻击距离+150px',
-                      effects: { specialRangeDelta: 150 } },
-                    { id: 'destruction_rune', name: '毁灭符文', icon: '💥', desc: '右键特殊攻击魔法剑击中后给敌人附加2层魔力易伤',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 2 } },
-                ],
-                blade_body_2: [
-                    { id: 'rune_restructure', name: '符文重构', icon: '✨', desc: '右键特殊攻击额外生成2把魔法剑，依次向外20px',
-                      effects: { runeRestructureCount: 2 } },
-                    { id: 'sharp_rune', name: '锐利符文', icon: '⚔', desc: '右键特殊攻击魔法防御穿透+20%',
-                      effects: { magicPenetrationPercent: 0.20 } },
-                    { id: 'eagle_eye_rune', name: '鹰眼符文', icon: '👁', desc: '右键特殊攻击魔法剑攻击距离+150px',
-                      effects: { specialRangeDelta: 150 } },
-                    { id: 'destruction_rune', name: '毁灭符文', icon: '💥', desc: '右键特殊攻击魔法剑击中后给敌人附加2层魔力易伤',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 2 } },
-                ],
-                pommel: [
-                    { id: 'light_pommel', name: '轻量化剑身', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'weighted_pommel', name: '配重锤增重', icon: '⚒️', desc: '增加 5 点攻击体力消耗，攻击+8%',
-                      effects: { staminaCostDelta: 5, damagePercent: 0.08 } },
-                    { id: 'hollow_orb', name: '镂空小球', icon: '🔮', desc: '减少 5 点攻击体力消耗',
-                      effects: { staminaCostDelta: -5 } },
-                ],
-            }
-        },
-        weapon5: {
-            slots: [
-                { id: 'blade', name: '剑刃', x: 0.08, y: 0.12, lineTarget: { x: 0.49712643678160917, y: 0.11543624161073829 } },
-                { id: 'guard', name: '护手', x: 0.08, y: 0.42, lineTarget: { x: 0.49712643678160917, y: 0.6748322147651015 } },
-                { id: 'grip', name: '握把', x: 0.074712643678161, y: 0.661275167785234, lineTarget: { x: 0.5, y: 0.793288590604029 } },
-                { id: 'blade_body_1', name: '剑身', x: 0.92, y: 0.12, lineTarget: { x: 0.5, y: 0.35 } },
-                { id: 'blade_body_2', name: '剑身', x: 0.92, y: 0.4, lineTarget: { x: 0.5, y: 0.4 } },
-                { id: 'pommel', name: '配重', x: 0.92, y: 0.7, lineTarget: { x: 0.5028735632183908, y: 0.8969798657718135 } },
-            ],
-            options: {
-                blade: [
-                    { id: 'light_blade', name: '轻量化剑刃', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'hardened_edge', name: '淬火硬化刃口', icon: '🔥', desc: '增加 10% 暴击率',
-                      effects: { critChancePercent: 0.10 } },
-                    { id: 'heavy_blunt', name: '厚重钝化', icon: '🛡️', desc: '增加 20% 防御穿透',
-                      effects: { armorPenetrationPercent: 0.20 } },
-                    { id: 'vulnerability_blade', name: '易伤刀刃', icon: '🔮', desc: '攻击时给目标添加1层魔力易伤，持续5秒',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 1 } },
-                    { id: 'enchanted_blade', name: '附魔刀刃', icon: '✨', desc: '每次攻击命中时附加一次武器攻击力的魔法伤害',
-                      effects: { enchantedBlade: true } },
-                ],
-                guard: [
-                    { id: 'small_disc_guard', name: '小型圆盘护手', icon: '🔘', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'wide_cross_guard', name: '宽十字护手', icon: '⚔️', desc: '装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害',
-                      effects: { secondaryBlock: true } },
-                    { id: 'no_guard', name: '无护手', icon: '❌', desc: '减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%',
-                      effects: { attackIntervalDelta: -100, staminaCostDelta: -5, defensePercent: -0.25 } },
-                ],
-                grip: [
-                    { id: 'wrapped_long_grip', name: '缠绳附加长柄', icon: '🧵', desc: '减少 5 点攻击和技能体力消耗',
-                      effects: { staminaCostDelta: -5, skillStaminaCostDelta: -5 } },
-                    { id: 'short_compact_grip', name: '短柄紧凑型握把', icon: '✂️', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                ],
-                blade_body_1: [
-                    { id: 'rune_restructure', name: '符文重构', icon: '✨', desc: '右键特殊攻击持续时间+0.5s，期间持续计算伤害',
-                      effects: { specialDurationDelta: 500 } },
-                    { id: 'sharp_rune', name: '锐利符文', icon: '⚔', desc: '右键特殊攻击魔法防御穿透+20%',
-                      effects: { magicPenetrationPercent: 0.20 } },
-                    { id: 'eagle_eye_rune', name: '鹰眼符文', icon: '👁', desc: '右键特殊攻击攻击距离+200px',
-                      effects: { specialRangeDelta: 200 } },
-                    { id: 'destruction_rune', name: '毁灭符文', icon: '💥', desc: '右键特殊攻击每次击中后给敌人附加2层魔力易伤',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 2 } },
-                ],
-                blade_body_2: [
-                    { id: 'rune_restructure', name: '符文重构', icon: '✨', desc: '右键特殊攻击持续时间+0.5s，期间持续计算伤害',
-                      effects: { specialDurationDelta: 500 } },
-                    { id: 'sharp_rune', name: '锐利符文', icon: '⚔', desc: '右键特殊攻击魔法防御穿透+20%',
-                      effects: { magicPenetrationPercent: 0.20 } },
-                    { id: 'eagle_eye_rune', name: '鹰眼符文', icon: '👁', desc: '右键特殊攻击攻击距离+200px',
-                      effects: { specialRangeDelta: 200 } },
-                    { id: 'destruction_rune', name: '毁灭符文', icon: '💥', desc: '右键特殊攻击每次击中后给敌人附加2层魔力易伤',
-                      effects: { magicVulnerabilityOnHit: true, magicVulnerabilityStacks: 2 } },
-                ],
-                pommel: [
-                    { id: 'light_pommel', name: '轻量化剑身', icon: '⚡', desc: '减少攻击间隔 50ms',
-                      effects: { attackIntervalDelta: -50 } },
-                    { id: 'weighted_pommel', name: '配重锤增重', icon: '⚒️', desc: '增加 5 点攻击体力消耗，攻击+8%',
-                      effects: { staminaCostDelta: 5, damagePercent: 0.08 } },
-                    { id: 'hollow_orb', name: '镂空小球', icon: '🔮', desc: '减少 5 点攻击体力消耗',
-                      effects: { staminaCostDelta: -5 } },
-                ],
-            }
-        },
-        weapon6: {
-            slots: [
-                // 左列（从上到下，分散排列，向中间靠拢）
-                { id: 'muzzle',   name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.497, y: 0.232 } },
-                { id: 'barrel',   name: '枪管', x: 0.08, y: 0.40, lineTarget: { x: 0.497, y: 0.278 } },
-                { id: 'sight',    name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.499, y: 0.490 } },
-                // 右列（从上到下，分散排列，向中间靠拢）
-                { id: 'magazine', name: '弹夹', x: 0.92, y: 0.08, lineTarget: { x: 0.401, y: 0.488 } },
-                { id: 'bullet',   name: '子弹', x: 0.92, y: 0.32, lineTarget: { x: 0.401, y: 0.488 } },
-                { id: 'grip',     name: '握把', x: 0.92, y: 0.45, lineTarget: { x: 0.503, y: 0.555 } },
-                { id: 'stock',    name: '后托', x: 0.92, y: 0.70, lineTarget: { x: 0.497, y: 0.664 } },
-            ],
-            options: {
-                muzzle: [
-                    { id: 'suppressor', name: '消音器', icon: '🔇', desc: '射程 -300px，击退 +5px',
-                      effects: { rangeDelta: -300, knockbackDelta: 5 } },
-                    { id: 'flash_hider', name: '鸟笼消焰器', icon: '🔥', desc: '射程 +150px，最大散布角度 -10°',
-                      effects: { rangeDelta: 150, maxSpreadAngleDelta: -10 } },
-                    { id: 'muzzle_brake', name: 'DTK制退器', icon: '⚙', desc: '散布开始 +0.5秒，最大散布时间 +0.5秒',
-                      effects: { spreadStartDelta: 500, spreadTimeDelta: 500 } },
-                ],
-                barrel: [
-                    { id: 'long_barrel', name: '长枪管', icon: '📏', desc: '射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒',
-                      effects: { rangeDelta: 200, projectileSpeedPercent: 0.20, spreadStartDelta: 1000, spreadTimeDelta: 1000 } },
-                    { id: 'short_barrel', name: '短枪管', icon: '✂️', desc: '射程 -200px，散布开始 +0.5秒，移动速度+5%',
-                      effects: { rangeDelta: -200, spreadStartDelta: 500, moveSpeedPercent: 0.05 } },
-                ],
-                magazine: [
-                    { id: 'light_mag', name: '轻型弹夹', icon: '⚡', desc: '换弹时间 -1.5秒，弹夹 -30发，移动速度增加10%',
-                      effects: { reloadTimeDelta: -1500, magazineDelta: -30, moveSpeedPercent: 0.10 } },
-                    { id: 'extended_mag', name: '扩容弹箱', icon: '📦', desc: '弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒',
-                      effects: { magazineDelta: 25, moveSpeedPercent: -0.10, reloadTimeDelta: 500 } },
-                ],
-                bullet: [
-                    { id: 'ap_ammo', name: '钢芯穿甲弹', icon: '🛡️', desc: '攻击时无视目标35%防御力',
-                      effects: { armorPenetrationPercent: 0.35 } },
-                    { id: 'sniper_ammo', name: '高精度狙击弹', icon: '🎯', desc: '射程+200px，散布达到最大时间+0.5秒',
-                      effects: { rangeDelta: 200, spreadTimeDelta: 500 } },
-                ],
-                stock: [
-                    { id: 'skeleton_stock', name: '骨架枪托', icon: '🦴', desc: '移动速度+5%，散布开始 +0.5秒，最大散布 -1秒',
-                      effects: { moveSpeedPercent: 0.05, spreadStartDelta: 500, spreadTimeDelta: -1000 } },
-                    { id: 'solid_core_stock', name: '稳固核心枪托', icon: '🛡️', desc: '散布开始 +0.5秒，最大散布 +1秒',
-                      effects: { spreadStartDelta: 500, spreadTimeDelta: 1000 } },
-                ],
-                grip: [
-                    { id: 'light_grip', name: '轻型后握', icon: '✋', desc: '移动速度 +10%，最大散布角度 +10°',
-                      effects: { moveSpeedPercent: 0.10, maxSpreadAngleDelta: 10 } },
-                    { id: 'heavy_grip', name: '重型后握', icon: '✊', desc: '散布开始 +0.25秒，最大散布角度 -5°',
-                      effects: { spreadStartDelta: 250, maxSpreadAngleDelta: -5 } },
-                ],
-                sight: [
-                    { id: 'red_dot', name: '全景红点瞄具', icon: '🔴', desc: '散布开始 +1秒，单倍瞄准模式',
-                      effects: { spreadStartDelta: 1000, redDotScope: true } },
-                    { id: 'russian_3x_scope', name: '俄制三倍镜', icon: '🔭', desc: '散布开始 +1秒，高倍镜瞄准模式',
-                      effects: { spreadStartDelta: 1000, highPowerScope: true } },
-                ]
-            }
-        }
-    },
+    _WEAPON_CRAFT_CONFIGS: craftConfigData,
 
     open(npc) {
         UIState.open('craft');
@@ -350,9 +95,11 @@ const CraftSystem = {
 
     enterEditMode() {
         if (!this._equippedItem || !isCraftableWeapon(this._equippedItem)) return;
+        const cfg = this._getCraftConfig(this._equippedItem.weaponId);
+        if (!cfg) return; // 无改造配置的武器不进入编辑模式
         this._isEditing = true;
         // 深拷贝当前武器的slots配置作为临时编辑数据
-        this._editTempSlots = JSON.parse(JSON.stringify(this._getCraftConfig(this._equippedItem.weaponId).slots));
+        this._editTempSlots = JSON.parse(JSON.stringify(cfg.slots));
         this._updateEditBar();
         this._renderMods();
         this._editMoveHandler = (e) => this._onEditMove(e);
@@ -384,8 +131,10 @@ const CraftSystem = {
 
     saveEditMode() {
         if (!this._isEditing || !this._editTempSlots) return;
+        const cfg = this._getCraftConfig(this._equippedItem.weaponId);
+        if (!cfg) { this.exitEditMode(); return; }
         // 保存临时数据到当前武器的配置
-        this._getCraftConfig(this._equippedItem.weaponId).slots = JSON.parse(JSON.stringify(this._editTempSlots));
+        cfg.slots = JSON.parse(JSON.stringify(this._editTempSlots));
         
         this.exitEditMode();
     },
@@ -749,6 +498,12 @@ const CraftSystem = {
         if (!this._equippedItem) return; // 无装备时不渲染改造格子
 
         const config = this._getCraftConfig(this._equippedItem.weaponId);
+        if (!config) {
+            // 无改造配置的武器（盾/弓/锈剑等）：明确提示，不再回退显示 PKM 配件
+            modGrid.innerHTML = '<div style="color:#8a7d6b;padding:20px;text-align:center;">该武器不可改造</div>';
+            svg.innerHTML = '';
+            return;
+        }
         const itemMods = (this._equippedItem && this._equippedItem._craftData) ? this._equippedItem._craftData : {};
 
         modGrid.innerHTML = '';
@@ -913,6 +668,7 @@ const CraftSystem = {
 
     _onModCellClick(slotId) {
         const config = this._getCraftConfig(this._equippedItem.weaponId);
+        if (!config) return;
         const options = config.options[slotId];
         if (!options || options.length === 0) return;
 
@@ -970,6 +726,9 @@ const CraftSystem = {
         // 将改造数据绑定到具体装备实例
         if (!this._equippedItem) return;
 
+        // 同槽同配件重复点击：不再扣券重挂（修复"✓已装备"仍白扣 4 张改造券）
+        if (this._equippedItem._craftData && this._equippedItem._craftData[slotId] === modId) return;
+
         const hasExisting = this._equippedItem._craftData && this._equippedItem._craftData[slotId];
         const ticketCost = hasExisting ? 4 : 1;
         const ticketName = hasExisting ? '改造券×4（替换已改造配件）' : '改造券×1';
@@ -1009,6 +768,11 @@ const CraftSystem = {
     _applyModEffects() {
         if (!this._equippedItem) return;
         const weaponConfig = this._getCraftConfig(this._equippedItem.weaponId);
+        if (!weaponConfig) {
+            // 无改造配置的武器：清空效果，不再回退套用 PKM 配件
+            this._equippedItem._craftEffects = {};
+            return;
+        }
         const itemMods = this._equippedItem._craftData || {};
 
         // 收集所有效果
@@ -1051,6 +815,7 @@ const CraftSystem = {
         let magicVulnerabilityOnHit = false;
         let magicVulnerabilityStacks = 0;
         let magicPenetrationPercent = 0;
+        let armorPenetrationPercent = 0;
         let enchantedBlade = false;
         let runeRestructureCount = 0;
         let specialRangeDelta = 0;
@@ -1102,6 +867,7 @@ const CraftSystem = {
             if (opt.effects.magicVulnerabilityOnHit) magicVulnerabilityOnHit = true;
             if (opt.effects.magicVulnerabilityStacks) magicVulnerabilityStacks += opt.effects.magicVulnerabilityStacks;
             if (opt.effects.magicPenetrationPercent) magicPenetrationPercent += opt.effects.magicPenetrationPercent;
+            if (opt.effects.armorPenetrationPercent) armorPenetrationPercent += opt.effects.armorPenetrationPercent;
             if (opt.effects.enchantedBlade) enchantedBlade = true;
             if (opt.effects.runeRestructureCount) runeRestructureCount += opt.effects.runeRestructureCount;
             if (opt.effects.specialRangeDelta) specialRangeDelta += opt.effects.specialRangeDelta;
@@ -1116,7 +882,7 @@ const CraftSystem = {
             attackIntervalDelta, recoilRecoveryDelta, shotSpreadDelta,
             staminaCostDelta, skillStaminaCostDelta, defensePercent, secondaryBlock, dashDoubleHit, bleedingOnHit,
             overheatTimeDelta, overheatRecoverDelta,
-            magicVulnerabilityOnHit, magicVulnerabilityStacks, magicPenetrationPercent, enchantedBlade,
+            magicVulnerabilityOnHit, magicVulnerabilityStacks, magicPenetrationPercent, armorPenetrationPercent, enchantedBlade,
             runeRestructureCount, specialRangeDelta, specialDurationDelta
         };
         // 重新初始化弹药状态（应用弹夹容量和换弹时间改造）
@@ -1131,9 +897,9 @@ const CraftSystem = {
         }
     },
 
-    // 获取某武器的改造配置
+    // 获取某武器的改造配置（无配置时返回 null，不再回退到 PKM 配置）
     _getCraftConfig(weaponId) {
-        return this._WEAPON_CRAFT_CONFIGS[weaponId] || this._WEAPON_CRAFT_CONFIGS['weapon6'];
+        return this._WEAPON_CRAFT_CONFIGS[weaponId] || null;
     },
 
     // 获取某武器当前的改造效果（供外部调用）
@@ -1153,286 +919,5 @@ const CraftSystem = {
         return null;
     }
 }
-
-// 为其他枪械复制PKM的初始改造栏位结构，瞄具通用PKM配置
-const pkmSightOptions = CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.options.sight;
-['weapon7', 'weapon9', 'weapon10'].forEach(wid => {
-    if (wid === 'weapon7') {
-        CraftSystem._WEAPON_CRAFT_CONFIGS[wid] = JSON.parse(JSON.stringify({
-            slots: CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.slots,
-            options: CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.options
-        }));
-    } else {
-        CraftSystem._WEAPON_CRAFT_CONFIGS[wid] = {
-            slots: JSON.parse(JSON.stringify(CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.slots)),
-            options: { sight: JSON.parse(JSON.stringify(pkmSightOptions)), bullet: [
-                { id: 'standard_ammo', name: '标准弹药', icon: '🔘', desc: '无特殊效果', effects: {} }
-            ] }
-        };
-    }
-});
-// 修改 weapon9 的改造配置：复制 weapon10 的完整改造选项
-const w9Slots = CraftSystem._WEAPON_CRAFT_CONFIGS.weapon9.slots;
-// 将 grip 改为 trigger
-const w9gripIdx = w9Slots.findIndex(s => s.id === 'grip');
-if (w9gripIdx >= 0) { w9Slots[w9gripIdx].id = 'trigger'; w9Slots[w9gripIdx].name = '扳机'; }
-// 删除 stock
-const w9stockIdx = w9Slots.findIndex(s => s.id === 'stock');
-if (w9stockIdx >= 0) w9Slots.splice(w9stockIdx, 1);
-// 为 weapon9 添加完整改造选项（复制 weapon10）
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon9.options = JSON.parse(JSON.stringify(CraftSystem._WEAPON_CRAFT_CONFIGS.weapon10.options));
-
-// 修改 weapon10 的改造配置：握把→扳机，删除后托，添加完整改造选项
-const w10Slots = CraftSystem._WEAPON_CRAFT_CONFIGS.weapon10.slots;
-// 将 grip 改为 trigger
-const gripIdx = w10Slots.findIndex(s => s.id === 'grip');
-if (gripIdx >= 0) { w10Slots[gripIdx].id = 'trigger'; w10Slots[gripIdx].name = '扳机'; }
-// 删除 stock
-const stockIdx = w10Slots.findIndex(s => s.id === 'stock');
-if (stockIdx >= 0) w10Slots.splice(stockIdx, 1);
-// 为 weapon10 添加完整改造选项
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon10.options = {
-    muzzle: [
-        { id: 'multi_chamber_brake', name: '多室枪口制退器', icon: '⚙', desc: '后坐力恢复时间-200ms，每次射击扩散角度-2°',
-          effects: { recoilRecoveryDelta: -200, shotSpreadDelta: -2 } },
-        { id: 'large_caliber_suppressor', name: '大口径消音器', icon: '🔇', desc: '后坐力恢复时间-100ms，射程-200px，击退+30px',
-          effects: { recoilRecoveryDelta: -100, rangeDelta: -200, knockbackDelta: 30 } }
-    ],
-    barrel: [
-        { id: 'competition_barrel', name: '加长竞赛枪管', icon: '📏', desc: '射程+300px，后坐力恢复时间-100ms',
-          effects: { rangeDelta: 300, recoilRecoveryDelta: -100 } },
-        { id: 'lightweight_barrel', name: '轻量化短枪管', icon: '✂️', desc: '移动速度+5%，后坐力恢复时间+50ms',
-          effects: { moveSpeedPercent: 0.05, recoilRecoveryDelta: 50 } }
-    ],
-    bullet: [
-        { id: 'fmj_ammo', name: 'FMJ钢芯弹', icon: '🔘', desc: '穿透目标+1，伤害+5%',
-          effects: { piercingBonus: 1, damagePercent: 0.05 } },
-        { id: 'hollow_point', name: '空尖弹', icon: '💥', desc: '击退+30px，伤害+5%',
-          effects: { knockbackDelta: 30, damagePercent: 0.05 } }
-    ],
-    trigger: [
-        { id: 'light_trigger', name: '轻量化击发组件', icon: '⚡', desc: '射击间隔-300ms',
-          effects: { attackIntervalDelta: -300 } },
-        { id: 'curved_trigger', name: '弧形竞技扳机片', icon: '⌇', desc: '后坐力恢复时间-100ms',
-          effects: { recoilRecoveryDelta: -100 } }
-    ],
-    magazine: [
-        { id: 'extended_mag', name: '扩容弹夹', icon: '📦', desc: '备弹+2',
-          effects: { magazineDelta: 2 } },
-        { id: 'carbon_fiber_mag', name: '碳纤维快速弹夹', icon: '⚡', desc: '换弹时间-500ms',
-          effects: { reloadTimeDelta: -500 } }
-    ],
-    sight: JSON.parse(JSON.stringify(pkmSightOptions))
-};
-
-// QJB-201：复制PKM的完整改造，使用独立布局
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon11 = {
-    slots: [
-        { id: 'muzzle',   name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.5027471264367817, y: 0.28569127516778575 } },
-        { id: 'barrel',   name: '枪管', x: 0.08, y: 0.4,  lineTarget: { x: 0.5027471264367817, y: 0.32665771812080613 } },
-        { id: 'sight',    name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.499, y: 0.49 } },
-        { id: 'magazine', name: '弹夹', x: 0.92, y: 0.08, lineTarget: { x: 0.501574712643679, y: 0.42424161073825417 } },
-        { id: 'bullet',   name: '子弹', x: 0.92, y: 0.32, lineTarget: { x: 0.5015747126436789, y: 0.42256375838926086 } },
-        { id: 'grip',     name: '握把', x: 0.92, y: 0.45, lineTarget: { x: 0.503, y: 0.555 } },
-        { id: 'stock',    name: '后托', x: 0.92, y: 0.7,  lineTarget: { x: 0.497, y: 0.664 } }
-    ],
-    options: {
-        muzzle: [
-            { id: 'suppressor', name: '多口径战术消音器', icon: '🔇', desc: '射程 -200px，击退 +8px，最大散布角度 -10°',
-              effects: { rangeDelta: -200, knockbackDelta: 8, maxSpreadAngleDelta: -10 } },
-            { id: 'flash_hider', name: '消焰器', icon: '🔥', desc: '隐藏枪口火焰',
-              effects: { hideMuzzleFlash: true } },
-            { id: 'muzzle_brake', name: '双排孔枪口制退器', icon: '⚙', desc: '最大散布时间 +0.5秒，最大散布角度 -10°',
-              effects: { spreadTimeDelta: 500, maxSpreadAngleDelta: -10 } },
-        ],
-        barrel: [
-            { id: 'long_barrel', name: '长枪管', icon: '📏', desc: '射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒',
-              effects: { rangeDelta: 200, projectileSpeedPercent: 0.20, spreadStartDelta: 1000, spreadTimeDelta: 1000 } },
-            { id: 'short_barrel', name: '短枪管', icon: '✂️', desc: '射程 -200px，散布开始 +0.5秒，移动速度+5%',
-              effects: { rangeDelta: -200, spreadStartDelta: 500, moveSpeedPercent: 0.05 } },
-        ],
-        magazine: [
-            { id: 'light_mag', name: '轻型弹夹', icon: '⚡', desc: '换弹时间 -1.5秒，弹夹 -30发，移动速度增加10%',
-              effects: { reloadTimeDelta: -1500, magazineDelta: -30, moveSpeedPercent: 0.10 } },
-            { id: 'extended_mag', name: '扩容弹箱', icon: '📦', desc: '弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒',
-              effects: { magazineDelta: 25, moveSpeedPercent: -0.10, reloadTimeDelta: 500 } },
-        ],
-        bullet: [
-            { id: 'ap_ammo', name: '钢芯穿甲弹', icon: '🛡️', desc: '攻击时无视目标35%防御力',
-              effects: { armorPenetrationPercent: 0.35 } },
-            { id: 'sniper_ammo', name: '高精度狙击弹', icon: '🎯', desc: '射程+200px，散布达到最大时间+0.5秒',
-              effects: { rangeDelta: 200, spreadTimeDelta: 500 } },
-        ],
-        stock: [
-            { id: 'skeleton_stock', name: '骨架枪托', icon: '🦴', desc: '移动速度+5%，散布开始 +0.5秒，最大散布 -1秒',
-              effects: { moveSpeedPercent: 0.05, spreadStartDelta: 500, spreadTimeDelta: -1000 } },
-            { id: 'solid_core_stock', name: '稳固核心枪托', icon: '🛡️', desc: '散布开始 +0.5秒，最大散布 +1秒',
-              effects: { spreadStartDelta: 500, spreadTimeDelta: 1000 } },
-        ],
-        grip: [
-            { id: 'light_grip', name: '轻型后握', icon: '✋', desc: '移动速度 +10%，最大散布角度 +10°',
-              effects: { moveSpeedPercent: 0.10, maxSpreadAngleDelta: 10 } },
-            { id: 'heavy_grip', name: '重型后握', icon: '✊', desc: '散布开始 +0.25秒，最大散布角度 -5°',
-              effects: { spreadStartDelta: 250, maxSpreadAngleDelta: -5 } },
-        ],
-        sight: [
-            { id: 'red_dot', name: '全景红点瞄具', icon: '🔴', desc: '散布开始 +1秒，单倍瞄准模式',
-              effects: { spreadStartDelta: 1000, redDotScope: true } },
-            { id: 'russian_3x_scope', name: '俄制三倍镜', icon: '🔭', desc: '散布开始 +1秒，高倍镜瞄准模式',
-              effects: { spreadStartDelta: 1000, highPowerScope: true } },
-        ]
-    }
-};
-
-// QBZ-191：复制 QBZ201 的改造项目，独立配置
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon8 = JSON.parse(JSON.stringify(CraftSystem._WEAPON_CRAFT_CONFIGS.weapon11));
-
-// Super90 专属改造配置
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon12 = {
-    slots: [
-        { id: 'muzzle',   name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.5027471264367817, y: 0.3091812080536913 } },
-        { id: 'barrel',   name: '枪管', x: 0.08, y: 0.4,  lineTarget: { x: 0.4998735632183908, y: 0.37867114093959836 } },
-        { id: 'sight',    name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.5018735632183907, y: 0.5151677852349006 } },
-        { id: 'bullet',   name: '子弹', x: 0.9171264367816092, y: 0.2033, lineTarget: { x: 0.5015, y: 0.4661 } },
-        { id: 'magazine', name: '弹夹', x: 0.92, y: 0.45, lineTarget: { x: 0.503, y: 0.467717449664428 } },
-        { id: 'grip',     name: '握把', x: 0.92, y: 0.65, lineTarget: { x: 0.5001264367816092, y: 0.5683885906040267 } },
-        { id: 'stock',    name: '后托', x: 0.92, y: 0.85, lineTarget: { x: 0.5027, y: 0.664 } }
-    ],
-    options: {
-        muzzle: [
-            { id: 'choke', name: '收束器', icon: '🔧', desc: '散布角度 -5°',
-              effects: { maxSpreadAngleDelta: -5 } },
-            { id: 'shotgun_suppressor', name: '消音器', icon: '🔇', desc: '射程 -300px，击退 +5px，隐藏枪口火焰',
-              effects: { rangeDelta: -300, knockbackDelta: 5, hideMuzzleFlash: true } }
-        ],
-        barrel: [
-            { id: 'long_barrel', name: '标准长枪管', icon: '📏', desc: '射程 +150px，伤害 +5%',
-              effects: { rangeDelta: 150, damagePercent: 0.05 } },
-            { id: 'short_barrel', name: '短枪管', icon: '✂️', desc: '备弹 5/5，移动速度 +10%，暴击率 +10%',
-              effects: { magazineOverride: 5, moveSpeedPercent: 0.10, critChancePercent: 0.10 } }
-        ],
-        bullet: [
-            { id: 'slug', name: '独头弹', icon: '🔘', desc: '单发弹丸，基础散布为零，连续射击增加散布，射程 +225px，攻击力公式修改',
-              effects: { slugMode: true, rangeDelta: 225 } },
-            { id: 'flechette', name: '箭型弹', icon: '➡', desc: '伤害 -10%，穿透目标 +1',
-              effects: { flechetteMode: true, damagePercent: -0.10, piercingBonus: 1 } }
-        ],
-        magazine: [
-            { id: 'fast_loader', name: '快速装填器', icon: '⚡', desc: '每次装填2发弹药',
-              effects: { fastReload: true } }
-        ],
-        stock: [
-            { id: 'ar_folding', name: 'AR式折叠套件', icon: '🦴', desc: '移动速度 +10%，独头弹模式下后坐力恢复时间 -100ms',
-              effects: { moveSpeedPercent: 0.10, slugRecoilRecovery: -100 } },
-            { id: 'tactical_stock', name: '一体化战术枪托', icon: '🛡️', desc: '散布角度 -5°，独头弹模式下后坐力恢复时间 -200ms',
-              effects: { maxSpreadAngleDelta: -5, slugRecoilRecovery: -200 } },
-            { id: 'bullpup', name: '无托改造', icon: '⚡', desc: '移动速度 +20%，散布角度 +5°',
-              effects: { moveSpeedPercent: 0.20, maxSpreadAngleDelta: 5 } }
-        ],
-        grip: [
-            { id: 'angled_grip', name: '战术斜握把', icon: '✋', desc: '射击散布 -5°',
-              effects: { maxSpreadAngleDelta: -5 } },
-            { id: 'pistol_grip', name: '分离式手枪握把', icon: '🔫', desc: '移动速度 +10%，射击散布 +5°',
-              effects: { moveSpeedPercent: 0.10, maxSpreadAngleDelta: 5 } }
-        ],
-        sight: JSON.parse(JSON.stringify(pkmSightOptions))
-    }
-};
-
-// SAIGA-12K 改造配置（全面复制 Super90）
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon13 = {
-    slots: [
-        { id: 'muzzle',   name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.5027471264367817, y: 0.3091812080536913 } },
-        { id: 'barrel',   name: '枪管', x: 0.08, y: 0.4,  lineTarget: { x: 0.4998735632183908, y: 0.37867114093959836 } },
-        { id: 'sight',    name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.5018735632183907, y: 0.5151677852349006 } },
-        { id: 'bullet',   name: '子弹', x: 0.9171264367816092, y: 0.2033, lineTarget: { x: 0.5015, y: 0.4661 } },
-        { id: 'magazine', name: '弹夹', x: 0.92, y: 0.45, lineTarget: { x: 0.49725287356321834, y: 0.4677174496644279 } },
-        { id: 'grip',     name: '握把', x: 0.92, y: 0.65, lineTarget: { x: 0.5001264367816092, y: 0.5499322147651002 } },
-        { id: 'stock',    name: '后托', x: 0.92, y: 0.85, lineTarget: { x: 0.5027, y: 0.664 } }
-    ],
-    options: {
-        muzzle: [
-            { id: 'choke', name: '收束器', icon: '🔧', desc: '散布角度 -5°',
-              effects: { maxSpreadAngleDelta: -5 } },
-            { id: 'shotgun_suppressor', name: '消音器', icon: '🔇', desc: '射程 -300px，击退 +5px，隐藏枪口火焰',
-              effects: { rangeDelta: -300, knockbackDelta: 5, hideMuzzleFlash: true } }
-        ],
-        barrel: [
-            { id: 'long_barrel', name: '标准长枪管', icon: '📏', desc: '射程 +150px，伤害 +5%',
-              effects: { rangeDelta: 150, damagePercent: 0.05 } },
-            { id: 'short_barrel', name: '短枪管', icon: '✂️', desc: '移动速度 +10%，暴击率 +10%，散布 +5°',
-              effects: { moveSpeedPercent: 0.10, critChancePercent: 0.10, maxSpreadAngleDelta: 5 } }
-        ],
-        bullet: [
-            { id: 'slug', name: '独头弹', icon: '🔘', desc: '单发弹丸，基础散布为零，连续射击增加散布，射程 +225px，攻击力公式修改',
-              effects: { slugMode: true, rangeDelta: 225 } },
-            { id: 'flechette', name: '箭型弹', icon: '➡', desc: '伤害 -10%，穿透目标 +1',
-              effects: { flechetteMode: true, damagePercent: -0.10, piercingBonus: 1 } }
-        ],
-        magazine: [
-            { id: 'drum_mag', name: '大弹鼓', icon: '📦', desc: '备弹数 +8，换弹时间 +500ms',
-              effects: { magazineDelta: 8, reloadTimeDelta: 500 } },
-            { id: 'light_extended', name: '轻型扩容弹夹', icon: '⚡', desc: '移动速度 +10%，换弹时间 -500ms',
-              effects: { moveSpeedPercent: 0.10, reloadTimeDelta: -500 } }
-        ],
-        stock: [
-            { id: 'ar_folding', name: 'AR式折叠套件', icon: '🦴', desc: '移动速度 +10%，独头弹模式下后坐力恢复时间 -100ms',
-              effects: { moveSpeedPercent: 0.10, slugRecoilRecovery: -100 } },
-            { id: 'tactical_stock', name: '一体化战术枪托', icon: '🛡️', desc: '散布角度 -5°，独头弹模式下后坐力恢复时间 -200ms',
-              effects: { maxSpreadAngleDelta: -5, slugRecoilRecovery: -200 } },
-            { id: 'bullpup', name: '无托改造', icon: '⚡', desc: '移动速度 +20%，散布角度 +5°',
-              effects: { moveSpeedPercent: 0.20, maxSpreadAngleDelta: 5 } }
-        ],
-        grip: [
-            { id: 'angled_grip', name: '战术斜握把', icon: '✋', desc: '射击散布 -5°',
-              effects: { maxSpreadAngleDelta: -5 } },
-            { id: 'pistol_grip', name: '分离式手枪握把', icon: '🔫', desc: '移动速度 +10%，射击散布 +5°',
-              effects: { moveSpeedPercent: 0.10, maxSpreadAngleDelta: 5 } }
-        ],
-        sight: JSON.parse(JSON.stringify(pkmSightOptions))
-    }
-}
-
-// 能量轻机枪专属改造配置
-CraftSystem._WEAPON_CRAFT_CONFIGS.weapon15 = {
-    slots: [
-        { id: 'muzzle',   name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.497, y: 0.232 } },
-        { id: 'barrel',   name: '枪管', x: 0.08, y: 0.40, lineTarget: { x: 0.497, y: 0.278 } },
-        { id: 'sight',    name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.499, y: 0.490 } },
-        { id: 'magazine', name: '弹夹', x: 0.92, y: 0.08, lineTarget: { x: 0.401, y: 0.488 } },
-        { id: 'bullet',   name: '子弹', x: 0.92, y: 0.32, lineTarget: { x: 0.401, y: 0.488 } },
-        { id: 'grip',     name: '握把', x: 0.92, y: 0.45, lineTarget: { x: 0.503, y: 0.555 } },
-        { id: 'stock',    name: '后托', x: 0.92, y: 0.70, lineTarget: { x: 0.497, y: 0.664 } },
-    ],
-    options: {
-        muzzle: [
-            { id: 'special_brake', name: '特制制退器', icon: '⚙', desc: '最大散布时间 +0.5秒，最大散布角度 -10°',
-              effects: { spreadTimeDelta: 500, maxSpreadAngleDelta: -10 } },
-            { id: 'border_radiator', name: '边境散热器', icon: '❄️', desc: '达到过热时间 +1秒',
-              effects: { overheatTimeDelta: 1000 } },
-        ],
-        barrel: [
-            { id: 'long_barrel', name: '长枪管', icon: '📏', desc: '射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒',
-              effects: { rangeDelta: 200, projectileSpeedPercent: 0.20, spreadStartDelta: 1000, spreadTimeDelta: 1000 } },
-            { id: 'short_barrel', name: '短枪管', icon: '✂️', desc: '射程 -200px，散布开始 +0.5秒，移动速度 +10%',
-              effects: { rangeDelta: -200, spreadStartDelta: 500, moveSpeedPercent: 0.10 } },
-        ],
-        magazine: [
-            { id: 'energy_extended', name: '能量扩容弹箱', icon: '📦', desc: '过热时间 +2秒，移动速度 -10%',
-              effects: { overheatTimeDelta: 2000, moveSpeedPercent: -0.10 } },
-            { id: 'energy_fast', name: '快速能量弹夹', icon: '⚡', desc: '过热时间 -1秒，移动速度 +10%',
-              effects: { overheatTimeDelta: -1000, moveSpeedPercent: 0.10 } },
-        ],
-        bullet: [
-            { id: 'high_energy', name: '高能量子弹', icon: '🔘', desc: '射程 +200px，伤害 +5%，散布开始 -0.5秒',
-              effects: { rangeDelta: 200, damagePercent: 0.05, spreadStartDelta: -500 } },
-            { id: 'piercing_ammo', name: '强穿透子弹', icon: '🛡️', desc: '穿透目标 +2',
-              effects: { piercingBonus: 2 } },
-        ],
-        stock: JSON.parse(JSON.stringify(CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.options.stock)),
-        grip: JSON.parse(JSON.stringify(CraftSystem._WEAPON_CRAFT_CONFIGS.weapon6.options.grip)),
-        sight: JSON.parse(JSON.stringify(pkmSightOptions))
-    }
-};
 
 export { CraftSystem };

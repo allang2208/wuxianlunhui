@@ -17,6 +17,7 @@ import { NPCDialogue } from './ui/npc-dialogue.js';
 import { QuestSystem } from './ui/quest-system.js';
 import { NpcPortraitTool } from './ui/npc-portrait-tool.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
+import { EnchantSystem } from './ui/enchant-system.js';
 import DevTool from './ui/dev-tool.js';
 
 import { getElement } from './utils/dom-utils.js';
@@ -85,6 +86,8 @@ async function initModules() {
 
     DevTool.init();
     NpcPortraitTool.init();
+    // 附魔系统：注册 EventBus 监听（附魔槽拖回背包/装备栏、卷轴快捷放入）
+    EnchantSystem.init();
 
     if (document.readyState === 'complete') {
         Game.init();

@@ -489,7 +489,7 @@ const EnchantSystem = {
                     html += `<div>${this._equipItem.name} <span class="enchant-suffix">${scroll.name}</span></div>`;
                 }
                 html += `<div style="margin-top:6px;color:#8a7d6b;">${scroll.desc}</div>`;
-                html += `<div style="margin-top:4px;color:#a090c0;">消耗: ${scroll.cost} 魔法晶尘</div>`;
+                html += `<div style="margin-top:4px;color:#a090c0;">消耗: ${scroll.cost} 魔法粉尘</div>`;
                 previewContent.innerHTML = html;
                 doBtn.disabled = false;
             } else {
@@ -506,27 +506,27 @@ const EnchantSystem = {
         if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
     },
 
-    // 统计背包中的魔法晶尘数量
+    // 统计背包中的魔法粉尘数量
     _getDustCount() {
         const bp = EquipManager.backpackItems;
         if (!bp) return 0;
         let total = 0;
         for (const item of bp) {
-            if (item && item.name === '魔法晶尘') {
+            if (item && item.name === MagicDustItem.name) {
                 total += item.stack || 1;
             }
         }
         return total;
     },
 
-    // 从背包中扣除魔法晶尘
+    // 从背包中扣除魔法粉尘
     _consumeDust(amount) {
         const bp = EquipManager.backpackItems;
         if (!bp) return false;
         let remaining = amount;
         for (let i = bp.length - 1; i >= 0; i--) {
             const item = bp[i];
-            if (item && item.name === '魔法晶尘') {
+            if (item && item.name === MagicDustItem.name) {
                 const stack = item.stack || 1;
                 if (stack <= remaining) {
                     remaining -= stack;
@@ -541,14 +541,14 @@ const EnchantSystem = {
         return remaining <= 0;
     },
 
-    // 向背包中添加魔法晶尘
+    // 向背包中添加魔法粉尘
     _addDust(amount) {
         const bp = EquipManager.backpackItems;
         if (!bp) return;
         let remaining = amount;
         // 优先填充已有的晶尘堆
         for (const item of bp) {
-            if (item && item.name === '魔法晶尘') {
+            if (item && item.name === MagicDustItem.name) {
                 const maxStack = item.maxStack || 999;
                 const space = maxStack - (item.stack || 1);
                 if (space > 0) {
@@ -573,7 +573,7 @@ const EnchantSystem = {
         }
     },
 
-    // 更新魔法晶尘显示
+    // 更新魔法粉尘显示
     _updateDustDisplay() {
         const dustEl = getElement('enchantDust');
         if (!dustEl) {
@@ -581,7 +581,7 @@ const EnchantSystem = {
             return;
         }
         const dust = this._getDustCount();
-        dustEl.textContent = `✨ 魔法晶尘: ${dust}`;
+        dustEl.textContent = `✨ 魔法粉尘: ${dust}`;
     },
 
     // 显示消息
@@ -634,11 +634,11 @@ const EnchantSystem = {
             return;
         }
 
-        // 检查魔法晶尘
+        // 检查魔法粉尘
         const dust = this._getDustCount();
         
         if (dust < scroll.cost) {
-            this._showMessage(`魔法晶尘不足 (需要 ${scroll.cost}, 当前 ${dust})`, 'error');
+            this._showMessage(`魔法粉尘不足 (需要 ${scroll.cost}, 当前 ${dust})`, 'error');
             return;
         }
 
@@ -667,6 +667,10 @@ const EnchantSystem = {
             const player = Game.player;
             if (player && !player.equipments[slot]) {
                 player.equipments[slot] = enchantedItem;
+                // 附魔写回后立即刷新攻击间隔（沉重减速不再只有切枪才生效）
+                if (typeof player._applyEnchantAttackInterval === 'function') {
+                    player._applyEnchantAttackInterval(enchantedItem);
+                }
             } else {
                 const es = EquipManager._findFirstEmptySlot();
                 if (es !== -1) {
@@ -768,7 +772,7 @@ const EnchantSystem = {
         this._addDust(reward);
 
         this._updateDustDisplay();
-        this._showMessage(`转换获得 ${reward} 魔法晶尘`, 'success');
+        this._showMessage(`转换获得 ${reward} 魔法粉尘`, 'success');
         this._updateUI();
     },
 };

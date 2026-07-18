@@ -217,6 +217,26 @@ export const CRAFT_EFFECT_REGISTRY = {
         tooltip: '副手武器也能触发格挡',
     },
 
+    // ========== 消耗/技能类 ==========
+    staminaCostDelta: {
+        category: 'stamina',
+        applyMode: 'add',
+        display: (v) => `${v >= 0 ? '+' : ''}${v}攻击体力消耗`,
+        tooltip: '改变普通攻击的体力消耗',
+    },
+    skillStaminaCostDelta: {
+        category: 'stamina',
+        applyMode: 'add',
+        display: (v) => `${v >= 0 ? '+' : ''}${v}技能体力消耗`,
+        tooltip: '改变技能的体力消耗',
+    },
+    dashDoubleHit: {
+        category: 'special',
+        applyMode: 'flag',
+        display: () => '双段突刺',
+        tooltip: '冲刺攻击命中两次',
+    },
+
     // ========== 特殊攻击类 ==========
     specialRangeDelta: {
         category: 'special',

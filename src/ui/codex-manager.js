@@ -422,7 +422,8 @@ const CodexManager = {
         if (!item || !item.attackFormula) {
             const baseFormula = this._getAtkFormula(item);
             if (!baseFormula) return '';
-            return `(${baseFormula}) × (1 + 强化等级 × 0.1)`;
+            // 与 getAttackFormula 回退口径一致：enhanceFlat 1（无 attackFormula 武器强化 +1/级）
+            return `(${baseFormula}) + 强化等级×1`;
         }
         const formula = item.attackFormula;
         let effectiveFormula = formula;

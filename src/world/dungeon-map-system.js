@@ -114,7 +114,7 @@ export const DungeonMapSystem = {
     COMBAT_GOLD_BONUS: 100,
 
     // UI 点击区域
-    EXIT_BUTTON_X: 1685 - 110,
+    EXIT_BUTTON_X: 1920 - 110,
     EXIT_BUTTON_Y: 15,
     EXIT_BUTTON_W: 90,
     EXIT_BUTTON_H: 28,
@@ -145,7 +145,8 @@ export const DungeonMapSystem = {
         this.sceneId = sceneId;
         this.player = player;
         this.dungeonType = dungeonType;
-        this.dungeonName = dungeonType === 'zombie' ? ZOMBIE_DUNGEON_CONFIG.name : '地牢';
+        const dungeonList = DungeonConfig.getDungeonList();
+        this.dungeonName = (dungeonList[dungeonType] && dungeonList[dungeonType].name) || ZOMBIE_DUNGEON_CONFIG.name;
         this.currentNodeId = null;
         this.visitedNodeIds.clear();
         this.hoveredNodeId = null;
@@ -191,6 +192,11 @@ export const DungeonMapSystem = {
     },
 
     shutdown() {
+        // 清理商店轮询，防止 shutdown 后 interval 泄漏触发 _returnToMap
+        if (this._shopCheckInterval) {
+            TimerManager.clearInterval(this._shopCheckInterval);
+            this._shopCheckInterval = null;
+        }
         this.active = false;
         this.state = "idle";
         this.nodes = [];
@@ -200,6 +206,14 @@ export const DungeonMapSystem = {
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
         this._unbindEvents();
+
+        // 死亡/异常退出时强制清理 Boss 战与战斗房，防止 active 卡死造成软锁
+        if (typeof BossRewardSystem !== 'undefined' && BossRewardSystem && typeof BossRewardSystem.cleanup === 'function') {
+            BossRewardSystem.cleanup();
+        }
+        if (typeof CombatRoomSystem !== 'undefined' && CombatRoomSystem && CombatRoomSystem.active && typeof CombatRoomSystem.cleanupRoom === 'function') {
+            CombatRoomSystem.cleanupRoom();
+        }
         // 清空携带的祭品，确保祭品效果只在当前地牢有效
         this._carriedItems = [];
 
@@ -291,9 +305,14 @@ export const DungeonMapSystem = {
         this._generateZombieMap();
     },
 
+    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner
+    _isZombieFamily() {
+        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner';
+    },
+
     // 僵尸地牢：rows 条路线 converging to BOSS
     _generateZombieMap() {
-        const generator = new ZombieDungeonMapGenerator();
+        const generator = new ZombieDungeonMapGenerator(undefined, this.dungeonType);
         const { nodes, edges } = generator.generate();
         this.nodes = nodes;
         this.edges = edges;
@@ -460,7 +479,7 @@ export const DungeonMapSystem = {
         }
 
         // 检测战斗完成（CombatRoomSystem 或僵尸地牢自己的系统）
-        const isCombatDone = this.dungeonType === 'zombie'
+        const isCombatDone = this._isZombieFamily()
             ? this._checkZombieCombatComplete()
             : CombatRoomSystem.isCombatComplete();
 
@@ -596,6 +615,8 @@ export const DungeonMapSystem = {
     },
 
     _returnToMap() {
+        // 已关闭（shutdown 后的泄漏定时器/异步回调）时直接忽略，避免在主神空间重建地牢 UI
+        if (!this.active) return;
         this.state = "map";
         Camera.follow = () => {};
         Camera.x = this.CENTER_X;
@@ -685,7 +706,9 @@ export const DungeonMapSystem = {
      */
     _markCurrentNodeCompleted() {
         const currentNode = this.getCurrentNode();
-        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
+        // boss 节点也允许标记：集合体 Boss 走 _leaveBossViaPortal（不调本方法），
+        // 初级地牢 boss 作为精英战斗节点，经普通战斗流程在此完成标记
+        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start') {
             currentNode.type = 'empty';
             currentNode.completed = true;
         }
@@ -729,7 +752,7 @@ export const DungeonMapSystem = {
 
         const combatOptions = node.isElite ? { roomSize: 2048 } : {};
 
-        if (this.dungeonType === 'zombie') {
+        if (this._isZombieFamily()) {
             this._enterZombieCombat(node, combatOptions);
             return;
         }
@@ -744,7 +767,7 @@ export const DungeonMapSystem = {
     _enterZombieCombat(node, options = {}) {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
-        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite);
+        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, null, this.dungeonType);
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false, options);
@@ -778,11 +801,16 @@ export const DungeonMapSystem = {
     },
 
     _enterBoss(node) {
+        // 初级地牢：Boss 战为精英战斗事件的独立副本，走普通僵尸战斗流程
+        if (this.dungeonType === 'zombieBeginner') {
+            this._enterBossCombat(node);
+            return;
+        }
         this.state = "boss";
         // 进入 Boss 战前清理残留的战斗场景
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
-        // 所有 Boss 战统一使用 BossRewardSystem 的大块头 Boss
+        // 所有 Boss 战统一使用 BossRewardSystem 的集合体 Boss
         BossRewardSystem.enterBossBattle(this.player, () => {
             // Boss 击败且玩家通过传送门离开后，标记节点完成
             if (node) {
@@ -793,6 +821,25 @@ export const DungeonMapSystem = {
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
 
+    /**
+     * 初级地牢 Boss 战：独立 bossEncounter 配置（参考精英战斗：1 波 × 精英1+普通5）
+     * 与普通战斗共用波次/完成检测/出口传送门流程；完成后经奖励节点触发胜利
+     */
+    _enterBossCombat(node) {
+        this.state = "combat";
+        this._cleanupCombatScene();
+        this._exitPortalSpawned = false;
+        this._eliteChest = null;
+        this._eliteChestOpened = false;
+        this._zombieCombatNode = node;
+        this._zombieWaveActive = true;
+        this._zombieCombat = new ZombieDungeonCombat(undefined, false,
+            DungeonConfig.getBossEncounterConfig(this.dungeonType), this.dungeonType);
+        CombatRoomSystem.enterCombatRoom(this.player, false, {});
+        this._spawnZombieWave();
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
+    },
+
     _checkZombieCombatComplete() {
         if (this.state !== "combat" && this.state !== "boss") return false;
 
@@ -800,24 +847,38 @@ export const DungeonMapSystem = {
         if (!allDead) return false;
 
         // 僵尸地牢：检查是否还有下一波
-        if (this.dungeonType === 'zombie' && this.state === "combat" && this._zombieWaveActive) {
+        if (this._isZombieFamily() && this.state === "combat" && this._zombieWaveActive) {
             if (this._zombieCombat && !this._zombieCombat.isComplete) {
                 // 防止重复设置过渡
                 if (this._waveTransitioning) return false;
-                this._waveTransitioning = true;
-                // 短暂延迟后生成下一波
-                TimerManager.setTimeout(() => {
-                    this._waveTransitioning = false;
-                    if (this.active && this.state === "combat") {
-                        CombatRoomSystem.cleanupMonstersOnly();
-                        this._spawnZombieWave();
-                    }
-                }, 1500);
+                // 短暂延迟后生成下一波（暂停期间自动顺延，不再用真实时间刷波）
+                this._scheduleNextWave();
                 return false; // 还有下一波，战斗未完成
             }
         }
 
         return true; // 所有怪物死亡且无下一波，战斗完成
+    },
+
+    /**
+     * 调度下一波生成（1.5s 过渡）；游戏暂停时自动顺延重试，避免暂停期间刷波
+     */
+    _scheduleNextWave() {
+        this._waveTransitioning = true;
+        TimerManager.setTimeout(() => {
+            if (!this.active || this.state !== "combat") {
+                this._waveTransitioning = false;
+                return;
+            }
+            // 暂停期间不刷波：1.5s 后重试
+            if (Game && Game._paused) {
+                this._scheduleNextWave();
+                return;
+            }
+            this._waveTransitioning = false;
+            CombatRoomSystem.cleanupMonstersOnly();
+            this._spawnZombieWave();
+        }, 1500);
     },
 
     /**
@@ -921,9 +982,10 @@ export const DungeonMapSystem = {
         this._removeMouseShopButton();
         this._removeAbandonButton();
         ZombieDungeonShop.open();
-        const checkInterval = TimerManager.setInterval(() => {
+        this._shopCheckInterval = TimerManager.setInterval(() => {
             if (ZombieDungeonShop.isClosed()) {
-                TimerManager.clearInterval(checkInterval);
+                TimerManager.clearInterval(this._shopCheckInterval);
+                this._shopCheckInterval = null;
                 this._returnToMap();
             }
         }, 300);
@@ -1163,8 +1225,8 @@ export const DungeonMapSystem = {
         ctx.fillText(`${Math.round(this.mapScale * 100)}%`, FIXED_WIDTH - 20, FIXED_HEIGHT - 20);
         ctx.textAlign = "center";
 
-        // 退出按钮
-        const btnX = FIXED_WIDTH - 110, btnY = 15, btnW = 90, btnH = 28;
+        // 退出按钮（绘制位置与点击热区使用同一组常量）
+        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
         ctx.fillStyle = "#3a5a3a";
         ctx.fillRect(btnX, btnY, btnW, btnH);
         ctx.strokeStyle = "#6a8a5a";

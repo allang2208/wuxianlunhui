@@ -3,7 +3,8 @@ import { EquipManager } from '../ui/equip-manager.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { TypewriterText } from '../ui/typewriter-text.js';
-import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, handleNewDungeonEvent } from './dungeon-event-definitions.js';
+import { TimerManager } from '../utils/timer-manager.js';
+import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, POTION_HEAL, POTION_MP, handleNewDungeonEvent } from './dungeon-event-definitions.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -640,21 +641,24 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
         const rewards = {};
         let text = choice.successText;
 
-        // 搜寻补给：按配置给予药水
+        // 搜寻补给：按配置给予药水（瓶数 × 单瓶恢复量；与旧 successRewards 不叠加）
         if (choice.id === 'search' && config.searchReward) {
             const reward = config.searchReward;
+            const count = reward.count || 1;
             const roll = Math.random();
             if (roll < (reward.hpChance || 0)) {
-                rewards.hpPotion = reward.count || 1;
-                text += `\n获得治疗药水 x${rewards.hpPotion}！`;
+                rewards.hpPotion = count * POTION_HEAL;
+                text += `\n获得治疗药水 x${count}（恢复 ${rewards.hpPotion} HP）！`;
             } else if (roll < (reward.hpChance || 0) + (reward.mpChance || 0)) {
-                rewards.mpPotion = reward.count || 1;
-                text += `\n获得魔力药水 x${rewards.mpPotion}！`;
+                rewards.mpPotion = count * POTION_MP;
+                text += `\n获得魔力药水 x${count}（恢复 ${rewards.mpPotion} MP）！`;
             }
         }
 
-        // 兼容旧配置中的 successRewards
-        const legacyRewardConfig = config.successRewards && config.successRewards[choice.id];
+        // 兼容旧配置中的 successRewards（search 走上面的 JSON 路径，不双重发奖）
+        const legacyRewardConfig = (choice.id === 'search' && config.searchReward)
+            ? null
+            : (config.successRewards && config.successRewards[choice.id]);
         if (legacyRewardConfig) {
             for (const reward of legacyRewardConfig) {
                 if (Math.random() < reward.chance) {
@@ -819,7 +823,8 @@ function handleTreasureChest() {
             const rewards = {};
             let text = '宝箱里放着一些珍贵的材料：';
             const parts = [];
-            for (const item of outcome.rewards) {
+            // JSON 配置用 items 键，DEFAULTS 用 rewards 键，兼容两者
+            for (const item of (outcome.rewards || outcome.items || [])) {
                 if (item.type === 'enhancement_stone') {
                     rewards.enhancementStone = item.count;
                     parts.push(`${item.count} 颗强化石`);
@@ -1064,7 +1069,9 @@ export const DungeonEventSystem = {
             if (result.rewards.gold > 0) {
                 GoldManager.addGold(result.rewards.gold);
             } else {
-                GoldManager.deductGold(-result.rewards.gold);
+                // 扣除量钳制到当前持有量（余额不足时全额扣光，不再静默失效）
+                const amount = Math.min(-result.rewards.gold, GoldManager.getGold());
+                if (amount > 0) GoldManager.deductGold(amount);
             }
         }
 
@@ -1275,7 +1282,7 @@ export const DungeonEventSystem = {
         // 结果图标
         const iconMap = {
             success: '✅', fail: '❌', heal: '💚', bless: '✨', gold: '💰',
-            material: '💎', combat: '⚔️', sacrifice: '🔥', none: '➡️',
+            material: '💎', materials: '💎', combat: '⚔️', sacrifice: '🔥', none: '➡️',
         };
         const icon = iconMap[result.type] || '❓';
 
@@ -1305,12 +1312,28 @@ export const DungeonEventSystem = {
             color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 17px;
             transition: background 0.15s; font-weight: bold;
         `;
+        // 延迟 300ms 激活：防止选择按钮上的双击穿透到结果按钮/地图节点
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'default';
+        TimerManager.setTimeout(() => {
+            if (!btn.isConnected) return;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }, 300);
         btn.onmouseenter = () => btn.style.background = result.combat ? '#9a5a5a' : '#4a5540';
         btn.onmouseleave = () => btn.style.background = result.combat ? '#7a3a3a' : '#3a4530';
         btn.onclick = () => {
+            if (btn.disabled) return;
             this._cleanupUI();
+            // 事件状态复位：防止 isActive() 恒 true、旧回调悬挂
             if (this._onComplete) {
-                this._onComplete(result);
+                const cb = this._onComplete;
+                this._onComplete = null;
+                this._currentEventType = null;
+                this._currentEvent = null;
+                cb(result);
             }
         };
         rightCol.appendChild(btn);

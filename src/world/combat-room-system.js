@@ -24,18 +24,9 @@ import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { applyDungeonFloor } from './dungeon-floor-texture.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
-
-// 僵尸地牢地板贴图键（源图切割为 32×32 小砖随机拼铺，相邻小砖不使用同一子块）
-const FLOOR_TEXTURE_KEYS = ['blackbrick', 'blackbrick2', 'blackbrick3'];
-const FLOOR_TILE_SIZE = 32;
-// 小砖实际绘制尺寸：四边各内缩 1px，相邻小砖之间形成 2px 纯黑缝隙
-const FLOOR_TILE_DRAW_SIZE = FLOOR_TILE_SIZE - 2;
-// 小砖圆角半径（边缘圆滑处理）
-const FLOOR_TILE_RADIUS = 4;
-// 将三张略有偏色的贴图统一为灰黑色（null = 保留原图；填写颜色则统一色调）
-const FLOOR_TINT_COLOR = '#333333';
 
 // ==================== 配置对象 ====================
 export const COMBAT_ROOM_CONFIG = {
@@ -338,12 +329,16 @@ export const CombatRoomSystem = {
 
         // 删除所有战斗怪物（经统一入口，同步销毁贴图，避免尸体残留）；
         // 存活尸体（如胖子僵尸尸体）跳过删除，只会因持续时间到而消失
+        const Game = gameRef();
         for (const key of this._combatMonsterKeys) {
-            const Game = gameRef();
             if (Game && typeof Game.removeEntity === 'function') {
                 if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
                 Game.removeEntity(key);
             }
+        }
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_，未进追踪列表的泄漏）
+        if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -370,12 +365,16 @@ export const CombatRoomSystem = {
     cleanupMonstersOnly() {
         // 经统一入口删除，同步销毁贴图（修复多波次战斗胖子僵尸尸体残留）；
         // 存活尸体（如胖子僵尸尸体）跳过删除，按自身计时器走完生命周期、持续造成腐蚀伤害
+        const Game = gameRef();
         for (const key of this._combatMonsterKeys) {
-            const Game = gameRef();
             if (Game && typeof Game.removeEntity === 'function') {
                 if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
                 Game.removeEntity(key);
             }
+        }
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_，未进追踪列表的泄漏）
+        if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -453,6 +452,11 @@ export const CombatRoomSystem = {
             CONFIG.WORLD_HEIGHT = this._backupWorldSize.height;
         }
 
+        // 地形纹理已恢复，立即同步到 Phaser（此前缺失导致残留战斗房地板）
+        if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
+            window.__phaserScene.syncTerrain();
+        }
+
         // 恢复相机跟随
         if (Camera && this._backupCameraFollow) {
             Camera.follow = this._backupCameraFollow;
@@ -487,164 +491,9 @@ export const CombatRoomSystem = {
     },
 
     _generateTerrain(size) {
-        // 使用 blackbrick / blackbrick2 / blackbrick3 三张 256×256 源图，
-        // 切割为 32×32 小砖随机拼铺战斗场地：每块随机子块、随机朝向（4 旋转 × 水平翻转），
-        // 相邻（上/左）不使用同一子块；墙壁与地板一起烘焙到同一张贴图
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-
-        // 1. 全屏纯黑背景
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, size, size);
-
-        // 2. 获取三种 blackbrick 贴图
-        const scene = (typeof window !== 'undefined' && window.__phaserScene) ? window.__phaserScene : null;
-        const sources = FLOOR_TEXTURE_KEYS.map(key => {
-            if (!scene || !scene.textures || !scene.textures.exists(key)) return null;
-            const tex = scene.textures.get(key);
-            const img = tex ? tex.getSourceImage() : null;
-            return (img && img.width > 0 && img.height > 0) ? img : null;
-        });
-        const allLoaded = sources.every(s => s);
-
-        if (allLoaded) {
-            const tileSize = FLOOR_TILE_SIZE;
-            const cols = Math.ceil(size / tileSize);
-            const rows = Math.ceil(size / tileSize);
-
-            // 将三张 256×256 源图切割为 32×32 子块，组成候选池（3 × 8 × 8 = 192 块）
-            const tilePool = [];
-            for (const img of sources) {
-                const subCols = Math.max(1, Math.floor(img.width / tileSize));
-                const subRows = Math.max(1, Math.floor(img.height / tileSize));
-                for (let sr = 0; sr < subRows; sr++) {
-                    for (let sc = 0; sc < subCols; sc++) {
-                        tilePool.push({ img, sx: sc * tileSize, sy: sr * tileSize });
-                    }
-                }
-            }
-
-            // 生成子块/朝向网格：相邻（上、左）子块不能相同；朝向 = 4 旋转 × 水平翻转共 8 种
-            const pickGrid = Array.from({ length: rows }, () => []);
-            const orientGrid = Array.from({ length: rows }, () => []);
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const top = r > 0 ? pickGrid[r - 1][c] : null;
-                    const left = c > 0 ? pickGrid[r][c - 1] : null;
-                    let pick = tilePool[Math.floor(Math.random() * tilePool.length)];
-                    // 候选池足够大，重试几次即可避开与上/左相同的子块
-                    for (let attempt = 0; attempt < 8 && (pick === top || pick === left); attempt++) {
-                        pick = tilePool[Math.floor(Math.random() * tilePool.length)];
-                    }
-                    pickGrid[r][c] = pick;
-                    orientGrid[r][c] = Math.floor(Math.random() * 8); // bit0-1: 旋转 0/90/180/270，bit2: 水平翻转
-                }
-            }
-
-            // 绘制地块
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(0, 0, size, size);
-            ctx.clip();
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const dx = c * tileSize;
-                    const dy = r * tileSize;
-                    const cx = dx + tileSize / 2;
-                    const cy = dy + tileSize / 2;
-                    const tile = pickGrid[r][c];
-                    const orient = orientGrid[r][c];
-                    const rot = orient & 3;
-                    const flipX = (orient & 4) !== 0;
-
-                    ctx.save();
-                    ctx.translate(cx, cy);
-                    ctx.rotate((rot * Math.PI) / 2);
-                    if (flipX) ctx.scale(-1, 1);
-                    // 圆角矩形裁剪：小砖边缘圆滑；四边内缩 1px，相邻小砖留 2px 纯黑缝隙
-                    const half = FLOOR_TILE_DRAW_SIZE / 2;
-                    ctx.beginPath();
-                    if (typeof ctx.roundRect === 'function') {
-                        ctx.roundRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_RADIUS);
-                    } else {
-                        ctx.rect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                    }
-                    ctx.clip();
-                    // 从源图切出对应 32×32 子块绘制（源取整 32，目标内缩为 30×30）
-                    ctx.drawImage(tile.img, tile.sx, tile.sy, tileSize, tileSize, -half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                    if (FLOOR_TINT_COLOR) {
-                        // 使用 'color' 合成：保留原图明暗，只替换色相/饱和度，统一为灰黑色
-                        ctx.globalCompositeOperation = 'color';
-                        ctx.fillStyle = FLOOR_TINT_COLOR;
-                        ctx.fillRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                        ctx.globalCompositeOperation = 'source-over';
-                    }
-                    ctx.restore();
-                }
-            }
-            ctx.restore();
-
-            // 3. 边缘过渡：在场地四周叠加黑->透明的渐变，与纯黑背景融合
-            const fade = 64;
-            let grad;
-
-            grad = ctx.createLinearGradient(0, 0, 0, fade);
-            grad.addColorStop(0, 'rgba(0,0,0,1)');
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, size, fade);
-
-            grad = ctx.createLinearGradient(0, size - fade, 0, size);
-            grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(1, 'rgba(0,0,0,1)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, size - fade, size, fade);
-
-            grad = ctx.createLinearGradient(0, 0, fade, 0);
-            grad.addColorStop(0, 'rgba(0,0,0,1)');
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, fade, size);
-
-            grad = ctx.createLinearGradient(size - fade, 0, size, 0);
-            grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(1, 'rgba(0,0,0,1)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(size - fade, 0, fade, size);
-        } else {
-            // 贴图未全部加载时回退到旧版网格地板
-            console.warn('[CombatRoomSystem] blackbrick 系列贴图未全部加载，使用回退网格地板');
-            const tc = this.config.terrain;
-            ctx.fillStyle = tc.floorColor;
-            ctx.fillRect(0, 0, size, size);
-            ctx.strokeStyle = tc.gridColor;
-            ctx.lineWidth = 1;
-            for (let bx = 0; bx < size; bx += tc.gridSize) {
-                ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, size); ctx.stroke();
-            }
-            for (let by = 0; by < size; by += tc.gridSize) {
-                ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(size, by); ctx.stroke();
-            }
-            ctx.strokeStyle = tc.edgeHighlight;
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, size, size);
-        }
-
-        // 更新世界尺寸（必须先设置，否则 syncTerrain 会用旧尺寸生成绿色默认地形）
-        if (CONFIG) {
-            CONFIG.WORLD_WIDTH = size;
-            CONFIG.WORLD_HEIGHT = size;
-        }
-
-        // 应用到渲染器
-        if (Renderer) {
-            Renderer.terrainTexture = canvas;
-        }
-        if (window.__phaserScene) {
-            window.__phaserScene.syncTerrain();
-        }
+        // 地板烘焙已抽到共享模块 dungeon-floor-texture.js（战斗房与 Boss 场地同一实现）：
+        // 三张 blackbrick 源图切割 32×32 小砖随机拼铺，圆角 + 2px 纯黑缝隙，四周黑渐变
+        applyDungeonFloor(size, this.config.terrain);
     },
 
     _generateWalls(size) {
@@ -728,10 +577,12 @@ export const CombatRoomSystem = {
     },
 
     _calculateSpawnArea(bounds, oppositeEdge, margin, spawnDepth, minWallDistance = 0) {
-        const safeMinX = bounds.minX + minWallDistance;
-        const safeMaxX = bounds.maxX - minWallDistance;
-        const safeMinY = bounds.minY + minWallDistance;
-        const safeMaxY = bounds.maxY - minWallDistance;
+        // margin（spawn.monsterMargin）与 minWallDistance 取较大者作为贴墙安全距离
+        const inset = Math.max(minWallDistance, margin || 0);
+        const safeMinX = bounds.minX + inset;
+        const safeMaxX = bounds.maxX - inset;
+        const safeMinY = bounds.minY + inset;
+        const safeMaxY = bounds.maxY - inset;
 
         let minX, maxX, minY, maxY;
 

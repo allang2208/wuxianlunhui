@@ -451,6 +451,9 @@ export const SceneManager = {
         if (Game && Game.spawnMainZombie) {
             Game.spawnMainZombie();
         }
+        if (Game && Game.spawnMainAmalgam) {
+            Game.spawnMainAmalgam();
+        }
     },
 
     _loadScene3(player) {

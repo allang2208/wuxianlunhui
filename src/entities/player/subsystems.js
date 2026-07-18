@@ -569,7 +569,14 @@ _initSkills() {
             },
 
 _applyEnchantAttackInterval(item) {
-                if (!item) return;
+                if (!this._baseCooldowns) this._baseCooldowns = {};
+                // 空手/非武器：恢复所有已缓存的基础冷却，避免附魔减速残留给下一把武器
+                if (!item || (!item.weaponType && !item.attackKey)) {
+                    for (const key of Object.keys(this._baseCooldowns)) {
+                        if (this.attacks[key]) this.attacks[key].maxCooldown = this._baseCooldowns[key];
+                    }
+                    return;
+                }
                 const ee = item._enchantEffects;
                 const intervalMul = ee && ee.attackIntervalMul ? ee.attackIntervalMul : 1.0;
 
@@ -602,7 +609,9 @@ _onHitEntity(_entity) {
             },
 
 _applySkillOverrides(item) {
-                
+                // 附魔效果：攻击间隔调整（装备/卸下/附魔写回统一在此刷新，不再只有切枪才生效）
+                this._applyEnchantAttackInterval(item);
+
                 if (!item || !item.skillOverrides) {
                     
                     this._clearSkillOverrides();
@@ -1302,8 +1311,10 @@ _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
 
-                // 每次实际开火给准星一个瞬时 kick
-                this._crosshairShotKick = 1.0;
+                // 每次实际开火给准星一个瞬时 kick（shotSpreadDelta 改造：按当前武器最大散布角折算增减）
+                const craftEffects = this.equipments[this.weaponMode] && this.equipments[this.weaponMode]._craftEffects;
+                const _fireMaxAngle = this._currentSpreadMaxAngle || 25;
+                this._crosshairShotKick = Math.max(0, 1.0 + ((craftEffects && craftEffects.shotSpreadDelta) || 0) / _fireMaxAngle);
 
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {

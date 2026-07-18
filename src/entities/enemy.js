@@ -33,8 +33,9 @@ import { loadImage } from '../utils/image-loader.js';
                 this.category = config.category || 'monster';
                 const defaultSpeed = (defaults.speed ?? 45) * (defaults.speedMultiplier ?? 1);
                 this.speed = config.speed ?? defaultSpeed;
-                // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动
-                if (this.speed < 1) this.speed = 45;
+                // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动；
+                // 显式配置 0 表示站桩单位（如首领"集合体"），不再强制改 45
+                if (this.speed > 0 && this.speed < 1) this.speed = 45;
                 this.maxSpeed = this.speed;
                 this._rangedDamageReduction = config.rangedDamageReduction ?? 0;
                 this.accel = config.accel ?? defaults.accel ?? 0.7;
@@ -89,6 +90,13 @@ import { loadImage } from '../utils/image-loader.js';
                 // 记录配置中的显式 HP，避免被六维公式覆盖
                 const explicitHp = config.hp;
                 const explicitMaxHp = config.maxHp;
+                // 记录配置中的显式战斗属性（atk/matk/mdef），避免被六维公式覆盖。
+                // 注：不含 def——现有 3 条配置的 def 字段一直未生效（公式驱动），
+                // 激活会改变现有怪物平衡，如需显式 def 请先评估旧值。
+                const explicitStats = {};
+                for (const k of ['atk', 'matk', 'mdef']) {
+                    if (config[k] !== undefined) explicitStats[k] = config[k];
+                }
                 this.calculateCombatStats();
                 if (explicitHp !== undefined) {
                     this.hp = explicitHp;
@@ -97,6 +105,10 @@ import { loadImage } from '../utils/image-loader.js';
                 if (explicitMaxHp !== undefined) {
                     this.maxHp = explicitMaxHp;
                     this.data.maxHp = explicitMaxHp;
+                }
+                // 显式战斗属性覆盖六维公式结果（如首领 matk:0、mdef 与巫师对齐）
+                for (const [k, v] of Object.entries(explicitStats)) {
+                    this.data[k] = v;
                 }
                 this.weaponImage = loadImage('assets/weapons/1-rusty_sword_euip.png');
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
@@ -512,7 +524,7 @@ import { loadImage } from '../utils/image-loader.js';
             // --- 移动寻路子系统（fallback）---
             _updateMovement(dx, dy, dist, dt) {
                 if (this._dashStunned) { this.vx = 0; this.vy = 0; this.isMoving = false; return; }
-                const maxSpd = this.maxSpeed || this.speed || 100;
+                const maxSpd = this.maxSpeed ?? this.speed ?? 100;
                 const sc = dt / 1000;
                 const maxStep = maxSpd * sc;
 
@@ -677,7 +689,9 @@ import { loadImage } from '../utils/image-loader.js';
             getExpValue() {
                 const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
                 let value = formula.base + (this.level || 1) * formula.levelMultiplier;
-                if (this.rank === 'elite') value *= 2;
+                // rank 倍率由配置驱动（eliteMultiplier/bossMultiplier）
+                if (this.rank === 'elite') value *= (formula.eliteMultiplier ?? 2);
+                else if (this.rank === 'boss') value *= (formula.bossMultiplier ?? 10);
                 return Math.floor(value);
             }
             // 获取当前武器/普攻攻击力：

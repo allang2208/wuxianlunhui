@@ -390,7 +390,7 @@ const NPCDialogue = {
         if (UIState.isOpen('craft')) CraftSystem.close();
         
         // 显示附魔提示
-        this._currentText = '附魔可以为你的装备注入神秘力量，但需要消耗魔法晶尘。请放入装备和附魔卷轴，我会为你进行附魔。';
+        this._currentText = '附魔可以为你的装备注入神秘力量，但需要消耗魔法粉尘。请放入装备和附魔卷轴，我会为你进行附魔。';
         if (this._typewriter) this._typewriter.setText(this._currentText);
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');

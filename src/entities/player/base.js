@@ -56,6 +56,10 @@ const baseMixin = {
             const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
             const shield = this.equipments[offhandSlot];
             if (shield && shield.weaponType === 'shield') {
+                // 盾牌防御力计入玩家防御面板：base + perEnhance × 强化等级
+                // （此前 defense.base/perEnhance 只在 tooltip 展示，实战未生效——防具强化无消费端修复）
+                const sdef = shield.defense || {};
+                d.def += Math.floor((sdef.base || 0) + (sdef.perEnhance || 0) * (shield.enhanceLevel || 0));
                 const sdEffect = this.skills.shieldDefense.getEffect(this.skills.shieldDefense.level);
                 d.def = Math.floor(d.def * (1 + sdEffect.defBonusPercent));
             }

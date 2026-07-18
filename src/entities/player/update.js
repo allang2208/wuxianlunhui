@@ -162,6 +162,10 @@ update(dt, entities) {
                         if (moveSpeedReduction < 0) moveSpeedReduction = 0;
                         targetSpeed *= (1 - moveSpeedReduction);
                     }
+                    // 改造移速效果：非 PKM 武器通用加成（此前仅 PKM 系生效，Super90 无托/沙鹰短枪管等失效）
+                    if (!isPkmEquipped && currentEquip && currentEquip._craftEffects && currentEquip._craftEffects.moveSpeedPercent) {
+                        targetSpeed *= (1 + currentEquip._craftEffects.moveSpeedPercent);
+                    }
                     // 手枪精通：持有手枪时增加移动速度
                     if (isPistolEquipped && this.skills && this.skills.pistolMastery) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
@@ -386,9 +390,11 @@ update(dt, entities) {
                     this._gunSpreadTimerOff = Math.max(0, this._gunSpreadTimerOff - dt * 2);
                     if (this._gunSpreadTimerOff <= 0) this._gunSpreadWeaponOff = null;
                 }
-                // 准星单发 kick 衰减
+                // 准星单发 kick 衰减（recoilRecoveryDelta 改造：恢复时间毫秒增减，下限 20ms）
                 if (this._crosshairShotKick > 0) {
-                    this._crosshairShotKick = Math.max(0, this._crosshairShotKick - dt / 80);
+                    const craftEffects = _currentWep2 && _currentWep2._craftEffects;
+                    const _kickDecayMs = Math.max(20, 80 + ((craftEffects && craftEffects.recoilRecoveryDelta) || 0));
+                    this._crosshairShotKick = Math.max(0, this._crosshairShotKick - dt / _kickDecayMs);
                 }
                 // 预计算主手散布因子（供准星显示与主手开火使用）
                 if (_isGun) {

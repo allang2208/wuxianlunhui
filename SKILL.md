@@ -1201,3 +1201,25 @@ Phaser Sprite.x / y / rotation / scale
     - 断点2：运行时 `fetch('/data/skills.json')` 实际由 Vite 提供 `public/data/skills.json`（过期副本：11 技能、无 expRewards、缺 6 技能）→ 已双份同步；**教训**：skills.json 与 equipment.json 同为 `data/ ↔ public/data/` 双份副本，改数据必须双同步（规则2 钩稽链路）
   - **玩家数值**：升级经验 `globalMultiplier` 2→4（翻倍，combat-formulas.json）；升级回满 HP/MP（gainExp 循环内）
   - 验证：lint / build / test-collider 全部通过
+
+- v2.9 (2026-07-17) — 集合体首领/僵尸地牢-初级/三系统审查修复（多轮合并）
+  - **集合体（amalgamZombie，boss rank 首领）**
+    - 素材 `assets/enemies/amalgam/`（`scripts/archive/prepare-amalgam-sprites.py` 统一内容 480px、底部对齐 496）；新类 `src/entities/enemy-types/amalgam-zombie.js`：站桩 Boss，投掷（落点红色椭圆警示+范围伤害+生成胖子僵尸）、砸地（分圈结算 100/200/500px×1.2/0.7/0.2，取最小圈不叠加）、15s 召唤 2 僵尸、melting 死亡
+    - **站桩锁死五通道**：speed 0 显式生效、`noSeparation`（resolveCollisions 中对方承担全部位移）、`applyKnockback` 空覆盖、`_tryUnstuck` 跳过 speed 0 单位、出生点锚点钉死
+    - **falsy-0 根因（重要教训）**：移动代码 `maxSpeed || speed || 100` 把显式 0 误回退 100 → 全库改 `??`（空值合并）。**数值回退必须用 ?? 不用 ||**
+    - BOSS 战重构：集合体替代大块头（删 BigBoss ~530 行）；arena 1024（玩家下方中心上移 300/boss 上方中心镜像）；地板抽共享模块 `dungeon-floor-texture.js`；BOSS 场地尺寸改读 `combatRoom.bossSize` 配置
+    - 主神空间 `spawnMainAmalgam` 测试生成；召唤/投掷生成工厂注入（避免实体层反向依赖 world 层）
+  - **僵尸地牢-初级（第二个地牢）**
+    - 配置驱动：`data/dungeon-config.json` 新增 `dungeonList`（出征展示元数据）+ `zombieDungeonBeginner`（22 节点/最短 7/起始 3 分支/mainRowMinCombat 3/战斗 40%/精英 0%/bossEncounter 精英遭遇独立副本）
+    - 生成器按类型读配置；`mainRowMinCombat` 主通道随机 N 列强制战斗（缺省=全部，向后兼容）；**修正：第 1 列强制全行移到节点数调整之前，且调整候选排除第 1 列**（否则总数超区间/分支数不恒定）
+    - `_enterBoss` 对 zombieBeginner 走 `_enterBossCombat`（bossEncounter+普通波次流程，完成→奖励节点→胜利）；`_isZombieFamily()` 共享僵尸战斗体系；出征界面选项/信息面板改由 dungeonList 驱动
+  - **地牢审查修复**
+    - Boss 完成回调被 cleanup 清空（先取回调再 cleanup）；Boss 战死亡 active 卡死（shutdown 强制 BossRewardSystem.cleanup + cleanupRoom）；宝箱材料 `rewards || items || []` 键兼容；召唤泄漏按 key 前缀兜底（`Game.removeEntitiesByPrefix`，zombieDog_/amalgam_）
+    - 中优先级：reward 状态拦截实体更新、波次暂停顺延、商店轮询句柄清理、`_returnToMap` active 守卫、`_checkBossDefeated` 不再把 null 当战胜、补给堆药水=瓶数×单瓶恢复量（POTION_HEAL/MP 导出）、事件结果按钮 300ms 延迟激活防双击穿透、负金币扣除钳制持有量
+    - 低优先级：工厂 fallback HP 同步/召唤工厂注入、BOSS 清理恢复地形/树木/世界尺寸+syncTerrain、BOSS 墙 height 60、退出按钮绘制/热区统一、`_entityHudTexts` role 字段、`_onEnemySpawn` rebuildCollider 守卫、iconMap 补 materials、isActive 复位、`_calculateSpawnArea` margin 生效
+  - **附魔/改造/强化审查修复**
+    - 附魔：`EnchantSystem.init()` 接入 main.js（拖拽放回生效）；魔法粉尘名称统一（MagicDustItem.name=魔法粉尘，匹配点引用模板名）；沉重减速 `_applyEnchantAttackInterval` 统一钩子（空手恢复全部基础冷却，装备/卸下/写回全路径）
+    - 改造：穿甲 `armorPenetrationPercent` 补收集写入（生产端断链修复）；G18 weapon9 配置复制移到 weapon10 完整赋值之后；`_getCraftConfig` 无配置返回 null（不再回退 PKM，UI 显示"该武器不可改造"）；同 id 配件不再白扣 4 券；拖入装备栏立即 `_initAmmoForSlot`；registry 补 staminaCostDelta/skillStaminaCostDelta/dashDoubleHit；tooltip 弹夹 magazineOverride 优先
+    - 强化：删除改写 `item.stats` 的平方级污染块（无 formula 武器回退读 stats 作 base 曾实战虚高）；强化石先扣金币后消耗；**数值决策**：getAttackFormula 回退 `enhanceFlat: 1`（无 formula 武器强化+1/级）、`expValue` 增 `eliteMultiplier: 2 / bossMultiplier: 10`（boss 经验配置化）、盾牌 `defense.base + perEnhance × 强化等级` 计入玩家 def（防具强化真生效）
+  - **事件背景图**：15 张 3072×2048 → 1920×1280 瘦身（93MB→45MB），cover 铺满
+  - 验证：lint / build / test-collider 全部通过

@@ -8,6 +8,7 @@ import { CraftSystem } from './craft-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
+import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
@@ -166,7 +167,8 @@ export const EquipTooltipManager = {
                     if (ammoCap.max === Infinity) {
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">子弹数</span><span class="tt-stat-val">无限</span></div>`;
                     } else {
-                        const effectiveMax = ammoCap.max + (ce?.magazineDelta || 0);
+                        // magazineOverride 优先于 magazineDelta（与实际生效逻辑一致）
+                        const effectiveMax = (ce && ce.magazineOverride) ? ce.magazineOverride : (ammoCap.max + (ce?.magazineDelta || 0));
                         const effectiveReloadTime = ammoCap.reloadTime + (ce?.reloadTimeDelta || 0);
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">子弹数</span><span class="tt-stat-val">${effectiveMax}发</span></div>`;
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">换弹时间</span><span class="tt-stat-val">${effectiveReloadTime}ms</span></div>`;
@@ -568,21 +570,8 @@ export const EquipTooltipManager = {
     },
 
     _buildFormulaDisplay(formula, el, craftEffects) {
-        if (!formula) return '';
-        let effectiveFormula = formula;
-        if (craftEffects && craftEffects.slugMode && formula.variants && formula.variants.slugMode) {
-            effectiveFormula = formula.variants.slugMode;
-        }
-        const base = (effectiveFormula.base || 0) + el * (effectiveFormula.enhanceFlat || 0);
-        const parts = [`${base}`];
-        const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
-        for (const attr of effectiveFormula.attrs || []) {
-            const coeff = attr.base + (attr.perEnhance || 0) * el;
-            if (Math.abs(coeff) < 0.001) continue;
-            const name = attrNames[attr.key] || attr.key;
-            parts.push(`${coeff >= 0 ? '+' : '-'} ${name}×${Math.abs(coeff).toFixed(2)}`);
-        }
-        return parts.join(' ');
+        // 统一委托共享实现（config/attack-formula.js），消除三处复制漂移
+        return buildFormulaDisplay(formula, el, craftEffects);
     },
 
 };

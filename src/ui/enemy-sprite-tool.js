@@ -27,7 +27,7 @@ const EnemySpriteTool = {
         { key: 'demon', name: '恶魔' },
         { key: 'dragon', name: '龙' },
         { key: 'lich', name: '巫妖' },
-        { key: 'bigBoss', name: '大Boss' },
+        { key: 'amalgamZombie', name: '集合体' },
     ],
     
     // 方向列表

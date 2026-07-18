@@ -169,14 +169,14 @@ const EnchantScrollItems = {
     },
 };
 
-// 魔法晶尘物品
+// 魔法粉尘物品（与地牢事件奖励的 magic_dust 为同一物品，名称必须一致）
 const MagicDustItem = {
-    name: '魔法晶尘',
+    name: '魔法粉尘',
     type: '材料',
     icon: '✨',
     iconImage: 'assets/items/magic_dust.png',
     category: 'material',
-    desc: '用于附魔的魔法晶尘',
+    desc: '用于附魔的魔法粉尘',
     stack: 999,
     price: 10,
 };
