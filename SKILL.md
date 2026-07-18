@@ -1303,3 +1303,9 @@ Phaser Sprite.x / y / rotation / scale
   - **拆分**：`craft/weapon-image.js`（resolveWeaponImageSrc 回退链）；craft-system.js 891→741 行，仅作 UI 控制器，外部 API 不变
   - **test-craft-sync.mjs 适配**：收集腿改结构断言（聚合≡注册），新增 registry 条目结构校验（applyMode 合法+display 存在）
   - 验证：lint / build / test-collider / test-craft-sync / 聚合语义抽样 全部通过
+
+- v3.3 (2026-07-18) — 新怪物：铠甲骑士（精英）
+  - **配置驱动全部数值**：`enemy-config.json` armoredKnight——HP 800、speed 同僵尸、六维=突变体-3×1.15、`attackSkills`（combo/charge/block 三技能帧判定/冷却/距离/倍率全集中）；family 骑士（不进僵尸地牢池）
+  - **技能机制**：二连击（帧 12/25 判定）、持盾冲锋（900px/s 追踪、命中×2+击退+眩晕、冲锋期间 `_parryImmune`、目标弹反成功只击退）、举盾格挡（玩家攻击临近触发、2s 内 takeDamage 覆写全部按弹反、近战攻击者被眩晕击退；`shieldSystem._lastParried` 代理接入 DamagePipeline）
+  - **工作流复用**：素材先复制 `assets/enemies/armored_knight/`（8×4 512×512 切帧）→ 配置 → BootScene 精灵图+动画注册 → enemy-types.js 导出 → game.js 主神空间测试生成（永久警戒）
+  - 验证：lint / build / test-collider / test-craft-sync 全部通过

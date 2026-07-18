@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（新怪物：铠甲骑士）
+
+### 对话：新增精英怪铠甲骑士（按添加怪物工作流）
+- **素材**：`素材库/怪物/铠甲骑士` 5 张精灵图（8×4 网格 512×512）复制到 `assets/enemies/armored_knight/`——idle 1 帧 / walking 11 帧 / attacking 32 帧 / attacking-2 19 帧 / defending 14 帧。
+- **配置**（`enemy-config.json` armoredKnight，全部配置驱动）：精英、HP 800、speed 187.5（同僵尸）、六维按突变体-3 ×1.15 取整（str58/dex35/con46/int6/wis12/luck7，公式派生 atk≈47/def≈86）、level 10（经验精英 ×2 = 120）、family 骑士（不进僵尸地牢怪物池）。`attackSkills` 块集中管理三技能数值。
+- **技能**（`armored-knight.js`，自定义 AI 关闭通用近战）：
+  - 二连击挥砍：32 帧 2s，第 12/25 帧各判定一次 atk×1（range 125），CD 4s；
+  - 持盾冲锋：瞬间发动（无蓄力），900px/s 逐帧追踪目标，命中 atk×2 + 击退 200px + 眩晕 2.5s，撞停或超 1800px 止，CD 10s；**冲锋期间 `_parryImmune`**（集合体同机制，结束后还原）；目标弹反成功则不受伤不眩晕只保留击退（复用玩家盾 `_lastParried` 判定）；
+  - 举盾格挡：玩家攻击动作临近（260px）时面对目标举盾 2s，期间不可移动/不可其他动作，`takeDamage` 覆写——玩家来源伤害全部按弹反处理（免伤 + 近战攻击者眩晕 2s 击退 100px，弹反免疫者除外），CD 6s；附 `shieldSystem._lastParried` 代理接入 DamagePipeline 抑制击退/craft 命中效果（与玩家盾同口径）。
+- **注册**：BootScene 5 组精灵图 + 5 个动画（combo/defend 单次、charge 循环）；enemy-types.js 导入导出；`game.js spawnMainArmoredKnight` 主神空间生成 1 只测试（永久警戒）。
+- **测试结果**：enemy-config.json 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①三技能动画与帧判定同步；②冲锋追踪手感与 1800px 截停；③格挡弹反对玩家近战/枪械/技能各路径表现；④渲染比例（spriteSize 220/footOffsetY 43 按帧内容推算，可能需微调）。
+
 ## 2026-07-18（改造系统深化：registry 驱动聚合 + craft-system 拆分）
 
 ### 对话：技术债清理——三角机制重构 + craft-system.js 拆分

@@ -851,6 +851,106 @@
     "skills": [],
     "attackType": "集合体重击"
   },
+  "armoredKnight": {
+    "id": "armoredKnight",
+    "name": "铠甲骑士",
+    "type": "精英",
+    "category": "monster",
+    "family": "骑士",
+    "color": "#5a6a7a",
+    "size": 24,
+    "collisionRadius": 22,
+    "hp": 800,
+    "maxHp": 800,
+    "speed": 187.5,
+    "level": 10,
+    "rank": "elite",
+    "str": 58,
+    "dex": 35,
+    "con": 46,
+    "int": 6,
+    "wis": 12,
+    "luck": 7,
+    "attackRange": 125,
+    "attackDistance": 125,
+    "aiInterval": 1000,
+    "ai": {
+      "aggroRange": 900,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1000,
+      "dynamicRange": 125,
+      "width": 24,
+      "knockback": 20
+    },
+    "attackSkills": {
+      "combo": {
+        "cooldown": 4000,
+        "duration": 2000,
+        "frames": 32,
+        "hitFrames": [12, 25],
+        "range": 125,
+        "damageMul": 1.0
+      },
+      "charge": {
+        "cooldown": 10000,
+        "speed": 900,
+        "maxDistance": 1800,
+        "triggerRange": 550,
+        "hitRange": 60,
+        "damageMul": 2.0,
+        "knockback": 200,
+        "stunMs": 2500,
+        "frames": 19
+      },
+      "block": {
+        "cooldown": 6000,
+        "duration": 2000,
+        "triggerRange": 260,
+        "frames": 14,
+        "parryStunMs": 2000,
+        "parryKnockback": 100
+      }
+    },
+    "description": "身披重甲的亡灵骑士，左手塔盾右手巨剑。二连挥砍撕裂近身之敌，持盾冲锋撞碎一切阻碍，举盾格挡能将来袭者连人带剑弹开。",
+    "skills": [
+      {
+        "name": "二连击挥砍",
+        "desc": "2 秒内连续挥砍两次，各造成物理攻击 ×1 的伤害"
+      },
+      {
+        "name": "持盾冲锋",
+        "desc": "以 900px/s 追踪冲撞目标，造成物理攻击 ×2 伤害、击退 200px 并眩晕 2.5s；冲锋期间免疫弹反"
+      },
+      {
+        "name": "举盾格挡",
+        "desc": "举盾 2 秒，期间所有来袭攻击判定为弹反：免伤并将近战攻击者眩晕击退"
+      }
+    ],
+    "attackType": "挥砍",
+    "render": {
+      "spriteSize": 220,
+      "collisionWidth": 44,
+      "collisionHeight": 100,
+      "footOffsetY": 43,
+      "projectileHitbox": {
+        "width": 52,
+        "height": 100,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/armored_knight/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    }
+  },
   "mutant3": {
     "id": "mutant3",
     "name": "怪物突变体-3",
