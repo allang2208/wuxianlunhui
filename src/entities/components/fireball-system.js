@@ -237,7 +237,7 @@ export class FireballSystem {
             const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
             entity.takeDamage(finalDamage, this.source, 'magic');
             hitCount++;
-            if (wasAlive && entity.hp <= 0) killCount++;
+            if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
         });
         // 经验（仅玩家获得）
         if (hitCount > 0 && skill && this._isPlayer()) {

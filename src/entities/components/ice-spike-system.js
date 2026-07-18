@@ -213,7 +213,7 @@ export class IceSpikeSystem {
                 const wasAlive = entity.hp > 0;
                 entity.takeDamage(damage, this.source, 'magic');
                 hitCount++;
-                if (wasAlive && entity.hp <= 0) killCount++;
+                if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
                 // 冰锥破碎特效
                 this._spawnIceBreakEffect(spike.flyX, spike.flyY);
                 spike.flyActive = false;

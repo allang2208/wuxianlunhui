@@ -266,6 +266,7 @@ export class GameScene extends Scene {
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
             if (this.minimapTitle) this.minimapTitle.setVisible(true);
             this._syncHud(_game);
+            this._updateBossHpBar(_delta);
             this._syncHitFlashAndCharge(_game);
             this._syncNeutralEntities(_game);
             // Phase 3: 同步特效 Sprite
@@ -297,6 +298,8 @@ export class GameScene extends Scene {
         this._syncBodiesToPhysics();
         // 同步可移动实体脚底阴影
         this._syncEntityShadows(_game);
+        // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
+        this._syncStunEffects(_game);
         // 调试范围圈与阴影使用同一脚底坐标，避免错位
         this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
@@ -1787,6 +1790,85 @@ export class GameScene extends Scene {
     /**
      * 预生成僵尸受击绿色粒子纹理
      */
+    /**
+     * 预生成眩晕星星纹理（四角星，亮黄色）
+     */
+    _ensureStunStarTexture() {
+        if (this.textures.exists('stun_star')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0xffe060, 1);
+        g.beginPath();
+        g.moveTo(8, 0);
+        g.lineTo(10, 6);
+        g.lineTo(16, 8);
+        g.lineTo(10, 10);
+        g.lineTo(8, 16);
+        g.lineTo(6, 10);
+        g.lineTo(0, 8);
+        g.lineTo(6, 6);
+        g.closePath();
+        g.fillPath();
+        g.generateTexture('stun_star', 16, 16);
+        g.destroy();
+    }
+
+    /**
+     * 眩晕动画特效：两颗星星在眩晕实体贴图头顶旋转，
+     * 眩晕持续时间内播放，结束后自动消失（含实体失效的兜底清理）
+     */
+    _syncStunEffects(_game) {
+        if (!_game || !_game.entities) return;
+        if (!this._stunFx) this._stunFx = new Map();
+        const isMapMode = SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map';
+        if (isMapMode) {
+            for (const [, fx] of this._stunFx.entries()) this._destroyStunFx(fx);
+            this._stunFx.clear();
+            return;
+        }
+        if (!this.textures.exists('stun_star')) this._ensureStunStarTexture();
+        const now = performance.now();
+        const active = new Set();
+        _game.entities.forEach(e => {
+            if (!e || !e.active || !e._phaserSprite || !e._phaserSprite.active) return;
+            const stunned = typeof e.hasStatusEffect === 'function' && e.hasStatusEffect('stun');
+            if (!stunned) return;
+            active.add(e);
+            let fx = this._stunFx.get(e);
+            if (!fx) {
+                const s1 = this.add.sprite(0, 0, 'stun_star');
+                const s2 = this.add.sprite(0, 0, 'stun_star');
+                s1.setScale(1.2);
+                s2.setScale(1.2);
+                fx = { s1, s2, angle: Math.random() * Math.PI * 2 };
+                this._stunFx.set(e, fx);
+            }
+            // 双星绕头顶旋转（Y 按平面透视压缩），带轻微上下浮动
+            fx.angle += 0.05;
+            const sprite = e._phaserSprite;
+            const headY = sprite.y - sprite.displayHeight / 2 - 8;
+            const bob = Math.sin(now / 300) * 3;
+            const r = 26;
+            const x1 = sprite.x + Math.cos(fx.angle) * r;
+            const y1 = headY + Math.sin(fx.angle) * r * PERSPECTIVE_SCALE_Y + bob;
+            const x2 = sprite.x + Math.cos(fx.angle + Math.PI) * r;
+            const y2 = headY + Math.sin(fx.angle + Math.PI) * r * PERSPECTIVE_SCALE_Y + bob;
+            fx.s1.setPosition(x1, y1).setDepth(headY + 1001).setVisible(true);
+            fx.s2.setPosition(x2, y2).setDepth(headY + 1001).setVisible(true);
+        });
+        // 眩晕结束/实体失效：销毁特效
+        for (const [e, fx] of this._stunFx.entries()) {
+            if (!active.has(e)) {
+                this._destroyStunFx(fx);
+                this._stunFx.delete(e);
+            }
+        }
+    }
+
+    _destroyStunFx(fx) {
+        if (fx.s1 && fx.s1.active) fx.s1.destroy();
+        if (fx.s2 && fx.s2.active) fx.s2.destroy();
+    }
+
     _ensureZombieHitTexture() {
         if (this.textures.exists('zombie_hit_dot')) return;
         const g = this.make.graphics({ x: 0, y: 0, add: false });
@@ -1797,21 +1879,38 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 预生成白色粒子纹理（tint 乘算后呈现准确颜色；绿色纹理会被 tint 偏色）
+     */
+    _ensureImpactDotTexture() {
+        if (this.textures.exists('impact_dot')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        g.fillStyle(0xffffff, 1);
+        g.fillCircle(4, 4, 4);
+        g.generateTexture('impact_dot', 8, 8);
+        g.destroy();
+    }
+
+    /**
      * 播放僵尸类怪物受击绿色粒子
      * @param {number} x
      * @param {number} y
      * @param {number} [angle] 受击方向（弧度），未提供时随机散射
      */
-    playZombieHitParticles(x, y, angle) {
-        if (!this.textures.exists('zombie_hit_dot')) this._ensureZombieHitTexture();
+    playZombieHitParticles(x, y, angle, tintColor = null) {
+        // 自定义颜色用白色纹理（tint 乘算准确显色）；默认绿色沿用原绿色纹理
+        const useCustom = tintColor !== null && tintColor !== undefined;
+        const texKey = useCustom ? 'impact_dot' : 'zombie_hit_dot';
+        if (!this.textures.exists(texKey)) {
+            if (useCustom) this._ensureImpactDotTexture(); else this._ensureZombieHitTexture();
+        }
         // 在 (0,0) 创建发射器，随后用 explode(x,y) 在世界坐标一次性爆发，
         // 避免把发射器位置与爆发坐标叠加导致粒子飞到屏幕外。
-        const particles = this.add.particles(0, 0, 'zombie_hit_dot', {
+        const particles = this.add.particles(0, 0, texKey, {
             speed: { min: 80, max: 220 },
             scale: { start: 1.4, end: 0 },
             lifespan: 600,
             quantity: 12,
-            tint: 0x55ff55,
+            tint: useCustom ? tintColor : 0x55ff55,
             blendMode: 'ADD',
             angle: angle != null ? { min: (angle * 180 / Math.PI) - 45, max: (angle * 180 / Math.PI) + 45 } : { min: 0, max: 360 },
             gravityY: 120,
@@ -1826,6 +1925,111 @@ export class GameScene extends Scene {
         this.time.delayedCall(800, () => {
             if (particles && particles.active) particles.destroy();
         });
+    }
+
+    /**
+     * 播放黄褐色冲击粒子（集合体投掷物落点：比僵尸受击粒子更大更多，持续 1.5 秒）。
+     * 与僵尸受击粒子同纹理，黄褐色 tint、2.0 起始缩放、20 颗、重力下坠。
+     * @param {number} x 落点 X
+     * @param {number} y 落点 Y
+     */
+    playTanImpactParticles(x, y) {
+        if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        const particles = this.add.particles(0, 0, 'impact_dot', {
+            speed: { min: 100, max: 260 },
+            scale: { start: 2.0, end: 0 },
+            lifespan: 1500,
+            quantity: 20,
+            tint: 0xb8860b,
+            blendMode: 'ADD',
+            angle: { min: 0, max: 360 },
+            gravityY: 120,
+            emitting: false
+        });
+        particles.addToUpdateList();
+        particles.setDepth(y + 1000);
+        particles.explode(20, x, y);
+        this.time.delayedCall(1800, () => {
+            if (particles && particles.active) particles.destroy();
+        });
+    }
+
+    // ==================== BOSS 专属血条（屏幕空间 DOM） ====================
+    /**
+     * 创建/获取 BOSS 血条 DOM：位于顶部状态栏下方 20px，居中。
+     * 仅在玩家攻击命中 Boss 时显示（showBossHpBar 触发），超时或 Boss 死亡自动隐藏。
+     */
+    _ensureBossHpBar() {
+        if (this._bossHpBarEl) return this._bossHpBarEl;
+        const topBar = document.getElementById('topBar');
+        const topOffset = (topBar && topBar.offsetHeight ? topBar.offsetHeight : 44) + 20;
+        const el = document.createElement('div');
+        el.id = 'bossHpBar';
+        el.style.cssText = `
+            position: fixed; top: ${topOffset}px; left: 50%; transform: translateX(-50%);
+            width: 520px; z-index: 5000; display: none; pointer-events: none;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+        `;
+        el.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+                <span id="bossHpBarName" style="color:#e8c878;font-size:17px;font-weight:700;text-shadow:0 2px 6px #000;">☠ 首领</span>
+                <span id="bossHpBarText" style="color:#d4c5a9;font-size:13px;text-shadow:0 1px 4px #000;"></span>
+            </div>
+            <div style="height:14px;background:rgba(10,5,5,0.85);border:2px solid #6a2a2a;border-radius:7px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.6);">
+                <div id="bossHpBarFill" style="height:100%;width:100%;background:linear-gradient(90deg,#7a1a1a,#e04040);transition:width 0.15s;"></div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        this._bossHpBarEl = el;
+        return el;
+    }
+
+    /**
+     * 玩家攻击命中 Boss 时调用：显示/刷新 BOSS 血条并重置 5 秒隐藏计时
+     */
+    showBossHpBar(boss) {
+        if (!boss) return;
+        const el = this._ensureBossHpBar();
+        this._bossHpBarTarget = boss;
+        this._bossHpBarHideTimer = 5000;
+        const nameEl = el.querySelector('#bossHpBarName');
+        if (nameEl) nameEl.textContent = `☠ ${boss.name || '首领'} · 首领`;
+        this._syncBossHpBarFill();
+        el.style.display = 'block';
+    }
+
+    _syncBossHpBarFill() {
+        const boss = this._bossHpBarTarget;
+        if (!boss || !this._bossHpBarEl) return;
+        const maxHp = boss.maxHp || (boss.data && boss.data.maxHp) || 1;
+        const hp = Math.max(0, (boss.hp !== undefined ? boss.hp : (boss.data ? boss.data.hp : maxHp)));
+        const pct = Math.max(0, Math.min(1, hp / maxHp));
+        const fill = this._bossHpBarEl.querySelector('#bossHpBarFill');
+        if (fill) fill.style.width = `${(pct * 100).toFixed(1)}%`;
+        const text = this._bossHpBarEl.querySelector('#bossHpBarText');
+        if (text) text.textContent = `${Math.floor(hp)} / ${maxHp}`;
+    }
+
+    _updateBossHpBar(dt) {
+        if (!this._bossHpBarTarget) return;
+        const boss = this._bossHpBarTarget;
+        // Boss 死亡/离场立即隐藏
+        if (!boss.active) {
+            this._hideBossHpBar();
+            return;
+        }
+        this._syncBossHpBarFill();
+        // 超时无新命中自动隐藏
+        this._bossHpBarHideTimer -= dt;
+        if (this._bossHpBarHideTimer <= 0) {
+            this._hideBossHpBar();
+        }
+    }
+
+    _hideBossHpBar() {
+        if (this._bossHpBarEl) this._bossHpBarEl.style.display = 'none';
+        this._bossHpBarTarget = null;
+        this._bossHpBarHideTimer = 0;
     }
 
     /**
@@ -1896,7 +2100,13 @@ export class GameScene extends Scene {
             hitX = target.x - Math.cos(angle) * radius * 0.75;
             hitY = centerY - Math.sin(angle) * radius * 0.75;
         }
-        this.playZombieHitParticles(hitX, hitY, angle);
+        // 受击粒子颜色：配置 hitParticleColor（如集合体落地黄），缺省绿色
+        let tintColor = null;
+        if (typeof target.config?.hitParticleColor === 'string') {
+            const parsed = parseInt(target.config.hitParticleColor.replace('#', ''), 16);
+            if (Number.isFinite(parsed)) tintColor = parsed;
+        }
+        this.playZombieHitParticles(hitX, hitY, angle, tintColor);
     }
 
     /**
@@ -2189,7 +2399,8 @@ export class GameScene extends Scene {
         if (isBoss) {
             const barW = 80, barH = 8, border = 2;
             const barX = x - barW / 2;
-            const barY = topY - 12;
+            // 血条整体下移 100px（此前上浮过高）；名字/数值/首领字段上下错开显示
+            const barY = topY + 188;
             // 背景
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - border, barY - border, barW + border * 2, barH + border * 2);
@@ -2200,25 +2411,27 @@ export class GameScene extends Scene {
             const hpColor = hpPercent > 0.5 ? 0xc04040 : hpPercent > 0.25 ? 0xa03030 : 0xff2020;
             this.worldHudGraphics.fillStyle(hpColor, 1);
             this.worldHudGraphics.fillRect(barX, barY, barW * hpPercent, barH);
-            // 召唤阶段标记线
+            // 召唤阶段标记线（仅配置了 HP 阈值召唤的 Boss 才画；集合体为定时召唤，不画）
             const summonCfg = GAME_CONFIG.bossReward?.boss?.skills?.summon;
-            const summonThreshold = summonCfg ? summonCfg.summonHpPercent : 0.5;
-            const summonX = barX + barW * summonThreshold;
-            this.worldHudGraphics.lineStyle(2, 0x44ff44, 1);
-            this.worldHudGraphics.beginPath();
-            this.worldHudGraphics.moveTo(summonX, barY - 2);
-            this.worldHudGraphics.lineTo(summonX, barY + barH + 2);
-            this.worldHudGraphics.strokePath();
-            // HP 数值
+            if (summonCfg) {
+                const summonThreshold = summonCfg.summonHpPercent ?? 0.5;
+                const summonX = barX + barW * summonThreshold;
+                this.worldHudGraphics.lineStyle(2, 0x44ff44, 1);
+                this.worldHudGraphics.beginPath();
+                this.worldHudGraphics.moveTo(summonX, barY - 2);
+                this.worldHudGraphics.lineTo(summonX, barY + barH + 2);
+                this.worldHudGraphics.strokePath();
+            }
+            // 首领名字：血条上方独立一行
+            const nameText = this._getEntityHudText(entity, 'bossName');
+            nameText.setText(`${entity.name}`);
+            nameText.setPosition(x, barY - 34);
+            nameText.setVisible(true);
+            // HP 数值：紧贴血条上方
             const text = this._getEntityHudText(entity, 'bossHp');
             text.setText(`${Math.floor(hp)}/${maxHp}`);
-            text.setPosition(x, barY - 6);
+            text.setPosition(x, barY - 8);
             text.setVisible(true);
-            // Boss 名字+等级
-            const nameText = this._getEntityHudText(entity, 'bossName');
-            nameText.setText(`${entity.name}\nLv.${entity.level || '?'} 首领`);
-            nameText.setPosition(x, topY - 10);
-            nameText.setVisible(true);
             return;
         }
 

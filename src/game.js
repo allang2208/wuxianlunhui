@@ -12,6 +12,7 @@ import { FloatingTextEffect } from './effects/floating-text.js';
 import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
+import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
 import { EquipDataManager } from './ui/equip-data-manager.js';
@@ -315,6 +316,10 @@ export const Game = {
     removeEntity(key) {
         const entity = this.entities.get(key);
         if (entity) {
+            // 实体自带的自定义特效统一清理（如集合体砸地范围圈/投掷警示/飞行投射物）
+            if (typeof entity._destroyCustomEffects === 'function') {
+                entity._destroyCustomEffects();
+            }
             if (entity._phaserSprite) {
                 entity._phaserSprite.destroy();
                 entity._phaserSprite = null;
@@ -1104,8 +1109,17 @@ if (SceneManager.currentScene === 'scene3') {
                 // Phase 1：统一使用地面圆形 footprint 做实体间分离
                 const radiusA = a.groundRadius;
                 const radiusB = b.groundRadius;
-                const dx = b.x - a.x;
-                const dy = b.y - a.y;
+                // footprint 位置统一取 Collider 偏移后坐标（与命中椭圆/阴影同源，
+                // 修复 colliderOffsetY 实体（如集合体）视觉椭圆与物理分离错位）
+                const ax = a.collider ? a.collider.x : a.x;
+                const ay = a.collider ? a.collider.y : a.y;
+                const bx = b.collider ? b.collider.x : b.x;
+                const by = b.collider ? b.collider.y : b.y;
+                // 判定体积匹配 footprint 椭圆（逆透视变换，与投射物 footprint 判定同口径）：
+                // 世界空间圆在屏幕 Y 方向按 PERSPECTIVE_SCALE_Y 压缩，分离判定同样按椭圆处理
+                const invScale = 1 / PERSPECTIVE_SCALE_Y;
+                const dx = bx - ax;
+                const dy = (by - ay) * invScale;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const minDist = radiusA + radiusB;
 
@@ -1115,9 +1129,17 @@ if (SceneManager.currentScene === 'scene3') {
                     const immB = !!b.noSeparation;
                     if (immA && immB) continue;
                     const overlap = minDist - dist;
-                    const ratio = overlap / dist / 2;
-                    const moveA = immA ? { x: 0, y: 0 } : { x: -dx * ratio * (immB ? 2 : 1), y: -dy * ratio * (immB ? 2 : 1) };
-                    const moveB = immB ? { x: 0, y: 0 } : { x: dx * ratio * (immA ? 2 : 1), y: dy * ratio * (immA ? 2 : 1) };
+                    // 在逆透视空间求法线，位移量再变换回世界空间（Y × SCALE_Y）
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const moveA = immA ? { x: 0, y: 0 } : {
+                        x: -nx * overlap / (immB ? 1 : 2),
+                        y: -ny * overlap / (immB ? 1 : 2) * PERSPECTIVE_SCALE_Y
+                    };
+                    const moveB = immB ? { x: 0, y: 0 } : {
+                        x: nx * overlap / (immA ? 1 : 2),
+                        y: ny * overlap / (immA ? 1 : 2) * PERSPECTIVE_SCALE_Y
+                    };
 
                     // 用 WallSystem 校验，避免分离把实体推进墙里
                     const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, radiusA);

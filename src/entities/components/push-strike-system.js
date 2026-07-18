@@ -99,7 +99,7 @@ export class PushStrikeSystem {
             this.player._pushStrikeHitSet.add(entity);
             const wasAlive = entity.hp > 0;
             entity.takeDamage(damage, this.player);
-            if (wasAlive && entity.hp <= 0) killCount++;
+            if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
             hitCount++;
             const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
             entity.applyKnockback(kbAngle, knockback);

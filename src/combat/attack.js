@@ -131,7 +131,7 @@ function applyEnchantOnHit(weapon, target, source) {
                             hitCountRef,
                             killCountRef
                         });
-                        if (killed) killCount++;
+                        if (killed && !entity._summoned) killCount++;
                         hitCount++;
                     }
                 });
@@ -278,7 +278,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (this.config.crippleDuration && entity.applyCripple) {
                         entity.applyCripple(this.config.crippleDuration);
                     }
-                    if (killed) killCount++;
+                    if (killed && !entity._summoned) killCount++;
                     hitCount++;
                 });
                 // 累计命中/击杀数（不直接给经验，经验在swing结束时统一发放）

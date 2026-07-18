@@ -757,7 +757,7 @@
     "family": "僵尸",
     "color": "#5a3a3a",
     "size": 120,
-    "collisionRadius": 120,
+    "collisionRadius": 270,
     "hp": 5000,
     "maxHp": 5000,
     "speed": 0,
@@ -770,6 +770,8 @@
     "wis": 1,
     "luck": 5,
     "mdef": 58,
+    "parryImmune": true,
+    "hitParticleColor": "#b8860b",
     "attackRange": 120,
     "attackDistance": 120,
     "aiInterval": 1000,
@@ -790,6 +792,7 @@
       "collisionWidth": 300,
       "collisionHeight": 540,
       "footOffsetY": 309,
+      "colliderOffsetY": -100,
       "projectileHitbox": { "width": 360, "height": 570, "offsetX": 0, "bottom": 0 }
     },
     "textures": {
@@ -807,9 +810,9 @@
         "triggerRange": 250,
         "hitFrames": [7, 12, 17, 20, 24, 27],
         "zones": [
-          { "radius": 100, "damageMul": 1.2 },
-          { "radius": 200, "damageMul": 0.7 },
-          { "radius": 500, "damageMul": 0.2 }
+          { "radius": 200, "damageMul": 1.2 },
+          { "radius": 400, "damageMul": 0.7 },
+          { "radius": 800, "damageMul": 0.2 }
         ]
       },
       "throw": {
@@ -834,6 +837,14 @@
       "duration": 2800,
       "corpseHold": 2000,
       "lastFrame": 27
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/amalgam/idle.mp3",
+      "throw": "assets/sounds/enemies/amalgam/idle.mp3",
+      "impact": "assets/sounds/enemies/amalgam/hitting.mp3",
+      "slamHit": "assets/sounds/enemies/amalgam/hitting.mp3",
+      "death": "assets/sounds/enemies/amalgam/dying.mp3",
+      "idleInterval": 3000
     },
     "description": "由无数尸体融合而成的巨大集合体，扎根于地牢深处无法移动，以纯粹的力量碾碎靠近的一切。",
     "skills": [],

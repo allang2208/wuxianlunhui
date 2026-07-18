@@ -428,7 +428,7 @@ class DashSystem {
                     if (dashDoubleHit) {
                         entity.takeDamage(finalDamage, this.player);
                     }
-                    if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
+                    if (wasAlive && entity.hp <= 0 && !entity._summoned) phase.totalKillCount++;
                     phase.totalHitCount++;
                     entity._dashStunned = true;
                     entity._dashStunTimer = effect.stunDuration;
@@ -464,7 +464,7 @@ class DashSystem {
                     entity.takeDamage(finalDamage, this.player);
                     if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害（hitIndex === 0 已处理，这里不触发）
-                    if (wasAlive && entity.hp <= 0) phase.totalKillCount++;
+                    if (wasAlive && entity.hp <= 0 && !entity._summoned) phase.totalKillCount++;
                     phase.totalHitCount++;
                     entity._dashStunned = true;
                     entity._dashStunTimer = effect.stunDuration;

@@ -8,6 +8,98 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-17（受击粒子落地黄/眩晕双星/召唤物统一标签与闸门）
+
+### 对话：集合体两项 + 召唤物系统性调整（v0.198+）
+- **集合体受击粒子换落地黄色**：`enemy-config.json` amalgamZombie 新增 `hitParticleColor: "#b8860b"`；`triggerZombieHitParticles` 读取该配置，`playZombieHitParticles` 支持自定义 tint——自定义色用白色 `impact_dot` 纹理（tint 乘算准确显色），默认绿色沿用原绿色纹理不变（其他僵尸不受影响）。
+- **眩晕双星动画特效**：`GameScene._ensureStunStarTexture`（四角星纹理）+ `_syncStunEffects`——眩晕实体头顶两颗星星以半径 26px 旋转（Y 按平面透视压缩、带上下浮动），眩晕持续时间内播放，结束或实体失效自动销毁，地图模式全部清理；update 循环接入。
+- **召唤物统一 `_summoned` 标签（一劳永逸）**：集合体召唤僵尸/投掷胖子、僵尸巫师召唤犬统一打 `_summoned = true`（不影响地牢原有怪物）。
+- **统一闸门（金币/经验/技能修炼全拦截）**：
+  - `damageable-entity.js onDeath`：金币掉落+玩家经验跳过 `_summoned`；
+  - 同文件 takeDamage：暴击经验、武器精通经验（kill/crit）、无人机经验三个分支全部加 `!this._summoned` 闸门；
+  - 各技能击杀计数（attack.js ×2、whirlwind、ice-spike、dash ×2、push-strike、fireball 共 7 处）全部改为 `killed && !entity._summoned` 才计数。
+  - 设计说明：`_summoned` 为唯一标签，未来任何召唤方打标即自动被全部闸门拦截；命中数（hitCount）仍照常计入（未被"杀死"的召唤物命中属于正常命中经验，与"杀死召唤物无收益"语义一致）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①集合体受击为落地黄、其他僵尸仍为绿色；②被眩晕单位头顶双星旋转、醒后消失；③杀召唤犬/召唤僵尸/投掷胖子不掉金币经验、武器精通/各技能修炼不累积，原地牢怪正常。
+
+## 2026-07-17（集合体弹反免疫 + 位移免疫确认）
+
+### 对话：集合体弹反交互独立设置（v0.198+）
+- **弹反免疫（配置驱动）**：`enemy-config.json` amalgamZombie 新增 `parryImmune: true`；`amalgam-zombie.js` 构造函数读入 `_parryImmune`；`shield-system.js triggerParry` 在弹反音效后对免疫单位直接 return——弹反对集合体**不再造成眩晕、击退、打断动作**（攻击动画/阶段照常进行）。玩家侧收益（免伤、免体力消耗、弹反音效、防御经验）全部不受影响、不做修改。
+- **位移免疫（已确认在位）**：集合体已具备完整防位移链——speed 0 显性锁死、每帧 vx/vy/knockback 归零、`applyKnockback` 空覆盖（任何来源击退无效）、`noSeparation`（分离时对方承担全部位移）、出生点锚点钉死（每帧强制归位）。任何单位都无法推动集合体。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①对集合体弹反：玩家不受伤害/不耗体力/有音效，但集合体不眩晕、不被击退、攻击不被打断；②集合体被任何方式攻击/挤压时纹丝不动。
+
+## 2026-07-17（左下"秒杀"调试按钮）
+
+### 对话：新增秒杀模式开关（v0.198+）
+- **按钮**：`hud-panels-misc.js` 无敌按钮旁新增"秒杀"切换按钮（同款样式），点击切换 `window.Game._oneHitKill`，开启时显示"秒杀中"（active 高亮）。
+- **秒杀判定**：`damageable-entity.js takeDamage` 在扣血前检查——`source._faction === 'player' && Game._oneHitKill` 时 `baseDamage` 提到 `max(baseDamage, this.hp)`，走正常伤害流程（死亡特效/掉落/经验照常触发，不会跳过结算）。
+- **作用域**：全局生效（含地牢 BOSS 战），供快速测试。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——按钮切换与秒杀生效（伤害数字、掉落、经验照常）。
+
+## 2026-07-17（召唤 CD 15s 确认 + 召唤点黑色刷怪粒子）
+
+### 对话：集合体召唤调整（v0.198+）
+- **召唤 CD**：`attackSkills.summon.cooldown = 15000`（15s，配置已确认生效，首次召唤同样在生成 15s 后触发）。
+- **召唤点黑色粒子**：`_updateSummon` 每只僵尸召唤成功时，在其脚下调用 `GameScene.playDungeonSpawnParticles(sx, sy)`（与地牢战斗房刷怪同款：纯黑、更慢、1.5s、NORMAL 混合）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机待验证——召唤间隔 15s 与召唤点黑色粒子观感。
+
+## 2026-07-17（血条再下移/冲击波加粗闪烁/footprint 270 上移 100）
+
+### 对话：集合体三项微调（v0.198+）
+- **血条再下移 100px**：`_syncEntityHud` boss 血条 `barY` 由 `topY + 88` → `topY + 188`（660px 贴图下进一步下移）。
+- **冲击波加粗 + 闪烁**：`_fireSlamShockwave` 描边 4px → **8px**；透明度在淡出曲线上叠加高频正弦闪烁（`0.55 + 0.45 × sin(t×π×8)`），冲击波呈脉冲感。
+- **footprint 椭圆优化**：`collisionRadius` 240 → **270**（+30）；`render.colliderOffsetY` -50 → **-100**（中心点再上移 50px，阴影/命中/分离同源随动）。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①血条新位置；②冲击波加粗+脉冲闪烁观感；③270/-100 的椭圆与贴图对齐及可接近手感。
+
+## 2026-07-17（落地粒子偏色根因/砸地区域 200-400-800/砸地冲击波）
+
+### 对话：集合体三项调整（v0.198+）
+- **落地粒子仍显绿色的根因**：`zombie_hit_dot` 纹理本身就是绿色（`fillStyle(0x55ff55)` 生成），Phaser tint 是**乘法**——深黄 tint × 绿色纹理仍偏绿。修复：新增白色粒子纹理 `impact_dot`（`_ensureImpactDotTexture`），`playTanImpactParticles` 改用白纹理，深黄 tint（0xb8860b）现在准确显色。
+- **砸地伤害区域调整**（enemy-config.json `attackSkills.slam.zones`）：100/200/500 → **200px ×1.2 / 400px ×0.7 / 800px ×0.2**，各自区域判定不叠加，其他不变。
+- **砸地范围提示改为冲击波动画（首版参考）**：删除静态三层红圈显示，改为每个伤害帧（7/12/17/20/24/27）从集合体中心释放一个红色椭圆冲击波——`_fireSlamShockwave`：椭圆由 0 扩散至最大伤害圈半径（800px），4px 描边随扩散淡出（alpha 0.9→0）+ 极淡填充，平面透视 2:1，600ms Cubic.easeOut；同时最多 6 个波并存，结束自动销毁；`_destroyCustomEffects` 统一清理在飞的波（死亡/战斗结束无残留）。
+- **测试结果**：enemy-config.json 校验通过（zones 200/400/800）；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①落地粒子正确显示深黄色；②冲击波扩散节奏/透明度/透视比例观感（首版供参考，参数在 `_fireSlamShockwave` 可调）；③200/400/800 三圈伤害手感。
+
+## 2026-07-17（落地粒子深黄/砸地CD驱动+三圈显示/分离椭圆匹配/投掷预判）
+
+### 对话：集合体四项调整（v0.198+）
+- **落地粒子改深黄色**：`playTanImpactParticles` tint `0xc8a060`（黄褐）→ `0xb8860b`（深黄）。
+- **砸地攻击放不出来的根因**：**不是 AI 问题，是判定范围问题**——footprint 半径翻倍到 240 后，玩家被分离边界挡在 ~262px 外，而 `_decideAttack` 要求 `dist <= triggerRange(250)` 才触发砸地，永远不满足。修复：砸地改为 **CD 一旦满足立即释放**（有目标即可，不再受 triggerRange 限制）；投掷攻击仍按自身 CD 独立进行，动画/阶段互不影响（`_attackKind` 互斥，一方进行中另一方等待）。
+- **砸地范围显示**：`_createSlamZoneDisplay`——三圈按伤害深度分层红色（500px 浅红 `0xff8080` / 200px 中红 `0xd03030` / 100px 深红 `0x8a0a0a`，伤害最高圈最深），先大区后小区叠加绘制，椭圆 2:1 透视；砸地结束自动取消；新增 `_destroyCustomEffects`（清理警示圈/范围圈/飞行投射物），`onDeath` 与 `game.js removeEntity` 均调用，怪物死亡/战斗结束正确删除效果。
+- **footprint 椭圆精准匹配（根因）**：`resolveCollisions` 分离判定此前用世界圆（r 沿 Y 全量），而 footprint 视觉/投射物判定是椭圆（ry=r×0.5 透视），沿 Y 方向物理边界比视觉椭圆远一倍——"视觉有空间却不能接近"。修复：分离判定加入逆透视变换（`dy × 1/PERSPECTIVE_SCALE_Y`，与 `projectile._hitFootprintEllipse` 同口径），位移量再变换回世界空间，分离体积与 footprint 椭圆完全一致。
+- **投掷预判**：`_startAttack('throw')` 改用与其他远程怪物（僵尸巫师/毒液僵尸）相同的 `AimHelper.lead` 预判——延迟 = 出手帧时间（1.2s）+ 飞行时间（0.6s），落点与红色警示圈均按预判拦截点显示，不再锁定目标当前位置。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①深黄色落地粒子；②砸地 CD 到点即放、三圈红显示与结束取消；③接近集合体沿 Y 方向阻挡边界与椭圆视觉一致；④移动目标的投掷落点预判准确性。
+
+## 2026-07-17（召唤物无奖励/集合体音效/血条去标签/footprint分离同源）
+
+### 对话：集合体四项调整（v0.198+）
+- **召唤物无经验金钱**：`amalgam-zombie.js` 召唤僵尸（`_updateSummon`）与投掷生成胖子僵尸（`_impactThrow`）打 `_noExpGold = true` 标记；`damageable-entity.js onDeath` 的金币掉落+经验分支跳过标记实体。**不影响地牢原有僵尸/胖子僵尸**（标记只打在集合体生成的实体上）。
+- **集合体音效系统**：素材复制到 `assets/sounds/enemies/amalgam/`（规则 4）；`enemy-config.json` 新增 `sounds` 配置块（idle/throw/impact/slamHit/death/idleInterval，配置驱动）；`amalgam-zombie.js` 新增 `_playSound(key)` 助手（SoundManager.playFile）与五个触发点——待机环境音按 idleInterval 循环、投掷出手（fireFrame）、投射物落地、砸地 6 个命中帧、死亡。SKILL.md 新增「音效导入工作流」章节（素材建档→配置映射→事件播放三步）。**备注**：`throwing.mp3` 已入库未使用（投掷按用户指定用 idle.mp3），如需切换改配置一行即可。
+- **世界内血条**：删除血条下方的 `Lv.X · 首领` 标签文字。
+- **footprint 椭圆与实际分离不一致根因**：`game.js resolveCollisions` 的分离计算用实体 x/y，而 footprint 椭圆/阴影/命中判定用 `Collider` 偏移后坐标（colliderOffsetY=-50）——物理分离区比视觉椭圆低 50px，造成"视觉有空间却不能接近"。修复：分离计算统一取 `collider.x/y`（与命中椭圆/阴影同源）。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①召唤僵尸/投掷胖子死亡不掉金币经验、地牢原有怪物正常掉落；②五个音效点（待机循环/投掷/落地/砸地帧/死亡）；③血条无首领标签；④集合体可接近距离与视觉椭圆一致。
+
+## 2026-07-17（集合体判定圆/血条重做/警示圈销毁/落点粒子）
+
+### 对话：集合体四项调整（v0.198+）
+- **判定圆**：`enemy-config.json` amalgamZombie `collisionRadius` 120→**240**（半径翻倍）；新增 `render.colliderOffsetY: -50`（footprint 上移 50px，经 `Collider.syncPosition` 的 entity.colliderOffsetY 机制生效，阴影/命中/分离同源随动）。
+- **生命值显示重做**（GameScene `_syncEntityHud` boss 分支）：
+  - 世界内血条整体下移 100px（`topY - 12` → `topY + 88`），解决上浮过高；
+  - 字段错开：名字（barY-34）/ HP 数值（barY-8）/ `Lv.X · 首领` 标签（血条下方 barY+barH+12）不再贴在一起；
+  - 召唤阈值绿线改为仅在配置了 HP 阈值召唤的 Boss 才画（集合体定时召唤不画）。
+- **新增 BOSS 专属血条（屏幕空间 DOM）**：`GameScene._ensureBossHpBar/showBossHpBar/_updateBossHpBar/_hideBossHpBar`——位于顶部状态栏下方 20px、520px 居中（首领名+渐变血条+数值）；`damageable-entity.js` 在 `rank==='boss' && source._faction==='player'` 受击时触发显示（只有玩家攻击到才显示），5 秒无新命中自动隐藏、Boss 死亡立即隐藏。
+- **投掷警示圈落地不消失根因**：`AttackRangeEffect.update()` 只在 `life<=0` 时才销毁 Phaser 图形，而 `_destroyWarning` 置 `active=false` 后 EffectManager 在下一帧就把效果移除出列——life 永远到不了 0，graphics 永久残留。修复：`_destroyWarning` 现在**立即调用** `_destroyPhaserGraphics()` 销毁图形（落地事件即删除）。
+- **落点黄褐色粒子**：`GameScene.playTanImpactParticles(x, y)`——参考僵尸受击粒子，黄褐色 tint、2.0 起始缩放（更大）、20 颗（更多）、lifespan 1500（1.5 秒）、重力下坠；在 `_impactThrow` 落点处触发。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①判定圆 240/上移 50 的命中手感与阴影位置；②世界内血条下移/错开版式；③命中才显示的 BOSS 血条位置/渐变/隐藏时机；④投掷警示圈落地即消失；⑤黄褐色粒子大小/浓度/时长。
+
 ## 2026-07-17（清单全量收尾：地牢中低优先级/改造P2/数值决策/技术债务）
 
 ### 对话：按清单完成全部剩余工作（v0.198+）
