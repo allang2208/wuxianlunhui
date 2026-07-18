@@ -840,7 +840,7 @@
     },
     "sounds": {
       "idle": "assets/sounds/enemies/amalgam/idle.mp3",
-      "throw": "assets/sounds/enemies/amalgam/idle.mp3",
+      "throw": "assets/sounds/enemies/amalgam/throwing.mp3",
       "impact": "assets/sounds/enemies/amalgam/hitting.mp3",
       "slamHit": "assets/sounds/enemies/amalgam/hitting.mp3",
       "death": "assets/sounds/enemies/amalgam/dying.mp3",

@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（集合体投掷音效）
+
+### 对话：集合体投掷音效启用 throwing.mp3
+- `data/enemy-config.json` amalgamZombie `sounds.throw` 由占位 `idle.mp3` 改为 `assets/sounds/enemies/amalgam/throwing.mp3`（素材早已复制到项目，仅配置未接）。触发点不变：投掷动画第 16 帧发射投射物时 `_playSound('throw')`。
+- **测试结果**：enemy-config.json 校验通过；`npx vite build` ✅。
+- **已知问题**：实机听感待确认（音量/时长是否需调整）。
+
 ## 2026-07-17（遗留 bug 与技术债务分批清理）
 
 ### 对话：7 阶段 19 项清理（v0.198+）
