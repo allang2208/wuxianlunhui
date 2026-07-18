@@ -92,6 +92,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_amalgam_melt',         'assets/enemies/amalgam/melting.png',      { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         this.load.image('enemy_amalgam_project', 'assets/enemies/amalgam/project.png');
 
+        // 铠甲骑士（精英）精灵图动画（8×4 网格 512×512 切帧：待机 1 帧 / 移动 11 帧 / 二连击 32 帧 / 冲锋 19 帧 / 格挡 14 帧）
+        this.load.spritesheet('enemy_armored_knight_idle',    'assets/enemies/armored_knight/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_armored_knight_walk',    'assets/enemies/armored_knight/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_armored_knight_combo',   'assets/enemies/armored_knight/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 31 });
+        this.load.spritesheet('enemy_armored_knight_charge',  'assets/enemies/armored_knight/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
+        this.load.spritesheet('enemy_armored_knight_defend',  'assets/enemies/armored_knight/defending.png',   { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -308,6 +315,37 @@ export class BootScene extends Scene {
             key: 'enemy_amalgam_death',
             frames: this.anims.generateFrameNumbers('enemy_amalgam_melt', { start: 0, end: 27 }),
             duration: 2800,
+            repeat: 0,
+        });
+        // 铠甲骑士（精英）动画
+        this.anims.create({
+            key: 'enemy_armored_knight_idle',
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_armored_knight_walk',
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_walk', { start: 0, end: 10 }),
+            frameRate: 12,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_armored_knight_combo',
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_combo', { start: 0, end: 31 }),
+            duration: 2000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_armored_knight_charge',
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_charge', { start: 0, end: 18 }),
+            duration: 1500,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_armored_knight_defend',
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_defend', { start: 0, end: 13 }),
+            duration: 2000,
             repeat: 0,
         });
 

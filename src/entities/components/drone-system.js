@@ -26,6 +26,9 @@ export class DroneSystem {
         this._savedCameraTarget = null;
         // 跟踪当前被无人机影响的实体
         this._affectedEntities = new Set();
+        // 长按技能键命令的飞行目标点（null=无命令）
+        this._moveTarget = null;
+        this._moveStallMs = 0; // 被墙挡停累积时间（防卡死）
     }
 
     // 切换无人机状态
@@ -40,6 +43,16 @@ export class DroneSystem {
             // 退出操控模式，不收回无人机，让无人机持续存在
             this._exitControl();
         }
+    }
+
+    // 长按技能键：命令无人机飞往鼠标指针位置（未部署则先部署）
+    commandFlyToMouse() {
+        const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+        if (!this.active) this._deploy();
+        if (!this.active) return; // 技能缺失等防御
+        this._moveTarget = { x: mw.x, y: mw.y };
+        this._moveStallMs = 0;
+        EffectManager.add(new FloatingTextEffect(mw.x, mw.y - 12, '🛸 飞往目标点', '#5a7a9a'));
     }
 
     _deploy() {
@@ -110,7 +123,51 @@ export class DroneSystem {
 
         const dtSec = dt / 1000;
 
-        if (this.controlling) {
+        // 长按命令飞行：操控模式下 WASD 输入立即取消命令（手动优先）
+        if (this._moveTarget && this.controlling) {
+            const manual = Input.isPressed('KeyW') || Input.isPressed('ArrowUp') ||
+                Input.isPressed('KeyS') || Input.isPressed('ArrowDown') ||
+                Input.isPressed('KeyA') || Input.isPressed('ArrowLeft') ||
+                Input.isPressed('KeyD') || Input.isPressed('ArrowRight');
+            if (manual) this._moveTarget = null;
+        }
+        if (this._moveTarget) {
+            // 长按命令：自动飞往目标点，到达或被挡停超时后结束
+            const dx = this._moveTarget.x - this.x;
+            const dy = this._moveTarget.y - this.y;
+            const dist = Math.hypot(dx, dy);
+            const arriveRadius = 12;
+            if (dist <= arriveRadius) {
+                this._moveTarget = null;
+                this.vx = 0;
+                this.vy = 0;
+            } else {
+                const step = Math.min(dist, this.speed * dtSec);
+                const nx = this.x + (dx / dist) * step;
+                const ny = this.y + (dy / dist) * step;
+                let rx = nx, ry = ny;
+                if (WallSystem) {
+                    const resolved = WallSystem.resolve(this.x, this.y, nx, ny, 10);
+                    rx = resolved.x;
+                    ry = resolved.y;
+                }
+                // 防卡死：被墙挡住几乎无进展超过0.5s则放弃目标点
+                const moved = Math.hypot(rx - this.x, ry - this.y);
+                if (moved < 0.5) {
+                    this._moveStallMs += dt;
+                    if (this._moveStallMs > 500) this._moveTarget = null;
+                } else {
+                    this._moveStallMs = 0;
+                }
+                this.x = rx;
+                this.y = ry;
+            }
+            // 操控模式下镜头同步
+            if (this.controlling && Renderer.cameraTarget && Renderer.cameraTarget.isDrone) {
+                Renderer.cameraTarget.x = this.x;
+                Renderer.cameraTarget.y = this.y;
+            }
+        } else if (this.controlling) {
             // WASD 控制无人机（使用 Set 的 has 方法，Input.keys 是 Set 不是对象）
             let moveX = 0, moveY = 0;
             if (Input.isPressed('KeyW') || Input.isPressed('ArrowUp')) moveY -= 1;

@@ -43,6 +43,7 @@ import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
 import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
+import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -144,6 +145,8 @@ export const Game = {
             this.spawnMainZombie();
             // 主神空间生成测试用集合体（首领）
             this.spawnMainAmalgam();
+            // 主神空间生成测试用铠甲骑士（精英）
+            this.spawnMainArmoredKnight();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -496,6 +499,24 @@ export const Game = {
             ai: { ...(enemyConfigData.fatZombie?.ai || {}), aggroRange: 9999, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_amalgam', amalgam);
+    },
+    spawnMainArmoredKnight() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const knightCfg = enemyConfigData.armoredKnight || {};
+        // 使用原设定数值，仅保留永久警戒便于测试
+        const knight = new ArmoredKnight(origin.x + 350, origin.y + 320, {
+            ...knightCfg,
+            showWeapon: false,
+            ai: {
+                ...(knightCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_armored_knight', knight);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标

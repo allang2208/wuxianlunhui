@@ -1,4 +1,3 @@
-import { ItemDatabase } from '../items/item-database.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isCraftableWeapon } from '../config/gun-ammo.js';
@@ -9,6 +8,8 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
 import craftConfigData from '../../data/craft-config.json';
+import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-effects.js';
+import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 
 const CraftSystem = {
     _isOpen: false,
@@ -420,41 +421,9 @@ const CraftSystem = {
         if (placeholder) placeholder.style.display = 'none';
         if (weaponDisplay) weaponDisplay.style.display = 'flex'; // ← 关键：显示贴图区域
 
-        // 尝试获取图片路径（多重 fallback）
-        let imgSrc = null;
+        // 贴图路径解析抽到 craft/weapon-image.js（多级回退链）
         const item = this._equippedItem;
-
-        // 1. 优先使用 weaponAsset.image（hold/top-down 图片，用于改造栏展示）
-        if (item.weaponAsset && item.weaponAsset.image && typeof item.weaponAsset.image === 'string') {
-            imgSrc = item.weaponAsset.image;
-        }
-        else if (item.equipImage) imgSrc = item.equipImage;
-        else if (item.slotImage) imgSrc = item.slotImage;
-        else if (item.iconImage) imgSrc = item.iconImage;
-
-        // 2. 从 ItemDatabase 根据 id 查找
-        if (!imgSrc && item.id && ItemDatabase) {
-            const dbItem = ItemDatabase.get(item.id);
-            if (dbItem) {
-                if (dbItem.weaponAsset && typeof dbItem.weaponAsset.image === 'string') {
-                    imgSrc = dbItem.weaponAsset.image;
-                }
-                if (!imgSrc) imgSrc = dbItem.equipImage || dbItem.slotImage || dbItem.iconImage;
-            }
-        }
-
-        // 3. 从 ItemDatabase 根据 weaponId 反查（索引由 ItemDatabase 维护，新武器无需登记）
-        if (!imgSrc && item.weaponId && ItemDatabase && ItemDatabase.getByWeaponId) {
-            const dbItem = ItemDatabase.getByWeaponId(item.weaponId);
-            if (dbItem) {
-                if (dbItem.weaponAsset && typeof dbItem.weaponAsset.image === 'string') {
-                    imgSrc = dbItem.weaponAsset.image;
-                }
-                if (!imgSrc) imgSrc = dbItem.equipImage || dbItem.slotImage || dbItem.iconImage;
-            }
-        }
-
-        
+        const imgSrc = resolveWeaponImageSrc(item);
 
         if (imgSrc) {
             const imgEl = document.createElement('img');
@@ -758,128 +727,9 @@ const CraftSystem = {
             this._equippedItem._craftEffects = {};
             return;
         }
-        const itemMods = this._equippedItem._craftData || {};
-
-        // 收集所有效果
-        let rangeDelta = 0;
-        let knockbackDelta = 0;
-        let spreadTimeDelta = 0;
-        let spreadStartDelta = 0;
-        let reloadTimeDelta = 0;
-        let magazineDelta = 0;
-        let projectileSpeedPercent = 0;
-        let moveSpeedPercent = 0;
-        let hideMuzzleFlash = false;
-        let highPowerScope = false;
-        let redDotScope = false;
-        let maxSpreadAngleDelta = 0;
-        // 新增改造效果（Super90专属）
-        let damagePercent = 0;
-        let slugMode = false;
-        let flechetteMode = false;
-        let piercingBonus = 0;
-        let magazineOverride = 0;
-        let critChancePercent = 0;
-        let slugRecoilRecovery = 0;
-        let fastReload = false;
-        // 半自动武器效果
-        let attackIntervalDelta = 0;
-        let recoilRecoveryDelta = 0;
-        let shotSpreadDelta = 0;
-        // 骑士长剑改造效果
-        let staminaCostDelta = 0;
-        let skillStaminaCostDelta = 0;
-        let defensePercent = 0;
-        let secondaryBlock = false;
-        let dashDoubleHit = false;
-        let bleedingOnHit = false;
-        // 能量轻机枪改造效果
-        let overheatTimeDelta = 0;
-        let overheatRecoverDelta = 0;
-        // 符文长剑/夜与火之剑改造效果
-        let magicVulnerabilityOnHit = false;
-        let magicVulnerabilityStacks = 0;
-        let magicPenetrationPercent = 0;
-        let armorPenetrationPercent = 0;
-        let enchantedBlade = false;
-        let runeRestructureCount = 0;
-        let specialRangeDelta = 0;
-        let specialDurationDelta = 0;
-
-        for (const slotId in itemMods) {
-            const modId = itemMods[slotId];
-            const slotOpts = weaponConfig.options[slotId];
-            if (!slotOpts) continue;
-            const opt = slotOpts.find(o => o.id === modId);
-            if (!opt || !opt.effects) continue;
-
-            if (opt.effects.rangeDelta) rangeDelta += opt.effects.rangeDelta;
-            if (opt.effects.knockbackDelta) knockbackDelta += opt.effects.knockbackDelta;
-            if (opt.effects.spreadTimeDelta) spreadTimeDelta += opt.effects.spreadTimeDelta;
-            if (opt.effects.spreadStartDelta) spreadStartDelta += opt.effects.spreadStartDelta;
-            if (opt.effects.reloadTimeDelta) reloadTimeDelta += opt.effects.reloadTimeDelta;
-            if (opt.effects.magazineDelta) magazineDelta += opt.effects.magazineDelta;
-            if (opt.effects.projectileSpeedPercent) projectileSpeedPercent += opt.effects.projectileSpeedPercent;
-            if (opt.effects.moveSpeedPercent) moveSpeedPercent += opt.effects.moveSpeedPercent;
-            if (opt.effects.maxSpreadAngleDelta) maxSpreadAngleDelta += opt.effects.maxSpreadAngleDelta;
-            if (opt.effects.hideMuzzleFlash) hideMuzzleFlash = true;
-            if (opt.effects.highPowerScope) highPowerScope = true;
-            if (opt.effects.redDotScope) redDotScope = true;
-            // 新增效果处理
-            if (opt.effects.damagePercent) damagePercent += opt.effects.damagePercent;
-            if (opt.effects.slugMode) slugMode = true;
-            if (opt.effects.flechetteMode) flechetteMode = true;
-            if (opt.effects.piercingBonus) piercingBonus += opt.effects.piercingBonus;
-            if (opt.effects.magazineOverride) magazineOverride = opt.effects.magazineOverride;
-            if (opt.effects.critChancePercent) critChancePercent += opt.effects.critChancePercent;
-            if (opt.effects.slugRecoilRecovery) slugRecoilRecovery += opt.effects.slugRecoilRecovery;
-            if (opt.effects.fastReload) fastReload = true;
-            // 半自动武器效果收集
-            if (opt.effects.attackIntervalDelta) attackIntervalDelta += opt.effects.attackIntervalDelta;
-            if (opt.effects.recoilRecoveryDelta) recoilRecoveryDelta += opt.effects.recoilRecoveryDelta;
-            if (opt.effects.shotSpreadDelta) shotSpreadDelta += opt.effects.shotSpreadDelta;
-            // 骑士长剑改造效果
-            if (opt.effects.staminaCostDelta) staminaCostDelta += opt.effects.staminaCostDelta;
-            if (opt.effects.skillStaminaCostDelta) skillStaminaCostDelta += opt.effects.skillStaminaCostDelta;
-            if (opt.effects.defensePercent) defensePercent += opt.effects.defensePercent;
-            if (opt.effects.secondaryBlock) secondaryBlock = true;
-            if (opt.effects.dashDoubleHit) dashDoubleHit = true;
-            if (opt.effects.bleedingOnHit) bleedingOnHit = true;
-            // 能量轻机枪改造效果
-            if (opt.effects.overheatTimeDelta) overheatTimeDelta += opt.effects.overheatTimeDelta;
-            if (opt.effects.overheatRecoverDelta) overheatRecoverDelta += opt.effects.overheatRecoverDelta;
-            // 符文长剑/夜与火之剑改造效果
-            if (opt.effects.magicVulnerabilityOnHit) magicVulnerabilityOnHit = true;
-            if (opt.effects.magicVulnerabilityStacks) magicVulnerabilityStacks += opt.effects.magicVulnerabilityStacks;
-            if (opt.effects.magicPenetrationPercent) magicPenetrationPercent += opt.effects.magicPenetrationPercent;
-            if (opt.effects.armorPenetrationPercent) armorPenetrationPercent += opt.effects.armorPenetrationPercent;
-            if (opt.effects.enchantedBlade) enchantedBlade = true;
-            if (opt.effects.runeRestructureCount) runeRestructureCount += opt.effects.runeRestructureCount;
-            if (opt.effects.specialRangeDelta) specialRangeDelta += opt.effects.specialRangeDelta;
-            if (opt.effects.specialDurationDelta) specialDurationDelta += opt.effects.specialDurationDelta;
-        }
-
-        // 将改造效果绑定到具体装备实例
-        this._equippedItem._craftEffects = {
-            rangeDelta, knockbackDelta, spreadTimeDelta, spreadStartDelta,
-            reloadTimeDelta, magazineDelta, projectileSpeedPercent, moveSpeedPercent, maxSpreadAngleDelta, hideMuzzleFlash, highPowerScope, redDotScope,
-            damagePercent, slugMode, flechetteMode, piercingBonus, magazineOverride, critChancePercent, slugRecoilRecovery, fastReload,
-            attackIntervalDelta, recoilRecoveryDelta, shotSpreadDelta,
-            staminaCostDelta, skillStaminaCostDelta, defensePercent, secondaryBlock, dashDoubleHit, bleedingOnHit,
-            overheatTimeDelta, overheatRecoverDelta,
-            magicVulnerabilityOnHit, magicVulnerabilityStacks, magicPenetrationPercent, armorPenetrationPercent, enchantedBlade,
-            runeRestructureCount, specialRangeDelta, specialDurationDelta
-        };
-        // 重新初始化弹药状态（应用弹夹容量和换弹时间改造）
-        if (Game.player._initAmmoForSlot) {
-            const slots = ['weapon', 'offhand', 'weapon2', 'ring2'];
-            for (const slot of slots) {
-                const item = Game.player.equipments[slot];
-                if (item && item.weaponId === this._equippedItem.weaponId) {
-                    Game.player._initAmmoForSlot(slot);
-                }
-            }
-        }
+        // 聚合由 craft-effects.js 按 registry 的 applyMode 驱动，新增效果无需改这里
+        this._equippedItem._craftEffects = aggregateCraftEffects(this._equippedItem._craftData || {}, weaponConfig);
+        applyModEffectsToPlayer(Game.player, this._equippedItem);
     },
 
     // 获取某武器的改造配置（无配置时返回 null，不再回退到 PKM 配置）

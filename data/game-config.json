@@ -218,6 +218,9 @@
     "baseCost": 100,
     "costGrowth": 1.5
   },
+  "input": {
+    "skillLongPressMs": 300
+  },
   "scene2": {
     "spawning": {
       "freeExplore": {
