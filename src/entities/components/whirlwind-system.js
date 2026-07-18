@@ -107,7 +107,7 @@ export class WhirlwindSystem {
             this.player._whirlwindHitSet.add(entity);
             const wasAlive = entity.hp > 0;
             entity.takeDamage(finalDamage, this.player);
-            if (wasAlive && entity.hp <= 0) killCount++;
+            if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
             hitCount++;
             const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
             const kbAngle = Math.atan2(dy, dx);

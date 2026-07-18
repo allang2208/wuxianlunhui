@@ -1,7 +1,9 @@
 /**
- * WeaponDamageFormulas — 武器伤害回退公式配置
- * 将 subsystems.js 中根据武器类型硬编码的伤害公式集中管理。
- * 当 getCurrentWeaponAtk 不可用时使用这些回退公式。
+ * WeaponDamageFormulas — 武器伤害最小回退公式
+ * 仅在 Player.getCurrentWeaponAtk 不可用时（防御性分支）为无 attackFormula
+ * 配置的旧武器提供保底伤害估算。公式系数为硬编码，不含强化/改造/精通加成；
+ * 与 attack-formula.js 无重复实现，新武器无需在此登记——正常路径一律走
+ * attack-formula.js 的 attackFormula 配置。
  */
 
 export const WEAPON_DAMAGE_FORMULAS = {

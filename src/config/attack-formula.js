@@ -52,7 +52,8 @@ function getAttackFormula(item) {
         const match = String(atkStat.value).match(/(\d+)/);
         if (match) {
             const baseMin = parseInt(match[1]);
-            return { base: baseMin, enhanceFlat: 0, attrs: [] };
+            // enhanceFlat 1：无 attackFormula 的武器每级强化 +1 攻击（与增强显示口径一致）
+            return { base: baseMin, enhanceFlat: 1, attrs: [] };
         }
     }
     return null;
@@ -138,5 +139,30 @@ function isMachineGun(weaponType) {
     return weaponType === 'pkm' || weaponType === 'qjb201' || weaponType === 'energy_lmg';
 }
 
-export { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun };
-export const AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun };
+/**
+ * 生成攻击公式展示文本（唯一实现，供强化面板/装备 tooltip/图鉴共用）
+ * @param {Object} formula - attackFormula 配置
+ * @param {number} el - 用于计算的强化等级
+ * @param {Object} craftEffects - 改造效果（独头弹变体切换）
+ * @returns {string} 如 "12 + 力量×1.50 - 敏捷×0.30"
+ */
+function buildFormulaDisplay(formula, el, craftEffects) {
+    if (!formula) return '';
+    let effectiveFormula = formula;
+    if (craftEffects && craftEffects.slugMode && formula.variants && formula.variants.slugMode) {
+        effectiveFormula = formula.variants.slugMode;
+    }
+    const base = (effectiveFormula.base || 0) + el * (effectiveFormula.enhanceFlat || 0);
+    const parts = [`${base}`];
+    const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
+    for (const attr of effectiveFormula.attrs || []) {
+        const coeff = (attr.base || 0) + (attr.perEnhance || 0) * el;
+        if (Math.abs(coeff) < 0.001) continue;
+        const name = attrNames[attr.key] || attr.key;
+        parts.push(`${coeff >= 0 ? '+' : '-'} ${name}×${Math.abs(coeff).toFixed(2)}`);
+    }
+    return parts.join(' ');
+}
+
+export { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay };
+export const AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay };

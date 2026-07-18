@@ -1,4 +1,8 @@
 {
+  "dungeonList": {
+    "zombie": { "name": "☠ 僵尸地牢", "nodeCount": "35~40", "battleRatio": "70%", "level": "1级", "reward": "1500金币" },
+    "zombieBeginner": { "name": "☠ 僵尸地牢-初级", "nodeCount": "22", "battleRatio": "40%", "level": "1级", "reward": "800金币" }
+  },
   "zombieDungeon": {
     "nodeCount": { "min": 35, "max": 40 },
     "shortestCombatPath": 9,
@@ -34,9 +38,28 @@
       "completedCombatType": "empty"
     }
   },
+  "zombieDungeonBeginner": {
+    "nodeCount": { "min": 22, "max": 22 },
+    "shortestCombatPath": 7,
+    "mainRowMinCombat": 3,
+    "typeRatios": { "combat": 0.40, "event": 0.60 },
+    "eliteCombatChance": 0,
+    "grid": { "rows": 3, "colSpacing": 160, "rowSpacing": 140, "mainRow": 1 },
+    "startRows": [0, 1, 2],
+    "bossReward": { "bossBeforeLastCol": true, "rewardAfterBoss": true },
+    "bossEncounter": {
+      "combatWaves": 1,
+      "monstersPerWave": 6,
+      "monsterComposition": { "elite": 1, "normal": 5 }
+    },
+    "nodeDisplay": {
+      "unrevealedIcon": "?",
+      "completedCombatType": "empty"
+    }
+  },
   "combatRoom": {
     "normalSize": { "min": 1024, "max": 2048, "step": 256 },
-    "bossSize": 4096,
+    "bossSize": 1024,
     "wallThickness": 20,
     "spawn": {
       "playerOffsetFromEdge": 60,

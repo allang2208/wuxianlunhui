@@ -12,6 +12,7 @@ import { FloatingTextEffect } from './effects/floating-text.js';
 import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
+import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
 import { EquipDataManager } from './ui/equip-data-manager.js';
@@ -41,6 +42,7 @@ import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
 import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import { Zombie } from './entities/enemy-types/zombie.js';
+import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -140,6 +142,8 @@ export const Game = {
             this.spawnMainFatZombie();
             // 主神空间生成测试用普通僵尸
             this.spawnMainZombie();
+            // 主神空间生成测试用集合体（首领）
+            this.spawnMainAmalgam();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -312,6 +316,10 @@ export const Game = {
     removeEntity(key) {
         const entity = this.entities.get(key);
         if (entity) {
+            // 实体自带的自定义特效统一清理（如集合体砸地范围圈/投掷警示/飞行投射物）
+            if (typeof entity._destroyCustomEffects === 'function') {
+                entity._destroyCustomEffects();
+            }
             if (entity._phaserSprite) {
                 entity._phaserSprite.destroy();
                 entity._phaserSprite = null;
@@ -335,6 +343,19 @@ export const Game = {
     isPreservedCorpse(entity) {
         return !!(entity && entity._preserveCorpse && !entity.active &&
             (entity._deathAnimTimer > 0 || entity._corpseTimer > 0));
+    },
+
+    /**
+     * 按 key 前缀统一移除实体（经 removeEntity，跳过存活尸体）。
+     * 用于清理战斗召唤物（zombieDog_ / amalgam_fat_ / amalgam_zombie_ 等），
+     * 这些实体不进入战斗追踪列表，需在清理路径按前缀兜底，避免战斗结束后泄漏。
+     */
+    removeEntitiesByPrefix(...prefixes) {
+        for (const key of Array.from(this.entities.keys())) {
+            if (!prefixes.some(p => typeof key === 'string' && key.startsWith(p))) continue;
+            if (this.isPreservedCorpse(this.entities.get(key))) continue;
+            this.removeEntity(key);
+        }
     },
 
     spawnMainZombieDog() {
@@ -445,6 +466,36 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_zombie', zombie);
+    },
+    spawnMainAmalgam() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const amalgamCfg = enemyConfigData.amalgamZombie || {};
+        // 使用原设定数值，仅保留永久警戒便于测试
+        const amalgam = new AmalgamZombie(origin.x + 650, origin.y + 120, {
+            ...amalgamCfg,
+            showWeapon: false,
+            _alertRange: Infinity,
+            ai: {
+                ...(amalgamCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        // 注入召唤/生成工厂（主神空间测试用，沿用永久警戒配置）
+        amalgam._createBasicZombie = (x, y) => new Zombie(x, y, {
+            ...enemyConfigData.zombie,
+            showWeapon: false,
+            ai: { ...(enemyConfigData.zombie?.ai || {}), aggroRange: 9999, loseTimeout: 999999 }
+        });
+        amalgam._createFatZombie = (x, y) => new FatZombie(x, y, {
+            ...enemyConfigData.fatZombie,
+            showWeapon: false,
+            ai: { ...(enemyConfigData.fatZombie?.ai || {}), aggroRange: 9999, loseTimeout: 999999 }
+        });
+        this.entities.set('enemy_main_amalgam', amalgam);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
@@ -633,8 +684,8 @@ export const Game = {
                     console.error('[DungeonMapSystem] Failed to close NPCDialogue:', e);
                 }
                 // 继续执行下面的实体更新
-            } else if (DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'event') {
-                // 商店/事件模式：只更新输入和特效
+            } else if (DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'event' || DungeonMapSystem.state === 'reward') {
+                // 商店/事件/奖励模式：只更新输入和特效（奖励面板打开时实体不更新）
                 EffectManager.update(dt);
                 QuickBar.updateCooldowns(dt);
                 Input.update();
@@ -1058,16 +1109,37 @@ if (SceneManager.currentScene === 'scene3') {
                 // Phase 1：统一使用地面圆形 footprint 做实体间分离
                 const radiusA = a.groundRadius;
                 const radiusB = b.groundRadius;
-                const dx = b.x - a.x;
-                const dy = b.y - a.y;
+                // footprint 位置统一取 Collider 偏移后坐标（与命中椭圆/阴影同源，
+                // 修复 colliderOffsetY 实体（如集合体）视觉椭圆与物理分离错位）
+                const ax = a.collider ? a.collider.x : a.x;
+                const ay = a.collider ? a.collider.y : a.y;
+                const bx = b.collider ? b.collider.x : b.x;
+                const by = b.collider ? b.collider.y : b.y;
+                // 判定体积匹配 footprint 椭圆（逆透视变换，与投射物 footprint 判定同口径）：
+                // 世界空间圆在屏幕 Y 方向按 PERSPECTIVE_SCALE_Y 压缩，分离判定同样按椭圆处理
+                const invScale = 1 / PERSPECTIVE_SCALE_Y;
+                const dx = bx - ax;
+                const dy = (by - ay) * invScale;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const minDist = radiusA + radiusB;
 
                 if (dist > 0 && dist < minDist) {
+                    // 不可分离单位（如站桩 Boss）：自身纹丝不动，由对方承担全部重叠位移；双方均不可动则跳过
+                    const immA = !!a.noSeparation;
+                    const immB = !!b.noSeparation;
+                    if (immA && immB) continue;
                     const overlap = minDist - dist;
-                    const ratio = overlap / dist / 2;
-                    const moveA = { x: -dx * ratio, y: -dy * ratio };
-                    const moveB = { x: dx * ratio, y: dy * ratio };
+                    // 在逆透视空间求法线，位移量再变换回世界空间（Y × SCALE_Y）
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const moveA = immA ? { x: 0, y: 0 } : {
+                        x: -nx * overlap / (immB ? 1 : 2),
+                        y: -ny * overlap / (immB ? 1 : 2) * PERSPECTIVE_SCALE_Y
+                    };
+                    const moveB = immB ? { x: 0, y: 0 } : {
+                        x: nx * overlap / (immA ? 1 : 2),
+                        y: ny * overlap / (immA ? 1 : 2) * PERSPECTIVE_SCALE_Y
+                    };
 
                     // 用 WallSystem 校验，避免分离把实体推进墙里
                     const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, radiusA);

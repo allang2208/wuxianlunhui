@@ -112,8 +112,8 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 const finalCritRate = Math.max(0, critRate + enchantCritBonus - critRes);
                 const isCrit = Math.random() * 100 < finalCritRate;
                 // 应用暴击伤害加成
-                // 次级格挡：装备宽十字护手时，受到攻击有50%概率减少50%伤害
-                if (this.equipments && this.weaponMode) {
+                // 次级格挡：装备宽十字护手时，受到近战攻击有50%概率减少50%伤害
+                if (isMelee && this.equipments && this.weaponMode) {
                     const currentWpn = this.equipments[this.weaponMode];
                     if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.secondaryBlock) {
                         if (Math.random() < 0.5) {
@@ -569,7 +569,14 @@ _initSkills() {
             },
 
 _applyEnchantAttackInterval(item) {
-                if (!item) return;
+                // 空手/非武器：恢复所有攻击的基准冷却，避免附魔减速残留给下一把武器
+                if (!item || (!item.weaponType && !item.attackKey)) {
+                    for (const key of Object.keys(this.attacks)) {
+                        const atk = this.attacks[key];
+                        if (atk && atk.baseMaxCooldown !== undefined) atk.maxCooldown = atk.baseMaxCooldown;
+                    }
+                    return;
+                }
                 const ee = item._enchantEffects;
                 const intervalMul = ee && ee.attackIntervalMul ? ee.attackIntervalMul : 1.0;
 
@@ -582,27 +589,23 @@ _applyEnchantAttackInterval(item) {
                 // 根据武器类型更新对应的攻击冷却
                 const wType = item.weaponType;
                 const attackKey = item.attackKey || 'melee';
-                if (!this._baseCooldowns) this._baseCooldowns = {};
-                if (this.attacks[attackKey]) {
-                    if (!this._baseCooldowns[attackKey]) {
-                        this._baseCooldowns[attackKey] = this.attacks[attackKey].maxCooldown;
-                    }
-                    // 弓类：使用武器配置中的 attackInterval 作为基础冷却
-                    let baseCooldown = this._baseCooldowns[attackKey];
+                const atk = this.attacks[attackKey];
+                if (atk) {
+                    // 基准冷却取攻击实例创建时的原始值（baseMaxCooldown），
+                    // 避免把已被附魔/改造/射速 ramp 改过的运行时值缓存为基准
+                    let baseCooldown = atk.baseMaxCooldown !== undefined ? atk.baseMaxCooldown : atk.maxCooldown;
                     if (wType === 'bow' && item.attack && item.attack.attackInterval) {
                         baseCooldown = item.attack.attackInterval;
                     }
                     // 基础冷却 × 附魔倍率 + 改造间隔变化
-                    this.attacks[attackKey].maxCooldown = Math.round(baseCooldown * intervalMul + attackIntervalDelta);
+                    atk.maxCooldown = Math.round(baseCooldown * intervalMul + attackIntervalDelta);
                 }
             },
 
-_onHitEntity(_entity) {
-                // 所有附魔命中效果已迁移至 attack.js 的通用附魔系统，避免硬编码
-            },
-
 _applySkillOverrides(item) {
-                
+                // 附魔效果：攻击间隔调整（装备/卸下/附魔写回统一在此刷新，不再只有切枪才生效）
+                this._applyEnchantAttackInterval(item);
+
                 if (!item || !item.skillOverrides) {
                     
                     this._clearSkillOverrides();
@@ -1302,8 +1305,10 @@ _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
 
-                // 每次实际开火给准星一个瞬时 kick
-                this._crosshairShotKick = 1.0;
+                // 每次实际开火给准星一个瞬时 kick（shotSpreadDelta 改造：按当前武器最大散布角折算增减）
+                const craftEffects = this.equipments[this.weaponMode] && this.equipments[this.weaponMode]._craftEffects;
+                const _fireMaxAngle = this._currentSpreadMaxAngle || 25;
+                this._crosshairShotKick = Math.max(0, 1.0 + ((craftEffects && craftEffects.shotSpreadDelta) || 0) / _fireMaxAngle);
 
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {

@@ -332,6 +332,8 @@ export class ZombieWizard extends Enemy {
             // 通过运行时工厂创建（在 zombie-dungeon.js 中注入）
             const dog = this._createZombieDog ? this._createZombieDog(pos.x, pos.y) : null;
             if (dog) {
+                // 召唤物统一标签：不掉金币/经验/技能修炼值（不影响地牢原有僵尸犬）
+                dog._summoned = true;
                 // [FIX] 每只召唤犬必须有唯一 key，否则会覆盖 entities map 中的同一条记录
                 const dogId = `zombieDog_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`;
                 dog.id = dogId;

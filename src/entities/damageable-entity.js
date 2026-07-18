@@ -154,9 +154,13 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     const critRes = this.data.critRes || 0;
                     const finalCritRate = Math.max(0, critRate - critRes);
                     isCrit = Math.random() * 100 < finalCritRate;
-                    if (isCrit && source && source.skills && source.skills.criticalStrike) {
+                    if (isCrit && !this._summoned && source && source.skills && source.skills.criticalStrike) {
                         SkillManager.addCriticalStrikeExp(source, isCrit, false); // isKill 在下面计算
                     }
+                }
+                // 秒杀模式：玩家攻击直接致死（左下角"秒杀"调试开关，走正常伤害流程）
+                if (source && source._faction === 'player' && typeof window !== 'undefined' && window.Game && window.Game._oneHitKill) {
+                    baseDamage = Math.max(baseDamage, this.hp);
                 }
                 // 扣血
                 this.hp -= baseDamage;
@@ -165,6 +169,10 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                 const scene = typeof window !== 'undefined' && window.__phaserScene;
                 if (scene && typeof scene.triggerZombieHitParticles === 'function') {
                     scene.triggerZombieHitParticles(this, source);
+                }
+                // 首领被玩家命中：显示 BOSS 专属血条（仅玩家攻击触发，超时自动隐藏）
+                if (this.rank === 'boss' && source && source._faction === 'player' && scene && typeof scene.showBossHpBar === 'function') {
+                    scene.showBossHpBar(this);
                 }
                 // 显示伤害数字
                 if (EffectManager && EffectManager.createDamageText) {
@@ -175,8 +183,8 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     this.hp = 0;
                     this.onDeath(source);
                 }
-                // 武器精通技能经验（使用大类判定）
-                if (source && source.getCurrentWeapon && SkillManager) {
+                // 武器精通技能经验（使用大类判定）；召唤物（_summoned 标签）不提供修炼值
+                if (!this._summoned && source && source.getCurrentWeapon && SkillManager) {
                     const currentWpn = source.getCurrentWeapon();
                     if (currentWpn) {
                         const wt = currentWpn.weaponType;
@@ -193,8 +201,8 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                         }
                     }
                 }
-                // 无人机技能经验：击杀被无人机影响的敌人
-                if (isKill && source && source.skills && SkillManager && SkillManager.addDroneExp) {
+                // 无人机技能经验：击杀被无人机影响的敌人（召唤物不提供修炼值）
+                if (!this._summoned && isKill && source && source.skills && SkillManager && SkillManager.addDroneExp) {
                     SkillManager.addDroneExp(source, this);
                 }
             }
@@ -209,8 +217,8 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     const angle = Math.atan2(source.y - this.y, source.x - this.x);
                     EffectManager.add(new BloodMistEffect(this.x, this.y, angle + Math.PI));
                 }
-                // 掉落金币（不再掉落 G18）
-                if (this instanceof Enemy) {
+                // 掉落金币（不再掉落 G18）；召唤物（_summoned 标签）不掉金币/经验
+                if (this instanceof Enemy && !this._summoned) {
                     let goldAmount = getEnemyGoldDrop(this.level, source);
                     if (this.rank === 'elite') goldAmount *= 2;
 

@@ -1,5 +1,6 @@
 import { QuestSystem } from '../quest-system.js';
 import { ExpeditionSystem } from '../expedition-system.js';
+import { DungeonConfig } from '../../config/dungeon-config.js';
 export function createHudPanelsExpeditionQuestReward() {
     // 创建根元素
     const root = document.createElement('div');
@@ -41,10 +42,14 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionDungeonSelect.id = 'expeditionDungeonSelect';
     expeditionDungeonSelect.className = 'expedition-dungeon-select';
     expeditionDungeonSelect.onchange = function() { ExpeditionSystem.onDungeonSelect(this.value); };
-    const optZombie = document.createElement('option');
-    optZombie.value = 'zombie';
-    optZombie.textContent = '☠ 僵尸地牢';
-    expeditionDungeonSelect.appendChild(optZombie);
+    // 地牢选项由 data/dungeon-config.json 的 dungeonList 驱动（新增地牢只需改配置）
+    const dungeonList = DungeonConfig.getDungeonList();
+    for (const [value, info] of Object.entries(dungeonList)) {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = (info && info.name) || value;
+        expeditionDungeonSelect.appendChild(opt);
+    }
     expeditionDungeonSelector.appendChild(dungeonLabel);
     expeditionDungeonSelector.appendChild(expeditionDungeonSelect);
     expeditionInfo.appendChild(expeditionDungeonSelector);

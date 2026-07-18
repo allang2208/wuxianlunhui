@@ -485,6 +485,48 @@ _getPhaserOptions() {
 
 ---
 
+## 音效导入工作流（2026-07-17 新增，参照集合体落地）
+
+### 步骤1: 素材复制建档（规则 4）
+按类别在项目下建子文件夹，把用户提供的音频复制进去：
+```
+assets/sounds/enemies/<怪物英文名>/   # 如 assets/sounds/enemies/amalgam/idle.mp3
+```
+
+### 步骤2: enemy-config.json 配置 sounds 映射（规则 1，不硬编码）
+```json
+"sounds": {
+  "idle":   "assets/sounds/enemies/amalgam/idle.mp3",
+  "throw":  "assets/sounds/enemies/amalgam/idle.mp3",
+  "impact": "assets/sounds/enemies/amalgam/hitting.mp3",
+  "slamHit":"assets/sounds/enemies/amalgam/hitting.mp3",
+  "death":  "assets/sounds/enemies/amalgam/dying.mp3",
+  "idleInterval": 3000
+}
+```
+键名按怪物类内事件自定义（idle/throw/impact/slamHit/death/...）；`idleInterval` 为待机环境音间隔（ms）。
+
+### 步骤3: 怪物类内按事件播放
+`SoundManager.playFile(path)` 直接播放文件，无需 BootScene 预加载。统一在类内写一个小助手：
+
+```javascript
+_playSound(key) {
+    const path = this.config?.sounds?.[key];
+    if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+        SoundManager.playFile(path);
+    }
+}
+```
+
+事件触发点（集合体范例）：
+- idle 待机：`update()` 中计时器到点播放（间隔读 `sounds.idleInterval`）
+- 投掷出手（fireFrame）：`_playSound('throw')`
+- 投射物落地：`_playSound('impact')`
+- 砸地命中帧（hitFrames）：`_playSound('slamHit')`
+- 死亡：`onDeath()` 中 `_playSound('death')`
+
+---
+
 ## 常见问题
 
 ### 精灵图加载时报 "has no frame X"
@@ -1201,3 +1243,57 @@ Phaser Sprite.x / y / rotation / scale
     - 断点2：运行时 `fetch('/data/skills.json')` 实际由 Vite 提供 `public/data/skills.json`（过期副本：11 技能、无 expRewards、缺 6 技能）→ 已双份同步；**教训**：skills.json 与 equipment.json 同为 `data/ ↔ public/data/` 双份副本，改数据必须双同步（规则2 钩稽链路）
   - **玩家数值**：升级经验 `globalMultiplier` 2→4（翻倍，combat-formulas.json）；升级回满 HP/MP（gainExp 循环内）
   - 验证：lint / build / test-collider 全部通过
+
+- v2.9 (2026-07-17) — 集合体首领/僵尸地牢-初级/三系统审查修复（多轮合并）
+  - **集合体（amalgamZombie，boss rank 首领）**
+    - 素材 `assets/enemies/amalgam/`（`scripts/archive/prepare-amalgam-sprites.py` 统一内容 480px、底部对齐 496）；新类 `src/entities/enemy-types/amalgam-zombie.js`：站桩 Boss，投掷（落点红色椭圆警示+范围伤害+生成胖子僵尸）、砸地（分圈结算 100/200/500px×1.2/0.7/0.2，取最小圈不叠加）、15s 召唤 2 僵尸、melting 死亡
+    - **站桩锁死五通道**：speed 0 显式生效、`noSeparation`（resolveCollisions 中对方承担全部位移）、`applyKnockback` 空覆盖、`_tryUnstuck` 跳过 speed 0 单位、出生点锚点钉死
+    - **falsy-0 根因（重要教训）**：移动代码 `maxSpeed || speed || 100` 把显式 0 误回退 100 → 全库改 `??`（空值合并）。**数值回退必须用 ?? 不用 ||**
+    - BOSS 战重构：集合体替代大块头（删 BigBoss ~530 行）；arena 1024（玩家下方中心上移 300/boss 上方中心镜像）；地板抽共享模块 `dungeon-floor-texture.js`；BOSS 场地尺寸改读 `combatRoom.bossSize` 配置
+    - 主神空间 `spawnMainAmalgam` 测试生成；召唤/投掷生成工厂注入（避免实体层反向依赖 world 层）
+  - **僵尸地牢-初级（第二个地牢）**
+    - 配置驱动：`data/dungeon-config.json` 新增 `dungeonList`（出征展示元数据）+ `zombieDungeonBeginner`（22 节点/最短 7/起始 3 分支/mainRowMinCombat 3/战斗 40%/精英 0%/bossEncounter 精英遭遇独立副本）
+    - 生成器按类型读配置；`mainRowMinCombat` 主通道随机 N 列强制战斗（缺省=全部，向后兼容）；**修正：第 1 列强制全行移到节点数调整之前，且调整候选排除第 1 列**（否则总数超区间/分支数不恒定）
+    - `_enterBoss` 对 zombieBeginner 走 `_enterBossCombat`（bossEncounter+普通波次流程，完成→奖励节点→胜利）；`_isZombieFamily()` 共享僵尸战斗体系；出征界面选项/信息面板改由 dungeonList 驱动
+  - **地牢审查修复**
+    - Boss 完成回调被 cleanup 清空（先取回调再 cleanup）；Boss 战死亡 active 卡死（shutdown 强制 BossRewardSystem.cleanup + cleanupRoom）；宝箱材料 `rewards || items || []` 键兼容；召唤泄漏按 key 前缀兜底（`Game.removeEntitiesByPrefix`，zombieDog_/amalgam_）
+    - 中优先级：reward 状态拦截实体更新、波次暂停顺延、商店轮询句柄清理、`_returnToMap` active 守卫、`_checkBossDefeated` 不再把 null 当战胜、补给堆药水=瓶数×单瓶恢复量（POTION_HEAL/MP 导出）、事件结果按钮 300ms 延迟激活防双击穿透、负金币扣除钳制持有量
+    - 低优先级：工厂 fallback HP 同步/召唤工厂注入、BOSS 清理恢复地形/树木/世界尺寸+syncTerrain、BOSS 墙 height 60、退出按钮绘制/热区统一、`_entityHudTexts` role 字段、`_onEnemySpawn` rebuildCollider 守卫、iconMap 补 materials、isActive 复位、`_calculateSpawnArea` margin 生效
+  - **附魔/改造/强化审查修复**
+    - 附魔：`EnchantSystem.init()` 接入 main.js（拖拽放回生效）；魔法粉尘名称统一（MagicDustItem.name=魔法粉尘，匹配点引用模板名）；沉重减速 `_applyEnchantAttackInterval` 统一钩子（空手恢复全部基础冷却，装备/卸下/写回全路径）
+    - 改造：穿甲 `armorPenetrationPercent` 补收集写入（生产端断链修复）；G18 weapon9 配置复制移到 weapon10 完整赋值之后；`_getCraftConfig` 无配置返回 null（不再回退 PKM，UI 显示"该武器不可改造"）；同 id 配件不再白扣 4 券；拖入装备栏立即 `_initAmmoForSlot`；registry 补 staminaCostDelta/skillStaminaCostDelta/dashDoubleHit；tooltip 弹夹 magazineOverride 优先
+    - 强化：删除改写 `item.stats` 的平方级污染块（无 formula 武器回退读 stats 作 base 曾实战虚高）；强化石先扣金币后消耗；**数值决策**：getAttackFormula 回退 `enhanceFlat: 1`（无 formula 武器强化+1/级）、`expValue` 增 `eliteMultiplier: 2 / bossMultiplier: 10`（boss 经验配置化）、盾牌 `defense.base + perEnhance × 强化等级` 计入玩家 def（防具强化真生效）
+  - **事件背景图**：15 张 3072×2048 → 1920×1280 瘦身（93MB→45MB），cover 铺满
+  - 验证：lint / build / test-collider 全部通过
+
+- v3.0 (2026-07-17) — 集合体打磨/判定根因系列/召唤物体系（多轮合并）
+  - **判定与碰撞根因系列（重要教训沉淀）**
+    - `Enemy._updateMovement` 的 `maxSpeed || speed || 100` 把显式 0 误回退 100 → **数值回退必须用 `??` 不用 `||`**（全库 9 处已改）
+    - 警示圈/特效残留统一根因：`active=false` 只是逻辑标记，**Phaser graphics 必须显式 destroy**（EffectManager 移除后不会再触发延迟销毁）
+    - `resolveCollisions` 曾用实体坐标+世界圆 → 与 footprint 椭圆（colliderOffset 偏移 + Y 透视压缩）错位；**分离判定统一取 collider.x/y + 逆透视变换**（与投射物 footprint 判定同口径），位移量变换回世界空间
+    - tint 是乘法：绿色纹理 × 彩色 tint 必偏色 → **自定义色一律用白色纹理**（`impact_dot`）
+  - **集合体（amalgamZombie）持续打磨**
+    - 判定圆 120→240→**270**、`colliderOffsetY` -50→**-100**（配置驱动，阴影/命中/分离同源）
+    - 世界内血条两次下移（topY+188）、名字/数值/标签错开、后删 `Lv.X · 首领` 标签；新增 **BOSS 专属 DOM 血条**（顶部状态栏下方 20px，玩家命中才显示，5s 无命中/Boss 死亡自动隐藏，damageable-entity 在 `rank==='boss' && source._faction==='player'` 触发）
+    - 投掷警示圈立即销毁、落点深黄大粒子（0xb8860b）、`AimHelper.lead` 预判拦截点（与僵尸巫师/毒液僵尸同实现）
+    - 砸地：CD 到点即放（根因：footprint 扩大后玩家进不了 250 触发范围）、区域 200/400/800 ×1.2/0.7/0.2、范围提示为逐帧红色椭圆冲击波（8px 加粗+正弦闪烁、2:1 透视、600ms 扩散、死亡/战斗结束 `_destroyCustomEffects` 统一清理）
+    - 召唤：CD 15s、召唤点地牢刷怪同款黑粒子；站桩/位移免疫五通道（speed 0、每帧归零、applyKnockback 空覆盖、noSeparation、锚点钉死）
+    - `parryImmune: true` 弹反免疫（通用机制：配置加标即免眩晕/击退/打断，玩家侧收益不变）；受击粒子配置化 `hitParticleColor`（白纹理+黄 tint）
+    - 音效：`sounds` 配置块（idle/throw/impact/slamHit/death/idleInterval）+ `_playSound(key)` 助手 + SKILL.md 音效导入工作流
+  - **眩晕双星特效**：`GameScene._syncStunEffects`——眩晕实体头顶两颗四角星旋转（透视压缩+浮动），醒后/实体失效自动销毁，地图模式清理
+  - **召唤物统一 `_summoned` 标签（一劳永逸）**：集合体召唤/投掷生成、巫师召唤犬打标；金币+经验（onDeath）、暴击/武器精通/无人机经验（takeDamage 三分支）、7 处技能击杀计数（attack/whirlwind/ice-spike/dash/push-strike/fireball）全部加 `!entity._summoned` 闸门；**未来召唤方打标即被全部闸门拦截，无需改判定**
+  - **调试工具**：左下新增「秒杀」按钮（`Game._oneHitKill`，takeDamage 中玩家伤害提到致死量，正常结算）
+  - 验证：lint / build / test-collider 全部通过
+
+- v3.1 (2026-07-17) — 遗留 bug 与技术债务分批清理（19 项）
+  - **投射物命中快照**：`Projectile._effectSnapshot` 在 `ProjectileFactory.create` 统一快照发射武器的 `_enchantEffects/_craftEffects`，命中按快照判定（切枪不再改弹道效果）；非工厂创建的投射物回退原逻辑
+  - **攻击冷却基准固化**：`Attack.baseMaxCooldown` 构造时固化，`_applyEnchantAttackInterval` 改读创建基准并废弃 `_baseCooldowns` 缓存（修复 ramp/改造运行时值被当基准缓存的污染）
+  - **附魔界面拖出即刷新**：附魔槽从装备槽拖出武器补 `_applySkillOverrides(equipments[weaponMode])` + `_syncWeaponVisual`
+  - **次级格挡**补 `isMelee` 判定；**冲刺体力**删 `staminaCostDelta` 双用；**基类换弹**读 state 存值（计入改造）
+  - **registry tooltip**：`getCraftEffectDisplay(name, value, allEffects)` 透传聚合效果；`magicVulnerabilityOnHit` 显示真实层数；`magicVulnerabilityStacks` 显示 `易伤层数×N`
+  - **ItemDatabase.getByWeaponId**：懒索引反查替代 craft-system 硬编码 weaponIdMap（load/addItem 自动失效重建，新武器免登记）
+  - **地牢 buff 状态键唯一化**：`addStatusEffect` 键 `'buff'` → `goddessBless`/`demonPrayer`/`buffCfg.id`，消耗/清理按同键移除（多 buff 不再互删图标）；`_cleanupEventUI` 先销毁事件打字机再移除 DOM
+  - **强化配置化**：`data/game-config.json` 新增 `enhance` 节（maxLevel/baseCost/costGrowth），`enhance-system.js` 经 `_getEnhanceConfig()` 读取（`??` 回退）
+  - **材料按 id 匹配**：强化石 `enhancement_stone`/改造券 `reforge_ticket` 模板与地牢事件奖励创建点补 `id`，消耗匹配 id 优先、无 id 旧实例名称兜底
+  - **死代码批删**（grep 确认零调用）：`_combatCompleted`、`ZOMBIE_DUNGEON_CONFIG` 三残留字段、`consumeGoddessBless`、`getGradeCost`、Player 空 `_onHitEntity` 覆盖（敌人版是活的，damage-pipeline 调用保留）、`_ticketCost`/`_modifications`/`getWeaponEffects`、registry 五函数、codex `_craftEffects` 死分支、spitter 敌人端 `_craftEffects` 残留
+  - 验证：每阶段 lint / build / test-collider / test-craft-sync 全部通过

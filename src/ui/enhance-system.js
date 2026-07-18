@@ -6,13 +6,34 @@ import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { ShopSystem } from './shop-system.js';
 import { EquipManager } from './equip-manager.js';
+import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { SystemUI } from './system-ui.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
     _equippedItem: null,
-    _maxEnhanceLevel: 15,
-    _baseCost: 100,
+
+    // 强化参数统一读 data/game-config.json 的 enhance 节（?? 回退仅为配置缺失兜底）
+    _getEnhanceConfig() {
+        const cfg = (GAME_CONFIG && GAME_CONFIG.enhance) || {};
+        return {
+            maxLevel: cfg.maxLevel ?? 15,
+            baseCost: cfg.baseCost ?? 100,
+            costGrowth: cfg.costGrowth ?? 1.5,
+        };
+    },
+
+    // 计算当前等级的强化金币消耗
+    _getEnhanceCost(level) {
+        const cfg = this._getEnhanceConfig();
+        return Math.floor(cfg.baseCost * Math.pow(cfg.costGrowth, level));
+    },
+
+    // 强化石匹配：优先按物品 id，无 id 的旧实例回退按名称
+    _isEnhanceStone(item) {
+        return item && (item.id === 'enhancement_stone' || (!item.id && item.name === '强化石'));
+    },
 
     open(npc) {
         UIState.open('enhance');
@@ -180,16 +201,23 @@ const EnhanceSystem = {
         if (!player) return;
 
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._maxEnhanceLevel) {
+        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '已达最高强化等级！', '#ff4444'));
             return;
         }
 
-        // 检查强化石
+        // 检查强化石存在（先不消耗）
         const bp = EquipManager.backpackItems || [];
-        const stoneIdx = bp.findIndex(i => i.name === '强化石');
+        const stoneIdx = bp.findIndex(i => this._isEnhanceStone(i));
         if (stoneIdx === -1) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '强化石不足！需要1颗强化石', '#ff4444'));
+            return;
+        }
+
+        // 先校验并扣除金币，成功后再消耗强化石（修复：金币不足时强化石被白扣）
+        const cost = this._getEnhanceCost(currentLevel);
+        if (!ShopSystem._deductGold(cost)) {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
             return;
         }
         // 消耗1颗强化石
@@ -200,39 +228,11 @@ const EnhanceSystem = {
             bp.splice(stoneIdx, 1);
         }
         EquipManager.updateInventorySlots();
-
-        const cost = Math.floor(this._baseCost * Math.pow(1.5, currentLevel));
-        if (ShopSystem._getBackpackGold() < cost) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
-            return;
-        }
-        if (!ShopSystem._deductGold(cost)) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
-            return;
-        }
         item.enhanceLevel = (item.enhanceLevel || 0) + 1;
 
-        if (item.category === 'weapon_melee' || item.category === 'weapon_ranged' || item.weaponType) {
-            const el = item.enhanceLevel || 0;
-            const atkStat = item.stats.find(s => s.name === '物理攻击');
-            // 强化效果已统一在 getCurrentWeaponAtk() 中计算，这里只更新 stats 的显示值
-            // 读取原始基础值（未强化时），然后加上强化等级
-            let baseMin = 0, baseMax = 0;
-            if (atkStat && atkStat.value) {
-                const match = String(atkStat.value).match(/(\d+)(?:-(\d+))?/);
-                if (match) { baseMin = parseInt(match[1]); baseMax = match[2] ? parseInt(match[2]) : baseMin; }
-            }
-            const enhanceFlat = (item.attackFormula && item.attackFormula.enhanceFlat) || 1;
-            if (baseMin > 0) {
-                const displayMin = Math.round(baseMin + el * enhanceFlat);
-                const displayMax = Math.round(baseMax + el * enhanceFlat);
-                if (atkStat) {
-                    atkStat.value = displayMin === displayMax ? `${displayMin}` : `${displayMin}-${displayMax}`;
-                } else {
-                    item.stats.push({ name: '物理攻击', value: `${displayMin}-${displayMax}` });
-                }
-            }
-        }
+        // 强化加成统一由 getCurrentWeaponAtk()/computeWeaponAttack 按 attackFormula 派生，
+        // 不再改写 item.stats 显示值（修复：stats 被反复改写导致基础值滚动累加；
+        // 无 attackFormula 武器经 getAttackFormula 回退把污染值当 base 参与实战，造成平方级膨胀）
 
         this._playEnhanceEffect();
 
@@ -271,9 +271,9 @@ const EnhanceSystem = {
         if (this._equippedItem) {
             const item = this._equippedItem.item;
             const level = item.enhanceLevel || 0;
-            const cost = Math.floor(this._baseCost * Math.pow(1.5, level));
+            const cost = this._getEnhanceCost(level);
             const bp = EquipManager.backpackItems || [];
-            const _hasStone = bp.some(i => i.name === '强化石');
+            const _hasStone = bp.some(i => this._isEnhanceStone(i));
             slot.innerHTML = `
                 <div class="slot-icon">${item.iconImage ? `<img src="${item.iconImage}" alt="${item.icon || '❓'}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon || '❓'}';">` : (item.icon || '❓')}</div>
                 <div class="slot-name">${item.name}</div>
@@ -282,7 +282,7 @@ const EnhanceSystem = {
             slot.classList.add('has-item');
             slotInfo.innerHTML = `
                 <div class="enhance-info-name">${item.name}</div>
-                <div class="enhance-info-level">当前强化等级: +${level} / ${this._maxEnhanceLevel}</div>
+                <div class="enhance-info-level">当前强化等级: +${level} / ${this._getEnhanceConfig().maxLevel}</div>
                 ${this._buildPredictedStats(item)}
             `;
             costEl.innerHTML = `💰 ${cost} + 💎 强化石×1`;
@@ -310,27 +310,14 @@ const EnhanceSystem = {
     },
 
     _buildFormulaDisplay(formula, el, craftEffects) {
-        if (!formula) return '';
-        let effectiveFormula = formula;
-        if (craftEffects && craftEffects.slugMode && formula.variants && formula.variants.slugMode) {
-            effectiveFormula = formula.variants.slugMode;
-        }
-        const base = (effectiveFormula.base || 0) + el * (effectiveFormula.enhanceFlat || 0);
-        const parts = [`${base}`];
-        const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
-        for (const attr of effectiveFormula.attrs || []) {
-            const coeff = attr.base + (attr.perEnhance || 0) * el;
-            if (Math.abs(coeff) < 0.001) continue;
-            const name = attrNames[attr.key] || attr.key;
-            parts.push(`${coeff >= 0 ? '+' : '-'} ${name}×${Math.abs(coeff).toFixed(2)}`);
-        }
-        return parts.join(' ');
+        // 统一委托共享实现（config/attack-formula.js），消除三处复制漂移
+        return buildFormulaDisplay(formula, el, craftEffects);
     },
 
     _buildPredictedStats(item) {
         if (!item.weaponId || !Game.player || !Game.player.getCurrentWeaponAtk) return '';
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._maxEnhanceLevel) {
+        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
             return '<div class="enhance-predicted" style="margin-top:8px;color:#7a9a6a;font-size:12px;">已达到最高强化等级</div>';
         }
         // 计算当前攻击力

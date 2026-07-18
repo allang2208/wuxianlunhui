@@ -84,6 +84,12 @@ export const ProjectileFactory = {
             );
             if (knockback !== undefined) p.knockback = knockback;
         }
+        // 快照发射瞬间武器的附魔/改造效果：命中时按快照判定，防止弹道飞行中切枪改变命中效果
+        const snapWeapon = source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null;
+        p._effectSnapshot = {
+            enchant: snapWeapon && snapWeapon._enchantEffects ? { ...snapWeapon._enchantEffects } : null,
+            craft: snapWeapon && snapWeapon._craftEffects ? { ...snapWeapon._craftEffects } : null
+        };
         EffectManager.add(p);
         return p;
     }

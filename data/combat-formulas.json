@@ -133,7 +133,9 @@
     },
     "expValue": {
       "base": 10,
-      "levelMultiplier": 5
+      "levelMultiplier": 5,
+      "eliteMultiplier": 2,
+      "bossMultiplier": 10
     }
   },
   "tributes": {

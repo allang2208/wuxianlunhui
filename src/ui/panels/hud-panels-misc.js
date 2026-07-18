@@ -133,6 +133,22 @@ export function createHudPanelsMisc() {
     });
     root.appendChild(invincibleToggle);
 
+    // ===== 秒杀模式切换按钮 =====
+    const oneHitKillToggle = document.createElement('div');
+    oneHitKillToggle.className = 'invincible-toggle';
+    oneHitKillToggle.id = 'oneHitKillToggle';
+    oneHitKillToggle.title = '秒杀模式（玩家攻击直接秒杀怪物）';
+    const oneHitKillSpan = document.createElement('span');
+    oneHitKillSpan.textContent = '秒杀';
+    oneHitKillToggle.appendChild(oneHitKillSpan);
+    oneHitKillToggle.addEventListener('click', () => {
+        if (typeof window === 'undefined' || !window.Game) return;
+        window.Game._oneHitKill = !window.Game._oneHitKill;
+        oneHitKillToggle.classList.toggle('active', window.Game._oneHitKill);
+        oneHitKillSpan.textContent = window.Game._oneHitKill ? '秒杀中' : '秒杀';
+    });
+    root.appendChild(oneHitKillToggle);
+
     // ===== 游戏秒表计时器 =====
     const gameTimer = document.createElement('div');
     gameTimer.id = 'gameTimer';

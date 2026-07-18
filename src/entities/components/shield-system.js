@@ -98,6 +98,10 @@ export class ShieldSystem {
         // 只有近战攻击才施加眩晕、击退、打断冲刺
         if (!isMelee) return;
 
+        // 弹反免疫单位（如集合体）：弹反不造成眩晕/打断/击退，动作不被打断；
+        // 玩家侧收益（免伤/免体力/弹反音效/防御经验）不受影响，照常生效
+        if (attacker._parryImmune) return;
+
         // 攻击者眩晕（基础时间 + 持盾防御技能加成）
         let stunDuration = defense.parryStun || 2000;
         if (this.player.skills && this.player.skills.shieldDefense) {

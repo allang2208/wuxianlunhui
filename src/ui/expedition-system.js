@@ -12,6 +12,7 @@ import { EquipManager } from './equip-manager.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { SystemUI } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -24,7 +25,7 @@ export const ExpeditionSystem = {
         UIState.open('expedition');
         this._isOpen = true;
         this._carriedItems = new Array(this.CAPACITY).fill(null);
-        this.selectedDungeon = 'zombie'; // 只保留僵尸地牢
+        this.selectedDungeon = 'zombie'; // 默认选中僵尸地牢（可选列表见 dungeon-config.json dungeonList）
 
         // 打开面板时刷新玩家属性，确保没有残留祭品加成
         if (player && typeof player.calculateCombatStats === 'function') {
@@ -536,7 +537,7 @@ export const ExpeditionSystem = {
         this._updateDungeonInfo(value);
     },
 
-    // 更新地牢信息面板
+    // 更新地牢信息面板（展示元数据来自 data/dungeon-config.json 的 dungeonList）
     _updateDungeonInfo(_dungeonType) {
         const nameEl = getElement('expeditionDungeonName');
         const nodeCountEl = getElement('expeditionNodeCount');
@@ -544,22 +545,13 @@ export const ExpeditionSystem = {
         const levelEl = getElement('expeditionLevel');
         const rewardEl = getElement('expeditionReward');
 
-        const info = {
-            zombie: {
-                name: '☠ 僵尸地牢',
-                nodeCount: '35~40',
-                battleRatio: '70%',
-                level: '1级',
-                reward: '1500金币'
-            }
-        };
-
-        const d = info.zombie;
-        if (nameEl) nameEl.textContent = d.name;
-        if (nodeCountEl) nodeCountEl.textContent = d.nodeCount;
-        if (battleRatioEl) battleRatioEl.textContent = d.battleRatio;
-        if (levelEl) levelEl.textContent = d.level;
-        if (rewardEl) rewardEl.textContent = d.reward;
+        const list = DungeonConfig.getDungeonList();
+        const d = list[_dungeonType] || list.zombie || {};
+        if (nameEl) nameEl.textContent = d.name || '';
+        if (nodeCountEl) nodeCountEl.textContent = d.nodeCount || '';
+        if (battleRatioEl) battleRatioEl.textContent = d.battleRatio || '';
+        if (levelEl) levelEl.textContent = d.level || '';
+        if (rewardEl) rewardEl.textContent = d.reward || '';
     },
 
     // 确认出征 — 物品已从背包真正移出，直接带走

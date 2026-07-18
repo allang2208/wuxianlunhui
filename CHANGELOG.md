@@ -8,6 +8,244 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-17（遗留 bug 与技术债务分批清理）
+
+### 对话：7 阶段 19 项清理（v0.198+）
+- **文案/键值级（6 项）**：宝箱怪战斗文案与实刷 3 只一致；附魔成功音效由不存在的 `SoundManager.play('enchant_success')` 改为 `playFile(levelup_cyber_5s.wav)`；「沉重」文案改"攻击速度降低约26%"（×1.35 间隔的真实口径）；enchant-config 卷轴 weaponTypes 删死值 `'melee'`；符文重构文案 20px→40px（与实现一致，双份 craft-config.json 同步）；锐利符文文案删"右键特殊攻击"前缀（魔抗穿透作用于一切魔法伤害）。
+- **附魔系（3 项）**：投射物发射时快照 `_enchantEffects/_craftEffects` 到 `_effectSnapshot`（projectile-factory 统一注入），命中按快照判定，杜绝飞行中切枪改效果；`_baseCooldowns` 首缓存污染修复——`Attack` 构造时固化 `baseMaxCooldown`，`_applyEnchantAttackInterval` 改读创建基准（能量轻机枪 ramp 运行时值不再被当基准缓存）；附魔界面从装备槽拖出武器补调 `_applySkillOverrides` + `_syncWeaponVisual`（沉重/冷却/贴图立即还原）。
+- **改造系（5 项）**：次级格挡实现补 `isMelee` 判定（与描述一致），registry tooltip 同步；冲刺体力删 `staminaCostDelta` 双用（只吃 `skillStaminaCostDelta`）；基类 `combatant.js` `_startReload/_updateReload` 改读 state（`_initAmmoForSlot` 已计入改造），不再直读 ammoCfg 原值；`getCraftEffectDisplay` 透传聚合效果，`magicVulnerabilityOnHit` 显示真实层数、`magicVulnerabilityStacks` 不再渲染空行；craft-system 武器贴图 weaponIdMap 硬编码表删除，`ItemDatabase.getByWeaponId` 懒索引反查（新武器免登记，load/addItem 自动失效重建）。
+- **地牢系（2 项）**：`_cleanupEventUI` 先调 `DungeonEventSystem._cleanupUI()` 销毁打字机再移除 DOM；地牢 buff 实体状态键 `'buff'` 改唯一键（`goddessBless`/`demonPrayer`/`buffCfg.id`），`consumeBattleBuffs/clearAllBuffs` 按同键移除，多 buff 不再互删图标。
+- **死代码批删（逐条 grep 确认零调用）**：`node._combatCompleted` 只写不读；`ZOMBIE_DUNGEON_CONFIG` 残留 `combatWaves/monstersPerWave/tierWeights`（实际读 `DungeonConfig.getZombieEncounterConfig`）；`consumeGoddessBless`；`EnchantConfig.getGradeCost`；Player 空 `_onHitEntity` 覆盖（**注意**：`damage-pipeline.js` 的 `_onHitEntity` 调用保留——enemy.js 敌人实现是活的，毒伤/协同流血依赖它）；craft-system `_ticketCost`/`_modifications`/`getWeaponEffects`；registry 五个零调用函数（保留 `getCraftEffectDisplay`）；codex `_craftEffects` 展示死分支（图鉴为 DB 合并物品永无实例改造数据）；spitter-zombie 敌人端 `_craftEffects` 复制残留。
+- **配置化（3 项）**：强化三常量（maxLevel 15/baseCost 100/costGrowth 1.5）移入 `data/game-config.json` 新增 `enhance` 节，`enhance-system.js` 统一 `_getEnhanceConfig()` 读取（`??` 回退）；强化石/改造券模板补 `id`（reward-system 模板 + 地牢事件奖励创建点注入 `id: configKey`），消耗匹配改 id 优先、无 id 旧实例名称兜底；`weapon-damage-formulas.js` 补注释标明最小回退定位（核查与 attack-formula.js 无重复，不合并）。
+- **测试结果**：每阶段跑 `npm run lint` / `npx vite build` / `test-collider.mjs` / `test-craft-sync.mjs` 全部通过（registry 三角计数 38/39/39/38 不变，确认只删函数未动效果条目）。
+- **已知问题**：待用户拍板——enhanceFlat 倍率、bossMultiplier、投掷音效（idle vs throwing）；椭圆分离手感需实机回归。
+
+## 2026-07-17（受击粒子落地黄/眩晕双星/召唤物统一标签与闸门）
+
+### 对话：集合体两项 + 召唤物系统性调整（v0.198+）
+- **集合体受击粒子换落地黄色**：`enemy-config.json` amalgamZombie 新增 `hitParticleColor: "#b8860b"`；`triggerZombieHitParticles` 读取该配置，`playZombieHitParticles` 支持自定义 tint——自定义色用白色 `impact_dot` 纹理（tint 乘算准确显色），默认绿色沿用原绿色纹理不变（其他僵尸不受影响）。
+- **眩晕双星动画特效**：`GameScene._ensureStunStarTexture`（四角星纹理）+ `_syncStunEffects`——眩晕实体头顶两颗星星以半径 26px 旋转（Y 按平面透视压缩、带上下浮动），眩晕持续时间内播放，结束或实体失效自动销毁，地图模式全部清理；update 循环接入。
+- **召唤物统一 `_summoned` 标签（一劳永逸）**：集合体召唤僵尸/投掷胖子、僵尸巫师召唤犬统一打 `_summoned = true`（不影响地牢原有怪物）。
+- **统一闸门（金币/经验/技能修炼全拦截）**：
+  - `damageable-entity.js onDeath`：金币掉落+玩家经验跳过 `_summoned`；
+  - 同文件 takeDamage：暴击经验、武器精通经验（kill/crit）、无人机经验三个分支全部加 `!this._summoned` 闸门；
+  - 各技能击杀计数（attack.js ×2、whirlwind、ice-spike、dash ×2、push-strike、fireball 共 7 处）全部改为 `killed && !entity._summoned` 才计数。
+  - 设计说明：`_summoned` 为唯一标签，未来任何召唤方打标即自动被全部闸门拦截；命中数（hitCount）仍照常计入（未被"杀死"的召唤物命中属于正常命中经验，与"杀死召唤物无收益"语义一致）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①集合体受击为落地黄、其他僵尸仍为绿色；②被眩晕单位头顶双星旋转、醒后消失；③杀召唤犬/召唤僵尸/投掷胖子不掉金币经验、武器精通/各技能修炼不累积，原地牢怪正常。
+
+## 2026-07-17（集合体弹反免疫 + 位移免疫确认）
+
+### 对话：集合体弹反交互独立设置（v0.198+）
+- **弹反免疫（配置驱动）**：`enemy-config.json` amalgamZombie 新增 `parryImmune: true`；`amalgam-zombie.js` 构造函数读入 `_parryImmune`；`shield-system.js triggerParry` 在弹反音效后对免疫单位直接 return——弹反对集合体**不再造成眩晕、击退、打断动作**（攻击动画/阶段照常进行）。玩家侧收益（免伤、免体力消耗、弹反音效、防御经验）全部不受影响、不做修改。
+- **位移免疫（已确认在位）**：集合体已具备完整防位移链——speed 0 显性锁死、每帧 vx/vy/knockback 归零、`applyKnockback` 空覆盖（任何来源击退无效）、`noSeparation`（分离时对方承担全部位移）、出生点锚点钉死（每帧强制归位）。任何单位都无法推动集合体。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①对集合体弹反：玩家不受伤害/不耗体力/有音效，但集合体不眩晕、不被击退、攻击不被打断；②集合体被任何方式攻击/挤压时纹丝不动。
+
+## 2026-07-17（左下"秒杀"调试按钮）
+
+### 对话：新增秒杀模式开关（v0.198+）
+- **按钮**：`hud-panels-misc.js` 无敌按钮旁新增"秒杀"切换按钮（同款样式），点击切换 `window.Game._oneHitKill`，开启时显示"秒杀中"（active 高亮）。
+- **秒杀判定**：`damageable-entity.js takeDamage` 在扣血前检查——`source._faction === 'player' && Game._oneHitKill` 时 `baseDamage` 提到 `max(baseDamage, this.hp)`，走正常伤害流程（死亡特效/掉落/经验照常触发，不会跳过结算）。
+- **作用域**：全局生效（含地牢 BOSS 战），供快速测试。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——按钮切换与秒杀生效（伤害数字、掉落、经验照常）。
+
+## 2026-07-17（召唤 CD 15s 确认 + 召唤点黑色刷怪粒子）
+
+### 对话：集合体召唤调整（v0.198+）
+- **召唤 CD**：`attackSkills.summon.cooldown = 15000`（15s，配置已确认生效，首次召唤同样在生成 15s 后触发）。
+- **召唤点黑色粒子**：`_updateSummon` 每只僵尸召唤成功时，在其脚下调用 `GameScene.playDungeonSpawnParticles(sx, sy)`（与地牢战斗房刷怪同款：纯黑、更慢、1.5s、NORMAL 混合）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机待验证——召唤间隔 15s 与召唤点黑色粒子观感。
+
+## 2026-07-17（血条再下移/冲击波加粗闪烁/footprint 270 上移 100）
+
+### 对话：集合体三项微调（v0.198+）
+- **血条再下移 100px**：`_syncEntityHud` boss 血条 `barY` 由 `topY + 88` → `topY + 188`（660px 贴图下进一步下移）。
+- **冲击波加粗 + 闪烁**：`_fireSlamShockwave` 描边 4px → **8px**；透明度在淡出曲线上叠加高频正弦闪烁（`0.55 + 0.45 × sin(t×π×8)`），冲击波呈脉冲感。
+- **footprint 椭圆优化**：`collisionRadius` 240 → **270**（+30）；`render.colliderOffsetY` -50 → **-100**（中心点再上移 50px，阴影/命中/分离同源随动）。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①血条新位置；②冲击波加粗+脉冲闪烁观感；③270/-100 的椭圆与贴图对齐及可接近手感。
+
+## 2026-07-17（落地粒子偏色根因/砸地区域 200-400-800/砸地冲击波）
+
+### 对话：集合体三项调整（v0.198+）
+- **落地粒子仍显绿色的根因**：`zombie_hit_dot` 纹理本身就是绿色（`fillStyle(0x55ff55)` 生成），Phaser tint 是**乘法**——深黄 tint × 绿色纹理仍偏绿。修复：新增白色粒子纹理 `impact_dot`（`_ensureImpactDotTexture`），`playTanImpactParticles` 改用白纹理，深黄 tint（0xb8860b）现在准确显色。
+- **砸地伤害区域调整**（enemy-config.json `attackSkills.slam.zones`）：100/200/500 → **200px ×1.2 / 400px ×0.7 / 800px ×0.2**，各自区域判定不叠加，其他不变。
+- **砸地范围提示改为冲击波动画（首版参考）**：删除静态三层红圈显示，改为每个伤害帧（7/12/17/20/24/27）从集合体中心释放一个红色椭圆冲击波——`_fireSlamShockwave`：椭圆由 0 扩散至最大伤害圈半径（800px），4px 描边随扩散淡出（alpha 0.9→0）+ 极淡填充，平面透视 2:1，600ms Cubic.easeOut；同时最多 6 个波并存，结束自动销毁；`_destroyCustomEffects` 统一清理在飞的波（死亡/战斗结束无残留）。
+- **测试结果**：enemy-config.json 校验通过（zones 200/400/800）；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①落地粒子正确显示深黄色；②冲击波扩散节奏/透明度/透视比例观感（首版供参考，参数在 `_fireSlamShockwave` 可调）；③200/400/800 三圈伤害手感。
+
+## 2026-07-17（落地粒子深黄/砸地CD驱动+三圈显示/分离椭圆匹配/投掷预判）
+
+### 对话：集合体四项调整（v0.198+）
+- **落地粒子改深黄色**：`playTanImpactParticles` tint `0xc8a060`（黄褐）→ `0xb8860b`（深黄）。
+- **砸地攻击放不出来的根因**：**不是 AI 问题，是判定范围问题**——footprint 半径翻倍到 240 后，玩家被分离边界挡在 ~262px 外，而 `_decideAttack` 要求 `dist <= triggerRange(250)` 才触发砸地，永远不满足。修复：砸地改为 **CD 一旦满足立即释放**（有目标即可，不再受 triggerRange 限制）；投掷攻击仍按自身 CD 独立进行，动画/阶段互不影响（`_attackKind` 互斥，一方进行中另一方等待）。
+- **砸地范围显示**：`_createSlamZoneDisplay`——三圈按伤害深度分层红色（500px 浅红 `0xff8080` / 200px 中红 `0xd03030` / 100px 深红 `0x8a0a0a`，伤害最高圈最深），先大区后小区叠加绘制，椭圆 2:1 透视；砸地结束自动取消；新增 `_destroyCustomEffects`（清理警示圈/范围圈/飞行投射物），`onDeath` 与 `game.js removeEntity` 均调用，怪物死亡/战斗结束正确删除效果。
+- **footprint 椭圆精准匹配（根因）**：`resolveCollisions` 分离判定此前用世界圆（r 沿 Y 全量），而 footprint 视觉/投射物判定是椭圆（ry=r×0.5 透视），沿 Y 方向物理边界比视觉椭圆远一倍——"视觉有空间却不能接近"。修复：分离判定加入逆透视变换（`dy × 1/PERSPECTIVE_SCALE_Y`，与 `projectile._hitFootprintEllipse` 同口径），位移量再变换回世界空间，分离体积与 footprint 椭圆完全一致。
+- **投掷预判**：`_startAttack('throw')` 改用与其他远程怪物（僵尸巫师/毒液僵尸）相同的 `AimHelper.lead` 预判——延迟 = 出手帧时间（1.2s）+ 飞行时间（0.6s），落点与红色警示圈均按预判拦截点显示，不再锁定目标当前位置。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①深黄色落地粒子；②砸地 CD 到点即放、三圈红显示与结束取消；③接近集合体沿 Y 方向阻挡边界与椭圆视觉一致；④移动目标的投掷落点预判准确性。
+
+## 2026-07-17（召唤物无奖励/集合体音效/血条去标签/footprint分离同源）
+
+### 对话：集合体四项调整（v0.198+）
+- **召唤物无经验金钱**：`amalgam-zombie.js` 召唤僵尸（`_updateSummon`）与投掷生成胖子僵尸（`_impactThrow`）打 `_noExpGold = true` 标记；`damageable-entity.js onDeath` 的金币掉落+经验分支跳过标记实体。**不影响地牢原有僵尸/胖子僵尸**（标记只打在集合体生成的实体上）。
+- **集合体音效系统**：素材复制到 `assets/sounds/enemies/amalgam/`（规则 4）；`enemy-config.json` 新增 `sounds` 配置块（idle/throw/impact/slamHit/death/idleInterval，配置驱动）；`amalgam-zombie.js` 新增 `_playSound(key)` 助手（SoundManager.playFile）与五个触发点——待机环境音按 idleInterval 循环、投掷出手（fireFrame）、投射物落地、砸地 6 个命中帧、死亡。SKILL.md 新增「音效导入工作流」章节（素材建档→配置映射→事件播放三步）。**备注**：`throwing.mp3` 已入库未使用（投掷按用户指定用 idle.mp3），如需切换改配置一行即可。
+- **世界内血条**：删除血条下方的 `Lv.X · 首领` 标签文字。
+- **footprint 椭圆与实际分离不一致根因**：`game.js resolveCollisions` 的分离计算用实体 x/y，而 footprint 椭圆/阴影/命中判定用 `Collider` 偏移后坐标（colliderOffsetY=-50）——物理分离区比视觉椭圆低 50px，造成"视觉有空间却不能接近"。修复：分离计算统一取 `collider.x/y`（与命中椭圆/阴影同源）。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①召唤僵尸/投掷胖子死亡不掉金币经验、地牢原有怪物正常掉落；②五个音效点（待机循环/投掷/落地/砸地帧/死亡）；③血条无首领标签；④集合体可接近距离与视觉椭圆一致。
+
+## 2026-07-17（集合体判定圆/血条重做/警示圈销毁/落点粒子）
+
+### 对话：集合体四项调整（v0.198+）
+- **判定圆**：`enemy-config.json` amalgamZombie `collisionRadius` 120→**240**（半径翻倍）；新增 `render.colliderOffsetY: -50`（footprint 上移 50px，经 `Collider.syncPosition` 的 entity.colliderOffsetY 机制生效，阴影/命中/分离同源随动）。
+- **生命值显示重做**（GameScene `_syncEntityHud` boss 分支）：
+  - 世界内血条整体下移 100px（`topY - 12` → `topY + 88`），解决上浮过高；
+  - 字段错开：名字（barY-34）/ HP 数值（barY-8）/ `Lv.X · 首领` 标签（血条下方 barY+barH+12）不再贴在一起；
+  - 召唤阈值绿线改为仅在配置了 HP 阈值召唤的 Boss 才画（集合体定时召唤不画）。
+- **新增 BOSS 专属血条（屏幕空间 DOM）**：`GameScene._ensureBossHpBar/showBossHpBar/_updateBossHpBar/_hideBossHpBar`——位于顶部状态栏下方 20px、520px 居中（首领名+渐变血条+数值）；`damageable-entity.js` 在 `rank==='boss' && source._faction==='player'` 受击时触发显示（只有玩家攻击到才显示），5 秒无新命中自动隐藏、Boss 死亡立即隐藏。
+- **投掷警示圈落地不消失根因**：`AttackRangeEffect.update()` 只在 `life<=0` 时才销毁 Phaser 图形，而 `_destroyWarning` 置 `active=false` 后 EffectManager 在下一帧就把效果移除出列——life 永远到不了 0，graphics 永久残留。修复：`_destroyWarning` 现在**立即调用** `_destroyPhaserGraphics()` 销毁图形（落地事件即删除）。
+- **落点黄褐色粒子**：`GameScene.playTanImpactParticles(x, y)`——参考僵尸受击粒子，黄褐色 tint、2.0 起始缩放（更大）、20 颗（更多）、lifespan 1500（1.5 秒）、重力下坠；在 `_impactThrow` 落点处触发。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①判定圆 240/上移 50 的命中手感与阴影位置；②世界内血条下移/错开版式；③命中才显示的 BOSS 血条位置/渐变/隐藏时机；④投掷警示圈落地即消失；⑤黄褐色粒子大小/浓度/时长。
+
+## 2026-07-17（清单全量收尾：地牢中低优先级/改造P2/数值决策/技术债务）
+
+### 对话：按清单完成全部剩余工作（v0.198+）
+- **A1 地牢中优先级 7 项**：`game.js` 拦截 `state='reward'`（奖励面板期间实体不更新）；波次切换改 `_scheduleNextWave`（暂停自动顺延，不再真实时间刷波）；商店轮询句柄存 `_shopCheckInterval` 并在 shutdown 清理 + `_returnToMap` 加 active 守卫；`_checkBossDefeated` 不再把 null boss 当战胜；补给堆药水=瓶数×单瓶恢复量（`POTION_HEAL/POTION_MP` 导出）且不再与旧 successRewards 双重发奖；事件结果按钮 300ms 延迟激活防双击穿透；负金币扣除钳制到持有量。
+- **A2 改造 P2 六项**：G18 weapon9 完整改造选项复制移到 weapon10 完整赋值之后（四个死格修复）；`_getCraftConfig` 无配置返回 null 不再回退 PKM（UI 显示"该武器不可改造"，锈剑/弓/盾不能再装消音器）；同 id 配件不再白扣 4 券；拖入装备栏立即 `_initAmmoForSlot`；registry 补 `staminaCostDelta/skillStaminaCostDelta/dashDoubleHit`；tooltip 弹夹 magazineOverride 优先。
+- **A3 数值决策**：`getAttackFormula` 回退 `enhanceFlat: 1`（无 attackFormula 武器强化 +1/级）；`expValue` 新增 `eliteMultiplier: 2 / bossMultiplier: 10`（boss 经验配置化，集合体现 450）；盾牌 `defense.base + perEnhance × 强化等级` 计入玩家 def（防具强化真生效）；15 张事件背景图 3072×2048 → 1920×1280（93MB→45MB）。
+- **A4 地牢低优先级清理**：工厂 fallback HP 同步现值 + 召唤工厂注入；`combatRoom.bossSize` 4096→1024 且 BossRewardSystem arena.size 改读配置（死配置盘活）；BOSS 战清理恢复地形/树木/世界尺寸 + syncTerrain；BOSS 墙补 height:60；`_restoreSceneState` 补 syncTerrain；退出按钮绘制/热区统一；`_entityHudTexts` type→role 字段修正；`_onEnemySpawn` rebuildCollider 守卫；iconMap 补 materials；事件完成 isActive 复位；`_calculateSpawnArea` margin 生效（与 minWallDistance 取大）。
+- **B 阶段**：SKILL.md 新增 v2.9 变更记录；存档包含装备/背包（`game-ui-manager.js` 存档加 equipments/backpack，读档真正恢复并重算派生状态——此前 load 只 alert）；强化公式展示收敛为 `attack-formula.js` 的 `buildFormulaDisplay` 唯一实现（enhance/tooltip 两处委托，codex 硬编码 ×0.1 描述同步修正）。
+- **C 阶段（技术债务）**：
+  - **craft 配置迁 JSON**：`_WEAPON_CRAFT_CONFIGS` ~1200 行硬编码经脚本忠实导出为 `data/craft-config.json`（71KB，12 武器配置），`public/data/craft-config.json` 同步；craft-system.js 由 1461 → 922 行，拼接代码全部移除。
+  - **registry 三角同步**：后坐 `recoilRecoveryDelta`（kick 衰减分母 max(20, 80+delta)）、散布 `shotSpreadDelta`（每发 kick 按最大散布角折算）、移速 `moveSpeedPercent` 非 PKM 武器通用化；新增永久检查 `scripts/test-craft-sync.mjs`（配置→收集→注册→消费四面校验，38 键全过）。
+  - **死代码清理**：删除 boss-reward-system.js 的 DungeonBuffSystem（~200 行，与 dungeon-event-system 同名类重复且无调用方）及全部引用（实例/委托方法/window/导出/StatusBar 闲置导入）。
+- **测试结果**：`npm run lint` ✅ 0 警告；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅；`node scripts/test-craft-sync.mjs` ✅（38 键全同步）。
+- **已知问题**：实机待验证——①奖励面板期间实体冻结；②暂停不刷波；③补给堆药水恢复量正常；④G18 改造格全部可用；⑤穿甲/后坐/移速改造实机手感；⑥读档恢复装备背包；⑦改造配置迁移后全部武器改造项正常。
+
+## 2026-07-17（附魔/改造/强化审查 P0+P1 六项修复）
+
+### 对话：按审查优先级修复附魔/改造/强化三系统问题（v0.198+）
+- **P0-1 附魔 init 未调用（拖拽放回失效）**：`main.js` 新增 `EnchantSystem.init()`（注册 4 个 EventBus 监听：附魔槽拖回背包/装备栏、卷轴快捷放入）。
+- **P0-2 魔法粉尘名称断链（附魔经济断裂）**：`enchant-config.js` `MagicDustItem.name` 魔法晶尘→**魔法粉尘**（与地牢事件奖励同一物品）；`enchant-system.js` 三处匹配点硬编码字面量改为引用 `MagicDustItem.name`（配置驱动）；相关 UI 文案同步。
+- **P0-3 穿甲改造完全无效（生产端从不写入）**：`craft-system.js _applyModEffects` 增加 `armorPenetrationPercent` 收集变量 + 循环累加 + 写入 `_craftEffects`（与 magicPenetrationPercent 同模式），`damageable-entity.js` 既有消费端自此生效。
+- **P0-4 强化 stats 平方级污染（实战数值漏洞）**：`enhance-system.js` 删除强化时改写 `item.stats` 显示值的整块逻辑——stats 不再被反复改写，基础值不再滚动累加；无 attackFormula 武器经 getAttackFormula 回退读取的 base 保持干净。**注意**：无 attackFormula 的 16 个武器（锈剑/符文剑/AKM/PKM 等）回退 `enhanceFlat: 0`，强化对它们现在无实战加成（此前靠污染生效），如需加成需改回退公式（数值改动待你确认）。
+- **P1-1 沉重减速只在切枪时生效**：`subsystems.js _applyEnchantAttackInterval` 重写——空手/非武器时恢复全部已缓存基础冷却（防残留）；`_applySkillOverrides` 开头统一调用（覆盖所有装备/卸下路径）；`enchant-system.js` 附魔写回后立即刷新。
+- **P1-2 强化石白扣**：`enhance-system.js` 消耗顺序改为先扣金币成功后再扣强化石（并合并重复金币检查）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①附魔槽拖回背包/装备栏；②地牢获得粉尘可支付附魔；③穿甲配件（厚重钝化/钢芯穿甲弹）实际生效；④强化不再虚高；⑤沉重减速装备即生效、卸下不残留；⑥金币不足时石头不消耗。
+
+## 2026-07-17（地牢审查 4 个高危问题修复）
+
+### 对话：Boss 回调清空/软锁/宝箱 TypeError/召唤泄漏修复（v0.198+）
+- **修复 1（Boss 完成回调永不触发）**：`boss-reward-system.js leaveBossBattle` 先取 `const onComplete = this._onCompleteCallback` 再 `cleanup()`（此前 cleanup 先把回调置 null，回调永远执行不到 → Boss 节点无法标记完成、奖励节点流程失效）。
+- **修复 2（Boss 战中死亡后 active 卡死软锁）**：`dungeon-map-system.js shutdown()` 新增强制调用 `BossRewardSystem.cleanup()` 与 `CombatRoomSystem.cleanupRoom()`（此前全项目无调用方，下次 BOSS 战 `start()` 因 active===true 直接 return，玩家困死）。
+- **修复 3（宝箱材料 25% TypeError）**：`dungeon-event-system.js:822` 材料分支改 `for (const item of (outcome.rewards || outcome.items || []))`（JSON 用 items、DEFAULTS 用 rewards，兼容两键）。
+- **修复 4（召唤物战斗后泄漏）**：`game.js` 新增 `removeEntitiesByPrefix(...prefixes)`（经 removeEntity、跳过存活尸体）；`combat-room-system.js` 的 `cleanupMonstersOnly`/`cleanupRoom` 与 `boss-reward-system.js cleanup` 按前缀兜底清理（zombieDog_ / amalgam_fat_ / amalgam_zombie_）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①击败 Boss 后节点变 empty、可进奖励节点；②Boss 战中死亡重进地牢 BOSS 战正常开启；③宝箱材料分支正常发奖；④召唤犬/集合体召唤物在战斗结束后不再残留。
+
+## 2026-07-17（新增地牢：僵尸地牢-初级）
+
+### 对话：第二个地牢接入出征系统 + 生成器节点数修正（v0.198+）
+- **需求**：新增"僵尸地牢-初级"——22 房间、最短路线 ≥7 节点、起始 3 线路、7 节点最少 3 战斗、整体战斗 40%、精英 0%、boss 战为精英战斗独立副本、出征模式可选。
+- **配置（data/dungeon-config.json，零硬编码）**：
+  - `dungeonList`：两个地牢的出征展示元数据（名称/节点数/战斗比/等级/奖励），驱动出征界面选项与信息面板。
+  - `zombieDungeonBeginner`：nodeCount 22/22、shortestCombatPath 7（boss 第 8 列）、mainRowMinCombat 3、typeRatios 0.40/0.60、eliteCombatChance 0、grid rows 3/mainRow 1、bossEncounter（1 波 × 精英1+普通5，精英遭遇独立副本）。
+- **代码改动**：
+  - `src/config/dungeon-config.js`：`_keyFor` 类型→配置键映射；`getZombieDungeonConfig/getZombieEncounterConfig/getEliteCombatChance` 支持按地牢类型读取；新增 `getBossEncounterConfig`、`getDungeonList`。
+  - `src/world/zombie-dungeon.js`：`ZombieDungeonMapGenerator` 接受 dungeonType（读对应配置键）；新增 `mainRowMinCombat`（主通道随机 N 列强制战斗，缺省=shortestCombatPath 向后兼容）；精英概率按类型读取；`ZombieDungeonCombat` 第 3/4 参支持 encounterOverride 与 dungeonType。
+  - **生成器修正**：第 1 列强制全行移到节点数调整**之前**（此前在之后，强制的补行使总数超出配置区间）；`_adjustNodeCount` 增删候选排除第 1 列（保证起始分支数恒定）。主地牢回归 1000 次通过（35~40/4 分支）。
+  - `src/world/dungeon-map-system.js`：`dungeonName` 改读 dungeonList；新增 `_isZombieFamily()`（zombie/zombieBeginner 共享僵尸战斗波次体系）替换 3 处 `=== 'zombie'` 判断；`generateMap`/`_enterZombieCombat` 传 dungeonType；`_enterBoss` 对 zombieBeginner 走 `_enterBossCombat`（bossEncounter + 普通战斗/波次/传送门流程，完成→奖励节点→胜利）；`_markCurrentNodeCompleted` 移除 boss 排除（arena boss 不经此路径，无影响）。
+  - `src/ui/expedition-system.js` + `src/ui/panels/hud-panels-expedition-quest-reward.js`：出征地牢选项与信息面板改由 dungeonList 驱动。
+- **验证**：JSON 校验通过；生成器约束仿真 1000 次（22 节点/3 分支/主通道≥3 战斗/平均战斗占比 42.4%）全过；主地牢回归仿真 1000 次通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **过程备注**：初期复现测试曾报 2% 节点数异常，最终定位是复现脚本自身的内联随机 bug（`filter(r => r !== arr[rand()])` 每元素重掷），真实代码先取 `remove` 再过滤，无此问题。
+- **已知问题**：实机待验证——①出征界面出现"☠ 僵尸地牢-初级"选项并可进入；②22 房地图布局/3 分支/事件背景图；③boss 节点刷出 精英1+普通5 战斗房，完成后奖励节点→胜利；④主地牢不受影响。
+
+## 2026-07-17（集合体贴图与碰撞体积 ×3）
+
+### 对话：集合体 spriteSize 220→660，碰撞同步放大（v0.198+）
+- **修改文件**：`data/enemy-config.json` amalgamZombie——`size` 40→120、`collisionRadius` 40→120（footprint/阴影/分离/命中椭圆同源随动）、`render.spriteSize` 220→660、`render.collisionWidth/Height` 100×180→300×540、`render.footOffsetY` 103→309（随贴图比例）、`render.projectileHitbox` 120×190→360×570。
+- **未动**：攻击 AOE 半径（投掷 45、砸地 100/200/500、触发 250、召唤 150）为用户此前明确设定的数值，不属"碰撞体积"，如需随体型放大请明示。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——660px 贴图在 1024 BOSS 场地中的视觉比例、投掷起始点（随 footOffsetY 309 上移）。
+
+## 2026-07-17（集合体移动根因：falsy-0 速度回退 + 锚点钉死）
+
+### 对话：集合体第三次报"还是会移动"——根因定位与系统级修复（v0.198+）
+- **根因**：移动代码普遍使用 `maxSpeed || speed || 100` 逻辑或回退——`0` 是假值，speed 0 被当作"未配置"而回退到 **100**！集合体每帧实际以 ~100×accel 的速度被 `Enemy._updateMovement`（enemy.js:527）和 MovementSystem 七处路径驱动。前三次修复（锁 vx/knockback、noSeparation、_tryUnstuck 跳过、applyKnockback 空覆盖）都正确但都没堵住这条主通道。
+- **修改文件**：
+  - `src/systems/movement-system.js`：7 处 `enemy.maxSpeed || enemy.speed || 100` → `enemy.maxSpeed ?? enemy.speed ?? 100`（空值合并，0 被保留；仅 undefined/null 才回退——speed 字段在构造函数必有值，旧配置语义不变）。
+  - `src/entities/enemy.js::_updateMovement`：同样 `||` → `??`（:527）。
+  - `src/entities/enemy-types/amalgam-zombie.js`：新增出生点锚定——构造函数记录 `_anchorX/_anchorY`，`update()` 每帧强制 `this.x/y = 锚点`（强制显性编码的兜底保险，任何未来新增位移通道都无法让其离锚）。
+- **教训（写入记忆）**：**speed 0 的语义陷阱**——一切 `xxx || fallback` 对数值 0 都会误回退；数值回退必须用 `??`。本次替换安全：speed/maxSpeed 在 Enemy 构造函数必被赋值，`||` 原本只在显式 0（或 NaN）时触发。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——集合体彻底纹丝不动（本次为根因级修复）。
+
+## 2026-07-17（集合体移动/投掷物/刷点三修复）
+
+### 对话：集合体仍会移动 + 投掷物不可见 + 生成点错位（v0.198+）
+- **问题1（集合体仍移动）**：非"40 最低速度"冲突（代码库无此钳制）。第四位移通道：`MovementSystem._tryUnstuck` 的触发条件是"有速度 或 有目标且距离 > attackRange"，集合体 speed 0 但目标在 120px 外 → 被判"尝试移动但 30 帧无位移"→ 周期性瞬移。修复：`_tryUnstuck` 开头跳过 speed/maxSpeed 均为 0 的站桩单位（通用机制）。另 `AmalgamZombie` 覆盖 `applyKnockback` 为空（击退永不累积，杜绝任何时序缝隙）。
+- **问题2（投掷物不可见）**：`project.png` 是 512×512 帧中仅 81×79 的内容（15.8%），`setDisplaySize(48,48)` 缩放整帧 → 实际可见内容仅 ~7.6px。修复：用脚本将 `assets/enemies/amalgam/project.png` 裁剪至内容 bbox（81×79），配置 `projectileSize` 48→64。
+- **问题3（生成点错位）**：`WallSystem.resolve` 真实签名为 `(x, y, nx, ny, r)` 五参，此前按三参调用 → ny/r 为 undefined → 返回错误坐标（且 `typeof NaN === 'number'` 绕过了旧守卫）→ 胖子僵尸/召唤僵尸刷到错误位置。修复：投掷落点与召唤落点统一改为 `canMoveTo` 校验 + `findSafeSpawn` 螺旋外推 + `Number.isFinite` 守卫。
+- **修改文件**：`src/systems/movement-system.js`（_tryUnstuck 站桩跳过）、`src/entities/enemy-types/amalgam-zombie.js`（applyKnockback 空覆盖 + 两处生成点修正）、`data/enemy-config.json`（projectileSize 64）、`assets/enemies/amalgam/project.png`（裁剪）。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①集合体有目标时纹丝不动（不再瞬移）；②投掷可见 64px 投射物抛物线飞行；③胖子僵尸/召唤僵尸刷在警示圈/集合体下方正确位置。
+
+## 2026-07-17（集合体强制站桩锁死）
+
+### 对话：修复集合体 speed 0 仍可移动（v0.198+）
+- **根因**：speed 0 只关闭自驱移动，仍有三个位移通道——①实体分离（`game.js resolveCollisions` 对重叠双方各推一半位移，与 speed 无关，召唤的僵尸会把集合体挤走）；②击退速度 `vx/vy`；③击退累积 `knockbackX/knockbackY`（damageable-entity `applyKnockback`）。
+- **修改文件**：
+  - `src/entities/enemy-types/amalgam-zombie.js`：**强制显性编码**——构造函数锁死 `speed/maxSpeed/vx/vy/knockbackX/knockbackY = 0` 并设置 `noSeparation = true`；`update()` 每帧再将 `vx/vy/knockbackX/knockbackY` 归零。
+  - `src/game.js resolveCollisions`：新增 `noSeparation` 语义——不可分离单位自身纹丝不动，由对方承担全部重叠位移；双方均不可动则跳过（通用机制，未来站桩单位可复用）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——集合体被打/被召唤僵尸挤时纹丝不动，僵尸环绕时由僵尸让位。
+
+## 2026-07-17（集合体首领完整接入 + BOSS战重构）
+
+### 对话：集合体精灵图/技能/BOSS战替代大块头/主神空间测试（v0.198+）
+- **素材（规则 4 + 4.8 处理）**：`assets/enemies/amalgam/`——idle 14 帧 / attacking 32 帧（砸地）/ attacking-2 25 帧（投掷）/ melting 28 帧，经 `scripts/archive/prepare-amalgam-sprites.py`（隔离 venv `.venv-sprites` 装 Pillow 运行）统一内容高度 ~480px、底部对齐 496、水平居中、宽限 500px；`project.png`（投掷物）原样复制。
+- **新增 `src/entities/enemy-types/amalgam-zombie.js`**（数值全部来自 enemy-config.json `attackSkills`/`deathAnim`/`render`，类内零硬编码）：
+  - 站桩 Boss（speed 0 显式生效），面朝目标；`aiInterval = MAX_SAFE_INTEGER` 关闭通用近战（同 mutant-3 模式），攻击全由类自管。
+  - 攻击状态一（throw 投掷）：25 帧动画 2s，第 16 帧（1.2s）向锁定落点抛出投射物（project.png，600ms 抛物线）；投掷前至落地在落点显示红色椭圆警示（45px，`AttackRangeEffect` 逐帧保活）；落地 GroundEllipse(45) 物理伤害（atk×1.0），并在落点生成一只胖子僵尸（工厂注入 `_createFatZombie`）。
+  - 攻击状态二（slam 砸地）：32 帧动画 2s，第 7/12/17/20/24/27 帧分圈结算——100px→atk×1.2、200px→atk×0.7、500px→atk×0.2（GroundEllipse 各自判定，取目标所在最小圈，不叠加）；冷却 7s、触发距离 250px。
+  - 特殊技能（summon 召唤）：冷却 15s，非攻击状态时于下方 150px 召唤 2 只僵尸（工厂注入 `_createBasicZombie`），播放 idle 动画不打断攻击。
+  - 死亡：melting 2.8s + 停最后一帧（27）2s 后销毁；`_preserveCorpse` 驱动尸体更新链。
+- **BOSS 战重构（`boss-reward-system.js`）**：
+  - 集合体替代大块头：`_spawnBoss` 改用 `AmalgamZombie`（enemy-config 数值 + 永久警戒，注入两个生成工厂）；删除 `createBigBossClass`（~530 行）、`getBigBossClass`、`window.BigBoss`、`BOSS_REWARD_CONFIG.boss`、`Enemy`/`Renderer`/`CONFIG` 闲置导入。
+  - 场地重构：`arena.size` 4096→**1024**，新增 `playerFromBottom: 300`（玩家生成于最下方中心上移 300px）与 `bossFromTop: 300`（集合体上方中心镜像对齐）；`_placePlayer` 去随机边改为固定下方中心；地板改用与战斗房相同的黑砖拼铺。
+  - `zombie-dungeon.js`：`createFatZombie` 补 `export`（供 Boss 战注入）。
+- **共享模块 `src/world/dungeon-floor-texture.js`（新）**：地板烘焙唯一实现（`bakeDungeonFloor` + `applyDungeonFloor`），`combat-room-system._generateTerrain` 重构为调用它——战斗房与 Boss 场地同一地板，规则 1 去重。
+- **其他**：`BootScene` 加载/注册 5 张集合体贴图动画；`enemy-types.js` 导出 `AmalgamZombie`；`enemy-sprite-tool.js` 列表 bigBoss→amalgamZombie；`game.js` 新增 `spawnMainAmalgam()`（主神空间测试，注入两工厂）并在初始化与返回主神空间两处注册；`dungeon-map-system.js` 注释同步。
+- **测试结果**：enemy-config.json 校验通过；`npm run lint` ✅（0 警告）；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题**：实机待验证——①主神空间集合体 idle/投掷（警示圈/落点伤害/生成胖子）/砸地分圈伤害/15s 召唤；②地牢 BOSS 战 1024 场地、出生点镜像、黑砖地板；③死亡 melting 动画与尸体消失时机。投掷/砸地动画 2s 时长与 BootScene 注册 duration 为两处维护（既有约定，改动需同步）。
+
+## 2026-07-17（新增首领僵尸「集合体」）
+
+### 对话：新增 boss 级僵尸 amalgamZombie + 显式战斗属性机制（v0.198+）
+- **需求**：首领级僵尸"集合体"，HP 5000、物理攻击 60、魔法攻击 0、防御/魔法防御与僵尸巫师差不多、移动速度 0。
+- **关键发现**：
+  - `enemy.js:37` 旧守卫 `if (this.speed < 1) this.speed = 45` 会把显式 speed 0 强制改 45。
+  - matk=0 与 mdef≈巫师(58) 在六维公式下互斥（matk=floor((int+wis)×0.5)=0 要求 int+wis≤1，而 mdef 靠 wis×1.2 驱动）。
+  - 僵尸巫师实际面板：def=48、mdef=58（combat-formulas.json enemy 段公式）。
+- **修改文件**：
+  - `src/entities/enemy.js`：
+    - speed 守卫改 `if (this.speed > 0 && this.speed < 1) this.speed = 45`——显式 0 = 站桩单位生效，旧相对值（0.2 类）修正逻辑保留。
+    - 构造函数新增显式战斗属性覆盖（仅 `atk/matk/mdef`，与现有 hp/maxHp 显式覆盖同模式）；**不含 def**——现有 3 条配置（胖子 25/僵尸 7/毒液 10）的 def 字段一直未生效（公式驱动），激活会改变旧怪平衡，故排除并注释说明。
+  - `data/enemy-config.json`：新增 `amalgamZombie`（集合体）：rank boss、type 首领、family 僵尸；hp/maxHp 5000（显式覆盖公式）；speed 0；六维 str100/dex20/con12/int0/wis1/luck5——使 atk=60、def=48、matk=0 由公式自然得出；`mdef: 58` 显式覆盖（公式值仅 1）；attackRange/attackDistance 120、thrust cooldown 2000/dynamicRange 140/width 30/knockback 20；collisionRadius 40；level 7（公式值）。
+- **数值验证（node 公式模拟）**：HP 5000 ✓ / atk 60 ✓ / matk 0 ✓ / def 48（=巫师）✓ / mdef 58（=巫师）✓ / speed 0 ✓；对照巫师 atk 15/matk 37。
+- **测试结果**：enemy-config.json JSON 校验通过；`npm run lint` ✅；`npx vite build` ✅；`node scripts/test-collider.mjs` ✅。
+- **已知问题/后续**：
+  - 集合体目前仅有配置（图鉴可见），**不会在任何战斗中生成**——BOSS 节点战斗用的是 boss-reward-system 固定"大块头"类，boss rank 配置池未接入；如需让集合体成为僵尸地牢 BOSS，需要另做 boss 池接线（下次任务）。
+  - 无精灵图素材，渲染回退 `enemy_circle` 占位；提供素材后按规则 4 建档接入。
+  - 站桩单位仍可能受击退/分离位移（未做 immovable），需要的话后续加。
+  - boss rank 的 `getExpValue` 无双倍（仅 elite×2），当前击杀经验 = 10+7×5 = 45。
+
 ## 2026-07-17（尸体保留修复 + 技能public副本同步 + 背景图cover）
 
 ### 对话：胖子尸体不被波次强清 + 技能经验第二断点 + 背景图 cover + 地牢机制汇报（v0.198+）

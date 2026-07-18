@@ -58,7 +58,11 @@ class Projectile {
                     if (this.isSpit && typeof entity.applyPoison === 'function') {
                         entity.applyPoison(1);
                     }
-                    const weapon = this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null;
+                    // 命中效果按发射瞬间的快照判定（无快照时回退到当前武器，兼容非工厂创建的投射物）
+                    const snap = this._effectSnapshot;
+                    const weapon = snap
+                        ? { _enchantEffects: snap.enchant, _craftEffects: snap.craft }
+                        : (this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null);
                     DamagePipeline.applyHit(this.source, entity, {
                         damage,
                         damageType: this.damageType || 'ranged',

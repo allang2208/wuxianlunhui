@@ -85,6 +85,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_zombie_walk',   'assets/enemies/zombie/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 14 });
         this.load.spritesheet('enemy_zombie_attack', 'assets/enemies/zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 14 });
 
+        // 集合体（首领）精灵图动画（8×4 网格 512×512 切帧：idle 14 帧 / 砸地 32 帧 / 投掷 25 帧 / 死亡 28 帧）
+        this.load.spritesheet('enemy_amalgam_idle',         'assets/enemies/amalgam/idle.png',         { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_amalgam_attack_slam',  'assets/enemies/amalgam/attacking.png',    { frameWidth: 512, frameHeight: 512, endFrame: 31 });
+        this.load.spritesheet('enemy_amalgam_attack_throw', 'assets/enemies/amalgam/attacking-2.png',  { frameWidth: 512, frameHeight: 512, endFrame: 24 });
+        this.load.spritesheet('enemy_amalgam_melt',         'assets/enemies/amalgam/melting.png',      { frameWidth: 512, frameHeight: 512, endFrame: 27 });
+        this.load.image('enemy_amalgam_project', 'assets/enemies/amalgam/project.png');
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -275,6 +282,32 @@ export class BootScene extends Scene {
             key: 'enemy_zombie_attack',
             frames: this.anims.generateFrameNumbers('enemy_zombie_attack', { start: 0, end: 14 }),
             duration: 1000,
+            repeat: 0,
+        });
+
+        // 集合体（首领）动画
+        this.anims.create({
+            key: 'enemy_amalgam_idle',
+            frames: this.anims.generateFrameNumbers('enemy_amalgam_idle', { start: 0, end: 13 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_amalgam_attack_slam',
+            frames: this.anims.generateFrameNumbers('enemy_amalgam_attack_slam', { start: 0, end: 31 }),
+            duration: 2000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_amalgam_attack_throw',
+            frames: this.anims.generateFrameNumbers('enemy_amalgam_attack_throw', { start: 0, end: 24 }),
+            duration: 2000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_amalgam_death',
+            frames: this.anims.generateFrameNumbers('enemy_amalgam_melt', { start: 0, end: 27 }),
+            duration: 2800,
             repeat: 0,
         });
 
