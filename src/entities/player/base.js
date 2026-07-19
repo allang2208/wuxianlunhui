@@ -4,6 +4,7 @@ import { COMBAT_FORMULAS } from '../../config/combat-formulas.js';
 import { CONFIG } from '../../config/config.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { DungeonBuffSystem } from '../../world/dungeon-event-system.js';
+import { applyTributeEffects } from '../../config/tribute-effects.js';
 
 const baseMixin = {
     calculateCombatStats() {
@@ -107,6 +108,9 @@ const baseMixin = {
 
         // 应用地牢事件buff加成（女神祝福/恶魔祈祷）
         this._applyDungeonBuffBonus();
+
+        // 祭品效果（数据驱动）：对最终面板做固定百分比调整
+        applyTributeEffects(this);
     },
 
     _applyRounding(value, method) {

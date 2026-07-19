@@ -12,6 +12,7 @@ import { EnhanceSystem } from './enhance-system.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { getTributeHpRegenMultiplier } from '../config/tribute-effects.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -204,7 +205,9 @@ export const GameUIManager = {
                 case 'detailHpRegen': {
                     const tributeItems = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
                     const hasWheat = tributeItems.some(c => c && c.item && c.item.name === '麦穗');
-                    el.textContent = ((d.hpRegen || 0) + (hasWheat ? 1 : 0)) + item.unit;
+                    // 与实战同口径：麦穗+1 后再乘祭品生命恢复百分比
+                    const regen = ((d.hpRegen || 0) + (hasWheat ? 1 : 0)) * getTributeHpRegenMultiplier();
+                    el.textContent = (Math.round(regen * 100) / 100) + item.unit;
                     break;
                 }
                 case 'detailMpRegen': el.textContent = d.mpRegen + item.unit; break;

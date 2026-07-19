@@ -13,6 +13,7 @@ import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { getTributeGoldMultiplier } from '../config/tribute-effects.js';
 
         /**
          * 根据配置计算怪物金币掉落
@@ -42,6 +43,9 @@ import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
                     amount = Math.floor(amount * tributeMul);
                 }
             }
+
+            // 祭品效果（数据驱动）：携带祭品的金币掉落百分比加成
+            amount = Math.floor(amount * getTributeGoldMultiplier());
 
             return Math.max(0, amount);
         }

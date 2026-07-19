@@ -12,6 +12,7 @@ import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
+import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -346,6 +347,8 @@ update(dt, entities) {
                         const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
                         if (hasWheat) regen += 1;
                     }
+                    // 祭品效果（数据驱动）：生命恢复百分比加成
+                    regen *= getTributeHpRegenMultiplier();
                     this.data.hp = Math.min(this.data.maxHp, this.data.hp + regen * (dt / 1000));
                 }
                 // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
@@ -363,7 +366,8 @@ update(dt, entities) {
                 }
                 // ===== 魔法回复 =====
                 if (this.data.mp < this.data.maxMp) {
-                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * (dt / 1000));
+                    // 祭品效果（数据驱动）：魔法恢复百分比加成
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * getTributeMpRegenMultiplier() * (dt / 1000));
                 }
                 Object.values(this.attacks).forEach(a => a.update(dt));
                 // ===== 枪类武器弹道扩散计时更新（主副手独立） =====
