@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（四项修复：动作移动锁定/手脑CD与裁剪/仓库格子/出征背包联动）
+
+### 对话：骑士普攻仍移动 + 手脑嚎叫CD与walking + 仓库格子叠压 + 出征背包预期不符
+- **骑士"攻击时移动"根因**：`MovementSystem`（外部系统，在实体自身 update 之后运行）不读 `_animState`——combo/charge/block 期间 `_updateXxx` 设的 vx=0 随后被 MovementSystem 重算覆盖。修复：接入通用豁免通道 `_attackAnimTimer`（集合体/突变体-3/僵尸巫师同机制）——三技能 start 时设为动作时长、end 清零、update 递减；**冲锋期间 MovementSystem 双重驱动的隐患一并消除**。手脑 slam/howl 同款锁定同步补上。
+- **手脑**：howl 冷却 10s → 30s；walking 切分再修正——PIL alpha 投影实测四张图统一为 **8列×4行（帧 512×512）**，walk 12 帧=8+4 占前两行（此前 8×2 判断错误）；四张图首帧内容 bbox 一致（~320×420），素材比例统一无缩放问题。
+- **仓库格子叠压**：根因=基础 `.inv-cell` 带 `aspect-ratio:1`，仓库宽格（177px）被撑成正方形与 56px 行高冲突。按用户要求完全复制背包格子样式（`.gear-inventory-col` 三件套：`aspect-ratio: unset; height: 56px` + img 32px + inv-stack 微调）。
+- **出征背包联动（回滚+真修）**：用户预期=打开出征自动**打开**背包（上一版误解为关闭，已回滚恢复 `SystemUI.open('equip')`）。"一进入背包就被关"的真根因：system-ui 遮罩 click 处理器排除列表缺 `expedition`——出征操作点击落在遮罩上触发背包关闭。排除列表补 `expedition`（连同 `fusion` 祭品合成同款场景）。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js、src/phaser/scenes/BootScene.js、src/ui/system-ui.js、src/ui/expedition-system.js、data/enemy-config.json、game-style.css、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①骑士二连击/格挡原地、冲锋不再被外部推走；②手脑走路动画正常、嚎叫 30s CD；③仓库格子不叠压；④出征打开背包保持开启、操作不误关。
+
 ## 2026-07-20（四项修复：骑士HUD/仓库整体/出征界面/手脑裁剪）
 
 ### 对话：骑士血条下移 + 仓库问题排查 + 出征界面调整 + 手脑 walking 裁剪

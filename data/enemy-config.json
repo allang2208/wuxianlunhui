@@ -1077,7 +1077,7 @@
         "triggerRange": 300
       },
       "howl": {
-        "cooldown": 10000,
+        "cooldown": 30000,
         "duration": 3000,
         "frames": 28,
         "range": 600,

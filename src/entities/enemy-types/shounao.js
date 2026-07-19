@@ -15,6 +15,8 @@ export class Shounao extends Enemy {
         });
         this._useStickFigure = false;
         this._animState = 'idle'; // idle | walk | slam | howl
+        // 动作期间锁定 MovementSystem（与集合体/骑士同机制）：>0 时外部系统不驱动移动
+        this._attackAnimTimer = 0;
 
         // 砸地状态
         this._slamTimer = 0;
@@ -34,6 +36,7 @@ export class Shounao extends Enemy {
     update(dt, entities) {
         if (this._slamCooldown > 0) this._slamCooldown -= dt;
         if (this._howlCooldown > 0) this._howlCooldown -= dt;
+        if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
         this.updateStatusEffects(dt);
 
         // 眩晕时强制中断所有动作
@@ -89,6 +92,7 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         this._animState = 'slam';
         this._slamTimer = cfg.duration ?? 2000;
+        this._attackAnimTimer = cfg.duration ?? 2000; // 锁定 MovementSystem，砸地期间不可移动
         this._slamCooldown = cfg.cooldown ?? 6000;
         this._slamHitsDone = new Set();
         this.vx = 0;
@@ -137,6 +141,7 @@ export class Shounao extends Enemy {
         if (this._animState === 'slam') this._animState = 'idle';
         this._slamTimer = 0;
         this._slamHitsDone = new Set();
+        this._attackAnimTimer = 0;
     }
 
     // ========== 嚎叫 ==========
@@ -145,7 +150,8 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().howl;
         this._animState = 'howl';
         this._howlTimer = cfg.duration ?? 3000;
-        this._howlCooldown = cfg.cooldown ?? 10000;
+        this._attackAnimTimer = cfg.duration ?? 3000; // 锁定 MovementSystem，嚎叫期间不可移动
+        this._howlCooldown = cfg.cooldown ?? 30000;
         this._howlTickTimer = 0; // 立即判定第一跳
         this.vx = 0;
         this.vy = 0;
@@ -182,6 +188,7 @@ export class Shounao extends Enemy {
         if (this._animState === 'howl') this._animState = 'idle';
         this._howlTimer = 0;
         this._howlTickTimer = 0;
+        this._attackAnimTimer = 0;
     }
 
     // ========== 工具 ==========
