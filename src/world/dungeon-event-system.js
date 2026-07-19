@@ -459,62 +459,10 @@ export const DungeonBuffSystem = {
 
 // ==================== 属性检定系统 ====================
 
-/**
- * 属性检定工具
- */
-export const AttributeCheckSystem = {
-    /**
-     * 执行属性检定
-     * @param {Player} player - 玩家对象
-     * @param {string} attribute - 属性名 'str'|'dex'|'con'|'int'|'wis'|'luck'
-     * @param {number} baseRate - 基础成功率
-     * @returns {Object} { success: boolean, rate: number, roll: number }
-     */
-    check(player, attribute, baseRate = 20) {
-        const config = DUNGEON_EVENT_CONFIG.attributeCheck;
-
-        // 获取属性值
-        let attrValue = 0;
-        if (player && player.data) {
-            attrValue = player.data[attribute] || 0;
-        }
-
-        // 计算成功率
-        let successRate = baseRate + attrValue * config.attrMultiplier;
-        successRate = Math.max(config.minSuccessRate, Math.min(config.maxSuccessRate, successRate));
-
-        // 随机判定
-        const roll = Math.random() * 100;
-        const success = roll < successRate;
-
-        return {
-            success,
-            rate: successRate,
-            roll,
-            attribute,
-            attrValue,
-        };
-    },
-
-    /**
-     * 获取检定描述文本
-     * @param {Object} result - 检定结果
-     * @returns {string}
-     */
-    getResultText(result) {
-        const attrNames = {
-            str: '力量', dex: '敏捷', con: '体质',
-            int: '智力', wis: '精神', luck: '幸运',
-        };
-        const attrName = attrNames[result.attribute] || result.attribute;
-
-        if (result.success) {
-            return `【成功】${attrName}检定：${result.attrValue}点 → ${result.rate.toFixed(1)}% 成功率，掷出 ${result.roll.toFixed(1)}`;
-        } else {
-            return `【失败】${attrName}检定：${result.attrValue}点 → ${result.rate.toFixed(1)}% 成功率，掷出 ${result.roll.toFixed(1)}`;
-        }
-    },
-};
+// AttributeCheckSystem 已抽到 ./attribute-check-system.js（断开与 definitions 的循环依赖）；
+// 此处 re-export 保持既有 import 路径（本文件内部及外部引用）不变。
+export { AttributeCheckSystem } from './attribute-check-system.js';
+import { AttributeCheckSystem } from './attribute-check-system.js';
 
 // ==================== 事件处理器 ====================
 

@@ -9,7 +9,7 @@
  * - 失败战斗区分「普通战斗」与「精英战斗」
  */
 
-import { AttributeCheckSystem } from './dungeon-event-system.js';
+import { AttributeCheckSystem } from './attribute-check-system.js';
 import { StatusBar } from '../ui/status-bar.js';
 
 // 与 dungeon-event-system.js 保持一致的特殊道具映射

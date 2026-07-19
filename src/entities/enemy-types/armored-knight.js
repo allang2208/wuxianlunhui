@@ -141,7 +141,7 @@ export class ArmoredKnight extends Enemy {
         }
 
         // 冲锋：CD 就绪且目标在触发范围内，瞬间发动（无蓄力）
-        if (this._chargeCooldown <= 0 && cfg.charge.speed) {
+        if (this._chargeCooldown <= 0 && cfg.charge.maxSpeed) {
             if (this._isTargetInRange(t, cfg.charge.triggerRange ?? 550)) {
                 this._startCharge();
                 return;
