@@ -10,7 +10,8 @@ import { UIState } from './ui-state.js';
 import { SystemUI } from './system-ui.js';
 import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
-import { RARITY_LABELS } from '../config/rarity.js';
+import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
+import { SceneManager } from '../world/scene-manager.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
@@ -39,43 +40,155 @@ export const WarehouseSystem = {
         return this.items.find(i => i.slot === slot) || null;
     },
 
-    /** 放入一件物品（返回是否成功） */
-    addItem(item) {
-        const slot = this._findFirstEmptySlot();
-        if (slot === -1) return false;
-        item.slot = slot;
-        this.items.push(item);
-        return true;
+    /** 是否可堆叠 */
+    _isStackable(item) {
+        return (item && item.maxStack || 1) > 1;
     },
 
-    /** 背包 → 仓库 */
+    /** 物品在目标数组中还能堆叠多少（同名可堆叠堆的空余 + 空格数×最大堆叠） */
+    _stackSpaceIn(targetItems, item, freeSlots) {
+        if (!this._isStackable(item)) return freeSlots;
+        const maxStack = item.maxStack || 1;
+        let space = 0;
+        for (const t of targetItems) {
+            if (t && t.name === item.name) space += Math.max(0, maxStack - (t.stack || 1));
+        }
+        return space + freeSlots * maxStack;
+    },
+
+    /** 把物品堆叠/落格进仓库（先填同名堆，超出最大堆叠再占新格），返回是否全部放入 */
+    _applyIntoWarehouse(item) {
+        let remaining = item.stack || 1;
+        // 先填同名堆
+        if (this._isStackable(item)) {
+            const maxStack = item.maxStack;
+            for (const t of this.items) {
+                if (remaining <= 0) break;
+                if (t && t.name === item.name && (t.stack || 1) < maxStack) {
+                    const add = Math.min(maxStack - (t.stack || 1), remaining);
+                    t.stack = (t.stack || 1) + add;
+                    remaining -= add;
+                }
+            }
+        }
+        // 剩余部分占用新格
+        while (remaining > 0) {
+            const slot = this._findFirstEmptySlot();
+            if (slot === -1) break;
+            const maxStack = item.maxStack || 1;
+            const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
+            const clone = JSON.parse(JSON.stringify(item));
+            clone.stack = add;
+            clone.slot = slot;
+            this.items.push(clone);
+            remaining -= add;
+        }
+        return remaining <= 0;
+    },
+
+    /** 放入一件物品（返回是否成功） */
+    addItem(item) {
+        return this._applyIntoWarehouse(item);
+    },
+
+    /** 背包 → 仓库（同品堆叠；仓库放不下整件则不动并提示） */
     storeFromBackpack(bpIdx) {
         const bp = EquipManager.backpackItems || [];
         const idx = bp.findIndex(i => i.slot === bpIdx);
         if (idx === -1) return;
         const item = bp[idx];
-        if (this._findFirstEmptySlot() === -1) {
-            this._showHint('仓库已满！');
+        const freeSlots = this.capacity - this.items.length;
+        if (this._stackSpaceIn(this.items, item, freeSlots) < (item.stack || 1)) {
+            this._notifyFull('仓库已满');
             return;
         }
         bp.splice(idx, 1);
-        this.addItem(item);
+        this._applyIntoWarehouse(item);
         this._refreshAll();
     },
 
-    /** 仓库 → 背包 */
+    /** 一键全部存入：逐个堆叠，遇到仓库满即停并提示 */
+    storeAllFromBackpack() {
+        const bp = EquipManager.backpackItems || [];
+        if (bp.length === 0) return;
+        if (this.items.length >= this.capacity) {
+            this._notifyFull('仓库已满');
+            return;
+        }
+        for (let i = bp.length - 1; i >= 0; i--) {
+            const item = bp[i];
+            const freeSlots = this.capacity - this.items.length;
+            if (this._stackSpaceIn(this.items, item, freeSlots) < (item.stack || 1)) {
+                this._notifyFull('仓库已满');
+                break;
+            }
+            bp.splice(i, 1);
+            this._applyIntoWarehouse(item);
+        }
+        this._refreshAll();
+    },
+
+    /** 一键取出同类：仓库中与背包同名的物品取回背包堆叠，背包满即停并提示 */
+    retrieveMatching() {
+        const bp = EquipManager.backpackItems || [];
+        if (bp.length === 0 || this.items.length === 0) return;
+        const bpNames = new Set(bp.map(i => i && i.name));
+        for (let i = this.items.length - 1; i >= 0; i--) {
+            const item = this.items[i];
+            if (!item || !bpNames.has(item.name)) continue;
+            const bpFreeSlots = EquipManager.maxBackpackSlots - bp.length;
+            if (this._stackSpaceIn(bp, item, bpFreeSlots) < (item.stack || 1)) {
+                this._notifyFull('背包已满');
+                break;
+            }
+            this.items.splice(i, 1);
+            this._applyIntoBackpack(item);
+        }
+        this._refreshAll();
+    },
+
+    /** 把物品堆叠/落格进背包（先填同名堆，超出占新格） */
+    _applyIntoBackpack(item) {
+        const bp = EquipManager.backpackItems;
+        let remaining = item.stack || 1;
+        if (this._isStackable(item)) {
+            const maxStack = item.maxStack;
+            for (const t of bp) {
+                if (remaining <= 0) break;
+                if (t && t.name === item.name && (t.stack || 1) < maxStack) {
+                    const add = Math.min(maxStack - (t.stack || 1), remaining);
+                    t.stack = (t.stack || 1) + add;
+                    remaining -= add;
+                }
+            }
+        }
+        while (remaining > 0) {
+            const slot = EquipManager._findFirstEmptySlot();
+            if (slot === -1) break;
+            const maxStack = item.maxStack || 1;
+            const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
+            const clone = JSON.parse(JSON.stringify(item));
+            clone.stack = add;
+            clone.slot = slot;
+            bp.push(clone);
+            remaining -= add;
+        }
+        return remaining <= 0;
+    },
+
+    /** 仓库 → 背包（同品堆叠；背包放不下整件则不动并提示） */
     retrieveToBackpack(wSlot) {
         const idx = this.items.findIndex(i => i.slot === wSlot);
         if (idx === -1) return;
-        const emptySlot = EquipManager._findFirstEmptySlot();
-        if (emptySlot === -1) {
-            this._showHint('背包已满！');
+        const item = this.items[idx];
+        const bp = EquipManager.backpackItems || [];
+        const bpFreeSlots = EquipManager.maxBackpackSlots - bp.length;
+        if (this._stackSpaceIn(bp, item, bpFreeSlots) < (item.stack || 1)) {
+            this._notifyFull('背包已满');
             return;
         }
-        const item = this.items[idx];
         this.items.splice(idx, 1);
-        item.slot = emptySlot;
-        (EquipManager.backpackItems || []).push(item);
+        this._applyIntoBackpack(item);
         this._refreshAll();
     },
 
@@ -150,6 +263,12 @@ export const WarehouseSystem = {
                 <button class="warehouse-close" id="warehouseCloseBtn">✕</button>
             </div>
             <div class="warehouse-grid" id="warehouseGrid"></div>
+            <div class="warehouse-actions">
+                <button class="warehouse-action-btn" id="warehouseStoreAllBtn">⬇ 全部存入</button>
+                <button class="warehouse-action-btn" id="warehouseRetrieveBtn">⬆ 取出同类</button>
+                <button class="warehouse-action-btn" id="warehouseSortBtn">📦 整理仓库</button>
+            </div>
+            <div class="warehouse-sort-menu" id="warehouseSortMenu" style="display:none;"></div>
             <div class="warehouse-footer">
                 <button class="warehouse-page-btn" id="warehousePrevPage">◀ 上一页</button>
                 <span class="warehouse-page-num" id="warehousePageNum"></span>
@@ -161,6 +280,16 @@ export const WarehouseSystem = {
         document.getElementById('warehouseCloseBtn').onclick = () => this.close();
         document.getElementById('warehousePrevPage').onclick = () => this._switchPage(-1);
         document.getElementById('warehouseNextPage').onclick = () => this._switchPage(1);
+        document.getElementById('warehouseStoreAllBtn').onclick = () => this.storeAllFromBackpack();
+        document.getElementById('warehouseRetrieveBtn').onclick = () => this.retrieveMatching();
+        document.getElementById('warehouseSortBtn').onclick = () => this._toggleSortMenu();
+        // 点击面板外关闭排序菜单
+        document.addEventListener('mousedown', (e) => {
+            const menu = document.getElementById('warehouseSortMenu');
+            if (menu && menu.style.display === 'block' && !menu.contains(e.target) && e.target.id !== 'warehouseSortBtn') {
+                menu.style.display = 'none';
+            }
+        });
     },
 
     _switchPage(delta) {
@@ -228,5 +357,106 @@ export const WarehouseSystem = {
         if (!hint) return;
         hint.textContent = text;
         setTimeout(() => { hint.textContent = ''; }, 2000);
+    },
+
+    /** 满仓提示：与进入场景提示语同格式/样式/颜色 */
+    _notifyFull(text) {
+        if (SceneManager && SceneManager.showTopNotification) {
+            SceneManager.showTopNotification(text);
+        }
+        this._showHint(text);
+    },
+
+    // ==================== 整理排序 ====================
+
+    /** 物品种类排序键（数值越小越靠前） */
+    _categoryKey(item) {
+        if (!item) return 99;
+        if (item.category === 'weapon_melee') return 0;
+        if (item.category === 'weapon_ranged') return 1;
+        if (item.weaponType === 'shield') return 2;
+        if (item.equipSlot && item.equipSlot !== '' && item.equipSlot !== 'weapon') return 3;
+        if (item.category === 'consumable') return 4;
+        if (item.category === 'enhancement') return 5;
+        if (item.category === 'material') return 6;
+        if (item.category === 'tribute') return 7;
+        if (item.category === 'gold') return 8;
+        return 9;
+    },
+
+    _rarityRank(item) {
+        const idx = RARITY_ORDER.indexOf(item && item.rarity || 'common');
+        return idx === -1 ? 0 : idx;
+    },
+
+    /** 排序：rarity=稀有度>种类>名称；price=价值>稀有度>名称；category=选中类别优先 */
+    _sortWarehouse(mode, category = null) {
+        const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'zh');
+        const byRarityDesc = (a, b) => this._rarityRank(b) - this._rarityRank(a);
+        if (mode === 'rarity') {
+            this.items.sort((a, b) => byRarityDesc(a, b) || (this._categoryKey(a) - this._categoryKey(b)) || byName(a, b));
+        } else if (mode === 'price') {
+            this.items.sort((a, b) => ((b.price || 0) - (a.price || 0)) || byRarityDesc(a, b) || byName(a, b));
+        } else if (mode === 'category' && category !== null) {
+            this.items.sort((a, b) => {
+                const aIn = this._categoryKey(a) === category ? 0 : 1;
+                const bIn = this._categoryKey(b) === category ? 0 : 1;
+                if (aIn !== bIn) return aIn - bIn;
+                if (aIn === 0) return byRarityDesc(a, b) || byName(a, b);
+                return (this._categoryKey(a) - this._categoryKey(b)) || byRarityDesc(a, b) || byName(a, b);
+            });
+        }
+        // 重新编号压缩槽位
+        this.items.forEach((item, i) => { item.slot = i; });
+        this._refreshAll();
+    },
+
+    /** 当前仓库中出现的类别（按默认顺序） */
+    _presentCategories() {
+        const set = new Set(this.items.map(i => this._categoryKey(i)));
+        return Array.from(set).sort((a, b) => a - b);
+    },
+
+    _toggleSortMenu() {
+        const menu = document.getElementById('warehouseSortMenu');
+        if (!menu) return;
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+            return;
+        }
+        // 构建主菜单
+        menu.innerHTML = '';
+        const opts = [
+            { label: '按稀有度排列', action: () => { this._sortWarehouse('rarity'); this._toggleSortMenu(); } },
+            { label: '按物品价值排列', action: () => { this._sortWarehouse('price'); this._toggleSortMenu(); } },
+            { label: '按物品种类排列 ▸', action: () => this._showCategorySubMenu() },
+        ];
+        for (const opt of opts) {
+            const row = document.createElement('div');
+            row.className = 'warehouse-sort-row';
+            row.textContent = opt.label;
+            row.onclick = opt.action;
+            menu.appendChild(row);
+        }
+        menu.style.display = 'block';
+    },
+
+    _showCategorySubMenu() {
+        const menu = document.getElementById('warehouseSortMenu');
+        if (!menu) return;
+        menu.innerHTML = '';
+        const back = document.createElement('div');
+        back.className = 'warehouse-sort-row back';
+        back.textContent = '◂ 返回';
+        back.onclick = () => this._toggleSortMenu();
+        menu.appendChild(back);
+        const NAMES = ['近战武器', '远程武器', '盾', '防具饰品', '消耗品', '强化材料', '材料', '祭品', '货币', '其他'];
+        for (const cat of this._presentCategories()) {
+            const row = document.createElement('div');
+            row.className = 'warehouse-sort-row';
+            row.textContent = NAMES[cat] || `类别${cat}`;
+            row.onclick = () => { this._sortWarehouse('category', cat); this._toggleSortMenu(); };
+            menu.appendChild(row);
+        }
     },
 };

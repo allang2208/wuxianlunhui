@@ -2646,3 +2646,13 @@
         .enchant-scroll-row-name { flex: 1; color: #d4c5a9; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .enchant-scroll-row-src { color: #7a8a9a; font-size: 11px; flex-shrink: 0; }
         .enchant-scroll-row-cost { color: #a090c0; font-size: 11px; flex-shrink: 0; }
+
+        /* ===== 仓库操作按钮与排序菜单 ===== */
+        .warehouse-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(122, 106, 90, 0.4); flex-shrink: 0; }
+        .warehouse-action-btn { flex: 1; background: linear-gradient(to bottom, #4a4035, #3d352b); border: 1px solid #7a6a5a; color: #d4c5a9; padding: 7px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+        .warehouse-action-btn:hover { border-color: #d4c5a9; background: linear-gradient(to bottom, #5a5045, #4a4035); }
+        .warehouse-sort-menu { position: absolute; bottom: 96px; right: 12px; min-width: 160px; background: linear-gradient(to bottom, rgba(50, 44, 38, 0.98), rgba(40, 35, 30, 0.98)); border: 1px solid #7a6a5a; border-radius: 8px; z-index: 4100; box-shadow: 0 4px 16px rgba(0,0,0,0.5); overflow: hidden; }
+        .warehouse-sort-row { padding: 8px 14px; color: #d4c5a9; font-size: 13px; cursor: pointer; border-bottom: 1px solid rgba(122, 106, 90, 0.25); }
+        .warehouse-sort-row:last-child { border-bottom: none; }
+        .warehouse-sort-row:hover { background: rgba(90, 77, 63, 0.5); }
+        .warehouse-sort-row.back { color: #8a7d6b; font-size: 12px; }
