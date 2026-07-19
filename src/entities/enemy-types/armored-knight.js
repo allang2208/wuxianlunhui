@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
@@ -22,6 +23,9 @@ export class ArmoredKnight extends Enemy {
         });
         this._useStickFigure = false;
         this._animState = 'idle'; // idle | walk | combo | charge | defend
+        // 动作期间锁定 MovementSystem 的通用通道（与集合体/突变体-3 同机制）：
+        // >0 时 MovementSystem 不驱动移动/朝向，combo/charge/block 期间必须设置，否则外部系统会推着骑士走
+        this._attackAnimTimer = 0;
 
         // 自定义技能逻辑，关闭通用 CombatSystem 近战攻击
         this.aiInterval = Number.MAX_SAFE_INTEGER;
@@ -57,11 +61,8 @@ export class ArmoredKnight extends Enemy {
         this._walkSoundTimer = 0;
         this._chargeSoundTimer = 0;
         this._comboSoundsDone = new Set();
-
-        // 二连击突进插帧（参考突变体-3连击突进）
-        this._comboLungeDx = 0;
-        this._comboLungeDy = 0;
-        this._comboLungeRemaining = 0;
+        // 冲锋扬尘计时（与玩家奔跑同款 DustEffect）
+        this._chargeDustTimer = 0;
         // 冲锋朝向死区：|dx| 过小时保持上次朝向，防止贴身抖动回头
         this._chargeFaceDir = 1;
     }
@@ -87,6 +88,7 @@ export class ArmoredKnight extends Enemy {
         if (this._comboCooldown > 0) this._comboCooldown -= dt;
         if (this._chargeCooldown > 0) this._chargeCooldown -= dt;
         if (this._blockCooldown > 0) this._blockCooldown -= dt;
+        if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
         this.updateStatusEffects(dt);
 
         // 眩晕时强制中断所有动作
@@ -164,6 +166,7 @@ export class ArmoredKnight extends Enemy {
         const cfg = this._getSkillConfigs().combo;
         this._animState = 'combo';
         this._comboTimer = cfg.duration ?? 2000;
+        this._attackAnimTimer = cfg.duration ?? 2000; // 锁定 MovementSystem，二连击期间不可移动
         this._comboCooldown = cfg.cooldown ?? 4000;
         this._comboHitsDone = new Set();
         this._comboSoundsDone = new Set();
@@ -174,22 +177,6 @@ export class ArmoredKnight extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
-        // 连击突进：向目标方向设置 lungeDistance 总位移，_updateCombo 逐帧插值执行
-        this._comboLungeDx = 0;
-        this._comboLungeDy = 0;
-        this._comboLungeRemaining = 0;
-        const t = this._comboTarget;
-        if (t && t.active) {
-            const dx = t.x - this.x;
-            const dy = t.y - this.y;
-            const d = Math.hypot(dx, dy);
-            const lunge = cfg.lungeDistance ?? 30;
-            if (d > 0 && lunge > 0) {
-                this._comboLungeDx = (dx / d) * lunge;
-                this._comboLungeDy = (dy / d) * lunge;
-                this._comboLungeRemaining = lunge;
-            }
-        }
     }
 
     _updateCombo(dt) {
@@ -198,22 +185,6 @@ export class ArmoredKnight extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
-
-        // 连击突进：逐帧插值执行（参考突变体-3，移动连贯不瞬移）
-        if (this._comboLungeRemaining > 0.1) {
-            const dtSec = dt / 1000;
-            const lungeSpeed = cfg.lungeSpeed ?? 500;
-            const step = Math.min(this._comboLungeRemaining, lungeSpeed * dtSec);
-            const ratio = this._comboLungeRemaining > 0 ? step / this._comboLungeRemaining : 0;
-            const mx = this._comboLungeDx * ratio;
-            const my = this._comboLungeDy * ratio;
-            const r = WallSystem.resolve(this.x, this.y, this.x + mx, this.y + my, this.groundRadius);
-            this.x = r.x;
-            this.y = r.y;
-            this._comboLungeDx -= mx;
-            this._comboLungeDy -= my;
-            this._comboLungeRemaining -= step;
-        }
 
         if (this._comboTarget && this._comboTarget.active) {
             this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
@@ -256,9 +227,7 @@ export class ArmoredKnight extends Enemy {
         this._comboTimer = 0;
         this._comboTarget = null;
         this._comboHitsDone = new Set();
-        this._comboLungeDx = 0;
-        this._comboLungeDy = 0;
-        this._comboLungeRemaining = 0;
+        this._attackAnimTimer = 0;
     }
 
     // ========== 持盾冲锋 ==========
@@ -270,8 +239,10 @@ export class ArmoredKnight extends Enemy {
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._chargeCooldown = cfg.cooldown ?? 10000;
+        this._attackAnimTimer = cfg.maxDuration ?? 4500; // 锁定 MovementSystem，冲锋移动完全自驱
         this._chargeSoundTimer = 0;
         this._chargeElapsed = 0; // 线性加速计时（0 → accelDuration 内由 0 加速到 maxSpeed）
+        this._chargeDustTimer = 0; // 扬尘计时（与玩家奔跑同款 DustEffect）
         // 冲锋期间弹反免疫（与集合体同机制），结束后还原
         this._parryImmune = true;
         // 冲锋期间无视实体碰撞体积（穿过单位；墙壁仍由 WallSystem 解析，不可穿过）
@@ -303,6 +274,14 @@ export class ArmoredKnight extends Enemy {
         if (this._chargeSoundTimer <= 0) {
             this._chargeSoundTimer = this.config?.sounds?.chargeStepInterval ?? 300;
             this._playSound('walk');
+        }
+        // 冲锋扬尘：与玩家奔跑同款 DustEffect（冲刺档 70ms 间隔，向后方脚下生成）
+        this._chargeDustTimer -= dt;
+        if (this._chargeDustTimer <= 0 && speed > 0) {
+            this._chargeDustTimer = 70;
+            const backX = -Math.cos(this.rotation) * 12 + (Math.random() - 0.5) * 10;
+            const backY = -Math.sin(this.rotation) * 12 + (Math.random() - 0.5) * 6;
+            EffectFactory.createDustEffect(this.x + backX, this.y + backY + 10, 1.2);
         }
         const t = this._chargeTarget && this._chargeTarget.active ? this._chargeTarget : this.target;
 
@@ -360,6 +339,7 @@ export class ArmoredKnight extends Enemy {
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._parryImmune = this._baseParryImmune;
+        this._attackAnimTimer = 0;
         // 恢复实体碰撞：与实体重叠时由 resolveCollisions 逐帧挤出（带墙壁解析，不瞬移不卡墙）
         this.noCollision = this._prevNoCollision;
         this.vx = 0;
@@ -375,6 +355,7 @@ export class ArmoredKnight extends Enemy {
         // 前摇 + 防御时长：动画先播 windup(ms)，之后格挡判定才生效
         this._blockWindup = windup;
         this._blockTimer = windup + (cfg.duration ?? 2000);
+        this._attackAnimTimer = windup + (cfg.duration ?? 2000); // 锁定 MovementSystem，格挡期间不可移动
         this._blockCooldown = cfg.cooldown ?? 6000;
         this.vx = 0;
         this.vy = 0;
@@ -398,6 +379,7 @@ export class ArmoredKnight extends Enemy {
         if (this._animState === 'defend') this._animState = 'idle';
         this._blockTimer = 0;
         this._blockWindup = 0;
+        this._attackAnimTimer = 0;
     }
 
     // ========== 格挡弹反（复制玩家盾系统语义） ==========

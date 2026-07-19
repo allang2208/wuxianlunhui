@@ -39,7 +39,7 @@ export const ExpeditionSystem = {
         this._updateTributeStats();
         this._updateCapacityDisplay();
 
-        // 先打开背包（如果还没打开）
+        // 打开出征界面时自动打开背包（方便拖入祭品；system-ui overlay 点击已排除 expedition，不会被误关）
         if (SystemUI) {
             SystemUI.open('equip');
         }

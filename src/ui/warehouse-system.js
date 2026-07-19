@@ -40,15 +40,26 @@ export const WarehouseSystem = {
         return this.items.find(i => i.slot === slot) || null;
     },
 
+    /** 有效最大堆叠数：金币物品本身不带 maxStack 字段（GoldManager 内部常量 99999），此处对齐回退 */
+    _maxStackOf(item) {
+        if (!item) return 1;
+        if (item.maxStack) return item.maxStack;
+        if (item.category === 'gold' || item.name === '金币') return 99999;
+        return 1;
+    },
+
     /** 是否可堆叠 */
     _isStackable(item) {
-        return (item && item.maxStack || 1) > 1;
+        return this._maxStackOf(item) > 1;
     },
 
     /** 物品在目标数组中还能堆叠多少（同名可堆叠堆的空余 + 空格数×最大堆叠） */
     _stackSpaceIn(targetItems, item, freeSlots) {
-        if (!this._isStackable(item)) return freeSlots;
-        const maxStack = item.maxStack || 1;
+        if (!this._isStackable(item)) {
+            // 不可堆叠物品整件占 1 格：有空格即可整件放入（与其 stack 数无关）
+            return freeSlots > 0 ? (item.stack || 1) : 0;
+        }
+        const maxStack = this._maxStackOf(item);
         let space = 0;
         for (const t of targetItems) {
             if (t && t.name === item.name) space += Math.max(0, maxStack - (t.stack || 1));
@@ -61,7 +72,7 @@ export const WarehouseSystem = {
         let remaining = item.stack || 1;
         // 先填同名堆
         if (this._isStackable(item)) {
-            const maxStack = item.maxStack;
+            const maxStack = this._maxStackOf(item);
             for (const t of this.items) {
                 if (remaining <= 0) break;
                 if (t && t.name === item.name && (t.stack || 1) < maxStack) {
@@ -75,7 +86,7 @@ export const WarehouseSystem = {
         while (remaining > 0) {
             const slot = this._findFirstEmptySlot();
             if (slot === -1) break;
-            const maxStack = item.maxStack || 1;
+            const maxStack = this._maxStackOf(item);
             const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
             const clone = JSON.parse(JSON.stringify(item));
             // weaponAsset 等可能含不可序列化字段（与附魔同口径防御性保留）
@@ -154,7 +165,7 @@ export const WarehouseSystem = {
         const bp = EquipManager.backpackItems;
         let remaining = item.stack || 1;
         if (this._isStackable(item)) {
-            const maxStack = item.maxStack;
+            const maxStack = this._maxStackOf(item);
             for (const t of bp) {
                 if (remaining <= 0) break;
                 if (t && t.name === item.name && (t.stack || 1) < maxStack) {
@@ -167,7 +178,7 @@ export const WarehouseSystem = {
         while (remaining > 0) {
             const slot = EquipManager._findFirstEmptySlot();
             if (slot === -1) break;
-            const maxStack = item.maxStack || 1;
+            const maxStack = this._maxStackOf(item);
             const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
             const clone = JSON.parse(JSON.stringify(item));
             if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
@@ -293,6 +304,12 @@ export const WarehouseSystem = {
                 menu.style.display = 'none';
             }
         });
+        // 点击遮罩层（面板外部）时与背包一并关闭仓库。
+        // 注：不反向 import SystemUI（避免 system-ui <-> warehouse 循环），直接挂 overlay 监听
+        const overlay = document.getElementById('panelOverlay');
+        if (overlay) {
+            overlay.addEventListener('click', () => { if (this._isOpen) this.close(); });
+        }
     },
 
     _switchPage(delta) {

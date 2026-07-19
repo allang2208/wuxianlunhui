@@ -8,6 +8,46 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（四项修复：动作移动锁定/手脑CD与裁剪/仓库格子/出征背包联动）
+
+### 对话：骑士普攻仍移动 + 手脑嚎叫CD与walking + 仓库格子叠压 + 出征背包预期不符
+- **骑士"攻击时移动"根因**：`MovementSystem`（外部系统，在实体自身 update 之后运行）不读 `_animState`——combo/charge/block 期间 `_updateXxx` 设的 vx=0 随后被 MovementSystem 重算覆盖。修复：接入通用豁免通道 `_attackAnimTimer`（集合体/突变体-3/僵尸巫师同机制）——三技能 start 时设为动作时长、end 清零、update 递减；**冲锋期间 MovementSystem 双重驱动的隐患一并消除**。手脑 slam/howl 同款锁定同步补上。
+- **手脑**：howl 冷却 10s → 30s；walking 切分再修正——PIL alpha 投影实测四张图统一为 **8列×4行（帧 512×512）**，walk 12 帧=8+4 占前两行（此前 8×2 判断错误）；四张图首帧内容 bbox 一致（~320×420），素材比例统一无缩放问题。
+- **仓库格子叠压**：根因=基础 `.inv-cell` 带 `aspect-ratio:1`，仓库宽格（177px）被撑成正方形与 56px 行高冲突。按用户要求完全复制背包格子样式（`.gear-inventory-col` 三件套：`aspect-ratio: unset; height: 56px` + img 32px + inv-stack 微调）。
+- **出征背包联动（回滚+真修）**：用户预期=打开出征自动**打开**背包（上一版误解为关闭，已回滚恢复 `SystemUI.open('equip')`）。"一进入背包就被关"的真根因：system-ui 遮罩 click 处理器排除列表缺 `expedition`——出征操作点击落在遮罩上触发背包关闭。排除列表补 `expedition`（连同 `fusion` 祭品合成同款场景）。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js、src/phaser/scenes/BootScene.js、src/ui/system-ui.js、src/ui/expedition-system.js、data/enemy-config.json、game-style.css、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①骑士二连击/格挡原地、冲锋不再被外部推走；②手脑走路动画正常、嚎叫 30s CD；③仓库格子不叠压；④出征打开背包保持开启、操作不误关。
+
+## 2026-07-20（四项修复：骑士HUD/仓库整体/出征界面/手脑裁剪）
+
+### 对话：骑士血条下移 + 仓库问题排查 + 出征界面调整 + 手脑 walking 裁剪
+- **手脑 walking 裁剪**：目检素材发现真实网格与口述"4×8"不符——idle/slam/howl 为 8列×4行（帧 512×512），walking 为 8列×2行（帧 512×1024）。BootScene 切分全部修正；渲染层 `setDisplaySize` 改等比缩放（spriteSize=最长边，方形帧行为不变），解决非方形帧压扁变形。规则入库：拿到精灵图先目检行列再配切分。
+- **骑士名字/血条下移 75px**：enemy-config `render.hudOffsetY: 75` 配置化（不改通用代码）；GameScene `_syncEntityHud` 应用 hudDy 于名字+血条，render 来源修为新怪 `config.render` / 老怪 `_animCfg.render` 双源回退（此前新怪 healthBar 配置全部落空）。工作流入库：名字/血条应在贴图上方 30px 区域，透明上沿用 hudOffsetY 校准。
+- **仓库整体修复**：
+  - 钱/消耗品存不进+3 件就满仓误报的根因：金币物品无 maxStack 字段（GoldManager 99999 是内部常量）→ 被当不可堆叠 → freeSlots(37) 与 stack(10000+) 比较误判满仓并中断全部存入循环。修复：`_maxStackOf` 回退（gold 99999）+ 不可堆叠物品空间语义修正（整件占 1 格，与 stack 数无关）。
+  - 点击外部只关背包：遮罩层 click 只关 SystemUI——仓库在 `_buildPanel` 自挂 overlay 监听一并关闭（避免 system-ui↔warehouse 循环 import）；NPC 走远自动关闭链补 `WarehouseSystem.close()`。
+  - 格子规格：一行 2 格、行高 56px、gap 2px，与背包格子（.gear-inventory-col）同规格。
+  - 页码：存取链路确认保持 currentPage 不变（代码路径无误），实机复核。
+- **出征界面**：open() 由主动打开背包改为自动关闭背包；说明弹窗重定位 left:4px / bottom:2px / 187×945px，拉伸占满左侧空白。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/phaser/scenes/GameScene.js、src/ui/warehouse-system.js、src/ui/expedition-system.js、src/game.js、data/enemy-config.json、game-style.css、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①手脑走路/攻击贴图比例与大小；②骑士名字血条视觉位置；③仓库金币/药水存入与堆叠、翻页保持、遮罩一并关闭；④出征开启时背包自动关闭、说明栏拉伸效果。
+
+## 2026-07-20（骑士冲锋沙尘/二连击去位移 + 新怪物「手脑」（首个领主怪））
+
+### 对话：骑士两项调整 + 按工作流新增手脑
+- **骑士冲锋沙尘**：`_updateCharge` 每 70ms（对齐玩家冲刺档）调 `EffectFactory.createDustEffect`（玩家同款入口，对象池复用），在移动反方向脚下生成，intensity 1.2。
+- **骑士二连击去位移**：删除 `_comboLungeDx/Dy/Remaining` 全部突进插值代码（constructor/_startCombo/_updateCombo/_endCombo 四处）+ 配置死字段 `combo.lungeDistance/lungeSpeed`；二连击现在全程不可移动（原就有 vx=vy=0，突进是唯一的位移源）。
+- **新怪物「手脑」（rank: lord，首个领主怪）**：
+  - 素材：`素材库/怪物/手脑/` 4 张 png（4096×2048，4列×8行 → 帧 1024×256）复制至 `assets/enemies/shounao/`；BootScene 4 spritesheet + 4 动画（idle 1帧循环 / walk 12帧循环 / slam 26帧 2s / howl 28帧 3s，攻击动画时长=技能时长）。
+  - 配置（enemy-config.json shounao）：HP 1500、speed 160、level 12、family 手脑（不进僵尸池）；显式面板覆盖 atk 50 / def 66 / matk 55 / mdef 65 / crit 30；`attackSkills`——slam（CD 6s、2s、14帧判定、300px、物理×2、triggerRange 300）、howl（CD 10s 暂定、3s、每 500ms 一跳、600px、魔法×0.5、triggerRange 600）。
+  - 逻辑 `src/entities/enemy-types/shounao.js`：状态机 idle/walk/slam/howl；技能决策 slam（近）> howl（远）；范围伤害走 `_hostiles(entities)` 全体敌对判定（与集合体同语义）；眩晕中断全部动作；lord 联动自动生效（经验×4/金币×3/lord 祭品表）。
+  - 注册：enemy-types.js import/export；game.js `spawnMainShounao()` 主神空间生成（骑士对面站位，永久警戒测试用）。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js（新）、src/entities/enemy-types.js、src/game.js、src/phaser/scenes/BootScene.js、data/enemy-config.json、assets/enemies/shounao/（4 png）、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①冲锋沙尘密度/位置；②二连击原地挥砍；③手脑贴图尺寸（spriteSize 220 初值，帧 1024×256 横长条，可能需调）；④slam 14 帧判定点与动画同步；⑤howl 每跳伤害与范围感；⑥lord 掉落/经验/金币实机首验。
+
 ## 2026-07-19（修复：冲锋命中瞬间贴图闪跳）
 
 ### 对话：实机反馈"即将撞到目标时贴图一瞬间消失/错误"
