@@ -6,6 +6,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { applyConsumableEffect } from '../config/consumable.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -471,12 +472,9 @@ export const QuickBar = {
                 TimerManager.setTimeout(() => slot.element.classList.remove('qb-shake'), 400);
                 return;
             }
-            if (item.name === '治疗药水') {
-                player.data.hp = Math.min(player.data.hp + 30, player.data.maxHp);
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+30 HP', '#7a9a6a'));
-            } else if (item.name === '魔力药水') {
-                player.data.mp = Math.min(player.data.mp + 25, player.data.maxMp);
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+25 MP', '#5a8aaa'));
+            if (!applyConsumableEffect(player, item)) {
+                // 无效果的消耗品（如附魔卷轴）：不消耗、不响应
+                return;
             }
             if (item.stack > 1) {
                 item.stack--;

@@ -1,6 +1,7 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { RARITY_LABELS } from '../config/rarity.js';
+import { applyConsumableEffect } from '../config/consumable.js';
 import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -1309,18 +1310,14 @@ import { GameUIManager } from './game-ui-manager.js';
                 if (!item) return;
                 const player = this.player;
 
-                // ===== 消耗品：直接使用 =====
+                // ===== 消耗品：直接使用（效果由物品 useEffect 数据驱动） =====
                 if (item.category === 'consumable') {
                     // 附魔卷轴：平常时不消耗，只在附魔栏打开时由附魔系统处理
                     if (item.scrollId) {
                         return; // 不消耗，不响应
                     }
-                    if (item.name === '治疗药水') {
-                        player.data.hp = Math.min(player.data.hp + 30, player.data.maxHp);
-                        EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+30 HP', '#7a9a6a'));
-                    } else if (item.name === '魔力药水') {
-                        player.data.mp = Math.min(player.data.mp + 25, player.data.maxMp);
-                        EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+25 MP', '#5a8aaa'));
+                    if (!applyConsumableEffect(player, item)) {
+                        return; // 无效果的消耗品不消耗
                     }
                     // 减少堆叠数量
                     if (item.stack > 1) { item.stack--; }
