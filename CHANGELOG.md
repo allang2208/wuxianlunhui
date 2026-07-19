@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（骑士冲锋无视实体碰撞）
+
+### 对话：冲锋穿人机制
+- **冲锋期间无视实体碰撞**：`_startCharge` 置 `noCollision = true`——resolveCollisions 分离系统直接过滤，骑士可从玩家/怪物身上穿过；墙壁仍由冲锋自身的 WallSystem.resolve 逐帧解析（不可穿墙不变）。
+- **结束恢复防卡死**：`_endCharge` 恢复 `noCollision`（存 `_prevNoCollision`）——与实体重叠时由分离系统逐帧挤出，且分离位移本就带 WallSystem 墙壁解析（game.js:1199），不会瞬移、不会挤进墙、不会卡死；眩晕中断同样经 _endCharge 恢复。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` ✅。
+- **已知问题**：实机待验证——冲锋穿人顺畅、撞墙照停、结束时贴人被自然挤出。
+
 ## 2026-07-18（附魔等级体系替换稀有度体系）
 
 ### 对话：附魔 F~S 等级 → 稀有度（普通~传说）
