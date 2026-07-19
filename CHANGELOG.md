@@ -8,6 +8,37 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（怪物新等级：lord 领主——精英与首领之间）
+
+### 对话：新增 rank `lord`（领主），配齐全套联动，不添加任何怪物
+- **经验**：combat-formulas.json `enemy.expValue.lordMultiplier = 4`（elite ×2 与 boss ×10 之间）；`enemy.js getExpValue()` 加 lord 分支。
+- **金币**：原 elite ×2 硬编码收编为配置 `enemy.goldDrop.rankMultipliers`（elite:2、lord:3）；`damageable-entity.js` 击杀掉落改为查表驱动。
+- **祭品掉落**：`tributes.dropTables` 六级（F~A）各新增 `lord` 子表（必掉，权重介于 elite 与 boss 之间，如 D 级 32/30/22/11/4/1）；`rollTributeDrop` 按 boss→lord→elite→normal 分派，lord 表缺失时回退 elite 表；isElite 判定含 lord（事件保底等沿用语义不变）。
+- **Boss 血条**：仅 `rank === 'boss'` 触发（damageable-entity.js:176 + GameScene showBossHpBar），lord 不显示——按需求保持。
+- **防呆**：zombie-dungeon.js normal 池过滤补 `rank !== 'lord'`，避免未来 lord 怪混入普通池。
+- **未动**：地牢节点类型（combat/elite/boss 不变，无 lord 节点）；dungeon-event-system 事件奖励的 rollTributeDrop('elite') 调用保持不变。
+- **修改文件**：data/combat-formulas.json（本文件仅 data/ 一份，经 import 打包，无双份同步问题）、src/entities/enemy.js、src/entities/damageable-entity.js、src/config/tribute-effects.js、src/world/zombie-dungeon.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：尚无 rank=lord 的怪物，链路待首个领主怪实装后实机验证（经验 ×4 / 金币 ×3 / lord 掉落表）。
+
+## 2026-07-18（SKILL.md 补记：v3.6~v4.0 九个提交的体系归档）
+
+### 对话：今日计划收尾——SKILL.md 同步
+- **背景**：SKILL.md 自 dfb397f（20矿石祭品）后落下 9 个提交未记录，补记 v3.6~v4.0：祭坛/合成/旧祭品迁移/定价、附魔稀有度化、地牢难度 FEDCBA 分级掉落、骑士冲锋穿人、随机事件分级（通用30%/限定70%+±1+奖励分级）、出征等级门槛+说明弹窗。
+- **经验入库**：①根 `game-style.css` 才是全局样式表，`src/ui/` 新建 css 会成为无引用孤儿文件；②引用配置模块函数前确认导出存在（getTributeHpRegenFlat 断链教训）。
+- **测试结果**：lint ✅ / build ✅（本次仅文档变更）。
+- **已知问题**：无新增。
+
+## 2026-07-18（出征等级条件：对应稀有度祭品门槛 + 说明弹窗）
+
+### 对话：进入对应等级地牢至少放入一件对应稀有度祭品
+- **门槛判定**：`expedition-system.js depart()` 新增 `_getRequiredRarity()`——按当前选中地牢的 `grade`（dungeonList，缺省 F）映射 RARITY_ORDER（F↔普通 … A↔传说），carried 中无该稀有度祭品则 `_showMessage('请根据提示放入对应等级祭品','error')` 拦截出征。
+- **说明弹窗**：出征界面左侧固定面板（`.expedition-rule-panel`，position:fixed left:8px top:20vh，pointer-events:none 不挡操作）——列出 F~A 六级与所需祭品一一对应（文字色取 RARITY_COLORS 稀有度词条色），底部实时显示当前选中地牢的等级与所需祭品；随面板 open/close/切换地牢自动刷新，出征成功同样隐藏。
+- **顺带修复**：`tribute-effects.js` 补导出缺失的 `getTributeHpRegenFlat()`（update.js / game-ui-manager.js 早已引用，此前 vite build 会报 Missing export；Flat 键加和、缺省 0，与模块既有 getter 同模式）。
+- **修改文件**：src/ui/expedition-system.js、src/ui/game-style.css、src/config/tribute-effects.js、CHANGELOG.md。
+- **测试结果**：`npm run lint` ✅（0 error）；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①弹窗位置/遮挡；②选 D 级地牢只放普通祭品应被拦截；③切换地牢时底部当前要求刷新。
+
 ## 2026-07-18（事件分级体系：通用/限定/奖励分级/改名高级）
 
 ### 对话：随机事件 FEDCBA 分级 + 通用 30%/限定 70% + 奖励公式

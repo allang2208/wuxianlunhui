@@ -1363,3 +1363,28 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
   - 20 矿石祭品（数值带按稀缺度三档：珍贵/标准/廉价）；磁铁矿战斗+6pp事件-6pp、星光蓝宝事件+8pp战斗-8pp（耦合实现）
   - 三新特效：金刚石「金刚不坏」（单次伤害≤15%最大生命）、月光石「月影」（入战无敌 15s+精英/Boss 物魔伤+5%）、贤者之石「点石成金」（拾取祭品品质+1，传说额外给一件随机传说）
   - 祭品添加标准工作流归档（本节）
+
+- v3.6 (2026-07-19) — 祭坛/合成/旧祭品迁移/定价
+  - 祭坛 NPC（小鼠大王下方实心圆）：献祭出征/祭品合成/退出三选项；合成 2 低→1 高随机池，传说祭品重随一件；不同稀有度拒绝（提示栏）；一键放入按稀有度筛选（仅背包，不调仓库）；奇数合成剩「最后添加/名称序最后」一件；合成槽 20、堆叠整组拖放
+  - 三旧祭品（麦穗/石头/大理石）迁移数据驱动 effects，删除全部按名硬编码；初始背包映射走 ItemDatabase；祭品 maxStack 999、出征栏同名限制；全祭品按稀有度统一定价 100/200/400/800/1600/3200
+
+- v3.7 (2026-07-19) — 附魔等级体系替换为稀有度体系
+  - enchant-config.js 卷轴 `grade` 字段用 common~legendary（原 F/E/D 等字母级废弃）；显示一律 RARITY_LABELS；魔法粉尘消耗/分解产出随稀有度档调整
+
+- v3.8 (2026-07-19) — 地牢难度分级（FEDCBA）
+  - `data/dungeon-config.json` dungeonList 每地牢 `grade` 字段（zombie=D「☠ 僵尸地牢高级」、zombieBeginner=F「☠ 僵尸地牢-初级」；内部键不动，仅显示名）
+  - 祭品掉落按难度分表：combat-formulas.json `tributes.dropTables` 以 F~A 为键，每级 `maxRarity` 封顶（F≤稀有、E≤史诗、D+≤传说）+ elite/boss（必掉）/normal（几率掉，F 2% 起每级 +0.5%）三张权重表；`rollTributeDrop(rank, dungeonType)` 查表
+  - 骑士冲锋期间 `noCollision` 无视实体碰撞（可穿人不可穿墙），结束由分离系统墙解析挤出，防卡死/瞬移
+
+- v3.9 (2026-07-19) — 随机事件分级体系
+  - 事件两段判定（dungeon-event-system rollEventType）：先 30% 通用 / 70% 限定，再组内按权重抽
+  - 限定池：`RESTRICTED_EVENT_META`（dungeon-event-definitions.js）每事件 `{ grade, scope }`——scope=地牢大类（现全部 zombie），grade=事件等级，仅出现「地牢等级 ±1」内的事件
+  - 通用事件（女神像/恶魔雕像/宝箱/陷阱/补给堆）奖励分级：`combat-formulas.json universalEventRewards` 按地牢 grade 覆盖（祝福场次/粉尘/金币/恢复量等），陷阱/补给属性检定成功率每级 -2pp 下调（下限沿用 minSuccessRate）；宝箱 D 级起 10% 祭品彩蛋走 rollTributeDrop
+  - 改名「僵尸地牢」→「僵尸地牢高级」全界面同步
+
+- v4.0 (2026-07-19) — 出征等级门槛
+  - 进对应等级地牢至少放入一件对应稀有度祭品：F↔普通、E↔优质、D↔稀有、C↔史诗、B↔神话、A↔传说（GRADE_ORDER 与 RARITY_ORDER 同序一一对应）
+  - `expedition-system.js` depart() 前置 `_getRequiredRarity()` 判定，缺则提示「请根据提示放入对应等级祭品」拦截
+  - 出征界面左侧固定说明面板 `.expedition-rule-panel`（fixed left:8px top:20vh，pointer-events:none）：F~A 对照表（RARITY_COLORS 上色）+ 当前选中地牢要求实时刷新
+  - **样式坑**：根 `game-style.css` 才是 index.html 加载的全局样式表；`src/ui/` 下新建 css 无任何引用会成为孤儿文件，全局样式一律追加到根 game-style.css
+  - 修复 `getTributeHpRegenFlat` 缺失导出（引用先于实现，vite build 报 Missing export——引用配置函数前先确认导出存在）

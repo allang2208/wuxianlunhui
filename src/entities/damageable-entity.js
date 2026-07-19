@@ -222,7 +222,9 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 // 掉落金币（不再掉落 G18）；召唤物（_summoned 标签）不掉金币/经验
                 if (this instanceof Enemy && !this._summoned) {
                     let goldAmount = getEnemyGoldDrop(this.level, source);
-                    if (this.rank === 'elite') goldAmount *= 2;
+                    // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
+                    const rankGoldMul = (COMBAT_FORMULAS.enemy?.goldDrop?.rankMultipliers || {})[this.rank];
+                    if (rankGoldMul) goldAmount *= rankGoldMul;
 
                     // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
                     const marbleRatio = getTributeKillHpHealRatio();

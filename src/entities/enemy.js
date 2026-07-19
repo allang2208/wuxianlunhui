@@ -691,8 +691,9 @@ import { loadImage } from '../utils/image-loader.js';
             getExpValue() {
                 const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
                 let value = formula.base + (this.level || 1) * formula.levelMultiplier;
-                // rank 倍率由配置驱动（eliteMultiplier/bossMultiplier）
+                // rank 倍率由配置驱动（eliteMultiplier/lordMultiplier/bossMultiplier）
                 if (this.rank === 'elite') value *= (formula.eliteMultiplier ?? 2);
+                else if (this.rank === 'lord') value *= (formula.lordMultiplier ?? 4);
                 else if (this.rank === 'boss') value *= (formula.bossMultiplier ?? 10);
                 return Math.floor(value);
             }
