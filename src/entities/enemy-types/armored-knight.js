@@ -315,7 +315,11 @@ export class ArmoredKnight extends Enemy {
                 this.rotation = Math.atan2(dy, dx);
                 // 朝向死区：|dx| > 20px 才更新水平朝向，防止贴身/正上下方时 flipX 抖动回头
                 if (Math.abs(dx) > 20) this._chargeFaceDir = dx > 0 ? 1 : -1;
-                const step = Math.min(speed * dtSec, d);
+                // 步长限制在接触面之前：不与目标重合——否则命中后恢复实体碰撞时
+                // 分离系统会把骑士从目标体内瞬间挤出，视觉上像贴图闪没/跳走
+                const targetR = t.groundRadius || t.collisionRadius || 0;
+                const contactDist = (this.groundRadius || 0) + targetR;
+                const step = Math.min(speed * dtSec, Math.max(0, d - contactDist));
                 const nx = this.x + (dx / d) * step;
                 const ny = this.y + (dy / d) * step;
                 const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
