@@ -586,14 +586,15 @@ update(dt, entities) {
                 // （逻辑移至 Game.update() 的悬停检测中）
                 if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
                     // ===== 盾防御状态管理 =====
-                    // 主手为枪械时右键优先瞄准模式，不进入盾防御（近战/空手照旧）；
-                    // 此前持盾时右键被盾防御拦截并提前 return，瞄准分支永远到不了
+                    // 规则（长期）：主手手枪+副手持盾 → 右键只触发盾格挡，无法进入瞄准；
+                    // 主手非手枪枪械 → 右键优先瞄准，不进入盾防御；近战/空手照旧盾防御
                     const _mainItemShield = this.equipments[this.weaponMode];
-                    const _isMainGun = _mainItemShield && isGunWeapon(_mainItemShield);
-                    if (_isMainGun && this.shieldSystem && this.shieldSystem.defending) {
+                    const _isMainPistolGun = _mainItemShield && (_mainItemShield.weaponType === 'pistol' || _mainItemShield.rangedType === 'pistol');
+                    const _isMainNonPistolGun = _mainItemShield && isGunWeapon(_mainItemShield) && !_isMainPistolGun;
+                    if (_isMainNonPistolGun && this.shieldSystem && this.shieldSystem.defending) {
                         this.shieldSystem.exitDefense();
                     }
-                    if (this.shieldSystem && this.shieldSystem.checkEquipped() && !_isMainGun) {
+                    if (this.shieldSystem && this.shieldSystem.checkEquipped() && !_isMainNonPistolGun) {
                         if (Input.mouse.rightDown) {
                             if (!this.shieldSystem.defending) {
                                 this.shieldSystem.enterDefense();

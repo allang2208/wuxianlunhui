@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（骑士放大33% + 非手枪瞄准失效根因 + 手枪+盾规则）
+
+### 对话：骑士缩放/瞄准二次排查/右键规则
+- **骑士 +33%**：`enemy-config.json` armoredKnight——size 24→32、collisionRadius 22→29、spriteSize 220→293、collisionWidth 44→59、collisionHeight 100→133、footOffsetY 43→57、projectileHitbox 52×100→69×133（贴图与全部碰撞体积同步放大）。
+- **非手枪瞄准失效（根因）**：`isGunWeapon(item)` 只认实例 `ammoConfig` 字段，而 equipment.json 里仅 G18/P4040 有该字段——PKM/AKM/霰弹等地牢掉落/JSON 来源枪械被误判为"非枪"，瞄准分支（以及弹药初始化）对它们不生效。修复：`isGunWeapon` 改为三级判定——实例 ammoConfig ∨ weaponId 命中 GUN_AMMO_CAP ∨ weaponType/rangedType 属枪械合集（新常量 GUN_WEAPON_TYPES，配置驱动）。
+- **手枪+盾右键规则（长期）**：主手手枪+副手持盾 → 右键只触发盾格挡、无法进入瞄准（恢复盾防御，瞄准块原有的双持排除——盾为单手物品 isDualWield=true——天然屏蔽瞄准）；主手非手枪枪械 → 右键优先瞄准不进盾防御；近战/空手照旧盾防御。
+- **测试结果**：enemy-config.json 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①骑士放大后贴图/footprint/受击框对齐；②PKM/霰弹等右键出现镜头偏移；③手枪+盾右键只格挡。
+
 ## 2026-07-18（地牢地图机制确认 + 瞄准镜头失效修复）
 
 ### 对话：地图自适应/拖动边界排查 + 瞄准模式修复
