@@ -902,7 +902,7 @@
         "cooldown": 10000,
         "maxSpeed": 400,
         "accelDuration": 1500,
-        "maxDuration": 3500,
+        "maxDuration": 4500,
         "maxDistance": 1800,
         "triggerRange": 550,
         "hitRange": 60,
@@ -913,6 +913,7 @@
       },
       "block": {
         "cooldown": 6000,
+        "windup": 500,
         "duration": 1500,
         "triggerRange": 260,
         "frames": 14,
@@ -928,11 +929,11 @@
       },
       {
         "name": "持盾冲锋",
-        "desc": "以 900px/s 追踪冲撞目标，造成物理攻击 ×2 伤害、击退 200px 并眩晕 2.5s；冲锋期间免疫弹反"
+        "desc": "举盾追踪冲撞目标（1.5s 内 0→400px/s 线性加速，最长 4.5s），造成物理攻击 ×2 伤害、击退 200px 并眩晕 2.5s；冲锋期间免疫弹反"
       },
       {
         "name": "举盾格挡",
-        "desc": "举盾 2 秒，期间所有来袭攻击判定为弹反：免伤并将近战攻击者眩晕击退"
+        "desc": "举盾动画前摇 0.5s 后进入 1.5s 格挡，期间所有来袭攻击判定为弹反：免伤并将近战攻击者眩晕击退"
       }
     ],
     "attackType": "挥砍",

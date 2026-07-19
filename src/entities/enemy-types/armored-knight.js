@@ -43,6 +43,8 @@ export class ArmoredKnight extends Enemy {
         // 格挡状态
         this._blockTimer = 0;
         this._blockCooldown = 0;
+        // 格挡前摇：先播放 defending 动画，windup(ms) 后格挡判定才生效
+        this._blockWindup = 0;
 
         // 冲锋状态碰撞标记：冲锋时无视实体碰撞（穿人），结束时恢复（noCollision 由 resolveCollisions 过滤）
         this.noCollision = false;
@@ -365,7 +367,10 @@ export class ArmoredKnight extends Enemy {
     _startBlock() {
         const cfg = this._getSkillConfigs().block;
         this._animState = 'defend';
-        this._blockTimer = cfg.duration ?? 2000;
+        const windup = cfg.windup ?? 500;
+        // 前摇 + 防御时长：动画先播 windup(ms)，之后格挡判定才生效
+        this._blockWindup = windup;
+        this._blockTimer = windup + (cfg.duration ?? 2000);
         this._blockCooldown = cfg.cooldown ?? 6000;
         this.vx = 0;
         this.vy = 0;
@@ -377,6 +382,7 @@ export class ArmoredKnight extends Enemy {
     }
 
     _updateBlock(dt) {
+        if (this._blockWindup > 0) this._blockWindup -= dt;
         this._blockTimer -= dt;
         this.vx = 0;
         this.vy = 0;
@@ -387,13 +393,14 @@ export class ArmoredKnight extends Enemy {
     _endBlock() {
         if (this._animState === 'defend') this._animState = 'idle';
         this._blockTimer = 0;
+        this._blockWindup = 0;
     }
 
     // ========== 格挡弹反（复制玩家盾系统语义） ==========
 
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
-        // 格挡期间：所有玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
-        if (this._animState === 'defend' && source && source._faction === 'player') {
+        // 格挡期间（前摇结束后）：所有玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
+        if (this._animState === 'defend' && this._blockWindup <= 0 && source && source._faction === 'player') {
             this.shieldSystem._lastParried = true;
             this._triggerBlockParry(source, isMelee);
             return;

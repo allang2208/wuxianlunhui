@@ -3076,7 +3076,8 @@ export class GameScene extends Scene {
         const current = sprite.anims.currentAnim;
         // [FIX] 增加 isPlaying 检查：动画意外停止时自动重新播放
         // 攻击/死亡动画是一次性的，播完后停在最后一帧即可，不要重新播放
-        const isLoopAnim = animState !== 'attack' && animState !== 'death';
+        // charge（骑士冲锋）同为一次性：行为时长远超动画时长，循环重播会产生"停顿重启"观感
+        const isLoopAnim = animState !== 'attack' && animState !== 'death' && animState !== 'charge';
         const shouldReplay = !current || current.key !== animKey || (!sprite.anims.isPlaying && isLoopAnim);
         if (shouldReplay) {
             // 死亡动画结束后进入尸体阶段，不要再播放

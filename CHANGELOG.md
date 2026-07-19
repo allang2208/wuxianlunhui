@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（骑士冲锋观感修复 + 冲锋 4.5s + 格挡 0.5s 前摇）
+
+### 对话：冲锋"到 400px 突然停止又重播"排查 + 两项调整
+- **"停止又重播"根因**：非行为 bug。冲锋动画（19 帧/1.5s）配置 `repeat: -1` 无限循环，而线性加速恰好也在 1.5s 达到 maxSpeed 400px——动画在加速完成点从头重播，视觉上像"停顿后重新冲锋"。移动行为实际未中断。
+- **修复**：BootScene 冲锋动画 `repeat: -1 → 0`（单次播放定格尾帧）；GameScene 渲染层 `isLoopAnim` 排除 `charge`（与 attack/death 同为一次性动作，防止播完被自动重启）。
+- **冲锋超时**：`charge.maxDuration` 3500 → 4500（enemy-config.json）。
+- **格挡前摇**：block 新增 `windup: 500`——`_startBlock` 先播 defending 动画，前摇 0.5s 内格挡判定**不生效**（takeDamage 弹反判定加 `_blockWindup <= 0` 条件），前摇结束后进入 1.5s 格挡（总时长 2s）。防御状态本就无法攻击/移动、不会被攻击动作打断（_decideSkills 仅在无动作时调用），语义确认保持。
+- **描述同步**：冲锋技能描述修正过时"900px/s"为线性加速实际参数；格挡描述更新前摇语义。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/phaser/scenes/GameScene.js、src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①冲锋全程动画只播一轮不再"重播"；②冲锋 4.5s 超时；③格挡前 0.5s 被打正常掉血，之后弹反生效。
+
 ## 2026-07-19（修复：铠甲骑士永不冲锋）
 
 ### 对话：实机反馈骑士不会冲锋攻击

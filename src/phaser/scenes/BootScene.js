@@ -340,7 +340,7 @@ export class BootScene extends Scene {
             key: 'enemy_armored_knight_charge',
             frames: this.anims.generateFrameNumbers('enemy_armored_knight_charge', { start: 0, end: 18 }),
             duration: 1500,
-            repeat: -1,
+            repeat: 0, // 单次播放定格：冲锋行为最长数秒，循环播放在加速完成点(1.5s)重播像"停顿重启"
         });
         this.anims.create({
             key: 'enemy_armored_knight_defend',
