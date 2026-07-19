@@ -25,7 +25,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { clearTributeBuffs } from '../config/tribute-effects.js';
+import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -616,6 +616,8 @@ export const DungeonMapSystem = {
         // 已关闭（shutdown 后的泄漏定时器/异步回调）时直接忽略，避免在主神空间重建地牢 UI
         if (!this.active) return;
         this.state = "map";
+        // 月影增伤标记随战斗结束清除
+        if (this.player) this.player._moonshadowBoostActive = false;
         Camera.follow = () => {};
         Camera.x = this.CENTER_X;
         Camera.y = this.CENTER_Y;
@@ -766,10 +768,20 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
+        // 月影庇护：进入战斗触发无敌；精英战同时激活增伤
+        this._triggerMoonshadow(!!node.isElite);
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false, options);
         this._spawnZombieWave();
+    },
+
+    /** 月影庇护：进战斗给无敌，精英/Boss 战额外给增伤标记 */
+    _triggerMoonshadow(isEliteOrBoss) {
+        const ms = getMoonshadowConfig();
+        if (!ms || !this.player) return;
+        this.player._moonshadowTimer = ms.duration;
+        if (isEliteOrBoss) this.player._moonshadowBoostActive = true;
     },
 
     _spawnZombieWave() {
@@ -808,6 +820,8 @@ export const DungeonMapSystem = {
         // 进入 Boss 战前清理残留的战斗场景
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
+        // 月影庇护：Boss 战触发无敌并激活增伤
+        this._triggerMoonshadow(true);
         // 所有 Boss 战统一使用 BossRewardSystem 的集合体 Boss
         BossRewardSystem.enterBossBattle(this.player, () => {
             // Boss 击败且玩家通过传送门离开后，标记节点完成
@@ -833,6 +847,8 @@ export const DungeonMapSystem = {
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, false,
             DungeonConfig.getBossEncounterConfig(this.dungeonType), this.dungeonType);
+        // 月影庇护：Boss 战触发无敌并激活增伤
+        this._triggerMoonshadow(true);
         CombatRoomSystem.enterCombatRoom(this.player, false, {});
         this._spawnZombieWave();
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));

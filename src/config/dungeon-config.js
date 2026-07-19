@@ -1,4 +1,5 @@
 import dungeonConfigData from '../../data/dungeon-config.json';
+import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
 const DEFAULTS = {
     zombieDungeon: {
@@ -64,7 +65,15 @@ export const DungeonConfig = {
     },
 
     getZombieDungeonConfig(dungeonType) {
-        return deepMerge(DEFAULTS.zombieDungeon, dungeonConfigData[this._keyFor(dungeonType)] || {});
+        const cfg = deepMerge(DEFAULTS.zombieDungeon, dungeonConfigData[this._keyFor(dungeonType)] || {});
+        // 祭品效果（数据驱动）：战斗/随机事件比例耦合调整（合计恒为 100%）
+        const delta = getTributeCombatChanceDelta() / 100;
+        if (delta !== 0 && cfg.typeRatios) {
+            cfg.typeRatios = { ...cfg.typeRatios };
+            cfg.typeRatios.combat = Math.min(1, Math.max(0, (cfg.typeRatios.combat ?? 0.7) + delta));
+            cfg.typeRatios.event = 1 - cfg.typeRatios.combat;
+        }
+        return cfg;
     },
 
     getZombieEncounterConfig(isElite, dungeonType) {
@@ -81,7 +90,10 @@ export const DungeonConfig = {
 
     getEliteCombatChance(dungeonType) {
         const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
-        return cfg.eliteCombatChance ?? (dungeonType === 'zombie' ? 0.20 : 0);
+        const base = cfg.eliteCombatChance ?? (dungeonType === 'zombie' ? 0.20 : 0);
+        // 祭品效果（数据驱动）：精英战斗概率增减（百分点）
+        const delta = getTributeEliteChanceDelta() / 100;
+        return Math.min(1, Math.max(0, base + delta));
     },
 
     // 出征界面地牢列表（展示元数据）

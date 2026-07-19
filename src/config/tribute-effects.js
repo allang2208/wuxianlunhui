@@ -14,6 +14,10 @@
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { StatusBar } from '../ui/status-bar.js';
+import { EquipManager } from '../ui/equip-manager.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { Game } from '../game.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
 
 /** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1） */
@@ -65,6 +69,117 @@ export function getTributeExpMultiplier() {
     return getTributeEffects().expPercent ?? 1;
 }
 
+// ==================== 怪物向效果 ====================
+
+/** 怪物承伤倍率（>1 怪物更易受伤，damageable-entity 敌方承伤使用） */
+export function getTributeMonsterDamageTakenMul() {
+    return getTributeEffects().monsterDamageTakenPercent ?? 1;
+}
+
+/** 怪物攻击削减倍率（<1，敌方对玩家造成伤害乘算） */
+export function getTributeMonsterAtkDownMul() {
+    return 2 - (getTributeEffects().monsterAtkDownPercent ?? 1);
+}
+
+/** 怪物移速削减倍率（<1，敌人移动计算使用） */
+export function getTributeMonsterMoveSlowMul() {
+    return 2 - (getTributeEffects().monsterMoveSlowPercent ?? 1);
+}
+
+// ==================== 比例/其他 ====================
+
+/** 战斗节点概率变化（百分点，正=战斗变多/事件同步变少；负=事件变多/战斗同步变少） */
+export function getTributeCombatChanceDelta() {
+    return ((getTributeEffects().combatChanceDelta ?? 1) - 1) * 100;
+}
+
+/** 精英战斗概率变化（百分点） */
+export function getTributeEliteChanceDelta() {
+    return ((getTributeEffects().eliteChanceDelta ?? 1) - 1) * 100;
+}
+
+/** 祭品掉落率倍率 */
+export function getTributeDropChanceMul() {
+    return getTributeEffects().dropChancePercent ?? 1;
+}
+
+/** 体力恢复倍率 */
+export function getTributeStaminaRegenMul() {
+    return getTributeEffects().staminaRegenPercent ?? 1;
+}
+
+// ==================== 特效祭品（item.special 块） ====================
+
+function _carriedSpecials(key) {
+    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
+    const out = [];
+    for (const c of carried) {
+        const sp = c && c.item && c.item.special;
+        if (sp && sp[key] !== undefined) out.push(sp[key]);
+    }
+    return out;
+}
+
+/** 金刚石「金刚不坏」：单次伤害上限比例（如 0.15；未携带返回 0） */
+export function getSurviveCapRatio() {
+    const vals = _carriedSpecials('surviveCapPercent');
+    return vals.length ? Math.max(...vals) / 100 : 0;
+}
+
+/** 月光石「月影」：{ duration, damagePercent }；未携带返回 null */
+export function getMoonshadowConfig() {
+    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
+    for (const c of carried) {
+        const sp = c && c.item && c.item.special;
+        if (sp && sp.moonshadowDuration !== undefined) {
+            return { duration: sp.moonshadowDuration, damagePercent: sp.moonshadowDamagePercent || 0 };
+        }
+    }
+    return null;
+}
+
+/** 贤者之石「点石成金」：是否携带 */
+export function hasOreUpgrade() {
+    return _carriedSpecials('oreUpgrade').some(v => !!v);
+}
+
+const _RARITY_ORDER_UP = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
+
+/**
+ * 贤者之石「点石成金」拾取时调用：
+ * - 拾取的祭品品质提升一级（替换为高一档的随机祭品，保留槽位/数量）
+ * - 若拾取的已是传说祭品：额外再获得一件随机传说祭品（原物品不受影响）
+ * @param {object} item 即将入包的祭品物品
+ * @param {object} [player] 玩家（用于显示浮动文字）
+ */
+export function applyOreUpgradeOnPickup(item, player) {
+    if (!item || item.category !== 'tribute') return;
+    const idx = _RARITY_ORDER_UP.indexOf(item.rarity || 'common');
+    if (idx === _RARITY_ORDER_UP.length - 1) {
+        // 已是传说：额外给一件随机传说祭品（入包，满则掉落地上）
+        const extra = _pickTributeByRarity('legendary');
+        if (extra) {
+            const added = EquipManager.addToBackpack ? EquipManager.addToBackpack(extra) : false;
+            if (!added && Game && Game.dropItem && player) Game.dropItem(player.x, player.y, extra);
+            if (EffectManager && player) {
+                EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '🪨 点石成金：额外获得传说祭品！', '#e0c060'));
+            }
+        }
+        return;
+    }
+    if (idx === -1) return;
+    const upgraded = _pickTributeByRarity(_RARITY_ORDER_UP[idx + 1]);
+    if (!upgraded) return;
+    // 保留槽位/堆叠，替换为高一级稀有度的随机祭品
+    const { slot, stack } = item;
+    Object.assign(item, upgraded);
+    item.slot = slot;
+    item.stack = stack;
+    if (EffectManager && player) {
+        EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🪨 点石成金：${item.name} 品质提升！`, '#e0c060'));
+    }
+}
+
 /** 蟠桃复活生命比例（如 0.3；未携带蟠桃返回 0） */
 export function getTributeReviveRatio() {
     return (getTributeEffects().revivePercent ?? 1) - 1;
@@ -111,7 +226,8 @@ export function rollTributeDrop(rank) {
     const table = isElite
         ? (tables.elite || { chance: 1, weights: [['common', 35], ['uncommon', 30], ['rare', 20], ['epic', 10], ['mythic', 4], ['legendary', 1]] })
         : (tables.normal || { chance: 0.05, weights: [['common', 80], ['uncommon', 15], ['rare', 5]] });
-    const chance = table.chance ?? (isElite ? 1 : 0.05);
+    // 祭品掉率加成（数据驱动，乘算）
+    const chance = Math.min(1, (table.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul());
     if (Math.random() >= chance) return null;
     return _pickTributeByRarity(_rollRarity(table.weights || []));
 }
@@ -122,14 +238,25 @@ const SPECIAL_BUFFS = [
     { key: 'expPercent', id: 'tributeSnowLotus', icon: '🪷', name: '雪莲祝福', color: '#9ad0ff' },
     { key: 'killMpHealPercent', id: 'tributeGinseng', icon: '🌿', name: '人参回气', color: '#6a9a5a' },
     { key: 'revivePercent', id: 'tributePeach', icon: '🍑', name: '蟠桃续命', color: '#e8a06a' },
+    { key: '_surviveCap', id: 'tributeDiamond', icon: '💎', name: '金刚不坏', color: '#7ab0e0' },
+    { key: '_moonshadow', id: 'tributeMoonstone', icon: '🌙', name: '月影庇护', color: '#b0a0e0' },
+    { key: '_oreUpgrade', id: 'tributePhilosopher', icon: '🪨', name: '点石成金', color: '#e0c060' },
 ];
 
 /** 同步特效祭品的常驻 buff 图标（携带时显示；蟠桃复活用掉后不再显示） */
 export function syncTributeBuffs(player) {
     if (!player || !StatusBar) return;
     const e = getTributeEffects();
+    const actives = {
+        expPercent: (e.expPercent ?? 1) > 1,
+        killMpHealPercent: (e.killMpHealPercent ?? 1) > 1,
+        revivePercent: (e.revivePercent ?? 1) > 1 && !player._peachReviveUsed,
+        _surviveCap: getSurviveCapRatio() > 0,
+        _moonshadow: !!getMoonshadowConfig(),
+        _oreUpgrade: hasOreUpgrade(),
+    };
     for (const buff of SPECIAL_BUFFS) {
-        const active = (e[buff.key] ?? 1) > 1 && !(buff.key === 'revivePercent' && player._peachReviveUsed);
+        const active = actives[buff.key] ?? false;
         const has = player[`_${buff.id}EffectId`];
         if (active && !has) {
             player[`_${buff.id}EffectId`] = StatusBar.addEffect(buff.id, 999999, { icon: buff.icon, name: buff.name, color: buff.color });

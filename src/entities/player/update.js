@@ -12,7 +12,7 @@ import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
-import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier } from '../../config/tribute-effects.js';
+import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeStaminaRegenMul } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -337,6 +337,8 @@ update(dt, entities) {
                     if (this.staminaRegenDelay <= 0) {
                         let mul = this._staminaRegenMul;
                         if (!isFinite(mul) || mul < 0) mul = 1.0;
+                        // 祭品效果（数据驱动）：体力恢复加成
+                        mul *= getTributeStaminaRegenMul();
                         if (!isFinite(this.data.stamina) || this.data.stamina < 0) this.data.stamina = 0;
                         this.data.stamina += CONFIG.STAMINA_REGEN * (dt / 1000) * mul;
                         if (this.data.stamina > this.data.maxStamina) this.data.stamina = this.data.maxStamina;
@@ -382,6 +384,10 @@ update(dt, entities) {
                             this._ginsengHealEffectId = null;
                         }
                     }
+                }
+                // 月影庇护无敌计时
+                if (this._moonshadowTimer > 0) {
+                    this._moonshadowTimer = Math.max(0, this._moonshadowTimer - dt);
                 }
                 // ===== 魔法回复 =====
                 if (this.data.mp < this.data.maxMp) {

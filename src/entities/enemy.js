@@ -7,6 +7,7 @@ import { Player } from './player.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
 import aiConfigData from '../../data/ai-config.json';
+import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { Easing } from '../config/math-utils.js';
@@ -524,7 +525,8 @@ import { loadImage } from '../utils/image-loader.js';
             // --- 移动寻路子系统（fallback）---
             _updateMovement(dx, dy, dist, dt) {
                 if (this._dashStunned) { this.vx = 0; this.vy = 0; this.isMoving = false; return; }
-                const maxSpd = this.maxSpeed ?? this.speed ?? 100;
+                // 祭品效果（数据驱动）：怪物移速削减
+                const maxSpd = (this.maxSpeed ?? this.speed ?? 100) * getTributeMonsterMoveSlowMul();
                 const sc = dt / 1000;
                 const maxStep = maxSpd * sc;
 

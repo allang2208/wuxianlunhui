@@ -45,6 +45,7 @@ import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
+import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -663,6 +664,10 @@ export const Game = {
                     if (!canStack && EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
                         BackpackDialogManager._showBackpackFullNotice();
                         return false;
+                    }
+                    // 贤者之石「点石成金」：拾取的祭品品质提升一级，传说则额外再获一件（须在入包克隆前转换）
+                    if (entity.itemData && entity.itemData.category === 'tribute' && hasOreUpgrade()) {
+                        applyOreUpgradeOnPickup(entity.itemData, this.player);
                     }
                     const added = EquipManager.addToBackpack(entity.itemData);
                     if (added) {

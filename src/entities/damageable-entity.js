@@ -13,7 +13,7 @@ import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { getTributeGoldMultiplier, getTributeKillMpHealRatio, rollTributeDrop } from '../config/tribute-effects.js';
+import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
 
         /**
          * 根据配置计算怪物金币掉落
@@ -120,6 +120,15 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, rollTributeDrop } 
                             droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
                         }
                         baseDamage = Math.floor(baseDamage * (1 + droneBonus));
+                    }
+                    // 祭品效果（数据驱动）：怪物承伤加成（敌方阵营承伤时）
+                    if (this._faction === 'enemy') {
+                        baseDamage = Math.floor(baseDamage * getTributeMonsterDamageTakenMul());
+                        // 月影：Boss/精英战斗事件中物理魔法伤害加成
+                        if (source && source._moonshadowBoostActive) {
+                            const ms = getMoonshadowConfig();
+                            if (ms && ms.damagePercent) baseDamage = Math.floor(baseDamage * (1 + ms.damagePercent / 100));
+                        }
                     }
                     // 装甲僵尸持盾防御：50%概率格挡，减少50%伤害
                     if (this.data && this.data.equipShield === 'small_shield' && damageType !== 'magic') {

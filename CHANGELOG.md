@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（20 矿石祭品 + 怪物向效果 + 比例耦合 + 三新特效）
+
+### 对话：矿石祭品体系（参考大理石，方案经两轮数值调整）
+- **引擎扩展**（tribute-effects.js）：新增怪物向三键——`monsterDamageTakenPercent`（敌方承伤，damageable-entity 接入）、`monsterAtkDownPercent`（敌方攻击削减，玩家 takeDamage 接入）、`monsterMoveSlowPercent`（敌移速削减，enemy._updateMovement 接入）；比例键 `combatChanceDelta`/`eliteChanceDelta`（dungeon-config 生成时应用）；`dropChancePercent`（rollTributeDrop 乘算）、`staminaRegenPercent`（体力恢复乘算）。
+- **比例耦合规则**：战斗+随机事件概率恒=100%，`combatChanceDelta` 一处调整两处联动（getZombieDungeonConfig 内 combat+delta/event=1−combat）；工作流已归档该规则。
+- **20 矿石祭品**（双份 JSON，共 40 祭品）：普通 5/优质 5/稀有 4（1 增益+1 减益）、史诗 3/神话 2/传说 1（纯增益）；数值带按稀缺度三档——珍贵带（移速/暴击/怪物减速 1/2/3/4/5/7）、标准带（1~15 原带）、廉价带（恢复 4/8/12/18/22/30）。磁铁矿战斗+6pp（事件同步-6）、星光蓝宝事件+8pp（战斗同步-8）。
+- **三新特效**（item.special + buff 栏）：
+  - 金刚石「金刚不坏」：单次受到的伤害不超过最大生命值 15%（玩家 takeDamage 拦截，常驻）。
+  - 月光石「月影」：进入战斗/精英/Boss 房间无敌 15s（战斗入口 _triggerMoonshadow + update 计时 + takeDamage 无敌闸）；精英/Boss 战中物理魔法伤害 +5%（_moonshadowBoostActive，离开战斗清除）。
+  - 贤者之石「点石成金」：拾取祭品品质提升一级（tryPickupItem 入包前转换）；若为传说祭品则额外再获一件随机传说祭品。
+- **工作流归档**：SKILL.md 新增「祭品添加标准工作流」（数据结构/效果键/数值带/特效模式/掉率表/验证），后续新增祭品按此开展。
+- **测试结果**：JSON 校验 ✅（40 祭品、双份一致、特效参数正确）；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①怪物向三效果生效（承伤/减攻/减速）；②磁铁矿/星光蓝宝的比例耦合；③金刚不坏 15% 上限；④月影无敌 15s 与精英/Boss 增伤；⑤点石成金升级与传说额外掉落。
+
 ## 2026-07-18（日复盘：4 处隐患修复）
 
 ### 对话：回顾当日工作并排查 bug/隐患

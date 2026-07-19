@@ -1319,3 +1319,47 @@ Phaser Sprite.x / y / rotation / scale
   - **暴击排查结论**：公式饿死（crit=2+luck vs critRes=con），非代码 bug，数值待拍板
   - **复盘修复**：仓库克隆保留 weaponAsset、蟠桃复活比例读配置、ESC 关仓库、仓库来源卷轴取出后刷新
   - 验证：lint / build / test-collider / test-craft-sync 全部通过
+
+## 祭品添加标准工作流（新增祭品一律按此开展）
+
+### 1. 数据结构（data/equipment.json，双份同步 public/）
+祭品物品：`{ name, type: '祭品', icon, category: 'tribute', rarity, level, stack, price, effects: {...}, stats: [{name, value}], desc, special?: {...} }`
+- `effects` 为固定百分比数值（负数为减益），引擎最终乘算 `Π(1+p/100)`；`stats` 仅用于面板显示；`special` 为特效参数块（非百分比语义）。
+- 不写贴图时用 emoji 图标。
+
+### 2. 效果键（config/tribute-effects.js 聚合）
+- 面板向：atkPercent/matkPercent/defPercent/mdefPercent/moveSpeedPercent/critPercent（calculateCombatStats 末尾乘算）
+- 经济向：goldPercent/expPercent/dropChancePercent
+- 恢复向：hpRegenPercent/mpRegenPercent/staminaRegenPercent（倍率）
+- 怪物向：monsterDamageTakenPercent（承伤）/monsterAtkDownPercent（攻击削减）/monsterMoveSlowPercent（移速削减）
+- 比例向（**耦合规则**）：combatChanceDelta（百分点，战斗↑事件↓或反向，**战斗+随机事件恒=100%，一个调整同步影响另一个**）/eliteChanceDelta（精英概率百分点）
+- 特效键：revivePercent（蟠桃复活）/killMpHealPercent（人参回蓝）/expPercent（雪莲经验）
+
+### 3. 数值带（按属性稀缺度）
+| 类别 | 普通 | 优质 | 稀有 | 史诗 | 神话 | 传说 |
+|---|---|---|---|---|---|---|
+| 标准带（攻防/金币/体力/事件比/怪物向） | 1~2 | 3~4 | 5~6 | 7~8 | 9~10 | 11~15 |
+| 珍贵带（移速/暴击/怪物减速） | 1 | 2 | 3 | 4 | 5 | 7 |
+| 廉价带（生命/魔法恢复） | 4 | 8 | 12 | 18 | 22 | 30 |
+- 普通/优质/稀有 = 1 增益 + 1 减益（按物品特性）；史诗及以上 = 纯增益；负效果取对应带低档。
+- 神话/传说必须带特效词条（item.special + SPECIAL_BUFFS 图标）。
+
+### 4. 特效模式（参考实现）
+- surviveCapPercent：单次伤害上限（玩家 takeDamage 拦截）
+- moonshadowDuration/moonshadowDamagePercent：进战斗无敌+精英/Boss 增伤（战斗入口 _triggerMoonshadow）
+- oreUpgrade：拾取祭品品质+1，传说额外给一件（tryPickupItem 转换）
+- revivePercent：死亡 3s 原地复活一次
+- killMpHealPercent：击杀后 1s 回蓝（计时器+buff）
+- 特效参数放 item.special，不上 effects 聚合；buff 栏走 syncTributeBuffs/clearTributeBuffs。
+
+### 5. 掉率表（combat-formulas.json tributes.dropTables）
+elite（必掉）/normal（5%）两表按稀有度权重；新增等级自动按 RARITY_ORDER 参与。
+
+### 6. 验证
+JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGELOG 记录。
+
+- v3.5 (2026-07-18) — 20 矿石祭品/怪物向效果/比例耦合/三新特效
+  - 引擎扩展：怪物向三键（承伤/攻击削减/移速削减）、比例耦合键（combatChanceDelta 战斗事件恒 100% 同步）、eliteChanceDelta、dropChancePercent、staminaRegenPercent
+  - 20 矿石祭品（数值带按稀缺度三档：珍贵/标准/廉价）；磁铁矿战斗+6pp事件-6pp、星光蓝宝事件+8pp战斗-8pp（耦合实现）
+  - 三新特效：金刚石「金刚不坏」（单次伤害≤15%最大生命）、月光石「月影」（入战无敌 15s+精英/Boss 物魔伤+5%）、贤者之石「点石成金」（拾取祭品品质+1，传说额外给一件随机传说）
+  - 祭品添加标准工作流归档（本节）

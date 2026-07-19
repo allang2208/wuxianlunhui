@@ -36,7 +36,7 @@ function getDefaultSkillExpForNext(level) {
     return DataLoader.parseSkillExpFormula(DEFAULT_SKILL_EXP_FORMULA, level);
 }
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
-import { getTributeReviveRatio, getTributeExpMultiplier, syncTributeBuffs } from '../../config/tribute-effects.js';
+import { getTributeReviveRatio, getTributeExpMultiplier, syncTributeBuffs, getTributeMonsterAtkDownMul, getSurviveCapRatio } from '../../config/tribute-effects.js';
 
 const subsystemsMixin = {
 gainExp(amount) {
@@ -94,6 +94,8 @@ onLevelUp(level) {
 takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 // 闪避无敌期间不受伤害
                 if (this.dodgeInvincible) return;
+                // 月影庇护：无敌时间内不受伤害
+                if (this._moonshadowTimer > 0) return;
                 // 已死亡不处理
                 if (this._isDead) return;
                 // 伤害值安全校验，防止 undefined/NaN 导致 HP 异常
@@ -148,6 +150,16 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                         droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
                     }
                     finalDamage = Math.floor(finalDamage * (1 + droneBonus));
+                }
+                // 祭品效果（数据驱动）：怪物攻击削减
+                if (source && source._faction === 'enemy') {
+                    finalDamage = Math.floor(finalDamage * getTributeMonsterAtkDownMul());
+                }
+                // 金刚石「金刚不坏」：单次伤害不超过最大生命值的配置比例
+                const surviveCap = getSurviveCapRatio();
+                if (surviveCap > 0 && this.data) {
+                    const cap = Math.max(1, Math.floor(this.data.maxHp * surviveCap));
+                    if (finalDamage > cap) finalDamage = cap;
                 }
                 d.hp -= finalDamage;
                 if (Number.isNaN(d.hp)) {
