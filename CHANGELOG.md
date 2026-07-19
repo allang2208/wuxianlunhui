@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（诅咒铠甲事件必刷铠甲骑士）
+
+### 对话：事件强制怪物链路
+- **配置**：`dungeon-event-definitions.js` cursedArmor（被诅咒的板甲）力量拆解失败结局新增 `forceMonsters: ['armoredKnight']`；`handleNewDungeonEvent` 返回结果透传 `forceMonsters`。
+- **链路**：`dungeon-map-system._enterEvent` 将 `result.forceMonsters` 写入 `node.forceMonsters` → `_enterZombieCombat` 传入 `ZombieDungeonCombat` 第 5 参（新构造参数，向后兼容）→ `nextWaveMonsterClasses` 首波 `unshift` 强制怪物（tier 'forced'，不参与怪物池随机、不影响精英兜底判定）。
+- **工厂**：`zombie-dungeon.js` 新增 `createArmoredKnight`（enemy-config 驱动 + 永久警戒，同其他工厂模式），登记入 `ZOMBIE_FACTORY_MAP`——family 为「骑士」不会被 monsterPool 的 family 过滤器收编，仅 forceMonsters 显式刷新。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①诅咒铠甲力量拆解失败后的战斗中首波必出 1 只铠甲骑士（3 波×5 + 骑士）；②forceMonsters 仅僵尸系地牢生效，非僵尸系地牢事件战斗暂不消费该字段。
+
 ## 2026-07-18（骑士冲锋朝向/二连击突进/格挡与玩家眩晕规则）
 
 ### 对话：铠甲骑士三项 + 玩家眩晕两项

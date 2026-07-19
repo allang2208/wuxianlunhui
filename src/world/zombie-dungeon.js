@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -131,6 +131,25 @@ export function createMutant3(x, y) {
     return mutant;
 }
 
+// 铠甲骑士工厂：事件强制刷新用（family 为骑士，不进入僵尸怪物池随机）
+export function createArmoredKnight(x, y) {
+    const cfg = enemyConfigData.armoredKnight;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: armoredKnight');
+        return new ArmoredKnight(x, y, { name: 'armoredKnight', hp: 800, maxHp: 800, size: 24, showWeapon: false });
+    }
+    return new ArmoredKnight(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
@@ -138,7 +157,8 @@ const ZOMBIE_FACTORY_MAP = {
     spitterZombie: createSpitterZombie,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
-    mutant3: createMutant3
+    mutant3: createMutant3,
+    armoredKnight: createArmoredKnight
 };
 
 const ZOMBIE_DUNGEON_CONFIG = {
@@ -458,11 +478,13 @@ export class ZombieDungeonMapGenerator {
 
 // ==================== 战斗波次生成器 ====================
 export class ZombieDungeonCombat {
-    constructor(config = ZOMBIE_DUNGEON_CONFIG, isElite = false, encounterOverride = null, dungeonType = 'zombie') {
+    constructor(config = ZOMBIE_DUNGEON_CONFIG, isElite = false, encounterOverride = null, dungeonType = 'zombie', forceMonsters = null) {
         this.config = config;
         this._isElite = isElite;
         // encounterOverride：Boss 战等独立遭遇配置（如 zombieDungeonBeginner.bossEncounter）
         this._encounter = encounterOverride || DungeonConfig.getZombieEncounterConfig(isElite, dungeonType);
+        // forceMonsters：事件强制刷新怪物（enemy-config 键名数组，如 ['armoredKnight']），首波插入
+        this._forceMonsters = forceMonsters;
         this._currentWave = 0;
         this._totalWaves = this._encounter.combatWaves;
     }
@@ -529,6 +551,14 @@ export class ZombieDungeonCombat {
                 const idx = Math.floor(Math.random() * classes.length);
                 const pool = monsterPool.elite || monsterPool.normal;
                 classes[idx] = { MonsterClass: pool[Math.floor(Math.random() * pool.length)], tier: 'elite' };
+            }
+        }
+
+        // 事件强制怪物（如诅咒铠甲必刷铠甲骑士）：首波插入，不参与怪物池随机
+        if (this._currentWave === 1 && Array.isArray(this._forceMonsters) && this._forceMonsters.length > 0) {
+            for (const key of this._forceMonsters) {
+                const Forced = ZOMBIE_FACTORY_MAP[key];
+                if (Forced) classes.unshift({ MonsterClass: Forced, tier: 'forced' });
             }
         }
 
