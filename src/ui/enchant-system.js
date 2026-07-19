@@ -236,6 +236,8 @@ const EnchantSystem = {
         sourceArray.splice(sourceArray.indexOf(item), 1);
         this._scrollItem = JSON.parse(JSON.stringify(item));
         this._scrollSource = { type, slot: parseInt(slot) };
+        // 仓库来源：同步刷新仓库面板格子
+        if (type === 'warehouse' && WarehouseSystem._refreshAll) WarehouseSystem._refreshAll();
 
         this._checkCompatibility();
         this._updateUI();

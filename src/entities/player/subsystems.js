@@ -205,12 +205,13 @@ onDeath() {
                 }
             },
 
-// 蟠桃续命：原地复活（不清地牢、不传送），以 30% 最大生命站起
+// 蟠桃续命：原地复活（不清地牢、不传送），以配置的复活比例生命站起
 _reviveInPlace() {
                 this._isDead = false;
                 this._deathTimer = 0;
                 const d = this.data;
-                d.hp = Math.max(1, Math.floor(d.maxHp * 0.3));
+                const ratio = getTributeReviveRatio() || 0.3;
+                d.hp = Math.max(1, Math.floor(d.maxHp * ratio));
                 d.stamina = d.maxStamina;
                 // 清关键临时状态（与 respawn 同口径，但保留地牢进程）
                 this._poisonStacks = 0;
