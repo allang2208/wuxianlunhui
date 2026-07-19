@@ -1,4 +1,5 @@
 import { ItemDatabase } from '../items/item-database.js';
+import { getRarityLabel } from '../config/rarity.js';
 /* ================================================================
  *  CodexManager — 图鉴系统（装备 + 怪物分类）
  * ================================================================ */
@@ -221,7 +222,7 @@ const CodexManager = {
         const d = liveItem || item;
 
         const rarityClass = d.rarity || 'common';
-        const rarityLabel = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' }[d.rarity] || d.rarity;
+        const rarityLabel = getRarityLabel(d.rarity);
         let html = '';
         const iconHtml = d.iconImage
             ? `<img src="${d.iconImage}" alt="${d.icon}" onerror="this.style.display='none';this.parentElement.textContent='${d.icon}';">`

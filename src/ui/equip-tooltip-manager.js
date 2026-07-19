@@ -10,6 +10,7 @@ import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
+import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
@@ -77,12 +78,10 @@ export const EquipTooltipManager = {
                 }
             }
         }
-        // 稀有度颜色绑定
-        const rarityColorMap = { common: '#c0c0c0', uncommon: '#7aff7a', rare: '#7a9aff', epic: '#c67aff' };
-        const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
+        // 稀有度颜色绑定（定义集中在 config/rarity.js）
         const rarityKey = fullItem.rarity || 'common';
-        const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
-        const rarityColor = rarityColorMap[rarityKey] || '#ffffff';
+        const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
+        const rarityColor = RARITY_COLORS[rarityKey] || '#ffffff';
         ttName.innerHTML = fullItem.name + ((fullItem.enhanceLevel || 0) > 0 ? `<span class="tt-enhanced-badge">已强化 +${fullItem.enhanceLevel}</span>` : '');
         ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span style="color:${rarityColor};font-weight:700;">${rarityLabel}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
         // 属性列表
