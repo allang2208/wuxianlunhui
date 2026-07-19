@@ -5,7 +5,7 @@ const EnchantConfig = {
         heavy: {
             id: 'heavy',
             name: '沉重',
-            grade: 'F',
+            grade: 'common',
             type: 'prefix',
             cost: 100, // 魔法晶尘
             restrictions: {
@@ -22,7 +22,7 @@ const EnchantConfig = {
         sharp: {
             id: 'sharp',
             name: '锋利的',
-            grade: 'F',
+            grade: 'common',
             type: 'prefix',
             cost: 100,
             restrictions: {
@@ -38,7 +38,7 @@ const EnchantConfig = {
         tarantula: {
             id: 'tarantula',
             name: '狼蛛',
-            grade: 'E',
+            grade: 'uncommon',
             type: 'suffix',
             cost: 200,
             restrictions: {},
@@ -53,7 +53,7 @@ const EnchantConfig = {
         skeletonArcher: {
             id: 'skeletonArcher',
             name: '骷髅射手',
-            grade: 'D',
+            grade: 'rare',
             type: 'suffix',
             cost: 400,
             restrictions: {
@@ -120,7 +120,7 @@ const EnchantScrollItems = {
         iconImage: 'assets/items/scroll.png',
         category: 'consumable',
         scrollId: 'heavy',
-        grade: 'F',
+        grade: 'common',
         desc: '可以给近战武器附魔前缀「沉重」',
         stack: 1,
         price: 500,
@@ -132,7 +132,7 @@ const EnchantScrollItems = {
         iconImage: 'assets/items/scroll.png',
         category: 'consumable',
         scrollId: 'sharp',
-        grade: 'F',
+        grade: 'common',
         desc: '可以给剑类武器附魔前缀「锋利的」',
         stack: 1,
         price: 500,
@@ -144,7 +144,7 @@ const EnchantScrollItems = {
         iconImage: 'assets/items/scroll.png',
         category: 'consumable',
         scrollId: 'tarantula',
-        grade: 'E',
+        grade: 'uncommon',
         desc: '可以给任何武器附魔后缀「狼蛛」',
         stack: 1,
         price: 1000,
@@ -156,7 +156,7 @@ const EnchantScrollItems = {
         iconImage: 'assets/items/scroll.png',
         category: 'consumable',
         scrollId: 'skeletonArcher',
-        grade: 'D',
+        grade: 'rare',
         desc: '可以给枪械类武器附魔后缀「骷髅射手」',
         stack: 1,
         price: 2000,
