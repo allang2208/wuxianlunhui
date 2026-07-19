@@ -13,8 +13,15 @@ export const GUN_AMMO_CAP = {
 
 export function isGunWeapon(item) {
     if (!item) return false;
-    return !!item.ammoConfig;
+    // 判定统一：实例 ammoConfig 或 weaponId 回退映射或枪械 weaponType。
+    // equipment.json 多数枪械无 ammoConfig 字段，仅靠实例字段会把 PKM/AKM/霰弹等漏判为“非枪”，
+    // 导致瞄准模式（以及地牢掉落枪的弹药初始化）对它们失效。
+    return !!item.ammoConfig || !!GUN_AMMO_CAP[item.weaponId] ||
+        GUN_WEAPON_TYPES.includes(item.weaponType) || item.rangedType === 'pistol';
 }
+
+// 枪械 weaponType 合集（isGunWeapon 的第三级判定）
+const GUN_WEAPON_TYPES = ['pistol', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 export function isCraftableWeapon(item) {
     if (!item) return false;

@@ -858,8 +858,8 @@
     "category": "monster",
     "family": "骑士",
     "color": "#5a6a7a",
-    "size": 24,
-    "collisionRadius": 22,
+    "size": 32,
+    "collisionRadius": 29,
     "hp": 800,
     "maxHp": 800,
     "speed": 187.5,
@@ -943,13 +943,13 @@
       "chargeStepInterval": 300
     },
     "render": {
-      "spriteSize": 220,
-      "collisionWidth": 44,
-      "collisionHeight": 100,
-      "footOffsetY": 43,
+      "spriteSize": 293,
+      "collisionWidth": 59,
+      "collisionHeight": 133,
+      "footOffsetY": 57,
       "projectileHitbox": {
-        "width": 52,
-        "height": 100,
+        "width": 69,
+        "height": 133,
         "offsetX": 0,
         "bottom": 0
       }

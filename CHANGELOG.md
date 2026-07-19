@@ -8,6 +8,31 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（骑士放大33% + 非手枪瞄准失效根因 + 手枪+盾规则）
+
+### 对话：骑士缩放/瞄准二次排查/右键规则
+- **骑士 +33%**：`enemy-config.json` armoredKnight——size 24→32、collisionRadius 22→29、spriteSize 220→293、collisionWidth 44→59、collisionHeight 100→133、footOffsetY 43→57、projectileHitbox 52×100→69×133（贴图与全部碰撞体积同步放大）。
+- **非手枪瞄准失效（根因）**：`isGunWeapon(item)` 只认实例 `ammoConfig` 字段，而 equipment.json 里仅 G18/P4040 有该字段——PKM/AKM/霰弹等地牢掉落/JSON 来源枪械被误判为"非枪"，瞄准分支（以及弹药初始化）对它们不生效。修复：`isGunWeapon` 改为三级判定——实例 ammoConfig ∨ weaponId 命中 GUN_AMMO_CAP ∨ weaponType/rangedType 属枪械合集（新常量 GUN_WEAPON_TYPES，配置驱动）。
+- **手枪+盾右键规则（长期）**：主手手枪+副手持盾 → 右键只触发盾格挡、无法进入瞄准（恢复盾防御，瞄准块原有的双持排除——盾为单手物品 isDualWield=true——天然屏蔽瞄准）；主手非手枪枪械 → 右键优先瞄准不进盾防御；近战/空手照旧盾防御。
+- **测试结果**：enemy-config.json 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①骑士放大后贴图/footprint/受击框对齐；②PKM/霰弹等右键出现镜头偏移；③手枪+盾右键只格挡。
+
+## 2026-07-18（地牢地图机制确认 + 瞄准镜头失效修复）
+
+### 对话：地图自适应/拖动边界排查 + 瞄准模式修复
+- **地牢地图（排查确认，无需改动）**：自适应算法在位——`_centerRouteMap` 按节点包围盒计算 `mapScale = min(scaleX, scaleY, 1.5)` 并居中（褐色面板即地图画布背景 #1a1814）；拖动边界在位——`_clampMapOffset` 每次拖动后执行，地图画布始终覆盖显示区域，拖不出屏。
+- **瞄准镜头失效（根因修复）**：主手为枪械且副手有盾时，右键先被盾防御状态管理拦截（enterDefense），随后"防御中跳过攻击输入"提前 return，瞄准分支永远执行不到。修复：盾防御状态管理加主手枪械判定 `_isMainGun`——主手是枪则右键优先瞄准模式（不进入盾防御，残留防御状态强制退出）；近战/空手右键照旧盾防御。瞄准偏移链路（update.js → Camera.aimOffset → camera.js 平滑 → GameScene scroll 同步）验证完好；瞄具改造（highPowerScope 900px/redDotScope 300px/无瞄具 100px）随 sparse `_craftEffects` 正常生效。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` ✅。
+- **已知问题**：实机待验证——①枪械+盾右键出瞄准镜头偏移；②近战+盾右键盾防御不回归；③三档瞄具偏移距离差异。
+
+## 2026-07-18（诅咒铠甲事件必刷铠甲骑士 + 单波定制遭遇）
+
+### 对话：事件强制怪物链路 + 单波构成
+- **强制怪物链路**：cursedArmor（被诅咒的板甲）力量拆解失败结局 `forceMonsters: ['armoredKnight']` 经 handleNewDungeonEvent → node.forceMonsters → ZombieDungeonCombat 第 5 参，首波 unshift 插入（tier 'forced'）；`createArmoredKnight` 工厂登记入 ZOMBIE_FACTORY_MAP（family 骑士不进怪物池随机）。
+- **单波定制遭遇**：结局配置 `encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: {normal:1, elite:0} }` → node.encounterOverride → 构造第 3 参（原 boss 战 override 机制复用）；`nextWaveMonsterClasses` 新增强制怪扣减（drawTarget = monstersPerWave − forcedCount）——诅咒铠甲战斗 = **1 波 × (1 铠甲骑士 + 4 普通池随机)**，composition/tierWeights 两分支均按扣减后名额抽取。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——诅咒铠甲战斗单波 5 只（1 骑士+4 普通）、无第二波；forceMonsters 仅僵尸系地牢生效。
+
 ## 2026-07-18（骑士冲锋朝向/二连击突进/格挡与玩家眩晕规则）
 
 ### 对话：铠甲骑士三项 + 玩家眩晕两项
