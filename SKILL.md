@@ -1309,3 +1309,13 @@ Phaser Sprite.x / y / rotation / scale
   - **技能机制**：二连击（帧 12/25 判定）、持盾冲锋（900px/s 追踪、命中×2+击退+眩晕、冲锋期间 `_parryImmune`、目标弹反成功只击退）、举盾格挡（玩家攻击临近触发、2s 内 takeDamage 覆写全部按弹反、近战攻击者被眩晕击退；`shieldSystem._lastParried` 代理接入 DamagePipeline）
   - **工作流复用**：素材先复制 `assets/enemies/armored_knight/`（8×4 512×512 切帧）→ 配置 → BootScene 精灵图+动画注册 → enemy-types.js 导出 → game.js 主神空间测试生成（永久警戒）
   - 验证：lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.4 (2026-07-18) — 稀有度扩展/物品栏优化/祭品体系/仓库系统（多轮合并）
+  - **稀有度+神话/传说**：`config/rarity.js` 单一来源（RARITY_LABELS/RARITY_COLORS/RARITY_ORDER/getRarityLabel），5 处重复 rarityLabelMap 收编；神话橙/传说红色条
+  - **物品栏优化 D2-D5**：消耗品 `useEffect` 数据驱动（config/consumable.js 统一结算）；快捷栏绑定 instanceId（`_findAssignedItem` 实例优先+同名回退）；强化栏单击误删修复、背包格子级三套消耗公式统一；**equip-manager.js 拆分 1604→686 行**（`ui/equip/drag-drop-manager.js` 工厂注入防循环 + `ui/equip/slot-renderer.js` 纯渲染）
+  - **祭品体系**：`config/tribute-effects.js` 数据驱动引擎（**最终乘算** Π(1+p/100)，应用点：面板/金币/双恢复）；20 个农产品祭品（普通5/优质5/稀有4 正负效果，史诗3/神话2/传说1 纯增益）；精英必掉+普通 5% 掉落（`tributes.dropTables` 配置）；三特效：蟠桃原地复活(30%,一次)、雪莲经验+25%、人参击杀回蓝 5%（仿大理石计时器），特效上 buff 栏（syncTributeBuffs/地牢结束清理）
+  - **仓库系统**：小鼠大王旁仓库 NPC（实心圆，`npcType 'warehouse'` 点击直开）；`ui/warehouse-system.js` 面板（改造栏同款滑入动画，20 格×2 页）；双击/右键双向存取（equip-manager 委托 warehouse 分支）；tooltip wh-cell 感知；**材料全局调用**（强化石/改造券/粉尘 背包+仓库合计计数、先背包后仓库扣减）；附魔栏卷轴列表（背包+仓库双击放入，`_equipScrollFromSource` 通用化）
+  - **仓库增强**：同品堆叠存取（maxStack 预判，溢出占新格）；一键全部存入/取出同类（满仓中断）；满仓走 `SceneManager.showTopNotification`（场景提示语同款）；整理排序子菜单（稀有度/价值/种类三模式，种类自定义顺序）
+  - **暴击排查结论**：公式饿死（crit=2+luck vs critRes=con），非代码 bug，数值待拍板
+  - **复盘修复**：仓库克隆保留 weaponAsset、蟠桃复活比例读配置、ESC 关仓库、仓库来源卷轴取出后刷新
+  - 验证：lint / build / test-collider / test-craft-sync 全部通过

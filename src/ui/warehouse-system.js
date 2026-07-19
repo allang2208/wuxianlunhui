@@ -78,6 +78,8 @@ export const WarehouseSystem = {
             const maxStack = item.maxStack || 1;
             const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
             const clone = JSON.parse(JSON.stringify(item));
+            // weaponAsset 等可能含不可序列化字段（与附魔同口径防御性保留）
+            if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
             clone.stack = add;
             clone.slot = slot;
             this.items.push(clone);
@@ -168,6 +170,7 @@ export const WarehouseSystem = {
             const maxStack = item.maxStack || 1;
             const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
             const clone = JSON.parse(JSON.stringify(item));
+            if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
             clone.stack = add;
             clone.slot = slot;
             bp.push(clone);

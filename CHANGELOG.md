@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（日复盘：4 处隐患修复）
+
+### 对话：回顾当日工作并排查 bug/隐患
+- **仓库克隆丢 weaponAsset**：`_applyIntoWarehouse/_applyIntoBackpack` 的 JSON 克隆对拆分/移格的物品可能丢失 weaponAsset（含 framePrefix/muzzleImage 等渲染关键字段）——按附魔同口径防御性保留。
+- **蟠桃复活比例硬编码**：`_reviveInPlace` 写死 0.3，改读 `getTributeReviveRatio()`（配置驱动）。
+- **ESC 不关仓库面板**：input.js 的 Esc 子页面处理新增 warehouse 分支（与 shop/enhance/craft/enchant 同口径）。
+- **卷轴从仓库取出后仓库面板不刷新**：`_equipScrollFromSource` 仓库来源移除后补 `WarehouseSystem._refreshAll()`。
+- **当日主线回顾**：稀有度+神话/传说（rarity.js 收编）、物品栏优化 D2-D5（消耗品数据驱动/快捷栏 instanceId/equip-manager 拆分 1604→686/点击规则统一）、20 个农产品祭品（乘算引擎+精英必掉+三特效）、仓库全套（NPC/面板/材料全局调用/附魔卷轴列表/堆叠/一键存取/满仓提示/整理排序）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+
 ## 2026-07-18（仓库增强：堆叠/一键存取/满仓提示/整理排序）
 
 ### 对话：仓库五项增强
