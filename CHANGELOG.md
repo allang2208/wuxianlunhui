@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（物品栏优化 D2-D5：数据驱动/绑定/拆分/一致性）
+
+### 对话：背包栏系列优化（分阶段提交）
+- **D2 消耗品数据驱动**：equipment.json 药水定义加 `useEffect: {hp:30}/{mp:25}`（双份同步）；新建 `config/consumable.js`（getConsumableEffect/applyConsumableEffect 统一结算，旧名回退兼容）；quick-bar 与 equip-manager 两处按名硬编码分支删除。
+- **D4 快捷栏绑定 instanceId**：`itemAssignments` 增存 `instanceId`，查找 `_findAssignedItem`（instanceId 优先、同名消耗品回退）——背包槽位变动/物品删除后新物顶替不再错绑；消耗按实例引用移除。
+- **点击规则一致性审查 + 修复**：
+  - 强化栏 slot **单击即取回**与其他栏位（双击/右键取回）不一致且易误点——删除 onclick 取回，保留双击/右键。
+  - **格子级消耗品三套公式 bug**：updateInventorySlots 渲染时给消耗品格子绑定的右键处理用 `maxHp×20%+con×2` 公式，与 quick-bar/equipFromBackpack 的 30/25 完全不同——拆分渲染时删除该格子级行为，统一由 document 委托 + useEffect 结算。
+  - 审查确认其余一致：装备槽双击/右键卸下、背包双击/右键装备使用、改造/附魔右键取回、商店双击/右键买卖、祭品栏双击/右键装入取出（祭品格 stopPropagation 与 document 委托无重复触发）。
+- **D3 equip-manager.js 拆分**：1604 → 686 行。新增 `ui/equip/drag-drop-manager.js`（775 行拖拽管理，工厂注入 EquipManager 防循环依赖）与 `ui/equip/slot-renderer.js`（updateEquipSlots/updateInventorySlots 纯渲染）；清理 3 个失效导入。外部 API（EquipManager.*、_dragDropManager._dragSrc 等）全部不变。
+- **验证**：每阶段 lint/build 通过后提交；最终 lint ✅ build ✅ test-collider ✅ test-craft-sync ✅。
+- **已知问题**：实机待回归——拖拽装备/换装、背包右键喝药（应与其他路径同为 30/25）、强化栏单击不再取回、祭品栏双击右键、快捷栏数量角标。
+
 ## 2026-07-18（暴击排查 + 冲锋加速 + 地牢占比 + 稀有度扩展）
 
 ### 对话：五项（暴击排查汇报/冲锋加速/地牢占比/稀有度+2级/背包债方案）
