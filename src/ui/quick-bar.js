@@ -312,7 +312,7 @@ export const QuickBar = {
                             }
                         }
                     }
-                    this.itemAssignments[config.keyCode] = { bpSlot, itemName: item.name };
+                    this.itemAssignments[config.keyCode] = { bpSlot, instanceId: item.instanceId || null, itemName: item.name };
                     this._updateItemSlot(slot, item);
                 }
             }
@@ -461,9 +461,8 @@ export const QuickBar = {
         // Item usage
         const itemData = this.itemAssignments[keyCode];
         if (itemData) {
-            const item = EquipManager.backpackItems.find(i => i.slot === itemData.bpSlot);
-            // 数量按槽位实时读取；物品被用空/被其他物品顶替时计 0（同名消耗品补货回同槽则恢复计数）
-            const count = (item && item.name === itemData.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            const item = this._findAssignedItem(itemData);
+            const count = item ? (item.stack || 1) : 0;
             if (count <= 0) {
                 // 用完不删图标：数量为 0 时点击抖动警示（只有拖出快捷栏才取消绑定）
                 slot.element.classList.remove('qb-shake');
@@ -480,7 +479,7 @@ export const QuickBar = {
                 item.stack--;
             } else {
                 // 用完：从背包移除物品，但保留快捷栏绑定（数量显示 0，图标保留）
-                const removeIdx = EquipManager.backpackItems.findIndex(i => i.slot === itemData.bpSlot);
+                const removeIdx = EquipManager.backpackItems.findIndex(i => i === item);
                 if (removeIdx !== -1) EquipManager.backpackItems.splice(removeIdx, 1);
             }
             if (EquipManager && EquipManager.updateInventorySlots) {
@@ -528,6 +527,16 @@ export const QuickBar = {
         }
         ds.commandFlyToMouse();
     },
+    // 按绑定查找背包中的目标物品：instanceId 优先（槽位变动不受影响），
+    // 无 instanceId 或实例已消耗时回退同名消耗品（兼容旧绑定与模板物品）
+    _findAssignedItem(data) {
+        const bp = (EquipManager && EquipManager.backpackItems) || [];
+        if (data.instanceId) {
+            const byId = bp.find(i => i.instanceId === data.instanceId);
+            if (byId) return byId;
+        }
+        return bp.find(i => i.name === data.itemName && i.category === 'consumable') || null;
+    },
     // 刷新消耗品数量角标（>0 绿色、=0 红色，只在变化时写 DOM）
     _updateItemCounts() {
         for (const [keyCode, data] of Object.entries(this.itemAssignments)) {
@@ -535,8 +544,8 @@ export const QuickBar = {
             if (!slot) continue;
             const countEl = slot.element.querySelector('.item-stack');
             if (!countEl) continue;
-            const item = EquipManager.backpackItems.find(i => i.slot === data.bpSlot);
-            const count = (item && item.name === data.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            const item = this._findAssignedItem(data);
+            const count = item ? (item.stack || 1) : 0;
             if (slot._lastCount !== count) {
                 slot._lastCount = count;
                 countEl.textContent = count;
