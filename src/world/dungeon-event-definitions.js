@@ -49,6 +49,32 @@ export const NEW_EVENT_WEIGHTS = {
 };
 
 // ============================================================
+// 限定事件元数据：等级(F~A) + 归属大类（scope）
+// 规则：地牢只出现「地牢等级 ±1」范围内的限定事件；当前 10 个新事件全部为僵尸地牢限定。
+// ============================================================
+export const RESTRICTED_EVENT_META = {
+    collapsedArchway: { grade: 'F', scope: 'zombie' },
+    undeadScholarNotes: { grade: 'E', scope: 'zombie' },
+    bloodAltar: { grade: 'D', scope: 'zombie' },
+    mistyCrossroad: { grade: 'E', scope: 'zombie' },
+    cursedArmor: { grade: 'D', scope: 'zombie' },
+    poisonMushroomCircle: { grade: 'F', scope: 'zombie' },
+    abyssalGambler: { grade: 'C', scope: 'zombie' },
+    blessedFountain: { grade: 'D', scope: 'zombie' },
+    lockedArmory: { grade: 'C', scope: 'zombie' },
+    phantomMirror: { grade: 'B', scope: 'zombie' },
+};
+
+// 难度等级顺序（事件/地牢共用）
+export const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
+
+// 通用事件键（全地牢出现，不受 ±1 规则限制）
+export const UNIVERSAL_EVENT_TYPES = ['goddessStatue', 'trap', 'supplyPile', 'treasureChest', 'demonStatue'];
+
+// 通用事件刷新概率（其余为限定事件概率）
+export const UNIVERSAL_EVENT_CHANCE = 0.30;
+
+// ============================================================
 // 事件背景图（assets/scenes/dungeon-events/，与事件键一一对应）
 // 10 个新事件 + 5 个旧事件（goddessStatue/trap/supplyPile/treasureChest/demonStatue）
 // ============================================================

@@ -8,6 +8,45 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（事件分级体系：通用/限定/奖励分级/改名高级）
+
+### 对话：随机事件 FEDCBA 分级 + 通用 30%/限定 70% + 奖励公式
+- **事件两段判定**：rollEventType 改两段——先按 30%/70% 判定通用 vs 限定，再组内按权重抽取；限定池 = 同一大类 + 事件等级在「地牢等级 ±1」内（F 级 4 个、D 级 7 个、A 级 1 个幻影镜面，逻辑已验证）。
+- **限定事件元数据**：`RESTRICTED_EVENT_META`（dungeon-event-definitions.js）——10 个新事件全部归入僵尸地牢大类并赋级（坍塌拱门/毒菇环 F，笔记/十字路口 E，血祭坛/诅咒铠甲/祝福喷泉 D，赌徒/军械库 C，幻影镜面 B）。
+- **通用事件奖励分级**（combat-formulas.json `universalEventRewards`）：`getUniversalEventConfig` 按 dungeonList.grade 覆盖配置——女神祝福场次 2/2/3/3/4/5、馈赠粉尘 100~500；恶魔祈求 强化石/改造券/粉尘 1/1/200 ~ 4/4/1000；宝箱金币 300~1200、材料粉尘 100~500、D 级起 10% 祭品彩蛋（rollTributeDrop 按难度封顶，走 _applyRewards 发放）；补给堆恢复 20~60HP/15~50MP、药水 1~3 瓶；**检定成功率随难度每级 -2pp 下调**（trap/supplyPile 属性检定统一生效，下限沿用 minSuccessRate）。
+- **改名**：僵尸地牢 → 僵尸地牢高级（dungeonList + 出征面板默认值 + scene-manager + dungeon-map-generator + ZOMBIE_DUNGEON_CONFIG 全部同步；内部键 zombie 不动）。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①30/70 两段判定分布；②±1 限定池（F 级不见 C+ 事件）；③通用奖励按难度变化；④陷阱/补给检定下调；⑤宝箱祭品彩蛋入包；⑥改名后各界面字样。
+
+## 2026-07-18（地牢难度分级掉落体系）
+
+### 对话：难度 FEDCBA × 祭品稀有度概率公式
+- **难度字段**：`dungeon-config.json` dungeonList 增加 `grade`——僵尸地牢 D 级、僵尸地牢-初级 F 级。
+- **分级掉落表**（combat-formulas.json `tributes.dropTables` 按 F/E/D/C/B/A 六档，精英/首领分表）：
+  - 封顶规则：F=稀有封顶、E=史诗封顶、D+=传说全开（超限权重过滤后归一化抽取）；
+  - 精英必掉权重随难度上移（F 55/30/15 → D 35/30/20/10/4/1 → A 12/20/26/24/13/5）；首领表整体比精英高一档（史诗+约 1.2~1.5 倍）；
+  - 普通怪掉率按用户拍板：F 2%，逐级 +0.5%（E 2.5 / D 3 / C 3.5 / B 4 / A 4.5%），品质封顶稀有（A 开放史诗 3%）。
+- **rollTributeDrop 改造**：按 `dungeonList.grade` 取分表 + `maxRarity` 封顶过滤归一化 + 掉率乘算（星光蓝宝 dropChancePercent 联动）；damageable-entity 传入当前 dungeonType（主神空间默认 D 级）。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅；封顶归一化逻辑验证 ✅。
+- **已知问题**：实机待验证——F 级地牢不掉史诗+、普通怪 2% 起步掉率、首领表优于精英表。
+
+## 2026-07-18（骑士冲锋无视实体碰撞）
+
+### 对话：冲锋穿人机制
+- **冲锋期间无视实体碰撞**：`_startCharge` 置 `noCollision = true`——resolveCollisions 分离系统直接过滤，骑士可从玩家/怪物身上穿过；墙壁仍由冲锋自身的 WallSystem.resolve 逐帧解析（不可穿墙不变）。
+- **结束恢复防卡死**：`_endCharge` 恢复 `noCollision`（存 `_prevNoCollision`）——与实体重叠时由分离系统逐帧挤出，且分离位移本就带 WallSystem 墙壁解析（game.js:1199），不会瞬移、不会挤进墙、不会卡死；眩晕中断同样经 _endCharge 恢复。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` ✅。
+- **已知问题**：实机待验证——冲锋穿人顺畅、撞墙照停、结束时贴人被自然挤出。
+
+## 2026-07-18（附魔等级体系替换稀有度体系）
+
+### 对话：附魔 F~S 等级 → 稀有度（普通~传说）
+- **卷轴等级替换**（enchant-config.js，共 8 处）：沉重/锋利的 F→普通、狼蛛 E→优质、骷髅射手 D→稀有；后续新卷轴按 史诗/神话/传说 直接扩展。
+- **消耗与分解**：粉尘消耗本就与新稀有度定价对齐（普通 100 / 优质 200 / 稀有 400），无需改动；分解返还维持 1/2（50/100/200），与消耗同档联动。
+- **显示端**：enchant-system 卷轴槽与可用卷轴列表的等级标签改用 `RARITY_LABELS`（rarity.js 单一来源）；Boss 卡奖励 `grade: 'D'`→`'rare'`，文案同步「稀有附魔卷轴」。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——卷轴列表/槽位稀有度标签显示、Boss 卡稀有卷轴产出。
+
 ## 2026-07-18（合成槽堆叠整组放入 + 容量扩 20 + 祭品统一定价 + 附魔汇报）
 
 ### 对话：合成与定价调整 + 附魔卷轴汇报

@@ -72,10 +72,10 @@ export const BOSS_REWARD_CONFIG = {
                 title: '稀有附魔',
                 icon: '🔮',
                 rewards: [
-                    { type: 'scroll', grade: 'D', count: 1 },
+                    { type: 'scroll', grade: 'rare', count: 1 },
                     { type: 'dust', count: 500 },
                 ],
-                desc: '获得 D 级附魔卷轴和 500 魔法粉尘',
+                desc: '获得稀有附魔卷轴和 500 魔法粉尘',
             },
             {
                 id: 'boss_card_3',

@@ -8,6 +8,7 @@ import { SoundManager } from './sound-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { UIState } from './ui-state.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { RARITY_LABELS } from '../config/rarity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryElement, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -476,7 +477,9 @@ const EnchantSystem = {
                 scrollDisplay.textContent = this._scrollItem.icon || '📜';
             }
             const scroll = EnchantConfig.getScroll(this._scrollItem.scrollId);
-            scrollInfo.textContent = `${scroll ? scroll.name : ''} [${this._scrollItem.grade || '?'}]`;
+            // 稀有度标签（等级体系已替换为稀有度体系）
+            const rarityLabel = RARITY_LABELS[this._scrollItem.grade] || this._scrollItem.grade || '?';
+            scrollInfo.textContent = `${scroll ? scroll.name : ''} [${rarityLabel}]`;
         } else {
             scrollSlot.classList.remove('occupied');
             scrollPlaceholder.style.display = 'flex';
@@ -638,7 +641,7 @@ const EnchantSystem = {
             const scroll = EnchantConfig.getScroll(src.item.scrollId);
             const name = scroll ? scroll.name : src.item.name;
             const cost = scroll ? scroll.cost : '?';
-            const grade = scroll ? scroll.grade : '';
+            const grade = scroll ? (RARITY_LABELS[scroll.grade] || scroll.grade) : '';
             const icon = src.item.iconImage
                 ? `<img src="${src.item.iconImage}" onerror="this.style.display='none';this.parentElement.textContent='${src.item.icon || '📜'}';">`
                 : (src.item.icon || '📜');

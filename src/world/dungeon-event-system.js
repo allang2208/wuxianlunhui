@@ -2,9 +2,11 @@ import { StatusBar } from '../ui/status-bar.js';
 import { EquipManager } from '../ui/equip-manager.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { rollTributeDrop } from '../config/tribute-effects.js';
 import { TypewriterText } from '../ui/typewriter-text.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, POTION_HEAL, POTION_MP, handleNewDungeonEvent } from './dungeon-event-definitions.js';
+import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, POTION_HEAL, POTION_MP, handleNewDungeonEvent, RESTRICTED_EVENT_META, GRADE_ORDER, UNIVERSAL_EVENT_TYPES, UNIVERSAL_EVENT_CHANCE } from './dungeon-event-definitions.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -163,6 +165,64 @@ function createEventConfig() {
 
 // ==================== 配置对象 ====================
 export const DUNGEON_EVENT_CONFIG = createEventConfig();
+
+// ==================== 通用事件分级配置 ====================
+/**
+ * 通用事件（女神像/陷阱/补给堆/宝箱/恶魔雕像）按地牢难度取配置：
+ * - 奖励参数按 combat-formulas.json universalEventRewards[事件][难度] 覆盖
+ * - 检定成功率按难度每级 -2pp 下调（checkRatePerGrade，下限 minSuccessRate）
+ */
+function getUniversalEventConfig(type) {
+    const base = DUNGEON_EVENT_CONFIG[type];
+    if (!base || !UNIVERSAL_EVENT_TYPES.includes(type)) return base;
+    const grade = DungeonEventSystem._currentGrade || 'D';
+    const cfg = JSON.parse(JSON.stringify(base));
+    const rewardsCfg = (COMBAT_FORMULAS.universalEventRewards || {});
+    // 检定成功率随难度下调（通用事件专属规则）
+    const rateMod = (rewardsCfg.checkRatePerGrade ?? -2) * Math.max(0, GRADE_ORDER.indexOf(grade));
+    if (rateMod !== 0 && Array.isArray(cfg.choices)) {
+        cfg.choices = cfg.choices.map(c => (c && typeof c.baseRate === 'number')
+            ? { ...c, baseRate: Math.max((cfg.attributeCheck && cfg.attributeCheck.minSuccessRate) || 5, c.baseRate + rateMod) }
+            : c);
+    }
+    const g = rewardsCfg[type] && rewardsCfg[type][grade];
+    if (!g) return cfg;
+    if (type === 'goddessStatue') {
+        cfg.blessDuration = g.blessDuration;
+        if (cfg.reward && Array.isArray(cfg.reward.items)) {
+            cfg.reward = { ...cfg.reward, items: _gradeGiftItems(g.giftStone, g.giftTicket, g.giftDust) };
+        }
+    } else if (type === 'demonStatue') {
+        if (Array.isArray(cfg.choices)) {
+            cfg.choices = cfg.choices.map(c => (c && c.id === 'reward' && Array.isArray(c.items))
+                ? { ...c, items: _gradeGiftItems(g.rewardStone, g.rewardTicket, g.rewardDust) }
+                : c);
+        }
+    } else if (type === 'treasureChest') {
+        if (Array.isArray(cfg.outcomes)) {
+            cfg.outcomes = cfg.outcomes.map(o => {
+                if (o.type === 'gold') return { ...o, amount: g.gold };
+                if (o.type === 'materials' && Array.isArray(o.rewards)) {
+                    return { ...o, rewards: o.rewards.map(r => r.type === 'magic_dust' ? { ...r, count: g.materialDust } : r) };
+                }
+                return o;
+            });
+        }
+        cfg._tributeChance = g.tributeChance || 0;
+    } else if (type === 'supplyPile') {
+        cfg.searchReward = { ...(cfg.searchReward || {}), count: g.potions, _hpAmount: g.hp, _mpAmount: g.mp };
+    }
+    return cfg;
+}
+
+function _gradeGiftItems(stone, ticket, dust) {
+    const items = [];
+    if (stone) items.push({ type: 'enhancement_stone', count: stone });
+    if (ticket) items.push({ type: 'reforge_ticket', count: ticket });
+    if (dust) items.push({ type: 'magic_dust', count: dust });
+    return items;
+}
+
 
 // ==================== Buff系统 ====================
 
@@ -471,7 +531,7 @@ export const AttributeCheckSystem = {
  * 女神像事件处理器
  */
 function handleGoddessStatue(player, choiceId) {
-    const config = DUNGEON_EVENT_CONFIG.goddessStatue;
+    const config = getUniversalEventConfig('goddessStatue');
     const choice = config.choices.find(c => c.id === choiceId);
 
     if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
@@ -545,7 +605,7 @@ function handleGoddessStatue(player, choiceId) {
  * 陷阱事件处理器
  */
 function handleTrap(player, choiceId) {
-    const config = DUNGEON_EVENT_CONFIG.trap;
+    const config = getUniversalEventConfig('trap');
     const choice = config.choices.find(c => c.id === choiceId);
 
     if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
@@ -585,7 +645,7 @@ function handleTrap(player, choiceId) {
  * 补给堆事件处理器
  */
 function handleSupplyPile(player, choiceId, dungeonMapSystem) {
-    const config = DUNGEON_EVENT_CONFIG.supplyPile;
+    const config = getUniversalEventConfig('supplyPile');
     const choice = config.choices.find(c => c.id === choiceId);
 
     if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
@@ -601,12 +661,14 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
         if (choice.id === 'search' && config.searchReward) {
             const reward = config.searchReward;
             const count = reward.count || 1;
+            const hpAmount = reward._hpAmount || POTION_HEAL;
+            const mpAmount = reward._mpAmount || POTION_MP;
             const roll = Math.random();
             if (roll < (reward.hpChance || 0)) {
-                rewards.hpPotion = count * POTION_HEAL;
+                rewards.hpPotion = count * hpAmount;
                 text += `\n获得治疗药水 x${count}（恢复 ${rewards.hpPotion} HP）！`;
             } else if (roll < (reward.hpChance || 0) + (reward.mpChance || 0)) {
-                rewards.mpPotion = count * POTION_MP;
+                rewards.mpPotion = count * mpAmount;
                 text += `\n获得魔力药水 x${count}（恢复 ${rewards.mpPotion} MP）！`;
             }
         }
@@ -747,7 +809,7 @@ function getRevealedNodeInfo(dungeonMapSystem) {
  * 宝箱事件处理器
  */
 function handleTreasureChest() {
-    const config = DUNGEON_EVENT_CONFIG.treasureChest;
+    const config = getUniversalEventConfig('treasureChest');
 
     // 随机决定结果
     const roll = Math.random();
@@ -765,14 +827,19 @@ function handleTreasureChest() {
     // 默认金币
     if (!outcome) outcome = config.outcomes[0];
 
+    // 祭品彩蛋：D 级起按概率额外掉落随机祭品（按地牢难度封顶）
+    let tributeBonus = null;
+    if ((config._tributeChance || 0) > 0 && Math.random() < config._tributeChance) {
+        tributeBonus = rollTributeDrop('elite', (DungeonEventSystem._dungeonMapSystem && DungeonEventSystem._dungeonMapSystem.dungeonType) || 'zombie');
+    }
+
     switch (outcome.type) {
         case 'gold': {
             const gold = outcome.amount;
-            return {
-                type: 'gold',
-                text: `宝箱里装满了金币！你获得了 ${gold} 金币。`,
-                rewards: { gold },
-            };
+            const text = `宝箱里装满了金币！你获得了 ${gold} 金币。` + (tributeBonus ? `\n箱底还藏着一件 ${tributeBonus.name}！` : '');
+            const rewards = { gold };
+            if (tributeBonus) rewards.tributeItem = tributeBonus;
+            return { type: 'gold', text, rewards };
         }
 
         case 'materials': {
@@ -791,6 +858,10 @@ function handleTreasureChest() {
                     rewards.magicDust = item.count;
                     parts.push(`${item.count} 魔法粉尘`);
                 }
+            }
+            if (tributeBonus) {
+                rewards.tributeItem = tributeBonus;
+                parts.push(`${tributeBonus.name}`);
             }
             text += parts.join('、') + '。';
             return {
@@ -818,7 +889,7 @@ function handleTreasureChest() {
  * 恶魔雕像事件处理器
  */
 function handleDemonStatue(player, choiceId) {
-    const config = DUNGEON_EVENT_CONFIG.demonStatue;
+    const config = getUniversalEventConfig('demonStatue');
     const choice = config.choices.find(c => c.id === choiceId);
 
     if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
@@ -920,17 +991,33 @@ export const DungeonEventSystem = {
      * @returns {string} 事件类型
      */
     rollEventType() {
-        const weights = DUNGEON_EVENT_CONFIG.eventWeights;
-        const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
-        const roll = Math.random() * totalWeight;
-
-        let cumulative = 0;
-        for (const [type, weight] of Object.entries(weights)) {
-            cumulative += weight;
-            if (roll < cumulative) return type;
+        // 两段判定：①通用事件 30% / 限定事件 70%；②组内按权重抽取
+        const grade = this._currentGrade || 'D';
+        const gradeIdx = GRADE_ORDER.indexOf(grade);
+        const dungeonType = (this._dungeonMapSystem && this._dungeonMapSystem.dungeonType) || 'zombie';
+        const family = dungeonType === 'zombieBeginner' ? 'zombie' : dungeonType;
+        // 限定池：同一大类 + 事件等级在「地牢等级 ±1」范围内
+        const restrictedPool = Object.entries(RESTRICTED_EVENT_META)
+            .filter(([type, meta]) => {
+                if (!NEW_EVENT_CONFIGS[type]) return false;
+                if (meta.scope !== family) return false;
+                const g = GRADE_ORDER.indexOf(meta.grade);
+                return g >= gradeIdx - 1 && g <= gradeIdx + 1;
+            })
+            .map(([type]) => type)
+            .filter(t => NEW_EVENT_WEIGHTS[t]);
+        const useUniversal = restrictedPool.length === 0 || Math.random() < UNIVERSAL_EVENT_CHANCE;
+        if (useUniversal) {
+            const pool = UNIVERSAL_EVENT_TYPES.filter(t => DUNGEON_EVENT_CONFIG[t]);
+            return pool[Math.floor(Math.random() * pool.length)];
         }
-
-        return 'goddessStatue';
+        const totalWeight = restrictedPool.reduce((a, t) => a + NEW_EVENT_WEIGHTS[t], 0);
+        let roll = Math.random() * totalWeight;
+        for (const type of restrictedPool) {
+            roll -= NEW_EVENT_WEIGHTS[type];
+            if (roll < 0) return type;
+        }
+        return restrictedPool[0];
     },
 
     /**
@@ -951,6 +1038,10 @@ export const DungeonEventSystem = {
      * @returns {Object} 事件对象
      */
     trigger(player, onComplete, forcedType = null, dungeonMapSystem = null) {
+        // 解析当前地牢难度等级（影响通用事件奖励与检定成功率）
+        const dungeonType = (dungeonMapSystem && dungeonMapSystem.dungeonType) || null;
+        const list = (DungeonConfig.raw && DungeonConfig.raw.dungeonList) || {};
+        this._currentGrade = (dungeonType && list[dungeonType] && list[dungeonType].grade) || 'D';
         const eventType = forcedType || this.rollEventType();
         const config = this.getEventConfig(eventType);
 
@@ -1068,6 +1159,11 @@ export const DungeonEventSystem = {
                 };
                 EquipManager.addToBackpack(item);
             }
+        }
+
+        // 祭品奖励（宝箱彩蛋等）：直接加入背包
+        if (result.rewards.tributeItem && EquipManager && EquipManager.addToBackpack) {
+            EquipManager.addToBackpack(result.rewards.tributeItem);
         }
     },
 

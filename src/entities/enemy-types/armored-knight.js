@@ -44,6 +44,10 @@ export class ArmoredKnight extends Enemy {
         this._blockTimer = 0;
         this._blockCooldown = 0;
 
+        // 冲锋状态碰撞标记：冲锋时无视实体碰撞（穿人），结束时恢复（noCollision 由 resolveCollisions 过滤）
+        this.noCollision = false;
+        this._prevNoCollision = false;
+
         // 弹反管线代理：格挡期间命中按弹反处理（供 DamagePipeline 抑制击退/craft 命中效果）
         this.shieldSystem = { _lastParried: false };
 
@@ -268,6 +272,9 @@ export class ArmoredKnight extends Enemy {
         this._chargeElapsed = 0; // 线性加速计时（0 → accelDuration 内由 0 加速到 maxSpeed）
         // 冲锋期间弹反免疫（与集合体同机制），结束后还原
         this._parryImmune = true;
+        // 冲锋期间无视实体碰撞体积（穿过单位；墙壁仍由 WallSystem 解析，不可穿过）
+        this._prevNoCollision = this.noCollision;
+        this.noCollision = true;
         this.vx = 0;
         this.vy = 0;
         if (this.target && this.target.active) {
@@ -347,6 +354,8 @@ export class ArmoredKnight extends Enemy {
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._parryImmune = this._baseParryImmune;
+        // 恢复实体碰撞：与实体重叠时由 resolveCollisions 逐帧挤出（带墙壁解析，不瞬移不卡墙）
+        this.noCollision = this._prevNoCollision;
         this.vx = 0;
         this.vy = 0;
     }
