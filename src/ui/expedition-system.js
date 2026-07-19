@@ -14,6 +14,8 @@ import { SystemUI } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
+import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
+import { GRADE_ORDER } from '../world/dungeon-event-definitions.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -67,6 +69,9 @@ export const ExpeditionSystem = {
         if (select) select.value = 'zombie';
         this._updateDungeonInfo('zombie');
 
+        // 出征条件说明弹窗（左侧）
+        this._showRulePanel();
+
         // 生成背包格子
         this._renderInventoryGrid();
 
@@ -99,6 +104,7 @@ export const ExpeditionSystem = {
         if (panel) panel.classList.remove('active');
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
+        this._hideRulePanel();
 
         // 恢复任务追踪栏
         const questTracker = getElement('questTracker');
@@ -553,6 +559,61 @@ export const ExpeditionSystem = {
     onDungeonSelect(value) {
         this.selectedDungeon = value;
         this._updateDungeonInfo(value);
+        this._updateRulePanelCurrent();
+    },
+
+    /** 当前选择地牢需要的祭品稀有度（F→common E→uncommon D→rare C→epic B→mythic A→legendary） */
+    _getRequiredRarity() {
+        const list = DungeonConfig.getDungeonList();
+        const d = list[this.selectedDungeon] || {};
+        const grade = d.grade || 'F';
+        const idx = Math.max(0, GRADE_ORDER.indexOf(grade));
+        return RARITY_ORDER[idx] || 'common';
+    },
+
+    /** 出征条件说明弹窗：创建（一次）并显示 */
+    _showRulePanel() {
+        this._buildRulePanel();
+        const panel = getElement('expeditionRulePanel');
+        if (panel) panel.style.display = 'block';
+        this._updateRulePanelCurrent();
+    },
+
+    _hideRulePanel() {
+        const panel = getElement('expeditionRulePanel');
+        if (panel) panel.style.display = 'none';
+    },
+
+    _buildRulePanel() {
+        if (getElement('expeditionRulePanel')) return;
+        const panel = document.createElement('div');
+        panel.id = 'expeditionRulePanel';
+        panel.className = 'expedition-rule-panel';
+        const rows = GRADE_ORDER.map((g, i) => {
+            const rarity = RARITY_ORDER[i];
+            const color = RARITY_COLORS[rarity] || '#c0c0c0';
+            return `<div class="rule-item" style="color:${color}">${g} 级地牢 — ${RARITY_LABELS[rarity] || rarity}祭品</div>`;
+        }).join('');
+        panel.innerHTML = `
+            <div class="rule-title">⚠ 出征条件</div>
+            <div class="rule-desc">进入对应等级地牢，至少放入一件对应稀有度祭品：</div>
+            ${rows}
+            <div class="rule-current" id="expeditionRuleCurrent"></div>
+        `;
+        document.body.appendChild(panel);
+    },
+
+    /** 更新说明弹窗中的当前需求高亮 */
+    _updateRulePanelCurrent() {
+        const el = getElement('expeditionRuleCurrent');
+        if (!el) return;
+        const list = DungeonConfig.getDungeonList();
+        const d = list[this.selectedDungeon] || {};
+        const grade = d.grade || 'F';
+        const rarity = this._getRequiredRarity();
+        const color = RARITY_COLORS[rarity] || '#c0c0c0';
+        const zh = RARITY_LABELS[rarity] || rarity;
+        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${zh}祭品</b>`;
     },
 
     // 更新地牢信息面板（展示元数据来自 data/dungeon-config.json 的 dungeonList）
@@ -577,6 +638,14 @@ export const ExpeditionSystem = {
         const carried = this._carriedItems.filter(c => c !== null);
         if (carried.length === 0) {
             this._showMessage('请至少放入一种祭品', 'error');
+            return;
+        }
+
+        // 等级对应稀有度检查：至少放入一件对应稀有度祭品（F=普通 E=优质 D=稀有 C=史诗 B=神话 A=传说）
+        const requiredRarity = this._getRequiredRarity();
+        const hasRequired = carried.some(c => c && c.item && (c.item.rarity || 'common') === requiredRarity);
+        if (!hasRequired) {
+            this._showMessage('请根据提示放入对应等级祭品', 'error');
             return;
         }
 

@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（出征等级条件：对应稀有度祭品门槛 + 说明弹窗）
+
+### 对话：进入对应等级地牢至少放入一件对应稀有度祭品
+- **门槛判定**：`expedition-system.js depart()` 新增 `_getRequiredRarity()`——按当前选中地牢的 `grade`（dungeonList，缺省 F）映射 RARITY_ORDER（F↔普通 … A↔传说），carried 中无该稀有度祭品则 `_showMessage('请根据提示放入对应等级祭品','error')` 拦截出征。
+- **说明弹窗**：出征界面左侧固定面板（`.expedition-rule-panel`，position:fixed left:8px top:20vh，pointer-events:none 不挡操作）——列出 F~A 六级与所需祭品一一对应（文字色取 RARITY_COLORS 稀有度词条色），底部实时显示当前选中地牢的等级与所需祭品；随面板 open/close/切换地牢自动刷新，出征成功同样隐藏。
+- **顺带修复**：`tribute-effects.js` 补导出缺失的 `getTributeHpRegenFlat()`（update.js / game-ui-manager.js 早已引用，此前 vite build 会报 Missing export；Flat 键加和、缺省 0，与模块既有 getter 同模式）。
+- **修改文件**：src/ui/expedition-system.js、src/ui/game-style.css、src/config/tribute-effects.js、CHANGELOG.md。
+- **测试结果**：`npm run lint` ✅（0 error）；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①弹窗位置/遮挡；②选 D 级地牢只放普通祭品应被拦截；③切换地牢时底部当前要求刷新。
+
 ## 2026-07-18（事件分级体系：通用/限定/奖励分级/改名高级）
 
 ### 对话：随机事件 FEDCBA 分级 + 通用 30%/限定 70% + 奖励公式

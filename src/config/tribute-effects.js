@@ -71,6 +71,11 @@ export function getTributeMpRegenMultiplier() {
     return getTributeEffects().mpRegenPercent ?? 1;
 }
 
+/** 生命恢复固定值加成（Flat 键加和，无效果时为 0；玩家 hpRegen 使用） */
+export function getTributeHpRegenFlat() {
+    return getTributeEffects().hpRegenFlat ?? 0;
+}
+
 /** 经验获取倍率（天山雪莲特效，玩家 gainExp 使用） */
 export function getTributeExpMultiplier() {
     return getTributeEffects().expPercent ?? 1;
