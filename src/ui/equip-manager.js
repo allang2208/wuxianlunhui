@@ -5,12 +5,14 @@ import { applyConsumableEffect } from '../config/consumable.js';
 import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { EquipDataManager } from './equip-data-manager.js';
+import { ItemDatabase } from '../items/item-database.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { FusionSystem } from './fusion-system.js';
 import { UIState } from './ui-state.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { loadImage } from '../utils/image-loader.js';
@@ -27,6 +29,17 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 // 初始化背包数组
                 if (!this.backpackItems || this.backpackItems.length === 0) {
                     this.backpackItems = JSON.parse(JSON.stringify(EquipDataManager.TEST_BACKPACK_ITEMS));
+                    // 旧版祭品映射到 ItemDatabase 数据驱动版本（同名 effects/maxStack 以数据为准）
+                    this.backpackItems = this.backpackItems.map(it => {
+                        if (it && it.category === 'tribute' && ItemDatabase && ItemDatabase.items) {
+                            const found = Object.entries(ItemDatabase.items).find(([, v]) => v && v.category === 'tribute' && v.name === it.name);
+                            if (found) {
+                                const dbItem = ItemDatabase.get(found[0]);
+                                return { ...dbItem, slot: it.slot };
+                            }
+                        }
+                        return it;
+                    });
                 }
                 // 深拷贝 TEST_EQUIPMENTS，避免多个玩家共享引用
                 if (player.equipments) {
@@ -423,6 +436,10 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     e.preventDefault();
                     e.stopPropagation();
                     WarehouseSystem.storeFromBackpack(idx);
+                } else if (UIState.isOpen('fusion')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    FusionSystem.placeFromBackpack(idx);
                 } else {
                     e.preventDefault();
                     e.stopPropagation();
@@ -451,6 +468,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     CraftSystem._equipFromBackpack(idx);
                 } else if (UIState.isOpen('warehouse')) {
                     WarehouseSystem.storeFromBackpack(idx);
+                } else if (UIState.isOpen('fusion')) {
+                    FusionSystem.placeFromBackpack(idx);
                 } else {
                     this.equipFromBackpack(idx);
                 }

@@ -2656,3 +2656,50 @@
         .warehouse-sort-row:last-child { border-bottom: none; }
         .warehouse-sort-row:hover { background: rgba(90, 77, 63, 0.5); }
         .warehouse-sort-row.back { color: #8a7d6b; font-size: 12px; }
+
+        /* ===== 祭品合成面板（与其他栏位同款弹出收回动画） ===== */
+        .fusion-panel {
+            position: fixed;
+            top: 0;
+            left: auto;
+            right: 45vw;
+            width: 380px;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(45, 40, 35, 0.95) 0%, rgba(35, 30, 25, 0.98) 100%);
+            border: 2px solid #7a6a5a;
+            border-radius: 12px 0 0 12px;
+            z-index: 4000;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+        }
+        .fusion-panel.active {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+        }
+        .fusion-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(122, 106, 90, 0.4); background: rgba(0, 0, 0, 0.2); flex-shrink: 0; }
+        .fusion-title { color: #d4c5a9; font-size: 16px; font-weight: 700; }
+        .fusion-close { background: none; border: none; color: #8a7d6b; font-size: 18px; cursor: pointer; padding: 2px 6px; }
+        .fusion-close:hover { color: #d4c5a9; }
+        .fusion-grid { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 12px; overflow-y: auto; align-content: start; }
+        .fusion-grid .inv-cell { font-size: 18px; }
+        .fusion-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(122, 106, 90, 0.4); flex-shrink: 0; }
+        .fusion-action-btn { flex: 1; background: linear-gradient(to bottom, #4a4035, #3d352b); border: 1px solid #7a6a5a; color: #d4c5a9; padding: 7px 4px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+        .fusion-action-btn:hover { border-color: #d4c5a9; }
+        .fusion-action-btn.primary { border-color: #a08060; color: #ffd700; }
+        .fusion-rarity-menu { position: absolute; bottom: 96px; right: 12px; min-width: 140px; background: linear-gradient(to bottom, rgba(50, 44, 38, 0.98), rgba(40, 35, 30, 0.98)); border: 1px solid #7a6a5a; border-radius: 8px; z-index: 4100; box-shadow: 0 4px 16px rgba(0,0,0,0.5); overflow: hidden; }
+        .fusion-rarity-row { padding: 8px 14px; color: #d4c5a9; font-size: 13px; cursor: pointer; border-bottom: 1px solid rgba(122, 106, 90, 0.25); }
+        .fusion-rarity-row:last-child { border-bottom: none; }
+        .fusion-rarity-row:hover { background: rgba(90, 77, 63, 0.5); }
+        .fusion-message { padding: 8px 16px; min-height: 32px; color: #c0a080; font-size: 13px; text-align: center; flex-shrink: 0; }
+        .fusion-message.error { color: #e06a5a; }
+        .fusion-message.success { color: #7ac96a; }

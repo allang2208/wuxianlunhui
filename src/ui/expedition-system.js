@@ -234,6 +234,11 @@ export const ExpeditionSystem = {
         this._placeItemInCell(cell, item);
     },
 
+    // 是否已有同名祭品（出征栏不允许放入相同祭品）
+    _hasDuplicateTribute(item) {
+        return this._carriedItems.some(c => c && c.item && item && c.item.name === item.name);
+    },
+
     // 处理拖放 — 从背包真正移出物品放入出征栏
     _handleDrop(cell) {
         const dragSrc = EquipManager._dragDropManager._dragSrc;
@@ -249,6 +254,12 @@ export const ExpeditionSystem = {
             // 祭品池限制：只能放入祭品（tribute）类别
             if (item.category !== 'tribute') {
                 this._showMessage('祭品池只能放入祭品！', 'error');
+                return;
+            }
+
+            // 同名限制：不可放入相同祭品
+            if (this._hasDuplicateTribute(item)) {
+                this._showMessage('不可放入相同祭品！', 'error');
                 return;
             }
 
@@ -275,6 +286,12 @@ export const ExpeditionSystem = {
     // 放置物品到格子 — 从背包中真正移除（类似 EnhanceSystem.equipFromBackpack）
     _placeItemInCell(cell, item, _backpackSlot) {
         const slotIdx = parseInt(cell.dataset.slot);
+
+        // 同名限制：不可放入相同祭品（替换场景先判断，避免误归还）
+        if (item && item.category === 'tribute' && this._hasDuplicateTribute(item)) {
+            this._showMessage('不可放入相同祭品！', 'error');
+            return;
+        }
 
         // 如果格子已有物品，先移除并归还
         if (this._carriedItems[slotIdx]) {

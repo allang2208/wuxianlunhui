@@ -45,6 +45,7 @@ import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
+import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -293,6 +294,20 @@ export const Game = {
             greetings: ['仓库为你敞开。']
         });
         this.entities.set('npc_warehouse', warehouseNpc);
+        // 祭坛 NPC（小鼠大王下方，实心圆替代贴图；点击打开祭坛对话）
+        const altarCfg = npcCfg.altar || { relativeTo: 'shopMouseKing', offset: { x: 20, y: 120 }, name: '祭坛', size: 24, collisionRadius: 16, color: '#6a4a8a', npcType: 'altar' };
+        const altarX = altarCfg.relativeTo === 'shopMouseKing' ? npcX + altarCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + altarCfg.offset.x;
+        const altarY = altarCfg.relativeTo === 'shopMouseKing' ? npcY + altarCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + altarCfg.offset.y;
+        const altarNpc = new NPC(altarX, altarY, {
+            id: 'npc_altar',
+            name: altarCfg.name,
+            size: altarCfg.size,
+            collisionRadius: altarCfg.collisionRadius,
+            color: altarCfg.color,
+            npcType: altarCfg.npcType,
+            greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
+        });
+        this.entities.set('npc_altar', altarNpc);
         // 在小鼠大王右侧生成演示树木
         const treeCfg = GAME_CONFIG.trees?.demoLayout || { treeRadius: 25, groups: [] };
         const treeRadius = treeCfg.treeRadius || 25;
@@ -663,6 +678,10 @@ export const Game = {
                     if (!canStack && EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
                         BackpackDialogManager._showBackpackFullNotice();
                         return false;
+                    }
+                    // 贤者之石「点石成金」：拾取的祭品品质提升一级，传说则额外再获一件（须在入包克隆前转换）
+                    if (entity.itemData && entity.itemData.category === 'tribute' && hasOreUpgrade()) {
+                        applyOreUpgradeOnPickup(entity.itemData, this.player);
                     }
                     const added = EquipManager.addToBackpack(entity.itemData);
                     if (added) {

@@ -12,6 +12,7 @@ import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { FusionSystem } from './fusion-system.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
@@ -523,11 +524,14 @@ export const EquipTooltipManager = {
     bindInventoryTooltip() {
         const tooltip = getElement('equipTooltip');
         const self = this;
-        // 仓库格子（wh-cell）从 WarehouseSystem 取物品，背包格子照旧
+        // 仓库格子（wh-cell）从 WarehouseSystem 取物品，合成格子（fs-cell）从 FusionSystem 取物品，背包格子照旧
         const resolveItem = (cell) => {
             const idx = parseInt(cell.dataset.slot);
             if (cell.classList.contains('wh-cell')) {
                 return WarehouseSystem && WarehouseSystem.getItemAt ? WarehouseSystem.getItemAt(idx) : null;
+            }
+            if (cell.classList.contains('fs-cell')) {
+                return FusionSystem && FusionSystem.getItemAt ? FusionSystem.getItemAt(idx) : null;
             }
             return self.backpackItems.find(i => i.slot === idx);
         };
@@ -548,12 +552,12 @@ export const EquipTooltipManager = {
                 self._removeMoveHandler(cell);
             };
             cell.onclick = function(e) {
-                const isWhCell = cell.classList.contains('wh-cell');
-                const item = isWhCell ? null : resolveItem(cell);
-                if (!isWhCell && !item) return;
+                const isSpecialCell = cell.classList.contains('wh-cell') || cell.classList.contains('fs-cell');
+                const item = isSpecialCell ? null : resolveItem(cell);
+                if (!isSpecialCell && !item) return;
                 e.stopPropagation();
-                // Shift+点击：拆分堆叠物品（仓库格子不支持拆分）
-                if (!isWhCell && e.shiftKey && item.stack > 1) {
+                // Shift+点击：拆分堆叠物品（仓库/合成格子不支持拆分）
+                if (!isSpecialCell && e.shiftKey && item.stack > 1) {
                     e.preventDefault();
                     e.stopPropagation();
                     self.callbacks.showSplitDialog(item, parseInt(cell.dataset.slot));

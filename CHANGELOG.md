@@ -8,6 +8,49 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（合成槽堆叠整组放入 + 容量扩 20 + 祭品统一定价 + 附魔汇报）
+
+### 对话：合成与定价调整 + 附魔卷轴汇报
+- **堆叠整组放入**：`placeFromBackpack` 改为整组堆叠放入（直到堆空或合成栏满），修复拆空后可能复制品的循环终止问题；`CAPACITY` 10→20（支持 16/17 个批量合成）。
+- **合成逻辑验证**：16 普通→8 优质、17 普通→8 优质+剩 1 普通（配对与留存语义正确）。
+- **祭品统一定价**：43 个祭品全部按稀有度重设——普通 100 / 优质 200 / 稀有 400 / 史诗 800 / 神话 1600 / 传说 3200（双份 JSON 同步）。
+- **附魔卷轴汇报**（enchant-config.js）：现有 4 种卷轴——沉重（F 前缀，剑类，攻击+60%/攻速降约26%）、锋利的（F 前缀，剑类，暴击率+50%）、狼蛛（E 后缀，全武器，攻击叠毒1层）、骷髅射手（D 后缀，枪械，穿透+2）；等级体系当前只用到 F/E/D 三级（原 F~S 七级映射 getGradeCost 已在死代码清理中移除）。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+
+## 2026-07-18（三旧祭品迁移数据驱动）
+
+### 对话：麦穗/石头/大理石同步迁移
+- **迁移**：三旧祭品写入 equipment.json（数据驱动 effects + maxStack 999 + 原贴图路径）——麦穗 `goldPercent 25 + hpRegenFlat 1`、石头 `defPercent 5 + moveSpeedPercent -10`、大理石 `defPercent 25 + killHpHealPercent 5`；效果与旧硬编码完全等价（金币×1.25、恢复+1/s、防御×1.25/×1.05、移速×0.9、击杀回血5%）。
+- **引擎扩展**：`hpRegenFlat` 固定值键（Flat 后缀按加和聚合，区别于百分比乘算）；`getTributeKillHpHealRatio()`（大理石击杀回血数据驱动）。
+- **删除旧硬编码**：combat-formulas.json 的 marble/stone 配置与 goldDrop 的麦穗字段、base.js 大理石/石头乘算块、update.js 麦穗+1 特判、damageable-entity 金币麦穗块与大理石按名检查、status-tooltip-helper 的 hasWheatTribute。
+- **初始背包兼容**：equip-manager init 将 TEST_BACKPACK_ITEMS 中的旧祭品按名映射到 ItemDatabase 数据驱动版本。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①三旧祭品效果与迁移前一致（金币/恢复/防御/移速/击杀回血）；②可堆叠 999；③进入掉落与合成池。
+
+## 2026-07-18（植物祭品平衡 + 出征栏同名限制 + 祭坛/祭品合成）
+
+### 对话：植物祭品工作流化 + 祭坛与合成系统
+- **植物祭品数值平衡**：20 个农产品祭品按三档数值带调整（珍贵带 1/2/3/4/5/7——苹果移速 3→2、火龙果暴击 7→4、黑曜石式微调；廉价带 4/8/12/18/22/30——恢复类全面上调；标准带原区间），双份 JSON 同步；**全部 40 祭品 maxStack 设为 999**。
+- **出征栏同名限制**：`_hasDuplicateTribute` 检查，放入同名祭品拒绝并提示「不可放入相同祭品！」（拖放与点击两路径均拦截）。
+- **祭坛 NPC**：小鼠大王下方（npcs.altar 配置偏移），实心圆占位；点击走 NPC 对话（npcType 'altar' 分支），三选项按钮：献祭出征（ExpeditionSystem.open）、祭品合成（FusionSystem.open）、退出。
+- **祭品合成栏**（`src/ui/fusion-system.js`）：面板尺寸/动画与其他栏位一致，格子与出征栏一致；4 按钮：合成/重置/一键放入/退出；放入取出双击/右键与拖放（含堆叠祭品每次取 1 个）；合成规则——同稀有度成对熔铸为高一级（传说对销毁生成随机新传说），混入不同稀有度提示「请放入相同稀有度的祭品」；奇数时按添加顺序留最后一个（一键放入按名称字母序编入 seq，自然剩下字母序最后者）；一键放入按稀有度子菜单批量放入（仅背包，不全局调用仓库）；重置/退出全部退回背包（背包满走场景式提示）；tooltip 对 fs-cell 感知；ESC 可关。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅。
+- **已知问题**：实机待验证——①同名放入拦截提示；②两普通合成优质、传说对生成新传说；③奇数留存顺序；④一键放入各稀有度；⑤祭坛对话三选项。
+
+## 2026-07-18（20 矿石祭品 + 怪物向效果 + 比例耦合 + 三新特效）
+
+### 对话：矿石祭品体系（参考大理石，方案经两轮数值调整）
+- **引擎扩展**（tribute-effects.js）：新增怪物向三键——`monsterDamageTakenPercent`（敌方承伤，damageable-entity 接入）、`monsterAtkDownPercent`（敌方攻击削减，玩家 takeDamage 接入）、`monsterMoveSlowPercent`（敌移速削减，enemy._updateMovement 接入）；比例键 `combatChanceDelta`/`eliteChanceDelta`（dungeon-config 生成时应用）；`dropChancePercent`（rollTributeDrop 乘算）、`staminaRegenPercent`（体力恢复乘算）。
+- **比例耦合规则**：战斗+随机事件概率恒=100%，`combatChanceDelta` 一处调整两处联动（getZombieDungeonConfig 内 combat+delta/event=1−combat）；工作流已归档该规则。
+- **20 矿石祭品**（双份 JSON，共 40 祭品）：普通 5/优质 5/稀有 4（1 增益+1 减益）、史诗 3/神话 2/传说 1（纯增益）；数值带按稀缺度三档——珍贵带（移速/暴击/怪物减速 1/2/3/4/5/7）、标准带（1~15 原带）、廉价带（恢复 4/8/12/18/22/30）。磁铁矿战斗+6pp（事件同步-6）、星光蓝宝事件+8pp（战斗同步-8）。
+- **三新特效**（item.special + buff 栏）：
+  - 金刚石「金刚不坏」：单次受到的伤害不超过最大生命值 15%（玩家 takeDamage 拦截，常驻）。
+  - 月光石「月影」：进入战斗/精英/Boss 房间无敌 15s（战斗入口 _triggerMoonshadow + update 计时 + takeDamage 无敌闸）；精英/Boss 战中物理魔法伤害 +5%（_moonshadowBoostActive，离开战斗清除）。
+  - 贤者之石「点石成金」：拾取祭品品质提升一级（tryPickupItem 入包前转换）；若为传说祭品则额外再获一件随机传说祭品。
+- **工作流归档**：SKILL.md 新增「祭品添加标准工作流」（数据结构/效果键/数值带/特效模式/掉率表/验证），后续新增祭品按此开展。
+- **测试结果**：JSON 校验 ✅（40 祭品、双份一致、特效参数正确）；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①怪物向三效果生效（承伤/减攻/减速）；②磁铁矿/星光蓝宝的比例耦合；③金刚不坏 15% 上限；④月影无敌 15s 与精英/Boss 增伤；⑤点石成金升级与传说额外掉落。
+
 ## 2026-07-18（日复盘：4 处隐患修复）
 
 ### 对话：回顾当日工作并排查 bug/隐患
