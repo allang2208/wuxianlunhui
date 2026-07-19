@@ -1,6 +1,6 @@
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { CONFIG } from '../config/config.js';
-import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { getTributeHpRegenFlat } from '../config/tribute-effects.js';
 
 const fmt = (n, digits = 2) => {
     if (!isFinite(n)) return '0';
@@ -8,11 +8,6 @@ const fmt = (n, digits = 2) => {
 };
 
 const formulaLine = (label, value, unit = '') => `<div class="tt-line"><span class="tt-name">${label}</span><span class="tt-val">${fmt(value)}${unit}</span></div>`;
-
-function hasWheatTribute() {
-    const items = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
-    return items.some(c => c && c.item && c.item.name === '麦穗');
-}
 
 function getWeaponCrit(player) {
     const currentWpn = player.equipments && player.equipments[player.weaponMode];
@@ -190,13 +185,13 @@ export const StatusTooltipHelper = {
                     <div class="tt-note">实际恢复 = ${CONFIG.STAMINA_REGEN || 0} × ${fmt(mul)} /秒</div>`;
             }
             case 'hpRegen': {
-                const extra = hasWheatTribute() ? 1 : 0;
+                const extra = getTributeHpRegenFlat();
                 return `<div class="tt-title">生命回复</div>
                     <div class="tt-desc">每秒自动恢复的生命值。</div>
                     ${formulaLine('基础回复', d.hpRegen || 0, '/秒')}
-                    ${extra ? formulaLine('麦穗祭品', extra, '/秒') : ''}
+                    ${extra ? formulaLine('祭品加成', extra, '/秒') : ''}
                     ${formulaLine('合计', (d.hpRegen || 0) + extra, '/秒')}
-                    <div class="tt-note">携带“麦穗”祭品时额外 +1/秒</div>`;
+                    <div class="tt-note">携带含固定恢复词条的祭品（如麦穗）时额外 +1/秒</div>`;
             }
             case 'mpRegen':
                 return `<div class="tt-title">魔法回复</div>

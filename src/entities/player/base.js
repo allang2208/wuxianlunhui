@@ -12,7 +12,6 @@ const baseMixin = {
 
         // 安全读取全局战斗公式配置
         const formulas = COMBAT_FORMULAS.player || {};
-        const tributeFormulas = COMBAT_FORMULAS.tributes || {};
 
         // 应用武器精通的属性加成
         let bonusStr = 0, bonusDex = 0, bonusWis = 0, bonusCon = 0;
@@ -66,21 +65,6 @@ const baseMixin = {
             }
         }
 
-        // 祭品效果：只检查一次，先大理石再石头
-        const tributeItems = (DungeonMapSystem && DungeonMapSystem._carriedItems) || null;
-        const hasMarble = tributeItems && tributeItems.some(c => c && c.item && c.item.name === '大理石');
-        const hasStone = tributeItems && tributeItems.some(c => c && c.item && c.item.name === '石头');
-
-        const marbleFormula = tributeFormulas.marble || { defenseMultiplier: 1.25 };
-        const stoneFormula = tributeFormulas.stone || { defenseMultiplier: 1.05, speedMultiplier: 0.9 };
-
-        if (hasMarble) {
-            d.def = Math.floor(d.def * marbleFormula.defenseMultiplier);
-        }
-        if (hasStone) {
-            d.def = Math.floor(d.def * stoneFormula.defenseMultiplier);
-        }
-
         // 魔法攻击/防御、命中/闪避、暴击/攻速/速度/暴击抵抗
         const matkFormula = formulas.magicAttack || { intMultiplier: 1.5, wisMultiplier: 0.5, round: 'floor' };
         const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
@@ -98,9 +82,6 @@ const baseMixin = {
         d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
         d.aspd = aspdFormula.base + (d.dex + bonusDex) * aspdFormula.dexMultiplier;
         d.speed = speedFormula.base + (d.dex + bonusDex) * speedFormula.dexMultiplier;
-        if (hasStone) {
-            d.speed = Math.floor(d.speed * stoneFormula.speedMultiplier);
-        }
         d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
 
         // 保存加成供其他系统使用

@@ -12,7 +12,7 @@ import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
-import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeStaminaRegenMul } from '../../config/tribute-effects.js';
+import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeStaminaRegenMul, getTributeHpRegenFlat } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -349,12 +349,8 @@ update(dt, entities) {
                 // ===== 生命回复 =====
                 if (this.data.hp < this.data.maxHp) {
                     let regen = this.data.hpRegen;
-                    // 祭品效果：麦穗 - 生命恢复每秒+1
-                    if (DungeonMapSystem && DungeonMapSystem._carriedItems) {
-                        const tributes = DungeonMapSystem._carriedItems;
-                        const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
-                        if (hasWheat) regen += 1;
-                    }
+                    // 祭品效果（数据驱动）：固定恢复加值（麦穗 hpRegenFlat）
+                    regen += getTributeHpRegenFlat();
                     // 祭品效果（数据驱动）：生命恢复百分比加成
                     regen *= getTributeHpRegenMultiplier();
                     this.data.hp = Math.min(this.data.maxHp, this.data.hp + regen * (dt / 1000));

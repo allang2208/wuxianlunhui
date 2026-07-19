@@ -13,7 +13,7 @@ import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
+import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
 
         /**
          * 根据配置计算怪物金币掉落
@@ -32,17 +32,6 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeMonsterD
             // 全局倍率
             const globalMul = cfg.globalMultiplier ?? 1;
             amount = Math.floor(amount * globalMul);
-
-            // 祭品效果
-            const tributeName = cfg.tributeName || '麦穗';
-            const tributeMul = cfg.tributeMultiplier ?? 1.25;
-            if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
-                const tributes = DungeonMapSystem._carriedItems;
-                const hasTribute = tributes.some(c => c && c.item && c.item.name === tributeName);
-                if (hasTribute) {
-                    amount = Math.floor(amount * tributeMul);
-                }
-            }
 
             // 祭品效果（数据驱动）：携带祭品的金币掉落百分比加成
             amount = Math.floor(amount * getTributeGoldMultiplier());
@@ -235,18 +224,15 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeMonsterD
                     let goldAmount = getEnemyGoldDrop(this.level, source);
                     if (this.rank === 'elite') goldAmount *= 2;
 
-                    // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
-                    if (source && DungeonMapSystem && DungeonMapSystem._carriedItems) {
-                        const tributes = DungeonMapSystem._carriedItems;
-                        const hasMarble = tributes.some(c => c && c.item && c.item.name === '大理石');
-                        if (hasMarble && source && source.data) {
-                            source._marbleHealTimer = 1000; // 1秒
-                            source._marbleHealTotal = source.data.maxHp * 0.05;
-                            source._marbleHealPerTick = source._marbleHealTotal / (1000 / 16.67); // 每帧恢复量
-                            if (StatusBar) {
-                                if (source._marbleHealEffectId) StatusBar.removeEffect(source._marbleHealEffectId);
-                                source._marbleHealEffectId = StatusBar.addEffect('marbleHeal', 1000, { icon: '🗿', name: '大理石守护', color: '#8a9a8a' });
-                            }
+                    // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
+                    const marbleRatio = getTributeKillHpHealRatio();
+                    if (marbleRatio > 0 && source && source.data) {
+                        source._marbleHealTimer = 1000; // 1秒
+                        source._marbleHealTotal = source.data.maxHp * marbleRatio;
+                        source._marbleHealPerTick = source._marbleHealTotal / (1000 / 16.67); // 每帧恢复量
+                        if (StatusBar) {
+                            if (source._marbleHealEffectId) StatusBar.removeEffect(source._marbleHealEffectId);
+                            source._marbleHealEffectId = StatusBar.addEffect('marbleHeal', 1000, { icon: '🗿', name: '大理石守护', color: '#8a9a8a' });
                         }
                     }
 

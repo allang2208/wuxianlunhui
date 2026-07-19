@@ -94,9 +94,7 @@
       "levelMultiplier": 4,
       "randomMin": 1,
       "randomMax": 10,
-      "globalMultiplier": 0.5,
-      "tributeMultiplier": 1.25,
-      "tributeName": "麦穗"
+      "globalMultiplier": 0.5
     },
     "calculateCombatStats": {
       "attack": {
@@ -139,15 +137,6 @@
     }
   },
   "tributes": {
-    "marble": {
-      "defenseMultiplier": 1.25,
-      "appliesOnce": true
-    },
-    "stone": {
-      "defenseMultiplier": 1.05,
-      "speedMultiplier": 0.9,
-      "appliesOnce": false
-    },
     "dropTables": {
       "elite": {
         "chance": 1,

@@ -20,7 +20,8 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Game } from '../game.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
 
-/** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1） */
+/** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
+ * 以 Flat 结尾的键为固定值（非百分比），按加和聚合（如 hpRegenFlat 每秒+1） */
 export function getTributeEffects() {
     const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
     const total = {};
@@ -29,7 +30,11 @@ export function getTributeEffects() {
         if (!effects) continue;
         for (const [key, value] of Object.entries(effects)) {
             if (typeof value === 'number' && Number.isFinite(value)) {
-                total[key] = (total[key] ?? 1) * (1 + value / 100);
+                if (key.endsWith('Flat')) {
+                    total[key] = (total[key] || 0) + value;
+                } else {
+                    total[key] = (total[key] ?? 1) * (1 + value / 100);
+                }
             }
         }
     }
@@ -188,6 +193,11 @@ export function getTributeReviveRatio() {
 /** 千年人参击杀回蓝比例（如 0.05；未携带返回 0） */
 export function getTributeKillMpHealRatio() {
     return (getTributeEffects().killMpHealPercent ?? 1) - 1;
+}
+
+/** 大理石击杀回血比例（如 0.05；未携带返回 0） */
+export function getTributeKillHpHealRatio() {
+    return (getTributeEffects().killHpHealPercent ?? 1) - 1;
 }
 
 // ==================== 祭品掉落 ====================

@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（三旧祭品迁移数据驱动）
+
+### 对话：麦穗/石头/大理石同步迁移
+- **迁移**：三旧祭品写入 equipment.json（数据驱动 effects + maxStack 999 + 原贴图路径）——麦穗 `goldPercent 25 + hpRegenFlat 1`、石头 `defPercent 5 + moveSpeedPercent -10`、大理石 `defPercent 25 + killHpHealPercent 5`；效果与旧硬编码完全等价（金币×1.25、恢复+1/s、防御×1.25/×1.05、移速×0.9、击杀回血5%）。
+- **引擎扩展**：`hpRegenFlat` 固定值键（Flat 后缀按加和聚合，区别于百分比乘算）；`getTributeKillHpHealRatio()`（大理石击杀回血数据驱动）。
+- **删除旧硬编码**：combat-formulas.json 的 marble/stone 配置与 goldDrop 的麦穗字段、base.js 大理石/石头乘算块、update.js 麦穗+1 特判、damageable-entity 金币麦穗块与大理石按名检查、status-tooltip-helper 的 hasWheatTribute。
+- **初始背包兼容**：equip-manager init 将 TEST_BACKPACK_ITEMS 中的旧祭品按名映射到 ItemDatabase 数据驱动版本。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①三旧祭品效果与迁移前一致（金币/恢复/防御/移速/击杀回血）；②可堆叠 999；③进入掉落与合成池。
+
 ## 2026-07-18（植物祭品平衡 + 出征栏同名限制 + 祭坛/祭品合成）
 
 ### 对话：植物祭品工作流化 + 祭坛与合成系统

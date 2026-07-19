@@ -2267,6 +2267,90 @@
       ],
       "desc": "炼金术的终极。特效「点石成金」：拾取祭品时品质提升一级；若为传说祭品，则额外再获得一件随机传说祭品。",
       "maxStack": 999
+    },
+    "wheat": {
+      "name": "麦穗",
+      "type": "祭品",
+      "icon": "🌾",
+      "iconImage": "assets/items/麦穗.png",
+      "dropImage": "assets/items/麦穗.png",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "maxStack": 999,
+      "price": 100,
+      "effects": {
+        "goldPercent": 25,
+        "hpRegenFlat": 1
+      },
+      "stats": [
+        {
+          "name": "金币加成",
+          "value": "+25%"
+        },
+        {
+          "name": "生命恢复",
+          "value": "+1/秒"
+        }
+      ],
+      "desc": "一束金色的麦穗，蕴含着丰收的祝福。放入祭品池后，击杀怪物时掉落的金币增加25%，玩家生命值自然恢复每秒加1。"
+    },
+    "stone": {
+      "name": "石头",
+      "type": "祭品",
+      "icon": "🪨",
+      "iconImage": "assets/items/石头.png",
+      "dropImage": "assets/items/石头.png",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "maxStack": 999,
+      "price": 60,
+      "effects": {
+        "defPercent": 5,
+        "moveSpeedPercent": -10
+      },
+      "stats": [
+        {
+          "name": "防御",
+          "value": "+5%"
+        },
+        {
+          "name": "移动速度",
+          "value": "-10%"
+        }
+      ],
+      "desc": "一块普通的石头，虽然沉重但能提供额外的防护。放入祭品池后，移动速度减少10%，防御力增加5%。"
+    },
+    "marble": {
+      "name": "大理石",
+      "type": "祭品",
+      "icon": "🗿",
+      "iconImage": "assets/items/大理石.png",
+      "dropImage": "assets/items/大理石.png",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "maxStack": 999,
+      "price": 150,
+      "effects": {
+        "defPercent": 25,
+        "killHpHealPercent": 5
+      },
+      "stats": [
+        {
+          "name": "防御",
+          "value": "+25%"
+        },
+        {
+          "name": "击杀回血",
+          "value": "5%最大生命/秒"
+        }
+      ],
+      "desc": "一块光滑的大理石，蕴含着大地的守护之力。放入祭品池后，玩家的防御力增加25%，击杀敌方单位后，1秒内回复最大生命值的5%。"
     }
   }
 }
