@@ -761,7 +761,7 @@ export const DungeonMapSystem = {
     _enterZombieCombat(node, options = {}) {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
-        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, null, this.dungeonType, node.forceMonsters || null);
+        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false, options);
@@ -993,6 +993,7 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     if (result.elite) node.isElite = true;
                     if (result.forceMonsters) node.forceMonsters = result.forceMonsters;
+                    if (result.encounter) node.encounterOverride = result.encounter;
                     this._enterCombat(node);
                 } else {
                     const isTrap = result && result.eventType === 'trap';

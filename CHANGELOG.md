@@ -8,14 +8,13 @@
 - 测试结果
 - 已知问题
 
-## 2026-07-18（诅咒铠甲事件必刷铠甲骑士）
+## 2026-07-18（诅咒铠甲事件必刷铠甲骑士 + 单波定制遭遇）
 
-### 对话：事件强制怪物链路
-- **配置**：`dungeon-event-definitions.js` cursedArmor（被诅咒的板甲）力量拆解失败结局新增 `forceMonsters: ['armoredKnight']`；`handleNewDungeonEvent` 返回结果透传 `forceMonsters`。
-- **链路**：`dungeon-map-system._enterEvent` 将 `result.forceMonsters` 写入 `node.forceMonsters` → `_enterZombieCombat` 传入 `ZombieDungeonCombat` 第 5 参（新构造参数，向后兼容）→ `nextWaveMonsterClasses` 首波 `unshift` 强制怪物（tier 'forced'，不参与怪物池随机、不影响精英兜底判定）。
-- **工厂**：`zombie-dungeon.js` 新增 `createArmoredKnight`（enemy-config 驱动 + 永久警戒，同其他工厂模式），登记入 `ZOMBIE_FACTORY_MAP`——family 为「骑士」不会被 monsterPool 的 family 过滤器收编，仅 forceMonsters 显式刷新。
+### 对话：事件强制怪物链路 + 单波构成
+- **强制怪物链路**：cursedArmor（被诅咒的板甲）力量拆解失败结局 `forceMonsters: ['armoredKnight']` 经 handleNewDungeonEvent → node.forceMonsters → ZombieDungeonCombat 第 5 参，首波 unshift 插入（tier 'forced'）；`createArmoredKnight` 工厂登记入 ZOMBIE_FACTORY_MAP（family 骑士不进怪物池随机）。
+- **单波定制遭遇**：结局配置 `encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: {normal:1, elite:0} }` → node.encounterOverride → 构造第 3 参（原 boss 战 override 机制复用）；`nextWaveMonsterClasses` 新增强制怪扣减（drawTarget = monstersPerWave − forcedCount）——诅咒铠甲战斗 = **1 波 × (1 铠甲骑士 + 4 普通池随机)**，composition/tierWeights 两分支均按扣减后名额抽取。
 - **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
-- **已知问题**：实机待验证——①诅咒铠甲力量拆解失败后的战斗中首波必出 1 只铠甲骑士（3 波×5 + 骑士）；②forceMonsters 仅僵尸系地牢生效，非僵尸系地牢事件战斗暂不消费该字段。
+- **已知问题**：实机待验证——诅咒铠甲战斗单波 5 只（1 骑士+4 普通）、无第二波；forceMonsters 仅僵尸系地牢生效。
 
 ## 2026-07-18（骑士冲锋朝向/二连击突进/格挡与玩家眩晕规则）
 

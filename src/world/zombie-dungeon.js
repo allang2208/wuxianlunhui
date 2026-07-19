@@ -517,17 +517,21 @@ export class ZombieDungeonCombat {
         const composition = this._encounter.monsterComposition;
         const classes = [];
 
+        // 事件强制怪物占位数：强制怪从总数中扣减，剩余名额才由怪物池随机（如 1 骑士 + 4 普通）
+        const forcedCount = (this._currentWave === 1 && Array.isArray(this._forceMonsters)) ? this._forceMonsters.length : 0;
+        const drawTarget = Math.max(0, monstersPerWave - forcedCount);
+
         if (composition && typeof composition === 'object') {
-            // 数据驱动固定配比：例如 { elite: 1, normal: 5 }
+            // 数据驱动固定配比：例如 { elite: 1, normal: 5 }（超出 drawTarget 时截断）
             for (const [tier, count] of Object.entries(composition)) {
                 const pool = monsterPool[tier] || monsterPool.normal;
-                for (let i = 0; i < count; i++) {
+                for (let i = 0; i < count && classes.length < drawTarget; i++) {
                     const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
                     classes.push({ MonsterClass, tier });
                 }
             }
             // 如果总数不足，用普通怪物补齐
-            while (classes.length < monstersPerWave) {
+            while (classes.length < drawTarget) {
                 const pool = monsterPool.normal;
                 const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
                 classes.push({ MonsterClass, tier: 'normal' });
@@ -539,7 +543,7 @@ export class ZombieDungeonCombat {
             }
         } else {
             const guaranteeAtLeastOneElite = this._encounter.guaranteeAtLeastOneElite;
-            for (let i = 0; i < monstersPerWave; i++) {
+            for (let i = 0; i < drawTarget; i++) {
                 const tier = this._rollTier();
                 const pool = monsterPool[tier] || monsterPool.normal;
                 const MonsterClass = pool[Math.floor(Math.random() * pool.length)];
