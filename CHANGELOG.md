@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（地牢难度分级掉落体系）
+
+### 对话：难度 FEDCBA × 祭品稀有度概率公式
+- **难度字段**：`dungeon-config.json` dungeonList 增加 `grade`——僵尸地牢 D 级、僵尸地牢-初级 F 级。
+- **分级掉落表**（combat-formulas.json `tributes.dropTables` 按 F/E/D/C/B/A 六档，精英/首领分表）：
+  - 封顶规则：F=稀有封顶、E=史诗封顶、D+=传说全开（超限权重过滤后归一化抽取）；
+  - 精英必掉权重随难度上移（F 55/30/15 → D 35/30/20/10/4/1 → A 12/20/26/24/13/5）；首领表整体比精英高一档（史诗+约 1.2~1.5 倍）；
+  - 普通怪掉率按用户拍板：F 2%，逐级 +0.5%（E 2.5 / D 3 / C 3.5 / B 4 / A 4.5%），品质封顶稀有（A 开放史诗 3%）。
+- **rollTributeDrop 改造**：按 `dungeonList.grade` 取分表 + `maxRarity` 封顶过滤归一化 + 掉率乘算（星光蓝宝 dropChancePercent 联动）；damageable-entity 传入当前 dungeonType（主神空间默认 D 级）。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅；封顶归一化逻辑验证 ✅。
+- **已知问题**：实机待验证——F 级地牢不掉史诗+、普通怪 2% 起步掉率、首领表优于精英表。
+
 ## 2026-07-18（骑士冲锋无视实体碰撞）
 
 ### 对话：冲锋穿人机制

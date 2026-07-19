@@ -12,12 +12,14 @@
  */
 
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { DungeonConfig } from './dungeon-config.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { EquipManager } from '../ui/equip-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Game } from '../game.js';
+import { RARITY_ORDER } from './rarity.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
 
 /** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
@@ -230,21 +232,49 @@ export function pickTributeByRarity(rarity) {
 
 /**
  * 击杀掉落祭品判定（召唤物在外层已拦截）：
- * - 精英/首领：必掉，品质按 combat-formulas.json tributes.dropTables.elite 权重
- * - 普通怪：chance 概率掉，品质只出稀有及以下（normal 表）
+ * - 按地牢难度等级（dungeonList.grade，默认 D）取 combat-formulas.json tributes.dropTables 对应表
+ * - 精英/首领必掉（分表），普通怪按概率掉；掉落稀有度不超过该难度的 maxRarity 上限
  * @param {string} rank 怪物 rank（elite/boss/normal...）
+ * @param {string} [dungeonType] 地牢类型（主神空间等无难度场景默认 'D'）
  * @returns {object|null} 祭品物品模板
  */
-export function rollTributeDrop(rank) {
+export function rollTributeDrop(rank, dungeonType) {
+    const grade = _getDungeonGrade(dungeonType);
     const tables = COMBAT_FORMULAS.tributes?.dropTables || {};
-    const isElite = (rank === 'elite' || rank === 'boss');
-    const table = isElite
-        ? (tables.elite || { chance: 1, weights: [['common', 35], ['uncommon', 30], ['rare', 20], ['epic', 10], ['mythic', 4], ['legendary', 1]] })
-        : (tables.normal || { chance: 0.05, weights: [['common', 80], ['uncommon', 15], ['rare', 5]] });
-    // 祭品掉率加成（数据驱动，乘算）
-    const chance = Math.min(1, (table.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul());
+    const table = tables[grade] || tables.D;
+    if (!table) return null;
+    const isBoss = rank === 'boss';
+    const isElite = rank === 'elite' || isBoss;
+    const sub = isBoss ? table.boss : (isElite ? table.elite : table.normal);
+    if (!sub) return null;
+    // 掉率加成（数据驱动，乘算）
+    const chance = Math.min(1, (sub.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul());
     if (Math.random() >= chance) return null;
-    return _pickTributeByRarity(_rollRarity(table.weights || []));
+    // 稀有度上限过滤（F=稀有封顶 / E=史诗封顶 / D+全开放）
+    const weights = _capWeights(sub.weights || [], table.maxRarity);
+    if (weights.length === 0) return null;
+    return _pickTributeByRarity(_rollRarity(weights));
+}
+
+/** 按稀有度上限过滤权重表并归一化 */
+function _capWeights(weights, maxRarity) {
+    if (!maxRarity) return weights;
+    const capIdx = RARITY_ORDER.indexOf(maxRarity);
+    if (capIdx === -1) return weights;
+    const allowed = weights.filter(([rarity]) => RARITY_ORDER.indexOf(rarity) <= capIdx);
+    const sum = allowed.reduce((acc, [, w]) => acc + w, 0);
+    if (sum <= 0) return allowed;
+    // 归一化到 100，保证抽取语义一致
+    return allowed.map(([rarity, w]) => [rarity, (w / sum) * 100]);
+}
+
+/** 地牢类型 → 难度等级（dungeonList.grade，默认 D） */
+function _getDungeonGrade(dungeonType) {
+    const list = DungeonConfig.raw?.dungeonList || {};
+    if (dungeonType && list[dungeonType] && list[dungeonType].grade) {
+        return list[dungeonType].grade;
+    }
+    return 'D';
 }
 
 // ==================== 特效 Buff 显示 ====================

@@ -239,8 +239,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
                     Game.dropItem(this.x, this.y, goldItem);
 
-                    // 祭品掉落：精英/首领必掉（品质按权重），普通怪 5% 只出稀有及以下
-                    const tributeDrop = rollTributeDrop(this.rank);
+                    // 祭品掉落：按地牢难度分级掉落表（精英/首领必掉分表，普通怪按概率；稀有度封顶）
+                    const tributeDrop = rollTributeDrop(this.rank, (DungeonMapSystem && DungeonMapSystem.dungeonType) || null);
                     if (tributeDrop) {
                         Game.dropItem(this.x, this.y, tributeDrop);
                     }

@@ -138,13 +138,41 @@
   },
   "tributes": {
     "dropTables": {
-      "elite": {
-        "chance": 1,
-        "weights": [["common", 35], ["uncommon", 30], ["rare", 20], ["epic", 10], ["mythic", 4], ["legendary", 1]]
+      "F": {
+        "maxRarity": "rare",
+        "elite":  { "chance": 1, "weights": [["common", 55], ["uncommon", 30], ["rare", 15]] },
+        "boss":   { "chance": 1, "weights": [["common", 45], ["uncommon", 35], ["rare", 20]] },
+        "normal": { "chance": 0.02, "weights": [["common", 90], ["uncommon", 10]] }
       },
-      "normal": {
-        "chance": 0.05,
-        "weights": [["common", 80], ["uncommon", 15], ["rare", 5]]
+      "E": {
+        "maxRarity": "epic",
+        "elite":  { "chance": 1, "weights": [["common", 45], ["uncommon", 32], ["rare", 16], ["epic", 7]] },
+        "boss":   { "chance": 1, "weights": [["common", 35], ["uncommon", 34], ["rare", 22], ["epic", 9]] },
+        "normal": { "chance": 0.025, "weights": [["common", 85], ["uncommon", 12], ["rare", 3]] }
+      },
+      "D": {
+        "maxRarity": "legendary",
+        "elite":  { "chance": 1, "weights": [["common", 35], ["uncommon", 30], ["rare", 20], ["epic", 10], ["mythic", 4], ["legendary", 1]] },
+        "boss":   { "chance": 1, "weights": [["common", 28], ["uncommon", 30], ["rare", 24], ["epic", 12], ["mythic", 5], ["legendary", 1]] },
+        "normal": { "chance": 0.03, "weights": [["common", 80], ["uncommon", 15], ["rare", 5]] }
+      },
+      "C": {
+        "maxRarity": "legendary",
+        "elite":  { "chance": 1, "weights": [["common", 28], ["uncommon", 28], ["rare", 22], ["epic", 14], ["mythic", 6], ["legendary", 2]] },
+        "boss":   { "chance": 1, "weights": [["common", 20], ["uncommon", 26], ["rare", 26], ["epic", 18], ["mythic", 8], ["legendary", 2]] },
+        "normal": { "chance": 0.035, "weights": [["common", 75], ["uncommon", 17], ["rare", 8]] }
+      },
+      "B": {
+        "maxRarity": "legendary",
+        "elite":  { "chance": 1, "weights": [["common", 20], ["uncommon", 25], ["rare", 25], ["epic", 18], ["mythic", 9], ["legendary", 3]] },
+        "boss":   { "chance": 1, "weights": [["common", 14], ["uncommon", 22], ["rare", 28], ["epic", 22], ["mythic", 11], ["legendary", 3]] },
+        "normal": { "chance": 0.04, "weights": [["common", 70], ["uncommon", 18], ["rare", 12]] }
+      },
+      "A": {
+        "maxRarity": "legendary",
+        "elite":  { "chance": 1, "weights": [["common", 12], ["uncommon", 20], ["rare", 26], ["epic", 24], ["mythic", 13], ["legendary", 5]] },
+        "boss":   { "chance": 1, "weights": [["common", 8], ["uncommon", 16], ["rare", 28], ["epic", 26], ["mythic", 16], ["legendary", 6]] },
+        "normal": { "chance": 0.045, "weights": [["common", 60], ["uncommon", 22], ["rare", 15], ["epic", 3]] }
       }
     }
   },
