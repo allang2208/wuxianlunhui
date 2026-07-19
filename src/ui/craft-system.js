@@ -10,6 +10,7 @@ import { SystemUI } from './system-ui.js';
 import craftConfigData from '../../data/craft-config.json';
 import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-effects.js';
 import { resolveWeaponImageSrc } from './craft/weapon-image.js';
+import { WarehouseSystem } from './warehouse-system.js';
 
 const CraftSystem = {
     _isOpen: false,
@@ -691,23 +692,27 @@ const CraftSystem = {
         const ticketCost = hasExisting ? 4 : 1;
         const ticketName = hasExisting ? '改造券×4（替换已改造配件）' : '改造券×1';
 
-        // 检查改造券（优先按物品 id，无 id 的旧实例回退按名称）
+        // 检查改造券（背包优先，不足时全局调用仓库；按物品 id，无 id 的旧实例回退按名称）
+        const isTicket = i => i.id === 'reforge_ticket' || (!i.id && i.name === '改造券');
         const bp = EquipManager.backpackItems || [];
-        const ticketIdx = bp.findIndex(i => i.id === 'reforge_ticket' || (!i.id && i.name === '改造券'));
-        if (ticketIdx === -1) {
-            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}`, '#ff4444'));
+        const ticketIdx = bp.findIndex(isTicket);
+        const bpStack = ticketIdx !== -1 ? (bp[ticketIdx].stack || 1) : 0;
+        const whCount = WarehouseSystem.countMaterial(isTicket);
+        if (bpStack + whCount < ticketCost) {
+            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}，当前只有${bpStack + whCount}张`, '#ff4444'));
             return;
         }
-        const ticketItem = bp[ticketIdx];
-        if ((ticketItem.stack || 1) < ticketCost) {
-            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造券不足！需要${ticketName}，当前只有${ticketItem.stack || 1}张`, '#ff4444'));
-            return;
-        }
-        // 消耗改造券
-        if (ticketItem.stack > ticketCost) {
-            ticketItem.stack -= ticketCost;
+        // 消耗改造券：先扣背包，不足部分从仓库扣除
+        if (bpStack >= ticketCost) {
+            const ticketItem = bp[ticketIdx];
+            if (ticketItem.stack > ticketCost) {
+                ticketItem.stack -= ticketCost;
+            } else {
+                bp.splice(ticketIdx, 1);
+            }
         } else {
-            bp.splice(ticketIdx, 1);
+            if (ticketIdx !== -1) bp.splice(ticketIdx, 1);
+            WarehouseSystem.consumeMaterial(isTicket, ticketCost - bpStack);
         }
         EquipManager.updateInventorySlots();
 

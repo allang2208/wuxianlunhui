@@ -2633,3 +2633,16 @@
         .warehouse-page-btn:hover { border-color: #d4c5a9; }
         .warehouse-page-num { color: #8a7d6b; font-size: 12px; }
         .warehouse-hint { position: absolute; bottom: 56px; left: 0; right: 0; text-align: center; color: #e08a5a; font-size: 13px; pointer-events: none; }
+
+        /* ===== 附魔栏可用卷轴列表（背包+仓库） ===== */
+        .enchant-scroll-list { padding: 8px 12px; border-top: 1px solid rgba(122, 106, 90, 0.4); max-height: 220px; overflow-y: auto; flex-shrink: 0; }
+        .enchant-scroll-list-title { color: #a0907a; font-size: 12px; margin-bottom: 6px; }
+        .enchant-scroll-list-empty { color: #6a5d4f; font-size: 12px; text-align: center; padding: 8px 0; }
+        .enchant-scroll-row { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+        .enchant-scroll-row:hover { background: rgba(90, 77, 63, 0.35); border-color: rgba(122, 106, 90, 0.5); }
+        .enchant-scroll-row.from-warehouse .enchant-scroll-row-src { color: #c4a35a; }
+        .enchant-scroll-row-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .enchant-scroll-row-icon img { width: 22px; height: 22px; object-fit: contain; }
+        .enchant-scroll-row-name { flex: 1; color: #d4c5a9; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .enchant-scroll-row-src { color: #7a8a9a; font-size: 11px; flex-shrink: 0; }
+        .enchant-scroll-row-cost { color: #a090c0; font-size: 11px; flex-shrink: 0; }

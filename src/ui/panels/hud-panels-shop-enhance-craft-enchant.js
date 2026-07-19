@@ -369,6 +369,11 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     enchantMessage.className = 'enchant-message';
     enchantMessage.id = 'enchantMessage';
     enchantBody.appendChild(enchantMessage);
+    // 可用附魔卷轴列表（背包 + 仓库）
+    const enchantScrollList = document.createElement('div');
+    enchantScrollList.className = 'enchant-scroll-list';
+    enchantScrollList.id = 'enchantScrollList';
+    enchantBody.appendChild(enchantScrollList);
     enchantPanel.appendChild(enchantBody);
     root.appendChild(enchantPanel);
 

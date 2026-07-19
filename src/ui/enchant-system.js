@@ -7,6 +7,7 @@ import { Game } from '../game.js';
 import { SoundManager } from './sound-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { UIState } from './ui-state.js';
+import { WarehouseSystem } from './warehouse-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryElement, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -201,33 +202,41 @@ const EnchantSystem = {
 
     // 从背包放入卷轴
     _equipScrollFromBackpack(index) {
-        
-        const bp = EquipManager.backpackItems;
-        const item = bp.find(i => i.slot === parseInt(index));
+        this._equipScrollFromSource('backpack', parseInt(index));
+    },
+
+    // 从指定来源（背包/仓库）放入卷轴
+    _equipScrollFromSource(type, slot) {
+        let sourceArray;
+        if (type === 'warehouse') {
+            sourceArray = WarehouseSystem.items;
+        } else {
+            sourceArray = EquipManager.backpackItems;
+        }
+        const item = sourceArray.find(i => i.slot === parseInt(slot));
         if (!item) {
-            
             return;
         }
         if (item.category !== 'consumable' || !item.scrollId) {
             this._showMessage('这不是附魔卷轴');
-            
+
             return;
         }
         // 检查已有装备是否匹配
         if (this._equipItem) {
             if (!EnchantConfig.canEnchant(this._equipItem, item.scrollId)) {
                 this._showMessage('不符合附魔条件');
-                
+
                 return;
             }
         }
         // 移除原槽位物品
         this._returnScrollItem();
-        // 从背包移除
-        bp.splice(bp.indexOf(item), 1);
+        // 从来源移除
+        sourceArray.splice(sourceArray.indexOf(item), 1);
         this._scrollItem = JSON.parse(JSON.stringify(item));
-        this._scrollSource = { type: 'backpack', slot: parseInt(index) };
-        
+        this._scrollSource = { type, slot: parseInt(slot) };
+
         this._checkCompatibility();
         this._updateUI();
     },
@@ -309,8 +318,17 @@ const EnchantSystem = {
     // 退回卷轴
     _returnScrollItem() {
         if (!this._scrollItem) {
-            
+
             return;
+        }
+        // 仓库来源的卷轴退回仓库
+        if (this._scrollSource && this._scrollSource.type === 'warehouse') {
+            if (WarehouseSystem.addItem(this._scrollItem)) {
+                this._scrollItem = null;
+                this._scrollSource = null;
+                return;
+            }
+            // 仓库满了则继续走背包路径
         }
         const bp = EquipManager.backpackItems;
         let returned = false;
@@ -431,6 +449,7 @@ const EnchantSystem = {
 
     // 更新UI
     _updateUI() {
+        this._renderScrollList();
         const scrollSlot = getElement('enchantScrollSlot');
         const equipSlot = getElement('enchantEquipSlot');
         const scrollPlaceholder = getElement('enchantScrollPlaceholder');
@@ -511,37 +530,45 @@ const EnchantSystem = {
         if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
     },
 
-    // 统计背包中的魔法粉尘数量
+    // 统计魔法粉尘数量（背包 + 仓库，全局调用）
     _getDustCount() {
         const bp = EquipManager.backpackItems;
-        if (!bp) return 0;
         let total = 0;
-        for (const item of bp) {
-            if (item && item.name === MagicDustItem.name) {
-                total += item.stack || 1;
+        if (bp) {
+            for (const item of bp) {
+                if (item && item.name === MagicDustItem.name) {
+                    total += item.stack || 1;
+                }
             }
+        }
+        if (WarehouseSystem && WarehouseSystem.countMaterial) {
+            total += WarehouseSystem.countMaterial(i => i && i.name === MagicDustItem.name);
         }
         return total;
     },
 
-    // 从背包中扣除魔法粉尘
+    // 扣除魔法粉尘（先扣背包，不足部分从仓库扣除）
     _consumeDust(amount) {
         const bp = EquipManager.backpackItems;
-        if (!bp) return false;
         let remaining = amount;
-        for (let i = bp.length - 1; i >= 0; i--) {
-            const item = bp[i];
-            if (item && item.name === MagicDustItem.name) {
-                const stack = item.stack || 1;
-                if (stack <= remaining) {
-                    remaining -= stack;
-                    bp.splice(i, 1);
-                } else {
-                    item.stack = stack - remaining;
-                    remaining = 0;
+        if (bp) {
+            for (let i = bp.length - 1; i >= 0; i--) {
+                const item = bp[i];
+                if (item && item.name === MagicDustItem.name) {
+                    const stack = item.stack || 1;
+                    if (stack <= remaining) {
+                        remaining -= stack;
+                        bp.splice(i, 1);
+                    } else {
+                        item.stack = stack - remaining;
+                        remaining = 0;
+                    }
+                    if (remaining <= 0) break;
                 }
-                if (remaining <= 0) break;
             }
+        }
+        if (remaining > 0 && WarehouseSystem && WarehouseSystem.consumeMaterial) {
+            remaining -= WarehouseSystem.consumeMaterial(i => i && i.name === MagicDustItem.name, remaining);
         }
         return remaining <= 0;
     },
@@ -587,6 +614,44 @@ const EnchantSystem = {
         }
         const dust = this._getDustCount();
         dustEl.textContent = `✨ 魔法粉尘: ${dust}`;
+    },
+
+    // 列示背包与仓库中可用的附魔卷轴（双击/右键按规则放入卷轴槽）
+    _renderScrollList() {
+        const listEl = getElement('enchantScrollList');
+        if (!listEl) return;
+        const sources = [];
+        (EquipManager.backpackItems || []).forEach(i => {
+            if (i && i.scrollId) sources.push({ item: i, type: 'backpack', slot: i.slot });
+        });
+        (WarehouseSystem.items || []).forEach(i => {
+            if (i && i.scrollId) sources.push({ item: i, type: 'warehouse', slot: i.slot });
+        });
+        if (sources.length === 0) {
+            listEl.innerHTML = '<div class="enchant-scroll-list-empty">背包/仓库中暂无附魔卷轴</div>';
+            return;
+        }
+        listEl.innerHTML = '<div class="enchant-scroll-list-title">📜 可用卷轴（双击/右键放入）</div>';
+        for (const src of sources) {
+            const scroll = EnchantConfig.getScroll(src.item.scrollId);
+            const name = scroll ? scroll.name : src.item.name;
+            const cost = scroll ? scroll.cost : '?';
+            const grade = scroll ? scroll.grade : '';
+            const icon = src.item.iconImage
+                ? `<img src="${src.item.iconImage}" onerror="this.style.display='none';this.parentElement.textContent='${src.item.icon || '📜'}';">`
+                : (src.item.icon || '📜');
+            const row = document.createElement('div');
+            row.className = 'enchant-scroll-row' + (src.type === 'warehouse' ? ' from-warehouse' : '');
+            row.innerHTML = `<span class="enchant-scroll-row-icon">${icon}</span><span class="enchant-scroll-row-name">${name}${grade ? ` [${grade}]` : ''}</span><span class="enchant-scroll-row-src">${src.type === 'warehouse' ? '仓库' : '背包'}</span><span class="enchant-scroll-row-cost">✨${cost}</span>`;
+            const add = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this._equipScrollFromSource(src.type, src.slot);
+            };
+            row.ondblclick = add;
+            row.oncontextmenu = add;
+            listEl.appendChild(row);
+        }
     },
 
     // 显示消息

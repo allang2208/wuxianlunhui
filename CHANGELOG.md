@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（仓库系统 + 材料全局调用 + 附魔卷轴列表）
+
+### 对话：仓库全套功能
+- **仓库 NPC**：主神空间小鼠大王旁新增 `npc_warehouse`（npcType 'warehouse'，实心圆替代贴图，game-config npcs.warehouse 可配偏移）；点击直接打开仓库面板（绕过 NPC 对话）。
+- **仓库面板**（`src/ui/warehouse-system.js`）：右侧面板 + 与改造/附魔栏同款滑入滑出动画；每页 20 格 × 初始 2 页（页码按钮切换）；格子复用 `.inv-cell` 样式与稀有度/贴图/名称/堆叠显示；打开时联动打开装备背包便于双向搬运。
+- **鼠标规则一致**：仓库格双击/右键取出→背包；背包格双击/右键（仓库打开时）存入→仓库（equip-manager 委托加 warehouse 分支，顺带补齐 dblclick 缺失的 craft 分支）；tooltip 浮窗规则一致（bindInventoryTooltip 对 `.wh-cell` 走 `WarehouseSystem.getItemAt` 感知解析）。
+- **材料全局调用**：强化石（enhance-system）、改造券（craft-system）、魔法粉尘（enchant-system `_getDustCount/_consumeDust`）全部改为背包优先、仓库兜底——计数=背包+仓库合计，扣减先背包后仓库（`WarehouseSystem.countMaterial/consumeMaterial`）。
+- **附魔栏卷轴列表**：附魔面板下方新增可用卷轴列示（背包+仓库，标注来源/等级/粉尘消耗）；双击/右键 `_equipScrollFromSource(type, slot)` 通用放入（原 _equipScrollFromBackpack 改为委托）；仓库来源卷轴退回时回仓库（满则走背包路径）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①仓库面板弹出收回动画；②双击/右键双向存取与页码切换；③tooltip 浮窗在仓库格上的显示；④强化/改造/附魔在背包空材料时从仓库扣料；⑤卷轴列表双击放入与退回路径。
+
 ## 2026-07-18（20 个农产品祭品 + 掉落 + 特效）
 
 ### 对话：祭品体系扩展（引擎乘算 + 20 物品 + 掉落 + 三特效）
