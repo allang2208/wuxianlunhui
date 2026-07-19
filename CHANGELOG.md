@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（修复：地牢事件系统 TDZ 循环依赖）
+
+### 对话：实机报错 `Cannot access 'NEW_EVENT_CONFIGS' before initialization`（dungeon-event-system.js:160）
+- **根因**：`dungeon-event-system.js` import definitions（NEW_EVENT_CONFIGS 等），`dungeon-event-definitions.js:12` 又反向 import system 的 `AttributeCheckSystem`——system → definitions → system 循环。一旦模块图让 definitions 先求值（如 expedition-system.js 经 GRADE_ORDER 拉起 definitions），system 顶层 `createEventConfig()` 访问 `NEW_EVENT_CONFIGS` 时 definitions 还卡在自己的 import 行，TDZ 报错。该循环自 2fe371a 潜伏，此前靠加载顺序侥幸未触发。
+- **修复**：`AttributeCheckSystem` 抽到独立文件 `src/world/attribute-check-system.js`（配置直读 `DungeonConfig.raw.events.attributeCheck` + 原 defaults 兜底，与 createEventConfig 同一数据链路）；definitions 改从独立文件 import；system 删除原定义改为 re-export（内部及外部既有 import 路径不变）。循环断开，不再依赖加载顺序。
+- **修改文件**：src/world/attribute-check-system.js（新增）、src/world/dungeon-event-system.js、src/world/dungeon-event-definitions.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅；裸 node 冒烟验证 defs-first 加载顺序不再触发 TDZ（后续 JSON import attribute 报错为裸 node 环境限制，与本次修复无关）。
+- **已知问题**：无。
+
 ## 2026-07-19（怪物新等级：lord 领主——精英与首领之间）
 
 ### 对话：新增 rank `lord`（领主），配齐全套联动，不添加任何怪物
