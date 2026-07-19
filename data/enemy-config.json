@@ -1011,7 +1011,8 @@
         "height": 133,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "hudOffsetY": 75
     },
     "textures": {
       "idle": "assets/enemies/armored_knight/idle.png",
@@ -1100,10 +1101,10 @@
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",
-      "idleFrameWidth": 1024,
-      "idleFrameHeight": 256,
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
       "idleFrameCount": 1,
-      "idleSheetColumns": 4
+      "idleSheetColumns": 8
     },
     "description": "爬行蠕动的巨型脑状魔物，以触手砸碎近身之物，以嚎叫撕裂一切生者的神志。",
     "skills": [

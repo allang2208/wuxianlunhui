@@ -1135,6 +1135,7 @@ if (SceneManager.currentScene === 'scene3') {
             ShopSystem.close();
             EnhanceSystem.close();
             SystemUI.close();
+            WarehouseSystem.close();
             LevelUpEffectQueue.clear();
         }
     },

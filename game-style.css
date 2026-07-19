@@ -2626,7 +2626,7 @@
         .warehouse-page-info { color: #8a7d6b; font-size: 12px; }
         .warehouse-close { background: none; border: none; color: #8a7d6b; font-size: 18px; cursor: pointer; padding: 2px 6px; }
         .warehouse-close:hover { color: #d4c5a9; }
-        .warehouse-grid { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 12px; overflow-y: auto; align-content: start; }
+        .warehouse-grid { flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 56px; gap: 2px; padding: 12px; overflow-y: auto; align-content: start; }
         .warehouse-grid .inv-cell { font-size: 18px; }
         .warehouse-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid rgba(122, 106, 90, 0.4); background: rgba(0, 0, 0, 0.2); flex-shrink: 0; }
         .warehouse-page-btn { background: linear-gradient(to bottom, #4a4035, #3d352b); border: 1px solid #7a6a5a; color: #d4c5a9; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
@@ -2704,12 +2704,15 @@
         .fusion-message.error { color: #e06a5a; }
         .fusion-message.success { color: #7ac96a; }
 
-/* ===== 出征界面：祭品等级要求说明弹窗（左侧固定） ===== */
+/* ===== 出征界面：祭品等级要求说明弹窗（左侧固定，拉伸占满左边空白） ===== */
 .expedition-rule-panel {
   position: fixed;
-  left: 8px;
-  top: 20vh;
-  width: 230px;
+  left: 4px;
+  bottom: 2px;
+  width: 187px;
+  height: 945px;
+  max-height: calc(100vh - 4px);
+  overflow-y: auto;
   z-index: 1200;
   display: none;
   background: rgba(20, 16, 12, 0.94);

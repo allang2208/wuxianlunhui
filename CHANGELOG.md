@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（四项修复：骑士HUD/仓库整体/出征界面/手脑裁剪）
+
+### 对话：骑士血条下移 + 仓库问题排查 + 出征界面调整 + 手脑 walking 裁剪
+- **手脑 walking 裁剪**：目检素材发现真实网格与口述"4×8"不符——idle/slam/howl 为 8列×4行（帧 512×512），walking 为 8列×2行（帧 512×1024）。BootScene 切分全部修正；渲染层 `setDisplaySize` 改等比缩放（spriteSize=最长边，方形帧行为不变），解决非方形帧压扁变形。规则入库：拿到精灵图先目检行列再配切分。
+- **骑士名字/血条下移 75px**：enemy-config `render.hudOffsetY: 75` 配置化（不改通用代码）；GameScene `_syncEntityHud` 应用 hudDy 于名字+血条，render 来源修为新怪 `config.render` / 老怪 `_animCfg.render` 双源回退（此前新怪 healthBar 配置全部落空）。工作流入库：名字/血条应在贴图上方 30px 区域，透明上沿用 hudOffsetY 校准。
+- **仓库整体修复**：
+  - 钱/消耗品存不进+3 件就满仓误报的根因：金币物品无 maxStack 字段（GoldManager 99999 是内部常量）→ 被当不可堆叠 → freeSlots(37) 与 stack(10000+) 比较误判满仓并中断全部存入循环。修复：`_maxStackOf` 回退（gold 99999）+ 不可堆叠物品空间语义修正（整件占 1 格，与 stack 数无关）。
+  - 点击外部只关背包：遮罩层 click 只关 SystemUI——仓库在 `_buildPanel` 自挂 overlay 监听一并关闭（避免 system-ui↔warehouse 循环 import）；NPC 走远自动关闭链补 `WarehouseSystem.close()`。
+  - 格子规格：一行 2 格、行高 56px、gap 2px，与背包格子（.gear-inventory-col）同规格。
+  - 页码：存取链路确认保持 currentPage 不变（代码路径无误），实机复核。
+- **出征界面**：open() 由主动打开背包改为自动关闭背包；说明弹窗重定位 left:4px / bottom:2px / 187×945px，拉伸占满左侧空白。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/phaser/scenes/GameScene.js、src/ui/warehouse-system.js、src/ui/expedition-system.js、src/game.js、data/enemy-config.json、game-style.css、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①手脑走路/攻击贴图比例与大小；②骑士名字血条视觉位置；③仓库金币/药水存入与堆叠、翻页保持、遮罩一并关闭；④出征开启时背包自动关闭、说明栏拉伸效果。
+
 ## 2026-07-20（骑士冲锋沙尘/二连击去位移 + 新怪物「手脑」（首个领主怪））
 
 ### 对话：骑士两项调整 + 按工作流新增手脑

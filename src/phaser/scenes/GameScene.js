@@ -781,7 +781,12 @@ export class GameScene extends Scene {
         // 显示尺寸：优先使用 enemy.config.render 里的 spriteSize，其次按 size*4 兜底
         const renderCfg = enemy.config?.render || {};
         const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
-        sprite.setDisplaySize(spriteSize, spriteSize);
+        // 等比缩放：spriteSize 语义为"最长边像素"。方形帧与旧行为一致（宽=高=spriteSize）；
+        // 非方形帧（如手脑 walk 512×1024）按帧宽高比等比缩放，避免压扁变形
+        const frameW = (sprite.frame && sprite.frame.width) || 1;
+        const frameH = (sprite.frame && sprite.frame.height) || 1;
+        const longest = Math.max(frameW, frameH);
+        sprite.setDisplaySize(frameW * spriteSize / longest, frameH * spriteSize / longest);
         sprite.setOrigin(0.5, 0.5);
 
         // 逻辑碰撞体积：优先保留配置里已有的 gameplay 尺寸或 enemy 类型选项，
@@ -2436,11 +2441,15 @@ export class GameScene extends Scene {
         }
 
         // 普通敌人血条：受伤时才显示
+        // hudOffsetY（render 配置）：贴图透明上沿过大时整体下移名字/血条的校准量（规则：名字/血条应位于贴图上方 30px 区域）
+        // render 来源：新怪（enemy-config.json）走 entity.config.render，老怪（animation-config）走 _animCfg.render
+        const renderCfg = entity._animCfg?.render || entity.config?.render || {};
+        const hudDy = renderCfg.hudOffsetY || 0;
         if (hp < maxHp) {
-            const cfg = entity._animCfg?.render?.healthBar || { width: 28, height: 4, offsetY: -30 };
+            const cfg = renderCfg.healthBar || { width: 28, height: 4, offsetY: -30 };
             const barW = cfg.width || 28;
             const barH = cfg.height || 4;
-            const barY = topY + (cfg.offsetY || -8);
+            const barY = topY + hudDy + (cfg.offsetY || -8);
             const barX = x - barW / 2;
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
@@ -2464,7 +2473,7 @@ export class GameScene extends Scene {
         }
         const nameText = this._getEntityHudText(entity, 'name');
         nameText.setText(entity.name || '');
-        nameText.setPosition(x, topY - 6);
+        nameText.setPosition(x, topY + hudDy - 6);
         nameText.setVisible(true);
     }
 

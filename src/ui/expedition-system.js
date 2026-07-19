@@ -39,9 +39,9 @@ export const ExpeditionSystem = {
         this._updateTributeStats();
         this._updateCapacityDisplay();
 
-        // 先打开背包（如果还没打开）
+        // 打开出征界面时自动关闭背包（避免双面板叠占；需要拖祭品时用户可再手动打开）
         if (SystemUI) {
-            SystemUI.open('equip');
+            SystemUI.close();
         }
 
         // 确保系统面板在覆盖层之上，但低于出征面板（DOM 顺序 + z-index）
