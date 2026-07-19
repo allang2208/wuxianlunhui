@@ -265,6 +265,7 @@ export class ArmoredKnight extends Enemy {
         this._chargeDamaged = false;
         this._chargeCooldown = cfg.cooldown ?? 10000;
         this._chargeSoundTimer = 0;
+        this._chargeElapsed = 0; // 线性加速计时（0 → accelDuration 内由 0 加速到 maxSpeed）
         // 冲锋期间弹反免疫（与集合体同机制），结束后还原
         this._parryImmune = true;
         this.vx = 0;
@@ -281,14 +282,19 @@ export class ArmoredKnight extends Enemy {
     _updateCharge(dt) {
         const cfg = this._getSkillConfigs().charge;
         const dtSec = dt / 1000;
+        this._chargeElapsed += dt;
+        // 线性加速：释放开始 accelDuration 内由 0 逐步加速到 maxSpeed
+        const maxSpeed = cfg.maxSpeed ?? 400;
+        const accelDur = cfg.accelDuration ?? 1500;
+        const maxDur = cfg.maxDuration ?? 3500;
+        const speed = maxSpeed * Math.min(1, this._chargeElapsed / accelDur);
+        const maxDist = cfg.maxDistance ?? 1800;
         // 冲锋脚步声：按间隔循环播放
         this._chargeSoundTimer -= dt;
         if (this._chargeSoundTimer <= 0) {
             this._chargeSoundTimer = this.config?.sounds?.chargeStepInterval ?? 300;
             this._playSound('walk');
         }
-        const speed = cfg.speed ?? 900;
-        const maxDist = cfg.maxDistance ?? 1800;
         const t = this._chargeTarget && this._chargeTarget.active ? this._chargeTarget : this.target;
 
         // 直接追踪目标单位
@@ -316,7 +322,8 @@ export class ArmoredKnight extends Enemy {
             this._dealChargeHit(t);
         }
 
-        if (this._chargeDamaged || this._chargeTraveled >= maxDist || !t || !t.active) {
+        // 停止条件：命中 / 超出最大范围 / 超时未命中
+        if (this._chargeDamaged || this._chargeTraveled >= maxDist || this._chargeElapsed >= maxDur || !t || !t.active) {
             this._endCharge();
         }
     }

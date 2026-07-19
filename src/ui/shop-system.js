@@ -1,5 +1,6 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { RARITY_LABELS } from '../config/rarity.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
@@ -234,8 +235,6 @@ const ShopSystem = {
         const moneyEl = getElement('shopMoney');
         if (moneyEl && player) moneyEl.textContent = `💰 ${this._getBackpackGold()}`;
 
-        const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
-
         const buyGrid = getElement('shopBuyGrid');
         if (buyGrid) {
             buyGrid.innerHTML = '';
@@ -243,7 +242,7 @@ const ShopSystem = {
                 const cell = document.createElement('div');
                 cell.className = 'shop-buy-cell';
                 const rarityKey = item.rarity || 'common';
-                const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
+                const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
                 const iconHtml = item.iconImage
                     ? `<img src="${item.iconImage}" alt="${item.icon}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon}';">`
                     : item.icon;
@@ -307,7 +306,7 @@ const ShopSystem = {
                     const cell = document.createElement('div');
                     cell.className = 'shop-sell-cell has-item';
                     const rarityKey = item.rarity || 'common';
-                    const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
+                    const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
                     const sellPrice = Math.max(1, Math.floor((item.price || 50) * 0.5));
                     const iconHtml = item.iconImage
                         ? `<img src="${item.iconImage}" alt="${item.icon}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon}';">`

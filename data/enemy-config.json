@@ -900,7 +900,9 @@
       },
       "charge": {
         "cooldown": 10000,
-        "speed": 300,
+        "maxSpeed": 400,
+        "accelDuration": 1500,
+        "maxDuration": 3500,
         "maxDistance": 1800,
         "triggerRange": 550,
         "hitRange": 60,

@@ -1,5 +1,6 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { RARITY_LABELS } from '../config/rarity.js';
 import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -1077,7 +1078,6 @@ import { GameUIManager } from './game-ui-manager.js';
             },
             updateEquipSlots() {
                 const eq = this.player.equipments;
-                const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
                 queryAllElements('.diablo-slot').forEach(slot => {
                     const key = slot.dataset.slot;
                     const item = eq[key];
@@ -1106,7 +1106,7 @@ import { GameUIManager } from './game-ui-manager.js';
                         nameEl.textContent = item.name;
                         // 稀有度显示
                         const rarityKey = item.rarity || 'common';
-                        const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
+                        const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
                         if (rarityEl) {
                             rarityEl.textContent = rarityLabel;
                             rarityEl.className = 'slot-rarity rarity-' + rarityKey;
@@ -1538,7 +1538,6 @@ import { GameUIManager } from './game-ui-manager.js';
             backpackItems: [],
             _inventoryInteractionsBound: false,
             updateInventorySlots() {
-                const rarityLabelMap = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗' };
                 queryAllElements('.inv-cell').forEach((cell, idx) => {
                     cell.classList.remove('occupied');
                     cell.innerHTML = '';
@@ -1553,7 +1552,7 @@ import { GameUIManager } from './game-ui-manager.js';
                         cell.dataset.dragId = item.itemId || idx;
                         const imgSrc = item.slotImage || item.iconImage;
                         const rarityKey = item.rarity || 'common';
-                        const rarityLabel = rarityLabelMap[rarityKey] || rarityKey;
+                        const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
                         const enhancedTag = (item.enhanceLevel || 0) > 0 ? `<div class="inv-enhanced">已强化</div>` : '';
                         const isCrafted = item._isCrafted || (item._craftData && Object.keys(item._craftData).length > 0);
                         const craftedTag = isCrafted ? `<div class="inv-crafted">已改造</div>` : '';

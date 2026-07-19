@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（暴击排查 + 冲锋加速 + 地牢占比 + 稀有度扩展）
+
+### 对话：五项（暴击排查汇报/冲锋加速/地牢占比/稀有度+2级/背包债方案）
+- **暴击失效排查（汇报，未改代码）**：非近期改坏——公式上玩家 crit=2+luck×1=12，敌方 critRes=con×1.0（僵尸15/毒液肥20/巫师30/突变体40/骑士46），finalCritRate 打多数目标=0%；怪物 crit=6~10 vs 玩家 critRes 10 ≤0%，且怪物无 criticalStrike 技能无暴击伤害路径。暴击伤害机制本身完好（lv1 ×1.55）。若要生效需改 combat-formulas.json 的 crit.base/luckMultiplier 或 critResist.conMultiplier（待拍板）。
+- **骑士冲锋线性加速**：charge 配置 `speed:300` → `maxSpeed:400 + accelDuration:1500 + maxDuration:3500`；`_chargeElapsed` 计时，每帧速度 = maxSpeed × min(1, elapsed/1.5s)（0→400 线性）；停止条件：命中 / 超 1800px / 超 3.5s 未命中。
+- **僵尸地牢占比**：typeRatios 战斗 0.7→0.5/事件 0.3→0.5，eliteCombatChance 0.2→0.35，shortestCombatPath 9→5（出征界面 battleRatio 文案同步 50%）。
+- **稀有度+神话/传说**：新建 `src/config/rarity.js`（RARITY_LABELS/RARITY_COLORS/RARITY_ORDER/getRarityLabel 单一来源，含 mythic 神话/legendary 传说）；5 处 rarityLabelMap 重复定义全部收编引用（equip-tooltip-manager/equip-manager×2/shop-system/codex-manager，顺带完成技术债 D1）；game-style.css 四组稀有度色条（inv/slot/buy/sell-cell）追加 mythic 橙、legendary 红。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①冲锋 0→400 加速手感与 3.5s 超时；②地牢战斗/事件各 50%、精英 35%、最短 5 战；③新稀有度色条（暂无物品分配新等级，仅扩展显示能力）。
+
 ## 2026-07-18（快捷栏消耗品优化）
 
 ### 对话：快捷栏数量角标 + 用完保留 + 抖动警示 + 拖出移除
