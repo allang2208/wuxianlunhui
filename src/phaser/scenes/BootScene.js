@@ -338,9 +338,18 @@ export class BootScene extends Scene {
         });
         this.anims.create({
             key: 'enemy_armored_knight_charge',
+            // 首段：完整 19 帧播一轮（时长由 enemy-config charge.animIntroMs 对齐，默认 2s）
             frames: this.anims.generateFrameNumbers('enemy_armored_knight_charge', { start: 0, end: 18 }),
-            duration: 1500,
-            repeat: 0, // 单次播放定格：冲锋行为最长数秒，循环播放在加速完成点(1.5s)重播像"停顿重启"
+            duration: 2000,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_armored_knight_charge_loop',
+            // 循环段：首段播完后循环第 9~19 帧（索引 8~18，11 帧）直到退出冲锋；
+            // 帧率与首段一致（19帧/2000ms → 11帧≈1158ms）
+            frames: this.anims.generateFrameNumbers('enemy_armored_knight_charge', { start: 8, end: 18 }),
+            duration: 1158,
+            repeat: -1,
         });
         this.anims.create({
             key: 'enemy_armored_knight_defend',

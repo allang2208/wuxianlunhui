@@ -440,7 +440,13 @@ export class ArmoredKnight extends Enemy {
         switch (this._animState) {
             case 'walk': return 'enemy_armored_knight_walk';
             case 'combo': return 'enemy_armored_knight_combo';
-            case 'charge': return 'enemy_armored_knight_charge';
+            case 'charge': {
+                // 两段式：首段完整一轮后切换 9~19 帧循环段（animIntroMs 配置驱动）
+                const introMs = this._getSkillConfigs().charge.animIntroMs ?? 2000;
+                return (this._chargeElapsed ?? 0) >= introMs
+                    ? 'enemy_armored_knight_charge_loop'
+                    : 'enemy_armored_knight_charge';
+            }
             case 'defend': return 'enemy_armored_knight_defend';
             default: return 'enemy_armored_knight_idle';
         }

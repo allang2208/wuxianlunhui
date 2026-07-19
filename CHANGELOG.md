@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（骑士冲锋两段式动画 + 极速 700）
+
+### 对话：冲锋动画 2s 一轮后循环 9~19 帧；最大速度 700
+- **两段式冲锋动画**：BootScene 新增 `enemy_armored_knight_charge_loop`（帧 8~18/11 帧/repeat -1，时长 1158ms 与首段同帧率）；首段 `enemy_armored_knight_charge` 保持 19 帧单次（时长对齐 2s）。`_getTextureKey()` 按 `_chargeElapsed >= animIntroMs` 切换 loop key，渲染层 animKey 变化自动接续播放；退出冲锋即回 idle/walk 动画。
+- **配置**：`charge.animIntroMs: 2000`（首段时长，可配）；`charge.maxSpeed` 400 → 700；技能描述同步。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——首段 2s 后循环段衔接是否顺滑；700px/s 下命中判定（hitRange 60）是否因单帧步长过大漏判（700/60fps≈11.7px/帧，远小于 60，理论安全）。
+
 ## 2026-07-19（骑士冲锋观感修复 + 冲锋 4.5s + 格挡 0.5s 前摇）
 
 ### 对话：冲锋"到 400px 突然停止又重播"排查 + 两项调整
