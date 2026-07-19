@@ -171,7 +171,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
     monsterPool: {
         get normal() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank !== 'elite' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         get elite() {

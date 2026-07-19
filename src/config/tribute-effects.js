@@ -238,8 +238,8 @@ export function pickTributeByRarity(rarity) {
 /**
  * 击杀掉落祭品判定（召唤物在外层已拦截）：
  * - 按地牢难度等级（dungeonList.grade，默认 D）取 combat-formulas.json tributes.dropTables 对应表
- * - 精英/首领必掉（分表），普通怪按概率掉；掉落稀有度不超过该难度的 maxRarity 上限
- * @param {string} rank 怪物 rank（elite/boss/normal...）
+ * - 精英/领主/首领必掉（各自分表），普通怪按概率掉；掉落稀有度不超过该难度的 maxRarity 上限
+ * @param {string} rank 怪物 rank（elite/lord/boss/normal...）
  * @param {string} [dungeonType] 地牢类型（主神空间等无难度场景默认 'D'）
  * @returns {object|null} 祭品物品模板
  */
@@ -249,8 +249,9 @@ export function rollTributeDrop(rank, dungeonType) {
     const table = tables[grade] || tables.D;
     if (!table) return null;
     const isBoss = rank === 'boss';
-    const isElite = rank === 'elite' || isBoss;
-    const sub = isBoss ? table.boss : (isElite ? table.elite : table.normal);
+    const isLord = rank === 'lord';
+    const isElite = rank === 'elite' || isLord || isBoss;
+    const sub = isBoss ? table.boss : (isLord ? (table.lord || table.elite) : (isElite ? table.elite : table.normal));
     if (!sub) return null;
     // 掉率加成（数据驱动，乘算）
     const chance = Math.min(1, (sub.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul());

@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（怪物新等级：lord 领主——精英与首领之间）
+
+### 对话：新增 rank `lord`（领主），配齐全套联动，不添加任何怪物
+- **经验**：combat-formulas.json `enemy.expValue.lordMultiplier = 4`（elite ×2 与 boss ×10 之间）；`enemy.js getExpValue()` 加 lord 分支。
+- **金币**：原 elite ×2 硬编码收编为配置 `enemy.goldDrop.rankMultipliers`（elite:2、lord:3）；`damageable-entity.js` 击杀掉落改为查表驱动。
+- **祭品掉落**：`tributes.dropTables` 六级（F~A）各新增 `lord` 子表（必掉，权重介于 elite 与 boss 之间，如 D 级 32/30/22/11/4/1）；`rollTributeDrop` 按 boss→lord→elite→normal 分派，lord 表缺失时回退 elite 表；isElite 判定含 lord（事件保底等沿用语义不变）。
+- **Boss 血条**：仅 `rank === 'boss'` 触发（damageable-entity.js:176 + GameScene showBossHpBar），lord 不显示——按需求保持。
+- **防呆**：zombie-dungeon.js normal 池过滤补 `rank !== 'lord'`，避免未来 lord 怪混入普通池。
+- **未动**：地牢节点类型（combat/elite/boss 不变，无 lord 节点）；dungeon-event-system 事件奖励的 rollTributeDrop('elite') 调用保持不变。
+- **修改文件**：data/combat-formulas.json（本文件仅 data/ 一份，经 import 打包，无双份同步问题）、src/entities/enemy.js、src/entities/damageable-entity.js、src/config/tribute-effects.js、src/world/zombie-dungeon.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：尚无 rank=lord 的怪物，链路待首个领主怪实装后实机验证（经验 ×4 / 金币 ×3 / lord 掉落表）。
+
 ## 2026-07-18（SKILL.md 补记：v3.6~v4.0 九个提交的体系归档）
 
 ### 对话：今日计划收尾——SKILL.md 同步
