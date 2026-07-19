@@ -832,7 +832,9 @@
       "icon": "🧪",
       "category": "consumable",
       "rarity": "common",
-      "useEffect": { "hp": 30 },
+      "useEffect": {
+        "hp": 30
+      },
       "level": 1,
       "stats": [
         {
@@ -849,7 +851,9 @@
       "type": "消耗品",
       "icon": "💧",
       "category": "consumable",
-      "useEffect": { "mp": 25 },
+      "useEffect": {
+        "mp": 25
+      },
       "rarity": "common",
       "level": 1,
       "stats": [
@@ -1187,6 +1191,521 @@
         "recoilAmount": "0.15rad",
         "description": "SAIGA-12K 以高射速开火，单次开火动画约150ms。一次击发4发弹丸，散布±20°。"
       }
+    },
+    "potato": {
+      "name": "土豆",
+      "type": "祭品",
+      "icon": "🥔",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 50,
+      "effects": {
+        "hpRegenPercent": 2,
+        "mpRegenPercent": -1
+      },
+      "stats": [
+        {
+          "name": "生命恢复",
+          "value": "+2%"
+        },
+        {
+          "name": "魔法恢复",
+          "value": "-1%"
+        }
+      ],
+      "desc": "朴实的块茎，淀粉顶饱，生食却涩口。"
+    },
+    "corn": {
+      "name": "玉米",
+      "type": "祭品",
+      "icon": "🌽",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 50,
+      "effects": {
+        "goldPercent": 2,
+        "defPercent": -1
+      },
+      "stats": [
+        {
+          "name": "金币掉落",
+          "value": "+2%"
+        },
+        {
+          "name": "物理防御",
+          "value": "-1%"
+        }
+      ],
+      "desc": "高产粗粮，金灿灿的平凡之味。"
+    },
+    "carrot": {
+      "name": "胡萝卜",
+      "type": "祭品",
+      "icon": "🥕",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 50,
+      "effects": {
+        "critPercent": 1,
+        "mdefPercent": -1
+      },
+      "stats": [
+        {
+          "name": "暴击率",
+          "value": "+1%"
+        },
+        {
+          "name": "魔法防御",
+          "value": "-1%"
+        }
+      ],
+      "desc": "明目脆甜，只是糖分偏高。"
+    },
+    "cabbage": {
+      "name": "白菜",
+      "type": "祭品",
+      "icon": "🥬",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 50,
+      "effects": {
+        "mpRegenPercent": 2,
+        "atkPercent": -1
+      },
+      "stats": [
+        {
+          "name": "魔法恢复",
+          "value": "+2%"
+        },
+        {
+          "name": "物理攻击",
+          "value": "-1%"
+        }
+      ],
+      "desc": "水嫩清淡，缺些油水。"
+    },
+    "pumpkin": {
+      "name": "南瓜",
+      "type": "祭品",
+      "icon": "🎃",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 50,
+      "effects": {
+        "defPercent": 2,
+        "moveSpeedPercent": -1
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+2%"
+        },
+        {
+          "name": "移动速度",
+          "value": "-1%"
+        }
+      ],
+      "desc": "厚重耐储，抱在怀里沉甸甸的。"
+    },
+    "tomato": {
+      "name": "番茄",
+      "type": "祭品",
+      "icon": "🍅",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 120,
+      "effects": {
+        "hpRegenPercent": 3,
+        "moveSpeedPercent": -1
+      },
+      "stats": [
+        {
+          "name": "生命恢复",
+          "value": "+3%"
+        },
+        {
+          "name": "移动速度",
+          "value": "-1%"
+        }
+      ],
+      "desc": "多汁饱腹，吃多了有些撑。"
+    },
+    "cucumber": {
+      "name": "黄瓜",
+      "type": "祭品",
+      "icon": "🥒",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 120,
+      "effects": {
+        "mpRegenPercent": 3,
+        "defPercent": -1
+      },
+      "stats": [
+        {
+          "name": "魔法恢复",
+          "value": "+3%"
+        },
+        {
+          "name": "物理防御",
+          "value": "-1%"
+        }
+      ],
+      "desc": "清爽解渴，就是太寡淡。"
+    },
+    "onion": {
+      "name": "洋葱",
+      "type": "祭品",
+      "icon": "🧅",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 120,
+      "effects": {
+        "atkPercent": 3,
+        "mpRegenPercent": -1
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+3%"
+        },
+        {
+          "name": "魔法恢复",
+          "value": "-1%"
+        }
+      ],
+      "desc": "辛辣提神，熏得人睁不开眼。"
+    },
+    "garlic": {
+      "name": "大蒜",
+      "type": "祭品",
+      "icon": "🧄",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 120,
+      "effects": {
+        "mdefPercent": 3,
+        "hpRegenPercent": -1
+      },
+      "stats": [
+        {
+          "name": "魔法防御",
+          "value": "+3%"
+        },
+        {
+          "name": "生命恢复",
+          "value": "-1%"
+        }
+      ],
+      "desc": "杀菌健体，气味实在冲。"
+    },
+    "apple": {
+      "name": "苹果",
+      "type": "祭品",
+      "icon": "🍎",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 120,
+      "effects": {
+        "moveSpeedPercent": 3,
+        "atkPercent": -1
+      },
+      "stats": [
+        {
+          "name": "移动速度",
+          "value": "+3%"
+        },
+        {
+          "name": "物理攻击",
+          "value": "-1%"
+        }
+      ],
+      "desc": "脆甜轻身，可惜不耐存放。"
+    },
+    "strawberry": {
+      "name": "草莓",
+      "type": "祭品",
+      "icon": "🍓",
+      "category": "tribute",
+      "rarity": "rare",
+      "level": 1,
+      "stack": 1,
+      "price": 300,
+      "effects": {
+        "hpRegenPercent": 5,
+        "defPercent": -2
+      },
+      "stats": [
+        {
+          "name": "生命恢复",
+          "value": "+5%"
+        },
+        {
+          "name": "物理防御",
+          "value": "-2%"
+        }
+      ],
+      "desc": "娇嫩欲滴的浆果，碰一碰就坏。"
+    },
+    "grape": {
+      "name": "葡萄",
+      "type": "祭品",
+      "icon": "🍇",
+      "category": "tribute",
+      "rarity": "rare",
+      "level": 1,
+      "stack": 1,
+      "price": 300,
+      "effects": {
+        "goldPercent": 5,
+        "moveSpeedPercent": -2
+      },
+      "stats": [
+        {
+          "name": "金币掉落",
+          "value": "+5%"
+        },
+        {
+          "name": "移动速度",
+          "value": "-2%"
+        }
+      ],
+      "desc": "酿酒上品，贪杯难免误事。"
+    },
+    "watermelon": {
+      "name": "西瓜",
+      "type": "祭品",
+      "icon": "🍉",
+      "category": "tribute",
+      "rarity": "rare",
+      "level": 1,
+      "stack": 1,
+      "price": 300,
+      "effects": {
+        "defPercent": 5,
+        "moveSpeedPercent": -2
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+5%"
+        },
+        {
+          "name": "移动速度",
+          "value": "-2%"
+        }
+      ],
+      "desc": "解暑圣品，就是太沉。"
+    },
+    "chili": {
+      "name": "辣椒",
+      "type": "祭品",
+      "icon": "🌶️",
+      "category": "tribute",
+      "rarity": "rare",
+      "level": 1,
+      "stack": 1,
+      "price": 300,
+      "effects": {
+        "atkPercent": 5,
+        "mdefPercent": -2
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+5%"
+        },
+        {
+          "name": "魔法防御",
+          "value": "-2%"
+        }
+      ],
+      "desc": "火爆脾气，烧得胃里发烫。"
+    },
+    "matsutake": {
+      "name": "松茸",
+      "type": "祭品",
+      "icon": "🍄",
+      "category": "tribute",
+      "rarity": "epic",
+      "level": 1,
+      "stack": 1,
+      "price": 800,
+      "effects": {
+        "defPercent": 8,
+        "mdefPercent": 7
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+8%"
+        },
+        {
+          "name": "魔法防御",
+          "value": "+7%"
+        }
+      ],
+      "desc": "山中珍馐，一口鲜掉眉毛。"
+    },
+    "blueberry": {
+      "name": "蓝莓",
+      "type": "祭品",
+      "icon": "🫐",
+      "category": "tribute",
+      "rarity": "epic",
+      "level": 1,
+      "stack": 1,
+      "price": 800,
+      "effects": {
+        "mpRegenPercent": 8,
+        "hpRegenPercent": 7
+      },
+      "stats": [
+        {
+          "name": "魔法恢复",
+          "value": "+8%"
+        },
+        {
+          "name": "生命恢复",
+          "value": "+7%"
+        }
+      ],
+      "desc": "明目抗衰，小颗却金贵。"
+    },
+    "dragonFruit": {
+      "name": "火龙果",
+      "type": "祭品",
+      "icon": "🐉",
+      "category": "tribute",
+      "rarity": "epic",
+      "level": 1,
+      "stack": 1,
+      "price": 800,
+      "effects": {
+        "atkPercent": 8,
+        "critPercent": 7
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+8%"
+        },
+        {
+          "name": "暴击率",
+          "value": "+7%"
+        }
+      ],
+      "desc": "异域烈性，甜中带火。"
+    },
+    "snowLotus": {
+      "name": "天山雪莲",
+      "type": "祭品",
+      "icon": "🪷",
+      "category": "tribute",
+      "rarity": "mythic",
+      "level": 1,
+      "stack": 1,
+      "price": 2000,
+      "effects": {
+        "mdefPercent": 10,
+        "hpRegenPercent": 9,
+        "expPercent": 25
+      },
+      "stats": [
+        {
+          "name": "魔法防御",
+          "value": "+10%"
+        },
+        {
+          "name": "生命恢复",
+          "value": "+9%"
+        },
+        {
+          "name": "经验获取",
+          "value": "+25%"
+        }
+      ],
+      "desc": "极寒绝壁上的圣药。特效：本次地牢经验获取 +25%。"
+    },
+    "ginseng": {
+      "name": "千年人参",
+      "type": "祭品",
+      "icon": "🌿",
+      "category": "tribute",
+      "rarity": "mythic",
+      "level": 1,
+      "stack": 1,
+      "price": 2000,
+      "effects": {
+        "atkPercent": 10,
+        "matkPercent": 9,
+        "killMpHealPercent": 5
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+10%"
+        },
+        {
+          "name": "魔法攻击",
+          "value": "+9%"
+        },
+        {
+          "name": "击杀回蓝",
+          "value": "5%最大魔法/秒"
+        }
+      ],
+      "desc": "百草之王，须发皆全。特效：击杀目标后 1 秒内回复 5% 最大魔法值。"
+    },
+    "flatPeach": {
+      "name": "蟠桃",
+      "type": "祭品",
+      "icon": "🍑",
+      "category": "tribute",
+      "rarity": "legendary",
+      "level": 1,
+      "stack": 1,
+      "price": 5000,
+      "effects": {
+        "atkPercent": 13,
+        "hpRegenPercent": 12,
+        "revivePercent": 30
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+13%"
+        },
+        {
+          "name": "生命恢复",
+          "value": "+12%"
+        },
+        {
+          "name": "原地复活",
+          "value": "30%生命×1次"
+        }
+      ],
+      "desc": "三千年一熟的仙家上品。特效：本次地牢死亡 3 秒后以 30% 最大生命原地复活一次，生效后消失。"
     }
   }
 }

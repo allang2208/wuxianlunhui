@@ -8,6 +8,31 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（仓库系统 + 材料全局调用 + 附魔卷轴列表）
+
+### 对话：仓库全套功能
+- **仓库 NPC**：主神空间小鼠大王旁新增 `npc_warehouse`（npcType 'warehouse'，实心圆替代贴图，game-config npcs.warehouse 可配偏移）；点击直接打开仓库面板（绕过 NPC 对话）。
+- **仓库面板**（`src/ui/warehouse-system.js`）：右侧面板 + 与改造/附魔栏同款滑入滑出动画；每页 20 格 × 初始 2 页（页码按钮切换）；格子复用 `.inv-cell` 样式与稀有度/贴图/名称/堆叠显示；打开时联动打开装备背包便于双向搬运。
+- **鼠标规则一致**：仓库格双击/右键取出→背包；背包格双击/右键（仓库打开时）存入→仓库（equip-manager 委托加 warehouse 分支，顺带补齐 dblclick 缺失的 craft 分支）；tooltip 浮窗规则一致（bindInventoryTooltip 对 `.wh-cell` 走 `WarehouseSystem.getItemAt` 感知解析）。
+- **材料全局调用**：强化石（enhance-system）、改造券（craft-system）、魔法粉尘（enchant-system `_getDustCount/_consumeDust`）全部改为背包优先、仓库兜底——计数=背包+仓库合计，扣减先背包后仓库（`WarehouseSystem.countMaterial/consumeMaterial`）。
+- **附魔栏卷轴列表**：附魔面板下方新增可用卷轴列示（背包+仓库，标注来源/等级/粉尘消耗）；双击/右键 `_equipScrollFromSource(type, slot)` 通用放入（原 _equipScrollFromBackpack 改为委托）；仓库来源卷轴退回时回仓库（满则走背包路径）。
+- **测试结果**：`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①仓库面板弹出收回动画；②双击/右键双向存取与页码切换；③tooltip 浮窗在仓库格上的显示；④强化/改造/附魔在背包空材料时从仓库扣料；⑤卷轴列表双击放入与退回路径。
+
+## 2026-07-18（20 个农产品祭品 + 掉落 + 特效）
+
+### 对话：祭品体系扩展（引擎乘算 + 20 物品 + 掉落 + 三特效）
+- **引擎最终乘算**：`tribute-effects.js` 聚合改为每键 `Π(1+p/100)` 乘算倍率——面板/金币/生命恢复/魔法恢复全部按最终乘算应用（多祭品叠乘而非加和）。
+- **20 个农产品/植物祭品**（equipment.json 双份同步，category 'tribute'，effects+stats+desc，无贴图先 emoji）：普通×5（1~2%）、优质×5（3~4%）、稀有×4（5~6%）均为 1 增益+1 减益；史诗×3（7~8%）、神话×2（9~10%）、传说×1（11~15%）纯增益。用户验收表通过后写入。
+- **掉落**：`rollTributeDrop(rank)`（combat-formulas.json `tributes.dropTables` 配置驱动）——精英/首领必掉（普通35/优质30/稀有20/史诗10/神话4/传说1），普通怪 5% 掉且只出稀有及以下（80/15/5）；召唤物不掉（既有 `_summoned` 闸门）。
+- **三特效**：
+  - 蟠桃（revivePercent 30）：本次地牢死亡 3s 后以 30% 最大生命原地复活一次——`onDeath` 标记 `_peachRevivePending/Used`，update 死亡分支改走 `_reviveInPlace()`（保留地牢进程、不传送、清关键临时状态），生效后效果消失（buff 图标同步移除）。
+  - 天山雪莲（expPercent 25）：`gainExp` 乘 `getTributeExpMultiplier()`，本次地牢经验 +25%。
+  - 千年人参（killMpHealPercent 5）：击杀后 1s 内回复 5% 最大魔法——仿大理石守护实现（`_ginsengHealTimer/Total/PerTick` + update tick + 1s 临时 buff），数据驱动读取。
+  - 三特效均在 buff 栏显示常驻图标（`syncTributeBuffs`，出征确认时挂载；地牢 shutdown `clearTributeBuffs` 清除并重置蟠桃标记）。
+- **测试结果**：JSON 校验 ✅（20 祭品分布 5/5/4/3/2/1、双份一致、掉率表正确）；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①精英必掉祭品与品质分布；②普通怪 5% 掉率；③三特效全流程（复活计时与原地起身、经验加成数值、回蓝 tick）；④祭品面板合并显示；⑤贴图后续补。
+
 ## 2026-07-18（物品栏优化 D2-D5：数据驱动/绑定/拆分/一致性）
 
 ### 对话：背包栏系列优化（分阶段提交）

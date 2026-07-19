@@ -25,6 +25,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { clearTributeBuffs } from '../config/tribute-effects.js';
 import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -216,6 +217,9 @@ export const DungeonMapSystem = {
         }
         // 清空携带的祭品，确保祭品效果只在当前地牢有效
         this._carriedItems = [];
+        // 清除特效祭品 buff 图标（雪莲/人参/蟠桃）
+        const tributePlayer = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
+        if (tributePlayer) clearTributeBuffs(tributePlayer);
 
         // 重新计算玩家属性，移除祭品带来的临时加成
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);

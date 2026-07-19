@@ -9,6 +9,7 @@ import { EquipManager } from './equip-manager.js';
 import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { SystemUI } from './system-ui.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { WarehouseSystem } from './warehouse-system.js';
 const EnhanceSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -206,10 +207,11 @@ const EnhanceSystem = {
             return;
         }
 
-        // 检查强化石存在（先不消耗）
+        // 检查强化石存在（背包优先，不足时全局调用仓库）
         const bp = EquipManager.backpackItems || [];
         const stoneIdx = bp.findIndex(i => this._isEnhanceStone(i));
-        if (stoneIdx === -1) {
+        const inWarehouse = stoneIdx === -1 && WarehouseSystem.countMaterial(i => this._isEnhanceStone(i)) > 0;
+        if (stoneIdx === -1 && !inWarehouse) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '强化石不足！需要1颗强化石', '#ff4444'));
             return;
         }
@@ -220,12 +222,16 @@ const EnhanceSystem = {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `金币不足！需要 ${cost} 金币`, '#ff4444'));
             return;
         }
-        // 消耗1颗强化石
-        const stoneItem = bp[stoneIdx];
-        if (stoneItem.stack > 1) {
-            stoneItem.stack -= 1;
+        // 消耗1颗强化石（背包优先，仓库兜底）
+        if (stoneIdx !== -1) {
+            const stoneItem = bp[stoneIdx];
+            if (stoneItem.stack > 1) {
+                stoneItem.stack -= 1;
+            } else {
+                bp.splice(stoneIdx, 1);
+            }
         } else {
-            bp.splice(stoneIdx, 1);
+            WarehouseSystem.consumeMaterial(i => this._isEnhanceStone(i), 1);
         }
         EquipManager.updateInventorySlots();
         item.enhanceLevel = (item.enhanceLevel || 0) + 1;
@@ -273,7 +279,7 @@ const EnhanceSystem = {
             const level = item.enhanceLevel || 0;
             const cost = this._getEnhanceCost(level);
             const bp = EquipManager.backpackItems || [];
-            const _hasStone = bp.some(i => this._isEnhanceStone(i));
+            const _hasStone = bp.some(i => this._isEnhanceStone(i)) || WarehouseSystem.countMaterial(i => this._isEnhanceStone(i)) > 0;
             slot.innerHTML = `
                 <div class="slot-icon">${item.iconImage ? `<img src="${item.iconImage}" alt="${item.icon || '❓'}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon || '❓'}';">` : (item.icon || '❓')}</div>
                 <div class="slot-name">${item.name}</div>

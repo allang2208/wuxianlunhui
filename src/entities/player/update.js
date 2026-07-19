@@ -12,6 +12,7 @@ import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
+import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -26,7 +27,13 @@ update(dt, entities) {
                 if (this._isDead) {
                     this._deathTimer -= dt;
                     if (this._deathTimer <= 0) {
-                        this.respawn();
+                        // 蟠桃续命：该次地牢一次，3s 后以 30% 最大生命原地复活
+                        if (this._peachRevivePending) {
+                            this._peachRevivePending = false;
+                            this._reviveInPlace();
+                        } else {
+                            this.respawn();
+                        }
                     }
                     return; // 死亡期间不执行任何其他逻辑
                 }
@@ -346,6 +353,8 @@ update(dt, entities) {
                         const hasWheat = tributes.some(c => c && c.item && c.item.name === '麦穗');
                         if (hasWheat) regen += 1;
                     }
+                    // 祭品效果（数据驱动）：生命恢复百分比加成
+                    regen *= getTributeHpRegenMultiplier();
                     this.data.hp = Math.min(this.data.maxHp, this.data.hp + regen * (dt / 1000));
                 }
                 // 祭品效果：大理石 - 击杀后1秒内恢复5%最大生命值
@@ -361,9 +370,23 @@ update(dt, entities) {
                         }
                     }
                 }
+                // 祭品效果（数据驱动）：千年人参 - 击杀后1秒内回复最大魔法值
+                if (this._ginsengHealTimer > 0) {
+                    this._ginsengHealTimer -= dt;
+                    const mpHealPerTick = this._ginsengHealTotal / (1000 / 16.67);
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + mpHealPerTick * (dt / 16.67));
+                    if (this._ginsengHealTimer <= 0) {
+                        this._ginsengHealTimer = 0;
+                        if (this._ginsengHealEffectId && StatusBar) {
+                            StatusBar.removeEffect(this._ginsengHealEffectId);
+                            this._ginsengHealEffectId = null;
+                        }
+                    }
+                }
                 // ===== 魔法回复 =====
                 if (this.data.mp < this.data.maxMp) {
-                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * (dt / 1000));
+                    // 祭品效果（数据驱动）：魔法恢复百分比加成
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * getTributeMpRegenMultiplier() * (dt / 1000));
                 }
                 Object.values(this.attacks).forEach(a => a.update(dt));
                 // ===== 枪类武器弹道扩散计时更新（主副手独立） =====
