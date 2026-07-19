@@ -343,7 +343,9 @@ export const QuickBar = {
         const iconHtml = imgSrc
             ? `<img src="${imgSrc}" style="width:40px;height:40px;object-fit:contain;" draggable="false" ondragstart="return false;">`
             : (item.icon || '❓');
-        slot.innerHTML = `<span class="item-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><span class="item-stack">${item.stack > 1 ? item.stack : ''}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span><div class="cooldown-flash"></div>`;
+        // 数量角标常驻：>0 绿色、=0 红色（样式见 game-style.css .item-stack/.zero）
+        const count = item.stack || 1;
+        slot.innerHTML = `<span class="item-assigned">${iconHtml}</span><span class="key-hint">${slot.dataset.key}</span><span class="item-stack">${count}</span><div class="cooldown-overlay" style="height:0%"></div><span class="cooldown-text"></span><div class="cooldown-flash"></div>`;
         // 清理该槽位的技能数据（如果之前有）
         delete this.skillAssignments[slot.dataset.keyCode];
         // 快捷栏内部拖动
@@ -353,9 +355,15 @@ export const QuickBar = {
             e.dataTransfer.effectAllowed = 'move';
             slot.classList.add('dragging');
         };
-        slot.ondragend = () => {
+        slot.ondragend = (e) => {
             slot.classList.remove('dragging');
             queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            // 拖出快捷栏范围（未落在任何槽位）：取消绑定
+            if (e.dataTransfer && e.dataTransfer.dropEffect === 'none') {
+                delete this.itemAssignments[slot.dataset.keyCode];
+                slot.classList.add('empty');
+                slot.innerHTML = `<span style="font-size:20px">?</span><span class="key-hint">${slot.dataset.key}</span>`;
+            }
         };
     },
     useSlot(keyCode) {
@@ -453,10 +461,14 @@ export const QuickBar = {
         const itemData = this.itemAssignments[keyCode];
         if (itemData) {
             const item = EquipManager.backpackItems.find(i => i.slot === itemData.bpSlot);
-            if (!item || item.category !== 'consumable') {
-                delete this.itemAssignments[keyCode];
-                slot.element.classList.add('empty');
-                slot.element.innerHTML = `<span style="font-size:20px">${slot.config.icon}</span><span class="key-hint">${slot.config.key}</span>`;
+            // 数量按槽位实时读取；物品被用空/被其他物品顶替时计 0（同名消耗品补货回同槽则恢复计数）
+            const count = (item && item.name === itemData.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            if (count <= 0) {
+                // 用完不删图标：数量为 0 时点击抖动警示（只有拖出快捷栏才取消绑定）
+                slot.element.classList.remove('qb-shake');
+                void slot.element.offsetWidth; // 重触发动画
+                slot.element.classList.add('qb-shake');
+                TimerManager.setTimeout(() => slot.element.classList.remove('qb-shake'), 400);
                 return;
             }
             if (item.name === '治疗药水') {
@@ -469,11 +481,9 @@ export const QuickBar = {
             if (item.stack > 1) {
                 item.stack--;
             } else {
+                // 用完：从背包移除物品，但保留快捷栏绑定（数量显示 0，图标保留）
                 const removeIdx = EquipManager.backpackItems.findIndex(i => i.slot === itemData.bpSlot);
                 if (removeIdx !== -1) EquipManager.backpackItems.splice(removeIdx, 1);
-                delete this.itemAssignments[keyCode];
-                slot.element.classList.add('empty');
-                slot.element.innerHTML = `<span style="font-size:20px">${slot.config.icon}</span><span class="key-hint">${slot.config.key}</span>`;
             }
             if (EquipManager && EquipManager.updateInventorySlots) {
                 EquipManager.updateInventorySlots();
@@ -520,7 +530,25 @@ export const QuickBar = {
         }
         ds.commandFlyToMouse();
     },
+    // 刷新消耗品数量角标（>0 绿色、=0 红色，只在变化时写 DOM）
+    _updateItemCounts() {
+        for (const [keyCode, data] of Object.entries(this.itemAssignments)) {
+            const slot = this.slots.find(s => s.config.keyCode === keyCode);
+            if (!slot) continue;
+            const countEl = slot.element.querySelector('.item-stack');
+            if (!countEl) continue;
+            const item = EquipManager.backpackItems.find(i => i.slot === data.bpSlot);
+            const count = (item && item.name === data.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            if (slot._lastCount !== count) {
+                slot._lastCount = count;
+                countEl.textContent = count;
+                countEl.classList.toggle('zero', count <= 0);
+            }
+        }
+    },
     updateCooldowns(dt) {
+        // 消耗品数量角标实时刷新（绿=可用，红=0）
+        this._updateItemCounts();
         for (const skillId in this.cooldowns) {
             if (this.cooldowns[skillId] > 0) {
                 this.cooldowns[skillId] -= dt;
