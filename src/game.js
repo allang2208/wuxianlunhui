@@ -44,6 +44,7 @@ import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
+import { WarehouseSystem } from './ui/warehouse-system.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
@@ -278,6 +279,20 @@ export const Game = {
             ]
         });
         this.entities.set('npc_attendant', attendant);
+        // 仓库 NPC（小鼠大王旁，实心圆替代贴图）
+        const whCfg = npcCfg.warehouse || { relativeTo: 'shopMouseKing', offset: { x: 100, y: 0 }, name: '仓库', size: 20, collisionRadius: 14, color: '#8a6a3a', npcType: 'warehouse' };
+        const whX = whCfg.relativeTo === 'shopMouseKing' ? npcX + whCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + whCfg.offset.x;
+        const whY = whCfg.relativeTo === 'shopMouseKing' ? npcY + whCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + whCfg.offset.y;
+        const warehouseNpc = new NPC(whX, whY, {
+            id: 'npc_warehouse',
+            name: whCfg.name,
+            size: whCfg.size,
+            collisionRadius: whCfg.collisionRadius,
+            color: whCfg.color,
+            npcType: whCfg.npcType,
+            greetings: ['仓库为你敞开。']
+        });
+        this.entities.set('npc_warehouse', warehouseNpc);
         // 在小鼠大王右侧生成演示树木
         const treeCfg = GAME_CONFIG.trees?.demoLayout || { treeRadius: 25, groups: [] };
         const treeRadius = treeCfg.treeRadius || 25;
@@ -742,7 +757,12 @@ if (Input.mouse.leftPressed) {
                     const mx = Input.mouse.x, my = Input.mouse.y;
                     const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
                     if (hover) {
-                        NPCDialogue.open(entity);
+                        // 仓库 NPC：直接打开仓库面板，不走对话
+                        if (entity.npcType === 'warehouse') {
+                            WarehouseSystem.open();
+                        } else {
+                            NPCDialogue.open(entity);
+                        }
                         clickedNPC = true;
                         Input.mouse.leftPressed = false;
                     }

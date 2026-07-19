@@ -11,6 +11,7 @@ import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
 import { buildFormulaDisplay } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
+import { WarehouseSystem } from './warehouse-system.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
@@ -522,11 +523,18 @@ export const EquipTooltipManager = {
     bindInventoryTooltip() {
         const tooltip = getElement('equipTooltip');
         const self = this;
+        // 仓库格子（wh-cell）从 WarehouseSystem 取物品，背包格子照旧
+        const resolveItem = (cell) => {
+            const idx = parseInt(cell.dataset.slot);
+            if (cell.classList.contains('wh-cell')) {
+                return WarehouseSystem && WarehouseSystem.getItemAt ? WarehouseSystem.getItemAt(idx) : null;
+            }
+            return self.backpackItems.find(i => i.slot === idx);
+        };
         queryAllElements('.inv-cell').forEach(cell => {
             cell.onmouseenter = function(e) {
                 if (tooltip._pinned) return;
-                const idx = parseInt(cell.dataset.slot);
-                const item = self.backpackItems.find(i => i.slot === idx);
+                const item = resolveItem(cell);
                 if (!item) return;
                 self.renderTooltip(item);
                 tooltip.classList.add('visible');
@@ -540,22 +548,24 @@ export const EquipTooltipManager = {
                 self._removeMoveHandler(cell);
             };
             cell.onclick = function(e) {
-                const idx = parseInt(cell.dataset.slot);
-                const item = self.backpackItems.find(i => i.slot === idx);
-                if (!item) return;
+                const isWhCell = cell.classList.contains('wh-cell');
+                const item = isWhCell ? null : resolveItem(cell);
+                if (!isWhCell && !item) return;
                 e.stopPropagation();
-                // Shift+点击：拆分堆叠物品
-                if (e.shiftKey && item.stack > 1) {
+                // Shift+点击：拆分堆叠物品（仓库格子不支持拆分）
+                if (!isWhCell && e.shiftKey && item.stack > 1) {
                     e.preventDefault();
                     e.stopPropagation();
-                    self.callbacks.showSplitDialog(item, idx);
+                    self.callbacks.showSplitDialog(item, parseInt(cell.dataset.slot));
                     return;
                 }
+                const showItem = resolveItem(cell);
+                if (!showItem) return;
                 if (tooltip._pinned) {
                     tooltip.classList.remove('visible', 'pinned');
                     tooltip._pinned = false;
                 } else {
-                    self.renderTooltip(item);
+                    self.renderTooltip(showItem);
                     tooltip.classList.add('visible', 'pinned');
                     tooltip._pinned = true;
                     self._positionTooltip(e);
