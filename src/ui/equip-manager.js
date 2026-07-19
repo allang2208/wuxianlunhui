@@ -11,6 +11,7 @@ import { EventBus } from '../core/event-bus.js';
 import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { FusionSystem } from './fusion-system.js';
 import { UIState } from './ui-state.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { loadImage } from '../utils/image-loader.js';
@@ -423,6 +424,10 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     e.preventDefault();
                     e.stopPropagation();
                     WarehouseSystem.storeFromBackpack(idx);
+                } else if (UIState.isOpen('fusion')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    FusionSystem.placeFromBackpack(idx);
                 } else {
                     e.preventDefault();
                     e.stopPropagation();
@@ -451,6 +456,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     CraftSystem._equipFromBackpack(idx);
                 } else if (UIState.isOpen('warehouse')) {
                     WarehouseSystem.storeFromBackpack(idx);
+                } else if (UIState.isOpen('fusion')) {
+                    FusionSystem.placeFromBackpack(idx);
                 } else {
                     this.equipFromBackpack(idx);
                 }

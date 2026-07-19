@@ -11,6 +11,7 @@ import { EnchantSystem } from './enchant-system.js';
 import { QuestSystem } from './quest-system.js';
 import { QuickBar } from './quick-bar.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { FusionSystem } from './fusion-system.js';
 import { SystemUI } from './system-ui.js';
 import { ExpeditionSystem } from './expedition-system.js';
 import { GameUIManager } from './game-ui-manager.js';
@@ -52,12 +53,13 @@ import DevTool from './dev-tool.js';
                         return;
                     }
                     // 有子页面打开：按 Esc 回到初始对话
-                    if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant') || UIState.isOpen('warehouse')) {
+                    if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant') || UIState.isOpen('warehouse') || UIState.isOpen('fusion')) {
                         if (UIState.isOpen('shop')) ShopSystem.close();
                         if (UIState.isOpen('enhance')) EnhanceSystem.close();
                         if (UIState.isOpen('craft')) CraftSystem.close();
                         if (UIState.isOpen('enchant')) EnchantSystem.close();
                         if (UIState.isOpen('warehouse')) WarehouseSystem.close();
+                        if (UIState.isOpen('fusion')) FusionSystem.close();
                         if (NPCDialogue._active) NPCDialogue.exitCompactMode();
                         return;
                     }

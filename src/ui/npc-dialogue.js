@@ -8,6 +8,8 @@ import { EnhanceSystem } from './enhance-system.js';
 import { CraftSystem } from './craft-system.js';
 import { EnchantSystem } from './enchant-system.js';
 import { QuestSystem, QuestState } from './quest-system.js';
+import { ExpeditionSystem } from './expedition-system.js';
+import { FusionSystem } from './fusion-system.js';
 import { SystemUI } from './system-ui.js';
 import { TypewriterText } from './typewriter-text.js';
 
@@ -104,6 +106,14 @@ const NPCDialogue = {
         const dialogueOptions = getElement('npcDialogueOptions');
         if (!dialogueOptions) return;
         const npcType = npc.npcType || 'shop';
+        if (npcType === 'altar') {
+            dialogueOptions.innerHTML = `
+                <button class="npc-option-btn" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ 献祭出征</button>
+                <button class="npc-option-btn" id="npcOptionFusion" onclick="NPCDialogue.openFusion()">🔮 祭品合成</button>
+                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 退出</button>
+            `;
+            return;
+        }
         if (npcType === 'quest') {
             dialogueOptions.innerHTML = `
                 <button class="npc-option-btn" id="npcOptionQuest" onclick="NPCDialogue.openQuest()">📜 开始任务</button>
@@ -328,6 +338,30 @@ const NPCDialogue = {
             return;
         }
         QuestState.startQuest(quest.scene, 'quest');
+    },
+
+    // 选择献祭出征（祭坛）
+    openExpedition() {
+        const player = Game.player;
+        if (!player) return;
+        this.goodbye();
+        ExpeditionSystem.open(player);
+    },
+
+    // 选择祭品合成（祭坛）
+    openFusion() {
+        if (UIState.isOpen('fusion')) { FusionSystem.close(); return; }
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
+
+        this._currentText = '将两个相同稀有度的祭品熔铸为更高一级的祭品。传说祭品将熔铸为全新的传说。';
+        if (this._typewriter) this._typewriter.setText(this._currentText);
+        const dialogueOptions = getElement('npcDialogueOptions');
+        if (dialogueOptions) dialogueOptions.style.display = 'flex';
+
+        FusionSystem.open();
     },
 
     // 选择商店

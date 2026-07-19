@@ -213,6 +213,11 @@ function _pickTributeByRarity(rarity) {
     return ItemDatabase.get(id);
 }
 
+/** 公开版：按稀有度随机取一件祭品（合成等系统使用） */
+export function pickTributeByRarity(rarity) {
+    return _pickTributeByRarity(rarity);
+}
+
 /**
  * 击杀掉落祭品判定（召唤物在外层已拦截）：
  * - 精英/首领：必掉，品质按 combat-formulas.json tributes.dropTables.elite 权重
