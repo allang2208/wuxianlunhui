@@ -1200,7 +1200,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "hpRegenPercent": 4,
         "mpRegenPercent": -2
@@ -1226,7 +1226,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "goldPercent": 2,
         "defPercent": -1
@@ -1252,7 +1252,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "critPercent": 1,
         "mdefPercent": -1
@@ -1278,7 +1278,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "mpRegenPercent": 4,
         "atkPercent": -1
@@ -1304,7 +1304,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "defPercent": 2,
         "moveSpeedPercent": -1
@@ -1330,7 +1330,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "hpRegenPercent": 8,
         "moveSpeedPercent": -1
@@ -1356,7 +1356,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "mpRegenPercent": 8,
         "defPercent": -1
@@ -1382,7 +1382,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "atkPercent": 4,
         "mpRegenPercent": -2
@@ -1408,7 +1408,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "mdefPercent": 4,
         "hpRegenPercent": -4
@@ -1434,7 +1434,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "moveSpeedPercent": 2,
         "atkPercent": -2
@@ -1460,7 +1460,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "hpRegenPercent": 12,
         "defPercent": -2
@@ -1486,7 +1486,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "goldPercent": 6,
         "moveSpeedPercent": -2
@@ -1512,7 +1512,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "defPercent": 6,
         "moveSpeedPercent": -2
@@ -1538,7 +1538,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "atkPercent": 6,
         "mdefPercent": -3
@@ -1642,7 +1642,7 @@
       "rarity": "mythic",
       "level": 1,
       "stack": 1,
-      "price": 2000,
+      "price": 1600,
       "effects": {
         "mdefPercent": 10,
         "hpRegenPercent": 22,
@@ -1673,7 +1673,7 @@
       "rarity": "mythic",
       "level": 1,
       "stack": 1,
-      "price": 2000,
+      "price": 1600,
       "effects": {
         "atkPercent": 10,
         "matkPercent": 9,
@@ -1704,7 +1704,7 @@
       "rarity": "legendary",
       "level": 1,
       "stack": 1,
-      "price": 5000,
+      "price": 3200,
       "effects": {
         "atkPercent": 13,
         "hpRegenPercent": 30,
@@ -1735,7 +1735,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "atkPercent": 2,
         "moveSpeedPercent": -1
@@ -1761,7 +1761,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "matkPercent": 2,
         "defPercent": -1
@@ -1787,7 +1787,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "goldPercent": 2,
         "mdefPercent": -1
@@ -1813,7 +1813,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "defPercent": 2,
         "critPercent": -1
@@ -1839,7 +1839,7 @@
       "rarity": "common",
       "level": 1,
       "stack": 1,
-      "price": 50,
+      "price": 100,
       "effects": {
         "mpRegenPercent": 4,
         "hpRegenPercent": -2
@@ -1865,7 +1865,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "monsterDamageTakenPercent": 4,
         "defPercent": -2
@@ -1891,7 +1891,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "moveSpeedPercent": 2,
         "atkPercent": -2
@@ -1917,7 +1917,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "mdefPercent": 4,
         "matkPercent": -2
@@ -1943,7 +1943,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "monsterMoveSlowPercent": 2,
         "moveSpeedPercent": -1
@@ -1969,7 +1969,7 @@
       "rarity": "uncommon",
       "level": 1,
       "stack": 1,
-      "price": 120,
+      "price": 200,
       "effects": {
         "atkPercent": 4,
         "hpRegenPercent": -4
@@ -1995,7 +1995,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "goldPercent": 6,
         "defPercent": -3
@@ -2021,7 +2021,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "monsterAtkDownPercent": 6,
         "moveSpeedPercent": -2
@@ -2047,7 +2047,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "critPercent": 3,
         "mdefPercent": -3
@@ -2073,7 +2073,7 @@
       "rarity": "rare",
       "level": 1,
       "stack": 1,
-      "price": 300,
+      "price": 400,
       "effects": {
         "combatChanceDelta": 6
       },
@@ -2176,7 +2176,7 @@
       "rarity": "mythic",
       "level": 1,
       "stack": 1,
-      "price": 2000,
+      "price": 1600,
       "effects": {
         "atkPercent": 10,
         "critPercent": 5
@@ -2209,7 +2209,7 @@
       "rarity": "mythic",
       "level": 1,
       "stack": 1,
-      "price": 2000,
+      "price": 1600,
       "effects": {
         "mpRegenPercent": 22,
         "hpRegenPercent": 18
@@ -2243,7 +2243,7 @@
       "rarity": "legendary",
       "level": 1,
       "stack": 1,
-      "price": 5000,
+      "price": 3200,
       "effects": {
         "goldPercent": 13,
         "monsterDamageTakenPercent": 12
@@ -2307,7 +2307,7 @@
       "level": 1,
       "stack": 1,
       "maxStack": 999,
-      "price": 60,
+      "price": 100,
       "effects": {
         "defPercent": 5,
         "moveSpeedPercent": -10
@@ -2335,7 +2335,7 @@
       "level": 1,
       "stack": 1,
       "maxStack": 999,
-      "price": 150,
+      "price": 100,
       "effects": {
         "defPercent": 25,
         "killHpHealPercent": 5

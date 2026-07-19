@@ -17,7 +17,7 @@ export const FusionSystem = {
     _panelBuilt: false,
     _placed: [],          // { slot, item, seq }（slot 为格号）
     _seq: 0,
-    CAPACITY: 10,
+    CAPACITY: 20,
 
     open() {
         if (this._isOpen) return;
@@ -61,7 +61,7 @@ export const FusionSystem = {
 
     // ==================== 放入/取出 ====================
 
-    /** 背包 → 合成槽（双击/右键/拖放统一入口；堆叠祭品每次取 1 个） */
+    /** 背包 → 合成槽（双击/右键/拖放统一入口；堆叠祭品整组放入，直到堆空或格满） */
     placeFromBackpack(bpIdx) {
         const bp = EquipManager.backpackItems || [];
         const item = bp.find(i => i.slot === bpIdx);
@@ -70,20 +70,23 @@ export const FusionSystem = {
             this._showMessage('只能放入祭品', 'error');
             return;
         }
-        const slot = this._freeSlot();
-        if (slot === -1) {
-            this._showMessage('合成栏已满', 'error');
-            return;
+        // 整组堆叠放入：逐个取 1，直到堆空或合成栏满
+        while ((item.stack || 1) > 0) {
+            const slot = this._freeSlot();
+            if (slot === -1) {
+                this._showMessage('合成栏已满', 'error');
+                break;
+            }
+            const clone = JSON.parse(JSON.stringify(item));
+            clone.stack = 1;
+            if ((item.stack || 1) > 1) {
+                item.stack -= 1;
+            } else {
+                bp.splice(bp.indexOf(item), 1);
+                item.stack = 0; // 终止循环，防止拆空后复制品
+            }
+            this._placed.push({ slot, item: clone, seq: this._seq++ });
         }
-        // 堆叠取 1 个：原堆 -1 或移除
-        const clone = JSON.parse(JSON.stringify(item));
-        clone.stack = 1;
-        if ((item.stack || 1) > 1) {
-            item.stack -= 1;
-        } else {
-            bp.splice(bp.indexOf(item), 1);
-        }
-        this._placed.push({ slot, item: clone, seq: this._seq++ });
         this._refreshAll();
     },
 
