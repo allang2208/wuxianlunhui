@@ -288,7 +288,7 @@ const EnhanceSystem = {
             costEl.innerHTML = `💰 ${cost} + 💎 强化石×1`;
             enhanceBtn.disabled = false;
             enhanceBtn.onclick = () => this.enhance();
-            slot.onclick = () => this.removeItem();
+            // 取回规则与各栏位一致：双击/右键取回，单击不触发（防误点）
             slot.ondblclick = () => this.removeItem();
             slot.oncontextmenu = (e) => { e.preventDefault(); this.removeItem(); };
         } else {

@@ -6,6 +6,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { applyConsumableEffect } from '../config/consumable.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -311,7 +312,7 @@ export const QuickBar = {
                             }
                         }
                     }
-                    this.itemAssignments[config.keyCode] = { bpSlot, itemName: item.name };
+                    this.itemAssignments[config.keyCode] = { bpSlot, instanceId: item.instanceId || null, itemName: item.name };
                     this._updateItemSlot(slot, item);
                 }
             }
@@ -460,9 +461,8 @@ export const QuickBar = {
         // Item usage
         const itemData = this.itemAssignments[keyCode];
         if (itemData) {
-            const item = EquipManager.backpackItems.find(i => i.slot === itemData.bpSlot);
-            // 数量按槽位实时读取；物品被用空/被其他物品顶替时计 0（同名消耗品补货回同槽则恢复计数）
-            const count = (item && item.name === itemData.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            const item = this._findAssignedItem(itemData);
+            const count = item ? (item.stack || 1) : 0;
             if (count <= 0) {
                 // 用完不删图标：数量为 0 时点击抖动警示（只有拖出快捷栏才取消绑定）
                 slot.element.classList.remove('qb-shake');
@@ -471,18 +471,15 @@ export const QuickBar = {
                 TimerManager.setTimeout(() => slot.element.classList.remove('qb-shake'), 400);
                 return;
             }
-            if (item.name === '治疗药水') {
-                player.data.hp = Math.min(player.data.hp + 30, player.data.maxHp);
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+30 HP', '#7a9a6a'));
-            } else if (item.name === '魔力药水') {
-                player.data.mp = Math.min(player.data.mp + 25, player.data.maxMp);
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 20, '+25 MP', '#5a8aaa'));
+            if (!applyConsumableEffect(player, item)) {
+                // 无效果的消耗品（如附魔卷轴）：不消耗、不响应
+                return;
             }
             if (item.stack > 1) {
                 item.stack--;
             } else {
                 // 用完：从背包移除物品，但保留快捷栏绑定（数量显示 0，图标保留）
-                const removeIdx = EquipManager.backpackItems.findIndex(i => i.slot === itemData.bpSlot);
+                const removeIdx = EquipManager.backpackItems.findIndex(i => i === item);
                 if (removeIdx !== -1) EquipManager.backpackItems.splice(removeIdx, 1);
             }
             if (EquipManager && EquipManager.updateInventorySlots) {
@@ -530,6 +527,16 @@ export const QuickBar = {
         }
         ds.commandFlyToMouse();
     },
+    // 按绑定查找背包中的目标物品：instanceId 优先（槽位变动不受影响），
+    // 无 instanceId 或实例已消耗时回退同名消耗品（兼容旧绑定与模板物品）
+    _findAssignedItem(data) {
+        const bp = (EquipManager && EquipManager.backpackItems) || [];
+        if (data.instanceId) {
+            const byId = bp.find(i => i.instanceId === data.instanceId);
+            if (byId) return byId;
+        }
+        return bp.find(i => i.name === data.itemName && i.category === 'consumable') || null;
+    },
     // 刷新消耗品数量角标（>0 绿色、=0 红色，只在变化时写 DOM）
     _updateItemCounts() {
         for (const [keyCode, data] of Object.entries(this.itemAssignments)) {
@@ -537,8 +544,8 @@ export const QuickBar = {
             if (!slot) continue;
             const countEl = slot.element.querySelector('.item-stack');
             if (!countEl) continue;
-            const item = EquipManager.backpackItems.find(i => i.slot === data.bpSlot);
-            const count = (item && item.name === data.itemName && item.category === 'consumable') ? (item.stack || 1) : 0;
+            const item = this._findAssignedItem(data);
+            const count = item ? (item.stack || 1) : 0;
             if (slot._lastCount !== count) {
                 slot._lastCount = count;
                 countEl.textContent = count;
