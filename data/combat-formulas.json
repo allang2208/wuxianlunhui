@@ -136,6 +136,41 @@
       "bossMultiplier": 10
     }
   },
+  "universalEventRewards": {
+    "checkRatePerGrade": -2,
+    "goddessStatue": {
+      "F": { "blessDuration": 2, "giftStone": 1, "giftTicket": 1, "giftDust": 100 },
+      "E": { "blessDuration": 2, "giftStone": 1, "giftTicket": 1, "giftDust": 150 },
+      "D": { "blessDuration": 3, "giftStone": 1, "giftTicket": 1, "giftDust": 200 },
+      "C": { "blessDuration": 3, "giftStone": 1, "giftTicket": 1, "giftDust": 300 },
+      "B": { "blessDuration": 4, "giftStone": 2, "giftTicket": 2, "giftDust": 400 },
+      "A": { "blessDuration": 5, "giftStone": 2, "giftTicket": 2, "giftDust": 500 }
+    },
+    "demonStatue": {
+      "F": { "rewardStone": 1, "rewardTicket": 1, "rewardDust": 200 },
+      "E": { "rewardStone": 1, "rewardTicket": 1, "rewardDust": 300 },
+      "D": { "rewardStone": 2, "rewardTicket": 2, "rewardDust": 400 },
+      "C": { "rewardStone": 2, "rewardTicket": 2, "rewardDust": 600 },
+      "B": { "rewardStone": 3, "rewardTicket": 3, "rewardDust": 800 },
+      "A": { "rewardStone": 4, "rewardTicket": 4, "rewardDust": 1000 }
+    },
+    "treasureChest": {
+      "F": { "gold": 300, "materialDust": 100, "tributeChance": 0 },
+      "E": { "gold": 400, "materialDust": 150, "tributeChance": 0 },
+      "D": { "gold": 500, "materialDust": 200, "tributeChance": 0.1 },
+      "C": { "gold": 700, "materialDust": 300, "tributeChance": 0.1 },
+      "B": { "gold": 900, "materialDust": 400, "tributeChance": 0.1 },
+      "A": { "gold": 1200, "materialDust": 500, "tributeChance": 0.1 }
+    },
+    "supplyPile": {
+      "F": { "hp": 20, "mp": 15, "potions": 1 },
+      "E": { "hp": 25, "mp": 20, "potions": 1 },
+      "D": { "hp": 30, "mp": 25, "potions": 2 },
+      "C": { "hp": 40, "mp": 30, "potions": 2 },
+      "B": { "hp": 50, "mp": 40, "potions": 3 },
+      "A": { "hp": 60, "mp": 50, "potions": 3 }
+    }
+  },
   "tributes": {
     "dropTables": {
       "F": {

@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-18（事件分级体系：通用/限定/奖励分级/改名高级）
+
+### 对话：随机事件 FEDCBA 分级 + 通用 30%/限定 70% + 奖励公式
+- **事件两段判定**：rollEventType 改两段——先按 30%/70% 判定通用 vs 限定，再组内按权重抽取；限定池 = 同一大类 + 事件等级在「地牢等级 ±1」内（F 级 4 个、D 级 7 个、A 级 1 个幻影镜面，逻辑已验证）。
+- **限定事件元数据**：`RESTRICTED_EVENT_META`（dungeon-event-definitions.js）——10 个新事件全部归入僵尸地牢大类并赋级（坍塌拱门/毒菇环 F，笔记/十字路口 E，血祭坛/诅咒铠甲/祝福喷泉 D，赌徒/军械库 C，幻影镜面 B）。
+- **通用事件奖励分级**（combat-formulas.json `universalEventRewards`）：`getUniversalEventConfig` 按 dungeonList.grade 覆盖配置——女神祝福场次 2/2/3/3/4/5、馈赠粉尘 100~500；恶魔祈求 强化石/改造券/粉尘 1/1/200 ~ 4/4/1000；宝箱金币 300~1200、材料粉尘 100~500、D 级起 10% 祭品彩蛋（rollTributeDrop 按难度封顶，走 _applyRewards 发放）；补给堆恢复 20~60HP/15~50MP、药水 1~3 瓶；**检定成功率随难度每级 -2pp 下调**（trap/supplyPile 属性检定统一生效，下限沿用 minSuccessRate）。
+- **改名**：僵尸地牢 → 僵尸地牢高级（dungeonList + 出征面板默认值 + scene-manager + dungeon-map-generator + ZOMBIE_DUNGEON_CONFIG 全部同步；内部键 zombie 不动）。
+- **测试结果**：JSON 校验 ✅；`npm run lint` ✅；`npx vite build` ✅；`test-collider` / `test-craft-sync` ✅。
+- **已知问题**：实机待验证——①30/70 两段判定分布；②±1 限定池（F 级不见 C+ 事件）；③通用奖励按难度变化；④陷阱/补给检定下调；⑤宝箱祭品彩蛋入包；⑥改名后各界面字样。
+
 ## 2026-07-18（地牢难度分级掉落体系）
 
 ### 对话：难度 FEDCBA × 祭品稀有度概率公式

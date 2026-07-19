@@ -57,7 +57,7 @@ export function createHudPanelsExpeditionQuestReward() {
     const expeditionInfoRow = document.createElement('div');
     expeditionInfoRow.className = 'expedition-info-row';
     const expeditionInfoDefs = [
-        { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢' },
+        { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢高级' },
         { label: '节点数', id: 'expeditionNodeCount', val: '35~40' },
         { label: '战斗节点', id: 'expeditionBattleRatio', val: '70%' },
         { label: '地牢等级', id: 'expeditionLevel', val: '1级', highlight: true },

@@ -1,6 +1,6 @@
 {
   "dungeonList": {
-    "zombie": { "name": "☠ 僵尸地牢", "nodeCount": "35~40", "battleRatio": "50%", "level": "1级", "reward": "1500金币", "grade": "D" },
+    "zombie": { "name": "☠ 僵尸地牢高级", "nodeCount": "35~40", "battleRatio": "50%", "level": "1级", "reward": "1500金币", "grade": "D" },
     "zombieBeginner": { "name": "☠ 僵尸地牢-初级", "nodeCount": "22", "battleRatio": "40%", "level": "1级", "reward": "800金币", "grade": "F" }
   },
   "zombieDungeon": {

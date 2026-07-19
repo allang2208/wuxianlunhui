@@ -162,7 +162,7 @@ const ZOMBIE_FACTORY_MAP = {
 };
 
 const ZOMBIE_DUNGEON_CONFIG = {
-    name: '僵尸地牢',
+    name: '僵尸地牢高级',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
 
     // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
