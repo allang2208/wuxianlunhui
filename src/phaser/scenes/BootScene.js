@@ -98,6 +98,11 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_armored_knight_combo',   'assets/enemies/armored_knight/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 31 });
         this.load.spritesheet('enemy_armored_knight_charge',  'assets/enemies/armored_knight/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
         this.load.spritesheet('enemy_armored_knight_defend',  'assets/enemies/armored_knight/defending.png',   { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        // 手脑（领主）：4列×8行切分，帧 1024×256
+        this.load.spritesheet('enemy_shounao_idle',  'assets/enemies/shounao/idle.png',        { frameWidth: 1024, frameHeight: 256, endFrame: 0 });
+        this.load.spritesheet('enemy_shounao_walk',  'assets/enemies/shounao/walking.png',     { frameWidth: 1024, frameHeight: 256, endFrame: 11 });
+        this.load.spritesheet('enemy_shounao_slam',  'assets/enemies/shounao/attacking.png',   { frameWidth: 1024, frameHeight: 256, endFrame: 25 });
+        this.load.spritesheet('enemy_shounao_howl',  'assets/enemies/shounao/attacking-2.png', { frameWidth: 1024, frameHeight: 256, endFrame: 27 });
 
         // ---- 环境资源 ----
 
@@ -355,6 +360,31 @@ export class BootScene extends Scene {
             key: 'enemy_armored_knight_defend',
             frames: this.anims.generateFrameNumbers('enemy_armored_knight_defend', { start: 0, end: 13 }),
             duration: 1500,
+            repeat: 0,
+        });
+        // ---- 手脑（领主）动画 ----
+        this.anims.create({
+            key: 'enemy_shounao_idle',
+            frames: this.anims.generateFrameNumbers('enemy_shounao_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_shounao_walk',
+            frames: this.anims.generateFrameNumbers('enemy_shounao_walk', { start: 0, end: 11 }),
+            frameRate: 12,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_shounao_slam',
+            frames: this.anims.generateFrameNumbers('enemy_shounao_slam', { start: 0, end: 25 }),
+            duration: 2000, // 与 slam.duration 对齐（动画时长=技能时长）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_shounao_howl',
+            frames: this.anims.generateFrameNumbers('enemy_shounao_howl', { start: 0, end: 27 }),
+            duration: 3000, // 与 howl.duration 对齐（动画时长=技能持续时间）
             repeat: 0,
         });
 

@@ -44,6 +44,7 @@ import { FatZombie } from './entities/enemy-types/fat-zombie.js';
 import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
+import { Shounao } from './entities/enemy-types/shounao.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -141,8 +142,9 @@ export const Game = {
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             SceneManager._inMainHub = true;
             SceneManager._mainHubInvincible = true;
-            // 主神空间只保留铠甲骑士用于测试（其余测试怪已清除，spawn 方法保留备用）
+            // 主神空间保留铠甲骑士、手脑用于测试（其余测试怪已清除，spawn 方法保留备用）
             this.spawnMainArmoredKnight();
+            this.spawnMainShounao();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -541,6 +543,24 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_armored_knight', knight);
+    },
+    spawnMainShounao() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const shounaoCfg = enemyConfigData.shounao || {};
+        // 使用原设定数值，仅保留永久警戒便于测试；与骑士错开站位
+        const shounao = new Shounao(origin.x - 350, origin.y + 320, {
+            ...shounaoCfg,
+            showWeapon: false,
+            ai: {
+                ...(shounaoCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_shounao', shounao);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标

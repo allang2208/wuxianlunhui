@@ -43,7 +43,12 @@
       "collisionWidth": 133,
       "collisionHeight": 78,
       "footOffsetY": 41,
-      "projectileHitbox": { "width": 120, "height": 65, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 120,
+        "height": 65,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/black_wolf_idle.png"
@@ -118,7 +123,12 @@
       "collisionWidth": 60,
       "collisionHeight": 50,
       "footOffsetY": 70,
-      "projectileHitbox": { "width": 44, "height": 137, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 44,
+        "height": 137,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/fat_zombie/idle.png",
@@ -199,7 +209,12 @@
       "collisionWidth": 80,
       "collisionHeight": 79,
       "footOffsetY": 43,
-      "projectileHitbox": { "width": 81, "height": 83, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 81,
+        "height": 83,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/zombie_dog_idle.png"
@@ -234,7 +249,12 @@
       "collisionWidth": 30,
       "collisionHeight": 50,
       "footOffsetY": 56,
-      "projectileHitbox": { "width": 31, "height": 103, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 31,
+        "height": 103,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/zombie/idle.png",
@@ -314,7 +334,12 @@
       "collisionWidth": 32,
       "collisionHeight": 79,
       "footOffsetY": 41,
-      "projectileHitbox": { "width": 29, "height": 81, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 29,
+        "height": 81,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/spitter_zombie/idle.png",
@@ -739,7 +764,12 @@
       "collisionWidth": 61,
       "collisionHeight": 109,
       "footOffsetY": 56,
-      "projectileHitbox": { "width": 46, "height": 112, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 46,
+        "height": 112,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/zombie_wizard/idle.png",
@@ -793,7 +823,12 @@
       "collisionHeight": 540,
       "footOffsetY": 309,
       "colliderOffsetY": -100,
-      "projectileHitbox": { "width": 360, "height": 570, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 360,
+        "height": 570,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/amalgam/idle.png",
@@ -808,11 +843,27 @@
         "duration": 2000,
         "frames": 32,
         "triggerRange": 250,
-        "hitFrames": [7, 12, 17, 20, 24, 27],
+        "hitFrames": [
+          7,
+          12,
+          17,
+          20,
+          24,
+          27
+        ],
         "zones": [
-          { "radius": 200, "damageMul": 1.2 },
-          { "radius": 400, "damageMul": 0.7 },
-          { "radius": 800, "damageMul": 0.2 }
+          {
+            "radius": 200,
+            "damageMul": 1.2
+          },
+          {
+            "radius": 400,
+            "damageMul": 0.7
+          },
+          {
+            "radius": 800,
+            "damageMul": 0.2
+          }
         ]
       },
       "throw": {
@@ -891,12 +942,13 @@
         "cooldown": 4000,
         "duration": 2000,
         "frames": 32,
-        "hitFrames": [12, 25],
+        "hitFrames": [
+          12,
+          25
+        ],
         "triggerRange": 75,
         "range": 125,
-        "damageMul": 1.0,
-        "lungeDistance": 30,
-        "lungeSpeed": 500
+        "damageMul": 1.0
       },
       "charge": {
         "cooldown": 10000,
@@ -942,7 +994,10 @@
       "walk": "assets/sounds/enemies/armored_knight/walking.mp3",
       "walkInterval": 500,
       "combo": "assets/sounds/enemies/armored_knight/attacking.mp3",
-      "comboSoundFrames": [6, 17],
+      "comboSoundFrames": [
+        6,
+        17
+      ],
       "block": "assets/sounds/enemies/armored_knight/defending.mp3",
       "chargeStepInterval": 300
     },
@@ -965,6 +1020,102 @@
       "idleFrameCount": 1,
       "idleSheetColumns": 8
     }
+  },
+  "shounao": {
+    "id": "shounao",
+    "name": "手脑",
+    "type": "领主",
+    "category": "monster",
+    "family": "手脑",
+    "color": "#7a5a6a",
+    "size": 40,
+    "collisionRadius": 30,
+    "hp": 1500,
+    "maxHp": 1500,
+    "speed": 160,
+    "level": 12,
+    "rank": "lord",
+    "str": 50,
+    "dex": 25,
+    "con": 40,
+    "int": 30,
+    "wis": 20,
+    "luck": 10,
+    "atk": 50,
+    "def": 66,
+    "matk": 55,
+    "mdef": 65,
+    "crit": 30,
+    "attackRange": 300,
+    "attackDistance": 300,
+    "aiInterval": 1000,
+    "ai": {
+      "aggroRange": 900,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1000,
+      "dynamicRange": 300,
+      "width": 30,
+      "knockback": 20
+    },
+    "attackType": "砸击",
+    "attackSkills": {
+      "slam": {
+        "cooldown": 6000,
+        "duration": 2000,
+        "frames": 26,
+        "hitFrames": [
+          14
+        ],
+        "range": 300,
+        "damageMul": 2.0,
+        "damageType": "physical",
+        "triggerRange": 300
+      },
+      "howl": {
+        "cooldown": 10000,
+        "duration": 3000,
+        "frames": 28,
+        "range": 600,
+        "tickMs": 500,
+        "damageMul": 0.5,
+        "damageType": "magic",
+        "triggerRange": 600
+      }
+    },
+    "render": {
+      "spriteSize": 220,
+      "collisionWidth": 60,
+      "collisionHeight": 100,
+      "footOffsetY": 50,
+      "projectileHitbox": {
+        "width": 80,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/shounao/idle.png",
+      "idleFrameWidth": 1024,
+      "idleFrameHeight": 256,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 4
+    },
+    "description": "爬行蠕动的巨型脑状魔物，以触手砸碎近身之物，以嚎叫撕裂一切生者的神志。",
+    "skills": [
+      {
+        "name": "砸地",
+        "desc": "2 秒蓄势后砸向地面，对 300px 范围造成物理攻击 ×2 的伤害"
+      },
+      {
+        "name": "嚎叫",
+        "desc": "持续 3 秒的精神嚎叫，600px 范围内每 0.5s 受到魔法攻击 ×0.5 的魔法伤害"
+      }
+    ]
   },
   "mutant3": {
     "id": "mutant3",
@@ -1019,7 +1170,12 @@
       "collisionWidth": 80,
       "collisionHeight": 96,
       "footOffsetY": 56,
-      "projectileHitbox": { "width": 68, "height": 110, "offsetX": 0, "bottom": 0 }
+      "projectileHitbox": {
+        "width": 68,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      }
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",

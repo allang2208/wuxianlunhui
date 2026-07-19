@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（骑士冲锋沙尘/二连击去位移 + 新怪物「手脑」（首个领主怪））
+
+### 对话：骑士两项调整 + 按工作流新增手脑
+- **骑士冲锋沙尘**：`_updateCharge` 每 70ms（对齐玩家冲刺档）调 `EffectFactory.createDustEffect`（玩家同款入口，对象池复用），在移动反方向脚下生成，intensity 1.2。
+- **骑士二连击去位移**：删除 `_comboLungeDx/Dy/Remaining` 全部突进插值代码（constructor/_startCombo/_updateCombo/_endCombo 四处）+ 配置死字段 `combo.lungeDistance/lungeSpeed`；二连击现在全程不可移动（原就有 vx=vy=0，突进是唯一的位移源）。
+- **新怪物「手脑」（rank: lord，首个领主怪）**：
+  - 素材：`素材库/怪物/手脑/` 4 张 png（4096×2048，4列×8行 → 帧 1024×256）复制至 `assets/enemies/shounao/`；BootScene 4 spritesheet + 4 动画（idle 1帧循环 / walk 12帧循环 / slam 26帧 2s / howl 28帧 3s，攻击动画时长=技能时长）。
+  - 配置（enemy-config.json shounao）：HP 1500、speed 160、level 12、family 手脑（不进僵尸池）；显式面板覆盖 atk 50 / def 66 / matk 55 / mdef 65 / crit 30；`attackSkills`——slam（CD 6s、2s、14帧判定、300px、物理×2、triggerRange 300）、howl（CD 10s 暂定、3s、每 500ms 一跳、600px、魔法×0.5、triggerRange 600）。
+  - 逻辑 `src/entities/enemy-types/shounao.js`：状态机 idle/walk/slam/howl；技能决策 slam（近）> howl（远）；范围伤害走 `_hostiles(entities)` 全体敌对判定（与集合体同语义）；眩晕中断全部动作；lord 联动自动生效（经验×4/金币×3/lord 祭品表）。
+  - 注册：enemy-types.js import/export；game.js `spawnMainShounao()` 主神空间生成（骑士对面站位，永久警戒测试用）。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js（新）、src/entities/enemy-types.js、src/game.js、src/phaser/scenes/BootScene.js、data/enemy-config.json、assets/enemies/shounao/（4 png）、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①冲锋沙尘密度/位置；②二连击原地挥砍；③手脑贴图尺寸（spriteSize 220 初值，帧 1024×256 横长条，可能需调）；④slam 14 帧判定点与动画同步；⑤howl 每跳伤害与范围感；⑥lord 掉落/经验/金币实机首验。
+
 ## 2026-07-19（修复：冲锋命中瞬间贴图闪跳）
 
 ### 对话：实机反馈"即将撞到目标时贴图一瞬间消失/错误"
