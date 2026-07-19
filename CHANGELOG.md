@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-19（修复：铠甲骑士永不冲锋）
+
+### 对话：实机反馈骑士不会冲锋攻击
+- **根因**：b31b5f8 冲锋改线性加速时配置字段 `speed` 更名为 `maxSpeed`（+`accelDuration`），但 `_decideSkills()` 的发动条件仍检查 `cfg.charge.speed`——恒为 undefined，冲锋永远进不了。残留的旧字段引用，全仓 grep 确认仅此一处。
+- **修复**：armored-knight.js:144 发动条件改查 `cfg.charge.maxSpeed`。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——骑士进入 550px 触发范围后应瞬间举盾冲锋（0→400px 线性加速）。
+
 ## 2026-07-19（修复：地牢事件系统 TDZ 循环依赖）
 
 ### 对话：实机报错 `Cannot access 'NEW_EVENT_CONFIGS' before initialization`（dungeon-event-system.js:160）
