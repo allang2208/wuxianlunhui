@@ -27,7 +27,13 @@ update(dt, entities) {
                 if (this._isDead) {
                     this._deathTimer -= dt;
                     if (this._deathTimer <= 0) {
-                        this.respawn();
+                        // 蟠桃续命：该次地牢一次，3s 后以 30% 最大生命原地复活
+                        if (this._peachRevivePending) {
+                            this._peachRevivePending = false;
+                            this._reviveInPlace();
+                        } else {
+                            this.respawn();
+                        }
                     }
                     return; // 死亡期间不执行任何其他逻辑
                 }
@@ -361,6 +367,19 @@ update(dt, entities) {
                         if (this._marbleHealEffectId && StatusBar) {
                             StatusBar.removeEffect(this._marbleHealEffectId);
                             this._marbleHealEffectId = null;
+                        }
+                    }
+                }
+                // 祭品效果（数据驱动）：千年人参 - 击杀后1秒内回复最大魔法值
+                if (this._ginsengHealTimer > 0) {
+                    this._ginsengHealTimer -= dt;
+                    const mpHealPerTick = this._ginsengHealTotal / (1000 / 16.67);
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + mpHealPerTick * (dt / 16.67));
+                    if (this._ginsengHealTimer <= 0) {
+                        this._ginsengHealTimer = 0;
+                        if (this._ginsengHealEffectId && StatusBar) {
+                            StatusBar.removeEffect(this._ginsengHealEffectId);
+                            this._ginsengHealEffectId = null;
                         }
                     }
                 }

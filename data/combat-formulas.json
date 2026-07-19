@@ -147,6 +147,16 @@
       "defenseMultiplier": 1.05,
       "speedMultiplier": 0.9,
       "appliesOnce": false
+    },
+    "dropTables": {
+      "elite": {
+        "chance": 1,
+        "weights": [["common", 35], ["uncommon", 30], ["rare", 20], ["epic", 10], ["mythic", 4], ["legendary", 1]]
+      },
+      "normal": {
+        "chance": 0.05,
+        "weights": [["common", 80], ["uncommon", 15], ["rare", 5]]
+      }
     }
   },
   "dungeonBuffs": {

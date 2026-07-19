@@ -13,7 +13,7 @@ import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { getTributeGoldMultiplier } from '../config/tribute-effects.js';
+import { getTributeGoldMultiplier, getTributeKillMpHealRatio, rollTributeDrop } from '../config/tribute-effects.js';
 
         /**
          * 根据配置计算怪物金币掉落
@@ -243,6 +243,24 @@ import { getTributeGoldMultiplier } from '../config/tribute-effects.js';
 
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
                     Game.dropItem(this.x, this.y, goldItem);
+
+                    // 祭品掉落：精英/首领必掉（品质按权重），普通怪 5% 只出稀有及以下
+                    const tributeDrop = rollTributeDrop(this.rank);
+                    if (tributeDrop) {
+                        Game.dropItem(this.x, this.y, tributeDrop);
+                    }
+
+                    // 祭品效果（数据驱动）：千年人参 - 击杀后1秒内回复最大魔法值
+                    const ginsengRatio = getTributeKillMpHealRatio();
+                    if (ginsengRatio > 0 && source && source.data) {
+                        source._ginsengHealTimer = 1000;
+                        source._ginsengHealTotal = source.data.maxMp * ginsengRatio;
+                        source._ginsengHealPerTick = source._ginsengHealTotal / (1000 / 16.67);
+                        if (StatusBar) {
+                            if (source._ginsengHealEffectId) StatusBar.removeEffect(source._ginsengHealEffectId);
+                            source._ginsengHealEffectId = StatusBar.addEffect('ginsengHeal', 1000, { icon: '🌿', name: '人参回气', color: '#6a9a5a' });
+                        }
+                    }
                     // 新增：掉落经验值
                     if (source && source.gainExp) {
                         source.gainExp(this.getExpValue ? this.getExpValue() : 2);

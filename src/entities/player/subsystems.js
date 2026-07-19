@@ -36,9 +36,13 @@ function getDefaultSkillExpForNext(level) {
     return DataLoader.parseSkillExpFormula(DEFAULT_SKILL_EXP_FORMULA, level);
 }
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
+import { getTributeReviveRatio, getTributeExpMultiplier, syncTributeBuffs } from '../../config/tribute-effects.js';
 
 const subsystemsMixin = {
 gainExp(amount) {
+                if (amount <= 0) return;
+                // 天山雪莲特效：本次地牢经验获取加成
+                amount = Math.floor(amount * getTributeExpMultiplier());
                 if (amount <= 0) return;
                 const d = this.data;
                 d.exp += amount;
@@ -181,6 +185,13 @@ removeDroneVulnerability() {
 onDeath() {
                 this._isDead = true;
                 this._deathTimer = 3000; // 3秒后重生
+                // 蟠桃续命：该次地牢一次——携带蟠桃且未用过，则 3s 后以 30% 最大生命原地复活
+                if (!this._peachReviveUsed && getTributeReviveRatio() > 0) {
+                    this._peachReviveUsed = true;
+                    this._peachRevivePending = true;
+                    syncTributeBuffs(this);
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '🍑 蟠桃续命生效：3秒后原地复活', '#e8a06a'));
+                }
                 // 显示死亡提示
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '你死了！3秒后重生', '#ff4444'));
                 // 如果在任务模式中死亡，重置任务状态
@@ -192,6 +203,35 @@ onDeath() {
                 if (typeof this._onDeathDrop === 'function') {
                     this._onDeathDrop();
                 }
+            },
+
+// 蟠桃续命：原地复活（不清地牢、不传送），以 30% 最大生命站起
+_reviveInPlace() {
+                this._isDead = false;
+                this._deathTimer = 0;
+                const d = this.data;
+                d.hp = Math.max(1, Math.floor(d.maxHp * 0.3));
+                d.stamina = d.maxStamina;
+                // 清关键临时状态（与 respawn 同口径，但保留地牢进程）
+                this._poisonStacks = 0;
+                this._poisonTimer = 0;
+                this._poisonTickTimer = 0;
+                this.isStunned = false;
+                this.stunTimer = 0;
+                this._overheatActive = false;
+                this._overheatValue = 0;
+                this._overheatOverheated = false;
+                this._isPushStrike = false;
+                this._specialAttackActive = false;
+                this._specialAttackTimer = 0;
+                this._isDashing = false;
+                this._isWhirlwind = false;
+                this.vx = 0;
+                this.vy = 0;
+                if (this.droneSystem && this.droneSystem.controlling) {
+                    this.droneSystem._exitControl();
+                }
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '🍑 原地复活！', '#e8a06a'));
             },
 
 respawn() {

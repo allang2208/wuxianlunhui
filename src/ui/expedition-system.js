@@ -13,6 +13,7 @@ import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { SystemUI } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { syncTributeBuffs } from '../config/tribute-effects.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -566,6 +567,8 @@ export const ExpeditionSystem = {
         if (DungeonMapSystem) {
             DungeonMapSystem._carriedItems = carried;
         }
+        // 特效祭品（雪莲/人参/蟠桃）在 buff 栏显示常驻图标
+        if (this.player) syncTributeBuffs(this.player);
 
         this._showMessage('准备出征...', 'success');
 
