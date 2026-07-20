@@ -1,5 +1,6 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -30,6 +31,8 @@ export class Shounao extends Enemy {
         this._howlTickTimer = 0;
         // 嚎叫冲击波 graphics（扩散圈特效，统一清理用）
         this._howlGraphics = [];
+        // 砸地冲击白线 graphics（统一清理用）
+        this._slamGraphics = [];
     }
 
     _getSkillConfigs() {
@@ -134,10 +137,62 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         const range = cfg.range ?? 300;
         const atk = this.data?.atk || 0;
+        // 砸地落点特效：烟尘向上漂浮（奔跑同款 DustEffect）+ 白色放射冲击线
+        this._fireSlamDust();
+        this._fireSlamImpactLines();
         for (const e of this._hostiles(entities)) {
             if (!this._isTargetInRange(e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
+    }
+
+    /** 砸地烟尘：落点生成数团 DustEffect（粒子自带向上漂浮分量） */
+    _fireSlamDust() {
+        for (let i = 0; i < 4; i++) {
+            const ox = (Math.random() - 0.5) * 40;
+            const oy = (Math.random() - 0.5) * 16;
+            EffectFactory.createDustEffect(this.x + ox, this.y + oy + 8, 1.4);
+        }
+    }
+
+    /** 砸地冲击白线：落点向外放射的白色线条，快速扩散淡出 */
+    _fireSlamImpactLines() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        this._slamGraphics.push(g);
+        const wave = { t: 0 };
+        const self = this;
+        const lineCount = 8;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 280,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const t = wave.t;
+                g.clear();
+                const alpha = (1 - t) * 0.9;
+                g.lineStyle(3, 0xffffff, alpha);
+                const inner = 20 + t * 50;
+                const outer = 50 + t * 90;
+                for (let i = 0; i < lineCount; i++) {
+                    const angle = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
+                    // 平面透视：y 分量按 PERSPECTIVE_SCALE_Y 压缩
+                    const cos = Math.cos(angle), sin = Math.sin(angle) * PERSPECTIVE_SCALE_Y;
+                    g.beginPath();
+                    g.moveTo(self.x + cos * inner, self.y + sin * inner);
+                    g.lineTo(self.x + cos * outer, self.y + sin * outer);
+                    g.strokePath();
+                }
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+                const idx = self._slamGraphics.indexOf(g);
+                if (idx >= 0) self._slamGraphics.splice(idx, 1);
+            }
+        });
     }
 
     _endSlam() {
@@ -159,8 +214,6 @@ export class Shounao extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
-        // 释放瞬间：冲击波圆圈由中心扩散到影响范围（集合体同款，魔法紫色）
-        this._fireHowlShockwave();
     }
 
     /**
@@ -208,6 +261,10 @@ export class Shounao extends Enemy {
             if (g && g.active) g.destroy();
         }
         this._howlGraphics = [];
+        for (const g of this._slamGraphics) {
+            if (g && g.active) g.destroy();
+        }
+        this._slamGraphics = [];
     }
 
     _updateHowl(dt, entities) {
@@ -230,6 +287,8 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().howl;
         const range = cfg.range ?? 600;
         const matk = this.data?.matk || 0;
+        // 每次伤害判定同步播放一次冲击波扩散
+        this._fireHowlShockwave();
         for (const e of this._hostiles(entities)) {
             if (!this._isTargetInRange(e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);

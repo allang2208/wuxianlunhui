@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（出征奖励栏 + 手脑特效强化 + 旧代码清除确认）
+
+### 对话：出征界面奖励情况 + 嚎叫每跳冲击波/砸地烟尘白线 + 旧代码清除确认
+- **出征说明栏奖励区块**：`_updateRulePanelRewards(grade)` 在出征条件下方按当前选中地牢实时显示——祭品掉落品质范围（`普通 ~ 该难度 maxRarity`，稀有度词条色）+ 精英/领主/首领必掉与普通怪掉率；精英宝箱武器稀有度（dungeon-config eliteChestReward 数据驱动）；Boss 奖励武器稀有度（BOSS_REWARD_CONFIG bonusCards）；事件构成（通用事件当前奖励档 + 限定事件 ±1 等级跨度）。切换地牢随 `_updateRulePanelCurrent` 同步刷新。
+- **手脑特效**：
+  - 嚎叫冲击波改为**每跳伤害判定播放一次**（_dealHowlTick 触发，3s/500ms 共 6 次脉冲扩散；移除 _startHowl 的单次调用避免重复）。
+  - 砸地命中帧新增落点特效：4 团 DustEffect 烟尘（玩家奔跑同款，粒子自带向上漂浮分量）+ `_fireSlamImpactLines` 8 条白色放射冲击线（2:1 平面透视，280ms 扩散淡出）；`_slamGraphics` 纳入 `_destroyCustomEffects` 统一清理。
+- **旧主神空间代码清除确认**：`spawnMainFatZombie` / `spawnMainZombie` / `spawnMainAmalgam` 全仓 grep 已无任何调用点（上一版 _loadMainScene 已切换到统一入口 spawnMainHubTestEntities）；方法本体按惯例保留在 game.js 备用。
+- **修改文件**：src/ui/expedition-system.js、game-style.css、src/entities/enemy-types/shounao.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①说明栏奖励区块排版与换地牢刷新；②嚎叫 6 连脉冲视觉密度；③砸地烟尘+白线打击感。
+
 ## 2026-07-20（手脑嚎叫冲击波 + 主神空间测试怪统一 + 祭品改名调整）
 
 ### 对话：嚎叫圆圈特效 + 复活场景排查 + 祭品六项调整
