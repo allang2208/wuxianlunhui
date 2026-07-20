@@ -8,6 +8,26 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（光晕重构：filters 改烘培纹理——修卡顿+不明显）
+
+### 对话：光晕几乎看不到且游戏变卡
+- **卡顿根因确认**：Phaser 4 `filters` 是每个 GameObject 一个独立 render-to-texture + shader pass——满地掉落物每帧几十个额外渲染通道，正是特效导致的掉帧。
+- **不明显根因**：glow 沿贴图 alpha 边缘发光，贴图 512px 缩到 48px 显示时 10px 光晕被稀释至 ≈1px。
+- **替代方案（烘培纹理）**：`bakeGlowTexture`——贴图首次加载时离屏 canvas 一次性生成"稀有度色外发光+原图"纹理：`shadowBlur` 24px 叠画 5 次累积浓郁光晕（由深至浅渐变），顶层画原图保证本体清晰；光晕按显示比例烘培（显示 48px 时约 10px 可见）；纹理按 贴图路径+稀有度 缓存复用，**渲染零开销**。filters 调用全部移除。
+- **修改文件**：src/entities/drop-item.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①各稀有度光晕浓度/宽度；②帧率恢复情况。
+
+## 2026-07-20（骑士 footprint+15 / 玩家眩晕星星 / 骑士蓝色快粒子）
+
+### 对话：骑士椭圆半径 + 玩家眩晕特效 + 骑士受击粒子定制
+- **骑士脚下椭圆半径**：`collisionRadius` 29 → 44（+15px）。
+- **玩家眩晕星星**：`_syncStunEffects` 原循环只认 `e._phaserSprite`——玩家贴图挂 `this.playerSprite`，被跳过。循环体抽为 `process(e, sprite)` 复用，玩家单独以 playerSprite 传入：被眩晕时头顶同款双星旋转，结束消失。
+- **骑士受击蓝色快粒子**：粒子速度/距离参数化——`playZombieHitParticles` 新增 opts `{speedMul, distMul}`（速度 ×speedMul、存活 ×distMul=飞更远，发射器销毁延迟同步）；`triggerZombieHitParticles` 从 `target.config` 读取 `hitParticleSpeedMul/hitParticleDistMul` 传入。骑士配置：`hitParticleColor '#4a8aff'`、`hitParticleSpeedMul 1.5`、`hitParticleDistMul 1.3`。
+- **修改文件**：src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①玩家被骑士冲锋撞晕时头顶双星；②骑士受击蓝色粒子速度/距离体感；③骑士 footprint 扩大后近身判定。
+
 ## 2026-07-20（光晕修复：贴图被挖空 + 加宽 10px）
 
 ### 对话：光晕覆盖贴图不显示 + 太薄

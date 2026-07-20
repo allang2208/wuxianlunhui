@@ -3,10 +3,32 @@ import { Entity } from './entity.js';
 import { loadImage } from '../utils/image-loader.js';
 import { RARITY_COLORS } from '../config/rarity.js';
 
-        /** 稀有度 hex 字符串 → Phaser 0x 数字色 */
-        function rarityGlowColor(rarity) {
-            const hex = RARITY_COLORS[rarity] || RARITY_COLORS.common;
-            return parseInt(hex.slice(1), 16);
+        /**
+         * 烘培带稀有度轮廓光晕的纹理（离屏 canvas，一次性生成缓存，渲染零开销）。
+         * 替代 per-object filter（每掉落物一个渲染通道，数量多时严重掉帧）。
+         * 光晕宽度按显示比例烘培：显示 48px 时约 10px 可见光晕，由深至浅向外渐变。
+         */
+        function bakeGlowTexture(phaserScene, image, rarity) {
+            const keyBase = image.src || 'drop';
+            const glowKey = 'dropglow_' + keyBase.replace(/[^a-zA-Z0-9]/g, '_') + '_' + (rarity || 'common');
+            if (phaserScene.textures.exists(glowKey)) return glowKey;
+            const BASE = 128, BLUR = 24, PAD = 28, PASSES = 5;
+            const scale = BASE / Math.max(image.naturalWidth, image.naturalHeight);
+            const w = Math.max(1, Math.round(image.naturalWidth * scale));
+            const h = Math.max(1, Math.round(image.naturalHeight * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = w + PAD * 2;
+            canvas.height = h + PAD * 2;
+            const ctx = canvas.getContext('2d');
+            // 多次叠画 shadowBlur 累积出浓郁外发光（由深至浅向外渐变）
+            ctx.shadowColor = RARITY_COLORS[rarity] || RARITY_COLORS.common;
+            ctx.shadowBlur = BLUR;
+            for (let i = 0; i < PASSES; i++) ctx.drawImage(image, PAD, PAD, w, h);
+            // 顶层原图：贴图本体清晰显示在光晕之上
+            ctx.shadowBlur = 0;
+            ctx.drawImage(image, PAD, PAD, w, h);
+            phaserScene.textures.addImage(glowKey, canvas);
+            return glowKey;
         }
 
         class DropItem extends Entity {
@@ -44,22 +66,13 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 if (!this._phaserSprite || !this._phaserSprite.active) {
                     let key = 'drop_placeholder';
                     if (this.image && this.image.complete && this.image.naturalWidth > 0) {
-                        const keyBase = this.image.src || 'drop';
-                        key = 'drop_' + keyBase.replace(/[^a-zA-Z0-9]/g, '_');
-                        if (!phaserScene.textures.exists(key)) {
-                            phaserScene.textures.addImage(key, this.image);
-                        }
+                        // 使用烘培的稀有度光晕纹理（替代 filter 实时渲染，解决卡顿+不明显）
+                        key = bakeGlowTexture(phaserScene, this.image, this.itemData.rarity);
                     }
                     const sprite = phaserScene.add.sprite(this.x, this.y, key);
                     sprite.setOrigin(0.5, 0.5);
                     sprite.setDepth(this.y + 5);
                     phaserScene.dropItemsGroup.add(sprite);
-                    // 稀有度轮廓光晕：贴图本体正常显示（knockout=false），光晕从轮廓向外 10px 渐变，常驻
-                    // Phaser 4 FX API：enableFilters().filters.internal.addGlow(color, outer, inner, scale, knockout, quality, distance)
-                    if (sprite.enableFilters && !this._rarityGlowAdded) {
-                        this._rarityGlowAdded = true;
-                        sprite.enableFilters().filters.internal.addGlow(rarityGlowColor(this.itemData.rarity), 3, 0, 1, false, 10, 10);
-                    }
                     // 掉落物不需要物理驱动，关闭自动移动减少开销
                     if (sprite.body) {
                         sprite.body.moves = false;

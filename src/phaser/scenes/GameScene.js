@@ -1833,8 +1833,9 @@ export class GameScene extends Scene {
         if (!this.textures.exists('stun_star')) this._ensureStunStarTexture();
         const now = performance.now();
         const active = new Set();
-        _game.entities.forEach(e => {
-            if (!e || !e.active || !e._phaserSprite || !e._phaserSprite.active) return;
+        // 单个实体的双星处理（怪物贴图 _phaserSprite；玩家贴图挂 this.playerSprite，单独传入）
+        const process = (e, sprite) => {
+            if (!e || !e.active || !sprite || !sprite.active) return;
             const stunned = typeof e.hasStatusEffect === 'function' && e.hasStatusEffect('stun');
             if (!stunned) return;
             active.add(e);
@@ -1849,7 +1850,6 @@ export class GameScene extends Scene {
             }
             // 双星绕头顶旋转（Y 按平面透视压缩），带轻微上下浮动
             fx.angle += 0.05;
-            const sprite = e._phaserSprite;
             const headY = sprite.y - sprite.displayHeight / 2 - 8;
             const bob = Math.sin(now / 300) * 3;
             const r = 26;
@@ -1859,7 +1859,10 @@ export class GameScene extends Scene {
             const y2 = headY + Math.sin(fx.angle + Math.PI) * r * PERSPECTIVE_SCALE_Y + bob;
             fx.s1.setPosition(x1, y1).setDepth(headY + 1001).setVisible(true);
             fx.s2.setPosition(x2, y2).setDepth(headY + 1001).setVisible(true);
-        });
+        };
+        _game.entities.forEach(e => process(e, e && e._phaserSprite));
+        // 玩家被眩晕：同款双星（贴图挂 this.playerSprite）
+        process(_game.player, this.playerSprite);
         // 眩晕结束/实体失效：销毁特效
         for (const [e, fx] of this._stunFx.entries()) {
             if (!active.has(e)) {
@@ -1901,19 +1904,22 @@ export class GameScene extends Scene {
      * @param {number} y
      * @param {number} [angle] 受击方向（弧度），未提供时随机散射
      */
-    playZombieHitParticles(x, y, angle, tintColor = null) {
+    playZombieHitParticles(x, y, angle, tintColor = null, opts = null) {
         // 自定义颜色用白色纹理（tint 乘算准确显色）；默认绿色沿用原绿色纹理
         const useCustom = tintColor !== null && tintColor !== undefined;
         const texKey = useCustom ? 'impact_dot' : 'zombie_hit_dot';
         if (!this.textures.exists(texKey)) {
             if (useCustom) this._ensureImpactDotTexture(); else this._ensureZombieHitTexture();
         }
+        // 速度/距离倍率（配置驱动，默认 1）：速度 ×speedMul，存活 ×distMul（同速度下活更久=飞更远）
+        const speedMul = (opts && opts.speedMul) || 1;
+        const distMul = (opts && opts.distMul) || 1;
         // 在 (0,0) 创建发射器，随后用 explode(x,y) 在世界坐标一次性爆发，
         // 避免把发射器位置与爆发坐标叠加导致粒子飞到屏幕外。
         const particles = this.add.particles(0, 0, texKey, {
-            speed: { min: 80, max: 220 },
+            speed: { min: 80 * speedMul, max: 220 * speedMul },
             scale: { start: 1.4, end: 0 },
-            lifespan: 600,
+            lifespan: 600 * distMul,
             quantity: 12,
             tint: useCustom ? tintColor : 0x55ff55,
             blendMode: 'ADD',
@@ -1926,8 +1932,8 @@ export class GameScene extends Scene {
         // 按爆发位置 Y 排序，并高于普通实体，确保可见
         particles.setDepth(y + 1000);
         particles.explode(12, x, y);
-        // 短暂延迟后销毁发射器，避免内存泄漏
-        this.time.delayedCall(800, () => {
+        // 短暂延迟后销毁发射器，避免内存泄漏（存活随 distMul 延长）
+        this.time.delayedCall(Math.max(800, 600 * distMul + 200), () => {
             if (particles && particles.active) particles.destroy();
         });
     }
@@ -2111,7 +2117,10 @@ export class GameScene extends Scene {
             const parsed = parseInt(target.config.hitParticleColor.replace('#', ''), 16);
             if (Number.isFinite(parsed)) tintColor = parsed;
         }
-        this.playZombieHitParticles(hitX, hitY, angle, tintColor);
+        // 粒子速度/距离倍率：配置 hitParticleSpeedMul / hitParticleDistMul（如骑士蓝色快粒子）
+        const speedMul = target.config?.hitParticleSpeedMul ?? 1;
+        const distMul = target.config?.hitParticleDistMul ?? 1;
+        this.playZombieHitParticles(hitX, hitY, angle, tintColor, { speedMul, distMul });
     }
 
     /**
