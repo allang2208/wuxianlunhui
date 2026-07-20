@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑受击粒子 + 碰撞再下移 30px）
+
+### 对话：手脑受击绿色粒子 + 碰撞体积再下移
+- **手脑受击无粒子根因**：`triggerZombieHitParticles` 硬过滤 `family !== '僵尸'`——非僵尸家族（手脑/骑士/狼等）全部跳过。移除 family 过滤，全怪物统一受击粒子（缺省绿色/僵尸同款；`hitParticleColor` 配置可覆盖，集合体落地黄不受影响）。
+- **手脑碰撞体积再下移 30px**：`render.colliderOffsetY` 50 → 80（footprint/圆柱/投射物矩形同锚联动）。
+- **修改文件**：src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①手脑受击绿色粒子位置（贴图中心）；②其他怪（骑士/狼）受击粒子观感是否正常；③下移后判定与贴图对齐。
+
 ## 2026-07-20（掉落物稀有度轮廓光晕）
 
 ### 对话：所有物品掉落物加 3px 稀有度色轮廓，由深至浅向外渐变
