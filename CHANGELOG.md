@@ -8,6 +8,44 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：setGravity is not a function 游戏循环报错）
+
+### 对话：game.js:741 Game loop error（骑士粒子冲锋拖尾）
+- **根因**：Phaser 4 粒子发射器没有 `setGravity`——重力设置为 `setParticleGravity(x, y)`（Phaser 4 重命名，与 postFX 同类的 API 迁移坑）。
+- **修复**：armored-knight.js 冲锋拖尾两处调用改名 `setParticleGravity`。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——冲锋拖尾重力方向生效、无再报错。
+
+## 2026-07-20（修复：手脑 colliderOffsetY 从未生效）
+
+### 对话：手脑碰撞体积没有下移，是否圆/椭圆搞混
+- **根因**：`render.colliderOffsetY` 的读取（`this.colliderOffsetY = config.render.colliderOffsetY`）此前只写在**集合体自己的构造器**里——基类 Enemy 从不读该配置，手脑的 50/80/110/140 四次调整全部落空。不是圆/椭圆混淆，是配置没被读取。
+- **修复**：读取上移至 `enemy.js` 基类构造器——所有怪物配置即用（骑士/手脑/未来新怪）；集合体构造器内的重复赋值同值无害保留。
+- **修改文件**：src/entities/enemy.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——手脑判定圆心下移至 140px 后与贴图对齐（此前多次"下移"实际未生效，本次为首次真实生效，可能需要复核数值）。
+
+## 2026-07-20（手脑碰撞微调 + 骑士粒子冲锋拖尾）
+
+### 对话：手脑下移/矩形拉伸 + 粒子上移与冲锋身后扩散
+- **手脑**：`colliderOffsetY` 110 → 140（再下移 30px）；投射物矩形 `projectileHitbox.width` 80 → 110（左右各 +15px）。
+- **骑士头部粒子**：发射点上移 10px（100→90）；发射点每帧绑定贴图模型位置；**冲锋状态切换时重配粒子**——speed 15~40 → 60~130（加快）、频率 90→45ms（更密）、gravityY -40→-20 且每帧向冲锋反方向施加 110 重力（粒子向身后浮动扩散拖尾）；退出冲锋恢复原配置。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①冲锋拖尾方向与速度观感；②平时粒子上移后位置；③手脑碰撞对齐。
+
+## 2026-07-20（骑士粒子调整 + 手脑声音系统）
+
+### 对话：头部粒子下移/加密/水平抖动 + 手脑全套音效
+- **骑士头部粒子**：发射点下移 100px；频率 180→90ms（粒子数翻倍）；水平轴 ±5px 抖动生成。
+- **手脑声音系统**（按骑士工作流）：
+  - 素材 4 个 mp3 复制到 `assets/sounds/enemies/shounao/`；
+  - enemy-config `sounds` 块：`walk` 为**数组**（walking.mp3 / walking-2.mp3 随机）、`walkInterval` 500、`slam`（hitting）、`howl`（howling）；
+  - `shounao.js` 新增 `_playSound`（数组随机选一，配置驱动）；walk 状态按间隔播放脚步；`_dealSlamHit` 判定伤害时播放 hitting；`_startHowl` 播放 howling。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js、data/enemy-config.json、assets/sounds/enemies/shounao/（4 mp3）、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①粒子位置/密度；②脚步随机交替与音量；③砸地/嚎叫音效同步。
+
 ## 2026-07-20（骑士头部蓝色浮动粒子）
 
 ### 对话：参考符文长剑蓝色粒子，骑士贴图头部持续向上浮动

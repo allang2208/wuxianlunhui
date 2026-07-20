@@ -2,6 +2,7 @@ import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -34,6 +35,17 @@ export class Shounao extends Enemy {
         this._howlGraphics = [];
         // 砸地冲击白线 graphics（统一清理用）
         this._slamGraphics = [];
+        // 移动音效计时（sounds.walk 两文件随机，间隔 walkInterval）
+        this._walkSoundTimer = 0;
+    }
+
+    /** 播放配置音效（数组则随机选一，如移动脚步两个文件随机） */
+    _playSound(key) {
+        let path = this.config?.sounds?.[key];
+        if (Array.isArray(path)) path = path[Math.floor(Math.random() * path.length)];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     _getSkillConfigs() {
@@ -70,6 +82,17 @@ export class Shounao extends Enemy {
         }
         if (this._animState !== 'slam' && this._animState !== 'howl') {
             this._animState = this.isMoving ? 'walk' : 'idle';
+        }
+
+        // 移动音效：walk 状态按间隔随机播放两个脚步声之一
+        if (this._animState === 'walk') {
+            this._walkSoundTimer -= dt;
+            if (this._walkSoundTimer <= 0) {
+                this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
+                this._playSound('walk');
+            }
+        } else {
+            this._walkSoundTimer = 0;
         }
     }
 
@@ -138,6 +161,8 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         const range = cfg.range ?? 300;
         const atk = this.data?.atk || 0;
+        // 砸地判定伤害时播放 hitting
+        this._playSound('slam');
         // 砸地落点特效：烟尘四周扩散轻微上浮 + 白色放射冲击线
         this._fireSlamDust();
         this._fireSlamImpactLines();
@@ -228,6 +253,8 @@ export class Shounao extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+        // 嚎叫攻击时播放 howling
+        this._playSound('howl');
     }
 
     /**

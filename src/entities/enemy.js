@@ -160,6 +160,9 @@ import { loadImage } from '../utils/image-loader.js';
                 // AI 配置读取（子类可通过 config.ai 注入；默认 0 表示不启用 pacing AI）
                 const pacingAiConfig = config.ai || {};
                 this.ai = config.ai || {}; // 供 MovementSystem 等外部系统读取 ai 标志（如 chargeStraight）
+                // footprint 判定圆心偏移（配置 render.colliderOffsetY，配合贴图身体上移；
+                // 统一在基类读取——此前仅集合体自己读取，手脑/骑士配置后未生效）
+                this.colliderOffsetY = (this.config?.render?.colliderOffsetY) ?? 0;
                 this._aggroRange = pacingAiConfig.aggroRange || 0;
                 this._pacingRange = pacingAiConfig.pacingRange || 0;
                 this._loseTimeout = pacingAiConfig.loseTimeout || 2000;
