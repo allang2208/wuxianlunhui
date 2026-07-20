@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（骑士粒子调整 + 手脑声音系统）
+
+### 对话：头部粒子下移/加密/水平抖动 + 手脑全套音效
+- **骑士头部粒子**：发射点下移 100px；频率 180→90ms（粒子数翻倍）；水平轴 ±5px 抖动生成。
+- **手脑声音系统**（按骑士工作流）：
+  - 素材 4 个 mp3 复制到 `assets/sounds/enemies/shounao/`；
+  - enemy-config `sounds` 块：`walk` 为**数组**（walking.mp3 / walking-2.mp3 随机）、`walkInterval` 500、`slam`（hitting）、`howl`（howling）；
+  - `shounao.js` 新增 `_playSound`（数组随机选一，配置驱动）；walk 状态按间隔播放脚步；`_dealSlamHit` 判定伤害时播放 hitting；`_startHowl` 播放 howling。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、src/entities/enemy-types/shounao.js、data/enemy-config.json、assets/sounds/enemies/shounao/（4 mp3）、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①粒子位置/密度；②脚步随机交替与音量；③砸地/嚎叫音效同步。
+
 ## 2026-07-20（骑士头部蓝色浮动粒子）
 
 ### 对话：参考符文长剑蓝色粒子，骑士贴图头部持续向上浮动

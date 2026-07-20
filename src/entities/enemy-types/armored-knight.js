@@ -157,7 +157,7 @@ export class ArmoredKnight extends Enemy {
                 angle: { min: 255, max: 285 }, // 向上（270° 为正上方）
                 gravityY: -40,                 // 负重力持续上浮
                 lifespan: 1400,
-                frequency: 180,
+                frequency: 90,                 // 粒子数翻倍（180→90ms）
                 quantity: 1,
                 scale: { start: 0.7, end: 0 },
                 alpha: { start: 0.85, end: 0 },
@@ -167,9 +167,10 @@ export class ArmoredKnight extends Enemy {
             });
             this._headParticles.setDepth(sprite.y + 1000);
         }
-        // 发射点跟随贴图头顶
-        const headY = sprite.y - sprite.displayHeight / 2;
-        this._headParticles.setPosition(sprite.x, headY);
+        // 发射点跟随贴图头顶下移 100px，水平轴 ±5px 抖动
+        const headY = sprite.y - sprite.displayHeight / 2 + 100;
+        const jitterX = (Math.random() - 0.5) * 10;
+        this._headParticles.setPosition(sprite.x + jitterX, headY);
         this._headParticles.setDepth(headY + 1000);
     }
 

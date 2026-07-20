@@ -1067,6 +1067,15 @@
       "knockback": 20
     },
     "attackType": "砸击",
+    "sounds": {
+      "walk": [
+        "assets/sounds/enemies/shounao/walking.mp3",
+        "assets/sounds/enemies/shounao/walking-2.mp3"
+      ],
+      "walkInterval": 500,
+      "slam": "assets/sounds/enemies/shounao/hitting.mp3",
+      "howl": "assets/sounds/enemies/shounao/howling.mp3"
+    },
     "attackSkills": {
       "slam": {
         "cooldown": 6000,
