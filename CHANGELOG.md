@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（寻路"第一步反向"修复 + 蝇手碰撞微调）
+
+### 对话：空地仍掉头（往左明显）继续排查 + 蝇手碰撞
+- **根因（第二个反向源）**：A* 路径首点是**起点格子中心**（`_buildGrid` 节点 x/y 取 cell 中心）——怪物在格子内任意位置，重算后第一步要"先走回格子中心"，格子中心在行进方向身后时即瞬间掉头；重算时 minX 随起终点漂移导致格子对齐不稳定，往左走时 floor 对齐下位于格子右半部的概率高，故尤为明显。
+- **修复**：`PathManager.setPath` 将 `path[0]` 对齐为怪物当前位置——路径跟随从脚下开始，消除格子中心折返；后续路点保持 A* 结果。
+- **蝇手碰撞**：`render.colliderOffsetX: 10`（右移 10px，基类补 colliderOffsetX 读取，此前仅支持 Y）、`colliderOffsetY: 25`（下移 25px）、`collisionWidth` 80→100、`projectileHitbox.width` 90→110（水平左右各延伸 10px）。
+- **修改文件**：src/ai/path-manager.js、src/entities/enemy.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①空地往左/各方向追击不再掉头；②蝇手碰撞与贴图对齐。
+
 ## 2026-07-20（修复：寻路瞬间掉头反向——局部修复回退路径索引）
 
 ### 对话：近战怪寻路时一瞬间掉头往相反方向

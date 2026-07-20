@@ -1312,15 +1312,17 @@
     },
     "render": {
       "spriteSize": 260,
-      "collisionWidth": 80,
+      "collisionWidth": 100,
       "collisionHeight": 160,
       "footOffsetY": 70,
       "projectileHitbox": {
-        "width": 90,
+        "width": 110,
         "height": 160,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "colliderOffsetX": 10,
+      "colliderOffsetY": 25
     },
     "textures": {
       "idle": "assets/enemies/flyhand/idle.png",

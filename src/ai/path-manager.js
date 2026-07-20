@@ -36,6 +36,11 @@ class PathManager {
             this._clearPath();
             return;
         }
+        // 首点对齐到怪物当前位置：A* 起点 snap 到所在格子中心，
+        // 若格子中心在怪物行进方向身后，跟随首点会"瞬间掉头"折返（往左走时尤为明显）
+        if (this.enemy && path.length > 0) {
+            path[0] = { x: this.enemy.x, y: this.enemy.y };
+        }
         this.path = path;
         this.pathIdx = 0;
         this.isValid = true;
