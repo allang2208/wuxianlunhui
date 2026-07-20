@@ -1,4 +1,5 @@
 import { Enemy } from '../enemy.js';
+import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -27,6 +28,8 @@ export class Shounao extends Enemy {
         this._howlTimer = 0;
         this._howlCooldown = 0;
         this._howlTickTimer = 0;
+        // 嚎叫冲击波 graphics（扩散圈特效，统一清理用）
+        this._howlGraphics = [];
     }
 
     _getSkillConfigs() {
@@ -156,6 +159,55 @@ export class Shounao extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+        // 释放瞬间：冲击波圆圈由中心扩散到影响范围（集合体同款，魔法紫色）
+        this._fireHowlShockwave();
+    }
+
+    /**
+     * 嚎叫冲击波：释放时从手脑中心释放一个紫色椭圆圈，
+     * 由中心扩散到嚎叫影响范围并淡出（复刻集合体 _fireSlamShockwave 模式，平面透视 2:1）。
+     */
+    _fireHowlShockwave() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const cfg = this._getSkillConfigs().howl;
+        const maxRadius = cfg.range ?? 600;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        this._howlGraphics.push(g);
+        const wave = { t: 0 };
+        const self = this;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 600,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const t = wave.t;
+                const r = Math.max(1, maxRadius * t);
+                g.clear();
+                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
+                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
+                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
+                g.lineStyle(8, 0xa060ff, (1 - t) * 0.9 * flicker);
+                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+                g.fillStyle(0xb080ff, (1 - t) * 0.12 * flicker);
+                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+                const idx = self._howlGraphics.indexOf(g);
+                if (idx >= 0) self._howlGraphics.splice(idx, 1);
+            }
+        });
+    }
+
+    /** 统一特效清理（game.js removeEntity 约定入口） */
+    _destroyCustomEffects() {
+        for (const g of this._howlGraphics) {
+            if (g && g.active) g.destroy();
+        }
+        this._howlGraphics = [];
     }
 
     _updateHowl(dt, entities) {
@@ -189,6 +241,7 @@ export class Shounao extends Enemy {
         this._howlTimer = 0;
         this._howlTickTimer = 0;
         this._attackAnimTimer = 0;
+        this._destroyCustomEffects();
     }
 
     // ========== 工具 ==========

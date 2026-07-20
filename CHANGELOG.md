@@ -8,6 +8,22 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑嚎叫冲击波 + 主神空间测试怪统一 + 祭品改名调整）
+
+### 对话：嚎叫圆圈特效 + 复活场景排查 + 祭品六项调整
+- **手脑嚎叫冲击波**：`_fireHowlShockwave()` 复刻集合体 `_fireSlamShockwave` 模式——Phaser graphics + tween 600ms 由中心扩散紫色椭圆（0xa060ff 魔法紫，区别集合体物理红）至 howl.range 600px，加粗描边+闪烁+淡出；`_startHowl` 释放一次；`_destroyCustomEffects` 接入 game.js removeEntity 统一清理约定，`_endHowl` 同步清理。
+- **复活刷旧怪根因**：`scene-manager.js _loadMainScene` 旧四连调用（clearMainMonstersAndSpawnDog + spawnMainFatZombie/Zombie/Amalgam）——每次切回主场景（含地牢死亡复活）都清场并生成旧测试怪，与 game.js init"只保留骑士+手脑"的规则分叉。统一：`game.js` 新增 `spawnMainHubTestEntities()`（清场→骑士→手脑），init 与 _loadMainScene 共用同一入口；旧 spawn 方法保留备用；clearMainMonstersAndSpawnDog 补注释（命名遗留，仅清场）。
+- **祭品调整**（equipment.json 双份 + 初始背包，已验证双份一致）：
+  - 大理石：defPercent 25→2、killHpHealPercent 5→1（stats/desc/初始背包 slot 4 同步）
+  - 煤矿石→**煤矿**（仅改名）
+  - **石头删除**：双份条目（equipment.stone 键）+ 初始背包 slot 5 + 贴图 assets/items/石头.png
+  - 磁铁矿→**锂矿石**：effects 改 matkPercent+5 / defPercent-3（弃用原 combatChanceDelta 耦合键），stats/desc 同步
+  - 秘银矿→**铂金**、钛矿石→**钛合金**（仅改名，效果不变）
+  - tributes-table.md 重新生成（42 件）
+- **修改文件**：src/entities/enemy-types/shounao.js、src/game.js、src/world/scene-manager.js、data/equipment.json、public/data/equipment.json、src/ui/equip-data-manager.js、tributes-table.md、CHANGELOG.md；删除 assets/items/石头.png。
+- **测试结果**：JSON 双份一致 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①嚎叫紫色扩散圈视觉效果；②地牢死亡复活后主神空间只刷骑士+手脑；③改名后各界面显示；④大理石新数值回血体感。
+
 ## 2026-07-20（修复：打开出征仍自动关背包——300ms 时序炸弹）
 
 ### 对话：出征界面打开时背包仍被自动关闭，排查功能冲突
