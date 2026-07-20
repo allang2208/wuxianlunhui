@@ -54,10 +54,11 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     sprite.setOrigin(0.5, 0.5);
                     sprite.setDepth(this.y + 5);
                     phaserScene.dropItemsGroup.add(sprite);
-                    // 稀有度轮廓光晕：3px 由深至浅向外渐变（postFX glow 外发光衰减）
+                    // 稀有度轮廓光晕：仅在贴图轮廓外显示（knockout），由深至浅向外渐变；
+                    // 常驻显示（sprite 存续期间持续生效，无 hover/条件开关）
                     if (sprite.postFX && !this._rarityGlowAdded) {
                         this._rarityGlowAdded = true;
-                        sprite.postFX.addGlow(rarityGlowColor(this.itemData.rarity), 2, 0, false, 0.1, 3);
+                        sprite.postFX.addGlow(rarityGlowColor(this.itemData.rarity), 3, 0, true, 0.25, 3);
                     }
                     // 掉落物不需要物理驱动，关闭自动移动减少开销
                     if (sprite.body) {
