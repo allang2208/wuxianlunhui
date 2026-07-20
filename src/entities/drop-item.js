@@ -1,6 +1,13 @@
 import { Input } from '../ui/input.js';
 import { Entity } from './entity.js';
 import { loadImage } from '../utils/image-loader.js';
+import { RARITY_COLORS } from '../config/rarity.js';
+
+        /** 稀有度 hex 字符串 → Phaser 0x 数字色 */
+        function rarityGlowColor(rarity) {
+            const hex = RARITY_COLORS[rarity] || RARITY_COLORS.common;
+            return parseInt(hex.slice(1), 16);
+        }
 
         class DropItem extends Entity {
             constructor(x, y, itemData) {
@@ -47,6 +54,11 @@ import { loadImage } from '../utils/image-loader.js';
                     sprite.setOrigin(0.5, 0.5);
                     sprite.setDepth(this.y + 5);
                     phaserScene.dropItemsGroup.add(sprite);
+                    // 稀有度轮廓光晕：3px 由深至浅向外渐变（postFX glow 外发光衰减）
+                    if (sprite.postFX && !this._rarityGlowAdded) {
+                        this._rarityGlowAdded = true;
+                        sprite.postFX.addGlow(rarityGlowColor(this.itemData.rarity), 2, 0, false, 0.1, 3);
+                    }
                     // 掉落物不需要物理驱动，关闭自动移动减少开销
                     if (sprite.body) {
                         sprite.body.moves = false;

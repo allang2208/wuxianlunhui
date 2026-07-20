@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（掉落物稀有度轮廓光晕）
+
+### 对话：所有物品掉落物加 3px 稀有度色轮廓，由深至浅向外渐变
+- **实现**：`drop-item.js` sprite 创建时 `postFX.addGlow(rarityColor, outerStrength 2, inner 0, knockout false, quality 0.1, distance 3)`——glow 外发光天然由深至浅向外衰减，距离 3px 即轮廓厚度；颜色按 `itemData.rarity` 取 `RARITY_COLORS`（hex 转 0x），与稀有度词条同色。每个 sprite 只挂一次（`_rarityGlowAdded` 防重）。
+- **修改文件**：src/entities/drop-item.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①各稀有度掉落物轮廓观感（common 灰白可能偏淡）；②hover 高亮 tint 与 glow 叠加效果；③大量掉落物时的 FX 开销。
+
 ## 2026-07-20（骑士/手脑碰撞体积调整）
 
 ### 对话：圆柱判定过高 -50% + 手脑三项微调
