@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇手 idle 帧统一裁剪）
+
+### 对话：idle 与 walking 切换时贴图大小跳变
+- **根因**：idle 原图为 2048×2048 整幅单帧（主体满幅），walking/attacking 为 512×512 帧（主体仅占 ~60%×90%）——渲染按最长边等比缩放后 idle 显示主体大一圈，状态切换明显跳变。
+- **修复**：idle.png 按 alpha 主体边界裁出（1538×2048），等比缩至主体高 450（与 walking/attacking 帧主体 446~467 对齐），居中重排到 512×512 画布；BootScene 加载帧尺寸 2048→512 同步，enemy-config textures 元数据同步。
+- **修改文件**：assets/enemies/flyhand/idle.png、src/phaser/scenes/BootScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——idle/walk/攻击三态切换大小一致无跳变。
+
 ## 2026-07-20（主神空间清场：只留蝇手 + 拆除迷宫墙壁）
 
 ### 对话：删除其他怪物和迷宫墙壁，蝇手生成位置防卡墙

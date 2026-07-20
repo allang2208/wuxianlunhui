@@ -1321,8 +1321,8 @@
     },
     "textures": {
       "idle": "assets/enemies/flyhand/idle.png",
-      "idleFrameWidth": 2048,
-      "idleFrameHeight": 2048,
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
       "idleFrameCount": 1,
       "idleSheetColumns": 1
     },
