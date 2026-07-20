@@ -13,6 +13,7 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
+import { EventBus } from '../core/event-bus.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
@@ -322,6 +323,17 @@ export const WarehouseSystem = {
             <div class="warehouse-hint" id="warehouseHint"></div>
         `;
         document.body.appendChild(panel);
+        // 仓库格子 → 背包 的桥接事件（drag-drop-manager 发出，避免循环 import）
+        EventBus.on('warehouse:retrieveToBackpack', ({ wSlot, bpSlot }) => {
+            if (!Number.isNaN(wSlot)) this.retrieveToBackpackAt(wSlot, bpSlot);
+        });
+        // 拖到仓库面板非格子区域：标记已处理（不触发丢弃，物品原位保留）
+        panel.ondragover = (e) => { e.preventDefault(); };
+        panel.ondrop = (e) => {
+            e.preventDefault();
+            const mgr = EquipManager._dragDropManager;
+            if (mgr) mgr._dropHandled = true;
+        };
         document.getElementById('warehouseCloseBtn').onclick = () => this.close();
         document.getElementById('warehousePrevPage').onclick = () => this._switchPage(-1);
         document.getElementById('warehouseNextPage').onclick = () => this._switchPage(1);
@@ -396,7 +408,42 @@ export const WarehouseSystem = {
                 };
                 cell.ondblclick = takeOut;
                 cell.oncontextmenu = takeOut;
+                // 拖拽取出：拖到背包格子=取出，拖到非法区域=原位保留（不丢弃）
+                cell.draggable = true;
+                cell.ondragstart = (e) => {
+                    const mgr = EquipManager._dragDropManager;
+                    if (mgr) { mgr._dragSrc = { type: 'warehouse', slot: String(slot) }; mgr._dropHandled = false; }
+                    e.dataTransfer.setData('text/plain', String(slot));
+                    e.dataTransfer.effectAllowed = 'move';
+                    cell.classList.add('dragging');
+                };
+                cell.ondragend = () => {
+                    cell.classList.remove('dragging');
+                    const mgr = EquipManager._dragDropManager;
+                    // 未成功放置：warehouse 源不做丢弃（物品原位保留），仅清理拖拽状态
+                    if (mgr && mgr._dragSrc && mgr._dragSrc.type === 'warehouse') {
+                        mgr._dragSrc = null;
+                        mgr._dropHandled = false;
+                    }
+                };
             }
+            // 格子接收拖放：背包源=存入当前页；仓库源=交换槽位
+            cell.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+            cell.ondrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const mgr = EquipManager._dragDropManager;
+                const src = mgr && mgr._dragSrc;
+                if (!src) return;
+                if (src.type === 'inventory') {
+                    this.storeFromBackpackAt(parseInt(src.slot, 10), slot);
+                } else if (src.type === 'warehouse') {
+                    const from = parseInt(src.slot, 10);
+                    if (!Number.isNaN(from) && from !== slot) this._swapSlots(from, slot);
+                }
+                mgr._dropHandled = true;
+                mgr._dragSrc = null;
+            };
             grid.appendChild(cell);
         }
         grid.scrollTop = keepScroll; // 恢复滚动位置
@@ -404,6 +451,131 @@ export const WarehouseSystem = {
         if (EquipTooltipManager && EquipTooltipManager.bindInventoryTooltip) {
             EquipTooltipManager.bindInventoryTooltip();
         }
+    },
+
+    /** 背包 → 仓库指定槽位（拖放）：
+     * 目标格空→放入；同名可堆叠→合并（溢出按原规则落空位）；不同物品→交换（仓库原物回背包） */
+    storeFromBackpackAt(bpIdx, wSlot) {
+        const bp = EquipManager.backpackItems || [];
+        const idx = bp.findIndex(i => i.slot === bpIdx);
+        if (idx === -1) return;
+        const item = bp[idx];
+        const existing = this.getItemAt(wSlot);
+        if (!existing) {
+            // 目标格为空：直接放入指定槽
+            bp.splice(idx, 1);
+            const clone = JSON.parse(JSON.stringify(item));
+            if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
+            clone.slot = wSlot;
+            this.items.push(clone);
+            this._refreshAll();
+            return;
+        }
+        if (this._isStackable(item) && existing.name === item.name) {
+            // 同名可堆叠：合并进目标格，溢出部分按原规则堆叠/落空位
+            const maxStack = this._maxStackOf(item);
+            const add = Math.min(maxStack - (existing.stack || 1), item.stack || 1);
+            if (add > 0) {
+                existing.stack = (existing.stack || 1) + add;
+                item.stack = (item.stack || 1) - add;
+            }
+            if ((item.stack || 0) <= 0) bp.splice(idx, 1);
+            else {
+                const freeSlots = this.capacity - this.items.length;
+                if (this._stackSpaceIn(this.items, item, freeSlots) < item.stack) {
+                    this._notifyFull('仓库已满');
+                    existing.stack -= add; // 回滚部分合并
+                    item.stack += add;
+                    return;
+                }
+                bp.splice(idx, 1);
+                this._applyIntoWarehouse(item);
+            }
+            this._refreshAll();
+            return;
+        }
+        // 不同物品：交换（仓库原物回背包该格，背包物品进目标格）
+        const bpFreeSlots = EquipManager.maxBackpackSlots - bp.length;
+        if (this._stackSpaceIn(bp, existing, bpFreeSlots) < (existing.stack || 1)) {
+            this._notifyFull('背包已满');
+            return;
+        }
+        bp.splice(idx, 1);
+        this.items.splice(this.items.indexOf(existing), 1);
+        const clone = JSON.parse(JSON.stringify(item));
+        if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
+        clone.slot = wSlot;
+        this.items.push(clone);
+        this._applyIntoBackpack(existing);
+        this._refreshAll();
+    },
+
+    /** 仓库 → 背包指定槽位（拖放）：目标格空→放入；同名可堆叠→合并；不同物品→交换 */
+    retrieveToBackpackAt(wSlot, bpSlot) {
+        const idx = this.items.findIndex(i => i.slot === wSlot);
+        if (idx === -1) return;
+        const item = this.items[idx];
+        const bp = EquipManager.backpackItems || [];
+        // 未指定目标格（双击/右键/桥接缺省）：走原堆叠/空位逻辑
+        if (bpSlot === undefined || Number.isNaN(bpSlot)) {
+            this.retrieveToBackpack(wSlot);
+            return;
+        }
+        const existing = bp.find(i => i.slot === bpSlot);
+        if (!existing) {
+            this.items.splice(idx, 1);
+            const clone = JSON.parse(JSON.stringify(item));
+            if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
+            clone.slot = bpSlot;
+            bp.push(clone);
+            this._refreshAll();
+            return;
+        }
+        if (this._isStackable(item) && existing.name === item.name) {
+            const maxStack = this._maxStackOf(item);
+            const add = Math.min(maxStack - (existing.stack || 1), item.stack || 1);
+            if (add > 0) {
+                existing.stack = (existing.stack || 1) + add;
+                item.stack = (item.stack || 1) - add;
+            }
+            if ((item.stack || 0) <= 0) this.items.splice(idx, 1);
+            else {
+                const bpFreeSlots = EquipManager.maxBackpackSlots - bp.length;
+                if (this._stackSpaceIn(bp, item, bpFreeSlots) < item.stack) {
+                    this._notifyFull('背包已满');
+                    existing.stack -= add;
+                    item.stack += add;
+                    return;
+                }
+                this.items.splice(idx, 1);
+                this._applyIntoBackpack(item);
+            }
+            this._refreshAll();
+            return;
+        }
+        // 不同物品：交换（背包原物进仓库原格，仓库物品进目标格）
+        const freeSlots = this.capacity - this.items.length;
+        if (this._stackSpaceIn(this.items, existing, freeSlots) < (existing.stack || 1)) {
+            this._notifyFull('仓库已满');
+            return;
+        }
+        this.items.splice(idx, 1);
+        bp.splice(bp.indexOf(existing), 1);
+        const clone = JSON.parse(JSON.stringify(item));
+        if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
+        clone.slot = bpSlot;
+        bp.push(clone);
+        this._applyIntoWarehouse(existing);
+        this._refreshAll();
+    },
+
+    /** 仓库内两个槽位交换（拖拽整理） */
+    _swapSlots(slotA, slotB) {
+        const a = this.items.find(i => i.slot === slotA);
+        const b = this.items.find(i => i.slot === slotB);
+        if (a) a.slot = slotB;
+        if (b) b.slot = slotA;
+        this._refreshAll();
     },
 
     _showHint(text) {

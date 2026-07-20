@@ -1413,3 +1413,27 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
 - `enableFilters().filters` 每个 GameObject 一个独立 render-to-texture + shader pass——满地掉落物时几十/上百个额外通道，帧率雪崩。**实体特效一律不用 filters**。
 - 替代：离屏 canvas 烘培纹理（`ctx.shadowBlur` 多次叠画出外发光渐变，`textures.addImage` 缓存复用），渲染零开销。
 - 光晕宽度要按显示尺寸比例烘培：原图 512px 显示 48px 时，10px 光晕需按 ≈20% 画布比例烘，否则被缩放稀释到不可见。
+
+## 地牢添加标准工作流（新增地牢一律按此开展）
+
+### 1. 展示元数据（data/dungeon-config.json `dungeonList`）
+新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征祭品门槛（对应稀有度）。出征界面选择器/说明栏全部自动读取，无需改 UI。
+
+### 2. 地牢配置块（同文件，如 `zombieDungeonMid`）
+- `nodeCount.min/max`：房间数
+- `shortestCombatPath`：到达 Boss 的最少战斗场数
+- `typeRatios.combat/event`：战斗/随机事件比例（合计 1；祭品耦合键 combatChanceDelta 会同步调整两边）
+- `eliteCombatChance`：战斗事件中精英战斗概率
+- `encounters.normal/elite`：波次、每波数量、monsterComposition/tierWeights（池见第 4 节）
+- `grid.rows/startRows`：行数与起始路线（startRows 长度=起始路线数）
+- `bossEncounter`（可选）：独立 Boss 遭遇。存在则 `_enterBoss` 自动走普通战斗流程副本（不再按地牢名硬编码分支）；`monsterComposition` 支持 `{ lord: N }`（lord 池=rank 领主，跨 family）；缺省走 BossRewardSystem 专属 Boss（集合体）
+- `eliteChestReward`（可选）：精英宝箱奖励
+
+### 3. 登记映射（src/config/dungeon-config.js `_keyFor`）
+地牢 type → 配置块键。**这是唯一的代码硬编码点**（工作流保留）。
+
+### 4. 怪物池（src/world/zombie-dungeon.js `monsterPool`）
+normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；新怪物需先注册 `ZOMBIE_FACTORY_MAP` + create 工厂。事件/奖励对应关系由 grade 驱动（见 dungeon-event-definitions.js RESTRICTED_EVENT_META 的 scope/grade）。
+
+### 5. 验证
+JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。

@@ -8,6 +8,57 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（初级地牢最短战斗 4 + 仓库拖拽两项优化）
+
+### 对话：长期存储暂缓 + 地牢/仓库调整
+- **长期存储**：用户决定游戏开发完成后再做，当前不动。
+- **僵尸地牢-初级**：`shortestCombatPath` 7 → 4 场。
+- **仓库界面拖消耗品不再隐藏背包**：drag-drop-manager 的"消耗品拖拽隐藏面板"（服务于拖到快捷栏）在仓库打开时跳过（UIState.isOpen('warehouse') 判断），双面板保持可见。
+- **拖拽按目标槽位放置**：
+  - 背包→仓库格子：`storeFromBackpackAt(bpIdx, wSlot)`——空格直接放入指定槽；同名可堆叠合并（溢出按原规则落空位，满仓回滚提示）；不同物品交换（仓库原物回背包）。
+  - 仓库→背包格子：`retrieveToBackpackAt(wSlot, bpSlot)` 同规则镜像；EventBus 桥接改传 `{ wSlot, bpSlot }`；双击/右键取出不传 bpSlot 时仍走原堆叠/空位逻辑（retrieveToBackpack）。
+  - 仓库内互拖保持 `_swapSlots` 交换。
+- **修改文件**：src/ui/warehouse-system.js、src/ui/equip/drag-drop-manager.js、data/dungeon-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①消耗品拖到仓库格子面板不消失；②拖放落点精确到格；③交换场景双方物品归位正确；④初级地牢最短 4 战。
+
+## 2026-07-20（时空锚点代币：商店专供的等级地牢钥匙）
+
+### 对话：新增代币系列，只能从商店购买获得
+- **代币数据**：equipment.json 双份新增 6 条（anchorTokenF~A），category tribute、稀有度 common~legendary 一一对应（F↔普通…A↔传说）、**无 effects**（无任何属性效果）、`price`=稀有度标准价（100~3200）、`shopOnly: true` 标记、maxStack 999。作祭品放入出征栏即满足对应地牢门槛（F 级代币→F 级地牢…）。
+- **产出途径梳理（仅商店）**：
+  - 掉落/奖励/合成/点石成金四池同源——`_pickTributeByRarity` 增加 `!it.shopOnly` 过滤（加无 effects 天然排除，双保险），代币永不进池；
+  - 初始背包/仓库种子不含代币。
+- **商店上架**：ShopSystem `_items` 加 6 条，`shopPrice`=标准价×2（200~6400）；`buy()` 支持 `shopPrice ?? item.price` 扣费；shopPrice 商品购买后**保留物品自身 price**（出售基准），普通商品维持原防套利行为（删 price）。
+- **表格**：tributes-table.md 重新生成（48 件，代币标注"用途 X 级地牢钥匙"）。
+- **修改文件**：data/equipment.json、public/data/equipment.json、src/config/tribute-effects.js、src/ui/shop-system.js、tributes-table.md、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅；vite build ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——①商店 6 档代币购买价与金币扣除；②代币放入出征栏解锁对应地牢；③地牢内不掉代币（掉落池无）；④代币卖店价格（标准价×0.5 通用规则）。
+
+## 2026-07-20（僵尸地牢-中级（E 级）+ 地牢工作流与要素表）
+
+### 对话：建立地牢工作流 + 新增中级地牢 + Boss 领主池 + 地牢表格
+- **新地牢「僵尸地牢-中级」（zombieMid，E 级）**：30 房间、起始 3 条路线（startRows [0,1,2]）、战斗/事件 50%/50%、精英战斗 40%、最短路径 4 场战斗；Boss 战独立遭遇 `monsterComposition: { lord: 1 }`——**从领主池随机抽 1 只**（新增 `monsterPool.lord` getter：跨 family 按 rank='lord' 筛，当前=手脑；`ZOMBIE_FACTORY_MAP` 注册 shounao + createShounao 工厂）。
+- **Boss 分支去硬编码**：`_enterBoss` 由按地牢名特判（'zombieBeginner'）改为配置驱动——`bossEncounter` 存在即走独立遭遇流程，新地牢零代码接入。
+- **登记**：`_keyFor` 加 zombieMid→zombieDungeonMid 映射（工作流保留的唯一硬编码点）；dungeonList 展示元数据同步，出征选择器/说明栏自动出现。
+- **地牢添加标准工作流入库**（SKILL.md）：展示元数据→配置块（房间/比例/精英/遭遇/grid/起始路线/bossEncounter）→_keyFor 登记→怪物池→验证五步；事件与奖励对应关系由 grade 驱动。
+- **地牢要素表**：`scripts/generate-dungeons-table.mjs` 生成 `dungeons-table.md`（房间数/起始路线/战斗事件比/精英率/最短战斗/Boss 构成，一地牢一行）。
+- **修改文件**：data/dungeon-config.json、src/config/dungeon-config.js、src/world/zombie-dungeon.js、src/world/dungeon-map-system.js、scripts/generate-dungeons-table.mjs（新）、dungeons-table.md（新）、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①出征界面出现中级并正确显示 E 级门槛（优质祭品）；②Boss 战刷出手脑且 lord 掉落/经验生效；③事件池 E±1（D~F 级限定）与 E 级奖励档。
+
+## 2026-07-20（手脑碰撞再调 + 仓库拖拽系统接入）
+
+### 对话：手脑下移/横拉 + 仓库拖拽防丢弃与仓到包失灵
+- **手脑碰撞**：`colliderOffsetY` 80 → **110**（再下移 30px）；`collisionRadius` 39 → **59**（footprint 横向总宽 +40px，左右各约 +20）。
+- **仓库拖拽修复与优化**：
+  - **仓到包失灵根因**：仓库格子从未绑定拖拽（`_renderGrid` 只绑双击/右键）；且 drag-drop-manager 的 dragstart 类型判断把 wh-cell 误归为 `inventory`。
+  - **接入拖拽**：仓库格子绑定 dragstart/dragend/ondrop——拖到背包格子经 `handleDrop` 新增 warehouse 分支 + `EventBus('warehouse:retrieveToBackpack')` 桥接取出（避免 drag-drop-manager ↔ warehouse 循环 import）；背包格子拖到仓库格子=存入（读取拖拽管理器 `_dragSrc`）；仓库格子互拖=交换槽位（`_swapSlots`）。
+  - **防丢弃**：拖到仓库面板非格子区域标记 `_dropHandled`（物品原位保留）；warehouse 源在 `_doDiscard` 各分支均不匹配，拖到游戏区/遮罩也不会被丢弃；`.warehouse-panel` 加入拖拽安全元素列表。
+- **修改文件**：src/ui/warehouse-system.js、src/ui/equip/drag-drop-manager.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①仓库↔背包双向拖拽；②拖到面板空白/游戏画面物品不丢；③仓库内换位；④手脑碰撞对齐。
+
 ## 2026-07-20（光晕重构：filters 改烘培纹理——修卡顿+不明显）
 
 ### 对话：光晕几乎看不到且游戏变卡

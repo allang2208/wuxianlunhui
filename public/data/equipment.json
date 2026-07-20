@@ -2404,6 +2404,120 @@
         }
       ],
       "desc": "一块光滑的大理石，蕴含着大地的守护之力。放入祭品池后，玩家的物理防御增加2%，击杀敌方单位后，1秒内回复最大生命值的1%。"
+    },
+    "anchorTokenF": {
+      "name": "F 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "common",
+      "level": 1,
+      "stack": 1,
+      "price": 100,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "F 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 F 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "anchorTokenE": {
+      "name": "E 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "uncommon",
+      "level": 1,
+      "stack": 1,
+      "price": 200,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "E 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 E 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "anchorTokenD": {
+      "name": "D 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "rare",
+      "level": 1,
+      "stack": 1,
+      "price": 400,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "D 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 D 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "anchorTokenC": {
+      "name": "C 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "epic",
+      "level": 1,
+      "stack": 1,
+      "price": 800,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "C 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 C 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "anchorTokenB": {
+      "name": "B 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "mythic",
+      "level": 1,
+      "stack": 1,
+      "price": 1600,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "B 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 B 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "anchorTokenA": {
+      "name": "A 级时空锚点代币",
+      "type": "祭品",
+      "icon": "🌀",
+      "category": "tribute",
+      "rarity": "legendary",
+      "level": 1,
+      "stack": 1,
+      "price": 3200,
+      "shopOnly": true,
+      "maxStack": 999,
+      "stats": [
+        {
+          "name": "用途",
+          "value": "A 级地牢钥匙"
+        }
+      ],
+      "desc": "凝聚时空之力的锚点代币，可在祭坛作为 A 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
     }
   }
 }
