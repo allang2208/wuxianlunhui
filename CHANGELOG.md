@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（植物祭品贴图替换 + 仓库扩 5 页 + 植物种子）
+
+### 对话：20 张植物贴图替换 + 仓库加 3 页 + 每样一件
+- **贴图替换**：素材库 `道具/祭品/植物类` 20 张 png 复制到 `assets/items/tributes/plants/`；equipment.json 双份 20 个植物条目写入 `iconImage` + `dropImage`（文件名与游戏名全一致，无特例）。
+- **仓库扩容**：`pageCount` 2 → 5（容量 40 → 100 格）。
+- **种子扩展**：`seedOreTributes` 并入 20 种植物 key（共 41 件，矿石 21 + 植物 20 各一件）。
+- **修改文件**：assets/items/tributes/plants/（20 png 新增）、data/equipment.json、public/data/equipment.json、src/ui/warehouse-system.js、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①植物贴图格子/掉落显示；②仓库翻页 1~5 页与 41 件种子分布（植物类从第 3 页起）。
+
 ## 2026-07-20（掉落物轮廓光晕调整为轮廓外常驻）
 
 ### 对话：图层特效要在贴图轮廓外显示且持续不隐藏

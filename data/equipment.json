@@ -1216,7 +1216,9 @@
         }
       ],
       "desc": "朴实的块茎，淀粉顶饱，生食却涩口。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/土豆.png",
+      "dropImage": "assets/items/tributes/plants/土豆.png"
     },
     "corn": {
       "name": "玉米",
@@ -1242,7 +1244,9 @@
         }
       ],
       "desc": "高产粗粮，金灿灿的平凡之味。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/玉米.png",
+      "dropImage": "assets/items/tributes/plants/玉米.png"
     },
     "carrot": {
       "name": "胡萝卜",
@@ -1268,7 +1272,9 @@
         }
       ],
       "desc": "明目脆甜，只是糖分偏高。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/胡萝卜.png",
+      "dropImage": "assets/items/tributes/plants/胡萝卜.png"
     },
     "cabbage": {
       "name": "白菜",
@@ -1294,7 +1300,9 @@
         }
       ],
       "desc": "水嫩清淡，缺些油水。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/白菜.png",
+      "dropImage": "assets/items/tributes/plants/白菜.png"
     },
     "pumpkin": {
       "name": "南瓜",
@@ -1320,7 +1328,9 @@
         }
       ],
       "desc": "厚重耐储，抱在怀里沉甸甸的。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/南瓜.png",
+      "dropImage": "assets/items/tributes/plants/南瓜.png"
     },
     "tomato": {
       "name": "番茄",
@@ -1346,7 +1356,9 @@
         }
       ],
       "desc": "多汁饱腹，吃多了有些撑。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/番茄.png",
+      "dropImage": "assets/items/tributes/plants/番茄.png"
     },
     "cucumber": {
       "name": "黄瓜",
@@ -1372,7 +1384,9 @@
         }
       ],
       "desc": "清爽解渴，就是太寡淡。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/黄瓜.png",
+      "dropImage": "assets/items/tributes/plants/黄瓜.png"
     },
     "onion": {
       "name": "洋葱",
@@ -1398,7 +1412,9 @@
         }
       ],
       "desc": "辛辣提神，熏得人睁不开眼。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/洋葱.png",
+      "dropImage": "assets/items/tributes/plants/洋葱.png"
     },
     "garlic": {
       "name": "大蒜",
@@ -1424,7 +1440,9 @@
         }
       ],
       "desc": "杀菌健体，气味实在冲。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/大蒜.png",
+      "dropImage": "assets/items/tributes/plants/大蒜.png"
     },
     "apple": {
       "name": "苹果",
@@ -1450,7 +1468,9 @@
         }
       ],
       "desc": "脆甜轻身，可惜不耐存放。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/苹果.png",
+      "dropImage": "assets/items/tributes/plants/苹果.png"
     },
     "strawberry": {
       "name": "草莓",
@@ -1476,7 +1496,9 @@
         }
       ],
       "desc": "娇嫩欲滴的浆果，碰一碰就坏。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/草莓.png",
+      "dropImage": "assets/items/tributes/plants/草莓.png"
     },
     "grape": {
       "name": "葡萄",
@@ -1502,7 +1524,9 @@
         }
       ],
       "desc": "酿酒上品，贪杯难免误事。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/葡萄.png",
+      "dropImage": "assets/items/tributes/plants/葡萄.png"
     },
     "watermelon": {
       "name": "西瓜",
@@ -1528,7 +1552,9 @@
         }
       ],
       "desc": "解暑圣品，就是太沉。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/西瓜.png",
+      "dropImage": "assets/items/tributes/plants/西瓜.png"
     },
     "chili": {
       "name": "辣椒",
@@ -1554,7 +1580,9 @@
         }
       ],
       "desc": "火爆脾气，烧得胃里发烫。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/辣椒.png",
+      "dropImage": "assets/items/tributes/plants/辣椒.png"
     },
     "matsutake": {
       "name": "松茸",
@@ -1580,7 +1608,9 @@
         }
       ],
       "desc": "山中珍馐，一口鲜掉眉毛。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/松茸.png",
+      "dropImage": "assets/items/tributes/plants/松茸.png"
     },
     "blueberry": {
       "name": "蓝莓",
@@ -1606,7 +1636,9 @@
         }
       ],
       "desc": "明目抗衰，小颗却金贵。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/蓝莓.png",
+      "dropImage": "assets/items/tributes/plants/蓝莓.png"
     },
     "dragonFruit": {
       "name": "火龙果",
@@ -1632,7 +1664,9 @@
         }
       ],
       "desc": "异域烈性，甜中带火。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/火龙果.png",
+      "dropImage": "assets/items/tributes/plants/火龙果.png"
     },
     "snowLotus": {
       "name": "天山雪莲",
@@ -1663,7 +1697,9 @@
         }
       ],
       "desc": "极寒绝壁上的圣药。特效：本次地牢经验获取 +25%。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/天山雪莲.png",
+      "dropImage": "assets/items/tributes/plants/天山雪莲.png"
     },
     "ginseng": {
       "name": "千年人参",
@@ -1694,7 +1730,9 @@
         }
       ],
       "desc": "百草之王，须发皆全。特效：击杀目标后 1 秒内回复 5% 最大魔法值。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/千年人参.png",
+      "dropImage": "assets/items/tributes/plants/千年人参.png"
     },
     "flatPeach": {
       "name": "蟠桃",
@@ -1725,7 +1763,9 @@
         }
       ],
       "desc": "三千年一熟的仙家上品。特效：本次地牢死亡 3 秒后以 30% 最大生命原地复活一次，生效后消失。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/plants/蟠桃.png",
+      "dropImage": "assets/items/tributes/plants/蟠桃.png"
     },
     "ironOre": {
       "name": "铁矿石",
