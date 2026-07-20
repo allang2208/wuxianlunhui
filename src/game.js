@@ -144,6 +144,8 @@ export const Game = {
             SceneManager._mainHubInvincible = true;
             // 主神空间保留铠甲骑士、手脑用于测试（其余测试怪已清除，spawn 方法保留备用）
             this.spawnMainHubTestEntities();
+            // 仓库测试种子：矿石类祭品每样一件（贴图/效果验收用）
+            WarehouseSystem.seedOreTributes();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));

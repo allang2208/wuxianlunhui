@@ -12,6 +12,7 @@ import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { SceneManager } from '../world/scene-manager.js';
+import { ItemDatabase } from '../items/item-database.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
@@ -25,6 +26,21 @@ export const WarehouseSystem = {
 
     /** 仓库总容量 */
     get capacity() { return this.pageCount * this.PAGE_SIZE; },
+
+    /** 测试种子：矿石类祭品每样一件（开发调试用；数据全部来自 ItemDatabase） */
+    seedOreTributes() {
+        const ORE_KEYS = [
+            'coalOre', 'limestone', 'quartz', 'ironOre', 'copperOre',
+            'sulfurOre', 'aluminumOre', 'tinOre', 'leadOre', 'silverOre',
+            'goldOre', 'tungstenOre', 'obsidian', 'magnetite', 'titaniumOre',
+            'mithrilOre', 'starSapphire', 'diamond', 'moonstone', 'philosopherStone',
+            'marble',
+        ];
+        for (const key of ORE_KEYS) {
+            const tpl = ItemDatabase.get(key);
+            if (tpl) this.addItem({ ...tpl, stack: 1 });
+        }
+    },
 
     /** 第一个空位（优先当前页，再全局），-1 表示满 */
     _findFirstEmptySlot(preferPage = null) {

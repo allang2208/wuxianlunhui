@@ -219,7 +219,9 @@ export function createHudPanelsMisc() {
     equipTooltip.appendChild(ttEnchant);
     equipTooltip.appendChild(ttCraft);
     equipTooltip.appendChild(ttMain);
-    root.appendChild(equipTooltip);
+    // 直接挂 document.body：uiLayer 自身 z-index:10 形成 stacking context，
+    // 挂在其中会使 tooltip 的 99999 仅在 uiLayer 内部生效，被 body 级的仓库面板(4000)等遮挡
+    document.body.appendChild(equipTooltip);
 
     // ===== 坐标工具覆盖层 =====
     const coordOverlay = document.createElement('div');

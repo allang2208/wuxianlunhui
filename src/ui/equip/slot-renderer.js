@@ -99,7 +99,9 @@ export function updateEquipSlots(em) {
 
 /** 渲染背包格（.inv-cell） */
 export function updateInventorySlots(em) {
-    queryAllElements('.inv-cell').forEach((cell, idx) => {
+    // 仅渲染背包容器内的格子（.inventory-grid）——仓库格子（.warehouse-grid .wh-cell）虽共享
+    // .inv-cell 类，但由 WarehouseSystem._renderGrid 自绘，不能在此被清空/重绘
+    queryAllElements('.inventory-grid .inv-cell').forEach((cell, idx) => {
         cell.classList.remove('occupied');
         cell.innerHTML = '';
         cell.dataset.itemName = '';

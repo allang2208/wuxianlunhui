@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（矿石祭品贴图全套替换 + 仓库种子 + 初始背包清理）
+
+### 对话：21 张矿石贴图按工作流替换 + 仓库每样一件 + 删背包麦穗大理石
+- **贴图替换**：素材库 `道具/祭品/矿石类` 21 张 png 复制到 `assets/items/tributes/ores/`（子目录归档）；equipment.json 双份 21 个矿石条目写入 `iconImage` + `dropImage`（格子贴图与地上掉落贴图同步）。特例对名：硫磺.png↔硫磺矿、金刚石_.png↔金刚石；其余按中文名一一对应。
+- **仓库种子**：`WarehouseSystem.seedOreTributes()`——21 种矿石祭品从 ItemDatabase 取模板各放一件（stack 1）；game.js init 调用（贴图/效果验收用）。
+- **初始背包**：删除麦穗（slot 3）、大理石（slot 4）条目，背包初始只留药水×2 + 金币。
+- **修改文件**：assets/items/tributes/ores/（21 png 新增）、data/equipment.json、public/data/equipment.json、src/ui/warehouse-system.js、src/game.js、src/ui/equip-data-manager.js、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①格子/掉落贴图显示；②仓库 21 件种子（第 2 页 1 件）；③背包无麦穗大理石。
+
+## 2026-07-20（修复：装备浮窗被仓库面板遮挡）
+
+### 对话：装备栏/背包浮窗层级调到仓库之前
+- **根因**：`equipTooltip` 挂在 `#uiLayer`（z-index:10，自成 stacking context）内——tooltip 的 z-index 99999 仅在 uiLayer **内部**生效；仓库面板是 body 直接子元素（z-index 4000），在 body 层级上整个盖过 uiLayer，浮窗被遮挡。
+- **修复**：`hud-panels-misc.js` 创建 equipTooltip 时改挂 `document.body`——99999 全局生效，高于一切面板。经验入库：**z-index 只在同一 stacking context 内可比，跨容器比较的是父级层级**。
+- **修改文件**：src/ui/panels/hud-panels-misc.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——仓库/背包同时打开时悬停装备，浮窗完整显示在仓库面板之上。
+
+## 2026-07-20（修复：仓库存入看不到物品——背包渲染器全文档误清仓库格子）
+
+### 对话：右键存入仓库当前页看不到，翻页来回后才显示
+- **根因**：`slot-renderer.js updateInventorySlots` 的选择器是**全文档** `queryAllElements('.inv-cell')`——仓库格子（`.warehouse-grid .wh-cell`）共享 `.inv-cell` 类。`_refreshAll` 顺序：先 `_renderGrid`（仓库正确渲染）→ 再 `EquipManager.updateInventorySlots()`——后者把**所有** .inv-cell 清空、改 `dataset.slot` 为背包索引、按背包数据重绘——仓库格子被当场抹掉。翻页走 `_switchPage`（只调 `_renderGrid`，不经过背包渲染），所以翻页后显示正常。这也解释了此前"取出/调整后页面混乱"的全部观感（格子内容被覆盖 + slot 编号污染）。
+- **修复**：选择器收窄为 `.inventory-grid .inv-cell`（仅背包容器）；tooltip 的 `queryAllElements('.inv-cell')`（equip-tooltip-manager.js:538）是有意支持 wh-cell 的事件绑定且分支正确，不动。
+- **连带收益**：仓库格子 `dataset.slot` 不再被背包索引污染——tooltip 取物（getItemAt）与格子事件的索引恢复正确。
+- **修改文件**：src/ui/equip/slot-renderer.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——右键/双击存入立即可见、取出后格子内容正确、tooltip 稀有度显示正常。
+
 ## 2026-07-20（手脑特效调整 + 嚎叫判定修正 + 仓库页码系统修复）
 
 ### 对话：砸地特效位置/嚎叫范围不符排查/仓库页码混乱
