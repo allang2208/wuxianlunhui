@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（骑士 footprint+15 / 玩家眩晕星星 / 骑士蓝色快粒子）
+
+### 对话：骑士椭圆半径 + 玩家眩晕特效 + 骑士受击粒子定制
+- **骑士脚下椭圆半径**：`collisionRadius` 29 → 44（+15px）。
+- **玩家眩晕星星**：`_syncStunEffects` 原循环只认 `e._phaserSprite`——玩家贴图挂 `this.playerSprite`，被跳过。循环体抽为 `process(e, sprite)` 复用，玩家单独以 playerSprite 传入：被眩晕时头顶同款双星旋转，结束消失。
+- **骑士受击蓝色快粒子**：粒子速度/距离参数化——`playZombieHitParticles` 新增 opts `{speedMul, distMul}`（速度 ×speedMul、存活 ×distMul=飞更远，发射器销毁延迟同步）；`triggerZombieHitParticles` 从 `target.config` 读取 `hitParticleSpeedMul/hitParticleDistMul` 传入。骑士配置：`hitParticleColor '#4a8aff'`、`hitParticleSpeedMul 1.5`、`hitParticleDistMul 1.3`。
+- **修改文件**：src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①玩家被骑士冲锋撞晕时头顶双星；②骑士受击蓝色粒子速度/距离体感；③骑士 footprint 扩大后近身判定。
+
 ## 2026-07-20（光晕修复：贴图被挖空 + 加宽 10px）
 
 ### 对话：光晕覆盖贴图不显示 + 太薄

@@ -910,7 +910,7 @@
     "family": "骑士",
     "color": "#5a6a7a",
     "size": 32,
-    "collisionRadius": 29,
+    "collisionRadius": 44,
     "hp": 800,
     "maxHp": 800,
     "speed": 187.5,
@@ -1021,7 +1021,10 @@
       "idleFrameCount": 1,
       "idleSheetColumns": 8
     },
-    "height": 146
+    "height": 146,
+    "hitParticleColor": "#4a8aff",
+    "hitParticleSpeedMul": 1.5,
+    "hitParticleDistMul": 1.3
   },
   "shounao": {
     "id": "shounao",
