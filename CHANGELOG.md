@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（新怪物「蝇群」（普通））
+
+### 对话：按工作流新增蝇群——虚化虫体+三位一体触碰伤害+远程减伤
+- **素材**：idle.png（4096×2048，8列×4行=32 帧 512×512）复制至 `assets/enemies/flyswarm/`；BootScene spritesheet + 32 帧循环动画（frameRate 16）。
+- **配置**（enemy-config.json flySwarm）：HP 80、speed 200、rank normal、family 蝇群（不进僵尸池）；显式 atk 20 / mdef 55 / crit 20（def/matk 随六维公式）；`noCollision: true`；`rangedDamageTakenMul: 0.5`；`hitCircles` 品字形三圆（中心 r34 + 左右 r22）；`contactDamage`（500ms / ×1 / 物理）。
+- **逻辑**（`src/entities/enemy-types/fly-swarm.js`）：
+  - **虚化虫体**：`noCollision` 常驻（碰撞体积为 0——实体互相穿过，骑士冲锋同款；墙壁仍由 WallSystem 解析不可穿墙）；collisionRadius 45 保留受击判定。
+  - **触碰伤害**：每 500ms 对任一三位一体子圆（GroundEllipse 2:1 透视）内敌对目标结算 atk×1。
+  - **远程减伤**：takeDamage 覆盖——isMelee=false 的伤害 ×0.5（物理/魔法远程统一），近战不受影响。
+- **注册**：enemy-types.js import/export；game.js `spawnMainFlySwarm` 加入主神空间统一生成入口（origin 下方站位，永久警戒）。
+- **修改文件**：src/entities/enemy-types/fly-swarm.js（新）、src/entities/enemy-types.js、src/game.js、src/phaser/scenes/BootScene.js、data/enemy-config.json、assets/enemies/flyswarm/idle.png、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①蝇群穿人不穿墙；②三圆触碰区与贴图对齐（hitCircles 偏移可报数调）；③触碰 0.5s 伤害节奏；④远程伤害减半生效；⑤贴图大小（spriteSize 120 初值）。
+
 ## 2026-07-20（手脑碰撞下移 25 + 骑士粒子方向化）
 
 ### 对话：手脑下移 25px + 粒子按朝向偏移/冲锋近水平后喷

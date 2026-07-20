@@ -103,6 +103,8 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_shounao_walk',  'assets/enemies/shounao/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_shounao_slam',  'assets/enemies/shounao/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 25 });
         this.load.spritesheet('enemy_shounao_howl',  'assets/enemies/shounao/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
+        // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
+        this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
 
         // ---- 环境资源 ----
 
@@ -386,6 +388,13 @@ export class BootScene extends Scene {
             frames: this.anims.generateFrameNumbers('enemy_shounao_howl', { start: 0, end: 27 }),
             duration: 3000, // 与 howl.duration 对齐（动画时长=技能持续时间）
             repeat: 0,
+        });
+        // ---- 蝇群（32 帧循环） ----
+        this.anims.create({
+            key: 'enemy_flyswarm_idle',
+            frames: this.anims.generateFrameNumbers('enemy_flyswarm_idle', { start: 0, end: 31 }),
+            frameRate: 16,
+            repeat: -1,
         });
 
         // ---- 动态生成几何敌人纹理 ----

@@ -1133,6 +1133,93 @@
     ],
     "height": 110
   },
+  "flySwarm": {
+    "id": "flySwarm",
+    "name": "蝇群",
+    "type": "普通",
+    "category": "monster",
+    "family": "蝇群",
+    "color": "#3a4a3a",
+    "size": 32,
+    "collisionRadius": 45,
+    "noCollision": true,
+    "hp": 80,
+    "maxHp": 80,
+    "speed": 200,
+    "level": 1,
+    "rank": "normal",
+    "str": 20,
+    "dex": 30,
+    "con": 10,
+    "int": 5,
+    "wis": 10,
+    "luck": 10,
+    "atk": 20,
+    "mdef": 55,
+    "crit": 20,
+    "rangedDamageTakenMul": 0.5,
+    "attackRange": 60,
+    "attackDistance": 60,
+    "aiInterval": 1000,
+    "ai": {
+      "aggroRange": 700,
+      "pacingRange": 0,
+      "loseTimeout": 3000
+    },
+    "attackType": "虫群侵蚀",
+    "hitCircles": [
+      {
+        "x": 0,
+        "y": 0,
+        "r": 34
+      },
+      {
+        "x": -26,
+        "y": 4,
+        "r": 22
+      },
+      {
+        "x": 26,
+        "y": 4,
+        "r": 22
+      }
+    ],
+    "contactDamage": {
+      "intervalMs": 500,
+      "damageMul": 1.0,
+      "damageType": "physical"
+    },
+    "render": {
+      "spriteSize": 120,
+      "collisionWidth": 60,
+      "collisionHeight": 60,
+      "footOffsetY": 30,
+      "projectileHitbox": {
+        "width": 70,
+        "height": 70,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/flyswarm/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 32,
+      "idleSheetColumns": 8
+    },
+    "description": "成群蠕动的腐蝇，所过之处寸草不生。无形的虫群无法被击退，触碰即被啃噬。",
+    "skills": [
+      {
+        "name": "虫群啃噬",
+        "desc": "触碰三位一体碰撞区的目标每 0.5s 受到物理攻击 ×1 的伤害"
+      },
+      {
+        "name": "虚化虫体",
+        "desc": "碰撞体积为 0（不可穿墙），受到的远程伤害减少 50%"
+      }
+    ]
+  },
   "mutant3": {
     "id": "mutant3",
     "name": "怪物突变体-3",
