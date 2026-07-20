@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：setGravity is not a function 游戏循环报错）
+
+### 对话：game.js:741 Game loop error（骑士粒子冲锋拖尾）
+- **根因**：Phaser 4 粒子发射器没有 `setGravity`——重力设置为 `setParticleGravity(x, y)`（Phaser 4 重命名，与 postFX 同类的 API 迁移坑）。
+- **修复**：armored-knight.js 冲锋拖尾两处调用改名 `setParticleGravity`。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——冲锋拖尾重力方向生效、无再报错。
+
 ## 2026-07-20（修复：手脑 colliderOffsetY 从未生效）
 
 ### 对话：手脑碰撞体积没有下移，是否圆/椭圆搞混

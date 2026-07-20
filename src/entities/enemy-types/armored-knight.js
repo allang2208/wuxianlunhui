@@ -209,9 +209,9 @@ export class ArmoredKnight extends Enemy {
         if (charging) {
             // 重力拉向冲锋反方向（身后拖尾扩散）
             const back = (this.rotation ?? 0) + Math.PI;
-            this._headParticles.setGravity(Math.cos(back) * 110, -20);
+            this._headParticles.setParticleGravity(Math.cos(back) * 110, -20);
         } else if (this._headParticlesCharging === false) {
-            this._headParticles.setGravity(0, -40);
+            this._headParticles.setParticleGravity(0, -40);
         }
     }
 

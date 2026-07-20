@@ -1407,6 +1407,7 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
 - Phaser 4 正确用法：`sprite.enableFilters().filters.internal.addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)`（Camera 上为 `camera.filters.internal/external`）。
 - addGlow 参数顺序与 v3 不同（第 4 位是 scale，第 5 位才是 knockout），迁移时逐位核对。
 - knockout=true 会把贴图本体完全隐藏只留光晕（"only the glow is drawn, not the texture itself"）——要"贴图正常+轮廓外光晕"必须用 knockout=false，光晕会自然从贴图边缘向外渐变。
+- 粒子发射器重力：v3 `emitter.setGravity(x, y)` 在 Phaser 4 改名为 `setParticleGravity(x, y)`，旧名调用报 "is not a function"。
 
 ## 常见陷阱：Phaser 4 filters 是 per-object 渲染通道（数量多即卡）
 
