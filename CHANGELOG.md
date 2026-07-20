@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑/蝇群归入僵尸 family）
+
+### 对话：删除独立 family，归入僵尸
+- **配置**：shounao.family '手脑' → '僵尸'；flySwarm.family '蝇群' → '僵尸'（enemy-config.json）。
+- **联动**：
+  - 蝇群（rank normal）**进入僵尸地牢普通怪物池**——补注册 `createFlySwarm` 工厂 + `ZOMBIE_FACTORY_MAP.flySwarm`（普通池筛选条件：family 僵尸 + rank 非 elite/lord/boss + 工厂已注册，三者齐备）；
+  - 手脑（rank lord）已在跨 family 的 lord 池，family 归一无池变化；
+  - 受击粒子此前已去 family 过滤，无影响；代码中无其他按 family 名字面量引用。
+- **修改文件**：data/enemy-config.json、src/world/zombie-dungeon.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——僵尸地牢普通战斗中刷出蝇群。
+
 ## 2026-07-20（怪物名字按等级着色）
 
 ### 对话：精英紫 / 领主橙 / 首领红
