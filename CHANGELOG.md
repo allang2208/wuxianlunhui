@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：装备浮窗被仓库面板遮挡）
+
+### 对话：装备栏/背包浮窗层级调到仓库之前
+- **根因**：`equipTooltip` 挂在 `#uiLayer`（z-index:10，自成 stacking context）内——tooltip 的 z-index 99999 仅在 uiLayer **内部**生效；仓库面板是 body 直接子元素（z-index 4000），在 body 层级上整个盖过 uiLayer，浮窗被遮挡。
+- **修复**：`hud-panels-misc.js` 创建 equipTooltip 时改挂 `document.body`——99999 全局生效，高于一切面板。经验入库：**z-index 只在同一 stacking context 内可比，跨容器比较的是父级层级**。
+- **修改文件**：src/ui/panels/hud-panels-misc.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——仓库/背包同时打开时悬停装备，浮窗完整显示在仓库面板之上。
+
 ## 2026-07-20（修复：仓库存入看不到物品——背包渲染器全文档误清仓库格子）
 
 ### 对话：右键存入仓库当前页看不到，翻页来回后才显示
