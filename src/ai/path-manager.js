@@ -101,50 +101,39 @@ class PathManager {
      */
     _repairPath(blockedIdx, pathPlanner) {
         const radius = this.enemy.groundRadius;
-        const prevIdx = Math.max(0, blockedIdx - 2); // 向前看 2 个节点
         const nextIdx = Math.min(this.path.length - 1, blockedIdx + 2); // 向后看 2 个节点
-        const start = this.path[prevIdx];
         const end = this.path[nextIdx];
 
-        // 策略1：小范围局部搜索（搜索范围限制，性能友好）
+        // 策略1：从怪物当前位置出发搜索替代路径——不回退 pathIdx！
+        // （旧实现回退到阻挡点前 2 个节点，怪物会掉头折返已走过的路径点，表现为"瞬间反向"）
         let altPath = null;
         try {
-            altPath = pathPlanner.findPath(start.x, start.y, end.x, end.y, radius);
+            altPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, end.x, end.y, radius);
         } catch (e) {
             console.warn('[PathManager] findPath failed:', e.message);
         }
 
-        if (altPath && altPath.length > 2) {
-            // 拼接路径：前半段(到prevIdx) + 替代段(去掉首尾，因为和前后重合) + 后半段(从nextIdx开始)
-            const before = this.path.slice(0, prevIdx + 1);
-            const middle = altPath.slice(1, -1);
-            const after = this.path.slice(nextIdx);
-            this.path = [...before, ...middle, ...after];
-            // 调整索引：如果当前索引在 before 范围内，保持不变；否则需要调整
-            if (this.pathIdx > prevIdx) {
-                this.pathIdx = prevIdx; // 回退到修复起点，确保能正确跟随新路径
-            }
+        if (altPath && altPath.length > 1) {
+            // 新路径 = 替代段（altPath[0]≈当前位置，从下一节点开始跟随） + 阻挡点之后的路径段
+            this.path = [...altPath, ...this.path.slice(nextIdx + 1)];
+            this.pathIdx = 1;
             this.isValid = true;
             this.stuckCount = 0;
             return;
         }
 
-        // 策略2：从阻挡点重新计算到终点的完整路径
+        // 策略2：从怪物当前位置重新计算到终点的完整路径（同样不回退）
         const finalTarget = this.path[this.path.length - 1];
         let newPath = null;
         try {
-            newPath = pathPlanner.findPath(start.x, start.y, finalTarget.x, finalTarget.y, radius);
+            newPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, finalTarget.x, finalTarget.y, radius);
         } catch (e) {
             console.warn('[PathManager] full recalc failed:', e.message);
         }
 
         if (newPath && newPath.length > 1) {
-            // 拼接：前半段 + 新路径（去掉起点，因为和 start 重合）
-            const before = this.path.slice(0, prevIdx + 1);
-            this.path = [...before, ...newPath.slice(1)];
-            if (this.pathIdx > prevIdx) {
-                this.pathIdx = prevIdx;
-            }
+            this.path = newPath;
+            this.pathIdx = 1; // newPath[0]≈当前位置，从下一节点开始跟随
             this.isValid = true;
             this.stuckCount = 0;
             return;
