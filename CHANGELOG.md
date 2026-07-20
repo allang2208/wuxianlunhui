@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑碰撞再调 + 仓库拖拽系统接入）
+
+### 对话：手脑下移/横拉 + 仓库拖拽防丢弃与仓到包失灵
+- **手脑碰撞**：`colliderOffsetY` 80 → **110**（再下移 30px）；`collisionRadius` 39 → **59**（footprint 横向总宽 +40px，左右各约 +20）。
+- **仓库拖拽修复与优化**：
+  - **仓到包失灵根因**：仓库格子从未绑定拖拽（`_renderGrid` 只绑双击/右键）；且 drag-drop-manager 的 dragstart 类型判断把 wh-cell 误归为 `inventory`。
+  - **接入拖拽**：仓库格子绑定 dragstart/dragend/ondrop——拖到背包格子经 `handleDrop` 新增 warehouse 分支 + `EventBus('warehouse:retrieveToBackpack')` 桥接取出（避免 drag-drop-manager ↔ warehouse 循环 import）；背包格子拖到仓库格子=存入（读取拖拽管理器 `_dragSrc`）；仓库格子互拖=交换槽位（`_swapSlots`）。
+  - **防丢弃**：拖到仓库面板非格子区域标记 `_dropHandled`（物品原位保留）；warehouse 源在 `_doDiscard` 各分支均不匹配，拖到游戏区/遮罩也不会被丢弃；`.warehouse-panel` 加入拖拽安全元素列表。
+- **修改文件**：src/ui/warehouse-system.js、src/ui/equip/drag-drop-manager.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①仓库↔背包双向拖拽；②拖到面板空白/游戏画面物品不丢；③仓库内换位；④手脑碰撞对齐。
+
 ## 2026-07-20（光晕重构：filters 改烘培纹理——修卡顿+不明显）
 
 ### 对话：光晕几乎看不到且游戏变卡

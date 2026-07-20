@@ -1034,7 +1034,7 @@
     "family": "手脑",
     "color": "#7a5a6a",
     "size": 40,
-    "collisionRadius": 39,
+    "collisionRadius": 59,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 160,
@@ -1102,7 +1102,7 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 80
+      "colliderOffsetY": 110
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",

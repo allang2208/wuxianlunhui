@@ -203,7 +203,7 @@ export function createDragDropManager(EquipManager) {
                                 self._dropHandled = true;
                             };
                         }
-                        queryAllElements('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid').forEach(el => {
+                        queryAllElements('.equip-panel, .inventory-panel, .tabs, .panel-header, .panel-footer, .diablo-paperdoll, .equip-slot-group, .inv-grid, .warehouse-panel').forEach(el => {
                             el.ondragover = function(e) { e.preventDefault(); };
                             el.ondrop = function(e) {
                                 e.preventDefault();
@@ -219,7 +219,8 @@ export function createDragDropManager(EquipManager) {
                         const self = this;
                         cell.ondragstart = function(e) {
                             self._dragSrc = {
-                                type: cell.classList.contains('inv-cell') ? 'inventory' : 'equip',
+                                type: cell.classList.contains('wh-cell') ? 'warehouse'
+                                    : (cell.classList.contains('inv-cell') ? 'inventory' : 'equip'),
                                 slot: cell.dataset.slot
                             };
                             self._dropHandled = false;
@@ -301,6 +302,14 @@ export function createDragDropManager(EquipManager) {
 
                     handleDrop(src, targetType, targetSlot) {
                         if (!src || !targetType) return;
+
+                        // 仓库格 → 背包：取出（EventBus 桥接，避免 drag-drop-manager ↔ warehouse 循环 import）
+                        if (src.type === 'warehouse') {
+                            if (targetType === 'inventory') {
+                                EventBus.emit('warehouse:retrieveToBackpack', parseInt(src.slot, 10));
+                            }
+                            return;
+                        }
                         
                         // 附魔槽 → 背包/装备栏：退回物品
                         if (src.type === 'enchantScroll' || src.type === 'enchantEquip') {

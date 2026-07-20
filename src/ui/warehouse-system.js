@@ -13,6 +13,7 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
+import { EventBus } from '../core/event-bus.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
@@ -322,6 +323,17 @@ export const WarehouseSystem = {
             <div class="warehouse-hint" id="warehouseHint"></div>
         `;
         document.body.appendChild(panel);
+        // 仓库格子 → 背包 的桥接事件（drag-drop-manager 发出，避免循环 import）
+        EventBus.on('warehouse:retrieveToBackpack', (slot) => {
+            if (!Number.isNaN(slot)) this.retrieveToBackpack(slot);
+        });
+        // 拖到仓库面板非格子区域：标记已处理（不触发丢弃，物品原位保留）
+        panel.ondragover = (e) => { e.preventDefault(); };
+        panel.ondrop = (e) => {
+            e.preventDefault();
+            const mgr = EquipManager._dragDropManager;
+            if (mgr) mgr._dropHandled = true;
+        };
         document.getElementById('warehouseCloseBtn').onclick = () => this.close();
         document.getElementById('warehousePrevPage').onclick = () => this._switchPage(-1);
         document.getElementById('warehouseNextPage').onclick = () => this._switchPage(1);
@@ -396,7 +408,42 @@ export const WarehouseSystem = {
                 };
                 cell.ondblclick = takeOut;
                 cell.oncontextmenu = takeOut;
+                // 拖拽取出：拖到背包格子=取出，拖到非法区域=原位保留（不丢弃）
+                cell.draggable = true;
+                cell.ondragstart = (e) => {
+                    const mgr = EquipManager._dragDropManager;
+                    if (mgr) { mgr._dragSrc = { type: 'warehouse', slot: String(slot) }; mgr._dropHandled = false; }
+                    e.dataTransfer.setData('text/plain', String(slot));
+                    e.dataTransfer.effectAllowed = 'move';
+                    cell.classList.add('dragging');
+                };
+                cell.ondragend = () => {
+                    cell.classList.remove('dragging');
+                    const mgr = EquipManager._dragDropManager;
+                    // 未成功放置：warehouse 源不做丢弃（物品原位保留），仅清理拖拽状态
+                    if (mgr && mgr._dragSrc && mgr._dragSrc.type === 'warehouse') {
+                        mgr._dragSrc = null;
+                        mgr._dropHandled = false;
+                    }
+                };
             }
+            // 格子接收拖放：背包源=存入当前页；仓库源=交换槽位
+            cell.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+            cell.ondrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const mgr = EquipManager._dragDropManager;
+                const src = mgr && mgr._dragSrc;
+                if (!src) return;
+                if (src.type === 'inventory') {
+                    this.storeFromBackpack(parseInt(src.slot, 10));
+                } else if (src.type === 'warehouse') {
+                    const from = parseInt(src.slot, 10);
+                    if (!Number.isNaN(from) && from !== slot) this._swapSlots(from, slot);
+                }
+                mgr._dropHandled = true;
+                mgr._dragSrc = null;
+            };
             grid.appendChild(cell);
         }
         grid.scrollTop = keepScroll; // 恢复滚动位置
@@ -404,6 +451,15 @@ export const WarehouseSystem = {
         if (EquipTooltipManager && EquipTooltipManager.bindInventoryTooltip) {
             EquipTooltipManager.bindInventoryTooltip();
         }
+    },
+
+    /** 仓库内两个槽位交换（拖拽整理） */
+    _swapSlots(slotA, slotB) {
+        const a = this.items.find(i => i.slot === slotA);
+        const b = this.items.find(i => i.slot === slotB);
+        if (a) a.slot = slotB;
+        if (b) b.slot = slotA;
+        this._refreshAll();
     },
 
     _showHint(text) {
