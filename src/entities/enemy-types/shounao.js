@@ -1,5 +1,6 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
@@ -137,21 +138,32 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         const range = cfg.range ?? 300;
         const atk = this.data?.atk || 0;
-        // 砸地落点特效：烟尘向上漂浮（奔跑同款 DustEffect）+ 白色放射冲击线
+        // 砸地落点特效：烟尘四周扩散轻微上浮 + 白色放射冲击线
         this._fireSlamDust();
         this._fireSlamImpactLines();
+        // 椭圆判定（2:1 平面透视），与地面视觉圈一致
+        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of this._hostiles(entities)) {
-            if (!this._isTargetInRange(e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
     }
 
-    /** 砸地烟尘：落点生成数团 DustEffect（粒子自带向上漂浮分量） */
+    /** 砸地特效锚点：朝向右时下移 25px 右移 50px（朝左镜像） */
+    _slamFxAnchor() {
+        const faceDir = Math.cos(this.rotation ?? 0) >= 0 ? 1 : -1;
+        return { x: this.x + faceDir * 50, y: this.y + 25 };
+    }
+
+    /** 砸地烟尘：绕落点四周扩散生成（粒子自带轻微上浮分量） */
     _fireSlamDust() {
-        for (let i = 0; i < 4; i++) {
-            const ox = (Math.random() - 0.5) * 40;
-            const oy = (Math.random() - 0.5) * 16;
-            EffectFactory.createDustEffect(this.x + ox, this.y + oy + 8, 1.4);
+        const a = this._slamFxAnchor();
+        const count = 8;
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count;
+            const ox = Math.cos(angle) * 30;
+            const oy = Math.sin(angle) * 30 * PERSPECTIVE_SCALE_Y;
+            EffectFactory.createDustEffect(a.x + ox, a.y + oy + 6, 0.9);
         }
     }
 
@@ -175,15 +187,17 @@ export class Shounao extends Enemy {
                 g.clear();
                 const alpha = (1 - t) * 0.9;
                 g.lineStyle(3, 0xffffff, alpha);
-                const inner = 20 + t * 50;
-                const outer = 50 + t * 90;
+                // 线条长度延长 50%
+                const inner = (20 + t * 50) * 1.5;
+                const outer = (50 + t * 90) * 1.5;
+                const a = self._slamFxAnchor();
                 for (let i = 0; i < lineCount; i++) {
                     const angle = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
                     // 平面透视：y 分量按 PERSPECTIVE_SCALE_Y 压缩
                     const cos = Math.cos(angle), sin = Math.sin(angle) * PERSPECTIVE_SCALE_Y;
                     g.beginPath();
-                    g.moveTo(self.x + cos * inner, self.y + sin * inner);
-                    g.lineTo(self.x + cos * outer, self.y + sin * outer);
+                    g.moveTo(a.x + cos * inner, a.y + sin * inner);
+                    g.lineTo(a.x + cos * outer, a.y + sin * outer);
                     g.strokePath();
                 }
             },
@@ -289,8 +303,10 @@ export class Shounao extends Enemy {
         const matk = this.data?.matk || 0;
         // 每次伤害判定同步播放一次冲击波扩散
         this._fireHowlShockwave();
+        // 椭圆判定（2:1 平面透视），与紫色扩散圈视觉一致
+        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of this._hostiles(entities)) {
-            if (!this._isTargetInRange(e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);
         }
     }

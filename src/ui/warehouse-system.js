@@ -26,9 +26,17 @@ export const WarehouseSystem = {
     /** 仓库总容量 */
     get capacity() { return this.pageCount * this.PAGE_SIZE; },
 
-    /** 第一个空位（跨页），-1 表示满 */
-    _findFirstEmptySlot() {
+    /** 第一个空位（优先当前页，再全局），-1 表示满 */
+    _findFirstEmptySlot(preferPage = null) {
         const used = new Set(this.items.map(i => i.slot));
+        // 优先当前页内的空位（存入的物品立即可见，避免"要翻页才找到"）
+        if (preferPage !== null) {
+            const start = preferPage * this.PAGE_SIZE;
+            const end = Math.min(start + this.PAGE_SIZE, this.capacity);
+            for (let s = start; s < end; s++) {
+                if (!used.has(s)) return s;
+            }
+        }
         for (let s = 0; s < this.capacity; s++) {
             if (!used.has(s)) return s;
         }
@@ -82,9 +90,9 @@ export const WarehouseSystem = {
                 }
             }
         }
-        // 剩余部分占用新格
+        // 剩余部分占用新格（优先当前页，保证用户所见即所得）
         while (remaining > 0) {
-            const slot = this._findFirstEmptySlot();
+            const slot = this._findFirstEmptySlot(this.currentPage);
             if (slot === -1) break;
             const maxStack = this._maxStackOf(item);
             const add = this._isStackable(item) ? Math.min(maxStack, remaining) : remaining;
@@ -243,6 +251,7 @@ export const WarehouseSystem = {
         if (this._isOpen) return;
         UIState.open('warehouse');
         this._isOpen = true;
+        this.currentPage = 0; // 默认打开第一页
         this._buildPanel();
         const panel = document.getElementById('warehousePanel');
         if (panel) panel.classList.add('active');
@@ -336,6 +345,8 @@ export const WarehouseSystem = {
     _renderGrid() {
         const grid = document.getElementById('warehouseGrid');
         if (!grid) return;
+        // 重建格子会丢失滚动位置（innerHTML 重置），保存并恢复——避免"调整物品后页面跳走"的观感
+        const keepScroll = grid.scrollTop;
         this._renderPageInfo();
         grid.innerHTML = '';
         const start = this.currentPage * this.PAGE_SIZE;
@@ -366,6 +377,7 @@ export const WarehouseSystem = {
             }
             grid.appendChild(cell);
         }
+        grid.scrollTop = keepScroll; // 恢复滚动位置
         // 刷新 tooltip（bindInventoryTooltip 对 wh-cell 走 WarehouseSystem.getItemAt）
         if (EquipTooltipManager && EquipTooltipManager.bindInventoryTooltip) {
             EquipTooltipManager.bindInventoryTooltip();
@@ -426,8 +438,9 @@ export const WarehouseSystem = {
                 return (this._categoryKey(a) - this._categoryKey(b)) || byRarityDesc(a, b) || byName(a, b);
             });
         }
-        // 重新编号压缩槽位
+        // 重新编号压缩槽位，回到第一页展示排序结果
         this.items.forEach((item, i) => { item.slot = i; });
+        this.currentPage = 0;
         this._refreshAll();
     },
 
