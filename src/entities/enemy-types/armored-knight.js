@@ -167,11 +167,52 @@ export class ArmoredKnight extends Enemy {
             });
             this._headParticles.setDepth(sprite.y + 1000);
         }
-        // 发射点跟随贴图头顶下移 100px，水平轴 ±5px 抖动
-        const headY = sprite.y - sprite.displayHeight / 2 + 100;
+        // 发射点跟随贴图头顶（强绑定模型位置）+ 上移 10px（下移 100 基础上），水平轴 ±5px 抖动
+        const headY = sprite.y - sprite.displayHeight / 2 + 90;
         const jitterX = (Math.random() - 0.5) * 10;
         this._headParticles.setPosition(sprite.x + jitterX, headY);
         this._headParticles.setDepth(headY + 1000);
+        // 冲锋状态：粒子向身后浮动扩散且速度加快（切换时重配，方向每帧跟随冲锋朝向）
+        const charging = this._animState === 'charge';
+        if (charging !== this._headParticlesCharging) {
+            this._headParticlesCharging = charging;
+            if (charging) {
+                this._headParticles.setConfig({
+                    speed: { min: 60, max: 130 },
+                    angle: { min: 255, max: 285 },
+                    gravityY: -20,
+                    lifespan: 1100,
+                    frequency: 45,
+                    quantity: 1,
+                    scale: { start: 0.8, end: 0 },
+                    alpha: { start: 0.9, end: 0 },
+                    tint: 0x3282ff,
+                    blendMode: 'ADD',
+                    emitting: true
+                });
+            } else {
+                this._headParticles.setConfig({
+                    speed: { min: 15, max: 40 },
+                    angle: { min: 255, max: 285 },
+                    gravityY: -40,
+                    lifespan: 1400,
+                    frequency: 90,
+                    quantity: 1,
+                    scale: { start: 0.7, end: 0 },
+                    alpha: { start: 0.85, end: 0 },
+                    tint: 0x3282ff,
+                    blendMode: 'ADD',
+                    emitting: true
+                });
+            }
+        }
+        if (charging) {
+            // 重力拉向冲锋反方向（身后拖尾扩散）
+            const back = (this.rotation ?? 0) + Math.PI;
+            this._headParticles.setGravity(Math.cos(back) * 110, -20);
+        } else if (this._headParticlesCharging === false) {
+            this._headParticles.setGravity(0, -40);
+        }
     }
 
     _destroyHeadParticles() {

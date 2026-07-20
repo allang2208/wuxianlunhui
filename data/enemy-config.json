@@ -1106,12 +1106,12 @@
       "collisionHeight": 100,
       "footOffsetY": 50,
       "projectileHitbox": {
-        "width": 80,
+        "width": 110,
         "height": 160,
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 110
+      "colliderOffsetY": 140
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",
