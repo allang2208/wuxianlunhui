@@ -66,6 +66,54 @@
                 }
             },
 
+            // ==================== 循环音轨（WebAudio，音量可 >100%，支持动态调节） ====================
+
+            /**
+             * 启动循环音轨（同 id 先停旧轨再启动；返回是否成功）
+             * @param {string} id 音轨唯一标识（如 'flyswarm_xxx'）
+             * @param {string} path 音频路径
+             * @param {number} volume 初始音量倍率（可超过 1，由 GainNode 实现）
+             */
+            async playLoop(id, path, volume = 1.0) {
+                if (!this.enabled || !this.ctx || !id) return false;
+                this._loops = this._loops || {};
+                // 同 id 先停旧轨（避免叠加播放）
+                const old = this._loops[id];
+                if (old && old.src) { try { old.src.stop(); } catch (_e) { /* 忽略 */ } }
+                delete this._loops[id];
+                try {
+                    const buf = await (await fetch(path)).arrayBuffer();
+                    const audioBuf = await this.ctx.decodeAudioData(buf);
+                    const src = this.ctx.createBufferSource();
+                    src.buffer = audioBuf;
+                    src.loop = true;
+                    const gain = this.ctx.createGain();
+                    gain.gain.value = volume * this.masterVolume;
+                    src.connect(gain).connect(this.ctx.destination);
+                    src.start();
+                    this._loops[id] = { src, gain };
+                    return true;
+                } catch (e) {
+                    console.warn('SoundManager.playLoop error:', path, e);
+                    return false;
+                }
+            },
+
+            /** 动态调节循环音轨音量（倍率可超过 1） */
+            setLoopVolume(id, volume) {
+                const l = this._loops && this._loops[id];
+                if (l && l.gain) l.gain.gain.value = volume * this.masterVolume;
+            },
+
+            /** 停止循环音轨 */
+            stopLoop(id) {
+                const l = this._loops && this._loops[id];
+                if (l) {
+                    try { if (l.src) l.src.stop(); } catch (_e) { /* 忽略 */ }
+                    delete this._loops[id];
+                }
+            },
+
             _playMeleeSwing() {
                 const t = this._now();
                 const osc = this.ctx.createOscillator();

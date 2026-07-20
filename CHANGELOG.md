@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇群循环音效：音量随距离 50%→150%）
+
+### 对话：蝇群 idleing 持续循环，接近玩家音量提高
+- **SoundManager 新增循环音轨 API**（WebAudio BufferSource+GainNode，音量可 >100%，HTMLAudio volume 上限 1 不可用）：`playLoop(id, path, volume)` / `setLoopVolume(id, volume)` / `stopLoop(id)`——通用能力，后续怪物环境音可复用。
+- **蝇群接入**：`sounds` 配置块（loop 路径、loopVolumeBase 0.5、loopVolumeMax 1.5、loopNearDist 150、loopFarDist 600）；`_syncLoopSound` 每帧按与玩家距离线性插值音量（近 150px→150%，远 600px→50%）；死亡/移除经 `_destroyCustomEffects` 停止音轨。
+- **素材**：idleing.mp3 复制到 `assets/sounds/enemies/flyswarm/`。
+- **修改文件**：src/ui/sound-manager.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、assets/sounds/enemies/flyswarm/idleing.mp3、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①循环播放与音量渐变；②死亡后音轨停止；③多只蝇群同时存在时各自音轨独立（id 随机）。
+
 ## 2026-07-20（手脑/蝇群归入僵尸 family）
 
 ### 对话：删除独立 family，归入僵尸
