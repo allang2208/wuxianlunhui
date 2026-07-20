@@ -8,6 +8,46 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（代币合成规则：代币只能合成代币）
+
+### 对话：调整——代币合成产物为下一级代币而非随机祭品
+- **规则实现**（fusion-system.js）：
+  - 材料中含代币但**不全是代币** → 拦截并提示「代币只能与代币合成」；
+  - 材料全为代币 → `_fusePair(rarity, isToken=true)`：产物为**下一级代币**（2F→1E、2E→1D…），传说级（A 代币）合成产物为同级 A 代币（对齐传说重随语义）；
+  - 新增 `_pickTokenByRarity`（shopOnly 专属池取件）；全非代币材料维持原随机祭品逻辑。
+- **修改文件**：src/ui/fusion-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①2 个 F 代币合成 1 个 E 代币；②代币+普通祭品混合被拦截提示；③2 个 A 代币合成 A 代币。
+
+## 2026-07-20（确认：时空锚点代币允许作为合成材料）
+
+### 对话：代币可放入合成栏合成——用户确认放行
+- **链路审查结论（无需改代码）**：`placeFromBackpack` 仅过滤 `category === 'tribute'`（代币满足）；`fuse()` 仅按稀有度配对、不读材料 effects（代币无 effects 无影响）；一键放入按稀有度匹配（代币会被正确选中）；`_fusePair` 产物走 `pickTributeByRarity`——**产物池已排除 shopOnly，合成不会产出代币，只消耗代币**。A 级代币（传说）配对按既有规则销毁重随一件随机传说祭品。
+- **设计语义**：代币获取仍仅限商店购买；合成是代币的消耗/转化渠道（2 个 F 代币 → 1 个随机优质祭品），不违反"只能购买获得"。
+- **修改文件**：CHANGELOG.md。
+- **测试结果**：代码路径审查 ✅（lint/build 无变更）。
+- **已知问题**：实机待验证——2 个 F 代币合成出随机优质祭品、A 级代币重随传说。
+
+## 2026-07-20（排查修复：循环音轨泄漏 + 玩家恐惧速度口径）
+
+### 对话：回头看 bug 排查
+- **循环音轨场景切换泄漏**：`switchScene` 直接 `Game.entities.clear()` 清实体，不走 `_destroyCustomEffects`——蝇群 `loop=true` 的音轨永不停止（切场景后怪没了声音还在）。修复：SoundManager 新增 `stopAllLoops()`，`switchScene` 清理段调用（一并兜底未来其他循环音轨）；补 scene-manager 的 SoundManager import（typeof 守卫在未 import 时永远跳过，差点又埋一颗）。
+- **玩家恐惧速度口径**：恐惧逃跑速度原用 `this.data.speed`（面板值），与正常移动体系（`this.maxSpeed`）不一致——改 `this.maxSpeed || this.data.speed` × 层数倍率。
+- **复核无问题项**：手脑嚎叫每跳叠层符合设计（0.5s 一跳、3 层封顶 -99%）；蝇群 noCollision 穿人/墙壁解析正常；代币合成栏放入为设计待定项（用户已知）；双份 JSON 一致。
+- **修改文件**：src/ui/sound-manager.js、src/world/scene-manager.js、src/entities/player/update.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——地牢↔主神空间切换后蝇群音轨停止；恐惧逃跑速度与平时跑路一致体感。
+
+## 2026-07-20（蝇群循环音效：音量随距离 50%→150%）
+
+### 对话：蝇群 idleing 持续循环，接近玩家音量提高
+- **SoundManager 新增循环音轨 API**（WebAudio BufferSource+GainNode，音量可 >100%，HTMLAudio volume 上限 1 不可用）：`playLoop(id, path, volume)` / `setLoopVolume(id, volume)` / `stopLoop(id)`——通用能力，后续怪物环境音可复用。
+- **蝇群接入**：`sounds` 配置块（loop 路径、loopVolumeBase 0.5、loopVolumeMax 1.5、loopNearDist 150、loopFarDist 600）；`_syncLoopSound` 每帧按与玩家距离线性插值音量（近 150px→150%，远 600px→50%）；死亡/移除经 `_destroyCustomEffects` 停止音轨。
+- **素材**：idleing.mp3 复制到 `assets/sounds/enemies/flyswarm/`。
+- **修改文件**：src/ui/sound-manager.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、assets/sounds/enemies/flyswarm/idleing.mp3、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①循环播放与音量渐变；②死亡后音轨停止；③多只蝇群同时存在时各自音轨独立（id 随机）。
+
 ## 2026-07-20（手脑/蝇群归入僵尸 family）
 
 ### 对话：删除独立 family，归入僵尸

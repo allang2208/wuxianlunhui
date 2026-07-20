@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -23,6 +24,44 @@ export class FlySwarm extends Enemy {
         // 伤害完全由触碰自管：关闭 CombatSystem 的通用近战触发（同集合体模式），无默认普攻
         this.aiInterval = Number.MAX_SAFE_INTEGER;
         this._contactTickTimer = 0;
+        // 循环音轨（idleing 持续循环，音量随与玩家距离 50%→150%）
+        this._loopSoundId = 'flyswarm_' + Math.random().toString(36).slice(2, 10);
+        this._loopSoundStarted = false;
+    }
+
+    /** 循环音轨同步：持续循环；音量按与玩家距离在 base~max 间线性插值 */
+    _syncLoopSound() {
+        const s = this.config?.sounds;
+        if (!s || !s.loop || this.hp <= 0) {
+            if (this._loopSoundStarted) {
+                SoundManager.stopLoop(this._loopSoundId);
+                this._loopSoundStarted = false;
+            }
+            return;
+        }
+        if (!this._loopSoundStarted) {
+            this._loopSoundStarted = true;
+            SoundManager.playLoop(this._loopSoundId, s.loop, s.loopVolumeBase ?? 0.5);
+        }
+        const base = s.loopVolumeBase ?? 0.5;
+        const max = s.loopVolumeMax ?? 1.5;
+        const near = s.loopNearDist ?? 150;
+        const far = s.loopFarDist ?? 600;
+        let vol = base;
+        const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
+        if (p && p.active) {
+            const d = Math.hypot(p.x - this.x, p.y - this.y);
+            const t = Math.max(0, Math.min(1, (far - d) / Math.max(1, far - near)));
+            vol = base + (max - base) * t;
+        }
+        SoundManager.setLoopVolume(this._loopSoundId, vol);
+    }
+
+    _destroyCustomEffects() {
+        if (this._loopSoundStarted) {
+            SoundManager.stopLoop(this._loopSoundId);
+            this._loopSoundStarted = false;
+        }
     }
 
     update(dt, entities) {
@@ -39,6 +78,9 @@ export class FlySwarm extends Enemy {
         }
         super.update(dt, entities);
         this._animState = this.isMoving ? 'walk' : 'idle';
+
+        // 循环音轨：idleing 持续循环，音量随与玩家距离变化
+        this._syncLoopSound();
 
         // 触碰伤害 tick：目标在任一三位一体子圆内时按间隔结算
         this._contactTickTimer -= dt;

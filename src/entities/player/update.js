@@ -65,7 +65,8 @@ update(dt, entities) {
                     if (src && src.active) {
                         const dx = this.x - src.x, dy = this.y - src.y;
                         const d = Math.hypot(dx, dy) || 1;
-                        const spd = (this.data.speed || 100) * this.getFearSpeedMul();
+                        // 与正常移动同口径：maxSpeed × 恐惧层数倍率
+                        const spd = (this.maxSpeed || this.data.speed || 100) * this.getFearSpeedMul();
                         this.vx = (dx / d) * spd;
                         this.vy = (dy / d) * spd;
                         this.isMoving = true;

@@ -1168,6 +1168,13 @@
       "loseTimeout": 3000
     },
     "attackType": "虫群侵蚀",
+    "sounds": {
+      "loop": "assets/sounds/enemies/flyswarm/idleing.mp3",
+      "loopVolumeBase": 0.5,
+      "loopVolumeMax": 1.5,
+      "loopNearDist": 150,
+      "loopFarDist": 600
+    },
     "hitCircles": [
       {
         "x": 0,

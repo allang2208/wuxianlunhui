@@ -11,6 +11,7 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { pickTributeByRarity } from '../config/tribute-effects.js';
 import { SceneManager } from '../world/scene-manager.js';
+import { ItemDatabase } from '../items/item-database.js';
 
 export const FusionSystem = {
     _isOpen: false,
@@ -154,11 +155,18 @@ export const FusionSystem = {
             return;
         }
         const rarity = placed[0].item.rarity || 'common';
+        // 代币规则：代币只能与代币合成（混合材料拦截），产物为下一级代币（2F→1E）
+        const anyToken = placed.some(p => p.item && p.item.shopOnly);
+        const allTokens = placed.every(p => p.item && p.item.shopOnly);
+        if (anyToken && !allTokens) {
+            this._showMessage('代币只能与代币合成', 'error');
+            return;
+        }
         // 按添加顺序排列（批量放入已按名称序编入 seq）
         placed.sort((a, b) => a.seq - b.seq);
         const results = [];
         for (let i = 0; i + 1 < placed.length; i += 2) {
-            const next = this._fusePair(rarity);
+            const next = this._fusePair(rarity, allTokens);
             if (next) results.push(next);
         }
         // 奇数：留下最后添加的一个
@@ -176,14 +184,27 @@ export const FusionSystem = {
         }
     },
 
-    /** 熔铸一对：同级 → 随机高一级；传说对 → 随机新传说 */
-    _fusePair(rarity) {
+    /** 熔铸一对：同级 → 随机高一级；传说对 → 随机新传说。
+     * isToken（材料全为代币）：产物为下一级代币（传说级仍为同级代币），不走随机祭品池 */
+    _fusePair(rarity, isToken = false) {
         const idx = RARITY_ORDER.indexOf(rarity);
         if (idx === -1) return null;
+        if (isToken) {
+            const nextRarity = idx === RARITY_ORDER.length - 1 ? rarity : RARITY_ORDER[idx + 1];
+            return this._pickTokenByRarity(nextRarity);
+        }
         if (idx === RARITY_ORDER.length - 1) {
             return pickTributeByRarity('legendary');
         }
         return pickTributeByRarity(RARITY_ORDER[idx + 1]);
+    },
+
+    /** 按稀有度取一件时空锚点代币（shopOnly 专属池） */
+    _pickTokenByRarity(rarity) {
+        const items = ItemDatabase.items || {};
+        const entry = Object.entries(items).find(([, it]) =>
+            it && it.category === 'tribute' && it.shopOnly && (it.rarity || 'common') === rarity);
+        return entry ? ItemDatabase.get(entry[0]) : null;
     },
 
     // ==================== 面板 ====================
