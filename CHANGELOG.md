@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇手砸地红圈扩散特效）
+
+### 对话：砸地攻击加手脑同款红圈扩散
+- **实现**：`_fireSlamShockwave(range)` 复刻手脑/集合体冲击波模式——判定帧从蝇手中心释放红色椭圆圈（0xff3030 描边 8px + 闪烁 + 极淡填充），600ms 扩散到攻击影响范围（slam/grandSlam 的 range 300px），2:1 平面透视；hammer（单体锤击）不加。
+- **清理**：`_slamGraphics` 数组管理 + `_destroyCustomEffects`（onDeath 统一入口，死亡即清）。
+- **修改文件**：src/entities/enemy-types/fly-hand.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——红圈扩散与 300px 判定圈视觉一致。
+
 ## 2026-07-20（蝇手全动画底部统一）
 
 ### 对话：walking 底部对齐三种攻击动画（上移）

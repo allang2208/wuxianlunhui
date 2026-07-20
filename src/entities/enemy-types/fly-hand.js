@@ -4,7 +4,6 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { FlySwarm } from './fly-swarm.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-
 /**
  * 蝇手（领主 lord，僵尸 family）
  * 无默认普攻（aiInterval=MAX），三技能（数值全部由 enemy-config.json attackSkills 驱动）：
@@ -29,6 +28,8 @@ export class FlyHand extends Enemy {
         this._actionTimer = 0;
         this._actionHitsDone = new Set();
         this._cooldowns = { hammer: 0, slam: 0, grandSlam: 0 };
+        // 砸地冲击波 graphics（红圈扩散特效，统一清理用）
+        this._slamGraphics = [];
     }
 
     _getSkillConfigs() {
@@ -170,11 +171,58 @@ export class FlyHand extends Enemy {
         }
         // 范围技能：椭圆判定（2:1 平面透视）
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        // 砸地红圈扩散特效（判定帧触发，扩散到攻击影响范围）
+        this._fireSlamShockwave(range);
         for (const e of this._hostiles(entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(damage, this, cfg.damageType || 'physical', true);
             if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
         }
+    }
+
+    /**
+     * 砸地冲击波：判定帧从蝇手中心释放红色椭圆圈，
+     * 扩散到攻击影响范围并淡出（复刻手脑/集合体模式，平面透视 2:1）
+     */
+    _fireSlamShockwave(maxRadius) {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        this._slamGraphics.push(g);
+        const wave = { t: 0 };
+        const self = this;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 600,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const t = wave.t;
+                const r = Math.max(1, maxRadius * t);
+                g.clear();
+                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
+                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
+                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
+                g.lineStyle(8, 0xff3030, (1 - t) * 0.9 * flicker);
+                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+                g.fillStyle(0xff4040, (1 - t) * 0.12 * flicker);
+                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+                const idx = self._slamGraphics.indexOf(g);
+                if (idx >= 0) self._slamGraphics.splice(idx, 1);
+            }
+        });
+    }
+
+    /** 统一特效清理（game.js removeEntity / onDeath 约定入口） */
+    _destroyCustomEffects() {
+        for (const g of this._slamGraphics) {
+            if (g && g.active) g.destroy();
+        }
+        this._slamGraphics = [];
     }
 
     /** 召唤蝇群：周围 spreadRadius 随机位置 count 只（_summoned 标签 + 地牢刷怪黑色粒子） */
