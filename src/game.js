@@ -45,6 +45,7 @@ import { Zombie } from './entities/enemy-types/zombie.js';
 import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { Shounao } from './entities/enemy-types/shounao.js';
+import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -347,6 +348,7 @@ export const Game = {
         this.clearMainMonstersAndSpawnDog();
         this.spawnMainArmoredKnight();
         this.spawnMainShounao();
+        this.spawnMainFlySwarm();
     },
 
     /**
@@ -573,6 +575,23 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_shounao', shounao);
+    },
+    spawnMainFlySwarm() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const flyCfg = enemyConfigData.flySwarm || {};
+        const fly = new FlySwarm(origin.x, origin.y + 520, {
+            ...flyCfg,
+            showWeapon: false,
+            ai: {
+                ...(flyCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_flyswarm', fly);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标

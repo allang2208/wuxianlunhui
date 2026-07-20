@@ -8,6 +8,41 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（新怪物「蝇群」（普通））
+
+### 对话：按工作流新增蝇群——虚化虫体+三位一体触碰伤害+远程减伤
+- **素材**：idle.png（4096×2048，8列×4行=32 帧 512×512）复制至 `assets/enemies/flyswarm/`；BootScene spritesheet + 32 帧循环动画（frameRate 16）。
+- **配置**（enemy-config.json flySwarm）：HP 80、speed 200、rank normal、family 蝇群（不进僵尸池）；显式 atk 20 / mdef 55 / crit 20（def/matk 随六维公式）；`noCollision: true`；`rangedDamageTakenMul: 0.5`；`hitCircles` 品字形三圆（中心 r34 + 左右 r22）；`contactDamage`（500ms / ×1 / 物理）。
+- **逻辑**（`src/entities/enemy-types/fly-swarm.js`）：
+  - **虚化虫体**：`noCollision` 常驻（碰撞体积为 0——实体互相穿过，骑士冲锋同款；墙壁仍由 WallSystem 解析不可穿墙）；collisionRadius 45 保留受击判定。
+  - **触碰伤害**：每 500ms 对任一三位一体子圆（GroundEllipse 2:1 透视）内敌对目标结算 atk×1。
+  - **远程减伤**：takeDamage 覆盖——isMelee=false 的伤害 ×0.5（物理/魔法远程统一），近战不受影响。
+- **注册**：enemy-types.js import/export；game.js `spawnMainFlySwarm` 加入主神空间统一生成入口（origin 下方站位，永久警戒）。
+- **修改文件**：src/entities/enemy-types/fly-swarm.js（新）、src/entities/enemy-types.js、src/game.js、src/phaser/scenes/BootScene.js、data/enemy-config.json、assets/enemies/flyswarm/idle.png、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①蝇群穿人不穿墙；②三圆触碰区与贴图对齐（hitCircles 偏移可报数调）；③触碰 0.5s 伤害节奏；④远程伤害减半生效；⑤贴图大小（spriteSize 120 初值）。
+
+## 2026-07-20（手脑碰撞下移 25 + 骑士粒子方向化）
+
+### 对话：手脑下移 25px + 粒子按朝向偏移/冲锋近水平后喷
+- **手脑**：`colliderOffsetY` 0 → 25（用户重新调整的第一档）。
+- **骑士粒子方向化**（面朝右基准，朝左自动镜像）：
+  - 发射点偏移：二连击 +10px（朝向侧）、冲锋 +20px（朝向侧，用冲锋死区朝向 `_chargeFaceDir` 防抖动）；
+  - 冲锋喷出角由"向上+重力后拉"改为**直接近水平向后**（冲锋反方向 ±12°），gravityY 归 0、重力沿反方向后拉强化拖尾；角度变化超 15° 才重配（避免每帧 setConfig 的 GC 开销）。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①各朝向冲锋拖尾方向正确；②二连击粒子偏移；③手脑 25px 对齐。
+
+## 2026-07-20（手脑碰撞复位 + 修复骑士粒子冲锋不跟随）
+
+### 对话：手脑下移过多复位 + 粒子冲锋时在原地不动
+- **手脑碰撞复位**：`colliderOffsetY` 140 → 0（基类修复后 140 首次真实生效即过大；归零由用户重新逐步调整）。
+- **粒子冲锋不跟随根因**：`update()` 的动作分支（combo/charge/defend）**直接 return**——`_syncHeadParticles()` 在这些状态下从未执行，发射点停在冲锋起点；撞击结束回到常规路径后发射点才瞬移到骑士身边（与用户观测完全吻合）。
+- **修复**：三个动作分支在 return 前补 `this._syncHeadParticles()`——冲锋全程发射点绑定贴图，拖尾正确拉在身后。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①冲锋全程粒子跟随+身后拖尾；②手脑碰撞归零后对齐。
+
 ## 2026-07-20（修复：setGravity is not a function 游戏循环报错）
 
 ### 对话：game.js:741 Game loop error（骑士粒子冲锋拖尾）
