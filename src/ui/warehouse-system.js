@@ -16,7 +16,7 @@ import { ItemDatabase } from '../items/item-database.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
-    pageCount: 2,         // 页数
+    pageCount: 5,         // 页数
     PAGE_SIZE: 20,        // 每页格子数
     currentPage: 0,
     _isOpen: false,
@@ -27,7 +27,7 @@ export const WarehouseSystem = {
     /** 仓库总容量 */
     get capacity() { return this.pageCount * this.PAGE_SIZE; },
 
-    /** 测试种子：矿石类祭品每样一件（开发调试用；数据全部来自 ItemDatabase） */
+    /** 测试种子：矿石类+植物类祭品每样一件（开发调试用；数据全部来自 ItemDatabase） */
     seedOreTributes() {
         const ORE_KEYS = [
             'coalOre', 'limestone', 'quartz', 'ironOre', 'copperOre',
@@ -36,7 +36,13 @@ export const WarehouseSystem = {
             'mithrilOre', 'starSapphire', 'diamond', 'moonstone', 'philosopherStone',
             'marble',
         ];
-        for (const key of ORE_KEYS) {
+        const PLANT_KEYS = [
+            'potato', 'corn', 'carrot', 'cabbage', 'pumpkin',
+            'tomato', 'cucumber', 'onion', 'garlic', 'apple',
+            'strawberry', 'grape', 'watermelon', 'chili', 'matsutake',
+            'blueberry', 'dragonFruit', 'snowLotus', 'ginseng', 'flatPeach',
+        ];
+        for (const key of [...ORE_KEYS, ...PLANT_KEYS]) {
             const tpl = ItemDatabase.get(key);
             if (tpl) this.addItem({ ...tpl, stack: 1 });
         }

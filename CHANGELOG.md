@@ -8,6 +8,44 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（光晕修复：贴图被挖空 + 加宽 10px）
+
+### 对话：光晕覆盖贴图不显示 + 太薄
+- **根因**：`knockout: true` 的真实语义是"只画光晕、不画贴图本体"（only the glow is drawn, not the texture itself）——上一版把"轮廓外显示"误实现为挖空贴图。纠正 `knockout: false`：贴图完整显示，光晕从轮廓边缘向外自然渐变（即用户要的"轮廓外显示"效果）。
+- **加宽**：distance 3 → 10px。
+- **修改文件**：src/entities/drop-item.js、SKILL.md（knockout 语义纠正）、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——贴图本体+10px 轮廓光晕同时正常显示。
+
+## 2026-07-20（植物贴图主体统一居中）
+
+### 对话：贴图不裁剪、调整比例使主体等大且居中
+- **分析**：20 张植物贴图尺寸/主体占比不一（千年人参主体仅占 40%×84% 且偏左下，天山雪莲 54%×63%，其余多为全幅）。
+- **处理**（PIL 批处理）：每张取 alpha 主体边界框（只裁透明边、主体完整不裁切）→ 等比缩放至最长边 360px → 居中贴到 512×512 透明画布，覆盖原文件。全部 20 张主体大小一致、居中。
+- **验收**：contact sheet 拼图目检通过（原偏移的南瓜/人参/雪莲已居中，窄长主体如胡萝卜/黄瓜按比例同高）。
+- **修改文件**：assets/items/tributes/plants/*.png（20 张重排）、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅。
+- **已知问题**：实机待验证——格子/掉落显示效果；洋葱类带细须主体的观感。
+
+## 2026-07-20（修复：掉落物光晕完全未生效——Phaser 4 FX API 迁移）
+
+### 对话：所有掉落物（武器/祭品）看不到光晕
+- **根因**：Phaser 4 移除了 `sprite.postFX`（v3.60 API）——`sprite.postFX && ...` 短路静默失败，glow 从未挂上。Phaser 4 正确路径为 `sprite.enableFilters().filters.internal.addGlow(...)`；且 addGlow 参数顺序变化（第 4 位 scale、第 5 位 knockout）。
+- **修复**：drop-item.js 改用 `enableFilters().filters.internal.addGlow(rarityColor, 3, 0, 1, true, 10, 3)`（knockout=true 仅轮廓外、distance 3px）。全仓 grep 确认无其他 postFX 残留。SKILL.md 入库 Phaser 4 FX API 陷阱。
+- **修改文件**：src/entities/drop-item.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——各稀有度掉落物轮廓外光晕实际显示（此次必须眼见为实）。
+
+## 2026-07-20（植物祭品贴图替换 + 仓库扩 5 页 + 植物种子）
+
+### 对话：20 张植物贴图替换 + 仓库加 3 页 + 每样一件
+- **贴图替换**：素材库 `道具/祭品/植物类` 20 张 png 复制到 `assets/items/tributes/plants/`；equipment.json 双份 20 个植物条目写入 `iconImage` + `dropImage`（文件名与游戏名全一致，无特例）。
+- **仓库扩容**：`pageCount` 2 → 5（容量 40 → 100 格）。
+- **种子扩展**：`seedOreTributes` 并入 20 种植物 key（共 41 件，矿石 21 + 植物 20 各一件）。
+- **修改文件**：assets/items/tributes/plants/（20 png 新增）、data/equipment.json、public/data/equipment.json、src/ui/warehouse-system.js、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①植物贴图格子/掉落显示；②仓库翻页 1~5 页与 41 件种子分布（植物类从第 3 页起）。
+
 ## 2026-07-20（掉落物轮廓光晕调整为轮廓外常驻）
 
 ### 对话：图层特效要在贴图轮廓外显示且持续不隐藏
