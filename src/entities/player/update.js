@@ -58,6 +58,37 @@ update(dt, entities) {
                     this._updateSubsystems(dt, entities);
                     return;
                 }
+                // ===== 恐惧状态处理 =====
+                // 失控：输入全部无效，强制朝恐惧源相反方向移动；移速按层数削减（-33%/层，上限-99%）
+                if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+                    const src = this._fearSource;
+                    if (src && src.active) {
+                        const dx = this.x - src.x, dy = this.y - src.y;
+                        const d = Math.hypot(dx, dy) || 1;
+                        const spd = (this.data.speed || 100) * this.getFearSpeedMul();
+                        this.vx = (dx / d) * spd;
+                        this.vy = (dy / d) * spd;
+                        this.isMoving = true;
+                    } else {
+                        this.vx = 0;
+                        this.vy = 0;
+                        this.isMoving = false;
+                    }
+                    // 恐惧期间强制取消防御（与眩晕同口径）
+                    if (this.shieldSystem && this.shieldSystem.defending) {
+                        this.shieldSystem.exitDefense();
+                    }
+                    this._updateSubsystems(dt, entities);
+                    // 位置积分与墙壁解析（失控移动也要走正常通道，不可穿墙）
+                    {
+                        const mScale = dt / 1000;
+                        const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
+                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+                        this.x = resolved.x;
+                        this.y = resolved.y;
+                    }
+                    return;
+                }
                 // ===== 中毒处理 =====
                 if (this._poisonTimer > 0) {
                     this._poisonTimer -= dt;

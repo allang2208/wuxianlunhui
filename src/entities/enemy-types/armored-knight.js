@@ -105,6 +105,11 @@ export class ArmoredKnight extends Enemy {
             return;
         }
 
+        // 恐惧时技能/动作中断（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 动作状态推进（进行中的动作优先；同步粒子后 return，保证冲锋/连击/格挡期间粒子跟随）
         if (this._animState === 'combo') { this._updateCombo(dt); this._syncHeadParticles(); return; }
         if (this._animState === 'charge') { this._updateCharge(dt); this._syncHeadParticles(); return; }

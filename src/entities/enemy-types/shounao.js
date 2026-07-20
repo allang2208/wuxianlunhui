@@ -69,6 +69,11 @@ export class Shounao extends Enemy {
             return;
         }
 
+        // 恐惧时技能/动作中断（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 动作状态推进（进行中的动作优先）
         if (this._animState === 'slam') { this._updateSlam(dt, entities); return; }
         if (this._animState === 'howl') { this._updateHowl(dt, entities); return; }
@@ -335,6 +340,8 @@ export class Shounao extends Enemy {
         for (const e of this._hostiles(entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);
+            // 嚎叫恐惧：每次伤害对目标附加恐惧（层数叠加、孰长刷新由 applyFear 处理）
+            if (typeof e.applyFear === 'function') e.applyFear(cfg.fearMs ?? 3000, this);
         }
     }
 

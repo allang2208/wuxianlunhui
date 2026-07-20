@@ -31,6 +31,10 @@ export class FlySwarm extends Enemy {
             this.isMoving = false;
             return;
         }
+        // 恐惧时动作中断（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
         super.update(dt, entities);
         this._animState = this.isMoving ? 'walk' : 'idle';
 

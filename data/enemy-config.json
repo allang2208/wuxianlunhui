@@ -1097,7 +1097,8 @@
         "tickMs": 500,
         "damageMul": 0.5,
         "damageType": "magic",
-        "triggerRange": 600
+        "triggerRange": 600,
+        "fearMs": 3000
       }
     },
     "render": {
