@@ -1751,7 +1751,9 @@
         }
       ],
       "desc": "最常见的基础矿石，沉甸而扎实。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/铁矿石.png",
+      "dropImage": "assets/items/tributes/ores/铁矿石.png"
     },
     "copperOre": {
       "name": "铜矿石",
@@ -1777,7 +1779,9 @@
         }
       ],
       "desc": "导魔性良好，可惜质地偏软。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/铜矿石.png",
+      "dropImage": "assets/items/tributes/ores/铜矿石.png"
     },
     "coalOre": {
       "name": "煤矿",
@@ -1803,7 +1807,9 @@
         }
       ],
       "desc": "燃烧的富矿，烟尘呛人。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/煤矿.png",
+      "dropImage": "assets/items/tributes/ores/煤矿.png"
     },
     "limestone": {
       "name": "石灰岩",
@@ -1829,7 +1835,9 @@
         }
       ],
       "desc": "厚重迟钝的沉积岩。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/石灰岩.png",
+      "dropImage": "assets/items/tributes/ores/石灰岩.png"
     },
     "quartz": {
       "name": "石英石",
@@ -1855,7 +1863,9 @@
         }
       ],
       "desc": "性寒刺骨的晶体。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/石英石.png",
+      "dropImage": "assets/items/tributes/ores/石英石.png"
     },
     "silverOre": {
       "name": "银矿石",
@@ -1881,7 +1891,9 @@
         }
       ],
       "desc": "驱邪之银，可惜太脆。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/银矿石.png",
+      "dropImage": "assets/items/tributes/ores/银矿石.png"
     },
     "aluminumOre": {
       "name": "铝矿石",
@@ -1907,7 +1919,9 @@
         }
       ],
       "desc": "轻盈坚韧，只是不够硬。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/铝矿石.png",
+      "dropImage": "assets/items/tributes/ores/铝矿石.png"
     },
     "tinOre": {
       "name": "锡矿石",
@@ -1933,7 +1947,9 @@
         }
       ],
       "desc": "钝感安稳，魔力却难以激荡。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/锡矿石.png",
+      "dropImage": "assets/items/tributes/ores/锡矿石.png"
     },
     "leadOre": {
       "name": "铅矿石",
@@ -1959,7 +1975,9 @@
         }
       ],
       "desc": "沉重拖累，敌我皆受其累。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/铅矿石.png",
+      "dropImage": "assets/items/tributes/ores/铅矿石.png"
     },
     "sulfurOre": {
       "name": "硫磺矿",
@@ -1985,7 +2003,9 @@
         }
       ],
       "desc": "刺鼻的气息让人难以安睡。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/硫磺.png",
+      "dropImage": "assets/items/tributes/ores/硫磺.png"
     },
     "goldOre": {
       "name": "金矿石",
@@ -2011,7 +2031,9 @@
         }
       ],
       "desc": "贪多嚼不烂。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/金矿石.png",
+      "dropImage": "assets/items/tributes/ores/金矿石.png"
     },
     "tungstenOre": {
       "name": "钨矿石",
@@ -2037,7 +2059,9 @@
         }
       ],
       "desc": "沉稳迟滞，以重制敌。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/钨矿石.png",
+      "dropImage": "assets/items/tributes/ores/钨矿石.png"
     },
     "obsidian": {
       "name": "黑曜石",
@@ -2063,7 +2087,9 @@
         }
       ],
       "desc": "锋利无比，却脆如薄冰。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/黑曜石.png",
+      "dropImage": "assets/items/tributes/ores/黑曜石.png"
     },
     "magnetite": {
       "name": "锂矿石",
@@ -2089,7 +2115,9 @@
         }
       ],
       "desc": "银白色的轻金属，微弱的电流刺激着神经。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/锂矿石.png",
+      "dropImage": "assets/items/tributes/ores/锂矿石.png"
     },
     "titaniumOre": {
       "name": "钛合金",
@@ -2115,7 +2143,9 @@
         }
       ],
       "desc": "轻且坚的未来金属。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/钛合金.png",
+      "dropImage": "assets/items/tributes/ores/钛合金.png"
     },
     "mithrilOre": {
       "name": "铂金",
@@ -2141,7 +2171,9 @@
         }
       ],
       "desc": "精灵之银，魔力在其中流淌。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/铂金.png",
+      "dropImage": "assets/items/tributes/ores/铂金.png"
     },
     "starSapphire": {
       "name": "星光蓝宝石",
@@ -2167,7 +2199,9 @@
         }
       ],
       "desc": "福缘深厚：随机事件概率 +8pp（战斗同步 -8pp）。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/星光蓝宝石.png",
+      "dropImage": "assets/items/tributes/ores/星光蓝宝石.png"
     },
     "diamond": {
       "name": "金刚石",
@@ -2200,7 +2234,9 @@
         }
       ],
       "desc": "万物最坚。特效「金刚不坏」：单次受到的伤害不会超过最大生命值的 15%（本次地牢常驻）。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/金刚石_.png",
+      "dropImage": "assets/items/tributes/ores/金刚石_.png"
     },
     "moonstone": {
       "name": "月光石",
@@ -2234,7 +2270,9 @@
         }
       ],
       "desc": "月华凝成的宝石。特效「月影」：进入战斗/精英/Boss 战房间无敌 15 秒；精英与 Boss 战中物理魔法伤害 +5%。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/月光石.png",
+      "dropImage": "assets/items/tributes/ores/月光石.png"
     },
     "philosopherStone": {
       "name": "贤者之石",
@@ -2267,7 +2305,9 @@
         }
       ],
       "desc": "炼金术的终极。特效「点石成金」：拾取祭品时品质提升一级；若为传说祭品，则额外再获得一件随机传说祭品。",
-      "maxStack": 999
+      "maxStack": 999,
+      "iconImage": "assets/items/tributes/ores/贤者之石.png",
+      "dropImage": "assets/items/tributes/ores/贤者之石.png"
     },
     "wheat": {
       "name": "麦穗",
@@ -2301,8 +2341,8 @@
       "name": "大理石",
       "type": "祭品",
       "icon": "🗿",
-      "iconImage": "assets/items/大理石.png",
-      "dropImage": "assets/items/大理石.png",
+      "iconImage": "assets/items/tributes/ores/大理石.png",
+      "dropImage": "assets/items/tributes/ores/大理石.png",
       "category": "tribute",
       "rarity": "common",
       "level": 1,

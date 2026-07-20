@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（矿石祭品贴图全套替换 + 仓库种子 + 初始背包清理）
+
+### 对话：21 张矿石贴图按工作流替换 + 仓库每样一件 + 删背包麦穗大理石
+- **贴图替换**：素材库 `道具/祭品/矿石类` 21 张 png 复制到 `assets/items/tributes/ores/`（子目录归档）；equipment.json 双份 21 个矿石条目写入 `iconImage` + `dropImage`（格子贴图与地上掉落贴图同步）。特例对名：硫磺.png↔硫磺矿、金刚石_.png↔金刚石；其余按中文名一一对应。
+- **仓库种子**：`WarehouseSystem.seedOreTributes()`——21 种矿石祭品从 ItemDatabase 取模板各放一件（stack 1）；game.js init 调用（贴图/效果验收用）。
+- **初始背包**：删除麦穗（slot 3）、大理石（slot 4）条目，背包初始只留药水×2 + 金币。
+- **修改文件**：assets/items/tributes/ores/（21 png 新增）、data/equipment.json、public/data/equipment.json、src/ui/warehouse-system.js、src/game.js、src/ui/equip-data-manager.js、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①格子/掉落贴图显示；②仓库 21 件种子（第 2 页 1 件）；③背包无麦穗大理石。
+
 ## 2026-07-20（修复：装备浮窗被仓库面板遮挡）
 
 ### 对话：装备栏/背包浮窗层级调到仓库之前
