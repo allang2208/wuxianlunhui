@@ -1111,7 +1111,7 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 0
+      "colliderOffsetY": 25
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",

@@ -168,29 +168,20 @@ export class ArmoredKnight extends Enemy {
             this._headParticles.setDepth(sprite.y + 1000);
         }
         // 发射点跟随贴图头顶（强绑定模型位置）+ 上移 10px（下移 100 基础上），水平轴 ±5px 抖动
+        const charging = this._animState === 'charge';
+        const combo = this._animState === 'combo';
+        // 方向性偏移（面朝右为基准，朝左镜像）：二连击 +10px、冲锋 +20px
+        const faceDir = charging ? this._chargeFaceDir : (Math.cos(this.rotation ?? 0) >= 0 ? 1 : -1);
+        const offsetX = charging ? faceDir * 20 : (combo ? faceDir * 10 : 0);
         const headY = sprite.y - sprite.displayHeight / 2 + 90;
         const jitterX = (Math.random() - 0.5) * 10;
-        this._headParticles.setPosition(sprite.x + jitterX, headY);
+        this._headParticles.setPosition(sprite.x + offsetX + jitterX, headY);
         this._headParticles.setDepth(headY + 1000);
-        // 冲锋状态：粒子向身后浮动扩散且速度加快（切换时重配，方向每帧跟随冲锋朝向）
-        const charging = this._animState === 'charge';
+        // 冲锋状态：粒子向身后近水平喷出且速度加快（切换时重配，角度每帧跟随冲锋朝向）
         if (charging !== this._headParticlesCharging) {
             this._headParticlesCharging = charging;
-            if (charging) {
-                this._headParticles.setConfig({
-                    speed: { min: 60, max: 130 },
-                    angle: { min: 255, max: 285 },
-                    gravityY: -20,
-                    lifespan: 1100,
-                    frequency: 45,
-                    quantity: 1,
-                    scale: { start: 0.8, end: 0 },
-                    alpha: { start: 0.9, end: 0 },
-                    tint: 0x3282ff,
-                    blendMode: 'ADD',
-                    emitting: true
-                });
-            } else {
+            this._chargeBackDeg = undefined; // 进入/退出冲锋都强制重配
+            if (!charging) {
                 this._headParticles.setConfig({
                     speed: { min: 15, max: 40 },
                     angle: { min: 255, max: 285 },
@@ -207,9 +198,27 @@ export class ArmoredKnight extends Enemy {
             }
         }
         if (charging) {
-            // 重力拉向冲锋反方向（身后拖尾扩散）
+            // 喷出角度 = 冲锋反方向 ±12°（接近水平向后），角度变化超 15° 才重配（避免每帧 setConfig 开销）
             const back = (this.rotation ?? 0) + Math.PI;
-            this._headParticles.setParticleGravity(Math.cos(back) * 110, -20);
+            const backDeg = back * 180 / Math.PI;
+            if (this._chargeBackDeg === undefined || Math.abs(backDeg - this._chargeBackDeg) > 15) {
+                this._chargeBackDeg = backDeg;
+                this._headParticles.setConfig({
+                    speed: { min: 60, max: 130 },
+                    angle: { min: backDeg - 12, max: backDeg + 12 },
+                    gravityY: 0,
+                    lifespan: 1100,
+                    frequency: 45,
+                    quantity: 1,
+                    scale: { start: 0.8, end: 0 },
+                    alpha: { start: 0.9, end: 0 },
+                    tint: 0x3282ff,
+                    blendMode: 'ADD',
+                    emitting: true
+                });
+            }
+            // 重力沿冲锋反方向后拉，强化水平拖尾
+            this._headParticles.setParticleGravity(Math.cos(back) * 110, 0);
         } else if (this._headParticlesCharging === false) {
             this._headParticles.setParticleGravity(0, -40);
         }
