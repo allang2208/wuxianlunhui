@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：打开出征仍自动关背包——300ms 时序炸弹）
+
+### 对话：出征界面打开时背包仍被自动关闭，排查功能冲突
+- **完整证据链**：祭坛点"献祭出征"→ `NPCDialogue.openExpedition()` 调 `goodbye()` → goodbye 立即 `SystemUI.close()` + 挂 300ms 延迟 `this.close()`；`ExpeditionSystem.open()` 同步把背包打开（`SystemUI.open('equip')`）；**300ms 后** `NPCDialogue.close()` 里的"强制关闭背包 `SystemUI.close()`"执行——背包二次被关。上一版只恢复了 open 开背包，没挡住延迟关闭。
+- **修复**：`openExpedition` 不走 goodbye——手动关互斥子页面（shop/enhance/craft/enchant，与 openFusion 同模式）后调 `this.close(true)`；`NPCDialogue.close` 新增 `keepBackpack` 参数（默认 false 保持"退出对话关背包"旧语义，仅出征路径传 true 跳过）。
+- **排查排除项**：UIState 无互斥关闭逻辑；expeditionOverlay 与 panelOverlay 为兄弟节点无冒泡；scene-manager.js:881 出征入口本身先开背包无冲突。
+- **修改文件**：src/ui/npc-dialogue.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——祭坛点"献祭出征"后对话框关闭、背包与出征面板同时保持开启，300ms 后背包不再消失。
+
 ## 2026-07-20（四项修复：动作移动锁定/手脑CD与裁剪/仓库格子/出征背包联动）
 
 ### 对话：骑士普攻仍移动 + 手脑嚎叫CD与walking + 仓库格子叠压 + 出征背包预期不符
