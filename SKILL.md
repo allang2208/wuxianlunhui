@@ -1407,3 +1407,9 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
 - Phaser 4 正确用法：`sprite.enableFilters().filters.internal.addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)`（Camera 上为 `camera.filters.internal/external`）。
 - addGlow 参数顺序与 v3 不同（第 4 位是 scale，第 5 位才是 knockout），迁移时逐位核对。
 - knockout=true 会把贴图本体完全隐藏只留光晕（"only the glow is drawn, not the texture itself"）——要"贴图正常+轮廓外光晕"必须用 knockout=false，光晕会自然从贴图边缘向外渐变。
+
+## 常见陷阱：Phaser 4 filters 是 per-object 渲染通道（数量多即卡）
+
+- `enableFilters().filters` 每个 GameObject 一个独立 render-to-texture + shader pass——满地掉落物时几十/上百个额外通道，帧率雪崩。**实体特效一律不用 filters**。
+- 替代：离屏 canvas 烘培纹理（`ctx.shadowBlur` 多次叠画出外发光渐变，`textures.addImage` 缓存复用），渲染零开销。
+- 光晕宽度要按显示尺寸比例烘培：原图 512px 显示 48px 时，10px 光晕需按 ≈20% 画布比例烘，否则被缩放稀释到不可见。
