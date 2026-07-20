@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（主神空间清场：只留蝇手 + 拆除迷宫墙壁）
+
+### 对话：删除其他怪物和迷宫墙壁，蝇手生成位置防卡墙
+- **拆除迷宫**：`WallSystem.init` 的迷宫生成段（MazeGenerator 调用+三段边界墙）整段移除，主神空间变为开阔场地；`mazeEndY/_mazeOX` 等字段确认无外部引用；`maze-generator.js` 保留备用；清理未使用 import。
+- **测试怪清场**：`spawnMainHubTestEntities` 只保留 `spawnMainFlyHand`（骑士/手脑/蝇群 spawn 方法保留备用）。
+- **蝇手生成位置**：origin.x+400, origin.y+100（原 origin.x+350, y-320 位于迷宫区卡墙）。
+- **修改文件**：src/world/wall-system.js、src/game.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①主神空间无墙无其他怪物；②蝇手生成位置开阔、追击/技能无障碍。
+
 ## 2026-07-20（新怪物「蝇手」（领主，僵尸 family））
 
 ### 对话：按工作流新增蝇手——三技能+召唤蝇群

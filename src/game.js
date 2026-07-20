@@ -347,9 +347,7 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        this.spawnMainArmoredKnight();
-        this.spawnMainShounao();
-        this.spawnMainFlySwarm();
+        // 主神空间只保留蝇手用于测试（其余测试怪 spawn 方法保留备用）
         this.spawnMainFlyHand();
     },
 
@@ -600,7 +598,8 @@ export const Game = {
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
         const flyHandCfg = enemyConfigData.flyHand || {};
-        const flyHand = new FlyHand(origin.x + 350, origin.y - 320, {
+        // 迷宫已拆除，origin 东侧开阔地带生成（避免卡墙）
+        const flyHand = new FlyHand(origin.x + 400, origin.y + 100, {
             ...flyHandCfg,
             showWeapon: false,
             ai: {

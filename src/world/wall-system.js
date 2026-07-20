@@ -1,4 +1,3 @@
-import { MazeGenerator } from '../world/maze-generator.js';
 import { CONFIG } from '../config/config.js';
 
 const WallSystem = {
@@ -9,21 +8,8 @@ const WallSystem = {
     init(ww, wh) {
         this.walls = [];
         this.trees = [];
-        const wallHeight = this._wallHeight;
-        const mazeH = wh * 0.25, mazeW = ww * 0.6, mazeOX = ww * 0.2;
-        // 迷宫顶部边距：确保入口在 Camera 可跟随区域（halfH 以上），同时限制不覆盖玩家生成位置
-        const mazeOY = Math.max(wh * 0.12, Math.min(CONFIG.VIEW_HEIGHT * 0.55, wh * 0.20));
-        this._mazeOX = mazeOX; this._mazeOY = mazeOY; this._mazeH = mazeH; this._mazeW = mazeW;
-        const mazeWalls = MazeGenerator.generate(mazeW, mazeH);
-        for (const w of mazeWalls) this.walls.push({ x: w.x + mazeOX, y: w.y + mazeOY, w: w.w, h: w.h, height: wallHeight });
-        this.walls.push({ x: mazeOX - 16, y: mazeOY, w: 16, h: mazeH, height: wallHeight });
-        this.walls.push({ x: mazeOX + mazeW, y: mazeOY, w: 16, h: mazeH, height: wallHeight });
-        // 顶部边界分两段，避开入口（第一个格子顶部，宽CELL_SIZE）
-        const cs = MazeGenerator.CELL_SIZE;
-        this.walls.push({ x: mazeOX - 16, y: mazeOY - 16, w: 16, h: 16, height: wallHeight }); // 左上角封头
-        this.walls.push({ x: mazeOX + cs, y: mazeOY - 16, w: mazeW - cs + 16, h: 16, height: wallHeight }); // 入口右侧顶部边界
-        this.walls.push({ x: mazeOX - 16, y: mazeOY + mazeH, w: mazeW + 32, h: 16, height: wallHeight }); // 底部边界
-        this.mazeEndY = mazeOY + mazeH;
+        // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
+        this.mazeEndY = 0;
         // ===== Phaser 墙壁同步 =====
         this._syncWallsToPhaser();
     },
