@@ -15,7 +15,9 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
 import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
-import { GRADE_ORDER } from '../world/dungeon-event-definitions.js';
+import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { BOSS_REWARD_CONFIG } from '../world/boss-reward-system.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -599,6 +601,7 @@ export const ExpeditionSystem = {
             <div class="rule-desc">进入对应等级地牢，至少放入一件对应稀有度祭品：</div>
             ${rows}
             <div class="rule-current" id="expeditionRuleCurrent"></div>
+            <div class="rule-rewards" id="expeditionRuleRewards"></div>
         `;
         document.body.appendChild(panel);
     },
@@ -614,6 +617,54 @@ export const ExpeditionSystem = {
         const color = RARITY_COLORS[rarity] || '#c0c0c0';
         const zh = RARITY_LABELS[rarity] || rarity;
         el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${zh}祭品</b>`;
+        this._updateRulePanelRewards(grade);
+    },
+
+    /** 稀有度中文+颜色行内渲染 */
+    _rarityText(rarity) {
+        const zh = RARITY_LABELS[rarity] || rarity;
+        const color = RARITY_COLORS[rarity] || '#c0c0c0';
+        return `<b style="color:${color}">${zh}</b>`;
+    },
+
+    /** 出征条件下方：当前地牢奖励情况（祭品品质/装备/事件等级，稀有度配色） */
+    _updateRulePanelRewards(grade) {
+        const el = getElement('expeditionRuleRewards');
+        if (!el) return;
+        const lines = [];
+        // 祭品掉落品质：按难度表的稀有度封顶
+        const table = (COMBAT_FORMULAS.tributes && COMBAT_FORMULAS.tributes.dropTables && COMBAT_FORMULAS.tributes.dropTables[grade]) || null;
+        if (table) {
+            const cap = table.maxRarity || 'legendary';
+            lines.push(`祭品掉落：${this._rarityText('common')} ~ ${this._rarityText(cap)}`);
+            const normalChance = Math.round(((table.normal && table.normal.chance) || 0) * 1000) / 10;
+            lines.push(`<span class="rule-sub">精英/领主/首领必掉 · 普通怪 ${normalChance}%</span>`);
+        }
+        // 装备：精英宝箱武器稀有度（dungeon-config eliteChestReward）
+        const zombieCfg = DungeonConfig.getZombieDungeonConfig ? DungeonConfig.getZombieDungeonConfig() : {};
+        const chestWeapon = ((zombieCfg.eliteChestReward && zombieCfg.eliteChestReward.items) || []).find(i => i.type === 'weapon');
+        if (chestWeapon) {
+            lines.push(`精英宝箱武器：${this._rarityText(chestWeapon.rarity || 'common')}`);
+        }
+        // Boss 奖励卡中的武器稀有度（boss-reward-system 配置）
+        const bonusCards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];
+        const bossWeapon = bonusCards.flatMap(c => c.rewards || []).find(r => r.type === 'weapon');
+        if (bossWeapon) {
+            lines.push(`Boss 奖励武器：${this._rarityText(bossWeapon.rarity || 'epic')}`);
+        }
+        // 事件等级：通用事件（奖励按当前难度档）+ 限定事件 ±1 范围内的等级跨度
+        const idx = Math.max(0, GRADE_ORDER.indexOf(grade));
+        const inRange = Object.values(RESTRICTED_EVENT_META)
+            .map(m => GRADE_ORDER.indexOf(m.grade))
+            .filter(i => i >= 0 && Math.abs(i - idx) <= 1);
+        if (inRange.length > 0) {
+            const minG = GRADE_ORDER[Math.min(...inRange)];
+            const maxG = GRADE_ORDER[Math.max(...inRange)];
+            lines.push(`事件：通用事件（${grade} 级奖励档）· 限定事件 ${minG}~${maxG} 级`);
+        } else {
+            lines.push(`事件：通用事件（${grade} 级奖励档）`);
+        }
+        el.innerHTML = `<div class="rule-rewards-title">✦ 奖励情况</div>` + lines.map(t => `<div class="rule-reward-line">${t}</div>`).join('');
     },
 
     // 更新地牢信息面板（展示元数据来自 data/dungeon-config.json 的 dungeonList）

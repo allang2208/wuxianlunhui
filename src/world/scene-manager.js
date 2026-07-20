@@ -441,18 +441,9 @@ export const SceneManager = {
             if (!hasDpsTarget) Game.spawnEnemy();
         }
 
-        // 主神空间：清理所有怪物并生成测试用胖子僵尸
-        if (Game && Game.clearMainMonstersAndSpawnDog) {
-            Game.clearMainMonstersAndSpawnDog();
-        }
-        if (Game && Game.spawnMainFatZombie) {
-            Game.spawnMainFatZombie();
-        }
-        if (Game && Game.spawnMainZombie) {
-            Game.spawnMainZombie();
-        }
-        if (Game && Game.spawnMainAmalgam) {
-            Game.spawnMainAmalgam();
+        // 主神空间测试怪：与开局 init 同一生成入口（骑士+手脑），不再生成旧测试怪（胖子僵尸/僵尸/集合体）
+        if (Game && Game.spawnMainHubTestEntities) {
+            Game.spawnMainHubTestEntities();
         }
     },
 

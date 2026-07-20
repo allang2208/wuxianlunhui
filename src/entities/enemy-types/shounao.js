@@ -1,4 +1,7 @@
 import { Enemy } from '../enemy.js';
+import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -27,6 +30,10 @@ export class Shounao extends Enemy {
         this._howlTimer = 0;
         this._howlCooldown = 0;
         this._howlTickTimer = 0;
+        // 嚎叫冲击波 graphics（扩散圈特效，统一清理用）
+        this._howlGraphics = [];
+        // 砸地冲击白线 graphics（统一清理用）
+        this._slamGraphics = [];
     }
 
     _getSkillConfigs() {
@@ -131,10 +138,75 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         const range = cfg.range ?? 300;
         const atk = this.data?.atk || 0;
+        // 砸地落点特效：烟尘四周扩散轻微上浮 + 白色放射冲击线
+        this._fireSlamDust();
+        this._fireSlamImpactLines();
+        // 椭圆判定（2:1 平面透视），与地面视觉圈一致
+        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of this._hostiles(entities)) {
-            if (!this._isTargetInRange(e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
+    }
+
+    /** 砸地特效锚点：朝向右时下移 25px 右移 50px（朝左镜像） */
+    _slamFxAnchor() {
+        const faceDir = Math.cos(this.rotation ?? 0) >= 0 ? 1 : -1;
+        return { x: this.x + faceDir * 50, y: this.y + 25 };
+    }
+
+    /** 砸地烟尘：绕落点四周扩散生成（粒子自带轻微上浮分量） */
+    _fireSlamDust() {
+        const a = this._slamFxAnchor();
+        const count = 8;
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count;
+            const ox = Math.cos(angle) * 30;
+            const oy = Math.sin(angle) * 30 * PERSPECTIVE_SCALE_Y;
+            EffectFactory.createDustEffect(a.x + ox, a.y + oy + 6, 0.9);
+        }
+    }
+
+    /** 砸地冲击白线：落点向外放射的白色线条，快速扩散淡出 */
+    _fireSlamImpactLines() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        this._slamGraphics.push(g);
+        const wave = { t: 0 };
+        const self = this;
+        const lineCount = 8;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 280,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const t = wave.t;
+                g.clear();
+                const alpha = (1 - t) * 0.9;
+                g.lineStyle(3, 0xffffff, alpha);
+                // 线条长度延长 50%
+                const inner = (20 + t * 50) * 1.5;
+                const outer = (50 + t * 90) * 1.5;
+                const a = self._slamFxAnchor();
+                for (let i = 0; i < lineCount; i++) {
+                    const angle = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
+                    // 平面透视：y 分量按 PERSPECTIVE_SCALE_Y 压缩
+                    const cos = Math.cos(angle), sin = Math.sin(angle) * PERSPECTIVE_SCALE_Y;
+                    g.beginPath();
+                    g.moveTo(a.x + cos * inner, a.y + sin * inner);
+                    g.lineTo(a.x + cos * outer, a.y + sin * outer);
+                    g.strokePath();
+                }
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+                const idx = self._slamGraphics.indexOf(g);
+                if (idx >= 0) self._slamGraphics.splice(idx, 1);
+            }
+        });
     }
 
     _endSlam() {
@@ -158,6 +230,57 @@ export class Shounao extends Enemy {
         this.isMoving = false;
     }
 
+    /**
+     * 嚎叫冲击波：释放时从手脑中心释放一个紫色椭圆圈，
+     * 由中心扩散到嚎叫影响范围并淡出（复刻集合体 _fireSlamShockwave 模式，平面透视 2:1）。
+     */
+    _fireHowlShockwave() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const cfg = this._getSkillConfigs().howl;
+        const maxRadius = cfg.range ?? 600;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        this._howlGraphics.push(g);
+        const wave = { t: 0 };
+        const self = this;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 600,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const t = wave.t;
+                const r = Math.max(1, maxRadius * t);
+                g.clear();
+                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
+                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
+                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
+                g.lineStyle(8, 0xa060ff, (1 - t) * 0.9 * flicker);
+                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+                g.fillStyle(0xb080ff, (1 - t) * 0.12 * flicker);
+                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+                const idx = self._howlGraphics.indexOf(g);
+                if (idx >= 0) self._howlGraphics.splice(idx, 1);
+            }
+        });
+    }
+
+    /** 统一特效清理（game.js removeEntity 约定入口） */
+    _destroyCustomEffects() {
+        for (const g of this._howlGraphics) {
+            if (g && g.active) g.destroy();
+        }
+        this._howlGraphics = [];
+        for (const g of this._slamGraphics) {
+            if (g && g.active) g.destroy();
+        }
+        this._slamGraphics = [];
+    }
+
     _updateHowl(dt, entities) {
         const cfg = this._getSkillConfigs().howl;
         this._howlTimer -= dt;
@@ -178,8 +301,12 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().howl;
         const range = cfg.range ?? 600;
         const matk = this.data?.matk || 0;
+        // 每次伤害判定同步播放一次冲击波扩散
+        this._fireHowlShockwave();
+        // 椭圆判定（2:1 平面透视），与紫色扩散圈视觉一致
+        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of this._hostiles(entities)) {
-            if (!this._isTargetInRange(e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);
         }
     }
@@ -189,6 +316,7 @@ export class Shounao extends Enemy {
         this._howlTimer = 0;
         this._howlTickTimer = 0;
         this._attackAnimTimer = 0;
+        this._destroyCustomEffects();
     }
 
     // ========== 工具 ==========

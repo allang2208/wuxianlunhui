@@ -2751,3 +2751,23 @@
   border-top: 1px solid #6b5a3e;
   font-size: 13px;
 }
+.expedition-rule-panel .rule-rewards {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #6b5a3e;
+}
+.expedition-rule-panel .rule-rewards-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #e8c268;
+  margin-bottom: 4px;
+}
+.expedition-rule-panel .rule-reward-line {
+  font-size: 12px;
+  padding: 1px 0;
+  line-height: 1.5;
+}
+.expedition-rule-panel .rule-sub {
+  font-size: 11px;
+  color: #a99a7c;
+}

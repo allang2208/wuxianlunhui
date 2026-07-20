@@ -143,8 +143,7 @@ export const Game = {
             SceneManager._inMainHub = true;
             SceneManager._mainHubInvincible = true;
             // 主神空间保留铠甲骑士、手脑用于测试（其余测试怪已清除，spawn 方法保留备用）
-            this.spawnMainArmoredKnight();
-            this.spawnMainShounao();
+            this.spawnMainHubTestEntities();
             // 初始化协同效应系统
             this._synergySystem = new SynergySystem();
             DEFAULT_SYNERGY_RULES.forEach(r => this._synergySystem.registerRule(r));
@@ -327,6 +326,7 @@ export const Game = {
      */
     clearMainMonstersAndSpawnDog() {
         // 删除所有阵营为 enemy 的实体（怪物）
+        // 注：命名是历史遗留（早期同时生成僵尸犬），现仅承担"清空主神空间怪物"职责
         for (const [key, e] of this.entities.entries()) {
             if (e && e._faction === 'enemy') {
                 if (e._phaserSprite && e._phaserSprite.active) {
@@ -335,6 +335,16 @@ export const Game = {
                 this.entities.delete(key);
             }
         }
+    },
+
+    /**
+     * 主神空间测试怪统一生成入口（开局 init 与 _loadMainScene 共用，强绑定）：
+     * 清场后生成当前测试怪（铠甲骑士 + 手脑）。调整主神空间怪物只改这里。
+     */
+    spawnMainHubTestEntities() {
+        this.clearMainMonstersAndSpawnDog();
+        this.spawnMainArmoredKnight();
+        this.spawnMainShounao();
     },
 
     /**

@@ -8,6 +8,58 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑特效调整 + 嚎叫判定修正 + 仓库页码系统修复）
+
+### 对话：砸地特效位置/嚎叫范围不符排查/仓库页码混乱
+- **嚎叫范围与紫圈不符根因**：判定用圆形（Math.hypot），视觉画 2:1 椭圆——垂直方向判定 600px 但紫圈只画 300px，圈外也挨打。修复：砸地/嚎叫伤害判定统一改 `GroundEllipse`（集合体同款椭圆判定，含目标半径、2:1 透视），视觉=判定。
+- **砸地特效调整**：锚点朝向偏移（朝右：右 50px + 下 25px，朝左镜像）；烟尘改绕落点四周 8 团扩散（轻微上浮）；白线长度 ×1.5。
+- **仓库页码系统修复**：
+  - 打开默认第一页（open() 重置 currentPage，此前残留上次页码）；
+  - **存入优先落在当前页空位**（`_findFirstEmptySlot(preferPage)`）——右键/双击放入的物品立即可见，不再"要翻页才找到"；
+  - **格子重建保持滚动位置**（`_renderGrid` 保存/恢复 scrollTop）——消除"取出/调整后页面跳走"的观感（innerHTML 重建导致滚动归零是主要元凶）；
+  - 排序后明确回第一页展示结果（排序压缩槽位，此前停在原页面对空白/错位的物品）。
+- **修改文件**：src/entities/enemy-types/shounao.js、src/ui/warehouse-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①嚎叫圈边即判定边；②砸地特效朝左镜像；③存入当前页可见、取出后页面与滚动位置不动、排序回第一页。
+
+## 2026-07-20（出征奖励栏 + 手脑特效强化 + 旧代码清除确认）
+
+### 对话：出征界面奖励情况 + 嚎叫每跳冲击波/砸地烟尘白线 + 旧代码清除确认
+- **出征说明栏奖励区块**：`_updateRulePanelRewards(grade)` 在出征条件下方按当前选中地牢实时显示——祭品掉落品质范围（`普通 ~ 该难度 maxRarity`，稀有度词条色）+ 精英/领主/首领必掉与普通怪掉率；精英宝箱武器稀有度（dungeon-config eliteChestReward 数据驱动）；Boss 奖励武器稀有度（BOSS_REWARD_CONFIG bonusCards）；事件构成（通用事件当前奖励档 + 限定事件 ±1 等级跨度）。切换地牢随 `_updateRulePanelCurrent` 同步刷新。
+- **手脑特效**：
+  - 嚎叫冲击波改为**每跳伤害判定播放一次**（_dealHowlTick 触发，3s/500ms 共 6 次脉冲扩散；移除 _startHowl 的单次调用避免重复）。
+  - 砸地命中帧新增落点特效：4 团 DustEffect 烟尘（玩家奔跑同款，粒子自带向上漂浮分量）+ `_fireSlamImpactLines` 8 条白色放射冲击线（2:1 平面透视，280ms 扩散淡出）；`_slamGraphics` 纳入 `_destroyCustomEffects` 统一清理。
+- **旧主神空间代码清除确认**：`spawnMainFatZombie` / `spawnMainZombie` / `spawnMainAmalgam` 全仓 grep 已无任何调用点（上一版 _loadMainScene 已切换到统一入口 spawnMainHubTestEntities）；方法本体按惯例保留在 game.js 备用。
+- **修改文件**：src/ui/expedition-system.js、game-style.css、src/entities/enemy-types/shounao.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①说明栏奖励区块排版与换地牢刷新；②嚎叫 6 连脉冲视觉密度；③砸地烟尘+白线打击感。
+
+## 2026-07-20（手脑嚎叫冲击波 + 主神空间测试怪统一 + 祭品改名调整）
+
+### 对话：嚎叫圆圈特效 + 复活场景排查 + 祭品六项调整
+- **手脑嚎叫冲击波**：`_fireHowlShockwave()` 复刻集合体 `_fireSlamShockwave` 模式——Phaser graphics + tween 600ms 由中心扩散紫色椭圆（0xa060ff 魔法紫，区别集合体物理红）至 howl.range 600px，加粗描边+闪烁+淡出；`_startHowl` 释放一次；`_destroyCustomEffects` 接入 game.js removeEntity 统一清理约定，`_endHowl` 同步清理。
+- **复活刷旧怪根因**：`scene-manager.js _loadMainScene` 旧四连调用（clearMainMonstersAndSpawnDog + spawnMainFatZombie/Zombie/Amalgam）——每次切回主场景（含地牢死亡复活）都清场并生成旧测试怪，与 game.js init"只保留骑士+手脑"的规则分叉。统一：`game.js` 新增 `spawnMainHubTestEntities()`（清场→骑士→手脑），init 与 _loadMainScene 共用同一入口；旧 spawn 方法保留备用；clearMainMonstersAndSpawnDog 补注释（命名遗留，仅清场）。
+- **祭品调整**（equipment.json 双份 + 初始背包，已验证双份一致）：
+  - 大理石：defPercent 25→2、killHpHealPercent 5→1（stats/desc/初始背包 slot 4 同步）
+  - 煤矿石→**煤矿**（仅改名）
+  - **石头删除**：双份条目（equipment.stone 键）+ 初始背包 slot 5 + 贴图 assets/items/石头.png
+  - 磁铁矿→**锂矿石**：effects 改 matkPercent+5 / defPercent-3（弃用原 combatChanceDelta 耦合键），stats/desc 同步
+  - 秘银矿→**铂金**、钛矿石→**钛合金**（仅改名，效果不变）
+  - tributes-table.md 重新生成（42 件）
+- **修改文件**：src/entities/enemy-types/shounao.js、src/game.js、src/world/scene-manager.js、data/equipment.json、public/data/equipment.json、src/ui/equip-data-manager.js、tributes-table.md、CHANGELOG.md；删除 assets/items/石头.png。
+- **测试结果**：JSON 双份一致 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①嚎叫紫色扩散圈视觉效果；②地牢死亡复活后主神空间只刷骑士+手脑；③改名后各界面显示；④大理石新数值回血体感。
+
+## 2026-07-20（修复：打开出征仍自动关背包——300ms 时序炸弹）
+
+### 对话：出征界面打开时背包仍被自动关闭，排查功能冲突
+- **完整证据链**：祭坛点"献祭出征"→ `NPCDialogue.openExpedition()` 调 `goodbye()` → goodbye 立即 `SystemUI.close()` + 挂 300ms 延迟 `this.close()`；`ExpeditionSystem.open()` 同步把背包打开（`SystemUI.open('equip')`）；**300ms 后** `NPCDialogue.close()` 里的"强制关闭背包 `SystemUI.close()`"执行——背包二次被关。上一版只恢复了 open 开背包，没挡住延迟关闭。
+- **修复**：`openExpedition` 不走 goodbye——手动关互斥子页面（shop/enhance/craft/enchant，与 openFusion 同模式）后调 `this.close(true)`；`NPCDialogue.close` 新增 `keepBackpack` 参数（默认 false 保持"退出对话关背包"旧语义，仅出征路径传 true 跳过）。
+- **排查排除项**：UIState 无互斥关闭逻辑；expeditionOverlay 与 panelOverlay 为兄弟节点无冒泡；scene-manager.js:881 出征入口本身先开背包无冲突。
+- **修改文件**：src/ui/npc-dialogue.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——祭坛点"献祭出征"后对话框关闭、背包与出征面板同时保持开启，300ms 后背包不再消失。
+
 ## 2026-07-20（四项修复：动作移动锁定/手脑CD与裁剪/仓库格子/出征背包联动）
 
 ### 对话：骑士普攻仍移动 + 手脑嚎叫CD与walking + 仓库格子叠压 + 出征背包预期不符

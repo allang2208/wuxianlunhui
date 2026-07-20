@@ -214,7 +214,7 @@ const NPCDialogue = {
     },
 
     // 关闭对话界面
-    close() {
+    close(keepBackpack = false) {
         this._active = false;
         this._currentNPC = null;
         if (this._typewriter) {
@@ -228,8 +228,8 @@ const NPCDialogue = {
         if (UIState.isOpen('enchant')) EnchantSystem.close();
         // 关闭任务面板
         if (UIState.isOpen('quest')) QuestSystem.close();
-        // 强制关闭背包
-        SystemUI.close();
+        // 强制关闭背包（keepBackpack：出征等需要背包的场景跳过）
+        if (!keepBackpack) SystemUI.close();
         // 关闭立绘调整工具
         NpcPortraitTool.hide();
 
@@ -344,7 +344,13 @@ const NPCDialogue = {
     openExpedition() {
         const player = Game.player;
         if (!player) return;
-        this.goodbye();
+        // 关闭互斥子页面（不动背包——出征界面需要拖入祭品）
+        if (UIState.isOpen('shop')) ShopSystem.close();
+        if (UIState.isOpen('enhance')) EnhanceSystem.close();
+        if (UIState.isOpen('craft')) CraftSystem.close();
+        if (UIState.isOpen('enchant')) EnchantSystem.close();
+        // 不走 goodbye()：它会立即关闭背包，且 300ms 延迟 close() 二次强制关背包
+        this.close(true);
         ExpeditionSystem.open(player);
     },
 
