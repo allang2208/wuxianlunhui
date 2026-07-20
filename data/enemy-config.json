@@ -1228,6 +1228,120 @@
       }
     ]
   },
+  "flyHand": {
+    "id": "flyHand",
+    "name": "蝇手",
+    "type": "领主",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#5a6a3a",
+    "size": 48,
+    "collisionRadius": 55,
+    "hp": 1500,
+    "maxHp": 1500,
+    "speed": 160,
+    "level": 12,
+    "rank": "lord",
+    "str": 55,
+    "dex": 25,
+    "con": 45,
+    "int": 10,
+    "wis": 15,
+    "luck": 10,
+    "atk": 60,
+    "def": 75,
+    "mdef": 30,
+    "crit": 25,
+    "attackRange": 300,
+    "attackDistance": 300,
+    "aiInterval": 1000,
+    "ai": {
+      "aggroRange": 900,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "attackType": "蝇群锤击",
+    "attackSkills": {
+      "hammer": {
+        "cooldown": 4000,
+        "duration": 1500,
+        "frames": 16,
+        "hitFrames": [
+          3
+        ],
+        "range": 100,
+        "damageMul": 1.0,
+        "knockback": 75,
+        "triggerRange": 100,
+        "damageType": "physical"
+      },
+      "slam": {
+        "cooldown": 8000,
+        "duration": 2000,
+        "frames": 24,
+        "hitFrames": [
+          4
+        ],
+        "range": 300,
+        "damageMul": 1.5,
+        "stunMs": 1000,
+        "triggerRange": 300,
+        "damageType": "physical"
+      },
+      "grandSlam": {
+        "cooldown": 20000,
+        "duration": 2000,
+        "frames": 19,
+        "hitFrames": [
+          6
+        ],
+        "range": 300,
+        "damageMul": 2.0,
+        "stunMs": 1000,
+        "triggerRange": 300,
+        "damageType": "physical",
+        "summon": {
+          "monster": "flySwarm",
+          "count": 3,
+          "spreadRadius": 50
+        }
+      }
+    },
+    "render": {
+      "spriteSize": 260,
+      "collisionWidth": 80,
+      "collisionHeight": 160,
+      "footOffsetY": 70,
+      "projectileHitbox": {
+        "width": 90,
+        "height": 160,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/flyhand/idle.png",
+      "idleFrameWidth": 2048,
+      "idleFrameHeight": 2048,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 1
+    },
+    "description": "由万千腐蝇凝聚而成的巨掌，拍落之处虫群四散，生生不息。",
+    "skills": [
+      {
+        "name": "锤击",
+        "desc": "1.5s 挥击 100px 内目标，命中击退 75px"
+      },
+      {
+        "name": "砸地",
+        "desc": "300px 范围物理攻击 ×1.5，命中眩晕 1s"
+      },
+      {
+        "name": "灭世重砸",
+        "desc": "300px 范围物理攻击 ×2，命中眩晕 1s；无论命中与否，周围召唤 3 只蝇群"
+      }
+    ]
+  },
   "mutant3": {
     "id": "mutant3",
     "name": "怪物突变体-3",

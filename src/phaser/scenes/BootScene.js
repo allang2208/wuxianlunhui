@@ -105,6 +105,12 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_shounao_howl',  'assets/enemies/shounao/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
         this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
+        // 蝇手（领主）：idle 整幅 2048×2048；其余 512×512（walk 8列×2行16帧，攻击 8列×4行）
+        this.load.spritesheet('enemy_flyhand_idle',       'assets/enemies/flyhand/idle.png',        { frameWidth: 2048, frameHeight: 2048, endFrame: 0 });
+        this.load.spritesheet('enemy_flyhand_walk',       'assets/enemies/flyhand/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_flyhand_hammer',     'assets/enemies/flyhand/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_flyhand_slam',       'assets/enemies/flyhand/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
+        this.load.spritesheet('enemy_flyhand_grand_slam', 'assets/enemies/flyhand/attacking-3.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
 
         // ---- 环境资源 ----
 
@@ -395,6 +401,37 @@ export class BootScene extends Scene {
             frames: this.anims.generateFrameNumbers('enemy_flyswarm_idle', { start: 0, end: 31 }),
             frameRate: 16,
             repeat: -1,
+        });
+        // ---- 蝇手（领主）动画 ----
+        this.anims.create({
+            key: 'enemy_flyhand_idle',
+            frames: this.anims.generateFrameNumbers('enemy_flyhand_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_flyhand_walk',
+            frames: this.anims.generateFrameNumbers('enemy_flyhand_walk', { start: 0, end: 15 }),
+            frameRate: 14,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_flyhand_hammer',
+            frames: this.anims.generateFrameNumbers('enemy_flyhand_hammer', { start: 0, end: 15 }),
+            duration: 1500, // 与 hammer.duration 对齐
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_flyhand_slam',
+            frames: this.anims.generateFrameNumbers('enemy_flyhand_slam', { start: 0, end: 23 }),
+            duration: 2000, // 与 slam.duration 对齐
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_flyhand_grand_slam',
+            frames: this.anims.generateFrameNumbers('enemy_flyhand_grand_slam', { start: 0, end: 18 }),
+            duration: 2000, // 与 grandSlam.duration 对齐
+            repeat: 0,
         });
 
         // ---- 动态生成几何敌人纹理 ----
