@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（初级地牢最短战斗 4 + 仓库拖拽两项优化）
+
+### 对话：长期存储暂缓 + 地牢/仓库调整
+- **长期存储**：用户决定游戏开发完成后再做，当前不动。
+- **僵尸地牢-初级**：`shortestCombatPath` 7 → 4 场。
+- **仓库界面拖消耗品不再隐藏背包**：drag-drop-manager 的"消耗品拖拽隐藏面板"（服务于拖到快捷栏）在仓库打开时跳过（UIState.isOpen('warehouse') 判断），双面板保持可见。
+- **拖拽按目标槽位放置**：
+  - 背包→仓库格子：`storeFromBackpackAt(bpIdx, wSlot)`——空格直接放入指定槽；同名可堆叠合并（溢出按原规则落空位，满仓回滚提示）；不同物品交换（仓库原物回背包）。
+  - 仓库→背包格子：`retrieveToBackpackAt(wSlot, bpSlot)` 同规则镜像；EventBus 桥接改传 `{ wSlot, bpSlot }`；双击/右键取出不传 bpSlot 时仍走原堆叠/空位逻辑（retrieveToBackpack）。
+  - 仓库内互拖保持 `_swapSlots` 交换。
+- **修改文件**：src/ui/warehouse-system.js、src/ui/equip/drag-drop-manager.js、data/dungeon-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①消耗品拖到仓库格子面板不消失；②拖放落点精确到格；③交换场景双方物品归位正确；④初级地牢最短 4 战。
+
 ## 2026-07-20（时空锚点代币：商店专供的等级地牢钥匙）
 
 ### 对话：新增代币系列，只能从商店购买获得

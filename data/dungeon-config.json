@@ -103,7 +103,7 @@
       "min": 22,
       "max": 22
     },
-    "shortestCombatPath": 7,
+    "shortestCombatPath": 4,
     "mainRowMinCombat": 3,
     "typeRatios": {
       "combat": 0.4,

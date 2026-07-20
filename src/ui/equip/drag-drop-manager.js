@@ -8,6 +8,7 @@ import { ShopSystem } from '../shop-system.js';
 import { SkillManager } from '../skill-manager.js';
 import { QuickBar } from '../quick-bar.js';
 import { EventBus } from '../../core/event-bus.js';
+import { UIState } from '../ui-state.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { loadImage } from '../../utils/image-loader.js';
@@ -237,6 +238,9 @@ export function createDragDropManager(EquipManager) {
                                 ? self.backpackItems.find(i => i.slot === parseInt(cell.dataset.slot))
                                 : self.player.equipments[cell.dataset.slot];
                             if (draggedItem && draggedItem.category === 'consumable') {
+                                // 仓库打开时不隐藏背包（隐藏设定仅服务于"拖到快捷栏"场景；
+                                // 仓库拖放需要背包/仓库双面板同时可见）
+                                if (typeof UIState !== 'undefined' && UIState.isOpen && UIState.isOpen('warehouse')) return;
                                 // 用当前格子作为拖拽图像（快照，不受后续 DOM 变化影响）
                                 e.dataTransfer.setDragImage(cell, cell.offsetWidth / 2, cell.offsetHeight / 2);
                                 // 延迟隐藏面板，确保快照已捕获
@@ -303,10 +307,10 @@ export function createDragDropManager(EquipManager) {
                     handleDrop(src, targetType, targetSlot) {
                         if (!src || !targetType) return;
 
-                        // 仓库格 → 背包：取出（EventBus 桥接，避免 drag-drop-manager ↔ warehouse 循环 import）
+                        // 仓库格 → 背包：取出到目标格子（EventBus 桥接，避免 drag-drop-manager ↔ warehouse 循环 import）
                         if (src.type === 'warehouse') {
                             if (targetType === 'inventory') {
-                                EventBus.emit('warehouse:retrieveToBackpack', parseInt(src.slot, 10));
+                                EventBus.emit('warehouse:retrieveToBackpack', { wSlot: parseInt(src.slot, 10), bpSlot: parseInt(targetSlot, 10) });
                             }
                             return;
                         }
