@@ -63,6 +63,8 @@ export class ArmoredKnight extends Enemy {
         this._comboSoundsDone = new Set();
         // 冲锋扬尘计时（与玩家奔跑同款 DustEffect）
         this._chargeDustTimer = 0;
+        // 头部蓝色浮动粒子（符文长剑蓝 0x3282ff，持续向上漂浮）
+        this._headParticles = null;
         // 冲锋朝向死区：|dx| 过小时保持上次朝向，防止贴身抖动回头
         this._chargeFaceDir = 1;
     }
@@ -129,11 +131,64 @@ export class ArmoredKnight extends Enemy {
         } else {
             this._walkSoundTimer = 0;
         }
+
+        // 头部蓝色浮动粒子（符文蓝，持续向上漂浮）
+        this._syncHeadParticles();
+    }
+
+    /** 头部蓝色浮动粒子：符文长剑蓝 0x3282ff，贴图头顶持续向上漂浮 */
+    _syncHeadParticles() {
+        // 死亡即停（尸体不再飘粒子）
+        if (this.hp <= 0) { this._destroyHeadParticles(); return; }
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        const sprite = this._phaserSprite;
+        if (!scene || !scene.add || !sprite || !sprite.active) {
+            if (this._headParticles) { this._destroyHeadParticles(); }
+            return;
+        }
+        if (!this._headParticles) {
+            // 白色圆点纹理 + 蓝色 tint（与受击粒子同纹理，tint 乘算显色）
+            if (!scene.textures.exists('impact_dot') && typeof scene._ensureImpactDotTexture === 'function') {
+                scene._ensureImpactDotTexture();
+            }
+            if (!scene.textures.exists('impact_dot')) return;
+            this._headParticles = scene.add.particles(0, 0, 'impact_dot', {
+                speed: { min: 15, max: 40 },
+                angle: { min: 255, max: 285 }, // 向上（270° 为正上方）
+                gravityY: -40,                 // 负重力持续上浮
+                lifespan: 1400,
+                frequency: 180,
+                quantity: 1,
+                scale: { start: 0.7, end: 0 },
+                alpha: { start: 0.85, end: 0 },
+                tint: 0x3282ff,
+                blendMode: 'ADD',
+                emitting: true
+            });
+            this._headParticles.setDepth(sprite.y + 1000);
+        }
+        // 发射点跟随贴图头顶
+        const headY = sprite.y - sprite.displayHeight / 2;
+        this._headParticles.setPosition(sprite.x, headY);
+        this._headParticles.setDepth(headY + 1000);
+    }
+
+    _destroyHeadParticles() {
+        if (this._headParticles) {
+            if (this._headParticles.active) this._headParticles.destroy();
+            this._headParticles = null;
+        }
+    }
+
+    /** 统一特效清理（game.js removeEntity 约定入口） */
+    _destroyCustomEffects() {
+        this._destroyHeadParticles();
     }
 
     _decideSkills() {
         const t = this.target;
         const cfg = this._getSkillConfigs();
+
 
         // 格挡：目标正在攻击动作且临近时，面对目标举盾
         if (this._blockCooldown <= 0 && cfg.block.duration) {
