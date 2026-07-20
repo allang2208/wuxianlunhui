@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（骑士头部蓝色浮动粒子）
+
+### 对话：参考符文长剑蓝色粒子，骑士贴图头部持续向上浮动
+- **实现**：`_syncHeadParticles`（骑士 update 每帧调用）——Phaser 粒子发射器，`impact_dot` 白色纹理 + `tint 0x3282ff`（符文长剑蓝同值），发射角 255°~285°（正上方 ±15°）、gravityY -40 持续上浮、lifespan 1400、180ms/颗、ADD 混合、缩放/透明度尾迹淡出；发射点每帧跟随贴图头顶（`sprite.y - displayHeight/2`）。
+- **清理**：hp<=0 立即销毁（尸体不飘）；sprite 失效自动销毁；`_destroyCustomEffects` 接入 removeEntity 统一通道。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——粒子颜色/密度/上浮速度观感。
+
 ## 2026-07-20（初级地牢最短战斗 4 + 仓库拖拽两项优化）
 
 ### 对话：长期存储暂缓 + 地牢/仓库调整
