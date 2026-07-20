@@ -19,6 +19,8 @@ export class Shounao extends Enemy {
         });
         this._useStickFigure = false;
         this._animState = 'idle'; // idle | walk | slam | howl
+        // 攻击完全由本类技能自管（slam/howl）：关闭 CombatSystem 的通用近战触发（同集合体模式），无默认普攻
+        this.aiInterval = Number.MAX_SAFE_INTEGER;
         // 动作期间锁定 MovementSystem（与集合体/骑士同机制）：>0 时外部系统不驱动移动
         this._attackAnimTimer = 0;
 

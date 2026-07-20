@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑/蝇群删除默认普攻 + 蝇群碰撞下移）
+
+### 对话：删除手脑多余普攻模式 + 蝇群仅保留触碰伤害
+- **根因**：CombatSystem 按 `aiInterval` 周期性触发基类默认近战普攻（thrust）——手脑在 slam/howl 之外还有第三套普攻。
+- **修复**：手脑/蝇群 constructor 设 `this.aiInterval = Number.MAX_SAFE_INTEGER`（集合体同款"攻击完全由本类自管"模式）——手脑只剩砸地/嚎叫，蝇群只剩三位一体触碰伤害。
+- **蝇群碰撞区下移**：hitCircles 三圆 y 各 +25（中心 (0,25,r34)、左右 (±26,29,r22)）。
+- **修改文件**：src/entities/enemy-types/shounao.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①手脑不再出现 thrust 普攻；②蝇群仅触碰伤害；③碰撞区对齐。
+
 ## 2026-07-20（debuff「恐惧」+ Buff/Debuff 工作流）
 
 ### 对话：建立 buff/debuff 工作流 + 恐惧效果 + 手脑嚎叫附加

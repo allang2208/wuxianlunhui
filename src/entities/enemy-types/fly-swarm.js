@@ -20,6 +20,8 @@ export class FlySwarm extends Enemy {
         this._animState = 'idle';
         // 碰撞体积为 0（骑士冲锋同款：实体分离跳过，墙体仍解析）
         this.noCollision = this.config?.noCollision ?? true;
+        // 伤害完全由触碰自管：关闭 CombatSystem 的通用近战触发（同集合体模式），无默认普攻
+        this.aiInterval = Number.MAX_SAFE_INTEGER;
         this._contactTickTimer = 0;
     }
 
