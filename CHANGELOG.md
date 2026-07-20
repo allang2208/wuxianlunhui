@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（新怪物「蝇手」（领主，僵尸 family））
+
+### 对话：按工作流新增蝇手——三技能+召唤蝇群
+- **素材处理**：idle.png 为整幅 2048×2048 单帧（苍蝇组成的巨掌）；walking.png 实测 3902×982 不可整除（487.75×491/帧），**PIL 重排为 4096×1024 标准 512×512 帧**（8列×2行16格）；attacking/attacking-2/attacking-3 为 8列×4行 512×512（16/24/19 帧，与口述一致）。
+- **配置**（enemy-config.json flyHand）：HP 1500、speed 160、rank lord、family 僵尸（lord 池自动纳入）；显式 atk 60 / def 75 / mdef 30 / crit 25（matk 随公式）；`attackSkills` 三技能全配置驱动：hammer（1.5s/16帧/第3帧/100px/击退75/CD4s）、slam（2s/24帧/第4帧/300px/×1.5/眩晕1s/CD8s）、grandSlam（2s/19帧/第6帧/300px/×2/眩晕1s/CD20s + summon 蝇群×3/散布50px）。
+- **逻辑**（`src/entities/enemy-types/fly-hand.js`）：无默认普攻（aiInterval=MAX）；通用技能驱动 `_startAction/_updateAction`（帧判定对齐动画进度）；锤击单体近战+击退、砸地/重砸 GroundEllipse 范围判定+眩晕；**重砸判定帧无论命中与否**召唤 3 只蝇群（`_summoned` 标签无经验金币，脚下 `playDungeonSpawnParticles` 黑色粒子同款）；眩晕/恐惧中断；`_attackAnimTimer` 锁定 MovementSystem。
+- **注册**：enemy-types.js、ZOMBIE_FACTORY_MAP.flyHand（lord 池可抽）、game.js `spawnMainFlyHand` 主神空间生成（origin 上方站位）。
+- **修改文件**：src/entities/enemy-types/fly-hand.js（新）、src/entities/enemy-types.js、src/game.js、src/world/zombie-dungeon.js、src/phaser/scenes/BootScene.js、data/enemy-config.json、assets/enemies/flyhand/（5 png，walking 重排）、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①三技能帧判定与动画同步；②锤击击退方向；③重砸召唤蝇群位置/黑粒子；④贴图大小（spriteSize 260 初值）；⑤lord 掉落/经验结算。
+
 ## 2026-07-20（代币合成规则：代币只能合成代币）
 
 ### 对话：调整——代币合成产物为下一级代币而非随机祭品

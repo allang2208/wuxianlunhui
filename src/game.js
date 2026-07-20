@@ -46,6 +46,7 @@ import { AmalgamZombie } from './entities/enemy-types/amalgam-zombie.js';
 import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { Shounao } from './entities/enemy-types/shounao.js';
 import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
+import { FlyHand } from './entities/enemy-types/fly-hand.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -349,6 +350,7 @@ export const Game = {
         this.spawnMainArmoredKnight();
         this.spawnMainShounao();
         this.spawnMainFlySwarm();
+        this.spawnMainFlyHand();
     },
 
     /**
@@ -592,6 +594,23 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_flyswarm', fly);
+    },
+    spawnMainFlyHand() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const flyHandCfg = enemyConfigData.flyHand || {};
+        const flyHand = new FlyHand(origin.x + 350, origin.y - 320, {
+            ...flyHandCfg,
+            showWeapon: false,
+            ai: {
+                ...(flyHandCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_flyhand', flyHand);
     },
     spawnTestTargets() {
         // 生成20个10HP不会移动的测试目标
