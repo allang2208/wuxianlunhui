@@ -2079,12 +2079,12 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 统一触发僵尸类怪物受击绿色粒子
+     * 统一触发怪物受击粒子（缺省绿色/僵尸同款；hitParticleColor 配置可覆盖，如集合体落地黄）
      * @param {object} target 被击中的目标
      * @param {object} [source] 伤害来源，用于计算受击方向
      */
     triggerZombieHitParticles(target, source) {
-        if (!target || !target.config || target.config.family !== '僵尸') return;
+        if (!target || !target.config) return;
         const angle = source && target
             ? Math.atan2(target.y - source.y, target.x - source.x)
             : null;

@@ -8,6 +8,42 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（掉落物轮廓光晕调整为轮廓外常驻）
+
+### 对话：图层特效要在贴图轮廓外显示且持续不隐藏
+- **调整**：`addGlow` 的 `knockout: false → true`——只渲染贴图轮廓**外**的光晕（挖掉源图像区域，贴图本体不再被发光覆盖）；`outerStrength 2→3`、`quality 0.1→0.25`（3px 轮廓更清晰）。光晕在 sprite 存续期间常驻，无 hover/条件开关。
+- **修改文件**：src/entities/drop-item.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——轮廓外光晕观感与各稀有度区分度。
+
+## 2026-07-20（手脑受击粒子 + 碰撞再下移 30px）
+
+### 对话：手脑受击绿色粒子 + 碰撞体积再下移
+- **手脑受击无粒子根因**：`triggerZombieHitParticles` 硬过滤 `family !== '僵尸'`——非僵尸家族（手脑/骑士/狼等）全部跳过。移除 family 过滤，全怪物统一受击粒子（缺省绿色/僵尸同款；`hitParticleColor` 配置可覆盖，集合体落地黄不受影响）。
+- **手脑碰撞体积再下移 30px**：`render.colliderOffsetY` 50 → 80（footprint/圆柱/投射物矩形同锚联动）。
+- **修改文件**：src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①手脑受击绿色粒子位置（贴图中心）；②其他怪（骑士/狼）受击粒子观感是否正常；③下移后判定与贴图对齐。
+
+## 2026-07-20（掉落物稀有度轮廓光晕）
+
+### 对话：所有物品掉落物加 3px 稀有度色轮廓，由深至浅向外渐变
+- **实现**：`drop-item.js` sprite 创建时 `postFX.addGlow(rarityColor, outerStrength 2, inner 0, knockout false, quality 0.1, distance 3)`——glow 外发光天然由深至浅向外衰减，距离 3px 即轮廓厚度；颜色按 `itemData.rarity` 取 `RARITY_COLORS`（hex 转 0x），与稀有度词条同色。每个 sprite 只挂一次（`_rarityGlowAdded` 防重）。
+- **修改文件**：src/entities/drop-item.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①各稀有度掉落物轮廓观感（common 灰白可能偏淡）；②hover 高亮 tint 与 glow 叠加效果；③大量掉落物时的 FX 开销。
+
+## 2026-07-20（骑士/手脑碰撞体积调整）
+
+### 对话：圆柱判定过高 -50% + 手脑三项微调
+- **圆柱判定高度（Collider.height）**：此前未配置时缺省取 `render.spriteSize`（骑士 293 / 手脑 220，远高于视觉身体）。enemy-config 顶层显式 `height`：骑士 293→**146**、手脑 220→**110**（各 -50%）。
+- **手脑碰撞整体下移 50px**：`render.colliderOffsetY: 50`（footprint 圆心/圆柱/投射物矩形同锚联动下移）。
+- **手脑绿色矩形（投射物躯干 projectileHitbox）向上 +50px**：height 110→160（bottom 锚脚不变，向上延伸）。
+- **手脑脚下椭圆 +30%**：`collisionRadius` 30→39。
+- **修改文件**：data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①近战/投射物命中手感（圆柱高度）；②手脑判定中心与贴图对齐；③绿色调试矩形范围。
+
 ## 2026-07-20（矿石祭品贴图全套替换 + 仓库种子 + 初始背包清理）
 
 ### 对话：21 张矿石贴图按工作流替换 + 仓库每样一件 + 删背包麦穗大理石
