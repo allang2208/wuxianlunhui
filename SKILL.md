@@ -1400,3 +1400,10 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
   - 手脑素材真实网格：idle/slam/howl 8×4（帧512×512）、walk 8×2（帧512×1024）——勿信口述"4×8"，**拿到精灵图先目检行列布局再配 frameWidth/Height**
   - 仓库：金币/消耗品无法存入+满仓误报根因=金币无 maxStack 字段（_maxStackOf 回退 gold 99999）+不可堆叠物品空间语义修正（整件1格与 stack 数无关）；overlay 点击一并关闭（warehouse 自挂监听避免循环 import）；NPC走远链补关闭；格子改一行2格×56px 对齐背包
   - 出征界面 open() 改自动关闭背包（原为主动打开）；说明弹窗重定位 left:4px bottom:2px 187×945 拉伸
+
+## 常见陷阱：Phaser 4 的 FX API 不是 postFX
+
+- Phaser 3.60 的 `sprite.postFX.addGlow(...)` 在 **Phaser 4 已移除**——`sprite.postFX` 为 undefined，静默失败不报错。
+- Phaser 4 正确用法：`sprite.enableFilters().filters.internal.addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)`（Camera 上为 `camera.filters.internal/external`）。
+- addGlow 参数顺序与 v3 不同（第 4 位是 scale，第 5 位才是 knockout），迁移时逐位核对。
+- knockout=true 只渲染轮廓外光晕（贴图本体不叠光）。

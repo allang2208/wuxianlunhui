@@ -54,11 +54,11 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     sprite.setOrigin(0.5, 0.5);
                     sprite.setDepth(this.y + 5);
                     phaserScene.dropItemsGroup.add(sprite);
-                    // 稀有度轮廓光晕：仅在贴图轮廓外显示（knockout），由深至浅向外渐变；
-                    // 常驻显示（sprite 存续期间持续生效，无 hover/条件开关）
-                    if (sprite.postFX && !this._rarityGlowAdded) {
+                    // 稀有度轮廓光晕：仅在贴图轮廓外显示（knockout），由深至浅向外渐变，常驻显示。
+                    // Phaser 4 FX API：enableFilters().filters.internal.addGlow(color, outer, inner, scale, knockout, quality, distance)
+                    if (sprite.enableFilters && !this._rarityGlowAdded) {
                         this._rarityGlowAdded = true;
-                        sprite.postFX.addGlow(rarityGlowColor(this.itemData.rarity), 3, 0, true, 0.25, 3);
+                        sprite.enableFilters().filters.internal.addGlow(rarityGlowColor(this.itemData.rarity), 3, 0, 1, true, 10, 3);
                     }
                     // 掉落物不需要物理驱动，关闭自动移动减少开销
                     if (sprite.body) {

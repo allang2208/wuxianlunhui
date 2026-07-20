@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：掉落物光晕完全未生效——Phaser 4 FX API 迁移）
+
+### 对话：所有掉落物（武器/祭品）看不到光晕
+- **根因**：Phaser 4 移除了 `sprite.postFX`（v3.60 API）——`sprite.postFX && ...` 短路静默失败，glow 从未挂上。Phaser 4 正确路径为 `sprite.enableFilters().filters.internal.addGlow(...)`；且 addGlow 参数顺序变化（第 4 位 scale、第 5 位 knockout）。
+- **修复**：drop-item.js 改用 `enableFilters().filters.internal.addGlow(rarityColor, 3, 0, 1, true, 10, 3)`（knockout=true 仅轮廓外、distance 3px）。全仓 grep 确认无其他 postFX 残留。SKILL.md 入库 Phaser 4 FX API 陷阱。
+- **修改文件**：src/entities/drop-item.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——各稀有度掉落物轮廓外光晕实际显示（此次必须眼见为实）。
+
 ## 2026-07-20（植物祭品贴图替换 + 仓库扩 5 页 + 植物种子）
 
 ### 对话：20 张植物贴图替换 + 仓库加 3 页 + 每样一件
