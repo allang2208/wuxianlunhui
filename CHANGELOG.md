@@ -8,6 +8,43 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇手砸地红圈扩散特效）
+
+### 对话：砸地攻击加手脑同款红圈扩散
+- **实现**：`_fireSlamShockwave(range)` 复刻手脑/集合体冲击波模式——判定帧从蝇手中心释放红色椭圆圈（0xff3030 描边 8px + 闪烁 + 极淡填充），600ms 扩散到攻击影响范围（slam/grandSlam 的 range 300px），2:1 平面透视；hammer（单体锤击）不加。
+- **清理**：`_slamGraphics` 数组管理 + `_destroyCustomEffects`（onDeath 统一入口，死亡即清）。
+- **修改文件**：src/entities/enemy-types/fly-hand.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——红圈扩散与 300px 判定圈视觉一致。
+
+## 2026-07-20（蝇手全动画底部统一）
+
+### 对话：walking 底部对齐三种攻击动画（上移）
+- **基准测定**：三种攻击动画起手帧底部统一为 461~463（取 462）；walking 此前对齐在 492（低 30px）。
+- **修复**：从原始素材（3902×982）重做 walking 16 帧——逐帧裁主体、**等比缩放至主体高 ≤450**（与攻击帧主体高 446~461 对齐，不再裁切内容）、水平居中、底部强制对齐 462；idle 主体同底部 462。验证：15/16 帧底部 461~462（帧 1 因原素材边缘羽化收至 444，播放不可见）。
+- **修改文件**：assets/enemies/flyhand/walking.png、assets/enemies/flyhand/idle.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——idle/walk/三攻击间切换无高度跳变。
+
+## 2026-07-20（寻路"第一步反向"修复 + 蝇手碰撞微调）
+
+### 对话：空地仍掉头（往左明显）继续排查 + 蝇手碰撞
+- **根因（第二个反向源）**：A* 路径首点是**起点格子中心**（`_buildGrid` 节点 x/y 取 cell 中心）——怪物在格子内任意位置，重算后第一步要"先走回格子中心"，格子中心在行进方向身后时即瞬间掉头；重算时 minX 随起终点漂移导致格子对齐不稳定，往左走时 floor 对齐下位于格子右半部的概率高，故尤为明显。
+- **修复**：`PathManager.setPath` 将 `path[0]` 对齐为怪物当前位置——路径跟随从脚下开始，消除格子中心折返；后续路点保持 A* 结果。
+- **蝇手碰撞**：`render.colliderOffsetX: 10`（右移 10px，基类补 colliderOffsetX 读取，此前仅支持 Y）、`colliderOffsetY: 25`（下移 25px）、`collisionWidth` 80→100、`projectileHitbox.width` 90→110（水平左右各延伸 10px）。
+- **修改文件**：src/ai/path-manager.js、src/entities/enemy.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①空地往左/各方向追击不再掉头；②蝇手碰撞与贴图对齐。
+
+## 2026-07-20（修复：寻路瞬间掉头反向——局部修复回退路径索引）
+
+### 对话：近战怪寻路时一瞬间掉头往相反方向
+- **根因**：`PathManager._repairPath` 在动态障碍图检测到路径节点被挡时，把 `pathIdx` **回退到阻挡点前 2 个节点**——怪物被迫折返已走过的路径点再前进，表现为"瞬间掉头"。动态障碍图 250ms 更新，修复频繁时反复反向。
+- **修复**：局部修复改为**从怪物当前位置出发**搜索替代/完整路径（两种策略同改），不再回退索引；新路径首点即当前位置的下一节点，跟随方向连续。修复失败计数/无效标记逻辑不变。
+- **修改文件**：src/ai/path-manager.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——近战怪（骑士/蝇手等）绕障追击不再折返；多怪混战时路径修复平滑。
+
 ## 2026-07-20（修复蝇手 walking 帧间"瞬移"）
 
 ### 对话：walking 精灵图不在一个水平上，移动状态频繁瞬移
