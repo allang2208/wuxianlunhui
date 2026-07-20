@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复：仓库存入看不到物品——背包渲染器全文档误清仓库格子）
+
+### 对话：右键存入仓库当前页看不到，翻页来回后才显示
+- **根因**：`slot-renderer.js updateInventorySlots` 的选择器是**全文档** `queryAllElements('.inv-cell')`——仓库格子（`.warehouse-grid .wh-cell`）共享 `.inv-cell` 类。`_refreshAll` 顺序：先 `_renderGrid`（仓库正确渲染）→ 再 `EquipManager.updateInventorySlots()`——后者把**所有** .inv-cell 清空、改 `dataset.slot` 为背包索引、按背包数据重绘——仓库格子被当场抹掉。翻页走 `_switchPage`（只调 `_renderGrid`，不经过背包渲染），所以翻页后显示正常。这也解释了此前"取出/调整后页面混乱"的全部观感（格子内容被覆盖 + slot 编号污染）。
+- **修复**：选择器收窄为 `.inventory-grid .inv-cell`（仅背包容器）；tooltip 的 `queryAllElements('.inv-cell')`（equip-tooltip-manager.js:538）是有意支持 wh-cell 的事件绑定且分支正确，不动。
+- **连带收益**：仓库格子 `dataset.slot` 不再被背包索引污染——tooltip 取物（getItemAt）与格子事件的索引恢复正确。
+- **修改文件**：src/ui/equip/slot-renderer.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——右键/双击存入立即可见、取出后格子内容正确、tooltip 稀有度显示正常。
+
 ## 2026-07-20（手脑特效调整 + 嚎叫判定修正 + 仓库页码系统修复）
 
 ### 对话：砸地特效位置/嚎叫范围不符排查/仓库页码混乱
