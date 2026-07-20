@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复蝇群死亡音轨泄漏 + 蝇手攻击音效）
+
+### 对话：蝇群死后音效不停 + 蝇手三种攻击判定音
+- **蝇群死亡音轨泄漏根因**：死亡后 `active=false`，game loop `if (!e.active && !isCorpse) continue` 跳过 update——`_syncLoopSound` 里的"死亡即停"检查永远不执行（之前只修了场景切换路径，漏了死亡路径）。修复：`damageable-entity.onDeath()` 统一调用 `_destroyCustomEffects()`——所有怪的循环音轨/头部粒子/范围圈/投射物在死亡瞬间统一清理（一劳永逸，新怪特效自动受益）。
+- **蝇手音效**：hitting-2.mp3 复制到 `assets/sounds/enemies/flyhand/`；配置 `sounds.attack`；`_dealHit` 判定帧三技能统一播放（`_playSound` 与手脑/骑士同工作流，支持数组随机）。
+- **修改文件**：src/entities/damageable-entity.js、src/entities/enemy-types/fly-hand.js、data/enemy-config.json、assets/sounds/enemies/flyhand/hitting-2.mp3、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①蝇群死亡瞬间音轨停止；②蝇手三技能判定音与帧同步。
+
 ## 2026-07-20（蝇手 idle 帧统一裁剪）
 
 ### 对话：idle 与 walking 切换时贴图大小跳变
