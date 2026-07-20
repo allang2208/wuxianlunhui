@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（时空锚点代币：商店专供的等级地牢钥匙）
+
+### 对话：新增代币系列，只能从商店购买获得
+- **代币数据**：equipment.json 双份新增 6 条（anchorTokenF~A），category tribute、稀有度 common~legendary 一一对应（F↔普通…A↔传说）、**无 effects**（无任何属性效果）、`price`=稀有度标准价（100~3200）、`shopOnly: true` 标记、maxStack 999。作祭品放入出征栏即满足对应地牢门槛（F 级代币→F 级地牢…）。
+- **产出途径梳理（仅商店）**：
+  - 掉落/奖励/合成/点石成金四池同源——`_pickTributeByRarity` 增加 `!it.shopOnly` 过滤（加无 effects 天然排除，双保险），代币永不进池；
+  - 初始背包/仓库种子不含代币。
+- **商店上架**：ShopSystem `_items` 加 6 条，`shopPrice`=标准价×2（200~6400）；`buy()` 支持 `shopPrice ?? item.price` 扣费；shopPrice 商品购买后**保留物品自身 price**（出售基准），普通商品维持原防套利行为（删 price）。
+- **表格**：tributes-table.md 重新生成（48 件，代币标注"用途 X 级地牢钥匙"）。
+- **修改文件**：data/equipment.json、public/data/equipment.json、src/config/tribute-effects.js、src/ui/shop-system.js、tributes-table.md、CHANGELOG.md。
+- **测试结果**：JSON 双份一致 ✅；lint ✅；vite build ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——①商店 6 档代币购买价与金币扣除；②代币放入出征栏解锁对应地牢；③地牢内不掉代币（掉落池无）；④代币卖店价格（标准价×0.5 通用规则）。
+
 ## 2026-07-20（僵尸地牢-中级（E 级）+ 地牢工作流与要素表）
 
 ### 对话：建立地牢工作流 + 新增中级地牢 + Boss 领主池 + 地牢表格

@@ -35,7 +35,14 @@ const ShopSystem = {
         { id: 'saiga12k', weaponId: 'weapon13', name: 'SAIGA-12K', icon: '🔫', iconImage: 'assets/icons/S12k-icon.png', category: 'weapon_ranged', rarity: 'epic', type: '散弹枪', price: 1500, equipSlot: 'weapon', weaponType: 'shotgun', weaponCategory: 'mainhand', weaponTypeTag: '远程武器', isTwoHanded: true, dropImage: 'assets/weapons/S12k-equip.png', equipImage: 'assets/weapons/S12k-equip.png', slotImage: 'assets/icons/S12k-icon.png', stats: [{ name: '物理攻击', value: '1-3' }, { name: '射程', value: '400' }], desc: 'SAIGA-12K 半自动散弹枪，一次击发4发弹丸，正常弹夹换弹，高射速近距离火力', level: 15, attack: { range: 400, knockback: 12.5, attackInterval: 150, hitType: '散弹（4发弹丸）', damageType: '物理', projectileSpeed: 1248 }, animation: { type: 'recoil（后坐力抖动）', totalMs: '150ms (约)', windupMs: '≈30', swingMs: '≈60', recoveryMs: '≈60', holdOffset: '(0, 6)', weaponSize: 96, timingMul: '0.15x (高速)', recoilAmount: '0.15rad', description: 'SAIGA-12K 以高射速开火，单次开火动画约150ms。一次击发4发弹丸，散布±20°。' }, weaponAsset: { image: 'assets/weapons/S12k-equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' } },
         { id: 'energy_lmg', weaponId: 'weapon15', name: '能量轻机枪', icon: '🔫', iconImage: 'assets/icons/devotion-icon.png', category: 'weapon_ranged', rarity: 'epic', type: '机枪', price: 2000, equipSlot: 'weapon', weaponType: 'energy_lmg', weaponCategory: 'mainhand', weaponTypeTag: '远程武器', isTwoHanded: true, dropImage: 'assets/weapons/devotion-equip.png', equipImage: 'assets/weapons/devotion-equip.png', slotImage: 'assets/icons/devotion-icon.png', stats: [{ name: '魔法攻击', value: '6+力量/精神' }, { name: '射程', value: '1200' }], desc: '能量轻机枪，无限子弹，亮绿色曳光弹，持续开火射速线性提升，过热冷却系统', level: 15, attack: { range: 1200, knockback: 0, attackInterval: 333, hitType: '亮绿色曳光弹（直线弹道）', damageType: '魔法', projectileSpeed: 1248 }, animation: { type: 'recoil（后坐力抖动）', totalMs: '333ms (约)', windupMs: '≈50', swingMs: '≈75', recoveryMs: '≈125', holdOffset: '(0, 6)', weaponSize: 96, timingMul: '0.25x (高速)', recoilAmount: '0.10rad', description: '能量轻机枪以可变射速连续射击，初始333ms间隔，持续开火后逐渐加速至50ms。采用后坐力抖动模式，亮绿色曳光弹。' }, weaponAsset: { image: 'assets/weapons/devotion-equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' }, energyLMGParams: { baseCooldown: 333, maxCooldown: 50, rampUpTime: 2500, overheatTime: 4000, overheatRecoverTime: 2500, overheatCooldownTime: 4000, spreadMaxTime: 2500, maxSpreadAngle: 15 } },
         { id: 'hp_potion', name: '治疗药水', icon: '🧪', iconImage: 'assets/items/health_potion.png', category: 'consumable', rarity: 'common', type: '消耗品', price: 100, stats: [{ name: '恢复生命', value: '+30' }], desc: '一瓶红色的药水，味道有点甜。饮用后可恢复30点生命值。', stack: 1, maxStack: 99 },
-        { id: 'mp_potion', name: '魔力药水', icon: '💧', iconImage: 'assets/items/mana_potion.png', category: 'consumable', rarity: 'common', type: '消耗品', price: 100, stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气。饮用后可恢复25点魔法值。', stack: 1, maxStack: 99 }
+        { id: 'mp_potion', name: '魔力药水', icon: '💧', iconImage: 'assets/items/mana_potion.png', category: 'consumable', rarity: 'common', type: '消耗品', price: 100, stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气。饮用后可恢复25点魔法值。', stack: 1, maxStack: 99 },
+        // 时空锚点代币（商店专供，shopPrice=稀有度标准价×2；物品 price=标准价）
+        { id: 'anchorTokenF', name: 'F 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'common', type: '祭品', price: 100, shopPrice: 200, stats: [{ name: '用途', value: 'F 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 F 级地牢的出征凭证。', stack: 1, maxStack: 999 },
+        { id: 'anchorTokenE', name: 'E 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'uncommon', type: '祭品', price: 200, shopPrice: 400, stats: [{ name: '用途', value: 'E 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 E 级地牢的出征凭证。', stack: 1, maxStack: 999 },
+        { id: 'anchorTokenD', name: 'D 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'rare', type: '祭品', price: 400, shopPrice: 800, stats: [{ name: '用途', value: 'D 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 D 级地牢的出征凭证。', stack: 1, maxStack: 999 },
+        { id: 'anchorTokenC', name: 'C 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'epic', type: '祭品', price: 800, shopPrice: 1600, stats: [{ name: '用途', value: 'C 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 C 级地牢的出征凭证。', stack: 1, maxStack: 999 },
+        { id: 'anchorTokenB', name: 'B 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'mythic', type: '祭品', price: 1600, shopPrice: 3200, stats: [{ name: '用途', value: 'B 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 B 级地牢的出征凭证。', stack: 1, maxStack: 999 },
+        { id: 'anchorTokenA', name: 'A 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'legendary', type: '祭品', price: 3200, shopPrice: 6400, stats: [{ name: '用途', value: 'A 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 A 级地牢的出征凭证。', stack: 1, maxStack: 999 }
     ],
 
     open(npc) {
@@ -91,17 +98,24 @@ const ShopSystem = {
             EquipManager._showBackpackFullNotice();
             return;
         }
-        if (this._getBackpackGold() < item.price) {
+        // 购买价：shopPrice（商店专供翻倍价）优先，缺省 price
+        const cost = item.shopPrice ?? item.price;
+        if (this._getBackpackGold() < cost) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '金币不足！', '#ff4444'));
             return;
         }
-        if (!this._deductGold(item.price)) {
+        if (!this._deductGold(cost)) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '金币不足！', '#ff4444'));
             return;
         }
         const itemClone = JSON.parse(JSON.stringify(item));
         delete itemClone.id;
-        delete itemClone.price;
+        if (item.shopPrice !== undefined) {
+            // 商店专供品（时空锚点代币）：保留物品自身 price（出售基准价），仅去除购买价字段
+            delete itemClone.shopPrice;
+        } else {
+            delete itemClone.price;
+        }
         EquipManager.addToInventory(itemClone);
         EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `购买成功：${item.name}`, '#ffd700'));
         this._updateUI();

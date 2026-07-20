@@ -220,11 +220,11 @@ function _rollRarity(entries) {
     return entries[entries.length - 1][0];
 }
 
-/** 从 ItemDatabase 中按稀有度随机选一件祭品（带 effects 数据驱动的才算） */
+/** 从 ItemDatabase 中按稀有度随机选一件祭品（带 effects 数据驱动的才算；shopOnly 商店专供代币永不进池） */
 function _pickTributeByRarity(rarity) {
     const items = ItemDatabase.items || {};
     const pool = Object.entries(items).filter(([, it]) =>
-        it && it.category === 'tribute' && it.rarity === rarity && it.effects);
+        it && it.category === 'tribute' && it.rarity === rarity && it.effects && !it.shopOnly);
     if (pool.length === 0) return null;
     const [id] = pool[Math.floor(Math.random() * pool.length)];
     return ItemDatabase.get(id);
