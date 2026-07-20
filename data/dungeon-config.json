@@ -1,71 +1,223 @@
 {
   "dungeonList": {
-    "zombie": { "name": "☠ 僵尸地牢高级", "nodeCount": "35~40", "battleRatio": "50%", "level": "1级", "reward": "1500金币", "grade": "D" },
-    "zombieBeginner": { "name": "☠ 僵尸地牢-初级", "nodeCount": "22", "battleRatio": "40%", "level": "1级", "reward": "800金币", "grade": "F" }
+    "zombie": {
+      "name": "☠ 僵尸地牢高级",
+      "nodeCount": "35~40",
+      "battleRatio": "50%",
+      "level": "1级",
+      "reward": "1500金币",
+      "grade": "D"
+    },
+    "zombieBeginner": {
+      "name": "☠ 僵尸地牢-初级",
+      "nodeCount": "22",
+      "battleRatio": "40%",
+      "level": "1级",
+      "reward": "800金币",
+      "grade": "F"
+    },
+    "zombieMid": {
+      "name": "☠ 僵尸地牢-中级",
+      "nodeCount": "30",
+      "battleRatio": "50%",
+      "level": "1级",
+      "reward": "1200金币",
+      "grade": "E"
+    }
   },
   "zombieDungeon": {
-    "nodeCount": { "min": 35, "max": 40 },
+    "nodeCount": {
+      "min": 35,
+      "max": 40
+    },
     "shortestCombatPath": 5,
-    "typeRatios": { "combat": 0.50, "event": 0.50 },
+    "typeRatios": {
+      "combat": 0.5,
+      "event": 0.5
+    },
     "eliteCombatChance": 0.35,
     "encounters": {
       "normal": {
         "combatWaves": 3,
         "monstersPerWave": 5,
-        "tierWeights": { "normal": 1, "elite": 0 },
+        "tierWeights": {
+          "normal": 1,
+          "elite": 0
+        },
         "guaranteeAtLeastOneElite": false
       },
       "elite": {
         "combatWaves": 1,
         "monstersPerWave": 6,
-        "monsterComposition": { "elite": 1, "normal": 5 },
-        "tierWeights": { "normal": 0, "elite": 1 },
+        "monsterComposition": {
+          "elite": 1,
+          "normal": 5
+        },
+        "tierWeights": {
+          "normal": 0,
+          "elite": 1
+        },
         "guaranteeAtLeastOneElite": false
       }
     },
     "eliteChestReward": {
       "items": [
-        { "type": "gold", "count": 100 },
-        { "type": "reforge_ticket", "count": 1 },
-        { "type": "weapon", "rarity": "common", "count": 1 }
+        {
+          "type": "gold",
+          "count": 100
+        },
+        {
+          "type": "reforge_ticket",
+          "count": 1
+        },
+        {
+          "type": "weapon",
+          "rarity": "common",
+          "count": 1
+        }
       ]
     },
-    "grid": { "rows": 4, "colSpacing": 160, "rowSpacing": 140, "mainRow": 1 },
-    "startRows": [0, 1, 2, 3],
-    "bossReward": { "bossBeforeLastCol": true, "rewardAfterBoss": true },
+    "grid": {
+      "rows": 4,
+      "colSpacing": 160,
+      "rowSpacing": 140,
+      "mainRow": 1
+    },
+    "startRows": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "bossReward": {
+      "bossBeforeLastCol": true,
+      "rewardAfterBoss": true
+    },
     "nodeDisplay": {
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
     }
   },
   "zombieDungeonBeginner": {
-    "nodeCount": { "min": 22, "max": 22 },
+    "nodeCount": {
+      "min": 22,
+      "max": 22
+    },
     "shortestCombatPath": 7,
     "mainRowMinCombat": 3,
-    "typeRatios": { "combat": 0.40, "event": 0.60 },
+    "typeRatios": {
+      "combat": 0.4,
+      "event": 0.6
+    },
     "eliteCombatChance": 0,
     "encounters": {
       "normal": {
         "combatWaves": 3,
         "monstersPerWave": 5,
-        "tierWeights": { "normal": 1, "elite": 0 },
+        "tierWeights": {
+          "normal": 1,
+          "elite": 0
+        },
         "guaranteeAtLeastOneElite": false
       },
       "elite": {
         "combatWaves": 1,
         "monstersPerWave": 6,
-        "monsterComposition": { "elite": 1, "normal": 5 },
-        "tierWeights": { "normal": 0, "elite": 1 },
+        "monsterComposition": {
+          "elite": 1,
+          "normal": 5
+        },
+        "tierWeights": {
+          "normal": 0,
+          "elite": 1
+        },
         "guaranteeAtLeastOneElite": false
       }
     },
-    "grid": { "rows": 3, "colSpacing": 160, "rowSpacing": 140, "mainRow": 1 },
-    "startRows": [0, 1, 2],
-    "bossReward": { "bossBeforeLastCol": true, "rewardAfterBoss": true },
+    "grid": {
+      "rows": 3,
+      "colSpacing": 160,
+      "rowSpacing": 140,
+      "mainRow": 1
+    },
+    "startRows": [
+      0,
+      1,
+      2
+    ],
+    "bossReward": {
+      "bossBeforeLastCol": true,
+      "rewardAfterBoss": true
+    },
     "bossEncounter": {
       "combatWaves": 1,
       "monstersPerWave": 6,
-      "monsterComposition": { "elite": 1, "normal": 5 }
+      "monsterComposition": {
+        "elite": 1,
+        "normal": 5
+      }
+    },
+    "nodeDisplay": {
+      "unrevealedIcon": "?",
+      "completedCombatType": "empty"
+    }
+  },
+  "zombieDungeonMid": {
+    "nodeCount": {
+      "min": 30,
+      "max": 30
+    },
+    "shortestCombatPath": 4,
+    "typeRatios": {
+      "combat": 0.5,
+      "event": 0.5
+    },
+    "eliteCombatChance": 0.4,
+    "encounters": {
+      "normal": {
+        "combatWaves": 3,
+        "monstersPerWave": 5,
+        "tierWeights": {
+          "normal": 1,
+          "elite": 0
+        },
+        "guaranteeAtLeastOneElite": false
+      },
+      "elite": {
+        "combatWaves": 1,
+        "monstersPerWave": 6,
+        "monsterComposition": {
+          "elite": 1,
+          "normal": 5
+        },
+        "tierWeights": {
+          "normal": 0,
+          "elite": 1
+        },
+        "guaranteeAtLeastOneElite": false
+      }
+    },
+    "grid": {
+      "rows": 3,
+      "colSpacing": 160,
+      "rowSpacing": 140,
+      "mainRow": 1
+    },
+    "startRows": [
+      0,
+      1,
+      2
+    ],
+    "bossReward": {
+      "bossBeforeLastCol": true,
+      "rewardAfterBoss": true
+    },
+    "bossEncounter": {
+      "combatWaves": 1,
+      "monstersPerWave": 1,
+      "monsterComposition": {
+        "lord": 1
+      }
     },
     "nodeDisplay": {
       "unrevealedIcon": "?",
@@ -73,7 +225,11 @@
     }
   },
   "combatRoom": {
-    "normalSize": { "min": 1024, "max": 2048, "step": 256 },
+    "normalSize": {
+      "min": 1024,
+      "max": 2048,
+      "step": 256
+    },
     "bossSize": 1024,
     "wallThickness": 20,
     "spawn": {
@@ -101,18 +257,42 @@
       "title": "古老女神像",
       "description": "你拨开垂落的藤蔓，一座被岁月侵蚀却依然圣洁的女神像出现在眼前。她的双眼由两颗失去光泽的蓝宝石镶嵌而成，但当你靠近时，水滴状的水晶开始泛起柔和的乳白色光芒。空气中弥漫着净化的气息，你感到疲惫的身躯正在渴望这份神圣的馈赠。石台边缘刻着古老的符文：「祈求者，择一而受。」",
       "choices": [
-        { "id": "heal", "label": "祈求恢复", "description": "女神的光芒将治愈所有伤痛，恢复全部生命值与魔法值", "type": "heal" },
-        { "id": "bless", "label": "请求祝福", "description": "获得女神祝福：物攻/魔攻 +15%，持续 3 场战斗", "type": "bless" },
-        { "id": "reward", "label": "接受馈赠", "description": "女神像底座开启，获得强化石、改造券与魔法粉尘", "type": "reward" }
+        {
+          "id": "heal",
+          "label": "祈求恢复",
+          "description": "女神的光芒将治愈所有伤痛，恢复全部生命值与魔法值",
+          "type": "heal"
+        },
+        {
+          "id": "bless",
+          "label": "请求祝福",
+          "description": "获得女神祝福：物攻/魔攻 +15%，持续 3 场战斗",
+          "type": "bless"
+        },
+        {
+          "id": "reward",
+          "label": "接受馈赠",
+          "description": "女神像底座开启，获得强化石、改造券与魔法粉尘",
+          "type": "reward"
+        }
       ],
       "healPercent": 100,
       "blessAtkPercent": 15,
       "blessDuration": 3,
       "reward": {
         "items": [
-          { "type": "enhancement_stone", "count": 1 },
-          { "type": "reforge_ticket", "count": 1 },
-          { "type": "magic_dust", "count": 200 }
+          {
+            "type": "enhancement_stone",
+            "count": 1
+          },
+          {
+            "type": "reforge_ticket",
+            "count": 1
+          },
+          {
+            "type": "magic_dust",
+            "count": 200
+          }
         ]
       }
     },
@@ -120,8 +300,22 @@
       "title": "古老陷阱",
       "description": "通道在这里骤然变窄，地面上的石板有几处微微下沉。你敏锐地注意到几根几乎透明的丝线横亘在脚踝高度，连接着两侧墙缝中锈迹斑斑的金属机关。一阵微风从深处吹来，丝线发出几乎不可闻的颤动声。你可以选择小心解除这些致命装置，或者赌上体魄强行冲过去。",
       "choices": {
-        "disarm": { "id": "disarm", "label": "解除陷阱", "attribute": "dex", "baseRate": 25, "successText": "你屏住呼吸，用匕首挑开最后一根触发线。机关发出沉闷的咔哒声，彻底哑火了。", "failText": "你的手指刚碰到丝线，机关便轰然启动！锋利的刀片从墙壁射出，在你身上留下数道血痕。" },
-        "cross": { "id": "cross", "label": "强行跨越", "attribute": "con", "baseRate": 30, "successText": "你护住要害，以最快的速度冲过陷阱区域。几支毒箭擦过铠甲，但终究是过来了。", "failText": "你低估了陷阱的密集程度。毒箭深深刺入你的肩膀，剧痛让你眼前发黑，几乎跪倒在地。" }
+        "disarm": {
+          "id": "disarm",
+          "label": "解除陷阱",
+          "attribute": "dex",
+          "baseRate": 25,
+          "successText": "你屏住呼吸，用匕首挑开最后一根触发线。机关发出沉闷的咔哒声，彻底哑火了。",
+          "failText": "你的手指刚碰到丝线，机关便轰然启动！锋利的刀片从墙壁射出，在你身上留下数道血痕。"
+        },
+        "cross": {
+          "id": "cross",
+          "label": "强行跨越",
+          "attribute": "con",
+          "baseRate": 30,
+          "successText": "你护住要害，以最快的速度冲过陷阱区域。几支毒箭擦过铠甲，但终究是过来了。",
+          "failText": "你低估了陷阱的密集程度。毒箭深深刺入你的肩膀，剧痛让你眼前发黑，几乎跪倒在地。"
+        }
       },
       "failDamagePercent": 25
     },
@@ -129,8 +323,23 @@
       "title": "冒险者遗物",
       "description": "角落的阴影中散落着一只破损的皮背包、半卷绳索和一件被撕裂的链甲。从装备上看，这曾是一位经验丰富的冒险者，但现在只剩下无声的遗物。血迹已经发黑，延伸向另一条通道。也许补给品还藏在背包夹层里，或者你可以搜索周围寻找他留下的路线线索——但要小心，地牢从不放过粗心的人。",
       "choices": {
-        "search": { "id": "search", "label": "仔细搜寻", "attribute": "wis", "baseRate": 40, "successText": "你耐心地翻找每一处夹层，终于在背包底部发现了一瓶尚未开封的药水。", "failText": "你把背包翻了个底朝天，只找到一些发霉的干粮和一张被虫蛀坏的地图残片。" },
-        "inspect": { "id": "inspect", "label": "探查四周", "attribute": "dex", "baseRate": 35, "successText": "你压低身形，借着微弱的火光检查地面与墙壁。一处被碎石遮掩的暗格引起了你的注意。", "failText": "你仔细检查了每一个角落，但暗格里的东西早已被搜刮一空，只剩下一层薄薄的灰尘。", "revealDepth": 2 }
+        "search": {
+          "id": "search",
+          "label": "仔细搜寻",
+          "attribute": "wis",
+          "baseRate": 40,
+          "successText": "你耐心地翻找每一处夹层，终于在背包底部发现了一瓶尚未开封的药水。",
+          "failText": "你把背包翻了个底朝天，只找到一些发霉的干粮和一张被虫蛀坏的地图残片。"
+        },
+        "inspect": {
+          "id": "inspect",
+          "label": "探查四周",
+          "attribute": "dex",
+          "baseRate": 35,
+          "successText": "你压低身形，借着微弱的火光检查地面与墙壁。一处被碎石遮掩的暗格引起了你的注意。",
+          "failText": "你仔细检查了每一个角落，但暗格里的东西早已被搜刮一空，只剩下一层薄薄的灰尘。",
+          "revealDepth": 2
+        }
       },
       "searchReward": {
         "type": "potion",
@@ -138,19 +347,41 @@
         "hpChance": 0.5,
         "mpChance": 0.5
       },
-      "failReward": { "type": "none" }
+      "failReward": {
+        "type": "none"
+      }
     },
     "treasureChest": {
       "title": "神秘宝箱",
       "description": "石室的中央突兀地立着一口宝箱，胡桃木的外壳上镶嵌着仍在微微发光的银色符文。锁扣已经锈蚀，但箱盖缝隙中透出温暖的金色光芒，伴随着金属碰撞般的轻响。你隐约记得老冒险者的警告：「地牢里的每一口宝箱都在等待贪婪者。」然而那光芒实在太过诱人……",
       "outcomes": [
-        { "type": "gold", "chance": 0.50, "amount": 500 },
-        { "type": "materials", "chance": 0.25, "items": [
-          { "type": "enhancement_stone", "count": 1 },
-          { "type": "reforge_ticket", "count": 1 },
-          { "type": "magic_dust", "count": 200 }
-        ]},
-        { "type": "combat", "chance": 0.25 }
+        {
+          "type": "gold",
+          "chance": 0.5,
+          "amount": 500
+        },
+        {
+          "type": "materials",
+          "chance": 0.25,
+          "items": [
+            {
+              "type": "enhancement_stone",
+              "count": 1
+            },
+            {
+              "type": "reforge_ticket",
+              "count": 1
+            },
+            {
+              "type": "magic_dust",
+              "count": 200
+            }
+          ]
+        },
+        {
+          "type": "combat",
+          "chance": 0.25
+        }
       ],
       "combatText": "宝箱突然张开，里面钻出了一只宝箱怪！"
     },
@@ -158,20 +389,67 @@
       "title": "恶魔雕像",
       "description": "空气变得灼热而粘稠，一尊由黑曜石雕琢而成的恶魔雕像踞坐在血红色的基座上。它的双眼是两枚不断转动的暗红宝石，仿佛能直视你灵魂最深处的欲望。雕像底座刻着一行小字：「以血与魔为祭，换取深渊的馈赠。」你感到一种古老而邪恶的力量正在邀请你进行一场危险的交易。",
       "choices": {
-        "pray": { "id": "pray", "label": "向恶魔祈祷", "description": "失去50%当前生命值和魔法值，获得物理攻击/魔法攻击+33%的buff", "type": "sacrifice", "sacrificeHpPercent": 50, "sacrificeMpPercent": 50, "buff": { "atkPercent": 33 } },
-        "reward": { "id": "reward", "label": "恶魔祈求奖励", "description": "失去50%当前生命值和魔法值，获得2颗强化石、2张改造券、400魔法粉尘", "type": "sacrifice", "sacrificeHpPercent": 50, "sacrificeMpPercent": 50, "items": [
-          { "type": "enhancement_stone", "count": 2 },
-          { "type": "reforge_ticket", "count": 2 },
-          { "type": "magic_dust", "count": 400 }
-        ]}
+        "pray": {
+          "id": "pray",
+          "label": "向恶魔祈祷",
+          "description": "失去50%当前生命值和魔法值，获得物理攻击/魔法攻击+33%的buff",
+          "type": "sacrifice",
+          "sacrificeHpPercent": 50,
+          "sacrificeMpPercent": 50,
+          "buff": {
+            "atkPercent": 33
+          }
+        },
+        "reward": {
+          "id": "reward",
+          "label": "恶魔祈求奖励",
+          "description": "失去50%当前生命值和魔法值，获得2颗强化石、2张改造券、400魔法粉尘",
+          "type": "sacrifice",
+          "sacrificeHpPercent": 50,
+          "sacrificeMpPercent": 50,
+          "items": [
+            {
+              "type": "enhancement_stone",
+              "count": 2
+            },
+            {
+              "type": "reforge_ticket",
+              "count": 2
+            },
+            {
+              "type": "magic_dust",
+              "count": 400
+            }
+          ]
+        }
       }
     },
     "specialItems": {
-      "enhancement_stone": { "name": "强化石", "icon": "💎", "category": "enhancement" },
-      "reforge_ticket": { "name": "改造券", "icon": "🎫", "category": "enhancement" },
-      "magic_dust": { "name": "魔法粉尘", "icon": "✨", "category": "material" },
-      "hp_potion": { "name": "治疗药水", "icon": "🧪", "category": "consumable" },
-      "mp_potion": { "name": "魔力药水", "icon": "💧", "category": "consumable" }
+      "enhancement_stone": {
+        "name": "强化石",
+        "icon": "💎",
+        "category": "enhancement"
+      },
+      "reforge_ticket": {
+        "name": "改造券",
+        "icon": "🎫",
+        "category": "enhancement"
+      },
+      "magic_dust": {
+        "name": "魔法粉尘",
+        "icon": "✨",
+        "category": "material"
+      },
+      "hp_potion": {
+        "name": "治疗药水",
+        "icon": "🧪",
+        "category": "consumable"
+      },
+      "mp_potion": {
+        "name": "魔力药水",
+        "icon": "💧",
+        "category": "consumable"
+      }
     }
   }
 }

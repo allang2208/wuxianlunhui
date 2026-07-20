@@ -811,8 +811,8 @@ export const DungeonMapSystem = {
     },
 
     _enterBoss(node) {
-        // 初级地牢：Boss 战为精英战斗事件的独立副本，走普通僵尸战斗流程
-        if (this.dungeonType === 'zombieBeginner') {
+        // Boss 战为独立遭遇配置（bossEncounter）的地牢：走普通战斗流程（初级精英副本、中级领主池等）
+        if (DungeonConfig.getBossEncounterConfig(this.dungeonType)) {
             this._enterBossCombat(node);
             return;
         }

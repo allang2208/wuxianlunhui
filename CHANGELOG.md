@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（僵尸地牢-中级（E 级）+ 地牢工作流与要素表）
+
+### 对话：建立地牢工作流 + 新增中级地牢 + Boss 领主池 + 地牢表格
+- **新地牢「僵尸地牢-中级」（zombieMid，E 级）**：30 房间、起始 3 条路线（startRows [0,1,2]）、战斗/事件 50%/50%、精英战斗 40%、最短路径 4 场战斗；Boss 战独立遭遇 `monsterComposition: { lord: 1 }`——**从领主池随机抽 1 只**（新增 `monsterPool.lord` getter：跨 family 按 rank='lord' 筛，当前=手脑；`ZOMBIE_FACTORY_MAP` 注册 shounao + createShounao 工厂）。
+- **Boss 分支去硬编码**：`_enterBoss` 由按地牢名特判（'zombieBeginner'）改为配置驱动——`bossEncounter` 存在即走独立遭遇流程，新地牢零代码接入。
+- **登记**：`_keyFor` 加 zombieMid→zombieDungeonMid 映射（工作流保留的唯一硬编码点）；dungeonList 展示元数据同步，出征选择器/说明栏自动出现。
+- **地牢添加标准工作流入库**（SKILL.md）：展示元数据→配置块（房间/比例/精英/遭遇/grid/起始路线/bossEncounter）→_keyFor 登记→怪物池→验证五步；事件与奖励对应关系由 grade 驱动。
+- **地牢要素表**：`scripts/generate-dungeons-table.mjs` 生成 `dungeons-table.md`（房间数/起始路线/战斗事件比/精英率/最短战斗/Boss 构成，一地牢一行）。
+- **修改文件**：data/dungeon-config.json、src/config/dungeon-config.js、src/world/zombie-dungeon.js、src/world/dungeon-map-system.js、scripts/generate-dungeons-table.mjs（新）、dungeons-table.md（新）、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①出征界面出现中级并正确显示 E 级门槛（优质祭品）；②Boss 战刷出手脑且 lord 掉落/经验生效；③事件池 E±1（D~F 级限定）与 E 级奖励档。
+
 ## 2026-07-20（手脑碰撞再调 + 仓库拖拽系统接入）
 
 ### 对话：手脑下移/横拉 + 仓库拖拽防丢弃与仓到包失灵

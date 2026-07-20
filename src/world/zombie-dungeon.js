@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -150,6 +150,24 @@ export function createArmoredKnight(x, y) {
     });
 }
 
+export function createShounao(x, y) {
+    const cfg = enemyConfigData.shounao;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: shounao');
+        return new Shounao(x, y, { name: 'shounao', hp: 1500, maxHp: 1500, size: 40, showWeapon: false });
+    }
+    return new Shounao(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
@@ -158,7 +176,8 @@ const ZOMBIE_FACTORY_MAP = {
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,
-    armoredKnight: createArmoredKnight
+    armoredKnight: createArmoredKnight,
+    shounao: createShounao
 };
 
 const ZOMBIE_DUNGEON_CONFIG = {
@@ -177,6 +196,12 @@ const ZOMBIE_DUNGEON_CONFIG = {
         get elite() {
             return Object.entries(enemyConfigData)
                 .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
+        },
+        // lord 领主池：跨 family 按 rank 抽取（Boss 池，如手脑；用于 monsterComposition { lord: N }）
+        get lord() {
+            return Object.entries(enemyConfigData)
+                .filter(([key, cfg]) => cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },
