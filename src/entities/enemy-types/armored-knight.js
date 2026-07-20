@@ -105,10 +105,10 @@ export class ArmoredKnight extends Enemy {
             return;
         }
 
-        // 动作状态推进（进行中的动作优先）
-        if (this._animState === 'combo') { this._updateCombo(dt); return; }
-        if (this._animState === 'charge') { this._updateCharge(dt); return; }
-        if (this._animState === 'defend') { this._updateBlock(dt); return; }
+        // 动作状态推进（进行中的动作优先；同步粒子后 return，保证冲锋/连击/格挡期间粒子跟随）
+        if (this._animState === 'combo') { this._updateCombo(dt); this._syncHeadParticles(); return; }
+        if (this._animState === 'charge') { this._updateCharge(dt); this._syncHeadParticles(); return; }
+        if (this._animState === 'defend') { this._updateBlock(dt); this._syncHeadParticles(); return; }
 
         // 普通 AI 移动
         super.update(dt, entities);

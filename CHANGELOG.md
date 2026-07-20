@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑碰撞复位 + 修复骑士粒子冲锋不跟随）
+
+### 对话：手脑下移过多复位 + 粒子冲锋时在原地不动
+- **手脑碰撞复位**：`colliderOffsetY` 140 → 0（基类修复后 140 首次真实生效即过大；归零由用户重新逐步调整）。
+- **粒子冲锋不跟随根因**：`update()` 的动作分支（combo/charge/defend）**直接 return**——`_syncHeadParticles()` 在这些状态下从未执行，发射点停在冲锋起点；撞击结束回到常规路径后发射点才瞬移到骑士身边（与用户观测完全吻合）。
+- **修复**：三个动作分支在 return 前补 `this._syncHeadParticles()`——冲锋全程发射点绑定贴图，拖尾正确拉在身后。
+- **修改文件**：src/entities/enemy-types/armored-knight.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①冲锋全程粒子跟随+身后拖尾；②手脑碰撞归零后对齐。
+
 ## 2026-07-20（修复：setGravity is not a function 游戏循环报错）
 
 ### 对话：game.js:741 Game loop error（骑士粒子冲锋拖尾）
