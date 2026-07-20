@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（光晕修复：贴图被挖空 + 加宽 10px）
+
+### 对话：光晕覆盖贴图不显示 + 太薄
+- **根因**：`knockout: true` 的真实语义是"只画光晕、不画贴图本体"（only the glow is drawn, not the texture itself）——上一版把"轮廓外显示"误实现为挖空贴图。纠正 `knockout: false`：贴图完整显示，光晕从轮廓边缘向外自然渐变（即用户要的"轮廓外显示"效果）。
+- **加宽**：distance 3 → 10px。
+- **修改文件**：src/entities/drop-item.js、SKILL.md（knockout 语义纠正）、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——贴图本体+10px 轮廓光晕同时正常显示。
+
 ## 2026-07-20（植物贴图主体统一居中）
 
 ### 对话：贴图不裁剪、调整比例使主体等大且居中

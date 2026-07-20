@@ -1406,4 +1406,4 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
 - Phaser 3.60 的 `sprite.postFX.addGlow(...)` 在 **Phaser 4 已移除**——`sprite.postFX` 为 undefined，静默失败不报错。
 - Phaser 4 正确用法：`sprite.enableFilters().filters.internal.addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)`（Camera 上为 `camera.filters.internal/external`）。
 - addGlow 参数顺序与 v3 不同（第 4 位是 scale，第 5 位才是 knockout），迁移时逐位核对。
-- knockout=true 只渲染轮廓外光晕（贴图本体不叠光）。
+- knockout=true 会把贴图本体完全隐藏只留光晕（"only the glow is drawn, not the texture itself"）——要"贴图正常+轮廓外光晕"必须用 knockout=false，光晕会自然从贴图边缘向外渐变。
