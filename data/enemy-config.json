@@ -1020,7 +1020,8 @@
       "idleFrameHeight": 512,
       "idleFrameCount": 1,
       "idleSheetColumns": 8
-    }
+    },
+    "height": 146
   },
   "shounao": {
     "id": "shounao",
@@ -1030,7 +1031,7 @@
     "family": "手脑",
     "color": "#7a5a6a",
     "size": 40,
-    "collisionRadius": 30,
+    "collisionRadius": 39,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 160,
@@ -1094,10 +1095,11 @@
       "footOffsetY": 50,
       "projectileHitbox": {
         "width": 80,
-        "height": 110,
+        "height": 160,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "colliderOffsetY": 50
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",
@@ -1116,7 +1118,8 @@
         "name": "嚎叫",
         "desc": "持续 3 秒的精神嚎叫，600px 范围内每 0.5s 受到魔法攻击 ×0.5 的魔法伤害"
       }
-    ]
+    ],
+    "height": 110
   },
   "mutant3": {
     "id": "mutant3",
