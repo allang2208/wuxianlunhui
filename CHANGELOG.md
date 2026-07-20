@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（怪物名字按等级着色）
+
+### 对话：精英紫 / 领主橙 / 首领红
+- **实现**：`_syncEntityHud` 普通敌人名字按 `entity.rank` 着色——`RANK_NAME_COLORS = { elite: '#c67affcc', lord: '#ffa500cc' }`（含原透明度 cc）；boss 走 bossName 样式（#ff5050 红）保持不变；普通怪维持米白默认。
+- **修改文件**：src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——骑士紫名、手脑橙名、集合体红名。
+
 ## 2026-07-20（手脑/蝇群删除默认普攻 + 蝇群碰撞下移）
 
 ### 对话：删除手脑多余普攻模式 + 蝇群仅保留触碰伤害
