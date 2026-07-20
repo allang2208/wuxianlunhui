@@ -1031,7 +1031,7 @@
     "name": "手脑",
     "type": "领主",
     "category": "monster",
-    "family": "手脑",
+    "family": "僵尸",
     "color": "#7a5a6a",
     "size": 40,
     "collisionRadius": 59,
@@ -1097,7 +1097,8 @@
         "tickMs": 500,
         "damageMul": 0.5,
         "damageType": "magic",
-        "triggerRange": 600
+        "triggerRange": 600,
+        "fearMs": 3000
       }
     },
     "render": {
@@ -1138,7 +1139,7 @@
     "name": "蝇群",
     "type": "普通",
     "category": "monster",
-    "family": "蝇群",
+    "family": "僵尸",
     "color": "#3a4a3a",
     "size": 32,
     "collisionRadius": 45,
@@ -1170,17 +1171,17 @@
     "hitCircles": [
       {
         "x": 0,
-        "y": 0,
+        "y": 25,
         "r": 34
       },
       {
         "x": -26,
-        "y": 4,
+        "y": 29,
         "r": 22
       },
       {
         "x": 26,
-        "y": 4,
+        "y": 29,
         "r": 22
       }
     ],

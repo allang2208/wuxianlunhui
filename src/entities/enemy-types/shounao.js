@@ -19,6 +19,8 @@ export class Shounao extends Enemy {
         });
         this._useStickFigure = false;
         this._animState = 'idle'; // idle | walk | slam | howl
+        // 攻击完全由本类技能自管（slam/howl）：关闭 CombatSystem 的通用近战触发（同集合体模式），无默认普攻
+        this.aiInterval = Number.MAX_SAFE_INTEGER;
         // 动作期间锁定 MovementSystem（与集合体/骑士同机制）：>0 时外部系统不驱动移动
         this._attackAnimTimer = 0;
 
@@ -66,6 +68,11 @@ export class Shounao extends Enemy {
             this.vy = 0;
             this.isMoving = false;
             this._animState = 'idle';
+            return;
+        }
+
+        // 恐惧时技能/动作中断（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
             return;
         }
 
@@ -335,6 +342,8 @@ export class Shounao extends Enemy {
         for (const e of this._hostiles(entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);
+            // 嚎叫恐惧：每次伤害对目标附加恐惧（层数叠加、孰长刷新由 applyFear 处理）
+            if (typeof e.applyFear === 'function') e.applyFear(cfg.fearMs ?? 3000, this);
         }
     }
 

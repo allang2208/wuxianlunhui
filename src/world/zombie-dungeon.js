@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -168,6 +168,24 @@ export function createShounao(x, y) {
     });
 }
 
+export function createFlySwarm(x, y) {
+    const cfg = enemyConfigData.flySwarm;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: flySwarm');
+        return new FlySwarm(x, y, { name: 'flySwarm', hp: 80, maxHp: 80, size: 32, showWeapon: false });
+    }
+    return new FlySwarm(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
@@ -177,7 +195,8 @@ const ZOMBIE_FACTORY_MAP = {
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,
     armoredKnight: createArmoredKnight,
-    shounao: createShounao
+    shounao: createShounao,
+    flySwarm: createFlySwarm
 };
 
 const ZOMBIE_DUNGEON_CONFIG = {

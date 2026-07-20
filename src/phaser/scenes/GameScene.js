@@ -2482,6 +2482,10 @@ export class GameScene extends Scene {
         }
         const nameText = this._getEntityHudText(entity, 'name');
         nameText.setText(entity.name || '');
+        // 名字颜色按怪物等级：精英紫 / 领主橙 / 首领红（boss 走 bossName 样式，已是红色）
+        const RANK_NAME_COLORS = { elite: '#c67affcc', lord: '#ffa500cc' };
+        const rankColor = RANK_NAME_COLORS[entity.rank];
+        nameText.setColor(rankColor || '#d4c5a9cc');
         nameText.setPosition(x, topY + hudDy - 6);
         nameText.setVisible(true);
     }

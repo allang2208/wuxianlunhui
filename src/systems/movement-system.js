@@ -75,6 +75,37 @@ const MovementSystem = {
             return;
         }
 
+        // 恐惧状态：失控逃跑——强制朝恐惧源相反方向移动（移速按层数削减），不做其他移动决策
+        if (enemy.hasStatusEffect && enemy.hasStatusEffect('fear')) {
+            const src = enemy._fearSource;
+            if (src && src.active) {
+                const dx = enemy.x - src.x, dy = enemy.y - src.y;
+                const d = Math.hypot(dx, dy) || 1;
+                const mul = typeof enemy.getFearSpeedMul === 'function' ? enemy.getFearSpeedMul() : 1;
+                const spd = (enemy.maxSpeed ?? enemy.speed ?? 100) * mul;
+                enemy.vx = (dx / d) * spd;
+                enemy.vy = (dy / d) * spd;
+                enemy.isMoving = true;
+                // 墙壁解析与正常移动同口径（逃跑不可穿墙）
+                const sc = dt / 1000;
+                const nx = enemy.x + enemy.vx * sc;
+                const ny = enemy.y + enemy.vy * sc;
+                if (WallSystem && WallSystem.resolve) {
+                    const er = WallSystem.resolve(enemy.x, enemy.y, nx, ny, enemy.groundRadius);
+                    enemy.x = er.x;
+                    enemy.y = er.y;
+                } else {
+                    enemy.x = nx;
+                    enemy.y = ny;
+                }
+            } else {
+                enemy.vx = 0;
+                enemy.vy = 0;
+                enemy.isMoving = false;
+            }
+            return;
+        }
+
         // [FIX] 攻击动画锁定：僵尸巫师等攻击动画期间禁止移动
         if (enemy._attackAnimTimer > 0) {
             enemy.vx = 0;

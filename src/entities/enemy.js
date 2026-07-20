@@ -466,6 +466,11 @@ import { loadImage } from '../utils/image-loader.js';
                     return;
                 }
 
+                // 恐惧状态：技能/攻击决策中断（移动由 MovementSystem 恐惧分支接管，朝反方向逃跑）
+                if (this.hasStatusEffect('fear')) {
+                    return;
+                }
+
                 // 配置驱动的线性突进（attack.lungeDistance > 0，攻击动画期间匀速位移）
                 this._updateLunge();
 

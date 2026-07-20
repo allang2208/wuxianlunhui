@@ -8,6 +8,51 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（手脑/蝇群归入僵尸 family）
+
+### 对话：删除独立 family，归入僵尸
+- **配置**：shounao.family '手脑' → '僵尸'；flySwarm.family '蝇群' → '僵尸'（enemy-config.json）。
+- **联动**：
+  - 蝇群（rank normal）**进入僵尸地牢普通怪物池**——补注册 `createFlySwarm` 工厂 + `ZOMBIE_FACTORY_MAP.flySwarm`（普通池筛选条件：family 僵尸 + rank 非 elite/lord/boss + 工厂已注册，三者齐备）；
+  - 手脑（rank lord）已在跨 family 的 lord 池，family 归一无池变化；
+  - 受击粒子此前已去 family 过滤，无影响；代码中无其他按 family 名字面量引用。
+- **修改文件**：data/enemy-config.json、src/world/zombie-dungeon.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——僵尸地牢普通战斗中刷出蝇群。
+
+## 2026-07-20（怪物名字按等级着色）
+
+### 对话：精英紫 / 领主橙 / 首领红
+- **实现**：`_syncEntityHud` 普通敌人名字按 `entity.rank` 着色——`RANK_NAME_COLORS = { elite: '#c67affcc', lord: '#ffa500cc' }`（含原透明度 cc）；boss 走 bossName 样式（#ff5050 红）保持不变；普通怪维持米白默认。
+- **修改文件**：src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——骑士紫名、手脑橙名、集合体红名。
+
+## 2026-07-20（手脑/蝇群删除默认普攻 + 蝇群碰撞下移）
+
+### 对话：删除手脑多余普攻模式 + 蝇群仅保留触碰伤害
+- **根因**：CombatSystem 按 `aiInterval` 周期性触发基类默认近战普攻（thrust）——手脑在 slam/howl 之外还有第三套普攻。
+- **修复**：手脑/蝇群 constructor 设 `this.aiInterval = Number.MAX_SAFE_INTEGER`（集合体同款"攻击完全由本类自管"模式）——手脑只剩砸地/嚎叫，蝇群只剩三位一体触碰伤害。
+- **蝇群碰撞区下移**：hitCircles 三圆 y 各 +25（中心 (0,25,r34)、左右 (±26,29,r22)）。
+- **修改文件**：src/entities/enemy-types/shounao.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①手脑不再出现 thrust 普攻；②蝇群仅触碰伤害；③碰撞区对齐。
+
+## 2026-07-20（debuff「恐惧」+ Buff/Debuff 工作流）
+
+### 对话：建立 buff/debuff 工作流 + 恐惧效果 + 手脑嚎叫附加
+- **恐惧效果**（`applyFear(duration, source)`，基类 damageable-entity）：
+  - 受影响单位朝恐惧源**相反方向**移动；玩家失控（输入全部无效、防御取消、墙壁解析不可穿墙）；
+  - 移速 -33%/层，持续内再受恐惧 +1 层（上限 3 层 = -99%），`getFearSpeedMul()` 下限 0.01；
+  - 持续时间**孰长刷新**（复用 addStatusEffect 内置 Math.max 语义）；层数独立叠加；
+  - 状态栏显示：STATUS_CONFIG 注册 😱恐惧（紫色）；玩家自身中恐惧才进左上角 StatusBar（怪物不占玩家 UI）。
+- **生效三层**：玩家 update.js 恐惧分支（失控反向跑）；MovementSystem 恐惧分支（怪物逃跑+墙壁解析）；Enemy 基类 + 骑士/手脑/蝇群各自 update 恐惧中断（技能/动作停摆）。
+- **手脑嚎叫**：每跳伤害对目标 `applyFear(fearMs, this)`——`howl.fearMs: 3000` 配置化。
+- **工作流入库**（SKILL.md）：STATUS_CONFIG 注册→apply 方法（孰长刷新/叠层/玩家UI分支/浮动文字）→三层生效点（玩家分支/MovementSystem 接管/基类+子类中断）→数值配置化→验证五步。
+- **修改文件**：src/entities/damageable-entity.js、src/entities/player/update.js、src/entities/enemy.js、src/entities/enemy-types/{armored-knight,shounao,fly-swarm}.js、src/systems/movement-system.js、data/enemy-config.json、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①玩家被嚎叫命中后失控反向跑+状态栏图标；②3s 后再中恐惧层数+减速加深；③孰长刷新；④怪物中恐惧的逃跑表现（骑士/手脑被打断动作）。
+
 ## 2026-07-20（新怪物「蝇群」（普通））
 
 ### 对话：按工作流新增蝇群——虚化虫体+三位一体触碰伤害+远程减伤

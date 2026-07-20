@@ -304,6 +304,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     bleed: { icon: '🩸', name: '流血', color: '#9a3a3a' },
                     magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
+                    fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -376,6 +377,33 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
                 }
+            }
+            /**
+             * 应用恐惧（debuff 工作流见 SKILL.md）：
+             * - 持续时间内朝恐惧源相反方向移动（玩家失控）；移速 -33%/层，最多 3 层（-99%）
+             * - 重复受到：层数 +1（≤3）；持续时间由 addStatusEffect 按孰长刷新
+             * @param {number} duration - 毫秒
+             * @param {object} source - 恐惧来源实体（逃离目标的参照点）
+             */
+            applyFear(duration, source) {
+                if (this._isDead) return;
+                const existing = this.statusEffects.find(e => e.type === 'fear');
+                const stacks = Math.min((existing ? (existing.stacks || 1) : 0) + 1, 3);
+                this.addStatusEffect('fear', duration, { stacks });
+                if (source && source.active !== false) this._fearSource = source;
+                // 左上角状态栏仅显示玩家自身的恐惧（怪物的不占用玩家 UI）
+                if (this._faction === 'player' && typeof StatusBar !== 'undefined' && StatusBar) {
+                    StatusBar.addEffect('fear', duration, { stacks });
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '😱 恐惧！', '#7a5ac8'));
+                }
+            }
+            /** 恐惧移速倍率：1 - 0.33×层数，下限 0.01（无恐惧返回 1） */
+            getFearSpeedMul() {
+                const e = this.statusEffects.find(x => x.type === 'fear' && x.remaining > 0);
+                if (!e) return 1;
+                return Math.max(0.01, 1 - 0.33 * (e.stacks || 1));
             }
             // --- 状态效果：中毒 ---
             _updatePoison(dt) {
