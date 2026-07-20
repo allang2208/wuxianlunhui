@@ -114,6 +114,16 @@
                 }
             },
 
+            /** 停止所有循环音轨（场景切换时兜底，防止实体被直接 clear 后音轨泄漏） */
+            stopAllLoops() {
+                if (!this._loops) return;
+                for (const id of Object.keys(this._loops)) {
+                    const l = this._loops[id];
+                    try { if (l && l.src) l.src.stop(); } catch (_e) { /* 忽略 */ }
+                }
+                this._loops = {};
+            },
+
             _playMeleeSwing() {
                 const t = this._now();
                 const osc = this.ctx.createOscillator();

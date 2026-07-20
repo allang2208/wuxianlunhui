@@ -8,6 +8,7 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { SoundManager } from '../ui/sound-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
@@ -123,6 +124,10 @@ export const SceneManager = {
             }
             Game.entities.clear();
             EffectManager.effects = [];
+            // 循环音轨全停（实体被直接 clear 不会走 _destroyCustomEffects，音轨会泄漏）
+            if (SoundManager && SoundManager.stopAllLoops) {
+                SoundManager.stopAllLoops();
+            }
             // 清除战术小队AI
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
             // 清除裂隙系统

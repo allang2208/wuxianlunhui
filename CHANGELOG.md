@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（排查修复：循环音轨泄漏 + 玩家恐惧速度口径）
+
+### 对话：回头看 bug 排查
+- **循环音轨场景切换泄漏**：`switchScene` 直接 `Game.entities.clear()` 清实体，不走 `_destroyCustomEffects`——蝇群 `loop=true` 的音轨永不停止（切场景后怪没了声音还在）。修复：SoundManager 新增 `stopAllLoops()`，`switchScene` 清理段调用（一并兜底未来其他循环音轨）；补 scene-manager 的 SoundManager import（typeof 守卫在未 import 时永远跳过，差点又埋一颗）。
+- **玩家恐惧速度口径**：恐惧逃跑速度原用 `this.data.speed`（面板值），与正常移动体系（`this.maxSpeed`）不一致——改 `this.maxSpeed || this.data.speed` × 层数倍率。
+- **复核无问题项**：手脑嚎叫每跳叠层符合设计（0.5s 一跳、3 层封顶 -99%）；蝇群 noCollision 穿人/墙壁解析正常；代币合成栏放入为设计待定项（用户已知）；双份 JSON 一致。
+- **修改文件**：src/ui/sound-manager.js、src/world/scene-manager.js、src/entities/player/update.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——地牢↔主神空间切换后蝇群音轨停止；恐惧逃跑速度与平时跑路一致体感。
+
 ## 2026-07-20（蝇群循环音效：音量随距离 50%→150%）
 
 ### 对话：蝇群 idleing 持续循环，接近玩家音量提高
