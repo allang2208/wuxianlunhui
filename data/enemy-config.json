@@ -1261,6 +1261,9 @@
       "loseTimeout": 3000
     },
     "attackType": "蝇群锤击",
+    "sounds": {
+      "attack": "assets/sounds/enemies/flyhand/hitting-2.mp3"
+    },
     "attackSkills": {
       "hammer": {
         "cooldown": 4000,
@@ -1321,8 +1324,8 @@
     },
     "textures": {
       "idle": "assets/enemies/flyhand/idle.png",
-      "idleFrameWidth": 2048,
-      "idleFrameHeight": 2048,
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
       "idleFrameCount": 1,
       "idleSheetColumns": 1
     },

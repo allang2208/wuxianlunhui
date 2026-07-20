@@ -105,8 +105,8 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_shounao_howl',  'assets/enemies/shounao/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
         this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
-        // 蝇手（领主）：idle 整幅 2048×2048；其余 512×512（walk 8列×2行16帧，攻击 8列×4行）
-        this.load.spritesheet('enemy_flyhand_idle',       'assets/enemies/flyhand/idle.png',        { frameWidth: 2048, frameHeight: 2048, endFrame: 0 });
+        // 蝇手（领主）：全部 512×512 帧（idle 已重排统一；walk 8列×2行16帧，攻击 8列×4行）
+        this.load.spritesheet('enemy_flyhand_idle',       'assets/enemies/flyhand/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_flyhand_walk',       'assets/enemies/flyhand/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_flyhand_hammer',     'assets/enemies/flyhand/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_flyhand_slam',       'assets/enemies/flyhand/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });

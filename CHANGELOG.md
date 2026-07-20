@@ -8,6 +8,44 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（修复蝇手 walking 帧间"瞬移"）
+
+### 对话：walking 精灵图不在一个水平上，移动状态频繁瞬移
+- **诊断**：逐帧测主体 bbox——**图片问题非代码**。原素材帧间底部 y 从 467 跳到 510 再回 487（±43px），且帧 0-6 主体 x 坐标 0→165 递增（素材自带帧内位移），播放即上下跳+横移的"瞬移"感。
+- **修复**：16 帧逐帧裁主体，水平居中 + 底部强制对齐到 y=492（与 idle/attacking 帧落点一致）重排；位移交给游戏内移动承担，动画原地踏步。精修后各帧底部 491~492（±1px）。
+- **经验**：AI 生成的行走序列帧常自带帧内位移，**接入前必须逐帧验证 bbox 对齐**，不能假设素材规整（同手脑"4×8"教训）。
+- **修改文件**：assets/enemies/flyhand/walking.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——移动动画平稳无跳变。
+
+## 2026-07-20（修复蝇群死亡音轨泄漏 + 蝇手攻击音效）
+
+### 对话：蝇群死后音效不停 + 蝇手三种攻击判定音
+- **蝇群死亡音轨泄漏根因**：死亡后 `active=false`，game loop `if (!e.active && !isCorpse) continue` 跳过 update——`_syncLoopSound` 里的"死亡即停"检查永远不执行（之前只修了场景切换路径，漏了死亡路径）。修复：`damageable-entity.onDeath()` 统一调用 `_destroyCustomEffects()`——所有怪的循环音轨/头部粒子/范围圈/投射物在死亡瞬间统一清理（一劳永逸，新怪特效自动受益）。
+- **蝇手音效**：hitting-2.mp3 复制到 `assets/sounds/enemies/flyhand/`；配置 `sounds.attack`；`_dealHit` 判定帧三技能统一播放（`_playSound` 与手脑/骑士同工作流，支持数组随机）。
+- **修改文件**：src/entities/damageable-entity.js、src/entities/enemy-types/fly-hand.js、data/enemy-config.json、assets/sounds/enemies/flyhand/hitting-2.mp3、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①蝇群死亡瞬间音轨停止；②蝇手三技能判定音与帧同步。
+
+## 2026-07-20（蝇手 idle 帧统一裁剪）
+
+### 对话：idle 与 walking 切换时贴图大小跳变
+- **根因**：idle 原图为 2048×2048 整幅单帧（主体满幅），walking/attacking 为 512×512 帧（主体仅占 ~60%×90%）——渲染按最长边等比缩放后 idle 显示主体大一圈，状态切换明显跳变。
+- **修复**：idle.png 按 alpha 主体边界裁出（1538×2048），等比缩至主体高 450（与 walking/attacking 帧主体 446~467 对齐），居中重排到 512×512 画布；BootScene 加载帧尺寸 2048→512 同步，enemy-config textures 元数据同步。
+- **修改文件**：assets/enemies/flyhand/idle.png、src/phaser/scenes/BootScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——idle/walk/攻击三态切换大小一致无跳变。
+
+## 2026-07-20（主神空间清场：只留蝇手 + 拆除迷宫墙壁）
+
+### 对话：删除其他怪物和迷宫墙壁，蝇手生成位置防卡墙
+- **拆除迷宫**：`WallSystem.init` 的迷宫生成段（MazeGenerator 调用+三段边界墙）整段移除，主神空间变为开阔场地；`mazeEndY/_mazeOX` 等字段确认无外部引用；`maze-generator.js` 保留备用；清理未使用 import。
+- **测试怪清场**：`spawnMainHubTestEntities` 只保留 `spawnMainFlyHand`（骑士/手脑/蝇群 spawn 方法保留备用）。
+- **蝇手生成位置**：origin.x+400, origin.y+100（原 origin.x+350, y-320 位于迷宫区卡墙）。
+- **修改文件**：src/world/wall-system.js、src/game.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①主神空间无墙无其他怪物；②蝇手生成位置开阔、追击/技能无障碍。
+
 ## 2026-07-20（新怪物「蝇手」（领主，僵尸 family））
 
 ### 对话：按工作流新增蝇手——三技能+召唤蝇群

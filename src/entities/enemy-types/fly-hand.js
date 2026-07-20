@@ -2,6 +2,7 @@ import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { FlySwarm } from './fly-swarm.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -32,6 +33,15 @@ export class FlyHand extends Enemy {
 
     _getSkillConfigs() {
         return (this.config && this.config.attackSkills) || {};
+    }
+
+    /** 播放配置音效（与手脑/骑士同工作流） */
+    _playSound(key) {
+        let path = this.config?.sounds?.[key];
+        if (Array.isArray(path)) path = path[Math.floor(Math.random() * path.length)];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     update(dt, entities) {
@@ -139,6 +149,8 @@ export class FlyHand extends Enemy {
         const range = cfg.range ?? 100;
         const atk = this.data?.atk || 0;
         const damage = Math.max(1, Math.round(atk * (cfg.damageMul ?? 1)));
+        // 攻击判定帧播放打击音（三技能统一）
+        this._playSound('attack');
         // 灭世重砸：无论是否命中，判定帧召唤蝇群
         if (kind === 'grandSlam' && cfg.summon && !this._summonDone) {
             this._summonDone = true;
