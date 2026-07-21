@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地图背景图换为僵尸城堡 + 配置驱动）
+
+### 对话：用素材库"背景图.png"替换僵尸地牢背景图，不要硬编码
+- **素材入库**：`素材库/场景/地形/僵尸地牢/背景图.png`（2560×1065 哥特城堡）复制到 `assets/scenes/dungeon-bg/zombie.png`（按地牢大类命名建档，后续其他地牢同目录放各自图）。
+- **配置驱动**：`dungeon-config.js` DEFAULTS.zombieDungeon 新增 `mapBackground` 字段——僵尸家族三地牢（高级/初级/中级）经 deepMerge 自动继承；其他地牢在 `data/dungeon-config.json` 各自条目中写 `mapBackground` 即可覆盖，无需改代码。
+- **渲染改造**：`_renderBackground` 不再写死路径，经 `_getMapBackgroundPath()` 取配置（兜底旧图 dungeon-map-bg.png）；图片缓存按路径失效（`_bgImgPath`），切地牢自动重载。
+- **提示**：新图比例 2.40:1，略窄于上区 2.9:1——cover+bottom 锚定会裁掉约 17% 顶部天空，城堡主体保留；如需全图可按 2560×886 重新生成。
+- **修改文件**：src/config/dungeon-config.js、src/world/dungeon-map-system.js、assets/scenes/dungeon-bg/zombie.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——三个僵尸地牢地图界面均显示新背景图。
+
 ## 2026-07-21（地图界面：长按才拖动 + 包围盒钳制 + 默认 3 倍聚焦出发点）
 
 ### 对话：进界面未按鼠标地图就跟随拖动；最上方线路拖不全；默认视图要放大聚焦出发点

@@ -6,6 +6,8 @@ const GRADE_ORDER_LOCAL = ['F', 'E', 'D', 'C', 'B', 'A'];
 
 const DEFAULTS = {
     zombieDungeon: {
+        // 路线选择界面背景图（按地牢类型配置；其他地牢在 dungeon-config.json 各自覆盖）
+        mapBackground: 'assets/scenes/dungeon-bg/zombie.png',
         nodeCount: { min: 35, max: 40 },
         shortestCombatPath: 9,
         typeRatios: { combat: 0.70, event: 0.30 },

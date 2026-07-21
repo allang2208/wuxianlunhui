@@ -410,11 +410,14 @@ export const DungeonMapSystem = {
      * 背景图显示：界面严格分两块——上方纯美观背景图（不可交互、不被地图遮盖），
      * 下方为地图选择区域。背景图 cover 铺满上方区域（bottom 锚定到区域分界线），
      * 裁剪到上区，绝不画进下方地图区域。
+     * 图片路径按地牢类型走配置（DungeonConfig.mapBackground），新增地牢各自配置。
      * @param {number} topH 上方背景区高度（地图区域 top 边界）
      */
     _renderBackground(ctx, viewW, viewH, topH) {
-        if (!this._bgImg) {
-            this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
+        const bgPath = this._getMapBackgroundPath();
+        if (!this._bgImg || this._bgImgPath !== bgPath) {
+            this._bgImgPath = bgPath;
+            this._bgImg = loadImage(bgPath);
         }
         // 先铺纯黑底（图片未加载时兜底；下方地图区域也为纯黑）
         ctx.fillStyle = '#000000';
@@ -429,6 +432,12 @@ export const DungeonMapSystem = {
         ctx.clip();
         ctx.drawImage(img, Math.round(r.x), Math.round(r.y), r.w, r.h);
         ctx.restore();
+    },
+
+    /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
+    _getMapBackgroundPath() {
+        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+        return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
     },
 
     /**
