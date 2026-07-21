@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：献祭出征被点击穿透重新打开商店对话）
+
+### 对话：祭坛点献祭出征没进出征界面，弹回主神空间+小鼠商店对话
+- **根因**：祭坛选项按钮（HTML onclick）同步执行 openExpedition（关对话+开出征面板），但**未消费 `Input.mouse.leftPressed`**——下一帧 game.js 的 NPC 点击检测发现鼠标在小鼠大王 NPC hover 范围内且 leftPressed 仍挂起，再次触发 `NPCDialogue.open`（打开商店对话盖在出征界面上）。
+- **修复**：openExpedition/openFusion/openShop/openEnhance/openCraft/openEnchant 六个选项入口统一 `Input.mouse.leftPressed = false`（消费本次点击，防止 NPC 检测二次触发）。
+- **修改文件**：src/ui/npc-dialogue.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——献祭出征直接进出征准备面板，不再弹出商店对话。
+
 ## 2026-07-21（地牢地砖换 blackbrick5）
 
 ### 对话：blackbrick5 替换地砖，其他不变

@@ -10,6 +10,7 @@ import { EnchantSystem } from './enchant-system.js';
 import { QuestSystem, QuestState } from './quest-system.js';
 import { ExpeditionSystem } from './expedition-system.js';
 import { FusionSystem } from './fusion-system.js';
+import { Input } from './input.js';
 import { SystemUI } from './system-ui.js';
 import { TypewriterText } from './typewriter-text.js';
 
@@ -344,6 +345,8 @@ const NPCDialogue = {
     openExpedition() {
         const player = Game.player;
         if (!player) return;
+        // 消费掉本次点击：防止 game.js 的 NPC 点击检测在下一帧再次触发（把小鼠商店对话重新打开）
+        if (Input && Input.mouse) Input.mouse.leftPressed = false;
         // 关闭互斥子页面（不动背包——出征界面需要拖入祭品）
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
@@ -357,6 +360,7 @@ const NPCDialogue = {
 
     // 选择祭品合成（祭坛）
     openFusion() {
+        if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         if (UIState.isOpen('fusion')) { FusionSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
@@ -374,6 +378,7 @@ const NPCDialogue = {
 
     // 选择商店
     openShop() {
+        if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
         if (UIState.isOpen('shop')) { ShopSystem.close(); return; }
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
@@ -389,6 +394,7 @@ const NPCDialogue = {
 
     // 选择强化
     openEnhance() {
+        if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
         if (UIState.isOpen('enhance')) { EnhanceSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
@@ -407,6 +413,7 @@ const NPCDialogue = {
 
     // 选择改造
     openCraft() {
+        if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
         if (UIState.isOpen('craft')) { CraftSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
@@ -425,6 +432,7 @@ const NPCDialogue = {
 
     // 选择附魔
     openEnchant() {
+        if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
         if (UIState.isOpen('enchant')) { EnchantSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
