@@ -350,8 +350,7 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 主神空间只保留蝇手用于测试（其余测试怪 spawn 方法保留备用）
-        this.spawnMainFlyHand();
+        // 主神空间不生成测试怪（spawn 方法保留备用）
     },
 
     /**

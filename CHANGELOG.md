@@ -8,6 +8,53 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地图界面 HUD 隐藏改 body.map-mode 统一管理 + 血量数值隐藏）
+
+### 对话：武器栏仍显示"生锈的长剑" + 左上角血量 200/200 未隐藏
+- **问题**：此前用 `querySelector` 逐个 `display:none`——quick-bar.js 刷新时会把 slot `display` 改回 'flex' 覆盖；血量在 `#topBar`（顶部状态栏 DOM）从未被纳入隐藏。
+- **修复**：改 **body.map-mode 统一管理**——GameScene 地图模式进入/退出时 `document.body.classList` 切换 `map-mode`；game-style.css 新增规则 `body.map-mode .bottom-bar / .top-bar / .controls-hint-left { display:none !important; }`——快捷栏（武器格"生锈的长剑"）、顶部栏（含血量数值 200/200）、操作提示栏统一隐藏，不怕刷新覆盖。
+- **修改文件**：src/phaser/scenes/GameScene.js、game-style.css、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅。
+- **已知问题**：实机待验证——武器栏/血量/提示栏在地图界面全部消失，退出恢复。
+
+## 2026-07-21（地图选择界面精细化：隐藏 HUD + 固定显示）
+
+### 对话：地图界面隐藏小地图/提示栏/武器栏 + 背景图固定 bottom 防分辨率乱动
+- **隐藏元素**（地图模式进入时隐藏、退出恢复）：
+  - 小地图三件套：静态层/动态层（`_minimapDynamicGraphics` 补入隐藏列表）/标题；
+  - 快捷栏（`.bottom-bar`）与左下角操作提示栏（`#controlsHintLeft`）——GameScene `_mapModeActive` 切换点统一控制 DOM 显隐。
+- **背景图换"背景图-1.png"** + **固定显示**（`_renderBackground` 重写）：
+  - 先铺纯黑底；图片按 1920×1080 基准固定缩放（scale=1080/imgHeight，不随视口变化）；
+  - 锚定视口底部（bottom:0）水平居中——视口更大周围留黑边、更小居中裁切，**位置不随分辨率乱动**。
+- **节点地图固定像素**（`_centerRouteMap`）：移除 `window.innerWidth/Height` 动态计算，TARGET_AREA 改固定常量（left 280 / top 120 / 1360×840，1920×1080 基准）——地图初始定位不再随分辨率变化。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/world/dungeon-map-system.js、assets/scenes/dungeon-map-bg.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①界面无小地图/提示栏/武器栏；②背景图底部锚定不随分辨率乱动；③节点地图固定位置；④拖动+滚轮缩放仍正常。
+
+## 2026-07-21（修复：祭坛进地牢小地图泄露 5 蓝点——场景切换未清理实体）
+
+### 对话：祭坛进地牢后小地图泄露 5 个蓝点（主神空间 portal）
+- **根因**：depart 前一次修复只设了 `SceneManager.currentScene = 'scene7'` 满足渲染拦截，但**没有走 switchScene 的清理流程**——主神空间的 portal/NPC/怪物实体残留在 `Game.entities`，小地图按主神空间世界尺寸全部画出（5 个 portal 蓝点）；且 `CONFIG.WORLD_WIDTH` 还是主神空间尺寸、玩家坐标超界。
+- **修复**（depart 出征清理段）：
+  - 清理 Phaser 战斗视图/实体 sprite、浮动文字、`Game.entities.clear()` 后仅保留玩家、战术小队 AI；
+  - `CONFIG.WORLD_WIDTH/HEIGHT = 2048`（地牢网格尺寸，小地图正确缩放）；
+  - 玩家移至 (1024, 1024) 地牢世界中央（原主神空间坐标在 2048 世界内超界，会被 mask 裁掉导致玩家点消失）；
+  - 补 `EffectManager`/`CONFIG` 显式 import（typeof 守卫会静默跳过）。
+- **回程**：`_loadMainScene` 恢复主神空间世界尺寸（已有）。
+- **修改文件**：src/ui/expedition-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——进地牢地图模式小地图无蓝点泄露、玩家点显示在中央、战斗/回主神空间流程正常。
+
+## 2026-07-21（主神空间清怪 + 小地图越界渲染修复）
+
+### 对话：删除蝇手 + 小地图显示范围外内容排查
+- **主神空间**：`spawnMainHubTestEntities` 不再生成任何测试怪（spawn 方法保留备用）。
+- **小地图越界根因**：`_syncMinimap` 的动态内容（实体点/相机视野框/玩家方向箭头）画在**共享屏幕 HUD graphics 上且无任何裁剪**——映射超框的内容（世界边界外实体、相机框超出、箭头延伸）直接画出小地图框外。
+- **修复**：新建独立动态层 `_minimapDynamicGraphics` + `_ensureMinimapMask()`（矩形 GeometryMask 限定 (mx, my, W, H)，动态层与静态墙壁层共用）——所有小地图内容一律裁剪到框内；`_syncMinimap` 改走独立层（每帧 clear），准星等共享 HUD 元素不受影响。
+- **修改文件**：src/game.js、src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——小地图框外不再有点/线泄漏；框内实体/相机框/箭头显示正常。
+
 ## 2026-07-21（修复：确认出征后仍在主神空间——场景状态未切换）
 
 ### 对话：祭坛出征界面正常但点确认出征后没进地牢

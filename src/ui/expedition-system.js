@@ -18,6 +18,8 @@ import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js'
 import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { BOSS_REWARD_CONFIG } from '../world/boss-reward-system.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { CONFIG } from '../config/config.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
@@ -727,12 +729,28 @@ export const ExpeditionSystem = {
             SystemUI.close();
         }
 
-        // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7：
-        // render/update 的地牢拦截以 SceneManager.currentScene === 'scene7' 为前提，
-        // 仅 init 不切换则地图不渲染（玩家仍停留在主神空间）
+        // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7
         if (DungeonMapSystem) {
             const player = Game.player;
             const dungeonType = this.selectedDungeon || 'zombie';
+
+            // 清理主神空间实体（传送门/NPC/怪物/掉落物），防止地图模式下小地图泄露残留蓝点
+            const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (phaserScene) {
+                if (phaserScene.clearCombatView) phaserScene.clearCombatView();
+                if (phaserScene.clearAllEntitySprites) phaserScene.clearAllEntitySprites();
+            }
+            if (EffectManager && EffectManager.clearFloatingTexts) EffectManager.clearFloatingTexts();
+            Game.entities.clear();
+            Game.entities.set('player', player);
+            if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
+            // 地图模式使用地牢世界尺寸（2048 网格），小地图正确缩放
+            CONFIG.WORLD_WIDTH = 2048;
+            CONFIG.WORLD_HEIGHT = 2048;
+            // 玩家移至地牢世界中央（主神空间坐标在 2048 世界内超界，小地图会画出框外）
+            player.x = 1024;
+            player.y = 1024;
+
             DungeonMapSystem.init('scene7', player, dungeonType);
             SceneManager.currentScene = 'scene7';
         }

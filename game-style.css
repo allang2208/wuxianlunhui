@@ -2771,3 +2771,10 @@
   font-size: 11px;
   color: #a99a7c;
 }
+
+/* ===== 地图选择界面：统一隐藏 HUD（body.map-mode 驱动，防覆盖遗漏） ===== */
+body.map-mode .bottom-bar,
+body.map-mode .top-bar,
+body.map-mode .controls-hint-left {
+  display: none !important;
+}
