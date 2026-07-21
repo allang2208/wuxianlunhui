@@ -1236,7 +1236,7 @@
     "family": "僵尸",
     "color": "#5a6a3a",
     "size": 48,
-    "collisionRadius": 55,
+    "collisionRadius": 41,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 160,
@@ -1321,7 +1321,7 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetX": 10,
+      "colliderOffsetX": -5,
       "colliderOffsetY": 25
     },
     "textures": {
