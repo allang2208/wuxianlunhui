@@ -93,19 +93,19 @@ export class FlyHand extends Enemy {
     _decideSkills() {
         const t = this.target;
         const cfg = this._getSkillConfigs();
-        // 灭世重砸：300px 有目标且 CD 就绪
+        // 灭世重砸：300px 有目标且 CD 就绪（精英预警后再启动）
         if (this._cooldowns.grandSlam <= 0 && cfg.grandSlam && this._isTargetInRange(t, cfg.grandSlam.triggerRange ?? 300)) {
-            this._startAction('grandSlam');
+            this._tryAttackTelegraph(() => this._startAction('grandSlam'));
             return;
         }
-        // 砸地：300px 有目标且 CD 就绪
+        // 砸地：300px 有目标且 CD 就绪（精英预警后再启动）
         if (this._cooldowns.slam <= 0 && cfg.slam && this._isTargetInRange(t, cfg.slam.triggerRange ?? 300)) {
-            this._startAction('slam');
+            this._tryAttackTelegraph(() => this._startAction('slam'));
             return;
         }
-        // 锤击：100px 近身且 CD 就绪
+        // 锤击：100px 近身且 CD 就绪（精英预警后再启动）
         if (this._cooldowns.hammer <= 0 && cfg.hammer && this._isTargetInRange(t, cfg.hammer.triggerRange ?? 100)) {
-            this._startAction('hammer');
+            this._tryAttackTelegraph(() => this._startAction('hammer'));
         }
     }
 

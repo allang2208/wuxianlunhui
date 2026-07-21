@@ -191,19 +191,22 @@ export class AmalgamZombie extends Enemy {
         const skills = this._getSkillConfigs();
         // 砸地攻击：CD 一旦满足立即释放（有目标即可，不再受 triggerRange 限制——
         // 此前 footprint 扩大后玩家无法进入 250 触发范围，导致砸地永远放不出来）
+        // 精英预警：红轮廓显示 0.5s 后才真正出手
         if (this._slamCd <= 0 && skills.slam.duration) {
-            this._startAttack('slam');
+            this._tryAttackTelegraph(() => this._startAttack('slam'));
         } else if (this._throwCd <= 0 && skills.throw.duration) {
-            const preMs = skills.throw.soundPreMs ?? 0;
-            if (preMs > 0) {
-                // 音效前置：先播放投掷音效，preMs 后才进入攻击动作（音画同步）
-                this._throwPending = preMs;
-                this._throwCd = skills.throw.cooldown ?? 15000;
-                this._throwSoundPlayed = true;
-                this._playSound('throw');
-            } else {
-                this._startAttack('throw');
-            }
+            this._tryAttackTelegraph(() => {
+                const preMs = skills.throw.soundPreMs ?? 0;
+                if (preMs > 0) {
+                    // 音效前置：先播放投掷音效，preMs 后才进入攻击动作（音画同步）
+                    this._throwPending = preMs;
+                    this._throwCd = skills.throw.cooldown ?? 15000;
+                    this._throwSoundPlayed = true;
+                    this._playSound('throw');
+                } else {
+                    this._startAttack('throw');
+                }
+            });
         }
     }
 

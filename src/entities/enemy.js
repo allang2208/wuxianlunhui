@@ -124,6 +124,11 @@ import { loadImage } from '../utils/image-loader.js';
                 this._baseAttackRange = this.attackRange;
                 this._dashStunned = false; // 冲刺攻击眩晕状态
                 this._dashStunTimer = 0; // 眩晕剩余时间
+                // ===== 攻击预警（精英及以上：攻击前红色轮廓，配置 data/combat-config.json attackTelegraph）=====
+                this._attackTelegraphTimer = 0;   // >0 表示预警进行中
+                this._attackTelegraphFire = null; // 预警结束后真正执行的攻击函数
+                this._telegraphGlow = null;       // Phaser filters Glow 控制器
+                this._telegraphGlowSprite = null; // Glow 挂载的精灵（精灵重建后需重挂）
                 this._showWeapon = config.showWeapon !== false; // 是否显示武器
                 this._color = config.color || '#8a4a4a'; // 怪物颜色
                 this._headColor = config.headColor || config.color || '#8a4a4a'; // 头部颜色（默认与身体同色）
@@ -447,12 +452,107 @@ import { loadImage } from '../utils/image-loader.js';
             onPhaseChange(_phase) {
                 // 默认空实现，子类可覆盖以实现自定义阶段特效
             }
+
+            // ===== 攻击预警系统（精英及以上：攻击前显示红色轮廓，跟随怪物移动）=====
+            // 配置：data/combat-config.json → attackTelegraph（enabled/durationMs/ranks/color 等）
+            _getAttackTelegraphConfig() {
+                const cfg = (COMBAT_CONFIG && COMBAT_CONFIG.attackTelegraph) || {};
+                return {
+                    enabled: cfg.enabled !== false,
+                    durationMs: cfg.durationMs ?? 500,
+                    ranks: cfg.ranks || ['elite', 'lord', 'boss'],
+                    color: cfg.color ?? 0xff2222,
+                    outerStrength: cfg.outerStrength ?? 6,
+                    innerStrength: cfg.innerStrength ?? 0,
+                    quality: cfg.quality ?? 8,
+                    distance: cfg.distance ?? 12,
+                };
+            }
+
+            _isAttackTelegraphEligible() {
+                const cfg = this._getAttackTelegraphConfig();
+                return cfg.enabled && cfg.ranks.includes(this.rank);
+            }
+
+            /**
+             * 攻击决策统一入口：精英及以上先进入预警（红色轮廓 durationMs），
+             * 计时结束后才真正执行 fireFn；普通/次级立即执行。
+             * 预警进行中重复调用直接忽略（怪物已锁定本次出手）。
+             */
+            _tryAttackTelegraph(fireFn) {
+                if (!this._isAttackTelegraphEligible()) { fireFn(); return; }
+                if (this._attackTelegraphTimer > 0) return;
+                this._attackTelegraphTimer = this._getAttackTelegraphConfig().durationMs;
+                this._attackTelegraphFire = fireFn;
+                this._setAttackTelegraphFx(true);
+            }
+
+            /** 预警计时推进（基类 update 每帧调用）：死亡/眩晕立即取消，计时归零后执行攻击 */
+            _updateAttackTelegraph(dt) {
+                if (!(this._attackTelegraphTimer > 0)) return;
+                if (this._isDead || !this.active || (this.hasStatusEffect && this.hasStatusEffect('stun'))) {
+                    this._clearAttackTelegraph();
+                    return;
+                }
+                // 精灵被重建时重挂 Glow（动画贴图切换不重建精灵，但生成/场景切换会）
+                this._setAttackTelegraphFx(true);
+                this._attackTelegraphTimer -= dt;
+                if (this._attackTelegraphTimer > 0) return;
+                const fire = this._attackTelegraphFire;
+                this._clearAttackTelegraph();
+                if (fire) fire();
+            }
+
+            _clearAttackTelegraph() {
+                this._attackTelegraphTimer = 0;
+                this._attackTelegraphFire = null;
+                this._setAttackTelegraphFx(false);
+            }
+
+            /** 红色轮廓发光（Phaser4：enableFilters().filters.internal.addGlow，与掉落物轮廓光晕同色系外发光） */
+            _setAttackTelegraphFx(on) {
+                const sprite = this._phaserSprite;
+                if (on) {
+                    if (!sprite || !sprite.active) return;
+                    // Phaser4 滤镜需先 enableFilters（创建 filterCamera）；Canvas 渲染模式下不可用则静默跳过
+                    let filters = sprite.filters;
+                    if (!filters && typeof sprite.enableFilters === 'function') {
+                        sprite.enableFilters();
+                        filters = sprite.filters;
+                    }
+                    if (!filters || !filters.internal) return;
+                    if (this._telegraphGlow && this._telegraphGlowSprite === sprite) return;
+                    this._removeTelegraphGlow();
+                    const cfg = this._getAttackTelegraphConfig();
+                    try {
+                        this._telegraphGlow = filters.internal.addGlow(cfg.color, cfg.outerStrength, cfg.innerStrength, 1, false, cfg.quality, cfg.distance);
+                        this._telegraphGlowSprite = sprite;
+                    } catch (_e) {
+                        this._telegraphGlow = null;
+                        this._telegraphGlowSprite = null;
+                    }
+                } else {
+                    this._removeTelegraphGlow();
+                }
+            }
+
+            _removeTelegraphGlow() {
+                const sprite = this._telegraphGlowSprite;
+                if (this._telegraphGlow && sprite && sprite.filters && sprite.filters.internal) {
+                    try { sprite.filters.internal.remove(this._telegraphGlow); } catch (_e) { /* 精灵已销毁 */ }
+                }
+                this._telegraphGlow = null;
+                this._telegraphGlowSprite = null;
+            }
+
             update(dt, entities) {
                 super.update(dt);
                 // FSM 阶段切换更新（始终执行，不因眩晕或目标丢失而跳过）
                 if (this._fsm) {
                     this._fsm.update(dt, this, entities);
                 }
+                // 攻击预警计时（眩晕/死亡时内部自行取消，必须每帧执行）
+                this._updateAttackTelegraph(dt);
                 // 冲刺攻击眩晕计时
                 if (this._dashStunned) {
                     this._dashStunTimer -= dt;
@@ -630,11 +730,13 @@ import { loadImage } from '../utils/image-loader.js';
                 // 远程攻击需要目标在射程内
                 const dist = Math.hypot(targetX - this.x, targetY - this.y);
                 if (this.attacks.ranged && dist > this.attackRange) return;
-                // 执行攻击
+                // 执行攻击（精英及以上经攻击预警延迟 0.5s，预警结束才真正出手）
                 this.aiTimer = 0;
-                if (attack.use(this, targetX, targetY, Array.from(entities.values()))) {
-                    this.triggerWeaponAnim();
-                }
+                this._tryAttackTelegraph(() => {
+                    if (attack.use(this, targetX, targetY, Array.from(entities.values()))) {
+                        this.triggerWeaponAnim();
+                    }
+                });
             }            _getTextureKey() {
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }

@@ -107,18 +107,18 @@ export class Shounao extends Enemy {
         const t = this.target;
         const cfg = this._getSkillConfigs();
 
-        // 砸地：周围 300px 有目标就触发
+        // 砸地：周围 300px 有目标就触发（精英预警后再启动）
         if (this._slamCooldown <= 0 && cfg.slam && cfg.slam.duration) {
             if (this._isTargetInRange(t, cfg.slam.triggerRange ?? 300)) {
-                this._startSlam();
+                this._tryAttackTelegraph(() => this._startSlam());
                 return;
             }
         }
 
-        // 嚎叫：600px 内有目标且 CD 就绪
+        // 嚎叫：600px 内有目标且 CD 就绪（精英预警后再启动）
         if (this._howlCooldown <= 0 && cfg.howl && cfg.howl.duration) {
             if (this._isTargetInRange(t, cfg.howl.triggerRange ?? 600)) {
-                this._startHowl();
+                this._tryAttackTelegraph(() => this._startHowl());
             }
         }
     }

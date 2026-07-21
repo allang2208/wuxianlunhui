@@ -92,5 +92,16 @@
     "overheatCooldownTime": 4000,
     "spreadMaxTime": 2500,
     "maxSpreadAngle": 15
+  },
+  "attackTelegraph": {
+    "comment": "精英及以上怪物攻击预警：攻击开始前 durationMs 显示红色轮廓发光（sprite.filters.addGlow），开始攻击时消失",
+    "enabled": true,
+    "durationMs": 500,
+    "ranks": ["elite", "lord", "boss"],
+    "color": 16720418,
+    "outerStrength": 6,
+    "innerStrength": 0,
+    "quality": 8,
+    "distance": 12
   }
 }

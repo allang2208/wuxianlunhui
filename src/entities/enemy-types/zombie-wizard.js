@@ -186,10 +186,10 @@ export class ZombieWizard extends Enemy {
             return;
         }
 
-        // 尝试进入施法循环（只有进入魔法射程才读条）
+        // 尝试进入施法循环（只有进入魔法射程才读条；精英预警结束才真正开始施法）
         if (this.target && this.target.active && this._iceSpikeCooldown <= 0 && this._castState === 'idle') {
             if (this._isTargetInSpellRange(this.skills.iceSpike)) {
-                this._startIceCast();
+                this._tryAttackTelegraph(() => this._startIceCast());
             }
         }
 
