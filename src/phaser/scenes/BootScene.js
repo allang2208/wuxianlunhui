@@ -413,8 +413,7 @@ export class BootScene extends Scene {
             key: 'enemy_flyhand_walk',
             frames: this.anims.generateFrameNumbers('enemy_flyhand_walk', { start: 0, end: 15 }),
             frameRate: 14,
-            repeat: -1,
-            yoyo: true, // ping-pong 播放：素材帧内位移在循环点回跳（15→0 瞬移-178px），正倒放消除回跳
+            repeat: -1, // 新素材（walking-1.png）帧间已对齐、循环衔接平滑，无需 yoyo
         });
         this.anims.create({
             key: 'enemy_flyhand_hammer',
