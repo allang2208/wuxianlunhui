@@ -40,6 +40,9 @@ export class BootScene extends Scene {
         this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 72 });
         this.load.image('blackbrick2', 'assets/terrain/blackbrick2.png');
         this.load.image('blackbrick3', 'assets/terrain/blackbrick3.png');
+        // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
+        this.load.image('blackbrick4', 'assets/terrain/blackbrick4.png');
+        this.load.image('blackbrick4_glow', 'assets/terrain/blackbrick4_glow.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----

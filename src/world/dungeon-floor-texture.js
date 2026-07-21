@@ -1,25 +1,24 @@
 /**
  * 僵尸地牢地板烘焙（战斗房与 Boss 场地共用，唯一实现）
  *
- * 三张 blackbrick 源图（BootScene 加载键）切割为 32×32 小砖随机拼铺：
- * - 每块随机子块（候选池 = 3 图 × 各图子块）、随机 8 种朝向（4 旋转 × 水平翻转）
- * - 相邻（上/左）不使用同一子块
- * - 小砖圆角矩形裁剪（半径 4px），四边内缩 1px 形成 2px 纯黑缝隙
- * - 灰黑 tint 统一色调；四周 64px 黑→透明渐变与纯黑背景融合
+ * 等距俯视角（30°）菱形地板：
+ * - 基础层：blackbrick4（512×512 内含 329×161 菱形）按等距网格交错平铺
+ * - 发光层：blackbrick4_glow（菱形上边缘高光带）同位置平铺，
+ *   'lighter' 合成（等价 Phaser BlendModes.ADD），让砖缝/上缘真正"发光"
+ * - 四周 64px 黑→透明渐变与纯黑背景融合
  * - 贴图未加载完成时回退到深色网格地板
  */
 import { CONFIG } from '../config/config.js';
 import { Renderer } from './renderer.js';
 
-// 地板贴图键（仅使用 blackbrick1 一张源图，切割为 64×64 小砖随机朝向拼铺，相邻小砖不使用同一子块）
-export const FLOOR_TEXTURE_KEYS = ['blackbrick'];
-export const FLOOR_TILE_SIZE = 64;
-// 小砖实际绘制尺寸：四边各内缩 1px，相邻小砖之间形成 2px 纯黑缝隙
-const FLOOR_TILE_DRAW_SIZE = FLOOR_TILE_SIZE - 2;
-// 小砖圆角半径（边缘圆滑处理）
-const FLOOR_TILE_RADIUS = 4;
-// 将三张略有偏色的贴图统一为灰黑色（null = 保留原图；填写颜色则统一色调）
-const FLOOR_TINT_COLOR = '#333333';
+// 等距贴图键（基础层 + 发光层）
+const ISO_BASE_KEY = 'blackbrick4';
+const ISO_GLOW_KEY = 'blackbrick4_glow';
+// 菱形在 512×512 源图中的几何（实测 alpha bbox 92,179 → 421,340）
+const ISO_TILE_W = 329;   // 菱形宽
+const ISO_TILE_H = 161;   // 菱形高
+const ISO_CENTER_X = 256; // 菱形中心在源图中的 x
+const ISO_CENTER_Y = 260; // 菱形中心在源图中的 y
 // 场地四周边缘黑→透明渐变宽度
 const FLOOR_EDGE_FADE = 64;
 
@@ -30,6 +29,32 @@ const DEFAULT_FALLBACK_TERRAIN = {
     gridSize: 80,
     edgeHighlight: 'rgba(120, 80, 60, 0.6)',
 };
+
+/** 取 Phaser 已加载贴图的源图（未加载返回 null） */
+function _getSourceImage(key) {
+    const scene = (typeof window !== 'undefined' && window.__phaserScene) ? window.__phaserScene : null;
+    if (!scene || !scene.textures || !scene.textures.exists(key)) return null;
+    const tex = scene.textures.get(key);
+    const img = tex ? tex.getSourceImage() : null;
+    return (img && img.width > 0 && img.height > 0) ? img : null;
+}
+
+/** 等距平铺一层：菱形中心对齐网格点，行交错半宽偏移 */
+function _drawIsoLayer(ctx, img, size) {
+    const stepX = ISO_TILE_W;
+    const stepY = ISO_TILE_H / 2;
+    const startRow = -2;
+    const endRow = Math.ceil(size / stepY) + 2;
+    for (let r = startRow; r < endRow; r++) {
+        const offsetX = (r % 2 !== 0) ? stepX / 2 : 0;
+        const gy = r * stepY;
+        for (let gx = -stepX; gx < size + stepX; gx += stepX) {
+            const cx = gx + offsetX;
+            // 菱形中心 (ISO_CENTER_X, ISO_CENTER_Y) 对齐网格点 (cx, gy)
+            ctx.drawImage(img, cx - ISO_CENTER_X, gy - ISO_CENTER_Y);
+        }
+    }
+}
 
 /**
  * 烘焙地牢地板到离屏 canvas
@@ -47,94 +72,26 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, size, size);
 
-    // 2. 获取三种 blackbrick 贴图
-    const scene = (typeof window !== 'undefined' && window.__phaserScene) ? window.__phaserScene : null;
-    const sources = FLOOR_TEXTURE_KEYS.map(key => {
-        if (!scene || !scene.textures || !scene.textures.exists(key)) return null;
-        const tex = scene.textures.get(key);
-        const img = tex ? tex.getSourceImage() : null;
-        return (img && img.width > 0 && img.height > 0) ? img : null;
-    });
-    const allLoaded = sources.every(s => s);
+    const baseImg = _getSourceImage(ISO_BASE_KEY);
+    const glowImg = _getSourceImage(ISO_GLOW_KEY);
 
-    if (allLoaded) {
-        const tileSize = FLOOR_TILE_SIZE;
-        const cols = Math.ceil(size / tileSize);
-        const rows = Math.ceil(size / tileSize);
-
-        // 将三张源图切割为 32×32 子块，组成候选池
-        const tilePool = [];
-        for (const img of sources) {
-            const subCols = Math.max(1, Math.floor(img.width / tileSize));
-            const subRows = Math.max(1, Math.floor(img.height / tileSize));
-            for (let sr = 0; sr < subRows; sr++) {
-                for (let sc = 0; sc < subCols; sc++) {
-                    tilePool.push({ img, sx: sc * tileSize, sy: sr * tileSize });
-                }
-            }
-        }
-
-        // 生成子块/朝向网格：相邻（上、左）子块不能相同；朝向 = 4 旋转 × 水平翻转共 8 种
-        const pickGrid = Array.from({ length: rows }, () => []);
-        const orientGrid = Array.from({ length: rows }, () => []);
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const top = r > 0 ? pickGrid[r - 1][c] : null;
-                const left = c > 0 ? pickGrid[r][c - 1] : null;
-                let pick = tilePool[Math.floor(Math.random() * tilePool.length)];
-                // 候选池足够大，重试几次即可避开与上/左相同的子块
-                for (let attempt = 0; attempt < 8 && (pick === top || pick === left); attempt++) {
-                    pick = tilePool[Math.floor(Math.random() * tilePool.length)];
-                }
-                pickGrid[r][c] = pick;
-                orientGrid[r][c] = Math.floor(Math.random() * 8); // bit0-1: 旋转 0/90/180/270，bit2: 水平翻转
-            }
-        }
-
-        // 绘制地块
+    if (baseImg) {
+        // 2. 基础层：等距菱形平铺
         ctx.save();
         ctx.beginPath();
         ctx.rect(0, 0, size, size);
         ctx.clip();
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const dx = c * tileSize;
-                const dy = r * tileSize;
-                const cx = dx + tileSize / 2;
-                const cy = dy + tileSize / 2;
-                const tile = pickGrid[r][c];
-                const orient = orientGrid[r][c];
-                const rot = orient & 3;
-                const flipX = (orient & 4) !== 0;
+        _drawIsoLayer(ctx, baseImg, size);
 
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate((rot * Math.PI) / 2);
-                if (flipX) ctx.scale(-1, 1);
-                // 圆角矩形裁剪：小砖边缘圆滑；四边内缩 1px，相邻小砖留 2px 纯黑缝隙
-                const half = FLOOR_TILE_DRAW_SIZE / 2;
-                ctx.beginPath();
-                if (typeof ctx.roundRect === 'function') {
-                    ctx.roundRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_RADIUS);
-                } else {
-                    ctx.rect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                }
-                ctx.clip();
-                // 从源图切出对应 32×32 子块绘制（源取整 32，目标内缩为 30×30）
-                ctx.drawImage(tile.img, tile.sx, tile.sy, tileSize, tileSize, -half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                if (FLOOR_TINT_COLOR) {
-                    // 使用 'color' 合成：保留原图明暗，只替换色相/饱和度，统一为灰黑色
-                    ctx.globalCompositeOperation = 'color';
-                    ctx.fillStyle = FLOOR_TINT_COLOR;
-                    ctx.fillRect(-half, -half, FLOOR_TILE_DRAW_SIZE, FLOOR_TILE_DRAW_SIZE);
-                    ctx.globalCompositeOperation = 'source-over';
-                }
-                ctx.restore();
-            }
+        // 3. 发光层：同位置平铺，'lighter' 合成（ADD 混合，让上缘高光真正发光）
+        if (glowImg) {
+            ctx.globalCompositeOperation = 'lighter';
+            _drawIsoLayer(ctx, glowImg, size);
+            ctx.globalCompositeOperation = 'source-over';
         }
         ctx.restore();
 
-        // 3. 边缘过渡：在场地四周叠加黑->透明的渐变，与纯黑背景融合
+        // 4. 边缘过渡：在场地四周叠加黑->透明的渐变，与纯黑背景融合
         const fade = FLOOR_EDGE_FADE;
         let grad;
 
@@ -163,7 +120,7 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
         ctx.fillRect(size - fade, 0, fade, size);
     } else {
         // 贴图未全部加载时回退到旧版网格地板
-        console.warn('[DungeonFloor] blackbrick 系列贴图未全部加载，使用回退网格地板');
+        console.warn('[DungeonFloor] blackbrick4 贴图未加载，使用回退网格地板');
         const tc = fallbackTerrain || DEFAULT_FALLBACK_TERRAIN;
         ctx.fillStyle = tc.floorColor;
         ctx.fillRect(0, 0, size, size);

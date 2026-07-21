@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地板重构：等距 30° 菱形 + 发光层）
+
+### 对话：地板改等距俯视角样式，参考基础层+发光层叠加
+- **素材**：blackbrick4.png（512×512 内含 329×161 等距 30° 菱形）复制到 `assets/terrain/`；程序化生成 `blackbrick4_glow.png`（菱形上边缘高光带，提亮+青白色偏移+高斯柔化）。
+- **烘焙重写**（dungeon-floor-texture.js）：
+  - 基础层：等距网格平铺（x 步长=菱形宽 329、y 步长=半高 80、奇偶行交错半宽 164），菱形中心对齐网格点；
+  - 发光层：同位置平铺 glow 图，`globalCompositeOperation='lighter'`（等价 Phaser BlendModes.ADD），砖缝/上缘真正发光；
+  - 保留纯黑背景 + 四周 64px 黑→透明渐变融合；贴图未加载回退深色网格。
+- **BootScene**：加载 blackbrick4 + blackbrick4_glow 两个键。
+- **预览验证**：同算法模拟 1024×1024 平铺效果（等距整齐、冷光均匀）。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/phaser/scenes/BootScene.js、assets/terrain/blackbrick4.png、assets/terrain/blackbrick4_glow.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①等距观感与角色/怪物大小比例；②glow 亮度（偏亮可调 glow 图透明度）；③旧 64×64 平铺已完全替换。
+
 ## 2026-07-20（蝇手碰撞朝向驱动偏移）
 
 ### 对话：碰撞体积朝右时再右移 5px，同步镜像
