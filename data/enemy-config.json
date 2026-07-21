@@ -1460,7 +1460,16 @@
         "farSwitchHoldMs": 3000,
         "meleeMoveSpeed": 260,
         "walkIntroMs": 1200,
-        "walk2IntroMs": 1267
+        "walk2IntroMs": 1267,
+        "approachMaxRange": 1600,
+        "bandMin": 800,
+        "bandMax": 1200,
+        "bandStopMs": 2000,
+        "bandMoveMinMs": 600,
+        "bandMoveMaxMs": 1500,
+        "losCheckMs": 200,
+        "repathMs": 500,
+        "bandEvalMs": 2000
       },
       "shoot": {
         "fireRange": 1200,
@@ -1475,7 +1484,7 @@
         "duration": 2000,
         "frames": 32,
         "fireFrame": 24,
-        "throwRange": 500,
+        "throwRange": 600,
         "flyDuration": 600,
         "arcHeight": 100,
         "impactRadius": 100,

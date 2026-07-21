@@ -8,6 +8,24 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工 AI 重构：远程寻位/环绕/寻路 + 状态机明确）
+
+### 对话：明确双状态机，优化远程攻击 AI
+- **状态机明确**：两形态（远程/近战）各有独立 idle 贴图（attacking 第 8 帧持枪 / axe 第 30 帧持斧）；形态切换强制经过切换动画的不可移动过渡态（idle→远程 attacking 正放、远程→idle 倒放、近战→远程 switch.png）；远程形态内分子状态：未交战 = 远程 idle（站立持枪），需移动或攻击 = rangeattack。
+- **rangeattack 移动 AI**（MovementSystem 全程锁定，移动完全自驱）：
+  - `approach`：距离 >1600px（含 1200~1600）直线推进至 1200px；
+  - `band`：800~1200px 带内"移动（随机 0.6~1.5s + 随机环绕方向）→ 停止 2s → 移动"不规则运动，切向环绕 + 径向修正保持带内，始终朝向目标寻找射击机会；
+  - `retreat`：距离 <800px 后撤回带；
+  - `reposition`：与目标间有障碍物（WallSystem.blocked 视线判定，200ms 节流）时 A* 寻路找射击角度，**不受 800 最小距离限制**，500ms 重算路径，异常路点过滤防 NaN 卡死；
+  - **狭小空间适配**：2000ms 节流评估目标周围 800~1200 环带是否存在可走+视线通畅位置（`_evalBandPositions` 16 点采样），满足用 band/retreat，不满足自动转 reposition。
+- **开火门控**：仅视线通畅且 ≤1200px 射程才射击（不再隔墙浪费弹药）。
+- **近战形态**：MovementSystem 主动追击寻敌（保持原驱动），直到满足退出近战条件（远程风格目标拉开 150px / 任意目标 300px 持续 3s）。
+- **闪光弹条件收紧**：仅 rangeattack 状态且距离 <600px 释放（throwRange 500→600）。
+- **配置**：enemy-config.json forms 新增 approachMaxRange/bandMin/bandMax/bandStopMs/bandMoveMinMs/bandMoveMaxMs/losCheckMs/repathMs/bandEvalMs，全部配置驱动。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——带内不规则运动观感、障碍后寻路射击角度、狭小房间 reposition 表现。
+
 ## 2026-07-21（新怪物：时空特工(突击)-F——首个双形态切换怪物）
 
 ### 对话：按添加怪物工作流新增领主怪，远程/近战双形态

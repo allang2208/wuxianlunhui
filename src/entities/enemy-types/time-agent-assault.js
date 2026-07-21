@@ -8,6 +8,8 @@ import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
+import { WallSystem } from '../../world/wall-system.js';
+import { pathFinder } from '../../ai/pathfinder.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -62,6 +64,18 @@ export class TimeAgentAssault extends Enemy {
         this._flashWarning = null;
         this._flashSprite = null;
 
+        // 远程攻击 AI 状态
+        this._losTimer = 0;          // 视线检测节流
+        this._losClear = true;       // 与目标间视线是否通畅（无障碍可命中）
+        this._bandEvalTimer = 0;     // 狭小空间评估缓存计时
+        this._bandUsable = true;     // 地图空间是否允许保持最小距离（800px 带可用）
+        this._bandPhase = 'stop';    // 不规则运动相位：move | stop
+        this._bandTimer = 0;
+        this._bandDir = 1;           // 环绕方向 ±1
+        this._repathTimer = 0;       // 寻路重算节流
+        this._path = null;
+        this._pathIdx = 0;
+
         // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+1s换弹，弹匣无限）
         this._isHumanoid = true;
         const qbz = JSON.parse(JSON.stringify(equipmentJson.equipment.qbz191));
@@ -115,14 +129,16 @@ export class TimeAgentAssault extends Enemy {
         if (this.isMoving) this._walkElapsed += dt;
         else this._walkElapsed = 0;
 
-        // 状态机：动作态（锁移动）与形态态（可移动）分流
+        // 状态机：动作态（锁移动）与形态态分流
         const ACTION_STATES = ['toRanged', 'toIdle', 'toRangedSwitch', 'axeIntro', 'axeAttack', 'flashThrow'];
         if (ACTION_STATES.includes(this._formState)) {
             this._stateTimer -= dt;
             this._updateActionStates(dt, entities, t, dist);
             this._attackAnimTimer = 100; // MovementSystem 锁定
         } else {
-            this._attackAnimTimer = 0;
+            // 远程形态移动完全自驱（寻位/环绕/寻路），MovementSystem 全程锁定；
+            // 近战形态交给 MovementSystem 主动追击
+            this._attackAnimTimer = this._formState === 'ranged' ? 100 : 0;
             this._updateForms(dt, entities, t, dist);
         }
 
@@ -157,13 +173,71 @@ export class TimeAgentAssault extends Enemy {
                 this._startTransition('toIdle', F.switchOutMs ?? 500);
                 return;
             }
-            // 闪光弹：远程形态专用，CD 就绪且目标在投掷距离内
-            if (t && this._flashCd <= 0 && dist <= (skills.flashbang.throwRange ?? 500)) {
+            // 远程 idle / rangeattack 子状态切换：需要移动或攻击才进入 rangeattack
+            const engaged = t && dist <= (F.engageRange ?? 1600);
+            if (!engaged) {
+                // 远程 idle 姿态：站立不动（持枪警戒）
+                this.isMoving = false;
+                this.vx = 0;
+                this.vy = 0;
+                return;
+            }
+            // ===== rangeattack 状态 =====
+            // 闪光弹：仅远程攻击状态且距离 <600px
+            if (this._flashCd <= 0 && dist < (skills.flashbang.throwRange ?? 600)) {
                 this._tryAttackTelegraph(() => this._startFlashThrow());
                 return;
             }
-            // 开火：目标在射程内（弹匣打空自动换弹，换弹期间 fireProjectile 自动拒射）
-            if (t && dist <= (skills.shoot.fireRange ?? 1200)) {
+            // 视线检测（节流）：与目标间是否有障碍物导致无法命中
+            this._losTimer -= dt;
+            if (this._losTimer <= 0) {
+                this._losTimer = F.losCheckMs ?? 200;
+                this._losClear = !(WallSystem && WallSystem.blocked && WallSystem.blocked(this.x, this.y, t.x, t.y));
+            }
+            // 狭小空间评估（节流缓存）：是否存在可保持 800px 最小距离且视线通畅的位置
+            this._bandEvalTimer -= dt;
+            if (this._bandEvalTimer <= 0) {
+                this._bandEvalTimer = F.bandEvalMs ?? 2000;
+                this._bandUsable = this._evalBandPositions(t);
+            }
+            // 移动模式选择：
+            // 视线受阻 → 寻路找射击角度（不受 800 最小距离限制）；
+            // >1600 → 直线推进到 1200；<800 → 后撤回带（狭小空间改寻路）；带内 → 移动-停止不规则运动
+            let mode;
+            if (!this._losClear) {
+                mode = 'reposition';
+            } else if (dist > (F.approachMaxRange ?? 1600)) {
+                mode = 'approach';
+            } else if (dist > (F.bandMax ?? 1200)) {
+                mode = 'approach'; // 1200~1600 同样推进到带内
+            } else if (dist < (F.bandMin ?? 800)) {
+                mode = this._bandUsable ? 'retreat' : 'reposition';
+            } else {
+                mode = this._bandUsable ? 'band' : 'reposition';
+            }
+            let moved = false;
+            switch (mode) {
+                case 'approach':
+                    this._moveToward(t.x, t.y, this.maxSpeed, dt);
+                    moved = true;
+                    break;
+                case 'retreat': {
+                    const awayA = Math.atan2(this.y - t.y, this.x - t.x);
+                    this._moveToward(this.x + Math.cos(awayA) * 200, this.y + Math.sin(awayA) * 200, this.maxSpeed, dt);
+                    moved = true;
+                    break;
+                }
+                case 'band':
+                    moved = this._updateBandMovement(dt, t, dist);
+                    break;
+                case 'reposition':
+                    moved = this._updateReposition(dt, t);
+                    break;
+            }
+            this.isMoving = moved;
+            if (!moved) { this.vx = 0; this.vy = 0; }
+            // 开火：视线通畅且目标在射程内（弹匣打空自动换弹）
+            if (this._losClear && dist <= (skills.shoot.fireRange ?? 1200)) {
                 this._tryFireGun(t, entities);
             }
             return;
@@ -294,6 +368,113 @@ export class TimeAgentAssault extends Enemy {
         // 怪物：按武器模式/攻击配置判定
         if (t.weaponMode) return t.weaponMode === 'melee';
         return !!(t.attacks && t.attacks.melee);
+    }
+
+    // ========== 远程攻击移动 AI（独立寻路/寻位） ==========
+
+    /** 朝目标点移动（WallSystem 解析墙壁），到达（<8px）返回 true；同步 vx/vy 供动画/朝向 */
+    _moveToward(tx, ty, speed, dt) {
+        const dx = tx - this.x, dy = ty - this.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 8) { this.vx = 0; this.vy = 0; return true; }
+        const step = Math.min(speed * dt / 1000, d);
+        const nx = this.x + dx / d * step, ny = this.y + dy / d * step;
+        const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+        const dts = Math.max(dt / 1000, 1e-4);
+        this.vx = (r.x - this.x) / dts;
+        this.vy = (r.y - this.y) / dts;
+        this.x = r.x;
+        this.y = r.y;
+        return false;
+    }
+
+    /**
+     * 带内不规则运动（800~1200px）：移动（随机时长/环绕方向）→ 停止 2s → 移动，
+     * 切向环绕为主 + 径向修正保持在带内，始终面朝目标寻找射击机会
+     */
+    _updateBandMovement(dt, t, dist) {
+        const F = this._getSkillConfigs().forms;
+        this._bandTimer -= dt;
+        if (this._bandPhase === 'stop') {
+            if (this._bandTimer <= 0) {
+                this._bandPhase = 'move';
+                const minMs = F.bandMoveMinMs ?? 600;
+                const maxMs = F.bandMoveMaxMs ?? 1500;
+                this._bandTimer = minMs + Math.random() * (maxMs - minMs);
+                this._bandDir = Math.random() < 0.5 ? 1 : -1;
+            }
+            return false; // 停止相位
+        }
+        if (this._bandTimer <= 0) {
+            this._bandPhase = 'stop';
+            this._bandTimer = F.bandStopMs ?? 2000;
+            return false;
+        }
+        // 切向环绕 + 径向修正（偏离带中心越远修正越强）
+        const toT = Math.atan2(t.y - this.y, t.x - this.x);
+        const tangent = toT + (Math.PI / 2) * this._bandDir;
+        const bandMid = ((F.bandMin ?? 800) + (F.bandMax ?? 1200)) / 2;
+        const radialErr = dist - bandMid;
+        const radial = toT + (radialErr > 0 ? 0 : Math.PI);
+        const w = Math.min(1, Math.abs(radialErr) / 200);
+        let dx = Math.cos(tangent) * (1 - w) + Math.cos(radial) * w;
+        let dy = Math.sin(tangent) * (1 - w) + Math.sin(radial) * w;
+        const len = Math.hypot(dx, dy) || 1;
+        dx /= len; dy /= len;
+        const step = this.maxSpeed * dt / 1000;
+        const nx = this.x + dx * step, ny = this.y + dy * step;
+        const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+        const dts = Math.max(dt / 1000, 1e-4);
+        this.vx = (r.x - this.x) / dts;
+        this.vy = (r.y - this.y) / dts;
+        const moved = Math.hypot(r.x - this.x, r.y - this.y) > 0.01;
+        this.x = r.x;
+        this.y = r.y;
+        return moved;
+    }
+
+    /**
+     * 寻路找射击角度（视线受阻或狭小空间）：A* 朝目标推进，每 500ms 重算，
+     * 视线恢复且进入射程后由模式选择切回带内/推进
+     */
+    _updateReposition(dt, t) {
+        const F = this._getSkillConfigs().forms;
+        this._repathTimer -= dt;
+        if (this._repathTimer <= 0 || !this._path) {
+            this._repathTimer = F.repathMs ?? 500;
+            const raw = (pathFinder && typeof pathFinder.findPath === 'function')
+                ? pathFinder.findPath(this.x, this.y, t.x, t.y, this.groundRadius)
+                : null;
+            // 过滤异常路点（防护：非法坐标会导致 NaN 位移卡死）
+            this._path = Array.isArray(raw) ? raw.filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.y)) : null;
+            this._pathIdx = 0;
+        }
+        if (this._path && this._pathIdx < this._path.length) {
+            const wp = this._path[this._pathIdx];
+            if (this._moveToward(wp.x, wp.y, this.maxSpeed, dt)) this._pathIdx++;
+        } else {
+            // 无路径：直线推进（WallSystem 沿墙滑动）
+            this._moveToward(t.x, t.y, this.maxSpeed, dt);
+        }
+        return true;
+    }
+
+    /** 狭小空间评估：目标周围 800~1200 环带采样，存在可走且视线通畅的位置即可保持最小距离 */
+    _evalBandPositions(t) {
+        const F = this._getSkillConfigs().forms;
+        const minR = F.bandMin ?? 800;
+        const maxR = F.bandMax ?? 1200;
+        if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return true;
+        for (let r = minR; r <= maxR; r += 200) {
+            for (let i = 0; i < 8; i++) {
+                const a = (Math.PI * 2 / 8) * i;
+                const px = t.x + Math.cos(a) * r, py = t.y + Math.sin(a) * r;
+                if (!WallSystem.canMoveTo(px, py, this.groundRadius)) continue;
+                if (WallSystem.blocked && WallSystem.blocked(px, py, t.x, t.y)) continue;
+                return true;
+            }
+        }
+        return false;
     }
 
     // ========== 远程射击（QBZ-191） ==========
