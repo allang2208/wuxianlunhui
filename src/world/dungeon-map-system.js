@@ -410,15 +410,28 @@ export const DungeonMapSystem = {
     /**
      * 钳制地图偏移，使 2048×2048 的地图不会拖出显示区域
      */
+    /** 路线选择界面显示区域（坐标工具测量值，2560×1440 基准）：
+     * left: 4px、bottom: 10px、width: 2545px、height: 542px；
+     * bottom/left 固定像素，width/height 按视口比例等比适配 */
+    _getMapTargetArea() {
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440;
+        const height = Math.round(542 * (viewH / 1440));
+        return {
+            left: 4,
+            top: viewH - 10 - height,
+            width: Math.round(2545 * (viewW / 2560)),
+            height
+        };
+    },
+
     _clampMapOffset() {
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : this.DEFAULT_VIEWPORT_WIDTH;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : this.DEFAULT_VIEWPORT_HEIGHT;
-        const marginX = this.MAP_MARGIN_X;
-        const marginY = this.MAP_MARGIN_Y;
-        const areaLeft = marginX;
-        const areaTop = marginY;
-        const areaW = viewW - marginX * 2;
-        const areaH = viewH - marginY * 2;
+        // 钳制区域与初始定位一致（_getMapTargetArea），拖动/缩放不允许超出该显示区域
+        const area = this._getMapTargetArea();
+        const areaLeft = area.left;
+        const areaTop = area.top;
+        const areaW = area.width;
+        const areaH = area.height;
 
         const mapW = this.MAP_WIDTH * this.mapScale;
         const mapH = this.MAP_HEIGHT * this.mapScale;
@@ -450,17 +463,8 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 路线选择界面显示区域（坐标工具测量值，2560×1440 基准）：
-        // left: 4px、bottom: 10px、width: 2545px、height: 542px
-        // bottom/left 固定像素；width/height 按视口比例适配（其他分辨率等比缩放）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440;
-        const TARGET_AREA = {
-            left: 4,
-            top: Math.round(viewH - 10 - Math.round(542 * (viewH / 1440))),
-            width: Math.round(2545 * (viewW / 2560)),
-            height: Math.round(542 * (viewH / 1440))
-        };
+        // 路线选择界面显示区域（坐标工具测量值，与拖动钳制共用 _getMapTargetArea）
+        const TARGET_AREA = this._getMapTargetArea();
 
         if (this.nodes.length === 0) {
             // 无节点时，默认居中显示在目标区域内
