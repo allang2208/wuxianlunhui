@@ -26,6 +26,10 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
+import { coverRect, anchorRect, clampToArea } from '../utils/layout.js';
+
+/** 路线选择界面区域 spec（1920×1080 基准；由 2560×1440 实测 left:4 bottom:10 w:2545 h:542 换算） */
+const MAP_AREA_SPEC = { left: 4, bottom: 10, width: 1909, height: 407 };
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
@@ -386,8 +390,7 @@ export const DungeonMapSystem = {
         };
     },
 
-    /** 背景图显示：cover 铺满视口（无黑边）+ bottom 锚定（图片底部始终贴视口底部，
-     * 位置不随分辨率漂移；1080P/2K 下均铺满，超出部分居中裁切） */
+    /** 背景图显示（layout.js coverRect：cover 铺满 + bottom 锚定，无黑边不漂移） */
     _renderBackground(ctx, viewW, viewH) {
         if (!this._bgImg) {
             this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
@@ -397,55 +400,29 @@ export const DungeonMapSystem = {
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
         if (!img || !img.complete || img.naturalWidth === 0) return;
-        // cover 缩放：铺满视口（无黑边）
-        const scale = Math.max(viewW / img.naturalWidth, viewH / img.naturalHeight);
-        const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        // 水平居中 + bottom 锚定（图片底部贴视口底部，位置固定不漂移）
-        const dx = Math.round((viewW - w) / 2);
-        const dy = viewH - h;
-        ctx.drawImage(img, dx, dy, w, h);
+        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, viewH, 'bottom');
+        ctx.drawImage(img, Math.round(r.x), Math.round(r.y), r.w, r.h);
     },
 
     /**
      * 钳制地图偏移，使 2048×2048 的地图不会拖出显示区域
      */
-    /** 路线选择界面显示区域（坐标工具测量值，2560×1440 基准）：
-     * left: 4px、bottom: 10px、width: 2545px、height: 542px；
-     * bottom/left 固定像素，width/height 按视口比例等比适配 */
+    /** 路线选择界面显示区域（layout.js 统一适配；spec 为 1920×1080 基准坐标，
+     * 由 2560×1440 实测值 left:4 bottom:10 width:2545 height:542 换算） */
     _getMapTargetArea() {
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440;
-        const height = Math.round(542 * (viewH / 1440));
-        return {
-            left: 4,
-            top: viewH - 10 - height,
-            width: Math.round(2545 * (viewW / 2560)),
-            height
-        };
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
+        return anchorRect(MAP_AREA_SPEC, viewW, viewH);
     },
 
     _clampMapOffset() {
-        // 钳制区域与初始定位一致（_getMapTargetArea），拖动/缩放不允许超出该显示区域
+        // 钳制区域与初始定位同源（layout.js clampToArea），禁止两套区域计算
         const area = this._getMapTargetArea();
-        const areaLeft = area.left;
-        const areaTop = area.top;
-        const areaW = area.width;
-        const areaH = area.height;
-
         const mapW = this.MAP_WIDTH * this.mapScale;
         const mapH = this.MAP_HEIGHT * this.mapScale;
-
-        let minX = areaLeft + areaW - mapW;
-        let maxX = areaLeft;
-        if (minX > maxX) { const t = minX; minX = maxX; maxX = t; }
-
-        let minY = areaTop + areaH - mapH;
-        let maxY = areaTop;
-        if (minY > maxY) { const t = minY; minY = maxY; maxY = t; }
-
-        this.mapOffsetX = Math.min(maxX, Math.max(minX, this.mapOffsetX));
-        this.mapOffsetY = Math.min(maxY, Math.max(minY, this.mapOffsetY));
+        const clamped = clampToArea({ x: this.mapOffsetX, y: this.mapOffsetY }, area, mapW, mapH);
+        this.mapOffsetX = clamped.x;
+        this.mapOffsetY = clamped.y;
     },
 
     // ───────────────────────────────────────────────

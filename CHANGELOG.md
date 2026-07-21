@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（统一分辨率适配系统 layout.js + 地图系统迁移）
+
+### 对话：统一成一套系统，不再分散各系统重复实现
+- **新建公共模块 `src/utils/layout.js`**（全项目统一分辨率适配）：
+  - `BASE_RESOLUTION = {1920,1080}`（基准分辨率）；
+  - `coverRect(imgW, imgH, viewW, viewH, anchor)`：cover 铺满 + bottom 锚定（背景图/立绘）；
+  - `anchorRect(spec, viewW, viewH)`：实测坐标等比适配（left/bottom 固定像素、width/height 按比例）；
+  - `clampToArea(offset, area, w, h)`：拖动/缩放钳制（与 anchorRect 同源）；
+  - `applyPanelPos(el, spec, viewW, viewH)`：DOM 面板一次性定位。
+- **地图系统迁移**（dungeon-map-system.js）：`_renderBackground` → coverRect；`_getMapTargetArea` → anchorRect（`MAP_AREA_SPEC = {left:4, bottom:10, width:1909, height:407}`，由 2560 实测值换算 1920 基准）；`_clampMapOffset` → clampToArea。逻辑等价，未改行为。
+- **约定**：以后新图层/栏目统一调 layout.js，不再各自实现；后续按此标准排查其余面板/立绘。
+- **修改文件**：src/utils/layout.js（新）、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——地图系统迁移后行为与之前一致（背景铺满+区域钳制）。
+
 ## 2026-07-21（路线地图钳制与定位统一 + 分辨率适配工作流入库）
 
 ### 对话：路线地图仍全屏乱拖 + 记录分辨率适配方式
