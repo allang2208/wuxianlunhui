@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：确认出征后仍在主神空间——场景状态未切换）
+
+### 对话：祭坛出征界面正常但点确认出征后没进地牢
+- **根因**：`depart()` 只调 `DungeonMapSystem.init()`（初始化地图数据），但**从未把 `SceneManager.currentScene` 设为 'scene7'**——而 `game.js render()` 的地牢渲染拦截条件是 `currentScene === 'scene7' && active && state==='map'`——条件恒 false，Renderer.canvas 保持 hidden，地图选择界面从不渲染，玩家看起来"还在主神空间"。
+- **修复**：`depart()` 在 `DungeonMapSystem.init(...)` 后补 `SceneManager.currentScene = 'scene7'`——update/render 的地牢拦截随之生效（主场景 update 冻结、地图渲染显示）。
+- **修改文件**：src/ui/expedition-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——确认出征后进入地图选择界面（背景图+节点路线）；选节点进战斗流程不受影响。
+
 ## 2026-07-21（地图选择界面重构 + 蝇群音效交叉循环）
 
 ### 对话：地图界面背景图 + 拖放缩放 + 音效结束前 0.5s 重叠
