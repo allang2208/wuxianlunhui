@@ -8,6 +8,50 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地板重构：等距 30° 菱形 + 发光层）
+
+### 对话：地板改等距俯视角样式，参考基础层+发光层叠加
+- **素材**：blackbrick4.png（512×512 内含 329×161 等距 30° 菱形）复制到 `assets/terrain/`；程序化生成 `blackbrick4_glow.png`（菱形上边缘高光带，提亮+青白色偏移+高斯柔化）。
+- **烘焙重写**（dungeon-floor-texture.js）：
+  - 基础层：等距网格平铺（x 步长=菱形宽 329、y 步长=半高 80、奇偶行交错半宽 164），菱形中心对齐网格点；
+  - 发光层：同位置平铺 glow 图，`globalCompositeOperation='lighter'`（等价 Phaser BlendModes.ADD），砖缝/上缘真正发光；
+  - 保留纯黑背景 + 四周 64px 黑→透明渐变融合；贴图未加载回退深色网格。
+- **BootScene**：加载 blackbrick4 + blackbrick4_glow 两个键。
+- **预览验证**：同算法模拟 1024×1024 平铺效果（等距整齐、冷光均匀）。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/phaser/scenes/BootScene.js、assets/terrain/blackbrick4.png、assets/terrain/blackbrick4_glow.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①等距观感与角色/怪物大小比例；②glow 亮度（偏亮可调 glow 图透明度）；③旧 64×64 平铺已完全替换。
+
+## 2026-07-20（蝇手碰撞朝向驱动偏移）
+
+### 对话：碰撞体积朝右时再右移 5px，同步镜像
+- **实现**：enemy-config `render.colliderOffsetFacing: 5`（新增配置项）；蝇手 update 每帧按朝向设置 `colliderOffsetX = 基础offsetX(-5) + faceDir×5`——朝右 0、朝左 -10（随手掌朝向摆动 ±5，左右镜像）；collider.syncPosition 每帧应用最新值。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/fly-hand.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——翻转朝向时碰撞中心跟随摆动。
+
+## 2026-07-20（出征面板清理 + 仓库/祭坛距离自动关闭 + 碰撞微调）
+
+### 对话：规则栏残留排查 + NPC 距离关闭扩展 + 蝇手蝇群碰撞
+- **出征规则栏残留根因**：`depart()` 的清理路径（关 panel/overlay/UIState）**漏调 `_hideRulePanel()`**——`close()` 里有但 depart 不走 close，出征后规则栏残留；从地牢返回后仍是残留状态（用户感知"返回主神空间后也没删除"）。修复：depart() 补 `_hideRulePanel()`。
+- **距离自动关闭扩展**：`_checkNPCDistance` 此前只认对话/商店/强化的 `_currentNPC`——仓库/祭坛打开时无 activeNPC 直接 return。扩展：
+  - 仓库 NPC 点击时记录 `WarehouseSystem._anchorNPC`（game.js）；祭坛 openExpedition/openFusion 时记录 `ExpeditionSystem._anchorNPC` / `FusionSystem._anchorNPC`（npc-dialogue.js）；
+  - `_checkNPCDistance` 增加三个参照源，超距（npcAutoCloseDist 200px）统一关闭 NPCDialogue/Shop/Enhance/SystemUI(背包)/Warehouse/Expedition/Fusion。
+- **碰撞微调**：蝇手 footprint 半径 41→46（左右各+5）；投射物矩形 height 160→190（上方+30px）；圆柱身高 collisionHeight 160→130（上方-30px）；蝇群 `render.colliderOffsetY` 0→20（整体下移 20px）。
+- **修改文件**：src/ui/expedition-system.js、src/game.js、src/ui/npc-dialogue.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①出征后规则栏消失；②离开仓库/祭坛 200px 自动关闭；③碰撞对齐。
+
+## 2026-07-20（地牢地板改版 + 陷阱失败后事件被替换修复）
+
+### 对话：地板仅 blackbrick1 64×64 + 陷阱失败后事件被换成其他事件
+- **地板改版**（dungeon-floor-texture.js）：`FLOOR_TEXTURE_KEYS` 三张 → 仅 `['blackbrick']`；`FLOOR_TILE_SIZE` 32 → 64。圆角/2px 黑缝/随机朝向/相邻避同/边缘渐变逻辑不变。
+- **陷阱失败后被替换事件根因**：节点清空/保留逻辑（解除失败保留节点）本就正确，但**节点不记录事件类型**——每次进入 event 节点都重新 `rollEventType` 随机，失败后节点保留（type='event'）重进时却随机成了别的事件，用户感知"被替换"。
+- **修复**：`_enterEvent` 把 `result.eventType` 记录到 `node.eventType`；进入时 `trigger(..., forcedType = node.eventType || null)`——节点事件类型首次随机后固定，重进不再重新随机（陷阱失败后重进仍是陷阱事件）。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①地板 64×64 单图观感；②陷阱失败后回退重进仍为陷阱；③成功解除后节点正常清空。
+
 ## 2026-07-20（蝇手 footprint 缩小 25% + 左移 15px）
 
 ### 对话：底部椭圆判定体积调整

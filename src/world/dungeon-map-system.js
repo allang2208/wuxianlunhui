@@ -1009,7 +1009,9 @@ export const DungeonMapSystem = {
         this.state = "event";
         // 使用 DungeonEventSystem 提供完整的随机事件
         import('./dungeon-event-system.js').then(mod => {
+            // node.eventType 已记录时沿用（如陷阱解除失败保留节点后重进，仍为陷阱事件，不再重新随机）
             mod.DungeonEventSystem.trigger(this.player, (result) => {
+                if (result && result.eventType) node.eventType = result.eventType;
                 if (result && result.combat) {
                     if (result.elite) node.isElite = true;
                     if (result.forceMonsters) node.forceMonsters = result.forceMonsters;
@@ -1031,7 +1033,7 @@ export const DungeonMapSystem = {
                     }
                     this._returnToMap();
                 }
-            }, null, this); // 传入 dungeonMapSystem = this
+            }, node.eventType || null, this); // 传入 dungeonMapSystem = this
         }).catch(err => {
             console.error('[DungeonMapSystem] Failed to load dungeon-event-system:', err);
             this._returnToMap();

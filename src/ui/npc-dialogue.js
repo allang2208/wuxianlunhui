@@ -350,6 +350,7 @@ const NPCDialogue = {
         if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
         // 不走 goodbye()：它会立即关闭背包，且 300ms 延迟 close() 二次强制关背包
+        if (this._currentNPC) ExpeditionSystem._anchorNPC = this._currentNPC; // 锚点供距离自动关闭
         this.close(true);
         ExpeditionSystem.open(player);
     },
@@ -362,6 +363,7 @@ const NPCDialogue = {
         if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
 
+        if (this._currentNPC) FusionSystem._anchorNPC = this._currentNPC; // 锚点供距离自动关闭
         this._currentText = '将两个相同稀有度的祭品熔铸为更高一级的祭品。传说祭品将熔铸为全新的传说。';
         if (this._typewriter) this._typewriter.setText(this._currentText);
         const dialogueOptions = getElement('npcDialogueOptions');

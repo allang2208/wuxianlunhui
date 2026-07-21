@@ -716,6 +716,7 @@ export const ExpeditionSystem = {
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
         UIState.close('expedition');
+        this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
 
         // 清空出征数据（物品已确认带走）
         this._carriedItems = new Array(this.CAPACITY).fill(null);
