@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地图选择界面重构 + 蝇群音效交叉循环）
+
+### 对话：地图界面背景图 + 拖放缩放 + 音效结束前 0.5s 重叠
+- **地图选择界面重构**（dungeon-map-system.js）：
+  - 背景：`assets/scenes/dungeon-map-bg.png`（素材库"背景图.png"复制）平铺填充（cover 居中裁切，不随地图变换；上方图片区无互动）；
+  - 地图区域背景改半透明深色（rgba(8,8,10,0.72)）叠加在背景图下半部黑色区上；
+  - **滚轮缩放**：新增 wheel 监听，以鼠标位置为中心缩放（0.3~3 倍，deltaY 方向），拖动逻辑不变。
+- **蝇群音效交叉循环**：SoundManager `playLoop` 新增第 4 参 `crossfadeSec`——>0 时不用自身 loop，改为**定时链**：每轨在 (duration - N) 秒时启动下一轨（两轨重叠 N 秒，前轨不中断自然播完）；音量动态调整跨轨延续（`l.volume` 记录）；stopAllLoops 同步清定时器。蝇群配置 `sounds.loopCrossfadeSec: 0.5` 启用。
+- **修改文件**：src/world/dungeon-map-system.js、src/ui/sound-manager.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、assets/scenes/dungeon-map-bg.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①背景图平铺效果与地图可读性；②拖动+滚轮缩放手感；③蝇群音效 0.5s 重叠无缝感。
+
 ## 2026-07-21（修复：献祭出征被点击穿透重新打开商店对话）
 
 ### 对话：祭坛点献祭出征没进出征界面，弹回主神空间+小鼠商店对话

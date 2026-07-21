@@ -41,7 +41,7 @@ export class FlySwarm extends Enemy {
         }
         if (!this._loopSoundStarted) {
             this._loopSoundStarted = true;
-            SoundManager.playLoop(this._loopSoundId, s.loop, s.loopVolumeBase ?? 0.5);
+            SoundManager.playLoop(this._loopSoundId, s.loop, s.loopVolumeBase ?? 0.5, s.loopCrossfadeSec ?? 0.5);
         }
         const base = s.loopVolumeBase ?? 0.5;
         const max = s.loopVolumeMax ?? 1.5;
