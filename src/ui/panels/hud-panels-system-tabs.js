@@ -490,6 +490,12 @@ export function createHudPanelsSystemTabs() {
     codexDetailTitle.id = 'codexDetailTitle';
     codexDetailTitle.textContent = '详情';
     codexDetailHeader.appendChild(codexDetailTitle);
+    // 返回按钮（codex-manager closeDetail 引用，此前只引用未创建导致 [DOMUtils] not found 警告）
+    const codexBackBtn = document.createElement('button');
+    codexBackBtn.id = 'codexBackBtn';
+    codexBackBtn.className = 'codex-back-btn';
+    codexBackBtn.textContent = '✕ 返回';
+    codexDetailHeader.appendChild(codexBackBtn);
     codexDetail.appendChild(codexDetailHeader);
     const codexDetailBody = document.createElement('div');
     codexDetailBody.className = 'codex-detail-body';

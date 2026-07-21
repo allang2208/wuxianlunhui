@@ -2735,25 +2735,6 @@ export class GameScene extends Scene {
         g.strokePath();
     }
 
-    /** 创建/确保小地图矩形裁剪 mask（动态层+静态层共用） */
-    _ensureMinimapMask() {
-        if (this._minimapMaskShape) return;
-        const minimapCfg = GAME_CONFIG.minimap || {};
-        const minimapW = minimapCfg.width || 150;
-        const minimapH = minimapCfg.height || 150;
-        const pad = minimapCfg.padding || 10;
-        const offsetY = minimapCfg.offsetY || 50;
-        const mx = pad;
-        const my = pad + offsetY;
-        const shape = this.make.graphics({ x: 0, y: 0, add: false });
-        shape.fillStyle(0xffffff);
-        shape.fillRect(mx, my, minimapW, minimapH);
-        const mask = shape.createGeometryMask();
-        this._minimapMaskShape = shape;
-        if (this._minimapStaticGraphics) this._minimapStaticGraphics.setMask(mask);
-        if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setMask(mask);
-    }
-
     _redrawMinimapStatic() {
         const g = this._minimapStaticGraphics;
         if (!g) return;
@@ -2798,11 +2779,10 @@ export class GameScene extends Scene {
     _syncMinimap() {
         const game = window.Game;
         if (!game || !game.player || game._npcDialoguePaused) return;
-        // 独立动态层 + 矩形 mask：实体/相机框/箭头一律裁剪到小地图框内（修复画出框外）
+        // 独立动态层 + 边界检查裁剪（WebGL 不支持 geometry mask，改用绘制前边界判断）
         const g = this._minimapDynamicGraphics;
         if (!g) return;
         g.clear();
-        this._ensureMinimapMask();
         const minimapCfg = GAME_CONFIG.minimap || {};
         const minimapW = minimapCfg.width || 150;
         const minimapH = minimapCfg.height || 150;
@@ -2817,6 +2797,10 @@ export class GameScene extends Scene {
         const scale = Math.min(scaleX, scaleY);
         const styles = minimapCfg.styles || {};
         const sizes = minimapCfg.sizes || {};
+        // 边界检查：只画小地图框内的内容（替代 WebGL 不支持的 geometry mask）
+        const inBox = (x, y) => x >= mx && x <= mx + minimapW && y >= my && y <= my + minimapH;
+        const clampX = (x) => Math.max(mx, Math.min(mx + minimapW, x));
+        const clampY = (y) => Math.max(my, Math.min(my + minimapH, y));
 
         // 墙壁数量变化时才重绘静态层
         const wallCount = WallSystem && WallSystem.walls ? WallSystem.walls.length : 0;
@@ -2825,14 +2809,18 @@ export class GameScene extends Scene {
             this._minimapStaticWallsCount = wallCount;
         }
 
-        // 相机视野框
+        // 相机视野框（与框求交集，超框部分不画）
         const camX = mx + (Camera.x - CONFIG.VIEW_WIDTH / 2) * scale;
         const camY = my + (Camera.y - CONFIG.VIEW_HEIGHT / 2) * scale;
         const viewW = Math.max(1, CONFIG.VIEW_WIDTH * scale);
         const viewH = Math.max(1, CONFIG.VIEW_HEIGHT * scale);
         const viewColor = this._parseColor(styles.viewFrame || 'rgba(255,200,0,0.6)', 0xffc800, 0.6);
-        g.lineStyle(1, viewColor.color, viewColor.alpha);
-        g.strokeRect(camX, camY, viewW, viewH);
+        const fx1 = Math.max(camX, mx), fy1 = Math.max(camY, my);
+        const fx2 = Math.min(camX + viewW, mx + minimapW), fy2 = Math.min(camY + viewH, my + minimapH);
+        if (fx2 > fx1 && fy2 > fy1) {
+            g.lineStyle(1, viewColor.color, viewColor.alpha);
+            g.strokeRect(fx1, fy1, fx2 - fx1, fy2 - fy1);
+        }
 
         // 裂隙
         if (SceneManager.currentScene === 'scene2' && RiftSystem && RiftSystem.rifts) {
@@ -2842,7 +2830,7 @@ export class GameScene extends Scene {
                 if (rift.completed) continue;
                 const rx = mx + rift.x * scale;
                 const ry = my + rift.y * scale;
-                g.fillCircle(rx, ry, sizes.rift || 2);
+                if (inBox(rx, ry)) g.fillCircle(rx, ry, sizes.rift || 2);
             }
         }
 
@@ -2853,6 +2841,7 @@ export class GameScene extends Scene {
                 if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
                 const ex = mx + e.x * scale;
                 const ey = my + e.y * scale;
+                if (!inBox(ex, ey)) return; // 框外实体不画
                 if (e.targetScene) {
                     const portalColor = this._parseColor(styles.portal || '#00aaff', 0x00aaff, 1);
                     g.fillStyle(portalColor.color, portalColor.alpha);
@@ -2873,18 +2862,20 @@ export class GameScene extends Scene {
             });
         }
 
-        // 玩家
+        // 玩家（箭头端点钳制到框内）
         const px = mx + game.player.x * scale;
         const py = my + game.player.y * scale;
         const playerColor = this._parseColor(styles.player || '#00ff00', 0x00ff00, 1);
-        g.fillStyle(playerColor.color, playerColor.alpha);
-        g.fillCircle(px, py, sizes.player || 3);
-        const dir = game.player.rotation || 0;
-        g.lineStyle(sizes.arrowLineWidth || 1.5, playerColor.color, playerColor.alpha);
-        g.beginPath();
-        g.moveTo(px, py);
-        g.lineTo(px + Math.cos(dir) * (sizes.arrowLen || 6), py + Math.sin(dir) * (sizes.arrowLen || 6));
-        g.strokePath();
+        if (inBox(px, py)) {
+            g.fillStyle(playerColor.color, playerColor.alpha);
+            g.fillCircle(px, py, sizes.player || 3);
+            const dir = game.player.rotation || 0;
+            g.lineStyle(sizes.arrowLineWidth || 1.5, playerColor.color, playerColor.alpha);
+            g.beginPath();
+            g.moveTo(px, py);
+            g.lineTo(clampX(px + Math.cos(dir) * (sizes.arrowLen || 6)), clampY(py + Math.sin(dir) * (sizes.arrowLen || 6)));
+            g.strokePath();
+        }
 
         // 标题
         const title = minimapCfg.title || {};

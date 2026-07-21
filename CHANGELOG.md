@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（错误修复：小地图 mask WebGL 不支持 + codexBackBtn 缺失）
+
+### 对话：用户反馈 Phaser WebGL mask 警告 + codexBackBtn not found
+- **小地图 mask 改边界检查**：geometry mask 在 WebGL 下不支持（Phaser 警告 `Mask.setMask: not supported in WebGL`）——移除 `_ensureMinimapMask` 及 setMask，改为**绘制前边界检查**：实体/裂隙/玩家点加 `inBox` 判断（框外不画）、相机视野框求与框的交集、玩家箭头端点 clamp 到框内。独立动态层 `_minimapDynamicGraphics` 保留。
+- **codexBackBtn 缺失**：codex-manager.js:42 `getElement('codexBackBtn')` 引用的返回按钮从未被创建（仅警告日志，无功能错误）——在 `hud-panels-system-tabs.js` 的 codexDetail 头部补建返回按钮（id codexBackBtn，绑 closeDetail）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/ui/panels/hud-panels-system-tabs.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①小地图框外无泄漏且 WebGL 警告消失；②图鉴详情返回按钮出现并可用。
+
 ## 2026-07-21（地图界面 HUD 隐藏改 body.map-mode 统一管理 + 血量数值隐藏）
 
 ### 对话：武器栏仍显示"生锈的长剑" + 左上角血量 200/200 未隐藏
