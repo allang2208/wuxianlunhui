@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地图选择界面精细化：隐藏 HUD + 固定显示）
+
+### 对话：地图界面隐藏小地图/提示栏/武器栏 + 背景图固定 bottom 防分辨率乱动
+- **隐藏元素**（地图模式进入时隐藏、退出恢复）：
+  - 小地图三件套：静态层/动态层（`_minimapDynamicGraphics` 补入隐藏列表）/标题；
+  - 快捷栏（`.bottom-bar`）与左下角操作提示栏（`#controlsHintLeft`）——GameScene `_mapModeActive` 切换点统一控制 DOM 显隐。
+- **背景图换"背景图-1.png"** + **固定显示**（`_renderBackground` 重写）：
+  - 先铺纯黑底；图片按 1920×1080 基准固定缩放（scale=1080/imgHeight，不随视口变化）；
+  - 锚定视口底部（bottom:0）水平居中——视口更大周围留黑边、更小居中裁切，**位置不随分辨率乱动**。
+- **节点地图固定像素**（`_centerRouteMap`）：移除 `window.innerWidth/Height` 动态计算，TARGET_AREA 改固定常量（left 280 / top 120 / 1360×840，1920×1080 基准）——地图初始定位不再随分辨率变化。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/world/dungeon-map-system.js、assets/scenes/dungeon-map-bg.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①界面无小地图/提示栏/武器栏；②背景图底部锚定不随分辨率乱动；③节点地图固定位置；④拖动+滚轮缩放仍正常。
+
 ## 2026-07-21（修复：祭坛进地牢小地图泄露 5 蓝点——场景切换未清理实体）
 
 ### 对话：祭坛进地牢后小地图泄露 5 个蓝点（主神空间 portal）

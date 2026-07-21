@@ -386,21 +386,25 @@ export const DungeonMapSystem = {
         };
     },
 
-    /** 背景图平铺填充（cover 居中裁切，不随地图变换；懒加载） */
+    /** 背景图固定显示：按基准分辨率 1920×1080 缩放，锚定视口底部（bottom:0）水平居中，
+     * 不随分辨率变化而移动/缩放（视口更大时周围留黑边，视口更小时居中裁切） */
     _renderBackground(ctx, viewW, viewH) {
         if (!this._bgImg) {
             this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
         }
+        // 先铺纯黑底（视口大于背景显示区时的边缘）
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
-        if (!img || !img.complete || img.naturalWidth === 0) {
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, viewW, viewH);
-            return;
-        }
-        const scale = Math.max(viewW / img.naturalWidth, viewH / img.naturalHeight);
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+        // 固定缩放：以 1920×1080 为基准显示尺寸（不随视口变化）
+        const scale = 1080 / img.naturalHeight;
         const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        ctx.drawImage(img, (viewW - w) / 2, (viewH - h) / 2, w, h);
+        const h = 1080;
+        // 锚定底部（bottom: 0）+ 水平居中
+        const dx = Math.round((viewW - w) / 2);
+        const dy = viewH - h;
+        ctx.drawImage(img, dx, dy, w, h);
     },
 
     /**
@@ -446,17 +450,12 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 使用实际窗口尺寸动态计算居中区域（确保地图在当前窗口中居中）
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        // 地图显示区域：水平居中，垂直居中，留出边距
-        const marginX = 280;  // 左右边距（给侧边栏留空间）
-        const marginY = 120;  // 上下边距
+        // 固定像素显示区域（1920×1080 基准，不随分辨率动态计算，避免地图位置随窗口变化乱动）
         const TARGET_AREA = {
-            left: marginX,
-            top: marginY,
-            width: viewW - marginX * 2,
-            height: viewH - marginY * 2
+            left: 280,
+            top: 120,
+            width: 1920 - 280 * 2,
+            height: 1080 - 120 * 2
         };
 
         if (this.nodes.length === 0) {
