@@ -159,10 +159,12 @@ update(dt, entities) {
                 if (this.weaponSwitchCooldown > 0) this.weaponSwitchCooldown -= dt;
                 if (this.isDodging) {
                     this.dodgeTimer -= dt;
-                    if (this.dodgeTimer <= 0) { this.isDodging = false; this.dodgeInvincible = false; }
+                    if (this.dodgeTimer <= 0) { this._endDodge(); }
                     else {
                         const dScale = dt / 1000;
-                        const dnx = this.x + this.dodgeDirection.x * CONFIG.DODGE_SPEED * 0.33 * dScale, dny = this.y + this.dodgeDirection.y * CONFIG.DODGE_SPEED * 0.33 * dScale;
+                        // 生效速度走 calculateCombatStats 面板（可被装备/道具修饰），缺省回退配置基准
+                        const dodgeSpeed = (this.data && this.data.dodgeSpeed) || CONFIG.DODGE_SPEED;
+                        const dnx = this.x + this.dodgeDirection.x * dodgeSpeed * 0.33 * dScale, dny = this.y + this.dodgeDirection.y * dodgeSpeed * 0.33 * dScale;
                         const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.groundRadius);
                         this.x = dr.x; this.y = dr.y;
                         // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围

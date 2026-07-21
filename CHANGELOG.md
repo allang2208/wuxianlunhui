@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（闪避重构：0.8s 无敌窗口 + 不可选中 + 碰撞 0 不穿墙 + 修饰挂接）
+
+### 对话：闪避期间不可选中且无敌、碰撞体积 0（不可穿墙），躲过除 debuff 外所有伤害
+- **基准配置**：`config.js` `DODGE_DURATION` 200 → **800**（默认 0.8 秒无敌窗口）；`DODGE_SPEED/DODGE_COOLDOWN` 不变。
+- **配置驱动（不硬编码）**：`base.js calculateCombatStats` 新增闪避面板——`d.dodgeDuration = CONFIG.DODGE_DURATION × (1+durationPercent/100)`、`d.dodgeSpeed = CONFIG.DODGE_SPEED × (1+distancePercent/100)`，修饰来源 `player._dodgeModifiers = { durationPercent, distancePercent }`（index.js 初始化，后续装备/道具写入后调用 calculateCombatStats 即生效）；`triggerDodge`/update.js 均改读面板值，配置基准仅作缺省回退。
+- **不可选中 + 碰撞 0**：`triggerDodge` 时快照并设置 `hittable=false`（感知系统/近战/投射物/冲锋/接触伤害等全部命中判定统一跳过）与 `noCollision=true`（resolveCollisions 实体分离跳过，可穿过单位；墙壁仍由 WallSystem 解析不可穿墙——与铠甲骑士冲锋同机制）。
+- **统一出口 `_endDodge()`**：计时到期（update.js）、眩晕打断（_cancelAllActionsForStun）、蟠桃复活、respawn 全部走同一出口还原快照；顺带修复"眩晕打断闪避后 dodgeInvincible 残留"旧隐患。
+- **伤害/眩晕规避**：takeDamage 头部已有 `dodgeInvincible` 拦截（所有直接伤害免疫）；`applyStun` 新增闪避窗口拦截——铠甲骑士冲锋撞击在判定时玩家处于闪避：命中检测因 `hittable=false` 整体跳过（不伤害/不眩晕/不击退），双重兜底。
+- **debuff 除外**：中毒 DoT 为 `hp -= stacks` 直接扣血不走 takeDamage，闪避期间照常跳伤害；applyPoison 等状态附着不受影响——符合"躲过除 debuff 外所有伤害"。
+- **修改文件**：src/config/config.js、src/entities/player/{base.js,index.js,subsystems.js,update.js}、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——闪避 0.8s 窗口、穿人穿怪不穿墙、冲锋撞击判定全免、中毒持续掉血。
+
 ## 2026-07-21（地牢地图背景图换为僵尸城堡 + 配置驱动）
 
 ### 对话：用素材库"背景图.png"替换僵尸地牢背景图，不要硬编码

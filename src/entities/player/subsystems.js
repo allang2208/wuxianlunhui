@@ -239,6 +239,8 @@ _reviveInPlace() {
                 this._specialAttackTimer = 0;
                 this._isDashing = false;
                 this._isWhirlwind = false;
+                // 还原闪避标记（死亡打断闪避时 hittable/noCollision 可能仍挂着）
+                this._endDodge();
                 this.vx = 0;
                 this.vy = 0;
                 if (this.droneSystem && this.droneSystem.controlling) {
@@ -265,6 +267,8 @@ respawn() {
                 // 清除眩晕状态
                 this._dashStunned = false;
                 this._dashStunTimer = 0;
+                // 还原闪避标记（死亡打断闪避时 hittable/noCollision 可能仍挂着）
+                this._endDodge();
                 // 清除过热状态
                 this._overheatActive = false;
                 this._overheatValue = 0;
@@ -771,11 +775,30 @@ triggerDodge(moveInput) {
                 let dirX = moveInput.x, dirY = moveInput.y;
                 if (dirX === 0 && dirY === 0) { dirX = Math.cos(this.rotation); dirY = Math.sin(this.rotation); }
                 const len = Math.sqrt(dirX*dirX + dirY*dirY); if (len > 0) { dirX /= len; dirY /= len; }
-                this.dodgeDirection = { x: dirX, y: dirY }; this.isDodging = true; this.dodgeTimer = CONFIG.DODGE_DURATION;
+                this.dodgeDirection = { x: dirX, y: dirY }; this.isDodging = true;
+                // 生效时长/速度走 calculateCombatStats 计算面板（可被装备/道具修饰），缺省回退配置基准
+                this.dodgeTimer = (this.data && this.data.dodgeDuration) || CONFIG.DODGE_DURATION;
                 this.dodgeCooldown = CONFIG.DODGE_COOLDOWN; this.dodgeInvincible = true; this.data.stamina -= CONFIG.STAMINA_DODGE_COST;
+                // 闪避期间：不可选中（感知/命中判定统一跳过）+ 碰撞体积 0（实体分离跳过；
+                // 墙壁仍由 WallSystem 解析，不可穿墙——与铠甲骑士冲锋同机制）
+                this._dodgePrevHittable = this.hittable;
+                this.hittable = false;
+                this._dodgePrevNoCollision = !!this.noCollision;
+                this.noCollision = true;
                 // SoundManager.play('dodge');
                 this.vx = 0; this.vy = 0;
                 EffectFactory.createDodgeEffect(this.x, this.y, dirX, dirY);
+            },
+
+// 闪避结束统一出口：还原无敌/不可选中/碰撞标记（计时到期与眩晕打断都走这里）
+_endDodge() {
+                this.isDodging = false;
+                this.dodgeInvincible = false;
+                this.hittable = this._dodgePrevHittable !== undefined ? this._dodgePrevHittable : true;
+                // 恢复实体碰撞：与实体重叠时由 resolveCollisions 逐帧挤出（带墙壁解析，不瞬移不卡墙）
+                this.noCollision = this._dodgePrevNoCollision !== undefined ? this._dodgePrevNoCollision : false;
+                this._dodgePrevHittable = undefined;
+                this._dodgePrevNoCollision = undefined;
             },
 
 _lineRectIntersection(x1, y1, x2, y2, rect) {
@@ -2019,6 +2042,7 @@ _drawStickFigure(ctx, bodyScale = 1, bodyOffsetX = 0, bodyOffsetY = 0) {
 
 applyStun(duration) {
                 if (this._isDead) return; // 死亡状态不眩晕
+                if (this.dodgeInvincible) return; // 闪避判定窗口内：不进入眩晕（与伤害免疫同窗口）
                 this.isStunned = true;
                 this.stunTimer = duration;
                 // 终止所有进行中的动作，眩晕期间只保留待机
@@ -2047,8 +2071,8 @@ _cancelAllActionsForStun() {
                     this.offhandWeaponAnim.timer = 0;
                     this.offhandWeaponAnim.isAttacking = false;
                 }
-                // 闪避/冲刺/风车/推击/特殊攻击
-                this.isDodging = false;
+                // 闪避/冲刺/风车/推击/特殊攻击（闪避走 _endDodge 统一出口，同步还原无敌/碰撞标记）
+                this._endDodge();
                 this._isDashing = false;
                 this._dashState = 'idle';
                 this._dashTimer = 0;

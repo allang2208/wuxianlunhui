@@ -42,6 +42,11 @@ class Player extends Combatant {
             // 根据最终碰撞字段重建统一 3D Collider（地面 footprint 与胶囊体）
             this.rebuildCollider();
             this.isDodging = false; this.dodgeTimer = 0; this.dodgeCooldown = 0; this.dodgeDirection = { x: 0, y: 0 }; this.dodgeInvincible = false;
+            // 闪避修饰（百分比，装备/道具后续写入后调用 calculateCombatStats 生效）
+            this._dodgeModifiers = { durationPercent: 0, distancePercent: 0 };
+            // 闪避前的 hittable/noCollision 快照（_endDodge 还原用）
+            this._dodgePrevHittable = undefined;
+            this._dodgePrevNoCollision = undefined;
             this.weaponSwitchCooldown = defs.combat.weaponSwitchCooldown; // 武器切换冷却：切换 G18 后防止立即开火
             this._sprintDuration = 0; // 冲刺持续时间（长按Shift计时）
             this._isDashing = false; // 是否正在执行冲刺攻击
