@@ -1476,8 +1476,13 @@
         "knockback": 25,
         "spreadFactor": 0.15,
         "spreadMaxAngle": 10,
-        "muzzleOffset": 30,
-        "muzzleScale": 1.2
+        "muzzleScale": 1.2,
+        "ammo": {
+          "max": 30,
+          "reloadTime": 2000
+        },
+        "muzzleUpY": 75,
+        "muzzleSideX": 15
       },
       "flashbang": {
         "cooldown": 10000,

@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：移动射击动画/换弹 2s/枪口位置修正）
+
+### 对话：移动射击动画不生效（固定射击）、弹匣 30 发 2s 换弹、朝左枪口上移 75 左移 15
+- **移动射击动画根因**：远程模式用 `_attackAnimTimer=100` 锁 MovementSystem 自驱移动，但 MovementSystem 锁定分支每帧把 `isMoving/vx/vy` 清零——位置在动、动画标记被抹掉，表现为"固定不动射击"。修复：新增 `_selfMoving` 自驱标记 + `_effectiveMoving()`（远程读自驱标记，其余形态读 isMoving），贴图键/动画键/移动计时全部改走有效标记；锁定期间击退 MovementSystem 不处理，类内按同口径自行应用（衰减+墙壁解析）。
+- **弹匣**：`shoot.ammo = { max: 30, reloadTime: 2000 }` 写入怪物实例 `ammoConfig`（getAmmoConfig 优先实例字段，不影响玩家同款武器）。
+- **枪口位置**：子弹与枪口火焰同源——`_isFacingLeft()` 判定朝向，枪口点 = 上移 `muzzleUpY`(75) + 左右 `muzzleSideX`(15)（朝左-15/朝右+15）；`fireProjectile` 固定从 this.x/y 生成子弹，采用临时移位到枪口再还原的方式让子弹从枪口射出。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——移动射击播放 walking 首段/循环段、30 发打完 2s 换弹、左右朝向子弹出膛点正确。
+
 ## 2026-07-21（时空特工动画链路修复 + 贴图尺寸/闪光弹贴图）
 
 ### 对话：动画全部显示为圆柱体、贴图过大、闪光弹投射物消失

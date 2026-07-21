@@ -75,10 +75,13 @@ export class TimeAgentAssault extends Enemy {
         this._repathTimer = 0;       // 寻路重算节流
         this._path = null;
         this._pathIdx = 0;
+        this._selfMoving = false;    // 远程自驱移动标记（MovementSystem 锁定会清零 isMoving，动画以此为准）
 
-        // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+1s换弹，弹匣无限）
+        // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+2s换弹，弹匣无限）
         this._isHumanoid = true;
         const qbz = JSON.parse(JSON.stringify(equipmentJson.equipment.qbz191));
+        // 弹匣参数走怪物配置（不影响玩家同款武器）
+        if (skills.shoot.ammo) qbz.ammoConfig = { ...skills.shoot.ammo };
         this.equipments.weapon = qbz;
         this.attacks.qbz191 = createAttackFromConfig(WEAPON_ATTACK_CONFIG.qbz191);
         // 伤害取怪物面板物攻（fireProjectile 默认读 config.damage 占位值 1-1）
@@ -125,10 +128,6 @@ export class TimeAgentAssault extends Enemy {
         // 朝向目标（ MovementSystem 驱动移动时方向一致；动作期锁定）
         if (t) this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
 
-        // 连续移动计时（walk/walk2 首段→循环段）
-        if (this.isMoving) this._walkElapsed += dt;
-        else this._walkElapsed = 0;
-
         // 状态机：动作态（锁移动）与形态态分流
         const ACTION_STATES = ['toRanged', 'toIdle', 'toRangedSwitch', 'axeIntro', 'axeAttack', 'flashThrow'];
         if (ACTION_STATES.includes(this._formState)) {
@@ -140,6 +139,28 @@ export class TimeAgentAssault extends Enemy {
             // 近战形态交给 MovementSystem 主动追击
             this._attackAnimTimer = this._formState === 'ranged' ? 100 : 0;
             this._updateForms(dt, entities, t, dist);
+        }
+
+        // 连续移动计时（walk/walk2 首段→循环段）：
+        // 远程模式 MovementSystem 锁定会清零 isMoving，以自驱标记 _selfMoving 为准
+        if (this._effectiveMoving()) this._walkElapsed += dt;
+        else this._walkElapsed = 0;
+
+        // 远程锁定期间 MovementSystem 不处理击退，自行应用（同口径：衰减+墙壁解析）
+        if (this._formState === 'ranged' && (this.knockbackX || this.knockbackY)) {
+            const kf = this.knockbackFriction || 0.9;
+            const sc = dt / 1000;
+            const nx = this.x + (this.knockbackX || 0) * sc;
+            const ny = this.y + (this.knockbackY || 0) * sc;
+            const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+            this.x = r.x;
+            this.y = r.y;
+            this.knockbackX *= kf;
+            this.knockbackY *= kf;
+            if (Math.abs(this.knockbackX) < 1 && Math.abs(this.knockbackY) < 1) {
+                this.knockbackX = 0;
+                this.knockbackY = 0;
+            }
         }
 
         // 近战形态移速提升（其余形态用配置速度）
@@ -177,6 +198,7 @@ export class TimeAgentAssault extends Enemy {
             const engaged = t && dist <= (F.engageRange ?? 1600);
             if (!engaged) {
                 // 远程 idle 姿态：站立不动（持枪警戒）
+                this._selfMoving = false;
                 this.isMoving = false;
                 this.vx = 0;
                 this.vy = 0;
@@ -234,7 +256,8 @@ export class TimeAgentAssault extends Enemy {
                     moved = this._updateReposition(dt, t);
                     break;
             }
-            this.isMoving = moved;
+            this._selfMoving = moved;
+            this.isMoving = moved; // 会被 MovementSystem 锁定清零，动画以 _selfMoving 为准
             if (!moved) { this.vx = 0; this.vy = 0; }
             // 开火：视线通畅且目标在射程内（弹匣打空自动换弹）
             if (this._losClear && dist <= (skills.shoot.fireRange ?? 1200)) {
@@ -477,21 +500,33 @@ export class TimeAgentAssault extends Enemy {
         return false;
     }
 
+    /** 朝向判定（与 _getPhaserOptions 的 flipX 同规则） */
+    _isFacingLeft() {
+        if (this.target && this.target.active) return this.target.x < this.x;
+        if (this.isMoving && Math.abs(this.vx) > 0.1) return this.vx < 0;
+        return Math.cos(this.rotation ?? 0) < 0;
+    }
+
     // ========== 远程射击（QBZ-191） ==========
 
     _tryFireGun(t, entities) {
+        const skills = this._getSkillConfigs().shoot;
+        // 枪口点：上移 muzzleUpY，左右按朝向偏移 muzzleSideX（子弹与枪口火焰同源）
+        const up = skills.muzzleUpY ?? 75;
+        const side = skills.muzzleSideX ?? 15;
+        const mx = this.x + (this._isFacingLeft() ? -side : side);
+        const my = this.y - up;
+        // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
+        const ox = this.x, oy = this.y;
+        this.x = mx; this.y = my;
         // fireProjectile 内置：冷却/弹药/换弹检查、AI 散布、AimHelper 预判、曳光弹、开火音效
         const fired = this.fireProjectile(t.x, t.y, entities, { slot: 'weapon' });
+        this.x = ox; this.y = oy;
         if (!fired) return;
-        // 枪口火焰 + 弹壳（玩家同款工厂；敌人无 weaponSprite，按朝向偏移取枪口点，取胸口高度）
-        const skills = this._getSkillConfigs().shoot;
-        const angle = this.rotation;
-        const off = skills.muzzleOffset ?? 30;
-        const baseY = this.y - (this.footOffsetY || 0);
-        const mx = this.x + Math.cos(angle) * off;
-        const my = baseY + Math.sin(angle) * off;
+        // 枪口火焰 + 弹壳（玩家同款工厂）
+        const angle = Math.atan2(t.y - my, t.x - mx);
         EffectFactory.createMuzzleFlash(mx, my, angle, skills.muzzleScale ?? 1.2);
-        EffectFactory.createShellCasing(this.x, this.y, angle, this.y);
+        EffectFactory.createShellCasing(mx, my, angle, oy);
     }
 
     // ========== 斧头劈砍 ==========
@@ -604,6 +639,11 @@ export class TimeAgentAssault extends Enemy {
 
     // ========== 动画 ==========
 
+    /** 有效移动标记：远程模式 MovementSystem 锁定清零 isMoving，用自驱标记；其余形态用 isMoving */
+    _effectiveMoving() {
+        return this._formState === 'ranged' ? !!this._selfMoving : !!this.isMoving;
+    }
+
     /** 当前状态对应的贴图键（必须是已加载的纹理；动画键见 _getAnimKey） */
     _getTextureKey() {
         switch (this._formState) {
@@ -614,11 +654,11 @@ export class TimeAgentAssault extends Enemy {
             case 'axeIntro':
             case 'axeAttack':      return 'enemy_timeagent_axe';
             case 'ranged':
-                return this.isMoving ? 'enemy_timeagent_walk' : 'enemy_timeagent_gun';
+                return this._effectiveMoving() ? 'enemy_timeagent_walk' : 'enemy_timeagent_gun';
             case 'melee':
-                return this.isMoving ? 'enemy_timeagent_walk2' : 'enemy_timeagent_axe';
+                return this._effectiveMoving() ? 'enemy_timeagent_walk2' : 'enemy_timeagent_axe';
             default: // idle
-                return this.isMoving ? 'enemy_timeagent_walk' : 'enemy_timeagent_idle';
+                return this._effectiveMoving() ? 'enemy_timeagent_walk' : 'enemy_timeagent_idle';
         }
     }
 
@@ -634,20 +674,20 @@ export class TimeAgentAssault extends Enemy {
             case 'flashThrow':     return 'enemy_timeagent_flash';
             case 'ranged':
                 // 远程形态：移动播放 walking 首段/循环段（移动射击），静止持枪姿态
-                if (this.isMoving) {
+                if (this._effectiveMoving()) {
                     return this._walkElapsed >= (F.walkIntroMs ?? 1200)
                         ? 'enemy_timeagent_walk_loop' : 'enemy_timeagent_walk';
                 }
                 return 'enemy_timeagent_ranged_pose';
             case 'melee':
                 // 近战形态：移动播放 walking-2 首段/循环段，静止持斧姿态（axe 第 30 帧）
-                if (this.isMoving) {
+                if (this._effectiveMoving()) {
                     return this._walkElapsed >= (F.walk2IntroMs ?? 1267)
                         ? 'enemy_timeagent_walk2_loop' : 'enemy_timeagent_walk2';
                 }
                 return 'enemy_timeagent_axe_idle';
             default: // idle
-                if (this.isMoving) {
+                if (this._effectiveMoving()) {
                     return this._walkElapsed >= (F.walkIntroMs ?? 1200)
                         ? 'enemy_timeagent_walk_loop' : 'enemy_timeagent_walk';
                 }
