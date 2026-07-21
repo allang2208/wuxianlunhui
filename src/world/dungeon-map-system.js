@@ -26,7 +26,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
-import { coverRect, anchorRect, clampToArea } from '../utils/layout.js';
+import { coverRect, anchorRect } from '../utils/layout.js';
 
 /** 路线选择界面区域 spec（1920×1080 基准；由 2560×1440 实测 left:4 bottom:10 w:2545 h:542 换算） */
 const MAP_AREA_SPEC = { left: 4, bottom: 10, width: 1909, height: 407 };
@@ -61,18 +61,24 @@ export const DungeonMapSystem = {
     COLUMN_COUNT: 12,
     NODE_RADIUS: 24,
 
-    // 拖动与缩放状态
+    // 拖动与缩放状态（dragStartX/Y 初始必须为 undefined：onMouseMove 以其是否为
+    // undefined 判断是否处于"按住"状态，置 0 会导致未按住鼠标地图也跟着拖）
     mapOffsetX: 0,
     mapOffsetY: 0,
     mapScale: 1.0,
     isDragging: false,
-    dragStartX: 0,
-    dragStartY: 0,
+    dragStartX: undefined,
+    dragStartY: undefined,
     dragStartOffsetX: 0,
     dragStartOffsetY: 0,
     _mouseDownTime: 0,
     _mouseDownPos: { x: 0, y: 0 },
     _eventListeners: [],
+
+    // 地图缩放范围与初始倍数（滚轮与 _centerRouteMap 共用，勿再散落硬编码）
+    MIN_MAP_SCALE: 0.3,
+    MAX_MAP_SCALE: 3,
+    DEFAULT_ZOOM_FACTOR: 3,
 
     TYPE_COLORS: {
         start:  "#3a5a3a",
@@ -172,6 +178,8 @@ export const DungeonMapSystem = {
         this.generateMap();
         this._centerRouteMap();
         this.isDragging = false;
+        this.dragStartX = undefined;
+        this.dragStartY = undefined;
 
         const startNode = this.nodes.find(n => n.type === "start");
         if (startNode) {
@@ -267,6 +275,13 @@ export const DungeonMapSystem = {
         const onMouseMove = (e) => {
             if (this.state !== "map") return;
             if (this.dragStartX === undefined) return;
+            // 长按才允许拖动：鼠标键在窗口外松开等情况下强制结束拖动
+            if ((e.buttons & 1) === 0) {
+                this.isDragging = false;
+                this.dragStartX = undefined;
+                this.dragStartY = undefined;
+                return;
+            }
             const dx = e.clientX - this.dragStartX;
             const dy = e.clientY - this.dragStartY;
             if (!this.isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
@@ -302,7 +317,7 @@ export const DungeonMapSystem = {
             const mx = e.clientX, my = e.clientY;
             const old = this.mapScale;
             const factor = e.deltaY < 0 ? 1.1 : 0.9;
-            const next = Math.max(0.3, Math.min(3, old * factor));
+            const next = Math.max(this.MIN_MAP_SCALE, Math.min(this.MAX_MAP_SCALE, old * factor));
             if (next === old) return;
             const wx = (mx - this.mapOffsetX) / old;
             const wy = (my - this.mapOffsetY) / old;
@@ -440,14 +455,36 @@ export const DungeonMapSystem = {
         return { x: vw - 110, y: 15, w: this.EXIT_BUTTON_W, h: this.EXIT_BUTTON_H };
     },
 
+    /**
+     * 路线内容的实际包围盒（节点坐标 + 绘制余量）。
+     * 宝箱岔路会生成负 row（y 可为 0 甚至负数），固定 2048×2048 的钳制
+     * 会让这些节点永远拖不进视口——钳制必须按真实包围盒计算。
+     */
+    _getContentBounds() {
+        const PAD = 80; // 覆盖节点半径/精英★/“你”标签的绘制余量
+        if (!this.nodes.length) {
+            return { minX: 0, minY: 0, maxX: this.MAP_WIDTH, maxY: this.MAP_HEIGHT };
+        }
+        const b = this._calculateNodeBounds();
+        return { minX: b.minX - PAD, minY: b.minY - PAD, maxX: b.maxX + PAD, maxY: b.maxY + PAD };
+    },
+
     _clampMapOffset() {
-        // 钳制区域与初始定位同源（layout.js clampToArea），禁止两套区域计算
+        // 钳制区域与初始定位同源（layout.js anchorRect），禁止两套区域计算
         const area = this._getMapTargetArea();
-        const mapW = this.MAP_WIDTH * this.mapScale;
-        const mapH = this.MAP_HEIGHT * this.mapScale;
-        const clamped = clampToArea({ x: this.mapOffsetX, y: this.mapOffsetY }, area, mapW, mapH);
-        this.mapOffsetX = clamped.x;
-        this.mapOffsetY = clamped.y;
+        const b = this._getContentBounds();
+        const s = this.mapScale;
+        // 单轴钳制区间：内容覆盖区域（内容小于区域时居中）
+        const axisRange = (minV, maxV, areaStart, areaLen) => {
+            let max = areaStart - minV * s;            // 内容起边贴区域起边
+            let min = areaStart + areaLen - maxV * s;  // 内容终边贴区域终边
+            if (min > max) { const mid = (min + max) / 2; min = mid; max = mid; }
+            return { min, max };
+        };
+        const rx = axisRange(b.minX, b.maxX, area.left, area.width);
+        const ry = axisRange(b.minY, b.maxY, area.top, area.height);
+        this.mapOffsetX = Math.min(rx.max, Math.max(rx.min, this.mapOffsetX));
+        this.mapOffsetY = Math.min(ry.max, Math.max(ry.min, this.mapOffsetY));
     },
 
     // ───────────────────────────────────────────────
@@ -481,18 +518,18 @@ export const DungeonMapSystem = {
         const bounds = this._calculateNodeBounds();
         const padding = 80; // 地图坐标边距，确保路线图不贴边
 
-        // 计算缩放比例，使路线图完整显示在目标区域中
+        // 先求完整适配缩放，再按 DEFAULT_ZOOM_FACTOR 放大（默认 3 倍初始视图）
         const routeW = bounds.maxX - bounds.minX + padding * 2;
         const routeH = bounds.maxY - bounds.minY + padding * 2;
-        const scaleX = TARGET_AREA.width / routeW;
-        const scaleY = TARGET_AREA.height / routeH;
-        this.mapScale = Math.min(scaleX, scaleY, 1.5); // 限制最大缩放1.5倍
+        const fitScale = Math.min(TARGET_AREA.width / routeW, TARGET_AREA.height / routeH, 1.5);
+        this.mapScale = Math.min(fitScale * this.DEFAULT_ZOOM_FACTOR, this.MAX_MAP_SCALE);
 
-        // 计算偏移，使路线图在目标区域中居中
-        const routeCX = (bounds.minX + bounds.maxX) / 2;
-        const routeCY = (bounds.minY + bounds.maxY) / 2;
-        this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - routeCX * this.mapScale;
-        this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - routeCY * this.mapScale;
+        // 初始聚焦出发点（无出发点时退回路线中心），随后钳制到区域边缘
+        const startNode = this.nodes.find(n => n.type === 'start');
+        const focusX = startNode ? startNode.x : (bounds.minX + bounds.maxX) / 2;
+        const focusY = startNode ? startNode.y : (bounds.minY + bounds.maxY) / 2;
+        this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - focusX * this.mapScale;
+        this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - focusY * this.mapScale;
         this._clampMapOffset();
     },
 
