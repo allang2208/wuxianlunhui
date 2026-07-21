@@ -88,7 +88,7 @@ export class Mutant3 extends Enemy {
             // 尝试开始 5 连击（贴身直接发动）
             if (this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
                 if (this._isTargetInRange(this.target, this._getAttackStartDistance())) {
-                    this._startCombo();
+                    this._tryAttackTelegraph(() => this._startCombo());
                     return;
                 }
             }
@@ -98,7 +98,7 @@ export class Mutant3 extends Enemy {
                 const inComboRange = this._isTargetInRange(this.target, this._getComboAttackDistance());
                 const inStartRange = this._isTargetInRange(this.target, this._getAttackStartDistance());
                 if (inComboRange && !inStartRange) {
-                    this._startComboDash();
+                    this._tryAttackTelegraph(() => this._startComboDash());
                     return;
                 }
             }
@@ -107,7 +107,7 @@ export class Mutant3 extends Enemy {
             if (this._pounceCooldown <= 0 && this.target && this.target.active) {
                 const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
                 if (dist <= 500) {
-                    this._startPounce();
+                    this._tryAttackTelegraph(() => this._startPounce());
                     return;
                 }
             }

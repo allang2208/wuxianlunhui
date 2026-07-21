@@ -255,18 +255,18 @@ export class ArmoredKnight extends Enemy {
             }
         }
 
-        // 冲锋：CD 就绪且目标在触发范围内，瞬间发动（无蓄力）
+        // 冲锋：CD 就绪且目标在触发范围内，瞬间发动（无蓄力；精英预警后再启动）
         if (this._chargeCooldown <= 0 && cfg.charge.maxSpeed) {
             if (this._isTargetInRange(t, cfg.charge.triggerRange ?? 550)) {
-                this._startCharge();
+                this._tryAttackTelegraph(() => this._startCharge());
                 return;
             }
         }
 
-        // 连击：近身才发动（triggerRange 比伤害判定 range 小，避免空挥）
+        // 连击：近身才发动（triggerRange 比伤害判定 range 小，避免空挥；精英预警后再启动）
         if (this._comboCooldown <= 0 && cfg.combo.duration) {
             if (this._isTargetInRange(t, cfg.combo.triggerRange ?? 75)) {
-                this._startCombo();
+                this._tryAttackTelegraph(() => this._startCombo());
             }
         }
     }

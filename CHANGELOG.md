@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（精英及以上怪物攻击预警系统：红色轮廓 0.5s 前置）
+
+### 对话：精英+怪物攻击前 0.5s 显示红色轮廓（掉落物同款），跟随移动，攻击开始时消失
+- **机制**：攻击决策点统一改走 `Enemy._tryAttackTelegraph(fireFn)`——rank ∈ {elite, lord, boss} 时先入预警（红色 Glow 轮廓），`durationMs`（默认 500）结束后轮廓消失并真正执行攻击；普通/次级立即执行（零开销透传）。
+- **视觉**：Phaser4 滤镜管线 `sprite.enableFilters().filters.internal.addGlow(0xff2222)`——与掉落物同色系外发光，挂在怪物精灵上自动跟随移动/翻转/缩放；每帧校验精灵引用，精灵重建自动重挂；死亡/眩晕立即取消预警并清除 Glow。
+- **配置驱动**：`data/combat-config.json` 新增 `attackTelegraph`（enabled/durationMs/ranks/color/outerStrength/quality/distance），基类 `_getAttackTelegraphConfig()` 读取，无散落硬编码。
+- **接入点（8 处）**：enemy.js `_updateAttack`（通用驱动）、combat-system.js `_performAttack` 传统路径、mutant-3（连击/突进连击/飞扑）、zombie-wizard（冰锥施法决策；火球为其后续链不重复预警）、armored-knight（冲锋/连击；格挡为防御技能不预警）、amalgam-zombie（砸地/投掷整支含音效前置）、shounao（砸地/嚎叫）、fly-hand（灭世重砸/砸地/锤击）。
+- **行为说明**：预警期间怪物移动/追踪不变（玩家获得 0.5s 反应窗口，可闪避）；预警中重复决策被忽略（已锁定本次出手）；集合体投掷音效仍在预警结束后的预备期播放，音画同步关系不变。
+- **修改文件**：src/entities/enemy.js、src/systems/combat-system.js、src/entities/enemy-types/{mutant-3,zombie-wizard,armored-knight,amalgam-zombie,shounao,fly-hand}.js、data/combat-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，新增 2 个 catch 未用变量警告已改 _e 消除）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——精英怪出手前红轮廓可见、跟随移动、0.5s 后出手时消失；WebGL 不可用时静默降级（无轮廓，攻击照常）。
+
 ## 2026-07-21（闪避重构：0.8s 无敌窗口 + 不可选中 + 碰撞 0 不穿墙 + 修饰挂接）
 
 ### 对话：闪避期间不可选中且无敌、碰撞体积 0（不可穿墙），躲过除 debuff 外所有伤害

@@ -139,9 +139,14 @@ class CombatSystemImpl {
             return;
         }
         enemy.aiTimer = 0;
-        if (attack.use(enemy, targetX, targetY, Array.from(entities.values()))) {
-            if (typeof enemy.triggerWeaponAnim === 'function') enemy.triggerWeaponAnim();
-        }
+        // 精英及以上经攻击预警延迟（Enemy._tryAttackTelegraph；普通怪内部直接执行）
+        const fire = () => {
+            if (attack.use(enemy, targetX, targetY, Array.from(entities.values()))) {
+                if (typeof enemy.triggerWeaponAnim === 'function') enemy.triggerWeaponAnim();
+            }
+        };
+        if (typeof enemy._tryAttackTelegraph === 'function') enemy._tryAttackTelegraph(fire);
+        else fire();
     }
     // --- 攻击冷却更新 ---
     _updateAttacks(enemy, dt) {
