@@ -450,16 +450,16 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 显示区域随视口铺满（减边距），避免高分辨率下大量黑边
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        const marginX = Math.round(viewW * 0.12);
-        const marginY = Math.round(viewH * 0.09);
+        // 路线选择界面显示区域（坐标工具测量值，2560×1440 基准）：
+        // left: 4px、bottom: 10px、width: 2545px、height: 542px
+        // bottom/left 固定像素；width/height 按视口比例适配（其他分辨率等比缩放）
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440;
         const TARGET_AREA = {
-            left: marginX,
-            top: marginY,
-            width: viewW - marginX * 2,
-            height: viewH - marginY * 2
+            left: 4,
+            top: Math.round(viewH - 10 - Math.round(542 * (viewH / 1440))),
+            width: Math.round(2545 * (viewW / 2560)),
+            height: Math.round(542 * (viewH / 1440))
         };
 
         if (this.nodes.length === 0) {
