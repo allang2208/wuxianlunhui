@@ -2708,13 +2708,14 @@
         .fusion-message.error { color: #e06a5a; }
         .fusion-message.success { color: #7ac96a; }
 
-/* ===== 出征界面：祭品等级要求说明弹窗（左侧固定，top/bottom 锚定拉伸占满左边空白） ===== */
+/* ===== 出征界面：祭品等级要求说明弹窗（左侧，top/bottom 锚定拉伸，右缘贴出征栏左缘(10vw)不留间隙） ===== */
 .expedition-rule-panel {
   position: fixed;
   left: 4px;
   top: 2px;
   bottom: 2px;
-  width: 187px;
+  width: calc(10vw - 4px);
+  min-width: 150px;
   height: auto;
   max-height: calc(100vh - 4px);
   overflow-y: auto;
