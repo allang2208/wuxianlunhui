@@ -273,6 +273,7 @@ export class GameScene extends Scene {
             if (this.worldHudGraphics) this.worldHudGraphics.setVisible(true);
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
+            if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(true);
             if (this.minimapTitle) this.minimapTitle.setVisible(true);
             this._syncHud(_game);
             this._updateBossHpBar(_delta);

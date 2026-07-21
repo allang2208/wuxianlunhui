@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：小地图动态层退出地图模式不恢复 + 背景图 2K 黑边）
+
+### 对话：地牢模式小地图无内容 + 1080P→2K 大量黑色空白
+- **小地图动态层不恢复**：地图模式隐藏小地图时漏了在恢复块给 `_minimapDynamicGraphics` 补 `setVisible(true)`——退出地图模式（进战斗）后动态层（怪物/玩家/相机框）永久隐藏。已补恢复。
+- **背景图 2K 黑边**：此前把背景图固定为 1080p 显示，2K 屏四周大量黑边。改 **cover 铺满视口（无黑边）+ bottom 锚定**（图片底部始终贴视口底部，位置不漂移；1080P/2K 均铺满，超出居中裁切）。
+- **节点地图适配**：`_centerRouteMap` 恢复视口比例计算（margin 12%/9%），高分辨率下自动铺满，消除黑边。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①战斗中小地图显示怪物/玩家/相机框；②1080P 与 2K 下背景图均铺满无黑边且底部锚定；③地图随分辨率铺满。
+
 ## 2026-07-21（错误修复：小地图 mask WebGL 不支持 + codexBackBtn 缺失）
 
 ### 对话：用户反馈 Phaser WebGL mask 警告 + codexBackBtn not found
