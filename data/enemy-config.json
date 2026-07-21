@@ -1481,8 +1481,8 @@
           "max": 30,
           "reloadTime": 2000
         },
-        "muzzleUpY": 75,
-        "muzzleSideX": 15
+        "muzzleUpY": 80,
+        "muzzleSideX": 35
       },
       "flashbang": {
         "cooldown": 10000,

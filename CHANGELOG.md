@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：枪口再调/静止后直播循环段/近战260根因/中级boss限定/换弹音一次）
+
+### 对话：枪口左移20上移5、静止射击后再移动直接播 4-18、近战260未生效、中级boss限定僵尸领主、换弹音一次
+- **枪口**：按累加微调 `muzzleSideX` 15→**35**、`muzzleUpY` 75→**80**（左右镜像不变）。
+- **远程动画**：远程形态移动直接播放 walking 4~18 循环段（含静止射击后再移动），18 帧首段只在 idle 形态起步时播放。
+- **近战 260 未生效根因**：MovementSystem 用 `enemy.attackRange` 做减速/停步判定——特工 attackRange=1600（远程接敌值），近战形态下 800px 外就被全摩擦制动，260 永远无法体现。修复：`attackRange` 按形态动态切换（近战=斧判定 120，远程=接敌 1600），与 maxSpeed 同步每帧更新。
+- **中级 Boss 限定**：领主池原为跨 family 按 rank 抽取（时空特工 rank=lord 也会被抽中）——`ZombieDungeonCombat` 新增 `poolFamily` 配置过滤（zombieDungeonMid.bossEncounter.poolFamily='僵尸'），只刷僵尸类领主；无匹配时退回原池兜底防空池。
+- **换弹音连播根因**：基类 `_startReload` 无条件重置换弹计时，canFire 每帧调用 → 换弹永远完不成 + 音效连播（隐藏 bug）。修复：换弹中直接返回（不重置、不再播音），每次换弹音效只播一次。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、src/world/zombie-dungeon.js、data/enemy-config.json、data/dungeon-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——近战 260 追击速度、静止后移动直播循环段、中级 Boss 只刷手脑/蝇手（不刷特工）、换弹 2s 单次音效。
+
 ## 2026-07-21（时空特工：投射物缩小/碰撞下移/近战判定/枪声换弹）
 
 ### 对话：闪光弹投射物缩小50%、碰撞下移30px、近战难命中排查、191 音效

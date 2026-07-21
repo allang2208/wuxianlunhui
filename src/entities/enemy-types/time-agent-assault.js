@@ -166,10 +166,13 @@ export class TimeAgentAssault extends Enemy {
             }
         }
 
-        // 近战形态移速提升（其余形态用配置速度）
+        // 近战形态移速提升（其余形态用配置速度）；
+        // attackRange 同步按形态切换——MovementSystem 用它做减速/停步判定，
+        // 远程 1600 若带入近战会导致 800px 外就被制动（近战 260 无法体现的根因）
         const skills = this._getSkillConfigs();
         const inMelee = this._formState === 'melee' || this._formState === 'axeAttack';
         this.maxSpeed = inMelee ? (skills.forms.meleeMoveSpeed ?? 260) : (this.config.speed ?? 160);
+        this.attackRange = inMelee ? (skills.axe.judgeRange ?? 120) : (skills.forms.engageRange ?? 1600);
     }
 
     // ========== 形态决策（可移动状态） ==========
@@ -524,8 +527,12 @@ export class TimeAgentAssault extends Enemy {
     }
 
     _startReload(slot) {
+        const state = this._ammoState && this._ammoState[slot];
+        // 换弹中不重复触发：基类会无条件重置换弹计时（且每次调用都会播音），
+        // 否则 canFire 每帧调用导致换弹永远不完、音效连播
+        if (state && state.reloading) return true;
         const started = super._startReload(slot);
-        // 换弹音效（配置 sounds.reload）
+        // 换弹音效（配置 sounds.reload，每次换弹只播一次）
         if (started && this.config?.sounds?.reload && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(this.config.sounds.reload);
         }
@@ -698,10 +705,9 @@ export class TimeAgentAssault extends Enemy {
             case 'axeAttack':      return 'enemy_timeagent_axe_attack';
             case 'flashThrow':     return 'enemy_timeagent_flash';
             case 'ranged':
-                // 远程形态：移动播放 walking 首段/循环段（移动射击），静止持枪姿态
+                // 远程形态：移动即播 4~18 循环段（含静止射击后再移动，不再重播 18 帧首段），静止持枪姿态
                 if (this._effectiveMoving()) {
-                    return this._walkElapsed >= (F.walkIntroMs ?? 1200)
-                        ? 'enemy_timeagent_walk_loop' : 'enemy_timeagent_walk';
+                    return 'enemy_timeagent_walk_loop';
                 }
                 return 'enemy_timeagent_ranged_pose';
             case 'melee':
