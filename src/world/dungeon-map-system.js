@@ -386,22 +386,22 @@ export const DungeonMapSystem = {
         };
     },
 
-    /** 背景图固定显示：按基准分辨率 1920×1080 缩放，锚定视口底部（bottom:0）水平居中，
-     * 不随分辨率变化而移动/缩放（视口更大时周围留黑边，视口更小时居中裁切） */
+    /** 背景图显示：cover 铺满视口（无黑边）+ bottom 锚定（图片底部始终贴视口底部，
+     * 位置不随分辨率漂移；1080P/2K 下均铺满，超出部分居中裁切） */
     _renderBackground(ctx, viewW, viewH) {
         if (!this._bgImg) {
             this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
         }
-        // 先铺纯黑底（视口大于背景显示区时的边缘）
+        // 先铺纯黑底（图片未加载时兜底）
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
         if (!img || !img.complete || img.naturalWidth === 0) return;
-        // 固定缩放：以 1920×1080 为基准显示尺寸（不随视口变化）
-        const scale = 1080 / img.naturalHeight;
+        // cover 缩放：铺满视口（无黑边）
+        const scale = Math.max(viewW / img.naturalWidth, viewH / img.naturalHeight);
         const w = img.naturalWidth * scale;
-        const h = 1080;
-        // 锚定底部（bottom: 0）+ 水平居中
+        const h = img.naturalHeight * scale;
+        // 水平居中 + bottom 锚定（图片底部贴视口底部，位置固定不漂移）
         const dx = Math.round((viewW - w) / 2);
         const dy = viewH - h;
         ctx.drawImage(img, dx, dy, w, h);
@@ -450,12 +450,16 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 固定像素显示区域（1920×1080 基准，不随分辨率动态计算，避免地图位置随窗口变化乱动）
+        // 显示区域随视口铺满（减边距），避免高分辨率下大量黑边
+        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
+        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
+        const marginX = Math.round(viewW * 0.12);
+        const marginY = Math.round(viewH * 0.09);
         const TARGET_AREA = {
-            left: 280,
-            top: 120,
-            width: 1920 - 280 * 2,
-            height: 1080 - 120 * 2
+            left: marginX,
+            top: marginY,
+            width: viewW - marginX * 2,
+            height: viewH - marginY * 2
         };
 
         if (this.nodes.length === 0) {
@@ -1101,12 +1105,14 @@ export const DungeonMapSystem = {
     render(ctx) {
         if (!this.active || this.state !== "map") return;
 
-        const FIXED_WIDTH = this.DEFAULT_VIEWPORT_WIDTH, FIXED_HEIGHT = this.DEFAULT_VIEWPORT_HEIGHT;
+        // 用实际 canvas 尺寸（视口），不用固定 1920×1080——修复 2K 屏下背景/地图挤左上角
+        const viewW = (ctx.canvas && ctx.canvas.width) || this.DEFAULT_VIEWPORT_WIDTH;
+        const viewH = (ctx.canvas && ctx.canvas.height) || this.DEFAULT_VIEWPORT_HEIGHT;
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
-        // ── 背景图：平铺填充整个视口（cover，不随地图拖动/缩放；上方图片区无互动） ──
-        this._renderBackground(ctx, FIXED_WIDTH, FIXED_HEIGHT);
+        // ── 背景图：铺满视口（cover）+ bottom 锚定 ──
+        this._renderBackground(ctx, viewW, viewH);
 
         // 保存原始状态
         ctx.save();
@@ -1269,13 +1275,13 @@ export const DungeonMapSystem = {
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
         ctx.fillStyle = "#666666";
         ctx.font = "13px sans-serif";
-        ctx.fillText(`进度: ${progress} 节点`, FIXED_WIDTH / 2, FIXED_HEIGHT - 20);
+        ctx.fillText(`进度: ${progress} 节点`, viewW / 2, viewH - 20);
 
         // 缩放指示
         ctx.fillStyle = "#444444";
         ctx.font = "11px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, FIXED_WIDTH - 20, FIXED_HEIGHT - 20);
+        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, viewW - 20, viewH - 20);
         ctx.textAlign = "center";
 
         // 退出按钮（绘制位置与点击热区使用同一组常量）

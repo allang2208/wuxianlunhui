@@ -8,6 +8,34 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：2K 屏背景/地图挤左上角——render 用固定 1920×1080）
+
+### 对话：背景图和路线地图仍挤在左上角
+- **根因**：`render()` 背景与 UI 覆盖层用 `DEFAULT_VIEWPORT_WIDTH/HEIGHT`（固定 1920×1080）计算，而 canvas 实际为视口尺寸（2K 2560×1440）——内容按 1920 画在 canvas 左上区域，右下大量黑边。
+- **修复**：render 改用 `ctx.canvas.width/height`（实际视口尺寸）算背景 cover/锚点；UI 覆盖层（进度/缩放指示文本坐标）同步改用视口尺寸。
+- **修改文件**：src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——1080P/2K 下背景铺满全屏、地图居中不挤左上、右下角无黑边。
+
+## 2026-07-21（修复：小地图动态层退出地图模式不恢复 + 背景图 2K 黑边）
+
+### 对话：地牢模式小地图无内容 + 1080P→2K 大量黑色空白
+- **小地图动态层不恢复**：地图模式隐藏小地图时漏了在恢复块给 `_minimapDynamicGraphics` 补 `setVisible(true)`——退出地图模式（进战斗）后动态层（怪物/玩家/相机框）永久隐藏。已补恢复。
+- **背景图 2K 黑边**：此前把背景图固定为 1080p 显示，2K 屏四周大量黑边。改 **cover 铺满视口（无黑边）+ bottom 锚定**（图片底部始终贴视口底部，位置不漂移；1080P/2K 均铺满，超出居中裁切）。
+- **节点地图适配**：`_centerRouteMap` 恢复视口比例计算（margin 12%/9%），高分辨率下自动铺满，消除黑边。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①战斗中小地图显示怪物/玩家/相机框；②1080P 与 2K 下背景图均铺满无黑边且底部锚定；③地图随分辨率铺满。
+
+## 2026-07-21（错误修复：小地图 mask WebGL 不支持 + codexBackBtn 缺失）
+
+### 对话：用户反馈 Phaser WebGL mask 警告 + codexBackBtn not found
+- **小地图 mask 改边界检查**：geometry mask 在 WebGL 下不支持（Phaser 警告 `Mask.setMask: not supported in WebGL`）——移除 `_ensureMinimapMask` 及 setMask，改为**绘制前边界检查**：实体/裂隙/玩家点加 `inBox` 判断（框外不画）、相机视野框求与框的交集、玩家箭头端点 clamp 到框内。独立动态层 `_minimapDynamicGraphics` 保留。
+- **codexBackBtn 缺失**：codex-manager.js:42 `getElement('codexBackBtn')` 引用的返回按钮从未被创建（仅警告日志，无功能错误）——在 `hud-panels-system-tabs.js` 的 codexDetail 头部补建返回按钮（id codexBackBtn，绑 closeDetail）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/ui/panels/hud-panels-system-tabs.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①小地图框外无泄漏且 WebGL 警告消失；②图鉴详情返回按钮出现并可用。
+
 ## 2026-07-21（地图界面 HUD 隐藏改 body.map-mode 统一管理 + 血量数值隐藏）
 
 ### 对话：武器栏仍显示"生锈的长剑" + 左上角血量 200/200 未隐藏
