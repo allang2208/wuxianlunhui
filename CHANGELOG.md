@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（准入规则改"≥对应稀有度" + 宝箱岔路分支）
+
+### 对话：准入改大于等于 + 地牢节点宝箱岔路重构
+- **准入规则**：`depart()` 由"恰好等于对应稀有度"改为 **≥ 对应稀有度**（`RARITY_ORDER.indexOf(c.item.rarity) >= reqIdx`）；说明弹窗文案同步（"对应或更高稀有度"/"XX及以上祭品"）。
+- **宝箱岔路分支**（zombie-dungeon.js `_addChestBranches`）：
+  - 从中间列节点向上/下缘伸出链式支路（双向边可往返）；每条 2~3 节点；
+  - 独立规则：**有且只有一个战斗节点**（首个，精英概率固定 50%）；尽头固定宝箱事件（event + `node.eventType: 'treasureChest'`，复用节点事件类型记录）；
+  - 条数配置驱动 `chestBranches.count`，缺省按地牢 grade 自动计算（F=2、每级 +2，dungeon-config.js）；岔路带 `isBranch` 标记排除全局精英率标记；
+  - 规则已计入 SKILL.md 地牢工作流（第 6 节）。
+- **修改文件**：src/ui/expedition-system.js、src/world/zombie-dungeon.js、src/config/dungeon-config.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅；生成逻辑静态检查 ✅（岔路调用/isBranch 排除/grade 自动均确认）。
+- **已知问题**：实机待验证——①≥C 祭品可进 C 级地牢；②地图边缘岔路渲染与可达性；③岔路尽头宝箱事件触发；④岔路战斗 50% 精英。
+
 ## 2026-07-21（地牢地板重构：等距 30° 菱形 + 发光层）
 
 ### 对话：地板改等距俯视角样式，参考基础层+发光层叠加
