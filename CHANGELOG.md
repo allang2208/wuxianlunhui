@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：祭坛进地牢小地图泄露 5 蓝点——场景切换未清理实体）
+
+### 对话：祭坛进地牢后小地图泄露 5 个蓝点（主神空间 portal）
+- **根因**：depart 前一次修复只设了 `SceneManager.currentScene = 'scene7'` 满足渲染拦截，但**没有走 switchScene 的清理流程**——主神空间的 portal/NPC/怪物实体残留在 `Game.entities`，小地图按主神空间世界尺寸全部画出（5 个 portal 蓝点）；且 `CONFIG.WORLD_WIDTH` 还是主神空间尺寸、玩家坐标超界。
+- **修复**（depart 出征清理段）：
+  - 清理 Phaser 战斗视图/实体 sprite、浮动文字、`Game.entities.clear()` 后仅保留玩家、战术小队 AI；
+  - `CONFIG.WORLD_WIDTH/HEIGHT = 2048`（地牢网格尺寸，小地图正确缩放）；
+  - 玩家移至 (1024, 1024) 地牢世界中央（原主神空间坐标在 2048 世界内超界，会被 mask 裁掉导致玩家点消失）；
+  - 补 `EffectManager`/`CONFIG` 显式 import（typeof 守卫会静默跳过）。
+- **回程**：`_loadMainScene` 恢复主神空间世界尺寸（已有）。
+- **修改文件**：src/ui/expedition-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——进地牢地图模式小地图无蓝点泄露、玩家点显示在中央、战斗/回主神空间流程正常。
+
 ## 2026-07-21（主神空间清怪 + 小地图越界渲染修复）
 
 ### 对话：删除蝇手 + 小地图显示范围外内容排查
