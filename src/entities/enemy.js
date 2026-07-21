@@ -517,7 +517,8 @@ import { loadImage } from '../utils/image-loader.js';
                     // Phaser4 滤镜需先 enableFilters（创建 filterCamera）；Canvas 渲染模式下不可用则静默跳过
                     let filters = sprite.filters;
                     if (!filters && typeof sprite.enableFilters === 'function') {
-                        sprite.enableFilters();
+                        // 滤镜创建失败（渲染上下文异常等）不阻断预警/攻击流程
+                        try { sprite.enableFilters(); } catch (_e) { /* 无滤镜降级 */ }
                         filters = sprite.filters;
                     }
                     if (!filters || !filters.internal) return;

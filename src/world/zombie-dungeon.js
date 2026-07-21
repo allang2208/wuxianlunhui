@@ -395,33 +395,52 @@ export class ZombieDungeonMapGenerator {
         if (count <= 0) return;
         const entries = nodes.filter(n => n.col > 0 && n.col < bossCol);
         const usedEntryIds = new Set();
+        // 槽位占用检查：岔路节点不得压到已有节点（网格节点/其他岔路节点），
+        // 否则同坐标两点 hover 永远先中先生成的网格节点，整条岔路被封死
+        const slotTaken = (col, row) => nodes.some(n => n.col === col && n.row === row);
         for (let b = 0; b < count; b++) {
             const avail = entries.filter(e => !usedEntryIds.has(e.id));
             if (avail.length === 0) break;
-            const entry = avail[Math.floor(Math.random() * avail.length)];
-            usedEntryIds.add(entry.id);
-            const len = 2 + Math.floor(Math.random() * 2); // 2~3 节点
-            // 分支方向：上半区向上出界、下半区向下出界
-            const dirY = entry.row <= (cfg.grid.rows - 1) / 2 ? -1 : 1;
-            let prevId = entry.id;
-            for (let i = 0; i < len; i++) {
-                const isLast = i === len - 1;
-                // 首个节点固定为唯一战斗节点；其余为事件节点；尽头固定宝箱事件
-                const type = i === 0 ? 'combat' : 'event';
-                const brow = entry.row + dirY * (i + 1);
-                const node = this._createNode(entry.col, brow, cfg.grid.colSpacing, cfg.grid.rowSpacing, type);
-                node.id = `node_branch_${b}_${i}_${entry.col}`;
-                node.isBranch = true;
-                if (isLast) node.eventType = 'treasureChest';
-                if (type === 'combat') {
-                    node.eliteChance = 0.5;
-                    if (Math.random() < 0.5) node.isElite = true;
+            let placed = false;
+            // 逐个尝试候选入口，直到有一条岔路能完整放下
+            while (avail.length > 0 && !placed) {
+                const entry = avail.splice(Math.floor(Math.random() * avail.length), 1)[0];
+                usedEntryIds.add(entry.id);
+                const len = 2 + Math.floor(Math.random() * 2); // 2~3 节点
+                // 分支方向：上半区优先向上出界、下半区优先向下出界；被占则翻转尝试
+                const preferred = entry.row <= (cfg.grid.rows - 1) / 2 ? -1 : 1;
+                for (const dirY of [preferred, -preferred]) {
+                    // 逐节点模拟整条链，任一槽位被占则换方向/换入口
+                    const rows = [];
+                    let chainOk = true;
+                    for (let i = 0; i < len; i++) {
+                        const brow = entry.row + dirY * (i + 1);
+                        if (slotTaken(entry.col, brow) || rows.includes(brow)) { chainOk = false; break; }
+                        rows.push(brow);
+                    }
+                    if (!chainOk) continue;
+                    let prevId = entry.id;
+                    for (let i = 0; i < len; i++) {
+                        const isLast = i === len - 1;
+                        // 首个节点固定为唯一战斗节点；其余为事件节点；尽头固定宝箱事件
+                        const type = i === 0 ? 'combat' : 'event';
+                        const node = this._createNode(entry.col, rows[i], cfg.grid.colSpacing, cfg.grid.rowSpacing, type);
+                        node.id = `node_branch_${b}_${i}_${entry.col}`;
+                        node.isBranch = true;
+                        if (isLast) node.eventType = 'treasureChest';
+                        if (type === 'combat') {
+                            node.eliteChance = 0.5;
+                            if (Math.random() < 0.5) node.isElite = true;
+                        }
+                        nodes.push(node);
+                        // 双向边（与垂直边一致，岔路可往返）
+                        edges.push({ from: prevId, to: node.id });
+                        edges.push({ from: node.id, to: prevId });
+                        prevId = node.id;
+                    }
+                    placed = true;
+                    break;
                 }
-                nodes.push(node);
-                // 双向边（与垂直边一致，岔路可往返）
-                edges.push({ from: prevId, to: node.id });
-                edges.push({ from: node.id, to: prevId });
-                prevId = node.id;
             }
         }
     }

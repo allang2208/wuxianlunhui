@@ -379,10 +379,13 @@ export const DungeonMapSystem = {
 
     getAvailableNodes() {
         if (!this.currentNodeId) return [];
-        const reachableIds = this.edges
-            .filter(e => e.from === this.currentNodeId)
-            .map(e => e.to);
-        return this.nodes.filter(n => reachableIds.includes(n.id));
+        // 双向可达：允许走回头路（含返回起始点），不再限制只能前进
+        const reachableIds = new Set();
+        for (const e of this.edges) {
+            if (e.from === this.currentNodeId) reachableIds.add(e.to);
+            if (e.to === this.currentNodeId) reachableIds.add(e.from);
+        }
+        return this.nodes.filter(n => reachableIds.has(n.id));
     },
 
     isNodeClickable(node) {
@@ -705,6 +708,16 @@ export const DungeonMapSystem = {
         }
     },
 
+    /** 事件/战斗完成返回地图：保持当前缩放，聚焦居中玩家所在节点（不再重置回出发点） */
+    _focusOnCurrentNode() {
+        const node = this.getCurrentNode();
+        if (!node) { this._centerRouteMap(); return; }
+        const area = this._getMapTargetArea();
+        this.mapOffsetX = area.left + area.width / 2 - node.x * this.mapScale;
+        this.mapOffsetY = area.top + area.height / 2 - node.y * this.mapScale;
+        this._clampMapOffset();
+    },
+
     _returnToMap() {
         // 已关闭（shutdown 后的泄漏定时器/异步回调）时直接忽略，避免在主神空间重建地牢 UI
         if (!this.active) return;
@@ -720,11 +733,12 @@ export const DungeonMapSystem = {
             EffectManager.clearFloatingTexts();
         }
 
-        this._centerRouteMap();
+        this._focusOnCurrentNode();
 
         // 显示地图界面按钮
         this._createMouseShopButton();
         this._createAbandonButton();
+        this._updateSafeEvacButton();
 
         const current = this.getCurrentNode();
         if (current && current.type === "boss" && this.visitedNodeIds.has(current.id)) {
@@ -797,14 +811,23 @@ export const DungeonMapSystem = {
     /**
      * 统一标记当前节点已完成（变为 empty），供普通/精英战斗共用
      */
+    /** 节点置空并清理事件/战斗附加标记（isElite 紫圈★/强制怪/遭遇覆盖/事件类型不再残留） */
+    _clearNodeToEmpty(node, completed = false, allowBoss = false) {
+        if (!node || node.type === 'empty' || node.type === 'start') return;
+        if (node.type === 'boss' && !allowBoss) return;
+        node.type = 'empty';
+        if (completed) node.completed = true;
+        node.isElite = false;
+        node.forceMonsters = null;
+        node.encounterOverride = null;
+        node.eventType = null;
+    },
+
     _markCurrentNodeCompleted() {
         const currentNode = this.getCurrentNode();
         // boss 节点也允许标记：集合体 Boss 走 _leaveBossViaPortal（不调本方法），
         // 初级地牢 boss 作为精英战斗节点，经普通战斗流程在此完成标记
-        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start') {
-            currentNode.type = 'empty';
-            currentNode.completed = true;
-        }
+        this._clearNodeToEmpty(currentNode, true, true);
     },
 
     // 打开精英战斗奖励宝箱：发放配置奖励并生成出口传送门
@@ -824,9 +847,7 @@ export const DungeonMapSystem = {
         }
 
         // 标记节点完成并生成出口传送门
-        if (currentNode && currentNode.type !== 'empty' && currentNode.type !== 'start' && currentNode.type !== 'boss') {
-            currentNode.type = 'empty';
-        }
+        this._clearNodeToEmpty(currentNode);
         this._exitPortalSpawned = true;
         CombatRoomSystem.spawnExitPortal();
 
@@ -1121,8 +1142,8 @@ export const DungeonMapSystem = {
 
                     // 节点清空规则：非陷阱事件正常清空；陷阱仅成功解除后清空；强行跨越保留节点
                     const shouldEmpty = !isTrap || (isDisarm && result.success === true);
-                    if (shouldEmpty && node.type !== 'empty' && node.type !== 'start' && node.type !== 'boss') {
-                        node.type = 'empty';
+                    if (shouldEmpty) {
+                        this._clearNodeToEmpty(node);
                     }
                     this._returnToMap();
                 }
@@ -1361,15 +1382,15 @@ export const DungeonMapSystem = {
 
     _createMouseShopButton() {
         if (getElement('mouseShopButton')) return;
-        const container = document.querySelector('#gameContainer .bottom-bar') || document.body;
+        // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
         const btn = document.createElement('div');
         btn.id = 'mouseShopButton';
         btn.textContent = '小鼠商店';
         btn.style.cssText = `
-            position: absolute;
-            right: calc(100% + 50px);
-            top: 50%;
-            transform: translateY(-50%);
+            position: fixed;
+            left: 20px;
+            bottom: calc(18.84vh + 10px);
+            transform: translateY(50%);
             width: 183px;
             height: 65px;
             background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
@@ -1393,7 +1414,7 @@ export const DungeonMapSystem = {
                 this._enterZombieShop();
             }
         });
-        container.appendChild(btn);
+        document.body.appendChild(btn);
     },
 
     _removeMouseShopButton() {
@@ -1403,15 +1424,15 @@ export const DungeonMapSystem = {
 
     _createAbandonButton() {
         if (getElement('abandonButton')) return;
-        const container = document.querySelector('#gameContainer .bottom-bar') || document.body;
+        // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
         const btn = document.createElement('div');
         btn.id = 'abandonButton';
         btn.textContent = '放弃并返回';
         btn.style.cssText = `
-            position: absolute;
-            left: calc(100% + 50px);
-            top: 50%;
-            transform: translateY(-50%);
+            position: fixed;
+            right: 20px;
+            bottom: calc(18.84vh + 10px);
+            transform: translateY(50%);
             width: 164px;
             height: 66px;
             background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
@@ -1435,11 +1456,63 @@ export const DungeonMapSystem = {
                 this._showExitConfirm();
             }
         });
-        container.appendChild(btn);
+        document.body.appendChild(btn);
+        // 安全撤离按钮跟随放弃按钮一起刷新（仅在起始点时显示）
+        this._updateSafeEvacButton();
     },
 
     _removeAbandonButton() {
         const btn = getElement('abandonButton');
+        if (btn) btn.remove();
+        this._removeSafeEvacButton();
+    },
+
+    /** 安全撤离按钮：仅在当前位于起始点时显示（放弃按钮左侧，绿色），撤离不丢背包物品 */
+    _updateSafeEvacButton() {
+        const current = this.getCurrentNode();
+        const atStart = !!(current && current.type === 'start');
+        const existing = getElement('safeEvacButton');
+        if (!atStart) {
+            if (existing) existing.remove();
+            return;
+        }
+        if (existing) return;
+        const btn = document.createElement('div');
+        btn.id = 'safeEvacButton';
+        btn.textContent = '安全撤离';
+        btn.style.cssText = `
+            position: fixed;
+            right: 204px;
+            bottom: calc(18.84vh + 10px);
+            transform: translateY(50%);
+            width: 140px;
+            height: 66px;
+            background: linear-gradient(135deg, #3a6a3a, #5aaa5a, #3a6a3a);
+            background-size: 200% 200%;
+            animation: versionGlow 2s ease infinite;
+            border: 2px solid #6aca6a;
+            border-radius: 12px;
+            color: #d4c5a9;
+            font-size: 20px;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9000;
+            pointer-events: auto;
+            user-select: none;
+        `;
+        btn.addEventListener('click', () => {
+            if (this.active && this.state === 'map') {
+                this._safeEvacuate();
+            }
+        });
+        document.body.appendChild(btn);
+    },
+
+    _removeSafeEvacButton() {
+        const btn = getElement('safeEvacButton');
         if (btn) btn.remove();
     },
 
@@ -1514,6 +1587,32 @@ export const DungeonMapSystem = {
         };
     },
 
+    /** 清空玩家背包（地牢死亡/放弃退出的惩罚；装备与金币不受影响） */
+    _clearPlayerBackpack() {
+        import('../ui/equip-manager.js').then(mod => {
+            const mgr = mod.EquipManager || mod.default;
+            if (mgr && Array.isArray(mgr.backpackItems)) {
+                mgr.backpackItems = [];
+                if (typeof mgr.updateInventorySlots === 'function') mgr.updateInventorySlots();
+            }
+        }).catch(() => {});
+    },
+
+    /** 安全撤离：返回主神空间，不丢失背包物品（仅起始点可用，见 _updateSafeEvacButton） */
+    async _safeEvacuate() {
+        this._removeSafeEvacButton();
+        this.shutdown();
+        const player = Game.player || this.player;
+        if (player) {
+            try {
+                await SceneManager.switchScene("main", player);
+            } catch (err) {
+                console.error('[DungeonMapSystem] Safe evacuate failed:', err);
+                alert('返回主神空间失败: ' + (err.message || '未知错误'));
+            }
+        }
+    },
+
     _showExitConfirm() {
         if (getElement("dungeonExitConfirm")) return;
 
@@ -1527,8 +1626,8 @@ export const DungeonMapSystem = {
         `;
         overlay.innerHTML = `
             <div style="background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px; padding: 30px; max-width: 400px; width: 90%; color: #d4c5a9; text-align: center;">
-                <h3 style="color: #e8c878; margin: 0 0 15px; font-size: 22px;">确认退出地牢</h3>
-                <p style="margin: 0 0 25px; line-height: 1.6;">当前进度将会保存。<br>确定要返回主神空间吗？</p>
+                <h3 style="color: #e8c878; margin: 0 0 15px; font-size: 22px;">确认放弃地牢</h3>
+                <p style="margin: 0 0 25px; line-height: 1.6;">放弃并返回将<span style="color:#ff6b6b;">丢失背包中所有物品</span>。<br>确定要返回主神空间吗？</p>
                 <div style="display: flex; gap: 15px; justify-content: center;">
                     <button id="dungeonExitConfirmBtn" style="padding: 12px 30px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;">确认退出</button>
                     <button id="dungeonExitCancelBtn" style="padding: 12px 30px; background: #3a3a3a; border: 2px solid #5a5a5a; color: #888; border-radius: 5px; cursor: pointer; font-size: 15px;">继续探索</button>
@@ -1547,6 +1646,8 @@ export const DungeonMapSystem = {
 
         confirmBtn.onclick = async () => {
             overlay.remove();
+            // 放弃惩罚：丢失背包中所有物品（安全撤离/通关/胜利不触发）
+            this._clearPlayerBackpack();
             this.shutdown();
             const player = Game.player || this.player;
             if (player) {

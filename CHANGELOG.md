@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢七连修：回头路/撤离/丢包惩罚/岔路重叠/奖励节点/闪避 0.3s）
+
+### 对话：7 项地牢与闪避修复
+1. **闪避默认时长**：`DODGE_DURATION` 800 → **300ms**（config.js，修饰面板机制不变）。
+2. **可走回头路**：`getAvailableNodes` 改为**双向邻接**（边 from/to 双向匹配），可返回起始点；迷雾/点击逻辑不受影响。
+3. **完成事件后聚焦当前节点**：`_returnToMap` 从 `_centerRouteMap()`（重置 3 倍+出发点）改为 `_focusOnCurrentNode()`（保持缩放，视图居中当前节点并钳制）。
+4. **地牢按钮修复 + 安全撤离**：小鼠商店/放弃按钮原挂在 `.bottom-bar` 内——地图模式 `body.map-mode` CSS 隐藏整个 bottom-bar 导致按钮消失（"被遮挡"根因）；两按钮移至 document.body（fixed + 右/下锚定）。新增**安全撤离**按钮（绿色，仅当前位于起始点时显示于放弃按钮左侧）：撤离回主神空间**保留背包**。
+5. **丢包惩罚**：地牢死亡（respawn 路径）与放弃退出（确认框）均调用 `_clearPlayerBackpack()` 清空 `EquipManager.backpackItems`（装备与金币不受影响）；退出确认文案同步警示；蟠桃原地复活不触发。
+6. **岔路节点重叠根因修复**：宝箱岔路首节点坐标直接按 row±1 生成，row1/row2 入口会压住同列网格节点（模拟 978/1000 地图必现）——`_updateHover` 数组序优先永远先中网格节点，整条岔路被永久封死，且叠压渲染造成"赌徒事件变灰色战斗节点"假象。修复：`_addChestBranches` 逐节点槽位占用检查，被占时翻转方向，仍占则换入口；顺带统一 `_clearNodeToEmpty()`（三处置空点），清理 isElite/forceMonsters/encounterOverride/eventType 残留（empty 节点不再带紫圈★）。
+7. **奖励节点点不动**：`RewardSystem` 从未挂载 window（去全局化遗漏），卡牌内联 onclick 点击即 ReferenceError。修复：reward-system.js 末尾挂载 `window.RewardSystem`（剧情模式奖励同愈）。
+8. **集合体投掷排查**：决策/预警/预备/出手/投射/落地召唤全链路静态审查 + Node 时序仿真（3.73s 首次投掷，之后按 15s CD 循环）均正常；Boss 战驱动（BossRewardSystem 生成、工厂注入、update 循环、PerceptionSystem 目标）逐一核对无断点。防御加固：`enableFilters()` 纳入 try/catch（滤镜异常不再可能阻断预警状态机）。疑似浏览器缓存旧包，待实机复核。
+- **修改文件**：src/config/config.js、src/entities/enemy.js、src/world/dungeon-map-system.js、src/world/zombie-dungeon.js、src/entities/player/subsystems.js、src/ui/reward-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；投掷时序仿真 ✅。
+- **已知问题**：集合体投掷实机待复核——若仍无效，用控制台监视 `集合体._attackTelegraphTimer/_throwPending/_attackKind` 定位卡点。
+
 ## 2026-07-21（精英及以上怪物攻击预警系统：红色轮廓 0.5s 前置）
 
 ### 对话：精英+怪物攻击前 0.5s 显示红色轮廓（掉落物同款），跟随移动，攻击开始时消失
