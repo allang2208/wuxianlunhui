@@ -593,6 +593,9 @@ export const ExpeditionSystem = {
         const panel = document.createElement('div');
         panel.id = 'expeditionRulePanel';
         panel.className = 'expedition-rule-panel';
+        // 宽度内联设置（calc(10vw - 4px)，贴出征栏左缘无间隙）——内联样式优先级最高，
+        // 跳过外部 game-style.css 可能被浏览器缓存导致的规则不生效
+        panel.style.width = 'calc(10vw - 4px)';
         const rows = GRADE_ORDER.map((g, i) => {
             const rarity = RARITY_ORDER[i];
             const color = RARITY_COLORS[rarity] || '#c0c0c0';
