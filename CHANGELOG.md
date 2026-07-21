@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（回退：偏移持续生效改动 + 蝇手偏移条目，待重做素材）
+
+### 对话：偏移持续生效后攻击动画更乱，先回退，用户将重做精灵图
+- **回退内容**：
+  1. `GameScene._applySpriteFrameOffset` 恢复"同值跳过"原版（git f0f89cf 版）——968b9a2 的"每帧无条件重应用"撤销（该改动使攻击动画 offset 持续生效导致错位加剧）；
+  2. sprite-offsets.json（双份）删除蝇手 5 个条目——避免原逻辑下 walk 逐帧 desired 不同造成的差值闪现；
+  3. walking.png 维持首次重排版（c8e7dca）。
+- **后续**：等待用户重做蝇手精灵图素材；新素材接入时优先保证素材本身帧间对齐，避免依赖运行时偏移。
+- **修改文件**：src/phaser/scenes/GameScene.js、data/sprite-offsets.json、public/data/sprite-offsets.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：蝇手 walking 回到无偏移干预状态（帧内位移/循环回跳如素材原状），待新素材。
+
 ## 2026-07-20（根因修复：sprite-offsets 偏移被每帧位置重置覆盖）
 
 ### 对话：清缓存后仍"无任何修改"
