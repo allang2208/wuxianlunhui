@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间清怪 + 小地图越界渲染修复）
+
+### 对话：删除蝇手 + 小地图显示范围外内容排查
+- **主神空间**：`spawnMainHubTestEntities` 不再生成任何测试怪（spawn 方法保留备用）。
+- **小地图越界根因**：`_syncMinimap` 的动态内容（实体点/相机视野框/玩家方向箭头）画在**共享屏幕 HUD graphics 上且无任何裁剪**——映射超框的内容（世界边界外实体、相机框超出、箭头延伸）直接画出小地图框外。
+- **修复**：新建独立动态层 `_minimapDynamicGraphics` + `_ensureMinimapMask()`（矩形 GeometryMask 限定 (mx, my, W, H)，动态层与静态墙壁层共用）——所有小地图内容一律裁剪到框内；`_syncMinimap` 改走独立层（每帧 clear），准星等共享 HUD 元素不受影响。
+- **修改文件**：src/game.js、src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——小地图框外不再有点/线泄漏；框内实体/相机框/箭头显示正常。
+
 ## 2026-07-21（修复：确认出征后仍在主神空间——场景状态未切换）
 
 ### 对话：祭坛出征界面正常但点确认出征后没进地牢

@@ -110,6 +110,10 @@ export class GameScene extends Scene {
         this._minimapStaticGraphics.setDepth(99999);
         this._minimapStaticGraphics.setScrollFactor(0);
         this._minimapStaticWallsCount = -1;
+        // 小地图动态层（实体/相机框/玩家箭头），独立 graphics + 矩形 mask 裁剪（防止画出小地图框外）
+        this._minimapDynamicGraphics = this.add.graphics();
+        this._minimapDynamicGraphics.setDepth(99999);
+        this._minimapDynamicGraphics.setScrollFactor(0);
         this.minimapTitle = this.add.text(0, 0, '地图', {
             fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
             fontSize: '10px',
@@ -2299,7 +2303,7 @@ export class GameScene extends Scene {
         // 准星
         this._syncCrosshair(gScreen);
         // 小地图
-        this._syncMinimap(gScreen);
+        this._syncMinimap();
     }
 
     /**
@@ -2726,6 +2730,25 @@ export class GameScene extends Scene {
         g.strokePath();
     }
 
+    /** 创建/确保小地图矩形裁剪 mask（动态层+静态层共用） */
+    _ensureMinimapMask() {
+        if (this._minimapMaskShape) return;
+        const minimapCfg = GAME_CONFIG.minimap || {};
+        const minimapW = minimapCfg.width || 150;
+        const minimapH = minimapCfg.height || 150;
+        const pad = minimapCfg.padding || 10;
+        const offsetY = minimapCfg.offsetY || 50;
+        const mx = pad;
+        const my = pad + offsetY;
+        const shape = this.make.graphics({ x: 0, y: 0, add: false });
+        shape.fillStyle(0xffffff);
+        shape.fillRect(mx, my, minimapW, minimapH);
+        const mask = shape.createGeometryMask();
+        this._minimapMaskShape = shape;
+        if (this._minimapStaticGraphics) this._minimapStaticGraphics.setMask(mask);
+        if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setMask(mask);
+    }
+
     _redrawMinimapStatic() {
         const g = this._minimapStaticGraphics;
         if (!g) return;
@@ -2767,9 +2790,14 @@ export class GameScene extends Scene {
         }
     }
 
-    _syncMinimap(g) {
+    _syncMinimap() {
         const game = window.Game;
         if (!game || !game.player || game._npcDialoguePaused) return;
+        // 独立动态层 + 矩形 mask：实体/相机框/箭头一律裁剪到小地图框内（修复画出框外）
+        const g = this._minimapDynamicGraphics;
+        if (!g) return;
+        g.clear();
+        this._ensureMinimapMask();
         const minimapCfg = GAME_CONFIG.minimap || {};
         const minimapW = minimapCfg.width || 150;
         const minimapH = minimapCfg.height || 150;
