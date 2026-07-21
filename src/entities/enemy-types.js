@@ -14,6 +14,7 @@ import { ArmoredKnight } from './enemy-types/armored-knight.js';
 import { Shounao } from './enemy-types/shounao.js';
 import { FlySwarm } from './enemy-types/fly-swarm.js';
 import { FlyHand } from './enemy-types/fly-hand.js';
+import { TimeAgentAssault } from './enemy-types/time-agent-assault.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -473,4 +474,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand };
+export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault };

@@ -495,7 +495,9 @@ class Combatant extends DamageableEntity {
             isTracer: isEnemy,
             isGold: isMachineGun(weaponType),
             isDarkGold: weaponType === 'deagle',
-            damageType: 'physical'
+            damageType: 'physical',
+            // 命中击退（attack.config.knockback 驱动，如时空特工 25px）
+            knockback: attack.config.knockback || 0
         });
 
         // 触发武器动画

@@ -67,7 +67,10 @@ class Projectile {
                         damage,
                         damageType: this.damageType || 'ranged',
                         currentWeapon: weapon,
-                        isMelee: false
+                        isMelee: false,
+                        // 投射物击退（工厂 create 的 knockback 选项驱动；无配置时为 0 不生效）
+                        knockback: this.knockback || 0,
+                        angle: this.angle
                     });
                     if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
                     else { this.active = false; }

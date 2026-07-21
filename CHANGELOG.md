@@ -8,6 +8,23 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（新怪物：时空特工(突击)-F——首个双形态切换怪物）
+
+### 对话：按添加怪物工作流新增领主怪，远程/近战双形态
+- **建档**：新建特工 family；`assets/enemies/time_agent/` 复制 8 张素材（idle/attacking/axe/flash/switch/walking/walking-2/projective，8列×4行 512×512 帧切割）。
+- **配置**（enemy-config.json timeAgentAssault，全配置驱动）：HP 2200、lord、速度 160、六维 str30/dex60/con44/int20/wis40/luck23 → 公式得物攻45/物防75/暴击25；魔防45走显式覆盖（wis40 公式下限 48>45，无法公式达成）；魔攻 30 随属性。
+- **形态状态机**（time-agent-assault.js）：
+  - idle→远程：目标进 1600px，0.5s 正放 attacking 8 帧，第 8 帧起开火；远程→idle 0.5s 倒放；
+  - 远程形态：QBZ-191 数据射击（Combatant.fireProjectile：70ms 射速/弹匣30+1s 换弹/AI 散布/AimHelper 预判/曳光弹），可移动射击（walking 首段→4-18 循环），静止持枪姿态=attacking 第 8 帧，枪口火焰+弹壳（EffectFactory 玩家同款，胸口高度）；
+  - 闪光弹（仅远程形态，CD 10s，投掷 500px）：flash 32 帧 2s、第 24 帧出手，抛物线+360°旋转贴图+地面红椭圆预警，落地椭圆判定魔攻×1.5+眩晕（集合体投掷同款实现）；
+  - 斧砍切入：近战风格目标（玩家持近战/怪物 melee）贴身 150px →（远程先倒放回 idle）axe 30 帧 2s 首劈（物攻×2+3s 致残）→ 近战形态（移速 260、axe 第 30 帧持斧姿态、walking-2 首段→3-18 循环、近战劈砍 axe 12~30 帧不可移动，CD 4s）；
+  - 近战→远程：远程风格目标拉开 150px+，或任意目标拉开 300px 持续 3s → 0.75s switch 21 帧；形态切换冷却 1s。
+- **链路接通**：投射物击退通路（projectile.js 命中 → DamagePipeline knockback/angle；combatant.fireProjectile 传 attack.config.knockback；ProjectileFactory 对象池始终重置防残留）；fireProjectile 伤害占位 1-1 覆盖为面板物攻 45。
+- **注册**：enemy-types.js 桶文件、ZOMBIE_FACTORY_MAP（lord 池按 rank 自动纳入）、BootScene 8 组贴图加载 + 13 组动画、game.js 主神空间测试生成（origin 东 500px）。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/time-agent-assault.js（新）、src/entities/enemy-types.js、src/world/zombie-dungeon.js、src/game.js、src/phaser/scenes/BootScene.js、src/combat/projectile.js、src/entities/combatant.js、src/utils/projectile-factory.js、assets/enemies/time_agent/、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——双形态切换动画衔接、移动射击、闪光弹预警/眩晕、斧砍致残、形态切换条件触发。
+
 ## 2026-07-21（地牢七连修：回头路/撤离/丢包惩罚/岔路重叠/奖励节点/闪避 0.3s）
 
 ### 对话：7 项地牢与闪避修复

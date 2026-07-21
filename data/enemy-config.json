@@ -873,7 +873,7 @@
         "fireFrame": 16,
         "soundPreMs": 750,
         "impactRadius": 45,
-        "damageMul": 1.0,
+        "damageMul": 1,
         "flyDuration": 600,
         "arcHeight": 120,
         "projectileSize": 64
@@ -948,7 +948,7 @@
         ],
         "triggerRange": 75,
         "range": 125,
-        "damageMul": 1.0
+        "damageMul": 1
       },
       "charge": {
         "cooldown": 10000,
@@ -958,7 +958,7 @@
         "maxDistance": 1800,
         "triggerRange": 550,
         "hitRange": 60,
-        "damageMul": 2.0,
+        "damageMul": 2,
         "knockback": 200,
         "stunMs": 2500,
         "frames": 19,
@@ -1085,7 +1085,7 @@
           14
         ],
         "range": 300,
-        "damageMul": 2.0,
+        "damageMul": 2,
         "damageType": "physical",
         "triggerRange": 300
       },
@@ -1195,7 +1195,7 @@
     ],
     "contactDamage": {
       "intervalMs": 500,
-      "damageMul": 1.0,
+      "damageMul": 1,
       "damageType": "physical"
     },
     "render": {
@@ -1275,7 +1275,7 @@
           3
         ],
         "range": 100,
-        "damageMul": 1.0,
+        "damageMul": 1,
         "knockback": 75,
         "triggerRange": 100,
         "damageType": "physical"
@@ -1301,7 +1301,7 @@
           6
         ],
         "range": 300,
-        "damageMul": 2.0,
+        "damageMul": 2,
         "stunMs": 1000,
         "triggerRange": 300,
         "damageType": "physical",
@@ -1417,5 +1417,100 @@
       "idleFrameCount": 1,
       "idleSheetColumns": 8
     }
+  },
+  "timeAgentAssault": {
+    "id": "timeAgentAssault",
+    "name": "时空特工(突击)-F",
+    "type": "领主",
+    "category": "monster",
+    "family": "特工",
+    "color": "#5a6a8a",
+    "size": 30,
+    "collisionRadius": 45,
+    "hp": 2200,
+    "maxHp": 2200,
+    "speed": 160,
+    "level": 12,
+    "rank": "lord",
+    "str": 30,
+    "dex": 60,
+    "con": 44,
+    "int": 20,
+    "wis": 40,
+    "luck": 23,
+    "mdef": 45,
+    "crit": 25,
+    "attackRange": 1600,
+    "aiInterval": 500,
+    "ai": {
+      "aggroRange": 1600,
+      "pacingRange": 0,
+      "loseTimeout": 5000
+    },
+    "attackType": "射击",
+    "attackSkills": {
+      "forms": {
+        "engageRange": 1600,
+        "switchInMs": 500,
+        "switchOutMs": 500,
+        "formSwitchMs": 750,
+        "formSwitchCooldown": 1000,
+        "meleeCheckRange": 150,
+        "farSwitchRange": 300,
+        "farSwitchHoldMs": 3000,
+        "meleeMoveSpeed": 260,
+        "walkIntroMs": 1200,
+        "walk2IntroMs": 1267
+      },
+      "shoot": {
+        "fireRange": 1200,
+        "knockback": 25,
+        "spreadFactor": 0.15,
+        "spreadMaxAngle": 10,
+        "muzzleOffset": 30,
+        "muzzleScale": 1.2
+      },
+      "flashbang": {
+        "cooldown": 10000,
+        "duration": 2000,
+        "frames": 32,
+        "fireFrame": 24,
+        "throwRange": 500,
+        "flyDuration": 600,
+        "arcHeight": 100,
+        "impactRadius": 100,
+        "damageMul": 1.5,
+        "stunMs": 2000,
+        "projectileSize": 40
+      },
+      "axe": {
+        "cooldown": 4000,
+        "introDuration": 2000,
+        "introFps": 15,
+        "introHitFrame": 15,
+        "attackHitAbsFrame": 20,
+        "judgeRange": 100,
+        "damageMul": 2,
+        "crippleMs": 3000
+      }
+    },
+    "render": {
+      "spriteSize": 220,
+      "collisionWidth": 60,
+      "collisionHeight": 110,
+      "footOffsetY": 52,
+      "projectileHitbox": {
+        "width": 70,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "hudOffsetY": 70
+    },
+    "textures": {
+      "idle": "assets/enemies/time_agent/idle.png"
+    },
+    "description": "时空特工突击型，可在远程射击与近战斧砍两种形态间切换",
+    "skills": []
   }
 }

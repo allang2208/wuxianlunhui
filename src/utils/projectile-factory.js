@@ -70,7 +70,8 @@ export const ProjectileFactory = {
             p.isSpit = isSpit;
             p.damageType = damageType;
             p._noRender = noRender;
-            if (knockback !== undefined) p.knockback = knockback;
+            // 始终重置，防止对象池复用时残留上一发投射物的击退
+            p.knockback = knockback ?? 0;
             p.traveled = 0;
             p.active = true;
             p.hitTargets = new Set();
@@ -82,7 +83,7 @@ export const ProjectileFactory = {
                 isTracer, isGold, isDarkGold, damageType,
                 noRender, isGreen, isSpit
             );
-            if (knockback !== undefined) p.knockback = knockback;
+            p.knockback = knockback ?? 0;
         }
         // 快照发射瞬间武器的附魔/改造效果：命中时按快照判定，防止弹道飞行中切枪改变命中效果
         const snapWeapon = source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null;
