@@ -727,11 +727,14 @@ export const ExpeditionSystem = {
             SystemUI.close();
         }
 
-        // 初始化地牢（传入选中的地牢类型）
+        // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7：
+        // render/update 的地牢拦截以 SceneManager.currentScene === 'scene7' 为前提，
+        // 仅 init 不切换则地图不渲染（玩家仍停留在主神空间）
         if (DungeonMapSystem) {
             const player = Game.player;
             const dungeonType = this.selectedDungeon || 'zombie';
             DungeonMapSystem.init('scene7', player, dungeonType);
+            SceneManager.currentScene = 'scene7';
         }
     },
 

@@ -1173,7 +1173,8 @@
       "loopVolumeBase": 0.5,
       "loopVolumeMax": 1.5,
       "loopNearDist": 150,
-      "loopFarDist": 600
+      "loopFarDist": 600,
+      "loopCrossfadeSec": 0.5
     },
     "hitCircles": [
       {

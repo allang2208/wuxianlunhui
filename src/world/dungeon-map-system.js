@@ -25,6 +25,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { loadImage } from '../utils/image-loader.js';
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
@@ -288,10 +289,30 @@ export const DungeonMapSystem = {
         canvas.addEventListener("mousedown", onMouseDown);
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
+
+        // 滚轮缩放：以鼠标位置为中心（地图选择界面专用）
+        const onWheel = (e) => {
+            if (this.state !== "map") return;
+            e.preventDefault();
+            const mx = e.clientX, my = e.clientY;
+            const old = this.mapScale;
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            const next = Math.max(0.3, Math.min(3, old * factor));
+            if (next === old) return;
+            const wx = (mx - this.mapOffsetX) / old;
+            const wy = (my - this.mapOffsetY) / old;
+            this.mapScale = next;
+            this.mapOffsetX = mx - wx * next;
+            this.mapOffsetY = my - wy * next;
+            this._clampMapOffset();
+        };
+        canvas.addEventListener("wheel", onWheel, { passive: false });
+
         this._eventListeners = [
             { el: canvas, type: "mousedown", fn: onMouseDown },
             { el: window, type: "mousemove", fn: onMouseMove },
             { el: window, type: "mouseup", fn: onMouseUp },
+            { el: canvas, type: "wheel", fn: onWheel },
         ];
     },
 
@@ -363,6 +384,23 @@ export const DungeonMapSystem = {
             x: mx * this.mapScale + this.mapOffsetX,
             y: my * this.mapScale + this.mapOffsetY,
         };
+    },
+
+    /** 背景图平铺填充（cover 居中裁切，不随地图变换；懒加载） */
+    _renderBackground(ctx, viewW, viewH) {
+        if (!this._bgImg) {
+            this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
+        }
+        const img = this._bgImg;
+        if (!img || !img.complete || img.naturalWidth === 0) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, viewW, viewH);
+            return;
+        }
+        const scale = Math.max(viewW / img.naturalWidth, viewH / img.naturalHeight);
+        const w = img.naturalWidth * scale;
+        const h = img.naturalHeight * scale;
+        ctx.drawImage(img, (viewW - w) / 2, (viewH - h) / 2, w, h);
     },
 
     /**
@@ -1068,6 +1106,9 @@ export const DungeonMapSystem = {
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
+        // ── 背景图：平铺填充整个视口（cover，不随地图拖动/缩放；上方图片区无互动） ──
+        this._renderBackground(ctx, FIXED_WIDTH, FIXED_HEIGHT);
+
         // 保存原始状态
         ctx.save();
 
@@ -1075,20 +1116,9 @@ export const DungeonMapSystem = {
         ctx.translate(this.mapOffsetX, this.mapOffsetY);
         ctx.scale(this.mapScale, this.mapScale);
 
-        // ── 绘制地图背景 ──
-        ctx.fillStyle = "#1a1814";
+        // ── 地图区域背景：半透明深色叠加在背景图下半部黑色区上，便于看清路线 ──
+        ctx.fillStyle = "rgba(8,8,10,0.72)";
         ctx.fillRect(0, 0, this.MAP_WIDTH, this.MAP_HEIGHT);
-
-        // 背景纹理：网格线
-        ctx.strokeStyle = "#252220";
-        ctx.lineWidth = 1;
-        const gridSize = 80;
-        for (let x = 0; x <= this.MAP_WIDTH; x += gridSize) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.MAP_HEIGHT); ctx.stroke();
-        }
-        for (let y = 0; y <= this.MAP_HEIGHT; y += gridSize) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.MAP_WIDTH, y); ctx.stroke();
-        }
 
         // ── 绘制边（连线）─
         for (const edge of this.edges) {

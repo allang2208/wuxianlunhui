@@ -8,6 +8,46 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（修复：确认出征后仍在主神空间——场景状态未切换）
+
+### 对话：祭坛出征界面正常但点确认出征后没进地牢
+- **根因**：`depart()` 只调 `DungeonMapSystem.init()`（初始化地图数据），但**从未把 `SceneManager.currentScene` 设为 'scene7'**——而 `game.js render()` 的地牢渲染拦截条件是 `currentScene === 'scene7' && active && state==='map'`——条件恒 false，Renderer.canvas 保持 hidden，地图选择界面从不渲染，玩家看起来"还在主神空间"。
+- **修复**：`depart()` 在 `DungeonMapSystem.init(...)` 后补 `SceneManager.currentScene = 'scene7'`——update/render 的地牢拦截随之生效（主场景 update 冻结、地图渲染显示）。
+- **修改文件**：src/ui/expedition-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——确认出征后进入地图选择界面（背景图+节点路线）；选节点进战斗流程不受影响。
+
+## 2026-07-21（地图选择界面重构 + 蝇群音效交叉循环）
+
+### 对话：地图界面背景图 + 拖放缩放 + 音效结束前 0.5s 重叠
+- **地图选择界面重构**（dungeon-map-system.js）：
+  - 背景：`assets/scenes/dungeon-map-bg.png`（素材库"背景图.png"复制）平铺填充（cover 居中裁切，不随地图变换；上方图片区无互动）；
+  - 地图区域背景改半透明深色（rgba(8,8,10,0.72)）叠加在背景图下半部黑色区上；
+  - **滚轮缩放**：新增 wheel 监听，以鼠标位置为中心缩放（0.3~3 倍，deltaY 方向），拖动逻辑不变。
+- **蝇群音效交叉循环**：SoundManager `playLoop` 新增第 4 参 `crossfadeSec`——>0 时不用自身 loop，改为**定时链**：每轨在 (duration - N) 秒时启动下一轨（两轨重叠 N 秒，前轨不中断自然播完）；音量动态调整跨轨延续（`l.volume` 记录）；stopAllLoops 同步清定时器。蝇群配置 `sounds.loopCrossfadeSec: 0.5` 启用。
+- **修改文件**：src/world/dungeon-map-system.js、src/ui/sound-manager.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、assets/scenes/dungeon-map-bg.png、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①背景图平铺效果与地图可读性；②拖动+滚轮缩放手感；③蝇群音效 0.5s 重叠无缝感。
+
+## 2026-07-21（修复：献祭出征被点击穿透重新打开商店对话）
+
+### 对话：祭坛点献祭出征没进出征界面，弹回主神空间+小鼠商店对话
+- **根因**：祭坛选项按钮（HTML onclick）同步执行 openExpedition（关对话+开出征面板），但**未消费 `Input.mouse.leftPressed`**——下一帧 game.js 的 NPC 点击检测发现鼠标在小鼠大王 NPC hover 范围内且 leftPressed 仍挂起，再次触发 `NPCDialogue.open`（打开商店对话盖在出征界面上）。
+- **修复**：openExpedition/openFusion/openShop/openEnhance/openCraft/openEnchant 六个选项入口统一 `Input.mouse.leftPressed = false`（消费本次点击，防止 NPC 检测二次触发）。
+- **修改文件**：src/ui/npc-dialogue.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——献祭出征直接进出征准备面板，不再弹出商店对话。
+
+## 2026-07-21（地牢地砖换 blackbrick5）
+
+### 对话：blackbrick5 替换地砖，其他不变
+- **素材**：blackbrick5.png（512×512，等距菱形黑砖拼贴 417×237）复制到 `assets/terrain/`；程序化生成 `blackbrick5_glow.png`（上边缘高光带，黑砖提亮版）。
+- **参数更新**：BootScene 加载键 blackbrick5/blackbrick5_glow；floor-texture 几何常量同步（ISO_TILE_W 417、ISO_TILE_H 237、ISO_CENTER (256,216)，实测 bbox 48,97→465,334）。平铺/发光机制不变。
+- **清理**：旧 blackbrick4/blackbrick4_glow 加载键移除（文件保留在 assets/terrain/ 备用）。
+- **修改文件**：assets/terrain/blackbrick5.png、assets/terrain/blackbrick5_glow.png、src/phaser/scenes/BootScene.js、src/world/dungeon-floor-texture.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——黑砖观感与砖块大小比例（417×237 比之前 329×161 更大）。
+
 ## 2026-07-21（准入规则改"≥对应稀有度" + 宝箱岔路分支）
 
 ### 对话：准入改大于等于 + 地牢节点宝箱岔路重构

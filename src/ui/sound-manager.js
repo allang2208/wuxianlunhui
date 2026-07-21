@@ -73,25 +73,46 @@
              * @param {string} id 音轨唯一标识（如 'flyswarm_xxx'）
              * @param {string} path 音频路径
              * @param {number} volume 初始音量倍率（可超过 1，由 GainNode 实现）
+             * @param {number} [crossfadeSec=0] 交叉重叠秒数：>0 时不用自身 loop，
+             *   而是在每轨结束前 N 秒启动下一轨（两轨重叠 N 秒，前轨不中断自然播完）
              */
-            async playLoop(id, path, volume = 1.0) {
+            async playLoop(id, path, volume = 1.0, crossfadeSec = 0) {
                 if (!this.enabled || !this.ctx || !id) return false;
                 this._loops = this._loops || {};
                 // 同 id 先停旧轨（避免叠加播放）
-                const old = this._loops[id];
-                if (old && old.src) { try { old.src.stop(); } catch (_e) { /* 忽略 */ } }
-                delete this._loops[id];
+                this._stopLoopInternal(id);
                 try {
                     const buf = await (await fetch(path)).arrayBuffer();
                     const audioBuf = await this.ctx.decodeAudioData(buf);
-                    const src = this.ctx.createBufferSource();
-                    src.buffer = audioBuf;
-                    src.loop = true;
-                    const gain = this.ctx.createGain();
-                    gain.gain.value = volume * this.masterVolume;
-                    src.connect(gain).connect(this.ctx.destination);
-                    src.start();
-                    this._loops[id] = { src, gain };
+
+                    if (crossfadeSec > 0) {
+                        // 交叉重叠模式：定时链，每轨在 (duration - crossfadeSec) 时启动下一轨
+                        const leadMs = Math.max(80, audioBuf.duration * 1000 - crossfadeSec * 1000);
+                        const startTrack = () => {
+                            const state = this._loops[id];
+                            if (!state || state.stopped) return;
+                            const src = this.ctx.createBufferSource();
+                            src.buffer = audioBuf;
+                            const gain = this.ctx.createGain();
+                            gain.gain.value = (state.volume ?? volume) * this.masterVolume;
+                            src.connect(gain).connect(this.ctx.destination);
+                            src.start();
+                            state.src = src;
+                            state.gain = gain;
+                            state.timer = setTimeout(startTrack, leadMs);
+                        };
+                        this._loops[id] = { volume, stopped: false };
+                        startTrack();
+                    } else {
+                        const src = this.ctx.createBufferSource();
+                        src.buffer = audioBuf;
+                        src.loop = true;
+                        const gain = this.ctx.createGain();
+                        gain.gain.value = volume * this.masterVolume;
+                        src.connect(gain).connect(this.ctx.destination);
+                        src.start();
+                        this._loops[id] = { src, gain, volume };
+                    }
                     return true;
                 } catch (e) {
                     console.warn('SoundManager.playLoop error:', path, e);
@@ -99,29 +120,34 @@
                 }
             },
 
-            /** 动态调节循环音轨音量（倍率可超过 1） */
+            /** 动态调节循环音轨音量（倍率可超过 1；交叉模式下同时作用于后续轨） */
             setLoopVolume(id, volume) {
                 const l = this._loops && this._loops[id];
-                if (l && l.gain) l.gain.gain.value = volume * this.masterVolume;
+                if (!l) return;
+                l.volume = volume;
+                if (l.gain) l.gain.gain.value = volume * this.masterVolume;
+            },
+
+            _stopLoopInternal(id) {
+                const l = this._loops && this._loops[id];
+                if (!l) return;
+                l.stopped = true;
+                if (l.timer) clearTimeout(l.timer);
+                try { if (l.src) l.src.stop(); } catch (_e) { /* 忽略 */ }
+                delete this._loops[id];
             },
 
             /** 停止循环音轨 */
             stopLoop(id) {
-                const l = this._loops && this._loops[id];
-                if (l) {
-                    try { if (l.src) l.src.stop(); } catch (_e) { /* 忽略 */ }
-                    delete this._loops[id];
-                }
+                this._stopLoopInternal(id);
             },
 
             /** 停止所有循环音轨（场景切换时兜底，防止实体被直接 clear 后音轨泄漏） */
             stopAllLoops() {
                 if (!this._loops) return;
                 for (const id of Object.keys(this._loops)) {
-                    const l = this._loops[id];
-                    try { if (l && l.src) l.src.stop(); } catch (_e) { /* 忽略 */ }
+                    this._stopLoopInternal(id);
                 }
-                this._loops = {};
             },
 
             _playMeleeSwing() {
