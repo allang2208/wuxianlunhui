@@ -1323,7 +1323,8 @@
         "bottom": 0
       },
       "colliderOffsetX": -5,
-      "colliderOffsetY": 25
+      "colliderOffsetY": 25,
+      "colliderOffsetFacing": 5
     },
     "textures": {
       "idle": "assets/enemies/flyhand/idle.png",

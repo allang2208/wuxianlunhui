@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇手碰撞朝向驱动偏移）
+
+### 对话：碰撞体积朝右时再右移 5px，同步镜像
+- **实现**：enemy-config `render.colliderOffsetFacing: 5`（新增配置项）；蝇手 update 每帧按朝向设置 `colliderOffsetX = 基础offsetX(-5) + faceDir×5`——朝右 0、朝左 -10（随手掌朝向摆动 ±5，左右镜像）；collider.syncPosition 每帧应用最新值。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/fly-hand.js、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——翻转朝向时碰撞中心跟随摆动。
+
 ## 2026-07-20（出征面板清理 + 仓库/祭坛距离自动关闭 + 碰撞微调）
 
 ### 对话：规则栏残留排查 + NPC 距离关闭扩展 + 蝇手蝇群碰撞

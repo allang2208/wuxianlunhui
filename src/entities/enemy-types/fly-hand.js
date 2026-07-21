@@ -46,6 +46,12 @@ export class FlyHand extends Enemy {
     }
 
     update(dt, entities) {
+        // 朝向驱动碰撞偏移（render.colliderOffsetFacing）：朝右 +N、朝左 -N（镜像），叠加在基础 offsetX 上
+        const facing = this.config?.render?.colliderOffsetFacing || 0;
+        if (facing) {
+            const faceDir = Math.cos(this.rotation ?? 0) >= 0 ? 1 : -1;
+            this.colliderOffsetX = (this.config.render.colliderOffsetX ?? 0) + faceDir * facing;
+        }
         for (const k of Object.keys(this._cooldowns)) {
             if (this._cooldowns[k] > 0) this._cooldowns[k] -= dt;
         }
