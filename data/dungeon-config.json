@@ -217,7 +217,8 @@
       "monstersPerWave": 1,
       "monsterComposition": {
         "lord": 1
-      }
+      },
+      "poolFamily": "僵尸"
     },
     "nodeDisplay": {
       "unrevealedIcon": "?",

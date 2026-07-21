@@ -8,6 +8,40 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：枪口再调/静止后直播循环段/近战260根因/中级boss限定/换弹音一次）
+
+### 对话：枪口左移20上移5、静止射击后再移动直接播 4-18、近战260未生效、中级boss限定僵尸领主、换弹音一次
+- **枪口**：按累加微调 `muzzleSideX` 15→**35**、`muzzleUpY` 75→**80**（左右镜像不变）。
+- **远程动画**：远程形态移动直接播放 walking 4~18 循环段（含静止射击后再移动），18 帧首段只在 idle 形态起步时播放。
+- **近战 260 未生效根因**：MovementSystem 用 `enemy.attackRange` 做减速/停步判定——特工 attackRange=1600（远程接敌值），近战形态下 800px 外就被全摩擦制动，260 永远无法体现。修复：`attackRange` 按形态动态切换（近战=斧判定 120，远程=接敌 1600），与 maxSpeed 同步每帧更新。
+- **中级 Boss 限定**：领主池原为跨 family 按 rank 抽取（时空特工 rank=lord 也会被抽中）——`ZombieDungeonCombat` 新增 `poolFamily` 配置过滤（zombieDungeonMid.bossEncounter.poolFamily='僵尸'），只刷僵尸类领主；无匹配时退回原池兜底防空池。
+- **换弹音连播根因**：基类 `_startReload` 无条件重置换弹计时，canFire 每帧调用 → 换弹永远完不成 + 音效连播（隐藏 bug）。修复：换弹中直接返回（不重置、不再播音），每次换弹音效只播一次。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、src/world/zombie-dungeon.js、data/enemy-config.json、data/dungeon-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——近战 260 追击速度、静止后移动直播循环段、中级 Boss 只刷手脑/蝇手（不刷特工）、换弹 2s 单次音效。
+
+## 2026-07-21（时空特工：投射物缩小/碰撞下移/近战判定/枪声换弹）
+
+### 对话：闪光弹投射物缩小50%、碰撞下移30px、近战难命中排查、191 音效
+- **投射物**：`flashbang.projectileSize` 40 → 20（缩小 50%）。
+- **碰撞体积**：`render.colliderOffsetY = 30`（footprint/分离圆/判定统一下移 30px，enemy.js 基类原生支持）。
+- **近战判定排查**：`GroundEllipse.intersectsEntity` 数学正确且保守（轴长按目标 footprint 半径膨胀，与全部怪物 AOE 同口径）——"100px 内判定失败"实为椭圆 Y 压缩的几何必然：judgeRange 100 时垂直触及仅 50+22.5=72.5px（水平 122.5px），垂直/斜向接近必然漏判。按指示 `judgeRange` 100 → **120**（垂直触及 82.5px，斜向 100px 内可命中），触发距离与判定距离同源同步。
+- **真实弹匣**：Combatant 基类 `_hasAmmo/_consumeAmmo` 默认无限弹药（怪物不耗弹不换弹）——类内覆盖为实弹匣（30 发打空 → canFire 自动触发 2s 换弹 → 满匣复射）；`_startReload` 覆写播放换弹音效。
+- **音效**：`sounds.fire = qbz191_shot6_valley.mp3`（191 开火，经 item.fireSound 由 fireProjectile 播放）、`sounds.reload = reload_sharp.mp3`（换弹），配置驱动。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，补 SoundManager 导入）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——30 发后 2s 换弹音、近战 120px 判定命中率、投射物新尺寸、碰撞下移后贴图/判定对齐。
+
+## 2026-07-21（时空特工：移动射击动画/换弹 2s/枪口位置修正）
+
+### 对话：移动射击动画不生效（固定射击）、弹匣 30 发 2s 换弹、朝左枪口上移 75 左移 15
+- **移动射击动画根因**：远程模式用 `_attackAnimTimer=100` 锁 MovementSystem 自驱移动，但 MovementSystem 锁定分支每帧把 `isMoving/vx/vy` 清零——位置在动、动画标记被抹掉，表现为"固定不动射击"。修复：新增 `_selfMoving` 自驱标记 + `_effectiveMoving()`（远程读自驱标记，其余形态读 isMoving），贴图键/动画键/移动计时全部改走有效标记；锁定期间击退 MovementSystem 不处理，类内按同口径自行应用（衰减+墙壁解析）。
+- **弹匣**：`shoot.ammo = { max: 30, reloadTime: 2000 }` 写入怪物实例 `ammoConfig`（getAmmoConfig 优先实例字段，不影响玩家同款武器）。
+- **枪口位置**：子弹与枪口火焰同源——`_isFacingLeft()` 判定朝向，枪口点 = 上移 `muzzleUpY`(75) + 左右 `muzzleSideX`(15)（朝左-15/朝右+15）；`fireProjectile` 固定从 this.x/y 生成子弹，采用临时移位到枪口再还原的方式让子弹从枪口射出。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——移动射击播放 walking 首段/循环段、30 发打完 2s 换弹、左右朝向子弹出膛点正确。
+
 ## 2026-07-21（时空特工动画链路修复 + 贴图尺寸/闪光弹贴图）
 
 ### 对话：动画全部显示为圆柱体、贴图过大、闪光弹投射物消失
