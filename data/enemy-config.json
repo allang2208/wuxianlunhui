@@ -1207,7 +1207,8 @@
         "height": 70,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "colliderOffsetY": 20
     },
     "textures": {
       "idle": "assets/enemies/flyswarm/idle.png",
@@ -1236,7 +1237,7 @@
     "family": "僵尸",
     "color": "#5a6a3a",
     "size": 48,
-    "collisionRadius": 41,
+    "collisionRadius": 46,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 160,
@@ -1313,11 +1314,11 @@
     "render": {
       "spriteSize": 260,
       "collisionWidth": 100,
-      "collisionHeight": 160,
+      "collisionHeight": 130,
       "footOffsetY": 70,
       "projectileHitbox": {
         "width": 110,
-        "height": 160,
+        "height": 190,
         "offsetX": 0,
         "bottom": 0
       },

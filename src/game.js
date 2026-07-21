@@ -60,6 +60,9 @@ import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI } from './ui/system-ui.js';
+import { UIState } from './ui/ui-state.js';
+import { ExpeditionSystem } from './ui/expedition-system.js';
+import { FusionSystem } from './ui/fusion-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -845,8 +848,9 @@ if (Input.mouse.leftPressed) {
                     const mx = Input.mouse.x, my = Input.mouse.y;
                     const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
                     if (hover) {
-                        // 仓库 NPC：直接打开仓库面板，不走对话
+                        // 仓库 NPC：直接打开仓库面板，不走对话；记录锚点供距离自动关闭
                         if (entity.npcType === 'warehouse') {
+                            WarehouseSystem._anchorNPC = entity;
                             WarehouseSystem.open();
                         } else {
                             NPCDialogue.open(entity);
@@ -1174,6 +1178,10 @@ if (SceneManager.currentScene === 'scene3') {
         let activeNPC = NPCDialogue._currentNPC;
         if (!activeNPC && ShopSystem._currentNPC) activeNPC = ShopSystem._currentNPC;
         if (!activeNPC && EnhanceSystem._currentNPC) activeNPC = EnhanceSystem._currentNPC;
+        // 仓库/祭坛（出征/合成）打开时：以各自锚点 NPC 为参照（对话已关，_currentNPC 为空）
+        if (!activeNPC && WarehouseSystem._isOpen) activeNPC = WarehouseSystem._anchorNPC;
+        if (!activeNPC && UIState.isOpen('expedition')) activeNPC = ExpeditionSystem._anchorNPC;
+        if (!activeNPC && UIState.isOpen('fusion')) activeNPC = FusionSystem._anchorNPC;
         if (!activeNPC) return;
         const dx = activeNPC.x - this.player.x;
         const dy = activeNPC.y - this.player.y;
@@ -1185,6 +1193,8 @@ if (SceneManager.currentScene === 'scene3') {
             EnhanceSystem.close();
             SystemUI.close();
             WarehouseSystem.close();
+            if (UIState.isOpen('expedition')) ExpeditionSystem.close();
+            if (UIState.isOpen('fusion')) FusionSystem.close();
             LevelUpEffectQueue.clear();
         }
     },

@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（出征面板清理 + 仓库/祭坛距离自动关闭 + 碰撞微调）
+
+### 对话：规则栏残留排查 + NPC 距离关闭扩展 + 蝇手蝇群碰撞
+- **出征规则栏残留根因**：`depart()` 的清理路径（关 panel/overlay/UIState）**漏调 `_hideRulePanel()`**——`close()` 里有但 depart 不走 close，出征后规则栏残留；从地牢返回后仍是残留状态（用户感知"返回主神空间后也没删除"）。修复：depart() 补 `_hideRulePanel()`。
+- **距离自动关闭扩展**：`_checkNPCDistance` 此前只认对话/商店/强化的 `_currentNPC`——仓库/祭坛打开时无 activeNPC 直接 return。扩展：
+  - 仓库 NPC 点击时记录 `WarehouseSystem._anchorNPC`（game.js）；祭坛 openExpedition/openFusion 时记录 `ExpeditionSystem._anchorNPC` / `FusionSystem._anchorNPC`（npc-dialogue.js）；
+  - `_checkNPCDistance` 增加三个参照源，超距（npcAutoCloseDist 200px）统一关闭 NPCDialogue/Shop/Enhance/SystemUI(背包)/Warehouse/Expedition/Fusion。
+- **碰撞微调**：蝇手 footprint 半径 41→46（左右各+5）；投射物矩形 height 160→190（上方+30px）；圆柱身高 collisionHeight 160→130（上方-30px）；蝇群 `render.colliderOffsetY` 0→20（整体下移 20px）。
+- **修改文件**：src/ui/expedition-system.js、src/game.js、src/ui/npc-dialogue.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①出征后规则栏消失；②离开仓库/祭坛 200px 自动关闭；③碰撞对齐。
+
 ## 2026-07-20（地牢地板改版 + 陷阱失败后事件被替换修复）
 
 ### 对话：地板仅 blackbrick1 64×64 + 陷阱失败后事件被换成其他事件
