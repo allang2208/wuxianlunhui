@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工动画链路修复 + 贴图尺寸/闪光弹贴图）
+
+### 对话：动画全部显示为圆柱体、贴图过大、闪光弹投射物消失
+- **圆柱体根因**：`GameScene._syncEnemyAnimation` 用 `_getTextureKey()` 的返回值查**贴图**（`textures.exists` 失败回退 'enemy_circle'）——此前 `_getTextureKey` 返回的是**动画键**（walk_loop/ranged_pose/axe_idle 等无同名贴图），常驻回退圆柱体。修复：拆分两键——`_getTextureKey()` 只返回已加载贴图键（walk/walk2/gun/axe/flash/switch/idle），新增 `_getAnimKey()` 返回动画键（含循环段）；animState 用形态名（与骑士 combo 同机制，动作动画时长=状态时长，重复进入自动重播）。
+- **贴图过大**：实测帧内容约 464px/512 帧——spriteSize 220 → **160**（角色视觉高约 145px，匹配 110 碰撞高）；footOffsetY 52 → 38（等比）。
+- **闪光弹投射物消失**：`projective.png` 内容仅 **29×24px**（512×512 帧内），40px 显示时只剩约 2px。已用 PIL 裁剪到内容（34×34 带边距），40px 显示约 34px 可见。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、assets/enemies/time_agent/projective.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——各状态动画正确显示、移动首段→循环段切换、近战持斧姿态、闪光弹投射物可见。
+
 ## 2026-07-21（时空特工 AI 重构：远程寻位/环绕/寻路 + 状态机明确）
 
 ### 对话：明确双状态机，优化远程攻击 AI

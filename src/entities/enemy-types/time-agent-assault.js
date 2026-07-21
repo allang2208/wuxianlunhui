@@ -604,7 +604,26 @@ export class TimeAgentAssault extends Enemy {
 
     // ========== 动画 ==========
 
+    /** 当前状态对应的贴图键（必须是已加载的纹理；动画键见 _getAnimKey） */
     _getTextureKey() {
+        switch (this._formState) {
+            case 'toRanged':
+            case 'toIdle':         return 'enemy_timeagent_gun';
+            case 'flashThrow':     return 'enemy_timeagent_flash';
+            case 'toRangedSwitch': return 'enemy_timeagent_switch';
+            case 'axeIntro':
+            case 'axeAttack':      return 'enemy_timeagent_axe';
+            case 'ranged':
+                return this.isMoving ? 'enemy_timeagent_walk' : 'enemy_timeagent_gun';
+            case 'melee':
+                return this.isMoving ? 'enemy_timeagent_walk2' : 'enemy_timeagent_axe';
+            default: // idle
+                return this.isMoving ? 'enemy_timeagent_walk' : 'enemy_timeagent_idle';
+        }
+    }
+
+    /** 当前状态对应的动画键（GameScene 播放；循环段动画无同名贴图，由动画驱动切纹理） */
+    _getAnimKey() {
         const F = this._getSkillConfigs().forms;
         switch (this._formState) {
             case 'toRanged':       return 'enemy_timeagent_ranged_in';
@@ -647,6 +666,8 @@ export class TimeAgentAssault extends Enemy {
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
         }
+        // animState 用形态名（非 'attack'）：动作动画时长与状态时长一致，
+        // 重复进入同一动作时 GameScene 依 isLoopAnim 规则自动重播，与骑士 combo 同机制
         return {
             spriteSize: renderCfg.spriteSize || 220,
             collisionWidth: renderCfg.collisionWidth || 60,
@@ -654,7 +675,7 @@ export class TimeAgentAssault extends Enemy {
             textOffsetY: -(renderCfg.spriteSize || 220) / 2 - 10,
             flipX,
             animState: this._formState,
-            animKey: this._getTextureKey(),
+            animKey: this._getAnimKey(),
         };
     }
 }

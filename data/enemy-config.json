@@ -1504,10 +1504,10 @@
       }
     },
     "render": {
-      "spriteSize": 220,
+      "spriteSize": 160,
       "collisionWidth": 60,
       "collisionHeight": 110,
-      "footOffsetY": 52,
+      "footOffsetY": 38,
       "projectileHitbox": {
         "width": 70,
         "height": 110,
