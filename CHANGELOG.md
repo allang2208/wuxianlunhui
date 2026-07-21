@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（地牢地板改版 + 陷阱失败后事件被替换修复）
+
+### 对话：地板仅 blackbrick1 64×64 + 陷阱失败后事件被换成其他事件
+- **地板改版**（dungeon-floor-texture.js）：`FLOOR_TEXTURE_KEYS` 三张 → 仅 `['blackbrick']`；`FLOOR_TILE_SIZE` 32 → 64。圆角/2px 黑缝/随机朝向/相邻避同/边缘渐变逻辑不变。
+- **陷阱失败后被替换事件根因**：节点清空/保留逻辑（解除失败保留节点）本就正确，但**节点不记录事件类型**——每次进入 event 节点都重新 `rollEventType` 随机，失败后节点保留（type='event'）重进时却随机成了别的事件，用户感知"被替换"。
+- **修复**：`_enterEvent` 把 `result.eventType` 记录到 `node.eventType`；进入时 `trigger(..., forcedType = node.eventType || null)`——节点事件类型首次随机后固定，重进不再重新随机（陷阱失败后重进仍是陷阱事件）。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——①地板 64×64 单图观感；②陷阱失败后回退重进仍为陷阱；③成功解除后节点正常清空。
+
 ## 2026-07-20（蝇手 footprint 缩小 25% + 左移 15px）
 
 ### 对话：底部椭圆判定体积调整

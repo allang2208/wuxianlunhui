@@ -11,9 +11,9 @@
 import { CONFIG } from '../config/config.js';
 import { Renderer } from './renderer.js';
 
-// 地板贴图键（源图切割为 32×32 小砖随机拼铺，相邻小砖不使用同一子块）
-export const FLOOR_TEXTURE_KEYS = ['blackbrick', 'blackbrick2', 'blackbrick3'];
-export const FLOOR_TILE_SIZE = 32;
+// 地板贴图键（仅使用 blackbrick1 一张源图，切割为 64×64 小砖随机朝向拼铺，相邻小砖不使用同一子块）
+export const FLOOR_TEXTURE_KEYS = ['blackbrick'];
+export const FLOOR_TILE_SIZE = 64;
 // 小砖实际绘制尺寸：四边各内缩 1px，相邻小砖之间形成 2px 纯黑缝隙
 const FLOOR_TILE_DRAW_SIZE = FLOOR_TILE_SIZE - 2;
 // 小砖圆角半径（边缘圆滑处理）
