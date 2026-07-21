@@ -598,7 +598,7 @@ export const ExpeditionSystem = {
         }).join('');
         panel.innerHTML = `
             <div class="rule-title">⚠ 出征条件</div>
-            <div class="rule-desc">进入对应等级地牢，至少放入一件对应稀有度祭品：</div>
+            <div class="rule-desc">进入对应等级地牢，至少放入一件对应或更高稀有度祭品：</div>
             ${rows}
             <div class="rule-current" id="expeditionRuleCurrent"></div>
             <div class="rule-rewards" id="expeditionRuleRewards"></div>
@@ -616,7 +616,7 @@ export const ExpeditionSystem = {
         const rarity = this._getRequiredRarity();
         const color = RARITY_COLORS[rarity] || '#c0c0c0';
         const zh = RARITY_LABELS[rarity] || rarity;
-        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${zh}祭品</b>`;
+        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${zh}及以上祭品</b>`;
         this._updateRulePanelRewards(grade);
     },
 
@@ -692,9 +692,10 @@ export const ExpeditionSystem = {
             return;
         }
 
-        // 等级对应稀有度检查：至少放入一件对应稀有度祭品（F=普通 E=优质 D=稀有 C=史诗 B=神话 A=传说）
+        // 等级准入检查：至少放入一件「对应或更高」稀有度祭品（C 级地牢需 ≥C 级/史诗）
         const requiredRarity = this._getRequiredRarity();
-        const hasRequired = carried.some(c => c && c.item && (c.item.rarity || 'common') === requiredRarity);
+        const reqIdx = RARITY_ORDER.indexOf(requiredRarity);
+        const hasRequired = carried.some(c => c && c.item && RARITY_ORDER.indexOf(c.item.rarity || 'common') >= reqIdx);
         if (!hasRequired) {
             this._showMessage('请根据提示放入对应等级祭品', 'error');
             return;

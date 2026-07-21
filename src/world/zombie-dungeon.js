@@ -366,10 +366,14 @@ export class ZombieDungeonMapGenerator {
         // 建边
         const edges = this._buildEdges(nodes, totalCols);
 
-        // 随机标记精英战斗节点（按地牢类型读取对应配置，如初级地牢为 0）
+        // 宝箱岔路：从中间列节点向地图外（上/下缘）伸出支路，尽头固定宝箱事件
+        // 岔路独立规则：有且只有一个战斗节点（精英概率固定 50%），其余为事件节点
+        this._addChestBranches(nodes, edges, cfg, bossCol);
+
+        // 随机标记精英战斗节点（按地牢类型读取对应配置，如初级地牢为 0；岔路节点独立规则不参与）
         const eliteCombatChance = DungeonConfig.getEliteCombatChance(this._dungeonType);
         for (const node of nodes) {
-            if (node.type === 'combat') {
+            if (node.type === 'combat' && !node.isBranch) {
                 node.eliteChance = eliteCombatChance;
                 if (Math.random() < eliteCombatChance) {
                     node.isElite = true;
@@ -378,6 +382,48 @@ export class ZombieDungeonMapGenerator {
         }
 
         return { nodes, edges };
+    }
+
+    /**
+     * 宝箱岔路分支（工作流见 SKILL.md 地牢工作流）：
+     * 从中间列节点向上/下缘伸出链式支路，尽头固定宝箱事件（event + eventType: 'treasureChest'）。
+     * 规则：每条 2~3 节点；有且只有一个战斗节点（首个，精英概率固定 50%）；尽头必宝箱；
+     * 条数由 cfg.chestBranches.count 驱动（缺省按地牢 grade：F=2、每级+2）。
+     */
+    _addChestBranches(nodes, edges, cfg, bossCol) {
+        const count = (cfg.chestBranches && cfg.chestBranches.count) || 0;
+        if (count <= 0) return;
+        const entries = nodes.filter(n => n.col > 0 && n.col < bossCol);
+        const usedEntryIds = new Set();
+        for (let b = 0; b < count; b++) {
+            const avail = entries.filter(e => !usedEntryIds.has(e.id));
+            if (avail.length === 0) break;
+            const entry = avail[Math.floor(Math.random() * avail.length)];
+            usedEntryIds.add(entry.id);
+            const len = 2 + Math.floor(Math.random() * 2); // 2~3 节点
+            // 分支方向：上半区向上出界、下半区向下出界
+            const dirY = entry.row <= (cfg.grid.rows - 1) / 2 ? -1 : 1;
+            let prevId = entry.id;
+            for (let i = 0; i < len; i++) {
+                const isLast = i === len - 1;
+                // 首个节点固定为唯一战斗节点；其余为事件节点；尽头固定宝箱事件
+                const type = i === 0 ? 'combat' : 'event';
+                const brow = entry.row + dirY * (i + 1);
+                const node = this._createNode(entry.col, brow, cfg.grid.colSpacing, cfg.grid.rowSpacing, type);
+                node.id = `node_branch_${b}_${i}_${entry.col}`;
+                node.isBranch = true;
+                if (isLast) node.eventType = 'treasureChest';
+                if (type === 'combat') {
+                    node.eliteChance = 0.5;
+                    if (Math.random() < 0.5) node.isElite = true;
+                }
+                nodes.push(node);
+                // 双向边（与垂直边一致，岔路可往返）
+                edges.push({ from: prevId, to: node.id });
+                edges.push({ from: node.id, to: prevId });
+                prevId = node.id;
+            }
+        }
     }
 
     _createNode(col, row, colSpacing, rowSpacing, type) {

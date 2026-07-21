@@ -1462,3 +1462,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ### 5. 验证
 lint / vite build / test-collider / test-craft-sync；实机验证：状态栏图标、持续时间刷新、叠层、到期消失、死亡/场景切换清理。
+
+### 6. 宝箱岔路分支（zombie-dungeon.js `_addChestBranches`）
+- **规则**：从中间列节点向上/下缘伸出链式支路（双向边可往返）；每条 2~3 节点；**有且只有一个战斗节点（首个，精英概率固定 50%）**；尽头固定宝箱事件（event + `node.eventType: 'treasureChest'`，复用节点事件类型记录机制）。
+- **条数**：`chestBranches.count` 配置驱动；缺省按地牢 grade 自动计算（F=2、每级 +2，dungeon-config.js `getZombieDungeonConfig`）。
+- **独立性**：岔路节点带 `isBranch` 标记，不参与全局精英率标记（`!node.isBranch` 排除）；岔路事件节点走正常事件池；宝箱节点经 node.eventType 强制为 treasureChest。

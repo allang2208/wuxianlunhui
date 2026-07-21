@@ -1,6 +1,9 @@
 import dungeonConfigData from '../../data/dungeon-config.json';
 import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
+// 难度等级顺序（与 dungeon-event-definitions.js GRADE_ORDER 保持一致）
+const GRADE_ORDER_LOCAL = ['F', 'E', 'D', 'C', 'B', 'A'];
+
 const DEFAULTS = {
     zombieDungeon: {
         nodeCount: { min: 35, max: 40 },
@@ -73,6 +76,14 @@ export const DungeonConfig = {
             cfg.typeRatios = { ...cfg.typeRatios };
             cfg.typeRatios.combat = Math.min(1, Math.max(0, (cfg.typeRatios.combat ?? 0.7) + delta));
             cfg.typeRatios.event = 1 - cfg.typeRatios.combat;
+        }
+        // 宝箱岔路：条数随地牢等级提升（F=2、每级+2；chestBranches.count 配置可覆盖）
+        if (!cfg.chestBranches) cfg.chestBranches = {};
+        if (cfg.chestBranches.count === undefined) {
+            const list = dungeonConfigData.dungeonList || {};
+            const grade = (list[dungeonType] && list[dungeonType].grade) || 'D';
+            const gradeIdx = Math.max(0, GRADE_ORDER_LOCAL.indexOf(grade));
+            cfg.chestBranches = { ...cfg.chestBranches, count: 2 + gradeIdx * 2 };
         }
         return cfg;
     },
