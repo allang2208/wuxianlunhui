@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（全项目分辨率适配全面排查）
+
+### 对话：按 layout.js 标准排查全部面板/图层
+- **盘点范围**：game-style.css 全部 26 处 `position: fixed` 块 + JS 层 fixed 定位（PhaserGame canvas、layout.js）+ 20 处内联 left/top/right/bottom。
+- **健康项（无需迁移）**：
+  - 抽屉面板（shop/craft/enhance/enchant/warehouse/fusion）：`right:45vw + 380px + 100vh`（右侧滑入，vw 随分辨率等比，用户确认显示正确）；
+  - 全屏层（menuLayer/gameCanvas/uiLayer/expedition-overlay/reward-panel）：100% 宽高；
+  - 居中面板（dev-tool/npc-portrait-tool）：`top/left:50% + translate(-50%,-50%)`；
+  - system-panel/quest-panel（right:0 + 45vw）、npc-dialogue-box（bottom:0 + calc 宽）、npc-portrait（left:50% + max-height calc）、小元素（version-badge/game-timer/coord-panel/exp-bar）。
+- **唯一问题项修复**：`expedition-rule-panel`（此前 `height:945px` 固定像素，2K 屏高度不足）——改 `top:2px; bottom:2px; height:auto`（top/bottom 锚定拉伸占满左侧，max-height 兜底）。
+- **排查结论**：项目面板定位整体健康（vw/%/translate/calc 为主），后续新图层/栏目统一走 `src/utils/layout.js`（coverRect/anchorRect/clampToArea/applyPanelPos）。
+- **修改文件**：game-style.css、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——rule-panel 在 1080P/2K 下均拉伸占满左侧。
+
 ## 2026-07-21（统一分辨率适配系统 layout.js + 地图系统迁移）
 
 ### 对话：统一成一套系统，不再分散各系统重复实现
