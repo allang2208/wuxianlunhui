@@ -231,3 +231,8 @@ export const EnhancementItems = {
         price: 200
     }
 };
+
+// 内联 onclick="RewardSystem.selectCard(...)" 依赖全局解析（去全局化重构遗漏），挂载到 window
+if (typeof window !== 'undefined' && !window.RewardSystem) {
+    window.RewardSystem = RewardSystem;
+}

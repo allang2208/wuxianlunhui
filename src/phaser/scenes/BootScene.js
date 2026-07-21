@@ -106,6 +106,16 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_shounao_walk',  'assets/enemies/shounao/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_shounao_slam',  'assets/enemies/shounao/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 25 });
         this.load.spritesheet('enemy_shounao_howl',  'assets/enemies/shounao/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
+
+        // 时空特工(突击)-F（领主，双形态）：8列×4行切割，512×512 帧
+        this.load.image('enemy_timeagent_idle',        'assets/enemies/time_agent/idle.png');
+        this.load.spritesheet('enemy_timeagent_walk',   'assets/enemies/time_agent/walking.png',    { frameWidth: 512, frameHeight: 512, endFrame: 17 });
+        this.load.spritesheet('enemy_timeagent_walk2',  'assets/enemies/time_agent/walking-2.png',  { frameWidth: 512, frameHeight: 512, endFrame: 18 });
+        this.load.spritesheet('enemy_timeagent_gun',    'assets/enemies/time_agent/attacking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 7 });
+        this.load.spritesheet('enemy_timeagent_flash',  'assets/enemies/time_agent/flash.png',      { frameWidth: 512, frameHeight: 512, endFrame: 31 });
+        this.load.spritesheet('enemy_timeagent_axe',    'assets/enemies/time_agent/axe.png',        { frameWidth: 512, frameHeight: 512, endFrame: 29 });
+        this.load.spritesheet('enemy_timeagent_switch', 'assets/enemies/time_agent/switch.png',     { frameWidth: 512, frameHeight: 512, endFrame: 20 });
+        this.load.image('enemy_timeagent_project',   'assets/enemies/time_agent/projective.png');
         // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
         this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
         // 蝇手（领主）：全部 512×512 帧（idle 已重排统一；walk 8列×2行16帧，攻击 8列×4行）
@@ -404,6 +414,94 @@ export class BootScene extends Scene {
             frames: this.anims.generateFrameNumbers('enemy_flyswarm_idle', { start: 0, end: 31 }),
             frameRate: 16,
             repeat: -1,
+        });
+        // ---- 时空特工(突击)-F（双形态）动画 ----
+        this.anims.create({
+            key: 'enemy_timeagent_idle',
+            frames: [{ key: 'enemy_timeagent_idle' }],
+            frameRate: 1,
+            repeat: -1,
+        });
+        // 普通移动：首段 18 帧播一轮 → 循环 4~18 帧（索引 3~17）
+        this.anims.create({
+            key: 'enemy_timeagent_walk',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_walk', { start: 0, end: 17 }),
+            duration: 1200,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeagent_walk_loop',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_walk', { start: 3, end: 17 }),
+            duration: 1000,
+            repeat: -1,
+        });
+        // 近战移动：首段 19 帧播一轮 → 循环 3~18 帧（索引 2~17）
+        this.anims.create({
+            key: 'enemy_timeagent_walk2',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_walk2', { start: 0, end: 18 }),
+            duration: 1267,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeagent_walk2_loop',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_walk2', { start: 2, end: 17 }),
+            duration: 1067,
+            repeat: -1,
+        });
+        // 远程形态切换：attacking 8 帧 0.5s（正放切入 / 倒放切出）
+        this.anims.create({
+            key: 'enemy_timeagent_ranged_in',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_gun', { start: 0, end: 7 }),
+            duration: 500,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeagent_ranged_out',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_gun', { start: 7, end: 0 }),
+            duration: 500,
+            repeat: 0,
+        });
+        // 远程持枪姿态（静止）：attacking 第 8 帧（索引 7）静态
+        this.anims.create({
+            key: 'enemy_timeagent_ranged_pose',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_gun', { start: 7, end: 7 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        // 闪光弹投掷：flash 32 帧 2s，第 24 帧出手
+        this.anims.create({
+            key: 'enemy_timeagent_flash',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_flash', { start: 0, end: 31 }),
+            duration: 2000,
+            repeat: 0,
+        });
+        // 斧头劈砍（首次切入近战）：axe 30 帧 2s
+        this.anims.create({
+            key: 'enemy_timeagent_axe',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_axe', { start: 0, end: 29 }),
+            duration: 2000,
+            repeat: 0,
+        });
+        // 近战劈砍：axe 12~30 帧（索引 11~29）
+        this.anims.create({
+            key: 'enemy_timeagent_axe_attack',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_axe', { start: 11, end: 29 }),
+            duration: 1267,
+            repeat: 0,
+        });
+        // 近战持斧姿态：axe 第 30 帧（索引 29）静态
+        this.anims.create({
+            key: 'enemy_timeagent_axe_idle',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_axe', { start: 29, end: 29 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        // 形态切换（近战→远程）：switch 21 帧 0.75s
+        this.anims.create({
+            key: 'enemy_timeagent_switch',
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_switch', { start: 0, end: 20 }),
+            duration: 750,
+            repeat: 0,
         });
         // ---- 蝇手（领主）动画 ----
         this.anims.create({

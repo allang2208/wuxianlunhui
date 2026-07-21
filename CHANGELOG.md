@@ -8,6 +8,66 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工动画链路修复 + 贴图尺寸/闪光弹贴图）
+
+### 对话：动画全部显示为圆柱体、贴图过大、闪光弹投射物消失
+- **圆柱体根因**：`GameScene._syncEnemyAnimation` 用 `_getTextureKey()` 的返回值查**贴图**（`textures.exists` 失败回退 'enemy_circle'）——此前 `_getTextureKey` 返回的是**动画键**（walk_loop/ranged_pose/axe_idle 等无同名贴图），常驻回退圆柱体。修复：拆分两键——`_getTextureKey()` 只返回已加载贴图键（walk/walk2/gun/axe/flash/switch/idle），新增 `_getAnimKey()` 返回动画键（含循环段）；animState 用形态名（与骑士 combo 同机制，动作动画时长=状态时长，重复进入自动重播）。
+- **贴图过大**：实测帧内容约 464px/512 帧——spriteSize 220 → **160**（角色视觉高约 145px，匹配 110 碰撞高）；footOffsetY 52 → 38（等比）。
+- **闪光弹投射物消失**：`projective.png` 内容仅 **29×24px**（512×512 帧内），40px 显示时只剩约 2px。已用 PIL 裁剪到内容（34×34 带边距），40px 显示约 34px 可见。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、assets/enemies/time_agent/projective.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——各状态动画正确显示、移动首段→循环段切换、近战持斧姿态、闪光弹投射物可见。
+
+## 2026-07-21（时空特工 AI 重构：远程寻位/环绕/寻路 + 状态机明确）
+
+### 对话：明确双状态机，优化远程攻击 AI
+- **状态机明确**：两形态（远程/近战）各有独立 idle 贴图（attacking 第 8 帧持枪 / axe 第 30 帧持斧）；形态切换强制经过切换动画的不可移动过渡态（idle→远程 attacking 正放、远程→idle 倒放、近战→远程 switch.png）；远程形态内分子状态：未交战 = 远程 idle（站立持枪），需移动或攻击 = rangeattack。
+- **rangeattack 移动 AI**（MovementSystem 全程锁定，移动完全自驱）：
+  - `approach`：距离 >1600px（含 1200~1600）直线推进至 1200px；
+  - `band`：800~1200px 带内"移动（随机 0.6~1.5s + 随机环绕方向）→ 停止 2s → 移动"不规则运动，切向环绕 + 径向修正保持带内，始终朝向目标寻找射击机会；
+  - `retreat`：距离 <800px 后撤回带；
+  - `reposition`：与目标间有障碍物（WallSystem.blocked 视线判定，200ms 节流）时 A* 寻路找射击角度，**不受 800 最小距离限制**，500ms 重算路径，异常路点过滤防 NaN 卡死；
+  - **狭小空间适配**：2000ms 节流评估目标周围 800~1200 环带是否存在可走+视线通畅位置（`_evalBandPositions` 16 点采样），满足用 band/retreat，不满足自动转 reposition。
+- **开火门控**：仅视线通畅且 ≤1200px 射程才射击（不再隔墙浪费弹药）。
+- **近战形态**：MovementSystem 主动追击寻敌（保持原驱动），直到满足退出近战条件（远程风格目标拉开 150px / 任意目标 300px 持续 3s）。
+- **闪光弹条件收紧**：仅 rangeattack 状态且距离 <600px 释放（throwRange 500→600）。
+- **配置**：enemy-config.json forms 新增 approachMaxRange/bandMin/bandMax/bandStopMs/bandMoveMinMs/bandMoveMaxMs/losCheckMs/repathMs/bandEvalMs，全部配置驱动。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——带内不规则运动观感、障碍后寻路射击角度、狭小房间 reposition 表现。
+
+## 2026-07-21（新怪物：时空特工(突击)-F——首个双形态切换怪物）
+
+### 对话：按添加怪物工作流新增领主怪，远程/近战双形态
+- **建档**：新建特工 family；`assets/enemies/time_agent/` 复制 8 张素材（idle/attacking/axe/flash/switch/walking/walking-2/projective，8列×4行 512×512 帧切割）。
+- **配置**（enemy-config.json timeAgentAssault，全配置驱动）：HP 2200、lord、速度 160、六维 str30/dex60/con44/int20/wis40/luck23 → 公式得物攻45/物防75/暴击25；魔防45走显式覆盖（wis40 公式下限 48>45，无法公式达成）；魔攻 30 随属性。
+- **形态状态机**（time-agent-assault.js）：
+  - idle→远程：目标进 1600px，0.5s 正放 attacking 8 帧，第 8 帧起开火；远程→idle 0.5s 倒放；
+  - 远程形态：QBZ-191 数据射击（Combatant.fireProjectile：70ms 射速/弹匣30+1s 换弹/AI 散布/AimHelper 预判/曳光弹），可移动射击（walking 首段→4-18 循环），静止持枪姿态=attacking 第 8 帧，枪口火焰+弹壳（EffectFactory 玩家同款，胸口高度）；
+  - 闪光弹（仅远程形态，CD 10s，投掷 500px）：flash 32 帧 2s、第 24 帧出手，抛物线+360°旋转贴图+地面红椭圆预警，落地椭圆判定魔攻×1.5+眩晕（集合体投掷同款实现）；
+  - 斧砍切入：近战风格目标（玩家持近战/怪物 melee）贴身 150px →（远程先倒放回 idle）axe 30 帧 2s 首劈（物攻×2+3s 致残）→ 近战形态（移速 260、axe 第 30 帧持斧姿态、walking-2 首段→3-18 循环、近战劈砍 axe 12~30 帧不可移动，CD 4s）；
+  - 近战→远程：远程风格目标拉开 150px+，或任意目标拉开 300px 持续 3s → 0.75s switch 21 帧；形态切换冷却 1s。
+- **链路接通**：投射物击退通路（projectile.js 命中 → DamagePipeline knockback/angle；combatant.fireProjectile 传 attack.config.knockback；ProjectileFactory 对象池始终重置防残留）；fireProjectile 伤害占位 1-1 覆盖为面板物攻 45。
+- **注册**：enemy-types.js 桶文件、ZOMBIE_FACTORY_MAP（lord 池按 rank 自动纳入）、BootScene 8 组贴图加载 + 13 组动画、game.js 主神空间测试生成（origin 东 500px）。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/time-agent-assault.js（新）、src/entities/enemy-types.js、src/world/zombie-dungeon.js、src/game.js、src/phaser/scenes/BootScene.js、src/combat/projectile.js、src/entities/combatant.js、src/utils/projectile-factory.js、assets/enemies/time_agent/、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——双形态切换动画衔接、移动射击、闪光弹预警/眩晕、斧砍致残、形态切换条件触发。
+
+## 2026-07-21（地牢七连修：回头路/撤离/丢包惩罚/岔路重叠/奖励节点/闪避 0.3s）
+
+### 对话：7 项地牢与闪避修复
+1. **闪避默认时长**：`DODGE_DURATION` 800 → **300ms**（config.js，修饰面板机制不变）。
+2. **可走回头路**：`getAvailableNodes` 改为**双向邻接**（边 from/to 双向匹配），可返回起始点；迷雾/点击逻辑不受影响。
+3. **完成事件后聚焦当前节点**：`_returnToMap` 从 `_centerRouteMap()`（重置 3 倍+出发点）改为 `_focusOnCurrentNode()`（保持缩放，视图居中当前节点并钳制）。
+4. **地牢按钮修复 + 安全撤离**：小鼠商店/放弃按钮原挂在 `.bottom-bar` 内——地图模式 `body.map-mode` CSS 隐藏整个 bottom-bar 导致按钮消失（"被遮挡"根因）；两按钮移至 document.body（fixed + 右/下锚定）。新增**安全撤离**按钮（绿色，仅当前位于起始点时显示于放弃按钮左侧）：撤离回主神空间**保留背包**。
+5. **丢包惩罚**：地牢死亡（respawn 路径）与放弃退出（确认框）均调用 `_clearPlayerBackpack()` 清空 `EquipManager.backpackItems`（装备与金币不受影响）；退出确认文案同步警示；蟠桃原地复活不触发。
+6. **岔路节点重叠根因修复**：宝箱岔路首节点坐标直接按 row±1 生成，row1/row2 入口会压住同列网格节点（模拟 978/1000 地图必现）——`_updateHover` 数组序优先永远先中网格节点，整条岔路被永久封死，且叠压渲染造成"赌徒事件变灰色战斗节点"假象。修复：`_addChestBranches` 逐节点槽位占用检查，被占时翻转方向，仍占则换入口；顺带统一 `_clearNodeToEmpty()`（三处置空点），清理 isElite/forceMonsters/encounterOverride/eventType 残留（empty 节点不再带紫圈★）。
+7. **奖励节点点不动**：`RewardSystem` 从未挂载 window（去全局化遗漏），卡牌内联 onclick 点击即 ReferenceError。修复：reward-system.js 末尾挂载 `window.RewardSystem`（剧情模式奖励同愈）。
+8. **集合体投掷排查**：决策/预警/预备/出手/投射/落地召唤全链路静态审查 + Node 时序仿真（3.73s 首次投掷，之后按 15s CD 循环）均正常；Boss 战驱动（BossRewardSystem 生成、工厂注入、update 循环、PerceptionSystem 目标）逐一核对无断点。防御加固：`enableFilters()` 纳入 try/catch（滤镜异常不再可能阻断预警状态机）。疑似浏览器缓存旧包，待实机复核。
+- **修改文件**：src/config/config.js、src/entities/enemy.js、src/world/dungeon-map-system.js、src/world/zombie-dungeon.js、src/entities/player/subsystems.js、src/ui/reward-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；投掷时序仿真 ✅。
+- **已知问题**：集合体投掷实机待复核——若仍无效，用控制台监视 `集合体._attackTelegraphTimer/_throwPending/_attackKind` 定位卡点。
+
 ## 2026-07-21（精英及以上怪物攻击预警系统：红色轮廓 0.5s 前置）
 
 ### 对话：精英+怪物攻击前 0.5s 显示红色轮廓（掉落物同款），跟随移动，攻击开始时消失

@@ -322,6 +322,10 @@ respawn() {
                 if (SceneManager.currentScene !== 'main') {
                     // 从其他场景死亡回主神空间：统一关闭地牢系统（如有），使用 origin 点重生
                     if (DungeonMapSystem && DungeonMapSystem.active) {
+                        // 地牢死亡惩罚：丢失背包中所有物品（装备与金币不受影响）
+                        if (typeof DungeonMapSystem._clearPlayerBackpack === 'function') {
+                            DungeonMapSystem._clearPlayerBackpack();
+                        }
                         DungeonMapSystem.shutdown();
                     }
                     SceneManager._respawnPos = respawnPos;

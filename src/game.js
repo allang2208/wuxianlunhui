@@ -47,6 +47,7 @@ import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { Shounao } from './entities/enemy-types/shounao.js';
 import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
 import { FlyHand } from './entities/enemy-types/fly-hand.js';
+import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -350,7 +351,27 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 主神空间不生成测试怪（spawn 方法保留备用）
+        // 时空特工(突击)-F 测试生成（双形态机制验证）
+        this.spawnMainTimeAgent();
+    },
+
+    spawnMainTimeAgent() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const agentCfg = enemyConfigData.timeAgentAssault || {};
+        // 迷宫已拆除，origin 东侧开阔地带生成（避免卡墙）
+        const agent = new TimeAgentAssault(origin.x + 500, origin.y + 100, {
+            ...agentCfg,
+            showWeapon: false,
+            ai: {
+                ...(agentCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_timeagent', agent);
     },
 
     /**
