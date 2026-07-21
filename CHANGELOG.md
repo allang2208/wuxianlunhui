@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（根因修复：sprite-offsets 偏移被每帧位置重置覆盖）
+
+### 对话：清缓存后仍"无任何修改"
+- **排查链**：dev server（5173）验证返回最新文件 ✅ → 无 Service Worker ✅ → 怀疑代码层——**发现真根因**：
+  `_applySpriteFrameOffset` 的"desired 相同则跳过"逻辑与 `_syncEntitySprites` **每帧 setPosition 重置 sprite 位置**冲突——偏移只在 desired 变化的一帧闪现（且是差值），下一帧即被 setPosition 覆盖。僵尸等小偏移怪（±20）丢失无感，蝇手大偏移（-98）完全失效——"无任何修改"。
+- **修复**：`_applySpriteFrameOffset` 改为每帧无条件重应用（setPosition 重置后重新 +偏移）——偏移系统恢复设计意图的持续生效。
+- **附带影响（预期内）**：所有 sprite-offsets.json 内的怪物（僵尸系/黑狼/突变体）偏移将真正持续生效，视觉位置可能出现 ±20px 微调（回归原始设计意图）。
+- **修改文件**：src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①蝇手移动动画贴图稳定；②僵尸等怪位置微调是否正常（若偏移反而错误，需重审 offset 表与 setPosition 的关系）。
+
 ## 2026-07-20（walking 瞬移正解：接入 sprite-offsets 运行时对齐系统）
 
 ### 对话：多版素材调整均不理想，查 SKILL.md 找现成方案
