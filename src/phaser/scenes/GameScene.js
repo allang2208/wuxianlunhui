@@ -168,11 +168,8 @@ export class GameScene extends Scene {
             if (!this._mapModeActive) {
                 this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
                 this._mapModeActive = true;
-                // 地图选择界面：隐藏快捷栏与左下角操作提示栏
-                const bottomBar = document.querySelector('.bottom-bar');
-                if (bottomBar) bottomBar.style.display = 'none';
-                const controlsHint = document.getElementById('controlsHintLeft');
-                if (controlsHint) controlsHint.style.display = 'none';
+                // 地图选择界面：body 挂 map-mode 类统一隐藏快捷栏/顶部栏/操作提示（CSS 规则驱动，防覆盖遗漏）
+                document.body.classList.add('map-mode');
             }
             if (this.playerSprite && this.playerSprite.visible) {
                 this.playerSprite.setVisible(false);
@@ -234,11 +231,8 @@ export class GameScene extends Scene {
             if (this._mapModeActive) {
                 this.cameras.main.setBackgroundColor('#000000');
                 this._mapModeActive = false;
-                // 恢复快捷栏与操作提示栏
-                const bottomBar = document.querySelector('.bottom-bar');
-                if (bottomBar) bottomBar.style.display = '';
-                const controlsHint = document.getElementById('controlsHintLeft');
-                if (controlsHint) controlsHint.style.display = '';
+                // 恢复快捷栏与操作提示栏（移除 map-mode 类）
+                document.body.classList.remove('map-mode');
             }
             // 火柴人模式：保持 Phaser sprite 隐藏，由 Canvas 绘制火柴人
             const _isStickFigure = _game && _game.player && _game.player._stickFigure;

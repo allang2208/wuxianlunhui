@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地图界面 HUD 隐藏改 body.map-mode 统一管理 + 血量数值隐藏）
+
+### 对话：武器栏仍显示"生锈的长剑" + 左上角血量 200/200 未隐藏
+- **问题**：此前用 `querySelector` 逐个 `display:none`——quick-bar.js 刷新时会把 slot `display` 改回 'flex' 覆盖；血量在 `#topBar`（顶部状态栏 DOM）从未被纳入隐藏。
+- **修复**：改 **body.map-mode 统一管理**——GameScene 地图模式进入/退出时 `document.body.classList` 切换 `map-mode`；game-style.css 新增规则 `body.map-mode .bottom-bar / .top-bar / .controls-hint-left { display:none !important; }`——快捷栏（武器格"生锈的长剑"）、顶部栏（含血量数值 200/200）、操作提示栏统一隐藏，不怕刷新覆盖。
+- **修改文件**：src/phaser/scenes/GameScene.js、game-style.css、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅。
+- **已知问题**：实机待验证——武器栏/血量/提示栏在地图界面全部消失，退出恢复。
+
 ## 2026-07-21（地图选择界面精细化：隐藏 HUD + 固定显示）
 
 ### 对话：地图界面隐藏小地图/提示栏/武器栏 + 背景图固定 bottom 防分辨率乱动
