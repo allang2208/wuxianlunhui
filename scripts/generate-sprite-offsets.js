@@ -48,6 +48,12 @@ const SHEETS = [
     { key: 'enemy_zombie_idle',   file: 'assets/enemies/zombie/idle.png',     frameWidth: 512, frameHeight: 512, endFrame: 0 },
     { key: 'enemy_zombie_walk',   file: 'assets/enemies/zombie/walking.png',  frameWidth: 512, frameHeight: 512, endFrame: 14 },
     { key: 'enemy_zombie_attack', file: 'assets/enemies/zombie/attacking.png',frameWidth: 512, frameHeight: 512, endFrame: 14 },
+    // 蝇手
+    { key: 'enemy_flyhand_idle',       file: 'assets/enemies/flyhand/idle.png',        frameWidth: 512, frameHeight: 512, endFrame: 0 },
+    { key: 'enemy_flyhand_walk',       file: 'assets/enemies/flyhand/walking.png',     frameWidth: 512, frameHeight: 512, endFrame: 15 },
+    { key: 'enemy_flyhand_hammer',     file: 'assets/enemies/flyhand/attacking.png',   frameWidth: 512, frameHeight: 512, endFrame: 15 },
+    { key: 'enemy_flyhand_slam',       file: 'assets/enemies/flyhand/attacking-2.png', frameWidth: 512, frameHeight: 512, endFrame: 23 },
+    { key: 'enemy_flyhand_grand_slam', file: 'assets/enemies/flyhand/attacking-3.png', frameWidth: 512, frameHeight: 512, endFrame: 18 },
 ];
 
 function analyzeFrame(png, col, row, frameW, frameH) {

@@ -3046,6 +3046,10 @@ export class GameScene extends Scene {
     /**
      * 根据当前动画/帧对 Sprite 进行内容中心对齐偏移
      * 解决精灵图有效贴图不在切分方格中央导致的抖动问题
+     *
+     * 注意：实体同步（_syncEntitySprites）每帧都会 setPosition 把 sprite 重置为实体坐标，
+     * 因此偏移必须每帧无条件重应用——原"同值跳过"逻辑会让偏移仅在 desired 变化的一帧闪现，
+     * 下一帧即被 setPosition 覆盖（小偏移怪物无感，大偏移如蝇手则完全失效）。
      */
     _applySpriteFrameOffset(sprite, animKey) {
         const frame = sprite.anims.currentFrame || sprite.frame;
@@ -3054,12 +3058,11 @@ export class GameScene extends Scene {
         const offset = getSpriteFrameOffset(animKey, frameIndex);
         if (!offset) return;
         const scale = sprite.scaleX || 1;
-        const desired = { x: -Math.round(offset.x * scale), y: -Math.round(offset.y * scale) };
-        const current = sprite.getData('frameOffset') || { x: 0, y: 0 };
-        if (current.x === desired.x && current.y === desired.y) return;
-        sprite.x = sprite.x - current.x + desired.x;
-        sprite.y = sprite.y - current.y + desired.y;
-        sprite.setData('frameOffset', desired);
+        const dx = -Math.round(offset.x * scale);
+        const dy = -Math.round(offset.y * scale);
+        sprite.x += dx;
+        sprite.y += dy;
+        sprite.setData('frameOffset', { x: dx, y: dy });
     }
 
     /**

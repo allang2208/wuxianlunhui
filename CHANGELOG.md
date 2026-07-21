@@ -8,6 +8,27 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（根因修复：sprite-offsets 偏移被每帧位置重置覆盖）
+
+### 对话：清缓存后仍"无任何修改"
+- **排查链**：dev server（5173）验证返回最新文件 ✅ → 无 Service Worker ✅ → 怀疑代码层——**发现真根因**：
+  `_applySpriteFrameOffset` 的"desired 相同则跳过"逻辑与 `_syncEntitySprites` **每帧 setPosition 重置 sprite 位置**冲突——偏移只在 desired 变化的一帧闪现（且是差值），下一帧即被 setPosition 覆盖。僵尸等小偏移怪（±20）丢失无感，蝇手大偏移（-98）完全失效——"无任何修改"。
+- **修复**：`_applySpriteFrameOffset` 改为每帧无条件重应用（setPosition 重置后重新 +偏移）——偏移系统恢复设计意图的持续生效。
+- **附带影响（预期内）**：所有 sprite-offsets.json 内的怪物（僵尸系/黑狼/突变体）偏移将真正持续生效，视觉位置可能出现 ±20px 微调（回归原始设计意图）。
+- **修改文件**：src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——①蝇手移动动画贴图稳定；②僵尸等怪位置微调是否正常（若偏移反而错误，需重审 offset 表与 setPosition 的关系）。
+
+## 2026-07-20（walking 瞬移正解：接入 sprite-offsets 运行时对齐系统）
+
+### 对话：多版素材调整均不理想，查 SKILL.md 找现成方案
+- **正解**：项目本有 `scripts/generate-sprite-offsets.js` 机制——生成每帧内容中心相对切分方格中心的偏移表（`data/sprite-offsets.json`），GameScene `_applySpriteFrameOffset` 按帧运行时校正贴图位置，**专治"精灵图各帧不在同一位置导致瞬移"，无需改素材**。
+- **处理**：walking.png 恢复首次重排版（c8e7dca，原始网格 resize）；SHEETS 补蝇手 5 个动画（idle/walk/hammer/slam/grandSlam）；跑脚本生成偏移（walk 16 帧偏移 -98→+78 递增，正是帧内位移量）；双份同步 public/data/sprite-offsets.json。
+- **教训**：遇到帧间对齐问题**先查项目既有机制**（sprite-offsets 偏移系统 + 生成脚本），不要直接改素材——素材保持原始，对齐交给运行时。
+- **修改文件**：assets/enemies/flyhand/walking.png、scripts/generate-sprite-offsets.js、data/sprite-offsets.json、public/data/sprite-offsets.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——移动动画贴图按帧校正后稳定不瞬移（浏览器需强刷/Disable cache）。
+
 ## 2026-07-20（walking 主体提取：手腕锚点统一）
 
 ### 对话：中心对齐后贴图仍前后瞬移，需主体提取统一位置
