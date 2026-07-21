@@ -8,6 +8,40 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（统一分辨率适配系统 layout.js + 地图系统迁移）
+
+### 对话：统一成一套系统，不再分散各系统重复实现
+- **新建公共模块 `src/utils/layout.js`**（全项目统一分辨率适配）：
+  - `BASE_RESOLUTION = {1920,1080}`（基准分辨率）；
+  - `coverRect(imgW, imgH, viewW, viewH, anchor)`：cover 铺满 + bottom 锚定（背景图/立绘）；
+  - `anchorRect(spec, viewW, viewH)`：实测坐标等比适配（left/bottom 固定像素、width/height 按比例）；
+  - `clampToArea(offset, area, w, h)`：拖动/缩放钳制（与 anchorRect 同源）；
+  - `applyPanelPos(el, spec, viewW, viewH)`：DOM 面板一次性定位。
+- **地图系统迁移**（dungeon-map-system.js）：`_renderBackground` → coverRect；`_getMapTargetArea` → anchorRect（`MAP_AREA_SPEC = {left:4, bottom:10, width:1909, height:407}`，由 2560 实测值换算 1920 基准）；`_clampMapOffset` → clampToArea。逻辑等价，未改行为。
+- **约定**：以后新图层/栏目统一调 layout.js，不再各自实现；后续按此标准排查其余面板/立绘。
+- **修改文件**：src/utils/layout.js（新）、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——地图系统迁移后行为与之前一致（背景铺满+区域钳制）。
+
+## 2026-07-21（路线地图钳制与定位统一 + 分辨率适配工作流入库）
+
+### 对话：路线地图仍全屏乱拖 + 记录分辨率适配方式
+- **根因**：定位（`_centerRouteMap` 用实测坐标）与拖动/缩放钳制（`_clampMapOffset` 用旧 `MAP_MARGIN_X/Y` 大区域）**两套区域不一致**——初始在指定区域，但一拖动就能拉到全屏，看似"没调整"。**非两套渲染**（地图仅 Renderer canvas 一套）。
+- **修复**：提取 `_getMapTargetArea()`（left:4 / bottom:10 / 2545×542，2560×1440 基准等比适配）供 `_centerRouteMap` 与 `_clampMapOffset` 共用——拖动/缩放一律钳制在该显示区域内，不再能满屏乱拖。
+- **工作流入库**（SKILL.md 新增"图层/背景随分辨率适配工作流"）：cover 铺满 + bottom 锚定 + 坐标工具实测区域 + 钳制与定位同源；为后续全栏目/图层分辨率排查做准备。
+- **修改文件**：src/world/dungeon-map-system.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅。
+- **已知问题**：实机待验证——地图固定/钳制在指定区域，拖动缩放回弹正确。
+
+## 2026-07-21（路线选择界面坐标精调（坐标工具测量值））
+
+### 对话：按 2560×1440 实测坐标放置路线选择界面
+- **显示区域**（用户用游戏内开发工具坐标工具测量，2560×1440 基准）：`left: 4px; bottom: 10px; width: 2545px; height: 542px`。
+- **实现**（`_centerRouteMap`）：TARGET_AREA 改为——`left: 4`（固定 px）、`bottom: 10`（固定 px，top=viewH-10-height）、`width/height` 按视口比例（2545/2560、542/1440）等比适配其他分辨率。
+- **修改文件**：src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——2560×1440 下界面位于底部指定区域，拖动/缩放正常。
+
 ## 2026-07-21（修复：2K 屏背景/地图挤左上角——render 用固定 1920×1080）
 
 ### 对话：背景图和路线地图仍挤在左上角
