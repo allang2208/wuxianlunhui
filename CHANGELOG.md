@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（walking 瞬移正解：接入 sprite-offsets 运行时对齐系统）
+
+### 对话：多版素材调整均不理想，查 SKILL.md 找现成方案
+- **正解**：项目本有 `scripts/generate-sprite-offsets.js` 机制——生成每帧内容中心相对切分方格中心的偏移表（`data/sprite-offsets.json`），GameScene `_applySpriteFrameOffset` 按帧运行时校正贴图位置，**专治"精灵图各帧不在同一位置导致瞬移"，无需改素材**。
+- **处理**：walking.png 恢复首次重排版（c8e7dca，原始网格 resize）；SHEETS 补蝇手 5 个动画（idle/walk/hammer/slam/grandSlam）；跑脚本生成偏移（walk 16 帧偏移 -98→+78 递增，正是帧内位移量）；双份同步 public/data/sprite-offsets.json。
+- **教训**：遇到帧间对齐问题**先查项目既有机制**（sprite-offsets 偏移系统 + 生成脚本），不要直接改素材——素材保持原始，对齐交给运行时。
+- **修改文件**：assets/enemies/flyhand/walking.png、scripts/generate-sprite-offsets.js、data/sprite-offsets.json、public/data/sprite-offsets.json、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider / test-craft-sync ✅。
+- **已知问题**：实机待验证——移动动画贴图按帧校正后稳定不瞬移（浏览器需强刷/Disable cache）。
+
 ## 2026-07-20（walking 主体提取：手腕锚点统一）
 
 ### 对话：中心对齐后贴图仍前后瞬移，需主体提取统一位置
