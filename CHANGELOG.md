@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-20（蝇手 footprint 缩小 25% + 左移 15px）
+
+### 对话：底部椭圆判定体积调整
+- **调整**：`collisionRadius` 55 → 41（-25%）；`render.colliderOffsetX` 10 → -5（左移 15px）。
+- **修改文件**：data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；vite build ✅。
+- **已知问题**：实机待验证——红椭圆与贴图对齐。
+
 ## 2026-07-20（蝇手新 walking 素材接入）
 
 ### 对话：用户重做精灵图 walking-1.png 替换移动动画
