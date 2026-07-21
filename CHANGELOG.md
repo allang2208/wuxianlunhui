@@ -8,6 +8,22 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地图选择界面"上下分两块"重构）
+
+### 对话：上方背景图纯美观不可操作，下方地图只在固定区域内显示
+- **需求**：界面严格分两块——上方背景图不可交互、不可被地图遮盖；下方地图选择区域内可拖动/缩放，但无论怎么操作地图内容都不得溢出该区域。
+- **根因**：此前只做了 offset 钳制（clampToArea），地图绘制本身没有视觉裁剪，节点/连线可画出区域外；背景图 cover 铺满全屏（含地图区），两块没有明确分界；退出按钮写死 1920 基准坐标，2K 下错位。
+- **修复**（src/world/dungeon-map-system.js）：
+  - `_renderBackground`：背景图 cover 铺满**上方区域**（0,0,viewW,area.top），bottom 锚定贴分界线，clip 在上区内；
+  - 下方地图区域先铺不透明深色底块（#08080a）明确分界，再 `ctx.save → rect(area) → ctx.clip()` 后才 translate/scale 画连线与节点——**视觉裁剪**保证任何拖动/缩放下地图像素不溢出区域；
+  - 进度文本/缩放百分比从 viewW/viewH 定位改为跟随 area（区域内底部居中/右下）；
+  - 退出按钮新增 `_getExitButtonRect(viewW)`（右缘随视口右对齐），绘制与点击热区共用，删除写死的 EXIT_BUTTON_X/Y 常量；
+  - `_getMapTargetArea(viewW, viewH)` 支持传入视口尺寸（render 用 canvas 实际尺寸，与钳制同源）；
+  - 新增 `_isInMapArea(x,y)`：mousedown 只在地图区域内才允许开始拖动，wheel 只在指针位于区域内才缩放——上方背景图完全不可操作。
+- **修改文件**：src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——1080P/2K 下背景图占上区、地图拖/缩不溢出下区、区域内外交互隔离。
+
 ## 2026-07-21（出征条件栏宽度内联兜底（跳过 CSS 缓存））
 
 ### 对话：条件栏宽度 calc(10vw-4px) 未生效

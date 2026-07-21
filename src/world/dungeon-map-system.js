@@ -119,9 +119,7 @@ export const DungeonMapSystem = {
     COMBAT_GOLD_BASE: 50,
     COMBAT_GOLD_BONUS: 100,
 
-    // UI 点击区域
-    EXIT_BUTTON_X: 1920 - 110,
-    EXIT_BUTTON_Y: 15,
+    // UI 点击区域（X/Y 由 _getExitButtonRect 随视口计算，此处只留固定尺寸）
     EXIT_BUTTON_W: 90,
     EXIT_BUTTON_H: 28,
 
@@ -254,6 +252,8 @@ export const DungeonMapSystem = {
         if (!canvas) return;
 
         const onMouseDown = (e) => {
+            // 只有在下方地图选择区域内按下才允许拖动；上方背景图区域不可交互
+            if (this.state === "map" && !this._isInMapArea(e.clientX, e.clientY)) return;
             this.isDragging = false;
             this._dragMoved = false;
             this.dragStartX = e.clientX;
@@ -294,9 +294,10 @@ export const DungeonMapSystem = {
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
 
-        // 滚轮缩放：以鼠标位置为中心（地图选择界面专用）
+        // 滚轮缩放：以鼠标位置为中心（仅当地图区域内，防止在背景图上误缩放）
         const onWheel = (e) => {
             if (this.state !== "map") return;
+            if (!this._isInMapArea(e.clientX, e.clientY)) return;
             e.preventDefault();
             const mx = e.clientX, my = e.clientY;
             const old = this.mapScale;
@@ -390,18 +391,29 @@ export const DungeonMapSystem = {
         };
     },
 
-    /** 背景图显示（layout.js coverRect：cover 铺满 + bottom 锚定，无黑边不漂移） */
-    _renderBackground(ctx, viewW, viewH) {
+    /**
+     * 背景图显示：界面严格分两块——上方纯美观背景图（不可交互、不被地图遮盖），
+     * 下方为地图选择区域。背景图 cover 铺满上方区域（bottom 锚定到区域分界线），
+     * 裁剪到上区，绝不画进下方地图区域。
+     * @param {number} topH 上方背景区高度（地图区域 top 边界）
+     */
+    _renderBackground(ctx, viewW, viewH, topH) {
         if (!this._bgImg) {
             this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
         }
-        // 先铺纯黑底（图片未加载时兜底）
+        // 先铺纯黑底（图片未加载时兜底；下方地图区域也为纯黑）
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
-        if (!img || !img.complete || img.naturalWidth === 0) return;
-        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, viewH, 'bottom');
+        if (!img || !img.complete || img.naturalWidth === 0 || topH <= 0) return;
+        // cover 铺满上区（0,0,viewW,topH），bottom 锚定使图片底边贴紧分区分界线
+        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, topH, 'bottom');
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, viewW, topH);
+        ctx.clip();
         ctx.drawImage(img, Math.round(r.x), Math.round(r.y), r.w, r.h);
+        ctx.restore();
     },
 
     /**
@@ -409,10 +421,23 @@ export const DungeonMapSystem = {
      */
     /** 路线选择界面显示区域（layout.js 统一适配；spec 为 1920×1080 基准坐标，
      * 由 2560×1440 实测值 left:4 bottom:10 width:2545 height:542 换算） */
-    _getMapTargetArea() {
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        return anchorRect(MAP_AREA_SPEC, viewW, viewH);
+    _getMapTargetArea(viewW, viewH) {
+        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
+        const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080);
+        return anchorRect(MAP_AREA_SPEC, vw, vh);
+    },
+
+    /** 鼠标/指针是否落在下方地图选择区域内（区域外不可拖动、不可缩放） */
+    _isInMapArea(x, y) {
+        const area = this._getMapTargetArea();
+        return x >= area.left && x <= area.left + area.width &&
+               y >= area.top && y <= area.top + area.height;
+    },
+
+    /** 退出按钮绘制/点击共用同一矩形（随视口右对齐，不再写死 1920） */
+    _getExitButtonRect(viewW) {
+        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
+        return { x: vw - 110, y: 15, w: this.EXIT_BUTTON_W, h: this.EXIT_BUTTON_H };
     },
 
     _clampMapOffset() {
@@ -585,9 +610,9 @@ export const DungeonMapSystem = {
     _handleClick() {
         // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
         const mx = Input.mouse.x, my = Input.mouse.y;
-        // 检测退出按钮点击
-        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
-        if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
+        // 检测退出按钮点击（与绘制共用 _getExitButtonRect，随视口右对齐）
+        const btn = this._getExitButtonRect();
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
             this._showExitConfirm();
             return;
         }
@@ -1092,19 +1117,25 @@ export const DungeonMapSystem = {
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
-        // ── 背景图：铺满视口（cover）+ bottom 锚定 ──
-        this._renderBackground(ctx, viewW, viewH);
+        // 界面分两块：上方背景图（纯美观），下方地图选择区域（area）
+        const area = this._getMapTargetArea(viewW, viewH);
 
-        // 保存原始状态
+        // ── 上方：背景图，裁剪在上区内 ──
+        this._renderBackground(ctx, viewW, viewH, area.top);
+
+        // ── 下方：地图选择区域底块（不透明深色，盖住黑底，与上区明确分界）──
+        ctx.fillStyle = "#08080a";
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+
+        // ── 地图内容：裁剪在区域内，无论怎么拖/缩放都不溢出 ──
         ctx.save();
+        ctx.beginPath();
+        ctx.rect(area.left, area.top, area.width, area.height);
+        ctx.clip();
 
         // 应用地图变换
         ctx.translate(this.mapOffsetX, this.mapOffsetY);
         ctx.scale(this.mapScale, this.mapScale);
-
-        // ── 地图区域背景：半透明深色叠加在背景图下半部黑色区上，便于看清路线 ──
-        ctx.fillStyle = "rgba(8,8,10,0.72)";
-        ctx.fillRect(0, 0, this.MAP_WIDTH, this.MAP_HEIGHT);
 
         // ── 绘制边（连线）─
         for (const edge of this.edges) {
@@ -1246,37 +1277,39 @@ export const DungeonMapSystem = {
             }
         }
 
-        // 恢复原始状态
+        // 恢复原始状态（解除区域裁剪与地图变换）
         ctx.restore();
 
-        // ── 绘制 UI 覆盖层（不受地图变换影响）─
+        // ── 绘制 UI 覆盖层（不受地图变换影响，固定在地图区域内）─
         // 标题与提示已改为 DOM 覆盖层（#dungeonMapTitle），底部居中
 
-        // 进度
+        // 进度：跟随地图区域（不再用 viewW/viewH，避免 2K 下跑出区域）
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
         ctx.fillStyle = "#666666";
         ctx.font = "13px sans-serif";
-        ctx.fillText(`进度: ${progress} 节点`, viewW / 2, viewH - 20);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText(`进度: ${progress} 节点`, area.left + area.width / 2, area.top + area.height - 10);
 
-        // 缩放指示
+        // 缩放指示：区域右下角
         ctx.fillStyle = "#444444";
         ctx.font = "11px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, viewW - 20, viewH - 20);
+        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, area.left + area.width - 12, area.top + area.height - 10);
         ctx.textAlign = "center";
 
-        // 退出按钮（绘制位置与点击热区使用同一组常量）
-        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
+        // 退出按钮（绘制位置与点击热区共用 _getExitButtonRect，随视口右对齐）
+        const btn = this._getExitButtonRect(viewW);
         ctx.fillStyle = "#3a5a3a";
-        ctx.fillRect(btnX, btnY, btnW, btnH);
+        ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
         ctx.strokeStyle = "#6a8a5a";
         ctx.lineWidth = 1;
-        ctx.strokeRect(btnX, btnY, btnW, btnH);
+        ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
         ctx.fillStyle = "#d4c5a9";
         ctx.font = "12px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("退出地牢", btnX + btnW / 2, btnY + btnH / 2);
+        ctx.fillText("退出地牢", btn.x + btn.w / 2, btn.y + btn.h / 2);
         ctx.textBaseline = "alphabetic";
     },
 
