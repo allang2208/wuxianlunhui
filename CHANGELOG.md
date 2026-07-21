@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地砖换 blackbrick5）
+
+### 对话：blackbrick5 替换地砖，其他不变
+- **素材**：blackbrick5.png（512×512，等距菱形黑砖拼贴 417×237）复制到 `assets/terrain/`；程序化生成 `blackbrick5_glow.png`（上边缘高光带，黑砖提亮版）。
+- **参数更新**：BootScene 加载键 blackbrick5/blackbrick5_glow；floor-texture 几何常量同步（ISO_TILE_W 417、ISO_TILE_H 237、ISO_CENTER (256,216)，实测 bbox 48,97→465,334）。平铺/发光机制不变。
+- **清理**：旧 blackbrick4/blackbrick4_glow 加载键移除（文件保留在 assets/terrain/ 备用）。
+- **修改文件**：assets/terrain/blackbrick5.png、assets/terrain/blackbrick5_glow.png、src/phaser/scenes/BootScene.js、src/world/dungeon-floor-texture.js、CHANGELOG.md。
+- **测试结果**：lint ✅；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——黑砖观感与砖块大小比例（417×237 比之前 329×161 更大）。
+
 ## 2026-07-21（准入规则改"≥对应稀有度" + 宝箱岔路分支）
 
 ### 对话：准入改大于等于 + 地牢节点宝箱岔路重构

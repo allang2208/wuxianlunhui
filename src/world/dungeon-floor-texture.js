@@ -12,13 +12,13 @@ import { CONFIG } from '../config/config.js';
 import { Renderer } from './renderer.js';
 
 // 等距贴图键（基础层 + 发光层）
-const ISO_BASE_KEY = 'blackbrick4';
-const ISO_GLOW_KEY = 'blackbrick4_glow';
-// 菱形在 512×512 源图中的几何（实测 alpha bbox 92,179 → 421,340）
-const ISO_TILE_W = 329;   // 菱形宽
-const ISO_TILE_H = 161;   // 菱形高
+const ISO_BASE_KEY = 'blackbrick5';
+const ISO_GLOW_KEY = 'blackbrick5_glow';
+// 菱形在 512×512 源图中的几何（实测 alpha bbox 48,97 → 465,334）
+const ISO_TILE_W = 417;   // 菱形宽
+const ISO_TILE_H = 237;   // 菱形高
 const ISO_CENTER_X = 256; // 菱形中心在源图中的 x
-const ISO_CENTER_Y = 260; // 菱形中心在源图中的 y
+const ISO_CENTER_Y = 216; // 菱形中心在源图中的 y
 // 场地四周边缘黑→透明渐变宽度
 const FLOOR_EDGE_FADE = 64;
 
