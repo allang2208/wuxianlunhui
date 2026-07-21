@@ -84,6 +84,12 @@ const baseMixin = {
         d.speed = speedFormula.base + (d.dex + bonusDex) * speedFormula.dexMultiplier;
         d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
 
+        // 闪避面板：配置基准 × 修饰百分比（后续装备/道具写入 _dodgeModifiers 后
+        // 调用 calculateCombatStats 即生效；durationPercent 影响无敌时长，distancePercent 影响位移距离）
+        const dm = this._dodgeModifiers || {};
+        d.dodgeDuration = Math.max(1, Math.round(CONFIG.DODGE_DURATION * (1 + (dm.durationPercent || 0) / 100)));
+        d.dodgeSpeed = CONFIG.DODGE_SPEED * (1 + (dm.distancePercent || 0) / 100);
+
         // 保存加成供其他系统使用
         this._masteryBonus = { str: bonusStr, dex: bonusDex, wis: bonusWis };
 

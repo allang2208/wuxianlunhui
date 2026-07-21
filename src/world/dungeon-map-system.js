@@ -26,7 +26,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
-import { coverRect, anchorRect, clampToArea } from '../utils/layout.js';
+import { coverRect, anchorRect } from '../utils/layout.js';
 
 /** 路线选择界面区域 spec（1920×1080 基准；由 2560×1440 实测 left:4 bottom:10 w:2545 h:542 换算） */
 const MAP_AREA_SPEC = { left: 4, bottom: 10, width: 1909, height: 407 };
@@ -61,18 +61,24 @@ export const DungeonMapSystem = {
     COLUMN_COUNT: 12,
     NODE_RADIUS: 24,
 
-    // 拖动与缩放状态
+    // 拖动与缩放状态（dragStartX/Y 初始必须为 undefined：onMouseMove 以其是否为
+    // undefined 判断是否处于"按住"状态，置 0 会导致未按住鼠标地图也跟着拖）
     mapOffsetX: 0,
     mapOffsetY: 0,
     mapScale: 1.0,
     isDragging: false,
-    dragStartX: 0,
-    dragStartY: 0,
+    dragStartX: undefined,
+    dragStartY: undefined,
     dragStartOffsetX: 0,
     dragStartOffsetY: 0,
     _mouseDownTime: 0,
     _mouseDownPos: { x: 0, y: 0 },
     _eventListeners: [],
+
+    // 地图缩放范围与初始倍数（滚轮与 _centerRouteMap 共用，勿再散落硬编码）
+    MIN_MAP_SCALE: 0.3,
+    MAX_MAP_SCALE: 3,
+    DEFAULT_ZOOM_FACTOR: 3,
 
     TYPE_COLORS: {
         start:  "#3a5a3a",
@@ -119,9 +125,7 @@ export const DungeonMapSystem = {
     COMBAT_GOLD_BASE: 50,
     COMBAT_GOLD_BONUS: 100,
 
-    // UI 点击区域
-    EXIT_BUTTON_X: 1920 - 110,
-    EXIT_BUTTON_Y: 15,
+    // UI 点击区域（X/Y 由 _getExitButtonRect 随视口计算，此处只留固定尺寸）
     EXIT_BUTTON_W: 90,
     EXIT_BUTTON_H: 28,
 
@@ -174,6 +178,8 @@ export const DungeonMapSystem = {
         this.generateMap();
         this._centerRouteMap();
         this.isDragging = false;
+        this.dragStartX = undefined;
+        this.dragStartY = undefined;
 
         const startNode = this.nodes.find(n => n.type === "start");
         if (startNode) {
@@ -254,6 +260,8 @@ export const DungeonMapSystem = {
         if (!canvas) return;
 
         const onMouseDown = (e) => {
+            // 只有在下方地图选择区域内按下才允许拖动；上方背景图区域不可交互
+            if (this.state === "map" && !this._isInMapArea(e.clientX, e.clientY)) return;
             this.isDragging = false;
             this._dragMoved = false;
             this.dragStartX = e.clientX;
@@ -267,6 +275,13 @@ export const DungeonMapSystem = {
         const onMouseMove = (e) => {
             if (this.state !== "map") return;
             if (this.dragStartX === undefined) return;
+            // 长按才允许拖动：鼠标键在窗口外松开等情况下强制结束拖动
+            if ((e.buttons & 1) === 0) {
+                this.isDragging = false;
+                this.dragStartX = undefined;
+                this.dragStartY = undefined;
+                return;
+            }
             const dx = e.clientX - this.dragStartX;
             const dy = e.clientY - this.dragStartY;
             if (!this.isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
@@ -294,14 +309,15 @@ export const DungeonMapSystem = {
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
 
-        // 滚轮缩放：以鼠标位置为中心（地图选择界面专用）
+        // 滚轮缩放：以鼠标位置为中心（仅当地图区域内，防止在背景图上误缩放）
         const onWheel = (e) => {
             if (this.state !== "map") return;
+            if (!this._isInMapArea(e.clientX, e.clientY)) return;
             e.preventDefault();
             const mx = e.clientX, my = e.clientY;
             const old = this.mapScale;
             const factor = e.deltaY < 0 ? 1.1 : 0.9;
-            const next = Math.max(0.3, Math.min(3, old * factor));
+            const next = Math.max(this.MIN_MAP_SCALE, Math.min(this.MAX_MAP_SCALE, old * factor));
             if (next === old) return;
             const wx = (mx - this.mapOffsetX) / old;
             const wy = (my - this.mapOffsetY) / old;
@@ -390,18 +406,38 @@ export const DungeonMapSystem = {
         };
     },
 
-    /** 背景图显示（layout.js coverRect：cover 铺满 + bottom 锚定，无黑边不漂移） */
-    _renderBackground(ctx, viewW, viewH) {
-        if (!this._bgImg) {
-            this._bgImg = loadImage('assets/scenes/dungeon-map-bg.png');
+    /**
+     * 背景图显示：界面严格分两块——上方纯美观背景图（不可交互、不被地图遮盖），
+     * 下方为地图选择区域。背景图 cover 铺满上方区域（bottom 锚定到区域分界线），
+     * 裁剪到上区，绝不画进下方地图区域。
+     * 图片路径按地牢类型走配置（DungeonConfig.mapBackground），新增地牢各自配置。
+     * @param {number} topH 上方背景区高度（地图区域 top 边界）
+     */
+    _renderBackground(ctx, viewW, viewH, topH) {
+        const bgPath = this._getMapBackgroundPath();
+        if (!this._bgImg || this._bgImgPath !== bgPath) {
+            this._bgImgPath = bgPath;
+            this._bgImg = loadImage(bgPath);
         }
-        // 先铺纯黑底（图片未加载时兜底）
+        // 先铺纯黑底（图片未加载时兜底；下方地图区域也为纯黑）
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
-        if (!img || !img.complete || img.naturalWidth === 0) return;
-        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, viewH, 'bottom');
+        if (!img || !img.complete || img.naturalWidth === 0 || topH <= 0) return;
+        // cover 铺满上区（0,0,viewW,topH），bottom 锚定使图片底边贴紧分区分界线
+        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, topH, 'bottom');
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, viewW, topH);
+        ctx.clip();
         ctx.drawImage(img, Math.round(r.x), Math.round(r.y), r.w, r.h);
+        ctx.restore();
+    },
+
+    /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
+    _getMapBackgroundPath() {
+        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+        return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
     },
 
     /**
@@ -409,20 +445,55 @@ export const DungeonMapSystem = {
      */
     /** 路线选择界面显示区域（layout.js 统一适配；spec 为 1920×1080 基准坐标，
      * 由 2560×1440 实测值 left:4 bottom:10 width:2545 height:542 换算） */
-    _getMapTargetArea() {
-        const viewW = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920;
-        const viewH = (typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080;
-        return anchorRect(MAP_AREA_SPEC, viewW, viewH);
+    _getMapTargetArea(viewW, viewH) {
+        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
+        const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080);
+        return anchorRect(MAP_AREA_SPEC, vw, vh);
+    },
+
+    /** 鼠标/指针是否落在下方地图选择区域内（区域外不可拖动、不可缩放） */
+    _isInMapArea(x, y) {
+        const area = this._getMapTargetArea();
+        return x >= area.left && x <= area.left + area.width &&
+               y >= area.top && y <= area.top + area.height;
+    },
+
+    /** 退出按钮绘制/点击共用同一矩形（随视口右对齐，不再写死 1920） */
+    _getExitButtonRect(viewW) {
+        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
+        return { x: vw - 110, y: 15, w: this.EXIT_BUTTON_W, h: this.EXIT_BUTTON_H };
+    },
+
+    /**
+     * 路线内容的实际包围盒（节点坐标 + 绘制余量）。
+     * 宝箱岔路会生成负 row（y 可为 0 甚至负数），固定 2048×2048 的钳制
+     * 会让这些节点永远拖不进视口——钳制必须按真实包围盒计算。
+     */
+    _getContentBounds() {
+        const PAD = 80; // 覆盖节点半径/精英★/“你”标签的绘制余量
+        if (!this.nodes.length) {
+            return { minX: 0, minY: 0, maxX: this.MAP_WIDTH, maxY: this.MAP_HEIGHT };
+        }
+        const b = this._calculateNodeBounds();
+        return { minX: b.minX - PAD, minY: b.minY - PAD, maxX: b.maxX + PAD, maxY: b.maxY + PAD };
     },
 
     _clampMapOffset() {
-        // 钳制区域与初始定位同源（layout.js clampToArea），禁止两套区域计算
+        // 钳制区域与初始定位同源（layout.js anchorRect），禁止两套区域计算
         const area = this._getMapTargetArea();
-        const mapW = this.MAP_WIDTH * this.mapScale;
-        const mapH = this.MAP_HEIGHT * this.mapScale;
-        const clamped = clampToArea({ x: this.mapOffsetX, y: this.mapOffsetY }, area, mapW, mapH);
-        this.mapOffsetX = clamped.x;
-        this.mapOffsetY = clamped.y;
+        const b = this._getContentBounds();
+        const s = this.mapScale;
+        // 单轴钳制区间：内容覆盖区域（内容小于区域时居中）
+        const axisRange = (minV, maxV, areaStart, areaLen) => {
+            let max = areaStart - minV * s;            // 内容起边贴区域起边
+            let min = areaStart + areaLen - maxV * s;  // 内容终边贴区域终边
+            if (min > max) { const mid = (min + max) / 2; min = mid; max = mid; }
+            return { min, max };
+        };
+        const rx = axisRange(b.minX, b.maxX, area.left, area.width);
+        const ry = axisRange(b.minY, b.maxY, area.top, area.height);
+        this.mapOffsetX = Math.min(rx.max, Math.max(rx.min, this.mapOffsetX));
+        this.mapOffsetY = Math.min(ry.max, Math.max(ry.min, this.mapOffsetY));
     },
 
     // ───────────────────────────────────────────────
@@ -456,18 +527,18 @@ export const DungeonMapSystem = {
         const bounds = this._calculateNodeBounds();
         const padding = 80; // 地图坐标边距，确保路线图不贴边
 
-        // 计算缩放比例，使路线图完整显示在目标区域中
+        // 先求完整适配缩放，再按 DEFAULT_ZOOM_FACTOR 放大（默认 3 倍初始视图）
         const routeW = bounds.maxX - bounds.minX + padding * 2;
         const routeH = bounds.maxY - bounds.minY + padding * 2;
-        const scaleX = TARGET_AREA.width / routeW;
-        const scaleY = TARGET_AREA.height / routeH;
-        this.mapScale = Math.min(scaleX, scaleY, 1.5); // 限制最大缩放1.5倍
+        const fitScale = Math.min(TARGET_AREA.width / routeW, TARGET_AREA.height / routeH, 1.5);
+        this.mapScale = Math.min(fitScale * this.DEFAULT_ZOOM_FACTOR, this.MAX_MAP_SCALE);
 
-        // 计算偏移，使路线图在目标区域中居中
-        const routeCX = (bounds.minX + bounds.maxX) / 2;
-        const routeCY = (bounds.minY + bounds.maxY) / 2;
-        this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - routeCX * this.mapScale;
-        this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - routeCY * this.mapScale;
+        // 初始聚焦出发点（无出发点时退回路线中心），随后钳制到区域边缘
+        const startNode = this.nodes.find(n => n.type === 'start');
+        const focusX = startNode ? startNode.x : (bounds.minX + bounds.maxX) / 2;
+        const focusY = startNode ? startNode.y : (bounds.minY + bounds.maxY) / 2;
+        this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - focusX * this.mapScale;
+        this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - focusY * this.mapScale;
         this._clampMapOffset();
     },
 
@@ -585,9 +656,9 @@ export const DungeonMapSystem = {
     _handleClick() {
         // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
         const mx = Input.mouse.x, my = Input.mouse.y;
-        // 检测退出按钮点击
-        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
-        if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
+        // 检测退出按钮点击（与绘制共用 _getExitButtonRect，随视口右对齐）
+        const btn = this._getExitButtonRect();
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
             this._showExitConfirm();
             return;
         }
@@ -1092,19 +1163,25 @@ export const DungeonMapSystem = {
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
 
-        // ── 背景图：铺满视口（cover）+ bottom 锚定 ──
-        this._renderBackground(ctx, viewW, viewH);
+        // 界面分两块：上方背景图（纯美观），下方地图选择区域（area）
+        const area = this._getMapTargetArea(viewW, viewH);
 
-        // 保存原始状态
+        // ── 上方：背景图，裁剪在上区内 ──
+        this._renderBackground(ctx, viewW, viewH, area.top);
+
+        // ── 下方：地图选择区域底块（不透明深色，盖住黑底，与上区明确分界）──
+        ctx.fillStyle = "#08080a";
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+
+        // ── 地图内容：裁剪在区域内，无论怎么拖/缩放都不溢出 ──
         ctx.save();
+        ctx.beginPath();
+        ctx.rect(area.left, area.top, area.width, area.height);
+        ctx.clip();
 
         // 应用地图变换
         ctx.translate(this.mapOffsetX, this.mapOffsetY);
         ctx.scale(this.mapScale, this.mapScale);
-
-        // ── 地图区域背景：半透明深色叠加在背景图下半部黑色区上，便于看清路线 ──
-        ctx.fillStyle = "rgba(8,8,10,0.72)";
-        ctx.fillRect(0, 0, this.MAP_WIDTH, this.MAP_HEIGHT);
 
         // ── 绘制边（连线）─
         for (const edge of this.edges) {
@@ -1246,37 +1323,39 @@ export const DungeonMapSystem = {
             }
         }
 
-        // 恢复原始状态
+        // 恢复原始状态（解除区域裁剪与地图变换）
         ctx.restore();
 
-        // ── 绘制 UI 覆盖层（不受地图变换影响）─
+        // ── 绘制 UI 覆盖层（不受地图变换影响，固定在地图区域内）─
         // 标题与提示已改为 DOM 覆盖层（#dungeonMapTitle），底部居中
 
-        // 进度
+        // 进度：跟随地图区域（不再用 viewW/viewH，避免 2K 下跑出区域）
         const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
         ctx.fillStyle = "#666666";
         ctx.font = "13px sans-serif";
-        ctx.fillText(`进度: ${progress} 节点`, viewW / 2, viewH - 20);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText(`进度: ${progress} 节点`, area.left + area.width / 2, area.top + area.height - 10);
 
-        // 缩放指示
+        // 缩放指示：区域右下角
         ctx.fillStyle = "#444444";
         ctx.font = "11px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, viewW - 20, viewH - 20);
+        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, area.left + area.width - 12, area.top + area.height - 10);
         ctx.textAlign = "center";
 
-        // 退出按钮（绘制位置与点击热区使用同一组常量）
-        const btnX = this.EXIT_BUTTON_X, btnY = this.EXIT_BUTTON_Y, btnW = this.EXIT_BUTTON_W, btnH = this.EXIT_BUTTON_H;
+        // 退出按钮（绘制位置与点击热区共用 _getExitButtonRect，随视口右对齐）
+        const btn = this._getExitButtonRect(viewW);
         ctx.fillStyle = "#3a5a3a";
-        ctx.fillRect(btnX, btnY, btnW, btnH);
+        ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
         ctx.strokeStyle = "#6a8a5a";
         ctx.lineWidth = 1;
-        ctx.strokeRect(btnX, btnY, btnW, btnH);
+        ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
         ctx.fillStyle = "#d4c5a9";
         ctx.font = "12px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("退出地牢", btnX + btnW / 2, btnY + btnH / 2);
+        ctx.fillText("退出地牢", btn.x + btn.w / 2, btn.y + btn.h / 2);
         ctx.textBaseline = "alphabetic";
     },
 

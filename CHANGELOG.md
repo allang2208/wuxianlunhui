@@ -8,6 +8,57 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（闪避重构：0.8s 无敌窗口 + 不可选中 + 碰撞 0 不穿墙 + 修饰挂接）
+
+### 对话：闪避期间不可选中且无敌、碰撞体积 0（不可穿墙），躲过除 debuff 外所有伤害
+- **基准配置**：`config.js` `DODGE_DURATION` 200 → **800**（默认 0.8 秒无敌窗口）；`DODGE_SPEED/DODGE_COOLDOWN` 不变。
+- **配置驱动（不硬编码）**：`base.js calculateCombatStats` 新增闪避面板——`d.dodgeDuration = CONFIG.DODGE_DURATION × (1+durationPercent/100)`、`d.dodgeSpeed = CONFIG.DODGE_SPEED × (1+distancePercent/100)`，修饰来源 `player._dodgeModifiers = { durationPercent, distancePercent }`（index.js 初始化，后续装备/道具写入后调用 calculateCombatStats 即生效）；`triggerDodge`/update.js 均改读面板值，配置基准仅作缺省回退。
+- **不可选中 + 碰撞 0**：`triggerDodge` 时快照并设置 `hittable=false`（感知系统/近战/投射物/冲锋/接触伤害等全部命中判定统一跳过）与 `noCollision=true`（resolveCollisions 实体分离跳过，可穿过单位；墙壁仍由 WallSystem 解析不可穿墙——与铠甲骑士冲锋同机制）。
+- **统一出口 `_endDodge()`**：计时到期（update.js）、眩晕打断（_cancelAllActionsForStun）、蟠桃复活、respawn 全部走同一出口还原快照；顺带修复"眩晕打断闪避后 dodgeInvincible 残留"旧隐患。
+- **伤害/眩晕规避**：takeDamage 头部已有 `dodgeInvincible` 拦截（所有直接伤害免疫）；`applyStun` 新增闪避窗口拦截——铠甲骑士冲锋撞击在判定时玩家处于闪避：命中检测因 `hittable=false` 整体跳过（不伤害/不眩晕/不击退），双重兜底。
+- **debuff 除外**：中毒 DoT 为 `hp -= stacks` 直接扣血不走 takeDamage，闪避期间照常跳伤害；applyPoison 等状态附着不受影响——符合"躲过除 debuff 外所有伤害"。
+- **修改文件**：src/config/config.js、src/entities/player/{base.js,index.js,subsystems.js,update.js}、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——闪避 0.8s 窗口、穿人穿怪不穿墙、冲锋撞击判定全免、中毒持续掉血。
+
+## 2026-07-21（地牢地图背景图换为僵尸城堡 + 配置驱动）
+
+### 对话：用素材库"背景图.png"替换僵尸地牢背景图，不要硬编码
+- **素材入库**：`素材库/场景/地形/僵尸地牢/背景图.png`（2560×1065 哥特城堡）复制到 `assets/scenes/dungeon-bg/zombie.png`（按地牢大类命名建档，后续其他地牢同目录放各自图）。
+- **配置驱动**：`dungeon-config.js` DEFAULTS.zombieDungeon 新增 `mapBackground` 字段——僵尸家族三地牢（高级/初级/中级）经 deepMerge 自动继承；其他地牢在 `data/dungeon-config.json` 各自条目中写 `mapBackground` 即可覆盖，无需改代码。
+- **渲染改造**：`_renderBackground` 不再写死路径，经 `_getMapBackgroundPath()` 取配置（兜底旧图 dungeon-map-bg.png）；图片缓存按路径失效（`_bgImgPath`），切地牢自动重载。
+- **提示**：新图比例 2.40:1，略窄于上区 2.9:1——cover+bottom 锚定会裁掉约 17% 顶部天空，城堡主体保留；如需全图可按 2560×886 重新生成。
+- **修改文件**：src/config/dungeon-config.js、src/world/dungeon-map-system.js、assets/scenes/dungeon-bg/zombie.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——三个僵尸地牢地图界面均显示新背景图。
+
+## 2026-07-21（地图界面：长按才拖动 + 包围盒钳制 + 默认 3 倍聚焦出发点）
+
+### 对话：进界面未按鼠标地图就跟随拖动；最上方线路拖不全；默认视图要放大聚焦出发点
+- **问题 1（未按住就拖）**：`dragStartX/Y` 字面量初始为 `0`，而 onMouseMove 以 `=== undefined` 判断"是否按住"——0 通过判断，鼠标一动就以 (0,0) 为起点拖动。修复：初始置 `undefined`，`init()` 同步重置；onMouseMove 增加 `(e.buttons & 1) === 0` 守卫（窗口外松开也强制结束拖动）——严格长按才拖动。
+- **问题 2（最上方线路显示不全）**：宝箱岔路生成负 row（y=140×(row+1)，可为 0 或负数），而钳制按固定 2048×2048 地图尺寸计算——负坐标节点永远拖不进视口。修复：`_clampMapOffset` 改为按**节点真实包围盒**（`_getContentBounds`：节点 min/max + 80px 绘制余量）计算钳制区间，内容小于区域时居中；`clampToArea` 导入随之移除。
+- **问题 3（默认视图）**：`_centerRouteMap` 改为：先求完整适配缩放 fitScale，再乘 `DEFAULT_ZOOM_FACTOR=3`（封顶 `MAX_MAP_SCALE=3`），聚焦点从路线中心改为**出发点**（无出发点退回路线中心），最后过包围盒钳制。缩放上下限提为常量 `MIN_MAP_SCALE/MAX_MAP_SCALE`（滚轮同步引用，消除散落硬编码 0.3/3）。
+- **背景图比例答复**：上区高度 = 视口高 − 10(bottom) − 地图区高（基准 407，随高度等比）——1080P 为 1920×663（≈2.90:1），2K 为 2560×887（≈2.89:1）；图片按 **约 2.9:1**（如 2560×886）生成即可，cover+bottom 锚定下轻微边缘裁剪。
+- **修改文件**：src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——进入界面不拖动、按住才可拖、最上方岔路节点可拖入视口、初始 3 倍聚焦出发点。
+
+## 2026-07-21（地牢地图选择界面"上下分两块"重构）
+
+### 对话：上方背景图纯美观不可操作，下方地图只在固定区域内显示
+- **需求**：界面严格分两块——上方背景图不可交互、不可被地图遮盖；下方地图选择区域内可拖动/缩放，但无论怎么操作地图内容都不得溢出该区域。
+- **根因**：此前只做了 offset 钳制（clampToArea），地图绘制本身没有视觉裁剪，节点/连线可画出区域外；背景图 cover 铺满全屏（含地图区），两块没有明确分界；退出按钮写死 1920 基准坐标，2K 下错位。
+- **修复**（src/world/dungeon-map-system.js）：
+  - `_renderBackground`：背景图 cover 铺满**上方区域**（0,0,viewW,area.top），bottom 锚定贴分界线，clip 在上区内；
+  - 下方地图区域先铺不透明深色底块（#08080a）明确分界，再 `ctx.save → rect(area) → ctx.clip()` 后才 translate/scale 画连线与节点——**视觉裁剪**保证任何拖动/缩放下地图像素不溢出区域；
+  - 进度文本/缩放百分比从 viewW/viewH 定位改为跟随 area（区域内底部居中/右下）；
+  - 退出按钮新增 `_getExitButtonRect(viewW)`（右缘随视口右对齐），绘制与点击热区共用，删除写死的 EXIT_BUTTON_X/Y 常量；
+  - `_getMapTargetArea(viewW, viewH)` 支持传入视口尺寸（render 用 canvas 实际尺寸，与钳制同源）；
+  - 新增 `_isInMapArea(x,y)`：mousedown 只在地图区域内才允许开始拖动，wheel 只在指针位于区域内才缩放——上方背景图完全不可操作。
+- **修改文件**：src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——1080P/2K 下背景图占上区、地图拖/缩不溢出下区、区域内外交互隔离。
+
 ## 2026-07-21（出征条件栏宽度内联兜底（跳过 CSS 缓存））
 
 ### 对话：条件栏宽度 calc(10vw-4px) 未生效
