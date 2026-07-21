@@ -1495,7 +1495,7 @@
         "impactRadius": 100,
         "damageMul": 1.5,
         "stunMs": 2000,
-        "projectileSize": 40
+        "projectileSize": 20
       },
       "axe": {
         "cooldown": 4000,
@@ -1503,7 +1503,7 @@
         "introFps": 15,
         "introHitFrame": 15,
         "attackHitAbsFrame": 20,
-        "judgeRange": 100,
+        "judgeRange": 120,
         "damageMul": 2,
         "crippleMs": 3000
       }
@@ -1519,12 +1519,17 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "hudOffsetY": 70
+      "hudOffsetY": 70,
+      "colliderOffsetY": 30
     },
     "textures": {
       "idle": "assets/enemies/time_agent/idle.png"
     },
     "description": "时空特工突击型，可在远程射击与近战斧砍两种形态间切换",
-    "skills": []
+    "skills": [],
+    "sounds": {
+      "fire": "assets/sounds/qbz191_shot6_valley.mp3",
+      "reload": "assets/sounds/reload_sharp.mp3"
+    }
   }
 }

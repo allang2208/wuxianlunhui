@@ -10,6 +10,7 @@ import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { pathFinder } from '../../ai/pathfinder.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -82,6 +83,8 @@ export class TimeAgentAssault extends Enemy {
         const qbz = JSON.parse(JSON.stringify(equipmentJson.equipment.qbz191));
         // 弹匣参数走怪物配置（不影响玩家同款武器）
         if (skills.shoot.ammo) qbz.ammoConfig = { ...skills.shoot.ammo };
+        // 开火音效（fireProjectile 读 item.fireSound）
+        if (this.config?.sounds?.fire) qbz.fireSound = this.config.sounds.fire;
         this.equipments.weapon = qbz;
         this.attacks.qbz191 = createAttackFromConfig(WEAPON_ATTACK_CONFIG.qbz191);
         // 伤害取怪物面板物攻（fireProjectile 默认读 config.damage 占位值 1-1）
@@ -505,6 +508,28 @@ export class TimeAgentAssault extends Enemy {
         if (this.target && this.target.active) return this.target.x < this.x;
         if (this.isMoving && Math.abs(this.vx) > 0.1) return this.vx < 0;
         return Math.cos(this.rotation ?? 0) < 0;
+    }
+
+    // ========== 弹药系统（怪物基类默认无限弹药；本怪 30 发打空 2s 换弹） ==========
+
+    _hasAmmo(slot) {
+        const state = this._ammoState && this._ammoState[slot];
+        return !!state && (state.current || 0) > 0;
+    }
+
+    _consumeAmmo(slot) {
+        const state = this._ammoState && this._ammoState[slot];
+        if (state && state.current > 0) state.current--;
+        return true;
+    }
+
+    _startReload(slot) {
+        const started = super._startReload(slot);
+        // 换弹音效（配置 sounds.reload）
+        if (started && this.config?.sounds?.reload && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(this.config.sounds.reload);
+        }
+        return started;
     }
 
     // ========== 远程射击（QBZ-191） ==========

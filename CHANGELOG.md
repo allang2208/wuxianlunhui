@@ -8,6 +8,18 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：投射物缩小/碰撞下移/近战判定/枪声换弹）
+
+### 对话：闪光弹投射物缩小50%、碰撞下移30px、近战难命中排查、191 音效
+- **投射物**：`flashbang.projectileSize` 40 → 20（缩小 50%）。
+- **碰撞体积**：`render.colliderOffsetY = 30`（footprint/分离圆/判定统一下移 30px，enemy.js 基类原生支持）。
+- **近战判定排查**：`GroundEllipse.intersectsEntity` 数学正确且保守（轴长按目标 footprint 半径膨胀，与全部怪物 AOE 同口径）——"100px 内判定失败"实为椭圆 Y 压缩的几何必然：judgeRange 100 时垂直触及仅 50+22.5=72.5px（水平 122.5px），垂直/斜向接近必然漏判。按指示 `judgeRange` 100 → **120**（垂直触及 82.5px，斜向 100px 内可命中），触发距离与判定距离同源同步。
+- **真实弹匣**：Combatant 基类 `_hasAmmo/_consumeAmmo` 默认无限弹药（怪物不耗弹不换弹）——类内覆盖为实弹匣（30 发打空 → canFire 自动触发 2s 换弹 → 满匣复射）；`_startReload` 覆写播放换弹音效。
+- **音效**：`sounds.fire = qbz191_shot6_valley.mp3`（191 开火，经 item.fireSound 由 fireProjectile 播放）、`sounds.reload = reload_sharp.mp3`（换弹），配置驱动。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，补 SoundManager 导入）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——30 发后 2s 换弹音、近战 120px 判定命中率、投射物新尺寸、碰撞下移后贴图/判定对齐。
+
 ## 2026-07-21（时空特工：移动射击动画/换弹 2s/枪口位置修正）
 
 ### 对话：移动射击动画不生效（固定射击）、弹匣 30 发 2s 换弹、朝左枪口上移 75 左移 15
