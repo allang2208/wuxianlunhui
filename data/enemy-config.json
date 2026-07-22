@@ -1503,7 +1503,7 @@
         "introFps": 15,
         "introHitFrame": 15,
         "attackHitAbsFrame": 20,
-        "judgeRange": 120,
+        "judgeRange": 175,
         "damageMul": 2,
         "crippleMs": 3000
       }
