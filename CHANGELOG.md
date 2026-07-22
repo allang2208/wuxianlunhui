@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（中优⑥：遭遇导演 EncounterDirector 统一）
+
+### 对话：按中优先级做 6（遭遇导演统一）
+- **配置表**（`data/encounter-table.json`）：所有战斗遭遇统一登记——`{ kind, source }`，kind 决定执行后端（waves 波次 / invasion 特工入侵 / boss / custom）；新遭遇（伏击/突袭/增援）以后只追加条目。
+- **导演模块**（`src/world/encounter-director.js`）：`resolveComposition` 统一构成解析（`{tier:数量}` 分层池抽取 / `[角色键]` 固定工厂构成）；`registerKind` 注册新类型处理器；`start(name, ctx)` 路由到后端执行。现有后端（波次/入侵/Boss 系统）不重写，由导演统一入口。
+- **首个接入点**：特工入侵的构成解析（agentCompositionByGrade）改走 `EncounterDirector.resolveComposition`，ROLE_FACTORIES 集中到导演模块。
+- **SKILL.md**：新增"遭遇导演"条目。
+- **修改文件**：data/encounter-table.json（新）、src/world/encounter-director.js（新）、src/world/agent-invasion-system.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅。
+- **已知问题**：波次/Boss 后端仍各自配置驱动（行为不变），后续新遭遇类型统一从导演入口接入。
+
 ## 2026-07-21（中优⑤：音频总线声道 + BGM 场景框架）
 
 ### 对话：按中优先级做 5（音频总线+BGM）
