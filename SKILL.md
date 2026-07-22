@@ -485,6 +485,14 @@ _getPhaserOptions() {
 
 ---
 
+## 怪物 HUD 锚点工作流（2026-07-21 新增）
+
+**默认规则**：新增怪物的名字/血条锚定**圆柱体碰撞体积最上方**（胶囊顶 = footprint Y − collisionHeight，含 colliderOffsetY），不再按贴图顶部定位。
+**启用方式**：`enemy-config.json` 该怪物 `render` 块加 `"capsuleHudAnchor": true`（GameScene 按此开关选择锚点；未配置的旧怪物保持贴图顶部锚点不动）。
+**配套校准**：`render.collisionHeight` 决定胶囊顶高度；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
+
+---
+
 ## 音效导入工作流（2026-07-17 新增，参照集合体落地）
 
 ### 步骤1: 素材复制建档（规则 4）

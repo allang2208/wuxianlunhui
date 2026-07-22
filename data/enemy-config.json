@@ -1481,8 +1481,8 @@
           "max": 30,
           "reloadTime": 2000
         },
-        "muzzleUpY": 80,
-        "muzzleSideX": 55,
+        "muzzleUpY": 85,
+        "muzzleSideX": 65,
         "aimHeightRatio": 0.875
       },
       "flashbang": {
@@ -1516,7 +1516,7 @@
     "render": {
       "spriteSize": 160,
       "collisionWidth": 60,
-      "collisionHeight": 145,
+      "collisionHeight": 180,
       "footOffsetY": 38,
       "projectileHitbox": {
         "width": 70,
@@ -1525,7 +1525,8 @@
         "bottom": 0
       },
       "hudOffsetY": 70,
-      "colliderOffsetY": 30
+      "colliderOffsetY": 30,
+      "capsuleHudAnchor": true
     },
     "textures": {
       "idle": "assets/enemies/time_agent/idle.png"
