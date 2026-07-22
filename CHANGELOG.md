@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地板：按地牢贴图组 + 随机镜像 + 发光层开关）
+
+### 对话：僵尸地牢地板更新；发光层关闭但机制保留
+- **素材**：blackbrick-7.png / blackbrick-8.png / blackbrick6.png 复制到 `assets/terrain/` 并在 BootScene 加载（blackbrick_7/blackbrick_8/blackbrick6）。
+- **模块重构**（dungeon-floor-texture.js）：
+  - `setDungeonFloorProfile(profile)` 按地牢类型设置贴图组，离开地牢恢复默认（blackbrick5+发光层）；
+  - 每格**随机选图 + 随机镜像**（flipX/flipY 独立随机）；
+  - 菱形几何改为运行时按贴图 alpha 包围盒**实测缓存**（换素材零改码，中心 Y 差异自动对齐）；
+  - 发光层机制保留：`profile.glow !== false` 时查找 `<贴图键>_glow` 同位置 ADD 平铺——僵尸地牢三个地牢全部 `glow: false` 关闭，以后其他场景可开。
+- **配置**：`data/dungeon-config.json` 各地牢新增 `floor` 字段——高级 `['blackbrick5','blackbrick6']`，初级/中级 `['blackbrick_7','blackbrick_8']`；`DungeonConfig.getDungeonFloorProfile` 暴露；dungeon-map-system init 设置、shutdown 复位。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/config/dungeon-config.js、src/world/dungeon-map-system.js、src/phaser/scenes/BootScene.js、data/dungeon-config.json、assets/terrain/、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——三地牢地板贴图/随机镜像观感、无发光层效果。
+
 ## 2026-07-21（追击系统复查：捕获标记重复拦截 bug 修复）
 
 ### 对话：回头看排查追击系统 bug

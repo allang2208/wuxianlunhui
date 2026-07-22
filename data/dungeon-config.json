@@ -97,7 +97,14 @@
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
     },
-    "minRoomsToBoss": 7
+    "minRoomsToBoss": 7,
+    "floor": {
+      "tiles": [
+        "blackbrick5",
+        "blackbrick6"
+      ],
+      "glow": false
+    }
   },
   "zombieDungeonBeginner": {
     "nodeCount": {
@@ -162,7 +169,14 @@
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
     },
-    "minRoomsToBoss": 6
+    "minRoomsToBoss": 6,
+    "floor": {
+      "tiles": [
+        "blackbrick_7",
+        "blackbrick_8"
+      ],
+      "glow": false
+    }
   },
   "zombieDungeonMid": {
     "nodeCount": {
@@ -226,7 +240,14 @@
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
     },
-    "minRoomsToBoss": 6
+    "minRoomsToBoss": 6,
+    "floor": {
+      "tiles": [
+        "blackbrick_7",
+        "blackbrick_8"
+      ],
+      "glow": false
+    }
   },
   "combatRoom": {
     "normalSize": {

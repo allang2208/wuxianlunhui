@@ -35,6 +35,7 @@ import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effect
 import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
+import { setDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
@@ -177,6 +178,8 @@ export const DungeonMapSystem = {
         this.fogOfWar = new DungeonFogOfWar();
         // 时空特工追击机制（D 级及以上地牢；内部按难度判定是否启用）
         AgentInvasionSystem.init(this);
+        // 地板贴图组（按地牢类型配置：随机选图+镜像+发光层开关；离开时恢复默认）
+        setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
 
         this.generateMap();
         this._centerRouteMap();
@@ -225,6 +228,8 @@ export const DungeonMapSystem = {
         AgentInvasionSystem.reset();
         this._invasionNode = null;
         this._invasionMixed = false;
+        // 地板配置恢复默认（离开地牢）
+        setDungeonFloorProfile(null);
 
         // 死亡/异常退出时强制清理 Boss 战与战斗房，防止 active 卡死造成软锁
         if (typeof BossRewardSystem !== 'undefined' && BossRewardSystem && typeof BossRewardSystem.cleanup === 'function') {

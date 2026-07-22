@@ -43,6 +43,9 @@ export class BootScene extends Scene {
         // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
         this.load.image('blackbrick5', 'assets/terrain/blackbrick5.png');
         this.load.image('blackbrick5_glow', 'assets/terrain/blackbrick5_glow.png');
+        this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
+        this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
+        this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----

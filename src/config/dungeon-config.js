@@ -105,6 +105,15 @@ export const DungeonConfig = {
         return cfg.bossEncounter || null;
     },
 
+    /**
+     * 地板贴图配置（data/dungeon-config.json 各地牢 floor 字段：
+     * { tiles: [贴图键...], glow: 是否启用发光层 }；未配置返回 null 走模块默认）
+     */
+    getDungeonFloorProfile(dungeonType) {
+        const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        return cfg.floor || null;
+    },
+
     getEliteCombatChance(dungeonType) {
         const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
         const base = cfg.eliteCombatChance ?? (dungeonType === 'zombie' ? 0.20 : 0);
