@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢最少房间数判定 + 状态栏悬停浮窗）
+
+### 对话：地牢新增"达到 Boss 房间最少房间数"判定、房间数 +5 浮动；状态栏悬停白色浮窗
+- **minRoomsToBoss**：与 shortestCombatPath 独立的判定——最短路径房间数 = 中间列 + 2，不足时扩展中间列（多出的列按 typeRatios 生成战斗/事件，不改变强制战斗数）。按现公式设置（不改变平衡）：高级 7、初级 6、中级 6（= 各自 shortestCombatPath + 2），DEFAULTS 同步登记，后续调高即可加长路线。
+- **房间数浮动**：初级 22 固定 → 22~27；中级 30 固定 → 30~35；高级 35~40 原有 ±5 不变。
+- **状态栏悬停浮窗**：`status-effect-item` 放开 pointer-events（容器为 none），事件委托悬停显示白色浮窗（装备浮窗同款白底渐变样式，z-index 99999 在状态栏之上，默认显示在条目右侧不遮挡状态栏）；内容为图标+名称+具体效果说明+层数+剩余时间（秒/场）；`STATUS_CONFIG` 全类型补 desc（含祭品特效 6 种与恐惧）；容器后于 init 就绪时可重试绑定（render 内补调）。
+- **修改文件**：src/world/zombie-dungeon.js、src/config/dungeon-config.js、data/dungeon-config.json、src/ui/status-bar.js、game-style.css、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——浮窗悬停/消失时机、三地牢房间数与路径长度。
+
 ## 2026-07-21（时空特工：闪光弹爆炸特效/近战脚步音/瞄准上方 25%）
 
 ### 对话：闪光弹落地爆炸特效、近战移动播放骑士冲锋音效、瞄准目标矩形上方 25%

@@ -8,6 +8,9 @@ const DEFAULTS = {
     zombieDungeon: {
         // 路线选择界面背景图（按地牢类型配置；其他地牢在 dungeon-config.json 各自覆盖）
         mapBackground: 'assets/scenes/dungeon-bg/zombie.png',
+        // 达到 Boss 房间的最少房间数（独立约束，与 shortestCombatPath 不冲突：
+        // 最短路径房间数 = 中间列 + 2；值更大时扩展中间列，多出的按比例生成战斗/事件）
+        minRoomsToBoss: 7,
         nodeCount: { min: 35, max: 40 },
         shortestCombatPath: 9,
         typeRatios: { combat: 0.70, event: 0.30 },

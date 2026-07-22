@@ -83,6 +83,7 @@
             flex-shrink: 0;
             box-sizing: border-box;
             transition: all 0.2s ease;
+            pointer-events: auto; /* 悬停显示效果浮窗（容器为 none，条目单独放开） */
         }
         .status-effect-item .status-effect-icon {
             font-size: 16px;
