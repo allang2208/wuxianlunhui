@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（盾击冲击线条 + 图鉴扩写 + 矩形判定调整）
+
+### 对话：盾击白线特效、图鉴一行一个+全怪物机制扩写、特工矩形收 35px、盾卫防御矩形下压 40px
+- **盾击冲击线条**：`_fireBashThrustLines`——沿攻击方向从盾后 60px 向前快速延伸 5 条白线（420ms 淡出，平面透视 2:1），体现向前冲击观感。
+- **图鉴**：左栏条目 `.codex-grid` 改单列一行一个（滚动条样式不变）；enemy-config `skills` 全量扩写 8 个怪物（突变体-3/铠甲骑士/集合体/手脑/蝇群/蝇手/双特工）——伤害倍率、持续时间、动画时长、判定帧、触发距离、冷却、联动机制全写明；突变体-3 内容同步扩写；description 同步更新。
+- **特工矩形**：突击 `collisionHeight` 180→**145**（从上向下收 35px，`projectileHitbox.height` 同源对齐，校验不再报警）。
+- **盾卫防御矩形**：`torso-hitbox.js` 新增 `_hitboxOverride` 实例级覆盖——盾卫进入防御姿态时矩形从上向下收 40px（`defend.hitboxShrinkY: 40` 配置驱动），退出防御经 `_clearDefendHitbox` 恢复；不影响同类其他实例（配置对象不共享改写）。
+- **修改文件**：src/entities/enemy-types/time-agent-shield.js、src/physics/torso-hitbox.js、game-style.css、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅。
+- **已知问题**：实机待验证——盾击白线观感、图鉴单列与机制详情、突击 145 高矩形、盾卫防御时矩形下压。
+
 ## 2026-07-21（主神空间地板回退网格修复：烘焙时机竞态）
 
 ### 对话：控制台报"地板贴图未加载，使用回退网格地板"
