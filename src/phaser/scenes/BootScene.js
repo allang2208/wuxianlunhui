@@ -431,8 +431,16 @@ export class BootScene extends Scene {
         });
         this.anims.create({
             key: 'enemy_timeagent_walk_loop',
+            // 循环段（idle 起步后）：第 4~18 帧（索引 3~17）
             frames: this.anims.generateFrameNumbers('enemy_timeagent_walk', { start: 3, end: 17 }),
             duration: 1000,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_timeagent_walk_loop_ranged',
+            // 循环段（远程形态移动/移动射击）：第 7~18 帧（索引 6~17）
+            frames: this.anims.generateFrameNumbers('enemy_timeagent_walk', { start: 6, end: 17 }),
+            duration: 800,
             repeat: -1,
         });
         // 近战移动：首段 19 帧播一轮 → 循环 3~18 帧（索引 2~17）

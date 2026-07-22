@@ -705,9 +705,9 @@ export class TimeAgentAssault extends Enemy {
             case 'axeAttack':      return 'enemy_timeagent_axe_attack';
             case 'flashThrow':     return 'enemy_timeagent_flash';
             case 'ranged':
-                // 远程形态：移动即播 4~18 循环段（含静止射击后再移动，不再重播 18 帧首段），静止持枪姿态
+                // 远程形态：移动即播 7~18 循环段（含静止射击后再移动，不再重播 18 帧首段），静止持枪姿态
                 if (this._effectiveMoving()) {
-                    return 'enemy_timeagent_walk_loop';
+                    return 'enemy_timeagent_walk_loop_ranged';
                 }
                 return 'enemy_timeagent_ranged_pose';
             case 'melee':

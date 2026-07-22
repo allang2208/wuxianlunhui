@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：远程循环段 7-18 + 枪口左右 45）
+
+### 对话：远程移动循环段改 7-18、枪口左右 45px
+- **远程动画**：远程形态移动循环段改为第 7~18 帧（新动画 `enemy_timeagent_walk_loop_ranged`，索引 6~17）；idle 形态起步的循环段保持 4~18 不变（两个循环动画分离）。
+- **枪口**：`muzzleSideX` 35 → **45**（镜像同步）。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
 ## 2026-07-21（时空特工：枪口再调/静止后直播循环段/近战260根因/中级boss限定/换弹音一次）
 
 ### 对话：枪口左移20上移5、静止射击后再移动直接播 4-18、近战260未生效、中级boss限定僵尸领主、换弹音一次
