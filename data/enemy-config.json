@@ -1482,7 +1482,8 @@
           "reloadTime": 2000
         },
         "muzzleUpY": 80,
-        "muzzleSideX": 35
+        "muzzleSideX": 55,
+        "aimHeightRatio": 0.875
       },
       "flashbang": {
         "cooldown": 10000,
@@ -1495,7 +1496,11 @@
         "impactRadius": 100,
         "damageMul": 1.5,
         "stunMs": 2000,
-        "projectileSize": 20
+        "projectileSize": 20,
+        "impactDustCount": 10,
+        "impactLineCount": 12,
+        "impactLineAlpha": 0.5,
+        "impactLineDuration": 250
       },
       "axe": {
         "cooldown": 4000,
@@ -1503,7 +1508,7 @@
         "introFps": 15,
         "introHitFrame": 15,
         "attackHitAbsFrame": 20,
-        "judgeRange": 120,
+        "judgeRange": 175,
         "damageMul": 2,
         "crippleMs": 3000
       }
@@ -1511,7 +1516,7 @@
     "render": {
       "spriteSize": 160,
       "collisionWidth": 60,
-      "collisionHeight": 110,
+      "collisionHeight": 145,
       "footOffsetY": 38,
       "projectileHitbox": {
         "width": 70,
@@ -1529,7 +1534,9 @@
     "skills": [],
     "sounds": {
       "fire": "assets/sounds/qbz191_shot6_valley.mp3",
-      "reload": "assets/sounds/reload_sharp.mp3"
+      "reload": "assets/sounds/reload_sharp.mp3",
+      "meleeStep": "assets/sounds/enemies/armored_knight/walking.mp3",
+      "meleeStepInterval": 300
     }
   }
 }

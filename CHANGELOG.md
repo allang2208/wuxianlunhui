@@ -8,6 +8,44 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：闪光弹爆炸特效/近战脚步音/瞄准上方 25%）
+
+### 对话：闪光弹落地爆炸特效、近战移动播放骑士冲锋音效、瞄准目标矩形上方 25%
+- **爆炸特效**（`_fireFlashbangFx`，参数配置驱动）：落地判定时在椭圆周长均布 10 点扬尘（跑步同款 DustEffect，向上漂浮淡出）；爆心向 360° 放射 12 条白色线条（3px 宽、透明度 50%、250ms 快速延伸并消失，平面透视 2:1）。
+- **近战脚步音**：近战形态移动时按 300ms 间隔循环播放铠甲骑士冲锋同款 `walking.mp3`（`sounds.meleeStep/meleeStepInterval` 配置），新增类内 `_playSound` 助手。
+- **瞄准部位**：`Combatant.fireProjectile` 的 AimHelper 预判此前误用 `this.target.x/y`（脚底），传入的 targetX/targetY 被忽略——修正为以传入瞄准点预判（既有调用方传脚底坐标，行为不变）；特工瞄准点 = 目标矩形判定上方 25% 区域中心（`shoot.aimHeightRatio = 0.875`，脚底向上 87.5% 高处），枪口火焰角度同步按瞄准点计算。
+- **修改文件**：src/entities/combatant.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——爆炸特效观感、近战脚步声、弹道命中上半身。
+
+## 2026-07-21（枪口 55/子弹消失/HUD 锚定胶囊顶/特工碰撞拉伸）
+
+### 对话：枪口左右再 +10、子弹偶发瞬消、血条名字锚定圆柱顶、特工矩形碰撞上拉 35px
+- **枪口**：`muzzleSideX` 45 → **55**（累加微调，镜像同步）。
+- **子弹瞬消根因**：枪口点偏移后（上移 80/左右 55）贴墙站位时出膛点落在墙体内——投射物首帧 `WallSystem.blocked` 命中即销毁，表现为"射出瞬间消失"。修复：出膛点先经 `WallSystem.resolve` 校验，落进墙内回退到最近可达点（子弹与枪口火焰同源）。
+- **HUD 默认工作流**：普通敌人的名字/血条锚点从**贴图顶部**改为**圆柱体碰撞体积最上方**（胶囊顶 = footprint Y − collisionHeight，含 colliderOffsetY）；`hudOffsetY` 校准量语义不变（在胶囊顶基础上偏移）。Boss 分支自定义偏移不动。
+- **特工碰撞**：`render.collisionHeight` 110 → **145**（绿色矩形/胶囊向上拉伸 35px）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——贴墙射击不再瞬消、各怪物名字/血条位于胶囊顶（旧 hudOffsetY 调校的怪可能需重新校准）、特工胶囊拉伸后判定/视觉对齐。
+
+## 2026-07-21（时空特工：切换大图根因修复 + 近战判定 175）
+
+### 对话：远程→近战 axe 动画期间一帧错误大图；近战判定改 175
+- **大图根因**：`_configureEnemyBody` 只在精灵创建时按首张纹理帧尺寸算一次缩放——特工以 idle.png（1536×1536 单帧）创建，缩放按 1536 计算，512 帧精灵图实际只显示约 53px；切回 idle 纹理瞬间又恢复 160px，形成"一帧错误大图"（此前所有 512 帧动画也普遍偏小）。修复：idle.png 用 PIL 缩至 512×512（内容占比 93% 与其他精灵图一致），全部纹理帧尺寸统一 512。
+- **近战判定**：`axe.judgeRange` 120 → **175**。
+- **修改文件**：assets/enemies/time_agent/idle.png、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——切换无闪帧大图、idle 与其他状态视觉尺寸一致、近战 175px 命中。
+
+## 2026-07-21（时空特工：远程循环段 7-18 + 枪口左右 45）
+
+### 对话：远程移动循环段改 7-18、枪口左右 45px
+- **远程动画**：远程形态移动循环段改为第 7~18 帧（新动画 `enemy_timeagent_walk_loop_ranged`，索引 6~17）；idle 形态起步的循环段保持 4~18 不变（两个循环动画分离）。
+- **枪口**：`muzzleSideX` 35 → **45**（镜像同步）。
+- **修改文件**：src/phaser/scenes/BootScene.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
 ## 2026-07-21（时空特工：枪口再调/静止后直播循环段/近战260根因/中级boss限定/换弹音一次）
 
 ### 对话：枪口左移20上移5、静止射击后再移动直接播 4-18、近战260未生效、中级boss限定僵尸领主、换弹音一次
