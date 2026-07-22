@@ -246,13 +246,14 @@ export class TimeAgentShield extends Enemy {
         this._fireBashThrustLines();
     }
 
-    /** 盾击冲击线条：沿攻击方向从盾后向前快速延伸并淡出（强化版：更粗更亮更长） */
+    /** 盾击冲击线条：固定水平方向的平行线（不随攻击方向变动），向前延伸并淡出 */
     _fireBashThrustLines() {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) return;
         const g = scene.add.graphics();
         g.setDepth(this.y + 50);
-        const angle = this.rotation;
+        // 固定水平方向（不随攻击朝向变动），线条互相平行
+        const angle = 0;
         const wave = { t: 0 };
         const self = this;
         scene.tweens.add({
@@ -265,9 +266,9 @@ export class TimeAgentShield extends Enemy {
                 g.clear();
                 const cos = Math.cos(angle), sin = Math.sin(angle);
                 const lines = 7;
-                // 双线描边：粗外圈（高透明）+ 亮内核，强化观感
+                // 双线描边：粗外圈 + 亮内核（整体变细 50%：7→3.5 / 3→1.5）
                 for (let pass = 0; pass < 2; pass++) {
-                    const width = pass === 0 ? 7 : 3;
+                    const width = pass === 0 ? 3.5 : 1.5;
                     const alpha = (pass === 0 ? 0.45 : 0.95) * (1 - p);
                     g.lineStyle(width, 0xffffff, alpha);
                     for (let i = 0; i < lines; i++) {
