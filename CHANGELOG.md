@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（盾卫：switch 贴图替换 + 音效接入 + 防御开火枪口下移）
+
+### 对话：替换 switch.png；盾卫声音；防御开火子弹/火焰/弹壳下移 45px
+- **switch.png 替换**：新版 8 帧精灵图（4096×2048，格式一致）覆盖旧文件。
+- **音效**（assets/sounds/enemies/time_agent_shield/ 建档，配置驱动）：walking.mp3 移动按 500ms 间隔循环；hitting.mp3 三处——盾击判定、防御姿态每次受击、开火（item.fireSound 由 fireProjectile 播放）。
+- **防御开火枪口**：`defendHold` 状态下枪口点下移 `shoot.defendMuzzleDownY: 45`（子弹出膛点、枪口火焰、开火火光、弹壳同源下移；退出防御自动恢复正常枪口，无需额外还原）。
+- **修改文件**：assets/enemies/time_agent_shield/switch.png、assets/sounds/enemies/time_agent_shield/、src/entities/enemy-types/time-agent-shield.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——新切换动画、脚步/盾击/受击/开火音效时机、防御开火弹道高度。
+
 ## 2026-07-21（盾卫 AI 定调 + 特工联动机制系统 + C 级入侵构成）
 
 ### 对话：盾卫纯远程定位、盾卫 AI、C 级入侵 1 突击+1 盾卫、可扩展联动机制

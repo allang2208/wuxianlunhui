@@ -7,6 +7,7 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 
 /**
  * 时空特工(盾位)-F（领主，特工 family）——沙鹰射击 + 盾击 + 防御弹反
@@ -44,12 +45,15 @@ export class TimeAgentShield extends Enemy {
         this._bashCd = 0;
         this._bashHitDone = false;
         this._defendCd = 0;
+        this._walkSoundTimer = 0;
 
         // 装备沙漠之鹰（套用武器数据；命中不击退）
         this._isHumanoid = true;
         const deagle = JSON.parse(JSON.stringify(equipmentJson.equipment.desert_eagle));
         // attackKey 指到 deagle 攻击配置（装备 weaponType 为 pistol，默认会找 attacks.pistol）
         deagle.attackKey = 'deagle';
+        // 开火音效（fireProjectile 读 item.fireSound）
+        if (this.config?.sounds?.fire) deagle.fireSound = this.config.sounds.fire;
         this.equipments.weapon = deagle;
         this.attacks.deagle = createAttackFromConfig(WEAPON_ATTACK_CONFIG.deagle);
         // 伤害取怪物面板物攻（fireProjectile 默认读 config.damage 占位值）
@@ -69,6 +73,14 @@ export class TimeAgentShield extends Enemy {
             bash: s.bash || {},
             defend: s.defend || {},
         };
+    }
+
+    /** 播放配置音效（enemy-config.json 的 sounds 块驱动） */
+    _playSound(key) {
+        const path = this.config?.sounds?.[key];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     // ========== 主循环 ==========
@@ -108,6 +120,17 @@ export class TimeAgentShield extends Enemy {
         // 连续移动计时（walk 首段→循环段）
         if (this.isMoving) this._walkElapsed += dt;
         else this._walkElapsed = 0;
+
+        // 移动脚步音（walking.mp3，按间隔循环）
+        if (this.isMoving) {
+            this._walkSoundTimer -= dt;
+            if (this._walkSoundTimer <= 0) {
+                this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
+                this._playSound('walk');
+            }
+        } else {
+            this._walkSoundTimer = 0;
+        }
 
         // attackRange 按形态/联动动态切换（MovementSystem 用它做减速/停步判定）：
         // idle=交战距离；远程=接近到 150px；联动规则2（突击近战）= 贴近到 shieldCloseRange
@@ -274,6 +297,8 @@ export class TimeAgentShield extends Enemy {
     }
 
     _triggerDefendParry(attacker, isMelee) {
+        // 防御姿态受击音效（hitting.mp3，每次受击播放）
+        this._playSound('bash');
         // 与骑士/玩家盾系统同口径：远程/魔法只抵消伤害；近战才眩晕+击退；弹反免疫单位不受影响
         if (!isMelee) return;
         if (!attacker || attacker._parryImmune) return;
@@ -289,6 +314,8 @@ export class TimeAgentShield extends Enemy {
         const B = this._getSkillConfigs().bash;
         const range = B.range ?? 200;
         const atk = this.data?.atk || 0;
+        // 盾击判定音效（hitting.mp3，判定时播放）
+        this._playSound('bash');
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of this._hostiles(entities)) {
             if (!shape.intersectsEntity(e)) continue;
@@ -333,6 +360,10 @@ export class TimeAgentShield extends Enemy {
         const ox = this.x, oy = this.y;
         let mx = ox + (this._isFacingLeft() ? -side : side);
         let my = oy - up;
+        // 防御姿态开火：枪口点下移 defendMuzzleDownY（子弹/枪口火焰/弹壳同步，退出防御自动恢复）
+        if (this._formState === 'defendHold') {
+            my += skills.defendMuzzleDownY ?? 45;
+        }
         // 枪口点落进墙内时回退到可达点（防止子弹出生即撞墙消失）
         if (WallSystem && typeof WallSystem.resolve === 'function') {
             const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
