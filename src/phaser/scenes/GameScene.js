@@ -2464,12 +2464,14 @@ export class GameScene extends Scene {
         // render 来源：新怪（enemy-config.json）走 entity.config.render，老怪（animation-config）走 _animCfg.render
         const renderCfg = entity._animCfg?.render || entity.config?.render || {};
         const hudDy = renderCfg.hudOffsetY || 0;
-        // 默认工作流（新增怪物）：render.capsuleHudAnchor=true 时名字/血条锚定圆柱体碰撞体积
-        // 最上方（胶囊顶 = footprint Y − 碰撞高度，含 colliderOffsetY）；旧怪物保持贴图顶部锚点不动
+        // 默认工作流（新增怪物）：render.capsuleHudAnchor=true 时名字/血条锚定**圆柱体**碰撞体积
+        // 最上方——三套碰撞体积注意区分：footprint 椭圆（地面）/ 绿色矩形（collisionWidth×collisionHeight
+        // 近战判定）/ 圆柱体胶囊（collider.height，投射物判定）。锚点 = 胶囊 footprint Y − collider.height；
+        // 旧怪物保持贴图顶部锚点不动
         let anchorTop = topY;
         if (renderCfg.capsuleHudAnchor) {
-            const colliderH = entity.collisionHeight || renderCfg.collisionHeight || size * 2;
-            anchorTop = (entity.collider ? entity.collider.y : entity.y) - colliderH;
+            const capH = (entity.collider && entity.collider.height) || renderCfg.spriteSize || size * 2;
+            anchorTop = (entity.collider ? entity.collider.y : entity.y) - capH;
         }
         if (hp < maxHp) {
             const cfg = renderCfg.healthBar || { width: 28, height: 4, offsetY: -30 };

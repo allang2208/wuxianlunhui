@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（特工音效接入 + HUD 锚点修正为圆柱体）
+
+### 对话：特工声音配置；名字/血条锚到圆柱体而非绿色矩形
+- **音效**（assets/sounds/enemies/time_agent/ 建档，配置驱动）：
+  - `axe.mp3`——近战攻击立即播放；远程切换近战（axeIntro）在第 14 帧播放一次（`sounds.axeIntroFrame` 可调）；
+  - `switch.mp3`——所有形态切换过渡（toRanged/toIdle/toRangedSwitch）播放；
+  - `running.mp3`——替换骑士 walking，近战移动每 0.8s 一次（`meleeStepInterval: 800`）；
+  - `flash.mp3`——闪光弹投射物落地消失时播放。
+- **HUD 锚点修正**：此前误用绿色矩形 `collisionHeight` 算胶囊顶——三套碰撞体积明确区分：footprint 椭圆（地面分离）/ 绿色矩形（collisionWidth×collisionHeight，近战判定）/ 圆柱体胶囊（`collider.height` 来自 config.height 或 render.spriteSize，投射物判定）。锚点改为**圆柱体胶囊顶**（`entity.collider.y − collider.height`），SKILL.md 工作流条目同步澄清。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、src/phaser/scenes/GameScene.js、data/enemy-config.json、assets/sounds/enemies/time_agent/、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——各音效时机、名字/血条位于圆柱体正上方。
+
 ## 2026-07-21（时空特工追击机制：地牢回合制 + 入侵战斗）
 
 ### 对话：D 级及以上地牢的时空特工入侵机制（全部配置驱动，预留调整接口）

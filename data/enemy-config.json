@@ -1536,8 +1536,12 @@
     "sounds": {
       "fire": "assets/sounds/qbz191_shot6_valley.mp3",
       "reload": "assets/sounds/reload_sharp.mp3",
-      "meleeStep": "assets/sounds/enemies/armored_knight/walking.mp3",
-      "meleeStepInterval": 300
+      "axe": "assets/sounds/enemies/time_agent/axe.mp3",
+      "axeIntroFrame": 14,
+      "switch": "assets/sounds/enemies/time_agent/switch.mp3",
+      "meleeStep": "assets/sounds/enemies/time_agent/running.mp3",
+      "meleeStepInterval": 800,
+      "flash": "assets/sounds/enemies/time_agent/flash.mp3"
     }
   }
 }
