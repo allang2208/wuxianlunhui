@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（音效目录规范迁移 + 盾卫开火改 gunshot）
+
+### 对话：音效按实体建子目录区分；盾卫开火用 gunshot.mp3
+- **目录规范**：`assets/sounds/` 根目录 20 个音效按类别迁移——`weapons/`（枪械开火/换弹/过热 14 个）、`bow/`（弓箭 2 个）、`ui/`（金币/升级/出售/击倒 5 个）、`shield/`（盾击木声 2 个）；`enemies/<怪物>/` 结构不变。约 30 处引用（shop/equip/enchant/game/player/weapon-anim/shield-system/weapon-fx-config/enemy-config）全部同步改路径，含两条历史悬空引用（arrow_flyby_1s.mp3、pkm_single_600ms.wav，文件缺失非本次引入）一并规范到新目录。根目录引用已清零。
+- **SKILL.md**：音效工作流新增"目录规范"条目（按实体类别建子目录，新增音效一律入对应目录）。
+- **盾卫开火音**：`sounds.fire` hitting.mp3 → **gunshot.mp3**。
+- **修改文件**：assets/sounds/（目录迁移）、src/ui/{shop-system,equip-data-manager,enchant-system}.js、src/game.js、src/entities/player/{weapon-anim,update,subsystems}.js、src/entities/components/shield-system.js、src/config/weapon-fx-config.js、data/enemy-config.json、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——各武器/系统音效正常、盾卫开火 gunshot。
+
 ## 2026-07-21（主神空间 4096² 砖地场地 + 障碍物碰撞清除）
 
 ### 对话：主神空间改成小鼠大王中心 4096×4096 砖地场地；排查障碍物碰撞残留

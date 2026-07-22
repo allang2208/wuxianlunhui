@@ -494,7 +494,18 @@ _getPhaserOptions() {
 
 ---
 
-## 音效导入工作流（2026-07-17 新增，参照集合体落地）
+## 音效导入工作流（2026-07-17 新增，参照集合体落地；2026-07-21 目录规范更新）
+
+### 目录规范（2026-07-21）
+所有音效**按实体类别建子目录，禁止堆在 assets/sounds/ 根目录**：
+```
+assets/sounds/enemies/<怪物英文名>/   # 怪物音效（如 amalgam/time_agent/time_agent_shield）
+assets/sounds/weapons/                # 枪械开火/换弹/过热等武器音效
+assets/sounds/bow/                    # 弓箭音效
+assets/sounds/shield/                 # 盾牌格挡/受击音效
+assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音效
+```
+2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
 
 ### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：

@@ -611,10 +611,10 @@ update(dt, entities) {
                             // 过热音效
                             if (SoundManager) {
                                 if (_currentWep2.weaponType === 'energy_lmg') {
-                                    SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
-                                    SoundManager.playFile('assets/sounds/apex_reload_4s_raw.mp3');
+                                    SoundManager.playFile('assets/sounds/weapons/pkm_ammo_steam_mixed.wav');
+                                    SoundManager.playFile('assets/sounds/weapons/apex_reload_4s_raw.mp3');
                                 } else {
-                                    SoundManager.playFile('assets/sounds/pkm_ammo_steam_mixed.wav');
+                                    SoundManager.playFile('assets/sounds/weapons/pkm_ammo_steam_mixed.wav');
                                 }
                             }
                         }

@@ -214,7 +214,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 // 死亡后 update 多数被跳过，各实体自身的"死亡即停"检查未必执行，必须在此兜底
                 if (typeof this._destroyCustomEffects === 'function') this._destroyCustomEffects();
                 if (SoundManager && SoundManager.playFile) {
-                    SoundManager.playFile('assets/sounds/knockdown_1.mp3');
+                    SoundManager.playFile('assets/sounds/ui/knockdown_1.mp3');
                 }
                 if (source && source.data) source.data.kills++;
                 EffectManager.add(new DeathEffect(this.x, this.y, this.size));

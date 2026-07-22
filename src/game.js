@@ -1059,7 +1059,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                             if (SoundManager) {
-                                SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                                SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                             }
                         } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
                             EquipManager.addToBackpack(entity.itemData);
@@ -1068,7 +1068,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             this.entities.delete(key);
                             EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                             if (SoundManager) {
-                                SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                                SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                             }
                         } else {
                             BackpackDialogManager._showBackpackFullNotice();
@@ -1094,7 +1094,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                         if (SoundManager) {
-                            SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }
                     } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
                         EquipManager.addToBackpack(entity.itemData);
@@ -1103,7 +1103,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
                         if (SoundManager) {
-                            SoundManager.playFile('assets/sounds/coins_wood_sharp.mp3');
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }
                     } else {
                         BackpackDialogManager._showBackpackFullNotice();

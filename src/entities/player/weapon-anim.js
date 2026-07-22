@@ -82,7 +82,7 @@ const weaponAnimMixin = {
                     anim.state = 'windup';
                     anim.timer = 0;
                     anim.rotateAngle = -14 * (Math.PI / 180);
-                    SoundManager.playFile('assets/sounds/rope_pull_1s.wav');
+                    SoundManager.playFile('assets/sounds/bow/rope_pull_1s.wav');
                 } else {
                     const t = anim.timer / 500;
                     const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -147,7 +147,7 @@ const weaponAnimMixin = {
                         const mouseWorldY = Input.mouse.y + Camera.y - CONFIG.VIEW_HEIGHT / 2;
                         this.rangedFireData.targetX = mouseWorldX;
                         this.rangedFireData.targetY = mouseWorldY;
-                        SoundManager.playFile('assets/sounds/arrow_flyby_1s.mp3');
+                        SoundManager.playFile('assets/sounds/bow/arrow_flyby_1s.mp3');
                         this._fireRanged('main');
                     }
                     anim.state = 'idle_return';

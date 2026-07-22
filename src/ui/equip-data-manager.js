@@ -36,7 +36,7 @@ export const EquipDataManager = {
         desc: 'G18 全自动手枪，1100发/分钟，淡金色曳光弹，可双持',
         equipSlot: 'weapon',
         attack: { range: 650, knockback: 0, attackInterval: 55, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'pistol', offhandAttackKey: 'pistolOffhand', animConfigKey: 'pistol', fireSound: 'assets/sounds/akm_burst.mp3', isDarkGold: false, canvasImageProp: 'pistolImage',
+        attackKey: 'pistol', offhandAttackKey: 'pistolOffhand', animConfigKey: 'pistol', fireSound: 'assets/sounds/weapons/akm_burst.mp3', isDarkGold: false, canvasImageProp: 'pistolImage',
         ammoConfig: { max: 12, reloadTime: 1000 }, fireMode: 'fullAuto',
         attackFormula: { base: 5, enhanceFlat: 1, attrs: [{ key: 'dex', base: 0.35, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 0, maxTime: 300, maxAngle: 25 }
@@ -55,7 +55,7 @@ export const EquipDataManager = {
         desc: '沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火2秒后计算散布',
         equipSlot: 'weapon',
         attack: { range: 750, knockback: 10, attackInterval: 800, hitType: '深黄色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'deagle', offhandAttackKey: 'deagleOffhand', animConfigKey: 'deagle', fireSound: 'assets/sounds/cs_deagle_35_80.wav', isDarkGold: true, canvasImageProp: 'deagleImage',
+        attackKey: 'deagle', offhandAttackKey: 'deagleOffhand', animConfigKey: 'deagle', fireSound: 'assets/sounds/weapons/cs_deagle_35_80.wav', isDarkGold: true, canvasImageProp: 'deagleImage',
         ammoConfig: { max: 6, reloadTime: 1750 }, fireMode: 'semiAuto',
         attackFormula: { base: 30, enhanceFlat: 0, attrs: [{ key: 'dex', base: 1, perEnhance: 0 }, { key: 'wis', base: 2, perEnhance: 0 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 30 },
@@ -86,7 +86,7 @@ export const EquipDataManager = {
         desc: 'P4040 半自动手枪，高射速半自动射击，可双持',
         equipSlot: 'weapon',
         attack: { range: 750, knockback: 2, attackInterval: 300, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, bulletSpeed: 1248 },
-        attackKey: 'p4040', offhandAttackKey: 'p4040Offhand', animConfigKey: 'p4040', fireSound: 'assets/sounds/apex2_shot_1s.wav', isDarkGold: true, canvasImageProp: 'p4040Image',
+        attackKey: 'p4040', offhandAttackKey: 'p4040Offhand', animConfigKey: 'p4040', fireSound: 'assets/sounds/weapons/apex2_shot_1s.wav', isDarkGold: true, canvasImageProp: 'p4040Image',
         ammoConfig: { max: 12, reloadTime: 1200 }, fireMode: 'semiAuto',
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'dex', base: 0.75, perEnhance: 0.15 }, { key: 'wis', base: 1, perEnhance: 0.25 }] },
         spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 1 }
@@ -106,7 +106,7 @@ export const EquipDataManager = {
         equipSlot: 'weapon2',
         attack: { range: 1200, knockback: 3, attackInterval: 92, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         heatParams: { overheatTime: 5000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
-        attackKey: 'pkm', animConfigKey: 'pkm', fireSound: 'assets/sounds/pkm_single_600ms.wav', canvasImageProp: 'pkmImage',
+        attackKey: 'pkm', animConfigKey: 'pkm', fireSound: 'assets/sounds/weapons/pkm_single_600ms.wav', canvasImageProp: 'pkmImage',
         ammoConfig: { max: 75, reloadTime: 3500 }, fireMode: 'fullAuto',
         attackFormula: { base: 10, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.5, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.12 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
@@ -124,7 +124,7 @@ export const EquipDataManager = {
         desc: 'AKM自动步枪，600发/分钟，亮金色曳光弹，可靠耐用的经典步枪',
         equipSlot: 'weapon',
         attack: { range: 1200, knockback: 2, attackInterval: 100, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'akm', animConfigKey: 'akm', fireSound: 'assets/sounds/akm_burst.mp3', canvasImageProp: 'akmImage',
+        attackKey: 'akm', animConfigKey: 'akm', fireSound: 'assets/sounds/weapons/akm_burst.mp3', canvasImageProp: 'akmImage',
         ammoConfig: { max: 30, reloadTime: 1150 }, fireMode: 'fullAuto',
         attackFormula: { base: 9, enhanceFlat: 1, attrs: [{ key: 'int', base: 0.45, perEnhance: 0.12 }, { key: 'wis', base: 0.45, perEnhance: 0.12 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
@@ -142,7 +142,7 @@ export const EquipDataManager = {
         desc: 'QBZ-191自动步枪，850发/分钟，亮金色曳光弹，新一代国产步枪',
         equipSlot: 'weapon',
         attack: { range: 1200, knockback: 2, attackInterval: 70, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'qbz191', animConfigKey: 'qbz191', fireSound: 'assets/sounds/qbz191_shot6_valley.mp3', canvasImageProp: 'qbz191Image',
+        attackKey: 'qbz191', animConfigKey: 'qbz191', fireSound: 'assets/sounds/weapons/qbz191_shot6_valley.mp3', canvasImageProp: 'qbz191Image',
         ammoConfig: { max: 30, reloadTime: 1000 }, fireMode: 'fullAuto',
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'int', base: 0.4, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
@@ -162,7 +162,7 @@ export const EquipDataManager = {
         equipSlot: 'weapon',
         attack: { range: 1200, knockback: 1, attackInterval: 60, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         heatParams: { overheatTime: 4000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
-        attackKey: 'qjb201', animConfigKey: 'qjb201', fireSound: 'assets/sounds/qjb201_single_600ms.wav', canvasImageProp: 'qjb201Image',
+        attackKey: 'qjb201', animConfigKey: 'qjb201', fireSound: 'assets/sounds/weapons/qjb201_single_600ms.wav', canvasImageProp: 'qjb201Image',
         ammoConfig: { max: 60, reloadTime: 2000 }, fireMode: 'fullAuto',
         attackFormula: { base: 7, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.35, perEnhance: 0.10 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 30 }
@@ -181,8 +181,8 @@ export const EquipDataManager = {
         desc: 'Super90 半自动散弹枪，一次击发6发弹丸，单发装填换弹机制，近距离毁灭性火力',
         equipSlot: 'weapon',
         attack: { range: 500, knockback: 12.5, attackInterval: 333, hitType: '散弹（6发弹丸）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'super90', animConfigKey: 'shotgun', fireSound: 'assets/sounds/gunshot_600ms_clean.wav', pelletCount: 6, equipSound: 'assets/sounds/bolt_pull_1s_clean.wav', canvasImageProp: 'super90Image',
-        ammoConfig: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/Super90-reload.mp3' }, fireMode: 'semiAuto',
+        attackKey: 'super90', animConfigKey: 'shotgun', fireSound: 'assets/sounds/weapons/gunshot_600ms_clean.wav', pelletCount: 6, equipSound: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', canvasImageProp: 'super90Image',
+        ammoConfig: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' }, fireMode: 'semiAuto',
         attackFormula: { base: 10, enhanceFlat: 1, attrs: [{ key: 'con', base: 0.2, perEnhance: 0.10 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }], variants: { slugMode: { base: 8, enhanceFlat: 5, attrs: [{ key: 'con', base: 0.6, perEnhance: 0.05 }, { key: 'wis', base: 1, perEnhance: 0.1 }] } } }
     },
     SAIGA12K_ITEM: {
@@ -199,7 +199,7 @@ export const EquipDataManager = {
         desc: 'SAIGA-12K 半自动散弹枪，一次击发4发弹丸，正常弹夹换弹，高射速近距离火力',
         equipSlot: 'weapon',
         attack: { range: 400, knockback: 12.5, attackInterval: 150, hitType: '散弹（4发弹丸）', damageType: '物理', projectileSpeed: 1248 },
-        attackKey: 'saiga12k', animConfigKey: 'shotgun', fireSound: 'assets/sounds/gunshot_600ms_open.wav', pelletCount: 4, canvasImageProp: 'saiga12kImage',
+        attackKey: 'saiga12k', animConfigKey: 'shotgun', fireSound: 'assets/sounds/weapons/gunshot_600ms_open.wav', pelletCount: 4, canvasImageProp: 'saiga12kImage',
         ammoConfig: { max: 12, reloadTime: 2000 }, fireMode: 'fullAuto',
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'con', base: 0.5, perEnhance: 0.15 }, { key: 'wis', base: 0.25, perEnhance: 0.10 }], variants: { slugMode: { base: 8, enhanceFlat: 5, attrs: [{ key: 'con', base: 0.6, perEnhance: 0.05 }, { key: 'wis', base: 1, perEnhance: 0.1 }] } } }
     },
@@ -306,7 +306,7 @@ export const EquipDataManager = {
         desc: '能量轻机枪，发射高能粒子束，无限能量供给。按住鼠标持续开火，射速随时间线性提升，过热后需冷却。',
         equipSlot: 'weapon',
         attack: { range: 1200, knockback: 0, attackInterval: 333, hitType: '亮绿色曳光弹（直线弹道）', damageType: '魔法', projectileSpeed: 1248 },
-        attackKey: 'energy_lmg', animConfigKey: 'energy_lmg', fireSound: 'assets/sounds/akm_burst.mp3', canvasImageProp: 'energyLmgImage',
+        attackKey: 'energy_lmg', animConfigKey: 'energy_lmg', fireSound: 'assets/sounds/weapons/akm_burst.mp3', canvasImageProp: 'energyLmgImage',
         ammoConfig: { max: Infinity, reloadTime: 0 }, fireMode: 'fullAuto',
         attackFormula: { base: 6, enhanceFlat: 0, attrs: [{ key: 'str', base: 0.35, perEnhance: 0.10 }, { key: 'wis', base: 0.35, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 0, maxTime: 2500, maxAngle: 15 },
@@ -339,8 +339,8 @@ export const EquipDataManager = {
         attackFormula: { base: 60, enhanceFlat: 15, attrs: [{ key: 'dex', base: 2.5, perEnhance: 1.75 }, { key: 'str', base: 2, perEnhance: 1.75 }] },
         chargeAttack: { chargeTime: 1500, flashDuration: 500 },
         sound: {
-            rotateComplete: 'assets/sounds/rope_pull_1s.wav',
-            attackEnd: 'assets/sounds/arrow_flyby_1s.mp3'
+            rotateComplete: 'assets/sounds/bow/rope_pull_1s.wav',
+            attackEnd: 'assets/sounds/bow/arrow_flyby_1s.mp3'
         }
     },
     SMALL_SHIELD_ITEM: {

@@ -69,7 +69,7 @@ gainExp(amount) {
 onLevelUp(level) {
                 // 播放升级音效
                 if (SoundManager && SoundManager.playFile) {
-                    SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
+                    SoundManager.playFile('assets/sounds/ui/levelup_cyber_5s.wav');
                 }
                 // 使用特效队列顺序播放
                 LevelUpEffectQueue.add({
@@ -1152,12 +1152,12 @@ _startReload(slot) {
                 if (singleReloadMode) {
                     // 单发装填模式（如Super90）
                     state.singleReloadMode = true;
-                    SoundManager.playFile(reloadSound || 'assets/sounds/Super90-reload.mp3');
+                    SoundManager.playFile(reloadSound || 'assets/sounds/weapons/Super90-reload.mp3');
                 } else {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
                     if (SoundManager && SoundManager.playFile) {
-                        SoundManager.playFile('assets/sounds/reload_sharp.mp3', 1.69);
+                        SoundManager.playFile('assets/sounds/weapons/reload_sharp.mp3', 1.69);
                     }
                 }
                 return true;
@@ -1200,12 +1200,12 @@ _updateReload(dt) {
                                 this._gunSpreadTimerOff = 0; // 同时重置副手散布
                                 // 单发装填满弹时播放枪栓音效
                                 if (SoundManager && SoundManager.playFile) {
-                                    SoundManager.playFile('assets/sounds/bolt_pull_1s_clean.wav');
+                                    SoundManager.playFile('assets/sounds/weapons/bolt_pull_1s_clean.wav');
                                 }
                             } else {
                                 // 继续装填下一发
                                 state.reloadTimer = state.reloadTime;
-                                SoundManager.playFile('assets/sounds/Super90-reload.mp3');
+                                SoundManager.playFile('assets/sounds/weapons/Super90-reload.mp3');
                             }
                         } else {
                             // 普通武器：一次性装满

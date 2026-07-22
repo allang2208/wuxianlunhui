@@ -776,7 +776,7 @@ const EnchantSystem = {
 
         // 播放音效
         if (SoundManager && SoundManager.playFile) {
-            SoundManager.playFile('assets/sounds/levelup_cyber_5s.wav');
+            SoundManager.playFile('assets/sounds/ui/levelup_cyber_5s.wav');
         }
 
         this._showMessage('附魔成功！', 'success');

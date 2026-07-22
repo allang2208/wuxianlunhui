@@ -71,7 +71,7 @@ export class ShieldSystem {
         const staminaCost = defense.staminaCost || 20;
 
         // 播放防御受击音效（非弹反）
-        this._playSound('assets/sounds/wood_hit_crisp_cavity_1s.wav');
+        this._playSound('assets/sounds/shield/wood_hit_crisp_cavity_1s.wav');
 
         if (this.player.data.stamina < staminaCost) {
             // 体力不足 → 眩晕，取消防御
@@ -93,7 +93,7 @@ export class ShieldSystem {
         const defense = shieldData?.defense || {};
 
         // 播放弹反音效
-        this._playSound('assets/sounds/wood_thud_1s.wav');
+        this._playSound('assets/sounds/shield/wood_thud_1s.wav');
 
         // 只有近战攻击才施加眩晕、击退、打断冲刺
         if (!isMelee) return;
