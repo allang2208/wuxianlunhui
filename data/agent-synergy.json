@@ -1,0 +1,21 @@
+{
+  "$schema": "特工联动机制配置（新机制/数值在此调整，勿硬编码；其他怪物可按同结构扩展角色与规则）",
+  "enabled": true,
+  "comment_roles": "参与联动的角色 → enemy-config.json 配置键；场景内同时存在各角色时联动生效",
+  "roles": {
+    "assault": "timeAgentAssault",
+    "shield": "timeAgentShield"
+  },
+  "rules": {
+    "flashBashDelay": {
+      "comment": "突击闪光弹眩晕期间，盾卫暂缓盾击，眩晕结束后立即释放",
+      "enabled": true
+    },
+    "meleeSupport": {
+      "comment": "突击处于近战状态时：盾卫贴近到 shieldCloseRange 优先盾击；突击拉开换回远程，assaultFallbackMs 内未换回则恢复默认近战 AI",
+      "enabled": true,
+      "shieldCloseRange": 50,
+      "assaultFallbackMs": 4000
+    }
+  }
+}

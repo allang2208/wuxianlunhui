@@ -48,6 +48,7 @@ import { Shounao } from './entities/enemy-types/shounao.js';
 import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
 import { FlyHand } from './entities/enemy-types/fly-hand.js';
 import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
+import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -353,6 +354,27 @@ export const Game = {
         this.clearMainMonstersAndSpawnDog();
         // 时空特工(突击)-F 测试生成（双形态机制验证）
         this.spawnMainTimeAgent();
+        // 时空特工(盾位)-F 测试生成（沙鹰/盾击/防御弹反验证）
+        this.spawnMainTimeAgentShield();
+    },
+
+    spawnMainTimeAgentShield() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const shieldCfg = enemyConfigData.timeAgentShield || {};
+        // 迷宫已拆除，origin 东侧开阔地带生成（与突击特工错开站位）
+        const shield = new TimeAgentShield(origin.x + 700, origin.y + 100, {
+            ...shieldCfg,
+            showWeapon: false,
+            ai: {
+                ...(shieldCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_timeshield', shield);
     },
 
     spawnMainTimeAgent() {

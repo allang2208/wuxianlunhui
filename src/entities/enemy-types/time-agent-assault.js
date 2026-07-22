@@ -11,6 +11,7 @@ import { AimHelper } from '../../utils/aim-helper.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { pathFinder } from '../../ai/pathfinder.js';
 import { SoundManager } from '../../ui/sound-manager.js';
+import { AgentLinkSystem } from '../../world/agent-link-system.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -79,6 +80,10 @@ export class TimeAgentAssault extends Enemy {
         this._selfMoving = false;    // 远程自驱移动标记（MovementSystem 锁定会清零 isMoving，动画以此为准）
         this._meleeStepTimer = 0;    // 近战脚步音计时
         this._rangedMoveMode = null; // 远程当前移动模式（迟滞切换，防边界抖动）
+        // 联动规则2（近战回拉）状态
+        this._linkRetreatStart = null;
+        this._linkRetreatDisabled = false;
+        this._linkRetreating = false;
 
         // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+2s换弹，弹匣无限）
         this._isHumanoid = true;
@@ -157,6 +162,8 @@ export class TimeAgentAssault extends Enemy {
             // 近战形态交给 MovementSystem 主动追击
             this._attackAnimTimer = this._formState === 'ranged' ? 100 : 0;
             this._updateForms(dt, entities, t, dist);
+            // 联动规则2 自驱回拉期间同样锁定 MovementSystem
+            if (this._linkRetreating) this._attackAnimTimer = 100;
         }
 
         // 连续移动计时（walk/walk2 首段→循环段）：
@@ -307,6 +314,25 @@ export class TimeAgentAssault extends Enemy {
         }
 
         if (this._formState === 'melee') {
+            // 联动规则2：盾卫在场时优先拉开距离换回远程（4s 未换回恢复默认近战 AI）
+            const linkCfg = AgentLinkSystem.getMeleeSupportConfig();
+            if (linkCfg && t && !this._linkRetreatDisabled) {
+                if (!this._linkRetreatStart) this._linkRetreatStart = Date.now();
+                const elapsed = Date.now() - this._linkRetreatStart;
+                if (elapsed < linkCfg.assaultFallbackMs) {
+                    this._linkRetreating = true;
+                    // 自驱远离目标，满足切回远程条件（下方切换判定照常进行）
+                    const awayA = Math.atan2(this.y - t.y, this.x - t.x);
+                    this._moveToward(this.x + Math.cos(awayA) * 200, this.y + Math.sin(awayA) * 200, this.maxSpeed, dt);
+                    this._selfMoving = true;
+                } else {
+                    // 4s 未换回：本次近战状态内禁用联动，恢复默认近战 AI
+                    this._linkRetreatDisabled = true;
+                    this._linkRetreating = false;
+                }
+            } else {
+                this._linkRetreating = false;
+            }
             // 近战→远程：远程风格目标拉开 150px 以上，或任意目标拉开 300px 持续 3s
             if (this._formSwitchCd <= 0) {
                 const rangedOut = t && !this._isTargetMeleeStyle(t) && dist > (F.meleeCheckRange ?? 150);
@@ -398,6 +424,12 @@ export class TimeAgentAssault extends Enemy {
         this._formSwitchCd = F.formSwitchCooldown ?? 1000;
         this._walkElapsed = 0;
         this._farHoldTimer = 0;
+        // 进入近战：重置联动回拉状态（每次近战独立计 4s 预算）
+        if (state === 'melee') {
+            this._linkRetreatStart = null;
+            this._linkRetreatDisabled = false;
+        }
+        this._linkRetreating = false;
     }
 
     _startTransition(state, ms) {
@@ -740,6 +772,8 @@ export class TimeAgentAssault extends Enemy {
             e.takeDamage(Math.max(1, Math.round(matk * (FB.damageMul ?? 1.5))), this, 'magic', false);
             if (FB.stunMs && typeof e.applyStun === 'function') {
                 e.applyStun(FB.stunMs);
+                // 联动规则1：登记闪光眩晕，盾卫在其持续期间暂缓盾击
+                AgentLinkSystem.notifyFlashStun(e, FB.stunMs);
             }
         }
         // 爆炸特效：椭圆周长一圈扬尘（向上漂浮淡出）+ 中心白色放射线条（50% 透明度快速延伸消失）
@@ -803,7 +837,7 @@ export class TimeAgentAssault extends Enemy {
 
     /** 有效移动标记：远程模式 MovementSystem 锁定清零 isMoving，用自驱标记；其余形态用 isMoving */
     _effectiveMoving() {
-        return this._formState === 'ranged' ? !!this._selfMoving : !!this.isMoving;
+        return (this._formState === 'ranged' || this._linkRetreating) ? !!this._selfMoving : !!this.isMoving;
     }
 
     /** 当前状态对应的贴图键（必须是已加载的纹理；动画键见 _getAnimKey） */

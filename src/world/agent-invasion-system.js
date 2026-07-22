@@ -1,6 +1,12 @@
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { createTimeAgentAssault } from './zombie-dungeon.js';
+import { createTimeAgentAssault, createTimeAgentShield } from './zombie-dungeon.js';
 import invasionConfig from '../../data/agent-invasion.json';
+
+/** 角色 → 工厂（配置 agentCompositionByGrade 的角色键在此登记） */
+const ROLE_FACTORIES = {
+    assault: createTimeAgentAssault,
+    shield: createTimeAgentShield,
+};
 
 /**
  * 时空特工追击机制（配置：data/agent-invasion.json，勿硬编码）
@@ -133,9 +139,19 @@ export const AgentInvasionSystem = {
     /** 供 CombatRoomSystem.spawnMonsters 使用的特工类工厂（其内部 new 调用等价工厂调用） */
     spawnAgentClass() { return createTimeAgentAssault; },
 
+    /** 当前难度入侵的特工工厂列表（构成配置优先，缺省按数量全突击） */
+    getAgentFactories() {
+        const grade = this.getGrade();
+        const comp = (invasionConfig.agentCompositionByGrade || {})[grade];
+        if (Array.isArray(comp) && comp.length > 0) {
+            return comp.map(role => ROLE_FACTORIES[role] || createTimeAgentAssault);
+        }
+        return Array.from({ length: this.getAgentCount() }, () => createTimeAgentAssault);
+    },
+
     /** 生成一只入侵特工（全场敌对：faction=agent + 自管最近目标） */
-    spawnAgent(x, y) {
-        const agent = createTimeAgentAssault(x, y);
+    spawnAgent(x, y, factory = createTimeAgentAssault) {
+        const agent = factory(x, y);
         this.markAsInvasion(agent);
         return agent;
     },

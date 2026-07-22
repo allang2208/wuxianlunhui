@@ -4,7 +4,10 @@
     "version": "0.198"
   },
   "display": {
-    "defaultResolution": { "width": 1920, "height": 1080 },
+    "defaultResolution": {
+      "width": 1920,
+      "height": 1080
+    },
     "viewWidth": 1920,
     "viewHeight": 1080,
     "clearColors": {
@@ -13,8 +16,14 @@
     }
   },
   "world": {
-    "main": { "width": 7650, "height": 3800 },
-    "default": { "width": 7680, "height": 4320 }
+    "main": {
+      "width": 4096,
+      "height": 4096
+    },
+    "default": {
+      "width": 7680,
+      "height": 4320
+    }
   },
   "camera": {
     "smooth": 0.12
@@ -26,16 +35,29 @@
   },
   "scenes": {
     "mainHub": {
-      "origin": { "x": 3825, "y": 1886 }
+      "origin": {
+        "x": 2048,
+        "y": 2048
+      },
+      "wallThickness": 20,
+      "floor": {
+        "tiles": [
+          "hub_brick"
+        ],
+        "glow": false
+      }
     },
     "main": {
       "name": "主神空间",
       "type": "main",
       "label": "场景一",
-      "width": 7650,
-      "height": 3800,
+      "width": 4096,
+      "height": 4096,
       "background": "#2a3520",
-      "origin": { "x": 3825, "y": 1886 }
+      "origin": {
+        "x": 2048,
+        "y": 2048
+      }
     },
     "scene2": {
       "name": "雪地",
@@ -44,7 +66,10 @@
       "width": 9000,
       "height": 9000,
       "background": "#b8c0c8",
-      "origin": { "x": 4500, "y": 4500 }
+      "origin": {
+        "x": 4500,
+        "y": 4500
+      }
     },
     "scene3": {
       "name": "列车上",
@@ -53,7 +78,10 @@
       "width": 3000,
       "height": 1200,
       "background": "#4a4538",
-      "origin": { "x": 1500, "y": 600 }
+      "origin": {
+        "x": 1500,
+        "y": 600
+      }
     },
     "scene4": {
       "name": "古堡",
@@ -62,7 +90,10 @@
       "width": 9000,
       "height": 9000,
       "background": "#000000",
-      "origin": { "x": 4500, "y": 4500 }
+      "origin": {
+        "x": 4500,
+        "y": 4500
+      }
     },
     "scene5": {
       "name": "AI测试场",
@@ -71,7 +102,10 @@
       "width": 6120,
       "height": 3040,
       "background": "#3a3a3a",
-      "origin": { "x": 3060, "y": 1520 }
+      "origin": {
+        "x": 3060,
+        "y": 1520
+      }
     },
     "scene7": {
       "name": "僵尸地牢",
@@ -80,19 +114,39 @@
       "width": 1024,
       "height": 1024,
       "background": "#000000",
-      "origin": { "x": 512, "y": 512 },
+      "origin": {
+        "x": 512,
+        "y": 512
+      },
       "dungeonType": "zombie"
     }
   },
   "loot": {
     "drops": {
       "mainHub": {
-        "g18": { "x": 120, "y": 0 },
-        "saiga12k": { "x": 160, "y": 0 },
-        "scrollBase": { "x": 200, "y": 0, "spacing": 40 },
+        "g18": {
+          "x": 120,
+          "y": 0
+        },
+        "saiga12k": {
+          "x": 160,
+          "y": 0
+        },
+        "scrollBase": {
+          "x": 200,
+          "y": 0,
+          "spacing": 40
+        },
         "magicDust": [
-          { "x": 200, "y": 40 },
-          { "x": 240, "y": 40, "stack": 999 }
+          {
+            "x": 200,
+            "y": 40
+          },
+          {
+            "x": 240,
+            "y": 40,
+            "stack": 999
+          }
         ],
         "materials": {
           "baseX": 280,
@@ -106,23 +160,44 @@
   },
   "portals": {
     "mainHub": {
-      "base": { "x": 3478, "y": 2363 },
+      "base": {
+        "x": 3478,
+        "y": 2363
+      },
       "spacing": 100,
       "direction": "left",
       "cooldownMs": 2000,
       "triggerDistance": 30,
       "entries": [
-        { "targetScene": "scene2", "label": "场景二" },
-        { "targetScene": "scene3", "label": "场景三" },
-        { "targetScene": "scene4", "label": "场景四" },
-        { "targetScene": "scene5", "label": "场景五" },
-        { "targetScene": "scene7", "label": "僵尸地牢" }
+        {
+          "targetScene": "scene2",
+          "label": "场景二"
+        },
+        {
+          "targetScene": "scene3",
+          "label": "场景三"
+        },
+        {
+          "targetScene": "scene4",
+          "label": "场景四"
+        },
+        {
+          "targetScene": "scene5",
+          "label": "场景五"
+        },
+        {
+          "targetScene": "scene7",
+          "label": "僵尸地牢"
+        }
       ]
     }
   },
   "targets": {
     "training": {
-      "base": { "x": 3821, "y": 2365 },
+      "base": {
+        "x": 3821,
+        "y": 2365
+      },
       "cols": 3,
       "rows": 3,
       "spacing": 120,
@@ -142,7 +217,10 @@
       "dpsTracking": true
     },
     "testTargets": {
-      "base": { "x": 4379, "y": 2411 },
+      "base": {
+        "x": 2800,
+        "y": 2300
+      },
       "spacing": 60,
       "perRow": 5,
       "count": 20,
@@ -156,7 +234,10 @@
   },
   "npcs": {
     "shopMouseKing": {
-      "offset": { "x": 120, "y": -150 },
+      "offset": {
+        "x": 120,
+        "y": -150
+      },
       "name": "小鼠大王",
       "size": 20,
       "collisionRadius": 14,
@@ -166,7 +247,10 @@
     },
     "mouseAttendant": {
       "relativeTo": "shopMouseKing",
-      "offset": { "x": -100, "y": 0 },
+      "offset": {
+        "x": -100,
+        "y": 0
+      },
       "name": "小鼠侍从",
       "size": 20,
       "collisionRadius": 14,
@@ -178,21 +262,24 @@
   "trees": {
     "demoLayout": {
       "treeRadius": 25,
-      "groups": [
-        { "count": 5, "baseX": 300, "baseY": 0, "spacingX": 300, "spacingY": 0, "yJitter": 20, "type": "normal", "startIndex": 0 },
-        { "count": 3, "baseX": 300, "baseY": 300, "spacingX": 300, "spacingY": 0, "yJitter": 20, "type": "snow", "startIndex": 5 }
-      ]
+      "groups": []
     }
   },
   "weaponSpawn": {
     "grid": {
-      "base": { "x": -1356, "y": 3 },
+      "base": {
+        "x": -1356,
+        "y": 3
+      },
       "cols": 10,
       "spacingX": 100,
       "spacingY": 200
     },
     "allWeapons": {
-      "offset": { "x": -874, "y": -136 },
+      "offset": {
+        "x": -874,
+        "y": -136
+      },
       "spacing": 50
     }
   },

@@ -8,6 +8,55 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间 4096² 砖地场地 + 障碍物碰撞清除）
+
+### 对话：主神空间改成小鼠大王中心 4096×4096 砖地场地；排查障碍物碰撞残留
+- **场地重构**：`world.main` 7650×3800 → **4096×4096**（NPC 按世界中心+偏移自动居中，小鼠大王落位中心）；origin 迁到 (2048,2048)；测试靶基点 4379,2411（越界）→ 2800,2300。
+- **砖地铺设**：复用地牢地板烘焙（applyDungeonFloor）——brick.png 复制为 `assets/terrain/hub_brick.png`（内容 393×235 等距比例，几何运行时实测免改码）；`scenes.mainHub.floor = { tiles:['hub_brick'], glow:false }`、`wallThickness: 20`（配置驱动）；`_loadMainScene` 在 generateWorld 后设置地板配置、烘焙应用、生成四边边界墙并同步 Phaser。
+- **障碍物碰撞清除（根因）**：`spawnNPC` 里 `trees.demoLayout` 两组演示树木（5 普通+3 雪树）经 `_mainTrees` 每次回主神空间恢复——贴图删除后碰撞体积一直残留。处理：`trees.demoLayout.groups = []`（不再生成）；`_loadMainScene` 不再恢复旧树木并强制清空 `WallSystem.trees` 同步 Phaser。
+- **修改文件**：data/game-config.json、src/world/scene-manager.js、src/phaser/scenes/BootScene.js、assets/terrain/hub_brick.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——砖地铺设观感、边界墙、NPC/测试怪落位、无障碍物残留碰撞。
+
+## 2026-07-21（盾卫：switch 贴图替换 + 音效接入 + 防御开火枪口下移）
+
+### 对话：替换 switch.png；盾卫声音；防御开火子弹/火焰/弹壳下移 45px
+- **switch.png 替换**：新版 8 帧精灵图（4096×2048，格式一致）覆盖旧文件。
+- **音效**（assets/sounds/enemies/time_agent_shield/ 建档，配置驱动）：walking.mp3 移动按 500ms 间隔循环；hitting.mp3 三处——盾击判定、防御姿态每次受击、开火（item.fireSound 由 fireProjectile 播放）。
+- **防御开火枪口**：`defendHold` 状态下枪口点下移 `shoot.defendMuzzleDownY: 45`（子弹出膛点、枪口火焰、开火火光、弹壳同源下移；退出防御自动恢复正常枪口，无需额外还原）。
+- **修改文件**：assets/enemies/time_agent_shield/switch.png、assets/sounds/enemies/time_agent_shield/、src/entities/enemy-types/time-agent-shield.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——新切换动画、脚步/盾击/受击/开火音效时机、防御开火弹道高度。
+
+## 2026-07-21（盾卫 AI 定调 + 特工联动机制系统 + C 级入侵构成）
+
+### 对话：盾卫纯远程定位、盾卫 AI、C 级入侵 1 突击+1 盾卫、可扩展联动机制
+- **盾卫定位**：纯远程怪物（非双形态），盾击/防御为技能而非近战形态（既有实现一致，无需改动）。
+- **盾卫 AI**：`attackRange` 动态化——idle=交战 800、远程=接近到 `approachRange: 150`；盾击 CD 就绪且在 200px 内**优先**释放，否则枪械远程攻击；防御策略分化：远程风格目标在接近过程中满足 CD **主动防御**，近战风格目标**在其攻击时**才进入防御。
+- **联动机制系统**（`data/agent-synergy.json` + `src/world/agent-link-system.js`，配置驱动可扩展）：
+  - 生效：场景中同时存在 roles 配置的各类特工（默认突击+盾卫）；
+  - 规则1 flashBashDelay：突击闪光弹命中登记眩晕（notifyFlashStun），盾卫在其持续期间**暂缓盾击**，结束立即释放；
+  - 规则2 meleeSupport：突击近战状态时——盾卫贴近到 `shieldCloseRange: 50` 优先盾击；突击自驱拉开换回远程，**4s**（assaultFallbackMs）内未换回则本次近战恢复默认近战 AI，换回则用默认远程 AI。
+- **C 级入侵构成**：`agent-invasion.json` 新增 `agentCompositionByGrade`（C: ['assault','shield']），按难度工厂列表生成；两个生成路径（强制战/混合战自由边）统一走工厂；未配置难度按数量全突击。
+- **修改文件**：data/agent-synergy.json（新）、data/agent-invasion.json、src/world/agent-link-system.js（新）、src/world/agent-invasion-system.js、src/world/dungeon-map-system.js、src/entities/enemy-types/time-agent-assault.js、src/entities/enemy-types/time-agent-shield.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——盾卫 150px 接近/盾击优先/主动防御时机、闪光-盾击接力、突击近战 4s 回拉切换、C 级（未来地牢）1+1 构成。
+
+## 2026-07-21（突击换弹 3s 修正 + 新怪物：时空特工(盾位)-F）
+
+### 对话：突击换弹未设成 3s 检查修正；按工作流新增盾位特工
+- **突击换弹**：`shoot.ammo.reloadTime` 2000 → **3000**（弹匣 30 发打空后 3s 换弹）。
+- **新怪物：时空特工(盾位)-F**（领主，特工 family）：
+  - 配置：HP 2200、速度 165、六维 str30/dex40/con51/int20/wis30/luck23 → 物攻35/物防85/暴击25；魔防55 显式覆盖；渲染吸取突击最终调校（spriteSize 160、胶囊顶 HUD、colliderOffsetY 30、collisionHeight 180）；
+  - 状态机：idle →（800px 交战）0.5s 正放 switch 8 帧切入远程 → 沙鹰移动射击（命中不击退，枪口火焰+火光+弹壳与突击同款，预判瞄准目标矩形上方 25%）→ 目标脱离 1000px 倒放回 idle；
+  - 盾击（仅远程形态，CD 10s）：200px 内 push 17 帧 1.5s、第 7 帧判定物攻×1.5 + 眩晕 2s，不可移动；
+  - 防御（参考骑士格挡，CD 6s）：目标攻击临近 260px 触发，0.75s 正放 defending 10 帧 → 第 10 帧持续 4s（弹反：免伤，近战攻击者眩晕 2s+击退 100，且**可正常开火**）→ 0.75s 倒放退出；
+  - 沙鹰接入：desert_eagle 实例 + `attackKey='deagle'` 指向 WEAPON_ATTACK_CONFIG.deagle，伤害覆盖为面板物攻 35，击退置 0，无限弹药（无换弹需求）。
+- **注册**：enemy-types.js 桶文件、ZOMBIE_FACTORY_MAP（lord 池纳入；中级 Boss 的 poolFamily=僵尸 过滤不受影响）、BootScene 5 组贴图加载 + 11 组动画、主神空间 origin 东 700px 测试生成（与突击错开）。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/time-agent-shield.js（新）、src/entities/enemy-types.js、src/world/zombie-dungeon.js、src/game.js、src/phaser/scenes/BootScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——射击/盾击/防御弹反与开火共存、切换动画、换弹 3s。
+
 ## 2026-07-21（地牢地板：按地牢贴图组 + 随机镜像 + 发光层开关）
 
 ### 对话：僵尸地牢地板更新；发光层关闭但机制保留
