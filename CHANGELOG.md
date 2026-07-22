@@ -8,6 +8,42 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（地牢地板：按地牢贴图组 + 随机镜像 + 发光层开关）
+
+### 对话：僵尸地牢地板更新；发光层关闭但机制保留
+- **素材**：blackbrick-7.png / blackbrick-8.png / blackbrick6.png 复制到 `assets/terrain/` 并在 BootScene 加载（blackbrick_7/blackbrick_8/blackbrick6）。
+- **模块重构**（dungeon-floor-texture.js）：
+  - `setDungeonFloorProfile(profile)` 按地牢类型设置贴图组，离开地牢恢复默认（blackbrick5+发光层）；
+  - 每格**随机选图 + 随机镜像**（flipX/flipY 独立随机）；
+  - 菱形几何改为运行时按贴图 alpha 包围盒**实测缓存**（换素材零改码，中心 Y 差异自动对齐）；
+  - 发光层机制保留：`profile.glow !== false` 时查找 `<贴图键>_glow` 同位置 ADD 平铺——僵尸地牢三个地牢全部 `glow: false` 关闭，以后其他场景可开。
+- **配置**：`data/dungeon-config.json` 各地牢新增 `floor` 字段——高级 `['blackbrick5','blackbrick6']`，初级/中级 `['blackbrick_7','blackbrick_8']`；`DungeonConfig.getDungeonFloorProfile` 暴露；dungeon-map-system init 设置、shutdown 复位。
+- **修改文件**：src/world/dungeon-floor-texture.js、src/config/dungeon-config.js、src/world/dungeon-map-system.js、src/phaser/scenes/BootScene.js、data/dungeon-config.json、assets/terrain/、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——三地牢地板贴图/随机镜像观感、无发光层效果。
+
+## 2026-07-21（追击系统复查：捕获标记重复拦截 bug 修复）
+
+### 对话：回头看排查追击系统 bug
+- **真实 bug**：`AgentInvasionSystem.caught` 追上后置 true 但从未消费——`shouldIntercept` 对之后**每个**非空节点都返回 true，入侵战斗会无限重复触发。修复：`_enterInvasionBattle` 入口调用 `consumeCatch()`（caught=false + agentNodeId 清空），一次入侵只拦截一次。
+- **其余复查结论**：BFS 追击/回合计数/三类战斗分支/继续事件钩子/faction=agent 三方敌对/最近目标/死亡与胜利路径复位均一致无断点；情形 2 特工并入首波怪物追踪数组，完成判定含特工。
+- **修改文件**：src/world/agent-invasion-system.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
+## 2026-07-21（斧击红粒子生成位置调整）
+
+### 对话：红粒子由目标绿色矩形上方 15% 生成并向下掉落，其他不变
+- `playRedFallParticles` 生成点改为**目标绿色矩形碰撞体积上方 15% 带状区**（矩形从脚底向上 collisionHeight，上 15% 区中心 = 脚底 − 0.925×height，宽度内随机散布）；此前按 size 估算头顶位置。掉落/深红/重力/落至 footprint 最下方消失等其余行为不变。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-21（特工脚下椭圆判定面积缩小 20%）
+
+### 对话：特工脚下椭圆判定面积缩小 20%
+- `collisionRadius` 45 → **40.25**（面积按 r² 缩放：45 × √0.8 ≈ 40.25，与毒液僵尸"面积 -50% = ×√0.5"同口径）。
+- **修改文件**：data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：vite build ✅。
+
 ## 2026-07-21（特工：HUD 未生效根因/后退抖动/火光缩小/红粒子强化）
 
 ### 对话：碰撞与名字血条未应用排查、后退射击抖动、火光缩小33%、红粒子×3深红大范围落点消失
