@@ -1017,6 +1017,8 @@ export const DungeonMapSystem = {
         this._eliteChest = null;
         this._eliteChestOpened = false;
         this._invasionNode = node;
+        // 消费捕获标记：一次入侵只拦截一次（否则之后每个节点都会重复触发入侵战斗）
+        AgentInvasionSystem.consumeCatch();
         const arenaSize = AgentInvasionSystem.getArenaSize();
         const count = AgentInvasionSystem.getAgentCount();
 

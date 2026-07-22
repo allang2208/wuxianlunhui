@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（追击系统复查：捕获标记重复拦截 bug 修复）
+
+### 对话：回头看排查追击系统 bug
+- **真实 bug**：`AgentInvasionSystem.caught` 追上后置 true 但从未消费——`shouldIntercept` 对之后**每个**非空节点都返回 true，入侵战斗会无限重复触发。修复：`_enterInvasionBattle` 入口调用 `consumeCatch()`（caught=false + agentNodeId 清空），一次入侵只拦截一次。
+- **其余复查结论**：BFS 追击/回合计数/三类战斗分支/继续事件钩子/faction=agent 三方敌对/最近目标/死亡与胜利路径复位均一致无断点；情形 2 特工并入首波怪物追踪数组，完成判定含特工。
+- **修改文件**：src/world/agent-invasion-system.js、src/world/dungeon-map-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
 ## 2026-07-21（斧击红粒子生成位置调整）
 
 ### 对话：红粒子由目标绿色矩形上方 15% 生成并向下掉落，其他不变

@@ -109,6 +109,12 @@ export const AgentInvasionSystem = {
         return this.caught && node && node.type !== 'empty' && node.type !== 'start';
     },
 
+    /** 入侵战斗触发后消费捕获标记（否则之后每个节点都会被重复拦截） */
+    consumeCatch() {
+        this.caught = false;
+        this.agentNodeId = null;
+    },
+
     /** 当前地牢难度等级 */
     getGrade() {
         const list = DungeonConfig.getDungeonList();
