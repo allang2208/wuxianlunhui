@@ -650,10 +650,10 @@ export class TimeAgentAssault extends Enemy {
             if (A.crippleMs && typeof e.applyCripple === 'function') {
                 e.applyCripple(A.crippleMs);
             }
-            // 命中红色粒子下浮（缓慢起始+重力加速掉落，落到目标 footprint 最下方即消失）
+            // 命中红色粒子下浮（从目标绿色矩形上方 15% 区域生成，落到目标 footprint 最下方消失）
             const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
             if (fxScene && typeof fxScene.playRedFallParticles === 'function') {
-                fxScene.playRedFallParticles(e.x, e.y - (e.size || 0), e);
+                fxScene.playRedFallParticles(e.x, e.y, e);
             }
         }
     }

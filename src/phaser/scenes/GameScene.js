@@ -1997,11 +1997,19 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 红色粒子下浮（斧头命中）：缓慢起始 + 重力加速掉落，持续 1.5s；
-     * 粒子落到目标 footprint 椭圆最下方（collider.y + 半径×透视压缩）即消失
+     * 红色粒子下浮（斧头命中）：从目标绿色矩形碰撞体积上方 15% 区域生成并向下掉落，
+     * 缓慢起始 + 重力加速，落到目标 footprint 椭圆最下方即消失
      */
     playRedFallParticles(x, y, target) {
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        // 生成区域：绿色矩形（collisionWidth×collisionHeight）上方 15% 带状区中心
+        const tH = (target && (target.collisionHeight || target.config?.render?.collisionHeight)) || 60;
+        const tW = (target && (target.collisionWidth || target.config?.render?.collisionWidth)) || 40;
+        const footY0 = (target && target.collider) ? target.collider.y : y;
+        const bandCenterY = footY0 - tH * 0.925;
+        const bandHalfH = tH * 0.075;
+        const sx = (target ? target.x : x) + (Math.random() - 0.5) * tW;
+        const sy = bandCenterY + (Math.random() - 0.5) * 2 * bandHalfH;
         const particles = this.add.particles(0, 0, 'impact_dot', {
             // 起始慢速向下（大范围摆动），重力 500 拉出"由慢到快"的掉落感
             speed: { min: 30, max: 90 },
@@ -2026,7 +2034,7 @@ export class GameScene extends Scene {
             source: { contains: (_px, py) => py >= footY }
         });
         particles.start();
-        particles.emitParticleAt(x, y, 24);
+        particles.emitParticleAt(sx, sy, 24);
         // 持续约 0.9s 发射后停止，1.5s 总寿命销毁
         this.time.delayedCall(900, () => { if (particles && particles.active) particles.stop(); });
         this.time.delayedCall(1500, () => { if (particles && particles.active) particles.destroy(); });

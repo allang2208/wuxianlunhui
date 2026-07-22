@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（斧击红粒子生成位置调整）
+
+### 对话：红粒子由目标绿色矩形上方 15% 生成并向下掉落，其他不变
+- `playRedFallParticles` 生成点改为**目标绿色矩形碰撞体积上方 15% 带状区**（矩形从脚底向上 collisionHeight，上 15% 区中心 = 脚底 − 0.925×height，宽度内随机散布）；此前按 size 估算头顶位置。掉落/深红/重力/落至 footprint 最下方消失等其余行为不变。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
 ## 2026-07-21（特工脚下椭圆判定面积缩小 20%）
 
 ### 对话：特工脚下椭圆判定面积缩小 20%
