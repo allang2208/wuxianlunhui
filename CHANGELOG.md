@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间：删除双特工，生成毒蛆）
+
+### 对话：主神空间测试怪调整为一只毒蛆
+- **修改**：`src/game.js` 的 `spawnMainHubTestEntities` 不再生成时空特工（突击/盾位），改为生成一只毒蛆；删除 `spawnMainTimeAgent` / `spawnMainTimeAgentShield` 两个旧方法；同步移除 game.js 中对 `TimeAgentAssault` / `TimeAgentShield` 的导入，新增 `PoisonMaggot` 导入。
+- **生成位置**：主神空间 origin 东侧 600px、南侧 100px，实体键 `enemy_main_poison_maggot`。
+- **修改文件**：`src/game.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——主神空间是否只显示一只毒蛆，双特工是否已清除。
+
 ## 2026-07-21（新增怪物：毒蛆）
 
 ### 对话：按添加怪物工作流新增精英怪物「毒蛆」，僵尸 family
