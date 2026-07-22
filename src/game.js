@@ -149,6 +149,8 @@ export const Game = {
             SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
             SceneManager._inMainHub = true;
             SceneManager._mainHubInvincible = true;
+            // 主神空间地形（砖地+边界墙）：与 _loadMainScene 统一入口，首启也生效
+            SceneManager._setupMainHubTerrain();
             // 主神空间保留铠甲骑士、手脑用于测试（其余测试怪已清除，spawn 方法保留备用）
             this.spawnMainHubTestEntities();
             // 仓库测试种子：矿石类祭品每样一件（贴图/效果验收用）

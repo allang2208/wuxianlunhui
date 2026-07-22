@@ -396,6 +396,27 @@ export const SceneManager = {
         }
     },
 
+    /** 主神空间地形统一入口：砖地烘焙 + 边界墙（Game.init 首启与 _loadMainScene 回城共用，禁止两套路径） */
+    _setupMainHubTerrain() {
+        const hubCfg = (GAME_CONFIG.scenes && GAME_CONFIG.scenes.mainHub) || {};
+        setDungeonFloorProfile(hubCfg.floor || null);
+        applyDungeonFloor(CONFIG.WORLD_WIDTH);
+        // 场地边界墙（厚度走 mainHub.wallThickness 配置）
+        const wt = hubCfg.wallThickness ?? 20;
+        const size = CONFIG.WORLD_WIDTH;
+        WallSystem.walls = [
+            { x: 0, y: 0, w: size, h: wt, height: 60 },
+            { x: 0, y: size - wt, w: size, h: wt, height: 60 },
+            { x: 0, y: 0, w: wt, h: size, height: 60 },
+            { x: size - wt, y: 0, w: wt, h: size, height: 60 },
+        ];
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        // 恢复主神空间地形，避免残留地牢贴图
+        if (window.__phaserScene) {
+            window.__phaserScene.syncTerrain();
+        }
+    },
+
     _loadMainScene(player) {
         const mainSize = this._resolveWorldSize(this.scenes.main);
         CONFIG.WORLD_WIDTH = mainSize.width;
@@ -419,25 +440,8 @@ export const SceneManager = {
             }
         }
 
-        // 地板：以小鼠大王为中心的矩形场地，brick 贴图等距平铺（与地牢同一烘焙实现）
-        const hubCfg = (GAME_CONFIG.scenes && GAME_CONFIG.scenes.mainHub) || {};
-        setDungeonFloorProfile(hubCfg.floor || null);
-        applyDungeonFloor(CONFIG.WORLD_WIDTH);
-        // 场地边界墙（厚度走 mainHub.wallThickness 配置）
-        const wt = hubCfg.wallThickness ?? 20;
-        const size = CONFIG.WORLD_WIDTH;
-        WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: wt, height: 60 },
-            { x: 0, y: size - wt, w: size, h: wt, height: 60 },
-            { x: 0, y: 0, w: wt, h: size, height: 60 },
-            { x: size - wt, y: 0, w: wt, h: size, height: 60 },
-        ];
-        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-
-        // 恢复主神空间地形，避免残留地牢 blackbrick 贴图
-        if (window.__phaserScene) {
-            window.__phaserScene.syncTerrain();
-        }
+        // 地板与边界墙：统一入口（与 Game.init 首启同一路径）
+        this._setupMainHubTerrain();
 
         if (player) {
             Game.entities.set('player', player);

@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间地板首启不生效整合 + 特工矩形双源对齐）
+
+### 对话：主神空间地板还是旧样式（双渲染路径？）；特工绿色矩形没拉伸（双系统？）——整合
+- **地板根因**：首次启动走 `Game.init → Renderer.generateWorld()` 直路（`SceneManager.init()` 只登记场景），地板烘焙/边界墙写在 `_loadMainScene`（仅回城调用）——首启永远旧样式且无边界墙。整合：抽 `_setupMainHubTerrain()` 统一入口（砖地烘焙+边界墙），**Game.init 首启与 _loadMainScene 回城共用同一路径**，地形渲染统一经 Phaser terrain texture。
+- **特工矩形根因**：躯干绿色矩形的唯一数据源是 `render.projectileHitbox.height`（torso-hitbox.js），此前只拉伸了 `collisionHeight`（110→180），两处错位导致矩形没变。整合对齐：两特工 `projectileHitbox.height = 180`（= collisionHeight）；`test-config-integrity` 新增双源一致性检查——collisionHeight 与 projectileHitbox.height 不一致即警告（首次运行即扫出 11 个历史怪有差异，属各自独立调校；两特工已对齐不再报警）。
+- **修改文件**：src/world/scene-manager.js、src/game.js、data/enemy-config.json、scripts/test-config-integrity.mjs、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅（0 错误）。
+- **已知问题**：实机待验证——首启主神空间砖地+边界墙、两特工绿色矩形 180 高。
+
 ## 2026-07-21（僵尸地牢高级房间数 45~50）
 
 ### 对话：高级房间数优化

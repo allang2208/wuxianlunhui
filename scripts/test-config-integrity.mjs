@@ -71,6 +71,12 @@ for (const [key, cfg] of Object.entries(enemyCfg)) {
             err(`enemy-config.json ${key}.attackSkills.${name}.frames=${sk.frames} 超出 4×8 切割上限 32`);
         }
     }
+    // 碰撞体积双源一致性：collisionHeight（绿色矩形配置）与 projectileHitbox.height（躯干判定唯一来源）
+    // 不一致时判定高度与配置显示不一致（历史 bug：只改 collisionHeight 导致矩形未拉伸）
+    const r = cfg.render || {};
+    if (r.collisionHeight && r.projectileHitbox && r.projectileHitbox.height && r.collisionHeight !== r.projectileHitbox.height) {
+        warn(`enemy-config.json ${key}: collisionHeight(${r.collisionHeight}) 与 projectileHitbox.height(${r.projectileHitbox.height}) 不一致（躯干判定以 projectileHitbox 为准，两处需同步）`);
+    }
 }
 
 // 工厂键 ↔ 配置键（从 zombie-dungeon.js 提取 ZOMBIE_FACTORY_MAP）
