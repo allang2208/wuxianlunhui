@@ -11,6 +11,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
@@ -400,11 +401,10 @@ export const SceneManager = {
             // 主神空间使用固定大小，不随分辨率变化
             Renderer.generateWorld();
             Game.entities = this._mainEntities;
-            // 恢复主神空间的树木障碍物
-            if (this._mainTrees && this._mainTrees.length > 0) {
-                WallSystem.trees = this._mainTrees.map(t => ({ ...t }));
-                // 同步树木到 Phaser（恢复碰撞体）
-                WallSystem._syncTreesToPhaser();
+            // 主神空间障碍物已全部移除（贴图删除后碰撞体积同步清除，不再恢复旧树木）
+            if (WallSystem.trees && WallSystem.trees.length > 0) {
+                WallSystem.trees = [];
+                if (WallSystem._syncTreesToPhaser) WallSystem._syncTreesToPhaser();
             }
         } else {
             // 兜底：如果主场景状态未保存（比如测试场景直接进入），重新生成主场景基础环境
@@ -414,6 +414,21 @@ export const SceneManager = {
                 Game.entities.set('player', player);
             }
         }
+
+        // 地板：以小鼠大王为中心的矩形场地，brick 贴图等距平铺（与地牢同一烘焙实现）
+        const hubCfg = (GAME_CONFIG.scenes && GAME_CONFIG.scenes.mainHub) || {};
+        setDungeonFloorProfile(hubCfg.floor || null);
+        applyDungeonFloor(CONFIG.WORLD_WIDTH);
+        // 场地边界墙（厚度走 mainHub.wallThickness 配置）
+        const wt = hubCfg.wallThickness ?? 20;
+        const size = CONFIG.WORLD_WIDTH;
+        WallSystem.walls = [
+            { x: 0, y: 0, w: size, h: wt, height: 60 },
+            { x: 0, y: size - wt, w: size, h: wt, height: 60 },
+            { x: 0, y: 0, w: wt, h: size, height: 60 },
+            { x: size - wt, y: 0, w: wt, h: size, height: 60 },
+        ];
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         // 恢复主神空间地形，避免残留地牢 blackbrick 贴图
         if (window.__phaserScene) {

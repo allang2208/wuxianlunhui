@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间 4096² 砖地场地 + 障碍物碰撞清除）
+
+### 对话：主神空间改成小鼠大王中心 4096×4096 砖地场地；排查障碍物碰撞残留
+- **场地重构**：`world.main` 7650×3800 → **4096×4096**（NPC 按世界中心+偏移自动居中，小鼠大王落位中心）；origin 迁到 (2048,2048)；测试靶基点 4379,2411（越界）→ 2800,2300。
+- **砖地铺设**：复用地牢地板烘焙（applyDungeonFloor）——brick.png 复制为 `assets/terrain/hub_brick.png`（内容 393×235 等距比例，几何运行时实测免改码）；`scenes.mainHub.floor = { tiles:['hub_brick'], glow:false }`、`wallThickness: 20`（配置驱动）；`_loadMainScene` 在 generateWorld 后设置地板配置、烘焙应用、生成四边边界墙并同步 Phaser。
+- **障碍物碰撞清除（根因）**：`spawnNPC` 里 `trees.demoLayout` 两组演示树木（5 普通+3 雪树）经 `_mainTrees` 每次回主神空间恢复——贴图删除后碰撞体积一直残留。处理：`trees.demoLayout.groups = []`（不再生成）；`_loadMainScene` 不再恢复旧树木并强制清空 `WallSystem.trees` 同步 Phaser。
+- **修改文件**：data/game-config.json、src/world/scene-manager.js、src/phaser/scenes/BootScene.js、assets/terrain/hub_brick.png、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——砖地铺设观感、边界墙、NPC/测试怪落位、无障碍物残留碰撞。
+
 ## 2026-07-21（盾卫：switch 贴图替换 + 音效接入 + 防御开火枪口下移）
 
 ### 对话：替换 switch.png；盾卫声音；防御开火子弹/火焰/弹壳下移 45px

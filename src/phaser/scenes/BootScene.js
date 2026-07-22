@@ -46,6 +46,8 @@ export class BootScene extends Scene {
         this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
         this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
         this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
+        // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
+        this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
