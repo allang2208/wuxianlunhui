@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（高优先级②③：配置完整性校验 + 怪物共享基础件框架）
+
+### 对话：先做高优先级第 2、3 项
+- **②配置完整性校验**（`scripts/test-config-integrity.mjs`）：BootScene 贴图路径/动画引用贴图键、enemy-config 的 rank/贴图/音效路径/帧数上限/工厂键双向核对、dungeon-config 的 floor 贴图键/等级/nodeCount/minRoomsToBoss 可达性/poolFamily、agent-invasion/synergy 角色键存在性；错误退出码 1。首跑结果：**0 错误 11 警告**（遗留怪与集合体手动生成属预期）。
+- **③怪物共享基础件**（`src/entities/enemy-types/_shared/`）：
+  - `enemy-utils.js`：hostilesOf/isTargetMeleeStyle/playSoundFrom/isFacingLeftFrom；
+  - `enemy-gun.js`：setupGun（枪械装配）+ tryEnemyFireGun（开火一体化，含枪口偏移/墙体回退/瞄准上方 25%/防御姿态枪口下移）；
+  - `monster-anim.js`：twoStageWalkKey/frameHitElapsed/ratioHitElapsed。
+- **两个特工类完成迁移**：time-agent-assault/time-agent-shield 全部改走共享件，删除类内重复实现（hostiles/风格判定/音效助手/朝向/枪械装配/开火逻辑/动画键切换/命中帧换算），行为不变；SKILL.md 新增"怪物共享基础件"条目（新怪物优先复用）。
+- **修改文件**：scripts/test-config-integrity.mjs（新）、src/entities/enemy-types/_shared/{enemy-utils,enemy-gun,monster-anim}.js（新）、src/entities/enemy-types/{time-agent-assault,time-agent-shield}.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅（0 错误）。
+- **已知问题**：实机待回归——两特工射击/盾击/闪光/斧砍/音效与迁移前一致。
+
 ## 2026-07-21（音效目录规范迁移 + 盾卫开火改 gunshot）
 
 ### 对话：音效按实体建子目录区分；盾卫开火用 gunshot.mp3

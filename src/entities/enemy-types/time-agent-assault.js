@@ -1,8 +1,5 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import equipmentJson from '../../../data/equipment.json';
-import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../config/weapon-attack-config.js';
-import { EffectFactory } from '../../utils/effect-factory.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
@@ -10,8 +7,11 @@ import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { pathFinder } from '../../ai/pathfinder.js';
-import { SoundManager } from '../../ui/sound-manager.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
+import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
+import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
+import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -85,22 +85,17 @@ export class TimeAgentAssault extends Enemy {
         this._linkRetreatDisabled = false;
         this._linkRetreating = false;
 
-        // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+2s换弹，弹匣无限）
-        this._isHumanoid = true;
-        const qbz = JSON.parse(JSON.stringify(equipmentJson.equipment.qbz191));
-        // 弹匣参数走怪物配置（不影响玩家同款武器）
-        if (skills.shoot.ammo) qbz.ammoConfig = { ...skills.shoot.ammo };
-        // 开火音效（fireProjectile 读 item.fireSound）
-        if (this.config?.sounds?.fire) qbz.fireSound = this.config.sounds.fire;
-        this.equipments.weapon = qbz;
-        this.attacks.qbz191 = createAttackFromConfig(WEAPON_ATTACK_CONFIG.qbz191);
-        // 伤害取怪物面板物攻（fireProjectile 默认读 config.damage 占位值 1-1）
-        this.attacks.qbz191.config.damage = { min: this.data.atk, max: this.data.atk };
-        // 命中击退 25px（damage-pipeline 统一应用）
-        this.attacks.qbz191.config.knockback = skills.shoot.knockback ?? 25;
-        // AI 散布（fireProjectile 读取，避免 undefined → NaN 弹道）
-        this._currentSpreadFactor = skills.shoot.spreadFactor ?? 0.15;
-        this._currentSpreadMaxAngle = skills.shoot.spreadMaxAngle ?? 10;
+        // 装备 QBZ-191（共享装配：实例化装备/绑定攻击/伤害与击退覆盖/AI 散布/弹匣）
+        setupGun(this, {
+            equipKey: 'qbz191',
+            attackKey: 'qbz191',
+            damage: { min: this.data.atk, max: this.data.atk }, // 伤害取怪物面板物攻
+            knockback: skills.shoot.knockback ?? 25,             // 命中击退 25px
+            spreadFactor: skills.shoot.spreadFactor ?? 0.15,
+            spreadMaxAngle: skills.shoot.spreadMaxAngle ?? 10,
+            fireSound: this.config?.sounds?.fire || null,
+            ammoConfig: skills.shoot.ammo || null,               // 弹匣 30 发 + 3s 换弹（不影响玩家同款武器）
+        });
         this._initAmmoForSlot('weapon');
     }
 
@@ -112,14 +107,6 @@ export class TimeAgentAssault extends Enemy {
             flashbang: s.flashbang || {},
             axe: s.axe || {},
         };
-    }
-
-    /** 播放配置音效（enemy-config.json 的 sounds 块驱动） */
-    _playSound(key) {
-        const path = this.config?.sounds?.[key];
-        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(path);
-        }
     }
 
     // ========== 主循环 ==========
@@ -176,7 +163,7 @@ export class TimeAgentAssault extends Enemy {
             this._meleeStepTimer -= dt;
             if (this._meleeStepTimer <= 0) {
                 this._meleeStepTimer = this.config?.sounds?.meleeStepInterval ?? 300;
-                this._playSound('meleeStep');
+                playSoundFrom(this, 'meleeStep');
             }
         } else {
             this._meleeStepTimer = 0;
@@ -216,7 +203,7 @@ export class TimeAgentAssault extends Enemy {
 
         if (this._formState === 'idle') {
             // 斧砍条件优先：近战风格目标贴身 → 直接首次劈砍进入近战形态
-            if (t && this._formSwitchCd <= 0 && this._isTargetMeleeStyle(t) && dist <= (F.meleeCheckRange ?? 150)) {
+            if (t && this._formSwitchCd <= 0 && isTargetMeleeStyle(t) && dist <= (F.meleeCheckRange ?? 150)) {
                 this._tryAttackTelegraph(() => this._startAxeIntro());
                 return;
             }
@@ -229,7 +216,7 @@ export class TimeAgentAssault extends Enemy {
 
         if (this._formState === 'ranged') {
             // 近战风格目标贴身 → 倒放切回 idle（随后可接斧砍）
-            if (t && this._formSwitchCd <= 0 && this._isTargetMeleeStyle(t) && dist <= (F.meleeCheckRange ?? 150)) {
+            if (t && this._formSwitchCd <= 0 && isTargetMeleeStyle(t) && dist <= (F.meleeCheckRange ?? 150)) {
                 this._startTransition('toIdle', F.switchOutMs ?? 500);
                 return;
             }
@@ -335,7 +322,7 @@ export class TimeAgentAssault extends Enemy {
             }
             // 近战→远程：远程风格目标拉开 150px 以上，或任意目标拉开 300px 持续 3s
             if (this._formSwitchCd <= 0) {
-                const rangedOut = t && !this._isTargetMeleeStyle(t) && dist > (F.meleeCheckRange ?? 150);
+                const rangedOut = t && !isTargetMeleeStyle(t) && dist > (F.meleeCheckRange ?? 150);
                 if (t && dist > (F.farSwitchRange ?? 300)) {
                     this._farHoldTimer += dt;
                 } else {
@@ -371,12 +358,12 @@ export class TimeAgentAssault extends Enemy {
             // 切换近战的斧音在配置帧（axeIntroFrame，默认第 14 帧）播放一次
             if (isIntro && !this._axeIntroSoundDone) {
                 const soundFrame = this.config?.sounds?.axeIntroFrame ?? 14;
-                if (elapsed >= (soundFrame - startFrame) / fps * 1000) {
+                if (elapsed >= frameHitElapsed(soundFrame, startFrame, fps)) {
                     this._axeIntroSoundDone = true;
-                    this._playSound('axe');
+                    playSoundFrom(this, 'axe');
                 }
             }
-            if (!this._axeHitDone && elapsed >= (hitFrame - startFrame) / fps * 1000) {
+            if (!this._axeHitDone && elapsed >= frameHitElapsed(hitFrame, startFrame, fps)) {
                 this._axeHitDone = true;
                 this._dealAxeHit(entities);
             }
@@ -385,7 +372,7 @@ export class TimeAgentAssault extends Enemy {
         // 闪光弹出手帧
         if (this._formState === 'flashThrow') {
             const FB = skills.flashbang;
-            const fireT = ((FB.fireFrame || 1) - 1) / (FB.frames || 1) * (FB.duration || 0);
+            const fireT = ratioHitElapsed(FB.fireFrame, FB.frames, FB.duration);
             const elapsed = (FB.duration || 0) - this._stateTimer;
             if (!this._flashFired && elapsed >= fireT) {
                 this._flashFired = true;
@@ -436,7 +423,7 @@ export class TimeAgentAssault extends Enemy {
         this._formState = state;
         this._stateTimer = ms;
         // 形态切换音效（switch.mp3，配置驱动）
-        this._playSound('switch');
+        playSoundFrom(this, 'switch');
     }
 
     _startAxeIntro() {
@@ -452,7 +439,7 @@ export class TimeAgentAssault extends Enemy {
         this._stateTimer = this._axeAttackDuration();
         this._axeHitDone = false;
         // 近战攻击斧音（axe.mp3，立即播放）
-        this._playSound('axe');
+        playSoundFrom(this, 'axe');
     }
 
     _startFlashThrow() {
@@ -461,21 +448,6 @@ export class TimeAgentAssault extends Enemy {
         this._stateTimer = FB.duration ?? 2000;
         this._flashFired = false;
         this._flashCd = FB.cooldown ?? 10000;
-    }
-
-    // ========== 目标风格判定（近战/远程） ==========
-
-    _isTargetMeleeStyle(t) {
-        if (!t) return false;
-        // 玩家：按当前装备判定
-        if (t._faction === 'player') {
-            const eq = t.equipments && t.equipments[t.weaponMode];
-            if (eq) return eq.category === 'weapon_melee' || eq.weaponType === 'sword';
-            return true; // 徒手按近战计
-        }
-        // 怪物：按武器模式/攻击配置判定
-        if (t.weaponMode) return t.weaponMode === 'melee';
-        return !!(t.attacks && t.attacks.melee);
     }
 
     // ========== 远程攻击移动 AI（独立寻路/寻位） ==========
@@ -599,13 +571,6 @@ export class TimeAgentAssault extends Enemy {
         return best;
     }
 
-    /** 朝向判定（与 _getPhaserOptions 的 flipX 同规则） */
-    _isFacingLeft() {
-        if (this.target && this.target.active) return this.target.x < this.x;
-        if (this.isMoving && Math.abs(this.vx) > 0.1) return this.vx < 0;
-        return Math.cos(this.rotation ?? 0) < 0;
-    }
-
     // ========== 弹药系统（怪物基类默认无限弹药；本怪 30 发打空 2s 换弹） ==========
 
     _hasAmmo(slot) {
@@ -626,9 +591,7 @@ export class TimeAgentAssault extends Enemy {
         if (state && state.reloading) return true;
         const started = super._startReload(slot);
         // 换弹音效（配置 sounds.reload，每次换弹只播一次）
-        if (started && this.config?.sounds?.reload && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(this.config.sounds.reload);
-        }
+        if (started) playSoundFrom(this, 'reload');
         return started;
     }
 
@@ -636,37 +599,13 @@ export class TimeAgentAssault extends Enemy {
 
     _tryFireGun(t, entities) {
         const skills = this._getSkillConfigs().shoot;
-        // 枪口点：上移 muzzleUpY，左右按朝向偏移 muzzleSideX（子弹与枪口火焰同源）
-        const up = skills.muzzleUpY ?? 75;
-        const side = skills.muzzleSideX ?? 15;
-        const ox = this.x, oy = this.y;
-        let mx = ox + (this._isFacingLeft() ? -side : side);
-        let my = oy - up;
-        // 枪口点落进墙内时（贴墙站位）回退到可达点，防止子弹出生即撞墙瞬间消失
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
-            mx = resolved.x;
-            my = resolved.y;
-        }
-        // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
-        this.x = mx; this.y = my;
-        // 瞄准点：目标绿色矩形判定上方 25% 区域中心（矩形从脚底向上 collisionHeight 高）
-        const targetH = t.collisionHeight || t.config?.render?.collisionHeight || 60;
-        const footY = t.collider ? t.collider.y : t.y;
-        const aimX = t.x;
-        const aimY = footY - targetH * (skills.aimHeightRatio ?? 0.875);
-        // fireProjectile 内置：冷却/弹药/换弹检查、AI 散布、AimHelper 预判、曳光弹、开火音效
-        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
-        this.x = ox; this.y = oy;
-        if (!fired) return;
-        // 枪口火焰 + 开火火光 + 弹壳（玩家同款工厂 + 高亮闪光）
-        const angle = Math.atan2(aimY - my, aimX - mx);
-        EffectFactory.createMuzzleFlash(mx, my, angle, skills.muzzleScale ?? 1.2);
-        const fireScene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (fireScene && typeof fireScene.playMuzzleFire === 'function') {
-            fireScene.playMuzzleFire(mx, my);
-        }
-        EffectFactory.createShellCasing(mx, my, angle, oy);
+        // 共享开火一体化：枪口偏移/墙体回退/瞄准上方 25%/临时移位出膛/火焰+火光+弹壳
+        tryEnemyFireGun(this, t, entities, {
+            muzzleUpY: skills.muzzleUpY ?? 75,
+            muzzleSideX: skills.muzzleSideX ?? 15,
+            muzzleScale: skills.muzzleScale ?? 1.2,
+            aimHeightRatio: skills.aimHeightRatio ?? 0.875,
+        });
     }
 
     // ========== 斧头劈砍 ==========
@@ -676,7 +615,7 @@ export class TimeAgentAssault extends Enemy {
         const range = A.judgeRange ?? 100;
         const atk = this.data?.atk || 0;
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
             if (A.crippleMs && typeof e.applyCripple === 'function') {
@@ -688,23 +627,6 @@ export class TimeAgentAssault extends Enemy {
                 fxScene.playRedFallParticles(e.x, e.y, e);
             }
         }
-    }
-
-    _hostiles(entities) {
-        const list = Array.isArray(entities)
-            ? entities
-            : (entities ? Array.from(entities.values()) : []);
-        const src = list.length > 0
-            ? list
-            : (typeof window !== 'undefined' && window.Game && window.Game.entities
-                ? Array.from(window.Game.entities.values()) : []);
-        const out = [];
-        for (const e of src) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === this._faction) continue;
-            out.push(e);
-        }
-        return out;
     }
 
     // ========== 闪光弹（参考集合体投掷：抛物线 + 地面预警 + 落地椭圆判定） ==========
@@ -762,12 +684,12 @@ export class TimeAgentAssault extends Enemy {
 
     _impactFlashbang(tx, ty) {
         this._destroyFlashWarning();
-        this._playSound('flash'); // 投射物消失（落地）音效
+        playSoundFrom(this, 'flash'); // 投射物消失（落地）音效
         const FB = this._getSkillConfigs().flashbang;
         const radius = FB.impactRadius || 100;
         const matk = this.data?.matk || 0;
         const shape = new GroundEllipse(tx, ty, radius, radius * PERSPECTIVE_SCALE_Y);
-        for (const e of this._hostiles()) {
+        for (const e of hostilesOf(this)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (FB.damageMul ?? 1.5))), this, 'magic', false);
             if (FB.stunMs && typeof e.applyStun === 'function') {
@@ -877,14 +799,14 @@ export class TimeAgentAssault extends Enemy {
             case 'melee':
                 // 近战形态：移动播放 walking-2 首段/循环段，静止持斧姿态（axe 第 30 帧）
                 if (this._effectiveMoving()) {
-                    return this._walkElapsed >= (F.walk2IntroMs ?? 1267)
-                        ? 'enemy_timeagent_walk2_loop' : 'enemy_timeagent_walk2';
+                    return twoStageWalkKey('enemy_timeagent_walk2', 'enemy_timeagent_walk2_loop',
+                        this._walkElapsed, F.walk2IntroMs ?? 1267);
                 }
                 return 'enemy_timeagent_axe_idle';
             default: // idle
                 if (this._effectiveMoving()) {
-                    return this._walkElapsed >= (F.walkIntroMs ?? 1200)
-                        ? 'enemy_timeagent_walk_loop' : 'enemy_timeagent_walk';
+                    return twoStageWalkKey('enemy_timeagent_walk', 'enemy_timeagent_walk_loop',
+                        this._walkElapsed, F.walkIntroMs ?? 1200);
                 }
                 return 'enemy_timeagent_idle';
         }

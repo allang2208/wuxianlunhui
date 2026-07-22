@@ -485,6 +485,17 @@ _getPhaserOptions() {
 
 ---
 
+## 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
+
+新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）；
+- `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
+- `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
+
+已迁移范例：`time-agent-assault.js`（双形态+枪械+投掷+斧砍）、`time-agent-shield.js`（远程+盾击+防御弹反）。
+
+---
+
 ## 怪物 HUD 锚点工作流（2026-07-21 新增）
 
 **默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。
