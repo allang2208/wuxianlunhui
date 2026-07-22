@@ -1595,7 +1595,7 @@
       },
       "bash": {
         "cooldown": 10000,
-        "duration": 1500,
+        "duration": 750,
         "frames": 17,
         "hitFrame": 7,
         "range": 200,

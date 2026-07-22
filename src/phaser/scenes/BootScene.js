@@ -563,11 +563,11 @@ export class BootScene extends Scene {
             frameRate: 1,
             repeat: -1,
         });
-        // 盾击：push 17 帧 1.5s
+        // 盾击：push 17 帧 0.75s（与 enemy-config bash.duration 对齐）
         this.anims.create({
             key: 'enemy_timeshield_push',
             frames: this.anims.generateFrameNumbers('enemy_timeshield_push', { start: 0, end: 16 }),
-            duration: 1500,
+            duration: 750,
             repeat: 0,
         });
         // 防御：defending 10 帧 0.75s 进入 → 第 10 帧持续 → 0.75s 倒放退出
