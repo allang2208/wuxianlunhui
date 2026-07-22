@@ -7,7 +7,7 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 class Projectile {
-    constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false) {
+    constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1) {
         this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
         this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
         this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;
@@ -18,6 +18,8 @@ class Projectile {
         this.isGreen = isGreen; // 是否为亮绿色曳光弹（能量轻机枪）
         this.damageType = damageType; // 伤害类型：physical 或 magic
         this._noRender = _noRender;
+        this.poisonChance = poisonChance; // 命中时附加中毒的概率（0~1）
+        this.poisonStacks = poisonStacks; // 附加中毒层数
 
         // 伪 3D：地面投射物 z=0；未来可扩展为抛物线/对空投射物
         this.z = 0;
@@ -54,9 +56,12 @@ class Projectile {
                 if (this._isHittingEntity(entity, prevX, prevY)) {
                     this.hitTargets.add(entity);
                     const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
-                    // 毒液投射物：命中后给目标加一层中毒
-                    if (this.isSpit && typeof entity.applyPoison === 'function') {
-                        entity.applyPoison(1);
+                    // 毒液/中毒投射物：命中后按概率给目标叠加中毒
+                    if ((this.isSpit || this.poisonChance > 0) && typeof entity.applyPoison === 'function') {
+                        const chance = this.isSpit && this.poisonChance === 0 ? 1 : this.poisonChance;
+                        if (Math.random() < chance) {
+                            entity.applyPoison(this.poisonStacks);
+                        }
                     }
                     // 命中效果按发射瞬间的快照判定（无快照时回退到当前武器，兼容非工厂创建的投射物）
                     const snap = this._effectSnapshot;
@@ -244,6 +249,10 @@ class Projectile {
     }
 
     _destroyPhaserSprite() {
+        // 子类/外部可通过 _onBeforeDestroy 清理额外 Phaser 对象（如粒子拖尾）
+        if (typeof this._onBeforeDestroy === 'function') {
+            try { this._onBeforeDestroy(); } catch (_e) { /* 忽略清理异常 */ }
+        }
         if (this._phaserSprite) {
             this._phaserSprite.destroy();
             this._phaserSprite = null;

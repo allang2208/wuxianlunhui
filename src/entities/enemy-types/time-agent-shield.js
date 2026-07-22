@@ -8,6 +8,34 @@ import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-u
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
+ * 用线段近似绘制二次贝塞尔曲线（Phaser Graphics 无内置 quadraticCurveTo）
+ * @param {Phaser.GameObjects.Graphics} g
+ * @param {number} x0 起点 X
+ * @param {number} y0 起点 Y
+ * @param {number} x1 控制点 X
+ * @param {number} y1 控制点 Y
+ * @param {number} x2 终点 X
+ * @param {number} y2 终点 Y
+ * @param {number} segments 采样段数
+ */
+function _drawQuadraticBezier(g, x0, y0, x1, y1, x2, y2, segments = 12) {
+    g.beginPath();
+    g.moveTo(x0, y0);
+    const n = Math.max(2, Math.floor(segments));
+    for (let i = 1; i <= n; i++) {
+        const t = i / n;
+        const u = 1 - t;
+        const a = u * u;
+        const b = 2 * u * t;
+        const c = t * t;
+        const x = a * x0 + b * x1 + c * x2;
+        const y = a * y0 + b * y1 + c * y2;
+        g.lineTo(x, y);
+    }
+    g.strokePath();
+}
+
+/**
  * 时空特工(盾位)-F（领主，特工 family）——沙鹰射击 + 盾击 + 防御弹反
  *
  * 状态机（_formState）：
@@ -246,13 +274,16 @@ export class TimeAgentShield extends Enemy {
         this._fireBashThrustLines();
     }
 
-    /** 盾击冲击线条：沿攻击方向从盾后向前快速延伸并淡出（强化版：更粗更亮更长） */
+    /**
+     * 盾击冲击线条：盾前缘沿盾轮廓向后弧线延伸的尾迹。
+     * 起点分布在盾正面的一道弧线上，随后以二次贝塞尔曲线向身后弯曲淡出。
+     */
     _fireBashThrustLines() {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) return;
         const g = scene.add.graphics();
         g.setDepth(this.y + 50);
-        const angle = this.rotation;
+        const facing = (typeof this.rotation === 'number') ? this.rotation : 0;
         const wave = { t: 0 };
         const self = this;
         scene.tweens.add({
@@ -263,26 +294,33 @@ export class TimeAgentShield extends Enemy {
             onUpdate() {
                 const p = wave.t;
                 g.clear();
-                const cos = Math.cos(angle), sin = Math.sin(angle);
-                const lines = 7;
-                // 双线描边：粗外圈（高透明）+ 亮内核，强化观感
+                const lines = 11;
+                const shieldFrontDist = 62;          // 盾前缘中心到脚下的距离
+                const shieldHalfArc = Math.PI / 2.8; // 盾轮廓张角的一半
+                const baseLen = 35 + p * 55;         // 尾迹长度随时间伸展
+                // 双线描边：外圈柔化 + 内核高亮（整体 1.5 / 0.7 细线）
                 for (let pass = 0; pass < 2; pass++) {
-                    const width = pass === 0 ? 7 : 3;
-                    const alpha = (pass === 0 ? 0.45 : 0.95) * (1 - p);
+                    const width = pass === 0 ? 1.5 : 0.7;
+                    const alpha = (pass === 0 ? 0.35 : 0.9) * (1 - p);
                     g.lineStyle(width, 0xffffff, alpha);
                     for (let i = 0; i < lines; i++) {
-                        // 盾后出发向前：身后 70px 起步随进度前移，线长渐增至约 90px
-                        const back = -(70 + p * 60) - i * 14;
-                        const front = back + 40 + p * 50;
-                        const spread = (i - (lines - 1) / 2) * 18;
-                        const bx = self.x + cos * back - sin * spread;
-                        const by = self.y + sin * back + cos * spread * PERSPECTIVE_SCALE_Y;
-                        const fx = self.x + cos * front - sin * spread;
-                        const fy = self.y + sin * front + cos * spread * PERSPECTIVE_SCALE_Y;
-                        g.beginPath();
-                        g.moveTo(bx, by);
-                        g.lineTo(fx, fy);
-                        g.strokePath();
+                        const arcT = (i / (lines - 1)) * 2 - 1; // -1 ~ 1，沿盾轮廓分布
+                        // 盾前缘起点：以 facing 为法向的弧面
+                        const sideAngle = facing + Math.PI / 2 + arcT * shieldHalfArc;
+                        const arcRadius = shieldFrontDist * Math.cos(arcT * 0.55);
+                        const sx = self.x + Math.cos(sideAngle) * arcRadius;
+                        const sy = self.y + Math.sin(sideAngle) * arcRadius * PERSPECTIVE_SCALE_Y;
+
+                        // 向后延伸方向：带弧度，越靠盾轮廓外侧弧线越明显
+                        const backAngle = facing + Math.PI + arcT * (shieldHalfArc * 0.55);
+                        const len = baseLen * (0.85 + Math.abs(arcT) * 0.3);
+                        const cx = sx + Math.cos(backAngle + arcT * 0.25) * len * 0.45;
+                        const cy = sy + Math.sin(backAngle + arcT * 0.25) * len * 0.45 * PERSPECTIVE_SCALE_Y;
+                        const ex = sx + Math.cos(backAngle + arcT * 0.35) * len;
+                        const ey = sy + Math.sin(backAngle + arcT * 0.35) * len * PERSPECTIVE_SCALE_Y;
+
+                        // Phaser Graphics 没有 quadraticCurveTo，改为沿二次贝塞尔采样线段绘制
+                        _drawQuadraticBezier(g, sx, sy, cx, cy, ex, ey, 12);
                     }
                 }
             },
@@ -326,6 +364,13 @@ export class TimeAgentShield extends Enemy {
             return;
         }
         if (this.shieldSystem) this.shieldSystem._lastParried = false;
+
+        // 盾卫特性：远程伤害减免 50%（包括远程魔法伤害）。
+        // 判定口径与 DamagePipeline/Projectile 一致：isMelee === false 即为远程。
+        if (!isMelee) {
+            damage = Math.max(1, Math.floor(damage * 0.5));
+        }
+
         super.takeDamage(damage, source, damageType, isMelee);
     }
 

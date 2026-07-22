@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -60,6 +60,24 @@ function createSpitterZombie(x, y) {
         return new SpitterZombie(x, y, { name: '毒液僵尸', hp: 120, maxHp: 120, size: 13, showWeapon: false });
     }
     return new SpitterZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+export function createPoisonMaggot(x, y) {
+    const cfg = enemyConfigData.poisonMaggot;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: poisonMaggot');
+        return new PoisonMaggot(x, y, { name: '毒蛆', hp: 800, maxHp: 800, size: 20, showWeapon: false });
+    }
+    return new PoisonMaggot(x, y, {
         ...cfg,
         showWeapon: false,
         ai: {
@@ -245,6 +263,7 @@ const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
     zombieDog: createZombieDog,
     spitterZombie: createSpitterZombie,
+    poisonMaggot: createPoisonMaggot,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,
