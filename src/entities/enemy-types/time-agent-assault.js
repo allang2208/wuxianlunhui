@@ -77,6 +77,7 @@ export class TimeAgentAssault extends Enemy {
         this._path = null;
         this._pathIdx = 0;
         this._selfMoving = false;    // 远程自驱移动标记（MovementSystem 锁定会清零 isMoving，动画以此为准）
+        this._meleeStepTimer = 0;    // 近战脚步音计时
 
         // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+2s换弹，弹匣无限）
         this._isHumanoid = true;
@@ -105,6 +106,14 @@ export class TimeAgentAssault extends Enemy {
             flashbang: s.flashbang || {},
             axe: s.axe || {},
         };
+    }
+
+    /** 播放配置音效（enemy-config.json 的 sounds 块驱动） */
+    _playSound(key) {
+        const path = this.config?.sounds?.[key];
+        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     // ========== 主循环 ==========
@@ -148,6 +157,17 @@ export class TimeAgentAssault extends Enemy {
         // 远程模式 MovementSystem 锁定会清零 isMoving，以自驱标记 _selfMoving 为准
         if (this._effectiveMoving()) this._walkElapsed += dt;
         else this._walkElapsed = 0;
+
+        // 近战形态移动脚步音（铠甲骑士冲锋同款：walking.mp3 按间隔循环）
+        if ((this._formState === 'melee' || this._formState === 'axeAttack') && this._effectiveMoving()) {
+            this._meleeStepTimer -= dt;
+            if (this._meleeStepTimer <= 0) {
+                this._meleeStepTimer = this.config?.sounds?.meleeStepInterval ?? 300;
+                this._playSound('meleeStep');
+            }
+        } else {
+            this._meleeStepTimer = 0;
+        }
 
         // 远程锁定期间 MovementSystem 不处理击退，自行应用（同口径：衰减+墙壁解析）
         if (this._formState === 'ranged' && (this.knockbackX || this.knockbackY)) {
@@ -557,12 +577,17 @@ export class TimeAgentAssault extends Enemy {
         }
         // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
         this.x = mx; this.y = my;
+        // 瞄准点：目标绿色矩形判定上方 25% 区域中心（矩形从脚底向上 collisionHeight 高）
+        const targetH = t.collisionHeight || t.config?.render?.collisionHeight || 60;
+        const footY = t.collider ? t.collider.y : t.y;
+        const aimX = t.x;
+        const aimY = footY - targetH * (skills.aimHeightRatio ?? 0.875);
         // fireProjectile 内置：冷却/弹药/换弹检查、AI 散布、AimHelper 预判、曳光弹、开火音效
-        const fired = this.fireProjectile(t.x, t.y, entities, { slot: 'weapon' });
+        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
         this.x = ox; this.y = oy;
         if (!fired) return;
         // 枪口火焰 + 弹壳（玩家同款工厂）
-        const angle = Math.atan2(t.y - my, t.x - mx);
+        const angle = Math.atan2(aimY - my, aimX - mx);
         EffectFactory.createMuzzleFlash(mx, my, angle, skills.muzzleScale ?? 1.2);
         EffectFactory.createShellCasing(mx, my, angle, oy);
     }
@@ -666,6 +691,54 @@ export class TimeAgentAssault extends Enemy {
                 e.applyStun(FB.stunMs);
             }
         }
+        // 爆炸特效：椭圆周长一圈扬尘（向上漂浮淡出）+ 中心白色放射线条（50% 透明度快速延伸消失）
+        this._fireFlashbangFx(tx, ty, radius);
+    }
+
+    /** 闪光弹爆炸特效：椭圆周长扬尘环 + 白色放射线（参考跑步扬尘与手脑冲击线） */
+    _fireFlashbangFx(tx, ty, radius) {
+        const FB = this._getSkillConfigs().flashbang;
+        // 扬尘环：椭圆判定周长上均匀布点（平面透视 2:1），跑步同款 DustEffect 向上漂浮淡出
+        const dustCount = FB.impactDustCount ?? 10;
+        for (let i = 0; i < dustCount; i++) {
+            const a = (Math.PI * 2 * i) / dustCount;
+            const px = tx + Math.cos(a) * radius;
+            const py = ty + Math.sin(a) * radius * PERSPECTIVE_SCALE_Y;
+            EffectFactory.createDustEffect(px, py, 1.2);
+        }
+        // 白色放射线条：从爆心向 360° 快速延伸并消失，透明度 50%
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const g = scene.add.graphics();
+        g.setDepth(ty + 50);
+        const lineCount = FB.impactLineCount ?? 12;
+        const lineAlpha = FB.impactLineAlpha ?? 0.5;
+        const duration = FB.impactLineDuration ?? 250;
+        const wave = { t: 0 };
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const p = wave.t;
+                g.clear();
+                g.lineStyle(3, 0xffffff, (1 - p) * lineAlpha);
+                const inner = radius * 0.2 * (1 + p);
+                const outer = radius * (0.4 + p * 1.2);
+                for (let i = 0; i < lineCount; i++) {
+                    const a = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
+                    const cos = Math.cos(a), sin = Math.sin(a) * PERSPECTIVE_SCALE_Y;
+                    g.beginPath();
+                    g.moveTo(tx + cos * inner, ty + sin * inner);
+                    g.lineTo(tx + cos * outer, ty + sin * outer);
+                    g.strokePath();
+                }
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+            }
+        });
     }
 
     _destroyFlashWarning() {

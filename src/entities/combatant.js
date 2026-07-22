@@ -469,9 +469,11 @@ class Combatant extends DamageableEntity {
         const size = attack.config.projectileSize || 4;
 
         // 计算发射方向（敌人对移动目标使用预判瞄准；玩家仍按鼠标/输入瞄准）
+        // 预判以传入的瞄准点 (targetX, targetY) 为基准——此前误用 this.target.x/y（脚底），
+        // 调用方无法指定命中部位（如特工瞄准目标矩形上方 25% 区域）
         let aimX = targetX, aimY = targetY;
         if (this._faction === 'enemy' && this.target && this.target.active) {
-            const lead = AimHelper.lead(this.x, this.y, this.target.x, this.target.y, this.target.vx || 0, this.target.vy || 0, speed);
+            const lead = AimHelper.lead(this.x, this.y, targetX, targetY, this.target.vx || 0, this.target.vy || 0, speed);
             aimX = lead.x; aimY = lead.y;
         }
         const angle = Math.atan2(aimY - this.y, aimX - this.x) + spreadAngle;

@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工：闪光弹爆炸特效/近战脚步音/瞄准上方 25%）
+
+### 对话：闪光弹落地爆炸特效、近战移动播放骑士冲锋音效、瞄准目标矩形上方 25%
+- **爆炸特效**（`_fireFlashbangFx`，参数配置驱动）：落地判定时在椭圆周长均布 10 点扬尘（跑步同款 DustEffect，向上漂浮淡出）；爆心向 360° 放射 12 条白色线条（3px 宽、透明度 50%、250ms 快速延伸并消失，平面透视 2:1）。
+- **近战脚步音**：近战形态移动时按 300ms 间隔循环播放铠甲骑士冲锋同款 `walking.mp3`（`sounds.meleeStep/meleeStepInterval` 配置），新增类内 `_playSound` 助手。
+- **瞄准部位**：`Combatant.fireProjectile` 的 AimHelper 预判此前误用 `this.target.x/y`（脚底），传入的 targetX/targetY 被忽略——修正为以传入瞄准点预判（既有调用方传脚底坐标，行为不变）；特工瞄准点 = 目标矩形判定上方 25% 区域中心（`shoot.aimHeightRatio = 0.875`，脚底向上 87.5% 高处），枪口火焰角度同步按瞄准点计算。
+- **修改文件**：src/entities/combatant.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——爆炸特效观感、近战脚步声、弹道命中上半身。
+
 ## 2026-07-21（枪口 55/子弹消失/HUD 锚定胶囊顶/特工碰撞拉伸）
 
 ### 对话：枪口左右再 +10、子弹偶发瞬消、血条名字锚定圆柱顶、特工矩形碰撞上拉 35px

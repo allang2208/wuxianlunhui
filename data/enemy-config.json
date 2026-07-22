@@ -1482,7 +1482,8 @@
           "reloadTime": 2000
         },
         "muzzleUpY": 80,
-        "muzzleSideX": 55
+        "muzzleSideX": 55,
+        "aimHeightRatio": 0.875
       },
       "flashbang": {
         "cooldown": 10000,
@@ -1495,7 +1496,11 @@
         "impactRadius": 100,
         "damageMul": 1.5,
         "stunMs": 2000,
-        "projectileSize": 20
+        "projectileSize": 20,
+        "impactDustCount": 10,
+        "impactLineCount": 12,
+        "impactLineAlpha": 0.5,
+        "impactLineDuration": 250
       },
       "axe": {
         "cooldown": 4000,
@@ -1529,7 +1534,9 @@
     "skills": [],
     "sounds": {
       "fire": "assets/sounds/qbz191_shot6_valley.mp3",
-      "reload": "assets/sounds/reload_sharp.mp3"
+      "reload": "assets/sounds/reload_sharp.mp3",
+      "meleeStep": "assets/sounds/enemies/armored_knight/walking.mp3",
+      "meleeStepInterval": 300
     }
   }
 }
