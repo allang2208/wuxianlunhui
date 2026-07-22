@@ -23,7 +23,8 @@ import { ELEVATION } from './collider.js';
 export function getTorsoRect(entity) {
     const c = entity?.collider;
     if (!c) return null;
-    const hb = entity.config?.render?.projectileHitbox || null;
+    // 实例级覆盖优先（如盾卫防御姿态矩形下压）；否则用配置 projectileHitbox
+    const hb = entity._hitboxOverride || entity.config?.render?.projectileHitbox || null;
     const width = (hb && hb.width > 0) ? hb.width
         : (entity.collisionWidth > 0 ? entity.collisionWidth : c.radius * 2);
     const height = (hb && hb.height > 0) ? hb.height : c.height;

@@ -220,6 +220,7 @@ export class TimeAgentShield extends Enemy {
                 this._stateTimer = D.outroMs ?? 750;
                 break;
             case 'defendOut':
+                this._clearDefendHitbox();
                 this._enterForm(t ? 'ranged' : 'idle');
                 break;
         }
@@ -241,6 +242,54 @@ export class TimeAgentShield extends Enemy {
         this._stateTimer = B.duration ?? 1500;
         this._bashHitDone = false;
         this._bashCd = B.cooldown ?? 10000;
+        // 盾后白色冲击线条（向前冲击观感）
+        this._fireBashThrustLines();
+    }
+
+    /** 盾击冲击线条：沿攻击方向从盾后向前快速延伸并淡出（强化版：更粗更亮更长） */
+    _fireBashThrustLines() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.tweens) return;
+        const g = scene.add.graphics();
+        g.setDepth(this.y + 50);
+        const angle = this.rotation;
+        const wave = { t: 0 };
+        const self = this;
+        scene.tweens.add({
+            targets: wave,
+            t: 1,
+            duration: 480,
+            ease: 'Cubic.easeOut',
+            onUpdate() {
+                const p = wave.t;
+                g.clear();
+                const cos = Math.cos(angle), sin = Math.sin(angle);
+                const lines = 7;
+                // 双线描边：粗外圈（高透明）+ 亮内核，强化观感
+                for (let pass = 0; pass < 2; pass++) {
+                    const width = pass === 0 ? 7 : 3;
+                    const alpha = (pass === 0 ? 0.45 : 0.95) * (1 - p);
+                    g.lineStyle(width, 0xffffff, alpha);
+                    for (let i = 0; i < lines; i++) {
+                        // 盾后出发向前：身后 70px 起步随进度前移，线长渐增至约 90px
+                        const back = -(70 + p * 60) - i * 14;
+                        const front = back + 40 + p * 50;
+                        const spread = (i - (lines - 1) / 2) * 18;
+                        const bx = self.x + cos * back - sin * spread;
+                        const by = self.y + sin * back + cos * spread * PERSPECTIVE_SCALE_Y;
+                        const fx = self.x + cos * front - sin * spread;
+                        const fy = self.y + sin * front + cos * spread * PERSPECTIVE_SCALE_Y;
+                        g.beginPath();
+                        g.moveTo(bx, by);
+                        g.lineTo(fx, fy);
+                        g.strokePath();
+                    }
+                }
+            },
+            onComplete() {
+                if (g.active) g.destroy();
+            }
+        });
     }
 
     _startDefend() {
@@ -248,10 +297,23 @@ export class TimeAgentShield extends Enemy {
         this._formState = 'defendIn';
         this._stateTimer = D.windupMs ?? 750;
         this._defendCd = D.cooldown ?? 6000;
+        // 防御姿态：绿色矩形判定从上向下收 40px（实例级覆盖，退出防御经 _clearDefendHitbox 恢复）
+        const hb = this.config?.render?.projectileHitbox || {};
+        this._hitboxOverride = {
+            width: hb.width,
+            height: Math.max(1, (hb.height || 0) - (D.hitboxShrinkY ?? 40)),
+            offsetX: hb.offsetX || 0,
+            bottom: hb.bottom || 0,
+        };
         // 面对目标释放
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
+    }
+
+    /** 退出防御：恢复矩形判定 */
+    _clearDefendHitbox() {
+        this._hitboxOverride = null;
     }
 
     // ========== 格挡弹反（参考铠甲骑士：防御持续期间全部判定为弹反） ==========
