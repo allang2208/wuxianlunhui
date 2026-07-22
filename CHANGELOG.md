@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（突击换弹 3s 修正 + 新怪物：时空特工(盾位)-F）
+
+### 对话：突击换弹未设成 3s 检查修正；按工作流新增盾位特工
+- **突击换弹**：`shoot.ammo.reloadTime` 2000 → **3000**（弹匣 30 发打空后 3s 换弹）。
+- **新怪物：时空特工(盾位)-F**（领主，特工 family）：
+  - 配置：HP 2200、速度 165、六维 str30/dex40/con51/int20/wis30/luck23 → 物攻35/物防85/暴击25；魔防55 显式覆盖；渲染吸取突击最终调校（spriteSize 160、胶囊顶 HUD、colliderOffsetY 30、collisionHeight 180）；
+  - 状态机：idle →（800px 交战）0.5s 正放 switch 8 帧切入远程 → 沙鹰移动射击（命中不击退，枪口火焰+火光+弹壳与突击同款，预判瞄准目标矩形上方 25%）→ 目标脱离 1000px 倒放回 idle；
+  - 盾击（仅远程形态，CD 10s）：200px 内 push 17 帧 1.5s、第 7 帧判定物攻×1.5 + 眩晕 2s，不可移动；
+  - 防御（参考骑士格挡，CD 6s）：目标攻击临近 260px 触发，0.75s 正放 defending 10 帧 → 第 10 帧持续 4s（弹反：免伤，近战攻击者眩晕 2s+击退 100，且**可正常开火**）→ 0.75s 倒放退出；
+  - 沙鹰接入：desert_eagle 实例 + `attackKey='deagle'` 指向 WEAPON_ATTACK_CONFIG.deagle，伤害覆盖为面板物攻 35，击退置 0，无限弹药（无换弹需求）。
+- **注册**：enemy-types.js 桶文件、ZOMBIE_FACTORY_MAP（lord 池纳入；中级 Boss 的 poolFamily=僵尸 过滤不受影响）、BootScene 5 组贴图加载 + 11 组动画、主神空间 origin 东 700px 测试生成（与突击错开）。
+- **修改文件**：data/enemy-config.json、src/entities/enemy-types/time-agent-shield.js（新）、src/entities/enemy-types.js、src/world/zombie-dungeon.js、src/game.js、src/phaser/scenes/BootScene.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——射击/盾击/防御弹反与开火共存、切换动画、换弹 3s。
+
 ## 2026-07-21（地牢地板：按地牢贴图组 + 随机镜像 + 发光层开关）
 
 ### 对话：僵尸地牢地板更新；发光层关闭但机制保留

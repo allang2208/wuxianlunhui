@@ -119,6 +119,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_timeagent_axe',    'assets/enemies/time_agent/axe.png',        { frameWidth: 512, frameHeight: 512, endFrame: 29 });
         this.load.spritesheet('enemy_timeagent_switch', 'assets/enemies/time_agent/switch.png',     { frameWidth: 512, frameHeight: 512, endFrame: 20 });
         this.load.image('enemy_timeagent_project',   'assets/enemies/time_agent/projective.png');
+
+        // 时空特工(盾位)-F（领主，双模式：沙鹰射击/盾击/防御）：8列×4行切割，512×512 帧
+        this.load.spritesheet('enemy_timeshield_idle',    'assets/enemies/time_agent_shield/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_timeshield_walk',    'assets/enemies/time_agent_shield/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_timeshield_switch',  'assets/enemies/time_agent_shield/switch.png',    { frameWidth: 512, frameHeight: 512, endFrame: 7 });
+        this.load.spritesheet('enemy_timeshield_push',    'assets/enemies/time_agent_shield/push.png',      { frameWidth: 512, frameHeight: 512, endFrame: 16 });
+        this.load.spritesheet('enemy_timeshield_defend',  'assets/enemies/time_agent_shield/defending.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
         // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
         this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
         // 蝇手（领主）：全部 512×512 帧（idle 已重排统一；walk 8列×2行16帧，攻击 8列×4行）
@@ -511,6 +518,72 @@ export class BootScene extends Scene {
         this.anims.create({
             key: 'enemy_timeagent_switch',
             frames: this.anims.generateFrameNumbers('enemy_timeagent_switch', { start: 0, end: 20 }),
+            duration: 750,
+            repeat: 0,
+        });
+        // ---- 时空特工(盾位)-F（沙鹰/盾击/防御）动画 ----
+        this.anims.create({
+            key: 'enemy_timeshield_idle',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        // 普通移动：首段 16 帧播一轮 → 循环 5~16 帧（索引 4~15）
+        this.anims.create({
+            key: 'enemy_timeshield_walk',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_walk', { start: 0, end: 15 }),
+            duration: 1067,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeshield_walk_loop',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_walk', { start: 4, end: 15 }),
+            duration: 800,
+            repeat: -1,
+        });
+        // 远程形态切换：switch 8 帧 0.5s（正放切入 / 倒放切出）
+        this.anims.create({
+            key: 'enemy_timeshield_ranged_in',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_switch', { start: 0, end: 7 }),
+            duration: 500,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeshield_ranged_out',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_switch', { start: 7, end: 0 }),
+            duration: 500,
+            repeat: 0,
+        });
+        // 远程持枪姿态：switch 第 8 帧（索引 7）静态
+        this.anims.create({
+            key: 'enemy_timeshield_ranged_pose',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_switch', { start: 7, end: 7 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        // 盾击：push 17 帧 1.5s
+        this.anims.create({
+            key: 'enemy_timeshield_push',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_push', { start: 0, end: 16 }),
+            duration: 1500,
+            repeat: 0,
+        });
+        // 防御：defending 10 帧 0.75s 进入 → 第 10 帧持续 → 0.75s 倒放退出
+        this.anims.create({
+            key: 'enemy_timeshield_defend_in',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_defend', { start: 0, end: 9 }),
+            duration: 750,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_timeshield_defend_hold',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_defend', { start: 9, end: 9 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_timeshield_defend_out',
+            frames: this.anims.generateFrameNumbers('enemy_timeshield_defend', { start: 9, end: 0 }),
             duration: 750,
             repeat: 0,
         });

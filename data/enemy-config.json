@@ -1479,7 +1479,7 @@
         "muzzleScale": 1.2,
         "ammo": {
           "max": 30,
-          "reloadTime": 2000
+          "reloadTime": 3000
         },
         "muzzleUpY": 85,
         "muzzleSideX": 65,
@@ -1542,5 +1542,92 @@
       "meleeStepInterval": 800,
       "flash": "assets/sounds/enemies/time_agent/flash.mp3"
     }
+  },
+  "timeAgentShield": {
+    "id": "timeAgentShield",
+    "name": "时空特工(盾位)-F",
+    "type": "领主",
+    "category": "monster",
+    "family": "特工",
+    "color": "#5a7a8a",
+    "size": 30,
+    "collisionRadius": 40.25,
+    "hp": 2200,
+    "maxHp": 2200,
+    "speed": 165,
+    "level": 12,
+    "rank": "lord",
+    "str": 30,
+    "dex": 40,
+    "con": 51,
+    "int": 20,
+    "wis": 30,
+    "luck": 23,
+    "mdef": 55,
+    "crit": 25,
+    "attackRange": 800,
+    "aiInterval": 500,
+    "ai": {
+      "aggroRange": 1200,
+      "pacingRange": 0,
+      "loseTimeout": 5000
+    },
+    "attackType": "射击",
+    "attackSkills": {
+      "forms": {
+        "engageRange": 800,
+        "disengageRange": 1000,
+        "switchInMs": 500,
+        "switchOutMs": 500,
+        "walkIntroMs": 1067
+      },
+      "shoot": {
+        "fireRange": 750,
+        "knockback": 0,
+        "spreadFactor": 0.1,
+        "spreadMaxAngle": 8,
+        "muzzleUpY": 85,
+        "muzzleSideX": 65,
+        "muzzleScale": 1.2,
+        "aimHeightRatio": 0.875
+      },
+      "bash": {
+        "cooldown": 10000,
+        "duration": 1500,
+        "frames": 17,
+        "hitFrame": 7,
+        "range": 200,
+        "damageMul": 1.5,
+        "stunMs": 2000
+      },
+      "defend": {
+        "triggerRange": 260,
+        "cooldown": 6000,
+        "windupMs": 750,
+        "duration": 4000,
+        "outroMs": 750,
+        "parryStunMs": 2000,
+        "parryKnockback": 100
+      }
+    },
+    "render": {
+      "spriteSize": 160,
+      "collisionWidth": 60,
+      "collisionHeight": 180,
+      "footOffsetY": 38,
+      "colliderOffsetY": 30,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 70,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/time_agent_shield/idle.png"
+    },
+    "description": "时空特工盾位型，沙漠之鹰射击 + 盾击 + 防御弹反",
+    "skills": []
   }
 }
