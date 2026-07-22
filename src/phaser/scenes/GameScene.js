@@ -141,6 +141,11 @@ export class GameScene extends Scene {
         this.cameras.main.setViewport(0, 0, viewW, viewH);
         this.cameras.main.setBackgroundColor('#000000');
 
+        // 首启主神空间地形（砖地+边界墙）：必须在 Phaser 贴图就绪后烘焙，
+        // 否则地板贴图未加载会回退网格（Game.init 直调会抢跑）
+        if (SceneManager && SceneManager.currentScene === 'main' && typeof SceneManager._setupMainHubTerrain === 'function') {
+            SceneManager._setupMainHubTerrain();
+        }
         // 初始同步地形（后续由场景切换/战斗房生成主动调用 syncTerrain()）
         this.syncTerrain();
 

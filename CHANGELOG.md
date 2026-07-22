@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间地板回退网格修复：烘焙时机竞态）
+
+### 对话：控制台报"地板贴图未加载，使用回退网格地板"
+- **根因**：首启烘焙在 `Game.init` 同步直调 `_setupMainHubTerrain()`，此时 Phaser BootScene 尚未完成贴图加载（`textures.exists('hub_brick')=false`），烘焙落到回退网格并被 `Renderer.terrainTexture` 固化，之后不再重烘。
+- **修复**：首启烘焙移到 `GameScene.create()`（贴图已就绪），Game.init 不再直调；`_loadMainScene` 回城路径不变（彼时贴图早已加载）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/game.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——首启砖地正确铺设、无回退警告。
+
 ## 2026-07-21（主神空间地板首启不生效整合 + 特工矩形双源对齐）
 
 ### 对话：主神空间地板还是旧样式（双渲染路径？）；特工绿色矩形没拉伸（双系统？）——整合
