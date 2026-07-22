@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（dungeons-table.md 全要素更新）
+
+### 对话：更新地牢表格全部要素
+- **生成脚本扩充**（`scripts/generate-dungeons-table.mjs`）：新增列——到 Boss 最少房间（minRoomsToBoss）、宝箱岔路（条数按等级 F=2/每级+2 或配置覆盖）、普通/精英战斗构成（波次×数量+配比，DEFAULTS 从 dungeon-config.js 文本离线提取，不引依赖）、Boss 遭遇（含 poolFamily 限定标注）、时空特工入侵（按难度判定是否触发及几率/数量，数据源 agent-invasion.json）；房间数浮动（22~27/30~35/35~40）同步；新增"说明"段解释各列口径与岔路/入侵机制。
+- **重新生成**：`node scripts/generate-dungeons-table.mjs` → `dungeons-table.md` 12 列全要素。
+- **修改文件**：scripts/generate-dungeons-table.mjs、dungeons-table.md、CHANGELOG.md。
+- **测试结果**：脚本运行 ✅；lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
 ## 2026-07-21（特工音效接入 + HUD 锚点修正为圆柱体）
 
 ### 对话：特工声音配置；名字/血条锚到圆柱体而非绿色矩形
