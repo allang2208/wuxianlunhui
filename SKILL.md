@@ -485,6 +485,15 @@ _getPhaserOptions() {
 
 ---
 
+## 遭遇导演（2026-07-21 新增，新遭遇优先走配置表）
+
+新增战斗遭遇（伏击/突袭/增援等）时**优先走遭遇导演**，不要在系统里硬编码构成：
+- 配置表 `data/encounter-table.json`：每条遭遇 `{ kind, source }`——kind 决定执行后端（waves 波次 / invasion 特工入侵 / boss / custom）；
+- `src/world/encounter-director.js`：`resolveComposition(spec, ctx)` 统一构成解析——`{tier:数量}` 按怪物池分层抽取（可 poolFamily 限定家族），`[角色键...]` 按 ROLE_FACTORIES 固定构成；`registerKind` 注册新遭遇类型处理器；
+- 现有后端（ZombieDungeonCombat/AgentInvasionSystem/BossRewardSystem）不重写，由导演统一路由；特工入侵的构成解析已接入导演。
+
+---
+
 ## 面板生命周期框架（2026-07-21 新增，新面板优先复用）
 
 新增抽屉式面板时**优先复用** `src/ui/panels/base-panel.js`（BasePanel），不要重写 open/close/toggle/遮罩关闭：

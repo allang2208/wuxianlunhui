@@ -1520,7 +1520,7 @@
       "footOffsetY": 38,
       "projectileHitbox": {
         "width": 70,
-        "height": 110,
+        "height": 180,
         "offsetX": 0,
         "bottom": 0
       },
@@ -1621,7 +1621,7 @@
       "capsuleHudAnchor": true,
       "projectileHitbox": {
         "width": 70,
-        "height": 110,
+        "height": 180,
         "offsetX": 0,
         "bottom": 0
       }

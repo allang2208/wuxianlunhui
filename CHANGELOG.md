@@ -8,6 +8,42 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（主神空间地板回退网格修复：烘焙时机竞态）
+
+### 对话：控制台报"地板贴图未加载，使用回退网格地板"
+- **根因**：首启烘焙在 `Game.init` 同步直调 `_setupMainHubTerrain()`，此时 Phaser BootScene 尚未完成贴图加载（`textures.exists('hub_brick')=false`），烘焙落到回退网格并被 `Renderer.terrainTexture` 固化，之后不再重烘。
+- **修复**：首启烘焙移到 `GameScene.create()`（贴图已就绪），Game.init 不再直调；`_loadMainScene` 回城路径不变（彼时贴图早已加载）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/game.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——首启砖地正确铺设、无回退警告。
+
+## 2026-07-21（主神空间地板首启不生效整合 + 特工矩形双源对齐）
+
+### 对话：主神空间地板还是旧样式（双渲染路径？）；特工绿色矩形没拉伸（双系统？）——整合
+- **地板根因**：首次启动走 `Game.init → Renderer.generateWorld()` 直路（`SceneManager.init()` 只登记场景），地板烘焙/边界墙写在 `_loadMainScene`（仅回城调用）——首启永远旧样式且无边界墙。整合：抽 `_setupMainHubTerrain()` 统一入口（砖地烘焙+边界墙），**Game.init 首启与 _loadMainScene 回城共用同一路径**，地形渲染统一经 Phaser terrain texture。
+- **特工矩形根因**：躯干绿色矩形的唯一数据源是 `render.projectileHitbox.height`（torso-hitbox.js），此前只拉伸了 `collisionHeight`（110→180），两处错位导致矩形没变。整合对齐：两特工 `projectileHitbox.height = 180`（= collisionHeight）；`test-config-integrity` 新增双源一致性检查——collisionHeight 与 projectileHitbox.height 不一致即警告（首次运行即扫出 11 个历史怪有差异，属各自独立调校；两特工已对齐不再报警）。
+- **修改文件**：src/world/scene-manager.js、src/game.js、data/enemy-config.json、scripts/test-config-integrity.mjs、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅（0 错误）。
+- **已知问题**：实机待验证——首启主神空间砖地+边界墙、两特工绿色矩形 180 高。
+
+## 2026-07-21（僵尸地牢高级房间数 45~50）
+
+### 对话：高级房间数优化
+- `zombieDungeon.nodeCount` 35~40 → **45~50**（其余地牢规则不变）；最短路径战斗/到 Boss 最少房间/Boss/岔路不受影响（各自独立配置）；`dungeons-table.md` 已重新生成。
+- **修改文件**：data/dungeon-config.json、dungeons-table.md、CHANGELOG.md。
+- **测试结果**：test-config-integrity ✅；vite build ✅；lint ✅（0 error）。
+
+## 2026-07-21（中优⑥：遭遇导演 EncounterDirector 统一）
+
+### 对话：按中优先级做 6（遭遇导演统一）
+- **配置表**（`data/encounter-table.json`）：所有战斗遭遇统一登记——`{ kind, source }`，kind 决定执行后端（waves 波次 / invasion 特工入侵 / boss / custom）；新遭遇（伏击/突袭/增援）以后只追加条目。
+- **导演模块**（`src/world/encounter-director.js`）：`resolveComposition` 统一构成解析（`{tier:数量}` 分层池抽取 / `[角色键]` 固定工厂构成）；`registerKind` 注册新类型处理器；`start(name, ctx)` 路由到后端执行。现有后端（波次/入侵/Boss 系统）不重写，由导演统一入口。
+- **首个接入点**：特工入侵的构成解析（agentCompositionByGrade）改走 `EncounterDirector.resolveComposition`，ROLE_FACTORIES 集中到导演模块。
+- **SKILL.md**：新增"遭遇导演"条目。
+- **修改文件**：data/encounter-table.json（新）、src/world/encounter-director.js（新）、src/world/agent-invasion-system.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅。
+- **已知问题**：波次/Boss 后端仍各自配置驱动（行为不变），后续新遭遇类型统一从导演入口接入。
+
 ## 2026-07-21（中优⑤：音频总线声道 + BGM 场景框架）
 
 ### 对话：按中优先级做 5（音频总线+BGM）

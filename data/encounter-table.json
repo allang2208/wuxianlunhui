@@ -1,0 +1,20 @@
+{
+  "$schema": "遭遇表（所有战斗遭遇的统一登记处，勿在代码里硬编码构成；新遭遇在此追加条目）",
+  "comment": "kind: waves=波次战斗（ZombieDungeonCombat）| invasion=特工入侵 | boss=Boss战 | custom=自定义处理。composition 两种写法：{tier:数量} 按怪物池抽，或 [角色键...] 按工厂固定构成。poolFamily 限定怪物池家族。",
+  "zombieNormal": {
+    "kind": "waves",
+    "source": "dungeonConfig.encounters.normal"
+  },
+  "zombieElite": {
+    "kind": "waves",
+    "source": "dungeonConfig.encounters.elite"
+  },
+  "zombieBossEncounter": {
+    "kind": "waves",
+    "source": "dungeonConfig.bossEncounter"
+  },
+  "agentInvasion": {
+    "kind": "invasion",
+    "source": "agentInvasion"
+  }
+}

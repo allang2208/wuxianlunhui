@@ -27,8 +27,8 @@
   },
   "zombieDungeon": {
     "nodeCount": {
-      "min": 35,
-      "max": 40
+      "min": 45,
+      "max": 50
     },
     "shortestCombatPath": 5,
     "typeRatios": {
