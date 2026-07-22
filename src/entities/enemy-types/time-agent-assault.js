@@ -134,6 +134,11 @@ export class TimeAgentAssault extends Enemy {
         // 眩晕：暂停一切决策与动作推进（恢复后继续）
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
 
+        // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标
+        if (this._invasionAgent) {
+            this.target = this._nearestHostile(entities);
+        }
+
         const t = this.target && this.target.active ? this.target : null;
         const dist = t ? Math.hypot(t.x - this.x, t.y - this.y) : Infinity;
 
@@ -328,6 +333,14 @@ export class TimeAgentAssault extends Enemy {
             const startFrame = isIntro ? 0 : 11;
             const hitFrame = isIntro ? (A.introHitFrame ?? 15) : (A.attackHitAbsFrame ?? 20);
             const elapsed = duration - this._stateTimer;
+            // 切换近战的斧音在配置帧（axeIntroFrame，默认第 14 帧）播放一次
+            if (isIntro && !this._axeIntroSoundDone) {
+                const soundFrame = this.config?.sounds?.axeIntroFrame ?? 14;
+                if (elapsed >= (soundFrame - startFrame) / fps * 1000) {
+                    this._axeIntroSoundDone = true;
+                    this._playSound('axe');
+                }
+            }
             if (!this._axeHitDone && elapsed >= (hitFrame - startFrame) / fps * 1000) {
                 this._axeHitDone = true;
                 this._dealAxeHit(entities);
@@ -381,6 +394,8 @@ export class TimeAgentAssault extends Enemy {
     _startTransition(state, ms) {
         this._formState = state;
         this._stateTimer = ms;
+        // 形态切换音效（switch.mp3，配置驱动）
+        this._playSound('switch');
     }
 
     _startAxeIntro() {
@@ -388,12 +403,15 @@ export class TimeAgentAssault extends Enemy {
         this._formState = 'axeIntro';
         this._stateTimer = A.introDuration ?? 2000;
         this._axeHitDone = false;
+        this._axeIntroSoundDone = false;
     }
 
     _startAxeAttack() {
         this._formState = 'axeAttack';
         this._stateTimer = this._axeAttackDuration();
         this._axeHitDone = false;
+        // 近战攻击斧音（axe.mp3，立即播放）
+        this._playSound('axe');
     }
 
     _startFlashThrow() {
@@ -524,6 +542,20 @@ export class TimeAgentAssault extends Enemy {
             }
         }
         return false;
+    }
+
+    /** 入侵特工：最近的非 agent 阵营单位（玩家与地牢怪物皆为敌） */
+    _nearestHostile(entities) {
+        let best = null;
+        let bestD = Infinity;
+        const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
+        for (const e of list) {
+            if (!e || e === this || !e.active || !e.hittable) continue;
+            if (e._faction === 'agent') continue;
+            const d = Math.hypot(e.x - this.x, e.y - this.y);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
     }
 
     /** 朝向判定（与 _getPhaserOptions 的 flipX 同规则） */
@@ -680,6 +712,7 @@ export class TimeAgentAssault extends Enemy {
 
     _impactFlashbang(tx, ty) {
         this._destroyFlashWarning();
+        this._playSound('flash'); // 投射物消失（落地）音效
         const FB = this._getSkillConfigs().flashbang;
         const radius = FB.impactRadius || 100;
         const matk = this.data?.matk || 0;

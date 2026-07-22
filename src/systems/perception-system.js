@@ -47,6 +47,8 @@ class PerceptionSystemImpl {
      */
     update(enemy, dt, entities) {
         if (!enemy || !enemy.active) return;
+        // 入侵特工（时空特工追击机制）：目标由自身类内最近敌对逻辑接管，感知系统不覆写
+        if (enemy._invasionAgent) return;
 
         // 初始化感知属性（首次运行时）
         this._ensurePerceptionState(enemy);

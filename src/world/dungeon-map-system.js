@@ -24,6 +24,7 @@ import { Input } from '../ui/input.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
+import { AgentInvasionSystem } from './agent-invasion-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
 import { coverRect, anchorRect } from '../utils/layout.js';
@@ -174,6 +175,8 @@ export const DungeonMapSystem = {
 
         // 初始化迷雾系统
         this.fogOfWar = new DungeonFogOfWar();
+        // 时空特工追击机制（D 级及以上地牢；内部按难度判定是否启用）
+        AgentInvasionSystem.init(this);
 
         this.generateMap();
         this._centerRouteMap();
@@ -218,6 +221,10 @@ export const DungeonMapSystem = {
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
         this._unbindEvents();
+        // 时空特工追击机制复位（含几率显示）
+        AgentInvasionSystem.reset();
+        this._invasionNode = null;
+        this._invasionMixed = false;
 
         // 死亡/异常退出时强制清理 Boss 战与战斗房，防止 active 卡死造成软锁
         if (typeof BossRewardSystem !== 'undefined' && BossRewardSystem && typeof BossRewardSystem.cleanup === 'function') {
@@ -685,6 +692,8 @@ export const DungeonMapSystem = {
             if (this.fogOfWar) {
                 this.fogOfWar.visit(node.id, this.nodes, this.edges);
             }
+            // 时空特工追击：回合推进（empty 节点不计入入侵拦截）
+            AgentInvasionSystem.onPlayerEnterNode(node);
             this._returnToMap();
             return;
         }
@@ -697,6 +706,13 @@ export const DungeonMapSystem = {
         // 更新迷雾系统
         if (this.fogOfWar) {
             this.fogOfWar.visit(node.id, this.nodes, this.edges);
+        }
+
+        // 时空特工追击：回合推进 + 追上后强制入侵战斗拦截
+        AgentInvasionSystem.onPlayerEnterNode(node);
+        if (AgentInvasionSystem.shouldIntercept(node)) {
+            this._enterInvasionBattle(node);
+            return;
         }
 
         switch (node.type) {
@@ -750,6 +766,22 @@ export const DungeonMapSystem = {
     _leaveCombatViaPortal() {
         const player = this.player || Game.player;
         if (!player) return;
+
+        // 时空特工入侵战（情况1/3）：不标完成，清理后继续原节点事件
+        if (this._invasionNode && !this._invasionMixed) {
+            const node = this._invasionNode;
+            this._invasionNode = null;
+            this._invasionMixed = false;
+            this._consumeCombatBuffs(player);
+            this._cleanupCombatScene();
+            const phaserScene = window.__phaserScene;
+            if (phaserScene && phaserScene.clearCombatView) {
+                phaserScene.clearCombatView();
+            }
+            this._exitPortalSpawned = false;
+            this._continueNodeEventAfterInvasion(node);
+            return;
+        }
 
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(player);
@@ -858,6 +890,9 @@ export const DungeonMapSystem = {
 
     _enterCombat(node) {
         this.state = "combat";
+        // 普通战斗入口重置入侵标记（入侵混合战由 _enterInvasionBattle 单独设置）
+        this._invasionNode = null;
+        this._invasionMixed = false;
         // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物/宝箱
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
@@ -966,6 +1001,78 @@ export const DungeonMapSystem = {
         CombatRoomSystem.enterCombatRoom(this.player, false, {});
         this._spawnZombieWave();
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
+    },
+
+    // ========== 时空特工入侵战斗（追上后强制触发） ==========
+
+    /**
+     * 入侵战斗入口：
+     * - 情况1/3（事件/BOSS/奖励节点）：4096 场地仅刷特工，胜利后继续原节点事件
+     * - 情况2（战斗节点）：4096 场地原怪物 + 随机自由边刷特工（全场敌对）
+     */
+    _enterInvasionBattle(node) {
+        this.state = 'combat';
+        this._cleanupCombatScene();
+        this._exitPortalSpawned = false;
+        this._eliteChest = null;
+        this._eliteChestOpened = false;
+        this._invasionNode = node;
+        const arenaSize = AgentInvasionSystem.getArenaSize();
+        const count = AgentInvasionSystem.getAgentCount();
+
+        if (node.type === 'combat') {
+            // 情况2：战斗节点混入特工（正常波次流程；节点完成后正常置 empty）
+            this._invasionMixed = true;
+            this._enterZombieCombat(node, { roomSize: arenaSize });
+            this._spawnInvasionAgentsOnFreeEdge(count);
+        } else {
+            // 情况1/3：仅特工的强制战（胜利后经 _leaveCombatViaPortal 继续原事件）
+            this._invasionMixed = false;
+            this._zombieWaveActive = false; // 无波次
+            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: arenaSize });
+            const classes = Array.from({ length: count }, () => AgentInvasionSystem.spawnAgentClass());
+            CombatRoomSystem.spawnMonsters(count, false, classes);
+            for (const m of CombatRoomSystem._combatMonsters) AgentInvasionSystem.markAsInvasion(m);
+            this._combatMonsters = CombatRoomSystem._combatMonsters;
+        }
+        EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, '⚠ 时空特工入侵！', '#ff4444'));
+    },
+
+    /** 情况2：在玩家/怪物都不刷新的随机自由边上生成入侵特工 */
+    _spawnInvasionAgentsOnFreeEdge(count) {
+        const bounds = CombatRoomSystem._roomBounds;
+        if (!bounds || count <= 0) return;
+        const used = [CombatRoomSystem._entranceEdge, CombatRoomSystem._oppositeEdge];
+        const free = [0, 1, 2, 3].filter(e => !used.includes(e));
+        if (free.length === 0) return;
+        const edge = free[Math.floor(Math.random() * free.length)];
+        const margin = AgentInvasionSystem.getEdgeSpawnMargin();
+        for (let i = 0; i < count; i++) {
+            const t = (i + 1) / (count + 1);
+            let x, y;
+            // 边：0上 1右 2下 3左（与 CombatRoomSystem._spawnPlayer 同口径）
+            if (edge === 0) { x = bounds.minX + (bounds.maxX - bounds.minX) * t; y = bounds.minY + margin; }
+            else if (edge === 2) { x = bounds.minX + (bounds.maxX - bounds.minX) * t; y = bounds.maxY - margin; }
+            else if (edge === 1) { x = bounds.maxX - margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
+            else { x = bounds.minX + margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
+            const agent = AgentInvasionSystem.spawnAgent(x, y);
+            const key = `invasion_agent_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
+            Game.entities.set(key, agent);
+            // 加入战斗追踪（与首波怪物同数组，完成判定含特工）
+            CombatRoomSystem._combatMonsters.push(agent);
+        }
+        this._combatMonsters = CombatRoomSystem._combatMonsters;
+    },
+
+    /** 情况1/3：特工战胜利后继续原节点事件（事件/BOSS/奖励） */
+    _continueNodeEventAfterInvasion(node) {
+        switch (node.type) {
+            case 'combat': this._enterCombat(node); break;
+            case 'boss':   this._enterBoss(node); break;
+            case 'event':  this._enterEvent(node); break;
+            case 'reward': this._enterReward(node); break;
+            default:       this._returnToMap(); break;
+        }
     },
 
     _checkZombieCombatComplete() {

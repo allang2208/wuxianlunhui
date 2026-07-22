@@ -328,8 +328,13 @@ export class ZombieDungeonMapGenerator {
         const startRow = rows > 1 ? (rows - 1) / 2 : mainRow;
 
         // 列：起点 + shortestCombatPath 个中间列 + boss + reward
+        // 达到 Boss 房间的最少房间数判定（minRoomsToBoss，与最少战斗数不冲突）：
+        // 最短路径房间数 = 起点 + 中间列 + Boss = 中间列 + 2；不足时扩展中间列
+        // （多出的列按 typeRatios 生成战斗/事件，不改变强制战斗数）
+        const minRoomsToBoss = cfg.minRoomsToBoss ?? (shortestCombatPath + 2);
+        const intermediateCols = Math.max(shortestCombatPath, minRoomsToBoss - 2);
         const combatStartCol = 1;
-        const bossCol = combatStartCol + shortestCombatPath;
+        const bossCol = combatStartCol + intermediateCols;
         const rewardCol = bossCol + 1;
         const totalCols = rewardCol + 1;
 

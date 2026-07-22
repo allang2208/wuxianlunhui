@@ -96,12 +96,13 @@
     "nodeDisplay": {
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
-    }
+    },
+    "minRoomsToBoss": 7
   },
   "zombieDungeonBeginner": {
     "nodeCount": {
       "min": 22,
-      "max": 22
+      "max": 27
     },
     "shortestCombatPath": 4,
     "mainRowMinCombat": 3,
@@ -160,12 +161,13 @@
     "nodeDisplay": {
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
-    }
+    },
+    "minRoomsToBoss": 6
   },
   "zombieDungeonMid": {
     "nodeCount": {
       "min": 30,
-      "max": 30
+      "max": 35
     },
     "shortestCombatPath": 4,
     "typeRatios": {
@@ -223,7 +225,8 @@
     "nodeDisplay": {
       "unrevealedIcon": "?",
       "completedCombatType": "empty"
-    }
+    },
+    "minRoomsToBoss": 6
   },
   "combatRoom": {
     "normalSize": {
