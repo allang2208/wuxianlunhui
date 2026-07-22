@@ -1,0 +1,24 @@
+{
+  "$schema": "时空特工追击机制配置（数值后续由新系统/机制调整，勿硬编码）",
+  "enabled": true,
+  "comment_minGrade": "触发最低地牢难度（含）：F/E/D/C/B/A，D 级及以上触发",
+  "minGrade": "D",
+  "comment_chance": "达到 minRoomsToBoss 回合后开始判定：初始几率 + 每 chanceStepTurns 回合 +chanceStep，封顶 1",
+  "initialChance": 0.25,
+  "chanceStep": 0.05,
+  "chanceStepTurns": 2,
+  "comment_agent": "特工起始点出现在地牢起点，每回合沿最短路线追击 agentMovesPerTurn 格，不触发沿途事件；与玩家节点重叠后，玩家下一节点触发入侵战斗",
+  "agentMovesPerTurn": 2,
+  "maxInvasionsPerRun": 1,
+  "comment_count": "入侵战斗刷新特工数量（按地牢难度；事件/BOSS/奖励节点强制战与战斗节点混合战共用）",
+  "agentCountByGrade": { "D": 1, "C": 2, "B": 4, "A": 6 },
+  "arenaSize": 4096,
+  "edgeSpawnMargin": 200,
+  "display": {
+    "label": "时空特工入侵几率",
+    "colorStart": "#7ee787",
+    "colorEnd": "#c0392b",
+    "left": 20,
+    "bottomCss": "calc(18.84vh + 85px)"
+  }
+}

@@ -8,6 +8,21 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（时空特工追击机制：地牢回合制 + 入侵战斗）
+
+### 对话：D 级及以上地牢的时空特工入侵机制（全部配置驱动，预留调整接口）
+- **配置**：`data/agent-invasion.json`（新）——minGrade、初始几率 25%、每 2 回合 +5%、特工 2 格/回合、各级数量（D1/C2/B4/A6）、场地 4096、边距、显示文案与渐变色，全部可调。
+- **回合制**：玩家每进入一个节点 = 1 回合（empty 通行也计）；达到 `minRoomsToBoss` 回合后开始判定，地图左侧（小鼠商店上方）显示当前入侵几率，颜色随 25%→100% 由浅绿渐变为深红。
+- **追击**：判定成功后特工出现在地牢起点，BFS 最短路线追击（2 格/回合，不触发沿途事件）；与玩家节点重叠（追上）后，玩家进入的下一节点触发入侵战斗。
+- **三种节点情形**：
+  1. 随机事件节点 → 4096 场地仅刷特工强制战，胜利后经 `_leaveCombatViaPortal` 的继续钩子进入原事件（节点不提前标完成）；
+  2. 战斗节点 → 4096 场地原波次怪物 + 玩家/怪物都不刷新的随机自由边刷特工（首波），完成后节点正常置 empty；
+  3. BOSS/奖励节点 → 同情形 1，胜利后正常进入 BOSS/奖励房间。
+- **全场敌对**：入侵特工 `faction='agent'`——既攻击玩家也攻击地牢怪物（怪物 AOE 命中、玩家/怪物弹药均互通）；`TimeAgentAssault._invasionAgent` 每帧锁定最近的非 agent 单位为目标（PerceptionSystem 跳过覆写）。
+- **修改文件**：data/agent-invasion.json（新）、src/world/agent-invasion-system.js（新）、src/world/dungeon-map-system.js、src/entities/enemy-types/time-agent-assault.js、src/systems/perception-system.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——几率显示/追击节奏/三种拦截战斗/三方混战；D 级数量为 1（规格未给 D，已按 C/B/A 递减趋势预设，可调）。
+
 ## 2026-07-21（枪口 65/85 + HUD 胶囊顶改为按配置启用 + 特工碰撞再拉伸）
 
 ### 对话：枪口左右再 +10 上 +5；胶囊顶锚点设为默认工作流但仅对特工生效、旧怪不动；特工矩形碰撞再上拉 35px

@@ -134,6 +134,11 @@ export class TimeAgentAssault extends Enemy {
         // 眩晕：暂停一切决策与动作推进（恢复后继续）
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
 
+        // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标
+        if (this._invasionAgent) {
+            this.target = this._nearestHostile(entities);
+        }
+
         const t = this.target && this.target.active ? this.target : null;
         const dist = t ? Math.hypot(t.x - this.x, t.y - this.y) : Infinity;
 
@@ -524,6 +529,20 @@ export class TimeAgentAssault extends Enemy {
             }
         }
         return false;
+    }
+
+    /** 入侵特工：最近的非 agent 阵营单位（玩家与地牢怪物皆为敌） */
+    _nearestHostile(entities) {
+        let best = null;
+        let bestD = Infinity;
+        const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
+        for (const e of list) {
+            if (!e || e === this || !e.active || !e.hittable) continue;
+            if (e._faction === 'agent') continue;
+            const d = Math.hypot(e.x - this.x, e.y - this.y);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
     }
 
     /** 朝向判定（与 _getPhaserOptions 的 flipX 同规则） */
