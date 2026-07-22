@@ -1524,7 +1524,6 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "hudOffsetY": 70,
       "colliderOffsetY": 30,
       "capsuleHudAnchor": true
     },

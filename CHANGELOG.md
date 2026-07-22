@@ -8,6 +8,33 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（特工：HUD 未生效根因/后退抖动/火光缩小/红粒子强化）
+
+### 对话：碰撞与名字血条未应用排查、后退射击抖动、火光缩小33%、红粒子×3深红大范围落点消失
+- **HUD 未生效根因**：特工 render 里残留的 `hudOffsetY: 70` 把名字/血条从胶囊顶再下压 70px（抵消锚点，早期贴图顶部时代调校值）——已删除，胶囊顶锚点（capsuleHudAnchor）真正生效；碰撞配置（colliderOffsetY 30/collisionHeight 180）确认已正确消费。
+- **后退射击抖动根因**：移动模式按硬边界每帧重选，目标追击时距离在 800 边界抖动导致 retreat↔band 来回跳变（walk↔pose 闪现）。修复：模式切换加 40px 迟滞（retreat <760 进入 / >840 退出，approach >1240 进入 / <1160 退出），当前模式在余量内保持。
+- **火光缩小 33%**：`playMuzzleFire` 粒子 scale 2.4 → 1.6。
+- **红粒子强化**：数量 ×3（爆发 24 + 持续 9/60ms）、深红 0xa00000、掉落范围扩大（速度 30~90、摆动 45°~135°）；新增死亡区——粒子落到目标 footprint 椭圆最下方（`collider.y + 半径×PERSPECTIVE_SCALE_Y`）即消失（Phaser addDeathZone + 自定义 contains）。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——名字/血条位于圆柱体正上方、后退无抖动、红粒子落到脚底椭圆消失。
+
+## 2026-07-21（特工：开火火光 + 斧击红色下浮粒子）
+
+### 对话：开火时在出膛点加火光；近战命中播放红色下浮粒子（1.5s 重力感）
+- **开火火光**：`GameScene.playMuzzleFire(x, y)`——黄白色高亮粒子（ADD 混合、140ms 放大淡出），每次成功开火在枪口点与枪口火焰/弹壳同源触发。
+- **斧击红色下浮粒子**：`GameScene.playRedFallParticles(x, y)`——红色粒子起始慢速向下（60°~120° 摆动），gravityY 500 拉出"由慢到快"的掉落感，0.9s 发射 + 1.5s 总寿命销毁；斧头命中（首次切换与近战劈砍）时在目标头顶位置播放。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
+## 2026-07-21（dungeons-table.md 全要素更新）
+
+### 对话：更新地牢表格全部要素
+- **生成脚本扩充**（`scripts/generate-dungeons-table.mjs`）：新增列——到 Boss 最少房间（minRoomsToBoss）、宝箱岔路（条数按等级 F=2/每级+2 或配置覆盖）、普通/精英战斗构成（波次×数量+配比，DEFAULTS 从 dungeon-config.js 文本离线提取，不引依赖）、Boss 遭遇（含 poolFamily 限定标注）、时空特工入侵（按难度判定是否触发及几率/数量，数据源 agent-invasion.json）；房间数浮动（22~27/30~35/35~40）同步；新增"说明"段解释各列口径与岔路/入侵机制。
+- **重新生成**：`node scripts/generate-dungeons-table.mjs` → `dungeons-table.md` 12 列全要素。
+- **修改文件**：scripts/generate-dungeons-table.mjs、dungeons-table.md、CHANGELOG.md。
+- **测试结果**：脚本运行 ✅；lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
 ## 2026-07-21（特工音效接入 + HUD 锚点修正为圆柱体）
 
 ### 对话：特工声音配置；名字/血条锚到圆柱体而非绿色矩形
