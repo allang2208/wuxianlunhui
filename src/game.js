@@ -47,8 +47,7 @@ import { ArmoredKnight } from './entities/enemy-types/armored-knight.js';
 import { Shounao } from './entities/enemy-types/shounao.js';
 import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
 import { FlyHand } from './entities/enemy-types/fly-hand.js';
-import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
-import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
+import { PoisonMaggot } from './entities/enemy-types/poison-maggot.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -349,52 +348,30 @@ export const Game = {
 
     /**
      * 主神空间测试怪统一生成入口（开局 init 与 _loadMainScene 共用，强绑定）：
-     * 清场后生成当前测试怪（铠甲骑士 + 手脑）。调整主神空间怪物只改这里。
+     * 清场后生成当前测试怪。调整主神空间怪物只改这里。
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 时空特工(突击)-F 测试生成（双形态机制验证）
-        this.spawnMainTimeAgent();
-        // 时空特工(盾位)-F 测试生成（沙鹰/盾击/防御弹反验证）
-        this.spawnMainTimeAgentShield();
+        // 生成一只毒蛆用于测试
+        this.spawnMainPoisonMaggot();
     },
 
-    spawnMainTimeAgentShield() {
+    spawnMainPoisonMaggot() {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
-        const shieldCfg = enemyConfigData.timeAgentShield || {};
-        // 迷宫已拆除，origin 东侧开阔地带生成（与突击特工错开站位）
-        const shield = new TimeAgentShield(origin.x + 700, origin.y + 100, {
-            ...shieldCfg,
+        const cfg = enemyConfigData.poisonMaggot || {};
+        const maggot = new PoisonMaggot(origin.x + 600, origin.y + 100, {
+            ...cfg,
             showWeapon: false,
             ai: {
-                ...(shieldCfg.ai || {}),
+                ...(cfg.ai || {}),
                 aggroRange: 9999,
                 pacingRange: 0,
                 loseTimeout: 999999
             }
         });
-        this.entities.set('enemy_main_timeshield', shield);
-    },
-
-    spawnMainTimeAgent() {
-        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
-            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
-        );
-        const agentCfg = enemyConfigData.timeAgentAssault || {};
-        // 迷宫已拆除，origin 东侧开阔地带生成（避免卡墙）
-        const agent = new TimeAgentAssault(origin.x + 500, origin.y + 100, {
-            ...agentCfg,
-            showWeapon: false,
-            ai: {
-                ...(agentCfg.ai || {}),
-                aggroRange: 9999,
-                pacingRange: 0,
-                loseTimeout: 999999
-            }
-        });
-        this.entities.set('enemy_main_timeagent', agent);
+        this.entities.set('enemy_main_poison_maggot', maggot);
     },
 
     /**
