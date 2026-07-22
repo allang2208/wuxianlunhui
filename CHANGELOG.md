@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（僵尸地牢高级房间数 45~50）
+
+### 对话：高级房间数优化
+- `zombieDungeon.nodeCount` 35~40 → **45~50**（其余地牢规则不变）；最短路径战斗/到 Boss 最少房间/Boss/岔路不受影响（各自独立配置）；`dungeons-table.md` 已重新生成。
+- **修改文件**：data/dungeon-config.json、dungeons-table.md、CHANGELOG.md。
+- **测试结果**：test-config-integrity ✅；vite build ✅；lint ✅（0 error）。
+
 ## 2026-07-21（中优⑥：遭遇导演 EncounterDirector 统一）
 
 ### 对话：按中优先级做 6（遭遇导演统一）
