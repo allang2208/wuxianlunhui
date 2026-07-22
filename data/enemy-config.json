@@ -1482,7 +1482,7 @@
           "reloadTime": 2000
         },
         "muzzleUpY": 80,
-        "muzzleSideX": 45
+        "muzzleSideX": 55
       },
       "flashbang": {
         "cooldown": 10000,
@@ -1511,7 +1511,7 @@
     "render": {
       "spriteSize": 160,
       "collisionWidth": 60,
-      "collisionHeight": 110,
+      "collisionHeight": 145,
       "footOffsetY": 38,
       "projectileHitbox": {
         "width": 70,

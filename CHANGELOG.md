@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（枪口 55/子弹消失/HUD 锚定胶囊顶/特工碰撞拉伸）
+
+### 对话：枪口左右再 +10、子弹偶发瞬消、血条名字锚定圆柱顶、特工矩形碰撞上拉 35px
+- **枪口**：`muzzleSideX` 45 → **55**（累加微调，镜像同步）。
+- **子弹瞬消根因**：枪口点偏移后（上移 80/左右 55）贴墙站位时出膛点落在墙体内——投射物首帧 `WallSystem.blocked` 命中即销毁，表现为"射出瞬间消失"。修复：出膛点先经 `WallSystem.resolve` 校验，落进墙内回退到最近可达点（子弹与枪口火焰同源）。
+- **HUD 默认工作流**：普通敌人的名字/血条锚点从**贴图顶部**改为**圆柱体碰撞体积最上方**（胶囊顶 = footprint Y − collisionHeight，含 colliderOffsetY）；`hudOffsetY` 校准量语义不变（在胶囊顶基础上偏移）。Boss 分支自定义偏移不动。
+- **特工碰撞**：`render.collisionHeight` 110 → **145**（绿色矩形/胶囊向上拉伸 35px）。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——贴墙射击不再瞬消、各怪物名字/血条位于胶囊顶（旧 hudOffsetY 调校的怪可能需重新校准）、特工胶囊拉伸后判定/视觉对齐。
+
 ## 2026-07-21（时空特工：切换大图根因修复 + 近战判定 175）
 
 ### 对话：远程→近战 axe 动画期间一帧错误大图；近战判定改 175

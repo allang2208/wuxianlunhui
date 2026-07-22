@@ -2460,15 +2460,18 @@ export class GameScene extends Scene {
         }
 
         // 普通敌人血条：受伤时才显示
-        // hudOffsetY（render 配置）：贴图透明上沿过大时整体下移名字/血条的校准量（规则：名字/血条应位于贴图上方 30px 区域）
+        // hudOffsetY（render 配置）：贴图透明上沿过大时整体下移名字/血条的校准量
         // render 来源：新怪（enemy-config.json）走 entity.config.render，老怪（animation-config）走 _animCfg.render
         const renderCfg = entity._animCfg?.render || entity.config?.render || {};
         const hudDy = renderCfg.hudOffsetY || 0;
+        // 默认工作流：名字/血条锚定圆柱体碰撞体积最上方（胶囊顶 = footprint Y - 碰撞高度）
+        const colliderH = entity.collisionHeight || renderCfg.collisionHeight || size * 2;
+        const capsuleTop = (entity.collider ? entity.collider.y : entity.y) - colliderH;
         if (hp < maxHp) {
             const cfg = renderCfg.healthBar || { width: 28, height: 4, offsetY: -30 };
             const barW = cfg.width || 28;
             const barH = cfg.height || 4;
-            const barY = topY + hudDy + (cfg.offsetY || -8);
+            const barY = capsuleTop + hudDy + (cfg.offsetY || -8);
             const barX = x - barW / 2;
             this.worldHudGraphics.fillStyle(0x1a0a0a, 1);
             this.worldHudGraphics.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
@@ -2496,7 +2499,7 @@ export class GameScene extends Scene {
         const RANK_NAME_COLORS = { elite: '#c67affcc', lord: '#ffa500cc' };
         const rankColor = RANK_NAME_COLORS[entity.rank];
         nameText.setColor(rankColor || '#d4c5a9cc');
-        nameText.setPosition(x, topY + hudDy - 6);
+        nameText.setPosition(x, capsuleTop + hudDy - 6);
         nameText.setVisible(true);
     }
 

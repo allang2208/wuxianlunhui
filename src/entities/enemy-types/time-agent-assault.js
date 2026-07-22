@@ -546,10 +546,16 @@ export class TimeAgentAssault extends Enemy {
         // 枪口点：上移 muzzleUpY，左右按朝向偏移 muzzleSideX（子弹与枪口火焰同源）
         const up = skills.muzzleUpY ?? 75;
         const side = skills.muzzleSideX ?? 15;
-        const mx = this.x + (this._isFacingLeft() ? -side : side);
-        const my = this.y - up;
-        // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
         const ox = this.x, oy = this.y;
+        let mx = ox + (this._isFacingLeft() ? -side : side);
+        let my = oy - up;
+        // 枪口点落进墙内时（贴墙站位）回退到可达点，防止子弹出生即撞墙瞬间消失
+        if (WallSystem && typeof WallSystem.resolve === 'function') {
+            const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
+            mx = resolved.x;
+            my = resolved.y;
+        }
+        // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
         this.x = mx; this.y = my;
         // fireProjectile 内置：冷却/弹药/换弹检查、AI 散布、AimHelper 预判、曳光弹、开火音效
         const fired = this.fireProjectile(t.x, t.y, entities, { slot: 'weapon' });
