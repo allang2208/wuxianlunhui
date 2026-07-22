@@ -1713,5 +1713,77 @@
       "bash": "assets/sounds/enemies/time_agent_shield/hitting.mp3",
       "fire": "assets/sounds/enemies/time_agent_shield/gunshot.mp3"
     }
+  },
+  "poisonMaggot": {
+    "id": "poisonMaggot",
+    "name": "毒蛆",
+    "type": "精英",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#5a8a3a",
+    "size": 20,
+    "collisionRadius": 26,
+    "hp": 800,
+    "maxHp": 800,
+    "speed": 120,
+    "level": 4,
+    "rank": "elite",
+    "str": 7,
+    "dex": 13,
+    "con": 22,
+    "int": 40,
+    "wis": 40,
+    "luck": 13,
+    "attackRange": 600,
+    "aiInterval": 8000,
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 0,
+      "loseTimeout": 5000
+    },
+    "attackType": "魔法",
+    "attackSkills": {
+      "spit": {
+        "range": 600,
+        "duration": 3000,
+        "frames": 16,
+        "startFrame": 6,
+        "stopFrame": 14,
+        "fanAngle": 1.5707963267948966,
+        "intervalMs": 150,
+        "projectileSpeed": 320,
+        "projectileRange": 600,
+        "projectileSize": 10,
+        "damageMul": 0.33,
+        "damageType": "magic",
+        "poisonChance": 0.33,
+        "poisonStacks": 1,
+        "cooldown": 8000
+      }
+    },
+    "render": {
+      "spriteSize": 100,
+      "collisionWidth": 40,
+      "collisionHeight": 55,
+      "footOffsetY": 30,
+      "projectileHitbox": {
+        "width": 35,
+        "height": 55,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/poison_maggot/idle.png",
+      "spitting": "assets/enemies/poison_maggot/spitting.png",
+      "walking": "assets/enemies/poison_maggot/walking.png"
+    },
+    "description": "臃肿的亡灵幼虫，行动迟缓却能喷吐剧毒脓液，被击中的目标有几率中毒。",
+    "skills": [
+      {
+        "name": "毒液喷射",
+        "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 90° 扇形随机方向射出绿色毒球（每 0.15s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
+      }
+    ]
   }
 }

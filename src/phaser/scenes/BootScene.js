@@ -137,6 +137,11 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_flyhand_slam',       'assets/enemies/flyhand/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
         this.load.spritesheet('enemy_flyhand_grand_slam', 'assets/enemies/flyhand/attacking-3.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
 
+        // 毒蛆（精英）：8列×4行 512×512 切帧（idle 1 帧 / walking 6 帧 / spitting 16 帧）
+        this.load.spritesheet('enemy_poison_maggot_idle',     'assets/enemies/poison_maggot/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_poison_maggot_walk',     'assets/enemies/poison_maggot/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 5 });
+        this.load.spritesheet('enemy_poison_maggot_spitting', 'assets/enemies/poison_maggot/spitting.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -621,6 +626,26 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
+        // ---- 毒蛆（精英）动画 ----
+        this.anims.create({
+            key: 'enemy_poison_maggot_idle',
+            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_poison_maggot_walk',
+            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_walk', { start: 0, end: 5 }),
+            frameRate: 8,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_poison_maggot_spitting',
+            frames: this.anims.generateFrameNumbers('enemy_poison_maggot_spitting', { start: 0, end: 15 }),
+            duration: 3000, // 与 spit.duration 对齐
+            repeat: 0,
+        });
+
         // ---- 动态生成几何敌人纹理 ----
         const generateEnemyTexture = (key, drawFn, width = 64, height = 64) => {
             const g = this.make.graphics({ x: 0, y: 0, add: false });
@@ -746,6 +771,16 @@ export class BootScene extends Scene {
         generateEnemyTexture('projectile_spit', (g) => {
             g.fillStyle(0x00ff00, 1);
             g.fillCircle(32, 32, 24);
+        });
+
+        // 毒蛆毒液弹：绿色球体核心 + 浅绿外圈（运行时粒子做彗尾）
+        generateEnemyTexture('projectile_poison_maggot', (g) => {
+            g.fillStyle(0x2d8a3e, 1);
+            g.fillCircle(32, 32, 22);
+            g.fillStyle(0x5ac85a, 0.7);
+            g.fillCircle(32, 32, 16);
+            g.fillStyle(0xa0ffa0, 0.9);
+            g.fillCircle(32, 32, 8);
         });
 
         // 曳光弹：白色发光条，运行时通过 tint 着色

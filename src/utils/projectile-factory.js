@@ -27,6 +27,8 @@ import { Projectile } from '../combat/projectile.js';
  * @property {boolean} [isSpit]
  * @property {string} [damageType]
  * @property {boolean} [noRender]
+ * @property {number} [poisonChance] 命中附加中毒概率（0~1）
+ * @property {number} [poisonStacks] 附加中毒层数
  */
 
 export const ProjectileFactory = {
@@ -47,7 +49,9 @@ export const ProjectileFactory = {
             isSpit = false,
             damageType = 'physical',
             noRender = false,
-            knockback
+            knockback,
+            poisonChance = 0,
+            poisonStacks = 1
         } = options;
 
         let p = EffectManager._acquire('Projectile');
@@ -70,6 +74,8 @@ export const ProjectileFactory = {
             p.isSpit = isSpit;
             p.damageType = damageType;
             p._noRender = noRender;
+            p.poisonChance = poisonChance;
+            p.poisonStacks = poisonStacks;
             // 始终重置，防止对象池复用时残留上一发投射物的击退
             p.knockback = knockback ?? 0;
             p.traveled = 0;
@@ -81,7 +87,7 @@ export const ProjectileFactory = {
                 x, y, angle, speed, maxRange, size,
                 damage, piercing, source, entities, image,
                 isTracer, isGold, isDarkGold, damageType,
-                noRender, isGreen, isSpit
+                noRender, isGreen, isSpit, poisonChance, poisonStacks
             );
             p.knockback = knockback ?? 0;
         }

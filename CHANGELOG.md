@@ -8,6 +8,25 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（新增怪物：毒蛆）
+
+### 对话：按添加怪物工作流新增精英怪物「毒蛆」，僵尸 family
+- **素材**：将 `E:\无尽轮回\游戏\素材库\怪物\毒蛆` 下的 `idle.png / spitting.png / walking.png` 复制到 `assets/enemies/poison_maggot/`，4×8 切割。
+- **配置**：`data/enemy-config.json` 新增 `poisonMaggot`。
+  - 六维：str7/dex13/con22/int40/wis40/luck13 → 物攻 10、物防 35、魔攻 40、魔防 60、暴击 15%。
+  - 生命值 800、移速 120px、精英（elite）。
+  - 技能「毒液喷射」：射程 600px、3s 播放 16 帧、第 6~14 帧在面向目标 90° 扇形内每 0.15s 发射一枚毒球。
+- **实体类**：`src/entities/enemy-types/poison-maggot.js`。
+  - 状态机：idle / walk / spitting；攻击时 `_attackAnimTimer = 100` 锁定移动。
+  - 发射窗口按 `duration / frames` 计算，配置驱动 startFrame/stopFrame/intervalMs。
+- **投射物**：复用 `ProjectileFactory`，新增 `projectile_poison_maggot` 程序化贴图（绿色球体核心+浅绿外圈）。
+  - 通过 `poisonChance / poisonStacks` 参数实现 33% 概率叠 1 层中毒；`Projectile` 与 `ProjectileFactory` 已扩展支持。
+  - 彗尾拖尾：发射后给投射物附加 Phaser 粒子发射器，跟随 sprite，投射物销毁时经 `_onBeforeDestroy` 钩子同步清理。
+- **注册**：`src/phaser/scenes/BootScene.js` 加载贴图/动画；`src/entities/enemy-types.js` 导出；`src/world/zombie-dungeon.js` 加入 `ZOMBIE_FACTORY_MAP` 与工厂函数。因 family=僵尸且 rank=elite，自动进入僵尸地牢精英池。
+- **修改文件**：`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/combat/projectile.js`、`src/utils/projectile-factory.js`、`src/entities/enemy-types/poison-maggot.js`、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（无新增警告）。
+- **已知问题**：实机待验证——毒蛆行走/待机/喷射动画切换、绿色毒球与彗尾粒子效果、中毒概率与伤害数值。
+
 ## 2026-07-21（盾卫远程减伤 50% + 盾击白线改盾前弧线向后延伸）
 
 ### 对话：盾卫受到的远程伤害减少 50%（含远程魔法）；盾击白色线条改成盾前缘沿盾轮廓弧线向后延伸
