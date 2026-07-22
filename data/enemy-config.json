@@ -1426,7 +1426,7 @@
     "family": "特工",
     "color": "#5a6a8a",
     "size": 30,
-    "collisionRadius": 45,
+    "collisionRadius": 40.25,
     "hp": 2200,
     "maxHp": 2200,
     "speed": 160,
