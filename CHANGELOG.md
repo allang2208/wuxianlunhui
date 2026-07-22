@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（中优④：面板生命周期框架 BasePanel + 仓库迁移）
+
+### 对话：按中优先级先做 4（面板框架）
+- **BasePanel**（`src/ui/panels/base-panel.js`）：统一抽屉式面板公共模式——懒构建单例 DOM（id+className）、open/close/toggle 走 UIState 状态键 + active 类（CSS 抽屉动画不变）、遮罩层点击关闭（各实例独立判断 isOpen 多面板共存）、`buildContent(el)` 一次性填充、`onOpen/onClose` 钩子。
+- **仓库面板迁移**（warehouse-system.js）：open/close/toggle/_buildPanel 改由 `_getPanel()` 懒创建的 BasePanel 承载，`get _isOpen()` 代理保持 game.js 距离自动关闭判定兼容；打开时重置页码+联动背包+全量刷新移入 onOpen；顺带清理两个未用导入（Game/UIState，其中一个为存量警告）。
+- **SKILL.md**：新增"面板生命周期框架"条目（新面板优先复用）。
+- **修改文件**：src/ui/panels/base-panel.js（新）、src/ui/warehouse-system.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，警告 15→14）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅。
+- **已知问题**：实机待回归——仓库打开/关闭/分页/存取/整理与迁移前一致；其余面板（合成/商店/强化/附魔）后续按同模式逐个迁移。
+
 ## 2026-07-21（高优先级②③：配置完整性校验 + 怪物共享基础件框架）
 
 ### 对话：先做高优先级第 2、3 项

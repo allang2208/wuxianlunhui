@@ -485,6 +485,17 @@ _getPhaserOptions() {
 
 ---
 
+## 面板生命周期框架（2026-07-21 新增，新面板优先复用）
+
+新增抽屉式面板时**优先复用** `src/ui/panels/base-panel.js`（BasePanel），不要重写 open/close/toggle/遮罩关闭：
+- `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
+- 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
+- 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+
+已迁移范例：`warehouse-system.js`（仓库面板）。
+
+---
+
 ## 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
 
 新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
