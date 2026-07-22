@@ -8,6 +8,34 @@ import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-u
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
+ * 用线段近似绘制二次贝塞尔曲线（Phaser Graphics 无内置 quadraticCurveTo）
+ * @param {Phaser.GameObjects.Graphics} g
+ * @param {number} x0 起点 X
+ * @param {number} y0 起点 Y
+ * @param {number} x1 控制点 X
+ * @param {number} y1 控制点 Y
+ * @param {number} x2 终点 X
+ * @param {number} y2 终点 Y
+ * @param {number} segments 采样段数
+ */
+function _drawQuadraticBezier(g, x0, y0, x1, y1, x2, y2, segments = 12) {
+    g.beginPath();
+    g.moveTo(x0, y0);
+    const n = Math.max(2, Math.floor(segments));
+    for (let i = 1; i <= n; i++) {
+        const t = i / n;
+        const u = 1 - t;
+        const a = u * u;
+        const b = 2 * u * t;
+        const c = t * t;
+        const x = a * x0 + b * x1 + c * x2;
+        const y = a * y0 + b * y1 + c * y2;
+        g.lineTo(x, y);
+    }
+    g.strokePath();
+}
+
+/**
  * 时空特工(盾位)-F（领主，特工 family）——沙鹰射击 + 盾击 + 防御弹反
  *
  * 状态机（_formState）：
@@ -291,10 +319,8 @@ export class TimeAgentShield extends Enemy {
                         const ex = sx + Math.cos(backAngle + arcT * 0.35) * len;
                         const ey = sy + Math.sin(backAngle + arcT * 0.35) * len * PERSPECTIVE_SCALE_Y;
 
-                        g.beginPath();
-                        g.moveTo(sx, sy);
-                        g.quadraticCurveTo(cx, cy, ex, ey);
-                        g.strokePath();
+                        // Phaser Graphics 没有 quadraticCurveTo，改为沿二次贝塞尔采样线段绘制
+                        _drawQuadraticBezier(g, sx, sy, cx, cy, ex, ey, 12);
                     }
                 }
             },
