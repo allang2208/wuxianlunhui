@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（特工：开火火光 + 斧击红色下浮粒子）
+
+### 对话：开火时在出膛点加火光；近战命中播放红色下浮粒子（1.5s 重力感）
+- **开火火光**：`GameScene.playMuzzleFire(x, y)`——黄白色高亮粒子（ADD 混合、140ms 放大淡出），每次成功开火在枪口点与枪口火焰/弹壳同源触发。
+- **斧击红色下浮粒子**：`GameScene.playRedFallParticles(x, y)`——红色粒子起始慢速向下（60°~120° 摆动），gravityY 500 拉出"由慢到快"的掉落感，0.9s 发射 + 1.5s 总寿命销毁；斧头命中（首次切换与近战劈砍）时在目标头顶位置播放。
+- **修改文件**：src/phaser/scenes/GameScene.js、src/entities/enemy-types/time-agent-assault.js、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+
 ## 2026-07-21（dungeons-table.md 全要素更新）
 
 ### 对话：更新地牢表格全部要素

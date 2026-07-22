@@ -618,9 +618,13 @@ export class TimeAgentAssault extends Enemy {
         const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
         this.x = ox; this.y = oy;
         if (!fired) return;
-        // 枪口火焰 + 弹壳（玩家同款工厂）
+        // 枪口火焰 + 开火火光 + 弹壳（玩家同款工厂 + 高亮闪光）
         const angle = Math.atan2(aimY - my, aimX - mx);
         EffectFactory.createMuzzleFlash(mx, my, angle, skills.muzzleScale ?? 1.2);
+        const fireScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (fireScene && typeof fireScene.playMuzzleFire === 'function') {
+            fireScene.playMuzzleFire(mx, my);
+        }
         EffectFactory.createShellCasing(mx, my, angle, oy);
     }
 
@@ -636,6 +640,11 @@ export class TimeAgentAssault extends Enemy {
             e.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
             if (A.crippleMs && typeof e.applyCripple === 'function') {
                 e.applyCripple(A.crippleMs);
+            }
+            // 命中红色粒子下浮（缓慢起始+重力加速掉落，持续 1.5s）
+            const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (fxScene && typeof fxScene.playRedFallParticles === 'function') {
+                fxScene.playRedFallParticles(e.x, e.y - (e.size || 0));
             }
         }
     }

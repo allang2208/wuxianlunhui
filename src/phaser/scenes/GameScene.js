@@ -1975,6 +1975,52 @@ export class GameScene extends Scene {
         });
     }
 
+    /** 开火火光：枪口处黄白色高亮闪光（ADD 混合，120ms 放大淡出） */
+    playMuzzleFire(x, y) {
+        if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        const particles = this.add.particles(0, 0, 'impact_dot', {
+            speed: { min: 30, max: 90 },
+            scale: { start: 2.4, end: 0 },
+            lifespan: 140,
+            quantity: 6,
+            tint: 0xffcc55,
+            blendMode: 'ADD',
+            angle: { min: 0, max: 360 },
+            emitting: false
+        });
+        particles.addToUpdateList();
+        particles.setDepth(y + 1000);
+        particles.explode(6, x, y);
+        this.time.delayedCall(200, () => {
+            if (particles && particles.active) particles.destroy();
+        });
+    }
+
+    /** 红色粒子下浮（斧头命中）：缓慢起始 + 重力加速掉落，持续 1.5s */
+    playRedFallParticles(x, y) {
+        if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        const particles = this.add.particles(0, 0, 'impact_dot', {
+            // 起始慢速向下（±30° 摆动），重力 500 拉出"由慢到快"的掉落感
+            speed: { min: 15, max: 45 },
+            angle: { min: 60, max: 120 },
+            gravityY: 500,
+            scale: { start: 1.4, end: 0.2 },
+            alpha: { start: 0.9, end: 0 },
+            lifespan: 1200,
+            quantity: 3,
+            frequency: 90,
+            tint: 0xff3030,
+            blendMode: 'ADD'
+        });
+        particles.addToUpdateList();
+        particles.setDepth(y + 1000);
+        particles.start();
+        particles.emitParticleAt(x, y, 8);
+        // 持续约 0.9s 发射后停止，1.5s 总寿命销毁
+        this.time.delayedCall(900, () => { if (particles && particles.active) particles.stop(); });
+        this.time.delayedCall(1500, () => { if (particles && particles.active) particles.destroy(); });
+    }
+
     // ==================== BOSS 专属血条（屏幕空间 DOM） ====================
     /**
      * 创建/获取 BOSS 血条 DOM：位于顶部状态栏下方 20px，居中。
