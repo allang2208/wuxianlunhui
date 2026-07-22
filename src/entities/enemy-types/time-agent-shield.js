@@ -6,6 +6,7 @@ import { EffectFactory } from '../../utils/effect-factory.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { WallSystem } from '../../world/wall-system.js';
+import { AgentLinkSystem } from '../../world/agent-link-system.js';
 
 /**
  * 时空特工(盾位)-F（领主，特工 family）——沙鹰射击 + 盾击 + 防御弹反
@@ -107,6 +108,18 @@ export class TimeAgentShield extends Enemy {
         // 连续移动计时（walk 首段→循环段）
         if (this.isMoving) this._walkElapsed += dt;
         else this._walkElapsed = 0;
+
+        // attackRange 按形态/联动动态切换（MovementSystem 用它做减速/停步判定）：
+        // idle=交战距离；远程=接近到 150px；联动规则2（突击近战）= 贴近到 shieldCloseRange
+        const skills = this._getSkillConfigs();
+        const linkCfg = AgentLinkSystem.getMeleeSupportConfig();
+        if (this._formState === 'idle') {
+            this.attackRange = skills.forms.engageRange ?? 800;
+        } else if (linkCfg && AgentLinkSystem.isAssaultInMelee(entities)) {
+            this.attackRange = linkCfg.shieldCloseRange;
+        } else {
+            this.attackRange = skills.forms.approachRange ?? 150;
+        }
     }
 
     // ========== 形态决策 ==========
@@ -129,18 +142,37 @@ export class TimeAgentShield extends Enemy {
                 this._startTransition('toIdle', F.switchOutMs ?? 500);
                 return;
             }
-            // 盾击：远程形态专用，CD 就绪且目标在生效距离内
-            if (this._bashCd <= 0 && dist <= (skills.bash.range ?? 200)) {
+            // 盾击：远程形态专用，CD 就绪且目标在生效距离内；
+            // 联动规则1——突击闪光弹眩晕期间暂缓盾击，眩晕结束后立即释放
+            if (!AgentLinkSystem.shouldHoldBash() && this._bashCd <= 0 && dist <= (skills.bash.range ?? 200)) {
                 this._tryAttackTelegraph(() => this._startBash());
                 return;
             }
-            // 防御：目标正在攻击动作且临近（参考铠甲骑士格挡触发）
-            this._tryStartDefend(t, dist);
+            // 防御：远程目标在接近过程中满足 CD 即用；近战目标在其攻击时才进入防御
+            if (t && this._defendCd <= 0 && dist <= (skills.defend.triggerRange ?? 260)) {
+                if (this._isTargetMeleeStyle(t)) {
+                    this._tryStartDefend(t, dist); // 近战：攻击时才防御
+                } else {
+                    this._startDefend(); // 远程：接近过程中主动防御
+                }
+            }
             // 开火：目标在射程内
             if (dist <= (skills.shoot.fireRange ?? 750)) {
                 this._tryFireGun(t, entities);
             }
         }
+    }
+
+    /** 目标风格判定（近战/远程，与突击同口径） */
+    _isTargetMeleeStyle(t) {
+        if (!t) return false;
+        if (t._faction === 'player') {
+            const eq = t.equipments && t.equipments[t.weaponMode];
+            if (eq) return eq.category === 'weapon_melee' || eq.weaponType === 'sword';
+            return true;
+        }
+        if (t.weaponMode) return t.weaponMode === 'melee';
+        return !!(t.attacks && t.attacks.melee);
     }
 
     /** 防御触发判定（idle/ranged 均可调用） */

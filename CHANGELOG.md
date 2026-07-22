@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（盾卫 AI 定调 + 特工联动机制系统 + C 级入侵构成）
+
+### 对话：盾卫纯远程定位、盾卫 AI、C 级入侵 1 突击+1 盾卫、可扩展联动机制
+- **盾卫定位**：纯远程怪物（非双形态），盾击/防御为技能而非近战形态（既有实现一致，无需改动）。
+- **盾卫 AI**：`attackRange` 动态化——idle=交战 800、远程=接近到 `approachRange: 150`；盾击 CD 就绪且在 200px 内**优先**释放，否则枪械远程攻击；防御策略分化：远程风格目标在接近过程中满足 CD **主动防御**，近战风格目标**在其攻击时**才进入防御。
+- **联动机制系统**（`data/agent-synergy.json` + `src/world/agent-link-system.js`，配置驱动可扩展）：
+  - 生效：场景中同时存在 roles 配置的各类特工（默认突击+盾卫）；
+  - 规则1 flashBashDelay：突击闪光弹命中登记眩晕（notifyFlashStun），盾卫在其持续期间**暂缓盾击**，结束立即释放；
+  - 规则2 meleeSupport：突击近战状态时——盾卫贴近到 `shieldCloseRange: 50` 优先盾击；突击自驱拉开换回远程，**4s**（assaultFallbackMs）内未换回则本次近战恢复默认近战 AI，换回则用默认远程 AI。
+- **C 级入侵构成**：`agent-invasion.json` 新增 `agentCompositionByGrade`（C: ['assault','shield']），按难度工厂列表生成；两个生成路径（强制战/混合战自由边）统一走工厂；未配置难度按数量全突击。
+- **修改文件**：data/agent-synergy.json（新）、data/agent-invasion.json、src/world/agent-link-system.js（新）、src/world/agent-invasion-system.js、src/world/dungeon-map-system.js、src/entities/enemy-types/time-agent-assault.js、src/entities/enemy-types/time-agent-shield.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——盾卫 150px 接近/盾击优先/主动防御时机、闪光-盾击接力、突击近战 4s 回拉切换、C 级（未来地牢）1+1 构成。
+
 ## 2026-07-21（突击换弹 3s 修正 + 新怪物：时空特工(盾位)-F）
 
 ### 对话：突击换弹未设成 3s 检查修正；按工作流新增盾位特工

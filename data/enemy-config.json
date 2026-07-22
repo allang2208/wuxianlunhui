@@ -1579,7 +1579,8 @@
         "disengageRange": 1000,
         "switchInMs": 500,
         "switchOutMs": 500,
-        "walkIntroMs": 1067
+        "walkIntroMs": 1067,
+        "approachRange": 150
       },
       "shoot": {
         "fireRange": 750,

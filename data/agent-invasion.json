@@ -12,6 +12,8 @@
   "maxInvasionsPerRun": 1,
   "comment_count": "入侵战斗刷新特工数量（按地牢难度；事件/BOSS/奖励节点强制战与战斗节点混合战共用）",
   "agentCountByGrade": { "D": 1, "C": 2, "B": 4, "A": 6 },
+  "comment_composition": "按难度的特工构成（角色：assault 突击 / shield 盾卫）；配置则按构成刷新，未配置按数量全突击",
+  "agentCompositionByGrade": { "C": ["assault", "shield"] },
   "arenaSize": 4096,
   "edgeSpawnMargin": 200,
   "display": {
