@@ -78,6 +78,7 @@ export class TimeAgentAssault extends Enemy {
         this._pathIdx = 0;
         this._selfMoving = false;    // 远程自驱移动标记（MovementSystem 锁定会清零 isMoving，动画以此为准）
         this._meleeStepTimer = 0;    // 近战脚步音计时
+        this._rangedMoveMode = null; // 远程当前移动模式（迟滞切换，防边界抖动）
 
         // 装备 QBZ-191（套用武器数据：射速/射程/弹速/弹匣30+2s换弹，弹匣无限）
         this._isHumanoid = true;
@@ -253,21 +254,29 @@ export class TimeAgentAssault extends Enemy {
                 this._bandEvalTimer = F.bandEvalMs ?? 2000;
                 this._bandUsable = this._evalBandPositions(t);
             }
-            // 移动模式选择：
+            // 移动模式选择（带迟滞，防止边界抖动）：
             // 视线受阻 → 寻路找射击角度（不受 800 最小距离限制）；
             // >1600 → 直线推进到 1200；<800 → 后撤回带（狭小空间改寻路）；带内 → 移动-停止不规则运动
             let mode;
             if (!this._losClear) {
                 mode = 'reposition';
-            } else if (dist > (F.approachMaxRange ?? 1600)) {
-                mode = 'approach';
-            } else if (dist > (F.bandMax ?? 1200)) {
-                mode = 'approach'; // 1200~1600 同样推进到带内
-            } else if (dist < (F.bandMin ?? 800)) {
-                mode = this._bandUsable ? 'retreat' : 'reposition';
             } else {
-                mode = this._bandUsable ? 'band' : 'reposition';
+                const bandMax = F.bandMax ?? 1200;
+                const bandMin = F.bandMin ?? 800;
+                const hyst = 40; // 边界迟滞余量，防止 retreat/band/approach 来回跳变
+                const cur = this._rangedMoveMode;
+                if (cur === 'retreat') {
+                    mode = dist < bandMin + hyst ? 'retreat' : (this._bandUsable ? 'band' : 'reposition');
+                } else if (cur === 'approach') {
+                    mode = dist > bandMax - hyst ? 'approach' : (this._bandUsable ? 'band' : 'reposition');
+                } else {
+                    if (dist > (F.approachMaxRange ?? 1600)) mode = 'approach';
+                    else if (dist > bandMax + hyst) mode = 'approach';
+                    else if (dist < bandMin - hyst) mode = this._bandUsable ? 'retreat' : 'reposition';
+                    else mode = this._bandUsable ? 'band' : 'reposition';
+                }
             }
+            this._rangedMoveMode = mode;
             let moved = false;
             switch (mode) {
                 case 'approach':
@@ -641,10 +650,10 @@ export class TimeAgentAssault extends Enemy {
             if (A.crippleMs && typeof e.applyCripple === 'function') {
                 e.applyCripple(A.crippleMs);
             }
-            // 命中红色粒子下浮（缓慢起始+重力加速掉落，持续 1.5s）
+            // 命中红色粒子下浮（缓慢起始+重力加速掉落，落到目标 footprint 最下方即消失）
             const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
             if (fxScene && typeof fxScene.playRedFallParticles === 'function') {
-                fxScene.playRedFallParticles(e.x, e.y - (e.size || 0));
+                fxScene.playRedFallParticles(e.x, e.y - (e.size || 0), e);
             }
         }
     }

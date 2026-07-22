@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（特工：HUD 未生效根因/后退抖动/火光缩小/红粒子强化）
+
+### 对话：碰撞与名字血条未应用排查、后退射击抖动、火光缩小33%、红粒子×3深红大范围落点消失
+- **HUD 未生效根因**：特工 render 里残留的 `hudOffsetY: 70` 把名字/血条从胶囊顶再下压 70px（抵消锚点，早期贴图顶部时代调校值）——已删除，胶囊顶锚点（capsuleHudAnchor）真正生效；碰撞配置（colliderOffsetY 30/collisionHeight 180）确认已正确消费。
+- **后退射击抖动根因**：移动模式按硬边界每帧重选，目标追击时距离在 800 边界抖动导致 retreat↔band 来回跳变（walk↔pose 闪现）。修复：模式切换加 40px 迟滞（retreat <760 进入 / >840 退出，approach >1240 进入 / <1160 退出），当前模式在余量内保持。
+- **火光缩小 33%**：`playMuzzleFire` 粒子 scale 2.4 → 1.6。
+- **红粒子强化**：数量 ×3（爆发 24 + 持续 9/60ms）、深红 0xa00000、掉落范围扩大（速度 30~90、摆动 45°~135°）；新增死亡区——粒子落到目标 footprint 椭圆最下方（`collider.y + 半径×PERSPECTIVE_SCALE_Y`）即消失（Phaser addDeathZone + 自定义 contains）。
+- **修改文件**：src/entities/enemy-types/time-agent-assault.js、src/phaser/scenes/GameScene.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——名字/血条位于圆柱体正上方、后退无抖动、红粒子落到脚底椭圆消失。
+
 ## 2026-07-21（特工：开火火光 + 斧击红色下浮粒子）
 
 ### 对话：开火时在出膛点加火光；近战命中播放红色下浮粒子（1.5s 重力感）

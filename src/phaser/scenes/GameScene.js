@@ -1980,7 +1980,7 @@ export class GameScene extends Scene {
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
         const particles = this.add.particles(0, 0, 'impact_dot', {
             speed: { min: 30, max: 90 },
-            scale: { start: 2.4, end: 0 },
+            scale: { start: 1.6, end: 0 },
             lifespan: 140,
             quantity: 6,
             tint: 0xffcc55,
@@ -1996,26 +1996,37 @@ export class GameScene extends Scene {
         });
     }
 
-    /** 红色粒子下浮（斧头命中）：缓慢起始 + 重力加速掉落，持续 1.5s */
-    playRedFallParticles(x, y) {
+    /**
+     * 红色粒子下浮（斧头命中）：缓慢起始 + 重力加速掉落，持续 1.5s；
+     * 粒子落到目标 footprint 椭圆最下方（collider.y + 半径×透视压缩）即消失
+     */
+    playRedFallParticles(x, y, target) {
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
         const particles = this.add.particles(0, 0, 'impact_dot', {
-            // 起始慢速向下（±30° 摆动），重力 500 拉出"由慢到快"的掉落感
-            speed: { min: 15, max: 45 },
-            angle: { min: 60, max: 120 },
+            // 起始慢速向下（大范围摆动），重力 500 拉出"由慢到快"的掉落感
+            speed: { min: 30, max: 90 },
+            angle: { min: 45, max: 135 },
             gravityY: 500,
             scale: { start: 1.4, end: 0.2 },
             alpha: { start: 0.9, end: 0 },
-            lifespan: 1200,
-            quantity: 3,
-            frequency: 90,
-            tint: 0xff3030,
+            lifespan: 1400,
+            quantity: 9,
+            frequency: 60,
+            tint: 0xa00000, // 深红
             blendMode: 'ADD'
         });
         particles.addToUpdateList();
         particles.setDepth(y + 1000);
+        // 死亡区：目标 footprint 椭圆最下方水平线以下（onEnter 即消失）
+        const footY = (target && target.collider)
+            ? target.collider.y + ((target.groundRadius || 22) * PERSPECTIVE_SCALE_Y)
+            : y + 20;
+        particles.addDeathZone({
+            type: 'onEnter',
+            source: { contains: (_px, py) => py >= footY }
+        });
         particles.start();
-        particles.emitParticleAt(x, y, 8);
+        particles.emitParticleAt(x, y, 24);
         // 持续约 0.9s 发射后停止，1.5s 总寿命销毁
         this.time.delayedCall(900, () => { if (particles && particles.active) particles.stop(); });
         this.time.delayedCall(1500, () => { if (particles && particles.active) particles.destroy(); });
