@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（中优⑤：音频总线声道 + BGM 场景框架）
+
+### 对话：按中优先级做 5（音频总线+BGM）
+- **声道**：`data/audio-config.json` 新增 `channels`（sfx/ui/music 二级音量，独立于 masterVolume）；`SoundManager.playFile(path, volume, channel='sfx')` 第三参接声道；`setChannelVolume/getChannelVolume` 运行时调节，music 声道变动实时联动 BGM 音量。
+- **BGM 框架**：`playBgmForScene(sceneId)` 读 `audio-config.json bgm` 映射（场景→音轨，null 停播），复用 `playLoop` 循环 + `bgmCrossfadeSec` 交叉淡入；`stopBgm()` 兜底；`SceneManager.switchScene` 完成切换后自动调用（切换时 stopAllLoops 后按新场景重启，顺序正确）。BGM 素材未提供，main/scene7 暂为 null——放入 `assets/sounds/music/` 填配置即生效，代码零改动。
+- **SKILL.md**：音效工作流新增"步骤4: 声道与 BGM"。
+- **修改文件**：data/audio-config.json（新）、src/ui/sound-manager.js、src/world/scene-manager.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——声道音量生效（需后续提供 BGM 素材后验证场景音乐切换）。
+
 ## 2026-07-21（中优④：面板生命周期框架 BasePanel + 仓库迁移）
 
 ### 对话：按中优先级先做 4（面板框架）

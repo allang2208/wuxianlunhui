@@ -494,6 +494,10 @@ _getPhaserOptions() {
 
 已迁移范例：`warehouse-system.js`（仓库面板）。
 
+### 步骤4: 声道与 BGM（2026-07-21 新增）
+- **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
+- **BGM**：`data/audio-config.json` 的 `bgm` 映射场景 → 音轨（`null` = 无 BGM），切场景自动播放/停止（SceneManager 已接入 `playBgmForScene`）；音轨用 `playLoop` 循环，交叉淡入 `bgmCrossfadeSec`。新 BGM 素材放入 `assets/sounds/music/` 并填配置即可。
+
 ---
 
 ## 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
