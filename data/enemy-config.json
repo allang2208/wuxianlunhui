@@ -1674,13 +1674,13 @@
     "render": {
       "spriteSize": 160,
       "collisionWidth": 60,
-      "collisionHeight": 180,
+      "collisionHeight": 145,
       "footOffsetY": 38,
       "colliderOffsetY": 30,
       "capsuleHudAnchor": true,
       "projectileHitbox": {
         "width": 70,
-        "height": 180,
+        "height": 145,
         "offsetX": 0,
         "bottom": 0
       }

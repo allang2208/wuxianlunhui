@@ -246,7 +246,7 @@ export class TimeAgentShield extends Enemy {
         this._fireBashThrustLines();
     }
 
-    /** 盾击冲击线条：沿攻击方向从盾后向前快速延伸并淡出（平面透视 2:1） */
+    /** 盾击冲击线条：沿攻击方向从盾后向前快速延伸并淡出（强化版：更粗更亮更长） */
     _fireBashThrustLines() {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) return;
@@ -258,27 +258,32 @@ export class TimeAgentShield extends Enemy {
         scene.tweens.add({
             targets: wave,
             t: 1,
-            duration: 420,
+            duration: 480,
             ease: 'Cubic.easeOut',
             onUpdate() {
                 const p = wave.t;
                 g.clear();
-                g.lineStyle(3, 0xffffff, (1 - p) * 0.7);
                 const cos = Math.cos(angle), sin = Math.sin(angle);
-                const lines = 5;
-                for (let i = 0; i < lines; i++) {
-                    // 盾后出发向前：身后 60px 起步随进度前移，线长渐增
-                    const back = -(60 + p * 50) - i * 12;
-                    const front = back + 26 + p * 34;
-                    const spread = (i - (lines - 1) / 2) * 14;
-                    const bx = self.x + cos * back - sin * spread;
-                    const by = self.y + sin * back + cos * spread * PERSPECTIVE_SCALE_Y;
-                    const fx = self.x + cos * front - sin * spread;
-                    const fy = self.y + sin * front + cos * spread * PERSPECTIVE_SCALE_Y;
-                    g.beginPath();
-                    g.moveTo(bx, by);
-                    g.lineTo(fx, fy);
-                    g.strokePath();
+                const lines = 7;
+                // 双线描边：粗外圈（高透明）+ 亮内核，强化观感
+                for (let pass = 0; pass < 2; pass++) {
+                    const width = pass === 0 ? 7 : 3;
+                    const alpha = (pass === 0 ? 0.45 : 0.95) * (1 - p);
+                    g.lineStyle(width, 0xffffff, alpha);
+                    for (let i = 0; i < lines; i++) {
+                        // 盾后出发向前：身后 70px 起步随进度前移，线长渐增至约 90px
+                        const back = -(70 + p * 60) - i * 14;
+                        const front = back + 40 + p * 50;
+                        const spread = (i - (lines - 1) / 2) * 18;
+                        const bx = self.x + cos * back - sin * spread;
+                        const by = self.y + sin * back + cos * spread * PERSPECTIVE_SCALE_Y;
+                        const fx = self.x + cos * front - sin * spread;
+                        const fy = self.y + sin * front + cos * spread * PERSPECTIVE_SCALE_Y;
+                        g.beginPath();
+                        g.moveTo(bx, by);
+                        g.lineTo(fx, fy);
+                        g.strokePath();
+                    }
                 }
             },
             onComplete() {

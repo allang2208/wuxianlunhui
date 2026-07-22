@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（盾击白线强化 + 盾卫默认矩形 145 + 调试框同步说明）
+
+### 对话：白线不明显强化；盾卫默认 collisionHeight 180→145；范围显示要同步
+- **白线强化**：5→7 条、3px→双线描边（7px 半透明外圈 0.45α + 3px 亮白内核 0.95α）、线长增至约 90px、摆幅加大、时长 420→480ms。
+- **盾卫默认矩形**：collisionHeight/projectileHitbox.height 180 → **145**（双源对齐）；防御姿态下压 40px 后为 105px（`_hitboxOverride` 实例覆盖）。
+- **调试范围显示**：`_syncCollisionRadii` 每帧经 `getTorsoRect`（已支持 override）绘制绿色躯干矩形——防御下压实时同步显示，无需改动（说明口径）。
+- **修改文件**：src/entities/enemy-types/time-agent-shield.js、data/enemy-config.json、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅。
+
 ## 2026-07-21（盾击冲击线条 + 图鉴扩写 + 矩形判定调整）
 
 ### 对话：盾击白线特效、图鉴一行一个+全怪物机制扩写、特工矩形收 35px、盾卫防御矩形下压 40px
