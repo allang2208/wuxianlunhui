@@ -1,0 +1,15 @@
+{
+  "$schema": "音频总线配置（声道音量/场景 BGM 映射，勿硬编码；BGM 素材未提供时场景填 null）",
+  "channels": {
+    "comment": "声道音量（0~1，独立于 masterVolume 的二级调节）：sfx 战斗/怪物音效、ui 系统界面音、music 背景音乐",
+    "sfx": 1.0,
+    "ui": 1.0,
+    "music": 0.6
+  },
+  "bgm": {
+    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）",
+    "main": null,
+    "scene7": null
+  },
+  "bgmCrossfadeSec": 1.5
+}

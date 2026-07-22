@@ -1,13 +1,11 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import equipmentJson from '../../../data/equipment.json';
-import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../config/weapon-attack-config.js';
-import { EffectFactory } from '../../utils/effect-factory.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { WallSystem } from '../../world/wall-system.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
-import { SoundManager } from '../../ui/sound-manager.js';
+import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
+import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
+import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
  * 时空特工(盾位)-F（领主，特工 family）——沙鹰射击 + 盾击 + 防御弹反
@@ -35,8 +33,6 @@ export class TimeAgentShield extends Enemy {
         // 攻击决策完全自管：关闭 CombatSystem 的通用近战触发（同 mutant-3 模式）
         this.aiInterval = Number.MAX_SAFE_INTEGER;
 
-        const skills = this._getSkillConfigs();
-
         // 形态状态机
         this._formState = 'idle';
         this._stateTimer = 0;
@@ -47,22 +43,17 @@ export class TimeAgentShield extends Enemy {
         this._defendCd = 0;
         this._walkSoundTimer = 0;
 
-        // 装备沙漠之鹰（套用武器数据；命中不击退）
-        this._isHumanoid = true;
-        const deagle = JSON.parse(JSON.stringify(equipmentJson.equipment.desert_eagle));
-        // attackKey 指到 deagle 攻击配置（装备 weaponType 为 pistol，默认会找 attacks.pistol）
-        deagle.attackKey = 'deagle';
-        // 开火音效（fireProjectile 读 item.fireSound）
-        if (this.config?.sounds?.fire) deagle.fireSound = this.config.sounds.fire;
-        this.equipments.weapon = deagle;
-        this.attacks.deagle = createAttackFromConfig(WEAPON_ATTACK_CONFIG.deagle);
-        // 伤害取怪物面板物攻（fireProjectile 默认读 config.damage 占位值）
-        this.attacks.deagle.config.damage = { min: this.data.atk, max: this.data.atk };
-        // 命中不击退（盾位设定）
-        this.attacks.deagle.config.knockback = skills.shoot.knockback ?? 0;
-        // AI 散布（fireProjectile 读取，避免 undefined → NaN 弹道）
-        this._currentSpreadFactor = skills.shoot.spreadFactor ?? 0.1;
-        this._currentSpreadMaxAngle = skills.shoot.spreadMaxAngle ?? 8;
+        // 装备沙漠之鹰（共享装配：实例化装备/绑定攻击/伤害与击退覆盖/AI 散布）
+        const skills0 = this._getSkillConfigs();
+        setupGun(this, {
+            equipKey: 'desert_eagle',
+            attackKey: 'deagle',
+            damage: { min: this.data.atk, max: this.data.atk }, // 伤害取怪物面板物攻
+            knockback: skills0.shoot.knockback ?? 0,             // 命中不击退（盾位设定）
+            spreadFactor: skills0.shoot.spreadFactor ?? 0.1,
+            spreadMaxAngle: skills0.shoot.spreadMaxAngle ?? 8,
+            fireSound: this.config?.sounds?.fire || null,
+        });
     }
 
     _getSkillConfigs() {
@@ -73,14 +64,6 @@ export class TimeAgentShield extends Enemy {
             bash: s.bash || {},
             defend: s.defend || {},
         };
-    }
-
-    /** 播放配置音效（enemy-config.json 的 sounds 块驱动） */
-    _playSound(key) {
-        const path = this.config?.sounds?.[key];
-        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(path);
-        }
     }
 
     // ========== 主循环 ==========
@@ -126,7 +109,7 @@ export class TimeAgentShield extends Enemy {
             this._walkSoundTimer -= dt;
             if (this._walkSoundTimer <= 0) {
                 this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
-                this._playSound('walk');
+                playSoundFrom(this, 'walk');
             }
         } else {
             this._walkSoundTimer = 0;
@@ -173,7 +156,7 @@ export class TimeAgentShield extends Enemy {
             }
             // 防御：远程目标在接近过程中满足 CD 即用；近战目标在其攻击时才进入防御
             if (t && this._defendCd <= 0 && dist <= (skills.defend.triggerRange ?? 260)) {
-                if (this._isTargetMeleeStyle(t)) {
+                if (isTargetMeleeStyle(t)) {
                     this._tryStartDefend(t, dist); // 近战：攻击时才防御
                 } else {
                     this._startDefend(); // 远程：接近过程中主动防御
@@ -184,18 +167,6 @@ export class TimeAgentShield extends Enemy {
                 this._tryFireGun(t, entities);
             }
         }
-    }
-
-    /** 目标风格判定（近战/远程，与突击同口径） */
-    _isTargetMeleeStyle(t) {
-        if (!t) return false;
-        if (t._faction === 'player') {
-            const eq = t.equipments && t.equipments[t.weaponMode];
-            if (eq) return eq.category === 'weapon_melee' || eq.weaponType === 'sword';
-            return true;
-        }
-        if (t.weaponMode) return t.weaponMode === 'melee';
-        return !!(t.attacks && t.attacks.melee);
     }
 
     /** 防御触发判定（idle/ranged 均可调用） */
@@ -217,7 +188,7 @@ export class TimeAgentShield extends Enemy {
         // 盾击命中帧
         if (this._formState === 'push') {
             const B = skills.bash;
-            const fireT = ((B.hitFrame || 1) - 1) / (B.frames || 1) * (B.duration || 0);
+            const fireT = ratioHitElapsed(B.hitFrame, B.frames, B.duration);
             const elapsed = (B.duration || 0) - this._stateTimer;
             if (!this._bashHitDone && elapsed >= fireT) {
                 this._bashHitDone = true;
@@ -298,7 +269,7 @@ export class TimeAgentShield extends Enemy {
 
     _triggerDefendParry(attacker, isMelee) {
         // 防御姿态受击音效（hitting.mp3，每次受击播放）
-        this._playSound('bash');
+        playSoundFrom(this, 'bash');
         // 与骑士/玩家盾系统同口径：远程/魔法只抵消伤害；近战才眩晕+击退；弹反免疫单位不受影响
         if (!isMelee) return;
         if (!attacker || attacker._parryImmune) return;
@@ -315,9 +286,9 @@ export class TimeAgentShield extends Enemy {
         const range = B.range ?? 200;
         const atk = this.data?.atk || 0;
         // 盾击判定音效（hitting.mp3，判定时播放）
-        this._playSound('bash');
+        playSoundFrom(this, 'bash');
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (B.damageMul ?? 1.5))), this, 'physical', true);
             if (B.stunMs && typeof e.applyStun === 'function') {
@@ -326,69 +297,20 @@ export class TimeAgentShield extends Enemy {
         }
     }
 
-    _hostiles(entities) {
-        const list = Array.isArray(entities)
-            ? entities
-            : (entities ? Array.from(entities.values()) : []);
-        const src = list.length > 0
-            ? list
-            : (typeof window !== 'undefined' && window.Game && window.Game.entities
-                ? Array.from(window.Game.entities.values()) : []);
-        const out = [];
-        for (const e of src) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === this._faction) continue;
-            out.push(e);
-        }
-        return out;
-    }
-
     // ========== 远程射击（沙漠之鹰） ==========
-
-    /** 朝向判定（与 _getPhaserOptions 的 flipX 同规则） */
-    _isFacingLeft() {
-        if (this.target && this.target.active) return this.target.x < this.x;
-        if (this.isMoving && Math.abs(this.vx) > 0.1) return this.vx < 0;
-        return Math.cos(this.rotation ?? 0) < 0;
-    }
 
     _tryFireGun(t, entities) {
         const skills = this._getSkillConfigs().shoot;
-        // 枪口点：上移 muzzleUpY，左右按朝向偏移 muzzleSideX（与突击同款）
-        const up = skills.muzzleUpY ?? 75;
-        const side = skills.muzzleSideX ?? 15;
-        const ox = this.x, oy = this.y;
-        let mx = ox + (this._isFacingLeft() ? -side : side);
-        let my = oy - up;
-        // 防御姿态开火：枪口点下移 defendMuzzleDownY（子弹/枪口火焰/弹壳同步，退出防御自动恢复）
-        if (this._formState === 'defendHold') {
-            my += skills.defendMuzzleDownY ?? 45;
-        }
-        // 枪口点落进墙内时回退到可达点（防止子弹出生即撞墙消失）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
-            mx = resolved.x;
-            my = resolved.y;
-        }
-        // 瞄准点：目标绿色矩形判定上方 25% 区域中心
-        const targetH = t.collisionHeight || t.config?.render?.collisionHeight || 60;
-        const footY = t.collider ? t.collider.y : t.y;
-        const aimX = t.x;
-        const aimY = footY - targetH * (skills.aimHeightRatio ?? 0.875);
-        // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
-        this.x = mx; this.y = my;
-        // fireProjectile 内置：冷却检查、AI 散布、AimHelper 预判、曳光弹、开火音效
-        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
-        this.x = ox; this.y = oy;
-        if (!fired) return;
-        // 枪口火焰 + 开火火光 + 弹壳（与突击同款）
-        const angle = Math.atan2(aimY - my, aimX - mx);
-        EffectFactory.createMuzzleFlash(mx, my, angle, skills.muzzleScale ?? 1.2);
-        const fireScene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (fireScene && typeof fireScene.playMuzzleFire === 'function') {
-            fireScene.playMuzzleFire(mx, my);
-        }
-        EffectFactory.createShellCasing(mx, my, angle, oy);
+        // 共享开火一体化：枪口偏移/墙体回退/瞄准上方 25%/临时移位出膛/火焰+火光+弹壳
+        // 防御姿态开火枪口下移 defendMuzzleDownY（退出防御自动恢复）
+        tryEnemyFireGun(this, t, entities, {
+            muzzleUpY: skills.muzzleUpY ?? 75,
+            muzzleSideX: skills.muzzleSideX ?? 15,
+            muzzleScale: skills.muzzleScale ?? 1.2,
+            aimHeightRatio: skills.aimHeightRatio ?? 0.875,
+            defendActive: this._formState === 'defendHold',
+            defendMuzzleDownY: skills.defendMuzzleDownY ?? 45,
+        });
     }
 
     // ========== 动画 ==========
@@ -425,8 +347,8 @@ export class TimeAgentShield extends Enemy {
                 return 'enemy_timeshield_ranged_pose';
             default: // idle
                 if (this.isMoving) {
-                    return this._walkElapsed >= (F.walkIntroMs ?? 1067)
-                        ? 'enemy_timeshield_walk_loop' : 'enemy_timeshield_walk';
+                    return twoStageWalkKey('enemy_timeshield_walk', 'enemy_timeshield_walk_loop',
+                        this._walkElapsed, F.walkIntroMs ?? 1067);
                 }
                 return 'enemy_timeshield_idle';
         }

@@ -1,8 +1,12 @@
         // ==================== 音效管理系统 ====================
+        import audioConfig from '../../data/audio-config.json';
+
         export const SoundManager = {
             ctx: null,
             masterVolume: 0.6,
             enabled: true,
+            // 声道音量（data/audio-config.json channels；sfx/ui/music 二级调节）
+            channelVolumes: { ...(audioConfig.channels || { sfx: 1, ui: 1, music: 0.6 }) },
             _stepTimer: 0,
             _stepInterval: 280,
             _initialized: false,
@@ -54,16 +58,52 @@
                 }
             },
 
-            // 播放外部音频文件（.mp3, .wav 等）
-            playFile(path, volume = 1.0) {
+            // 播放外部音频文件（.mp3, .wav 等）；channel 走声道音量（默认 sfx）
+            playFile(path, volume = 1.0, channel = 'sfx') {
                 if (!this.enabled) return;
+                const chVol = this.channelVolumes[channel] ?? this.channelVolumes.sfx ?? 1;
                 try {
                     const audio = new Audio(path);
-                    audio.volume = Math.max(0, Math.min(1, volume * this.masterVolume));
+                    audio.volume = Math.max(0, Math.min(1, volume * chVol * this.masterVolume));
                     audio.play().catch(e => console.warn('SoundManager.playFile failed:', path, e.message));
                 } catch (e) {
                     console.warn('SoundManager.playFile error:', path, e);
                 }
+            },
+
+            /** 设置声道音量（sfx/ui/music，0~1；配置持久化见 data/audio-config.json） */
+            setChannelVolume(channel, v) {
+                this.channelVolumes[channel] = Math.max(0, Math.min(1, v));
+                // BGM 实时联动 music 声道
+                if (channel === 'music') this.setLoopVolume('bgm', (this._bgmVolume ?? 1) * (this.channelVolumes.music ?? 1));
+            },
+
+            getChannelVolume(channel) {
+                return this.channelVolumes[channel] ?? 1;
+            },
+
+            // ==================== BGM（场景背景音乐，data/audio-config.json bgm 映射驱动） ====================
+
+            /**
+             * 播放场景 BGM：读 audio-config.json bgm[sceneId]，null 则停止；
+             * 循环播放（交叉淡入 bgmCrossfadeSec），音量 = 配置音量 × music 声道 × masterVolume
+             */
+            playBgmForScene(sceneId) {
+                const track = (audioConfig.bgm || {})[sceneId];
+                if (!track) {
+                    this.stopBgm();
+                    return;
+                }
+                const vol = typeof track === 'object' ? (track.volume ?? 1) : 1;
+                const path = typeof track === 'object' ? track.path : track;
+                const chVol = this.channelVolumes.music ?? 1;
+                this._bgmVolume = vol;
+                this.playLoop('bgm', path, vol * chVol, audioConfig.bgmCrossfadeSec ?? 0);
+            },
+
+            /** 停止当前 BGM */
+            stopBgm() {
+                this.stopLoop('bgm');
             },
 
             // ==================== 循环音轨（WebAudio，音量可 >100%，支持动态调节） ====================

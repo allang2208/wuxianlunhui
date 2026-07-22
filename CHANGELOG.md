@@ -8,6 +8,49 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-21（中优⑤：音频总线声道 + BGM 场景框架）
+
+### 对话：按中优先级做 5（音频总线+BGM）
+- **声道**：`data/audio-config.json` 新增 `channels`（sfx/ui/music 二级音量，独立于 masterVolume）；`SoundManager.playFile(path, volume, channel='sfx')` 第三参接声道；`setChannelVolume/getChannelVolume` 运行时调节，music 声道变动实时联动 BGM 音量。
+- **BGM 框架**：`playBgmForScene(sceneId)` 读 `audio-config.json bgm` 映射（场景→音轨，null 停播），复用 `playLoop` 循环 + `bgmCrossfadeSec` 交叉淡入；`stopBgm()` 兜底；`SceneManager.switchScene` 完成切换后自动调用（切换时 stopAllLoops 后按新场景重启，顺序正确）。BGM 素材未提供，main/scene7 暂为 null——放入 `assets/sounds/music/` 填配置即生效，代码零改动。
+- **SKILL.md**：音效工作流新增"步骤4: 声道与 BGM"。
+- **修改文件**：data/audio-config.json（新）、src/ui/sound-manager.js、src/world/scene-manager.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——声道音量生效（需后续提供 BGM 素材后验证场景音乐切换）。
+
+## 2026-07-21（中优④：面板生命周期框架 BasePanel + 仓库迁移）
+
+### 对话：按中优先级先做 4（面板框架）
+- **BasePanel**（`src/ui/panels/base-panel.js`）：统一抽屉式面板公共模式——懒构建单例 DOM（id+className）、open/close/toggle 走 UIState 状态键 + active 类（CSS 抽屉动画不变）、遮罩层点击关闭（各实例独立判断 isOpen 多面板共存）、`buildContent(el)` 一次性填充、`onOpen/onClose` 钩子。
+- **仓库面板迁移**（warehouse-system.js）：open/close/toggle/_buildPanel 改由 `_getPanel()` 懒创建的 BasePanel 承载，`get _isOpen()` 代理保持 game.js 距离自动关闭判定兼容；打开时重置页码+联动背包+全量刷新移入 onOpen；顺带清理两个未用导入（Game/UIState，其中一个为存量警告）。
+- **SKILL.md**：新增"面板生命周期框架"条目（新面板优先复用）。
+- **修改文件**：src/ui/panels/base-panel.js（新）、src/ui/warehouse-system.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，警告 15→14）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅。
+- **已知问题**：实机待回归——仓库打开/关闭/分页/存取/整理与迁移前一致；其余面板（合成/商店/强化/附魔）后续按同模式逐个迁移。
+
+## 2026-07-21（高优先级②③：配置完整性校验 + 怪物共享基础件框架）
+
+### 对话：先做高优先级第 2、3 项
+- **②配置完整性校验**（`scripts/test-config-integrity.mjs`）：BootScene 贴图路径/动画引用贴图键、enemy-config 的 rank/贴图/音效路径/帧数上限/工厂键双向核对、dungeon-config 的 floor 贴图键/等级/nodeCount/minRoomsToBoss 可达性/poolFamily、agent-invasion/synergy 角色键存在性；错误退出码 1。首跑结果：**0 错误 11 警告**（遗留怪与集合体手动生成属预期）。
+- **③怪物共享基础件**（`src/entities/enemy-types/_shared/`）：
+  - `enemy-utils.js`：hostilesOf/isTargetMeleeStyle/playSoundFrom/isFacingLeftFrom；
+  - `enemy-gun.js`：setupGun（枪械装配）+ tryEnemyFireGun（开火一体化，含枪口偏移/墙体回退/瞄准上方 25%/防御姿态枪口下移）；
+  - `monster-anim.js`：twoStageWalkKey/frameHitElapsed/ratioHitElapsed。
+- **两个特工类完成迁移**：time-agent-assault/time-agent-shield 全部改走共享件，删除类内重复实现（hostiles/风格判定/音效助手/朝向/枪械装配/开火逻辑/动画键切换/命中帧换算），行为不变；SKILL.md 新增"怪物共享基础件"条目（新怪物优先复用）。
+- **修改文件**：scripts/test-config-integrity.mjs（新）、src/entities/enemy-types/_shared/{enemy-utils,enemy-gun,monster-anim}.js（新）、src/entities/enemy-types/{time-agent-assault,time-agent-shield}.js、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅（0 错误）。
+- **已知问题**：实机待回归——两特工射击/盾击/闪光/斧砍/音效与迁移前一致。
+
+## 2026-07-21（音效目录规范迁移 + 盾卫开火改 gunshot）
+
+### 对话：音效按实体建子目录区分；盾卫开火用 gunshot.mp3
+- **目录规范**：`assets/sounds/` 根目录 20 个音效按类别迁移——`weapons/`（枪械开火/换弹/过热 14 个）、`bow/`（弓箭 2 个）、`ui/`（金币/升级/出售/击倒 5 个）、`shield/`（盾击木声 2 个）；`enemies/<怪物>/` 结构不变。约 30 处引用（shop/equip/enchant/game/player/weapon-anim/shield-system/weapon-fx-config/enemy-config）全部同步改路径，含两条历史悬空引用（arrow_flyby_1s.mp3、pkm_single_600ms.wav，文件缺失非本次引入）一并规范到新目录。根目录引用已清零。
+- **SKILL.md**：音效工作流新增"目录规范"条目（按实体类别建子目录，新增音效一律入对应目录）。
+- **盾卫开火音**：`sounds.fire` hitting.mp3 → **gunshot.mp3**。
+- **修改文件**：assets/sounds/（目录迁移）、src/ui/{shop-system,equip-data-manager,enchant-system}.js、src/game.js、src/entities/player/{weapon-anim,update,subsystems}.js、src/entities/components/shield-system.js、src/config/weapon-fx-config.js、data/enemy-config.json、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——各武器/系统音效正常、盾卫开火 gunshot。
+
 ## 2026-07-21（主神空间 4096² 砖地场地 + 障碍物碰撞清除）
 
 ### 对话：主神空间改成小鼠大王中心 4096×4096 砖地场地；排查障碍物碰撞残留

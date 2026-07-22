@@ -1533,8 +1533,8 @@
     "description": "时空特工突击型，可在远程射击与近战斧砍两种形态间切换",
     "skills": [],
     "sounds": {
-      "fire": "assets/sounds/qbz191_shot6_valley.mp3",
-      "reload": "assets/sounds/reload_sharp.mp3",
+      "fire": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+      "reload": "assets/sounds/weapons/reload_sharp.mp3",
       "axe": "assets/sounds/enemies/time_agent/axe.mp3",
       "axeIntroFrame": 14,
       "switch": "assets/sounds/enemies/time_agent/switch.mp3",
@@ -1635,7 +1635,7 @@
       "walk": "assets/sounds/enemies/time_agent_shield/walking.mp3",
       "walkInterval": 500,
       "bash": "assets/sounds/enemies/time_agent_shield/hitting.mp3",
-      "fire": "assets/sounds/enemies/time_agent_shield/hitting.mp3"
+      "fire": "assets/sounds/enemies/time_agent_shield/gunshot.mp3"
     }
   }
 }

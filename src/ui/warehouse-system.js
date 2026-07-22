@@ -5,8 +5,6 @@
  * - 全局材料调用：强化石/改造券/魔法粉尘 可由强化/改造/附魔栏跨背包+仓库消耗
  */
 
-import { Game } from '../game.js';
-import { UIState } from './ui-state.js';
 import { SystemUI } from './system-ui.js';
 import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
@@ -14,14 +12,14 @@ import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { EventBus } from '../core/event-bus.js';
+import { BasePanel } from './panels/base-panel.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
     pageCount: 5,         // 页数
     PAGE_SIZE: 20,        // 每页格子数
     currentPage: 0,
-    _isOpen: false,
-    _panelBuilt: false,
+    _panel: null,         // BasePanel 实例（_getPanel 懒创建）
 
     // ==================== 基础存取 ====================
 
@@ -268,40 +266,29 @@ export const WarehouseSystem = {
         return used;
     },
 
-    // ==================== 面板 ====================
+    // ==================== 面板（BasePanel 统一生命周期） ====================
 
-    open() {
-        if (this._isOpen) return;
-        UIState.open('warehouse');
-        this._isOpen = true;
-        this.currentPage = 0; // 默认打开第一页
-        this._buildPanel();
-        const panel = document.getElementById('warehousePanel');
-        if (panel) panel.classList.add('active');
-        // 同步打开装备/背包面板，方便双向搬运（与附魔/改造栏同模式）
-        SystemUI.open('equip');
-        this._refreshAll();
+    get _isOpen() { return this._getPanel().isOpen; },
+
+    _getPanel() {
+        if (!this._panel) {
+            this._panel = new BasePanel({ id: 'warehousePanel', className: 'warehouse-panel', stateKey: 'warehouse' });
+            this._panel.buildContent = (el) => this._buildPanelContent(el);
+            this._panel.onOpen = () => {
+                this.currentPage = 0; // 默认打开第一页
+                // 同步打开装备/背包面板，方便双向搬运（与附魔/改造栏同模式）
+                SystemUI.open('equip');
+                this._refreshAll();
+            };
+        }
+        return this._panel;
     },
 
-    close() {
-        if (!this._isOpen) return;
-        this._isOpen = false;
-        UIState.close('warehouse');
-        const panel = document.getElementById('warehousePanel');
-        if (panel) panel.classList.remove('active');
-    },
+    open() { this._getPanel().open(); },
+    close() { this._getPanel().close(); },
+    toggle() { this._getPanel().toggle(); },
 
-    toggle() {
-        if (this._isOpen) this.close();
-        else this.open();
-    },
-
-    _buildPanel() {
-        if (this._panelBuilt) return;
-        this._panelBuilt = true;
-        const panel = document.createElement('div');
-        panel.id = 'warehousePanel';
-        panel.className = 'warehouse-panel';
+    _buildPanelContent(panel) {
         panel.innerHTML = `
             <div class="warehouse-header">
                 <span class="warehouse-title">📦 仓库</span>
@@ -322,7 +309,6 @@ export const WarehouseSystem = {
             </div>
             <div class="warehouse-hint" id="warehouseHint"></div>
         `;
-        document.body.appendChild(panel);
         // 仓库格子 → 背包 的桥接事件（drag-drop-manager 发出，避免循环 import）
         EventBus.on('warehouse:retrieveToBackpack', ({ wSlot, bpSlot }) => {
             if (!Number.isNaN(wSlot)) this.retrieveToBackpackAt(wSlot, bpSlot);
@@ -347,12 +333,6 @@ export const WarehouseSystem = {
                 menu.style.display = 'none';
             }
         });
-        // 点击遮罩层（面板外部）时与背包一并关闭仓库。
-        // 注：不反向 import SystemUI（避免 system-ui <-> warehouse 循环），直接挂 overlay 监听
-        const overlay = document.getElementById('panelOverlay');
-        if (overlay) {
-            overlay.addEventListener('click', () => { if (this._isOpen) this.close(); });
-        }
     },
 
     _switchPage(delta) {

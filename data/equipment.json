@@ -270,8 +270,8 @@
         "frameCount": 9,
         "framePrefix": "training_bow_frame_",
         "soundEffects": {
-          "rotateComplete": "assets/sounds/rope_pull_1s.wav（拉弓音效）",
-          "attackEnd": "assets/sounds/arrow_flyby_1s.mp3（箭矢射出音效）"
+          "rotateComplete": "assets/sounds/bow/rope_pull_1s.wav（拉弓音效）",
+          "attackEnd": "assets/sounds/bow/arrow_flyby_1s.mp3（箭矢射出音效）"
         },
         "description": "攻击流程：①前摇500ms——弓逆时针旋转14°蓄力，同时播放拉弓音效；②攻击动画约800ms——9帧拉弓序列动画在旋转后的角度播放；③后摇200ms——弓平滑回正到待机角度；④箭矢射出——攻击动画结束后箭矢才射出，同时播放箭矢飞行音效。"
       }
@@ -362,8 +362,8 @@
         "frameCount": 10,
         "framePrefix": "border_bow_frame_",
         "soundEffects": {
-          "rotateComplete": "assets/sounds/rope_pull_1s.wav（拉弓音效）",
-          "attackEnd": "assets/sounds/arrow_flyby_1s.mp3（箭矢射出音效）"
+          "rotateComplete": "assets/sounds/bow/rope_pull_1s.wav（拉弓音效）",
+          "attackEnd": "assets/sounds/bow/arrow_flyby_1s.mp3（箭矢射出音效）"
         },
         "description": "攻击流程：①长按蓄力1.5秒——弓逆时针旋转14°蓄力，同时播放拉弓音效；②蓄力满后人物与武器同步闪过0.5秒白色闪光；③松开鼠标发射——10帧拉弓序列动画在旋转后的角度播放，箭矢射出并播放箭矢飞行音效；④若蓄力未满1.5秒松开，则取消蓄力，不发射箭矢。"
       },
@@ -468,7 +468,7 @@
       "attackKey": "pistol",
       "offhandAttackKey": "pistolOffhand",
       "animConfigKey": "pistol",
-      "fireSound": "assets/sounds/akm_burst.mp3",
+      "fireSound": "assets/sounds/weapons/akm_burst.mp3",
       "isDarkGold": false,
       "canvasImageProp": "pistolImage",
       "ammoConfig": {
@@ -608,7 +608,7 @@
       "attackKey": "p4040",
       "offhandAttackKey": "p4040Offhand",
       "animConfigKey": "p4040",
-      "fireSound": "assets/sounds/apex2_shot_1s.wav",
+      "fireSound": "assets/sounds/weapons/apex2_shot_1s.wav",
       "isDarkGold": true,
       "canvasImageProp": "pistolImage",
       "ammoConfig": {
@@ -1123,8 +1123,8 @@
         "overheatTime": 4000,
         "overheatCooldown": 4000,
         "isInfiniteAmmo": true,
-        "fireSound": "assets/sounds/apex_shot_600ms.wav",
-        "overheatSound": "assets/sounds/apex_reload_4s_raw.mp3"
+        "fireSound": "assets/sounds/weapons/apex_shot_600ms.wav",
+        "overheatSound": "assets/sounds/weapons/apex_reload_4s_raw.mp3"
       },
       "animation": {
         "type": "recoil（后坐力抖动）",

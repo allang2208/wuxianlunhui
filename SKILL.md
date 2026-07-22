@@ -485,6 +485,32 @@ _getPhaserOptions() {
 
 ---
 
+## 面板生命周期框架（2026-07-21 新增，新面板优先复用）
+
+新增抽屉式面板时**优先复用** `src/ui/panels/base-panel.js`（BasePanel），不要重写 open/close/toggle/遮罩关闭：
+- `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
+- 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
+- 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+
+已迁移范例：`warehouse-system.js`（仓库面板）。
+
+### 步骤4: 声道与 BGM（2026-07-21 新增）
+- **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
+- **BGM**：`data/audio-config.json` 的 `bgm` 映射场景 → 音轨（`null` = 无 BGM），切场景自动播放/停止（SceneManager 已接入 `playBgmForScene`）；音轨用 `playLoop` 循环，交叉淡入 `bgmCrossfadeSec`。新 BGM 素材放入 `assets/sounds/music/` 并填配置即可。
+
+---
+
+## 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
+
+新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）；
+- `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
+- `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
+
+已迁移范例：`time-agent-assault.js`（双形态+枪械+投掷+斧砍）、`time-agent-shield.js`（远程+盾击+防御弹反）。
+
+---
+
 ## 怪物 HUD 锚点工作流（2026-07-21 新增）
 
 **默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。
@@ -494,7 +520,18 @@ _getPhaserOptions() {
 
 ---
 
-## 音效导入工作流（2026-07-17 新增，参照集合体落地）
+## 音效导入工作流（2026-07-17 新增，参照集合体落地；2026-07-21 目录规范更新）
+
+### 目录规范（2026-07-21）
+所有音效**按实体类别建子目录，禁止堆在 assets/sounds/ 根目录**：
+```
+assets/sounds/enemies/<怪物英文名>/   # 怪物音效（如 amalgam/time_agent/time_agent_shield）
+assets/sounds/weapons/                # 枪械开火/换弹/过热等武器音效
+assets/sounds/bow/                    # 弓箭音效
+assets/sounds/shield/                 # 盾牌格挡/受击音效
+assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音效
+```
+2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
 
 ### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：

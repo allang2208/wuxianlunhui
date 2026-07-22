@@ -172,6 +172,10 @@ export const SceneManager = {
             this.hideLoadingScreen();
             // 显示场景名称
             this._showSceneLabel(scene.name);
+            // BGM 场景切换（data/audio-config.json bgm 映射；无配置场景自动停止）
+            if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
+                SoundManager.playBgmForScene(sceneId);
+            }
         } catch (err) {
             console.error('[switchScene] ERROR:', err);
             this._rollback(player);

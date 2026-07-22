@@ -43,11 +43,11 @@ export const WEAPON_FX_CONFIG = {
         cameraShake: 4,
         cameraShakeEnergy: 2,
         soundMap: {
-            energy_lmg: 'assets/sounds/apex_shot_600ms.wav',
-            pkm: 'assets/sounds/pkm_half_sec.wav',
-            qbz191: 'assets/sounds/qbz191_shot6_valley.mp3',
-            qjb201: 'assets/sounds/qjb201_single_600ms.wav',
-            akm: 'assets/sounds/akm_burst.mp3'
+            energy_lmg: 'assets/sounds/weapons/apex_shot_600ms.wav',
+            pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
+            qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+            qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
+            akm: 'assets/sounds/weapons/akm_burst.mp3'
         }
     },
 
@@ -58,7 +58,7 @@ export const WEAPON_FX_CONFIG = {
         flashForward: 38,
         shellOffset: { fx: -10, fy: 8 },
         muzzleScale: 1.8,
-        defaultSound: 'assets/sounds/gunshot_600ms_clean.wav',
+        defaultSound: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
         baseSpreadAngle: 20,
         slugRecoilAnglePerLayer: 5,
         defaultPelletCount: 6,

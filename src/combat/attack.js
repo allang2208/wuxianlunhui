@@ -322,9 +322,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 播放武器开火音效
                 if (wType === 'pkm') {
                     
-                    SoundManager.playFile('assets/sounds/pkm_half_sec.wav');
+                    SoundManager.playFile('assets/sounds/weapons/pkm_half_sec.wav');
                 } else if (wType === 'qbz191') {
-                    SoundManager.playFile('assets/sounds/qbz191_shot6_valley.mp3');
+                    SoundManager.playFile('assets/sounds/weapons/qbz191_shot6_valley.mp3');
                 } else if (wType === 'pistol') {
                     SoundManager.play('gun_fire');
                 } else {
