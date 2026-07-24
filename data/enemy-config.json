@@ -305,7 +305,7 @@
         "flyDuration": 1500,
         "arcHeight": 100,
         "projectileSize": 48,
-        "impactRadius": 300,
+        "impactRadius": 200,
         "burnDuration": 4000,
         "tickMs": 500,
         "damageMul": 0.75,
@@ -339,6 +339,7 @@
       "slamFrame": 14,
       "lantern": "assets/sounds/enemies/lantern_miner_zombie/attacking-2.mp3",
       "lanternFrame": 8,
+      "burn": "assets/sounds/enemies/lantern_miner_zombie/burning.mp3",
       "death": "assets/sounds/enemies/lantern_miner_zombie/dying.mp3",
       "deathFrame": 8
     },
@@ -392,7 +393,8 @@
     "family": "僵尸",
     "color": "#6a5a3a",
     "size": 18,
-    "collisionRadius": 40,
+    "collisionRadius": 60,
+    "colliderOffsetY": -25,
     "hp": 1600,
     "maxHp": 1600,
     "speed": 160,
@@ -499,7 +501,9 @@
     "family": "其他",
     "color": "#4a5a4a",
     "size": 60,
-    "collisionRadius": 60,
+    "collisionRadius": 90,
+    "colliderOffsetY": -20,
+    "noFootprint": true,
     "height": 100,
     "hp": 1500,
     "maxHp": 1500,
@@ -516,8 +520,9 @@
     "aiInterval": 5000,
     "attackSkills": {
       "spawn": {
-        "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸",
-        "intervalMs": 5000,
+        "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸，每 lanternIntervalMs 生成一只提灯僵尸",
+        "intervalMs": 10000,
+        "lanternIntervalMs": 45000,
         "forwardX": 50
       }
     },

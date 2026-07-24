@@ -3,7 +3,6 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom } from './_shared/enemy-utils.js';
-import { AimHelper } from '../../utils/aim-helper.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
@@ -218,13 +217,13 @@ export class LanternMinerZombie extends Enemy {
     _throwLantern(_entities) {
         const L = this._getLanternConfig();
         const t = this.target && this.target.active ? this.target : null;
-        // 预判落点（飞行时间内的目标移动）
+        // 预判落点：抛物线固定飞行时间 flyS，直接线性外推目标在 flyS 秒后的位置。
+        // 不再用 AimHelper.lead（它解的是匀速直线弹体拦截点，与固定时长抛物线模型不匹配，会导致落点严重偏离）。
         const flyS = (L.flyDuration ?? 1500) / 1000;
         let tx = this.x, ty = this.y;
         if (t) {
-            const lead = AimHelper.lead(this.x, this.y, t.x, t.y, t.vx || 0, t.vy || 0,
-                flyS > 0 ? Math.hypot(t.x - this.x, t.y - this.y) / flyS : 1000, 0);
-            tx = lead.x; ty = lead.y;
+            tx = t.x + (t.vx || 0) * flyS;
+            ty = t.y + (t.vy || 0) * flyS;
         }
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) {
@@ -266,9 +265,11 @@ export class LanternMinerZombie extends Enemy {
         });
     }
 
-    /** 矿灯落地：创建燃烧区（300px 椭圆，4s，每 0.5s 魔法伤害；油脂地面 + 火焰按特工射速频率变幻） */
+    /** 矿灯落地：创建燃烧区（200px 椭圆，4s，每 0.5s 魔法伤害；油脂地面 + 火焰按特工射速频率变幻） */
     _lanternImpact(tx, ty) {
         const L = this._getLanternConfig();
+        // 燃烧音效（投射物落地后播放）
+        playSoundFrom(this, 'burn');
         const zone = {
             x: tx, y: ty,
             timer: L.burnDuration ?? 4000,

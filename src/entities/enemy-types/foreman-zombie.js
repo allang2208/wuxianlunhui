@@ -345,8 +345,24 @@ export class ForemanZombie extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._deathSoundDone = false;
+        // 工头死亡：同步杀死场上所有矿洞（矿洞死亡不影响工头，单向联动）
+        this._killAllMineCaves(source);
         if (typeof super.onDeath === 'function') {
             super.onDeath(source);
+        }
+    }
+
+    _killAllMineCaves(source) {
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (!game || !game.entities) return;
+        for (const e of game.entities.values()) {
+            if (!e || !e.active || e.id !== 'mineCave') continue;
+            // 矿洞同步死亡（走正常死亡流程，避免残留）
+            if (typeof e.onDeath === 'function') {
+                e.onDeath(source);
+            } else if (typeof e.takeDamage === 'function') {
+                e.takeDamage(99999, source, 'physical', true);
+            }
         }
     }
 

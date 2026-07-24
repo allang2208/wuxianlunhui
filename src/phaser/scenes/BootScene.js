@@ -41,6 +41,9 @@ export class BootScene extends Scene {
         this.load.spritesheet('fireball', 'assets/skills/fireball_spritesheet.png', { frameWidth: 480, frameHeight: 480, endFrame: 72 });
         this.load.image('blackbrick2', 'assets/terrain/blackbrick2.png');
         this.load.image('blackbrick3', 'assets/terrain/blackbrick3.png');
+        // 墙壁贴图：wall.png 水平墙（带墙面），wall-2.png 垂直墙（只看顶部砖块）
+        this.load.image('wall_horizontal', 'assets/terrain/wall.png');
+        this.load.image('wall_vertical', 'assets/terrain/wall-2.png');
         // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
         this.load.image('blackbrick5', 'assets/terrain/blackbrick5.png');
         this.load.image('blackbrick5_glow', 'assets/terrain/blackbrick5_glow.png');

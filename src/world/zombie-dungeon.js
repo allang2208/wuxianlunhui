@@ -149,7 +149,8 @@ export function createMineCave(x, y) {
         ...(cfg || { name: '矿洞', hp: 1500, maxHp: 1500, size: 60, showWeapon: false }),
         showWeapon: false,
         // 生成工厂注入（避免实体层反向依赖 world 层）
-        spawnFactory: (mx, my) => createMinerZombie(mx, my)
+        spawnFactory: (mx, my) => createMinerZombie(mx, my),
+        lanternSpawnFactory: (mx, my) => createLanternMinerZombie(mx, my)
     });
     return mkCave(x, y);
 }

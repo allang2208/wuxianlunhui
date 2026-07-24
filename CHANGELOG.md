@@ -8,6 +8,20 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（墙壁系统重构 + 工头/矿洞调整 + 提灯僵尸修复）
+
+### 对话：墙壁系统重构（wall.png/wall-2.png）；工头/矿洞/召唤物调整；提灯僵尸预判 bug + 燃烧范围 200px + 燃烧音效
+- **墙壁系统重构**：`BootScene` 加载 `wall_horizontal`（wall.png，水平墙带墙面）与 `wall_vertical`（wall-2.png，垂直墙只看顶部砖块）；`wall-system.js` `_createWallVisual` 按宽高比判断方向，水平墙 TileSprite 水平平铺显示完整墙面，垂直墙 TileSprite 垂直平铺显示顶部砖块，图层 depth = 底部 Y 坐标；保留原有碰撞逻辑（canMoveTo/resolve/blocked/lineRect）。主神空间上方生成 400×300 测试房间（留 80px 出入口）。
+- **工头调整**：footprint 椭圆 collisionRadius 40→60（放大 20px），colliderOffsetY -25（向上移 25px）。
+- **矿洞调整**：不显示脚下椭圆晕影（`noFootprint: true`，GameScene `_syncCollisionRadii` 跳过）；collisionRadius 60→90（左右拉长 30px），colliderOffsetY -20；工头死亡时同步杀死场上所有矿洞（`_killAllMineCaves`）。
+- **矿洞生成**：矿工僵尸每 10s、提灯僵尸每 45s 各生成一只（双计时器）；均带 `_summoned` 标签（击杀无金币/经验/掉落物，掉落逻辑本就检查 `_summoned`）。
+- **工头附带矿洞**：`combat-room-system.js` `spawnMonsters` 检测工头生成时，在其附近 150~300px 安全位置（16 方向尝试 + findSafeSpawn 兜底）附带生成一个矿洞。
+- **激励 buff 特效**：`GameScene._syncInspireEffects` 在激励持续时间内于目标脚下生成白色旋转光环（双层椭圆 + 呼吸缩放），跟随目标移动，buff 结束自动消失。
+- **提灯僵尸修复**：投掷物预判 bug——`AimHelper.lead` 解的是匀速直线弹体拦截点，与固定飞行时间抛物线模型不匹配，导致落点严重偏离。改为直接线性外推目标在 flyS 秒后的位置（tx = t.x + vx*flyS）。燃烧范围 impactRadius 300→200。新增 burning.mp3 燃烧音效（投射物落地后播放）。
+- **修改文件**：`assets/terrain/wall.png`（新增）、`assets/terrain/wall-2.png`（新增）、`assets/sounds/enemies/lantern_miner_zombie/burning.mp3`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/world/wall-system.js`、`src/world/scene-manager.js`、`src/world/combat-room-system.js`、`src/entities/enemy-types/mine-cave.js`、`src/entities/enemy-types/foreman-zombie.js`、`src/entities/enemy-types/lantern-miner-zombie.js`、`src/phaser/scenes/GameScene.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）。
+- **已知问题**：实机待验证——墙壁贴图显示/碰撞、测试房间出入口、工头/矿洞生成与死亡同步、激励光环特效、提灯落点/燃烧范围/音效。
+
 ## 2026-07-23（仓库打不开修复 + 流血 debuff 逐层消除 + 矿工/工头碰撞调整）
 
 ### 对话：仓库无法打开；流血 debuff 到期应只减一层；矿工僵尸放大 15%、工头圆柱体积减半

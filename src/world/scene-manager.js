@@ -419,6 +419,21 @@ export const SceneManager = {
             { x: 0, y: 0, w: wt, h: size, height: 60 },
             { x: size - wt, y: 0, w: wt, h: size, height: 60 },
         ];
+
+        // 测试房间：主神空间上方，矩形房间留一个出入口
+        const roomW = 400, roomH = 300, wallT = 20;
+        const roomX = CONFIG.WORLD_WIDTH / 2 - roomW / 2;
+        const roomY = CONFIG.WORLD_HEIGHT / 2 - 600; // 上方空旷区域
+        const doorW = 80;
+        // 上墙（留出入口在中间）
+        WallSystem.walls.push({ x: roomX, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
+        WallSystem.walls.push({ x: roomX + (roomW + doorW) / 2, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
+        // 下墙
+        WallSystem.walls.push({ x: roomX, y: roomY + roomH - wallT, w: roomW, h: wallT, height: 60 });
+        // 左墙
+        WallSystem.walls.push({ x: roomX, y: roomY, w: wallT, h: roomH, height: 60 });
+        // 右墙
+        WallSystem.walls.push({ x: roomX + roomW - wallT, y: roomY, w: wallT, h: roomH, height: 60 });
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；
         // noVisual 标记跳过墙面视觉（贴图 NPC 自身就是视觉）。与边界墙同入口重建，场景往返不丢
         if (typeof Game !== 'undefined' && Game.entities) {

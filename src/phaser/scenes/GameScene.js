@@ -315,6 +315,8 @@ export class GameScene extends Scene {
         this._syncEntityShadows(_game);
         // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
         this._syncStunEffects(_game);
+        // 同步激励 buff 白色环绕光晕（持续时间内跟随目标，结束消失）
+        this._syncInspireEffects(_game);
         // 调试范围圈与阴影使用同一脚底坐标，避免错位
         this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
@@ -1893,6 +1895,58 @@ export class GameScene extends Scene {
         if (fx.s2 && fx.s2.active) fx.s2.destroy();
     }
 
+    /**
+     * 激励 buff 白色环绕光晕：持续时间内跟随目标，结束消失
+     * 在目标脚下生成白色旋转光环（graphics 圆环 + 呼吸缩放）
+     */
+    _syncInspireEffects(_game) {
+        if (!_game || !_game.entities) return;
+        if (!this._inspireFx) this._inspireFx = new Map();
+        const isMapMode = SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map';
+        if (isMapMode) {
+            for (const [, fx] of this._inspireFx.entries()) this._destroyInspireFx(fx);
+            this._inspireFx.clear();
+            return;
+        }
+        const active = new Set();
+        const process = (e, sprite) => {
+            if (!e || !e.active || !sprite || !sprite.active) return;
+            const inspired = typeof e.hasStatusEffect === 'function' && e.hasStatusEffect('inspire');
+            if (!inspired) return;
+            active.add(e);
+            let fx = this._inspireFx.get(e);
+            if (!fx) {
+                const g = this.add.graphics();
+                fx = { gfx: g, angle: 0 };
+                this._inspireFx.set(e, fx);
+            }
+            fx.angle += 0.03;
+            const r = (e.groundRadius || e.collisionRadius || 20) + 8;
+            const pulse = 1 + Math.sin(fx.angle * 3) * 0.15;
+            const cx = sprite.x;
+            const cy = sprite.y + (e.footOffsetY || 0) * 0.5;
+            fx.gfx.clear();
+            fx.gfx.lineStyle(3, 0xffffff, 0.7 * pulse);
+            fx.gfx.strokeEllipse(cx, cy, r * 2 * pulse, r * 2 * pulse * PERSPECTIVE_SCALE_Y);
+            fx.gfx.lineStyle(1.5, 0xffffff, 0.4 * pulse);
+            fx.gfx.strokeEllipse(cx, cy, r * 2.5 * pulse, r * 2.5 * pulse * PERSPECTIVE_SCALE_Y);
+            fx.gfx.setDepth(cy + 999);
+            fx.gfx.setVisible(true);
+        };
+        _game.entities.forEach(e => process(e, e && e._phaserSprite));
+        process(_game.player, this.playerSprite);
+        for (const [e, fx] of this._inspireFx.entries()) {
+            if (!active.has(e)) {
+                this._destroyInspireFx(fx);
+                this._inspireFx.delete(e);
+            }
+        }
+    }
+
+    _destroyInspireFx(fx) {
+        if (fx.gfx && fx.gfx.active) fx.gfx.destroy();
+    }
+
     _ensureZombieHitTexture() {
         if (this.textures.exists('zombie_hit_dot')) return;
         const g = this.make.graphics({ x: 0, y: 0, add: false });
@@ -2438,6 +2492,8 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
+            // 跳过配置了 noFootprint 的实体（如矿洞，保留碰撞判定但不显示脚下椭圆晕影）
+            if (entity.config?.noFootprint) return;
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
 
             // footprint / 圆柱体使用 collider 坐标，支持前倾/攻击时的 footprint 偏移。
