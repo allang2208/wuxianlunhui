@@ -1931,7 +1931,8 @@ export class GameScene extends Scene {
             fx.gfx.strokeEllipse(cx, cy, r * 2 * pulse, r * 2 * pulse * PERSPECTIVE_SCALE_Y);
             fx.gfx.lineStyle(1.5, 0xffffff, 0.4 * pulse);
             fx.gfx.strokeEllipse(cx, cy, r * 2.5 * pulse, r * 2.5 * pulse * PERSPECTIVE_SCALE_Y);
-            fx.gfx.setDepth(cy + 999);
+            // 图层在怪物贴图之下（怪物贴图 depth ≈ e.y + 10），可被遮挡
+            fx.gfx.setDepth(cy + 5);
             fx.gfx.setVisible(true);
         };
         _game.entities.forEach(e => process(e, e && e._phaserSprite));

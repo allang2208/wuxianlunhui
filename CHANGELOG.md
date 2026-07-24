@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（激励光圈可被遮挡 + 矿洞提灯修复）
+
+### 对话：激励光圈图层可被怪物贴图遮挡；矿洞不生成提灯僵尸
+- **激励光圈**：`_syncInspireEffects` 图层 depth 从 `cy + 999` 改为 `cy + 5`（怪物贴图 depth ≈ e.y + 10，光圈在贴图之下可被遮挡）。
+- **矿洞提灯**：主神空间 `spawnMainMineCave` 只传了 `spawnFactory`（矿工），漏传 `lanternSpawnFactory`（提灯）。已补上，现在主神空间矿洞也会每 45s 生成提灯僵尸。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/game.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——激励光圈被贴图遮挡、矿洞每 45s 生成提灯僵尸。
+
 ## 2026-07-23（激励光环移脚下 + 测试房间位置调整 + 工头碰撞再上移）
 
 ### 对话：激励光环放脚下 footprint；主神空间看不到测试房间；工头碰撞体积再上移 25px

@@ -393,6 +393,16 @@ export const Game = {
                     loseTimeout: 999999
                 }
             }),
+            lanternSpawnFactory: (mx, my) => new LanternMinerZombie(mx, my, {
+                ...enemyConfigData.lanternMinerZombie,
+                showWeapon: false,
+                ai: {
+                    ...(enemyConfigData.lanternMinerZombie?.ai || {}),
+                    aggroRange: 9999,
+                    pacingRange: 0,
+                    loseTimeout: 999999
+                }
+            }),
             ai: {
                 ...(cfg.ai || {}),
                 aggroRange: 9999,
