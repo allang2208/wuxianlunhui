@@ -563,6 +563,35 @@ _getPhaserOptions() {
 
 ---
 
+## 墙壁系统（2026-07-23 新增，瓦片化重构中）
+
+**当前状态**：墙壁系统正在从硬拉伸向瓦片化拼接重构。以下信息供新对话快速接上。
+
+### 素材
+- `assets/terrain/wall.png`：水平墙（1024×1024，墙面在中间 y=250~750）
+- `assets/terrain/wall-2.png`：垂直墙（1024×1024，砖块列在左侧 x=380~610）
+- BootScene 已生成裁剪后纹理：`wall_horizontal_cropped`（1024×500）、`wall_vertical_cropped`（230×1024）
+
+### 当前实现（`src/world/wall-system.js` `_createWallVisual`）
+- 按宽高比判断方向（w > h 为水平墙，否则垂直墙）
+- 水平墙用 `wall_horizontal_cropped`，垂直墙用 `wall_vertical_cropped`
+- 贴图放大 3 倍（visualH = (w.height || 60) * 3）
+- 拼接检测：`_hasAdjacentWall` 检测两端是否有相邻墙壁，有则延伸半厚消除缝隙
+- 尽头圆角：`_drawWallCap` 画灰色半圆（用户反馈观感差，待移除或改进）
+- 相交透视：上方交点垂直墙在上（depth+1），下方交点水平墙在上（depth-1）
+
+### 待优化方向（用户已确认方案 A：瓦片化拼接）
+- 像地板一样切成固定大小瓦片重复拼接，末尾不够就裁剪
+- 移除灰色半圆角块，改用 wall.png 顶部圆角区域做瓦片
+- 相交处用覆盖式拼接 + depth 调整，让瓦片自然侵入
+
+### 测试房间（`src/world/scene-manager.js` `_setupMainHubTerrain`）
+- 位置：origin 正上方 400px（`CONFIG.WORLD_HEIGHT / 2 - 400`）
+- 尺寸：600×450，出入口 100px
+- 布局：水平墙夹在左右墙之间，垂直墙夹在上下墙之间，四角完全贴合
+
+---
+
 ## 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
 
 **默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。**自 2026-07-23 起，新增怪物必须设置 `"capsuleHudAnchor": true`（已补齐：poisonMaggot/minerZombie/lanternMinerZombie/foremanZombie）。**
