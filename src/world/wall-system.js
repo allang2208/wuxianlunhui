@@ -48,8 +48,8 @@ const WallSystem = {
 
     /**
      * 创建墙壁视觉精灵（水平墙用 wall.png，垂直墙用 wall-2.png）
-     * 水平墙：显示完整墙面，TileSprite 水平平铺
-     * 垂直墙：只显示顶部砖块，TileSprite 垂直平铺
+     * 水平墙：显示完整墙面，Sprite 拉伸覆盖；垂直墙：只看顶部砖块
+     * 贴图放大一倍（visualH ×2）；水平/垂直拼接处无缝；尽头半圆角，拼接处不处理
      * 图层：depth = 底部 Y 坐标（与地面相交处遮挡截断）
      */
     _createWallVisual(phaserScene, w) {
@@ -67,31 +67,98 @@ const WallSystem = {
             return;
         }
 
+        const t = isHorizontal ? w.h : w.w; // 墙厚
+        const halfT = t / 2;
+
+        // 检测两端是否有相邻墙壁（拼接），有则不收圆角并向外延伸半厚消除缝隙
+        let leftConnected = false, rightConnected = false, topConnected = false, bottomConnected = false;
         if (isHorizontal) {
-            // 水平墙：墙面可见，用普通 Sprite 拉伸覆盖整个墙面区域
-            // wall.png 内容：墙面在中间，顶部有顶边
-            const visualH = w.height || 60;
+            leftConnected = this._hasAdjacentWall(w.x - halfT, w.y + halfT, w.x, w.y + halfT, w);
+            rightConnected = this._hasAdjacentWall(w.x + w.w, w.y + halfT, w.x + w.w + halfT, w.y + halfT, w);
+        } else {
+            topConnected = this._hasAdjacentWall(w.x + halfT, w.y - halfT, w.x + halfT, w.y, w);
+            bottomConnected = this._hasAdjacentWall(w.x + halfT, w.y + w.h, w.x + halfT, w.y + w.h + halfT, w);
+        }
+
+        if (isHorizontal) {
+            // 水平墙：贴图放大一倍（visualH ×2），左右拼接处延伸半厚
+            const visualH = (w.height || 60) * 2;
+            const extL = leftConnected ? halfT : 0;
+            const extR = rightConnected ? halfT : 0;
+            const sx = w.x - extL;
+            const sw = w.w + extL + extR;
             const sprite = phaserScene.add.sprite(
-                w.x + w.w / 2,
+                sx + sw / 2,
                 w.y + w.h - visualH / 2,
                 textureKey
             );
-            sprite.setDisplaySize(w.w, visualH);
+            sprite.setDisplaySize(sw, visualH);
             sprite.setDepth(w.y + w.h);
             phaserScene.visualWalls.add(sprite);
             w.visualSprite = sprite;
+
+            // 尽头半圆角（只在未拼接的端点）
+            if (!leftConnected) this._drawWallCap(phaserScene, w.x, w.y + w.h, halfT, 'left', w);
+            if (!rightConnected) this._drawWallCap(phaserScene, w.x + w.w, w.y + w.h, halfT, 'right', w);
         } else {
-            // 垂直墙：只看顶部砖块，用普通 Sprite 拉伸覆盖
+            // 垂直墙：贴图放大一倍（w.w ×2 显示宽度），上下拼接处延伸半厚
+            const visualW = w.w * 2;
+            const extT = topConnected ? halfT : 0;
+            const extB = bottomConnected ? halfT : 0;
+            const sy = w.y - extT;
+            const sh = w.h + extT + extB;
             const sprite = phaserScene.add.sprite(
                 w.x + w.w / 2,
-                w.y + w.h / 2,
+                sy + sh / 2,
                 textureKey
             );
-            sprite.setDisplaySize(w.w, w.h);
+            sprite.setDisplaySize(visualW, sh);
             sprite.setDepth(w.y + w.h);
             phaserScene.visualWalls.add(sprite);
             w.visualSprite = sprite;
+
+            // 尽头半圆角（只在未拼接的端点）
+            if (!topConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y, halfT, 'top', w);
+            if (!bottomConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y + w.h, halfT, 'bottom', w);
         }
+    },
+
+    /** 检测指定线段范围内是否有其他墙壁（拼接判定） */
+    _hasAdjacentWall(x1, y1, x2, y2, self) {
+        for (const w of this.walls) {
+            if (w === self) continue;
+            // 检查线段是否与墙壁矩形相交（简单的 AABB 相交检测）
+            const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+            const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+            if (maxX >= w.x && minX <= w.x + w.w && maxY >= w.y && minY <= w.y + w.h) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    /** 在墙壁尽头画半圆角（graphics 半圆，与墙体贴图颜色一致） */
+    _drawWallCap(phaserScene, cx, cy, r, side, wallRef) {
+        const g = phaserScene.add.graphics();
+        const color = 0x3a3a3a; // 与 wall.png 深色砖块接近
+        g.fillStyle(color, 1);
+        // 根据方向画半圆
+        g.beginPath();
+        if (side === 'left') {
+            g.arc(cx, cy, r, Math.PI / 2, Math.PI * 1.5);
+        } else if (side === 'right') {
+            g.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2);
+        } else if (side === 'top') {
+            g.arc(cx, cy, r, Math.PI, 0);
+        } else { // bottom
+            g.arc(cx, cy, r, 0, Math.PI);
+        }
+        g.closePath();
+        g.fillPath();
+        g.setDepth(cy);
+        phaserScene.visualWalls.add(g);
+        if (!wallRef._capSprites) wallRef._capSprites = [];
+        wallRef._capSprites.push(g);
     },
     /**
      * 将树木同步到 Phaser 的 staticGroup
