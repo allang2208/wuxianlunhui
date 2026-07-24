@@ -25,6 +25,7 @@ import { DungeonConfig } from '../config/dungeon-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { applyDungeonFloor } from './dungeon-floor-texture.js';
+import { createMineCave } from './zombie-dungeon.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -288,10 +289,59 @@ export const CombatRoomSystem = {
                 spawnScene.playDungeonSpawnParticles(monster.x, monster.y);
             }
             this._combatMonsterKeys.push(key);
+
+            // 工头刷新时附带刷新一个矿洞（在工头附近安全位置）
+            if (monster && monster.id === 'foremanZombie' && Game && Game.entities) {
+                this._spawnMineCaveNearForeman(monster, Game, bounds);
+            }
         }
 
         
         return this._combatMonsters;
+    },
+
+    /** 在工头附近生成一个矿洞（安全位置，保证生成的僵尸可以走出） */
+    _spawnMineCaveNearForeman(foreman, Game, bounds) {
+        try {
+            if (!createMineCave) return;
+
+            const caveRadius = 90; // 矿洞碰撞半径
+            const minDist = 150, maxDist = 300;
+            let caveX = foreman.x, caveY = foreman.y;
+            let found = false;
+
+            // 尝试在工头周围找一个安全位置（可移动，不卡墙）
+            for (let attempt = 0; attempt < 16 && !found; attempt++) {
+                const angle = (attempt / 16) * Math.PI * 2;
+                const dist = minDist + Math.random() * (maxDist - minDist);
+                const tx = foreman.x + Math.cos(angle) * dist;
+                const ty = foreman.y + Math.sin(angle) * dist;
+                // 边界检查
+                if (tx < bounds.minX + caveRadius || tx > bounds.maxX - caveRadius ||
+                    ty < bounds.minY + caveRadius || ty > bounds.maxY - caveRadius) continue;
+                // 碰撞检查
+                if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(tx, ty, caveRadius)) continue;
+                caveX = tx; caveY = ty; found = true;
+            }
+
+            // 兜底：如果找不到，就用 findSafeSpawn 在工头附近推一个点
+            if (!found && WallSystem && WallSystem.findSafeSpawn) {
+                const safe = WallSystem.findSafeSpawn(foreman.x + minDist, foreman.y, caveRadius, 12);
+                caveX = Math.max(bounds.minX + caveRadius, Math.min(bounds.maxX - caveRadius, safe.x));
+                caveY = Math.max(bounds.minY + caveRadius, Math.min(bounds.maxY - caveRadius, safe.y));
+            }
+
+            const cave = createMineCave(caveX, caveY);
+            const key = `combat_minecave_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            Game.entities.set(key, cave);
+            // 矿洞生成特效
+            const spawnScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (spawnScene && typeof spawnScene.playDungeonSpawnParticles === 'function') {
+                spawnScene.playDungeonSpawnParticles(caveX, caveY);
+            }
+        } catch (err) {
+            console.error('[CombatRoomSystem] Failed to spawn mine cave near foreman:', err);
+        }
     },
 
     /**

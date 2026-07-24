@@ -25,13 +25,17 @@ export class MineCave extends Enemy {
         this._anchorX = x;
         this._anchorY = y;
 
-        // 生成矿工
+        // 生成矿工/提灯（双计时器）
         const spawnCfg = this.config?.attackSkills?.spawn || {};
-        this._spawnInterval = spawnCfg.intervalMs ?? 5000;
+        this._spawnInterval = spawnCfg.intervalMs ?? 10000;
+        this._lanternSpawnInterval = spawnCfg.lanternIntervalMs ?? 45000;
         this._spawnForwardX = spawnCfg.forwardX ?? 50;
         this._spawnTimer = this._spawnInterval;
+        this._lanternSpawnTimer = this._lanternSpawnInterval;
         this._spawnFactory = config.spawnFactory || null;
+        this._lanternSpawnFactory = config.lanternSpawnFactory || null;
         this._spawnSeq = 0;
+        this._lanternSpawnSeq = 0;
 
         // 绿烟粒子（首次 update 惰性创建）
         this._smokeEmitter = null;
@@ -57,11 +61,17 @@ export class MineCave extends Enemy {
         // 洞口绿烟
         this._ensureSmoke();
 
-        // 定时生成矿工
+        // 定时生成矿工（每 10s）
         this._spawnTimer -= dt;
         if (this._spawnTimer <= 0) {
             this._spawnTimer = this._spawnInterval;
             this._spawnMiner();
+        }
+        // 定时生成提灯（每 45s）
+        this._lanternSpawnTimer -= dt;
+        if (this._lanternSpawnTimer <= 0) {
+            this._lanternSpawnTimer = this._lanternSpawnInterval;
+            this._spawnLanternMiner();
         }
     }
 
@@ -77,10 +87,28 @@ export class MineCave extends Enemy {
             miner.x = r.x;
             miner.y = r.y;
         }
-        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数）
+        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数/掉落物）
         miner._summoned = true;
         const key = `mineCave_miner_${Date.now()}_${this._spawnSeq++}_${Math.floor(Math.random() * 1000)}`;
         game.entities.set(key, miner);
+    }
+
+    _spawnLanternMiner() {
+        if (typeof this._lanternSpawnFactory !== 'function') return;
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (!game || !game.entities) return;
+        const lantern = this._lanternSpawnFactory(this.x + this._spawnForwardX, this.y);
+        if (!lantern) return;
+        // 落点墙壁解析（防卡墙，与召唤物同口径）
+        if (WallSystem && typeof WallSystem.resolve === 'function') {
+            const r = WallSystem.resolve(this.x, this.y, lantern.x, lantern.y, lantern.groundRadius || 10);
+            lantern.x = r.x;
+            lantern.y = r.y;
+        }
+        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数/掉落物）
+        lantern._summoned = true;
+        const key = `mineCave_lantern_${Date.now()}_${this._lanternSpawnSeq++}_${Math.floor(Math.random() * 1000)}`;
+        game.entities.set(key, lantern);
     }
 
     /** 洞口绿烟粒子（smoke 配置驱动；ADD 混合；深度高于矿洞贴图、低于前景实体） */

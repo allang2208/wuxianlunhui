@@ -8,6 +8,51 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（激励光圈可被遮挡 + 矿洞提灯修复）
+
+### 对话：激励光圈图层可被怪物贴图遮挡；矿洞不生成提灯僵尸
+- **激励光圈**：`_syncInspireEffects` 图层 depth 从 `cy + 999` 改为 `cy + 5`（怪物贴图 depth ≈ e.y + 10，光圈在贴图之下可被遮挡）。
+- **矿洞提灯**：主神空间 `spawnMainMineCave` 只传了 `spawnFactory`（矿工），漏传 `lanternSpawnFactory`（提灯）。已补上，现在主神空间矿洞也会每 45s 生成提灯僵尸。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/game.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——激励光圈被贴图遮挡、矿洞每 45s 生成提灯僵尸。
+
+## 2026-07-23（激励光环移脚下 + 测试房间位置调整 + 工头碰撞再上移）
+
+### 对话：激励光环放脚下 footprint；主神空间看不到测试房间；工头碰撞体积再上移 25px
+- **激励光环**：`_syncInspireEffects` 光环中心从实体中心改为 `collider.x/y`（脚下 footprint 位置），与阴影重叠。
+- **测试房间**：确认墙壁已生成（9 个视觉墙壁），但原位置（origin 上方 600px）玩家当前视野看不到。房间移到 origin 正上方 400px（`CONFIG.WORLD_HEIGHT / 2 - 400`），方便测试。
+- **墙壁渲染**：TileSprite 改为普通 Sprite 拉伸渲染（避免可能的渲染问题），水平墙 `setDisplaySize(w.w, visualH)`、垂直墙 `setDisplaySize(w.w, w.h)`。
+- **工头碰撞**：`colliderOffsetY` -25 → -50（再上移 25px）。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/world/scene-manager.js`、`src/world/wall-system.js`、`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——测试房间在新位置可见、墙壁贴图显示正确、激励光环在脚下。
+
+## 2026-07-23（墙壁系统重构 + 工头/矿洞调整 + 提灯僵尸修复）
+
+### 对话：墙壁系统重构（wall.png/wall-2.png）；工头/矿洞/召唤物调整；提灯僵尸预判 bug + 燃烧范围 200px + 燃烧音效
+- **墙壁系统重构**：`BootScene` 加载 `wall_horizontal`（wall.png，水平墙带墙面）与 `wall_vertical`（wall-2.png，垂直墙只看顶部砖块）；`wall-system.js` `_createWallVisual` 按宽高比判断方向，水平墙 TileSprite 水平平铺显示完整墙面，垂直墙 TileSprite 垂直平铺显示顶部砖块，图层 depth = 底部 Y 坐标；保留原有碰撞逻辑（canMoveTo/resolve/blocked/lineRect）。主神空间上方生成 400×300 测试房间（留 80px 出入口）。
+- **工头调整**：footprint 椭圆 collisionRadius 40→60（放大 20px），colliderOffsetY -25（向上移 25px）。
+- **矿洞调整**：不显示脚下椭圆晕影（`noFootprint: true`，GameScene `_syncCollisionRadii` 跳过）；collisionRadius 60→90（左右拉长 30px），colliderOffsetY -20；工头死亡时同步杀死场上所有矿洞（`_killAllMineCaves`）。
+- **矿洞生成**：矿工僵尸每 10s、提灯僵尸每 45s 各生成一只（双计时器）；均带 `_summoned` 标签（击杀无金币/经验/掉落物，掉落逻辑本就检查 `_summoned`）。
+- **工头附带矿洞**：`combat-room-system.js` `spawnMonsters` 检测工头生成时，在其附近 150~300px 安全位置（16 方向尝试 + findSafeSpawn 兜底）附带生成一个矿洞。
+- **激励 buff 特效**：`GameScene._syncInspireEffects` 在激励持续时间内于目标脚下生成白色旋转光环（双层椭圆 + 呼吸缩放），跟随目标移动，buff 结束自动消失。
+- **提灯僵尸修复**：投掷物预判 bug——`AimHelper.lead` 解的是匀速直线弹体拦截点，与固定飞行时间抛物线模型不匹配，导致落点严重偏离。改为直接线性外推目标在 flyS 秒后的位置（tx = t.x + vx*flyS）。燃烧范围 impactRadius 300→200。新增 burning.mp3 燃烧音效（投射物落地后播放）。
+- **修改文件**：`assets/terrain/wall.png`（新增）、`assets/terrain/wall-2.png`（新增）、`assets/sounds/enemies/lantern_miner_zombie/burning.mp3`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/world/wall-system.js`、`src/world/scene-manager.js`、`src/world/combat-room-system.js`、`src/entities/enemy-types/mine-cave.js`、`src/entities/enemy-types/foreman-zombie.js`、`src/entities/enemy-types/lantern-miner-zombie.js`、`src/phaser/scenes/GameScene.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）。
+- **已知问题**：实机待验证——墙壁贴图显示/碰撞、测试房间出入口、工头/矿洞生成与死亡同步、激励光环特效、提灯落点/燃烧范围/音效。
+
+## 2026-07-23（仓库打不开修复 + 流血 debuff 逐层消除 + 矿工/工头碰撞调整）
+
+### 对话：仓库无法打开；流血 debuff 到期应只减一层；矿工僵尸放大 15%、工头圆柱体积减半
+- **仓库打不开**：根因是 `BasePanel._ensureBuilt()` 在 `appendChild` 之前调用 `buildContent`，`warehouse-system.js` 里 `document.getElementById('warehouseCloseBtn')` 返回 null 导致 onclick 赋值报错，面板创建中断。修复：`warehouse-system.js` `_buildPanelContent` 中 6 处 `document.getElementById` 全部改为 `panel.querySelector`，确保在元素进入 document 前也能正确绑定事件。
+- **流血 debuff**：实际逻辑（`damageable-entity.js`）本来就是到期减一层，但状态栏 `StatusBar.update()` 的独立倒计时到期会把效果整体移除，导致显示与实际不一致。修复：到期减一层和新增流血时均改用 `StatusBar.addEffect('bleed', 10000, { stacks })` 替代 `updateEffectStacks`，同步重置状态栏计时器，保持显示与实际一致。
+- **矿工僵尸**：贴图与碰撞体积同步放大 15%——spriteSize 200→230、collisionRadius 15→17、collisionWidth 50→58、collisionHeight 110→127、footOffsetY 50→58、height 100→115、projectileHitbox 40×110→46×127。
+- **工头（僵尸工头）**：圆柱体（胶囊）高度减半——新增 `height: 240`（原由 spriteSize 480 推导为 480），绿色矩形与躯干矩形保持 240 不变。
+- **修改文件**：`src/ui/warehouse-system.js`、`src/entities/damageable-entity.js`、`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）。
+- **已知问题**：实机待验证——仓库点击正常打开；流血 debuff 10s 后左上角显示层数 -1 而非消失；矿工/工头碰撞体积符合预期。
+
 ## 2026-07-23（新怪物：矿洞（次级）+ 绿烟粒子 + 主神空间生成）
 
 ### 对话：新增次级怪矿洞（其他 family，speed 0，HP 1500，其余全 0），每 5s 前方 50px 生成矿工僵尸；绿烟粒子（用户给出粒子模板）；烟雾深度高于矿洞背景低于前景；主神空间生成一个

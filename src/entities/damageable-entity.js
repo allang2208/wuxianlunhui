@@ -514,7 +514,9 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     if (this._bleedStacks > 0) {
                         this._bleedTimer = 10000;
                         if (this._bleedEffectId && StatusBar) {
-                            StatusBar.updateEffectStacks('bleed', this._bleedStacks);
+                            // 同步重置状态栏计时器：addEffect 对已有同类效果会刷新 remaining/duration，
+                            // 避免状态栏自身的 10s 倒计时到期把流血整体移除（实际逻辑是到期只减一层）
+                            this._bleedEffectId = StatusBar.addEffect('bleed', 10000, { stacks: this._bleedStacks });
                         }
                     } else {
                         if (this._bleedEffectId && StatusBar) {
@@ -548,11 +550,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 this._bleedStacks += stacks;
                 this._bleedTimer = 10000;
                 if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
-                if (!this._bleedEffectId && StatusBar) {
-                    this._bleedEffectId = StatusBar.addEffect('bleed', 10000, { stacks: this._bleedStacks });
-                } else if (StatusBar) {
-                    StatusBar.updateEffectStacks('bleed', this._bleedStacks);
-                }
+                // addEffect 对已有同类效果会刷新 remaining/duration，保持状态栏与实际计时同步
+                this._bleedEffectId = StatusBar.addEffect('bleed', 10000, { stacks: this._bleedStacks });
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🩸 流血 +${stacks}层`, '#9a3a3a'));
                 }

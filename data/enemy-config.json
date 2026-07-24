@@ -173,9 +173,9 @@
     "category": "monster",
     "family": "僵尸",
     "color": "#7a6a4a",
-    "size": 15,
-    "collisionRadius": 15,
-    "height": 100,
+    "size": 17,
+    "collisionRadius": 17,
+    "height": 115,
     "hp": 150,
     "maxHp": 150,
     "speed": 140,
@@ -225,13 +225,13 @@
       "loseTimeout": 3000
     },
     "render": {
-      "spriteSize": 200,
-      "collisionWidth": 50,
-      "collisionHeight": 110,
-      "footOffsetY": 50,
+      "spriteSize": 230,
+      "collisionWidth": 58,
+      "collisionHeight": 127,
+      "footOffsetY": 58,
       "projectileHitbox": {
-        "width": 40,
-        "height": 110,
+        "width": 46,
+        "height": 127,
         "offsetX": 0,
         "bottom": 0
       },
@@ -305,7 +305,7 @@
         "flyDuration": 1500,
         "arcHeight": 100,
         "projectileSize": 48,
-        "impactRadius": 300,
+        "impactRadius": 200,
         "burnDuration": 4000,
         "tickMs": 500,
         "damageMul": 0.75,
@@ -339,6 +339,7 @@
       "slamFrame": 14,
       "lantern": "assets/sounds/enemies/lantern_miner_zombie/attacking-2.mp3",
       "lanternFrame": 8,
+      "burn": "assets/sounds/enemies/lantern_miner_zombie/burning.mp3",
       "death": "assets/sounds/enemies/lantern_miner_zombie/dying.mp3",
       "deathFrame": 8
     },
@@ -392,7 +393,8 @@
     "family": "僵尸",
     "color": "#6a5a3a",
     "size": 18,
-    "collisionRadius": 40,
+    "collisionRadius": 60,
+    "colliderOffsetY": -50,
     "hp": 1600,
     "maxHp": 1600,
     "speed": 160,
@@ -466,6 +468,7 @@
       },
       "capsuleHudAnchor": true
     },
+    "height": 240,
     "textures": {
       "idle": "assets/enemies/foreman_zombie/idle.png",
       "walk": "assets/enemies/foreman_zombie/walking.png",
@@ -498,7 +501,9 @@
     "family": "其他",
     "color": "#4a5a4a",
     "size": 60,
-    "collisionRadius": 60,
+    "collisionRadius": 90,
+    "colliderOffsetY": -20,
+    "noFootprint": true,
     "height": 100,
     "hp": 1500,
     "maxHp": 1500,
@@ -515,8 +520,9 @@
     "aiInterval": 5000,
     "attackSkills": {
       "spawn": {
-        "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸",
-        "intervalMs": 5000,
+        "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸，每 lanternIntervalMs 生成一只提灯僵尸",
+        "intervalMs": 10000,
+        "lanternIntervalMs": 45000,
         "forwardX": 50
       }
     },

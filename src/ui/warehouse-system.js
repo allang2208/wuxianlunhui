@@ -320,12 +320,14 @@ export const WarehouseSystem = {
             const mgr = EquipManager._dragDropManager;
             if (mgr) mgr._dropHandled = true;
         };
-        document.getElementById('warehouseCloseBtn').onclick = () => this.close();
-        document.getElementById('warehousePrevPage').onclick = () => this._switchPage(-1);
-        document.getElementById('warehouseNextPage').onclick = () => this._switchPage(1);
-        document.getElementById('warehouseStoreAllBtn').onclick = () => this.storeAllFromBackpack();
-        document.getElementById('warehouseRetrieveBtn').onclick = () => this.retrieveMatching();
-        document.getElementById('warehouseSortBtn').onclick = () => this._toggleSortMenu();
+        // 注意：BasePanel._ensureBuilt 在 appendChild 之前调用 buildContent，
+        // 此时元素尚未进入 document，必须用 panel.querySelector 而非 document.getElementById
+        panel.querySelector('#warehouseCloseBtn').onclick = () => this.close();
+        panel.querySelector('#warehousePrevPage').onclick = () => this._switchPage(-1);
+        panel.querySelector('#warehouseNextPage').onclick = () => this._switchPage(1);
+        panel.querySelector('#warehouseStoreAllBtn').onclick = () => this.storeAllFromBackpack();
+        panel.querySelector('#warehouseRetrieveBtn').onclick = () => this.retrieveMatching();
+        panel.querySelector('#warehouseSortBtn').onclick = () => this._toggleSortMenu();
         // 点击面板外关闭排序菜单
         document.addEventListener('mousedown', (e) => {
             const menu = document.getElementById('warehouseSortMenu');

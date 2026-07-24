@@ -28,27 +28,14 @@ const WallSystem = {
         if (phaserScene.visualWalls) {
             phaserScene.visualWalls.clear(true, true);
         }
-        // 创建矩形墙壁物理体 + 2.5D 视觉精灵（noVisual 墙只建物理体，如静态 NPC 底座障碍）
+        // 创建矩形墙壁物理体 + 视觉精灵（noVisual 墙只建物理体，如静态 NPC 底座障碍）
         for (const w of this.walls) {
             const wall = phaserScene.add.rectangle(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 0x000000, 0);
             phaserScene.physics.add.existing(wall, true); // true = static
             phaserScene.walls.add(wall);
 
             if (phaserScene.visualWalls && !w.noVisual) {
-                const face = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h, 'wall_face');
-                face.setOrigin(0.5, 1);
-                face.setDisplaySize(w.w, w.height);
-                face.setDepth(w.y + w.h);
-                phaserScene.visualWalls.add(face);
-
-                const top = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h - w.height, 'wall_top');
-                top.setOrigin(0.5, 1);
-                top.setDisplaySize(w.w, 4);
-                top.setDepth(w.y + w.h);
-                phaserScene.visualWalls.add(top);
-
-                w.visualSprite = face;
-                w.topSprite = top;
+                this._createWallVisual(phaserScene, w);
             }
         }
 
@@ -57,6 +44,54 @@ const WallSystem = {
         // 设置碰撞关系
         phaserScene.setupColliders();
         this._phaserVisualsEnabled = true;
+    },
+
+    /**
+     * 创建墙壁视觉精灵（水平墙用 wall.png，垂直墙用 wall-2.png）
+     * 水平墙：显示完整墙面，TileSprite 水平平铺
+     * 垂直墙：只显示顶部砖块，TileSprite 垂直平铺
+     * 图层：depth = 底部 Y 坐标（与地面相交处遮挡截断）
+     */
+    _createWallVisual(phaserScene, w) {
+        // 根据宽高比判断方向：w > h 为水平墙，否则为垂直墙
+        const isHorizontal = w.w >= w.h;
+        const textureKey = isHorizontal ? 'wall_horizontal' : 'wall_vertical';
+        if (!phaserScene.textures.exists(textureKey)) {
+            // 回退到旧的程序化纹理
+            const face = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h, 'wall_face');
+            face.setOrigin(0.5, 1);
+            face.setDisplaySize(w.w, w.height || 60);
+            face.setDepth(w.y + w.h);
+            phaserScene.visualWalls.add(face);
+            w.visualSprite = face;
+            return;
+        }
+
+        if (isHorizontal) {
+            // 水平墙：墙面可见，用普通 Sprite 拉伸覆盖整个墙面区域
+            // wall.png 内容：墙面在中间，顶部有顶边
+            const visualH = w.height || 60;
+            const sprite = phaserScene.add.sprite(
+                w.x + w.w / 2,
+                w.y + w.h - visualH / 2,
+                textureKey
+            );
+            sprite.setDisplaySize(w.w, visualH);
+            sprite.setDepth(w.y + w.h);
+            phaserScene.visualWalls.add(sprite);
+            w.visualSprite = sprite;
+        } else {
+            // 垂直墙：只看顶部砖块，用普通 Sprite 拉伸覆盖
+            const sprite = phaserScene.add.sprite(
+                w.x + w.w / 2,
+                w.y + w.h / 2,
+                textureKey
+            );
+            sprite.setDisplaySize(w.w, w.h);
+            sprite.setDepth(w.y + w.h);
+            phaserScene.visualWalls.add(sprite);
+            w.visualSprite = sprite;
+        }
     },
     /**
      * 将树木同步到 Phaser 的 staticGroup
