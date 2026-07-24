@@ -82,19 +82,18 @@ const WallSystem = {
 
         if (isHorizontal) {
             // 水平墙：贴图放大 3 倍（visualH ×3），左右拼接处延伸半厚
-            // wall.png 墙面在贴图中间（约 y=250~750），裁剪去除透明区域让墙面直接接地
+            // 使用 canvas 裁剪后的贴图（wall_horizontal_cropped），去除透明区域让墙面直接接地
             const visualH = (w.height || 60) * 3;
             const extL = leftConnected ? halfT : 0;
             const extR = rightConnected ? halfT : 0;
             const sx = w.x - extL;
             const sw = w.w + extL + extR;
+            const croppedKey = phaserScene.textures.exists('wall_horizontal_cropped') ? 'wall_horizontal_cropped' : textureKey;
             const sprite = phaserScene.add.sprite(
                 sx + sw / 2,
                 w.y + w.h - visualH / 2,
-                textureKey
+                croppedKey
             );
-            // 裁剪贴图：只取墙面部分（y=250~750），去除顶部/底部透明区域
-            sprite.setCrop(0, 250, 1024, 500);
             sprite.setDisplaySize(sw, visualH);
             sprite.setDepth(w.y + w.h);
             phaserScene.visualWalls.add(sprite);
@@ -105,19 +104,18 @@ const WallSystem = {
             if (!rightConnected) this._drawWallCap(phaserScene, w.x + w.w, w.y + w.h, halfT, 'right', w);
         } else {
             // 垂直墙：贴图放大 3 倍（w.w ×3 显示宽度），上下拼接处延伸半厚
-            // wall-2.png 砖块列只占贴图左侧约 230px，裁剪去除透明区域让砖块列直接占满
+            // 使用 canvas 裁剪后的贴图（wall_vertical_cropped），去除两侧透明区域让砖块列直接占满
             const visualW = w.w * 3;
             const extT = topConnected ? halfT : 0;
             const extB = bottomConnected ? halfT : 0;
             const sy = w.y - extT;
             const sh = w.h + extT + extB;
+            const croppedKey = phaserScene.textures.exists('wall_vertical_cropped') ? 'wall_vertical_cropped' : textureKey;
             const sprite = phaserScene.add.sprite(
                 w.x + w.w / 2,
                 sy + sh / 2,
-                textureKey
+                croppedKey
             );
-            // 裁剪贴图：只取砖块列部分（x=380~610），去除两侧透明区域
-            sprite.setCrop(380, 0, 230, 1024);
             sprite.setDisplaySize(visualW, sh);
             // 透视规则：与水平墙相交时，垂直墙在上方相交点之上（盖住水平墙），在下方相交点之下（被水平墙盖住）
             // 上方相交（topConnected）：depth = 水平墙 depth + 1（垂直在上）

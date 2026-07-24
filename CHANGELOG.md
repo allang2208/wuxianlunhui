@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（墙壁贴图 JS 兜底裁剪：canvas 生成去透明区域纹理）
+
+### 对话：setCrop 无效，改用 JS canvas 兜底裁剪
+- **问题**：`setCrop` 在 Phaser 4 下与 `setDisplaySize` 配合不符合预期，墙壁仍不接地、间隙大。
+- **JS 兜底方案**：`BootScene.create()` 新增 `cropTexture` 函数——用 canvas 从原贴图绘制指定区域并生成新纹理（`wall_horizontal_cropped` 取 y=250~750 墙面部分；`wall_vertical_cropped` 取 x=380~610 砖块列）。`wall-system.js` 优先使用裁剪后纹理，不存在则回退原纹理。
+- **修改文件**：`src/phaser/scenes/BootScene.js`、`src/world/wall-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——墙壁直接接地、垂直墙砖块列占满宽度、间隙消除。
+
 ## 2026-07-23（墙壁贴图裁剪修复：不接地 + 间隙大）
 
 ### 对话：墙壁不接地穿模；肉眼可见大间隙
