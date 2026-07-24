@@ -421,10 +421,11 @@ export const SceneManager = {
         ];
 
         // 测试房间：主神空间 origin 正上方 400px，矩形房间留一个出入口
-        const roomW = 400, roomH = 300, wallT = 20;
+        // 墙壁贴图放大 3 倍（visualH 60→180），房间尺寸同步放大
+        const roomW = 600, roomH = 450, wallT = 20;
         const roomX = CONFIG.WORLD_WIDTH / 2 - roomW / 2;
         const roomY = CONFIG.WORLD_HEIGHT / 2 - 400; // origin 正上方 400px，方便测试
-        const doorW = 80;
+        const doorW = 100;
         // 上墙（留出入口在中间）
         WallSystem.walls.push({ x: roomX, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
         WallSystem.walls.push({ x: roomX + (roomW + doorW) / 2, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
