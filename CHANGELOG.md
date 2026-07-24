@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（流血粒子边界保护 + 矿洞机制同步确认）
+
+### 对话：流血动画在地图边界播放；矿洞机制是否同步地牢
+- **流血边界保护**：`playRedFallParticles` 与 `playBleedGroundParticles` 中粒子/血渍生成位置钳制到 `[0, CONFIG.WORLD_WIDTH] × [0, CONFIG.WORLD_HEIGHT]`，防止因 `bandCenterY = footY0 - tH * 0.925` 计算结果为负时在地图上方边界外生成。
+- **矿洞机制同步确认**：`zombie-dungeon.js` 的 `createMineCave` 已同时传 `spawnFactory`（矿工）与 `lanternSpawnFactory`（提灯），地牢矿洞同样每 45s 生成提灯僵尸；工头在场必刷矿洞设定在 `combat-room-system.js` `spawnMonsters`，地牢战斗房生效。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——流血粒子不再出现在地图边界。
+
 ## 2026-07-23（激励光圈可被遮挡 + 矿洞提灯修复）
 
 ### 对话：激励光圈图层可被怪物贴图遮挡；矿洞不生成提灯僵尸

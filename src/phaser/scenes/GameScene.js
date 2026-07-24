@@ -2070,8 +2070,13 @@ export class GameScene extends Scene {
         const footY0 = (target && target.collider) ? target.collider.y : y;
         const bandCenterY = footY0 - tH * 0.925;
         const bandHalfH = tH * 0.075;
-        const sx = (target ? target.x : x) + (Math.random() - 0.5) * tW;
-        const sy = bandCenterY + (Math.random() - 0.5) * 2 * bandHalfH;
+        // 边界保护：粒子生成位置钳制在世界范围内，防止在地图边界外生成
+        const worldW = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_WIDTH) || 4096;
+        const worldH = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_HEIGHT) || 4096;
+        const rawSx = (target ? target.x : x) + (Math.random() - 0.5) * tW;
+        const rawSy = bandCenterY + (Math.random() - 0.5) * 2 * bandHalfH;
+        const sx = Math.max(0, Math.min(worldW, rawSx));
+        const sy = Math.max(0, Math.min(worldH, rawSy));
         const particles = this.add.particles(0, 0, 'impact_dot', {
             // 起始慢速向下（大范围摆动），重力 500 拉出"由慢到快"的掉落感
             speed: { min: 30, max: 90 },
@@ -2112,6 +2117,9 @@ export class GameScene extends Scene {
         this.playRedFallParticles(x, y, target);
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
         const footY = (target && target.collider) ? target.collider.y : y;
+        // 边界保护：血渍生成位置钳制在世界范围内，防止在地图边界外生成
+        const worldW = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_WIDTH) || 4096;
+        const worldH = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_HEIGHT) || 4096;
         const splat = this.add.particles(0, 0, 'impact_dot', {
             speed: 0,
             scale: { start: 1.3, end: 0.8 },
@@ -2125,7 +2133,9 @@ export class GameScene extends Scene {
         splat.setDepth(footY + 1);
         // 发射器保持 (0,0)，explode 传世界坐标（Phaser 粒子坐标陷阱）
         for (let i = 0; i < 4; i++) {
-            splat.explode(1, x + (Math.random() - 0.5) * 60, footY + (Math.random() - 0.5) * 14);
+            const px = Math.max(0, Math.min(worldW, x + (Math.random() - 0.5) * 60));
+            const py = Math.max(0, Math.min(worldH, footY + (Math.random() - 0.5) * 14));
+            splat.explode(1, px, py);
         }
         this.time.delayedCall(10500, () => { if (splat && splat.active) splat.destroy(); });
     }
