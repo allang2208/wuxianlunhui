@@ -1923,8 +1923,9 @@ export class GameScene extends Scene {
             fx.angle += 0.03;
             const r = (e.groundRadius || e.collisionRadius || 20) + 8;
             const pulse = 1 + Math.sin(fx.angle * 3) * 0.15;
-            const cx = sprite.x;
-            const cy = sprite.y + (e.footOffsetY || 0) * 0.5;
+            // 光环放在脚下 footprint 位置（与阴影重叠），而不是实体中心
+            const cx = e.collider ? e.collider.x : e.x;
+            const cy = e.collider ? e.collider.y : e.y;
             fx.gfx.clear();
             fx.gfx.lineStyle(3, 0xffffff, 0.7 * pulse);
             fx.gfx.strokeEllipse(cx, cy, r * 2 * pulse, r * 2 * pulse * PERSPECTIVE_SCALE_Y);

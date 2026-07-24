@@ -420,10 +420,10 @@ export const SceneManager = {
             { x: size - wt, y: 0, w: wt, h: size, height: 60 },
         ];
 
-        // 测试房间：主神空间上方，矩形房间留一个出入口
+        // 测试房间：主神空间 origin 正上方 400px，矩形房间留一个出入口
         const roomW = 400, roomH = 300, wallT = 20;
         const roomX = CONFIG.WORLD_WIDTH / 2 - roomW / 2;
-        const roomY = CONFIG.WORLD_HEIGHT / 2 - 600; // 上方空旷区域
+        const roomY = CONFIG.WORLD_HEIGHT / 2 - 400; // origin 正上方 400px，方便测试
         const doorW = 80;
         // 上墙（留出入口在中间）
         WallSystem.walls.push({ x: roomX, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });

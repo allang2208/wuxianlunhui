@@ -67,41 +67,30 @@ const WallSystem = {
             return;
         }
 
-        const tex = phaserScene.textures.get(textureKey);
-        const texW = tex.source[0].width;
-        const texH = tex.source[0].height;
-
         if (isHorizontal) {
-            // 水平墙：墙面可见，TileSprite 水平平铺
+            // 水平墙：墙面可见，用普通 Sprite 拉伸覆盖整个墙面区域
             // wall.png 内容：墙面在中间，顶部有顶边
-            // 缩放使墙面高度匹配视觉高度（w.height 或默认 60）
             const visualH = w.height || 60;
-            const scale = visualH / texH;
-            const tile = phaserScene.add.tileSprite(
-                w.x, w.y + w.h - visualH,  // 底部对齐墙底
-                w.w, visualH,
+            const sprite = phaserScene.add.sprite(
+                w.x + w.w / 2,
+                w.y + w.h - visualH / 2,
                 textureKey
             );
-            tile.setOrigin(0, 0);
-            tile.setTileScale(scale, scale);
-            tile.setDepth(w.y + w.h);
-            phaserScene.visualWalls.add(tile);
-            w.visualSprite = tile;
+            sprite.setDisplaySize(w.w, visualH);
+            sprite.setDepth(w.y + w.h);
+            phaserScene.visualWalls.add(sprite);
+            w.visualSprite = sprite;
         } else {
-            // 垂直墙：只看顶部砖块，TileSprite 垂直平铺
-            // wall-2.png 内容：左侧一列砖块（顶部视角）
-            // 缩放使砖块列宽匹配墙厚
-            const scale = w.w / texW;
-            const tile = phaserScene.add.tileSprite(
-                w.x, w.y,
-                w.w, w.h,
+            // 垂直墙：只看顶部砖块，用普通 Sprite 拉伸覆盖
+            const sprite = phaserScene.add.sprite(
+                w.x + w.w / 2,
+                w.y + w.h / 2,
                 textureKey
             );
-            tile.setOrigin(0, 0);
-            tile.setTileScale(scale, scale);
-            tile.setDepth(w.y + w.h);
-            phaserScene.visualWalls.add(tile);
-            w.visualSprite = tile;
+            sprite.setDisplaySize(w.w, w.h);
+            sprite.setDepth(w.y + w.h);
+            phaserScene.visualWalls.add(sprite);
+            w.visualSprite = sprite;
         }
     },
     /**

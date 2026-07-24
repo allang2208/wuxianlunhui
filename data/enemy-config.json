@@ -394,7 +394,7 @@
     "color": "#6a5a3a",
     "size": 18,
     "collisionRadius": 60,
-    "colliderOffsetY": -25,
+    "colliderOffsetY": -50,
     "hp": 1600,
     "maxHp": 1600,
     "speed": 160,

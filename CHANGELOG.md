@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（激励光环移脚下 + 测试房间位置调整 + 工头碰撞再上移）
+
+### 对话：激励光环放脚下 footprint；主神空间看不到测试房间；工头碰撞体积再上移 25px
+- **激励光环**：`_syncInspireEffects` 光环中心从实体中心改为 `collider.x/y`（脚下 footprint 位置），与阴影重叠。
+- **测试房间**：确认墙壁已生成（9 个视觉墙壁），但原位置（origin 上方 600px）玩家当前视野看不到。房间移到 origin 正上方 400px（`CONFIG.WORLD_HEIGHT / 2 - 400`），方便测试。
+- **墙壁渲染**：TileSprite 改为普通 Sprite 拉伸渲染（避免可能的渲染问题），水平墙 `setDisplaySize(w.w, visualH)`、垂直墙 `setDisplaySize(w.w, w.h)`。
+- **工头碰撞**：`colliderOffsetY` -25 → -50（再上移 25px）。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/world/scene-manager.js`、`src/world/wall-system.js`、`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——测试房间在新位置可见、墙壁贴图显示正确、激励光环在脚下。
+
 ## 2026-07-23（墙壁系统重构 + 工头/矿洞调整 + 提灯僵尸修复）
 
 ### 对话：墙壁系统重构（wall.png/wall-2.png）；工头/矿洞/召唤物调整；提灯僵尸预判 bug + 燃烧范围 200px + 燃烧音效
