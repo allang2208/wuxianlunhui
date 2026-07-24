@@ -173,9 +173,9 @@
     "category": "monster",
     "family": "僵尸",
     "color": "#7a6a4a",
-    "size": 15,
-    "collisionRadius": 15,
-    "height": 100,
+    "size": 17,
+    "collisionRadius": 17,
+    "height": 115,
     "hp": 150,
     "maxHp": 150,
     "speed": 140,
@@ -225,13 +225,13 @@
       "loseTimeout": 3000
     },
     "render": {
-      "spriteSize": 200,
-      "collisionWidth": 50,
-      "collisionHeight": 110,
-      "footOffsetY": 50,
+      "spriteSize": 230,
+      "collisionWidth": 58,
+      "collisionHeight": 127,
+      "footOffsetY": 58,
       "projectileHitbox": {
-        "width": 40,
-        "height": 110,
+        "width": 46,
+        "height": 127,
         "offsetX": 0,
         "bottom": 0
       },
@@ -466,6 +466,7 @@
       },
       "capsuleHudAnchor": true
     },
+    "height": 240,
     "textures": {
       "idle": "assets/enemies/foreman_zombie/idle.png",
       "walk": "assets/enemies/foreman_zombie/walking.png",

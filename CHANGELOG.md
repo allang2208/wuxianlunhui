@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（仓库打不开修复 + 流血 debuff 逐层消除 + 矿工/工头碰撞调整）
+
+### 对话：仓库无法打开；流血 debuff 到期应只减一层；矿工僵尸放大 15%、工头圆柱体积减半
+- **仓库打不开**：根因是 `BasePanel._ensureBuilt()` 在 `appendChild` 之前调用 `buildContent`，`warehouse-system.js` 里 `document.getElementById('warehouseCloseBtn')` 返回 null 导致 onclick 赋值报错，面板创建中断。修复：`warehouse-system.js` `_buildPanelContent` 中 6 处 `document.getElementById` 全部改为 `panel.querySelector`，确保在元素进入 document 前也能正确绑定事件。
+- **流血 debuff**：实际逻辑（`damageable-entity.js`）本来就是到期减一层，但状态栏 `StatusBar.update()` 的独立倒计时到期会把效果整体移除，导致显示与实际不一致。修复：到期减一层和新增流血时均改用 `StatusBar.addEffect('bleed', 10000, { stacks })` 替代 `updateEffectStacks`，同步重置状态栏计时器，保持显示与实际一致。
+- **矿工僵尸**：贴图与碰撞体积同步放大 15%——spriteSize 200→230、collisionRadius 15→17、collisionWidth 50→58、collisionHeight 110→127、footOffsetY 50→58、height 100→115、projectileHitbox 40×110→46×127。
+- **工头（僵尸工头）**：圆柱体（胶囊）高度减半——新增 `height: 240`（原由 spriteSize 480 推导为 480），绿色矩形与躯干矩形保持 240 不变。
+- **修改文件**：`src/ui/warehouse-system.js`、`src/entities/damageable-entity.js`、`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）。
+- **已知问题**：实机待验证——仓库点击正常打开；流血 debuff 10s 后左上角显示层数 -1 而非消失；矿工/工头碰撞体积符合预期。
+
 ## 2026-07-23（新怪物：矿洞（次级）+ 绿烟粒子 + 主神空间生成）
 
 ### 对话：新增次级怪矿洞（其他 family，speed 0，HP 1500，其余全 0），每 5s 前方 50px 生成矿工僵尸；绿烟粒子（用户给出粒子模板）；烟雾深度高于矿洞背景低于前景；主神空间生成一个
