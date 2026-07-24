@@ -795,6 +795,21 @@ export class BootScene extends Scene {
             g.destroy();
         };
 
+        // ---- 墙壁贴图裁剪（JS 兜底：canvas 绘制去除透明区域） ----
+        // wall.png 墙面在贴图中间（y=250~750），裁剪去除顶部/底部透明区域
+        const cropTexture = (srcKey, dstKey, sx, sy, sw, sh) => {
+            if (!this.textures.exists(srcKey)) return;
+            const src = this.textures.get(srcKey).source[0].image;
+            const canvas = document.createElement('canvas');
+            canvas.width = sw;
+            canvas.height = sh;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
+            this.textures.addCanvas(dstKey, canvas);
+        };
+        cropTexture('wall_horizontal', 'wall_horizontal_cropped', 0, 250, 1024, 500);
+        cropTexture('wall_vertical', 'wall_vertical_cropped', 380, 0, 230, 1024);
+
         // 通用占位敌人：胶囊体身体 + 椭圆阴影，运行时用 tint 着色
         // 锚点 (0.5,0.5) 对应贴图中心；脚底在贴图底部 (y≈56)，与 Collider 地面圆对齐。
         generateEnemyTexture('enemy_circle', (g) => {

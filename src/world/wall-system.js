@@ -81,16 +81,18 @@ const WallSystem = {
         }
 
         if (isHorizontal) {
-            // 水平墙：贴图放大一倍（visualH ×2），左右拼接处延伸半厚
-            const visualH = (w.height || 60) * 2;
+            // 水平墙：贴图放大 3 倍（visualH ×3），左右拼接处延伸半厚
+            // 使用 canvas 裁剪后的贴图（wall_horizontal_cropped），去除透明区域让墙面直接接地
+            const visualH = (w.height || 60) * 3;
             const extL = leftConnected ? halfT : 0;
             const extR = rightConnected ? halfT : 0;
             const sx = w.x - extL;
             const sw = w.w + extL + extR;
+            const croppedKey = phaserScene.textures.exists('wall_horizontal_cropped') ? 'wall_horizontal_cropped' : textureKey;
             const sprite = phaserScene.add.sprite(
                 sx + sw / 2,
                 w.y + w.h - visualH / 2,
-                textureKey
+                croppedKey
             );
             sprite.setDisplaySize(sw, visualH);
             sprite.setDepth(w.y + w.h);
@@ -101,19 +103,32 @@ const WallSystem = {
             if (!leftConnected) this._drawWallCap(phaserScene, w.x, w.y + w.h, halfT, 'left', w);
             if (!rightConnected) this._drawWallCap(phaserScene, w.x + w.w, w.y + w.h, halfT, 'right', w);
         } else {
-            // 垂直墙：贴图放大一倍（w.w ×2 显示宽度），上下拼接处延伸半厚
-            const visualW = w.w * 2;
+            // 垂直墙：贴图放大 3 倍（w.w ×3 显示宽度），上下拼接处延伸半厚
+            // 使用 canvas 裁剪后的贴图（wall_vertical_cropped），去除两侧透明区域让砖块列直接占满
+            const visualW = w.w * 3;
             const extT = topConnected ? halfT : 0;
             const extB = bottomConnected ? halfT : 0;
             const sy = w.y - extT;
             const sh = w.h + extT + extB;
+            const croppedKey = phaserScene.textures.exists('wall_vertical_cropped') ? 'wall_vertical_cropped' : textureKey;
             const sprite = phaserScene.add.sprite(
                 w.x + w.w / 2,
                 sy + sh / 2,
-                textureKey
+                croppedKey
             );
             sprite.setDisplaySize(visualW, sh);
-            sprite.setDepth(w.y + w.h);
+            // 透视规则：与水平墙相交时，垂直墙在上方相交点之上（盖住水平墙），在下方相交点之下（被水平墙盖住）
+            // 上方相交（topConnected）：depth = 水平墙 depth + 1（垂直在上）
+            // 下方相交（bottomConnected）：depth = 水平墙 depth - 1（水平在上）
+            let depth = w.y + w.h;
+            if (topConnected) {
+                const hWall = this._findAdjacentHorizontalWall(w.x + halfT, w.y - halfT, w.x + halfT, w.y, w);
+                if (hWall) depth = hWall.y + hWall.h + 1;
+            } else if (bottomConnected) {
+                const hWall = this._findAdjacentHorizontalWall(w.x + halfT, w.y + w.h, w.x + halfT, w.y + w.h + halfT, w);
+                if (hWall) depth = hWall.y + hWall.h - 1;
+            }
+            sprite.setDepth(depth);
             phaserScene.visualWalls.add(sprite);
             w.visualSprite = sprite;
 
@@ -121,6 +136,20 @@ const WallSystem = {
             if (!topConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y, halfT, 'top', w);
             if (!bottomConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y + w.h, halfT, 'bottom', w);
         }
+    },
+
+    /** 查找与指定线段相交的水平墙壁（用于透视深度调整） */
+    _findAdjacentHorizontalWall(x1, y1, x2, y2, self) {
+        const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+        const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+        for (const w of this.walls) {
+            if (w === self) continue;
+            if (w.w < w.h) continue; // 只找水平墙（w >= h）
+            if (maxX >= w.x && minX <= w.x + w.w && maxY >= w.y && minY <= w.y + w.h) {
+                return w;
+            }
+        }
+        return null;
     },
 
     /** 检测指定线段范围内是否有其他墙壁（拼接判定） */
