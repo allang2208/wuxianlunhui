@@ -422,19 +422,22 @@ export const SceneManager = {
 
         // 测试房间：主神空间 origin 正上方 400px，矩形房间留一个出入口
         // 墙壁贴图放大 3 倍（visualH 60→180），房间尺寸同步放大
+        // 布局按相交透视规则重新规划：水平墙夹在左右墙之间，垂直墙夹在上下墙之间，完全贴合无缝隙
         const roomW = 600, roomH = 450, wallT = 20;
         const roomX = CONFIG.WORLD_WIDTH / 2 - roomW / 2;
         const roomY = CONFIG.WORLD_HEIGHT / 2 - 400; // origin 正上方 400px，方便测试
         const doorW = 100;
-        // 上墙（留出入口在中间）
-        WallSystem.walls.push({ x: roomX, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
-        WallSystem.walls.push({ x: roomX + (roomW + doorW) / 2, y: roomY, w: (roomW - doorW) / 2, h: wallT, height: 60 });
-        // 下墙
-        WallSystem.walls.push({ x: roomX, y: roomY + roomH - wallT, w: roomW, h: wallT, height: 60 });
-        // 左墙
-        WallSystem.walls.push({ x: roomX, y: roomY, w: wallT, h: roomH, height: 60 });
-        // 右墙
-        WallSystem.walls.push({ x: roomX + roomW - wallT, y: roomY, w: wallT, h: roomH, height: 60 });
+        // 上墙（夹在左右墙之间，留出入口在中间）
+        const topWallW = roomW - wallT * 2;
+        const topLeftW = (topWallW - doorW) / 2;
+        WallSystem.walls.push({ x: roomX + wallT, y: roomY, w: topLeftW, h: wallT, height: 60 });
+        WallSystem.walls.push({ x: roomX + wallT + topLeftW + doorW, y: roomY, w: topLeftW, h: wallT, height: 60 });
+        // 下墙（夹在左右墙之间）
+        WallSystem.walls.push({ x: roomX + wallT, y: roomY + roomH - wallT, w: topWallW, h: wallT, height: 60 });
+        // 左墙（夹在上下墙之间）
+        WallSystem.walls.push({ x: roomX, y: roomY + wallT, w: wallT, h: roomH - wallT * 2, height: 60 });
+        // 右墙（夹在上下墙之间）
+        WallSystem.walls.push({ x: roomX + roomW - wallT, y: roomY + wallT, w: wallT, h: roomH - wallT * 2, height: 60 });
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；
         // noVisual 标记跳过墙面视觉（贴图 NPC 自身就是视觉）。与边界墙同入口重建，场景往返不丢
         if (typeof Game !== 'undefined' && Game.entities) {
