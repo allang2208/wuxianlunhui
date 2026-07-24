@@ -520,12 +520,80 @@ _getPhaserOptions() {
 
 ---
 
-## 怪物 HUD 锚点工作流（2026-07-21 新增）
+## 火焰/油脂区域特效工作流（2026-07-23 新增）
 
-**默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。
+**适用场景**：地面燃烧区、油池+火焰、毒雾、酸液等地表区域特效。**范例**：`lantern-miner-zombie.js` 的提灯攻击（矿灯抛物线 → 落地油脂扩散 → 火焰成簇喷发 → 周期性魔法伤害）。
+
+### 1. 核心构成（三层分离）
+
+| 层 | 实现 | 关键参数 | 备注 |
+|---|---|---|---|
+| **油脂底面** | `scene.add.graphics()` 填充椭圆 | `oilCfg.color/alpha`、`growMs` | NORMAL 混合；`setDepth(y - 1000)` 压在所有实体之下；从落地点按 `growMs` 扩散到满半径 |
+| **反光/高光** | `graphics` 描边椭圆 | `glossCfg.color/alpha` | `setBlendMode('ADD')`；`setDepth(y - 999)`；与油脂呼吸错相位，表现湿润反光 |
+| **火焰粒子** | `scene.add.particles(0,0,'impact_dot', {...})` | `flameMorphMs`、`flameBurstCount`、`flamePoints` | ADD 发光混合；`scale: {start:3.3,end:0.3}` 由大到小，`alpha: {start:0.85,end:0}` 淡出；tint 随机白/黄/橙 |
+
+### 2. 火焰喷发要点（避坑）
+
+- **发射器放 (0,0)**：`add.particles(0, 0, texture, config)` 后再 `explode(count, worldX, worldY)`，**不要** `setPosition(x,y)` 后再 explode——Phaser 4 会把 explode 的坐标当本地坐标，导致双倍偏移飞出屏幕（SKILL.md 已有记录）。
+- **加入 UpdateList**：`particles.addToUpdateList()`，否则粒子静止一帧不运动。
+- **成簇喷发**：按 `flameMorphMs`（如 70ms）每 tick 在油脂区内随机取 `flamePoints` 个点，每点生成一个一次性发射器，`explode(1, jx, jy)` 时在喷发点周围 ±40px 随机偏移，形成不规则火团。
+- **一次性发射器**：`emitting: false` + `explode(...)` 喷发，用 `scene.time.delayedCall` 延迟销毁，避免累积到 `_burnZones.flames` 导致内存泄漏。
+
+### 3. 燃烧区生命周期
+
+- **存储**：`this._burnZones.push({ x, y, timer, tickTimer, flameTimer, flames: [], oilGfx, glossGfx })`。
+- **每帧更新**：`_updateBurnZones(dt, entities)` 中推进 `timer`（存活时长）、`tickTimer`（伤害周期）、`oilFrac`（扩散进度）、`flameTimer`（火焰喷发周期）。
+- **伤害判定**：`GroundEllipse` 圆形椭圆（radius × radius×PERSPECTIVE_SCALE_Y），按 `tickMs` 对 `hostilesOf` 造成 `matk × damageMul` 魔法伤害。
+- **清理**：`_destroyBurnZone(zone)` 统一 killTweensOf / stop / destroy 所有 graphics 与粒子发射器；实体销毁/移除时通过 `_destroyCustomEffects()` 统一入口（`game.js removeEntity` 会调用）。
+
+### 4. 抛物线投射物（矿灯/闪光弹等）
+
+- **预判落点**：`AimHelper.lead` 按飞行时间内的目标移动预判。
+- **路径**：`x = sx + (tx - sx) * p`；`y = sy + (ty - sy) * p - arcH * 4 * p * (1 - p)`（标准抛物线）。
+- **旋转**：`sprite.rotation = p * Math.PI * 3 * (flyDuration / 1500)` 控制落地前旋转圈数。
+- **落地**：`onComplete` 销毁投射物 sprite 并调用 `_lanternImpact(tx, ty)` 生成燃烧区。
+
+### 5. 复用清单
+
+新增地表区域特效时优先复制以下模式，不要重写：
+- 油脂扩散：`oilFrac` + `setScale` 同步缩放 graphics
+- 呼吸反光：Tween `alpha` yoyo + ADD 混合
+- 火焰成簇：一次性 `add.particles` + `explode` + `delayedCall` 销毁
+- 伤害周期：`tickMs` + `GroundEllipse.intersectsEntity`
+
+---
+
+## 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
+
+**默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。**自 2026-07-23 起，新增怪物必须设置 `"capsuleHudAnchor": true`（已补齐：poisonMaggot/minerZombie/lanternMinerZombie/foremanZombie）。**
 **三套碰撞体积注意区分**：footprint 椭圆（地面分离/范围判定）、绿色矩形（`collisionWidth×collisionHeight`，近战判定）、圆柱体胶囊（`collider.height`，来自 `config.height` 或 `render.spriteSize`，投射物判定）。HUD 锚点用的是**圆柱体胶囊**，不是绿色矩形。
 **启用方式**：`enemy-config.json` 该怪物 `render` 块加 `"capsuleHudAnchor": true`（GameScene 按此开关选择锚点；未配置的旧怪物保持贴图顶部锚点不动）。
 **配套校准**：`render.collisionHeight` 只影响绿色矩形（近战判定），不影响 HUD 锚点；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
+
+---
+
+## NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+
+### 1. 素材（原则 9）
+复制到 `assets/npc/<npc英文名>/`（如 `assets/npc/mouse_king/idle.png`、`walking.png`）；**先目检帧布局**（行列网格、有效帧数、内容边界），再配 `frameWidth/Height/endFrame`。
+
+### 2. 配置（data/game-config.json `npcs.<key>`，唯一真相源）
+- `sprite`（可选，缺省保持纯色圆占位）：`{ idleKey, walkKey, size, footOffsetY, walkFps }`
+  - `idleKey/walkKey`：BootScene 注册的动画键；`size`：显示边长（方形帧）；`footOffsetY`：逻辑脚底到贴图中心偏移（内容底边贴地校准）；`walkFps`：行走帧率
+- `wander`（可选，缺省不动）：`{ radius, speed, idleMs, moveMinMs, moveMaxMs }`——以生成点为中心 radius 内随机选点移动，每次移动后停留 idleMs，移动时长 moveMinMs~moveMaxMs 随机
+- `noSeparation`（可选）：固定不动，实体分离由对方承担全部位移
+- `obstacle`（可选，**家具型静态 NPC 推荐**）：`{ width, height, offsetY, wallHeight? }`——底座矩形障碍。在 `_setupMainHubTerrain` 与边界墙同入口注册为 WallSystem 静态墙（`noVisual` 跳过墙面视觉），实体 `collisionRadius` 只留小半径（~20），阻挡交给矩形。**不要给家具型 NPC 套大圆 footprint**：圆 X/Y 对称，调大无法靠近、调小贴图错误遮挡；矩形底座宽=贴图底座、深=底座厚度，靠近/绕行/遮挡三者都自然
+
+### 3. BootScene 加载与动画注册
+`spritesheet` 加载（**必须带 endFrame**），`anims.create` idle 单帧循环 + walk 循环（frameRate 读 sprite.walkFps）。
+
+### 4. 实体与渲染（已通用，无需改代码）
+- `npc.js`：构造函数接收 `config.sprite`（→ `spriteCfg`）与 `config.wander`（→ `wanderCfg`）；游走由 `NPC._updateWander` 驱动（WallSystem.resolve 撞墙校验、`_pickWanderTarget` 可达性重试），`isMoving`/`_facingLeft` 供动画与翻转
+- `GameScene._syncNeutralEntities`：检测 `e.spriteCfg` 自动创建贴图 Sprite（idle/walk 切换、flipX、名字标签贴图顶部）；无配置回退 `neutral_circle` 纯色圆
+- 生成处（如 `game.js spawnNPC`）把 `shopCfg.sprite / shopCfg.wander` 透传进 NPC config
+
+### 5. 验证
+lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
 
 ---
 

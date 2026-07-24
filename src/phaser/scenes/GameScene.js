@@ -636,6 +636,7 @@ export class GameScene extends Scene {
         if (this._neutralSprites) {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                if (e._noShadow) continue; // 配置跳过阴影（如仓库宝箱，贴图自带底座）
                 active.add(e);
                 const depth = e.y + 9;
                 const cx = e.collider ? e.collider.x : e.x;
@@ -2045,6 +2046,34 @@ export class GameScene extends Scene {
         this.time.delayedCall(1500, () => { if (particles && particles.active) particles.destroy(); });
     }
 
+    /**
+     * 流血血渍（特工斧头同款红色粒子落地 + 地面保留 10s）：
+     * 掉落视觉复用 playRedFallParticles；地面血渍为静态红色粒子（lifespan 10s，ADD 混合），
+     * 每次流血 tick 在目标脚底生成一小片，10s 后自动销毁
+     */
+    playBleedGroundParticles(x, y, target) {
+        // 掉落视觉（同款红粒子下浮）
+        this.playRedFallParticles(x, y, target);
+        if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        const footY = (target && target.collider) ? target.collider.y : y;
+        const splat = this.add.particles(0, 0, 'impact_dot', {
+            speed: 0,
+            scale: { start: 1.3, end: 0.8 },
+            alpha: { start: 0.85, end: 0.25 },
+            lifespan: 10000,
+            tint: 0xa00000,
+            blendMode: 'ADD',
+            emitting: false
+        });
+        splat.addToUpdateList();
+        splat.setDepth(footY + 1);
+        // 发射器保持 (0,0)，explode 传世界坐标（Phaser 粒子坐标陷阱）
+        for (let i = 0; i < 4; i++) {
+            splat.explode(1, x + (Math.random() - 0.5) * 60, footY + (Math.random() - 0.5) * 14);
+        }
+        this.time.delayedCall(10500, () => { if (splat && splat.active) splat.destroy(); });
+    }
+
     // ==================== BOSS 专属血条（屏幕空间 DOM） ====================
     /**
      * 创建/获取 BOSS 血条 DOM：位于顶部状态栏下方 20px，居中。
@@ -2474,6 +2503,22 @@ export class GameScene extends Scene {
             if (!entity || !entity.active || entity === _game.player) continue;
             if (entity._faction !== 'enemy') continue;
             drawEntity(entity);
+        }
+
+        // NPC 点击交互区域：绿色轮廓（与 game.js 点击判定同一推导 getClickRect）
+        this._collisionRadiusGraphics.lineStyle(1.5, 0x00ff66, 0.9);
+        for (const entity of _game.entities.values()) {
+            if (!entity || !entity.active || !entity.npcType) continue;
+            const rect = typeof entity.getClickRect === 'function' ? entity.getClickRect() : null;
+            if (rect) {
+                this._collisionRadiusGraphics.strokeRect(
+                    entity.x + rect.ox, entity.y + rect.oy, rect.w, rect.h
+                );
+            } else {
+                // 无贴图 NPC：圆形点击区域（interactionDistances.npcHover）
+                const hoverR = GAME_CONFIG.interactionDistances?.npcHover ?? 40;
+                this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, hoverR);
+            }
         }
     }
 
@@ -2982,18 +3027,31 @@ export class GameScene extends Scene {
 
             let data = this._neutralSprites.get(e);
             if (!data) {
-                if (!this.textures.exists('neutral_circle')) {
-                    const g = this.add.graphics();
-                    g.fillStyle(0xffffff, 1);
-                    g.fillCircle(16, 16, 16);
-                    g.generateTexture('neutral_circle', 32, 32);
-                    g.destroy();
+                // 贴图动画 NPC（config.sprite 配置 idle/walk 动画键）；无配置保持纯色圆
+                const sprCfg = (e.spriteCfg && e.spriteCfg.idleKey && this.textures.exists(e.spriteCfg.idleKey))
+                    ? e.spriteCfg : null;
+                let sprite;
+                if (sprCfg) {
+                    const sz = sprCfg.size || 128;
+                    sprite = this.add.sprite(e.x, e.y, sprCfg.idleKey);
+                    sprite.setOrigin(0.5, 0.5);
+                    sprite.setDisplaySize(sz, sz);
+                    // 静态贴图（无动画注册）直接显示首帧，不 play
+                    if (this.anims.exists(sprCfg.idleKey)) sprite.play(sprCfg.idleKey);
+                } else {
+                    if (!this.textures.exists('neutral_circle')) {
+                        const g = this.add.graphics();
+                        g.fillStyle(0xffffff, 1);
+                        g.fillCircle(16, 16, 16);
+                        g.generateTexture('neutral_circle', 32, 32);
+                        g.destroy();
+                    }
+                    const size = e.size || 16;
+                    sprite = this.add.sprite(e.x, e.y, 'neutral_circle');
+                    sprite.setOrigin(0.5, 0.5);
+                    sprite.setDisplaySize(size * 2, size * 2);
                 }
-                const size = e.size || 16;
-                const sprite = this.add.sprite(e.x, e.y, 'neutral_circle');
-                sprite.setOrigin(0.5, 0.5);
-                sprite.setDisplaySize(size * 2, size * 2);
-                const label = this.add.text(e.x, e.y - size - 8, '', {
+                const label = this.add.text(e.x, e.y - (e.size || 16) - 8, '', {
                     fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
                     fontSize: '11px',
                     color: '#d4c5a9',
@@ -3001,14 +3059,35 @@ export class GameScene extends Scene {
                 });
                 label.setOrigin(0.5, 1);
                 label.setDepth(e.y + 1);
-                data = { sprite, label };
+                data = { sprite, label, sprCfg };
                 this._neutralSprites.set(e, data);
             }
-            const { sprite, label } = data;
+            const { sprite, label, sprCfg } = data;
             const size = e.size || 16;
             const shift = this._getFootOffsetY(e, sprite);
             sprite.setPosition(e.x, e.y - shift);
-            sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
+            if (sprCfg) {
+                // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
+                // 倒退行走（移动方向与朝向相反）时循环动画倒放
+                const animKey = (e.isMoving && sprCfg.walkKey) ? sprCfg.walkKey : sprCfg.idleKey;
+                const wantReverse = !!e.isMoving && Math.abs(e.vx) > 0.1 && ((e.vx < 0) !== !!e._facingLeft);
+                if (this.anims.exists(animKey)) {
+                    const curKey = sprite.anims.currentAnim?.key;
+                    const needStart = curKey !== animKey || !sprite.anims.isPlaying;
+                    const dirChanged = wantReverse !== !!sprite._npcAnimReversed;
+                    if (needStart || dirChanged) {
+                        if (wantReverse) {
+                            sprite.anims.playReverse(animKey, needStart && !dirChanged);
+                        } else {
+                            sprite.anims.play(animKey, needStart && !dirChanged);
+                        }
+                        sprite._npcAnimReversed = wantReverse;
+                    }
+                }
+                sprite.setFlipX(!!e._facingLeft);
+            } else {
+                sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
+            }
 
             let text = e.name || '';
             let color = '#d4c5a9';
@@ -3027,7 +3106,9 @@ export class GameScene extends Scene {
             } else if (e.hp !== undefined && e.maxHp !== undefined) {
                 text = `${e.name} ${e.hp}/${e.maxHp}`;
             }
-            label.setPosition(e.x, sprite.y - size - 8);
+            // 名字标签：贴图 NPC 放在贴图顶部，圆形占位保持按 size 偏移
+            const labelTop = sprCfg ? sprite.displayHeight / 2 : size;
+            label.setPosition(e.x, sprite.y - labelTop - 8);
             if (label.text !== text) {
                 label.setText(text);
             }
@@ -3204,14 +3285,27 @@ export class GameScene extends Scene {
         // 攻击/死亡动画是一次性的，播完后停在最后一帧即可，不要重新播放
         // charge（骑士冲锋）同为一次性：行为时长远超动画时长，循环重播会产生"停顿重启"观感
         const isLoopAnim = animState !== 'attack' && animState !== 'death' && animState !== 'charge';
+        // 倒退行走：实体标记 animReverse 时循环动画倒放（playReverse），方向变化需强制重启
+        const wantReverse = isLoopAnim && !!options.animReverse;
         const shouldReplay = !current || current.key !== animKey || (!sprite.anims.isPlaying && isLoopAnim);
         if (shouldReplay) {
             // 死亡动画结束后进入尸体阶段，不要再播放
             if (animState === 'death' && enemy._deathAnimTimer <= 0) {
                 sprite.anims.stop();
+            } else if (wantReverse) {
+                sprite.anims.playReverse(animKey, true);
             } else {
                 sprite.anims.play(animKey, true);
             }
+            sprite._animReversed = wantReverse;
+        } else if (isLoopAnim && wantReverse !== !!sprite._animReversed) {
+            // 同一动画方向切换（正放↔倒放）：不带 ignoreIfPlaying 强制重启
+            if (wantReverse) {
+                sprite.anims.playReverse(animKey);
+            } else {
+                sprite.anims.play(animKey);
+            }
+            sprite._animReversed = wantReverse;
         }
 
         // 运行时动态偏移：按当前帧把有效贴图对齐到同一位置

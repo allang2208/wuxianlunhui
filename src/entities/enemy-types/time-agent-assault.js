@@ -135,8 +135,13 @@ export class TimeAgentAssault extends Enemy {
         const t = this.target && this.target.active ? this.target : null;
         const dist = t ? Math.hypot(t.x - this.x, t.y - this.y) : Infinity;
 
-        // 朝向目标（ MovementSystem 驱动移动时方向一致；动作期锁定）
-        if (t) this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
+        // 朝向目标（ MovementSystem 驱动移动时方向一致；动作期锁定）；
+        // 联动回拉期间调转方向朝撤退方向（不持续面对目标倒退）
+        if (t) {
+            this.rotation = this._linkRetreating
+                ? Math.atan2(this.y - t.y, this.x - t.x)
+                : Math.atan2(t.y - this.y, t.x - this.x);
+        }
 
         // 状态机：动作态（锁移动）与形态态分流
         const ACTION_STATES = ['toRanged', 'toIdle', 'toRangedSwitch', 'axeIntro', 'axeAttack', 'flashThrow'];
@@ -169,8 +174,8 @@ export class TimeAgentAssault extends Enemy {
             this._meleeStepTimer = 0;
         }
 
-        // 远程锁定期间 MovementSystem 不处理击退，自行应用（同口径：衰减+墙壁解析）
-        if (this._formState === 'ranged' && (this.knockbackX || this.knockbackY)) {
+        // 远程锁定/联动回拉期间 MovementSystem 不处理击退，自行应用（同口径：衰减+墙壁解析）
+        if ((this._formState === 'ranged' || this._linkRetreating) && (this.knockbackX || this.knockbackY)) {
             const kf = this.knockbackFriction || 0.9;
             const sc = dt / 1000;
             const nx = this.x + (this.knockbackX || 0) * sc;
@@ -193,6 +198,9 @@ export class TimeAgentAssault extends Enemy {
         const inMelee = this._formState === 'melee' || this._formState === 'axeAttack';
         this.maxSpeed = inMelee ? (skills.forms.meleeMoveSpeed ?? 260) : (this.config.speed ?? 160);
         this.attackRange = inMelee ? (skills.axe.judgeRange ?? 120) : (skills.forms.engageRange ?? 1600);
+        // 动画用速度快照：entity.update 先于 MovementSystem 运行，锁定态下 vx 会被清零，
+        // _getPhaserOptions 的 animReverse/回拉朝向需要本帧真实位移方向
+        this._animVx = this.vx;
     }
 
     // ========== 形态决策（可移动状态） ==========
@@ -301,9 +309,10 @@ export class TimeAgentAssault extends Enemy {
         }
 
         if (this._formState === 'melee') {
-            // 联动规则2：盾卫在场时优先拉开距离换回远程（4s 未换回恢复默认近战 AI）
+            // 联动规则2：盾卫在场时优先拉开距离换回远程（4s 未换回恢复默认近战 AI）；
+            // 回拉期间调转方向（rotation/flipX 朝撤退方向），不持续面对目标倒退
             const linkCfg = AgentLinkSystem.getMeleeSupportConfig();
-            if (linkCfg && t && !this._linkRetreatDisabled) {
+            if (linkCfg && t && !this._linkRetreatDisabled && AgentLinkSystem.isLinked(entities)) {
                 if (!this._linkRetreatStart) this._linkRetreatStart = Date.now();
                 const elapsed = Date.now() - this._linkRetreatStart;
                 if (elapsed < linkCfg.assaultFallbackMs) {
@@ -432,12 +441,14 @@ export class TimeAgentAssault extends Enemy {
         this._stateTimer = A.introDuration ?? 2000;
         this._axeHitDone = false;
         this._axeIntroSoundDone = false;
+        this._linkRetreating = false; // 进入斧砍动作：退出回拉朝向（否则背身劈砍）
     }
 
     _startAxeAttack() {
         this._formState = 'axeAttack';
         this._stateTimer = this._axeAttackDuration();
         this._axeHitDone = false;
+        this._linkRetreating = false; // 进入斧砍动作：退出回拉朝向（否则背身劈砍）
         // 近战攻击斧音（axe.mp3，立即播放）
         playSoundFrom(this, 'axe');
     }
@@ -815,14 +826,29 @@ export class TimeAgentAssault extends Enemy {
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
         let flipX = false;
-        // 朝向优先（瞄准/劈砍方向），无目标时按移动方向
-        if (this.target && this.target.active) {
+        // 朝向优先（瞄准/劈砍方向），无目标时按移动方向；
+        // 联动回拉期间按撤退方向翻转（允许背对目标转身撤退，不倒退行走）。
+        // 速度用 _animVx 快照（锁定态下 MovementSystem 会把 vx 清零）
+        const animVx = this._animVx ?? this.vx;
+        if (this._linkRetreating) {
+            if (Math.abs(animVx) > 0.1) {
+                flipX = animVx < 0;
+            } else if (this.target && this.target.active) {
+                flipX = this.target.x >= this.x; // 背对目标
+            } else if (this.rotation !== undefined) {
+                flipX = Math.cos(this.rotation) < 0;
+            }
+        } else if (this.target && this.target.active) {
             flipX = this.target.x < this.x;
         } else if (this.isMoving && Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
         }
+        // 倒退行走：移动方向与朝向相反时标记倒放（GameScene 对循环动画 playReverse，其余不变）；
+        // 速度用 _animVx 快照（锁定态下 MovementSystem 会把 vx 清零，直接读 vx 恒为 0）
+        const movingNow = this._effectiveMoving();
+        const animReverse = movingNow && Math.abs(animVx) > 0.1 && ((animVx < 0) !== flipX);
         // animState 用形态名（非 'attack'）：动作动画时长与状态时长一致，
         // 重复进入同一动作时 GameScene 依 isLoopAnim 规则自动重播，与骑士 combo 同机制
         return {
@@ -831,6 +857,7 @@ export class TimeAgentAssault extends Enemy {
             collisionHeight: renderCfg.collisionHeight || 110,
             textOffsetY: -(renderCfg.spriteSize || 220) / 2 - 10,
             flipX,
+            animReverse,
             animState: this._formState,
             animKey: this._getAnimKey(),
         };

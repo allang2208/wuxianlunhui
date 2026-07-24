@@ -3,6 +3,7 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { playSoundFrom } from './_shared/enemy-utils.js';
 
 /**
  * 胖子僵尸（FatZombie）
@@ -111,6 +112,17 @@ export class FatZombie extends Enemy {
             }
         }
 
+        // 移动音效（配置 sounds.walk，按 walkInterval 间隔循环播放）
+        if (this._animState === 'walk') {
+            this._walkSoundTimer = (this._walkSoundTimer || 0) - dt;
+            if (this._walkSoundTimer <= 0) {
+                this._walkSoundTimer = this.config?.sounds?.walkInterval ?? 500;
+                playSoundFrom(this, 'walk');
+            }
+        } else {
+            this._walkSoundTimer = 0;
+        }
+
         // 朝向
         if (this._attackTimer > 0 && this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
@@ -132,6 +144,8 @@ export class FatZombie extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
+        // 攻击音效（配置 sounds.attack）
+        playSoundFrom(this, 'attack');
         // 必须触发通用武器动画状态机，才能在 swing 阶段执行 ThrustAttack.checkTriangleHit
         super.triggerWeaponAnim();
     }
@@ -226,6 +240,9 @@ export class FatZombie extends Enemy {
         // 延迟删除：动画 1.5s + 尸体 6s + 缓冲
         this._deathTime = Date.now();
         this._deathRemoveDelay = this._deathAnimDuration + this._corpseDuration + 500;
+
+        // 死亡音效（配置 sounds.death，死亡时播放一次）
+        playSoundFrom(this, 'death');
 
         // 调用父类除 Sprite 销毁外的逻辑
         // 金币/经验掉落、声音、特效

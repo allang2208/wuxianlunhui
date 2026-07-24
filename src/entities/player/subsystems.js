@@ -772,6 +772,7 @@ addAttribute(attr) {
 triggerDodge(moveInput) {
                 if (this._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止闪避
                 if (this.shieldSystem && this.shieldSystem.defending) return; // 防御状态禁止闪避
+                if (this.hasStatusEffect && this.hasStatusEffect('bind')) return; // 束缚状态禁止闪避
                 // 闪避取消当前攻击动画/Tween
                 if (this.weaponAnim && this.weaponAnim.isAttacking) {
                     this.clearAttackTweens();

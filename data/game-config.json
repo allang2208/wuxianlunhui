@@ -243,7 +243,28 @@
       "collisionRadius": 14,
       "color": "#c4a35a",
       "portrait": "assets/ui/npc_portrait.png",
-      "npcType": "shop"
+      "npcType": "shop",
+      "sprite": {
+        "comment": "贴图动画：idle/walk 动画键（BootScene 注册）；size=显示边长(方形帧)；footOffsetY=逻辑脚底到贴图中心偏移；walkFps=行走动画帧率",
+        "idleKey": "npc_mouse_king_idle",
+        "walkKey": "npc_mouse_king_walk",
+        "size": 250,
+        "footOffsetY": 98,
+        "walkFps": 10
+      },
+      "clickArea": {
+        "comment": "点击交互区域（按贴图内容收窄：内容 233×394/512 × size250 ≈ 114×192，锚定脚底；缺省=贴图整帧会吞掉旁边仓库的点击）",
+        "width": 114,
+        "height": 192
+      },
+      "wander": {
+        "comment": "随机移动：以生成点为中心 radius 范围内游走；每次移动后停留 idleMs，移动时长 moveMinMs~moveMaxMs",
+        "radius": 300,
+        "speed": 90,
+        "idleMs": 7000,
+        "moveMinMs": 2000,
+        "moveMaxMs": 4000
+      }
     },
     "mouseAttendant": {
       "relativeTo": "shopMouseKing",
@@ -257,6 +278,37 @@
       "color": "#c4a35a",
       "portrait": "assets/npc/mouse_attendant.png",
       "npcType": "quest"
+    },
+    "warehouse": {
+      "relativeTo": "shopMouseKing",
+      "offset": {
+        "x": 100,
+        "y": 0
+      },
+      "name": "仓库",
+      "size": 20,
+      "collisionRadius": 20,
+      "color": "#8a6a3a",
+      "npcType": "warehouse",
+      "noSeparation": true,
+      "noShadow": true,
+      "obstacle": {
+        "comment": "底座矩形障碍（WallSystem 静态墙）：宽=贴图底座宽、深=底座厚度、offsetY 锚定脚底线；实体圆只留小半径，阻挡交给矩形",
+        "width": 140,
+        "height": 36,
+        "offsetY": 0
+      },
+      "sprite": {
+        "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
+        "idleKey": "npc_warehouse",
+        "size": 180,
+        "footOffsetY": 64
+      },
+      "clickArea": {
+        "comment": "点击交互区域（按贴图内容收窄：内容 400×367/512 × size180 ≈ 141×129，锚定脚底）",
+        "width": 141,
+        "height": 129
+      }
     }
   },
   "trees": {

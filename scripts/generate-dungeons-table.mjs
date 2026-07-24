@@ -34,7 +34,6 @@ function loadDefaults() {
         else if (src[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
     }
     const literal = src.slice(open, end + 1);
-    // eslint-disable-next-line no-new-func
     return new Function(`return (${literal});`)();
 }
 
@@ -88,15 +87,53 @@ function invasionDesc(grade, inv) {
 const data = JSON.parse(fs.readFileSync(SRC, 'utf-8'));
 const DEFAULTS = loadDefaults();
 const INVASION = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'agent-invasion.json'), 'utf-8'));
+const FORMULAS = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'combat-formulas.json'), 'utf-8'));
 const list = data.dungeonList || {};
+
+/** 从 dungeon-event-definitions.js 文本提取 RESTRICTED_EVENT_META（限定事件池：事件 → {grade, scope}） */
+function loadRestrictedEventMeta() {
+    const src = fs.readFileSync(path.join(ROOT, 'src', 'world', 'dungeon-event-definitions.js'), 'utf-8');
+    const start = src.indexOf('RESTRICTED_EVENT_META = ');
+    if (start < 0) return {};
+    const open = src.indexOf('{', start);
+    let depth = 0, end = -1;
+    for (let i = open; i < src.length; i++) {
+        if (src[i] === '{') depth++;
+        else if (src[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    }
+    return new Function(`return (${src.slice(open, end + 1)});`)();
+}
+const EVENT_META = loadRestrictedEventMeta();
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
+const RARITY_LABELS = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗', mythic: '神话', legendary: '传说' };
+
+/** 限定事件池：地牢等级 ±1 内的事件（与 dungeon-event-system rollEventType 同规则） */
+function restrictedPoolDesc(grade) {
+    const gi = GRADE_ORDER.indexOf(grade);
+    if (gi < 0) return '—';
+    const pool = Object.entries(EVENT_META)
+        .filter(([, m]) => {
+            const g = GRADE_ORDER.indexOf(m.grade);
+            return g >= gi - 1 && g <= gi + 1;
+        })
+        .map(([type, m]) => `${type}(${m.grade})`);
+    return pool.length ? pool.join('、') : '—（仅通用事件）';
+}
+
+/** 精英宝箱奖励（eliteChestReward.items 简述） */
+function eliteChestDesc(cfg) {
+    const items = cfg.eliteChestReward?.items;
+    if (!items || !items.length) return '—';
+    return items.map(i => `${i.name || i.type}${i.rarity ? `（${RARITY_LABELS[i.rarity] || i.rarity}）` : ''}`).join('、');
+}
 
 const lines = [
     '# 地牢要素一览表',
     '',
     '> 由 `scripts/generate-dungeons-table.mjs` 生成，数据源 `data/dungeon-config.json`（+ `data/agent-invasion.json`）。新增/修改地牢后重新运行脚本更新本表。',
     '',
-    '| 地牢 | 等级 | 房间数 | 起始路线 | 战斗/事件 | 精英战斗 | 最短路径战斗 | 到Boss最少房间 | 宝箱岔路 | 普通战斗构成 | 精英战斗构成 | Boss | 时空特工入侵 |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+    '| 地牢 | 等级 | 房间数 | 起始路线 | 战斗/事件 | 精英战斗 | 最短路径战斗 | 主通道强制战斗 | 到Boss最少房间 | 宝箱岔路 | 普通战斗构成 | 精英战斗构成 | Boss | 精英宝箱 | 时空特工入侵 |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
 ];
 
 for (const [key, info] of Object.entries(list)) {
@@ -107,6 +144,7 @@ for (const [key, info] of Object.entries(list)) {
     const ratios = cfg.typeRatios ? `${pct(cfg.typeRatios.combat)} / ${pct(cfg.typeRatios.event)}` : (info.battleRatio || '—');
     const elite = cfg.eliteCombatChance !== undefined ? pct(cfg.eliteCombatChance) : '—';
     const shortest = cfg.shortestCombatPath ?? '—';
+    const mainRow = cfg.mainRowMinCombat !== undefined ? `${cfg.mainRowMinCombat} 列` : '全部列';
     const minRooms = cfg.minRoomsToBoss ?? ((cfg.shortestCombatPath ?? 0) + 2);
     const branches = chestBranchDesc(cfg, grade);
     const encNormal = (cfg.encounters && cfg.encounters.normal) || DEFAULTS.zombieDungeon?.encounters?.normal;
@@ -114,8 +152,27 @@ for (const [key, info] of Object.entries(list)) {
     const normalDesc = encounterDesc(encNormal);
     const eliteDesc = (cfg.eliteCombatChance === 0) ? '—（不刷）' : encounterDesc(encElite);
     const boss = bossDesc(cfg);
+    const chest = eliteChestDesc(cfg);
     const invasion = invasionDesc(grade, INVASION);
-    lines.push(`| ${info.name || key} | ${grade} | ${nodes} | ${startRows} | ${ratios} | ${elite} | ${shortest} 场 | ${minRooms} 间 | ${branches} | ${normalDesc} | ${eliteDesc} | ${boss} | ${invasion} |`);
+    lines.push(`| ${info.name || key} | ${grade} | ${nodes} | ${startRows} | ${ratios} | ${elite} | ${shortest} 场 | ${mainRow} | ${minRooms} 间 | ${branches} | ${normalDesc} | ${eliteDesc} | ${boss} | ${chest} | ${invasion} |`);
+}
+
+// ── 等级公共要素（grade 驱动，新增地牢自动获得） ──
+lines.push(
+    '',
+    '## 等级公共要素（按地牢 grade 自动获得）',
+    '',
+    '| 等级 | 出征门槛祭品 | 祭品掉落封顶 | 普通怪祭品掉率 | 限定事件池（±1 级） |',
+    '|---|---|---|---|---|',
+);
+const dropTables = FORMULAS.tributes?.dropTables || {};
+for (const g of GRADE_ORDER) {
+    const gi = GRADE_ORDER.indexOf(g);
+    const reqRarity = RARITY_ORDER[gi] ? RARITY_LABELS[RARITY_ORDER[gi]] : '—';
+    const table = dropTables[g];
+    const cap = table ? (RARITY_LABELS[table.maxRarity] || table.maxRarity) : '—';
+    const chance = table?.normal?.chance !== undefined ? `${Math.round(table.normal.chance * 1000) / 10}%` : '—';
+    lines.push(`| ${g} | ${reqRarity}及以上 | ${cap} | ${chance} | ${restrictedPoolDesc(g)} |`);
 }
 
 lines.push(
@@ -124,9 +181,11 @@ lines.push(
     '',
     '- **房间数**：含起点/战斗/事件/Boss/奖励节点，不含宝箱岔路（岔路另计）；`min~max` 为生成浮动区间。',
     '- **最短路径战斗**：主通道强制战斗节点数（shortestCombatPath）。',
+    '- **主通道强制战斗**：mainRowMinCombat，主通道随机 N 列强制战斗；缺省=全部列（向后兼容）。',
     '- **到 Boss 最少房间**：minRoomsToBoss，最短路径房间数下限（= 中间列 + 2），不足时扩展中间列。',
     '- **宝箱岔路**：独立于主线，尽头固定宝箱事件；条数缺省按等级 F=2、每级 +2。',
     '- **时空特工入侵**：详见 `data/agent-invasion.json`；仅 D 级及以上触发，追击追上后按节点类型触发三种入侵战斗（4096 场地）。',
+    '- **等级公共要素**：出征门槛（等级↔稀有度一一对应）、祭品掉落（`combat-formulas.json tributes.dropTables`，精英/领主/首领必掉）、限定事件池（`dungeon-event-definitions.js RESTRICTED_EVENT_META`，通用事件 30%/限定 70%，事件等级在地牢等级 ±1 内）。',
 );
 
 fs.writeFileSync(OUT, lines.join('\n') + '\n', 'utf-8');

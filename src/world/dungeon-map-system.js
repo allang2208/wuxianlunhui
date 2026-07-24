@@ -362,9 +362,9 @@ export const DungeonMapSystem = {
         this._generateZombieMap();
     },
 
-    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner
+    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner / zombieMid
     _isZombieFamily() {
-        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner';
+        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner' || this.dungeonType === 'zombieMid';
     },
 
     // 僵尸地牢：rows 条路线 converging to BOSS
@@ -872,8 +872,8 @@ export const DungeonMapSystem = {
         if (this._eliteChestOpened) return;
         this._eliteChestOpened = true;
 
-        // 从配置读取奖励
-        const cfg = DungeonConfig.getZombieDungeonConfig();
+        // 从配置读取奖励（按当前地牢类型，缺省回退 zombie）
+        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         const rewards = cfg.eliteChestReward && cfg.eliteChestReward.items ? cfg.eliteChestReward.items : [];
         if (rewards.length > 0 && BossRewardSystem && BossRewardSystem.rewardNode) {
             BossRewardSystem.rewardNode.giveReward(this.player, rewards);

@@ -7,10 +7,11 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 class Projectile {
-    constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1) {
+    constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
         this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
         this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
         this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;
+        this.textureKey = textureKey; // 显式 Phaser 纹理键（优先于 image 的箭头回退）
         this.isTracer = isTracer; // 是否为曳光弹（G18手枪）
         this.isSpit = isSpit || false; // 是否为毒液投射物（SpitterZombie）
         this.isGold = isGold; // 是否为亮金色曳光弹（PKM）
@@ -192,6 +193,7 @@ class Projectile {
     }
 
     _getProjectileTextureKey() {
+        if (this.textureKey) return this.textureKey;
         if (this.isSpit) return 'projectile_poison';
         if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) return 'projectile_tracer';
         if (this.image) return 'projectile_arrow';
@@ -213,7 +215,7 @@ class Projectile {
         if (!phaserScene || !phaserScene.projectilesGroup) return;
         const key = this._getProjectileTextureKey();
         const sprite = phaserScene.add.sprite(this.x, this.y, key);
-        sprite.setDepth((this.y || 0) + 12);
+        sprite.setDepth((this.y || 0) + 12 + (this.depthBonus || 0));
         const tint = this._getProjectileTint();
         if (tint !== undefined) sprite.setTint(tint);
         phaserScene.projectilesGroup.add(sprite);
@@ -224,14 +226,19 @@ class Projectile {
     _updatePhaserSprite() {
         if (!this._phaserSprite || !this._phaserSprite.active) return;
         this._phaserSprite.setPosition(this.x, this.y);
-        this._phaserSprite.setRotation(this.angle);
-        this._phaserSprite.setDepth((this.y || 0) + 12);
+        // 显式纹理键投射物不随弹道旋转（球体光照贴图旋转会丢失光照方向）
+        this._phaserSprite.setRotation(this.textureKey ? 0 : this.angle);
+        this._phaserSprite.setDepth((this.y || 0) + 12 + (this.depthBonus || 0));
         if (this._noRender) {
             this._phaserSprite.setVisible(false);
             return;
         }
         this._phaserSprite.setVisible(true);
-        if (this.isSpit) {
+        if (this.textureKey) {
+            // 显式纹理键投射物：按 size 方形显示（如毒蛆绿色毒球）
+            const s = this.size * 2;
+            this._phaserSprite.setDisplaySize(s, s);
+        } else if (this.isSpit) {
             const s = this.size * 2.5;
             this._phaserSprite.setDisplaySize(s, s);
         } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {

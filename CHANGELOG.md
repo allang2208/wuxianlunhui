@@ -8,6 +8,538 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-23（新怪物：矿洞（次级）+ 绿烟粒子 + 主神空间生成）
+
+### 对话：新增次级怪矿洞（其他 family，speed 0，HP 1500，其余全 0），每 5s 前方 50px 生成矿工僵尸；绿烟粒子（用户给出粒子模板）；烟雾深度高于矿洞背景低于前景；主神空间生成一个
+- **配置**（mineCave）：rank minor、family 其他、speed 0（`??` 口径不被回退）、六维全 0；`attackSkills.spawn`（intervalMs 5000/forwardX 50）；`smoke` 配置块（offsetX 50/offsetY 45/tint 0x62cc62/frequency 120/scale 0.3→1.2/alpha 0.6/lifespan 4000）；render spriteSize 400、footOffsetY 46、双源 200×100、`capsuleHudAnchor: true`（新怪必做项）
+- **烟雾纹理**：BootScene 程序化烘焙 `smoke_particle`（64×64 白色软圆径向渐隐——tint 是乘法，白底不偏色）
+- **实体类** `mine-cave.js`：站桩锁死四通道（speed 0 配置 + noSeparation + `applyKnockback(){}` 空覆盖 + 出生点锚定钉死，集合体同款）；`spawnFactory` 注入（zombie-dungeon 工厂/game.js 主神空间各自注入 createMinerZombie，避免实体层反向依赖 world 层）；生成键唯一 + `_summoned` 标签（击杀无金币/经验/技能计数）；绿烟发射器惰性创建一次、深度 y+11（高于矿洞贴图 y+10、低于前景实体）、`_destroyCustomEffects` 统一清理；正交粒子无透视补偿
+- **主神空间**：`spawnMainMineCave`（origin 东 1000 南 100）
+- **修改文件**：`assets/enemies/mine_cave/`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types/mine-cave.js`（新增）、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增——mineCave 工厂识别正常）
+- **已知问题**：实机待验证——矿洞贴图比例/洞口位置、绿烟观感与图层、每 5s 矿工生成与 `_summoned` 标签生效（击杀不掉金币）、HUD 锚点
+
+## 2026-07-23（油脂回退椭圆+火焰随机方向不规则簇；玩家流血断链修复；工头 ×2 + walking 对齐）
+
+### 对话：油脂层回退（不规则是给喷发簇的，粒子随机方向浮动）；流血 debuff 状态栏不显示、血渍无残留；工头贴图/碰撞 ×2；walking 往前走又回退
+- **油脂回退 + 火焰不规则**：油脂恢复正椭圆+外圈反光（不规则轮廓用错对象）；火焰簇改不规则——每颗粒子在喷发点 ±40px 随机偏移单独生成，方向从统一向上改为 **360° 随机方向浮动**（speed 20~70）
+- **玩家流血断链（根因）**：`player/update.js` 只调用 `updateStatusEffects`，从不调用 `_updateBleed/_updatePoison/_updateMagicVulnerability/_updateDroneVulnerability`——流血对玩家不 tick 伤害、不过期、血渍粒子（在 _updateBleed 里生成）永远不出现；已补四个调用（DamageableEntity 基类既有方法），状态栏图标链路（applyBleeding → StatusBar.addEffect）本就在，tick 恢复后整套生效
+- **工头 ×2**：spriteSize 240→480、footOffsetY 74→148、collisionWidth 60→120、collisionHeight 120→240、projectileHitbox 48→96×240、collisionRadius 20→40；圆柱体高随 spriteSize 自动 480
+- **walking 回退根因**：15 帧内容中心 X 从 ~223 漂到 ~275，循环点瞬间回跳 50px（"往前走又回退"的观感）；已逐帧水平重对齐到 cx=256（其余表 attacking/howling/dying 的偏移是挥鞭/倒地内容，不动）
+- **修改文件**：`assets/enemies/foreman_zombie/walking.png`（重对齐）、`data/enemy-config.json`、`src/entities/player/update.js`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error，'DungeonMapSystem' 为历史 warning）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——火焰随机方向观感、流血图标/tick 伤害/血渍残留、工头放大后 walking 不再回跳
+
+## 2026-07-23（主神空间生成僵尸工头）
+
+### 对话：主神空间生成一个工头
+- `spawnMainHubTestEntities` 新增 `spawnMainForemanZombie`（origin 东 800 南 100，键 `enemy_main_foreman`，与矿工提灯僵尸错开）
+- **修改文件**：`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——工头在主神空间的鞭击/号召/流血表现
+
+## 2026-07-23（油脂改不规则 blob；HUD 锚点绑定圆柱体成新怪必做项）
+
+### 对话：火团/油脂类似规则图形，优化成不规则随机；新怪物工作流加入名字/血条绑定圆柱体碰撞体积
+- **油脂不规则化**：`_lanternImpact` 轮廓从正椭圆改为 **16 顶点随机半径（75%~115%）多边形**——`fillPoints` 填充油脂、`strokePoints` 沿同一轮廓描边反光环，每次落地形状不同；扩散缩放/呼吸/图层逻辑不变
+- **HUD 锚点**：poisonMaggot/minerZombie/lanternMinerZombie/foremanZombie 四个新怪 `render` 块启用 `capsuleHudAnchor: true`——名字/血条锚定圆柱体胶囊顶（footprint Y − collider.height）；SKILL.md「怪物 HUD 锚点工作流」升级为**新怪物必做项**（未配置的旧怪物保持贴图顶部锚点）
+- **修改文件**：`src/entities/enemy-types/lantern-miner-zombie.js`、`data/enemy-config.json`、SKILL.md、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——油脂 blob 形状观感、反光环随轮廓、四只新怪名字/血条位置（圆柱体顶）
+
+## 2026-07-23（新怪物：僵尸工头（领主）+ 流血系统改规格 + 激励 buff）
+
+### 对话：按工作流新增领主「僵尸工头」；新 debuff 流血按 1%×层/10s；新 buff 激励；鞭击弧线；血渍 10s
+- **素材**：`素材库/怪物/工头` 五张 4096×2048（8×4 512 帧；idle 1 / walking 15 / attacking 31 / howling 24 / dying 14），基线一致（~414）原位复制；音效 4 个入 `assets/sounds/enemies/foreman_zombie/`
+- **配置**（foremanZombie）：HP 1600、移速 160、六维 str66/dex23/int10/con45/wis16/luck33、**lord**、family 僵尸；`whip`（320px/1.5s/31帧/第18帧物理×2/流血1层/冷却4.5s）；`howl`（3s/24帧/激励15s：移速×1.33+物攻×1.5/冷却30s）；render spriteSize 240、footOffsetY 74、双源 60×120/48×120
+- **流血系统改规格**（damageable-entity，全系统统一）：tick 伤害 `hp × 1% × 层数`（原固定 10% 不计层数）、单层持续 5000→**10000ms**、到期减一层（不变）；每秒 tick 在目标脚底生成血渍——新 `GameScene.playBleedGroundParticles`（复用斧头红粒子掉落 + 静态血渍粒子 lifespan 10s）。**注意**：改造效果 bleedingOnHit 等既有流血来源同步变弱（1层 10%×5s→1%×10s），如需平衡再调
+- **激励 buff**（按 Buff 工作流）：STATUS_CONFIG 注册 `inspire`；`applyInspire(duration, {speedMul, atkMul})` 数据层乘算物攻/maxSpeed/speed（重复只刷时长），`updateStatusEffects` 到期钩子 `_onInspireEnd` 还原；玩家获得时上状态栏
+- **工头类** `foreman-zombie.js`：号召（冷却就绪且接敌）优先、鞭击（320px 内）其次；鞭击命中帧对范围目标物理×2 + applyBleeding(1) + 深棕色二次贝塞尔弧线抽击特效（双线描边 400ms）；死亡三段式 + 死亡音效第 8 帧；walk 0.7s 循环、whip 第 15 帧、howl 起手直接播放
+- **注册**：BootScene 5 贴图 + 5 动画；enemy-types 导出；`ZOMBIE_FACTORY_MAP` 登记——lord 自动进领主池（中级地牢 Boss 遭遇候选）
+- **修改文件**：`assets/enemies/foreman_zombie/`、`assets/sounds/enemies/foreman_zombie/`（新增）、`data/enemy-config.json`、`src/entities/damageable-entity.js`、`src/phaser/scenes/{BootScene,GameScene}.js`、`src/entities/enemy-types/foreman-zombie.js`（新增）、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error，'source' 为历史 warning）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——鞭击弧线观感、流血层数/伤害节奏、血渍 10s 保留、号召激励全场（移速/物攻到期正确还原）、死亡三段式、图鉴首帧
+
+## 2026-07-23（提灯火焰：33ms×3点×20粒；反光环只留外圈；油脂图层沉底）
+
+### 对话：喷发簇 33ms 一次、每 tick 3 点同喷、每团 20 粒；油脂黄圈只留外圈；油脂图层最低
+- **火焰节奏**：`flameMorphMs` 70→**33**、新增 `flamePoints: 3`（每 tick 油脂区内 3 个随机点同时喷发）、`flameBurstCount` 36→**20**——总量 33ms×3点×20粒（密度翻倍且分布更开）
+- **反光环**：删除内圈 4px 环，只保留最外圈 10px 描边环
+- **油脂图层**：oil depth ty+1→**ty-1000**、反光环 ty+2→**ty-999**——沉到所有实体之下（实体 depth=脚底 Y+10），不再盖住走过的人；火焰粒子维持 fy+1000 在实体之上
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——火焰密度分布、外圈反光、油脂不再遮挡实体
+
+## 2026-07-23（提灯油脂：边缘反光 + 落点扩散 + 火焰限定油面 + 火团/数量再放大 + 发射口微调）
+
+### 对话：反光只留边缘轮廓；油脂 0.3s 内从落点扩散到最大范围；火焰只能在油脂内生成；火团 ×1.5、数量再翻倍；朝右发射位置右移 25px 上移 20px
+- **边缘反光**：反光环改描边环（外环 10px + 内环 4px，ADD 混合），不再填充中心
+- **油脂扩散**：新增 `oil.growMs: 300`——oilFrac 0.05→1 驱动贴花与反光环同步 setScale，dt 驱动（与项目计时口径一致）
+- **火焰限定油面**：喷发半径跟随 zone.oilFrac（扩散中也在已扩散范围内，最大=油脂边缘）
+- **火团/数量**：粒子 scale 2.2→**3.3**（×1.5）、`flameBurstCount` 18→**36**（再翻倍）
+- **发射口**：`muzzleRightDx` 50→**75**（再右移 25）、`muzzleRightDy` -25→**-45**（再上移 20）
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——油脂扩散动效、边缘反光、火焰不溢出油面
+
+## 2026-07-23（提灯油脂：呼吸加深 + 反光高光层）
+
+### 对话：油脂呼吸感再明显一些，加反光效果
+- **呼吸加深**：底层油脂 alpha 起伏 1↔0.75→**1↔0.55**，周期 800→600ms
+- **反光层**：新增 `oil.gloss` 配置（color 0xffe9a0 / alpha 0.35）——浅黄色双椭圆高光（大 1.1×0.55 + 小 0.5×0.26，错位布置），ADD 混合，450ms 错相位呼吸（1↔0.3），模拟油面反光；随燃烧区统一销毁
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——呼吸/反光强度（oil.gloss.alpha 可调）
+
+## 2026-07-23（提灯：火团 ×2 + 数量再 ×2 + 油脂地面）
+
+### 对话：火团放大一倍、数量再翻倍；Phaser 有针对油脂地面的方案吗——投射物落地后生成深黄色油脂区域
+- **火团放大一倍**：粒子 scale 1.1→**2.2**（end 0.1→0.2）
+- **数量再翻倍**：`flameBurstCount` 9→**18**
+- **油脂地面**：Phaser 无内置"油脂"方案，采用地面贴花（与地面警示圈同路线）——`lantern.oil` 配置（color 0x8a6d1f / alpha 0.5），落地生成深黄色半透明椭圆（NORMAL 混合，暗色在 ADD 下不可见），800ms 呼吸（湿润感），随燃烧区 4s 统一销毁
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——火团大小/密度、油脂区域颜色深浅（oil.color/alpha 可调）
+
+## 2026-07-23（提灯火焰粒子量 ×3）
+
+### 对话：火焰粒子翻 3 倍
+- 每次喷发粒子数 3→**9**（新增配置 `flameBurstCount: 9`），频率 70ms 不变
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——火焰密度观感
+
+## 2026-07-23（提灯火焰不可见修复：Phaser 粒子坐标陷阱）
+
+### 对话：测试看不到火焰特效了
+- **根因**：`_spawnBurnFlame` 先 `em.setPosition(fx, fy)` 把发射器移到喷发点，再 `explode(3, fx, fy)`——explode 的参数是**相对发射器的本地坐标**，粒子实际生成在 (2fx, 2fy)，飞出屏幕（SKILL.md 已记录此陷阱，本次复踩）
+- **修复**：发射器保持 (0,0)，explode 直接传世界坐标（与 `playZombieHitParticles` 同款正确写法）
+- **修改文件**：`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——火焰在燃烧区内可见、向上漂移
+
+## 2026-07-23（提灯火焰改 Phaser 粒子火焰：无贴图软焰）
+
+### 对话：还是不对——是 Phaser 做的吗？Phaser 有原生火焰效果吗？
+- **结论**：Phaser 无内置火焰特效，引擎层做真火焰的标准做法是粒子发射器；此前用的 muzzle_flash_01 是像素风静态 PNG（粗红/黄描边是贴图内容），放大后像素感必然重
+- **改粒子火焰**（`_spawnBurnFlame`）：impact_dot 软圆点 + ADD 发光混合，白/黄/橙随机 tint（0xffffff/0xffcc55/0xff8833），speedY -90~-40 向上漂移（焰尖向上）+ 轻微水平摆动，550ms 生命周期，按 `flameMorphMs: 70` 频率在 80% 半径椭圆内成簇喷发——柔软无像素描边；一次性喷射器喷完即毁，无累积
+- 清理死配置 flameWidth/flameAlpha（贴图方案残留）
+- **修改文件**：`src/entities/enemy-types/lantern-miner-zombie.js`、`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——粒子火焰密度/高度/颜色观感（调 frequency/explode 数/speedY/tint）
+
+## 2026-07-23（提灯火焰：按特工射速高频变幻 + 削薄轮廓 + 焰尖向上；主神空间删特工）
+
+### 对话：删除特工；火焰要按特工射速频率变幻（开火快所以逼真）、红/黄轮廓削薄、焰尖向上
+- **机理确认**：QBZ-191 850RPM（attackInterval 70ms），火焰每 70ms 新生所以看起来"活"
+- **燃烧火焰重构**（`_spawnBurnFlame` + zone.flameTimer）：
+  - 按 `flameMorphMs: 70`（=特工射速，配置可调）高频刷出短寿命火焰（140ms 淡出销毁，下一朵接力），位置在 60% 半径椭圆内随机、大小 ±15% 抖动——极快变换产生真实燃烧感
+  - **焰尖向上**：贴图焰尖朝右，旋转 -90°（±14° 抖动）
+  - **削薄轮廓**：显示比例从 1.5:0.7 压扁为 1:0.45，红/黄粗边变薄；alpha 基准 0.65
+  - 仍是特工同款主体 muzzle_flash_01 + ADD 混合
+- **主神空间**：删除特工突击，只留矿工提灯僵尸
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——火焰变幻速度/削薄程度/焰尖朝向观感，可调 flameMorphMs/flameWidth/flameAlpha
+
+## 2026-07-23（提灯燃烧区：直接截取特工开火主体放大覆盖）
+
+### 对话：能否直接截取特工开火特效的全部主体，放大后放到提灯僵尸这边
+- **可以，已落地**：燃烧区视觉改为 `muzzle_flash_01`（特工开火贴图主体）**两张错位叠加**——主层 100% 覆盖 300px 椭圆（ADD 混合，白底在暗色地面上渲染为光焰而非白色方块）、副层 80% 旋转 180° 打散轮廓；各自呼吸闪烁（alpha 基准 0.75/0.55 ×0.6 起伏）；深度贴地（ty+1），4s 后随燃烧区统一销毁
+- 取代上一版 impact_dot 粒子方案（用户选定贴图主体方案）；Geom 导入已清理
+- **修改文件**：`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——燃烧区火焰观感（ADD 混合下白底应呈光焰），如过亮可调 alpha 或改 NORMAL 混合+去白底版本贴图
+
+## 2026-07-23（主神空间追加特工突击对照）
+
+### 对话：生成一个特工突击（对照枪口火焰特效）
+- `spawnMainHubTestEntities` 追加 `spawnMainTimeAgent()`（与矿工提灯僵尸并存，origin 东 500/600 错开）
+- **修改文件**：`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：无
+
+## 2026-07-23（提灯僵尸：火焰换白色粒子火光 + 发射口/圆柱体/footprint 调整）
+
+### 对话：火焰特效不对（排查是否两套渲染系统，要 Phaser 白色火焰）；朝右发射位置右移 50px 上移 25px；圆柱体下降 100px；footprint 半径 +20
+- **两套渲染系统确认**：突击开火确实是"两套"特效叠加——①`MuzzleFlashEffect`（muzzle_flash_01.png 贴图，白底闪光图）②`GameScene.playMuzzleFire`（impact_dot 白点粒子 + ADD 混合 + 黄白 tint）。我之前按①平铺，muzzle_flash_01 是**白底大图**，平铺后铺成一片白色方块，所以"不对"
+- **火焰改方案②**：燃烧区改为单个粒子发射器（impact_dot + ADD 混合 + tint 0xffcc55 与 playMuzzleFire 同款），emitZone=Geom.Ellipse 覆盖 300px 燃烧区，frequency 50ms 持续喷发 4s；zone 销毁时 stop+destroy 统一清理；删除 flameCount/flameSize 死配置
+- **发射口**：lantern 配置 `muzzleRightDx: 50`（朝右右移 50px）、`muzzleRightDy: -25`（朝右上移 25px），仅朝右生效
+- **圆柱体**：新增顶层 `height: 150`（原随 spriteSize=250，下降 100px）
+- **footprint**：collisionRadius 18.75→**38.75**（+20）
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——白色火焰覆盖整个燃烧区且无白色方块、朝右发射口位置、圆柱体/footprint 新尺寸
+
+## 2026-07-23（提灯僵尸：投射物不可见根因修复 + 火焰换突击同款 + 全体积 +25%）
+
+### 对话：看不到投射物；火焰特效用特工突击同款；贴图和所有碰撞体积扩大 25%
+- **投射物不可见根因**：projective.png 是 512×512 帧但内容只有 75×72（中央小提灯），按整帧 displaySize 48 缩放后内容仅 ~7px 不可见。已把贴图裁剪到内容边界（91×88，留 8px 边距），48px 显示恢复正常
+- **火焰换突击同款**：燃烧区火焰改为与 MuzzleFlashEffect（突击开火特效）同款视觉——muzzle_flash_01 纹理、1.5:0.7 显示比例、alpha 0.5 基准 + 呼吸闪烁（0.5↔0.28）、按环周角度旋转
+- **全体积 +25%**：spriteSize 200→250、footOffsetY 50→63、collisionWidth 50→62.5、collisionHeight 110→137.5、collisionRadius 15→18.75、projectileHitbox 40×110→50×137.5（双源一致）；圆柱体高度随 spriteSize 自动 250（无 height 字段）
+- **修改文件**：`assets/enemies/lantern_miner_zombie/projective.png`（裁剪）、`data/enemy-config.json`、`src/entities/enemy-types/lantern-miner-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——矿灯投射物可见且旋转、燃烧区火焰观感、放大后碰撞体积（左下「范围」可视化）
+
+## 2026-07-23（主神空间生成矿工提灯僵尸）
+
+### 对话：主神空间生成一个矿工提灯僵尸
+- `spawnMainHubTestEntities` 新增 `spawnMainLanternMinerZombie`（origin 东 600 南 100，键 `enemy_main_lantern_miner`）
+- **修改文件**：`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——矿工提灯僵尸在主神空间的完整表现
+
+## 2026-07-23（新怪物：矿工提灯僵尸，精英）
+
+### 对话：按工作流新增精英怪物「矿工提灯僵尸」（素材路径以提灯矿工目录为准，类型以精英为准）
+- **素材**：`素材库/怪物/提灯矿工` 五张精灵图均为 4096×2048（8列×4行 512×512 帧；idle 1 / walking 18 / attacking 30 / attacking-2 22 / dying 15）+ projective.png 投射物单帧，目检脚底基线一致（~383，walking 的 501 离群帧为提灯低于脚底，沿用矿工教训**不做对齐**，原位复制）；音效 4 个入 `assets/sounds/enemies/lantern_miner_zombie/`
+- **配置**（lanternMinerZombie）：HP 650、移速 140、六维 str46/dex23/int20/con18/wis22/luck18、**elite**、family 僵尸
+  - `slam`：120px 判定、1.5s/30 帧、第 16 帧物理 ×1.5、冷却 4.5s、攻击不可移动
+  - `lantern`：1.5s/22 帧、第 11 帧掷灯、投射物 1.5s 抛物线（空中 540° 旋转、projective.png 贴图、AimHelper 预判落点）、落点 300px 椭圆燃烧 4s（枪口火焰特效 7 个填满+呼吸闪烁）、每 0.5s 魔法 ×0.75、冷却 8s、投掷射程 600
+  - `death`：animMs 1500/holdMs 1000/fadeMs 300（死亡三段式，与矿工僵尸同机制）
+  - `sounds`：walk 0.5s 循环、slam 第 14 帧、lantern 第 8 帧、death 第 8 帧（死亡动画帧触发）
+- **实体类** `lantern-miner-zombie.js`：双攻击自管（aiInterval 关闭通用触发），slam 贴身优先/lantern 中远程；燃烧区 tick 管理 + `_destroyCustomEffects` 统一清理（死亡/删实体不泄漏）；animState 映射攻击均为 'attack'（防 lantern 被当循环动画重播）
+- **注册**：BootScene 5 贴图 + projective 单帧 + 5 动画（attack/attack2/death 一次性时长对齐）；enemy-types 导出；`ZOMBIE_FACTORY_MAP` 登记——elite 自动进精英怪物池
+- **修改文件**：`assets/enemies/lantern_miner_zombie/`、`assets/sounds/enemies/lantern_miner_zombie/`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types/lantern-miner-zombie.js`（新增）、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error 0 warning）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增——lanternMinerZombie 工厂识别正常）
+- **已知问题**：实机待验证——双攻击切换与帧事件时机、燃烧区覆盖观感与伤害节奏、投射物旋转/落点、死亡三段式与第 8 帧音效、图鉴首帧截取
+
+## 2026-07-23（仓库点击打不开根因修复：遮罩打开即瞬间关闭的竞态）
+
+### 对话：点击仓库还是无法打开
+- **根因（与之前的点击区域无关，是真正的 bug）**：`WarehouseSystem.open()` → onOpen 联动 `SystemUI.open('equip')` → `panelOverlay` 全屏遮罩**同帧激活**覆盖画布；同一次物理点击的 mouseup 之后，DOM `click` 事件落在刚出现的遮罩上 → ①BasePanel 遮罩自关监听（`if (isOpen) close()`）立刻关掉仓库 ②SystemUI 遮罩监听关掉 equip+遮罩。慢点击必现、快点击偶发，表现为"怎么点都打不开"。该竞态自 07-21 BasePanel 迁移引入；此前归因为小鼠大王点击区域覆盖（那也是真实问题，已修）
+- **修复**：
+  - `BasePanel`：open 时记录 `_openedAt`，遮罩监听忽略打开后 300ms 内的点击（拦截打开动作自身的 click，后续正常点击关闭不受影响；所有 BasePanel 面板受益）
+  - `SystemUI` 遮罩排除列表补 `warehouse`（与 shop/enhance/craft/enchant/expedition/fusion 同列，仓库打开期间遮罩点击不误关 equip）
+- **修改文件**：`src/ui/panels/base-panel.js`、`src/ui/system-ui.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——点击仓库正常打开并保持；打开后点击遮罩（300ms 后）正常关闭
+
+## 2026-07-23（僵尸地牢 BGM：地牢回声）
+
+### 对话：使用地牢回声.wav 作为僵尸地牢 BGM（初级/中级/高级都播放）
+- **转码**：源 wav 48kHz 立体声 38MB → mp3 192kbps 4.78MB（`.venv-sprites` 内装 lameenc 纯 Python 转码，系统无 ffmpeg）；入 `assets/sounds/music/dungeon_echo.mp3`（英文命名，与事件背景图同规范）
+- **接入**：`data/audio-config.json` `bgm.scene7 = 'assets/sounds/music/dungeon_echo.mp3'`——scene7 是僵尸地牢共用场景，初级/中级/高级进入自动播放、回主神空间自动停止（playBgmForScene 既有框架，循环 + 交叉淡入 bgmCrossfadeSec，音量走 music 声道）；audio-config 为静态导入无 public 双份
+- **修改文件**：`assets/sounds/music/dungeon_echo.mp3`（新增）、`data/audio-config.json`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——进入地牢播放、切场景停止、循环接缝与音量
+
+## 2026-07-23（主神空间清空测试怪）
+
+### 对话：主神空间删除突变体和矿工僵尸
+- `spawnMainHubTestEntities` 不再生成任何测试怪；`spawnMainMutant3`/`spawnMainMinerZombie`/`spawnMainTimeAgent(Shield)` 等方法保留备用
+- **修改文件**：`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅
+- **已知问题**：实机待验证——主神空间无残留测试怪
+
+## 2026-07-23（飞扑判定距离 100；被弹反终止飞扑原地进 idle）
+
+### 对话：飞扑判定距离设 100；被盾牌弹反则眩晕、终止动作原地进入 idle
+- **判定距离**：`pounceHitDistance` 50→**100**
+- **弹反后果**：原逻辑被弹反后置 `_pounceDamaged` 继续飞完全程；改为**立即 `_endPounce()` 终止飞扑**（眩晕由 ShieldSystem 弹反施加，下一帧 stun 分支接管进 idle，原地停下不再冲过目标）；命中眩晕中断逻辑不变
+- **图鉴同步**：飞扑 desc 补判定 100px、命中即中断、弹反终止、冷却 20s（顺手修正此前"冷却 10s"的过期描述）
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/mutant-3.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——弹反后突变体原地眩晕（不再飞过玩家身后）
+
+## 2026-07-23（突变体连击命中距离 75→100）
+
+### 对话：连击命中距离设为 100px
+- `mutant3.comboHitDistance` 75→**100**（触发距离 80，命中留 20px 余量防空挥）
+- **修改文件**：`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：无
+
+## 2026-07-23（突变体连击命中距离 175→75）
+
+### 对话：连击命中距离设为 75px
+- `mutant3.comboHitDistance` 175→**75**（与贴身 attackRange 80 基本一致，连击命中需贴身）
+- **修改文件**：`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——连击五段在目标小幅移动时可能挥空（命中距离已与触发距离几乎相等）
+
+## 2026-07-23（突变体连击命中 350→175；NPC 点击区域收窄 + 最近命中 + 范围按钮绿色轮廓）
+
+### 对话：连击命中距离缩减 50%；小鼠大王点击体积太大导致仓库点不开；点击判定范围加绿色轮廓显示（范围按钮）
+- **突变体-3 连击命中距离**：原 `_getComboAttackDistance()` = max(attackDistance 200, **350**)，新增配置 `comboHitDistance: 175`（-50%），类内改读配置
+- **NPC 点击区域**：
+  - 根因：贴图 NPC 点击判定按**整帧矩形**（小鼠大王 250×250），覆盖到身旁仓库（+100px 偏移），且实体遍历先中小鼠大王 → 仓库永远点不到
+  - `getClickRect()`（npc.js，判定/可视化唯一口径）：`clickArea` 配置优先，缺省=贴图整帧；小鼠大王按内容收窄 114×192、仓库 141×129（game-config clickArea 块）
+  - 点击处理重构（game.js）：NPC 检测独立前置，**多点命中取点击点最近者**（原按实体顺序先中先得）；NPC 命中提前 return，拾取逻辑不变
+- **调试可视化**：`_syncCollisionRadii`（左下「范围」按钮）新增 NPC 点击区域**绿色轮廓**——贴图 NPC 画 clickRect 矩形、无贴图 NPC 画 npcHover 圆（读 interactionDistances 配置）
+- **修改文件**：`data/enemy-config.json`、`data/game-config.json`、`src/entities/npc.js`、`src/game.js`、`src/phaser/scenes/GameScene.js`、`src/entities/enemy-types/mutant-3.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——连击 175 命中手感；仓库可正常点开；范围按钮下小鼠大王/仓库绿色轮廓位置与点击一致
+
+## 2026-07-23（仓库脚下阴影删除）
+
+### 对话：删除仓库阴影
+- `npcs.warehouse` 新增 `noShadow: true`（配置驱动）；`npc.js` 存 `_noShadow`，`GameScene._syncEntityShadows` 中立实体循环跳过——已生成的阴影下一帧自动销毁（不在 active 集）。宝箱贴图自带底座，阴影多余
+- **修改文件**：`data/game-config.json`、`src/entities/npc.js`、`src/game.js`、`src/phaser/scenes/GameScene.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅
+- **已知问题**：无
+
+## 2026-07-23（静态 NPC/障碍物碰撞方案落地：底座矩形障碍）
+
+### 对话：仓库圆形碰撞体积调大调小都不合理（挡住靠近 vs 贴图错误遮挡），按"底座矩形障碍"方案调整类似静态 NPC
+- **方案**：家具型静态 NPC 不套大圆 footprint（圆 X/Y 对称是矛盾根源），改为 **WallSystem 静态矩形障碍只覆盖贴图底座**——宽=贴图底座宽、深=底座厚度，实体圆只留小半径；深度排序不变（脚底 Y，前遮后/后被遮永远正确），移动碰撞玩家/敌人/游走 NPC 都走 `WallSystem.resolve` 自动一致
+- **落地**：
+  - `npcs.warehouse` 配置：`obstacle: { width: 140, height: 36, offsetY: 0 }`、`collisionRadius` 70→20、移除 `colliderOffsetY`
+  - `npc.js` 存 `obstacleCfg`；`game.js` 透传
+  - `scene-manager._setupMainHubTerrain` 重建边界墙时遍历 `Game.entities`，把带 `obstacleCfg` 的 NPC 底座注册为静态墙（与边界墙同入口，场景往返不丢；标记 `noVisual`）
+  - `wall-system._syncWallsToPhaser` 对 `noVisual` 墙只建物理体、不建 wall_face/wall_top 视觉（宝箱贴图自身就是视觉）
+- **通用性**：任何 NPC 配置加 `obstacle` 块即获得同款底座障碍（SKILL.md「NPC 添加标准工作流」已补该节）；祭坛为小圆形无贴图无遮挡问题，保持现状
+- **修改文件**：`data/game-config.json`、`src/entities/npc.js`、`src/game.js`、`src/world/scene-manager.js`、`src/world/wall-system.js`、SKILL.md、CHANGELOG.md
+- **测试结果**：lint ✅（0 error，ww/wh 为历史 warning）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——正面可贴近底座、侧面沿边滑过、背后遮挡正确、点击开仓库不受影响；底座 140×36 尺寸观感可微调
+
+## 2026-07-23（突变体-3 连击突进重构：仅命中后突进）
+
+### 对话：连击突进代码有问题（很远距离就能突进），调整为只有连击第一下命中后才有突进效果
+- **问题定位**：预命中阶段存在两个远距离位移机制——①连击冲刺（`_startComboDash/_updateComboDash`：目标进 350 命中范围即 1200px/s 冲 250ms）②`_startCombo` 起手"吸附"（未贴到 attackRange 时瞬移到目标面前 ~40px）。两者叠加观感就是"很远距离直接突进到脸上"
+- **重构**：
+  - 删除连击冲刺机制（`_startComboDash/_updateComboDash` 方法、`_comboDash*` 字段、update 两个分支、`AimHelper` 导入）
+  - 删除 `_startCombo` 起手吸附块（连击只在贴身 `attackRange` 触发，不再位移修正）
+  - **保留命中后突进**（`_dealComboHit` 每次命中记录 ≤35px 突进向量、单场上限 80px、`_updateCombo` 插帧平滑执行）——符合"第一下命中后才有突进"
+- **图鉴同步**：删除"突进连击"技能条目；description 改为"贴身发动五连击、命中后向目标突进、蓄力飞扑眩晕目标"
+- **修改文件**：`src/entities/enemy-types/mutant-3.js`、`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——突变体-3 只能贴身起连击（350px 外不再冲刺/吸附），命中后小幅追身；对高速目标可能更难起第一手（原 comboDash 的设计场景，如观感过弱再议）
+
+## 2026-07-23（突变体冷却回调；矿工僵尸 walking 对齐根因修复 + 圆柱体减半）
+
+### 对话：五连击间隔 4s、飞扑还原 20s；矿工僵尸 walking 不在一个水平线（查工作流找错误）；圆柱体碰撞体积从上往下减半
+- **突变体-3**：`comboCooldown` 6000→**4000**、`pounceCooldown` 40000→**20000**（还原）
+- **walking 对齐根因（素材处理错误，非裁剪问题）**：逐帧排查底边发现 walking 部分帧**镐头低于脚底**（内容底边 480+），其余帧内容底边即脚底（~383）——v1 标准化脚本按"逐帧内容底边对齐"把镐头帧抬/压了约 100px，反而制造了错位。实测四张表脚底基线本就一致（idle 382 / attacking 384-386 / walking ~383 / dying 386→400），**原素材无需对齐**。已将 `prepare-miner-zombie-sprites.py` 改为纯复制（v2，记录教训），重新输出原图；`footOffsetY` 按脚底 385/512 重算 91→**50**
+- **圆柱体**：minerZombie 新增顶层 `height: 100`（原随 spriteSize=200，从上往下减少一半）
+- **修改文件**：`scripts/archive/prepare-miner-zombie-sprites.py`、`assets/enemies/miner_zombie/`（重新输出）、`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——walking 动画水平线一致、footOffsetY 50 贴地位置、圆柱体减半后投射物命中区域
+
+## 2026-07-23（突变体-3 攻击间隔 ×2；主神空间生成矿工僵尸；仓库判定椭圆上移 60px）
+
+### 对话：突变体攻击间隔延长 100%；主神空间生成一个矿工僵尸；仓库底部椭圆碰撞体积上移 60px
+- **突变体-3 攻击间隔 ×2**：新增配置 `comboCooldown: 6000`（原硬编码 3000）、`pounceCooldown: 40000`（原硬编码 20000），类内改读配置（顺手消除两处硬编码）；五连击/飞扑的动画时长、判定、伤害均不变
+- **主神空间**：`spawnMainHubTestEntities` 新增 `spawnMainMinerZombie`（origin 东 600 南 100，键 `enemy_main_miner_zombie`），与突变体-3 并存
+- **仓库判定椭圆上移 60px**：NPC 类新增 `config.colliderOffsetY/X` 支持（重建 Collider 前赋值），`npcs.warehouse.colliderOffsetY: -60`——footprint 椭圆/分离判定/调试可视化同源上移，贴图与点击区域不动
+- **修改文件**：`data/enemy-config.json`、`data/game-config.json`、`src/entities/enemy-types/mutant-3.js`、`src/entities/npc.js`、`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——突变体-3 五连击/飞扑节奏变缓；矿工僵尸在主神空间的完整表现；仓库椭圆上移后阻挡位置（左下「范围」可视化）
+
+## 2026-07-23（矿工僵尸：死亡三段式 + 三音效接入）
+
+### 对话：死亡播 dying 13 帧后定格 1s 再淡出消失；walking/hitting/dying 三个音效
+- **死亡三段式**（enemy-config minerZombie.death 配置驱动：animMs 1300 / holdMs 1000 / fadeMs 300）：dying 动画播完 → 定格最后一帧保留 1s → 300ms 淡出后销毁贴图；`_preserveCorpse=true` 保持 Game 循环调用
+- **共享链路修补**：`game.js` 尸体保留判定（`isPreservedCorpse` + update 循环 isCorpse）纳入 `_fadeTimer`——否则淡出阶段两计时器归零，实体会被波次/房间清理提前删除（fade 永远播不完）；对胖子僵尸等既有怪物无影响（`_fadeTimer` 未定义时 `undefined > 0` 为 false）
+- **音效**（minerZombie.sounds，素材入 `assets/sounds/enemies/miner_zombie/`）：
+  - `walk`=walking.mp3，移动时按 `walkInterval: 500` 循环
+  - `attack`=hitting.mp3，攻击动画第 15 帧（`sounds.attackFrame`）播放一次，与第 17 帧伤害判定错开
+  - `death`=dying.mp3，`onDeath` 播放一次（基类通用击倒音保留，与集合体/胖子同模式）
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/miner-zombie.js`、`src/game.js`、`assets/sounds/enemies/miner_zombie/`（新增）、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增）
+- **已知问题**：实机待验证——死亡定格+淡出观感、三个音效时机（攻击音第 15 帧 vs 判定第 17 帧）
+
+## 2026-07-23（新怪物：矿工僵尸）
+
+### 对话：按添加怪物工作流新增普通怪物「矿工僵尸」，僵尸 family
+- **素材目检与标准化**：`素材库/怪物/矿工僵尸` 四张均为 4096×2048（8列×4行 512×512 帧）；idle 1 帧（源文件名为 idie.png，入项目改名 idle.png）/ walking 14 帧 / attacking 24 帧 / dying 13 帧。各表内容底边不一致（idle/attacking ~386、walking ~490、dying ~400），用一次性脚本 `scripts/archive/prepare-miner-zombie-sprites.py` 逐帧底边对齐到基线 490（不缩放不水平重排），输出 `assets/enemies/miner_zombie/`
+- **配置**（`data/enemy-config.json` minerZombie）：HP 150、移速 140、六维 str16/dex13/int3/con18/wis4/luck5、rank normal、family 僵尸；`attackSkills.slam`（range 130/duration 1500/frames 24/hitFrame 17/knockback 75/cooldown 4000）；render spriteSize 200、collisionWidth 50×collisionHeight 110、footOffsetY 91、projectileHitbox 40×110（双源一致）；textures 含 idleFrame 图鉴截取字段
+- **实体类** `src/entities/enemy-types/miner-zombie.js`：idle/walk/attack/death 状态机；`triggerWeaponAnim` 自管（不走通用突刺），攻击 1.5s 内 MovementSystem 锁定，第 17 帧（elapsed ≥ 17/24×1500）以自身为中心 GroundEllipse 判定物理伤害并 `applyKnockback` 75px；死亡播 dying 13 帧后销毁贴图（不保留尸体）
+- **注册**：BootScene 4 张 spritesheet（endFrame 齐全）+ 4 个动画（attack duration 1500 / death 1300 一次性）；enemy-types.js 导出；zombie-dungeon.js `createMinerZombie` 工厂 + `ZOMBIE_FACTORY_MAP` 登记——family=僵尸 rank=normal，自动进普通怪物池（三个地牢通用）
+- **修改文件**：`assets/enemies/miner_zombie/`（新增）、`scripts/archive/prepare-miner-zombie-sprites.py`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types/miner-zombie.js`（新增）、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，无新增——minerZombie 工厂识别正常）
+- **已知问题**：实机待验证——矿工僵尸行走/砸击动画衔接（底边对齐后不再跳帧）、第 17 帧判定与击退手感、图鉴首帧截取、死亡动画；spriteSize 200/collisionWidth 50×110 的视觉比例可能需微调
+
+## 2026-07-22（dungeons-table 增强：主表加列 + 等级公共要素表）
+
+### 对话：在 dungeons-table.md 同步修改，直观查看各细节
+- **主表新增列**：主通道强制战斗（mainRowMinCombat，缺省=全部列）、精英宝箱（eliteChestReward items 简述）
+- **新增「等级公共要素」表**（grade 驱动，F~A）：出征门槛祭品、祭品掉落封顶、普通怪祭品掉率（combat-formulas.json）、限定事件池明细（RESTRICTED_EVENT_META ±1 级匹配，与 rollEventType 同规则，脚本内文本求值提取）
+- 修改的是生成脚本 `scripts/generate-dungeons-table.mjs`（表格为生成物，手改会被覆盖）；顺手清理 2 个多余 eslint-disable
+- **修改文件**：`scripts/generate-dungeons-table.mjs`、`dungeons-table.md`、CHANGELOG.md
+- **测试结果**：脚本运行 ✅（3 个地牢 + 6 级公共要素）；eslint ✅（0 error 0 warning）
+- **已知问题**：无
+
+## 2026-07-22（僵尸地牢-中级接通上线；删除死亡骑士）
+
+### 对话：做完僵尸地牢-中级；删除死亡骑士及其相关代码
+- **僵尸地牢-中级（E 级）**：排查发现 `dungeonList.zombieMid` 元数据与 `zombieDungeonMid` 配置块、`_keyFor` 登记此前已备好，本次接通剩余链路：
+  - `_isZombieFamily()` 纳入 `zombieMid`（共享僵尸战斗/波次系统）
+  - 事件系统 family 映射 `zombieMid → zombie`（限定事件池按 zombie 大类 ±1 级匹配）
+  - 修两处 pre-existing 配置读取硬编码（初级地牢同样受益）：`_openEliteChest` 与出征信息面板的精英宝箱行改按当前/选中地牢读取（原固定读 zombie D 配置）
+  - 既有配置参数：30~35 节点、战斗 50%、精英率 40%、起始 3 路线、bossEncounter=领主池×1（手脑/蝇手）；E 级自动获得：祭品掉落表（≤史诗）、出征门槛（优质祭品）、宝箱岔路 4 条（grade 驱动）
+  - `dungeons-table.md` 已刷新（3 个地牢）
+- **删除死亡骑士**：`enemy-config.json` 删除 deathKnight 配置块、`BootScene` 删除 `enemy_death_knight` 程序化纹理（怪物类早在 7 月前已删，本次清尾）；配置完整性警告 22→21
+- **修改文件**：`src/world/dungeon-map-system.js`、`src/world/dungeon-event-system.js`、`src/ui/expedition-system.js`、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`dungeons-table.md`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（21 个历史警告，少 1）；generate-dungeons-table ✅
+- **已知问题**：实机待验证——出征界面出现 E 级中级地牢、地图生成/波次/领主 Boss 战/奖励流程、优质祭品门槛拦截
+
+## 2026-07-22（突变体-3 飞扑命中判定距离再 -50%）
+
+### 对话：飞扑命中判定距离（非飞扑距离）再减少 50%
+- `mutant3.pounceHitDistance` 100→**50**（仅命中判定；飞扑行程 maxDist 1200/overshoot 300、触发距离 500、连击 attackDistance 200 均不动）
+- **修改文件**：`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：vite build ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——飞扑基本贴身才命中
+
+## 2026-07-22（两天改动回顾审查：4 路并行审查 + 8 项修复）
+
+### 对话：排查昨天到今天的工作是否有 bug
+**审查方式**：按毒蛆+投射物/NPC 链路/特工联动+倒放/突变体-3+胖子+闪避 四路并行只读审查。已修复：
+
+1. **NPC Collider 半径永不生效（高危）**：`npc.js` 构造函数设置 collisionRadius 后从未 `rebuildCollider()`，groundRadius 恒为兜底 10——仓库 70 半径、小鼠大王游走撞墙判定、脚下阴影全部按 10 生效。已补 `rebuildCollider()`（与 damageable-entity 同教训：super() 后改碰撞字段必须重建）
+2. **场景切换投射物粒子泄漏（高危）**：`scene-manager.js` 切场景直接 `EffectManager.effects = []`，不走正常失效路径，毒球彗尾/环绕 emitter 永久残留喷粒子。已在清列表前遍历调用 `_destroyPhaserSprite()`
+3. **突击回拉期间击退被吞**：`_linkRetreating` 锁 MovementSystem 后击退既不位移也不衰减，4s 后可能一次性弹出。手动击退应用条件扩展为 `ranged || _linkRetreating`
+4. **突击无盾卫空回拉 4s**：联动条件补 `AgentLinkSystem.isLinked(entities)`，盾卫不在场直接走默认近战 AI
+5. **回拉中触发斧砍背身劈砍**：`_startAxeIntro/_startAxeAttack` 清除 `_linkRetreating`
+6. **突击 animReverse 实际恒 false**：锁定态下 MovementSystem 将 vx 清零，渲染读不到真实位移方向。update 末尾新增 `_animVx` 快照，flipX/animReverse 改读快照
+7. **小鼠大王游走顶掉面板**：游走走出 npcAutoClose(200) 会把开着的商店/对话强制关闭。`_checkNPCDistance` 每帧置 `_interactionHoldMs`，wander 冻结期原地不动、计时顺延
+8. **ProjectileFactory 对象池两残留**：复用路径补 `_onBeforeDestroy = null`；新建路径 depthBonus 首帧不生效，构造后补 `syncPhaserSprite()`
+
+**审查确认无问题**：飞扑中断路径（弹反只伤一人与旧行为一致）、textureKey 池内不串味、playReverse Phaser4 API 签名、盾卫 _defendCd 不被消耗、bind 拦截位置、连击音效空挥不播、点击矩形与相机口径一致。
+
+**遗留低优先级（未修，记录在案）**：animReverse 无迟滞（高频转向可能抖）、彗尾/环绕粒子深度是创建时快照、联动回拉 4s 用 Date.now 墙钟、NPC 的 playReverse 分支对小鼠大王是死代码（朝向跟随移动）、胖子 walk 音效无距离衰减/并发控制、联动配置每帧 O(N) 读取、0.05s/发音频分配压力、死亡双音效（dying+通用击倒，与集合体同先例）。
+- **修改文件**：`src/entities/npc.js`、`src/world/scene-manager.js`、`src/game.js`、`src/entities/enemy-types/time-agent-assault.js`、`src/utils/projectile-factory.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——仓库 70 半径阻挡生效、回拉朝向/倒放、商店不被游走顶掉
+
+## 2026-07-22（束缚禁止闪避；主神空间只留突变体-3）
+
+### 对话：束缚状态下不可以闪避；删除主神空间特工，保留突变体-3
+- **束缚禁止闪避**：`triggerDodge`（唯一触发出口，含近战取消闪避）增加 `hasStatusEffect('bind')` 前置拦截，与特殊攻击/防御拦截同列；束缚下移动已归零（update.js targetSpeed=0），闪逸出口同步封死
+- **主神空间**：`spawnMainHubTestEntities` 移除双特工生成，仅保留突变体-3；`spawnMainTimeAgent/spawnMainTimeAgentShield` 方法保留备用
+- **修改文件**：`src/entities/player/subsystems.js`、`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅
+- **已知问题**：实机待验证——被束缚（突变体-3 连击）时按空格无法闪避
+
+## 2026-07-22（闪光弹判定范围 +25% 特效同步；突变体-3 飞扑命中判定距离 -50%）
+
+### 对话：突击特工闪光弹判定范围 +25% 并同步动画特效；飞扑命中判定距离（非飞扑距离）减少 50%
+- **闪光弹**：`timeAgentAssault.attackSkills.flashbang.impactRadius` 100→**125**。特效链路全部以 impactRadius 为参数推导（落地红色预警椭圆、伤害椭圆、扬尘环、白色放射线均按比例随动），无需改代码即完成"特效形式同步"
+- **飞扑命中判定**：新增独立配置 `mutant3.pounceHitDistance: 100`（原复用 attackDistance 200，-50%）；`_startCharge` 命中检测改用 `_getPounceHitDistance()`。**不碰 attackDistance**——连击/突进判定（attackDistance 200 / combo 350 封顶）与飞扑距离（maxDist 1200/overshoot 300）均不受影响
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/mutant-3.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——闪光弹预警圈/爆炸特效与判定范围一致放大；飞扑贴身才命中、不再远距离吸中
+
+## 2026-07-22（图鉴毒蛆/盾卫图标修首帧截取；主神空间改生成双特工+突变体-3）
+
+### 对话：图鉴中毒蛆/特工盾卫图标截取了整张 4×8 精灵图；主神空间删除毒蛆，生成特工突击/盾卫/突变体-3
+- **图鉴图标根因**：`codex-manager.js` 仅当 `textures.idleFrameWidth && idleSheetColumns` 存在时按首帧截取（background-size = 帧宽×列数），poisonMaggot/timeAgentShield 的 textures 缺这组字段 → 整张 4096×2048 被当图标。已补 `idleFrameWidth/Height: 512`、`idleFrameCount: 1`、`idleSheetColumns: 8`（与 mutant3/fatZombie 既有模式一致；timeAgentAssault 的 idle.png 是 512×512 单帧不受影响）
+- **主神空间测试怪**：`spawnMainHubTestEntities` 不再生成毒蛆，恢复生成特工突击（origin 东 500）+ 特工盾卫（东 700）并新增突变体-3（东 400，复用既有 `spawnMainMutant3`）；`spawnMainTimeAgent/spawnMainTimeAgentShield` 按 c24c340 前版本恢复；`spawnMainPoisonMaggot` 保留备用（与既有"spawn 方法保留备用"约定一致）
+- **修改文件**：`data/enemy-config.json`、`src/game.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——图鉴毒蛆/盾卫图标只显示 idle 首帧；主神空间双特工+突变体-3 生成与联动机制表现
+
+## 2026-07-22（毒蛆喷射锁朝向+新喷毒贴图+逐发音效；胖子死亡音效；仓库碰撞体积贴图化）
+
+### 对话：毒蛆喷射时不可转向+换 spitting.png 16 帧+每发播放音效；胖子僵尸 dying.mp3 死亡音效；仓库点击贴图开仓库+图层遮挡排查（碰撞体积调到贴图大小）
+- **毒蛆**：
+  - 喷射期间**锁定朝向与翻转**：`update()` 朝向更新跳过 spitting；`_startSpit` 记录 `_spitFlipX`，`_getPhaserOptions` 喷射期间使用锁定值（发射口/扇形方向同步锁定）
+  - 新喷毒贴图：`素材库/怪物/毒蛆/spitting.png`（4096×2048，8列×4行 512×512，16 帧在上两行，目检+首帧 bbox 与旧图一致 (37,165,466,386)，直接替换无需改 BootScene/对齐参数）
+  - 逐发音效：SoundManager.play('bow_fire') 从 `_startSpit`（每次动作一次）移到 `_firePoisonBall`（每发射一个投射物播放一次）
+- **胖子僵尸**：`sounds.death`=dying.mp3，`onDeath` 播放一次（基类通用击倒音保留，与集合体同模式）；素材入 `assets/sounds/enemies/fat_zombie/`
+- **仓库**：
+  - 点击贴图开仓库：上轮 spriteCfg 矩形点击判定已通用覆盖（本轮确认）
+  - 图层遮挡排查：Y 深度排序本身是由近到远（脚底 Y+10，大 Y 在上层）——错误观感的根因是**碰撞体积过小（30）**，实体能走进贴图上半区域（y < 仓库脚底），按规则被判到仓库"身后"从而被遮挡；按用户口径把 `npcs.warehouse.collisionRadius` 30→**70**（≈贴图内容半宽 141/2），实体无法进入贴图区域，遮挡关系恢复正确
+- **修改文件**：`assets/enemies/poison_maggot/spitting.png`（替换）、`assets/sounds/enemies/fat_zombie/dying.mp3`（新增）、`data/enemy-config.json`、`data/game-config.json`、`src/entities/enemy-types/poison-maggot.js`、`src/entities/enemy-types/fat-zombie.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——毒蛆喷射时不转向、新喷毒动画、逐发音效密度（0.05s/发）；胖子死亡音效；仓库遮挡关系与 70 半径阻挡范围、小鼠大王游走会被仓库推开
+
+## 2026-07-22（毒蛆碰撞体积+喷射音效；三单位倒退倒放；突变体-3飞扑中断+音效；胖子僵尸音效）
+
+### 对话：毒蛆圆柱-100/矩形+15/椭圆+15/整体上移20+毒液僵尸同款音效；特工突击/盾卫/小鼠大王倒退行走动画倒放；突变体-3飞扑命中眩晕即中断+连击/飞扑音效；胖子僵尸移动/攻击音效
+- **毒蛆**（enemy-config poisonMaggot）：`height` 220→**120**（圆柱顶部下压100）、collisionWidth 210→**225**/projectileHitbox.width 195→**210**（左右+15）、collisionRadius 93→**100.5**（椭圆长轴+15）、`colliderOffsetY` -30→**-50**（三体积整体上移20，躯干矩形锚定 collider 随动）；新增 `sounds.spit: 'bow_fire'`——喷射开始播放一次，与毒液僵尸攻击同款（SoundManager 预加载键）
+- **倒退行走倒放**：`_getPhaserOptions` 新增 `animReverse`（移动方向与朝向相反且 |vx|>0.1，仅循环动画）——time-agent-assault（以 _effectiveMoving 为准）/time-agent-shield；`GameScene._syncEnemyAnimation` 对 animReverse 用 `playReverse`，方向切换强制重启（不带 ignoreIfPlaying）；`_syncNeutralEntities` 贴图 NPC 同款逻辑（小鼠大王朝向跟随移动方向，规则就位但当前不会触发）
+- **突变体-3**：
+  - 飞扑命中中断：charge 阶段命中且成功眩晕目标（未被弹反）→ 立即 `_endPounce()` 退出飞扑状态；未命中/被弹反保持原样（顺手删除 wasAlive 空 if 死代码）
+  - 音效（enemy-config mutant3.sounds）：`combo`=attacking.mp3（`_dealComboHit` 每次伤害判定播放）、`pounce`=attacking-2.mp3（`_startCharge` 进入冲锋才播放，蓄力不播）；素材入 `assets/sounds/enemies/mutant3/`
+- **胖子僵尸**（enemy-config fatZombie.sounds）：`walk`=walking-2.mp3 按 `walkInterval: 500` 移动循环播放、`attack`=attacking.mp3 攻击触发播放；素材入 `assets/sounds/enemies/fat_zombie/`；均走共享 `playSoundFrom`（配置驱动）
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/{poison-maggot,mutant-3,fat-zombie,time-agent-assault,time-agent-shield}.js`、`src/phaser/scenes/GameScene.js`、`assets/sounds/enemies/{mutant3,fat_zombie}/`（新增）、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——毒蛆三碰撞体积新尺寸/位置（左下「范围」可视化）、喷射音效；特工倒退行走倒放观感；突变体-3飞扑命中即停、连击/飞扑音效时机；胖子僵尸移动/攻击音效
+
+## 2026-07-22（小鼠大王点击范围=贴图范围；仓库宝箱贴图+固定不动；毒球球体光照+深度+朝右微调）
+
+### 对话：小鼠大王贴图范围内都可点击触发对话；仓库.png 替代仓库贴图并固定不可推动；毒球加球体光照、贴图层在毒蛆之上、朝右发射位置再上移 5px 左移 7px
+- **小鼠大王点击范围**（game.js 左键检测）：NPC 带 `spriteCfg` 时 hover 判定从"圆心 40px 半径"改为**贴图显示矩形**（中心=实体位置-footOffsetY，边长=sprite.size 250）；无贴图 NPC 保持原 `npcHoverDist` 判定
+- **仓库 NPC**：
+  - 素材 `素材库/人物/仓库.png`（宝箱，512×512 内容 400×367）→ `assets/npc/warehouse/warehouse.png`；BootScene `load.image('npc_warehouse')`
+  - `game-config.json` 新增 `npcs.warehouse` 配置块（原为 game.js 内联兜底，现入配置）：sprite `{ idleKey: 'npc_warehouse', size: 180, footOffsetY: 64 }` + `noSeparation: true` + collisionRadius 14→30（匹配宝箱底座）
+  - `npc.js` 支持 `config.noSeparation`（实体分离自身不动、对方承担全部位移，类似障碍物）；GameScene 贴图 NPC 分支兼容**静态贴图**（`anims.exists` 守卫，无动画不 play）
+- **毒球**：
+  - 纹理改**透视光照球体**（烘焙：16 层同心圆从右下深绿渐变到中心标准绿 + 左上双高光点），textureKey 投射物**不再随弹道旋转**（`setRotation(0)`，保住光照方向）
+  - 贴图层级：Projectile 新增 `depthBonus`（工厂透传、对象池重置），深度 = y+12+bonus；毒蛆配置 `depthBonus: 150` 保证在毒蛆（foot Y+10）之上不被遮挡；彗尾/环绕粒子深度同步设为投射物 depth+1
+  - 朝右发射微调：spit 配置 `muzzleRightDx: -7`、`muzzleRightDy: -5`（仅朝右时叠加）
+- **修改文件**：`assets/npc/warehouse/`（新增）、`data/game-config.json`、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/entities/npc.js`、`src/game.js`、`src/combat/projectile.js`、`src/utils/projectile-factory.js`、`src/entities/enemy-types/poison-maggot.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）；球体纹理算法经 Python 模拟预览确认光照观感
+- **已知问题**：实机待验证——小鼠大王贴图边缘点击触发；仓库宝箱贴图比例/位置、不可推动表现；毒球球体光照观感与层级、朝右发射口微调位置
+
+## 2026-07-22（毒蛆投射物箭头根因修复：新增 textureKey 链路；发射参数调整）
+
+### 对话：投射物还是箭头形状（排查根因）；改为每 0.05s 发射 1 个毒球、45° 扇形、发射位置再上移 10px
+- **箭头根因**：`Projectile._getProjectileTextureKey()` 中 `if (this.image) return 'projectile_arrow'`——毒蛆经 ProjectileFactory 传入的 `image: 'projectile_poison_maggot'`（字符串）被当作 truthy 的 HTMLImageElement 标记，**一直渲染为箭头纹理并按箭头比例拉伸**（宽 s×0.22、高 s），BootScene 的绿色圆形纹理从未被引用。
+- **修复（共享链路新增 textureKey 显式纹理路径）**：
+  - `projectile.js`：构造函数末尾新增 `textureKey` 参数；`_getProjectileTextureKey()` 最优先返回 `textureKey`；`_updatePhaserSprite()` 新增 textureKey 分支按 `size*2` 方形显示
+  - `projectile-factory.js`：`create()` 支持 `textureKey`；对象池复用路径**显式重置 `p.textureKey`**（防上一发残留，与 knockback 同口径）
+  - `poison-maggot.js`：改传 `textureKey: 'projectile_poison_maggot'`（不再走 image）
+  - 旧 `image` 路径行为不变（玩家弓箭等仍用箭头纹理）
+- **发射参数**（enemy-config poisonMaggot.spit）：`intervalMs` 150→**50**、`burstCount` 3→**1**、`fanAngle` π/2→**π/4（45°）**、`muzzleUpY` 84→**94**（再上移 10px）；图鉴 skills.desc 同步（45°/每 0.05s 一发）
+- **修改文件**：`src/combat/projectile.js`、`src/utils/projectile-factory.js`、`src/entities/enemy-types/poison-maggot.js`、`data/enemy-config.json`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——毒球显示为绿色圆形（非箭头）、0.05s 连发密度、45° 扇形散布、发射口高度
+
+## 2026-07-22（小鼠大王贴图 +25%；毒蛆碰撞体积精调 + 投射物三连发/标准绿球/环绕粒子）
+
+### 对话：小鼠大王贴图放大 25%；毒蛆矩形/footprint/圆柱体/发射口调整；投射物标准绿圆、大小翻倍、速度 500、环绕粒子、每次 3 个
+- **小鼠大王**：`game-config.json` sprite.size 200→**250**、footOffsetY 78→**98**（等比 +25%）。
+- **毒蛆碰撞体积**（`enemy-config.json` poisonMaggot）：
+  - 矩形：collisionWidth 120→**210**（左右各 +45）、collisionHeight 165→**145**（上下各 -10）；projectileHitbox 双源同步 105×165→**195×145**（完整性校验口径一致）
+  - footprint 椭圆：`render.colliderOffsetY: -30`（上移 30px，enemy.js 基类配置读取）；collisionRadius 78→**93**（长轴 +30，短轴不变）
+  - 圆柱体胶囊：新增顶层 `height: 220`（原随 spriteSize=300，上方压缩 80px；推导链 cfg.height 优先）
+  - 发射口：`muzzleUpY` 24→**84**（上移 60px）
+- **投射物**：`projectileSize` 10→**20**（翻倍）、`projectileSpeed` 320→**500**；新增 `burstCount: 3`（每 0.15s 一次发射 3 个毒球，各自扇形内随机方向）；BootScene 纹理改**标准绿色圆形**（0x2ecc40 纯色填充，去掉多层核心/外圈）
+- **环绕粒子**：`spit.orbit` 配置块（radius 18/lifespan 280/frequency 60/tint/scale），`_attachPoisonTrail` 新增第二个发射器——Geom.Circle edge emitZone 在投射物圆周上持续生成短生命周期绿点，与彗尾并存，投射物销毁时一并清理
+- **修改文件**：`data/game-config.json`、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types/poison-maggot.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增——collisionHeight/projectileHitbox.height 双源 145 一致）
+- **已知问题**：实机待验证——小鼠大王放大后比例；毒蛆三套碰撞体积位置/大小观感（左下「范围」按钮可视化）；毒球三连发密度、环绕粒子观感、发射口高度
+
+## 2026-07-22（NPC 小鼠大王：贴图动画 + 随机游走 + NPC 标准工作流）
+
+### 对话：给小鼠大王接入 idle/walking 贴图动画，移速 90px，300px 半径随机移动（停留 7s、移动 2~4s）；排查 NPC 工作流与硬编码
+- **素材目检**：`素材库/人物/小鼠大王` 两张均为 4096×2048（8×4 网格 512×512 帧）；idle.png 仅第 0 帧有效（其余为像素噪点），walking.png 19 帧（idx 0~18）。已复制到 `assets/npc/mouse_king/`（原则 9）。
+- **BootScene**：加载 `npc_mouse_king_idle`（endFrame 0）/ `npc_mouse_king_walk`（endFrame 18）；注册 idle 单帧循环 + walk 19 帧循环（frameRate 读 `sprite.walkFps`，缺省 10）。
+- **配置驱动**（`data/game-config.json` npcs.shopMouseKing，静态导入无 public 双份）：新增 `sprite`（idleKey/walkKey/size 200/footOffsetY 78/walkFps 10）与 `wander`（radius 300/speed 90/idleMs 7000/moveMinMs 2000/moveMaxMs 4000）。
+- **NPC 类通用化**（`src/entities/npc.js`）：接收 `config.sprite`/`config.wander`；新增 `_updateWander`（停留→随机选点移动→停留循环，WallSystem.resolve 撞墙校验、`_pickWanderTarget` 可达性 8 次重试），`isMoving`/`_facingLeft` 供动画与翻转；无配置 NPC 行为不变。
+- **渲染**（`GameScene._syncNeutralEntities`）：检测 `e.spriteCfg` 自动创建贴图 Sprite（idle/walk 切换、flipX、不染色、名字标签移至贴图顶部）；无配置回退 `neutral_circle` 纯色圆。`game.js spawnNPC` 透传 sprite/wander。
+- **工作流排查结论**：此前**无 NPC 添加工作流**——已在 SKILL.md 新增「NPC 添加标准工作流」；NPC 生成数值原本即走 `game-config.json` npcs 块（game.js 内联兜底为既有模式），本次新增数值全部入配置。
+- **修改文件**：`assets/npc/mouse_king/`（新增）、`src/phaser/scenes/BootScene.js`、`data/game-config.json`、`src/entities/npc.js`、`src/phaser/scenes/GameScene.js`、`src/game.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）。
+- **已知问题**：实机待验证——小鼠大王 idle/walk 动画切换、朝向翻转、游走范围/停留节奏、名字标签位置、对话交互不受影响；sprite.size 200/footOffsetY 78 的视觉比例可能需微调。
+
+## 2026-07-22（毒蛆：贴图与三套碰撞体积等比放大 3 倍 + 毒球发射口移到贴图最前端）
+
+### 对话：毒蛆动画贴图、矩形/圆柱体/footprint 椭圆三碰撞体积等比放大 3 倍；投射物从贴图最前端射出
+- **等比 ×3（`data/enemy-config.json` poisonMaggot）**：
+  - 贴图：`render.spriteSize` 100→**300**（512×512 方形帧等比显示，HUD 锚点随动）
+  - 绿色矩形（近战判定）：`collisionWidth` 40→**120**、`collisionHeight` 55→**165**
+  - 圆柱体胶囊（投射物判定）：半径=groundRadius 26→**78**，高度随 spriteSize 100→**300**（无 `height` 字段自动跟随）
+  - footprint 椭圆（地面分离/范围判定）：`collisionRadius` 26→**78**
+  - 同步项：`size` 20→60、`footOffsetY` 30→90、`projectileHitbox` 35×55→**105×165**（与 collisionHeight 双源对齐，校验不报警）
+- **发射口前移**：`spit` 配置新增 `muzzleForward: 150`（= spriteSize/2，贴图最前端，朝右即贴图最右边）、`muzzleUpY: 24`；`_getHeadWorldPosition()` 改读配置（缺省回退 spriteSize/2），不再硬编码 12/-8
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/poison-maggot.js`、CHANGELOG.md
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）
+- **已知问题**：实机待验证——放大后贴图/三碰撞体积比例观感、毒球从贴图前端射出位置、range 600 射程与大体型是否匹配
+
+## 2026-07-22（特工联动规则2：突击回拉调转方向 + 盾卫联动期跳过防御）
+
+### 对话：突击远离目标时不持续面对目标倒退（看起来很怪）；盾卫优先贴近 50px 释放盾击
+- **突击回拉调转方向**：`time-agent-assault.js` 联动规则2 回拉（`_linkRetreating`）期间——`update()` 中 `rotation` 改朝撤退方向（远离目标），`_getPhaserOptions()` 的 `flipX` 优先按移动方向翻转、无移动时背对目标。不再"面对目标倒着走"。
+- **盾卫优先贴近盾击**：`time-agent-shield.js` 联动规则2（突击近战）期间跳过防御姿态（`defendIn/Hold` 不可移动共 5.5s 会阻断贴近），保持 MovementSystem 贴近到 `shieldCloseRange`(50px) 并优先释放盾击；贴近 50px 与盾击优先（判定顺序在防御/开火之前）为既有逻辑，本次补齐防御阻断缺口。
+- **配置注释同步**：`data/agent-synergy.json` 的 `meleeSupport.comment` 更新为新行为口径（静态导入，无 public 双份）。
+- **修改文件**：`src/entities/enemy-types/time-agent-assault.js`、`src/entities/enemy-types/time-agent-shield.js`、`data/agent-synergy.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error，14 个历史 warning 无新增）；vite build ✅；test-collider ✅；test-config-integrity ✅（22 个历史警告，无新增）。
+- **已知问题**：实机待验证——突击回拉时转身朝撤退方向行走（非倒退）；盾卫在突击近战期间持续贴近 50px 盾击、不再中途进防御姿态。
+
 ## 2026-07-21（主神空间：删除双特工，生成毒蛆）
 
 ### 对话：主神空间测试怪调整为一只毒蛆

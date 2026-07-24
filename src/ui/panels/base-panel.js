@@ -36,6 +36,7 @@ export class BasePanel {
         UIState.open(this.stateKey);
         this._ensureBuilt();
         this.el.classList.add('active');
+        this._openedAt = Date.now();
         this.onOpen();
     }
 
@@ -60,10 +61,16 @@ export class BasePanel {
         this.el = el;
         this.buildContent(el);
         document.body.appendChild(el);
-        // 遮罩层点击关闭（每个实例各自挂监听并判断自身 isOpen，多面板共存）
+        // 遮罩层点击关闭（每个实例各自挂监听并判断自身 isOpen，多面板共存）；
+        // 忽略打开后 300ms 内的点击——打开动作本身的 click 事件（mousedown→面板开→mouseup→click）
+        // 会落在刚激活的遮罩上，不拦截会导致"点开瞬间被关"（仓库点击打不开的根因）
         const overlay = document.getElementById('panelOverlay');
         if (overlay) {
-            overlay.addEventListener('click', () => { if (this.isOpen) this.close(); });
+            overlay.addEventListener('click', () => {
+                if (!this.isOpen) return;
+                if (Date.now() - (this._openedAt || 0) < 300) return;
+                this.close();
+            });
         }
     }
 
