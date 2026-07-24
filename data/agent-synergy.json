@@ -12,7 +12,7 @@
       "enabled": true
     },
     "meleeSupport": {
-      "comment": "突击处于近战状态时：盾卫贴近到 shieldCloseRange 优先盾击；突击拉开换回远程，assaultFallbackMs 内未换回则恢复默认近战 AI",
+      "comment": "突击处于近战状态时：盾卫贴近到 shieldCloseRange 优先盾击（联动期间跳过防御姿态）；突击调转方向拉开换回远程（不面对目标倒退），assaultFallbackMs 内未换回则恢复默认近战 AI",
       "enabled": true,
       "shieldCloseRange": 50,
       "assaultFallbackMs": 4000

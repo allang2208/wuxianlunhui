@@ -7,9 +7,9 @@
     "music": 0.6
   },
   "bgm": {
-    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）",
+    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。scene7=僵尸地牢全部（初级/中级/高级共用场景）",
     "main": null,
-    "scene7": null
+    "scene7": "assets/sounds/music/dungeon_echo.mp3"
   },
   "bgmCrossfadeSec": 1.5
 }

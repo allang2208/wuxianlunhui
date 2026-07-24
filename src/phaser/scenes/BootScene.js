@@ -4,6 +4,7 @@
 // ============================================================
 import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -141,6 +142,38 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_poison_maggot_idle',     'assets/enemies/poison_maggot/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_poison_maggot_walk',     'assets/enemies/poison_maggot/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 5 });
         this.load.spritesheet('enemy_poison_maggot_spitting', 'assets/enemies/poison_maggot/spitting.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+
+        // ---- NPC 资源 ----
+        // 小鼠大王：8列×4行 512×512 切帧（idle 1 帧 / walking 19 帧）
+        this.load.spritesheet('npc_mouse_king_idle', 'assets/npc/mouse_king/idle.png',    { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('npc_mouse_king_walk', 'assets/npc/mouse_king/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
+        // 仓库：静态贴图（宝箱）
+        this.load.image('npc_warehouse', 'assets/npc/warehouse/warehouse.png');
+
+        // 矿工僵尸（普通）：8列×4行 512×512 切帧（idle 1 帧 / walking 14 帧 / attacking 24 帧 / dying 13 帧）
+        this.load.spritesheet('enemy_miner_zombie_idle',   'assets/enemies/miner_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_miner_zombie_walk',   'assets/enemies/miner_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_miner_zombie_attack', 'assets/enemies/miner_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
+        this.load.spritesheet('enemy_miner_zombie_death',  'assets/enemies/miner_zombie/dying.png',     { frameWidth: 512, frameHeight: 512, endFrame: 12 });
+
+        // 矿工提灯僵尸（精英）：8列×4行 512×512 切帧（idle 1 / walking 18 / attacking 30 / attacking-2 22 / dying 15）
+        this.load.spritesheet('enemy_lantern_miner_idle',    'assets/enemies/lantern_miner_zombie/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_lantern_miner_walk',    'assets/enemies/lantern_miner_zombie/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 17 });
+        this.load.spritesheet('enemy_lantern_miner_attack',  'assets/enemies/lantern_miner_zombie/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 29 });
+        this.load.spritesheet('enemy_lantern_miner_attack2', 'assets/enemies/lantern_miner_zombie/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
+        this.load.spritesheet('enemy_lantern_miner_death',   'assets/enemies/lantern_miner_zombie/dying.png',       { frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        // 提灯投射物贴图（单帧）
+        this.load.image('enemy_lantern_miner_projectile', 'assets/enemies/lantern_miner_zombie/projective.png');
+
+        // 僵尸工头（领主）：8列×4行 512×512 切帧（idle 1 / walking 15 / attacking 31 / howling 24 / dying 14）
+        this.load.spritesheet('enemy_foreman_idle',   'assets/enemies/foreman_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        this.load.spritesheet('enemy_foreman_attack', 'assets/enemies/foreman_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 30 });
+        this.load.spritesheet('enemy_foreman_howl',   'assets/enemies/foreman_zombie/howling.png',   { frameWidth: 512, frameHeight: 512, endFrame: 23 });
+        this.load.spritesheet('enemy_foreman_death',  'assets/enemies/foreman_zombie/dying.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+
+        // 矿洞（次级，静态贴图）
+        this.load.image('enemy_mine_cave', 'assets/enemies/mine_cave/mine_cave.png');
 
         // ---- 环境资源 ----
 
@@ -646,6 +679,111 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
+        // ---- 矿工僵尸动画 ----
+        this.anims.create({
+            key: 'enemy_miner_zombie_idle',
+            frames: this.anims.generateFrameNumbers('enemy_miner_zombie_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_miner_zombie_walk',
+            frames: this.anims.generateFrameNumbers('enemy_miner_zombie_walk', { start: 0, end: 13 }),
+            frameRate: 9,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_miner_zombie_attack',
+            frames: this.anims.generateFrameNumbers('enemy_miner_zombie_attack', { start: 0, end: 23 }),
+            duration: 1500, // 与 slam.duration 对齐（24 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_miner_zombie_death',
+            frames: this.anims.generateFrameNumbers('enemy_miner_zombie_death', { start: 0, end: 12 }),
+            duration: 1300, // 13 帧一次性死亡动画
+            repeat: 0,
+        });
+
+        // ---- 矿工提灯僵尸动画 ----
+        this.anims.create({
+            key: 'enemy_lantern_miner_idle',
+            frames: this.anims.generateFrameNumbers('enemy_lantern_miner_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_lantern_miner_walk',
+            frames: this.anims.generateFrameNumbers('enemy_lantern_miner_walk', { start: 0, end: 17 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_lantern_miner_attack',
+            frames: this.anims.generateFrameNumbers('enemy_lantern_miner_attack', { start: 0, end: 29 }),
+            duration: 1500, // 与 slam.duration 对齐（30 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_lantern_miner_attack2',
+            frames: this.anims.generateFrameNumbers('enemy_lantern_miner_attack2', { start: 0, end: 21 }),
+            duration: 1500, // 与 lantern.duration 对齐（22 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_lantern_miner_death',
+            frames: this.anims.generateFrameNumbers('enemy_lantern_miner_death', { start: 0, end: 14 }),
+            duration: 1500, // 15 帧一次性死亡动画（与 death.animMs 对齐）
+            repeat: 0,
+        });
+
+        // ---- 僵尸工头动画 ----
+        this.anims.create({
+            key: 'enemy_foreman_idle',
+            frames: this.anims.generateFrameNumbers('enemy_foreman_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_foreman_walk',
+            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 14 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_foreman_attack',
+            frames: this.anims.generateFrameNumbers('enemy_foreman_attack', { start: 0, end: 30 }),
+            duration: 1500, // 与 whip.duration 对齐（31 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_foreman_howl',
+            frames: this.anims.generateFrameNumbers('enemy_foreman_howl', { start: 0, end: 23 }),
+            duration: 3000, // 与 howl.duration 对齐（24 帧 / 3s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_foreman_death',
+            frames: this.anims.generateFrameNumbers('enemy_foreman_death', { start: 0, end: 13 }),
+            duration: 1400, // 14 帧一次性死亡动画（与 death.animMs 对齐）
+            repeat: 0,
+        });
+
+        // ---- NPC 动画 ----// 小鼠大王：idle 单帧循环；walk 19 帧循环（帧率读 game-config npcs.shopMouseKing.sprite.walkFps，缺省 10）
+        const mouseKingSpriteCfg = GAME_CONFIG?.npcs?.shopMouseKing?.sprite || {};
+        this.anims.create({
+            key: 'npc_mouse_king_idle',
+            frames: this.anims.generateFrameNumbers('npc_mouse_king_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'npc_mouse_king_walk',
+            frames: this.anims.generateFrameNumbers('npc_mouse_king_walk', { start: 0, end: 18 }),
+            frameRate: mouseKingSpriteCfg.walkFps ?? 10,
+            repeat: -1,
+        });
+
         // ---- 动态生成几何敌人纹理 ----
         const generateEnemyTexture = (key, drawFn, width = 64, height = 64) => {
             const g = this.make.graphics({ x: 0, y: 0, add: false });
@@ -773,15 +911,37 @@ export class BootScene extends Scene {
             g.fillCircle(32, 32, 24);
         });
 
-        // 毒蛆毒液弹：绿色球体核心 + 浅绿外圈（运行时粒子做彗尾）
-        generateEnemyTexture('projectile_poison_maggot', (g) => {
-            g.fillStyle(0x2d8a3e, 1);
-            g.fillCircle(32, 32, 22);
-            g.fillStyle(0x5ac85a, 0.7);
-            g.fillCircle(32, 32, 16);
-            g.fillStyle(0xa0ffa0, 0.9);
-            g.fillCircle(32, 32, 8);
+        // 毒蛆毒液弹：透视光照球体（右下深绿阴影 → 中心标准绿 → 左上高光，烘焙进纹理）
+        generateEnemyTexture('projectile_poison_maggot', (g) => {            const cx = 32, cy = 32, R = 24;
+            const dark = { r: 14, g: 92, b: 28 };    // 边缘阴影色
+            const base = { r: 46, g: 204, b: 64 };   // 中心标准绿 0x2ecc40
+            const steps = 16;
+            for (let i = steps; i >= 1; i--) {
+                const t = i / steps; // 1=边缘 → 0=中心
+                // 光照方向：左上亮右下暗——亮环中心向左上偏移
+                const ox = -t * 4, oy = -t * 4;
+                const r = Math.round(base.r + (dark.r - base.r) * t);
+                const gg = Math.round(base.g + (dark.g - base.g) * t);
+                const b = Math.round(base.b + (dark.b - base.b) * t);
+                g.fillStyle((r << 16) | (gg << 8) | b, 1);
+                g.fillCircle(cx + ox, cy + oy, R * t);
+            }
+            // 左上高光点（球面反射）：先大后小，小高光在上层
+            g.fillStyle(0xffffff, 0.55);
+            g.fillCircle(cx - 6, cy - 7, 8);
+            g.fillStyle(0xd8ffe0, 0.9);
+            g.fillCircle(cx - 8, cy - 9, 5);
         });
+
+        // 烟雾粒子纹理：白色软圆（径向渐隐，供绿色 tint 着色；tint 是乘法，白底不偏色）
+        generateEnemyTexture('smoke_particle', (g) => {
+            const steps = 10;
+            for (let i = steps; i >= 1; i--) {
+                const t = i / steps;
+                g.fillStyle(0xffffff, 0.10 * (1 - t) + 0.03);
+                g.fillCircle(32, 32, 28 * t);
+            }
+        }, 64, 64);
 
         // 曳光弹：白色发光条，运行时通过 tint 着色
         generateEnemyTexture('projectile_tracer', (g) => {
@@ -897,24 +1057,6 @@ export class BootScene extends Scene {
             g.fillCircle(37, 29, 2.5);
             g.lineStyle(2, 0xaa55ff, 0.3);
             g.strokeCircle(32, 32, 33);
-        });
-
-        // DeathKnight
-        generateEnemyTexture('enemy_death_knight', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 50, 36, 18);
-            g.fillStyle(0x8B0000, 1);
-            g.fillCircle(32, 32, 45);
-            g.fillStyle(0x783232, 0.3);
-            g.fillCircle(26, 26, 22.5);
-            g.fillStyle(0xcc0000, 1);
-            g.fillCircle(24, 27, 4);
-            g.fillCircle(40, 27, 4);
-            g.fillStyle(0xff3232, 0.5);
-            g.fillCircle(26, 25, 1.5);
-            g.fillCircle(42, 25, 1.5);
-            g.lineStyle(2, 0xb42828, 0.3);
-            g.strokeCircle(32, 32, 53);
         });
 
         // 切换到主游戏场景

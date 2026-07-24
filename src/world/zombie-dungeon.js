@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -87,6 +87,71 @@ export function createPoisonMaggot(x, y) {
             alertRange: 9999
         }
     });
+}
+
+export function createMinerZombie(x, y) {
+    const cfg = enemyConfigData.minerZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: minerZombie');
+        return new MinerZombie(x, y, { name: '矿工僵尸', hp: 150, maxHp: 150, size: 15, showWeapon: false });
+    }
+    return new MinerZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+export function createLanternMinerZombie(x, y) {
+    const cfg = enemyConfigData.lanternMinerZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: lanternMinerZombie');
+        return new LanternMinerZombie(x, y, { name: '矿工提灯僵尸', hp: 650, maxHp: 650, size: 15, showWeapon: false });
+    }
+    return new LanternMinerZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+export function createForemanZombie(x, y) {
+    const cfg = enemyConfigData.foremanZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: foremanZombie');
+        return new ForemanZombie(x, y, { name: '僵尸工头', hp: 1600, maxHp: 1600, size: 18, showWeapon: false });
+    }
+    return new ForemanZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+export function createMineCave(x, y) {
+    const cfg = enemyConfigData.mineCave;
+    const mkCave = (cx, cy) => new MineCave(cx, cy, {
+        ...(cfg || { name: '矿洞', hp: 1500, maxHp: 1500, size: 60, showWeapon: false }),
+        showWeapon: false,
+        // 生成工厂注入（避免实体层反向依赖 world 层）
+        spawnFactory: (mx, my) => createMinerZombie(mx, my)
+    });
+    return mkCave(x, y);
 }
 
 export function createFatZombie(x, y) {
@@ -264,6 +329,10 @@ const ZOMBIE_FACTORY_MAP = {
     zombieDog: createZombieDog,
     spitterZombie: createSpitterZombie,
     poisonMaggot: createPoisonMaggot,
+    minerZombie: createMinerZombie,
+    lanternMinerZombie: createLanternMinerZombie,
+    foremanZombie: createForemanZombie,
+    mineCave: createMineCave,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,

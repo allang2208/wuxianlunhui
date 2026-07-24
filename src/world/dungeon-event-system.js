@@ -943,7 +943,8 @@ export const DungeonEventSystem = {
         const grade = this._currentGrade || 'D';
         const gradeIdx = GRADE_ORDER.indexOf(grade);
         const dungeonType = (this._dungeonMapSystem && this._dungeonMapSystem.dungeonType) || 'zombie';
-        const family = dungeonType === 'zombieBeginner' ? 'zombie' : dungeonType;
+        // 僵尸家族地牢统一映射 zombie 事件大类（zombieBeginner/zombieMid 同族）
+        const family = (dungeonType === 'zombieBeginner' || dungeonType === 'zombieMid') ? 'zombie' : dungeonType;
         // 限定池：同一大类 + 事件等级在「地牢等级 ±1」范围内
         const restrictedPool = Object.entries(RESTRICTED_EVENT_META)
             .filter(([type, meta]) => {

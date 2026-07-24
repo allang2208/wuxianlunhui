@@ -182,8 +182,11 @@ export class TimeAgentShield extends Enemy {
                 this._tryAttackTelegraph(() => this._startBash());
                 return;
             }
-            // 防御：远程目标在接近过程中满足 CD 即用；近战目标在其攻击时才进入防御
-            if (t && this._defendCd <= 0 && dist <= (skills.defend.triggerRange ?? 260)) {
+            // 防御：远程目标在接近过程中满足 CD 即用；近战目标在其攻击时才进入防御。
+            // 联动规则2（突击近战）期间跳过防御——优先贴近目标到 shieldCloseRange 释放盾击，
+            // 避免防御姿态（不可移动 5.5s）阻断贴近
+            const linkSupport = AgentLinkSystem.getMeleeSupportConfig() && AgentLinkSystem.isAssaultInMelee(entities);
+            if (!linkSupport && t && this._defendCd <= 0 && dist <= (skills.defend.triggerRange ?? 260)) {
                 if (isTargetMeleeStyle(t)) {
                     this._tryStartDefend(t, dist); // 近战：攻击时才防御
                 } else {
@@ -471,12 +474,15 @@ export class TimeAgentShield extends Enemy {
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
         }
+        // 倒退行走：移动方向与朝向相反时标记倒放（GameScene 对循环动画 playReverse，其余不变）
+        const animReverse = this.isMoving && Math.abs(this.vx) > 0.1 && ((this.vx < 0) !== flipX);
         return {
             spriteSize: renderCfg.spriteSize || 160,
             collisionWidth: renderCfg.collisionWidth || 60,
             collisionHeight: renderCfg.collisionHeight || 110,
             textOffsetY: -(renderCfg.spriteSize || 160) / 2 - 10,
             flipX,
+            animReverse,
             animState: this._formState,
             animKey: this._getAnimKey(),
         };

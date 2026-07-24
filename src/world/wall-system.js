@@ -28,13 +28,13 @@ const WallSystem = {
         if (phaserScene.visualWalls) {
             phaserScene.visualWalls.clear(true, true);
         }
-        // 创建矩形墙壁物理体 + 2.5D 视觉精灵
+        // 创建矩形墙壁物理体 + 2.5D 视觉精灵（noVisual 墙只建物理体，如静态 NPC 底座障碍）
         for (const w of this.walls) {
             const wall = phaserScene.add.rectangle(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 0x000000, 0);
             phaserScene.physics.add.existing(wall, true); // true = static
             phaserScene.walls.add(wall);
 
-            if (phaserScene.visualWalls) {
+            if (phaserScene.visualWalls && !w.noVisual) {
                 const face = phaserScene.add.sprite(w.x + w.w / 2, w.y + w.h, 'wall_face');
                 face.setOrigin(0.5, 1);
                 face.setDisplaySize(w.w, w.height);

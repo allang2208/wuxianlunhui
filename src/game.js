@@ -48,6 +48,12 @@ import { Shounao } from './entities/enemy-types/shounao.js';
 import { FlySwarm } from './entities/enemy-types/fly-swarm.js';
 import { FlyHand } from './entities/enemy-types/fly-hand.js';
 import { PoisonMaggot } from './entities/enemy-types/poison-maggot.js';
+import { MinerZombie } from './entities/enemy-types/miner-zombie.js';
+import { LanternMinerZombie } from './entities/enemy-types/lantern-miner-zombie.js';
+import { ForemanZombie } from './entities/enemy-types/foreman-zombie.js';
+import { MineCave } from './entities/enemy-types/mine-cave.js';
+import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
+import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
@@ -252,6 +258,9 @@ export const Game = {
             color: shopCfg.color,
             portrait: shopCfg.portrait,
             npcType: shopCfg.npcType,
+            sprite: shopCfg.sprite,
+            wander: shopCfg.wander,
+            clickArea: shopCfg.clickArea,
             greetings: [
                 '你好，冒险者！欢迎来到无限轮回。',
                 '今天的天空格外晴朗呢。',
@@ -301,6 +310,12 @@ export const Game = {
             collisionRadius: whCfg.collisionRadius,
             color: whCfg.color,
             npcType: whCfg.npcType,
+            sprite: whCfg.sprite,
+            noSeparation: whCfg.noSeparation,
+            noShadow: whCfg.noShadow,
+            colliderOffsetY: whCfg.colliderOffsetY,
+            obstacle: whCfg.obstacle,
+            clickArea: whCfg.clickArea,
             greetings: ['仓库为你敞开。']
         });
         this.entities.set('npc_warehouse', warehouseNpc);
@@ -352,8 +367,132 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 生成一只毒蛆用于测试
-        this.spawnMainPoisonMaggot();
+        // 矿工提灯僵尸测试生成（砸击/提灯燃烧区验证）
+        this.spawnMainLanternMinerZombie();
+        // 僵尸工头测试生成（鞭击/号召/流血验证）
+        this.spawnMainForemanZombie();
+        // 矿洞测试生成（定时生成矿工/绿烟验证）
+        this.spawnMainMineCave();
+    },
+
+    spawnMainMineCave() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.mineCave || {};
+        const cave = new MineCave(origin.x + 1000, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            spawnFactory: (mx, my) => new MinerZombie(mx, my, {
+                ...enemyConfigData.minerZombie,
+                showWeapon: false,
+                ai: {
+                    ...(enemyConfigData.minerZombie?.ai || {}),
+                    aggroRange: 9999,
+                    pacingRange: 0,
+                    loseTimeout: 999999
+                }
+            }),
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_mine_cave', cave);
+    },
+
+    spawnMainForemanZombie() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.foremanZombie || {};
+        const foreman = new ForemanZombie(origin.x + 800, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_foreman', foreman);
+    },
+
+    spawnMainLanternMinerZombie() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.lanternMinerZombie || {};
+        const miner = new LanternMinerZombie(origin.x + 600, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_lantern_miner', miner);
+    },
+
+    spawnMainMinerZombie() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.minerZombie || {};
+        const miner = new MinerZombie(origin.x + 600, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_miner_zombie', miner);
+    },
+
+    spawnMainTimeAgentShield() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const shieldCfg = enemyConfigData.timeAgentShield || {};
+        // origin 东侧开阔地带生成（与突击特工错开站位）
+        const shield = new TimeAgentShield(origin.x + 700, origin.y + 100, {
+            ...shieldCfg,
+            showWeapon: false,
+            ai: {
+                ...(shieldCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_timeshield', shield);
+    },
+
+    spawnMainTimeAgent() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const agentCfg = enemyConfigData.timeAgentAssault || {};
+        // origin 东侧开阔地带生成（避免卡墙）
+        const agent = new TimeAgentAssault(origin.x + 500, origin.y + 100, {
+            ...agentCfg,
+            showWeapon: false,
+            ai: {
+                ...(agentCfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_timeagent', agent);
     },
 
     spawnMainPoisonMaggot() {
@@ -408,7 +547,7 @@ export const Game = {
      */
     isPreservedCorpse(entity) {
         return !!(entity && entity._preserveCorpse && !entity.active &&
-            (entity._deathAnimTimer > 0 || entity._corpseTimer > 0));
+            (entity._deathAnimTimer > 0 || entity._corpseTimer > 0 || entity._fadeTimer > 0));
     },
 
     /**
@@ -855,30 +994,43 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
-            let clickedNPC = false;
             let clickedPickup = false;
             const dropKeysToDelete = [];
-            for (const [key, entity] of this.entities) {
-                if (clickedNPC && clickedPickup) break;
-                if (!clickedNPC && entity instanceof NPC && entity.active) {
-                    const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
-                    const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (playerDist > npcClickDist) continue;
-                    const pos = Renderer.worldToScreen(entity.x, entity.y);
-                    const mx = Input.mouse.x, my = Input.mouse.y;
-                    const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
-                    if (hover) {
-                        // 仓库 NPC：直接打开仓库面板，不走对话；记录锚点供距离自动关闭
-                        if (entity.npcType === 'warehouse') {
-                            WarehouseSystem._anchorNPC = entity;
-                            WarehouseSystem.open();
-                        } else {
-                            NPCDialogue.open(entity);
-                        }
-                        clickedNPC = true;
-                        Input.mouse.leftPressed = false;
-                    }
+            const mx = Input.mouse.x, my = Input.mouse.y;
+            // NPC 对话检测（优先于拾取）：贴图 NPC 按点击区域判定，多点命中取点击点最近者
+            let npcCandidate = null;
+            let npcBestDist = Infinity;
+            for (const entity of this.entities.values()) {
+                if (!(entity instanceof NPC) || !entity.active) continue;
+                const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
+                if (Math.sqrt(pdx * pdx + pdy * pdy) > npcClickDist) continue;
+                const pos = Renderer.worldToScreen(entity.x, entity.y);
+                const rect = typeof entity.getClickRect === 'function' ? entity.getClickRect() : null;
+                let hover;
+                if (rect) {
+                    hover = mx >= pos.x + rect.ox && mx <= pos.x + rect.ox + rect.w &&
+                        my >= pos.y + rect.oy && my <= pos.y + rect.oy + rect.h;
+                } else {
+                    hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y)) < npcHoverDist;
                 }
+                if (hover) {
+                    const d = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - pos.y) * (my - pos.y));
+                    if (d < npcBestDist) { npcBestDist = d; npcCandidate = entity; }
+                }
+            }
+            if (npcCandidate) {
+                // 仓库 NPC：直接打开仓库面板，不走对话；记录锚点供距离自动关闭
+                if (npcCandidate.npcType === 'warehouse') {
+                    WarehouseSystem._anchorNPC = npcCandidate;
+                    WarehouseSystem.open();
+                } else {
+                    NPCDialogue.open(npcCandidate);
+                }
+                Input.mouse.leftPressed = false;
+                return;
+            }
+            for (const [key, entity] of this.entities) {
+                if (clickedPickup) break;
                 if (!clickedPickup && entity instanceof DropItem && entity.active) {
                     const pdx = entity.x - this.player.x, pdy = entity.y - this.player.y;
                     const playerDist = Math.sqrt(pdx * pdx + pdy * pdy);
@@ -905,7 +1057,6 @@ if (Input.mouse.leftPressed) {
             for (const key of dropKeysToDelete) {
                 this.entities.delete(key);
             }
-            if (clickedNPC) return;
         }
 
         // ===== 空间分区重建：必须在实体/战斗/AI/投射物更新前完成 =====
@@ -922,7 +1073,7 @@ if (Input.mouse.leftPressed) {
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
-            const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0);
+            const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0 || e._fadeTimer > 0);
             if (!e.active && !isCorpse) continue;
 e.update(dt, this.entities);
 // 玩家 update 会移动并触发攻击，同步其 Collider 供后续敌人 AI/战斗作为目标使用
@@ -1203,6 +1354,8 @@ if (SceneManager.currentScene === 'scene3') {
         if (!activeNPC && UIState.isOpen('expedition')) activeNPC = ExpeditionSystem._anchorNPC;
         if (!activeNPC && UIState.isOpen('fusion')) activeNPC = FusionSystem._anchorNPC;
         if (!activeNPC) return;
+        // 交互期间冻结 NPC 游走（防止游走走出 npcAutoClose 距离把正在使用的面板顶掉）
+        activeNPC._interactionHoldMs = 250;
         const dx = activeNPC.x - this.player.x;
         const dy = activeNPC.y - this.player.y;
         const dist = Math.sqrt(dx * dx + dy * dy);

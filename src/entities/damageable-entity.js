@@ -305,6 +305,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     buff: { icon: '✨', name: '增益', color: '#9a9a5a' },
                     shield: { icon: '🛡️', name: '护盾', color: '#5a8a9a' },
                     bleed: { icon: '🩸', name: '流血', color: '#9a3a3a' },
+                    inspire: { icon: '📣', name: '激励', color: '#ffb347' },
                     magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
@@ -366,8 +367,49 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 for (let i = this.statusEffects.length - 1; i >= 0; i--) {
                     const e = this.statusEffects[i];
                     e.remaining -= dt;
-                    if (e.remaining <= 0) this.statusEffects.splice(i, 1);
+                    if (e.remaining <= 0) {
+                        // 激励到期：还原攻击/移速乘算
+                        if (e.type === 'inspire') this._onInspireEnd();
+                        this.statusEffects.splice(i, 1);
+                    }
                 }
+            }
+
+            /**
+             * 激励 buff（怪物增益，如僵尸工头号召）：
+             * 持续期间移动速度 ×speedMul、物理攻击 ×atkMul（数据层直接乘算，到期 _onInspireEnd 还原）。
+             * 重复激励只刷新时长，不重复乘算。
+             */
+            applyInspire(duration, opts = {}) {
+                const speedMul = opts.speedMul ?? 1.33;
+                const atkMul = opts.atkMul ?? 1.5;
+                if (!this.hasStatusEffect('inspire')) {
+                    this._inspireMul = { speedMul, atkMul };
+                    if (this.data && typeof this.data.atk === 'number') {
+                        this.data.atk = Math.max(1, Math.round(this.data.atk * atkMul));
+                    }
+                    if (typeof this.maxSpeed === 'number' && this.maxSpeed > 0) this.maxSpeed *= speedMul;
+                    if (typeof this.speed === 'number' && this.speed > 0) this.speed *= speedMul;
+                }
+                this.addStatusEffect('inspire', duration, { name: '激励', icon: '📣', color: '#ffb347' });
+                if (this._faction === 'player' && StatusBar) {
+                    StatusBar.addEffect('inspire', duration, { name: '激励', icon: '📣', color: '#ffb347' });
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '📣 激励！', '#ffb347'));
+                }
+            }
+
+            /** 激励到期还原（updateStatusEffects 钩子） */
+            _onInspireEnd() {
+                const mul = this._inspireMul;
+                if (!mul) return;
+                this._inspireMul = null;
+                if (this.data && typeof this.data.atk === 'number' && mul.atkMul > 0) {
+                    this.data.atk = Math.max(1, Math.round(this.data.atk / mul.atkMul));
+                }
+                if (typeof this.maxSpeed === 'number' && mul.speedMul > 0) this.maxSpeed /= mul.speedMul;
+                if (typeof this.speed === 'number' && mul.speedMul > 0) this.speed /= mul.speedMul;
             }
             /**
              * 应用眩晕（通过状态栏系统）
@@ -449,23 +491,28 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
                 if (this._poisonEffect) this._poisonEffect.reset();
             }
-            // --- 状态效果：流血 ---
+            // --- 状态效果：流血（每层每秒 1% 当前生命值，持续 10s，到期减一层） ---
             _updateBleed(dt) {
                 if (this._bleedStacks <= 0) return;
                 this._bleedTimer -= dt;
                 this._bleedTickTimer -= dt;
                 if (this._bleedTickTimer <= 0) {
-                    const dmg = Math.max(1, Math.floor(this.hp * 0.1));
+                    const dmg = Math.max(1, Math.floor(this.hp * 0.01 * this._bleedStacks));
                     this.hp -= dmg;
                     if (EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${dmg}`, '#9a3a3a'));
+                    }
+                    // 流血血渍：特工斧头同款红色粒子落地，地面保留 10s（GameScene 统一实现）
+                    const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                    if (fxScene && typeof fxScene.playBleedGroundParticles === 'function') {
+                        fxScene.playBleedGroundParticles(this.x, this.y, this);
                     }
                     this._bleedTickTimer = 1000;
                 }
                 if (this._bleedTimer <= 0) {
                     this._bleedStacks = Math.max(0, this._bleedStacks - 1);
                     if (this._bleedStacks > 0) {
-                        this._bleedTimer = 5000;
+                        this._bleedTimer = 10000;
                         if (this._bleedEffectId && StatusBar) {
                             StatusBar.updateEffectStacks('bleed', this._bleedStacks);
                         }
@@ -499,10 +546,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
             }
             applyBleeding(stacks) {
                 this._bleedStacks += stacks;
-                this._bleedTimer = 5000;
+                this._bleedTimer = 10000;
                 if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
                 if (!this._bleedEffectId && StatusBar) {
-                    this._bleedEffectId = StatusBar.addEffect('bleed', 5000, { stacks: this._bleedStacks });
+                    this._bleedEffectId = StatusBar.addEffect('bleed', 10000, { stacks: this._bleedStacks });
                 } else if (StatusBar) {
                     StatusBar.updateEffectStacks('bleed', this._bleedStacks);
                 }

@@ -1,11 +1,13 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
+import { SoundManager } from '../../ui/sound-manager.js';
+import { Geom } from 'phaser';
 
 /**
  * 毒蛆（精英，僵尸 family）
  * - 行动迟缓，仅使用「毒液喷射」一种攻击
- * - 3s 播放 spitting 16 帧，第 6~14 帧在面向目标 90° 扇形内持续发射绿色毒球
+ * - 3s 播放 spitting 16 帧，第 6~14 帧在面向目标扇形内持续发射绿色毒球（间隔/扇形/每次个数均配置驱动）
  * - 毒球命中造成魔法攻击 ×0.33 伤害，33% 几率叠加 1 层中毒
  * - 攻击时不可移动
  */
@@ -50,9 +52,9 @@ export class PoisonMaggot extends Enemy {
             return;
         }
 
-        // 朝向目标
+        // 朝向目标（喷射毒液期间锁定朝向，不可转向）
         const t = this.target && this.target.active ? this.target : null;
-        if (t) this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
+        if (t && this._attackState !== 'spitting') this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
 
         if (this._attackState === 'spitting') {
             this._attackTimer -= dt;
@@ -85,6 +87,8 @@ export class PoisonMaggot extends Enemy {
         this._spitCooldown = cfg.cooldown ?? 8000;
         this._spitEmitTimer = 0;
         this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+        // 喷射期间锁定朝向与翻转（不可转向）
+        this._spitFlipX = target.x < this.x;
     }
 
     _updateSpitting(dt, entities) {
@@ -103,10 +107,13 @@ export class PoisonMaggot extends Enemy {
         if (this._spitEmitTimer > 0) return;
         this._spitEmitTimer = cfg.intervalMs ?? 150;
 
-        // 在面向目标扇形内随机方向
+        // 每次发射 burstCount 个毒球，各自在面向目标扇形内随机方向
         const halfFan = (cfg.fanAngle ?? Math.PI / 2) / 2;
-        const angle = this.rotation + (Math.random() * halfFan * 2 - halfFan);
-        this._firePoisonBall(angle, entities);
+        const burst = Math.max(1, cfg.burstCount ?? 1);
+        for (let i = 0; i < burst; i++) {
+            const angle = this.rotation + (Math.random() * halfFan * 2 - halfFan);
+            this._firePoisonBall(angle, entities);
+        }
     }
 
     _firePoisonBall(angle, entities) {
@@ -114,6 +121,12 @@ export class PoisonMaggot extends Enemy {
         const matk = this.data?.matk || 0;
         const damage = Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.33)));
         const head = this._getHeadWorldPosition();
+
+        // 喷射音效（配置 sounds.spit，与毒液僵尸攻击同款：每发射一个投射物播放一次）
+        const spitSound = this.config?.sounds?.spit;
+        if (spitSound && SoundManager && typeof SoundManager.play === 'function') {
+            SoundManager.play(spitSound);
+        }
 
         const p = ProjectileFactory.create({
             x: head.x,
@@ -126,27 +139,35 @@ export class PoisonMaggot extends Enemy {
             piercing: 0,
             source: this,
             entities,
-            image: 'projectile_poison_maggot',
+            textureKey: 'projectile_poison_maggot',
             damageType: cfg.damageType || 'magic',
             poisonChance: cfg.poisonChance ?? 0.33,
             poisonStacks: cfg.poisonStacks ?? 1,
+            depthBonus: cfg.depthBonus ?? 0,
             knockback: 0
         });
 
         this._attachPoisonTrail(p);
     }
 
-    /** 估算头部发射位置（基于当前朝向 flipX） */
+    /** 毒球发射口：贴图最前端（朝向方向上的贴图边缘，如朝右=贴图最右边），数值配置驱动 */
     _getHeadWorldPosition() {
         const opts = this._getPhaserOptions();
         const dirX = opts.flipX ? -1 : 1;
-        return {
-            x: this.x + dirX * 12,
-            y: this.y - 8
-        };
+        const cfg = this._getSkillConfigs().spit || {};
+        const forward = cfg.muzzleForward ?? (this.config?.render?.spriteSize || 100) / 2;
+        const upY = cfg.muzzleUpY ?? 8;
+        let mx = this.x + dirX * forward;
+        let my = this.y - upY;
+        // 面朝右时的额外微调（配置驱动，左移/上移用负值）
+        if (!opts.flipX) {
+            mx += cfg.muzzleRightDx ?? 0;
+            my += cfg.muzzleRightDy ?? 0;
+        }
+        return { x: mx, y: my };
     }
 
-    /** 给毒球附加绿色彗尾粒子 */
+    /** 给毒球附加绿色彗尾粒子 + 环绕粒子（环绕参数配置驱动 spit.orbit） */
     _attachPoisonTrail(projectile) {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !projectile || !projectile._phaserSprite) return;
@@ -162,12 +183,36 @@ export class PoisonMaggot extends Enemy {
             follow: projectile._phaserSprite
         });
         trail.addToUpdateList();
+        trail.setDepth((projectile._phaserSprite.depth || 0) + 1);
 
-        // 投射物销毁时同步清理拖尾
+        // 环绕粒子：投射物圆周上持续生成短生命周期绿点
+        const orbit = this._getSkillConfigs().spit?.orbit || {};
+        const ring = scene.add.particles(0, 0, 'projectile_poison_maggot', {
+            scale: { start: orbit.scaleStart ?? 0.3, end: orbit.scaleEnd ?? 0.05 },
+            alpha: { start: 0.7, end: 0 },
+            speed: 0,
+            lifespan: orbit.lifespan ?? 280,
+            tint: typeof orbit.tint === 'string' ? parseInt(orbit.tint, 16) : (orbit.tint ?? 0x7aff7a),
+            quantity: 1,
+            frequency: orbit.frequency ?? 60,
+            emitZone: {
+                type: 'edge',
+                source: new Geom.Circle(0, 0, orbit.radius ?? 18),
+                quantity: 32,
+                yoyo: false
+            },
+            follow: projectile._phaserSprite
+        });
+        ring.addToUpdateList();
+        ring.setDepth((projectile._phaserSprite.depth || 0) + 1);
+
+        // 投射物销毁时同步清理拖尾与环绕粒子
         projectile._onBeforeDestroy = () => {
-            if (trail && trail.active) {
-                trail.stop();
-                trail.destroy();
+            for (const fx of [trail, ring]) {
+                if (fx && fx.active) {
+                    fx.stop();
+                    fx.destroy();
+                }
             }
         };
     }
@@ -184,7 +229,10 @@ export class PoisonMaggot extends Enemy {
         const renderCfg = this.config?.render || {};
         const spriteSize = renderCfg.spriteSize || 100;
         let flipX = false;
-        if (this.target && this.target.active) {
+        // 喷射期间锁定翻转（不可转向，与 _spitFlipX 一致）
+        if (this._attackState === 'spitting') {
+            flipX = !!this._spitFlipX;
+        } else if (this.target && this.target.active) {
             flipX = this.target.x < this.x;
         } else if (Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;

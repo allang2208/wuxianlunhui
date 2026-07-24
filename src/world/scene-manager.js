@@ -124,6 +124,15 @@ export const SceneManager = {
                 EffectManager.clearFloatingTexts();
             }
             Game.entities.clear();
+            // 场景切换前销毁在飞投射物的 Phaser 贴图与附加粒子（彗尾/环绕 emitter），
+            // 直接丢弃 effects 列表不会走正常失效路径，粒子发射器会永久泄漏
+            if (EffectManager && Array.isArray(EffectManager.effects)) {
+                for (const fx of EffectManager.effects) {
+                    if (fx && typeof fx._destroyPhaserSprite === 'function') {
+                        try { fx._destroyPhaserSprite(); } catch (_e) { /* 忽略清理异常 */ }
+                    }
+                }
+            }
             EffectManager.effects = [];
             // 循环音轨全停（实体被直接 clear 不会走 _destroyCustomEffects，音轨会泄漏）
             if (SoundManager && SoundManager.stopAllLoops) {
@@ -410,6 +419,22 @@ export const SceneManager = {
             { x: 0, y: 0, w: wt, h: size, height: 60 },
             { x: size - wt, y: 0, w: wt, h: size, height: 60 },
         ];
+        // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；
+        // noVisual 标记跳过墙面视觉（贴图 NPC 自身就是视觉）。与边界墙同入口重建，场景往返不丢
+        if (typeof Game !== 'undefined' && Game.entities) {
+            for (const e of Game.entities.values()) {
+                const ob = e && e.obstacleCfg;
+                if (!ob) continue;
+                WallSystem.walls.push({
+                    x: e.x - (ob.width ?? 0) / 2,
+                    y: e.y + (ob.offsetY ?? 0) - (ob.height ?? 0),
+                    w: ob.width ?? 0,
+                    h: ob.height ?? 0,
+                    height: ob.wallHeight ?? 60,
+                    noVisual: true,
+                });
+            }
+        }
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
         // 恢复主神空间地形，避免残留地牢贴图
         if (window.__phaserScene) {

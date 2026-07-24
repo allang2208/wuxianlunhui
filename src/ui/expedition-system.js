@@ -645,8 +645,8 @@ export const ExpeditionSystem = {
             const normalChance = Math.round(((table.normal && table.normal.chance) || 0) * 1000) / 10;
             lines.push(`<span class="rule-sub">精英/领主/首领必掉 · 普通怪 ${normalChance}%</span>`);
         }
-        // 装备：精英宝箱武器稀有度（dungeon-config eliteChestReward）
-        const zombieCfg = DungeonConfig.getZombieDungeonConfig ? DungeonConfig.getZombieDungeonConfig() : {};
+        // 装备：精英宝箱武器稀有度（dungeon-config eliteChestReward，按选中地牢读取）
+        const zombieCfg = DungeonConfig.getZombieDungeonConfig ? DungeonConfig.getZombieDungeonConfig(this.selectedDungeon) : {};
         const chestWeapon = ((zombieCfg.eliteChestReward && zombieCfg.eliteChestReward.items) || []).find(i => i.type === 'weapon');
         if (chestWeapon) {
             lines.push(`精英宝箱武器：${this._rarityText(chestWeapon.rarity || 'common')}`);

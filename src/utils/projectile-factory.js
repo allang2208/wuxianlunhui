@@ -29,6 +29,8 @@ import { Projectile } from '../combat/projectile.js';
  * @property {boolean} [noRender]
  * @property {number} [poisonChance] 命中附加中毒概率（0~1）
  * @property {number} [poisonStacks] 附加中毒层数
+ * @property {string|null} [textureKey] 显式 Phaser 纹理键（优先于 image 的箭头回退）
+ * @property {number} [depthBonus] 深度加成（叠加在 y+12 之上，用于保证贴图层级不被遮挡）
  */
 
 export const ProjectileFactory = {
@@ -51,7 +53,9 @@ export const ProjectileFactory = {
             noRender = false,
             knockback,
             poisonChance = 0,
-            poisonStacks = 1
+            poisonStacks = 1,
+            textureKey = null,
+            depthBonus = 0
         } = options;
 
         let p = EffectManager._acquire('Projectile');
@@ -76,8 +80,11 @@ export const ProjectileFactory = {
             p._noRender = noRender;
             p.poisonChance = poisonChance;
             p.poisonStacks = poisonStacks;
-            // 始终重置，防止对象池复用时残留上一发投射物的击退
+            // 始终重置，防止对象池复用时残留上一发投射物的击退/纹理键/深度加成/清理回调
+            p.textureKey = textureKey;
+            p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
+            p._onBeforeDestroy = null;
             p.traveled = 0;
             p.active = true;
             p.hitTargets = new Set();
@@ -87,9 +94,12 @@ export const ProjectileFactory = {
                 x, y, angle, speed, maxRange, size,
                 damage, piercing, source, entities, image,
                 isTracer, isGold, isDarkGold, damageType,
-                noRender, isGreen, isSpit, poisonChance, poisonStacks
+                noRender, isGreen, isSpit, poisonChance, poisonStacks, textureKey
             );
+            p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
+            // 构造函数内已创建 Sprite（depthBonus 尚未生效），立即同步一次深度/尺寸
+            p.syncPhaserSprite();
         }
         // 快照发射瞬间武器的附魔/改造效果：命中时按快照判定，防止弹道飞行中切枪改变命中效果
         const snapWeapon = source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null;

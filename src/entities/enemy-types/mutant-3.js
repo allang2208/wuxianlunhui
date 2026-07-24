@@ -2,8 +2,8 @@ import { Enemy } from '../enemy.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { WallSystem } from '../../world/wall-system.js';
-import { AimHelper } from '../../utils/aim-helper.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { playSoundFrom } from './_shared/enemy-utils.js';
 
 /**
  * 怪物突变体-3（精英）
@@ -41,12 +41,9 @@ export class Mutant3 extends Enemy {
         this._comboCooldown = 0;
         this._comboTarget = null;
         this._comboHitMask = 0;
-        this._comboDashState = 'idle'; // idle | dash
-        this._comboDashTimer = 0;
-        this._comboDashTarget = null;
         this._attackAnimPhase = null; // null | normal
 
-        // 连击命中后的小幅突进（插帧平滑移动）
+        // 连击命中后的小幅突进（插帧平滑移动，只在连击命中后记录）
         this._comboLungeDx = 0;
         this._comboLungeDy = 0;
         this._comboLungeRemaining = 0;
@@ -74,31 +71,15 @@ export class Mutant3 extends Enemy {
             return;
         }
 
-        // 连击冲刺：在普攻命中距离内但还没贴到 50px 时，短距离突进保证能开始连击
-        if (this._comboDashState === 'dash') {
-            this._updateComboDash(dt);
-            return;
-        }
-
         // 飞扑状态机
         if (this._pounceState === 'idle') {
             // 普通 AI 更新
             super.update(dt, entities);
 
-            // 尝试开始 5 连击（贴身直接发动）
+            // 尝试开始 5 连击（贴身直接发动；突进只发生在连击命中后，见 _dealComboHit）
             if (this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
                 if (this._isTargetInRange(this.target, this._getAttackStartDistance())) {
                     this._tryAttackTelegraph(() => this._startCombo());
-                    return;
-                }
-            }
-
-            // 距离已进命中范围但还没贴身：先突进再连击
-            if (this._comboDashState === 'idle' && this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
-                const inComboRange = this._isTargetInRange(this.target, this._getComboAttackDistance());
-                const inStartRange = this._isTargetInRange(this.target, this._getAttackStartDistance());
-                if (inComboRange && !inStartRange) {
-                    this._tryAttackTelegraph(() => this._startComboDash());
                     return;
                 }
             }
@@ -144,19 +125,25 @@ export class Mutant3 extends Enemy {
                 this.y = resolved.y;
             }
 
-            // 命中检测（距离判定，只造成伤害，不中断动画）
+            // 命中检测（飞扑专用判定距离 pounceHitDistance，与连击/普攻判定距离独立）；
+            // 命中并眩晕目标 → 中断飞扑动作、退出飞扑状态；未命中保持原样
             const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
             if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
-                if (this._isTargetInRange(hitTarget, this._getAttackDistance())) {
-                    const wasAlive = hitTarget.hp > 0;
+                if (this._isTargetInRange(hitTarget, this._getPounceHitDistance())) {
                     hitTarget.takeDamage(this._getPounceDamage(), this, 'physical', true);
+                    this._pounceDamaged = true;
                     // 若被盾牌弹反，不再眩晕玩家；弹反本身已通过 ShieldSystem 眩晕/击退突变体
                     const parried = hitTarget.shieldSystem && hitTarget.shieldSystem._lastParried;
-                    if (!parried && hitTarget.applyStun) hitTarget.applyStun(2000);
-                    if (wasAlive && hitTarget.hp <= 0) {
-                        // 击杀经验等由 takeDamage 内部处理
+                    if (parried) {
+                        // 被弹反：终止飞扑动作，原地进入 idle（眩晕由 ShieldSystem 施加）
+                        this._endPounce();
+                        return;
                     }
-                    this._pounceDamaged = true;
+                    if (hitTarget.applyStun) {
+                        hitTarget.applyStun(2000);
+                        this._endPounce();
+                        return;
+                    }
                 }
             }
 
@@ -189,17 +176,14 @@ export class Mutant3 extends Enemy {
 
         this._comboState = 'attacking';
         this._comboTimer = 1500;
-        this._comboCooldown = 3000;
+        this._comboCooldown = this.config?.comboCooldown ?? 3000;
         this._comboHitMask = 0;
-        this._comboDashState = 'idle';
-        this._comboDashTarget = null;
-        this._comboDashPredicted = null;
         this._animState = 'attack';
         this._attackAnimPhase = 'normal';
         this._pounceAnimPhase = null;
         this._frozenForCast = true;
 
-        // 重置连击突进插值
+        // 重置连击突进插值（突进只在连击命中后由 _dealComboHit 记录）
         this._comboLungeDx = 0;
         this._comboLungeDy = 0;
         this._comboLungeRemaining = 0;
@@ -208,78 +192,7 @@ export class Mutant3 extends Enemy {
         this.vy = 0;
         this.isMoving = false;
 
-        // 最终修正：如果冲刺结束时还没进入 50px，吸附到目标面前，避免高速目标滑出攻击窗口
-        const dx = t.x - this.x;
-        const dy = t.y - this.y;
-        const d = Math.hypot(dx, dy);
-        const startDist = this._getAttackStartDistance();
-        // 若冲刺结束时还没贴到 startDist，吸附到目标面前，避免高速目标滑出攻击窗口
-        if (d > startDist && d <= this._getComboAttackDistance()) {
-            const desired = Math.max(35, startDist - 10);
-            const nx = t.x - (dx / d) * desired;
-            const ny = t.y - (dy / d) * desired;
-            const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
-            this.x = r.x;
-            this.y = r.y;
-        }
-
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '💢 连击！', '#8a4a2a'));
-    }
-
-    _startComboDash() {
-        this._comboDashState = 'dash';
-        this._comboDashTimer = 250;
-        this._comboDashTarget = this.target;
-        this._comboDashPredicted = null;
-        this._attackAnimTimer = this._comboDashTimer; // 阻止 MovementSystem 覆盖移动
-        this._animState = 'walk';
-        this.vx = 0;
-        this.vy = 0;
-        this.isMoving = true;
-
-        // 可选：用 AimHelper 做简单预判作为落点参考（实际每帧会重新朝当前目标修正）
-        const t = this._comboDashTarget;
-        if (t && t.active) {
-            this._comboDashPredicted = AimHelper.lead(
-                this.x, this.y,
-                t.x, t.y,
-                t.vx || 0, t.vy || 0,
-                1200, 0
-            );
-        }
-    }
-
-    _updateComboDash(dt) {
-        this._comboDashTimer -= dt;
-        this._attackAnimTimer = Math.max(0, this._comboDashTimer);
-        const t = this._comboDashTarget;
-        if (t && t.active) {
-            // 每帧重新朝当前目标位置冲锋（自动修正玩家横向移动），避免固定预测点导致冲过头
-            const dx = t.x - this.x;
-            const dy = t.y - this.y;
-            const d = Math.hypot(dx, dy);
-            this.rotation = Math.atan2(dy, dx);
-            if (d > 0) {
-                const speed = 1200; // px/s，快速贴身
-                const step = Math.min(speed * (dt / 1000), d);
-                const nx = this.x + (dx / d) * step;
-                const ny = this.y + (dy / d) * step;
-                const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
-                this.x = r.x;
-                this.y = r.y;
-            }
-            if (d <= this._getAttackStartDistance() || this._comboDashTimer <= 0) {
-                this._comboDashState = 'idle';
-                this._comboDashTarget = null;
-                this._comboDashPredicted = null;
-                this._startCombo();
-                return;
-            }
-        } else {
-            this._comboDashState = 'idle';
-            this._comboDashTarget = null;
-            this._comboDashPredicted = null;
-        }
     }
 
     _updateCombo(dt, entities) {
@@ -344,6 +257,8 @@ export class Mutant3 extends Enemy {
         const base = dmgCfg ? Math.floor((dmgCfg.min + dmgCfg.max) / 2) : (this.data.atk || this.data.str || 20);
         const damage = Math.max(1, base);
         target.takeDamage(damage, this, 'physical', true);
+        // 连击音效（配置 sounds.combo，每次伤害判定播放）
+        playSoundFrom(this, 'combo');
 
         // 若被盾牌弹反，则不再施加束缚/血雾等后续效果
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
@@ -374,9 +289,14 @@ export class Mutant3 extends Enemy {
         return this.attackDistance || this.attackRange || 100;
     }
 
-    // 5 连击期间允许的最大命中距离：比普攻距离大，避免玩家奔跑时连击全部挥空
+    // 飞扑命中判定距离（配置 pounceHitDistance，独立于连击/普攻的 attackDistance）
+    _getPounceHitDistance() {
+        return this.config?.pounceHitDistance ?? this._getAttackDistance();
+    }
+
+    // 5 连击期间允许的最大命中距离（配置 comboHitDistance；缺省回退旧公式）
     _getComboAttackDistance() {
-        return Math.max(this._getAttackDistance(), 350);
+        return this.config?.comboHitDistance ?? Math.max(this._getAttackDistance(), 350);
     }
 
     _getAttackStartDistance() {
@@ -439,7 +359,7 @@ export class Mutant3 extends Enemy {
         this._frozenForCast = true;
         this._pounceTimer = 1000;
         this._pounceStartPos = { x: this.x, y: this.y };
-        this._pounceCooldown = 20000;
+        this._pounceCooldown = this.config?.pounceCooldown ?? 20000;
         this._pounceTarget = this.target;
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🐆 飞扑蓄力', '#3a6a2a'));
     }
@@ -492,6 +412,9 @@ export class Mutant3 extends Enemy {
         this._pounceTimer = 1000;
         this._attackAnimTimer = 1000; // 阻止 MovementSystem 在冲锋中转向目标
         this._pounceSpeed = this._pounceChargeDistance / 1; // px/s
+
+        // 飞扑音效（配置 sounds.pounce，进入冲锋阶段才播放，蓄力阶段不播）
+        playSoundFrom(this, 'pounce');
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🐆 飞扑！', '#3a6a2a'));
     }

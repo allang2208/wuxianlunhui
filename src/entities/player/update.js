@@ -23,6 +23,12 @@ update(dt, entities) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
                 this.updateStatusEffects(dt);
+                // 伤害型状态效果（中毒/流血/易伤）——此前玩家只跑 updateStatusEffects，
+                // 导致流血/中毒对玩家不 tick 伤害、不过期、血渍粒子不生成（工头鞭击流血无表现的根因）
+                if (typeof this._updatePoison === 'function') this._updatePoison(dt);
+                if (typeof this._updateBleed === 'function') this._updateBleed(dt);
+                if (typeof this._updateMagicVulnerability === 'function') this._updateMagicVulnerability(dt);
+                if (typeof this._updateDroneVulnerability === 'function') this._updateDroneVulnerability(dt);
                 // 死亡状态处理
                 if (this._isDead) {
                     this._deathTimer -= dt;

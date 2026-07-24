@@ -17,6 +17,10 @@ import { FlyHand } from './enemy-types/fly-hand.js';
 import { TimeAgentAssault } from './enemy-types/time-agent-assault.js';
 import { TimeAgentShield } from './enemy-types/time-agent-shield.js';
 import { PoisonMaggot } from './enemy-types/poison-maggot.js';
+import { MinerZombie } from './enemy-types/miner-zombie.js';
+import { LanternMinerZombie } from './enemy-types/lantern-miner-zombie.js';
+import { ForemanZombie } from './enemy-types/foreman-zombie.js';
+import { MineCave } from './enemy-types/mine-cave.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -476,4 +480,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot };
+export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave };

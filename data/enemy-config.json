@@ -118,6 +118,12 @@
     "attackDistance": 100,
     "aiInterval": 2000,
     "rangedDamageReduction": 0.5,
+    "sounds": {
+      "walk": "assets/sounds/enemies/fat_zombie/walking-2.mp3",
+      "walkInterval": 500,
+      "attack": "assets/sounds/enemies/fat_zombie/attacking.mp3",
+      "death": "assets/sounds/enemies/fat_zombie/dying.mp3"
+    },
     "render": {
       "spriteSize": 150,
       "collisionWidth": 60,
@@ -159,6 +165,396 @@
     "description": "体型庞大的僵尸，行动缓慢但力大无穷。周身散发腐化肉瘤，50×25 范围内的敌对目标每 0.5 秒受到 8 点魔法伤害；受到远程物理伤害减少 50%。",
     "skills": [],
     "attackType": "重击碾压"
+  },
+  "minerZombie": {
+    "id": "minerZombie",
+    "name": "矿工僵尸",
+    "type": "普通",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#7a6a4a",
+    "size": 15,
+    "collisionRadius": 15,
+    "height": 100,
+    "hp": 150,
+    "maxHp": 150,
+    "speed": 140,
+    "level": 4,
+    "rank": "normal",
+    "str": 16,
+    "dex": 13,
+    "con": 18,
+    "int": 3,
+    "wis": 4,
+    "luck": 5,
+    "attackRange": 130,
+    "attackDistance": 130,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 4000,
+      "dynamicRange": 130,
+      "width": 22,
+      "knockback": 75
+    },
+    "attackSkills": {
+      "slam": {
+        "range": 130,
+        "duration": 1500,
+        "frames": 24,
+        "hitFrame": 17,
+        "knockback": 75,
+        "cooldown": 4000
+      }
+    },
+    "death": {
+      "animMs": 1300,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "sounds": {
+      "walk": "assets/sounds/enemies/miner_zombie/walking.mp3",
+      "walkInterval": 500,
+      "attack": "assets/sounds/enemies/miner_zombie/hitting.mp3",
+      "attackFrame": 15,
+      "death": "assets/sounds/enemies/miner_zombie/dying.mp3"
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 200,
+      "collisionWidth": 50,
+      "collisionHeight": 110,
+      "footOffsetY": 50,
+      "projectileHitbox": {
+        "width": 40,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true
+    },
+    "textures": {
+      "idle": "assets/enemies/miner_zombie/idle.png",
+      "walk": "assets/enemies/miner_zombie/walking.png",
+      "attack": "assets/enemies/miner_zombie/attacking.png",
+      "death": "assets/enemies/miner_zombie/dying.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
+    "description": "生前在矿洞中劳作的僵尸，手中的矿镐依旧锋利。挥舞矿镐砸向目标，命中将其击退。",
+    "skills": [
+      {
+        "name": "砸击",
+        "desc": "距离判定 130px，1.5s 播放 24 帧动画，第 17 帧进行伤害判定，命中后击退目标 75px；冷却 4s，攻击时不可移动"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "lanternMinerZombie": {
+    "id": "lanternMinerZombie",
+    "name": "矿工提灯僵尸",
+    "type": "精英",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#8a7a3a",
+    "size": 15,
+    "collisionRadius": 38.75,
+    "height": 150,
+    "hp": 650,
+    "maxHp": 650,
+    "speed": 140,
+    "level": 6,
+    "rank": "elite",
+    "str": 46,
+    "dex": 23,
+    "int": 20,
+    "con": 18,
+    "wis": 22,
+    "luck": 18,
+    "attackRange": 120,
+    "attackDistance": 120,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 4500,
+      "dynamicRange": 120,
+      "width": 22,
+      "knockback": 0
+    },
+    "attackSkills": {
+      "slam": {
+        "range": 120,
+        "duration": 1500,
+        "frames": 30,
+        "hitFrame": 16,
+        "damageMul": 1.5,
+        "cooldown": 4500
+      },
+      "lantern": {
+        "comment": "提灯攻击：抛物线投射物（projective.png，1.5s 落地，每秒 360° 旋转）→ 落点 300px 椭圆燃烧 4s（枪口火焰特效填满），每 0.5s 魔法伤害 ×0.75",
+        "throwRange": 600,
+        "duration": 1500,
+        "frames": 22,
+        "fireFrame": 11,
+        "flyDuration": 1500,
+        "arcHeight": 100,
+        "projectileSize": 48,
+        "impactRadius": 300,
+        "burnDuration": 4000,
+        "tickMs": 500,
+        "damageMul": 0.75,
+        "flameMorphMs": 33,
+        "flameBurstCount": 20,
+        "flamePoints": 3,
+        "oil": {
+          "comment": "油脂地面贴花：落地后 growMs 内从落点扩散到最大范围；反光只做边缘轮廓（描边环 ADD）",
+          "color": "0x8a6d1f",
+          "alpha": 0.5,
+          "growMs": 300,
+          "gloss": {
+            "color": "0xffe9a0",
+            "alpha": 0.35
+          }
+        },
+        "muzzleRightDx": 75,
+        "muzzleRightDy": -45,
+        "cooldown": 8000
+      }
+    },
+    "death": {
+      "animMs": 1500,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "sounds": {
+      "walk": "assets/sounds/enemies/lantern_miner_zombie/walking.mp3",
+      "walkInterval": 500,
+      "slam": "assets/sounds/enemies/lantern_miner_zombie/attacking.mp3",
+      "slamFrame": 14,
+      "lantern": "assets/sounds/enemies/lantern_miner_zombie/attacking-2.mp3",
+      "lanternFrame": 8,
+      "death": "assets/sounds/enemies/lantern_miner_zombie/dying.mp3",
+      "deathFrame": 8
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 250,
+      "collisionWidth": 62.5,
+      "collisionHeight": 137.5,
+      "footOffsetY": 63,
+      "projectileHitbox": {
+        "width": 50,
+        "height": 137.5,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true
+    },
+    "textures": {
+      "idle": "assets/enemies/lantern_miner_zombie/idle.png",
+      "walk": "assets/enemies/lantern_miner_zombie/walking.png",
+      "attack": "assets/enemies/lantern_miner_zombie/attacking.png",
+      "attack2": "assets/enemies/lantern_miner_zombie/attacking-2.png",
+      "death": "assets/enemies/lantern_miner_zombie/dying.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
+    "description": "提着矿灯的僵尸矿工，灯中燃着永不熄灭的矿火。既会挥镐砸击，也会掷出矿灯焚烧大片区域。",
+    "skills": [
+      {
+        "name": "砸击",
+        "desc": "距离判定 120px，1.5s 播放 30 帧动画，第 16 帧进行伤害判定，造成物理攻击 ×1.5 伤害；冷却 4.5s，攻击时不可移动"
+      },
+      {
+        "name": "提灯攻击",
+        "desc": "掷出矿灯（1.5s 抛物线，空中每秒 360° 旋转），落点 300px 椭圆区域持续燃烧 4s，每 0.5s 造成魔法攻击 ×0.75 伤害；冷却 8s"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "foremanZombie": {
+    "id": "foremanZombie",
+    "name": "僵尸工头",
+    "type": "领主",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#6a5a3a",
+    "size": 18,
+    "collisionRadius": 40,
+    "hp": 1600,
+    "maxHp": 1600,
+    "speed": 160,
+    "level": 8,
+    "rank": "lord",
+    "str": 66,
+    "dex": 23,
+    "int": 10,
+    "con": 45,
+    "wis": 16,
+    "luck": 33,
+    "attackRange": 320,
+    "attackDistance": 320,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 4500,
+      "dynamicRange": 320,
+      "width": 26,
+      "knockback": 0
+    },
+    "attackSkills": {
+      "whip": {
+        "range": 320,
+        "duration": 1500,
+        "frames": 31,
+        "hitFrame": 18,
+        "damageMul": 2,
+        "bleedStacks": 1,
+        "cooldown": 4500
+      },
+      "howl": {
+        "comment": "号召：3s 动画，释放后场上全体僵尸方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+        "duration": 3000,
+        "frames": 24,
+        "buffDuration": 15000,
+        "speedMul": 1.33,
+        "atkMul": 1.5,
+        "cooldown": 30000
+      }
+    },
+    "death": {
+      "animMs": 1400,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "sounds": {
+      "walk": "assets/sounds/enemies/foreman_zombie/walking.mp3",
+      "walkInterval": 700,
+      "whip": "assets/sounds/enemies/foreman_zombie/attacking.mp3",
+      "whipFrame": 15,
+      "howl": "assets/sounds/enemies/foreman_zombie/howling.mp3",
+      "death": "assets/sounds/enemies/foreman_zombie/dying.mp3",
+      "deathFrame": 8
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 480,
+      "collisionWidth": 120,
+      "collisionHeight": 240,
+      "footOffsetY": 148,
+      "projectileHitbox": {
+        "width": 96,
+        "height": 240,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true
+    },
+    "textures": {
+      "idle": "assets/enemies/foreman_zombie/idle.png",
+      "walk": "assets/enemies/foreman_zombie/walking.png",
+      "attack": "assets/enemies/foreman_zombie/attacking.png",
+      "howl": "assets/enemies/foreman_zombie/howling.png",
+      "death": "assets/enemies/foreman_zombie/dying.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
+    "description": "僵尸矿工的监工，手中的长鞭滴着血。鞭击造成流血，号召激励全场僵尸。",
+    "skills": [
+      {
+        "name": "鞭击",
+        "desc": "距离判定 320px，1.5s 播放 31 帧动画，第 18 帧进行伤害判定，造成物理攻击 ×2 伤害并附加 1 层流血（每层每秒 1% 当前生命值，持续 10s，可叠加，到期减一层）；冷却 4.5s，攻击时不可移动"
+      },
+      {
+        "name": "号召",
+        "desc": "3s 播放 24 帧动画，释放后场上全体僵尸方怪物获得激励：移动速度 +33%、物理攻击力 +50%，持续 15s；冷却 30s"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "mineCave": {
+    "id": "mineCave",
+    "name": "矿洞",
+    "type": "次级",
+    "category": "monster",
+    "family": "其他",
+    "color": "#4a5a4a",
+    "size": 60,
+    "collisionRadius": 60,
+    "height": 100,
+    "hp": 1500,
+    "maxHp": 1500,
+    "speed": 0,
+    "level": 4,
+    "rank": "minor",
+    "str": 0,
+    "dex": 0,
+    "int": 0,
+    "con": 0,
+    "wis": 0,
+    "luck": 0,
+    "attackRange": 0,
+    "aiInterval": 5000,
+    "attackSkills": {
+      "spawn": {
+        "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸",
+        "intervalMs": 5000,
+        "forwardX": 50
+      }
+    },
+    "smoke": {
+      "comment": "洞口绿烟粒子（ADD 混合，白色烟雾纹理 + 绿色 tint；正交无透视）",
+      "offsetX": 50,
+      "offsetY": 45,
+      "tint": "0x62cc62",
+      "frequency": 120,
+      "scaleStart": 0.3,
+      "scaleEnd": 1.2,
+      "alpha": 0.6,
+      "lifespan": 4000
+    },
+    "render": {
+      "spriteSize": 400,
+      "collisionWidth": 200,
+      "collisionHeight": 100,
+      "footOffsetY": 46,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 200,
+        "height": 100,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/mine_cave/mine_cave.png"
+    },
+    "description": "僵尸矿工的巢穴，洞口飘出荧荧绿烟，不断有矿工从中爬出。",
+    "skills": [
+      {
+        "name": "矿工涌出",
+        "desc": "每 5s 在洞口前方 50px 生成一只矿工僵尸"
+      }
+    ],
+    "attackType": "物理"
   },
   "zombieDog": {
     "id": "zombieDog",
@@ -659,43 +1055,6 @@
       "dynamicRange": 95,
       "width": 18,
       "knockback": 26
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "",
-    "skills": []
-  },
-  "deathKnight": {
-    "id": "deathKnight",
-    "name": "亡灵骑士",
-    "type": "首领",
-    "category": "monster",
-    "family": null,
-    "color": "#4a4a4a",
-    "size": 40,
-    "collisionRadius": 10,
-    "hp": 800,
-    "maxHp": 800,
-    "speed": 81,
-    "level": 12,
-    "rank": "boss",
-    "str": 75,
-    "dex": 75,
-    "con": 75,
-    "int": 8,
-    "wis": 12,
-    "luck": 8,
-    "attackRange": 100,
-    "aiInterval": 1200,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 1200,
-      "dynamicRange": 100,
-      "width": 18,
-      "knockback": 37
     },
     "ai": {
       "aggroRange": 9999,
@@ -1401,6 +1760,10 @@
     "luck": 6,
     "attackRange": 80,
     "attackDistance": 200,
+    "pounceHitDistance": 100,
+    "comboHitDistance": 100,
+    "comboCooldown": 4000,
+    "pounceCooldown": 20000,
     "aiInterval": 1000,
     "ai": {
       "aggroRange": 9999,
@@ -1415,19 +1778,19 @@
       "width": 22,
       "knockback": 25
     },
-    "description": "经过变异的精英僵尸，拥有极强的爆发力和速度：贴身发动五连击、突进拉近距离、蓄力飞扑眩晕目标，普通攻击附带束缚效果。",
+    "sounds": {
+      "combo": "assets/sounds/enemies/mutant3/attacking.mp3",
+      "pounce": "assets/sounds/enemies/mutant3/attacking-2.mp3"
+    },
+    "description": "经过变异的精英僵尸，拥有极强的爆发力和速度：贴身发动五连击、命中后向目标突进、蓄力飞扑眩晕目标，普通攻击附带束缚效果。",
     "skills": [
       {
         "name": "五连击",
         "desc": "贴身 50px 触发，2s 内连续 5 段挥砍（各造成物理攻击 ×1 伤害），冷却 4s；连击期间不可移动但持续向目标突进 30px（插帧平滑）"
       },
       {
-        "name": "突进连击",
-        "desc": "目标进入命中范围但未贴身（75~150px）时，先向前短距离突进贴近，再发动五连击"
-      },
-      {
         "name": "飞扑",
-        "desc": "蓄力后向目标高速飞扑：冲锋阶段固定 1s（穿过目标 300px，最远 1200px），命中造成物理伤害并眩晕 2s，冷却 10s；蓄力期间锁定朝向"
+        "desc": "蓄力后向目标高速飞扑：冲锋阶段固定 1s（穿过目标 300px，最远 1200px），命中判定 100px，命中造成物理伤害并眩晕 2s 且立即中断飞扑；若被盾牌弹反则自身被眩晕并终止飞扑原地停下；冷却 20s；蓄力期间锁定朝向"
       },
       {
         "name": "束缚连击",
@@ -1530,7 +1893,7 @@
         "throwRange": 600,
         "flyDuration": 600,
         "arcHeight": 100,
-        "impactRadius": 100,
+        "impactRadius": 125,
         "damageMul": 1.5,
         "stunMs": 2000,
         "projectileSize": 20,
@@ -1686,7 +2049,11 @@
       }
     },
     "textures": {
-      "idle": "assets/enemies/time_agent_shield/idle.png"
+      "idle": "assets/enemies/time_agent_shield/idle.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
     },
     "description": "时空特工盾位型，沙漠之鹰精准点射，盾击眩晕近敌，举盾弹反并可在防御中持续开火。",
     "skills": [
@@ -1721,8 +2088,9 @@
     "category": "monster",
     "family": "僵尸",
     "color": "#5a8a3a",
-    "size": 20,
-    "collisionRadius": 26,
+    "size": 60,
+    "collisionRadius": 100.5,
+    "height": 120,
     "hp": 800,
     "maxHp": 800,
     "speed": 120,
@@ -1742,6 +2110,10 @@
       "loseTimeout": 5000
     },
     "attackType": "魔法",
+    "sounds": {
+      "spit": "bow_fire",
+      "comment": "spit=SoundManager 预加载键（与毒液僵尸攻击同款音效），每次喷射动作开始时播放一次"
+    },
     "attackSkills": {
       "spit": {
         "range": 600,
@@ -1749,40 +2121,61 @@
         "frames": 16,
         "startFrame": 6,
         "stopFrame": 14,
-        "fanAngle": 1.5707963267948966,
-        "intervalMs": 150,
-        "projectileSpeed": 320,
+        "fanAngle": 0.7853981633974483,
+        "intervalMs": 50,
+        "projectileSpeed": 500,
         "projectileRange": 600,
-        "projectileSize": 10,
+        "projectileSize": 20,
+        "burstCount": 1,
         "damageMul": 0.33,
         "damageType": "magic",
         "poisonChance": 0.33,
         "poisonStacks": 1,
+        "muzzleForward": 150,
+        "muzzleUpY": 94,
+        "muzzleRightDx": -7,
+        "muzzleRightDy": -5,
+        "depthBonus": 150,
+        "orbit": {
+          "comment": "毒球环绕绿色粒子：发射后在投射物圆周上持续生成短生命周期粒子",
+          "radius": 18,
+          "lifespan": 280,
+          "frequency": 60,
+          "tint": "0x7aff7a",
+          "scaleStart": 0.3,
+          "scaleEnd": 0.05
+        },
         "cooldown": 8000
       }
     },
     "render": {
-      "spriteSize": 100,
-      "collisionWidth": 40,
-      "collisionHeight": 55,
-      "footOffsetY": 30,
+      "spriteSize": 300,
+      "collisionWidth": 225,
+      "collisionHeight": 145,
+      "footOffsetY": 90,
+      "colliderOffsetY": -50,
       "projectileHitbox": {
-        "width": 35,
-        "height": 55,
+        "width": 210,
+        "height": 145,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "capsuleHudAnchor": true
     },
     "textures": {
       "idle": "assets/enemies/poison_maggot/idle.png",
       "spitting": "assets/enemies/poison_maggot/spitting.png",
-      "walking": "assets/enemies/poison_maggot/walking.png"
+      "walking": "assets/enemies/poison_maggot/walking.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
     },
     "description": "臃肿的亡灵幼虫，行动迟缓却能喷吐剧毒脓液，被击中的目标有几率中毒。",
     "skills": [
       {
         "name": "毒液喷射",
-        "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 90° 扇形随机方向射出绿色毒球（每 0.15s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
+        "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 45° 扇形随机方向射出绿色毒球（每 0.05s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
       }
     ]
   }
