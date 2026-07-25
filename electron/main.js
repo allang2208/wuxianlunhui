@@ -113,6 +113,39 @@ ipcMain.handle('save-weapon-config', async (_event, config) => {
     }
 });
 
+// 通用 JSON 读写（限 data/ 目录，供墙壁预制库等编辑器数据持久化）
+function getJsonPaths(rel) {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+        return { read: path.join(__dirname, '../public', rel), write: path.join(__dirname, '../public', rel) };
+    }
+    const userDataPath = path.join(app.getPath('userData'), rel);
+    return {
+        read: fs.existsSync(userDataPath) ? userDataPath : path.join(__dirname, '../dist', rel),
+        write: userDataPath
+    };
+}
+
+function assertJsonRel(rel) {
+    if (typeof rel !== 'string' || !rel.startsWith('data/') || rel.includes('..') || !rel.endsWith('.json')) {
+        throw new Error('invalid json path: ' + rel);
+    }
+}
+
+ipcMain.handle('save-json', async (_event, rel, data) => {
+    assertJsonRel(rel);
+    const paths = getJsonPaths(rel);
+    await fs.promises.mkdir(path.dirname(paths.write), { recursive: true });
+    await fs.promises.writeFile(paths.write, JSON.stringify(data, null, 2), 'utf8');
+    return { success: true, path: paths.write };
+});
+
+ipcMain.handle('load-json', async (_event, rel) => {
+    assertJsonRel(rel);
+    const paths = getJsonPaths(rel);
+    return JSON.parse(await fs.promises.readFile(paths.read, 'utf8'));
+});
+
 ipcMain.on('toggle-fullscreen', () => {
     if (mainWindow) {
         if (mainWindow.isFullScreen()) {

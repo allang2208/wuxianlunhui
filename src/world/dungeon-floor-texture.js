@@ -83,17 +83,17 @@ function _getTileGeometry(key, img) {
 }
 
 /** 等距平铺一层：每格随机选图 + 随机镜像，菱形中心对齐网格点、行交错半宽偏移 */
-function _drawIsoLayer(ctx, tiles, size) {
+function _drawIsoLayer(ctx, tiles, w, h) {
     // 网格步进用首张贴图几何（组内各贴图尺寸近似，中心点各自对齐）
     const ref = tiles[0];
     const stepX = ref.geo.w;
     const stepY = ref.geo.h / 2;
     const startRow = -2;
-    const endRow = Math.ceil(size / stepY) + 2;
+    const endRow = Math.ceil(h / stepY) + 2;
     for (let r = startRow; r < endRow; r++) {
         const offsetX = (r % 2 !== 0) ? stepX / 2 : 0;
         const gy = r * stepY;
-        for (let gx = -stepX; gx < size + stepX; gx += stepX) {
+        for (let gx = -stepX; gx < w + stepX; gx += stepX) {
             const cx = gx + offsetX;
             const tile = tiles[Math.floor(Math.random() * tiles.length)];
             const fx = Math.random() < 0.5 ? -1 : 1;
@@ -105,6 +105,11 @@ function _drawIsoLayer(ctx, tiles, size) {
             ctx.restore();
         }
     }
+}
+
+/** 取当前地板配置（外部只读：门外白区等需要跟随当前地牢地砖的场景用） */
+export function getDungeonFloorProfile() {
+    return _getProfile();
 }
 
 /**
@@ -136,7 +141,7 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
         ctx.beginPath();
         ctx.rect(0, 0, size, size);
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, size);
+        _drawIsoLayer(ctx, tiles, size, size);
 
         // 3. 发光层（机制保留）：profile.glow 开启且存在 <贴图键>_glow 时同位置 ADD 平铺
         if (profile.glow !== false) {
@@ -147,7 +152,7 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, size);
+                _drawIsoLayer(ctx, glowTiles, size, size);
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
@@ -197,6 +202,94 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
         ctx.strokeStyle = tc.edgeHighlight;
         ctx.lineWidth = 2;
         ctx.strokeRect(0, 0, size, size);
+    }
+    return canvas;
+}
+
+/**
+ * 烘焙菱形地板并应用到渲染器（僵尸地牢战斗房/Boss 场地）
+ * 菱形可移动区域外保持全黑，边缘黑渐变过渡
+ * @param {number} width 世界宽
+ * @param {number} height 世界高
+ * @param {number} cx 菱形中心 X
+ * @param {number} cy 菱形中心 Y
+ * @param {number} rx 菱形水平半径
+ * @param {number} ry 菱形垂直半径
+ * @param {object} [fallbackTerrain] 回退网格地板样式
+ */
+export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // 1. 全屏纯黑背景（菱形外区域保持全黑）
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    const profile = _getProfile();
+    const tiles = [];
+    for (const key of profile.tiles) {
+        const img = _getSourceImage(key);
+        if (img) tiles.push({ key, img, geo: _getTileGeometry(key, img) });
+    }
+
+    const diamondPath = (inset) => {
+        const irx = rx - inset, iry = ry - inset * (ry / rx);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - iry);
+        ctx.lineTo(cx + irx, cy);
+        ctx.lineTo(cx, cy + iry);
+        ctx.lineTo(cx - irx, cy);
+        ctx.closePath();
+    };
+
+    if (tiles.length > 0) {
+        // 2. 菱形裁剪内平铺等距地板
+        ctx.save();
+        diamondPath(0);
+        ctx.clip();
+        _drawIsoLayer(ctx, tiles, width, height);
+        if (profile.glow !== false) {
+            const glowTiles = [];
+            for (const t of tiles) {
+                const img = _getSourceImage(t.key + '_glow');
+                if (img) glowTiles.push({ key: t.key, img, geo: _getTileGeometry(t.key + '_glow', img) });
+            }
+            if (glowTiles.length > 0) {
+                ctx.globalCompositeOperation = 'lighter';
+                _drawIsoLayer(ctx, glowTiles, width, height);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        ctx.restore();
+
+        // 3. 菱形边缘黑渐变：向内递缩描边叠加（外侧已纯黑，内侧形成渐变带）
+        const fade = FLOOR_EDGE_FADE;
+        for (let i = 0; i < fade; i += 4) {
+            diamondPath(i);
+            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+        }
+    } else {
+        console.warn('[DungeonFloor] 地板贴图未加载，菱形房回退为纯黑 + 轮廓线');
+        diamondPath(0);
+        ctx.strokeStyle = (fallbackTerrain && fallbackTerrain.edgeHighlight) || 'rgba(120, 80, 60, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // 4. 同步世界尺寸与渲染器
+    if (CONFIG) {
+        CONFIG.WORLD_WIDTH = width;
+        CONFIG.WORLD_HEIGHT = height;
+    }
+    if (Renderer) {
+        Renderer.terrainTexture = canvas;
+    }
+    if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
+        window.__phaserScene.syncTerrain();
     }
     return canvas;
 }

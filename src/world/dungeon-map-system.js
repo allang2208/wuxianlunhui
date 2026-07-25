@@ -625,28 +625,27 @@ export const DungeonMapSystem = {
                     }
                 }
             } else {
-                // 普通节点：直接生成出口传送门
+                // 普通节点：战斗完成，打开大门（光束 + 门外白区，不再生成传送门）
                 if (!this._exitPortalSpawned) {
                     this._exitPortalSpawned = true;
-                    CombatRoomSystem.spawnExitPortal();
+                    CombatRoomSystem.openGate();
 
-                    // 上方提示栏：已完成战斗，寻找传送门离开
+                    // 上方提示栏：已完成战斗，从大门离开
                     if (SceneManager && SceneManager.showTopNotification) {
-                        SceneManager.showTopNotification('已完成战斗，寻找传送门离开');
+                        SceneManager.showTopNotification('已完成战斗，从大门离开');
                     }
                 }
             }
         }
 
-        // 检测玩家是否进入出口传送门
-        const portal = CombatRoomSystem.getExitPortal();
-        if (portal && portal.active && this.player) {
-            const dx = this.player.x - portal.x;
-            const dy = this.player.y - portal.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= portal.radius) {
-                this._leaveCombatViaPortal();
-            }
+        // 驱动门闸动画与悬停高亮
+        if (typeof CombatRoomSystem.update === 'function') {
+            CombatRoomSystem.update(dt);
+        }
+
+        // 检测玩家是否走出门外白区（与传送门同效：回地牢地图）
+        if (CombatRoomSystem.isPlayerInGateZone && CombatRoomSystem.isPlayerInGateZone(this.player)) {
+            this._leaveCombatViaPortal();
         }
     },
 
@@ -883,13 +882,13 @@ export const DungeonMapSystem = {
             EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 50, '宝箱已开启！', '#ffd700'));
         }
 
-        // 标记节点完成并生成出口传送门
+        // 标记节点完成并打开大门（不再生成传送门）
         this._clearNodeToEmpty(currentNode);
         this._exitPortalSpawned = true;
-        CombatRoomSystem.spawnExitPortal();
+        CombatRoomSystem.openGate();
 
         if (SceneManager && SceneManager.showTopNotification) {
-            SceneManager.showTopNotification('宝箱已开启，通过传送门离开');
+            SceneManager.showTopNotification('宝箱已开启，从大门离开');
         }
     },
 

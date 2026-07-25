@@ -2029,6 +2029,8 @@
 .invincible-toggle span { pointer-events: none; }
 /* 秒杀按钮：放在无敌按钮右侧（无敌 left:124px + 48 宽 + 8 间距），bottom 沿用 12px */
 #oneHitKillToggle { left: 180px; }
+/* 摆墙按钮：放在秒杀按钮右侧（秒杀 left:180px + 48 宽 + 8 间距） */
+#wallEditorToggle { left: 236px; }
 .dev-tool-panel {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 1000px; height: 720px;
@@ -2781,3 +2783,165 @@ body.map-mode .top-bar,
 body.map-mode .controls-hint-left {
   display: none !important;
 }
+
+/* ===== 墙壁编辑器面板（摆墙模式） ===== */
+.wall-editor-panel {
+  position: fixed;
+  right: 8px;
+  top: 80px;
+  width: 280px;
+  background: rgba(18, 18, 24, 0.94);
+  border: 1px solid #5a5346;
+  border-radius: 4px;
+  color: #d4c5a9;
+  font-size: 12px;
+  padding: 8px 10px;
+  z-index: 9999;
+  pointer-events: auto;
+  user-select: none;
+}
+.wall-editor-panel .we-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.wall-editor-panel .we-close {
+  cursor: pointer;
+  color: #999;
+  font-size: 16px;
+}
+.wall-editor-panel .we-close:hover { color: #fff; }
+.wall-editor-panel .we-info {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+.wall-editor-panel .we-hints {
+  color: #8a8272;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.wall-editor-panel .we-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.wall-editor-panel .we-row select,
+.wall-editor-panel .we-row input {
+  flex: 1;
+  min-width: 0;
+  background: #26261e;
+  color: #d4c5a9;
+  border: 1px solid #5a5346;
+  border-radius: 3px;
+  padding: 3px 4px;
+  font-size: 12px;
+}
+.wall-editor-panel .we-row button {
+  background: #3a3626;
+  color: #d4c5a9;
+  border: 1px solid #5a5346;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wall-editor-panel .we-row button:hover { background: #4a4632; }
+
+/* 页签 */
+.wall-editor-panel .we-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+.wall-editor-panel .we-tab {
+  flex: 1; background: #26261e; color: #8a8272; border: 1px solid #5a5346;
+  border-radius: 3px; padding: 4px 0; font-size: 12px; cursor: pointer;
+}
+.wall-editor-panel .we-tab.active { background: #3a3626; color: #d4c5a9; border-color: #8a7d6b; }
+
+/* 标准组件缩略图 */
+.wall-editor-panel .we-family { color: #8a8272; margin: 4px 0; font-size: 11px; }
+.wall-editor-panel .we-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.wall-editor-panel .we-thumb {
+  width: 80px; background: rgba(255,255,255,0.05); border: 1px solid #5a5346;
+  border-radius: 3px; padding: 4px; cursor: grab; text-align: center;
+}
+.wall-editor-panel .we-thumb:hover { border-color: #8a7d6b; background: rgba(255,255,255,0.1); }
+.wall-editor-panel .we-thumb img {
+  width: 100%; height: 48px; object-fit: contain; pointer-events: none;
+  image-rendering: auto;
+}
+.wall-editor-panel .we-thumb span { display: block; font-size: 11px; color: #b0a892; margin-top: 2px; }
+
+/* 预制组件列表 */
+.wall-editor-panel .we-prefab-list { max-height: 220px; overflow-y: auto; margin-bottom: 8px; }
+.wall-editor-panel .we-pf {
+  display: flex; align-items: center; gap: 4px; padding: 3px 4px;
+  border-bottom: 1px solid rgba(90,83,70,0.4);
+}
+.wall-editor-panel .we-pf span {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wall-editor-panel .we-pf button {
+  background: #3a3626; color: #d4c5a9; border: 1px solid #5a5346; border-radius: 3px;
+  padding: 2px 8px; font-size: 11px; cursor: pointer;
+}
+.wall-editor-panel .we-pf button:hover { background: #4a4632; }
+.wall-editor-panel .we-pf-empty { color: #8a8272; padding: 8px 4px; }
+
+/* 框选按钮 */
+.wall-editor-panel .we-box { min-width: 56px; }
+.wall-editor-panel .we-box.active {
+  border-color: #7a9a6a !important; color: #7a9a6a !important;
+  box-shadow: 0 0 6px rgba(122,154,106,0.4);
+}
+.wall-editor-panel .we-selinfo { flex: 1; align-self: center; color: #b0a892; font-size: 11px; }
+
+/* ===== 墙壁编辑器·图层面板（编辑器左侧，仿 Photoshop 图层） ===== */
+.wall-editor-layers {
+  position: fixed;
+  right: 300px;
+  top: 80px;
+  width: 170px;
+  max-height: 60vh;
+  background: rgba(18, 18, 24, 0.94);
+  border: 1px solid #5a5346;
+  border-radius: 4px;
+  color: #d4c5a9;
+  font-size: 12px;
+  z-index: 9999;
+  pointer-events: auto;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+.wall-editor-layers .wl-title {
+  padding: 6px 8px;
+  font-weight: 700;
+  border-bottom: 1px solid #5a5346;
+  color: #b0a892;
+}
+.wall-editor-layers .wl-list { overflow-y: auto; }
+.wall-editor-layers .wl-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(90, 83, 70, 0.3);
+}
+.wall-editor-layers .wl-item:hover { background: rgba(255, 255, 255, 0.06); }
+.wall-editor-layers .wl-item.active {
+  background: rgba(122, 154, 106, 0.18);
+  color: #a8d498;
+}
+.wall-editor-layers .wl-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wall-editor-layers .wl-depth { color: #8a8272; font-size: 11px; }
