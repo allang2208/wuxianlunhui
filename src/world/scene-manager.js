@@ -12,6 +12,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
+import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
@@ -420,24 +421,26 @@ export const SceneManager = {
             { x: size - wt, y: 0, w: wt, h: size, height: 60 },
         ];
 
-        // 测试房间：主神空间 origin 正上方 400px，矩形房间留一个出入口
-        // 墙壁贴图放大 3 倍（visualH 60→180），房间尺寸同步放大
-        // 布局按相交透视规则重新规划：水平墙夹在左右墙之间，垂直墙夹在上下墙之间，完全贴合无缝隙
-        const roomW = 600, roomH = 450, wallT = 20;
-        const roomX = CONFIG.WORLD_WIDTH / 2 - roomW / 2;
-        const roomY = CONFIG.WORLD_HEIGHT / 2 - 400; // origin 正上方 400px，方便测试
-        const doorW = 100;
-        // 上墙（夹在左右墙之间，留出入口在中间）
-        const topWallW = roomW - wallT * 2;
-        const topLeftW = (topWallW - doorW) / 2;
-        WallSystem.walls.push({ x: roomX + wallT, y: roomY, w: topLeftW, h: wallT, height: 60 });
-        WallSystem.walls.push({ x: roomX + wallT + topLeftW + doorW, y: roomY, w: topLeftW, h: wallT, height: 60 });
-        // 下墙（夹在左右墙之间）
-        WallSystem.walls.push({ x: roomX + wallT, y: roomY + roomH - wallT, w: topWallW, h: wallT, height: 60 });
-        // 左墙（夹在上下墙之间）
-        WallSystem.walls.push({ x: roomX, y: roomY + wallT, w: wallT, h: roomH - wallT * 2, height: 60 });
-        // 右墙（夹在上下墙之间）
-        WallSystem.walls.push({ x: roomX + roomW - wallT, y: roomY + wallT, w: wallT, h: roomH - wallT * 2, height: 60 });
+        // 测试房间：已移除代码默认菱形房间——用户用墙壁编辑器（HUD 摆墙）自行摆放
+        // 仅当预制库存在 hub_diamond 时按预制渲染；否则无房间（isoVisuals 为空）
+        // 碰撞由 rebuildIsoCollision() 按件底边自动生成阶梯矩形
+        WallSystem.isoVisuals = [];
+        const wallPrefabs = getWallPrefabLibrary();
+        const hubPrefab = wallPrefabs['hub_diamond'];
+        if (hubPrefab && Array.isArray(hubPrefab.pieces)) {
+            WallSystem.isoVisuals = hubPrefab.pieces.map(p => ({ ...p }));
+        } else if (!isWallPrefabsLoaded()) {
+            // 首启时预制库可能未加载完（BootScene 异步预载）：到位后补应用一次（仅主神空间）
+            loadWallPrefabs().then(() => {
+                if (this.currentScene !== 'main') return;
+                const def = getWallPrefabLibrary()['hub_diamond'];
+                if (!def || !Array.isArray(def.pieces)) return;
+                WallSystem.isoVisuals = def.pieces.map(p => ({ ...p }));
+                WallSystem.rebuildIsoCollision();
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+            });
+        }
+        WallSystem.rebuildIsoCollision();
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；
         // noVisual 标记跳过墙面视觉（贴图 NPC 自身就是视觉）。与边界墙同入口重建，场景往返不丢
         if (typeof Game !== 'undefined' && Game.entities) {

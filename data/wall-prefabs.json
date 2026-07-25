@@ -1,0 +1,222 @@
+{
+  "上夹角": {
+    "name": "上夹角",
+    "cx": 4551,
+    "cy": 1498,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 4335.096076688053,
+        "y": 1380.252685546875,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1358.394,
+        "family": "wall",
+        "label": "直墙·新 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 3929.578857421876,
+        "y": 1614.3364828263889,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1592.478,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4766.518310546875,
+        "y": 1381.2507934570312,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1359.392,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5172.035529813052,
+        "y": 1615.334590736545,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1593.476,
+        "family": "wall",
+        "label": "直墙·新 4"
+      }
+    ]
+  },
+  "下夹角": {
+    "name": "下夹角",
+    "cx": 4551,
+    "cy": 2263,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 4354.126,
+        "y": 2383.775,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 2602,
+        "family": "wall",
+        "label": "直墙·新 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 3934.752,
+        "y": 2141.692,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 2357.9168922643635,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4747.874,
+        "y": 2383.775,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 2601,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5167.248,
+        "y": 2141.692,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 2357.9168922643635,
+        "family": "wall",
+        "label": "直墙·新 4"
+      }
+    ]
+  },
+  "左夹角": {
+    "name": "左夹角",
+    "cx": 3809,
+    "cy": 1899,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 3596.874,
+        "y": 1783.775,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1761.9166290729117,
+        "family": "wall",
+        "label": "直墙·新 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4016.248,
+        "y": 1541.692,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1519.8336290729117,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 3615.572,
+        "y": 2021.858,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 2238.082892264363,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4021.089,
+        "y": 2255.942,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 2472.1668922643635,
+        "family": "wall",
+        "label": "直墙·新 4"
+      }
+    ]
+  },
+  "右夹角": {
+    "name": "右夹角",
+    "cx": 5291,
+    "cy": 1899,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 5503.126,
+        "y": 1783.775,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1761.9166290729117,
+        "family": "wall",
+        "label": "直墙·新 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5083.752,
+        "y": 1541.692,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1519.8336290729117,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5484.428,
+        "y": 2021.858,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 2238.082892264363,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5078.911,
+        "y": 2255.942,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 2472.1668922643635,
+        "family": "wall",
+        "label": "直墙·新 4"
+      }
+    ]
+  }
+}

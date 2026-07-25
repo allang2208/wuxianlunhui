@@ -2,6 +2,7 @@ import { Game } from '../../game.js';
 import { QuestSystem } from '../quest-system.js';
 import { SystemUI } from '../system-ui.js';
 import { SceneManager } from '../../world/scene-manager.js';
+import { WallEditor } from '../wall-editor.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 
@@ -148,6 +149,20 @@ export function createHudPanelsMisc() {
         oneHitKillSpan.textContent = window.Game._oneHitKill ? '秒杀中' : '秒杀';
     });
     root.appendChild(oneHitKillToggle);
+
+    // ===== 墙壁编辑器切换按钮（摆墙模式：拖动/缩放/翻转墙件，存预制组合） =====
+    const wallEditorToggle = document.createElement('div');
+    wallEditorToggle.className = 'invincible-toggle';
+    wallEditorToggle.id = 'wallEditorToggle';
+    wallEditorToggle.title = '墙壁编辑器（摆墙模式）';
+    const wallEditorSpan = document.createElement('span');
+    wallEditorSpan.textContent = '摆墙';
+    wallEditorToggle.appendChild(wallEditorSpan);
+    wallEditorToggle.addEventListener('click', () => {
+        WallEditor.toggle();
+        wallEditorToggle.classList.toggle('active', WallEditor.active);
+    });
+    root.appendChild(wallEditorToggle);
 
     // ===== 游戏秒表计时器 =====
     const gameTimer = document.createElement('div');

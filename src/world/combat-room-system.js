@@ -24,7 +24,10 @@ import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { applyDungeonFloor } from './dungeon-floor-texture.js';
+import { applyDungeonFloor, applyDiamondFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
+import { WallGate } from './wall-gate.js';
+import { GateLight } from '../effects/gate-light.js';
+import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
@@ -173,14 +176,25 @@ export const CombatRoomSystem = {
         // 1. 保存当前场景状态
         this._backupSceneState();
 
-        // 2. 确定场地大小
+        // 2. 确定场地大小（菱形：rx=1.2S、ry=rx×0.5774，区外全黑）
         const roomSize = options.roomSize || this._rollRoomSize(isBoss);
         this._roomSize = roomSize;
+        const rx = Math.round(roomSize * 1.2);
+        const ry = Math.round(rx * 0.5774);
+        // 边距必须 ≥ 墙体贴图高度（190×角度补偿≈217）+ 缓冲，否则上夹角被世界顶裁掉
+        const M = 260;
+        this._diamond = {
+            rx, ry,
+            worldW: 2 * (rx + M),
+            worldH: 2 * (ry + M),
+            cx: rx + M,
+            cy: ry + M,
+        };
 
-        // 3. 生成场地地形
+        // 3. 生成场地地形（菱形地板）
         this._generateTerrain(roomSize);
 
-        // 4. 生成边界墙壁
+        // 4. 生成边界墙壁（菱形斜墙 + 四角转角）
         this._generateWalls(roomSize);
 
         // 5. 清除可能残留的出口传送门
@@ -198,7 +212,8 @@ export const CombatRoomSystem = {
         // 8. 设置相机跟随
         this._setupCamera(player);
 
-        
+        // 9. 门闸：距玩家最近的直墙件替换为带门直墙，播关门动画困场
+        this._setupGate(player);
 
         return {
             size: roomSize,
@@ -232,8 +247,21 @@ export const CombatRoomSystem = {
         const monsterClasses = customClasses || (isBoss ? this.config.monsterPool.boss : this.config.monsterPool.normal);
 
         for (let i = 0; i < monsterCount; i++) {
-            const mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
-            const my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
+            let mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
+            let my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
+
+            // 菱形房：生成点必须在菱形内（内缩安全距离），拒绝采样 30 次后回退中心
+            if (spawnArea._diamondClip) {
+                const b = spawnArea._diamondClip;
+                const inset = Math.max(cfg.minWallDistance || 0, cfg.margin || 0) + 60;
+                let ok = false;
+                for (let t = 0; t < 30 && !ok; t++) {
+                    mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
+                    my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
+                    ok = Math.abs(mx - b.cx) / Math.max(1, b.rx - inset) + Math.abs(my - b.cy) / Math.max(1, b.ry - inset) <= 1;
+                }
+                if (!ok) { mx = b.cx; my = b.cy; }
+            }
 
             const MonsterClass = customClasses
                 ? monsterClasses[i % monsterClasses.length]
@@ -260,9 +288,9 @@ export const CombatRoomSystem = {
                 monster.y = safe.y;
             }
 
-            // 强制保持与墙壁的最小缓冲距离
+            // 强制保持与墙壁的最小缓冲距离（菱形房跳过：拒绝采样已保证在菱形内，矩形钳制会推出菱形）
             const minD = cfg.minWallDistance || 0;
-            if (minD > 0) {
+            if (minD > 0 && !bounds.diamond) {
                 const innerMinX = bounds.minX + minD;
                 const innerMaxX = bounds.maxX - minD;
                 const innerMinY = bounds.minY + minD;
@@ -316,19 +344,22 @@ export const CombatRoomSystem = {
                 const dist = minDist + Math.random() * (maxDist - minDist);
                 const tx = foreman.x + Math.cos(angle) * dist;
                 const ty = foreman.y + Math.sin(angle) * dist;
-                // 边界检查
-                if (tx < bounds.minX + caveRadius || tx > bounds.maxX - caveRadius ||
-                    ty < bounds.minY + caveRadius || ty > bounds.maxY - caveRadius) continue;
+                // 边界检查（菱形房按菱形内缩判定，外接矩形四角在界外）
+                const inRoom = bounds.diamond
+                    ? Math.abs(tx - bounds.cx) / Math.max(1, bounds.rx - caveRadius) + Math.abs(ty - bounds.cy) / Math.max(1, bounds.ry - caveRadius) <= 1
+                    : (tx >= bounds.minX + caveRadius && tx <= bounds.maxX - caveRadius && ty >= bounds.minY + caveRadius && ty <= bounds.maxY - caveRadius);
+                if (!inRoom) continue;
                 // 碰撞检查
                 if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(tx, ty, caveRadius)) continue;
                 caveX = tx; caveY = ty; found = true;
             }
 
-            // 兜底：如果找不到，就用 findSafeSpawn 在工头附近推一个点
-            if (!found && WallSystem && WallSystem.findSafeSpawn) {
-                const safe = WallSystem.findSafeSpawn(foreman.x + minDist, foreman.y, caveRadius, 12);
-                caveX = Math.max(bounds.minX + caveRadius, Math.min(bounds.maxX - caveRadius, safe.x));
-                caveY = Math.max(bounds.minY + caveRadius, Math.min(bounds.maxY - caveRadius, safe.y));
+            // 兜底：找不到就往场地中心方向收（保证在菱形内）
+            if (!found) {
+                const dxc = bounds.cx - foreman.x, dyc = bounds.cy - foreman.y;
+                const dc = Math.hypot(dxc, dyc) || 1;
+                caveX = foreman.x + dxc / dc * minDist;
+                caveY = foreman.y + dyc / dc * minDist;
             }
 
             const cave = createMineCave(caveX, caveY);
@@ -368,8 +399,205 @@ export const CombatRoomSystem = {
      * 清理战斗场地并恢复原始场景
      * 调用此方法后，场地将被销毁，玩家回到地图模式
      */
+    /** 门闸：距玩家最近的直墙件替换为带门直墙，入场播关门动画困场 */
+    _setupGate(player) {
+        if (!this._diamond || !WallSystem.isoVisuals) return;
+        let best = null, bestD = Infinity;
+        for (const p of WallSystem.isoVisuals) {
+            if (p.tex !== 'wall_straight') continue;
+            const d = Math.hypot(p.x - player.x, p.y - player.y);
+            if (d < bestD) { bestD = d; best = p; }
+        }
+        if (!best) return;
+        const [a, b] = WallSystem._pieceBaseSegments(best)[0];
+        const flip = !!best.flipX;
+        const depth = best.depth; // 原位替换：沿用被替换件自身的深度，不做任何接缝特权
+        WallSystem.isoVisuals.splice(WallSystem.isoVisuals.indexOf(best), 1);
+        WallSystem.rebuildIsoCollision();
+        if (WallGate.placeAt(a, b, flip, depth)) {
+            WallGate.state = 'open';
+            WallGate._frame = 15;
+            if (WallGate.sprite) WallGate.sprite.setFrame(15);
+            WallGate.playClose();
+            // 门外独立砖块：入场即生成（不再等战斗完成）
+            this._spawnGateExitZone();
+        }
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+    },
+
+    /** 战斗完成：播开门动画 */
+    openGate() {
+        if (!WallGate.sprite) return;
+        WallGate.playOpen();
+    },
+
+    /** 门外白区：吸附地板晶格的一块黑砖（与房内地板无缝），远角径向圆滑淡出 */
+    _spawnGateExitZone() {
+        const info = WallGate.getGateInfo();
+        const scene = window.__phaserScene;
+        if (!scene || !info || !info.center || !this._diamond) return;
+        // 外法线（背离菱形中心）
+        const dx = info.center.x - this._diamond.cx, dy = info.center.y - this._diamond.cy;
+        const dl = Math.hypot(dx, dy) || 1;
+        const nx = dx / dl, ny = dy / dl;
+
+        // 地板晶格：用当前地牢的地板配置砖（高级/初级/中级各自地砖），与 dungeon-floor-texture 同一推导
+        const profile = getDungeonFloorProfile();
+        const tileKey = (profile && profile.tiles && profile.tiles.length > 0 && scene.textures.exists(profile.tiles[0]))
+            ? profile.tiles[0]
+            : (scene.textures.exists('blackbrick_7') ? 'blackbrick_7' : 'blackbrick5');
+        const srcImg = scene.textures.get(tileKey).getSourceImage();
+        if (!this._tileGeo) this._tileGeo = {};
+        if (!this._tileGeo[tileKey]) {
+            const c = document.createElement('canvas');
+            c.width = srcImg.width;
+            c.height = srcImg.height;
+            const cx2 = c.getContext('2d');
+            cx2.drawImage(srcImg, 0, 0);
+            const data = cx2.getImageData(0, 0, c.width, c.height).data;
+            let minX = c.width, minY = c.height, maxX = -1, maxY = -1;
+            for (let y = 0; y < c.height; y++) {
+                for (let x = 0; x < c.width; x++) {
+                    if (data[(y * c.width + x) * 4 + 3] > 8) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+            this._tileGeo[tileKey] = { w: maxX - minX + 1, h: maxY - minY + 1, cx: (minX + maxX + 1) / 2, cy: (minY + maxY + 1) / 2 };
+        }
+        const geo = this._tileGeo[tileKey];
+        const stepX = geo.w, stepY = geo.h / 2;
+        // 以门洞中心为锚：沿外法线推出菱形外 + 40px 边距（不做晶格吸附，防止被拽回主场景）
+        const d = this._diamond;
+        const insideDiamond = (x, y) => Math.abs(x - d.cx) / d.rx + Math.abs(y - d.cy) / d.ry <= 1;
+        let px = info.center.x, py = info.center.y;
+        let guard0 = 0;
+        while (insideDiamond(px, py) && guard0++ < 60) {
+            px += nx * 10;
+            py += ny * 10;
+        }
+        const lx = px + nx * 40, ly = py + ny * 40;
+
+        // 烘焙贴砖：画出整砖 → 裁掉菱形内部分（destination-out 菱形路径）→ 远角径向圆滑淡出
+        const bw = srcImg.width, bh = srcImg.height;
+        const canvas = document.createElement('canvas');
+        canvas.width = bw;
+        canvas.height = bh;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(srcImg, 0, 0);
+        ctx.globalCompositeOperation = 'destination-out';
+        // 砖内容中心在 (lx,ly)（origin 按 geo 锚点），菱形路径换算到贴图画布坐标
+        const oxp = geo.cx, oyp = geo.cy;
+        ctx.beginPath();
+        ctx.moveTo(d.cx - lx + oxp, d.cy - d.ry - ly + oyp);
+        ctx.lineTo(d.cx + d.rx - lx + oxp, d.cy - ly + oyp);
+        ctx.lineTo(d.cx - lx + oxp, d.cy + d.ry - ly + oyp);
+        ctx.lineTo(d.cx - d.rx - lx + oxp, d.cy - ly + oyp);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fill();
+        // 远角圆滑淡出
+        const fx = bw / 2 + nx * bw * 0.55, fy = bh / 2 + ny * bh * 0.55;
+        const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, bw * 0.55);
+        grad.addColorStop(0, 'rgba(0,0,0,1)');
+        grad.addColorStop(0.6, 'rgba(0,0,0,0.85)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, bw, bh);
+        ctx.globalCompositeOperation = 'source-over';
+        const zoneKey = 'gate_zone_tile';
+        if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
+        scene.textures.addCanvas(zoneKey, canvas);
+
+        const tile = scene.add.image(lx, ly, zoneKey);
+        tile.setOrigin(geo.cx / bw, geo.cy / bh);
+        // 图层归入地形规则：地板扩展件与烘焙地形同层（-1000 附近），墙体/实体自然压上
+        tile.setDepth(-999);
+        tile.setScale(1.25); // 区域延伸 25%
+        // 轮廓环绕光晕：从贴砖画布烘焙白色轮廓（本体抹除只留外发光），替代原白色光源；
+        // 靠门一侧（拼接边）不发光——把朝门方向的光晕擦掉，只留外侧环绕
+        const glowC = document.createElement('canvas');
+        glowC.width = bw;
+        glowC.height = bh;
+        const gctx = glowC.getContext('2d');
+        for (let i = 0; i < 3; i++) {
+            gctx.shadowColor = '#ffffff';
+            gctx.shadowBlur = 14 + i * 10;
+            gctx.drawImage(canvas, 0, 0);
+        }
+        gctx.globalCompositeOperation = 'destination-out';
+        gctx.drawImage(canvas, 0, 0);
+        // 拼接侧（朝门方向 = 法线反方向）光晕渐隐擦除
+        const sx = bw / 2 - nx * bw * 0.5, sy = bh / 2 - ny * bh * 0.5;
+        const grad2 = gctx.createRadialGradient(sx, sy, 0, sx, sy, bw * 0.62);
+        grad2.addColorStop(0, 'rgba(0,0,0,1)');
+        grad2.addColorStop(0.7, 'rgba(0,0,0,0.9)');
+        grad2.addColorStop(1, 'rgba(0,0,0,0)');
+        gctx.fillStyle = grad2;
+        gctx.fillRect(0, 0, bw, bh);
+        gctx.globalCompositeOperation = 'source-over';
+        const glowKey = 'gate_zone_glow';
+        if (scene.textures.exists(glowKey)) scene.textures.remove(glowKey);
+        scene.textures.addCanvas(glowKey, glowC);
+        const glow = scene.add.image(lx, ly, glowKey);
+        glow.setOrigin(geo.cx / bw, geo.cy / bh);
+        glow.setScale(1.25);
+        glow.setDepth(-998);
+        scene.tweens.add({ targets: glow, alpha: { from: 0.45, to: 1 }, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
+        const zw = stepX * 1.25, zh = stepY * 2 * 1.25;
+        this._gateZone = {
+            x: lx - zw / 2, y: ly - zh / 2, w: zw, h: zh,
+            cx: lx, cy: ly, // 贴砖中心（光晕锚点）
+            _sprites: [tile, glow],
+        };
+    },
+
+    /** 玩家是否真正走出门外白区（必须在白区内且已走出菱形边界，门内擦边不算） */
+    isPlayerInGateZone(player) {
+        const z = this._gateZone;
+        if (!z || !player || !this._diamond) return false;
+        const d = this._diamond;
+        const outside = Math.abs(player.x - d.cx) / d.rx + Math.abs(player.y - d.cy) / d.ry > 1;
+        if (!outside) return false;
+        return player.x >= z.x && player.x <= z.x + z.w && player.y >= z.y && player.y <= z.y + z.h;
+    },
+
+    /** 每帧驱动：门闸动画推进 + 悬停金色轮廓（dungeon-map-system.updateCombat 调用） */
+    update(dt) {
+        WallGate.update(dt);
+        // 悬停高亮：鼠标世界坐标距门洞中心 < 90px
+        const info = WallGate.getGateInfo();
+        if (info && info.center && Input && Input.mouse) {
+            const mw = Renderer && Renderer.screenToWorld ? Renderer.screenToWorld(Input.mouse.x, Input.mouse.y) : null;
+            if (mw) {
+                const near = Math.hypot(mw.x - info.center.x, mw.y - info.center.y) < 90;
+                WallGate.setHighlight(near);
+            }
+        }
+    },
+
+    /** 清理门闸与白区（cleanupRoom 调用） */
+    cleanupGate() {
+        WallGate.destroy();
+        GateLight.destroy();
+        if (this._gateZone) {
+            for (const s of this._gateZone._sprites) {
+                if (s && s.scene) {
+                    s.scene.tweens.killTweensOf(s);
+                    s.destroy();
+                }
+            }
+            this._gateZone = null;
+        }
+    },
+
     cleanupRoom() {
         
+        // 清理门闸与门外白区/光束
+        this.cleanupGate();
 
         // 移除出口传送门
         this.removeExitPortal();
@@ -456,6 +684,7 @@ export const CombatRoomSystem = {
         if (WallSystem && WallSystem.walls) {
             this._backupWalls = [...WallSystem.walls];
             this._backupTrees = WallSystem.trees ? [...WallSystem.trees] : [];
+            this._backupIsoVisuals = WallSystem.isoVisuals ? [...WallSystem.isoVisuals] : [];
         }
 
         // 备份地形纹理
@@ -483,6 +712,7 @@ export const CombatRoomSystem = {
         // 恢复墙壁
         if (WallSystem) {
             WallSystem.walls = [...this._backupWalls];
+            WallSystem.isoVisuals = this._backupIsoVisuals ? [...this._backupIsoVisuals] : [];
             if (WallSystem.trees) {
                 WallSystem.trees = [...this._backupTrees];
             }
@@ -541,6 +771,12 @@ export const CombatRoomSystem = {
     },
 
     _generateTerrain(size) {
+        // 菱形房：黑砖地板菱形裁剪烘焙，区外全黑（共享 dungeon-floor-texture.js 实现）
+        if (this._diamond) {
+            const d = this._diamond;
+            applyDiamondFloor(d.worldW, d.worldH, d.cx, d.cy, d.rx, d.ry, this.config.terrain);
+            return;
+        }
         // 地板烘焙已抽到共享模块 dungeon-floor-texture.js（战斗房与 Boss 场地同一实现）：
         // 三张 blackbrick 源图切割 32×32 小砖随机拼铺，圆角 + 2px 纯黑缝隙，四周黑渐变
         applyDungeonFloor(size, this.config.terrain);
@@ -548,6 +784,20 @@ export const CombatRoomSystem = {
 
     _generateWalls(size) {
         if (!WallSystem) return;
+
+        // 菱形房：基底直墙斜铺 + 四角转角（贴图墙，不清视觉层）
+        if (this._diamond) {
+            const d = this._diamond;
+            WallSystem.walls = [];
+            WallSystem.trees = [];
+            WallSystem.isoVisuals = [];
+            WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+            WallSystem.rebuildIsoCollision();
+            if (WallSystem._syncWallsToPhaser) {
+                WallSystem._syncWallsToPhaser();
+            }
+            return;
+        }
 
         const t = this.config.walls.thickness;
 
@@ -574,6 +824,27 @@ export const CombatRoomSystem = {
 
     _spawnPlayer(player, edge, roomSize) {
         if (!player) return;
+
+        // 菱形房：从顶点的内法线方向入场（0=T 1=R 2=B 3=L），角部加大内缩
+        if (this._diamond) {
+            const d = this._diamond;
+            const off = this.config.playerSpawn.offsetFromEdge + 60;
+            const V = [
+                { x: d.cx, y: d.cy - d.ry },
+                { x: d.cx + d.rx, y: d.cy },
+                { x: d.cx, y: d.cy + d.ry },
+                { x: d.cx - d.rx, y: d.cy },
+            ][edge] || { x: d.cx, y: d.cy + d.ry };
+            const dx = d.cx - V.x, dy = d.cy - V.y;
+            const len = Math.hypot(dx, dy) || 1;
+            player.x = V.x + dx / len * off;
+            player.y = V.y + dy / len * off;
+            const Game0 = gameRef();
+            if (Game0 && Game0.entities) {
+                Game0.entities.set('player', player);
+            }
+            return;
+        }
 
         const offset = this.config.playerSpawn.offsetFromEdge;
         const margin = this.config.walls.margin;
@@ -613,6 +884,21 @@ export const CombatRoomSystem = {
     },
 
     _calculateRoomBounds(roomSize) {
+        // 菱形房：外接矩形 + 菱形参数（生成采样用）
+        if (this._diamond) {
+            const d = this._diamond;
+            return {
+                minX: d.cx - d.rx,
+                maxX: d.cx + d.rx,
+                minY: d.cy - d.ry,
+                maxY: d.cy + d.ry,
+                cx: d.cx,
+                cy: d.cy,
+                diamond: true,
+                rx: d.rx,
+                ry: d.ry,
+            };
+        }
         const margin = this.config.walls.margin;
         const cx = roomSize / 2;
         const cy = roomSize / 2;
@@ -627,6 +913,23 @@ export const CombatRoomSystem = {
     },
 
     _calculateSpawnArea(bounds, oppositeEdge, margin, spawnDepth, minWallDistance = 0) {
+        // 菱形房：生成区 = 对角顶点附近区域（采样时按菱形内缩裁剪）
+        if (bounds.diamond) {
+            const V = [
+                { x: bounds.cx, y: bounds.cy - bounds.ry },
+                { x: bounds.cx + bounds.rx, y: bounds.cy },
+                { x: bounds.cx, y: bounds.cy + bounds.ry },
+                { x: bounds.cx - bounds.rx, y: bounds.cy },
+            ][oppositeEdge] || { x: bounds.cx, y: bounds.cy };
+            const depth = Math.max(spawnDepth * 2, 320);
+            return {
+                minX: V.x - depth,
+                maxX: V.x + depth,
+                minY: V.y - depth,
+                maxY: V.y + depth,
+                _diamondClip: bounds,
+            };
+        }
         // margin（spawn.monsterMargin）与 minWallDistance 取较大者作为贴墙安全距离
         const inset = Math.max(minWallDistance, margin || 0);
         const safeMinX = bounds.minX + inset;

@@ -5,6 +5,7 @@
 import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
+import { loadWallPrefabs } from '../../world/wall-prefabs.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -44,6 +45,15 @@ export class BootScene extends Scene {
         // 墙壁贴图：wall.png 水平墙（带墙面），wall-2.png 垂直墙（只看顶部砖块）
         this.load.image('wall_horizontal', 'assets/terrain/wall.png');
         this.load.image('wall_vertical', 'assets/terrain/wall-2.png');
+        // 等距斜墙贴图（菱形地块平行铺设）：直墙瓦片(已去端帽) + 四角转角（几何锚点见 wall-system.js ISO_WALL_GEO）
+        this.load.image('wall_diag', 'assets/terrain/wall_diag.png');
+        this.load.image('wall_straight', 'assets/terrain/wall_straight.png');
+        // 门闸（16 帧开门动画：帧 0 关闭、帧 15 打开）
+        this.load.spritesheet('wall_gate', 'assets/terrain/wall_gate.png', { frameWidth: 640, frameHeight: 595, endFrame: 15 });
+        this.load.image('wall_corner_top', 'assets/terrain/wall_corner_top.png');
+        this.load.image('wall_corner_bottom', 'assets/terrain/wall_corner_bottom.png');
+        this.load.image('wall_corner_left', 'assets/terrain/wall_corner_left.png');
+        this.load.image('wall_corner_right', 'assets/terrain/wall_corner_right.png');
         // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
         this.load.image('blackbrick5', 'assets/terrain/blackbrick5.png');
         this.load.image('blackbrick5_glow', 'assets/terrain/blackbrick5_glow.png');
@@ -191,6 +201,8 @@ export class BootScene extends Scene {
 
     create() {
         
+        // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
+        loadWallPrefabs();
 
         // 创建行走动画：使用完整 21 帧 spritesheet（3x8 网格），通过 flipX 控制左右
         this.anims.create({

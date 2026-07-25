@@ -10,7 +10,7 @@ import { Camera } from '../world/camera.js';
 import { createBasicZombie, createFatZombie } from './zombie-dungeon.js';
 import { AmalgamZombie } from '../entities/enemy-types.js';
 import enemyConfigData from '../../data/enemy-config.json';
-import { applyDungeonFloor } from './dungeon-floor-texture.js';
+import { applyDiamondFloor } from './dungeon-floor-texture.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { pathFinder } from '../ai/pathfinder.js';
 /**
@@ -172,6 +172,7 @@ export class BossBattleManager {
 
         // 保存原始墙壁、相机、地形、世界尺寸与树木
         this._backupWalls = [...WallSystem.walls];
+        this._backupIsoVisuals = WallSystem.isoVisuals ? [...WallSystem.isoVisuals] : [];
         this._backupCameraFollow = Camera.follow.bind(Camera);
         this._backupTerrainTexture = (typeof Renderer !== 'undefined') ? Renderer.terrainTexture : undefined;
         this._backupWorldSize = (typeof CONFIG !== 'undefined') ? { width: CONFIG.WORLD_WIDTH, height: CONFIG.WORLD_HEIGHT } : null;
@@ -196,19 +197,28 @@ export class BossBattleManager {
     _setupArena() {
         const cfg = BOSS_REWARD_CONFIG.arena;
         const size = cfg.size;
-        const wt = cfg.wallThickness;
 
-        // 生成地形纹理并同步世界尺寸：与战斗房相同的黑砖地板（共享 dungeon-floor-texture.js 实现）
-        applyDungeonFloor(size);
+        // 菱形场地：rx=1.2×bossSize、ry=rx×0.5774，黑砖地板菱形裁剪（区外全黑）
+        // 边距 ≥ 墙体贴图高度（≈217）+ 缓冲，防止上夹角被世界顶裁掉
+        const rx = Math.round(size * 1.2);
+        const ry = Math.round(rx * 0.5774);
+        const M = Math.max(cfg.margin ?? 60, 260);
+        this._diamond = {
+            rx, ry,
+            worldW: 2 * (rx + M),
+            worldH: 2 * (ry + M),
+            cx: rx + M,
+            cy: ry + M,
+        };
+        const d = this._diamond;
+        applyDiamondFloor(d.worldW, d.worldH, d.cx, d.cy, d.rx, d.ry);
 
-        // 设置墙壁系统
-        WallSystem.init(size, size);
-        WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: wt, height: 60 },           // 上
-            { x: 0, y: size - wt, w: size, h: wt, height: 60 },   // 下
-            { x: 0, y: 0, w: wt, h: size, height: 60 },           // 左
-            { x: size - wt, y: 0, w: wt, h: size, height: 60 },   // 右
-        ];
+        // 菱形斜墙 + 四角转角（贴图墙 + 阶梯碰撞）
+        WallSystem.init(d.worldW, d.worldH);
+        WallSystem.walls = [];
+        WallSystem.isoVisuals = [];
+        WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+        WallSystem.rebuildIsoCollision();
 
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
@@ -223,9 +233,15 @@ export class BossBattleManager {
     _placePlayer(player) {
         if (!player) return;
         const cfg = BOSS_REWARD_CONFIG.arena;
-        // 玩家生成在场地最下方中心位置，上移 playerFromBottom px
-        player.x = cfg.size / 2;
-        player.y = cfg.size - (cfg.playerFromBottom ?? 300);
+        // 菱形场地：玩家生成在下顶点方向（中心向上下移 playerFromBottom px）
+        if (this._diamond) {
+            const d = this._diamond;
+            player.x = d.cx;
+            player.y = d.cy + d.ry - (cfg.playerFromBottom ?? 300);
+        } else {
+            player.x = cfg.size / 2;
+            player.y = cfg.size - (cfg.playerFromBottom ?? 300);
+        }
 
         // 确保玩家在 entities 中
         if (Game.entities && !Game.entities.has('player')) {
@@ -236,11 +252,16 @@ export class BossBattleManager {
     _spawnBoss(player) {
         if (!player) return;
         const cfg = BOSS_REWARD_CONFIG.arena;
-        const size = cfg.size;
 
-        // 集合体生成在场地上方正对玩家、镜像对齐位置（上方中心 bossFromTop px）
-        const bx = size / 2;
-        const by = cfg.bossFromTop ?? 300;
+        // 集合体生成：菱形场地上顶点方向（中心向上 bossFromTop px），与玩家镜像对齐
+        let bx, by;
+        if (this._diamond) {
+            bx = this._diamond.cx;
+            by = this._diamond.cy - this._diamond.ry + (cfg.bossFromTop ?? 300);
+        } else {
+            bx = cfg.size / 2;
+            by = cfg.bossFromTop ?? 300;
+        }
 
         // 数值统一来自 enemy-config.json 的 amalgamZombie，仅覆盖永久警戒
         this.boss = new AmalgamZombie(bx, by, {
@@ -362,6 +383,7 @@ export class BossBattleManager {
 
         // 恢复墙壁
         WallSystem.walls = [...this._backupWalls];
+        WallSystem.isoVisuals = this._backupIsoVisuals ? [...this._backupIsoVisuals] : [];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }

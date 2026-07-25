@@ -1,12 +1,39 @@
 import { CONFIG } from '../config/config.js';
 
+// ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
+// base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
+// vertex: 转角接合点；tipX: 臂尖底边点；wallH: 底边→顶沿墙高；slope: 贴图底边固有斜率
+const ISO_WALL_GEO = {
+    diag:   { tex: 'wall_diag', w: 1600, h: 1315, base: [[0, 625.6], [1600, 1409.2]], face: [[150, 699.1], [1450, 1335.7]], wallH: 824, slope: 0.4897 },
+    straight: { tex: 'wall_straight', w: 1600, h: 1383, base: [[5, 617], [1594, 1418]], face: [[16, 622], [1516, 1379]], wallH: 691, slope: 0.5048 },
+    gate: { tex: 'wall_gate', w: 640, h: 595, frames: 16, base: [[4, 248.0], [634, 565.3]], face: [[4, 248.0], [634, 565.3]], gateX: [265, 360], wallH: 268, slope: 0.5037 },
+    top:    { tex: 'wall_corner_top', w: 1600, h: 843, vertex: [854, 478], tipL: [250, 750], tipR: [1350, 640], wallH: 493, slope: 0.482 },
+    bottom: { tex: 'wall_corner_bottom', w: 1600, h: 751, vertex: [850, 705], tipL: [130, 390], tipR: [1450, 380], wallH: 427, slope: 0.492 },
+    left:   { tex: 'wall_corner_left', w: 1343, h: 1600, vertex: [50, 1020], tipUpper: [1180, 240], tipLower: [1326, 1500], wallH: 520, slope: 0.42 },
+    right:  { tex: 'wall_corner_right', w: 1600, h: 1517, vertex: [1590, 930], tipUpper: [150, 300], tipLower: [310, 1450], wallH: 500, slope: 0.44 },
+};
+const ISO_WALL_HEIGHT = 190;    // 目标墙高（世界像素，底边→顶沿）
+const ISO_TILE_OVERLAP = 40;    // 瓦片向转角臂内侵入（覆盖式拼接）
+// 地板线视觉斜率：实测 blackbrick 29.7° / hub_brick 30.7°，取标准 30°（tan30°=0.5774）
+// 注意：引擎碰撞投影 PERSPECTIVE_SCALE_Y=0.5(26.57°) 不可见，不参与视觉对齐
+const FLOOR_SLOPE = 0.5774;
+
+/** 角度补偿：贴图固有斜率 → 显示斜率对齐地板线（scaleY 比例系数） */
+export function slopeFixOf(geo) {
+    return FLOOR_SLOPE / (geo && geo.slope ? geo.slope : 0.49);
+}
+// 转角图层顺序（由前到后）：下 > 左 > 右 > 上
+const ISO_CORNER_DEPTH_BIAS = { top: 0, right: 1, left: 2, bottom: 3 };
+
 const WallSystem = {
     walls: [],
+    isoVisuals: [],  // 等距斜墙视觉件（仅渲染，碰撞由 walls 中的阶梯矩形承担）
     mazeEndY: 0,
     _wallHeight: 60,
     _phaserVisualsEnabled: false,
     init(ww, wh) {
         this.walls = [];
+        this.isoVisuals = [];
         this.trees = [];
         // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
         this.mazeEndY = 0;
@@ -41,6 +68,8 @@ const WallSystem = {
 
         // 重新同步树木（包括视觉精灵）
         this._syncTreesToPhaser();
+        // 等距斜墙视觉件（isoVisuals）
+        this._renderIsoVisuals(phaserScene);
         // 设置碰撞关系
         phaserScene.setupColliders();
         this._phaserVisualsEnabled = true;
@@ -138,6 +167,262 @@ const WallSystem = {
         }
     },
 
+    // ===== 等距斜墙：通用件模型 =====
+    // 通用件: { tex, x, y, scaleX, scaleY, flipX, flipY, depth }（origin 固定 0.5,0.5）
+    // 视觉件存 isoVisuals；碰撞由 rebuildIsoCollision() 按件底边线段自动生成阶梯矩形（_iso 标记）
+    // 墙壁编辑器（wall-editor.js）直接编辑通用件，保存为预制组合（data/wall-prefabs.json）
+
+    /**
+     * 生成菱形（等距 2:1）房间的默认布局（通用件；无预制时作为兜底）
+     * 四角转角贴图 + 四边直墙瓦片（覆盖式拼接）；出入口在右下边
+     */
+    buildDiamondRoom(cx, cy, rx, ry, opts = {}) {
+        const doorEdge = opts.doorEdge || 'RB';
+        const doorW = opts.doorWidth ?? 100;
+        const height = opts.height ?? ISO_WALL_HEIGHT;
+        const T = { x: cx, y: cy - ry }, R = { x: cx + rx, y: cy }, B = { x: cx, y: cy + ry }, L = { x: cx - rx, y: cy };
+        // 四角转角（depth 偏置在 _addCornerPiece 按 下>左>右>上 规则）
+        this._addCornerPiece('top', T, height);
+        this._addCornerPiece('right', R, height);
+        this._addCornerPiece('left', L, height);
+        this._addCornerPiece('bottom', B, height);
+        // 四边：直墙瓦片（臂尖之间 + 向转角臂内侵入 OVERLAP）
+        this._buildIsoEdge(T, L, 'top', 'tipL', 'left', 'tipUpper', true, 0, height);
+        this._buildIsoEdge(T, R, 'top', 'tipR', 'right', 'tipUpper', false, 0, height);
+        this._buildIsoEdge(L, B, 'left', 'tipLower', 'bottom', 'tipL', false, 0, height);
+        this._buildIsoEdge(R, B, 'right', 'tipLower', 'bottom', 'tipR', true, doorEdge === 'RB' ? doorW : 0, height);
+    },
+
+    /** 单条菱形边：Va->Vb（Va 为上端/右端顶点），cornerA/cornerB 为两端转角，flip 为 "/" 方向边 */
+    _buildIsoEdge(Va, Vb, cornerA, tipA, cornerB, tipB, flip, doorW, height) {
+        // 瓦片跨度：两端转角臂尖之间，各向转角臂内收回 OVERLAP（覆盖式拼接）
+        const pa = this._cornerTipWorld(cornerA, Va, tipA, height);
+        const pb = this._cornerTipWorld(cornerB, Vb, tipB, height);
+        const P = this._shrinkPoint(pa, Va, ISO_TILE_OVERLAP);
+        const Q = this._shrinkPoint(pb, Vb, ISO_TILE_OVERLAP);
+        const dx = Q.x - P.x, dy = Q.y - P.y;
+        const segLen = Math.hypot(dx, dy);
+        if (segLen < 20) return;
+        const g = ISO_WALL_GEO.diag;
+        const texLen = Math.hypot(g.base[1][0] - g.base[0][0], g.base[1][1] - g.base[0][1]);
+        const tileLen = texLen * (height / g.wallH);
+        const n = Math.max(1, Math.round(segLen / tileLen));
+        const step = segLen / n;
+        const ux = dx / segLen, uy = dy / segLen;
+        // 门中心换算到瓦片跨度局部坐标：整条边中点弧长 − 跨度起点的弧长位置
+        const fullLen = Math.hypot(Vb.x - Va.x, Vb.y - Va.y);
+        const dP = Math.hypot(P.x - Va.x, P.y - Va.y);
+        const doorAt = fullLen / 2 - dP;
+        for (let i = 0; i < n; i++) {
+            const a = i * step, b = (i + 1) * step;
+            // 与门洞区间求差，保留可见子段（门洞恰好 doorW 宽，不吞整瓦）
+            const parts = doorW
+                ? [[a, Math.min(b, doorAt - doorW / 2)], [Math.max(a, doorAt + doorW / 2), b]]
+                : [[a, b]];
+            for (const [sa, sb] of parts) {
+                if (sb - sa < 5) continue;
+                this._addSegPiece(
+                    { x: P.x + ux * sa, y: P.y + uy * sa },
+                    { x: P.x + ux * sb, y: P.y + uy * sb },
+                    flip
+                );
+            }
+        }
+    },
+
+    /** 直墙瓦片通用件：正面墙底边(face)映射到世界线段 A->B（独立 sx/sy 精确贴合），flip 为 "/" 方向 */
+    _addSegPiece(A, B, flip, geoKey = 'diag', depthMode = 'max', depthBias = 0) {
+        const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.diag;
+        const [p0, p1] = g.face || g.base;
+        let sx, sy, x0, y0;
+        if (!flip) {
+            sx = (B.x - A.x) / (p1[0] - p0[0]);
+            sy = (B.y - A.y) / (p1[1] - p0[1]);
+            x0 = A.x - p0[0] * sx;
+            y0 = A.y - p0[1] * sy;
+        } else {
+            // flip（"/" 方向）：flipX 为 quad 内镜像，贴图点 p 落在 x0 + (w-p.x)*sx
+            // 目标：p0(贴图左端) -> A（上端），p1(贴图右端) -> B（下端）
+            sx = (A.x - B.x) / (p1[0] - p0[0]);
+            sy = (B.y - A.y) / (p1[1] - p0[1]);
+            x0 = A.x - (g.w - p0[0]) * sx;
+            y0 = A.y - p0[1] * sy;
+        }
+        // 深度规则：后墙(室内朝镜头)取 min 底边 y 让室内实体永远在前；前墙取 max 正确遮挡
+        const depth = (depthMode === 'min' ? Math.min(A.y, B.y) : Math.max(A.y, B.y)) + depthBias;
+        this.isoVisuals.push({
+            tex: g.tex,
+            x: x0 + g.w * Math.abs(sx) / 2,
+            y: y0 + g.h * sy / 2,
+            scaleX: Math.abs(sx), scaleY: sy,
+            flipX: !!flip, flipY: false,
+            depth,
+        });
+    },
+
+    /**
+     * 运行时菱形墙构建（僵尸地牢战斗房/Boss 场地）：四顶点转角点对点 + 四边续接
+     * 深度规则：上顶点两臂后墙 min、下顶点两臂前墙 max、左/右顶点上臂 min 下臂 max
+     * 只写 isoVisuals；调用方随后 rebuildIsoCollision() 生成阶梯碰撞
+     */
+    buildIsoDiamondWalls(cx, cy, rx, ry, opts = {}) {
+        const height = opts.height ?? ISO_WALL_HEIGHT;
+        const g = ISO_WALL_GEO.straight;
+        const s = height / g.wallH;
+        const sy = s * slopeFixOf(g);
+        const faceDx = (g.face[1][0] - g.face[0][0]) * s;
+        const faceDy = (g.face[1][1] - g.face[0][1]) * sy;
+        const faceLen = Math.hypot(faceDx, faceDy);
+        const T = { x: cx, y: cy - ry }, R = { x: cx + rx, y: cy }, B = { x: cx, y: cy + ry }, L = { x: cx - rx, y: cy };
+
+        // 放一件：face 起点(上端)在 S，向下延伸；返回远端点
+        const startAt = (S, flip, mode, bias = 0) => {
+            const A = { x: S.x, y: S.y };
+            const B = flip ? { x: S.x - faceDx, y: S.y + faceDy } : { x: S.x + faceDx, y: S.y + faceDy };
+            this._addSegPiece(A, B, flip, 'straight', mode, bias);
+            return B;
+        };
+        // 放一件：face 终点(下端)在 E，向上延伸；返回远端点
+        const endAt = (E, flip, mode, bias = 0) => {
+            const B = { x: E.x, y: E.y };
+            const A = flip ? { x: E.x + faceDx, y: E.y - faceDy } : { x: E.x - faceDx, y: E.y - faceDy };
+            this._addSegPiece(A, B, flip, 'straight', mode, bias);
+            return A;
+        };
+        // 臂远端之间续接（瓦片定长定高，不够长靠叠合，绝不压扁——否则小房间边墙比夹角矮一截）
+        const edgeFill = (P, Q, flip, mode) => {
+            const dx = Q.x - P.x, dy = Q.y - P.y;
+            const len = Math.hypot(dx, dy);
+            if (len < 4) return;
+            const ux = dx / len, uy = dy / len;
+            // 从 P 向臂内 8px 起铺，定长 faceLen 推进直到起点越过 Q+8：
+            // 保证覆盖必定伸入远臂（len mod faceLen 落在特定区间时，少了这步会在末段与远臂之间露出缺口）
+            for (let d = -8; d < len + 8; d += faceLen) {
+                const A = { x: P.x + ux * d, y: P.y + uy * d };
+                const B = { x: A.x + ux * faceLen, y: A.y + uy * faceLen };
+                this._addSegPiece(A, B, flip, 'straight', mode);
+            }
+        };
+
+        // 四角（点对点）：上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max
+        // 不加全局偏置（+260 曾误挡顶点下方高个实体）；后墙接缝顺序由门闸的
+        // "靠顶点侧邻居-1"规则局部保证（见 combat-room-system _setupGate）
+        const CB = 0;
+        const tL = startAt(T, true, 'min', CB);   // 上顶点左臂（向 down-left）
+        const tR = startAt(T, false, 'min', CB);  // 上顶点右臂（向 down-right）
+        const bL = endAt(B, false, 'max');        // 下顶点左臂（从 up-left 来）
+        const bR = endAt(B, true, 'max');         // 下顶点右臂（从 up-right 来）
+        const lU = endAt(L, true, 'min', CB);     // 左顶点上臂（后墙，从 up-right 来）
+        const lD = startAt(L, false, 'max');      // 左顶点下臂（前墙，向 down-right）
+        const rU = endAt(R, false, 'min', CB);    // 右顶点上臂（后墙，从 up-left 来）
+        const rD = startAt(R, true, 'max');       // 右顶点下臂（前墙，向 down-left）
+
+        // 四边续接
+        edgeFill(tL, lU, true, 'min');   // T-L 边（后墙）
+        edgeFill(tR, rU, false, 'min');  // T-R 边（后墙）
+        edgeFill(lD, bL, false, 'max');  // L-B 边（前墙）
+        edgeFill(rD, bR, true, 'max');   // R-B 边（前墙）
+    },
+
+    /** 转角通用件：接合点锚定到顶点，等比缩放到目标墙高；depth = 顶点 y + 顺序偏置（下>左>右>上） */
+    _addCornerPiece(corner, V, height) {
+        const g = ISO_WALL_GEO[corner];
+        const s = height / g.wallH;
+        this.isoVisuals.push({
+            tex: g.tex,
+            x: V.x - g.vertex[0] * s + g.w * s / 2,
+            y: V.y - g.vertex[1] * s + g.h * s / 2,
+            scaleX: s, scaleY: s,
+            flipX: false, flipY: false,
+            depth: V.y + 5 + (ISO_CORNER_DEPTH_BIAS[corner] || 0),
+        });
+    },
+
+    /** 转角臂尖的世界坐标（顶点 + 贴图偏移 × 高度缩放） */
+    _cornerTipWorld(corner, V, tipKey, height) {
+        const g = ISO_WALL_GEO[corner];
+        const s = height / g.wallH;
+        const t = g[tipKey];
+        return { x: V.x + (t[0] - g.vertex[0]) * s, y: V.y + (t[1] - g.vertex[1]) * s };
+    },
+
+    /** 把点 P 向顶点 V 方向收回 amt */
+    _shrinkPoint(P, V, amt) {
+        const dx = P.x - V.x, dy = P.y - V.y;
+        const d = Math.hypot(dx, dy);
+        if (!d) return { x: P.x, y: P.y };
+        return { x: P.x - dx / d * amt, y: P.y - dy / d * amt };
+    },
+
+    /** 渲染 isoVisuals 全部通用件到 visualWalls 组（回写 p._sprite 供编辑器引用） */
+    _renderIsoVisuals(phaserScene) {
+        if (!this.isoVisuals || !phaserScene.visualWalls) return;
+        for (const p of this.isoVisuals) this._placeIsoPiece(phaserScene, p);
+    },
+
+    /** 通用件渲染：origin 0.5,0.5 + scale/flip/depth 直接应用 */
+    _placeIsoPiece(phaserScene, p) {
+        if (!phaserScene.textures.exists(p.tex)) return;
+        const sp = phaserScene.add.sprite(p.x, p.y, p.tex);
+        sp.setOrigin(0.5, 0.5);
+        sp.setScale(p.scaleX ?? 1, p.scaleY ?? p.scaleX ?? 1);
+        sp.setFlipX(!!p.flipX);
+        sp.setFlipY(!!p.flipY);
+        sp.setDepth(p.depth ?? p.y);
+        phaserScene.visualWalls.add(sp);
+        p._sprite = sp;
+    },
+
+    /** 贴图键 → 几何配置 */
+    _geoForTex(tex) {
+        for (const k of Object.keys(ISO_WALL_GEO)) {
+            if (ISO_WALL_GEO[k].tex === tex) return ISO_WALL_GEO[k];
+        }
+        return null;
+    },
+
+    /** 贴图内坐标 → 世界坐标（应用通用件的 origin/scale/flip 变换） */
+    texPointToWorld(p, tx, ty) {
+        const g = this._geoForTex(p.tex);
+        if (!g) return { x: p.x, y: p.y };
+        let u = tx - g.w / 2, v = ty - g.h / 2;
+        if (p.flipX) u = -u;
+        if (p.flipY) v = -v;
+        return { x: p.x + u * (p.scaleX ?? 1), y: p.y + v * (p.scaleY ?? p.scaleX ?? 1) };
+    },
+
+    /** 件底边线段（世界坐标，碰撞用）：直墙=正面墙底边(face，不含端帽)；转角=顶点→两臂尖 */
+    _pieceBaseSegments(p) {
+        const key = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
+        const g = key ? ISO_WALL_GEO[key] : null;
+        if (!g) return [];
+        const base = g.face || g.base;
+        if (base) return [[this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, base[1][0], base[1][1])]];
+        const tips = [g.tipL, g.tipR, g.tipUpper, g.tipLower].filter(Boolean);
+        return tips.map(t => [this.texPointToWorld(p, g.vertex[0], g.vertex[1]), this.texPointToWorld(p, t[0], t[1])]);
+    },
+
+    /** 按全部通用件重建阶梯碰撞矩形（编辑器拖动后调用；静态墙不动） */
+    rebuildIsoCollision() {
+        this.walls = this.walls.filter(w => !w._iso);
+        this.isoSegments = [];  // iso 墙的线段碰撞模型（移动/滑动用，阶梯矩形留给寻路/小地图）
+        for (const p of this.isoVisuals) this._addPieceCollision(p);
+    },
+
+    /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */
+    _addPieceCollision(p) {
+        for (const [a, b] of this._pieceBaseSegments(p)) {
+            const len = Math.hypot(b.x - a.x, b.y - a.y);
+            if (len < 10) continue;
+            this.isoSegments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, halfThick: 10 });
+            const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
+            for (let d = 15; d < len; d += 30) {
+                const px = a.x + ux * d, py = a.y + uy * d;
+                this.walls.push({ x: px - 18, y: py - 10, w: 36, h: 20, height: 60, noVisual: true, _iso: true });
+            }
+        }
+    },
+
     /** 查找与指定线段相交的水平墙壁（用于透视深度调整） */
     _findAdjacentHorizontalWall(x1, y1, x2, y2, self) {
         const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
@@ -230,6 +515,12 @@ const WallSystem = {
     },
     canMoveTo(x, y, radius) {
         for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
+        // iso 墙线段模型：点到线段距离 < 半径 + 半厚
+        if (this.isoSegments) {
+            for (const s of this.isoSegments) {
+                if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+            }
+        }
         // 检查树木碰撞：使用独立的 collisionRadius（视觉半径的60%）
         for (const t of this.trees) {
             const dx = x - t.x, dy = y - t.y;
@@ -238,12 +529,44 @@ const WallSystem = {
         }
         return true;
     },
+    /** 点 (px,py) 到线段 (x1,y1)-(x2,y2) 的距离 */
+    _pointSegDist(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const len2 = dx * dx + dy * dy;
+        if (len2 === 0) return Math.hypot(px - x1, py - y1);
+        let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    },
+    /** 两线段是否相交 */
+    _segSegIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+        const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+        if (d === 0) return false;
+        const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+        const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+        return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+    },
     resolve(x, y, nx, ny, r) {
         if (this.canMoveTo(nx, ny, r) && !this.blocked(x, y, nx, ny)) return { x: nx, y: ny };
+        // iso 墙切向滑动：找最近阻挡墙段，取移动在墙方向上的分量（速度不超意图，杜绝加速滑行）
+        const seg = this._nearestBlockingSeg(nx, ny, r);
+        if (seg) {
+            const dx = nx - x, dy = ny - y;
+            const wx = seg.x2 - seg.x1, wy = seg.y2 - seg.y1;
+            const wl2 = wx * wx + wy * wy;
+            if (wl2 > 0) {
+                const t = (dx * wx + dy * wy) / wl2;
+                for (const ratio of [1, 0.5, 0.25]) {
+                    const sx = x + wx * t * ratio, sy = y + wy * t * ratio;
+                    if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
+                        return { x: sx, y: sy };
+                    }
+                }
+            }
+        }
         if (this.canMoveTo(nx, y, r) && !this.blocked(x, y, nx, y)) return { x: nx, y };
         if (this.canMoveTo(x, ny, r) && !this.blocked(x, y, x, ny)) return { x, y: ny };
-        // [OPTIMIZE] 大怪物卡树优化：标准滑动失败后，尝试沿移动方向逐步缩减步长
-        // 找到可移动的最远位置，避免完全卡住
+        // [OPTIMIZE] 标准滑动失败后，尝试沿移动方向逐步缩减步长
         const dx = nx - x, dy = ny - y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist > 0) {
@@ -254,22 +577,21 @@ const WallSystem = {
                     return { x: stepX, y: stepY };
                 }
             }
-            // [UNSTUCK] 尝试沿移动方向切线方向侧向滑动，帮助走出墙角/窄缝
-            const nxNorm = dx / dist;
-            const nyNorm = dy / dist;
-            for (const side of [-1, 1]) {
-                const tx = -nyNorm * side;
-                const ty = nxNorm * side;
-                for (let ratio = 0.75; ratio >= 0.25; ratio -= 0.25) {
-                    const sx = x + dx * ratio + tx * r;
-                    const sy = y + dy * ratio + ty * r;
-                    if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
-                        return { x: sx, y: sy };
-                    }
-                }
-            }
         }
         return { x, y };
+    },
+    /** 找离目标点最近的阻挡 iso 墙段（距离 < r + 半厚 + 容差） */
+    _nearestBlockingSeg(nx, ny, r) {
+        if (!this.isoSegments) return null;
+        let best = null, bestD = Infinity;
+        for (const s of this.isoSegments) {
+            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
+            if (d < r + s.halfThick + 4 && d < bestD) {
+                bestD = d;
+                best = s;
+            }
+        }
+        return best;
     },
     lineCircle(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1, dy = y2 - y1;
@@ -294,6 +616,12 @@ const WallSystem = {
     },
     blocked(x1, y1, x2, y2) {
         for (const w of this.walls) if (this.lineRect(x1, y1, x2, y2, w)) return true;
+        // iso 墙线段：移动线与墙段相交
+        if (this.isoSegments) {
+            for (const s of this.isoSegments) {
+                if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
+            }
+        }
         // 检查树木：使用独立的 collisionRadius（视觉半径的60%）
         for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
         return false;
@@ -421,4 +749,4 @@ const WallSystem = {
 };
 
 
-export { WallSystem };
+export { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT };

@@ -8,6 +8,7 @@ import { SceneManager } from '../../world/scene-manager.js';
 // ============================================================
 import { Scene } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
+import { WallGate } from '../../world/wall-gate.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
@@ -321,6 +322,8 @@ export class GameScene extends Scene {
         this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
+        // X 光圆圈：被墙壁遮挡的实体以黑渐变圆圈透视显示
+        this._syncXRayCircles(_game);
         this._updateCamera();
     }
 
@@ -657,6 +660,193 @@ export class GameScene extends Scene {
     }
 
     // ---- 相机系统 ----
+
+    /**
+     * X 光圆圈透视（被墙壁遮挡的实体）
+     * 判定：墙件 depth > 实体 depth 且贴图包围盒相交 → 实体被遮挡
+     * 效果：在遮挡墙之上画黑渐变圆圈（边缘黑→透明），圆圈内显示实体贴图（径向 alpha 蒙版裁剪）
+     */
+    _getXrayTextures() {
+        if (this.textures.exists('xray_circle')) return;
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+        // 圆环样式：中间全透明（人物直接透原场景），仅边缘黑→透明渐变
+        g.addColorStop(0, 'rgba(0,0,0,0)');
+        g.addColorStop(0.55, 'rgba(0,0,0,0)');
+        g.addColorStop(0.8, 'rgba(0,0,0,0.75)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 256, 256);
+        this.textures.addCanvas('xray_circle', c);
+    }
+
+    _syncXRayCircles(_game) {
+        if (!_game) return;
+        const dms = DungeonMapSystem;
+        const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        if (!this._xrayMap) this._xrayMap = new Map();
+        this._getXrayTextures();
+        const walls = (!isMapMode && WallSystem.isoVisuals) ? WallSystem.isoVisuals.filter(p => p._sprite && p._sprite.active) : [];
+        // 遮挡物统一列表：iso 墙件 + 门闸（同几何判定：底边线段 + 墙高）
+        const occluders = [];
+        for (const p of walls) {
+            const g = WallSystem._geoForTex(p.tex);
+            occluders.push({
+                sprite: p._sprite,
+                segs: WallSystem._pieceBaseSegments(p),
+                hWall: (g ? g.wallH : 800) * (p.scaleY ?? 1),
+            });
+        }
+        if (WallGate && WallGate.sprite && WallGate.sprite.active && WallGate._seg) {
+            const gg = WallSystem._geoForTex('wall_gate');
+            occluders.push({
+                sprite: WallGate.sprite,
+                segs: [WallGate._seg],
+                hWall: (gg ? gg.wallH : 800) * (WallGate._scale ? WallGate._scale.sy : 1),
+            });
+        }
+
+        const check = (e, sprite) => {
+            if (!e || !sprite || !sprite.active) return;
+            // 找遮挡墙（depth 高于实体 + 几何遮挡判定，取最高 depth）
+            // 判定：脚底在墙面底边线之后（fy < baseY）且身体进入墙面覆盖带（fy > baseY - 墙高），
+            // 覆盖量 > 身体 15% 才算被遮挡——不再用包围盒（斜墙的 AABB 一半是空的，必提前触发）
+            let wallDepth = -Infinity;
+            if (occluders.length) {
+                const footY = sprite.y + this._getFootOffsetY(e, sprite);
+                const hEnt = (e.collider && e.collider.height) ? e.collider.height : sprite.displayHeight * 0.55;
+                const minCover = Math.max(8, hEnt * 0.15);
+                for (const o of occluders) {
+                    const wd = o.sprite.depth;
+                    if (wd <= sprite.depth || wd <= wallDepth) continue;
+                    for (const [a, b] of o.segs) {
+                        const minX = Math.min(a.x, b.x), maxX = Math.max(a.x, b.x);
+                        if (sprite.x < minX - 10 || sprite.x > maxX + 10) continue;
+                        const t = (b.x - a.x) !== 0 ? (sprite.x - a.x) / (b.x - a.x) : 0;
+                        const baseY = a.y + (b.y - a.y) * t;
+                        const cover = footY - (baseY - o.hWall);
+                        if (footY < baseY && cover > minCover) {
+                            wallDepth = wd;
+                            break;
+                        }
+                    }
+                }
+            }
+            const cur0 = this._xrayMap.get(e);
+            if (wallDepth === -Infinity) {
+                if (cur0) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                        if (cur0[k]) cur0[k].setVisible(false);
+                    }
+                }
+                return;
+            }
+            // 接缝处防半遮：把圆覆盖范围内的所有墙件（全包围盒）的最高 depth 作为绘制基准，
+            // 保证地板洞/圆环/克隆盖过接缝处的另一块墙，而不是只盖触发的那块
+            const radius = Math.max(36, sprite.displayWidth * 0.85);
+            for (const o of occluders) {
+                const wd = o.sprite.depth;
+                if (wd <= wallDepth) continue;
+                const wb = o.sprite.getBounds();
+                if (wb.x < sprite.x + radius && wb.x + wb.width > sprite.x - radius &&
+                    wb.y < sprite.y + radius && wb.y + wb.height > sprite.y - radius) {
+                    wallDepth = wd;
+                }
+            }
+            let cur = cur0;
+            if (!cur) {
+                const circle = this.add.sprite(0, 0, 'xray_circle');
+                const clone = this.add.sprite(0, 0, sprite.texture.key);
+                // 地板透视洞：动态 canvas 纹理（每帧从烘焙地板抠一块，边缘径向渐隐）
+                const holeCanvas = document.createElement('canvas');
+                holeCanvas.width = 192;
+                holeCanvas.height = 192;
+                const holeKey = `xray_hole_${this._xraySeq = (this._xraySeq || 0) + 1}`;
+                const holeTex = this.textures.addCanvas(holeKey, holeCanvas);
+                const hole = this.add.image(0, 0, holeKey);
+                hole.setOrigin(0.5, 0.5);
+                cur = { circle, clone, hole, holeCanvas, holeCtx: holeCanvas.getContext('2d'), holeTex, holeKey };
+                this._xrayMap.set(e, cur);
+            }
+            // 更新地板透视洞内容（跟随实体位置抠取烘焙地板）
+            const terrain = (typeof Renderer !== 'undefined' && Renderer.terrainTexture) ? Renderer.terrainTexture : null;
+            if (terrain && cur.holeTex) {
+                const ctx = cur.holeCtx;
+                ctx.clearRect(0, 0, 192, 192);
+                ctx.drawImage(terrain, sprite.x - 96, sprite.y - 96, 192, 192, 0, 0, 192, 192);
+                ctx.globalCompositeOperation = 'destination-in';
+                const g = ctx.createRadialGradient(96, 96, 0, 96, 96, 96);
+                g.addColorStop(0, 'rgba(0,0,0,1)');
+                g.addColorStop(0.6, 'rgba(0,0,0,1)');
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, 192, 192);
+                ctx.globalCompositeOperation = 'source-over';
+                cur.holeTex.refresh();
+                cur.hole.setPosition(sprite.x, sprite.y);
+                cur.hole.setDepth(wallDepth + 0.5);
+                cur.hole.setVisible(true);
+            } else {
+                cur.hole.setVisible(false);
+            }
+            cur.circle.setPosition(sprite.x, sprite.y);
+            cur.circle.setDisplaySize(radius * 2, radius * 2);
+            cur.circle.setDepth(wallDepth + 1);
+            cur.circle.setVisible(true);
+            cur.clone.setTexture(sprite.texture.key, sprite.frame && sprite.frame.name);
+            cur.clone.setPosition(sprite.x, sprite.y);
+            cur.clone.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+            cur.clone.setFlipX(sprite.flipX);
+            cur.clone.setAlpha(0.9);
+            cur.clone.setDepth(wallDepth + 2);
+            cur.clone.setVisible(true);
+            // 玩家武器/副手/盾牌克隆（透视一并显示，跟随各自贴图位置与旋转）
+            if (e === _game.player) {
+                const syncAux = (key, src, dOff) => {
+                    if (!src || !src.active) {
+                        if (cur[key]) cur[key].setVisible(false);
+                        return;
+                    }
+                    if (!cur[key]) cur[key] = this.add.sprite(0, 0, src.texture.key);
+                    const c = cur[key];
+                    c.setTexture(src.texture.key, src.frame && src.frame.name);
+                    c.setPosition(src.x, src.y);
+                    c.setDisplaySize(src.displayWidth, src.displayHeight);
+                    c.setRotation(src.rotation);
+                    c.setFlipX(src.flipX);
+                    c.setAlpha(0.9);
+                    c.setDepth(wallDepth + dOff);
+                    c.setVisible(true);
+                };
+                syncAux('weaponClone', this.weaponSprite, 2.2);
+                syncAux('offhandClone', this.offhandWeaponSprite, 2.15);
+                syncAux('shieldClone', this.shieldSprite, 2.1);
+            }
+        };
+
+        if (_game.player && this.playerSprite && this.playerSprite.active) {
+            check(_game.player, this.playerSprite);
+        }
+        if (_game.entities) {
+            _game.entities.forEach(e => {
+                if (!e || e === _game.player || !e.active) return;
+                if (e._phaserSprite) check(e, e._phaserSprite);
+            });
+        }
+        // 清理已移除实体的 X 光对象
+        for (const [e, cur] of this._xrayMap) {
+            if (!e || !e.active) {
+                for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                    if (cur[k]) cur[k].destroy();
+                }
+                if (cur.holeKey && this.textures.exists(cur.holeKey)) this.textures.remove(cur.holeKey);
+                this._xrayMap.delete(e);
+            }
+        }
+    }
 
     _updateCamera() {
         // Camera 已作为 ES module 导入
