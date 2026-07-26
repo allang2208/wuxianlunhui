@@ -4,6 +4,7 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { inMeleeRange } from './_shared/enemy-utils.js';
 
 /**
  * 手脑（领主 lord）
@@ -166,17 +167,16 @@ export class Shounao extends Enemy {
 
     _dealSlamHit(entities) {
         const cfg = this._getSkillConfigs().slam;
-        const range = cfg.range ?? 300;
+        const range = cfg.range ?? this.attackDistance ?? 300;
         const atk = this.data?.atk || 0;
         // 砸地判定伤害时播放 hitting
         this._playSound('slam');
         // 砸地落点特效：烟尘四周扩散轻微上浮 + 白色放射冲击线
         this._fireSlamDust();
         this._fireSlamImpactLines();
-        // 椭圆判定（2:1 平面透视），与地面视觉圈一致
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of this._hostiles(entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
     }

@@ -174,8 +174,8 @@
     "family": "僵尸",
     "color": "#7a6a4a",
     "size": 17,
-    "collisionRadius": 17,
-    "height": 115,
+    "collisionRadius": 36.25,
+    "height": 143.75,
     "hp": 150,
     "maxHp": 150,
     "speed": 140,
@@ -187,19 +187,19 @@
     "int": 3,
     "wis": 4,
     "luck": 5,
-    "attackRange": 130,
-    "attackDistance": 130,
+    "attackRange": 160,
+    "attackDistance": 160,
     "aiInterval": 1500,
     "attack": {
       "type": "thrust",
       "cooldown": 4000,
-      "dynamicRange": 130,
+      "dynamicRange": 160,
       "width": 22,
       "knockback": 75
     },
     "attackSkills": {
       "slam": {
-        "range": 130,
+        "range": 160,
         "duration": 1500,
         "frames": 24,
         "hitFrame": 17,
@@ -226,12 +226,12 @@
     },
     "render": {
       "spriteSize": 230,
-      "collisionWidth": 58,
-      "collisionHeight": 127,
+      "collisionWidth": 72.5,
+      "collisionHeight": 158.75,
       "footOffsetY": 58,
       "projectileHitbox": {
-        "width": 46,
-        "height": 127,
+        "width": 57.5,
+        "height": 158.75,
         "offsetX": 0,
         "bottom": 0
       },
@@ -394,7 +394,6 @@
     "color": "#6a5a3a",
     "size": 18,
     "collisionRadius": 60,
-    "colliderOffsetY": -50,
     "hp": 1600,
     "maxHp": 1600,
     "speed": 160,
@@ -460,6 +459,7 @@
       "collisionWidth": 120,
       "collisionHeight": 240,
       "footOffsetY": 148,
+      "colliderOffsetY": -25,
       "projectileHitbox": {
         "width": 96,
         "height": 240,
@@ -500,11 +500,10 @@
     "category": "monster",
     "family": "其他",
     "color": "#4a5a4a",
-    "size": 60,
-    "collisionRadius": 90,
-    "colliderOffsetY": -20,
+    "size": 120,
+    "collisionRadius": 180,
     "noFootprint": true,
-    "height": 100,
+    "height": 200,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 0,
@@ -523,13 +522,13 @@
         "comment": "每 intervalMs 在前方 forwardX px 生成一只矿工僵尸，每 lanternIntervalMs 生成一只提灯僵尸",
         "intervalMs": 10000,
         "lanternIntervalMs": 45000,
-        "forwardX": 50
+        "forwardX": 100
       }
     },
     "smoke": {
       "comment": "洞口绿烟粒子（ADD 混合，白色烟雾纹理 + 绿色 tint；正交无透视）",
-      "offsetX": 50,
-      "offsetY": 45,
+      "offsetX": 100,
+      "offsetY": 90,
       "tint": "0x62cc62",
       "frequency": 120,
       "scaleStart": 0.3,
@@ -538,14 +537,15 @@
       "lifespan": 4000
     },
     "render": {
-      "spriteSize": 400,
-      "collisionWidth": 200,
-      "collisionHeight": 100,
-      "footOffsetY": 46,
+      "spriteSize": 800,
+      "collisionWidth": 400,
+      "collisionHeight": 200,
+      "footOffsetY": 92,
+      "colliderOffsetY": -40,
       "capsuleHudAnchor": true,
       "projectileHitbox": {
-        "width": 200,
-        "height": 100,
+        "width": 400,
+        "height": 200,
         "offsetX": 0,
         "bottom": 0
       }
@@ -553,11 +553,135 @@
     "textures": {
       "idle": "assets/enemies/mine_cave/mine_cave.png"
     },
-    "description": "僵尸矿工的巢穴，洞口飘出荧荧绿烟，不断有矿工从中爬出。",
+    "description": "僵尸矿工的巢穴，洞口飘出荧荧绿烟，不断有矿工从中爬出。常驻状态免疫，不受任何 buff/debuff 影响。",
     "skills": [
       {
         "name": "矿工涌出",
-        "desc": "每 5s 在洞口前方 50px 生成一只矿工僵尸"
+        "desc": "每 10s 在洞口前方 100px 生成一只矿工僵尸"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "oreSpider": {
+    "id": "oreSpider",
+    "name": "矿石蜘蛛",
+    "type": "精英",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#9a7ab8",
+    "size": 30,
+    "collisionRadius": 77.5,
+    "height": 150,
+    "hp": 650,
+    "maxHp": 650,
+    "speed": 150,
+    "level": 6,
+    "rank": "elite",
+    "str": 55,
+    "dex": 35,
+    "int": 15,
+    "con": 20,
+    "wis": 15,
+    "luck": 20,
+    "attackRange": 600,
+    "attackDistance": 600,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 5500,
+      "dynamicRange": 600,
+      "width": 26,
+      "knockback": 0
+    },
+    "attackSkills": {
+      "throw": {
+        "comment": "投掷晶石：距离判定 600px，1.5s 播放 28 帧，第 21 帧发射投射物；投射物 1s 抛物线落地（每秒旋转 360°），落地椭圆 100px 物理×1.25；冷却 5.5s；攻击时不可移动",
+        "range": 600,
+        "duration": 1500,
+        "frames": 28,
+        "fireFrame": 21,
+        "flyDuration": 1000,
+        "arcHeight": 100,
+        "projectileSize": 40,
+        "impactRadius": 100,
+        "damageMul": 1.25,
+        "cooldown": 5500
+      },
+      "slam": {
+        "comment": "起跳下砸：2s 播放 18 帧，第 10 帧判定；阶梯伤害（取最小圈不叠加）：200px ×2 / 350px ×1；命中眩晕 stunMs",
+        "range": 350,
+        "duration": 2000,
+        "frames": 18,
+        "hitFrame": 10,
+        "stunMs": 2000,
+        "zones": [
+          { "radius": 200, "damageMul": 2 },
+          { "radius": 350, "damageMul": 1 }
+        ],
+        "cooldown": 8000
+      }
+    },
+    "death": {
+      "comment": "死亡时释放一次起跳下砸（attacking-2 播到第 14 帧定格，含第 10 帧伤害判定）→ 接 dying 12 帧 → 定格 holdMs → 淡出 fadeMs",
+      "slamFrames": 14,
+      "dyingMs": 1200,
+      "holdMs": 1000,
+      "fadeMs": 300,
+      "slamDamage": true
+    },
+    "sounds": {
+      "walk": "assets/sounds/enemies/ore_spider/walking.mp3",
+      "walkInterval": 400,
+      "throwTake": "assets/sounds/enemies/ore_spider/taking.mp3",
+      "throwTakeFrame": 7,
+      "throwLaunch": "assets/sounds/enemies/ore_spider/throwing.mp3",
+      "throwLaunchFrame": 18,
+      "slam": "assets/sounds/enemies/ore_spider/attacking.mp3",
+      "death": "assets/sounds/enemies/ore_spider/dying.mp3"
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 150,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 325,
+      "collisionWidth": 150,
+      "collisionHeight": 137.5,
+      "footOffsetY": 77.5,
+      "colliderOffsetY": -15,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 150,
+        "height": 137.5,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/ore_spider/idle.png",
+      "walk": "assets/enemies/ore_spider/walking.png",
+      "attack": "assets/enemies/ore_spider/attacking.png",
+      "slam": "assets/enemies/ore_spider/attacking-2.png",
+      "death": "assets/enemies/ore_spider/dying.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
+    "description": "晶石与矿根纠缠而成的蜘蛛，背上的晶簇既是铠甲也是弹药。远处投掷晶石轰击，近身起跳下砸；死亡时倾尽最后的力量再砸一次。",
+    "skills": [
+      {
+        "name": "投掷晶石",
+        "desc": "距离判定 600px，1.5s 播放 28 帧，第 21 帧发射晶石；晶石 1s 抛物线落地（每秒旋转 360°），落地对 100px 范围造成物理攻击 ×1.25 伤害；冷却 5.5s，攻击时不可移动"
+      },
+      {
+        "name": "起跳下砸",
+        "desc": "2s 播放 18 帧，第 10 帧进行地面椭圆判定：200px 内物理攻击 ×2，350px 内 ×1（取最小圈不叠加），命中眩晕 2s；冷却 8s，攻击时不可移动"
+      },
+      {
+        "name": "临终一砸",
+        "desc": "死亡时释放一次起跳下砸（含第 10 帧伤害判定），随后倒地化为一堆碎晶，定格 1s 后淡出"
       }
     ],
     "attackType": "物理"
@@ -692,7 +816,7 @@
     "family": "僵尸",
     "color": "#7a3a8a",
     "size": 13,
-    "collisionRadius": 7.07,
+    "collisionRadius": 23.84,
     "hp": 120,
     "maxHp": 120,
     "def": 10,
@@ -732,13 +856,13 @@
     ],
     "attackType": "毒液喷射",
     "render": {
-      "spriteSize": 90,
-      "collisionWidth": 32,
-      "collisionHeight": 79,
-      "footOffsetY": 41,
+      "spriteSize": 112.5,
+      "collisionWidth": 40,
+      "collisionHeight": 98.75,
+      "footOffsetY": 51.25,
       "projectileHitbox": {
-        "width": 29,
-        "height": 81,
+        "width": 36.25,
+        "height": 101.25,
         "offsetX": 0,
         "bottom": 0
       }

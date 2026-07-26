@@ -90,13 +90,10 @@ export const DungeonSpawnUtils = {
     },
 
     /**
-     * 随机一个普通战斗场地尺寸
+     * 普通战斗场地尺寸（固定值，配置驱动）
      */
     rollNormalRoomSize() {
-        const cfg = DungeonConfig.getCombatRoomConfig();
-        const { min, max, step } = cfg.normalSize;
-        const steps = Math.floor((max - min) / step);
-        return min + Math.floor(Math.random() * (steps + 1)) * step;
+        return DungeonConfig.getCombatRoomConfig().normalSize;
     }
 };
 

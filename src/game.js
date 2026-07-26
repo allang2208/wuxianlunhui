@@ -52,6 +52,7 @@ import { MinerZombie } from './entities/enemy-types/miner-zombie.js';
 import { LanternMinerZombie } from './entities/enemy-types/lantern-miner-zombie.js';
 import { ForemanZombie } from './entities/enemy-types/foreman-zombie.js';
 import { MineCave } from './entities/enemy-types/mine-cave.js';
+import { OreSpider } from './entities/enemy-types/ore-spider.js';
 import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
 import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
@@ -367,12 +368,25 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 矿工提灯僵尸测试生成（砸击/提灯燃烧区验证）
-        this.spawnMainLanternMinerZombie();
-        // 僵尸工头测试生成（鞭击/号召/流血验证）
-        this.spawnMainForemanZombie();
-        // 矿洞测试生成（定时生成矿工/绿烟验证）
-        this.spawnMainMineCave();
+        // 当前无测试怪（矿石蜘蛛验证完毕已移除；需要时恢复对应 spawnMain* 调用）
+    },
+
+    spawnMainOreSpider() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.oreSpider || {};
+        const spider = new OreSpider(origin.x + 1200, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_ore_spider', spider);
     },
 
     spawnMainMineCave() {

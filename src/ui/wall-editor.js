@@ -10,25 +10,24 @@
  * 选中件黑白交替闪烁；选中后可整组拖动、滚轮统一缩放、Ctrl+滚轮整组镜像，
  * 支持命名存为预设方案 / 一键删除。
  */
-import { WallSystem, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
 import { loadWallPrefabs, getWallPrefabLibrary, saveWallPrefabs } from '../world/wall-prefabs.js';
 
 // 标准组件库（按 family 分组；墙壁为环境组件的第一个 family）
+// 墙壁组件自动生成：ISO_WALL_GEO 条目带 editor 显示名即进面板（新墙/门组件加 editor 字段即可，无需改本文件）
 const STD_COMPONENTS = [
     {
         family: '环境组件 · 墙壁',
-        items: [
-            { tex: 'wall_straight', name: '直墙·新' },
-            { tex: 'wall_gate', name: '门墙' },
-        ],
+        items: Object.values(ISO_WALL_GEO)
+            .filter(g => g.editor)
+            .map(g => ({ tex: g.tex, name: g.editor })),
     },
 ];
 
-// 贴图键 → 图层命名前缀
+// 贴图键 → 图层命名前缀（ISO_WALL_GEO.editor 自动生成 + 旧贴图补充）
 const TEX_NAMES = {
     wall_diag: '直墙',
-    wall_straight: '直墙·新',
-    wall_gate: '门墙',
+    ...Object.fromEntries(Object.values(ISO_WALL_GEO).filter(g => g.editor).map(g => [g.tex, g.editor])),
 };
 
 // 拼接吸附叠合量（世界像素）：B 沿走向回退，保证接缝只叠不缺（face 锚点有拟合公差）

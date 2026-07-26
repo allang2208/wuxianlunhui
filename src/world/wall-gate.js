@@ -6,12 +6,12 @@
  * - 战斗完成：playOpen()，门洞碰撞线段启停，门外白区+光束由 combat-room 协调
  * - 悬停金色轮廓（离屏烘焙外发光，零渲染开销）
  */
-import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 
 const FRAMES = 16;
 const ANIM_MS = 900; // 16 帧总时长
-const GATE_SOUND = 'assets/sounds/environment/gate.mp3';
+const DEFAULT_GATE_SOUND = 'assets/sounds/environment/gate.mp3';
 
 export const WallGate = {
     state: 'open',
@@ -27,9 +27,21 @@ export const WallGate = {
     _gateSeg: null,  // 门洞碰撞线段（isoSegments 条目）
     _depthMode: 'max',
 
+    /** 当前样式门闸音效（ISO_WALL_STYLES.gateSound，placeAt 时随 _geoKey 锁定） */
+    _gateSound() {
+        const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
+        return (style && style.gateSound) || DEFAULT_GATE_SOUND;
+    },
+
+    /** 当前门闸几何（跟随 WallSystem 墙样式；placeAt 时锁定） */
+    _geo() {
+        const key = this._geoKey || 'gate';
+        return ISO_WALL_GEO[key] || ISO_WALL_GEO.gate;
+    },
+
     /** 贴图内坐标 → 世界（origin 中心 + scale + flipX） */
     _tex2world(tx, ty) {
-        const g = ISO_WALL_GEO.gate;
+        const g = this._geo();
         let u = tx - g.w / 2;
         const v = ty - g.h / 2;
         if (this._flip) u = -u;
@@ -45,18 +57,22 @@ export const WallGate = {
      */
     placeAt(A, B, flip, depth = null) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        if (!scene || !scene.textures.exists('wall_gate')) return false;
-        const g = ISO_WALL_GEO.gate;
-        const [p0, p1] = g.base;
-        let sx, sy, x0, y0;
+        const geoKey = (WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().gate : 'gate');
+        const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.gate;
+        if (!scene || !scene.textures.exists(g.tex)) return false;
+        this._geoKey = geoKey;
+        const p0 = g.base[0];
+        // 与墙件同一显示尺度（ISO_WALL_HEIGHT/ wallH + 角度补偿）：门高与邻墙一致（大小墙衔接）；
+        // 底边起点锚定 A，门宽与被替换件的差距靠叠合吸收（只叠不缺）。
+        // 僵尸素材恰好自洽（此尺度 == 旧线段反推值），行为不变
+        const s = ISO_WALL_HEIGHT / g.wallH;
+        const sx = s, sy = s * slopeFixOf(g);
+        let x0, y0;
         if (!flip) {
-            sx = (B.x - A.x) / (p1[0] - p0[0]);
-            sy = (B.y - A.y) / (p1[1] - p0[1]);
             x0 = A.x - p0[0] * sx;
             y0 = A.y - p0[1] * sy;
         } else {
-            sx = (A.x - B.x) / (p1[0] - p0[0]);
-            sy = (B.y - A.y) / (p1[1] - p0[1]);
+            // flip（"/" 方向）：flipX 为 quad 内镜像，p0→A、p1→B
             x0 = A.x - (g.w - p0[0]) * sx;
             y0 = A.y - p0[1] * sy;
         }
@@ -68,7 +84,7 @@ export const WallGate = {
         this._homeDepth = depth ?? Math.max(A.y, B.y); // 归属深度（继承被替换件的 min/max 规则）
 
         if (this.sprite) this.sprite.destroy();
-        this.sprite = scene.add.sprite(this._cx, this._cy, 'wall_gate', this._frame);
+        this.sprite = scene.add.sprite(this._cx, this._cy, g.tex, this._frame);
         this.sprite.setOrigin(0.5, 0.5);
         this.sprite.setScale(this._scale.sx, this._scale.sy);
         this.sprite.setFlipX(this._flip);
@@ -109,8 +125,9 @@ export const WallGate = {
         this._onDone = onDone || null;
         this.setPassable(false);
         if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(GATE_SOUND);
+            SoundManager.playFile(this._gateSound());
         }
+        this._playAnim(FRAMES - 1, 0);
     },
 
     playOpen(onDone) {
@@ -119,31 +136,43 @@ export const WallGate = {
         this._onDone = onDone || null;
         this.setPassable(true);
         if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(GATE_SOUND);
+            SoundManager.playFile(this._gateSound());
         }
+        this._playAnim(0, FRAMES - 1);
     },
 
-    /** 帧推进（CombatRoomSystem.update 驱动） */
-    update(dt) {
-        if (this.state !== 'opening' && this.state !== 'closing') return;
-        this._frameTimer += dt;
-        const step = ANIM_MS / (FRAMES - 1);
-        while (this._frameTimer >= step) {
-            this._frameTimer -= step;
-            this._frame += this.state === 'opening' ? 1 : -1;
-            if (this._frame <= 0 || this._frame >= FRAMES - 1) {
-                this._frame = Math.max(0, Math.min(FRAMES - 1, this._frame));
-                this.state = this.state === 'opening' ? 'open' : 'closed';
-                this._frameTimer = 0;
-                if (this.sprite) this.sprite.setFrame(this._frame);
-            if (this.glowSprite) this.glowSprite.setFrame(this._frame);
+    /** 帧动画（Phaser tween 计数器驱动，不依赖手动 update tick） */
+    _playAnim(from, to) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (this.sprite) this.sprite.setFrame(from);
+        if (this.glowSprite) this.glowSprite.setFrame(from);
+        if (!scene) { this._frame = to; this.state = to === 0 ? 'closed' : 'open'; return; }
+        if (this._animCounter) this._animCounter.stop();
+        this._animCounter = scene.tweens.addCounter({
+            from,
+            to,
+            duration: ANIM_MS,
+            ease: 'Linear',
+            onUpdate: (tw) => {
+                const f = Math.round(tw.getValue());
+                if (this.sprite) this.sprite.setFrame(f);
+                if (this.glowSprite) this.glowSprite.setFrame(f);
+            },
+            onComplete: () => {
+                this._frame = to;
+                this.state = to === 0 ? 'closed' : 'open';
                 const cb = this._onDone;
                 this._onDone = null;
                 if (cb) cb();
-                return;
-            }
-            if (this.sprite) this.sprite.setFrame(this._frame);
-            if (this.glowSprite) this.glowSprite.setFrame(this._frame);
+            },
+        });
+    },
+
+    /** 帧推进（CombatRoomSystem.update 驱动） */
+    /** 帧推进已改 tween 驱动（_playAnim）；update 仅同步发光帧 */
+    update(_dt) {
+        if (this.glowSprite && this.sprite) {
+            this.glowSprite.setFrame(this.sprite.frame.name);
         }
     },
 
@@ -152,16 +181,21 @@ export const WallGate = {
         return { center: this._gateCenter, seg: this._seg, flip: this._flip, depthMode: this._depthMode };
     },
 
-    /** 悬停金色轮廓（仅拱门区域，全帧烘焙，跟随门当前状态帧） */
+    /** 悬停金色轮廓（仅门洞区域，全帧烘焙，跟随门当前状态帧） */
     _buildGlow() {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         if (!scene) return;
-        if (!scene.textures.exists('wall_gate_glow')) {
-            // 离屏烘焙：全部 16 帧的拱门区域剪影 × 金色 shadowBlur 外发光（只附门，不附两侧墙）
-            const g = ISO_WALL_GEO.gate;
-            const src = scene.textures.get('wall_gate').getSourceImage();
+        const g = this._geo();
+        const texKey = g.tex;
+        const glowKey = texKey + '_glow';
+        if (!scene.textures.exists(glowKey)) {
+            // 离屏烘焙：全部 16 帧的门洞区域剪影 × 金色 shadowBlur 外发光（只附门，不附两侧墙）
+            const src = scene.textures.get(texKey).getSourceImage();
             const cols = Math.floor(src.width / g.w);
             const rowsN = Math.floor(src.height / g.h);
+            // 门洞裁剪区（gateX ± 边距，随样式几何）
+            const clipX = g.gateX ? g.gateX[0] - 75 : 190;
+            const clipW = g.gateX ? (g.gateX[1] - g.gateX[0]) + 150 : 240;
             const c = document.createElement('canvas');
             c.width = src.width;
             c.height = src.height;
@@ -171,7 +205,7 @@ export const WallGate = {
                     const fx = col * g.w, fy = r * g.h;
                     ctx.save();
                     ctx.beginPath();
-                    ctx.rect(fx + 190, fy, 240, g.h); // 仅拱门区域
+                    ctx.rect(fx + clipX, fy, clipW, g.h); // 仅门洞区域
                     ctx.clip();
                     for (let i = 0; i < 3; i++) {
                         ctx.shadowColor = '#ffd700';
@@ -185,10 +219,10 @@ export const WallGate = {
                     ctx.restore();
                 }
             }
-            scene.textures.addSpriteSheet('wall_gate_glow', c, { frameWidth: g.w, frameHeight: g.h });
+            scene.textures.addSpriteSheet(glowKey, c, { frameWidth: g.w, frameHeight: g.h });
         }
         if (this.glowSprite) this.glowSprite.destroy();
-        this.glowSprite = scene.add.sprite(this._cx, this._cy, 'wall_gate_glow', this._frame);
+        this.glowSprite = scene.add.sprite(this._cx, this._cy, glowKey, this._frame);
         this.glowSprite.setOrigin(0.5, 0.5);
         this.glowSprite.setScale(this._scale.sx, this._scale.sy);
         this.glowSprite.setFlipX(this._flip);
@@ -201,6 +235,7 @@ export const WallGate = {
     },
 
     destroy() {
+        if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
         this.setPassable(true);
         if (WallSystem.isoSegments && this._wallSegs) {
             for (const s of this._wallSegs) {

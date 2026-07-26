@@ -15,7 +15,8 @@ class AttackRangeEffect {
         const scene = window.__phaserScene;
         if (!scene) return;
         this._graphics = scene.add.graphics();
-        this._graphics.setDepth(this.y + 50);
+        // 地面特效层：压在玩家/怪物贴图（实体 depth = 脚底 y+10）之下，不遮挡
+        this._graphics.setDepth(this.y - 998);
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
     }
 
@@ -42,7 +43,7 @@ class AttackRangeEffect {
         const g = this._graphics;
         g.clear();
         g.setPosition(this.x, this.y);
-        g.setDepth(this.y + 50);
+        g.setDepth(this.y - 998); // 地面特效层：不遮挡玩家/怪物贴图
 
         const fillAlpha = 0.35 * fade;
         const strokeAlpha = 0.8 * fade;

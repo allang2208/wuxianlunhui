@@ -218,5 +218,332 @@
         "label": "直墙·新 4"
       }
     ]
+  },
+  "宝箱房": {
+    "name": "宝箱房",
+    "cx": 3951,
+    "cy": 1146,
+    "pieces": [
+      {
+        "tex": "wall_gate",
+        "x": 3729.197509765625,
+        "y": 1271.6521606445312,
+        "scaleX": 0.6551724137931034,
+        "scaleY": 0.7510354411835177,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1355.5396728515625,
+        "family": "wall",
+        "label": "门墙 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4148.8564453125,
+        "y": 1259.5396118164062,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1354.5396728515625,
+        "family": "wall",
+        "label": "直墙·新 1"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 3739.8564453125,
+        "y": 1020.5396728515625,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1136.5396728515625,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4172.282958984375,
+        "y": 1022.471923828125,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1115.584228515625,
+        "family": "wall",
+        "label": "直墙·新 3"
+      }
+    ]
+  },
+  "沼泽宝箱房": {
+    "name": "沼泽宝箱房",
+    "cx": 3953,
+    "cy": 1235,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4115.564208984375,
+        "y": 1148.7747192382812,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1148.7747192382812,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 3789.564208984375,
+        "y": 1142.7747192382812,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1092.7747192382812,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4118.564208984375,
+        "y": 1327.7747192382812,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1452.7747192382812,
+        "family": "wall",
+        "label": "沼泽柴墙 3"
+      },
+      {
+        "tex": "swamp_gate",
+        "x": 3787.564208984375,
+        "y": 1323.7747192382812,
+        "scaleX": 0.6310195948189969,
+        "scaleY": 0.6404477307936173,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1332.7747192382812,
+        "family": "wall",
+        "label": "沼泽藤门 1"
+      }
+    ]
+  },
+  "沼泽上夹角": {
+    "name": "沼泽上夹角",
+    "cx": 4883,
+    "cy": 1490,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 5049.70751953125,
+        "y": 1487.80712890625,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1483.80712890625,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_gate",
+        "x": 4715.34130859375,
+        "y": 1491.9849853515625,
+        "scaleX": 0.6310195948189969,
+        "scaleY": 0.6404477307936173,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1460.80712890625,
+        "family": "wall",
+        "label": "沼泽藤门 1"
+      }
+    ]
+  },
+  "沼泽下夹角": {
+    "name": "沼泽下夹角",
+    "cx": 4202,
+    "cy": 1426,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4361.996337890625,
+        "y": 1427.647216796875,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1427.647216796875,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4042.996337890625,
+        "y": 1424.647216796875,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1426.647216796875,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      }
+    ]
+  },
+  "沼泽右夹角": {
+    "name": "沼泽右夹角",
+    "cx": 5253,
+    "cy": 1750,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 5262.151123046875,
+        "y": 1652.9439697265625,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1652.9439697265625,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_gate",
+        "x": 5244.151123046875,
+        "y": 1847.9439697265625,
+        "scaleX": 0.6310195948189969,
+        "scaleY": 0.6404477307936173,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1835.9439697265625,
+        "family": "wall",
+        "label": "沼泽藤门 1"
+      }
+    ]
+  },
+  "沼泽左夹角": {
+    "name": "沼泽左夹角",
+    "cx": 4698,
+    "cy": 1772,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4689.151123046875,
+        "y": 1673.9439697265625,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1590.9439697265625,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      },
+      {
+        "tex": "swamp_gate",
+        "x": 4707.151123046875,
+        "y": 1869.9439697265625,
+        "scaleX": 0.6310195948189969,
+        "scaleY": 0.6404477307936173,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1878.9439697265625,
+        "family": "wall",
+        "label": "沼泽藤门 2"
+      }
+    ]
+  },
+  "沼泽墙上夹角": {
+    "name": "沼泽墙上夹角",
+    "cx": 3964,
+    "cy": 1239,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4119.23291015625,
+        "y": 1237.0933837890625,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1237.0933837890625,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 3808.233154296875,
+        "y": 1240.09326171875,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1252.09326171875,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      }
+    ]
+  },
+  "沼泽墙右夹角": {
+    "name": "沼泽墙右夹角",
+    "cx": 4270,
+    "cy": 1380,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4270.186279296875,
+        "y": 1289.917724609375,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1258.917724609375,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 4269.186279296875,
+        "y": 1470.917724609375,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1603.917724609375,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      }
+    ]
+  },
+  "沼泽墙左夹角": {
+    "name": "沼泽墙左夹角",
+    "cx": 3697,
+    "cy": 1293,
+    "pieces": [
+      {
+        "tex": "swamp_wall_straight",
+        "x": 3697.186279296875,
+        "y": 1382.917724609375,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": false,
+        "flipY": false,
+        "depth": 1278.917724609375,
+        "family": "wall",
+        "label": "沼泽柴墙 1"
+      },
+      {
+        "tex": "swamp_wall_straight",
+        "x": 3696.186279296875,
+        "y": 1203.917724609375,
+        "scaleX": 0.23773773773773774,
+        "scaleY": 0.24090868685463282,
+        "flipX": true,
+        "flipY": false,
+        "depth": 1277.917724609375,
+        "family": "wall",
+        "label": "沼泽柴墙 2"
+      }
+    ]
   }
 }

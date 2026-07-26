@@ -6,7 +6,8 @@
  * - 菱形几何按贴图 alpha 包围盒运行时实测（换素材无需改代码）
  * - 发光层机制保留（profile.glow !== false 时同位置 'lighter' 平铺 <贴图键>_glow），
  *   僵尸地牢当前全部关闭（glow: false），其他场景可开启
- * - 四周 64px 黑→透明渐变与纯黑背景融合
+ * - 墙脚接触阴影（统一标准）：沿菱形边缘向内 64px 真渐变黑带（墙根 ≈40% 黑 → 0），
+ *   所有墙壁-地板衔接处共用此处理，不因地牢等级分设
  * - 贴图未加载完成时回退到深色网格地板
  */
 import { CONFIG } from '../config/config.js';
@@ -35,7 +36,7 @@ let _floorProfile = null;
  */
 export function setDungeonFloorProfile(profile) {
     _floorProfile = (profile && Array.isArray(profile.tiles) && profile.tiles.length > 0)
-        ? { tiles: [...profile.tiles], glow: profile.glow !== false }
+        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0 }
         : null;
 }
 
@@ -82,12 +83,13 @@ function _getTileGeometry(key, img) {
     return geo;
 }
 
-/** 等距平铺一层：每格随机选图 + 随机镜像，菱形中心对齐网格点、行交错半宽偏移 */
-function _drawIsoLayer(ctx, tiles, w, h) {
+/** 等距平铺一层：每格随机选图 + 随机镜像，菱形中心对齐网格点、行交错半宽偏移；
+ *  overlapX/overlapY：步进内缩（相邻砖叠合，只叠不缺）——盖自然边缘的锯齿缝与半透明暗边 */
+function _drawIsoLayer(ctx, tiles, w, h, overlapX = 0, overlapY = 0) {
     // 网格步进用首张贴图几何（组内各贴图尺寸近似，中心点各自对齐）
     const ref = tiles[0];
-    const stepX = ref.geo.w;
-    const stepY = ref.geo.h / 2;
+    const stepX = ref.geo.w - overlapX;
+    const stepY = ref.geo.h / 2 - overlapY;
     const startRow = -2;
     const endRow = Math.ceil(h / stepY) + 2;
     for (let r = startRow; r < endRow; r++) {
@@ -133,6 +135,10 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
     for (const key of profile.tiles) {
         const img = _getSourceImage(key);
         if (img) tiles.push({ key, img, geo: _getTileGeometry(key, img) });
+        else console.warn('[DungeonFloor] 地砖纹理缺失（已从池中剔除）:', key);
+    }
+    if (profile.tiles.length > 0) {
+        console.log(`[DungeonFloor] 地砖池 ${tiles.length}/${profile.tiles.length}:`, tiles.map(t => t.key).join(','));
     }
 
     if (tiles.length > 0) {
@@ -141,7 +147,7 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
         ctx.beginPath();
         ctx.rect(0, 0, size, size);
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, size, size);
+        _drawIsoLayer(ctx, tiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
 
         // 3. 发光层（机制保留）：profile.glow 开启且存在 <贴图键>_glow 时同位置 ADD 平铺
         if (profile.glow !== false) {
@@ -152,7 +158,7 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, size, size);
+                _drawIsoLayer(ctx, glowTiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
@@ -232,6 +238,10 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
     for (const key of profile.tiles) {
         const img = _getSourceImage(key);
         if (img) tiles.push({ key, img, geo: _getTileGeometry(key, img) });
+        else console.warn('[DungeonFloor] 地砖纹理缺失（已从池中剔除）:', key);
+    }
+    if (profile.tiles.length > 0) {
+        console.log(`[DungeonFloor] 地砖池 ${tiles.length}/${profile.tiles.length}:`, tiles.map(t => t.key).join(','));
     }
 
     const diamondPath = (inset) => {
@@ -249,7 +259,7 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
         ctx.save();
         diamondPath(0);
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, width, height);
+        _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
         if (profile.glow !== false) {
             const glowTiles = [];
             for (const t of tiles) {
@@ -258,18 +268,21 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, width, height);
+                _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
         ctx.restore();
 
-        // 3. 菱形边缘黑渐变：向内递缩描边叠加（外侧已纯黑，内侧形成渐变带）
+        // 3. 墙脚接触阴影（标准：所有墙壁-地板衔接处统一）：沿菱形边缘向内的真渐变带，
+        // 墙根处最暗（约 40% 黑）→ 向内 64px 渐隐到 0。逐笔 alpha 递减叠加自然成梯度；
+        // 旧版是 16 笔等 alpha(0.12) 平刷——整带只有约 15% 平黑，亮地砖上几乎不可见
+        // （中级/初级"没有阴影"的根因：blackbrick-7/8 亮度 50 是高级砖 25 的两倍）
         const fade = FLOOR_EDGE_FADE;
-        for (let i = 0; i < fade; i += 4) {
+        for (let i = 0; i < fade; i += 2) {
             diamondPath(i);
-            ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
         }
     } else {

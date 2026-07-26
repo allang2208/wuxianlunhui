@@ -22,6 +22,10 @@ export class MineCave extends Enemy {
 
         // 站桩锁死（集合体同款）
         this.noSeparation = true;
+        // 贴图自带底座：不生成脚下阴影（GameScene._syncEntityShadows 跳过）
+        this._noShadow = true;
+        // 常驻状态免疫：免疫一切 buff/debuff（DamageableEntity 统一拦截）
+        this.applyStatusImmune(Number.MAX_SAFE_INTEGER);
         this._anchorX = x;
         this._anchorY = y;
 
@@ -91,6 +95,7 @@ export class MineCave extends Enemy {
         miner._summoned = true;
         const key = `mineCave_miner_${Date.now()}_${this._spawnSeq++}_${Math.floor(Math.random() * 1000)}`;
         game.entities.set(key, miner);
+        this._playSpawnFx(miner.x, miner.y);
     }
 
     _spawnLanternMiner() {
@@ -109,6 +114,15 @@ export class MineCave extends Enemy {
         lantern._summoned = true;
         const key = `mineCave_lantern_${Date.now()}_${this._lanternSpawnSeq++}_${Math.floor(Math.random() * 1000)}`;
         game.entities.set(key, lantern);
+        this._playSpawnFx(lantern.x, lantern.y);
+    }
+
+    /** 召唤物生成点黑色粒子（地牢刷怪同款 playDungeonSpawnParticles） */
+    _playSpawnFx(x, y) {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
+            scene.playDungeonSpawnParticles(x, y);
+        }
     }
 
     /** 洞口绿烟粒子（smoke 配置驱动；ADD 混合；深度高于矿洞贴图、低于前景实体） */

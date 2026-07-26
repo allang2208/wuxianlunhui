@@ -32,10 +32,11 @@ import { coverRect, anchorRect } from '../utils/layout.js';
 /** 路线选择界面区域 spec（1920×1080 基准；由 2560×1440 实测 left:4 bottom:10 w:2545 h:542 换算） */
 const MAP_AREA_SPEC = { left: 4, bottom: 10, width: 1909, height: 407 };
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
-import { DungeonChest } from '../entities/dungeon-chest.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
+import { ChestRoomSystem } from './chest-room-system.js';
 import { setDungeonFloorProfile } from './dungeon-floor-texture.js';
+import { WallSystem } from './wall-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
@@ -147,10 +148,6 @@ export const DungeonMapSystem = {
     // 出口传送门（战斗结束后生成）
     _exitPortalSpawned: false,
 
-    // 精英战斗奖励宝箱
-    _eliteChest: null,
-    _eliteChestOpened: false,
-
     init(sceneId, player, dungeonType = 'default') {
         this.active = true;
         this.state = "map";
@@ -171,8 +168,6 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
-        this._eliteChest = null;
-        this._eliteChestOpened = false;
 
         // 初始化迷雾系统
         this.fogOfWar = new DungeonFogOfWar();
@@ -180,6 +175,8 @@ export const DungeonMapSystem = {
         AgentInvasionSystem.init(this);
         // 地板贴图组（按地牢类型配置：随机选图+镜像+发光层开关；离开时恢复默认）
         setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
+        // 墙样式（按地牢类型：僵尸砖墙 / 沼泽柴墙+藤门；离开时恢复默认）
+        WallSystem.setWallStyle(dungeonType);
 
         this.generateMap();
         this._centerRouteMap();
@@ -230,6 +227,8 @@ export const DungeonMapSystem = {
         this._invasionMixed = false;
         // 地板配置恢复默认（离开地牢）
         setDungeonFloorProfile(null);
+        // 墙样式恢复默认（离开地牢）
+        WallSystem.setWallStyle('default');
 
         // 死亡/异常退出时强制清理 Boss 战与战斗房，防止 active 卡死造成软锁
         if (typeof BossRewardSystem !== 'undefined' && BossRewardSystem && typeof BossRewardSystem.cleanup === 'function') {
@@ -362,9 +361,9 @@ export const DungeonMapSystem = {
         this._generateZombieMap();
     },
 
-    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner / zombieMid
+    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner / zombieMid / swamp
     _isZombieFamily() {
-        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner' || this.dungeonType === 'zombieMid';
+        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner' || this.dungeonType === 'zombieMid' || this.dungeonType === 'swamp';
     },
 
     // 僵尸地牢：rows 条路线 converging to BOSS
@@ -599,41 +598,19 @@ export const DungeonMapSystem = {
             const currentNode = this.getCurrentNode();
             const isEliteNode = currentNode && currentNode.isElite;
 
-            if (isEliteNode) {
-                // 精英节点：先刷出宝箱，打开后再生成传送门
-                if (!this._eliteChest && !this._eliteChestOpened) {
-                    const bounds = CombatRoomSystem._roomBounds;
-                    const cx = bounds ? bounds.cx : this.player.x;
-                    const cy = bounds ? bounds.cy : this.player.y;
-                    const chest = new DungeonChest(cx, cy, {
-                        openRange: 60,
-                        onOpen: () => this._openEliteChest(currentNode)
-                    });
-                    this._eliteChest = chest;
-                    Game.entities.set('elite_chest', chest);
-                    if (SceneManager && SceneManager.showTopNotification) {
-                        SceneManager.showTopNotification('精英敌人已被消灭，打开宝箱获取奖励');
-                    }
-                }
+            // 战斗完成即打开大门（精英/普通同路径；节点完成标记在离场时统一打）
+            if (!this._exitPortalSpawned) {
+                this._exitPortalSpawned = true;
+                CombatRoomSystem.openGate();
 
-                // 检测玩家靠近宝箱并自动打开
-                if (this._eliteChest && this._eliteChest.active && !this._eliteChest.opened) {
-                    const dx = this.player.x - this._eliteChest.x;
-                    const dy = this.player.y - this._eliteChest.y;
-                    if (Math.sqrt(dx * dx + dy * dy) <= this._eliteChest.openRange) {
-                        this._eliteChest.open();
-                    }
-                }
-            } else {
-                // 普通节点：战斗完成，打开大门（光束 + 门外白区，不再生成传送门）
-                if (!this._exitPortalSpawned) {
-                    this._exitPortalSpawned = true;
-                    CombatRoomSystem.openGate();
-
-                    // 上方提示栏：已完成战斗，从大门离开
+                // 精英节点：通知宝箱房（限时内完成 → 打开宝箱房门墙）
+                if (isEliteNode && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
+                    ChestRoomSystem.onCombatComplete();
                     if (SceneManager && SceneManager.showTopNotification) {
-                        SceneManager.showTopNotification('已完成战斗，从大门离开');
+                        SceneManager.showTopNotification(ChestRoomSystem.hasUnopenedLoot() ? '精英已消灭，宝箱房已开启！' : '已完成战斗，从大门离开');
                     }
+                } else if (SceneManager && SceneManager.showTopNotification) {
+                    SceneManager.showTopNotification('已完成战斗，从大门离开');
                 }
             }
         }
@@ -645,8 +622,53 @@ export const DungeonMapSystem = {
 
         // 检测玩家是否走出门外白区（与传送门同效：回地牢地图）
         if (CombatRoomSystem.isPlayerInGateZone && CombatRoomSystem.isPlayerInGateZone(this.player)) {
-            this._leaveCombatViaPortal();
+            // 离场守卫：场地内还有未开宝箱 → 先弹确认框（是=正常离场清场 / 否=退回场内）
+            if (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.hasUnopenedLoot()
+                && !this._chestLeaveConfirm && !(this._chestLeaveCd > 0)) {
+                this._showChestLeaveConfirm();
+            } else if (!this._chestLeaveConfirm) {
+                this._leaveCombatViaPortal();
+            }
         }
+        // 离场确认后的防连发冷却
+        if (this._chestLeaveCd > 0) this._chestLeaveCd -= dt / 1000;
+    },
+
+    /** 未开宝箱离场确认框：是=直接离开并正常清场进路线图；否=关闭并退回场内 */
+    _showChestLeaveConfirm() {
+        this._chestLeaveConfirm = true;
+        const overlay = document.createElement('div');
+        overlay.id = 'chestLeaveConfirm';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10005;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg,rgba(45,40,35,0.98),rgba(35,30,25,0.99));border:2px solid #a08a5a;border-radius:12px;padding:32px 44px;text-align:center;">
+                <div style="font-size:20px;color:#e8d5a8;font-weight:700;margin-bottom:24px;">场地内还有未获取的宝箱奖励，是否离开？</div>
+                <div style="display:flex;gap:20px;justify-content:center;">
+                    <button id="chestLeaveYes" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#6a5a3a,#5a4a2a);color:#f0e0b8;border:1px solid #a08a5a;border-radius:8px;">是</button>
+                    <button id="chestLeaveNo" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#4a5a4a,#3a4a3a);color:#d4e8c5;border:1px solid #6a8a5a;border-radius:8px;">否</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        const close = () => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            this._chestLeaveConfirm = false;
+        };
+        getElement('chestLeaveYes').onclick = () => {
+            close();
+            this._leaveCombatViaPortal();
+        };
+        getElement('chestLeaveNo').onclick = () => {
+            close();
+            // 退回场内：从门区向场地中心方向退回一段，并给 1s 冷却防连发
+            const b = CombatRoomSystem._roomBounds;
+            if (b && this.player) {
+                const dx = b.cx - this.player.x, dy = b.cy - this.player.y;
+                const len = Math.hypot(dx, dy) || 1;
+                this.player.x += dx / len * 160;
+                this.player.y += dy / len * 160;
+            }
+            this._chestLeaveCd = 1;
+        };
     },
 
     _updateHover() {
@@ -866,44 +888,18 @@ export const DungeonMapSystem = {
         this._clearNodeToEmpty(currentNode, true, true);
     },
 
-    // 打开精英战斗奖励宝箱：发放配置奖励并生成出口传送门
-    _openEliteChest(currentNode) {
-        if (this._eliteChestOpened) return;
-        this._eliteChestOpened = true;
-
-        // 从配置读取奖励（按当前地牢类型，缺省回退 zombie）
-        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
-        const rewards = cfg.eliteChestReward && cfg.eliteChestReward.items ? cfg.eliteChestReward.items : [];
-        if (rewards.length > 0 && BossRewardSystem && BossRewardSystem.rewardNode) {
-            BossRewardSystem.rewardNode.giveReward(this.player, rewards);
-        }
-
-        if (EffectManager && FloatingTextEffect) {
-            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 50, '宝箱已开启！', '#ffd700'));
-        }
-
-        // 标记节点完成并打开大门（不再生成传送门）
-        this._clearNodeToEmpty(currentNode);
-        this._exitPortalSpawned = true;
-        CombatRoomSystem.openGate();
-
-        if (SceneManager && SceneManager.showTopNotification) {
-            SceneManager.showTopNotification('宝箱已开启，从大门离开');
-        }
-    },
-
     _enterCombat(node) {
         this.state = "combat";
         // 普通战斗入口重置入侵标记（入侵混合战由 _enterInvasionBattle 单独设置）
         this._invasionNode = null;
         this._invasionMixed = false;
-        // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物/宝箱
+        // 进入新战斗前，先清理上一场战斗可能残留的传送门/掉落物
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
-        this._eliteChest = null;
-        this._eliteChestOpened = false;
 
-        const combatOptions = node.isElite ? { roomSize: 2048 } : {};
+        // 场地固定档位（配置驱动，支持地牢级覆盖）：普通 1024 / 精英 1792
+        const _crCfg = DungeonConfig.getCombatRoomConfig(this.dungeonType);
+        const combatOptions = { roomSize: node.isElite ? _crCfg.eliteSize : _crCfg.normalSize };
 
         if (this._isZombieFamily()) {
             this._enterZombieCombat(node, combatOptions);
@@ -912,6 +908,10 @@ export const DungeonMapSystem = {
 
         // 使用 CombatRoomSystem 生成随机战斗场地
         CombatRoomSystem.enterCombatRoom(this.player, false, combatOptions);
+        // 精英战斗：场地中央生成宝箱房（与僵尸路径同规则）
+        if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+        }
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "进入战斗！消灭所有敌人", "#ff4444"));
@@ -926,6 +926,10 @@ export const DungeonMapSystem = {
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false, options);
+        // 精英战斗：场地中央生成宝箱房（门墙常闭 + 等级宝箱 + 60s 倒计时，房内不刷怪）
+        if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+        }
         this._spawnZombieWave();
     },
 
@@ -975,14 +979,14 @@ export const DungeonMapSystem = {
         this._exitPortalSpawned = false;
         // 月影庇护：Boss 战触发无敌并激活增伤
         this._triggerMoonshadow(true);
-        // 所有 Boss 战统一使用 BossRewardSystem 的集合体 Boss
+        // 所有 Boss 战统一使用 BossRewardSystem 的集合体 Boss（dungeonType 用于地牢级 bossSize 覆盖）
         BossRewardSystem.enterBossBattle(this.player, () => {
             // Boss 击败且玩家通过传送门离开后，标记节点完成
             if (node) {
                 node.completed = true;
                 node.type = 'empty';
             }
-        });
+        }, this.dungeonType);
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
 
@@ -994,15 +998,13 @@ export const DungeonMapSystem = {
         this.state = "combat";
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
-        this._eliteChest = null;
-        this._eliteChestOpened = false;
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, false,
             DungeonConfig.getBossEncounterConfig(this.dungeonType), this.dungeonType);
         // 月影庇护：Boss 战触发无敌并激活增伤
         this._triggerMoonshadow(true);
-        CombatRoomSystem.enterCombatRoom(this.player, false, {});
+        CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: DungeonConfig.getCombatRoomConfig(this.dungeonType).bossSize });
         this._spawnZombieWave();
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
@@ -1018,8 +1020,6 @@ export const DungeonMapSystem = {
         this.state = 'combat';
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
-        this._eliteChest = null;
-        this._eliteChestOpened = false;
         this._invasionNode = node;
         // 消费捕获标记：一次入侵只拦截一次（否则之后每个节点都会重复触发入侵战斗）
         AgentInvasionSystem.consumeCatch();
@@ -1155,8 +1155,6 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
-        this._eliteChest = null;
-        this._eliteChestOpened = false;
 
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(this.player);
@@ -1194,13 +1192,6 @@ export const DungeonMapSystem = {
             EffectManager.clearFloatingTexts();
         }
 
-        // 清理可能残留的精英宝箱
-        if (this._eliteChest) {
-            if (this._eliteChest._destroyPhaserSprite) this._eliteChest._destroyPhaserSprite();
-            Game.entities.delete('elite_chest');
-            this._eliteChest = null;
-        }
-        this._eliteChestOpened = false;
         this._exitPortalSpawned = false;
     },
 

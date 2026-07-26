@@ -23,9 +23,20 @@
       "level": "1级",
       "reward": "1200金币",
       "grade": "E"
+    },
+    "swamp": {
+      "name": "☠ 沼泽地-高级",
+      "nodeCount": "55~60",
+      "battleRatio": "50%",
+      "level": "1级",
+      "reward": "2000金币",
+      "grade": "C"
     }
   },
   "zombieDungeon": {
+    "combatRoom": {
+      "bossSize": 1024
+    },
     "nodeCount": {
       "min": 45,
       "max": 50
@@ -59,23 +70,6 @@
         },
         "guaranteeAtLeastOneElite": false
       }
-    },
-    "eliteChestReward": {
-      "items": [
-        {
-          "type": "gold",
-          "count": 100
-        },
-        {
-          "type": "reforge_ticket",
-          "count": 1
-        },
-        {
-          "type": "weapon",
-          "rarity": "common",
-          "count": 1
-        }
-      ]
     },
     "grid": {
       "rows": 4,
@@ -249,13 +243,75 @@
       "glow": false
     }
   },
-  "combatRoom": {
-    "normalSize": {
-      "min": 1024,
-      "max": 2048,
-      "step": 256
+  "swampDungeon": {
+    "combatRoom": {
+      "bossSize": 1024
     },
-    "bossSize": 1024,
+    "nodeCount": {
+      "min": 55,
+      "max": 60
+    },
+    "shortestCombatPath": 5,
+    "typeRatios": {
+      "combat": 0.5,
+      "event": 0.5
+    },
+    "eliteCombatChance": 0.35,
+    "encounters": {
+      "normal": {
+        "combatWaves": 3,
+        "monstersPerWave": 5,
+        "tierWeights": {
+          "normal": 1,
+          "elite": 0
+        },
+        "guaranteeAtLeastOneElite": false
+      },
+      "elite": {
+        "combatWaves": 1,
+        "monstersPerWave": 6,
+        "monsterComposition": {
+          "elite": 1,
+          "normal": 5
+        },
+        "tierWeights": {
+          "normal": 0,
+          "elite": 1
+        },
+        "guaranteeAtLeastOneElite": false
+      }
+    },
+    "grid": {
+      "rows": 4,
+      "colSpacing": 160,
+      "rowSpacing": 140,
+      "mainRow": 1
+    },
+    "startRows": [0, 1, 2, 3],
+    "bossReward": {
+      "bossBeforeLastCol": true,
+      "rewardAfterBoss": true
+    },
+    "nodeDisplay": {
+      "unrevealedIcon": "?",
+      "completedCombatType": "empty"
+    },
+    "minRoomsToBoss": 7,
+    "floor": {
+      "tiles": [
+        "swampbrick_1",
+        "swampbrick_2",
+        "swampbrick_3"
+      ],
+      "glow": false,
+      "overlapX": 6,
+      "overlapY": 3
+    }
+  },
+  "combatRoom": {
+    "normalSize": 1024,
+    "eliteSize": 1792,
+    "bossSize": 2048,
     "wallThickness": 20,
     "spawn": {
       "playerOffsetFromEdge": 60,

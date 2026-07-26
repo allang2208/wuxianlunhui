@@ -9,6 +9,7 @@ import { SceneManager } from '../../world/scene-manager.js';
 import { Scene } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
 import { WallGate } from '../../world/wall-gate.js';
+import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
@@ -218,6 +219,15 @@ export class GameScene extends Scene {
             this._entityHudTexts.forEach(t => t.setVisible(false));
             // 地图模式下隐藏敌人/中立实体/其他施法者特效，避免战斗残留覆盖地图
             if (this.enemies) this.enemies.setVisible(false);
+            // X 光透视对象不属于任何显示组，必须显式隐藏——否则战斗结束后
+            // 透视圈/实体克隆（如墙后金币）残留在地图选择界面上
+            if (this._xrayMap) {
+                for (const [, cur] of this._xrayMap) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                        if (cur[k]) cur[k].setVisible(false);
+                    }
+                }
+            }
             if (this._neutralSprites) {
                 for (const data of this._neutralSprites.values()) {
                     if (data.sprite) data.sprite.setVisible(false);
@@ -627,6 +637,7 @@ export class GameScene extends Scene {
             _game.entities.forEach(e => {
                 if (!e || !e.active || e === _game.player) return;
                 if (e._faction !== 'enemy') return;
+                if (e._noShadow) return; // 配置跳过阴影（如矿洞，贴图自带底座）
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
@@ -683,6 +694,18 @@ export class GameScene extends Scene {
         this.textures.addCanvas('xray_circle', c);
     }
 
+    /** 销毁全部 X 光透视对象（战斗事件结束/场景恢复时调用，防残留到地图界面） */
+    _purgeXRayCircles() {
+        if (!this._xrayMap) return;
+        for (const [, cur] of this._xrayMap) {
+            for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                if (cur[k]) cur[k].destroy();
+            }
+            if (cur.holeKey && this.textures.exists(cur.holeKey)) this.textures.remove(cur.holeKey);
+        }
+        this._xrayMap.clear();
+    }
+
     _syncXRayCircles(_game) {
         if (!_game) return;
         const dms = DungeonMapSystem;
@@ -701,12 +724,28 @@ export class GameScene extends Scene {
             });
         }
         if (WallGate && WallGate.sprite && WallGate.sprite.active && WallGate._seg) {
-            const gg = WallSystem._geoForTex('wall_gate');
+            const gg = WallSystem._geoForTex(WallGate.sprite.texture ? WallGate.sprite.texture.key : 'wall_gate');
             occluders.push({
                 sprite: WallGate.sprite,
                 segs: [WallGate._seg],
                 hWall: (gg ? gg.wallH : 800) * (WallGate._scale ? WallGate._scale.sy : 1),
             });
+        }
+        // 宝箱房门墙（精英战小房，独立实体）：同样纳入遮挡判定（isoSegments 格式转点对）
+        if (ChestRoomSystem && ChestRoomSystem._gate && ChestRoomSystem._gate.sprite && ChestRoomSystem._gate.sprite.active) {
+            const cg = ChestRoomSystem._gate;
+            const cgg = WallSystem._geoForTex(cg.sprite.texture ? cg.sprite.texture.key : 'wall_gate');
+            const cgSegs = [...(cg.segs || []), cg.gateSeg].filter(Boolean)
+                .map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]);
+            occluders.push({
+                sprite: cg.sprite,
+                segs: cgSegs,
+                hWall: (cgg ? cgg.wallH : 800) * (cg.sprite.scaleY || 1),
+            });
+            if (!this._chestGateXrayLogged) {
+                this._chestGateXrayLogged = true;
+                console.log('[XRay] 宝箱房门已加入 occluders：', cgSegs.length, '段，hWall=', (cgg ? cgg.wallH : 800) * (cg.sprite.scaleY || 1), 'depth=', cg.sprite.depth);
+            }
         }
 
         const check = (e, sprite) => {
@@ -2303,6 +2342,8 @@ export class GameScene extends Scene {
      * 每次流血 tick 在目标脚底生成一小片，10s 后自动销毁
      */
     playBleedGroundParticles(x, y, target) {
+        // 地图模式（路线选择）下不生成：世界隐藏、相机错位，血渍会出现在屏幕上方
+        if (this._mapModeActive) return;
         // 掉落视觉（同款红粒子下浮）
         this.playRedFallParticles(x, y, target);
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();

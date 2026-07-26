@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, OreSpider } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -132,6 +132,24 @@ export function createForemanZombie(x, y) {
         return new ForemanZombie(x, y, { name: '僵尸工头', hp: 1600, maxHp: 1600, size: 18, showWeapon: false });
     }
     return new ForemanZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+export function createOreSpider(x, y) {
+    const cfg = enemyConfigData.oreSpider;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: oreSpider');
+        return new OreSpider(x, y, { name: '矿石蜘蛛', hp: 650, maxHp: 650, size: 30, showWeapon: false });
+    }
+    return new OreSpider(x, y, {
         ...cfg,
         showWeapon: false,
         ai: {
@@ -333,6 +351,7 @@ const ZOMBIE_FACTORY_MAP = {
     minerZombie: createMinerZombie,
     lanternMinerZombie: createLanternMinerZombie,
     foremanZombie: createForemanZombie,
+    oreSpider: createOreSpider,
     mineCave: createMineCave,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
@@ -561,8 +580,11 @@ export class ZombieDungeonMapGenerator {
                         node.isBranch = true;
                         if (isLast) node.eventType = 'treasureChest';
                         if (type === 'combat') {
-                            node.eliteChance = 0.5;
-                            if (Math.random() < 0.5) node.isElite = true;
+                            // F 级地牢不设精英怪事件：岔路战斗固定普通；其余等级精英概率 50%
+                            const list = DungeonConfig.getDungeonList() || {};
+                            const grade = (list[this._dungeonType] && list[this._dungeonType].grade) || 'D';
+                            node.eliteChance = grade === 'F' ? 0 : 0.5;
+                            if (Math.random() < node.eliteChance) node.isElite = true;
                         }
                         nodes.push(node);
                         // 双向边（与垂直边一致，岔路可往返）
@@ -852,6 +874,13 @@ export class ZombieDungeonCombat {
                 classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
             } else {
                 classes.push({ MonsterClass: eliteClass, tier: 'elite' });
+            }
+        }
+
+        // 精英战编组规则：抽中矿石蜘蛛时，其余普通怪固定为矿工僵尸（搭配设定）
+        if (this._isElite && classes.some(c => c.tier === 'elite' && c.MonsterClass === createOreSpider)) {
+            for (const c of classes) {
+                if (c.tier === 'normal') c.MonsterClass = createMinerZombie;
             }
         }
 
