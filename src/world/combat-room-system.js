@@ -194,6 +194,9 @@ export const CombatRoomSystem = {
         // 4. 生成边界墙壁（菱形斜墙 + 四角转角）
         this._generateWalls(roomSize);
 
+        // 4.5 地板装饰点缀（floor.deco 驱动：30% 地块随机场景道具，沼泽专用）
+        this._spawnFloorDeco();
+
         // 5. 清除可能残留的出口传送门
         this.removeExitPortal();
 
@@ -474,6 +477,47 @@ export const CombatRoomSystem = {
         WallGate.playOpen();
     },
 
+    /** 地板装饰点缀（floor.deco 驱动：按地块网格 30% 随机摆放场景道具，脚底 y 排序；仅配置了 deco 的地牢生效） */
+    _spawnFloorDeco() {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const d = this._diamond;
+        if (!scene || !d) return;
+        const profile = getDungeonFloorProfile();
+        const deco = profile && profile.deco;
+        if (!deco || !Array.isArray(deco.keys) || !deco.keys.length) return;
+        const keys = deco.keys.filter(k => scene.textures.exists(k));
+        if (!keys.length) {
+            console.warn('[FloorDeco] 装饰纹理缺失:', deco.keys);
+            return;
+        }
+        const chance = deco.chance ?? 0.3;
+        this._decoSprites = this._decoSprites || [];
+        // 与地板平铺同网格（步进近似：砖宽-overlap / 半高-overlap）
+        const tileKey = profile.tiles[0];
+        const geo = this._tileGeo && this._tileGeo[tileKey];
+        const stepX = geo ? geo.w - (profile.overlapX ?? 0) : 380;
+        const stepY = geo ? geo.h / 2 - (profile.overlapY ?? 0) : 110;
+        for (let r = -2; r * stepY < d.worldH + 200; r++) {
+            const off = (r % 2 !== 0) ? stepX / 2 : 0;
+            for (let gx = -stepX; gx < d.worldW + stepX; gx += stepX) {
+                const cx = gx + off, cy = r * stepY;
+                // 只在菱形内（内缩）且避开中心（宝箱房/宝箱）250px
+                if (Math.abs(cx - d.cx) / Math.max(1, d.rx - 120) + Math.abs(cy - d.cy) / Math.max(1, d.ry - 80) > 1) continue;
+                if (Math.hypot(cx - d.cx, cy - d.cy) < 250) continue;
+                if (Math.random() >= chance) continue;
+                const key = keys[Math.floor(Math.random() * keys.length)];
+                const sp = scene.add.image(cx, cy, key);
+                sp.setOrigin(0.5, 1); // 内容底边贴地
+                const th = sp.height || 1;
+                sp.setScale((90 / th) * (0.8 + Math.random() * 0.5));
+                sp.setFlipX(Math.random() < 0.5);
+                sp.setDepth(cy + 2); // 地面道具：高于地板、按脚底 y 参与排序
+                this._decoSprites.push(sp);
+            }
+        }
+        console.log(`[FloorDeco] 生成装饰 ${this._decoSprites.length} 件（chance=${chance}）`);
+    },
+
     /** 门外白区：吸附地板晶格的一块黑砖（与房内地板无缝），远角径向圆滑淡出 */
     _spawnGateExitZone() {
         const info = WallGate.getGateInfo();
@@ -543,42 +587,62 @@ export const CombatRoomSystem = {
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fill();
         ctx.globalCompositeOperation = 'source-over';
-        // 边缘自然化：分形噪声调制的"海岸线"淡出（取代规则圆弧/径向淡出——
-        // 每个像素沿外法线的保留阈值 = 基准边距 + 噪声扰动，轮廓呈不规则草垛边，每次生成都不同）
+        // 频谱/EQ 柱状侵入（取代噪声咬边）：
+        // 柱条沿外法线竖立、柱高=低频随机游走+尖峰（频谱图跳动感），
+        // 内部平整实心，远侧呈几何柱状侵入；柱间留细缝
         const imgData = ctx.getImageData(0, 0, bw, bh);
         const pdata = imgData.data;
-        // 值噪声：随机网格 + 双线性插值（低频大块 + 高频细节两层）
-        const mkNoise = (cell) => {
-            const gw = Math.ceil(bw / cell) + 2, gh = Math.ceil(bh / cell) + 2;
-            const grid = new Float32Array(gw * gh);
-            for (let i = 0; i < grid.length; i++) grid[i] = Math.random();
-            return (x, y) => {
-                const gx = x / cell, gy = y / cell;
-                const x0 = Math.floor(gx), y0 = Math.floor(gy);
-                const tx = gx - x0, ty = gy - y0;
-                const i00 = grid[y0 * gw + x0], i10 = grid[y0 * gw + x0 + 1];
-                const i01 = grid[(y0 + 1) * gw + x0], i11 = grid[(y0 + 1) * gw + x0 + 1];
-                const a = i00 + (i10 - i00) * tx, b = i01 + (i11 - i01) * tx;
-                return a + (b - a) * ty;
-            };
-        };
-        const noise1 = mkNoise(96), noise2 = mkNoise(28);
-        const baseLimit = bw * 0.30;   // 距中心的外向基准边距
-        const fadeWidth = bw * 0.22;   // 淡出带宽
-        const amp = bw * 0.16;         // 噪声扰动幅度（轮廓不规则度）
+        const halfW = geo.w / 2, halfH = geo.h / 2;
+        const ppx = -ny, ppy = nx; // 柱轴（垂直于外法线）
+        const spanC = Math.abs(ppx) * geo.w + Math.abs(ppy) * geo.h;
+        const extentN = Math.max(1, halfW * Math.abs(nx) + halfH * Math.abs(ny)); // 内容沿外法线伸展上限
+        const BAR_W = 12, BAR_GAP = 3;
+        const nBars = Math.ceil(spanC / (BAR_W + BAR_GAP)) + 2;
+        // 每柱高度：随机游走 + 12% 尖峰/骤降（EQ 跳动感）+ 轻度平滑
+        const bars = new Float32Array(nBars);
+        let v = 0.5;
+        for (let i = 0; i < nBars; i++) {
+            v += (Math.random() - 0.5) * 0.35;
+            v = Math.max(0.05, Math.min(0.95, v));
+            bars[i] = v;
+            if (Math.random() < 0.12) bars[i] = Math.random();
+        }
+        for (let i = 1; i < nBars - 1; i++) bars[i] = bars[i] * 0.7 + (bars[i - 1] + bars[i + 1]) * 0.15;
         for (let y = 0; y < bh; y++) {
             for (let x = 0; x < bw; x++) {
                 const idx = (y * bw + x) * 4;
                 if (pdata[idx + 3] === 0) continue;
                 const ex = (x - bw / 2) * nx + (y - bh / 2) * ny; // 沿外法线投影
-                if (ex <= 0) continue; // 朝门一侧保持原样
-                const n = (noise1(x, y) * 0.65 + noise2(x, y) * 0.35 - 0.5) * 2; // [-1,1]
-                const f = (ex - (baseLimit + n * amp)) / fadeWidth;
-                if (f <= 0) continue;
-                pdata[idx + 3] = Math.round(pdata[idx + 3] * Math.max(0, 1 - f));
+                if (ex <= extentN * 0.15) continue; // 内部实心（平整感）
+                const ddx = x - geo.cx, ddy = y - geo.cy;
+                const dl = Math.hypot(ddx, ddy) || 1;
+                const along = (ddx * nx + ddy * ny) / dl;
+                if (along < -0.7) continue; // 门侧保护（正朝门 ±45° 扇区不处理）
+                // 长边扇区限定（扁菱形：左/右尖角一侧才处理）
+                const inLongEdge = Math.abs(x - geo.cx) / halfW >= Math.abs(y - geo.cy) / halfH;
+                if (!inLongEdge) continue;
+                const cx = (x - bw / 2) * ppx + (y - bh / 2) * ppy + spanC / 2;
+                const barPos = cx % (BAR_W + BAR_GAP);
+                const bar = Math.max(0, Math.min(nBars - 1, Math.floor(cx / (BAR_W + BAR_GAP))));
+                const h = extentN * (0.28 + 0.72 * bars[bar]); // 柱顶高度（大振幅 EQ 天际线）
+                if (barPos >= BAR_W && ex > extentN * 0.3) {
+                    pdata[idx + 3] = 0; // 柱间细缝（近边才出现）
+                    continue;
+                }
+                if (ex > h) {
+                    // 柱顶 3px 快淡出（硬边几何感）
+                    pdata[idx + 3] = Math.round(pdata[idx + 3] * Math.max(0, 1 - (ex - h) / 3));
+                }
             }
         }
         ctx.putImageData(imgData, 0, 0);
+        // 烘焙自证：统计软边像素（fade 生效则 >0）
+        let softCnt = 0, solidCnt = 0;
+        for (let i = 3; i < pdata.length; i += 4) {
+            if (pdata[i] > 10 && pdata[i] < 200) softCnt++;
+            else if (pdata[i] >= 200) solidCnt++;
+        }
+        console.log(`[GateZone] bake v4: EQ柱状侵入 | tile=${tileKey} geo=${geo.w}x${geo.h} | 软边=${softCnt} 占比=${(softCnt / Math.max(1, softCnt + solidCnt) * 100).toFixed(1)}%`);
         const zoneKey = 'gate_zone_tile';
         if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
         scene.textures.addCanvas(zoneKey, canvas);
@@ -596,7 +660,7 @@ export const CombatRoomSystem = {
         const gctx = glowC.getContext('2d');
         for (let i = 0; i < 3; i++) {
             gctx.shadowColor = '#ffffff';
-            gctx.shadowBlur = 14 + i * 10;
+            gctx.shadowBlur = 8 + i * 6; // 光晕调窄（原 14/24/34），避免读成第二层描边
             gctx.drawImage(canvas, 0, 0);
         }
         gctx.globalCompositeOperation = 'destination-out';
@@ -617,7 +681,7 @@ export const CombatRoomSystem = {
         glow.setOrigin(geo.cx / bw, geo.cy / bh);
         glow.setScale(1.25);
         glow.setDepth(-998);
-        scene.tweens.add({ targets: glow, alpha: { from: 0.45, to: 1 }, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
+        scene.tweens.add({ targets: glow, alpha: { from: 0.3, to: 0.6 }, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
         const zw = stepX * 1.25, zh = stepY * 2 * 1.25;
         this._gateZone = {
             x: lx - zw / 2, y: ly - zh / 2, w: zw, h: zh,
@@ -672,6 +736,13 @@ export const CombatRoomSystem = {
                 }
             }
             this._gateZone = null;
+        }
+        // 地板装饰点缀清理
+        if (this._decoSprites) {
+            for (const s of this._decoSprites) {
+                if (s && s.scene) s.destroy();
+            }
+            this._decoSprites = null;
         }
     },
 

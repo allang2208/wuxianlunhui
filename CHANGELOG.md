@@ -8,6 +8,113 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-26（矿石蜘蛛死亡序列修复：尸体字段对齐）
+
+### 对话：死亡后无下砸+死亡动画——尸体机制字段名不匹配
+- **根因（用户怀疑证实）**：game.js 实体更新循环（:1100）与 `isPreservedCorpse`（:572）识别尸体只看 `_deathAnimTimer/_corpseTimer/_fadeTimer` 三个字段（矿工/通用约定），而矿石蜘蛛自定义了 `_deathTimer/_deathPhase`——死亡后 `active=false` 且不被识别为尸体，update 直接被跳过，死亡序列从未执行，清理路径还会立刻删除实体。
+- **修复**：死亡序列改用标准三字段——`_deathAnimTimer`（临终下砸段+dying 段总时长，内部 `_deathPhase/_slamPhaseMs` 区分子阶段）→ `_corpseTimer`（定格）→ `_fadeTimer`（淡出）；四段表现（临终下砸含第 10 帧判定 → dying 12 帧+dying.mp3 → 定格 1s → 淡出）不变。
+- **教训**：尸体机制字段名是 game.js 更新循环的硬约定，新怪物死亡序列一律用 `_deathAnimTimer/_corpseTimer/_fadeTimer`，阶段划分用内部辅助字段。
+- **修改文件**：`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——临终下砸播放+判定、dying 衔接、定格淡出。
+
+## 2026-07-26（白区侵入改 EQ 柱状图风格）
+
+### 对话：凹凸感不满意——要平面感+频谱/EQ 柱状侵入
+- **方案**：取代全部噪声咬边——柱条沿外法线竖立，柱高 = 低频随机游走 + 12% 尖峰骤降（EQ 跳动感），柱顶 3px 硬淡出，柱间 3px 细缝；内部平整实心（ex ≤ extentN×0.15 不处理）；振幅 0.28~1.0 × extentN（大振幅 EQ 天际线）；门侧 ±45° 保护、长边扇区限定保留。
+- **参数**：柱宽 12 / 缝 3 / 平滑权重 0.7。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：离线渲染（底部呈明显柱状缺口天际线）✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——柱状感可读性（柱宽/振幅可调）。
+
+## 2026-07-26（装饰贴图重抠：去白边）
+
+### 对话：装饰白边/白底没抠干净
+- **根因**：首版仅 1px 腐蚀 + alpha<80 清零，对商品图式白底素材的白边漂白像素（不透明但颜色被白底漂白）无效。
+- **重抠（柴墙同款重管线）**：亮度>200 泛洪 → 光晕扩张（>215）→ 连通域 ≥2000px 过滤 → 腐蚀 2px → 低饱和高亮像素压暗 50%。黑底目检四件均干净。
+- **修改文件**：`assets/terrain/swamp_deco_3~6.png`、CHANGELOG.md。
+
+## 2026-07-26（装饰 deco 字段透传修复 + 长边方向翻转）
+
+### 对话：装饰不出现 + 长边方向搞反
+- **装饰不出现根因**：`setDungeonFloorProfile` 只透传 tiles/glow/overlapX/overlapY，`deco` 字段被丢弃——`_spawnFloorDeco` 读到 undefined 提前返回（连日志都没有）。修复：透传 `deco`。
+- **长边方向翻转**：扁菱形长边在左/右尖角扇区，原条件选反（误把上/下短边盖当长边），改为 `|dx|/halfW ≥ |dy|/halfH`。
+- **诊断日志**：`[FloorDeco] 生成装饰 N 件` / 纹理缺失 warn。
+- **修改文件**：`src/world/dungeon-floor-texture.js`、`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——装饰可见、长边（左右尖角侧）渐隐、上下短边盖锐利。
+
+## 2026-07-26（长边限定渐隐 + 沼泽装饰道具点缀）
+
+### 对话：侵入只保留长边 + 30% 地块加装饰
+- **长边限定**：噪声渐隐加扇区判断 `|dy|/halfH ≥ |dx|/halfW`（上/下浅边=长边才渐隐），左/右尖角短边不处理。
+- **装饰道具**：装饰/3~6.png（柴堆/草茎/树桩/苔石）泛洪抠图+腐蚀+裁剪 → `assets/terrain/swamp_deco_3~6.png`；`swampDungeon.floor.deco = { keys, chance: 0.3 }`；`combat-room-system._spawnFloorDeco` 按地板晶格 30% 随机摆放（随机贴图/翻转/0.8~1.3 缩放，origin 底边贴地，depth=脚底 y+2 参与排序），避开菱形中心 250px（宝箱房），cleanupGate 统一销毁。
+- **修改文件**：`src/phaser/scenes/BootScene.js`、`src/world/combat-room-system.js`、`data/dungeon-config.json`、`assets/terrain/swamp_deco_*.png`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——尖角短边保持锐利、装饰密度/尺寸观感（90px 高、30% 可调）。
+
+## 2026-07-26（白区光效收敛 + 海浪纹渐隐）
+
+### 对话：光斑/光晕收敛 + 侵入要海浪沙滩感
+- **A 光斑**：gate_pool 泛光 560×320→400×240、亮核 220×200→180×160，alpha 上限 0.9/1→0.5/0.7（消除"第二层亮草皮"）。
+- **B 光晕**：gate_zone_glow 烘焙 shadowBlur 14/24/34→8/14/20，呼吸 alpha 0.45~1→0.3~0.6（消除"第二层描边"）。
+- **海浪纹**：渐隐回缩量加波浪调制——沿边界角度 `sin(θ×7 + n×2.5)` 形成 7 个浪峰（噪声扰相位破形），浪峰咬深、浪谷咬浅。离线渲染验证：边缘呈规则浪瓣+随机破的混合，海浪沙滩感。
+- **修改文件**：`src/world/combat-room-system.js`、`src/effects/gate-light.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——浪瓣大小（θ×7 可调个数）、0.45 波浪强度。
+
+## 2026-07-26（白区侵入覆盖修正：全周边缘带生效）
+
+### 对话：只有一条边生效 + 侵入覆盖不足
+- **门侧保护过宽根因**：`along < 0` 一刀切——朝向门那一侧的角（along≈-1）整边免裁。修复：收窄到正朝门 ±45° 扇区（`along < -0.7` 才衰减），相邻两侧边全量渐隐。
+- **覆盖不足修正**：回缩量加下限 `R = AMP×(0.75-0.25n)`（[0.5,1]×AMP，90%+ 边缘有侵入）；但导致内部一并变暗（软边 40% 整砖透明化）——再加边界带门槛 `s < -0.10 跳过`（内部实心）。最终：四条边全有不规则咬入、内部实心、软边 11.3%。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（白区全边缘渐隐）
+
+### 对话：软边 7.5% 但仍见规则边——半周笔直根因
+- **根因**：`f = (s - n×AMP)/FADE_W` 只在噪声为负的半周产生回缩，另半周完全笔直（用户看到的"完全规则"）。
+- **修复**：改为回缩量 `R = AMP×(0.5 - 0.5n)`（恒非负），`f = (s + R)/FADE_W`——全周每处都有噪声调制的回缩，无笔直段；朝门一侧仍 ×0.2 保留衔接。离线渲染：四周全不规则，软边 7.5%→15.6%。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（白区噪声淡出加深）
+
+### 对话：控制台诊断后确认生效但太弱
+- **诊断结论**（用户控制台实测）：`_xrayEnabled=false`（新代码在跑）、服务端含噪声代码、软边占比 2.5%——淡出生效但太弱：噪声正负各半，一半边缘仍笔直，远看还是菱形。
+- **加深**：`NOISE_AMP` 0.32→0.55、`FADE_W` 0.30→0.40（菱形单位）。离线渲染验证：四周均为明显不规则草丛边。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（墙面 X 光透视停用 + 白区全轮廓噪声渐隐）
+
+### 对话：停用透视 + 白区仍是标准菱形
+- **X 光停用**：`GameScene._xrayEnabled = false` 总开关（代码保留，改 true 恢复）；`_syncXRayCircles` 入口拦截并清理存量。
+- **白区菱形感根因（第二层）**：上一版只沿外法线半平面淡出，侧向角尖投影 ≤0 完全不裁——整体轮廓仍是标准菱形。改为**按菱形有符号距离**（`|dx|/halfW + |dy|/halfH - 1`）的全轮廓噪声渐隐：边界外扩 ±0.32 菱形单位噪声、带宽 0.30、朝门一侧衰减 ×0.2 保留衔接。离线渲染验证：四周边缘均呈不规则草丛边。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——透视圆圈消失、白区全轮廓自然化。
+
+## 2026-07-26（门外白区噪声淡出阈值修正）
+
+### 对话：噪声海岸线未生效（仍标准菱形+黑边）
+- **根因**：`baseLimit = 0.30×bw(512) = 154px`，而菱形内容沿外法线的最大投影仅 ~100-147px——`f ≤ 0` 处处成立，淡出从未执行，只剩标准菱形硬边（黑边即硬边贴黑底）。
+- **修复**：阈值改为按内容实际伸展度计算——实测四个角尖沿外法线投影得 `extentN`，`baseLimit = extentN×0.45`、`fadeWidth = extentN×0.45`、`amp = extentN×0.28`（随门方向/砖尺寸自适应）。离线渲染验证：远侧边缘呈自然不规则草丛淡出。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——各方向门的外区均有海岸线淡出。
+
+## 2026-07-26（沼泽地板试用 AI 新砖单款）
+
+### 对话：AI 生成地砖处理入库试用
+- **素材处理**：AI 生成砖（2560×1440 RGB 白底 45° 菱形+水印）→ 泛洪抠图 → 腐蚀 2px 去污染 → 纵向压缩 0.571 掰成 30° → `assets/terrain/swampbrick-new1.png`（512×296）；平铺模拟无缝观感和拼接均通过。
+- **试用**：`swampDungeon.floor.tiles = ['swampbrick_new1']`（单款）；旧 3 张备份于 `assets/terrain/swampbrick_old/`（回退 = tiles 改回 `['swampbrick_1','swampbrick_2','swampbrick_3']`，旧文件未动）。
+- **注意**：新砖菱形宽 510 vs 旧砖 391，**不可混铺**（网格步进错位），凑齐 2~3 张同规格变体后可组池。
+- **修改文件**：`assets/terrain/swampbrick-new1.png`、`assets/terrain/swampbrick_old/`（备份）、`src/phaser/scenes/BootScene.js`、`data/dungeon-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——单砖无随机选图的重复感（仍有随机镜像 4 向）。
+
 ## 2026-07-26（门外白区边缘自然化：噪声海岸线淡出）
 
 ### 对话：圆角太规则——边缘随机化方案选型与落地

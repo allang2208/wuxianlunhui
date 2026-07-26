@@ -299,13 +299,20 @@
     "minRoomsToBoss": 7,
     "floor": {
       "tiles": [
-        "swampbrick_1",
-        "swampbrick_2",
-        "swampbrick_3"
+        "swampbrick_new1"
       ],
       "glow": false,
       "overlapX": 6,
-      "overlapY": 3
+      "overlapY": 3,
+      "deco": {
+        "keys": [
+          "swamp_deco_3",
+          "swamp_deco_4",
+          "swamp_deco_5",
+          "swamp_deco_6"
+        ],
+        "chance": 0.3
+      }
     }
   },
   "combatRoom": {

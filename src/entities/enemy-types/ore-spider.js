@@ -52,9 +52,15 @@ export class OreSpider extends Enemy {
         this._walkSoundTimer = 0;
 
         // 死亡序列：临终下砸（含判定）→ dying 动画 → 定格 → 淡出
+        // 字段名与矿工/通用尸体机制对齐（_deathAnimTimer/_corpseTimer/_fadeTimer）——
+        // game.js 实体循环与 isPreservedCorpse 只认这三个字段，自定义字段名会导致
+        // 死亡后 update 被跳过（下砸+死亡动画不生效的根因）
         this._preserveCorpse = true; // 让 Game 循环在死亡期间继续调用 update
-        this._deathPhase = null;     // 'slam' | 'dying' | 'hold' | 'fade'
-        this._deathTimer = 0;
+        this._deathPhase = null;     // 'slam' | 'dying'
+        this._deathAnimTimer = 0;    // slam + dying 动画总时长
+        this._slamPhaseMs = 0;       // slam 阶段时长（到时切 dying）
+        this._corpseTimer = 0;       // 定格保留
+        this._fadeTimer = 0;         // 淡出
         this._deathSlamHitDone = false;
     }
 
@@ -380,7 +386,7 @@ export class OreSpider extends Enemy {
 
     onDeath(source) {
         this.active = false;
-        // 死亡时释放一次起跳下砸：attacking-2 播到第 slamFrames 帧定格
+        // 死亡时释放一次起跳下砸：attacking-2 播到第 slamFrames 帧后切 dying
         const slam = this._getSlamConfig();
         const death = this._getDeathConfig();
         const slamFrames = death.slamFrames ?? 14;
@@ -392,7 +398,9 @@ export class OreSpider extends Enemy {
         this._attackTimer = 0;
         this._attackAnimTimer = 0;
         this._deathPhase = 'slam';
-        this._deathTimer = (slamFrames / frames) * duration;
+        this._slamPhaseMs = (slamFrames / frames) * duration;
+        // 尸体机制字段（game.js 循环识别口径）：动画总时长 = slam 段 + dying 段
+        this._deathAnimTimer = this._slamPhaseMs + (death.dyingMs ?? 1200);
         this._deathSlamHitDone = false;
         this.vx = 0; this.vy = 0; this.isMoving = false;
         if (typeof super.onDeath === 'function') {
@@ -403,52 +411,48 @@ export class OreSpider extends Enemy {
     _updateDeathSequence(dt, entities) {
         const slam = this._getSlamConfig();
         const death = this._getDeathConfig();
-        if (this._deathPhase === 'slam') {
-            this._deathTimer -= dt;
+        if (this._deathAnimTimer > 0) {
+            this._deathAnimTimer -= dt;
             const frames = slam.frames ?? 18;
             const duration = slam.duration ?? 2000;
-            const slamFrames = death.slamFrames ?? 14;
-            const elapsed = (slamFrames / frames) * duration - this._deathTimer;
-            // 临终下砸含第 hitFrame 帧伤害判定（可配置关闭）
-            if (!this._deathSlamHitDone && death.slamDamage !== false
-                && elapsed >= ((slam.hitFrame ?? 10) / frames) * duration) {
-                this._deathSlamHitDone = true;
-                playSoundFrom(this, 'slam');
-                this._dealSlamHit(entities);
+            // slam 阶段：第 hitFrame 帧伤害判定（可配置关闭）
+            if (this._deathPhase === 'slam') {
+                const elapsed = this._slamPhaseMs + (death.dyingMs ?? 1200) - this._deathAnimTimer;
+                if (!this._deathSlamHitDone && death.slamDamage !== false
+                    && elapsed >= ((slam.hitFrame ?? 10) / frames) * duration) {
+                    this._deathSlamHitDone = true;
+                    playSoundFrom(this, 'slam');
+                    this._dealSlamHit(entities);
+                }
+                if (elapsed >= this._slamPhaseMs) {
+                    // 切换 dying 动画（dying.mp3 同步播放）
+                    this._deathPhase = 'dying';
+                    this._animState = 'death';
+                    this._animStateTimer = 0;
+                    playSoundFrom(this, 'death');
+                }
             }
-            if (this._deathTimer <= 0) {
-                // 切换 dying 动画（dying.mp3 同步播放）
-                this._deathPhase = 'dying';
-                this._animState = 'death';
-                this._animStateTimer = 0;
-                this._deathTimer = death.dyingMs ?? 1200;
-                playSoundFrom(this, 'death');
-            }
-            return;
-        }
-        if (this._deathPhase === 'dying') {
-            this._deathTimer -= dt;
-            if (this._deathTimer <= 0) {
-                this._deathPhase = 'hold';
-                this._deathTimer = death.holdMs ?? 1000;
+            if (this._deathAnimTimer <= 0) {
+                this._deathAnimTimer = 0;
+                this._corpseTimer = death.holdMs ?? 1000; // 动画播完 → 定格保留
             }
             return;
         }
-        if (this._deathPhase === 'hold') {
-            this._deathTimer -= dt;
-            if (this._deathTimer <= 0) {
-                this._deathPhase = 'fade';
-                this._deathTimer = death.fadeMs ?? 300;
+        if (this._corpseTimer > 0) {
+            this._corpseTimer -= dt;
+            if (this._corpseTimer <= 0) {
+                this._corpseTimer = 0;
+                this._fadeTimer = death.fadeMs ?? 300; // 定格结束 → 淡出
             }
             return;
         }
-        if (this._deathPhase === 'fade') {
-            this._deathTimer -= dt;
+        if (this._fadeTimer > 0) {
+            this._fadeTimer -= dt;
             const fadeMs = death.fadeMs ?? 300;
             if (this._phaserSprite && this._phaserSprite.active) {
-                this._phaserSprite.setAlpha(Math.max(0, this._deathTimer / fadeMs));
+                this._phaserSprite.setAlpha(Math.max(0, this._fadeTimer / fadeMs));
             }
-            if (this._deathTimer <= 0) {
+            if (this._fadeTimer <= 0) {
                 this._deathPhase = null;
                 if (this._phaserSprite && this._phaserSprite.active) {
                     this._phaserSprite.destroy();

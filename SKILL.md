@@ -2,6 +2,27 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-26 续）
+
+### 本次完成：门外白区边缘体系 + 沼泽装饰 + 死亡序列修复
+1. **门外白区边缘**：多轮迭代——规则圆弧（太规则）→ 噪声海岸线（阈值/半平面 bug 两连）→ **EQ 柱状图**定稿（柱条沿外法线、柱高=随机游走+尖峰、内部平整实心、柱间细缝、门侧 ±45° 保护、长边扇区限定）。**教训：白区只在进房时烘焙一次，改代码必须重进战斗房验证**。
+2. **X 光透视全局停用**：`GameScene._xrayEnabled = false` 开关，代码保留可恢复。
+3. **沼泽装饰道具**：4 件素材（柴堆/草茎/树桩/苔石）重管线抠图（泛洪+腐蚀 2px+漂白压暗）；`_spawnFloorDeco` 按晶格 30% 随机摆放（origin 底边贴地、y 排序、cleanup 统一销毁）；配置 `floor.deco`——**注意 `setDungeonFloorProfile` 必须显式透传新字段**（deco 被丢导致不生效的教训）。
+4. **矿石蜘蛛死亡序列修复**：game.js 尸体识别只看 `_deathAnimTimer/_corpseTimer/_fadeTimer`（硬约定），自定义字段名导致死亡后 update 被跳过——已对齐标准字段，临终下砸+dying+定格+淡出全部生效。
+5. **地砖**：AI 新砖（45°菱形纵向压缩掰 30°）入库试用 `swampbrick_new1`，旧 3 张备份 `swampbrick_old/`；**不同宽度砖不可混铺（网格步进错位）**。
+
+### 关键改动文件
+- `src/world/combat-room-system.js`（白区烘焙/装饰生成）、`src/effects/gate-light.js`
+- `src/world/dungeon-floor-texture.js`（deco 透传）、`src/entities/enemy-types/ore-spider.js`
+- `src/phaser/scenes/GameScene.js`（X 光开关）、`assets/terrain/swamp_*`
+
+### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
 ## 阶段性进度总结（2026-07-26）
 
 ### 本次完成：沼泽地牢墙体全套落地 + 宝箱房体系 + 系列修复

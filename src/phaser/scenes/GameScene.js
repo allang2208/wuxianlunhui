@@ -135,6 +135,9 @@ export class GameScene extends Scene {
         // 地图模式状态缓存，避免每帧切换相机背景色
         this._mapModeActive = false;
 
+        // X 光墙面透视总开关（2026-07-26 用户要求停用，代码保留；改 true 恢复）
+        this._xrayEnabled = false;
+
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
         const viewH = CONFIG?.VIEW_HEIGHT || window.innerHeight || 1080;
@@ -707,6 +710,11 @@ export class GameScene extends Scene {
     }
 
     _syncXRayCircles(_game) {
+        // 透视效果已全局停用（开关见 create；代码保留，_xrayEnabled=true 恢复）
+        if (this._xrayEnabled === false) {
+            if (this._xrayMap && this._xrayMap.size) this._purgeXRayCircles();
+            return;
+        }
         if (!_game) return;
         const dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';

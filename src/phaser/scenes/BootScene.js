@@ -63,7 +63,13 @@ export class BootScene extends Scene {
         this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
         this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
         this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
-        // 沼泽地地砖（沼泽地-高级地牢，3 张随机拼接；brick-4 泥水砖风格不搭已剔除）
+        // 沼泽地装饰道具（柴堆/草茎/树桩/苔石，战斗房地块随机点缀）
+        this.load.image('swamp_deco_3', 'assets/terrain/swamp_deco_3.png');
+        this.load.image('swamp_deco_4', 'assets/terrain/swamp_deco_4.png');
+        this.load.image('swamp_deco_5', 'assets/terrain/swamp_deco_5.png');
+        this.load.image('swamp_deco_6', 'assets/terrain/swamp_deco_6.png');
+        // 沼泽地地砖（沼泽地-高级地牢；当前试用 AI 新砖 swampbrick-new1 单款，旧 3 张备份于 swampbrick_old/）
+        this.load.image('swampbrick_new1', 'assets/terrain/swampbrick-new1.png');
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
