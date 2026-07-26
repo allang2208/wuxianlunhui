@@ -1,23 +1,6 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { GroundEllipse } from '../../physics/skill-shapes.js';
-import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { hostilesOf, playSoundFrom } from './_shared/enemy-utils.js';
-
-/** 用线段近似绘制二次贝塞尔曲线（Phaser Graphics 无内置 quadraticCurveTo） */
-function _drawQuadraticBezier(g, x0, y0, x1, y1, x2, y2, segments = 12) {
-    g.beginPath();
-    g.moveTo(x0, y0);
-    const n = Math.max(2, Math.floor(segments));
-    for (let i = 1; i <= n; i++) {
-        const t = i / n;
-        const u = 1 - t;
-        const x = u * u * x0 + 2 * u * t * x1 + t * t * x2;
-        const y = u * u * y0 + 2 * u * t * y1 + t * t * y2;
-        g.lineTo(x, y);
-    }
-    g.strokePath();
-}
+import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 
 /**
  * 僵尸工头（领主，僵尸 family）
@@ -138,12 +121,11 @@ export class ForemanZombie extends Enemy {
             this._walkSoundTimer = 0;
         }
 
-        // 攻击决策：号召（冷却就绪且有敌对目标）优先，其次鞭击（320px 内）
+        // 攻击决策：号召（冷却就绪且有敌对目标）优先，其次鞭击（统一口径：圆形边缘距离 ≤ range）
         if (!this._attackType && t) {
-            const dist = Math.hypot(t.x - this.x, t.y - this.y);
             if (this._howlCd <= 0) {
                 this._tryAttackTelegraph(() => this._startHowl(entities));
-            } else if (this._whipCd <= 0 && dist <= (this._getWhipConfig().range ?? 320)) {
+            } else if (this._whipCd <= 0 && inMeleeRange(this, t, this._getWhipConfig().range ?? this.attackDistance ?? 320)) {
                 this._tryAttackTelegraph(() => this._startAttack('whip'));
             }
         }
@@ -205,26 +187,29 @@ export class ForemanZombie extends Enemy {
         }
     }
 
-    /** 鞭击：320px 椭圆判定，物理 ×damageMul + 流血，深棕色弧线抽向目标 */
+    /** 鞭击：统一口径圆形边缘距离判定，物理 ×damageMul + 流血，深棕色弧线抽向目标 */
     _dealWhipHit(entities) {
         const cfg = this._getWhipConfig();
-        const range = cfg.range ?? 320;
+        const range = cfg.range ?? this.attackDistance ?? 320;
         const atk = this.data?.atk || 0;
         const bleedStacks = cfg.bleedStacks ?? 1;
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of hostilesOf(this, entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
             if (typeof e.applyBleeding === 'function') {
                 e.applyBleeding(bleedStacks);
             }
-            // 鞭子弧线：深棕色弧线抽向被击中的目标
-            this._fireWhipArc(e);
         }
+        // 鞭子扫掠特效：每次鞭击只出一条（以主目标为方向），不再按命中目标数叠加
+        if (this.target && this.target.active) this._fireWhipArc(this.target);
     }
 
     /**
-     * 鞭子抽击弧线：深棕色二次贝塞尔弧线从手部抽到目标（双线描边，随进度伸展后淡出）
+     * 鞭子扫掠特效（2026-07-25 重写）：
+     * - 扫掠：鞭梢以目标方向为中心扫过约 75° 扇面（先快后慢），不再"伸长"——真鞭子是甩不是长
+     * - 鞭身：二次贝塞尔采样分段，宽度柄粗梢细（5.5→1），中段角度滞后形成甩动弧度
+     * - 末梢爆点：扫掠到位瞬间亮斑扩散（鞭梢破空）
+     * - 总时长 220ms（75% 扫掠 + 25% 淡出），每次鞭击只出一条（由 _dealWhipHit 统一触发）
      */
     _fireWhipArc(target) {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
@@ -235,28 +220,55 @@ export class ForemanZombie extends Enemy {
         const sy = this.y - (this.config?.render?.collisionHeight || 120) * 0.5;
         const tx = target.x;
         const ty = (target.collider ? target.collider.y : target.y) - 20;
-        // 控制点：中段向侧上方隆起，形成鞭子甩动的弧度
-        const midX = (sx + tx) / 2;
-        const midY = Math.min(sy, ty) - Math.hypot(tx - sx, ty - sy) * 0.35;
-        const wave = { t: 0 };
+        const L = Math.hypot(tx - sx, ty - sy);
+        const theta = Math.atan2(ty - sy, tx - sx);
+        // 扫掠扇面：目标方向 -0.85rad 起扫，+0.45rad 收
+        const startA = theta - 0.85;
+        const endA = theta + 0.45;
+        const SEG = 14;
+        const state = { p: 0 };
         scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration: 400,
+            targets: state,
+            p: 1,
+            duration: 220,
             ease: 'Cubic.easeOut',
             onUpdate() {
-                const p = wave.t;
+                const p = state.p;
+                // 0~0.75 扫掠相位，0.75~1 淡出相位
+                const sweep = Math.min(1, p / 0.75);
+                const fade = p <= 0.75 ? 1 : 1 - (p - 0.75) / 0.25;
+                const tipA = startA + (endA - startA) * sweep;
+                // 鞭身中段角度滞后于鞭梢，形成甩动弧度
+                const lagA = startA + (endA - startA) * Math.max(0, sweep - 0.35);
+                const tipX = sx + Math.cos(tipA) * L;
+                const tipY = sy + Math.sin(tipA) * L;
+                const cx = sx + Math.cos(lagA) * L * 0.55;
+                const cy = sy + Math.sin(lagA) * L * 0.55;
+                // 贝塞尔采样点（宽度逐段渐变，Graphics 无原生粗细节曲线）
+                const pts = [];
+                for (let i = 0; i <= SEG; i++) {
+                    const t = i / SEG;
+                    const u = 1 - t;
+                    pts.push({
+                        x: u * u * sx + 2 * u * t * cx + t * t * tipX,
+                        y: u * u * sy + 2 * u * t * cy + t * t * tipY,
+                    });
+                }
                 g.clear();
-                // 随进度伸展：终点按 p 截断
-                const ex = sx + (tx - sx) * p;
-                const ey = sy + (ty - sy) * p;
-                const cx = sx + (midX - sx) * p;
-                const cy = sy + (midY - sy) * p;
-                // 双线描边：深棕外圈 + 亮棕内核
-                g.lineStyle(4, 0x4a2a10, 0.85 * (1 - p * 0.5));
-                _drawQuadraticBezier(g, sx, sy, cx, cy, ex, ey, 14);
-                g.lineStyle(2, 0x7a4a22, 0.9 * (1 - p * 0.5));
-                _drawQuadraticBezier(g, sx, sy, cx, cy, ex, ey, 14);
+                // 双线描边：深棕外圈 + 亮棕内核，宽度均由柄到梢渐细
+                for (let pass = 0; pass < 2; pass++) {
+                    for (let i = 0; i < SEG; i++) {
+                        const t = i / (SEG - 1);
+                        const w = (pass === 0 ? 5.5 : 3) * (1 - t * 0.8);
+                        g.lineStyle(Math.max(0.8, w), pass === 0 ? 0x3a1f08 : 0x8a5526, (pass === 0 ? 0.8 : 0.95) * fade);
+                        g.lineBetween(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+                    }
+                }
+                // 末梢爆点：扫掠到位瞬间亮斑，随淡出扩散
+                if (sweep >= 0.9 && fade > 0) {
+                    g.fillStyle(0xffd890, 0.9 * fade);
+                    g.fillCircle(tipX, tipY, 6 + (1 - fade) * 10);
+                }
             },
             onComplete() {
                 if (g.active) g.destroy();

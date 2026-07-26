@@ -1,4 +1,4 @@
-import { WallSystem } from '../world/wall-system.js';
+import { WallSystem, ISO_WALL_GEO } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { pathFinder } from '../ai/pathfinder.js';
@@ -27,6 +27,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { applyDungeonFloor, applyDiamondFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
 import { GateLight } from '../effects/gate-light.js';
+import { ChestRoomSystem } from './chest-room-system.js';
 import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
 
@@ -34,12 +35,11 @@ const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
 // ==================== 配置对象 ====================
 export const COMBAT_ROOM_CONFIG = {
-    // 场地大小范围（正方形）
+    // 场地大小（正方形，固定值；精英/Boss 由调用点按类型传入）
     roomSize: {
-        min: 1024,
-        max: 2048,
-        boss: 4096,      // Boss 战固定场地大小
-        default: 1024    // 默认/回退大小
+        normal: 1024,   // 普通战斗房
+        elite: 1792,    // 精英战斗房
+        boss: 2048      // Boss 房（可被地牢级 combatRoom.bossSize 覆盖，如僵尸地牢高级=1024）
     },
 
     // 边界墙壁配置
@@ -103,11 +103,8 @@ function createCombatRoomConfig() {
     cfg.cleanup = { ...COMBAT_ROOM_CONFIG.cleanup, goldReward: { ...COMBAT_ROOM_CONFIG.cleanup.goldReward, normal: { ...COMBAT_ROOM_CONFIG.cleanup.goldReward.normal } } };
 
     const json = DungeonConfig.getCombatRoomConfig();
-    if (json.normalSize) {
-        cfg.roomSize.min = json.normalSize.min ?? cfg.roomSize.min;
-        cfg.roomSize.max = json.normalSize.max ?? cfg.roomSize.max;
-        cfg.roomSize.step = json.normalSize.step ?? 256;
-    }
+    if (json.normalSize != null) cfg.roomSize.normal = json.normalSize;
+    if (json.eliteSize != null) cfg.roomSize.elite = json.eliteSize;
     if (json.bossSize != null) cfg.roomSize.boss = json.bossSize;
     if (json.wallThickness != null) cfg.walls.thickness = json.wallThickness;
     if (json.spawn) {
@@ -158,7 +155,7 @@ export const CombatRoomSystem = {
      * @param {Object} player - 玩家实体
      * @param {boolean} isBoss - 是否为 Boss 战
      * @param {Object} options - 可选配置覆盖
-     *   - roomSize: 指定场地大小（默认随机 1024-2048，Boss 固定 4096）
+     *   - roomSize: 指定场地大小（默认普通 1024，Boss 2048，精英由调用点传 1792）
      *   - monsterCount: 怪物数量（默认普通3只，Boss1只）
      *   - monsterClasses: 自定义怪物类数组
      * @returns {Object} 场地信息 { size, bounds, entranceEdge, oppositeEdge }
@@ -196,6 +193,9 @@ export const CombatRoomSystem = {
 
         // 4. 生成边界墙壁（菱形斜墙 + 四角转角）
         this._generateWalls(roomSize);
+
+        // 4.5 地板装饰点缀（floor.deco 驱动：30% 地块随机场景道具，沼泽专用）
+        this._spawnFloorDeco();
 
         // 5. 清除可能残留的出口传送门
         this.removeExitPortal();
@@ -244,13 +244,21 @@ export const CombatRoomSystem = {
         const spawnArea = this._calculateSpawnArea(bounds, this._oppositeEdge, cfg.margin, cfg.spawnDepth, cfg.minWallDistance);
         const monsterCount = count || (isBoss ? cfg.count.boss : cfg.count.normal);
 
+        // 刷怪排除区（宝箱房：房内不刷怪，ChestRoomSystem.setup 注册）
+        const exclusions = [];
+        if (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem._exclusion) {
+            exclusions.push(ChestRoomSystem._exclusion);
+        }
+        const inExclusion = (x, y) => exclusions.some(e =>
+            Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
+
         const monsterClasses = customClasses || (isBoss ? this.config.monsterPool.boss : this.config.monsterPool.normal);
 
         for (let i = 0; i < monsterCount; i++) {
             let mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
             let my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
 
-            // 菱形房：生成点必须在菱形内（内缩安全距离），拒绝采样 30 次后回退中心
+            // 菱形房：生成点必须在菱形内（内缩安全距离）且不在排除区内，拒绝采样 30 次后回退中心
             if (spawnArea._diamondClip) {
                 const b = spawnArea._diamondClip;
                 const inset = Math.max(cfg.minWallDistance || 0, cfg.margin || 0) + 60;
@@ -258,9 +266,21 @@ export const CombatRoomSystem = {
                 for (let t = 0; t < 30 && !ok; t++) {
                     mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
                     my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
-                    ok = Math.abs(mx - b.cx) / Math.max(1, b.rx - inset) + Math.abs(my - b.cy) / Math.max(1, b.ry - inset) <= 1;
+                    ok = Math.abs(mx - b.cx) / Math.max(1, b.rx - inset) + Math.abs(my - b.cy) / Math.max(1, b.ry - inset) <= 1
+                        && !inExclusion(mx, my);
                 }
-                if (!ok) { mx = b.cx; my = b.cy; }
+                if (!ok) {
+                    // 回退点不能落在排除区（宝箱房在场地正中，旧的 b.cx/b.cy 回退必中宝箱房）：
+                    // 取菱形上顶点方向的边缘内点（远离中心排除区）
+                    mx = b.cx;
+                    my = b.cy - (b.ry - inset) * 0.5;
+                }
+            } else if (exclusions.length) {
+                // 非菱形房同样排除（宝箱房区域内不刷怪）
+                for (let t = 0; t < 30 && inExclusion(mx, my); t++) {
+                    mx = spawnArea.minX + Math.random() * (spawnArea.maxX - spawnArea.minX);
+                    my = spawnArea.minY + Math.random() * (spawnArea.maxY - spawnArea.minY);
+                }
             }
 
             const MonsterClass = customClasses
@@ -402,18 +422,45 @@ export const CombatRoomSystem = {
     /** 门闸：距玩家最近的直墙件替换为带门直墙，入场播关门动画困场 */
     _setupGate(player) {
         if (!this._diamond || !WallSystem.isoVisuals) return;
+        // 被替换件候选：①优先样式门贴图件（转角装饰门→功能门，一间房天然只有一扇门）；
+        // ②无门件时回退到距玩家最近的直墙件（跳过转角预制件）
+        const styleGeos = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos() : { straight: 'straight', gate: 'gate' };
+        const straightTex = (ISO_WALL_GEO[styleGeos.straight] || ISO_WALL_GEO.straight).tex;
+        const styleGateTex = (ISO_WALL_GEO[styleGeos.gate] || ISO_WALL_GEO.gate).tex;
         let best = null, bestD = Infinity;
         for (const p of WallSystem.isoVisuals) {
-            if (p.tex !== 'wall_straight') continue;
+            if (p.tex !== styleGateTex) continue;
             const d = Math.hypot(p.x - player.x, p.y - player.y);
             if (d < bestD) { bestD = d; best = p; }
+        }
+        if (!best) {
+            for (const p of WallSystem.isoVisuals) {
+                if (p.tex !== straightTex) continue;
+                if (p._corner) continue; // 转角预制件不替换（避免夹角处出现装饰门+功能门双门）
+                const d = Math.hypot(p.x - player.x, p.y - player.y);
+                if (d < bestD) { bestD = d; best = p; }
+            }
         }
         if (!best) return;
         const [a, b] = WallSystem._pieceBaseSegments(best)[0];
         const flip = !!best.flipX;
-        const depth = best.depth; // 原位替换：沿用被替换件自身的深度，不做任何接缝特权
-        WallSystem.isoVisuals.splice(WallSystem.isoVisuals.indexOf(best), 1);
+        let depth = best.depth; // 原位替换：沿用被替换件自身的深度，不做任何接缝特权
+        const bestIdx = WallSystem.isoVisuals.indexOf(best);
+        WallSystem.isoVisuals.splice(bestIdx, 1);
+        // 转角斜接遮盖位继承：同 depth 且共端点的转角兄弟件若创建在被替换件之后
+        // （默认构建里它盖住被替换件的端边），门闸必须同样退到它下面（-0.1）——
+        // 否则门闸贴图的裁切边暴露在斜接缝上（用户手工预设验证：转角臂盖住门墙才严丝合缝）
+        for (let i = bestIdx; i < WallSystem.isoVisuals.length; i++) {
+            const p = WallSystem.isoVisuals[i];
+            if (Math.abs(p.depth - best.depth) > 0.01) continue;
+            const shares = WallSystem._pieceBaseSegments(p).some(seg =>
+                seg.some(pt => Math.hypot(pt.x - a.x, pt.y - a.y) < 2 || Math.hypot(pt.x - b.x, pt.y - b.y) < 2));
+            if (shares) { depth = best.depth - 0.1; break; }
+        }
         WallSystem.rebuildIsoCollision();
+        // 先同步渲染墙件，再创建门闸精灵——避免门闸创建后被整批重建的墙件精灵压住；
+        // 转角斜接处的上下位已由上面的 depth-0.1 显式继承，不再依赖创建顺序
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
         if (WallGate.placeAt(a, b, flip, depth)) {
             WallGate.state = 'open';
             WallGate._frame = 15;
@@ -422,13 +469,53 @@ export const CombatRoomSystem = {
             // 门外独立砖块：入场即生成（不再等战斗完成）
             this._spawnGateExitZone();
         }
-        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
     },
 
     /** 战斗完成：播开门动画 */
     openGate() {
         if (!WallGate.sprite) return;
         WallGate.playOpen();
+    },
+
+    /** 地板装饰点缀（floor.deco 驱动：按地块网格 30% 随机摆放场景道具，脚底 y 排序；仅配置了 deco 的地牢生效） */
+    _spawnFloorDeco() {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const d = this._diamond;
+        if (!scene || !d) return;
+        const profile = getDungeonFloorProfile();
+        const deco = profile && profile.deco;
+        if (!deco || !Array.isArray(deco.keys) || !deco.keys.length) return;
+        const keys = deco.keys.filter(k => scene.textures.exists(k));
+        if (!keys.length) {
+            console.warn('[FloorDeco] 装饰纹理缺失:', deco.keys);
+            return;
+        }
+        const chance = deco.chance ?? 0.3;
+        this._decoSprites = this._decoSprites || [];
+        // 与地板平铺同网格（步进近似：砖宽-overlap / 半高-overlap）
+        const tileKey = profile.tiles[0];
+        const geo = this._tileGeo && this._tileGeo[tileKey];
+        const stepX = geo ? geo.w - (profile.overlapX ?? 0) : 380;
+        const stepY = geo ? geo.h / 2 - (profile.overlapY ?? 0) : 110;
+        for (let r = -2; r * stepY < d.worldH + 200; r++) {
+            const off = (r % 2 !== 0) ? stepX / 2 : 0;
+            for (let gx = -stepX; gx < d.worldW + stepX; gx += stepX) {
+                const cx = gx + off, cy = r * stepY;
+                // 只在菱形内（内缩）且避开中心（宝箱房/宝箱）250px
+                if (Math.abs(cx - d.cx) / Math.max(1, d.rx - 120) + Math.abs(cy - d.cy) / Math.max(1, d.ry - 80) > 1) continue;
+                if (Math.hypot(cx - d.cx, cy - d.cy) < 250) continue;
+                if (Math.random() >= chance) continue;
+                const key = keys[Math.floor(Math.random() * keys.length)];
+                const sp = scene.add.image(cx, cy, key);
+                sp.setOrigin(0.5, 1); // 内容底边贴地
+                const th = sp.height || 1;
+                sp.setScale((90 / th) * (0.8 + Math.random() * 0.5));
+                sp.setFlipX(Math.random() < 0.5);
+                sp.setDepth(cy + 2); // 地面道具：高于地板、按脚底 y 参与排序
+                this._decoSprites.push(sp);
+            }
+        }
+        console.log(`[FloorDeco] 生成装饰 ${this._decoSprites.length} 件（chance=${chance}）`);
     },
 
     /** 门外白区：吸附地板晶格的一块黑砖（与房内地板无缝），远角径向圆滑淡出 */
@@ -499,15 +586,63 @@ export const CombatRoomSystem = {
         ctx.closePath();
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fill();
-        // 远角圆滑淡出
-        const fx = bw / 2 + nx * bw * 0.55, fy = bh / 2 + ny * bh * 0.55;
-        const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, bw * 0.55);
-        grad.addColorStop(0, 'rgba(0,0,0,1)');
-        grad.addColorStop(0.6, 'rgba(0,0,0,0.85)');
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, bw, bh);
         ctx.globalCompositeOperation = 'source-over';
+        // 频谱/EQ 柱状侵入（取代噪声咬边）：
+        // 柱条沿外法线竖立、柱高=低频随机游走+尖峰（频谱图跳动感），
+        // 内部平整实心，远侧呈几何柱状侵入；柱间留细缝
+        const imgData = ctx.getImageData(0, 0, bw, bh);
+        const pdata = imgData.data;
+        const halfW = geo.w / 2, halfH = geo.h / 2;
+        const ppx = -ny, ppy = nx; // 柱轴（垂直于外法线）
+        const spanC = Math.abs(ppx) * geo.w + Math.abs(ppy) * geo.h;
+        const extentN = Math.max(1, halfW * Math.abs(nx) + halfH * Math.abs(ny)); // 内容沿外法线伸展上限
+        const BAR_W = 12, BAR_GAP = 3;
+        const nBars = Math.ceil(spanC / (BAR_W + BAR_GAP)) + 2;
+        // 每柱高度：随机游走 + 12% 尖峰/骤降（EQ 跳动感）+ 轻度平滑
+        const bars = new Float32Array(nBars);
+        let v = 0.5;
+        for (let i = 0; i < nBars; i++) {
+            v += (Math.random() - 0.5) * 0.35;
+            v = Math.max(0.05, Math.min(0.95, v));
+            bars[i] = v;
+            if (Math.random() < 0.12) bars[i] = Math.random();
+        }
+        for (let i = 1; i < nBars - 1; i++) bars[i] = bars[i] * 0.7 + (bars[i - 1] + bars[i + 1]) * 0.15;
+        for (let y = 0; y < bh; y++) {
+            for (let x = 0; x < bw; x++) {
+                const idx = (y * bw + x) * 4;
+                if (pdata[idx + 3] === 0) continue;
+                const ex = (x - bw / 2) * nx + (y - bh / 2) * ny; // 沿外法线投影
+                if (ex <= extentN * 0.15) continue; // 内部实心（平整感）
+                const ddx = x - geo.cx, ddy = y - geo.cy;
+                const dl = Math.hypot(ddx, ddy) || 1;
+                const along = (ddx * nx + ddy * ny) / dl;
+                if (along < -0.7) continue; // 门侧保护（正朝门 ±45° 扇区不处理）
+                // 长边扇区限定（扁菱形：左/右尖角一侧才处理）
+                const inLongEdge = Math.abs(x - geo.cx) / halfW >= Math.abs(y - geo.cy) / halfH;
+                if (!inLongEdge) continue;
+                const cx = (x - bw / 2) * ppx + (y - bh / 2) * ppy + spanC / 2;
+                const barPos = cx % (BAR_W + BAR_GAP);
+                const bar = Math.max(0, Math.min(nBars - 1, Math.floor(cx / (BAR_W + BAR_GAP))));
+                const h = extentN * (0.28 + 0.72 * bars[bar]); // 柱顶高度（大振幅 EQ 天际线）
+                if (barPos >= BAR_W && ex > extentN * 0.3) {
+                    pdata[idx + 3] = 0; // 柱间细缝（近边才出现）
+                    continue;
+                }
+                if (ex > h) {
+                    // 柱顶 3px 快淡出（硬边几何感）
+                    pdata[idx + 3] = Math.round(pdata[idx + 3] * Math.max(0, 1 - (ex - h) / 3));
+                }
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        // 烘焙自证：统计软边像素（fade 生效则 >0）
+        let softCnt = 0, solidCnt = 0;
+        for (let i = 3; i < pdata.length; i += 4) {
+            if (pdata[i] > 10 && pdata[i] < 200) softCnt++;
+            else if (pdata[i] >= 200) solidCnt++;
+        }
+        console.log(`[GateZone] bake v4: EQ柱状侵入 | tile=${tileKey} geo=${geo.w}x${geo.h} | 软边=${softCnt} 占比=${(softCnt / Math.max(1, softCnt + solidCnt) * 100).toFixed(1)}%`);
         const zoneKey = 'gate_zone_tile';
         if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
         scene.textures.addCanvas(zoneKey, canvas);
@@ -525,7 +660,7 @@ export const CombatRoomSystem = {
         const gctx = glowC.getContext('2d');
         for (let i = 0; i < 3; i++) {
             gctx.shadowColor = '#ffffff';
-            gctx.shadowBlur = 14 + i * 10;
+            gctx.shadowBlur = 8 + i * 6; // 光晕调窄（原 14/24/34），避免读成第二层描边
             gctx.drawImage(canvas, 0, 0);
         }
         gctx.globalCompositeOperation = 'destination-out';
@@ -546,7 +681,7 @@ export const CombatRoomSystem = {
         glow.setOrigin(geo.cx / bw, geo.cy / bh);
         glow.setScale(1.25);
         glow.setDepth(-998);
-        scene.tweens.add({ targets: glow, alpha: { from: 0.45, to: 1 }, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
+        scene.tweens.add({ targets: glow, alpha: { from: 0.3, to: 0.6 }, yoyo: true, repeat: -1, duration: 1100, ease: 'Sine.easeInOut' });
         const zw = stepX * 1.25, zh = stepY * 2 * 1.25;
         this._gateZone = {
             x: lx - zw / 2, y: ly - zh / 2, w: zw, h: zh,
@@ -568,6 +703,10 @@ export const CombatRoomSystem = {
     /** 每帧驱动：门闸动画推进 + 悬停金色轮廓（dungeon-map-system.updateCombat 调用） */
     update(dt) {
         WallGate.update(dt);
+        // 宝箱房：倒计时/超时淡出/靠近开箱（仅精英战存在）
+        if (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
+            ChestRoomSystem.update(dt, this._player);
+        }
         // 悬停高亮：鼠标世界坐标距门洞中心 < 90px
         const info = WallGate.getGateInfo();
         if (info && info.center && Input && Input.mouse) {
@@ -583,6 +722,12 @@ export const CombatRoomSystem = {
     cleanupGate() {
         WallGate.destroy();
         GateLight.destroy();
+        // 宝箱房（精英战）：拆门墙/宝箱/倒计时，直墙件随场景恢复还原
+        if (typeof ChestRoomSystem !== 'undefined') ChestRoomSystem.cleanup();
+        // 销毁残留 X 光透视对象（墙后金币/怪物的透视圈与克隆会带到地图界面）
+        if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene._purgeXRayCircles === 'function') {
+            window.__phaserScene._purgeXRayCircles();
+        }
         if (this._gateZone) {
             for (const s of this._gateZone._sprites) {
                 if (s && s.scene) {
@@ -591,6 +736,13 @@ export const CombatRoomSystem = {
                 }
             }
             this._gateZone = null;
+        }
+        // 地板装饰点缀清理
+        if (this._decoSprites) {
+            for (const s of this._decoSprites) {
+                if (s && s.scene) s.destroy();
+            }
+            this._decoSprites = null;
         }
     },
 
@@ -758,11 +910,8 @@ export const CombatRoomSystem = {
     // ============================================================
 
     _rollRoomSize(isBoss) {
-        if (isBoss) return this.config.roomSize.boss;
-        const { min, max, step = 256 } = this.config.roomSize;
-        // 随机生成 min-max 之间的正方形大小（按配置步长）
-        const steps = Math.floor((max - min) / step) + 1;
-        return min + Math.floor(Math.random() * steps) * step;
+        // 固定档位：普通 1024 / Boss 2048（精英 1792 由调用点经 options.roomSize 传入）
+        return isBoss ? this.config.roomSize.boss : this.config.roomSize.normal;
     },
 
     _rollEntranceEdge() {

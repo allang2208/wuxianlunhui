@@ -1,4 +1,5 @@
 import { SoundManager } from '../../../ui/sound-manager.js';
+import { distanceToEntityShape } from '../../../utils/collision-helpers.js';
 
 /**
  * 怪物共享工具（新怪物工作流基础件，勿在各怪物类内重复实现）
@@ -7,7 +8,17 @@ import { SoundManager } from '../../../ui/sound-manager.js';
  * - isTargetMeleeStyle：目标攻击风格判定（近战/远程，决定怪物的应对策略）
  * - playSoundFrom：按配置 sounds 键播放音效
  * - isFacingLeftFrom：朝向判定（与 _getPhaserOptions 的 flipX 同规则）
+ * - inMeleeRange：近战范围命中统一口径（与 CombatSystem 触发同语义：圆形边缘距离 ≤ range）
  */
+
+/**
+ * 近战范围命中统一口径（2026-07-25）：圆形边缘距离（中心距 − 目标 footprint 半径）≤ range。
+ * 与 CombatSystem 触发的 distanceToEntityShape 同语义，杜绝"触发是圆、命中是椭圆（垂直半射程落空）"错位。
+ * 注意：带地面椭圆圈视觉的范围技能（砸地冲击波/嚎叫/燃烧区）不在此列，仍用 GroundEllipse 保持视觉一致。
+ */
+export function inMeleeRange(attacker, target, range) {
+    return distanceToEntityShape(target, attacker.x, attacker.y) <= range;
+}
 
 /** 敌对可击单位列表（entities 为 Map/数组/缺省 Game.entities） */
 export function hostilesOf(host, entities) {

@@ -10,7 +10,7 @@ import { pathFinder } from '../../ai/pathfinder.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
+import { hostilesOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
@@ -623,11 +623,11 @@ export class TimeAgentAssault extends Enemy {
 
     _dealAxeHit(entities) {
         const A = this._getSkillConfigs().axe;
-        const range = A.judgeRange ?? 100;
+        const range = A.judgeRange ?? this.attackDistance ?? 100;
         const atk = this.data?.atk || 0;
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of hostilesOf(this, entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
             if (A.crippleMs && typeof e.applyCripple === 'function') {
                 e.applyCripple(A.crippleMs);

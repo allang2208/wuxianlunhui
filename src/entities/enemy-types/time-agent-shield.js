@@ -1,10 +1,9 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
+import { hostilesOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
@@ -393,13 +392,13 @@ export class TimeAgentShield extends Enemy {
 
     _dealBashHit(entities) {
         const B = this._getSkillConfigs().bash;
-        const range = B.range ?? 200;
+        const range = B.range ?? this.attackDistance ?? 200;
         const atk = this.data?.atk || 0;
         // 盾击判定音效（hitting.mp3，判定时播放）
         playSoundFrom(this, 'bash');
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of hostilesOf(this, entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (B.damageMul ?? 1.5))), this, 'physical', true);
             if (B.stunMs && typeof e.applyStun === 'function') {
                 e.applyStun(B.stunMs);

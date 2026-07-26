@@ -2,6 +2,78 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-26 续）
+
+### 本次完成：门外白区边缘体系 + 沼泽装饰 + 死亡序列修复
+1. **门外白区边缘**：多轮迭代——规则圆弧（太规则）→ 噪声海岸线（阈值/半平面 bug 两连）→ **EQ 柱状图**定稿（柱条沿外法线、柱高=随机游走+尖峰、内部平整实心、柱间细缝、门侧 ±45° 保护、长边扇区限定）。**教训：白区只在进房时烘焙一次，改代码必须重进战斗房验证**。
+2. **X 光透视全局停用**：`GameScene._xrayEnabled = false` 开关，代码保留可恢复。
+3. **沼泽装饰道具**：4 件素材（柴堆/草茎/树桩/苔石）重管线抠图（泛洪+腐蚀 2px+漂白压暗）；`_spawnFloorDeco` 按晶格 30% 随机摆放（origin 底边贴地、y 排序、cleanup 统一销毁）；配置 `floor.deco`——**注意 `setDungeonFloorProfile` 必须显式透传新字段**（deco 被丢导致不生效的教训）。
+4. **矿石蜘蛛死亡序列修复**：game.js 尸体识别只看 `_deathAnimTimer/_corpseTimer/_fadeTimer`（硬约定），自定义字段名导致死亡后 update 被跳过——已对齐标准字段，临终下砸+dying+定格+淡出全部生效。
+5. **地砖**：AI 新砖（45°菱形纵向压缩掰 30°）入库试用 `swampbrick_new1`，旧 3 张备份 `swampbrick_old/`；**不同宽度砖不可混铺（网格步进错位）**。
+
+### 关键改动文件
+- `src/world/combat-room-system.js`（白区烘焙/装饰生成）、`src/effects/gate-light.js`
+- `src/world/dungeon-floor-texture.js`（deco 透传）、`src/entities/enemy-types/ore-spider.js`
+- `src/phaser/scenes/GameScene.js`（X 光开关）、`assets/terrain/swamp_*`
+
+### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+## 阶段性进度总结（2026-07-26）
+
+### 本次完成：沼泽地牢墙体全套落地 + 宝箱房体系 + 系列修复
+1. **墙样式表 `ISO_WALL_STYLES`**（`{straight, gate, chestPrefab, gateSound, corners?}`，key=dungeonType）：沼泽柴墙/藤门素材管线全套（泛洪抠图+水印 inpaint+腐蚀 2px 去颜色污染+两端锥形裁切；门视频 16 帧反转+连通域过滤）；`buildIsoDiamondWalls`/WallGate/门音效/宝箱房预制/夹角预制全走样式。新地牢换墙四步法已文档化。
+2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
+3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
+4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
+5. **地板**：`overlapX/overlapY` 叠合机制（自然材质必配）；地砖默认随机选图+随机镜像（立约无需声明）；brick-4 泥水砖已剔除。
+6. **拼接**：`edgeFill` 废弃均匀拉伸，回定长定高瓦片+overshoot 由转角臂+5 偏置盖住（转角臂统一 +5 已入规则）。
+7. **门外白区**：远两角从锐角→圆角路径→最终**分形噪声海岸线淡出**（96/28px 双层值噪声调制保留阈值，每次生成不同）。
+8. **关键修复**：`rebuildIsoCollision` 保留 `_gate`/`_chestGate` 门线段（门洞可穿根因）；宝箱房刷怪回退点不再落中心排除区；AttackRangeEffect 警示圈 depth y-998 + 保活重置 life。
+9. **诊断日志**：`[DungeonFloor]` 地砖池、`[XRay] 宝箱房门` occluder 注册（排查"修改未应用"类问题先查它）。
+
+### 关键改动文件
+- `src/world/wall-system.js`、`src/world/wall-gate.js`、`src/world/chest-room-system.js`、`src/world/combat-room-system.js`
+- `src/world/dungeon-floor-texture.js`、`src/world/dungeon-map-system.js`、`src/world/zombie-dungeon.js`
+- `src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/ui/wall-editor.js`
+- `assets/terrain/swamp_*`（柴墙/藤门/地砖）、`assets/sounds/environment/swamp_gate.mp3`
+
+### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+## 阶段性进度总结（2026-07-25）
+
+### 本次完成：矿石蜘蛛（精英）+ 沼泽地-高级地牢 + 近战口径统一 + 系列修复
+1. **近战命中口径统一**：`_shared/enemy-utils.js` 新增 `inMeleeRange`（与 CombatSystem 触发同语义圆形边缘距离）；矿工/工头/提灯/盾卫/突击/手脑近战命中从 GroundEllipse（垂直半射程）切换；技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`。带地面椭圆圈视觉的范围技能（砸地冲击波/嚎叫/燃烧区）保留椭圆。
+2. **新怪物矿石蜘蛛（oreSpider，精英/僵尸）**：投掷晶石（600px 触发、28 帧第 21 帧发射、1s 抛物线+360°/s 旋转、落地红圈警示+100px 物理×1.25+烟尘）；起跳下砸（18 帧第 10 帧阶梯判定 200×2/350×1 不叠加+红圈提示+命中眩晕 2s）；临终一砸（attacking-2 播 14 帧含判定→dying 12 帧→定格 1s→淡出）。精英战抽中它时其余普通怪固定矿工僵尸。
+3. **新地牢沼泽地-高级（swamp，C 级）**：55~60 房间、起始 4 路线、怪物/事件/Boss 全用僵尸体系（`_isZombieFamily`+事件 family 映射+'swampDungeon' 配置块）、地板 swampbrick_1/2/3 随机拼接。
+4. **系列修复**：玩家流血不扣血（基类 _updateBleed 扣 this.hp 而玩家真实 HP 是 data.hp；玩家专属流血/中毒块+无敌闸门）；无敌开关全场景生效；`colliderOffsetY` 必须写 render 块（核心规则 6）；AttackRangeEffect 警示圈 depth 统一 y-998（实体之下）且保活必须重置 `life`（不是 maxLife）；AI 素材对齐前先提高 alpha 阈值区分本体与残影。
+5. **工头鞭子特效重写**：扫掠扇面+柄粗梢细+末梢爆点，220ms，每次鞭击一条。
+
+### 关键改动文件
+- `src/entities/enemy-types/ore-spider.js`（新增）、`_shared/enemy-utils.js`
+- `src/entities/damageable-entity.js`（状态免疫 statusImmune）
+- `src/entities/player/update.js`、`src/entities/player/subsystems.js`
+- `src/effects/attack-range-effect.js`
+- `data/enemy-config.json`、`data/dungeon-config.json`
+- `src/config/dungeon-config.js`、`src/world/dungeon-map-system.js`、`src/world/dungeon-event-system.js`、`src/world/zombie-dungeon.js`
+- `src/phaser/scenes/BootScene.js`、`src/game.js`
+
+### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
 ## 阶段性进度总结（2026-07-13 晚间收尾）
 
 ### 本次完成：胖子僵尸、按场次 Buff/Debuff、地牢流程与受击粒子修复
@@ -23,7 +95,7 @@
 
 #### 四、主神空间测试
 1. 生成原设定数值的胖子僵尸。
-2. 左下角新增“无敌”切换按钮；`SceneManager._mainHubInvincible` 控制主神空间是否受伤。
+2. 左下角新增“无敌”切换按钮；`SceneManager._mainHubInvincible` 控制玩家是否受伤（2026-07-25 起全场景生效，含地牢；流血/中毒 dot 同样被闸门拦截不扣血）。
 
 #### 五、僵尸受击绿色粒子修复
 1. **统一触发**：在 `src/entities/damageable-entity.js` `takeDamage()` 扣血后统一调用 `triggerZombieHitParticles`，移除各技能系统的重复触发。
@@ -424,6 +496,7 @@
 3. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
 4. **敌人动画同步必须限定 `_faction === 'enemy'`** — `_syncEnemyAnimation` 这类按实体刷新的逻辑只能作用于敌人，否则会把中立实体/掉落物/特效 Sprite 的纹理错误覆盖为 `enemy_circle`
 5. **外部素材导入前先检查实际帧布局** — 如僵尸犬 4096×4096 合并图是 8×8 的 512×512 网格，但有效帧可能只有一行；导入前用脚本/工具确认非空帧数，避免加载空白帧
+6. **敌人的 `colliderOffsetY/X` 必须写在 `render` 块内** — `enemy.js` 基类只读 `config.render.colliderOffsetY`，写在配置顶层是死配置不生效（工头/矿洞/手脑/骑士都踩过，2026-07-25 工头修复后实机验证生效）；NPC 类相反，读顶层（npc.js:48）
 
 ---
 
@@ -512,7 +585,7 @@ _getPhaserOptions() {
 ## 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
 
 新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
-- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）；
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）、`inMeleeRange`（近战命中统一口径：圆形边缘距离 ≤ range，与 CombatSystem 触发同语义；范围技能带地面椭圆圈视觉的仍用 GroundEllipse）；近战技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`（字段收敛，2026-07-25）；
 - `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
 - `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
 
@@ -591,13 +664,13 @@ _getPhaserOptions() {
 本节是**经过验证的完整流程**——新地牢场景一律按此开展，含菱形地块、墙体、夹角、地板-墙连接、门口、透视遮挡全套。
 
 ### 一、菱形房间模板
-1. **尺寸**：原正方形 S（1024~2048）→ `rx = 1.2S`、`ry = rx × 0.5774`（30°），边距 M=260（≥墙贴图高度 217 + 缓冲，否则上夹角被世界顶裁掉），菱形在世界正中央，区外全黑
-2. **地板烘焙** `applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）：纯黑底 → 等距平铺按菱形路径裁剪 → **边缘黑渐变**（向内递缩描边叠加，地板与纯黑外界自然过渡）——地板与墙壁连接的阴影问题就这样处理：不做额外阴影，靠边缘 64px 黑渐变收边
+1. **尺寸**：固定档位（2026-07-25 起不再随机）：普通 1024 / 精英 1792 / Boss 2048，地牢级 `combatRoom` 子配置可覆盖（如高级 bossSize=1024）→ `rx = 1.2S`、`ry = rx × 0.5774`（30°），边距 M=260（≥墙贴图高度 217 + 缓冲，否则上夹角被世界顶裁掉），菱形在世界正中央，区外全黑
+2. **地板烘焙** `applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）：纯黑底 → 等距平铺按菱形路径裁剪 → **墙脚接触阴影（统一标准，2026-07-25 升级）**：沿菱形边缘向内 64px 真渐变黑带（逐笔 alpha 0.40×(1-i/64) 递减描边叠加，墙根 ≈40% 黑 → 0）——**所有墙壁-地板衔接处一律用此处理**。旧版是 16 笔等 alpha(0.12) 平刷（整带仅 ≈15% 平黑），亮地砖上几乎不可见（中级/初级"没有阴影"的根因：blackbrick-7/8 亮度 ≈50 是高级砖 ≈25 的两倍）
 3. **地板配置分级**：`setDungeonFloorProfile` 按地牢类型设置（高级 blackbrick_7/8、初级/中级各自 tiles）；需要地砖的场景（如门外白区）读 `getDungeonFloorProfile()` 跟随当前地牢
 
 ### 二、墙体构建 `WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`
 1. 四顶点转角**点对点**（两臂各一件直墙）+ 四边**定长瓦片续接**（`faceLen` 固定，不足靠叠合，**绝不压扁**——压扁会让小房间边墙比夹角矮一截）
-2. 深度规则：**后墙（室内侧朝镜头）depth = min 底边 y，前墙（室外侧朝镜头）depth = max 底边 y**；后墙转角不加全局偏置（+260 曾误挡顶点下方高个实体，已废弃）
+2. 深度规则：**后墙（室内侧朝镜头）depth = min 底边 y，前墙（室外侧朝镜头）depth = max 底边 y**；转角臂统一 **+5 偏置**（顶点侧盖住续接件，预制转角同款规则；+260 曾误挡顶点下方高个实体已废弃，+5 为安全值不得加大）
 3. 碰撞：`rebuildIsoCollision()` → `isoSegments` 线段模型（点-线段距离场，移动/滑动用）+ 36×20 阶梯矩形（寻路/小地图用）；滑动走**沿墙切向分量**（速度不超意图，杜绝贴墙加速滑行；旧"切向传送脱困"块是加速根因，已删）
 4. 玩家入场：随机顶点内法线方向（off = offsetFromEdge + 60）；怪物：对角顶点附近拒绝采样（菱形内缩不等式 `|dx|/(rx-i) + |dy|/(ry-i) <= 1`）；出口：门闸（见四）
 
@@ -610,7 +683,7 @@ _getPhaserOptions() {
 ### 四、门口（门闸）系统
 1. **素材管线** `tools/door-video-frames.py`：视频按可用时长均匀取 16 帧 → 边界洪水抠图（白底/棋盘底）+ 水印区抹除 + **门洞封闭区二次抠图**（栏杆包围的亮区洪水填充进不去，阈值去底）→ 16 帧统一包围盒对齐 → 打包 spritesheet；首帧=关闭、末帧=打开。**显示比例对整体缩放是不变量**（640/2048 截帧拼接表现相同，不要追求大规格）
 2. **几何注册** `ISO_WALL_GEO.gate`：base（底边线，**只拟合两侧墙身，避开门洞区**——门框架会拉偏拟合线）、gateX（门洞 x 范围）、frames
-3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（自管帧计时）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）
+3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（**动画用 Phaser tween 计数器驱动，禁止手动逐帧 tick**——手动驱动链路易断，动画卡死）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；**斜接遮盖位继承（2026-07-25）：转角两臂同 depth，默认构建里后建的臂盖住先建臂的端边——门闸替换先建臂（下夹角 bL/上夹角 tL，平局按数组顺序必中先建臂）时必须 depth-0.1 退到兄弟臂下面，否则门闸贴图的裁切边暴露在斜接缝上。依据：用户手工预设（门墙 depth 最低、右臂最高）严丝合缝，几何与代码生成完全一致，差的就是这层顺序**；`_setupGate` 仍需先 `_syncWallsToPhaser()` 后 `placeAt`（防门闸被整批重建的墙件压住）
 4. **门外独立地块**：入场即生成（战斗完成不等）；位置 = 门洞中心沿外法线出界 + 边距（**不做晶格吸附**，防拽回主场景）；烘焙 = 当前地牢地砖 → **裁掉菱形内部分**（destination-out 菱形路径，不重叠）→ 远角径向圆滑淡出 → 25% 延伸；轮廓环绕光晕只留外侧（朝门一侧渐隐擦除）；图层归地形层（-999）
 5. **回城触发**：玩家在白区内**且已走出菱形边界**（点-in-菱形 false）→ `_leaveCombatViaPortal()`；出口传送门已删
 
@@ -622,6 +695,23 @@ _getPhaserOptions() {
 
 ### 六、备份与恢复
 战斗房/Boss 房进入前必须备份 `WallSystem.walls + isoVisuals`，离开时恢复（否则战斗房的墙残留到主神空间）
+- **离开清理还必须含 X 光透视对象**（2026-07-25）：X 光圈/克隆/地板洞是独立 sprite 不属于任何显示组，地图模式分支跳过 `_syncXRayCircles` 导致战斗残留透视定格在地图界面（"透视到地图里的金币"根因）——`cleanupGate`/`BossRewardSystem.cleanup` 统一调 `GameScene._purgeXRayCircles()`，地图模式分支每帧兜底隐藏
+
+### 七、战斗房尺寸（2026-07-25 起，固定档位，不再随机）
+- 全局（`data/dungeon-config.json` → `combatRoom`）：**普通 1024 / 精英 1792 / Boss 2048**
+- **地牢级覆盖**：地牢配置块内加 `combatRoom` 子对象即可（如 `zombieDungeon.combatRoom.bossSize=1024`＝僵尸地牢高级 Boss 房 1024）；`DungeonConfig.getCombatRoomConfig(dungeonType)` 三级合并（DEFAULTS←全局←地牢级）
+- 调用点：精英/普通由 `_enterCombat` 按 `node.isElite` 传 `options.roomSize`；波次 Boss（初/中级 `bossEncounter`）由 `_enterBossCombat` 传 bossSize；集合体 Boss（高级）由 `enterBossBattle(player, cb, dungeonType)` 第三参透传到 boss-reward 的 `arena.size` getter
+- 入侵战场地尺寸独立（`AgentInvasionSystem.getArenaSize()`），不受此规则影响
+
+### 八、宝箱房系统（2026-07-25，精英战斗专属，`src/world/chest-room-system.js`）
+1. **生成**：精英节点入场（`_enterZombieCombat`/非僵尸 `_enterCombat` 的 `node.isElite` 分支）→ 按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**（与编辑器 cx/cy 无关）；直墙推 isoVisuals（深度上臂 min/下臂 max 重算，预制存的是编辑器世界值不可直接沿用）；房内区域注册刷怪排除区（`spawnMonsters` 菱形拒绝采样 + 排除区判定）
+2. **门墙独立控制**：不进 isoVisuals——复刻 wall-gate placeAt 映射放 wall_gate 帧0（关门），碰撞=两侧常开+门洞启停；`onCombatComplete` 且未超时 → tween 播 0→15 帧开门 + 门洞碰撞移除
+3. **等级宝箱**：宝箱等级=地牢 grade（E/D/C/B/A，贴图 `chest_<grade>`，**素材库缺 A.png 暂用 B 兜底**）；奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`（50% 金币 / 25% 材料组（强化石1+改造券1+粉尘） / 25% 宝箱怪位——**宝箱怪位当前按金币兜底**，要真宝箱怪再接）经 `BossRewardSystem.rewardNode.giveReward` 发放
+4. **60s 倒计时**：Phaser text（**改色用 setBackgroundColor/setColor，禁用 setStyle——会整体覆盖丢失字号字体**）；白底黑字黑框（矩形垫底），≤10s 红底黑字；超时→宝箱 1s 淡出、房门不再开
+5. **开箱**：玩家靠近 60px → chest_open 精灵图（559×602×16，tools/chest-video-frames.py 从 宝箱打开-1.mp4 切帧+抠图，管线同门闸）1.5s 播完 + chest_open.mp3 音效
+6. **离场守卫**：`hasUnopenedLoot()` 时走出大门白区 → 弹确认框（是=正常离场 / 否=退回场内 160px+1s 冷却防连发）
+7. **已删旧制**：击杀精英刷 DungeonChest 靠近自开流程（dungeon-chest.js 已删）、`eliteChestReward` 配置（出征面板文案改读 treasureChest 表）；**F 级地牢岔路战斗固定普通**（zombie-dungeon.js 岔路 eliteChance 按 grade 判定，F=0）
+8. **清理**：`CombatRoomSystem.cleanupGate` 统一调 `ChestRoomSystem.cleanup()`（门墙/宝箱/倒计时销毁 + 门洞碰撞段移除；直墙件随 `_restoreSceneState` 自动还原）
 
 ---
 
@@ -633,8 +723,9 @@ _getPhaserOptions() {
    - `base`：底边线两端点（全跨度，含端帽）；`face`：正面墙底边跨度（不含端帽，**拼接/碰撞一律用 face**）
    - `vertex`（转角接合点）、`tipX`（臂尖）、`wallH`（底边→顶沿墙高）、`slope`（底边固有斜率）
    - 实测方法：alpha 包围盒 + 列剖面底边/顶边拟合（**拟合区避开特征区**——门洞、拱门会拉偏拟合线）
+   - **`editor`：摆墙面板显示名**——带此字段的条目自动出现在摆墙编辑器「标准组件 · 墙壁」栏与图层命名表（wall-editor.js 从 ISO_WALL_GEO 动态生成，新墙/门组件加此字段即自动入面板，无需改编辑器代码）
 3. **角度标准**：显示斜率对齐地板线 30°（`FLOOR_SLOPE=0.5774`），角度补偿 `slopeFixOf(geo)` = FLOOR_SLOPE / geo.slope
-4. **高度归一化（谨慎）**：仅当贴图顶/底边不平行且需要与直墙对齐时用（`wall-height-normalize.py`，按列绕底边缩放）；**带拱门/突起特征的贴图禁用**（会压扁特征，用拼接叠合代替）
+4. **高度归一化（谨慎）**：仅当贴图顶/底边不平行且需要与直墙对齐时用（`wall-height-normalize.py`，按列绕底边缩放）；**带拱门/突起特征的贴图用 k≥1 变体**（只拉不压，特征区不压缩，参考 `tools/gate-top-warp.py`；"拼接叠合遮盖顶部分歧"方案已被用户否决，禁止再用）
 
 ### 二、拼接规则（血泪教训浓缩）
 1. 底边精确映射：独立 sx/sy 把 face 映射到目标线段（base 永远贴合，顶部分歧用叠合吸收）
@@ -652,6 +743,7 @@ _getPhaserOptions() {
 2. 转角与续接件的接缝：顶点侧盖住下侧（预制转角 +5 偏置即可，**不要加大偏置**——会误挡高个实体）
 3. 特征件（门闸等）：**原位替换**，不做特权
 4. 实体排序：实体 depth = 脚底 y + 10；判定遮挡看脚底与墙底边关系，不看包围盒
+5. **遮挡透视（新墙类必做项）**：X 光透视由 `ISO_WALL_GEO` 驱动——geo 注册（base/face/wallH 实测准确）后 isoVisuals 墙件自动纳入 occluders；门闸由 `WallGate`（placeAt 锁定样式几何）与宝箱房门（GameScene occluders 显式纳入）覆盖。**验证必做**：玩家/怪物站到墙后应出现透视圆圈+贴图克隆；门贴图必须是 spritesheet 且 `geo.frames` 正确
 
 ### 五、关键陷阱（每条都踩过）
 - **flipX 是 quad 不动、内容镜像**：锚点公式 `x0 = A.x - (w - p0.x)*sx`（flip 时 p0→A、p1→B）；写 flip 公式先数值自检
@@ -659,6 +751,11 @@ _getPhaserOptions() {
 - **单 depth 斜墙排序冲突**：接缝两侧的覆盖需求相反时，只能选一侧规则或接受局部误差，别堆特权代码（会乱）
 - **过门退层/接缝特权/全局转角偏置**全部试过并废弃——原位替换最稳
 - **缺纹理绿框**：Phaser 缺纹理渲染绿色占位框——动态纹理必须先创建再使用
+- **逐帧动画用引擎 tween，不要手动 tick**：门闸曾因依赖 `CombatRoomSystem.update(dt)` 逐帧驱动，链路一断动画卡死（战斗后不开门）；改为 `scene.tweens.addCounter` 驱动帧号，脱离手动链路
+- **转角斜接遮盖位继承**：转角两臂同 depth，默认后建臂盖住先建臂端边——门闸原位替换先建臂时必须 depth-0.1 继承其下位（否则贴图裁切边暴露在斜接缝，"两墙之间有偏差"根因）；同理 `_setupGate` 先 `_syncWallsToPhaser()` 后 `placeAt` 防整批重建压住门闸。**排障方法论的反面教材：此 bug 连修三轮未中，最终靠"用户手工摆一个严丝合缝的对照组存为预设 → 数值对比 JSON"一次定位——抽象描述定位不了视觉问题时，让用户/自己造对照组做数值 diff 最快**
+- **ItemDatabase.items 是 {id: itemData}，itemData 不带 id 字段**（id 只在键上，`get()` 才注入 `_id`）——`Object.values(items)` 后读 `item.id` 恒为 undefined。奖励界面"三选一点击无反应"根因：`_giveRandomWeapon` 用 values+item.id → `createInstance(undefined)` 返回 null → `addToInventory` 读 `maxStack` 抛 TypeError → `_selected` 已置位面板卡死。教训：**遍历 items 一律走 Object.keys 回查**；发奖类入口加 `if (!item) return` 守卫 + try/catch 兜底（单项失败不阻塞面板关闭）
+- **续接瓦片规则（2026-07-26 定论，取代"均匀拉伸"）**：`edgeFill` 用**定长定高瓦片**（scale 固定、8px 叠合、尾端超出由下一顶点转角臂 +5 偏置盖住）。两条历史教训：①`d < len+8` 定长循环在 `len ≈ faceLen` 时会多一块近整瓦重复件（"下夹角多一堵墙"）——现由转角臂 +5 偏置盖住 overshoot 解决；②均匀拉伸（0.7~1.4）让拉伸件与定尺转角件一大一小、中间突出（僵尸砖纹不可感知故未暴露，沼泽柴墙材质随机格外显眼）——故废弃拉伸，统一定长
+- **部署验证三件套**：逻辑模拟跑通但游戏不生效时——版本徽章标构建号（确认跑的是哪份代码）、关键路径 console.log（确认判定是否触发）、node 模拟全流程（确认逻辑无误）；三管齐下直接区分"部署问题/判定问题/逻辑问题"
 
 ---
 
@@ -719,9 +816,15 @@ _getPhaserOptions() {
 - 阶梯矩形（36×20/30px）保留给寻路/小地图/静态物理体，不再作为移动滑动依据
 
 ### 门闸系统（2026-07-24，战斗房带门直墙）
-- **素材管线**：`tools/door-video-frames.py`——视频 0~4.05s 均匀 16 帧 → 边界洪水抠图（白底/棋盘底）+ 豆包水印区抹除（原图右下角 600:720,675:720）+ **门洞封闭区二次抠图**（栏杆包围的亮区洪水填充进不去：x[295,405]y[200,510] 亮度>180 去底；拱门内浅灰地面楔形区 y[240,510] 亮度>120 去底，让游戏地板透出）+ **高度归一化**（顶/底边不平行时按列绕底边掰平行——否则与直墙拼接时顶部岔开小角度）→ 16 帧统一包围盒对齐 → 4×4 打包 `wall_gate.png`；首帧=关闭、末帧=打开
-- **几何**：`ISO_WALL_GEO.gate`（base 底边线 / gateX 门洞 x 范围 / frames:16）；BootScene spritesheet 加载（带 endFrame）
-- **门闸实体**（`src/world/wall-gate.js`）：状态机 open/closed/opening/closing（自管帧计时 900ms，不用 Phaser anims）；**碰撞 = 门两侧墙体线段常开 + 门洞线段按状态启停**（closed/closing 挡、open/opening 通，isoSegments `_gate` 标记）；depth = `_homeDepth`（继承被替换件的 min/max 规则，过门时脚底越线才临时退后）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙 `wall_gate_glow` spritesheet，跟随当前帧）；已接入 X 光遮挡列表（GameScene occluders）
+
+**地牢墙样式表（2026-07-25 新增）**：`ISO_WALL_STYLES`（wall-system.js，key=dungeonType）——每条 `{ straight, gate, chestPrefab, gateSound, corners? }`：straight/gate 为 ISO_WALL_GEO 键；chestPrefab 为该地牢精英宝箱房预制名（缺省「宝箱房」）；gateSound 为门闸开关音效；**corners（可选）= `{ top, bottom, left, right }` 四顶点夹角预制名（摆墙编辑器手拼），登记后菱形房间四角用预制构建（跨件共享端点=顶点锚定，深度整体平移保留预制内图层，两臂最远端接 edgeFill），缺失/无效逐个回退程序化转角臂**。`WallSystem.setWallStyle(dungeonType)` 由 DungeonMapSystem 入场设置/离场复位；`buildIsoDiamondWalls`/`WallGate.placeAt`/门闸音效/`combat-room._setupGate`/宝箱房预制选择全部走样式（直墙贴图/门闸贴图/门洞 gateX/预制/音效自动跟随）。**新地牢换墙 = ①素材管线出 `xxx_wall_straight.png` + `xxx_gate.png` ②ISO_WALL_GEO 加 `xxx_straight`/`xxx_gate`（配 editor 显示名自动进摆墙面板）③ISO_WALL_STYLES 登记 ④BootScene 加载**。宝箱房（chest-room-system）也已跟随：直墙件按样式几何把预制 face 线段重铺、门墙件识别样式门贴图、门闸几何/帧数随样式。
+- **素材管线**：`tools/door-video-frames.py`——视频 0~4.05s 均匀 16 帧 → 边界洪水抠图（白底/棋盘底）+ 豆包水印区抹除（原图右下角 600:720,675:720）+ **门洞封闭区二次抠图**（栏杆包围的亮区洪水填充进不去：x[295,405]y[200,510] 亮度>180 去底；拱门内浅灰地面楔形区 y[240,510] 亮度>120 去底，让游戏地板透出）→ 16 帧统一包围盒对齐 → 4×4 打包 `wall_gate.png`；首帧=关闭、末帧=打开
+- **墙顶对齐 warp（2026-07-25，`tools/gate-top-warp.py`）**：源视频带透视，门闸贴图墙顶线**不平行底边**（左区斜率 0.40/右区 0.71 vs 底边 0.5037）且墙高比（254~267/317.3）低于直墙（691/757=0.9128）——拼接处墙顶落差实测 26px(左缝)/17px(顶点)，即用户报的"下夹角错位"根因。修法：逐列竖向 warp（锚定底边，墙区拉伸到 290 tex px = 0.9128×317.3；**拱门区 raw<1 保持 k=1 不压缩**；拟合墙顶时**剔除拱门曲线污染区** x∈[250,430]，只拟合纯墙身 [20,230]/[430,620]）。**两个顺序陷阱：① 必须先在扩帧画布（595+shift46=641）就位再 warp——在原帧内 warp 左端新墙顶为负坐标会被帧顶裁掉，事后 shift 无法挽回；② 不要用"封顶在原帧内"的 cap——那会把拉伸钳回 1 使 warp 失效**（两版错误脚本都已废弃，以现脚本为准）。帧高 595→641，ISO_WALL_GEO.gate 与 BootScene frameHeight 同步更新。修复后接缝落差 <3px
+- **几何**：`ISO_WALL_GEO.gate`（base 底边线 / gateX 门洞 x 范围 / frames:16 / wallH:290）；BootScene spritesheet 加载（带 endFrame）
+- **门闸实体**（`src/world/wall-gate.js`）：状态机 open/closed/opening/closing（自管帧计时 900ms，不用 Phaser anims）；**碰撞 = 门两侧墙体线段常开 + 门洞线段按状态启停**（closed/closing 挡、open/opening 通，isoSegments `_gate` 标记）；depth = `_homeDepth`（继承被替换件的 min/max 规则，过门时脚底越线才临时退后）；悬停金色轮廓（全 16 帧门洞区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；已接入 X 光遮挡列表（GameScene occluders）
+- **门闸缩放规则（2026-07-26）**：`placeAt` 用**墙件同一显示尺度**（`ISO_WALL_HEIGHT / wallH` + `slopeFixOf`，底边起点锚定 A），门高与邻墙一致（大小墙衔接）；门宽与被替换件的差距靠叠合吸收。僵尸素材恰好自洽（此尺度 == 旧线段跨度反推值），行为不变；**不要回到线段反推缩放**（门高会与邻墙错位）
+- **一房一门规则（2026-07-26）**：`buildIsoDiamondWalls` 每房随机选一个 `gateCorner`，其余角的门件改铺直墙；`_setupGate` **优先替换样式门贴图件**（转角装饰门→功能门），无门件才回退最近的直墙件（跳过 `_corner` 转角件）——一间房天然只有一扇门
+- **预制夹角件深度规则（2026-07-26）**：`_placeCornerPrefab` 的深度**必须按房间规则重算**（top=min / bottom=max / 左右按臂上下，+转角偏置），编辑器的绝对深度只保留内部相对顺序（0.1/级）——直接平移编辑器深度会让前墙件深度低于实体（下夹角实体画在墙上的根因）
 - **战斗房接入**（combat-room-system）：入场 `_setupGate` 替换距玩家最近的直墙件并播关门动画；`update(dt)` 驱动帧推进+悬停（dungeon-map-system.updateCombat 每帧调用）；`cleanupGate` 随 cleanupRoom 销毁
 - **战斗完成**：`openGate()` 播开门动画 → 完成后门外白区（门外法线走出菱形后**吸附房内同一地板晶格**（整块砖含上角都在界外，防重叠；远角径向 destination-out 圆滑淡出）+ 微光描边，`isPlayerInGateZone` 检测玩家进入 → `_leaveCombatViaPortal` 与传送门同效）+ `GateLight.spawn` 仅门外地块光斑（大泛光+亮核，呼吸；入门光束已移除）
 - **传送门已删**：dungeon-map-system 两处 `spawnExitPortal()`（普通节点/精英宝箱后）改 `openGate()`；Boss 场地（集合体）传送门流程不变
@@ -735,7 +838,7 @@ _getPhaserOptions() {
 ### 僵尸地牢菱形房间（2026-07-24 落地）
 - **尺寸规则**：原正方形 S（1024~2048 随机、Boss 1024）→ rx=1.2S、ry=rx×0.5774（30°）；**边距 M=260（≥墙贴图高度 190×角度补偿≈217 + 缓冲，否则上夹角被世界顶裁掉）**，菱形在世界正中央，区外全黑
 - **地板**：`applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）——黑砖等距平铺按菱形裁剪，区外全黑，边缘黑渐变
-- **墙壁**：`WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`——基底直墙斜铺：四顶点转角点对点（上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max；**后墙转角件 depth 额外 +260 偏置**——让转角盖住邻边续接件/门闸；安全性经像素级验证：室内实体脚底必在墙底边之下，与后墙无像素重叠，偏置再大也不会误挡实体）+ 四边续接（**瓦片定长定高、不足靠叠合，绝不压扁**——否则小房间边墙比夹角矮一截），`rebuildIsoCollision()` 出阶梯碰撞
+- **墙壁**：`WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`——基底直墙斜铺：四顶点转角点对点（上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max；**转角臂统一 +5 深度偏置**——顶点侧盖住续接件，预制转角同款规则；纹理随机的墙若让续接件盖住转角臂，贴图切边会暴露在接缝上（2026-07-25 沼泽柴墙左夹角接缝教训））+ 四边续接（**瓦片定长定高、不足靠叠合，绝不压扁**——否则小房间边墙比夹角矮一截），`rebuildIsoCollision()` 出阶梯碰撞
 - **生成点**：玩家从随机顶点的内法线方向入场（off=offsetFromEdge+60）；怪物在对角顶点附近拒绝采样（菱形内缩不等式 `|dx|/(rx-i)+|dy|/(ry-i)<=1`）；出口传送门仍居中
 - **Boss 场地**：boss-reward-system `_setupArena` 同款菱形；玩家下顶点方向、集合体上顶点方向
 - **备份/恢复**：combat-room 与 boss-reward 均备份恢复 `WallSystem.isoVisuals`（否则战斗房墙残留主神空间）
@@ -750,6 +853,7 @@ _getPhaserOptions() {
 **三套碰撞体积注意区分**：footprint 椭圆（地面分离/范围判定）、绿色矩形（`collisionWidth×collisionHeight`，近战判定）、圆柱体胶囊（`collider.height`，来自 `config.height` 或 `render.spriteSize`，投射物判定）。HUD 锚点用的是**圆柱体胶囊**，不是绿色矩形。
 **启用方式**：`enemy-config.json` 该怪物 `render` 块加 `"capsuleHudAnchor": true`（GameScene 按此开关选择锚点；未配置的旧怪物保持贴图顶部锚点不动）。
 **配套校准**：`render.collisionHeight` 只影响绿色矩形（近战判定），不影响 HUD 锚点；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
+**常见陷阱：`colliderOffsetY/X` 必须写在 `render` 块内**——`enemy.js` 基类只读 `config.render.colliderOffsetY`；写在配置顶层是死配置不生效（2026-07-25 工头顶层 -75 一直未生效的根因；手脑/骑士也曾踩过，见 enemy.js:168 注释）。NPC 类相反，读顶层（npc.js:48）。
 
 ---
 
@@ -1733,6 +1837,7 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
 - `grid.rows/startRows`：行数与起始路线（startRows 长度=起始路线数）
 - `bossEncounter`（可选）：独立 Boss 遭遇。存在则 `_enterBoss` 自动走普通战斗流程副本（不再按地牢名硬编码分支）；`monsterComposition` 支持 `{ lord: N }`（lord 池=rank 领主，跨 family）；缺省走 BossRewardSystem 专属 Boss（集合体）
 - `eliteChestReward`（可选）：精英宝箱奖励
+- `floor`（可选）：`{ tiles: [贴图键...], glow: false, overlapX, overlapY }`——地砖**每格随机选图 + 随机 X/Y 镜像（4 种朝向）**，平铺层统一行为，无需声明（2026-07-25 确认：以后地砖默认都带随机翻转）；**自然材质（草地等）必配 overlapX/overlapY（如 6/3）**：平铺步进内缩让相邻砖叠合几 px（只叠不缺），盖住锯齿边缘缝隙与半透明暗边——亮色材质缝隙明显，黑砖类可不加
 
 ### 3. 登记映射（src/config/dungeon-config.js `_keyFor`）
 地牢 type → 配置块键。**这是唯一的代码硬编码点**（工作流保留）。
@@ -1744,6 +1849,8 @@ normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；�
 JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。
 
 ## Buff/Debuff 添加标准工作流（新状态效果一律按此开展）
+
+**内置机制：状态免疫（statusImmune，2026-07-25）**：`applyStatusImmune(duration)` 授予后，`addStatusEffect` 与全部 apply*（眩晕/恐惧/激励/中毒/流血/致残/束缚/双易伤）统一拦截其他任何 buff/debuff（免疫本身除外）；永久免疫传 `Number.MAX_SAFE_INTEGER`。范例：`mine-cave.js` 矿洞常驻免疫。
 
 ### 1. 注册显示配置（src/entities/damageable-entity.js `STATUS_CONFIG`）
 `type: { icon, name, color }`——逻辑层 `statusEffects` 数组（{type, duration, remaining, stacks}）与 UI 显示共用。

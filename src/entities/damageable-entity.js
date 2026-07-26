@@ -309,8 +309,12 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
+                    statusImmune: { icon: '🔰', name: '状态免疫', color: '#5ac8c8' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
+
+                // 状态免疫：持有 statusImmune 的实体拒绝一切其他 buff/debuff 入库（免疫本身除外）
+                if (type !== 'statusImmune' && this.hasStatusEffect('statusImmune')) return null;
 
                 // 同类型效果：更新剩余时间（取较大值）
                 const existing = this.statusEffects.find(e => e.type === type);
@@ -381,6 +385,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
              * 重复激励只刷新时长，不重复乘算。
              */
             applyInspire(duration, opts = {}) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 const speedMul = opts.speedMul ?? 1.33;
                 const atkMul = opts.atkMul ?? 1.5;
                 if (!this.hasStatusEffect('inspire')) {
@@ -397,6 +402,14 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '📣 激励！', '#ffb347'));
+                }
+            }
+
+            /** 状态免疫 buff：持有期间免疫一切其他 buff/debuff（addStatusEffect 与各 apply* 统一拦截） */
+            applyStatusImmune(duration) {
+                this.addStatusEffect('statusImmune', duration);
+                if (this._faction === 'player' && StatusBar) {
+                    StatusBar.addEffect('statusImmune', duration, { name: '状态免疫', icon: '🔰', color: '#5ac8c8' });
                 }
             }
 
@@ -417,6 +430,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
              */
             applyStun(duration) {
                 if (this._isDead) return;
+                if (this.hasStatusEffect('statusImmune')) return;
                 this.addStatusEffect('stun', duration);
                 // 显示眩晕浮动文字
                 if (EffectManager) {
@@ -432,6 +446,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
              */
             applyFear(duration, source) {
                 if (this._isDead) return;
+                if (this.hasStatusEffect('statusImmune')) return;
                 const existing = this.statusEffects.find(e => e.type === 'fear');
                 const stacks = Math.min((existing ? (existing.stacks || 1) : 0) + 1, 3);
                 this.addStatusEffect('fear', duration, { stacks });
@@ -483,6 +498,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyPoison(stacks) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 this._poisonStacks += stacks;
                 this._poisonTimer = 5000;
                 if (this._poisonTickTimer <= 0) this._poisonTickTimer = 1000;
@@ -527,6 +543,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyCripple(duration) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 // 状态栏显示
                 if (StatusBar) {
                     this._crippleEffectId = StatusBar.addEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
@@ -538,6 +555,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyBind(duration) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 if (StatusBar) {
                     this._bindEffectId = StatusBar.addEffect('bind', duration, { name: '束缚', icon: '⛓️', color: '#7a5a8a' });
                 }
@@ -547,6 +565,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyBleeding(stacks) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 this._bleedStacks += stacks;
                 this._bleedTimer = 10000;
                 if (this._bleedTickTimer <= 0) this._bleedTickTimer = 1000;
@@ -566,6 +585,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyMagicVulnerability(stacks) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 this._magicVulnerabilityStacks += stacks;
                 this._magicVulnerabilityTimer = 5000;
                 if (EffectManager) {
@@ -582,6 +602,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyDroneVulnerability(stacks) {
+                if (this.hasStatusEffect('statusImmune')) return;
                 this._droneVulnerabilityStacks += stacks;
                 this._droneVulnerabilityTimer = 999999;
                 if (EffectManager) {

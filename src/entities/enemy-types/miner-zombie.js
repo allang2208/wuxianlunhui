@@ -1,8 +1,6 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { GroundEllipse } from '../../physics/skill-shapes.js';
-import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { hostilesOf, playSoundFrom } from './_shared/enemy-utils.js';
+import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 
 /**
  * 矿工僵尸（普通，僵尸 family）
@@ -166,14 +164,13 @@ export class MinerZombie extends Enemy {
         // 不走 super.triggerWeaponAnim()：砸击为自定义帧判定，不由通用突刺结算
     }
 
-    /** 砸击伤害判定：以自身为中心的椭圆范围，命中物理伤害 + 击退 */
+    /** 砸击伤害判定：统一口径圆形边缘距离（与 CombatSystem 触发同语义），命中物理伤害 + 击退 */
     _dealSlamHit(entities) {
         const slam = this._getSlamConfig();
-        const range = slam.range ?? 130;
+        const range = slam.range ?? this.attackDistance ?? 130;
         const atk = this.data?.atk || 0;
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of hostilesOf(this, entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk)), this, 'physical', true);
             const knockback = slam.knockback ?? 75;
             if (knockback > 0 && typeof e.applyKnockback === 'function') {

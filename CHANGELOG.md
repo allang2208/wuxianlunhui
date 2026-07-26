@@ -8,6 +8,545 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-26（矿石蜘蛛死亡序列修复：尸体字段对齐）
+
+### 对话：死亡后无下砸+死亡动画——尸体机制字段名不匹配
+- **根因（用户怀疑证实）**：game.js 实体更新循环（:1100）与 `isPreservedCorpse`（:572）识别尸体只看 `_deathAnimTimer/_corpseTimer/_fadeTimer` 三个字段（矿工/通用约定），而矿石蜘蛛自定义了 `_deathTimer/_deathPhase`——死亡后 `active=false` 且不被识别为尸体，update 直接被跳过，死亡序列从未执行，清理路径还会立刻删除实体。
+- **修复**：死亡序列改用标准三字段——`_deathAnimTimer`（临终下砸段+dying 段总时长，内部 `_deathPhase/_slamPhaseMs` 区分子阶段）→ `_corpseTimer`（定格）→ `_fadeTimer`（淡出）；四段表现（临终下砸含第 10 帧判定 → dying 12 帧+dying.mp3 → 定格 1s → 淡出）不变。
+- **教训**：尸体机制字段名是 game.js 更新循环的硬约定，新怪物死亡序列一律用 `_deathAnimTimer/_corpseTimer/_fadeTimer`，阶段划分用内部辅助字段。
+- **修改文件**：`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——临终下砸播放+判定、dying 衔接、定格淡出。
+
+## 2026-07-26（白区侵入改 EQ 柱状图风格）
+
+### 对话：凹凸感不满意——要平面感+频谱/EQ 柱状侵入
+- **方案**：取代全部噪声咬边——柱条沿外法线竖立，柱高 = 低频随机游走 + 12% 尖峰骤降（EQ 跳动感），柱顶 3px 硬淡出，柱间 3px 细缝；内部平整实心（ex ≤ extentN×0.15 不处理）；振幅 0.28~1.0 × extentN（大振幅 EQ 天际线）；门侧 ±45° 保护、长边扇区限定保留。
+- **参数**：柱宽 12 / 缝 3 / 平滑权重 0.7。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：离线渲染（底部呈明显柱状缺口天际线）✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——柱状感可读性（柱宽/振幅可调）。
+
+## 2026-07-26（装饰贴图重抠：去白边）
+
+### 对话：装饰白边/白底没抠干净
+- **根因**：首版仅 1px 腐蚀 + alpha<80 清零，对商品图式白底素材的白边漂白像素（不透明但颜色被白底漂白）无效。
+- **重抠（柴墙同款重管线）**：亮度>200 泛洪 → 光晕扩张（>215）→ 连通域 ≥2000px 过滤 → 腐蚀 2px → 低饱和高亮像素压暗 50%。黑底目检四件均干净。
+- **修改文件**：`assets/terrain/swamp_deco_3~6.png`、CHANGELOG.md。
+
+## 2026-07-26（装饰 deco 字段透传修复 + 长边方向翻转）
+
+### 对话：装饰不出现 + 长边方向搞反
+- **装饰不出现根因**：`setDungeonFloorProfile` 只透传 tiles/glow/overlapX/overlapY，`deco` 字段被丢弃——`_spawnFloorDeco` 读到 undefined 提前返回（连日志都没有）。修复：透传 `deco`。
+- **长边方向翻转**：扁菱形长边在左/右尖角扇区，原条件选反（误把上/下短边盖当长边），改为 `|dx|/halfW ≥ |dy|/halfH`。
+- **诊断日志**：`[FloorDeco] 生成装饰 N 件` / 纹理缺失 warn。
+- **修改文件**：`src/world/dungeon-floor-texture.js`、`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——装饰可见、长边（左右尖角侧）渐隐、上下短边盖锐利。
+
+## 2026-07-26（长边限定渐隐 + 沼泽装饰道具点缀）
+
+### 对话：侵入只保留长边 + 30% 地块加装饰
+- **长边限定**：噪声渐隐加扇区判断 `|dy|/halfH ≥ |dx|/halfW`（上/下浅边=长边才渐隐），左/右尖角短边不处理。
+- **装饰道具**：装饰/3~6.png（柴堆/草茎/树桩/苔石）泛洪抠图+腐蚀+裁剪 → `assets/terrain/swamp_deco_3~6.png`；`swampDungeon.floor.deco = { keys, chance: 0.3 }`；`combat-room-system._spawnFloorDeco` 按地板晶格 30% 随机摆放（随机贴图/翻转/0.8~1.3 缩放，origin 底边贴地，depth=脚底 y+2 参与排序），避开菱形中心 250px（宝箱房），cleanupGate 统一销毁。
+- **修改文件**：`src/phaser/scenes/BootScene.js`、`src/world/combat-room-system.js`、`data/dungeon-config.json`、`assets/terrain/swamp_deco_*.png`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——尖角短边保持锐利、装饰密度/尺寸观感（90px 高、30% 可调）。
+
+## 2026-07-26（白区光效收敛 + 海浪纹渐隐）
+
+### 对话：光斑/光晕收敛 + 侵入要海浪沙滩感
+- **A 光斑**：gate_pool 泛光 560×320→400×240、亮核 220×200→180×160，alpha 上限 0.9/1→0.5/0.7（消除"第二层亮草皮"）。
+- **B 光晕**：gate_zone_glow 烘焙 shadowBlur 14/24/34→8/14/20，呼吸 alpha 0.45~1→0.3~0.6（消除"第二层描边"）。
+- **海浪纹**：渐隐回缩量加波浪调制——沿边界角度 `sin(θ×7 + n×2.5)` 形成 7 个浪峰（噪声扰相位破形），浪峰咬深、浪谷咬浅。离线渲染验证：边缘呈规则浪瓣+随机破的混合，海浪沙滩感。
+- **修改文件**：`src/world/combat-room-system.js`、`src/effects/gate-light.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——浪瓣大小（θ×7 可调个数）、0.45 波浪强度。
+
+## 2026-07-26（白区侵入覆盖修正：全周边缘带生效）
+
+### 对话：只有一条边生效 + 侵入覆盖不足
+- **门侧保护过宽根因**：`along < 0` 一刀切——朝向门那一侧的角（along≈-1）整边免裁。修复：收窄到正朝门 ±45° 扇区（`along < -0.7` 才衰减），相邻两侧边全量渐隐。
+- **覆盖不足修正**：回缩量加下限 `R = AMP×(0.75-0.25n)`（[0.5,1]×AMP，90%+ 边缘有侵入）；但导致内部一并变暗（软边 40% 整砖透明化）——再加边界带门槛 `s < -0.10 跳过`（内部实心）。最终：四条边全有不规则咬入、内部实心、软边 11.3%。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（白区全边缘渐隐）
+
+### 对话：软边 7.5% 但仍见规则边——半周笔直根因
+- **根因**：`f = (s - n×AMP)/FADE_W` 只在噪声为负的半周产生回缩，另半周完全笔直（用户看到的"完全规则"）。
+- **修复**：改为回缩量 `R = AMP×(0.5 - 0.5n)`（恒非负），`f = (s + R)/FADE_W`——全周每处都有噪声调制的回缩，无笔直段；朝门一侧仍 ×0.2 保留衔接。离线渲染：四周全不规则，软边 7.5%→15.6%。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（白区噪声淡出加深）
+
+### 对话：控制台诊断后确认生效但太弱
+- **诊断结论**（用户控制台实测）：`_xrayEnabled=false`（新代码在跑）、服务端含噪声代码、软边占比 2.5%——淡出生效但太弱：噪声正负各半，一半边缘仍笔直，远看还是菱形。
+- **加深**：`NOISE_AMP` 0.32→0.55、`FADE_W` 0.30→0.40（菱形单位）。离线渲染验证：四周均为明显不规则草丛边。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（墙面 X 光透视停用 + 白区全轮廓噪声渐隐）
+
+### 对话：停用透视 + 白区仍是标准菱形
+- **X 光停用**：`GameScene._xrayEnabled = false` 总开关（代码保留，改 true 恢复）；`_syncXRayCircles` 入口拦截并清理存量。
+- **白区菱形感根因（第二层）**：上一版只沿外法线半平面淡出，侧向角尖投影 ≤0 完全不裁——整体轮廓仍是标准菱形。改为**按菱形有符号距离**（`|dx|/halfW + |dy|/halfH - 1`）的全轮廓噪声渐隐：边界外扩 ±0.32 菱形单位噪声、带宽 0.30、朝门一侧衰减 ×0.2 保留衔接。离线渲染验证：四周边缘均呈不规则草丛边。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——透视圆圈消失、白区全轮廓自然化。
+
+## 2026-07-26（门外白区噪声淡出阈值修正）
+
+### 对话：噪声海岸线未生效（仍标准菱形+黑边）
+- **根因**：`baseLimit = 0.30×bw(512) = 154px`，而菱形内容沿外法线的最大投影仅 ~100-147px——`f ≤ 0` 处处成立，淡出从未执行，只剩标准菱形硬边（黑边即硬边贴黑底）。
+- **修复**：阈值改为按内容实际伸展度计算——实测四个角尖沿外法线投影得 `extentN`，`baseLimit = extentN×0.45`、`fadeWidth = extentN×0.45`、`amp = extentN×0.28`（随门方向/砖尺寸自适应）。离线渲染验证：远侧边缘呈自然不规则草丛淡出。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——各方向门的外区均有海岸线淡出。
+
+## 2026-07-26（沼泽地板试用 AI 新砖单款）
+
+### 对话：AI 生成地砖处理入库试用
+- **素材处理**：AI 生成砖（2560×1440 RGB 白底 45° 菱形+水印）→ 泛洪抠图 → 腐蚀 2px 去污染 → 纵向压缩 0.571 掰成 30° → `assets/terrain/swampbrick-new1.png`（512×296）；平铺模拟无缝观感和拼接均通过。
+- **试用**：`swampDungeon.floor.tiles = ['swampbrick_new1']`（单款）；旧 3 张备份于 `assets/terrain/swampbrick_old/`（回退 = tiles 改回 `['swampbrick_1','swampbrick_2','swampbrick_3']`，旧文件未动）。
+- **注意**：新砖菱形宽 510 vs 旧砖 391，**不可混铺**（网格步进错位），凑齐 2~3 张同规格变体后可组池。
+- **修改文件**：`assets/terrain/swampbrick-new1.png`、`assets/terrain/swampbrick_old/`（备份）、`src/phaser/scenes/BootScene.js`、`data/dungeon-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——单砖无随机选图的重复感（仍有随机镜像 4 向）。
+
+## 2026-07-26（门外白区边缘自然化：噪声海岸线淡出）
+
+### 对话：圆角太规则——边缘随机化方案选型与落地
+- **方案（用户确认）**：分形噪声调制边缘阈值——每个像素沿外法线的保留阈值 = 基准边距 + 值噪声扰动（低频 96px 大块 65% + 高频 28px 细节 35%），轮廓呈不规则草垛边，每次生成都不同；取代全部规则圆弧/径向淡出（菱形挖空保留）。
+- **参数**：基准边距 0.30W、淡出带宽 0.22W、扰动幅度 0.16W；朝门一侧（投影 ≤0）不动。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：离线渲染验证（边缘呈自然锯齿草丛感）✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——自然度与砖面积保留比例（边距/幅度可调）。
+
+## 2026-07-26（门外白区远角改圆角路径裁剪）
+
+### 对话：远角仍锐角——改圆角裁剪
+- **方案**：不再用径向渐擦，改为**圆角菱形路径**（`destination-in`）——四个菱形角尖中按外法线取最远的两个，用二次贝塞尔沿边内缩 K（min(geo.w,geo.h)×0.4）裁成硬圆角，再对角尖径向淡出（0.55 中心渐隐）。离线模拟验证：两远角圆滑无锐边。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——圆角大小（K×0.4）与淡出强度（0.55）观感。
+
+## 2026-07-26（远角淡出修定位 + 宝箱房阴影改羽化）
+
+### 对话：远角仍锐角 + 阴影叠加突兀
+- **远角没生效根因**：上一版径向渐擦画在**画布角**（bw/2±0.5W），而砖内容是菱形、角尖不在画布角——等于没擦到。修复：改为计算菱形内容的四个角尖坐标，按外法线投影取最远的两个角尖做径向渐擦（r=0.45W）。
+- **阴影突兀**：逐笔描边在多重墙体接缝处叠加变厚。改为：离屏画布实色阴影带（lineWidth 100，两侧各 50px）→ `ctx.filter='blur(14px)'` 整图羽化 → 单张 Phaser 贴图统一 alpha 0.55——接缝与边缘自然融合。
+- **修改文件**：`src/world/combat-room-system.js`、`src/world/chest-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——远两角圆滑淡出、阴影羽化自然度（blur 14 / alpha 0.55 可调）。
+
+## 2026-07-26（门外白区远角圆滑裁剪）
+
+### 对话：出口独立地块远两角圆滑+淡出
+- **实现**：`_spawnGateExitZone` 在现有远角径向淡出基础上，新增两个远角的圆滑裁剪——外法线远端 × 横向两侧各一个径向渐擦（内 r=0.06W 全擦 → 0.55 处 85% → 外 r=0.38W 不擦，destination-out），两角呈圆角淡出；后续光晕烘焙自动跟随新轮廓。
+- **修改文件**：`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——圆角弧度/淡出范围（0.06~0.38 区间可调）。
+
+## 2026-07-26（宝箱房阴影强化）
+
+### 对话：阴影不够明显
+- 墙脚阴影 alpha 0.35→0.55、单侧宽度 40→56px。
+- **修改文件**：`src/world/chest-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（宝箱房墙脚接触阴影）
+
+### 对话：宝箱房与地面衔接处加阴影
+- **实现**：setup 摆放完成后，沿每件墙（含门墙）底边线段两侧各 40px 绘制渐隐阴影带（墙根 alpha 0.35→0，2px 步进逐笔递减，与大房间 `applyDiamondFloor` 的 64px 接触阴影同手法）；地面特效层 `cy-998`（实体/墙件之下），`_shadowGfx` 纳入 cleanup。
+- **修改文件**：`src/world/chest-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——阴影浓度/宽度观感（40px、0.35 起步可调）。
+
+## 2026-07-26（下夹角预制补齐）
+
+### 对话：用户重存下夹角（名称为「沼泽下夹角」，覆盖旧带门版）
+- 用户以「沼泽下夹角」名称重存（纯 swamp_wall_straight 两件，覆盖旧带门预制）；`corners.bottom` 改为指向「沼泽下夹角」。四个夹角全部走用户手摆纯直墙预制。
+- **修改文件**：`src/world/wall-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-26（夹角预制替换为纯直墙版）
+
+### 对话：用户重建四个纯直墙夹角预制并替换
+- **替换**：`ISO_WALL_STYLES.swamp.corners` 指向新预制「沼泽墙上/下/左/右夹角」（纯 swamp_wall_straight 两件，无门件）——`_setupGate` 回退到"距玩家最近的直墙件"（跳过 `_corner`），一房一门在边墙上。
+- **注意**：保存时「沼泽墙下夹角」未写入（public/data 与 data 两份均无，用户侧可能漏存）——下夹角暂回退程序化转角臂，重新保存后自动生效。
+- **修改文件**：`src/world/wall-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+## 2026-07-26（宝箱房改按预制原样 + brick-4 剔除）
+
+### 对话：brick-4 不搭剔除 + 宝箱房图层/缺口根因
+- **brick-4 剔除**：泥水砖与草砖不搭，`swampDungeon.floor.tiles` 与 BootScene 加载同步移除（文件保留）。
+- **宝箱房缺口/图层根因（用户猜想证实）**：预制本身无缺口、编辑器内图层正确——是运行时两条改动破坏了预制：①setup 按 min/max 规则重算深度（覆盖预制保存的图层）；②门墙按底边跨度重映射/跨长归一（把门件从 458 缩到 374，在下顶点缩出缺口）。
+- **修复（预制原样原则）**：宝箱房 setup 直墙件与门墙件一律按预制保存的 `x/y/scaleX/scaleY/flipX/depth` 原样放置（仅整体平移），门墙 `_placeGate` 重写为从件自身变换推导碰撞（`_pieceBaseSegments` + gateX 映射，门两侧常开+门洞启停模型不变）；撤销跨长归一。离线渲染验证：下顶点闭合、门墙大小/图层与编辑器一致。
+- **预制数据核查**：`wall-editor._savePrefab` 经 `cleanPiece` 保存全部字段（tex/x/y/scaleX/scaleY/flipX/flipY/depth/family），保存侧无缺失——此前是消费侧没使用。
+- **修改文件**：`src/world/chest-room-system.js`、`src/phaser/scenes/BootScene.js`、`data/dungeon-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——宝箱房与编辑器布局一致、门后实体 X 光透视。
+
+## 2026-07-26（宝箱房门跨长归一 + 地板/X光诊断日志）
+
+### 对话：刷新后问题仍在——实证排查
+- **"一大一小突出"实锤**：用真实预制数据离线渲染宝箱房——门件跨长 458 vs 直墙 374（用户在编辑器手放门件未吸附），与用户截图完全吻合。修复：`_placeGate` 加跨长归一（按直墙平均跨长围绕中心缩放），渲染验证四面齐平（374）。
+- **brick-4**：PNG 格式正常（8bit RGBA，浏览器可解码）、dev 服务器全链路验证无误。加诊断日志：`[DungeonFloor] 地砖池 N/M: keys...`（缺失键逐条 warn）——一次烘焙即可分辨「运行时配置陈旧（只有 3 张）」还是「纹理未加载（4 配 3 载）」。
+- **宝箱房门 X 光**：深度规则核验（该预制门在前墙，max 规则新旧一致）；加一次性日志 `[XRay] 宝箱房门已加入 occluders`（段数/hWall/depth），验证 occluder 注册。
+- **附带发现（用户预制问题）**：离线渲染显示预制前墙两臂在下顶点处不合拢（留有缺口=门口），如非有意请在编辑器补齐。
+- **修改文件**：`src/world/chest-room-system.js`、`src/world/dungeon-floor-texture.js`、`src/phaser/scenes/GameScene.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：待用户回传控制台 `[DungeonFloor]`/`[XRay]` 日志定位 brick-4 与门后透视。
+
+## 2026-07-26（边墙续接改定长瓦片 + 沼泽三连问题排查）
+
+### 对话：宝箱房门图层 / brick-4 未入池 / 拼接一大一小
+- **拼接一大一小（真实 bug）**：`edgeFill` 原"均匀拉伸"（拉伸率 0.7~1.4）——拉伸件与定尺转角件并排必然一大一小、中间突出（僵尸砖纹不可感知故未暴露，沼泽柴墙材质随机格外显眼）。修复：改回 SKILL 文档化的**定长定高瓦片**（scale 固定、8px 叠合、尾端超出由下一顶点转角臂 +5 偏置盖住），两风格统一。
+- **宝箱房门图层**：核对当前实现——门深度已按"底边在中线上方=min/下方=max"规则、已纳入 X 光 occluders（实体在门后应出透视圈）；服务端模块均含修复，疑与 brick-4 同为**运行时未更新**。
+- **brick-4 排查（第二次，全链路验证）**：brick-4 是泥水砖（与草砖差异巨大，不可能"没看到"）。验证：dev 服务器 dungeon-config.json 含 4 张 ✅、swampbrick-4.png 返回 200 image/png ✅、BootScene 加载行在 ✅、dist 今日构建的 bundle 也含 swampbrick_4 ✅。代码侧无问题；判断为 **Electron 页面仍是旧实例**（BootScene 预载清单只在启动时执行，纹理缺失时地板烘焙静默跳过）。**必须完全重启 Electron 进程（不是窗口刷新）**。
+- **修改文件**：`src/world/wall-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机（重启后）待验证——拼接等高、brick-4 上屏（可用控制台 `scene.textures.exists('swampbrick_4')` 自检）。
+
+## 2026-07-26（预制夹角件深度规则修复 + 沼泽墙系统性排查）
+
+### 对话：下夹角实体画在墙上 + 系统性排查
+- **根因**：`_placeCornerPrefab` 直接平移编辑器绝对深度（`p.depth + oy`），下夹角（前墙）件深度低于站在墙带内侧的实体 → 毒液僵尸画在墙上。
+- **修复**：预制件深度按房间规则重算（top=min / bottom=max / 左右按臂上下 + 转角偏置），编辑器的绝对深度仅保留内部相对顺序（按编辑器深度排序 0.1/级递进）。
+- **系统性排查结论**（沼泽墙全链路）：①功能门继承被替换件深度——修复后为规则深度 ✅；②宝箱房直墙/门深度规则 ✅（早前已修）；③X 光 occluders（isoVisuals/WallGate/宝箱房门）geo 全在册、门高 192.7 与墙 192.5 一致 ✅；④碰撞 rebuildIsoCollision 含预制件底边 + 门线段保留 ✅；⑤Boss 场地同 buildIsoDiamondWalls 路径 ✅；⑥门外白区取 WallGate.getGateInfo 与位置无关 ✅。
+- **修改文件**：`src/world/wall-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——下夹角实体被前墙正确遮挡（X 光圆圈）、夹角内部两臂图层顺序与编辑器一致。
+
+## 2026-07-26（一房一门改策略：功能门取代装饰门 + 门闸尺度统一）
+
+### 对话：四角一门没成功/大小墙衔接——参考 SKILL 夹角定论改方案
+- **思路转变（SKILL「夹角不出特殊件」）**：不再让夹角预制保留装饰门+功能门另设，而是**功能门闸直接取代选中角的门件**——一间房天然只有一扇门。`_setupGate` 候选改为：①优先样式门贴图件（转角装饰门→功能门）②无门件回退最近直墙件（跳过 `_corner`）。
+- **大小墙衔接根因**：功能门闸 `placeAt` 原从被替换件线段跨度反推缩放（沼泽门高 182 vs 墙 193，错位）；改为**与墙件同一显示尺度**（`ISO_WALL_HEIGHT / wallH` + `slopeFixOf`，底边锚 A，宽度差靠叠合吸收）。已验证僵尸素材此尺度 == 旧反推值（290/691 比例自洽），僵尸行为不变。
+- **修改文件**：`src/world/wall-gate.js`、`src/world/combat-room-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——房间仅一扇功能门（在选中夹角处）、门高与邻墙齐平、门洞碰撞/开关动画不受影响。
+
+## 2026-07-25（四角一门 + 宝箱贴图替换 + 宝箱房门深度修正）
+
+### 对话：多夹角出门/宝箱房图层与放大/宝箱贴图更换
+- **四角一门**：四个夹角预制都含门件导致每角都有门。修复：`buildIsoDiamondWalls` 每房随机选一个 `gateCorner`，`_placeCornerPrefab` 加 `allowGate`——非选中角的门件按同线段改铺样式直墙（`_addSegPiece` 映射 + 转角深度规则），选中角保留门件。
+- **宝箱房门深度**：`_placeGate` 深度从固定 max 改为与直墙同规则（底边在场地中心线上方=min、下方=max），`bounds.cy` 由 setup 传入。
+- **"墙错误放大"排查**：用真实预制数据离线复算摆放映射——直墙跨长 374、门 458、门放置缩放 0.631/0.640 与预制一致，未发现放大错误；疑为旧版本残留显示，硬刷新后复核。
+- **宝箱贴图替换**：删除 chest_E~A 五张分级贴图 + chest_open 精灵图动画（文件与 BootScene 加载一并移除）；新素材 `chest_closed.png`（D.png 白底泛洪抠图+内容裁剪 465×440）/ `chest_opened.png`（D-打开.png 裁剪 134×146）；开箱改为静态换图（`setTexture`），去除 16 帧动画与 openAnim 清理逻辑。
+- **修改文件**：`src/world/wall-system.js`、`src/world/chest-room-system.js`、`src/phaser/scenes/BootScene.js`、`assets/terrain/chest_closed.png`、`assets/terrain/chest_opened.png`（新增；删除 chest_E~A/chest_open）、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——四角仅一门、宝箱关闭/打开贴图显示、宝箱房门图层；若"放大墙"仍在请截图定位是哪一件。
+
+## 2026-07-25（双门修复 + 门洞碰撞被 wipe 修复 + brick-4 排查）
+
+### 对话：左夹角双门 / 门口无碰撞 / brick-4 未生效
+- **左夹角双门根因**：转角预制含 swamp_gate 装饰件，而 `_setupGate` 会替换"距玩家最近的直墙件"——玩家从左顶点入场时，被选中的正是转角预制的直墙件，功能门紧贴装饰门出现"两道门"。修复：`_placeCornerPrefab` 放置的件打 `_corner` 标记，`_setupGate` 跳过（功能门移到边墙续接件）。
+- **门口无碰撞根因（重要）**：`rebuildIsoCollision()` 全量清空 `isoSegments`——宝箱房 setup 内先 `_placeGate` 注册门线段、随后 rebuild 全部抹掉；且精英战流程中宝箱房 setup 的 rebuild 同时抹掉了**入场功能门**在 enterCombatRoom 注册的线段，两处的门因此都可穿。修复：`rebuildIsoCollision` 保留 `_gate`/`_chestGate` 标记线段（门实体自管生命周期，cleanup 各自移除）；`WallSystem.init` 新场景全清防跨场景残留。
+- **brick-4 排查结论**：注册无误——BootScene 加载行在、dev 服务器对 swampbrick-4.png 返回 200、floor.tiles 已含 4 张；未生效原因为运行中的游戏实例未重载（BootScene 预载清单是启动时执行的旧版本，纹理缺失时地板烘焙静默跳过）。**硬刷新页面即可**，无需改代码。
+- **修改文件**：`src/world/wall-system.js`、`src/world/combat-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——左夹角仅一扇功能门（在边墙）、宝箱房门常闭阻挡/完成开启、入场门关困场/完成开门、brick-4 上屏。
+
+## 2026-07-25（沼泽地砖 brick-4 加入随机构建）
+
+### 对话：brick-4 加入沼泽地板
+- 素材复制 `assets/terrain/swampbrick-4.png`（512²，内容菱形 391×227 与其余 3 张一致）；BootScene 注册 `swampbrick_4`；`swampDungeon.floor.tiles` 加入（4 张随机+随机镜像+overlap 6/3 不变）。
+- **修改文件**：`assets/terrain/swampbrick-4.png`、`src/phaser/scenes/BootScene.js`、`data/dungeon-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-25（沼泽四角预制接入运行时房间构建）
+
+### 对话：用手摆四个夹角预制构建沼泽房间
+- **机制**：`ISO_WALL_STYLES` 新增可选 `corners: { top, bottom, left, right }` 字段（夹角预制名）；`WallSystem._placeCornerPrefab`——跨件共享端点定位顶点（≤30px 聚类、离组中心最近），整体平移锚定菱形顶点（深度同步平移+转角偏置，保留预制内图层关系），两臂按轴分侧取最远端接 `edgeFill`；预制缺失/顶点找不到/臂不全逐个回退程序化转角臂。
+- **swamp 登记**：corners = 沼泽上/下/左/右夹角（用户手摆：各 1 柴墙件 + 1 藤门件）。
+- **修改文件**：`src/world/wall-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——沼泽房间四角为手摆预制样式、边续接与预制臂尖对齐、碰撞线段随件生成。
+
+## 2026-07-25（宝箱房门纳入 X 光遮挡 + 宝箱房刷怪修复 + 透视入工作流）
+
+### 对话：沼泽遮挡透视 + 宝箱房同步 + 怪物刷进宝箱房
+- **遮挡透视**：X 光判定链确认为 `ISO_WALL_GEO` 全几何驱动（isoVisuals 件 geo 注册即生效，沼泽墙/门在册）；补两处缺口——①宝箱房门墙（独立实体，此前僵尸/沼泽都不在 occluders）显式纳入 GameScene occluders（isoSegments 格式转点对，geo 按实际贴图键查）；②WallGate geo 查询已于早前改为按实际贴图键（swamp_gate 生效）。
+- **工作流**：SKILL.md 墙体添加标准工作流「图层规则」新增第 5 条——遮挡透视为新墙类必做项（geo 注册即自动生效 + 站墙后验证圆圈）。
+- **宝箱房刷怪根因**：`spawnMonsters` 拒绝采样 30 次失败后的回退点是 `b.cx/b.cy`（场地正中=宝箱房位置），排除区白做。修复：回退点改为菱形上顶点方向边缘内点（远离中心排除区）。
+- **修改文件**：`src/phaser/scenes/GameScene.js`、`src/world/combat-room-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——沼泽墙/门/宝箱房门后实体透视圆圈；精英战怪物不再刷进宝箱房。
+
+## 2026-07-25（沼泽宝箱房预制接入 + 门闸音效随样式）
+
+### 对话：应用「沼泽宝箱房」预制 + 沼泽门音效
+- **样式表扩展**：`ISO_WALL_STYLES` 条目扩为 `{ straight, gate, chestPrefab, gateSound }`，新增 `WallSystem.getWallStyle()`；swamp 登记 `chestPrefab: '沼泽宝箱房'`、`gateSound: 'assets/sounds/environment/swamp_gate.mp3'`。
+- **宝箱房预制选择**：`chest-room-system.setup` 按样式 chestPrefab 选预制（缺失回退「宝箱房」）；门墙件识别改为「wall_gate 或当前样式门贴图」（沼泽预制的 swamp_gate 件正确走门闸流程）。
+- **门闸音效**：`WallGate.playOpen/playClose` 改读样式 gateSound；沼泽门音效用 imageio-ffmpeg 从 gate.mp4 提取原声 → `assets/sounds/environment/swamp_gate.mp3`。
+- **修改文件**：`src/world/wall-system.js`、`src/world/wall-gate.js`、`src/world/chest-room-system.js`、`assets/sounds/environment/swamp_gate.mp3`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——沼泽精英战宝箱房为「沼泽宝箱房」预制布局、藤门开关音画质同步。
+
+## 2026-07-25（摆墙面板组件自动注册 + 沼泽墙/门入面板）
+
+### 对话：沼泽墙门进摆墙面板 + 以后自动添加 + 入工作流
+- **机制**：`ISO_WALL_GEO` 条目新增 `editor` 显示名字段（straight/gate/swamp_straight/swamp_gate 已配：直墙·新/门墙/沼泽柴墙/沼泽藤门）；`wall-editor.js` 的 STD_COMPONENTS 与 TEX_NAMES 改为从 ISO_WALL_GEO 动态生成——**新墙/门组件只需在几何条目加 `editor` 字段即自动进摆墙面板，无需改编辑器代码**。
+- **SKILL.md**：墙体添加标准工作流的几何锚点节补 `editor` 字段说明（自动入面板）。
+- **修改文件**：`src/world/wall-system.js`、`src/ui/wall-editor.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——摆墙面板出现沼泽柴墙/藤门缩略图并可正常拖放。
+
+## 2026-07-25（转角臂 +5 深度偏置：沼泽左夹角接缝修复）
+
+### 对话：沼泽战斗房左夹角被续接墙遮挡
+- **根因**：续接件（edgeFill）深度自然阶梯盖住转角臂——僵尸砖墙纹理相同接缝不可见，沼泽柴墙纹理随机，转角臂被盖处贴图切边全暴露。
+- **修复**：`buildIsoDiamondWalls` 8 个转角臂统一 **+5 深度偏置**（预制转角文档化同款"顶点侧盖住下侧"规则；运行时菱形此前 CB=0 未加）。SKILL.md 两处过期条目同步（+260 废弃描述 → +5 现行规则）。
+- **修改文件**：`src/world/wall-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；同数学拼装模拟（转角臂盖住续接件）✅。
+- **已知问题**：实机待验证——四顶点接缝（转角臂在上）、无新增实体误挡。
+
+## 2026-07-25（沼泽墙白边/拼接修复：腐蚀去污染+两端锥形裁切）
+
+### 对话：墙壁有白边、拼接有高有低
+- **白边根因**：泛洪抠图是二值 alpha，边缘像素**不透明但颜色被白底漂白**（alpha 阈值清零碰不到），第一版 despill 只压了 lum>170 的部分。
+- **修复**：alpha **腐蚀 2px** 物理削掉污染边缘 + 低饱和高亮像素压暗 50%（直墙 36k/门 41k 像素）；黑底预览验证无白边。**教训入库：白底 AI 素材抠图后必须腐蚀 1~2px，纯 alpha 阈值去不掉颜色污染**。
+- **有高有低根因**：贴图两端是锥形（左尖 wallH 均值 691、右端 722，中段 823），瓦片首尾相接时端部矮一截。
+- **修复**：两端锥形区直接裁掉（x[95,1507] → 1419 宽，wallH 稳定 799±25，face 内缩回到 2%），瓦片任意拼接两端同高。
+- **门帧网格事故**：首次清理时整表重裁导致 2546×2432 不能整除 4 列——已从视频重跑完整管线（逐帧腐蚀+压暗，统一包围盒后帧高取 4 的倍数 612），BootScene frameHeight 同步 611→612。
+- **几何更新**：`ISO_WALL_GEO.swamp_straight`（w1419/h1558/wallH 799.2/slope 0.5698）、`swamp_gate`（h612/gateX[248,384]/wallH 301.1）、tools/swamp-gate-geo.json 重测。
+- **修改文件**：`assets/terrain/swamp_wall_straight.png`、`assets/terrain/swamp_gate.png`、`src/world/wall-system.js`、`src/phaser/scenes/BootScene.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；黑底预览直墙/门帧 ✅。
+- **已知问题**：实机待验证——战斗房柴墙拼接高度一致、无白边。
+
+## 2026-07-25（宝箱房跟随墙样式）
+
+### 对话：沼泽宝箱房替换处理
+- **直墙件**：非 default 样式时，预制「宝箱房」的 wall_straight 件按样式几何把同一 face 线段重新铺件（`WallSystem._addSegPiece` + 样式几何键，贴图/缩放/深度自动重算；default 样式走原路径不变）。
+- **门墙件**：`_placeGate` 几何改按 `getWallStyleGeos().gate`（贴图存在性守卫同步），`_openRoomGate` 帧数按样式 geo.frames；`_gateGeoKey` 实例锁定。
+- **修改文件**：`src/world/chest-room-system.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——沼泽宝箱房柴墙小房拼接、藤门动画与门洞碰撞。
+
+## 2026-07-25（沼泽事件草稿 + 沼泽墙壁/门闸导入）
+
+### 对话A：10 个沼泽专属事件——先存草稿不接入
+- `src/world/swamp-event-definitions.js`（NEW_EVENT_CONFIGS 兼容结构，10 事件 F2/E2/D3/C2/B1 + RESTRICTED_META 注释 + 接入步骤头注）——**未被任何代码 import，不生效**，用户自行调整后接入。
+
+### 对话B：沼泽地墙壁/门闸素材导入（墙壁工作流）
+- **直墙**：wall.png（2048² RGB 白底）→ 边界泛洪抠图（近白>620）→ 右下"AI 生成"水印 inpaint（区域内亮度>150）→ 内容包围盒+最长边 1600 → alpha<80 清零去白边 → `assets/terrain/swamp_wall_straight.png`；几何实测 slope 0.5725（≈30° 免归一化）、wallH 802.5 → `ISO_WALL_GEO.swamp_straight`。
+- **门闸**：gate.mp4（720² 24fps 5.04s，视频方向为开→关）→ 均匀 16 帧**反转**（首帧=关闭藤蔓封门/末帧=打开）→ 泛洪抠图 + 门洞藤蔓网格区二次抠图（x[290,430]y[180,560] 亮度>180）+ 左上水印区抹除 + 连通域 ≥500px 过滤 + alpha<80 清零 → 4×4 `assets/terrain/swamp_gate.png`（帧 640×611）→ `ISO_WALL_GEO.swamp_gate`（gateX [251,384]、wallH 314、slope 0.569、tools/swamp-gate-geo.json）。
+- **墙样式机制**：`ISO_WALL_STYLES` 样式表 + `WallSystem.setWallStyle/getWallStyleGeos`；`buildIsoDiamondWalls` 几何键参数化（默认走样式）；`WallGate` 几何/贴图/门洞裁剪区全参数化（`_geo()`）；`combat-room._setupGate` 被替换件按样式直墙贴图筛选；GameScene X 光遮挡按门闸实际贴图查几何；DungeonMapSystem 入场 `setWallStyle(dungeonType)`、离场复位。
+- **BootScene**：`swamp_wall_straight` image + `swamp_gate` spritesheet（640×611 endFrame 15）。
+- **修改文件**：`src/world/wall-system.js`、`src/world/wall-gate.js`、`src/world/combat-room-system.js`、`src/world/dungeon-map-system.js`、`src/phaser/scenes/GameScene.js`、`src/phaser/scenes/BootScene.js`、`assets/terrain/swamp_wall_straight.png`、`assets/terrain/swamp_gate.png`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——沼泽战斗房柴墙拼接（叠合/深度）、藤门开关动画与碰撞、悬停金光（裁剪区随 gateX）；宝箱房预制仍是僵尸门闸（未跟随样式）。
+
+## 2026-07-25（精英宝箱放大 + 倒计时样式改白字黑描边）
+
+### 对话：宝箱贴图放大一倍+判定匹配 + 倒计时白字黑边
+- **宝箱放大**：`chest-room-system.js` 宝箱贴图 96→192、开箱动画 128→256；开箱触发距离 `OPEN_RANGE` 60→120 同步匹配（实际为靠近触发非点击）。
+- **倒计时样式**：60s 倒计时从"白底黑字+黑框"改为**白字黑描边无底色**（`stroke '#000000' strokeThickness 4`），最后 10s 不再切红底、同款样式；移除黑框 rectangle 与 `WARN_SEC`。
+- **修改文件**：`src/world/chest-room-system.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——宝箱尺寸与墙体比例、倒计时描边可读性、靠近触发距离手感。
+
+## 2026-07-25（地砖随机翻转：确认已内置并立约）
+
+### 对话：沼泽砖随机镜像翻转 + 以后地砖默认加随机翻转
+- **结论**：`_drawIsoLayer` 平铺每格本就是随机选图 + 随机 X/Y 镜像（4 种朝向），对所有地牢地砖无条件生效——沼泽砖已在随机翻转，无需改动代码。
+- **SKILL.md**：地牢工作流 floor 字段注明"默认随机翻转、无需声明"约定。
+- **修改文件**：SKILL.md、CHANGELOG.md。
+
+## 2026-07-25（沼泽地板缝隙修复：平铺叠合机制）
+
+### 对话：沼泽地砖黑边/缝隙——不是角度问题
+- **实测结论**：3 张砖菱形斜率 0.5846（≈30.3°，比 blackbrick 还标准），角度无问题。根因：①草地边缘锯齿状，实际草皮到不了几何菱形边，严丝合缝平铺露出黑底成缝；②边缘 alpha 8~64 半透明像素（亮度 66~85）连成暗线；③菱形顶点 ~7px 歪斜累积楔形缝。
+- **修复（平铺叠合，只叠不缺——墙壁拼接同款原则）**：`dungeon-floor-texture.js` profile 新增 `overlapX/overlapY`（默认 0，黑砖地牢不受影响），`_drawIsoLayer` 步进改为 `geo.w - overlapX` / `geo.h/2 - overlapY`，相邻砖叠合盖住锯齿缝与暗边；bakeDungeonFloor/applyDiamondFloor 基础层与发光层四处调用同步透传。
+- **配置**：`swampDungeon.floor` 加 `overlapX: 6, overlapY: 3`；Python 同数学模拟验证：无缝无黑边。
+- **SKILL.md**：地牢工作流补 floor 字段说明（自然材质必配 overlap）。
+- **修改文件**：`src/world/dungeon-floor-texture.js`、`data/dungeon-config.json`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；拼接模拟 ✅。
+- **已知问题**：实机待验证——沼泽战斗房/门外白区地板观感。
+
+## 2026-07-25（新地牢：沼泽地-高级·C 级）
+
+### 对话：按地牢工作流新增沼泽地-高级（swamp）
+- **展示元数据**：`dungeonList.swamp`（☠ 沼泽地-高级，55~60 房间，50%，2000金币，grade C——祭品门槛史诗、祭品掉落 C 表、通用事件 C 档全部自动生效）。
+- **配置块** `swampDungeon`：nodeCount 55~60、startRows [0,1,2,3]（起始 4 路线）、shortestCombatPath 5、typeRatios 50/50、eliteCombatChance 0.35、encounters 照抄僵尸高级（normal 3 波×5 / elite 1 精英+5 普通）、minRoomsToBoss 7、combatRoom.bossSize 1024、Boss 缺省走集合体。
+- **地板**：沼泽砖 3 张（brick-1/2/3 → `assets/terrain/swampbrick-1/2/3.png`，512×512 菱形砖），BootScene 注册 `swampbrick_1/2/3`，`floor.tiles` 三图随机+随机镜像拼接（glow: false）；菱形几何运行时 alpha 实测，无需改代码。
+- **登记点**：`_keyFor('swamp')→'swampDungeon'`（唯一硬编码点）；`_isZombieFamily()` 加 'swamp'（共享僵尸战斗/波次/怪物池）；`dungeon-event-system` 事件 family 映射加 'swamp'→'zombie'（限定事件池共用僵尸）；出征界面/地图生成/地板 profile 全部配置驱动自动接入。
+- **继承未改**：路线图背景沿用 zombie.png（未配 swamp 专属背景）；宝箱岔路条数按 C 级自动（8 条）。
+- **修改文件**：`data/dungeon-config.json`、`src/config/dungeon-config.js`、`src/world/dungeon-map-system.js`、`src/world/dungeon-event-system.js`、`src/phaser/scenes/BootScene.js`、`assets/terrain/swampbrick-1/2/3.png`、`dungeons-table.md`、CHANGELOG.md。
+- **测试结果**：JSON ✅；dungeons-table 刷新（4 地牢）✅；lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——出征界面 C 级显示/史诗祭品门槛、沼泽地板拼接观感、路线图背景（暂为僵尸图）。
+
+## 2026-07-25（主神空间移除矿石蜘蛛）
+
+### 对话：测试验证完毕，清空主神空间测试怪
+- **修改**：`spawnMainHubTestEntities` 移除矿石蜘蛛生成调用（`spawnMainOreSpider` 函数保留备复用），主神空间当前无测试怪。
+- **修改文件**：`src/game.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-25（警示圆圈统一压到实体之下）
+
+### 对话：所有警示圈不遮挡玩家/怪物
+- **修改**：`AttackRangeEffect` 图形 depth 由 `y + 50` 改为 `y - 998`（地面特效层，与油脂/火焰同级；实体 depth = 脚底 y+10）——`_createPhaserGraphics` 与 `_redraw` 两处同步。覆盖全部使用方：集合体/矿石蜘蛛落点警示、下砸范围提示、攻击范围可视化（showAttackRange）等。
+- **修改文件**：`src/effects/attack-range-effect.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——红圈不再遮挡贴图、仍清晰可辨。
+
+## 2026-07-25（矿石蜘蛛下砸眩晕 + 精英战编组规则）
+
+### 对话：下砸命中眩晕 2s + 抽中矿石蜘蛛时普通怪固定矿工
+- **下砸眩晕**：slam 配置加 `stunMs: 2000`，`_dealSlamHit` 命中后 `applyStun`（盾卫 bash 同款；状态免疫目标由 applyStun 内部拦截；临终一砸同样生效）；comment/图鉴 desc 同步。
+- **精英战编组规则**：`zombie-dungeon.js nextWaveMonsterClasses` 末尾新增——精英战斗中抽中矿石蜘蛛（elite tier）时，该波其余 normal tier 全部固定为矿工僵尸（forced 事件怪与其他 elite 不受影响）。
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/ore-spider.js`、`src/world/zombie-dungeon.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——眩晕双星特效/时长、精英战编组（矿石蜘蛛+全矿工）。
+
+## 2026-07-25（矿石蜘蛛下砸红圈提示 + 投掷判定范围减半）
+
+### 对话：下砸加范围提示 + 投掷判定 -50%
+- **下砸红圈**：`_startSlam` 出手即在自身位置生成红色椭圆范围提示（最大判定圈 350，`AttackRangeEffect` 与投掷同款），每帧 `life=maxLife` 保活，第 10 帧 `_dealSlamHit` 判定帧销毁（`_destroySlamWarning`，同步纳入 `_destroyCustomEffects`）；保活循环重构为 `_crystalWarning/_slamWarning` 双键遍历。
+- **投掷判定 -50%**：`throw.impactRadius` 200→100（comment/图鉴 desc 同步），落点红圈与伤害圈同源自动跟随。
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——下砸红圈时机、投掷 100px 判定手感。
+
+## 2026-07-25（矿石蜘蛛 footprint 回落）
+
+### 对话：圆柱体碰撞半径 -20
+- **矿石蜘蛛**：`collisionRadius` 97.5→77.5（-20）。
+- **修改文件**：`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+## 2026-07-25（walking 残影清理返工 + 警示圈保活修复）
+
+### 对话：walking 未修好且一帧上移 + 落点红圈不显示
+- **walking 根因（上次误判）**：阈值 alpha>10 时帧 6~13"底边 490"其实是**残影碎屑**（alpha 11~80 的低透明像素），实体本体底边一直在 y≈379（阈值 80 全帧一致）——上次的整帧平移把身体抬上天（"往上瞬移"）。原图的"移动一段瞬移回退"感正是残影在帧 6~13 出现/消失所致。
+- **修复**：从素材库恢复 walking.png 原图，每帧清除 y>390 的全部像素（实体底边 ≤379，留 11px 边距，不伤本体）。清理后 14 帧底边 376~380、无残影。**教训：对齐精灵图前先提高 alpha 阈值区分本体与残影，bbox 对齐只适用于干净素材**。
+- **警示圈不显示根因**：保活代码每帧刷的是 `maxLife`，而 `AttackRangeEffect.update` 倒计时扣的是 `life`——100ms 后 effect 自然消亡（红圈只闪一瞬）。修复：照集合体 `_refreshWarning` 改为每帧 `life = maxLife` 重置倒计时（附 active 检查）。
+- **修改文件**：`assets/enemies/ore_spider/walking.png`、`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：逐帧 bbox 校验 ✅；目视抽查 ✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——行走无瞬移感、红圈全程可见至落地。
+
+## 2026-07-25（矿石蜘蛛行走帧对齐修复：移动瞬移回退感）
+
+### 对话：行走动画"移动一段然后瞬移回退"
+- **根因**：walking.png 14 帧内容位置不一致——帧 0~5 底边 y≈376/中心 x≈256，帧 6~13 底边 y≈490/中心 x≈295（位移烘焙在帧里），循环播放时后半段下沉右移再瞬移回弹。
+- **修复**：项目内 `assets/enemies/ore_spider/walking.png` 逐帧纯平移对齐（不缩放，保留腿部动画细节）——内容底边统一锚定 y=379（idle/attacking 同线）、水平中心统一 256；修正后 14 帧底边全部 379、中心 255.5~256.5。y>400 区域无残留亮点。
+- **修改文件**：`assets/enemies/ore_spider/walking.png`、CHANGELOG.md。
+- **测试结果**：逐帧 bbox 校验 ✅；目视抽查帧 0/5/6/7/12/13 脚底同线 ✅。
+- **已知问题**：实机待验证——行走循环无跳变。
+
+## 2026-07-25（矿石蜘蛛圆柱调整 + 晶石落点警示圈）
+
+### 对话：碰撞圆柱上移+半径扩大 + 落地警示圈
+- **圆柱体碰撞**：`render.colliderOffsetY: -15`（render 块内，核心规则 6）；`collisionRadius` 37.5→97.5（+60）。
+- **落点警示圈**：晶石出手时在预判落点生成红色椭圆警示（集合体同款 `AttackRangeEffect`，2:1 透视、半径=impactRadius 200）；飞行期间每帧 `maxLife=100` 保活，落地 `_crystalImpact` 销毁（`_destroyCrystalWarning`：active=false + `_destroyPhaserGraphics` 显式销毁，防残留）；`_destroyCustomEffects` 同步纳入。
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——footprint 97.5 的占位/分离手感、警示圈时机与醒目度。
+
+## 2026-07-25（矿石蜘蛛投射物修复 + 落地烟尘）
+
+### 对话：投射物看不到/太小 + 落地烟尘
+- **投射物太小根因**：`projective.png` 是 2048×2048 整图，晶石球内容只有 157×140（居中），整图 `setDisplaySize(40)` 后内容只剩约 3px。修复：项目内 `assets/enemies/ore_spider/projective.png` 按内容包围盒裁剪为 180×180（素材库原图不动），40px 显示尺寸即为真实球体大小。
+- **落地烟尘**：`_crystalImpact` 新增灰色烟雾爆发（`smoke_particle`，12 粒向上扩散，0.7s，NORMAL 混合，depth 落地点 +1；发射器留 (0,0) explode 传世界坐标 + addToUpdateList，两个粒子坑均规避）。
+- **修改文件**：`assets/enemies/ore_spider/projective.png`、`src/entities/enemy-types/ore-spider.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——晶石可见性、烟尘浓度/颜色。
+
+## 2026-07-25（主神空间只留矿石蜘蛛 + 矿石蜘蛛放大 25%）
+
+### 对话：主神空间测试怪清理 + 矿石蜘蛛尺寸调整
+- **主神空间**：`spawnMainHubTestEntities` 移除提灯矿工/工头/矿洞三处测试生成，只保留矿石蜘蛛（spawn 函数本体保留备复用）。
+- **矿石蜘蛛 ×1.25**：spriteSize 260→325、collisionRadius 30→37.5、height 120→150、近战矩形 120×110→150×137.5、footOffsetY 62→77.5、projectileHitbox 同步。
+- **修改文件**：`src/game.js`、`data/enemy-config.json`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——主神空间只剩矿石蜘蛛、放大后贴图/碰撞/HUD 锚点表现。
+
+## 2026-07-25（新怪物：矿石蜘蛛·精英）
+
+### 对话：按新怪物工作流落地矿石蜘蛛（oreSpider）
+- **素材**：5 张精灵图（idle 1 / walking 14 / attacking 28 / attacking-2 18 / dying 12，均为 8列×4行 512×512，有效帧数已脚本核验与声称一致）+ projective.png 投射物 + 5 个音效，复制至 `assets/enemies/ore_spider/` 与 `assets/sounds/enemies/ore_spider/`；脚底锚线 y≈379/512。
+- **配置**（enemy-config.json oreSpider）：精英/僵尸 family/HP 650/六维 55/35/15/20/15/20/speed 150；`capsuleHudAnchor: true`（新怪必做项）；textures 块含 idleSheetColumns（图鉴 idle 放大截取自动生效）。
+- **攻击 1 投掷晶石**：600px 触发，1.5s 28 帧，第 7 帧 taking.mp3、第 18 帧 throwing.mp3、第 21 帧发射；投射物 1s 抛物线 + 每秒 360° 旋转（提灯同款线性外推预判落点），落地椭圆 200px 物理 ×1.25 + 晶尘扩散圈；冷却 5.5s，攻击锁移动。
+- **攻击 2 起跳下砸**：2s 18 帧，第 10 帧阶梯判定（取最小圈不叠加：200px ×2 / 350px ×1，集合体同款）+ 冲击扩散圈 + attacking.mp3；冷却 8s。
+- **死亡**：临终一砸（attacking-2 播到第 14 帧定格，含第 10 帧判定，`death.slamDamage` 可关）→ dying 12 帧（dying.mp3）→ 定格 1s → 淡出。
+- **类** `ore-spider.js`：`aiInterval = MAX_SAFE_INTEGER` 关闭通用近战触发，决策全自定义（近身优先下砸）；`_destroyCustomEffects` 统一清理投射物。
+- **注册**：enemy-types.js 出口、zombie-dungeon `createOreSpider` + `ZOMBIE_FACTORY_MAP`（elite 池自动纳入）、game.js 主神空间测试生成（origin.x + 1200）；BootScene 5 张 spritesheet（均带 endFrame）+ 投射物 image + 5 组动画。
+- **修改文件**：`data/enemy-config.json`、`src/entities/enemy-types/ore-spider.js`（新增）、`src/entities/enemy-types.js`、`src/phaser/scenes/BootScene.js`、`src/world/zombie-dungeon.js`、`src/game.js`、CHANGELOG.md。
+- **测试结果**：JSON ✅；lint ✅（0 error、ore-spider 无 warning）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——投掷弹道/落点、下砸双圈伤害、死亡三段（临终下砸→碎晶→淡出）、行走音效节奏、图鉴贴图截取。
+
+## 2026-07-25（工头鞭子特效重写：扫掠+渐变宽度）
+
+### 对话：鞭击弧线不像鞭子——优化方向选择与落地
+- **旧实现问题**：贝塞尔弧线从胸口"伸长"到目标（像橡皮筋）、宽度均匀、隆起方向写死朝上、400ms 偏拖、按命中目标数叠加多条。
+- **新实现（`_fireWhipArc` 重写）**：①扫掠——鞭梢以目标方向为中心扫过约 75° 扇面（-0.85rad→+0.45rad，Cubic.easeOut 先快后慢）；②鞭身——贝塞尔采样 14 段，宽度柄粗梢细（5.5→1，深棕外圈+亮棕内核双线），中段角度滞后 0.35 相位形成甩动弧度；③末梢爆点——扫掠到位瞬间亮斑随淡出扩散；④时长 400→220ms（75% 扫掠+25% 淡出）；⑤每次鞭击只出一条（`_dealWhipHit` 循环外以主目标为方向触发）。
+- **清理**：文件内 `_drawQuadraticBezier` 局部助手不再使用，已删（盾卫文件内自有副本不受影响）。
+- **修改文件**：`src/entities/enemy-types/foreman-zombie.js`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error、foreman 无 warning）；vite build ✅。
+- **已知问题**：实机待验证——扫掠方向/速度/爆点亮度的手感，不合适再调扇面角与时长。
+
+## 2026-07-25（近战命中口径统一 + range 字段收敛）
+
+### 对话：怪物近战攻击距离与预设不符——两套系统排查与统一
+- **排查结论（两套系统 + 四套字段）**：触发（CombatSystem，`attackDistance`，圆形边缘距离）与命中（各怪自定义帧判定，`GroundEllipse` 椭圆 Y 压缩 0.5）形状错位——垂直方向实际射程只有配置一半，玩家站怪物正上/下方时反复出手永远落空；水平方向则多出一个目标 footprint 半径。另有 `attackRange`/`attackDistance`/`attack.dynamicRange`/`attackSkills.*.range` 四字段需手动同步的分叉风险，及 `attackDistance` 缺省回退 `attackRange×1.15` 的隐性缓冲。
+- **方案 1（形状统一）**：`_shared/enemy-utils.js` 新增 `inMeleeRange`（= CombatSystem 同款 `distanceToEntityShape` 圆形边缘距离）；矿工 slam、工头 whip（触发+命中）、提灯 slam、盾卫 bash、突击 axe、手脑 slam 全部切换。**保留椭圆**：带地面椭圆圈视觉的范围技能（手脑/集合体砸地冲击波、手脑嚎叫、提灯燃烧区、胖子腐蚀、蝇群子圆、突击闪光弹落点）——命中与视觉一致优先。
+- **方案 2（字段收敛）**：上述技能 range 读取统一为 `skill.range ?? this.attackDistance ?? 默认值`——技能未配 range 时自动跟随 attackDistance，不再四字段手动同步。
+- **不冲突说明**：水平射程前后一致（配置+目标半径），仅垂直 0.5×→1×（修复语义）；矿工/工头自定义 triggerWeaponAnim 不调 super，通用突刺 `_pendingThrust` 不结算，无双倍扣血。
+- **修改文件**：`src/entities/enemy-types/_shared/enemy-utils.js`、`miner-zombie.js`、`foreman-zombie.js`、`lantern-miner-zombie.js`、`time-agent-shield.js`、`time-agent-assault.js`、`shounao.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error、0 新 warning）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——矿工/工头垂直方向命中、各怪近战手感；怪物纵向威胁变大（修复语义，注意平衡）。
+
+## 2026-07-25（工头碰撞回落 + 矿工/毒液 footprint 扩大）
+
+### 对话：工头上移过多回落 + footprint 调整
+- **工头**：`render.colliderOffsetY` -75→-25（上移效果已实机验证生效，回落 50px）。
+- **矿工僵尸/毒液僵尸 footprint +15px**：矿工 `collisionRadius` 21.25→36.25；毒液 8.84→23.84。
+- **SKILL.md**：`colliderOffsetY` 必须写 `render` 块的坑从「HUD 锚点工作流」提升为**核心规则第 6 条**（含实机验证记录）。
+- **修改文件**：`data/enemy-config.json`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——工头 -25 位置、矿工/毒液新 footprint 手感。
+
+## 2026-07-25（工头 colliderOffsetY 死配置修复）
+
+### 对话：工头碰撞体积上移未生效排查
+- **根因**：`enemy.js` 基类只读 `config.render.colliderOffsetY`（enemy.js:170），而工头的 `colliderOffsetY` 写在配置顶层（435f76f 起就是顶层，从未生效过）——死配置。手脑/骑士曾踩同款坑（enemy.js:168 注释）。
+- **修复**：工头 `colliderOffsetY: -75` 移入 `render` 块；矿洞同款死配置（顶层 -40）一并移入 `render` 块（此前 -20 也从未生效，本次起真正上移 40px）。
+- **SKILL.md**：原无此坑记录（仅 v3.0 提过集合体 colliderOffsetY 数值调整），已在「怪物 HUD 锚点工作流」补常见陷阱条目（敌人读 render 块、NPC 读顶层 npc.js:48）。
+- **修改文件**：`data/enemy-config.json`、SKILL.md、CHANGELOG.md。
+- **测试结果**：JSON 校验 ✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——工头/矿洞碰撞圆柱上移效果。
+
+## 2026-07-25（玩家流血修复 + 无敌全场景 + 矿工攻击距离 + 矿洞召唤粒子）
+
+### 对话：流血两项 bug + 无敌未生效排查等五项
+- **流血不扣血根因**：基类 `_updateBleed` 扣的是 `this.hp`，而玩家真实 HP 是 `this.data.hp`（`this.hp` 停留在构造值）——流血对玩家从未造成真实伤害。修复：`player/update.js` 新增玩家专属流血块（镜像已有中毒块），按 `data.hp × 1% × 层数` 扣血、致死走 `onDeath`、状态栏同步；同时移除 `update()` 中对基类 `_updatePoison/_updateBleed` 的重复调用（玩家中毒块早已存在，基类调用导致计时器双重驱动、中毒 2 倍速消耗）。
+- **切地图红色粒子**：流血 tick 在路线选择地图模式下继续调用 `playBleedGroundParticles`，世界隐藏/相机错位导致粒子出现在屏幕上方。修复：`GameScene.playBleedGroundParticles` 入口 `_mapModeActive` 拦截（全调用方覆盖）。
+- **无敌未生效**：`takeDamage` 无敌判定原为 `SceneManager._inMainHub && _mainHubInvincible`（仅主神空间），且流血/中毒 dot 绕过 takeDamage 直扣 HP。修复：无敌开关改为全场景生效（`_mainHubInvincible` 单条件）；玩家流血/中毒块扣血前同样检查该开关（计时与层数消耗照常）。
+- **矿工僵尸攻击判定距离**：attackRange/attackDistance/dynamicRange/slam.range 130→160。
+- **矿洞召唤粒子**：`_spawnMiner`/`_spawnLanternMiner` 落点触发地牢刷怪同款黑色粒子（`_playSpawnFx` → `GameScene.playDungeonSpawnParticles`）。
+- **战斗房尺寸查证**（仅回答未改动）：普通/精英战斗房共用 `_rollRoomSize`——S 从 {1024,1280,1536,1792,2048} 五档预设随机（`dungeon-config.json combatRoom.normalSize` min/max/step=256），菱形 rx=1.2S、ry=rx×0.5774；Boss 固定 `bossSize=1024`。
+- **修改文件**：`src/entities/player/update.js`、`src/entities/player/subsystems.js`、`src/phaser/scenes/GameScene.js`、`src/entities/enemy-types/mine-cave.js`、`data/enemy-config.json`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——流血正常扣血/致死、无敌地牢内免伤、矿工 160px 判定手感、矿洞召唤粒子。
+
+## 2026-07-25（工头/矿工/毒液碰撞调整 + 提灯火焰图层 + 矿洞翻倍与状态免疫）
+
+### 对话：四项怪物调整
+- **僵尸工头**：`colliderOffsetY` -50→-75（橙色圆柱体碰撞体积再上移 25px）。
+- **矿工僵尸**：碰撞体积 ×1.25（collisionRadius 17→21.25、height 115→143.75、collisionWidth/Height 58×127→72.5×158.75、projectileHitbox 46×127→57.5×158.75）。
+- **提灯矿工**：燃烧火焰粒子 depth 由 `fy+1000` 改为 `fy-998`，压在玩家/怪物（实体 depth=脚底 y+10）之下、油脂反光（y-999）之上。
+- **矿洞**：去除脚下阴影（`_noShadow` + GameScene 敌人阴影循环跳过）；贴图/碰撞全套 ×2（spriteSize 400→800、collisionRadius 90→180、height 100→200、collisionWidth/Height、projectileHitbox、footOffsetY，烟雾锚点 offsetX/offsetY 与生成点 forwardX 同步 ×2）；新增常驻「状态免疫」buff。
+- **新机制 状态免疫（statusImmune）**：`DamageableEntity.applyStatusImmune(duration)`；`addStatusEffect` 入口与全部 apply*（眩晕/恐惧/激励/中毒/流血/致残/束缚/魔力易伤/无人机易伤）统一拦截其他 buff/debuff。
+- **毒液僵尸**：贴图 ×1.25（spriteSize 90→112.5、footOffsetY 41→51.25），碰撞同步 ×1.25（collisionRadius 7.07→8.84、collisionWidth/Height 32×79→40×98.75、projectileHitbox 29×81→36.25×101.25）。
+- **修改文件**：`data/enemy-config.json`、`src/entities/damageable-entity.js`、`src/entities/enemy-types/mine-cave.js`、`src/entities/enemy-types/lantern-miner-zombie.js`、`src/phaser/scenes/GameScene.js`、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——火焰遮挡关系、矿洞阴影/体积/免疫表现、毒液僵尸新比例。
+
 ## 2026-07-23（墙壁贴图 JS 兜底裁剪：canvas 生成去透明区域纹理）
 
 ### 对话：setCrop 无效，改用 JS canvas 兜底裁剪
@@ -3106,3 +3645,17 @@
 - **验证**：所有11个文件语法通过 `node --check`
 - **已实现的侧视角效果**：角色4方向显示/8方向移动、脚下阴影、墙壁立面高度、树木侧视、子弹远近缩放、弹壳重力下落、特效深度排序
 - **已知问题**：上/下武器偏移在旋转坐标系下表现可能有偏差；Enemy 暂未添加 `_facingDir`（近战回退到 down）
+
+## 2026-07-25（宝箱房系统 + 战斗房尺寸固定档 + 墙脚阴影/透视/奖励修复）
+
+### 对话：宝箱系统重构 + 杂项修复
+- **宝箱房系统（新）**：精英战斗场地中央按墙壁预制「宝箱房」生成小菱形房（门墙常闭）；房内不刷怪（刷怪排除区）；等级宝箱 E/D/C/B/A（=地牢 grade，缺 A.png 暂 B 兜底）+ 60s 倒计时（白底黑字/末 10s 红底）；限时内打完开门墙，超时宝箱 1s 淡出；靠近开箱播 16 帧动画（1.5s，宝箱打开-1.mp4 切帧管线 tools/chest-video-frames.py）+ 原声音效；奖励按 universalEventRewards.treasureChest[grade] 发放；未开宝箱离场弹确认框（是/否）。
+- **删除旧制**：击杀精英刷 DungeonChest 流程（dungeon-chest.js 删除）、eliteChestReward 配置；F 级地牢岔路精英战改固定普通战。
+- **战斗房尺寸固定档**：普通 1024 / 精英 1792 / Boss 2048，地牢级 combatRoom 子配置覆盖（高级 bossSize=1024）；废弃随机抽档。
+- **墙脚阴影统一**：菱形地板边缘 15% 平刷 → 真渐变接触阴影带（墙根 40%→0，64px），三个等级地牢统一（中级/初级"没阴影"根因=亮地砖上平刷不可见）。
+- **X 光残留修复**：战斗结束进地图界面透视金币——X 光对象不属于显示组且地图模式跳过同步，新增 `_purgeXRayCircles()` 挂 cleanupGate/Boss.cleanup，地图分支每帧兜底隐藏。
+- **奖励三选一点击无反应**：`_giveRandomWeapon` 读 values 的 item.id（恒 undefined）→ createInstance null → maxStack TypeError 卡死面板；改按键抽取+空值守卫+try/catch 兜底。
+- **下夹角门墙错位**：①门闸贴图墙顶线不平行底边+墙高矮 17~26px → tools/gate-top-warp.py 逐列 warp（先扩帧 595→641 再拉，拱门区 k≥1）；②斜接遮盖位继承 depth-0.1（依据用户手工预设数值对比）。
+- **修改文件**：src/world/chest-room-system.js（新）、combat-room-system.js、dungeon-map-system.js、boss-reward-system.js、wall-gate.js、wall-system.js、dungeon-floor-texture.js、zombie-dungeon.js、GameScene.js、BootScene.js、reward-system.js、expedition-system.js、dungeon-config.js、dungeon-spawn-utils.js、data/dungeon-config.json、data/wall-prefabs.json、tools/gate-top-warp.py（新）、tools/chest-video-frames.py（新）、assets/terrain/chest_*.png、chest_open.png、wall_gate.png、assets/sounds/environment/chest_open.mp3、SKILL.md、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；几何模拟（宝箱房锚定/深度/排除区）✅；烘焙级渲染验证（阴影带/门闸拼接）✅。
+- **已知问题**：实机待验证——宝箱房全流程（倒计时/开门/开箱/离场确认）、宝箱怪位暂按金币兜底、A 级宝箱贴图缺（暂用 B）。

@@ -30,21 +30,15 @@ const DEFAULTS = {
                 guaranteeAtLeastOneElite: false
             }
         },
-        eliteChestReward: {
-            items: [
-                { type: 'gold', count: 100 },
-                { type: 'reforge_ticket', count: 1 },
-                { type: 'weapon', rarity: 'common', count: 1 }
-            ]
-        },
         grid: { rows: 4, colSpacing: 160, rowSpacing: 140, mainRow: 1 },
         startRows: [0, 1, 2, 3],
         bossReward: { bossBeforeLastCol: true, rewardAfterBoss: true },
         nodeDisplay: { unrevealedIcon: '?', completedCombatType: 'empty' }
     },
     combatRoom: {
-        normalSize: { min: 1024, max: 2048, step: 256 },
-        bossSize: 1024,
+        normalSize: 1024,   // 普通战斗房固定尺寸
+        eliteSize: 1792,    // 精英战斗房固定尺寸
+        bossSize: 2048,     // Boss 房固定尺寸（地牢级 combatRoom.bossSize 可覆盖，如僵尸地牢高级=1024）
         wallThickness: 20,
         cleanupCountdownMs: 10000,
         spawn: { playerOffsetFromEdge: 60, monsterSpawnDepth: 120, monsterMargin: 40, minWallDistance: 150 }
@@ -70,6 +64,7 @@ export const DungeonConfig = {
     _keyFor(dungeonType) {
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
         if (dungeonType === 'zombieMid') return 'zombieDungeonMid';
+        if (dungeonType === 'swamp') return 'swampDungeon';
         return 'zombieDungeon';
     },
 
@@ -127,8 +122,17 @@ export const DungeonConfig = {
         return dungeonConfigData.dungeonList || {};
     },
 
-    getCombatRoomConfig() {
-        return deepMerge(DEFAULTS.combatRoom, dungeonConfigData.combatRoom || {});
+    /**
+     * 战斗房尺寸配置（支持地牢级覆盖：dungeonType 对应地牢的 combatRoom 字段，
+     * 如 zombieDungeon.combatRoom.bossSize=1024 覆盖全局 Boss 房 2048）
+     */
+    getCombatRoomConfig(dungeonType) {
+        let cfg = deepMerge(DEFAULTS.combatRoom, dungeonConfigData.combatRoom || {});
+        if (dungeonType) {
+            const per = (dungeonConfigData[this._keyFor(dungeonType)] || {}).combatRoom;
+            if (per) cfg = deepMerge(cfg, per);
+        }
+        return cfg;
     },
 
     getEventConfig(eventType) {

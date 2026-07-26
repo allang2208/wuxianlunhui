@@ -37,11 +37,14 @@ import { EquipManager } from '../ui/equip-manager.js';
 
 // ==================== 配置对象 ====================
 
+// 当前 Boss 战的地牢类型（enterBossBattle 传入，用于地牢级 bossSize 覆盖，如僵尸地牢高级=1024）
+let _arenaDungeonType = null;
+
 export const BOSS_REWARD_CONFIG = {
     // Boss 场地配置
     arena: {
-        // 场地大小由 data/dungeon-config.json 的 combatRoom.bossSize 驱动（当前 1024）
-        get size() { return (DungeonConfig.getCombatRoomConfig().bossSize) ?? 1024; },
+        // 场地大小由 data/dungeon-config.json 的 combatRoom.bossSize 驱动（全局 2048，地牢级可覆盖）
+        get size() { return (DungeonConfig.getCombatRoomConfig(_arenaDungeonType).bossSize) ?? 2048; },
         wallThickness: 40,    // 边界墙壁厚度
         margin: 60,           // 玩家/怪物生成边距
         playerFromBottom: 300, // 玩家生成：场地最下方中心上移 300px
@@ -360,6 +363,7 @@ export class BossBattleManager {
 
     cleanup() {
         if (!this.active) return;
+        _arenaDungeonType = null;
 
         // 删除 Boss 实体
         if (this.bossKey && Game.entities && typeof Game.removeEntity === 'function') {
@@ -386,6 +390,10 @@ export class BossBattleManager {
         WallSystem.isoVisuals = this._backupIsoVisuals ? [...this._backupIsoVisuals] : [];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
+        }
+        // 销毁残留 X 光透视对象（与战斗房 cleanupGate 同口径）
+        if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene._purgeXRayCircles === 'function') {
+            window.__phaserScene._purgeXRayCircles();
         }
 
         // 恢复地形纹理、世界尺寸与树木（与战斗房 _restoreSceneState 同口径）
@@ -562,7 +570,8 @@ export const BossRewardSystem = {
      * 进入 Boss 战
      * 由 DungeonMapSystem._enterBoss() 调用
      */
-    enterBossBattle(player, onComplete) {
+    enterBossBattle(player, onComplete, dungeonType = null) {
+        _arenaDungeonType = dungeonType;
         this.bossBattle.start(player, onComplete);
     },
 

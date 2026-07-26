@@ -49,17 +49,33 @@ export class BootScene extends Scene {
         this.load.image('wall_diag', 'assets/terrain/wall_diag.png');
         this.load.image('wall_straight', 'assets/terrain/wall_straight.png');
         // 门闸（16 帧开门动画：帧 0 关闭、帧 15 打开）
-        this.load.spritesheet('wall_gate', 'assets/terrain/wall_gate.png', { frameWidth: 640, frameHeight: 595, endFrame: 15 });
+        this.load.spritesheet('wall_gate', 'assets/terrain/wall_gate.png', { frameWidth: 640, frameHeight: 641, endFrame: 15 });
         this.load.image('wall_corner_top', 'assets/terrain/wall_corner_top.png');
         this.load.image('wall_corner_bottom', 'assets/terrain/wall_corner_bottom.png');
         this.load.image('wall_corner_left', 'assets/terrain/wall_corner_left.png');
         this.load.image('wall_corner_right', 'assets/terrain/wall_corner_right.png');
+        // 等级宝箱贴图（E/D/C/B/A；A 暂用 B 图兜底，素材库缺 A.png）+ 开箱 16 帧动画
+        this.load.image('chest_closed', 'assets/terrain/chest_closed.png');
+        this.load.image('chest_opened', 'assets/terrain/chest_opened.png');
         // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
         this.load.image('blackbrick5', 'assets/terrain/blackbrick5.png');
         this.load.image('blackbrick5_glow', 'assets/terrain/blackbrick5_glow.png');
         this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
         this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
         this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
+        // 沼泽地装饰道具（柴堆/草茎/树桩/苔石，战斗房地块随机点缀）
+        this.load.image('swamp_deco_3', 'assets/terrain/swamp_deco_3.png');
+        this.load.image('swamp_deco_4', 'assets/terrain/swamp_deco_4.png');
+        this.load.image('swamp_deco_5', 'assets/terrain/swamp_deco_5.png');
+        this.load.image('swamp_deco_6', 'assets/terrain/swamp_deco_6.png');
+        // 沼泽地地砖（沼泽地-高级地牢；当前试用 AI 新砖 swampbrick-new1 单款，旧 3 张备份于 swampbrick_old/）
+        this.load.image('swampbrick_new1', 'assets/terrain/swampbrick-new1.png');
+        this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
+        this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
+        this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
+        // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
+        this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
+        this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         this.load.image('drone', 'assets/skills/drone.png');
@@ -177,6 +193,15 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_lantern_miner_death',   'assets/enemies/lantern_miner_zombie/dying.png',       { frameWidth: 512, frameHeight: 512, endFrame: 14 });
         // 提灯投射物贴图（单帧）
         this.load.image('enemy_lantern_miner_projectile', 'assets/enemies/lantern_miner_zombie/projective.png');
+
+        // 矿石蜘蛛（精英）：8列×4行 512×512 切帧（idle 1 / walking 14 / attacking 28 / attacking-2 18 / dying 12）
+        this.load.spritesheet('enemy_ore_spider_idle',   'assets/enemies/ore_spider/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_ore_spider_walk',   'assets/enemies/ore_spider/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_ore_spider_attack', 'assets/enemies/ore_spider/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 27 });
+        this.load.spritesheet('enemy_ore_spider_slam',   'assets/enemies/ore_spider/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 17 });
+        this.load.spritesheet('enemy_ore_spider_death',  'assets/enemies/ore_spider/dying.png',       { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        // 晶石投射物贴图（单帧）
+        this.load.image('enemy_ore_spider_projectile', 'assets/enemies/ore_spider/projective.png');
 
         // 僵尸工头（领主）：8列×4行 512×512 切帧（idle 1 / walking 15 / attacking 31 / howling 24 / dying 14）
         this.load.spritesheet('enemy_foreman_idle',   'assets/enemies/foreman_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
@@ -749,6 +774,38 @@ export class BootScene extends Scene {
             key: 'enemy_lantern_miner_death',
             frames: this.anims.generateFrameNumbers('enemy_lantern_miner_death', { start: 0, end: 14 }),
             duration: 1500, // 15 帧一次性死亡动画（与 death.animMs 对齐）
+            repeat: 0,
+        });
+
+        // ---- 矿石蜘蛛动画 ----
+        this.anims.create({
+            key: 'enemy_ore_spider_idle',
+            frames: this.anims.generateFrameNumbers('enemy_ore_spider_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_ore_spider_walk',
+            frames: this.anims.generateFrameNumbers('enemy_ore_spider_walk', { start: 0, end: 13 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_ore_spider_attack',
+            frames: this.anims.generateFrameNumbers('enemy_ore_spider_attack', { start: 0, end: 27 }),
+            duration: 1500, // 与 throw.duration 对齐（28 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_ore_spider_slam',
+            frames: this.anims.generateFrameNumbers('enemy_ore_spider_slam', { start: 0, end: 17 }),
+            duration: 2000, // 与 slam.duration 对齐（18 帧 / 2s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_ore_spider_death',
+            frames: this.anims.generateFrameNumbers('enemy_ore_spider_death', { start: 0, end: 11 }),
+            duration: 1200, // 与 death.dyingMs 对齐（12 帧 / 1.2s）
             repeat: 0,
         });
 

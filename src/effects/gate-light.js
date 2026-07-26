@@ -44,21 +44,21 @@ export const GateLight = {
 
         // 门外独立地块光斑（周边大面积泛光 + 中心亮核，呼吸脉动）
         const bigPool = scene.add.image(zc.x, zc.y, 'gate_pool');
-        bigPool.setDisplaySize(560, 320);
+        bigPool.setDisplaySize(400, 240); // 调小调淡：避免与地砖形成"第二层亮草皮"
         bigPool.setBlendMode('ADD');
         bigPool.setAlpha(0);
         bigPool.setDepth(zc.y + 1);
         group.push(bigPool);
 
         const core = scene.add.image(zc.x, zc.y, 'gate_pool');
-        core.setDisplaySize(220, 200);
+        core.setDisplaySize(180, 160);
         core.setBlendMode('ADD');
         core.setAlpha(0);
         core.setDepth(zc.y + 2);
         group.push(core);
 
         // 淡入 + 呼吸
-        scene.tweens.add({ targets: [bigPool, core], alpha: (t) => (t === core ? 1 : 0.9), duration: 1200, ease: 'Sine.easeOut' });
+        scene.tweens.add({ targets: [bigPool, core], alpha: (t) => (t === core ? 0.7 : 0.5), duration: 1200, ease: 'Sine.easeOut' });
         scene.tweens.add({ targets: bigPool, scaleX: '+=0.06', scaleY: '+=0.06', yoyo: true, repeat: -1, duration: 1400, ease: 'Sine.easeInOut', delay: 1200 });
 
         this._group = group;

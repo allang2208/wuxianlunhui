@@ -23,10 +23,8 @@ update(dt, entities) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
                 this.updateStatusEffects(dt);
-                // 伤害型状态效果（中毒/流血/易伤）——此前玩家只跑 updateStatusEffects，
-                // 导致流血/中毒对玩家不 tick 伤害、不过期、血渍粒子不生成（工头鞭击流血无表现的根因）
-                if (typeof this._updatePoison === 'function') this._updatePoison(dt);
-                if (typeof this._updateBleed === 'function') this._updateBleed(dt);
+                // 伤害型状态效果：中毒/流血由下方玩家专属块处理（data.hp 口径 + 无敌开关）；
+                // 基类 _updatePoison/_updateBleed 走 this.hp（敌人字段），玩家再调会双重驱动计时器
                 if (typeof this._updateMagicVulnerability === 'function') this._updateMagicVulnerability(dt);
                 if (typeof this._updateDroneVulnerability === 'function') this._updateDroneVulnerability(dt);
                 // 死亡状态处理
@@ -101,11 +99,14 @@ update(dt, entities) {
                     this._poisonTimer -= dt;
                     this._poisonTickTimer -= dt;
                     if (this._poisonTickTimer <= 0) {
-                        this.data.hp -= this._poisonStacks;
-                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#7a9a5a'));
-                        if (this.data.hp <= 0) {
-                            this.data.hp = 0;
-                            this.onDeath();
+                        // 无敌开关期间不扣血，计时/层数消耗照常
+                        if (!SceneManager._mainHubInvincible) {
+                            this.data.hp -= this._poisonStacks;
+                            EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${this._poisonStacks}`, '#7a9a5a'));
+                            if (this.data.hp <= 0) {
+                                this.data.hp = 0;
+                                this.onDeath();
+                            }
                         }
                         this._poisonTickTimer = 1000;
                     }
@@ -129,6 +130,44 @@ update(dt, entities) {
                             }
                             // 清除中毒粒子效果
                             if (this._poisonEffect) this._poisonEffect.reset();
+                        }
+                    }
+                }
+                // ===== 流血处理（每层每秒 1% 当前生命值，持续 10s，到期减一层） =====
+                if (this._bleedStacks > 0) {
+                    this._bleedTimer -= dt;
+                    this._bleedTickTimer -= dt;
+                    if (this._bleedTickTimer <= 0) {
+                        // 无敌开关（左下「无敌」按钮）期间不扣血，计时/层数消耗照常
+                        if (!SceneManager._mainHubInvincible) {
+                            const dmg = Math.max(1, Math.floor(this.data.hp * 0.01 * this._bleedStacks));
+                            this.data.hp -= dmg;
+                            EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${dmg}`, '#9a3a3a'));
+                            if (this.data.hp <= 0) {
+                                this.data.hp = 0;
+                                this.onDeath();
+                            }
+                        }
+                        // 流血血渍（地图模式下 GameScene 内部拦截不生成）
+                        const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                        if (fxScene && typeof fxScene.playBleedGroundParticles === 'function') {
+                            fxScene.playBleedGroundParticles(this.x, this.y, this);
+                        }
+                        this._bleedTickTimer = 1000;
+                    }
+                    if (this._bleedTimer <= 0) {
+                        this._bleedStacks = Math.max(0, this._bleedStacks - 1);
+                        if (this._bleedStacks > 0) {
+                            this._bleedTimer = 10000;
+                            if (this._bleedEffectId && StatusBar) {
+                                // 同步重置状态栏计时器（与基类 _updateBleed 同语义：到期只减一层）
+                                this._bleedEffectId = StatusBar.addEffect('bleed', 10000, { stacks: this._bleedStacks });
+                            }
+                        } else {
+                            if (this._bleedEffectId && StatusBar) {
+                                StatusBar.removeEffect(this._bleedEffectId);
+                                this._bleedEffectId = null;
+                            }
                         }
                     }
                 }

@@ -645,11 +645,10 @@ export const ExpeditionSystem = {
             const normalChance = Math.round(((table.normal && table.normal.chance) || 0) * 1000) / 10;
             lines.push(`<span class="rule-sub">精英/领主/首领必掉 · 普通怪 ${normalChance}%</span>`);
         }
-        // 装备：精英宝箱武器稀有度（dungeon-config eliteChestReward，按选中地牢读取）
-        const zombieCfg = DungeonConfig.getZombieDungeonConfig ? DungeonConfig.getZombieDungeonConfig(this.selectedDungeon) : {};
-        const chestWeapon = ((zombieCfg.eliteChestReward && zombieCfg.eliteChestReward.items) || []).find(i => i.type === 'weapon');
-        if (chestWeapon) {
-            lines.push(`精英宝箱武器：${this._rarityText(chestWeapon.rarity || 'common')}`);
+        // 宝箱房奖励（精英战限时宝箱，按地牢等级读 universalEventRewards.treasureChest）
+        const chestGrade = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest || {})[grade];
+        if (chestGrade) {
+            lines.push(`宝箱房(${grade}级)：金币 ${chestGrade.gold} / 强化石+改造券+粉尘 ${chestGrade.materialDust}`);
         }
         // Boss 奖励卡中的武器稀有度（boss-reward-system 配置）
         const bonusCards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];

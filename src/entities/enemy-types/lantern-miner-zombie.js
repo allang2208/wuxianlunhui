@@ -2,7 +2,7 @@ import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { hostilesOf, playSoundFrom } from './_shared/enemy-utils.js';
+import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
@@ -200,14 +200,13 @@ export class LanternMinerZombie extends Enemy {
         }
     }
 
-    /** 砸击：以自身为中心的椭圆范围，物理 ×damageMul */
+    /** 砸击：统一口径圆形边缘距离判定，物理 ×damageMul */
     _dealSlamHit(entities) {
         const slam = this._getSlamConfig();
-        const range = slam.range ?? 120;
+        const range = slam.range ?? this.attackDistance ?? 120;
         const atk = this.data?.atk || 0;
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         for (const e of hostilesOf(this, entities)) {
-            if (!shape.intersectsEntity(e)) continue;
+            if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (slam.damageMul ?? 1.5))), this, 'physical', true);
         }
     }
@@ -359,7 +358,8 @@ export class LanternMinerZombie extends Enemy {
         });
         // [Phaser 粒子坐标陷阱] 发射器必须留在 (0,0)，explode 传世界坐标；
         // setPosition(fx,fy) 后再 explode(fx,fy) 会双倍偏移到 (2fx,2fy) 飞出屏幕
-        em.setDepth(fy + 1000);
+        // 火焰压在玩家/怪物（实体 depth = 脚底 y+10）之下、油脂反光（y-999）之上
+        em.setDepth(fy - 998);
         em.addToUpdateList();
         // 不规则火团：每颗粒子在喷发点周围 ±40px 随机偏移位置单独生成
         const count = L.flameBurstCount ?? 20;

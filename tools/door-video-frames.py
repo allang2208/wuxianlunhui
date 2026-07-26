@@ -59,8 +59,9 @@ def keyout(rgb):
 
 rgba_frames = [keyout(f) for f in frames]
 
-# 高度归一化已取消（2026-07-25 用户确认拱门突出为刻意设计，贴图保持原样；
-# 与直墙顶部斜率分歧改用拼接叠合遮盖，见 combat-room-system _setupGate 的接缝扩边）
+# 高度归一化：初版取消后，拼接处墙顶落差 17~26px（下夹角"错位"根因）——
+# 现由 tools/gate-top-warp.py 承担（k≥1 只拉不压、拱门区不压缩、先扩帧再 warp），
+# 重跑本脚本切帧后必须再跑一次 gate-top-warp.py 并同步 ISO_WALL_GEO.gate / BootScene 帧高
 
 # 统一内容包围盒（16 帧并集）
 x0, y0, x1, y1 = 720, 720, 0, 0

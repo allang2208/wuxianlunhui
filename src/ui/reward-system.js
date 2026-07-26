@@ -74,8 +74,12 @@ export const RewardSystem = {
         if (this._selected !== null) return; // 已选择，不能更改
         this._selected = cardIndex;
         const card = this.CARDS[cardIndex];
-        // 发放奖励
-        this._giveRewards(card);
+        // 发放奖励（异常兜底：单项奖励失败不阻塞面板关闭，防卡死）
+        try {
+            this._giveRewards(card);
+        } catch (err) {
+            console.error('[Reward] _giveRewards 异常:', err);
+        }
         // 渲染选中状态
         this._render();
         // 2秒后关闭
@@ -125,14 +129,18 @@ export const RewardSystem = {
 
     // 随机优质武器
     _giveRandomWeapon() {
+        // 按“键”抽取（items 是 {id: itemData}，itemData 本身不带 id/_id——
+        // 旧实现 Object.values 后读 weapon.id 恒为 undefined，createInstance(undefined)
+        // 返回 null，下游 addToInventory 读 maxStack 抛 TypeError，奖励界面卡死）
         const items = ItemDatabase.items || {};
-        const rareWeapons = Object.values(items).filter(item =>
-            item.rarity === 'rare' || item.rarity === 'epic'
-        );
-        if (rareWeapons.length === 0) return;
-        const weapon = rareWeapons[Math.floor(Math.random() * rareWeapons.length)];
-        const instance = ItemDatabase.createInstance ? ItemDatabase.createInstance(weapon.id || weapon._id) : { ...weapon };
-        this._addToBackpackOrDrop(instance);
+        const keys = Object.keys(items).filter(k => {
+            const it = items[k];
+            return it && (it.rarity === 'rare' || it.rarity === 'epic') &&
+                it.category && String(it.category).startsWith('weapon');
+        });
+        if (keys.length === 0) return;
+        const instance = ItemDatabase.createInstance(keys[Math.floor(Math.random() * keys.length)]);
+        if (instance) this._addToBackpackOrDrop(instance);
     },
 
     // 给附魔卷轴
@@ -172,6 +180,7 @@ export const RewardSystem = {
 
     // 添加到背包或扔地上
     _addToBackpackOrDrop(item) {
+        if (!item) return;
         if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
             // 背包满，扔地上
             Game.dropItem(Game.player.x + (Math.random() - 0.5) * 50, Game.player.y + (Math.random() - 0.5) * 50, item);

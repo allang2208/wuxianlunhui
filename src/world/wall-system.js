@@ -1,16 +1,31 @@
 import { CONFIG } from '../config/config.js';
+import { getWallPrefabLibrary } from './wall-prefabs.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
 // vertex: 转角接合点；tipX: 臂尖底边点；wallH: 底边→顶沿墙高；slope: 贴图底边固有斜率
 const ISO_WALL_GEO = {
     diag:   { tex: 'wall_diag', w: 1600, h: 1315, base: [[0, 625.6], [1600, 1409.2]], face: [[150, 699.1], [1450, 1335.7]], wallH: 824, slope: 0.4897 },
-    straight: { tex: 'wall_straight', w: 1600, h: 1383, base: [[5, 617], [1594, 1418]], face: [[16, 622], [1516, 1379]], wallH: 691, slope: 0.5048 },
-    gate: { tex: 'wall_gate', w: 640, h: 595, frames: 16, base: [[4, 248.0], [634, 565.3]], face: [[4, 248.0], [634, 565.3]], gateX: [265, 360], wallH: 268, slope: 0.5037 },
+    straight: { tex: 'wall_straight', w: 1600, h: 1383, base: [[5, 617], [1594, 1418]], face: [[16, 622], [1516, 1379]], wallH: 691, slope: 0.5048, editor: '直墙·新' },
+    gate: { tex: 'wall_gate', w: 640, h: 641, frames: 16, base: [[4, 294.0], [634, 611.3]], face: [[4, 294.0], [634, 611.3]], gateX: [265, 360], wallH: 290, slope: 0.5037, editor: '门墙' },
     top:    { tex: 'wall_corner_top', w: 1600, h: 843, vertex: [854, 478], tipL: [250, 750], tipR: [1350, 640], wallH: 493, slope: 0.482 },
     bottom: { tex: 'wall_corner_bottom', w: 1600, h: 751, vertex: [850, 705], tipL: [130, 390], tipR: [1450, 380], wallH: 427, slope: 0.492 },
     left:   { tex: 'wall_corner_left', w: 1343, h: 1600, vertex: [50, 1020], tipUpper: [1180, 240], tipLower: [1326, 1500], wallH: 520, slope: 0.42 },
     right:  { tex: 'wall_corner_right', w: 1600, h: 1517, vertex: [1590, 930], tipUpper: [150, 300], tipLower: [310, 1450], wallH: 500, slope: 0.44 },
+    // 沼泽地墙（2026-07-25 素材管线：泛洪抠图+水印 inpaint+两端锥形裁切+腐蚀 2px 去颜色污染+白边压暗）
+    swamp_straight: { tex: 'swamp_wall_straight', w: 1419, h: 1558, base: [[0, 775.0], [1418, 1583.0]], face: [[28, 791.0], [1389, 1566.5]], wallH: 799.2, slope: 0.5698, editor: '沼泽柴墙' },
+    // 沼泽地门闸（gate.mp4 16 帧已反转：首帧=关闭(藤蔓封门)、末帧=打开；tools/swamp-gate-geo.json）
+    swamp_gate: { tex: 'swamp_gate', w: 640, h: 612, frames: 16, base: [[5, 275.0], [634, 632.8]], face: [[5, 275.0], [634, 632.8]], gateX: [248, 384], wallH: 301.1, slope: 0.5689, editor: '沼泽藤门' },
+};
+
+// 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
+// corners（可选）：四顶点夹角预制名（摆墙编辑器手工拼装）——登记后菱形房间四角用预制构建，缺省回退程序化转角臂
+const ISO_WALL_STYLES = {
+    default: { straight: 'straight', gate: 'gate', chestPrefab: '宝箱房', gateSound: 'assets/sounds/environment/gate.mp3' },
+    swamp: {
+        straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',
+        corners: { top: '沼泽墙上夹角', bottom: '沼泽下夹角', left: '沼泽墙左夹角', right: '沼泽墙右夹角' },
+    },
 };
 const ISO_WALL_HEIGHT = 190;    // 目标墙高（世界像素，底边→顶沿）
 const ISO_TILE_OVERLAP = 40;    // 瓦片向转角臂内侵入（覆盖式拼接）
@@ -30,10 +45,25 @@ const WallSystem = {
     isoVisuals: [],  // 等距斜墙视觉件（仅渲染，碰撞由 walls 中的阶梯矩形承担）
     mazeEndY: 0,
     _wallHeight: 60,
+    _wallStyleKey: 'default', // 当前墙样式（dungeonType；DungeonMapSystem 入场设置、离场复位）
     _phaserVisualsEnabled: false,
+
+    /** 设置当前墙样式（key = dungeonType，无登记回退 default） */
+    setWallStyle(key) {
+        this._wallStyleKey = ISO_WALL_STYLES[key] ? key : 'default';
+    },
+    /** 当前样式的几何键 { straight, gate } */
+    getWallStyleGeos() {
+        return ISO_WALL_STYLES[this._wallStyleKey] || ISO_WALL_STYLES.default;
+    },
+    /** 当前样式完整条目（straight/gate 几何键 + chestPrefab 宝箱房预制名 + gateSound 门闸音效） */
+    getWallStyle() {
+        return ISO_WALL_STYLES[this._wallStyleKey] || ISO_WALL_STYLES.default;
+    },
     init(ww, wh) {
         this.walls = [];
         this.isoVisuals = [];
+        this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）
         this.trees = [];
         // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
         this.mazeEndY = 0;
@@ -267,7 +297,8 @@ const WallSystem = {
      */
     buildIsoDiamondWalls(cx, cy, rx, ry, opts = {}) {
         const height = opts.height ?? ISO_WALL_HEIGHT;
-        const g = ISO_WALL_GEO.straight;
+        const geoKey = opts.geoKey || this.getWallStyleGeos().straight;
+        const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.straight;
         const s = height / g.wallH;
         const sy = s * slopeFixOf(g);
         const faceDx = (g.face[1][0] - g.face[0][0]) * s;
@@ -279,49 +310,133 @@ const WallSystem = {
         const startAt = (S, flip, mode, bias = 0) => {
             const A = { x: S.x, y: S.y };
             const B = flip ? { x: S.x - faceDx, y: S.y + faceDy } : { x: S.x + faceDx, y: S.y + faceDy };
-            this._addSegPiece(A, B, flip, 'straight', mode, bias);
+            this._addSegPiece(A, B, flip, geoKey, mode, bias);
             return B;
         };
         // 放一件：face 终点(下端)在 E，向上延伸；返回远端点
         const endAt = (E, flip, mode, bias = 0) => {
             const B = { x: E.x, y: E.y };
             const A = flip ? { x: E.x + faceDx, y: E.y - faceDy } : { x: E.x - faceDx, y: E.y - faceDy };
-            this._addSegPiece(A, B, flip, 'straight', mode, bias);
+            this._addSegPiece(A, B, flip, geoKey, mode, bias);
             return A;
         };
-        // 臂远端之间续接（瓦片定长定高，不够长靠叠合，绝不压扁——否则小房间边墙比夹角矮一截）
+        // 臂远端之间续接（定长定高瓦片：scale 固定，8px 叠合，绝不拉伸——
+        // 均匀拉伸件与转角件并排会一大一小、中间突出（僵尸砖纹不可感知，沼泽柴墙材质随机格外显眼）；
+        // 尾端超出 Q 的部分由下一顶点的转角臂（+5 偏置）盖住，只叠不缺）
         const edgeFill = (P, Q, flip, mode) => {
             const dx = Q.x - P.x, dy = Q.y - P.y;
             const len = Math.hypot(dx, dy);
             if (len < 4) return;
             const ux = dx / len, uy = dy / len;
-            // 从 P 向臂内 8px 起铺，定长 faceLen 推进直到起点越过 Q+8：
-            // 保证覆盖必定伸入远臂（len mod faceLen 落在特定区间时，少了这步会在末段与远臂之间露出缺口）
-            for (let d = -8; d < len + 8; d += faceLen) {
-                const A = { x: P.x + ux * d, y: P.y + uy * d };
+            const step = faceLen - 8; // 步进 = 瓦长 - 叠合量
+            const n = Math.max(1, Math.ceil((len + 8) / step));
+            for (let i = 0; i < n; i++) {
+                const A = { x: P.x + ux * (step * i - 8), y: P.y + uy * (step * i - 8) };
                 const B = { x: A.x + ux * faceLen, y: A.y + uy * faceLen };
-                this._addSegPiece(A, B, flip, 'straight', mode);
+                this._addSegPiece(A, B, flip, geoKey, mode);
             }
         };
 
         // 四角（点对点）：上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max
-        // 不加全局偏置（+260 曾误挡顶点下方高个实体）；后墙接缝顺序由门闸的
-        // "靠顶点侧邻居-1"规则局部保证（见 combat-room-system _setupGate）
-        const CB = 0;
-        const tL = startAt(T, true, 'min', CB);   // 上顶点左臂（向 down-left）
-        const tR = startAt(T, false, 'min', CB);  // 上顶点右臂（向 down-right）
-        const bL = endAt(B, false, 'max');        // 下顶点左臂（从 up-left 来）
-        const bR = endAt(B, true, 'max');         // 下顶点右臂（从 up-right 来）
-        const lU = endAt(L, true, 'min', CB);     // 左顶点上臂（后墙，从 up-right 来）
-        const lD = startAt(L, false, 'max');      // 左顶点下臂（前墙，向 down-right）
-        const rU = endAt(R, false, 'min', CB);    // 右顶点上臂（后墙，从 up-left 来）
-        const rD = startAt(R, true, 'max');       // 右顶点下臂（前墙，向 down-left）
+        // 转角臂 +5 深度偏置：顶点侧盖住续接件（预制转角文档化同款规则）——
+        // 纹理随机的墙（沼泽柴墙）若让续接件盖住转角臂，贴图切边会暴露在接缝上；
+        // +5 为文档化安全值（不得加大：更大偏置会误挡顶点下方高个实体，+260 教训）
+        const CB = 5;
+        // 样式登记了夹角预制则四角用预制构建（手摆件）；缺失/无效逐个回退程序化转角臂。
+        // 一间房随机只保留一个带门夹角，其余角的门件改铺直墙
+        const styleCorners = (this.getWallStyle ? this.getWallStyle() : {}).corners || null;
+        const gateCorner = ['top', 'bottom', 'left', 'right'][Math.floor(Math.random() * 4)];
+        const cT = styleCorners && styleCorners.top ? this._placeCornerPrefab(styleCorners.top, T, CB, 'x', 'top', gateCorner === 'top') : null;
+        const cB = styleCorners && styleCorners.bottom ? this._placeCornerPrefab(styleCorners.bottom, B, CB, 'x', 'bottom', gateCorner === 'bottom') : null;
+        const cL = styleCorners && styleCorners.left ? this._placeCornerPrefab(styleCorners.left, L, CB, 'y', 'left', gateCorner === 'left') : null;
+        const cR = styleCorners && styleCorners.right ? this._placeCornerPrefab(styleCorners.right, R, CB, 'y', 'right', gateCorner === 'right') : null;
+        const tL = cT ? cT.neg : startAt(T, true, 'min', CB);   // 上顶点左臂（向 down-left）
+        const tR = cT ? cT.pos : startAt(T, false, 'min', CB);  // 上顶点右臂（向 down-right）
+        const bL = cB ? cB.neg : endAt(B, false, 'max', CB);    // 下顶点左臂（从 up-left 来）
+        const bR = cB ? cB.pos : endAt(B, true, 'max', CB);     // 下顶点右臂（从 up-right 来）
+        const lU = cL ? cL.neg : endAt(L, true, 'min', CB);     // 左顶点上臂（后墙，从 up-right 来）
+        const lD = cL ? cL.pos : startAt(L, false, 'max', CB);  // 左顶点下臂（前墙，向 down-right）
+        const rU = cR ? cR.neg : endAt(R, false, 'min', CB);    // 右顶点上臂（后墙，从 up-left 来）
+        const rD = cR ? cR.pos : startAt(R, true, 'max', CB);   // 右顶点下臂（前墙，向 down-left）
 
         // 四边续接
         edgeFill(tL, lU, true, 'min');   // T-L 边（后墙）
         edgeFill(tR, rU, false, 'min');  // T-R 边（后墙）
         edgeFill(lD, bL, false, 'max');  // L-B 边（前墙）
         edgeFill(rD, bR, true, 'max');   // R-B 边（前墙）
+    },
+
+    /**
+     * 预制夹角放置（样式 corners 登记时由 buildIsoDiamondWalls 调用）：
+     * 找跨件共享端点=顶点，整体平移到菱形顶点（深度同步平移+偏置，保留预制内部图层关系）。
+     * @param {string} axis 'x'（上/下顶点，臂分左右）| 'y'（左/右顶点，臂分上下）
+     * @param {string} cornerKind 'top'|'bottom'|'left'|'right'（门件改铺直墙时的深度规则用）
+     * @param {boolean} allowGate 本夹角是否保留门件（一间房只留一个带门夹角，其余门件改铺直墙）
+     * @returns {{neg:{x,y}, pos:{x,y}}|null} 两臂最远端（边续接锚点）；预制缺失/顶点找不到/臂不全返回 null（调用方回退程序化转角）
+     */
+    _placeCornerPrefab(prefabName, V, depthBias, axis, cornerKind, allowGate = true) {
+        const lib = getWallPrefabLibrary ? getWallPrefabLibrary() : null;
+        const prefab = lib && lib[prefabName];
+        if (!prefab || !Array.isArray(prefab.pieces) || prefab.pieces.length < 2) return null;
+        const segs = prefab.pieces.map(p => this._pieceBaseSegments(p)[0]);
+        if (segs.some(s => !s)) return null;
+        // 顶点：跨件共享端点（≤30px 聚类），取离预制组中心最近的
+        const pts = [];
+        segs.forEach((s, i) => { pts.push({ p: s[0], i }, { p: s[1], i }); });
+        let vertex = null, bestD = Infinity;
+        for (let a = 0; a < pts.length; a++) {
+            for (let b = a + 1; b < pts.length; b++) {
+                if (pts[a].i === pts[b].i) continue;
+                const d = Math.hypot(pts[a].p.x - pts[b].p.x, pts[a].p.y - pts[b].p.y);
+                if (d > 30) continue;
+                const mx = (pts[a].p.x + pts[b].p.x) / 2, my = (pts[a].p.y + pts[b].p.y) / 2;
+                const dc = Math.hypot(mx - (prefab.cx || mx), my - (prefab.cy || my));
+                if (dc < bestD) { bestD = dc; vertex = { x: mx, y: my }; }
+            }
+        }
+        if (!vertex) return null;
+        const ox = V.x - vertex.x, oy = V.y - vertex.y;
+        // 两臂最远端：按 axis 分 neg/pos 两侧，每侧取离顶点最远的端点
+        let neg = null, pos = null;
+        segs.forEach((s) => {
+            for (const pt of s) {
+                // 近顶点端点跳过（是接合点）
+                if (Math.hypot(pt.x - vertex.x, pt.y - vertex.y) < 40) continue;
+                const t = { x: pt.x + ox, y: pt.y + oy };
+                const d = axis === 'x' ? pt.x - vertex.x : pt.y - vertex.y;
+                const dist = Math.hypot(pt.x - vertex.x, pt.y - vertex.y);
+                if (d < 0) { if (!neg || dist > neg._d) neg = { ...t, _d: dist }; }
+                else { if (!pos || dist > pos._d) pos = { ...t, _d: dist }; }
+            }
+        });
+        if (!neg || !pos) return null;
+        // 校验通过才放置。深度按房间规则重算（与程序化转角一致的 min/max + 偏置）——
+        // 编辑器的绝对深度只用于保留预制内部相对顺序（0.1/级）；
+        // 直接平移编辑器深度会导致前墙件深度低于实体（下夹角实体画在墙上的根因）
+        const styleGeos = this.getWallStyleGeos ? this.getWallStyleGeos() : { straight: 'straight', gate: 'gate' };
+        const styleGateTex = (ISO_WALL_GEO[styleGeos.gate] || ISO_WALL_GEO.gate).tex;
+        const ordered = prefab.pieces.map((p, i) => ({ i, d: p.depth ?? p.y })).sort((m, n) => m.d - n.d);
+        const orderEps = new Map(ordered.map((m, rank) => [m.i, rank * 0.1]));
+        const modeOf = (A, B) => cornerKind === 'top' ? 'min'
+            : cornerKind === 'bottom' ? 'max'
+            : ((A.y + B.y) / 2 < V.y ? 'min' : 'max');
+        prefab.pieces.forEach((p, i) => {
+            const seg = segs[i];
+            const A = { x: seg[0].x + ox, y: seg[0].y + oy };
+            const B = { x: seg[1].x + ox, y: seg[1].y + oy };
+            const mode = modeOf(A, B);
+            const ruleDepth = (mode === 'min' ? Math.min(A.y, B.y) : Math.max(A.y, B.y)) + depthBias;
+            if (!allowGate && p.tex === styleGateTex) {
+                // 一间房只保留一个带门夹角：其余角的门件改铺直墙（同线段映射 + 转角深度规则）
+                this._addSegPiece(A, B, !!p.flipX, styleGeos.straight, mode, depthBias);
+                this.isoVisuals[this.isoVisuals.length - 1]._corner = true;
+                return;
+            }
+            const q = { ...p, x: p.x + ox, y: p.y + oy, depth: ruleDepth + orderEps.get(i), _corner: true };
+            delete q._sprite;
+            this.isoVisuals.push(q);
+        });
+        return { neg: { x: neg.x, y: neg.y }, pos: { x: pos.x, y: pos.y } };
     },
 
     /** 转角通用件：接合点锚定到顶点，等比缩放到目标墙高；depth = 顶点 y + 顺序偏置（下>左>右>上） */
@@ -405,7 +520,9 @@ const WallSystem = {
     /** 按全部通用件重建阶梯碰撞矩形（编辑器拖动后调用；静态墙不动） */
     rebuildIsoCollision() {
         this.walls = this.walls.filter(w => !w._iso);
-        this.isoSegments = [];  // iso 墙的线段碰撞模型（移动/滑动用，阶梯矩形留给寻路/小地图）
+        // 门闸线段（_gate 房间门 / _chestGate 宝箱房门）由门实体自管生命周期，
+        // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）
+        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate);
         for (const p of this.isoVisuals) this._addPieceCollision(p);
     },
 
