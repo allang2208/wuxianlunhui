@@ -263,6 +263,82 @@ export class BootScene extends Scene {
             });
         }
 
+        // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的
+        // 最右端内容点（含 1px 细枪管尖）——开火位置/枪口火焰统一用贴图最前端，逐枪免调 muzzle；
+        // 4 倍降采样提速；运行时 subsystems 读取
+        {
+            window.__weaponMuzzlePoints = window.__weaponMuzzlePoints || {};
+            const DS = 4;
+            for (const { key } of getWeaponTextureLoadList()) {
+                const srcImg = this.textures.get(key) && this.textures.get(key).getSourceImage();
+                if (!srcImg || !srcImg.width) continue;
+                const cw = Math.max(1, Math.round(srcImg.width / DS));
+                const ch = Math.max(1, Math.round(srcImg.height / DS));
+                const canvas = document.createElement('canvas');
+                canvas.width = cw;
+                canvas.height = ch;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(srcImg, 0, 0, cw, ch);
+                let data;
+                try {
+                    data = ctx.getImageData(0, 0, cw, ch).data;
+                } catch (_e) {
+                    continue;
+                }
+                // 连通域标记（8 邻域，找最大分量=枪身本体，排除零散噪点）
+                const total = cw * ch;
+                const comp = new Int32Array(total).fill(-1);
+                const alpha = (i) => data[i * 4 + 3] > 10;
+                let bestSize = 0, bestComp = -1;
+                const sizes = [];
+                const stack = [];
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] !== -1 || !alpha(i)) continue;
+                    const id = sizes.length;
+                    let size = 0;
+                    stack.length = 0;
+                    stack.push(i);
+                    comp[i] = id;
+                    while (stack.length) {
+                        const p = stack.pop();
+                        size++;
+                        const px = p % cw, py = (p / cw) | 0;
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                if (!dx && !dy) continue;
+                                const nx = px + dx, ny = py + dy;
+                                if (nx < 0 || nx >= cw || ny < 0 || ny >= ch) continue;
+                                const ni = ny * cw + nx;
+                                if (comp[ni] === -1 && alpha(ni)) {
+                                    comp[ni] = id;
+                                    stack.push(ni);
+                                }
+                            }
+                        }
+                    }
+                    sizes.push(size);
+                    if (size > bestSize) { bestSize = size; bestComp = id; }
+                }
+                if (bestComp < 0) continue;
+                // 最大分量最右列（及相邻 2 列）的 Y 质心
+                let maxX = -1;
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] === bestComp && (i % cw) > maxX) maxX = i % cw;
+                }
+                let ySum = 0, yCount = 0;
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] === bestComp && (i % cw) >= maxX - 2) {
+                        ySum += (i / cw) | 0;
+                        yCount++;
+                    }
+                }
+                window.__weaponMuzzlePoints[key] = {
+                    fx: maxX / cw,
+                    fy: (ySum / yCount) / ch,
+                };
+            }
+        }
+
         // 持枪移动腿层动画注册（twist.walkLegs/runLegs 配置驱动）
         for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
             if (def.type !== 'image' || !def.twist) continue;

@@ -12,7 +12,7 @@ import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { isGunWeapon, isTwoHanded, getAmmoConfig } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
@@ -987,9 +987,10 @@ switchWeaponMode() {
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
-                    // 装备Super90时播放枪栓音效（SAIGA-12K不播放）
-                    if (nextItem.equipSound && SoundManager && SoundManager.playFile) {
-                        SoundManager.playFile(nextItem.equipSound);
+                    // 装备Super90时播放枪栓音效（SAIGA-12K不播放；getEquipSound 回退武器ID）
+                    const equipSnd = getEquipSound(nextItem);
+                    if (equipSnd && SoundManager && SoundManager.playFile) {
+                        SoundManager.playFile(equipSnd);
                     }
                 } else {
                     this.equippedRangedType = null;
@@ -1133,7 +1134,9 @@ _startReload(slot) {
                     return false;
                 }
                 const item = this.equipments[slot];
-                const ammoConfig = item && item.ammoConfig;
+                // 读 getAmmoConfig（item.ammoConfig || GUN_AMMO_CAP 回退）——
+                // 商店/掉落等未经 EquipDataManager 合并的实例也能拿到 singleReloadMode（Super90 单发装填失效根因）
+                const ammoConfig = getAmmoConfig(item);
                 const singleReloadMode = ammoConfig && ammoConfig.singleReloadMode;
                 const reloadSound = ammoConfig && ammoConfig.reloadSound;
                 state.reloading = true;
@@ -1356,7 +1359,8 @@ _spawnMuzzleFlashAt(x, y, angle, scale) {
 
 /**
  * 从 Phaser 武器精灵计算真实枪口世界坐标。
- * 枪械贴图以 barrel 朝右绘制，枪口在贴图右侧中心；取 displayWidth/2 作为枪管长度。
+ * 枪口点读配置 WeaponAnimConfig[wt].muzzle {x, y}（贴图内分数坐标），
+ * 缺省 = 贴图右缘中心（旧行为）；随贴图旋转，子弹/火焰同点。
  * 如果当前没有对应的武器精灵，返回 null，由调用方回退到旧的脚底相对算法。
  */
 _getMuzzleWorldPosition(hand = 'main') {
@@ -1365,14 +1369,38 @@ _getMuzzleWorldPosition(hand = 'main') {
                 const sprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
                 // 不检查 sprite.active：地图模式曾置 false，位置仍由 syncWeapon 每帧同步，可见即可用
                 if (!sprite || !sprite.visible || !sprite.texture) return null;
-                const halfLen = sprite.displayWidth * 0.5;
+                const slot = hand === 'offhand' ? (this.weaponMode === 'weapon' ? 'offhand' : 'ring2') : this.weaponMode;
+                const item = this.equipments && this.equipments[slot];
+                const wt = item && item.weaponType;
+                // 枪口点优先级：手动覆盖（muzzle.manual）> BootScene 自动烘焙（贴图最前端）> 配置 muzzle > 贴图右缘中心
+                const baked = (typeof window !== 'undefined' && window.__weaponMuzzlePoints)
+                    ? window.__weaponMuzzlePoints[sprite.texture.key] : null;
+                const m = wt && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].muzzle;
+                const useManual = m && m.manual === true;
+                const fracX = useManual ? m.x : (baked ? baked.fx : (m && m.x !== undefined ? m.x : 1.0));
+                const fracY = useManual ? m.y : (baked ? baked.fy : (m && m.y !== undefined ? m.y : 0.5));
+                // 出生点偏移（配置 muzzle.forward / muzzle.up）：forward 沿枪管前移（默认 8px），up 世界上移（默认 5px）
+                const fwd = m && m.forward !== undefined ? m.forward : 8;
+                const up = m && m.up !== undefined ? m.up : 5;
+                const offX = (fracX - 0.5) * sprite.displayWidth + fwd;
+                let offY = (fracY - 0.5) * sprite.displayHeight;
+                // 镜像对称：瞄左（|rot|>90°）贴图 flipY，贴图内 Y 偏移必须同步取反（"火焰左右不对称"根因）
+                if (Math.abs(sprite.rotation) > Math.PI / 2) offY = -offY;
                 const cos = Math.cos(sprite.rotation);
                 const sin = Math.sin(sprite.rotation);
                 return {
-                    x: sprite.x + cos * halfLen,
-                    y: sprite.y + sin * halfLen,
+                    x: sprite.x + cos * offX - sin * offY,
+                    y: sprite.y + sin * offX + cos * offY - up,
                     angle: sprite.rotation
                 };
+            },
+
+_spawnMuzzleFireAt(x, y) {
+                // 特工突击同款开火火光（金色粒子爆发）
+                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                if (scene && typeof scene.playMuzzleFire === 'function') {
+                    scene.playMuzzleFire(x, y);
+                }
             },
 
 _spawnShellCasing(hand, gunLX, gunLY, shellOffset, angle) {
@@ -1444,6 +1472,7 @@ _fireRanged(hand = 'main') {
                             });
                             this._playFireSound(offhandItem, fxCfg.defaultSound);
                             this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, leftFinalAngle, fxCfg.muzzleScale);
+                            this._spawnMuzzleFireAt(muzzlePos.x, muzzlePos.y);
                             this._spawnShellCasing('offhand', gunLX, leftGunLY, fxCfg.shellOffset, leftFinalAngle);
                         }
                         delete d.fireOffhand;
@@ -1507,6 +1536,7 @@ _fireRanged(hand = 'main') {
                             this._playFireSound(currentItem, fxCfg.defaultSound);
                             // 主手枪口火焰特效
                             this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, finalAngle, fxCfg.muzzleScale);
+                            this._spawnMuzzleFireAt(muzzlePos.x, muzzlePos.y);
                             // 弹壳从抛壳窗弹出（枪身右侧后方）
                             this._spawnShellCasing('main', gunLX, gunLY, fxCfg.shellOffset, angle);
                         }
@@ -1598,6 +1628,7 @@ _fireRanged(hand = 'main') {
                         const hideMuzzle = !isEnergyLMG && craftEffects && craftEffects.hideMuzzleFlash;
                         if (!hideMuzzle) {
                             this._spawnMuzzleFlashAt(spawnPos.x, spawnPos.y, angle, isEnergyLMG ? lmgCfg.muzzleScaleEnergy : lmgCfg.muzzleScale);
+                            this._spawnMuzzleFireAt(spawnPos.x, spawnPos.y);
                         }
 
                         // 弹壳从抛壳窗弹出（能量轻机枪不抛壳）
@@ -1705,6 +1736,7 @@ _fireRanged(hand = 'main') {
                             const hideMuzzle = craftEffects && craftEffects.hideMuzzleFlash;
                             if (!hideMuzzle) {
                                 this._spawnMuzzleFlashAt(spawnPos.x, spawnPos.y, baseAngle, sgCfg.muzzleScale);
+                                this._spawnMuzzleFireAt(spawnPos.x, spawnPos.y);
                             }
                             // 弹壳
                             this._spawnShellCasing('main', gunLX, gunLY, sgCfg.shellOffset, baseAngle);

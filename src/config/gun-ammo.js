@@ -6,7 +6,7 @@ export const GUN_AMMO_CAP = {
     weapon7:  { max: 30, reloadTime: 1150 },
     weapon8:  { max: 30, reloadTime: 1000 },
     weapon11: { max: 60, reloadTime: 2000 },
-    weapon12: { max: 7,  reloadTime: 400 },
+    weapon12: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' },
     weapon13: { max: 12, reloadTime: 2000 },
     weapon15: { max: Infinity, reloadTime: 0 },
 };
@@ -90,4 +90,13 @@ export function getGunAmmoCapacity(weaponId) {
 export const getAmmoConfig = (item) => {
     if (!item) return null;
     return item.ammoConfig || getGunAmmoCapacity(item.weaponId) || null;
+};
+
+// 装备音效回退表（与 GUN_AMMO_CAP 同模式：实例缺 equipSound 时按 weaponId 回退）
+export const GUN_EQUIP_SOUND = {
+    weapon12: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', // Super90 枪栓音效
+};
+export const getEquipSound = (item) => {
+    if (!item) return null;
+    return item.equipSound || GUN_EQUIP_SOUND[item.weaponId] || null;
 };

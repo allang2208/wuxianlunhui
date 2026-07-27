@@ -117,7 +117,12 @@
         ],
         "bobXScale": 0.5
       },
-      "aimDeadZone": 160
+      "aimDeadZone": 160,
+      "aimLift": {
+        "offsetX": 0,
+        "offsetY": -20,
+        "transitionMs": 150
+      }
     }
   },
   "walk": {
@@ -234,7 +239,8 @@
           -4.2,
           -5.7
         ],
-        "bobXScale": 0.5
+        "bobXScale": 1.1,
+        "bobScale": 1.5
       },
       "arm": {
         "src": "assets/player/gun_idle_pistol_arm.png",
@@ -243,7 +249,7 @@
         "handX": 365,
         "handY": 103
       },
-      "torsoShiftY": 0,
+      "torsoShiftY": 3,
       "runLegs": {
         "src": "assets/player/gun_run_legs.png",
         "frameWidth": 512,
@@ -277,10 +283,11 @@
           17.5,
           13.4
         ],
-        "bobXScale": 0.5
+        "bobXScale": 1.1,
+        "bobScale": 1.5
       },
       "aimDeadZone": 160,
-      "torsoShiftX": -2
+      "torsoShiftX": -1
     }
   },
   "gun_idle_dual": {
@@ -352,7 +359,8 @@
           -4.2,
           -5.7
         ],
-        "bobXScale": 0.5
+        "bobXScale": 1.1,
+        "bobScale": 1.5
       },
       "arm": {
         "src": "assets/player/gun_idle_dual_arm.png",
@@ -361,7 +369,7 @@
         "handX": 390,
         "handY": 95
       },
-      "torsoShiftY": 0,
+      "torsoShiftY": 3,
       "runLegs": {
         "src": "assets/player/gun_run_legs.png",
         "frameWidth": 512,
@@ -395,10 +403,11 @@
           17.5,
           13.4
         ],
-        "bobXScale": 0.5
+        "bobXScale": 1.1,
+        "bobScale": 1.5
       },
       "aimDeadZone": 160,
-      "torsoShiftX": -2
+      "torsoShiftX": -1
     }
   }
 }

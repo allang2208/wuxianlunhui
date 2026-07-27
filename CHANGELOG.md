@@ -258,7 +258,109 @@
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
 - **已知问题**：实机待验证——锥角大小手感（aimDeadZoneCone 可调 10~30）、摇摆方向。
 
-## 2026-07-26（手枪姿态躯干左移 2px：torsoShiftX）
+## 2026-07-26（烟尘/碰撞体积/火焰镜像 + 武器调试基准定稿）
+
+### 对话：烟尘再上移 5、胶囊上移 5、绿色矩形左拉 10、火焰前移 5 上移 5、火焰左右不对称、记录调试基准
+- **烟尘**：y+5 → y+0（贴脚）。
+- **玩家碰撞体积**：`PLAYER_DEFAULTS.physics`——collisionWidth 30→**40**（左缘 -15→-25，右缘不变=向左拉伸 10px）+ `colliderOffsetX/Y: (-5,-5)`（矩形左移 5、胶囊体上移 5）；Player 构造函数读取并在 rebuildCollider 前赋值；footprint（max(40,60)/2=30）不变。
+- **火焰/子弹点**：`muzzle.forward` 3→8（默认）、新增 `muzzle.up` 默认 5（世界上移，不随翻转）；**镜像不对称根因**：瞄左时贴图 flipY 但贴图内 Y 偏移未取反（与握把 flipY 同款坑）——`|rot|>90°` 时 offY 取反，左右严格对称。
+- **调试基准（用户约定，已记 SKILL）**：手枪类=沙漠之鹰、双手枪械类=AKM，后续以两把为基底调校并同步到同类（手枪类 pistol/deagle/p4040；双手枪械 akm/pkm/qbz191/qjb201/shotgun/energy_lmg）。
+- **版本**：V0.242-sprintfire → V0.243-colliderkit。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——矩形/胶囊新位置（范围按钮可视化）、火焰左右对称与距离、烟尘贴脚。
+
+## 2026-07-26（腰射⇄瞄准 Tier 1：双手枪械 aimLift）
+
+### 对话：瞄准只针对双手枪械（AKM 类），单持手枪不做；先备份（backup/2026-07-26-aimlift/）
+- **机制**：`twist.aimLift { offsetX, offsetY, transitionMs }`（gun_idle 配置 (0,-20,150)）——长按右键瞄准（`_aimModeActive` 已有）且主手为双手枪械时 `_aimEase` 0→1 smoothstep 推进；`_computeGunAnchor` 按 ease 抬升锚点（offsetX 翻转镜像）。**手臂不需新贴图/旋转**：锚点上移后 `atan2(握把−肩)` 自然把手臂举到眼前，臂枪一体（Tier 1 刚体肘为已知风险）。
+- **范围**：仅双手枪械（`isGunWeapon && isTwoHanded`），手枪姿态无 aimLift 不生效；退出瞄准反向 150ms 回落。
+- **版本**：V0.244-rotmirror → V0.245-aimlift。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——抬升量/过渡时长手感（offsetY/transitionMs 可调）、瞄准中 360° 跟踪、退出回落顺滑。
+
+## 2026-07-26（沙鹰火焰基准 + 全枪械 AKM 基准同步）
+
+### 对话：沙鹰火焰下移 4 右移 3（手枪类参考）；其他枪复用 AKM 位置；要贴图路径清单
+- **沙鹰火焰基准**：deagle.muzzle (0.94,0.35) + forward 8→11 / up 5→1；pistol/p4040 同 forward/up 且 rotOffset 统一 -6（对齐沙鹰）。
+- **双手枪械 AKM 基准同步**：pkm/qbz191/qjb201/shotgun/saiga12k/energy_lmg 全部写入 AKM 的 holdOffset (-56,-9)/idleScale 1/grip (0.29,0.54)/idle/walk 子配置；muzzle 按各图标右缘实测（pkm (0.95,0.51)、qbz191 (0.98,0.44)、qjb201 (0.82,0.49)、super90 (1.00,0.29)、saiga12k (0.86,0.46)、energy_lmg (0.94,0.46)）。
+- **版本**：V0.245-aimlift → V0.246-gunsync。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——各枪贴图贴合度（图标内部布局差异大的可能要逐把微调）、火焰位置。
+
+## 2026-07-26（Super90 单发装填失效修复）
+
+### 对话：Super90 独特单发装填机制失效
+- **根因（数据断链，AKM 无法开枪同款模式）**：`_startReload` 直读 `item.ammoConfig.singleReloadMode`——而商店 super90 条目**整条没有 ammoConfig**（EquipDataManager 的规范值有 `singleReloadMode: true`，但商店售卖用自身条目不过 main.js 合并），商店购得的 Super90 永远走一次性满装+无法打断装填。
+- **修复（共享链路三处）**：①`GUN_AMMO_CAP.weapon12` 补 `singleReloadMode: true, reloadSound`；②`_startReload` 改用 `getAmmoConfig(item)`（weaponId 回退，与弹药初始化同口径）；③商店 super90 条目补全 ammoConfig（数据一致性）。
+- **版本**：V0.246-gunsync → V0.247-super90。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——单发逐颗装填、左键打断装填、满弹枪栓音效。
+
+## 2026-07-26（装备 Super90 枪栓音效失效修复）
+
+### 对话：装备时满弹枪栓音效失效
+- **根因（同前数据断链）**：两处播放点（`subsystems.js` 切枪分支、`equip-manager.js` 装备分支）直读 `item.equipSound`——商店 super90 条目无此字段，实例静默。
+- **修复（同款回退模式）**：`gun-ammo.js` 新增 `GUN_EQUIP_SOUND` 表 + `getEquipSound(item)`（item.equipSound || weaponId 回退）；两个播放点统一改走回退；商店条目补 equipSound（数据一致性）。
+- **版本**：V0.247-super90 → V0.248-equipsound。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——装备/切换 Super90 时枪栓音效（SAIGA-12K 不响）。
+
+## 2026-07-26（武器贴图尺寸标准化：两类基准布局统一）
+
+### 对话：武器贴图有大有小，以 AKM 为基准统一
+- **基准布局**：步枪类→AKM 布局（内容宽 0.915/中心 (0.500,0.543)）；手枪类→沙鹰布局（宽 0.862/中心 (0.487,0.524)）；画布统一 2048²。
+- **处理（9 把，原图备份 backup/2026-07-26-weaponsize/）**：内容包围盒裁剪 → 按目标宽等比缩放（LANCZOS）→ 居中贴回。步枪 6 把（pkm/qbz191/qjb201/super90/saiga12k/energy_lmg）+ 手枪 3 把（G18/沙鹰/P4040）。
+- **muzzle 重测同步**：9 把枪口点按归一后右缘实测更新（`weapon-anim-config.json`）。
+- **版本**：V0.248-equipsound → V0.249-gunsize。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；并排目检 ✅。
+- **已知问题**：实机待验证——同类枪尺寸观感一致、枪口点/grip（0.29,0.54 按 AKM 布局复用）贴合度。
+
+## 2026-07-26（枪口点自动烘焙：贴图最前端统一开火位）
+
+### 对话：自动调枪位不现实，先把开火位置/火光统一放贴图最前端（Super90 试效果）
+- **机制**：BootScene 加载武器贴图时逐把烘焙枪口点——最大连通体（枪身本体，8 邻域，4x 降采样提速）最右端内容点（含 1px 细枪管尖），写 `window.__weaponMuzzlePoints[textureKey]`；`_getMuzzleWorldPosition` 优先级：**muzzle.manual 手动覆盖 > 自动烘焙 > 配置 muzzle > 右缘中心**。
+- **Super90 验证**：烘焙点 (0.908, 0.526)——放大裁切证实该处正是枪管口；此前手工配置 (0.96, 0.35) 是错的（把 y=0.35 的 1px 发丝状杂线当枪管）。子弹/两层火光同点出生。
+- **版本**：V0.249-gunsize → V0.250-muzzlebake。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——Super90 火光/子弹在枪管口；个别烘焙偏差走 muzzle.manual 覆盖。
+
+## 2026-07-26（火焰左右不对称根修：rotOffset 随 flipY 镜像）
+
+### 对话：AKM 修好了但沙鹰仍不对称
+- **根因**：沙鹰 `rotOffset = -6°` 在瞄左（贴图 flipY）时未镜像取反——右 -6° ↔ 左应 +6°，双侧同用 -6° 导致枪管方向左右差 12°，火焰/弹道同偏；AKM rotOffset=0 故无恙。
+- **修复**：主/副手 rotOffset 均按 flipY 条件取反应用（`rot += flipY ? -offset : offset`）。
+- **版本**：V0.243-colliderkit → V0.244-rotmirror。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+### 对话：手枪摆动同步上身幅度/手枪可跑步开火（双手枪不行）/烟尘上移 5px 仅跑步/火焰前移 3px
+- **武器 bob 倍率**：`_syncGunTwist` 记录 `_bobDelta`（含方向），`_computeGunAnchor` 按 `bobWeaponScale` 追加 `(scale−1)×`——武器 bob = 上身 × 倍率且方向对齐；pistol/deagle/p4040 设 2。
+- **手枪跑步开火（平衡调整）**：`update.js` 攻击打断奔跑条件收窄——仅"非枪械（近战）或双手枪械"打断；单手持枪（含双持手枪）可全程冲刺开火；双手枪（机枪/突击步枪）维持禁跑+50% 减速语义。
+- **脚底烟尘**：y+10 → y+5 贴脚；生成条件加 sprint 门——走路不再出烟尘，仅跑步（含双手枪禁跑后同步消失）。
+- **火焰/子弹点前移**：`_getMuzzleWorldPosition` 加 `muzzle.forward`（默认 3px 沿枪管方向，可按枪配置）。
+- **版本**：V0.241-muzzle → V0.242-sprintfire。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——手枪冲刺开火手感、武器 2× bob 幅度、烟尘位置/仅跑步、火焰距离。
+
+### 对话：沙鹰贴图逆时针与臂平行（臂枪一体瞄准）+ 子弹不在枪口出 + 移植特工突击枪口火光
+- **贴图倾角**：deagle rotOffset = -6（与 pistol 的 -5 同族，臂枪一体观感，可 nudge）。
+- **枪口点配置化（子弹不在枪口出的根因）**：旧逻辑枪口=贴图右缘中点（displayWidth/2），但沙鹰/G18 图标是大画布+枪身只占中间带，右缘≠枪管口且垂直错位。新增 `WeaponAnimConfig[wt].muzzle {x, y}`（贴图内分数坐标），`_getMuzzleWorldPosition` 按 `center + R(rot)×((x−0.5)w,(y−0.5)h)` 计算（fracX=1.0/fracY=0.5 时与旧行为一致）：deagle (0.94, 0.35)、pistol (0.95, 0.19)、akm (0.96, 0.52)。
+- **玩家版特工火光**：`GameScene.playMuzzleFire`（金色粒子爆发，impact_dot/ADD/140ms）接入 `_fireRanged` 全部 4 个开火点（主手/副手/机枪/霰弹），与既有 MuzzleFlashEffect 并存。
+- **版本**：V0.240-pistolaim → V0.241-muzzle。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——沙鹰贴图与臂平行度（rotOffset 微调）、子弹从枪管口出、火光观感；其他枪 muzzle 待逐枪实测配置。
+
+### 对话：手枪有点向下瞄准（角度偏移）；单持枪后移 2px 近头、双持前移 2px 远头
+- **"向下瞄准"根因**：图标实测水平（顶边 0.18°），下俯感来自视差——手在脚上方 ~40px，枪线=手→准心（脚/身高度）形成自然下倾角。新增 `WeaponAnimConfig[wt].rotOffset`（度，主/副手同口径作用于枪械 rot），pistol 设 -5 起步（可 nudge）。
+- **单持后移**：pistol holdOffsetX 8 → 6（三处同步）。
+- **双持前移**：新增 `dualOffsetX`（配置 2，世界 px，翻转镜像）——`_computeGunAnchor` 检测副手为手枪时主/副手锚点同步前移（`_computeGunAnchor` 末端统一加，顺带把两分支 return 重构为单出口）。
+- **版本**：V0.239-pistolbob → V0.240-pistolaim。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——rotOffset 角度手感（-5 起步可调）、双持前移量。
+
+### 对话：跑动时武器要跟随抖动 + 手枪幅度加大（尤其左右）
+- **核实**：武器锚点本就绕含 bob 的腰轴旋转（`_computeGunAnchor` 读 `_twistState.pivot`），武器贴图结构上就跟随体感，无需新代码；此前幅度小不易察觉。
+- **手枪幅度**：`gun_idle_pistol`/`gun_idle_dual` 的 walkLegs/runLegs `bobScale` 1.2（上下）+ `bobXScale` 0.85（左右，原为 0.5）。
+- **版本**：V0.238-torsoshiftx → V0.239-pistolbob（纯配置改动）。
 
 ### 对话：手枪上半身贴图错位，向右时左移 2px
 - 新增 `twist.torsoShiftX`（世界 px，随翻转镜像）——与 torsoShiftY 同语义，躯干/肩/枪锚点随动；`gun_idle_pistol`/`gun_idle_dual` 配置 -2。

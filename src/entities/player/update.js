@@ -224,9 +224,14 @@ update(dt, entities) {
                     let sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
                     // 防御状态：禁止奔跑
                     if (this.shieldSystem && this.shieldSystem.defending) sprint = false;
-                    // 攻击期间禁止奔跑
+                    // 攻击期间禁止奔跑（平衡调整：单手持枪（含双持手枪）可跑步开火；
+                    // 双手枪械（机枪/突击步枪）与近战武器维持开火打断奔跑）
                     const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
-                    if (isAttacking) sprint = false;
+                    if (isAttacking) {
+                        const equipForSprint = this.equipments[this.weaponMode];
+                        const isGunEquip = equipForSprint && isGunWeapon(equipForSprint);
+                        if (!isGunEquip || isTwoHanded(equipForSprint)) sprint = false;
+                    }
                     let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
                     // 减速状态（致残）：移动速度减半
                     if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
@@ -366,7 +371,7 @@ update(dt, entities) {
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
                     const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
-                    if (speed > 1.0) {
+                    if (speed > 1.0 && sprint) {
                         if (!this.dustTimer) this.dustTimer = 0;
                         this.dustTimer += dt;
                         const interval = sprint ? 70 : 140;
@@ -376,12 +381,13 @@ update(dt, entities) {
                             const offsetX = -this.vx * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 8;
                             const offsetY = -this.vy * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 4;
                             const dInt = sprint ? 1.5 : 0.8;
-                            EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY + 10, dInt);
+                            // 烟尘贴合脚部：y+0（原 y+10/y+5 偏下）
+                            EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY, dInt);
                             // PKM 装备时奔跑额外生成更浓密的烟尘
                             const currentItem = this.equipments[this.weaponMode];
                             if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg')) {
                                 const pkmDInt = sprint ? 2.2 : 1.2;
-                                EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 + 10, pkmDInt);
+                                EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7, pkmDInt);
                             }
                         }
                     } else {

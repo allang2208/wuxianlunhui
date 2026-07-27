@@ -10,7 +10,7 @@
     "idleScale": 1.6
   },
   "pistol": {
-    "holdOffsetX": 8,
+    "holdOffsetX": 6,
     "holdOffsetY": -52,
     "timingMul": 0.06,
     "animType": "recoil",
@@ -30,17 +30,26 @@
     "idleRotation": 0,
     "idleScale": 0.6,
     "idle": {
-      "holdOffsetX": 8,
+      "holdOffsetX": 6,
       "holdOffsetY": -52,
       "idleRotation": 0,
       "idleScale": 0.6
     },
     "walk": {
-      "holdOffsetX": 8,
+      "holdOffsetX": 6,
       "holdOffsetY": -52,
       "idleRotation": 0,
       "idleScale": 0.6
-    }
+    },
+    "rotOffset": -6,
+    "dualOffsetX": 5,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.28,
+      "forward": 11,
+      "up": 1
+    },
+    "bobWeaponScale": 2
   },
   "p4040": {
     "holdOffsetX": 12,
@@ -70,7 +79,16 @@
       "holdOffsetX": 12,
       "idleScale": 0.6,
       "holdOffsetY": 0
-    }
+    },
+    "dualOffsetX": 5,
+    "bobWeaponScale": 2,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.43,
+      "forward": 11,
+      "up": 1
+    },
+    "rotOffset": -6
   },
   "deagle": {
     "holdOffsetX": 12,
@@ -100,7 +118,16 @@
       "holdOffsetX": 12,
       "idleScale": 0.6,
       "holdOffsetY": 0
-    }
+    },
+    "dualOffsetX": 5,
+    "rotOffset": -6,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.35,
+      "forward": 11,
+      "up": 1
+    },
+    "bobWeaponScale": 2
   },
   "akm": {
     "holdOffsetX": -56,
@@ -136,11 +163,15 @@
       "y": 0.54
     },
     "idleRotation": 0,
-    "idleScale": 1
+    "idleScale": 1,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
   },
   "pkm": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -154,11 +185,33 @@
       "recoilSwing": 0.08,
       "recoilRecover": 0.03,
       "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.95,
+      "y": 0.5
     }
   },
   "qbz191": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.07,
     "animType": "recoil",
     "recoilAmount": 0.1,
@@ -172,11 +225,33 @@
       "recoilSwing": 0.08,
       "recoilRecover": 0.03,
       "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.38
     }
   },
   "qjb201": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.06,
     "animType": "recoil",
     "recoilAmount": 0.08,
@@ -190,16 +265,38 @@
       "recoilSwing": 0.08,
       "recoilRecover": 0.03,
       "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.62
     }
   },
   "energy_lmg": {
-    "holdOffsetX": -8,
-    "holdOffsetY": 2,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.25,
     "animType": "recoil",
     "recoilAmount": 0.1,
     "idleRotation": 0,
-    "idleScale": 0.8,
+    "idleScale": 1,
     "renderParams": {
       "gunLXOffset": 24,
       "gunLY": 0,
@@ -210,11 +307,31 @@
       "recoilSwing": 0.08,
       "recoilRecover": 0.03,
       "shakeIntensity": 4
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.5
     }
   },
   "shotgun": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.5,
     "animType": "recoil",
     "recoilAmount": 0.15,
@@ -228,6 +345,28 @@
       "recoilSwing": 0.12,
       "recoilRecover": 0.04,
       "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.35
     }
   },
   "sword": {
@@ -446,5 +585,31 @@
       ]
     }
   },
-  "keyframes": {}
+  "keyframes": {},
+  "saiga12k": {
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.32
+    }
+  }
 }

@@ -12,9 +12,12 @@ export const PLAYER_DEFAULTS = {
         // collisionRadius 作为圆形回退和墙壁碰撞的等效半径；
         // 2026-07-17：脚下椭圆判定（footprint）缩小 25%（30 → 22.5），
         // 阴影/分离/墙壁碰撞/被近战与投射物命中均由此值单一驱动，随动缩小
-        collisionWidth: 30,
+        collisionWidth: 40,  // 绿色矩形（受击矩形）向左拉伸 10px：宽 30→40 且中心左移 5（右缘不变）
         collisionHeight: 60,
         collisionRadius: 22.5,
+        // 圆柱体（胶囊）碰撞体积整体偏移：上移 5px / 受击矩形左移 5px（配合宽 40 实现向左拉伸 10）
+        colliderOffsetX: -5,
+        colliderOffsetY: -5,
         accel: 0.7,
         friction: 0.82
     },

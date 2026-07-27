@@ -28,7 +28,7 @@ import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
 import { RiftSystem } from '../../quest/rift-system.js';
-import { isGunWeapon } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 
 export class GameScene extends Scene {
@@ -1207,6 +1207,23 @@ export class GameScene extends Scene {
             this._twistState = null;
             return;
         }
+
+        // 腰射⇄瞄准过渡（Tier 1：仅双手枪械）：长按右键瞄准时 aimEase 0→1 平滑推进，
+        // 锚点按 aimLift 配置抬升（手臂/枪作为整体随锚点举到眼前），退出反向回落
+        {
+            const currentItem = player.equipments && player.equipments[player.weaponMode];
+            const twoHandedGun = currentItem && isGunWeapon(currentItem) && isTwoHanded(currentItem);
+            const aiming = !!(twoHandedGun && player._aimModeActive && twist.aimLift);
+            const ms = (twist.aimLift && twist.aimLift.transitionMs) || 150;
+            const now = performance.now();
+            const dtMs = this._aimEaseLastT ? Math.min(50, now - this._aimEaseLastT) : 16.67;
+            this._aimEaseLastT = now;
+            if (this._aimEaseT === undefined) this._aimEaseT = 0;
+            this._aimEaseT += ((aiming ? 1 : 0) - this._aimEaseT) * Math.min(1, dtMs / ms);
+            if (Math.abs(this._aimEaseT) < 0.001) this._aimEaseT = 0;
+            const t = Math.max(0, Math.min(1, this._aimEaseT));
+            this._aimEase = t * t * (3 - 2 * t); // smoothstep
+        }
         const frameW = this.playerSprite.frame.width || 512;
         const frameH = this.playerSprite.frame.height || 516;
         const dispW = this.playerSprite.displayWidth;
@@ -1274,14 +1291,20 @@ export class GameScene extends Scene {
         if (bobPart && bobPart.bodyBobY) {
             const bobIdx = this.playerSprite.anims.currentFrame ? this.playerSprite.anims.currentFrame.index : 0;
             const bobScale = bobPart.bobScale !== undefined ? bobPart.bobScale : 1;
-            pivotWorldY += (bobPart.bodyBobY[bobIdx] || 0) * (dispH / bobPart.frameHeight) * bobScale;
+            const bdy = (bobPart.bodyBobY[bobIdx] || 0) * (dispH / bobPart.frameHeight) * bobScale;
+            pivotWorldY += bdy;
+            this._bobDelta = { x: 0, y: bdy };
             // 跑步左右摇摆：髋部 X 逐帧偏移（bodyBobX，翻转镜像；bobXScale 默认 0.5 轻微档）
             if (bobPart.bodyBobX) {
                 const bobXScale = bobPart.bobXScale !== undefined ? bobPart.bobXScale : 0.5;
                 // 方向取反：实测序列与步态前后方向相反（该前时后、该后时前）
-                const bdx = -(bobPart.bodyBobX[bobIdx] || 0) * (dispW / bobPart.frameWidth) * bobXScale;
-                pivotWorldX += facingRight ? bdx : -bdx;
+                const bdxRaw = -(bobPart.bodyBobX[bobIdx] || 0) * (dispW / bobPart.frameWidth) * bobXScale;
+                const bdx = facingRight ? bdxRaw : -bdxRaw;
+                pivotWorldX += bdx;
+                this._bobDelta.x = bdx;
             }
+        } else {
+            this._bobDelta = { x: 0, y: 0 };
         }
         // 躯干层：原点即轴心，贴到轴点旋转；左瞄用烘焙镜像贴图 + 镜像原点（不用 flipX，语义确定）
         const torsoBaseKey = `${this._twistTexKey}_torso`;
@@ -1634,6 +1657,9 @@ export class GameScene extends Scene {
         // 近战武器使用固定 rotation（所有状态）；
         // 远程武器（枪械）贴图旋转 = 武器位置 → 鼠标准心的精确连线角，
         // 不再使用 player.rotation（脚底→鼠标连线角），消除手部锚点视差导致的固定角度偏移。
+        // rotOffset（配置，度）：枪械贴图固有倾角修正（如手枪贴图视差性下俯）
+        const gunRotOffset = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
+            ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
         let rot;
         if (isMelee) {
             rot = WeaponTransform.getWeaponRotation(0, wt, 0, animState, facingRight);
@@ -1673,6 +1699,8 @@ export class GameScene extends Scene {
         const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         // 瞄左（|rot|>90°）时贴图 flipY 防倒置——握把点的贴图内 Y 随之镜像，补偿必须同步取反
         const gunFlipY = isGun && Math.abs(rot) > Math.PI / 2;
+        // rotOffset 随 flipY 镜像取反：右 -6° ↔ 左 +6°（否则枪管方向左右不对称，火焰/弹道同偏）
+        rot += gunFlipY ? -gunRotOffset : gunRotOffset;
 
         // 记录握把（锚点）世界坐标，供手臂条层追随（下一帧读取）
         this._gunGripWorld = isGun ? { x: pos.x, y: pos.y } : null;
@@ -1740,6 +1768,7 @@ export class GameScene extends Scene {
             const scaleA = twistCfg.angleScale !== undefined ? twistCfg.angleScale : 1;
             excess = rel * scaleA - ts.angle;
         }
+        const pos = { x: 0, y: 0 };
         if (excess !== 0) {
             const frameW = this.playerSprite.frame.width || 512;
             const frameH = this.playerSprite.frame.height || 516;
@@ -1753,12 +1782,35 @@ export class GameScene extends Scene {
             const exW = ts.facingRight ? excess : -excess;
             const vx = clampX - shoulderX, vy = clampY - shoulderY;
             const cosE = Math.cos(exW), sinE = Math.sin(exW);
-            return {
-                x: shoulderX + vx * cosE - vy * sinE,
-                y: shoulderY + vx * sinE + vy * cosE,
-            };
+            pos.x = shoulderX + vx * cosE - vy * sinE;
+            pos.y = shoulderY + vx * sinE + vy * cosE;
+        } else {
+            pos.x = clampX;
+            pos.y = clampY;
         }
-        return { x: clampX, y: clampY };
+
+        // 双持偏移（配置 dualOffsetX，世界 px）：双持手枪时主/副手同步前移（远离头部，翻转镜像）
+        const dualOff = WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dualOffsetX;
+        if (dualOff) {
+            const offSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+            const offItem = player.equipments[offSlot];
+            if (offItem && offItem.name && (offItem.weaponType === 'pistol' || offItem.rangedType === 'pistol')) {
+                pos.x += ts.facingRight ? dualOff : -dualOff;
+            }
+        }
+        // 瞄准抬升（Tier 1：双手枪械 aimLift；offsetX 翻转镜像，offsetY 负=上移）——
+        // 锚点上移后手臂经 atan2(握把−肩) 自然举到眼前，臂枪一体
+        if (this._aimEase > 0 && twistCfg && twistCfg.aimLift) {
+            pos.x += ts.facingRight ? (twistCfg.aimLift.offsetX || 0) * this._aimEase : -(twistCfg.aimLift.offsetX || 0) * this._aimEase;
+            pos.y += (twistCfg.aimLift.offsetY || 0) * this._aimEase;
+        }
+        // 武器摆动倍率（配置 bobWeaponScale，默认 1=与上身同幅）：武器 bob = 上身 bob × 倍率，方向对齐
+        const bobWeaponScale = WeaponAnimConfig[wt] && WeaponAnimConfig[wt].bobWeaponScale;
+        if (bobWeaponScale && this._bobDelta && (this._bobDelta.x !== 0 || this._bobDelta.y !== 0)) {
+            pos.x += this._bobDelta.x * (bobWeaponScale - 1);
+            pos.y += this._bobDelta.y * (bobWeaponScale - 1);
+        }
+        return pos;
     }
 
     /**
@@ -1839,6 +1891,12 @@ export class GameScene extends Scene {
         } else {
             rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState, facingRight);
         }
+        // rotOffset（配置，度）：枪械贴图固有倾角修正；随 flipY 镜像取反（右 -6° ↔ 左 +6°）
+        const rotOffsetOff = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
+            ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
+        const flipYCand = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt)
+            && Math.abs(rot) > Math.PI / 2;
+        rot += flipYCand ? -rotOffsetOff : rotOffsetOff;
         
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
