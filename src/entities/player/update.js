@@ -8,7 +8,7 @@ import { Input } from '../../ui/input.js';
 import { StatusBar } from '../../ui/status-bar.js';
 import { DashConvergeEffect } from '../../effects/dash-effects.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
-import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
+import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
@@ -224,9 +224,14 @@ update(dt, entities) {
                     let sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
                     // 防御状态：禁止奔跑
                     if (this.shieldSystem && this.shieldSystem.defending) sprint = false;
-                    // 攻击期间禁止奔跑
+                    // 攻击期间禁止奔跑（平衡调整：单手持枪（含双持手枪）可跑步开火；
+                    // 双手枪械（机枪/突击步枪）与近战武器维持开火打断奔跑）
                     const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
-                    if (isAttacking) sprint = false;
+                    if (isAttacking) {
+                        const equipForSprint = this.equipments[this.weaponMode];
+                        const isGunEquip = equipForSprint && isGunWeapon(equipForSprint);
+                        if (!isGunEquip || isTwoHanded(equipForSprint)) sprint = false;
+                    }
                     let targetSpeed = sprint ? CONFIG.PLAYER_SPRINT : this.maxSpeed;
                     // 减速状态（致残）：移动速度减半
                     if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
@@ -257,17 +262,24 @@ update(dt, entities) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
-                    // 机枪开火时禁止 Shift 奔跑
-                    if (sprint && isPkmEquipped && Input.mouse.leftDown && this._gunSpreadWeapon) {
+                    // 双手枪械开火时禁止 Shift 奔跑（开火即中断奔跑退回 walking，
+                    // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
+                    const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);
+                    if (sprint && isTwoHandedGun && Input.mouse.leftDown) {
                         sprint = false;
-                        let moveSpeedReduction = 0.50;
-                        const craftEffects = currentEquip && currentEquip._craftEffects;
-                        if (craftEffects && craftEffects.moveSpeedPercent) {
-                            moveSpeedReduction -= craftEffects.moveSpeedPercent;
+                        // PKM 系保留原 50% 减速语义，其他双手枪退回普通走速
+                        if (isPkmEquipped) {
+                            let moveSpeedReduction = 0.50;
+                            const craftEffects = currentEquip && currentEquip._craftEffects;
+                            if (craftEffects && craftEffects.moveSpeedPercent) {
+                                moveSpeedReduction -= craftEffects.moveSpeedPercent;
+                            }
+                            if (moveSpeedReduction > 0.90) moveSpeedReduction = 0.90;
+                            if (moveSpeedReduction < 0) moveSpeedReduction = 0;
+                            targetSpeed = this.maxSpeed * (1 - moveSpeedReduction);
+                        } else {
+                            targetSpeed = this.maxSpeed;
                         }
-                        if (moveSpeedReduction > 0.90) moveSpeedReduction = 0.90;
-                        if (moveSpeedReduction < 0) moveSpeedReduction = 0;
-                        targetSpeed = this.maxSpeed * (1 - moveSpeedReduction);
                     }
                     // 冲刺攻击动画期间：移动速度为0.1px/帧（结束后恢复）
                     if (this._isDashing) targetSpeed = 0.1;
@@ -347,7 +359,11 @@ update(dt, entities) {
                     this.vy *= this.friction;
                 }
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
-                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
+                // 双手枪械开火=非奔跑状态（与上方 sprint 中断同口径）：腿部动画回 walking、脚下不出烟尘。
+                // 此前只把局部 sprint 置 false（减速生效），_isSprinting 未同步导致腿层仍播 runlegs
+                const _thGunEquip = this.equipments[this.weaponMode];
+                const _twoHandedGunFiring = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip) && Input.mouse.leftDown);
+                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunFiring;
                 this._isSprinting = _sprintActive; // 保存供render使用
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
                 // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
@@ -358,8 +374,8 @@ update(dt, entities) {
                     this.animTime += 0.15;
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
-                    if (speed > 1.0) {
+                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunFiring;
+                    if (speed > 1.0 && sprint) {
                         if (!this.dustTimer) this.dustTimer = 0;
                         this.dustTimer += dt;
                         const interval = sprint ? 70 : 140;
@@ -369,12 +385,13 @@ update(dt, entities) {
                             const offsetX = -this.vx * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 8;
                             const offsetY = -this.vy * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 4;
                             const dInt = sprint ? 1.5 : 0.8;
-                            EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY + 10, dInt);
+                            // 烟尘贴合脚部再上移 5px：y-5（原 y+10/y+5/y+0 偏下）
+                            EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY - 5, dInt);
                             // PKM 装备时奔跑额外生成更浓密的烟尘
                             const currentItem = this.equipments[this.weaponMode];
                             if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg')) {
                                 const pkmDInt = sprint ? 2.2 : 1.2;
-                                EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 + 10, pkmDInt);
+                                EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 - 5, pkmDInt);
                             }
                         }
                     } else {

@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs } from '../../world/wall-prefabs.js';
+import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -20,15 +21,42 @@ export class BootScene extends Scene {
             console.warn('[BootScene] 资源加载失败:', file?.key, file?.url);
         });
 
-        // ---- 角色资源 ----
-        // 待机动画（单帧）
-        this.load.image('player_idle', 'assets/player/idle.png');
-        // 行走动画spritesheet（21帧，3x8网格，实际尺寸4100x1548，每帧512x516）
-        this.load.spritesheet('player_walk', 'assets/character/walk.png', { frameWidth: 512, frameHeight: 516, endFrame: 20 });
-        // 奔跑动画spritesheet（16帧，2x8网格，实际尺寸4096x1024，每帧512x512）
-        this.load.spritesheet('player_run', 'assets/character/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        // 剑攻击spritesheet（8帧，实际尺寸4100x1548，每帧512x516）
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 516, endFrame: 7 });
+        // ---- 角色资源（配置驱动：data/player-anim-config.json，纹理键 player_<动画键>） ----
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            const texKey = playerTextureKey(animKey);
+            if (def.type === 'image') {
+                this.load.image(texKey, def.src);
+                // 上半身分层扭转姿态（持枪瞄准）：腿层/躯干层独立贴图
+                if (def.twist) {
+                    this.load.image(`${texKey}_legs`, def.twist.legsSrc);
+                    this.load.image(`${texKey}_torso`, def.twist.torsoSrc);
+                    // 持枪移动腿层（walk/run 下半身裁片，配置驱动）
+                    for (const [cfgKey, suffix] of [['walkLegs', 'walklegs'], ['runLegs', 'runlegs']]) {
+                        const part = def.twist[cfgKey];
+                        if (!part) continue;
+                        this.load.spritesheet(`${texKey}_${suffix}`, part.src, {
+                            frameWidth: part.frameWidth, frameHeight: part.frameHeight, endFrame: (part.frameCount || 1) - 1
+                        });
+                    }
+                    // 手臂条层（单骨伪 IK，追随枪握把）
+                    if (def.twist.arm) {
+                        this.load.image(`${texKey}_arm`, def.twist.arm.src);
+                    }
+                    // 腰射→瞄准手臂帧动画（视频截取手臂条，aimFrames 配置驱动）
+                    if (def.twist.aimFrames) {
+                        const af = def.twist.aimFrames;
+                        this.load.spritesheet(`${texKey}_aimframes`, af.src, {
+                            frameWidth: af.frameWidth, frameHeight: af.frameHeight, endFrame: (af.frameCount || 1) - 1
+                        });
+                    }
+                }
+            } else if (def.type === 'sheet') {
+                // endFrame 必带：防御图片高度差1像素导致帧数错误
+                this.load.spritesheet(texKey, def.src, {
+                    frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
+                });
+            }
+        }
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -229,29 +257,158 @@ export class BootScene extends Scene {
         // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
         loadWallPrefabs();
 
-        // 创建行走动画：使用完整 21 帧 spritesheet（3x8 网格），通过 flipX 控制左右
-        this.anims.create({
-            key: 'player_walk',
-            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 20 }),
-            frameRate: 24,
-            repeat: -1,
-        });
+        // 创建玩家动画（配置驱动；repeat -1 循环 / 0 播放一次，帧区间由 frames 指定）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'sheet') continue;
+            const texKey = playerTextureKey(animKey);
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key: texKey,
+                frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
 
-        // 创建奔跑动画：侧视角，只使用 spritesheet 第一行（向右），通过 flipX 控制左右
-        this.anims.create({
-            key: 'player_run',
-            frames: this.anims.generateFrameNumbers('player_run', { start: 0, end: 7 }),
-            frameRate: 10,
-            repeat: -1,
-        });
+        // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的
+        // 最右端内容点（含 1px 细枪管尖）——开火位置/枪口火焰统一用贴图最前端，逐枪免调 muzzle；
+        // 4 倍降采样提速；运行时 subsystems 读取
+        {
+            window.__weaponMuzzlePoints = window.__weaponMuzzlePoints || {};
+            const DS = 4;
+            for (const { key } of getWeaponTextureLoadList()) {
+                const srcImg = this.textures.get(key) && this.textures.get(key).getSourceImage();
+                if (!srcImg || !srcImg.width) continue;
+                const cw = Math.max(1, Math.round(srcImg.width / DS));
+                const ch = Math.max(1, Math.round(srcImg.height / DS));
+                const canvas = document.createElement('canvas');
+                canvas.width = cw;
+                canvas.height = ch;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(srcImg, 0, 0, cw, ch);
+                let data;
+                try {
+                    data = ctx.getImageData(0, 0, cw, ch).data;
+                } catch (_e) {
+                    continue;
+                }
+                // 连通域标记（8 邻域，找最大分量=枪身本体，排除零散噪点）
+                const total = cw * ch;
+                const comp = new Int32Array(total).fill(-1);
+                const alpha = (i) => data[i * 4 + 3] > 10;
+                let bestSize = 0, bestComp = -1;
+                const sizes = [];
+                const stack = [];
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] !== -1 || !alpha(i)) continue;
+                    const id = sizes.length;
+                    let size = 0;
+                    stack.length = 0;
+                    stack.push(i);
+                    comp[i] = id;
+                    while (stack.length) {
+                        const p = stack.pop();
+                        size++;
+                        const px = p % cw, py = (p / cw) | 0;
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                if (!dx && !dy) continue;
+                                const nx = px + dx, ny = py + dy;
+                                if (nx < 0 || nx >= cw || ny < 0 || ny >= ch) continue;
+                                const ni = ny * cw + nx;
+                                if (comp[ni] === -1 && alpha(ni)) {
+                                    comp[ni] = id;
+                                    stack.push(ni);
+                                }
+                            }
+                        }
+                    }
+                    sizes.push(size);
+                    if (size > bestSize) { bestSize = size; bestComp = id; }
+                }
+                if (bestComp < 0) continue;
+                // 最大分量最右列（及相邻 2 列）的 Y 质心
+                let maxX = -1;
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] === bestComp && (i % cw) > maxX) maxX = i % cw;
+                }
+                let ySum = 0, yCount = 0;
+                for (let i = 0; i < total; i++) {
+                    if (comp[i] === bestComp && (i % cw) >= maxX - 2) {
+                        ySum += (i / cw) | 0;
+                        yCount++;
+                    }
+                }
+                window.__weaponMuzzlePoints[key] = {
+                    fx: maxX / cw,
+                    fy: (ySum / yCount) / ch,
+                };
+            }
+        }
 
-        // 创建剑攻击动画（8帧）
-        this.anims.create({
-            key: 'player_attack_sword',
-            frames: this.anims.generateFrameNumbers('player_attack_sword', { start: 0, end: 7 }),
-            frameRate: 12,  // 12fps，总时长约667ms
-            repeat: 0,      // 播放一次
-        });
+        // 持枪移动腿层动画注册（twist.walkLegs/runLegs 配置驱动）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'image' || !def.twist) continue;
+            const texKey = playerTextureKey(animKey);
+            for (const [cfgKey, suffix] of [['walkLegs', 'walklegs'], ['runLegs', 'runlegs']]) {
+                const part = def.twist[cfgKey];
+                if (!part) continue;
+                const [pStart, pEnd] = part.frames || [0, (part.frameCount || 1) - 1];
+                this.anims.create({
+                    key: `${texKey}_${suffix}`,
+                    frames: this.anims.generateFrameNumbers(`${texKey}_${suffix}`, { start: pStart, end: pEnd }),
+                    frameRate: part.frameRate || 24,
+                    repeat: part.repeat !== undefined ? part.repeat : -1,
+                });
+            }
+        }
+
+        // 扭转姿态躯干层/手臂条的水平镜像烘焙（canvas 离屏，避免 flipX 与自定义原点/旋转的语义叠加）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'image' || !def.twist) continue;
+            for (const part of ['torso', 'arm']) {
+                if (part === 'arm' && !def.twist.arm) continue;
+                const partKey = `${playerTextureKey(animKey)}_${part}`;
+                const srcImg = this.textures.get(partKey) && this.textures.get(partKey).getSourceImage();
+                if (!srcImg || !srcImg.width) continue;
+                const canvas = document.createElement('canvas');
+                canvas.width = srcImg.width;
+                canvas.height = srcImg.height;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(srcImg.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(srcImg, 0, 0);
+                this.textures.addCanvas(`${partKey}_flip`, canvas);
+            }
+            // aimFrames 逐帧镜像烘焙（整 sheet 翻转会颠倒帧序，必须按帧槽位逐帧镜像）
+            if (def.twist.aimFrames) {
+                const af = def.twist.aimFrames;
+                const afKey = `${playerTextureKey(animKey)}_aimframes`;
+                const afImg = this.textures.get(afKey) && this.textures.get(afKey).getSourceImage();
+                if (afImg && afImg.width) {
+                    const count = af.frameCount || 1;
+                    const fw = af.frameWidth, fh = af.frameHeight;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = afImg.width;
+                    canvas.height = afImg.height;
+                    const ctx = canvas.getContext('2d');
+                    for (let i = 0; i < count; i++) {
+                        ctx.save();
+                        // 水平镜像到本帧槽位：X 平移到槽位右缘后翻转；Y 必须为 0
+                        //（误写 i*fw 会把帧 1~13 画到 516px 画布外，朝左瞄准时取到空白帧）
+                        ctx.translate(i * fw + fw, 0);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(afImg, i * fw, 0, fw, fh, 0, 0, fw, fh);
+                        ctx.restore();
+                    }
+                    // addCanvas 只有 __BASE 一帧，按帧槽位手动补帧定义，setFrame(i) 才能按 512×516 取帧
+                    const flipTex = this.textures.addCanvas(`${afKey}_flip`, canvas);
+                    for (let i = 0; i < count; i++) {
+                        flipTex.add(i, 0, i * fw, 0, fw, fh);
+                    }
+                }
+            }
+        }
 
         // 僵尸犬动画
         this.anims.create({

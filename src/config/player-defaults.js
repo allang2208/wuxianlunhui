@@ -12,9 +12,12 @@ export const PLAYER_DEFAULTS = {
         // collisionRadius 作为圆形回退和墙壁碰撞的等效半径；
         // 2026-07-17：脚下椭圆判定（footprint）缩小 25%（30 → 22.5），
         // 阴影/分离/墙壁碰撞/被近战与投射物命中均由此值单一驱动，随动缩小
-        collisionWidth: 30,
+        collisionWidth: 40,  // 绿色矩形（受击矩形）向左拉伸 10px：宽 30→40 且中心左移 5（右缘不变）
         collisionHeight: 60,
         collisionRadius: 22.5,
+        // 圆柱体（胶囊）碰撞体积整体偏移：上移 5px / 受击矩形左移 5px（配合宽 40 实现向左拉伸 10）
+        colliderOffsetX: -5,
+        colliderOffsetY: -5,
         accel: 0.7,
         friction: 0.82
     },
@@ -80,16 +83,16 @@ export const PLAYER_DEFAULTS = {
     images: {
         melee: 'assets/weapons/1-rusty_sword_euip.png',
         bowEquip: 'assets/weapons/trainingBOW.png',
-        pistol: 'assets/weapons/G18equip.png',
-        deagle: 'assets/weapons/Desert eagle-eqiup.png',
-        p4040: 'assets/weapons/P4040-equip.png',
-        pkm: 'assets/weapons/pkm_topdown.png',
-        akm: 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png',
-        qbz191: 'assets/weapons/191equip_clean.png',
-        qjb201: 'assets/weapons/201equip.png',
-        super90: 'assets/weapons/M4s90_equip.png',
-        saiga12k: 'assets/weapons/S12k-equip.png',
-        energyLmg: 'assets/weapons/devotion-equip.png',
+        pistol: 'assets/icons/G18icon.png',
+        deagle: 'assets/icons/DesertEagle_icon.png',
+        p4040: 'assets/weapons/P4040-icon.png',
+        pkm: 'assets/icons/pkm_side_clean.png',
+        akm: 'assets/weapons/akm-equip.png',
+        qbz191: 'assets/icons/191icon.png',
+        qjb201: 'assets/icons/201-icon.png',
+        super90: 'assets/icons/M4s90_icon.png',
+        saiga12k: 'assets/icons/S12k-icon.png',
+        energyLmg: 'assets/icons/devotion-icon.png',
         shield: 'assets/weapons/woodshied-equip.png',
         arrow: 'assets/ammo/arrow.png'
     }

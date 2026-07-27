@@ -32,6 +32,9 @@ class Player extends Combatant {
             this.collisionShape = 'rect';
             this.collisionWidth = defs.physics.collisionWidth;
             this.collisionHeight = defs.physics.collisionHeight;
+            // 胶囊体/受击矩形整体偏移（上移/左移，配置驱动）
+            this.colliderOffsetX = defs.physics.colliderOffsetX ?? 0;
+            this.colliderOffsetY = defs.physics.colliderOffsetY ?? 0;
             // 让 Collider 高度与贴图 spriteSize 一致（120），否则只取 collisionHeight=60，
             // 导致调试胶囊体和受击判定都只有贴图一半高。
             this.config = {

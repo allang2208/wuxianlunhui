@@ -8,6 +8,492 @@
 - 测试结果
 - 已知问题
 
+## 2026-07-26（玩家动画体系配置化重构 + 开发面板姿态层扩展）
+
+### 对话：玩家单位动画优化（ROADMAP 任务 1 的方向 1/2/3，素材备料由用户并行）
+- **方向1 运行时配置化**：新增 `data/player-anim-config.json`（双份 public/）+ `src/config/player-anim.js`（打包内兜底 + 运行时 fetch 覆盖，纹理键约定 `player_<动画键>`）。BootScene 加载/动画注册、GameScene `setPlayerAnimation` 全部改为遍历配置表——idle/walk/run/attack_sword 四个硬编码分支消除；新增姿态 = 素材入库 + JSON 加条目，运行时与面板自动生效。
+- **方向3 近战攻击时长同步（根因修复）**：关键帧/默认 Tween 路径攻击 900ms，但 `player_attack_sword` 贴图恒为 667ms——贴图播完回 idle 时武器轨迹还在挥。修复：`setPlayerAnimation(key, targetDurationMs)` 用 `anims.timeScale` 把贴图拉伸/压缩到 Tween 总时长；`_playSwordAttackTween` 三分支统一计算 `tweenDuration` 并只在主手触发贴图动画（副手触发玩家贴图是历史小 bug，一并修正）；切回 idle/循环动画时 timeScale 归 1。
+- **方向2 开发面板姿态层**：`dev-tool.js` 角色帧加载改读 PLAYER_ANIMS（`PANEL_ANIM_TO_CONFIG` 映射面板键→配置键），帧裁剪支持 `firstFrame` 帧区间偏移（run 只用 sheet 第一行 0~7，面板预览与游戏首次一致）；播放帧率改读配置 frameRate 且面板新增 `#devToolFps` 输入框可手动覆盖；`ANIM_NAME` 补 `running`；挂载点拖动修一个隐患——新姿态无锚点时原代码会原地修改 idle 锚点对象，现从 idle 克隆种子。
+- **版本**：index.html 徽章 V0.209-chestroom → V0.210-playeranim。
+- **修改文件**：`data/player-anim-config.json`、`public/data/player-anim-config.json`、`src/config/player-anim.js`（新增）；`src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/entities/player/weapon-anim.js`、`src/ui/dev-tool.js`、`ui/components/dev-tool-panel.html`、`index.html`。
+- **测试结果**：lint ✅（0 error，15 warning 为存量）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——攻击贴图与武器 Tween 900ms 同步观感、面板 fps 输入/新姿态回退；拉弓/持枪/受击/死亡姿态待用户素材入库后在 JSON 加条目即可。
+
+## 2026-07-26（挂载点+关键帧系统删除：近战动画路径收敛）
+
+### 对话：perFrame 与手部挂载点两套模式意义不明且冲突——评估与删除
+- **评估结论**：冗余属实。①挂载点系统（handAnchors/gripOffset）每状态只有一个锚点，攻击 8 帧间无法跟手，承诺的"武器绑手"结构上未兑现，产出与"每状态静态偏移"等价（holdOffset 已能做）；②生产配置扫描：handAnchors/gripOffset 零武器使用、`keyframes` 为空对象 `{}`，删除零迁移成本；③剑的活配置 = 攻击 perFrame(30帧) + idle/walk/running 每状态 holdOffset，才是真正在用的体系。
+- **用户决策**：挂载点+关键帧全删。
+- **删除范围**：`dev-tool.js`（-755 行：handAnchorSystem/keyframeSystem 状态、挂载点/关键帧全部方法与事件绑定、_draw/_save 分支）、`panels/dev-tools.js`（✋按钮+关键帧区 DOM）、`dev-tool-panel.html`（应用所有帧/插值/清空关键帧按钮）、`weapon-transform.js`（-147 行：getHandAnchorPosition/getKeyframedWeaponPosition 删除、handAnchors/keyframes 分支清理）、`weapon-anim.js`（关键帧 Tween 分支删除，默认三段链保留）、`GameScene.js`（syncWeapon 关键帧插值块）、`weapon-anim-config.js`（透传清理）。
+- **最终模型**：攻击 = perFrame 逐帧（无配置走默认 windup/swing/recover Tween 链）；静态姿态 = 每状态 holdOffsetX/Y+idleRotation/idleScale。grep 全库零残留。
+- **测试结果**：lint ✅（0 error，15 warning 存量）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——面板删除按钮后布局、剑攻击 perFrame 与默认链行为与删除前一致。
+
+## 2026-07-26（玩家角色动画标准工作流定稿）
+
+### 对话：射击/后续近战新动作的标准工作流
+- **背景决策**：枪械跟手不做 360° 全身动画（AI 旋转序列帧一致性差+抠枪对齐苦工），走"姿态层（AI 空手姿态图）+ 枪械贴图程序旋转（已有）+ 可选手臂层"；换装=整套皮肤换纹理键，不做纸娃娃叠加。
+- **产出**：SKILL.md 新增「玩家角色动画标准工作流」（0 设计原则 / 1 姿态规划+帧数规格表 / 2 AI 生成规范 / 3 素材管线 / 4 player-anim-config.json 配置接入 / 5 运行时姿态切换 / 6 面板武器贴合 / 7 验证清单）。
+- **修改文件**：`SKILL.md`、CHANGELOG.md。
+- **待开发项**：持枪姿态切换逻辑（`GameScene._updatePlayerAnimation` 接入点，素材到位前实现）。
+
+## 2026-07-26（逐帧武器数据导出：weapon-frames/latest.js）
+
+### 对话：面板保存后生成固定 JS 文件供助手合并，覆盖写防储存负担
+- **实现**：dev 面板 💾保存（perFrame 分支）新增 `_exportPerFrameFile`——导出 `{ exportedAt, weaponType, weaponName, anim, mode, frameCount, fields 字段说明, frames }` 全要素，覆盖写 `weapon-frames/latest.js`（`export default {...}`，文件头注释含合并方式）。
+- **双通道**：浏览器/Vite 走 `vite.config.js` 新中间件 `/__save-weapon-frames`（路径固定无参数，无路径穿越面）；Electron 走新 IPC `save-weapon-frames`（dev 写项目目录，prod 写 userData），preload 暴露 `saveWeaponFrames`。
+- **交接流**：用户面板调逐帧 → 💾 → 告知助手 → 助手读 `weapon-frames/latest.js` 合并进 `data/weapon-anim-config.json`（双份同步 public/）。
+- **版本**：V0.210-playeranim → V0.211-frameexport。
+- **修改文件**：`vite.config.js`、`electron/main.js`、`electron/preload.js`、`src/ui/dev-tool.js`、`index.html`、`SKILL.md`、CHANGELOG.md。
+- **测试结果**：node --check 三文件 ✅；lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——保存后 toast 显示与 latest.js 实际写入（Vite 中间件需重启 dev server 生效）。
+
+## 2026-07-26（持枪待机姿态落地：gun_idle 首版）
+
+### 对话：素材库 shooting/1~3.png 评估与接入
+- **素材评估**：1.png 手臂弯曲上举非持枪姿+带即梦水印（弃）；2.png 左手前托右手收腰=低持/腰射姿（用，瑕疵：手掌张开非握姿、头略低，日后按提示词重出正式版）；3.png 跑步循环帧（弃）。
+- **管线**：`tools/archive/prep-gun-idle.py`——泛洪抠白底（容差 40，四边播种，去除 89.6%）→ alpha 腐蚀 1px 去白边 → 内容包围盒 → 标准化 512×516（内容高 440 对齐 walk 帧、底贴 y=500、水平居中）→ `assets/player/gun_idle.png`（目检干净）。
+- **接入**：`player-anim-config.json` 双份加 `gun_idle`（type image 单帧）；`GameScene._updatePlayerAnimation` 持枪姿态切换——`isGunWeapon(当前武器) && 站立` 时姿态键 `gun_idle`，配置缺失回退 idle；移动沿用 walk/run，射击期间保持当前姿态不动（gun_fire 待素材）。
+- **版本**：V0.211-frameexport → V0.212-gunidle。
+- **修改文件**：`assets/player/gun_idle.png`（新增）、`tools/archive/prep-gun-idle.py`（新增）、`data/player-anim-config.json`（双份）、`src/phaser/scenes/GameScene.js`、`index.html`、`SKILL.md`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——持枪站立姿态切换/枪械贴图在手部的锚点位置（holdOffset 待面板调）、空手/切枪回退 idle、地牢场景一致。
+
+## 2026-07-26（上半身分层扭转：360° 持枪瞄准落地）
+
+### 对话：单一平射姿态解决不了 360° 瞄准——分层扭转方案全程实现
+- **抠图补修**：gun_idle.png 左臂与肋间封闭三角白区（1932px，边框泛洪不可达）——区内播种 floodfill（容差 80）补抠，深底合成复检干净。
+- **素材**：gun_idle 按髋关节节线（y=272）裁 `gun_idle_legs.png` / `gun_idle_torso.png`（同画布原位，零偏移对齐）；轴心 (217,268)=髋关节间脊柱末端；**PIL rotate(center=pivot) 离线预览 ±40° 接缝合格后再上引擎**（推荐流程）。
+- **配置**：`player-anim-config.json` 双份 gun_idle 加 `twist: { legsSrc, torsoSrc, pivotX, pivotY, maxAngle: 40, angleScale: 1.0 }`；BootScene 自动加载 `player_gun_idle_legs/_torso`。
+- **引擎**：
+  - `setPlayerAnimation` 单帧分支识别 twist → 腿层贴 playerSprite、`_ensureTorsoSprite` 建躯干层（原点=轴心）；其他姿态自动退出扭转并隐藏躯干层。
+  - `GameScene._syncGunTwist`（每帧，挂在 `_updatePlayerAnimation` 后）：瞄准角 → 面向（±0.05 死区防正上/下翻转抖动）→ 相对角 ×angleScale 钳制 ±maxAngle → 腰轴世界点（flipX 镜像）→ 躯干层位置/旋转（翻转取反）/深度(+0.01)/flipX → 腿层翻转跟随瞄准；地图模式/玩家隐藏同步隐藏。
+  - `syncWeapon`：`_twistState` 激活时枪锚点绕同一腰轴旋转（手转枪跟），枪旋转仍精确 atan2（武器位置→准心）；后坐力/枪口/弹壳链路不受影响。
+- **版本**：V0.213-ammofix → V0.214-guntwist。
+- **修改文件**：`assets/player/gun_idle.png`（补抠）、`gun_idle_legs.png`/`gun_idle_torso.png`（新增）、`data/player-anim-config.json`（双份）、`BootScene.js`、`GameScene.js`、`index.html`、`SKILL.md`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；离线合成预览（±40/±20/0 + 朝左翻转）✅。
+- **已知问题**：实机待验证——躯干扭转观感/钳制角调校（maxAngle/angleScale 配置可改）、枪锚点贴合（holdOffset 待面板调）；**已知缺口**：X 光透视克隆未含躯干层、副手枪锚点未随扭转（双持手枪场景）、移动中无扭转（walk/run 回普通姿态）。
+
+## 2026-07-26（扭转左瞄错位修复 + 面板单帧姿态预览）
+
+### 对话：朝左扭转上半身右偏错位 + 枪不跟手怎么调
+- **左瞄错位修复**：躯干层弃用 flipX（与自定义原点/旋转语义叠加脆弱，Phaser `TransformerImage` flipX 绕原点镜像但三重叠加难以推理），改为 **BootScene canvas 烘焙水平镜像躯干贴图**（`player_<key>_torso_flip`）——左瞄时换贴图 + 原点换 `(frameW-pivotX)/frameW`，腿层 flipX 不动（origin 0.5 语义经实机验证）；逐 texel 推导两层映射恒等，确定性对齐。
+- **面板单帧姿态预览**：`_loadCharacterFrames` 支持 image 型姿态条目（gun_idle 等），`_getCharacterImage` 返回单帧图——面板选「持枪待机」即可对着真实姿态摆枪，💾保存走既有 holdOffset/导出交接流。
+- **枪跟手调法（回复用户）**：可行——面板摆好 AKM 位置保存后，助手把 holdOffsetX/Y+idleRotation/idleScale 合并进 `data/weapon-anim-config.json`（双份）；扭转=0 的基准位置调好，扭转时枪锚点绕腰轴旋转自然跟手。
+- **版本**：V0.214-guntwist → V0.215-twistflip。
+- **修改文件**：`BootScene.js`（镜像烘焙）、`GameScene.js`（躯干换贴图+换原点）、`src/ui/dev-tool.js`（image 姿态预览）、`index.html`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——左瞄两层对齐、翻转切换瞬间观感。
+
+## 2026-07-26（持枪移动腿层 + 贴图/动画不匹配根修 + 旧俯视角武器贴图清除）
+
+### 对话：移动时腿不动+上半身消失、面板武器贴图换装备栏图标
+- **根修（两症状一根因）**：持枪移动"腿不动"+"上半身消失"——gun_idle 腿层贴图残留时 `play('player_walk')` 贴图/动画不同源卡第一帧（game-dev-lessons #10 同款）；`setPlayerAnimation` 两个 sheet 分支统一 `setTexture(texKey)` 后再 play。
+- **持枪移动分层**：walk.png 按 y=272 裁下半身 + 两道连通域过滤（不到脚部的小连通域/碎骨残片）→ `gun_walk_legs.png`（8×3×21 帧）；`gun_idle.twist.walkLegs` 配置 + BootScene 自动加载注册；`_updatePlayerAnimation` 持枪移动分支——腿层播走腿动画（冲刺 timeScale 1.5）、躯干层保持（扭转照常瞄准），站立回 gun_idle 自动衔接。**已知瑕疵**：少数帧髋部有手部残片（与腿同连通域无法机筛，游戏缩放下为小噪点，实机评估后再决定是否人工逐帧修）。
+- **武器贴图 2.5D 化收尾**：面板 WEAPON_MAP 改由 `getWeaponTextureLoadList()` 同源驱动；`weapon_akm` 指向不存在文件（assets/weapons/AKm.png）修正为 `akm-equip.png`（游戏内 AKM 持有贴图原本也是坏的）；player-defaults/equip-data-manager/shop-system/equipment.json(双份) 旧俯视角路径全部迁移到装备栏图标；删除 10 张旧贴图（G18equip/Desert eagle-eqiup/pkm_topdown/akm_topdown/191equip_clean/201equip/M4s90_equip/S12k-equip/devotion-equip/P4040-equip），全库零残留。
+- **版本**：V0.215-twistflip → V0.216-gunwalk。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；equipment.json 双份 JSON 校验 ✅。
+- **已知问题**：实机待验证——持枪移动腿+躯干衔接、商店/装备界面图标显示、AKM 游戏内贴图。
+
+## 2026-07-26（持枪移动三连修：错位/回弹 idle/面板拖不动）
+
+### 对话：移动错位+手被截入、腿动画回弹 idle、面板武器无法拖动
+- **躯干重裁含完整骨盆**：躯干裁线 272→295（骨盆完整不腰斩），腿层大腿顶藏进骨盆下 23px 叠合，消除双硬切边。
+- **走腿 sheet 定稿流程**：walk.png y≥272 裁出 → 连通域分析**只保留最大的 2 个组件（两条腿）**——手/碎骨若与腿不连通即被清掉；脚底对齐与时序过滤两案实测误伤大腿顶（脚部对齐拉开髋缝、时序腐蚀腿顶），均弃用。**残留瑕疵**：少数帧手部与大腿同连通域有碎片，游戏缩放下为小噪点，后续人工逐帧修。
+- **腿动画回弹 idle**：gun_walk 重播守卫加 `!isPlaying` 防御（与僵尸犬动画笔记同款模式），任何外部 stop 后自动重播。
+- **面板拖拽 bug 根因**：枪械绘制锚点在顶部中点（`drawImage(-w/2, 0)`），可见中心偏下 ~50-80px，命中测试却瞄锚点（半径 60）——旧长枪图被锚点位置掩盖，换方形图标后"看得到点不到"。修复：枪械与游戏内 Phaser Sprite 同口径**居中绘制**（`-h/2`），命中点=可见中心。
+- **版本**：V0.216-gunwalk → V0.217-gunwalkfix。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅；离线合成预览（7 帧+髋部放大）✅。
+- **已知问题**：实机待验证——移动中髋部衔接/碎屑观感、面板 AKM 拖拽与重新调位（旧 holdOffset 是按旧贴图调的，需重摆保存）。
+
+## 2026-07-26（走腿错位量化修复 + 面板三连修 + AKM walk 配置应用）
+
+### 对话：手部残片/移动 5px 错位/面板展示图未换分层/AKM walk 位置应用
+- **错位根因（量化）**：走腿帧髋带质心 X 实测 246.7~298.0（步态摇摆 ±26），而 gun_idle 轴心 pivotX=217——系统偏差 ~51 tex px + 步态摇摆。方案：`walkLegs.framePivotX[21]`（实测写入配置），`_syncGunTwist` 按当前动画帧索引（`anims.currentFrame.index`）让躯干与枪锚点逐帧跟随髋部（翻转镜像）。零素材改动。
+- **面板 _save 状态保存 bug**：无 idle 子配置的武器（akm）在 walk 态保存被两分支同时跳过（数据静默丢失，用户只能手贴 JSON）——idle/walk/running 一律写状态子块。
+- **AKM walk 配置应用**：`akm.walk = { holdOffsetX: -35, holdOffsetY: -14, idleRotation: 0(360 归一), idleScale: 1.55 }` 写入 `public/data/weapon-anim-config.json`。**注意**：站立（gun_idle/idle）仍读全局 scale 1.0，移动 1.55——尺寸跳变需用户决定是否同步全局。
+- **面板持枪移动预览**：`_loadCharacterFrames` 加载 twist 走腿 sheet+躯干图，`_draw` 在 walk+枪类武器时绘制分层合成（不再是旧全身 walk）。
+- **手部残片**：机器方案（连通域/时序/脚底对齐）已到极限，sheet 导出给用户 PS 人工修（`assets/player/gun_walk_legs.png`，8×3 网格 512×516/帧，保两条腿、其余擦净）。
+- **版本**：V0.217-gunwalkfix → V0.218-walktune。
+- **测试结果**：lint ✅（0 error，中途修复本人引入的 forEach 结构破坏 1 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——逐帧髋部跟随的观感（摇摆幅度）、PS 后 sheet 替换回填。
+
+## 2026-07-26（枪械锚定体系：双重旋转修复 + 握把旋转轴心）
+
+### 对话：武器自有旋转代码且非线性移动，需绑定面板设定位置并匹配 360 瞄准（用户确认滑手+位置偏离并存）
+- **双重旋转根因**：扭转激活时枪锚点被转两次——`localToWorld` 按 `player.rotation`（全瞄准角）公转一次 + 扭转轨道（±40°）再转一次，瞄上方时枪飞离身体。修复：扭转激活时锚点改在**躯干空间**计算（fixedRotation=0，翻转手动镜像 local.x），只保留扭转轨道一次旋转。
+- **握把旋转轴心（滑手根因）**：枪 Sprite 绕贴图中心旋转，握把（不在中心）随手公转。新增配置 `WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）：`syncWeapon` 在最终 rot/displaySize 后把贴图中心偏移到 `锚点 + R(rot)×(中心−握把)`——握把精确钉在手上，枪身绕握把转。面板枪械绘制同步改为握把锚点（`-grip.x*w, -grip.y*h`），拖拽点=握把=手。
+- **AKM 全量重定**（akm-equip.png 2048²，枪身指向右，握把实测 (0.29, 0.54)）：后手（238.3, 249.6）tex → holdOffset (-56, -2)；idle/walk 同躯干姿态同值；idleScale 1.55。
+- **用户 PS 走腿 sheet 验收**：21 帧全有内容、无稀疏帧；新 framePivotX（272~284，摆动收敛）已重测写入配置。
+- **版本**：V0.218-walktune → V0.219-gunanchor。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——360 瞄准握把贴合（尤其正上/正下）、双重旋转修复后枪位、其他枪 grip 缺省中心（如偏离需逐枪实测配置）。
+
+## 2026-07-26（瞄左握把 flipY 补偿 + 开火枪位回退修复 + 双手枪开火禁跑）
+
+### 对话：瞄左枪偏低/idle 开火枪跳回旧位/双手枪开火应中断奔跑
+- **瞄左偏低**：`|rot|>90°` 时贴图 flipY 防倒置，握把贴图内 Y 同步镜像但补偿未取反——flipY 判定前移，gcy 翻转时取反，左右严格镜像。
+- **idle 开火跳旧位**：开火时 animState='attack'，akm 无 attack 子配置 → holdOffset 回退全局（未调旧值）。修复：akm 全局 holdOffset 对齐已调值 (-56,-5,scale 1)——attack/running 等一切未配置状态回退不再跳。
+- **双手枪开火禁跑**：原 PKM 专属块（sprint+leftDown 禁跑）泛化为全部双手枪械（`isGunWeapon && isTwoHanded`）——开火即中断 Shift 奔跑退回 walking（PKM 系保留 50% 减速语义，其他双手枪退回普通走速）；`_isSprinting` 解除 → 姿态回 walk → 武器位置自动走 walking 配置。
+- **版本**：V0.221-gripflip → V0.222-firewalk。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——开火全程枪不跳、禁跑后走速与枪位。
+
+## 2026-07-26（手臂条层：单骨伪 IK 落地）
+
+### 对话：正上/正下瞄准错位——方案一实施（先备份后开工）
+- **备份**：`backup/2026-07-26-armstrip/`（gun_idle 全系列 4 张）。
+- **素材**：双臂整体一条刚体（三轮多边形迭代：前臂 肩球(266,144)→肘→前臂→手；后臂 左肩→肘(125~180)→腰前手），`gun_idle_arm.png`；躯干原位抹臂+碎点清理（<150px 连通域兜底，肋尖属躯干解剖保留）。
+- **配置**：`twist.arm = { src, pivotX: 226(双肩中点), pivotY: 137, handX: 238, handY: 250 }`（自然角由 hand-pivot 推导）；BootScene 加载 + `_arm_flip` canvas 镜像烘焙（与躯干同循环）。
+- **引擎（纯增量只读层）**：`_ensureArmSprite`（原点=肩）；`_syncGunArm`（每帧：肩随躯干扭转绕腰轴旋转 → `rotation = atan2(枪握把 − 肩) − 自然角`，翻转=烘焙镜像+镜像原点+角度取反）；`syncWeapon` 记录 `_gunGripWorld`（握把锚点，下一帧读取）；深度 腿<躯干(+0.01)<臂(+0.02)<枪；姿态退出随躯干自动隐藏。**不改扭转/握把/锚点任何现有逻辑**。
+- **数学验证**：恒等（aim=自然角→rot 0）、正上（rot≈-174° 举臂过顶）、正下（rot≈+6° 垂臂）三点归约正确。
+- **版本**：V0.222-firewalk → V0.223-armstrip。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——肩轴位置（pivotX/Y 可调）、正上/正下手臂与枪贴合、翻转切换、肘部刚性观感；离线预览脚本未复刻引擎角度约定（仅引擎侧三点归约验证）。
+
+## 2026-07-26（手臂条两连修：右冻结/左反转）
+
+### 对话：手臂只在朝左动（且反转），朝右不动
+- **朝右"不动"根因**：手臂追随握把**位置**，而握把锚点在扭转钳制（±40°）处冻结——钳制内手臂与躯干同步（不易察觉），钳制外停住。修复（syncWeapon 扭转分支）：钳制外锚点改为**从肩关节沿真实瞄准方向伸出手臂可达距离**（reach=自然锚点到肩的距离）——握把/手臂一起到 ±90°，钳制内轨道不变（边界有数 px 过渡差，可接受）。
+- **朝左反转根因**：翻转分支用了未镜像的自然角还额外取反——烘焙镜像贴图的自然角应为 `π − natural`。修正为统一式 `rot = aimAng − naturalEff`（naturalEff 翻转时取 π−natural）。
+- **离线合成验证**（引擎同约定）：朝右正上（举臂过顶+躯干后仰-40°）✓、朝右正下（垂臂+前倾+40°）✓、朝左正上（镜像举臂，方向不再反）✓。
+- **版本**：V0.223-armstrip → V0.224-armfix。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——钳制边界过渡、肩轴微调。
+
+## 2026-07-26（瞄准锚点连续化：消除钳制边界瞬移）
+
+### 对话：拆分后上下身完全错位 + 手臂触发瞬间太僵硬（用户建议全程触发）
+- **错位排查**：躯干贴图与备份逐 bbox 对比一致（仅手臂区被抹除，肋/骨盆位置未动）、JSON 完整——**上半身贴图位置没有被改**；错位根因是 V0.224 的锚点双模型硬切换：钳制点（腰轴轨道 ~221,241）与钳制外延伸点（肩轴 ~313,64）相距 ~190 tex px，瞄准扫过 ±40° 边界时枪+手臂瞬移，视觉上就是"上半身跟下半身完全错位"。
+- **连续化模型（保留用户调的水平姿态）**：钳制内锚点=腰轴轨道（与 V0.223 一致）；超出钳制的角（excess = 瞄准角 − 钳制角）以**肩为支点把钳制点继续旋转**——圆过钳制点，边界严格连续；手臂 `atan2(握把−肩)−自然角` 随之全程自然摆动（等效于用户要的"全程触发"，且不改变已调好的水平持枪位）。
+- **版本**：V0.224-armfix → V0.225-smoothaim。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——边界扫过是否还有可感知滑动、肩轴（226,137）贴合微调。
+
+## 2026-07-26（idle 躯干下移 3px + walking 全量对齐 idle）
+
+### 对话：idle 上移微调 + walking 持枪瞄准复制 idle（含枪械位置）
+- **走腿 sheet 逐帧烘焙对齐**：以 idle 基准（髋 X=217 / 脚底 Y=500）逐帧平移用户 PS 版 sheet（dx −57~−63、dy +3~+7），复检全帧髋 X≈216、脚 Y=500——walking 与 idle 的躯干/腿/枪位置天然一致，**逐帧髋部跟随（framePivotX）机制整段移除**（代码+双份 JSON 配置），walking 枪位=idle 枪位。
+- **torsoShiftY 配置**：`twist.torsoShiftY`（世界 px，默认 0，现设 3）——`_syncGunTwist` 统一加在腰轴世界 Y 上，躯干/肩/枪锚点随动，腿不动。
+- **版本**：V0.225-smoothaim → V0.226-walksync。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；对齐合成目检 ✅。
+- **已知问题**：实机待验证——idle 下移后骨盆叠合观感、walking 与 idle 切换零跳变。
+
+## 2026-07-26（枪位下移 + 枪/剑角色尺寸统一：枪姿态放大 8.4%）
+
+### 对话：朝右持枪降 3px 同步全角度；持剑与持枪姿势尺寸不匹配，是否反推修剑
+- **枪位下移**：akm holdOffsetY -5 → -2（全局/idle/walk 同步，全角度生效，走数据层无新代码）。
+- **尺寸反推方向决策**：实测剑 idle 内容 477px vs 枪姿态 440px（-8.4%）。**否决修剑**（剑侧有 4 套动画 + 30 帧 perFrame 已调配置的庞大钩稽面），反向把**枪姿态系列放大到剑基准**：绕髋点 (217,500) ×477/440 缩放、脚底落剑基线 492——`gun_idle.png/_legs/_torso/_arm/gun_walk_legs` 五件全处理（走腿 sheet **逐帧独立缩放**，整幅缩放会推挤后续帧出右边界裁剪，踩过一次）。原图备份 `backup/2026-07-26-armstrip/*.prescale`。
+- **配置随动**：twist pivot (217,268)→(217,240)、arm (226,137)/(238,250)→(227,98)/(240,221)；akm holdOffset 按新手位重算 (-56,-9)。缩放后走腿复检髋 X≈218、脚 Y=492，剑枪并排合成目检比例一致。
+- **版本**：V0.226-walksync → V0.227-scalematch。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——换武器时角色尺寸不再跳、枪在手位置微调（面板可再 nudge）。
+
+## 2026-07-26（副手锚点与主手同口径）
+
+### 对话：双持手枪副手锚点不随扭转——同步改造
+- **重构**：扭转锚点逻辑从 syncWeapon 提取为 `_computeGunAnchor(player, wt, animState, isOffhand)`（躯干空间 + 钳制内腰轴轨道 + 超出角肩轴连续旋转），主手路径改为调用助手，行为不变。
+- **副手接入**：`syncOffhandWeapon` 扭转激活时调用同一助手（`isOffhand=true` 走 offBase 偏移）；并补齐主手同款**握把旋转轴心补偿**（`grip` 配置 + flipY 时 gcy 取反，flipY 判定前移复用）。
+- **版本**：V0.227-scalematch → V0.228-offhand。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——双持手枪（G18 主+副）360° 瞄准副手贴合；副手无手臂条（视觉仅枪体，属预期）。
+
+## 2026-07-26（持枪跑步腿层：gun_run_legs）
+
+### 对话：双手枪械跑步下半身——近战跑步动画裁片拼接
+- **管线（同走腿）**：`assets/character/running.png` 第一行 8 帧（512×512/帧）按髋节线 y=272 裁下半身 → 连通域保 top2（两腿）→ 逐帧对齐 idle 基准（髋 X=217 / 脚 Y=492）+ **内容不出帧钳制**（帧 0 后摆脚保完整，该帧髋差 ~24 tex px 可接受）→ `gun_run_legs.png`（8×1）。
+- **配置/加载**：`twist.runLegs`（双份 JSON）；BootScene 腿层加载/动画注册泛化为 walkLegs+runLegs 循环。
+- **切换**：`_updatePlayerAnimation` 持枪分支——`_isSprinting` 且有 runLegs 配置时播跑步腿动画（原生 10fps），否则走 legs（原 1.5 倍速 hack 移除）；走⇄跑⇄停随 twist 躯干/手臂/枪锚点链路不变。
+- **版本**：V0.229-dualpose → V0.230-runlegs。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；合成目检 ✅。
+- **已知问题**：实机待验证——跑步姿态衔接、帧 0 后摆脚完整度、开火禁跑回 walking 腿动画。
+
+## 2026-07-26（走/跑身体起伏：bodyBobY 数据驱动）
+
+### 对话：跑步僵硬——上半身应同频轻微起伏
+- **数据**：从原动画（character/walk.png 21 帧 / running.png 8 帧）逐帧量头顶 Y，得身体起伏序列（振幅均 ~12 tex px ≈ 2.8 世界 px），写入 `walkLegs.bodyBobY` / `runLegs.bodyBobY`（双份 JSON，含 bobScale 可调）。
+- **实现**：`_syncGunTwist` 按当前腿动画帧索引把 delta 加到腰轴世界 Y——躯干/肩/枪锚点随动起伏，腿保持脚底贴地（髋缝处自然伸缩）；带 isPlaying 防御（站立归零，不沿用 stop() 残留的 currentAnim）。
+- **版本**：V0.230-runlegs → V0.231-bodybob。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——起伏幅度观感（bobScale 可调）、与瞄准扭转叠加自然度。
+
+## 2026-07-26（单持/双持手枪姿态接入）
+
+### 对话：用户 AI 出图（Downloads/单持手枪.png、双持手枪.png，纯黑底）
+- **管线**：纯黑底阈值抠图 → 基准化（内容 477/脚 492）→ 髋部对齐 217（单持 +9 / 双持 +35 X 平移）→ 躯干裁 y<270（骨盆完整）→ 手臂条多边形（单持肩球(195,98)+前臂至手(365,103)；双持双臂，前手扩界防切断+残留清零）→ `assets/player/gun_idle_pistol{,_torso,_arm}.png` / `gun_idle_dual{,_torso,_arm}.png`（全身图留作面板/参考）。
+- **配置**：`player-anim-config.json` 双份加 `gun_idle_pistol`/`gun_idle_dual`——legs/walkLegs/runLegs 复用 gun_idle 现有件，轴心实测（pivot (217,240)；单持 arm (200,100)/(365,103)，双持 arm (195,100)/(390,95)）。
+- **三路姿态解析**：`_resolveGunPose` 升级——副手手枪→dual，主手手枪→pistol，其余→gun_idle，逐级回退。
+- **锚点**：主手 pistol holdOffset (-4,-52)（前伸手位 (365,103)，全局/idle/walk 同步）；副手 `WEAPON_TRANSFORM_CONFIG.pistol.offBase` 改 (-23,19)（双持低手位 (330,115)，与主手 holdOffset 同解）；G18 grip 暂缺省中心待实机评。
+- **版本**：V0.231-bodybob → V0.232-pistolpose。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；合成目检（两姿态全身衔接）✅。
+- **已知问题**：实机待验证——单/双持自动切换、双手枪贴贴合度（面板可 nudge 后叫我合并）、手臂条追枪。
+
+## 2026-07-26（手枪三件套：贴图缩小右移 + 轮廓还原 + 后坐上身抖动）
+
+### 对话：手枪贴图缩 40% 右移 25px / 黑底抠掉黑轮廓 / 开火要后坐上身抖动
+- **手枪贴图**：pistol/deagle/p4040 全部 idleScale 0.6（-40%）、holdOffsetX +25（全局/idle/walk 同步，全角度生效）。
+- **黑轮廓还原（无需重出白底）**：从 Downloads 源图重抠——本体（lum≥25）外扩 2px 圈内的暗像素恢复为近黑轮廓（单持 64k/双持 68k px），重跑对齐/裁躯干/手臂条管线，轮廓完整（关节描边恢复）。**以后新姿势黑底白底都行，白底更省事**。
+- **后坐上身抖动**：`_syncGunTwist` 开火时读 `_getWeaponAnimParams().recoil`（枪械状态机驱动的既有后坐量），按 `twist.recoilTorsoScale`（默认 0.3，0 关闭）反向作用于腰轴——躯干/肩/枪锚点同步后坐，腿不动；与 bodyBob 起伏/瞄准扭转正交叠加。
+- **版本**：V0.232-pistolpose → V0.233-pistolkit。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；轮廓合成目检 ✅。
+- **已知问题**：实机待验证——手枪贴图大小/右移量、后坐抖动幅度（recoilTorsoScale 可调）。
+
+## 2026-07-26（四连修：手枪左移/跑步左右摇摆/移动中换武器/瞄准死区）
+
+### 对话：手枪再左移 5px、跑步上身需左右摆动、移动中换武器姿态不切换、近距离瞄准扭曲（用户定枪械近战弱设定）
+- **手枪左移**：pistol/deagle/p4040 holdOffsetX 再 -5（16/20/20 → 11/15/15，三处同步）。
+- **跑步左右摇摆**：原 running.png 逐帧髋部质心 X（deltas ±23 tex px）写 `runLegs.bodyBobX`，`_syncGunTwist` 按帧索引作用于腰轴 X（翻转镜像，`bobXScale` 默认 0.5 轻微档可调）。
+- **移动中换武器不切换（根因修复）**：gun_walk 分支只在 `_twistConfig` 为空时初始化分层——换武器后旧 twist 残留。修复：姿态键变化（`_twistTexKey !== 新姿态`）即 `setPlayerAnimation(新姿态)` 重建腿/躯干/手臂层。
+- **瞄准死区（游戏机制落地）**：`twist.aimDeadZone`（默认 160 世界 px，0 可关）——准心进入死区后冻结：①姿态/扭转用最后自由瞄准角（`_lastFreeAim`）；②主/副手枪贴图旋转冻结；③锚点超出角计算冻结；④**弹道同步冻结**（`_fireRanged` 把 target 改写为冻结角 2000px 远点）——贴图=弹道=冻结角一致，枪械近战弱成为真实机制，近战武器获得贴身空间。
+- **版本**：V0.233-pistolkit → V0.234-aimfreeze。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——死区边界进出顺滑度（160 可调）、移动中 AKM⇄双持切换、跑步左右摆幅度（bobXScale 可调）。
+
+## 2026-07-26（bobX 方向反转 + 死区改可调锥）
+
+### 对话：跑步前后抖方向全反；死区硬冻结太僵硬，近距也要能小幅调方向
+- **bobX 反转**：实测序列与步态前后方向相反，应用点取反（一处符号）。
+- **死区可调锥（`aimDeadZoneCone`，默认 20°）**：取代硬冻结——准心进入死区后，以进入时的自由瞄准角为基准，仅允许 ±20° 内调整。姿态/扭转、主副手贴图、锚点超出角、弹道统一改用 `_effectiveAim`（可调锥角），武器与手臂一体、可小幅跟枪但打不准的设定保留：锥外方向偏转被钳住，贴身扫射沿基准 ±20° 散开。边界进出连续（基准角=进入时自由角）。
+- **版本**：V0.234-aimfreeze → V0.235-deadcone。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——锥角大小手感（aimDeadZoneCone 可调 10~30）、摇摆方向。
+
+## 2026-07-26（烟尘/碰撞体积/火焰镜像 + 武器调试基准定稿）
+
+### 对话：烟尘再上移 5、胶囊上移 5、绿色矩形左拉 10、火焰前移 5 上移 5、火焰左右不对称、记录调试基准
+- **烟尘**：y+5 → y+0（贴脚）。
+- **玩家碰撞体积**：`PLAYER_DEFAULTS.physics`——collisionWidth 30→**40**（左缘 -15→-25，右缘不变=向左拉伸 10px）+ `colliderOffsetX/Y: (-5,-5)`（矩形左移 5、胶囊体上移 5）；Player 构造函数读取并在 rebuildCollider 前赋值；footprint（max(40,60)/2=30）不变。
+- **火焰/子弹点**：`muzzle.forward` 3→8（默认）、新增 `muzzle.up` 默认 5（世界上移，不随翻转）；**镜像不对称根因**：瞄左时贴图 flipY 但贴图内 Y 偏移未取反（与握把 flipY 同款坑）——`|rot|>90°` 时 offY 取反，左右严格对称。
+- **调试基准（用户约定，已记 SKILL）**：手枪类=沙漠之鹰、双手枪械类=AKM，后续以两把为基底调校并同步到同类（手枪类 pistol/deagle/p4040；双手枪械 akm/pkm/qbz191/qjb201/shotgun/energy_lmg）。
+- **版本**：V0.242-sprintfire → V0.243-colliderkit。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——矩形/胶囊新位置（范围按钮可视化）、火焰左右对称与距离、烟尘贴脚。
+
+## 2026-07-26（腰射⇄瞄准 Tier 1：双手枪械 aimLift）
+
+### 对话：瞄准只针对双手枪械（AKM 类），单持手枪不做；先备份（backup/2026-07-26-aimlift/）
+- **机制**：`twist.aimLift { offsetX, offsetY, transitionMs }`（gun_idle 配置 (0,-20,150)）——长按右键瞄准（`_aimModeActive` 已有）且主手为双手枪械时 `_aimEase` 0→1 smoothstep 推进；`_computeGunAnchor` 按 ease 抬升锚点（offsetX 翻转镜像）。**手臂不需新贴图/旋转**：锚点上移后 `atan2(握把−肩)` 自然把手臂举到眼前，臂枪一体（Tier 1 刚体肘为已知风险）。
+- **范围**：仅双手枪械（`isGunWeapon && isTwoHanded`），手枪姿态无 aimLift 不生效；退出瞄准反向 150ms 回落。
+- **版本**：V0.244-rotmirror → V0.245-aimlift。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——抬升量/过渡时长手感（offsetY/transitionMs 可调）、瞄准中 360° 跟踪、退出回落顺滑。
+
+## 2026-07-26（沙鹰火焰基准 + 全枪械 AKM 基准同步）
+
+### 对话：沙鹰火焰下移 4 右移 3（手枪类参考）；其他枪复用 AKM 位置；要贴图路径清单
+- **沙鹰火焰基准**：deagle.muzzle (0.94,0.35) + forward 8→11 / up 5→1；pistol/p4040 同 forward/up 且 rotOffset 统一 -6（对齐沙鹰）。
+- **双手枪械 AKM 基准同步**：pkm/qbz191/qjb201/shotgun/saiga12k/energy_lmg 全部写入 AKM 的 holdOffset (-56,-9)/idleScale 1/grip (0.29,0.54)/idle/walk 子配置；muzzle 按各图标右缘实测（pkm (0.95,0.51)、qbz191 (0.98,0.44)、qjb201 (0.82,0.49)、super90 (1.00,0.29)、saiga12k (0.86,0.46)、energy_lmg (0.94,0.46)）。
+- **版本**：V0.245-aimlift → V0.246-gunsync。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——各枪贴图贴合度（图标内部布局差异大的可能要逐把微调）、火焰位置。
+
+## 2026-07-26（Super90 单发装填失效修复）
+
+### 对话：Super90 独特单发装填机制失效
+- **根因（数据断链，AKM 无法开枪同款模式）**：`_startReload` 直读 `item.ammoConfig.singleReloadMode`——而商店 super90 条目**整条没有 ammoConfig**（EquipDataManager 的规范值有 `singleReloadMode: true`，但商店售卖用自身条目不过 main.js 合并），商店购得的 Super90 永远走一次性满装+无法打断装填。
+- **修复（共享链路三处）**：①`GUN_AMMO_CAP.weapon12` 补 `singleReloadMode: true, reloadSound`；②`_startReload` 改用 `getAmmoConfig(item)`（weaponId 回退，与弹药初始化同口径）；③商店 super90 条目补全 ammoConfig（数据一致性）。
+- **版本**：V0.246-gunsync → V0.247-super90。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——单发逐颗装填、左键打断装填、满弹枪栓音效。
+
+## 2026-07-26（装备 Super90 枪栓音效失效修复）
+
+### 对话：装备时满弹枪栓音效失效
+- **根因（同前数据断链）**：两处播放点（`subsystems.js` 切枪分支、`equip-manager.js` 装备分支）直读 `item.equipSound`——商店 super90 条目无此字段，实例静默。
+- **修复（同款回退模式）**：`gun-ammo.js` 新增 `GUN_EQUIP_SOUND` 表 + `getEquipSound(item)`（item.equipSound || weaponId 回退）；两个播放点统一改走回退；商店条目补 equipSound（数据一致性）。
+- **版本**：V0.247-super90 → V0.248-equipsound。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——装备/切换 Super90 时枪栓音效（SAIGA-12K 不响）。
+
+## 2026-07-26（武器贴图尺寸标准化：两类基准布局统一）
+
+### 对话：武器贴图有大有小，以 AKM 为基准统一
+- **基准布局**：步枪类→AKM 布局（内容宽 0.915/中心 (0.500,0.543)）；手枪类→沙鹰布局（宽 0.862/中心 (0.487,0.524)）；画布统一 2048²。
+- **处理（9 把，原图备份 backup/2026-07-26-weaponsize/）**：内容包围盒裁剪 → 按目标宽等比缩放（LANCZOS）→ 居中贴回。步枪 6 把（pkm/qbz191/qjb201/super90/saiga12k/energy_lmg）+ 手枪 3 把（G18/沙鹰/P4040）。
+- **muzzle 重测同步**：9 把枪口点按归一后右缘实测更新（`weapon-anim-config.json`）。
+- **版本**：V0.248-equipsound → V0.249-gunsize。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；并排目检 ✅。
+- **已知问题**：实机待验证——同类枪尺寸观感一致、枪口点/grip（0.29,0.54 按 AKM 布局复用）贴合度。
+
+## 2026-07-26（枪口点自动烘焙：贴图最前端统一开火位）
+
+### 对话：自动调枪位不现实，先把开火位置/火光统一放贴图最前端（Super90 试效果）
+- **机制**：BootScene 加载武器贴图时逐把烘焙枪口点——最大连通体（枪身本体，8 邻域，4x 降采样提速）最右端内容点（含 1px 细枪管尖），写 `window.__weaponMuzzlePoints[textureKey]`；`_getMuzzleWorldPosition` 优先级：**muzzle.manual 手动覆盖 > 自动烘焙 > 配置 muzzle > 右缘中心**。
+- **Super90 验证**：烘焙点 (0.908, 0.526)——放大裁切证实该处正是枪管口；此前手工配置 (0.96, 0.35) 是错的（把 y=0.35 的 1px 发丝状杂线当枪管）。子弹/两层火光同点出生。
+- **版本**：V0.249-gunsize → V0.250-muzzlebake。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——Super90 火光/子弹在枪管口；个别烘焙偏差走 muzzle.manual 覆盖。
+
+## 2026-07-27（aimFrames 工程回退）
+
+### 对话：aimFrames 接入后 idle 贴图错乱且腰射切瞄准无动画——回退备份
+- **回退范围**：`GameScene.js` + `player-anim-config.json`（双份）还原至 `backup/2026-07-27-aimanim/`（aimFrames 接入前，Tier1 aimLift 机制恢复生效）；BootScene 的 aimframes 加载/镜像烘焙块因配置缺失自动 no-op（保留备用）；`gun_aim_frames.png/json` 素材保留待复盘后重做。
+- **版本**：V0.251-aimframes → V0.252-rollback。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **复盘要点（下次重做前）**：aimFrames 接入后 idle 错乱的根因待查——高度疑似手臂 sprite 在 aimFrames 分支接管纹理后，非瞄准状态（_aimEase=0）下仍走帧动画分支导致显示异常/旧手臂层未正确回退；重做时先在"非瞄准状态完全等价现状"上做等价验证再接入。
+
+## 2026-07-27（aimFrames 重做：三根因修复 + 素材重新提取）
+
+### 对话：按复盘方案重做腰射切瞄准帧动画；双备份保留（backup/2026-07-27-aimanim/ + aimanim-v2/）
+- **根因复盘（V0.251 失败三因）**：①`_aimEase` 推进条件引用 `twist.aimLift`，而接入 aimFrames 时删了 aimLift 配置 → ease 恒 0 →"无动画"；②手臂帧分支不判 `_aimEase>0` 无条件接管 → 非瞄准状态也显示帧条（且旧 pivot (226,137) 比静态肩轴 (227,98) 低 39px）→ idle 错乱；③素材本身后段失真——旧提取脚本 `best_shift` 卷积核翻转 bug 导致逐帧配准全部顶在裁剪边界（另：像素数 7000→3100 的下降经 leftover 可视化证实主要是举枪后屈臂透视缩短的真实像素减少，非全是腐蚀）。
+- **代码重做（三个安全性保证）**：①aimEase 推进条件改 `twist.aimFrames || twist.aimLift` 任一存在即推进（表现配置不再决定是否推进）；②`_syncGunArm` 的 aimFrames 分支仅在 `_aimEase>0` 接管，ease=0 完全走旧静态手臂路径（逐像素等价）；③`_computeGunAnchor` 帧驱动锚点（肩 + R(世界瞄准角−帧自然角)×(帧手−肩)）按 ease 与旧链锚点 blend，ease=0 精确等价旧链；aimLift 抬升块加 `!afCfg` 守卫防双重抬升；旋转轴心统一用 `twist.arm.pivot`（帧 0 与静态手臂条对齐 (0,0)px、IoU 0.779）。
+- **顺手修潜伏 bug**：BootScene aimframes 镜像 sheet `addCanvas` 后无帧定义（setFrame 会失效），按帧槽位手动 `flipTex.add(i, ...)` 补帧。
+- **素材重新提取**（`tools/aim-frames-extract.py` 留存可重跑）：色度键控全身抠图（无模板减法）→ 模板互相关逐帧配准（scale 0.73，修掉旧 shift bug）→ 手臂分离三路并集（躯干外抠图+躯干区内非注册躯干线+帧0差异种子膨胀）→ 静态结构过滤+刚性桥接。帧 0 与静态手臂条 IoU 0.779（旧 0.69）、全帧无躯干残留、手部轨迹 (366,210.5)→(338.3,109.6) 平滑。
+- **配置**：gun_idle.twist 新增 `aimFrames { src, frameWidth/Height 512×516, frameCount 14, transitionMs 250, hands[14] }`（双份同步）；aimLift 保留作休眠回退（删 aimFrames 即自动回 Tier1 抬升）。
+- **版本**：V0.252-rollback → V0.253-aimframes2。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；帧 0 对齐/JSON 校验 ✅。
+- **已知问题**：实机待验证——过渡帧流畅度、瞄准时臂枪一体感、退出回落、死区内表现、朝左镜像帧。
+
+### 对话：回程变形——改线性倒放（V0.253 → V0.254-aimreverse）
+- **根因**：回程"变形+手臂转得不对"= 指数趋近的尾巴——去程 1~2 帧冲过小 ease 区无感，回程在 ease≈0.05 拖 ~1s：期间手臂仍挂帧动画条（旋转基准前手 ~39°）但锚点已 95% 混回旧链（静态条基准后手 ~84°），45° 基准差挂着慢爬。
+- **修复**：`_aimEaseT` 指数趋近改线性推进（`±dtMs/transitionMs` 钳制 [0,1]）——去程=回程严格 250ms 镜像倒放、干净归零；smoothstep 保留端点柔化。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——回程倒放流畅度、去/回端点静态条⇄帧条衔接（两端存在固有 ~45° 基准差，去程用户已接受，若回程端点跳变仍明显需再处理）。
+
+### 对话：回程左臂微小形变排查 + 瞄准上抬减 15px（V0.254 → V0.255-aimtune）
+- **左臂形变根因（素材异物，非代码）**：帧 11 头肩区泄漏一块 446px 头部碎片（提取 mid 路径误纳，且与手臂同连通域，不能按组件删）——回程播到帧 11 闪现一帧。修复：按"帧 11 独有（邻帧无）+ 头肩区 (x195-236,y68-101)"精确删除，后臂区像素 2083→1637（与邻帧 1669/1574 连续）；清理步骤已写入 `tools/aim-frames-extract.py`（重跑幂等自清理，换视频后需人工复核该区域）。
+- **上抬调低**：`aimFrames.liftAdjustY`（世界 px，正=少抬，默认 15）——帧公式锚点 fy 加该值，经 blend 自动 ×ease（腰射端不变、瞄准端少抬 15px，水平不变）。
+- **离线数值模型**（player.size 18 / 贴图 120px / akm 真实配置）：旧链锚点 (−3.9,−9) ↔ 帧公式瞄准端 (19.4,−34.3)，证实 blend 必需（纯公式端点跳变 ~46px）；瞄准端原上抬 ~25px，调后 ~10px。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；帧 11 目检+像素连续性 ✅。
+
+### 对话：朝左瞄准手臂消失+无动画（V0.255 → V0.256-aimflip）
+- **根因**：BootScene aimframes 镜像烘焙的 `ctx.translate(i*fw+fw, i*fw)`——Y 平移误写为 `i*fw`，帧 1~13 全部被画到 516px 高的画布外，镜像 sheet 只有帧 0 有内容；朝左瞄准 `setFrame(fi>0)` 取到空白帧 → 手臂消失、无动画（朝右用原 sheet 故正常）。修为 `translate(i*fw+fw, 0)` 并加注释防回归。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——朝左瞄准动画/镜像帧位置、朝左回程。
+
+### 对话：瞄准过渡垂直-only + 双手枪械持位后移 8px（V0.256 → V0.257-aimvertonly）
+- **垂直-only 过渡（用户设定）**：`_computeGunAnchor` aimFrames 分支改为 X 恒用旧链（腰射锚点轨道）、仅 Y 混向帧公式高度——进入瞄准武器只做垂直移动；holdOffset 调整自动同步到腰射/瞄准两端（无需另配 liftAdjustX）。
+- **双手枪械持位后移 8px**：akm/pkm/qbz191/qjb201/energy_lmg/shotgun 六类的 holdOffsetX 全部 −56 → −64（top/idle/walk 共 18 处，public/data/weapon-anim-config.json 单份）；朝左经 lx 镜像自动反向。
+- **测试结果**：lint ✅（0 error，15 warning 存量）；vite build ✅；test-collider ✅。实机待验证——垂直-only 抬枪观感、后移 8px 手-枪贴合、瞄准中 360°（X 腰射轨道+Y 帧高度的混合在极端仰/俯角的表现）。
+
+### 对话：V0.257 整批退回（V0.257 → V0.258-revert257）
+- **用户指令退回**：撤销垂直-only 过渡（恢复 X/Y 双通道帧公式 blend）+ 双手枪械 holdOffsetX 后移 8px（git restore 回 −56，18 处）；代码状态 = V0.256-aimflip。CHANGELOG 保留 V0.257 条目作记录。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；akm holdOffsetX 复核 −56 ✅。
+
+### 对话：仅重做双手枪械后移 8px（V0.258 → V0.259-gunback8）
+- **用户指定**：只保留"双手枪械贴图后移 8px"，瞄准过渡维持 V0.256 双通道 blend 不动。akm/pkm/qbz191/qjb201/energy_lmg/shotgun holdOffsetX −56 → −64（top/idle/walk 共 18 处，public/data/weapon-anim-config.json 单份）。注意：瞄准过渡 X 为帧公式（非腰射轨道），腰射⇄瞄准的 X 不随 holdOffset 联动，若两端 X 观感不一致需另行处理。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——后移 8px 手-枪贴合、瞄准过渡两端衔接。
+
+### 对话：瞄准端同步后移 8px（V0.259 → V0.260-aimback8）
+- **用户问"瞄准模式武器位置是否固定"**：否——帧公式锚点随鼠标 360° 绕肩关节转动。为与腰射端 holdOffsetX −64 对齐，新增 `aimFrames.liftAdjustX: -8`（世界 px，负=朝向系后移/靠近身体，朝左自动镜像），整个瞄准轨迹圆后移 8px；经 blend ×ease，腰射端不受影响。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——腰射⇄瞄准 X 一致感、瞄准中 360° 后移观感。
+
+### 对话：武器贴图位置微调（腰射 +5Y / 瞄准 −3Y 后移 3，不动手臂系统）（V0.260 → V0.261-gunpos5）
+- **腰射端**：六类双手枪械 holdOffsetY −9 → −4（top/idle/walk 共 18 处，下移 5px）。
+- **瞄准端**：`liftAdjustY` 15 → 12（少抬 3px）、`liftAdjustX` −8 → −11（再后移 3px）。
+- **过渡轨迹**：随两端自动变化（blend 插值）；手臂动画系统未动（手臂仍按既有机制跟握把）。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——两端位置手感、过渡轨迹。
+
+### 对话：双手枪冲刺开火腿部强制 walking + 消烟尘 + 烟尘再上移 5px（V0.261 → V0.262-sprintfirewalk）
+- **根因（V0.242 遗留半实现）**：双手枪开火只把 update.js 局部 `sprint` 置 false（减速/体力生效），`_isSprinting` 独立计算未同步 → 腿层仍播 runlegs、武器位置仍 running 配置、烟尘照常。
+- **修复**：`_twoHandedGunFiring`（双手枪械 && 左键）统一从 `_isSprinting` 与烟尘 `sprint` 门中排除——腿部动画回 walklegs、武器位置回 walking 配置（既有机制自动跟随）、该状态不再出烟尘；手枪冲刺开火不受影响。
+- **烟尘上移**：两处 createDustEffect y −5（含 PKM 系浓烟）。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——AKM 冲刺开火腿动画/烟尘、停止开火后恢复 runlegs、烟尘位置。
+
+### 对话：V0.262 实机失败——腿层仍不切 walking（V0.262 → V0.263-gunfirelegs）
+- **根因（第二层）**：`_isSprinting` 已正确置 false，但枪开火时 `weaponAnim.state='attacking'`（weapon-anim.js:262），`_updatePlayerAnimation` 的"攻击期间不覆盖"early-return 把腿层逻辑整个冻结——runlegs 永远不被重评。该守卫本意是保护近战 attack_sword 动画（在 playerSprite 上），但枪的攻击动画在武器贴图层、playerSprite 只承载腿/躯干层，误伤枪械。
+- **修复**：early-return 加枪械放行（`_isGunPose` 时跳过攻击守卫），近战守卫不变。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——AKM 冲刺开火切 walklegs/消烟尘/武器回 walking 位、停火恢复、手枪冲刺开火保持 runlegs。
+
+## 2026-07-27（aimFrames 工程落地：视频驱动腰射切瞄准，当日回退）
+
+### 对话：用户 AI 视频（更换背景并去除阴影 (3).mp4，121 帧）驱动腰射切瞄准动画；先备份（backup/2026-07-27-aimanim/）
+- **素材管线（子代理完成）**：背景色距抠图 → 缩放+逐帧模板重叠最大化对齐（角色源帧间真实左移 11px 需逐帧配准）→ 分区中值底板+模板减法/稳健差分提取手臂 → 连通域过滤 → 14 帧手臂条 `gun_aim_frames.png` + 逐帧手部坐标 `gun_aim_frames.json`（轨迹 腰前(368,211)→肩高(338,110) 平滑无跳变，pivot (226,137)）。
+- **配置**：`twist.aimFrames { src, frameCount: 14, pivotX/Y, hands[14], transitionMs: 250 }` 嵌入 player-anim-config（双份），aimLift 机制移除（被取代）。
+- **运行时**：BootScene 加载 `_aimframes` sheet + 逐帧镜像烘焙（整 sheet 翻转会颠倒帧序，按帧槽位逐帧镜像）；`_syncGunArm` 在 aimFrames 存在时按 `_aimEase` 播帧（frameIdx=round(ease×13)），旋转 = `atan2(握把−肩) − 帧自然角`（帧间连续）；`_computeGunAnchor` aimFrames 分支优先——锚点 = `肩 + R(世界瞄准角 − 帧自然角) × (帧手 − 肩)`，枪与手臂帧严格一体（死区用 _effectiveAim 同口径）。
+- **版本**：V0.250-muzzlebake → V0.251-aimframes。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——过渡帧流畅度（transitionMs 可调）、瞄准时手臂-枪一体感、退出回落、死区内表现。
+- **热修**：`_computeGunAnchor` 的 `twistCfg` 声明晚于 aimFrames 分支引用导致 `Cannot access before initialization` 报错——声明上移到函数顶部（V0.251 同版本号内修复）。
+
+## 2026-07-26（火焰左右不对称根修：rotOffset 随 flipY 镜像）
+
+### 对话：AKM 修好了但沙鹰仍不对称
+- **根因**：沙鹰 `rotOffset = -6°` 在瞄左（贴图 flipY）时未镜像取反——右 -6° ↔ 左应 +6°，双侧同用 -6° 导致枪管方向左右差 12°，火焰/弹道同偏；AKM rotOffset=0 故无恙。
+- **修复**：主/副手 rotOffset 均按 flipY 条件取反应用（`rot += flipY ? -offset : offset`）。
+- **版本**：V0.243-colliderkit → V0.244-rotmirror。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+### 对话：手枪摆动同步上身幅度/手枪可跑步开火（双手枪不行）/烟尘上移 5px 仅跑步/火焰前移 3px
+- **武器 bob 倍率**：`_syncGunTwist` 记录 `_bobDelta`（含方向），`_computeGunAnchor` 按 `bobWeaponScale` 追加 `(scale−1)×`——武器 bob = 上身 × 倍率且方向对齐；pistol/deagle/p4040 设 2。
+- **手枪跑步开火（平衡调整）**：`update.js` 攻击打断奔跑条件收窄——仅"非枪械（近战）或双手枪械"打断；单手持枪（含双持手枪）可全程冲刺开火；双手枪（机枪/突击步枪）维持禁跑+50% 减速语义。
+- **脚底烟尘**：y+10 → y+5 贴脚；生成条件加 sprint 门——走路不再出烟尘，仅跑步（含双手枪禁跑后同步消失）。
+- **火焰/子弹点前移**：`_getMuzzleWorldPosition` 加 `muzzle.forward`（默认 3px 沿枪管方向，可按枪配置）。
+- **版本**：V0.241-muzzle → V0.242-sprintfire。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——手枪冲刺开火手感、武器 2× bob 幅度、烟尘位置/仅跑步、火焰距离。
+
+### 对话：沙鹰贴图逆时针与臂平行（臂枪一体瞄准）+ 子弹不在枪口出 + 移植特工突击枪口火光
+- **贴图倾角**：deagle rotOffset = -6（与 pistol 的 -5 同族，臂枪一体观感，可 nudge）。
+- **枪口点配置化（子弹不在枪口出的根因）**：旧逻辑枪口=贴图右缘中点（displayWidth/2），但沙鹰/G18 图标是大画布+枪身只占中间带，右缘≠枪管口且垂直错位。新增 `WeaponAnimConfig[wt].muzzle {x, y}`（贴图内分数坐标），`_getMuzzleWorldPosition` 按 `center + R(rot)×((x−0.5)w,(y−0.5)h)` 计算（fracX=1.0/fracY=0.5 时与旧行为一致）：deagle (0.94, 0.35)、pistol (0.95, 0.19)、akm (0.96, 0.52)。
+- **玩家版特工火光**：`GameScene.playMuzzleFire`（金色粒子爆发，impact_dot/ADD/140ms）接入 `_fireRanged` 全部 4 个开火点（主手/副手/机枪/霰弹），与既有 MuzzleFlashEffect 并存。
+- **版本**：V0.240-pistolaim → V0.241-muzzle。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——沙鹰贴图与臂平行度（rotOffset 微调）、子弹从枪管口出、火光观感；其他枪 muzzle 待逐枪实测配置。
+
+### 对话：手枪有点向下瞄准（角度偏移）；单持枪后移 2px 近头、双持前移 2px 远头
+- **"向下瞄准"根因**：图标实测水平（顶边 0.18°），下俯感来自视差——手在脚上方 ~40px，枪线=手→准心（脚/身高度）形成自然下倾角。新增 `WeaponAnimConfig[wt].rotOffset`（度，主/副手同口径作用于枪械 rot），pistol 设 -5 起步（可 nudge）。
+- **单持后移**：pistol holdOffsetX 8 → 6（三处同步）。
+- **双持前移**：新增 `dualOffsetX`（配置 2，世界 px，翻转镜像）——`_computeGunAnchor` 检测副手为手枪时主/副手锚点同步前移（`_computeGunAnchor` 末端统一加，顺带把两分支 return 重构为单出口）。
+- **版本**：V0.239-pistolbob → V0.240-pistolaim。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——rotOffset 角度手感（-5 起步可调）、双持前移量。
+
+### 对话：跑动时武器要跟随抖动 + 手枪幅度加大（尤其左右）
+- **核实**：武器锚点本就绕含 bob 的腰轴旋转（`_computeGunAnchor` 读 `_twistState.pivot`），武器贴图结构上就跟随体感，无需新代码；此前幅度小不易察觉。
+- **手枪幅度**：`gun_idle_pistol`/`gun_idle_dual` 的 walkLegs/runLegs `bobScale` 1.2（上下）+ `bobXScale` 0.85（左右，原为 0.5）。
+- **版本**：V0.238-torsoshiftx → V0.239-pistolbob（纯配置改动）。
+
+### 对话：手枪上半身贴图错位，向右时左移 2px
+- 新增 `twist.torsoShiftX`（世界 px，随翻转镜像）——与 torsoShiftY 同语义，躯干/肩/枪锚点随动；`gun_idle_pistol`/`gun_idle_dual` 配置 -2。
+- **版本**：V0.237-walkbobx → V0.238-torsoshiftx。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+### 对话：walking 上半身也要轻微前后移动（参考 running）
+- **数据**：原 walk.png 逐帧髋部质心 X（21 帧，deltas ±7 tex px）写 `walkLegs.bodyBobX`（三姿态同步），`bobXScale` 默认 0.5 轻微档；应用逻辑与 run 共用（含方向取反修正），无新代码。
+- **版本**：V0.236-linethick → V0.237-walkbobx（纯配置改动）。
+
+### 对话：AI 手枪姿态与旧素材线条粗细有差异，求加粗
+- **做法**：暗色像素（轮廓/关节，lum<140）向透明邻域膨胀 1px（`assets/player/gun_idle_pistol.png`、`gun_idle_dual.png` 全身图先加粗，再按同多边形重切 torso/arm，避免切口描边伪影）。
+- **效果**：关节/肋骨/臂骨线条与旧版骷髅风格一致；拼接合成复检完整。
+- **版本**：V0.235-deadcone → V0.236-linethick（纯资产处理，无代码改动）。
+
+## 2026-07-26（双持手枪姿态通道：gun_idle_dual 自动切换）
+
+### 对话：双持手枪用端枪姿态不和谐，是否 AI 重生成双持姿势
+- **结论**：走姿态层扩展（正解）——用户 AI 出"双臂前伸瞄准"双持姿态图，助手接管管线。
+- **已铺 plumbing**：`_updatePlayerAnimation` 新增 `_resolveGunPose()`——副手为手枪且 `gun_idle_dual` 已配置时用双持姿态，否则回退 `gun_idle`；持枪移动走腿键同步按解析出的姿态键派生。素材到位仅需 JSON 加条目（legsSrc/torsoSrc/pivot/arm/walkLegs 可复用 gun_walk_legs）。
+- **版本**：V0.228-offhand → V0.229-dualpose。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+## 2026-07-26（idle 错位根修 + AKM idle/walk 同步）
+
+### 对话：idle 上下身错位（walking 正常）/AKM walk 新位置/idle 同步
+- **idle 错位根因**：`anims.stop()` 后 `currentAnim` 引用**不清空**——站立时逐帧髋部跟随（framePivotX）仍在用走路最后一帧的偏移量（+55~67 tex px ≈ 13px），躯干被错误右移；walking 时跟随正常故不错位。修复：`_syncGunTwist` 的 framePivotX 分支加 `anims.isPlaying` 校验（站立归零）。
+- **AKM 配置同步**：walk 用户新调 `(-56, -5, rot 0, scale 1)`；idle 同步同值（用户确认 scale 1.55 → 1 回调）。
+- **版本**：V0.219-gunanchor → V0.220-idlefix。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+- **已知问题**：实机待验证——站立/移动切换时躯干不再跳、枪位两态一致。
+
+## 2026-07-26（逐帧导出交接流首次实战：剑攻击 30 帧应用）
+
+### 对话：用户面板优化近战武器贴图位置，导出→合并验证
+- 用户面板调整剑攻击逐帧位置 → 💾导出 `weapon-frames/latest.js` → 助手合并：30 帧中 17 帧变化，写入 `public/data/weapon-anim-config.json`（**注意：weapon-anim-config.json 仅 public/data 单份**，data/ 下无此文件，与其它双份配置不同）。
+- 交接流全链路验证通过（面板→导出文件→合并→build ✅）。
+
+
+## 2026-07-26（AKM 无法开枪：弹药初始化回退修复）
+
+### 对话：无法开枪排查（控制台诊断定位）
+- **诊断过程**：控制台两段诊断——②`_getAmmoState` 为 **null**（弹药状态从未初始化 → `_hasAmmo` 恒 false → 输入链拦截）；强制触发 `triggerWeaponAnim` 成功（`rangedFired: true`）证明开火链路完好，与本次动画改动无关。
+- **根因（v1.11 同款模式复发）**：runtime AKM 实例缺 `ammoConfig/fireMode/attackKey`（equipment.json 该条目本就无这些键，靠 main.js 启动时从 EquipDataManager 合并补齐）；该实例未经合并路径获得（获取路径待查，可能为掉落/仓库/存档旁路），`_initAmmoForSlot` 只读 `item.ammoConfig` 无回退 → 弹药状态 null。
+- **修复（共享链路，原则10）**：`_initAmmoForSlot` 改用 `getAmmoConfig(item)`（`item.ammoConfig || GUN_AMMO_CAP[weaponId]`，与 combatant/图鉴/tooltip 同口径）——任何获取路径的枪械实例都能初始化弹药，无需逐路径补数据。energy_lmg（max:Infinity）行为不变。
+- **版本**：V0.212-gunidle → V0.213-ammofix。
+- **修改文件**：`src/entities/player/subsystems.js`（+1 import、改 1 行）、`index.html`、CHANGELOG.md。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **教训沉淀**：系统逻辑完好的"功能失效"优先查数据/配置完整性（v2.7 弹反同款）；启动时合并（main.js）只覆盖 ItemDatabase 一条路径，消费端回退才是全路径兜底。
+- **文档**：SKILL.md 新增「枪械无法开火排查手册」——开火链路四段断点地图（输入六闸门/状态机/发射/枪口定位）+ 历史全部案例索引 + 即用两段式诊断脚本，实机验证 AKM 开火恢复。
+- **已知问题**：实机待验证——AKM 开火/弹药计数/打空自动换弹；该 AKM 缺字段的获取路径未查明（如有重现路径请记录）。
+- **追加（同批）**：①`devToolFps` 输入框补进运行时面板构建器 `src/ui/panels/dev-tools.js`（运行时面板由它动态创建，此前只改了未被使用的 `ui/components/dev-tool-panel.html`——**教训：dev-tool 面板 DOM 有两个来源，panels/dev-tools.js 才是运行时真相**）；②`devToolScaleInfo` 警告刷屏修复——`_updateScaleInfo` 改原生 `getElementById` 静默判空（dom-utils 的 getElement 每次缺失打警告，拖动时数千条刷屏，恰好淹没了本次诊断信息）。
+
 ## 2026-07-26（矿石蜘蛛死亡序列修复：尸体字段对齐）
 
 ### 对话：死亡后无下砸+死亡动画——尸体机制字段名不匹配

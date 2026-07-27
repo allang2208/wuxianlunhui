@@ -21,6 +21,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     loadWeaponConfig: () => ipcRenderer.invoke('load-weapon-config'),
     saveWeaponConfig: (config) => ipcRenderer.invoke('save-weapon-config', config),
 
+    // 逐帧武器数据导出（开发面板💾保存时覆盖写 weapon-frames/latest.js）
+    saveWeaponFrames: (payload) => ipcRenderer.invoke('save-weapon-frames', payload),
+
     // 通用 JSON 读写（限 data/ 目录，墙壁预制库等编辑器数据）
     loadJson: (rel) => ipcRenderer.invoke('load-json', rel),
     saveJson: (rel, data) => ipcRenderer.invoke('save-json', rel, data)

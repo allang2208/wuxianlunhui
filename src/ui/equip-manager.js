@@ -9,7 +9,7 @@ import { ItemDatabase } from '../items/item-database.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
-import { isOneHanded, isTwoHanded } from '../config/gun-ammo.js';
+import { isOneHanded, isTwoHanded, getEquipSound } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
@@ -667,9 +667,10 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                         }
-                        // 装备Super90时播放枪栓音效
-                        if (item.equipSound && SoundManager && SoundManager.playFile) {
-                            SoundManager.playFile(item.equipSound);
+                        // 装备Super90时播放枪栓音效（getEquipSound 回退武器ID）
+                        const equipSnd = getEquipSound(item);
+                        if (equipSnd && SoundManager && SoundManager.playFile) {
+                            SoundManager.playFile(equipSnd);
                         }
                     } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;

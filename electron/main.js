@@ -113,6 +113,32 @@ ipcMain.handle('save-weapon-config', async (_event, config) => {
     }
 });
 
+// 逐帧武器数据导出：开发面板💾保存时覆盖写固定文件（供助手读取合并进正式配置）
+function getWeaponFramesPath() {
+    const isDev = process.env.NODE_ENV === 'development';
+    return isDev
+        ? path.join(__dirname, '../weapon-frames/latest.js')
+        : path.join(app.getPath('userData'), 'weapon-frames', 'latest.js');
+}
+
+function formatWeaponFramesFile(payload) {
+    return '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件）\n'
+        + '// 合并方式：把 frames 数组合并进 public/data/weapon-anim-config.json 对应武器的 attack.frames（该配置仅此单份）\n'
+        + 'export default ' + JSON.stringify(payload, null, 2) + '\n';
+}
+
+ipcMain.handle('save-weapon-frames', async (_event, payload) => {
+    const target = getWeaponFramesPath();
+    try {
+        await fs.promises.mkdir(path.dirname(target), { recursive: true });
+        await fs.promises.writeFile(target, formatWeaponFramesFile(payload), 'utf8');
+        return { success: true, path: target };
+    } catch (err) {
+        console.error('[main] Failed to save weapon frames:', err);
+        throw err;
+    }
+});
+
 // 通用 JSON 读写（限 data/ 目录，供墙壁预制库等编辑器数据持久化）
 function getJsonPaths(rel) {
     const isDev = process.env.NODE_ENV === 'development';
