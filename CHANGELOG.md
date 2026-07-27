@@ -189,6 +189,99 @@
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
 - **已知问题**：实机待验证——换武器时角色尺寸不再跳、枪在手位置微调（面板可再 nudge）。
 
+## 2026-07-26（副手锚点与主手同口径）
+
+### 对话：双持手枪副手锚点不随扭转——同步改造
+- **重构**：扭转锚点逻辑从 syncWeapon 提取为 `_computeGunAnchor(player, wt, animState, isOffhand)`（躯干空间 + 钳制内腰轴轨道 + 超出角肩轴连续旋转），主手路径改为调用助手，行为不变。
+- **副手接入**：`syncOffhandWeapon` 扭转激活时调用同一助手（`isOffhand=true` 走 offBase 偏移）；并补齐主手同款**握把旋转轴心补偿**（`grip` 配置 + flipY 时 gcy 取反，flipY 判定前移复用）。
+- **版本**：V0.227-scalematch → V0.228-offhand。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——双持手枪（G18 主+副）360° 瞄准副手贴合；副手无手臂条（视觉仅枪体，属预期）。
+
+## 2026-07-26（持枪跑步腿层：gun_run_legs）
+
+### 对话：双手枪械跑步下半身——近战跑步动画裁片拼接
+- **管线（同走腿）**：`assets/character/running.png` 第一行 8 帧（512×512/帧）按髋节线 y=272 裁下半身 → 连通域保 top2（两腿）→ 逐帧对齐 idle 基准（髋 X=217 / 脚 Y=492）+ **内容不出帧钳制**（帧 0 后摆脚保完整，该帧髋差 ~24 tex px 可接受）→ `gun_run_legs.png`（8×1）。
+- **配置/加载**：`twist.runLegs`（双份 JSON）；BootScene 腿层加载/动画注册泛化为 walkLegs+runLegs 循环。
+- **切换**：`_updatePlayerAnimation` 持枪分支——`_isSprinting` 且有 runLegs 配置时播跑步腿动画（原生 10fps），否则走 legs（原 1.5 倍速 hack 移除）；走⇄跑⇄停随 twist 躯干/手臂/枪锚点链路不变。
+- **版本**：V0.229-dualpose → V0.230-runlegs。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；合成目检 ✅。
+- **已知问题**：实机待验证——跑步姿态衔接、帧 0 后摆脚完整度、开火禁跑回 walking 腿动画。
+
+## 2026-07-26（走/跑身体起伏：bodyBobY 数据驱动）
+
+### 对话：跑步僵硬——上半身应同频轻微起伏
+- **数据**：从原动画（character/walk.png 21 帧 / running.png 8 帧）逐帧量头顶 Y，得身体起伏序列（振幅均 ~12 tex px ≈ 2.8 世界 px），写入 `walkLegs.bodyBobY` / `runLegs.bodyBobY`（双份 JSON，含 bobScale 可调）。
+- **实现**：`_syncGunTwist` 按当前腿动画帧索引把 delta 加到腰轴世界 Y——躯干/肩/枪锚点随动起伏，腿保持脚底贴地（髋缝处自然伸缩）；带 isPlaying 防御（站立归零，不沿用 stop() 残留的 currentAnim）。
+- **版本**：V0.230-runlegs → V0.231-bodybob。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——起伏幅度观感（bobScale 可调）、与瞄准扭转叠加自然度。
+
+## 2026-07-26（单持/双持手枪姿态接入）
+
+### 对话：用户 AI 出图（Downloads/单持手枪.png、双持手枪.png，纯黑底）
+- **管线**：纯黑底阈值抠图 → 基准化（内容 477/脚 492）→ 髋部对齐 217（单持 +9 / 双持 +35 X 平移）→ 躯干裁 y<270（骨盆完整）→ 手臂条多边形（单持肩球(195,98)+前臂至手(365,103)；双持双臂，前手扩界防切断+残留清零）→ `assets/player/gun_idle_pistol{,_torso,_arm}.png` / `gun_idle_dual{,_torso,_arm}.png`（全身图留作面板/参考）。
+- **配置**：`player-anim-config.json` 双份加 `gun_idle_pistol`/`gun_idle_dual`——legs/walkLegs/runLegs 复用 gun_idle 现有件，轴心实测（pivot (217,240)；单持 arm (200,100)/(365,103)，双持 arm (195,100)/(390,95)）。
+- **三路姿态解析**：`_resolveGunPose` 升级——副手手枪→dual，主手手枪→pistol，其余→gun_idle，逐级回退。
+- **锚点**：主手 pistol holdOffset (-4,-52)（前伸手位 (365,103)，全局/idle/walk 同步）；副手 `WEAPON_TRANSFORM_CONFIG.pistol.offBase` 改 (-23,19)（双持低手位 (330,115)，与主手 holdOffset 同解）；G18 grip 暂缺省中心待实机评。
+- **版本**：V0.231-bodybob → V0.232-pistolpose。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；合成目检（两姿态全身衔接）✅。
+- **已知问题**：实机待验证——单/双持自动切换、双手枪贴贴合度（面板可 nudge 后叫我合并）、手臂条追枪。
+
+## 2026-07-26（手枪三件套：贴图缩小右移 + 轮廓还原 + 后坐上身抖动）
+
+### 对话：手枪贴图缩 40% 右移 25px / 黑底抠掉黑轮廓 / 开火要后坐上身抖动
+- **手枪贴图**：pistol/deagle/p4040 全部 idleScale 0.6（-40%）、holdOffsetX +25（全局/idle/walk 同步，全角度生效）。
+- **黑轮廓还原（无需重出白底）**：从 Downloads 源图重抠——本体（lum≥25）外扩 2px 圈内的暗像素恢复为近黑轮廓（单持 64k/双持 68k px），重跑对齐/裁躯干/手臂条管线，轮廓完整（关节描边恢复）。**以后新姿势黑底白底都行，白底更省事**。
+- **后坐上身抖动**：`_syncGunTwist` 开火时读 `_getWeaponAnimParams().recoil`（枪械状态机驱动的既有后坐量），按 `twist.recoilTorsoScale`（默认 0.3，0 关闭）反向作用于腰轴——躯干/肩/枪锚点同步后坐，腿不动；与 bodyBob 起伏/瞄准扭转正交叠加。
+- **版本**：V0.232-pistolpose → V0.233-pistolkit。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅；轮廓合成目检 ✅。
+- **已知问题**：实机待验证——手枪贴图大小/右移量、后坐抖动幅度（recoilTorsoScale 可调）。
+
+## 2026-07-26（四连修：手枪左移/跑步左右摇摆/移动中换武器/瞄准死区）
+
+### 对话：手枪再左移 5px、跑步上身需左右摆动、移动中换武器姿态不切换、近距离瞄准扭曲（用户定枪械近战弱设定）
+- **手枪左移**：pistol/deagle/p4040 holdOffsetX 再 -5（16/20/20 → 11/15/15，三处同步）。
+- **跑步左右摇摆**：原 running.png 逐帧髋部质心 X（deltas ±23 tex px）写 `runLegs.bodyBobX`，`_syncGunTwist` 按帧索引作用于腰轴 X（翻转镜像，`bobXScale` 默认 0.5 轻微档可调）。
+- **移动中换武器不切换（根因修复）**：gun_walk 分支只在 `_twistConfig` 为空时初始化分层——换武器后旧 twist 残留。修复：姿态键变化（`_twistTexKey !== 新姿态`）即 `setPlayerAnimation(新姿态)` 重建腿/躯干/手臂层。
+- **瞄准死区（游戏机制落地）**：`twist.aimDeadZone`（默认 160 世界 px，0 可关）——准心进入死区后冻结：①姿态/扭转用最后自由瞄准角（`_lastFreeAim`）；②主/副手枪贴图旋转冻结；③锚点超出角计算冻结；④**弹道同步冻结**（`_fireRanged` 把 target 改写为冻结角 2000px 远点）——贴图=弹道=冻结角一致，枪械近战弱成为真实机制，近战武器获得贴身空间。
+- **版本**：V0.233-pistolkit → V0.234-aimfreeze。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——死区边界进出顺滑度（160 可调）、移动中 AKM⇄双持切换、跑步左右摆幅度（bobXScale 可调）。
+
+## 2026-07-26（bobX 方向反转 + 死区改可调锥）
+
+### 对话：跑步前后抖方向全反；死区硬冻结太僵硬，近距也要能小幅调方向
+- **bobX 反转**：实测序列与步态前后方向相反，应用点取反（一处符号）。
+- **死区可调锥（`aimDeadZoneCone`，默认 20°）**：取代硬冻结——准心进入死区后，以进入时的自由瞄准角为基准，仅允许 ±20° 内调整。姿态/扭转、主副手贴图、锚点超出角、弹道统一改用 `_effectiveAim`（可调锥角），武器与手臂一体、可小幅跟枪但打不准的设定保留：锥外方向偏转被钳住，贴身扫射沿基准 ±20° 散开。边界进出连续（基准角=进入时自由角）。
+- **版本**：V0.234-aimfreeze → V0.235-deadcone。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+- **已知问题**：实机待验证——锥角大小手感（aimDeadZoneCone 可调 10~30）、摇摆方向。
+
+## 2026-07-26（手枪姿态躯干左移 2px：torsoShiftX）
+
+### 对话：手枪上半身贴图错位，向右时左移 2px
+- 新增 `twist.torsoShiftX`（世界 px，随翻转镜像）——与 torsoShiftY 同语义，躯干/肩/枪锚点随动；`gun_idle_pistol`/`gun_idle_dual` 配置 -2。
+- **版本**：V0.237-walkbobx → V0.238-torsoshiftx。
+- **测试结果**：lint ✅（0 error）；vite build ✅。
+
+### 对话：walking 上半身也要轻微前后移动（参考 running）
+- **数据**：原 walk.png 逐帧髋部质心 X（21 帧，deltas ±7 tex px）写 `walkLegs.bodyBobX`（三姿态同步），`bobXScale` 默认 0.5 轻微档；应用逻辑与 run 共用（含方向取反修正），无新代码。
+- **版本**：V0.236-linethick → V0.237-walkbobx（纯配置改动）。
+
+### 对话：AI 手枪姿态与旧素材线条粗细有差异，求加粗
+- **做法**：暗色像素（轮廓/关节，lum<140）向透明邻域膨胀 1px（`assets/player/gun_idle_pistol.png`、`gun_idle_dual.png` 全身图先加粗，再按同多边形重切 torso/arm，避免切口描边伪影）。
+- **效果**：关节/肋骨/臂骨线条与旧版骷髅风格一致；拼接合成复检完整。
+- **版本**：V0.235-deadcone → V0.236-linethick（纯资产处理，无代码改动）。
+
+## 2026-07-26（双持手枪姿态通道：gun_idle_dual 自动切换）
+
+### 对话：双持手枪用端枪姿态不和谐，是否 AI 重生成双持姿势
+- **结论**：走姿态层扩展（正解）——用户 AI 出"双臂前伸瞄准"双持姿态图，助手接管管线。
+- **已铺 plumbing**：`_updatePlayerAnimation` 新增 `_resolveGunPose()`——副手为手枪且 `gun_idle_dual` 已配置时用双持姿态，否则回退 `gun_idle`；持枪移动走腿键同步按解析出的姿态键派生。素材到位仅需 JSON 加条目（legsSrc/torsoSrc/pivot/arm/walkLegs 可复用 gun_walk_legs）。
+- **版本**：V0.228-offhand → V0.229-dualpose。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
 ## 2026-07-26（idle 错位根修 + AKM idle/walk 同步）
 
 ### 对话：idle 上下身错位（walking 正常）/AKM walk 新位置/idle 同步

@@ -1213,7 +1213,26 @@ export class GameScene extends Scene {
         const dispH = this.playerSprite.displayHeight;
         // 瞄准角（世界）与面向（±0.05 死区防正上/正下翻转抖动）
         const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-        const aim = Math.atan2(mouseWorld.y - player.y, mouseWorld.x - player.x);
+        const rawAim = Math.atan2(mouseWorld.y - player.y, mouseWorld.x - player.x);
+        // 瞄准死区：准心贴近玩家时进入"可调锥"模式（枪械近战弱的设计设定）——
+        // 以进入死区时的自由瞄准角为基准，仅允许 ±aimDeadZoneCone 内调整：
+        // 姿态/贴图不再扭曲跳变，但武器与手臂仍可小幅跟枪（贴图=弹道同口径）
+        const deadZone = twist.aimDeadZone ?? 160;
+        const distToMouse = Math.hypot(mouseWorld.x - player.x, mouseWorld.y - player.y);
+        let aim;
+        if (distToMouse >= deadZone) {
+            aim = rawAim;
+            this._lastFreeAim = rawAim;
+            this._frozenAimActive = false;
+        } else {
+            const cone = (twist.aimDeadZoneCone ?? 20) * Math.PI / 180;
+            const base = this._lastFreeAim !== undefined ? this._lastFreeAim : rawAim;
+            let diff = rawAim - base;
+            diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+            aim = base + Math.max(-cone, Math.min(cone, diff));
+            this._frozenAimActive = true;
+        }
+        this._effectiveAim = aim;
         let facingRight = this._twistState ? this._twistState.facingRight : true;
         if (Math.cos(aim) > 0.05) facingRight = true;
         else if (Math.cos(aim) < -0.05) facingRight = false;
@@ -1228,8 +1247,42 @@ export class GameScene extends Scene {
         // 不再需要逐帧髋部跟随；torsoShiftY 为躯干整体下移微调（世界 px，配置驱动）
         const pivotLocalX = (twist.pivotX / frameW - 0.5) * dispW;
         const pivotLocalY = (twist.pivotY / frameH - 0.5) * dispH;
-        const pivotWorldX = this.playerSprite.x + (facingRight ? pivotLocalX : -pivotLocalX);
-        const pivotWorldY = this.playerSprite.y + pivotLocalY + (twist.torsoShiftY || 0);
+        // torsoShiftX/torsoShiftY：躯干整体位置微调（世界 px，配置驱动；X 随翻转镜像）
+        const torsoShiftX = twist.torsoShiftX || 0;
+        let pivotWorldX = this.playerSprite.x + (facingRight ? pivotLocalX + torsoShiftX : -pivotLocalX - torsoShiftX);
+        let pivotWorldY = this.playerSprite.y + pivotLocalY + (twist.torsoShiftY || 0);
+
+        // 开火后坐上身抖动：读武器动画的 recoil（枪械状态机驱动），取小比例反向作用于腰轴——
+        // 躯干/肩/枪锚点同步后坐（腿不动），twist.recoilTorsoScale 配置比例（0 关闭）
+        const torsoRecoilScale = twist.recoilTorsoScale !== undefined ? twist.recoilTorsoScale : 0.3;
+        if (torsoRecoilScale > 0 && player.weaponAnim && player.weaponAnim.state && player.weaponAnim.state !== 'idle') {
+            const recoilParams = typeof player._getWeaponAnimParams === 'function' ? player._getWeaponAnimParams() : null;
+            const recoil = (recoilParams && recoilParams.recoil) || 0;
+            if (recoil !== 0) {
+                const kick = recoil * torsoRecoilScale;
+                pivotWorldX -= Math.cos(aim) * kick;
+                pivotWorldY -= Math.sin(aim) * kick;
+            }
+        }
+
+        // 走/跑周期身体起伏：躯干/肩/枪锚点随原动画体感逐帧上下（bodyBobY 数据驱动，
+        // isPlaying 防御——stop() 后 currentAnim 引用不清空，站立时不得误用走路帧偏移）
+        const curLegsKey = this.playerSprite.anims.isPlaying ? this.playerSprite.anims.currentAnim?.key : null;
+        let bobPart = null;
+        if (curLegsKey === `${this._twistTexKey}_walklegs`) bobPart = twist.walkLegs;
+        else if (curLegsKey === `${this._twistTexKey}_runlegs`) bobPart = twist.runLegs;
+        if (bobPart && bobPart.bodyBobY) {
+            const bobIdx = this.playerSprite.anims.currentFrame ? this.playerSprite.anims.currentFrame.index : 0;
+            const bobScale = bobPart.bobScale !== undefined ? bobPart.bobScale : 1;
+            pivotWorldY += (bobPart.bodyBobY[bobIdx] || 0) * (dispH / bobPart.frameHeight) * bobScale;
+            // 跑步左右摇摆：髋部 X 逐帧偏移（bodyBobX，翻转镜像；bobXScale 默认 0.5 轻微档）
+            if (bobPart.bodyBobX) {
+                const bobXScale = bobPart.bobXScale !== undefined ? bobPart.bobXScale : 0.5;
+                // 方向取反：实测序列与步态前后方向相反（该前时后、该后时前）
+                const bdx = -(bobPart.bodyBobX[bobIdx] || 0) * (dispW / bobPart.frameWidth) * bobXScale;
+                pivotWorldX += facingRight ? bdx : -bdx;
+            }
+        }
         // 躯干层：原点即轴心，贴到轴点旋转；左瞄用烘焙镜像贴图 + 镜像原点（不用 flipX，语义确定）
         const torsoBaseKey = `${this._twistTexKey}_torso`;
         const torsoFlipKey = `${torsoBaseKey}_flip`;
@@ -1345,20 +1398,49 @@ export class GameScene extends Scene {
         if (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle')) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
-        // 持枪移动：腿层播走路腿动画（walk 下半身裁片），躯干层保持（扭转继续由 _syncGunTwist 驱动）
-        const gunIdleDef = currentItem && isGunWeapon(currentItem) ? getPlayerAnimDef('gun_idle') : null;
-        const gunWalkLegsKey = `${playerTextureKey('gun_idle')}_walklegs`;
-        if (gunIdleDef && gunIdleDef.twist && gunIdleDef.twist.walkLegs && player.isMoving && this.anims.exists(gunWalkLegsKey)) {
+        // 持枪姿态解析：双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；
+        // 其余枪械 → gun_idle；配置缺失逐级回退
+        const _resolveGunPose = () => {
+            if (!currentItem || !isGunWeapon(currentItem)) return null;
+            const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
+            const offhandItem = player.equipments[offhandSlot];
+            const isDualPistol = offhandItem && offhandItem.name
+                && (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol');
+            const isPistolMain = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
+            if (isDualPistol) {
+                const dualDef = getPlayerAnimDef('gun_idle_dual');
+                if (dualDef) return { poseKey: 'gun_idle_dual', def: dualDef };
+            }
+            if (isPistolMain) {
+                const pistolDef = getPlayerAnimDef('gun_idle_pistol');
+                if (pistolDef) return { poseKey: 'gun_idle_pistol', def: pistolDef };
+            }
+            const def = getPlayerAnimDef('gun_idle');
+            return def ? { poseKey: 'gun_idle', def } : null;
+        };
+        const gunPose = _resolveGunPose();
+
+        // 持枪移动：腿层播走路/跑步腿动画（下半身裁片），躯干层保持（扭转继续由 _syncGunTwist 驱动）
+        const gunWalkLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_walklegs` : null;
+        const gunRunLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_runlegs` : null;
+        const useRunLegs = player._isSprinting && gunPose && gunPose.def.twist.runLegs
+            && gunRunLegsKey && this.anims.exists(gunRunLegsKey);
+        const legsAnimKey = useRunLegs ? gunRunLegsKey : gunWalkLegsKey;
+        if (gunPose && gunPose.def.twist && gunPose.def.twist.walkLegs && player.isMoving && legsAnimKey && this.anims.exists(legsAnimKey)) {
+            // 移动中切换武器：姿态键变化时重建分层（躯干/手臂/锚点配置随新姿态切换）
+            if (this._twistTexKey !== playerTextureKey(gunPose.poseKey)) {
+                this.setPlayerAnimation(gunPose.poseKey);
+            }
             if (!this._twistConfig) {
                 // 分层未激活（如生成即持枪移动）：先按持枪站立初始化腿/躯干层
-                this.setPlayerAnimation('gun_idle');
+                this.setPlayerAnimation(gunPose.poseKey);
             }
-            if (this.playerSprite.anims.currentAnim?.key !== gunWalkLegsKey || !this.playerSprite.anims.isPlaying) {
+            if (this.playerSprite.anims.currentAnim?.key !== legsAnimKey || !this.playerSprite.anims.isPlaying) {
                 // isPlaying 防御：动画被外部停止（贴图切换/场景事件）时自动重播，防"走一段后卡回静态"
-                this.playerSprite.setTexture(gunWalkLegsKey);
-                this.playerSprite.play(gunWalkLegsKey, true);
+                this.playerSprite.setTexture(legsAnimKey);
+                this.playerSprite.play(legsAnimKey, true);
             }
-            this.playerSprite.anims.timeScale = player._isSprinting ? 1.5 : 1;
+            this.playerSprite.anims.timeScale = 1;
             this._lastPlayerAnimKey = 'gun_walk';
             this._playerAnimIdleStart = 0;
             return;
@@ -1369,9 +1451,9 @@ export class GameScene extends Scene {
             key = 'run';
         } else if (player.isMoving) {
             key = 'walk';
-        } else if (currentItem && isGunWeapon(currentItem) && getPlayerAnimDef('gun_idle')) {
+        } else if (gunPose) {
             // 持枪待机姿态（姿态层方案：身体低持 + 枪械贴图 360° 程序旋转；配置缺失自动回退 idle）
-            key = 'gun_idle';
+            key = gunPose.poseKey;
         }
 
         // 加入短暂停顿缓冲：停止移动后 80ms 再切回 idle，避免速度抖动导致动画反复重启
@@ -1542,53 +1624,11 @@ export class GameScene extends Scene {
         const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
         const facingRight = Math.abs(player.rotation) < Math.PI / 2;
 
-        // 躯干扭转激活（持枪瞄准）：锚点在躯干空间计算（不随 player.rotation 公转）。
-        // 钳制内：锚点绕腰轴随躯干轨道；钳制外：以肩为支点把【钳制点】继续旋转超出角——
-        // 圆过钳制点，全程连续无跳变（取代旧"腰轴轨道/肩轴延伸"双模型硬切换的瞬移）
+        // 躯干扭转激活（持枪瞄准）：锚点在躯干空间计算（不随 player.rotation 公转）
         if (this._twistState && !isMelee) {
-            const ts = this._twistState;
-            const local = WeaponTransform.getWeaponLocalOffset(wt, player.size, false, false, animState, ts.facingRight);
-            let lx = local.x;
-            if (!ts.facingRight) lx = -lx; // 躯干镜像，锚点同步镜像
-            const body = WeaponTransform.localToWorld(player, { x: lx, y: local.y }, 0, true, animState, wt);
-
-            // ① 钳制位置：腰轴轨道（ts.angle 即钳制后的扭转角）
-            const dAng = ts.facingRight ? ts.angle : -ts.angle;
-            const pdx = body.x - ts.pivotX, pdy = body.y - ts.pivotY;
-            const cosA = Math.cos(dAng), sinA = Math.sin(dAng);
-            const clampX = ts.pivotX + pdx * cosA - pdy * sinA;
-            const clampY = ts.pivotY + pdx * sinA + pdy * cosA;
-
-            // ② 超出钳制的角（面向系）：以肩为支点继续旋转钳制点
-            const twistCfg = this._twistConfig;
-            let excess = 0;
-            if (twistCfg && twistCfg.arm && typeof Input !== 'undefined' && Input.mouse) {
-                const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-                const aimW = Math.atan2(mw.y - player.y, mw.x - player.x);
-                let rel = ts.facingRight ? aimW : Math.PI - aimW;
-                rel = Math.atan2(Math.sin(rel), Math.cos(rel));
-                const scaleA = twistCfg.angleScale !== undefined ? twistCfg.angleScale : 1;
-                excess = rel * scaleA - ts.angle;
-            }
-            if (excess !== 0) {
-                const frameW = this.playerSprite.frame.width || 512;
-                const frameH = this.playerSprite.frame.height || 516;
-                const dispW = this.playerSprite.displayWidth;
-                const dispH = this.playerSprite.displayHeight;
-                const dSx = ((twistCfg.arm.pivotX - twistCfg.pivotX) / frameW) * dispW;
-                const dSy = ((twistCfg.arm.pivotY - twistCfg.pivotY) / frameH) * dispH;
-                const offX = ts.facingRight ? dSx : -dSx;
-                const shoulderX = ts.pivotX + offX * cosA - dSy * sinA;
-                const shoulderY = ts.pivotY + offX * sinA + dSy * cosA;
-                const exW = ts.facingRight ? excess : -excess;
-                const vx = clampX - shoulderX, vy = clampY - shoulderY;
-                const cosE = Math.cos(exW), sinE = Math.sin(exW);
-                pos.x = shoulderX + vx * cosE - vy * sinE;
-                pos.y = shoulderY + vx * sinE + vy * cosE;
-            } else {
-                pos.x = clampX;
-                pos.y = clampY;
-            }
+            const a = this._computeGunAnchor(player, wt, animState, false);
+            pos.x = a.x;
+            pos.y = a.y;
         }
 
         // 近战武器使用固定 rotation（所有状态）；
@@ -1598,8 +1638,13 @@ export class GameScene extends Scene {
         if (isMelee) {
             rot = WeaponTransform.getWeaponRotation(0, wt, 0, animState, facingRight);
         } else if (typeof Input !== 'undefined' && Input.mouse) {
-            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+            // 瞄准死区激活：用可调锥有效角（与姿态/手臂/锚点同口径）
+            if (this._frozenAimActive && this._effectiveAim !== undefined) {
+                rot = this._effectiveAim;
+            } else {
+                const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+            }
         } else {
             rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, animState, facingRight);
         }
@@ -1663,6 +1708,60 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 枪械扭转锚点（主/副手共用）：
+     * 躯干空间计算（不随 player.rotation 公转）；钳制内绕腰轴随躯干轨道；
+     * 超出钳制的角以肩为支点把钳制点继续旋转——圆过钳制点，全程连续无跳变。
+     */
+    _computeGunAnchor(player, wt, animState, isOffhand) {
+        const ts = this._twistState;
+        const local = WeaponTransform.getWeaponLocalOffset(wt, player.size, isOffhand, false, animState, ts.facingRight);
+        let lx = local.x;
+        if (!ts.facingRight) lx = -lx; // 躯干镜像，锚点同步镜像
+        const body = WeaponTransform.localToWorld(player, { x: lx, y: local.y }, 0, true, animState, wt);
+
+        // ① 钳制位置：腰轴轨道（ts.angle 即钳制后的扭转角）
+        const dAng = ts.facingRight ? ts.angle : -ts.angle;
+        const pdx = body.x - ts.pivotX, pdy = body.y - ts.pivotY;
+        const cosA = Math.cos(dAng), sinA = Math.sin(dAng);
+        const clampX = ts.pivotX + pdx * cosA - pdy * sinA;
+        const clampY = ts.pivotY + pdx * sinA + pdy * cosA;
+
+        // ② 超出钳制的角（面向系）：以肩为支点继续旋转钳制点
+        const twistCfg = this._twistConfig;
+        let excess = 0;
+        if (twistCfg && twistCfg.arm && typeof Input !== 'undefined' && Input.mouse) {
+            const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            // 瞄准死区激活时用可调锥有效角（与 _syncGunTwist 同口径）
+            const aimW = (this._frozenAimActive && this._effectiveAim !== undefined)
+                ? this._effectiveAim
+                : Math.atan2(mw.y - player.y, mw.x - player.x);
+            let rel = ts.facingRight ? aimW : Math.PI - aimW;
+            rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+            const scaleA = twistCfg.angleScale !== undefined ? twistCfg.angleScale : 1;
+            excess = rel * scaleA - ts.angle;
+        }
+        if (excess !== 0) {
+            const frameW = this.playerSprite.frame.width || 512;
+            const frameH = this.playerSprite.frame.height || 516;
+            const dispW = this.playerSprite.displayWidth;
+            const dispH = this.playerSprite.displayHeight;
+            const dSx = ((twistCfg.arm.pivotX - twistCfg.pivotX) / frameW) * dispW;
+            const dSy = ((twistCfg.arm.pivotY - twistCfg.pivotY) / frameH) * dispH;
+            const offX = ts.facingRight ? dSx : -dSx;
+            const shoulderX = ts.pivotX + offX * cosA - dSy * sinA;
+            const shoulderY = ts.pivotY + offX * sinA + dSy * cosA;
+            const exW = ts.facingRight ? excess : -excess;
+            const vx = clampX - shoulderX, vy = clampY - shoulderY;
+            const cosE = Math.cos(exW), sinE = Math.sin(exW);
+            return {
+                x: shoulderX + vx * cosE - vy * sinE,
+                y: shoulderY + vx * sinE + vy * cosE,
+            };
+        }
+        return { x: clampX, y: clampY };
+    }
+
+    /**
      * 同步副手武器到 Phaser Sprite
      */
     syncOffhandWeapon(player, weaponAnim = {}) {
@@ -1718,12 +1817,25 @@ export class GameScene extends Scene {
         // 近战武器使用固定 rotation（所有状态）；
         // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
         const isMelee = wt === 'sword' || wt === 'bow';
+
+        // 躯干扭转激活：副手锚点与主手同口径（躯干空间 + 连续轨道）
+        if (this._twistState && !isMelee) {
+            const a = this._computeGunAnchor(player, wt, offhandAnimState, true);
+            pos.x = a.x;
+            pos.y = a.y;
+        }
+
         let rot;
         if (isMelee) {
             rot = WeaponTransform.getWeaponRotation(0, wt, 0, offhandAnimState, facingRight);
         } else if (typeof Input !== 'undefined' && Input.mouse) {
-            const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-            rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+            // 瞄准死区激活：用可调锥有效角（与主手同口径）
+            if (this._frozenAimActive && this._effectiveAim !== undefined) {
+                rot = this._effectiveAim;
+            } else {
+                const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                rot = Math.atan2(mouseWorld.y - pos.y, mouseWorld.x - pos.x);
+            }
         } else {
             rot = WeaponTransform.getWeaponRotation(player.rotation, wt, 0, offhandAnimState, facingRight);
         }
@@ -1747,6 +1859,21 @@ export class GameScene extends Scene {
             rot += weaponAnim.rotateAngle;
         }
         
+        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
+        const wSize = WeaponTransform.getWeaponSize(wt);
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
+
+        // 握把旋转轴心（与主手同口径；配置 grip，缺省贴图中心）
+        const gripCfgOff = isGunOff && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].grip;
+        if (gripCfgOff) {
+            const gcx = (0.5 - (gripCfgOff.x !== undefined ? gripCfgOff.x : 0.5)) * wSize.width;
+            const gcyRaw = (0.5 - (gripCfgOff.y !== undefined ? gripCfgOff.y : 0.5)) * wSize.height;
+            const gcy = flipY ? -gcyRaw : gcyRaw;
+            pos.x += Math.cos(rot) * gcx - Math.sin(rot) * gcy;
+            pos.y += Math.sin(rot) * gcx + Math.cos(rot) * gcy;
+        }
+
         this.offhandWeaponSprite.setPosition(pos.x, pos.y);
         this.offhandWeaponSprite.setRotation(rot);
         this.offhandWeaponSprite.setVisible(!this._useCanvasWeapon);
@@ -1755,12 +1882,8 @@ export class GameScene extends Scene {
         // const offhandFlipX = !facingRight;
         // this.offhandWeaponSprite.setFlipX(offhandFlipX);
         
-        // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
-        const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunOff) {
             this.offhandWeaponSprite.setScale(wSize.height / this.offhandWeaponSprite.height);
-            const flipY = Math.abs(rot) > Math.PI / 2;
             this.offhandWeaponSprite.setFlipY(flipY);
         } else {
             this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);

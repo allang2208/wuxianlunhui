@@ -30,11 +30,12 @@ export class BootScene extends Scene {
                 if (def.twist) {
                     this.load.image(`${texKey}_legs`, def.twist.legsSrc);
                     this.load.image(`${texKey}_torso`, def.twist.torsoSrc);
-                    // 持枪移动腿层（walk 下半身裁片）
-                    if (def.twist.walkLegs) {
-                        const wl = def.twist.walkLegs;
-                        this.load.spritesheet(`${texKey}_walklegs`, wl.src, {
-                            frameWidth: wl.frameWidth, frameHeight: wl.frameHeight, endFrame: (wl.frameCount || 1) - 1
+                    // 持枪移动腿层（walk/run 下半身裁片，配置驱动）
+                    for (const [cfgKey, suffix] of [['walkLegs', 'walklegs'], ['runLegs', 'runlegs']]) {
+                        const part = def.twist[cfgKey];
+                        if (!part) continue;
+                        this.load.spritesheet(`${texKey}_${suffix}`, part.src, {
+                            frameWidth: part.frameWidth, frameHeight: part.frameHeight, endFrame: (part.frameCount || 1) - 1
                         });
                     }
                     // 手臂条层（单骨伪 IK，追随枪握把）
@@ -262,18 +263,21 @@ export class BootScene extends Scene {
             });
         }
 
-        // 持枪移动腿层动画注册（twist.walkLegs 配置驱动）
+        // 持枪移动腿层动画注册（twist.walkLegs/runLegs 配置驱动）
         for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
-            if (def.type !== 'image' || !def.twist || !def.twist.walkLegs) continue;
+            if (def.type !== 'image' || !def.twist) continue;
             const texKey = playerTextureKey(animKey);
-            const wl = def.twist.walkLegs;
-            const [wlStart, wlEnd] = wl.frames || [0, (wl.frameCount || 1) - 1];
-            this.anims.create({
-                key: `${texKey}_walklegs`,
-                frames: this.anims.generateFrameNumbers(`${texKey}_walklegs`, { start: wlStart, end: wlEnd }),
-                frameRate: wl.frameRate || 24,
-                repeat: wl.repeat !== undefined ? wl.repeat : -1,
-            });
+            for (const [cfgKey, suffix] of [['walkLegs', 'walklegs'], ['runLegs', 'runlegs']]) {
+                const part = def.twist[cfgKey];
+                if (!part) continue;
+                const [pStart, pEnd] = part.frames || [0, (part.frameCount || 1) - 1];
+                this.anims.create({
+                    key: `${texKey}_${suffix}`,
+                    frames: this.anims.generateFrameNumbers(`${texKey}_${suffix}`, { start: pStart, end: pEnd }),
+                    frameRate: part.frameRate || 24,
+                    repeat: part.repeat !== undefined ? part.repeat : -1,
+                });
+            }
         }
 
         // 扭转姿态躯干层/手臂条的水平镜像烘焙（canvas 离屏，避免 flipX 与自定义原点/旋转的语义叠加）

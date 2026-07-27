@@ -10,8 +10,8 @@
     "idleScale": 1.6
   },
   "pistol": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": 8,
+    "holdOffsetY": -52,
     "timingMul": 0.06,
     "animType": "recoil",
     "recoilAmount": 0.15,
@@ -26,10 +26,24 @@
       "recoilSwing": 0.1,
       "recoilRecover": 0.04,
       "shakeIntensity": 3
+    },
+    "idleRotation": 0,
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 8,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
+    },
+    "walk": {
+      "holdOffsetX": 8,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
     }
   },
   "p4040": {
-    "holdOffsetX": 0,
+    "holdOffsetX": 12,
     "holdOffsetY": 0,
     "timingMul": 0.5,
     "animType": "recoil",
@@ -45,10 +59,21 @@
       "recoilSwing": 0.05,
       "recoilRecover": 0.02,
       "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
+    },
+    "walk": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
     }
   },
   "deagle": {
-    "holdOffsetX": 0,
+    "holdOffsetX": 12,
     "holdOffsetY": 0,
     "timingMul": 0.5,
     "animType": "recoil",
@@ -64,6 +89,17 @@
       "recoilSwing": 0.05,
       "recoilRecover": 0.02,
       "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
+    },
+    "walk": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
     }
   },
   "akm": {

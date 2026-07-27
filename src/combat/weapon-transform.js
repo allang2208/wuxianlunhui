@@ -28,7 +28,7 @@ const WEAPON_TRANSFORM_CONFIG = {
     },
     pistol: {
         mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -5, offBaseY: -16.5,
+        offBaseX: -23, offBaseY: 19,  // 副手锚定双持姿态低手位 (330,115)，与主手 holdOffset 同解
         holdOffsetKey: 'pistol',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,

@@ -2,6 +2,30 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-26 深夜：手枪姿态系 + 跑步系 + 瞄准死区）
+
+### 本次完成：三姿态体系 / 跑步腿层与体感 / 瞄准死区可调锥（实机达标）
+1. **三姿态自动切换**：`gun_idle`（长枪低持）/ `gun_idle_pistol`（单持前伸）/ `gun_idle_dual`（双持双臂前伸）——`_resolveGunPose()` 按主/副手武器类型解析，移动中换武器也能正确重建分层（姿态键变化即 setPlayerAnimation 修复）。用户 AI 出图（纯黑底）→ 阈值抠图+暗邻域轮廓还原 → 477/492 基准化+髋部对齐 217 → 裁躯干/手臂条 → 描边膨胀加粗统一旧骷髅线条。
+2. **跑步腿层**：`gun_run_legs`（running.png 裁下半身+top2 连通域+逐帧对齐 217/492+出帧钳制）；走/跑自动切换（原生帧率，弃 timeScale hack）。
+3. **体感系统**：`bodyBobY`（走/跑逐帧头顶 Y 起伏）+ `bodyBobX`（逐帧髋 X 前后摆，bobXScale 默认 0.5；run/walk 全覆盖）——数据驱动自原动画，isPlaying 防御 stop() 残留。
+4. **瞄准死区+可调锥（枪械近战弱设定落地）**：`aimDeadZone`(160px) + `aimDeadZoneCone`(20°)——死区内以进入时自由角为基准仅 ±cone 可调；姿态/贴图/锚点/**弹道**四通道统一 `_effectiveAim`，贴身扫射沿基准散开，近战武器获得空间。
+5. **副手同口径**：`_computeGunAnchor` 提取主副手共用；副手补 grip 轴心（flipY 补偿）；`WEAPON_TRANSFORM_CONFIG.pistol.offBase` 改 (-23,19) 锚定双持低手位。
+6. **后坐上身**：`twist.recoilTorsoScale`(默认 0.3) 开火时 recoil 反向作用于腰轴。
+7. **微调配置族**：`torsoShiftX/Y`（躯干整体微调，翻转镜像）；手枪类贴图 idleScale 0.6 + holdOffset 多轮微调（面板→助手合并流）。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`（_resolveGunPose/_syncGunTwist/_syncGunArm/_computeGunAnchor/死区逻辑）
+- `src/phaser/scenes/BootScene.js`（walkLegs/runLegs 循环加载注册 + torso/arm 镜像烘焙）
+- `src/entities/player/subsystems.js`（弹道死区改写）、`src/combat/weapon-transform.js`（pistol offBase）
+- `assets/player/gun_idle_pistol*.png`、`gun_idle_dual*.png`、`gun_run_legs.png`
+- `data/player-anim-config.json`（双份）、`public/data/weapon-anim-config.json`
+
+### 验证状态
+- `npm run lint` ✅（0 error）、`npx vite build` ✅、`test-collider` ✅、`test-craft-sync` ✅
+- 实机用户确认：双持/双手武器贴图动画"接近预期标准"
+
+---
+
 ## 阶段性进度总结（2026-07-26 晚间：持枪瞄准体系全套落地）
 
 ### 本次完成：姿态层 + 分层扭转 + 手臂条 + 锚定体系（ROADMAP 任务1 主体收官）
@@ -95,6 +119,7 @@
 ### 5. 运行时姿态切换
 - **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
 - **持枪姿态（已实现，2026-07-26）**：`GameScene._updatePlayerAnimation`——当前武器为枪械（`isGunWeapon`）且站立时姿态键切 `gun_idle`，移动沿用 walk/run；配置缺失自动回退 idle。首版 `gun_idle` 为低持/腰射单帧（素材库 shooting/2.png 抠底标准化，`tools/archive/prep-gun-idle.py`）；斜上/斜下角度分区姿态与 `gun_fire` 待素材。
+- **瞄准死区+可调锥（游戏设定：枪械近战弱，2026-07-26）**：`twist.aimDeadZone`（默认 160 世界 px，0 关闭）+ `aimDeadZoneCone`（默认 20°）——准心进入死区后，以进入时的自由瞄准角为基准仅允许 ±cone 调整（取代初版硬冻结）。姿态/扭转、主副手贴图旋转、锚点超出角、**弹道**（`_fireRanged` 改写 target）统一走 `_effectiveAim`：武器与手臂一体可小幅跟枪，锥外被钳打不准，近战武器拥有贴身空间。边界连续（基准角=进入时自由角）。
 - **手臂条层（单骨伪 IK，2026-07-26）**：`twist.arm { src, pivotX, pivotY(肩关节), handX, handY }`——双臂整体一条刚体贴图（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角` 追随握把，肩随躯干扭转绕腰轴旋转，翻转用 `_arm_flip` 烘焙镜像；深度在躯干与枪之间。**纯只读增量层，不改锚点/扭转逻辑**；躯干钳制之外的角度由它补齐（正上/正下不错位）。
 - **上半身分层扭转（360° 瞄准定稿，2026-07-26）**：姿态条目配 `twist: { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs? }`——素材在同一 512×516 画布上按髋关节节线裁腿层/躯干层（轴心=髋关节间脊柱末端）；BootScene 自动加载 `player_<key>_legs/_torso`（及 `_walklegs` 走腿 sheet）；`GameScene._syncGunTwist` 每帧：躯干层原点=轴心、贴腰轴世界点、按瞄准角（面向系相对角，±0.05 翻转死区）×angleScale 钳制 ±maxAngle 旋转、左瞄换 canvas 烘焙的 `_torso_flip` 镜像贴图+镜像原点（不用 flipX）、腿层翻转覆盖；`syncWeapon` 枪锚点绕同一腰轴旋转（手转枪跟），枪旋转仍精确 atan2。**裁腰预览先用 PIL rotate(center=pivot) 离线验证接缝再上引擎**。持枪移动：`_updatePlayerAnimation` 检测 twist.walkLegs 时腿层播走腿动画、躯干保持（冲刺 timeScale 1.5）。**铁律：play() 前必须 setTexture 同源**（扭转腿层残留会卡动画第一帧，"上半身消失+腿不动"根因）；**`anims.stop()` 后 `currentAnim` 引用不清空**——凡按 currentAnim 做状态判断的（如逐帧跟随），必须同时校验 `isPlaying`（"idle 错位"根因）。**走腿裁片流程（定稿）**：躯干裁线取骨盆完整位（295）让大腿顶藏进骨盆下叠合；walk sheet 按节线裁出后做连通域分析**只保留最大的 2 个组件（两条腿）**——脚底对齐/时序过滤会误伤腿顶，禁用；与腿同连通域的手部残片只能人工逐帧修。**走腿与 idle 对齐（2026-07-26 定稿）**：按 idle 基准（髋 X=217 / 脚底 Y=500）逐帧平移烘焙 sheet——walking 与 idle 天然一致，不要用逐帧髋部跟随机制（已废弃移除，`anims.stop()` 后 `currentAnim` 引用不清空的陷阱也随之失效）。`twist.torsoShiftY`（世界 px）为躯干整体下移微调，统一加在腰轴世界 Y（躯干/肩/枪锚点随动）。
 - 新姿态切换一律按武器类型/状态从配置表查键，**禁止新增硬编码分支**。

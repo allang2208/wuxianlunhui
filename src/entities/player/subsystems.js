@@ -1395,6 +1395,15 @@ _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
 
+                // 瞄准死区激活：弹道跟随可调锥有效角而非贴脸准心（枪械近战弱的设计设定，
+                // 与姿态/贴图/锚点同口径；aimDeadZone=0 可整体关闭该机制）
+                const frozenScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                if (frozenScene && frozenScene._frozenAimActive && frozenScene._effectiveAim !== undefined) {
+                    const FAR = 2000;
+                    d.targetX = this.x + Math.cos(frozenScene._effectiveAim) * FAR;
+                    d.targetY = this.y + Math.sin(frozenScene._effectiveAim) * FAR;
+                }
+
                 // 每次实际开火给准星一个瞬时 kick（shotSpreadDelta 改造：按当前武器最大散布角折算增减）
                 const craftEffects = this.equipments[this.weaponMode] && this.equipments[this.weaponMode]._craftEffects;
                 const _fireMaxAngle = this._currentSpreadMaxAngle || 25;
