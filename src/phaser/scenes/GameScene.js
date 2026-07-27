@@ -1208,21 +1208,25 @@ export class GameScene extends Scene {
             return;
         }
 
-        // 腰射⇄瞄准过渡（Tier 1：仅双手枪械）：长按右键瞄准时 aimEase 0→1 平滑推进，
-        // 锚点按 aimLift 配置抬升（手臂/枪作为整体随锚点举到眼前），退出反向回落
+        // 腰射⇄瞄准过渡（仅双手枪械）：长按右键瞄准时 aimEase 0→1 平滑推进，退出反向回落。
+        // 推进条件挂 aimLift（Tier1 抬升）或 aimFrames（帧动画）任一配置存在，
+        // 两者只决定"怎么表现瞄准"，不决定"是否推进"——删表现配置不会导致 ease 恒 0
         {
             const currentItem = player.equipments && player.equipments[player.weaponMode];
             const twoHandedGun = currentItem && isGunWeapon(currentItem) && isTwoHanded(currentItem);
-            const aiming = !!(twoHandedGun && player._aimModeActive && twist.aimLift);
-            const ms = (twist.aimLift && twist.aimLift.transitionMs) || 150;
+            const aimCfg = twist.aimFrames || twist.aimLift;
+            const aiming = !!(twoHandedGun && player._aimModeActive && aimCfg);
+            const ms = (aimCfg && aimCfg.transitionMs) || 150;
             const now = performance.now();
             const dtMs = this._aimEaseLastT ? Math.min(50, now - this._aimEaseLastT) : 16.67;
             this._aimEaseLastT = now;
             if (this._aimEaseT === undefined) this._aimEaseT = 0;
-            this._aimEaseT += ((aiming ? 1 : 0) - this._aimEaseT) * Math.min(1, dtMs / ms);
-            if (Math.abs(this._aimEaseT) < 0.001) this._aimEaseT = 0;
-            const t = Math.max(0, Math.min(1, this._aimEaseT));
-            this._aimEase = t * t * (3 - 2 * t); // smoothstep
+            // 线性推进（不用指数趋近）：去程=回程严格镜像倒放，transitionMs 内干净到位。
+            // 指数趋近在回程 ease≈0.05 处拖 ~1s 尾巴——手臂仍挂帧动画条但锚点已近旧链，
+            // 且帧条旋转基准（前手 ~39°）与静态条（后手 ~84°）不同，表现为回程结尾变形
+            this._aimEaseT = Math.max(0, Math.min(1, this._aimEaseT + (aiming ? 1 : -1) * (dtMs / ms)));
+            const t = this._aimEaseT;
+            this._aimEase = t * t * (3 - 2 * t); // smoothstep（端点柔化，仍有限时长、严格倒放）
         }
         const frameW = this.playerSprite.frame.width || 512;
         const frameH = this.playerSprite.frame.height || 516;
@@ -1379,6 +1383,35 @@ export class GameScene extends Scene {
             y: shoulderY + Math.sin(natural) * dispW * 0.12,
         };
         const aimAng = Math.atan2(grip.y - shoulderY, grip.x - shoulderX);
+        // aimFrames 分支（腰射→瞄准帧动画）：仅在瞄准过渡/瞄准状态（_aimEase>0）接管——
+        // ease=0 时完全走下方旧静态手臂路径，保证非瞄准状态与接入前逐像素等价。
+        // 旋转轴心沿用 twist.arm.pivot（帧 0 已与静态手臂条对齐），帧自然角随帧手部坐标变化
+        const af = twist.aimFrames;
+        if (af && this._aimEase > 0) {
+            const afBaseKey = `${this._twistTexKey}_aimframes`;
+            if (this.textures.exists(afBaseKey) && af.hands && af.hands.length) {
+                const fi = Math.max(0, Math.min(af.hands.length - 1, Math.round(this._aimEase * (af.hands.length - 1))));
+                const hand = af.hands[fi];
+                const naturalF = Math.atan2(hand.y - arm.pivotY, hand.x - arm.pivotX);
+                const naturalEffF = ts.facingRight ? naturalF : Math.PI - naturalF;
+                const rotF = aimAng - naturalEffF;
+                const afFlipKey = `${afBaseKey}_flip`;
+                const useFlipF = !ts.facingRight && this.textures.exists(afFlipKey);
+                const wantKeyF = useFlipF ? afFlipKey : afBaseKey;
+                if (this.playerArmSprite.texture.key !== wantKeyF) {
+                    this.playerArmSprite.setTexture(wantKeyF, fi);
+                } else {
+                    this.playerArmSprite.setFrame(fi);
+                }
+                this.playerArmSprite.setOrigin((useFlipF ? (frameW - arm.pivotX) : arm.pivotX) / frameW, arm.pivotY / frameH);
+                this.playerArmSprite.setPosition(shoulderX, shoulderY);
+                this.playerArmSprite.setDisplaySize(dispW, dispH);
+                this.playerArmSprite.setRotation(rotF);
+                this.playerArmSprite.setDepth(this.playerSprite.depth + 0.02);
+                this.playerArmSprite.setVisible(true);
+                return;
+            }
+        }
         // 翻转时用烘焙镜像贴图：其自然角为 π − natural（镜像后手的方向），旋转公式两侧统一
         const naturalEff = ts.facingRight ? natural : Math.PI - natural;
         const rot = aimAng - naturalEff;
@@ -1418,7 +1451,11 @@ export class GameScene extends Scene {
             weaponAnim.isAttacking = false;
             weaponAnim.state = 'idle';
         }
-        if (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle')) return;
+        // 枪械放行：枪开火时 weaponAnim.state='attacking'，但枪的攻击动画在武器贴图层，
+        // playerSprite 只承载腿/躯干层——此处 early-return 会冻结腿层（冲刺开火时 runlegs 切不回 walklegs）。
+        // 近战保留守卫（attack_sword 动画在 playerSprite 上，不能被覆盖）
+        const _isGunPose = currentItem && isGunWeapon(currentItem);
+        if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
         // 持枪姿态解析：双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；
@@ -1789,6 +1826,46 @@ export class GameScene extends Scene {
             pos.y = clampY;
         }
 
+        // aimFrames 锚点（腰射→瞄准帧动画）：锚点 = 肩 + R(世界瞄准角 − 帧自然角) × (帧手 − 肩)——
+        // 与 _syncGunArm 的帧旋转同口径，枪与手臂帧严格一体。按 _aimEase 与旧链锚点混合：
+        // ease=0 完全等价旧链（钳制轨道+超出延伸），ease=1 完全帧驱动，过渡平滑无瞬移
+        const afCfg = twistCfg && twistCfg.aimFrames;
+        if (afCfg && this._aimEase > 0 && twistCfg.arm && afCfg.hands && afCfg.hands.length) {
+            const frameW = this.playerSprite.frame.width || 512;
+            const frameH = this.playerSprite.frame.height || 516;
+            const dispW = this.playerSprite.displayWidth;
+            const dispH = this.playerSprite.displayHeight;
+            const fi = Math.max(0, Math.min(afCfg.hands.length - 1, Math.round(this._aimEase * (afCfg.hands.length - 1))));
+            const hand = afCfg.hands[fi];
+            // 肩关节世界点（与 _syncGunArm 同口径：肩在躯干上随扭转绕腰轴旋转）
+            const dSxF = ((twistCfg.arm.pivotX - twistCfg.pivotX) / frameW) * dispW;
+            const dSyF = ((twistCfg.arm.pivotY - twistCfg.pivotY) / frameH) * dispH;
+            const offXF = ts.facingRight ? dSxF : -dSxF;
+            const shX = ts.pivotX + offXF * cosA - dSyF * sinA;
+            const shY = ts.pivotY + offXF * sinA + dSyF * cosA;
+            // 世界瞄准角（死区可调锥同口径）
+            let aimWF = ts.facingRight ? 0 : Math.PI;
+            if (typeof Input !== 'undefined' && Input.mouse) {
+                const mwF = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                aimWF = (this._frozenAimActive && this._effectiveAim !== undefined)
+                    ? this._effectiveAim
+                    : Math.atan2(mwF.y - player.y, mwF.x - player.x);
+            }
+            const natF = Math.atan2(hand.y - twistCfg.arm.pivotY, hand.x - twistCfg.arm.pivotX);
+            const natEffF = ts.facingRight ? natF : Math.PI - natF;
+            const rotF = aimWF - natEffF;
+            let vxF = (hand.x - twistCfg.arm.pivotX) * (dispW / frameW);
+            const vyF = (hand.y - twistCfg.arm.pivotY) * (dispH / frameH);
+            if (!ts.facingRight) vxF = -vxF; // 镜像帧内手部水平取反
+            const cosF = Math.cos(rotF), sinF = Math.sin(rotF);
+            // liftAdjustX/Y（世界 px）：瞄准锚点微调——X 朝向后移（负=靠近身体，翻转镜像），Y 正=少抬/下移；经 blend 自动 ×ease
+            const fxF = shX + vxF * cosF - vyF * sinF + (ts.facingRight ? 1 : -1) * (afCfg.liftAdjustX || 0);
+            const fyF = shY + vxF * sinF + vyF * cosF + (afCfg.liftAdjustY || 0);
+            const e = this._aimEase;
+            pos.x = pos.x * (1 - e) + fxF * e;
+            pos.y = pos.y * (1 - e) + fyF * e;
+        }
+
         // 双持偏移（配置 dualOffsetX，世界 px）：双持手枪时主/副手同步前移（远离头部，翻转镜像）
         const dualOff = WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dualOffsetX;
         if (dualOff) {
@@ -1799,8 +1876,9 @@ export class GameScene extends Scene {
             }
         }
         // 瞄准抬升（Tier 1：双手枪械 aimLift；offsetX 翻转镜像，offsetY 负=上移）——
-        // 锚点上移后手臂经 atan2(握把−肩) 自然举到眼前，臂枪一体
-        if (this._aimEase > 0 && twistCfg && twistCfg.aimLift) {
+        // 锚点上移后手臂经 atan2(握把−肩) 自然举到眼前，臂枪一体。
+        // aimFrames 激活时跳过（帧动画锚点已含抬升轨迹，叠加会双重抬升）
+        if (this._aimEase > 0 && twistCfg && twistCfg.aimLift && !afCfg) {
             pos.x += ts.facingRight ? (twistCfg.aimLift.offsetX || 0) * this._aimEase : -(twistCfg.aimLift.offsetX || 0) * this._aimEase;
             pos.y += (twistCfg.aimLift.offsetY || 0) * this._aimEase;
         }

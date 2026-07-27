@@ -42,6 +42,13 @@ export class BootScene extends Scene {
                     if (def.twist.arm) {
                         this.load.image(`${texKey}_arm`, def.twist.arm.src);
                     }
+                    // 腰射→瞄准手臂帧动画（视频截取手臂条，aimFrames 配置驱动）
+                    if (def.twist.aimFrames) {
+                        const af = def.twist.aimFrames;
+                        this.load.spritesheet(`${texKey}_aimframes`, af.src, {
+                            frameWidth: af.frameWidth, frameHeight: af.frameHeight, endFrame: (af.frameCount || 1) - 1
+                        });
+                    }
                 }
             } else if (def.type === 'sheet') {
                 // endFrame 必带：防御图片高度差1像素导致帧数错误
@@ -372,6 +379,34 @@ export class BootScene extends Scene {
                 ctx.scale(-1, 1);
                 ctx.drawImage(srcImg, 0, 0);
                 this.textures.addCanvas(`${partKey}_flip`, canvas);
+            }
+            // aimFrames 逐帧镜像烘焙（整 sheet 翻转会颠倒帧序，必须按帧槽位逐帧镜像）
+            if (def.twist.aimFrames) {
+                const af = def.twist.aimFrames;
+                const afKey = `${playerTextureKey(animKey)}_aimframes`;
+                const afImg = this.textures.get(afKey) && this.textures.get(afKey).getSourceImage();
+                if (afImg && afImg.width) {
+                    const count = af.frameCount || 1;
+                    const fw = af.frameWidth, fh = af.frameHeight;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = afImg.width;
+                    canvas.height = afImg.height;
+                    const ctx = canvas.getContext('2d');
+                    for (let i = 0; i < count; i++) {
+                        ctx.save();
+                        // 水平镜像到本帧槽位：X 平移到槽位右缘后翻转；Y 必须为 0
+                        //（误写 i*fw 会把帧 1~13 画到 516px 画布外，朝左瞄准时取到空白帧）
+                        ctx.translate(i * fw + fw, 0);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(afImg, i * fw, 0, fw, fh, 0, 0, fw, fh);
+                        ctx.restore();
+                    }
+                    // addCanvas 只有 __BASE 一帧，按帧槽位手动补帧定义，setFrame(i) 才能按 512×516 取帧
+                    const flipTex = this.textures.addCanvas(`${afKey}_flip`, canvas);
+                    for (let i = 0; i < count; i++) {
+                        flipTex.add(i, 0, i * fw, 0, fw, fh);
+                    }
+                }
             }
         }
 

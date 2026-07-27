@@ -130,8 +130,8 @@
     "bobWeaponScale": 2
   },
   "akm": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -147,14 +147,14 @@
       "shakeIntensity": 4
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -170,8 +170,8 @@
     }
   },
   "pkm": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -193,14 +193,14 @@
       "y": 0.54
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -210,8 +210,8 @@
     }
   },
   "qbz191": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.07,
     "animType": "recoil",
     "recoilAmount": 0.1,
@@ -233,14 +233,14 @@
       "y": 0.54
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -250,8 +250,8 @@
     }
   },
   "qjb201": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.06,
     "animType": "recoil",
     "recoilAmount": 0.08,
@@ -273,14 +273,14 @@
       "y": 0.54
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -290,8 +290,8 @@
     }
   },
   "energy_lmg": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.25,
     "animType": "recoil",
     "recoilAmount": 0.1,
@@ -313,14 +313,14 @@
       "y": 0.54
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -330,8 +330,8 @@
     }
   },
   "shotgun": {
-    "holdOffsetX": -56,
-    "holdOffsetY": -9,
+    "holdOffsetX": -64,
+    "holdOffsetY": -4,
     "timingMul": 0.5,
     "animType": "recoil",
     "recoilAmount": 0.15,
@@ -353,14 +353,14 @@
       "y": 0.54
     },
     "idle": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
-      "holdOffsetX": -56,
-      "holdOffsetY": -9,
+      "holdOffsetX": -64,
+      "holdOffsetY": -4,
       "idleRotation": 0,
       "idleScale": 1
     },

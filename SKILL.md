@@ -2,6 +2,18 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-27：腰射⇄瞄准 aimFrames 帧动画重做落地 + 实机达标）
+
+### 本次完成：AI 视频驱动 14 帧抬枪动画（V0.251 失败复盘后重做，V0.253~263 实机调优达标）
+1. **机制**：`twist.aimFrames { src, frameCount:14, transitionMs:250, hands[14], liftAdjustX, liftAdjustY }`（gun_idle，全体双手枪械共享）——长按右键 `_aimEase` 0→1 **线性**推进（指数趋近回程拖 1s 尾巴变形，已废弃），手臂条按帧播放（腰前(366,210)→肩高(338,110)），锚点 = 肩 + R(世界瞄准角−帧自然角)×(帧手−肩) + (liftAdjustX 翻转镜像, liftAdjustY) 按 ease 与旧链 blend。
+2. **三根因教训（写死防再犯）**：①aimEase 推进条件**不得**引用表现配置（`twist.aimFrames || twist.aimLift` 任一存在即推进——V0.251 因推进条件引用被删的 aimLift 导致 ease 恒 0"无动画"）；②帧分支**只在 `_aimEase>0` 接管**，ease=0 必须逐像素等价旧路径（V0.251 无条件接管 + pivot 低 39px 导致 idle 错乱）；③视频提取**禁用模板减法**（`tools/aim-frames-extract.py`：色度键控+模板互相关配准+三路并集分离；旧脚本卷积核翻转 bug 使配准全顶裁剪边界）。
+3. **渲染/素材坑**：`textures.addCanvas` 的镜像 sheet 需手动 `tex.add(i,0,x,y,w,h)` 补帧才能 setFrame；canvas mirror 烘焙 translate 的 Y 分量必须为 0（误写 i*fw → 帧 1~13 全画出画布外，朝左瞄准手臂消失）；提取后逐帧扫"邻帧独有连通域"（帧 11 曾泄漏 446px 头部碎片，清理已固化进脚本幂等）。
+4. **双手枪冲刺开火（V0.262/263）**：开火=非奔跑——`_twoHandedGunFiring` 从 `_isSprinting` 与烟尘门排除（腿回 walklegs、武器回 walking 位、不出烟尘）；**注意第二道闸**：枪开火 `weaponAnim.state='attacking'` 会触发 `_updatePlayerAnimation` 的"攻击不覆盖"early-return 冻结腿层——已加枪械放行（近战守卫不变；枪攻击动画在武器层，playerSprite 只载腿/躯干）。
+5. **武器位置基准（AKM 标准，六双手枪械已逐字段同步）**：holdOffsetX −64 / holdOffsetY −4（top/idle/walk 全状态块）、grip (0.29,0.54)、idleScale/idleRotation 统一；**合理保留的 per-weapon 差异**：muzzle（按各自贴图枪管实测）、recoilAmount/timingMul/renderParams（手感参数）。手枪类基准=沙漠之鹰（另一族，不混）。
+6. **回退路径**：删配置里 aimFrames 节即自动回 Tier1 aimLift 抬升（配置保留休眠）；完整回退点 `backup/2026-07-27-aimanim/`（纯 aimLift）与 `backup/2026-07-27-aimanim-v2/`（重做前快照）。
+
+---
+
 ## 阶段性进度总结（2026-07-26 深夜：手枪姿态系 + 跑步系 + 瞄准死区）
 
 ### 本次完成：三姿态体系 / 跑步腿层与体感 / 瞄准死区可调锥（实机达标）
