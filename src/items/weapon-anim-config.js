@@ -54,8 +54,6 @@ function getWeaponStateConfig(key, state) {
         holdOffsetY: stateCfg.holdOffsetY !== undefined ? stateCfg.holdOffsetY : cfg.holdOffsetY,
         idleRotation: stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : cfg.idleRotation,
         idleScale: stateCfg.idleScale !== undefined ? stateCfg.idleScale : cfg.idleScale,
-        handAnchors: cfg.handAnchors || null,
-        gripOffset: cfg.gripOffset || null,
         timingMul: cfg.timingMul,
         animType: cfg.animType,
         hitBox: cfg.hitBox,

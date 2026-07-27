@@ -67,8 +67,8 @@
     }
   },
   "akm": {
-    "holdOffsetX": 0,
-    "holdOffsetY": 0,
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -82,7 +82,25 @@
       "recoilSwing": 0.08,
       "recoilRecover": 0.03,
       "shakeIntensity": 4
-    }
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idleRotation": 0,
+    "idleScale": 1
   },
   "pkm": {
     "holdOffsetX": 0,
@@ -210,57 +228,57 @@
       "type": "perFrame",
       "frames": [
         {
-          "offsetX": 32,
-          "offsetY": -21,
-          "rotation": 15,
+          "offsetX": 26,
+          "offsetY": 3,
+          "rotation": 100,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 25,
+          "offsetY": 0,
+          "rotation": 97,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 26,
+          "offsetY": -3,
+          "rotation": 88,
           "scale": 1.5
         },
         {
           "offsetX": 27,
+          "offsetY": -9,
+          "rotation": 83,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 24,
           "offsetY": -23,
-          "rotation": 12,
+          "rotation": 56,
           "scale": 1.5
         },
         {
-          "offsetX": 19,
-          "offsetY": -26,
-          "rotation": 8,
-          "scale": 1.5
-        },
-        {
-          "offsetX": 8,
-          "offsetY": -29,
-          "rotation": 3,
+          "offsetX": 11,
+          "offsetY": -40,
+          "rotation": 30,
           "scale": 1.5
         },
         {
           "offsetX": -3,
-          "offsetY": -33,
-          "rotation": -4,
+          "offsetY": -47,
+          "rotation": 6,
           "scale": 1.5
         },
         {
-          "offsetX": -10,
-          "offsetY": -34,
-          "rotation": -15,
+          "offsetX": -5,
+          "offsetY": -52,
+          "rotation": 2,
           "scale": 1.5
         },
         {
-          "offsetX": -16,
-          "offsetY": -36,
-          "rotation": -29,
-          "scale": 1.5
-        },
-        {
-          "offsetX": -21,
-          "offsetY": -37,
-          "rotation": -43,
-          "scale": 1.5
-        },
-        {
-          "offsetX": -26,
-          "offsetY": -38,
-          "rotation": -57,
+          "offsetX": -22,
+          "offsetY": -51,
+          "rotation": -22,
           "scale": 1.5
         },
         {
@@ -336,9 +354,9 @@
           "scale": 1.5
         },
         {
-          "offsetX": -11,
-          "offsetY": -37,
-          "rotation": -99,
+          "offsetX": 72,
+          "offsetY": 26,
+          "rotation": 125,
           "scale": 1.5
         },
         {
@@ -348,45 +366,45 @@
           "scale": 1.5
         },
         {
-          "offsetX": 0,
-          "offsetY": -34,
-          "rotation": -93,
+          "offsetX": -8,
+          "offsetY": -80,
+          "rotation": -28,
           "scale": 1.5
         },
         {
-          "offsetX": 6,
-          "offsetY": -32,
-          "rotation": -88,
+          "offsetX": 12,
+          "offsetY": -77,
+          "rotation": 0,
           "scale": 1.5
         },
         {
-          "offsetX": 13,
-          "offsetY": -30,
-          "rotation": -78,
+          "offsetX": 56,
+          "offsetY": -55,
+          "rotation": 32,
           "scale": 1.5
         },
         {
-          "offsetX": 23,
-          "offsetY": -27,
-          "rotation": -61,
+          "offsetX": 52,
+          "offsetY": -53,
+          "rotation": 29,
           "scale": 1.5
         },
         {
-          "offsetX": 32,
-          "offsetY": -25,
-          "rotation": -43,
+          "offsetX": 54,
+          "offsetY": -53,
+          "rotation": 32,
           "scale": 1.5
         },
         {
-          "offsetX": 40,
-          "offsetY": -23,
-          "rotation": -24,
+          "offsetX": 66,
+          "offsetY": -45,
+          "rotation": 56,
           "scale": 1.5
         },
         {
-          "offsetX": 44,
-          "offsetY": -22,
-          "rotation": -10,
+          "offsetX": 72,
+          "offsetY": 26,
+          "rotation": 125,
           "scale": 1.5
         }
       ]

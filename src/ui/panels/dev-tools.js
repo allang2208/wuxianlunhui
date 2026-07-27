@@ -109,6 +109,17 @@ export function createDevToolPanel() {
     playBtn.className = 'dev-tool-menu-btn';
     playBtn.textContent = '▶ 播放';
     menuItemFrame.appendChild(playBtn);
+    // 播放帧率（留空=动画配置 frameRate；DevTool._getPreviewFps 读取）
+    const fpsInput = document.createElement('input');
+    fpsInput.type = 'number';
+    fpsInput.id = 'devToolFps';
+    fpsInput.min = '1';
+    fpsInput.max = '60';
+    fpsInput.step = '1';
+    fpsInput.placeholder = 'fps';
+    fpsInput.title = '播放帧率（留空=动画配置帧率）';
+    fpsInput.style.width = '48px';
+    menuItemFrame.appendChild(fpsInput);
     menu.appendChild(menuItemFrame);
 
     // 武器选择
@@ -145,24 +156,6 @@ export function createDevToolPanel() {
     btnSave.id = 'devToolSave';
     btnSave.textContent = '💾 保存';
     menu.appendChild(btnSave);
-
-    const btnApplyAll = document.createElement('button');
-    btnApplyAll.className = 'dev-tool-menu-btn';
-    btnApplyAll.id = 'devToolApplyAll';
-    btnApplyAll.textContent = '📋 应用到所有帧';
-    menu.appendChild(btnApplyAll);
-
-    const btnInterpolate = document.createElement('button');
-    btnInterpolate.className = 'dev-tool-menu-btn';
-    btnInterpolate.id = 'devToolInterpolate';
-    btnInterpolate.textContent = '📈 插值';
-    menu.appendChild(btnInterpolate);
-
-    const btnClearKf = document.createElement('button');
-    btnClearKf.className = 'dev-tool-menu-btn';
-    btnClearKf.id = 'devToolClearKf';
-    btnClearKf.textContent = '🗑️ 清空关键帧';
-    menu.appendChild(btnClearKf);
 
     const btnReset = document.createElement('button');
     btnReset.className = 'dev-tool-menu-btn';
@@ -310,17 +303,6 @@ export function createDevToolPanel() {
         controls.appendChild(row);
     });
     
-    // 设置手部挂载点按钮
-    const handAnchorRow = document.createElement('div');
-    handAnchorRow.className = 'dev-tool-control-row';
-    const handAnchorBtn = document.createElement('button');
-    handAnchorBtn.className = 'dev-tool-menu-btn';
-    handAnchorBtn.id = 'devToolSetHandAnchor';
-    handAnchorBtn.textContent = '✋ 设置手部挂载点';
-    handAnchorBtn.style.cssText = 'width:100%;font-size:12px;';
-    handAnchorRow.appendChild(handAnchorBtn);
-    controls.appendChild(handAnchorRow);
-    
     right.appendChild(controls);
 
     const modeHint = document.createElement('div');
@@ -328,38 +310,6 @@ export function createDevToolPanel() {
     modeHint.id = 'devToolModeHint';
     modeHint.innerHTML = '<div>🖱 左键拖动</div><div>🔄 滚轮缩放</div><div>按 <kbd>R</kbd> 切换旋转/缩放模式</div>';
     right.appendChild(modeHint);
-
-    // 关键帧控制区域（仅在攻击动画显示）
-    const keyframeSection = document.createElement('div');
-    keyframeSection.className = 'dev-tool-keyframe-section';
-    keyframeSection.id = 'devToolKeyframeSection';
-    keyframeSection.style.cssText = 'margin-top:10px;padding:8px;background:rgba(40,40,40,0.8);border-radius:6px;border:1px solid #444;';
-    
-    const kfTitle = document.createElement('div');
-    kfTitle.style.cssText = 'font-size:12px;font-weight:bold;color:#d4c5a9;margin-bottom:6px;';
-    kfTitle.textContent = '🎬 关键帧编辑';
-    keyframeSection.appendChild(kfTitle);
-    
-    const kfHint = document.createElement('div');
-    kfHint.style.cssText = 'font-size:11px;color:#888;margin-bottom:6px;';
-    kfHint.innerHTML = '拖动武器到目标位置 → 按 <kbd>K</kbd> 添加关键帧';
-    keyframeSection.appendChild(kfHint);
-    
-    const addKfBtn = document.createElement('button');
-    addKfBtn.className = 'dev-tool-menu-btn';
-    addKfBtn.id = 'devToolAddKeyframe';
-    addKfBtn.textContent = '➕ 添加关键帧';
-    addKfBtn.style.cssText = 'width:100%;margin-bottom:4px;font-size:12px;padding:4px;';
-    keyframeSection.appendChild(addKfBtn);
-    
-    const kfList = document.createElement('div');
-    kfList.className = 'dev-tool-keyframe-list';
-    kfList.id = 'devToolKeyframeList';
-    kfList.style.cssText = 'max-height:120px;overflow-y:auto;margin-top:4px;';
-    kfList.innerHTML = '<div style="color:#888;text-align:center;padding:10px;">暂无关键帧</div>';
-    keyframeSection.appendChild(kfList);
-    
-    right.appendChild(keyframeSection);
 
     const dataOutput = document.createElement('div');
     dataOutput.className = 'dev-tool-data-output';

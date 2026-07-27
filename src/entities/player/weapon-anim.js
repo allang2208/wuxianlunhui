@@ -9,9 +9,9 @@ import { Input } from '../../ui/input.js';
 
 import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
-import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { Easing } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
+import { playerTextureKey, getPlayerAnimDurationMs } from '../../config/player-anim.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态
@@ -252,7 +252,7 @@ const weaponAnimMixin = {
         }
     },
 
-    // 剑类攻击 Tween 动画（支持关键帧）
+    // 剑类攻击 Tween 动画
     _playSwordAttackTween(scene, hand) {
         const anim = hand === 'offhand' ? this.offhandWeaponAnim : this.weaponAnim;
         // 防止同一手重复启动 Tween：只有当前没在攻击动画中才启动
@@ -260,11 +260,6 @@ const weaponAnimMixin = {
 
         anim.isAttacking = true;
         anim.state = 'attacking';
-
-        // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
-        if (hand === 'main' && scene.setPlayerAnimation) {
-            scene.setPlayerAnimation('attack_sword');
-        }
 
         const weaponSprite = hand === 'offhand' ? scene.offhandWeaponSprite : scene.weaponSprite;
         if (!weaponSprite) {
@@ -280,15 +275,21 @@ const weaponAnimMixin = {
         
         const currentWeapon = this.getCurrentWeapon ? this.getCurrentWeapon() : (this.equipments && this.weaponMode ? this.equipments[this.weaponMode] : null);
         const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
-        const kfConfig = WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[weaponType] && WeaponAnimConfig.keyframes[weaponType].attack;
-        
-        const facingRight = Math.abs(self.rotation) < Math.PI / 2;
 
+        // 本次攻击 Tween 总时长：同步玩家贴图动画（timeScale 拉伸/压缩），避免贴图与武器轨迹各播各的
+        let tweenDuration = 0;
+        
         // 逐帧模式：武器位置/旋转由 GameScene 按玩家攻击动画当前帧同步，Tween 只负责命中判定与状态重置
         const perFrameCfg = WeaponAnimConfig[weaponType]?.attack;
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
-            const animDef = scene.anims.get('player_attack_sword');
-            const totalDuration = animDef ? (animDef.duration || 900) : 900;
+            const animDef = scene.anims.get(playerTextureKey('attack_sword'));
+            const totalDuration = (animDef && animDef.duration) || getPlayerAnimDurationMs('attack_sword') || 900;
+            tweenDuration = totalDuration;
+
+            // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
+            if (hand === 'main' && scene.setPlayerAnimation) {
+                scene.setPlayerAnimation('attack_sword', tweenDuration);
+            }
 
             const attackTween = scene.tweens.add({
                 targets: { progress: 0 },
@@ -321,159 +322,72 @@ const weaponAnimMixin = {
             return;
         }
         
-        if (kfConfig && kfConfig.length >= 2) {
-            anim.isAttacking = true;
-            anim.state = 'attacking';
-            const totalDuration = 900;
-            
-            const attackTween = scene.tweens.add({
-                targets: { progress: 0 },
-                progress: 1,
-                duration: totalDuration,
-                ease: 'Linear',
-                onStart: function() {
-                    if (self._pendingThrust) self._pendingThrust.active = true;
+        // 默认三段 Tween 链：windup / swing / recover
+        const windupMs = 200;
+        const swingMs = 300;
+        const recoverMs = 400;
+        tweenDuration = windupMs + swingMs + recoverMs;
+        const playerRotation = this.rotation;
+        const windupAngle = startRotation - 0.5;
+        const swingAngle = startRotation + 0.8;
+        const thrustDistance = 20;
+        const thrustX = Math.cos(playerRotation) * thrustDistance;
+        const thrustY = Math.sin(playerRotation) * thrustDistance;
+
+        const chain = scene.tweens.chain({
+            tweens: [
+                {
+                    targets: weaponSprite,
+                    rotation: windupAngle,
+                    x: startX - thrustX * 0.3,
+                    y: startY - thrustY * 0.3,
+                    duration: windupMs,
+                    ease: 'Quad.easeIn',
+                    onStart: function() {
+                        if (self._pendingThrust) self._pendingThrust.active = true;
+                    }
                 },
-                onUpdate: function(tween) {
-                    const progress = tween.getValue();
-                    let prev = kfConfig[0], next = kfConfig[kfConfig.length - 1];
-                    for (let i = 0; i < kfConfig.length - 1; i++) {
-                        if (progress >= kfConfig[i].progress && progress <= kfConfig[i + 1].progress) {
-                            prev = kfConfig[i];
-                            next = kfConfig[i + 1];
-                            break;
+                {
+                    targets: weaponSprite,
+                    rotation: swingAngle,
+                    x: startX + thrustX,
+                    y: startY + thrustY,
+                    duration: swingMs,
+                    ease: 'Quad.easeOut',
+                    onUpdate: function() {
+                        if (self._pendingThrust && self._pendingThrust.active) {
+                            if (Date.now() - self._pendingThrust.startTime <= 500) {
+                                self.attacks.melee.checkTriangleHit(self);
+                            } else {
+                                self._pendingThrust.active = false;
+                            }
                         }
                     }
-                    
-                    const segmentDuration = next.progress - prev.progress;
-                    const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
-                    
-                    const rotation = (prev.rotation !== undefined ? prev.rotation : 0) +
-                        ((next.rotation !== undefined ? next.rotation : 0) -
-                         (prev.rotation !== undefined ? prev.rotation : 0)) * t;
-                    const scale = (prev.scale !== undefined ? prev.scale : 1) +
-                        ((next.scale !== undefined ? next.scale : 1) -
-                         (prev.scale !== undefined ? prev.scale : 1)) * t;
-
-                    // 关键帧数据优先使用 holdOffsetX/Y（当前主配置），并兼容 handOffsetX/Y / offsetX/Y
-                    const prevOffsetX = prev.holdOffsetX !== undefined ? prev.holdOffsetX :
-                        (prev.handOffsetX !== undefined ? prev.handOffsetX : prev.offsetX);
-                    const nextOffsetX = next.holdOffsetX !== undefined ? next.holdOffsetX :
-                        (next.handOffsetX !== undefined ? next.handOffsetX : next.offsetX);
-                    const prevOffsetY = prev.holdOffsetY !== undefined ? prev.holdOffsetY :
-                        (prev.handOffsetY !== undefined ? prev.handOffsetY : prev.offsetY);
-                    const nextOffsetY = next.holdOffsetY !== undefined ? next.holdOffsetY :
-                        (next.handOffsetY !== undefined ? next.handOffsetY : next.offsetY);
-
-                    const offsetX = (prevOffsetX !== undefined ? prevOffsetX : 0) +
-                        ((nextOffsetX !== undefined ? nextOffsetX : 0) -
-                         (prevOffsetX !== undefined ? prevOffsetX : 0)) * t;
-                    const offsetY = (prevOffsetY !== undefined ? prevOffsetY : 0) +
-                        ((nextOffsetY !== undefined ? nextOffsetY : 0) -
-                         (prevOffsetY !== undefined ? prevOffsetY : 0)) * t;
-
-                    const kfOffset = { offsetX, offsetY, rotation, scale };
-
-                    const kfPos = WeaponTransform.getKeyframedWeaponPosition(self, weaponType, 'attack', kfOffset, 0, facingRight);
-                    weaponSprite.x = kfPos.x;
-                    weaponSprite.y = kfPos.y;
-                    weaponSprite.rotation = kfPos.rotation;
-                    
-                    if (self._pendingThrust && self._pendingThrust.active) {
-                        if (Date.now() - self._pendingThrust.startTime <= 500) {
-                            self.attacks.melee.checkTriangleHit(self);
-                        } else {
+                },
+                {
+                    targets: weaponSprite,
+                    rotation: startRotation,
+                    x: startX,
+                    y: startY,
+                    duration: recoverMs,
+                    ease: 'Cubic.easeInOut',
+                    onComplete: function() {
+                        anim.isAttacking = false;
+                        anim.state = 'idle';
+                        if (self._pendingThrust) {
                             self._pendingThrust.active = false;
+                            self.attacks.melee.giveExp(self);
+                            self._pendingThrust = null;
                         }
-                    }
-                },
-                onComplete: function() {
-                    anim.isAttacking = false;
-                    anim.state = 'idle';
-                    const idlePos = WeaponTransform.getWeaponWorldPosition(self, weaponType, false, false, 'idle');
-                    scene.tweens.add({
-                        targets: weaponSprite,
-                        x: idlePos.x,
-                        y: idlePos.y,
-                        rotation: WeaponTransform.getWeaponRotation(0, weaponType, 0, 'idle', Math.abs(self.rotation) < Math.PI / 2),
-                        duration: 150,
-                        ease: 'Cubic.easeOut'
-                    });
-                    if (self._pendingThrust) {
-                        self._pendingThrust.active = false;
-                        self.attacks.melee.giveExp(self);
-                        self._pendingThrust = null;
                     }
                 }
-            });
-            
-            this._activeAttackTweens.push(attackTween);
-        } else {
-            const windupMs = 200;
-            const swingMs = 300;
-            const recoverMs = 400;
-            const playerRotation = this.rotation;
-            const windupAngle = startRotation - 0.5;
-            const swingAngle = startRotation + 0.8;
-            const thrustDistance = 20;
-            const thrustX = Math.cos(playerRotation) * thrustDistance;
-            const thrustY = Math.sin(playerRotation) * thrustDistance;
-            
-            const chain = scene.tweens.chain({
-                tweens: [
-                    {
-                        targets: weaponSprite,
-                        rotation: windupAngle,
-                        x: startX - thrustX * 0.3,
-                        y: startY - thrustY * 0.3,
-                        duration: windupMs,
-                        ease: 'Quad.easeIn',
-                        onStart: function() {
-                            if (self._pendingThrust) self._pendingThrust.active = true;
-                        }
-                    },
-                    {
-                        targets: weaponSprite,
-                        rotation: swingAngle,
-                        x: startX + thrustX,
-                        y: startY + thrustY,
-                        duration: swingMs,
-                        ease: 'Quad.easeOut',
-                        onUpdate: function() {
-                            if (self._pendingThrust && self._pendingThrust.active) {
-                                if (Date.now() - self._pendingThrust.startTime <= 500) {
-                                    self.attacks.melee.checkTriangleHit(self);
-                                } else {
-                                    self._pendingThrust.active = false;
-                                }
-                            }
-                        }
-                    },
-                    {
-                        targets: weaponSprite,
-                        rotation: startRotation,
-                        x: startX,
-                        y: startY,
-                        duration: recoverMs,
-                        ease: 'Cubic.easeInOut',
-                        onComplete: function() {
-                            anim.isAttacking = false;
-                            anim.state = 'idle';
-                            if (self._pendingThrust) {
-                                self._pendingThrust.active = false;
-                                self.attacks.melee.giveExp(self);
-                                self._pendingThrust = null;
-                            }
-                        }
-                    }
-                ]
-            });
-            
-            this._activeAttackTweens.push(chain);
-        }
-        
-        if (scene.setPlayerAnimation) {
-            scene.setPlayerAnimation('attack_sword');
+            ]
+        });
+
+        this._activeAttackTweens.push(chain);
+
+        if (hand === 'main' && scene.setPlayerAnimation) {
+            scene.setPlayerAnimation('attack_sword', tweenDuration);
         }
     },
 

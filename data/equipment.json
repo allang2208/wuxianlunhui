@@ -419,7 +419,7 @@
       "type": "手枪",
       "icon": "🔫",
       "iconImage": "assets/icons/G18icon.png",
-      "dropImage": "assets/weapons/G18equip.png",
+      "dropImage": "assets/icons/G18icon.png",
       "equipImage": "assets/icons/G18icon.png",
       "slotImage": "assets/icons/G18icon.png",
       "category": "weapon_ranged",
@@ -430,7 +430,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": false,
       "weaponAsset": {
-        "image": "assets/weapons/G18equip.png",
+        "image": "assets/icons/G18icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -558,7 +558,7 @@
       "type": "手枪",
       "icon": "🔫",
       "iconImage": "assets/weapons/P4040-icon.png",
-      "dropImage": "assets/weapons/P4040-equip.png",
+      "dropImage": "assets/weapons/P4040-icon.png",
       "equipImage": "assets/weapons/P4040-icon.png",
       "slotImage": "assets/weapons/P4040-icon.png",
       "category": "weapon_ranged",
@@ -569,7 +569,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": false,
       "weaponAsset": {
-        "image": "assets/weapons/P4040-equip.png",
+        "image": "assets/weapons/P4040-icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -647,13 +647,13 @@
       "category": "weapon_ranged",
       "rarity": "rare",
       "level": 10,
-      "dropImage": "assets/weapons/pkm_topdown.png",
+      "dropImage": "assets/icons/pkm_side_clean.png",
       "equipImage": "assets/icons/pkm_side_clean.png",
       "weaponCategory": "mainhand",
       "weaponType": "pkm",
       "weaponTypeTag": "远程武器",
       "weaponAsset": {
-        "image": "assets/weapons/pkm_topdown.png",
+        "image": "assets/icons/pkm_side_clean.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -934,7 +934,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/191equip_clean.png",
+        "image": "assets/icons/191icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -976,7 +976,7 @@
       "type": "机枪",
       "icon": "🔫",
       "iconImage": "assets/icons/201-icon.png",
-      "dropImage": "assets/weapons/201equip.png",
+      "dropImage": "assets/icons/201-icon.png",
       "equipImage": "assets/icons/201-icon.png",
       "slotImage": "assets/icons/201-icon.png",
       "category": "weapon_ranged",
@@ -987,7 +987,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/201equip.png",
+        "image": "assets/icons/201-icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -1029,7 +1029,7 @@
       "type": "散弹枪",
       "icon": "🔫",
       "iconImage": "assets/icons/M4s90_icon.png",
-      "dropImage": "assets/weapons/M4s90_equip.png",
+      "dropImage": "assets/icons/M4s90_icon.png",
       "equipImage": "assets/icons/M4s90_icon.png",
       "slotImage": "assets/icons/M4s90_icon.png",
       "category": "weapon_ranged",
@@ -1040,7 +1040,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/M4s90_equip.png",
+        "image": "assets/icons/M4s90_icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -1085,7 +1085,7 @@
       "category": "weapon_ranged",
       "rarity": "epic",
       "level": 15,
-      "dropImage": "assets/weapons/devotion-equip.png",
+      "dropImage": "assets/icons/devotion-icon.png",
       "equipImage": "assets/icons/devotion-icon.png",
       "slotImage": "assets/icons/devotion-icon.png",
       "weaponCategory": "mainhand",
@@ -1093,7 +1093,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/devotion-equip.png",
+        "image": "assets/icons/devotion-icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [
@@ -1145,7 +1145,7 @@
       "type": "散弹枪",
       "icon": "🔫",
       "iconImage": "assets/icons/S12k-icon.png",
-      "dropImage": "assets/weapons/S12k-equip.png",
+      "dropImage": "assets/icons/S12k-icon.png",
       "equipImage": "assets/icons/S12k-icon.png",
       "slotImage": "assets/icons/S12k-icon.png",
       "category": "weapon_ranged",
@@ -1156,7 +1156,7 @@
       "weaponTypeTag": "远程武器",
       "isTwoHanded": true,
       "weaponAsset": {
-        "image": "assets/weapons/S12k-equip.png",
+        "image": "assets/icons/S12k-icon.png",
         "muzzleImage": "assets/effects/muzzle_flash_01.png"
       },
       "stats": [

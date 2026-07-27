@@ -12,7 +12,7 @@ import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded, getAmmoConfig } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
@@ -1058,7 +1058,7 @@ _initAmmoForSlot(slot) {
                     this._ammoState[slot] = null;
                     return;
                 }
-                const ammoConfig = item.ammoConfig;
+                const ammoConfig = getAmmoConfig(item); // 实例缺 ammoConfig 时按 weaponId 回退 GUN_AMMO_CAP（与 combatant/图鉴/tooltip 同口径）
                 if (!ammoConfig) {
                     this._ammoState[slot] = null;
                     return;

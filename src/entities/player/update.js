@@ -8,7 +8,7 @@ import { Input } from '../../ui/input.js';
 import { StatusBar } from '../../ui/status-bar.js';
 import { DashConvergeEffect } from '../../effects/dash-effects.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
-import { isGunWeapon, isOneHanded } from '../../config/gun-ammo.js';
+import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
@@ -257,17 +257,24 @@ update(dt, entities) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
-                    // 机枪开火时禁止 Shift 奔跑
-                    if (sprint && isPkmEquipped && Input.mouse.leftDown && this._gunSpreadWeapon) {
+                    // 双手枪械开火时禁止 Shift 奔跑（开火即中断奔跑退回 walking，
+                    // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
+                    const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);
+                    if (sprint && isTwoHandedGun && Input.mouse.leftDown) {
                         sprint = false;
-                        let moveSpeedReduction = 0.50;
-                        const craftEffects = currentEquip && currentEquip._craftEffects;
-                        if (craftEffects && craftEffects.moveSpeedPercent) {
-                            moveSpeedReduction -= craftEffects.moveSpeedPercent;
+                        // PKM 系保留原 50% 减速语义，其他双手枪退回普通走速
+                        if (isPkmEquipped) {
+                            let moveSpeedReduction = 0.50;
+                            const craftEffects = currentEquip && currentEquip._craftEffects;
+                            if (craftEffects && craftEffects.moveSpeedPercent) {
+                                moveSpeedReduction -= craftEffects.moveSpeedPercent;
+                            }
+                            if (moveSpeedReduction > 0.90) moveSpeedReduction = 0.90;
+                            if (moveSpeedReduction < 0) moveSpeedReduction = 0;
+                            targetSpeed = this.maxSpeed * (1 - moveSpeedReduction);
+                        } else {
+                            targetSpeed = this.maxSpeed;
                         }
-                        if (moveSpeedReduction > 0.90) moveSpeedReduction = 0.90;
-                        if (moveSpeedReduction < 0) moveSpeedReduction = 0;
-                        targetSpeed = this.maxSpeed * (1 - moveSpeedReduction);
                     }
                     // 冲刺攻击动画期间：移动速度为0.1px/帧（结束后恢复）
                     if (this._isDashing) targetSpeed = 0.1;

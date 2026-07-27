@@ -41,7 +41,7 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_deagle', path: 'assets/icons/DesertEagle_icon.png' },
         { key: 'weapon_p4040', path: 'assets/weapons/P4040-icon.png' },
         { key: 'weapon_pkm', path: 'assets/icons/pkm_side_clean.png' },
-        { key: 'weapon_akm', path: 'assets/weapons/AKm.png' },
+        { key: 'weapon_akm', path: 'assets/weapons/akm-equip.png' },
         { key: 'weapon_qbz191', path: 'assets/icons/191icon.png' },
         { key: 'weapon_qjb201', path: 'assets/icons/201-icon.png' },
         { key: 'weapon_energy_lmg', path: 'assets/icons/devotion-icon.png' },

@@ -1,0 +1,85 @@
+{
+  "idle": {
+    "type": "image",
+    "src": "assets/player/idle.png"
+  },
+  "gun_idle": {
+    "type": "image",
+    "src": "assets/player/gun_idle.png",
+    "twist": {
+      "legsSrc": "assets/player/gun_idle_legs.png",
+      "torsoSrc": "assets/player/gun_idle_torso.png",
+      "pivotX": 217,
+      "pivotY": 240,
+      "maxAngle": 40,
+      "angleScale": 1.0,
+      "walkLegs": {
+        "src": "assets/player/gun_walk_legs.png",
+        "frameWidth": 512,
+        "frameHeight": 516,
+        "cols": 8,
+        "rows": 3,
+        "frameCount": 21,
+        "frames": [
+          0,
+          20
+        ],
+        "frameRate": 24,
+        "repeat": -1
+      },
+      "arm": {
+        "src": "assets/player/gun_idle_arm.png",
+        "pivotX": 227,
+        "pivotY": 98,
+        "handX": 240,
+        "handY": 221
+      },
+      "torsoShiftY": 3
+    }
+  },
+  "walk": {
+    "type": "sheet",
+    "src": "assets/character/walk.png",
+    "frameWidth": 512,
+    "frameHeight": 516,
+    "cols": 8,
+    "rows": 3,
+    "frameCount": 21,
+    "frames": [
+      0,
+      20
+    ],
+    "frameRate": 24,
+    "repeat": -1
+  },
+  "run": {
+    "type": "sheet",
+    "src": "assets/character/running.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 2,
+    "frameCount": 16,
+    "frames": [
+      0,
+      7
+    ],
+    "frameRate": 10,
+    "repeat": -1
+  },
+  "attack_sword": {
+    "type": "sheet",
+    "src": "assets/player/attack_sword.png",
+    "frameWidth": 512,
+    "frameHeight": 516,
+    "cols": 8,
+    "rows": 1,
+    "frameCount": 8,
+    "frames": [
+      0,
+      7
+    ],
+    "frameRate": 12,
+    "repeat": 0
+  }
+}

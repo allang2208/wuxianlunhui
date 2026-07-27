@@ -1,5 +1,6 @@
 import { Game } from '../game.js';
 import { PLAYER_DEFAULTS } from '../config/player-defaults.js';
+import { PLAYER_ANIMS } from '../config/player-anim.js';
 
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WeaponTransform } from '../combat/weapon-transform.js';
@@ -9,6 +10,10 @@ import { AIDevTool } from './ai-dev-tool.js';
 import { EnemySpriteTool } from './enemy-sprite-tool.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { getWeaponTextureLoadList } from '../config/weapon-texture-map.js';
+
+// 武器贴图路径唯一真相源（与游戏内持有贴图一致：weapon-texture-map.js 加载清单）
+const WEAPON_TEX_PATH = Object.fromEntries(getWeaponTextureLoadList().map(t => [t.key, t.path]));
 
 // 交互式开发工具 - 武器定位与动画调试面板
 const DevTool = {
@@ -52,39 +57,14 @@ const DevTool = {
         step: 0.25,
     },
 
-    // 关键帧系统（攻击动画每帧武器位置）
-    keyframeSystem: {
-        enabled: false,           // 是否启用关键帧模式
-        keyframes: [],            // 当前关键帧数组 [{progress, offsetX, offsetY, rotation, scale}]
-        selectedIndex: -1,        // 当前选中的关键帧索引
-        isRecording: false,       // 是否正在录制关键帧
-    },
-
-    // 挂载点编辑系统
-    handAnchorSystem: {
-        enabled: false,       // 是否启用挂载点编辑模式
-        handAnchors: {        // 当前编辑的挂载点（相对于玩家中心）
-            idle:    { x: 8,  y: -5 },
-            walk:    { x: 10, y: -3 },
-            running: { x: 12, y: -8 },
-            attack:  { x: 15, y: -12 },
-        },
-        gripOffset: { x: 0, y: 32 }, // 握把偏移
-        dragHand: false,      // 是否正在拖动手图标
-        dragWeapon: false,    // 是否正在挂载点模式下拖动武器（调整 gripOffset）
-        handStartX: 0, handStartY: 0,
-        handAnchorStartX: 0, handAnchorStartY: 0,
-        gripStartX: 0, gripStartY: 0,
-    },
-
     // 图片缓存
     images: {},
     charImage: null,
     weaponImage: null,
 
-    // 武器配置映射
+    // 武器配置映射（贴图路径与游戏内持有贴图同源：weapon-texture-map.js）
     WEAPON_MAP: {
-        sword:      { name: '生锈长剑',   img: 'assets/weapons/1-rusty_sword_euip.png', type: 'melee' },
+        sword:      { name: '生锈长剑',   img: WEAPON_TEX_PATH.weapon_rusty_sword, type: 'melee' },
         bow:        { name: '训练弓',     img: 'assets/weapons/trainingBOW.png',        type: 'bow',
                        frames: {
                            idle: ['assets/weapons/trainingBOW.png'],
@@ -92,23 +72,32 @@ const DevTool = {
                            bow_release: ['assets/weapons/trainingBOW.png'],
                        }
                      },
-        pistol:     { name: 'G18',        img: 'assets/weapons/G18equip.png',         type: 'pistol' },
-        deagle:     { name: '沙漠之鹰',   img: 'assets/weapons/Desert eagle-eqiup.png',  type: 'pistol' },
-        pkm:        { name: 'PKM',        img: 'assets/weapons/pkm_topdown.png',      type: 'machinegun' },
-        akm:        { name: 'AKM',        img: 'assets/weapons/akm_topdown_lowpoly_v2长枪管.png', type: 'rifle' },
-        qbz191:     { name: 'QBZ-191',    img: 'assets/weapons/191equip_clean.png',   type: 'rifle' },
-        qjb201:     { name: 'QJB-201',    img: 'assets/weapons/201equip.png',         type: 'machinegun' },
-        super90:    { name: 'Super90',    img: 'assets/weapons/M4s90_equip.png',      type: 'shotgun' },
-        saiga12k:   { name: 'S12K',       img: 'assets/weapons/S12k-equip.png',       type: 'shotgun' },
-        energy_lmg: { name: '能量轻机枪', img: 'assets/weapons/devotion-equip.png', type: 'machinegun' },
+        pistol:     { name: 'G18',        img: WEAPON_TEX_PATH.weapon_g18,         type: 'pistol' },
+        deagle:     { name: '沙漠之鹰',   img: WEAPON_TEX_PATH.weapon_deagle,  type: 'pistol' },
+        pkm:        { name: 'PKM',        img: WEAPON_TEX_PATH.weapon_pkm,      type: 'machinegun' },
+        akm:        { name: 'AKM',        img: WEAPON_TEX_PATH.weapon_akm, type: 'rifle' },
+        qbz191:     { name: 'QBZ-191',    img: WEAPON_TEX_PATH.weapon_qbz191,   type: 'rifle' },
+        qjb201:     { name: 'QJB-201',    img: WEAPON_TEX_PATH.weapon_qjb201,         type: 'machinegun' },
+        super90:    { name: 'Super90',    img: WEAPON_TEX_PATH.weapon_super90,      type: 'shotgun' },
+        saiga12k:   { name: 'S12K',       img: WEAPON_TEX_PATH.weapon_saiga12k,       type: 'shotgun' },
+        energy_lmg: { name: '能量轻机枪', img: WEAPON_TEX_PATH.weapon_energy_lmg, type: 'machinegun' },
     },
 
     // 动画状态映射
     ANIM_NAME: {
-        idle: '待机', walk: '移动', attack: '攻击',
+        idle: '待机', walk: '移动', running: '奔跑', attack: '攻击',
         bow_draw: '拉弓', bow_release: '射箭',
         gun_idle: '持枪待机', gun_fire: '射击',
         reload: '换弹', hurt: '受击', death: '死亡',
+    },
+
+    // 面板动画键 → player-anim-config.json 配置键
+    // （面板历史命名 running/attack 与配置键 run/attack_sword 不同，在此统一映射）
+    PANEL_ANIM_TO_CONFIG: {
+        idle: 'idle', walk: 'walk', running: 'run', attack: 'attack_sword',
+        bow_draw: 'bow_draw', bow_release: 'bow_release',
+        gun_idle: 'gun_idle', gun_fire: 'gun_fire',
+        reload: 'reload', hurt: 'hurt', death: 'death',
     },
 
     init() {
@@ -125,6 +114,7 @@ const DevTool = {
         this._updateFrameSlider();
         this._updateFrameLabel();
         this._updatePlayBtn();
+        this._syncFpsInput();
         // 初始化 AI 开发工具
         AIDevTool.init();
         // 初始化怪物贴图调整工具
@@ -192,22 +182,6 @@ const DevTool = {
             this._draw();
         };
         this._updateWeaponPreview();
-        this._loadHandAnchorsFromConfig();
-    },
-
-    // 从 WeaponAnimConfig 加载 handAnchors / gripOffset
-    _loadHandAnchorsFromConfig() {
-        const wt = this.state.weaponType;
-        const cfg = WeaponAnimConfig[wt];
-        const sys = this.handAnchorSystem;
-        if (cfg && cfg.handAnchors && typeof cfg.handAnchors === 'object') {
-            sys.handAnchors = JSON.parse(JSON.stringify(cfg.handAnchors));
-            sys.gripOffset = cfg.gripOffset ? { ...cfg.gripOffset } : { x: 0, y: 32 };
-        } else {
-            // 保持默认空白挂载点，避免污染未启用武器
-            sys.handAnchors = { idle: { x: 0, y: 0 }, walk: { x: 0, y: 0 }, running: { x: 0, y: 0 }, attack: { x: 0, y: 0 } };
-            sys.gripOffset = { x: 0, y: 32 };
-        }
     },
 
     // 获取当前武器在 WeaponTransform 中的基础/旋转后偏移（用于反向计算）
@@ -217,24 +191,14 @@ const DevTool = {
 
     // 根据当前面板参数构造 WeaponTransform 的 overrides
     _buildPreviewOverrides() {
-        const _animState = this.state.anim;
-        const sys = this.handAnchorSystem;
-        const overrides = {
+        // weaponParams.offsetX/Y 表示武器中心/握把位置
+        const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
+        return {
             idleRotation: this.weaponParams.rotation,
             idleScale: this.weaponParams.scale,
+            holdOffsetX: this.weaponParams.offsetX - baseX - afterX,
+            holdOffsetY: this.weaponParams.offsetY - baseY - afterY,
         };
-
-        if (sys.enabled) {
-            // 挂载点模式：使用 handAnchors / gripOffset（weaponParams 不再覆盖手锚点）
-            overrides.handAnchors = JSON.parse(JSON.stringify(sys.handAnchors));
-            overrides.gripOffset = { ...sys.gripOffset };
-        } else {
-            // 传统模式：weaponParams.offsetX/Y 表示武器中心/握把位置
-            const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
-            overrides.holdOffsetX = this.weaponParams.offsetX - baseX - afterX;
-            overrides.holdOffsetY = this.weaponParams.offsetY - baseY - afterY;
-        }
-        return overrides;
     },
 
     // 持久化 WeaponAnimConfig 到 Electron 文件系统（如果可用）
@@ -246,8 +210,42 @@ const DevTool = {
         }
     },
 
+    // 逐帧武器数据导出：覆盖写固定文件 weapon-frames/latest.js（Electron IPC 或 Vite 中间件）
+    // 用途：面板调完逐帧位置后，把该文件交给助手合并进 data/weapon-anim-config.json
+    _exportPerFrameFile(wt, cfg) {
+        const payload = {
+            exportedAt: new Date().toISOString(),
+            weaponType: wt,
+            weaponName: this.WEAPON_MAP[wt]?.name || wt,
+            anim: 'attack',
+            mode: 'perFrame',
+            frameCount: cfg.attack.frames.length,
+            fields: {
+                offsetX: '相对角色中心偏移X（px，右为正）',
+                offsetY: '相对角色中心偏移Y（px，Canvas 坐标下为正）',
+                rotation: '武器旋转角度（度）',
+                scale: '武器缩放',
+            },
+            frames: cfg.attack.frames,
+        };
+        const done = (ok) => {
+            this._showToast(ok
+                ? '✅ 已保存并导出 weapon-frames/latest.js（已覆盖）'
+                : '✅ 已保存（⚠️ latest.js 导出失败）');
+        };
+        if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.saveWeaponFrames) {
+            window.electronAPI.saveWeaponFrames(payload).then(() => done(true)).catch(() => done(false));
+        } else if (typeof fetch !== 'undefined') {
+            fetch('/__save-weapon-frames', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).then(r => done(r.ok)).catch(() => done(false));
+        }
+    },
+
     /**
-     * 把当前配置（含关键帧、挂载点）直接加载到预览画布上
+     * 把当前配置直接加载到预览画布上
      * 切换动画/武器/按重置/拖动滑块时调用，避免用户每次都从空白开始拖动
      */
     _applyCurrentConfigToPreview() {
@@ -256,7 +254,6 @@ const DevTool = {
         const cfg = WeaponAnimConfig[wt];
         if (!cfg) return;
 
-        const sys = this.handAnchorSystem;
         let offsetX, offsetY, rotation, scale;
 
         const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
@@ -269,14 +266,6 @@ const DevTool = {
             rotation = frame.rotation || 0;
             scale = frame.scale !== undefined ? frame.scale : 1;
             this.state.playProgress = perFrame.length > 1 ? idx / (perFrame.length - 1) : 0;
-        } else if (sys.enabled) {
-            // 挂载点模式：weaponParams 表示手部挂载点 + 基础旋转/缩放
-            const anchor = sys.handAnchors[anim] || sys.handAnchors.idle || { x: 0, y: 0 };
-            const stateCfg = cfg[anim] || cfg;
-            offsetX = anchor.x;
-            offsetY = anchor.y;
-            rotation = stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : (cfg.idleRotation || 0);
-            scale = stateCfg.idleScale !== undefined ? stateCfg.idleScale : (cfg.idleScale || 1);
         } else {
             // 传统模式：weaponParams 表示武器中心位置 + 基础旋转/缩放
             const overrides = this._buildPreviewOverrides();
@@ -296,57 +285,6 @@ const DevTool = {
         this.state.weaponOnCanvas = true;
         this._syncInputs();
         this._draw();
-    },
-
-    // 根据当前 frameIndex 插值运行时关键帧，返回 { local, rotation }
-    _getRuntimeKeyframeTransform() {
-        const wt = this.state.weaponType;
-        const anim = this.state.anim;
-        const cfg = WeaponAnimConfig[wt];
-        const runtimeKeyframes = cfg && cfg.keyframes && cfg.keyframes[wt] && cfg.keyframes[wt][anim];
-        if (!runtimeKeyframes || runtimeKeyframes.length === 0) return null;
-
-        const frameData = this._charFrames[anim];
-        const frameCount = frameData && frameData.count ? frameData.count : 1;
-        const progress = frameCount > 1 ? this.state.frameIndex / frameCount : 0;
-
-        let prev = runtimeKeyframes[0], next = runtimeKeyframes[runtimeKeyframes.length - 1];
-        for (let i = 0; i < runtimeKeyframes.length - 1; i++) {
-            if (progress >= runtimeKeyframes[i].progress && progress <= runtimeKeyframes[i + 1].progress) {
-                prev = runtimeKeyframes[i];
-                next = runtimeKeyframes[i + 1];
-                break;
-            }
-        }
-
-        const segmentDuration = next.progress - prev.progress;
-        const t = segmentDuration > 0 ? (progress - prev.progress) / segmentDuration : 0;
-
-        const prevOffsetX = prev.handOffsetX !== undefined ? prev.handOffsetX : prev.holdOffsetX;
-        const nextOffsetX = next.handOffsetX !== undefined ? next.handOffsetX : next.holdOffsetX;
-        const prevOffsetY = prev.handOffsetY !== undefined ? prev.handOffsetY : prev.holdOffsetY;
-        const nextOffsetY = next.handOffsetY !== undefined ? next.handOffsetY : next.holdOffsetY;
-
-        const offsetX = (prevOffsetX !== undefined ? prevOffsetX : 0) +
-            ((nextOffsetX !== undefined ? nextOffsetX : 0) - (prevOffsetX !== undefined ? prevOffsetX : 0)) * t;
-        const offsetY = (prevOffsetY !== undefined ? prevOffsetY : 0) +
-            ((nextOffsetY !== undefined ? nextOffsetY : 0) - (prevOffsetY !== undefined ? prevOffsetY : 0)) * t;
-        const rot = (prev.rotation !== undefined ? prev.rotation : 0) +
-            ((next.rotation !== undefined ? next.rotation : 0) - (prev.rotation !== undefined ? prev.rotation : 0)) * t;
-        const scl = (prev.scale !== undefined ? prev.scale : 1) +
-            ((next.scale !== undefined ? next.scale : 1) - (prev.scale !== undefined ? prev.scale : 1)) * t;
-
-        const kfPos = WeaponTransform.getKeyframedWeaponPosition(
-            { x: 0, y: 0, rotation: 0 }, wt, anim,
-            { offsetX, offsetY, rotation: rot, scale: scl },
-            0, true
-        );
-
-        const wSize = WeaponTransform.getWeaponSize(wt, scl, anim);
-        return {
-            local: { x: kfPos.x, y: kfPos.y, size: wSize.height / scl, scale: scl },
-            rotation: kfPos.rotation,
-        };
     },
 
     // 根据当前 playProgress 平滑插值逐帧配置
@@ -420,11 +358,11 @@ const DevTool = {
                 this.state.frameIndex = 0;
                 this.state.isPlaying = false;
                 this._stopFrameAnimation();
-                this._loadKeyframes(); // 加载关键帧
                 this._updateFrameSlider();
                 this._updateFrameLabel();
                 this._updatePlayBtn();
                 this._updateStatus();
+                this._syncFpsInput();
                 // 直接加载当前配置到预览画布，避免空白/错位
                 this._applyCurrentConfigToPreview();
             });
@@ -462,10 +400,6 @@ const DevTool = {
         
         const zoomResetBtn = getElement('devToolZoomReset');
         if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this._zoomReset());
-
-        // 设置手部挂载点按钮
-        const handAnchorBtn = getElement('devToolSetHandAnchor');
-        if (handAnchorBtn) handAnchorBtn.addEventListener('click', () => this._toggleHandAnchorMode());
 
         // Canvas 鼠标交互
         this._canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -528,39 +462,7 @@ const DevTool = {
             if (e.key === 'Escape') {
                 this.hide();
             }
-            // 关键帧快捷键
-            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && this.keyframeSystem.enabled) {
-                if (e.key === 'k' || e.key === 'K') {
-                    // K键：在当前进度添加关键帧
-                    e.preventDefault();
-                    const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
-                    this._addKeyframe(progress);
-                    this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
-                }
-            }
         });
-
-        // 应用到所有帧
-        const applyAllBtn = getElement('devToolApplyAll');
-        if (applyAllBtn) applyAllBtn.addEventListener('click', () => this._applyToAllKeyframes());
-
-        // 关键帧按钮事件
-        const addKfBtn = getElement('devToolAddKeyframe');
-        if (addKfBtn) addKfBtn.addEventListener('click', () => {
-            if (this.state.anim === 'attack' || this.state.anim === 'walk') {
-                const progress = this.state.frameIndex / this._charFrames[this.state.anim].count;
-                this._addKeyframe(progress);
-                this._showToast(`✅ 关键帧已添加 @ ${Math.round(progress * 100)}%`);
-            } else {
-                this._showToast('请在攻击或行走动画模式下添加关键帧');
-            }
-        });
-
-        const interpolateBtn = getElement('devToolInterpolate');
-        if (interpolateBtn) interpolateBtn.addEventListener('click', () => this._autoInterpolate());
-
-        const clearKfBtn = getElement('devToolClearKf');
-        if (clearKfBtn) clearKfBtn.addEventListener('click', () => this._clearKeyframes());
 
         // 武器图片拖放
         const weaponImg = getElement('devToolWeaponImg');
@@ -576,27 +478,62 @@ const DevTool = {
         });
     },
 
-    // 加载角色动画帧
+    // 加载角色动画帧（配置驱动：data/player-anim-config.json）
+    // 素材未配置的动画键跳过，绘制时回退待机图；新增姿态入库+加配置即自动生效
     _loadCharacterFrames() {
         this._charFrames = {};
-        
+
         // 待机：单帧
         this._charFrames.idle = [this.charImage];
-        
-        // 行走：walk.png 3×8=21帧，每帧 512×516
-        this._charFrames.walk = { sheet: new Image(), cols: 8, rows: 3, frameW: 512, frameH: 516, count: 21 };
-        this._charFrames.walk.sheet.src = 'assets/character/walk.png';
-        this._charFrames.walk.sheet.onload = () => { this._draw(); };
-        
-        // 奔跑：running.png 2×8=16帧，每帧 512×512
-        this._charFrames.running = { sheet: new Image(), cols: 8, rows: 2, frameW: 512, frameH: 512, count: 16 };
-        this._charFrames.running.sheet.src = 'assets/character/running.png';
-        this._charFrames.running.sheet.onload = () => { this._draw(); };
-        
-        // 剑攻击：attack_sword.png 8帧，每帧 512×516（或 512×1548 总高度）
-        this._charFrames.attack = { sheet: new Image(), cols: 8, rows: 1, frameW: 512, frameH: 516, count: 8 };
-        this._charFrames.attack.sheet.src = 'assets/player/attack_sword.png';
-        this._charFrames.attack.sheet.onload = () => { this._draw(); };
+
+        Object.entries(this.PANEL_ANIM_TO_CONFIG).forEach(([panelKey, cfgKey]) => {
+            if (panelKey === 'idle') return;
+            const def = PLAYER_ANIMS[cfgKey];
+            if (!def) return;
+            // 单帧姿态（如 gun_idle）：直接作为预览图
+            if (def.type === 'image') {
+                const poseImg = new Image();
+                poseImg.onload = () => { this._draw(); };
+                poseImg.src = def.src;
+                this._charFrames[panelKey] = poseImg;
+                return;
+            }
+            if (def.type !== 'sheet') return;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            const frameData = {
+                sheet: new Image(),
+                cols: def.cols || 8,
+                rows: def.rows || 1,
+                frameW: def.frameWidth,
+                frameH: def.frameHeight,
+                firstFrame: start,          // 帧区间起点（如 run 只用 sheet 第一行 0~7）
+                count: end - start + 1,
+                frameRate: def.frameRate || 12,
+            };
+            frameData.sheet.onload = () => { this._draw(); };
+            frameData.sheet.src = def.src;
+            this._charFrames[panelKey] = frameData;
+        });
+
+        // 持枪模式移动预览部件（twist.walkLegs 走腿 sheet + 躯干层，与游戏内分层一致）
+        const gunTwist = PLAYER_ANIMS.gun_idle && PLAYER_ANIMS.gun_idle.twist;
+        if (gunTwist && gunTwist.walkLegs) {
+            const wl = gunTwist.walkLegs;
+            const [wlStart, wlEnd] = wl.frames || [0, (wl.frameCount || 1) - 1];
+            this._gunWalkFrames = {
+                sheet: new Image(),
+                cols: wl.cols || 8,
+                frameW: wl.frameWidth,
+                frameH: wl.frameHeight,
+                firstFrame: wlStart,
+                count: wlEnd - wlStart + 1,
+            };
+            this._gunWalkFrames.sheet.onload = () => { this._draw(); };
+            this._gunWalkFrames.sheet.src = wl.src;
+            this._gunTorsoImg = new Image();
+            this._gunTorsoImg.onload = () => { this._draw(); };
+            this._gunTorsoImg.src = gunTwist.torsoSrc;
+        }
     },
 
     // 更新帧滑块范围
@@ -650,6 +587,23 @@ const DevTool = {
         btn.textContent = this.state.isPlaying ? '⏸ 暂停' : '▶ 播放';
     },
 
+    // 当前预览帧率：优先面板 fps 输入框，其次动画配置的 frameRate，最后回退 60ms/帧
+    _getPreviewFps(frameData) {
+        const fpsInput = getElement('devToolFps');
+        const manual = fpsInput ? parseFloat(fpsInput.value) : NaN;
+        if (Number.isFinite(manual) && manual > 0) return manual;
+        if (frameData && frameData.frameRate) return frameData.frameRate;
+        return 1000 / 60;
+    },
+
+    // 切换动画时把 fps 输入框同步为该动画的配置帧率（可手动覆盖）
+    _syncFpsInput() {
+        const fpsInput = getElement('devToolFps');
+        if (!fpsInput) return;
+        const frameData = this._charFrames[this.state.anim];
+        fpsInput.value = (frameData && frameData.frameRate) || '';
+    },
+
     // 启动帧动画循环
     _startFrameAnimation() {
         if (this._frameAnimId) cancelAnimationFrame(this._frameAnimId);
@@ -664,8 +618,8 @@ const DevTool = {
 
         // 逐帧模式：使用连续进度做 0~1 的平滑插值，和普通逐帧预览区分
         if (isPerFrame) {
-            // 与游戏中 player_attack_sword 一致：8 帧 @ 12fps ≈ 667ms
-            const duration = 1000 * frameData.count / 12;
+            // 与游戏中 player_attack_sword 一致（默认 8 帧 @ 12fps ≈ 667ms，fps 输入框可覆盖）
+            const duration = 1000 * frameData.count / this._getPreviewFps(frameData);
             const startTime = performance.now();
             const loop = (timestamp) => {
                 if (!this.state.isPlaying) return;
@@ -683,7 +637,7 @@ const DevTool = {
             return;
         }
 
-        const frameDuration = 60; // 每帧60ms（与游戏中一致）
+        const frameDuration = 1000 / this._getPreviewFps(frameData);
         let lastTime = 0;
 
         const loop = (timestamp) => {
@@ -698,7 +652,7 @@ const DevTool = {
                 const slider = getElement('devToolFrameSlider');
                 if (slider) slider.value = this.state.frameIndex;
                 // 播放时让武器跟随当前帧配置，方便对比现状
-                if (!this.drag.active && !this.handAnchorSystem.dragHand && !this.handAnchorSystem.dragWeapon) {
+                if (!this.drag.active) {
                     this._applyCurrentConfigToPreview();
                 } else {
                     this._draw();
@@ -712,242 +666,6 @@ const DevTool = {
         this._frameAnimId = requestAnimationFrame(loop);
     },
 
-    // ===== 关键帧系统 =====
-    
-    // 线性插值：根据进度计算当前武器位置
-    _interpolateKeyframes(progress) {
-        const kfs = this.keyframeSystem.keyframes;
-        if (!kfs || kfs.length === 0) return null;
-        
-        // 边界处理
-        if (progress <= 0) return kfs[0];
-        if (progress >= 1) return kfs[kfs.length - 1];
-        
-        // 找到前后关键帧
-        let prev = kfs[0], next = kfs[kfs.length - 1];
-        for (let i = 0; i < kfs.length - 1; i++) {
-            if (progress >= kfs[i].progress && progress <= kfs[i + 1].progress) {
-                prev = kfs[i];
-                next = kfs[i + 1];
-                break;
-            }
-        }
-        
-        // 计算插值比例
-        const segmentDuration = next.progress - prev.progress;
-        if (segmentDuration === 0) return prev;
-        
-        const t = (progress - prev.progress) / segmentDuration;
-        
-        // 线性插值
-        return {
-            offsetX: prev.offsetX + (next.offsetX - prev.offsetX) * t,
-            offsetY: prev.offsetY + (next.offsetY - prev.offsetY) * t,
-            rotation: prev.rotation + (next.rotation - prev.rotation) * t,
-            scale: prev.scale + (next.scale - prev.scale) * t,
-        };
-    },
-    
-    // 从 WeaponAnimConfig 加载关键帧（转换为屏幕坐标）
-    _loadKeyframes() {
-        const wt = this.state.weaponType;
-        const anim = this.state.anim;
-        const cfg = WeaponAnimConfig.keyframes;
-        const weaponCfg = WeaponAnimConfig[wt];
-
-        if (cfg && cfg[wt] && cfg[wt][anim]) {
-            const hasHandAnchors = weaponCfg && weaponCfg.handAnchors && typeof weaponCfg.handAnchors === 'object';
-            const anchor = hasHandAnchors ? (weaponCfg.handAnchors[anim] || weaponCfg.handAnchors.idle || { x: 0, y: 0 }) : null;
-            const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
-
-            this.keyframeSystem.keyframes = cfg[wt][anim].map(kf => {
-                let offsetX = kf.offsetX;
-                let offsetY = kf.offsetY;
-                if (kf.handOffsetX !== undefined && kf.handOffsetY !== undefined && anchor) {
-                    offsetX = anchor.x + kf.handOffsetX;
-                    offsetY = anchor.y + kf.handOffsetY;
-                } else if (kf.holdOffsetX !== undefined && kf.holdOffsetY !== undefined) {
-                    offsetX = baseX + kf.holdOffsetX + afterX;
-                    offsetY = baseY + kf.holdOffsetY + afterY;
-                }
-                return {
-                    progress: kf.progress,
-                    offsetX,
-                    offsetY,
-                    rotation: kf.rotation,
-                    scale: kf.scale,
-                };
-            });
-            this.keyframeSystem.enabled = true;
-        } else {
-            // 没有关键帧时，从当前 weaponParams 创建一个默认关键帧
-            this.keyframeSystem.keyframes = [];
-            this.keyframeSystem.enabled = false;
-        }
-        this.keyframeSystem.selectedIndex = -1;
-    },
-    
-    // 添加关键帧（当前位置）
-    _addKeyframe(progress) {
-        const kf = {
-            progress: Math.max(0, Math.min(1, progress)),
-            offsetX: this.weaponParams.offsetX,
-            offsetY: this.weaponParams.offsetY,
-            rotation: this.weaponParams.rotation,
-            scale: this.weaponParams.scale,
-        };
-        
-        // 按 progress 排序插入
-        const kfs = this.keyframeSystem.keyframes;
-        let inserted = false;
-        for (let i = 0; i < kfs.length; i++) {
-            if (kf.progress < kfs[i].progress) {
-                kfs.splice(i, 0, kf);
-                this.keyframeSystem.selectedIndex = i;
-                inserted = true;
-                break;
-            } else if (Math.abs(kf.progress - kfs[i].progress) < 0.01) {
-                // 更新已有关键帧
-                kfs[i] = kf;
-                this.keyframeSystem.selectedIndex = i;
-                inserted = true;
-                break;
-            }
-        }
-        if (!inserted) {
-            kfs.push(kf);
-            this.keyframeSystem.selectedIndex = kfs.length - 1;
-        }
-        
-        this.keyframeSystem.enabled = true;
-        this._updateKeyframeUI();
-        
-    },
-    
-    // 删除选中关键帧
-    _deleteKeyframe() {
-        const idx = this.keyframeSystem.selectedIndex;
-        if (idx >= 0 && idx < this.keyframeSystem.keyframes.length) {
-            this.keyframeSystem.keyframes.splice(idx, 1);
-            this.keyframeSystem.selectedIndex = -1;
-            this._updateKeyframeUI();
-        }
-    },
-    
-    // 清空所有关键帧
-    _clearKeyframes() {
-        this.keyframeSystem.keyframes = [];
-        this.keyframeSystem.selectedIndex = -1;
-        this.keyframeSystem.enabled = false;
-        this._updateKeyframeUI();
-        
-    },
-    
-    // 更新关键帧UI
-    _updateKeyframeUI() {
-        const listEl = getElement('devToolKeyframeList');
-        if (!listEl) return;
-        
-        const kfs = this.keyframeSystem.keyframes;
-        if (kfs.length === 0) {
-            listEl.innerHTML = '<div style="color:#888;text-align:center;padding:10px;">暂无关键帧</div>';
-            return;
-        }
-        
-        listEl.innerHTML = kfs.map((kf, i) => {
-            const isSelected = i === this.keyframeSystem.selectedIndex;
-            return `<div class="keyframe-item ${isSelected ? 'selected' : ''}" data-index="${i}" style="
-                padding: 4px 8px; margin: 2px 0; border-radius: 4px; cursor: pointer; font-size: 12px;
-                background: ${isSelected ? 'rgba(144,208,112,0.2)' : 'rgba(60,60,60,0.5)'};
-                border: 1px solid ${isSelected ? 'rgba(144,208,112,0.5)' : 'transparent'};
-            ">
-                <span style="color:#d4c5a9;">#${i+1}</span> 
-                <span style="color:#90d070;">${Math.round(kf.progress * 100)}%</span>
-                <span style="color:#888;">XY(${Math.round(kf.offsetX)},${Math.round(kf.offsetY)})</span>
-                <span style="color:#888;">R${Math.round(kf.rotation)}°</span>
-                <span style="color:#888;">S${kf.scale.toFixed(2)}</span>
-            </div>`;
-        }).join('');
-        
-        // 绑定点击事件
-        listEl.querySelectorAll('.keyframe-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const idx = parseInt(el.dataset.index);
-                this.keyframeSystem.selectedIndex = idx;
-                this._applyKeyframeToWeapon(idx);
-                this._updateKeyframeUI();
-            });
-        });
-    },
-    
-    // 应用关键帧到武器参数
-    _applyKeyframeToWeapon(index) {
-        const kf = this.keyframeSystem.keyframes[index];
-        if (!kf) return;
-        
-        this.weaponParams.offsetX = kf.offsetX;
-        this.weaponParams.offsetY = kf.offsetY;
-        this.weaponParams.rotation = kf.rotation;
-        this.weaponParams.scale = kf.scale;
-        this._syncInputs();
-        this._draw();
-    },
-    
-    // 将当前武器参数应用到所有关键帧
-    _applyToAllKeyframes() {
-        const kfs = this.keyframeSystem.keyframes;
-        if (kfs.length === 0) {
-            this._showToast('没有关键帧可应用');
-            return;
-        }
-        for (const kf of kfs) {
-            kf.offsetX = this.weaponParams.offsetX;
-            kf.offsetY = this.weaponParams.offsetY;
-            kf.rotation = this.weaponParams.rotation;
-            kf.scale = this.weaponParams.scale;
-        }
-        this._updateKeyframeUI();
-        this._draw();
-        this._showToast(`✅ 已应用到 ${kfs.length} 个关键帧`);
-    },
-
-    // 自动插值生成中间帧
-    _autoInterpolate() {
-        const kfs = this.keyframeSystem.keyframes;
-        if (kfs.length < 2) {
-            this._showToast('需要至少2个关键帧才能插值');
-            return;
-        }
-        
-        // 在关键帧之间均匀插入中间帧
-        const newKeyframes = [];
-        for (let i = 0; i < kfs.length - 1; i++) {
-            const prev = kfs[i];
-            const next = kfs[i + 1];
-            newKeyframes.push(prev);
-            
-            // 如果间隔大于 0.15，插入中间帧
-            if (next.progress - prev.progress > 0.15) {
-                const midProgress = (prev.progress + next.progress) / 2;
-                const mid = this._interpolateKeyframes(midProgress);
-                if (mid) {
-                    mid.progress = midProgress;
-                    newKeyframes.push(mid);
-                }
-            }
-        }
-        newKeyframes.push(kfs[kfs.length - 1]);
-        
-        this.keyframeSystem.keyframes = newKeyframes;
-        this._updateKeyframeUI();
-        this._showToast(`✅ 已生成 ${newKeyframes.length} 个关键帧`);
-    },
-
-    // 缓动函数（与 Easing 模块一致）
-    _easeInCubic(t) { return t * t * t; },
-    _easeOutQuad(t) { return t * (2 - t); },
-    _easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); },
-
     // 停止帧动画
     _stopFrameAnimation() {
         if (this._frameAnimId) {
@@ -956,18 +674,20 @@ const DevTool = {
         }
     },
 
-    // 获取当前角色显示图片（根据动画状态）
+    // 获取当前角色显示图片（根据动画状态；无帧数据的姿态回退待机图）
     _getCharacterImage() {
         const currentAnim = this.state.anim;
         if (currentAnim === 'idle') {
             return this.charImage;
         }
-        if ((currentAnim === 'walk' || currentAnim === 'running' || currentAnim === 'attack') && this._charFrames[currentAnim]) {
-            const frameData = this._charFrames[currentAnim];
-            if (frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
-                // 返回可绘制的帧数据对象
-                return frameData;
-            }
+        const entry = this._charFrames[currentAnim];
+        // 单帧姿态图（gun_idle 等 image 型配置）
+        if (entry instanceof Image && entry.complete && entry.naturalWidth > 0) {
+            return entry;
+        }
+        if (entry && entry.sheet && entry.sheet.complete && entry.sheet.naturalWidth > 0) {
+            // 返回可绘制的帧数据对象
+            return entry;
         }
         return this.charImage;
     },
@@ -981,59 +701,6 @@ const DevTool = {
             this._canvas.classList.add('mode-rotate');
         } else {
             this._canvas.classList.remove('mode-rotate');
-        }
-    },
-
-    _toggleHandAnchorMode() {
-        const sys = this.handAnchorSystem;
-        sys.enabled = !sys.enabled;
-
-        const wt = this.state.weaponType;
-        const currentAnim = this.state.anim;
-        const cfg = WeaponAnimConfig[wt];
-
-        if (sys.enabled) {
-            // 进入挂载点模式时，从配置同步挂载点
-            this._loadHandAnchorsFromConfig();
-            // 如果当前动画有挂载点，把 weaponParams 切到该挂载点位置（便于拖动）
-            const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle || { x: 0, y: 0 };
-            this.weaponParams.offsetX = anchor.x;
-            this.weaponParams.offsetY = anchor.y;
-            // 保持当前旋转/缩放
-            if (cfg) {
-                const stateCfg = cfg[currentAnim] || cfg;
-                this.weaponParams.rotation = stateCfg.idleRotation !== undefined ? stateCfg.idleRotation : (cfg.idleRotation || 0);
-                this.weaponParams.scale = stateCfg.idleScale !== undefined ? stateCfg.idleScale : (cfg.idleScale || 1);
-            }
-            this.state.weaponOnCanvas = true;
-        } else {
-            // 退出挂载点模式时，先根据当前手锚点算出武器实际位置，再切回普通模式
-            const overrides = {
-                idleRotation: this.weaponParams.rotation,
-                idleScale: this.weaponParams.scale,
-                handAnchors: sys.handAnchors,
-                gripOffset: sys.gripOffset,
-            };
-            const local = WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, currentAnim, true, overrides);
-            this.weaponParams.offsetX = local.x;
-            this.weaponParams.offsetY = local.y;
-        }
-
-        this._syncInputs();
-        this._draw();
-
-        const btn = getElement('devToolSetHandAnchor');
-        if (btn) {
-            btn.style.background = sys.enabled ? '#4a7c59' : '';
-            btn.textContent = sys.enabled ? '✋ 退出挂载点编辑' : '✋ 设置手部挂载点';
-        }
-
-        // 更新提示
-        const canvasHint = getElement('devToolHint');
-        if (canvasHint) {
-            canvasHint.innerHTML = sys.enabled
-                ? `挂载点模式：黄点=手 · 拖动黄点移手 · 拖动武器调 gripOffset · 滚轮调旋转/缩放`
-                : `拖动武器到人物位置 → 按 <kbd>R</kbd> 进入调整模式`;
         }
     },
 
@@ -1068,7 +735,6 @@ const DevTool = {
         const cx = this._canvas.width / 2;
         const cy = this._canvas.height / 2;
         const wp = this.weaponParams;
-        const sys = this.handAnchorSystem;
 
         // 计算武器当前在屏幕上的中心位置（用于命中测试）
         let weaponScreenX, weaponScreenY;
@@ -1080,44 +746,15 @@ const DevTool = {
             weaponScreenY = cy + local.y;
         }
 
-        // ===== 挂载点模式：优先检查手部标记 =====
-        if (sys.enabled) {
-            const currentAnim = this.state.anim;
-            const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
-            const handScreenX = cx + anchor.x;
-            const handScreenY = cy + anchor.y;
-
-            if (Math.hypot(mx - handScreenX, my - handScreenY) < 20) {
-                sys.dragHand = true;
-                sys.handStartX = mx;
-                sys.handStartY = my;
-                sys.handAnchorStartX = anchor.x;
-                sys.handAnchorStartY = anchor.y;
-                this._stopFrameAnimation();
-                this.state.isPlaying = false;
-                this._updatePlayBtn();
-                return;
-            }
-        }
-
         // 检查是否点击在武器区域内
         if (weaponScreenX !== undefined) {
             const dist = Math.hypot(mx - weaponScreenX, my - weaponScreenY);
             if (dist < 60) {
-                if (sys.enabled) {
-                    // 挂载点模式下拖动武器 = 调整 gripOffset
-                    sys.dragWeapon = true;
-                    sys.handStartX = mx;
-                    sys.handStartY = my;
-                    sys.gripStartX = sys.gripOffset.x;
-                    sys.gripStartY = sys.gripOffset.y;
-                } else {
-                    this.drag.active = true;
-                    this.drag.startX = mx;
-                    this.drag.startY = my;
-                    this.drag.startOffsetX = wp.offsetX;
-                    this.drag.startOffsetY = wp.offsetY;
-                }
+                this.drag.active = true;
+                this.drag.startX = mx;
+                this.drag.startY = my;
+                this.drag.startOffsetX = wp.offsetX;
+                this.drag.startOffsetY = wp.offsetY;
                 this.state.weaponOnCanvas = true;
                 this._stopFrameAnimation();
                 this.state.isPlaying = false;
@@ -1126,20 +763,11 @@ const DevTool = {
             }
         }
 
-        // 点击空白区域：放置武器/手部标记
+        // 点击空白区域：放置武器
         if (!this.state.weaponOnCanvas) {
             this.state.weaponOnCanvas = true;
-            if (sys.enabled) {
-                const currentAnim = this.state.anim;
-                const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
-                anchor.x = mx - cx;
-                anchor.y = my - cy;
-                wp.offsetX = anchor.x;
-                wp.offsetY = anchor.y;
-            } else {
-                wp.offsetX = mx - cx;
-                wp.offsetY = my - cy;
-            }
+            wp.offsetX = mx - cx;
+            wp.offsetY = my - cy;
             this._syncInputs();
             this._syncPerFrameFromWeaponParams();
             this._draw();
@@ -1151,38 +779,6 @@ const DevTool = {
         const rect = this._canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        const sys = this.handAnchorSystem;
-
-        // ===== 挂载点模式：拖动手部 =====
-        if (sys.dragHand) {
-            const dx = mx - sys.handStartX;
-            const dy = my - sys.handStartY;
-
-            const currentAnim = this.state.anim;
-            const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
-
-            // 更新挂载点位置（相对于玩家中心）
-            anchor.x = sys.handAnchorStartX + dx;
-            anchor.y = sys.handAnchorStartY + dy;
-
-            // 同步到 weaponParams，使输入框/坐标标注显示手部位置
-            this.weaponParams.offsetX = anchor.x;
-            this.weaponParams.offsetY = anchor.y;
-            this._syncInputs();
-
-            this._draw();
-            return;
-        }
-
-        // ===== 挂载点模式：拖动武器 = 调整 gripOffset =====
-        if (sys.dragWeapon) {
-            const dx = mx - sys.handStartX;
-            const dy = my - sys.handStartY;
-            sys.gripOffset.x = sys.gripStartX + dx;
-            sys.gripOffset.y = sys.gripStartY + dy;
-            this._draw();
-            return;
-        }
 
         if (!this.drag.active) return;
 
@@ -1200,8 +796,6 @@ const DevTool = {
     // 鼠标释放
     _onMouseUp() {
         this.drag.active = false;
-        this.handAnchorSystem.dragHand = false;
-        this.handAnchorSystem.dragWeapon = false;
     },
 
     // 滚轮
@@ -1238,7 +832,9 @@ const DevTool = {
     
     // 更新缩放信息面板
     _updateScaleInfo() {
-        const panel = getElement('devToolScaleInfo');
+        // 注意：devToolScaleInfo 是遗留元素（现行面板未创建）——用原生 getElementById 静默判空，
+        // 不要走 getElement（dom-utils 每次缺失都会打警告，拖动时刷屏）
+        const panel = document.getElementById('devToolScaleInfo');
         if (!panel) return;
         
         const wt = this.state.weaponType;
@@ -1406,39 +1002,48 @@ const DevTool = {
         const isReady = isImage ? charImg.complete : (isFrameData ? charImg.sheet.complete : false);
         if (isReady) {
             const currentAnim = this.state.anim;
-            if (currentAnim === 'idle') {
-                // 待机状态：idle.png 本身是朝右的（脸朝右），无需旋转
-                ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
-            } else if (currentAnim === 'walk' || currentAnim === 'running' || currentAnim === 'attack') {
-                // 从 sprite sheet 提取帧（walk/running/attack）
-                const frameData = this._charFrames[currentAnim];
-                if (frameData && frameData.sheet && frameData.sheet.complete && frameData.sheet.naturalWidth > 0) {
-                    let idx;
-                    // 逐帧攻击模式：武器按 30 帧插值，角色贴图必须按相同进度映射到 8 帧
-                    const wt = this.state.weaponType;
-                    const cfg = WeaponAnimConfig[wt];
-                    const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-                    if (currentAnim === 'attack' && perFrame) {
-                        const spriteProgress = this.state.playProgress || 0;
-                        idx = Math.floor(spriteProgress * (frameData.count - 1));
-                    } else {
-                        idx = this.state.frameIndex % frameData.count;
-                    }
-                    const col = idx % frameData.cols;
-                    const row = Math.floor(idx / frameData.cols);
-                    const sx = col * frameData.frameW;
-                    const sy = row * frameData.frameH;
-                    ctx.drawImage(
-                        frameData.sheet,
-                        sx, sy, frameData.frameW, frameData.frameH,
-                        cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize
-                    );
-                } else {
-                    // 回退到待机图
-                    ctx.drawImage(this.charImage, cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
+            // 持枪移动：走腿层 + 躯干层合成预览（与游戏内分层一致；仅枪类武器且部件就绪时）
+            const wtSel = this.state.weaponType;
+            const isGunWeaponSel = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(this.WEAPON_MAP[wtSel]?.type);
+            if (currentAnim === 'walk' && isGunWeaponSel && this._gunWalkFrames && this._gunWalkFrames.sheet.complete && this._gunWalkFrames.sheet.naturalWidth > 0) {
+                const gf = this._gunWalkFrames;
+                const gidx = (this.state.frameIndex % gf.count) + (gf.firstFrame || 0);
+                const gcol = gidx % gf.cols;
+                const grow = Math.floor(gidx / gf.cols);
+                ctx.drawImage(
+                    gf.sheet,
+                    gcol * gf.frameW, grow * gf.frameH, gf.frameW, gf.frameH,
+                    cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize
+                );
+                if (this._gunTorsoImg && this._gunTorsoImg.complete && this._gunTorsoImg.naturalWidth > 0) {
+                    ctx.drawImage(this._gunTorsoImg, cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize);
                 }
+            } else if (isFrameData) {
+                // 从 sprite sheet 提取帧（所有 sheet 姿态通用，含 firstFrame 帧区间偏移）
+                const frameData = charImg;
+                let idx;
+                // 逐帧攻击模式：武器按 N 帧插值，角色贴图必须按相同进度映射
+                const wt = this.state.weaponType;
+                const cfg = WeaponAnimConfig[wt];
+                const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
+                if (currentAnim === 'attack' && perFrame) {
+                    const spriteProgress = this.state.playProgress || 0;
+                    idx = Math.floor(spriteProgress * (frameData.count - 1));
+                } else {
+                    idx = this.state.frameIndex % frameData.count;
+                }
+                idx += (frameData.firstFrame || 0);
+                const col = idx % frameData.cols;
+                const row = Math.floor(idx / frameData.cols);
+                const sx = col * frameData.frameW;
+                const sy = row * frameData.frameH;
+                ctx.drawImage(
+                    frameData.sheet,
+                    sx, sy, frameData.frameW, frameData.frameH,
+                    cx - spriteSize/2, cy - spriteSize/2, spriteSize, spriteSize
+                );
             } else {
-                // 其他状态：使用待机图
+                // 单帧图（待机，或未配置素材的姿态回退）
                 ctx.drawImage(charImg, cx - spriteSize / 2, cy - spriteSize / 2, spriteSize, spriteSize);
             }
         } else {
@@ -1458,41 +1063,26 @@ const DevTool = {
             const isMelee = weaponType === 'melee';
             const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
             
-            // 关键帧系统状态（仅用于显示指示器，不覆盖绘制参数）
-            const useKeyframes = this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0;
-            
             // ===== 攻击/行走状态指示器 =====
             if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee) {
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
-                
-                if (this.state.anim === 'attack' || this.state.anim === 'walk') {
-                    // 攻击/行走动画进度指示器（统一）
-                    const currentAnim = this.state.anim;
-                    const perFrameTotal = this._getPerFrameTotal();
-                    const frameData = this._charFrames[currentAnim];
-                    const total = perFrameTotal > 1 ? perFrameTotal : (frameData && frameData.count || 1);
-                    const progress = total > 1 ? this.state.frameIndex / (total - 1) : 0;
-                    const animName = currentAnim === 'attack' ? '攻击' : '行走';
-                    ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.8)' : 'rgba(100,200,100,0.8)';
-                    ctx.font = 'bold 14px monospace';
-                    ctx.textAlign = 'center';
-                    const kfIndicator = useKeyframes ? ' [关键帧]' : '';
-                    ctx.fillText(`${animName}: 帧 ${this.state.frameIndex + 1}/${total}${kfIndicator}`, cx, 30);
-                    ctx.fillStyle = 'rgba(80,60,40,0.8)';
-                    ctx.fillRect(cx - 100, 40, 200, 8);
-                    ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.9)' : 'rgba(100,200,100,0.9)';
-                    ctx.fillRect(cx - 100, 40, 200 * progress, 8);
-                    
-                    // 绘制关键帧标记
-                    if (useKeyframes) {
-                        ctx.fillStyle = 'rgba(144,208,112,0.9)';
-                        this.keyframeSystem.keyframes.forEach(kf => {
-                            const x = cx - 100 + 200 * kf.progress;
-                            ctx.fillRect(x - 1, 36, 2, 16);
-                        });
-                    }
-                }
+
+                // 攻击/行走动画进度指示器（统一）
+                const currentAnim = this.state.anim;
+                const perFrameTotal = this._getPerFrameTotal();
+                const frameData = this._charFrames[currentAnim];
+                const total = perFrameTotal > 1 ? perFrameTotal : (frameData && frameData.count || 1);
+                const progress = total > 1 ? this.state.frameIndex / (total - 1) : 0;
+                const animName = currentAnim === 'attack' ? '攻击' : '行走';
+                ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.8)' : 'rgba(100,200,100,0.8)';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${animName}: 帧 ${this.state.frameIndex + 1}/${total}`, cx, 30);
+                ctx.fillStyle = 'rgba(80,60,40,0.8)';
+                ctx.fillRect(cx - 100, 40, 200, 8);
+                ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.9)' : 'rgba(100,200,100,0.9)';
+                ctx.fillRect(cx - 100, 40, 200 * progress, 8);
                 ctx.restore();
             }
             
@@ -1501,20 +1091,14 @@ const DevTool = {
             const animState = this.state.anim;
             const overrides = this._buildPreviewOverrides();
             let local, rotation;
-            // 优先使用逐帧配置（exact per-frame state），其次运行时关键帧插值
+            // 优先使用逐帧配置（exact per-frame state）
             const pfTransform = this._getPerFrameTransform();
             if (pfTransform) {
                 local = pfTransform.local;
                 rotation = pfTransform.rotation;
             } else {
-                const kfTransform = this._getRuntimeKeyframeTransform();
-                if (kfTransform) {
-                    local = kfTransform.local;
-                    rotation = kfTransform.rotation;
-                } else {
-                    local = WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, animState, true, overrides);
-                    rotation = WeaponTransform.getWeaponRotation(0, wt, 0, animState, true, overrides);
-                }
+                local = WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, animState, true, overrides);
+                rotation = WeaponTransform.getWeaponRotation(0, wt, 0, animState, true, overrides);
             }
 
             ctx.save();
@@ -1531,7 +1115,10 @@ const DevTool = {
                 const isPistol = weaponType === 'pistol';
                 const w = (isPistol ? s * 0.275 : s * 0.75) * drawScale;
                 const h = (isPistol ? s * 0.5 : s) * drawScale;
-                ctx.drawImage(this.weaponImage, -w / 2, 0, w, h);
+                // 握把锚点（配置 grip，缺省中心）：面板拖拽点/游戏内旋转轴统一为握把点
+                const gunCfg = WeaponAnimConfig[this.state.weaponType];
+                const grip = (gunCfg && gunCfg.grip) || { x: 0.5, y: 0.5 };
+                ctx.drawImage(this.weaponImage, -grip.x * w, -grip.y * h, w, h);
             } else {
                 const imgW = this.weaponImage.naturalWidth || 1024;
                 const imgH = this.weaponImage.naturalHeight || 1024;
@@ -1547,68 +1134,23 @@ const DevTool = {
 
             ctx.restore();
             
-            // 绘制手部挂载点（如果启用）- 在武器坐标系之外绘制，避免随武器移动
-            if (this.handAnchorSystem.enabled && isMelee) {
-                const sys = this.handAnchorSystem;
-                const currentAnim = this.state.anim;
-                const anchor = sys.handAnchors[currentAnim] || sys.handAnchors.idle;
-                
-                // 挂载点位置（相对于玩家中心）
-                const handX = cx + anchor.x;
-                const handY = cy + anchor.y;
-
-                // 武器中心位置（由 WeaponTransform 计算）
-                const weaponX = cx + local.x;
-                const weaponY = cy + local.y;
-                
-                // 绘制连线到武器中心
-                ctx.strokeStyle = 'rgba(255, 200, 50, 0.4)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath(); ctx.moveTo(handX, handY); ctx.lineTo(weaponX, weaponY); ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // 绘制挂载点指示器（黄色圆点）
-                ctx.fillStyle = 'rgba(255, 200, 50, 0.8)';
-                ctx.strokeStyle = 'rgba(255, 200, 50, 1)';
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(handX, handY, 8, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(handX, handY, 10, 0, Math.PI * 2); ctx.stroke();
-                
-                // 标签
-                ctx.fillStyle = 'rgba(255, 200, 50, 0.9)';
-                ctx.font = '10px monospace';
-                ctx.fillText(`手 (${Math.round(anchor.x)}, ${Math.round(anchor.y)})`, handX + 12, handY - 8);
-            }
-            
             // ===== 坐标标注（所有状态都显示） =====
             const wp = this.weaponParams;
-            const sys = this.handAnchorSystem;
             ctx.fillStyle = '#d4c5a9';
             ctx.font = '11px monospace';
-            if (sys.enabled) {
-                const handScreenX = cx + wp.offsetX;
-                const handScreenY = cy + wp.offsetY;
-                ctx.fillText(`手锚点: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, handScreenX + 12, handScreenY - 8);
-                ctx.fillText(`握把偏移: (${Math.round(sys.gripOffset.x)}, ${Math.round(sys.gripOffset.y)})`, handScreenX + 12, handScreenY + 12);
-                ctx.fillText(`Rotation: ${Math.round(wp.rotation)}°`, handScreenX + 12, handScreenY + 28);
-            } else {
-                const weaponScreenX = cx + wp.offsetX;
-                const weaponScreenY = cy + wp.offsetY;
-                ctx.fillText(`屏幕偏移: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, weaponScreenX + 8, weaponScreenY - 8);
-                ctx.fillText(`Rotation: ${Math.round(wp.rotation)}°`, weaponScreenX + 8, weaponScreenY + 12);
-            }
+            const weaponScreenX = cx + wp.offsetX;
+            const weaponScreenY = cy + wp.offsetY;
+            ctx.fillText(`屏幕偏移: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, weaponScreenX + 8, weaponScreenY - 8);
+            ctx.fillText(`Rotation: ${Math.round(wp.rotation)}°`, weaponScreenX + 8, weaponScreenY + 12);
             if (this.state.anim === 'attack') {
                 const cfg = WeaponAnimConfig[this.state.weaponType];
                 const isPerFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame';
-                if (isPerFrame || useKeyframes) {
+                if (isPerFrame) {
                     ctx.fillStyle = '#90d070';
-                    const labelX = sys.enabled ? (cx + wp.offsetX + 12) : (cx + wp.offsetX + 8);
-                    const labelY = sys.enabled ? (cy + wp.offsetY + 44) : (cy + wp.offsetY + 28);
-                    ctx.fillText(isPerFrame ? `[逐帧模式]` : `[关键帧模式]`, labelX, labelY);
+                    ctx.fillText(`[逐帧模式]`, weaponScreenX + 8, weaponScreenY + 28);
                 }
             }
-            
+
         } else if (!this.state.weaponOnCanvas) {
             ctx.fillStyle = '#5a4d3f';
             ctx.font = '14px SimHei';
@@ -1631,6 +1173,7 @@ const DevTool = {
         if (cfg.attack && cfg.attack.type === 'perFrame' && currentAnim === 'attack') {
             this._syncPerFrameFromWeaponParams();
             this._persistWeaponConfig();
+            this._exportPerFrameFile(wt, cfg);
 
             const phaserScene = window.__phaserScene;
             if (phaserScene && phaserScene.playerSprite) {
@@ -1667,73 +1210,26 @@ const DevTool = {
         const rotation = Math.round(this.weaponParams.rotation);
         const scale = parseFloat(this.weaponParams.scale.toFixed(2));
 
-        // 判断是否有状态子配置（支持多状态独立配置）
-        const hasStateConfig = cfg.idle && typeof cfg.idle === 'object';
-        const targetState = (hasStateConfig && (currentAnim === 'idle' || currentAnim === 'walk' || currentAnim === 'running')) ? currentAnim : null;
+        // 状态子配置：idle/walk/running 一律写入对应状态块（不再要求已有 idle 子配置——
+        // 旧逻辑下无 idle 块的武器（如 akm）在 walk 态保存会被两个分支同时跳过、数据丢失）
+        const targetState = (currentAnim === 'idle' || currentAnim === 'walk' || currentAnim === 'running') ? currentAnim : null;
 
-        if (this.handAnchorSystem.enabled) {
-            // ===== 挂载点模式：保存 handAnchors / gripOffset =====
-            if (!cfg.handAnchors) cfg.handAnchors = {};
-            cfg.handAnchors[currentAnim] = {
-                x: Math.round(this.weaponParams.offsetX),
-                y: Math.round(this.weaponParams.offsetY),
-            };
-            cfg.gripOffset = { ...this.handAnchorSystem.gripOffset };
+        // ===== 传统模式：反推 holdOffsetX/Y =====
+        const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
+        const holdOffsetX = Math.round(this.weaponParams.offsetX - baseX - afterX);
+        const holdOffsetY = Math.round(this.weaponParams.offsetY - baseY - afterY);
 
-            // 同时保存旋转/缩放到对应状态配置
-            if (targetState) {
-                if (!cfg[targetState]) cfg[targetState] = {};
-                cfg[targetState].idleRotation = rotation;
-                cfg[targetState].idleScale = scale;
-            } else {
-                cfg.idleRotation = rotation;
-                cfg.idleScale = scale;
-            }
-
-            // 关键帧（挂载点模式下保存为相对 handAnchor 的 handOffsetX/Y）
-            if ((currentAnim === 'attack' || currentAnim === 'walk') && this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
-                const anchor = cfg.handAnchors[currentAnim] || cfg.handAnchors.idle || { x: 0, y: 0 };
-                if (!WeaponAnimConfig.keyframes) WeaponAnimConfig.keyframes = {};
-                if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
-                WeaponAnimConfig.keyframes[wt][currentAnim] = this.keyframeSystem.keyframes.map(kf => ({
-                    progress: kf.progress,
-                    handOffsetX: Math.round(kf.offsetX - anchor.x),
-                    handOffsetY: Math.round(kf.offsetY - anchor.y),
-                    rotation: kf.rotation,
-                    scale: kf.scale,
-                }));
-            }
+        if (targetState) {
+            if (!cfg[targetState]) cfg[targetState] = {};
+            cfg[targetState].holdOffsetX = holdOffsetX;
+            cfg[targetState].holdOffsetY = holdOffsetY;
+            cfg[targetState].idleRotation = rotation;
+            cfg[targetState].idleScale = scale;
         } else {
-            // ===== 传统模式：反推 holdOffsetX/Y =====
-            const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
-            const holdOffsetX = Math.round(this.weaponParams.offsetX - baseX - afterX);
-            const holdOffsetY = Math.round(this.weaponParams.offsetY - baseY - afterY);
-
-            if (targetState) {
-                if (!cfg[targetState]) cfg[targetState] = {};
-                cfg[targetState].holdOffsetX = holdOffsetX;
-                cfg[targetState].holdOffsetY = holdOffsetY;
-                cfg[targetState].idleRotation = rotation;
-                cfg[targetState].idleScale = scale;
-            } else if (currentAnim === 'attack' || currentAnim === 'walk') {
-                // 关键帧模式下：将当前屏幕偏移保存为 holdOffsetX/Y
-                if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
-                    if (!WeaponAnimConfig.keyframes) WeaponAnimConfig.keyframes = {};
-                    if (!WeaponAnimConfig.keyframes[wt]) WeaponAnimConfig.keyframes[wt] = {};
-                    WeaponAnimConfig.keyframes[wt][currentAnim] = this.keyframeSystem.keyframes.map(kf => ({
-                        progress: kf.progress,
-                        holdOffsetX: Math.round(kf.offsetX - baseX - afterX),
-                        holdOffsetY: Math.round(kf.offsetY - baseY - afterY),
-                        rotation: kf.rotation,
-                        scale: kf.scale,
-                    }));
-                }
-            } else {
-                cfg.holdOffsetX = holdOffsetX;
-                cfg.holdOffsetY = holdOffsetY;
-                cfg.idleRotation = rotation;
-                cfg.idleScale = scale;
-            }
+            cfg.holdOffsetX = holdOffsetX;
+            cfg.holdOffsetY = holdOffsetY;
+            cfg.idleRotation = rotation;
+            cfg.idleScale = scale;
         }
 
         // 持久化到 Electron 文件系统（如果可用）
@@ -1755,25 +1251,12 @@ const DevTool = {
             weaponType: wt,
             weaponName: this.WEAPON_MAP[wt]?.name,
             anim: currentAnim,
-            mode: this.handAnchorSystem.enabled ? 'handAnchor' : 'holdOffset',
+            mode: 'holdOffset',
             rotation,
             scale,
+            holdOffsetX,
+            holdOffsetY,
         };
-        if (this.handAnchorSystem.enabled) {
-            output.handAnchor = cfg.handAnchors[currentAnim];
-            output.gripOffset = cfg.gripOffset;
-        } else {
-            const { baseX, baseY, afterX, afterY } = this._getWeaponTransformBase();
-            output.holdOffsetX = Math.round(this.weaponParams.offsetX - baseX - afterX);
-            output.holdOffsetY = Math.round(this.weaponParams.offsetY - baseY - afterY);
-        }
-        if (this.keyframeSystem.enabled && this.keyframeSystem.keyframes.length > 0) {
-            output.keyframeCount = this.keyframeSystem.keyframes.length;
-            // 输出已经转换为运行时语义（handOffset/holdOffset）的关键帧，便于直接合并到 JSON
-            if (WeaponAnimConfig.keyframes && WeaponAnimConfig.keyframes[wt] && WeaponAnimConfig.keyframes[wt][this.state.anim]) {
-                output.keyframes = WeaponAnimConfig.keyframes[wt][this.state.anim];
-            }
-        }
 
         const json = JSON.stringify(output, null, 2);
         const outputEl = getElement('devToolDataOutput');
@@ -1801,7 +1284,6 @@ const DevTool = {
 
     // 重置：把当前配置直接加载到预览画布
     _reset() {
-        this._loadHandAnchorsFromConfig();
         this._applyCurrentConfigToPreview();
         this.state.mode = 'move';
         this._canvas.classList.remove('mode-rotate');

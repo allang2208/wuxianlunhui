@@ -33,6 +33,7 @@
                         <input type="range" id="devToolFrameSlider" min="0" max="0" value="0">
                         <span id="devToolFrameLabel">1 / 1</span>
                         <button id="devToolPlayBtn" class="dev-tool-menu-btn">▶ 播放</button>
+                        <input type="number" id="devToolFps" min="1" max="60" step="1" style="width:48px" title="播放帧率（留空=动画配置帧率）" placeholder="fps">
                     </div>
                     <div class="dev-tool-menu-item">
                         <label>武器:</label>
@@ -51,9 +52,6 @@
                         </select>
                     </div>
                     <button class="dev-tool-menu-btn" id="devToolSave">💾 保存</button>
-                    <button class="dev-tool-menu-btn" id="devToolApplyAll">📋 应用到所有帧</button>
-                    <button class="dev-tool-menu-btn" id="devToolInterpolate">📈 插值</button>
-                    <button class="dev-tool-menu-btn" id="devToolClearKf">🗑️ 清空关键帧</button>
                     <button class="dev-tool-menu-btn" id="devToolReset2">🔄 重置</button>
                     <button class="dev-tool-menu-btn" id="devToolCoord">📐 坐标工具</button>
                 </div>
@@ -101,9 +99,6 @@
                             <div class="dev-tool-control-row">
                                 <label>Scale:</label>
                                 <input type="number" id="devToolScl" value="1" step="0.1">
-                            </div>
-                            <div class="dev-tool-control-row">
-                                <button class="dev-tool-menu-btn" id="devToolSetHandAnchor" style="width:100%;font-size:12px;">✋ 设置手部挂载点</button>
                             </div>
                         </div>
                         <div class="dev-tool-mode-hint" id="devToolModeHint">

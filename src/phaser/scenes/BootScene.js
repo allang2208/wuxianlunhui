@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs } from '../../world/wall-prefabs.js';
+import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -20,15 +21,34 @@ export class BootScene extends Scene {
             console.warn('[BootScene] 资源加载失败:', file?.key, file?.url);
         });
 
-        // ---- 角色资源 ----
-        // 待机动画（单帧）
-        this.load.image('player_idle', 'assets/player/idle.png');
-        // 行走动画spritesheet（21帧，3x8网格，实际尺寸4100x1548，每帧512x516）
-        this.load.spritesheet('player_walk', 'assets/character/walk.png', { frameWidth: 512, frameHeight: 516, endFrame: 20 });
-        // 奔跑动画spritesheet（16帧，2x8网格，实际尺寸4096x1024，每帧512x512）
-        this.load.spritesheet('player_run', 'assets/character/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        // 剑攻击spritesheet（8帧，实际尺寸4100x1548，每帧512x516）
-        this.load.spritesheet('player_attack_sword', 'assets/player/attack_sword.png', { frameWidth: 512, frameHeight: 516, endFrame: 7 });
+        // ---- 角色资源（配置驱动：data/player-anim-config.json，纹理键 player_<动画键>） ----
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            const texKey = playerTextureKey(animKey);
+            if (def.type === 'image') {
+                this.load.image(texKey, def.src);
+                // 上半身分层扭转姿态（持枪瞄准）：腿层/躯干层独立贴图
+                if (def.twist) {
+                    this.load.image(`${texKey}_legs`, def.twist.legsSrc);
+                    this.load.image(`${texKey}_torso`, def.twist.torsoSrc);
+                    // 持枪移动腿层（walk 下半身裁片）
+                    if (def.twist.walkLegs) {
+                        const wl = def.twist.walkLegs;
+                        this.load.spritesheet(`${texKey}_walklegs`, wl.src, {
+                            frameWidth: wl.frameWidth, frameHeight: wl.frameHeight, endFrame: (wl.frameCount || 1) - 1
+                        });
+                    }
+                    // 手臂条层（单骨伪 IK，追随枪握把）
+                    if (def.twist.arm) {
+                        this.load.image(`${texKey}_arm`, def.twist.arm.src);
+                    }
+                }
+            } else if (def.type === 'sheet') {
+                // endFrame 必带：防御图片高度差1像素导致帧数错误
+                this.load.spritesheet(texKey, def.src, {
+                    frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
+                });
+            }
+        }
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -229,29 +249,51 @@ export class BootScene extends Scene {
         // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
         loadWallPrefabs();
 
-        // 创建行走动画：使用完整 21 帧 spritesheet（3x8 网格），通过 flipX 控制左右
-        this.anims.create({
-            key: 'player_walk',
-            frames: this.anims.generateFrameNumbers('player_walk', { start: 0, end: 20 }),
-            frameRate: 24,
-            repeat: -1,
-        });
+        // 创建玩家动画（配置驱动；repeat -1 循环 / 0 播放一次，帧区间由 frames 指定）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'sheet') continue;
+            const texKey = playerTextureKey(animKey);
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key: texKey,
+                frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
 
-        // 创建奔跑动画：侧视角，只使用 spritesheet 第一行（向右），通过 flipX 控制左右
-        this.anims.create({
-            key: 'player_run',
-            frames: this.anims.generateFrameNumbers('player_run', { start: 0, end: 7 }),
-            frameRate: 10,
-            repeat: -1,
-        });
+        // 持枪移动腿层动画注册（twist.walkLegs 配置驱动）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'image' || !def.twist || !def.twist.walkLegs) continue;
+            const texKey = playerTextureKey(animKey);
+            const wl = def.twist.walkLegs;
+            const [wlStart, wlEnd] = wl.frames || [0, (wl.frameCount || 1) - 1];
+            this.anims.create({
+                key: `${texKey}_walklegs`,
+                frames: this.anims.generateFrameNumbers(`${texKey}_walklegs`, { start: wlStart, end: wlEnd }),
+                frameRate: wl.frameRate || 24,
+                repeat: wl.repeat !== undefined ? wl.repeat : -1,
+            });
+        }
 
-        // 创建剑攻击动画（8帧）
-        this.anims.create({
-            key: 'player_attack_sword',
-            frames: this.anims.generateFrameNumbers('player_attack_sword', { start: 0, end: 7 }),
-            frameRate: 12,  // 12fps，总时长约667ms
-            repeat: 0,      // 播放一次
-        });
+        // 扭转姿态躯干层/手臂条的水平镜像烘焙（canvas 离屏，避免 flipX 与自定义原点/旋转的语义叠加）
+        for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
+            if (def.type !== 'image' || !def.twist) continue;
+            for (const part of ['torso', 'arm']) {
+                if (part === 'arm' && !def.twist.arm) continue;
+                const partKey = `${playerTextureKey(animKey)}_${part}`;
+                const srcImg = this.textures.get(partKey) && this.textures.get(partKey).getSourceImage();
+                if (!srcImg || !srcImg.width) continue;
+                const canvas = document.createElement('canvas');
+                canvas.width = srcImg.width;
+                canvas.height = srcImg.height;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(srcImg.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(srcImg, 0, 0);
+                this.textures.addCanvas(`${partKey}_flip`, canvas);
+            }
+        }
 
         // 僵尸犬动画
         this.anims.create({

@@ -2,6 +2,115 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-26 晚间：持枪瞄准体系全套落地）
+
+### 本次完成：姿态层 + 分层扭转 + 手臂条 + 锚定体系（ROADMAP 任务1 主体收官）
+1. **姿态层**：`gun_idle` 低持姿态（素材库 shooting/2.png 重管线）；`player-anim-config.json` 驱动，`isGunWeapon && 站立` 自动切换。
+2. **上半身分层扭转（360° 瞄准）**：`twist { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs, arm, torsoShiftY }`——腿层站死、躯干绕腰轴 ±40°、左瞄 canvas 烘焙 `_torso_flip` 镜像贴图（不用 flipX）；走腿 sheet 按 idle 基准（髋 217/脚 492）逐帧烘焙对齐，walking=idle 天然一致。
+3. **手臂条层（单骨伪 IK）**：双臂整体一条（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角`；锚点连续化模型——钳制内腰轴轨道、超出角以肩为支点旋转钳制点（圆过钳制点，边界零跳变）。
+4. **锚定体系**：`grip {x,y}` 握把旋转轴心（滑手修复，flipY 时 gcy 取反保持左右镜像）；扭转激活时锚点在躯干空间计算（禁 localToWorld 公转=双重旋转）；攻击/奔跑等未配置状态回退=全局 holdOffset（AKM 全局对齐防跳变）。
+5. **双手枪开火禁跑**：`isGunWeapon && isTwoHanded && leftDown` → sprint 解除退回 walking（PKM 系保留 50% 减速语义）。
+6. **尺寸基准统一**：新姿态一律内容高 477/脚底 y=492（剑基准）；枪姿态系列绕髋点 ×1.084 放大并逐帧处理多帧 sheet。
+7. **面板**：WEAPON_MAP 与 `getWeaponTextureLoadList()` 同源；image 型姿态预览；持枪移动分层合成预览；枪械握把锚点绘制；walk 保存写状态子块；逐帧导出 `weapon-frames/latest.js` 交接流首航。
+8. **排障沉淀**：play() 前必须 setTexture 同源；`anims.stop()` 后 currentAnim 引用不清空（判断动画状态必须并查 isPlaying）；`getAmmoConfig` 消费端回退（无法开枪排查手册）。
+
+### 关键改动文件
+- `src/phaser/scenes/GameScene.js`（setPlayerAnimation/_syncGunTwist/_syncGunArm/syncWeapon 锚点链）
+- `src/phaser/scenes/BootScene.js`（配置驱动加载 + 镜像烘焙）、`src/config/player-anim.js`（新增）
+- `src/entities/player/weapon-anim.js`（tweenDuration 贴图同步）、`src/entities/player/update.js`（双手枪禁跑）、`src/entities/player/subsystems.js`（弹药回退）
+- `src/ui/dev-tool.js`、`src/ui/panels/dev-tools.js`、`vite.config.js`、`electron/main.js`、`electron/preload.js`
+- `assets/player/gun_idle*.png`、`data/player-anim-config.json`（双份）、`public/data/weapon-anim-config.json`
+
+### 验证状态
+- `npm run lint` ✅（0 error）、`npx vite build` ✅、`test-collider` ✅、`test-craft-sync` ✅
+- 实机用户确认：idle/walking/360° 瞄准/左右镜像/开火/禁跑/尺寸统一 全部通过（"完全成功"）
+
+---
+
+## 阶段性进度总结（2026-07-26 玩家动画体系）
+
+### 本次完成：玩家动画配置化 + 开发面板姿态层 + 攻击时长同步（ROADMAP 任务1 方向1/2/3）
+1. **配置表 `data/player-anim-config.json`**（双份 public/）+ `src/config/player-anim.js`：纹理键约定 `player_<动画键>`；BootScene 加载/注册、GameScene `setPlayerAnimation` 全走配置表。**新增玩家姿态 = 素材入库 + JSON 加条目**（type=image 单帧 / sheet 配 frames 区间+frameRate+repeat），运行时与开发面板自动生效，无需改代码。
+2. **攻击时长同步（根因修复）**：关键帧/默认 Tween 路径 900ms vs 贴图 667ms 各播各的——`setPlayerAnimation(key, targetDurationMs)` 用 `anims.timeScale` 对齐，回 idle/循环动画归 1；`_playSwordAttackTween` 只主手触发贴图动画。
+3. **开发面板**：角色帧加载改读配置表（`PANEL_ANIM_TO_CONFIG` 映射 running→run/attack→attack_sword），帧裁剪支持 `firstFrame` 偏移；播放帧率读配置 frameRate + 面板 `#devToolFps` 可覆盖。
+4. **挂载点+关键帧系统删除（同日二轮）**：handAnchors/gripOffset 与 keyframes 生产配置零使用、单点锚无法帧间跟手（perFrame 已全覆盖）——dev-tool.js -755 行、weapon-transform.js -147 行、weapon-anim.js/GameScene.js/panels/dev-tools.js/dev-tool-panel.html 同步清理。最终模型：**攻击=perFrame 逐帧（无配置走默认三段 Tween 链），静态姿态=每状态 holdOffset**。
+5. **待办**：拉弓/持枪/受击/死亡姿态素材由用户备料，到位后 JSON 加条目即可。
+
+### 关键改动文件
+- `src/config/player-anim.js`（新增）、`data/player-anim-config.json`（双份）
+- `src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/entities/player/weapon-anim.js`、`src/ui/dev-tool.js`
+
+### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+## 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
+
+### 0. 设计原则（先读，违反必返工）
+- **分层不烘焙**：武器/装备永远不画进身体帧。AI 只出"空手持握状"的身体动作，武器用程序贴图叠加（枪械 360° 程序旋转已实现）；**不让 AI 画枪，也就永远不用抠枪**。
+- **帧数克制**：AI 帧间必抖，帧数越少越稳；对齐前先提高 alpha 阈值区分本体与残影。
+- **平面内动作**：侧视朝右、无镜头运动；不做转身/透视缩放/遮挡穿越（AI 一致性崩塌区）。360° 全身瞄准动画是伪需求，禁止走这条路。
+- **换装 = 整套皮肤换纹理键**（一套铠甲一整套角色变体），不做单件叠加纸娃娃（无骨骼系统必错位）；头盔/背包/披风类低贴合挂件可单独锚点叠加。
+
+### 1. 姿态规划（立项先定清单与帧数）
+- **优先级**：gun_idle/gun_fire（枪械主力，最急）→ hurt → death → bow_draw/bow_release → reload → 新近战攻击动作。
+- **帧数规格表**：
+
+| 姿态 | 帧数 | repeat | 备注 |
+|---|---|---|---|
+| idle / gun_idle | 1~4 | -1 循环 | 呼吸即可 |
+| walk / run | 沿用现有 | -1 循环 | 不重做 |
+| attack_sword（已验证） | 8 | 0 | 标杆规格 |
+| gun_fire | 2~4 | 0 | 含后坐上跳 |
+| hurt | 2~3 | 0 | 受击反馈 |
+| death | 6~10 | 0 | 末帧定格 |
+| reload / bow_draw | 6~8 | 0 | |
+
+### 2. AI 素材生成规范
+- 固定一张角色基准图；**所有动作从同一首帧 img2video 出发**，保证跨动作一致性。
+- 侧视朝右、全身入画、脚底贴底边、画布对齐 512×516、透明/纯色底。
+- 提示词写"**无武器、空手呈握持/挥击状**"；干净输出三件套：透明底、无白色描边/辅助线、无水印。
+- 同一套动作**一批出齐**，不分开生成（分开必出规格差）。
+
+### 3. 素材管线（入库前必过）
+- 切帧 + 抠图（边界泛洪 / alpha 阈值清零）。
+- 标准化：内容高度统一、底部对齐（`tools/sprite-normalizer.py` 或既有切帧脚本；帧尺寸严格 = 帧宽×列×行，不足补透明行）。**尺寸基准（2026-07-26 定稿）：以剑姿态为准——内容高 477px、脚底基线 y=492（512×516 画布）；新姿态一律缩放到该基准**（枪姿态系列已按此放大 1.084，绕髋点缩放 + 逐帧独立处理多帧 sheet）。
+- 复制进 `assets/player/` 或 `assets/character/`（原则 9），命名 `player_<动作>.png`。
+
+### 4. 配置接入（唯一真相源，`data/` ↔ `public/data/` 双份同步）
+`data/player-anim-config.json` 加条目：
+```json
+"gun_fire": {
+  "type": "sheet", "src": "assets/player/gun_fire.png",
+  "frameWidth": 512, "frameHeight": 516, "cols": 8, "rows": 1,
+  "frameCount": 4, "frames": [0, 3], "frameRate": 12, "repeat": 0
+}
+```
+- `repeat`：-1 循环（idle/walk）/ 0 播放一次（attack/hurt/death/gun_fire）。
+- 纹理键自动 = `player_<键名>`；BootScene 加载注册、开发面板预览**全部自动生效，无需改代码**。
+
+### 5. 运行时姿态切换
+- **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
+- **持枪姿态（已实现，2026-07-26）**：`GameScene._updatePlayerAnimation`——当前武器为枪械（`isGunWeapon`）且站立时姿态键切 `gun_idle`，移动沿用 walk/run；配置缺失自动回退 idle。首版 `gun_idle` 为低持/腰射单帧（素材库 shooting/2.png 抠底标准化，`tools/archive/prep-gun-idle.py`）；斜上/斜下角度分区姿态与 `gun_fire` 待素材。
+- **手臂条层（单骨伪 IK，2026-07-26）**：`twist.arm { src, pivotX, pivotY(肩关节), handX, handY }`——双臂整体一条刚体贴图（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角` 追随握把，肩随躯干扭转绕腰轴旋转，翻转用 `_arm_flip` 烘焙镜像；深度在躯干与枪之间。**纯只读增量层，不改锚点/扭转逻辑**；躯干钳制之外的角度由它补齐（正上/正下不错位）。
+- **上半身分层扭转（360° 瞄准定稿，2026-07-26）**：姿态条目配 `twist: { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs? }`——素材在同一 512×516 画布上按髋关节节线裁腿层/躯干层（轴心=髋关节间脊柱末端）；BootScene 自动加载 `player_<key>_legs/_torso`（及 `_walklegs` 走腿 sheet）；`GameScene._syncGunTwist` 每帧：躯干层原点=轴心、贴腰轴世界点、按瞄准角（面向系相对角，±0.05 翻转死区）×angleScale 钳制 ±maxAngle 旋转、左瞄换 canvas 烘焙的 `_torso_flip` 镜像贴图+镜像原点（不用 flipX）、腿层翻转覆盖；`syncWeapon` 枪锚点绕同一腰轴旋转（手转枪跟），枪旋转仍精确 atan2。**裁腰预览先用 PIL rotate(center=pivot) 离线验证接缝再上引擎**。持枪移动：`_updatePlayerAnimation` 检测 twist.walkLegs 时腿层播走腿动画、躯干保持（冲刺 timeScale 1.5）。**铁律：play() 前必须 setTexture 同源**（扭转腿层残留会卡动画第一帧，"上半身消失+腿不动"根因）；**`anims.stop()` 后 `currentAnim` 引用不清空**——凡按 currentAnim 做状态判断的（如逐帧跟随），必须同时校验 `isPlaying`（"idle 错位"根因）。**走腿裁片流程（定稿）**：躯干裁线取骨盆完整位（295）让大腿顶藏进骨盆下叠合；walk sheet 按节线裁出后做连通域分析**只保留最大的 2 个组件（两条腿）**——脚底对齐/时序过滤会误伤腿顶，禁用；与腿同连通域的手部残片只能人工逐帧修。**走腿与 idle 对齐（2026-07-26 定稿）**：按 idle 基准（髋 X=217 / 脚底 Y=500）逐帧平移烘焙 sheet——walking 与 idle 天然一致，不要用逐帧髋部跟随机制（已废弃移除，`anims.stop()` 后 `currentAnim` 引用不清空的陷阱也随之失效）。`twist.torsoShiftY`（世界 px）为躯干整体下移微调，统一加在腰轴世界 Y（躯干/肩/枪锚点随动）。
+- 新姿态切换一律按武器类型/状态从配置表查键，**禁止新增硬编码分支**。
+
+### 6. 武器贴合调参（左下开发面板）
+- **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。
+- **逐帧导出交接**：💾保存时自动覆盖导出 `weapon-frames/latest.js`（含 offsetX/offsetY/rotation/scale 全要素+元数据；Vite 走 `/__save-weapon-frames` 中间件，Electron 走 `save-weapon-frames` IPC）——调完把文件交给助手，助手读取后合并进 `public/data/weapon-anim-config.json`（**该配置仅此单份**，与其它双份配置不同）。单文件覆盖，无储存负担。
+- **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
+- **枪械握把轴心（2026-07-26）**：`WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）——游戏内/面板统一以握把为旋转轴与锚点（360 瞄准不滑手）；扭转激活时锚点在躯干空间计算（禁止 localToWorld 按 player.rotation 公转，否则与扭转轨道叠加成双重旋转）。
+
+### 7. 验证
+- JSON 双份一致；lint / vite build / test-collider。
+- **实机清单**：姿态切换（站立/移动/攻击）、左右镜像 flipX、贴图与武器轨迹时长同步、repeat 0 播完回 idle、面板预览与游戏一致、**主神空间+地牢双场景**（原则 10 全场景生效）。
+
+---
+
 ## 阶段性进度总结（2026-07-26 续）
 
 ### 本次完成：门外白区边缘体系 + 沼泽装饰 + 死亡序列修复
@@ -1094,6 +1203,90 @@ addTree(x, y, radius, ...) {
 
 ---
 
+## 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
+
+### 模式
+"系统逻辑完好的功能失效"——控制台诊断先沿数据链查状态，别先改逻辑：
+- v2.7 弹反失效：装备条目缺 `weaponType: 'shield'` + `defense` 块，`checkEquipped()` 恒 false。
+- 2026-07-26 AKM 无法开枪：实例缺 `ammoConfig`（equipment.json 该条目本就无此键，靠 main.js 启动合并补齐，但该实例走了未合并的获取旁路），`_initAmmoForSlot` 无回退 → `_hasAmmo` 恒 false。
+
+### 修复原则
+启动时合并（main.js → ItemDatabase）只覆盖一条获取路径；**消费端回退才是全路径兜底**——`_initAmmoForSlot` 已改用 `getAmmoConfig(item)`（`item.ammoConfig || GUN_AMMO_CAP[weaponId]`，与 combatant/图鉴/tooltip 同口径）。新枪械：EquipDataManager 配 `ammoConfig` + `GUN_AMMO_CAP` 加 weaponId 条目，双写。
+
+---
+
+## 枪械无法开火排查手册（开枪链路全断点地图，2026-07-26 定稿）
+
+开不了火的原因太多太散，一律按本手册走：**先跑诊断脚本定位断点段，再按段查已知案例**，不要凭直觉改代码。
+
+### 一、开火链路四段（断点必在其中一段）
+
+```
+① 输入闸门（player/update.js 各武器分支）
+   hasAmmo && !isReloading && weaponSwitchCooldown<=0 && fireTrigger
+   && attacks[attackKey].canUse() && stamina>=COST
+   → 设置 rangedFireData + triggerWeaponAnim()
+② 状态机（weapon-anim.js updateWeaponAnim）
+   triggerWeaponAnim → state='swing' → swing 分支调 _fireRanged('main')
+   （卡死保护：非 idle 超 5s 强制回 idle）
+③ 发射（subsystems.js _fireRanged）
+   消耗弹药 → 枪口坐标 → ProjectileFactory.create + 枪口火光 + 弹壳 + 音效
+④ 枪口定位（_getMuzzleWorldPosition）
+   读 scene.weaponSprite 的 x/y/rotation/displayWidth，
+   sprite 不可见则回退脚底相对算法（子弹从脚射出的根因区）
+```
+
+### 二、断点案例索引（历史上全部"无法开火"根因）
+
+| 断点段 | 案例 | 根因 | 修复 |
+|---|---|---|---|
+| ② | v1.9 远程无法开枪 | `triggerAttackAnimation` 未调 `_fireRanged` | 补调用 |
+| ① | v1.11 全枪械无法开火 | equipment.json 缺 `ammoConfig/fireMode/attackFormula/attackKey` | main.js 启动合并 EquipDataManager 字段 |
+| ④ | v2.8 地牢子弹从脚射出 | 地图模式 `weaponSprite.setActive(false)` 后未恢复，枪口回退脚底算法 | 非地图模式统一 `setActive(true)`（共享链路） |
+| ① | 2026-07-26 AKM 无法开枪 | 实例经未合并旁路获得、缺 `ammoConfig`，`_initAmmoForSlot` 无回退 → 弹药状态 null | 改用 `getAmmoConfig(item)` 按 weaponId 回退 |
+| ④ | v2.7 遗留：复活后子弹不从枪口射出 | 未复现，待场景线索 | — |
+
+### 三、①号段六闸门逐项排查（最常见断点区）
+
+- `_hasAmmo(slot)` false：弹药状态 null（缺 ammoConfig，见上表）或打空中（`current<=0`）。
+- `_isReloading(slot)` 卡 true：换弹计时器卡死会精确导致"无法开枪"，第二嫌疑位。
+- `weaponSwitchCooldown > 0`：切枪冷却未走完。
+- `fireTrigger`：半自动读 `leftPressed`、全自动读 `leftDown`，别混。
+- `attacks[attackKey].canUse()` false：冷却卡住；`attackKey` 缺字段时有 `|| 'pistol'` 兜底。
+- `stamina < CONFIG.STAMINA_RANGED_COST`：体力不足静默拦截。
+- 近战专属输入锁：`weaponAnim.state === 'attacking'` 时忽略左键（只影响近战，不误伤枪）。
+
+### 四、即用诊断脚本（控制台两段式）
+
+**第 1 段·状态快照**（哪个 null/false 哪个就是断点）：
+```js
+(() => {
+  const p = Game.player, slot = p.weaponMode, item = p.equipments[slot];
+  console.log('①武器:', item?.name, '| type:', item?.weaponType, '| attackKey:', item?.attackKey, '| fireMode:', item?.fireMode);
+  console.log('②弹药:', JSON.stringify(p._getAmmoState?.(slot)), '| 换弹中:', p._isReloading?.(slot));
+  console.log('③状态机:', JSON.stringify(p.weaponAnim), '| rangedFired:', p.rangedFired);
+  console.log('④切换CD:', p.weaponSwitchCooldown, '| 体力:', p.data?.stamina);
+  const k = item?.attackKey || 'pistol';
+  console.log('⑤攻击对象:', k, !!p.attacks[k], '| canUse:', p.attacks[k]?.canUse?.());
+})();
+```
+
+**第 2 段·强制触发**（绕过①直接打②③，区分"输入条件拦截"还是"链路断"）：
+```js
+const p = Game.player;
+p.rangedFireData = { targetX: p.x + 300, targetY: p.y, entities: [...Game.entities.values()], mainSlot: p.weaponMode, fireMainHand: true };
+p.triggerWeaponAnim();
+setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rangedFired:', p.rangedFired), 600);
+```
+判读：`rangedFired: true` = 链路完好、断点在①六闸门；`false` 或报错 = 断点在②③，看控制台红错。
+
+### 五、修复原则
+- 断点修在**共享链路**上（原则10），主神空间/地牢全场景生效，禁止单场景补丁。
+- 数据缺失用**消费端回退**兜底（见上节），不依赖启动合并单点。
+- ④枪口问题先查 `weaponSprite.visible/texture` 与地图模式 active 恢复。
+
+---
+
 ## 常见陷阱：anim.timer === 0（死代码）
 
 ### 问题
@@ -1366,6 +1559,7 @@ if (this._facing === 'left') {
 ## 交互式开发工具（DevTool）与攻击动画插帧系统
 
 > 阅读 `src/ui/dev-tool.js`、`src/combat/weapon-transform.js`、`src/entities/player/weapon-anim.js`、`src/items/weapon-anim-config.js`、`src/phaser/scenes/GameScene.js` 后的结构梳理。
+> **2026-07-26 简化定稿**：挂载点系统（handAnchors/gripOffset）与关键帧系统（keyframes）已删除——生产配置零使用，且单点锚无法帧间跟手（逐帧已全覆盖）。现只保留两条路径：攻击=逐帧 perFrame，静态姿态=每状态 holdOffset。
 
 ### 一、DevTool 整体结构
 
@@ -1375,56 +1569,39 @@ if (this._facing === 'left') {
 ```js
 state: { anim, weaponType, frameIndex, playProgress, isPlaying }
 weaponParams: { offsetX, offsetY, rotation, scale }
-keyframeSystem: { enabled, keyframes, selectedIndex, isRecording }
-handAnchorSystem: { enabled, handAnchors: { idle/walk/running/attack }, gripOffset }
 ```
 
-**四大子系统：**
-1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置。
-2. **关键帧录制面板**：录制并编辑关键帧，每帧包含 `progress`、`holdOffsetX/Y`、`rotation`、`scale`。
-3. **手部挂载点面板**：按 `idle/walk/running/attack` 编辑手部锚点 `handAnchors`，配合 `gripOffset` 让武器跟随手部。
-4. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
+**两大子系统：**
+1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置（传统 holdOffset 模式）。
+2. **逐帧编辑（perFrame）**：`attack.type === 'perFrame'` 时 weaponParams 直接对应当前帧，滑块/播放逐帧调武器姿态。
+3. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
 
 **关键方法：**
-- `_loadCharacterFrames()`：加载 idle/walk/running/attack 精灵图。
-- `_getPerFrameTransform()` / `_getRuntimeKeyframeTransform()`：按进度插值逐帧配置或运行时关键帧。
+- `_loadCharacterFrames()`：按 `data/player-anim-config.json`（PLAYER_ANIMS）加载角色精灵图，`PANEL_ANIM_TO_CONFIG` 映射面板键→配置键。
+- `_getPerFrameTransform()`：按进度插值逐帧配置。
 - `_buildPreviewOverrides()`：把面板中的调整打包成 `WeaponTransform` 可消费的参数。
 - `_save()`：写回 `WeaponAnimConfig`，并通过 `window.electronAPI.saveWeaponConfig` 持久化到 `public/data/weapon-anim-config.json`。
 - `_draw()`：用 `WeaponTransform` 在 Canvas 上绘制角色、武器与轨迹。
+- 播放帧率：读配置 `frameRate`，面板 `#devToolFps` 输入框可手动覆盖（`_getPreviewFps`）。
 
-### 二、攻击动画插帧的两条技术路径
+### 二、攻击动画插帧（唯一路径：逐帧 perFrame）
 
-#### 路径 A：关键帧系统（Keyframes）
-- **配置位置**：`WeaponAnimConfig[weaponType].attack.keyframes`（少量关键帧）。
-- **结构**：`{ progress, holdOffsetX/Y, rotation, scale }`（兼容 `handOffsetX/Y`、`offsetX/Y`）。
-- **插值**：线性插值。
-  - `dev-tool.js`：`_getRuntimeKeyframeTransform()` 负责编辑时预览插值。
-  - `weapon-anim.js`：`_playSwordAttackTween()` 在 Tween `onUpdate` 中按 progress 找相邻关键帧并插值，然后调用 `WeaponTransform.getKeyframedWeaponPosition()`。
-- **适用**：攻击动作有明确阶段（起手 / 挥击 / 收回），需要程序化控制武器轨迹。
-
-#### 路径 B：逐帧系统（Per-Frame）
-- **配置位置**：`WeaponAnimConfig[weaponType].attack.frames`。
+- **配置位置**：`WeaponAnimConfig[weaponType].attack.frames`（`attack.type === 'perFrame'`）。
 - **结构**：`{ offsetX, offsetY, rotation, scale }` 数组，每帧对应攻击动画的一帧。
 - **插值**：按 `playProgress` 在相邻两帧之间做线性插值。
   - `weapon-transform.js`：`getInterpolatedPerFramePosition()` 用 `_lerpPerFrame1D/2D` 插值。
-  - `weapon-anim.js`：检测到 `attack.type === 'perFrame'` 后，Tween 只驱动 progress；武器 Sprite 的位置/旋转/缩放由 `GameScene.syncWeapon()` 按当前动画帧同步，Tween 只负责命中判定窗口与状态重置。
-- **适用**：美术已做出完整攻击动画序列，想让武器完全贴合每帧画面。
-
-| 维度 | 关键帧系统 | 逐帧系统 |
-|---|---|---|
-| 配置量 | 少（几个关键帧） | 多（每帧一个配置） |
-| 插值驱动 | `weapon-anim.js` Tween 直接计算并更新 Sprite | Tween 只提供 progress，`GameScene.syncWeapon` 按帧读取 |
-| 与美术动画关系 | 程序控制轨迹，与美术动画解耦 | 与美术动画逐帧绑定 |
-| 缓动 | 当前实现为 Linear（可扩展） | Linear |
+  - `weapon-anim.js`：检测到 perFrame 后，Tween 只驱动 progress；武器 Sprite 的位置/旋转/缩放由 `GameScene.syncWeapon()` 按当前动画帧同步，Tween 只负责命中判定窗口与状态重置。
+- **无 perFrame 配置的近战武器**：走 `_playSwordAttackTween` 默认三段 Tween 链（windup 200ms / swing 300ms / recover 400ms）。
+- **贴图同步**：`setPlayerAnimation('attack_sword', tweenDuration)` 用 `anims.timeScale` 把玩家攻击贴图对齐 Tween 总时长（2026-07-26 修复 900ms Tween vs 667ms 贴图各播各的问题）。
 
 ### 三、坐标变换链
 
 ```
 dev-tool 调整参数
     ↓
-保存为 WeaponAnimConfig[weapon].attack / handAnchors / gripOffset
+保存为 WeaponAnimConfig[weapon].attack.frames（perFrame）/ [state].holdOffset（静态姿态）
     ↓
-WeaponTransform.getKeyframedWeaponPosition() / getInterpolatedPerFramePosition()
+WeaponTransform.getInterpolatedPerFramePosition() / getWeaponLocalOffset()
     ↓
 GameScene.syncWeapon() / weapon-anim.js Tween
     ↓
@@ -1436,18 +1613,12 @@ Phaser Sprite.x / y / rotation / scale
 - `WeaponTransform` 内部把本地 X 坐标取反，并把旋转角度处理为 `Math.PI - rotation`。
 - **不**对武器 Sprite 直接使用 `setFlipX`，避免旋转中心错乱。
 
-**手部挂载链：**
-- `handAnchors[state]`：手部在角色本地空间的位置。
-- `gripOffset`：武器握把点到武器原点的偏移。
-- 最终武器世界位置 ≈ 角色世界位置 + 手部锚点 + 当前帧武器偏移 + 握把修正。
-
 ### 四、玩家攻击动画驱动流程
 
 1. 输入触发：`triggerWeaponAnim('main')`。
 2. 状态机进入 `swing`。
 3. 剑类武器调用 `_playSwordAttackTween()`：
    - 若 `attack.type === 'perFrame'`：Tween 驱动 progress，`syncWeapon()` 逐帧同步。
-   - 若存在关键帧：Tween `onUpdate` 直接插值并更新 Sprite。
    - 否则走默认 windup/swing/recover 路径。
 4. `onStart` 激活 `_pendingThrust`，在攻击前 500ms 内做命中判定。
 5. `onComplete` 结束攻击状态、给经验、武器回到 idle 位置。
