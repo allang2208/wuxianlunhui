@@ -147,7 +147,7 @@ const weaponAnimMixin = {
                         const mouseWorldY = Input.mouse.y + Camera.y - CONFIG.VIEW_HEIGHT / 2;
                         this.rangedFireData.targetX = mouseWorldX;
                         this.rangedFireData.targetY = mouseWorldY;
-                        SoundManager.playFile('assets/sounds/bow/arrow_flyby_1s.mp3');
+                        SoundManager.playFile('assets/sounds/arrow_flyby_1s.mp3');
                         this._fireRanged('main');
                     }
                     anim.state = 'idle_return';
@@ -277,18 +277,47 @@ const weaponAnimMixin = {
         const weaponType = currentWeapon ? (currentWeapon.weaponType || 'sword') : 'sword';
 
         // 本次攻击 Tween 总时长：同步玩家贴图动画（timeScale 拉伸/压缩），避免贴图与武器轨迹各播各的
-        let tweenDuration = 0;
+        //（perFrame 与默认 Tween 两条路径都会先赋值再读取，无需初值）
+        let tweenDuration;
         
         // 逐帧模式：武器位置/旋转由 GameScene 按玩家攻击动画当前帧同步，Tween 只负责命中判定与状态重置
-        const perFrameCfg = WeaponAnimConfig[weaponType]?.attack;
+        // 连段（一段后窗口期内再攻击）的 stage 在下方计算，二段轨迹读 attack2 块（缺失回退 attack）
+        const wacCfg = WeaponAnimConfig[weaponType];
+        const perFrameCfg = wacCfg?.attack;
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
-            const animDef = scene.anims.get(playerTextureKey('attack_sword'));
-            const totalDuration = (animDef && animDef.duration) || getPlayerAnimDurationMs('attack_sword') || 900;
+            // 连段：上一段攻击结束后 1000ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
+            // 二段素材未加载（纹理缺失）时自动回退一段；后续三段突刺加入只需扩展此数组
+            const COMBO_WINDOW_MS = 1000;
+            const now = performance.now();
+            const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= COMBO_WINDOW_MS;
+            let stage = chained ? ((this._meleeComboStage || 1) % 2) + 1 : 1;
+            let animKey = stage === 2 ? 'attack_sword_2' : 'attack_sword';
+            if (stage === 2 && !scene.textures.exists(playerTextureKey(animKey))) {
+                stage = 1;
+                animKey = 'attack_sword';
+            }
+            if (hand === 'main') this._meleeComboStage = stage;
+            // 时长必须按逐帧时长求和优先（getPlayerAnimDurationMs 认识 frameDurations/frameWeights）——
+            // Phaser Animation.duration 只按 frameRate 派生（30帧@12fps=2500ms），与逐帧时长实际播放
+            // （30×50ms=1500ms）不一致，会导致武器轨迹进度比人物贴图慢（"慢半拍"）
+            const animDef = scene.anims.get(playerTextureKey(animKey));
+            const totalDuration = getPlayerAnimDurationMs(animKey) || (animDef && animDef.duration) || 900;
             tweenDuration = totalDuration;
+
+            if (hand === 'main') {
+                // 预写连段定格窗口：Phaser 4 每帧顺序 PRE_UPDATE(动画) → UPDATE(Tween)，
+                // 动画播完帧上 animationcomplete 早于 Tween onComplete 触发——若在 onComplete
+                // 才写这些字段，GameScene 的完成回调读到的是旧值，会把贴图切回 idle（定格失效，
+                // 首次攻击与 1500ms 二段必现）；收势中被新攻击打断也要解除收势标记
+                this._attackRecovering = false;
+                this._attackHoldAnimKey = animKey;
+                this._lastMeleeAttackEnd = now + totalDuration; // onComplete 会按实际结束时间复写
+                this._attackHoldUntil = now + totalDuration + COMBO_WINDOW_MS;
+            }
 
             // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
             if (hand === 'main' && scene.setPlayerAnimation) {
-                scene.setPlayerAnimation('attack_sword', tweenDuration);
+                scene.setPlayerAnimation(animKey, tweenDuration);
             }
 
             const attackTween = scene.tweens.add({
@@ -311,6 +340,12 @@ const weaponAnimMixin = {
                 onComplete: function() {
                     anim.isAttacking = false;
                     anim.state = 'idle';
+                    if (hand === 'main') {
+                        self._lastMeleeAttackEnd = performance.now(); // 连段窗口起点
+                        // 攻击后定格保持：连段窗口内定格末帧（移动/新攻击取消；窗口结束播 recover 收势）
+                        self._attackHoldAnimKey = animKey;
+                        self._attackHoldUntil = self._lastMeleeAttackEnd + COMBO_WINDOW_MS;
+                    }
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;
                         self.attacks.melee.giveExp(self);

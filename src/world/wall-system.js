@@ -159,8 +159,8 @@ const WallSystem = {
             w.visualSprite = sprite;
 
             // 尽头半圆角（只在未拼接的端点）
-            if (!leftConnected) this._drawWallCap(phaserScene, w.x, w.y + w.h, halfT, 'left', w);
-            if (!rightConnected) this._drawWallCap(phaserScene, w.x + w.w, w.y + w.h, halfT, 'right', w);
+            if (!leftConnected) this._drawWallCap(phaserScene, w.x, w.y + w.h, halfT, 'left');
+            if (!rightConnected) this._drawWallCap(phaserScene, w.x + w.w, w.y + w.h, halfT, 'right');
         } else {
             // 垂直墙：贴图放大 3 倍（w.w ×3 显示宽度），上下拼接处延伸半厚
             // 使用 canvas 裁剪后的贴图（wall_vertical_cropped），去除两侧透明区域让砖块列直接占满
@@ -192,8 +192,8 @@ const WallSystem = {
             w.visualSprite = sprite;
 
             // 尽头半圆角（只在未拼接的端点）
-            if (!topConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y, halfT, 'top', w);
-            if (!bottomConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y + w.h, halfT, 'bottom', w);
+            if (!topConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y, halfT, 'top');
+            if (!bottomConnected) this._drawWallCap(phaserScene, w.x + w.w / 2, w.y + w.h, halfT, 'bottom');
         }
     },
 
@@ -569,7 +569,7 @@ const WallSystem = {
     },
 
     /** 在墙壁尽头画半圆角（graphics 半圆，与墙体贴图颜色一致） */
-    _drawWallCap(phaserScene, cx, cy, r, side, wallRef) {
+    _drawWallCap(phaserScene, cx, cy, r, side) {
         const g = phaserScene.add.graphics();
         const color = 0x3a3a3a; // 与 wall.png 深色砖块接近
         g.fillStyle(color, 1);
@@ -588,8 +588,6 @@ const WallSystem = {
         g.fillPath();
         g.setDepth(cy);
         phaserScene.visualWalls.add(g);
-        if (!wallRef._capSprites) wallRef._capSprites = [];
-        wallRef._capSprites.push(g);
     },
     /**
      * 将树木同步到 Phaser 的 staticGroup

@@ -56,7 +56,10 @@ export class FlyHand extends Enemy {
             if (this._cooldowns[k] > 0) this._cooldowns[k] -= dt;
         }
         if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
-        this.updateStatusEffects(dt);
+
+        // 基类链统一推进状态效果/受击反馈（每帧一次）；
+        // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
+        super.update(dt, entities);
 
         // 眩晕时强制中断所有动作
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
@@ -77,9 +80,6 @@ export class FlyHand extends Enemy {
             this._updateAction(dt, entities);
             return;
         }
-
-        // 普通 AI 移动
-        super.update(dt, entities);
 
         // 技能决策：灭世重砸（大技能） > 砸地 > 锤击
         if (this.target && this.target.active) {

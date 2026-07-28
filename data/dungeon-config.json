@@ -2,7 +2,7 @@
   "dungeonList": {
     "zombie": {
       "name": "☠ 僵尸地牢高级",
-      "nodeCount": "35~40",
+      "nodeCount": "45~50",
       "battleRatio": "50%",
       "level": "1级",
       "reward": "1500金币",

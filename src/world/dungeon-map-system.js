@@ -168,6 +168,11 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
+        // 宝箱离场确认框状态复位（与 shutdown 同口径，防上一局残留）
+        this._chestLeaveConfirm = false;
+        this._chestLeaveCd = 0;
+        const staleChestConfirm = getElement('chestLeaveConfirm');
+        if (staleChestConfirm) staleChestConfirm.remove();
 
         // 初始化迷雾系统
         this.fogOfWar = new DungeonFogOfWar();
@@ -225,6 +230,13 @@ export const DungeonMapSystem = {
         AgentInvasionSystem.reset();
         this._invasionNode = null;
         this._invasionMixed = false;
+        // 宝箱离场确认框：死亡/shutdown 路径必须移除 DOM 并复位标记——否则 _chestLeaveConfirm
+        // 卡 true，下局地牢门区判定（updateCombat 两分支均以 !this._chestLeaveConfirm 为前提）
+        // 永远不进 _leaveCombatViaPortal，玩家出不了战斗房（软锁）+ 全屏 overlay 残留主神空间
+        this._chestLeaveConfirm = false;
+        this._chestLeaveCd = 0;
+        const chestConfirmEl = getElement('chestLeaveConfirm');
+        if (chestConfirmEl) chestConfirmEl.remove();
         // 地板配置恢复默认（离开地牢）
         setDungeonFloorProfile(null);
         // 墙样式恢复默认（离开地牢）
@@ -572,12 +584,24 @@ export const DungeonMapSystem = {
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
 
-        // Boss 战模式：委托给 BossRewardSystem 更新，并检测传送门
+        // Boss 战模式：委托给 BossRewardSystem 更新，并检测门闸白区/传送门
         if (this.state === "boss") {
             if (BossRewardSystem.isBossBattleActive && BossRewardSystem.isBossBattleActive()) {
                 BossRewardSystem.update(dt);
             }
 
+            // 门闸动画推进与悬停高亮（Boss 房复用 CombatRoomSystem 门闸机制，同战斗房路径）
+            if (typeof CombatRoomSystem.update === 'function') {
+                CombatRoomSystem.update(dt);
+            }
+
+            // 走出门外白区离场（门闸化：与普通战斗房同一判定）
+            if (CombatRoomSystem.isPlayerInGateZone && CombatRoomSystem.isPlayerInGateZone(this.player)) {
+                this._leaveBossViaPortal();
+                return;
+            }
+
+            // 兜底：门闸缺失（placeAt 失败等异常路径）时回退出口传送门
             const portal = BossRewardSystem.getExitPortal && BossRewardSystem.getExitPortal();
             if (portal && portal.active && this.player) {
                 const dx = this.player.x - portal.x;
@@ -1064,8 +1088,11 @@ export const DungeonMapSystem = {
             const agent = AgentInvasionSystem.spawnAgent(x, y, factories[i]);
             const key = `invasion_agent_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
             Game.entities.set(key, agent);
-            // 加入战斗追踪（与首波怪物同数组，完成判定含特工）
+            // 加入战斗追踪（与首波怪物同数组，完成判定含特工）；
+            // key 必须登记进 _combatMonsterKeys——cleanupRoom/cleanupMonstersOnly 只按 keys 删除，
+            // 否则换波/清场删不掉入侵特工，实体与贴图泄漏
             CombatRoomSystem._combatMonsters.push(agent);
+            CombatRoomSystem._combatMonsterKeys.push(key);
         }
         this._combatMonsters = CombatRoomSystem._combatMonsters;
     },

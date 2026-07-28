@@ -122,9 +122,30 @@ function getWeaponFramesPath() {
 }
 
 function formatWeaponFramesFile(payload) {
-    return '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件）\n'
-        + '// 合并方式：把 frames 数组合并进 public/data/weapon-anim-config.json 对应武器的 attack.frames（该配置仅此单份）\n'
+    return '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件，仅作记录/回滚参考）\n'
+        + '// 保存时已自动合并进 public/data/weapon-anim-config.json，无需手动合并\n'
         + 'export default ' + JSON.stringify(payload, null, 2) + '\n';
+}
+
+// 保存时直接合并进 weapon-anim-config.json（免助手中转；保留 attack 其他字段，写前滚动备份）
+async function mergeWeaponFramesIntoConfig(payload) {
+    const wt = payload && payload.weaponType;
+    if (typeof wt !== 'string' || !Array.isArray(payload.frames)
+        || ['__proto__', 'constructor', 'prototype'].includes(wt)) return false;
+    // 与 load/save-weapon-config 统一走 getWeaponConfigPaths：
+    // 此前生产环境写到 userData/data/ 子目录，而读路径是 userData/weapon-anim-config.json，合并结果永不读回
+    const paths = getWeaponConfigPaths();
+    const cfgPath = paths.write;
+    const readPath = paths.read;
+    const cfg = JSON.parse(await fs.promises.readFile(readPath, 'utf8'));
+    if (!cfg[wt]) cfg[wt] = {};
+    const blockKey = payload.anim === 'attack2' ? 'attack2' : 'attack';
+    cfg[wt][blockKey] = { ...(cfg[wt][blockKey] || {}), type: 'perFrame', frames: payload.frames };
+    const backupPath = path.join(path.dirname(getWeaponFramesPath()), 'weapon-anim-config.backup.json');
+    await fs.promises.copyFile(readPath, backupPath);
+    await fs.promises.mkdir(path.dirname(cfgPath), { recursive: true });
+    await fs.promises.writeFile(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
+    return true;
 }
 
 ipcMain.handle('save-weapon-frames', async (_event, payload) => {
@@ -132,7 +153,8 @@ ipcMain.handle('save-weapon-frames', async (_event, payload) => {
     try {
         await fs.promises.mkdir(path.dirname(target), { recursive: true });
         await fs.promises.writeFile(target, formatWeaponFramesFile(payload), 'utf8');
-        return { success: true, path: target };
+        const merged = await mergeWeaponFramesIntoConfig(payload);
+        return { success: true, path: target, merged };
     } catch (err) {
         console.error('[main] Failed to save weapon frames:', err);
         throw err;

@@ -72,6 +72,8 @@ export function createDevToolPanel() {
         ['walk', '移动'],
         ['running', '奔跑'],
         ['attack', '攻击'],
+        ['attack2', '二段攻击'],
+        ['recover', '收势'],
         ['bow_draw', '拉弓'],
         ['bow_release', '射箭'],
         ['gun_idle', '持枪待机'],
@@ -302,7 +304,19 @@ export function createDevToolPanel() {
         row.appendChild(input);
         controls.appendChild(row);
     });
-    
+
+    // 📍 固定点工具按钮（dev-tool.js 绑定事件）：武器贴图校准标记点，跨帧跟随
+    const markerRow = document.createElement('div');
+    markerRow.className = 'dev-tool-control-row';
+    const markerBtn = document.createElement('button');
+    markerBtn.id = 'devToolMarker';
+    markerBtn.className = 'dev-tool-menu-btn';
+    markerBtn.style.width = '100%';
+    markerBtn.title = '在武器贴图上放置校准标记点，所有帧同步显示';
+    markerBtn.textContent = '📍 固定点';
+    markerRow.appendChild(markerBtn);
+    controls.appendChild(markerRow);
+
     right.appendChild(controls);
 
     const modeHint = document.createElement('div');

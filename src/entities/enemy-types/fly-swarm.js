@@ -65,7 +65,9 @@ export class FlySwarm extends Enemy {
     }
 
     update(dt, entities) {
-        this.updateStatusEffects(dt);
+        // 基类链统一推进状态效果（每帧一次）；
+        // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
+        super.update(dt, entities);
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
             this.vx = 0;
             this.vy = 0;
@@ -76,7 +78,6 @@ export class FlySwarm extends Enemy {
         if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
             return;
         }
-        super.update(dt, entities);
         this._animState = this.isMoving ? 'walk' : 'idle';
 
         // 循环音轨：idleing 持续循环，音量随与玩家距离变化

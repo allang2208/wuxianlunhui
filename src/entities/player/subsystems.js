@@ -15,7 +15,6 @@ import { loadImage } from '../../utils/image-loader.js';
 import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
-import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { getElement } from '../../utils/dom-utils.js';
@@ -681,13 +680,15 @@ _clearSkillOverrides() {
             },
 
 triggerWhirlwind() {
-                if (this.whirlwindSystem) {
+                // 攻击动画锁定：任何一段攻击未播完前不触发
+                if (this.whirlwindSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                     this.whirlwindSystem.trigger();
                 }
             },
 
 triggerPushStrike() {
-                if (this.pushStrikeSystem) {
+                // 攻击动画锁定：任何一段攻击未播完前不触发
+                if (this.pushStrikeSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                     this.pushStrikeSystem.trigger();
                 }
             },
@@ -1587,7 +1588,9 @@ _fireRanged(hand = 'main') {
                         if (this.getCurrentWeaponAtk) {
                             weaponDamage = this.getCurrentWeaponAtk();
                         } else {
-                            weaponDamage = calculateFallbackDamage(attackKey, this.data) || WEAPON_DAMAGE_FORMULAS.akm(this.data);
+                            // 防御分支（玩家侧永不触发：base.js 必定义 getCurrentWeaponAtk）——
+                            // 原 weapon-damage-formulas.js 硬编码第二套公式已删除，统一公式源为 attack-formula.js
+                            weaponDamage = 0;
                         }
                         const damage = { min: weaponDamage, max: weaponDamage };
 
@@ -1662,7 +1665,8 @@ _fireRanged(hand = 'main') {
                             if (this.getCurrentWeaponAtk) {
                                 weaponDamage = this.getCurrentWeaponAtk();
                             } else {
-                                weaponDamage = calculateFallbackDamage('shotgun', this.data);
+                                // 防御分支（玩家侧永不触发）——原 weapon-damage-formulas.js 硬编码回退已删除
+                                weaponDamage = 0;
                             }
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）

@@ -710,18 +710,24 @@ export const ExpeditionSystem = {
             DungeonMapSystem._carriedItems = carried;
         }
         // 特效祭品（雪莲/人参/蟠桃）在 buff 栏显示常驻图标
-        if (this.player) syncTributeBuffs(this.player);
+        if (Game.player) syncTributeBuffs(Game.player);
 
         this._showMessage('准备出征...', 'success');
 
         // 关闭面板和覆盖层（不归还物品，已确认带走）
         this._isOpen = false;
+        // 移除点击/右键事件监听（与 close() 同口径，防止出征后背包监听叠加/物品丢失）
+        this._removeClickHandlers();
         const panel = getElement('expeditionPanel');
         if (panel) panel.classList.remove('active');
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
         UIState.close('expedition');
         this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
+
+        // 恢复任务追踪栏（与 close() 同口径）
+        const questTracker = getElement('questTracker');
+        if (questTracker) questTracker.style.display = 'block';
 
         // 清空出征数据（物品已确认带走）
         this._carriedItems = new Array(this.CAPACITY).fill(null);

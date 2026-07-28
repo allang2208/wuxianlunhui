@@ -61,6 +61,9 @@ const DevTool = {
     images: {},
     charImage: null,
     weaponImage: null,
+    // 固定点标记（武器局部坐标 px@scale1，随武器刚性跟随；红色）
+    marker: null,
+    _markerMode: false,
 
     // 武器配置映射（贴图路径与游戏内持有贴图同源：weapon-texture-map.js）
     WEAPON_MAP: {
@@ -86,6 +89,7 @@ const DevTool = {
     // 动画状态映射
     ANIM_NAME: {
         idle: '待机', walk: '移动', running: '奔跑', attack: '攻击',
+        attack2: '二段攻击', recover: '收势',
         bow_draw: '拉弓', bow_release: '射箭',
         gun_idle: '持枪待机', gun_fire: '射击',
         reload: '换弹', hurt: '受击', death: '死亡',
@@ -95,6 +99,7 @@ const DevTool = {
     // （面板历史命名 running/attack 与配置键 run/attack_sword 不同，在此统一映射）
     PANEL_ANIM_TO_CONFIG: {
         idle: 'idle', walk: 'walk', running: 'run', attack: 'attack_sword',
+        attack2: 'attack_sword_2', recover: 'recover',
         bow_draw: 'bow_draw', bow_release: 'bow_release',
         gun_idle: 'gun_idle', gun_fire: 'gun_fire',
         reload: 'reload', hurt: 'hurt', death: 'death',
@@ -202,52 +207,84 @@ const DevTool = {
     },
 
     // 持久化 WeaponAnimConfig 到 Electron 文件系统（如果可用）
+    // 返回 Promise：与 _exportPerFrameFile 写同一路径，调用方需串行 await 避免双写竞态
     _persistWeaponConfig() {
         if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.saveWeaponConfig) {
-            window.electronAPI.saveWeaponConfig(WeaponAnimConfig).catch(err => {
+            return window.electronAPI.saveWeaponConfig(WeaponAnimConfig).catch(err => {
                 console.error('[DevTool] Failed to persist weapon config:', err);
             });
         }
+        return Promise.resolve();
     },
 
     // 逐帧武器数据导出：覆盖写固定文件 weapon-frames/latest.js（Electron IPC 或 Vite 中间件）
-    // 用途：面板调完逐帧位置后，把该文件交给助手合并进 data/weapon-anim-config.json
+    // 保存时已由中间件/IPC 直接合并进 public/data/weapon-anim-config.json（写前滚动备份）——
+    // 无需再通知助手合并；latest.js 仅作记录/回滚参考
     _exportPerFrameFile(wt, cfg) {
+        const saveKey = this._perFrameCfgKey(this.state.anim);
         const payload = {
             exportedAt: new Date().toISOString(),
             weaponType: wt,
             weaponName: this.WEAPON_MAP[wt]?.name || wt,
-            anim: 'attack',
+            anim: this.state.anim,
             mode: 'perFrame',
-            frameCount: cfg.attack.frames.length,
+            frameCount: cfg[saveKey].frames.length,
             fields: {
                 offsetX: '相对角色中心偏移X（px，右为正）',
                 offsetY: '相对角色中心偏移Y（px，Canvas 坐标下为正）',
                 rotation: '武器旋转角度（度）',
                 scale: '武器缩放',
             },
-            frames: cfg.attack.frames,
+            frames: cfg[saveKey].frames,
         };
-        const done = (ok) => {
+        const done = (ok, merged) => {
             this._showToast(ok
-                ? '✅ 已保存并导出 weapon-frames/latest.js（已覆盖）'
-                : '✅ 已保存（⚠️ latest.js 导出失败）');
+                ? (merged ? '✅ 已保存并写入 weapon-anim-config.json（刷新仍生效）' : '✅ 已保存并导出 weapon-frames/latest.js')
+                : '✅ 已保存（⚠️ 文件写入失败，刷新后丢失）');
         };
         if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.saveWeaponFrames) {
-            window.electronAPI.saveWeaponFrames(payload).then(() => done(true)).catch(() => done(false));
+            return window.electronAPI.saveWeaponFrames(payload).then((r) => done(true, r && r.merged)).catch(() => done(false, false));
         } else if (typeof fetch !== 'undefined') {
-            fetch('/__save-weapon-frames', {
+            return fetch('/__save-weapon-frames', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify(payload),
-            }).then(r => done(r.ok)).catch(() => done(false));
+            }).then(r => r.json().then(j => done(r.ok, j && j.merged))).catch(() => done(false, false));
         }
+        return Promise.resolve();
     },
 
     /**
      * 把当前配置直接加载到预览画布上
      * 切换动画/武器/按重置/拖动滑块时调用，避免用户每次都从空白开始拖动
      */
+    // ===== 逐帧默认种子（拆帧无配置时/重置攻击动画用）=====
+    // attack：全部帧同一基线位置（传统模式 attack 位）；
+    // attack2：优先复制 attack 的帧作基线（从一段轨迹出发调二段），无 attack 配置时同 attack 种子
+    _seedPerFrameDefaults(wt, anim = 'attack') {
+        const SEED_FRAMES = 30; // 与 sword 标杆一致
+        const key = this._perFrameCfgKey(anim);
+        if (!WeaponAnimConfig[wt]) WeaponAnimConfig[wt] = {};
+        const atkBlock = WeaponAnimConfig[wt].attack;
+        let frames;
+        if (key === 'attack2' && atkBlock && atkBlock.type === 'perFrame' && atkBlock.frames && atkBlock.frames.length) {
+            frames = atkBlock.frames.map(f => ({ ...f }));
+        } else {
+            const overrides = this._buildPreviewOverrides();
+            const localOffset = WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, 'attack', true, overrides);
+            const base = {
+                offsetX: Math.round(localOffset.x),
+                offsetY: Math.round(localOffset.y),
+                rotation: Math.round((localOffset.idleRotation || 0) * 180 / Math.PI),
+                scale: parseFloat((localOffset.scale || 1).toFixed(2)),
+            };
+            frames = Array.from({ length: SEED_FRAMES }, () => ({ ...base }));
+        }
+        const existing = WeaponAnimConfig[wt][key] || {};
+        WeaponAnimConfig[wt][key] = { ...existing, type: 'perFrame', frames };
+        return WeaponAnimConfig[wt][key].frames;
+    },
+
     _applyCurrentConfigToPreview() {
         const wt = this.state.weaponType;
         const anim = this.state.anim;
@@ -256,8 +293,12 @@ const DevTool = {
 
         let offsetX, offsetY, rotation, scale;
 
-        const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-        if (perFrame && anim === 'attack') {
+        let perFrame = this._isPerFrameAnim(anim) ? this._getPerFrameFrames(wt, anim) : null;
+        if (!perFrame && this._isPerFrameAnim(anim)) {
+            // 拆帧无配置：自动播种（attack=全部帧同一基线位置；attack2=复制 attack 帧），进入逐帧模式即可直接开调
+            perFrame = this._seedPerFrameDefaults(wt, anim);
+        }
+        if (perFrame && this._isPerFrameAnim(anim)) {
             // 逐帧模式：weaponParams 直接表示当前帧的武器状态
             const idx = Math.max(0, Math.min(this.state.frameIndex, perFrame.length - 1));
             const frame = perFrame[idx];
@@ -282,6 +323,7 @@ const DevTool = {
             rotation: Math.round(rotation),
             scale: parseFloat(scale.toFixed(2)),
         };
+        this._frameDirty = false; // 从配置重载完成，清除"当前帧已修改"标记
         this.state.weaponOnCanvas = true;
         this._syncInputs();
         this._draw();
@@ -291,12 +333,11 @@ const DevTool = {
     _getPerFrameTransform() {
         const wt = this.state.weaponType;
         const anim = this.state.anim;
-        const cfg = WeaponAnimConfig[wt];
-        const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-        if (!perFrame || anim !== 'attack') return null;
+        const perFrame = this._getPerFrameFrames(wt, anim);
+        if (!perFrame || !this._isPerFrameAnim(anim)) return null;
 
         const pos = WeaponTransform.getInterpolatedPerFramePosition(
-            { x: 0, y: 0, rotation: 0 }, wt, this.state.playProgress || 0, true
+            { x: 0, y: 0, rotation: 0 }, wt, this.state.playProgress || 0, true, this._perFrameCfgKey(anim)
         );
         if (!pos) return null;
         const wSize = WeaponTransform.getWeaponSize(wt, pos.scale, anim);
@@ -310,9 +351,8 @@ const DevTool = {
     _syncPerFrameFromWeaponParams() {
         const wt = this.state.weaponType;
         const anim = this.state.anim;
-        const cfg = WeaponAnimConfig[wt];
-        const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-        if (!perFrame || anim !== 'attack') return;
+        const perFrame = this._getPerFrameFrames(wt, anim);
+        if (!perFrame || !this._isPerFrameAnim(anim)) return;
 
         const idx = Math.max(0, Math.min(this.state.frameIndex, perFrame.length - 1));
         perFrame[idx] = {
@@ -321,6 +361,7 @@ const DevTool = {
             rotation: this.weaponParams.rotation,
             scale: this.weaponParams.scale,
         };
+        this._frameDirty = true; // 标记当前帧已修改：切帧时下一帧继承本帧位置（见帧滑块处理）
     },
 
     _updateWeaponPreview() {
@@ -391,6 +432,28 @@ const DevTool = {
         const coordBtn = getElement('devToolCoord');
         if (coordBtn) coordBtn.addEventListener('click', () => this._startCoordTool());
 
+        // fps 输入框：仅在用户真正输入时标记手动覆盖（_syncFpsInput 的自动填入不算，
+        // 否则逐帧时长 frameWeights 会被"手动覆盖"误判永久忽略）
+        const fpsInput = getElement('devToolFps');
+        if (fpsInput) fpsInput.addEventListener('input', () => { this._fpsManualOverride = true; });
+
+        // 📍 固定点工具：无标记→进入放置模式；有标记→清除；放置模式中→退出
+        const markerBtn = getElement('devToolMarker');
+        if (markerBtn) markerBtn.addEventListener('click', () => {
+            if (this._markerMode) {
+                this._markerMode = false;
+                this._showToast('已退出固定点放置');
+            } else if (this.marker) {
+                this.marker = null;
+                this._showToast('📍 已清除固定点');
+                this._draw();
+            } else {
+                this._markerMode = true;
+                this._showToast('📍 点击画布上的武器放置固定点');
+            }
+            markerBtn.classList.toggle('active', this._markerMode);
+        });
+
         // 缩放按钮
         const zoomInBtn = getElement('devToolZoomIn');
         if (zoomInBtn) zoomInBtn.addEventListener('click', () => this._zoomIn());
@@ -430,11 +493,19 @@ const DevTool = {
                 this.state.frameIndex = parseInt(e.target.value);
                 this.state.isPlaying = false;
                 this._stopFrameAnimation();
-                this._applyCurrentConfigToPreview();
+                const perFrame = this._getPerFrameFrames(this.state.weaponType, this.state.anim);
+                if (perFrame && this._isPerFrameAnim(this.state.anim) && this._frameDirty) {
+                    // 逐帧调整流：上一帧刚被修改过时，切帧不重载该帧已存配置——
+                    // 武器贴图直接继承上一帧的位置/角度/缩放，在此基础上继续调（渐进式逐帧工作流）
+                    const n = perFrame.length;
+                    this.state.playProgress = n > 1 ? Math.max(0, Math.min(this.state.frameIndex, n - 1)) / (n - 1) : 0;
+                    this._syncInputs();
+                    this._draw();
+                } else {
+                    this._applyCurrentConfigToPreview();
+                }
                 this._updateFrameLabel();
                 this._updatePlayBtn();
-                // 拖动滑块时同步更新武器位置（关键帧/挂载点都会反映）
-                this._applyCurrentConfigToPreview();
             });
         }
 
@@ -472,10 +543,7 @@ const DevTool = {
             });
         }
 
-        // Tab 切换
-        queryAllElements('.dev-tool-tab').forEach(tab => {
-            tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
-        });
+        // Tab 点击绑定在 panels/dev-tools.js 建 tab 时已完成，此处不再重复绑定（避免 switchTab 每次执行两次）
     },
 
     // 加载角色动画帧（配置驱动：data/player-anim-config.json）
@@ -510,6 +578,15 @@ const DevTool = {
                 count: end - start + 1,
                 frameRate: def.frameRate || 12,
             };
+            // 逐帧时长与游戏同源（frameWeights 权重 / frameDurations 毫秒，公式同 BootScene）——
+            // 面板预览自动跟随配置，调节奏无需手动同步面板
+            if (def.frameWeights && def.frameWeights.length) {
+                const totalMs = ((end - start + 1) / frameData.frameRate) * 1000;
+                const wSum = def.frameWeights.reduce((a, b) => a + (b || 0), 0) || 1;
+                frameData.durations = Array.from({ length: end - start + 1 }, (_, i) => ((def.frameWeights[i] || 0) / wSum) * totalMs);
+            } else if (def.frameDurations && def.frameDurations.length) {
+                frameData.durations = def.frameDurations.slice(0, end - start + 1);
+            }
             frameData.sheet.onload = () => { this._draw(); };
             frameData.sheet.src = def.src;
             this._charFrames[panelKey] = frameData;
@@ -559,13 +636,22 @@ const DevTool = {
         }
     },
 
-    // 当前逐帧配置的总帧数（仅 attack perFrame 模式）
-    _getPerFrameTotal() {
-        const wt = this.state.weaponType;
-        const anim = this.state.anim;
+    // ===== 逐帧（perFrame）动画通用：attack→attack 块，attack2→attack2 块 =====
+    _perFrameCfgKey(anim) { return anim === 'attack2' ? 'attack2' : 'attack'; },
+    _isPerFrameAnim(anim) { return anim === 'attack' || anim === 'attack2'; },
+    _getPerFrameFrames(wt, anim) {
         const cfg = WeaponAnimConfig[wt];
-        const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-        return (perFrame && anim === 'attack') ? perFrame.length : 0;
+        const key = this._perFrameCfgKey(anim);
+        const block = cfg && cfg[key];
+        return (block && block.type === 'perFrame' && block.frames) ? block.frames : null;
+    },
+
+    // 当前逐帧配置的总帧数（仅 attack/attack2 perFrame 模式）
+    _getPerFrameTotal() {
+        const anim = this.state.anim;
+        if (!this._isPerFrameAnim(anim)) return 0;
+        const perFrame = this._getPerFrameFrames(this.state.weaponType, anim);
+        return perFrame ? perFrame.length : 0;
     },
 
     // 更新帧编号显示
@@ -602,6 +688,12 @@ const DevTool = {
         if (!fpsInput) return;
         const frameData = this._charFrames[this.state.anim];
         fpsInput.value = (frameData && frameData.frameRate) || '';
+        this._fpsManualOverride = false; // 自动填入≠手动覆盖
+    },
+
+    // fps 输入框是否被用户手动覆盖（手动覆盖时忽略逐帧时长，按均匀帧率预览）
+    _isFpsManual() {
+        return this._fpsManualOverride === true;
     },
 
     // 启动帧动画循环
@@ -612,21 +704,24 @@ const DevTool = {
         if (!frameData || !frameData.count || frameData.count <= 1) return;
 
         const wt = this.state.weaponType;
-        const cfg = WeaponAnimConfig[wt];
-        const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-        const isPerFrame = perFrame && this.state.anim === 'attack';
+        const perFrame = this._getPerFrameFrames(wt, this.state.anim);
+        const isPerFrame = perFrame && this._isPerFrameAnim(this.state.anim);
 
         // 逐帧模式：使用连续进度做 0~1 的平滑插值，和普通逐帧预览区分
         if (isPerFrame) {
-            // 与游戏中 player_attack_sword 一致（默认 8 帧 @ 12fps ≈ 667ms，fps 输入框可覆盖）
-            const duration = 1000 * frameData.count / this._getPreviewFps(frameData);
+            // 总时长：有逐帧时长配置（frameWeights/frameDurations）且未手动覆盖 fps 时取各帧之和（与游戏一致），
+            // 否则按均匀帧率（默认 8 帧 @ 12fps ≈ 667ms，fps 输入框可覆盖）
+            const duration = (frameData.durations && !this._isFpsManual())
+                ? frameData.durations.reduce((a, b) => a + (b || 0), 0)
+                : 1000 * frameData.count / this._getPreviewFps(frameData);
             const startTime = performance.now();
             const loop = (timestamp) => {
                 if (!this.state.isPlaying) return;
                 const elapsed = timestamp - startTime;
                 const progress = (elapsed % duration) / duration;
                 this.state.playProgress = progress;
-                this.state.frameIndex = Math.min(perFrame.length - 1, Math.floor(progress * (perFrame.length - 1)));
+                // progress∈[0,1)：乘 (n-1) 最大只能到 n-2，永远跳不到最后一帧；乘 n 再夹紧（与游戏侧口径一致）
+                this.state.frameIndex = Math.min(perFrame.length - 1, Math.floor(progress * perFrame.length));
                 this._updateFrameLabel();
                 const slider = getElement('devToolFrameSlider');
                 if (slider) slider.value = this.state.frameIndex;
@@ -728,22 +823,117 @@ const DevTool = {
     },
 
     // 鼠标按下
-    _onMouseDown(e) {
+    // 当前帧武器绘制状态（与 _draw 同一变换链：perFrame 插值优先，否则传统链）
+    _getWeaponDrawState() {
+        const wt = this.state.weaponType;
+        const animState = this.state.anim;
+        const overrides = this._buildPreviewOverrides();
+        const pfTransform = this._getPerFrameTransform();
+        if (pfTransform) return { local: pfTransform.local, rotation: pfTransform.rotation };
+        return {
+            local: WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, animState, true, overrides),
+            rotation: WeaponTransform.getWeaponRotation(0, wt, 0, animState, true, overrides),
+        };
+    },
+
+    // 画布鼠标坐标换算（CSS zoom 会拉伸 getBoundingClientRect，必须按实际比例换算回内部坐标系，
+    // 否则 zoom≠1 时拖拽/固定点/坐标工具记录的位置全部按 zoom 倍率失真）
+    _canvasPos(e) {
         const rect = this._canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        return {
+            x: (e.clientX - rect.left) * (this._canvas.width / rect.width),
+            y: (e.clientY - rect.top) * (this._canvas.height / rect.height),
+        };
+    },
+
+    // 固定点放置：画布点击点 → 逆变换到武器局部坐标（px@scale1，随武器刚性跟随）。
+    // 命中校验：点击必须落在武器贴图的非透明像素上，否则无效
+    _placeMarker(mx, my, cx, cy) {
+        if (!this.state.weaponOnCanvas) {
+            this._showToast('请先放置武器');
+            return;
+        }
+        const ds = this._getWeaponDrawState();
+        const dx = mx - (cx + ds.local.x), dy = my - (cy + ds.local.y);
+        const cos = Math.cos(-ds.rotation), sin = Math.sin(-ds.rotation);
+        const lx = dx * cos - dy * sin;
+        const ly = dx * sin + dy * cos;
+        const sc = ds.local.scale || 1;
+
+        // 命中校验：与 _draw 武器绘制同一锚点公式，换算到贴图像素检查 alpha
+        // (lx,ly) 经逆旋转后已是绘制空间坐标（_draw 只 translate+rotate，缩放体现在 drawImage 宽高里），不能再乘 sc
+        if (!this._hitTestWeapon(lx, ly, ds.local, sc)) {
+            this._showToast('⚠ 固定点必须放在武器贴图上');
+            return;
+        }
+        this.marker = { x: lx / sc, y: ly / sc };
+        this._showToast(`📍 固定点已标记（武器局部 ${Math.round(this.marker.x)}, ${Math.round(this.marker.y)}）`);
+    },
+
+    // 武器贴图像素命中测试（px/py = 武器局部坐标·scale 后的绘制空间像素）
+    _hitTestWeapon(px, py, local, drawScale) {
+        const img = this.weaponImage;
+        if (!img || !img.complete || !img.naturalWidth) return false;
+        const s = 105;
+        const weaponType = this.WEAPON_MAP[this.state.weaponType]?.type || 'melee';
+        const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
+        let w, h, anchorX, anchorY; // drawImage(x=anchorX, y=anchorY, w, h)
+        if (weaponType === 'melee') {
+            w = local.size * 0.63 * drawScale;
+            h = local.size * drawScale;
+            anchorX = -w / 2; anchorY = -h / 2;
+        } else if (isGun) {
+            const isPistol = weaponType === 'pistol';
+            w = (isPistol ? s * 0.275 : s * 0.75) * drawScale;
+            h = (isPistol ? s * 0.5 : s) * drawScale;
+            const gunCfg = WeaponAnimConfig[this.state.weaponType];
+            const grip = (gunCfg && gunCfg.grip) || { x: 0.5, y: 0.5 };
+            anchorX = -grip.x * w; anchorY = -grip.y * h;
+        } else {
+            const aspect = (img.naturalWidth || 1024) / (img.naturalHeight || 1024);
+            h = local.size * drawScale;
+            w = h * aspect;
+            anchorX = -w / 2; anchorY = -h / 2;
+        }
+        const texX = (px - anchorX) / w * img.naturalWidth;
+        const texY = (py - anchorY) / h * img.naturalHeight;
+        if (texX < 0 || texY < 0 || texX >= img.naturalWidth || texY >= img.naturalHeight) return false;
+        // 离屏像素查询（每贴图缓存一次）
+        if (!this._weaponPxCanvas || this._weaponPxCanvas._src !== img.src) {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth;
+            c.height = img.naturalHeight;
+            c.getContext('2d').drawImage(img, 0, 0);
+            c._src = img.src;
+            this._weaponPxCanvas = c;
+        }
+        const data = this._weaponPxCanvas.getContext('2d').getImageData(Math.floor(texX), Math.floor(texY), 1, 1).data;
+        return data[3] > 10;
+    },
+
+    _onMouseDown(e) {
+        const { x: mx, y: my } = this._canvasPos(e);
         const cx = this._canvas.width / 2;
         const cy = this._canvas.height / 2;
         const wp = this.weaponParams;
 
+        // 固定点放置模式：本次点击用于放置标记，不触发拖拽
+        if (this._markerMode) {
+            this._placeMarker(mx, my, cx, cy);
+            this._markerMode = false;
+            const markerBtn = getElement('devToolMarker');
+            if (markerBtn) markerBtn.classList.remove('active');
+            this._draw();
+            return;
+        }
+
         // 计算武器当前在屏幕上的中心位置（用于命中测试）
+        // 与 _draw 同一变换链（_getWeaponDrawState：逐帧播放中取插值位置，否则传统链），否则播放中点不中
         let weaponScreenX, weaponScreenY;
         if (this.state.weaponOnCanvas && this.weaponImage && this.weaponImage.complete) {
-            const local = WeaponTransform.getWeaponLocalOffset(
-                this.state.weaponType, 105, false, false, this.state.anim, true, this._buildPreviewOverrides()
-            );
-            weaponScreenX = cx + local.x;
-            weaponScreenY = cy + local.y;
+            const ds = this._getWeaponDrawState();
+            weaponScreenX = cx + ds.local.x;
+            weaponScreenY = cy + ds.local.y;
         }
 
         // 检查是否点击在武器区域内
@@ -776,9 +966,7 @@ const DevTool = {
 
     // 鼠标移动
     _onMouseMove(e) {
-        const rect = this._canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        const { x: mx, y: my } = this._canvasPos(e);
 
         if (!this.drag.active) return;
 
@@ -1023,12 +1211,22 @@ const DevTool = {
                 const frameData = charImg;
                 let idx;
                 // 逐帧攻击模式：武器按 N 帧插值，角色贴图必须按相同进度映射
-                const wt = this.state.weaponType;
-                const cfg = WeaponAnimConfig[wt];
-                const perFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
-                if (currentAnim === 'attack' && perFrame) {
+                const perFrame = this._getPerFrameFrames(this.state.weaponType, currentAnim);
+                if (this._isPerFrameAnim(currentAnim) && perFrame) {
                     const spriteProgress = this.state.playProgress || 0;
-                    idx = Math.floor(spriteProgress * (frameData.count - 1));
+                    if (frameData.durations && !this._isFpsManual()) {
+                        // 非均匀逐帧时长：按累计时长窗口定位当前角色帧（与游戏内 frameWeights 表现一致）
+                        const total = frameData.durations.reduce((a, b) => a + (b || 0), 0) || 1;
+                        const t = spriteProgress * total;
+                        let acc = 0;
+                        idx = frameData.count - 1;
+                        for (let i = 0; i < frameData.count; i++) {
+                            acc += frameData.durations[i] || 0;
+                            if (t < acc) { idx = i; break; }
+                        }
+                    } else {
+                        idx = Math.floor(spriteProgress * (frameData.count - 1));
+                    }
                 } else {
                     idx = this.state.frameIndex % frameData.count;
                 }
@@ -1064,7 +1262,7 @@ const DevTool = {
             const isGun = ['pistol', 'machinegun', 'rifle', 'shotgun'].includes(weaponType);
             
             // ===== 攻击/行走状态指示器 =====
-            if ((this.state.anim === 'attack' || this.state.anim === 'walk') && isMelee) {
+            if ((this._isPerFrameAnim(this.state.anim) || this.state.anim === 'walk') && isMelee) {
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -1074,14 +1272,15 @@ const DevTool = {
                 const frameData = this._charFrames[currentAnim];
                 const total = perFrameTotal > 1 ? perFrameTotal : (frameData && frameData.count || 1);
                 const progress = total > 1 ? this.state.frameIndex / (total - 1) : 0;
-                const animName = currentAnim === 'attack' ? '攻击' : '行走';
-                ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.8)' : 'rgba(100,200,100,0.8)';
+                const animName = this.ANIM_NAME[currentAnim] || currentAnim;
+                const isAttackAnim = this._isPerFrameAnim(currentAnim);
+                ctx.fillStyle = isAttackAnim ? 'rgba(255,80,80,0.8)' : 'rgba(100,200,100,0.8)';
                 ctx.font = 'bold 14px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText(`${animName}: 帧 ${this.state.frameIndex + 1}/${total}`, cx, 30);
                 ctx.fillStyle = 'rgba(80,60,40,0.8)';
                 ctx.fillRect(cx - 100, 40, 200, 8);
-                ctx.fillStyle = currentAnim === 'attack' ? 'rgba(255,80,80,0.9)' : 'rgba(100,200,100,0.9)';
+                ctx.fillStyle = isAttackAnim ? 'rgba(255,80,80,0.9)' : 'rgba(100,200,100,0.9)';
                 ctx.fillRect(cx - 100, 40, 200 * progress, 8);
                 ctx.restore();
             }
@@ -1132,24 +1331,18 @@ const DevTool = {
             ctx.fillStyle = '#FFD700';
             ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
 
-            ctx.restore();
-            
-            // ===== 坐标标注（所有状态都显示） =====
-            const wp = this.weaponParams;
-            ctx.fillStyle = '#d4c5a9';
-            ctx.font = '11px monospace';
-            const weaponScreenX = cx + wp.offsetX;
-            const weaponScreenY = cy + wp.offsetY;
-            ctx.fillText(`屏幕偏移: (${Math.round(wp.offsetX)}, ${Math.round(wp.offsetY)})`, weaponScreenX + 8, weaponScreenY - 8);
-            ctx.fillText(`Rotation: ${Math.round(wp.rotation)}°`, weaponScreenX + 8, weaponScreenY + 12);
-            if (this.state.anim === 'attack') {
-                const cfg = WeaponAnimConfig[this.state.weaponType];
-                const isPerFrame = cfg && cfg.attack && cfg.attack.type === 'perFrame';
-                if (isPerFrame) {
-                    ctx.fillStyle = '#90d070';
-                    ctx.fillText(`[逐帧模式]`, weaponScreenX + 8, weaponScreenY + 28);
-                }
+            // 固定点标记（红色，武器局部坐标，随武器平移/旋转/缩放刚性跟随）
+            if (this.marker) {
+                ctx.fillStyle = '#ff2d2d';
+                ctx.beginPath(); ctx.arc(this.marker.x * drawScale, this.marker.y * drawScale, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
             }
+
+            ctx.restore();
+
+            // 坐标标注已删除（屏幕偏移/Rotation/逐帧模式文字遮挡贴图，且右侧面板已有同信息显示）
 
         } else if (!this.state.weaponOnCanvas) {
             ctx.fillStyle = '#5a4d3f';
@@ -1169,11 +1362,12 @@ const DevTool = {
 
         if (!cfg) return;
 
-        // 逐帧模式：weaponParams 直接对应当前帧，保存当前帧即可
-        if (cfg.attack && cfg.attack.type === 'perFrame' && currentAnim === 'attack') {
+        // 逐帧模式：weaponParams 直接对应当前帧，保存当前帧即可（attack→attack 块，attack2→attack2 块）
+        const saveKey = this._perFrameCfgKey(currentAnim);
+        if (this._isPerFrameAnim(currentAnim) && cfg[saveKey] && cfg[saveKey].type === 'perFrame') {
             this._syncPerFrameFromWeaponParams();
-            this._persistWeaponConfig();
-            this._exportPerFrameFile(wt, cfg);
+            // 串行：merge 是读-改-写同一路径，必须先等全量写落盘再合并，避免双写竞态
+            this._persistWeaponConfig().then(() => this._exportPerFrameFile(wt, cfg));
 
             const phaserScene = window.__phaserScene;
             if (phaserScene && phaserScene.playerSprite) {
@@ -1191,7 +1385,7 @@ const DevTool = {
                 anim: currentAnim,
                 mode: 'perFrame',
                 frameIndex: this.state.frameIndex,
-                frames: cfg.attack.frames,
+                frames: cfg[saveKey].frames,
             }, null, 2);
             const outputEl = getElement('devToolDataOutput');
             if (outputEl) {
@@ -1283,11 +1477,21 @@ const DevTool = {
     },
 
     // 重置：把当前配置直接加载到预览画布
+    // 重置：一键把当前动画恢复到初始状态——
+    // attack/attack2（逐帧）：全部帧重置为默认种子（attack=同一基线位置，attack2=复制 attack 帧），丢弃当前未保存的逐帧调整；
+    // 其他动画（idle/walk/running）：丢弃未保存编辑，恢复为已保存配置
     _reset() {
+        if (this._isPerFrameAnim(this.state.anim)) {
+            this._seedPerFrameDefaults(this.state.weaponType, this.state.anim);
+            this.state.frameIndex = 0;
+            this.state.playProgress = 0;
+        }
         this._applyCurrentConfigToPreview();
         this.state.mode = 'move';
         this._canvas.classList.remove('mode-rotate');
         this._updateModeHint();
+        this._updateFrameSlider();
+        this._updateFrameLabel();
     },
 
     // 显示/隐藏/切换
@@ -1302,6 +1506,10 @@ const DevTool = {
     },
     hide() {
         this._active = false;
+        // 停掉播放循环：否则关面板后 rAF 永久空转
+        this.state.isPlaying = false;
+        this._stopFrameAnimation();
+        this._updatePlayBtn();
         if (this._panel) this._panel.classList.remove('active');
         const trigger = getElement('devToolTrigger');
         if (trigger) trigger.classList.remove('active');

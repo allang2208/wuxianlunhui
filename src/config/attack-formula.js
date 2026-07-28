@@ -2,6 +2,8 @@
 // 将按 weaponId 硬编码的公式统一为配置驱动的计算方式
 // 新增武器只需在 EquipDataManager 中配置 attackFormula，无需修改代码
 
+import { findWeaponConfig } from '../ui/equip-data-manager.js';
+
 /**
  * 根据公式配置计算武器攻击力
  * @param {Object} formula - attackFormula 配置
@@ -45,6 +47,10 @@ function getAttackFormula(item) {
     if (!item) return null;
     // 优先使用 item 上定义的 attackFormula
     if (item.attackFormula) return item.attackFormula;
+
+    // EquipDataManager 全量源补全（修复商店货/旧存档实例缺 attackFormula 导致的"-"与错误 base）
+    const cfg = findWeaponConfig(item.weaponId, item.name);
+    if (cfg && cfg.attackFormula) return cfg.attackFormula;
 
     // 从 stats 的 "物理攻击" 字段推断基础值
     const atkStat = item.stats && item.stats.find(s => s.name === '物理攻击');
@@ -164,5 +170,32 @@ function buildFormulaDisplay(formula, el, craftEffects) {
     return parts.join(' ');
 }
 
-export { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay };
-export const AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay };
+/**
+ * 生成强化符号公式展示文本（唯一实现，图鉴"武器强化后攻击力公式"用）
+ * 如 "9 + 强化等级×1 + 智力×(0.45 + 强化等级×0.12)"
+ * @param {Object} formula - attackFormula 配置
+ * @returns {string}
+ */
+function buildEnhancedFormulaDisplay(formula) {
+    if (!formula) return '';
+    const base = formula.base || 0;
+    const enhanceFlat = formula.enhanceFlat || 0;
+    const parts = [];
+    if (base !== 0 || enhanceFlat !== 0) {
+        parts.push(enhanceFlat === 0 ? `${base}` : `${base} + 强化等级×${enhanceFlat}`);
+    }
+    const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
+    for (const attr of formula.attrs || []) {
+        if (Math.abs(attr.base) < 0.001 && Math.abs(attr.perEnhance || 0) < 0.001) continue;
+        const name = attrNames[attr.key] || attr.key;
+        if (Math.abs(attr.perEnhance || 0) < 0.001) {
+            parts.push(`${attr.base >= 0 ? '+' : '-'} ${name}×${Math.abs(attr.base).toFixed(2)}`);
+        } else {
+            parts.push(`${attr.base >= 0 ? '+' : '-'} ${name}×(${Math.abs(attr.base).toFixed(2)} + 强化等级×${Math.abs(attr.perEnhance).toFixed(2)})`);
+        }
+    }
+    return parts.join(' ');
+}
+
+export { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay, buildEnhancedFormulaDisplay };
+export const AttackFormula = { calculateAttackFormula, getAttackFormula, computeWeaponAttack, isMachineGun, buildFormulaDisplay, buildEnhancedFormulaDisplay };

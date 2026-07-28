@@ -324,6 +324,52 @@
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
 - **已知问题**：实机待验证——Super90 火光/子弹在枪管口；个别烘焙偏差走 muzzle.manual 覆盖。
 
+## 2026-07-28（技术债务清理：tmp 文件/死代码/nodeCount 对齐）
+
+### 对话：用户选择技术债务清理项
+- **tmp 调试文件清理**：删除工作区 150+ 个 `tmp_*.png`、`tmp_step*.py`、`tmp_atk2_frames/`、`tools/__pycache__/`（仅 tools 两个脚本内的调试输出引用，非依赖）。保留有文档依据的文件：attack_sword_orig.png（V0.284 备份）、attack_sword_frame0/7.png（prep-attack-sword-2.py 参照图）、attacking-sword.png/recover.png（用户源素材）、weapon-frames/（面板保存流工作目录）。
+- **死代码删除**（combat-room-system.js -75 行）：`spawnExitPortal`/`removeExitPortal`/`getExitPortal`/`CombatExitPortal`（传送门制已全面改门闸制，零调用）+ `monsterPool.zombie` 空池占位 + 连带清理 EffectManager/FloatingTextEffect 未用导入。Boss 侧 `spawnExitPortal` 保留（门闸 placeAt 失败兜底，仍存活）。
+- **nodeCount 结构性不可达修复**：此前中间列数只看 shortestCombatPath/minRoomsToBoss（高级 5 列×4 行=网格上限 23 节点），nodeCount.min 45~60 永远达不到（用户"45~50 间"调整意图落空）。生成器改为：nodeCount 口径含宝箱岔路（按条数×2.5 预留预算），网格凑剩余部分且列数响应 gridMin——高级 5→7 列、沼泽 5→8 列、中级 4→6 列，各地牢总量落到配置区间（高级≈45-50、沼泽≈55-60、中级≈30-35、初级≈22-27）。dungeonList 高级展示同步 35~40→45~50；dungeons-table.md 已重生成。
+- **perf-monitor 临时计时器**：核查已不存在（此前已清理），无需处理。
+- **回归测试扩容**：test-regressions.mjs 新增第 6 节 nodeCount 结构可达性（4 地牢×2 断言，与生成器同公式）。
+- **验证**：lint 0 error（14 存量 warning）；vite build ✅；`npm test` 四连全过（regressions 38/38 ✅）。
+- **实机待验证**：高级/沼泽地牢地图变长后的节奏与地图缩放/拖拽体验。
+
+## 2026-07-28（Boss 场地门闸化 + 防再犯单测 + 武器工作流定稿）
+
+### 对话：用户确认按推荐顺序执行三项自主工作
+- **① Boss 场地门闸化**：`boss-reward-system.js` 入场复用 `CombatRoomSystem._setupGate`（借用 `_diamond` 上下文，距玩家最近直墙件原位替换+播关门动画）；`_onBossDefeated` 改 `openGate()`（`WallGate.sprite` 缺失时回退菱形中心传送门保底）；`dungeon-map-system.updateCombat` Boss 分支接 `CombatRoomSystem.update(dt)`（门闸动画/悬停）+ `isPlayerInGateZone` 离场判定；`BossBattleManager.cleanup` 补 `cleanupGate()` + `rebuildIsoCollision()`（防 Boss 房墙段残留成幽灵碰撞）+ 归还 `_diamond`。SKILL.md 待接入清单销项。
+- **② 防再犯单测**：新增 `scripts/test-regressions.mjs`（30 断言）——入侵追击状态机（真实源码剥 import 注入桩执行：触发后特工必须逐回合推进/追上拦截/consumeCatch 复位/上限不挡追击）、弹药 Infinity→null 回退（真实 gun-ammo 模块）、data↔public 双份逐字节一致（4 文件）、宝箱奖励表 F~A 全档+GRADES 覆盖、equipment.json 音效路径存在性。`package.json` 新增 `npm test`（四连跑）。初跑抓到自身测试两处错误（回合推进调用次数、Windows 动态 import 需 file:// URL），已修正。
+- **③ 武器添加标准工作流**：六段式定稿写入 SKILL.md（素材归一→纹理注册→EDM 唯一数据源+模板双份→弹药/攻击对象双写点→面板贴合→改造/图鉴/验证），ROADMAP 任务 2 销项。
+- **文档沉淀**：SKILL.md 新增 2026-07-28 阶段性总结 + 7 条排查教训（Phaser 4 事件顺序/JSON Infinity/数组保引用/实体清理登记/死亡序列时长/overlay shutdown 复位/once 监听残留）。
+- **验证**：lint 0 error；vite build ✅；`npm test` 四连全过（test-collider ✅ / test-craft-sync ✅ / test-config-integrity ✅ / test-regressions 30/30 ✅）。
+- **实机待验证**：Boss 战入场关门→击败开门→白区离场全流程；门闸悬停金色轮廓；placeAt 失败兜底（不可常规触发）。
+
+## 2026-07-28（全面代码审查与技术债务排查第二轮：35+ 项修复）
+
+### 对话：继 2026-07-13 首轮技术回顾后，对近期一波工作（墙壁/门闸/宝箱房/沼泽/时空特工/玩家动画/连段/攻击公式统一）做全面复查
+- **方法**：6 簇并行审查（地牢主链路/战斗房墙体/玩家动画武器链/新怪物/UI 数据链/未提交改动+开发面板），逐条核实后修复。
+- **高严重度（8 项）**：
+  1. 入侵特工（情况2混合战）实体 key 未登记 `_combatMonsterKeys` → 换波/清场永不删除（dungeon-map-system 补登记）；矿洞本体同款（combat-room 补登记）。
+  2. 宝箱离场确认框死亡路径不清理 → `_chestLeaveConfirm` 卡 true 下局地牢出不了门（软锁）+ overlay 残留（shutdown/init 双路复位+移除 DOM）。
+  3. `BossRewardSystem.cleanup()` 复位错对象（`_isShowingReward` 在 RewardNodeManager 上，原系死赋值）+ 奖励轮询 interval 泄漏 → 下局奖励节点软锁/主神空间误弹通关（新增 rewardNode.cleanup 统一复位）。
+  4. 连段定格被 Phaser 4 事件顺序击穿：animationcomplete(PRE_UPDATE) 早于 Tween onComplete(UPDATE)，`_attackHoldUntil` 读到旧值 → 定格失效身械分离（weapon-anim 攻击开始预写定格窗口）；recover once 监听残留（完成回调改可移除句柄，切换动画 off 旧句柄）。
+  5. 盾卫入侵特工无 `_invasionAgent` 目标分支 → C 级入侵二号特工永久木桩（`_nearestHostile` 下沉 enemy-utils 共享 `nearestHostileOf`，突击/盾卫共用）。
+  6. 矿石蜘蛛死亡序列 4056ms > `_deathRemoveDelay` 默认 3000ms → 尸体贴图永久残留（onDeath 覆盖延迟为序列全长+500）。
+  7. 出征 `depart()` 不移除背包事件监听 → 监听叠加 + 地牢中双击背包祭品物品永久丢失（清理段补 `_removeClickHandlers`，注意放在校验早退之后）。
+  8. 能量轻机枪 `ammoConfig.max: Infinity` 经 JSON 克隆变 null → 买到的/掉落的无法开火（`getAmmoConfig` 在 max==null 时回退 GUN_AMMO_CAP）。
+- **中低严重度（27 项，摘重）**：矿洞召唤物清理前缀补 mineCave_*；F 级宝箱奖励档（GRADES 补 F）；isoSegments 恢复重建；门闸 placeAt 失败回插墙件；矿洞生成查宝箱房排除区；首间房装饰 _tileGeo 提前；GateLight.spawn 接线恢复（断链的门外光斑）；闪光弹预警圈保活至落地；手脑/骑士/突变体3/蝇手/蝇群状态效果双倍流速（super.update 上提统一）；手脑碰撞配置断链；突击补 _destroyCustomEffects；矿石蜘蛛/矿工眩晕中断攻击；读档 backpackItems 原地替换（保引用）+ completeWeaponFields 补全；equipment.json 双份 8 处音效路径按真实文件统一（含 P4040 模板 canvasImageProp 修正、p4040Image）；特效祭品 buff 出征刷新（Game.player）；任务追踪栏出征恢复；商店重复小圆盾/出售格上限/关店白名单；固定点命中双重缩放；面板 hide 停 rAF；Electron 生产合并写路径；弓攻击朝向统一；_frozenAimActive 姿态退出清理；animTime 重复语句；逐帧预览末帧；Tab 重复绑定；保存双写串行化；弓音效坏路径（weapon-anim.js:150、equip-data-manager）。
+- **未修（设计偏差/预留，登记备查）**：EncounterDirector.start/registerKind 零调用（encounter-table.json 为预留配置）；nodeCount.min/max 结构上不可达（中间列数公式上限 23 节点）；CombatRoomSystem.spawnExitPortal/CombatExitPortal 死代码（离场已走门闸）；equipment.json 音效值内中文注释后缀为图鉴展示专用（无播放消费方）。
+- **验证**：全量 lint 0 error（14 存量 warning，较审查前 -1）；vite build ✅；test-collider ✅；test-craft-sync ✅；test-config-integrity ✅（21 存量警告）。
+
+## 2026-07-28（时空特工不入侵 + Boss 传送门在地图外 双修复）
+
+### 对话：地牢模式时空特工没有入侵；BOSS 战场地没有门，传送门生成在地图外导致战斗结束无法离开
+- **特工不入侵根因**：`agent-invasion-system.js` 的 `invasionsUsed >= maxInvasionsPerRun` 提前 return 写在追击分支**外层**——触发判定当回合 `invasionsUsed` 即 +1（1≥1），之后每回合提前返回，特工永远不走位、`caught` 永远 false，入侵战斗永不发生。修复：上限闸门移入 `!this.triggered` 分支内（只拦新入侵判定，不挡已触发特工的追击）；`consumeCatch` 补 `triggered = false` 复位（max>1 时允许下一轮入侵，max=1 行为不变）。
+- **Boss 传送门根因**：`boss-reward-system.js spawnExitPortal` 用 `arena.size/2` 当坐标（如 2048→(1024,1024)），但菱形场地 `_setupArena` 的世界中心在 `(rx+M, ry+M)`（如 (2718,1679)）——传送门落在菱形不等式 `|dx|/rx+|dy|/ry ≈ 1.15 > 1` 的墙外黑区，玩家永远走不到。修复：传送门改生成在 `this._diamond` 中心（无菱形时回退旧口径）。
+- **验证**：菱形不等式数值检查（bossSize 1024/2048：旧坐标均在墙外、新中心均在界内）✅；追击状态机模拟（修复前永不入侵、修复后第 16 回合追上触发）✅；eslint 两文件 0 问题、全量 lint 0 error、vite build ✅、test-collider ✅。
+- **待办**：Boss 场地门闸化（照普通战斗房复刻门闸取代传送门）仍是 SKILL.md 登记的待接入项，本次仅修复传送门位置。
+
 ## 2026-07-27（aimFrames 工程回退）
 
 ### 对话：aimFrames 接入后 idle 贴图错乱且腰射切瞄准无动画——回退备份
@@ -392,6 +438,159 @@
 - **根因（第二层）**：`_isSprinting` 已正确置 false，但枪开火时 `weaponAnim.state='attacking'`（weapon-anim.js:262），`_updatePlayerAnimation` 的"攻击期间不覆盖"early-return 把腿层逻辑整个冻结——runlegs 永远不被重评。该守卫本意是保护近战 attack_sword 动画（在 playerSprite 上），但枪的攻击动画在武器贴图层、playerSprite 只承载腿/躯干层，误伤枪械。
 - **修复**：early-return 加枪械放行（`_isGunPose` 时跳过攻击守卫），近战守卫不变。
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——AKM 冲刺开火切 walklegs/消烟尘/武器回 walking 位、停火恢复、手枪冲刺开火保持 runlegs。
+
+## 2026-07-27（面板-游戏武器位置对齐排查 + zoom 坐标 bug 修复）
+
+### 对话：用户报武器贴图位置与面板调整值没有 100% 对齐
+- **排查结论**：面板与游戏两条渲染链数学上 1:1（spriteSize 120 同源、perFrame 插值过点、锚点公式同口径、时间→进度映射一致、footOffsetY 仅 NPC 有）；朝左镜像为设计差异（面板只显示朝右）。
+- **实锤 bug（V0.286-zoomfix）**：面板 zoom 用 CSS `transform: scale`，`getBoundingClientRect` 被拉伸后鼠标坐标未换算回内部坐标系——**zoom≠1 时拖拽武器/固定点/坐标工具记录的位置按 zoom 倍率失真**（如 2× 下拖 1px 记 2px）。修复：`_canvasPos` 统一换算 `_onMouseDown/_onMouseMove`（固定点经 mousedown 同路径覆盖）。若用户曾在 zoom≠1 下调整轨迹，已保存的偏移值会整体偏大，需在 zoom=100% 下复核。
+- **"慢半拍"根因（V0.287-durfix）**：Phaser `Animation.duration` 只按 frameRate 派生（总帧数/帧率），**无视逐帧时长**——attack_sword_2 为 30/12=2500ms，但逐帧时长实际播放 30×50=1500ms：人物贴图 1500ms 播完并提前回 idle，武器轨迹却按 2500ms 进度条爬（慢 67%），面板（按逐帧时长求和）与游戏因此对不上。修复：weapon-anim.js tweenDuration 与 GameScene setPlayerAnimation naturalMs 统一改 `getPlayerAnimDurationMs`（认识 frameDurations/frameWeights 求和）优先。**教训：凡取动画时长，禁止直接用 Animation.duration，一律 getPlayerAnimDurationMs 优先。**
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅。实机待验证——zoom=100% 下游戏与面板对齐情况。
+
+## 2026-07-27（攻击后定格保持 + recover 收势动画）
+
+### 对话：一段攻击完保持末帧，1s 无攻击输入播 recover 回 idle，有输入接二段
+- **定格保持**：perFrame 攻击 Tween onComplete 设 `_attackHoldUntil=结束+1000ms`（=连段窗口）与 `_attackHoldAnimKey`；`_updatePlayerAnimation` 窗口内直接 return（repeat 0 动画自然停在末帧）；窗口内再攻击由攻击守卫接管正常接二段；**移动立即取消定格/收势**。
+- **收势动画**：窗口结束 → `setPlayerAnimation('recover')`（repeat 0），`animationcomplete` 后回 idle。素材 `recover.png`（用户提供，4096×2048/8列×4行/13 帧）→ 脚底对齐 y=492 标准化 `recover_sheet.png`（8列×2行）；配置 recover 条目（16fps≈0.8s，双份）；面板动画下拉同步加"收势"。
+- **武器同步定格**：syncWeapon 攻击分支扩为 `isAttacking || inAttackHold`——保持窗口内武器定格在上一段轨迹末帧（progress=1，按 `_meleeComboStage` 选 attack/attack2 块），收势阶段回正常持械逻辑。
+- **版本**：V0.282-atk2track → V0.283-attackhold。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——定格自然度、窗口内接二段、超时收势回 idle、移动取消、武器定格。
+- **修复（V0.284-swordreslice）**：用户报"最后一帧截取错误"——attack_sword.png 实为 4100×1548（8 帧×512.5 + 两行空行），Phaser 按 frameWidth 512 硬切累计漂移 3.5px，末帧（帧 7）左缘切进帧 6 残影，定格 1s 时清晰可见。按 512.5 精确重切为 4096×516（去空行），原图备份 `attack_sword_orig.png`。
+- **修复（V0.285-holdframe）**：用户指出定格应是攻击第 8 帧而非 idle——根因：`setPlayerAnimation` 对 repeat 0 动画注册的 completion 回调无条件 `setPlayerAnimation('idle')`，攻击播完立即切 idle，保持窗口内定格成了 idle 姿态。修复：回调中检查 `_attackHoldUntil` 窗口（attack_sword/attack_sword_2）处于保持期则**停在末帧不回 idle**；recover 播放完仍正常回 idle。
+
+## 2026-07-27（二段独立武器轨迹 attack2 全链路）
+
+### 对话：面板二段攻击保存是否生效——此前不生效（走传统路径误写全局 holdOffset），现接通 attack2 独立轨迹
+- **配置**：`sword.attack2 { type:'perFrame', frames[30] }` 播种=复制一段轨迹（public/data/weapon-anim-config.json 单份）。
+- **面板泛化**：`_perFrameCfgKey/_isPerFrameAnim/_getPerFrameFrames` 三辅助——attack→attack 块、attack2→attack2 块；逐帧总数/预览插值/回写配置/播放/保存/重置/继承工作流/进度指示器全部按块分流；attack2 种子=复制 attack 帧（attack 种子仍=统一基线）。
+- **保存直写**：Vite 中间件与 Electron IPC 按 `payload.anim` 分块（attack2→attack2，保留块内其他字段+滚动备份）。**中间件改动需重启 dev server。**
+- **运行时**：`weapon-anim.js` 连段 stage 记录 `_meleeComboStage`；GameScene 逐帧分支按 stage 选轨迹块（二段 attack2、缺失回退 attack）；`WeaponTransform.getInterpolatedPerFramePosition` 加 `cfgKey` 可选参（缺省 attack，向后兼容）。
+- **版本**：V0.281-markerhit → V0.282-atk2track。
+- **测试结果**：node --check×5 ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——面板 attack2 逐帧调整+保存直写、游戏内二段武器轨迹独立。
+
+## 2026-07-27（面板固定点工具 + 攻击动画输入全锁）
+
+### 对话：面板加武器校准红点 + 任何一段攻击未播完前输入全无效
+- **固定点工具**：面板武器参数区下方新增"📍 固定点"按钮——点击进入放置模式（画布点武器即标记），标记存武器局部坐标（逆变换：平移→反向旋转→除以缩放），`_draw` 在武器变换链内绘制红点（白描边），**所有帧/动画状态下刚性跟随武器**；有标记时点按钮=清除，放置模式中点按钮=退出。
+- **攻击输入全锁（`weaponAnim.isAttacking` 统一闸）**：此前已有——移动锁（速度0）、新攻击忽略（state!=='attacking'）、切武器锁（state!=='idle'）；本次补齐——**闪避**（原可取消攻击闪避，现攻击期完全不可闪避）、**冲刺攻击**（dash trigger）、**右键特殊攻击**（夜与火/符文剑）、**风车/推击**（triggerWhirlwind/triggerPushStrike）。
+- **版本**：V0.278-atk2sheet → V0.279-markerlock。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——红点跨帧跟随、攻击期各输入无效、连段 1↔2 不受锁影响（窗口期在动画结束后）。
+- **热修（V0.280-markerbtn）**：固定点按钮加错了文件——面板真实 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建（`ui/components/dev-tool-panel.html` 是无引用的死文件），按钮补到 dev-tools.js 控制区。**教训：面板 DOM 改动一律找 panels/dev-tools.js，勿改 dev-tool-panel.html。**
+
+### 对话：固定点贴图命中校验 + 面板加二段攻击（V0.280 → V0.281-markerhit）
+- **命中校验**：`_placeMarker` 逆变换后按 `_draw` 同一锚点公式换算贴图像素坐标，离屏 canvas 查 alpha（>10 才有效）——点空处/角色上提示"固定点必须放在武器贴图上"且不落点；像素缓存按贴图 src 缓存。
+- **二段攻击入面板**：动画下拉新增 `attack2`（二段攻击），PANEL_ANIM_TO_CONFIG 映射 attack_sword_2、ANIM_NAME 同步；帧加载/逐帧时长（frameDurations）通用机制自动生效。注意：二段武器轨迹仍共用一段 perFrame（attack2 无独立轨迹配置）。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+## 2026-07-27（近战连段系统：一段→二段挥砍）
+
+### 对话：攻击/2.mp4 双手挥砍作二段；一段后 0.3s 内再攻击接二段
+- **连段逻辑（weapon-anim.js perFrame 分支）**：主手攻击 Tween 完成时记 `_lastMeleeAttackEnd`；下次攻击 300ms 窗口内 → `_meleeComboStage` 1↔2 轮换，stage 2 播 `attack_sword_2`（时长取该动画 duration，贴图-Tween timeScale 同步机制复用）；纹理缺失自动回退一段；后续三段突刺扩展轮换数组即可。GameScene 攻击动画安全检查和进度回退识别 attack_sword_2。
+- **配置**：`attack_sword_2` 姿态条目（sheet 512×516×8、12fps、repeat 0，双份）。
+- **素材管线（子代理进行中）**：`E:\无尽轮回\游戏\素材库\人物\主角动画\攻击\2.mp4`（720×720/121f/白底/角落豆包水印）→ 8 帧 sheet `assets/player/attack_sword_2.png`（477/492/217 基准）。
+- **武器轨迹**：二段暂共用一段 30 点轨迹（后续要独立轨迹需扩展 attack2 配置+面板，列入待办）。
+- **版本**：V0.275-qbzcarry → V0.276-combo2。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证（素材到位后）——连段衔接、二段贴图与轨迹匹配、窗口期手感。
+- **参数调整（用户）**：连段窗口 300ms → **1000ms**；二段动画时长设 **1.5s**（attack_sword_2 配 frameDurations 8×187.5ms，武器轨迹 Tween 经 animDef.duration 自动拉伸同步）。注意：命中判定窗口目前是攻击开始后 500ms（checkTriangleHit），1.5s 大挥砍命中点偏后需另行调整。
+- **素材替换（V0.278-atk2sheet）**：用户改供现成 sheet `attacking-sword.png`（4096×2048、8列×4行、30 帧、自抠透明底），弃用 2.mp4 视频提取线。管线：逐帧脚底对齐 y=492 + 512×516 画布（不做逐帧缩放保动作）→ `assets/player/attack_sword_2.png`；配置 30 帧/4 行/frameDurations 30×50ms=1.5s。**已知问题（用户选择先接入看效果）**：帧 13~15/19~22 烘焙进了剑/刀光，与武器贴图叠加可能出现"双剑"；帧 0 内容高 416 vs 标准 477（连段衔接有轻微缩小感）。若需处理：用户 PS 抹剑（推荐）或代码隐藏武器贴图。lint/build/test-collider ✅。
+
+## 2026-07-27（QBZ-191 持位下移 + 面板逐帧继承工作流）
+
+### 对话：qbz191 贴图下移 5px（含瞄准同步）+ 切帧时下一帧继承上一帧位置
+- **qbz191 下移 5px**：holdOffsetY −4 → +1（top/idle/walk 三处，腰射端）；新增逐武器 `aimAdjustX/aimAdjustY` 配置（世界 px，X 翻转镜像）作用于瞄准帧公式锚点——qbz191 `aimAdjustY: 5`（瞄准端同步下移）。AKM 等其他枪不受影响。
+- **逐帧继承（面板）**：`_syncPerFrameFromWeaponParams`（拖动/滚轮/输入框三条编辑路径的唯一收口）置 `_frameDirty`；`_applyCurrentConfigToPreview` 重载配置时清除。帧滑块切帧时若上一帧 dirty 则**不重载该帧已存配置**——武器保持上一帧的位置/角度/缩放继续调（渐进式逐帧工作流）；未修改则照常加载已存配置（浏览轨迹不受影响）。
+- **版本**：V0.274-meleeflip → V0.275-qbzcarry。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——qbz191 腰射/瞄准下移量、逐帧渐进调整流。
+
+## 2026-07-27（近战朝向统一：中轴滞回界限 + 贴图镜像）
+
+### 对话：持近战武器左右调转界限应以玩家中轴为准 + 武器贴图跟随转向
+- **界限统一（`_getVisualFacingRight`）**：身体贴图翻转（原 `_facingDir` 四方向制、垂直带粘滞）、主手（原 |rotation|<90° 瞬时翻转）、副手、perFrame 攻击分支统一改 `|cos(rotation)|>0.05` 滞回判定（存 `player._facingRightVisual`）；`getWeaponWorldPosition` 加 `facingRightOverride` 可选参（位置镜像同口径）。
+- **近战贴图镜像**：朝左时原只做旋转镜像（π−idleRot）+位置镜像，贴图本身未镜像（刀刃/弧度反向）。数学：旋转码比真镜像角多 π，补 **flipY** 恰构成绕垂直轴完整镜像（flipX 会少 π 导致倒置）——主手 syncWeapon / 副手 syncOffhandWeapon 同口径（isMelee 时 flipY=!facingRight）。攻击 perFrame 分支的 flipX 惯例是独立调好的，不动。
+- **版本**：V0.273-notrail → V0.274-meleeflip。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——持剑左右转身界限与身体同步、朝左剑刃朝向、攻击动画不受影响。
+- **纠正（V0.277-flipx）**：V0.274 的 flipY 推导有误（误用 M∘Rot(R)=Rot(π−R)∘M 关系式）——正确关系是 Rot(−R)∘M，现有旋转码 3π/2−idleRot 恰等于 −R_r（正确镜像角），缺的贴图镜像是 **flipX**（与攻击 perFrame 分支"旋转取反+flipX"同惯例）。主/副手已改 flipX + flipY(false)。
+
+## 2026-07-27（剑气拖尾删除）
+
+### 对话：用户指令删除剑气效果（V0.272 → V0.273-notrail）
+- **删除范围**：`_sampleSwordTrail` 方法及 syncWeapon 调用点、`BlendModes` import（无其他使用）、`weapon-anim-config.json` 的 sword.attack.trail 配置、SKILL.md 工作流条目。V0.266-swordtrail 条目保留作历史。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
+
+## 2026-07-27（瞄准死区废除：近距角度 EMA 平滑）
+
+### 对话：死区导致瞄准不丝滑——方案1（用户选定）
+- **机制替换**：`_syncGunTwist` 删除 aimDeadZone/aimDeadZoneCone 冻结+可调锥，改**近距角度低通滤波**——任何距离用真实瞄准方向（弹道零误差，远距手感优于锥制）；准心进入 `aimSmoothRadius`(160) 内对瞄准角做短弧 EMA，时间常数 `aimSmoothTau`(120ms)×(1−dist/R)（边缘零延迟→中心最强），dt 归一化帧率无关；进出半径无缝（出半径立即恢复精准）。`_frozenAimActive`/`_effectiveAim` 标记沿用（语义=平滑激活），贴图/锚点/弹道四通道同口径不错位。
+- **配置**：三姿态 twist 的 aimDeadZone 全部替换为 `aimSmoothRadius: 160 + aimSmoothTau: 120`（双份同步）；"枪械近战弱"设定改为用 tau 体现（想更弱就加大 tau，如 250）。
+- **版本**：V0.271-panelclean → V0.272-aimsmooth。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——远距瞄准丝滑度、近距不跳变/不错位、甩枪惯性手感（tau 可调）。
+
+## 2026-07-27（面板💾保存直写 weapon-anim-config.json：免助手中转）
+
+### 对话：保存后是否直接覆盖文件？还需要通知助手合并吗——改直写
+- **原链路**：💾 = 内存生效 + 覆盖写 `weapon-frames/latest.js` + 剪贴板，**不动** weapon-anim-config.json，刷新即丢，需通知助手合并。
+- **新链路**：Vite 中间件 `/__save-weapon-frames` 与 Electron IPC `save-weapon-frames` 同步把 `payload.frames` 直接合并进 `public/data/weapon-anim-config.json`（保留 attack 下 trail 等其他字段，仅替换 type/frames；防 `__proto__` 污染；写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）；latest.js 降为记录/回滚参考。面板 toast 区分"已写入配置（刷新仍生效）/写入失败"。**注意：Vite 中间件改动需重启 dev server 生效。**
+- **版本**：V0.269-devseed → V0.270-directsave。
+- **测试结果**：node --check ✅；合并语义模拟（trail 保留/frames 替换）✅；lint ✅（0 error）；vite build ✅。实机待验证——重启 dev server 后 💾 保存直写与刷新保持。
+
+### 对话：删除面板画布上的重复文字标注（V0.270 → V0.271-panelclean）
+- **删除**：dev-tool `_draw` 中武器贴图旁的"屏幕偏移 (x, y)"、"Rotation: n°"、"[逐帧模式]"三处 fillText——遮挡贴图且右侧面板已有同信息显示。lint/build ✅。
+
+## 2026-07-27（剑轨迹再更新 + 面板拆帧默认种子/一键重置）
+
+### 对话：新 30 帧合并 + 拆帧默认同位 + 重置按钮改一键重置当前动画
+- **轨迹合并**：sword.attack.frames 30 帧替换（起手 20,15,125° 上挑→回拉蓄力→帧 21 旋转 360° 绕整圈→收势 68,30,135°）。
+- **拆帧默认种子（dev-tool `_seedPerFrameDefaults`）**：attack 无 perFrame 配置时自动播种 30 帧（与 sword 标杆同数），全部帧 = 同一基线位置（传统模式 attack 位），进入攻击页即可直接逐帧开调；`_applyCurrentConfigToPreview` 内触发。
+- **重置按钮语义变更**：`_reset()` 对 attack = 全部帧重置为默认种子（丢弃未保存逐帧调整，回到统一基线）；其他动画 = 恢复已保存配置（原行为）。注意：种子只改内存，`weapon-anim-config.json` 不受影响，💾保存才会落盘。
+- **版本**：V0.268-fpsflag → V0.269-devseed。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——新轨迹观感、无配置武器进 attack 自动出 30 帧同位种子、重置按钮行为。
+
+## 2026-07-27（剑攻击轨迹更新：30 帧回环收势）
+
+### 对话：面板逐帧导出交接（weapon-frames 工作流）
+- **合并**：sword.attack.frames 30 帧全量替换（public/data/weapon-anim-config.json 单份）——新轨迹首尾同点 (72,26,125°)，起势上挑后回拉、末段回到待机位形成回环；帧 21 rotation 275° 经既有解卷绕插值自动平滑（等效 −85°）。
+- **测试结果**：vite build ✅。实机待验证——挥剑轨迹观感+剑气拖尾跟随。
+
+## 2026-07-27（开发面板逐帧时长同源：调节奏自动同步）
+
+### 对话：frameWeights 调整后开发面板攻击预览未同步——要求永久免手动同步
+- **实现（dev-tool.js）**：①帧数据加载时按与 BootScene 同一公式计算 `frameData.durations`（frameWeights 权重分配 / frameDurations 直读）；②perFrame 攻击预览总时长取各帧之和（fps 输入框手动覆盖时回退均匀帧率，保留下调试覆盖语义）；③角色贴图帧定位改按累计时长窗口（与游戏内逐帧时长表现一致），不再按 progress 均匀映射。**以后只改 player-anim-config.json，面板预览自动一致**。
+- **版本**：V0.266-swordtrail → V0.267-panelsync。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——面板攻击预览末帧定格与游戏一致、fps 手动覆盖仍生效。
+- **热修（V0.268-fpsflag）**：面板 `_syncFpsInput` 每次切动画自动把配置帧率填入 fps 输入框 → "手动覆盖"判断（parseFloat>0）恒真 → frameWeights 被永久忽略、预览仍均匀 1/N。改为旗标制：仅用户 input 事件置 `_fpsManualOverride=true`，`_syncFpsInput` 自动填入时复位 false。lint/build ✅。
+
+## 2026-07-27（近战剑气拖尾：白色残影首版）
+
+### 对话：剑类攻击加剑气轨迹效果，先做白色
+- **实现**：`GameScene._sampleSwordTrail`——近战攻击期间（syncWeapon 非枪械分支）按 24ms 节流复制武器贴图当前姿态（位置/旋转/翻转/尺寸），`setTintFill` 白化 + `BlendModes.ADD` 发光 + 180ms 淡出销毁，深度在武器之下，形成挥砍轨迹光带；`_mapModeActive`/武器隐藏时不采样。
+- **配置**：`WeaponAnimConfig[wt].attack.trail { color, alpha, fadeMs, sampleMs }`（sword 已配白色 0xffffff/0.5/180/24，public/data 单份），缺省即白色默认值。
+- **版本**：V0.265-frameDur → V0.266-swordtrail。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——剑气观感（浓度/长度/亮度可调 trail 四参数）、挥剑/风车/冲刺攻击时的表现。
+
+## 2026-07-27（逐帧时长 frameDurations：贴图节奏可调）
+
+### 对话：能否调整精灵图每帧在攻击时长中的占比（如末帧定格更久）
+- **机制**：`player-anim-config.json` 姿态条目新增可选 `frameDurations`（ms/帧数组）——BootScene 建动画时逐帧写 `frame.duration`（Phaser 原生支持），覆盖均匀帧率；`getPlayerAnimDurationMs` 同步改为各帧之和。武器 30 点轨迹 Tween 时长取 `animDef.duration`，自动跟随新总时长，**贴图节奏变化不会与武器轨迹脱轨**。
+- **版本**：V0.264-atkformula1 → V0.265-frameDur。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——配 frameDurations 后攻击贴图节奏与武器轨迹同步。
+- **追加 frameWeights（同日）**：用户要求"总时长不变只改占比"——BootScene 优先读 `frameWeights`（权重数组），按原总时长（帧数/帧率）加权分配各帧时长；总时长锁定 → 武器轨迹/命中时序零影响。调节奏优先用 weights，frameDurations 留给需要改变总时长的场景。lint/build/测试复跑 ✅。attack_sword 首航：`frameWeights: [1,1,1,1,1,1,1,3]`（双份）——总时长 667ms 不变，前 7 帧各 67ms、末帧定格 200ms。
+
+## 2026-07-27（攻击力公式体系统一：单一公式源）
+
+### 对话：AKM 等多把武器公式未正确调用+浮窗显示"-"——全面排查整合
+- **排查结论（子代理）**：实战链只有一套（attack-formula.js 的 computeWeaponAttack 经 getCurrentWeaponAtk 是唯一入口，战斗/显示同链）；`weapon-damage-formulas.js` 是永不触发的死代码且系数与设计值矛盾；codex-manager 有第二份展示公式实现；物品定义 4 源分裂（equip-data-manager 全量 / equipment.json×2 / shop-system 商品列表）导致商店货断链。
+- **AKM "-" 双 bug 修复**：①`equip-tooltip-manager.js` 调用了不存在的 `CodexManager.getItemByName`（实际为 `getEquipByName`）→ 图鉴合并恒失败；②商店列表 8 个条目（AKM/QBZ191/Super90/SAIGA/能量LMG/三把剑）缺 attackFormula，购买克隆不补全 → 商店 AKM 回退 base=3（设计值 9）、能量轻机枪回退 null **实战 0 伤害**、Super90 slugMode 变体切不了。
+- **单一公式源落地**：
+  - `equip-data-manager.js` 新增 `findWeaponConfig`/`completeWeaponFields`（全量源查找+字段补全，含 TEST_EQUIPMENTS 嵌套下钻）；
+  - `getAttackFormula` 三级回退：item.attackFormula → **EquipDataManager 查找（新）** → stats 正则兜底——旧存档缺字段实例也自动修复；
+  - `main.js` 启动合并与 `shop-system` 商品列表补全统一走 completeWeaponFields（同一份字段清单）；
+  - 删除 `weapon-damage-formulas.js`（死代码）+ subsystems 两处防御分支改 0 兜底；
+  - 展示公式统一：符号版实现收进 attack-formula.js（`buildEnhancedFormulaDisplay`），codex `_getAtkFormula/_getEnhancedAtkFormula` 改为委托；
+  - `weapon-attack-config.js` damage 占位值标注"怪物专用/占位"；
+  - 训练用弓（weapon14）双份 equipment.json 补 attackFormula {base:50, enhanceFlat:1}（冻结现回退等效值）。
+- **强化链核查结论**：强化仅影响攻击（公式派生）与盾牌防御（base+perEnhance×级）；射速/弹夹/换弹无强化公式；沙漠之鹰/能量轻机枪 enhanceFlat=0 为设计值；每级增量 = enhanceFlat + Σ attr×perEnhance（如 AKM +3 级 = 9→12 + int/wis 系数 0.45→0.81）。
+- **测试结果**：数值脚本 12/12 ✅（商店AKM base9/+3=28、能量LMG 13 不再 0、Super90 slugMode 17/24、锈剑嵌套查找、训练弓 50、展示文本）；lint ✅（0 error）；vite build ✅；test-collider ✅；test-craft-sync ✅。
+- **已知问题**：实机待验证——商店买 AKM tooltip 公式行/实战伤害、旧存档武器显示；codex `_mergeEquipConfig` 仍有第三份字段清单（含非公式字段，未合并，低优先）。
 
 ## 2026-07-27（aimFrames 工程落地：视频驱动腰射切瞄准，当日回退）
 

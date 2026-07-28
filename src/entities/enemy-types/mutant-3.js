@@ -54,8 +54,9 @@ export class Mutant3 extends Enemy {
         if (this._pounceCooldown > 0) this._pounceCooldown -= dt;
         if (this._comboCooldown > 0) this._comboCooldown -= dt;
 
-        // 统一更新状态效果（中毒、流血等）
-        this.updateStatusEffects(dt);
+        // 基类链统一推进状态效果（中毒、流血、眩晕等，每帧一次）；
+        // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
+        super.update(dt, entities);
 
         // 眩晕时强制中断所有动作
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
@@ -73,9 +74,6 @@ export class Mutant3 extends Enemy {
 
         // 飞扑状态机
         if (this._pounceState === 'idle') {
-            // 普通 AI 更新
-            super.update(dt, entities);
-
             // 尝试开始 5 连击（贴身直接发动；突进只发生在连击命中后，见 _dealComboHit）
             if (this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
                 if (this._isTargetInRange(this.target, this._getAttackStartDistance())) {

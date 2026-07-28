@@ -330,7 +330,10 @@ update(dt, entities) {
                     }
                     if (sprint && this.isMoving) { this.data.stamina -= CONFIG.STAMINA_SPRINT_COST * (dt / 1000); if (this.data.stamina < 0) this.data.stamina = 0; }
                     // 闪避：近战攻击期间按空格可取消攻击动画并闪避
-                    if (Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) {
+                    // 攻击动画锁定（2026-07-27 用户设定）：任何一段攻击动画未播完前一切输入无效——
+                    // 闪避不再取消攻击，攻击期间完全不可闪避
+                    const _attackLocked = this.weaponAnim && this.weaponAnim.isAttacking;
+                    if (!_attackLocked && Input.isPressed(CONFIG.KEYS.SPACE) && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) {
                         if (this.weaponAnim && this.weaponAnim.isAttacking) this.clearAttackTweens();
                         this.triggerDodge(moveInput);
                     }
@@ -367,9 +370,6 @@ update(dt, entities) {
                 this._isSprinting = _sprintActive; // 保存供render使用
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
                 // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
-                if (this.isMoving && !this.isDodging) {
-                    this.animTime += 0.15;
-                }
                 if (this.isMoving && !this.isDodging) {
                     this.animTime += 0.15;
                 }
@@ -989,8 +989,8 @@ update(dt, entities) {
                         const activeDashSkill = this._getActiveDashSkillId();
                         const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
                         const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
-                        if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing) {
-                            // 冲刺攻击触发
+                        if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
+                            // 冲刺攻击触发（攻击动画锁定：任何一段攻击未播完前不触发）
                             this.dashSystem.trigger(entities);
                         } else if (isMelee) {
                             // 近战攻击：使用 ThrustAttack
@@ -1024,7 +1024,8 @@ update(dt, entities) {
                         Input.mouse.leftPressed = false;
                     }
                     // ===== 右键特殊攻击：夜与火之剑 / 符文长剑 =====
-                    if (Input.mouse.rightPressed && isMelee) {
+                    // 攻击动画锁定：任何一段攻击未播完前不触发
+                    if (Input.mouse.rightPressed && isMelee && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                         
                         if (effectiveItem && effectiveItem.specialAttackType === 'nightFlame') {
                             // 夜与火之剑

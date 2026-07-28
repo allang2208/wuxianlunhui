@@ -37,6 +37,7 @@ const saveJsonPlugin = {
 
     // 逐帧武器数据导出：开发面板💾保存时覆盖写固定文件 weapon-frames/latest.js
     // （路径固定、无参数，无路径穿越面；生产环境由 Electron save-weapon-frames IPC 承担）
+    // 同时直接合并进 public/data/weapon-anim-config.json（免助手中转，写前滚动备份）
     server.middlewares.use('/__save-weapon-frames', (req, res) => {
       if (req.method !== 'POST') {
         res.statusCode = 405;
@@ -48,14 +49,30 @@ const saveJsonPlugin = {
       req.on('end', () => {
         try {
           const payload = JSON.parse(body);
-          const content = '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件）\n'
-            + '// 合并方式：把 frames 数组合并进 public/data/weapon-anim-config.json 对应武器的 attack.frames（该配置仅此单份）\n'
+          const content = '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件，仅作记录/回滚参考）\n'
+            + '// 保存时已自动合并进 public/data/weapon-anim-config.json，无需手动合并\n'
             + 'export default ' + JSON.stringify(payload, null, 2) + '\n';
           const target = path.join('weapon-frames', 'latest.js');
           fs.mkdirSync(path.dirname(target), { recursive: true });
           fs.writeFileSync(target, content, 'utf8');
+
+          // 直接合并进 weapon-anim-config.json（该配置仅此单份）：
+          // 保留块内其他字段（trail 等），仅替换 type/frames；写前滚动备份一份；
+          // anim=attack2 时写入 attack2 块（二段连段独立轨迹）
+          let merged = false;
+          const wt = payload.weaponType;
+          const blockKey = payload.anim === 'attack2' ? 'attack2' : 'attack';
+          if (typeof wt === 'string' && Array.isArray(payload.frames) && !['__proto__', 'constructor', 'prototype'].includes(wt)) {
+            const cfgPath = path.join('public', 'data', 'weapon-anim-config.json');
+            const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+            if (!cfg[wt]) cfg[wt] = {};
+            cfg[wt][blockKey] = { ...(cfg[wt][blockKey] || {}), type: 'perFrame', frames: payload.frames };
+            fs.copyFileSync(cfgPath, path.join('weapon-frames', 'weapon-anim-config.backup.json'));
+            fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
+            merged = true;
+          }
           res.setHeader('content-type', 'application/json');
-          res.end(JSON.stringify({ success: true }));
+          res.end(JSON.stringify({ success: true, merged }));
         } catch (err) {
           res.statusCode = 400;
           res.end(String(err));

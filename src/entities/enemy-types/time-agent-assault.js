@@ -10,7 +10,7 @@ import { pathFinder } from '../../ai/pathfinder.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
@@ -65,6 +65,7 @@ export class TimeAgentAssault extends Enemy {
         this._flashTarget = null;
         this._flashWarning = null;
         this._flashSprite = null;
+        this._flashTween = null;
 
         // 远程攻击 AI 状态
         this._losTimer = 0;          // 视线检测节流
@@ -124,12 +125,19 @@ export class TimeAgentAssault extends Enemy {
         if (this._flashCd > 0) this._flashCd -= dt;
         if (this._axeCd > 0) this._axeCd -= dt;
 
+        // 闪光弹落地预警圈保活（矿石蜘蛛同款：EffectManager 生命周期短，每帧重置 life 续命至落地；
+        // 注意是重置 life 不是 maxLife——只刷 maxLife 会在 100ms 后自然消亡）
+        if (this._flashWarning) {
+            if (!this._flashWarning.active) this._flashWarning = null;
+            else this._flashWarning.life = this._flashWarning.maxLife;
+        }
+
         // 眩晕：暂停一切决策与动作推进（恢复后继续）
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
 
         // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标
         if (this._invasionAgent) {
-            this.target = this._nearestHostile(entities);
+            this.target = nearestHostileOf(this, entities);
         }
 
         const t = this.target && this.target.active ? this.target : null;
@@ -568,20 +576,6 @@ export class TimeAgentAssault extends Enemy {
         return false;
     }
 
-    /** 入侵特工：最近的非 agent 阵营单位（玩家与地牢怪物皆为敌） */
-    _nearestHostile(entities) {
-        let best = null;
-        let bestD = Infinity;
-        const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
-        for (const e of list) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === 'agent') continue;
-            const d = Math.hypot(e.x - this.x, e.y - this.y);
-            if (d < bestD) { bestD = d; best = e; }
-        }
-        return best;
-    }
-
     // ========== 弹药系统（怪物基类默认无限弹药；本怪 30 发打空 2s 换弹） ==========
 
     _hasAmmo(slot) {
@@ -674,7 +668,7 @@ export class TimeAgentAssault extends Enemy {
         this._flashSprite = sprite;
         const arcH = FB.arcHeight ?? 100;
         const self = this;
-        scene.tweens.add({
+        this._flashTween = scene.tweens.add({
             targets: { t: 0 },
             t: 1,
             duration: FB.flyDuration ?? 600,
@@ -688,6 +682,7 @@ export class TimeAgentAssault extends Enemy {
             onComplete() {
                 if (sprite.active) sprite.destroy();
                 if (self._flashSprite === sprite) self._flashSprite = null;
+                self._flashTween = null;
                 self._impactFlashbang(tx, ty);
             }
         });
@@ -759,10 +754,27 @@ export class TimeAgentAssault extends Enemy {
         });
     }
 
+    /** 销毁落地预警圈（必须显式 destroy Phaser 图形，active=false 只会残留——矿石蜘蛛同款教训） */
     _destroyFlashWarning() {
         if (this._flashWarning) {
             this._flashWarning.active = false;
+            if (typeof this._flashWarning._destroyPhaserGraphics === 'function') {
+                this._flashWarning._destroyPhaserGraphics();
+            }
             this._flashWarning = null;
+        }
+    }
+
+    /** 统一特效清理（game.js removeEntity / onDeath 约定入口）：停飞行 tween（防尸体落地判定）+ 销毁贴图/预警圈 */
+    _destroyCustomEffects() {
+        this._destroyFlashWarning();
+        if (this._flashTween) {
+            this._flashTween.stop();
+            this._flashTween = null;
+        }
+        if (this._flashSprite) {
+            if (this._flashSprite.active) this._flashSprite.destroy();
+            this._flashSprite = null;
         }
     }
 

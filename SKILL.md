@@ -2,6 +2,36 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-28：Boss 场地门闸化 + 防再犯单测 + 武器工作流定稿）
+
+### 本次完成（自主任务三件，均不依赖素材）
+1. **Boss 场地门闸化**：Boss 房复用 CombatRoomSystem 门闸机制（`_diamond` 上下文借用）——`_setupGate` 入场关门困场、击败后 `openGate()`、门外白区离场判定与 `_leaveBossViaPortal` 接通；门闸 placeAt 失败时回退出口传送门（菱形中心）。`BossRewardSystem.cleanup` 补 cleanupGate + rebuildIsoCollision（防幽灵墙段）。SKILL.md「待接入」清单已销项。
+2. **防再犯单测 `scripts/test-regressions.mjs`（30 断言）**：入侵追击状态机（真实源码注入桩执行）、弹药 Infinity→null 回退、双份 JSON 一致、宝箱奖励 F~A 全档、装备音效路径存在。已挂 `npm test`（collider/craft-sync/config-integrity/regressions 四连）。
+3. **武器添加标准工作流定稿**：六段式写入本文件（ROADMAP 任务 2 销项）。
+
+### 教训沉淀（2026-07-28 全面排查，写死防再犯）
+1. **Phaser 4 事件顺序**：UpdateList(动画) 挂 PRE_UPDATE、TweenManager 挂 UPDATE——同帧内 animationcomplete 早于 Tween onComplete。跨系统时序依赖（如动画回调读 Tween 写的字段）必须**预写**，不能等 onComplete。
+2. **JSON 克隆陷阱**：`Infinity`/`undefined` 经 JSON round-trip 变 `null`——实例克隆链（商店/掉落/存档）上的数值配置禁止依赖 Infinity 原值，消费端必须 `== null` 回退（getAmmoConfig 模式）。
+3. **共享数组恢复必须原地替换**：读档/恢复 `xxx = data.arr` 换新数组会让 init 时注入的引用全部失效；一律 `length=0 + push(...)`。
+4. **实体进 Game.entities 必须登记清理路径**：战斗生成物要么 key 入 `_combatMonsterKeys`，要么前缀入 `removeEntitiesByPrefix` 兜底——两者都没有就是泄漏。
+5. **死亡序列总时长 ≤ `_deathRemoveDelay`**（默认 3000ms）：`_preserveCorpse` 的自定义长序列必须显式覆盖该延迟，否则 game.js 到点直接 delete 实体、贴图永久残留。
+6. **UI overlay/标记位必须有 shutdown 复位路径**：全屏确认框 + 布尔标记的组合，死亡/异常退出不清理就是下局软锁（宝箱离场确认框教训）。
+7. **面板 DOM 改动找 `src/ui/panels/dev-tools.js`**；`once('animationcomplete')` 被打断不触发会残留——完成回调必须可移除（off 句柄）或校验动画 key。
+
+---
+
+## 阶段性进度总结（2026-07-27：攻击力公式体系统一——单一公式源）
+
+### 核心规则（防再犯）
+1. **唯一实战公式**：`src/config/attack-formula.js` 的 `computeWeaponAttack`（经 `Player.getCurrentWeaponAtk`）——战斗/面板/强化预测全部同链，**禁止**新建第二套武器伤害公式；`weapon-damage-formulas.js`（硬编码死代码）已删除。
+2. **唯一全量数据源**：`EquipDataManager`（src/ui/equip-data-manager.js）——新武器在这里配 `attackFormula` 即全链路生效；实例缺字段经 `completeWeaponFields`（main.js 启动合并 / shop-system 商品列表共用）或 `getAttackFormula` 的 EDM 查找层自动补全，不要在新数据源里复制字段清单。
+3. **getAttackFormula 三级回退**：item.attackFormula → EDM 查找（weaponId/name，含嵌套下钻）→ stats"物理攻击"正则兜底（base 取下限，可能偏离设计值，仅兜底）。
+4. **展示公式唯一实现**：`buildFormulaDisplay`（数值版）/ `buildEnhancedFormulaDisplay`（符号版），图鉴/强化面板/tooltip 全部委托。
+5. **强化链**：只影响攻击（公式派生）与盾防（base+perEnhance×级）；射速/弹夹/换弹无强化公式；enhanceFlat=0 是合法设计（沙鹰/能量LMG）。
+6. **教训**：`equip-tooltip-manager` 曾调用不存在的方法 `getItemByName`（实际 `getEquipByName`）导致图鉴合并静默失效——调用对象方法前先确认存在；商店/掉落/存档多源物品必须过统一补全层。
+
+---
+
 ## 阶段性进度总结（2026-07-27：腰射⇄瞄准 aimFrames 帧动画重做落地 + 实机达标）
 
 ### 本次完成：AI 视频驱动 14 帧抬枪动画（V0.251 失败复盘后重做，V0.253~263 实机调优达标）
@@ -126,19 +156,26 @@
 }
 ```
 - `repeat`：-1 循环（idle/walk）/ 0 播放一次（attack/hurt/death/gun_fire）。
+- `frameDurations`（可选，ms/帧数组，2026-07-27 新增）：逐帧时长覆盖均匀帧率——如攻击末帧定格更久（`"frameDurations": [83,83,83,83,83,83,83,300]`）。总时长=各帧之和，武器轨迹 Tween 经 `animDef.duration` 自动同步，武器 30 点轨迹无需联动改；调节奏只报比例即可（助手换算成 ms 写双份 JSON）。
+- `frameWeights`（可选，占比数组，推荐）：按权重分配**原总时长**——总时长锁定（帧数/帧率），只改各帧占比（如 `"frameWeights": [1,1,1,1,1,1,1,3]` 末帧占 3/10），武器轨迹/命中时序零影响。调节奏优先用它；frameDurations 仅用于需要改变总时长的场景。**开发面板预览已同源（2026-07-27）：面板自动读取 weights/durations 并按累计时长窗口定位角色帧，调节奏只改配置即可，无需手动同步面板**；面板 fps 输入框手动输入时仍按均匀帧率预览（调试覆盖语义保留）。**时长陷阱（2026-07-27）**：Phaser `Animation.duration` 只按 frameRate 派生、无视逐帧时长——凡取动画时长必须 `getPlayerAnimDurationMs` 优先（它认识 weights/durations 求和），否则贴图与武器轨迹/命中 Tween 脱节（"慢半拍"根因）。
 - 纹理键自动 = `player_<键名>`；BootScene 加载注册、开发面板预览**全部自动生效，无需改代码**。
 
 ### 5. 运行时姿态切换
 - **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
 - **持枪姿态（已实现，2026-07-26）**：`GameScene._updatePlayerAnimation`——当前武器为枪械（`isGunWeapon`）且站立时姿态键切 `gun_idle`，移动沿用 walk/run；配置缺失自动回退 idle。首版 `gun_idle` 为低持/腰射单帧（素材库 shooting/2.png 抠底标准化，`tools/archive/prep-gun-idle.py`）；斜上/斜下角度分区姿态与 `gun_fire` 待素材。
-- **瞄准死区+可调锥（游戏设定：枪械近战弱，2026-07-26）**：`twist.aimDeadZone`（默认 160 世界 px，0 关闭）+ `aimDeadZoneCone`（默认 20°）——准心进入死区后，以进入时的自由瞄准角为基准仅允许 ±cone 调整（取代初版硬冻结）。姿态/扭转、主副手贴图旋转、锚点超出角、**弹道**（`_fireRanged` 改写 target）统一走 `_effectiveAim`：武器与手臂一体可小幅跟枪，锥外被钳打不准，近战武器拥有贴身空间。边界连续（基准角=进入时自由角）。
+- **近距角度平滑（2026-07-27，取代瞄准死区/可调锥）**：死区已废除（冻结手感差）。`twist.aimSmoothRadius`（默认 160 世界 px，0=全距离精准零平滑）+ `aimSmoothTau`（默认 120ms）——任何距离用真实瞄准方向（弹道零误差）；准心进半径后对瞄准角做短弧 EMA，tau×(1−dist/R)（边缘零延迟→中心最强，dt 归一化帧率无关）。姿态/贴图/锚点/**弹道**统一走 `_effectiveAim`（`_frozenAimActive` 标记沿用=平滑激活）。"枪械近战弱"改为用 tau 体现（加大 tau 如 250 更"肉"）。
 - **手臂条层（单骨伪 IK，2026-07-26）**：`twist.arm { src, pivotX, pivotY(肩关节), handX, handY }`——双臂整体一条刚体贴图（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角` 追随握把，肩随躯干扭转绕腰轴旋转，翻转用 `_arm_flip` 烘焙镜像；深度在躯干与枪之间。**纯只读增量层，不改锚点/扭转逻辑**；躯干钳制之外的角度由它补齐（正上/正下不错位）。
 - **上半身分层扭转（360° 瞄准定稿，2026-07-26）**：姿态条目配 `twist: { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs? }`——素材在同一 512×516 画布上按髋关节节线裁腿层/躯干层（轴心=髋关节间脊柱末端）；BootScene 自动加载 `player_<key>_legs/_torso`（及 `_walklegs` 走腿 sheet）；`GameScene._syncGunTwist` 每帧：躯干层原点=轴心、贴腰轴世界点、按瞄准角（面向系相对角，±0.05 翻转死区）×angleScale 钳制 ±maxAngle 旋转、左瞄换 canvas 烘焙的 `_torso_flip` 镜像贴图+镜像原点（不用 flipX）、腿层翻转覆盖；`syncWeapon` 枪锚点绕同一腰轴旋转（手转枪跟），枪旋转仍精确 atan2。**裁腰预览先用 PIL rotate(center=pivot) 离线验证接缝再上引擎**。持枪移动：`_updatePlayerAnimation` 检测 twist.walkLegs 时腿层播走腿动画、躯干保持（冲刺 timeScale 1.5）。**铁律：play() 前必须 setTexture 同源**（扭转腿层残留会卡动画第一帧，"上半身消失+腿不动"根因）；**`anims.stop()` 后 `currentAnim` 引用不清空**——凡按 currentAnim 做状态判断的（如逐帧跟随），必须同时校验 `isPlaying`（"idle 错位"根因）。**走腿裁片流程（定稿）**：躯干裁线取骨盆完整位（295）让大腿顶藏进骨盆下叠合；walk sheet 按节线裁出后做连通域分析**只保留最大的 2 个组件（两条腿）**——脚底对齐/时序过滤会误伤腿顶，禁用；与腿同连通域的手部残片只能人工逐帧修。**走腿与 idle 对齐（2026-07-26 定稿）**：按 idle 基准（髋 X=217 / 脚底 Y=500）逐帧平移烘焙 sheet——walking 与 idle 天然一致，不要用逐帧髋部跟随机制（已废弃移除，`anims.stop()` 后 `currentAnim` 引用不清空的陷阱也随之失效）。`twist.torsoShiftY`（世界 px）为躯干整体下移微调，统一加在腰轴世界 Y（躯干/肩/枪锚点随动）。
 - 新姿态切换一律按武器类型/状态从配置表查键，**禁止新增硬编码分支**。
 
 ### 6. 武器贴合调参（左下开发面板）
-- **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。
-- **逐帧导出交接**：💾保存时自动覆盖导出 `weapon-frames/latest.js`（含 offsetX/offsetY/rotation/scale 全要素+元数据；Vite 走 `/__save-weapon-frames` 中间件，Electron 走 `save-weapon-frames` IPC）——调完把文件交给助手，助手读取后合并进 `public/data/weapon-anim-config.json`（**该配置仅此单份**，与其它双份配置不同）。单文件覆盖，无储存负担。
+- **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。**拆帧无配置时自动播种 30 帧同一基线位置（2026-07-27）**，进入攻击页即可开调；右上角重置键 = 一键把当前动画恢复初始状态（attack=全帧回种子基线，其他=恢复已保存配置；种子只改内存，💾保存才落盘）。
+- **朝向翻转（2026-07-27 统一）**：一切"身体/武器/锚点左右翻转"判定走 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`），禁止另起 |rotation|<π/2 或 _facingDir 判翻转。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
+
+- **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
+- **近战连段与收势（2026-07-27）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口 1000ms）——窗口内定格末帧等待连段（stage 1↔2，`attack_sword`/`attack_sword_2`，武器轨迹按 `_meleeComboStage` 选 attack/attack2 块）；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。新段（如三段突刺）：加 `attack_sword_3` 姿态+weapon-anim 轮换数组扩展+attack3 轨迹块。
+
+- **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
 - **枪械握把轴心（2026-07-26）**：`WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）——游戏内/面板统一以握把为旋转轴与锚点（360 瞄准不滑手）；扭转激活时锚点在躯干空间计算（禁止 localToWorld 按 player.rotation 公转，否则与扭转轨道叠加成双重旋转）。
 
@@ -979,7 +1016,7 @@ _getPhaserOptions() {
 ### 待接入（下一阶段）
 - 地牢随机生成：从预制库抽房间布局放置 + `_mirrorPieces` 镜像
 - 主神空间边界墙仍是旧硬拉伸视觉
-- Boss 场地门闸化（照普通战斗房复刻，目前仍是传送门）
+- ~~Boss 场地门闸化~~（2026-07-28 已完成：Boss 房复用 CombatRoomSystem 门闸机制，传送门仅作 placeAt 失败兜底）
 
 ### 僵尸地牢菱形房间（2026-07-24 落地）
 - **尺寸规则**：原正方形 S（1024~2048 随机、Boss 1024）→ rx=1.2S、ry=rx×0.5774（30°）；**边距 M=260（≥墙贴图高度 190×角度补偿≈217 + 缓冲，否则上夹角被世界顶裁掉）**，菱形在世界正中央，区外全黑
@@ -1249,6 +1286,46 @@ addTree(x, y, radius, ...) {
 - 调参入口：`public/data/weapon-anim-config.json`（仅此单份）；开发面板调试→💾→助手合并的流程不变。
 - **枪口点自动烘焙（2026-07-26 定稿，优先于手工配置）**：BootScene 对每把武器贴图扫描"最大连通体（8 邻域、4x 降采样）最右端内容点"（含 1px 细枪管尖）写入 `window.__weaponMuzzlePoints`；`_getMuzzleWorldPosition` 优先级 `muzzle.manual` > 自动烘焙 > 配置 muzzle > 右缘中心。子弹/枪口火焰统一从贴图最前端出生。**教训：别拿"右缘估计"当枪口——Super90 手工估点 (0.96,0.35) 把 1px 发丝杂线当枪管，自动烘焙的 (0.908,0.526) 才是真管口（放大裁切证实）。**
 - 玩家碰撞基准（2026-07-26）：`PLAYER_DEFAULTS.physics`——受击矩形 40×60 + colliderOffset (-5,-5)（左拉 10、上移 5）；胶囊体随 collider 偏移。
+
+---
+
+## 武器添加标准工作流（2026-07-28 定稿，新武器一律按此开展）
+
+与怪物/地牢/墙体工作流同规格。核心：**EquipDataManager 是唯一全量数据源，其余各点按需登记，验证四件套收尾**。
+
+### 1. 素材管线（贴图/音效进项目前必过）
+- **贴图归一**：新武器贴图一律按类归一（SKILL.md「武器动画调试基准」）——步枪类：内容宽 0.915 / 中心 (0.500, 0.543) / 画布 2048²（AKM 布局）；手枪类：内容宽 0.862 / 中心 (0.487, 0.524) / 画布 2048²（沙鹰布局）。归一后**枪口点无需手配**（BootScene 自动烘焙，见第 4 节）。
+- **音效**：入 `assets/sounds/weapons/` 子目录（目录规范），路径写进配置，不在代码写死。
+
+### 2. 纹理注册（src/config/weapon-texture-map.js）
+- `getWeaponTextureLoadList()` 加 `{ key: 'weapon_<weaponType>', path }`（BootScene 自动加载）。
+- 仅当纹理键不能由 `weapon_<weaponType>` 推导时（如按 weaponId 特供贴图），在 `getWeaponTextureKey` 的 `specialMap` 加 weaponId → 键映射。
+- **WEAPON_MAP 与加载列表同源**；开发面板的姿态预览自动生效。
+
+### 3. 数据配置（EquipDataManager 唯一全量数据源 + equipment.json 模板）
+- `src/ui/equip-data-manager.js` 加武器条目（参考 G18_PISTOL_ITEM / AKM_ITEM 同族复制）：
+  - 标识：`weaponId`（weaponN 顺延）、`weaponType`（同族复用，新族=新键）、`animConfigKey`/`attackKey`/`offhandAttackKey`（可双持手枪）、`canvasImageProp`（**每把枪独立**，复用别人的会双持互盖——P4040 教训）。
+  - 战斗：`attack { range, knockback, attackInterval, projectileSpeed, damageType }`、`fireMode`（semiAuto/fullAuto）、`ammoConfig { max, reloadTime }`、`spreadParams`/过热（heatParams）按族。
+  - 公式：`attackFormula { base, enhanceFlat, attrs: [{ key, base, perEnhance }] }`——**唯一实战公式源**（computeWeaponAttack 全链路自动生效，图鉴/强化/tooltip 委托展示）；enhanceFlat=0 合法（沙鹰/能量LMG）。
+  - 贴图字段：`iconImage/dropImage/equipImage/slotImage`、`weaponAsset.image`。
+- `data/equipment.json`（**双份同步 public/**）加商店/掉落模板条目——字段从 EDM 条目复制（main.js 启动合并 + `completeWeaponFields` 消费端回退会补全实例缺字段，但**模板里写错的值不会被纠正**，只补 undefined）。
+- 稀有度/定价/掉落池按既有档位（参考同级武器）。
+
+### 4. 弹药与攻击对象（双写点）
+- `src/config/gun-ammo.js` `GUN_AMMO_CAP` 加 `weaponN: { max, reloadTime }`——**与 EDM ammoConfig 双写**（消费端 `getAmmoConfig` 三级回退兜底；`max: Infinity` 合法，JSON 克隆变 null 时有回退）。
+- `attackKey` 取 `WEAPON_ATTACK_CONFIG`（src/config/weapon-attack-config.js）已有键；新射击手感（冷却/弹速/弹体）= 该文件加条目，`attacks[attackKey]` 自动创建（player/index.js 遍历注册，无需改玩家代码）。
+- **枪口点**：BootScene 自动烘焙贴图最右端内容点，无需手配；个别烘焙偏差用 `muzzle.manual` 覆盖（Super90 教训：别拿右缘估计当枪口）。
+
+### 5. 动画与贴合调参（左下开发面板）
+- `public/data/weapon-anim-config.json`（仅此单份）：以同族基准武器（手枪=沙鹰 / 双手枪=AKM）为模板加 `weaponType` 条目（top/idle/walk 状态块 holdOffset、grip、idleScale/idleRotation）。
+- 面板拖武器贴合手部 → 💾保存（直写 public/data + 备份）；静态姿态=每状态 holdOffset，攻击=perFrame 逐帧（新近战动作走玩家动画工作流）。
+- 双手枪械注意冲刺开火=强制 walking（内置）；`isTwoHanded: true` 别漏。
+
+### 6. 改造/附魔/图鉴/验证
+- **改造**：`data/craft-config.json` 加 `weaponN` 槽位条目（配件槽 x/y/lineTarget，参考沙鹰）；`ItemDatabase.getByWeaponId` 懒索引反查，**新武器免登记**。不配 craft 条目 = 该武器不可改造（UI 明示，合法设计）。
+- **附魔/强化**：通用链路，零登记（强化只影响攻击公式派生与盾防）。
+- **图鉴**：ItemDatabase 自动收录，公式展示委托 buildFormulaDisplay，无需改代码。
+- **验证**：JSON 双份一致（`npm test` 的 test-regressions 双份一致性+音效路径存在性检查会拦）；`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs`、`node scripts/test-craft-sync.mjs`（动了 craft 配置时）；实机清单：装备/开火/换弹/双持（手枪族）/瞄准姿态/强化+1 攻击变化/图鉴公式展示。
 
 ---
 

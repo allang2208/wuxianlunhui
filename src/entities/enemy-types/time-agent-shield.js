@@ -3,7 +3,7 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 
 /**
@@ -109,6 +109,11 @@ export class TimeAgentShield extends Enemy {
 
         // 眩晕：暂停一切决策与动作推进（恢复后继续）
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
+
+        // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标（同突击）
+        if (this._invasionAgent) {
+            this.target = nearestHostileOf(this, entities);
+        }
 
         const t = this.target && this.target.active ? this.target : null;
         const dist = t ? Math.hypot(t.x - this.x, t.y - this.y) : Infinity;

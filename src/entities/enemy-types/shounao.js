@@ -59,7 +59,10 @@ export class Shounao extends Enemy {
         if (this._slamCooldown > 0) this._slamCooldown -= dt;
         if (this._howlCooldown > 0) this._howlCooldown -= dt;
         if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
-        this.updateStatusEffects(dt);
+
+        // 基类链统一推进状态效果/受击反馈（每帧一次）；
+        // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
+        super.update(dt, entities);
 
         // 眩晕时强制中断所有动作
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
@@ -80,9 +83,6 @@ export class Shounao extends Enemy {
         // 动作状态推进（进行中的动作优先）
         if (this._animState === 'slam') { this._updateSlam(dt, entities); return; }
         if (this._animState === 'howl') { this._updateHowl(dt, entities); return; }
-
-        // 普通 AI 移动
-        super.update(dt, entities);
 
         // 技能决策：砸地（近程优先） > 嚎叫（远程）
         if (this.target && this.target.active) {
@@ -405,6 +405,8 @@ export class Shounao extends Enemy {
         }
         return {
             spriteSize: renderCfg.spriteSize || 220,
+            collisionWidth: renderCfg.collisionWidth || 60,
+            collisionHeight: renderCfg.collisionHeight || 100,
             flipX,
             animState: this._animState,
             animKey: this._getTextureKey(),

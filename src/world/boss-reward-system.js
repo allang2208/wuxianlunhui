@@ -13,6 +13,8 @@ import enemyConfigData from '../../data/enemy-config.json';
 import { applyDiamondFloor } from './dungeon-floor-texture.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { CombatRoomSystem } from './combat-room-system.js';
+import { WallGate } from './wall-gate.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
  * ============================================================
@@ -187,6 +189,14 @@ export class BossBattleManager {
         // 放置玩家（场地最下方中心，上移 playerFromBottom）
         this._placePlayer(player);
 
+        // 门闸化（2026-07-28，Boss 房与普通战斗房同机制）：复用 CombatRoomSystem 的
+        // 门闸/门外白区/离场判定同一套代码——借用其 _diamond 上下文，距玩家最近的直墙件
+        // 原位替换为带门直墙并播关门动画困场；placeAt 失败（贴图缺失）时内部自动回插墙件，
+        // 战斗完成后 _onBossDefeated 检测无门闸则回退出口传送门（菱形中心，保底可离场）
+        CombatRoomSystem._diamond = this._diamond;
+        CombatRoomSystem._gateZone = null;
+        CombatRoomSystem._setupGate(player);
+
         // 生成 Boss（上方中心，与玩家镜像对齐）
         this._spawnBoss(player);
 
@@ -301,7 +311,7 @@ export class BossBattleManager {
     }
 
     _onBossDefeated() {
-        if (this._waitingForExit) return; // 已生成传送门，避免重复触发
+        if (this._waitingForExit) return; // 已开门/已生成传送门，避免重复触发
         this._waitingForExit = true;
 
         // 发放基础奖励
@@ -315,15 +325,28 @@ export class BossBattleManager {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🎉 击败 Boss！获得 ${gold} 金币`, '#ffd700'));
         }
 
-        // 生成出口传送门，等待玩家进入
-        this.spawnExitPortal();
+        // 门闸化：开大门等玩家走出白区（与普通战斗房同机制）；
+        // 门闸缺失（placeAt 失败等异常路径）回退出口传送门（菱形中心，保底可离场）
+        if (WallGate.sprite) {
+            CombatRoomSystem.openGate();
+            if (player) {
+                EffectManager.add(new FloatingTextEffect(player.x, player.y - 70, '出口大门已开启，从大门离开', '#7a9aff'));
+            }
+        } else {
+            this.spawnExitPortal();
+        }
     }
 
     spawnExitPortal() {
         if (this._exitPortal) return this._exitPortal;
-        const cfg = BOSS_REWARD_CONFIG.arena;
-        const x = cfg.size / 2;
-        const y = cfg.size / 2;
+        // 菱形场地：传送门必须生成在菱形中心（_diamond.cx/cy）。
+        // 此前用 arena.size/2 当坐标（如 2048→(1024,1024)），而菱形世界中心在
+        // (rx+M, ry+M)（如 (2718,1679)）——传送门落在菱形不等式 |dx|/rx+|dy|/ry>1
+        // 的墙外黑区，玩家永远走不到（"地图外传送门、战斗结束无法离开"根因）。
+        const d = this._diamond;
+        const fallback = BOSS_REWARD_CONFIG.arena.size / 2;
+        const x = d ? d.cx : fallback;
+        const y = d ? d.cy : fallback;
         const portal = new BossExitPortal(x, y);
         this._exitPortal = portal;
         this._exitPortalKey = `boss_exit_portal_${Date.now()}`;
@@ -385,9 +408,16 @@ export class BossBattleManager {
         this._exitPortalKey = null;
         this._waitingForExit = false;
 
+        // 门闸与门外白区清理（Boss 房复用 CombatRoomSystem 门闸机制，须先摘门段再恢复墙）
+        CombatRoomSystem.cleanupGate();
+
         // 恢复墙壁
         WallSystem.walls = [...this._backupWalls];
         WallSystem.isoVisuals = this._backupIsoVisuals ? [...this._backupIsoVisuals] : [];
+        // 重建 iso 碰撞段（Boss 房菱形墙段随场景恢复一并清除，防幽灵墙）
+        if (WallSystem.rebuildIsoCollision) WallSystem.rebuildIsoCollision();
+        // 归还借用的门闸上下文
+        CombatRoomSystem._diamond = null;
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }
@@ -467,9 +497,10 @@ export class RewardNodeManager {
     }
 
     _waitForRewardClose(onComplete) {
-        const checkInterval = TimerManager.setInterval(() => {
+        this._checkInterval = TimerManager.setInterval(() => {
             if (!RewardSystem._isOpen) {
-                TimerManager.clearInterval(checkInterval);
+                TimerManager.clearInterval(this._checkInterval);
+                this._checkInterval = null;
                 this._isShowingReward = false;
 
                 // 恢复原始卡牌
@@ -481,6 +512,18 @@ export class RewardNodeManager {
                 if (onComplete) onComplete();
             }
         }, 300);
+    }
+
+    /** 清理奖励节点状态（地牢结束/死亡路径调用）：清轮询句柄 + 复位标记，
+     * 否则 _isShowingReward 卡 true 导致下局奖励节点 enterRewardNode 直接 return（软锁），
+     * 泄漏的 interval 还可能在主神空间误触发 onComplete → _showVictory */
+    cleanup() {
+        if (this._checkInterval) {
+            TimerManager.clearInterval(this._checkInterval);
+            this._checkInterval = null;
+        }
+        this._isShowingReward = false;
+        this._originalCards = null;
     }
 
     /**
@@ -616,7 +659,8 @@ export const BossRewardSystem = {
      */
     cleanup() {
         this.bossBattle.cleanup();
-        this._isShowingReward = false;
+        // _isShowingReward 在 RewardNodeManager 实例上（原写 this._isShowingReward 是死赋值）
+        this.rewardNode.cleanup();
         
     },
 };

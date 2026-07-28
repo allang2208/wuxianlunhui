@@ -108,6 +108,16 @@ export class OreSpider extends Enemy {
             else warn.life = warn.maxLife;
         }
 
+        // 眩晕时中断攻击动作（同工头/提灯矿工：清攻击状态并停步；已出手的晶石飞行不受影响）
+        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+            this._attackType = null;
+            this._attackTimer = 0;
+            this._attackAnimTimer = 0;
+            this._destroySlamWarning();
+            this.vx = 0; this.vy = 0; this.isMoving = false;
+            return;
+        }
+
         // 攻击帧触发
         if (this._attackTimer > 0 && this._attackType) {
             this._updateAttackFrames(entities);
@@ -401,6 +411,9 @@ export class OreSpider extends Enemy {
         this._slamPhaseMs = (slamFrames / frames) * duration;
         // 尸体机制字段（game.js 循环识别口径）：动画总时长 = slam 段 + dying 段
         this._deathAnimTimer = this._slamPhaseMs + (death.dyingMs ?? 1200);
+        // 延迟删除覆盖（amalgam/fat 同款）：死亡序列总长（slam + dying + 定格 + 淡出）+ 500ms 缓冲；
+        // 基类默认 3000ms 早于序列结束，到点 game.js 直接 entities.delete（不经 removeEntity），尸体贴图会永久残留
+        this._deathRemoveDelay = this._deathAnimTimer + (death.holdMs ?? 1000) + (death.fadeMs ?? 300) + 500;
         this._deathSlamHitDone = false;
         this.vx = 0; this.vy = 0; this.isMoving = false;
         if (typeof super.onDeath === 'function') {
