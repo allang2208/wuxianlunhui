@@ -1391,9 +1391,15 @@ _getMuzzleWorldPosition(hand = 'main') {
                 if (Math.abs(sprite.rotation) > Math.PI / 2) offY = -offY;
                 const cos = Math.cos(sprite.rotation);
                 const sin = Math.sin(sprite.rotation);
+                // 副手专属偏移（配置 muzzle.offhandOffsetX/Y，世界 px）：双持手枪副手开火位微调
+                let ohx = 0, ohy = 0;
+                if (hand === 'offhand' && m) {
+                    if (m.offhandOffsetX) ohx = m.offhandOffsetX;
+                    if (m.offhandOffsetY) ohy = m.offhandOffsetY;
+                }
                 return {
-                    x: sprite.x + cos * offX - sin * offY,
-                    y: sprite.y + sin * offX + cos * offY - up,
+                    x: sprite.x + cos * offX - sin * offY + ohx,
+                    y: sprite.y + sin * offX + cos * offY - up + ohy,
                     angle: sprite.rotation
                 };
             },

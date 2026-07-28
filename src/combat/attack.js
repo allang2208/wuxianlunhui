@@ -158,11 +158,8 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
-                const attackAngle = Math.atan2(targetY - source.y, targetX - source.x);
-                if (!isFinite(attackAngle)) {
-                    console.warn('ThrustAttack: invalid attack angle', { targetX, targetY, sx: source.x, sy: source.y });
-                    return false;
-                }
+                // 近战攻击范围固定为玩家左右两侧（鼠标只选左右方向，不朝鼠标点攻击）——2026-07-28 用户设定
+                const attackAngle = (targetX >= source.x) ? 0 : Math.PI;
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
@@ -177,12 +174,21 @@ function applyEnchantOnHit(weapon, target, source) {
                 }
                 // 计算武器攻击力（包含属性加成和剑精通）
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
-                // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
+                // 剑类武器攻击范围：优先武器自身 attack.range（+可选 rangeBonus），
+                // 缺 attack.range 时回退 WeaponAnimConfig.sword.hitBox 统一配置口径
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                 const swordCfg = COMBAT_CONFIG.thrustAttack?.sword || { rangeBonus: 50 };
                 const rangeBonus = (currentWeapon && currentWeapon.attack && currentWeapon.attack.rangeBonus) ?? swordCfg.rangeBonus;
                 const hitBox = WeaponAnimConfig.sword.hitBox;
-                let effectiveRange = isSword ? (hitBox.forwardRange + rangeBonus) : this.config.range;
+                let effectiveRange;
+                if (isSword && currentWeapon.attack && typeof currentWeapon.attack.range === 'number') {
+                    effectiveRange = currentWeapon.attack.range + (typeof currentWeapon.attack.rangeBonus === 'number' ? currentWeapon.attack.rangeBonus : 0);
+                } else if (isSword) {
+                    console.warn('ThrustAttack: 武器缺少 attack.range，回退 hitBox.forwardRange 口径', currentWeapon.name || currentWeapon.weaponId);
+                    effectiveRange = hitBox.forwardRange + rangeBonus;
+                } else {
+                    effectiveRange = this.config.range;
+                }
                 // 应用改造效果：攻击距离
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
@@ -193,7 +199,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 const originX = source.x + Math.cos(attackAngle) * weaponOffset;
                 const originY = source.y + Math.sin(attackAngle) * weaponOffset;
                 // 白色攻击范围可视化：使用统一 hitBox 配置
-                if (Game.showAttackRange) {
+                // perFrame 剑类（一段矩形/二段扇形）的可视化推迟到 checkStageHit 按实际形状绘制
+                const swordPerFrame = isSword && WeaponAnimConfig.sword.attack && WeaponAnimConfig.sword.attack.type === 'perFrame';
+                if (Game.showAttackRange && !swordPerFrame) {
                     EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, effectiveWidth, 'triangle', 1000));
                 }
                 // 存储攻击数据，供swing阶段进行正方形攻击判定
@@ -283,6 +291,101 @@ function applyEnchantOnHit(weapon, target, source) {
                     hitCount++;
                 });
                 // 累计命中/击杀数（不直接给经验，经验在swing结束时统一发放）
+                pt.totalHitCount += hitCount;
+                pt.totalKillCount += killCount;
+            }
+            // 扇形与实体地面 footprint（圆形近似）相交判定：
+            // 实体地面点到原点距离 ≤ 半径+footRadius，且角度差 ≤ halfArc + asin(footRadius/dist) 修正
+            _sectorIntersectsEntity(ax, ay, angle, radius, halfArc, entity) {
+                const c = entity?.collider;
+                if (!c || !c.isGroundTarget) return false;
+                const dx = c.x - ax, dy = c.y - ay;
+                const dist = Math.hypot(dx, dy);
+                if (dist > radius + c.radius) return false;
+                if (dist <= c.radius) return true; // footprint 覆盖扇形原点，必中
+                let diff = Math.atan2(dy, dx) - angle;
+                diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // 归一化到 [-π, π]
+                return Math.abs(diff) <= halfArc + Math.asin(Math.min(1, c.radius / dist));
+            }
+            // perFrame 近战一次性判定（weapon-anim 按 hitCheck 帧阈值触发）：
+            // shape 'rect' = 一段正前方矩形（GroundDirectedRect footprint 判定）；
+            // shape 'sector' = 二段扇形（arcDeg 张角、damageMul 伤害倍率、knockback 径向击退）
+            checkStageHit(source, hitCheckCfg = {}) {
+                const pt = source._pendingThrust;
+                if (!pt || !pt.active) return;
+                pt.active = false; // 一次性判定：触发后即关闭
+                const ax = pt.x, ay = pt.y, angle = pt.angle;
+                const range = pt.range;
+                const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
+                const shape = hitCheckCfg.shape || 'rect';
+                let hitCount = 0, killCount = 0;
+                const candidates = this._queryNearbyEntities(ax, ay, range + 100, source, pt.entities);
+                if (shape === 'sector') {
+                    const arcRad = (hitCheckCfg.arcDeg || 120) * Math.PI / 180;
+                    const halfArc = arcRad / 2;
+                    const damageMul = typeof hitCheckCfg.damageMul === 'number' ? hitCheckCfg.damageMul : 1;
+                    const knockback = typeof hitCheckCfg.knockback === 'number' ? hitCheckCfg.knockback : pt.knockback;
+                    // 范围可视化：二段扇形
+                    if (Game.showAttackRange) {
+                        EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, arcRad, 'sector', 300));
+                    }
+                    candidates.forEach(entity => {
+                        if (entity === source || !entity.active || !entity.hittable) return;
+                        if (pt.hitSet.has(entity)) return; // 已命中过
+                        // 新增：怪物之间不互相攻击
+                        if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                        // 墙壁视线检测：不能攻击墙后的目标
+                        if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
+                        if (!this._sectorIntersectsEntity(ax, ay, angle, range, halfArc, entity)) return;
+                        pt.hitSet.add(entity);
+                        const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2) + pt.damageBonus;
+                        const damage = Math.floor(baseDamage * damageMul);
+                        // 击退方向：从玩家指向实体的径向
+                        const radialAngle = Math.atan2(entity.y - ay, entity.x - ax);
+                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                            damage,
+                            damageType: pt.damageType || 'physical',
+                            knockback,
+                            angle: radialAngle,
+                            currentWeapon
+                        });
+                        if (killed && !entity._summoned) killCount++;
+                        hitCount++;
+                    });
+                } else {
+                    // rect（一段）：沿用 GroundDirectedRect 地面 footprint 判定
+                    const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
+                    const hitBox = WeaponAnimConfig.sword.hitBox;
+                    const backExt = isSword ? (hitBox.backExtension || 0) : 0;
+                    // 范围可视化：一段矩形（'triangle' 类型即带后摆的有向矩形）
+                    if (Game.showAttackRange) {
+                        EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, pt.width, 'triangle', 300, 0.7, true, backExt));
+                    }
+                    const rectShape = new GroundDirectedRect(ax, ay, angle, range, pt.width, backExt);
+                    candidates.forEach(entity => {
+                        if (entity === source || !entity.active || !entity.hittable) return;
+                        if (pt.hitSet.has(entity)) return; // 已命中过
+                        // 新增：怪物之间不互相攻击
+                        if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                        // 墙壁视线检测：不能攻击墙后的目标
+                        if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
+                        if (!rectShape.intersectsEntity(entity)) return;
+                        pt.hitSet.add(entity);
+                        const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
+                        const damage = baseDamage + pt.damageBonus;
+                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                            damage,
+                            damageType: pt.damageType || 'physical',
+                            // 击退配置驱动（hitCheck.knockback 优先，缺省武器 attack.knockback）
+                            knockback: typeof hitCheckCfg.knockback === 'number' ? hitCheckCfg.knockback : pt.knockback,
+                            angle,
+                            currentWeapon
+                        });
+                        if (killed && !entity._summoned) killCount++;
+                        hitCount++;
+                    });
+                }
+                // 累计命中/击杀数（经验在 Tween onComplete 统一发放）
                 pt.totalHitCount += hitCount;
                 pt.totalKillCount += killCount;
             }

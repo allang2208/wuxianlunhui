@@ -43,6 +43,15 @@ class DashSystem {
         // 应用改造效果：技能体力消耗
         const activeSkillId = this.player._getActiveDashSkillId();
         const dashSkill = this.player.skills[activeSkillId];
+        // 冲刺攻击人物动画（dash_attack sheet 17 帧，时长按技能 totalMs 拉伸同步）
+        {
+            const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+            if (scene && typeof scene.setPlayerAnimation === 'function') {
+                const dashEffect = (dashSkill && typeof dashSkill.getEffect === 'function') ? dashSkill.getEffect(dashSkill.level) : null;
+                const dashTotalMs = (dashEffect && dashEffect.totalMs) || 800;
+                scene.setPlayerAnimation('dash_attack', dashTotalMs);
+            }
+        }
         const currentWeapon = this.player.equipments[this.player.weaponMode];
         let staminaCost = 20;
         if (dashSkill && typeof dashSkill.getEffect === 'function') {
@@ -194,11 +203,13 @@ class DashSystem {
                 }
                 return;
             }
-            // 移动：前40%时间完成位移，速度递减
+            // 移动：动画帧驱动——dash_attack 共 17 帧，前 12 帧（1~12）完成位移，后 5 帧（13~17）不位移
             const dashDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist);
-            const movePhaseRatio = effect.movePhaseRatio;
             const speedMul = effect.speedMul;
             const bounceRatio = effect.bounceRatio;
+            const totalFrames = 17;
+            const moveFrames = (typeof effect.moveFrames === 'number') ? effect.moveFrames : 12; // 位移帧数（技能配置可覆盖）
+            const movePhaseRatio = moveFrames / totalFrames;
             if (progress < movePhaseRatio) {
                 const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);

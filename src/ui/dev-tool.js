@@ -40,6 +40,10 @@ const DevTool = {
         offsetY: 30,  // 默认在角色上方（Y+向上，与绿色箭头一致）
         rotation: 0,  // 旋转角度（度）
         scale: 1.0,   // 缩放
+        blurX: 0,     // 运动模糊 X（逐帧攻击，0=无）
+        blurY: 0,     // 运动模糊 Y
+        stretchX: 1,  // 挥砍拉伸 X（逐帧攻击，1=无）
+        stretchY: 1,  // 挥砍拉伸 Y
     },
 
     // 拖拽状态
@@ -306,9 +310,17 @@ const DevTool = {
             offsetY = frame.offsetY || 0;
             rotation = frame.rotation || 0;
             scale = frame.scale !== undefined ? frame.scale : 1;
+            this.weaponParams.blurX = frame.blurX || 0;
+            this.weaponParams.blurY = frame.blurY || 0;
+            this.weaponParams.stretchX = frame.stretchX !== undefined ? frame.stretchX : 1;
+            this.weaponParams.stretchY = frame.stretchY !== undefined ? frame.stretchY : 1;
             this.state.playProgress = perFrame.length > 1 ? idx / (perFrame.length - 1) : 0;
         } else {
-            // 传统模式：weaponParams 表示武器中心位置 + 基础旋转/缩放
+            // 传统模式：weaponParams 表示武器中心位置 + 基础旋转/缩放（模糊/拉伸复位默认）
+            this.weaponParams.blurX = 0;
+            this.weaponParams.blurY = 0;
+            this.weaponParams.stretchX = 1;
+            this.weaponParams.stretchY = 1;
             const overrides = this._buildPreviewOverrides();
             const localOffset = WeaponTransform.getWeaponLocalOffset(wt, 105, false, false, anim, true, overrides);
             offsetX = localOffset.x;
@@ -317,11 +329,15 @@ const DevTool = {
             scale = localOffset.scale || 1;
         }
 
+        const pBlurX = this.weaponParams.blurX, pBlurY = this.weaponParams.blurY;
+        const pStrX = this.weaponParams.stretchX, pStrY = this.weaponParams.stretchY;
         this.weaponParams = {
             offsetX: Math.round(offsetX),
             offsetY: Math.round(offsetY),
             rotation: Math.round(rotation),
             scale: parseFloat(scale.toFixed(2)),
+            blurX: pBlurX, blurY: pBlurY,
+            stretchX: pStrX, stretchY: pStrY,
         };
         this._frameDirty = false; // 从配置重载完成，清除"当前帧已修改"标记
         this.state.weaponOnCanvas = true;
@@ -344,6 +360,10 @@ const DevTool = {
         return {
             local: { x: pos.x, y: pos.y, size: wSize.height / pos.scale, scale: pos.scale },
             rotation: pos.rotation,
+            blurX: pos.blurX || 0,
+            blurY: pos.blurY || 0,
+            stretchX: pos.stretchX !== undefined ? pos.stretchX : 1,
+            stretchY: pos.stretchY !== undefined ? pos.stretchY : 1,
         };
     },
 
@@ -360,6 +380,10 @@ const DevTool = {
             offsetY: this.weaponParams.offsetY,
             rotation: this.weaponParams.rotation,
             scale: this.weaponParams.scale,
+            blurX: this.weaponParams.blurX || 0,
+            blurY: this.weaponParams.blurY || 0,
+            stretchX: this.weaponParams.stretchX !== undefined ? this.weaponParams.stretchX : 1,
+            stretchY: this.weaponParams.stretchY !== undefined ? this.weaponParams.stretchY : 1,
         };
         this._frameDirty = true; // 标记当前帧已修改：切帧时下一帧继承本帧位置（见帧滑块处理）
     },
@@ -471,11 +495,11 @@ const DevTool = {
         this._canvas.addEventListener('mouseleave', () => this._onMouseUp());
         this._canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
 
-        // 输入框实时同步
-        ['devToolOffX', 'devToolOffY', 'devToolRot', 'devToolScl'].forEach((id, idx) => {
+        // 输入框实时同步（含逐帧攻击的模糊/拉伸）
+        ['devToolOffX', 'devToolOffY', 'devToolRot', 'devToolScl', 'devToolBlurX', 'devToolBlurY', 'devToolStrX', 'devToolStrY'].forEach((id, idx) => {
             const el = getElement(id);
             if (!el) return;
-            const keys = ['offsetX', 'offsetY', 'rotation', 'scale'];
+            const keys = ['offsetX', 'offsetY', 'rotation', 'scale', 'blurX', 'blurY', 'stretchX', 'stretchY'];
             el.addEventListener('input', () => {
                 const val = parseFloat(el.value);
                 if (!isNaN(val)) {
@@ -1013,7 +1037,15 @@ const DevTool = {
         if (elY) elY.value = Math.round(this.weaponParams.offsetY);
         if (elR) elR.value = Math.round(this.weaponParams.rotation);
         if (elS) elS.value = this.weaponParams.scale.toFixed(2);
-        
+        const elBX = getElement('devToolBlurX');
+        const elBY = getElement('devToolBlurY');
+        const elSX = getElement('devToolStrX');
+        const elSY = getElement('devToolStrY');
+        if (elBX) elBX.value = (this.weaponParams.blurX ?? 0);
+        if (elBY) elBY.value = (this.weaponParams.blurY ?? 0);
+        if (elSX) elSX.value = (this.weaponParams.stretchX ?? 1);
+        if (elSY) elSY.value = (this.weaponParams.stretchY ?? 1);
+
         // 更新缩放信息面板
         this._updateScaleInfo();
     },
@@ -1304,16 +1336,22 @@ const DevTool = {
             ctx.translate(cx + local.x, cy + local.y);
             ctx.rotate(rotation);
 
-            // 绘制武器
+            // 绘制武器（B 方案拉伸 + A 方案模糊预览：canvas filter 近似，游戏内为方向性高斯）
             const drawScale = local.scale;
+            const stX = (pfTransform && pfTransform.stretchX) || 1;
+            const stY = (pfTransform && pfTransform.stretchY) || 1;
+            const blurAmt = pfTransform ? Math.max(pfTransform.blurX || 0, pfTransform.blurY || 0) : 0;
+            if (blurAmt > 0.05) {
+                ctx.filter = `blur(${(blurAmt / 2).toFixed(1)}px)`;
+            }
             if (isMelee) {
-                const w = local.size * 0.63 * drawScale;
-                const h = local.size * drawScale;
+                const w = local.size * 0.63 * drawScale * stX;
+                const h = local.size * drawScale * stY;
                 ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
             } else if (isGun) {
                 const isPistol = weaponType === 'pistol';
-                const w = (isPistol ? s * 0.275 : s * 0.75) * drawScale;
-                const h = (isPistol ? s * 0.5 : s) * drawScale;
+                const w = (isPistol ? s * 0.275 : s * 0.75) * drawScale * stX;
+                const h = (isPistol ? s * 0.5 : s) * drawScale * stY;
                 // 握把锚点（配置 grip，缺省中心）：面板拖拽点/游戏内旋转轴统一为握把点
                 const gunCfg = WeaponAnimConfig[this.state.weaponType];
                 const grip = (gunCfg && gunCfg.grip) || { x: 0.5, y: 0.5 };
@@ -1322,10 +1360,11 @@ const DevTool = {
                 const imgW = this.weaponImage.naturalWidth || 1024;
                 const imgH = this.weaponImage.naturalHeight || 1024;
                 const aspect = imgW / imgH;
-                const h = local.size * drawScale;
-                const w = h * aspect;
+                const h = local.size * drawScale * stY;
+                const w = h * aspect * stX;
                 ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
             }
+            ctx.filter = 'none';
 
             // 绘制旋转中心
             ctx.fillStyle = '#FFD700';

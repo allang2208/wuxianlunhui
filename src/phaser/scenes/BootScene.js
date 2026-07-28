@@ -1205,18 +1205,15 @@ export class BootScene extends Scene {
             }
         }, 64, 64);
 
-        // 曳光弹：白色发光条，运行时通过 tint 着色
+        // 曳光弹：短粗圆柱形（两头椭圆胶囊），运行时通过 tint 着色（2026-07-28 改：
+        // 原长条形 → 长度减半、粗 1.5 倍，亮度提升更鲜艳）
         generateEnemyTexture('projectile_tracer', (g) => {
-            g.fillStyle(0xffffff, 0.2);
-            g.fillRect(0, 20, 128, 24);
-            g.fillStyle(0xffffff, 0.5);
-            g.fillRect(0, 24, 128, 16);
-            g.fillStyle(0xffffff, 0.95);
-            g.fillRect(0, 28, 128, 8);
+            g.fillStyle(0xffffff, 0.25);
+            g.fillRoundedRect(0, 16, 128, 32, 16);
+            g.fillStyle(0xffffff, 0.6);
+            g.fillRoundedRect(0, 21, 128, 22, 11);
             g.fillStyle(0xffffff, 1);
-            g.fillCircle(120, 32, 10);
-            g.fillStyle(0xffffff, 0.7);
-            g.fillCircle(120, 32, 6);
+            g.fillRoundedRect(0, 26, 128, 12, 6);
         }, 128, 64);
 
         // BabySpider

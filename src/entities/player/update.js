@@ -262,10 +262,10 @@ update(dt, entities) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
-                    // 双手枪械开火时禁止 Shift 奔跑（开火即中断奔跑退回 walking，
+                    // 双手枪械开火/瞄准时禁止 Shift 奔跑（开火或右键瞄准即中断奔跑退回 walking，
                     // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
                     const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);
-                    if (sprint && isTwoHandedGun && Input.mouse.leftDown) {
+                    if (sprint && isTwoHandedGun && (Input.mouse.leftDown || Input.mouse.rightDown)) {
                         sprint = false;
                         // PKM 系保留原 50% 减速语义，其他双手枪退回普通走速
                         if (isPkmEquipped) {
@@ -362,11 +362,12 @@ update(dt, entities) {
                     this.vy *= this.friction;
                 }
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
-                // 双手枪械开火=非奔跑状态（与上方 sprint 中断同口径）：腿部动画回 walking、脚下不出烟尘。
+                // 双手枪械开火/瞄准=非奔跑状态（与上方 sprint 中断同口径）：腿部动画回 walking、脚下不出烟尘。
                 // 此前只把局部 sprint 置 false（减速生效），_isSprinting 未同步导致腿层仍播 runlegs
                 const _thGunEquip = this.equipments[this.weaponMode];
-                const _twoHandedGunFiring = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip) && Input.mouse.leftDown);
-                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunFiring;
+                const _twoHandedGunCombat = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip)
+                    && (Input.mouse.leftDown || Input.mouse.rightDown)); // 左键开火或右键瞄准
+                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunCombat;
                 this._isSprinting = _sprintActive; // 保存供render使用
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
                 // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
@@ -374,7 +375,7 @@ update(dt, entities) {
                     this.animTime += 0.15;
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunFiring;
+                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunCombat;
                     if (speed > 1.0 && sprint) {
                         if (!this.dustTimer) this.dustTimer = 0;
                         this.dustTimer += dt;

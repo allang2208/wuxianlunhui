@@ -203,10 +203,11 @@ class Projectile {
     _getProjectileTint() {
         // 毒液投射物使用 project.png 自带颜色，不再叠加绿色 tint
         if (this.isSpit) return undefined;
-        if (this.isGreen) return 0xa0ffc0;
-        if (this.isGold) return 0xfff8a0;
-        if (this.isDarkGold) return 0xffd040;
-        if (this.isTracer) return 0xffe8a0;
+        // 短粗圆柱弹配色（2026-07-28）：色相不变，亮度提升更鲜艳
+        if (this.isGreen) return 0xc8ffd8;
+        if (this.isGold) return 0xffffcc;
+        if (this.isDarkGold) return 0xffe080;
+        if (this.isTracer) return 0xfff5cc;
         return undefined;
     }
 
@@ -242,8 +243,9 @@ class Projectile {
             const s = this.size * 2.5;
             this._phaserSprite.setDisplaySize(s, s);
         } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {
-            const tailLen = this.isGreen ? 55 : this.isGold ? 50 : this.isDarkGold ? 45 : 40;
-            const thickness = this.isGreen ? 10 : this.isGold ? 10 : this.isDarkGold ? 9 : 8;
+            // 短粗圆柱弹：长度较原长条减半、粗 1.5 倍（贴图为两头椭圆胶囊）
+            const tailLen = this.isGreen ? 27 : this.isGold ? 25 : this.isDarkGold ? 22 : 20;
+            const thickness = this.isGreen ? 15 : this.isGold ? 15 : this.isDarkGold ? 13.5 : 12;
             this._phaserSprite.setDisplaySize(tailLen, thickness);
         } else if (this.image) {
             const s = this.size * 10;

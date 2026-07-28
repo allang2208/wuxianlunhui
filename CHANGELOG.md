@@ -8,6 +8,82 @@
 - 测试结果
 - 已知问题
 
+### 对话：近战音效改起手 + 201 匹配 PKM 尺寸 + 人物武器放大 20%（V0.299-bigplayer）
+- **音效时机**：挥砍音效从"动画中点 delayedCall"改为攻击起手立即播放（weapon-anim.js）。
+- **201 匹配 PKM**：按 PKM 内容宽比 0.907/中心 (0.496,0.543) 重新归一 `assets/icons/201-icon.png`（保纵横比不拉伸，高比 0.230 天然厚于 PKM）。
+- **整体放大 20%**：`PLAYER_DEFAULTS.physics.spriteSize` 120 → 144（人物）；`WEAPON_ANIM.size` 105 → 126（全部武器显示尺寸同源 +20%）。碰撞体积/位置偏移/锚点数学（比例制）不变——**注意**：视觉身体变大而碰撞矩形不变（子弹可能擦边穿过）、武器握点偏移是世界像素未变（握把观感可能需微调）。开发面板预览读同一 spriteSize 自动同步。
+- **版本**：V0.298-bullethit → V0.299-bigplayer。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——人物武器比例观感、握把贴合、音效时机。
+
+### 对话：冲刺攻击人物动画接入（V0.301-dashanim → V0.302-dashmove）
+- **素材**：`attack-2.png`（4096×2048，8列×4行 512²，17 帧）→ 脚底对齐 y=492 标准化 `assets/player/dash_attack.png`（8列×3行）；配置 `dash_attack` 条目（repeat 0，双份）。
+- **挂钩**：`dash-system.trigger()` 设 `_isDashing` 后调 `setPlayerAnimation('dash_attack', 技能 totalMs)`——timeScale 拉伸与冲刺时长同步（骑士长剑 600ms/默认 800ms）；`_updatePlayerAnimation` 的 _isDashing 守卫保证冲刺期间不被覆盖，播完自动回 idle。
+- **位移窗口帧驱动（V0.302）**：冲刺位移从"前 movePhaseRatio 时间"改为**动画帧窗口**——17 帧中前 12 帧完成位移（约前 70.6% 时间），13~17 帧静止；`effect.moveFrames` 可覆盖（缺省 12），缓动/撞墙反弹逻辑不变。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——冲刺动画时机与时长、位移在动画后段停止、突刺命中不受影响。
+
+### 对话：腰射贴图上移 2px + Super90 贴图替换（同日）
+- **腰射上移**：六把双手枪械 holdOffsetY −4 → −6（top/idle/walk 共 18 处，瞄准帧公式不经过 holdOffset，瞄准端不变）。
+- **Super90 贴图**：素材库 `M4s90.icon.png` → AKM 标准归一（0.915/(0.500,0.543)）替换 `assets/icons/M4s90_icon.png`——持有/装备/改造/商店单文件全生效；`shotgun.muzzle` (0.96,0.35) → (0.96,0.52) 对齐新布局。
+
+### 对话：副手偏移 2px + 近战攻击方向固定左右 + 201 尺寸疑云（V0.300-meleefix）
+- **副手开火偏移回调**：offhandOffsetY 5 → 2（pistol/deagle/p4040，用户反馈 5px 移太多）。
+- **近战攻击方向固定左右**：`ThrustAttack.execute` 的 attackAngle 从"鼠标指向角"改为 `(targetX >= source.x) ? 0 : π`——矩形/扇形判定只出现在玩家左右两侧，鼠标只选左右方向。
+- **201 尺寸核查**：磁盘文件 0.907×0.230 ≈ AKM 0.913×0.223（游戏内可见高度 126px×比例：AKM 28.1px / 201 29.0px，201 实际还大 3%）；游戏比例渲染对比图证实两者等大——用户感知的"小一截"来自旧版 201（内容高占比 0.70，是 AKM 的 3 倍大）被归一到 AKM 标准后的心理落差；如仍偏小需硬刷新清缓存后对比。
+- **版本**：V0.299-bigplayer → V0.300-meleefix。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——副手 2px、近战左右固定攻击、201 与 AKM 等大。
+
+## 2026-07-28（副手开火偏移 + 子弹胶囊化 + 剑击退配置化）
+
+### 对话：双持副手开火位下移 5px + 子弹改短粗圆柱更鲜艳 + 剑击退一段 50/二段 75 不硬编码
+- **副手开火偏移**：`_getMuzzleWorldPosition` 新增 `muzzle.offhandOffsetX/Y`（世界 px），pistol/deagle/p4040 配 `offhandOffsetY: 5`——双持副手开火/火光位置下移 5px。
+- **子弹胶囊化**：BootScene 曳光弹贴图从长条改为**两头椭圆胶囊**（fillRoundedRect 三层）；显示尺寸长度减半（40~55 → 20~27）、粗 1.5 倍（8~10 → 12~15）；tint 色相不变、亮度提升（gold 0xfff8a0→0xffffcc 等）。影响所有 isGreen/isGold/isDarkGold/isTracer 子弹。
+- **剑击退配置化**：`sword.attack.hitCheck.knockback: 50`、`sword.attack2.hitCheck.knockback: 75`；attack.js rect 分支改为 hitCheckCfg.knockback 优先（缺省回退武器 attack.knockback），sector 分支本已配置化。
+- **版本**：V0.297-swingsound → V0.298-bullethit。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——副手开火位、子弹外形观感、一段/二段击退距离。
+
+## 2026-07-27（近战普攻一段/二段判定重构：配置驱动矩形+扇形）
+
+### 对话：剑类普通攻击范围与伤害判定重构
+- **一段（attack_sword）**：正前方矩形一次性判定——宽度恒定 hitBox.width×2，长度改为当前武器 `attack.range`（+可选 `attack.rangeBonus` + `_craftEffects.rangeDelta`；缺 attack.range 回退 hitBox.forwardRange+rangeBonus 口径并 warn）。触发时刻从"攻击后 500ms 连续窗口"改为 Tween progress 首次 ≥ (22-1)/(30-1)（面板第 22 帧）。
+- **二段（attack_sword_2）**：120° 扇形一次性判定（攻击起始鼠标方向 ±60°），半径同武器 range 口径；footprint 相交判定 = 距离 ≤ 半径+footRadius 且角度差 ≤ 60°+asin(footRadius/dist) 修正。伤害 = 武器攻击力×1.5（向下取整），击退 50px、方向为玩家→实体径向。触发 = progress 首次 ≥ (15-1)/(30-1)（第 15 帧）。
+- **配置驱动**：`public/data/weapon-anim-config.json` sword.attack 增加 `hitCheck: { frame: 22, shape: 'rect' }`，sword.attack2 增加 `hitCheck: { frame: 15, shape: 'sector', arcDeg: 120, knockback: 50, damageMul: 1.5 }`；帧号换算 progress = (frame-1)/(frames.length-1)，不写死帧数；无 hitCheck 配置时回退旧 500ms 连续窗口。
+- **保留**：hitSet 去重、giveExp 统一经验、墙壁视线、同阵营过滤、_craftEffects.rangeDelta；AttackRangeEffect 可视化按新形状绘制（一段矩形='triangle' 类型带后摆、二段='sector'），perFrame 剑类的可视化从 execute 推迟到 checkStageHit 命中帧。
+- **版本**：index.html 徽章 V0.293-walkfix → V0.294-meleerange。
+- **修改文件**：`public/data/weapon-anim-config.json`、`src/combat/attack.js`（ThrustAttack execute 射程口径 + 新增 checkStageHit/_sectorIntersectsEntity）、`src/entities/player/weapon-anim.js`（perFrame 分支 onUpdate 改阈值触发）、`index.html`、`CHANGELOG.md`。
+- **测试结果**：lint ✅（0 error，14 warning 存量）；vite build ✅；test-collider ✅；test-craft-sync ✅；临时几何脚本 19/19 ✅（扇形贴边角/半径+footRadius 边界、矩形前后左右边界，用后已删）。
+- **已知问题**：实机待验证——一段矩形命中时刻=第 22 帧、二段扇形+50px 击退+1.5 倍伤害=第 15 帧；商店/掉落/旧存档的 attack.range 数据链（商店 124/155/124/124、EDM 77+bonus、equipment.json 165）以运行时 item 为准，缺失时有回退+warn。
+
+### 对话：武器与身体朝向相反（连段二段限定）——朝向泄漏修复（V0.295-holdclear）
+- **实锤（用户 facelog）**：二段攻击时身体 flipX 与武器 flipX 相反（行 1-10 身右武左、行 36-39 身左武右），且武器朝向恒等于"上一段攻击结束时的朝向"。
+- **根因**：`_attackHoldUntil`（定格保持窗口）在连段二段启动时仍成立——`inAttackHold` 分支用一段捕获的 `_attackHoldFacingRight`，而身体翻转用实时朝向（定格期间鼠标已过中轴解锁）→ 两者相反。一段/待机不受影响。
+- **修复**：`_playSwordAttackTween` 启动时清除 `_attackHoldUntil` 与 `_attackHoldFacingRight`——新攻击一律用实时朝向，定格捕获只管定格窗口本身。另：初始锈剑补 `attack.range: 124`（equip-data-manager，消除回退 warn）。
+- **版本**：V0.294-meleerange → V0.295-holdclear。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——连段左右换向攻击时身体与武器朝向一致。
+
+### 对话：朝向强制绑定——武器朝向=人物贴图 flipX（V0.296-facinghard）
+- **用户决策**：不允许任何独立朝向判定，武器朝向一律 = `playerSprite.flipX`（身体是唯一权威）。
+- **落地**：①perFrame 攻击分支（含定格窗口，身体冻结→武器自然冻结，`_attackHoldFacingRight` 捕获机制整体删除）；②收势滑行分支；③主手 idle/walk 位置镜像与贴图翻转；④副手同口径——近战（sword/bow）全部改 `!this.playerSprite.flipX`，枪械保持 twist 面向不变。身体 flipX 仍由 `_getVisualFacingRight`（中轴 ±0.05 滞回）驱动，武器永远跟随。
+- **版本**：V0.295-holdclear → V0.296-facinghard。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——定格窗口鼠标横跳武器不瞬移、连段左右换向、idle 左右持械。
+
+### 对话：瞄准端 AKM/QBZ-191 不一致 + 瞄准再抬 3px（同日微调）
+- **瞄准上抬 3px**：`gun_idle.twist.aimFrames.liftAdjustY` 12 → 9（双份，腰射不变，朝左镜像），全体双手枪械生效。
+- **QBZ-191 统一 AKM**：回退此前定制的下移（holdOffsetY +1 → −4 三处，删 `aimAdjustY: 5`）——同为步枪，腰射/瞄准位置与 AKM 完全一致。
+- **贴图独立偏移机制（`spriteOffsetX/Y`）**：只移动武器贴图渲染位置，手臂/锚点/弹道锚定不动，枪口随贴图（X 随 flipY 镜像）——"只动贴图不动手臂"的调参通道（GameScene syncWeapon 正常路径）。
+- **QBZ-191 恢复下移（贴图版）**：`spriteOffsetY: 5`——贴图回到此前下移 5px 的位置，手臂保持 AKM 基准。
+- **右键瞄准打断奔跑**：双手枪械 `Input.mouse.rightDown` 与开火同口径——`_isSprinting`/烟尘门/减速三处 sprint 中断（update.js），瞄准时腿部回 walking、不出烟尘、退回走速。
+
+### 对话：一/二段挥砍动画中点音效（V0.297-swingsound）
+- **实现**：`weapon-anim.js` perFrame 攻击分支按 stage 块配置 `sound` 字段，`scene.time.delayedCall(totalDuration/2)` 中点播放；素材 `sword_swing_1.mp3`（素材库 1.mp3 入库 assets/sounds/weapons/），attack/attack2 均配同文件。lint/build ✅。
+
+### 对话：弹壳留存 3s + AKM/QJB-201 贴图替换
+- **弹壳**：`shell-casing.js` life 800 → 3000ms（落地留存 3s，末尾 ~0.2s 淡出不变）。
+- **AKM 贴图**：素材库 `akm (2).png`（1536²，布局已在标准位）→ 放大 2048² 替换 `assets/weapons/akm-equip.png` 与 `assets/icons/akm-equip.png`（内容宽 0.913/中心 (0.501,0.541)，与原标准一致）——持有/装备/改造/商店全部同源生效。
+- **QJB-201 贴图**：素材库 `201-icon.png`（1536²）→ 按 AKM 标准归一（内容宽 0.915/中心 (0.500,0.543)）替换 `assets/icons/201-icon.png`；`qjb201.muzzle` 配置 (0.96,0.62) → (0.96,0.52) 对齐 AKM（运行时枪口自动烘焙会复核）；grip 本与 AKM 一致 (0.29,0.54)。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——新贴图持有手感/枪口点、弹壳 3s 留存、191 的 spriteOffsetY 与新贴图叠加观感。
+
+
+
 ## 2026-07-26（玩家动画体系配置化重构 + 开发面板姿态层扩展）
 
 ### 对话：玩家单位动画优化（ROADMAP 任务 1 的方向 1/2/3，素材备料由用户并行）
@@ -324,6 +400,15 @@
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
 - **已知问题**：实机待验证——Super90 火光/子弹在枪管口；个别烘焙偏差走 muzzle.manual 覆盖。
 
+## 2026-07-28（代码工程三项：GroundZone 基类 / 火球冰锥合并 / 遭遇导演精简）
+
+### 对话：用户选定代码工程三项（内容工程留后续）
+- **① 持续区域特效基类** `src/effects/ground-zone.js`：自提灯燃烧区抽出的模板——三层分离（底面扩散+呼吸/反光错相位/粒子簇）+ 生命周期自管，伤害由调用方 onTick 回调提供；毒雾/酸液等新区域特效直接复用。提灯迁移 -152 行，行为 1:1（油色/反光/火焰簇参数全走 enemy-config 缺省）。
+- **② 火球/冰锥合并** `src/entities/components/bolt-skill-system.js`：凝聚悬浮→发射→预判/撞墙/命中统一流程基类，差异 kind 配置驱动（fields/makeProjectiles/anim/trail/onImpact/onMaxRange）；两个文件 326+309 行降为 ~120 行 kind 封装（-516 行）。关键保真：状态字段名不变（GameScene/快捷栏兼容）、冰锥同帧多目标结算（准穿透）保留、火球 alias `_fireball` 渲染兼容。
+- **③ EncounterDirector 精简**：`start/registerKind/encounter-table.json` 自引入起零调用（地牢遭遇解析由 DungeonConfig 承担），删除 `encounter-director.js` + `data/encounter-table.json`；唯一消费方（角色键→工厂构成解析）内联进 agent-invasion-system.js；test-regressions 注入桩同步更新。SKILL.md 章节改为移除记录+预留抽象教训。
+- **验证**：lint 0 error（14 存量 warning）；vite build ✅；npm test 111/111 ✅。
+- **实机待验证**：提灯燃烧区视觉与伤害频率、火球爆炸/冰锥碎裂特效与经验结算、敌方巫师同款技能。
+
 ## 2026-07-28（波次构成重构 + Boss 战经验校准）
 
 ### 对话：用户裁定经验不再做加法（评级/首杀不做）；重构普通/精英战斗波次构成；校准 Boss 战经验不低于精英战
@@ -523,6 +608,46 @@
 - **根因（第二层）**：`_isSprinting` 已正确置 false，但枪开火时 `weaponAnim.state='attacking'`（weapon-anim.js:262），`_updatePlayerAnimation` 的"攻击期间不覆盖"early-return 把腿层逻辑整个冻结——runlegs 永远不被重评。该守卫本意是保护近战 attack_sword 动画（在 playerSprite 上），但枪的攻击动画在武器贴图层、playerSprite 只承载腿/躯干层，误伤枪械。
 - **修复**：early-return 加枪械放行（`_isGunPose` 时跳过攻击守卫），近战守卫不变。
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——AKM 冲刺开火切 walklegs/消烟尘/武器回 walking 位、停火恢复、手枪冲刺开火保持 runlegs。
+
+### 对话：二段 18~24 帧人物压武器 + 连段窗口 0.5s + recover 0.33s 且方向绑定
+- **二段下沉帧**：perFrame 渲染分支按进度帧号判定——attack2 且 fi∈[18,24] 时 `weaponSprite.depth = playerDepth − 0.01`（人物在上），其余帧 playerDepth+2；退出攻击恢复正常深度。
+- **连段窗口**：COMBO_WINDOW_MS 1000 → 500（与定格窗口一致——收势期间再攻击不再派生二段，回一段）。
+- **recover 0.33s**：frameDurations 13×25.4ms=330ms（双份）；收势期间武器方向继续沿用定格冻结朝向（`_attackHoldFacingRight`），与人物朝向绑定一致，鼠标转向不影响。
+- **版本**：V0.290-recoverglide → V0.291-combotune。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——二段 18~24 帧遮挡关系、连段节奏、recover 速度。
+- **待排查（用户报）**：NPC 对话后持近战武器 walking 动画不播放——已给用户控制台诊断片段（读取 currentAnim/_lastPlayerAnimKey/weaponAnim/各标志位）定位卡点。
+
+### 对话：武器贴图方向与人物朝向不一致——全面排查（朝向硬绑定）
+- **根因**：`setPlayerAnimation` 的身体翻转用 `_facingDir`（四方向制，45° 边界切换），武器/锚点用 `_getVisualFacingRight`（中轴 ±0.05 滞回，~87° 边界）——**45°~87° 区间身体与武器朝向相反**。
+- **修复**：setPlayerAnimation 翻转改 `_getVisualFacingRight`——身体贴图/武器/副手/锚点/攻击动画全部同一中轴滞回判定（`_facingDir` 仅保留给攻击矩形方向、闪避等逻辑用途）。
+- **版本**：V0.291-combotune → V0.292-facingbind。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——斜上方 45°~90° 区间身体与武器朝向一致。
+- **待确认（用户报）**：模糊/拉伸特效面板有效游戏无效——疑似渲染器非 WebGL（Phaser 4 滤镜 WebGL only）或滤镜未启用，已给用户诊断片段（renderer.type/gl/filters/blurFx）。
+
+### 对话：NPC 对话后持近战 walking 不播放——诊断定位并修复（V0.293-walkfix）
+- **根因链**（用户控制台证据：currentAnim=player_walk 且 isPlaying=false、lastKey=idle）：①停下（对话/站立 80ms）→ `setPlayerAnimation('idle')` 走单帧分支 `anims.stop()` + setTexture(idle)，**currentAnim 引用残留 player_walk 且停止**；②再走 → 循环动画分支 `if (currentAnim !== texKey)` 判定"同动画不用重播"——**stopped 的 player_walk 永远不重启**（与对话无关，任何"走→停→走"都必现）。
+- **修复**：循环动画分支加 `|| !this.playerSprite.anims.isPlaying` 重播条件（与枪腿分支 isPlaying 防御同模式）。
+- **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——走停走循环、对话后走路。
+
+## 2026-07-27（二段特效播种 + 收势滑行/定格冻结朝向/定格 0.5s）
+
+### 对话：二段加特效 + recover 武器不瞬移 + 定格期鼠标转向武器不变 + 定格缩到 0.5s
+- **attack2 特效播种**：blur/stretch 同公式（帧间位移推导×2，峰值 blur 12/stretch 1.24），与一段同观感。
+- **收势滑行（不瞬移）**：recover 播放期间（`_attackRecovering` + `_attackRecoverStart`），武器从上一段轨迹末帧**线性滑回 idle 持械位**——位置/旋转（短弧）/缩放按 recover 时长（812ms）渐变，终点精确等于 idle 渲染（localToWorld+getWeaponRotation 同口径）；起点与攻击分支同镜像口径（朝右取帧+手动镜像），左右朝向都正确。
+- **定格朝向冻结**：攻击 Tween 完成时捕获 `_attackHoldFacingRight`，定格窗口内武器朝向不再跟随鼠标翻转（此前会随鼠标过中轴翻转）。
+- **定格时长**：`_attackHoldUntil` 1000ms → **500ms**（连段判定窗口仍 1000ms 不变）。
+- **版本**：V0.289-bluren → V0.290-recoverglide。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——二段特效、收势滑行自然度、定格期鼠标转向武器不动、0.5s 定格手感。
+
+## 2026-07-27（挥砍特效 A+B：帧级运动模糊 + 拉伸）
+
+### 对话：Phaser 能否做挥砍模糊/扭曲——内置滤镜系统落地 A+B
+- **机制**：perFrame 帧数据新增 `blurX/blurY`（方向性高斯模糊，缺省 0）与 `stretchX/stretchY`（拉伸，缺省 1）——`getInterpolatedPerFramePosition` 与位置/旋转/缩放同管线线性插值；GameScene perFrame 渲染分支应用：模糊走 `weaponSprite.filters.internal.addBlur`（控制器复用、x/y 每帧更新、≤0.05 关闭、退出攻击自动关闭），拉伸乘进 displaySize。
+- **播种**：sword attack 30 帧按帧间位移推导初值（峰值帧 blur≈6/stretch≈1.12，端点≈0）——挥砍中段糊开+微拉伸，起势收势清晰。
+- **面板**：新增 模糊X/模糊Y/拉伸X/拉伸Y 四个输入（dev-tools.js 控制区），回写帧配置（保存直写同链路）；预览用 canvas `ctx.filter=blur()` 近似（游戏内为方向性）。
+- **版本**：V0.287-durfix → V0.288-swingfx。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——挥砍模糊观感（边缘裁剪时给滤镜加 paddingOverride）、拉伸幅度、面板四输入手感。
+- **热修（V0.289-bluren）**：模糊完全没生效——Phaser 4 的 GameObject 滤镜**必须先 `enableFilters()`**（初始化 filterCamera），否则 `sprite.filters` 为 null、`filters && filters.internal` 静默跳过。已在 addBlur 前惰性调用。**教训：Phaser 4 滤镜区别于 v3 postFX，先 enable 再 add。**
 
 ## 2026-07-27（面板-游戏武器位置对齐排查 + zoom 坐标 bug 修复）
 

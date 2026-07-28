@@ -1107,14 +1107,11 @@ export class GameScene extends Scene {
         this._lastPlayerAnimKey = key;
         const currentAnim = this.playerSprite.anims.currentAnim?.key;
 
-        // 根据朝向翻转（侧视精灵图默认朝右）
+        // 根据朝向翻转（侧视精灵图默认朝右）——与武器/锚点同一中轴滞回判定（_getVisualFacingRight），
+        // 禁用 _facingDir 四方向制（45° 边界），否则 45°~87° 区间身体与武器朝向相反
         const player = window.Game && window.Game.player;
-        if (player && player._facingDir) {
-            if (player._facingDir === 'left') {
-                this.playerSprite.setFlipX(true);
-            } else if (player._facingDir === 'right') {
-                this.playerSprite.setFlipX(false);
-            }
+        if (player) {
+            this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
         }
 
         const def = getPlayerAnimDef(key);
@@ -1193,7 +1190,9 @@ export class GameScene extends Scene {
 
         // 循环动画（walk/run 等）
         this.playerSprite.anims.timeScale = 1;
-        if (currentAnim !== texKey) {
+        // currentAnim 相同但已停止（单帧 idle 切换会 anims.stop() 但不清 currentAnim 引用）也必须重播——
+        // 否则"走路→停下→再走"时 walk 永远不重启（NPC 对话后走路失效根因）
+        if (currentAnim !== texKey || !this.playerSprite.anims.isPlaying) {
             // 贴图与动画必须同源（同上）
             if (this.playerSprite.texture.key !== texKey) {
                 this.playerSprite.setTexture(texKey);
@@ -1505,6 +1504,7 @@ export class GameScene extends Scene {
                 player._attackHoldUntil = 0;
                 if (getPlayerAnimDef('recover') && this.anims.exists(playerTextureKey('recover'))) {
                     player._attackRecovering = true;
+                    player._attackRecoverStart = now; // 收势起点（武器线性滑回 idle 位的时间基准）
                     // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
                     this.setPlayerAnimation('recover');
                     return;
@@ -1710,7 +1710,9 @@ export class GameScene extends Scene {
                             }
                         }
                     }
-                    const facingRight = this._getVisualFacingRight(player);
+                    // 朝向硬绑定：武器朝向 = 人物贴图 flipX（身体是唯一权威）——
+                    // 攻击/定格/收势期间身体 flipX 冻结，武器自然冻结，无需独立朝向捕获
+                    const facingRight = !this.playerSprite.flipX;
                     // 以右攻击为参考，朝左时翻转贴图并镜像位置/旋转
                     const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, atkCfgKey);
                     if (pfPos) {
@@ -1720,7 +1722,35 @@ export class GameScene extends Scene {
                         this.weaponSprite.setRotation(wrot);
                         this.weaponSprite.setFlipX(!facingRight);
                         const wSize = WeaponTransform.getWeaponSize(wt, pfPos.scale, 'attack');
-                        this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+                        // B 方案：挥砍拉伸（stretchX/stretchY，缺省 1）
+                        this.weaponSprite.setDisplaySize(
+                            wSize.width * (pfPos.stretchX || 1),
+                            wSize.height * (pfPos.stretchY || 1)
+                        );
+                        // A 方案：帧级方向运动模糊——挥砍峰值帧 blurX/blurY>0，起势/收势关
+                        const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
+                        if (bx > 0.05 || by > 0.05) {
+                            // Phaser 4 滤镜需先 enableFilters() 初始化 filterCamera（否则 filters 为 null 静默无效）
+                            if (!this.weaponSprite.filters) {
+                                this.weaponSprite.enableFilters();
+                            }
+                            const filterList = this.weaponSprite.filters && this.weaponSprite.filters.internal;
+                            if (filterList) {
+                                if (!this._weaponBlurFx) {
+                                    this._weaponBlurFx = filterList.addBlur(0, bx, by, 1);
+                                } else {
+                                    this._weaponBlurFx.x = bx;
+                                    this._weaponBlurFx.y = by;
+                                }
+                                this._weaponBlurFx.active = true;
+                            }
+                        } else if (this._weaponBlurFx) {
+                            this._weaponBlurFx.active = false;
+                        }
+                        // 二段攻击 18~24 帧：角色贴图在上层、武器贴图沉到人物之下（随进度逐帧判定）
+                        const fi = Math.round(progress * (perFrameCfg.frames.length - 1));
+                        const weaponUnder = atkCfgKey === 'attack2' && fi >= 18 && fi <= 24;
+                        this.weaponSprite.setDepth(this.playerSprite.depth + (weaponUnder ? -0.01 : 2));
                     }
                     return;
                 }
@@ -1733,6 +1763,56 @@ export class GameScene extends Scene {
             // 远程武器：继续执行，让状态机驱动的后坐力生效
         }
         
+        // 攻击/定格分支之外：运动模糊关闭（A 方案仅在攻击轨迹帧激活）
+        if (this._weaponBlurFx && this._weaponBlurFx.active) {
+            this._weaponBlurFx.active = false;
+        }
+        // 武器深度复位（二段 18~24 帧的下沉仅在攻击轨迹帧生效）
+        if (this.weaponSprite && this.playerSprite && this.weaponSprite.depth !== this.playerSprite.depth + 2) {
+            this.weaponSprite.setDepth(this.playerSprite.depth + 2);
+        }
+
+        // 收势滑行（recover 播放中）：武器从上一段轨迹末帧**线性滑回 idle 持械位**（位置/旋转/缩放同步渐变），
+        // 不瞬移；朝向沿用定格冻结朝向（收势期间鼠标转向不影响）
+        if (player._attackRecovering && player._attackRecoverStart) {
+            const isGunR = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            if (!isGunR) {
+                const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
+                const recDur = getPlayerAnimDurationMs('recover') || 800;
+                const t = Math.max(0, Math.min(1, (performance.now() - player._attackRecoverStart) / recDur));
+                // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
+                const wacR = WeaponAnimConfig[wt];
+                const atkKeyR = (player._meleeComboStage === 2 && wacR && wacR.attack2) ? 'attack2' : 'attack';
+                const start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
+                if (start && !facingR) {
+                    start.x = 2 * player.x - start.x;
+                    start.rotation = -start.rotation;
+                }
+                // 终点：idle 持械位（同朝向镜像口径）
+                const endLocal = WeaponTransform.getWeaponLocalOffset(wt, player.size, false, false, 'idle', facingR);
+                const end = WeaponTransform.localToWorld(player, endLocal, 0, facingR, 'idle', wt);
+                const endRot = WeaponTransform.getWeaponRotation(0, wt, 0, 'idle', facingR);
+                if (start) {
+                    let dRot = endRot - start.rotation;
+                    dRot = Math.atan2(Math.sin(dRot), Math.cos(dRot)); // 短弧插值
+                    const sizeStart = WeaponTransform.getWeaponSize(wt, start.scale, 'attack');
+                    const sizeEnd = WeaponTransform.getWeaponSize(wt, null, 'idle');
+                    this.weaponSprite.setPosition(
+                        start.x + (end.x - start.x) * t,
+                        start.y + (end.y - start.y) * t
+                    );
+                    this.weaponSprite.setRotation(start.rotation + dRot * t);
+                    this.weaponSprite.setFlipX(!facingR);
+                    this.weaponSprite.setDisplaySize(
+                        sizeStart.width + (sizeEnd.width - sizeStart.width) * t,
+                        sizeStart.height + (sizeEnd.height - sizeStart.height) * t
+                    );
+                    this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                    return;
+                }
+            }
+        }
+
         // 使用 WeaponTransform 统一计算位置和旋转
         // 按玩家状态推断动画状态
         if (!this.weaponSprite) {
@@ -1748,8 +1828,8 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, this._getVisualFacingRight(player));
-        const facingRight = this._getVisualFacingRight(player);
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player));
+        const facingRight = isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player); // 近战朝向硬绑定身体 flipX
 
         // 躯干扭转激活（持枪瞄准）：锚点在躯干空间计算（不随 player.rotation 公转）
         if (this._twistState && !isMelee) {
@@ -1819,6 +1899,13 @@ export class GameScene extends Scene {
             pos.x += Math.cos(rot) * gcx - Math.sin(rot) * gcy;
             pos.y += Math.sin(rot) * gcx + Math.cos(rot) * gcy;
         }
+
+        // 贴图显示偏移（配置 spriteOffsetX/Y，世界 px，X 随 flipY 镜像）——
+        // 只移动贴图渲染位置：手臂/锚点（_gunGripWorld 已记录）与弹道逻辑不受影响，枪口随贴图走
+        const spriteOffX = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetX;
+        const spriteOffY = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetY;
+        if (spriteOffX) pos.x += gunFlipY ? -spriteOffX : spriteOffX;
+        if (spriteOffY) pos.y += spriteOffY;
 
         this.weaponSprite.setPosition(pos.x, pos.y);
         this.weaponSprite.setRotation(rot);
@@ -2017,11 +2104,11 @@ export class GameScene extends Scene {
         let offhandAnimState = 'idle';
         if (player._isSprinting) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState, {}, this._getVisualFacingRight(player));
-        const facingRight = this._getVisualFacingRight(player);
         // 近战武器使用固定 rotation（所有状态）；
         // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
         const isMelee = wt === 'sword' || wt === 'bow';
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState, {}, isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player));
+        const facingRight = isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player); // 近战朝向硬绑定身体 flipX
 
         // 躯干扭转激活：副手锚点与主手同口径（躯干空间 + 连续轨道）
         if (this._twistState && !isMelee) {

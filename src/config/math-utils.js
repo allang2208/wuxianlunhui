@@ -8,7 +8,7 @@ export const Easing = {
 };
 
 export const WEAPON_ANIM = {
-    size: 105, holdX: 0, holdY: 0,
+    size: 126, holdX: 0, holdY: 0, // 2026-07-28：105 → 126（武器贴图随人物同步放大 20%）
     idleAngle: 0, windupAngle: Math.PI / 6, swingAngle: -Math.PI / 6,
     windupMs: 188, swingMs: 250, recoverMs: 438,
 };
