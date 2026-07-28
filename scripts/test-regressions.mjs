@@ -208,5 +208,147 @@ console.log('\n[6] 地牢 nodeCount 结构可达性');
     }
 }
 
+// ========== 7. 经验系统 pacing 闭环 ==========
+console.log('\n[7] 经验系统（pacing 闭环/压级衰减/锚定）');
+{
+    const expSys = await import(pathToFileURL(path.join(ROOT, 'src/config/exp-system.js')));
+    const { getDungeonExpBase, getWeightedKills, getBandCost, getMonsterExp, getMonsterEffectiveLevel, getExpDecayMultiplier, computeMaxExp } = expSys;
+    const cf = readJson('data/combat-formulas.json');
+    const expCfg = cf.enemy.expValue;
+    const dc = readJson('data/dungeon-config.json');
+
+    // 升级曲线一致性：computeMaxExp 与 player.expPerLevel 手算一致
+    const f = cf.player.expPerLevel;
+    check('computeMaxExp(10) 与配置手算一致',
+        computeMaxExp(10) === (f.base + 10 * f.levelMultiplier + 10 * f.levelSquareMultiplier) * f.finalMultiplier * f.globalMultiplier);
+
+    // 闭环不变量（方案A 两池拆分）：base×runs×explore×W = (1-share)×段成本；清剿奖×runs×explore×C = share×段成本
+    const share = cf.enemy.expValue.roomBonus?.share ?? 0;
+    for (const type of Object.keys(dc.dungeonList)) {
+        const grade = dc.dungeonList[type].grade;
+        const base = getDungeonExpBase(type);
+        const W = getWeightedKills(type);
+        const cost = getBandCost(grade);
+        const rebuilt = base * (expCfg.pacingRuns) * (expCfg.exploreFactor) * W;
+        check(`${type}(${grade}) 击杀池闭环 = (1-share)×段成本`, Math.abs(rebuilt - (1 - share) * cost) < 1e-6, `${rebuilt} vs ${(1 - share) * cost}`);
+        const bonusRebuilt = expSys.getRoomClearBonus(type) * expCfg.pacingRuns * expCfg.exploreFactor * expSys.getCombatNodeCount(type);
+        check(`${type}(${grade}) 清剿奖池闭环 = share×段成本`, Math.abs(bonusRebuilt - share * cost) < 1e-6, `${bonusRebuilt} vs ${share * cost}`);
+        check(`${type}(${grade}) 加权击杀 W > 0`, W > 0);
+        check(`${type}(${grade}) 战斗节点数 > 0`, expSys.getCombatNodeCount(type) > 0);
+    }
+
+    // 连战倍率边界（3 连战起 +15%，每多 1 场 +5%，封顶 1.5）
+    check('连战 1~2 场倍率 1', expSys.getStreakMultiplier(1) === 1 && expSys.getStreakMultiplier(2) === 1);
+    check('连战 3 场 ×1.15', Math.abs(expSys.getStreakMultiplier(3) - 1.15) < 1e-9);
+    check('连战 4 场 ×1.20', Math.abs(expSys.getStreakMultiplier(4) - 1.20) < 1e-9);
+    check('连战 5 场 ×1.25', Math.abs(expSys.getStreakMultiplier(5) - 1.25) < 1e-9);
+    check('连战封顶 ×1.5', expSys.getStreakMultiplier(20) === 1.5);
+
+    // 各档战斗加权关系（2026-07-28 波次重构的用户验收线）：Boss ≥ 精英战 ≥ 普通战（F 无精英战）
+    for (const type of Object.keys(dc.dungeonList)) {
+        const w = expSys.getDungeonFightWeights(type);
+        check(`${type} Boss战(${w.boss}) ≥ 精英战(${w.elite})`, w.boss >= w.elite);
+        check(`${type} Boss战(${w.boss}) ≥ 普通战(${w.normal})`, w.boss >= w.normal);
+    }
+    // 波次结构：D/C 普通战尾波定刷精英（16=14N+1E）、精英战尾波定刷领主（18=14N+1L）
+    {
+        const wD = expSys.getDungeonFightWeights('zombie');
+        check('D 普通战加权 16（尾波定刷精英）', wD.normal === 16);
+        check('D 精英战加权 18（尾波定刷领主）', wD.elite === 18);
+        const wF = expSys.getDungeonFightWeights('zombieBeginner');
+        check('F Boss 加权 16 > F 普通战 15', wF.boss === 16 && wF.normal === 15);
+        const wE = expSys.getDungeonFightWeights('zombieMid');
+        check('E Boss 加权 18（尾波定刷领主）', wE.boss === 18);
+    }
+
+    // 基础经验量级锚点（手算估值 ±20%，pacingRuns=5.0 + share=0.3 + 波次重构口径）：F≈16 / E≈67 / D≈59 / C≈71
+    const anchors = { zombieBeginner: 16, zombieMid: 67, zombie: 59, swamp: 71 };
+    for (const [type, expect] of Object.entries(anchors)) {
+        const base = getDungeonExpBase(type);
+        check(`${type} 基础经验 ≈${expect}（±20%）`, Math.abs(base - expect) / expect <= 0.2, `实际=${base.toFixed(1)}`);
+    }
+
+    // 衰减曲线边界
+    check('diff ≤ 5 不衰减', getExpDecayMultiplier(10, 5, 'normal') === 1);
+    check('diff=6 衰减 0.85', Math.abs(getExpDecayMultiplier(11, 5, 'normal') - 0.85) < 1e-9);
+    check('普通怪下限 1%', getExpDecayMultiplier(100, 5, 'normal') === 0.01);
+    check('精英下限 3%', getExpDecayMultiplier(100, 5, 'elite') === 0.03);
+    check('首领下限 10%', getExpDecayMultiplier(100, 5, 'boss') === 0.10);
+
+    // 越级加成边界（与衰减对称：diff < -5 每级 +10%，封顶 1.5×）
+    check('越级 diff=-5 无加成', expSys.getExpLevelMultiplier(5, 10, 'normal') === 1);
+    check('越级 diff=-6 加成 1.1×', Math.abs(expSys.getExpLevelMultiplier(4, 10, 'normal') - 1.1) < 1e-9);
+    check('越级封顶 1.5×', expSys.getExpLevelMultiplier(1, 100, 'normal') === 1.5);
+    check('越级加成 rank 无差别', expSys.getExpLevelMultiplier(1, 100, 'boss') === 1.5);
+
+    // 经验明细 tag（飘字标注）
+    check('明细 tag：衰减', expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, 60, 'zombieBeginner').tag === 'decay');
+    check('明细 tag：越级', expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, 1, 'swamp').tag === 'underdog');
+    check('明细 tag：同级无标记', expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, 3, 'zombieBeginner').tag === null);
+
+    // 锚定等级：单调递增 + 种间偏移保留
+    const lv = (t, lvCfg) => getMonsterEffectiveLevel({ level: lvCfg }, t);
+    check('锚定等级单调：F<E<D<C', lv('zombieBeginner', 3) < lv('zombieMid', 3) && lv('zombieMid', 3) < lv('zombie', 3) && lv('zombie', 3) < lv('swamp', 3));
+    check('种间偏移保留：同级地牢僵尸狗比僵尸低 1 级', lv('zombie', 3) - lv('zombie', 2) === 1);
+    check('F 档锚=3（僵尸配置3级→有效3级）', lv('zombieBeginner', 3) === 3);
+
+    // 单怪经验：F 档普通怪 = base × 1（同级无衰减）；高压级衰减到下限
+    const e1 = getMonsterExp({ rank: 'normal', level: 3 }, 3, 'zombieBeginner');
+    check('F 档普通怪同级经验 = floor(base)', e1 === Math.floor(getDungeonExpBase('zombieBeginner')));
+    const e2 = getMonsterExp({ rank: 'normal', level: 3 }, 60, 'zombieBeginner');
+    check('60 级刷 F 档普通怪 = 1% 下限', e2 === Math.max(1, Math.floor(getDungeonExpBase('zombieBeginner') * 0.01)));
+    const e3 = getMonsterExp({ rank: 'elite', level: 6 }, 31, 'zombie'); // D档锚28+(6-3)=31，同级无倍率
+    check('精英怪经验 = base × 2', e3 === Math.floor(getDungeonExpBase('zombie') * 2));
+
+    // 主神空间（无地牢）：回退 F 档
+    check('无地牢回退 F 档', getDungeonExpBase(null) === getDungeonExpBase('zombieBeginner'));
+}
+
+// ========== 8. 属性成长与祭品加持 ==========
+console.log('\n[8] 属性成长与祭品加持');
+{
+    const { DungeonEmpower } = await import(pathToFileURL(path.join(ROOT, 'src/config/dungeon-empower.js')));
+    const expSys = await import(pathToFileURL(path.join(ROOT, 'src/config/exp-system.js')));
+    const cf2 = readJson('data/combat-formulas.json');
+    const growth = cf2.enemy.monsterGrowth;
+    const emp = cf2.enemy.empower;
+
+    // 配置完整性
+    check('monsterGrowth 配置完整', growth && growth.hpPerLevel > 0 && growth.hpPerLevelBoss > 0 && growth.atkPerLevel > 0 && growth.defPerLevel > 0);
+    check('empower 配置完整', emp && emp.slots === 3 && emp.capStrength === 12 && emp.levelPerStrength > 0);
+    check('首领 hp 系数低于普通（防马拉松）', growth.hpPerLevelBoss < growth.hpPerLevel);
+
+    // 强度计算
+    check('稀有度点数 legendary=6', DungeonEmpower.rarityPoints('legendary') === 6);
+    check('稀有度点数 common=1', DungeonEmpower.rarityPoints('common') === 1);
+    check('堆叠按数量计（rare×2 + common×1 = 7）', DungeonEmpower.strengthFromItems([{ rarity: 'rare', count: 2 }, { rarity: 'common', count: 1 }]) === 7);
+
+    // 强度上限与倍率
+    DungeonEmpower.setStrength(20);
+    check('强度上限 12', DungeonEmpower.strength === 12);
+    check('等级加成 +48', DungeonEmpower.levelBonus() === 48);
+    check('经验倍率 ≈1.96', Math.abs(DungeonEmpower.expMul() - 1.96) < 1e-9);
+    check('金币倍率 ≈2.8', Math.abs(DungeonEmpower.goldMul() - 2.8) < 1e-9);
+    check('掉率 +18pp', DungeonEmpower.dropChanceBonusPp() === 18);
+    check('S≥6 稀有度封顶+1', DungeonEmpower.rarityCapBoost() === 1);
+    DungeonEmpower.reset();
+    check('reset 清零', DungeonEmpower.strength === 0 && DungeonEmpower.levelBonus() === 0);
+
+    // 有效等级含加持加成
+    const effBefore = expSys.getMonsterEffectiveLevel({ level: 3 }, 'zombieBeginner');
+    DungeonEmpower.setStrength(5);
+    const effAfter = expSys.getMonsterEffectiveLevel({ level: 3 }, 'zombieBeginner');
+    check('S=5 → 有效等级 +20', effAfter - effBefore === 20, `${effBefore}→${effAfter}`);
+
+    // 经验明细含加持倍率（同级玩家，仅 expMul 差异）
+    const lv = effAfter; // 玩家等级=强化后有效等级，mult=1
+    const d5 = expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, lv, 'zombieBeginner');
+    DungeonEmpower.reset();
+    const d0 = expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, effBefore, 'zombieBeginner');
+    const ratio = d5.exp / d0.exp;
+    check('S=5 经验 ≈1.4×（±5%）', Math.abs(ratio - 1.4) / 1.4 <= 0.05, `实际=${ratio.toFixed(3)}`);
+    check('reset 后经验倍率归 1', DungeonEmpower.expMul() === 1);
+}
+
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

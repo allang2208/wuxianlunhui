@@ -5,6 +5,7 @@ import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
@@ -197,6 +198,24 @@ export class FireballSystem {
         fb.flyX = resolved.x;
         fb.flyY = resolved.y;
 
+        // 飞行尾迹：每 50ms 在尾端爆一粒小火星（共享件 burstParticles，ADD 发光）
+        fb._trailTimer = (fb._trailTimer || 0) + dt;
+        if (fb._trailTimer >= 50) {
+            fb._trailTimer = 0;
+            burstParticles({
+                texture: 'impact_dot', x: fb.flyX - cos * 14, y: fb.flyY - sin * 14, count: 1,
+                config: {
+                    speed: { min: 0, max: 40 },
+                    scale: { start: 1.2, end: 0.1 },
+                    alpha: { start: 0.7, end: 0 },
+                    lifespan: 350,
+                    tint: [0xffd27a, 0xff8830, 0xff5510],
+                    blendMode: 'ADD',
+                },
+                destroyAfterMs: 500, depth: fb.flyY + 14,
+            });
+        }
+
         // 目标碰撞检测（命中第一个目标就爆炸）
         let hitEntity = null;
         // entities 可能是 Map，需要转换为数组
@@ -246,18 +265,36 @@ export class FireballSystem {
     }
 
     _spawnExplosionEffect(x, y, radius) {
-        // 爆炸中心特效
-        EffectManager.add(new FloatingTextEffect(x, y - 10, '💥', '#ff6b35'));
-        // 火焰粒子效果
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.5;
-            const _speed = 100 + Math.random() * 200;
-            const px = x + Math.cos(angle) * (radius * 0.3);
-            const py = y + Math.sin(angle) * (radius * 0.3);
-            EffectManager.add(new FloatingTextEffect(px, py, '🔥', '#ff8844'));
-        }
-        // 冲击波文字
-        EffectManager.add(new FloatingTextEffect(x, y - 20, 'BOOM!', '#ffaa44'));
+        // 爆炸三层（共享件 combat-fx，替代原 emoji 文字特效）：
+        // ① 冲击波扩散圈（橙红，随爆炸半径）② 火焰爆发（ADD 发光，白→黄→橙随机）③ 烟尘余韵
+        fireGroundShockwave({
+            x, y, maxRadius: radius,
+            strokeColor: 0xff7020, fillColor: 0xff9540,
+            lineWidth: 7, duration: 420, flicker: true,
+        });
+        burstParticles({
+            texture: 'impact_dot', x, y, count: 26, jitter: radius * 0.25,
+            config: {
+                speed: { min: 120, max: 420 },
+                scale: { start: 2.8, end: 0.2 },
+                alpha: { start: 0.9, end: 0 },
+                lifespan: { min: 350, max: 600 },
+                tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
+                blendMode: 'ADD',
+            },
+            destroyAfterMs: 800, depth: y + 60,
+        });
+        burstParticles({
+            texture: 'smoke_particle', x, y, count: 8, jitter: radius * 0.2,
+            config: {
+                speed: { min: 20, max: 70 },
+                scale: { start: 1.5, end: 3.5 },
+                alpha: { start: 0.35, end: 0 },
+                lifespan: { min: 700, max: 1100 },
+                tint: 0x555555,
+            },
+            destroyAfterMs: 1300, depth: y + 55,
+        });
     }
 
     _end(forced) {

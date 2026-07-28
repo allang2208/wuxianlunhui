@@ -134,11 +134,41 @@
       }
     },
     "expValue": {
-      "base": 10,
-      "levelMultiplier": 5,
-      "eliteMultiplier": 2,
-      "lordMultiplier": 4,
-      "bossMultiplier": 10
+      "comment": "经验系统（2026-07-28 重构：pacing 闭环，src/config/exp-system.js 唯一口径）。每场产出预算 = 段成本/pacingRuns，按地牢加权击杀分摊；探索系数内嵌（全清≈pacingRuns×exploreFactor 场，80%≈pacingRuns 场）。2026-07-28 二轮：经验效率减半（pacingRuns 2.5→5.0，同级地牢 4~6 场升一段）",
+      "pacingRuns": 5.0,
+      "exploreFactor": 0.8,
+      "bands": { "F": [1, 10], "E": [10, 25], "D": [25, 40], "C": [40, 55], "B": [55, 70], "A": [70, 85] },
+      "rankMul": { "normal": 1, "elite": 2, "lord": 4, "boss": 20 },
+      "comment_decay": "压级衰减：diff=玩家等级-怪物有效等级，>graceLevels 后每级 -slope，不低于 floor[rank]；越级加成：diff<-graceLevels 后每级 +underdog.slope，封顶 underdog.cap",
+      "decay": {
+        "graceLevels": 5,
+        "slope": 0.15,
+        "floor": { "normal": 0.01, "elite": 0.03, "lord": 0.05, "boss": 0.10 }
+      },
+      "underdog": { "graceLevels": 5, "slope": 0.10, "cap": 1.5 },
+      "comment_roomBonus": "清剿奖（方案A）：每场预算拆两池——(1-share) 按击杀分摊（零钱）+ share 按战斗节点清算（整钱，开门时一次性发），总量不变",
+      "roomBonus": { "share": 0.3 },
+      "comment_streak": "连战奖励：连续清空战斗节点计数，empty 空节点不计不断，随机事件节点（含宝箱/商店）清零；第 startAt 连战起 +startBonus，每多 1 场 +stepBonus，封顶 cap",
+      "combatStreak": { "startAt": 3, "startBonus": 0.15, "stepBonus": 0.05, "cap": 1.5 },
+      "comment_anchors": "怪物有效等级锚定：L_m = anchors[grade] + (配置等级 - 3)，保留种间相对差异；属性成长属二期，当前仅用于经验/衰减语义",
+      "anchors": { "F": 3, "E": 13, "D": 28, "C": 43, "B": 58, "A": 73 }
+    },
+    "comment_growth": "属性成长（二期，2026-07-28）：ΔL=有效等级(锚定+祭品加持)-配置等级，直改派生属性（hp/atk/matk/def/mdef），六维原值不动。首领 hp 独立降档防马拉松",
+    "monsterGrowth": {
+      "hpPerLevel": 0.10,
+      "hpPerLevelBoss": 0.05,
+      "atkPerLevel": 0.08,
+      "defPerLevel": 0.04
+    },
+    "comment_empower": "祭品加持：出征面板投入祭品换强度 S（稀有度点数 普通1/优质2/稀有3/史诗4/神话5/传说6，堆叠按数量计），depart 消耗。怪物有效等级 +levelPerStrength×S 并按成长公式继续缩放；经验/金币/掉率同步提升",
+    "empower": {
+      "slots": 3,
+      "capStrength": 12,
+      "levelPerStrength": 4,
+      "expPerStrength": 0.08,
+      "goldPerStrength": 0.15,
+      "dropChancePerStrength": 1.5,
+      "rarityCapStrength": 6
     }
   },
   "universalEventRewards": {

@@ -4,7 +4,8 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { inMeleeRange } from './_shared/enemy-utils.js';
+import { inMeleeRange, hostilesOf } from './_shared/enemy-utils.js';
+import { fireGroundShockwave, fireRadialLines } from '../../effects/combat-fx.js';
 
 /**
  * 手脑（领主 lord）
@@ -175,7 +176,7 @@ export class Shounao extends Enemy {
         this._fireSlamDust();
         this._fireSlamImpactLines();
         // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
@@ -199,46 +200,15 @@ export class Shounao extends Enemy {
         }
     }
 
-    /** 砸地冲击白线：落点向外放射的白色线条，快速扩散淡出 */
+    /** 砸地冲击白线：落点向外放射的白色线条，快速扩散淡出（共享件；长度延长 50% 已折算进 inner/outer） */
     _fireSlamImpactLines() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
-        const g = scene.add.graphics();
-        g.setDepth(this.y + 50);
-        this._slamGraphics.push(g);
-        const wave = { t: 0 };
-        const self = this;
-        const lineCount = 8;
-        scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration: 280,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const t = wave.t;
-                g.clear();
-                const alpha = (1 - t) * 0.9;
-                g.lineStyle(3, 0xffffff, alpha);
-                // 线条长度延长 50%
-                const inner = (20 + t * 50) * 1.5;
-                const outer = (50 + t * 90) * 1.5;
-                const a = self._slamFxAnchor();
-                for (let i = 0; i < lineCount; i++) {
-                    const angle = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
-                    // 平面透视：y 分量按 PERSPECTIVE_SCALE_Y 压缩
-                    const cos = Math.cos(angle), sin = Math.sin(angle) * PERSPECTIVE_SCALE_Y;
-                    g.beginPath();
-                    g.moveTo(a.x + cos * inner, a.y + sin * inner);
-                    g.lineTo(a.x + cos * outer, a.y + sin * outer);
-                    g.strokePath();
-                }
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-                const idx = self._slamGraphics.indexOf(g);
-                if (idx >= 0) self._slamGraphics.splice(idx, 1);
-            }
+        const a = this._slamFxAnchor();
+        // 原公式 inner=(20+t*50)*1.5 / outer=(50+t*90)*1.5，折算为起止值
+        const g = fireRadialLines({
+            x: a.x, y: a.y, count: 8,
+            innerFrom: 30, innerTo: 105, outerFrom: 75, outerTo: 210,
         });
+        if (g) this._slamGraphics.push(g);
     }
 
     _endSlam() {
@@ -266,41 +236,16 @@ export class Shounao extends Enemy {
 
     /**
      * 嚎叫冲击波：释放时从手脑中心释放一个紫色椭圆圈，
-     * 由中心扩散到嚎叫影响范围并淡出（复刻集合体 _fireSlamShockwave 模式，平面透视 2:1）。
+     * 由中心扩散到嚎叫影响范围并淡出（共享件：600ms 闪烁扩散，depth y+50，平面透视 2:1）。
      */
     _fireHowlShockwave() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
         const cfg = this._getSkillConfigs().howl;
-        const maxRadius = cfg.range ?? 600;
-        const g = scene.add.graphics();
-        g.setDepth(this.y + 50);
-        this._howlGraphics.push(g);
-        const wave = { t: 0 };
-        const self = this;
-        scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration: 600,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const t = wave.t;
-                const r = Math.max(1, maxRadius * t);
-                g.clear();
-                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
-                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
-                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
-                g.lineStyle(8, 0xa060ff, (1 - t) * 0.9 * flicker);
-                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-                g.fillStyle(0xb080ff, (1 - t) * 0.12 * flicker);
-                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-                const idx = self._howlGraphics.indexOf(g);
-                if (idx >= 0) self._howlGraphics.splice(idx, 1);
-            }
+        const g = fireGroundShockwave({
+            x: this.x, y: this.y,
+            maxRadius: cfg.range ?? 600,
+            strokeColor: 0xa060ff, fillColor: 0xb080ff,
         });
+        if (g) this._howlGraphics.push(g);
     }
 
     /** 统一特效清理（game.js removeEntity 约定入口） */
@@ -339,7 +284,7 @@ export class Shounao extends Enemy {
         this._fireHowlShockwave();
         // 椭圆判定（2:1 平面透视），与紫色扩散圈视觉一致
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);
             // 嚎叫恐惧：每次伤害对目标附加恐惧（层数叠加、孰长刷新由 applyFear 处理）
@@ -356,24 +301,6 @@ export class Shounao extends Enemy {
     }
 
     // ========== 工具 ==========
-
-    /** 范围内敌对可击单位（与集合体 _hostiles 同语义：非本阵营、active、hittable） */
-    _hostiles(entities) {
-        const list = Array.isArray(entities)
-            ? entities
-            : (entities ? Array.from(entities.values()) : []);
-        const src = list.length > 0
-            ? list
-            : (typeof window !== 'undefined' && window.Game && window.Game.entities
-                ? Array.from(window.Game.entities.values()) : []);
-        const out = [];
-        for (const e of src) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === this._faction) continue;
-            out.push(e);
-        }
-        return out;
-    }
 
     /** 判定目标是否在指定范围内（统一使用 Collider 地面 footprint 半径） */
     _isTargetInRange(target, range) {

@@ -10,6 +10,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { getMonsterExp, getMonsterExpDetail, getMonsterEffectiveLevel, getCurrentDungeonType } from '../config/exp-system.js';
 import { Easing } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
@@ -110,6 +111,24 @@ import { loadImage } from '../utils/image-loader.js';
                 // 显式战斗属性覆盖六维公式结果（如首领 matk:0、mdef 与巫师对齐）
                 for (const [k, v] of Object.entries(explicitStats)) {
                     this.data[k] = v;
+                }
+                // ===== 地牢锚定属性成长（2026-07-28 二期：成长直改派生属性，六维原值保留）=====
+                // ΔL = 有效等级（锚定+祭品加持）− 配置等级；系数读 combat-formulas monsterGrowth
+                const _growth = COMBAT_FORMULAS.enemy?.monsterGrowth || {};
+                const _deltaL = getMonsterEffectiveLevel(this, getCurrentDungeonType()) - (this.data.level ?? 3);
+                if (_deltaL > 0) {
+                    const _hpCoef = this.rank === 'boss' ? (_growth.hpPerLevelBoss ?? 0.05) : (_growth.hpPerLevel ?? 0.10);
+                    const _atkCoef = _growth.atkPerLevel ?? 0.08;
+                    const _defCoef = _growth.defPerLevel ?? 0.04;
+                    const _hpMul = 1 + _hpCoef * _deltaL;
+                    this.hp = Math.round(this.hp * _hpMul);
+                    this.maxHp = Math.round(this.maxHp * _hpMul);
+                    this.data.hp = this.hp;
+                    this.data.maxHp = this.maxHp;
+                    if (this.data.atk) this.data.atk = Math.round(this.data.atk * (1 + _atkCoef * _deltaL));
+                    if (this.data.matk) this.data.matk = Math.round(this.data.matk * (1 + _atkCoef * _deltaL));
+                    if (this.data.def) this.data.def = Math.round(this.data.def * (1 + _defCoef * _deltaL));
+                    if (this.data.mdef) this.data.mdef = Math.round(this.data.mdef * (1 + _defCoef * _deltaL));
                 }
                 this.weaponImage = loadImage('assets/weapons/1-rusty_sword_euip.png');
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
@@ -799,15 +818,13 @@ import { loadImage } from '../utils/image-loader.js';
             }
             // 新增：获取等级
             getLevel() { return this.data ? this.data.level : 1; }
-            // 新增：获取经验值（基于 rank 实时计算，不依赖构造函数时序）
-            getExpValue() {
-                const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
-                let value = formula.base + (this.level || 1) * formula.levelMultiplier;
-                // rank 倍率由配置驱动（eliteMultiplier/lordMultiplier/bossMultiplier）
-                if (this.rank === 'elite') value *= (formula.eliteMultiplier ?? 2);
-                else if (this.rank === 'lord') value *= (formula.lordMultiplier ?? 4);
-                else if (this.rank === 'boss') value *= (formula.bossMultiplier ?? 10);
-                return Math.floor(value);
+            // 新增：获取经验值（委托 exp-system 唯一口径：地牢 base × rankMul × 等级差倍率）
+            getExpValue(playerLevel) {
+                return getMonsterExp(this, playerLevel ?? 1, getCurrentDungeonType());
+            }
+            // 经验明细（含倍率与衰减/越级标记，供飘字标注与单局统计）
+            getExpDetail(playerLevel) {
+                return getMonsterExpDetail(this, playerLevel ?? 1, getCurrentDungeonType());
             }
             // 获取当前武器/普攻攻击力：
             // - 普通怪物（近战/远程物理）= 面板物理攻击 data.atk

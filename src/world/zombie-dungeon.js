@@ -808,7 +808,11 @@ export class ZombieDungeonCombat {
 
         const { monsterPool } = this.config;
         const monstersPerWave = this._encounter.monstersPerWave;
-        const composition = this._encounter.monsterComposition;
+        // waveComposition：逐波固定配比（2026-07-28 波次重构：普通战尾波定刷精英、精英战尾波定刷领主），
+        // 缺省回退全波共用 monsterComposition
+        const waveComp = Array.isArray(this._encounter.waveComposition)
+            ? this._encounter.waveComposition[this._currentWave - 1] : null;
+        const composition = waveComp || this._encounter.monsterComposition;
         const classes = [];
 
         // 怪物池 family 限定（配置 encounter.poolFamily，如中级 Boss 只刷僵尸类领主）；

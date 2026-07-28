@@ -3,8 +3,7 @@ import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { RuneSwordExplodeEffect } from '../../effects/particle-effects.js';
-import { EffectManager } from '../../effects/effect-manager.js';
+import { fireRadialBurst, burstParticles } from '../../effects/combat-fx.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
@@ -137,7 +136,7 @@ export class RuneSwordSystem {
             const ce = currentItem && currentItem._craftEffects || {};
             const maxFlyDistance = 1000 + (ce.specialRangeDelta || 0);
             if (sword.flyDistance >= maxFlyDistance) {
-                EffectManager.add(new RuneSwordExplodeEffect(sword.flyX, sword.flyY));
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
                 sword.flyActive = false;
                 sword.active = false;
                 return;
@@ -146,13 +145,30 @@ export class RuneSwordSystem {
             const resolved = WallSystem.resolve(sword.flyX, sword.flyY, nextX, nextY, 8);
             const hitWall = Math.abs(resolved.x - nextX) > 1 || Math.abs(resolved.y - nextY) > 1;
             if (hitWall) {
-                EffectManager.add(new RuneSwordExplodeEffect(sword.flyX, sword.flyY));
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
                 sword.flyActive = false;
                 sword.active = false;
                 return;
             }
             sword.flyX = resolved.x;
             sword.flyY = resolved.y;
+            // 飞剑蓝色能量尾迹：每 60ms 一粒（共享件 burstParticles，ADD 发光）
+            sword._trailTimer = (sword._trailTimer || 0) + dt;
+            if (sword._trailTimer >= 60) {
+                sword._trailTimer = 0;
+                burstParticles({
+                    texture: 'impact_dot', x: sword.flyX - cos * 12, y: sword.flyY - sin * 12, count: 1,
+                    config: {
+                        speed: { min: 0, max: 30 },
+                        scale: { start: 1.0, end: 0.1 },
+                        alpha: { start: 0.65, end: 0 },
+                        lifespan: 320,
+                        tint: [0xffffff, 0x7ab0ff, 0x3282ff],
+                        blendMode: 'ADD',
+                    },
+                    destroyAfterMs: 480, depth: sword.flyY + 14,
+                });
+            }
             // 目标碰撞检测
             const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15);
             entities.forEach(entity => {
@@ -173,7 +189,7 @@ export class RuneSwordSystem {
                     const stacks = ce.magicVulnerabilityStacks || 2;
                     entity.applyMagicVulnerability(stacks);
                 }
-                EffectManager.add(new RuneSwordExplodeEffect(sword.flyX, sword.flyY));
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
                 sword.flyActive = false;
                 sword.active = false;
             });

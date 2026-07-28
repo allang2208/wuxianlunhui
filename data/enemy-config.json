@@ -615,8 +615,14 @@
         "hitFrame": 10,
         "stunMs": 2000,
         "zones": [
-          { "radius": 200, "damageMul": 2 },
-          { "radius": 350, "damageMul": 1 }
+          {
+            "radius": 200,
+            "damageMul": 2
+          },
+          {
+            "radius": 350,
+            "damageMul": 1
+          }
         ],
         "cooldown": 8000
       }
@@ -1211,8 +1217,8 @@
     "str": 10,
     "dex": 20,
     "con": 30,
-    "int": 35,
-    "wis": 40,
+    "int": 26,
+    "wis": 28,
     "luck": 8,
     "attackRange": 1500,
     "aiInterval": 2000,
@@ -2221,7 +2227,7 @@
     "size": 60,
     "collisionRadius": 100.5,
     "height": 120,
-    "hp": 800,
+    "hp": 680,
     "maxHp": 800,
     "speed": 120,
     "level": 4,
@@ -2229,8 +2235,8 @@
     "str": 7,
     "dex": 13,
     "con": 22,
-    "int": 40,
-    "wis": 40,
+    "int": 24,
+    "wis": 24,
     "luck": 13,
     "attackRange": 600,
     "aiInterval": 8000,

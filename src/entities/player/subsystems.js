@@ -38,15 +38,17 @@ import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { getTributeReviveRatio, getTributeExpMultiplier, syncTributeBuffs, getTributeMonsterAtkDownMul, getSurviveCapRatio } from '../../config/tribute-effects.js';
 
 const subsystemsMixin = {
-gainExp(amount) {
+gainExp(amount, expTag = null) {
                 if (amount <= 0) return;
                 // 天山雪莲特效：本次地牢经验获取加成
                 amount = Math.floor(amount * getTributeExpMultiplier());
                 if (amount <= 0) return;
                 const d = this.data;
                 d.exp += amount;
-                // 显示获得经验浮动文字
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, `+${amount} EXP`, '#ffd700'));
+                // 显示获得经验浮动文字（衰减灰/越级绿/连战紫标注，机制可见化）
+                const expColor = expTag === 'decay' ? '#b0a080' : (expTag === 'underdog' ? '#7ee787' : (expTag === 'streak' ? '#c9a0ff' : '#ffd700'));
+                const expSuffix = expTag === 'decay' ? '（衰减）' : (expTag === 'underdog' ? '（越级）' : (expTag === 'streak' ? '（连战）' : ''));
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, `+${amount} EXP${expSuffix}`, expColor));
                 // 检查升级（支持溢出连续升级）
                 while (d.exp >= d.maxExp) {
                     d.exp -= d.maxExp;

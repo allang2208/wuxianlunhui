@@ -41,6 +41,9 @@ import { BossRewardSystem } from './boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { setCurrentDungeonType, getRoomClearBonus, getStreakMultiplier, getRoomExpEstimate, getDungeonExpBase } from '../config/exp-system.js';
+import { DungeonEmpower } from '../config/dungeon-empower.js';
+import { DungeonRunStats } from './dungeon-run-stats.js';
 
 import { GoldManager } from '../systems/gold-manager.js';
 
@@ -154,6 +157,8 @@ export const DungeonMapSystem = {
         this.sceneId = sceneId;
         this.player = player;
         this.dungeonType = dungeonType;
+        // 经验系统：注入当前地牢类型（exp-system 计算怪物经验/压级衰减的上下文）
+        setCurrentDungeonType(dungeonType);
         const dungeonList = DungeonConfig.getDungeonList();
         this.dungeonName = (dungeonList[dungeonType] && dungeonList[dungeonType].name) || ZOMBIE_DUNGEON_CONFIG.name;
         this.currentNodeId = null;
@@ -178,6 +183,8 @@ export const DungeonMapSystem = {
         this.fogOfWar = new DungeonFogOfWar();
         // 时空特工追击机制（D 级及以上地牢；内部按难度判定是否启用）
         AgentInvasionSystem.init(this);
+        // 单局统计（通关结算面板数据源）：击杀/经验/节点清理
+        DungeonRunStats.reset();
         // 地板贴图组（按地牢类型配置：随机选图+镜像+发光层开关；离开时恢复默认）
         setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
         // 墙样式（按地牢类型：僵尸砖墙 / 沼泽柴墙+藤门；离开时恢复默认）
@@ -219,12 +226,20 @@ export const DungeonMapSystem = {
         }
         this.active = false;
         this.state = "idle";
+        // 经验系统：离开地牢，回退主神空间口径（F 档）
+        setCurrentDungeonType(null);
+        // 祭品加持：本次出征强度清零
+        DungeonEmpower.reset();
         this.nodes = [];
         this.edges = [];
         this._cleanupEventUI();
         this._removeMouseShopButton();
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
+        this._removeNodeTooltip();
+        // 通关结算面板兜底移除（异常退出路径）
+        const victoryOverlay = getElement('dungeonVictoryOverlay');
+        if (victoryOverlay) victoryOverlay.remove();
         this._unbindEvents();
         // 时空特工追击机制复位（含几率显示）
         AgentInvasionSystem.reset();
@@ -626,6 +641,8 @@ export const DungeonMapSystem = {
             if (!this._exitPortalSpawned) {
                 this._exitPortalSpawned = true;
                 CombatRoomSystem.openGate();
+                // 清剿奖 + 连战奖励结算（开门时一次性发放；连战计数随之推进）
+                this._settleCombatRoom();
 
                 // 精英节点：通知宝箱房（限时内完成 → 打开宝箱房门墙）
                 if (isEliteNode && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
@@ -656,6 +673,28 @@ export const DungeonMapSystem = {
         }
         // 离场确认后的防连发冷却
         if (this._chestLeaveCd > 0) this._chestLeaveCd -= dt / 1000;
+    },
+
+    /** 战斗房清剿结算（方案A 清剿奖 + 连战奖励）：
+     *  连战计数 +1（连续清空战斗节点；事件节点清零、empty 不计不断）；
+     *  清剿奖（段预算 share 池按节点清算）与房内击杀经验同乘连战倍率，一次性发放 */
+    _settleCombatRoom() {
+        const player = this.player || Game.player;
+        if (!player) return;
+        DungeonRunStats.combatStreak++;
+        const streak = DungeonRunStats.combatStreak;
+        const mul = getStreakMultiplier(streak);
+        const clearBonus = Math.round(getRoomClearBonus(this.dungeonType) * mul);
+        const roomKillExp = DungeonRunStats.settleRoomExp();
+        const streakBonus = Math.round(roomKillExp * (mul - 1));
+        const total = clearBonus + streakBonus;
+        if (total > 0) {
+            DungeonRunStats.recordBonusExp(total);
+            player.gainExp(total, mul > 1 ? 'streak' : null);
+            if (SceneManager && SceneManager.showTopNotification && streak >= 3) {
+                SceneManager.showTopNotification(`⚔ ${streak} 连战！经验 ×${mul.toFixed(2)}`);
+            }
+        }
     },
 
     /** 未开宝箱离场确认框：是=直接离开并正常清场进路线图；否=关闭并退回场内 */
@@ -711,6 +750,56 @@ export const DungeonMapSystem = {
             }
         }
         document.body.style.cursor = this.hoveredNodeId ? "pointer" : "default";
+        // 节点经验/奖励预览（方案D：悬停即见收益，绕开战斗=明确损失）
+        this._updateNodeTooltip(mx, my);
+    },
+
+    /** 悬停节点预览：战斗/Boss 显示预估经验，事件显示类型（连战进度附带显示） */
+    _updateNodeTooltip(mx, my) {
+        let el = getElement('dungeonNodeTooltip');
+        const node = this.hoveredNodeId ? this.nodes.find(n => n.id === this.hoveredNodeId) : null;
+        if (!node || node.type === 'empty' || node.type === 'start') {
+            if (el) el.style.display = 'none';
+            return;
+        }
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'dungeonNodeTooltip';
+            el.style.cssText = `position:fixed;z-index:9005;pointer-events:none;user-select:none;
+                background:rgba(35,30,25,0.95);border:1px solid #a08a5a;border-radius:6px;
+                padding:6px 12px;font-family:SimHei,"Microsoft YaHei",sans-serif;font-size:15px;
+                color:#d4c5a9;white-space:nowrap;`;
+            document.body.appendChild(el);
+        }
+        const streak = DungeonRunStats.combatStreak;
+        const mul = getStreakMultiplier(streak + 1); // 下一战的倍率预览
+        let text = '';
+        if (node.type === 'combat') {
+            const est = Math.round(getRoomExpEstimate(this.dungeonType, !!node.isElite) * mul);
+            text = `${node.isElite ? '★ 精英战斗' : '⚔ 战斗'} ≈ +${est} EXP`;
+            if (streak >= 2) text += `（连战 x${streak + 1} ×${mul.toFixed(2)}）`;
+        } else if (node.type === 'boss') {
+            const bossEst = Math.round((getDungeonExpBase(this.dungeonType) * 10 + getRoomClearBonus(this.dungeonType)) * mul);
+            text = `☠ Boss ≈ +${bossEst} EXP`;
+            if (streak >= 2) text += `（连战 x${streak + 1} ×${mul.toFixed(2)}）`;
+        } else if (node.type === 'event') {
+            text = node.eventType === 'treasureChest' ? '◆ 宝箱：金币/材料' : '? 随机事件';
+            if (streak >= 3) text += '（选择将中断连战）';
+        } else if (node.type === 'reward') {
+            text = '✦ 奖励节点';
+        }
+        if (!text) { el.style.display = 'none'; return; }
+        el.textContent = text;
+        el.style.display = 'block';
+        // 跟随鼠标（右上方偏移，防出屏）
+        const w = el.offsetWidth || 200;
+        el.style.left = `${Math.min(mx + 18, (typeof window !== 'undefined' ? window.innerWidth : 1920) - w - 12)}px`;
+        el.style.top = `${Math.max(my - 36, 8)}px`;
+    },
+
+    _removeNodeTooltip() {
+        const el = getElement('dungeonNodeTooltip');
+        if (el) el.remove();
     },
 
     _handleClick() {
@@ -733,6 +822,7 @@ export const DungeonMapSystem = {
         // 进入节点前隐藏地图按钮
         this._removeMouseShopButton();
         this._removeAbandonButton();
+        this._removeNodeTooltip();
 
         // empty 节点仅用于通行；需要把当前位置移到该节点，否则无法继续向后续节点前进
         if (node.type === 'empty') {
@@ -870,6 +960,9 @@ export const DungeonMapSystem = {
     _leaveBossViaPortal() {
         const player = this.player || Game.player;
         if (!player) return;
+
+        // Boss 房清剿结算（集合体 Boss 也计入连战）
+        this._settleCombatRoom();
 
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(player);
@@ -1252,6 +1345,8 @@ export const DungeonMapSystem = {
 
     _enterEvent(node) {
         this.state = "event";
+        // 连战中断：选择随机事件节点（含宝箱/商店）连战计数清零（empty 空节点不计不断）
+        DungeonRunStats.combatStreak = 0;
         // 使用 DungeonEventSystem 提供完整的随机事件
         import('./dungeon-event-system.js').then(mod => {
             // node.eventType 已记录时沿用（如陷阱解除失败保留节点后重进，仍为陷阱事件，不再重新随机）
@@ -1680,6 +1775,24 @@ export const DungeonMapSystem = {
     },
 
     _showVictory() {
+        const player = Game.player || this.player;
+
+        // ===== 通关结算数据（单局统计 + 探索完成度 + 全清奖励） =====
+        const stats = DungeonRunStats;
+        const totalNodes = this.nodes.filter(n => n.type !== 'start').length;
+        const clearedNodes = this.nodes.filter(n => n.type !== 'start' && n.completed).length;
+        const clearPct = totalNodes > 0 ? Math.round(clearedNodes / totalNodes * 100) : 0;
+        // 全清奖励：完成度 100% 额外 +10% 本局经验（只发一次，在此结算）
+        let clearBonus = 0;
+        if (player && totalNodes > 0 && clearedNodes >= totalNodes && stats.exp > 0) {
+            clearBonus = Math.floor(stats.exp * 0.10);
+            player.gainExp(clearBonus);
+        }
+        const d = player && player.data;
+        const expRemain = d ? Math.max(0, Math.round(d.maxExp - d.exp)) : 0;
+        const k = stats.kills;
+        const killLine = `普通 ${k.normal} · 精英 ${k.elite} · 领主 ${k.lord} · 首领 ${k.boss}（共 ${stats.totalKills()}）`;
+
         const overlay = document.createElement("div");
         overlay.id = "dungeonVictoryOverlay";
         overlay.style.cssText = `
@@ -1690,7 +1803,15 @@ export const DungeonMapSystem = {
         `;
         overlay.innerHTML = `
             <h1 style="color: #e8c878; font-size: 52px; margin-bottom: 16px; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">地牢通关！</h1>
-            <p style="color: #d4c5a9; font-size: 20px; margin-bottom: 40px;">你击败了地牢深处的所有敌人，荣耀归于勇者。</p>
+            <div style="background: rgba(45,40,35,0.95); border: 2px solid #a08a5a; border-radius: 12px; padding: 24px 44px; margin-bottom: 32px; min-width: 480px;">
+                <div style="color:#e8d5a8; font-size: 19px; font-weight: 700; margin-bottom: 14px; text-align: center;">— 通关结算 —</div>
+                <div style="color:#d4c5a9; font-size: 16px; line-height: 1.9;">
+                    <div>击杀统计：${killLine}</div>
+                    <div>经验合计：<b style="color:#ffd700">${stats.exp} EXP</b>${clearBonus > 0 ? ` <span style="color:#7ee787">＋全清奖励 ${clearBonus} EXP</span>` : ''}</div>
+                    <div>探索完成度：${clearPct}%（${clearedNodes}/${totalNodes} 节点）</div>
+                    ${d ? `<div>当前等级 Lv.${d.level} · 距下一级还需 <b style="color:#ffd700">${expRemain} EXP</b></div>` : ''}
+                </div>
+            </div>
             <button id="dungeonVictoryBtn" style="padding: 16px 48px; font-size: 18px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 8px; cursor: pointer; transition: background 0.15s;">返回主神空间</button>
         `;
         document.body.appendChild(overlay);

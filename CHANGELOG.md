@@ -324,6 +324,91 @@
 - **测试结果**：lint ✅（0 error）；vite build ✅；test-collider ✅。
 - **已知问题**：实机待验证——Super90 火光/子弹在枪管口；个别烘焙偏差走 muzzle.manual 覆盖。
 
+## 2026-07-28（波次构成重构 + Boss 战经验校准）
+
+### 对话：用户裁定经验不再做加法（评级/首杀不做）；重构普通/精英战斗波次构成；校准 Boss 战经验不低于精英战
+- **F 级无精英验证** ✅：`zombieDungeonBeginner.eliteCombatChance: 0`（主图）+ 岔路 `grade==='F' ? 0 : 0.5`（zombie-dungeon.js:596）——F 级无任何精英战斗事件（本就如此，未改）。
+- **波次重构**（`waveComposition` 逐波固定配比，`ZombieDungeonCombat.nextWaveMonsterClasses` 支持，缺省回退全波共用 comp）：
+  - D/C 级普通战斗：3 波（前两波普通池 ×5，**尾波定刷 1 精英**+4 普通）= 加权 16×base；
+  - D/C 级精英战斗：1 波 6 怪 → 3 波（前两波普通池，**尾波定刷 1 领主**+4 普通）= 加权 18×base；
+  - E 级保持精英战刷精英（7×base）不变；E Boss：单领主（4×base，全场最差）→ 3 波**尾波定刷领主**（18×base）；
+  - F Boss：1 波精英小队（7×base，比普通战还少）→ 3 波**尾波定刷精英**（16×base > 普通战 15）。
+- **Boss 经验校准（用户核心验收线）**：重构前 D 级 Boss（集合体 ×10）已被精英战（×18）反超——`rankMul.boss` 10→**20**（全局），校准后各档 Boss ≥ 精英战 ≥ 普通战：F 16/7/15、E 18/7/15、D 20/18/16、C 20/18/16（Boss/精英/普通）。
+- **exp-system 同步**：`_analyzeDungeon` 支持 waveComposition 逐波求和；新增 `getDungeonFightWeights`；岔路精英率按 grade（F=0）计入 W；悬停预估改按构成加权；闭环两池在新 W 下重新闭合。
+- **验证**：lint 0 error；vite build ✅；npm test 111/111 ✅（Boss≥精英≥普通逐档断言/波次加权值断言/闭环两池）；dungeons-table 重生成。
+- **实机待验证**：D/C 普通战尾波精英/精英战尾波领主的刷出与强度、E/F Boss 变 3 波后的难度、悬停预估数字与实收一致。
+
+## 2026-07-28（清剿奖 + 连战奖励 + 节点经验预览）
+
+### 对话：方案A/D 经用户选定；连杀奖励用户改定为"连续战斗房间奖励"（3 连战起 +15%，每多 1 场 +5%，empty 不计不断，随机事件清零）
+- **方案A·清剿奖**（`roomBonus.share=0.3`）：每场预算拆两池——70% 按击杀分摊（零钱，base 相应 ×0.7）+ 30% 按战斗节点清算（整钱，开门时一次性发放）。闭环拆为两式（击杀池/奖励池各自闭合，test 断言）。实测：F 清剿奖 101/房、E 344、D 432、C 523。
+- **连战奖励**（`combatStreak {startAt:3, startBonus:0.15, stepBonus:0.05, cap:1.5}`）：连续清空战斗节点计数（含 Boss/岔路战斗/入侵战），第 3 连战起清剿奖+房内击杀经验同乘倍率（×1.15→×1.5 封顶）；**empty 空节点不计不断；随机事件节点（含宝箱/商店）进入即清零**。结算点 `_settleCombatRoom`（updateCombat 完成分支 + `_leaveBossViaPortal`）；3 连战起顶部提示"⚔ N 连战"；飘字新增紫色"（连战）"tag。
+- **方案D·节点经验预览**：地图悬停战斗节点显示"⚔ 战斗 ≈ +N EXP"（精英房★标注；含下一战连战倍率预览）、Boss 房预估、事件节点显示类型（宝箱/随机；连战中提示"选择将中断连战"）。DOM tooltip 跟随鼠标，进节点/shutdown 清理。
+- **排查发现（config 现状，非本次引入）**：精英战构成是 1 波 6 怪（1 精英+5 普通），击杀经验低于普通战（3 波 15 怪）——精英房的补偿是必掉祭品+宝箱房而非经验，悬停预览如实显示。
+- **验证**：lint 0 error；vite build ✅；npm test 101/101 ✅（两池闭环/连战边界/封顶/房间预估）。
+
+## 2026-07-28（经验效率减半：pacingRuns 2.5→5.0）
+
+### 对话：用户核算后认为升级过快，要求经验效率减半（4~6 场同级地牢升一段）；并咨询成长数值膨胀与房间数因子
+- **答疑**：①属性成长为**线性** `×(1+k×ΔL)`（算术级，A 档 ×9.5），非指数；保守化备选=降系数或 `√ΔL` 亚线性，实机后定。②房间数/战斗数增长**已计入经验因子**——加权击杀 W 由地牢配置机械解析（F≈121/E≈163/D≈260/C≈316），高级地牢杀得越多、单怪经验被摊薄（F→C 单怪 ×5.7，而非段预算的 ×14）。
+- **改动**：`combat-formulas.json enemy.expValue.pacingRuns` 2.5→5.0（闭环自动重算，单怪经验全场减半）。模拟验证：全清 4.0 场 / 80% 5.0 场 / 直奔 Boss 8.9 场，落入 4~6 场目标区间。实测新 base：F 25.3 / E 103.8 / D 120.5 / C 144.5。
+- **测试**：test-regressions 锚点同步（46/217/250/312 → 25/104/120/144），npm test 86/86 ✅；文档三处同步。
+
+## 2026-07-28（技能特效收敛：共享件 combat-fx.js + 全量迁移）
+
+### 对话：用户选定 ROADMAP 任务3（存量特效向共享件收敛）
+- **普查（先行）**：抛物线投射物 4 处逐字拷贝（集合体/矿石蜘蛛/提灯/突击闪光弹）、红椭圆警示三件套 5 处、冲击波扩散圈 3 处逐字拷贝（+矿石蜘蛛简化版×2）、放射冲击线 2 处、`_hostiles` 遗留 3 处（共享 hostilesOf 早已存在）。
+- **新建 `src/effects/combat-fx.js`（221 行）**：`launchArcProjectile`（scene 守卫内建+返回 cancel 句柄防尸体落地结算）、`createGroundWarning/keepWarningAlive/destroyWarning`（警示三件套口诀收口）、`fireGroundShockwave`（flicker/纯描边双版）、`fireRadialLines`、`burstParticles`（(0,0) 坐标陷阱收口）。预判 AimHelper.lead/枪口偏移按设计留在调用方。
+- **迁移 8 文件**：amalgam-zombie / ore-spider / lantern-miner-zombie / time-agent-assault / shounao / fly-hand / fat-zombie + `_hostiles`→hostilesOf（3 处）。逐参数核对（arcH/旋转角速度折算/颜色/depth/帧时机）行为 1:1 等价；各文件清理数组注册与 _destroyCustomEffects 路径不变。**净删 306 行**（+161/−467）。
+- **不做**：fireball/ice-spike 两系统合并（~90% 雷同，更大议题暂缓）、鞭子弧线/盾击贝塞尔（单点定制）、阶梯伤害合并（仅 2 处带 stun 回调差异）、lantern `_burnZones` 抽基类（长期项，SKILL.md 已登记规格）。
+- **火球/冰锥粒子特效化（同日二轮）**：爆炸 emoji 文字特效（💥/🔥/BOOM!/❄）全部替换为共享件真粒子——火球爆炸三层（冲击波圈 0xff7020 + 26 粒 ADD 火焰爆发（白→黄→橙）+ 8 粒烟尘余韵）+ 飞行尾迹（50ms/粒火星）；冰锥碎裂两层（12 粒 ADD 冰屑带重力 + 小冰环）+ 飞行尾迹（60ms/粒冰晶）。`burstParticles` 补 impact_dot 懒生成兜底（`_ensureImpactDotTexture`，否则玩家首次施法静默无粒子）。
+- **验证**：lint 0 error；vite build ✅；npm test 四连全过（86/86）。
+- **实机待验证**：集合体投掷/晶石/提灯/闪光弹抛物线与落点警示、三怪冲击波（红/紫/红）、手脑嚎叫放射线、胖子僵尸尸体腐蚀圈。
+
+- **符文长剑特殊攻击迁入（同日三轮）**：命中爆裂 `RuneSwordExplodeEffect`（35 条随机蓝线生长-淡出，particle-effects.js 旧类）共享化为 combat-fx.js 第⑥件 `fireRadialBurst`（正圆/透视可选，逐参数 1:1：35 线/15-55px/生长 80-200ms/淡出 150-300ms/总时长 400ms/0x3282ff/depth y+50），rune-sword-system 三处调用点迁移，旧类从 particle-effects.js 删除；飞剑补蓝色能量尾迹（60ms/粒，白/浅蓝/符文蓝）。
+
+## 2026-07-28（怪物属性成长 + 祭品加持系统，第二版方案实施）
+
+### 对话：用户选定祭品加持+随地牢等级成长（第二版方案验收通过），并要求加持属性提升显示在出征左栏
+- **第一层·锚定属性成长**（`combat-formulas.json enemy.monsterGrowth`，enemy.js 构造链接入）：ΔL=有效等级(锚定+加持)−配置等级，**直改派生属性**（关键修正：六维 str 系数仅 0.05，按六维成长攻击不涨）——hp ×(1+0.10ΔL)（首领 0.05 降档防马拉松）、atk/matk ×(1+0.08ΔL)、def/mdef ×(1+0.04ΔL)。校准：D 档僵尸 420hp/36atk（过防≈20/hit，L28 玩家 5~6%）、C 档毒蛆 3400hp/202matk。
+- **第二层·祭品加持**（`enemy.empower` 配置 + `src/config/dungeon-empower.js` 状态模块）：出征面板 3 格加持槽（从背包拖入祭品，堆叠按数量计，depart 消耗/关闭退还），强度 S=稀有度点数和（普通1~传说6，上限 12）→ 怪物有效等级 +4S（成长公式继续缩放）；经验 ×(1+0.08S)、金币 ×(1+0.15S)、祭品掉率 +1.5pp×S、S≥6 掉落封顶+1。**衰减/越级按强化后有效等级计算**——60 级加持 F 本到 L≈60 即满血经验，高等级回刷低级本闭环成立。
+- **出征左栏加持显示**（用户指定）：规则栏新增只读区块——强度 S、怪物等级区间、属性提升（HP×N.N/攻击×N.N）、奖励提升（经验/金币/掉率/封顶）、当前经验效率%（绿=越级/红=衰减，按玩家等级实时算）；拖入/移除/换地牢即时刷新。
+- **接入点**：exp-system（有效等级+加持、经验×expMul）、enemy.js 构造链成长、damageable-entity 金币×goldMul、tribute-effects 掉率+pp/封顶+1、DungeonMapSystem.shutdown 清零、expedition-system 加持槽全套（拖入/点击移除/归还/消耗）。
+- **修正**：monsterGrowth/empower 配置初版误嵌 expValue 内（读取方在 enemy 层），移至 enemy 层。
+- **验证**：lint 0 error；vite build ✅；npm test 四连全过（86/86：强度计算/上限/倍率/有效等级加成/经验倍率/配置完整性）；各档×S 数值矩阵已打印核对。
+- **实机必校**：①D/C 档怪物威胁感（atkPerLevel）；②Boss 战时长（hpPerLevelBoss）；③加持后低级本刷取体验；④左栏显示与实际战斗数值一致性。
+
+## 2026-07-28（精英档离群值平衡 + 各档怪物差异排查）
+
+### 对话：用户要求排查各档次同类怪物差异/经验一致性，并做精英离群值平衡
+- **排查结论**：①经验同地牢同 rank 完全一致（base_g×rankMul 设计使然，种间仅有效等级 ±2 影响衰减触发线）；②属性同 rank 有差异——精英档毒蛆（hp800/matk80）、巫师（matk72）为离群值（物理精英 atk≈16，提灯 matk41、矿石蜘蛛 matk30）；③精英池按 family=僵尸过滤（铠甲骑士不入池），领主 Boss 池跨 family 按 rank 抽。
+- **平衡调整（data/enemy-config.json）**：毒蛆 hp 800→680、int/wis 40/40→24/24（matk 80→48，毒液喷射单发 26→16）；巫师 int/wis 35/40→26/28（matk 72→53）。调整后精英档输出带收敛至 matk 12~53（原 12~80），法师仍保上限手感。
+- **验证**：lint 0 error；vite build ✅；npm test 70/70 ✅。
+- **实机待验证**：毒蛆/巫师伤害体感（毒蛆 33% 中毒联动）、精英战难度变化。
+
+## 2026-07-28（经验机制优化：越级加成 + 通关结算面板 + 经验可视化）
+
+### 对话：用户选定优化项 ②③④（事件节点经验不做）
+- **②越级经验加成**（与压级衰减对称）：`underdog { graceLevels:5, slope:0.10, cap:1.5 }`——玩家等级低于怪物有效等级 5 级以上时每级 +10%、封顶 1.5×；`getExpDecayMultiplier` 升级为双向 `getExpLevelMultiplier`（旧名保留兼容）。
+- **③通关结算面板**（`_showVictory`）：击杀统计（普通/精英/领主/首领）、经验合计、探索完成度（清理节点/总节点）、当前等级与距下一级差额；**全清奖励**：完成度 100% 额外 +10% 本局经验（面板结算时实发一次）。数据源为新模块 `src/world/dungeon-run-stats.js`（纯状态无依赖，init 重置、击杀结算记录、victory 读取）；shutdown 兜底移除 overlay。
+- **④经验可视化**：经验飘字按 tag 变色标注——衰减灰"（衰减）"/越级绿"（越级）"（`gainExp(amount, tag)` 第二参）；出征规则栏按玩家等级对衰减档地牢标红"⚠经验衰减"（锚定等级+宽限期判定，防误刷低级本）。
+- **记录口径说明**：单局经验统计记录的是 tribute 倍率应用前的实收值（雪莲加成属额外收益）。
+- **验证**：lint 0 error；vite build ✅；npm test 四连全过（70/70：越级边界/封顶/rank 无差别/明细 tag 三态）。
+- **实机待验证**：通关面板数据与实际击杀一致性、全清奖励到账、越级刷怪绿字提示、出征栏衰减标红。
+
+## 2026-07-28（经验系统重构一期：pacing 闭环 + 压级衰减）
+
+### 对话：用户提出经验重构需求（1~10级F档/每15级一档/同级2~3场升一段/压级1~10%衰减/怪物属性耦合方案），方案经验收后实施一期
+- **核心机制（src/config/exp-system.js 新增，唯一口径）**：pacing 闭环——每场经验预算 = 升级曲线段成本 ÷ pacingRuns(2.5) ÷ 探索系数 0.8，按地牢加权击杀（W_g 由 dungeon-config 机械解析：普通×1/精英×2/领主×4/首领×10）分摊到每只怪。同级地牢 2~3 场升一段由构造保证：全清 2.0 场 / 80% 2.5 场 / 直奔 Boss 4.4 场。实测基础经验：F 50.6 / E 207.5 / D 241.0 / C 289.0。
+- **压级衰减兜底**：diff = 玩家等级 − 怪物有效等级；≤5 级不衰减，超出每级 −15%，rank 下限 普通1%/精英3%/领主5%/首领10%。
+- **怪物有效等级锚定**：L_m = anchors[grade] + (配置等级−3)（F3/E13/D28/C43/B58/A73），保留种间相对差异；仅用于经验/衰减语义，属性成长列二期（需实机校验）。
+- **接入**：enemy.getExpValue(playerLevel) 委托；damageable-entity 结算传玩家等级；DungeonMapSystem init/shutdown 经 setCurrentDungeonType 注入上下文；player/base.js getExpForLevel 与 computeMaxExp 同源（升级曲线唯一来源）；主神空间回退 F 档。
+- **配置**：combat-formulas.json enemy.expValue 重构（pacingRuns/exploreFactor/bands/rankMul/decay/anchors，旧 base/levelMultiplier 体系删除）；dungeonList 加 recLevel；出征规则栏显示推荐等级段。
+- **修正**：加权击杀解析先减岔路预算再算网格战斗节点（nodeCount 含岔路，直接乘会把岔路两边重复计入，W 偏高 30%+）。
+- **验证**：lint 0 error；vite build ✅；npm test 四连全过（test-regressions 扩容 38→63 断言：闭环不变量/衰减边界/锚定单调/F档锚点/主神空间回退）；三种打法毕业场数模拟达标。
+- **实机待验证**：F 级 2~3 场到 10 级手感、E 级首场经验速度、高压级回低级本衰减体感、E 级首场经验"暴涨"感是否突兀（F→E base 4.1× 跳变，段位结构使然）。
+- **二期登记**：怪物属性成长（HP×(1+0.08ΔL)、攻击六维×(1+0.05ΔL)、其余×(1+0.03ΔL)，系数入 combat-formulas），需实机逐档校验后实装。
+
 ## 2026-07-28（技术债务清理：tmp 文件/死代码/nodeCount 对齐）
 
 ### 对话：用户选择技术债务清理项

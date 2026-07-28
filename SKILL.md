@@ -2,6 +2,24 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-28：经验系统重构一期——pacing 闭环 + 压级衰减）
+
+### 本次完成（方案经用户验收；二轮：pacingRuns 2.5→5.0 经验效率减半）
+1. **pacing 闭环公式**（`src/config/exp-system.js` 唯一口径，配置 `combat-formulas.json enemy.expValue`）：每场产出预算 = 升级曲线段成本 ÷ pacingRuns(**5.0**，2026-07-28 二轮用户拍板减半，同级地牢 4~6 场升一段），按地牢加权击杀（普通×1/精英×2/领主×4/首领×10，由 dungeon-config 机械解析）分摊——**毕业场数是构造出来的**；全清≈4 场、80%≈5 场、直奔 Boss≈8.9 场，探索与升级速度自然挂钩。实测 base：F 25.3 / E 103.8 / D 120.5 / C 144.5。**注意：加权击杀 W 已把"高级地牢房间/战斗更多"摊薄进单价**（F 档 W≈121 / E≈163 / D≈260 / C≈316），单怪经验 F→C 仅 ×5.7，不会随段预算 ×14 膨胀。
+2. **压级衰减兜底**：`diff = 玩家等级 − 怪物有效等级`，≤5 级不衰减，超出每级 −15%，rank 下限 普通1%/精英3%/领主5%/首领10%——速刷低级本练级经济死亡，回刷材料不受阻。
+3. **怪物有效等级锚定**：`L_m = anchors[grade] + (配置等级 − 3)`（F3/E13/D28/C43/B58/A73），保留种间相对差异；当前仅用于经验/衰减语义。**属性成长（HP/六维按 ΔL 缩放）列入二期，必须实机逐档校验后实装。**
+3.5. **越级加成与可视化（2026-07-28 续）**：等级差倍率双向化 `getExpLevelMultiplier`——越级 5 级+每级 +10% 封顶 1.5×（`underdog` 配置块）；经验飘字按 tag 变色（衰减灰/越级绿，`gainExp(amount, tag)`）；出征规则栏衰减档标红；通关结算面板（`_showVictory`：击杀统计/经验合计/探索完成度/距下一级，全清 +10% 奖励，数据源 `src/world/dungeon-run-stats.js`）。
+3.6. **属性成长+祭品加持（2026-07-28 二期落地）**：`monsterGrowth`——ΔL=有效等级−配置等级，**直改派生属性**（六维 str 系数仅 0.05，按六维成长攻击不涨；hp 0.10/首领 0.05、atk/matk 0.08、def/mdef 0.04 每级）；`empower`+`src/config/dungeon-empower.js`——出征面板 3 格加持槽（祭品堆叠计强度，普通1~传说6 上限 12，depart 消耗/关闭退还），怪物有效等级 +4S、经验×(1+0.08S)、金币×(1+0.15S)、掉率+1.5pp×S、S≥6 封顶+1，衰减按强化后等级（高等级回刷低级本闭环）；出征左栏只读显示强度/等级区间/属性倍率/奖励倍率/经验效率。
+3.7. **清剿奖+连战+节点预览（2026-07-28 三轮）**：`roomBonus.share=0.3`——预算 70% 击杀分摊/30% 按战斗节点开门清算（两池闭环）；`combatStreak`——连战 3 场起 ×1.15 每场 +5% 封顶 ×1.5，empty 不计不断、事件节点清零（`_settleCombatRoom` 统一结算，顶部提示+紫色"（连战）"飘字）；地图悬停节点显示预估经验（`getRoomExpEstimate`，含下一战连战倍率预览与"将中断连战"提示）。**注意：精英战 1 波 6 怪击杀经验低于普通战 3 波 15 怪（补偿=必掉祭品+宝箱房），预览如实显示。**
+4. **接入点**：`enemy.getExpValue(playerLevel)` 委托 exp-system；`damageable-entity` 击杀结算传玩家等级；`DungeonMapSystem.init/shutdown` 注入/清空当前地牢类型（setCurrentDungeonType）；`player/base.js getExpForLevel` 与 exp-system `computeMaxExp` 同源；主神空间回退 F 档。
+5. **出征界面**：规则栏每档地牢显示推荐等级段（与 bands 配置同源），dungeonList 加 recLevel 元数据。
+6. **教训**：加权击杀解析时 nodeCount 必须先减岔路预算再算网格战斗节点（nodeCount 口径含岔路，直接乘战斗比例会把岔路节点两边重复计入，W 偏高 30%+ 稀释经验）。
+
+### 验证
+- `npm test` 四连全过：test-regressions 扩容至 63 断言（闭环不变量/衰减边界/锚定单调/主神空间回退），lint 0 error，vite build ✅。
+
+---
+
 ## 阶段性进度总结（2026-07-28：Boss 场地门闸化 + 防再犯单测 + 武器工作流定稿）
 
 ### 本次完成（自主任务三件，均不依赖素材）
@@ -776,7 +794,16 @@ _getPhaserOptions() {
 
 ---
 
-## 火焰/油脂区域特效工作流（2026-07-23 新增）
+## 火焰/油脂区域特效工作流（2026-07-23 新增；2026-07-28 共享件 combat-fx.js 落地）
+
+**共享件（2026-07-28，新特效优先调用，勿再逐字拷贝）**：`src/effects/combat-fx.js`——
+- `launchArcProjectile({textureKey,size,sx,sy,tx,ty,arcHeight,duration,spin,depth,onImpact})` 抛物线投射物（scene 守卫内建，返回 `{sprite,tween,cancel()}`，cancel 供 `_destroyCustomEffects` 防尸体落地结算）；预判/枪口偏移留在调用方。
+- `createGroundWarning(x,y,r)` / `keepWarningAlive(warn)` / `destroyWarning(warn)` 红椭圆警示三件套（创建/保活/显式销毁口诀收口）。
+- `fireGroundShockwave({x,y,maxRadius,strokeColor,fillColor,flicker,groundLayer,...})` 冲击波扩散圈（闪烁版/纯描边版）。
+- `fireRadialLines({x,y,count,innerFrom,innerTo,outerFrom,outerTo,...})` 放射冲击线。
+- `burstParticles({texture,x,y,count,config,destroyAfterMs,jitter,depth})` 一次性粒子爆发（(0,0) 陷阱收口；impact_dot 懒生成兜底内建）。
+- `fireRadialBurst({x,y,count,color,duration,perspective,...})` 随机放射爆裂线（符文剑命中爆裂共享化；perspective 控制正圆/透视椭圆）。
+已迁移：集合体/矿石蜘蛛/提灯/突击特工/手脑/蝇手/胖子僵尸（净删 306 行）。`_hostiles` 重复实现已全部换 `hostilesOf`（amalgam/shounao/fly-hand 遗留 3 处已迁）。火球/冰锥爆炸与飞行尾迹已粒子化（2026-07-28 二轮）：火球爆炸=冲击波圈+ADD 火焰爆发+烟尘余韵，冰锥碎裂=冰屑（重力）+小冰环。符文长剑右键特殊攻击已迁入（三轮）：命中爆裂 RuneSwordExplodeEffect → fireRadialBurst（旧类已删），飞剑补蓝色能量尾迹。
 
 **适用场景**：地面燃烧区、油池+火焰、毒雾、酸液等地表区域特效。**范例**：`lantern-miner-zombie.js` 的提灯攻击（矿灯抛物线 → 落地油脂扩散 → 火焰成簇喷发 → 周期性魔法伤害）。
 

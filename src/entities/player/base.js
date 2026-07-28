@@ -1,6 +1,7 @@
 import { computeWeaponAttack } from '../../config/attack-formula.js';
 import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../../config/combat-formulas.js';
+import { computeMaxExp } from '../../config/exp-system.js';
 import { CONFIG } from '../../config/config.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { DungeonBuffSystem } from '../../world/dungeon-event-system.js';
@@ -175,14 +176,8 @@ const baseMixin = {
     },
 
     getExpForLevel(level) {
-        const formula = COMBAT_FORMULAS.player?.expPerLevel
-            || { base: 20, levelMultiplier: 20, levelSquareMultiplier: 12, finalMultiplier: 2, globalMultiplier: 2 };
-        const base = formula.base ?? 20;
-        const levelMul = formula.levelMultiplier ?? 20;
-        const levelSquareMul = formula.levelSquareMultiplier ?? 12;
-        const finalMul = formula.finalMultiplier ?? 2;
-        const globalMul = formula.globalMultiplier ?? 1;
-        return (base + level * levelMul + level * levelSquareMul) * finalMul * globalMul;
+        // 委托 exp-system 唯一口径（升级曲线配置：combat-formulas player.expPerLevel）
+        return computeMaxExp(level);
     },
 
     updateMaxStats() {

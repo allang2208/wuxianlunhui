@@ -1,9 +1,8 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
-import { EffectManager } from '../../effects/effect-manager.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { playSoundFrom } from './_shared/enemy-utils.js';
+import { createGroundWarning, destroyWarning } from '../../effects/combat-fx.js';
 
 /**
  * 胖子僵尸（FatZombie）
@@ -184,10 +183,8 @@ export class FatZombie extends Enemy {
         const keepAlive = this.active || this._corpseTimer > 0;
 
         if (!showRange || !keepAlive) {
-            if (this._auraRangeEffect) {
-                this._auraRangeEffect.active = false;
-                this._auraRangeEffect = null;
-            }
+            // 共享件 destroyWarning：active=false + 显式销毁图形（防残留）
+            this._auraRangeEffect = destroyWarning(this._auraRangeEffect);
             return;
         }
 
@@ -197,12 +194,9 @@ export class FatZombie extends Enemy {
         if (!this._auraRangeEffect ||
             this._auraRangeEffect.range !== rx ||
             this._auraRangeEffect.width !== ry) {
-            if (this._auraRangeEffect) {
-                this._auraRangeEffect.active = false;
-            }
-            this._auraRangeEffect = new AttackRangeEffect(this.x, this.y + dims.offsetY, 0, rx, ry, 'ellipse', 100, 0.5, true);
-            this._auraRangeEffect.maxLife = 100;
-            EffectManager.add(this._auraRangeEffect);
+            // 尺寸变化重建（外壳保留；创建口诀换共享件，ry 比例独立需显式传入）
+            destroyWarning(this._auraRangeEffect);
+            this._auraRangeEffect = createGroundWarning(this.x, this.y + dims.offsetY, rx, ry);
         }
         this._auraRangeEffect.x = this.x;
         this._auraRangeEffect.y = this.y + dims.offsetY;

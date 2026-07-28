@@ -5,6 +5,7 @@ import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
@@ -201,6 +202,23 @@ export class IceSpikeSystem {
             }
             spike.flyX = resolved.x;
             spike.flyY = resolved.y;
+            // 飞行尾迹：每 60ms 一粒冰晶微粒（共享件 burstParticles，ADD 发光）
+            spike._trailTimer = (spike._trailTimer || 0) + dt;
+            if (spike._trailTimer >= 60) {
+                spike._trailTimer = 0;
+                burstParticles({
+                    texture: 'impact_dot', x: spike.flyX - cos * 10, y: spike.flyY - sin * 10, count: 1,
+                    config: {
+                        speed: { min: 0, max: 30 },
+                        scale: { start: 0.9, end: 0.1 },
+                        alpha: { start: 0.6, end: 0 },
+                        lifespan: 300,
+                        tint: [0xffffff, 0xaaddff, 0x66aaff],
+                        blendMode: 'ADD',
+                    },
+                    destroyAfterMs: 450, depth: spike.flyY + 14,
+                });
+            }
             // 目标碰撞检测
             let hitCount = 0;
             let killCount = 0;
@@ -227,12 +245,26 @@ export class IceSpikeSystem {
     }
 
     _spawnIceBreakEffect(x, y) {
-        // 简单白色冰屑特效
-        for (let i = 0; i < 5; i++) {
-            const _angle = Math.random() * Math.PI * 2;
-            const _speed = 50 + Math.random() * 100;
-            EffectManager.add(new FloatingTextEffect(x, y, '❄', '#aaddff'));
-        }
+        // 冰锥碎裂两层（共享件 combat-fx，替代原 ❄ 文字特效）：
+        // ① 冰屑爆发（ADD 发光，白/浅蓝/蓝，带重力下落）② 小冰环扩散
+        burstParticles({
+            texture: 'impact_dot', x, y, count: 12, jitter: 8,
+            config: {
+                speed: { min: 100, max: 320 },
+                scale: { start: 1.6, end: 0.15 },
+                alpha: { start: 0.9, end: 0 },
+                lifespan: { min: 300, max: 500 },
+                gravityY: 500, // 冰屑受重力下落
+                tint: [0xffffff, 0xaaddff, 0x66aaff],
+                blendMode: 'ADD',
+            },
+            destroyAfterMs: 700, depth: y + 60,
+        });
+        fireGroundShockwave({
+            x, y, maxRadius: 70,
+            strokeColor: 0x9fd8ff, fillColor: 0xd8f0ff,
+            lineWidth: 4, duration: 320, flicker: true,
+        });
     }
 
     _end(forced) {
