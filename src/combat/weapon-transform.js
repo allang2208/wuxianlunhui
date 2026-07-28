@@ -294,8 +294,8 @@ class WeaponTransform {
         };
     }
 
-    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null, overrides = {}) {
-        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+    static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null, overrides = {}, facingRightOverride = null) {
+        const facingRight = facingRightOverride !== null ? facingRightOverride : Math.abs(player.rotation) < Math.PI / 2;
         const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState, facingRight, overrides);
         const isMelee = weaponType === 'sword' || weaponType === 'bow';
         const useFixedRotation = isMelee;
@@ -317,21 +317,23 @@ class WeaponTransform {
      * @param {boolean} facingRight - 是否朝右
      * @returns {object|null} {x, y, rotation, scale}
      */
-    static getPerFrameWeaponPosition(player, weaponType, frameIndex, facingRight = true) {
-        return this.getInterpolatedPerFramePosition(player, weaponType, frameIndex / Math.max(1, (WeaponAnimConfig[weaponType]?.attack?.frames?.length || 1) - 1), facingRight);
+    static getPerFrameWeaponPosition(player, weaponType, frameIndex, facingRight = true, cfgKey = 'attack') {
+        return this.getInterpolatedPerFramePosition(player, weaponType, frameIndex / Math.max(1, (WeaponAnimConfig[weaponType]?.[cfgKey]?.frames?.length || 1) - 1), facingRight, cfgKey);
     }
 
     /**
-     * 逐帧模式：按进度平滑插值 8 帧武器状态（Catmull-Rom 曲线）
-     * @param {object} player - 玩家对象
+     * 逐帧模式：按进度平滑插值 N 帧武器状态
+     * @param {string} player - 玩家对象
      * @param {string} weaponType - 武器类型
      * @param {number} progress - 0~1
      * @param {boolean} facingRight - 是否朝右
+     * @param {string} cfgKey - 配置块（'attack' / 'attack2' 二段连段）
      * @returns {object|null} {x, y, rotation, scale}
      */
-    static getInterpolatedPerFramePosition(player, weaponType, progress, facingRight = true) {
+    static getInterpolatedPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack') {
         const cfg = WeaponAnimConfig[weaponType] || {};
-        const perFrame = cfg.attack && cfg.attack.type === 'perFrame' ? cfg.attack.frames : null;
+        const block = cfg[cfgKey] || cfg.attack;
+        const perFrame = block && block.type === 'perFrame' ? block.frames : null;
         if (!perFrame || perFrame.length === 0) return null;
 
         progress = Math.max(0, Math.min(1, progress));

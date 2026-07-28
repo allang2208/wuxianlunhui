@@ -89,7 +89,16 @@ export function getGunAmmoCapacity(weaponId) {
 // 新接口：从 item 读取 ammoConfig
 export const getAmmoConfig = (item) => {
     if (!item) return null;
-    return item.ammoConfig || getGunAmmoCapacity(item.weaponId) || null;
+    const fallback = getGunAmmoCapacity(item.weaponId);
+    if (item.ammoConfig) {
+        // 实例 ammoConfig 经 JSON 克隆后 Infinity 会变 null（如能量轻机枪 max: Infinity → null），
+        // max 缺失时回退 GUN_AMMO_CAP 默认值，其余字段保持实例优先
+        if (item.ammoConfig.max == null && fallback) {
+            return { ...fallback, ...item.ammoConfig, max: fallback.max };
+        }
+        return item.ammoConfig;
+    }
+    return fallback || null;
 };
 
 // 装备音效回退表（与 GUN_AMMO_CAP 同模式：实例缺 equipSound 时按 weaponId 回退）

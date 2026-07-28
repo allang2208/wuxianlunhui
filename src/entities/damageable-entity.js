@@ -7,6 +7,9 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
 import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { getCurrentDungeonType } from '../config/exp-system.js';
+import { DungeonRunStats } from '../world/dungeon-run-stats.js';
+import { DungeonEmpower } from '../config/dungeon-empower.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { Enemy } from './enemy.js';
@@ -228,6 +231,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
                     const rankGoldMul = (COMBAT_FORMULAS.enemy?.goldDrop?.rankMultipliers || {})[this.rank];
                     if (rankGoldMul) goldAmount *= rankGoldMul;
+                    // 祭品加持：金币 ×(1 + goldPerStrength × S)
+                    goldAmount = Math.floor(goldAmount * DungeonEmpower.goldMul());
 
                     // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
                     const marbleRatio = getTributeKillHpHealRatio();
@@ -261,12 +266,18 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                             source._ginsengHealEffectId = StatusBar.addEffect('ginsengHeal', 1000, { icon: '🌿', name: '人参回气', color: '#6a9a5a' });
                         }
                     }
-                    // 新增：掉落经验值
-                    if (source && source.gainExp) {
-                        source.gainExp(this.getExpValue ? this.getExpValue() : 2);
-                    } else if (source && source.source && source.source.gainExp) {
-                        // 如果是 Projectile，经验给 Projectile 的 owner
-                        source.source.gainExp(this.getExpValue ? this.getExpValue() : 2);
+                    // 新增：掉落经验值（传玩家等级，exp-system 内做压级衰减/越级加成；
+                    // 地牢中记录单局统计供通关结算面板，tag 供飘字标注衰减/越级）
+                    const _expSrc = (source && source.gainExp) ? source
+                        : ((source && source.source && source.source.gainExp) ? source.source : null);
+                    if (_expSrc) {
+                        const detail = this.getExpDetail ? this.getExpDetail(_expSrc.data?.level ?? 1) : null;
+                        const amount = detail ? detail.exp : (this.getExpValue ? this.getExpValue(_expSrc.data?.level ?? 1) : 2);
+                        if (getCurrentDungeonType()) {
+                            DungeonRunStats.recordKill(this.rank);
+                            DungeonRunStats.recordExp(amount);
+                        }
+                        _expSrc.gainExp(amount, detail ? detail.tag : null);
                     }
                 }
                 // 延迟删除尸体（3秒后从 entities 中移除）

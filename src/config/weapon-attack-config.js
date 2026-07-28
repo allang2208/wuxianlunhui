@@ -1,6 +1,10 @@
 /**
  * WeaponAttackConfig — 玩家武器攻击配置
  * 将原先散落在 entities/player/index.js 中的硬编码武器参数集中管理。
+ *
+ * 注意：本文件中的 damage:{min,max} 是**占位值**，玩家实战伤害唯一来源是
+ * attack-formula.js 的 computeWeaponAttack（getCurrentWeaponAtk）。
+ * 占位值仅怪物枪械（enemy-types/_shared/enemy-gun.js）与防御性回退使用，勿当作玩家公式。
  */
 
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';

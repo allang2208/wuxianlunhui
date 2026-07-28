@@ -340,7 +340,7 @@ export const EquipDataManager = {
         chargeAttack: { chargeTime: 1500, flashDuration: 500 },
         sound: {
             rotateComplete: 'assets/sounds/bow/rope_pull_1s.wav',
-            attackEnd: 'assets/sounds/bow/arrow_flyby_1s.mp3'
+            attackEnd: 'assets/sounds/arrow_flyby_1s.mp3'
         }
     },
     SMALL_SHIELD_ITEM: {
@@ -360,3 +360,62 @@ export const EquipDataManager = {
     },
 
 };
+
+// ==================== 武器字段补全（单一全量源） ====================
+// EquipDataManager 是唯一包含全部武器 attackFormula/ammoConfig/attackKey 等完整字段的数据源。
+// equipment.json/商店列表/旧存档实例可能缺字段——统一经 completeWeaponFields 补全，
+// 不再在各处维护第二份字段清单（main.js 启动合并与 shop-system 商品列表共用）。
+
+// 与 main.js 启动合并同口径的补全字段清单
+const COMPLETE_WEAPON_FIELDS = [
+    'attackFormula', 'ammoConfig', 'spreadParams', 'heatParams',
+    'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
+    'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
+    'sound', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
+    'isDarkGold', 'dropImage', 'equipImage', 'slotImage'
+];
+
+let _weaponConfigIndex = null;
+function _buildWeaponConfigIndex() {
+    const byWeaponId = new Map();
+    const byName = new Map();
+    const add = (cfg) => {
+        if (!cfg || typeof cfg !== 'object' || !cfg.weaponId) return;
+        if (!byWeaponId.has(cfg.weaponId)) byWeaponId.set(cfg.weaponId, cfg);
+        if (cfg.name && !byName.has(cfg.name)) byName.set(cfg.name, cfg);
+    };
+    for (const v of Object.values(EquipDataManager)) {
+        add(v);
+        // 嵌套容器（如 TEST_EQUIPMENTS.weapon 锈剑）下钻一层
+        if (v && typeof v === 'object' && !v.weaponId) {
+            for (const inner of Object.values(v)) add(inner);
+        }
+    }
+    _weaponConfigIndex = { byWeaponId, byName };
+}
+
+/**
+ * 按 weaponId / name 查找 EquipDataManager 中的完整武器配置
+ */
+export function findWeaponConfig(weaponId, name) {
+    if (!_weaponConfigIndex) _buildWeaponConfigIndex();
+    return (weaponId && _weaponConfigIndex.byWeaponId.get(weaponId))
+        || (name && _weaponConfigIndex.byName.get(name))
+        || null;
+}
+
+/**
+ * 用 EquipDataManager 的完整配置补全武器实例缺失的字段（只补 undefined，不覆盖实例自有值）
+ * @returns {Object} 原 item（原地补全）
+ */
+export function completeWeaponFields(item) {
+    if (!item || typeof item !== 'object') return item;
+    const cfg = findWeaponConfig(item.weaponId, item.name);
+    if (!cfg) return item;
+    for (const field of COMPLETE_WEAPON_FIELDS) {
+        if (cfg[field] !== undefined && item[field] === undefined) {
+            item[field] = cfg[field];
+        }
+    }
+    return item;
+}

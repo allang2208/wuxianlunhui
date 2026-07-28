@@ -3,6 +3,7 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { launchArcProjectile } from '../../effects/combat-fx.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
@@ -238,30 +239,24 @@ export class LanternMinerZombie extends Enemy {
             sx += L.muzzleRightDx ?? 0;
             sy += L.muzzleRightDy ?? 0;
         }
-        const sprite = scene.add.sprite(sx, sy, 'enemy_lantern_miner_projectile');
-        sprite.setDisplaySize(size, size);
-        sprite.setDepth(this.y + 15);
-        this._lanternSprite = sprite;
-        const arcH = L.arcHeight ?? 100;
-        const self = this;
-        scene.tweens.add({
-            targets: { t: 0 },
-            t: 1,
-            duration: L.flyDuration ?? 1500,
-            ease: 'Linear',
-            onUpdate(tw) {
-                const p = tw.getValue();
-                sprite.x = sx + (tx - sx) * p;
-                sprite.y = sy + (ty - sy) * p - arcH * 4 * p * (1 - p);
-                // 落地前每秒 360° 旋转（1.5s 共 540°）
-                sprite.rotation = p * Math.PI * 3 * ((L.flyDuration ?? 1500) / 1500);
+        // 抛物线投射物（共享件；枪口偏移已在上方算好 sx/sy 传入）
+        const flyDuration = L.flyDuration ?? 1500;
+        const handle = launchArcProjectile({
+            textureKey: 'enemy_lantern_miner_projectile',
+            size,
+            sx, sy, tx, ty,
+            arcHeight: L.arcHeight ?? 100,
+            duration: flyDuration,
+            // 原公式 rotation=p*3π*(flyDuration/1500)，折算角速度恒为 2π rad/s（落地前每秒 360°）
+            spin: Math.PI * 2,
+            depth: this.y + 15,
+            onImpact: (ix, iy) => {
+                this._lanternSprite = null;
+                this._lanternImpact(ix, iy);
             },
-            onComplete() {
-                if (sprite.active) sprite.destroy();
-                if (self._lanternSprite === sprite) self._lanternSprite = null;
-                self._lanternImpact(tx, ty);
-            }
         });
+        // scene 已在上方确认存在，handle 必非 null
+        this._lanternSprite = handle.sprite;
     }
 
     /** 矿灯落地：创建燃烧区（200px 椭圆，4s，每 0.5s 魔法伤害；油脂地面 + 火焰按特工射速频率变幻） */

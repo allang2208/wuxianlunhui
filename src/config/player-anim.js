@@ -36,10 +36,14 @@ function getPlayerAnimDef(animKey) {
     return PLAYER_ANIMS[animKey] || null;
 }
 
-// 动画自然时长（ms）；单帧/无帧率配置返回 0
+// 动画自然时长（ms）；单帧/无帧率配置返回 0；frameDurations 存在时取各帧之和
 function getPlayerAnimDurationMs(animKey) {
     const def = PLAYER_ANIMS[animKey];
-    if (!def || def.type !== 'sheet' || !def.frameRate) return 0;
+    if (!def || def.type !== 'sheet') return 0;
+    if (def.frameDurations && def.frameDurations.length) {
+        return def.frameDurations.reduce((a, b) => a + (b || 0), 0);
+    }
+    if (!def.frameRate) return 0;
     const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
     return Math.round(((end - start + 1) / def.frameRate) * 1000);
 }

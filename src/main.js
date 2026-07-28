@@ -7,7 +7,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { PerceptionSystem } from './systems/perception-system.js';
 
 import { ItemDatabase } from './items/item-database.js';
-import { EquipDataManager } from './ui/equip-data-manager.js';
+import { completeWeaponFields } from './ui/equip-data-manager.js';
 
 import { Game } from './game.js';
 import { PhaserGame } from './phaser/PhaserGame.js';
@@ -28,24 +28,11 @@ async function initModules() {
         ItemDatabase.load(data.equipment);
     }
 
-    if (EquipDataManager && ItemDatabase.items) {
-        const equipConfigs = Object.values(EquipDataManager).filter(v => v && typeof v === 'object' && v.weaponId);
+    // 启动合并：用 EquipDataManager 全量源补全 ItemDatabase 模板缺失字段
+    //（统一走 completeWeaponFields，与 shop-system 商品列表补全共用同一份字段清单与查找逻辑）
+    if (ItemDatabase.items) {
         for (const [, item] of Object.entries(ItemDatabase.items)) {
-            const match = equipConfigs.find(cfg => cfg.weaponId === item.weaponId || cfg.name === item.name);
-            if (match) {
-                const fieldsToMerge = [
-                    'attackFormula', 'ammoConfig', 'spreadParams', 'heatParams',
-                    'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
-                    'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
-                    'sound', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
-                    'isDarkGold', 'dropImage', 'equipImage', 'slotImage'
-                ];
-                for (const field of fieldsToMerge) {
-                    if (match[field] !== undefined && item[field] === undefined) {
-                        item[field] = match[field];
-                    }
-                }
-            }
+            completeWeaponFields(item);
         }
     }
 

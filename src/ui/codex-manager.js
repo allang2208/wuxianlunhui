@@ -8,6 +8,7 @@ import { EquipDataManager } from './equip-data-manager.js';
 import { ENEMY_DATA } from '../systems/data-loader.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { CodexFormulaHelper } from './codex-formula-helper.js';
+import { buildFormulaDisplay, buildEnhancedFormulaDisplay } from '../config/attack-formula.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -385,23 +386,12 @@ const CodexManager = {
         return result ? this._mergeEquipConfig(result) : null;
     },
 
-    // 获取攻击力公式文本
+    // 获取攻击力公式文本（委托 attack-formula.js 唯一实现：buildFormulaDisplay el=0 口径）
     _getAtkFormula(item) {
-        if (!item || !item.attackFormula) return '';
-        const formula = item.attackFormula;
-        const effectiveFormula = formula;
-        const base = effectiveFormula.base || 0;
-        const parts = [`${base}`];
-        const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
-        for (const attr of effectiveFormula.attrs || []) {
-            if (Math.abs(attr.base) < 0.001) continue;
-            const name = attrNames[attr.key] || attr.key;
-            parts.push(`${attr.base >= 0 ? '+' : '-'} ${name}×${Math.abs(attr.base).toFixed(2)}`);
-        }
-        return parts.join(' ');
+        return (item && item.attackFormula) ? buildFormulaDisplay(item.attackFormula, 0) : '';
     },
 
-    // 获取武器强化后攻击力公式
+    // 获取武器强化后攻击力公式（委托 attack-formula.js 唯一实现）
     _getEnhancedAtkFormula(item) {
         if (!item || !item.attackFormula) {
             const baseFormula = this._getAtkFormula(item);
@@ -409,29 +399,7 @@ const CodexManager = {
             // 与 getAttackFormula 回退口径一致：enhanceFlat 1（无 attackFormula 武器强化 +1/级）
             return `(${baseFormula}) + 强化等级×1`;
         }
-        const formula = item.attackFormula;
-        const effectiveFormula = formula;
-        const base = effectiveFormula.base || 0;
-        const enhanceFlat = effectiveFormula.enhanceFlat || 0;
-        const parts = [];
-        if (base !== 0 || enhanceFlat !== 0) {
-            if (enhanceFlat === 0) {
-                parts.push(`${base}`);
-            } else {
-                parts.push(`${base} + 强化等级×${enhanceFlat}`);
-            }
-        }
-        const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神' };
-        for (const attr of effectiveFormula.attrs || []) {
-            if (Math.abs(attr.base) < 0.001 && Math.abs(attr.perEnhance) < 0.001) continue;
-            const name = attrNames[attr.key] || attr.key;
-            if (Math.abs(attr.perEnhance) < 0.001) {
-                parts.push(`${attr.base >= 0 ? '+' : '-'} ${name}×${Math.abs(attr.base).toFixed(2)}`);
-            } else {
-                parts.push(`${attr.base >= 0 ? '+' : '-'} ${name}×(${Math.abs(attr.base).toFixed(2)} + 强化等级×${Math.abs(attr.perEnhance).toFixed(2)})`);
-            }
-        }
-        return parts.join(' ');
+        return buildEnhancedFormulaDisplay(item.attackFormula);
     },
 
     // 获取散布开始时间

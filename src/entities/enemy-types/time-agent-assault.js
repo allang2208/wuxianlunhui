@@ -1,7 +1,5 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { EffectManager } from '../../effects/effect-manager.js';
-import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
@@ -10,8 +8,9 @@ import { pathFinder } from '../../ai/pathfinder.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
+import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireRadialLines } from '../../effects/combat-fx.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -65,6 +64,7 @@ export class TimeAgentAssault extends Enemy {
         this._flashTarget = null;
         this._flashWarning = null;
         this._flashSprite = null;
+        this._flashTween = null;
 
         // 远程攻击 AI 状态
         this._losTimer = 0;          // 视线检测节流
@@ -124,12 +124,16 @@ export class TimeAgentAssault extends Enemy {
         if (this._flashCd > 0) this._flashCd -= dt;
         if (this._axeCd > 0) this._axeCd -= dt;
 
+        // 闪光弹落地预警圈保活（共享件：EffectManager 生命周期短，每帧重置 life 续命至落地；
+        // 注意是重置 life 不是 maxLife——只刷 maxLife 会在 100ms 后自然消亡）
+        if (!keepWarningAlive(this._flashWarning)) this._flashWarning = null;
+
         // 眩晕：暂停一切决策与动作推进（恢复后继续）
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
 
         // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标
         if (this._invasionAgent) {
-            this.target = this._nearestHostile(entities);
+            this.target = nearestHostileOf(this, entities);
         }
 
         const t = this.target && this.target.active ? this.target : null;
@@ -568,20 +572,6 @@ export class TimeAgentAssault extends Enemy {
         return false;
     }
 
-    /** 入侵特工：最近的非 agent 阵营单位（玩家与地牢怪物皆为敌） */
-    _nearestHostile(entities) {
-        let best = null;
-        let bestD = Infinity;
-        const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
-        for (const e of list) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === 'agent') continue;
-            const d = Math.hypot(e.x - this.x, e.y - this.y);
-            if (d < bestD) { bestD = d; best = e; }
-        }
-        return best;
-    }
-
     // ========== 弹药系统（怪物基类默认无限弹药；本怪 30 发打空 2s 换弹） ==========
 
     _hasAmmo(slot) {
@@ -653,44 +643,31 @@ export class TimeAgentAssault extends Enemy {
             tx = lead.x; ty = lead.y;
         }
         this._flashTarget = { x: tx, y: ty };
-        // 地面红色椭圆预警（与落地判定同半径，保活至落地）
+        // 地面红色椭圆预警（与落地判定同半径，保活至落地；共享件）
         this._destroyFlashWarning();
-        const warn = new AttackRangeEffect(tx, ty, 0, FB.impactRadius || 100, (FB.impactRadius || 100) * PERSPECTIVE_SCALE_Y, 'ellipse', 100, 0.5, true);
-        warn.maxLife = 100;
-        EffectManager.add(warn);
-        this._flashWarning = warn;
+        this._flashWarning = createGroundWarning(tx, ty, FB.impactRadius || 100);
 
-        // 抛物线投掷（贴图 360° 旋转）
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add) {
-            this._impactFlashbang(tx, ty);
-            return;
-        }
+        // 抛物线投掷（共享件；贴图空中 360° 旋转；无 scene 时内部同步调 onImpact 回退）
         const size = FB.projectileSize || 40;
         const sx = this.x, sy = this.y - (this.footOffsetY || 0);
-        const sprite = scene.add.sprite(sx, sy, 'enemy_timeagent_project');
-        sprite.setDisplaySize(size, size);
-        sprite.setDepth(this.y + 15);
-        this._flashSprite = sprite;
-        const arcH = FB.arcHeight ?? 100;
-        const self = this;
-        scene.tweens.add({
-            targets: { t: 0 },
-            t: 1,
-            duration: FB.flyDuration ?? 600,
-            ease: 'Linear',
-            onUpdate(tw) {
-                const p = tw.getValue();
-                sprite.x = sx + (tx - sx) * p;
-                sprite.y = sy + (ty - sy) * p - arcH * 4 * p * (1 - p);
-                sprite.rotation = Math.PI * 2 * p; // 空中 360° 旋转
+        const flyDuration = FB.flyDuration ?? 600;
+        const handle = launchArcProjectile({
+            textureKey: 'enemy_timeagent_project',
+            size,
+            sx, sy, tx, ty,
+            arcHeight: FB.arcHeight ?? 100,
+            duration: flyDuration,
+            // 原公式 rotation=2π*p：全程总转角固定 360°，折算角速度 rad/s
+            spin: (Math.PI * 2) / (flyDuration / 1000),
+            depth: this.y + 15,
+            onImpact: (ix, iy) => {
+                this._flashSprite = null;
+                this._flashTween = null;
+                this._impactFlashbang(ix, iy);
             },
-            onComplete() {
-                if (sprite.active) sprite.destroy();
-                if (self._flashSprite === sprite) self._flashSprite = null;
-                self._impactFlashbang(tx, ty);
-            }
         });
+        this._flashSprite = handle ? handle.sprite : null;
+        this._flashTween = handle;
     }
 
     _impactFlashbang(tx, ty) {
@@ -724,45 +701,34 @@ export class TimeAgentAssault extends Enemy {
             const py = ty + Math.sin(a) * radius * PERSPECTIVE_SCALE_Y;
             EffectFactory.createDustEffect(px, py, 1.2);
         }
-        // 白色放射线条：从爆心向 360° 快速延伸并消失，透明度 50%
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
-        const g = scene.add.graphics();
-        g.setDepth(ty + 50);
-        const lineCount = FB.impactLineCount ?? 12;
-        const lineAlpha = FB.impactLineAlpha ?? 0.5;
-        const duration = FB.impactLineDuration ?? 250;
-        const wave = { t: 0 };
-        scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const p = wave.t;
-                g.clear();
-                g.lineStyle(3, 0xffffff, (1 - p) * lineAlpha);
-                const inner = radius * 0.2 * (1 + p);
-                const outer = radius * (0.4 + p * 1.2);
-                for (let i = 0; i < lineCount; i++) {
-                    const a = (Math.PI * 2 * i) / lineCount + Math.PI / lineCount;
-                    const cos = Math.cos(a), sin = Math.sin(a) * PERSPECTIVE_SCALE_Y;
-                    g.beginPath();
-                    g.moveTo(tx + cos * inner, ty + sin * inner);
-                    g.lineTo(tx + cos * outer, ty + sin * outer);
-                    g.strokePath();
-                }
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-            }
+        // 白色放射线条（共享件）：从爆心向 360° 快速延伸并消失，透明度 50%
+        // 原公式 inner=radius*0.2*(1+p) / outer=radius*(0.4+p*1.2)，折算为起止值
+        fireRadialLines({
+            x: tx, y: ty,
+            count: FB.impactLineCount ?? 12,
+            innerFrom: radius * 0.2, innerTo: radius * 0.4,
+            outerFrom: radius * 0.4, outerTo: radius * 1.6,
+            duration: FB.impactLineDuration ?? 250,
+            alpha: FB.impactLineAlpha ?? 0.5,
         });
     }
 
+    /** 销毁落地预警圈（共享件 destroyWarning：active=false + 显式销毁图形——"必须显式 destroy"教训收口） */
     _destroyFlashWarning() {
-        if (this._flashWarning) {
-            this._flashWarning.active = false;
-            this._flashWarning = null;
+        this._flashWarning = destroyWarning(this._flashWarning);
+    }
+
+    /** 统一特效清理（game.js removeEntity / onDeath 约定入口）：停飞行 tween（防尸体落地判定）+ 销毁贴图/预警圈 */
+    _destroyCustomEffects() {
+        this._destroyFlashWarning();
+        if (this._flashTween) {
+            // 返回句柄 cancel：tween.stop（不发 onComplete，防尸体落地结算）+ sprite.destroy
+            this._flashTween.cancel();
+            this._flashTween = null;
+        }
+        if (this._flashSprite) {
+            if (this._flashSprite.active) this._flashSprite.destroy();
+            this._flashSprite = null;
         }
     }
 

@@ -5,6 +5,7 @@ import { distanceToEntityShape } from '../../../utils/collision-helpers.js';
  * 怪物共享工具（新怪物工作流基础件，勿在各怪物类内重复实现）
  *
  * - hostilesOf：敌对目标枚举（同阵营/无效/不可击除外）
+ * - nearestHostileOf：入侵特工最近敌对目标（非 agent 阵营最近优先）
  * - isTargetMeleeStyle：目标攻击风格判定（近战/远程，决定怪物的应对策略）
  * - playSoundFrom：按配置 sounds 键播放音效
  * - isFacingLeftFrom：朝向判定（与 _getPhaserOptions 的 flipX 同规则）
@@ -36,6 +37,23 @@ export function hostilesOf(host, entities) {
         out.push(e);
     }
     return out;
+}
+
+/**
+ * 入侵特工最近敌对目标（时空特工追击机制）：faction=agent 与全场敌对，
+ * 玩家与地牢怪物皆为目标，取最近的非 agent 可击单位（PerceptionSystem 不接管入侵特工目标）
+ */
+export function nearestHostileOf(host, entities) {
+    let best = null;
+    let bestD = Infinity;
+    const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
+    for (const e of list) {
+        if (!e || e === host || !e.active || !e.hittable) continue;
+        if (e._faction === 'agent') continue;
+        const d = Math.hypot(e.x - host.x, e.y - host.y);
+        if (d < bestD) { bestD = d; best = e; }
+    }
+    return best;
 }
 
 /** 目标攻击风格：近战（玩家持近战武器/徒手、怪物 melee 武器模式）返回 true */

@@ -79,9 +79,11 @@ export const AgentInvasionSystem = {
             (invasionConfig.initialChance ?? 0.25) + Math.floor(turnsActive / stepTurns) * (invasionConfig.chanceStep ?? 0.05));
         this._updateLabel();
 
-        if (this.invasionsUsed >= (invasionConfig.maxInvasionsPerRun ?? 1)) return;
-
         if (!this.triggered) {
+            // 入侵次数上限只拦截"新入侵"的触发判定，不能挡住已触发特工的追击
+            // （此前写在外层：触发当回合 invasionsUsed 即 +1，之后每回合提前 return，
+            //  特工永远不走位、caught 永远 false → 入侵战斗永不发生）
+            if (this.invasionsUsed >= (invasionConfig.maxInvasionsPerRun ?? 1)) return;
             // 每回合判定入侵
             if (Math.random() < this.chance) {
                 this.triggered = true;
@@ -114,6 +116,9 @@ export const AgentInvasionSystem = {
     consumeCatch() {
         this.caught = false;
         this.agentNodeId = null;
+        // 复位触发标记：maxInvasionsPerRun > 1 时允许下一轮入侵重新判定
+        //（上限由 onPlayerEnterNode 的 invasionsUsed 闸门拦截，max=1 时行为不变）
+        this.triggered = false;
     },
 
     /** 当前地牢难度等级 */

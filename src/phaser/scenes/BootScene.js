@@ -262,9 +262,27 @@ export class BootScene extends Scene {
             if (def.type !== 'sheet') continue;
             const texKey = playerTextureKey(animKey);
             const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            const frameObjs = this.anims.generateFrameNumbers(texKey, { start, end });
+            // frameWeights（可选，占比数组）：按权重分配【原总时长】——总时长锁定（帧数/帧率），
+            // 只改各帧占比（如末帧定格更久 [1,1,1,1,1,1,1,3]），武器轨迹/命中时序完全不受影响
+            if (def.frameWeights && def.frameWeights.length) {
+                const totalMs = ((end - start + 1) / (def.frameRate || 12)) * 1000;
+                const wSum = def.frameWeights.reduce((a, b) => a + (b || 0), 0) || 1;
+                frameObjs.forEach((f, i) => {
+                    const w = def.frameWeights[i];
+                    if (w !== undefined) f.duration = (w / wSum) * totalMs;
+                });
+            } else if (def.frameDurations && def.frameDurations.length) {
+                // frameDurations（可选，ms/帧）：逐帧绝对时长，总时长=各帧之和（会改变总时长，
+                // 武器轨迹 Tween 经 animDef.duration 自动跟随）
+                frameObjs.forEach((f, i) => {
+                    const d = def.frameDurations[i];
+                    if (d !== undefined) f.duration = d;
+                });
+            }
             this.anims.create({
                 key: texKey,
-                frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                frames: frameObjs,
                 frameRate: def.frameRate || 12,
                 repeat: def.repeat !== undefined ? def.repeat : -1,
             });

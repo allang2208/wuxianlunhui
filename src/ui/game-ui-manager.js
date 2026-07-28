@@ -13,6 +13,7 @@ import { EquipManager } from './equip-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { getTributeHpRegenMultiplier, getTributeHpRegenFlat } from '../config/tribute-effects.js';
+import { completeWeaponFields } from './equip-data-manager.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -253,9 +254,20 @@ export const GameUIManager = {
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
-            EquipManager.backpackItems = data.backpack;
+            // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
+            // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
+            if (!EquipManager.backpackItems) EquipManager.backpackItems = [];
+            EquipManager.backpackItems.length = 0;
+            EquipManager.backpackItems.push(...data.backpack);
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
+        }
+        // 旧存档实例统一经 completeWeaponFields 补全缺失字段（与 main.js 启动合并同口径）
+        if (this.player.equipments) {
+            for (const item of Object.values(this.player.equipments)) completeWeaponFields(item);
+        }
+        if (typeof EquipManager !== 'undefined' && Array.isArray(EquipManager.backpackItems)) {
+            for (const item of EquipManager.backpackItems) completeWeaponFields(item);
         }
         // 重算派生状态（属性/弹药/附魔攻击间隔/技能覆盖）
         if (this.player.calculateCombatStats) this.player.calculateCombatStats();

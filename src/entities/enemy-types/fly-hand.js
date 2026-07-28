@@ -4,6 +4,8 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { FlySwarm } from './fly-swarm.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { hostilesOf } from './_shared/enemy-utils.js';
+import { fireGroundShockwave } from '../../effects/combat-fx.js';
 /**
  * 蝇手（领主 lord，僵尸 family）
  * 无默认普攻（aiInterval=MAX），三技能（数值全部由 enemy-config.json attackSkills 驱动）：
@@ -56,7 +58,10 @@ export class FlyHand extends Enemy {
             if (this._cooldowns[k] > 0) this._cooldowns[k] -= dt;
         }
         if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
-        this.updateStatusEffects(dt);
+
+        // 基类链统一推进状态效果/受击反馈（每帧一次）；
+        // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
+        super.update(dt, entities);
 
         // 眩晕时强制中断所有动作
         if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
@@ -77,9 +82,6 @@ export class FlyHand extends Enemy {
             this._updateAction(dt, entities);
             return;
         }
-
-        // 普通 AI 移动
-        super.update(dt, entities);
 
         // 技能决策：灭世重砸（大技能） > 砸地 > 锤击
         if (this.target && this.target.active) {
@@ -179,7 +181,7 @@ export class FlyHand extends Enemy {
         const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
         // 砸地红圈扩散特效（判定帧触发，扩散到攻击影响范围）
         this._fireSlamShockwave(range);
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(damage, this, cfg.damageType || 'physical', true);
             if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
@@ -188,39 +190,11 @@ export class FlyHand extends Enemy {
 
     /**
      * 砸地冲击波：判定帧从蝇手中心释放红色椭圆圈，
-     * 扩散到攻击影响范围并淡出（复刻手脑/集合体模式，平面透视 2:1）
+     * 扩散到攻击影响范围并淡出（共享件：600ms 闪烁扩散，depth y+50，平面透视 2:1）
      */
     _fireSlamShockwave(maxRadius) {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
-        const g = scene.add.graphics();
-        g.setDepth(this.y + 50);
-        this._slamGraphics.push(g);
-        const wave = { t: 0 };
-        const self = this;
-        scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration: 600,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const t = wave.t;
-                const r = Math.max(1, maxRadius * t);
-                g.clear();
-                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
-                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
-                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
-                g.lineStyle(8, 0xff3030, (1 - t) * 0.9 * flicker);
-                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-                g.fillStyle(0xff4040, (1 - t) * 0.12 * flicker);
-                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-                const idx = self._slamGraphics.indexOf(g);
-                if (idx >= 0) self._slamGraphics.splice(idx, 1);
-            }
-        });
+        const g = fireGroundShockwave({ x: this.x, y: this.y, maxRadius });
+        if (g) this._slamGraphics.push(g);
     }
 
     /** 统一特效清理（game.js removeEntity / onDeath 约定入口） */
@@ -264,24 +238,6 @@ export class FlyHand extends Enemy {
     }
 
     // ========== 工具 ==========
-
-    /** 范围内敌对可击单位（与集合体 _hostiles 同语义） */
-    _hostiles(entities) {
-        const list = Array.isArray(entities)
-            ? entities
-            : (entities ? Array.from(entities.values()) : []);
-        const src = list.length > 0
-            ? list
-            : (typeof window !== 'undefined' && window.Game && window.Game.entities
-                ? Array.from(window.Game.entities.values()) : []);
-        const out = [];
-        for (const e of src) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === this._faction) continue;
-            out.push(e);
-        }
-        return out;
-    }
 
     /** 判定目标是否在指定范围内（统一使用 Collider 地面 footprint 半径） */
     _isTargetInRange(target, range) {

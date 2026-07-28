@@ -1120,9 +1120,19 @@ export class GameScene extends Scene {
         const def = getPlayerAnimDef(key);
         const texKey = playerTextureKey(key);
 
+        // 切换动画前移除旧的完成回调：repeat 0 动画被打断时 Phaser 不发 animationcomplete，
+        // once 监听会残留——下一次一次性动画完成时陈旧回调误触发（误切 idle / 误清收势标记）
+        if (this._playerAnimCompleteHandler) {
+            this.playerSprite.off('animationcomplete', this._playerAnimCompleteHandler);
+            this._playerAnimCompleteHandler = null;
+        }
+
         // 默认退出躯干扭转（扭转姿态在下方单帧分支重新启用）
         this._twistConfig = null;
         this._twistState = null;
+        // 持枪瞄准的平滑角标记一并复位：切弓/近战后 _syncGunTwist 不再刷新，
+        // 残留 true 会让弹道/锚点沿用陈旧平滑角（subsystems.js 消费 _effectiveAim）
+        this._frozenAimActive = false;
         if (this.playerTorsoSprite) this.playerTorsoSprite.setVisible(false);
         if (this.playerArmSprite) this.playerArmSprite.setVisible(false);
 
@@ -1154,16 +1164,30 @@ export class GameScene extends Scene {
             }
             this.playerSprite.play(texKey, true);
             const animDef = this.anims.get(texKey);
-            const naturalMs = (animDef && animDef.duration) || getPlayerAnimDurationMs(key);
+            // naturalMs 同样按逐帧时长求和优先（否则 frameDurations 系动画 timeScale 算错，
+            // 贴图与 Tween 时长再次脱节）
+            const naturalMs = getPlayerAnimDurationMs(key) || (animDef && animDef.duration);
             this.playerSprite.anims.timeScale = (targetDurationMs > 0 && naturalMs > 0)
                 ? naturalMs / targetDurationMs
                 : 1;
             this._playerAttackDuration = targetDurationMs > 0 ? targetDurationMs : naturalMs;
             this._playerAttackStartTime = performance.now();
-            this.playerSprite.once('animationcomplete', () => {
+            const completeHandler = () => {
+                this._playerAnimCompleteHandler = null;
                 this.playerSprite.anims.timeScale = 1;
+                // 连段定格保持：攻击动画播完处于保持窗口时停在末帧，不回 idle
+                //（_updatePlayerAnimation 的保持逻辑接管：窗口内接二段 / 超时播 recover）
+                const p = window.Game && window.Game.player;
+                // 收势动画播完：解除收势标记（原 _updatePlayerAnimation 里的独立 once 会残留，已并入此处）
+                if (p && key === 'recover') p._attackRecovering = false;
+                if (p && p._attackHoldUntil && performance.now() < p._attackHoldUntil
+                    && (key === 'attack_sword' || key === 'attack_sword_2')) {
+                    return;
+                }
                 this.setPlayerAnimation('idle');
-            });
+            };
+            this._playerAnimCompleteHandler = completeHandler;
+            this.playerSprite.once('animationcomplete', completeHandler);
             return;
         }
 
@@ -1235,24 +1259,31 @@ export class GameScene extends Scene {
         // 瞄准角（世界）与面向（±0.05 死区防正上/正下翻转抖动）
         const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
         const rawAim = Math.atan2(mouseWorld.y - player.y, mouseWorld.x - player.x);
-        // 瞄准死区：准心贴近玩家时进入"可调锥"模式（枪械近战弱的设计设定）——
-        // 以进入死区时的自由瞄准角为基准，仅允许 ±aimDeadZoneCone 内调整：
-        // 姿态/贴图不再扭曲跳变，但武器与手臂仍可小幅跟枪（贴图=弹道同口径）
-        const deadZone = twist.aimDeadZone ?? 160;
+        // 近距角度平滑（取代死区/可调锥，2026-07-27）：任何距离都用真实瞄准方向（弹道零误差），
+        // 准心进入 aimSmoothRadius 内时对瞄准角做短弧 EMA——准心贴近时鼠标小位移会引起角度瞬变，
+        // 躯干钳制/手臂/锚点跟不上会错位；平滑让角速度有界（近强远弱，出半径立即恢复零延迟）。
+        // 贴图/锚点/弹道统一走 _effectiveAim（沿用 _frozenAimActive 标记，语义=平滑激活），四通道同口径
+        const smoothR = twist.aimSmoothRadius ?? 160;
         const distToMouse = Math.hypot(mouseWorld.x - player.x, mouseWorld.y - player.y);
-        let aim;
-        if (distToMouse >= deadZone) {
-            aim = rawAim;
-            this._lastFreeAim = rawAim;
-            this._frozenAimActive = false;
-        } else {
-            const cone = (twist.aimDeadZoneCone ?? 20) * Math.PI / 180;
-            const base = this._lastFreeAim !== undefined ? this._lastFreeAim : rawAim;
-            let diff = rawAim - base;
-            diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-            aim = base + Math.max(-cone, Math.min(cone, diff));
+        let aim = rawAim;
+        if (distToMouse < smoothR) {
+            const now2 = performance.now();
+            const dtMs2 = this._aimSmoothLastT ? Math.min(50, now2 - this._aimSmoothLastT) : 16.67;
+            // 平滑时间常数：边缘≈0（零延迟）→ 中心 aimSmoothTau（默认 120ms，越大越"肉"，近战弱可加大）
+            const t = 1 - distToMouse / smoothR;
+            const tau = (twist.aimSmoothTau ?? 120) * t;
+            const k = tau > 0.01 ? 1 - Math.exp(-dtMs2 / tau) : 1;
+            const prev = this._smoothedAim !== undefined ? this._smoothedAim : rawAim;
+            let diff = rawAim - prev;
+            diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // 短弧插值防 ±π 绕远路
+            aim = prev + diff * k;
+            this._smoothedAim = aim;
             this._frozenAimActive = true;
+        } else {
+            this._smoothedAim = rawAim;
+            this._frozenAimActive = false;
         }
+        this._aimSmoothLastT = performance.now();
         this._effectiveAim = aim;
         let facingRight = this._twistState ? this._twistState.facingRight : true;
         if (Math.cos(aim) > 0.05) facingRight = true;
@@ -1446,7 +1477,7 @@ export class GameScene extends Scene {
         const isMeleeWeapon = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
         const currentAnimKey = this.playerSprite.anims.currentAnim?.key;
         // 仅对近战武器做安全防护：逻辑层标记为攻击中，但剑攻击动画已停止，说明状态卡住，强制恢复
-        const isPlayingAttackAnim = isMeleeWeapon && currentAnimKey === playerTextureKey('attack_sword') && this.playerSprite.anims.isPlaying;
+        const isPlayingAttackAnim = isMeleeWeapon && (currentAnimKey === playerTextureKey('attack_sword') || currentAnimKey === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.isPlaying;
         if (isMeleeWeapon && weaponAnim.isAttacking && !isPlayingAttackAnim) {
             weaponAnim.isAttacking = false;
             weaponAnim.state = 'idle';
@@ -1457,6 +1488,29 @@ export class GameScene extends Scene {
         const _isGunPose = currentItem && isGunWeapon(currentItem);
         if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
+
+        // 攻击后定格保持（连段窗口）与收势动画：
+        // 一段/二段攻击 Tween 结束后定格在末帧等待连段；窗口内无攻击输入则播 recover 收势回 idle；
+        // 移动立即取消定格/收势（新攻击由上方攻击守卫接管，不会走到这里）
+        if (player._attackHoldUntil || player._attackRecovering) {
+            const now = performance.now();
+            if (player.isMoving) {
+                player._attackHoldUntil = 0;
+                player._attackRecovering = false;
+            } else if (player._attackRecovering) {
+                return; // 收势播放中，等 animationcomplete 解除
+            } else if (now < player._attackHoldUntil) {
+                return; // 定格末帧（repeat 0 的攻击动画播完自然停在末帧，不做任何切换）
+            } else {
+                player._attackHoldUntil = 0;
+                if (getPlayerAnimDef('recover') && this.anims.exists(playerTextureKey('recover'))) {
+                    player._attackRecovering = true;
+                    // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
+                    this.setPlayerAnimation('recover');
+                    return;
+                }
+            }
+        }
 
         // 持枪姿态解析：双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；
         // 其余枪械 → gun_idle；配置缺失逐级回退
@@ -1525,16 +1579,21 @@ export class GameScene extends Scene {
             this._playerAnimIdleStart = 0;
         }
 
-        // 即使动画状态未变，也同步朝向翻转
-        if (player._facingDir) {
-            if (player._facingDir === 'left') {
-                this.playerSprite.setFlipX(true);
-            } else if (player._facingDir === 'right') {
-                this.playerSprite.setFlipX(false);
-            }
-        }
+        // 即使动画状态未变，也同步朝向翻转（与武器/锚点同一中轴滞回界限）
+        this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
         if (this._lastPlayerAnimKey === key) return;
         this.setPlayerAnimation(key);
+    }
+
+    /**
+     * 中轴朝向判定（滞回）：|cos(rotation)| > 0.05 才翻转，垂直带内保持上一朝向——
+     * 身体贴图/主手/副手/锚点统一用这一个界限，消除"身体与武器翻转不同步"
+     */
+    _getVisualFacingRight(player) {
+        const c = Math.cos(player.rotation);
+        if (c > 0.05) player._facingRightVisual = true;
+        else if (c < -0.05) player._facingRightVisual = false;
+        return player._facingRightVisual !== false; // 默认朝右
     }
 
     /**
@@ -1587,8 +1646,8 @@ export class GameScene extends Scene {
                 let animState = 'idle';
                 if (player._isSprinting) animState = 'running';
                 else if (player.isMoving) animState = 'walk';
-                const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-                const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+                const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, this._getVisualFacingRight(player));
+                const facingRight = this._getVisualFacingRight(player);
                 // 近战武器使用固定 rotation（所有状态），远程武器使用 player.rotation
                 const useFixedRot = isMelee;  // 所有近战状态都固定
                 let rot = WeaponTransform.getWeaponRotation(useFixedRot ? 0 : player.rotation, wt, weaponAnim.animAngle || 0, animState, facingRight);
@@ -1627,25 +1686,33 @@ export class GameScene extends Scene {
         
         // ===== Phaser Tween 攻击动画期间，跳过 syncWeapon 的位置更新 =====
         // 但远程武器使用状态机驱动，需要继续执行以应用后坐力
-        if (weaponAnim.isAttacking) {
+        // inAttackHold：攻击后定格保持窗口（连段等待）——武器定格在上一段轨迹末帧
+        const inAttackHold = !!(player._attackHoldUntil && performance.now() < player._attackHoldUntil && !player.isMoving);
+        if (weaponAnim.isAttacking || inAttackHold) {
             const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGun) {
                 // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
-                const perFrameCfg = WeaponAnimConfig[wt]?.attack;
+                // 连段二段读 attack2 轨迹块（缺失回退 attack）
+                const wacWt = WeaponAnimConfig[wt];
+                const atkCfgKey = (player._meleeComboStage === 2 && wacWt && wacWt.attack2) ? 'attack2' : 'attack';
+                const perFrameCfg = wacWt && wacWt[atkCfgKey];
                 if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
                     this.weaponSprite.setVisible(!this._useCanvasWeapon);
-                    let progress = 0;
-                    if (this._playerAttackStartTime && this._playerAttackDuration > 0) {
-                        progress = Math.min(1, (performance.now() - this._playerAttackStartTime) / this._playerAttackDuration);
-                    } else {
-                        const currentAnim = this.playerSprite.anims.currentAnim;
-                        if (currentAnim && currentAnim.key === playerTextureKey('attack_sword') && this.playerSprite.anims.getProgress) {
-                            progress = this.playerSprite.anims.getProgress();
+                    let progress = 1; // 定格保持窗口恒为末帧
+                    if (weaponAnim.isAttacking) {
+                        progress = 0;
+                        if (this._playerAttackStartTime && this._playerAttackDuration > 0) {
+                            progress = Math.min(1, (performance.now() - this._playerAttackStartTime) / this._playerAttackDuration);
+                        } else {
+                            const currentAnim = this.playerSprite.anims.currentAnim;
+                            if (currentAnim && (currentAnim.key === playerTextureKey('attack_sword') || currentAnim.key === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.getProgress) {
+                                progress = this.playerSprite.anims.getProgress();
+                            }
                         }
                     }
-                    const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+                    const facingRight = this._getVisualFacingRight(player);
                     // 以右攻击为参考，朝左时翻转贴图并镜像位置/旋转
-                    const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true);
+                    const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, atkCfgKey);
                     if (pfPos) {
                         const wx = facingRight ? pfPos.x : 2 * player.x - pfPos.x;
                         const wrot = facingRight ? pfPos.rotation : -pfPos.rotation;
@@ -1681,8 +1748,8 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState);
-        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, this._getVisualFacingRight(player));
+        const facingRight = this._getVisualFacingRight(player);
 
         // 躯干扭转激活（持枪瞄准）：锚点在躯干空间计算（不随 player.rotation 公转）
         if (this._twistState && !isMelee) {
@@ -1769,6 +1836,11 @@ export class GameScene extends Scene {
             this.weaponSprite.setFlipY(gunFlipY);
         } else {
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+            // 近战朝左贴图镜像：旋转码（π−idleRot）恰等于 −R_r（正确镜像角，
+            // 关系式 M∘Rot(R)=Rot(−R)∘M），补 flipX 构成绕垂直轴完整镜像；
+            // 位置镜像已在 localToWorld 完成（与攻击 perFrame 分支"旋转取反+flipX"同惯例）
+            this.weaponSprite.setFlipY(false);
+            this.weaponSprite.setFlipX(isMelee && !facingRight);
         }
     }
 
@@ -1858,9 +1930,12 @@ export class GameScene extends Scene {
             const vyF = (hand.y - twistCfg.arm.pivotY) * (dispH / frameH);
             if (!ts.facingRight) vxF = -vxF; // 镜像帧内手部水平取反
             const cosF = Math.cos(rotF), sinF = Math.sin(rotF);
+            // 逐武器瞄准微调（可选，世界 px）：aimAdjustX 朝向后移（负=靠近身体，翻转镜像）/aimAdjustY 下移——
+            // 共享 aimFrames 公式之上按武器修正（如 qbz191 与 AKM 基准差）
+            const aimAdj = WeaponAnimConfig[wt] || {};
             // liftAdjustX/Y（世界 px）：瞄准锚点微调——X 朝向后移（负=靠近身体，翻转镜像），Y 正=少抬/下移；经 blend 自动 ×ease
-            const fxF = shX + vxF * cosF - vyF * sinF + (ts.facingRight ? 1 : -1) * (afCfg.liftAdjustX || 0);
-            const fyF = shY + vxF * sinF + vyF * cosF + (afCfg.liftAdjustY || 0);
+            const fxF = shX + vxF * cosF - vyF * sinF + (ts.facingRight ? 1 : -1) * ((afCfg.liftAdjustX || 0) + (aimAdj.aimAdjustX || 0));
+            const fyF = shY + vxF * sinF + vyF * cosF + (afCfg.liftAdjustY || 0) + (aimAdj.aimAdjustY || 0);
             const e = this._aimEase;
             pos.x = pos.x * (1 - e) + fxF * e;
             pos.y = pos.y * (1 - e) + fyF * e;
@@ -1942,8 +2017,8 @@ export class GameScene extends Scene {
         let offhandAnimState = 'idle';
         if (player._isSprinting) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState);
-        const facingRight = Math.abs(player.rotation) < Math.PI / 2;
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, true, false, offhandAnimState, {}, this._getVisualFacingRight(player));
+        const facingRight = this._getVisualFacingRight(player);
         // 近战武器使用固定 rotation（所有状态）；
         // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
         const isMelee = wt === 'sword' || wt === 'bow';
@@ -2023,6 +2098,9 @@ export class GameScene extends Scene {
             this.offhandWeaponSprite.setFlipY(flipY);
         } else {
             this.offhandWeaponSprite.setDisplaySize(wSize.width, wSize.height);
+            // 副手近战朝左贴图镜像（与主手同口径：旋转码已等于 −R_r，补 flipX 构成垂直轴完整镜像）
+            this.offhandWeaponSprite.setFlipY(false);
+            this.offhandWeaponSprite.setFlipX(isMelee && !facingRight);
         }
     }
 

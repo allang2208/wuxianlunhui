@@ -22,8 +22,6 @@ import { pathFinder } from '../ai/pathfinder.js';
 import { CONFIG } from '../config/config.js';
 import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { EffectManager } from '../effects/effect-manager.js';
-import { FloatingTextEffect } from '../effects/floating-text.js';
 import { applyDungeonFloor, applyDiamondFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
 import { GateLight } from '../effects/gate-light.js';
@@ -78,11 +76,7 @@ export const COMBAT_ROOM_CONFIG = {
     // 怪物池（使用 getter 延迟解析，避免循环依赖导致的 TDZ）
     monsterPool: {
         get normal() { return [BlackWolf, CircleEnemy]; },
-        get boss() { return [BlackWolf, CircleEnemy]; },
-        get zombie() {
-            // 僵尸地牢怪物池（动态导入避免循环依赖）
-            return [null]; // 占位，实际使用时从 zombie-dungeon.js 获取
-        }
+        get boss() { return [BlackWolf, CircleEnemy]; }
     },
 
     // 战斗奖励配置（已移除旧版倒计时，改为出口传送门）
@@ -140,9 +134,6 @@ export const CombatRoomSystem = {
     _combatMonsterKeys: [],
     _player: null,
 
-    // 出口传送门
-    _exitPortal: null,
-
     // 配置引用（从 data/dungeon-config.json 加载）
     config: createCombatRoomConfig(),
 
@@ -196,9 +187,6 @@ export const CombatRoomSystem = {
 
         // 4.5 地板装饰点缀（floor.deco 驱动：30% 地块随机场景道具，沼泽专用）
         this._spawnFloorDeco();
-
-        // 5. 清除可能残留的出口传送门
-        this.removeExitPortal();
 
         // 6. 确定玩家生成边并放置玩家
         const entranceEdge = this._rollEntranceEdge();
@@ -358,6 +346,11 @@ export const CombatRoomSystem = {
             let caveX = foreman.x, caveY = foreman.y;
             let found = false;
 
+            // 刷怪排除区（宝箱房：未开门的房内不刷矿洞，与 spawnMonsters 同款判定）
+            const exc = (typeof ChestRoomSystem !== 'undefined') ? ChestRoomSystem._exclusion : null;
+            const inExclusion = (x, y) => !!exc &&
+                Math.abs(x - exc.cx) / Math.max(1, exc.rx) + Math.abs(y - exc.cy) / Math.max(1, exc.ry) <= 1;
+
             // 尝试在工头周围找一个安全位置（可移动，不卡墙）
             for (let attempt = 0; attempt < 16 && !found; attempt++) {
                 const angle = (attempt / 16) * Math.PI * 2;
@@ -369,22 +362,27 @@ export const CombatRoomSystem = {
                     ? Math.abs(tx - bounds.cx) / Math.max(1, bounds.rx - caveRadius) + Math.abs(ty - bounds.cy) / Math.max(1, bounds.ry - caveRadius) <= 1
                     : (tx >= bounds.minX + caveRadius && tx <= bounds.maxX - caveRadius && ty >= bounds.minY + caveRadius && ty <= bounds.maxY - caveRadius);
                 if (!inRoom) continue;
+                // 排除区检查（宝箱房）
+                if (inExclusion(tx, ty)) continue;
                 // 碰撞检查
                 if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(tx, ty, caveRadius)) continue;
                 caveX = tx; caveY = ty; found = true;
             }
 
-            // 兜底：找不到就往场地中心方向收（保证在菱形内）
+            // 兜底：找不到就往场地中心方向收（保证在菱形内）；落入排除区则放弃本次生成
             if (!found) {
                 const dxc = bounds.cx - foreman.x, dyc = bounds.cy - foreman.y;
                 const dc = Math.hypot(dxc, dyc) || 1;
                 caveX = foreman.x + dxc / dc * minDist;
                 caveY = foreman.y + dyc / dc * minDist;
+                if (inExclusion(caveX, caveY)) return;
             }
 
             const cave = createMineCave(caveX, caveY);
             const key = `combat_minecave_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
             Game.entities.set(key, cave);
+            // 只登记 key（清场按 keys 删除），不进 _combatMonsters——矿洞是生成器，不应阻塞战斗完成判定
+            this._combatMonsterKeys.push(key);
             // 矿洞生成特效
             const spawnScene = typeof window !== 'undefined' ? window.__phaserScene : null;
             if (spawnScene && typeof spawnScene.playDungeonSpawnParticles === 'function') {
@@ -468,6 +466,12 @@ export const CombatRoomSystem = {
             WallGate.playClose();
             // 门外独立砖块：入场即生成（不再等战斗完成）
             this._spawnGateExitZone();
+        } else {
+            // 门闸放置失败（如贴图缺失）：把被替换的直墙件插回原位并重建碰撞，
+            // 避免墙上留无碰撞缺口（软锁——无出口）
+            WallSystem.isoVisuals.splice(bestIdx, 0, best);
+            WallSystem.rebuildIsoCollision();
+            if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
         }
     },
 
@@ -475,6 +479,41 @@ export const CombatRoomSystem = {
     openGate() {
         if (!WallGate.sprite) return;
         WallGate.playOpen();
+        // 门外白区光斑（大泛光+亮核，呼吸脉动；不进房门侧）——接线曾在重构中丢失，此处恢复
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const info = WallGate.getGateInfo();
+        if (scene && info && info.center && this._gateZone) {
+            GateLight.spawn(scene, info.center, null, { x: this._gateZone.cx, y: this._gateZone.cy });
+        }
+    },
+
+    /** 地板砖几何缓存：按贴图 alpha 扫描内容外接框（_spawnFloorDeco 先于 _spawnGateExitZone 执行，两处共用） */
+    _tileGeoFor(tileKey) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (!scene || !tileKey || !scene.textures.exists(tileKey)) return null;
+        if (!this._tileGeo) this._tileGeo = {};
+        if (!this._tileGeo[tileKey]) {
+            const srcImg = scene.textures.get(tileKey).getSourceImage();
+            const c = document.createElement('canvas');
+            c.width = srcImg.width;
+            c.height = srcImg.height;
+            const cx2 = c.getContext('2d');
+            cx2.drawImage(srcImg, 0, 0);
+            const data = cx2.getImageData(0, 0, c.width, c.height).data;
+            let minX = c.width, minY = c.height, maxX = -1, maxY = -1;
+            for (let y = 0; y < c.height; y++) {
+                for (let x = 0; x < c.width; x++) {
+                    if (data[(y * c.width + x) * 4 + 3] > 8) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+            this._tileGeo[tileKey] = { w: maxX - minX + 1, h: maxY - minY + 1, cx: (minX + maxX + 1) / 2, cy: (minY + maxY + 1) / 2 };
+        }
+        return this._tileGeo[tileKey];
     },
 
     /** 地板装饰点缀（floor.deco 驱动：按地块网格 30% 随机摆放场景道具，脚底 y 排序；仅配置了 deco 的地牢生效） */
@@ -494,7 +533,7 @@ export const CombatRoomSystem = {
         this._decoSprites = this._decoSprites || [];
         // 与地板平铺同网格（步进近似：砖宽-overlap / 半高-overlap）
         const tileKey = profile.tiles[0];
-        const geo = this._tileGeo && this._tileGeo[tileKey];
+        const geo = this._tileGeoFor(tileKey);
         const stepX = geo ? geo.w - (profile.overlapX ?? 0) : 380;
         const stepY = geo ? geo.h / 2 - (profile.overlapY ?? 0) : 110;
         for (let r = -2; r * stepY < d.worldH + 200; r++) {
@@ -534,28 +573,8 @@ export const CombatRoomSystem = {
             ? profile.tiles[0]
             : (scene.textures.exists('blackbrick_7') ? 'blackbrick_7' : 'blackbrick5');
         const srcImg = scene.textures.get(tileKey).getSourceImage();
-        if (!this._tileGeo) this._tileGeo = {};
-        if (!this._tileGeo[tileKey]) {
-            const c = document.createElement('canvas');
-            c.width = srcImg.width;
-            c.height = srcImg.height;
-            const cx2 = c.getContext('2d');
-            cx2.drawImage(srcImg, 0, 0);
-            const data = cx2.getImageData(0, 0, c.width, c.height).data;
-            let minX = c.width, minY = c.height, maxX = -1, maxY = -1;
-            for (let y = 0; y < c.height; y++) {
-                for (let x = 0; x < c.width; x++) {
-                    if (data[(y * c.width + x) * 4 + 3] > 8) {
-                        if (x < minX) minX = x;
-                        if (x > maxX) maxX = x;
-                        if (y < minY) minY = y;
-                        if (y > maxY) maxY = y;
-                    }
-                }
-            }
-            this._tileGeo[tileKey] = { w: maxX - minX + 1, h: maxY - minY + 1, cx: (minX + maxX + 1) / 2, cy: (minY + maxY + 1) / 2 };
-        }
-        const geo = this._tileGeo[tileKey];
+        const geo = this._tileGeoFor(tileKey);
+        if (!geo) return;
         const stepX = geo.w, stepY = geo.h / 2;
         // 以门洞中心为锚：沿外法线推出菱形外 + 40px 边距（不做晶格吸附，防止被拽回主场景）
         const d = this._diamond;
@@ -751,9 +770,6 @@ export const CombatRoomSystem = {
         // 清理门闸与门外白区/光束
         this.cleanupGate();
 
-        // 移除出口传送门
-        this.removeExitPortal();
-
         // 清理掉落物（金币、装备等）
         this.cleanupDrops();
 
@@ -766,9 +782,9 @@ export const CombatRoomSystem = {
                 Game.removeEntity(key);
             }
         }
-        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_，未进追踪列表的泄漏）
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工，未进追踪列表的泄漏）
         if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
-            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_');
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -784,7 +800,6 @@ export const CombatRoomSystem = {
         this._entranceEdge = null;
         this._oppositeEdge = null;
         this._player = null;
-        this._exitPortal = null;
 
         
     },
@@ -802,9 +817,9 @@ export const CombatRoomSystem = {
                 Game.removeEntity(key);
             }
         }
-        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_，未进追踪列表的泄漏）
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工，未进追踪列表的泄漏）
         if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
-            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_');
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -867,6 +882,12 @@ export const CombatRoomSystem = {
             WallSystem.isoVisuals = this._backupIsoVisuals ? [...this._backupIsoVisuals] : [];
             if (WallSystem.trees) {
                 WallSystem.trees = [...this._backupTrees];
+            }
+            // 重建等距墙碰撞：战斗房墙段（isoSegments/_iso 阶梯矩形）随战斗清理残留成幽灵碰撞，
+            // 按恢复后的 isoVisuals 全量重建（rebuildIsoCollision 保留 _gate/_chestGate 段，
+            // 但 cleanupGate 已先于本方法销毁门实体并摘除其线段，此处无门段可误留）
+            if (WallSystem.rebuildIsoCollision) {
+                WallSystem.rebuildIsoCollision();
             }
             if (WallSystem._syncWallsToPhaser) {
                 WallSystem._syncWallsToPhaser();
@@ -1135,37 +1156,6 @@ export const CombatRoomSystem = {
     },
 
     /**
-     * 战斗结束后在场地中央生成出口传送门
-     */
-    spawnExitPortal() {
-        if (this._exitPortal || !this._roomBounds) return null;
-        const bounds = this._roomBounds;
-        const portal = new CombatExitPortal(bounds.cx, bounds.cy);
-        this._exitPortal = portal;
-        const Game = gameRef();
-        if (Game && Game.entities) {
-            Game.entities.set('combat_exit_portal', portal);
-        }
-        // 使用浮动文字提示玩家
-        if (EffectManager && FloatingTextEffect) {
-            EffectManager.add(new FloatingTextEffect(bounds.cx, bounds.cy - 40, '出口传送门已开启', '#7a9aff'));
-        }
-        return portal;
-    },
-
-    /**
-     * 移除出口传送门
-     */
-    removeExitPortal() {
-        if (!this._exitPortal) return;
-        const Game = gameRef();
-        if (Game && Game.entities) {
-            Game.entities.delete('combat_exit_portal');
-        }
-        this._exitPortal = null;
-    },
-
-    /**
      * 清理所有掉落物（包括金币、装备等）并销毁对应 Phaser Sprite
      */
     cleanupDrops() {
@@ -1178,36 +1168,8 @@ export const CombatRoomSystem = {
             }
             Game.entities.delete(key);
         }
-    },
-
-    /**
-     * 获取当前出口传送门信息
-     */
-    getExitPortal() {
-        return this._exitPortal;
     }
 };
-
-/**
- * 战斗出口传送门（进入后离开战斗并清理当前地图）
- */
-class CombatExitPortal {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.radius = 40;
-        this.size = 30;
-        this.active = true;
-        this.noCollision = true;
-        this.pulseTimer = 0;
-        this.name = '出口传送门';
-        this.color = '#7a9aff';
-        this.noNameLabel = true;
-    }
-    update(dt) {
-        this.pulseTimer += dt / 1000;
-    }
-}
 
 // ==================== 便捷函数 ====================
 

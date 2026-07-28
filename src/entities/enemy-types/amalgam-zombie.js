@@ -1,12 +1,12 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
-import { EffectManager } from '../../effects/effect-manager.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
+import { hostilesOf } from './_shared/enemy-utils.js';
+import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireGroundShockwave } from '../../effects/combat-fx.js';
 
 /**
  * 集合体（AmalgamZombie，首领）
@@ -267,7 +267,7 @@ export class AmalgamZombie extends Enemy {
         this._playSound('slamHit');
         // 每个伤害帧释放一次冲击波（红色椭圆圈由中心扩散）
         this._fireSlamShockwave();
-        for (const e of this._hostiles(entities)) {
+        for (const e of hostilesOf(this, entities)) {
             for (const zone of zones) {
                 const shape = new GroundEllipse(this.x, this.y, zone.radius, zone.radius * PERSPECTIVE_SCALE_Y);
                 if (shape.intersectsEntity(e)) {
@@ -297,37 +297,23 @@ export class AmalgamZombie extends Enemy {
 
     _launchProjectile(tx, ty) {
         const cfg = this._getSkillConfigs().throw;
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add) {
-            // 无渲染场景时直接结算（防御性回退）
-            this._impactThrow(tx, ty);
-            return;
-        }
         const size = cfg.projectileSize || 48;
         const sx = this.x;
         const sy = this.y - (this.footOffsetY || 0);
-        const sprite = scene.add.sprite(sx, sy, 'enemy_amalgam_project');
-        sprite.setDisplaySize(size, size);
-        sprite.setDepth(this.y + 15);
-        this._throwSprite = sprite;
-        const arcH = cfg.arcHeight ?? 120;
-        const self = this;
-        scene.tweens.add({
-            targets: { t: 0 },
-            t: 1,
+        // 抛物线投射物（共享件；无 scene 时内部同步调 onImpact 回退，与原防御性回退一致）
+        const handle = launchArcProjectile({
+            textureKey: 'enemy_amalgam_project',
+            size,
+            sx, sy, tx, ty,
+            arcHeight: cfg.arcHeight ?? 120,
             duration: cfg.flyDuration ?? 600,
-            ease: 'Linear',
-            onUpdate(tw) {
-                const t = tw.getValue();
-                sprite.x = sx + (tx - sx) * t;
-                sprite.y = sy + (ty - sy) * t - arcH * 4 * t * (1 - t);
+            depth: this.y + 15,
+            onImpact: (ix, iy) => {
+                this._throwSprite = null;
+                this._impactThrow(ix, iy);
             },
-            onComplete() {
-                if (sprite.active) sprite.destroy();
-                if (self._throwSprite === sprite) self._throwSprite = null;
-                self._impactThrow(tx, ty);
-            }
         });
+        this._throwSprite = handle ? handle.sprite : null;
     }
 
     _impactThrow(tx, ty) {
@@ -338,7 +324,7 @@ export class AmalgamZombie extends Enemy {
         const atk = this.data?.atk || 0;
         // 落点椭圆范围伤害
         const shape = new GroundEllipse(tx, ty, radius, radius * PERSPECTIVE_SCALE_Y);
-        for (const e of this._hostiles()) {
+        for (const e of hostilesOf(this)) {
             if (shape.intersectsEntity(e)) {
                 e.takeDamage(atk * (cfg.damageMul ?? 1), this, 'physical', false);
             }
@@ -371,53 +357,21 @@ export class AmalgamZombie extends Enemy {
 
     _createWarning(x, y, radius) {
         this._destroyWarning();
-        // 红色椭圆警示（与 footprint 椭圆同 2:1 透视），逐帧保活至落地
-        const warn = new AttackRangeEffect(x, y, 0, radius, radius * PERSPECTIVE_SCALE_Y, 'ellipse', 100, 0.5, true);
-        warn.maxLife = 100;
-        EffectManager.add(warn);
-        this._throwWarning = warn;
+        // 红色椭圆警示（与 footprint 椭圆同 2:1 透视），逐帧保活至落地（共享件）
+        this._throwWarning = createGroundWarning(x, y, radius);
     }
 
     /**
      * 砸地冲击波：每次伤害判定时从集合体中心释放一个红色椭圆圈，
-     * 由中心扩散到最大伤害圈半径并淡出（平面透视 2:1，地面扩散方案）。
+     * 由中心扩散到最大伤害圈半径并淡出（共享件：600ms 闪烁扩散，depth y+50，平面透视 2:1）。
      */
     _fireSlamShockwave() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (!scene || !scene.add || !scene.tweens) return;
         const zones = this._getSkillConfigs().slam.zones || [];
         const maxRadius = zones.length ? Math.max(...zones.map(z => z.radius)) : 500;
-        const g = scene.add.graphics();
-        g.setDepth(this.y + 50);
+        const g = fireGroundShockwave({ x: this.x, y: this.y, maxRadius });
+        if (!g) return;
         if (!Array.isArray(this._slamZoneGraphics)) this._slamZoneGraphics = [];
         this._slamZoneGraphics.push(g);
-        const wave = { t: 0 };
-        const self = this;
-        scene.tweens.add({
-            targets: wave,
-            t: 1,
-            duration: 600,
-            ease: 'Cubic.easeOut',
-            onUpdate() {
-                const t = wave.t;
-                const r = Math.max(1, maxRadius * t);
-                g.clear();
-                // 闪烁：高频正弦叠加在淡出曲线上，冲击波呈脉冲感
-                const flicker = 0.55 + 0.45 * Math.sin(t * Math.PI * 8);
-                // 加粗冲击波描边（随扩散淡出 × 闪烁）+ 极淡填充
-                g.lineStyle(8, 0xff3030, (1 - t) * 0.9 * flicker);
-                g.strokeEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-                g.fillStyle(0xff4040, (1 - t) * 0.12 * flicker);
-                g.fillEllipse(self.x, self.y, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
-            },
-            onComplete() {
-                if (g.active) g.destroy();
-                if (Array.isArray(self._slamZoneGraphics)) {
-                    const idx = self._slamZoneGraphics.indexOf(g);
-                    if (idx >= 0) self._slamZoneGraphics.splice(idx, 1);
-                }
-            }
-        });
     }
 
     _destroySlamZoneDisplay() {
@@ -442,24 +396,13 @@ export class AmalgamZombie extends Enemy {
     }
 
     _refreshWarning() {
-        if (!this._throwWarning) return;
-        if (!this._throwWarning.active) {
-            this._throwWarning = null;
-            return;
-        }
-        this._throwWarning.life = this._throwWarning.maxLife;
+        // 投掷警示圈保活：每帧重置 life 续命；失效（active=false）时置 null（共享件）
+        if (!keepWarningAlive(this._throwWarning)) this._throwWarning = null;
     }
 
     _destroyWarning() {
-        if (this._throwWarning) {
-            this._throwWarning.active = false;
-            // 立即销毁 Phaser 图形：EffectManager 移除后不会再触发 update 的延迟销毁，
-            // 仅靠 active=false 会让警示圈永久残留（必须在落地事件中销毁）
-            if (typeof this._throwWarning._destroyPhaserGraphics === 'function') {
-                this._throwWarning._destroyPhaserGraphics();
-            }
-            this._throwWarning = null;
-        }
+        // 必须显式销毁 Phaser 图形：仅靠 active=false 会让警示圈永久残留（共享件收口）
+        this._throwWarning = destroyWarning(this._throwWarning);
     }
 
     // ========== 特殊技能：召唤 ==========
@@ -508,23 +451,6 @@ export class AmalgamZombie extends Enemy {
      */
     applyKnockback(_angle, _totalPx) {
         // 故意为空
-    }
-
-    _hostiles(entities) {
-        const list = Array.isArray(entities)
-            ? entities
-            : (entities ? Array.from(entities.values()) : []);
-        const src = list.length > 0
-            ? list
-            : (typeof window !== 'undefined' && window.Game && window.Game.entities
-                ? Array.from(window.Game.entities.values()) : []);
-        const out = [];
-        for (const e of src) {
-            if (!e || e === this || !e.active || !e.hittable) continue;
-            if (e._faction === this._faction) continue;
-            out.push(e);
-        }
-        return out;
     }
 
     // ========== 死亡 ==========

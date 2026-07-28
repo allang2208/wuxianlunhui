@@ -459,7 +459,17 @@ export class ZombieDungeonMapGenerator {
         // 最短路径房间数 = 起点 + 中间列 + Boss = 中间列 + 2；不足时扩展中间列
         // （多出的列按 typeRatios 生成战斗/事件，不改变强制战斗数）
         const minRoomsToBoss = cfg.minRoomsToBoss ?? (shortestCombatPath + 2);
-        const intermediateCols = Math.max(shortestCombatPath, minRoomsToBoss - 2);
+        // nodeCount 口径 = 玩家实际体验的总房间数（含宝箱岔路）。岔路在 _adjustNodeCount
+        // 之后才生成，这里按岔路计划数（条数×平均长度 2.5）预留预算，网格只凑剩余部分；
+        // 列数同步响应 gridMin——此前列数只看 shortestCombatPath/minRoomsToBoss
+        // （如高级 5 列×4 行，网格上限 23 节点），nodeCount.min 45~60 结构性不可达
+        const branchCount = (cfg.chestBranches && cfg.chestBranches.count) || 0;
+        const branchPlanned = Math.round(branchCount * 2.5); // 岔路每条 2~3 节点取均值
+        const gridMin = Math.max(minRoomsToBoss + 1, cfg.nodeCount.min - branchPlanned);
+        const gridMax = Math.max(gridMin, cfg.nodeCount.max - branchPlanned);
+        const intermediateCols = Math.max(shortestCombatPath, minRoomsToBoss - 2,
+            Math.ceil((gridMin - 3) / rows));
+        this._gridNodeTarget = { min: gridMin, max: gridMax };
         const combatStartCol = 1;
         const bossCol = combatStartCol + intermediateCols;
         const rewardCol = bossCol + 1;
@@ -647,8 +657,10 @@ export class ZombieDungeonMapGenerator {
      */
     _adjustNodeCount(intermediateRowSets, rows, mainRow) {
         const cfg = this._genCfg;
-        const min = cfg.nodeCount.min;
-        const max = cfg.nodeCount.max;
+        // 调整目标 = 网格部分预算（总 nodeCount 减岔路计划数，generate 中计算）
+        const target = this._gridNodeTarget || cfg.nodeCount;
+        const min = target.min;
+        const max = target.max;
         const fixedCount = 1 + 2; // 起点 + boss + reward
 
         const countNodes = () => fixedCount + intermediateRowSets.reduce((sum, rs) => sum + rs.selectedRows.length, 0);
@@ -796,7 +808,11 @@ export class ZombieDungeonCombat {
 
         const { monsterPool } = this.config;
         const monstersPerWave = this._encounter.monstersPerWave;
-        const composition = this._encounter.monsterComposition;
+        // waveComposition：逐波固定配比（2026-07-28 波次重构：普通战尾波定刷精英、精英战尾波定刷领主），
+        // 缺省回退全波共用 monsterComposition
+        const waveComp = Array.isArray(this._encounter.waveComposition)
+            ? this._encounter.waveComposition[this._currentWave - 1] : null;
+        const composition = waveComp || this._encounter.monsterComposition;
         const classes = [];
 
         // 怪物池 family 限定（配置 encounter.poolFamily，如中级 Boss 只刷僵尸类领主）；

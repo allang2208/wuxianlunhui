@@ -4,7 +4,7 @@
  * 流程：
  * 1. 精英战斗入场：按墙壁预制「宝箱房」（门墙×1 + 直墙×3，data/wall-prefabs.json）
  *    在场地正中央拼一间小菱形房，门墙常闭；房间区域注册为刷怪排除区
- * 2. 房间中央生成对应地牢等级的宝箱（E/D/C/B/A，贴图 chest_<grade>，192px）+ 上方 60s 倒计时
+ * 2. 房间中央生成对应地牢等级的宝箱（F/E/D/C/B/A，统一贴图 chest_closed，192px）+ 上方 60s 倒计时
  *    （白字黑描边无底色，最后 10s 同款）
  * 3. 倒计时内完成精英战斗 → 打开宝箱房门墙（播门闸 16 帧开门动画，门洞碰撞启停）；
  *    超时未完成 → 宝箱 1s 淡出消失，房门不再打开
@@ -24,7 +24,7 @@ const COUNTDOWN_SEC = 60;
 const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
 const GATE_ANIM_MS = 900;
 const CHEST_SOUND = 'assets/sounds/environment/chest_open.mp3';
-const GRADES = ['E', 'D', 'C', 'B', 'A'];
+const GRADES = ['F', 'E', 'D', 'C', 'B', 'A']; // 由低到高，F 级地牢可被事件强制精英战
 
 export const ChestRoomSystem = {
     active: false,
@@ -38,7 +38,7 @@ export const ChestRoomSystem = {
     _failed: false,     // 超时未打完：宝箱已淡出
     _fadeTween: null,
 
-    /** 地牢类型 → 宝箱等级（地牢 grade 即宝箱等级；F 不设精英事件不会出现） */
+    /** 地牢类型 → 宝箱等级（地牢 grade 即宝箱等级；奖励表见 combat-formulas.json treasureChest[F..A]） */
     _gradeFor(dungeonType) {
         const list = DungeonConfig.getDungeonList() || {};
         const g = (list[dungeonType] && list[dungeonType].grade) || 'D';

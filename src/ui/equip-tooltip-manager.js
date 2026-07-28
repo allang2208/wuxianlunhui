@@ -44,7 +44,7 @@ export const EquipTooltipManager = {
         if (!ttName || !ttType || !ttStats || !ttExtra || !ttDesc) return;
          // Cache bust
         // 从 CodexManager 合并完整的武器数据
-        const codexItem = (CodexManager && CodexManager.getItemByName) ? CodexManager.getItemByName(item.name) : null;
+        const codexItem = (CodexManager && CodexManager.getEquipByName) ? CodexManager.getEquipByName(item.name) : null;
         // 安全初始化 fullItem
         let fullItem = {};
         try {

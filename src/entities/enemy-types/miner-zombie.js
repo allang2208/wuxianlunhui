@@ -81,6 +81,14 @@ export class MinerZombie extends Enemy {
 
         super.update(dt, entities);
 
+        // 眩晕时中断攻击动作（同工头/提灯矿工：清攻击状态并停步，恢复后重新决策）
+        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+            this._attackTimer = 0;
+            this._attackAnimTimer = 0;
+            this.vx = 0; this.vy = 0; this.isMoving = false;
+            return;
+        }
+
         // 更新计时器
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;

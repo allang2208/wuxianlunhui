@@ -15,7 +15,6 @@ import { loadImage } from '../../utils/image-loader.js';
 import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
-import { WEAPON_DAMAGE_FORMULAS, calculateFallbackDamage } from '../../config/weapon-damage-formulas.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { getElement } from '../../utils/dom-utils.js';
@@ -39,15 +38,17 @@ import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { getTributeReviveRatio, getTributeExpMultiplier, syncTributeBuffs, getTributeMonsterAtkDownMul, getSurviveCapRatio } from '../../config/tribute-effects.js';
 
 const subsystemsMixin = {
-gainExp(amount) {
+gainExp(amount, expTag = null) {
                 if (amount <= 0) return;
                 // 天山雪莲特效：本次地牢经验获取加成
                 amount = Math.floor(amount * getTributeExpMultiplier());
                 if (amount <= 0) return;
                 const d = this.data;
                 d.exp += amount;
-                // 显示获得经验浮动文字
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, `+${amount} EXP`, '#ffd700'));
+                // 显示获得经验浮动文字（衰减灰/越级绿/连战紫标注，机制可见化）
+                const expColor = expTag === 'decay' ? '#b0a080' : (expTag === 'underdog' ? '#7ee787' : (expTag === 'streak' ? '#c9a0ff' : '#ffd700'));
+                const expSuffix = expTag === 'decay' ? '（衰减）' : (expTag === 'underdog' ? '（越级）' : (expTag === 'streak' ? '（连战）' : ''));
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, `+${amount} EXP${expSuffix}`, expColor));
                 // 检查升级（支持溢出连续升级）
                 while (d.exp >= d.maxExp) {
                     d.exp -= d.maxExp;
@@ -681,13 +682,15 @@ _clearSkillOverrides() {
             },
 
 triggerWhirlwind() {
-                if (this.whirlwindSystem) {
+                // 攻击动画锁定：任何一段攻击未播完前不触发
+                if (this.whirlwindSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                     this.whirlwindSystem.trigger();
                 }
             },
 
 triggerPushStrike() {
-                if (this.pushStrikeSystem) {
+                // 攻击动画锁定：任何一段攻击未播完前不触发
+                if (this.pushStrikeSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                     this.pushStrikeSystem.trigger();
                 }
             },
@@ -1587,7 +1590,9 @@ _fireRanged(hand = 'main') {
                         if (this.getCurrentWeaponAtk) {
                             weaponDamage = this.getCurrentWeaponAtk();
                         } else {
-                            weaponDamage = calculateFallbackDamage(attackKey, this.data) || WEAPON_DAMAGE_FORMULAS.akm(this.data);
+                            // 防御分支（玩家侧永不触发：base.js 必定义 getCurrentWeaponAtk）——
+                            // 原 weapon-damage-formulas.js 硬编码第二套公式已删除，统一公式源为 attack-formula.js
+                            weaponDamage = 0;
                         }
                         const damage = { min: weaponDamage, max: weaponDamage };
 
@@ -1662,7 +1667,8 @@ _fireRanged(hand = 'main') {
                             if (this.getCurrentWeaponAtk) {
                                 weaponDamage = this.getCurrentWeaponAtk();
                             } else {
-                                weaponDamage = calculateFallbackDamage('shotgun', this.data);
+                                // 防御分支（玩家侧永不触发）——原 weapon-damage-formulas.js 硬编码回退已删除
+                                weaponDamage = 0;
                             }
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）
