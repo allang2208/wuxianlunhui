@@ -258,6 +258,9 @@ const weaponAnimMixin = {
         // 防止同一手重复启动 Tween：只有当前没在攻击动画中才启动
         if (anim.state === 'attacking') return;
 
+        // 新攻击启动：清除上一段的定格保持窗口
+        this._attackHoldUntil = 0;
+
         anim.isAttacking = true;
         anim.state = 'attacking';
 
@@ -285,9 +288,9 @@ const weaponAnimMixin = {
         const wacCfg = WeaponAnimConfig[weaponType];
         const perFrameCfg = wacCfg?.attack;
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
-            // 连段：上一段攻击结束后 1000ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
+            // 连段：上一段攻击结束后 500ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
             // 二段素材未加载（纹理缺失）时自动回退一段；后续三段突刺加入只需扩展此数组
-            const COMBO_WINDOW_MS = 1000;
+            const COMBO_WINDOW_MS = 500;
             const now = performance.now();
             const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= COMBO_WINDOW_MS;
             let stage = chained ? ((this._meleeComboStage || 1) % 2) + 1 : 1;
@@ -297,6 +300,16 @@ const weaponAnimMixin = {
                 animKey = 'attack_sword';
             }
             if (hand === 'main') this._meleeComboStage = stage;
+            // 命中判定配置：一段读 attack 块，二段读 attack2 块（缺失回退 attack）。
+            // 帧号换算 progress 阈值 = (frame-1)/(frames.length-1)，不写死帧数；
+            // 无 hitCheck 配置时回退旧的 500ms 连续判定窗口
+            const stageCfg = (stage === 2 && wacCfg.attack2) ? wacCfg.attack2 : perFrameCfg;
+            const hitCheckCfg = stageCfg.hitCheck || null;
+            let hitCheckThreshold = null;
+            if (hitCheckCfg && typeof hitCheckCfg.frame === 'number' && stageCfg.frames && stageCfg.frames.length > 1) {
+                hitCheckThreshold = (hitCheckCfg.frame - 1) / (stageCfg.frames.length - 1);
+            }
+            let hitChecked = false;
             // 时长必须按逐帧时长求和优先（getPlayerAnimDurationMs 认识 frameDurations/frameWeights）——
             // Phaser Animation.duration 只按 frameRate 派生（30帧@12fps=2500ms），与逐帧时长实际播放
             // （30×50ms=1500ms）不一致，会导致武器轨迹进度比人物贴图慢（"慢半拍"）
@@ -320,6 +333,11 @@ const weaponAnimMixin = {
                 scene.setPlayerAnimation(animKey, tweenDuration);
             }
 
+            // 挥砍音效：攻击动画开始时播放（块配置 sound 字段，一段/二段可不同）
+            if (stageCfg.sound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                SoundManager.playFile(stageCfg.sound);
+            }
+
             const attackTween = scene.tweens.add({
                 targets: { progress: 0 },
                 progress: 1,
@@ -328,13 +346,18 @@ const weaponAnimMixin = {
                 onStart: function() {
                     if (self._pendingThrust) self._pendingThrust.active = true;
                 },
-                onUpdate: function() {
-                    if (self._pendingThrust && self._pendingThrust.active) {
-                        if (Date.now() - self._pendingThrust.startTime <= 500) {
-                            self.attacks.melee.checkTriangleHit(self);
-                        } else {
-                            self._pendingThrust.active = false;
+                onUpdate: function(tween) {
+                    if (!self._pendingThrust || !self._pendingThrust.active) return;
+                    if (hitCheckThreshold !== null) {
+                        // 一次性判定：progress 首次达到 hitCheck 帧阈值时按形状判定（一段矩形/二段扇形）
+                        if (!hitChecked && tween.targets[0].progress >= hitCheckThreshold) {
+                            hitChecked = true;
+                            self.attacks.melee.checkStageHit(self, hitCheckCfg);
                         }
+                    } else if (Date.now() - self._pendingThrust.startTime <= 500) {
+                        self.attacks.melee.checkTriangleHit(self);
+                    } else {
+                        self._pendingThrust.active = false;
                     }
                 },
                 onComplete: function() {
@@ -342,9 +365,10 @@ const weaponAnimMixin = {
                     anim.state = 'idle';
                     if (hand === 'main') {
                         self._lastMeleeAttackEnd = performance.now(); // 连段窗口起点
-                        // 攻击后定格保持：连段窗口内定格末帧（移动/新攻击取消；窗口结束播 recover 收势）
+                        // 攻击后定格保持：定格 0.5s（=连段判定窗口）——
+                        // 定格期间武器朝向绑定身体 flipX（身体冻结故武器冻结），超时播 recover 收势
                         self._attackHoldAnimKey = animKey;
-                        self._attackHoldUntil = self._lastMeleeAttackEnd + COMBO_WINDOW_MS;
+                        self._attackHoldUntil = self._lastMeleeAttackEnd + 500;
                     }
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;

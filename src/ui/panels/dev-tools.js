@@ -291,6 +291,10 @@ export function createDevToolPanel() {
         { label: '屏幕偏移Y:', id: 'devToolOffY', value: '0', step: '1' },
         { label: 'Rotation:', id: 'devToolRot', value: '0', step: '1' },
         { label: 'Scale:', id: 'devToolScl', value: '1', step: '0.1' },
+        { label: '模糊X:', id: 'devToolBlurX', value: '0', step: '0.5' },
+        { label: '模糊Y:', id: 'devToolBlurY', value: '0', step: '0.5' },
+        { label: '拉伸X:', id: 'devToolStrX', value: '1', step: '0.01' },
+        { label: '拉伸Y:', id: 'devToolStrY', value: '1', step: '0.01' },
     ];
     controlRows.forEach(({ label, id, value, step }) => {
         const row = document.createElement('div');

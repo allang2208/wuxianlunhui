@@ -2,6 +2,30 @@
 
 ## 版本: 1.6
 
+## 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
+
+### 本次完成（V0.291~V0.302）
+1. **近战连段体系**：一段（attack_sword 8帧）→ 定格 0.5s（连段窗口）→ 二段（attack_sword_2 30帧/1.5s）→ recover 收势（13帧/0.33s）→ idle。攻击期输入全锁（移动/闪避/新攻击/切武器/冲刺/特殊攻击）；移动立即取消定格/收势。
+2. **朝向硬绑定（结构级）**：近战武器朝向一律 = `playerSprite.flipX`（身体是唯一权威）——攻击逐帧/定格/收势滑行/idle/副手全部直接读身体 flipX，独立朝向判定已删除。教训：setPlayerAnimation 曾用 _facingDir（45° 边界）与武器的 ±0.05 滞回（87° 边界）冲突；`_attackHoldFacingRight` 捕获在连段时泄漏（二段沿用一段朝向）——双重教训后统一为身体 flipX 单源。
+3. **攻击范围重构（配置驱动）**：`sword.attack.hitCheck { frame:22, shape:'rect', knockback:50 }`（一段矩形：宽恒定、长=武器 attack.range、第 22 帧判定）/`sword.attack2.hitCheck { frame:15, shape:'sector', arcDeg:120, knockback:75, damageMul:1.5 }`（二段扇形：footprint 相交、击退 75px、伤害×1.5、第 15 帧判定）。攻击方向固定玩家左右两侧（鼠标只选左右）。
+4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（Phaser 4 滤镜方向模糊，**必须先 `enableFilters()`**，否则静默无效）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
+5. **贴图标准化管线**：武器贴图统一"内容宽比 + 中心分数"归一（AKM 基准 0.915/(0.500,0.543)，PKM 0.907/(0.496,0.543)）——AKM/201/Super90 已重制替换，枪口 muzzle 配置对齐；归一后尺寸=显示缩放×内容占比，"和 AKM 一样大"即同分母同占比。
+6. **冲刺攻击动画**：`dash_attack` 17 帧 sheet（素材 attack-2.png 归一），trigger 时播放（timeScale 拉伸到技能 totalMs）；位移窗口帧驱动（前 12 帧位移、13~17 静止，`effect.moveFrames` 可覆盖）。
+7. **其他**：挥砍音效起手播放（块配置 sound 字段）；弹壳落地留存 3s；子弹胶囊化（短粗椭圆+提亮）；双持副手开火位 offhandOffsetY 配置；右键瞄准打断奔跑（与开火同口径）；`spriteOffsetX/Y` 贴图独立偏移（只动贴图不动手臂/弹道）；人物+武器整体 +20%（spriteSize 144 / WEAPON_ANIM.size 126，碰撞与偏移不变）。
+
+### 关键改动文件
+- `src/combat/attack.js`（checkStageHit/扇形/击退/固定左右）、`src/entities/player/weapon-anim.js`（连段/音效/hitCheck 触发）、`src/phaser/scenes/GameScene.js`（朝向绑定/收势滑行/模糊滤镜/spriteOffset/深度帧）
+- `src/entities/components/dash-system.js`（冲刺动画+位移帧窗口）、`src/combat/projectile.js`（胶囊弹）、`src/phaser/scenes/BootScene.js`（胶囊贴图）
+- `src/ui/dev-tool.js` + `panels/dev-tools.js`（模糊拉伸输入/固定点/attack2 页/直写保存/zoom 坐标）
+- `public/data/weapon-anim-config.json`（hitCheck/特效帧字段/击退/offhand/spriteOffset）、`data|public/data/player-anim-config.json`（attack_sword_2/recover/dash_attack）
+
+### 验证状态
+- lint 0 error、vite build、test-collider、test-craft-sync 持续全过
+- 实机已确认：挥砍模糊生效（fxlog 取证）、朝向绑定（facelog 取证）、攻击范围帧判定
+- 未提交批次：V0.291~V0.302 全部在本提交
+
+---
+
 ## 阶段性进度总结（2026-07-28：经验系统重构一期——pacing 闭环 + 压级衰减）
 
 ### 本次完成（方案经用户验收；二轮：pacingRuns 2.5→5.0 经验效率减半）
@@ -188,8 +212,9 @@
 
 ### 6. 武器贴合调参（左下开发面板）
 - **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。**拆帧无配置时自动播种 30 帧同一基线位置（2026-07-27）**，进入攻击页即可开调；右上角重置键 = 一键把当前动画恢复初始状态（attack=全帧回种子基线，其他=恢复已保存配置；种子只改内存，💾保存才落盘）。
-- **朝向翻转（2026-07-27 统一）**：一切"身体/武器/锚点左右翻转"判定走 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`），禁止另起 |rotation|<π/2 或 _facingDir 判翻转。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
+- **朝向翻转（2026-07-27 终极绑定）**：**近战武器朝向一律 = `playerSprite.flipX`**（身体是唯一权威，V0.296 起）——攻击逐帧/定格/收势滑行/idle/walk/副手全部直接读身体 flipX，禁止任何独立的武器朝向判定/捕获；身体 flipX 由 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`）驱动，攻击/定格/收势期间身体冻结故武器自然冻结。枪械走 twist 面向（±0.05 同源语义）。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
 
+- **挥砍特效 A+B（2026-07-27）**：perFrame 帧数据可加 `blurX/blurY`（Phaser 4 内置方向高斯模糊，`weaponSprite.filters.internal.addBlur`，≤0.05 关闭）与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。面板预览模糊是 canvas filter 近似（游戏内为方向性）。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
 - **近战连段与收势（2026-07-27）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口 1000ms）——窗口内定格末帧等待连段（stage 1↔2，`attack_sword`/`attack_sword_2`，武器轨迹按 `_meleeComboStage` 选 attack/attack2 块）；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。新段（如三段突刺）：加 `attack_sword_3` 姿态+weapon-anim 轮换数组扩展+attack3 轨迹块。
 
@@ -759,12 +784,9 @@ _getPhaserOptions() {
 
 ---
 
-## 遭遇导演（2026-07-21 新增，新遭遇优先走配置表）
+## 遭遇导演（2026-07-28 移除：零调用的预留抽象）
 
-新增战斗遭遇（伏击/突袭/增援等）时**优先走遭遇导演**，不要在系统里硬编码构成：
-- 配置表 `data/encounter-table.json`：每条遭遇 `{ kind, source }`——kind 决定执行后端（waves 波次 / invasion 特工入侵 / boss / custom）；
-- `src/world/encounter-director.js`：`resolveComposition(spec, ctx)` 统一构成解析——`{tier:数量}` 按怪物池分层抽取（可 poolFamily 限定家族），`[角色键...]` 按 ROLE_FACTORIES 固定构成；`registerKind` 注册新遭遇类型处理器；
-- 现有后端（ZombieDungeonCombat/AgentInvasionSystem/BossRewardSystem）不重写，由导演统一路由；特工入侵的构成解析已接入导演。
+`encounter-director.js` 的 `start/registerKind/encounter-table.json` 自 2026-07-21 引入起**始终零调用**（地牢遭遇由 DungeonConfig.getZombieEncounterConfig 承担且工作良好），已删除；唯一有消费方的构成解析（角色键数组→工厂数组）已内联进 `agent-invasion-system.js`（ROLE_FACTORIES + resolveComposition）。**教训：预留抽象如果没有第二个真实消费方，先不要建；需要时按 GroundZone/combat-fx 的"先有 3 处重复再抽"模式来。**
 
 ---
 
@@ -804,6 +826,14 @@ _getPhaserOptions() {
 - `burstParticles({texture,x,y,count,config,destroyAfterMs,jitter,depth})` 一次性粒子爆发（(0,0) 陷阱收口；impact_dot 懒生成兜底内建）。
 - `fireRadialBurst({x,y,count,color,duration,perspective,...})` 随机放射爆裂线（符文剑命中爆裂共享化；perspective 控制正圆/透视椭圆）。
 已迁移：集合体/矿石蜘蛛/提灯/突击特工/手脑/蝇手/胖子僵尸（净删 306 行）。`_hostiles` 重复实现已全部换 `hostilesOf`（amalgam/shounao/fly-hand 遗留 3 处已迁）。火球/冰锥爆炸与飞行尾迹已粒子化（2026-07-28 二轮）：火球爆炸=冲击波圈+ADD 火焰爆发+烟尘余韵，冰锥碎裂=冰屑（重力）+小冰环。符文长剑右键特殊攻击已迁入（三轮）：命中爆裂 RuneSwordExplodeEffect → fireRadialBurst（旧类已删），飞剑补蓝色能量尾迹。
+
+## 持续区域特效基类 GroundZone（2026-07-28，毒雾/酸液新区域一律按此开展）
+
+`src/effects/ground-zone.js`（自提灯燃烧区抽出的模板）：三层分离（底面 NORMAL 贴花 growMs 扩散+呼吸 / 反光 ADD 描边错相位呼吸 / 区域粒子簇 (0,0) 陷阱收口）+ 生命周期（timer/tickTimer/oilFrac/flameTimer）自管。**伤害逻辑由调用方 onTick(zone, entities) 回调提供**（读自己的 matk/公式，基类不管数值）；底面/反光/粒子参数全可配（毒雾=绿 tint、酸液=黄绿即可复用）。调用方持有 zones 数组：update 中 `if (!zone.update(dt, entities)) splice`，`_destroyCustomEffects` 中 `zone.destroy()`。已迁移：提灯燃烧区（-152 行）。
+
+## 法系投射物技能系统（2026-07-28，火球/冰锥合并）
+
+`src/entities/components/bolt-skill-system.js` 基类（凝聚悬浮→发射→直线飞行预判/撞墙/命中统一流程），差异全部 kind 配置驱动：fields（状态字段名，GameScene/快捷栏按现有字段读取不可改）/ makeProjectiles / anim / trail / onImpact / onMaxRange。`fireball-system.js`/`ice-spike-system.js` 降为 ~120 行 kind 封装（-516 行）。**注意：命中循环不 break——冰锥同帧多目标结算是原版行为（准穿透），新 kind 的 onImpact 自行处置投射物 active。**新法系技能 = 写一份 kind 配置即可。
 
 **适用场景**：地面燃烧区、油池+火焰、毒雾、酸液等地表区域特效。**范例**：`lantern-miner-zombie.js` 的提灯攻击（矿灯抛物线 → 落地油脂扩散 → 火焰成簇喷发 → 周期性魔法伤害）。
 

@@ -364,7 +364,15 @@ class WeaponTransform {
         const scales = perFrame.map(f => f.scale !== undefined ? f.scale : 1);
         const scale = this._lerpPerFrame1D(scales, progress);
 
-        return this._applyPerFrameToWorld(player, { offsetX: pos.x, offsetY: pos.y, rotation: rotation * 180 / Math.PI, scale }, facingRight);
+        // 运动模糊（blurX/blurY，缺省 0）与拉伸（stretchX/stretchY，缺省 1）：线性插值
+        // 挥砍峰值帧模糊最强，起势/收势清晰（A 方案帧级运动模糊 + B 方案挥砍拉伸）
+        const lerpOpt = (key, def) => this._lerpPerFrame1D(perFrame.map(f => f[key] !== undefined ? f[key] : def), progress);
+
+        return this._applyPerFrameToWorld(player, {
+            offsetX: pos.x, offsetY: pos.y, rotation: rotation * 180 / Math.PI, scale,
+            blurX: lerpOpt('blurX', 0), blurY: lerpOpt('blurY', 0),
+            stretchX: lerpOpt('stretchX', 1), stretchY: lerpOpt('stretchY', 1),
+        }, facingRight);
     }
 
     /**
@@ -418,6 +426,10 @@ class WeaponTransform {
             y: player.y + offsetY - this._getFootOffsetY(player),
             rotation,
             scale: frame.scale !== undefined ? frame.scale : 1,
+            blurX: frame.blurX || 0,
+            blurY: frame.blurY || 0,
+            stretchX: frame.stretchX !== undefined ? frame.stretchX : 1,
+            stretchY: frame.stretchY !== undefined ? frame.stretchY : 1,
         };
     }
 

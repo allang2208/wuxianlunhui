@@ -9,7 +9,8 @@ class ShellCasingEffect {
      */
     constructor(x, y, angle, groundY) {
         this.x = x; this.y = y; this.angle = angle;
-        this.life = 800; this.maxLife = 800; this.active = true;
+        // 弹壳落地留存 3s（含末尾 ~0.2s 淡出，alpha 由 life/200 驱动）
+        this.life = 3000; this.maxLife = 3000; this.active = true;
         if (!ShellCasingEffect._sharedImage) { ShellCasingEffect._sharedImage = loadImage('assets/ammo/shell_ground.png'); }
         this.image = ShellCasingEffect._sharedImage;
         this._sprite = null;

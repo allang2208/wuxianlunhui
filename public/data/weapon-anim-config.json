@@ -47,7 +47,8 @@
       "x": 0.92,
       "y": 0.28,
       "forward": 11,
-      "up": 1
+      "up": 1,
+      "offhandOffsetY": 2
     },
     "bobWeaponScale": 2
   },
@@ -86,7 +87,8 @@
       "x": 0.92,
       "y": 0.43,
       "forward": 11,
-      "up": 1
+      "up": 1,
+      "offhandOffsetY": 2
     },
     "rotOffset": -6
   },
@@ -125,13 +127,14 @@
       "x": 0.92,
       "y": 0.35,
       "forward": 11,
-      "up": 1
+      "up": 1,
+      "offhandOffsetY": 2
     },
     "bobWeaponScale": 2
   },
   "akm": {
     "holdOffsetX": -64,
-    "holdOffsetY": -4,
+    "holdOffsetY": -6,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -148,13 +151,13 @@
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -171,7 +174,7 @@
   },
   "pkm": {
     "holdOffsetX": -64,
-    "holdOffsetY": -4,
+    "holdOffsetY": -6,
     "timingMul": 0.1,
     "animType": "recoil",
     "recoilAmount": 0.12,
@@ -194,13 +197,13 @@
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -211,7 +214,7 @@
   },
   "qbz191": {
     "holdOffsetX": -64,
-    "holdOffsetY": 1,
+    "holdOffsetY": -6,
     "timingMul": 0.07,
     "animType": "recoil",
     "recoilAmount": 0.1,
@@ -234,13 +237,13 @@
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": 1,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": 1,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -248,11 +251,11 @@
       "x": 0.96,
       "y": 0.38
     },
-    "aimAdjustY": 5
+    "spriteOffsetY": 5
   },
   "qjb201": {
     "holdOffsetX": -64,
-    "holdOffsetY": -4,
+    "holdOffsetY": -6,
     "timingMul": 0.06,
     "animType": "recoil",
     "recoilAmount": 0.08,
@@ -275,24 +278,24 @@
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "muzzle": {
       "x": 0.96,
-      "y": 0.62
+      "y": 0.52
     }
   },
   "energy_lmg": {
     "holdOffsetX": -64,
-    "holdOffsetY": -4,
+    "holdOffsetY": -6,
     "timingMul": 0.25,
     "animType": "recoil",
     "recoilAmount": 0.1,
@@ -315,13 +318,13 @@
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
@@ -332,7 +335,7 @@
   },
   "shotgun": {
     "holdOffsetX": -64,
-    "holdOffsetY": -4,
+    "holdOffsetY": -6,
     "timingMul": 0.5,
     "animType": "recoil",
     "recoilAmount": 0.15,
@@ -355,19 +358,19 @@
     },
     "idle": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
-      "holdOffsetY": -4,
+      "holdOffsetY": -6,
       "idleRotation": 0,
       "idleScale": 1
     },
     "muzzle": {
       "x": 0.96,
-      "y": 0.35
+      "y": 0.52
     }
   },
   "sword": {
@@ -402,373 +405,627 @@
     },
     "attack": {
       "type": "perFrame",
+      "hitCheck": {
+        "frame": 22,
+        "shape": "rect",
+        "knockback": 50
+      },
       "frames": [
         {
           "offsetX": 17,
           "offsetY": 7,
           "rotation": 110,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 3,
+          "stretchX": 1.048,
+          "stretchY": 1
         },
         {
           "offsetX": 17,
           "offsetY": 1,
           "rotation": 100,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 3.6,
+          "stretchX": 1.06,
+          "stretchY": 1
         },
         {
           "offsetX": 20,
           "offsetY": -6,
           "rotation": 85,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 8.4,
+          "stretchX": 1.136,
+          "stretchY": 1
         },
         {
           "offsetX": 18,
           "offsetY": -23,
           "rotation": 65,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.08,
+          "stretchY": 1
         },
         {
           "offsetX": 12,
           "offsetY": -31,
           "rotation": 45,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 3,
+          "stretchX": 1.074,
+          "stretchY": 1
         },
         {
           "offsetX": 5,
           "offsetY": -37,
           "rotation": 25,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 8.4,
+          "stretchX": 1.138,
+          "stretchY": 1
         },
         {
           "offsetX": 2,
           "offsetY": -54,
           "rotation": 15,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 1.6,
+          "stretchX": 1.06,
+          "stretchY": 1
         },
         {
           "offsetX": -5,
           "offsetY": -51,
           "rotation": 0,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 1,
+          "stretchX": 1.058,
+          "stretchY": 1
         },
         {
           "offsetX": -12,
           "offsetY": -53,
           "rotation": -10,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 7.6,
+          "blurY": 4,
+          "stretchX": 1.136,
+          "stretchY": 1
         },
         {
           "offsetX": -27,
           "offsetY": -61,
           "rotation": -10,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 0,
+          "stretchX": 1.064,
+          "stretchY": 1
         },
         {
           "offsetX": -35,
           "offsetY": -61,
           "rotation": -25,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 2.4,
+          "stretchX": 1.062,
+          "stretchY": 1
         },
         {
           "offsetX": -41,
           "offsetY": -56,
           "rotation": -40,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 11,
+          "blurY": 6.4,
+          "stretchX": 1.204,
+          "stretchY": 1
         },
         {
           "offsetX": -19,
           "offsetY": -69,
           "rotation": -40,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 2,
+          "stretchX": 1.036,
+          "stretchY": 1
         },
         {
           "offsetX": -21,
           "offsetY": -65,
           "rotation": -50,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 3,
+          "stretchX": 1.08,
+          "stretchY": 1
         },
         {
           "offsetX": -13,
           "offsetY": -71,
           "rotation": -25,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.08,
+          "stretchY": 1
         },
         {
           "offsetX": -7,
           "offsetY": -63,
           "rotation": -45,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 9.6,
+          "blurY": 5.6,
+          "stretchX": 1.176,
+          "stretchY": 1
         },
         {
           "offsetX": 12,
           "offsetY": -74,
           "rotation": 0,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 8.4,
+          "blurY": 2.4,
+          "stretchX": 1.142,
+          "stretchY": 1
         },
         {
           "offsetX": 29,
           "offsetY": -69,
           "rotation": 35,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 12,
+          "blurY": 11.6,
+          "stretchX": 1.24,
+          "stretchY": 1
         },
         {
           "offsetX": 53,
           "offsetY": -46,
           "rotation": 35,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 1.6,
+          "stretchX": 1.034,
+          "stretchY": 1
         },
         {
           "offsetX": 56,
           "offsetY": -43,
           "rotation": 50,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 2.4,
+          "blurY": 5,
+          "stretchX": 1.09,
+          "stretchY": 1
         },
         {
           "offsetX": 61,
           "offsetY": -33,
           "rotation": 70,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4.4,
+          "blurY": 12,
+          "stretchX": 1.24,
+          "stretchY": 1
         },
         {
           "offsetX": 70,
           "offsetY": -3,
           "rotation": 70,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 3.6,
+          "stretchX": 1.056,
+          "stretchY": 1
         },
         {
           "offsetX": 69,
           "offsetY": 4,
           "rotation": 85,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 6,
+          "stretchX": 1.096,
+          "stretchY": 1
         },
         {
           "offsetX": 70,
           "offsetY": 16,
           "rotation": 110,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.018,
+          "stretchY": 1
         },
         {
           "offsetX": 69,
           "offsetY": 18,
           "rotation": 115,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 1.6,
+          "stretchX": 1.04,
+          "stretchY": 1
         },
         {
           "offsetX": 65,
           "offsetY": 21,
           "rotation": 125,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 1,
+          "stretchX": 1.016,
+          "stretchY": 1
         },
         {
           "offsetX": 65,
           "offsetY": 23,
           "rotation": 130,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 0,
+          "stretchX": 1.008,
+          "stretchY": 1
         },
         {
           "offsetX": 64,
           "offsetY": 23,
           "rotation": 130,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0,
+          "stretchX": 1,
+          "stretchY": 1
         },
         {
           "offsetX": 64,
           "offsetY": 23,
           "rotation": 130,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.018,
+          "stretchY": 1
         },
         {
           "offsetX": 65,
           "offsetY": 21,
           "rotation": 125,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.018,
+          "stretchY": 1
         }
-      ]
+      ],
+      "sound": "assets/sounds/weapons/sword_swing_1.mp3"
     },
     "attack2": {
       "type": "perFrame",
+      "hitCheck": {
+        "frame": 15,
+        "shape": "sector",
+        "arcDeg": 120,
+        "knockback": 75,
+        "damageMul": 1.5
+      },
       "frames": [
         {
           "offsetX": 63,
           "offsetY": 22,
           "rotation": 125,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4.5,
+          "blurY": 4.0,
+          "stretchX": 1.096,
+          "stretchY": 1.0
         },
         {
           "offsetX": 72,
           "offsetY": 14,
           "rotation": 100,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 1.5,
+          "stretchX": 1.034,
+          "stretchY": 1.0
         },
         {
           "offsetX": 69,
           "offsetY": 11,
           "rotation": 100,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 4.5,
+          "stretchX": 1.076,
+          "stretchY": 1.0
         },
         {
           "offsetX": 66,
           "offsetY": 20,
           "rotation": 120,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 11.0,
+          "blurY": 3.0,
+          "stretchX": 1.182,
+          "stretchY": 1.0
         },
         {
           "offsetX": 44,
           "offsetY": 26,
           "rotation": 145,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 6.5,
+          "blurY": 3.0,
+          "stretchX": 1.115,
+          "stretchY": 1.0
         },
         {
           "offsetX": 31,
           "offsetY": 32,
           "rotation": 165,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 8.0,
+          "blurY": 2.5,
+          "stretchX": 1.134,
+          "stretchY": 1.0
         },
         {
           "offsetX": 15,
           "offsetY": 27,
           "rotation": 185,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 9.0,
+          "blurY": 4.0,
+          "stretchX": 1.158,
+          "stretchY": 1.0
         },
         {
           "offsetX": -3,
           "offsetY": 19,
           "rotation": 225,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 8.0,
+          "blurY": 4.5,
+          "stretchX": 1.147,
+          "stretchY": 1.0
         },
         {
           "offsetX": -19,
           "offsetY": 10,
           "rotation": 245,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 5.0,
+          "blurY": 4.5,
+          "stretchX": 1.108,
+          "stretchY": 1.0
         },
         {
           "offsetX": -29,
           "offsetY": 1,
           "rotation": 260,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 2.5,
+          "blurY": 6.0,
+          "stretchX": 1.104,
+          "stretchY": 1.0
         },
         {
           "offsetX": -34,
           "offsetY": -11,
           "rotation": 275,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.0,
+          "stretchX": 1.008,
+          "stretchY": 1.0
         },
         {
           "offsetX": -33,
           "offsetY": -11,
           "rotation": 275,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 3.0,
+          "blurY": 3.5,
+          "stretchX": 1.074,
+          "stretchY": 1.0
         },
         {
           "offsetX": -39,
           "offsetY": -18,
           "rotation": 275,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 12.0,
+          "blurY": 12.0,
+          "stretchX": 1.24,
+          "stretchY": 1.0
         },
         {
           "offsetX": 1,
           "offsetY": 19,
           "rotation": 220,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 12.0,
+          "blurY": 0.0,
+          "stretchX": 1.24,
+          "stretchY": 1.0
         },
         {
           "offsetX": 77,
           "offsetY": 19,
           "rotation": 135,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4.0,
+          "blurY": 11.5,
+          "stretchX": 1.195,
+          "stretchY": 1.0
         },
         {
           "offsetX": 85,
           "offsetY": -4,
           "rotation": 100,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 5.0,
+          "stretchX": 1.08,
+          "stretchY": 1.0
         },
         {
           "offsetX": 86,
           "offsetY": -14,
           "rotation": 80,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.0,
+          "blurY": 0.0,
+          "stretchX": 1.0,
+          "stretchY": 1.0
         },
         {
           "offsetX": 86,
           "offsetY": -14,
           "rotation": 75,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.0,
+          "blurY": 0.0,
+          "stretchX": 1.0,
+          "stretchY": 1.0
         },
         {
           "offsetX": 86,
           "offsetY": -14,
           "rotation": 70,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 0.0,
+          "blurY": 0.0,
+          "stretchX": 1.0,
+          "stretchY": 1.0
         },
         {
           "offsetX": 86,
           "offsetY": -14,
           "rotation": 65,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 11.0,
+          "blurY": 9.5,
+          "stretchX": 1.233,
+          "stretchY": 1.0
         },
         {
-          "offsetX": 77,
-          "offsetY": -29,
-          "rotation": 50,
-          "scale": 1.5
-        },
-        {
-          "offsetX": 77,
-          "offsetY": -29,
+          "offsetX": 64,
+          "offsetY": -33,
           "rotation": 45,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 7.0,
+          "blurY": 4.0,
+          "stretchX": 1.129,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 78,
+          "offsetY": -25,
+          "rotation": 60,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 2.5,
+          "stretchX": 1.041,
+          "stretchY": 1.0
         },
         {
           "offsetX": 77,
-          "offsetY": -29,
-          "rotation": 40,
-          "scale": 1.5
-        },
-        {
-          "offsetX": 72,
-          "offsetY": -32,
-          "rotation": 35,
-          "scale": 1.5
-        },
-        {
-          "offsetX": 86,
-          "offsetY": -15,
+          "offsetY": -20,
           "rotation": 70,
-          "scale": 1.5
+          "scale": 1.5,
+          "blurX": 4.5,
+          "blurY": 5.5,
+          "stretchX": 1.114,
+          "stretchY": 1.0
         },
         {
           "offsetX": 86,
-          "offsetY": -18,
-          "rotation": 65,
-          "scale": 1.5
+          "offsetY": -9,
+          "rotation": 85,
+          "scale": 1.5,
+          "blurX": 0.0,
+          "blurY": 4.0,
+          "stretchX": 1.064,
+          "stretchY": 1.0
         },
         {
-          "offsetX": 87,
-          "offsetY": -15,
-          "rotation": 60,
-          "scale": 1.5
+          "offsetX": 86,
+          "offsetY": -1,
+          "rotation": 100,
+          "scale": 1.5,
+          "blurX": 2.0,
+          "blurY": 5.0,
+          "stretchX": 1.086,
+          "stretchY": 1.0
         },
         {
-          "offsetX": 71,
-          "offsetY": -13,
-          "rotation": 55,
-          "scale": 1.5
+          "offsetX": 82,
+          "offsetY": 9,
+          "rotation": 115,
+          "scale": 1.5,
+          "blurX": 3.0,
+          "blurY": 5.5,
+          "stretchX": 1.1,
+          "stretchY": 1.0
         },
         {
-          "offsetX": 66,
-          "offsetY": -12,
-          "rotation": 50,
-          "scale": 1.5
+          "offsetX": 76,
+          "offsetY": 20,
+          "rotation": 125,
+          "scale": 1.5,
+          "blurX": 5.5,
+          "blurY": 4.0,
+          "stretchX": 1.109,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 65,
+          "offsetY": 28,
+          "rotation": 140,
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 0.5,
+          "stretchX": 1.025,
+          "stretchY": 1.0
         },
         {
           "offsetX": 62,
-          "offsetY": -10,
-          "rotation": 45,
-          "scale": 1.5
+          "offsetY": 29,
+          "rotation": 145,
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 1.0,
+          "stretchX": 1.029,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 65,
+          "offsetY": 27,
+          "rotation": 135,
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 1.0,
+          "stretchX": 1.029,
+          "stretchY": 1.0
         }
-      ]
+      ],
+      "sound": "assets/sounds/weapons/sword_swing_1.mp3"
     }
   },
   "keyframes": {},

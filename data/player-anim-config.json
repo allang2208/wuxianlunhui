@@ -129,7 +129,7 @@
         "frameCount": 14,
         "transitionMs": 250,
         "liftAdjustX": -11,
-        "liftAdjustY": 12,
+        "liftAdjustY": 9,
         "hands": [
           {
             "x": 366.0,
@@ -308,6 +308,36 @@
       12
     ],
     "frameRate": 16,
+    "repeat": 0,
+    "frameDurations": [
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4,
+      25.4
+    ]
+  },
+  "dash_attack": {
+    "type": "sheet",
+    "src": "assets/player/dash_attack.png",
+    "frameWidth": 512,
+    "frameHeight": 516,
+    "cols": 8,
+    "rows": 3,
+    "frameCount": 17,
+    "frames": [
+      0,
+      16
+    ],
+    "frameRate": 24,
     "repeat": 0
   },
   "gun_idle_pistol": {
