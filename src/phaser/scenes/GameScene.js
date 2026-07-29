@@ -190,6 +190,7 @@ export class GameScene extends Scene {
                 this.weaponSprite.setVisible(false);
                 this.weaponSprite.setActive(false);
             }
+            this._hideWeaponGhosts(); // 地图模式连带隐藏攻击残影
             if (this.offhandWeaponSprite && this.offhandWeaponSprite.visible) {
                 this.offhandWeaponSprite.setVisible(false);
                 this.offhandWeaponSprite.setActive(false);
@@ -1176,7 +1177,13 @@ export class GameScene extends Scene {
                 //（_updatePlayerAnimation 的保持逻辑接管：窗口内接二段 / 超时播 recover）
                 const p = window.Game && window.Game.player;
                 // 收势动画播完：解除收势标记（原 _updatePlayerAnimation 里的独立 once 会残留，已并入此处）
-                if (p && key === 'recover') p._attackRecovering = false;
+                if (p && (key === 'recover' || key === 'dash_recover')) {
+                    p._attackRecovering = false;
+                    p._recoverCfgKey = null; // 冲刺恢复轨迹块标记一并清除
+                }
+                // 冲刺期间/冲刺末帧定格期：不切 idle——dash_attack 播完也应停在末帧等恢复动画，
+                // 否则定格窗口里贴图被换回 idle（"最后一帧用的是 idle 贴图"的根因）
+                if (p && (p._isDashing || p._dashRecoverAt)) return;
                 if (p && p._attackHoldUntil && performance.now() < p._attackHoldUntil
                     && (key === 'attack_sword' || key === 'attack_sword_2')) {
                     return;
@@ -1488,6 +1495,24 @@ export class GameScene extends Scene {
         if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
+        // 冲刺攻击末帧定格：dash 结束后 0.5s 内保持定格（不切 idle），到点播恢复动画（0.5s）
+        if (player._dashRecoverAt) {
+            if (performance.now() < player._dashRecoverAt) {
+                // 定格贴图 = dash_recover 首帧（2026-07-29 起；原定格=dash_attack 末帧）
+                if (this.playerSprite.texture.key !== 'dash_recover' || Number(this.playerSprite.frame.name) !== 0) {
+                    this.playerSprite.anims.stop();
+                    this.playerSprite.setTexture('dash_recover', 0);
+                }
+                return;
+            }
+            player._dashRecoverAt = 0;
+            player._attackRecovering = true;
+            player._attackRecoverStart = performance.now(); // 武器滑回时间基准（走近战同款末帧滑回，轨迹块=dash）
+            player._recoverCfgKey = 'dash';
+            this.setPlayerAnimation('dash_recover', 500);
+            return;
+        }
+
         // 攻击后定格保持（连段窗口）与收势动画：
         // 一段/二段攻击 Tween 结束后定格在末帧等待连段；窗口内无攻击输入则播 recover 收势回 idle；
         // 移动立即取消定格/收势（新攻击由上方攻击守卫接管，不会走到这里）
@@ -1661,7 +1686,8 @@ export class GameScene extends Scene {
                 this.weaponSprite.setRotation(rot);
                 this.weaponSprite.setVisible(true);
                 this.weaponSprite.setFlipX(false);
-                
+                this._hideWeaponGhosts(); // 弓分支不经 perFrame 残影管线
+
                 return;
             }
         }
@@ -1670,8 +1696,8 @@ export class GameScene extends Scene {
         // 在浏览器控制台执行：__phaserScene._useCanvasWeapon = true 切换回 Canvas
         if (this._useCanvasWeapon === undefined) this._useCanvasWeapon = false;
         
-        // 如果玩家处于特殊动画状态，同步特殊动画位置到 Phaser（风车/冲刺/复位）
-        const isSpecialAnim = player._isWhirlwind || player._isDashing || player._dashResetAnim || player._specialAttackActive || player._specialResetAnim;
+        // 如果玩家处于特殊动画状态，同步特殊动画位置到 Phaser（风车/冲刺/冲刺末帧定格/复位）
+        const isSpecialAnim = player._isWhirlwind || player._isDashing || player._dashRecoverAt || player._dashResetAnim || player._specialAttackActive || player._specialResetAnim;
         if (isSpecialAnim) {
             this._syncSpecialWeaponAnim(player, wt, weaponAnim);
             return;
@@ -1727,26 +1753,10 @@ export class GameScene extends Scene {
                             wSize.width * (pfPos.stretchX || 1),
                             wSize.height * (pfPos.stretchY || 1)
                         );
-                        // A 方案：帧级方向运动模糊——挥砍峰值帧 blurX/blurY>0，起势/收势关
+                        // A 方案（残影实现）：帧级运动模糊——blurX/blurY 驱动沿轨迹的历史姿态残影
+                        // （高斯滤镜对细长武器是"摊薄消失"，实测峰值帧剑身近乎不可见，已废弃）
                         const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
-                        if (bx > 0.05 || by > 0.05) {
-                            // Phaser 4 滤镜需先 enableFilters() 初始化 filterCamera（否则 filters 为 null 静默无效）
-                            if (!this.weaponSprite.filters) {
-                                this.weaponSprite.enableFilters();
-                            }
-                            const filterList = this.weaponSprite.filters && this.weaponSprite.filters.internal;
-                            if (filterList) {
-                                if (!this._weaponBlurFx) {
-                                    this._weaponBlurFx = filterList.addBlur(0, bx, by, 1);
-                                } else {
-                                    this._weaponBlurFx.x = bx;
-                                    this._weaponBlurFx.y = by;
-                                }
-                                this._weaponBlurFx.active = true;
-                            }
-                        } else if (this._weaponBlurFx) {
-                            this._weaponBlurFx.active = false;
-                        }
+                        this._syncWeaponGhosts(player, wt, progress, atkCfgKey, facingRight, Math.max(bx, by));
                         // 二段攻击 18~24 帧：角色贴图在上层、武器贴图沉到人物之下（随进度逐帧判定）
                         const fi = Math.round(progress * (perFrameCfg.frames.length - 1));
                         const weaponUnder = atkCfgKey === 'attack2' && fi >= 18 && fi <= 24;
@@ -1756,6 +1766,7 @@ export class GameScene extends Scene {
                 }
                 // 否则：Tween 控制位置，直接返回
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                this._hideWeaponGhosts(); // 非 perFrame 轨迹不出残影
                 const wSize = WeaponTransform.getWeaponSize(wt, null, 'attack');
                 this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
                 return;
@@ -1763,10 +1774,8 @@ export class GameScene extends Scene {
             // 远程武器：继续执行，让状态机驱动的后坐力生效
         }
         
-        // 攻击/定格分支之外：运动模糊关闭（A 方案仅在攻击轨迹帧激活）
-        if (this._weaponBlurFx && this._weaponBlurFx.active) {
-            this._weaponBlurFx.active = false;
-        }
+        // 攻击/定格分支之外：残影隐藏（A 方案仅在攻击轨迹帧激活）
+        this._hideWeaponGhosts();
         // 武器深度复位（二段 18~24 帧的下沉仅在攻击轨迹帧生效）
         if (this.weaponSprite && this.playerSprite && this.weaponSprite.depth !== this.playerSprite.depth + 2) {
             this.weaponSprite.setDepth(this.playerSprite.depth + 2);
@@ -1781,8 +1790,10 @@ export class GameScene extends Scene {
                 const recDur = getPlayerAnimDurationMs('recover') || 800;
                 const t = Math.max(0, Math.min(1, (performance.now() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
+                // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标
                 const wacR = WeaponAnimConfig[wt];
-                const atkKeyR = (player._meleeComboStage === 2 && wacR && wacR.attack2) ? 'attack2' : 'attack';
+                const atkKeyR = player._recoverCfgKey
+                    || ((player._meleeComboStage === 2 && wacR && wacR.attack2) ? 'attack2' : 'attack');
                 const start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
                 if (start && !facingR) {
                     start.x = 2 * player.x - start.x;
@@ -2544,6 +2555,56 @@ export class GameScene extends Scene {
         sprites.fireballFly.setVisible(true);
     }
 
+    // ==================== 挥砍残影（A 方案运动模糊的实现） ====================
+    // 高斯滤镜对细长武器是"摊薄消失"（实测峰值帧剑身近乎不可见），改为沿 perFrame 轨迹
+    // 回放历史姿态的残影副本：blurX/blurY 配置值驱动残影强度（峰值帧残影最长最浓，起势/收势无）。
+    // 与攻击/冲刺两分支共用；不依赖 WebGL 滤镜，Canvas 兜底环境同样生效。
+    _syncWeaponGhosts(player, wt, progress, cfgKey, facingRight, blurStrength) {
+        const GHOST_N = 3;
+        if (!this._weaponGhosts) this._weaponGhosts = [];
+        // 强度阈值：起势/收势与定格末帧的小值（0.4~1）不出残影
+        if (!this.weaponSprite || blurStrength < 1.5) {
+            this._hideWeaponGhosts();
+            return;
+        }
+        const norm = Math.min(1, blurStrength / 12); // 12 = 现行配置峰值
+        const step = 0.035 + norm * 0.05;            // 每道残影回退的进度步长（峰值时总长 ≈ 0.26）
+        const texKey = this.weaponSprite.texture.key;
+        for (let i = 0; i < GHOST_N; i++) {
+            let g = this._weaponGhosts[i];
+            const past = progress - step * (i + 1);
+            if (past <= 0) {
+                if (g) g.setVisible(false);
+                continue;
+            }
+            // 与主贴图同口径：恒按朝右取帧后手动镜像
+            const pf = WeaponTransform.getInterpolatedPerFramePosition(player, wt, past, true, cfgKey);
+            if (!pf) {
+                if (g) g.setVisible(false);
+                continue;
+            }
+            if (!g) {
+                g = this.add.sprite(0, 0, texKey);
+                this._weaponGhosts[i] = g;
+            }
+            if (g.texture.key !== texKey) g.setTexture(texKey);
+            g.setPosition(facingRight ? pf.x : 2 * player.x - pf.x, pf.y);
+            g.setRotation(facingRight ? pf.rotation : -pf.rotation);
+            g.setFlipX(!facingRight);
+            const s = WeaponTransform.getWeaponSize(wt, pf.scale, 'attack');
+            g.setDisplaySize(s.width * (pf.stretchX || 1), s.height * (pf.stretchY || 1));
+            g.setAlpha(Math.max(0, (0.1 + 0.4 * norm) * (1 - (i + 1) / (GHOST_N + 1))));
+            g.setDepth(this.weaponSprite.depth - 0.001 * (i + 1));
+            g.setVisible(this.weaponSprite.visible);
+        }
+    }
+
+    _hideWeaponGhosts() {
+        if (this._weaponGhosts) {
+            for (const g of this._weaponGhosts) g.setVisible(false);
+        }
+    }
+
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
     // 将 Canvas 变换链转换为世界坐标
     _syncSpecialWeaponAnim(player, wt, _weaponAnim) {
@@ -2553,10 +2614,13 @@ export class GameScene extends Scene {
         }
 
         // 冲刺攻击：sword.dash perFrame 轨迹（面板"冲刺攻击"页可调，与一/二段同插值管线）
+        // 末帧定格期（_dashRecoverAt）同轨迹停在 progress=1——定格姿态=冲刺末帧，与人物贴图一致
         const dashCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dash;
-        if (player._isDashing && dashCfg && dashCfg.type === 'perFrame' && dashCfg.frames) {
+        if ((player._isDashing || player._dashRecoverAt) && dashCfg && dashCfg.type === 'perFrame' && dashCfg.frames) {
             const totalMs = player._dashTotalMs || 800;
-            const progress = Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs));
+            const progress = player._isDashing
+                ? Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs))
+                : 1;
             // 朝向=冲刺方向（dashDirection.x 符号；与人物 flipX 绑定同口径）
             const facingRight = player._dashDirection ? player._dashDirection.x >= 0 : !this.playerSprite.flipX;
             const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, 'dash');
@@ -2571,23 +2635,9 @@ export class GameScene extends Scene {
                     wSize.width * (pfPos.stretchX || 1),
                     wSize.height * (pfPos.stretchY || 1)
                 );
-                // 帧级运动模糊（与攻击分支同口径）
+                // 帧级运动模糊（残影实现，与攻击分支同管线）
                 const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
-                if (bx > 0.05 || by > 0.05) {
-                    if (!this.weaponSprite.filters) this.weaponSprite.enableFilters();
-                    const filterList = this.weaponSprite.filters && this.weaponSprite.filters.internal;
-                    if (filterList) {
-                        if (!this._weaponBlurFx) {
-                            this._weaponBlurFx = filterList.addBlur(0, bx, by, 1);
-                        } else {
-                            this._weaponBlurFx.x = bx;
-                            this._weaponBlurFx.y = by;
-                        }
-                        this._weaponBlurFx.active = true;
-                    }
-                } else if (this._weaponBlurFx) {
-                    this._weaponBlurFx.active = false;
-                }
+                this._syncWeaponGhosts(player, wt, progress, 'dash', facingRight, Math.max(bx, by));
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
                 return;
             }
@@ -2628,8 +2678,8 @@ export class GameScene extends Scene {
             extraAngle = state.dashAngle || 0;
         } else if (player._dashResetAnim) {
             const elapsed = Date.now() - player._dashResetAnim.startTime;
-            const t = Math.min(1, elapsed / player._dashResetAnim.duration);
-            const easeT = Easing.easeOutQuart(t);
+            // t 钳制 [0,1]：定格期（startTime 未来）保持攻击位；恢复窗口内**线性**滑回 idle 位并同步旋转
+            const easeT = Math.max(0, Math.min(1, elapsed / player._dashResetAnim.duration));
             extraAngle = player._dashResetAnim.startAngle * (1 - easeT);
             extraOffset = player._dashResetAnim.startOffset * (1 - easeT);
             // 基础位置回位：攻击(-12, 17) -> 待机(-20, 11)

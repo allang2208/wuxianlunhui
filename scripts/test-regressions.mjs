@@ -43,7 +43,6 @@ console.log('\n[1] 时空特工追击状态机');
         getZombieDungeonConfig: () => ({ minRoomsToBoss: 3 }),
     };
     const factoryStub = (x, y) => ({ x, y });
-    const directorStub = { resolveComposition: (comp) => comp.map(() => factoryStub) };
 
     // _updateLabel 需要 document
     globalThis.document = {
@@ -51,9 +50,9 @@ console.log('\n[1] 时空特工追击状态机');
         body: { appendChild() {} },
     };
 
-    const build = new Function('DungeonConfig', 'createTimeAgentAssault', 'EncounterDirector', 'invasionConfig',
+    const build = new Function('DungeonConfig', 'createTimeAgentAssault', 'createTimeAgentShield', 'invasionConfig',
         `${src}; return AgentInvasionSystem;`);
-    const AIS = build(DungeonConfigStub, factoryStub, directorStub, invasionConfig);
+    const AIS = build(DungeonConfigStub, factoryStub, factoryStub, invasionConfig);
 
     // 节点链：start → n1..n6（直线，BFS 必可达）
     const nodes = [{ id: 'start', type: 'start' }, ...Array.from({ length: 6 }, (_, i) => ({ id: `n${i + 1}`, type: 'combat' }))];
@@ -98,7 +97,7 @@ console.log('\n[1] 时空特工追击状态机');
     check('maxInvasionsPerRun=1 时不二次触发', AIS.triggered === false);
 
     // F 级地牢不启用
-    const AIS2 = build(DungeonConfigStub, factoryStub, directorStub, invasionConfig);
+    const AIS2 = build(DungeonConfigStub, factoryStub, factoryStub, invasionConfig);
     AIS2.init({ ...dms, dungeonType: 'zombieBeginner' });
     // 桩的 getDungeonList 只有 zombie，F 级回退 grade='F' → minGrade D 不启用
     check('F 级地牢 eligible=false', AIS2.eligible === false);
@@ -129,6 +128,16 @@ console.log('\n[3] data/ ↔ public/data/ 双份一致');
         const a = path.join(ROOT, 'data', f), b = path.join(ROOT, 'public/data', f);
         if (!fs.existsSync(a) || !fs.existsSync(b)) { check(`${f} 双份存在`, false); continue; }
         check(`${f} 双份逐字节一致`, fs.readFileSync(a, 'utf-8') === fs.readFileSync(b, 'utf-8'));
+    }
+}
+
+// ========== 3b. 贴图单一路径：public/assets 不得存在（防双份漂移，Vite 以 public 优先服务） ==========
+console.log('\n[3b] 贴图单一路径（仅 assets/）');
+{
+    check('public/assets 不存在（贴图仅 assets/ 一条路径）', !fs.existsSync(path.join(ROOT, 'public/assets')));
+    // 游戏引用的关键贴图在 assets/ 下必须存在
+    for (const f of ['icons/201-icon.png', 'player/dash_recover.png']) {
+        check(`assets/${f} 存在`, fs.existsSync(path.join(ROOT, 'assets', f)));
     }
 }
 
@@ -297,7 +306,7 @@ console.log('\n[7] 经验系统（pacing 闭环/压级衰减/锚定）');
     check('F 档普通怪同级经验 = floor(base)', e1 === Math.floor(getDungeonExpBase('zombieBeginner')));
     const e2 = getMonsterExp({ rank: 'normal', level: 3 }, 60, 'zombieBeginner');
     check('60 级刷 F 档普通怪 = 1% 下限', e2 === Math.max(1, Math.floor(getDungeonExpBase('zombieBeginner') * 0.01)));
-    const e3 = getMonsterExp({ rank: 'elite', level: 6 }, 31, 'zombie'); // D档锚28+(6-3)=31，同级无倍率
+    const e3 = getMonsterExp({ rank: 'elite', level: 6 }, 12, 'zombie'); // D档锚9+(6-3)=12，同级无倍率
     check('精英怪经验 = base × 2', e3 === Math.floor(getDungeonExpBase('zombie') * 2));
 
     // 主神空间（无地牢）：回退 F 档
@@ -348,6 +357,25 @@ console.log('\n[8] 属性成长与祭品加持');
     const ratio = d5.exp / d0.exp;
     check('S=5 经验 ≈1.4×（±5%）', Math.abs(ratio - 1.4) / 1.4 <= 0.05, `实际=${ratio.toFixed(3)}`);
     check('reset 后经验倍率归 1', DungeonEmpower.expMul() === 1);
+}
+
+// ========== 8. 机枪 -50% 移速口径（V0.311）——减速仅限机枪系，步枪/其他双手枪不得混入 ==========
+console.log('\n[8] 机枪移速口径');
+{
+    const { isMachineGun } = await import('../src/config/attack-formula.js');
+    check('isMachineGun：pkm/qjb201/energy_lmg 为机枪', isMachineGun('pkm') && isMachineGun('qjb201') && isMachineGun('energy_lmg'));
+    check('isMachineGun：akm/qbz191/shotgun 非机枪', !isMachineGun('akm') && !isMachineGun('qbz191') && !isMachineGun('shotgun'));
+
+    // 运行时减速名单（update.js isPkmEquipped）不得包含 akm/qbz191
+    const updSrc = fs.readFileSync(path.join(ROOT, 'src/entities/player/update.js'), 'utf-8');
+    const pkmLine = updSrc.split('\n').find(l => l.includes('isPkmEquipped') && l.includes('weaponType'));
+    check('运行时减速名单存在', !!pkmLine);
+    check('运行时减速名单不含 akm/qbz191', pkmLine && !pkmLine.includes("'akm'") && !pkmLine.includes("'qbz191'"), pkmLine && pkmLine.trim());
+
+    // tooltip -50% 展示必须走 isMachineGun（不再用含步枪的硬编码名单）
+    const ttSrc = fs.readFileSync(path.join(ROOT, 'src/ui/equip-tooltip-manager.js'), 'utf-8');
+    check('tooltip 减速展示用 isMachineGun', ttSrc.includes('isMachineGun(fullItem.weaponType)'));
+    check('tooltip 无步枪硬编码减速名单', !ttSrc.includes("'akm', 'qbz191', 'qjb201'"));
 }
 
 console.log(`\n结果：${passed} 通过，${failed} 失败`);

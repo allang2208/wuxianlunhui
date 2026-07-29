@@ -376,8 +376,22 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const nextX = enemy.x + (enemy.knockbackX || 0) * sc;
         const nextY = enemy.y + (enemy.knockbackY || 0) * sc;
         const clamped = this._clampMoveDistance(enemy.x, enemy.y, nextX, nextY, maxStep);
-        enemy.x = clamped.x;
-        enemy.y = clamped.y;
+        // [WALL-RESOLVE] 击退/冲刺位移与玩家 dash 同口径过墙体解析——此前本通道不过墙，
+        // 怪物突进/被击退会直接穿进墙体，下一帧正常移动的 resolve 又把它沿墙切向弹出，
+        // 表现为"靠墙瞬移/加速"（所有怪物的位移统一走 knockback 通道，影响面=全部突进类怪物）
+        if (WallSystem && WallSystem.resolve) {
+            const er = WallSystem.resolve(enemy.x, enemy.y, clamped.x, clamped.y, enemy.groundRadius);
+            // 被墙完全挡住时清掉击退分量，防止下一帧继续往墙里推
+            if (er.x === enemy.x && er.y === enemy.y) {
+                enemy.knockbackX = 0;
+                enemy.knockbackY = 0;
+            }
+            enemy.x = er.x;
+            enemy.y = er.y;
+        } else {
+            enemy.x = clamped.x;
+            enemy.y = clamped.y;
+        }
         enemy.knockbackX *= kf;
         enemy.knockbackY *= kf;
 
@@ -936,22 +950,36 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy._stuckFrames <= 30) return;
 
         const r = enemy.groundRadius;
-        // 缩短瞬移距离，防止越过薄墙（如 20px 厚的墙壁）
-        const distance = Math.max(r * 1.5, 12);
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8;
-            const tx = enemy.x + Math.cos(angle) * distance;
-            const ty = enemy.y + Math.sin(angle) * distance;
-            if (WallSystem.canMoveTo(tx, ty, r)) {
-                enemy.x = tx;
-                enemy.y = ty;
-                enemy.vx = 0;
-                enemy.vy = 0;
-                enemy._stuckFrames = 0;
-                enemy._lastUnstuckX = enemy.x;
-                enemy._lastUnstuckY = enemy.y;
-                return;
+        // 卡死恢复改 resolve 小步滑移（玩家贴墙同口径），不再 45px 盲跳——
+        // 旧版 8 方向 canMoveTo 瞬移是"贴墙周期性瞬移"的根因：跳完仍卡，500ms 后再跳。
+        // 只在能缩短与目标距离时移动；移动量 ≤ 3 倍单帧步长，视觉上仍是连续移动
+        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const step = Math.max(Math.min(maxSpd * 0.05, r * 0.8), 8);
+        let best = null, bestDist = Infinity;
+        // 步长递增（1×/2×/3×）：正常贴墙小步滑出；深嵌（击退撞进墙厚区）也能合法脱出，不再依赖盲跳
+        for (let mul = 1; mul <= 3 && !best; mul++) {
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 * i) / 8;
+                const tx = enemy.x + Math.cos(angle) * step * mul;
+                const ty = enemy.y + Math.sin(angle) * step * mul;
+                const er = WallSystem.resolve(enemy.x, enemy.y, tx, ty, r);
+                const moved = Math.hypot(er.x - enemy.x, er.y - enemy.y);
+                if (moved < 1 || !WallSystem.canMoveTo(er.x, er.y, r)) continue;
+                const dd = hasTarget ? Math.hypot(enemy.target.x - er.x, enemy.target.y - er.y) : 0;
+                if (dd < bestDist) { bestDist = dd; best = er; }
             }
+        }
+        if (best && bestDist < distToTarget) {
+            enemy.x = best.x;
+            enemy.y = best.y;
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy._stuckFrames = 0;
+            enemy._lastUnstuckX = enemy.x;
+            enemy._lastUnstuckY = enemy.y;
+        } else {
+            // 滑不出（真·死角）：重置计数交给寻路重算（_updateStuckDetection），不做任何瞬移
+            enemy._stuckFrames = 0;
         }
     },
 

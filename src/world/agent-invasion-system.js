@@ -1,7 +1,18 @@
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { createTimeAgentAssault } from './zombie-dungeon.js';
-import { EncounterDirector } from './encounter-director.js';
+import { createTimeAgentAssault, createTimeAgentShield } from './zombie-dungeon.js';
 import invasionConfig from '../../data/agent-invasion.json';
+
+/** 角色 → 工厂（入侵构成的角色键在此登记，与 agent-invasion.json 的角色键一致；
+ *  原 encounter-director.js 已精简内联：其 start/registerKind/encounter-table 零调用，2026-07-28 删除） */
+const ROLE_FACTORIES = {
+    assault: createTimeAgentAssault,
+    shield: createTimeAgentShield,
+};
+
+/** 构成解析（角色键数组 → 工厂数组；对象 {tier:数量} 写法已无消费方，不再支持） */
+function resolveComposition(comp) {
+    return (Array.isArray(comp) ? comp : []).map(role => ROLE_FACTORIES[role] || createTimeAgentAssault);
+}
 
 /**
  * 时空特工追击机制（配置：data/agent-invasion.json，勿硬编码）
@@ -139,12 +150,12 @@ export const AgentInvasionSystem = {
     /** 供 CombatRoomSystem.spawnMonsters 使用的特工类工厂（其内部 new 调用等价工厂调用） */
     spawnAgentClass() { return createTimeAgentAssault; },
 
-    /** 当前难度入侵的特工工厂列表（构成配置优先，缺省按数量全突击；统一走 EncounterDirector 解析） */
+    /** 当前难度入侵的特工工厂列表（构成配置优先，缺省按数量全突击；统一走本模块 resolveComposition 解析） */
     getAgentFactories() {
         const grade = this.getGrade();
         const comp = (invasionConfig.agentCompositionByGrade || {})[grade];
         if (Array.isArray(comp) && comp.length > 0) {
-            return EncounterDirector.resolveComposition(comp);
+            return resolveComposition(comp);
         }
         return Array.from({ length: this.getAgentCount() }, () => createTimeAgentAssault);
     },

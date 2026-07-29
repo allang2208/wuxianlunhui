@@ -6,6 +6,7 @@
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { Projectile } from '../combat/projectile.js';
+import { WallSystem } from '../world/wall-system.js';
 
 /**
  * @typedef {Object} ProjectileOptions
@@ -58,6 +59,13 @@ export const ProjectileFactory = {
             depthBonus = 0
         } = options;
 
+        // 出膛嵌墙检测（不改变出弹位置，"只出不进"方案）：
+        // 枪口探入/探过墙体时，记录被嵌入的墙 + 射手所在侧——该投射物只允许朝射手一侧越出，
+        // 越向另一侧（钻透）即销毁；其余墙与无嵌墙情况走原 blocked 判定（贴墙开不出枪的根因治理）
+        const embeddedWalls = (source && WallSystem && typeof WallSystem.detectEmbeddedWalls === 'function')
+            ? WallSystem.detectEmbeddedWalls(x, y, source)
+            : null;
+
         let p = EffectManager._acquire('Projectile');
         if (p) {
             p.x = x;
@@ -88,6 +96,7 @@ export const ProjectileFactory = {
             p.traveled = 0;
             p.active = true;
             p.hitTargets = new Set();
+            p._embeddedWalls = embeddedWalls;
             p.syncPhaserSprite();
         } else {
             p = new Projectile(
@@ -98,6 +107,7 @@ export const ProjectileFactory = {
             );
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
+            p._embeddedWalls = embeddedWalls;
             // 构造函数内已创建 Sprite（depthBonus 尚未生效），立即同步一次深度/尺寸
             p.syncPhaserSprite();
         }

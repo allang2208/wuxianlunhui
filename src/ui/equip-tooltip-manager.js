@@ -8,7 +8,7 @@ import { CraftSystem } from './craft-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
-import { buildFormulaDisplay } from '../config/attack-formula.js';
+import { buildFormulaDisplay, isMachineGun } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
 import { WarehouseSystem } from './warehouse-system.js';
@@ -235,7 +235,9 @@ export const EquipTooltipManager = {
                 }
                 // 武器特效
                 let effectsHtml = '';
-                if (fullItem.isTwoHanded && ['pkm', 'akm', 'qbz191', 'qjb201', 'energy_lmg'].includes(fullItem.weaponType)) {
+                // 机枪系专属 -50% 移速（仅 pkm/qjb201/energy_lmg，与运行时 isPkmEquipped 同口径——
+                // 此前列表含 akm/qbz191，tooltip 虚标减速（运行时不生效），已对齐）
+                if (fullItem.isTwoHanded && isMachineGun(fullItem.weaponType)) {
                     const baseReduction = 0.50;
                     const effectiveReduction = Math.max(0, baseReduction - (ce?.moveSpeedPercent || 0));
                     const pct = Math.round(effectiveReduction * 100);

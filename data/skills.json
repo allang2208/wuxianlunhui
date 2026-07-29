@@ -56,8 +56,7 @@
         "staminaCost": 20,
         "totalMs": 800,
         "chargeMs": 350,
-        "dashDist": 188,
-        "movePhaseRatio": 0.4,
+        "dashDist": 376,
         "speedMul": 0.75,
         "bounceRatio": 0.3,
         "slashWindowMs": 400,
@@ -71,7 +70,8 @@
         "critMul": 2,
         "rangeEffectLife": 1000,
         "rangeEffectAlpha": 0.5,
-        "goldenConvergeDuration": "Math.round(1600 / 1.5)"
+        "goldenConvergeDuration": "Math.round(1600 / 1.5)",
+        "moveFrames": 11
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
@@ -171,13 +171,6 @@
         "movePhaseRatio": 0.4,
         "speedMul": 0.75,
         "bounceRatio": 0.3,
-        "dashDist": 188,
-        "thrustMs": 600,
-        "hitWidth": 94,
-        "hitLength": 438,
-        "hitLengthBonus": 0,
-        "hitBackOffset": 0,
-        "hitTickInterval": 199,
         "thrustMaxHits": 3,
         "thrustLevelBonusEarly": "level * 0.05",
         "thrustLevelBonusLate": "level * 0.10"

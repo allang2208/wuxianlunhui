@@ -8,7 +8,7 @@
 1. **近战连段体系**：一段（attack_sword 8帧）→ 定格 0.5s（连段窗口）→ 二段（attack_sword_2 30帧/1.5s）→ recover 收势（13帧/0.33s）→ idle。攻击期输入全锁（移动/闪避/新攻击/切武器/冲刺/特殊攻击）；移动立即取消定格/收势。
 2. **朝向硬绑定（结构级）**：近战武器朝向一律 = `playerSprite.flipX`（身体是唯一权威）——攻击逐帧/定格/收势滑行/idle/副手全部直接读身体 flipX，独立朝向判定已删除。教训：setPlayerAnimation 曾用 _facingDir（45° 边界）与武器的 ±0.05 滞回（87° 边界）冲突；`_attackHoldFacingRight` 捕获在连段时泄漏（二段沿用一段朝向）——双重教训后统一为身体 flipX 单源。
 3. **攻击范围重构（配置驱动）**：`sword.attack.hitCheck { frame:22, shape:'rect', knockback:50 }`（一段矩形：宽恒定、长=武器 attack.range、第 22 帧判定）/`sword.attack2.hitCheck { frame:15, shape:'sector', arcDeg:120, knockback:75, damageMul:1.5 }`（二段扇形：footprint 相交、击退 75px、伤害×1.5、第 15 帧判定）。攻击方向固定玩家左右两侧（鼠标只选左右）。
-4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（Phaser 4 滤镜方向模糊，**必须先 `enableFilters()`**，否则静默无效）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
+4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（**V0.307 起改为残影实现**——高斯滤镜对细长武器是"摊薄消失"，实机像素级取证峰值帧剑身近乎不可见，已废弃；现由 GameScene 沿轨迹回放 3 道历史姿态残影，blurX/blurY 驱动残影长度/浓度）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
 5. **贴图标准化管线**：武器贴图统一"内容宽比 + 中心分数"归一（AKM 基准 0.915/(0.500,0.543)，PKM 0.907/(0.496,0.543)）——AKM/201/Super90 已重制替换，枪口 muzzle 配置对齐；归一后尺寸=显示缩放×内容占比，"和 AKM 一样大"即同分母同占比。
 6. **冲刺攻击动画**：`dash_attack` 17 帧 sheet（素材 attack-2.png 归一），trigger 时播放（timeScale 拉伸到技能 totalMs）；位移窗口帧驱动（前 12 帧位移、13~17 静止，`effect.moveFrames` 可覆盖）。
 7. **其他**：挥砍音效起手播放（块配置 sound 字段）；弹壳落地留存 3s；子弹胶囊化（短粗椭圆+提亮）；双持副手开火位 offhandOffsetY 配置；右键瞄准打断奔跑（与开火同口径）；`spriteOffsetX/Y` 贴图独立偏移（只动贴图不动手臂/弹道）；人物+武器整体 +20%（spriteSize 144 / WEAPON_ANIM.size 126，碰撞与偏移不变）。
@@ -21,7 +21,7 @@
 
 ### 验证状态
 - lint 0 error、vite build、test-collider、test-craft-sync 持续全过
-- 实机已确认：挥砍模糊生效（fxlog 取证）、朝向绑定（facelog 取证）、攻击范围帧判定
+- 实机已确认：朝向绑定（facelog 取证）、攻击范围帧判定；挥砍模糊 V0.307 改残影后实机截图确认（此前"fxlog 取证"只证明滤镜激活，未验证观感——高斯方案已废弃）
 - 未提交批次：V0.291~V0.302 全部在本提交
 
 ### 后续计划
@@ -217,7 +217,7 @@
 - **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。**拆帧无配置时自动播种 30 帧同一基线位置（2026-07-27）**，进入攻击页即可开调；右上角重置键 = 一键把当前动画恢复初始状态（attack=全帧回种子基线，其他=恢复已保存配置；种子只改内存，💾保存才落盘）。
 - **朝向翻转（2026-07-27 终极绑定）**：**近战武器朝向一律 = `playerSprite.flipX`**（身体是唯一权威，V0.296 起）——攻击逐帧/定格/收势滑行/idle/walk/副手全部直接读身体 flipX，禁止任何独立的武器朝向判定/捕获；身体 flipX 由 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`）驱动，攻击/定格/收势期间身体冻结故武器自然冻结。枪械走 twist 面向（±0.05 同源语义）。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
 
-- **挥砍特效 A+B（2026-07-27）**：perFrame 帧数据可加 `blurX/blurY`（Phaser 4 内置方向高斯模糊，`weaponSprite.filters.internal.addBlur`，≤0.05 关闭）与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。面板预览模糊是 canvas filter 近似（游戏内为方向性）。
+- **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
 - **近战连段与收势（2026-07-27）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口 1000ms）——窗口内定格末帧等待连段（stage 1↔2，`attack_sword`/`attack_sword_2`，武器轨迹按 `_meleeComboStage` 选 attack/attack2 块）；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。新段（如三段突刺）：加 `attack_sword_3` 姿态+weapon-anim 轮换数组扩展+attack3 轨迹块。
 
@@ -998,6 +998,7 @@ _getPhaserOptions() {
 - **转角斜接遮盖位继承**：转角两臂同 depth，默认后建臂盖住先建臂端边——门闸原位替换先建臂时必须 depth-0.1 继承其下位（否则贴图裁切边暴露在斜接缝，"两墙之间有偏差"根因）；同理 `_setupGate` 先 `_syncWallsToPhaser()` 后 `placeAt` 防整批重建压住门闸。**排障方法论的反面教材：此 bug 连修三轮未中，最终靠"用户手工摆一个严丝合缝的对照组存为预设 → 数值对比 JSON"一次定位——抽象描述定位不了视觉问题时，让用户/自己造对照组做数值 diff 最快**
 - **ItemDatabase.items 是 {id: itemData}，itemData 不带 id 字段**（id 只在键上，`get()` 才注入 `_id`）——`Object.values(items)` 后读 `item.id` 恒为 undefined。奖励界面"三选一点击无反应"根因：`_giveRandomWeapon` 用 values+item.id → `createInstance(undefined)` 返回 null → `addToInventory` 读 `maxStack` 抛 TypeError → `_selected` 已置位面板卡死。教训：**遍历 items 一律走 Object.keys 回查**；发奖类入口加 `if (!item) return` 守卫 + try/catch 兜底（单项失败不阻塞面板关闭）
 - **续接瓦片规则（2026-07-26 定论，取代"均匀拉伸"）**：`edgeFill` 用**定长定高瓦片**（scale 固定、8px 叠合、尾端超出由下一顶点转角臂 +5 偏置盖住）。两条历史教训：①`d < len+8` 定长循环在 `len ≈ faceLen` 时会多一块近整瓦重复件（"下夹角多一堵墙"）——现由转角臂 +5 偏置盖住 overshoot 解决；②均匀拉伸（0.7~1.4）让拉伸件与定尺转角件一大一小、中间突出（僵尸砖纹不可感知故未暴露，沼泽柴墙材质随机格外显眼）——故废弃拉伸，统一定长
+- **重复件撞门闸（2026-07-29，①的碰撞层尾巴）**：尾端 overshoot 瓦片可与转角臂**近整瓦重复**（S=1024 重复 462/476px），视觉被盖住但碰撞段一直在——`_setupGate` 把转角臂替换成门闸时（程序化转角臂无 `_corner`，是合法候选）重复件碰撞段+贴图横穿门洞（"下夹角门又多一堵墙、无法离场"根因）。修复：`_setupGate` 摘除被替换件后调 `WallSystem.removeSpanCoveringPieces([a,b])`（共线 + 投影重合>50% 一并摘除；门闸世界跨度==瓦片定长不留缺口；正常接缝叠合 8px≈2% 误摘不了邻件），placeAt 失败回滚连同重复件恢复。回归 `scripts/test-gate-corner.mjs`（挂 npm test）。**教训：冗余重复件"视觉盖住"不等于无害，凡有原位替换机制的地方都要清理碰撞层重复**
 - **部署验证三件套**：逻辑模拟跑通但游戏不生效时——版本徽章标构建号（确认跑的是哪份代码）、关键路径 console.log（确认判定是否触发）、node 模拟全流程（确认逻辑无误）；三管齐下直接区分"部署问题/判定问题/逻辑问题"
 
 ---
@@ -1073,10 +1074,29 @@ _getPhaserOptions() {
 - **传送门已删**：dungeon-map-system 两处 `spawnExitPortal()`（普通节点/精英宝箱后）改 `openGate()`；Boss 场地（集合体）传送门流程不变
 - **教训**：门闸替换整墙时不能只注册门洞碰撞——门两侧墙体线段必须常开，否则墙身可穿
 
+- **单帧装饰门碰撞（2026-07-29，openDoor）**：非 16 帧门闸的单帧门贴图（拱门永久开放）在 geo 加 `openDoor: true` + `gateX`，`_pieceBaseSegments` 自动把碰撞拆成门洞两侧墙身两段（门洞可通行）——功能门闸（WallGate）与装饰门件（如沼泽转角门）不受影响（它们无 openDoor，仍整段实心）。**教训：装饰件可视化≠碰撞，门类件必须显式声明门洞碰撞语义**
+
 ### 待接入（下一阶段）
 - 地牢随机生成：从预制库抽房间布局放置 + `_mirrorPieces` 镜像
-- 主神空间边界墙仍是旧硬拉伸视觉
+- ~~主神空间边界墙仍是旧硬拉伸视觉~~（2026-07-29 已完成：主神空间菱形化，见下节）
 - ~~Boss 场地门闸化~~（2026-07-28 已完成：Boss 房复用 CombatRoomSystem 门闸机制，传送门仅作 placeAt 失败兜底）
+
+### 主神空间菱形化（2026-07-29 落地，复用地牢标准工作流；**同日已按用户要求回退**，保留条目作参考）
+- **回退说明（V0.326）**：菱形世界（5436×3359/双材质地板/代码建墙）用户实机不满意，scene-manager/dungeon-floor-texture git 回退、game-config 手改回退（**npcs.altar 祭坛贴图配置保留**）；`inner` 双材质与 roomSize 机制随之移除。大理石墙/门改为**编辑器组件**路径：新透明底素材（墙.png/门.png）过 `tools/prep-hub-wall-gate.py`（透明底无需 GrabCut：最大连通域+腐蚀1px+几何实测；门洞 gateX 按"列最低不透明 y 高于底边线 60px 的连续区间"实测）→ `ISO_WALL_GEO.hub_straight/hub_gate`（editor 字段自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`。
+- **尺寸**：S=2048（`mainHub.roomSize`）→ rx=2457.6/ry=1419.0，边距 M=260，世界 5436×3359，origin=(2718,1679)；`_setupMainHubTerrain` 与地牢同路径：`applyDiamondFloor` + `setWallStyle('mainHub')` + `buildIsoDiamondWalls`；边界矩形墙降为 `noVisual` 隐形兜底；hub_diamond 预制分支已删。
+- **地板双材质**：`profile.inner = { size, tiles }`（dungeon-floor-texture）——外圈大理石 + 中心 1024 档内圈木地板；`setDungeonFloorProfile` 新字段必须显式透传（deco 教训同款）。
+- **墙样式**：`ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9）+ `ISO_WALL_STYLES.mainHub`（无 corners/gate → 全直墙无门）；从地牢返回时样式被复位，统一入口每次重设 mainHub 再建墙。
+- **坐标迁移**：portals/testArea 等绝对坐标项必须随世界尺寸手迁（本次 (3478,2363)→(3918,1949)）；相对 origin 的（NPC/武器排/掉落）自动跟随。
+- **祭坛贴图 NPC**：仿仓库宝箱模板（sprite.idleKey 静态图 + obstacle 底座 + clickArea + noSeparation/noShadow），注意 `game.js` 创建 NPC 时这些字段要逐个透传（祭坛此前只传基础字段=实心圆的根因）。
+
+### 白底 AI 素材抠图（2026-07-29，大理石墙血泪经验）
+即梦白底图（含烘焙进 RGB 的假透明棋盘底纹）抠图三坑，正解 = **GrabCut + 盖板几何重建**（`tools/prep-hub-assets.py`）：
+1. **固定亮度阈值洪水**吃墙顶亮面（顶沿 230→208 软渐变无暗缝可挡）。
+2. **浮动容差洪水**（邻像素比较）从抗锯齿软边漏进墙内，墙内平滑区一旦进入全淹。
+3. **Canny 路障**：低阈值被背景噪点触发碎网；必须**先高斯模糊**再 Canny——即便如此软轮廓仍漏。
+4. **正解**：sure_bg=边界连通高亮区（>235）+ sure_fg=暗核（<205 最大连通域腐蚀）→ GrabCut 仲裁亮盖板归属；残留盖板坑用**几何重建**填（墙带顶边必为与底边平行的直线：窗格最小顶沿拟合截距、强制斜率=底边、分位数防噪）→ 封闭内洞边界洪水反填。
+5. **分位数取偏低**（30）：拟合线宁低勿高——偏高会把棋盘底纹条带填进 alpha。
+6. 换素材时优先要**深色底**图源，白底/棋盘底天然难抠。
 
 ### 僵尸地牢菱形房间（2026-07-24 落地）
 - **尺寸规则**：原正方形 S（1024~2048 随机、Boss 1024）→ rx=1.2S、ry=rx×0.5774（30°）；**边距 M=260（≥墙贴图高度 190×角度补偿≈217 + 缓冲，否则上夹角被世界顶裁掉）**，菱形在世界正中央，区外全黑

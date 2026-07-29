@@ -3,6 +3,7 @@
 
 import { DataLoader } from './systems/data-loader.js';
 import { MovementSystem } from './systems/movement-system.js';
+import { WallSystem } from './world/wall-system.js';
 import { CombatSystem } from './systems/combat-system.js';
 import { PerceptionSystem } from './systems/perception-system.js';
 
@@ -45,6 +46,7 @@ async function initModules() {
 
     // 仍需要全局暴露的模块（DOM inline onclick / 外部系统检测 / 控制台调试）
     window.MovementSystem = MovementSystem;
+    window.WallSystem = WallSystem; // 调试/控制台排查墙体碰撞用（与 MovementSystem 同口径挂载）
     window.CombatSystem = CombatSystem;
     window.PerceptionSystem = PerceptionSystem;
 
