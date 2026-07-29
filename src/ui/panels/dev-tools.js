@@ -73,6 +73,7 @@ export function createDevToolPanel() {
         ['running', '奔跑'],
         ['attack', '攻击'],
         ['attack2', '二段攻击'],
+        ['dash', '冲刺攻击'],
         ['recover', '收势'],
         ['bow_draw', '拉弓'],
         ['bow_release', '射箭'],

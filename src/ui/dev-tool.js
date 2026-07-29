@@ -93,7 +93,7 @@ const DevTool = {
     // 动画状态映射
     ANIM_NAME: {
         idle: '待机', walk: '移动', running: '奔跑', attack: '攻击',
-        attack2: '二段攻击', recover: '收势',
+        attack2: '二段攻击', dash: '冲刺攻击', recover: '收势',
         bow_draw: '拉弓', bow_release: '射箭',
         gun_idle: '持枪待机', gun_fire: '射击',
         reload: '换弹', hurt: '受击', death: '死亡',
@@ -103,7 +103,7 @@ const DevTool = {
     // （面板历史命名 running/attack 与配置键 run/attack_sword 不同，在此统一映射）
     PANEL_ANIM_TO_CONFIG: {
         idle: 'idle', walk: 'walk', running: 'run', attack: 'attack_sword',
-        attack2: 'attack_sword_2', recover: 'recover',
+        attack2: 'attack_sword_2', dash: 'dash_attack', recover: 'recover',
         bow_draw: 'bow_draw', bow_release: 'bow_release',
         gun_idle: 'gun_idle', gun_fire: 'gun_fire',
         reload: 'reload', hurt: 'hurt', death: 'death',
@@ -271,7 +271,7 @@ const DevTool = {
         if (!WeaponAnimConfig[wt]) WeaponAnimConfig[wt] = {};
         const atkBlock = WeaponAnimConfig[wt].attack;
         let frames;
-        if (key === 'attack2' && atkBlock && atkBlock.type === 'perFrame' && atkBlock.frames && atkBlock.frames.length) {
+        if (key !== 'attack' && atkBlock && atkBlock.type === 'perFrame' && atkBlock.frames && atkBlock.frames.length) {
             frames = atkBlock.frames.map(f => ({ ...f }));
         } else {
             const overrides = this._buildPreviewOverrides();
@@ -660,9 +660,9 @@ const DevTool = {
         }
     },
 
-    // ===== 逐帧（perFrame）动画通用：attack→attack 块，attack2→attack2 块 =====
-    _perFrameCfgKey(anim) { return anim === 'attack2' ? 'attack2' : 'attack'; },
-    _isPerFrameAnim(anim) { return anim === 'attack' || anim === 'attack2'; },
+    // ===== 逐帧（perFrame）动画通用：attack→attack 块，attack2→attack2 块，dash→dash 块 =====
+    _perFrameCfgKey(anim) { return anim === 'attack2' ? 'attack2' : (anim === 'dash' ? 'dash' : 'attack'); },
+    _isPerFrameAnim(anim) { return anim === 'attack' || anim === 'attack2' || anim === 'dash'; },
     _getPerFrameFrames(wt, anim) {
         const cfg = WeaponAnimConfig[wt];
         const key = this._perFrameCfgKey(anim);

@@ -49,6 +49,7 @@ class DashSystem {
             if (scene && typeof scene.setPlayerAnimation === 'function') {
                 const dashEffect = (dashSkill && typeof dashSkill.getEffect === 'function') ? dashSkill.getEffect(dashSkill.level) : null;
                 const dashTotalMs = (dashEffect && dashEffect.totalMs) || 800;
+                this.player._dashTotalMs = dashTotalMs; // 供 GameScene 冲刺轨迹按帧进度插值
                 scene.setPlayerAnimation('dash_attack', dashTotalMs);
             }
         }
@@ -297,11 +298,13 @@ class DashSystem {
                 SkillManager.addMeleeExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
                 return;
             }
-            // 移动：前40%时间完成位移，速度递减
+            // 移动：动画帧驱动——dash_attack 共 17 帧，前 12 帧（1~12）完成位移，后 5 帧（13~17）不位移
             const dashDist = effect.dashDist;
-            const movePhaseRatio = effect.movePhaseRatio;
             const speedMul = effect.speedMul;
             const bounceRatio = effect.bounceRatio;
+            const totalFrames = 17;
+            const moveFrames = (typeof effect.moveFrames === 'number') ? effect.moveFrames : 12; // 位移帧数（技能配置可覆盖）
+            const movePhaseRatio = moveFrames / totalFrames;
             if (progress < movePhaseRatio) {
                 const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);
