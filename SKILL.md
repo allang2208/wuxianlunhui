@@ -8,7 +8,7 @@
 1. **近战连段体系**：一段（attack_sword 8帧）→ 定格 0.5s（连段窗口）→ 二段（attack_sword_2 30帧/1.5s）→ recover 收势（13帧/0.33s）→ idle。攻击期输入全锁（移动/闪避/新攻击/切武器/冲刺/特殊攻击）；移动立即取消定格/收势。
 2. **朝向硬绑定（结构级）**：近战武器朝向一律 = `playerSprite.flipX`（身体是唯一权威）——攻击逐帧/定格/收势滑行/idle/副手全部直接读身体 flipX，独立朝向判定已删除。教训：setPlayerAnimation 曾用 _facingDir（45° 边界）与武器的 ±0.05 滞回（87° 边界）冲突；`_attackHoldFacingRight` 捕获在连段时泄漏（二段沿用一段朝向）——双重教训后统一为身体 flipX 单源。
 3. **攻击范围重构（配置驱动）**：`sword.attack.hitCheck { frame:22, shape:'rect', knockback:50 }`（一段矩形：宽恒定、长=武器 attack.range、第 22 帧判定）/`sword.attack2.hitCheck { frame:15, shape:'sector', arcDeg:120, knockback:75, damageMul:1.5 }`（二段扇形：footprint 相交、击退 75px、伤害×1.5、第 15 帧判定）。攻击方向固定玩家左右两侧（鼠标只选左右）。
-4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（Phaser 4 滤镜方向模糊，**必须先 `enableFilters()`**，否则静默无效）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
+4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（**V0.307 起改为残影实现**——高斯滤镜对细长武器是"摊薄消失"，实机像素级取证峰值帧剑身近乎不可见，已废弃；现由 GameScene 沿轨迹回放 3 道历史姿态残影，blurX/blurY 驱动残影长度/浓度）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
 5. **贴图标准化管线**：武器贴图统一"内容宽比 + 中心分数"归一（AKM 基准 0.915/(0.500,0.543)，PKM 0.907/(0.496,0.543)）——AKM/201/Super90 已重制替换，枪口 muzzle 配置对齐；归一后尺寸=显示缩放×内容占比，"和 AKM 一样大"即同分母同占比。
 6. **冲刺攻击动画**：`dash_attack` 17 帧 sheet（素材 attack-2.png 归一），trigger 时播放（timeScale 拉伸到技能 totalMs）；位移窗口帧驱动（前 12 帧位移、13~17 静止，`effect.moveFrames` 可覆盖）。
 7. **其他**：挥砍音效起手播放（块配置 sound 字段）；弹壳落地留存 3s；子弹胶囊化（短粗椭圆+提亮）；双持副手开火位 offhandOffsetY 配置；右键瞄准打断奔跑（与开火同口径）；`spriteOffsetX/Y` 贴图独立偏移（只动贴图不动手臂/弹道）；人物+武器整体 +20%（spriteSize 144 / WEAPON_ANIM.size 126，碰撞与偏移不变）。
@@ -21,7 +21,7 @@
 
 ### 验证状态
 - lint 0 error、vite build、test-collider、test-craft-sync 持续全过
-- 实机已确认：挥砍模糊生效（fxlog 取证）、朝向绑定（facelog 取证）、攻击范围帧判定
+- 实机已确认：朝向绑定（facelog 取证）、攻击范围帧判定；挥砍模糊 V0.307 改残影后实机截图确认（此前"fxlog 取证"只证明滤镜激活，未验证观感——高斯方案已废弃）
 - 未提交批次：V0.291~V0.302 全部在本提交
 
 ### 后续计划
@@ -217,7 +217,7 @@
 - **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。**拆帧无配置时自动播种 30 帧同一基线位置（2026-07-27）**，进入攻击页即可开调；右上角重置键 = 一键把当前动画恢复初始状态（attack=全帧回种子基线，其他=恢复已保存配置；种子只改内存，💾保存才落盘）。
 - **朝向翻转（2026-07-27 终极绑定）**：**近战武器朝向一律 = `playerSprite.flipX`**（身体是唯一权威，V0.296 起）——攻击逐帧/定格/收势滑行/idle/walk/副手全部直接读身体 flipX，禁止任何独立的武器朝向判定/捕获；身体 flipX 由 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`）驱动，攻击/定格/收势期间身体冻结故武器自然冻结。枪械走 twist 面向（±0.05 同源语义）。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
 
-- **挥砍特效 A+B（2026-07-27）**：perFrame 帧数据可加 `blurX/blurY`（Phaser 4 内置方向高斯模糊，`weaponSprite.filters.internal.addBlur`，≤0.05 关闭）与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。面板预览模糊是 canvas filter 近似（游戏内为方向性）。
+- **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
 - **近战连段与收势（2026-07-27）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口 1000ms）——窗口内定格末帧等待连段（stage 1↔2，`attack_sword`/`attack_sword_2`，武器轨迹按 `_meleeComboStage` 选 attack/attack2 块）；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。新段（如三段突刺）：加 `attack_sword_3` 姿态+weapon-anim 轮换数组扩展+attack3 轨迹块。
 

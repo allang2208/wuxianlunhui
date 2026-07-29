@@ -15,7 +15,7 @@
     "prebuild": "node scripts/backup.js",
     "preview": "vite preview",
     "analyze:sprites": "node scripts/sprite-analyzer.js",
-    "test": "node scripts/test-collider.mjs && node scripts/test-craft-sync.mjs && node scripts/test-config-integrity.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-regressions.mjs",
+    "test": "node scripts/test-collider.mjs && node scripts/test-craft-sync.mjs && node scripts/test-config-integrity.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-regressions.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-wall-embed.mjs",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },

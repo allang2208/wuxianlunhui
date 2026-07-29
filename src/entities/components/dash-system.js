@@ -13,6 +13,7 @@ import { VerticalSector, VerticalRect } from '../../physics/skill-shapes.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 class DashSystem {
     constructor(player) {
         this.player = player;
@@ -20,6 +21,9 @@ class DashSystem {
 
     trigger(_entities) {
         if (this.player._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止冲刺攻击
+        // 攻击动画锁定：任何动画未播完前不触发（近战攻击中/收势中/冲刺恢复定格中/风车/推击均拒绝插队）
+        if (this.player.weaponAnim && this.player.weaponAnim.isAttacking) return;
+        if (this.player._attackRecovering || this.player._dashRecoverAt || this.player._isWhirlwind || this.player._isPushStrike) return;
         // 使用鼠标方向（当前朝向）作为冲刺方向
         let dirX = Math.cos(this.player.rotation), dirY = Math.sin(this.player.rotation);
         this.player._isDashing = true;
@@ -36,6 +40,7 @@ class DashSystem {
         this.player._dashRangeShown = false;
         this.player._dashSlashShown = false;
         this.player._dashBounceApplied = false;
+        this.player._dashSoundPlayed = false; // 挥砍音效第 9 帧一次性播放标记
         this.player._dashSlashPos = null;
         this.player._dashSlashEffect = null; // 重置扇形特效引用
         this.player._goldenConvergeEffect = null; // 重置金色汇聚特效引用
@@ -269,7 +274,6 @@ class DashSystem {
                     this.player._dashSlashStartTime = Date.now();
                 }
             } else {
-                const endState = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);
                 this.player._isDashing = false;
                 this.player._dashState = 'idle';
                 this.player._dashTimer = 0;
@@ -279,14 +283,9 @@ class DashSystem {
                 this.player._dashThrustPhase = null;
                 this.player._goldenConvergeEffect = null;
                 this.player._dashSlashStartTime = null;
-                this.player._dashResetAnim = {
-                    startOffset: endState.dashOffset,
-                    startAngle: endState.dashAngle || Math.PI / 1800,
-                    startRotation: this.player.rotation,
-                    targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
-                    startTime: Date.now(),
-                    duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
-                };
+                // 恢复动画延迟 0.5s 播放（末帧定格），由 GameScene._updatePlayerAnimation 到点触发；
+                // 定格期武器停在 dash 轨迹末帧（perFrame progress=1），恢复走近战同款滑回（dash-system 不再建旧公式复位动画）
+                this.player._dashRecoverAt = performance.now() + 500;
                 // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
                 if (this.player.weaponAnim) {
                     this.player.weaponAnim.state = 'idle';
@@ -298,13 +297,15 @@ class DashSystem {
                 SkillManager.addMeleeExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
                 return;
             }
-            // 移动：动画帧驱动——dash_attack 共 17 帧，前 12 帧（1~12）完成位移，后 5 帧（13~17）不位移
+            // 移动：动画帧驱动——dash_attack 共 17 帧，位移窗口内完成位移，窗口外不位移
+            // 位移窗口优先级：effect.moveFrames（帧数，如 11=前 11 帧）> effect.movePhaseRatio（旧比例配置）> 缺省 12 帧
             const dashDist = effect.dashDist;
             const speedMul = effect.speedMul;
             const bounceRatio = effect.bounceRatio;
             const totalFrames = 17;
-            const moveFrames = (typeof effect.moveFrames === 'number') ? effect.moveFrames : 12; // 位移帧数（技能配置可覆盖）
-            const movePhaseRatio = moveFrames / totalFrames;
+            const movePhaseRatio = (typeof effect.moveFrames === 'number') ? effect.moveFrames / totalFrames
+                : (typeof effect.movePhaseRatio === 'number') ? effect.movePhaseRatio
+                : 12 / totalFrames;
             if (progress < movePhaseRatio) {
                 const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);
@@ -326,7 +327,6 @@ class DashSystem {
                 if (this.player._dashBounceApplied && progress > 0.1) {
                     const moved = Math.abs(resolved.x - this.player._dashStartPos.x) + Math.abs(resolved.y - this.player._dashStartPos.y);
                     if (moved < 2) {
-                        const endState = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);
                         this.player._isDashing = false;
                         this.player._dashState = 'idle';
                         this.player._dashTimer = 0;
@@ -335,21 +335,20 @@ class DashSystem {
                         this.player._dashSlashEffect = null;
                         this.player._dashThrustPhase = null;
                         this.player._dashSlashStartTime = null;
-                        this.player._dashResetAnim = {
-                            startOffset: endState.dashOffset,
-                            startAngle: endState.dashAngle || Math.PI / 1800,
-                            startRotation: this.player.rotation,
-                            targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
-                            startTime: Date.now(),
-                            duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
-                        };
+                        this.player._dashRecoverAt = performance.now() + 500;
                         SkillManager.addDashExp(this.player, this.player._dashHitSet.size, 0);
                         return;
                     }
                 }
             }
-            // 挥砍阶段：扇形判定，判定窗口400ms
-            if (this.player._dashState === 'slash') {
+            // 挥砍音效：第 9 帧播放（与近战一段/二段同款 sword.attack.sound；帧号换算同 hitCheck 口径）
+            if (!this.player._dashSoundPlayed && progress >= (9 - 1) / (totalFrames - 1)) {
+                this.player._dashSoundPlayed = true;
+                const swingSound = WeaponAnimConfig.sword && WeaponAnimConfig.sword.attack && WeaponAnimConfig.sword.attack.sound;
+                if (swingSound) SoundManager.playFile(swingSound);
+            }
+            // 挥砍阶段：扇形判定——第 14 帧才开始判定伤害（此前进 slash 即判，挥砍未到位）
+            if (this.player._dashState === 'slash' && progress >= (14 - 1) / (totalFrames - 1)) {
                 // 动态更新金色汇聚特效的汇聚点位置，实时跟随剑尖
                 if (this.player._goldenConvergeEffect && this.player._goldenConvergeEffect.active) {
                     const state = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);

@@ -8,12 +8,137 @@
 - 测试结果
 - 已知问题
 
+### 对话：冲刺末帧去剑气 + 定格不可移动（2026-07-29，V0.323）
+- **① 剔除冲刺末帧剑气**：`assets/player/dash_attack.png` 第 17 帧（末帧）右侧大弧形剑气按区域掩码擦除（x>390 且 y<430），骨架四肢/右手（y>430 区域）完整保留；中段帧不动（挥砍中的剑气属正常特效）。
+- **② 冲刺末帧定格不可移动**：`_dashRecoverAt` 定格期 targetSpeed=0（与普通攻击同口径，输入无效、定格不被移动打断）。
+- **测试**：lint 0 error；npm test 全绿（120+10）。
+
+### 对话：201/PKM 尺寸与持位调整（2026-07-29，V0.322）
+
+- **QJB201**：idleScale 1.5 → **0.9375**（当前尺寸 ×50% 再 ×125%）；持位回 PKM 基准（holdOffsetX -64 / holdOffsetY -6，顶层+idle+walk 三处），`aimAdjustX:-5`（瞄准后移）保留。
+- **PKM**：idleScale 1 → **1.25**；持位不动（-64,-6 基准）。
+- **测试**：lint 0 error；npm test 全绿（120+10）。
+
+### 对话：冲刺定格武器姿态一致 + 朝向绑定 + 贴图单一路径（2026-07-29，V0.321）
+
+- **① 冲刺末帧定格武器姿态**：定格期（_dashRecoverAt）武器走 sword.dash perFrame 轨迹 progress=1 停住（实机取证：定格武器位置/角度与轨迹末帧逐值一致 (2076,2071,2.01)）；恢复滑回改走近战同款——`_recoverCfgKey='dash'` + `_attackRecoverStart`，从冲刺轨迹末帧线性滑回 idle（旧 `_dashResetAnim` 旧公式姿态已废弃，dashAttack 两端分支移除）。
+- **② 冲刺定格/复位朝向绑定**：update.js 旋转跟随在 `_isDashing/_dashRecoverAt/_dashResetAnim` 期冻结（不随鼠标），武器朝向同普通攻击硬绑定身体 flipX。
+- **③ 贴图整合单一路径**：删除 `public/assets/`（130MB 双份阴影层，Vite 优先服务它=旧贴图根因）；先补齐 29 个仅存在于 public 侧的独有文件（武器 equip/UI/音效）进 `assets/`，全量校验后删除；`assets/` 为唯一路径（dist 由 copy-assets.js 从它复制）。test-regressions [3b] 改为断言 `public/assets 不存在` 防双份再生。
+- **测试**：lint 0 error；npm test 全绿（120+10）。dev server 取数验证一致。
+
+### 对话：201 贴图"调整没成功"根因——public 资产双份漂移（2026-07-29，V0.320）
+
+- **根因**：游戏贴图经 Vite 从 `public/assets/` 优先服务，`assets/icons/` 与 `public/assets/icons/` 是双份约定——7月27~28 贴图标准化批次和本次 201 替换**都只写了 assets/ 一侧**，public 侧滞留 7月8日旧图（含白边），游戏内一直渲染旧贴图：201 的替换/去白边全部不可见，其他 8 个图标同病（191/沙鹰/G18/Super90/S12k/AKM/devotion/PKM 侧图均漂移）。
+- **修复**：8 个漂移图标 + `201-icon.png` + `dash_recover.png` 全部同步 public 侧（md5 逐一对齐，服务端取数已验证一致）。
+- **防再犯**：test-regressions 新增 [3b] 节——`assets/icons ↔ public/assets/icons` md5 全量比对（此前只覆盖 data/*.json）。
+- **测试**：npm test 全绿（118+10）。
+- **注意**：浏览器/客户端如仍有旧缓存需 Ctrl+F5 强刷（Phaser 纹理在 BootScene 加载时缓存）。
+
+### 对话：冲刺末帧贴图+输入锁 + 怪物贴墙瞬移 + 删海岸线（2026-07-29，V0.319）
+
+- **① 冲刺末帧用 idle 贴图的根因**：`setPlayerAnimation` 的 repeat-0 完成回调在 dash_attack 播完时无条件切 idle（dash_attack 不在 attack_sword 白名单），定格窗口贴图被换回 idle。修复：完成回调在 `_isDashing || _dashRecoverAt` 时跳过 idle 切换，末帧定格成立。
+- **① 攻击输入锁补齐**：冲刺触发（update.js + dash-system.trigger 双重守卫）与近战触发（update.js）统一拒绝于——近战攻击中/冲刺中/风车/推击/收势动画中/冲刺末帧定格期（`_attackRecovering/_dashRecoverAt` 纳入）。连段窗口（一段结束后接二段）不受影响。实机验证：冲刺中近战被拒、定格期冲刺被拒 ✓。
+- **② 怪物贴墙周期性瞬移根因**：`_tryUnstuck` 的 8 方向 45px 盲跳（r×1.5），跳完仍卡、500ms 后再跳。改为 **resolve 小步滑移**（与玩家贴墙同口径）：步长 ~8-14px 起、1×/2×/3× 递增（深嵌墙厚区也能合法脱出）、只在缩短与目标距离时移动、滑不出则交寻路重算不做瞬移。实机验证：深嵌场景最大单帧 8px（旧 45px）合法脱出、正常贴墙场景全程平滑无跳变 ✓。
+- **③ 海岸线入侵阴影删除**（用户验收"效果不理想"）：`_applyGateZoneShade`/蔓延 tween/底图留档全部移除，`_spawnGateExitZone` 恢复 v5 远侧线性淡出 + 即时环绕光晕。
+- **测试**：lint 0 error；npm test 全绿（117+10）。
+
+### 对话：二段扇形半径 ×1.5（2026-07-29，V0.318）
+
+- **实现**：`sword.attack2.hitCheck.rangeMul = 1.5`（配置驱动，非硬编码）；`attack.js checkStageHit` 判定半径 = 武器攻击范围 × rangeMul（缺省 1），判定形状与 AttackRangeEffect 可视化共用同一变量同口径生效；一段矩形不受影响。
+- **实机验证**：effRange 116×1.5=174，139px 处目标命中 ✓、197px 处不命中 ✓（全管线：候选查询+扇形判定）。
+- **测试**：lint 0 error；npm test 全绿（117+10）。
+
+### 对话：冲刺定格-恢复时序 + 怪物成长收敛 + 201 瞄准后移/贴图清理（2026-07-29，V0.317）
+- **① 冲刺攻击收尾时序**（仅普通冲刺攻击）：dash_attack 末帧**定格 0.5s**（`_dashRecoverAt` 延迟触发，GameScene 到点播 dash_recover）→ 恢复动画时长 0.3s→**0.5s**；武器复位 `_dashResetAnim` 同步改为 startTime+500/duration 500，恢复窗口内**线性**滑回 idle 位（位置+旋转同步插值，t 钳 [0,1] 防定格期倒卷）。实机验证：结束瞬间保持 dash_attack 末帧、+500ms 触发 dash_recover、复位动画到期清理 ✓。
+- **② 怪物生命成长收敛**：`monsterGrowth.hpPerLevel 0.10→0.03`、`hpPerLevelBoss 0.05→0.015`（与档位锚点每档+3 同步；atk/def 系数未动——用户只点了生命值）。
+- **③ 201 瞄准后移 5px**：`qjb201.aimAdjustX=-5`（aimFrames 锚点链按武器微调位，腰射不动、翻转自动镜像、×ease 混合）。
+- **④ 201"矩形白边"清理**：**非原图问题**（源图亮区只在枪身范围）——是我归一化的锅：低 alpha 区只清了 alpha 没清 RGB，LANCZOS 缩放时透明白底的 RGB 渗进贴图边缘。修复：缩放前 `alpha<48` 区 RGB 一并清零后重新归一（同 PKM 基准），暗底复查无白边。
+- **测试**：lint 0 error；npm test 全绿（117+10）。
+
+### 对话：201 持位/弹道图层/近战眩晕/阴影失效修复（2026-07-29，V0.316）
+
+- **① 201 贴图下移 3px**：holdOffsetY -6→-3（顶层+idle+walk，aim 姿态经配置回退同步）。
+- **② 弹道被墙盖住**：投射物深度 `y+12` → `y+500`——贴墙飞行/两墙接缝处被墙面盖住又露出的根因；物理上子弹不穿墙（嵌墙"只出不进"），视觉压墙恒成立。
+- **③ 近战眩晕**：一段/二段命中时对**普通类型怪物**（rank 缺省视为 normal，精英/领主/首领免疫）施加眩晕——一段 1000ms、二段 1200ms（配置 `hitCheck.stunMs`，attack.js checkStageHit 两分支）；实机验证：普通怪 stun=true、rank=elite 不生效 ✓。
+- **④ 海岸线阴影"没有生效"根因**：bakeShade 里调的是 `CanvasTexture.refresh()`（只刷新 DOM bounds，**不上传像素**），且首次 addCanvas 上传的是未加阴影的底图——阴影永远停在初始状态。改 `tex.update()`（GL 像素上传）后：入场 p=0.12 首烘生效 + tween 逐帧蔓延生效（实机取证：手动 p=0.85 重烘后纹理亮度从 ~25 降到 ~6 ✓）。
+- **测试**：lint 0 error；npm test 全绿（117+10）。
+
+### 对话：门外地块海岸线入侵阴影（2026-07-29，V0.315-coastline）
+
+- **实现**（参考用户给的 GLSL 思路，落地为 CPU 烘焙，避免 Phaser 4 自定义滤镜链）：`_spawnGateExitZone` 的线性淡出替换为 `_applyGateZoneShade`——**平滑值噪声 fbm（双线性插值+smoothstep，3 倍频）扭曲的不规则海岸线**，阴影从远侧沿外法线向门方向蔓延（过渡带 9%、最大压黑 78%）；裁切底图留档，`scene.tweens` 驱动 progress 0.12→1（2.8s Sine.easeOut）逐帧重烘 `refresh()`，蔓延完成后从最终画布烘焙白色环绕光晕（淡入+呼吸）。
+- **对比修正**：初版逐像素 hash 噪声造成散点边缘，改平滑值噪声后呈连续海岸线（烘焙样本 tmp_wall_view/coastline_samples2.png 验收）。
+- **测试**：lint 0 error；npm test 全绿（117+10）。实机待验证：进地牢战斗房看门外地块的入侵动画与光晕。
+
+### 对话：地牢档位有效等级锚点下调（2026-07-29，V0.314-anchors）
+
+- **调整**：`combat-formulas.json enemy.expValue.anchors` 由 F3/E13/D28/C43/B58/A73（每档+15）下调为 **F3/E6/D9/C12/B15/A18（每档+3）**——用户裁定原成长幅度过大。
+- **影响面**：有效等级 = 锚点 + (怪种配置等级 − 3) + 祭品加持；经验压级衰减/越级加成按新锚点重新分档；怪物战斗属性本身不受影响（属性在 enemy-config 按怪种固定）。
+- **测试同步**：test-regressions 同级精英经验断言的玩家等级从 31（旧 D 锚 28+3）改为 12（新 D 锚 9+3）。npm test 全绿（117+10），lint 0 error。
+
+### 对话：贴墙弹道"只出不进"方案实施（2026-07-29，V0.313-embedded）
+
+- **方案（用户验收后实施）**：替换"上方墙免阻集"（方向盲→穿墙/覆盖不全）——改为**出膛嵌墙检测 + 只出不进（朝射手一侧）**：工厂创建时 `WallSystem.detectEmbeddedWalls` 记录嵌墙（射手→出膛点跨过的 iso 面线 + 出膛点所在/穿过的真实矩形墙），投射物飞行中：①任何墙不得从外穿进内（铁律）；②嵌墙面线仅允许朝射手一侧跨回，背向钻透（含"远侧未跨线但越飞越远"）即销毁；③跨回后面线恢复普通判定，其 iso 阶梯碰撞块永久放行（墙厚区），真实矩形墙按越出方位（主轴判定）放行/销毁。出膛点一字节不动。
+- **实施中修掉的三个坑**：①iso 墙双重碰撞（面线+阶梯矩形）——阶梯块挂嵌墙面线 linked 集合，不放行会被面线内阶梯块秒杀；②sideOfRect 改主轴判定（薄墙最近边度量把"右侧"误判为"上侧"）；③iso 阶梯块不进矩形规则（弹道不穿行的块会按"远侧越飞越远"误杀）。
+- **文件**：`src/world/wall-system.js`（detectEmbeddedWalls/segSide/pointInRect/sideOfRect/linked）、`src/utils/projectile-factory.js`（嵌墙检测接入）、`src/combat/projectile.js`（`_isBlockedByWall` 只出不进判定）、`scripts/test-wall-embed.mjs`（新建，挂入 npm test）。
+- **验证**：node 单测 10/10（朝内活/背向死/远射撞墙死/撞第二面墙死/矩形两侧/无嵌墙）；CDP 实机三场景：贴墙朝房内=存活 ✓、贴墙朝墙外=首帧销毁 ✓、远处朝墙=撞墙销毁 ✓。npm test 全绿（117+10），lint 0 error。
+
+### 对话：冲刺恢复动画重切 + 201 贴图去白边/再后移（2026-07-29，V0.312）
+- **冲刺恢复动画重切**：上一版帧格假设错误（按 8×4 格裁，帧 7 横向越格被裁、相邻帧串图）——实测源图真实布局=**上半个画布内 8列×2行 512²**（行 0 八帧俯冲、行 1 六帧直立，下半 1024px 全空）。重切：整列原样裁剪（X 零位移，杜绝横向错位），逐帧脚底对齐 y=492，输出 4096×1024；配置同步 `rows:2 / frameHeight:512`。14 帧逐帧验证（底边 491-492、X 全部在格内）。
+- **201 贴图去白边**：上一版归一化按 `alpha>0` 取 bbox，把白雾光晕一起裁入——改按 `alpha>16` 取 bbox + `alpha<48` 像素清零（白雾主分布区）后重新归一（同 PKM 基准 0.907/(0.496,0.543)），暗底检查无白边。
+- **201 持位再后移 5px**：holdOffsetX -69→-74（顶层+idle+walk；aim 姿态经 getWeaponStateConfig 回退读顶层同值，瞄准模式同步生效；手臂层未动）。
+- **测试**：npm test 117/117。
+
+### 对话：201 贴图替换 + 冲刺恢复动画 + 机枪减速口径 + 冲刺音效/判定帧（2026-07-29，V0.311）
+- **① QJB201 贴图替换**：素材库 `枪械类/201/201-icon.png`（1536²）按 PKM 基准归一（内容宽比 0.907/中心 (0.496,0.543)，2048² 画布）替换 `assets/icons/201-icon.png`；idleScale ×1.5 保留；持有位置向后 5px（holdOffsetX -64→-69，顶层+idle+walk 三处，腰射/瞄准同生效，手臂层未动）。
+- **② 冲刺恢复动画**（仅普通冲刺攻击，不含骑士突刺）：素材库 `冲刺攻击恢复.png`（4096×2048，8列×4行 512²，14 帧）脚底基线对齐 y=492（"≥4 个 alpha>32 像素才算内容行"规则滤噪逐帧配准）→ `assets/player/dash_recover.png`；注册 `dash_recover`（repeat 0，0.3s 经 timeScale 同步）；dashAttack 结束分支播放并置 `_attackRecovering` 守卫（防 idle 抢占、移动可打断），GameScene 完成回调扩展支持 dash_recover 清标记。**实机验证：冲刺结束自动播放 player_dash_recover 并正常回 idle ✓**。
+- **③ 机枪 -50% 移速口径排查**：运行时名单（update.js isPkmEquipped = pkm/qjb201/energy_lmg）本就正确；**错误在两处硬编码**：tooltip 展示名单混入 akm/qbz191（虚标减速）→ 改走共享 `isMachineGun()`（attack-formula.js）；`update.js` 遗留死变量 `_isAkmOrQbz191`（且误写 qjb201）→ 删除。test-regressions 新增第 [8] 节 6 条防再犯断言（117 通过）。
+- **④ 冲刺攻击帧定位**（仅普通冲刺攻击）：挥砍音效第 9 帧播放（与近战同款 `sword.attack.sound`，`_dashSoundPlayed` 一次性标记，trigger 重置）；伤害判定从进 slash 即判改为**第 14 帧才判**（progress ≥ 13/16）。实机驱动验证：音效标记在 progress 0.53 触发、0.81 前无命中、手动 _checkHit 命中掉血正常 ✓。
+- **测试**：lint 0 error；npm test 117/117。
+
+### 对话：六连需求批次（2026-07-29，V0.310-batch6）
+- **① 二段攻击音效帧定位**：挥砍音效改按块配置 `soundFrame` 控制时机（缺省 1=起手播放，>1 到帧再播，progress 阈值与 hitCheck 同口径 `(frame-1)/(frames.length-1)`）；`sword.attack2.soundFrame=11`（weapon-anim.js 起手播/到帧播两路）。
+- **② 冲刺攻击（普通，非骑士突刺）**：**根因修复**——`dash-system` dashAttack 分支位移窗口只认 `effect.moveFrames`（缺省 12），配置里的旧字段 `movePhaseRatio: 0.4` 被静默忽略（"1-11 帧位移后续不动没生效"的根因）；现优先级 moveFrames > movePhaseRatio > 缺省。配置（skills.json dashAttack）：`dashDist 188→376`（突进翻倍，有效位移 141→282）、`moveFrames: 11`（1~11 帧位移、12~17 不动）、废弃 movePhaseRatio。**实机驱动验证：位移 282px、500/800ms 停住 ✓**。
+- **③ 月牙剑气删除**：sword-arc.js 删文件、GameScene 引用（feed/stop/update/import）全清、配置 arc 字段移除。
+- **④ 门外白区 EQ 柱状侵入删除**：`_spawnGateExitZone` 的频谱柱像素循环替换为沿外法线线性淡出（贴砖/光晕/传送判定不动），烘焙日志 v4→v5。
+- **⑤ QJB201 贴图 ×1.5**：`qjb201.idleScale` 顶层/idle/walk 三处 1→1.5；握把锚点机制（grip 0.29/0.54）自动保持握把在手，实机截图验收（tmp_wall_view/qjb201_scale3.jpg）。
+- **⑥ 贴墙弹道改方向性免阻（替换 V0.309 出弹点修正）**：用户裁定出弹点回拉"治标不治本"——已删除 `_sanitizeSpawn`。新算法：`WallSystem.collectUpperWallCover(x, y, grace=90)` 收集射手"上方墙"（iso 线段/矩形墙中心 y < 射手 y 且距离 <90）为免阻集，`blocked()` 增加 ignore 参数；`Projectile._wallCover` 在工厂创建时按射手位置计算（**出弹位置完全不动**）。效果：贴上方墙开火该墙不判定，离开上墙区域弹道照常受阻。**验证**：node 实测贴上墙免阻 PASS/同路径无免阻必死 PASS/中心朝墙命中 PASS；实机贴上墙开火 3 发存活 ✓。
+- **测试**：lint 0 error；npm test 111/111。①音效时序（0.345≈518ms/1500ms）代码与配置已核，运行时打点受无头节流未取证，实机待听。
+
+### 对话：贴墙弹道失效 + 怪物靠墙瞬移/加速 双修复（2026-07-29，V0.309-wallfix）
+- **Bug1 贴右上方墙开不出枪**：根因=枪口出弹点探入/探过墙体碰撞（矩形墙：墙内任一点出发的轨迹必与矩形求交；iso 墙：首帧反向跨面线），投射物生成当帧即被 `blocked()` 判死。修复=`ProjectileFactory._sanitizeSpawn`：出弹点与射手被墙隔断或出弹点入碰撞体时，沿"射手→枪口"路径逐步收回到墙内侧自由点——**不改任何碰撞体积**，只调整出弹位置；工厂是全类型投射物（玩家枪械/巫师/喷吐/毒蛆）唯一创建口，一处修复全部生效；角度不变、贴墙朝墙打仍会正常撞墙消失。
+- **Bug2 怪物靠墙瞬移/加速**：根因=`MovementSystem._applyKnockback` 是全怪物唯一位移通道（dashTo/突进/击退统一走 knockback），但该通道**不做墙体解析**——怪物突进直接穿进墙体，下一帧正常移动的 resolve 沿墙切向弹出=瞬移/加速观感。修复=按玩家 dash 同口径（player/update.js:213）：knockback 积分后过 `WallSystem.resolve`，全挡时清除击退分量。
+- **附带**：`main.js` 挂载 `window.WallSystem`（调试/控制台排查墙体碰撞用，与 MovementSystem 同口径）。
+- **文件**：`src/utils/projectile-factory.js`、`src/systems/movement-system.js`、`src/main.js`。
+- **测试结果**：node --check ✅；npm test 111/111 ✅；CDP 实机验证（贴右上墙开火弹道存活/怪物突进不穿墙）。
+
+### 对话：不规则战斗房重构（V0.308）——**已按用户要求整体回退**（2026-07-29）
+- **回退原因**：用户评估"场地拼接太抽象、AI 无法理解"，决定放弃该方向。
+- **回退内容**（已全部执行）：`arena-generator.js`/`test-arena-generator.mjs`/`debug-arena-svg.mjs` 删除；`wall-system.js`/`combat-room-system.js`/`dungeon-floor-texture.js`/`boss-reward-system.js`/`dungeon-config.json` git 还原；test-regressions 第 [8] 节摘除；SKILL.md v1.7 章节摘除。菱形战斗房恢复原状。
+- **保留的勘探结论**（若未来重启该方向可参考）：①预制库僵尸左/右夹角是异形旧作（一臂偏 30°+，不可直接套菱形角）；②等距四方向族 {30°,150°,210°,330°} 是唯一能让凸顶点命中 60°/120° 预制手摆角的墙段方向集；③快照备份 backup/v2026-07-29_06-00-41 内含完整实现。
+- **测试结果**：回退后 npm test 全套 111/111 通过、lint 0 error。
+
+### 对话：挥砍运动模糊改残影实现（2026-07-29，V0.307-ghosttrail）
+
+### 对话：挥砍运动模糊改残影实现（2026-07-29，V0.307-ghosttrail）
+- **排查（CDP 实机取证）**：用户报告"挥砍模糊只在开发工具有效果、游戏内没有"。headless Edge + CDP 注入实测：滤镜链路（enableFilters/addBlur/逐帧赋值）**全程正常激活**（攻击中 fxActive=true、blurX 峰值 10.8 随帧变化），但像素级对比显示——**高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失**（blur 40 时完全隐形），且峰值仅 ~100ms，玩家感知为"没效果"；开发工具是 canvas filter 画在大尺寸慢放预览上，同数值观感差异巨大。历史"fxlog 取证生效"只证明了激活、没验证观感。
+- **修复**：`GameScene` 高斯滤镜方案整体替换为**残影（afterimage）**——新增 `_syncWeaponGhosts/_hideWeaponGhosts`：沿 perFrame 轨迹回放 3 道历史姿态武器副本，透明度 0.34/0.23/0.11 递减、步长随强度伸缩（0.035~0.085 进度），强度=max(blurX,blurY) 归一峰值 12、<1.5 不出残影；攻击/冲刺（dash）两分支共用同一管线，stretchX 拉伸不变；不依赖 WebGL 滤镜（Canvas 兜底可渲染）。删除 `_weaponBlurFx` 全部引用（顺带消除定格保持窗口滤镜空转的每帧多余 framebuffer）。
+- **边界**：攻击结束/收势、弓分支、Tween 分支、地图模式四处兜底隐藏残影。
+- **文件**：`src/phaser/scenes/GameScene.js`（唯一代码改动）；SKILL.md 两处工作流条目同步。
+- **测试结果**：node --check ✅；test-regressions 111/111 ✅；CDP 实机截图确认峰值帧三道残影沿挥砍轨迹扇形展开、透明度递减（tmp_wall_view/ghost_peak.png）。
+- **实机待验证**：玩家实测挥砍/冲刺残影观感（强度不够可调 `_syncWeaponGhosts` 的 norm 除数 12 或 alpha 公式；配置侧 blurX/blurY 仍是唯一调节入口，面板四输入照常可用）。
+
 ### 对话：近战音效改起手 + 201 匹配 PKM 尺寸 + 人物武器放大 20%（V0.299-bigplayer）
 - **音效时机**：挥砍音效从"动画中点 delayedCall"改为攻击起手立即播放（weapon-anim.js）。
 - **201 匹配 PKM**：按 PKM 内容宽比 0.907/中心 (0.496,0.543) 重新归一 `assets/icons/201-icon.png`（保纵横比不拉伸，高比 0.230 天然厚于 PKM）。
 - **整体放大 20%**：`PLAYER_DEFAULTS.physics.spriteSize` 120 → 144（人物）；`WEAPON_ANIM.size` 105 → 126（全部武器显示尺寸同源 +20%）。碰撞体积/位置偏移/锚点数学（比例制）不变——**注意**：视觉身体变大而碰撞矩形不变（子弹可能擦边穿过）、武器握点偏移是世界像素未变（握把观感可能需微调）。开发面板预览读同一 spriteSize 自动同步。
 - **版本**：V0.298-bullethit → V0.299-bigplayer。
 - **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——人物武器比例观感、握把贴合、音效时机。
+
+### 对话：月牙剑气——轨迹光带（V0.305-swordarc）
+- **实现**：新增 `src/effects/sword-arc.js`——逐帧喂武器刃尖世界点，沿轨迹绘制"两头尖、中间宽"的环形光带（月牙形，ADD 发光）；每段四边形按 sin 曲线锥度 + 径向内缩成形；停止喂点后 120ms 淡出销毁。GameScene perFrame 攻击分支喂点（刃尖=武器位+旋转×半宽，中心=玩家位），攻击结束 stop()，场景 update 驱动生命周期。
+- **配置**：块级 `arc { color, width, alpha, trailMs, fadeMs }`（attack/attack2 已配白色 26px/0.65/160/120，attack2 未配则无声无息——想让 dash 也有就加 sword.dash.arc）。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——月牙形态观感（宽度/弧长/透明度可调）、与模糊拉伸叠加效果。
+- **热修（V0.306-arcfix）**：sword-arc.js 误用 default import（Phaser ESM 仅命名导出），改 `import { BlendModes } from 'phaser'`。
 
 ### 对话：面板"冲刺攻击"页 + 冲刺武器轨迹 perFrame 化（V0.304-dashpanel）
 - **面板**：动画下拉新增"冲刺攻击"（dash → dash_attack sheet）；perFrame 三键通用化（attack/attack2/dash 块）；`sword.dash` 播种=复制 attack 帧；保存直写中间件/Electron 按白名单（attack/attack2/dash）分块写入。

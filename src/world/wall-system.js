@@ -729,17 +729,80 @@ const WallSystem = {
         }
         return u1 < u2;
     },
-    blocked(x1, y1, x2, y2) {
-        for (const w of this.walls) if (this.lineRect(x1, y1, x2, y2, w)) return true;
+    blocked(x1, y1, x2, y2, ignore = null) {
+        for (const w of this.walls) {
+            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
+            if (this.lineRect(x1, y1, x2, y2, w)) return true;
+        }
         // iso 墙线段：移动线与墙段相交
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
+                if (ignore && ignore.segs && ignore.segs.has(s)) continue;
                 if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
             }
         }
         // 检查树木：使用独立的 collisionRadius（视觉半径的60%）
         for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
         return false;
+    },
+
+    /**
+     * 点在线段哪一侧（符号）：cross(seg, point) 的符号，用于"只出不进"方向判定
+     * @returns {number} >0 / <0 / 0（在线上）
+     */
+    segSide(s, x, y) {
+        return (s.x2 - s.x1) * (y - s.y1) - (s.y2 - s.y1) * (x - s.x1);
+    },
+
+    /** 点是否在矩形内（含 margin 容差） */
+    pointInRect(x, y, w, margin = 0) {
+        return x >= w.x - margin && x <= w.x + w.w + margin && y >= w.y - margin && y <= w.y + w.h + margin;
+    },
+
+    /**
+     * 点相对矩形的方位：'left'|'right'|'top'|'bottom'|'inside'
+     * 按相对矩形中心的归一化偏移取主轴（薄墙场景主轴即墙面朝向，嵌墙子弹"只出不进"判定用）
+     */
+    sideOfRect(x, y, w) {
+        if (this.pointInRect(x, y, w)) return 'inside';
+        const dx = x - (w.x + w.w / 2), dy = y - (w.y + w.h / 2);
+        const nx = Math.abs(dx) / Math.max(1, w.w / 2), ny = Math.abs(dy) / Math.max(1, w.h / 2);
+        if (nx >= ny) return dx < 0 ? 'left' : 'right';
+        return dy < 0 ? 'top' : 'bottom';
+    },
+
+    /**
+     * 嵌墙检测（投射物"只出不进"方案的出膛判定）：
+     * 找出"射手→出膛点"路径被隔断的墙——iso 面线被跨过（出膛点在另一侧）/ 出膛点在矩形墙内。
+     * @returns {{segs:Array<{seg:object, shooterSign:number}>, rects:Array<{rect:object, shooterSide:string}>}|null}
+     */
+    detectEmbeddedWalls(x, y, source) {
+        const out = { segs: [], rects: [] };
+        if (!source) return null;
+        if (this.isoSegments) {
+            for (const s of this.isoSegments) {
+                if (this._segSegIntersect(source.x, source.y, x, y, s.x1, s.y1, s.x2, s.y2)) {
+                    out.segs.push({ seg: s, shooterSign: Math.sign(this.segSide(s, source.x, source.y)) || 1 });
+                }
+            }
+        }
+        for (const w of this.walls || []) {
+            if (w._iso) continue; // iso 阶梯块由嵌墙面线的 linked 集合统一放行，不进矩形规则
+            // 出膛点在矩形内，或射手→出膛点路径穿过矩形（真实矩形墙：hub 边界/障碍物）
+            if (this.pointInRect(x, y, w, 1) || this.lineRect(source.x, source.y, x, y, w)) {
+                out.rects.push({ rect: w, shooterSide: this.sideOfRect(source.x, source.y, w) });
+            }
+        }
+        // iso 阶梯碰撞块挂到嵌墙面线上：嵌墙面线放行时其阶梯块同效（否则弹道穿过面线时撞阶梯块仍死）
+        for (const e of out.segs) {
+            e.linked = new Set();
+            for (const w of this.walls || []) {
+                if (!w._iso) continue;
+                const cx = w.x + w.w / 2, cy = w.y + w.h / 2;
+                if (this._pointSegDist(cx, cy, e.seg.x1, e.seg.y1, e.seg.x2, e.seg.y2) < 25) e.linked.add(w);
+            }
+        }
+        return (out.segs.length || out.rects.length) ? out : null;
     },
     addTree(x, y, radius, treeType, sceneGroup = 'normal', rotation = 0) {
         // [OPTIMIZE] 碰撞体积较大的怪物卡树优化：

@@ -606,62 +606,20 @@ export const CombatRoomSystem = {
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fill();
         ctx.globalCompositeOperation = 'source-over';
-        // 频谱/EQ 柱状侵入（取代噪声咬边）：
-        // 柱条沿外法线竖立、柱高=低频随机游走+尖峰（频谱图跳动感），
-        // 内部平整实心，远侧呈几何柱状侵入；柱间留细缝
+        // 远侧沿外法线线性淡出
         const imgData = ctx.getImageData(0, 0, bw, bh);
         const pdata = imgData.data;
-        const halfW = geo.w / 2, halfH = geo.h / 2;
-        const ppx = -ny, ppy = nx; // 柱轴（垂直于外法线）
-        const spanC = Math.abs(ppx) * geo.w + Math.abs(ppy) * geo.h;
-        const extentN = Math.max(1, halfW * Math.abs(nx) + halfH * Math.abs(ny)); // 内容沿外法线伸展上限
-        const BAR_W = 12, BAR_GAP = 3;
-        const nBars = Math.ceil(spanC / (BAR_W + BAR_GAP)) + 2;
-        // 每柱高度：随机游走 + 12% 尖峰/骤降（EQ 跳动感）+ 轻度平滑
-        const bars = new Float32Array(nBars);
-        let v = 0.5;
-        for (let i = 0; i < nBars; i++) {
-            v += (Math.random() - 0.5) * 0.35;
-            v = Math.max(0.05, Math.min(0.95, v));
-            bars[i] = v;
-            if (Math.random() < 0.12) bars[i] = Math.random();
-        }
-        for (let i = 1; i < nBars - 1; i++) bars[i] = bars[i] * 0.7 + (bars[i - 1] + bars[i + 1]) * 0.15;
         for (let y = 0; y < bh; y++) {
             for (let x = 0; x < bw; x++) {
                 const idx = (y * bw + x) * 4;
                 if (pdata[idx + 3] === 0) continue;
                 const ex = (x - bw / 2) * nx + (y - bh / 2) * ny; // 沿外法线投影
-                if (ex <= extentN * 0.15) continue; // 内部实心（平整感）
-                const ddx = x - geo.cx, ddy = y - geo.cy;
-                const dl = Math.hypot(ddx, ddy) || 1;
-                const along = (ddx * nx + ddy * ny) / dl;
-                if (along < -0.7) continue; // 门侧保护（正朝门 ±45° 扇区不处理）
-                // 长边扇区限定（扁菱形：左/右尖角一侧才处理）
-                const inLongEdge = Math.abs(x - geo.cx) / halfW >= Math.abs(y - geo.cy) / halfH;
-                if (!inLongEdge) continue;
-                const cx = (x - bw / 2) * ppx + (y - bh / 2) * ppy + spanC / 2;
-                const barPos = cx % (BAR_W + BAR_GAP);
-                const bar = Math.max(0, Math.min(nBars - 1, Math.floor(cx / (BAR_W + BAR_GAP))));
-                const h = extentN * (0.28 + 0.72 * bars[bar]); // 柱顶高度（大振幅 EQ 天际线）
-                if (barPos >= BAR_W && ex > extentN * 0.3) {
-                    pdata[idx + 3] = 0; // 柱间细缝（近边才出现）
-                    continue;
-                }
-                if (ex > h) {
-                    // 柱顶 3px 快淡出（硬边几何感）
-                    pdata[idx + 3] = Math.round(pdata[idx + 3] * Math.max(0, 1 - (ex - h) / 3));
-                }
+                const t = Math.max(0, Math.min(1, ex / (bw * 0.35)));
+                pdata[idx + 3] = Math.round(pdata[idx + 3] * (1 - t));
             }
         }
         ctx.putImageData(imgData, 0, 0);
-        // 烘焙自证：统计软边像素（fade 生效则 >0）
-        let softCnt = 0, solidCnt = 0;
-        for (let i = 3; i < pdata.length; i += 4) {
-            if (pdata[i] > 10 && pdata[i] < 200) softCnt++;
-            else if (pdata[i] >= 200) solidCnt++;
-        }
-        console.log(`[GateZone] bake v4: EQ柱状侵入 | tile=${tileKey} geo=${geo.w}x${geo.h} | 软边=${softCnt} 占比=${(softCnt / Math.max(1, softCnt + solidCnt) * 100).toFixed(1)}%`);
+        console.log(`[GateZone] bake v5: 远侧线性淡出 | tile=${tileKey} geo=${geo.w}x${geo.h}`);
         const zoneKey = 'gate_zone_tile';
         if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
         scene.textures.addCanvas(zoneKey, canvas);
@@ -679,7 +637,7 @@ export const CombatRoomSystem = {
         const gctx = glowC.getContext('2d');
         for (let i = 0; i < 3; i++) {
             gctx.shadowColor = '#ffffff';
-            gctx.shadowBlur = 8 + i * 6; // 光晕调窄（原 14/24/34），避免读成第二层描边
+            gctx.shadowBlur = 8 + i * 6;
             gctx.drawImage(canvas, 0, 0);
         }
         gctx.globalCompositeOperation = 'destination-out';

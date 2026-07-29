@@ -333,8 +333,14 @@ const weaponAnimMixin = {
                 scene.setPlayerAnimation(animKey, tweenDuration);
             }
 
-            // 挥砍音效：攻击动画开始时播放（块配置 sound 字段，一段/二段可不同）
-            if (stageCfg.sound && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+            // 挥砍音效：按块配置 sound 字段，帧号 soundFrame 控制播放时机（缺省 1=起手立即播放；
+            // >1 时到帧再播，progress 阈值与 hitCheck 同口径换算：(frame-1)/(frames.length-1)）
+            const soundFrame = (stageCfg.sound && typeof stageCfg.soundFrame === 'number') ? stageCfg.soundFrame : 1;
+            const soundThreshold = (stageCfg.frames && stageCfg.frames.length > 1)
+                ? (soundFrame - 1) / (stageCfg.frames.length - 1) : 0;
+            let soundPlayed = false;
+            if (stageCfg.sound && soundThreshold <= 0 && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                soundPlayed = true;
                 SoundManager.playFile(stageCfg.sound);
             }
 
@@ -347,6 +353,13 @@ const weaponAnimMixin = {
                     if (self._pendingThrust) self._pendingThrust.active = true;
                 },
                 onUpdate: function(tween) {
+                    if (!soundPlayed && tween.targets[0].progress >= soundThreshold) {
+                        // 到帧播放挥砍音效（soundFrame>1 的二段攻击等）
+                        soundPlayed = true;
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                            SoundManager.playFile(stageCfg.sound);
+                        }
+                    }
                     if (!self._pendingThrust || !self._pendingThrust.active) return;
                     if (hitCheckThreshold !== null) {
                         // 一次性判定：progress 首次达到 hitCheck 帧阈值时按形状判定（一段矩形/二段扇形）

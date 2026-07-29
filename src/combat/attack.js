@@ -315,7 +315,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 if (!pt || !pt.active) return;
                 pt.active = false; // 一次性判定：触发后即关闭
                 const ax = pt.x, ay = pt.y, angle = pt.angle;
-                const range = pt.range;
+                // 判定半径倍率（配置 hitCheck.rangeMul，缺省 1）——乘算武器攻击范围，判定与可视化同口径
+                const range = pt.range * (typeof hitCheckCfg.rangeMul === 'number' ? hitCheckCfg.rangeMul : 1);
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
                 const shape = hitCheckCfg.shape || 'rect';
                 let hitCount = 0, killCount = 0;
@@ -351,6 +352,11 @@ function applyEnchantOnHit(weapon, target, source) {
                         });
                         if (killed && !entity._summoned) killCount++;
                         hitCount++;
+                        // 二段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
+                        if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
+                            && (entity.rank || 'normal') === 'normal') {
+                            entity.applyStun(hitCheckCfg.stunMs);
+                        }
                     });
                 } else {
                     // rect（一段）：沿用 GroundDirectedRect 地面 footprint 判定
@@ -383,6 +389,11 @@ function applyEnchantOnHit(weapon, target, source) {
                         });
                         if (killed && !entity._summoned) killCount++;
                         hitCount++;
+                        // 一段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
+                        if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
+                            && (entity.rank || 'normal') === 'normal') {
+                            entity.applyStun(hitCheckCfg.stunMs);
+                        }
                     });
                 }
                 // 累计命中/击杀数（经验在 Tween onComplete 统一发放）

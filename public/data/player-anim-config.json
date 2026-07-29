@@ -581,5 +581,20 @@
       "aimSmoothRadius": 160,
       "aimSmoothTau": 120
     }
+  },
+  "dash_recover": {
+    "type": "sheet",
+    "src": "assets/player/dash_recover.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 2,
+    "frameCount": 14,
+    "frames": [
+      0,
+      13
+    ],
+    "frameRate": 46.67,
+    "repeat": 0
   }
 }

@@ -242,7 +242,6 @@ update(dt, entities) {
                     const currentEquip = this.equipments[this.weaponMode];
                     const isPkmEquipped = currentEquip && (currentEquip.weaponType === 'pkm' || currentEquip.weaponType === 'qjb201' || currentEquip.weaponType === 'energy_lmg');
                     const isPistolEquipped = currentEquip && (currentEquip.weaponType === 'pistol' || currentEquip.rangedType === 'pistol');
-                    const _isAkmOrQbz191 = currentEquip && (currentEquip.weaponType === 'akm' || currentEquip.weaponType === 'qjb201');
                     if (isPkmEquipped) {
                         let moveSpeedReduction = 0.50; // Base reduction 50%
                         const craftEffects = currentEquip && currentEquip._craftEffects;
@@ -283,6 +282,8 @@ update(dt, entities) {
                     }
                     // 冲刺攻击动画期间：移动速度为0.1px/帧（结束后恢复）
                     if (this._isDashing) targetSpeed = 0.1;
+                    // 冲刺末帧定格期：同普通攻击不可移动（输入无效，动画播完前不许动）
+                    if (this._dashRecoverAt) targetSpeed = 0;
                     // 风车攻击动画期间：移动速度为0.1px/帧（结束后恢复）
                     if (this._isWhirlwind) targetSpeed = 0.1;
                     // 推击攻击动画期间：移动速度为0.1px/帧（结束后恢复）
@@ -341,9 +342,8 @@ update(dt, entities) {
                 const screenPos = Renderer.worldToScreen(this.x, this.y), dx = Input.mouse.x - screenPos.x, dy = Input.mouse.y - screenPos.y;
                 if (isMeleeAttacking) {
                     // 近战攻击期间锁定朝向，动画结束后再恢复跟随鼠标
-                } else if (this._isDashing) {
-                    // 冲刺时不改变武器朝向
-                    // this.rotation = Math.atan2(this._dashDirection.y, this._dashDirection.x);
+                } else if (this._isDashing || this._dashRecoverAt || this._dashResetAnim) {
+                    // 冲刺/末帧定格/复位期间朝向冻结（武器朝向绑定身体 flipX，不随鼠标移动）
                 } else if (this._specialAttackActive) {
                     this.rotation = this._specialAttackLockedAngle;
                 } else if (!this._isWhirlwind && !this.isDodging) {
@@ -990,14 +990,16 @@ update(dt, entities) {
                         const activeDashSkill = this._getActiveDashSkillId();
                         const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
                         const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
-                        if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
-                            // 冲刺攻击触发（攻击动画锁定：任何一段攻击未播完前不触发）
+                        if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)
+                            && !this._attackRecovering && !this._dashRecoverAt) {
+                            // 冲刺攻击触发（攻击动画锁定：任何一段攻击未播完前不触发，收势/定格期同样拒绝）
                             this.dashSystem.trigger(entities);
                         } else if (isMelee) {
                             // 近战攻击：使用 ThrustAttack
                             // 攻击动画未播放完之前，忽略新的普通攻击输入：
-                            // 不重播攻击动画，也不产生新的攻击判定
-                            if (this.weaponAnim.state !== 'attacking') {
+                            // 不重播攻击动画，也不产生新的攻击判定（冲刺/风车/推击/收势/定格期同样拒绝插队）
+                            if (this.weaponAnim.state !== 'attacking' && !this._isDashing && !this._isWhirlwind
+                                && !this._isPushStrike && !this._attackRecovering && !this._dashRecoverAt) {
                                 const atk = this.attacks.melee;
                                 if (atk.canUse()) {
                                     const success = atk.execute(this, mouseWorld.x, mouseWorld.y, entities);

@@ -21,6 +21,7 @@ class Projectile {
         this._noRender = _noRender;
         this.poisonChance = poisonChance; // 命中时附加中毒的概率（0~1）
         this.poisonStacks = poisonStacks; // 附加中毒层数
+        this._embeddedWalls = null; // 出膛嵌墙记录（ProjectileFactory 创建时检测；"只出不进"判定用）
 
         // 伪 3D：地面投射物 z=0；未来可扩展为抛物线/对空投射物
         this.z = 0;
@@ -36,8 +37,8 @@ class Projectile {
         this.x += dx; this.y += dy; this.traveled += this.speed * scale;
         if (this.traveled >= this.maxRange) {
             this.active = false;
-        } else if (WallSystem && WallSystem.blocked && WallSystem.blocked(prevX, prevY, this.x, this.y)) {
-            // 墙壁碰撞检测
+        } else if (this._isBlockedByWall(prevX, prevY)) {
+            // 墙壁碰撞检测（含嵌墙"只出不进"判定：出膛嵌墙仅允许朝射手一侧越出）
             this.active = false;
         } else {
             // 清理已失效目标的命中记录
@@ -86,6 +87,55 @@ class Projectile {
         }
         this._updatePhaserSprite();
         if (!this.active) this._destroyPhaserSprite();
+    }
+
+    /**
+     * 墙体阻挡判定（含嵌墙"只出不进"规则）：
+     * - 嵌墙之外的所有墙：撞线即死（铁律：子弹不能从墙外穿进墙内）
+     * - 出膛时嵌入的 iso 面线：仅当本帧轨迹朝射手一侧跨回时放行（越回即恢复普通判定）；背向钻透即死
+     * - 出膛时嵌入的矩形墙：矩形内不判死；离开时在射手一侧放行，另一侧钻出即死
+     */
+    _isBlockedByWall(prevX, prevY) {
+        if (!WallSystem || !WallSystem.blocked) return false;
+        const emb = this._embeddedWalls;
+        // 普通墙（嵌墙面线 + 其阶梯块 + 嵌墙矩形除外）撞线即死
+        const ignore = emb ? {
+            segs: new Set(emb.segs.map(e => e.seg)),
+            rects: new Set([
+                ...(emb.clearedRects || []),
+                ...emb.rects.map(e => e.rect),
+                ...emb.segs.flatMap(e => e.linked ? [...e.linked] : []),
+            ]),
+        } : null;
+        if (WallSystem.blocked(prevX, prevY, this.x, this.y, ignore)) return true;
+        if (!emb) return false;
+        if (!emb.clearedRects) emb.clearedRects = new Set();
+        // iso 面线嵌墙：只出不进
+        for (let i = emb.segs.length - 1; i >= 0; i--) {
+            const e = emb.segs[i];
+            if (WallSystem._segSegIntersect(prevX, prevY, this.x, this.y, e.seg.x1, e.seg.y1, e.seg.x2, e.seg.y2)) {
+                const curSign = Math.sign(WallSystem.segSide(e.seg, this.x, this.y)) || 1;
+                if (curSign === e.shooterSign) {
+                    // 已回到射手侧：面线恢复普通判定（再反向越线即死），其阶梯块永久放行（墙厚区）
+                    if (e.linked) for (const w of e.linked) emb.clearedRects.add(w);
+                    emb.segs.splice(i, 1);
+                } else return true; // 背向钻透：销毁
+                continue;
+            }
+            // 未跨线但在远侧越飞越远（背向远离墙面）：同样销毁——否则出膛在墙外的子弹直接穿墙飞走
+            const sPrev = WallSystem.segSide(e.seg, prevX, prevY);
+            const sCur = WallSystem.segSide(e.seg, this.x, this.y);
+            if (Math.sign(sCur) !== e.shooterSign && Math.abs(sCur) > Math.abs(sPrev)) return true;
+        }
+        // 矩形墙嵌墙：矩形内不判，越出看方位
+        for (let i = emb.rects.length - 1; i >= 0; i--) {
+            const e = emb.rects[i];
+            if (WallSystem.pointInRect(this.x, this.y, e.rect)) continue;
+            const side = WallSystem.sideOfRect(this.x, this.y, e.rect);
+            if (e.shooterSide === 'inside' || side === e.shooterSide) emb.rects.splice(i, 1); // 朝射手一侧越出：放行
+            else return true; // 从另一侧钻出：销毁
+        }
+        return false;
     }
 
     /**
@@ -216,7 +266,9 @@ class Projectile {
         if (!phaserScene || !phaserScene.projectilesGroup) return;
         const key = this._getProjectileTextureKey();
         const sprite = phaserScene.add.sprite(this.x, this.y, key);
-        sprite.setDepth((this.y || 0) + 12 + (this.depthBonus || 0));
+        // 深度=脚底 y + 500（原 +12）：弹道贴图必须压在墙壁之上——贴墙飞行时被墙面盖住又露出的根因；
+        // 物理上子弹不会穿墙（嵌墙"只出不进"），视觉上压墙永远成立
+        sprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));
         const tint = this._getProjectileTint();
         if (tint !== undefined) sprite.setTint(tint);
         phaserScene.projectilesGroup.add(sprite);
