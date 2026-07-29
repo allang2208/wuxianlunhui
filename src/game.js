@@ -320,8 +320,8 @@ export const Game = {
             greetings: ['仓库为你敞开。']
         });
         this.entities.set('npc_warehouse', warehouseNpc);
-        // 祭坛 NPC（小鼠大王下方，实心圆替代贴图；点击打开祭坛对话）
-        const altarCfg = npcCfg.altar || { relativeTo: 'shopMouseKing', offset: { x: 20, y: 120 }, name: '祭坛', size: 24, collisionRadius: 16, color: '#6a4a8a', npcType: 'altar' };
+        // 祭坛 NPC（小鼠大王下方，大理石贴图；点击打开祭坛对话）
+        const altarCfg = npcCfg.altar || { relativeTo: 'shopMouseKing', offset: { x: 20, y: 140 }, name: '祭坛', size: 24, collisionRadius: 16, color: '#6a4a8a', npcType: 'altar' };
         const altarX = altarCfg.relativeTo === 'shopMouseKing' ? npcX + altarCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + altarCfg.offset.x;
         const altarY = altarCfg.relativeTo === 'shopMouseKing' ? npcY + altarCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + altarCfg.offset.y;
         const altarNpc = new NPC(altarX, altarY, {
@@ -331,6 +331,11 @@ export const Game = {
             collisionRadius: altarCfg.collisionRadius,
             color: altarCfg.color,
             npcType: altarCfg.npcType,
+            sprite: altarCfg.sprite,
+            noSeparation: altarCfg.noSeparation,
+            noShadow: altarCfg.noShadow,
+            obstacle: altarCfg.obstacle,
+            clickArea: altarCfg.clickArea,
             greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
         });
         this.entities.set('npc_altar', altarNpc);

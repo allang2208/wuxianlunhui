@@ -445,6 +445,10 @@ export const CombatRoomSystem = {
         let depth = best.depth; // 原位替换：沿用被替换件自身的深度，不做任何接缝特权
         const bestIdx = WallSystem.isoVisuals.indexOf(best);
         WallSystem.isoVisuals.splice(bestIdx, 1);
+        // 续接瓦片尾端的近整瓦重复件（edgeFill 只叠不缺的 overshoot，平时被转角臂盖住）一并摘除——
+        // 否则门闸只替换转角臂时，重复件的碰撞段/贴图横穿门洞（"下夹角门又多一堵墙、无法离场"根因）；
+        // 门闸世界跨度==瓦片定长，摘除后由门闸覆盖全段不留缺口
+        const dupPieces = WallSystem.removeSpanCoveringPieces([a, b]);
         // 转角斜接遮盖位继承：同 depth 且共端点的转角兄弟件若创建在被替换件之后
         // （默认构建里它盖住被替换件的端边），门闸必须同样退到它下面（-0.1）——
         // 否则门闸贴图的裁切边暴露在斜接缝上（用户手工预设验证：转角臂盖住门墙才严丝合缝）
@@ -467,9 +471,10 @@ export const CombatRoomSystem = {
             // 门外独立砖块：入场即生成（不再等战斗完成）
             this._spawnGateExitZone();
         } else {
-            // 门闸放置失败（如贴图缺失）：把被替换的直墙件插回原位并重建碰撞，
+            // 门闸放置失败（如贴图缺失）：把被替换的直墙件与重复件插回并重建碰撞，
             // 避免墙上留无碰撞缺口（软锁——无出口）
             WallSystem.isoVisuals.splice(bestIdx, 0, best);
+            WallSystem.isoVisuals.push(...dupPieces);
             WallSystem.rebuildIsoCollision();
             if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
         }

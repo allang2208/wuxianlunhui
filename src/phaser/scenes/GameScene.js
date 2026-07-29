@@ -1495,9 +1495,16 @@ export class GameScene extends Scene {
         if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
-        // 冲刺攻击末帧定格：dash 结束后 0.5s 内保持末帧（不切 idle），到点播恢复动画（0.5s）
+        // 冲刺攻击末帧定格：dash 结束后 0.5s 内保持定格（不切 idle），到点播恢复动画（0.5s）
         if (player._dashRecoverAt) {
-            if (performance.now() < player._dashRecoverAt) return;
+            if (performance.now() < player._dashRecoverAt) {
+                // 定格贴图 = dash_recover 首帧（2026-07-29 起；原定格=dash_attack 末帧）
+                if (this.playerSprite.texture.key !== 'dash_recover' || Number(this.playerSprite.frame.name) !== 0) {
+                    this.playerSprite.anims.stop();
+                    this.playerSprite.setTexture('dash_recover', 0);
+                }
+                return;
+            }
             player._dashRecoverAt = 0;
             player._attackRecovering = true;
             player._attackRecoverStart = performance.now(); // 武器滑回时间基准（走近战同款末帧滑回，轨迹块=dash）

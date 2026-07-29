@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+### 对话：主神空间菱形化回退 + 新大理石墙/门贴图（2026-07-29，V0.326）
+
+- **① 菱形化回退（用户实机不满意）**：`scene-manager.js`/`dungeon-floor-texture.js` git checkout 回 HEAD（恢复 4096² 世界、hub_brick 满地、边界墙、hub_diamond 预制分支）；`game-config.json` 手改回退世界尺寸/origin/传送门/testArea/floor——**仅保留 `npcs.altar` 祭坛贴图配置**（git diff 已核对：与 HEAD 仅差祭坛块）；`hub_marble` 地砖贴图删除。祭坛 NPC（贴图+底座障碍+点击区）完整保留。
+- **② 新大理石墙贴图**：素材库新版 `墙.png`（1536² 透明底，用户重新出图，盖板完整无缺口）→ `tools/prep-hub-wall-gate.py`（透明底免 GrabCut：最大连通域+腐蚀 1px+包围盒+几何实测）→ `assets/terrain/hub_wall_straight.png`（1365×1183，slope 0.5055 / wallH 588.6），`ISO_WALL_GEO.hub_straight` 几何全量更新（碰撞体积随新贴图重配）。
+- **③ 新增主神空间大理石门**：`门.png`（大理石拱门单帧）→ `assets/terrain/hub_gate.png`（1365×1181，gateX [629,738] 按"门柱间通透列区间"实测）；`ISO_WALL_GEO.hub_gate` 新增（editor:'主神大理石门' 自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`；新增 `openDoor` 机制——单帧装饰门碰撞拆成门洞两侧墙身两段，**门洞 109px 可通行**（功能门闸/僵尸装饰门不受影响）。
+- **修改文件**：`tools/prep-hub-wall-gate.py`(新)、`assets/terrain/hub_wall_straight.png`、`assets/terrain/hub_gate.png`(新)、`BootScene.js`、`wall-system.js`、`scene-manager.js`(回退)、`dungeon-floor-texture.js`(回退)、`data/game-config.json`(回退留祭坛，+public 同步)。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（120+10+12）；node 验证门件碰撞=2 段+门洞缺口 109px、直墙=1 整段。
+- **已知问题**：hub_gate 是单帧贴图，不能作 16 帧功能门闸（需要开关门动画时需按门闸管线出 16 帧）；摆墙编辑器中门件拖入后碰撞即时生效，视觉/碰撞对位需实机确认。
+
+### 对话：下夹角门闸多墙无法离场修复 + 冲刺定格改 dash_recover 首帧（2026-07-29，V0.325）
+
+- **① 下夹角门"又生成一堵墙"根因与修复**：`edgeFill` 只叠不缺规则下，尾端瓦片 overshoot 可与转角臂**几乎整瓦重复**（S=1024 时重复 462/476px）——平时被转角臂 +5 偏置盖住、碰撞冗余无害；但 `_setupGate` 把转角臂替换成门闸时（程序化转角臂无 `_corner` 标记，本就是合法候选），重复件的碰撞段+贴图横穿门洞（07-26 定长瓦片规则的遗留尾巴，当时只解决了视觉层）。修复：`wall-system.js` 新增 `removeSpanCoveringPieces`（共线且投影重合>50% 的墙件一并摘除，门闸世界跨度==瓦片定长不留缺口；正常接缝叠合仅 8px 误摘不了邻件），`_setupGate` 摘除被替换件后立即调用，placeAt 失败回滚连同重复件恢复。回归：`scripts/test-gate-corner.mjs`（3 档房间×4 顶点=12 场景，下夹角稳定复现摘 1 件）挂入 npm test。
+- **② 冲刺攻击结束定格贴图**：0.5s 定格期（`_dashRecoverAt` 窗口）从 dash_attack 末帧改为 **dash_recover 首帧**（`_updatePlayerAnimation` 定格分支直接 `setTexture('dash_recover', 0)` + `anims.stop()`，带防重入守卫）；定格结束播 dash_recover 恢复动画流程不变，武器定格/滑回逻辑不动。
+- **修改文件**：`wall-system.js`、`combat-room-system.js`、`GameScene.js`、`scripts/test-gate-corner.mjs`(新)、`package.json`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（120+10+12）。
+- **已知问题**：①需实机确认下夹角门视觉（门闸盖住全段、无叠影）；②定格首帧与武器 progress=1 姿态的衔接观感需实机确认。
+
+### 对话：主神空间菱形化（大理石外圈+木地板内圈）+ 祭坛贴图（2026-07-29，V0.324）
+
+- **① 祭坛贴图**：素材库`主神空间/祭坛.png`（1536² 透明底）→ `assets/npc/altar.png`（512×497）；`npcs.altar` 配置补齐 sprite/obstacle/clickArea/noSeparation/noShadow（仿仓库宝箱模板），`game.js` 祭坛 NPC 创建透传这些字段（此前只传基础字段，实心圆渲染）。
+- **② 主神空间菱形场地**：地牢标准档位 S=2048（rx=2457.6, ry=1419.0，边距 M=260），世界 4096²→**5436×3359**，origin→(2718,1679)；`_setupMainHubTerrain` 从"正方形烘焙+可见边界砖墙+可选 hub_diamond 预制"改为 **`applyDiamondFloor` + `WallSystem.setWallStyle('mainHub')` + `buildIsoDiamondWalls`**（与地牢同一构建路径，hub_diamond 预制分支移除）；边界矩形墙保留为 `noVisual` 隐形兜底。
+- **③ 地板双材质**：`dungeon-floor-texture.js` 新增 `profile.inner = { size, tiles }`——外圈大理石 `hub_marble`、中心 1024 档内圈木地板 `hub_brick`（`setDungeonFloorProfile` 显式透传 inner，防字段丢失老坑）。
+- **④ 大理石墙管线**（`tools/prep-hub-assets.py`）：`墙.png`（2048² 白底+假透明棋盘烘焙底+即梦水印）→ **GrabCut**（sure_bg=边界连通>235、sure_fg=暗核<205 最大连通域）→ **盖板几何重建**（墙带顶边=与底边平行直线，窗格最小顶沿拟合截距，分位 30 防棋盘纹混入）→ 封闭内洞反填。实测几何入 `ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9），`ISO_WALL_STYLES.mainHub` 登记（无 corners/gate→全直墙无门）。
+- **⑤ 素材经验**：白底 AI 图洪水抠图三坑——固定阈值吃墙顶亮面（230→208 软渐变无暗缝）；浮动容差从抗锯齿软边泄漏后墙内平滑区全淹；Canny 路障低阈值被背景噪点触发碎网（需先高斯模糊）。**GrabCut+几何重建是白底素材正解**。地砖 `2.png` 黑底亮度抠图+最大连通域去水印孤岛，缩放对齐 hub_brick 砖宽 393。
+- **⑥ 坐标迁移**：portals.mainHub.base (3478,2363)→(3918,1949)（旧相对中心偏移等比收进菱形）、effects.testArea 同步；NPC/武器排/掉落均相对 origin 自动跟随。node 模拟验证：28 墙件全 hub_wall_straight、28 碰撞段、传送门/NPC/武器排全在菱形内。
+- **修改文件**：`tools/prep-hub-assets.py`(新)、`assets/npc/altar.png`、`assets/terrain/hub_marble.png`、`assets/terrain/hub_wall_straight.png`(新三图)、`BootScene.js`、`wall-system.js`、`dungeon-floor-texture.js`、`scene-manager.js`、`game.js`、`data/game-config.json`(+public 同步)。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（120+10）；node 墙体构建模拟 ✓。
+- **已知问题**：大理石墙贴图右端两处盖板小缺口（游戏内 ~15×10px，端部被转角臂叠合遮盖可进一步隐藏）；贴图左端有极淡棋盘残纹（源头是 AI 图烘焙的假透明棋盘底，如需像素级完美建议以深色底重新出图再走管线）。游戏内视觉效果（X 光透视/墙脚阴影/内圈边界）需实机确认。
+
 ### 对话：冲刺末帧去剑气 + 定格不可移动（2026-07-29，V0.323）
 - **① 剔除冲刺末帧剑气**：`assets/player/dash_attack.png` 第 17 帧（末帧）右侧大弧形剑气按区域掩码擦除（x>390 且 y<430），骨架四肢/右手（y>430 区域）完整保留；中段帧不动（挥砍中的剑气属正常特效）。
 - **② 冲刺末帧定格不可移动**：`_dashRecoverAt` 定格期 targetSpeed=0（与普通攻击同口径，输入无效、定格不被移动打断）。

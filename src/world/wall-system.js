@@ -16,6 +16,10 @@ const ISO_WALL_GEO = {
     swamp_straight: { tex: 'swamp_wall_straight', w: 1419, h: 1558, base: [[0, 775.0], [1418, 1583.0]], face: [[28, 791.0], [1389, 1566.5]], wallH: 799.2, slope: 0.5698, editor: '沼泽柴墙' },
     // 沼泽地门闸（gate.mp4 16 帧已反转：首帧=关闭(藤蔓封门)、末帧=打开；tools/swamp-gate-geo.json）
     swamp_gate: { tex: 'swamp_gate', w: 640, h: 612, frames: 16, base: [[5, 275.0], [634, 632.8]], face: [[5, 275.0], [634, 632.8]], gateX: [248, 384], wallH: 301.1, slope: 0.5689, editor: '沼泽藤门' },
+    // 主神空间大理石墙（2026-07-29 v2 透明底素材，tools/prep-hub-wall-gate.py：最大连通域+几何实测）
+    hub_straight: { tex: 'hub_wall_straight', w: 1365, h: 1183, base: [[0, 525.5], [1365, 1215.5]], face: [[41, 546.3], [1324, 1194.8]], wallH: 588.6, slope: 0.5055, editor: '主神大理石墙' },
+    // 主神空间大理石门（单帧装饰门件：gateX=拱门洞跨度实测；openDoor=门洞碰撞常开可通行；非 16 帧门闸 spritesheet，不能作功能门闸）
+    hub_gate: { tex: 'hub_gate', w: 1365, h: 1181, base: [[0, 435.5], [1365, 1150.0]], face: [[0, 435.5], [1365, 1150.0]], gateX: [629, 738], wallH: 617.7, slope: 0.5235, openDoor: true, editor: '主神大理石门' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -26,6 +30,8 @@ const ISO_WALL_STYLES = {
         straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',
         corners: { top: '沼泽墙上夹角', bottom: '沼泽下夹角', left: '沼泽墙左夹角', right: '沼泽墙右夹角' },
     },
+    // 主神空间：大理石直墙 + 大理石门（不登记 corners → 程序化转角臂）
+    mainHub: { straight: 'hub_straight', gate: 'hub_gate', chestPrefab: '宝箱房', gateSound: 'assets/sounds/environment/gate.mp3' },
 };
 const ISO_WALL_HEIGHT = 190;    // 目标墙高（世界像素，底边→顶沿）
 const ISO_TILE_OVERLAP = 40;    // 瓦片向转角臂内侵入（覆盖式拼接）
@@ -512,7 +518,17 @@ const WallSystem = {
         const g = key ? ISO_WALL_GEO[key] : null;
         if (!g) return [];
         const base = g.face || g.base;
-        if (base) return [[this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, base[1][0], base[1][1])]];
+        if (base) {
+            // 单帧装饰门（openDoor，如主神大理石门）：拱门永久开放——碰撞=门洞两侧墙身，门洞可通行
+            if (g.openDoor && g.gateX) {
+                const at = (tx) => [tx, base[0][1] + (tx - base[0][0]) * g.slope];
+                return [
+                    [this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, ...at(g.gateX[0]))],
+                    [this.texPointToWorld(p, ...at(g.gateX[1])), this.texPointToWorld(p, base[1][0], base[1][1])],
+                ];
+            }
+            return [[this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, base[1][0], base[1][1])]];
+        }
         const tips = [g.tipL, g.tipR, g.tipUpper, g.tipLower].filter(Boolean);
         return tips.map(t => [this.texPointToWorld(p, g.vertex[0], g.vertex[1]), this.texPointToWorld(p, t[0], t[1])]);
     },
@@ -524,6 +540,41 @@ const WallSystem = {
         // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）
         this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate);
         for (const p of this.isoVisuals) this._addPieceCollision(p);
+    },
+
+    /**
+     * 摘除与参考线段共线且重合度 >50% 的墙件（返回摘除数）。
+     * 用途：门闸原位替换时一并摘除"续接瓦片尾端近整瓦重复件"——edgeFill 只叠不缺规则下，
+     * 尾端瓦片可与转角臂几乎整瓦重复（平时被转角臂 +5 偏置盖住、碰撞冗余无害）；
+     * 门闸只摘被替换件时，重复件的碰撞段横穿门洞（"下夹角门又多一堵墙/无法离场"根因）。
+     * 门闸世界跨度 == 瓦片定长（僵尸素材自洽），摘除后由门闸自身覆盖全段，不留缺口。
+     * 正常接缝叠合仅 8px（≈2%），远低于 50% 阈值，不会误摘邻件。
+     * @returns {Array} 被摘除的墙件（调用方失败回滚时用；深度在件上显式携带，尾部重新推回即可）
+     */
+    removeSpanCoveringPieces(refSeg) {
+        const [A, B] = refSeg;
+        const lenAB = Math.hypot(B.x - A.x, B.y - A.y);
+        if (lenAB < 1) return [];
+        const ux = (B.x - A.x) / lenAB, uy = (B.y - A.y) / lenAB;
+        const removed = [];
+        for (let i = this.isoVisuals.length - 1; i >= 0; i--) {
+            const p = this.isoVisuals[i];
+            const seg = this._pieceBaseSegments(p)[0];
+            if (!seg) continue;
+            const [C, D] = seg;
+            // 共线判定：两端点到参考直线的距离都 < 15px
+            const distPt = (P) => Math.abs((P.x - A.x) * uy - (P.y - A.y) * ux);
+            if (distPt(C) > 15 || distPt(D) > 15) continue;
+            // 投影重合度 > 50%（取两者较短段为基准）
+            const proj = (P) => (P.x - A.x) * ux + (P.y - A.y) * uy;
+            const lo = Math.max(0, Math.min(proj(C), proj(D)));
+            const hi = Math.min(lenAB, Math.max(proj(C), proj(D)));
+            const lenCD = Math.hypot(D.x - C.x, D.y - C.y);
+            if (hi - lo > 0.5 * Math.min(lenAB, lenCD)) {
+                removed.push(...this.isoVisuals.splice(i, 1));
+            }
+        }
+        return removed;
     },
 
     /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */

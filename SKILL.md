@@ -998,6 +998,7 @@ _getPhaserOptions() {
 - **转角斜接遮盖位继承**：转角两臂同 depth，默认后建臂盖住先建臂端边——门闸原位替换先建臂时必须 depth-0.1 继承其下位（否则贴图裁切边暴露在斜接缝，"两墙之间有偏差"根因）；同理 `_setupGate` 先 `_syncWallsToPhaser()` 后 `placeAt` 防整批重建压住门闸。**排障方法论的反面教材：此 bug 连修三轮未中，最终靠"用户手工摆一个严丝合缝的对照组存为预设 → 数值对比 JSON"一次定位——抽象描述定位不了视觉问题时，让用户/自己造对照组做数值 diff 最快**
 - **ItemDatabase.items 是 {id: itemData}，itemData 不带 id 字段**（id 只在键上，`get()` 才注入 `_id`）——`Object.values(items)` 后读 `item.id` 恒为 undefined。奖励界面"三选一点击无反应"根因：`_giveRandomWeapon` 用 values+item.id → `createInstance(undefined)` 返回 null → `addToInventory` 读 `maxStack` 抛 TypeError → `_selected` 已置位面板卡死。教训：**遍历 items 一律走 Object.keys 回查**；发奖类入口加 `if (!item) return` 守卫 + try/catch 兜底（单项失败不阻塞面板关闭）
 - **续接瓦片规则（2026-07-26 定论，取代"均匀拉伸"）**：`edgeFill` 用**定长定高瓦片**（scale 固定、8px 叠合、尾端超出由下一顶点转角臂 +5 偏置盖住）。两条历史教训：①`d < len+8` 定长循环在 `len ≈ faceLen` 时会多一块近整瓦重复件（"下夹角多一堵墙"）——现由转角臂 +5 偏置盖住 overshoot 解决；②均匀拉伸（0.7~1.4）让拉伸件与定尺转角件一大一小、中间突出（僵尸砖纹不可感知故未暴露，沼泽柴墙材质随机格外显眼）——故废弃拉伸，统一定长
+- **重复件撞门闸（2026-07-29，①的碰撞层尾巴）**：尾端 overshoot 瓦片可与转角臂**近整瓦重复**（S=1024 重复 462/476px），视觉被盖住但碰撞段一直在——`_setupGate` 把转角臂替换成门闸时（程序化转角臂无 `_corner`，是合法候选）重复件碰撞段+贴图横穿门洞（"下夹角门又多一堵墙、无法离场"根因）。修复：`_setupGate` 摘除被替换件后调 `WallSystem.removeSpanCoveringPieces([a,b])`（共线 + 投影重合>50% 一并摘除；门闸世界跨度==瓦片定长不留缺口；正常接缝叠合 8px≈2% 误摘不了邻件），placeAt 失败回滚连同重复件恢复。回归 `scripts/test-gate-corner.mjs`（挂 npm test）。**教训：冗余重复件"视觉盖住"不等于无害，凡有原位替换机制的地方都要清理碰撞层重复**
 - **部署验证三件套**：逻辑模拟跑通但游戏不生效时——版本徽章标构建号（确认跑的是哪份代码）、关键路径 console.log（确认判定是否触发）、node 模拟全流程（确认逻辑无误）；三管齐下直接区分"部署问题/判定问题/逻辑问题"
 
 ---
@@ -1073,10 +1074,29 @@ _getPhaserOptions() {
 - **传送门已删**：dungeon-map-system 两处 `spawnExitPortal()`（普通节点/精英宝箱后）改 `openGate()`；Boss 场地（集合体）传送门流程不变
 - **教训**：门闸替换整墙时不能只注册门洞碰撞——门两侧墙体线段必须常开，否则墙身可穿
 
+- **单帧装饰门碰撞（2026-07-29，openDoor）**：非 16 帧门闸的单帧门贴图（拱门永久开放）在 geo 加 `openDoor: true` + `gateX`，`_pieceBaseSegments` 自动把碰撞拆成门洞两侧墙身两段（门洞可通行）——功能门闸（WallGate）与装饰门件（如沼泽转角门）不受影响（它们无 openDoor，仍整段实心）。**教训：装饰件可视化≠碰撞，门类件必须显式声明门洞碰撞语义**
+
 ### 待接入（下一阶段）
 - 地牢随机生成：从预制库抽房间布局放置 + `_mirrorPieces` 镜像
-- 主神空间边界墙仍是旧硬拉伸视觉
+- ~~主神空间边界墙仍是旧硬拉伸视觉~~（2026-07-29 已完成：主神空间菱形化，见下节）
 - ~~Boss 场地门闸化~~（2026-07-28 已完成：Boss 房复用 CombatRoomSystem 门闸机制，传送门仅作 placeAt 失败兜底）
+
+### 主神空间菱形化（2026-07-29 落地，复用地牢标准工作流；**同日已按用户要求回退**，保留条目作参考）
+- **回退说明（V0.326）**：菱形世界（5436×3359/双材质地板/代码建墙）用户实机不满意，scene-manager/dungeon-floor-texture git 回退、game-config 手改回退（**npcs.altar 祭坛贴图配置保留**）；`inner` 双材质与 roomSize 机制随之移除。大理石墙/门改为**编辑器组件**路径：新透明底素材（墙.png/门.png）过 `tools/prep-hub-wall-gate.py`（透明底无需 GrabCut：最大连通域+腐蚀1px+几何实测；门洞 gateX 按"列最低不透明 y 高于底边线 60px 的连续区间"实测）→ `ISO_WALL_GEO.hub_straight/hub_gate`（editor 字段自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`。
+- **尺寸**：S=2048（`mainHub.roomSize`）→ rx=2457.6/ry=1419.0，边距 M=260，世界 5436×3359，origin=(2718,1679)；`_setupMainHubTerrain` 与地牢同路径：`applyDiamondFloor` + `setWallStyle('mainHub')` + `buildIsoDiamondWalls`；边界矩形墙降为 `noVisual` 隐形兜底；hub_diamond 预制分支已删。
+- **地板双材质**：`profile.inner = { size, tiles }`（dungeon-floor-texture）——外圈大理石 + 中心 1024 档内圈木地板；`setDungeonFloorProfile` 新字段必须显式透传（deco 教训同款）。
+- **墙样式**：`ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9）+ `ISO_WALL_STYLES.mainHub`（无 corners/gate → 全直墙无门）；从地牢返回时样式被复位，统一入口每次重设 mainHub 再建墙。
+- **坐标迁移**：portals/testArea 等绝对坐标项必须随世界尺寸手迁（本次 (3478,2363)→(3918,1949)）；相对 origin 的（NPC/武器排/掉落）自动跟随。
+- **祭坛贴图 NPC**：仿仓库宝箱模板（sprite.idleKey 静态图 + obstacle 底座 + clickArea + noSeparation/noShadow），注意 `game.js` 创建 NPC 时这些字段要逐个透传（祭坛此前只传基础字段=实心圆的根因）。
+
+### 白底 AI 素材抠图（2026-07-29，大理石墙血泪经验）
+即梦白底图（含烘焙进 RGB 的假透明棋盘底纹）抠图三坑，正解 = **GrabCut + 盖板几何重建**（`tools/prep-hub-assets.py`）：
+1. **固定亮度阈值洪水**吃墙顶亮面（顶沿 230→208 软渐变无暗缝可挡）。
+2. **浮动容差洪水**（邻像素比较）从抗锯齿软边漏进墙内，墙内平滑区一旦进入全淹。
+3. **Canny 路障**：低阈值被背景噪点触发碎网；必须**先高斯模糊**再 Canny——即便如此软轮廓仍漏。
+4. **正解**：sure_bg=边界连通高亮区（>235）+ sure_fg=暗核（<205 最大连通域腐蚀）→ GrabCut 仲裁亮盖板归属；残留盖板坑用**几何重建**填（墙带顶边必为与底边平行的直线：窗格最小顶沿拟合截距、强制斜率=底边、分位数防噪）→ 封闭内洞边界洪水反填。
+5. **分位数取偏低**（30）：拟合线宁低勿高——偏高会把棋盘底纹条带填进 alpha。
+6. 换素材时优先要**深色底**图源，白底/棋盘底天然难抠。
 
 ### 僵尸地牢菱形房间（2026-07-24 落地）
 - **尺寸规则**：原正方形 S（1024~2048 随机、Boss 1024）→ rx=1.2S、ry=rx×0.5774（30°）；**边距 M=260（≥墙贴图高度 190×角度补偿≈217 + 缓冲，否则上夹角被世界顶裁掉）**，菱形在世界正中央，区外全黑

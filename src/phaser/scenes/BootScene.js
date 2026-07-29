@@ -106,6 +106,9 @@ export class BootScene extends Scene {
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
+        // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
+        this.load.image('hub_wall_straight', 'assets/terrain/hub_wall_straight.png');
+        this.load.image('hub_gate', 'assets/terrain/hub_gate.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
@@ -206,6 +209,8 @@ export class BootScene extends Scene {
         this.load.spritesheet('npc_mouse_king_walk', 'assets/npc/mouse_king/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
         // 仓库：静态贴图（宝箱）
         this.load.image('npc_warehouse', 'assets/npc/warehouse/warehouse.png');
+        // 祭坛：静态贴图（大理石祭坛，tools/prep-hub-assets.py 抠图）
+        this.load.image('npc_altar', 'assets/npc/altar.png');
 
         // 矿工僵尸（普通）：8列×4行 512×512 切帧（idle 1 帧 / walking 14 帧 / attacking 24 帧 / dying 13 帧）
         this.load.spritesheet('enemy_miner_zombie_idle',   'assets/enemies/miner_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
