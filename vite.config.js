@@ -59,9 +59,10 @@ const saveJsonPlugin = {
           // 直接合并进 weapon-anim-config.json（该配置仅此单份）：
           // 保留块内其他字段（trail 等），仅替换 type/frames；写前滚动备份一份；
           // anim=attack2 时写入 attack2 块（二段连段独立轨迹）
+          // anim 分块：attack / attack2 / dash（连段二段/冲刺攻击独立轨迹，白名单防注入）
           let merged = false;
           const wt = payload.weaponType;
-          const blockKey = payload.anim === 'attack2' ? 'attack2' : 'attack';
+          const blockKey = ['attack', 'attack2', 'dash'].includes(payload.anim) ? payload.anim : 'attack';
           if (typeof wt === 'string' && Array.isArray(payload.frames) && !['__proto__', 'constructor', 'prototype'].includes(wt)) {
             const cfgPath = path.join('public', 'data', 'weapon-anim-config.json');
             const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));

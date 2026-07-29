@@ -15,10 +15,17 @@
 - **版本**：V0.298-bullethit → V0.299-bigplayer。
 - **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——人物武器比例观感、握把贴合、音效时机。
 
+### 对话：面板"冲刺攻击"页 + 冲刺武器轨迹 perFrame 化（V0.304-dashpanel）
+- **面板**：动画下拉新增"冲刺攻击"（dash → dash_attack sheet）；perFrame 三键通用化（attack/attack2/dash 块）；`sword.dash` 播种=复制 attack 帧；保存直写中间件/Electron 按白名单（attack/attack2/dash）分块写入。
+- **运行时**：`_syncSpecialWeaponAnim` 冲刺分支改用 `sword.dash` 逐帧插值（progress = _dashTimer/_dashTotalMs，trigger 时记录 _dashTotalMs）——朝向=冲刺方向 x 符号，拉伸/模糊同攻击分支口径；无 dash 配置回退旧 _getDashWeaponStateAt 路径。
+- **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——面板冲刺页调武器+保存直写、游戏内冲刺轨迹与面板一致。
+- **注意**：中间件有改动，**需重启 dev server** 保存直写才走新分块逻辑。
+
 ### 对话：冲刺攻击人物动画接入（V0.301-dashanim → V0.302-dashmove）
 - **素材**：`attack-2.png`（4096×2048，8列×4行 512²，17 帧）→ 脚底对齐 y=492 标准化 `assets/player/dash_attack.png`（8列×3行）；配置 `dash_attack` 条目（repeat 0，双份）。
 - **挂钩**：`dash-system.trigger()` 设 `_isDashing` 后调 `setPlayerAnimation('dash_attack', 技能 totalMs)`——timeScale 拉伸与冲刺时长同步（骑士长剑 600ms/默认 800ms）；`_updatePlayerAnimation` 的 _isDashing 守卫保证冲刺期间不被覆盖，播完自动回 idle。
 - **位移窗口帧驱动（V0.302）**：冲刺位移从"前 movePhaseRatio 时间"改为**动画帧窗口**——17 帧中前 12 帧完成位移（约前 70.6% 时间），13~17 帧静止；`effect.moveFrames` 可覆盖（缺省 12），缓动/撞墙反弹逻辑不变。
+- **漏改修复（V0.303-dashmove2）**：V0.302 只改了 dashAttackThrust（骑士长剑专属）分支，dashAttack（普通冲刺攻击）分支仍走旧 movePhaseRatio（40%）——用户实测"位移过早停止"正是此分支。已同步改为帧窗口（12/17）。lint/build/test-collider ✅。
 - **测试结果**：node --check ✅；lint ✅（0 error）；vite build ✅；test-collider ✅。实机待验证——冲刺动画时机与时长、位移在动画后段停止、突刺命中不受影响。
 
 ### 对话：腰射贴图上移 2px + Super90 贴图替换（同日）

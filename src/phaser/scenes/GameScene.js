@@ -2551,7 +2551,48 @@ export class GameScene extends Scene {
             const texture = getWeaponTextureKey(player.equipments[player.weaponMode]);
             this.weaponSprite = this.add.sprite(0, 0, texture);
         }
-        
+
+        // 冲刺攻击：sword.dash perFrame 轨迹（面板"冲刺攻击"页可调，与一/二段同插值管线）
+        const dashCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dash;
+        if (player._isDashing && dashCfg && dashCfg.type === 'perFrame' && dashCfg.frames) {
+            const totalMs = player._dashTotalMs || 800;
+            const progress = Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs));
+            // 朝向=冲刺方向（dashDirection.x 符号；与人物 flipX 绑定同口径）
+            const facingRight = player._dashDirection ? player._dashDirection.x >= 0 : !this.playerSprite.flipX;
+            const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, 'dash');
+            if (pfPos) {
+                const wx = facingRight ? pfPos.x : 2 * player.x - pfPos.x;
+                const wrot = facingRight ? pfPos.rotation : -pfPos.rotation;
+                this.weaponSprite.setPosition(wx, pfPos.y);
+                this.weaponSprite.setRotation(wrot);
+                this.weaponSprite.setFlipX(!facingRight);
+                const wSize = WeaponTransform.getWeaponSize(wt, pfPos.scale, 'attack');
+                this.weaponSprite.setDisplaySize(
+                    wSize.width * (pfPos.stretchX || 1),
+                    wSize.height * (pfPos.stretchY || 1)
+                );
+                // 帧级运动模糊（与攻击分支同口径）
+                const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
+                if (bx > 0.05 || by > 0.05) {
+                    if (!this.weaponSprite.filters) this.weaponSprite.enableFilters();
+                    const filterList = this.weaponSprite.filters && this.weaponSprite.filters.internal;
+                    if (filterList) {
+                        if (!this._weaponBlurFx) {
+                            this._weaponBlurFx = filterList.addBlur(0, bx, by, 1);
+                        } else {
+                            this._weaponBlurFx.x = bx;
+                            this._weaponBlurFx.y = by;
+                        }
+                        this._weaponBlurFx.active = true;
+                    }
+                } else if (this._weaponBlurFx) {
+                    this._weaponBlurFx.active = false;
+                }
+                this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                return;
+            }
+        }
+
         const wa = WEAPON_ANIM;
         const ms = wa.size * 0.75;
         const cos = Math.cos(player.rotation);
