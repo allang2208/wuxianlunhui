@@ -319,7 +319,7 @@
       "npcType": "altar",
       "noSeparation": true,
       "noShadow": true,
-      "colliderOffsetY": 0,
+      "colliderOffsetY": -69,
       "sprite": {
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
         "idleKey": "npc_altar",
@@ -330,7 +330,12 @@
         "comment": "点击交互区域（祭坛本体，锚定脚底）",
         "width": 200,
         "height": 190
-      }
+      },
+      "collisionShape": "rect",
+      "collisionWidth": 235,
+      "collisionHeight": 220,
+      "colliderOffsetX": -3.5,
+      "height": 107.5
     }
   },
   "trees": {

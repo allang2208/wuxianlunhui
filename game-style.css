@@ -2850,6 +2850,14 @@ body.map-mode .controls-hint-left {
 .obstacle-editor .oe-row .oe-save { background: #2e3a26; border-color: #6b8d5d; }
 .obstacle-editor .oe-row .oe-save:hover { background: #3a4a2e; }
 
+/* NPC 位置编辑器（摆墙模式单选 NPC 时显示，复用 .obstacle-editor 外壳样式） */
+.npc-editor .ne-info { color: #a9b892; font-size: 11px; margin-bottom: 6px; }
+.npc-editor .ne-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.npc-editor .ne-row label { width: 30px; color: #8a9a7a; font-size: 11px; flex: none; }
+.npc-editor .ne-row input[type="range"] { flex: 1; min-width: 0; accent-color: #6b8d5d; }
+.npc-editor .ne-row input[type="range"]:disabled { opacity: 0.35; }
+.npc-editor .ne-row .ne-val { width: 38px; text-align: right; color: #c5d4a9; font-size: 11px; flex: none; }
+
 /* 标准组件缩略图 */
 .wall-editor-panel .we-family { color: #8a8272; margin: 4px 0; font-size: 11px; }
 .wall-editor-panel .we-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }

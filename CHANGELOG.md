@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物类型默认状态 + 摆墙模式 NPC 拖动/位置编辑器（2026-07-30，V0.345）
+
+- **① 障碍物编辑器「保存」语义改为"类型默认状态"（双写）**：选中件的变换（scaleX/scaleY/rotation/flipX/flipY）写入新建 `data/obstacle-defaults.json`（+public 双份，结构 `{ "<geoKey>": {...} }`，geoKey=ISO_WALL_GEO 键 barrel/pillar/candle），同时保留原 `data/obstacle-layout.json` 场景实例保存。`wall-prefabs.js` 新增 loadObstacleDefaults/getObstacleDefaults/saveObstacleDefaults（与预制库同管道）+ saveGameConfig 导出；BootScene 预载。
+- **② 默认状态三处套用**：摆墙 `_startPlacement` 拖新障碍物（有记录整套套用，无记录回 obstacleH 基准）；地牢 `_spawnFloorDeco` 障碍物类装饰（有记录跳过原随机缩放/镜像）；`_resetObstacle` 重置回默认状态记录值（无记录回 obstacleH 基准）。
+- **③ 摆墙模式 NPC 拖动**：`_hitTestNpc` 命中 Game.entities 里 npcType 非空的 NPC（用 `_neutralSprites` 精灵 bounds）；选中态与墙件互斥（点 NPC 清墙件、点墙件清 NPC，空白处双清）；拖动改 entity.x/y（noSeparation 也允许），精灵位置由 `_syncNeutralEntities` 每帧同步；游走 NPC 同步挪 `_wanderHome` 防拉回。
+- **④ NPC 位置编辑器**（`.npc-editor`，样式同障碍物编辑器，位于其下方）：位置=场景内拖动（面板实时显示 x/y）；大小=滑条/滚轮（贴图 NPC 调 sprite.size 16~512，纯色圆调 size 4~128）；角度=滑条/Shift+滚轮（新增 `npcs.*.sprite.rotation` 度数配置，`_syncNeutralEntities` 渲染时 setRotation）。「重置」回配置原值（位置按 offset 重算：relativeTo NPC=小鼠大王当前位置+offset，主 NPC=世界中心+offset；大小/角度回 GAME_CONFIG）。
+- **⑤ NPC 保存写回口径**：`data/game-config.json` 对应 npcs.*——relativeTo==='shopMouseKing' 的 offset=NPC 当前位置−小鼠大王当前位置；主 NPC（shopMouseKing）offset=当前位置−世界中心；大小写 sprite.size（纯色圆写 size）；角度写 sprite.rotation（0 时删字段）；保存管道同 collision-editor（Electron IPC→/__save-json→下载兜底），运行时 GAME_CONFIG 同步立即生效。关闭摆墙模式清理 NPC 选中态/编辑器/拖动标记。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过。
+- **已知问题**：纯色圆 NPC（小鼠侍从）选中闪烁会被 `_syncNeutralEntities` 每帧重染色覆盖（贴图 NPC 正常）；NPC 旋转对手持贴图 NPC 仅视觉倾斜，碰撞/点击区不随转。
+
 ### 对话：祭坛/仓库改回椭圆 footprint（2026-07-30，V0.344）
 
 - **判定口径**：仓库/祭坛碰撞从矩形 footprint 改回**脚下椭圆**（标准 footprint 分离判定）——`npcs.warehouse.collisionRadius 20→85`、`npcs.altar.collisionRadius 16→110`（椭圆 X 半径覆盖贴图底座），删除 collisionShape/collisionWidth/Height 矩形字段。

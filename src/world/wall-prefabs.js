@@ -139,3 +139,41 @@ export async function saveWallGeoOverrides(ov) {
     _geoOverrides = (ov && typeof ov === 'object' && !Array.isArray(ov)) ? ov : {};
     return _persistJson(GEO_OVR_REL, _geoOverrides);
 }
+
+// ==================== 障碍物类型默认状态（data/obstacle-defaults.json，2026-07-30） ====================
+// 结构：{ "<geoKey>": { scaleX, scaleY, rotation, flipX, flipY } }（geoKey = ISO_WALL_GEO 键，如 barrel/pillar/candle）
+// 语义：障碍物编辑器「保存」把选中件的变换记为**该类型的默认状态**——
+// 之后摆墙拖新件 / 地牢地板装饰生成同类障碍物时套用；「重置」也回到这里记录的变换
+const OBSTACLE_DEF_URL = '/data/obstacle-defaults.json';
+const OBSTACLE_DEF_REL = 'data/obstacle-defaults.json';
+
+let _obstacleDefaults = null;
+
+/** 预载障碍物类型默认状态（幂等；失败给空对象） */
+export async function loadObstacleDefaults() {
+    if (_obstacleDefaults) return _obstacleDefaults;
+    try {
+        const r = await fetch(`${OBSTACLE_DEF_URL}?ts=${Date.now()}`);
+        const data = r.ok ? await r.json() : {};
+        _obstacleDefaults = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+    } catch {
+        _obstacleDefaults = {};
+    }
+    return _obstacleDefaults;
+}
+
+/** 取已缓存的障碍物类型默认状态（未预载返回空对象） */
+export function getObstacleDefaults() {
+    return _obstacleDefaults || {};
+}
+
+/** 保存障碍物类型默认状态到磁盘（与 saveWallPrefabs 同管道） */
+export async function saveObstacleDefaults(defs) {
+    _obstacleDefaults = (defs && typeof defs === 'object' && !Array.isArray(defs)) ? defs : {};
+    return _persistJson(OBSTACLE_DEF_REL, _obstacleDefaults);
+}
+
+/** 保存 game-config.json（GAME_CONFIG 运行时对象由调用方先改好，这里只负责落盘） */
+export async function saveGameConfig(data) {
+    return _persistJson('data/game-config.json', data);
+}
