@@ -923,6 +923,34 @@ update(dt, entities) {
                             // 半自动副手：消费掉点击事件
                             if (offhandFireMode === 'semiAuto') {
                                 Input.mouse.rightPressed = false;
+                                // 爆发板机（craft burstMode=N）：副手同样生效——一次扳机 N 连发，60ms 间隔排队
+                                const _burstNOff = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.burstMode) || 0;
+                                if (_burstNOff > 1) {
+                                    this._burstLeftOff = _burstNOff - 1;
+                                    this._burstDelayOff = 60;
+                                    this._burstSlotOff = offhandSlot;
+                                    this._burstAttackKeyOff = offhandAttackKey;
+                                    this.attacks[offhandAttackKey].cooldown = 60; // 爆发内小间隔，末发后恢复标准冷却
+                                }
+                            }
+                        }
+                        // 副手爆发板机连发处理（与主手同口径）：排队弹按 60ms 间隔射出，弹药/体力不足中断
+                        if (this._burstLeftOff > 0) {
+                            this._burstDelayOff -= dt;
+                            if (this._burstDelayOff <= 0) {
+                                const bkOff = this._burstAttackKeyOff || 'pistolOffhand';
+                                const bHasAmmoOff = this._hasAmmo(this._burstSlotOff);
+                                const bReloadingOff = this._isReloading(this._burstSlotOff);
+                                if (bHasAmmoOff && !bReloadingOff && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                    this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: this._burstSlotOff, fireOffhand: true };
+                                    this.triggerOffhandWeaponAnim();
+                                    this._burstLeftOff--;
+                                    this._burstDelayOff = 60;
+                                    this.attacks[bkOff].cooldown = this._burstLeftOff > 0 ? 60 : this.attacks[bkOff].maxCooldown;
+                                } else {
+                                    this._burstLeftOff = 0;
+                                    this.attacks[bkOff].cooldown = this.attacks[bkOff].maxCooldown;
+                                }
                             }
                         }
                     } else if (isPkm) {

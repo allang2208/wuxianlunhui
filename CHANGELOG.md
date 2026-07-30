@@ -13,9 +13,9 @@
 - **本体（weapon19）**：手枪/优质(uncommon)/单手半自动；公式 8+敏0.5+精0.5（强化 enhanceFlat 0.75、敏 perEnhance 0.1、精 0.15）；射程 700/弹速 800/弹夹 9/换弹 1.5s/间隔 225ms/物理/击退 0；散布走半自动标准模型（每次射击+5°、后坐恢复 500ms，与沙鹰同口径）。贴图 `tools/prep-beretta93r.py` 归一（去噪点孤岛+内容宽 0.862/中心 (0.487,0.524)/2048²，枪口点 BootScene 自动烘焙）。
 - **登记点**（六段式）：`weapon-texture-map`（specialMap+加载列表）、`equip-data-manager`（BERETTA93R_ITEM）、`equipment.json`(+public)、`shop-system`（300 金）、`gun-ammo`（GUN_AMMO_CAP+FIRE_MODES.semiAuto）、`weapon-attack-config`（beretta93r/Offhand，cooldown 225/弹速 800/射程 700）、`weapon-anim-config`（以 deagle 为模板继承贴合参数）。
 - **改造（craft weapon19，6 槽全配）**：枪口=精英制退器(散布-2°/恢复-150ms)/手枪消音器(恢复-100ms/射程-200/击退+35)；枪管=远射枪管(射程+300/散布-1°/恢复-50ms)/近战短管(移速+5%/散布+1°/恢复+100ms)；瞄具=全景红点(散布开始+1s/单倍镜)；弹夹=扩容+3/长扩容+9且换弹+500ms；子弹=亚音速空尖(击退+35/伤害+3%)/亚音速FMJ(穿透+1/伤害+3%)。
-- **扳机新机制**（craft-effect-registry 新增 3 键）：`burstMode`（爆发板机=三连发，一次扳机 3 发、散布+2°——update.js 首发后 60ms 间隔排队连发，末发恢复标准冷却，弹药/体力不足中断）；`fireModeOverride`（全自动板机=覆盖 fireMode 为 fullAuto——update.js 主副手触发器+gun-ammo getFireMode 三处消费）；`spreadParamsOverride`（散布模板整体覆盖 开始1s/到最大3s/±20°——update.js 主副手散布计算+tooltip 全自动分支三处消费；射击间隔 attackIntervalDelta-50=175ms）。
+- **扳机新机制**（craft-effect-registry 新增 3 键）：`burstMode`（爆发板机=三连发，一次扳机 3 发、散布+2°——update.js 首发后 60ms 间隔排队连发，末发恢复标准冷却，弹药/体力不足中断；**主副手同口径**，双持右键同样排队连发）；`fireModeOverride`（全自动板机=覆盖 fireMode 为 fullAuto——update.js 主副手触发器+gun-ammo getFireMode 三处消费）；`spreadParamsOverride`（散布模板整体覆盖 开始1s/到最大3s/±20°——update.js 主副手散布计算+tooltip 全自动分支三处消费；射击间隔 attackIntervalDelta-50=175ms）。
 - **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-craft-sync 三角同步 ✓（效果键 41/注册 42）。
-- **已知问题**：贴合参数继承 deagle 模板，实机需开发面板微调（持位/枪口）；爆发板机仅主手实现（副手双持不排队连发）；爆发动画为逐发 recoil 连播，观感需实机确认。
+- **已知问题**：贴合参数继承 deagle 模板，实机需开发面板微调（持位/枪口）；爆发动画为逐发 recoil 连播，观感需实机确认。
 
 ### 对话：小修小补包（2026-07-30，V0.333）
 

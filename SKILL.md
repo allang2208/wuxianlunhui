@@ -1412,7 +1412,7 @@ addTree(x, y, radius, ...) {
 
 ### 6. 改造/附魔/图鉴/验证
 - **改造**：`data/craft-config.json` 加 `weaponN` 槽位条目（配件槽 x/y/lineTarget，参考沙鹰）；`ItemDatabase.getByWeaponId` 懒索引反查，**新武器免登记**。不配 craft 条目 = 该武器不可改造（UI 明示，合法设计）。
-- **改造新效果键要过三处**（2026-07-30 Beretta 93R 落地）：①`craft-effect-registry.js` 注册（test-craft-sync 三角校验会拦未注册键）；②消费端代码（散布在 update.js 主副手+tooltip、fireMode 在 update.js 触发器+gun-ammo getFireMode）；③craft-config 写 effects。已有键覆盖绝大多数需求（shotSpreadDelta/recoilRecoveryDelta/rangeDelta/knockbackDelta/magazineDelta/reloadTimeDelta/moveSpeedPercent/damagePercent/piercingBonus/attackIntervalDelta/spreadStartDelta/redDotScope）；**模式切换类新键**：`burstMode`（N 连发，60ms 间隔排队，末发恢复标准冷却，仅主手）、`fireModeOverride`（覆盖射击模式，全自动板机）、`spreadParamsOverride`（散布模板整体覆盖）。
+- **改造新效果键要过三处**（2026-07-30 Beretta 93R 落地）：①`craft-effect-registry.js` 注册（test-craft-sync 三角校验会拦未注册键）；②消费端代码（散布在 update.js 主副手+tooltip、fireMode 在 update.js 触发器+gun-ammo getFireMode）；③craft-config 写 effects。已有键覆盖绝大多数需求（shotSpreadDelta/recoilRecoveryDelta/rangeDelta/knockbackDelta/magazineDelta/reloadTimeDelta/moveSpeedPercent/damagePercent/piercingBonus/attackIntervalDelta/spreadStartDelta/redDotScope）；**模式切换类新键**：`burstMode`（N 连发，60ms 间隔排队，末发恢复标准冷却，**主副手各自独立队列**）、`fireModeOverride`（覆盖射击模式，全自动板机）、`spreadParamsOverride`（散布模板整体覆盖）。
 - **附魔/强化**：通用链路，零登记（强化只影响攻击公式派生与盾防）。
 - **图鉴**：ItemDatabase 自动收录，公式展示委托 buildFormulaDisplay，无需改代码。
 - **验证**：JSON 双份一致（`npm test` 的 test-regressions 双份一致性+音效路径存在性检查会拦）；`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs`、`node scripts/test-craft-sync.mjs`（动了 craft 配置时）；实机清单：装备/开火/换弹/双持（手枪族）/瞄准姿态/强化+1 攻击变化/图鉴公式展示。
