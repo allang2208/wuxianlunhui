@@ -393,5 +393,38 @@ console.log('\n[9] 领主池 family 限定');
     check('特工领主存在但不应入池（仅作存在性核对）', agentLords.length >= 1, agentLords.join(','));
 }
 
+// ========== 10. 近期修复防回归（V0.329~V0.331 源码级断言） ==========
+console.log('\n[10] 近期修复防回归');
+{
+    // 门闸候选排除近顶点件（精英房下夹角断口根因修复）
+    const crsSrc = fs.readFileSync(path.join(ROOT, 'src/world/combat-room-system.js'), 'utf-8');
+    check('_setupGate 含近顶点排除（nearVertex）', crsSrc.includes('const nearVertex = (p) =>'));
+    check('_setupGate 近顶点阈值 0.8×瓦长', crsSrc.includes('0.8 * faceLen0'));
+    check('_setupGate 门闸锚点沿边回退 8px', crsSrc.includes('/ _segLen * 8'));
+    // cleanupRoom 不跳过存活尸体（地牢 map 态计时器冻结，尸体会带进下一房）；
+    // cleanupMonstersOnly（波次间同房）必须保留跳过
+    const cleanupRoomBody = (crsSrc.split('cleanupRoom() {')[1] || '').split('cleanupMonstersOnly')[0];
+    const cleanupWavesBody = (crsSrc.split('cleanupMonstersOnly() {')[1] || '').split('_restoreSceneState')[0];
+    check('cleanupRoom 无 isPreservedCorpse 跳过', !cleanupRoomBody.includes('isPreservedCorpse'));
+    check('cleanupMonstersOnly 保留 isPreservedCorpse 跳过', cleanupWavesBody.includes('isPreservedCorpse'));
+
+    // 宝箱房门墙深度规则（实体恒在墙上 + 上端邻墙接缝 +0.1，容差 40px）
+    const chestSrc = fs.readFileSync(path.join(ROOT, 'src/world/chest-room-system.js'), 'utf-8');
+    check('宝箱房门墙深度=min底边-墙高', chestSrc.includes('Math.min(gA.y, gB.y) - hWall'));
+    check('宝箱房门墙邻墙接缝容差 40px', chestSrc.includes('pt.y - gA.y) < 40'));
+
+    // 主神空间状态缓存：depart 清实体前 + Game.init 末尾都必须保存
+    const expSrc = fs.readFileSync(path.join(ROOT, 'src/ui/expedition-system.js'), 'utf-8');
+    const departBody = (expSrc.split('depart() {')[1] || '').split('returnToMain')[0];
+    check('depart() 调 _saveMainSceneState', departBody.includes('_saveMainSceneState'));
+    const gameSrc = fs.readFileSync(path.join(ROOT, 'src/game.js'), 'utf-8');
+    check('Game.init 末尾调 _saveMainSceneState', gameSrc.includes('SceneManager._saveMainSceneState()'));
+    // _saveMainSceneState 不再保存误导性死状态（树木/特效/相机不恢复）
+    const smSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf-8');
+    const saveBody = (smSrc.split('_saveMainSceneState() {')[1] || '').split('_resolveWorldSize')[0];
+    check('_saveMainSceneState 无 _mainTrees/_mainEffects/_mainCamera 死状态',
+        !saveBody.includes('_mainTrees') && !saveBody.includes('_mainEffects') && !saveBody.includes('_mainCamera'));
+}
+
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

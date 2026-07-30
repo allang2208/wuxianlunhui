@@ -249,10 +249,8 @@ export const SceneManager = {
     _saveMainSceneState() {
         this._mainEntities = new Map(Game.entities);
         this._mainPlayerPos = Game.player ? { x: Game.player.x, y: Game.player.y } : null;
-        // 保存所有树木（不限于 sceneGroup，避免遗漏）
-        this._mainTrees = WallSystem.trees ? WallSystem.trees.map(t => ({ ...t })) : [];
-        this._mainEffects = EffectManager ? [...EffectManager.effects] : [];
-        this._mainCamera = Camera ? { x: Camera.x, y: Camera.y } : null;
+        // 注：树木/特效/相机不保存——树木按设计不恢复（主神空间障碍物已清除）；
+        // 特效由各系统重建、相机在 _loadMainScene 重新 follow 玩家，保存是误导性死状态（2026-07-30 清理）
     },
 
     _resolveWorldSize(scene) {

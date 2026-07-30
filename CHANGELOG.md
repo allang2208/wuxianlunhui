@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：小修小补包（2026-07-30，V0.333）
+
+- **① ROADMAP 任务 3 销项**：技能特效收敛标注已完成（0e36ea4，combat-fx.js 共享件）。
+- **② 僵尸状态清理**：`_saveMainSceneState` 移除 `_mainTrees/_mainEffects/_mainCamera`——只写不读的死状态（树木按设计不恢复、特效各系统重建、相机重新 follow），全库无消费方，保留会误导后续维护。
+- **③ 回归断言补强**（test-regressions [10]，10 条源码级）：`_setupGate` 近顶点排除（nearVertex/0.8×瓦长/锚点回退 8px）；`cleanupRoom` 无尸体跳过 ∧ `cleanupMonstersOnly` 保留跳过；宝箱房门墙深度规则（min底边−墙高/40px 邻墙容差）；`depart()` 与 `Game.init` 双保存点；`_saveMainSceneState` 死状态不再回潮。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
 ### 对话：背向闪避后撤跳动画（2026-07-30，V0.332）
 
 - **背向闪避专用动画**：素材库`主角动画/跳跃/跳跃.png`（4096×2048，4×8 切割 28 帧）→ `assets/player/dodge_jump.png`，注册 `dodge_jump`（frameRate 93.33、repeat 0）。`triggerDodge` 按闪避方向与鼠标方向点积分流：`dot < 0`（背向鼠标闪避）播 `dodge_jump`（后撤跳效果），朝鼠标闪避仍播 `dodge_roll` 翻滚。朝向不变（flipX 仍由鼠标侧决定，后撤跳天然背身）。位移/无敌/碰撞/隐藏武器等其他逻辑零改动。
