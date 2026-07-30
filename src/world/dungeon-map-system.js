@@ -707,8 +707,8 @@ export const DungeonMapSystem = {
             <div style="background:linear-gradient(135deg,rgba(45,40,35,0.98),rgba(35,30,25,0.99));border:2px solid #a08a5a;border-radius:12px;padding:32px 44px;text-align:center;">
                 <div style="font-size:20px;color:#e8d5a8;font-weight:700;margin-bottom:24px;">场地内还有未获取的宝箱奖励，是否离开？</div>
                 <div style="display:flex;gap:20px;justify-content:center;">
-                    <button id="chestLeaveYes" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#6a5a3a,#5a4a2a);color:#f0e0b8;border:1px solid #a08a5a;border-radius:8px;">是</button>
-                    <button id="chestLeaveNo" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#4a5a4a,#3a4a3a);color:#d4e8c5;border:1px solid #6a8a5a;border-radius:8px;">否</button>
+                    <button id="chestLeaveYes" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#7a3a3a,#5a2a2a);color:#f0c8c8;border:1px solid #aa5a5a;border-radius:8px;">是</button>
+                    <button id="chestLeaveNo" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#3a6a3a,#2a5a2a);color:#c8f0c8;border:1px solid #5aaa5a;border-radius:8px;">否</button>
                 </div>
             </div>`;
         document.body.appendChild(overlay);

@@ -1,4 +1,4 @@
-import { WallSystem, ISO_WALL_GEO } from '../world/wall-system.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { pathFinder } from '../ai/pathfinder.js';
@@ -432,11 +432,26 @@ export const CombatRoomSystem = {
             if (d < bestD) { bestD = d; best = p; }
         }
         if (!best) {
+            // 排除"近顶点件"（转角臂与其近整瓦重复瓦片）：替换它们会暴露 overshoot 结构——
+            // 摘重复件则在 S≥1792 房间留出百像素断口（精英房下夹角左侧空隙根因），不摘则重复件碰撞横穿门洞。
+            // 近顶点规则：任一底边端点距菱形顶点 < 0.8×瓦长。常规续接瓦片两端天然 8px 叠合，原位替换永远无缝无堵
+            const g0 = ISO_WALL_GEO[styleGeos.straight] || ISO_WALL_GEO.straight;
+            const s0 = ISO_WALL_HEIGHT / g0.wallH;
+            const sy0 = s0 * slopeFixOf(g0);
+            const faceLen0 = Math.hypot((g0.face[1][0] - g0.face[0][0]) * s0, (g0.face[1][1] - g0.face[0][1]) * sy0);
+            const d = this._diamond;
+            const verts = [{ x: d.cx, y: d.cy - d.ry }, { x: d.cx, y: d.cy + d.ry }, { x: d.cx - d.rx, y: d.cy }, { x: d.cx + d.rx, y: d.cy }];
+            const nearVertex = (p) => {
+                const seg = WallSystem._pieceBaseSegments(p)[0];
+                if (!seg) return true;
+                return seg.some(pt => verts.some(V => Math.hypot(pt.x - V.x, pt.y - V.y) < 0.8 * faceLen0));
+            };
             for (const p of WallSystem.isoVisuals) {
                 if (p.tex !== straightTex) continue;
                 if (p._corner) continue; // 转角预制件不替换（避免夹角处出现装饰门+功能门双门）
-                const d = Math.hypot(p.x - player.x, p.y - player.y);
-                if (d < bestD) { bestD = d; best = p; }
+                if (nearVertex(p)) continue;
+                const d2 = Math.hypot(p.x - player.x, p.y - player.y);
+                if (d2 < bestD) { bestD = d2; best = p; }
             }
         }
         if (!best) return;
@@ -463,7 +478,11 @@ export const CombatRoomSystem = {
         // 先同步渲染墙件，再创建门闸精灵——避免门闸创建后被整批重建的墙件精灵压住；
         // 转角斜接处的上下位已由上面的 depth-0.1 显式继承，不再依赖创建顺序
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-        if (WallGate.placeAt(a, b, flip, depth)) {
+        // 门闸锚点沿边回退 8px：与瓦片"8px 叠合"同口径——替换转角臂时门与邻瓦只剩 ~1px 对顶
+        // （视觉露缝）、替换近整瓦重复件时门远端到不了顶点（留空档）；多出的 8px 由邻件盖住（只叠不缺）
+        const _segLen = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const a2 = { x: a.x - (b.x - a.x) / _segLen * 8, y: a.y - (b.y - a.y) / _segLen * 8 };
+        if (WallGate.placeAt(a2, b, flip, depth)) {
             WallGate.state = 'open';
             WallGate._frame = 15;
             if (WallGate.sprite) WallGate.sprite.setFrame(15);
@@ -736,12 +755,13 @@ export const CombatRoomSystem = {
         // 清理掉落物（金币、装备等）
         this.cleanupDrops();
 
-        // 删除所有战斗怪物（经统一入口，同步销毁贴图，避免尸体残留）；
-        // 存活尸体（如胖子僵尸尸体）跳过删除，只会因持续时间到而消失
+        // 删除所有战斗怪物（经统一入口，同步销毁贴图，避免尸体残留）。
+        // 离场拆房不再保留存活尸体：地牢 map 状态实体更新暂停（game.js 早退），尸体计时器冻结，
+        // 保留下来只会把尸体贴图带进下一场战斗房（"胖子僵尸/矿石蜘蛛尸体没清理"根因）；
+        // 存活尸体跳过仅用于 cleanupMonstersOnly（波次间同房保留，腐蚀光环继续生效）
         const Game = gameRef();
         for (const key of this._combatMonsterKeys) {
             if (Game && typeof Game.removeEntity === 'function') {
-                if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
                 Game.removeEntity(key);
             }
         }

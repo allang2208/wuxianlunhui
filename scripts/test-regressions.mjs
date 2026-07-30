@@ -378,5 +378,20 @@ console.log('\n[8] 机枪移速口径');
     check('tooltip 无步枪硬编码减速名单', !ttSrc.includes("'akm', 'qbz191', 'qjb201'"));
 }
 
+// ========== 9. 僵尸/沼泽地牢领主池 family 限定（V0.327）——lord 池必须只含僵尸 family，时空特工不得入池 ==========
+console.log('\n[9] 领主池 family 限定');
+{
+    const zdSrc = fs.readFileSync(path.join(ROOT, 'src/world/zombie-dungeon.js'), 'utf-8');
+    // 领主池 getter 必须带 family === '僵尸' 过滤（2026-07-29 前曾跨 family 抽取，时空特工会进领主位）
+    const lordGetter = zdSrc.split('get lord()')[1] || '';
+    check('lord 池带僵尸 family 过滤', lordGetter.includes("cfg.family === '僵尸'"));
+    // 数据层交叉验证：僵尸 family 领主池非空（foremanZombie/shounao/flyHand），特工 family 领主被排除
+    const enemyCfg = readJson('data/enemy-config.json');
+    const zombieLords = Object.entries(enemyCfg).filter(([, c]) => c.family === '僵尸' && c.rank === 'lord').map(([k]) => k);
+    const agentLords = Object.entries(enemyCfg).filter(([, c]) => c.family === '特工' && c.rank === 'lord').map(([k]) => k);
+    check('僵尸领主池非空（≥3）', zombieLords.length >= 3, zombieLords.join(','));
+    check('特工领主存在但不应入池（仅作存在性核对）', agentLords.length >= 1, agentLords.join(','));
+}
+
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

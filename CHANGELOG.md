@@ -8,6 +8,59 @@
 - 测试结果
 - 已知问题
 
+### 对话：背向闪避后撤跳动画（2026-07-30，V0.332）
+
+- **背向闪避专用动画**：素材库`主角动画/跳跃/跳跃.png`（4096×2048，4×8 切割 28 帧）→ `assets/player/dodge_jump.png`，注册 `dodge_jump`（frameRate 93.33、repeat 0）。`triggerDodge` 按闪避方向与鼠标方向点积分流：`dot < 0`（背向鼠标闪避）播 `dodge_jump`（后撤跳效果），朝鼠标闪避仍播 `dodge_roll` 翻滚。朝向不变（flipX 仍由鼠标侧决定，后撤跳天然背身）。位移/无敌/碰撞/隐藏武器等其他逻辑零改动。
+- **修改文件**：`assets/player/dodge_jump.png`(新)、`data/player-anim-config.json`(+public 同步)、`subsystems.js`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：后撤跳动画与位移的帧同步、点积阈值（恰为 0 的侧向闪避归翻滚）需实机确认。
+
+### 对话：尸体清理/门墙接缝/掉落字体/QBZ191瞄准/确认框配色（2026-07-30，V0.331）
+
+- **① 胖子僵尸/矿石蜘蛛尸体未清理根因**：地牢 **map 状态实体更新暂停**（game.js 地图分支早退）——`cleanupRoom` 离场拆房时按"存活尸体保留"规则跳过尸体（该规则本意是波次间同房保留腐蚀光环），尸体计时器在地图态冻结，贴图被带进下一场战斗房。修复：`cleanupRoom` 不再跳过存活尸体（`removeEntity` 统一销毁贴图）；`cleanupMonstersOnly`（波次间）保留跳过规则不变。
+- **② 宝箱房门墙 vs 上方墙面接缝**：上一轮门墙深度（min底边−墙高≈3790）低于房内上侧墙（3892.2），上墙裁切边压门墙。修复：`_placeGate` 深度取 max(原规则, gA 上端邻墙深度+0.1)——邻墙搜索容差 40px（预制手摆端点有 ~25px 间隙，2px 精确共享取不到）；只拉 gA 上端，gB 右侧"右件盖门墙"手调规则不动。门区实体深度（≥3960）仍高于门墙，实体遮挡行为不变。离线渲染验证。
+- **③ 掉落物名称字体**：11→16.5px / 悬停 13→19.5px（放大 50%），颜色跟随稀有度（`RARITY_COLORS` 统一色板，悬停保持高亮黄）。
+- **④ QBZ191 瞄准贴图下移 5px**：新增 `aimSpriteOffsetX/Y` 机制（世界 px × `_aimEase` 混合，与 `spriteOffsetX/Y` 同点应用——在 `_gunGripWorld` 记录之后，**手臂/锚点/弹道不受影响**，腰射 ease=0 不变）；`public/data/weapon-anim-config.json` qbz191 加 `aimSpriteOffsetY: 5`。
+- **⑤ 精英战尾波**：经核查 `zombieDungeon.encounters.elite.waveComposition[2]` 自 07-28 波次重构起已是 `{normal:4, lord:1}`（1 领主+4 普通），无需改动——若实机仍见精英怪，是旧构建或未生效缓存。
+- **⑥ 宝箱离场确认框**：是=红色系、否=绿色系。
+- **修改文件**：`combat-room-system.js`、`chest-room-system.js`、`drop-item.js`、`GameScene.js`、`dungeon-map-system.js`、`public/data/weapon-anim-config.json`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：①②需实机确认（下一场战斗房无残留尸体、门墙-上墙接缝观感）；④瞄准下移幅度与枪口/弹道的视觉一致性需实机确认。
+
+### 对话：放弃返回主神空间空场景修复（2026-07-30，V0.330）
+
+- **根因**：主神空间状态缓存机制（`SceneManager._saveMainSceneState` 保存 `_mainEntities/_mainPlayerPos` → `_loadMainScene` 恢复）早就存在，但只在 `switchScene` 离开 main 时触发保存。出征 `depart()`（expedition-system）**绕开 switchScene** 直接 `Game.entities.clear()` 并进地牢——首次出征前从未保存过，放弃/撤离/通关/死亡任何路径返回时 `_mainEntities` 为空，`_loadMainScene` 走兜底只放玩家一个光杆（"什么都没有的空间"）。走传送门去 scene2~5 再回来有保存所以一直看似正常——只有"开局→祭坛出征→返回"这条链必现。
+- **修复**（两处补保存调用，机制本身不动）：①`depart()` 清实体前调 `SceneManager._saveMainSceneState()`；②`Game.init` 初始生成完毕（NPC/武器/传送门/测试怪全就位）后保存一次作安全网。返回路径零改动——所有返回都经 `switchScene("main")` → `_loadMainScene` 读缓存恢复。
+- **修改文件**：`expedition-system.js`、`game.js`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：`_mainTrees/_mainEffects/_mainCamera` 已保存但 `_loadMainScene` 未恢复（历史遗留，主神空间树木本就不恢复）；缓存时点的实体后续被销毁/拾取（如玩家拿起的武器）恢复的是出征时点状态——需实机确认 NPC/武器排/掉落/祭坛全部回来。
+
+### 对话：精英房下夹角断口修复 + 宝箱房门墙图层修复（2026-07-30，V0.329）
+
+- **① 精英房（S≥1792）下夹角左侧断口根因**：前一版"门闸替换转角臂+摘重复件"方案在 S=1792 不成立——该档位的 overshoot 重复瓦片 [1873..2349] 有 ~126px 属于**有效覆盖**（唯一桥接段），摘除后 [1881..1999] 断空。方案废弃改为**候选排除近顶点件**：`_setupGate` 回退选择时跳过任一底边端点距菱形顶点 <0.8×瓦长的直墙件（转角臂+其重复瓦片全部排除），门闸只替换常规续接瓦片——两端天然 8px 叠合，永远无缝无堵；`removeSpanCoveringPieces` 留作兜底（新候选下恒为 0 摘）。离线渲染（render-gate-corner S=1792）+回归测试（新增"边断口 ≤10px"断言，12 场景全 0px）双重验证。
+- **② 宝箱房门墙图层根因与修复**：门墙（gate 件）深度沿用预制值 ≈ min 底边+5，与右侧直墙件（min 底边+4）几乎相同——但门墙贴图比直墙高，门区实体（脚线 3950~4101）深度低于门墙且身体进入贴图覆盖带 → 被门框盖住（"左边挡住玩家/怪物、右边正常"根因；右侧直墙贴图矮够不着实体，看起来正常）。修复：`_placeGate` 深度改为 **min(底边 y) − 显示墙高**——脚线低于贴图顶沿的实体深度必然更高（恒画在墙上），顺带满足"门墙 depth 最低"手调规则。离线渲染（tools/render-chest-room.py）验证门区实体全部可见。顺带修复 X 光 occluders 在门打开后仍含门洞段（`cg.open` 时剔除 gateSeg）。
+- **修改文件**：`combat-room-system.js`、`chest-room-system.js`、`GameScene.js`、`scripts/test-gate-corner.mjs`、`tools/render-chest-room.py`(新)。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：精英房门位置（离角一块瓦）与门区实体遮挡关系需实机确认。
+
+### 对话：空格闪避翻滚动画 + 闪避隐藏武器（2026-07-30，V0.328）
+
+- **① 闪避翻滚动画**：素材库`主角动画/闪避翻滚/闪避翻滚.png`（4096×2048，4×8 切割 25 帧）→ `assets/player/dodge_roll.png`；`player-anim-config.json` 注册 `dodge_roll`（frameRate 83.33、repeat 0，BootScene 配置驱动自动加载）；`triggerDodge` 播放动画、时长与 `dodgeTimer` 同步拉伸（面板 dodgeDuration 可被装备修饰，动画自动跟随）。
+- **② 动画不被覆盖**：`_updatePlayerAnimation` 增加 `player.isDodging` 守卫——翻滚播放期间移动状态机不切 walk/idle；结束/被打断后正常接管。
+- **③ 闪避隐藏武器贴图**：`syncWeapon`/`syncOffhandWeapon` 后统一覆盖——`isDodging` 时主手/副手 Sprite 强制 `setVisible(false)`；闪避结束由每帧 sync 自动恢复（无需显式还原，不会残留隐藏状态）。
+- **修改文件**：`assets/player/dodge_roll.png`(新)、`data/player-anim-config.json`(+public 同步)、`subsystems.js`、`GameScene.js`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：翻滚动画与位移的帧同步观感（25 帧/300ms）、翻滚方向 flipX、枪姿态扭转层复位需实机确认。
+
+### 对话：冲刺定格贴图空白修复 + 门闸接缝 8px 叠合 + 领主池 family 限定（2026-07-29，V0.327）
+
+- **① 冲刺定格空白根因**：定格分支 `setTexture('dash_recover', 0)` 用了裸动画键——贴图键必须走 `playerTextureKey()`（`player_<动画键>`），裸键纹理不存在渲染成空白。已改 `playerTextureKey('dash_recover')`。
+- **② 门闸接缝对齐右侧**：离线渲染（`tools/render-gate-corner.py`，与 JS 同数学逐件合成）证实——替换转角臂时门与邻瓦只剩 ~1px 对顶（视觉露缝），替换近整瓦重复件时门右端距顶点空 7px；右侧无缝是因为转角臂 +5 偏置盖住门缘。修复：`_setupGate` 门闸锚点沿边回退 8px（与瓦片"8px 叠合"同口径，多出的由邻件盖住），渲染验证左侧接缝与右侧一致。
+- **③ 领主池跨 family 泄漏**：`zombie-dungeon.js` `monsterPool.lord` 此前只按 `rank==='lord'` 抽取（注释明写"跨 family"）——时空特工（特工 family、rank=lord）被抽进僵尸/沼泽地牢精英战尾波领主位。修复：lord 池加 `family === '僵尸'`（僵尸领主 foremanZombie/shounao/flyHand 全保留；特工只走 AgentInvasionSystem 入侵机制）。normal/elite 池本就有 family 过滤。
+- **修改文件**：`GameScene.js`、`combat-room-system.js`、`zombie-dungeon.js`、`scripts/test-regressions.mjs`（新增 [9] 领主池断言）、`tools/render-gate-corner.py`(新)。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（123+10+12）。
+- **已知问题**：②③需实机确认（下夹角门左右接缝观感、精英战尾波领主必为僵尸系）；冲刺定格 dash_recover 首帧显示需实机确认。
+
 ### 对话：主神空间菱形化回退 + 新大理石墙/门贴图（2026-07-29，V0.326）
 
 - **① 菱形化回退（用户实机不满意）**：`scene-manager.js`/`dungeon-floor-texture.js` git checkout 回 HEAD（恢复 4096² 世界、hub_brick 满地、边界墙、hub_diamond 预制分支）；`game-config.json` 手改回退世界尺寸/origin/传送门/testArea/floor——**仅保留 `npcs.altar` 祭坛贴图配置**（git diff 已核对：与 HEAD 仅差祭坛块）；`hub_marble` 地砖贴图删除。祭坛 NPC（贴图+底座障碍+点击区）完整保留。

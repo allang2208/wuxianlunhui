@@ -382,10 +382,12 @@ const ZOMBIE_DUNGEON_CONFIG = {
                 .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
-        // lord 领主池：跨 family 按 rank 抽取（Boss 池，如手脑；用于 monsterComposition { lord: N }）
+        // lord 领主池：僵尸 family 限定（2026-07-29 修复——此前跨 family 按 rank 抽取，
+        // 时空特工(特工 family, rank=lord)会被抽进僵尸/沼泽地牢的领主位；
+        // 特工只走 AgentInvasionSystem 入侵机制，不进怪物池）
         get lord() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },

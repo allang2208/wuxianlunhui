@@ -80,8 +80,8 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     }
                     const label = phaserScene.add.text(this.x, this.y + 20, '', {
                         fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
-                        fontSize: '11px',
-                        color: '#d4c5a9e6',
+                        fontSize: '16.5px',
+                        color: RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common,
                         align: 'center'
                     });
                     label.setOrigin(0.5, 0);
@@ -109,9 +109,11 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 const name = this.itemData.name || '';
                 const labelText = hover ? `${name}\n[点击拾取]` : name;
                 this._phaserLabel.setText(labelText);
+                // 字体放大 50%（11→16.5 / 13→19.5），颜色跟随稀有度（RARITY_COLORS 统一色板）
+                const rarityColor = RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common;
                 this._phaserLabel.setStyle({
-                    fontSize: hover ? '13px' : '11px',
-                    color: hover ? '#ffeb96' : '#d4c5a9e6'
+                    fontSize: hover ? '19.5px' : '16.5px',
+                    color: hover ? '#ffeb96' : rarityColor
                 });
                 // 装备文字固定在物品原始位置下方，不随贴图浮动
                 this._phaserLabel.setPosition(this.x, this.y + 28);

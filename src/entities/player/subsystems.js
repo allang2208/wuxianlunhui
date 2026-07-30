@@ -795,6 +795,24 @@ triggerDodge(moveInput) {
                 this.noCollision = true;
                 // SoundManager.play('dodge');
                 this.vx = 0; this.vy = 0;
+                // 闪避动画：朝鼠标方向=翻滚（dodge_roll），背向鼠标=后撤跳跃（dodge_jump，2026-07-30）。
+                // 朝向不变（flipX 仍由鼠标侧决定）——后撤跳天然背身效果
+                {
+                    const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                    if (scene && typeof scene.setPlayerAnimation === 'function') {
+                        let dodgeAnimKey = 'dodge_roll';
+                        if (typeof Input !== 'undefined' && Input.mouse && typeof Renderer !== 'undefined' && Renderer.screenToWorld) {
+                            const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                            const mdx = mw.x - this.x, mdy = mw.y - this.y;
+                            const mlen = Math.hypot(mdx, mdy);
+                            if (mlen > 1) {
+                                const dot = (dirX * mdx + dirY * mdy) / mlen;
+                                if (dot < 0) dodgeAnimKey = 'dodge_jump';
+                            }
+                        }
+                        scene.setPlayerAnimation(dodgeAnimKey, this.dodgeTimer);
+                    }
+                }
                 EffectFactory.createDodgeEffect(this.x, this.y, dirX, dirY);
             },
 
