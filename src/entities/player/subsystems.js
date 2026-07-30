@@ -411,7 +411,7 @@ _initSkills() {
                             description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                            getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
+                            getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 94, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 55, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -504,7 +504,7 @@ _initSkills() {
                         description: '在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5) }; },
+                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 94, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 55, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5) }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackFire: {
@@ -512,7 +512,7 @@ _initSkills() {
                         description: '夜与火之剑专属：冲刺后向前挥砍，武器路径上留下火焰轨迹，对路径上敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 30, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
+                        getEffect(level) { return { damageMul: 1.5 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 94, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 55, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5), fireTrailSpawnInterval: 50, fireTrailWeaponOffset: 60 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackThrust: {
@@ -1392,7 +1392,7 @@ _getMuzzleWorldPosition(hand = 'main') {
                 if (!sprite || !sprite.visible || !sprite.texture) return null;
                 const slot = hand === 'offhand' ? (this.weaponMode === 'weapon' ? 'offhand' : 'ring2') : this.weaponMode;
                 const item = this.equipments && this.equipments[slot];
-                const wt = item && item.weaponType;
+                const wt = item && (item.animConfigKey || item.weaponType);
                 // 枪口点优先级：手动覆盖（muzzle.manual）> BootScene 自动烘焙（贴图最前端）> 配置 muzzle > 贴图右缘中心
                 const baked = (typeof window !== 'undefined' && window.__weaponMuzzlePoints)
                     ? window.__weaponMuzzlePoints[sprite.texture.key] : null;

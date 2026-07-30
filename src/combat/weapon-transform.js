@@ -50,6 +50,15 @@ const WEAPON_TRANSFORM_CONFIG = {
         afterRotateOffsetY: 0,
         baseRotation: 0,
     },
+    beretta93r: {
+        // Beretta 93R：与沙鹰同口径（单/双持锚点、后坐偏移）
+        mainBaseX: -15, mainBaseY: 16.5,
+        offBaseX: -5, offBaseY: -16.5,
+        holdOffsetKey: 'beretta93r',
+        afterRotateOffsetX: (s) => s * 0.42,
+        afterRotateOffsetY: 0,
+        baseRotation: 0,
+    },
     pkm: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
         mainBaseY: (isDual) => isDual ? 8 : 0,
@@ -448,7 +457,7 @@ class WeaponTransform {
         const wac = WeaponAnimConfig[weaponType] || {};
         const rp = wac.renderParams || {};
 
-        if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040') {
+        if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040' || weaponType === 'beretta93r') {
             if (anim.state === 'windup') {
                 recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
@@ -516,7 +525,7 @@ class WeaponTransform {
             return { width: ms * 0.63 * scale, height: ms * scale };
         } else if (weaponType === 'bow') {
             return { width: s * scale * 1.10, height: s * scale * 1.10, useAspectRatio: true };
-        } else if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040') {
+        } else if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040' || weaponType === 'beretta93r') {
             return { width: s * 0.275 * scale, height: s * 0.5 * scale };
         } else {
             return { width: s * 0.75 * scale, height: s * scale };

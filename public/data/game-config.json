@@ -292,12 +292,10 @@
       "npcType": "warehouse",
       "noSeparation": true,
       "noShadow": true,
-      "obstacle": {
-        "comment": "底座矩形障碍（WallSystem 静态墙）：宽=贴图底座宽、深=底座厚度、offsetY 锚定脚底线；实体圆只留小半径，阻挡交给矩形",
-        "width": 140,
-        "height": 36,
-        "offsetY": 0
-      },
+      "collisionShape": "rect",
+      "collisionWidth": 140,
+      "collisionHeight": 36,
+      "colliderOffsetY": 0,
       "sprite": {
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
         "idleKey": "npc_warehouse",
@@ -323,12 +321,10 @@
       "npcType": "altar",
       "noSeparation": true,
       "noShadow": true,
-      "obstacle": {
-        "comment": "底座矩形障碍（WallSystem 静态墙）：宽=祭坛底座宽、深=底座厚度，锚定脚底线",
-        "width": 190,
-        "height": 55,
-        "offsetY": 0
-      },
+      "collisionShape": "rect",
+      "collisionWidth": 190,
+      "collisionHeight": 55,
+      "colliderOffsetY": 0,
       "sprite": {
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
         "idleKey": "npc_altar",

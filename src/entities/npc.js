@@ -47,6 +47,10 @@ class NPC extends Entity {
         // footprint 椭圆偏移（如仓库底部判定上移）
         if (typeof config.colliderOffsetY === 'number') this.colliderOffsetY = config.colliderOffsetY;
         if (typeof config.colliderOffsetX === 'number') this.colliderOffsetX = config.colliderOffsetX;
+        // 矩形 footprint（祭坛/仓库等固定 NPC：匹配贴图底座，碰撞不再走 WallSystem 静态墙）
+        if (config.collisionShape) this.collisionShape = config.collisionShape;
+        if (typeof config.collisionWidth === 'number') this.collisionWidth = config.collisionWidth;
+        if (typeof config.collisionHeight === 'number') this.collisionHeight = config.collisionHeight;
 
         // 随机游走配置（game-config.json npcs.<key>.wander；缺省不移动）
         this.wanderCfg = config.wander || null;

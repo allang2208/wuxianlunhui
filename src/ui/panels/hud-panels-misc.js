@@ -318,11 +318,8 @@ export function createHudPanelsMisc() {
     npcPortraitTool.appendChild(npcPortraitToolHeader);
     const npcPortraitToolBody = document.createElement('div');
     npcPortraitToolBody.className = 'npc-portrait-tool-body';
-    const npcPortraitCanvas = document.createElement('canvas');
-    npcPortraitCanvas.id = 'npcPortraitCanvas';
-    npcPortraitCanvas.width = 400;
-    npcPortraitCanvas.height = 400;
-    npcPortraitCanvas.className = 'npc-portrait-canvas';
+    // 2026-07-30 重构：canvas 预览/拖动区已移除——拖动直接在对话左侧立绘上进行，
+    // 面板只保留缩放/旋转/镜像/重置/保存
     const npcPortraitToolControls = document.createElement('div');
     npcPortraitToolControls.className = 'npc-portrait-tool-controls';
     const npcPortraitControlRows = [
@@ -370,7 +367,6 @@ export function createHudPanelsMisc() {
     npcPortraitBtnRow.appendChild(npcPortraitReset);
     npcPortraitBtnRow.appendChild(npcPortraitSave);
     npcPortraitToolControls.appendChild(npcPortraitBtnRow);
-    npcPortraitToolBody.appendChild(npcPortraitCanvas);
     npcPortraitToolBody.appendChild(npcPortraitToolControls);
     npcPortraitTool.appendChild(npcPortraitToolBody);
     root.appendChild(npcPortraitTool);

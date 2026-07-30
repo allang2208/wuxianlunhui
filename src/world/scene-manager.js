@@ -12,7 +12,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
-import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded } from './wall-prefabs.js';
+import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
@@ -437,6 +437,23 @@ export const SceneManager = {
                 WallSystem.rebuildIsoCollision();
                 if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
             });
+        }
+        // 障碍物布局（data/obstacle-layout.json）：追加到 isoVisuals，碰撞由
+        // rebuildIsoCollision() 按 geo.foot 生成矩形 footprint 墙（与墙体同入口重建，场景往返不丢）
+        if (getObstacleLayout().length === 0) {
+            // 首启竞速兜底：布局未加载完时到位后补应用一次（仅主神空间）
+            loadObstacleLayout().then(() => {
+                if (this.currentScene !== 'main' || getObstacleLayout().length === 0) return;
+                for (const o of getObstacleLayout()) {
+                    WallSystem.isoVisuals.push({ ...o, family: 'obstacle' });
+                }
+                WallSystem.rebuildIsoCollision();
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+            });
+        } else {
+            for (const o of getObstacleLayout()) {
+                WallSystem.isoVisuals.push({ ...o, family: 'obstacle' });
+            }
         }
         WallSystem.rebuildIsoCollision();
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；

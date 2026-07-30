@@ -91,7 +91,7 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     this._phaserLabel = label;
                 }
 
-                const bobY = Math.sin(this.bobOffset) * 4;
+                const bobY = Math.sin(this.bobOffset) * 5; // 轻微上下抖动（±5px）
                 const camera = phaserScene.cameras.main;
                 const mx = Input.mouse.x + camera.scrollX;
                 const my = Input.mouse.y + camera.scrollY;
@@ -115,8 +115,8 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     fontSize: hover ? '15.6px' : '13.2px',
                     color: hover ? '#ffeb96' : rarityColor
                 });
-                // 文字贴近放大后的贴图底部（紧凑布局），不随贴图浮动
-                this._phaserLabel.setPosition(this.x, this.y + 36);
+                // 文字贴近放大后的贴图底部（紧凑布局），不随贴图浮动；整体上移 30px
+                this._phaserLabel.setPosition(this.x, this.y + 6);
                 this._phaserLabel.setDepth(this.y + 11);
                 this._phaserLabel.setVisible(true);
             }

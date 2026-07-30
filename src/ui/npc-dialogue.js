@@ -46,19 +46,18 @@ const NPCDialogue = {
             npcPortrait.src = npc.portrait;
             // 设置当前 NPC ID 到立绘工具，供 toggle 使用
             NpcPortraitTool._npcId = npc.id;
-            // 加载已保存的立绘参数并应用；若无保存则使用默认参数
-            // 统一使用固定 bottom 像素定位，不再通过 translateY 偏移
+            // 加载已保存的立绘参数并应用；若无保存则使用默认参数。
+            // 锚 bottom 按 NPC 默认恢复（锚不入库，y 偏移全部走 params.y）
+            const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
+            NpcPortraitTool._anchorBottom = (defaults && defaults.anchorBottom) ?? 220;
             if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
                 NpcPortraitTool.applyToDom(NpcPortraitTool._settings[npc.id]);
+            } else if (defaults) {
+                NpcPortraitTool.applyToDom(defaults);
             } else {
-                const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
-                if (defaults) {
-                    NpcPortraitTool.applyToDom(defaults);
-                } else {
-                    // 仅保留居中，垂直方向使用固定 bottom 220px
-                    npcPortrait.style.transform = 'translateX(-50%)';
-                    npcPortrait.style.bottom = '220px';
-                }
+                // 仅保留居中，垂直方向使用固定 bottom 220px
+                npcPortrait.style.transform = 'translateX(-50%)';
+                npcPortrait.style.bottom = '220px';
             }
             // 小鼠侍从立绘放大300%
             if (npc.portrait && npc.portrait.includes('mouse_attendant')) {
@@ -420,9 +419,12 @@ const NPCDialogue = {
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
         
-        // 清除当前对话并显示改造提示
-        this._currentText = '因为神秘力量，改造完装备之后，可以使装备获得一些特殊的能力，就不能再进行更改，请慎重选择。';
-        if (this._typewriter) this._typewriter.setText(this._currentText);
+        // 清除当前对话并显示改造提示（高亮段「后续的改造需要 4 张」走 typewriter 既有红字抖动样式）
+        this._currentText = '改造装备需要支付改造券，初次改造只需要 1 张，后续的改造需要 4 张。请注意选择。';
+        if (this._typewriter) {
+            this._typewriter._highlight = '后续的改造需要 4 张';
+            this._typewriter.setText(this._currentText);
+        }
         // 保留对话选项按钮可见，支持页面跳转
         const dialogueOptions = getElement('npcDialogueOptions');
         if (dialogueOptions) dialogueOptions.style.display = 'flex';

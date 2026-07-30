@@ -319,7 +319,9 @@ export const Game = {
             noSeparation: whCfg.noSeparation,
             noShadow: whCfg.noShadow,
             colliderOffsetY: whCfg.colliderOffsetY,
-            obstacle: whCfg.obstacle,
+            collisionShape: whCfg.collisionShape,
+            collisionWidth: whCfg.collisionWidth,
+            collisionHeight: whCfg.collisionHeight,
             clickArea: whCfg.clickArea,
             greetings: ['仓库为你敞开。']
         });
@@ -338,7 +340,10 @@ export const Game = {
             sprite: altarCfg.sprite,
             noSeparation: altarCfg.noSeparation,
             noShadow: altarCfg.noShadow,
-            obstacle: altarCfg.obstacle,
+            collisionShape: altarCfg.collisionShape,
+            collisionWidth: altarCfg.collisionWidth,
+            collisionHeight: altarCfg.collisionHeight,
+            colliderOffsetY: altarCfg.colliderOffsetY,
             clickArea: altarCfg.clickArea,
             greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
         });
@@ -1462,6 +1467,43 @@ if (SceneManager.currentScene === 'scene3') {
                 const dy = (by - ay) * invScale;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const minDist = radiusA + radiusB;
+
+                // 矩形 footprint（祭坛/仓库等固定 NPC）：圆-矩形精确分离，不用外接圆近似
+                // （深度方向按逆透视压缩判定，位移变换回世界空间——与圆形分支同口径）
+                const rectEnt = (a.collisionShape === 'rect' && a.collisionWidth > 0) ? a : ((b.collisionShape === 'rect' && b.collisionWidth > 0) ? b : null);
+                if (rectEnt) {
+                    const other = rectEnt === a ? b : a;
+                    const otherR = other.groundRadius;
+                    const rcx = rectEnt.collider ? rectEnt.collider.x : rectEnt.x;
+                    const rcy = rectEnt.collider ? rectEnt.collider.y : rectEnt.y;
+                    const oxx = other.collider ? other.collider.x : other.x;
+                    const oyy = other.collider ? other.collider.y : other.y;
+                    const hw = rectEnt.collisionWidth / 2, hh = (rectEnt.collisionHeight / 2) * invScale;
+                    // 逆透视空间：对方圆心到矩形最近点
+                    const relX = oxx - rcx, relY = (oyy - rcy) * invScale;
+                    const qx = Math.max(-hw, Math.min(hw, relX));
+                    const qy = Math.max(-hh, Math.min(hh, relY));
+                    let ddx = relX - qx, ddy = relY - qy;
+                    let d2 = Math.sqrt(ddx * ddx + ddy * ddy);
+                    if (d2 === 0) { ddx = relX >= 0 ? 1 : -1; ddy = 0; d2 = 1; } // 圆心在矩形内：沿长轴推出
+                    if (d2 < otherR) {
+                        const immR = !!rectEnt.noSeparation;
+                        const immO = !!other.noSeparation;
+                        if (!(immR && immO)) {
+                            const overlap = otherR - d2;
+                            const nx2 = ddx / d2, ny2 = ddy / d2;
+                            const shareR = immR ? 0 : (immO ? 1 : 0.5);
+                            const shareO = immO ? 0 : (immR ? 1 : 0.5);
+                            const mr = WallSystem.resolve(rectEnt.x, rectEnt.y,
+                                rectEnt.x - nx2 * overlap * shareR, rectEnt.y - ny2 * overlap * shareR * PERSPECTIVE_SCALE_Y, rectEnt.groundRadius);
+                            rectEnt.x = mr.x; rectEnt.y = mr.y;
+                            const mo = WallSystem.resolve(other.x, other.y,
+                                other.x + nx2 * overlap * shareO, other.y + ny2 * overlap * shareO * PERSPECTIVE_SCALE_Y, otherR);
+                            other.x = mo.x; other.y = mo.y;
+                        }
+                    }
+                    continue;
+                }
 
                 if (dist > 0 && dist < minDist) {
                     // 不可分离单位（如站桩 Boss）：自身纹丝不动，由对方承担全部重叠位移；双方均不可动则跳过

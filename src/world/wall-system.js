@@ -20,6 +20,9 @@ const ISO_WALL_GEO = {
     hub_straight: { tex: 'hub_wall_straight', w: 1365, h: 1183, base: [[0, 525.5], [1365, 1215.5]], face: [[41, 546.3], [1324, 1194.8]], wallH: 588.6, slope: 0.5055, editor: '主神大理石墙' },
     // 主神空间大理石门（单帧装饰门件：gateX=拱门洞跨度实测；openDoor=门洞碰撞常开可通行；非 16 帧门闸 spritesheet，不能作功能门闸）
     hub_gate: { tex: 'hub_gate', w: 1365, h: 1181, base: [[0, 435.5], [1365, 1150.0]], face: [[0, 435.5], [1365, 1150.0]], gateX: [629, 738], wallH: 617.7, slope: 0.5235, openDoor: true, editor: '主神大理石门' },
+    // ===== 障碍物（摆墙编辑器障碍物类；foot=贴图底部 footprint 宽高，碰撞=矩形 footprint 墙）=====
+    barrel: { tex: 'obstacle_barrel', w: 352, h: 512, category: 'obstacle', foot: { w: 308, d: 107 }, editor: '木桶' },
+    pillar: { tex: 'obstacle_pillar', w: 236, h: 640, category: 'obstacle', foot: { w: 231, d: 80 }, editor: '石柱' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -481,7 +484,7 @@ const WallSystem = {
         for (const p of this.isoVisuals) this._placeIsoPiece(phaserScene, p);
     },
 
-    /** 通用件渲染：origin 0.5,0.5 + scale/flip/depth 直接应用 */
+    /** 通用件渲染：origin 0.5,0.5 + scale/flip/rotation/depth 直接应用 */
     _placeIsoPiece(phaserScene, p) {
         if (!phaserScene.textures.exists(p.tex)) return;
         const sp = phaserScene.add.sprite(p.x, p.y, p.tex);
@@ -489,6 +492,7 @@ const WallSystem = {
         sp.setScale(p.scaleX ?? 1, p.scaleY ?? p.scaleX ?? 1);
         sp.setFlipX(!!p.flipX);
         sp.setFlipY(!!p.flipY);
+        if (p.rotation) sp.setRotation(p.rotation);
         sp.setDepth(p.depth ?? p.y);
         phaserScene.visualWalls.add(sp);
         p._sprite = sp;
@@ -512,11 +516,12 @@ const WallSystem = {
         return { x: p.x + u * (p.scaleX ?? 1), y: p.y + v * (p.scaleY ?? p.scaleX ?? 1) };
     },
 
-    /** 件底边线段（世界坐标，碰撞用）：直墙=正面墙底边(face，不含端帽)；转角=顶点→两臂尖 */
+    /** 件底边线段（世界坐标，碰撞用）：直墙=正面墙底边(face，不含端帽)；转角=顶点→两臂尖；障碍物=无线段（碰撞走矩形 footprint） */
     _pieceBaseSegments(p) {
         const key = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
         const g = key ? ISO_WALL_GEO[key] : null;
         if (!g) return [];
+        if (g.category === 'obstacle') return []; // 障碍物无墙段（_addPieceCollision 用矩形 footprint）
         const base = g.face || g.base;
         if (base) {
             // 单帧装饰门（openDoor，如主神大理石门）：拱门永久开放——碰撞=门洞两侧墙身，门洞可通行
@@ -579,6 +584,20 @@ const WallSystem = {
 
     /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */
     _addPieceCollision(p) {
+        // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
+        const geo = this._geoForTex(p.tex);
+        if (geo && geo.category === 'obstacle' && geo.foot) {
+            const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
+            const fw = geo.foot.w * sx, fd = geo.foot.d * sy;
+            const bottomY = p.y + (geo.h * sy) / 2;
+            this.walls.push({
+                x: p.x - fw / 2,
+                y: bottomY - fd,
+                w: fw, h: fd,
+                height: 60, noVisual: true, _iso: true, _obstacle: true,
+            });
+            return;
+        }
         for (const [a, b] of this._pieceBaseSegments(p)) {
             const len = Math.hypot(b.x - a.x, b.y - a.y);
             if (len < 10) continue;

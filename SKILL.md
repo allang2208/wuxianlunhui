@@ -1090,6 +1090,18 @@ _getPhaserOptions() {
 - **保存时机（三个，缺一不可）**：①`switchScene` 离开 main 时；②**出征 `depart()` 清实体前**——depart 绕开 switchScene 直接 `Game.entities.clear()`，不保存则任何地牢返回路径都拿到空缓存（"放弃返回后主神空间什么都没有"根因，2026-07-30 修复）；③`Game.init` 初始生成完毕后（安全网）。
 - **教训：场景切换的旁路（bypass switchScene 直接改 currentScene/清实体的路径）必须逐个核对状态保存**——depart() 设 `SceneManager.currentScene='scene7'` 跳过了整个 switchScene 生命周期（保存/清理/进度条），是隐性旁路的典型。
 
+### NPC 立绘调整工具（2026-07-30 重构）
+- **交互**：点击「调整立绘」后直接拖对话左侧立绘（X/Y 自由拖动）；面板只负责缩放/旋转/镜像/重置/保存。
+- **持久化**：`data/npc-portrait-params.json`（保存管道=Electron `save-json` IPC → Vite `__save-json` 双写 → 下载兜底，与 wall-prefabs 同规格）；参数模型 `{x,y,scale,rotation,flipX}`（旧 offsetX/bottom 自动迁移；锚 bottom 按 NPC 默认恢复，不入库）。**rel 必须带 `data/` 前缀**（vite 中间件强制校验，否则必落下载兜底）。
+- **关键细节**：拖动期禁用立绘 `transition: transform 0.3s`（否则拖拽滞后）；立绘 mousedown 必须 stopPropagation（对话框 clickOutside 关闭/画布抢事件）；`WeaponAnimConfig` 解析一律 `animConfigKey || weaponType`（R93 副手误吃 G18 pistol 配置翻转的根因——weaponType 是同族共享，animConfigKey 才是按枪配置键）；**weaponType 分支名单随 animConfigKey 解析同步补齐**（weapon-transform getWeaponSize/getAttackAnimOffset/锚点表——R93 漏补导致错误放大+手臂错位）。
+
+### 障碍物体系（2026-07-30 新增）
+- **素材管线**：AI 道具图（透明底带噪点）→ 最大连通域 + 包围盒 → `assets/terrain/obstacle_*.png`；geo 注册 `ISO_WALL_GEO` 加 `category:'obstacle'` + `foot:{w,d}`（底部 15% 高度区实测 footprint 宽，深≈宽×0.35）。
+- **碰撞**：`_addPieceCollision` 障碍物走**矩形 footprint 墙**（锚底边中心、随缩放；`_obstacle` 标记）；`_pieceBaseSegments` 返回空（不进 iso 线段模型）。
+- **编辑器**：摆墙面板分类页签（墙类/门类/障碍物类，geo 带 editor 自动归类：category→障碍物、gateX→门、其余→墙）；障碍物放置不做 30° 角度补偿（billboard）；Shift+滚轮=旋转（仅障碍物，`rotation` 字段经 `_placeIsoPiece`/`_applyToSprite` 应用）。
+- **障碍物编辑器**：仅单选一个障碍物时显示（墙壁编辑器下方）；重置=初始变换；保存=全部障碍物写 `data/obstacle-layout.json`（_persistJson 三管道），`_setupMainHubTerrain` 按布局重建（含首启竞速兜底）。
+- **固定 NPC（祭坛/仓库）**：不再用 obstacle 静态墙——`collisionShape:'rect'` 矩形 footprint + `resolveCollisions` 圆-矩形精确分离分支（逆透视压缩判定；圆心在矩形内沿长轴推出）。
+
 ### 主神空间菱形化（2026-07-29 落地，复用地牢标准工作流；**同日已按用户要求回退**，保留条目作参考）
 - **回退说明（V0.326）**：菱形世界（5436×3359/双材质地板/代码建墙）用户实机不满意，scene-manager/dungeon-floor-texture git 回退、game-config 手改回退（**npcs.altar 祭坛贴图配置保留**）；`inner` 双材质与 roomSize 机制随之移除。大理石墙/门改为**编辑器组件**路径：新透明底素材（墙.png/门.png）过 `tools/prep-hub-wall-gate.py`（透明底无需 GrabCut：最大连通域+腐蚀1px+几何实测；门洞 gateX 按"列最低不透明 y 高于底边线 60px 的连续区间"实测）→ `ISO_WALL_GEO.hub_straight/hub_gate`（editor 字段自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`。
 - **尺寸**：S=2048（`mainHub.roomSize`）→ rx=2457.6/ry=1419.0，边距 M=260，世界 5436×3359，origin=(2718,1679)；`_setupMainHubTerrain` 与地牢同路径：`applyDiamondFloor` + `setWallStyle('mainHub')` + `buildIsoDiamondWalls`；边界矩形墙降为 `noVisual` 隐形兜底；hub_diamond 预制分支已删。
