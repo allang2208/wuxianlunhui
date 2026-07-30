@@ -42,6 +42,7 @@ export class Tombstone extends Enemy {
         this._spitterSpawnFactory = config.spitterSpawnFactory || null;
         this._spawnSeq = 0;
         this._spitterSpawnSeq = 0;
+        this._smokeEmitters = null; // 黑烟粒子（惰性创建，见 _ensureSmoke）
     }
 
     // 击退免疫（站桩）
@@ -53,6 +54,9 @@ export class Tombstone extends Enemy {
             return;
         }
         super.update(dt, entities);
+
+        // 黑烟特效（矿洞绿烟同款机制，惰性创建）
+        this._ensureSmoke();
 
         // 站桩：位置钉死 + 速度归零
         this.x = this._anchorX;
@@ -121,6 +125,50 @@ export class Tombstone extends Enemy {
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
             scene.playDungeonSpawnParticles(x, y);
+        }
+    }
+
+    /**
+     * 碑身黑烟粒子（参考矿洞 _ensureSmoke，smoke 配置驱动；三组由 smoke.groups 配置）。
+     * 注意必须用 NORMAL 混合：ADD 是加法混合，黑色 tint 会完全不可见。
+     */
+    _ensureSmoke() {
+        if (this._smokeEmitters) return;
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !scene.add || !scene.textures.exists('smoke_particle')) return;
+        const cfg = this.config?.smoke || {};
+        const tint = typeof cfg.tint === 'string' ? parseInt(cfg.tint, 16) : (cfg.tint ?? 0x1a1a1a);
+        const groups = Array.isArray(cfg.groups) && cfg.groups.length ? cfg.groups : [{ offsetX: 0, offsetY: 160 }];
+        this._smokeEmitters = groups.map((g) => {
+            const em = scene.add.particles(0, 0, 'smoke_particle', {
+                x: this.x + (g.offsetX ?? 0),
+                y: this.y - (g.offsetY ?? 0),
+                frequency: cfg.frequency ?? 180,
+                speedX: { min: -12, max: 12 },
+                speedY: { min: -30, max: -70 },
+                scale: { start: cfg.scaleStart ?? 0.4, end: cfg.scaleEnd ?? 1.5 },
+                alpha: { start: cfg.alpha ?? 0.5, end: 0 },
+                tint,
+                lifespan: cfg.lifespan ?? 4500,
+                blendMode: 'NORMAL',
+            });
+            // 高于墓碑贴图（实体 depth = 脚底 Y+10），低于前景实体
+            em.setDepth(this.y + 11);
+            em.addToUpdateList();
+            return em;
+        });
+    }
+
+    /** 统一特效清理（game.js removeEntity / onDeath 约定入口） */
+    _destroyCustomEffects() {
+        if (this._smokeEmitters) {
+            for (const em of this._smokeEmitters) {
+                if (em.active) {
+                    em.stop();
+                    em.destroy();
+                }
+            }
+            this._smokeEmitters = null;
         }
     }
 

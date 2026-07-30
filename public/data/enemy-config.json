@@ -588,6 +588,20 @@
     "luck": 0,
     "attackRange": 0,
     "aiInterval": 5000,
+    "smoke": {
+      "comment": "碑身三组黑烟（groups 各组相对碑脚偏移；NORMAL 混合，黑色不能用 ADD）",
+      "tint": "0x1a1a1a",
+      "groups": [
+        { "offsetX": -60, "offsetY": 170 },
+        { "offsetX": 0, "offsetY": 200 },
+        { "offsetX": 60, "offsetY": 170 }
+      ],
+      "frequency": 180,
+      "scaleStart": 0.4,
+      "scaleEnd": 1.5,
+      "alpha": 0.5,
+      "lifespan": 4500
+    },
     "attackSkills": {
       "spawn": {
         "comment": "每 intervalMs 生成 1 只普通僵尸，每 spitterIntervalMs 生成 1 只毒液僵尸（召唤物：击杀无经验/金币/掉落）",
@@ -1690,8 +1704,8 @@
     },
     "render": {
       "spriteSize": 220,
-      "collisionWidth": 60,
-      "collisionHeight": 100,
+      "collisionWidth": 110,
+      "collisionHeight": 160,
       "footOffsetY": 50,
       "projectileHitbox": {
         "width": 110,
@@ -1699,7 +1713,8 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 25
+      "colliderOffsetY": 25,
+      "colliderOffsetX": 0
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",
@@ -1719,7 +1734,7 @@
         "desc": "600px 内有目标且冷却 30s 就绪时触发：3s 内播放 28 帧动画并展开紫色扩散圈，范围内每 0.5s 造成魔法攻击 ×0.5 魔法伤害，每次伤害附加 3s 恐惧（失控远离手脑，移速 -33%/层可叠加，上限 -99%）"
       }
     ],
-    "height": 110
+    "height": 162
   },
   "flySwarm": {
     "id": "flySwarm",
@@ -2002,16 +2017,18 @@
     ],
     "attackType": "重击突刺",
     "render": {
-      "spriteSize": 120,
-      "collisionWidth": 80,
-      "collisionHeight": 96,
+      "spriteSize": 147.8,
+      "collisionWidth": 68,
+      "collisionHeight": 152,
       "footOffsetY": 56,
       "projectileHitbox": {
         "width": 68,
-        "height": 110,
+        "height": 152,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",
@@ -2355,15 +2372,15 @@
       "collisionWidth": 234,
       "collisionHeight": 145,
       "footOffsetY": 90,
-      "colliderOffsetY": -69,
+      "colliderOffsetY": -63,
       "projectileHitbox": {
         "width": 234,
         "height": 145,
-        "offsetX": 0,
-        "bottom": 0
+        "offsetX": 3,
+        "bottom": -42
       },
       "capsuleHudAnchor": true,
-      "colliderOffsetX": -3
+      "colliderOffsetX": -7
     },
     "textures": {
       "idle": "assets/enemies/poison_maggot/idle.png",
@@ -2380,6 +2397,7 @@
         "name": "毒液喷射",
         "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 45° 扇形随机方向射出绿色毒球（每 0.05s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
       }
-    ]
+    ],
+    "height": 76
   }
 }

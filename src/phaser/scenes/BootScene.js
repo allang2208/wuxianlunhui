@@ -542,11 +542,13 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
-        // 毒液僵尸动画（24 帧待机 / 13 帧行走 / 22 帧攻击）
+        // 毒液僵尸动画（1 帧待机 / 13 帧行走 / 22 帧攻击）
+        // 注意：idle.png 仅帧 0 有内容（4×8 切割其余 23 格全空），曾按 0..23 注册导致
+        // 待机时 23/24 时间播放空白帧 = 贴图"时常消失"，故只注册帧 0（胖子僵尸同款处理）
         this.anims.create({
             key: 'enemy_spitter_zombie_idle',
-            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 23 }),
-            frameRate: 8,
+            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 0 }),
+            frameRate: 1,
             repeat: -1,
         });
         this.anims.create({
