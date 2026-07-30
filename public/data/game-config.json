@@ -293,8 +293,8 @@
       "noSeparation": true,
       "noShadow": true,
       "collisionShape": "rect",
-      "collisionWidth": 140,
-      "collisionHeight": 36,
+      "collisionWidth": 155,
+      "collisionHeight": 60,
       "colliderOffsetY": 0,
       "sprite": {
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
@@ -322,8 +322,8 @@
       "noSeparation": true,
       "noShadow": true,
       "collisionShape": "rect",
-      "collisionWidth": 190,
-      "collisionHeight": 55,
+      "collisionWidth": 210,
+      "collisionHeight": 85,
       "colliderOffsetY": 0,
       "sprite": {
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",

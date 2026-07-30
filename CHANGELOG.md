@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+### 对话：R93持位回退G18口径 + NPC footprint加大与可视化（2026-07-30，V0.338）
+
+- **① R93 持位再修正**：上轮"animConfigKey 解析+沙鹰克隆"实为主手错位根因——沙鹰配置 holdOffset(12,0) 与 V0.334 时用户认可的主手配置（G18 pistol 的 6,-52）差 (6,+52)。`weapon-anim-config.beretta93r` 改为 **G18 pistol 克隆**（单/双持回到 V0.334 手感；翻转修复不受影响的核对点：rotOffset -6 两配置一致、isGun 名单已含 beretta93r）。
+- **② 祭坛/仓库 footprint 加大**：仓库 140×36→**155×60**、祭坛 190×55→**210×85**（匹配贴图底座前伸区域，圆-矩形精确分离不变）。
+- **③ 矩形 footprint 可视化**：左下角「范围」按钮下，矩形 footprint NPC 以**人物圆柱体同款橙色**绘制（底面 footprint 矩形 + 顶面（bodyHeight 上移）+ 四角竖壁，与圆柱"沿 Z 拉伸"同语义）；敌人仍走原椭圆口径不重复绘制。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：R93 持位/枪口、footprint 松紧度需实机确认（配置项 data/game-config.json npcs.*.collisionWidth/Height 可直接再调）。
+
 ### 对话：掉落物微调/障碍物体系/NPC footprint/R93修正/立绘管道（2026-07-30，V0.337）
 
 - **① 掉落物**：贴图抖动 ±4→±5px；名字上移 30px（y+36→y+6）。

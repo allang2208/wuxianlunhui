@@ -1369,11 +1369,11 @@
     }
   },
   "beretta93r": {
-    "holdOffsetX": 12,
-    "holdOffsetY": 0,
-    "timingMul": 0.5,
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.06,
     "animType": "recoil",
-    "recoilAmount": 0.08,
+    "recoilAmount": 0.15,
     "renderParams": {
       "gunLXOffset": 20,
       "gunLY": 13,
@@ -1381,27 +1381,30 @@
       "muzzleOffset": 22,
       "flashOffset": 28,
       "shellCasingOffset": -8,
-      "recoilWindup": 0.02,
-      "recoilSwing": 0.05,
-      "recoilRecover": 0.02,
-      "shakeIntensity": 1
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.1,
+      "recoilRecover": 0.04,
+      "shakeIntensity": 3
     },
+    "idleRotation": 0,
     "idleScale": 0.6,
     "idle": {
-      "holdOffsetX": 12,
-      "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetX": 6,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
     },
     "walk": {
-      "holdOffsetX": 12,
-      "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetX": 6,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
     },
-    "dualOffsetX": 5,
     "rotOffset": -6,
+    "dualOffsetX": 5,
     "muzzle": {
       "x": 0.92,
-      "y": 0.35,
+      "y": 0.28,
       "forward": 11,
       "up": 1,
       "offhandOffsetY": 2

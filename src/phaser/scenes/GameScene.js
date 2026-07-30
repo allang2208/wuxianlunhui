@@ -3553,6 +3553,33 @@ export class GameScene extends Scene {
                 this._collisionRadiusGraphics.strokeCircle(entity.x, entity.y, hoverR);
             }
         }
+
+        // 矩形 footprint（祭坛/仓库等固定 NPC）：用人物圆柱体同款橙色标识——
+        // 底面矩形 = footprint（collisionWidth/Height），顶面 = 底面沿 Z 上移 bodyHeight，
+        // 侧壁竖线连四角（与圆柱体"footprint 沿 Z 拉伸"同语义，供左下角「范围」按钮查看）
+        for (const entity of _game.entities.values()) {
+            if (!entity || !entity.active) continue;
+            if (entity._faction === 'enemy') continue; // 敌人走 drawEntity 椭圆口径（本段只服务祭坛/仓库类 NPC）
+            if (entity.collisionShape !== 'rect' || !(entity.collisionWidth > 0 && entity.collisionHeight > 0)) continue;
+            const rcx = entity.collider ? entity.collider.x : entity.x;
+            const rcy = entity.collider ? entity.collider.y : entity.y;
+            const hw = entity.collisionWidth / 2, hh = entity.collisionHeight / 2;
+            const topY = rcy - (entity.bodyHeight || 60);
+            const g = this._collisionRadiusGraphics;
+            g.fillStyle(0xff6600, 0.10);
+            g.fillRect(rcx - hw, topY, hw * 2, rcy - topY + hh);
+            g.lineStyle(1.5, 0xff8800, 0.75);
+            g.strokeRect(rcx - hw, rcy - hh, hw * 2, hh * 2);   // 底面 footprint
+            g.strokeRect(rcx - hw, topY - hh, hw * 2, hh * 2);  // 顶面
+            g.beginPath();
+            for (const sx of [-1, 1]) {
+                for (const sy of [-1, 1]) {
+                    g.moveTo(rcx + sx * hw, rcy + sy * hh);
+                    g.lineTo(rcx + sx * hw, topY + sy * hh);
+                }
+            }
+            g.strokePath();
+        }
     }
 
     _syncEntityHud(entity) {
