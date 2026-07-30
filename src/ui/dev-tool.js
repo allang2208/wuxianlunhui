@@ -6,8 +6,6 @@ import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WeaponTransform } from '../combat/weapon-transform.js';
 import { loadImage } from '../utils/image-loader.js';
 
-import { AIDevTool } from './ai-dev-tool.js';
-import { EnemySpriteTool } from './enemy-sprite-tool.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { getWeaponTextureLoadList } from '../config/weapon-texture-map.js';
@@ -124,11 +122,6 @@ const DevTool = {
         this._updateFrameLabel();
         this._updatePlayBtn();
         this._syncFpsInput();
-        // 初始化 AI 开发工具
-        AIDevTool.init();
-        // 初始化怪物贴图调整工具
-        EnemySpriteTool.init();
-        window.EnemySpriteTool = EnemySpriteTool; // 挂载到全局，供游戏代码读取
     },
 
     // Tab 切换
@@ -144,12 +137,6 @@ const DevTool = {
             content.style.display = contentTab === tabName ? 'flex' : 'none';
             content.classList.toggle('active', contentTab === tabName);
         });
-        // 显示/隐藏 AI 开发工具
-        if (tabName === 'ai') {
-            AIDevTool.show();
-        } else {
-            AIDevTool.hide();
-        }
     },
 
     // 加载图片
@@ -1552,7 +1539,6 @@ const DevTool = {
         if (this._panel) this._panel.classList.remove('active');
         const trigger = getElement('devToolTrigger');
         if (trigger) trigger.classList.remove('active');
-        AIDevTool.hide();
     },
     toggle() {
         if (this._active) this.hide(); else this.show();

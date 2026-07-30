@@ -343,7 +343,8 @@ export function createTimeAgentShield(x, y) {
 }
 
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
-const ZOMBIE_FACTORY_MAP = {
+// 导出供碰撞体积编辑器（src/ui/collision-editor.js）按配置键生成预览怪
+export const ZOMBIE_FACTORY_MAP = {
     zombie: createBasicZombie,
     zombieDog: createZombieDog,
     spitterZombie: createSpitterZombie,

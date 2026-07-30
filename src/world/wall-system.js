@@ -494,7 +494,12 @@ const WallSystem = {
         sp.setFlipX(!!p.flipX);
         sp.setFlipY(!!p.flipY);
         if (p.rotation) sp.setRotation(p.rotation);
-        sp.setDepth(p.depth ?? p.y);
+        // 障碍物 depth 锚贴图底边（前墙规则，布局重建/编辑器移动均同口径）
+        const g = this._geoForTex(p.tex);
+        const depth = (g && g.category === 'obstacle')
+            ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
+            : (p.depth ?? p.y);
+        sp.setDepth(depth);
         phaserScene.visualWalls.add(sp);
         p._sprite = sp;
     },

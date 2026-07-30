@@ -1,4 +1,5 @@
 import DevTool from '../dev-tool.js';
+import { CollisionEditor } from '../collision-editor.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -36,19 +37,12 @@ export function createDevToolPanel() {
     tabWeapon.textContent = '武器';
     tabs.appendChild(tabWeapon);
 
-    const tabEnemy = document.createElement('div');
-    tabEnemy.className = 'dev-tool-tab';
-    tabEnemy.dataset.tab = 'enemy';
-    tabEnemy.addEventListener('click', () => DevTool.switchTab('enemy'));
-    tabEnemy.textContent = '怪物';
-    tabs.appendChild(tabEnemy);
-
-    const tabAI = document.createElement('div');
-    tabAI.className = 'dev-tool-tab';
-    tabAI.dataset.tab = 'ai';
-    tabAI.addEventListener('click', () => DevTool.switchTab('ai'));
-    tabAI.textContent = 'AI';
-    tabs.appendChild(tabAI);
+    const tabCollision = document.createElement('div');
+    tabCollision.className = 'dev-tool-tab';
+    tabCollision.dataset.tab = 'collision';
+    tabCollision.addEventListener('click', () => DevTool.switchTab('collision'));
+    tabCollision.textContent = '碰撞';
+    tabs.appendChild(tabCollision);
 
     root.appendChild(tabs);
 
@@ -340,223 +334,36 @@ export function createDevToolPanel() {
     contentWeapon.appendChild(content);
     root.appendChild(contentWeapon);
 
-    // ===== Tab 内容：AI =====
-    const contentAI = document.createElement('div');
-    contentAI.id = 'aiDevToolPanel';
-    contentAI.className = 'dev-tool-tab-content';
-    contentAI.dataset.tabContent = 'ai';
-    contentAI.style.cssText = 'display:none;';
+    // ===== Tab 内容：碰撞体积编辑 =====
+    const contentCollision = document.createElement('div');
+    contentCollision.className = 'dev-tool-tab-content';
+    contentCollision.dataset.tabContent = 'collision';
+    contentCollision.style.cssText = 'display:none;';
 
-    const aiDevTool = document.createElement('div');
-    aiDevTool.className = 'ai-dev-tool';
+    const collisionWrap = document.createElement('div');
+    collisionWrap.className = 'collision-tab-wrap';
 
-    const aiHeader = document.createElement('div');
-    aiHeader.className = 'ai-dev-tool-header';
-    aiHeader.innerHTML = '<span>当前战术: <span id="aiCurrentTactic">骚扰</span></span><span>怪物数量: <span id="aiEnemyCount">0</span></span>';
-    aiDevTool.appendChild(aiHeader);
+    const collisionDesc = document.createElement('div');
+    collisionDesc.className = 'collision-tab-desc';
+    collisionDesc.innerHTML = '<p>在主神空间中实时编辑怪物 / NPC 的碰撞体积：</p>'
+        + '<p>🟩 绿色矩形（躯干判定）：四角 + 边中八点拖拽调节</p>'
+        + '<p>🟧 橙色圆柱体：底部椭圆等比缩放 + 顶部手柄调节高矮</p>'
+        + '<p>✥ 在矩形或椭圆内按住拖动：整体平移碰撞体对齐贴图</p>'
+        + '<p>调整后即时生效，「保存」直接写入 data/enemy-config.json / data/game-config.json。</p>';
+    collisionWrap.appendChild(collisionDesc);
 
-    const aiMonsterList = document.createElement('div');
-    aiMonsterList.className = 'ai-dev-tool-monsters';
-    aiMonsterList.id = 'aiDevToolMonsterList';
-    const aiMonsterItem = document.createElement('div');
-    aiMonsterItem.className = 'ai-monster-item';
-    aiMonsterItem.textContent = '暂无活跃怪物';
-    aiMonsterList.appendChild(aiMonsterItem);
-    aiDevTool.appendChild(aiMonsterList);
-
-    const aiSynergies = document.createElement('div');
-    aiSynergies.className = 'ai-dev-tool-synergies';
-    aiSynergies.innerHTML = '<h4>激活的协同</h4>';
-    const synergyList = document.createElement('div');
-    synergyList.id = 'aiDevToolSynergyList';
-    const synergyItem = document.createElement('div');
-    synergyItem.className = 'ai-synergy-item';
-    synergyItem.textContent = '暂无激活的协同';
-    synergyList.appendChild(synergyItem);
-    aiSynergies.appendChild(synergyList);
-    aiDevTool.appendChild(aiSynergies);
-
-    contentAI.appendChild(aiDevTool);
-    root.appendChild(contentAI);
-
-    // ===== Tab 内容：怪物贴图调整 =====
-    const contentEnemy = document.createElement('div');
-    contentEnemy.className = 'dev-tool-tab-content';
-    contentEnemy.dataset.tabContent = 'enemy';
-    contentEnemy.style.cssText = 'display:none;';
-
-    const enemySpriteTool = document.createElement('div');
-    enemySpriteTool.className = 'enemy-sprite-tool';
-
-    // 上方菜单
-    const enemyMenu = document.createElement('div');
-    enemyMenu.className = 'enemy-sprite-menu';
-
-    const enemyMenuItem = document.createElement('div');
-    enemyMenuItem.className = 'enemy-sprite-menu-item';
-    enemyMenuItem.innerHTML = '<label>怪物:</label>';
-    const enemySelect = document.createElement('select');
-    enemySelect.id = 'enemySpriteSelect';
-    const enemyOptions = [
-        ['blackWolf', '黑狼'],
-        ['spider', '蜘蛛'],
-        ['fatZombie', '肥僵尸'],
-        ['slime', '史莱姆'],
-        ['mushroom', '蘑菇怪'],
-        ['bat', '蝙蝠'],
-        ['skeleton', '骷髅'],
-        ['ghost', '幽灵'],
-        ['wolf', '灰狼'],
-        ['goblin', '哥布林'],
-        ['demon', '恶魔'],
-        ['dragon', '龙'],
-        ['lich', '巫妖'],
-        ['bigBoss', '大Boss'],
-    ];
-    enemyOptions.forEach(([value, text]) => {
-        const opt = document.createElement('option');
-        opt.value = value;
-        opt.textContent = text;
-        enemySelect.appendChild(opt);
+    const collisionOpenBtn = document.createElement('button');
+    collisionOpenBtn.className = 'dev-tool-menu-btn collision-open-btn';
+    collisionOpenBtn.textContent = '🎯 打开碰撞体积编辑器';
+    // 编辑器需要看到游戏画面：先收起本面板，再打开浮动编辑器（参照坐标工具的做法）
+    collisionOpenBtn.addEventListener('click', () => {
+        DevTool.hide();
+        CollisionEditor.open();
     });
-    enemyMenuItem.appendChild(enemySelect);
-    enemyMenu.appendChild(enemyMenuItem);
+    collisionWrap.appendChild(collisionOpenBtn);
 
-    const enemyBtnSave = document.createElement('button');
-    enemyBtnSave.className = 'enemy-sprite-menu-btn';
-    enemyBtnSave.id = 'enemySpriteSave';
-    enemyBtnSave.textContent = '💾 导出';
-    enemyMenu.appendChild(enemyBtnSave);
-
-    const enemyBtnLoad = document.createElement('button');
-    enemyBtnLoad.className = 'enemy-sprite-menu-btn';
-    enemyBtnLoad.id = 'enemySpriteLoad';
-    enemyBtnLoad.textContent = '📋 导入';
-    enemyMenu.appendChild(enemyBtnLoad);
-
-    const enemyBtnReset = document.createElement('button');
-    enemyBtnReset.className = 'enemy-sprite-menu-btn';
-    enemyBtnReset.id = 'enemySpriteReset';
-    enemyBtnReset.textContent = '🔄 重置';
-    enemyMenu.appendChild(enemyBtnReset);
-
-    enemySpriteTool.appendChild(enemyMenu);
-
-    // 主区域：预览 + 控制
-    const enemyContent = document.createElement('div');
-    enemyContent.className = 'enemy-sprite-content';
-
-    // 左栏：预览
-    const enemyLeft = document.createElement('div');
-    enemyLeft.className = 'enemy-sprite-left';
-
-    const enemyCanvasWrap = document.createElement('div');
-    enemyCanvasWrap.className = 'enemy-sprite-canvas-wrap';
-    const enemyCanvas = document.createElement('canvas');
-    enemyCanvas.id = 'enemySpriteCanvas';
-    enemyCanvas.width = 400;
-    enemyCanvas.height = 400;
-    enemyCanvasWrap.appendChild(enemyCanvas);
-    enemyLeft.appendChild(enemyCanvasWrap);
-
-    const enemyDirections = document.createElement('div');
-    enemyDirections.className = 'enemy-sprite-directions';
-    const dirButtons = [
-        ['left', '← 左'],
-        ['up', '↑ 上'],
-        ['right', '→ 右'],
-        ['down', '↓ 下'],
-    ];
-    dirButtons.forEach(([dir, text]) => {
-        const btn = document.createElement('button');
-        btn.className = dir === 'right' ? 'enemy-direction-btn active' : 'enemy-direction-btn';
-        btn.dataset.dir = dir;
-        btn.textContent = text;
-        enemyDirections.appendChild(btn);
-    });
-    enemyLeft.appendChild(enemyDirections);
-
-    const enemyOutput = document.createElement('div');
-    enemyOutput.className = 'enemy-sprite-output';
-    enemyOutput.id = 'enemySpriteOutput';
-    enemyOutput.style.cssText = 'display:none;';
-    enemyLeft.appendChild(enemyOutput);
-
-    enemyContent.appendChild(enemyLeft);
-
-    // 右栏：参数控制
-    const enemyRight = document.createElement('div');
-    enemyRight.className = 'enemy-sprite-right';
-
-    const enemySectionTitle = document.createElement('div');
-    enemySectionTitle.className = 'enemy-sprite-section-title';
-    enemySectionTitle.textContent = '贴图参数';
-    enemyRight.appendChild(enemySectionTitle);
-
-    const enemyControls = document.createElement('div');
-    enemyControls.className = 'enemy-sprite-controls';
-
-    const enemyControlRows = [
-        { label: '精灵图:', id: 'enemySpriteTexture', type: 'select', options: [
-            ['enemy_black_wolf', '黑狼（移动）'],
-            ['enemy_black_wolf_attack', '黑狼（攻击）'],
-            ['enemy_spider', '蜘蛛'],
-            ['enemy_slime', '史莱姆'],
-            ['enemy_skeleton', '骷髅'],
-            ['enemy_ghost', '幽灵'],
-        ]},
-        { label: '大小:', id: 'enemySpriteSize', type: 'number', value: '216', step: '8', min: '8', max: '512', suffix: 'px' },
-        { label: '旋转:', id: 'enemySpriteRotation', type: 'number', value: '0', step: '15', suffix: '°' },
-        { label: '水平翻转:', id: 'enemySpriteFlipX', type: 'checkbox' },
-        { label: '垂直翻转:', id: 'enemySpriteFlipY', type: 'checkbox' },
-    ];
-    enemyControlRows.forEach((rowDef) => {
-        const row = document.createElement('div');
-        row.className = 'enemy-sprite-control-row';
-        row.innerHTML = `<label>${rowDef.label}</label>`;
-        if (rowDef.type === 'select') {
-            const sel = document.createElement('select');
-            sel.id = rowDef.id;
-            rowDef.options.forEach(([value, text]) => {
-                const opt = document.createElement('option');
-                opt.value = value;
-                opt.textContent = text;
-                sel.appendChild(opt);
-            });
-            row.appendChild(sel);
-        } else if (rowDef.type === 'checkbox') {
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.id = rowDef.id;
-            row.appendChild(cb);
-        } else {
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.id = rowDef.id;
-            input.value = rowDef.value;
-            if (rowDef.step) input.step = rowDef.step;
-            if (rowDef.min) input.min = rowDef.min;
-            if (rowDef.max) input.max = rowDef.max;
-            row.appendChild(input);
-            if (rowDef.suffix) {
-                const span = document.createElement('span');
-                span.textContent = rowDef.suffix;
-                row.appendChild(span);
-            }
-        }
-        enemyControls.appendChild(row);
-    });
-    enemyRight.appendChild(enemyControls);
-
-    const enemyHint = document.createElement('div');
-    enemyHint.className = 'enemy-sprite-hint';
-    enemyHint.innerHTML = '<div>调整参数后实时预览</div><div>导出 JSON 后复制给我</div>';
-    enemyRight.appendChild(enemyHint);
-
-    enemyContent.appendChild(enemyRight);
-    enemySpriteTool.appendChild(enemyContent);
-    contentEnemy.appendChild(enemySpriteTool);
-    root.appendChild(contentEnemy);
+    contentCollision.appendChild(collisionWrap);
+    root.appendChild(contentCollision);
 
     return root;
 }

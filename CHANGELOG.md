@@ -8,6 +8,22 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍编辑器修复/遮挡修复/地砖切图工具（2026-07-30，V0.341）
+
+- **① 障碍编辑器不弹出根因**：CSS 类 `.obstacle-editor { display:none }`，而 JS 显示时写 `style.display=''`——空串清除内联样式后回落到 CSS 的 none，永远不显示（两处同类 bug 一并修：display 改显式 `'block'`；面板 top 原 `calc(80px+80vh+8px)` 1080p 下≈952px 飘出视口，改为跟随墙壁编辑器面板下缘动态定位）。
+- **② 障碍物遮挡修复**：障碍物 depth 原锚贴图中心点（depth=p.y），背后人物脚线大于中心即盖在柱子上（"背后还显示"）。修复：障碍物 depth 统一锚**贴图底边**（前墙规则 max 底边 y，`_finishPlacement`/`_applyToSprite`/`_placeIsoPiece` 三处同口径，布局重建同样生效）。障碍物碰撞=矩形 footprint 墙（非椭圆，geo.foot 实测宽高）。
+- **③ 地砖切图工具（新出图工作流）**：实测全套地砖角度——hub_brick 31.2°/30.4°、blackbrick-5/6/7/8 29.0°~30.2°、swampbrick-1/2/3 29.4°/30.9°，全部≈30°（tan30°=0.5774）同一标准；菱形 bbox 宽高比 ≈1.69~1.76:1。AI 直接出菱形成功率低，故改**方形纹理+脚本切菱形**路线：`tools/cut-diamond-tile.py <输入> <输出> [宽]`（透明/黑底均可，按 30° 菱形裁剪+包围盒+定宽，已用大理石源图验证）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：删怪物/AI废弃面板 + 碰撞体积编辑面板（2026-07-30，V0.340）
+
+- **① 删除废弃面板**：`src/ui/ai-dev-tool.js`（AIDevTool）、`src/ui/enemy-sprite-tool.js`（EnemySpriteTool）整文件删除（用户确认已无法调用、属废弃功能）；`dev-tool.js` 移除 import/初始化/show-hide/hide 共 4 处引用；`panels/dev-tools.js` 移除「怪物」「AI」两个页签及全部 DOM 创建块；`game-style.css` 移除 ai-dev-tool / enemy-sprite 三段样式；`ui/components/dev-tool-panel.html`（遗留未加载文件）同步清理。
+- **② 碰撞体积编辑面板（新）**：`src/ui/collision-editor.js`。入口：开发工具（T 键）→「碰撞」页签 →「打开碰撞体积编辑器」（收起开发面板，打开右侧浮动编辑器，风格同 wall-editor）。列表导入 enemy-config.json 全部 29 只怪物 + game-config.json npcs 全部 4 个 NPC，选中后在主神空间玩家右侧生成冻结预览体（警戒范围压 1px + `_frozenForCast` 站桩 + 不可受击；NPC 预览禁游走/禁对话）。编辑能力：🟩 绿色矩形四角+边中八点拖拽（怪物=躯干判定 `render.projectileHitbox`；NPC=矩形 footprint `collisionWidth/Height`）、🟧 橙色圆柱底部椭圆右缘手柄等比缩放半径（`collisionRadius`）与顶缘手柄调高矮（配置 `height`，Collider._deriveHeight 最高优先级）、✥ 矩形/椭圆内按住整体拖动对齐贴图（`colliderOffsetX/Y`）。右侧「重置」回配置快照、「保存」直写 `data/enemy-config.json` / `data/game-config.json`（Electron saveJson IPC → Vite `__save-json` 双写 → 下载兜底，与 wall-prefabs 同管道），运行时配置对象同步修改立即生效。
+- **③ 支撑改动**：`zombie-dungeon.js` 导出 `ZOMBIE_FACTORY_MAP`（供按配置键生成预览怪）；`npc.js` 构造函数保存 `this.config = config`（NPC 圆柱高 `height` 配置经 Collider._deriveHeight 生效）；`input.js` 鼠标/按键拦截增加 `Game._collisionEditMode`（编辑模式不触发攻击）；`panels/dev-tools.js` 新增「碰撞」页签。
+- **已知限制**：无地牢工厂的老怪（redWolfKing、蜘蛛系 4 只、骷髅系 4 只、necromancer）预览为通用圆形占位（blackWolf/amalgamZombie 走专属类），碰撞数值编辑不受影响；怪物保存时 `render.collisionWidth/Height` 与 `projectileHitbox` 同步写同值（配置完整性校验要求）。
+- **测试**：lint 0 error（15 warning 均为历史遗留）；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过（21 warning 均为历史遗留）。
+- **已知问题**：预览体拖拽手感、圆柱高度与贴图比例需实机确认。
+
 ### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18 + 障碍编辑器定位/烛台/footprint 加大（2026-07-30，V0.339）
 
 - **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180/烛台 180）。

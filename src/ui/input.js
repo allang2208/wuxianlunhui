@@ -33,7 +33,7 @@ import DevTool from './dev-tool.js';
                 window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; this._droneKeyHeldCode = null; });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
-                    if (Game._wallEditMode) return; // 墙壁编辑模式：鼠标交给编辑器，不触发攻击
+                    if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：鼠标交给编辑器，不触发攻击
                     const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn');
                     if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
                     if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
@@ -42,7 +42,7 @@ import DevTool from './dev-tool.js';
                 window.addEventListener('contextmenu', e => e.preventDefault());
             },
             handleKey(code) {
-                if (Game._wallEditMode) return; // 墙壁编辑模式：按键交给编辑器（捕获监听先处理）
+                if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：按键交给编辑器（捕获监听先处理）
                 if (code === CONFIG.KEYS.PAUSE) {
                     Game._paused = !Game._paused;
                     EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, Game._paused ? '游戏暂停' : '游戏继续', '#ffdd00'));
