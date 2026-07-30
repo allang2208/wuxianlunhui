@@ -3531,10 +3531,10 @@ export class GameScene extends Scene {
         // 玩家
         if (_game.player) drawEntity(_game.player);
 
-        // 敌人
+        // 敌人 + NPC（祭坛/仓库等 ellipse footprint 统一显示；掉落物/传送门不画）
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
-            if (entity._faction !== 'enemy') continue;
+            if (entity._faction !== 'enemy' && !entity.npcType) continue;
             drawEntity(entity);
         }
 

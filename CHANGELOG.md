@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：祭坛/仓库改回椭圆 footprint（2026-07-30，V0.344）
+
+- **判定口径**：仓库/祭坛碰撞从矩形 footprint 改回**脚下椭圆**（标准 footprint 分离判定）——`npcs.warehouse.collisionRadius 20→85`、`npcs.altar.collisionRadius 16→110`（椭圆 X 半径覆盖贴图底座），删除 collisionShape/collisionWidth/Height 矩形字段。
+- **可视化**：`_syncCollisionRadii` 的实体绘制从"仅敌人"扩到**敌人+NPC**（掉落物/传送门不画）——范围按钮下祭坛/仓库显示标准红椭圆+橙圆柱，与其他实体同口径。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：椭圆松紧度可用碰撞编辑器（T 键→碰撞页签→圆柱半径手柄）实机微调后💾保存。
+
 ### 对话：碰撞编辑器整合墙/门/障碍物/陷阱判定（2026-07-30，V0.343）
 
 - **① 四类判定面积整合进碰撞体积编辑器**（`src/ui/collision-editor.js`）：下拉新增「墙/门/障碍物/陷阱」四组（怪物/NPC 之后，按 ISO_WALL_GEO 规则自动归类，新增类型自动进列表）。编辑粒度全部**按类型**（非逐件）：
