@@ -23,7 +23,7 @@ import { Input } from '../ui/input.js';
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
-import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
+import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop, createTombstone } from './zombie-dungeon.js';
 import { AgentInvasionSystem } from './agent-invasion-system.js';
 import { TrapSystem } from './trap-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
@@ -1056,6 +1056,99 @@ export const DungeonMapSystem = {
             ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
         }
         this._spawnZombieWave();
+        // 墓碑事件：普通战斗（非精英）33% 概率在距玩家最远角落生成站桩召唤器
+        // （必须在 _spawnZombieWave 之后调用——spawnMonsters 会重置 _combatMonsterKeys）
+        if (!node.isElite) this._maybeSpawnTombstone();
+    },
+
+    /**
+     * 墓碑事件（僵尸地牢初级/中级/高级 · 普通战斗 33% 概率）：
+     * 在距玩家最远的角落生成墓碑（站桩召唤器，enemy-config noPool 不进任何刷怪池）。
+     * 生成点判定流程：
+     *   1. 候选角落：矩形房取外接矩形四角（内收），菱形房取对角线方向与菱形边界的交点（内收）；
+     *      按距玩家从远到近排序，保证"最远角落"优先；
+     *   2. 可达性：WallSystem.canMoveTo 可行走（不嵌墙/障碍物）
+     *      + pathFinder.findPath 能寻路到玩家当前位置（保证生成的僵尸能走出寻敌）；
+     *   3. 角落本身不合格则在其周围按半径 40/80/120/160 做 8 向螺旋搜索；
+     *   4. 该角落全失败换次远角落；全部失败放弃本次生成（打印警告）。
+     * 墓碑只登记 key 进 _combatMonsterKeys（随波次/房间清理），不进 _combatMonsters——
+     * 生成器不计入战斗完成判定（与矿洞同口径）。
+     */
+    _maybeSpawnTombstone() {
+        // 仅僵尸地牢三级（zombieBeginner / zombieMid / zombie），沼泽等其他地牢不触发
+        if (!['zombieBeginner', 'zombieMid', 'zombie'].includes(this.dungeonType)) return;
+        if (Math.random() >= 0.33) return;
+        const bounds = CombatRoomSystem._roomBounds;
+        const player = this.player;
+        if (!bounds || !player) return;
+
+        const TOMB_RADIUS = 60;             // 墓碑地面占位半径（碰撞 120×60 的一半量级）
+        const PROBE_RADIUS = 15;            // 寻路验证用僵尸半径（普通僵尸 groundRadius 量级）
+        const INSET = TOMB_RADIUS + 20;     // 贴墙内收安全距离
+
+        // 候选角落（菱形房：矩形四角在界外，取对角线方向与边界的交点 s/rx + s/ry = 1）
+        let corners;
+        if (bounds.diamond) {
+            const s = Math.max(0, (bounds.rx * bounds.ry) / (bounds.rx + bounds.ry) - INSET);
+            corners = [
+                { x: bounds.cx + s, y: bounds.cy + s },
+                { x: bounds.cx + s, y: bounds.cy - s },
+                { x: bounds.cx - s, y: bounds.cy + s },
+                { x: bounds.cx - s, y: bounds.cy - s },
+            ];
+        } else {
+            corners = [
+                { x: bounds.maxX - INSET, y: bounds.maxY - INSET },
+                { x: bounds.maxX - INSET, y: bounds.minY + INSET },
+                { x: bounds.minX + INSET, y: bounds.maxY - INSET },
+                { x: bounds.minX + INSET, y: bounds.minY + INSET },
+            ];
+        }
+        // 距玩家从远到近排序
+        corners.sort((a, b) =>
+            Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y));
+
+        // 房内判定（菱形房按菱形内缩判定，外接矩形四角在界外）
+        const inRoom = (x, y) => bounds.diamond
+            ? Math.abs(x - bounds.cx) / Math.max(1, bounds.rx - INSET) + Math.abs(y - bounds.cy) / Math.max(1, bounds.ry - INSET) <= 1
+            : (x >= bounds.minX + INSET && x <= bounds.maxX - INSET && y >= bounds.minY + INSET && y <= bounds.maxY - INSET);
+        // 可行走 + 路线可达（生成前路线判定：僵尸能走出并寻找到玩家）
+        const reachable = (x, y) => {
+            if (!inRoom(x, y)) return false;
+            if (WallSystem && typeof WallSystem.canMoveTo === 'function'
+                && !WallSystem.canMoveTo(x, y, TOMB_RADIUS)) return false;
+            if (pathFinder && typeof pathFinder.findPath === 'function') {
+                const path = pathFinder.findPath(x, y, player.x, player.y, PROBE_RADIUS);
+                if (!path || path.length === 0) return false;
+            }
+            return true;
+        };
+
+        for (const corner of corners) {
+            // 先试角落本身，再按递近半径做 8 向螺旋搜索
+            const candidates = [{ x: corner.x, y: corner.y }];
+            for (const r of [40, 80, 120, 160]) {
+                for (let i = 0; i < 8; i++) {
+                    const a = (i / 8) * Math.PI * 2;
+                    candidates.push({ x: corner.x + Math.cos(a) * r, y: corner.y + Math.sin(a) * r });
+                }
+            }
+            for (const c of candidates) {
+                if (!reachable(c.x, c.y)) continue;
+                const tombstone = createTombstone(c.x, c.y);
+                const key = `tombstone_main_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                if (Game && Game.entities) Game.entities.set(key, tombstone);
+                // 纳入战斗怪物 key 追踪：波次切换/房间清理随 _combatMonsterKeys 统一删除
+                if (CombatRoomSystem._combatMonsterKeys) CombatRoomSystem._combatMonsterKeys.push(key);
+                // 地牢刷怪同款黑色粒子
+                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+                if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
+                    scene.playDungeonSpawnParticles(c.x, c.y);
+                }
+                return;
+            }
+        }
+        console.warn('[DungeonMapSystem] 墓碑生成失败：所有角落均不可行走/不可达玩家，本次放弃生成');
     },
 
     /** 月影庇护：进战斗给无敌，精英/Boss 战额外给增伤标记 */

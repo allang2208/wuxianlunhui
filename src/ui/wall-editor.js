@@ -328,11 +328,14 @@ export const WallEditor = {
             return;
         }
         // NPC 拖动：改实体坐标（精灵位置由 GameScene._syncNeutralEntities 每帧同步）；
-        // 游走 NPC 同步挪家，防止松手后 wander 把它拉回旧生成点
+        // 游走 NPC 同步挪家，防止松手后 wander 把它拉回旧生成点；
+        // 钳制在世界边界内 64px——防止误拖出界导致 NPC"消失"（祭坛 offset -1428 教训）
         if (this._draggingNpc && this._npcSel) {
             const e2 = this._npcSel;
-            e2.x = this._npcDragOrig.x + (pt.x - this._dragStart.x);
-            e2.y = this._npcDragOrig.y + (pt.y - this._dragStart.y);
+            const maxX = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_WIDTH) || 4096;
+            const maxY = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_HEIGHT) || 4096;
+            e2.x = Math.max(64, Math.min(maxX - 64, this._npcDragOrig.x + (pt.x - this._dragStart.x)));
+            e2.y = Math.max(64, Math.min(maxY - 64, this._npcDragOrig.y + (pt.y - this._dragStart.y)));
             if (e2._wanderHome) {
                 e2._wanderHome.x = e2.x;
                 e2._wanderHome.y = e2.y;

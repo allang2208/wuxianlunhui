@@ -456,19 +456,19 @@
     },
     "render": {
       "spriteSize": 480,
-      "collisionWidth": 120,
-      "collisionHeight": 240,
+      "collisionWidth": 104,
+      "collisionHeight": 254.6,
       "footOffsetY": 148,
-      "colliderOffsetY": -25,
+      "colliderOffsetY": -20,
       "projectileHitbox": {
-        "width": 96,
-        "height": 240,
-        "offsetX": 0,
-        "bottom": 0
+        "width": 104,
+        "height": 254.6,
+        "offsetX": 3,
+        "bottom": -22
       },
-      "capsuleHudAnchor": true
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 6
     },
-    "height": 240,
     "textures": {
       "idle": "assets/enemies/foreman_zombie/idle.png",
       "walk": "assets/enemies/foreman_zombie/walking.png",
@@ -491,7 +491,8 @@
         "desc": "3s 播放 24 帧动画，释放后场上全体僵尸方怪物获得激励：移动速度 +33%、物理攻击力 +50%，持续 15s；冷却 30s"
       }
     ],
-    "attackType": "物理"
+    "attackType": "物理",
+    "height": 242.6
   },
   "mineCave": {
     "id": "mineCave",
@@ -558,6 +559,77 @@
       {
         "name": "矿工涌出",
         "desc": "每 10s 在洞口前方 100px 生成一只矿工僵尸"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "tombstone": {
+    "id": "tombstone",
+    "name": "墓碑",
+    "type": "普通",
+    "category": "monster",
+    "family": "僵尸",
+    "noPool": true,
+    "color": "#6a6a72",
+    "size": 60,
+    "collisionRadius": 90,
+    "noFootprint": true,
+    "height": 120,
+    "hp": 800,
+    "maxHp": 800,
+    "speed": 0,
+    "level": 4,
+    "rank": "normal",
+    "str": 0,
+    "dex": 0,
+    "int": 0,
+    "con": 0,
+    "wis": 0,
+    "luck": 0,
+    "attackRange": 0,
+    "aiInterval": 5000,
+    "smoke": {
+      "comment": "碑身三组黑烟（groups 各组相对碑脚偏移；NORMAL 混合，黑色不能用 ADD）",
+      "tint": "0x1a1a1a",
+      "groups": [
+        { "offsetX": -60, "offsetY": 170 },
+        { "offsetX": 0, "offsetY": 200 },
+        { "offsetX": 60, "offsetY": 170 }
+      ],
+      "frequency": 180,
+      "scaleStart": 0.4,
+      "scaleEnd": 1.5,
+      "alpha": 0.5,
+      "lifespan": 4500
+    },
+    "attackSkills": {
+      "spawn": {
+        "comment": "每 intervalMs 生成 1 只普通僵尸，每 spitterIntervalMs 生成 1 只毒液僵尸（召唤物：击杀无经验/金币/掉落）",
+        "intervalMs": 10000,
+        "spitterIntervalMs": 30000
+      }
+    },
+    "render": {
+      "spriteSize": 256,
+      "collisionWidth": 120,
+      "collisionHeight": 60,
+      "footOffsetY": 30,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 120,
+        "height": 60,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/tombstone/idle.png"
+    },
+    "description": "矗立在僵尸地牢角落的诡异墓碑，源源不断地有僵尸从碑下爬出。不移动、常驻状态免疫，不进普通刷怪池，仅在普通战斗事件中按概率出现。",
+    "skills": [
+      {
+        "name": "亡者苏生",
+        "desc": "每 10s 生成 1 只普通僵尸，每 30s 生成 1 只毒液僵尸（召唤物无经验/金币/掉落）"
       }
     ],
     "attackType": "物理"
@@ -760,7 +832,7 @@
     "family": "僵尸",
     "color": "#5a8a4a",
     "size": 14,
-    "collisionRadius": 15,
+    "collisionRadius": 28,
     "hp": 120,
     "maxHp": 120,
     "def": 7,
@@ -777,16 +849,18 @@
     "attackDistance": 100,
     "aiInterval": 1000,
     "render": {
-      "spriteSize": 120,
-      "collisionWidth": 30,
-      "collisionHeight": 50,
+      "spriteSize": 181.6,
+      "collisionWidth": 53,
+      "collisionHeight": 151,
       "footOffsetY": 56,
       "projectileHitbox": {
-        "width": 31,
-        "height": 103,
-        "offsetX": 0,
-        "bottom": 0
-      }
+        "width": 53,
+        "height": 151,
+        "offsetX": -0.5,
+        "bottom": -8
+      },
+      "colliderOffsetX": -4,
+      "colliderOffsetY": 19
     },
     "textures": {
       "idle": "assets/enemies/zombie/idle.png",
@@ -812,7 +886,8 @@
     },
     "description": "被亡灵瘟疫复活的普通僵尸，行动迟缓但数量众多。",
     "skills": [],
-    "attackType": "近战突刺"
+    "attackType": "近战突刺",
+    "height": 143
   },
   "spitterZombie": {
     "id": "spitterZombie",
@@ -822,7 +897,7 @@
     "family": "僵尸",
     "color": "#7a3a8a",
     "size": 13,
-    "collisionRadius": 23.84,
+    "collisionRadius": 37.1,
     "hp": 120,
     "maxHp": 120,
     "def": 10,
@@ -862,16 +937,18 @@
     ],
     "attackType": "毒液喷射",
     "render": {
-      "spriteSize": 112.5,
-      "collisionWidth": 40,
-      "collisionHeight": 98.75,
+      "spriteSize": 199.1,
+      "collisionWidth": 62.1,
+      "collisionHeight": 161,
       "footOffsetY": 51.25,
       "projectileHitbox": {
-        "width": 36.25,
-        "height": 101.25,
-        "offsetX": 0,
-        "bottom": 0
-      }
+        "width": 62.1,
+        "height": 161,
+        "offsetX": 0.9,
+        "bottom": -6
+      },
+      "colliderOffsetX": -12,
+      "colliderOffsetY": 23
     },
     "textures": {
       "idle": "assets/enemies/spitter_zombie/idle.png",
@@ -879,7 +956,8 @@
       "idleFrameHeight": 512,
       "idleFrameCount": 24,
       "idleSheetColumns": 8
-    }
+    },
+    "height": 151.2
   },
   "babySpider": {
     "id": "babySpider",
@@ -1208,7 +1286,7 @@
     "family": "僵尸",
     "color": "#4a3a8a",
     "size": 24,
-    "collisionRadius": 20,
+    "collisionRadius": 33,
     "hp": 600,
     "maxHp": 600,
     "speed": 200,
@@ -1255,16 +1333,18 @@
     ],
     "attackType": "魔法远程",
     "render": {
-      "spriteSize": 120,
-      "collisionWidth": 61,
-      "collisionHeight": 109,
+      "spriteSize": 185.6,
+      "collisionWidth": 66,
+      "collisionHeight": 172,
       "footOffsetY": 56,
       "projectileHitbox": {
-        "width": 46,
-        "height": 112,
+        "width": 66,
+        "height": 172,
         "offsetX": 0,
-        "bottom": 0
-      }
+        "bottom": -14
+      },
+      "colliderOffsetX": -5,
+      "colliderOffsetY": 21
     },
     "textures": {
       "idle": "assets/enemies/zombie_wizard/idle.png",
@@ -1272,7 +1352,8 @@
       "idleFrameHeight": 512,
       "idleFrameCount": 1,
       "idleSheetColumns": 8
-    }
+    },
+    "height": 149
   },
   "amalgamZombie": {
     "id": "amalgamZombie",
@@ -1623,8 +1704,8 @@
     },
     "render": {
       "spriteSize": 220,
-      "collisionWidth": 60,
-      "collisionHeight": 100,
+      "collisionWidth": 110,
+      "collisionHeight": 160,
       "footOffsetY": 50,
       "projectileHitbox": {
         "width": 110,
@@ -1632,7 +1713,8 @@
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 25
+      "colliderOffsetY": 25,
+      "colliderOffsetX": 0
     },
     "textures": {
       "idle": "assets/enemies/shounao/idle.png",
@@ -1652,7 +1734,7 @@
         "desc": "600px 内有目标且冷却 30s 就绪时触发：3s 内播放 28 帧动画并展开紫色扩散圈，范围内每 0.5s 造成魔法攻击 ×0.5 魔法伤害，每次伤害附加 3s 恐惧（失控远离手脑，移速 -33%/层可叠加，上限 -99%）"
       }
     ],
-    "height": 110
+    "height": 162
   },
   "flySwarm": {
     "id": "flySwarm",
@@ -1935,16 +2017,18 @@
     ],
     "attackType": "重击突刺",
     "render": {
-      "spriteSize": 120,
-      "collisionWidth": 80,
-      "collisionHeight": 96,
+      "spriteSize": 147.8,
+      "collisionWidth": 68,
+      "collisionHeight": 152,
       "footOffsetY": 56,
       "projectileHitbox": {
         "width": 68,
-        "height": 110,
+        "height": 152,
         "offsetX": 0,
         "bottom": 0
-      }
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",
@@ -2288,15 +2372,15 @@
       "collisionWidth": 234,
       "collisionHeight": 145,
       "footOffsetY": 90,
-      "colliderOffsetY": -69,
+      "colliderOffsetY": -63,
       "projectileHitbox": {
         "width": 234,
         "height": 145,
-        "offsetX": 0,
-        "bottom": 0
+        "offsetX": 3,
+        "bottom": -42
       },
       "capsuleHudAnchor": true,
-      "colliderOffsetX": -3
+      "colliderOffsetX": -7
     },
     "textures": {
       "idle": "assets/enemies/poison_maggot/idle.png",
@@ -2313,6 +2397,7 @@
         "name": "毒液喷射",
         "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 45° 扇形随机方向射出绿色毒球（每 0.05s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
       }
-    ]
+    ],
+    "height": 76
   }
 }

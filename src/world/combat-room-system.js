@@ -790,9 +790,9 @@ export const CombatRoomSystem = {
                 Game.removeEntity(key);
             }
         }
-        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工，未进追踪列表的泄漏）
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工 / 墓碑召唤僵尸，未进追踪列表的泄漏）
         if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
-            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_');
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_', 'tombstone_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -825,9 +825,9 @@ export const CombatRoomSystem = {
                 Game.removeEntity(key);
             }
         }
-        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工，未进追踪列表的泄漏）
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工 / 墓碑召唤僵尸，未进追踪列表的泄漏）
         if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
-            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_');
+            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_', 'tombstone_');
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];

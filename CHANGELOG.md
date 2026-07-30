@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+### 对话：墓碑黑烟/主神空间测试墓碑/碰撞编辑器两项修复（2026-07-30，V0.351）
+
+- **① 墓碑三组黑烟**：参考矿洞绿烟机制（`smoke_particle` 软圆粒子 + tint），`tombstone.js` 新增 `_ensureSmoke`（三组发射器，`smoke.groups` 配置驱动偏移）+ `_destroyCustomEffects`（game.js removeEntity / onDeath 约定入口清理）。**关键差异：黑色烟雾必须 `blendMode: 'NORMAL'`**——矿洞绿烟用 ADD 加法混合，黑色 tint 在 ADD 下完全不可见。配置入 enemy-config tombstone.smoke（tint 0x1a1a1a、三组偏移、frequency 180、lifespan 4500）。
+- **② 主神空间测试墓碑**：`game.js` 新增 `spawnMainTombstone()`（矿洞同款模板：origin+600,+100，注入 Zombie/SpitterZombie 召唤工厂），`spawnMainHubTestEntities()` 恢复调用——开局与回城都会在主神空间生成一只墓碑（10s 僵尸/30s 毒液僵尸），验证后注释掉调用行即可撤下。
+- **③ 突变体-3 贴图大小调整不生效根因**：`Mutant3._getPhaserOptions` 硬编码 `spriteSize:120 / collisionWidth:30 / collisionHeight:90`——`_configureEnemyBody` 优先级 `options > renderCfg`，编辑器改的 `render.spriteSize` 永远被覆盖（只有面板数值变、贴图不动），且编辑器调贴图时碰撞被重置回 30×90。修复：改读 `this.config.render`（毒液僵尸同款模式），全 src/entities 扫描确认仅此一处硬编码。
+- **④ 毒液僵尸贴图"时常消失"根因**：`idle.png` 4×8 切割 24 格**仅帧 0 有内容**（其余 23 格全空，像素扫描实证），BootScene 却按 0..23 注册待机循环动画——待机时 23/24 时间播放空白帧=贴图近乎全程不可见。修复：idle 动画改单帧注册（0..0，胖子僵尸同款）。全量清扫：脚本交叉核对 BootScene 全部 87 个敌人动画注册帧区间 vs 精灵图实际像素内容，仅此一处问题。
+- **顺带入库**：用户实机碰撞编辑器调整（mutant3 spriteSize 147.8 + 碰撞 68×152、shounao 碰撞 110×160 + height 162、毒液蛆虫 hitbox 偏移）随本次一并提交。
+- **测试**：lint 0 error（15 warning 均为既有）；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：墓碑黑烟三组偏移（±60,170 / 0,200）为按贴图比例初始值，实机观感可在 enemy-config smoke.groups 微调；主神空间测试墓碑验证完毕需手动注释撤下。
+
+### 对话：祭坛恢复/金币换图/三障碍物/编辑器移动修复（2026-07-30，V0.350）
+
+- **① 祭坛消失根因**：NPC 位置编辑器曾把祭坛 offset 存成 (96, **-1428**)（误拖出界），祭坛实际位置被挪到地图北边视野外。修复：offset 恢复 (20,140)；NPC 拖动加**世界边界 64px 钳制**，防止再次误拖出界"消失"。
+- **② 金币贴图**：素材库`道具/金币.png` → `assets/items/gold_transparent_07.png`（256×179，掉落贴图同源替换）。
+- **③ 新障碍物**：头骨（323×384, foot 179×62, H100）、骨头堆（512×419, foot 300×105, H100）、锁链（512×170, foot 460×40, H60）入 `ISO_WALL_GEO`+BootScene。
+- **④ 碰撞编辑器移动语义修正**：矩形锚定 collider（getTorsoRect 实证）——`both` 模式位置拖动**只移 collider**（矩形自动跟随，此前同时写矩形=双倍位移"调整有差别"根因）；`cylinder` 模式移动时**矩形反向补偿保持原位**（实现真正"只动圆柱"）；`rect` 模式只动矩形 offset 不变。
+- **⑤ 怪物名称锚点核查**：`capsuleHudAnchor: true` 的怪物名称/血条已锚定**圆柱体胶囊顶**（collider.y − collider.height），调整圆柱高度即可调名称位置，无需改动；未配置的旧怪保持贴图顶锚点。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：新普通怪物「墓碑」（2026-07-30，V0.349）
+
+- **墓碑（tombstone）**：站桩召唤器（参考矿洞 mine-cave）——不可移动（speed 0 + noSeparation + 击退免疫 + 出生点锚定）、常驻状态免疫（`applyStatusImmune`，不吃任何 buff/debuff）、HP 800；每 10s 在四周可行走落点生成 1 只普通僵尸、每 30s 生成 1 只毒液僵尸（`WallSystem.canMoveTo` 8 向×递近距离选点，找不到顺延下 tick；召唤物 `_summoned` 标签：击杀无经验/金币/掉落）。
+- **不进刷怪池**：enemy-config 新增 `noPool: true`，`zombie-dungeon.js` 三个 monsterPool getter 与 `nextWaveMonsterClasses` 的 poolFamily 过滤全部加 `!cfg.noPool` 防御性排除——即使 family='僵尸'、rank='normal' 满足条件也不进 normal/elite/lord 任何池。
+- **33% 事件生成**：`_enterZombieCombat` 普通战斗（`!node.isElite`，僵尸地牢初级 zombieBeginner/中级 zombieMid/高级 zombie 共用路径）在 `_spawnZombieWave` 后调 `_maybeSpawnTombstone`——候选角落按距玩家从远到近排序（矩形房取外接矩形四角内收；菱形房取对角线方向与边界交点 s/rx+s/ry=1 内收）；落点判定=`canMoveTo` 可行走（不嵌墙/障碍物）+ `pathFinder.findPath` 到玩家可达（保证生成的僵尸能走出寻敌）；角落不合格则半径 40/80/120/160 八向螺旋搜索，全失败换次远角落，均失败放弃并打印警告。墓碑只登记 `tombstone_main_` key 进 `_combatMonsterKeys`（随波次/房间清理），不进 `_combatMonsters`——不阻塞战斗完成判定（矿洞同口径）。
+- **配套**：`assets/enemies/tombstone/idle.png`（477×512）入 BootScene（`enemy_tombstone`，静态贴图无动画）；`combat-room-system.js` 两处 `removeEntitiesByPrefix` 兜底清单加 `tombstone_` 前缀（召唤僵尸泄漏清理）。
+- **修改文件**：`src/entities/enemy-types/tombstone.js`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、`src/world/dungeon-map-system.js`、`src/world/combat-room-system.js`、CHANGELOG.md
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过（无 tombstone 相关告警）；node 无头验证最远角落选取/菱形内判定/螺旋回退/全阻挡放弃逻辑通过。
+- **已知问题**：墓碑贴图显示尺寸（spriteSize 256）、碰撞 120×60 与 footOffsetY 30 为按比例的初始值，建议用碰撞编辑器实机校准；33% 概率与生成节奏需实机手感确认。
+
 ### 对话：碰撞编辑器独立位置/贴图缩放 + 陷阱音效 + 陶罐（2026-07-30，V0.348）
 
 - **① 矩形/圆柱独立位置调整**：`_editMode` 模式语义完善——`rect` 模式：八点+**矩形专属位置拖动**（projectileHitbox.offsetX/bottom，圆柱不动）；`cylinder` 模式：半径/高度+**圆柱专属位置拖动**（colliderOffset，矩形不动）；`both`（默认）：位置拖动**同步带动两体积**（圆柱 offsetX/Y 与矩形 offsetX/bottom 同位移）。新增 drag mode `rectMove`（只动矩形）。

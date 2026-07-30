@@ -490,10 +490,13 @@ export class Mutant3 extends Enemy {
             animKey = `enemy_mutant3_${this._animState}`;
         }
 
+        // 贴图/碰撞尺寸读配置（碰撞编辑器可调；此前硬编码 120/30×90 会覆盖编辑器修改，
+        // 导致调贴图大小只变数值、贴图不动，且 _configureEnemyBody 重调时碰撞被重置）
+        const renderCfg = this.config?.render || {};
         return {
-            spriteSize: 120,
-            collisionWidth: 30,
-            collisionHeight: 90,
+            spriteSize: renderCfg.spriteSize || 120,
+            collisionWidth: renderCfg.collisionWidth || 30,
+            collisionHeight: renderCfg.collisionHeight || 90,
             textOffsetY: -70,
             flipX,
             animState: this._animState,

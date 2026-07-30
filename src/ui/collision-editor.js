@@ -1224,14 +1224,16 @@ export const CollisionEditor = {
             s.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, c.y - pt.y));
             this._applyEdit();
         } else if (d.mode === 'move') {
-            // 圆柱位置（colliderOffset）；both 模式同步带动矩形位置
             const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
             s.offsetX = d.startOffset.x + dx;
             s.offsetY = d.startOffset.y + dy;
-            if (this._editMode !== 'cylinder' && d.startRect) {
-                s.rect.offsetX = d.startRect.offsetX + dx;
-                s.rect.bottom = d.startRect.bottom - dy; // by=c.y-bottom：向下拖 → bottom 减小
+            if (this._editMode === 'cylinder' && d.startRect) {
+                // 圆柱单独移动：矩形锚定 collider（getTorsoRect cx=c.x+offsetX），
+                // 必须反向补偿让矩形保持原位——否则矩形跟着圆柱走（"不能单独移动圆柱"根因）
+                s.rect.offsetX = d.startRect.offsetX - dx;
+                s.rect.bottom = d.startRect.bottom + dy;
             }
+            // both 模式：矩形随 collider 自动跟随，无需另写（此前同时写矩形=双倍位移"调整有差别"根因）
             this._applyEdit();
         } else if (d.mode === 'spriteScale') {
             // 贴图等比缩放：上拖放大（150px 拖程=1 倍）

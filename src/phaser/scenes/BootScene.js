@@ -115,6 +115,9 @@ export class BootScene extends Scene {
         this.load.image('obstacle_pillar', 'assets/terrain/obstacle_pillar.png');
         this.load.image('obstacle_candle', 'assets/terrain/obstacle_candle.png');
         this.load.image('obstacle_pot', 'assets/terrain/obstacle_pot.png');
+        this.load.image('obstacle_skull', 'assets/terrain/obstacle_skull.png');
+        this.load.image('obstacle_bones', 'assets/terrain/obstacle_bones.png');
+        this.load.image('obstacle_chains', 'assets/terrain/obstacle_chains.png');
         // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
         this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
         this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
@@ -254,6 +257,9 @@ export class BootScene extends Scene {
 
         // 矿洞（次级，静态贴图）
         this.load.image('enemy_mine_cave', 'assets/enemies/mine_cave/mine_cave.png');
+
+        // 墓碑（普通级，静态贴图，僵尸地牢普通战斗 33% 概率出现）
+        this.load.image('enemy_tombstone', 'assets/enemies/tombstone/idle.png');
 
         // ---- 环境资源 ----
 
@@ -536,11 +542,13 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
-        // 毒液僵尸动画（24 帧待机 / 13 帧行走 / 22 帧攻击）
+        // 毒液僵尸动画（1 帧待机 / 13 帧行走 / 22 帧攻击）
+        // 注意：idle.png 仅帧 0 有内容（4×8 切割其余 23 格全空），曾按 0..23 注册导致
+        // 待机时 23/24 时间播放空白帧 = 贴图"时常消失"，故只注册帧 0（胖子僵尸同款处理）
         this.anims.create({
             key: 'enemy_spitter_zombie_idle',
-            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 23 }),
-            frameRate: 8,
+            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 0 }),
+            frameRate: 1,
             repeat: -1,
         });
         this.anims.create({

@@ -52,6 +52,7 @@ import { MinerZombie } from './entities/enemy-types/miner-zombie.js';
 import { LanternMinerZombie } from './entities/enemy-types/lantern-miner-zombie.js';
 import { ForemanZombie } from './entities/enemy-types/foreman-zombie.js';
 import { MineCave } from './entities/enemy-types/mine-cave.js';
+import { Tombstone } from './entities/enemy-types/tombstone.js';
 import { OreSpider } from './entities/enemy-types/ore-spider.js';
 import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
 import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
@@ -382,7 +383,40 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 当前无测试怪（矿石蜘蛛验证完毕已移除；需要时恢复对应 spawnMain* 调用）
+        // 当前测试怪：墓碑（黑烟特效 + 召唤节奏验证；不需要时注释掉本行）
+        this.spawnMainTombstone();
+    },
+
+    spawnMainTombstone() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.tombstone || {};
+        const tomb = new Tombstone(origin.x + 600, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            spawnFactory: (mx, my) => new Zombie(mx, my, {
+                ...enemyConfigData.zombie,
+                showWeapon: false,
+                ai: {
+                    ...(enemyConfigData.zombie?.ai || {}),
+                    aggroRange: 9999,
+                    pacingRange: 0,
+                    loseTimeout: 999999
+                }
+            }),
+            spitterSpawnFactory: (mx, my) => new SpitterZombie(mx, my, {
+                ...enemyConfigData.spitterZombie,
+                showWeapon: false,
+                ai: {
+                    ...(enemyConfigData.spitterZombie?.ai || {}),
+                    aggroRange: 9999,
+                    pacingRange: 0,
+                    loseTimeout: 999999
+                }
+            })
+        });
+        this.entities.set('enemy_main_tombstone', tomb);
     },
 
     spawnMainOreSpider() {

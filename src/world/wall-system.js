@@ -25,6 +25,9 @@ const ISO_WALL_GEO = {
     pillar: { tex: 'obstacle_pillar', w: 236, h: 640, category: 'obstacle', foot: { w: 231, d: 80 }, obstacleH: 180, editor: '石柱' },
     candle: { tex: 'obstacle_candle', w: 317, h: 640, category: 'obstacle', foot: { w: 197, d: 78 }, obstacleH: 180, editor: '烛台' },
     pot: { tex: 'obstacle_pot', w: 414, h: 512, category: 'obstacle', foot: { w: 251, d: 87 }, obstacleH: 120, editor: '陶罐' },
+    skull: { tex: 'obstacle_skull', w: 323, h: 384, category: 'obstacle', foot: { w: 179, d: 62 }, obstacleH: 100, editor: '头骨' },
+    bones: { tex: 'obstacle_bones', w: 512, h: 419, category: 'obstacle', foot: { w: 300, d: 105 }, obstacleH: 100, editor: '骨头堆' },
+    chains: { tex: 'obstacle_chains', w: 512, h: 170, category: 'obstacle', foot: { w: 460, d: 40 }, obstacleH: 60, editor: '锁链' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）

@@ -269,8 +269,8 @@
     "mouseAttendant": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": -100,
-        "y": 0
+        "x": -195,
+        "y": -11
       },
       "name": "小鼠侍从",
       "size": 20,
@@ -282,17 +282,17 @@
     "warehouse": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 100,
-        "y": 0
+        "x": 61,
+        "y": -1734
       },
       "name": "仓库",
       "size": 20,
-      "collisionRadius": 85,
+      "collisionRadius": 72,
       "color": "#8a6a3a",
       "npcType": "warehouse",
       "noSeparation": true,
       "noShadow": true,
-      "colliderOffsetY": -48,
+      "colliderOffsetY": -51.5,
       "sprite": {
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
         "idleKey": "npc_warehouse",
@@ -304,7 +304,11 @@
         "width": 141,
         "height": 129
       },
-      "colliderOffsetX": 0
+      "colliderOffsetX": 0,
+      "collisionShape": "rect",
+      "collisionWidth": 152,
+      "collisionHeight": 129,
+      "height": 89.5
     },
     "altar": {
       "relativeTo": "shopMouseKing",
