@@ -27,7 +27,7 @@ const ISO_WALL_GEO = {
     pot: { tex: 'obstacle_pot', w: 414, h: 512, category: 'obstacle', foot: { w: 251, d: 87 }, obstacleH: 120, editor: '陶罐' },
     skull: { tex: 'obstacle_skull', w: 323, h: 384, category: 'obstacle', foot: { w: 179, d: 62 }, obstacleH: 100, editor: '头骨' },
     bones: { tex: 'obstacle_bones', w: 512, h: 419, category: 'obstacle', foot: { w: 300, d: 105 }, obstacleH: 100, editor: '骨头堆' },
-    chains: { tex: 'obstacle_chains', w: 512, h: 170, category: 'obstacle', foot: { w: 460, d: 40 }, obstacleH: 60, editor: '锁链' },
+    chains: { tex: 'obstacle_chains', w: 512, h: 204, category: 'obstacle', foot: { w: 460, d: 48 }, obstacleH: 72, editor: '锁链' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -91,6 +91,7 @@ const WallSystem = {
         this.walls = [];
         this.isoVisuals = [];
         this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）
+        this._faceSegCache = null; // 衔接仲裁缓存随场景重建失效
         this.trees = [];
         // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
         this.mazeEndY = 0;
@@ -566,6 +567,48 @@ const WallSystem = {
         return null;
     },
 
+    /**
+     * 衔接处遮挡仲裁（P1 方案）：
+     * iso 墙件深度是按"件"的 flat 标量（min/max 端点 + 偏置），斜墙的前后关系随 x 变化，
+     * 单标量在衔接处必然错——"该挡的没挡、不该挡的乱挡"的根源（与碰撞体积无关）。
+     * 逐实体按"脚底 y vs face 斜线在该 x 处的 y"判定几何前后，仅在违反时单向钳制深度：
+     * 面线后（y 小）→ 深度不高于墙件；面线前（y 大）→ 深度不低于墙件。正常排序不受影响。
+     * 生效范围：face 线 ±60px 内（贴近墙面的衔接带）；取最近面线，避免远处墙件拉扯。
+     */
+    junctionCorrectedDepth(x, y, depth) {
+        const cache = this._getFaceSegCache();
+        let best = null;
+        for (const it of cache) {
+            for (const [A, B] of it.segs) {
+                const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
+                if (x < minX || x > maxX) continue;
+                const t = (x - A.x) / ((B.x - A.x) || 1e-6);
+                const yLine = A.y + (B.y - A.y) * t;
+                const dist = Math.abs(y - yLine);
+                if (dist > 60) continue;
+                if (!best || dist < best.dist) best = { dist, yLine, pd: it.depth };
+            }
+        }
+        if (!best) return depth;
+        if (y < best.yLine) return Math.min(depth, best.pd - 0.5);
+        return Math.max(depth, best.pd + 0.5);
+    },
+
+    /** 衔接仲裁用的 face 世界线段缓存（非障碍物件；几何变更时由 rebuildIsoCollision 失效） */
+    _getFaceSegCache() {
+        if (this._faceSegCache) return this._faceSegCache;
+        const out = [];
+        for (const p of this.isoVisuals || []) {
+            const g = this._geoForTex(p.tex);
+            if (g && g.category === 'obstacle') continue;
+            const segs = this._pieceBaseSegments(p);
+            if (!segs.length) continue;
+            out.push({ segs, depth: p.depth !== undefined ? p.depth : p.y });
+        }
+        this._faceSegCache = out;
+        return out;
+    },
+
     /** 贴图内坐标 → 世界坐标（应用通用件的 origin/scale/flip 变换） */
     texPointToWorld(p, tx, ty) {
         const g = this._geoForTex(p.tex);
@@ -606,6 +649,7 @@ const WallSystem = {
         // 门闸线段（_gate 房间门 / _chestGate 宝箱房门）由门实体自管生命周期，
         // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）
         this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate);
+        this._faceSegCache = null; // 衔接仲裁缓存随几何变更失效
         for (const p of this.isoVisuals) this._addPieceCollision(p);
     },
 

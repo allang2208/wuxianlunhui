@@ -2,7 +2,8 @@
  * 陷阱系统（僵尸地牢战斗房，2026-07-30）
  *
  * 机制（用户规格）：
- * - 无碰撞体积（可踩上去）；**不做"进入"判定，做"占用"判定**——每帧检查触发半径内
+ * - 无碰撞体积（可踩上去）；**不做"进入"判定，做"占用"判定**——每帧检查触发椭圆
+ *   （rx=triggerRadius，ry 按 PERSPECTIVE_SCALE_Y 透视压缩，与怪物 footprint 同口径）内
  *   是否有玩家或敌对目标（active && hittable），有则进入触发流程
  * - 占用 → 0.5s 延迟 → 0.5s 播完地刺动画（13 帧，命中帧对半径内所有目标造成
  *   各自最大生命值 10% 物理伤害）→ 0.5s 倒放还原 → 2s 冷却；
@@ -12,6 +13,7 @@
  */
 import { Game } from '../game.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 
 const DEFAULTS = {
     count: 3,
@@ -109,22 +111,30 @@ export const TrapSystem = {
         }
     },
 
-    /** 占用判定：触发半径内有玩家或敌对目标（active && hittable && 地面单位） */
+    /** 触发椭圆判定：与怪物 footprint 同口径——世界圆在屏幕 Y 方向按透视压缩，
+     *  把 dy 逆变换到等距平面后按圆判定（rx=triggerRadius，ry=triggerRadius×PERSPECTIVE_SCALE_Y） */
+    _inTriggerZone(t, e, C) {
+        const dx = e.x - t.x;
+        const dy = (e.y - t.y) / PERSPECTIVE_SCALE_Y;
+        return Math.hypot(dx, dy) <= C.triggerRadius + (e.groundRadius || 0);
+    },
+
+    /** 占用判定：触发椭圆内有玩家或敌对目标（active && hittable && 地面单位） */
     _isOccupied(t, C) {
         if (typeof Game === 'undefined' || !Game.entities) return false;
         for (const e of Game.entities.values()) {
             if (!e || !e.active || !e.hittable) continue;
-            if (Math.hypot(e.x - t.x, e.y - t.y) <= C.triggerRadius + (e.groundRadius || 0)) return true;
+            if (this._inTriggerZone(t, e, C)) return true;
         }
         return false;
     },
 
-    /** 伤害结算：半径内所有目标各吃自身最大生命值 10% 物理伤害 */
+    /** 伤害结算：触发椭圆内所有目标各吃自身最大生命值 10% 物理伤害 */
     _dealDamage(t, C) {
         if (typeof Game === 'undefined' || !Game.entities) return;
         for (const e of Game.entities.values()) {
             if (!e || !e.active || !e.hittable) continue;
-            if (Math.hypot(e.x - t.x, e.y - t.y) > C.triggerRadius + (e.groundRadius || 0)) continue;
+            if (!this._inTriggerZone(t, e, C)) continue;
             const maxHp = (e === Game.player)
                 ? (e.data && e.data.maxHp) || e.maxHp || 100
                 : e.maxHp || (e.data && e.data.maxHp) || 100;

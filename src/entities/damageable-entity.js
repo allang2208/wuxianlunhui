@@ -246,7 +246,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                         }
                     }
 
-                    const goldItem = { name: '金币', category: 'gold', stack: goldAmount };
+                    const goldItem = { name: '金币', category: 'gold', stack: goldAmount, rarity: 'mythic' };
                     Game.dropItem(this.x, this.y, goldItem);
 
                     // 祭品掉落：按地牢难度分级掉落表（精英/首领必掉分表，普通怪按概率；稀有度封顶）
@@ -321,6 +321,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
                     statusImmune: { icon: '🔰', name: '状态免疫', color: '#5ac8c8' },
+                    haste: { icon: '💨', name: '加速', color: '#5ac85a' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -421,6 +422,21 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 this.addStatusEffect('statusImmune', duration);
                 if (this._faction === 'player' && StatusBar) {
                     StatusBar.addEffect('statusImmune', duration, { name: '状态免疫', icon: '🔰', color: '#5ac8c8' });
+                }
+            }
+
+            /**
+             * 加速 buff（如 P4040 轻量化快速板机命中获得）：
+             * 只记录乘数 + 登记状态，玩家速度链（player/update.js）按状态乘算——
+             * 不改 maxSpeed 数据层，到期自动失效无需还原（激励式数据层乘算不适合高频命中刷新）。
+             * 重复命中只刷新时长与乘数。
+             */
+            applyHaste(duration, opts = {}) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                this._hasteSpeedMul = opts.speedMul ?? 1.10;
+                this.addStatusEffect('haste', duration, { name: '加速', icon: '💨', color: '#5ac85a' });
+                if (this._faction === 'player' && StatusBar) {
+                    StatusBar.addEffect('haste', duration, { name: '加速', icon: '💨', color: '#5ac85a' });
                 }
             }
 

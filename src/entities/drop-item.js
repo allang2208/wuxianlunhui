@@ -82,7 +82,9 @@ import { RARITY_COLORS } from '../config/rarity.js';
                         fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
                         fontSize: '13.2px',
                         color: RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common,
-                        align: 'center'
+                        align: 'center',
+                        // 黑描边（宝箱倒计时同款）：稀有度浅色字在亮地板上可读，字号不变
+                        stroke: '#000000', strokeThickness: 3,
                     });
                     label.setOrigin(0.5, 0);
                     label.setDepth(this.y + 6);
@@ -113,7 +115,8 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 const rarityColor = RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common;
                 this._phaserLabel.setStyle({
                     fontSize: hover ? '15.6px' : '13.2px',
-                    color: hover ? '#ffeb96' : rarityColor
+                    color: hover ? '#ffeb96' : rarityColor,
+                    stroke: '#000000', strokeThickness: 3,
                 });
                 // 文字贴近放大后的贴图底部（紧凑布局），不随贴图浮动；整体上移 30px
                 this._phaserLabel.setPosition(this.x, this.y + 6);

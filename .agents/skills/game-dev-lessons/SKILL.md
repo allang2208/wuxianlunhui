@@ -96,6 +96,8 @@ description: >
 4. 在玩家 `update.js` 的速度计算处也把 `bind` 的 `targetSpeed` 置 0。
 5. 实际调用时传入毫秒，例如 `target.applyBind(500)` 表示 0.5 秒。
 
+**高频刷新的限时增益（如命中获得加速）不要走激励式数据层乘算**（maxSpeed 乘除会漂移）：参考 `applyHaste`——只记录 `_hasteSpeedMul` + `addStatusEffect`，玩家速度链按 `hasStatusEffect('haste')` 乘算，到期自动失效无需还原。
+
 ## 12. 攻击判定改为距离判定
 
 - 在 `enemy-config.json` 中用 `attackDistance` 表示纯距离判定（不再乘 1.15、不再做扇形/矩形范围判定），例如 `"attackDistance": 200`。
@@ -167,3 +169,33 @@ this.ai = config.ai || {};
 - 体力不恢复时，优先检查 `weaponAnim.state` 和 `_activeAttackTweens`。
 - 敌人在近战范围内“倒退跑”时，检查 separation 与 target 方向的点积处理。
 - 出现 `INEFFECTIVE_DYNAMIC_IMPORT` 是 `src/ui/codex-manager.js` 的已知构建警告，与本次改动无关。
+
+## 20. 改造效果（craft-effect）配置：条件键、命中 Buff、音效覆盖
+
+- `src/config/craft-effect-registry.js` 负责注册所有改造效果；`src/config/craft-effect-consumer.js`（或对应武器模板）负责在发射、命中等实际节点消费。
+- **条件生效键**：改造效果里加 `condition: { fireModeOverride: 'fullAuto' }`，消费点先判断当前武器的 `fireModeOverride` 是否匹配；匹配才消费，不匹配就当没这条改造。例如 V0.354 P4040 的 `autoSpreadStart`、`autoSpreadMax`、`autoMaxRecoil` 只在切换为全自动模式后生效。
+- **命中/事件 Buff 键**：`onHitSpeedBuff` 在命中时给自身加限时加速；不要直接改数据层 maxSpeed，而是调用 `applyHaste(duration, mul)` 并走状态系统（见第 21 条）。
+- **音效覆盖键**：`fireSoundOverride` 在命中特定改造（如 P4040 锤击点弹药）后替换开火音效。消费点优先读取覆盖值，没有覆盖再回退到武器默认。
+- **三角校验**：改完 `craft-config.json` 后，同步跑 `scripts/test-craft-sync.mjs`（或同类测试），确认 registry、consumer、数据文件三处一致，避免“数据写了但游戏没生效”。
+
+## 21. 高频限时增益不要走数据层乘算
+
+- 早期做法在命中时 `target.maxSpeed *= 1.1`、过期时 `/= 1.1`，高频刷新或 buff 叠加时容易漂移。
+- **正确做法（V0.354）**：`applyHaste(duration, mul)` 只做两件事：
+  1. 给目标加一个 `haste` 状态效果；
+  2. 在玩家/怪物速度计算链里判断 `hasStatusEffect('haste')`，乘以固定 `speedMul`。
+- 到期由状态系统自己清除，速度链自动失效，无需手动还原。
+
+## 22. Iso 墙体深度遮挡：按“面线”几何仲裁，而不是按件端点
+
+- 单块 iso 墙的深度排序不能简单取 sprite 四个角 world 坐标的 min/max，否则在 45° 斜墙或门墙拐角处，不同件之间的端点深度会互相穿插，导致“该挡的没挡、不该挡的遮挡”。
+- **正确做法（V0.356）**：取每块墙朝向玩家的“最近面线”，计算玩家/怪物与这条面线的带符号距离；深度排序时只让“面线后方一定距离内”的对象被墙遮挡，面线前方永远不被该墙遮挡。
+- 门墙、墙帽、拐角要分别提供自己的面线；T 形、L 形衔接处用单向钳制（只让靠近面的一侧受影响），避免远端墙体被错误拉高。
+- 调试时打开左下角“范围/深度”可视化，检查各墙件的遮挡面是否与其视觉立面一致。
+
+## 23. UI 布局持久化：出厂快照 + `_persistJson` 管道
+
+- 对于允许玩家拖拽调整布局的面板（如 V0.357 改造栏布局），保存时不要直接改业务数据，而是走统一的 `_persistJson(relativePath, data)` 管道。
+- 重置按钮依赖一份“出厂快照”文件，例如 `src/config/craft-default-slots.js`，里面保存默认 slot 坐标/尺寸。点击重置时把快照写回持久化文件并刷新 UI。
+- 添加吸附线时，在拖拽过程中实时计算与其他格子的中心/边对齐偏移，达到阈值时给出视觉提示；吸附只影响拖拽释放后的位置，不要改出厂快照。
+- 布局数据保存后，读取逻辑统一从持久化文件加载；若文件缺失再回退到出厂快照，保证新玩家和回退玩家都正确。

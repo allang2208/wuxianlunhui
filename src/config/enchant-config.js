@@ -170,6 +170,7 @@ const MagicDustItem = {
     icon: '✨',
     iconImage: 'assets/items/magic_dust.png',
     category: 'material',
+    rarity: 'mythic',
     desc: '用于附魔的魔法粉尘',
     stack: 999,
     price: 10,

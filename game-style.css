@@ -214,8 +214,10 @@
         .equip-tooltip .tt-craft-desc { color: #2a2520; text-align: right; font-size: 11px; max-width: 60%; }
         .equip-tooltip .tt-craft-summary { border-top: 1px solid rgba(0,0,0,0.15); margin-top: 6px; padding-top: 6px; }
         .equip-tooltip .tt-craft-summary-title { font-weight: 700; margin-bottom: 4px; color: #2a2520; }
-        .equip-tooltip .tt-craft-stat-pos { color: #00ff00; font-weight: 700; }
-        .equip-tooltip .tt-craft-stat-neg { color: #ff0000; font-weight: 700; }
+        .equip-tooltip .tt-craft-stat-pos { color: #00ff00; font-weight: 700; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        .equip-tooltip .tt-craft-stat-neg { color: #ff0000; font-weight: 700; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        /* 白底彩色字体黑描边（参考地牢宝箱倒计时白字黑边）：稀有度标签/武器特效数值等浅色字在白底 tooltip 上的可读性 */
+        .equip-tooltip .tt-outline { text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
         .equip-tooltip .tt-close { position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; background: rgba(200,50,50,0.8); border-radius: 50%; color: #fff; font-size: 16px; line-height: 24px; text-align: center; cursor: pointer; pointer-events: auto; transition: all 0.2s; }
         .equip-tooltip .tt-close:hover { background: rgba(220,70,70,1); transform: scale(1.1); }
         .equip-tooltip .tt-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-right: 24px; }
@@ -1947,7 +1949,7 @@
 .tt-enchant.visible { display: flex; }
 .tt-enchant-title { font-size: 13px; color: #2a2520; font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.15); padding-bottom: 4px; }
 .tt-enchant-row { font-size: 12px; color: #4a3f35; display: flex; justify-content: space-between; }
-.tt-enchant-name { color: #c0a060; }
+.tt-enchant-name { color: #c0a060; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
 .tt-enchant-effect { color: #2a2520; }
 
 .slot-enchanted {
@@ -2000,8 +2002,8 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* 附魔词缀颜色 */
-.enchant-prefix { color: #c0a060; }
-.enchant-suffix { color: #a090c0; }
+.enchant-prefix { color: #c0a060; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+.enchant-suffix { color: #a090c0; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
 
 /* ===== 交互开发工具（全新） ===== */
 .dev-tool-trigger {

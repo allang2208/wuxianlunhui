@@ -29,6 +29,7 @@ import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
 import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
+import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 
 export class GameScene extends Scene {
@@ -372,6 +373,8 @@ export class GameScene extends Scene {
         if (_game.entities) {
             _game.entities.forEach(e => {
                 if (!e || !e.active || e === player) return;
+                // 掉落物：tint 由 DropItem 悬停高亮自管，不随受击闪白清空
+                if (e.itemData && e.noCollision) return;
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 if (e.hitFlash > 0) {
@@ -446,6 +449,9 @@ export class GameScene extends Scene {
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
         Game.entities.forEach((entity) => {
             if (!entity || entity === Game.player) return;
+            // 掉落物：位置/深度由 DropItem._syncPhaserSprite 自管（上下浮动 bob），
+            // 此处每帧强写 (x, y - displayHeight/2) 会冲掉 bob 并抬高贴图——跳过
+            if (entity.itemData && entity.noCollision) return;
             const isCorpse = entity._preserveCorpse && !entity.active &&
                 (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
             if (!entity.active && !isCorpse) return;
@@ -494,20 +500,26 @@ export class GameScene extends Scene {
         // 1. 玩家：深度基于脚底 Y（Sprite.y + footOffsetY）
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
-            this.playerSprite.setDepth(this.playerSprite.y + footOffsetY + 10);
+            // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）
+            const pd = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, this.playerSprite.y + footOffsetY + 10);
+            this.playerSprite.setDepth(pd);
         }
 
         // 2. 敌人 / 尸体
         if (Game.entities) {
             Game.entities.forEach(e => {
                 if (!e || e === Game.player) return;
+                // 掉落物：深度自管（随浮动贴图），不参与实体深度覆写
+                if (e.itemData && e.noCollision) return;
                 const isCorpse = e._preserveCorpse && !e.active &&
                     (e._deathAnimTimer > 0 || e._corpseTimer > 0);
                 if (!e.active && !isCorpse) return;
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
-                sprite.setDepth(sprite.y + footOffsetY + (isCorpse ? 2 : 10));
+                // 衔接处遮挡仲裁（与玩家同口径）
+                const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10));
+                sprite.setDepth(d);
             });
         }
 
@@ -1923,15 +1935,18 @@ export class GameScene extends Scene {
         }
 
         // 贴图显示偏移（配置 spriteOffsetX/Y，世界 px，X 随 flipY 镜像）——
-        // 只移动贴图渲染位置：手臂/锚点（_gunGripWorld 已记录）与弹道逻辑不受影响，枪口随贴图走
-        const spriteOffX = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetX;
-        const spriteOffY = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetY;
+        // 只移动贴图渲染位置：手臂/锚点（_gunGripWorld 已记录）与弹道逻辑不受影响，枪口随贴图走。
+        // 读取优先级：装备实例字段 > EquipDataManager 标准配置（按 weaponId 直查——实例可能来自
+        // 旧存档/商店克隆缺字段，getAmmoConfig 同款教训）> anim 配置（两把共用 animConfigKey 的枪可各自微调）
+        const _wepCfg = isGun ? findWeaponConfig(currentItem.weaponId, currentItem.name) : null;
+        const spriteOffX = isGun && (currentItem.spriteOffsetX ?? (_wepCfg && _wepCfg.spriteOffsetX) ?? (WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetX));
+        const spriteOffY = isGun && (currentItem.spriteOffsetY ?? (_wepCfg && _wepCfg.spriteOffsetY) ?? (WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetY));
         if (spriteOffX) pos.x += gunFlipY ? -spriteOffX : spriteOffX;
         if (spriteOffY) pos.y += spriteOffY;
         // 逐武器瞄准贴图微调（配置 aimSpriteOffsetX/Y，世界 px × _aimEase 混合）：
         // 只动瞄准态贴图渲染位置，腰射（ease=0）不变；手臂/锚点与弹道同样不受影响
-        const aimSprOffX = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetX;
-        const aimSprOffY = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetY;
+        const aimSprOffX = isGun && (currentItem.aimSpriteOffsetX ?? (_wepCfg && _wepCfg.aimSpriteOffsetX) ?? (WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetX));
+        const aimSprOffY = isGun && (currentItem.aimSpriteOffsetY ?? (_wepCfg && _wepCfg.aimSpriteOffsetY) ?? (WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetY));
         if (aimSprOffX) pos.x += (gunFlipY ? -aimSprOffX : aimSprOffX) * (this._aimEase || 0);
         if (aimSprOffY) pos.y += aimSprOffY * (this._aimEase || 0);
 
@@ -2163,22 +2178,25 @@ export class GameScene extends Scene {
         // rotOffset（配置，度）：枪械贴图固有倾角修正；随 flipY 镜像取反（右 -6° ↔ 左 +6°）
         const rotOffsetOff = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
             ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
-        const flipYCand = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt)
-            && Math.abs(rot) > Math.PI / 2;
-        rot += flipYCand ? -rotOffsetOff : rotOffsetOff;
-        
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        // flipY 与主手同口径：用 rotOffset 修正【前】的 rot 判定（此前在加过 -6° 偏移后重判，
+        // 90°~96° 窗口内主/副手 flipY 相反——双持手枪左右朝向不对称根因）
+        const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
+        rot += flipY ? -rotOffsetOff : rotOffsetOff;
+
         // 应用后坐力偏移
         if (weaponAnim.recoil) {
             pos.x -= Math.cos(player.rotation) * weaponAnim.recoil;
             pos.y -= Math.sin(player.rotation) * weaponAnim.recoil;
         }
-        
+
         // Phase 2: 攻击动画刺击位移计算（已禁用，使用开发工具配置）
         let _thrust = 0;
-        
-        // 应用 recoilAngle
+
+        // 应用 recoilAngle（随 flipY 镜像取反，与 rotOffset 同口径——副手后坐踢角
+        // -recoil*0.05 幅度达 ~36°，瞄左不镜像会把枪拧向反侧，枪口/火焰/子弹随贴图错位 ~33px）
         if (weaponAnim.recoilAngle) {
-            rot += weaponAnim.recoilAngle;
+            rot += flipY ? -weaponAnim.recoilAngle : weaponAnim.recoilAngle;
         }
         
         // 应用弓旋转角度（rotate 阶段）
@@ -2188,8 +2206,6 @@ export class GameScene extends Scene {
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunOff = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
-        const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
 
         // 握把旋转轴心（与主手同口径；配置 grip，缺省贴图中心）
         const gripCfgOff = isGunOff && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].grip;

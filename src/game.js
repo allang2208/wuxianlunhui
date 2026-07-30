@@ -383,8 +383,7 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 当前测试怪：墓碑（黑烟特效 + 召唤节奏验证；不需要时注释掉本行）
-        this.spawnMainTombstone();
+        // 当前无测试怪（墓碑黑烟/召唤验证完毕已撤下；需要时恢复 this.spawnMainTombstone()）
     },
 
     spawnMainTombstone() {
@@ -1147,6 +1146,9 @@ this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0 || e._fadeTimer > 0);
             if (!e.active && !isCorpse) continue;
+            // 碰撞编辑器冻结预览体：整帧跳过 update/感知/移动/战斗——自管技能的怪
+            // （蝇手/突变体等 update 内自决策）靠字段冻结防不住，必须从主循环跳过
+            if (e._editorFrozen) continue;
 e.update(dt, this.entities);
 // 玩家 update 会移动并触发攻击，同步其 Collider 供后续敌人 AI/战斗作为目标使用
             if (e === this.player && e.collider) {
@@ -1475,7 +1477,7 @@ if (SceneManager.currentScene === 'scene3') {
     },
     // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
     resolveCollisions() {
-        const entities = Array.from(this.entities.values()).filter(e => e.active && e.groundRadius > 0 && !e.noCollision);
+        const entities = Array.from(this.entities.values()).filter(e => e.active && e.groundRadius > 0 && !e.noCollision && !e._editorFrozen);
         const player = this.player;
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {

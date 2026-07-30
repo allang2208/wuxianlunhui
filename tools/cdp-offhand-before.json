@@ -1,0 +1,278 @@
+{
+  "LEFT": {
+    "mouseWorld": {
+      "x": 3304.0223875009087,
+      "y": 2011.9103564556128
+    },
+    "pre": {
+      "aimDeg": -180,
+      "frozenAim": false,
+      "player": {
+        "x": 3704.02,
+        "y": 2011.91
+      },
+      "main": {
+        "x": 3655.1,
+        "y": 1904.41,
+        "rotDeg": 168.98,
+        "flipY": true,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "off": {
+        "x": 3663.1,
+        "y": 1906.91,
+        "rotDeg": 169.7,
+        "flipY": true,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "muzzleMain": {
+        "x": 3627.17,
+        "y": 1899.8,
+        "angDeg": 168.98
+      },
+      "muzzleOff": {
+        "x": 3635.22,
+        "y": 1903.95,
+        "angDeg": 169.7
+      }
+    },
+    "fireMain": {
+      "muzzle": {
+        "x": 3627.17,
+        "y": 1899.8
+      },
+      "sprRot": 168.98,
+      "spawns": [
+        {
+          "x": 3627.17,
+          "y": 1899.8,
+          "rotDeg": 168.98
+        }
+      ]
+    },
+    "trackAfterMain": [],
+    "fireOff": {
+      "muzzle": {
+        "x": 3635.22,
+        "y": 1903.95
+      },
+      "sprRot": 169.7,
+      "spawns": [
+        {
+          "x": 3635.22,
+          "y": 1903.95,
+          "rotDeg": 169.7
+        }
+      ]
+    },
+    "trackAfterOff": [],
+    "realOff": [
+      {
+        "sx": 3647.7,
+        "sy": 1922.11,
+        "moveDeg": 162.66
+      }
+    ],
+    "realMain": [
+      {
+        "sx": 3636.53,
+        "sy": 1898.8,
+        "moveDeg": -175.96
+      }
+    ],
+    "post": {
+      "aimDeg": -180,
+      "frozenAim": false,
+      "player": {
+        "x": 3704.02,
+        "y": 2011.91
+      },
+      "main": {
+        "x": 3655.1,
+        "y": 1904.41,
+        "rotDeg": 168.98,
+        "flipY": true,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "off": {
+        "x": 3663.1,
+        "y": 1906.91,
+        "rotDeg": 169.7,
+        "flipY": true,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "muzzleMain": {
+        "x": 3627.17,
+        "y": 1899.8,
+        "angDeg": 168.98
+      },
+      "muzzleOff": {
+        "x": 3635.22,
+        "y": 1903.95,
+        "angDeg": 169.7
+      }
+    }
+  },
+  "RIGHT": {
+    "mouseWorld": {
+      "x": 4104.022387500909,
+      "y": 2011.9103564556128
+    },
+    "pre": {
+      "aimDeg": 0,
+      "frozenAim": false,
+      "player": {
+        "x": 3704.02,
+        "y": 2011.91
+      },
+      "main": {
+        "x": 3752.94,
+        "y": 1904.41,
+        "rotDeg": 11.02,
+        "flipY": false,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "off": {
+        "x": 3744.94,
+        "y": 1906.91,
+        "rotDeg": 10.3,
+        "flipY": false,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "muzzleMain": {
+        "x": 3780.87,
+        "y": 1899.8,
+        "angDeg": 11.02
+      },
+      "muzzleOff": {
+        "x": 3772.83,
+        "y": 1903.95,
+        "angDeg": 10.3
+      }
+    },
+    "fireMain": {
+      "muzzle": {
+        "x": 3780.87,
+        "y": 1899.8
+      },
+      "sprRot": 11.02,
+      "spawns": [
+        {
+          "x": 3780.87,
+          "y": 1899.8,
+          "rotDeg": 11.02
+        }
+      ]
+    },
+    "trackAfterMain": [],
+    "fireOff": {
+      "muzzle": {
+        "x": 3772.83,
+        "y": 1903.95
+      },
+      "sprRot": 10.3,
+      "spawns": [
+        {
+          "x": 3772.83,
+          "y": 1903.95,
+          "rotDeg": 10.3
+        }
+      ]
+    },
+    "trackAfterOff": [],
+    "realOff": [
+      {
+        "sx": 3755.88,
+        "sy": 1888.58,
+        "moveDeg": 5.21
+      }
+    ],
+    "realMain": [
+      {
+        "sx": 3771.06,
+        "sy": 1900.79,
+        "moveDeg": 30.77
+      }
+    ],
+    "post": {
+      "aimDeg": 0,
+      "frozenAim": false,
+      "player": {
+        "x": 3704.02,
+        "y": 2011.91
+      },
+      "main": {
+        "x": 3752.94,
+        "y": 1904.41,
+        "rotDeg": 11.02,
+        "flipY": false,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "off": {
+        "x": 3744.94,
+        "y": 1906.91,
+        "rotDeg": 10.3,
+        "flipY": false,
+        "flipX": false,
+        "displayWidth": 37.8,
+        "displayHeight": 37.8,
+        "scaleX": 0.0185,
+        "scaleY": 0.0185,
+        "tex": "weapon_beretta93r",
+        "visible": true
+      },
+      "muzzleMain": {
+        "x": 3780.87,
+        "y": 1899.8,
+        "angDeg": 11.02
+      },
+      "muzzleOff": {
+        "x": 3772.83,
+        "y": 1903.95,
+        "angDeg": 10.3
+      }
+    }
+  }
+}

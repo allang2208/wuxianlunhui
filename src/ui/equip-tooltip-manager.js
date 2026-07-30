@@ -85,7 +85,7 @@ export const EquipTooltipManager = {
         const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
         const rarityColor = RARITY_COLORS[rarityKey] || '#ffffff';
         ttName.innerHTML = fullItem.name + ((fullItem.enhanceLevel || 0) > 0 ? `<span class="tt-enhanced-badge">已强化 +${fullItem.enhanceLevel}</span>` : '');
-        ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span style="color:${rarityColor};font-weight:700;">${rarityLabel}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
+        ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span class="tt-outline" style="color:${rarityColor};font-weight:700;">${rarityLabel}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
         // 属性列表
         let statsHtml = '';
         if (fullItem.stats && fullItem.stats.length > 0) {
@@ -214,9 +214,10 @@ export const EquipTooltipManager = {
                     let spreadStart = sp.startDelay || 500;
                     let spreadMax = sp.maxTime || 4000;
                     let spreadAngle = sp.maxAngle || 25;
-                    const effectiveSpreadStart = spreadStart + (ce?.spreadStartDelta || 0);
-                    const effectiveSpreadMax = spreadMax + (ce?.spreadTimeDelta || 0);
-                    const effectiveSpreadAngle = spreadAngle + (ce?.maxSpreadAngleDelta || 0);
+                    const isAutoOverride = !!(ce && ce.fireModeOverride === 'fullAuto');
+                    const effectiveSpreadStart = spreadStart + (ce?.spreadStartDelta || 0) + (isAutoOverride ? (ce?.autoSpreadStartDelta || 0) : 0);
+                    const effectiveSpreadMax = spreadMax + (ce?.spreadTimeDelta || 0) + (isAutoOverride ? (ce?.autoSpreadTimeDelta || 0) : 0);
+                    const effectiveSpreadAngle = spreadAngle + (ce?.maxSpreadAngleDelta || 0) + (isAutoOverride ? (ce?.autoMaxSpreadAngleDelta || 0) : 0);
                     extraHtml += `<div class="tt-extra-row" id="tt-spread-start"><span class="tt-stat-name">散布开始时间</span><span class="tt-stat-val" id="tt-spread-start-val">${effectiveSpreadStart > 0 ? (effectiveSpreadStart/1000).toFixed(1) + '秒' : '即时'}</span></div>`;
                     extraHtml += `<div class="tt-extra-row" id="tt-spread-max"><span class="tt-stat-name">达到最大散布时间</span><span class="tt-stat-val" id="tt-spread-max-val">${(effectiveSpreadMax/1000).toFixed(1)}秒</span></div>`;
                     extraHtml += `<div class="tt-extra-row" id="tt-spread-angle"><span class="tt-stat-name">最大散布角度</span><span class="tt-stat-val" id="tt-spread-angle-val">±${effectiveSpreadAngle}°</span></div>`;
@@ -241,7 +242,7 @@ export const EquipTooltipManager = {
                     const baseReduction = 0.50;
                     const effectiveReduction = Math.max(0, baseReduction - (ce?.moveSpeedPercent || 0));
                     const pct = Math.round(effectiveReduction * 100);
-                    effectsHtml += `<div class="tt-extra-row"><span class="tt-stat-name">移动速度</span><span style="color:#ff0000;font-weight:700;">-${pct}%</span></div>`;
+                    effectsHtml += `<div class="tt-extra-row"><span class="tt-stat-name">移动速度</span><span class="tt-outline" style="color:#ff0000;font-weight:700;">-${pct}%</span></div>`;
                 }
                 // 机枪类：显示过热时间（从 heatParams 或 energyLMGParams 读取）
                 const heatSource = fullItem.heatParams || fullItem.energyLMGParams;
@@ -252,7 +253,7 @@ export const EquipTooltipManager = {
                 if (fullItem.weaponType === 'pistol' && Game.player && Game.player.skills && Game.player.skills.pistolMastery) {
                     const pm = Game.player.skills.pistolMastery;
                     const speedBonus = pm.getEffect(pm.level).speedPercent;
-                    effectsHtml += `<div class="tt-extra-row"><span class="tt-stat-name">移动速度</span><span style="color:#00ff00;font-weight:700;">+${(speedBonus*100).toFixed(0)}%</span></div>`;
+                    effectsHtml += `<div class="tt-extra-row"><span class="tt-stat-name">移动速度</span><span class="tt-outline" style="color:#00ff00;font-weight:700;">+${(speedBonus*100).toFixed(0)}%</span></div>`;
                 }
                 if (effectsHtml) {
                     extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">✨ 武器特效</span></div>`;

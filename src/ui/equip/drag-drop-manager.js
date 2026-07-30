@@ -30,6 +30,12 @@ export function createDragDropManager(EquipManager) {
                             get() { return EquipManager.backpackItems; },
                             set(v) { EquipManager.backpackItems = v; }
                         });
+                        // maxBackpackSlots 同样走 EquipManager 活体读取（可被装备/道具扩容）——
+                        // 此前本对象从未定义该字段，9 处 `slot < this.maxBackpackSlots` 恒为 false：
+                        // 改造槽→装备栏替换时被换下的装备直接消失、双手互斥卸下时重复写入 slot 0
+                        Object.defineProperty(this, 'maxBackpackSlots', {
+                            get() { return EquipManager.maxBackpackSlots || 10; }
+                        });
                         this.callbacks = {
                             updateEquipSlots: options.updateEquipSlots || (() => {}),
                             updateInventorySlots: options.updateInventorySlots || (() => {}),
@@ -304,6 +310,21 @@ export function createDragDropManager(EquipManager) {
                         };
                     },
 
+                    /** 被换下/互斥卸下的装备安置：背包空位优先，背包满则掉在玩家脚下（杜绝装备被吞） */
+                    _stashDisplaced(item) {
+                        const empty = EquipManager._findFirstEmptySlot ? EquipManager._findFirstEmptySlot() : -1;
+                        if (empty !== -1) {
+                            const clone = JSON.parse(JSON.stringify(item));
+                            clone.slot = empty;
+                            EquipManager.backpackItems.push(clone);
+                            return;
+                        }
+                        if (this.player) {
+                            Game.dropItem(this.player.x + 30, this.player.y + 30, JSON.parse(JSON.stringify(item)));
+                            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 30, '背包已满，掉落在脚下: ' + (item.name || '')));
+                        }
+                    },
+
                     handleDrop(src, targetType, targetSlot) {
                         if (!src || !targetType) return;
 
@@ -374,18 +395,21 @@ export function createDragDropManager(EquipManager) {
                             if (isWeaponSlot && !isWeaponItem) return;
                             if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== eKey) return;
                             if (item.isTwoHanded && isOffhandSlot) return;
-                            CraftSystem._equippedItem = null;
-                            CraftSystem._equippedSlot = null;
+                            // 先确认背包有空位安置被替换的装备，再动改造槽/装备栏——
+                            // 背包满时中止装备（物品留在改造槽），避免被换下装备无处可去而消失
                             const cur = this.player.equipments[eKey];
                             if (cur && cur.name) {
-                                const usedSlots = new Set(EquipManager.backpackItems.map(i => i.slot));
-                                let slot = 0; while (usedSlots.has(slot) && slot < this.maxBackpackSlots) slot++;
-                                if (slot < this.maxBackpackSlots) {
-                                    const oldClone = JSON.parse(JSON.stringify(cur));
-                                    oldClone.slot = slot;
-                                    EquipManager.backpackItems.push(oldClone);
+                                const emptySlot = EquipManager._findFirstEmptySlot ? EquipManager._findFirstEmptySlot() : -1;
+                                if (emptySlot === -1) {
+                                    this.callbacks.showBackpackFullNotice();
+                                    return;
                                 }
+                                const oldClone = JSON.parse(JSON.stringify(cur));
+                                oldClone.slot = emptySlot;
+                                EquipManager.backpackItems.push(oldClone);
                             }
+                            CraftSystem._equippedItem = null;
+                            CraftSystem._equippedSlot = null;
                             this.player.equipments[eKey] = JSON.parse(JSON.stringify(item));
                             // 弹药状态随装备立即初始化（magazine/attackInterval 改造不再等切枪才生效）
                             if (this.player._initAmmoForSlot) this.player._initAmmoForSlot(eKey);
@@ -455,11 +479,7 @@ export function createDragDropManager(EquipManager) {
                             if (item.isTwoHanded && targetSlot === 'weapon') {
                                 const offItem = this.player.equipments['offhand'];
                                 if (offItem && offItem.name) {
-                                    const oldClone = JSON.parse(JSON.stringify(offItem));
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    oldClone.slot = freeSlot;
-                                    this.backpackItems.push(oldClone);
+                                    this._stashDisplaced(offItem);
                                     this.player.equipments['offhand'] = null;
                                     this.callbacks.clearWeaponState('offhand');
                                     if ('offhand' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -471,11 +491,7 @@ export function createDragDropManager(EquipManager) {
                             if (item.isTwoHanded && targetSlot === 'weapon2') {
                                 const offItem = this.player.equipments['ring2'];
                                 if (offItem && offItem.name) {
-                                    const oldClone = JSON.parse(JSON.stringify(offItem));
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    oldClone.slot = freeSlot;
-                                    this.backpackItems.push(oldClone);
+                                    this._stashDisplaced(offItem);
                                     this.player.equipments['ring2'] = null;
                                     this.callbacks.clearWeaponState('ring2');
                                     if ('ring2' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -487,11 +503,7 @@ export function createDragDropManager(EquipManager) {
                             if (targetSlot === 'offhand') {
                                 const wItem = this.player.equipments['weapon'];
                                 if (wItem && wItem.isTwoHanded) {
-                                    const oldClone = JSON.parse(JSON.stringify(wItem));
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    oldClone.slot = freeSlot;
-                                    this.backpackItems.push(oldClone);
+                                    this._stashDisplaced(wItem);
                                     this.player.equipments['weapon'] = null;
                                     this.callbacks.clearWeaponState('weapon');
                                     if ('weapon' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -503,11 +515,7 @@ export function createDragDropManager(EquipManager) {
                             if (targetSlot === 'ring2') {
                                 const wItem = this.player.equipments['weapon2'];
                                 if (wItem && wItem.isTwoHanded) {
-                                    const oldClone = JSON.parse(JSON.stringify(wItem));
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    oldClone.slot = freeSlot;
-                                    this.backpackItems.push(oldClone);
+                                    this._stashDisplaced(wItem);
                                     this.player.equipments['weapon2'] = null;
                                     this.callbacks.clearWeaponState('weapon2');
                                     if ('weapon2' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -673,13 +681,7 @@ export function createDragDropManager(EquipManager) {
                             if (item.isTwoHanded && eKey === 'weapon') {
                                 const offItem = this.player.equipments['offhand'];
                                 if (offItem && offItem.name) {
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    if (freeSlot < 36) {
-                                        const oldClone = JSON.parse(JSON.stringify(offItem));
-                                        oldClone.slot = freeSlot;
-                                        this.backpackItems.push(oldClone);
-                                    }
+                                    this._stashDisplaced(offItem);
                                     this.player.equipments['offhand'] = null;
                                     this.callbacks.clearWeaponState('offhand');
                                     if ('offhand' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -691,13 +693,7 @@ export function createDragDropManager(EquipManager) {
                             if (item.isTwoHanded && eKey === 'weapon2') {
                                 const offItem = this.player.equipments['ring2'];
                                 if (offItem && offItem.name) {
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    if (freeSlot < 36) {
-                                        const oldClone = JSON.parse(JSON.stringify(offItem));
-                                        oldClone.slot = freeSlot;
-                                        this.backpackItems.push(oldClone);
-                                    }
+                                    this._stashDisplaced(offItem);
                                     this.player.equipments['ring2'] = null;
                                     this.callbacks.clearWeaponState('ring2');
                                     if ('ring2' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -709,13 +705,7 @@ export function createDragDropManager(EquipManager) {
                             if (eKey === 'offhand') {
                                 const wItem = this.player.equipments['weapon'];
                                 if (wItem && wItem.isTwoHanded) {
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    if (freeSlot < 36) {
-                                        const oldClone = JSON.parse(JSON.stringify(wItem));
-                                        oldClone.slot = freeSlot;
-                                        this.backpackItems.push(oldClone);
-                                    }
+                                    this._stashDisplaced(wItem);
                                     this.player.equipments['weapon'] = null;
                                     this.callbacks.clearWeaponState('weapon');
                                     if ('weapon' === this.player.weaponMode && this.player._clearSkillOverrides) {
@@ -727,13 +717,7 @@ export function createDragDropManager(EquipManager) {
                             if (eKey === 'ring2') {
                                 const wItem = this.player.equipments['weapon2'];
                                 if (wItem && wItem.isTwoHanded) {
-                                    const used = new Set(this.backpackItems.map(i => i.slot));
-                                    let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                    if (freeSlot < 36) {
-                                        const oldClone = JSON.parse(JSON.stringify(wItem));
-                                        oldClone.slot = freeSlot;
-                                        this.backpackItems.push(oldClone);
-                                    }
+                                    this._stashDisplaced(wItem);
                                     this.player.equipments['weapon2'] = null;
                                     this.callbacks.clearWeaponState('weapon2');
                                     if ('weapon2' === this.player.weaponMode && this.player._clearSkillOverrides) {

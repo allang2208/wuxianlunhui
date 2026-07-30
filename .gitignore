@@ -25,3 +25,6 @@ Thumbs.db
 *.swo
 .venv-sprites/
 weapon-frames/
+tmp_*.png
+vite.probe.config.js
+tools/normalized/

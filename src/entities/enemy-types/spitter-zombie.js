@@ -4,6 +4,7 @@ import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { SoundManager } from '../../ui/sound-manager.js';
+import { getTorsoRect } from '../../physics/torso-hitbox.js';
 
 /**
  * 毒液僵尸（SpitterZombie）
@@ -30,7 +31,7 @@ export class SpitterZombie extends Enemy {
         this._spitTotalFrames = 22;
         this._pendingSpit = null;
 
-        // 头部发射点：基于 90px 显示尺寸与精灵构图估算，向下偏移 20px
+        // 头部发射点兜底偏移（主路径 = 躯干矩形顶边前方，见 _getHeadWorldPosition）
         this._headOffset = { x: 24, y: -8 };
 
         this._setupRangedAttackWrapper();
@@ -124,12 +125,21 @@ export class SpitterZombie extends Enemy {
     }
 
     /**
-     * 估算头部世界坐标（基于精灵朝向 flipX）
-     * 说明：当前没有逐帧骨骼/锚点数据，只能根据 90px 显示尺寸和精灵构图估算。
+     * 头部世界坐标：绿色矩形（躯干判定 projectileHitbox）上 25% 位置的前缘——
+     * 随碰撞编辑器调整自动跟随贴图/碰撞缩放，不再依赖按 90px 贴图估算的固定偏移
      */
     _getHeadWorldPosition() {
         const options = this._getPhaserOptions();
         const dirX = options.flipX ? -1 : 1;
+        const t = (typeof getTorsoRect === 'function') ? getTorsoRect(this) : null;
+        if (t) {
+            // 绿色矩形上 25% 位置（顶边往下 1/4 高处）的前缘
+            return {
+                x: t.cx + dirX * (t.halfW + 6),
+                y: t.cy - t.halfH * 0.5
+            };
+        }
+        // 兜底：旧固定偏移（无躯干判定配置时）
         return {
             x: this.x + dirX * this._headOffset.x,
             y: this.y + this._headOffset.y

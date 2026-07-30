@@ -504,7 +504,7 @@ _initSkills() {
                         description: '在冲刺状态下发动强力突进挥砍，对路径上的敌人造成毁灭性打击',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '近战', type: 'melee' }, { name: '被动', type: 'passive' }],
-                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 94, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 55, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5) }; },
+                        getEffect(level) { return { damageMul: 1.75 + level * 0.05, cooldownReduction: level * 0.02, staminaCost: 20, totalMs: 800, chargeMs: 350, dashDist: 188, movePhaseRatio: 0.4, speedMul: 0.75, bounceRatio: 0.3, slashWindowMs: 400, knockbackBonus: 188, knockbackLevelBonus: 6, rangeBonusBase: 6, rangeLevelBonus: 6, rangeBonusFlat: 55, hitArc: 2 * Math.PI / 3, stunDuration: 500, critMul: 2, rangeEffectLife: 1000, rangeEffectAlpha: 0.5, goldenConvergeDuration: Math.round(1600 / 1.5) }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     dashAttackFire: {
@@ -1352,7 +1352,9 @@ _getEffectivePiercing(basePiercing, item) {
             },
 
 _playFireSound(item, defaultSound = 'gun_fire') {
-                const sound = item && item.fireSound ? item.fireSound : defaultSound;
+                // 改造音效覆盖（如 P4040 锤击点弹药）优先于武器自带 fireSound
+                const sound = (item && item._craftEffects && item._craftEffects.fireSoundOverride)
+                    || (item && item.fireSound) || defaultSound;
                 if (!SoundManager) return;
                 if (sound.startsWith('assets/')) {
                     SoundManager.playFile(sound);
@@ -1405,8 +1407,10 @@ _getMuzzleWorldPosition(hand = 'main') {
                 const up = m && m.up !== undefined ? m.up : 5;
                 const offX = (fracX - 0.5) * sprite.displayWidth + fwd;
                 let offY = (fracY - 0.5) * sprite.displayHeight;
-                // 镜像对称：瞄左（|rot|>90°）贴图 flipY，贴图内 Y 偏移必须同步取反（"火焰左右不对称"根因）
-                if (Math.abs(sprite.rotation) > Math.PI / 2) offY = -offY;
+                // 镜像对称：贴图 flipY（瞄左）时贴图内 Y 偏移必须同步取反（"火焰左右不对称"根因）。
+                // 判定读 sprite.flipY（渲染侧权威状态），不用 |rotation|>90° 反推——
+                // rotOffset（-6°）会让 90°~96° 窗口内反推结果与实际 flip 相反（副手错位根因）
+                if (sprite.flipY) offY = -offY;
                 const cos = Math.cos(sprite.rotation);
                 const sin = Math.sin(sprite.rotation);
                 // 副手专属偏移（配置 muzzle.offhandOffsetX/Y，世界 px）：双持手枪副手开火位微调

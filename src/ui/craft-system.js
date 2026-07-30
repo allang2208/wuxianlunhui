@@ -8,6 +8,7 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI } from './system-ui.js';
 import craftConfigData from '../../data/craft-config.json';
+import { CRAFT_DEFAULT_SLOTS } from '../config/craft-default-slots.js';
 import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-effects.js';
 import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 import { WarehouseSystem } from './warehouse-system.js';
@@ -73,6 +74,7 @@ const CraftSystem = {
         const editBtn = getElement('craftEditBtn');
         const saveBtn = getElement('craftSaveBtn');
         const cancelBtn = getElement('craftCancelBtn');
+        const resetBtn = getElement('craftResetBtn');
         const editHint = getElement('craftEditHint');
         if (!editBar) return;
 
@@ -84,12 +86,14 @@ const CraftSystem = {
             editBtn.style.display = 'none';
             saveBtn.style.display = 'inline-block';
             cancelBtn.style.display = 'inline-block';
-            editHint.textContent = '拖动格子调整位置，拖动虚线端点调整指向';
+            if (resetBtn) resetBtn.style.display = 'inline-block';
+            editHint.textContent = '拖动格子调整位置（贴近其他格子自动吸附对齐），拖动虚线端点调整指向';
         } else {
             editBar.classList.remove('editing');
             editBtn.style.display = hasWeapon ? 'inline-block' : 'none';
             saveBtn.style.display = 'none';
             cancelBtn.style.display = 'none';
+            if (resetBtn) resetBtn.style.display = 'none';
             editHint.textContent = hasWeapon ? '点击"调整布局"开始编辑' : '';
         }
     },
@@ -136,8 +140,48 @@ const CraftSystem = {
         if (!cfg) { this.exitEditMode(); return; }
         // 保存临时数据到当前武器的配置
         cfg.slots = JSON.parse(JSON.stringify(this._editTempSlots));
-        
+        // 即时持久化到 data/craft-config.json（与碰撞编辑器同管道：
+        // Electron IPC → Vite __save-json 双写 → 下载兜底），刷新后布局仍生效
+        this._persistCraftConfig();
         this.exitEditMode();
+    },
+
+    /** 一键重置当前武器布局为出厂默认（craft-default-slots.js），写盘持久化 */
+    resetLayout() {
+        if (!this._equippedItem) return;
+        const cfg = this._getCraftConfig(this._equippedItem.weaponId);
+        const def = CRAFT_DEFAULT_SLOTS[this._equippedItem.weaponId];
+        if (!cfg || !def) return;
+        cfg.slots = JSON.parse(JSON.stringify(def));
+        if (this._isEditing) this._editTempSlots = JSON.parse(JSON.stringify(def));
+        this._editGuides = null;
+        this._persistCraftConfig();
+        this._renderMods();
+    },
+
+    /** 布局持久化：写整个 craft-config（内存已同步，落盘供下次启动读取） */
+    async _persistCraftConfig() {
+        const rel = 'data/craft-config.json';
+        if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.saveJson) {
+            await window.electronAPI.saveJson(rel, this._WEAPON_CRAFT_CONFIGS);
+            return;
+        }
+        try {
+            const r = await fetch('/__save-json', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ rel, data: this._WEAPON_CRAFT_CONFIGS }),
+            });
+            if (r.ok) return;
+        } catch {
+            // 落到下载兜底
+        }
+        const blob = new Blob([JSON.stringify(this._WEAPON_CRAFT_CONFIGS, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'craft-config.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
     },
 
     _setupDragDrop() {
@@ -571,6 +615,30 @@ const CraftSystem = {
             }
             modGrid.appendChild(cell);
         }
+
+        // 编辑模式对齐参考线（吸附命中时显示，贯穿全容器；仿 Photoshop 智能参考线）
+        if (this._isEditing && this._editGuides) {
+            if (this._editGuides.v !== null && this._editGuides.v !== undefined) {
+                const gx = this._editGuides.v * w;
+                const gl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gl.setAttribute('x1', gx); gl.setAttribute('y1', 0);
+                gl.setAttribute('x2', gx); gl.setAttribute('y2', h);
+                gl.setAttribute('stroke', '#4a9eff');
+                gl.setAttribute('stroke-width', '1.5');
+                gl.setAttribute('stroke-dasharray', '6,4');
+                svg.appendChild(gl);
+            }
+            if (this._editGuides.h !== null && this._editGuides.h !== undefined) {
+                const gy = this._editGuides.h * h;
+                const gl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                gl.setAttribute('x1', 0); gl.setAttribute('y1', gy);
+                gl.setAttribute('x2', w); gl.setAttribute('y2', gy);
+                gl.setAttribute('stroke', '#4a9eff');
+                gl.setAttribute('stroke-width', '1.5');
+                gl.setAttribute('stroke-dasharray', '6,4');
+                svg.appendChild(gl);
+            }
+        }
     },
 
     // 绑定编辑拖动事件（仅绑定 start 事件）
@@ -605,12 +673,29 @@ const CraftSystem = {
         const slot = this._editTempSlots[this._editSlotIndex];
         if (this._editDragType === 'cell') {
             // 拖动格子：更新格子的 x, y（相对坐标，0-1）
-            const newX = Math.max(0, Math.min(1, slot.x + dx / w));
-            const newY = Math.max(0, Math.min(1, slot.y + dy / h));
+            let newX = Math.max(0, Math.min(1, slot.x + dx / w));
+            let newY = Math.max(0, Math.min(1, slot.y + dy / h));
+            // 对齐吸附（Photoshop 对齐线）：与其他格子的 x/y 距离在阈值内时吸附，
+            // 并记录激活的对齐线（_renderMods 绘制纵向/横向参考线）
+            const SNAP = 0.015;
+            let guideV = null, guideH = null;
+            let bestX = SNAP, bestY = SNAP;
+            for (let j = 0; j < this._editTempSlots.length; j++) {
+                if (j === this._editSlotIndex) continue;
+                const o = this._editTempSlots[j];
+                const dxc = Math.abs(newX - o.x);
+                if (dxc < bestX) { bestX = dxc; guideV = o.x; }
+                const dyc = Math.abs(newY - o.y);
+                if (dyc < bestY) { bestY = dyc; guideH = o.y; }
+            }
+            if (guideV !== null) newX = guideV;
+            if (guideH !== null) newY = guideH;
+            this._editGuides = { v: guideV, h: guideH };
             slot.x = newX;
             slot.y = newY;
         } else if (this._editDragType === 'target') {
-            // 拖动虚线target端：更新 lineTarget
+            // 拖动虚线target端：更新 lineTarget（不参与格子对齐吸附）
+            this._editGuides = null;
             const newX = Math.max(0, Math.min(1, slot.lineTarget.x + dx / w));
             const newY = Math.max(0, Math.min(1, slot.lineTarget.y + dy / h));
             slot.lineTarget.x = newX;
@@ -624,6 +709,10 @@ const CraftSystem = {
     _onEditEnd() {
         this._editSlotIndex = null;
         this._editDragType = null;
+        if (this._editGuides) {
+            this._editGuides = null;
+            this._renderMods(); // 清除对齐参考线
+        }
     },
 
     _onModCellClick(slotId) {

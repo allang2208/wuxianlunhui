@@ -1694,44 +1694,62 @@
       {
         "id": "muzzle",
         "name": "枪口",
-        "x": 0.08,
-        "y": 0.15,
-        "lineTarget": { "x": 0.503, "y": 0.167 }
+        "x": 0.8731034482758621,
+        "y": 0.14328859060402685,
+        "lineTarget": {
+          "x": 0.8823103448275882,
+          "y": 0.36330872483221527
+        }
       },
       {
         "id": "barrel",
         "name": "枪管",
-        "x": 0.08,
-        "y": 0.4,
-        "lineTarget": { "x": 0.503, "y": 0.224 }
+        "x": 0.5167816091954027,
+        "y": 0.1718120805369128,
+        "lineTarget": {
+          "x": 0.6524252873563231,
+          "y": 0.37332885906040403
+        }
       },
       {
         "id": "sight",
         "name": "瞄具",
-        "x": 0.08,
-        "y": 0.65,
-        "lineTarget": { "x": 0.502, "y": 0.609 }
+        "x": 0.08862068965517317,
+        "y": 0.1718120805369126,
+        "lineTarget": {
+          "x": 0.2433793103448272,
+          "y": 0.3606778523489924
+        }
       },
       {
         "id": "magazine",
         "name": "弹夹",
-        "x": 0.917,
-        "y": 0.275,
-        "lineTarget": { "x": 0.507, "y": 0.454 }
+        "x": 0.13539080459770106,
+        "y": 0.8471476510067121,
+        "lineTarget": {
+          "x": 0.22539080459770086,
+          "y": 0.5764832214765105
+        }
       },
       {
         "id": "bullet",
         "name": "子弹",
-        "x": 0.92,
-        "y": 0.134,
-        "lineTarget": { "x": 0.507, "y": 0.456 }
+        "x": 0.5349425287356335,
+        "y": 0.8470872483221471,
+        "lineTarget": {
+          "x": 0.291482758620689,
+          "y": 0.5029798657718126
+        }
       },
       {
         "id": "trigger",
         "name": "板机",
-        "x": 0.92,
-        "y": 0.55,
-        "lineTarget": { "x": 0.503, "y": 0.572 }
+        "x": 0.9142528735632186,
+        "y": 0.8469798657718136,
+        "lineTarget": {
+          "x": 0.4886321839080444,
+          "y": 0.46126174496644234
+        }
       }
     ],
     "options": {
@@ -1856,7 +1874,11 @@
           "effects": {
             "fireModeOverride": "fullAuto",
             "attackIntervalDelta": -75,
-            "spreadParamsOverride": { "startDelay": 1000, "maxTime": 3000, "maxAngle": 15 }
+            "spreadParamsOverride": {
+              "startDelay": 1000,
+              "maxTime": 3000,
+              "maxAngle": 15
+            }
           }
         }
       ]
@@ -2274,7 +2296,7 @@
         },
         {
           "id": "sniper_ammo",
-          "name": "高精度狙击弹",
+          "name": "高���度狙击弹",
           "icon": "🎯",
           "desc": "射程+200px，散布达到最大时间+0.5秒",
           "effects": {
@@ -3051,6 +3073,216 @@
           "effects": {
             "spreadStartDelta": 1000,
             "highPowerScope": true
+          }
+        }
+      ]
+    }
+  },
+  "weapon18": {
+    "slots": [
+      {
+        "id": "muzzle",
+        "name": "枪口",
+        "x": 0.08,
+        "y": 0.15,
+        "lineTarget": {
+          "x": 0.503,
+          "y": 0.167
+        }
+      },
+      {
+        "id": "barrel",
+        "name": "枪管",
+        "x": 0.08,
+        "y": 0.4,
+        "lineTarget": {
+          "x": 0.503,
+          "y": 0.224
+        }
+      },
+      {
+        "id": "sight",
+        "name": "瞄具",
+        "x": 0.08,
+        "y": 0.65,
+        "lineTarget": {
+          "x": 0.502,
+          "y": 0.609
+        }
+      },
+      {
+        "id": "magazine",
+        "name": "弹夹",
+        "x": 0.917,
+        "y": 0.275,
+        "lineTarget": {
+          "x": 0.507,
+          "y": 0.454
+        }
+      },
+      {
+        "id": "bullet",
+        "name": "子弹",
+        "x": 0.92,
+        "y": 0.134,
+        "lineTarget": {
+          "x": 0.507,
+          "y": 0.456
+        }
+      },
+      {
+        "id": "trigger",
+        "name": "板机",
+        "x": 0.92,
+        "y": 0.55,
+        "lineTarget": {
+          "x": 0.503,
+          "y": 0.572
+        }
+      }
+    ],
+    "options": {
+      "muzzle": [
+        {
+          "id": "elite_brake",
+          "name": "精英制退器",
+          "icon": "⚙",
+          "desc": "每次射击散布-2°，后坐力恢复时间-150ms；全自动模式下散布开始/达到最大+0.5s，最大散布角度-5°",
+          "effects": {
+            "shotSpreadDelta": -2,
+            "recoilRecoveryDelta": -150,
+            "autoSpreadStartDelta": 500,
+            "autoSpreadTimeDelta": 500,
+            "autoMaxSpreadAngleDelta": -5
+          }
+        },
+        {
+          "id": "pistol_suppressor",
+          "name": "手枪消音器",
+          "icon": "🔇",
+          "desc": "后坐力恢复时间-100ms，射程-200px，击退+35px；全自动模式下散布开始/达到最大+0.25s",
+          "effects": {
+            "recoilRecoveryDelta": -100,
+            "rangeDelta": -200,
+            "knockbackDelta": 35,
+            "autoSpreadStartDelta": 250,
+            "autoSpreadTimeDelta": 250
+          }
+        }
+      ],
+      "barrel": [
+        {
+          "id": "longshot_barrel",
+          "name": "远射枪管",
+          "icon": "📏",
+          "desc": "射程+300px，每次射击散布-1°，后坐力恢复时间-50ms；全自动模式下散布开始/达到最大+0.25s，最大散布角度-5°",
+          "effects": {
+            "rangeDelta": 300,
+            "shotSpreadDelta": -1,
+            "recoilRecoveryDelta": -50,
+            "autoSpreadStartDelta": 250,
+            "autoSpreadTimeDelta": 250,
+            "autoMaxSpreadAngleDelta": -5
+          }
+        },
+        {
+          "id": "cqb_barrel",
+          "name": "近战短管",
+          "icon": "✂️",
+          "desc": "移动速度+5%，每次射击散布+1°，后坐力恢复时间+100ms；全自动模式下散布开始/达到最大-0.25s",
+          "effects": {
+            "moveSpeedPercent": 0.05,
+            "shotSpreadDelta": 1,
+            "recoilRecoveryDelta": 100,
+            "autoSpreadStartDelta": -250,
+            "autoSpreadTimeDelta": -250
+          }
+        }
+      ],
+      "sight": [
+        {
+          "id": "red_dot",
+          "name": "全景红点瞄具",
+          "icon": "🔴",
+          "desc": "散布开始 +1秒，单倍瞄准模式",
+          "effects": {
+            "spreadStartDelta": 1000,
+            "redDotScope": true
+          }
+        }
+      ],
+      "magazine": [
+        {
+          "id": "light_extended_mag",
+          "name": "轻型扩容弹夹",
+          "icon": "📦",
+          "desc": "备弹+6",
+          "effects": {
+            "magazineDelta": 6
+          }
+        },
+        {
+          "id": "long_extended_mag",
+          "name": "长扩容弹夹",
+          "icon": "🗃",
+          "desc": "备弹+12，换弹时间+300ms",
+          "effects": {
+            "magazineDelta": 12,
+            "reloadTimeDelta": 300
+          }
+        }
+      ],
+      "bullet": [
+        {
+          "id": "hammer_point",
+          "name": "锤击点弹药",
+          "icon": "🔨",
+          "desc": "防御穿透+15%，目标穿透+1，射击音效替换为沉重锤击声",
+          "effects": {
+            "armorPenetrationPercent": 0.15,
+            "piercingBonus": 1,
+            "fireSoundOverride": "assets/sounds/weapons/p4040_hammer_fire.mp3"
+          }
+        },
+        {
+          "id": "border_light_ammo",
+          "name": "边境轻型弹药",
+          "icon": "🪶",
+          "desc": "备弹数+6，换弹时间-300ms",
+          "effects": {
+            "magazineDelta": 6,
+            "reloadTimeDelta": -300
+          }
+        }
+      ],
+      "trigger": [
+        {
+          "id": "auto_trigger",
+          "name": "全自动板机",
+          "icon": "⚡",
+          "desc": "切换为全自动射击模式，射击间隔-100ms；散布开始0.75s、2s达最大、最大散布±15°",
+          "effects": {
+            "fireModeOverride": "fullAuto",
+            "attackIntervalDelta": -100,
+            "spreadParamsOverride": {
+              "startDelay": 750,
+              "maxTime": 2000,
+              "maxAngle": 15
+            }
+          }
+        },
+        {
+          "id": "lightweight_trigger",
+          "name": "轻量化快速板机",
+          "icon": "🪶",
+          "desc": "攻击间隔-100ms，换弹时间-500ms；每次射击击中目标获得2s加速buff（移动速度+10%）",
+          "effects": {
+            "attackIntervalDelta": -100,
+            "reloadTimeDelta": -500,
+            "onHitSpeedBuff": {
+              "durationMs": 2000,
+              "speedPercent": 0.1
+            }
           }
         }
       ]

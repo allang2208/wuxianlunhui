@@ -23,7 +23,9 @@
                 const text = phaserScene.add.text(this.x, this.y, this.text, {
                     fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
                     fontSize: `${this.fontSize}px`,
-                    color: this.color
+                    color: this.color,
+                    // 黑描边（宝箱倒计时同款）：彩色浮字在亮地板上也可读，字号不变
+                    stroke: '#000000', strokeThickness: 3,
                 });
                 text.setOrigin(0.5, 0.5);
                 text.setDepth(this.y + 1000);
