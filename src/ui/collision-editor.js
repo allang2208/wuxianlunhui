@@ -281,6 +281,7 @@ export const CollisionEditor = {
         };
         modeBtns.appendChild(mkModeBtn('cylinder', '🟧 调整圆柱'));
         modeBtns.appendChild(mkModeBtn('rect', '🟩 调整矩形'));
+        modeBtns.appendChild(mkModeBtn('sprite', '🖼️ 调整贴图'));
         panel.appendChild(modeBtns);
         this._modeBtnsEl = modeBtns;
 
@@ -323,7 +324,8 @@ export const CollisionEditor = {
         if (this._kind === 'enemy' || this._kind === 'npc') {
             this._infoEl.innerHTML = `<div>圆柱半径: ${r1(s.radius)} 高: ${r1(s.height)}</div>`
                 + `<div>矩形: ${r1(s.rect.width)} × ${r1(s.rect.height)}</div>`
-                + `<div>偏移: X ${r1(s.offsetX)} / Y ${r1(s.offsetY)}</div>`;
+                + `<div>偏移: X ${r1(s.offsetX)} / Y ${r1(s.offsetY)}</div>`
+                + `<div>贴图尺寸: ${r1(s.spriteSize)}</div>`;
         } else if (this._kind === 'wall') {
             this._infoEl.innerHTML = `<div>face: (${r1(s.face[0][0])},${r1(s.face[0][1])}) → (${r1(s.face[1][0])},${r1(s.face[1][1])})</div>`
                 + `<div>碰撞半厚: ${r1(s.halfThick)}</div>`;
@@ -730,12 +732,22 @@ export const CollisionEditor = {
                 offsetX: 0, bottom: 0,
             };
         }
+        // 贴图尺寸（调整贴图大小模式用）：enemy=render.spriteSize（最长边 px）；NPC spriteCfg=size；纯色圆=size
+        let spriteSize;
+        if (this._kind === 'enemy') {
+            spriteSize = (e.config && e.config.render && e.config.render.spriteSize) || (e.size || 14) * 4;
+        } else if (e.spriteCfg) {
+            spriteSize = e.spriteCfg.size || 128;
+        } else {
+            spriteSize = e.size || 16;
+        }
         this._edit = {
             radius: e.collisionRadius > 0 ? e.collisionRadius : c.radius,
             height: c.height,
             offsetX: e.colliderOffsetX || 0,
             offsetY: e.colliderOffsetY || 0,
             rect,
+            spriteSize,
         };
     },
 
@@ -763,6 +775,21 @@ export const CollisionEditor = {
             e.collisionHeight = s.rect.height;
         }
         e.rebuildCollider();
+        // 贴图尺寸（调整贴图大小模式）：应用到预览精灵
+        if (s.spriteSize > 0) {
+            const sp = e._phaserSprite;
+            if (this._kind === 'enemy') {
+                e.config.render.spriteSize = s.spriteSize;
+                const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                if (scene && sp && typeof scene._configureEnemyBody === 'function') scene._configureEnemyBody(sp, e);
+            } else if (e.spriteCfg) {
+                e.spriteCfg.size = s.spriteSize;
+                if (sp) sp.setDisplaySize(s.spriteSize, s.spriteSize);
+            } else {
+                e.size = s.spriteSize;
+                if (sp) sp.setDisplaySize(s.spriteSize * 2, s.spriteSize * 2);
+            }
+        }
         this._syncConfig();
         this._updateInfo();
     },
@@ -790,6 +817,8 @@ export const CollisionEditor = {
             // （配置完整性校验要求 collisionHeight === projectileHitbox.height）
             cfg.render.collisionWidth = r1(s.rect.width);
             cfg.render.collisionHeight = r1(s.rect.height);
+            // 贴图尺寸（调整贴图大小模式；与显示同口径最长边 px）
+            if (s.spriteSize > 0) cfg.render.spriteSize = r1(s.spriteSize);
         } else {
             const n = (GAME_CONFIG.npcs || {})[this._key];
             if (!n) return;
@@ -801,6 +830,11 @@ export const CollisionEditor = {
             n.collisionHeight = r1(s.rect.height);
             n.colliderOffsetX = r1(s.offsetX);
             n.colliderOffsetY = r1(s.offsetY);
+            // 贴图尺寸：spriteCfg → sprite.size；纯色圆 → size
+            if (s.spriteSize > 0) {
+                if (n.sprite) n.sprite.size = r1(s.spriteSize);
+                else n.size = r1(s.spriteSize);
+            }
         }
     },
 
@@ -820,6 +854,7 @@ export const CollisionEditor = {
                     colliderOffsetX: r.colliderOffsetX,
                     colliderOffsetY: r.colliderOffsetY,
                     projectileHitbox: r.projectileHitbox,
+                    spriteSize: r.spriteSize,
                 },
             }));
         } else if (this._kind === 'npc') {
@@ -832,6 +867,7 @@ export const CollisionEditor = {
                 collisionHeight: n.collisionHeight,
                 colliderOffsetX: n.colliderOffsetX,
                 colliderOffsetY: n.colliderOffsetY,
+                spriteSize: n.sprite ? n.sprite.size : n.size,
             }));
         } else if (this._kind === 'trap') {
             this._baseline = JSON.parse(JSON.stringify(((DungeonConfig.raw[TRAP_KEY] || {}).traps) || {}));
@@ -891,7 +927,15 @@ export const CollisionEditor = {
             }
         } else {
             const n = (GAME_CONFIG.npcs || {})[this._key];
-            if (n) this._restoreFields(n, this._baseline);
+            if (n) {
+                this._restoreFields(n, this._baseline);
+                // spriteSize 不是配置键：按实体形态回写 sprite.size / size
+                if (this._baseline.spriteSize !== undefined) {
+                    if (n.sprite) n.sprite.size = this._baseline.spriteSize;
+                    else n.size = this._baseline.spriteSize;
+                }
+                delete n.spriteSize;
+            }
         }
         // 重新生成预览体：实体字段全部按配置重新推导
         this._removePreview();
@@ -1037,11 +1081,21 @@ export const CollisionEditor = {
         if (this._isGeoKind()) { this._onGeoMouseDown(pt); return; }
         if (!this._entity) return;
 
+        // 调整贴图大小模式：按住预览贴图拖拽等比缩放（上拖放大、下拖缩小）
+        if (this._editMode === 'sprite') {
+            const sp = this._entity._phaserSprite;
+            if (sp && sp.getBounds().contains(pt.x, pt.y)) {
+                this._drag = { mode: 'spriteScale', startY: pt.y, startSize: this._edit.spriteSize };
+            }
+            return;
+        }
+
         const hs = HANDLE_SCREEN / this._zoom();
         const onlyCyl = this._editMode === 'cylinder';
         const onlyRect = this._editMode === 'rect';
+        const spriteOnly = this._editMode === 'sprite';
         // 1) 矩形八点手柄（仅 both/rect 模式可用）
-        if (!onlyCyl) {
+        if (!onlyCyl && !spriteOnly) {
             for (const h of this._rectHandles()) {
                 if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
                     const g = this._rectGeom();
@@ -1055,7 +1109,7 @@ export const CollisionEditor = {
             }
         }
         // 2) 圆柱半径手柄（仅 both/cylinder 模式可用）
-        if (!onlyRect) {
+        if (!onlyRect && !spriteOnly) {
             const rh = this._radiusHandlePos();
             if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
                 this._drag = { mode: 'radius' };
@@ -1068,7 +1122,7 @@ export const CollisionEditor = {
                 return;
             }
         }
-        // 4) 矩形内部 / 底部椭圆内部 → 整体拖动（colliderOffset；按调整范围过滤）
+        // 4) 矩形内部 / 底部椭圆内部 → 位置拖动（按调整范围：both=两体积同步、rect=只动矩形、cylinder=只动圆柱）
         const g = this._rectGeom();
         const inRect = !onlyCyl && pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
         const c = this._entity.collider;
@@ -1077,9 +1131,11 @@ export const CollisionEditor = {
         const inEllipse = !onlyRect && rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
         if (inRect || inEllipse) {
             this._drag = {
-                mode: 'move',
+                // both 模式优先矩形内命中（重叠区按同步处理）
+                mode: (this._editMode === 'rect') ? 'rectMove' : 'move',
                 startPt: { x: pt.x, y: pt.y },
                 startOffset: { x: this._edit.offsetX, y: this._edit.offsetY },
+                startRect: { offsetX: this._edit.rect.offsetX, bottom: this._edit.rect.bottom },
             };
         }
     },
@@ -1168,8 +1224,25 @@ export const CollisionEditor = {
             s.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, c.y - pt.y));
             this._applyEdit();
         } else if (d.mode === 'move') {
-            s.offsetX = d.startOffset.x + (pt.x - d.startPt.x);
-            s.offsetY = d.startOffset.y + (pt.y - d.startPt.y);
+            // 圆柱位置（colliderOffset）；both 模式同步带动矩形位置
+            const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
+            s.offsetX = d.startOffset.x + dx;
+            s.offsetY = d.startOffset.y + dy;
+            if (this._editMode !== 'cylinder' && d.startRect) {
+                s.rect.offsetX = d.startRect.offsetX + dx;
+                s.rect.bottom = d.startRect.bottom - dy; // by=c.y-bottom：向下拖 → bottom 减小
+            }
+            this._applyEdit();
+        } else if (d.mode === 'spriteScale') {
+            // 贴图等比缩放：上拖放大（150px 拖程=1 倍）
+            const factor = Math.max(0.1, 1 + (d.startY - pt.y) / 150);
+            s.spriteSize = Math.max(8, Math.min(1200, d.startSize * factor));
+            this._applyEdit();
+        } else if (d.mode === 'rectMove') {
+            // 只动矩形位置（rect.offsetX / rect.bottom），圆柱不动
+            const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
+            s.rect.offsetX = d.startRect.offsetX + dx;
+            s.rect.bottom = d.startRect.bottom - dy;
             this._applyEdit();
         }
     },
@@ -1289,7 +1362,8 @@ export const CollisionEditor = {
         // ---- 手柄：矩形八点（白）+ 半径/高度（橙），按调整范围过滤 ----
         const onlyCyl = this._editMode === 'cylinder';
         const onlyRect = this._editMode === 'rect';
-        if (!onlyCyl) {
+        const spriteOnly = this._editMode === 'sprite';
+        if (!onlyCyl && !spriteOnly) {
             g.fillStyle(0xffffff, 1);
             g.lineStyle(1 / zoom, 0x333333, 1);
             for (const h of this._rectHandles()) {
@@ -1297,7 +1371,7 @@ export const CollisionEditor = {
                 g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
             }
         }
-        if (!onlyRect) {
+        if (!onlyRect && !spriteOnly) {
             g.fillStyle(0xffaa00, 1);
             const rh = this._radiusHandlePos();
             g.fillRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);

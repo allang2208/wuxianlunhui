@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+### 对话：碰撞编辑器独立位置/贴图缩放 + 陷阱音效 + 陶罐（2026-07-30，V0.348）
+
+- **① 矩形/圆柱独立位置调整**：`_editMode` 模式语义完善——`rect` 模式：八点+**矩形专属位置拖动**（projectileHitbox.offsetX/bottom，圆柱不动）；`cylinder` 模式：半径/高度+**圆柱专属位置拖动**（colliderOffset，矩形不动）；`both`（默认）：位置拖动**同步带动两体积**（圆柱 offsetX/Y 与矩形 offsetX/bottom 同位移）。新增 drag mode `rectMove`（只动矩形）。
+- **② 调整贴图大小按钮**：模式行第三键「🖼️ 调整贴图」——按住预览贴图上拖放大/下拖缩小（150px 拖程=1 倍，0.1~8 倍钳制）；enemy 写 `render.spriteSize`（最长边 px，与 `_configureEnemyBody` 显示同口径）、贴图 NPC 写 `sprite.size`、纯色圆写 `size`；基线快照含 spriteSize，重置可回退。
+- **③ 保存链路核查**：enemy 全字段（collisionRadius/height/colliderOffset/projectileHitbox/collisionWidth/Height/spriteSize）→ `data/enemy-config.json`；NPC 全字段（collisionRadius/height/collisionShape/collisionWidth/Height/colliderOffset/sprite.size 或 size）→ `data/game-config.json`，均走 `_persistJson` 双写管道+运行时同步，链路完整。
+- **④ 陷阱触发音效**：`trap.mp3` → `assets/sounds/environment/trap.mp3`，地刺动画开始播放时（delay→playing 切换点）`SoundManager.playFile` 播放。
+- **⑤ 陶罐障碍物**：`obstacle_pot.png`（414×512，foot 251×87，obstacleH 120）入 `ISO_WALL_GEO.pot`+BootScene；**木桶贴图替换**（新版 357×512，foot 277×96，geo 同步更新）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过。
+- **已知问题**：贴图缩放拖程手感、rect 模式位置拖动与 both 同步拖动的区分需实机确认。
+
 ### 对话：NPC 位置保存锚点修复（2026-07-30，V0.347）
 
 - **根因**：NPC 位置编辑器保存时，相对 NPC（侍从/仓库/祭坛）的 offset 按**小鼠大王实时位置**计算——大王会游走，保存瞬间它若不在配置锚点，offset 就带上了游走位移量；下次生成（spawnNPC 按配置锚点+offset）NPC 就出现在偏移后的位置（"重启后回原位"）。修复：`_npcBasePos` 一律用**配置锚点**（世界中心+大王配置 offset，与 spawnNPC 同口径），保存的 offset 在任何时刻都与生成端一致。
