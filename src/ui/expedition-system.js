@@ -937,6 +937,13 @@ export const ExpeditionSystem = {
             const player = Game.player;
             const dungeonType = this.selectedDungeon || 'zombie';
 
+            // 出征前保存主神空间状态（depart 绕开 switchScene 直接清实体——不保存的话，
+            // 返回时 SceneManager._mainEntities 为空，_loadMainScene 走兜底只剩光杆玩家，
+            // "放弃/撤离/通关返回后主神空间什么都没有"的根因）
+            if (SceneManager && typeof SceneManager._saveMainSceneState === 'function') {
+                SceneManager._saveMainSceneState();
+            }
+
             // 清理主神空间实体（传送门/NPC/怪物/掉落物），防止地图模式下小地图泄露残留蓝点
             const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
             if (phaserScene) {

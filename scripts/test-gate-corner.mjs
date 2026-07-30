@@ -41,14 +41,27 @@ function runCase(S, vertexName) {
     const player = V[vertexName];
 
     const straightTex = ISO_WALL_GEO.straight.tex;
+    // 与 _setupGate 同口径：排除近顶点件（转角臂+近整瓦重复瓦片，端点距顶点 < 0.8×瓦长）
+    const g0 = ISO_WALL_GEO.straight;
+    const s0 = ISO_WALL_HEIGHT / g0.wallH, sy0 = s0 * slopeFixOf(g0);
+    const faceLen0 = Math.hypot((g0.face[1][0] - g0.face[0][0]) * s0, (g0.face[1][1] - g0.face[0][1]) * sy0);
+    const verts = [{ x: cx, y: cy - ry }, { x: cx, y: cy + ry }, { x: cx - rx, y: cy }, { x: cx + rx, y: cy }];
+    const nearVertex = (p) => {
+        const seg = WallSystem._pieceBaseSegments(p)[0];
+        if (!seg) return true;
+        return seg.some(pt => verts.some(V => Math.hypot(pt.x - V.x, pt.y - V.y) < 0.8 * faceLen0));
+    };
     let best = null, bestD = Infinity;
     for (const p of WallSystem.isoVisuals) {
-        if (p.tex !== straightTex || p._corner) continue;
+        if (p.tex !== straightTex || p._corner || nearVertex(p)) continue;
         const d = Math.hypot(p.x - player.x, p.y - player.y);
         if (d < bestD) { bestD = d; best = p; }
     }
     if (!best) { console.log(`S=${S} ${vertexName}: 无候选件！`); return false; }
-    const [A, Bb] = WallSystem._pieceBaseSegments(best)[0];
+    const [A0, Bb] = WallSystem._pieceBaseSegments(best)[0];
+    // 门闸锚点沿边回退 8px（与 _setupGate 同口径）
+    const _l = Math.hypot(Bb.x - A0.x, Bb.y - A0.y) || 1;
+    const A = { x: A0.x - (Bb.x - A0.x) / _l * 8, y: A0.y - (Bb.y - A0.y) / _l * 8 };
 
     const g = ISO_WALL_GEO.gate;
     const s = ISO_WALL_HEIGHT / g.wallH, sx = s, sy = s * slopeFixOf(g);
@@ -67,7 +80,7 @@ function runCase(S, vertexName) {
     const g1 = baseAt(g.gateX[0]), g2 = baseAt(g.gateX[1]);
 
     WallSystem.isoVisuals.splice(WallSystem.isoVisuals.indexOf(best), 1);
-    const dups = WallSystem.removeSpanCoveringPieces([A, Bb]);
+    const dups = WallSystem.removeSpanCoveringPieces([A0, Bb]);
     WallSystem.rebuildIsoCollision();
 
     let blocked = 0;
@@ -75,8 +88,32 @@ function runCase(S, vertexName) {
         const dist = segSegDist({ x: seg.x1, y: seg.y1 }, { x: seg.x2, y: seg.y2 }, g1, g2);
         if (dist < 20) blocked++;
     }
-    const ok = blocked === 0;
-    console.log(`  ${ok ? '✓' : '✗'} S=${S} ${vertexName}: 摘重复件 ${dups.length}，门洞${ok ? '畅通' : `被 ${blocked} 段堵死`}`);
+    // 断口检查：门所在边的结构覆盖（墙件 + 门全段）不得有 >10px 未覆盖区间
+    const gA = baseAt(g.base[0][0]), gB = baseAt(g.base[1][0]);
+    const ex = Bb.x - A0.x, ey = Bb.y - A0.y;
+    const elen = Math.hypot(ex, ey) || 1;
+    const ux = ex / elen, uy = ey / elen;
+    const intervals = [];
+    const collect = (a, b) => {
+        const distA = Math.abs((a.x - A0.x) * uy - (a.y - A0.y) * ux);
+        const distB = Math.abs((b.x - A0.x) * uy - (b.y - A0.y) * ux);
+        if (distA > 30 || distB > 30) return;
+        const pa = (a.x - A0.x) * ux + (a.y - A0.y) * uy;
+        const pb = (b.x - A0.x) * ux + (b.y - A0.y) * uy;
+        intervals.push([Math.min(pa, pb), Math.max(pa, pb)]);
+    };
+    for (const p of WallSystem.isoVisuals) {
+        for (const [sa, sb] of WallSystem._pieceBaseSegments(p)) collect(sa, sb);
+    }
+    collect(gA, gB);
+    intervals.sort((m, n) => m[0] - n[0]);
+    let coverEnd = -Infinity, maxGap = 0;
+    for (const [lo, hi] of intervals) {
+        if (coverEnd > -Infinity && lo - coverEnd > maxGap) maxGap = lo - coverEnd;
+        coverEnd = Math.max(coverEnd, hi);
+    }
+    const ok = blocked === 0 && maxGap <= 10;
+    console.log(`  ${ok ? '✓' : '✗'} S=${S} ${vertexName}: 摘重复件 ${dups.length}，门洞${blocked ? `被 ${blocked} 段堵死` : '畅通'}，边断口 ${maxGap.toFixed(0)}px`);
     return ok;
 }
 

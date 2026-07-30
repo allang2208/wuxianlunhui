@@ -319,6 +319,12 @@ export class GameScene extends Scene {
                 const offParams = { ..._game.player._getOffhandWeaponAnimParams(), state: _game.player.offhandWeaponAnim.state, timer: _game.player.offhandWeaponAnim.timer, isAttacking: _game.player.offhandWeaponAnim.isAttacking };
                 this.syncWeapon(_game.player, mainParams);
                 this.syncOffhandWeapon(_game.player, offParams);
+                // 闪避期间隐藏主手/副手武器贴图（syncWeapon 每帧重设可见性，此处统一覆盖；
+                // 闪避结束 isDodging=false 后由 syncWeapon 自动恢复，无需显式还原）
+                if (_game.player.isDodging) {
+                    if (this.weaponSprite) this.weaponSprite.setVisible(false);
+                    if (this.offhandWeaponSprite) this.offhandWeaponSprite.setVisible(false);
+                }
             }
         }
 
@@ -749,7 +755,7 @@ export class GameScene extends Scene {
         if (ChestRoomSystem && ChestRoomSystem._gate && ChestRoomSystem._gate.sprite && ChestRoomSystem._gate.sprite.active) {
             const cg = ChestRoomSystem._gate;
             const cgg = WallSystem._geoForTex(cg.sprite.texture ? cg.sprite.texture.key : 'wall_gate');
-            const cgSegs = [...(cg.segs || []), cg.gateSeg].filter(Boolean)
+            const cgSegs = [...(cg.segs || []), ...(cg.open ? [] : [cg.gateSeg])].filter(Boolean)
                 .map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]);
             occluders.push({
                 sprite: cg.sprite,
@@ -1493,15 +1499,19 @@ export class GameScene extends Scene {
         // 近战保留守卫（attack_sword 动画在 playerSprite 上，不能被覆盖）
         const _isGunPose = currentItem && isGunWeapon(currentItem);
         if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
+        // 闪避翻滚动画播放期间不被移动状态机覆盖（结束/被打断后由下方正常逻辑接管）
+        if (player.isDodging) return;
         if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
 
         // 冲刺攻击末帧定格：dash 结束后 0.5s 内保持定格（不切 idle），到点播恢复动画（0.5s）
         if (player._dashRecoverAt) {
             if (performance.now() < player._dashRecoverAt) {
                 // 定格贴图 = dash_recover 首帧（2026-07-29 起；原定格=dash_attack 末帧）
-                if (this.playerSprite.texture.key !== 'dash_recover' || Number(this.playerSprite.frame.name) !== 0) {
+                // 纹理键必须走 playerTextureKey（player_<动画键>），裸键不存在会渲染成空白
+                const freezeTex = playerTextureKey('dash_recover');
+                if (this.playerSprite.texture.key !== freezeTex || Number(this.playerSprite.frame.name) !== 0) {
                     this.playerSprite.anims.stop();
-                    this.playerSprite.setTexture('dash_recover', 0);
+                    this.playerSprite.setTexture(freezeTex, 0);
                 }
                 return;
             }
@@ -1917,6 +1927,12 @@ export class GameScene extends Scene {
         const spriteOffY = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].spriteOffsetY;
         if (spriteOffX) pos.x += gunFlipY ? -spriteOffX : spriteOffX;
         if (spriteOffY) pos.y += spriteOffY;
+        // 逐武器瞄准贴图微调（配置 aimSpriteOffsetX/Y，世界 px × _aimEase 混合）：
+        // 只动瞄准态贴图渲染位置，腰射（ease=0）不变；手臂/锚点与弹道同样不受影响
+        const aimSprOffX = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetX;
+        const aimSprOffY = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].aimSpriteOffsetY;
+        if (aimSprOffX) pos.x += (gunFlipY ? -aimSprOffX : aimSprOffX) * (this._aimEase || 0);
+        if (aimSprOffY) pos.y += aimSprOffY * (this._aimEase || 0);
 
         this.weaponSprite.setPosition(pos.x, pos.y);
         this.weaponSprite.setRotation(rot);

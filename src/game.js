@@ -181,6 +181,10 @@ export const Game = {
                 this.entities.set(`portal_scene_${i + 2}`, portal);
                 EffectManager.add(new FloatingTextEffect(px, py - 30, entry.label, '#5a9a8a'));
             }
+            // 初始主神空间状态缓存：与 switchScene 离开时的保存同口径——
+            // 出征 depart() 绕开 switchScene 清实体，任何返回路径（放弃/撤离/通关/死亡）
+            // 都靠这份缓存恢复主神空间，而不是重新生成
+            SceneManager._saveMainSceneState();
             this.isRunning = true; this.lastTime = performance.now(); this.loop(this.lastTime);
         } catch(e) {
             const el = document.createElement('div');

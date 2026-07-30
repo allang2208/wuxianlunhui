@@ -202,13 +202,29 @@ export const ChestRoomSystem = {
         sprite.setOrigin(0.5, 0.5);
         sprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
         sprite.setFlipX(!!piece.flipX);
-        // 图层沿用预制保存值（仅平移）
-        sprite.setDepth((p.depth ?? p.y) + oy);
 
         // 碰撞：门两侧常开 + 门洞按开关启停（与 wall-gate 同模型）
         const [gA, gB] = WallSystem._pieceBaseSegments(piece)[0];
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(g.gateX[0]), g2 = baseAt(g.gateX[1]);
+        // 图层（2026-07-30 修复）：不再沿用预制保存值——宝箱房是低矮装饰围墙，实体应始终画在墙上
+        // （右侧直墙件因贴图够不着天然如此；门墙贴图高、门区实体脚线落入其覆盖带会被门框盖住，
+        //  "门墙左侧挡住玩家/怪物、右边正常"根因）。深度=底边最低点-显示墙高：凡脚线低于
+        //  门墙贴图顶沿的实体深度必然更高（画在墙上），脚线更高的实体贴图本就够不着。
+        //  顺带满足"门墙 depth 最低"手调规则（右侧件盖住门墙右端切边）。
+        const hWall = (g.wallH || 290) * (piece.scaleY ?? 1);
+        let gateDepth = Math.min(gA.y, gB.y) - hWall;
+        // 接缝图层（2026-07-30 续）：上端邻墙（房内上侧墙，端点距 gA ≤40px——预制手摆
+        // 端点有 ~25px 间隙，取不了 2px 精确共享）必须在门墙之下——"下>左"转角规则在门墙侧
+        // 的同款：门墙盖住上方墙面的切边，否则上方墙面的裁切边压在门墙上（"上方墙面阻挡门墙"）。
+        // 只拉 gA 上端邻墙，右侧件（gB 端）保持盖住门墙的手调规则不动。
+        // 门区实体深度（≈脚线+10）仍高于该值，实体遮挡行为不受影响
+        for (const q of WallSystem.isoVisuals) {
+            const segs2 = WallSystem._pieceBaseSegments(q);
+            const shares = segs2.some(seg => seg.some(pt => Math.hypot(pt.x - gA.x, pt.y - gA.y) < 40));
+            if (shares && (q.depth ?? 0) + 0.1 > gateDepth) gateDepth = q.depth + 0.1;
+        }
+        sprite.setDepth(gateDepth);
         const segs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: 10, _chestGate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: 10, _chestGate: true },

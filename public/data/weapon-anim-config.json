@@ -251,7 +251,8 @@
       "x": 0.96,
       "y": 0.38
     },
-    "spriteOffsetY": 5
+    "spriteOffsetY": 5,
+    "aimSpriteOffsetY": 5
   },
   "qjb201": {
     "holdOffsetX": -64,

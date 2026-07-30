@@ -596,5 +596,35 @@
     ],
     "frameRate": 46.67,
     "repeat": 0
+  },
+  "dodge_roll": {
+    "type": "sheet",
+    "src": "assets/player/dodge_roll.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 4,
+    "frameCount": 25,
+    "frames": [
+      0,
+      24
+    ],
+    "frameRate": 83.33,
+    "repeat": 0
+  },
+  "dodge_jump": {
+    "type": "sheet",
+    "src": "assets/player/dodge_jump.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 4,
+    "frameCount": 28,
+    "frames": [
+      0,
+      27
+    ],
+    "frameRate": 93.33,
+    "repeat": 0
   }
 }
