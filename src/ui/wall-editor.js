@@ -743,16 +743,11 @@ export const WallEditor = {
         return null;
     },
 
-    /** NPC 位置基准点：relativeTo='shopMouseKing' → 小鼠大王当前位置；否则世界中心 */
+    /** NPC 位置基准点：relativeTo='shopMouseKing' → 小鼠大王【配置锚点】（世界中心+大王配置 offset）；
+     *  必须用配置锚点而非大王实时位置——大王会游走，按实时位置算 offset 会在下次生成时整体平移
+     * （"调整 NPC 位置保存后重启回原位"根因）；否则世界中心 */
     _npcBasePos(cfg) {
         if (cfg && cfg.relativeTo === 'shopMouseKing') {
-            const game = window.Game;
-            if (game && game.entities) {
-                for (const ent of game.entities.values()) {
-                    if (ent && ent.id === 'npc_mouse_king') return { x: ent.x, y: ent.y };
-                }
-            }
-            // 找不到活体退回配置计算位（世界中心 + 小鼠大王 offset，与 spawnNPC 同口径）
             const kingCfg = (GAME_CONFIG.npcs || {}).shopMouseKing || {};
             return {
                 x: CONFIG.WORLD_WIDTH / 2 + ((kingCfg.offset && kingCfg.offset.x) || 0),
@@ -805,6 +800,7 @@ export const WallEditor = {
             cfg.size = e.size;
         }
         const ok = await saveGameConfig(GAME_CONFIG);
+        console.log(`[WallEditor] NPC(${key}) 位置已保存: offset=(${cfg.offset.x},${cfg.offset.y}) base=(${base.x},${base.y}) → 实体(${Math.round(e.x)},${Math.round(e.y)})`);
         const btn = this._npcEl && this._npcEl.querySelector('.ne-save');
         if (btn) {
             const old = btn.textContent;
