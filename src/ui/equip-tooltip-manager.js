@@ -209,8 +209,8 @@ export const EquipTooltipManager = {
                     extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">每次射击散布增加</span><span class="tt-stat-val">+${shotSpread}°</span></div>`;
                     extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">后坐力恢复时间</span><span class="tt-stat-val">${recovery}ms</span></div>`;
                 } else {
-                    // 其他枪械（全自动）：渐进式散布（从配置读取）
-                    const sp = fullItem.spreadParams || { startDelay: 500, maxTime: 4000, maxAngle: 25 };
+                    // 其他枪械（全自动）：渐进式散布（全自动板机 spreadParamsOverride 覆盖优先，其次配置读取）
+                    const sp = (ce && ce.spreadParamsOverride) || fullItem.spreadParams || { startDelay: 500, maxTime: 4000, maxAngle: 25 };
                     let spreadStart = sp.startDelay || 500;
                     let spreadMax = sp.maxTime || 4000;
                     let spreadAngle = sp.maxAngle || 25;

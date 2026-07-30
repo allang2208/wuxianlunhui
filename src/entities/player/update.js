@@ -532,8 +532,8 @@ update(dt, entities) {
                         let spreadStartDelay = 500; // 默认：0.5秒后开始散布
                         let spreadMaxTime = 4000;
                         let maxSpreadAngle = 25;
-                        // 武器特异化散布参数（优先从配置读取）
-                        const sp = _currentWep2.spreadParams;
+                        // 武器特异化散布参数（全自动板机 spreadParamsOverride 整体覆盖优先，其次武器配置）
+                        const sp = (craftEffects && craftEffects.spreadParamsOverride) || _currentWep2.spreadParams;
                         if (sp) {
                             if (sp.startDelay !== undefined) spreadStartDelay = sp.startDelay;
                             if (sp.maxTime !== undefined) spreadMaxTime = sp.maxTime;
@@ -578,7 +578,7 @@ update(dt, entities) {
                         let offSpreadStartDelay = 500;
                         let offSpreadMaxTime = 4000;
                         let offMaxSpreadAngle = 25;
-                        const offSp = _offItem.spreadParams;
+                        const offSp = (offCraftEffects && offCraftEffects.spreadParamsOverride) || _offItem.spreadParams;
                         if (offSp) {
                             if (offSp.startDelay !== undefined) offSpreadStartDelay = offSp.startDelay;
                             if (offSp.maxTime !== undefined) offSpreadMaxTime = offSp.maxTime;
@@ -872,7 +872,8 @@ update(dt, entities) {
                         const offhandHasAmmo = isDualWield ? this._hasAmmo(offhandSlot) : false;
                         const offhandReloading = isDualWield ? this._isReloading(offhandSlot) : false;
                         // 根据 fireMode 选择触发器：semiAuto = 单击射击，fullAuto = 按住持续射击
-                        const mainFireMode = effectiveItem.fireMode || 'fullAuto';
+                        // （全自动板机改造 fireModeOverride 优先于武器固有 fireMode）
+                        const mainFireMode = (effectiveItem._craftEffects && effectiveItem._craftEffects.fireModeOverride) || effectiveItem.fireMode || 'fullAuto';
                         const mainFireTrigger = mainFireMode === 'semiAuto' ? Input.mouse.leftPressed : Input.mouse.leftDown;
                         // 左键：主手射击
                         if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && mainFireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
@@ -882,10 +883,38 @@ update(dt, entities) {
                             // 半自动武器：消费掉点击事件，防止持续射击
                             if (mainFireMode === 'semiAuto') {
                                 Input.mouse.leftPressed = false;
+                                // 爆发板机（craft burstMode=N）：一次扳机 N 连发，首发后按 60ms 间隔排队
+                                const _burstN = (effectiveItem._craftEffects && effectiveItem._craftEffects.burstMode) || 0;
+                                if (_burstN > 1) {
+                                    this._burstLeft = _burstN - 1;
+                                    this._burstDelay = 60;
+                                    this._burstSlot = effectiveSlot;
+                                    this._burstAttackKey = attackKey;
+                                    this.attacks[attackKey].cooldown = 60; // 爆发内小间隔，末发后恢复标准冷却
+                                }
+                            }
+                        }
+                        // 爆发板机连发处理：排队弹按 60ms 间隔射出；弹药/体力不足立即中断
+                        if (this._burstLeft > 0) {
+                            this._burstDelay -= dt;
+                            if (this._burstDelay <= 0) {
+                                const bk = this._burstAttackKey || 'pistol';
+                                const bHasAmmo = this._hasAmmo(this._burstSlot);
+                                const bReloading = this._isReloading(this._burstSlot);
+                                if (bHasAmmo && !bReloading && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                    this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: this._burstSlot, fireMainHand: true };
+                                    this.triggerWeaponAnim();
+                                    this._burstLeft--;
+                                    this._burstDelay = 60;
+                                    this.attacks[bk].cooldown = this._burstLeft > 0 ? 60 : this.attacks[bk].maxCooldown;
+                                } else {
+                                    this._burstLeft = 0;
+                                    this.attacks[bk].cooldown = this.attacks[bk].maxCooldown;
+                                }
                             }
                         }
                         // 右键：副手射击（双持时）
-                        const offhandFireMode = offhandItem && offhandItem.fireMode || 'fullAuto';
+                        const offhandFireMode = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.fireModeOverride) || (offhandItem && offhandItem.fireMode) || 'fullAuto';
                         const offhandFireTrigger = offhandFireMode === 'semiAuto' ? Input.mouse.rightPressed : Input.mouse.rightDown;
                         if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && offhandFireTrigger && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
@@ -894,6 +923,34 @@ update(dt, entities) {
                             // 半自动副手：消费掉点击事件
                             if (offhandFireMode === 'semiAuto') {
                                 Input.mouse.rightPressed = false;
+                                // 爆发板机（craft burstMode=N）：副手同样生效——一次扳机 N 连发，60ms 间隔排队
+                                const _burstNOff = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.burstMode) || 0;
+                                if (_burstNOff > 1) {
+                                    this._burstLeftOff = _burstNOff - 1;
+                                    this._burstDelayOff = 60;
+                                    this._burstSlotOff = offhandSlot;
+                                    this._burstAttackKeyOff = offhandAttackKey;
+                                    this.attacks[offhandAttackKey].cooldown = 60; // 爆发内小间隔，末发后恢复标准冷却
+                                }
+                            }
+                        }
+                        // 副手爆发板机连发处理（与主手同口径）：排队弹按 60ms 间隔射出，弹药/体力不足中断
+                        if (this._burstLeftOff > 0) {
+                            this._burstDelayOff -= dt;
+                            if (this._burstDelayOff <= 0) {
+                                const bkOff = this._burstAttackKeyOff || 'pistolOffhand';
+                                const bHasAmmoOff = this._hasAmmo(this._burstSlotOff);
+                                const bReloadingOff = this._isReloading(this._burstSlotOff);
+                                if (bHasAmmoOff && !bReloadingOff && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                    this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: this._burstSlotOff, fireOffhand: true };
+                                    this.triggerOffhandWeaponAnim();
+                                    this._burstLeftOff--;
+                                    this._burstDelayOff = 60;
+                                    this.attacks[bkOff].cooldown = this._burstLeftOff > 0 ? 60 : this.attacks[bkOff].maxCooldown;
+                                } else {
+                                    this._burstLeftOff = 0;
+                                    this.attacks[bkOff].cooldown = this.attacks[bkOff].maxCooldown;
+                                }
                             }
                         }
                     } else if (isPkm) {

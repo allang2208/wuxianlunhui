@@ -8,6 +8,24 @@
 - 测试结果
 - 已知问题
 
+### 对话：93R音效/板机参数/鼠标置顶/掉落物紧凑（2026-07-30，V0.335）
+
+- **① Beretta 93R 开火音效**：素材库 gunshot.mp3 → `assets/sounds/weapons/beretta93r_fire.mp3`，EDM/equipment.json(+public)/shop 三处 fireSound 替换（编辑时误伤 p4040 音效一行，已当场恢复并核对）。
+- **② 全自动板机参数**：attackIntervalDelta -50→**-75ms**（间隔 225→150ms）、最大散布 ±20→**±15°**（craft-config + public 同步）。
+- **③ 面板遮盖鼠标根因与修复**：枪/弓装备时系统鼠标 `cursor:none`、准星画在 Phaser 画布上——NPC对话/商店/改造等 DOM 面板盖在画布上，面板区域鼠标完全不可见。修复：`_ensureDomCursor()`（64×64 canvas、pointer-events:none、**z-index 2147483647**）克隆同一套准星几何（描边/主体/中心点/散布 gap 联动），`_syncCrosshair` 由它接管并跳过 Phaser 层绘制（无双准星；gScreen 每帧 clear 无残留）；cursor:default/出征/地牢非战斗分支统一隐藏。
+- **④ 掉落物紧凑**：名称字体 -20%（16.5→13.2 / 悬停 19.5→15.6），贴图 +40%（48→67 / 悬停 60→84），文字锚点上移贴贴近图底部（y+28→y+36），稀有度配色不变。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：DOM 准星与 Phaser 原准星在纯画布区域观感一致性、93R 三连发/全自动实机手感需确认。
+
+### 对话：新武器 Beretta 93R（武器添加标准工作流全流程，2026-07-30，V0.334）
+
+- **本体（weapon19）**：手枪/优质(uncommon)/单手半自动；公式 8+敏0.5+精0.5（强化 enhanceFlat 0.75、敏 perEnhance 0.1、精 0.15）；射程 700/弹速 800/弹夹 9/换弹 1.5s/间隔 225ms/物理/击退 0；散布走半自动标准模型（每次射击+5°、后坐恢复 500ms，与沙鹰同口径）。贴图 `tools/prep-beretta93r.py` 归一（去噪点孤岛+内容宽 0.862/中心 (0.487,0.524)/2048²，枪口点 BootScene 自动烘焙）。
+- **登记点**（六段式）：`weapon-texture-map`（specialMap+加载列表）、`equip-data-manager`（BERETTA93R_ITEM）、`equipment.json`(+public)、`shop-system`（300 金）、`gun-ammo`（GUN_AMMO_CAP+FIRE_MODES.semiAuto）、`weapon-attack-config`（beretta93r/Offhand，cooldown 225/弹速 800/射程 700）、`weapon-anim-config`（以 deagle 为模板继承贴合参数）。
+- **改造（craft weapon19，6 槽全配）**：枪口=精英制退器(散布-2°/恢复-150ms)/手枪消音器(恢复-100ms/射程-200/击退+35)；枪管=远射枪管(射程+300/散布-1°/恢复-50ms)/近战短管(移速+5%/散布+1°/恢复+100ms)；瞄具=全景红点(散布开始+1s/单倍镜)；弹夹=扩容+3/长扩容+9且换弹+500ms；子弹=亚音速空尖(击退+35/伤害+3%)/亚音速FMJ(穿透+1/伤害+3%)。
+- **扳机新机制**（craft-effect-registry 新增 3 键）：`burstMode`（爆发板机=三连发，一次扳机 3 发、散布+2°——update.js 首发后 60ms 间隔排队连发，末发恢复标准冷却，弹药/体力不足中断；**主副手同口径**，双持右键同样排队连发）；`fireModeOverride`（全自动板机=覆盖 fireMode 为 fullAuto——update.js 主副手触发器+gun-ammo getFireMode 三处消费）；`spreadParamsOverride`（散布模板整体覆盖 开始1s/到最大3s/±20°——update.js 主副手散布计算+tooltip 全自动分支三处消费；射击间隔 attackIntervalDelta-50=175ms）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-craft-sync 三角同步 ✓（效果键 41/注册 42）。
+- **已知问题**：贴合参数继承 deagle 模板，实机需开发面板微调（持位/枪口）；爆发动画为逐发 recoil 连播，观感需实机确认。
+
 ### 对话：小修小补包（2026-07-30，V0.333）
 
 - **① ROADMAP 任务 3 销项**：技能特效收敛标注已完成（0e36ea4，combat-fx.js 共享件）。

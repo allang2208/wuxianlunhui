@@ -18,6 +18,7 @@ export function getWeaponTextureKey(item) {
         weapon9: 'weapon_g18',
         weapon10: 'weapon_deagle',
         weapon18: 'weapon_p4040',
+        weapon19: 'weapon_beretta93r',
         weapon12: 'weapon_super90',
         weapon13: 'weapon_saiga12k',
     };
@@ -40,6 +41,7 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_g18', path: 'assets/icons/G18icon.png' },
         { key: 'weapon_deagle', path: 'assets/icons/DesertEagle_icon.png' },
         { key: 'weapon_p4040', path: 'assets/weapons/P4040-icon.png' },
+        { key: 'weapon_beretta93r', path: 'assets/weapons/beretta93r.png' },
         { key: 'weapon_pkm', path: 'assets/icons/pkm_side_clean.png' },
         { key: 'weapon_akm', path: 'assets/weapons/akm-equip.png' },
         { key: 'weapon_qbz191', path: 'assets/icons/191icon.png' },

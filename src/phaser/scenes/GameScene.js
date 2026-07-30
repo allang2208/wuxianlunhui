@@ -3834,7 +3834,7 @@ export class GameScene extends Scene {
         this._entityHudTexts.clear();
     }
 
-    _syncCrosshair(g) {
+    _syncCrosshair(_g) {
         const player = window.Game && window.Game.player;
         if (!player) return;
         // 出征面板或地牢地图模式：强制恢复默认鼠标指针，避免与地图/面板交互冲突
@@ -3843,13 +3843,17 @@ export class GameScene extends Scene {
              DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'reward');
         if ((ExpeditionSystem && ExpeditionSystem._isOpen) || isDungeonNonCombat) {
             document.body.style.cursor = 'default';
+            if (this._domCursor) this._domCursor.style.display = 'none';
             return;
         }
         const currentWeapon = player.equipments[player.weaponMode];
         const isBowWeapon = currentWeapon && currentWeapon.weaponType === 'bow';
         const wantCursor = (!currentWeapon || (!isGunWeapon(currentWeapon) && !isBowWeapon)) ? 'default' : 'none';
         document.body.style.cursor = wantCursor;
-        if (wantCursor === 'default') return;
+        if (wantCursor === 'default') {
+            if (this._domCursor) this._domCursor.style.display = 'none';
+            return;
+        }
         const mx = Input.mouse.x;
         const my = Input.mouse.y;
         let spreadFactor = (player._currentSpreadFactor || 0) + (player._crosshairShotKick || 0);
@@ -3869,17 +3873,47 @@ export class GameScene extends Scene {
         const colors = crosshairCfg.colors || { outline: '#000000', main: '#00ff00' };
         const centerDot = crosshairCfg.centerDot || { outerRadius: 1.5, innerRadius: 0.8 };
 
-        // 描边
-        g.lineStyle(lineWidth + outlineWidth, parseInt((colors.outline || '#000000').replace('#', ''), 16), 1);
-        this._drawCrosshairLines(g, mx, my, gap, lineLen);
-        // 主体
-        g.lineStyle(lineWidth, parseInt((colors.main || '#00ff00').replace('#', ''), 16), 1);
-        this._drawCrosshairLines(g, mx, my, gap, lineLen);
-        // 中心点
-        g.fillStyle(parseInt((colors.outline || '#000000').replace('#', ''), 16), 1);
-        g.fillCircle(mx, my, centerDot.outerRadius || 1.5);
-        g.fillStyle(parseInt((colors.main || '#00ff00').replace('#', ''), 16), 1);
-        g.fillCircle(mx, my, centerDot.innerRadius || 0.8);
+        // DOM 置顶准星（2026-07-30）：NPC对话/商店/改造等 DOM 面板会盖住 Phaser 画布准星
+        // （cursor:none 下面板区域鼠标完全不可见——"面板遮盖鼠标"根因）。
+        // 用最高 z-index 的 DOM canvas 克隆同一准星几何，保证鼠标始终在所有图层之上；
+        // DOM 准星接管后 Phaser 层不再画（gScreen 每帧已 clear，无双准星无残留）
+        const dom = this._ensureDomCursor();
+        const dctx = this._domCursorCtx;
+        dctx.clearRect(0, 0, 64, 64);
+        const dcx = 32, dcy = 32;
+        const outlineColor = colors.outline || '#000000';
+        const mainColor = colors.main || '#00ff00';
+        for (const [w, color] of [[lineWidth + outlineWidth, outlineColor], [lineWidth, mainColor]]) {
+            dctx.strokeStyle = color;
+            dctx.lineWidth = w;
+            dctx.beginPath();
+            dctx.moveTo(dcx, dcy - gap); dctx.lineTo(dcx, dcy - gap - lineLen);
+            dctx.moveTo(dcx, dcy + gap); dctx.lineTo(dcx, dcy + gap + lineLen);
+            dctx.moveTo(dcx - gap, dcy); dctx.lineTo(dcx - gap - lineLen, dcy);
+            dctx.moveTo(dcx + gap, dcy); dctx.lineTo(dcx + gap + lineLen, dcy);
+            dctx.stroke();
+        }
+        dctx.fillStyle = outlineColor;
+        dctx.beginPath(); dctx.arc(dcx, dcy, centerDot.outerRadius || 1.5, 0, Math.PI * 2); dctx.fill();
+        dctx.fillStyle = mainColor;
+        dctx.beginPath(); dctx.arc(dcx, dcy, centerDot.innerRadius || 0.8, 0, Math.PI * 2); dctx.fill();
+        dom.style.left = (mx - 32) + 'px';
+        dom.style.top = (my - 32) + 'px';
+        dom.style.display = 'block';
+    }
+
+    /** DOM 置顶准星（最高 z-index 的 64×64 canvas，pointer-events 不拦截） */
+    _ensureDomCursor() {
+        if (this._domCursor) return this._domCursor;
+        const c = document.createElement('canvas');
+        c.id = 'gameDomCursor';
+        c.width = 64;
+        c.height = 64;
+        c.style.cssText = 'position:fixed;left:0;top:0;width:64px;height:64px;pointer-events:none;z-index:2147483647;display:none;';
+        document.body.appendChild(c);
+        this._domCursor = c;
+        this._domCursorCtx = c.getContext('2d');
+        return c;
     }
 
     _drawCrosshairLines(g, mx, my, gap, lineLen) {
