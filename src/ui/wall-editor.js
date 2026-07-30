@@ -351,8 +351,9 @@ export const WallEditor = {
     _startPlacement(comp) {
         this._cancelPlacement();
         const g = WallSystem._geoForTex(comp.tex) || { wallH: 800 };
-        const s = ISO_WALL_HEIGHT / g.wallH;
         const isObstacle = g.category === 'obstacle';
+        // 缩放：墙件=ISO_WALL_HEIGHT/wallH；障碍物无 wallH，用 geo.obstacleH（默认显示高度，缺省 120）
+        const s = isObstacle ? ((g.obstacleH ?? 120) / g.h) : (ISO_WALL_HEIGHT / g.wallH);
         this._pendingPiece = {
             tex: comp.tex, x: -9999, y: -9999,
             // 障碍物是 billboard 道具：不做 30° 角度补偿（scaleY=scaleX），支持 rotation
@@ -436,14 +437,19 @@ export const WallEditor = {
             el.querySelector('.oe-save').addEventListener('click', () => this._saveObstacleLayout());
         }
         this._obstacleEl.style.display = isOb ? '' : 'none';
+        // 跟随墙壁编辑器面板下缘（面板高度随内容变化，固定 top 会飘出视口）
+        if (isOb && this._panel) {
+            const r = this._panel.getBoundingClientRect();
+            this._obstacleEl.style.top = Math.min(r.bottom + 8, window.innerHeight - 120) + 'px';
+        }
     },
 
     /** 重置：选中障碍物恢复初始变换（默认缩放/无旋转/无镜像） */
     _resetObstacle() {
         const p = this.sel.length === 1 ? this.sel[0] : null;
         if (!p) return;
-        const g = WallSystem._geoForTex(p.tex) || { wallH: 800 };
-        const s = ISO_WALL_HEIGHT / g.wallH;
+        const g = WallSystem._geoForTex(p.tex) || { wallH: 800, h: 800 };
+        const s = (g.category === 'obstacle') ? ((g.obstacleH ?? 120) / g.h) : (ISO_WALL_HEIGHT / g.wallH);
         p.scaleX = s;
         p.scaleY = s;
         p.flipX = false;

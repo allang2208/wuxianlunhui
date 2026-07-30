@@ -8,6 +8,38 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18 + 障碍编辑器定位/烛台/footprint 加大（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180/烛台 180）。
+- **② 手枪姿态全面统一 G18（经用户指认 G18 为基准）**：排查发现 deagle/p4040 的 `holdOffset(12,0)` 与 G18 `(6,-52)` 不一致——四把枪贴图归一化布局完全相同，持位配置本应通用；deagle/p4040 的 hold 差异导致双持时主手偏离姿态手部位置。修复：deagle/p4040 holdOffset（idle/walk/top 三态）改为 **(6,-52)**；`WEAPON_TRANSFORM_CONFIG` 的 deagle/p4040/beretta93r 条目改为 **pistol 克隆**。至此 G18/沙鹰/P4040/R93 单双持主副手位置完全一致。**注意：deagle/p4040 单手持位随之变化。**
+- **③ 障碍编辑器不可见修复**：面板 top 原为 `calc(80px + 80vh + 8px)`（1080p 下 ≈952px 超出视口）——改为跟随墙壁编辑器面板下缘动态定位（`getBoundingClientRect().bottom + 8`，带视口下限钳制）。
+- **④ 祭坛/仓库 footprint 再加大**：仓库 155×60→**170×75**、祭坛 210×85→**220×100**。
+- **⑤ 烛台障碍物**：素材库`障碍物/烛台.png` → `assets/terrain/obstacle_candle.png`（317×640，foot 197×78），`ISO_WALL_GEO.candle`（obstacleH 180）+ BootScene 加载——摆墙「障碍物类」页签可见可拖。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：deagle/p4040 单手持位变化、footprint 松紧度需实机确认。
+
+### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180）。
+- **② 手枪姿态全面统一 G18（经用户指认 G18 为基准）**：排查发现 deagle/p4040 的 `holdOffset(12,0)` 与 G18 `(6,-52)` 不一致——四把枪贴图归一化布局完全相同（0.862/(0.487,0.524)），持位配置本应通用；deagle/p4040 的 hold 差异导致双持时主手偏离姿态手部位置。修复：`weapon-anim-config.json` 的 deagle/p4040 holdOffset（idle/walk/top 三态）改为 **(6,-52)**；`WEAPON_TRANSFORM_CONFIG` 的 deagle/p4040/beretta93r 条目改为 **pistol 克隆**（mainBase -15/16.5、offBase -23/19）。至此 G18/沙鹰/P4040/R93 单双持的主副手位置完全一致。**注意：deagle/p4040 单手持位随之变化（旧值 (12,0)），若单持观感异常说明其贴图本就需要独立值，再经开发面板微调。**
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：deagle/p4040 单手持位变化需实机确认（原为 (12,0)，现统一为 G18 的 (6,-52)）。
+
+### 对话：障碍物拖放修复 + 手枪双持锚点统一（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH` 字段，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放为 NaN 导致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180），两处缩放计算改 `(g.obstacleH ?? 120) / g.h`。
+- **② 双持锚点统一（G18 基准）**：副手最终位 = offBase + holdOffset。G18（pistol 条目）= (-17,-33) 为基准；`WEAPON_TRANSFORM_CONFIG` 调整：`beretta93r` 整条改 pistol 克隆（offBase -23,19 + pistol 克隆 hold → 同 G18 终值）；`deagle`/`p4040` 的 offBase 从 (-5,-16.5) 改 **(-29,-33)**（+各自 hold (12,0) 后终值同为 (-17,-33)，与 G18 完全一致）——deagle 双持错位（此前 offBase 与 G18 差 (24,+16.5)）同案修复。主手锚点全部不动。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：双持姿态（三手枪 vs G18 逐帧对照）、障碍物拖放手感需实机确认。
+
+### 对话：R93持位回退G18口径 + NPC footprint加大与可视化（2026-07-30，V0.338）
+
+- **① R93 持位再修正**：上轮"animConfigKey 解析+沙鹰克隆"实为主手错位根因——沙鹰配置 holdOffset(12,0) 与 V0.334 时用户认可的主手配置（G18 pistol 的 6,-52）差 (6,+52)。`weapon-anim-config.beretta93r` 改为 **G18 pistol 克隆**（单/双持回到 V0.334 手感；翻转修复不受影响的核对点：rotOffset -6 两配置一致、isGun 名单已含 beretta93r）。
+- **② 祭坛/仓库 footprint 加大**：仓库 140×36→**155×60**、祭坛 190×55→**210×85**（匹配贴图底座前伸区域，圆-矩形精确分离不变）。
+- **③ 矩形 footprint 可视化**：左下角「范围」按钮下，矩形 footprint NPC 以**人物圆柱体同款橙色**绘制（底面 footprint 矩形 + 顶面（bodyHeight 上移）+ 四角竖壁，与圆柱"沿 Z 拉伸"同语义）；敌人仍走原椭圆口径不重复绘制。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：R93 持位/枪口、footprint 松紧度需实机确认（配置项 data/game-config.json npcs.*.collisionWidth/Height 可直接再调）。
+
 ### 对话：掉落物微调/障碍物体系/NPC footprint/R93修正/立绘管道（2026-07-30，V0.337）
 
 - **① 掉落物**：贴图抖动 ±4→±5px；名字上移 30px（y+36→y+6）。

@@ -2877,9 +2877,9 @@ body.map-mode .controls-hint-left {
 .wall-editor-panel .we-std-scroll::-webkit-scrollbar { width: 8px; }
 .wall-editor-panel .we-std-scroll::-webkit-scrollbar-thumb { background: #5a5346; border-radius: 4px; }
 
-/* 障碍物编辑器（单选一个障碍物时显示，位于墙壁编辑器下方） */
+/* 障碍物编辑器（单选一个障碍物时显示，跟随墙壁编辑器下缘） */
 .obstacle-editor {
-  position: fixed; right: 8px; top: calc(80px + 80vh + 8px);
+  position: fixed; right: 8px; top: 300px; /* top 由 JS 按面板下缘动态设置 */
   width: 280px; background: rgba(18, 24, 18, 0.94);
   border: 1px solid #465a46; border-radius: 4px;
   color: #c5d4a9; font-size: 12px; padding: 8px 10px; z-index: 9999;
