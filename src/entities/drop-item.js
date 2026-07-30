@@ -80,7 +80,7 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     }
                     const label = phaserScene.add.text(this.x, this.y + 20, '', {
                         fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
-                        fontSize: '16.5px',
+                        fontSize: '13.2px',
                         color: RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common,
                         align: 'center'
                     });
@@ -96,8 +96,8 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 const mx = Input.mouse.x + camera.scrollX;
                 const my = Input.mouse.y + camera.scrollY;
                 const hover = Math.sqrt((mx - this.x) ** 2 + (my - (this.y + bobY)) ** 2) < 52;
-                // 贴图放大 50%：32→48，悬停 40→60；贴图保持上下浮动
-                const size = hover ? 60 : 48;
+                // 贴图放大 40%：48→67，悬停 60→84；贴图保持上下浮动
+                const size = hover ? 84 : 67;
 
                 this._phaserSprite.setPosition(this.x, this.y + bobY);
                 this._phaserSprite.setDepth(this.y + bobY + 5);
@@ -109,14 +109,14 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 const name = this.itemData.name || '';
                 const labelText = hover ? `${name}\n[点击拾取]` : name;
                 this._phaserLabel.setText(labelText);
-                // 字体放大 50%（11→16.5 / 13→19.5），颜色跟随稀有度（RARITY_COLORS 统一色板）
+                // 名称字体缩小 20%（16.5→13.2 / 19.5→15.6），颜色跟随稀有度（RARITY_COLORS 统一色板）
                 const rarityColor = RARITY_COLORS[this.itemData.rarity] || RARITY_COLORS.common;
                 this._phaserLabel.setStyle({
-                    fontSize: hover ? '19.5px' : '16.5px',
+                    fontSize: hover ? '15.6px' : '13.2px',
                     color: hover ? '#ffeb96' : rarityColor
                 });
-                // 装备文字固定在物品原始位置下方，不随贴图浮动
-                this._phaserLabel.setPosition(this.x, this.y + 28);
+                // 文字贴近放大后的贴图底部（紧凑布局），不随贴图浮动
+                this._phaserLabel.setPosition(this.x, this.y + 36);
                 this._phaserLabel.setDepth(this.y + 11);
                 this._phaserLabel.setVisible(true);
             }

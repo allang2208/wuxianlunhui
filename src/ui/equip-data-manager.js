@@ -106,7 +106,7 @@ export const EquipDataManager = {
         desc: 'Beretta 93R 半自动手枪，9发弹夹，可双持，扳机位可改造三连发/全自动',
         equipSlot: 'weapon',
         attack: { range: 700, knockback: 0, attackInterval: 225, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 800 },
-        attackKey: 'beretta93r', offhandAttackKey: 'beretta93rOffhand', animConfigKey: 'beretta93r', fireSound: 'assets/sounds/weapons/apex2_shot_1s.wav', isDarkGold: true, canvasImageProp: 'beretta93rImage',
+        attackKey: 'beretta93r', offhandAttackKey: 'beretta93rOffhand', animConfigKey: 'beretta93r', fireSound: 'assets/sounds/weapons/beretta93r_fire.mp3', isDarkGold: true, canvasImageProp: 'beretta93rImage',
         ammoConfig: { max: 9, reloadTime: 1500 }, fireMode: 'semiAuto',
         attackFormula: { base: 8, enhanceFlat: 0.75, attrs: [{ key: 'dex', base: 0.5, perEnhance: 0.1 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 5 },
