@@ -11,6 +11,7 @@
  * - 随战斗房生成/清理（cleanupRoom 统一销毁）
  */
 import { Game } from '../game.js';
+import { SoundManager } from '../ui/sound-manager.js';
 
 const DEFAULTS = {
     count: 3,
@@ -71,6 +72,10 @@ export const TrapSystem = {
                     if (t.timer >= C.delayMs) {
                         t.state = 'playing'; t.timer = 0; t.damaged = false;
                         if (t.sprite) t.sprite.setTexture('trap_anim', 0); // 帧由 timer 逐帧驱动（门闸同款 tween 教训：不依赖 anims 链）
+                        // 触发音效（地刺弹出）
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                            SoundManager.playFile('assets/sounds/environment/trap.mp3');
+                        }
                     }
                     break;
                 case 'playing': {
