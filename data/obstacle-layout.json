@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "tex": "obstacle_pillar",
+    "x": 4616.88818359375,
+    "y": 1638.101318359375,
+    "scaleX": 0.5050845916937241,
+    "scaleY": 0.5050845916937241,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1752.101318359375,
+    "family": "obstacle",
+    "label": "石柱 1"
+  }
+]

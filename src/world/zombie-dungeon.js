@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, OreSpider } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -171,6 +171,19 @@ export function createMineCave(x, y) {
         lanternSpawnFactory: (mx, my) => createLanternMinerZombie(mx, my)
     });
     return mkCave(x, y);
+}
+
+// 墓碑（普通级站桩召唤器，noPool 不进怪物池）：
+// 仅由 DungeonMapSystem 在僵尸地牢普通战斗事件中按 33% 概率显式生成
+export function createTombstone(x, y) {
+    const cfg = enemyConfigData.tombstone;
+    return new Tombstone(x, y, {
+        ...(cfg || { name: '墓碑', hp: 800, maxHp: 800, size: 60, showWeapon: false }),
+        showWeapon: false,
+        // 生成工厂注入（避免实体层反向依赖 world 层）
+        spawnFactory: (mx, my) => createBasicZombie(mx, my),
+        spitterSpawnFactory: (mx, my) => createSpitterZombie(mx, my)
+    });
 }
 
 export function createFatZombie(x, y) {
@@ -354,6 +367,7 @@ export const ZOMBIE_FACTORY_MAP = {
     foremanZombie: createForemanZombie,
     oreSpider: createOreSpider,
     mineCave: createMineCave,
+    tombstone: createTombstone,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,
@@ -372,15 +386,17 @@ const ZOMBIE_DUNGEON_CONFIG = {
     // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
     // normal：普通僵尸、僵尸犬、毒液僵尸、肥僵尸
     // elite：僵尸巫师、突变体-3
+    // noPool 配置键（如墓碑 tombstone）防御性排除：即使 family/rank 满足也不进任何刷怪池，
+    // 只由 DungeonMapSystem 按概率显式生成
     monsterPool: {
         get normal() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         get elite() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         // lord 领主池：僵尸 family 限定（2026-07-29 修复——此前跨 family 按 rank 抽取，
@@ -388,7 +404,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
         // 特工只走 AgentInvasionSystem 入侵机制，不进怪物池）
         get lord() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },
@@ -827,7 +843,8 @@ export class ZombieDungeonCombat {
             const filtered = Object.keys(ZOMBIE_FACTORY_MAP)
                 .filter(key => {
                     const cfg = enemyConfigData[key];
-                    if (!cfg || cfg.family !== poolFamily) return false;
+                    // noPool（如墓碑）即使 family/rank 满足也不进任何刷怪池
+                    if (!cfg || cfg.noPool || cfg.family !== poolFamily) return false;
                     if (tier === 'elite' || tier === 'lord' || tier === 'boss') return cfg.rank === tier;
                     return cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss';
                 })

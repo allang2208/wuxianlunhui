@@ -8,6 +8,25 @@
 - 测试结果
 - 已知问题
 
+### 对话：祭坛恢复/金币换图/三障碍物/编辑器移动修复（2026-07-30，V0.350）
+
+- **① 祭坛消失根因**：NPC 位置编辑器曾把祭坛 offset 存成 (96, **-1428**)（误拖出界），祭坛实际位置被挪到地图北边视野外。修复：offset 恢复 (20,140)；NPC 拖动加**世界边界 64px 钳制**，防止再次误拖出界"消失"。
+- **② 金币贴图**：素材库`道具/金币.png` → `assets/items/gold_transparent_07.png`（256×179，掉落贴图同源替换）。
+- **③ 新障碍物**：头骨（323×384, foot 179×62, H100）、骨头堆（512×419, foot 300×105, H100）、锁链（512×170, foot 460×40, H60）入 `ISO_WALL_GEO`+BootScene。
+- **④ 碰撞编辑器移动语义修正**：矩形锚定 collider（getTorsoRect 实证）——`both` 模式位置拖动**只移 collider**（矩形自动跟随，此前同时写矩形=双倍位移"调整有差别"根因）；`cylinder` 模式移动时**矩形反向补偿保持原位**（实现真正"只动圆柱"）；`rect` 模式只动矩形 offset 不变。
+- **⑤ 怪物名称锚点核查**：`capsuleHudAnchor: true` 的怪物名称/血条已锚定**圆柱体胶囊顶**（collider.y − collider.height），调整圆柱高度即可调名称位置，无需改动；未配置的旧怪保持贴图顶锚点。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：新普通怪物「墓碑」（2026-07-30，V0.349）
+
+- **墓碑（tombstone）**：站桩召唤器（参考矿洞 mine-cave）——不可移动（speed 0 + noSeparation + 击退免疫 + 出生点锚定）、常驻状态免疫（`applyStatusImmune`，不吃任何 buff/debuff）、HP 800；每 10s 在四周可行走落点生成 1 只普通僵尸、每 30s 生成 1 只毒液僵尸（`WallSystem.canMoveTo` 8 向×递近距离选点，找不到顺延下 tick；召唤物 `_summoned` 标签：击杀无经验/金币/掉落）。
+- **不进刷怪池**：enemy-config 新增 `noPool: true`，`zombie-dungeon.js` 三个 monsterPool getter 与 `nextWaveMonsterClasses` 的 poolFamily 过滤全部加 `!cfg.noPool` 防御性排除——即使 family='僵尸'、rank='normal' 满足条件也不进 normal/elite/lord 任何池。
+- **33% 事件生成**：`_enterZombieCombat` 普通战斗（`!node.isElite`，僵尸地牢初级 zombieBeginner/中级 zombieMid/高级 zombie 共用路径）在 `_spawnZombieWave` 后调 `_maybeSpawnTombstone`——候选角落按距玩家从远到近排序（矩形房取外接矩形四角内收；菱形房取对角线方向与边界交点 s/rx+s/ry=1 内收）；落点判定=`canMoveTo` 可行走（不嵌墙/障碍物）+ `pathFinder.findPath` 到玩家可达（保证生成的僵尸能走出寻敌）；角落不合格则半径 40/80/120/160 八向螺旋搜索，全失败换次远角落，均失败放弃并打印警告。墓碑只登记 `tombstone_main_` key 进 `_combatMonsterKeys`（随波次/房间清理），不进 `_combatMonsters`——不阻塞战斗完成判定（矿洞同口径）。
+- **配套**：`assets/enemies/tombstone/idle.png`（477×512）入 BootScene（`enemy_tombstone`，静态贴图无动画）；`combat-room-system.js` 两处 `removeEntitiesByPrefix` 兜底清单加 `tombstone_` 前缀（召唤僵尸泄漏清理）。
+- **修改文件**：`src/entities/enemy-types/tombstone.js`（新增）、`data/enemy-config.json`、`src/phaser/scenes/BootScene.js`、`src/entities/enemy-types.js`、`src/world/zombie-dungeon.js`、`src/world/dungeon-map-system.js`、`src/world/combat-room-system.js`、CHANGELOG.md
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过（无 tombstone 相关告警）；node 无头验证最远角落选取/菱形内判定/螺旋回退/全阻挡放弃逻辑通过。
+- **已知问题**：墓碑贴图显示尺寸（spriteSize 256）、碰撞 120×60 与 footOffsetY 30 为按比例的初始值，建议用碰撞编辑器实机校准；33% 概率与生成节奏需实机手感确认。
+
 ### 对话：碰撞编辑器独立位置/贴图缩放 + 陷阱音效 + 陶罐（2026-07-30，V0.348）
 
 - **① 矩形/圆柱独立位置调整**：`_editMode` 模式语义完善——`rect` 模式：八点+**矩形专属位置拖动**（projectileHitbox.offsetX/bottom，圆柱不动）；`cylinder` 模式：半径/高度+**圆柱专属位置拖动**（colliderOffset，矩形不动）；`both`（默认）：位置拖动**同步带动两体积**（圆柱 offsetX/Y 与矩形 offsetX/bottom 同位移）。新增 drag mode `rectMove`（只动矩形）。
