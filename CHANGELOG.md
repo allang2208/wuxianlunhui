@@ -8,6 +8,11 @@
 - 测试结果
 - 已知问题
 
+### 对话：碰撞编辑器矩形/圆柱分开调整（2026-07-30，V0.346）
+
+- **调整范围切换**：碰撞编辑器按钮区新增第二行「🟧 调整圆柱 / 🟩 调整矩形」——默认 `both`（矩形+圆柱同步调整）；点击进入对应单独调整模式（再次点击恢复同步）；单独模式下只显示/只命中该体积的手柄：cylinder=半径+高度+椭圆内整体拖动，rect=八点+矩形内整体拖动；切换选中对象自动恢复 both。实现为 `_editMode` 过滤 `_onMouseDown` 手柄命中与 `_redraw` 手柄绘制。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
 ### 对话：障碍物类型默认状态 + 摆墙模式 NPC 拖动/位置编辑器（2026-07-30，V0.345）
 
 - **① 障碍物编辑器「保存」语义改为"类型默认状态"（双写）**：选中件的变换（scaleX/scaleY/rotation/flipX/flipY）写入新建 `data/obstacle-defaults.json`（+public 双份，结构 `{ "<geoKey>": {...} }`，geoKey=ISO_WALL_GEO 键 barrel/pillar/candle），同时保留原 `data/obstacle-layout.json` 场景实例保存。`wall-prefabs.js` 新增 loadObstacleDefaults/getObstacleDefaults/saveObstacleDefaults（与预制库同管道）+ saveGameConfig 导出；BootScene 预载。

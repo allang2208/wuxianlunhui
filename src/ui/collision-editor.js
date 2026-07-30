@@ -97,6 +97,7 @@ export const CollisionEditor = {
     _hintEl: null,       // 操作提示区
 
     _drag: null,         // 拖拽状态 {mode:'rect'|'radius'|'height'|'move', handle, startPt, startEdit, anchor}
+    _editMode: 'both',   // 调整范围：both=矩形+圆柱同步调整（默认） | cylinder=只调圆柱 | rect=只调矩形
     _downFn: null,
     _moveFn: null,
     _upFn: null,
@@ -263,6 +264,26 @@ export const CollisionEditor = {
         btns.appendChild(saveBtn);
         panel.appendChild(btns);
 
+        // 第二按钮行：调整范围切换（默认同步调整矩形+圆柱；点击后只单独调整对应体积，再点恢复同步）
+        const modeBtns = document.createElement('div');
+        modeBtns.className = 'ce-btns';
+        const mkModeBtn = (mode, label) => {
+            const b = document.createElement('button');
+            b.className = 'ce-btn ce-mode-btn';
+            b.textContent = label;
+            b.dataset.mode = mode;
+            b.addEventListener('click', () => {
+                this._editMode = (this._editMode === mode) ? 'both' : mode;
+                this._syncModeButtons();
+                this._redraw();
+            });
+            return b;
+        };
+        modeBtns.appendChild(mkModeBtn('cylinder', '🟧 调整圆柱'));
+        modeBtns.appendChild(mkModeBtn('rect', '🟩 调整矩形'));
+        panel.appendChild(modeBtns);
+        this._modeBtnsEl = modeBtns;
+
         // 操作提示（按选中类型动态切换，见 _refreshHint）
         const hint = document.createElement('div');
         hint.className = 'ce-hint';
@@ -277,6 +298,15 @@ export const CollisionEditor = {
 
         document.body.appendChild(panel);
         this._panel = panel;
+        this._syncModeButtons();
+    },
+
+    /** 同步「调整圆柱/调整矩形」按钮高亮态（active=当前单独调整模式） */
+    _syncModeButtons() {
+        if (!this._modeBtnsEl) return;
+        for (const b of this._modeBtnsEl.querySelectorAll('.ce-mode-btn')) {
+            b.classList.toggle('active', this._editMode === b.dataset.mode);
+        }
     },
 
     _toast(msg) {
@@ -402,6 +432,8 @@ export const CollisionEditor = {
         this._kind = kind;
         this._key = key;
         this._gateState = 'open';
+        this._editMode = 'both'; // 切换对象时恢复同步调整
+        this._syncModeButtons();
         this._snapshotBaseline();
         if (this._isGeoKind()) {
             this._spawnGeoPreview();
@@ -1006,37 +1038,43 @@ export const CollisionEditor = {
         if (!this._entity) return;
 
         const hs = HANDLE_SCREEN / this._zoom();
-        // 1) 矩形八点手柄
-        for (const h of this._rectHandles()) {
-            if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
-                const g = this._rectGeom();
-                this._drag = {
-                    mode: 'rect', handle: h.id,
-                    // 锚定被拖边/角的对面（拖拽过程中不动）
-                    anchor: { left: g.left, right: g.right, top: g.top, bottom: g.bottom },
-                };
+        const onlyCyl = this._editMode === 'cylinder';
+        const onlyRect = this._editMode === 'rect';
+        // 1) 矩形八点手柄（仅 both/rect 模式可用）
+        if (!onlyCyl) {
+            for (const h of this._rectHandles()) {
+                if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
+                    const g = this._rectGeom();
+                    this._drag = {
+                        mode: 'rect', handle: h.id,
+                        // 锚定被拖边/角的对面（拖拽过程中不动）
+                        anchor: { left: g.left, right: g.right, top: g.top, bottom: g.bottom },
+                    };
+                    return;
+                }
+            }
+        }
+        // 2) 圆柱半径手柄（仅 both/cylinder 模式可用）
+        if (!onlyRect) {
+            const rh = this._radiusHandlePos();
+            if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
+                this._drag = { mode: 'radius' };
+                return;
+            }
+            // 3) 圆柱高度手柄
+            const hh = this._heightHandlePos();
+            if (Math.abs(pt.x - hh.x) <= hs && Math.abs(pt.y - hh.y) <= hs) {
+                this._drag = { mode: 'height' };
                 return;
             }
         }
-        // 2) 圆柱半径手柄
-        const rh = this._radiusHandlePos();
-        if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
-            this._drag = { mode: 'radius' };
-            return;
-        }
-        // 3) 圆柱高度手柄
-        const hh = this._heightHandlePos();
-        if (Math.abs(pt.x - hh.x) <= hs && Math.abs(pt.y - hh.y) <= hs) {
-            this._drag = { mode: 'height' };
-            return;
-        }
-        // 4) 矩形内部 / 底部椭圆内部 → 整体拖动（colliderOffset）
+        // 4) 矩形内部 / 底部椭圆内部 → 整体拖动（colliderOffset；按调整范围过滤）
         const g = this._rectGeom();
-        const inRect = pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
+        const inRect = !onlyCyl && pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
         const c = this._entity.collider;
         const rx = this._edit.radius;
         const ry = rx * PERSPECTIVE_SCALE_Y;
-        const inEllipse = rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
+        const inEllipse = !onlyRect && rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
         if (inRect || inEllipse) {
             this._drag = {
                 mode: 'move',
@@ -1248,21 +1286,27 @@ export const CollisionEditor = {
         g.moveTo(c.x, c.y - hs); g.lineTo(c.x, c.y + hs);
         g.strokePath();
 
-        // ---- 手柄：矩形八点（白）+ 半径/高度（橙）----
-        g.fillStyle(0xffffff, 1);
-        g.lineStyle(1 / zoom, 0x333333, 1);
-        for (const h of this._rectHandles()) {
-            g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
-            g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+        // ---- 手柄：矩形八点（白）+ 半径/高度（橙），按调整范围过滤 ----
+        const onlyCyl = this._editMode === 'cylinder';
+        const onlyRect = this._editMode === 'rect';
+        if (!onlyCyl) {
+            g.fillStyle(0xffffff, 1);
+            g.lineStyle(1 / zoom, 0x333333, 1);
+            for (const h of this._rectHandles()) {
+                g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+            }
         }
-        g.fillStyle(0xffaa00, 1);
-        const rh = this._radiusHandlePos();
-        g.fillRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
-        g.strokeRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
-        g.fillStyle(0xff5500, 1);
-        const hh = this._heightHandlePos();
-        g.fillRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
-        g.strokeRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+        if (!onlyRect) {
+            g.fillStyle(0xffaa00, 1);
+            const rh = this._radiusHandlePos();
+            g.fillRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
+            g.strokeRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
+            g.fillStyle(0xff5500, 1);
+            const hh = this._heightHandlePos();
+            g.fillRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+            g.strokeRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+        }
     },
 
     /** 墙/门/障碍物/陷阱覆盖层绘制（绿=碰撞区、金=门洞可通行区、橙=厚度/半径手柄） */

@@ -2988,6 +2988,11 @@ body.map-mode .controls-hint-left {
 .collision-editor-panel .ce-btn:hover { background: linear-gradient(to bottom, #5a4d3f, #4a3f35); border-color: #8a7d6b; }
 .collision-editor-panel .ce-btn-save { border-color: #6a8a5a; color: #a8d498; }
 .collision-editor-panel .ce-btn-save:hover { border-color: #a8d498; }
+/* 调整范围切换按钮（调整圆柱/调整矩形）：active=当前单独调整模式 */
+.collision-editor-panel .ce-mode-btn.active {
+  background: linear-gradient(to bottom, #5a4d3f, #4a3f35);
+  border-color: #d4a85a; color: #ffd88a;
+}
 .collision-editor-panel .ce-hint {
   font-size: 11px; color: #8a8272; line-height: 1.7;
   border-top: 1px solid #4a4038; padding-top: 6px;
