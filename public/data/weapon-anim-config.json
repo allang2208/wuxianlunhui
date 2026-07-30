@@ -1365,5 +1365,45 @@
       "x": 0.96,
       "y": 0.32
     }
+  },
+  "beretta93r": {
+    "holdOffsetX": 12,
+    "holdOffsetY": 0,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
+    },
+    "walk": {
+      "holdOffsetX": 12,
+      "idleScale": 0.6,
+      "holdOffsetY": 0
+    },
+    "dualOffsetX": 5,
+    "rotOffset": -6,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.35,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "bobWeaponScale": 2
   }
 }

@@ -2,6 +2,7 @@
 export const GUN_AMMO_CAP = {
     weapon9:  { max: 12, reloadTime: 1000 },
     weapon10: { max: 6,  reloadTime: 1750 },
+    weapon19: { max: 9,  reloadTime: 1500 },
     weapon6:  { max: 75, reloadTime: 3500 },
     weapon7:  { max: 30, reloadTime: 1150 },
     weapon8:  { max: 30, reloadTime: 1000 },
@@ -45,15 +46,16 @@ export const isSwordCategory = (weaponType) => WEAPON_CATEGORIES.sword.includes(
 
 // ===== 射击模式分类（已弃用：优先使用 item.fireMode） =====
 export const FIRE_MODES = {
-    semiAuto: ['weapon10', 'weapon12'],
+    semiAuto: ['weapon10', 'weapon12', 'weapon19'],
     fullAuto: ['weapon6', 'weapon7', 'weapon8', 'weapon9', 'weapon11', 'weapon13', 'weapon15'],
 };
 
 export const isSemiAuto = (weaponId) => FIRE_MODES.semiAuto.includes(weaponId);
 export const isFullAuto = (weaponId) => FIRE_MODES.fullAuto.includes(weaponId);
-// 新接口：从 item 读取 fireMode
+// 新接口：从 item 读取 fireMode（全自动板机改造 fireModeOverride 最优先）
 export const getFireMode = (item) => {
     if (!item) return null;
+    if (item._craftEffects && item._craftEffects.fireModeOverride) return item._craftEffects.fireModeOverride;
     if (item.fireMode) return item.fireMode;
     // 回退到旧版硬编码
     if (isSemiAuto(item.weaponId)) return 'semiAuto';

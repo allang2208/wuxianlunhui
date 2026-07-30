@@ -92,6 +92,36 @@ export const EquipDataManager = {
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'dex', base: 0.75, perEnhance: 0.15 }, { key: 'wis', base: 1, perEnhance: 0.25 }] },
         spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 1 }
     },
+    BERETTA93R_ITEM: {
+        weaponId: 'weapon19',
+        name: 'Beretta 93R', type: '手枪', icon: '🔫', iconImage: 'assets/weapons/beretta93r.png',
+        dropImage: 'assets/weapons/beretta93r.png',
+        equipImage: 'assets/weapons/beretta93r.png',
+        slotImage: 'assets/weapons/beretta93r.png',
+        category: 'weapon_ranged', rarity: 'uncommon', level: 8,
+        weaponCategory: 'mainhand', weaponType: 'pistol',
+        weaponTypeTag: '远程武器', isTwoHanded: false,
+        weaponAsset: { image: 'assets/weapons/beretta93r.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
+        stats: [{ name: '物理攻击', value: '8+敏捷×0.5+精神×0.5' }, { name: '射程', value: '700' }],
+        desc: 'Beretta 93R 半自动手枪，9发弹夹，可双持，扳机位可改造三连发/全自动',
+        equipSlot: 'weapon',
+        attack: { range: 700, knockback: 0, attackInterval: 225, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 800 },
+        attackKey: 'beretta93r', offhandAttackKey: 'beretta93rOffhand', animConfigKey: 'beretta93r', fireSound: 'assets/sounds/weapons/apex2_shot_1s.wav', isDarkGold: true, canvasImageProp: 'beretta93rImage',
+        ammoConfig: { max: 9, reloadTime: 1500 }, fireMode: 'semiAuto',
+        attackFormula: { base: 8, enhanceFlat: 0.75, attrs: [{ key: 'dex', base: 0.5, perEnhance: 0.1 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }] },
+        spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 5 },
+        craftConfig: {
+            weaponId: 'weapon19',
+            slots: [
+                { id: 'muzzle', name: '枪口', x: 0.08, y: 0.15, lineTarget: { x: 0.503, y: 0.167 } },
+                { id: 'barrel', name: '枪管', x: 0.08, y: 0.4, lineTarget: { x: 0.503, y: 0.224 } },
+                { id: 'sight', name: '瞄具', x: 0.08, y: 0.65, lineTarget: { x: 0.502, y: 0.609 } },
+                { id: 'magazine', name: '弹夹', x: 0.917, y: 0.275, lineTarget: { x: 0.507, y: 0.454 } },
+                { id: 'bullet', name: '子弹', x: 0.92, y: 0.134, lineTarget: { x: 0.507, y: 0.456 } },
+                { id: 'trigger', name: '板机', x: 0.92, y: 0.55, lineTarget: { x: 0.503, y: 0.572 } }
+            ]
+        }
+    },
     PKM_ITEM: {
         weaponId: 'weapon6',
         name: 'PKM', type: '机枪', icon: '🔫', iconImage: 'assets/icons/pkm_side_clean.png',

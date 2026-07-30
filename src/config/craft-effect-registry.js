@@ -164,6 +164,26 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: () => '独头弹模式',
         tooltip: '散弹枪变为单发独头弹',
     },
+    burstMode: {
+        category: 'mode',
+        applyMode: 'add',
+        display: (v) => `${v}连发爆发模式`,
+        tooltip: '一次扳机连射 N 发子弹',
+    },
+    fireModeOverride: {
+        category: 'mode',
+        applyMode: 'override',
+        display: (v) => (v === 'fullAuto' ? '切换全自动模式' : `射击模式→${v}`),
+        tooltip: '覆盖武器射击模式',
+    },
+    spreadParamsOverride: {
+        category: 'spread',
+        applyMode: 'override',
+        display: (v) => (v && typeof v === 'object')
+            ? `散布模板：开始${v.startDelay ?? 500}ms/最大${v.maxTime ?? 4000}ms/±${v.maxAngle ?? 25}°`
+            : '散布模板覆盖',
+        tooltip: '整体覆盖渐进式散布参数（开始/到最大/最大角）',
+    },
     flechetteMode: {
         category: 'mode',
         applyMode: 'flag',

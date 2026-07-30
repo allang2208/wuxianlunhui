@@ -97,6 +97,28 @@ export const WEAPON_ATTACK_CONFIG = {
         knockback: 2
     },
 
+    // Beretta 93R（半自动手枪，225ms 间隔，弹速 800）
+    beretta93r: {
+        type: 'RangedAttack',
+        cooldown: 225,
+        projectileSpeed: 800,
+        projectileRange: 700,
+        projectileSize: 4,
+        damage: { min: 2, max: 4 },
+        piercing: false,
+        knockback: 0
+    },
+    beretta93rOffhand: {
+        type: 'RangedAttack',
+        cooldown: 225,
+        projectileSpeed: 800,
+        projectileRange: 700,
+        projectileSize: 4,
+        damage: { min: 2, max: 4 },
+        piercing: false,
+        knockback: 0
+    },
+
     // 机枪/步枪
     pkm: {
         type: 'RangedAttack',
