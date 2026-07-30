@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物拖放修复 + 手枪双持锚点统一（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH` 字段，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放为 NaN 导致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180），两处缩放计算改 `(g.obstacleH ?? 120) / g.h`。
+- **② 双持锚点统一（G18 基准）**：副手最终位 = offBase + holdOffset。G18（pistol 条目）= (-17,-33) 为基准；`WEAPON_TRANSFORM_CONFIG` 调整：`beretta93r` 整条改 pistol 克隆（offBase -23,19 + pistol 克隆 hold → 同 G18 终值）；`deagle`/`p4040` 的 offBase 从 (-5,-16.5) 改 **(-29,-33)**（+各自 hold (12,0) 后终值同为 (-17,-33)，与 G18 完全一致）——deagle 双持错位（此前 offBase 与 G18 差 (24,+16.5)）同案修复。主手锚点全部不动。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：双持姿态（三手枪 vs G18 逐帧对照）、障碍物拖放手感需实机确认。
+
 ### 对话：R93持位回退G18口径 + NPC footprint加大与可视化（2026-07-30，V0.338）
 
 - **① R93 持位再修正**：上轮"animConfigKey 解析+沙鹰克隆"实为主手错位根因——沙鹰配置 holdOffset(12,0) 与 V0.334 时用户认可的主手配置（G18 pistol 的 6,-52）差 (6,+52)。`weapon-anim-config.beretta93r` 改为 **G18 pistol 克隆**（单/双持回到 V0.334 手感；翻转修复不受影响的核对点：rotOffset -6 两配置一致、isGun 名单已含 beretta93r）。

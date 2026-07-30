@@ -36,7 +36,8 @@ const WEAPON_TRANSFORM_CONFIG = {
     },
     p4040: {
         mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -5, offBaseY: -16.5,
+        // 副手锚点对齐 G18 双持终值（offBase+hold = (-17,-33)）：G18(-23,19)+(6,-52)
+        offBaseX: -29, offBaseY: -33,
         holdOffsetKey: 'p4040',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
@@ -44,16 +45,17 @@ const WEAPON_TRANSFORM_CONFIG = {
     },
     deagle: {
         mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -5, offBaseY: -16.5,
+        // 副手锚点对齐 G18 双持终值（同 p4040；hold (12,0)）
+        offBaseX: -29, offBaseY: -33,
         holdOffsetKey: 'deagle',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
         baseRotation: 0,
     },
     beretta93r: {
-        // Beretta 93R：与沙鹰同口径（单/双持锚点、后坐偏移）
+        // Beretta 93R：全面对齐 G18（pistol 条目；主手 (-9,-35.5)、副手 (-17,-33) 终值一致）
         mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -5, offBaseY: -16.5,
+        offBaseX: -23, offBaseY: 19,
         holdOffsetKey: 'beretta93r',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
