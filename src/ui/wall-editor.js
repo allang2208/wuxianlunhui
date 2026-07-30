@@ -381,7 +381,11 @@ export const WallEditor = {
         const overCanvas = pt && pt.overCanvas;
         if (overCanvas && this._pendingPiece) {
             const p = this._pendingPiece;
-            p.depth = p.y;
+            // 障碍物 depth 锚贴图底边（前墙规则）；墙件沿用 y（编辑器/图层后续可再调）
+            const g = WallSystem._geoForTex(p.tex);
+            p.depth = (g && g.category === 'obstacle')
+                ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
+                : p.y;
             WallSystem.isoVisuals.push(p);
             this._pendingPiece = null;
             this._destroyGhost();
@@ -436,7 +440,7 @@ export const WallEditor = {
             el.querySelector('.oe-reset').addEventListener('click', () => this._resetObstacle());
             el.querySelector('.oe-save').addEventListener('click', () => this._saveObstacleLayout());
         }
-        this._obstacleEl.style.display = isOb ? '' : 'none';
+        this._obstacleEl.style.display = isOb ? 'block' : 'none'; // 注意不能用 ''（CSS 类默认 display:none，空串会回落隐藏）
         // 跟随墙壁编辑器面板下缘（面板高度随内容变化，固定 top 会飘出视口）
         if (isOb && this._panel) {
             const r = this._panel.getBoundingClientRect();
@@ -552,7 +556,13 @@ export const WallEditor = {
         p._sprite.setFlipX(!!p.flipX);
         p._sprite.setFlipY(!!p.flipY);
         p._sprite.setRotation(p.rotation || 0);
-        p._sprite.setDepth(p.depth ?? p.y);
+        // 障碍物：depth 锚贴图底边（前墙规则——后方实体被正确遮挡；
+        // 之前 depth=中心点，背后人物脚线大于中心仍盖在柱子上"背后显示"）
+        const g = WallSystem._geoForTex(p.tex);
+        const depth = (g && g.category === 'obstacle')
+            ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
+            : (p.depth ?? p.y);
+        p._sprite.setDepth(depth);
     },
 
     /** 全量重建：阶梯碰撞 + Phaser 重同步（重建物理体与贴图） */

@@ -61,6 +61,10 @@ class NPC extends Entity {
         this._wanderTimer = this.wanderCfg ? (this.wanderCfg.idleMs ?? 7000) : 0;
         this._wanderTarget = null;
 
+        // 保留原始配置：Collider 高度推导（_deriveHeight）需读取 cfg.height
+        // （碰撞体积编辑器可给 NPC 配置 height 调圆柱高，独立于 footprint 矩形）
+        this.config = config;
+
         // 碰撞字段在 super() 之后才赋值，必须重建 Collider（否则 groundRadius 永远是兜底值 10）
         this.rebuildCollider();
     }
