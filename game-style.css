@@ -2861,6 +2861,41 @@ body.map-mode .controls-hint-left {
 }
 .wall-editor-panel .we-tab.active { background: #3a3626; color: #d4c5a9; border-color: #8a7d6b; }
 
+/* 分类页签（墙类/门类/障碍物类，2026-07-30） */
+.wall-editor-panel .we-cat-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+.wall-editor-panel .we-cat-tab {
+  flex: 1; background: #1e2626; color: #7a8a8a; border: 1px solid #465a5a;
+  border-radius: 3px; padding: 3px 0; font-size: 11px; cursor: pointer;
+}
+.wall-editor-panel .we-cat-tab.active { background: #263636; color: #a9d4c5; border-color: #6b8d7d; }
+/* 组件区拉高 + 滚动条（面板整体不超过 80vh，组件多了可滚动） */
+.wall-editor-panel { max-height: 80vh; overflow-y: auto; }
+.wall-editor-panel .we-std-scroll {
+  max-height: 52vh; overflow-y: auto; margin-bottom: 6px;
+  scrollbar-width: thin; scrollbar-color: #5a5346 transparent;
+}
+.wall-editor-panel .we-std-scroll::-webkit-scrollbar { width: 8px; }
+.wall-editor-panel .we-std-scroll::-webkit-scrollbar-thumb { background: #5a5346; border-radius: 4px; }
+
+/* 障碍物编辑器（单选一个障碍物时显示，位于墙壁编辑器下方） */
+.obstacle-editor {
+  position: fixed; right: 8px; top: calc(80px + 80vh + 8px);
+  width: 280px; background: rgba(18, 24, 18, 0.94);
+  border: 1px solid #465a46; border-radius: 4px;
+  color: #c5d4a9; font-size: 12px; padding: 8px 10px; z-index: 9999;
+  pointer-events: auto; user-select: none; display: none;
+}
+.obstacle-editor .oe-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.obstacle-editor .oe-hints { color: #7a8a72; font-size: 10px; margin-bottom: 6px; }
+.obstacle-editor .oe-row { display: flex; gap: 6px; }
+.obstacle-editor .oe-row button {
+  flex: 1; background: #262e1e; color: #c5d4a9; border: 1px solid #5a6a46;
+  border-radius: 3px; padding: 5px 0; font-size: 12px; cursor: pointer;
+}
+.obstacle-editor .oe-row button:hover { background: #323c26; }
+.obstacle-editor .oe-row .oe-save { background: #2e3a26; border-color: #6b8d5d; }
+.obstacle-editor .oe-row .oe-save:hover { background: #3a4a2e; }
+
 /* 标准组件缩略图 */
 .wall-editor-panel .we-family { color: #8a8272; margin: 4px 0; font-size: 11px; }
 .wall-editor-panel .we-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }

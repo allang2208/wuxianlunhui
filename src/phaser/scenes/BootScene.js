@@ -5,7 +5,7 @@
 import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
-import { loadWallPrefabs } from '../../world/wall-prefabs.js';
+import { loadWallPrefabs, loadObstacleLayout } from '../../world/wall-prefabs.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 
 export class BootScene extends Scene {
@@ -109,6 +109,9 @@ export class BootScene extends Scene {
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
         this.load.image('hub_wall_straight', 'assets/terrain/hub_wall_straight.png');
         this.load.image('hub_gate', 'assets/terrain/hub_gate.png');
+        // 障碍物组件（木桶/石柱，摆墙编辑器障碍物类）
+        this.load.image('obstacle_barrel', 'assets/terrain/obstacle_barrel.png');
+        this.load.image('obstacle_pillar', 'assets/terrain/obstacle_pillar.png');
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
@@ -261,6 +264,7 @@ export class BootScene extends Scene {
         
         // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
         loadWallPrefabs();
+        loadObstacleLayout();
 
         // 创建玩家动画（配置驱动；repeat -1 循环 / 0 播放一次，帧区间由 frames 指定）
         for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {

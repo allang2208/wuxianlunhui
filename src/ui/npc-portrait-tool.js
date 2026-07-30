@@ -11,8 +11,8 @@ import { getElement } from '../utils/dom-utils.js';
 // 参数模型：{ x, y, scale, rotation, flipX }——x/y 为相对默认锚点的偏移（屏幕 px）
 // 每个 NPC 的立绘参数 { [npcId]: { x, y, scale, rotation, flipX } }
 const npcPortraitSettings = {};
-const PARAMS_REL = 'npc-portrait-params.json';
-const PARAMS_URL = '/data/' + PARAMS_REL;
+const PARAMS_REL = 'data/npc-portrait-params.json'; // save-json 管道要求 data/ 前缀（中间件校验 rel.startsWith('data/')）
+const PARAMS_URL = '/data/npc-portrait-params.json';
 
 // 默认立绘参数：按NPC肖像路径匹配（首次打开时自动应用；x/y 为 2026-07-30 前
 // offsetX/bottom 旧模型的迁移值：x=offsetX，y=0，锚 bottom 保留为各 NPC 默认值）

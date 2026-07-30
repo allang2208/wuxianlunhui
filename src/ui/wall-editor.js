@@ -11,15 +11,26 @@
  * 支持命名存为预设方案 / 一键删除。
  */
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
-import { loadWallPrefabs, getWallPrefabLibrary, saveWallPrefabs } from '../world/wall-prefabs.js';
+import { loadWallPrefabs, getWallPrefabLibrary, saveWallPrefabs, saveObstacleLayout } from '../world/wall-prefabs.js';
 
-// 标准组件库（按 family 分组；墙壁为环境组件的第一个 family）
+// 标准组件库（三大分类页签：墙类 / 门类 / 障碍物类）
 // 墙壁组件自动生成：ISO_WALL_GEO 条目带 editor 显示名即进面板（新墙/门组件加 editor 字段即可，无需改本文件）
+// 分类规则：category==='obstacle' → 障碍物类；gateX → 门类；其余 → 墙类
+const _GEO_EDITORS = Object.values(ISO_WALL_GEO).filter(g => g.editor);
 const STD_COMPONENTS = [
     {
-        family: '环境组件 · 墙壁',
-        items: Object.values(ISO_WALL_GEO)
-            .filter(g => g.editor)
+        family: '墙类', id: 'wall',
+        items: _GEO_EDITORS.filter(g => g.category !== 'obstacle' && !g.gateX)
+            .map(g => ({ tex: g.tex, name: g.editor })),
+    },
+    {
+        family: '门类', id: 'gate',
+        items: _GEO_EDITORS.filter(g => g.category !== 'obstacle' && g.gateX)
+            .map(g => ({ tex: g.tex, name: g.editor })),
+    },
+    {
+        family: '障碍物类', id: 'obstacle',
+        items: _GEO_EDITORS.filter(g => g.category === 'obstacle')
             .map(g => ({ tex: g.tex, name: g.editor })),
     },
 ];
@@ -110,6 +121,7 @@ export const WallEditor = {
         this._setSelection([]);
         if (this._boxGfx) { this._boxGfx.destroy(); this._boxGfx = null; }
         if (this._panel) { this._panel.remove(); this._panel = null; }
+        if (this._obstacleEl) { this._obstacleEl.remove(); this._obstacleEl = null; }
         if (this._layersEl) { this._layersEl.remove(); this._layersEl = null; }
         this._layerList = null;
         this._boxMode = false;
@@ -142,6 +154,7 @@ export const WallEditor = {
         this._blinkT = 0;
         this._updateInfo();
         this._refreshLayers();
+        this._updateObstacleEditor();
     },
 
     _onTick(time) {
@@ -264,11 +277,13 @@ export const WallEditor = {
         const pt = this._clientToWorld(e);
         if (!pt || !pt.overCanvas) return;
         e.preventDefault();
-        // 放置中的临时件：滚轮缩放 / Ctrl+滚轮镜像
+        // 放置中的临时件：滚轮缩放 / Ctrl+滚轮镜像 / Shift+滚轮旋转（障碍物）
         if (this._pendingPiece) {
             const p = this._pendingPiece;
             if (e.ctrlKey) p.flipX = !p.flipX;
-            else {
+            else if (e.shiftKey) {
+                if (p.family === 'obstacle') p.rotation = ((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
+            } else {
                 const f = e.deltaY < 0 ? 1.05 : 1 / 1.05;
                 p.scaleX *= f;
                 p.scaleY *= f;
@@ -283,6 +298,13 @@ export const WallEditor = {
             for (const p of this.sel) {
                 p.x = 2 * c.x - p.x;
                 p.flipX = !p.flipX;
+                this._applyToSprite(p);
+            }
+        } else if (e.shiftKey) {
+            // Shift+滚轮：障碍物旋转 ±5°（墙件不受影响，防止误转破坏拼接）
+            for (const p of this.sel) {
+                if (p.family !== 'obstacle') continue;
+                p.rotation = ((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
                 this._applyToSprite(p);
             }
         } else {
@@ -330,11 +352,13 @@ export const WallEditor = {
         this._cancelPlacement();
         const g = WallSystem._geoForTex(comp.tex) || { wallH: 800 };
         const s = ISO_WALL_HEIGHT / g.wallH;
+        const isObstacle = g.category === 'obstacle';
         this._pendingPiece = {
             tex: comp.tex, x: -9999, y: -9999,
-            scaleX: s, scaleY: s * slopeFixOf(g), // 角度补偿：显示斜率对齐地板线 30°
-            flipX: false, flipY: false,
-            depth: 0, family: 'wall',
+            // 障碍物是 billboard 道具：不做 30° 角度补偿（scaleY=scaleX），支持 rotation
+            scaleX: s, scaleY: isObstacle ? s : s * slopeFixOf(g),
+            flipX: false, flipY: false, rotation: 0,
+            depth: 0, family: isObstacle ? 'obstacle' : 'wall',
         };
         const scene = window.__phaserScene;
         this._ghost = scene.add.sprite(-9999, -9999, comp.tex).setOrigin(0.5, 0.5).setAlpha(0.6).setDepth(999998);
@@ -348,6 +372,7 @@ export const WallEditor = {
         this._ghost.setPosition(p.x, p.y);
         this._ghost.setScale(p.scaleX, p.scaleY);
         this._ghost.setFlipX(p.flipX);
+        this._ghost.setRotation(p.rotation || 0);
     },
 
     _finishPlacement(e) {
@@ -389,6 +414,57 @@ export const WallEditor = {
         WallSystem.isoVisuals = WallSystem.isoVisuals.filter(p => !set.has(p));
         this._setSelection([]);
         this._commit();
+    },
+
+    // ===== 障碍物编辑器（仅单选一个障碍物时显示，位于墙壁编辑器下方） =====
+    _updateObstacleEditor() {
+        const single = this.sel.length === 1 ? this.sel[0] : null;
+        const isOb = !!(single && (WallSystem._geoForTex(single.tex) || {}).category === 'obstacle');
+        if (!this._obstacleEl) {
+            const el = document.createElement('div');
+            el.className = 'obstacle-editor';
+            el.innerHTML = `
+                <div class="oe-title">障碍物编辑器</div>
+                <div class="oe-hints">滚轮=缩放 Ctrl+滚轮=镜像 Shift+滚轮=旋转</div>
+                <div class="oe-row">
+                    <button class="oe-reset">↺ 重置</button>
+                    <button class="oe-save">💾 保存</button>
+                </div>`;
+            document.body.appendChild(el);
+            this._obstacleEl = el;
+            el.querySelector('.oe-reset').addEventListener('click', () => this._resetObstacle());
+            el.querySelector('.oe-save').addEventListener('click', () => this._saveObstacleLayout());
+        }
+        this._obstacleEl.style.display = isOb ? '' : 'none';
+    },
+
+    /** 重置：选中障碍物恢复初始变换（默认缩放/无旋转/无镜像） */
+    _resetObstacle() {
+        const p = this.sel.length === 1 ? this.sel[0] : null;
+        if (!p) return;
+        const g = WallSystem._geoForTex(p.tex) || { wallH: 800 };
+        const s = ISO_WALL_HEIGHT / g.wallH;
+        p.scaleX = s;
+        p.scaleY = s;
+        p.flipX = false;
+        p.flipY = false;
+        p.rotation = 0;
+        this._applyToSprite(p);
+        this._commit();
+    },
+
+    /** 保存：场景内全部障碍物写入 data/obstacle-layout.json（回城按布局重建，免手工抄改） */
+    async _saveObstacleLayout() {
+        const list = WallSystem.isoVisuals
+            .filter(p => (WallSystem._geoForTex(p.tex) || {}).category === 'obstacle')
+            .map(cleanPiece);
+        const ok = await saveObstacleLayout(list);
+        const btn = this._obstacleEl && this._obstacleEl.querySelector('.oe-save');
+        if (btn) {
+            const old = btn.textContent;
+            btn.textContent = ok ? '✓ 已写入文件' : '⚠ 已下载';
+            setTimeout(() => { btn.textContent = old; }, 1200);
+        }
     },
 
     /** 角度补偿：选中件的显示斜率对齐地板线 30°（scaleY 按比例重设，宽度/墙高不动） */
@@ -469,6 +545,7 @@ export const WallEditor = {
         p._sprite.setScale(p.scaleX ?? 1, p.scaleY ?? p.scaleX ?? 1);
         p._sprite.setFlipX(!!p.flipX);
         p._sprite.setFlipY(!!p.flipY);
+        p._sprite.setRotation(p.rotation || 0);
         p._sprite.setDepth(p.depth ?? p.y);
     },
 
@@ -567,15 +644,21 @@ export const WallEditor = {
         const el = document.createElement('div');
         el.className = 'wall-editor-panel';
 
-        // 标准组件缩略图
-        const stdHtml = STD_COMPONENTS.map(g => `
-            <div class="we-family">${g.family}</div>
-            <div class="we-grid">${g.items.map(it => `
-                <div class="we-thumb" data-tex="${it.tex}" title="${it.name}（拖入场景放置）">
-                    <img src="assets/terrain/${it.tex}.png" draggable="false" alt="${it.name}">
-                    <span>${it.name}</span>
+        // 标准组件缩略图（三大分类页签；滚动区拉高+滚动条，组件多了可滚动）
+        const stdHtml = `
+            <div class="we-cat-tabs">${STD_COMPONENTS.map((g, i) => `
+                <button class="we-cat-tab${i === 0 ? ' active' : ''}" data-cat="${g.id}">${g.family}</button>`).join('')}
+            </div>
+            <div class="we-std-scroll">${STD_COMPONENTS.map((g, i) => `
+                <div class="we-cat-page" data-cat="${g.id}"${i !== 0 ? ' style="display:none"' : ''}>
+                    <div class="we-grid">${g.items.map(it => `
+                        <div class="we-thumb" data-tex="${it.tex}" title="${it.name}（拖入场景放置）">
+                            <img src="assets/terrain/${it.tex}.png" draggable="false" alt="${it.name}">
+                            <span>${it.name}</span>
+                        </div>`).join('') || '<div class="we-pf-empty">（暂无组件）</div>'}
+                    </div>
                 </div>`).join('')}
-            </div>`).join('');
+            </div>`;
 
         el.innerHTML = `
             <div class="we-title">墙壁编辑器 <span class="we-close">×</span></div>
@@ -620,6 +703,16 @@ export const WallEditor = {
             pagePre.style.display = ''; pageStd.style.display = 'none';
             this._refreshPrefabList();
         });
+
+        // 分类页签切换（墙类/门类/障碍物类）
+        for (const tab of el.querySelectorAll('.we-cat-tab')) {
+            tab.addEventListener('click', () => {
+                for (const t of el.querySelectorAll('.we-cat-tab')) t.classList.toggle('active', t === tab);
+                for (const pg of el.querySelectorAll('.we-cat-page')) {
+                    pg.style.display = pg.dataset.cat === tab.dataset.cat ? '' : 'none';
+                }
+            });
+        }
 
         // 缩略图拖放（mousedown 启动放置，mouseup 在画布上落位）
         for (const thumb of el.querySelectorAll('.we-thumb')) {

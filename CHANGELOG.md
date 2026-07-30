@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+### 对话：掉落物微调/障碍物体系/NPC footprint/R93修正/立绘管道（2026-07-30，V0.337）
+
+- **① 掉落物**：贴图抖动 ±4→±5px；名字上移 30px（y+36→y+6）。
+- **② 障碍物体系（新）**：木桶/石柱素材（去噪点孤岛+包围盒）→ `assets/terrain/obstacle_barrel/pillar.png`；`ISO_WALL_GEO` 新增 `category:'obstacle'` + `foot:{w,d}`（footprint 贴图宽高实测），`_addPieceCollision` 按 geo.foot 生成**矩形 footprint 墙**（锚底边中心、随缩放）；`_placeIsoPiece` 支持 `rotation`。摆墙编辑器：**分类页签（墙类/门类/障碍物类）**+ 面板拉高（80vh）+ 组件区滚动条；障碍物放置不做 30° 角度补偿；**Shift+滚轮=旋转**（仅障碍物）。**障碍物编辑器**：仅单选一个障碍物时显示于墙壁编辑器下方（重置=恢复初始变换；保存=全部障碍物写 `data/obstacle-layout.json`，Electron IPC/Vite 中间件/下载三管道），`_setupMainHubTerrain` 每次回城按布局重建（含首启竞速兜底）。
+- **③ 固定 NPC（祭坛/仓库）碰撞重设计**：移除 obstacle 静态墙配置（不再走 WallSystem 矩形墙），改 `collisionShape:'rect'` 矩形 footprint 匹配贴图底座（仓库 140×36、祭坛 190×55）；`resolveCollisions` 新增**圆-矩形精确分离分支**（逆透视压缩判定、圆心在矩形内沿长轴推出、noSeparation 侧不动由对方承担全部位移）；贴图前后遮挡走标准 y 深度（脚线 +10），前遮后/后遮前不变。
+- **④ R93 修正**：上轮 animConfigKey 解析把 R93 带出 pistol 分支——`weapon-transform` 三处补齐：`getWeaponSize`/`getAttackAnimOffset` pistol 名单 + `WEAPON_TRANSFORM_CONFIG.beretta93r` 锚点（沙鹰同口径），贴图缩放与手臂/副手锚点恢复手枪口径。
+- **⑤ 立绘保存管道修复**：`PARAMS_REL` 补 `data/` 前缀（中间件强制要求，此前必走下载兜底）；不同 NPC 按 npcId 分键存储于 `data/npc-portrait-params.json`。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：障碍物编辑器交互（Shift 旋转/保存重建）、NPC 矩形分离手感、R93 手臂位置需实机确认。
+
 ### 对话：R93副手翻转/近战一段扇形化/冲刺数值/立绘工具重构/改造券红抖/祭坛换图（2026-07-30，V0.336）
 
 - **① R93 双持副手翻转根因**：`GameScene.syncWeapon/syncOffhandWeapon` 用 `weaponType` 解析 `WeaponAnimConfig`——R93（weaponType='pistol'）误吃 G18 的 pistol 配置。修复：主/副手、`_getMuzzleWorldPosition` 统一改 `animConfigKey || weaponType`（deagle/p4040 关键值与 pistol 一致已核对无回归）；`isGun/flipYCand/isGunOff` 三处名单补 `beretta93r`。
