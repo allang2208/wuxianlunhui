@@ -101,3 +101,41 @@ export async function saveObstacleLayout(list) {
     _obstacleLayout = Array.isArray(list) ? list : [];
     return _persistJson(OBSTACLE_REL, _obstacleLayout);
 }
+
+// ==================== 墙体几何覆盖层（data/wall-geo-overrides.json，2026-07-30） ====================
+// ISO_WALL_GEO 在 src 源码里，JSON 保存管道只能写 data/*.json——碰撞体积编辑器对
+// 墙(face/halfThick)/门(states 门洞)/障碍物(foot) 的按类型修改写此文件；
+// 启动时 BootScene 预载，WallSystem.applyGeoOverrides 合并进 ISO_WALL_GEO 后重建碰撞生效
+const GEO_OVR_URL = '/data/wall-geo-overrides.json';
+const GEO_OVR_REL = 'data/wall-geo-overrides.json';
+
+let _geoOverrides = null;
+
+/** 预载几何覆盖层（幂等；失败给空对象） */
+export async function loadWallGeoOverrides() {
+    if (_geoOverrides) return _geoOverrides;
+    try {
+        const r = await fetch(`${GEO_OVR_URL}?ts=${Date.now()}`);
+        const data = r.ok ? await r.json() : {};
+        _geoOverrides = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+    } catch {
+        _geoOverrides = {};
+    }
+    return _geoOverrides;
+}
+
+/** 取已缓存的几何覆盖层（未预载返回空对象） */
+export function getWallGeoOverrides() {
+    return _geoOverrides || {};
+}
+
+/** 几何覆盖层是否已加载完成 */
+export function isWallGeoOverridesLoaded() {
+    return _geoOverrides !== null;
+}
+
+/** 保存几何覆盖层到磁盘（与 saveWallPrefabs 同管道） */
+export async function saveWallGeoOverrides(ov) {
+    _geoOverrides = (ov && typeof ov === 'object' && !Array.isArray(ov)) ? ov : {};
+    return _persistJson(GEO_OVR_REL, _geoOverrides);
+}

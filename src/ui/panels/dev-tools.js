@@ -345,11 +345,12 @@ export function createDevToolPanel() {
 
     const collisionDesc = document.createElement('div');
     collisionDesc.className = 'collision-tab-desc';
-    collisionDesc.innerHTML = '<p>在主神空间中实时编辑怪物 / NPC 的碰撞体积：</p>'
-        + '<p>🟩 绿色矩形（躯干判定）：四角 + 边中八点拖拽调节</p>'
-        + '<p>🟧 橙色圆柱体：底部椭圆等比缩放 + 顶部手柄调节高矮</p>'
-        + '<p>✥ 在矩形或椭圆内按住拖动：整体平移碰撞体对齐贴图</p>'
-        + '<p>调整后即时生效，「保存」直接写入 data/enemy-config.json / data/game-config.json。</p>';
+    collisionDesc.innerHTML = '<p>在主神空间中实时编辑碰撞判定：</p>'
+        + '<p>🟩 怪物/NPC：矩形八点拖拽 + 圆柱半径/高矮 + 整体平移</p>'
+        + '<p>🧱 墙：拖 face 线段两端点改跨度，橙点调碰撞厚度（按类型生效）</p>'
+        + '<p>🚪 门：打开/关闭两状态分别调整；打开态拖金色门洞边缘调通行宽度</p>'
+        + '<p>🛢 障碍物：footprint 矩形八点拖拽；🪤 陷阱：触发半径圈 + 数量/伤害/冷却</p>'
+        + '<p>调整后即时生效，「保存」写入 data/enemy-config.json / game-config.json / wall-geo-overrides.json / dungeon-config.json。</p>';
     collisionWrap.appendChild(collisionDesc);
 
     const collisionOpenBtn = document.createElement('button');

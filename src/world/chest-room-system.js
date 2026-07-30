@@ -13,7 +13,7 @@
  *    25% 材料组 / 25% 宝箱怪位——宝箱怪位当前按金币兜底发放）
  * 5. 离场守卫：场地内还有未开宝箱时走出大门白区，弹确认框（是/否）
  */
-import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
+import { WallSystem, ISO_WALL_GEO, isoGateHole, isoHalfThick } from './wall-system.js';
 import { getWallPrefabLibrary } from './wall-prefabs.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
@@ -205,8 +205,11 @@ export const ChestRoomSystem = {
 
         // 碰撞：门两侧常开 + 门洞按开关启停（与 wall-gate 同模型）
         const [gA, gB] = WallSystem._pieceBaseSegments(piece)[0];
+        const hole = isoGateHole(g);
+        if (!hole) return;
+        const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
-        const g1 = baseAt(g.gateX[0]), g2 = baseAt(g.gateX[1]);
+        const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
         // 图层（2026-07-30 修复）：不再沿用预制保存值——宝箱房是低矮装饰围墙，实体应始终画在墙上
         // （右侧直墙件因贴图够不着天然如此；门墙贴图高、门区实体脚线落入其覆盖带会被门框盖住，
         //  "门墙左侧挡住玩家/怪物、右边正常"根因）。深度=底边最低点-显示墙高：凡脚线低于
@@ -226,10 +229,10 @@ export const ChestRoomSystem = {
         }
         sprite.setDepth(gateDepth);
         const segs = [
-            { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: 10, _chestGate: true },
-            { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: 10, _chestGate: true },
+            { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _chestGate: true },
+            { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _chestGate: true },
         ];
-        const gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: 10, _chestGate: true };
+        const gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _chestGate: true };
         if (WallSystem.isoSegments) {
             for (const s of segs) WallSystem.isoSegments.push(s);
             WallSystem.isoSegments.push(gateSeg); // 初始关门

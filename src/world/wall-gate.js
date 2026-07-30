@@ -6,7 +6,7 @@
  * - 战斗完成：playOpen()，门洞碰撞线段启停，门外白区+光束由 combat-room 协调
  * - 悬停金色轮廓（离屏烘焙外发光，零渲染开销）
  */
-import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from './wall-system.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 
 const FRAMES = 16;
@@ -90,15 +90,18 @@ export const WallGate = {
         this.sprite.setFlipX(this._flip);
         this.sprite.setDepth(this._homeDepth);
 
-        // 门洞碰撞线段（gateX 映射到世界）；门两侧墙体线段常开，门洞线段按状态启停
+        // 门洞碰撞线段（states.open.hole/gateX 映射到世界）；门两侧墙体线段常开，门洞线段按状态启停
+        const hole = isoGateHole(g);
+        if (!hole) return false;
+        const ht = isoHalfThick(g);
         const baseAt = (tx) => this._tex2world(tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const gA = baseAt(g.base[0][0]), gB = baseAt(g.base[1][0]);
-        const g1 = baseAt(g.gateX[0]), g2 = baseAt(g.gateX[1]);
+        const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
         this._wallSegs = [
-            { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: 10, _gate: true },
-            { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: 10, _gate: true },
+            { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _gate: true },
+            { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _gate: true },
         ];
-        this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: 10, _gate: true };
+        this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _gate: true };
         this._gateCenter = { x: (g1.x + g2.x) / 2, y: (g1.y + g2.y) / 2 };
         if (WallSystem.isoSegments) {
             for (const s of this._wallSegs) WallSystem.isoSegments.push(s);
@@ -193,9 +196,10 @@ export const WallGate = {
             const src = scene.textures.get(texKey).getSourceImage();
             const cols = Math.floor(src.width / g.w);
             const rowsN = Math.floor(src.height / g.h);
-            // 门洞裁剪区（gateX ± 边距，随样式几何）
-            const clipX = g.gateX ? g.gateX[0] - 75 : 190;
-            const clipW = g.gateX ? (g.gateX[1] - g.gateX[0]) + 150 : 240;
+            // 门洞裁剪区（states.open.hole/gateX ± 边距，随样式几何）
+            const hole = isoGateHole(g);
+            const clipX = hole ? hole[0] - 75 : 190;
+            const clipW = hole ? (hole[1] - hole[0]) + 150 : 240;
             const c = document.createElement('canvas');
             c.width = src.width;
             c.height = src.height;

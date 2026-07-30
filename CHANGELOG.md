@@ -8,6 +8,19 @@
 - 测试结果
 - 已知问题
 
+### 对话：碰撞编辑器整合墙/门/障碍物/陷阱判定（2026-07-30，V0.343）
+
+- **① 四类判定面积整合进碰撞体积编辑器**（`src/ui/collision-editor.js`）：下拉新增「墙/门/障碍物/陷阱」四组（怪物/NPC 之后，按 ISO_WALL_GEO 规则自动归类，新增类型自动进列表）。编辑粒度全部**按类型**（非逐件）：
+  - **墙**（diag/straight/swamp_straight/hub_straight）：face 碰撞线段两端点拖拽改跨度（世界↔贴图坐标互转，与 `_pieceBaseSegments` 同口径）+ 橙点拖离墙线距离调碰撞半厚（halfThick）。
+  - **门**（gate/swamp_gate/hub_gate，两状态特殊设置）：面板「🚪打开/⛔关闭」切换——打开态碰撞=两侧墙身（绿）+中间门洞（**金色高亮可通行区**，拖两侧边缘微调门洞宽度，目前 hub_gate 109px）；关闭态=全跨度实心（仅可调厚度）；16 帧门闸预览帧随状态联动（帧0=关/帧15=开）。
+  - **障碍物**（barrel/pillar/candle）：foot footprint 绿矩形八点拖拽（宽=中心锚定 2×到中心距，深=锚贴图底边）。
+  - **陷阱**（zombieDungeon.traps）：触发半径橙圈右缘手柄 + 数量/伤害(最大生命%)/冷却 数值输入；保存写 `data/dungeon-config.json`（运行时对象同步立即生效）。
+- **② 门两状态数据模型**：`ISO_WALL_GEO` 门件扩展 `states: { open: { hole:[x1,x2] }, closed: { hole:null } }`（closed 恒实心）；新增 `isoGateHole(g)`（states.open.hole 优先、兼容旧 gateX）与 `isoHalfThick(g)`（geo.halfThick 覆盖、缺省 10）两个读取helper，`_pieceBaseSegments` openDoor 分支 / `wall-gate.js`（碰撞段+发光裁剪）/ `chest-room-system.js`（宝箱房门）全部改走 helper；编辑器写 states 时同步 gateX（摆墙编辑器分类等旧读取不受影响）。
+- **③ geo 覆盖层持久化**（ISO_WALL_GEO 在 src 源码里、JSON 管道只能写 data/）：新建 `data/wall-geo-overrides.json`（+public 同步，初始 {}）；`wall-prefabs.js` 新增 load/get/isLoaded/save 四函数（与预制库同管道）；`WallSystem.applyGeoOverrides`（幂等合并 face/halfThick/foot/gateX/states）+ `loadGeoOverrides`；BootScene 预载、`_setupMainHubTerrain` 建碰撞前合并（首启竞速兜底同障碍物布局方案）。编辑器保存=写覆盖层+内存同步+rebuildIsoCollision 立即生效；重置=回选中时快照（含覆盖层合并值）。
+- **④ 排查结论**：怪物/NPC 旧链路（Enemy.config/NPC collisionShape+rebuildCollider/ZOMBIE_FACTORY_MAP/警戒字段/_collisionEditMode 输入抑制/保存管道 data/ 前缀校验）逐一核对无误；几何映射（face 映射/中点锚定/逆变换/hub_gate 双分段/覆盖合并幂等）经 node 无头脚本逐项断言通过。修复两处本轮引入问题：scene-manager 编辑误删注释行、BootScene 冗余 import。性能取舍：拖拽中只重建线段模型（纯 JS），Phaser 静态体在 mouseup/保存/重置时同步一次。
+- **测试**：lint 0 error（15 warning 均为历史遗留）；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过（21 warning 历史遗留）。
+- **已知问题**：新四类交互（手柄手感/厚度带可视性/门洞边缘拖拽精度）需实机确认；转角件（top/bottom/left/right，无 face 线段）不在编辑范围。
+
 ### 对话：僵尸地牢陷阱系统（2026-07-30，V0.342）
 
 - **新机制——陷阱（无碰撞体积，占用触发）**：素材 `trap-1.png`（格栅盖静态帧）+ `trap.png`（13 帧地刺动画，512² 帧）→ `assets/terrain/trap_idle/trap_anim.png`；`src/world/trap-system.js` 状态机：**占用判定**（非进入判定——每帧检查触发半径 45px 内有玩家或敌对目标 active&&hittable）→ 0.5s 延迟 → 0.5s 播完地刺动画（第 6 帧命中：半径内所有目标各吃**自身最大生命 10% 物理伤害**）→ 0.5s 倒放还原 → 2s 冷却；冷却结束仍被占用则循环触发（站桩约 3.5s/次）。贴图 depth = y-998 地板层（实体走过盖在陷阱上）；帧由 timer 逐帧驱动（不依赖 anims 链）。

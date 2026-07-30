@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs, loadObstacleLayout } from '../../world/wall-prefabs.js';
+import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 
 export class BootScene extends Scene {
@@ -269,6 +270,8 @@ export class BootScene extends Scene {
         // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
         loadWallPrefabs();
         loadObstacleLayout();
+        // 预载墙体几何覆盖层（碰撞编辑器保存的墙/门/障碍物判定；合并进 ISO_WALL_GEO）
+        WallSystem.loadGeoOverrides();
 
         // 创建玩家动画（配置驱动；repeat -1 循环 / 0 播放一次，帧区间由 frames 指定）
         for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {
