@@ -1,0 +1,131 @@
+hooked
+{
+ "LEFT": [
+  {
+   "hand": "offhand",
+   "spr": {
+    "x": 3719.68,
+    "y": 1905,
+    "rotDeg": -154.2,
+    "flipY": true,
+    "displayWidth": 37.8,
+    "displayHeight": 37.8
+   },
+   "muzzle": {
+    "x": 3699.49,
+    "y": 1886.37
+   },
+   "target": {
+    "x": 3348,
+    "y": 2010
+   },
+   "frozen": false,
+   "effAimDeg": 180,
+   "playerRotDeg": 180,
+   "offState": "swing",
+   "mainState": "idle",
+   "spawns": [
+    {
+     "x": 3699.49,
+     "y": 1886.37,
+     "rotDeg": 165.34
+    }
+   ]
+  },
+  {
+   "hand": "main",
+   "spr": {
+    "x": 3711.68,
+    "y": 1902.5,
+    "rotDeg": 167.58,
+    "flipY": true,
+    "displayWidth": 37.8,
+    "displayHeight": 37.8
+   },
+   "muzzle": {
+    "x": 3683.67,
+    "y": 1898.57
+   },
+   "target": {
+    "x": 3348,
+    "y": 2010
+   },
+   "frozen": false,
+   "effAimDeg": 180,
+   "playerRotDeg": 180,
+   "offState": "idle",
+   "mainState": "swing",
+   "spawns": [
+    {
+     "x": 3683.67,
+     "y": 1898.57,
+     "rotDeg": 146.51
+    }
+   ]
+  }
+ ],
+ "RIGHT": [
+  {
+   "hand": "offhand",
+   "spr": {
+    "x": 3776.32,
+    "y": 1905,
+    "rotDeg": -25.8,
+    "flipY": false,
+    "displayWidth": 37.8,
+    "displayHeight": 37.8
+   },
+   "muzzle": {
+    "x": 3796.51,
+    "y": 1886.37
+   },
+   "target": {
+    "x": 4148,
+    "y": 2010
+   },
+   "frozen": false,
+   "effAimDeg": 0,
+   "playerRotDeg": 0,
+   "offState": "swing",
+   "mainState": "idle",
+   "spawns": [
+    {
+     "x": 3796.51,
+     "y": 1886.37,
+     "rotDeg": 25.42
+    }
+   ]
+  },
+  {
+   "hand": "main",
+   "spr": {
+    "x": 3784.32,
+    "y": 1902.5,
+    "rotDeg": 11.37,
+    "flipY": false,
+    "displayWidth": 37.8,
+    "displayHeight": 37.8
+   },
+   "muzzle": {
+    "x": 3812.27,
+    "y": 1898.06
+   },
+   "target": {
+    "x": 4148,
+    "y": 2010
+   },
+   "frozen": false,
+   "effAimDeg": 0,
+   "playerRotDeg": 0,
+   "offState": "idle",
+   "mainState": "swing",
+   "spawns": [
+    {
+     "x": 3812.27,
+     "y": 1898.06,
+     "rotDeg": 14.15
+    }
+   ]
+  }
+ ]
+}

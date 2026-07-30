@@ -545,5 +545,175 @@
         "label": "沼泽柴墙 2"
       }
     ]
+  },
+  "左右通道": {
+    "name": "左右通道",
+    "cx": 5338,
+    "cy": 1678,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 5740.132453641177,
+        "y": 1669.5415609513886,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1880.766453215752,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 4956.66357421875,
+        "y": 1672.962890625,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1662.962890625,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5362.180793484927,
+        "y": 1907.0466879045136,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 2123.271580168877,
+        "family": "wall",
+        "label": "直墙·新 4"
+      },
+      {
+        "tex": "wall_gate",
+        "x": 4920.615234375,
+        "y": 1443.457763671875,
+        "scaleX": 0.6551724137931034,
+        "scaleY": 0.7510354411835177,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1559.2103271484375,
+        "family": "wall",
+        "label": "门墙 1"
+      },
+      {
+        "tex": "wall_gate",
+        "x": 5755.615234375,
+        "y": 1926.457763671875,
+        "scaleX": 0.6551724137931034,
+        "scaleY": 0.7510354411835177,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 2124.271580168877,
+        "family": "wall",
+        "label": "门墙 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5325.615234375,
+        "y": 1430.457763671875,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1455.457763671875,
+        "family": "wall",
+        "label": "直墙·新 5"
+      }
+    ]
+  },
+  "上下通道": {
+    "name": "上下通道",
+    "cx": 5338,
+    "cy": 1678,
+    "pieces": [
+      {
+        "tex": "wall_straight",
+        "x": 4936.098015108823,
+        "y": 1669.5415609513886,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1880.766453215752,
+        "family": "wall",
+        "label": "直墙·新 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5719.56689453125,
+        "y": 1672.962890625,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1662.962890625,
+        "family": "wall",
+        "label": "直墙·新 3"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5314.049675265073,
+        "y": 1907.0466879045136,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 2123.271580168877,
+        "family": "wall",
+        "label": "直墙·新 4"
+      },
+      {
+        "tex": "wall_gate",
+        "x": 5755.615234375,
+        "y": 1443.457763671875,
+        "scaleX": 0.6551724137931034,
+        "scaleY": 0.7510354411835177,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1559.2103271484375,
+        "family": "wall",
+        "label": "门墙 1"
+      },
+      {
+        "tex": "wall_gate",
+        "x": 4920.615234375,
+        "y": 1926.457763671875,
+        "scaleX": 0.6551724137931034,
+        "scaleY": 0.7510354411835177,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 2124.271580168877,
+        "family": "wall",
+        "label": "门墙 2"
+      },
+      {
+        "tex": "wall_straight",
+        "x": 5350.615234375,
+        "y": 1430.457763671875,
+        "scaleX": 0.27496382054992763,
+        "scaleY": 0.31450893420271037,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1455.457763671875,
+        "family": "wall",
+        "label": "直墙·新 5"
+      }
+    ]
   }
 }

@@ -261,6 +261,10 @@ update(dt, entities) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
+                    // 加速 buff（命中获得，如 P4040 轻量化快速板机）：状态存续期乘算移动速度
+                    if (this.hasStatusEffect && this.hasStatusEffect('haste')) {
+                        targetSpeed *= (this._hasteSpeedMul || 1.10);
+                    }
                     // 双手枪械开火/瞄准时禁止 Shift 奔跑（开火或右键瞄准即中断奔跑退回 walking，
                     // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
                     const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);
@@ -556,6 +560,14 @@ update(dt, entities) {
                             spreadMaxTime += craftEffects.spreadTimeDelta || 0;
                             if (spreadMaxTime < 500) spreadMaxTime = 500;
                             maxSpreadAngle += craftEffects.maxSpreadAngleDelta || 0;
+                            // 全自动专属增量（枪口/枪管改造附带，仅全自动板机改造后生效）
+                            if (craftEffects.fireModeOverride === 'fullAuto') {
+                                spreadStartDelay += craftEffects.autoSpreadStartDelta || 0;
+                                if (spreadStartDelay < 0) spreadStartDelay = 0;
+                                spreadMaxTime += craftEffects.autoSpreadTimeDelta || 0;
+                                if (spreadMaxTime < 500) spreadMaxTime = 500;
+                                maxSpreadAngle += craftEffects.autoMaxSpreadAngleDelta || 0;
+                            }
                         }
                         this._currentSpreadFactor = (spreadMaxTime <= 0)
                             ? (this._gunSpreadTimer > spreadStartDelay ? 1 : 0)
@@ -598,6 +610,14 @@ update(dt, entities) {
                             offSpreadMaxTime += offCraftEffects.spreadTimeDelta || 0;
                             if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
                             offMaxSpreadAngle += offCraftEffects.maxSpreadAngleDelta || 0;
+                            // 全自动专属增量（仅全自动板机改造后生效，与主手同口径）
+                            if (offCraftEffects.fireModeOverride === 'fullAuto') {
+                                offSpreadStartDelay += offCraftEffects.autoSpreadStartDelta || 0;
+                                if (offSpreadStartDelay < 0) offSpreadStartDelay = 0;
+                                offSpreadMaxTime += offCraftEffects.autoSpreadTimeDelta || 0;
+                                if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
+                                offMaxSpreadAngle += offCraftEffects.autoMaxSpreadAngleDelta || 0;
+                            }
                         }
                         this._currentSpreadFactorOff = (offSpreadMaxTime <= 0)
                             ? (this._gunSpreadTimerOff > offSpreadStartDelay ? 1 : 0)

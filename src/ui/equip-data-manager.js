@@ -21,7 +21,7 @@ export const EquipDataManager = {
     TEST_BACKPACK_ITEMS: [
         { slot: 0, name: '治疗药水', type: '消耗品', icon: '🧪', iconImage: 'assets/items/health_potion.png', dropImage: 'assets/items/health_potion.png', category: 'consumable', stats: [{ name: '恢复生命', value: '+30' }], desc: '一瓶红色的药水，味道有点甜', stack: 5 },
         { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', iconImage: 'assets/items/mana_potion.png', dropImage: 'assets/items/mana_potion.png', category: 'consumable', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 },
-        { slot: 2, name: '金币', type: '货币', icon: '💰', category: 'gold', stats: [{ name: '数量', value: '10000' }], desc: '金光闪闪的硬币', stack: 10000, price: 1 }
+        { slot: 2, name: '金币', type: '货币', icon: '💰', category: 'gold', rarity: 'mythic', stats: [{ name: '数量', value: '10000' }], desc: '金光闪闪的硬币', stack: 10000, price: 1 }
     ],
     G18_PISTOL_ITEM: {
         weaponId: 'weapon9',
@@ -213,6 +213,8 @@ export const EquipDataManager = {
         equipSlot: 'weapon',
         attack: { range: 500, knockback: 12.5, attackInterval: 333, hitType: '散弹（6发弹丸）', damageType: '物理', projectileSpeed: 1248 },
         attackKey: 'super90', animConfigKey: 'shotgun', fireSound: 'assets/sounds/weapons/gunshot_600ms_clean.wav', pelletCount: 6, equipSound: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', canvasImageProp: 'super90Image',
+        // 腰射贴图上移 4px（瞄准态抵消回 0；只动贴图渲染，手臂/锚点/弹道不受影响）
+        spriteOffsetY: -4, aimSpriteOffsetY: 4,
         ammoConfig: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' }, fireMode: 'semiAuto',
         attackFormula: { base: 10, enhanceFlat: 1, attrs: [{ key: 'con', base: 0.2, perEnhance: 0.10 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }], variants: { slugMode: { base: 8, enhanceFlat: 5, attrs: [{ key: 'con', base: 0.6, perEnhance: 0.05 }, { key: 'wis', base: 1, perEnhance: 0.1 }] } } }
     },
@@ -231,6 +233,8 @@ export const EquipDataManager = {
         equipSlot: 'weapon',
         attack: { range: 400, knockback: 12.5, attackInterval: 150, hitType: '散弹（4发弹丸）', damageType: '物理', projectileSpeed: 1248 },
         attackKey: 'saiga12k', animConfigKey: 'shotgun', fireSound: 'assets/sounds/weapons/gunshot_600ms_open.wav', pelletCount: 4, canvasImageProp: 'saiga12kImage',
+        // 贴图下移 12px（腰射/瞄准同步；只动贴图渲染，手臂/锚点/弹道不受影响）
+        spriteOffsetY: 12,
         ammoConfig: { max: 12, reloadTime: 2000 }, fireMode: 'fullAuto',
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'con', base: 0.5, perEnhance: 0.15 }, { key: 'wis', base: 0.25, perEnhance: 0.10 }], variants: { slugMode: { base: 8, enhanceFlat: 5, attrs: [{ key: 'con', base: 0.6, perEnhance: 0.05 }, { key: 'wis', base: 1, perEnhance: 0.1 }] } } }
     },
@@ -403,7 +407,8 @@ const COMPLETE_WEAPON_FIELDS = [
     'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
     'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
     'sound', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
-    'isDarkGold', 'dropImage', 'equipImage', 'slotImage'
+    'isDarkGold', 'dropImage', 'equipImage', 'slotImage',
+    'spriteOffsetX', 'spriteOffsetY', 'aimSpriteOffsetX', 'aimSpriteOffsetY'
 ];
 
 let _weaponConfigIndex = null;

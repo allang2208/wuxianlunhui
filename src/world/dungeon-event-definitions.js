@@ -20,9 +20,9 @@ const SPECIAL_ITEM_KEY_MAP = {
 };
 
 const SPECIAL_ITEM_CONFIG = {
-    enhancement_stone: { name: '强化石', icon: '💎', category: 'enhancement', maxStack: 9999 },
-    reforge_ticket: { name: '改造券', icon: '🎫', category: 'enhancement', maxStack: 9999 },
-    magic_dust: { name: '魔法粉尘', icon: '✨', category: 'material', maxStack: 9999 },
+    enhancement_stone: { name: '强化石', icon: '💎', category: 'enhancement', maxStack: 9999, rarity: 'mythic' },
+    reforge_ticket: { name: '改造券', icon: '🎫', category: 'enhancement', maxStack: 9999, rarity: 'mythic' },
+    magic_dust: { name: '魔法粉尘', icon: '✨', category: 'material', maxStack: 9999, rarity: 'mythic' },
 };
 
 const MATERIAL_TYPES = ['铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片'];

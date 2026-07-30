@@ -134,6 +134,7 @@ class GoldManagerImpl {
                 type: '货币',
                 icon: '💰',
                 category: 'gold',
+                rarity: 'mythic',
                 stats: [{ name: '数量', value: String(stack) }],
                 desc: '金光闪闪的硬币',
                 stack: stack,

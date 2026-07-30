@@ -75,6 +75,11 @@ class DamagePipeline {
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
                 target.takeDamage(weaponAtk, source, 'magic');
             }
+            // 命中获得加速 buff（P4040 轻量化快速板机）：给攻击者自身上 haste
+            if (ce.onHitSpeedBuff && source && typeof source.applyHaste === 'function') {
+                const b = ce.onHitSpeedBuff;
+                source.applyHaste(b.durationMs ?? 2000, { speedMul: 1 + (b.speedPercent ?? 0.10) });
+            }
         }
 
         if (typeof source._triggerRuneSwordCooldownReduction === 'function') {

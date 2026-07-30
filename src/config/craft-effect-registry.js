@@ -86,6 +86,14 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => `移速${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
         tooltip: '改变移动速度',
     },
+    onHitSpeedBuff: {
+        category: 'mobility',
+        applyMode: 'override',
+        display: (v) => (v && typeof v === 'object')
+            ? `命中获得加速+${Math.round((v.speedPercent ?? 0.10) * 100)}%/${((v.durationMs ?? 2000) / 1000)}s`
+            : '命中获得加速',
+        tooltip: '每次射击击中目标后获得限时移动速度提升',
+    },
     attackIntervalDelta: {
         category: 'mobility',
         applyMode: 'add',
@@ -144,6 +152,25 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => `${v >= 0 ? '+' : ''}${v}°每次射击散布`,
         tooltip: '改变每次射击散布增加量',
     },
+    // 全自动专属增量：仅当武器被改造为全自动（fireModeOverride='fullAuto'）时才叠加
+    autoSpreadStartDelta: {
+        category: 'spread',
+        applyMode: 'add',
+        display: (v) => `全自动散布开始${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '仅全自动模式下改变散布开始时间',
+    },
+    autoSpreadTimeDelta: {
+        category: 'spread',
+        applyMode: 'add',
+        display: (v) => `全自动散布达最大${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '仅全自动模式下改变散布达到最大时间',
+    },
+    autoMaxSpreadAngleDelta: {
+        category: 'spread',
+        applyMode: 'add',
+        display: (v) => `全自动最大散布${v >= 0 ? '+' : ''}${v}°`,
+        tooltip: '仅全自动模式下改变最大散布角度',
+    },
     recoilRecoveryDelta: {
         category: 'spread',
         applyMode: 'add',
@@ -195,6 +222,12 @@ export const CRAFT_EFFECT_REGISTRY = {
         applyMode: 'flag',
         display: () => '隐藏枪口火焰',
         tooltip: '开火时不显示枪口火焰',
+    },
+    fireSoundOverride: {
+        category: 'mode',
+        applyMode: 'override',
+        display: () => '替换射击音效',
+        tooltip: '开火音效替换为指定音频文件',
     },
     highPowerScope: {
         category: 'mode',

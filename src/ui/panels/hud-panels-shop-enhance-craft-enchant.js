@@ -181,6 +181,13 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     craftCancelBtn.onclick = function() { CraftSystem.exitEditMode(); };
     craftCancelBtn.style.display = 'none';
     craftCancelBtn.textContent = '❌ 取消';
+    const craftResetBtn = document.createElement('button');
+    craftResetBtn.className = 'craft-edit-btn';
+    craftResetBtn.id = 'craftResetBtn';
+    craftResetBtn.onclick = function() { CraftSystem.resetLayout(); };
+    craftResetBtn.style.display = 'none';
+    craftResetBtn.textContent = '↺ 重置';
+    craftResetBtn.title = '一键恢复出厂默认布局（写盘持久化）';
     const craftEditHint = document.createElement('div');
     craftEditHint.className = 'craft-edit-hint';
     craftEditHint.id = 'craftEditHint';
@@ -188,6 +195,7 @@ export function createHudPanelsShopEnhanceCraftEnchant() {
     craftEditBar.appendChild(craftEditBtn);
     craftEditBar.appendChild(craftSaveBtn);
     craftEditBar.appendChild(craftCancelBtn);
+    craftEditBar.appendChild(craftResetBtn);
     craftEditBar.appendChild(craftEditHint);
     craftPanel.appendChild(craftEditBar);
     const craftBody = document.createElement('div');

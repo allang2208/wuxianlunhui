@@ -282,8 +282,8 @@
     "warehouse": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 61,
-        "y": -1734
+        "x": 100,
+        "y": 0
       },
       "name": "仓库",
       "size": 20,

@@ -5,7 +5,9 @@
  *
  * 功能：
  * - 列表导入 data/enemy-config.json 全部怪物 + data/game-config.json npcs 全部 NPC，
- *   选中后在主神空间玩家右侧生成一只冻结的预览体（不索敌、不移动、不可受击）。
+ *   选中后在主神空间玩家右侧生成一只冻结的预览体（_editorFrozen：主循环整帧跳过
+ *   update/感知/移动/战斗/分离，自管技能的怪也动不了）。「🧪 测试怪物」按钮可解冻
+ *   恢复正常行动（备份字段还原），随时测试怪物，再点重新冻结。
  * - 🟩 绿色矩形（怪物=躯干判定 projectileHitbox；NPC=矩形 footprint）：四角+边中八点拖拽。
  * - 🟧 橙色圆柱体：底部椭圆右缘手柄等比缩放半径（rx/ry 统一），顶缘手柄调节高矮。
  * - ✥ 在矩形或底部椭圆内按住拖动：整体平移碰撞体（colliderOffsetX/Y）对齐贴图。
@@ -95,6 +97,9 @@ export const CollisionEditor = {
     _stateRowEl: null,   // 门状态切换行
     _inputsEl: null,     // 数值输入区（陷阱）
     _hintEl: null,       // 操作提示区
+    _testMode: false,    // 测试模式：true=预览怪解冻恢复正常行动（仅 enemy）
+    _testRowEl: null,    // 测试怪物按钮行
+    _testBtnEl: null,
 
     _drag: null,         // 拖拽状态 {mode:'rect'|'radius'|'height'|'move', handle, startPt, startEdit, anchor}
     _editMode: 'both',   // 调整范围：both=矩形+圆柱同步调整（默认） | cylinder=只调圆柱 | rect=只调矩形
@@ -148,6 +153,8 @@ export const CollisionEditor = {
         if (this._panel) { this._panel.remove(); this._panel = null; }
         this._selectEl = this._infoEl = this._toastEl = null;
         this._stateRowEl = this._inputsEl = this._hintEl = null;
+        this._testRowEl = this._testBtnEl = null;
+        this._testMode = false;
         this._gateState = 'open';
         this._drag = this._edit = this._baseline = null;
         clearTimeout(this._toastTimer);
@@ -285,6 +292,20 @@ export const CollisionEditor = {
         panel.appendChild(modeBtns);
         this._modeBtnsEl = modeBtns;
 
+        // 第三按钮行：测试怪物（解冻预览体恢复正常行动；仅选中怪物时显示）
+        const testRow = document.createElement('div');
+        testRow.className = 'ce-btns';
+        testRow.style.display = 'none';
+        const testBtn = document.createElement('button');
+        testBtn.className = 'ce-btn ce-mode-btn';
+        testBtn.textContent = '🧪 测试怪物';
+        testBtn.title = '解冻预览怪物，恢复正常移动/攻击（会索敌玩家）；再点重新冻结';
+        testBtn.addEventListener('click', () => this._toggleTestMode());
+        testRow.appendChild(testBtn);
+        panel.appendChild(testRow);
+        this._testRowEl = testRow;
+        this._testBtnEl = testBtn;
+
         // 操作提示（按选中类型动态切换，见 _refreshHint）
         const hint = document.createElement('div');
         hint.className = 'ce-hint';
@@ -407,6 +428,7 @@ export const CollisionEditor = {
             entity: '<div>🟩 绿矩形：八点拖拽改宽高</div>'
                 + '<div>🟧 圆柱：右缘点=缩放半径，顶缘点=调高矮</div>'
                 + '<div>✥ 矩形/椭圆内拖动：整体平移对齐贴图</div>'
+                + '<div>🧪 测试怪物：解冻恢复正常行动，再点冻结</div>'
                 + '<div>Esc 关闭编辑器</div>',
             wall: '<div>🟩 绿线段：拖两端点改墙碰撞跨度（face）</div>'
                 + '<div>🟧 橙点：拖离墙线距离=碰撞厚度</div>'
@@ -435,7 +457,9 @@ export const CollisionEditor = {
         this._key = key;
         this._gateState = 'open';
         this._editMode = 'both'; // 切换对象时恢复同步调整
+        this._testMode = false;  // 切换对象时恢复冻结（测试模式不跨对象保留）
         this._syncModeButtons();
+        this._syncTestButton();
         this._snapshotBaseline();
         if (this._isGeoKind()) {
             this._spawnGeoPreview();
@@ -467,14 +491,14 @@ export const CollisionEditor = {
                 const Cls = EXTRA_CLASS_MAP[this._key] || Enemy;
                 e = new Cls(px, py, cfg);
             }
-            // 冻结预览体：不索敌（警戒范围压到 1px）、不移动、不可受击
-            e._alertRange = 1;
-            e._aggroRange = 1;
-            e._frozenForCast = true;
-            e.speed = 0;
-            e.maxSpeed = 0;
-            e.hittable = false;
+            // 冻结预览体：备份原值后压死行动字段 + _editorFrozen 标记（game.js 主循环
+            // 整帧跳过 update/感知/移动/战斗/分离——蝇手等自管技能的怪靠字段冻结防不住）
+            e._editorFreezeBackup = {
+                speed: e.speed, maxSpeed: e.maxSpeed, hittable: e.hittable,
+                alertRange: e._alertRange, aggroRange: e._aggroRange, frozenForCast: e._frozenForCast,
+            };
             e._collisionPreview = true;
+            this._applyEditorFreeze(e, true);
         } else {
             const cfg = JSON.parse(JSON.stringify(GAME_CONFIG.npcs[this._key] || {}));
             delete cfg.wander;      // 预览体不游走
@@ -487,6 +511,47 @@ export const CollisionEditor = {
         }
         Game.entities.set(PREVIEW_KEY, e);
         this._entity = e;
+    },
+
+    /** 冻结/解冻预览怪物：冻结=主循环整帧跳过；解冻=恢复备份字段正常行动（测试用） */
+    _applyEditorFreeze(e, frozen) {
+        if (!e) return;
+        if (frozen) {
+            e._alertRange = 1;
+            e._aggroRange = 1;
+            e._frozenForCast = true;
+            e.speed = 0;
+            e.maxSpeed = 0;
+            e.vx = 0;
+            e.vy = 0;
+            e.isMoving = false;
+            e.hittable = false;
+            e._editorFrozen = true;
+        } else {
+            const b = e._editorFreezeBackup || {};
+            e.speed = b.speed ?? e.speed;
+            e.maxSpeed = b.maxSpeed ?? e.maxSpeed;
+            e.hittable = b.hittable ?? true;
+            e._alertRange = b.alertRange ?? e._alertRange;
+            e._aggroRange = b.aggroRange ?? e._aggroRange;
+            e._frozenForCast = b.frozenForCast ?? false;
+            e._editorFrozen = false;
+        }
+    },
+
+    /** 测试怪物按钮：解冻预览体恢复正常移动/攻击（再点重新冻结） */
+    _toggleTestMode() {
+        if (this._kind !== 'enemy' || !this._entity) return;
+        this._testMode = !this._testMode;
+        this._applyEditorFreeze(this._entity, !this._testMode);
+        this._syncTestButton();
+        this._toast(this._testMode ? '🧪 已解冻：怪物恢复正常行动（会移动/攻击）' : '❄️ 已重新冻结');
+    },
+
+    /** 测试按钮高亮态 + 仅怪物选中时可见 */
+    _syncTestButton() {
+        if (this._testRowEl) this._testRowEl.style.display = this._kind === 'enemy' ? 'flex' : 'none';
+        if (this._testBtnEl) this._testBtnEl.classList.toggle('active', !!this._testMode);
     },
 
     _removePreview() {
@@ -1392,15 +1457,16 @@ export const CollisionEditor = {
         const hs = HANDLE_SCREEN / zoom;
         g.clear();
 
-        // ---- 陷阱：触发半径圈 + 右缘半径手柄 ----
+        // ---- 陷阱：触发椭圆（与运行时判定同口径：ry 透视压缩）+ 右缘半径手柄 ----
         if (this._kind === 'trap') {
             if (!this._previewSprite) return;
             const c = this._trapCenter();
             const r = this._edit.triggerRadius;
+            const ry = r * PERSPECTIVE_SCALE_Y;
             g.fillStyle(0xff6600, 0.10);
-            g.fillCircle(c.x, c.y, r);
+            g.fillEllipse(c.x, c.y, r * 2, ry * 2);
             g.lineStyle(1.5 / zoom, 0xff8800, 0.9);
-            g.strokeCircle(c.x, c.y, r);
+            g.strokeEllipse(c.x, c.y, r * 2, ry * 2);
             g.lineStyle(1 / zoom, 0xffffff, 0.5);
             g.beginPath();
             g.moveTo(c.x - hs, c.y); g.lineTo(c.x + hs, c.y);

@@ -592,9 +592,18 @@
       "comment": "碑身三组黑烟（groups 各组相对碑脚偏移；NORMAL 混合，黑色不能用 ADD）",
       "tint": "0x1a1a1a",
       "groups": [
-        { "offsetX": -60, "offsetY": 170 },
-        { "offsetX": 0, "offsetY": 200 },
-        { "offsetX": 60, "offsetY": 170 }
+        {
+          "offsetX": -60,
+          "offsetY": 170
+        },
+        {
+          "offsetX": 0,
+          "offsetY": 200
+        },
+        {
+          "offsetX": 60,
+          "offsetY": 170
+        }
       ],
       "frequency": 180,
       "scaleStart": 0.4,
@@ -937,14 +946,14 @@
     ],
     "attackType": "毒液喷射",
     "render": {
-      "spriteSize": 199.1,
-      "collisionWidth": 62.1,
-      "collisionHeight": 161,
+      "spriteSize": 180.5,
+      "collisionWidth": 61.2,
+      "collisionHeight": 160,
       "footOffsetY": 51.25,
       "projectileHitbox": {
-        "width": 62.1,
-        "height": 161,
-        "offsetX": 0.9,
+        "width": 61.2,
+        "height": 160,
+        "offsetX": 0.4,
         "bottom": -6
       },
       "colliderOffsetX": -12,
@@ -957,7 +966,7 @@
       "idleFrameCount": 24,
       "idleSheetColumns": 8
     },
-    "height": 151.2
+    "height": 146
   },
   "babySpider": {
     "id": "babySpider",
@@ -1964,7 +1973,7 @@
     "family": "僵尸",
     "color": "#3a6a2a",
     "size": 22,
-    "collisionRadius": 20,
+    "collisionRadius": 28,
     "hp": 750,
     "maxHp": 750,
     "speed": 200,
@@ -2017,18 +2026,18 @@
     ],
     "attackType": "重击突刺",
     "render": {
-      "spriteSize": 147.8,
-      "collisionWidth": 68,
-      "collisionHeight": 152,
+      "spriteSize": 185.3,
+      "collisionWidth": 59,
+      "collisionHeight": 175,
       "footOffsetY": 56,
       "projectileHitbox": {
-        "width": 68,
-        "height": 152,
-        "offsetX": 0,
-        "bottom": 0
+        "width": 59,
+        "height": 175,
+        "offsetX": 1.5,
+        "bottom": -10
       },
-      "colliderOffsetX": 0,
-      "colliderOffsetY": 0
+      "colliderOffsetX": -8,
+      "colliderOffsetY": 25
     },
     "textures": {
       "idle": "assets/enemies/mutant3/idle.png",
@@ -2036,7 +2045,8 @@
       "idleFrameHeight": 512,
       "idleFrameCount": 1,
       "idleSheetColumns": 8
-    }
+    },
+    "height": 162
   },
   "timeAgentAssault": {
     "id": "timeAgentAssault",

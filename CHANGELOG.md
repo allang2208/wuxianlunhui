@@ -8,6 +8,67 @@
 - 测试结果
 - 已知问题
 
+### 对话：副手向左开火错位根修（CDP 实机取证）（2026-07-30，V0.358）
+
+- **根因（CDP 实机数值链）**：副手后坐踢角 `recoilAngle = -recoil × 0.05`（swing 时刻 ≈ **-36°**，`subsystems.js:1937`）在 `syncOffhandWeapon` 里无条件相加、不随 flipY 镜像——瞄左时贴图被拧到 133.6°（正确镜像应为 205.8°），枪口点从贴图状态计算，枪口/火焰/子弹整体偏低 ~33px。主手同函数系数仅 ±1.7°，所以主手一直正常。
+- **修复**：`GameScene.js syncOffhandWeapon` 的 recoilAngle 随 flipY 镜像取反（与 rotOffset 同口径），唯一改动点。
+- **CDP 验证数据**（双持 R93，开火时刻）：修复后副手左右精确镜像——muzzle Y 左右相同（1886.37）、X 偏移 ∓48.51 关于玩家对称、rot -154.2° = 180°+25.8°；修复前向左 muzzle 偏低 33px。
+- **取证工具入库**（tools/，复用价值）：`cdp-offhand-probe.mjs`（装备双持+左右开火采样）、`cdp-fire-moment.mjs`（开火时刻状态抓取）、`cdp-eval/activate.mjs`、`vite.probe.config.js`（隔离 probe server）。经验：页内动态 import 会拿到第二模块实例（须用 CDP 真实鼠标事件）；headless 被遮挡会 rAF 停摆（Target.activateTarget 解决）；隔离 server 改代码后必须重启（vite 内存缓存不失效）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：改造布局重置按钮 + 格子吸附对齐线（2026-07-30，V0.357）
+
+- **↺ 重置按钮**：布局编辑栏新增（编辑模式可见），一键恢复当前武器槽位为出厂默认并立即写盘（`_persistJson` 管道）。默认值固化在新模块 `src/config/craft-default-slots.js`（V0.356 时点的 craft-config 全 14 武器槽位快照）——之后用户的自定义保存不会回流污染默认值，重置永远回到设计初始状态。
+- **格子吸附对齐线**（仿 Photoshop 智能参考线）：编辑模式拖动格子时，与其他格子的 x/y 距离 < 0.015（相对坐标）即吸附对齐，同时显示贯穿全容器的蓝色虚线参考线（纵向=左右对齐、横向=上下对齐，可双方向同时命中）；虚线端点（lineTarget）拖动不参与吸附；松手参考线自动清除。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：墙体衔接遮挡仲裁 P1 实施（2026-07-30，V0.356）
+
+- **方案修正（诚实记录）**：批准的 P1 原文是"深度锚改 face 中点 y"——实施前推演发现该方案会让**后墙（min 规则）在下半臂错误遮挡贴墙走的室内实体**（中点比 min 抬高半个 y 跨度，室内贴墙实体 y+10 落入被挡区），同样前墙中点会让室内实体错穿到墙前，属于引入更大回归，故弃用中点方案。
+- **P1 落地 = 逐实体几何仲裁**：墙件保持 min/max 端点规则（室内保证不动），新增 `WallSystem.junctionCorrectedDepth(x, y, depth)`——取实体最近 face 斜线（±60px 衔接带），按"脚底 y vs 面线在该 x 处的 y"判定几何前后，**仅在违反时单向钳制**（面线后不高于墙件、面线前不低于墙件），正常排序零影响。face 线段缓存（`_getFaceSegCache`，rebuildIsoCollision/init 失效），障碍物类别不参与。GameScene `_updateDynamicDepths` 玩家与全部实体（NPC/怪物/尸体）统一接入。
+- **修好的场景**：前墙（max 规则）上臂外侧的实体不再被墙错误盖住（衔接处"不该挡的乱挡"）；后墙（min 规则）下臂外侧后方的实体不再错误穿到墙前（"该挡的没挡"）。
+- **未覆盖（记录待办）**：障碍物 vs 墙的衔接误挡——静态钳制会把障碍物深度拉到墙件锚点 ±0.5，破坏其与附近实体的 y 排序（已推演证实引入新错），留待 P2（墙件细分）/P3（双向仲裁）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：顶点区多面线取最近一条，理论上有竞争；实机验证僵尸地牢四角的遮挡手感。
+
+### 对话：彩色字体黑描边/布局保存持久化/材料神话/掉落浮动修复（2026-07-30，V0.355）
+
+- **① 白底彩色字体黑描边**（参考地牢宝箱倒计时 stroke 方案，字号全部不变）：DOM 侧——tooltip 稀有度标签与武器特效 ± 数值加 `.tt-outline` 工具类（四向 1px text-shadow），`.tt-craft-stat-pos/neg`、`.tt-enchant-name`、`.enchant-prefix/.enchant-suffix` 同款描边（game-style.css）；Phaser 侧——FloatingTextEffect 与掉落物名称加 `stroke:'#000000', strokeThickness:3`。改造/附魔栏面板本身是深底，未动。
+- **② 改造栏布局保存持久化**：`saveEditMode()` 接入 `_persistJson` 管道（Electron IPC → Vite __save-json 双写 → 下载兜底），调整后点"保存布局"直写 `data/craft-config.json`，刷新仍生效，无需再通知调整。
+- **③ 材料稀有度→神话（mythic）**：金币（damageable-entity 掉落/gold-manager/初始物品）、魔法粉尘（MagicDustItem + 地牢事件 SPECIAL_ITEM_CONFIG 双处）、强化石/改造券（reward-system EnhancementItems + 地牢事件模板双处）全部补 `rarity:'mythic'`——掉落物名称/光晕/tooltip 稀有度标签同色板生效。
+- **④ 掉落物上下浮动未生效根因**：GameScene `_syncBodiesToPhysics` 每帧对所有实体强写 `(x, y - displayHeight/2)`，把 DropItem 刚写入的 bob 位置冲掉（贴图还整体抬高 33.5px）；`_updateDynamicDepths` 覆盖深度、`_syncHitFlashAndCharge` 每帧清掉悬停金色 tint。修复：三处统一跳过 DropItem（`itemData && noCollision` 判定），位置/深度/tint 归还 DropItem 自管。
+- **⑤ 墙体图层衔接优化方案**（仅方案未实施，见对话记录）：P1 深度锚统一为 face 中点 y + 偏置收口；P2 长墙件自动细分缩短单件 y 跨度；P3 衔接带逐实体按 face 斜线仲裁前后（配合既有 X 光透视圈兜底）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：副手向左开火 CDP 实机取证进行中（另起子任务）；贴图描边在极小字号（11px）上略糊可后续微调 strokeThickness。
+
+### 对话：P4040 全套改造（含全自动条件增量/命中加速buff/改造换音效三个新机制）（2026-07-30，V0.354）
+
+- **weapon18（P4040）六槽改造**入 `craft-config.json`（双份）：枪口（精英制退器/手枪消音器）、枪管（远射枪管/近战短管）、瞄具（全景红点）、弹夹（轻型扩容+6/长扩容+12 换弹+300ms）、弹药（锤击点/边境轻型）、板机（全自动/轻量化快速）。
+- **新机制①全自动条件增量**：registry 新增 `autoSpreadStartDelta/autoSpreadTimeDelta/autoMaxSpreadAngleDelta`（add）——枪口/枪管改造附带的散布调整**仅在武器被全自动板机改造后**（`fireModeOverride==='fullAuto'`）叠加；消费点 update.js 主/副手散布计算两处 + tooltip 全自动分支同步。
+- **新机制②命中加速 buff**：registry 新增 `onHitSpeedBuff`（override，{durationMs, speedPercent}）；`damage-pipeline.js` 命中结算时给攻击者 `applyHaste`。新 buff「haste（加速）」按 buff 工作流入 STATUS_CONFIG，但**不走激励式数据层乘算**（高频命中刷新会让 maxSpeed 乘除漂移）——`applyHaste` 只记录 `_hasteSpeedMul` + 登记状态，玩家速度链（update.js 手枪精通之后）按状态乘算，到期自动失效无需还原。
+- **新机制③改造换音效**：registry 新增 `fireSoundOverride`（override）；`_playFireSound` 优先读改造音效。锤击点弹药音效 `素材库/P4040/gunshot.mp3` → `assets/sounds/weapons/p4040_hammer_fire.mp3`。
+- **改造明细**：全自动板机（fireModeOverride+间隔-100ms+散布模板 0.75s/2s/±15°）；轻量化快速板机（间隔-100ms、换弹-500ms、命中 2s+10% 加速）；锤击点（防御穿透 15%+穿透 1+音效）；其余与 Beretta 同构（精英制退器/消音器/远射枪管/近战短管的全自动附带增量按用户规格配置）。
+- **测试**：lint 0 error；vite build ✓；test-craft-sync 三角校验✓（46 配置键 ≡ registry）；npm test 全绿（133+10+12）。
+- **已知问题**：P4040 `spreadParams.maxAngle` 基础仅 1（Beretta 为 5），shotSpreadDelta 体感不同；实机待验证全自动板机手感与锤击点音效。
+
+### 对话：毒液头部发射点/仓库恢复/双持副手修复/霰弹枪贴图偏移/冲刺距离落地（2026-07-30，V0.353）
+
+- **① 毒液僵尸投射物绑头部**：`_getHeadWorldPosition` 弃用按 90px 贴图估算的固定偏移（24,-8），改从 `getTorsoRect`（绿色矩形=躯干判定）取**顶边前方**（前缘 +6px、顶 +4px）——碰撞编辑器调整贴图/碰撞后发射点自动跟随，兜底保留旧偏移。
+- **② 主神空间撤下测试墓碑 + 仓库消失修复**：仓库 offset 被存成 (61,-1734)（与祭坛 (96,-1428) 同批次的拖出界污染，随 V0.349 提交入库），恢复提交前正常值 (100,0) 并双份同步；NPC 拖动 64px 边界钳制此前已加，本次为存量污染清理。
+- **③ 双持手枪副手两问题同根修复**：副手 flipY 用**加过 rotOffset(-6°) 之后**的 rot 重判（主手用加之前），90°~96° 窗口内主/副手一把镜像一把不镜像（朝向不对称根因）；`_getMuzzleWorldPosition` 的贴图内 Y 镜像改用 `sprite.flipY`（渲染权威态）替代 `|rotation|>90°` 反推（副手开火特效/子弹位置错位根因——主手一直对正是因为两判定在其分支恰好一致）。
+- **④ super90/s12k 贴图偏移（装备实例级新机制）**：两把枪共用 `animConfigKey:'shotgun'`，anim 配置无法分开调——`spriteOffset/aimSpriteOffset` 改为**装备实例字段优先**（`currentItem.spriteOffsetY ?? WeaponAnimConfig[wt]`），字段入 COMPLETE_WEAPON_FIELDS 保证各渠道实例补全。super90：`spriteOffsetY:-4 + aimSpriteOffsetY:4`（腰射上移 4px、瞄准态抵消不变）；s12k：`spriteOffsetY:12`（腰射/瞄准同步下移 12px）。均只动贴图渲染，手臂/锚点/弹道不受影响。
+- **⑤ 冲刺攻击突进减半真正落地**：V0.336 的"突进减半"改的是 `_initSkills` 硬编码兜底——`window.SKILL_DATA` 恒存在，兜底是死代码，运行时一直读 `data/skills.json` 的 `dashDist:376`。本次写死真源：dashAttack 376→**188**、dashAttackFire 188→**94**，同批未落地的 rangeBonusFlat 30→**55**（扇形半径 +25px）一并写入；硬编码兜底同步对齐；骑士长剑 dashAttackThrust(188) 与怪物骑士冲锋未动。
+- **顺带入库**：用户实机保存——hub_gate 门洞几何覆盖（hole 552.5~812.5、halfThick 15.3）、摆墙预制 170 行新增、enemy-config 持续微调。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+
+### 对话：编辑器冻结重做+测试按钮/锁链完整截取/陷阱idle首帧+椭圆判定（2026-07-30，V0.352）
+
+- **① 预览怪冻结重做 + 测试怪物按钮**：蝇手在体积调整时仍能攻击/移动——根因=旧冻结只压字段（speed=0、aggroRange=1），而蝇手/突变体等自管技能的怪在自身 `update()` 里按 `this.target` 决策攻击，字段冻结防不住；分离系统也会推动预览体。修复：新增 `_editorFrozen` 标记，`game.js` 主循环对冻结预览体**整帧跳过** update/感知/移动/战斗，`resolveCollisions` 同步排除——所有类型怪物统一冻死。编辑器新增「🧪 测试怪物」按钮（调整圆柱按钮行下方，仅选中怪物时显示）：点击解冻恢复备份字段正常行动（会移动/攻击玩家），再点重新冻结；切换对象自动恢复冻结。
+- **② 锁链障碍物完整截取**：旧贴图只截了源图中部一条（缺上弧/下弧/末端圆环）。从源图 1536×1536 按全内容 bbox（106,543~1430,1071）重导出 512×204；`ISO_WALL_GEO.chains` 更新 w/h 512×204、obstacleH 60→72（显示宽度与旧版一致 180.7px）、foot.d 40→48（同比例）。
+- **③ 地刺陷阱 idle 首帧 + 椭圆判定**：旧 `trap_idle` 是把整张 4×8（4096×2048）精灵图当单图显示。已从源 trap-1.png 截取 cell0（512×512）——与触发动画帧 0 的内容 bbox 完全一致（57,448,128,351），切换无跳变。触发判定由圆形改为**椭圆**（rx=triggerRadius，ry=×PERSPECTIVE_SCALE_Y，与怪物 footprint 同口径的逆透视压缩判定），占用/伤害两处判定统一走 `_inTriggerZone`；碰撞编辑器陷阱覆盖层同步改画椭圆。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：锁链新 foot（460×48）为等比换算初始值，实机可用碰撞编辑器微调。
+
 ### 对话：墓碑黑烟/主神空间测试墓碑/碰撞编辑器两项修复（2026-07-30，V0.351）
 
 - **① 墓碑三组黑烟**：参考矿洞绿烟机制（`smoke_particle` 软圆粒子 + tint），`tombstone.js` 新增 `_ensureSmoke`（三组发射器，`smoke.groups` 配置驱动偏移）+ `_destroyCustomEffects`（game.js removeEntity / onDeath 约定入口清理）。**关键差异：黑色烟雾必须 `blendMode: 'NORMAL'`**——矿洞绿烟用 ADD 加法混合，黑色 tint 在 ADD 下完全不可见。配置入 enemy-config tombstone.smoke（tint 0x1a1a1a、三组偏移、frequency 180、lifespan 4500）。
