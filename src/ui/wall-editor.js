@@ -437,6 +437,11 @@ export const WallEditor = {
             el.querySelector('.oe-save').addEventListener('click', () => this._saveObstacleLayout());
         }
         this._obstacleEl.style.display = isOb ? '' : 'none';
+        // 跟随墙壁编辑器面板下缘（面板高度随内容变化，固定 top 会飘出视口）
+        if (isOb && this._panel) {
+            const r = this._panel.getBoundingClientRect();
+            this._obstacleEl.style.top = Math.min(r.bottom + 8, window.innerHeight - 120) + 'px';
+        }
     },
 
     /** 重置：选中障碍物恢复初始变换（默认缩放/无旋转/无镜像） */

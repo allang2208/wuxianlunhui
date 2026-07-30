@@ -23,6 +23,7 @@ const ISO_WALL_GEO = {
     // ===== 障碍物（摆墙编辑器障碍物类；foot=贴图底部 footprint 宽高，碰撞=矩形 footprint 墙；obstacleH=默认显示高度）=====
     barrel: { tex: 'obstacle_barrel', w: 352, h: 512, category: 'obstacle', foot: { w: 308, d: 107 }, obstacleH: 120, editor: '木桶' },
     pillar: { tex: 'obstacle_pillar', w: 236, h: 640, category: 'obstacle', foot: { w: 231, d: 80 }, obstacleH: 180, editor: '石柱' },
+    candle: { tex: 'obstacle_candle', w: 317, h: 640, category: 'obstacle', foot: { w: 197, d: 78 }, obstacleH: 180, editor: '烛台' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）

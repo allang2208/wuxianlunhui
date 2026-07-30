@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18 + 障碍编辑器定位/烛台/footprint 加大（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180/烛台 180）。
+- **② 手枪姿态全面统一 G18（经用户指认 G18 为基准）**：排查发现 deagle/p4040 的 `holdOffset(12,0)` 与 G18 `(6,-52)` 不一致——四把枪贴图归一化布局完全相同，持位配置本应通用；deagle/p4040 的 hold 差异导致双持时主手偏离姿态手部位置。修复：deagle/p4040 holdOffset（idle/walk/top 三态）改为 **(6,-52)**；`WEAPON_TRANSFORM_CONFIG` 的 deagle/p4040/beretta93r 条目改为 **pistol 克隆**。至此 G18/沙鹰/P4040/R93 单双持主副手位置完全一致。**注意：deagle/p4040 单手持位随之变化。**
+- **③ 障碍编辑器不可见修复**：面板 top 原为 `calc(80px + 80vh + 8px)`（1080p 下 ≈952px 超出视口）——改为跟随墙壁编辑器面板下缘动态定位（`getBoundingClientRect().bottom + 8`，带视口下限钳制）。
+- **④ 祭坛/仓库 footprint 再加大**：仓库 155×60→**170×75**、祭坛 210×85→**220×100**。
+- **⑤ 烛台障碍物**：素材库`障碍物/烛台.png` → `assets/terrain/obstacle_candle.png`（317×640，foot 197×78），`ISO_WALL_GEO.candle`（obstacleH 180）+ BootScene 加载——摆墙「障碍物类」页签可见可拖。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：deagle/p4040 单手持位变化、footprint 松紧度需实机确认。
+
 ### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18（2026-07-30，V0.339）
 
 - **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180）。
