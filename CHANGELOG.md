@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物拖放修复 + 手枪姿态全面统一 G18（2026-07-30，V0.339）
+
+- **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH`，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放 NaN 致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180）。
+- **② 手枪姿态全面统一 G18（经用户指认 G18 为基准）**：排查发现 deagle/p4040 的 `holdOffset(12,0)` 与 G18 `(6,-52)` 不一致——四把枪贴图归一化布局完全相同（0.862/(0.487,0.524)），持位配置本应通用；deagle/p4040 的 hold 差异导致双持时主手偏离姿态手部位置。修复：`weapon-anim-config.json` 的 deagle/p4040 holdOffset（idle/walk/top 三态）改为 **(6,-52)**；`WEAPON_TRANSFORM_CONFIG` 的 deagle/p4040/beretta93r 条目改为 **pistol 克隆**（mainBase -15/16.5、offBase -23/19）。至此 G18/沙鹰/P4040/R93 单双持的主副手位置完全一致。**注意：deagle/p4040 单手持位随之变化（旧值 (12,0)），若单持观感异常说明其贴图本就需要独立值，再经开发面板微调。**
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：deagle/p4040 单手持位变化需实机确认（原为 (12,0)，现统一为 G18 的 (6,-52)）。
+
 ### 对话：障碍物拖放修复 + 手枪双持锚点统一（2026-07-30，V0.339）
 
 - **① 摆墙拖不出障碍物根因**：障碍物 geo 无 `wallH` 字段，`_startPlacement`/`_resetObstacle` 的 `ISO_WALL_HEIGHT / g.wallH = NaN`——缩放为 NaN 导致 ghost 不可见、放置链路全断。修复：geo 新增 `obstacleH`（默认显示高度：木桶 120/石柱 180），两处缩放计算改 `(g.obstacleH ?? 120) / g.h`。

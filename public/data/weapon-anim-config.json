@@ -53,8 +53,8 @@
     "bobWeaponScale": 2
   },
   "p4040": {
-    "holdOffsetX": 12,
-    "holdOffsetY": 0,
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
     "timingMul": 0.5,
     "animType": "recoil",
     "recoilAmount": 0.08,
@@ -72,14 +72,14 @@
     },
     "idleScale": 0.6,
     "idle": {
-      "holdOffsetX": 12,
+      "holdOffsetX": 6,
       "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetY": -52
     },
     "walk": {
-      "holdOffsetX": 12,
+      "holdOffsetX": 6,
       "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetY": -52
     },
     "dualOffsetX": 5,
     "bobWeaponScale": 2,
@@ -93,8 +93,8 @@
     "rotOffset": -6
   },
   "deagle": {
-    "holdOffsetX": 12,
-    "holdOffsetY": 0,
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
     "timingMul": 0.5,
     "animType": "recoil",
     "recoilAmount": 0.08,
@@ -112,14 +112,14 @@
     },
     "idleScale": 0.6,
     "idle": {
-      "holdOffsetX": 12,
+      "holdOffsetX": 6,
       "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetY": -52
     },
     "walk": {
-      "holdOffsetX": 12,
+      "holdOffsetX": 6,
       "idleScale": 0.6,
-      "holdOffsetY": 0
+      "holdOffsetY": -52
     },
     "dualOffsetX": 5,
     "rotOffset": -6,

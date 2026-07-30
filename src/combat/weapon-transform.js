@@ -35,18 +35,18 @@ const WEAPON_TRANSFORM_CONFIG = {
         baseRotation: 0,
     },
     p4040: {
+        // 全面对齐 G18（pistol）：主/副手锚点与 holdOffset 同口径
         mainBaseX: -15, mainBaseY: 16.5,
-        // 副手锚点对齐 G18 双持终值（offBase+hold = (-17,-33)）：G18(-23,19)+(6,-52)
-        offBaseX: -29, offBaseY: -33,
+        offBaseX: -23, offBaseY: 19,
         holdOffsetKey: 'p4040',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
         baseRotation: 0,
     },
     deagle: {
+        // 全面对齐 G18（同 p4040）
         mainBaseX: -15, mainBaseY: 16.5,
-        // 副手锚点对齐 G18 双持终值（同 p4040；hold (12,0)）
-        offBaseX: -29, offBaseY: -33,
+        offBaseX: -23, offBaseY: 19,
         holdOffsetKey: 'deagle',
         afterRotateOffsetX: (s) => s * 0.42,
         afterRotateOffsetY: 0,
