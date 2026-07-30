@@ -3531,10 +3531,10 @@ export class GameScene extends Scene {
         // 玩家
         if (_game.player) drawEntity(_game.player);
 
-        // 敌人
+        // 敌人 + NPC（祭坛/仓库等 ellipse footprint 统一显示；掉落物/传送门不画）
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
-            if (entity._faction !== 'enemy') continue;
+            if (entity._faction !== 'enemy' && !entity.npcType) continue;
             drawEntity(entity);
         }
 
@@ -4179,6 +4179,8 @@ export class GameScene extends Scene {
                     }
                 }
                 sprite.setFlipX(!!e._facingLeft);
+                // 贴图旋转（game-config npcs.*.sprite.rotation 度数；NPC 编辑器保存，缺省 0）
+                sprite.setRotation(((sprCfg.rotation || 0) * Math.PI) / 180);
             } else {
                 sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
             }

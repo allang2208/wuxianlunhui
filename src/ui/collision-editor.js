@@ -9,7 +9,14 @@
  * - 🟩 绿色矩形（怪物=躯干判定 projectileHitbox；NPC=矩形 footprint）：四角+边中八点拖拽。
  * - 🟧 橙色圆柱体：底部椭圆右缘手柄等比缩放半径（rx/ry 统一），顶缘手柄调节高矮。
  * - ✥ 在矩形或底部椭圆内按住拖动：整体平移碰撞体（colliderOffsetX/Y）对齐贴图。
- * - 重置：回退到选中时的配置快照；保存：直写 data/enemy-config.json / data/game-config.json
+ * - 墙/门/障碍物（ISO_WALL_GEO 按类型编辑，2026-07-30 整合）：
+ *   墙=face 线段两端点拖拽 + 碰撞厚度手柄；障碍物=foot 矩形八点拖拽；
+ *   门=打开/关闭两状态切换，打开态门洞（金色高亮）两侧边缘拖拽调通行宽度 + 厚度手柄。
+ *   保存写 data/wall-geo-overrides.json 覆盖层（ISO_WALL_GEO 在源码里，JSON 管道只能写 data/），
+ *   启动时 WallSystem.applyGeoOverrides 合并生效；编辑时内存同步改 ISO_WALL_GEO + rebuildIsoCollision 立即生效。
+ * - 陷阱（zombieDungeon.traps 配置）：触发半径圈右缘手柄 + 数量/伤害/冷却数值输入，
+ *   保存写 data/dungeon-config.json。
+ * - 重置：回退到选中时的配置快照；保存：直写 data/*.json
  *   （Electron IPC → Vite __save-json 中间件双写 → 下载兜底，与 wall-prefabs 同管道）。
  *
  * 注意：项目 Phaser 配置 input.mouse=false，指针交互一律走 DOM window 事件
@@ -23,12 +30,29 @@ import { Enemy } from '../entities/enemy.js';
 import { NPC } from '../entities/npc.js';
 import { BlackWolf, AmalgamZombie } from '../entities/enemy-types.js';
 import { ZOMBIE_FACTORY_MAP } from '../world/zombie-dungeon.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from '../world/wall-system.js';
+import { getWallGeoOverrides, saveWallGeoOverrides } from '../world/wall-prefabs.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
 
 // 无地牢工厂但有专属类的怪物：补充类映射（其余老怪走通用 Enemy 圆形占位预览）
 const EXTRA_CLASS_MAP = {
     blackWolf: BlackWolf,
     amalgamZombie: AmalgamZombie,
 };
+
+// ===== 墙/门/障碍物类型清单（ISO_WALL_GEO 按规则归类；新增类型自动进列表）=====
+// 墙类：有 face 底边线且非门非障碍物；门类：带门洞（gateX/states）；障碍物：category==='obstacle'
+const GEO_WALL_KEYS = Object.keys(ISO_WALL_GEO).filter(k => {
+    const g = ISO_WALL_GEO[k];
+    return g.face && !g.gateX && !g.states && g.category !== 'obstacle';
+});
+const GEO_GATE_KEYS = Object.keys(ISO_WALL_GEO).filter(k => {
+    const g = ISO_WALL_GEO[k];
+    return !!(g.gateX || g.states) && g.category !== 'obstacle';
+});
+const GEO_OBSTACLE_KEYS = Object.keys(ISO_WALL_GEO).filter(k => ISO_WALL_GEO[k].category === 'obstacle');
+// 陷阱编辑对象：data/dungeon-config.json zombieDungeon.traps（目前仅僵尸地牢高级一档）
+const TRAP_KEY = 'zombieDungeon';
 
 // 预览体在 Game.entities 中的固定键
 const PREVIEW_KEY = 'collision_preview';
@@ -39,6 +63,12 @@ const MIN_RADIUS = 4;    // 圆柱最小半径
 const MAX_RADIUS = 600;
 const MIN_HEIGHT = 4;    // 圆柱最小高度
 const MAX_HEIGHT = 1200;
+const MIN_HALF_THICK = 2;    // 墙/门碰撞半厚范围
+const MAX_HALF_THICK = 60;
+const MIN_FOOT = 8;          // 障碍物 footprint 最小宽/深
+const MAX_FOOT = 1200;
+const MIN_TRIGGER = 10;      // 陷阱触发半径范围
+const MAX_TRIGGER = 400;
 
 // 手柄屏幕尺寸（px，随相机缩放换算到世界）
 const HANDLE_SCREEN = 9;
@@ -52,14 +82,22 @@ export const CollisionEditor = {
     _toastEl: null,
     _toastTimer: 0,
 
-    _kind: null,         // 'enemy' | 'npc'
-    _key: null,          // 配置键
-    _entity: null,       // 预览实体
-    _edit: null,         // 当前编辑值 {radius,height,offsetX,offsetY,rect:{width,height,offsetX,bottom}}
+    _kind: null,         // 'enemy' | 'npc' | 'wall' | 'gate' | 'obstacle' | 'trap'
+    _key: null,          // 配置键（实体=配置键；墙/门/障碍物=ISO_WALL_GEO 键；陷阱='zombieDungeon'）
+    _entity: null,       // 预览实体（怪物/NPC）
+    _edit: null,         // 当前编辑值（实体：{radius,height,offsetX,offsetY,rect}；geo 类见 _initEditFromGeo）
     _baseline: null,     // 选中时的配置快照（重置用）
     _defaultHeight: 0,   // 选中时 collider 推导高度（决定保存时是否落 height 键）
 
+    _gateState: 'open',  // 门类编辑状态：open（门洞可通行）| closed（全跨度实心）
+    _previewSprite: null, // 墙/门/障碍物/陷阱的预览贴图（非实体预览，不进 isoVisuals）
+    _previewPiece: null,  // 墙/门/障碍物预览通用件（texPointToWorld 变换载体）
+    _stateRowEl: null,   // 门状态切换行
+    _inputsEl: null,     // 数值输入区（陷阱）
+    _hintEl: null,       // 操作提示区
+
     _drag: null,         // 拖拽状态 {mode:'rect'|'radius'|'height'|'move', handle, startPt, startEdit, anchor}
+    _editMode: 'both',   // 调整范围：both=矩形+圆柱同步调整（默认） | cylinder=只调圆柱 | rect=只调矩形
     _downFn: null,
     _moveFn: null,
     _upFn: null,
@@ -109,8 +147,15 @@ export const CollisionEditor = {
         if (this._gfx) { this._gfx.destroy(); this._gfx = null; }
         if (this._panel) { this._panel.remove(); this._panel = null; }
         this._selectEl = this._infoEl = this._toastEl = null;
+        this._stateRowEl = this._inputsEl = this._hintEl = null;
+        this._gateState = 'open';
         this._drag = this._edit = this._baseline = null;
         clearTimeout(this._toastTimer);
+    },
+
+    /** 是否为 geo 类编辑（墙/门/障碍物/陷阱，非实体预览） */
+    _isGeoKind() {
+        return this._kind === 'wall' || this._kind === 'gate' || this._kind === 'obstacle' || this._kind === 'trap';
     },
 
     // ==================== 面板 DOM ====================
@@ -151,12 +196,50 @@ export const CollisionEditor = {
             grpNpc.appendChild(opt);
         }
         select.appendChild(grpNpc);
+        // 墙 / 门 / 障碍物（ISO_WALL_GEO 按类型编辑）+ 陷阱（zombieDungeon.traps 配置）
+        const addGeoGroup = (label, kind, keys) => {
+            if (!keys.length) return;
+            const grp = document.createElement('optgroup');
+            grp.label = label;
+            for (const key of keys) {
+                const g = ISO_WALL_GEO[key];
+                const opt = document.createElement('option');
+                opt.value = `${kind}:${key}`;
+                opt.textContent = `${g.editor || key}（${key}）`;
+                grp.appendChild(opt);
+            }
+            select.appendChild(grp);
+        };
+        addGeoGroup('墙', 'wall', GEO_WALL_KEYS);
+        addGeoGroup('门', 'gate', GEO_GATE_KEYS);
+        addGeoGroup('障碍物', 'obstacle', GEO_OBSTACLE_KEYS);
+        const grpTrap = document.createElement('optgroup');
+        grpTrap.label = '陷阱';
+        const trapOpt = document.createElement('option');
+        trapOpt.value = `trap:${TRAP_KEY}`;
+        trapOpt.textContent = '地刺陷阱（zombieDungeon.traps）';
+        grpTrap.appendChild(trapOpt);
+        select.appendChild(grpTrap);
         select.addEventListener('change', () => {
             const [kind, key] = select.value.split(':');
             this.select(kind, key);
         });
         panel.appendChild(select);
         this._selectEl = select;
+
+        // 门类「打开/关闭」状态切换行（仅选中门类时显示）
+        const stateRow = document.createElement('div');
+        stateRow.className = 'ce-states';
+        stateRow.style.display = 'none';
+        panel.appendChild(stateRow);
+        this._stateRowEl = stateRow;
+
+        // 数值输入区（陷阱等按类型动态生成）
+        const inputs = document.createElement('div');
+        inputs.className = 'ce-inputs';
+        inputs.style.display = 'none';
+        panel.appendChild(inputs);
+        this._inputsEl = inputs;
 
         // 当前数值
         const info = document.createElement('div');
@@ -181,14 +264,31 @@ export const CollisionEditor = {
         btns.appendChild(saveBtn);
         panel.appendChild(btns);
 
-        // 操作提示
+        // 第二按钮行：调整范围切换（默认同步调整矩形+圆柱；点击后只单独调整对应体积，再点恢复同步）
+        const modeBtns = document.createElement('div');
+        modeBtns.className = 'ce-btns';
+        const mkModeBtn = (mode, label) => {
+            const b = document.createElement('button');
+            b.className = 'ce-btn ce-mode-btn';
+            b.textContent = label;
+            b.dataset.mode = mode;
+            b.addEventListener('click', () => {
+                this._editMode = (this._editMode === mode) ? 'both' : mode;
+                this._syncModeButtons();
+                this._redraw();
+            });
+            return b;
+        };
+        modeBtns.appendChild(mkModeBtn('cylinder', '🟧 调整圆柱'));
+        modeBtns.appendChild(mkModeBtn('rect', '🟩 调整矩形'));
+        panel.appendChild(modeBtns);
+        this._modeBtnsEl = modeBtns;
+
+        // 操作提示（按选中类型动态切换，见 _refreshHint）
         const hint = document.createElement('div');
         hint.className = 'ce-hint';
-        hint.innerHTML = '<div>🟩 绿矩形：八点拖拽改宽高</div>'
-            + '<div>🟧 圆柱：右缘点=缩放半径，顶缘点=调高矮</div>'
-            + '<div>✥ 矩形/椭圆内拖动：整体平移对齐贴图</div>'
-            + '<div>Esc 关闭编辑器</div>';
         panel.appendChild(hint);
+        this._hintEl = hint;
 
         // 提示消息
         const toast = document.createElement('div');
@@ -198,6 +298,15 @@ export const CollisionEditor = {
 
         document.body.appendChild(panel);
         this._panel = panel;
+        this._syncModeButtons();
+    },
+
+    /** 同步「调整圆柱/调整矩形」按钮高亮态（active=当前单独调整模式） */
+    _syncModeButtons() {
+        if (!this._modeBtnsEl) return;
+        for (const b of this._modeBtnsEl.querySelectorAll('.ce-mode-btn')) {
+            b.classList.toggle('active', this._editMode === b.dataset.mode);
+        }
     },
 
     _toast(msg) {
@@ -211,9 +320,109 @@ export const CollisionEditor = {
         if (!this._infoEl || !this._edit) return;
         const s = this._edit;
         const r1 = (v) => Math.round(v * 10) / 10;
-        this._infoEl.innerHTML = `<div>圆柱半径: ${r1(s.radius)} 高: ${r1(s.height)}</div>`
-            + `<div>矩形: ${r1(s.rect.width)} × ${r1(s.rect.height)}</div>`
-            + `<div>偏移: X ${r1(s.offsetX)} / Y ${r1(s.offsetY)}</div>`;
+        if (this._kind === 'enemy' || this._kind === 'npc') {
+            this._infoEl.innerHTML = `<div>圆柱半径: ${r1(s.radius)} 高: ${r1(s.height)}</div>`
+                + `<div>矩形: ${r1(s.rect.width)} × ${r1(s.rect.height)}</div>`
+                + `<div>偏移: X ${r1(s.offsetX)} / Y ${r1(s.offsetY)}</div>`;
+        } else if (this._kind === 'wall') {
+            this._infoEl.innerHTML = `<div>face: (${r1(s.face[0][0])},${r1(s.face[0][1])}) → (${r1(s.face[1][0])},${r1(s.face[1][1])})</div>`
+                + `<div>碰撞半厚: ${r1(s.halfThick)}</div>`;
+        } else if (this._kind === 'gate') {
+            this._infoEl.innerHTML = `<div>状态: ${this._gateState === 'open' ? '打开（门洞可通行）' : '关闭（全跨度实心）'}</div>`
+                + `<div>门洞: ${r1(s.hole[0])} ~ ${r1(s.hole[1])}（宽 ${r1(s.hole[1] - s.hole[0])}）</div>`
+                + `<div>碰撞半厚: ${r1(s.halfThick)}</div>`;
+        } else if (this._kind === 'obstacle') {
+            this._infoEl.innerHTML = `<div>footprint: ${r1(s.foot.w)} × ${r1(s.foot.d)}</div>`;
+        } else if (this._kind === 'trap') {
+            this._infoEl.innerHTML = `<div>触发半径: ${r1(s.triggerRadius)} 数量: ${s.count}</div>`
+                + `<div>伤害: ${r1(s.damagePercent * 100)}% 冷却: ${s.cooldownMs}ms</div>`;
+        }
+    },
+
+    /** 门类「打开/关闭」状态切换行（仅门类显示；两状态分别配置碰撞） */
+    _buildStateRow() {
+        if (!this._stateRowEl) return;
+        this._stateRowEl.innerHTML = '';
+        this._stateRowEl.style.display = this._kind === 'gate' ? 'flex' : 'none';
+        if (this._kind !== 'gate') return;
+        for (const [st, label] of [['open', '🚪 打开'], ['closed', '⛔ 关闭']]) {
+            const btn = document.createElement('button');
+            btn.className = 'ce-btn ce-state-btn' + (this._gateState === st ? ' ce-state-active' : '');
+            btn.textContent = label;
+            btn.title = st === 'open' ? '打开状态：碰撞=两侧墙身+中间门洞（可通行），门洞宽度可拖边缘微调'
+                : '关闭状态：碰撞=全跨度实心（门洞闭合），可调整厚度';
+            btn.addEventListener('click', () => {
+                this._gateState = st;
+                this._syncGateFrame();
+                this._buildStateRow();
+                this._updateInfo();
+            });
+            this._stateRowEl.appendChild(btn);
+        }
+    },
+
+    /** 数值输入区（陷阱：触发半径/数量/伤害/冷却；其余类型隐藏） */
+    _buildInputs() {
+        if (!this._inputsEl) return;
+        this._inputsEl.innerHTML = '';
+        if (this._kind !== 'trap' || !this._edit) { this._inputsEl.style.display = 'none'; return; }
+        this._inputsEl.style.display = 'block';
+        // [标签, 字段, 步进, 最小, 最大, 是否百分数显示]
+        const rows = [
+            ['触发半径', 'triggerRadius', 1, MIN_TRIGGER, MAX_TRIGGER, false],
+            ['数量', 'count', 1, 0, 20, false],
+            ['伤害(最大生命%)', 'damagePercent', 1, 0, 100, true],
+            ['冷却(ms)', 'cooldownMs', 100, 0, 60000, false],
+        ];
+        for (const [label, field, step, min, max, isPercent] of rows) {
+            const row = document.createElement('div');
+            row.className = 'ce-input-row';
+            const lab = document.createElement('span');
+            lab.textContent = label;
+            const inp = document.createElement('input');
+            inp.type = 'number';
+            inp.step = String(step);
+            inp.value = isPercent ? String(Math.round(this._edit[field] * 1000) / 10) : String(this._edit[field]);
+            inp.addEventListener('change', () => {
+                let v = parseFloat(inp.value);
+                if (!Number.isFinite(v)) v = min;
+                v = Math.max(min, Math.min(max, v));
+                if (isPercent) v = v / 100;
+                if (field === 'count') v = Math.round(v);
+                this._edit[field] = v;
+                this._applyGeoEdit();
+            });
+            row.appendChild(lab);
+            row.appendChild(inp);
+            this._inputsEl.appendChild(row);
+        }
+    },
+
+    /** 操作提示按选中类型切换 */
+    _refreshHint() {
+        if (!this._hintEl) return;
+        const HINTS = {
+            entity: '<div>🟩 绿矩形：八点拖拽改宽高</div>'
+                + '<div>🟧 圆柱：右缘点=缩放半径，顶缘点=调高矮</div>'
+                + '<div>✥ 矩形/椭圆内拖动：整体平移对齐贴图</div>'
+                + '<div>Esc 关闭编辑器</div>',
+            wall: '<div>🟩 绿线段：拖两端点改墙碰撞跨度（face）</div>'
+                + '<div>🟧 橙点：拖离墙线距离=碰撞厚度</div>'
+                + '<div>按类型生效：所有同型墙件立即重建</div>'
+                + '<div>Esc 关闭编辑器</div>',
+            gate: '<div>面板切换 打开/关闭 两状态分别调整</div>'
+                + '<div>🟨 金门洞（打开态）：拖两侧边缘调通行宽度</div>'
+                + '<div>🟧 橙点：拖离墙线距离=碰撞厚度</div>'
+                + '<div>Esc 关闭编辑器</div>',
+            obstacle: '<div>🟩 绿矩形：八点拖拽改 footprint 宽/深</div>'
+                + '<div>按类型生效：所有同型障碍物立即重建</div>'
+                + '<div>Esc 关闭编辑器</div>',
+            trap: '<div>🟧 橙圈：右缘手柄调触发半径</div>'
+                + '<div>面板数值：数量/伤害/冷却</div>'
+                + '<div>Esc 关闭编辑器</div>',
+        };
+        const k = (this._kind === 'enemy' || this._kind === 'npc') ? 'entity' : this._kind;
+        this._hintEl.innerHTML = HINTS[k] || HINTS.entity;
     },
 
     // ==================== 选择与预览生成 ====================
@@ -222,12 +431,21 @@ export const CollisionEditor = {
         this._removePreview();
         this._kind = kind;
         this._key = key;
+        this._gateState = 'open';
+        this._editMode = 'both'; // 切换对象时恢复同步调整
+        this._syncModeButtons();
         this._snapshotBaseline();
-        this._spawnPreview();
-        if (this._entity) {
-            this._initEditFromEntity();
-            this._updateInfo();
+        if (this._isGeoKind()) {
+            this._spawnGeoPreview();
+            this._initEditFromGeo();
+        } else {
+            this._spawnPreview();
+            if (this._entity) this._initEditFromEntity();
         }
+        this._buildStateRow();
+        this._buildInputs();
+        this._refreshHint();
+        this._updateInfo();
     },
 
     _spawnPreview() {
@@ -278,6 +496,216 @@ export const CollisionEditor = {
         }
         if (Game) Game.entities.delete(PREVIEW_KEY);
         this._entity = null;
+        // 墙/门/障碍物/陷阱的预览贴图
+        if (this._previewSprite) { this._previewSprite.destroy(); this._previewSprite = null; }
+        this._previewPiece = null;
+    },
+
+    // ==================== 墙/门/障碍物/陷阱：预览与编辑值 ====================
+
+    /** 墙/门/障碍物/陷阱预览：主神空间玩家右侧放一件同尺度贴图（不进 isoVisuals，仅显示） */
+    _spawnGeoPreview() {
+        const scene = window.__phaserScene;
+        const Game = window.Game;
+        if (!scene || !Game || !Game.player) return;
+        const tx = Game.player.x + 170;
+        const ty = Game.player.y;
+        if (this._kind === 'trap') {
+            // 陷阱：trap_idle 贴图（显示尺寸与运行时同口径 2.6×触发半径）
+            const r = (((DungeonConfig.raw[TRAP_KEY] || {}).traps) || {}).triggerRadius ?? 45;
+            const sp = scene.add.sprite(tx, ty, 'trap_idle');
+            sp.setOrigin(0.5, 0.5);
+            sp.setDisplaySize(r * 2.6, r * 2.6);
+            sp.setDepth(ty + 0.5);
+            this._previewSprite = sp;
+            return;
+        }
+        const g = ISO_WALL_GEO[this._key];
+        if (!g || !scene.textures.exists(g.tex)) return;
+        let piece;
+        if (this._kind === 'obstacle') {
+            // 障碍物：与摆墙编辑器同口径的默认显示高度（obstacleH）
+            const s = (g.obstacleH ?? 120) / g.h;
+            piece = { tex: g.tex, x: tx, y: ty, scaleX: s, scaleY: s, flipX: false };
+        } else {
+            // 墙/门：与运行时同尺度（ISO_WALL_HEIGHT/wallH + 角度补偿），face 中点锚定目标点
+            const s = ISO_WALL_HEIGHT / g.wallH;
+            const sy = s * slopeFixOf(g);
+            piece = { tex: g.tex, x: tx, y: ty, scaleX: s, scaleY: sy, flipX: false };
+            const base = g.face || g.base;
+            const fm = WallSystem.texPointToWorld(piece, (base[0][0] + base[1][0]) / 2, (base[0][1] + base[1][1]) / 2);
+            piece.x += tx - fm.x;
+            piece.y += ty - fm.y;
+        }
+        this._previewPiece = piece;
+        const sp = scene.add.sprite(piece.x, piece.y, piece.tex);
+        sp.setOrigin(0.5, 0.5);
+        sp.setScale(piece.scaleX, piece.scaleY);
+        sp.setDepth(ty + 0.5);
+        this._previewSprite = sp;
+        this._syncGateFrame();
+    },
+
+    /** 门类预览帧跟随编辑状态（16 帧门闸：帧0=关 帧15=开；单帧装饰门无操作） */
+    _syncGateFrame() {
+        const g = ISO_WALL_GEO[this._key];
+        if (this._kind !== 'gate' || !g || !g.frames || !this._previewSprite) return;
+        this._previewSprite.setFrame(this._gateState === 'open' ? g.frames - 1 : 0);
+    },
+
+    /** 从 ISO_WALL_GEO / 陷阱配置初始化编辑值（含覆盖层合并后的运行时值） */
+    _initEditFromGeo() {
+        if (this._kind === 'trap') {
+            const t = ((DungeonConfig.raw[TRAP_KEY] || {}).traps) || {};
+            this._edit = {
+                triggerRadius: t.triggerRadius ?? 45,
+                count: t.count ?? 3,
+                damagePercent: t.damagePercent ?? 0.10,
+                cooldownMs: t.cooldownMs ?? 2000,
+            };
+            return;
+        }
+        const g = ISO_WALL_GEO[this._key];
+        if (!g) { this._edit = null; return; }
+        if (this._kind === 'wall') {
+            this._edit = {
+                face: JSON.parse(JSON.stringify(g.face || g.base)),
+                halfThick: isoHalfThick(g),
+            };
+        } else if (this._kind === 'gate') {
+            this._edit = {
+                hole: [...(isoGateHole(g) || [0, 0])],
+                halfThick: isoHalfThick(g),
+            };
+        } else if (this._kind === 'obstacle') {
+            this._edit = { foot: { w: g.foot.w, d: g.foot.d } };
+        }
+    },
+
+    /**
+     * 编辑值写回运行时配置（ISO_WALL_GEO / 陷阱配置）并重建碰撞立即生效。
+     * 注意：拖拽中只重建线段模型（rebuildIsoCollision，纯 JS 开销小）；
+     * Phaser 静态体重建（_syncWallsToPhaser）在 mouseup/保存/重置时做一次。
+     */
+    _applyGeoEdit() {
+        const s = this._edit;
+        if (!s) return;
+        if (this._kind === 'trap') {
+            const zd = DungeonConfig.raw[TRAP_KEY] || (DungeonConfig.raw[TRAP_KEY] = {});
+            zd.traps = {
+                ...(zd.traps || {}),
+                triggerRadius: s.triggerRadius, count: s.count,
+                damagePercent: s.damagePercent, cooldownMs: s.cooldownMs,
+            };
+            if (this._previewSprite) this._previewSprite.setDisplaySize(s.triggerRadius * 2.6, s.triggerRadius * 2.6);
+            this._updateInfo();
+            return;
+        }
+        const g = ISO_WALL_GEO[this._key];
+        if (!g) return;
+        if (this._kind === 'wall') {
+            g.face = [[s.face[0][0], s.face[0][1]], [s.face[1][0], s.face[1][1]]];
+            g.halfThick = s.halfThick;
+        } else if (this._kind === 'gate') {
+            g.halfThick = s.halfThick;
+            // 门洞写两状态模型 states.open.hole，并同步旧 gateX（门闸/宝箱房门/发光裁剪同读）
+            g.states = g.states || {};
+            g.states.open = { hole: [s.hole[0], s.hole[1]] };
+            g.states.closed = { hole: null };
+            g.gateX = [s.hole[0], s.hole[1]];
+        } else if (this._kind === 'obstacle') {
+            g.foot = { w: s.foot.w, d: s.foot.d };
+        }
+        WallSystem.rebuildIsoCollision();
+        this._updateInfo();
+    },
+
+    /** 生成该类型的覆盖层条目（写 data/wall-geo-overrides.json；仅含可编辑字段） */
+    _buildOverrideEntry() {
+        const s = this._edit;
+        const r1 = (v) => Math.round(v * 10) / 10;
+        if (this._kind === 'wall') {
+            return {
+                face: [[r1(s.face[0][0]), r1(s.face[0][1])], [r1(s.face[1][0]), r1(s.face[1][1])]],
+                halfThick: r1(s.halfThick),
+            };
+        }
+        if (this._kind === 'gate') {
+            const hole = [r1(s.hole[0]), r1(s.hole[1])];
+            return {
+                halfThick: r1(s.halfThick),
+                gateX: hole,
+                states: { open: { hole }, closed: { hole: null } },
+            };
+        }
+        // 障碍物
+        return { foot: { w: r1(s.foot.w), d: r1(s.foot.d) } };
+    },
+
+    /** 世界点 → 贴图坐标（texPointToWorld 逆变换） */
+    _worldToTex(wx, wy) {
+        const g = ISO_WALL_GEO[this._key];
+        const p = this._previewPiece;
+        let u = (wx - p.x) / (p.scaleX ?? 1);
+        let v = (wy - p.y) / (p.scaleY ?? p.scaleX ?? 1);
+        if (p.flipX) u = -u;
+        if (p.flipY) v = -v;
+        return { x: u + g.w / 2, y: v + g.h / 2 };
+    },
+
+    /** 墙/门预览的碰撞线段世界几何 { A, B, holeA, holeB }（face/门洞映射，与 _pieceBaseSegments 同口径） */
+    _geoSegGeom() {
+        const g = ISO_WALL_GEO[this._key];
+        const p = this._previewPiece;
+        const face = this._kind === 'wall' ? this._edit.face : (g.face || g.base);
+        const A = WallSystem.texPointToWorld(p, face[0][0], face[0][1]);
+        const B = WallSystem.texPointToWorld(p, face[1][0], face[1][1]);
+        let holeA = null, holeB = null;
+        if (this._kind === 'gate') {
+            const at = (tx) => WallSystem.texPointToWorld(p, tx, face[0][1] + (tx - face[0][0]) * g.slope);
+            holeA = at(this._edit.hole[0]);
+            holeB = at(this._edit.hole[1]);
+        }
+        return { A, B, holeA, holeB };
+    },
+
+    /** 线段法向单位向量（厚度手柄定位用） */
+    _segNormal(A, B) {
+        const dx = B.x - A.x, dy = B.y - A.y;
+        const len = Math.hypot(dx, dy) || 1;
+        return { x: -dy / len, y: dx / len };
+    },
+
+    /** 障碍物 footprint 矩形世界几何（锚贴图底边中心，与 _addPieceCollision 同口径） */
+    _obstacleRectGeom() {
+        const g = ISO_WALL_GEO[this._key];
+        const p = this._previewPiece;
+        const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
+        const fw = this._edit.foot.w * sx, fd = this._edit.foot.d * sy;
+        const bottomY = p.y + (g.h * sy) / 2;
+        return { left: p.x - fw / 2, right: p.x + fw / 2, top: bottomY - fd, bottom: bottomY };
+    },
+
+    /** 障碍物矩形八点手柄（nw/n/ne/e/se/s/sw/w） */
+    _obstacleHandles() {
+        const g = this._obstacleRectGeom();
+        const cx = (g.left + g.right) / 2;
+        const cy = (g.top + g.bottom) / 2;
+        return [
+            { id: 'nw', x: g.left, y: g.top },
+            { id: 'n', x: cx, y: g.top },
+            { id: 'ne', x: g.right, y: g.top },
+            { id: 'e', x: g.right, y: cy },
+            { id: 'se', x: g.right, y: g.bottom },
+            { id: 's', x: cx, y: g.bottom },
+            { id: 'sw', x: g.left, y: g.bottom },
+            { id: 'w', x: g.left, y: cy },
+        ];
+    },
+
+    /** 陷阱预览中心 */
+    _trapCenter() {
+        return this._previewSprite ? { x: this._previewSprite.x, y: this._previewSprite.y } : { x: 0, y: 0 };
     },
 
     // ==================== 编辑值 <-> 实体 / 配置 ====================
@@ -394,7 +822,7 @@ export const CollisionEditor = {
                     projectileHitbox: r.projectileHitbox,
                 },
             }));
-        } else {
+        } else if (this._kind === 'npc') {
             const n = (GAME_CONFIG.npcs || {})[this._key] || {};
             this._baseline = JSON.parse(JSON.stringify({
                 collisionRadius: n.collisionRadius,
@@ -404,6 +832,14 @@ export const CollisionEditor = {
                 collisionHeight: n.collisionHeight,
                 colliderOffsetX: n.colliderOffsetX,
                 colliderOffsetY: n.colliderOffsetY,
+            }));
+        } else if (this._kind === 'trap') {
+            this._baseline = JSON.parse(JSON.stringify(((DungeonConfig.raw[TRAP_KEY] || {}).traps) || {}));
+        } else {
+            // 墙/门/障碍物：ISO_WALL_GEO 可编辑字段（含覆盖层合并后的值）
+            const g = ISO_WALL_GEO[this._key] || {};
+            this._baseline = JSON.parse(JSON.stringify({
+                face: g.face, halfThick: g.halfThick, foot: g.foot, gateX: g.gateX, states: g.states,
             }));
         }
     },
@@ -418,6 +854,34 @@ export const CollisionEditor = {
 
     _reset() {
         if (!this._baseline || !this._key) return;
+        if (this._kind === 'trap') {
+            const zd = DungeonConfig.raw[TRAP_KEY] || (DungeonConfig.raw[TRAP_KEY] = {});
+            zd.traps = JSON.parse(JSON.stringify(this._baseline));
+            this._initEditFromGeo();
+            this._buildInputs();
+            this._updateInfo();
+            if (this._previewSprite && this._edit) {
+                this._previewSprite.setDisplaySize(this._edit.triggerRadius * 2.6, this._edit.triggerRadius * 2.6);
+            }
+            this._toast('🔄 已重置为配置值');
+            return;
+        }
+        if (this._kind === 'wall' || this._kind === 'gate' || this._kind === 'obstacle') {
+            // 基线写回 ISO_WALL_GEO（基线中不存在的键删除=回默认值）并重建碰撞
+            const g = ISO_WALL_GEO[this._key];
+            if (g) {
+                for (const k of ['face', 'halfThick', 'foot', 'gateX', 'states']) {
+                    if (this._baseline[k] === undefined || this._baseline[k] === null) delete g[k];
+                    else g[k] = JSON.parse(JSON.stringify(this._baseline[k]));
+                }
+                WallSystem.rebuildIsoCollision();
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+            }
+            this._initEditFromGeo();
+            this._updateInfo();
+            this._toast('🔄 已重置为配置值');
+            return;
+        }
         if (this._kind === 'enemy') {
             const cfg = enemyConfigData[this._key];
             if (cfg) {
@@ -441,6 +905,26 @@ export const CollisionEditor = {
 
     async _save() {
         if (!this._edit || !this._key) return;
+        // 墙/门/障碍物/陷阱：geo 覆盖层 / 地牢陷阱配置
+        if (this._isGeoKind()) {
+            this._applyGeoEdit();
+            let rel, ok;
+            if (this._kind === 'trap') {
+                rel = 'data/dungeon-config.json';
+                ok = await this._persistJson(rel, DungeonConfig.raw);
+            } else {
+                // 内存 ISO_WALL_GEO 已在拖拽时同步；落盘写几何覆盖层（启动时合并生效）
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+                const ov = { ...(getWallGeoOverrides() || {}) };
+                ov[this._key] = this._buildOverrideEntry();
+                rel = 'data/wall-geo-overrides.json';
+                ok = await saveWallGeoOverrides(ov);
+            }
+            // 保存成功后基线推进到当前值（再重置即回到本次保存点）
+            this._snapshotBaseline();
+            this._toast(ok ? `✅ 已保存到 ${rel}` : '⚠️ 文件写入失败（已尝试下载兜底）');
+            return;
+        }
         this._syncConfig();
         const rel = this._kind === 'enemy' ? 'data/enemy-config.json' : 'data/game-config.json';
         const data = this._kind === 'enemy' ? enemyConfigData : GAME_CONFIG;
@@ -544,44 +1028,53 @@ export const CollisionEditor = {
     // ==================== 鼠标交互 ====================
 
     _onMouseDown(e) {
-        if (e.button !== 0 || !this._entity || !this._edit) return;
+        if (e.button !== 0 || !this._edit) return;
         if (!(e.target instanceof Element)) return;
         if (e.target.closest('.collision-editor-panel, .wall-editor-panel, button, input, select, .invincible-toggle, .attack-range-toggle, .dev-tool-trigger, .quick-slot, .side-menu-btn')) return;
         const pt = this._clientToWorld(e);
         if (!pt || !pt.overCanvas) return;
+        // 墙/门/障碍物/陷阱：geo 类手柄
+        if (this._isGeoKind()) { this._onGeoMouseDown(pt); return; }
+        if (!this._entity) return;
 
         const hs = HANDLE_SCREEN / this._zoom();
-        // 1) 矩形八点手柄
-        for (const h of this._rectHandles()) {
-            if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
-                const g = this._rectGeom();
-                this._drag = {
-                    mode: 'rect', handle: h.id,
-                    // 锚定被拖边/角的对面（拖拽过程中不动）
-                    anchor: { left: g.left, right: g.right, top: g.top, bottom: g.bottom },
-                };
+        const onlyCyl = this._editMode === 'cylinder';
+        const onlyRect = this._editMode === 'rect';
+        // 1) 矩形八点手柄（仅 both/rect 模式可用）
+        if (!onlyCyl) {
+            for (const h of this._rectHandles()) {
+                if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
+                    const g = this._rectGeom();
+                    this._drag = {
+                        mode: 'rect', handle: h.id,
+                        // 锚定被拖边/角的对面（拖拽过程中不动）
+                        anchor: { left: g.left, right: g.right, top: g.top, bottom: g.bottom },
+                    };
+                    return;
+                }
+            }
+        }
+        // 2) 圆柱半径手柄（仅 both/cylinder 模式可用）
+        if (!onlyRect) {
+            const rh = this._radiusHandlePos();
+            if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
+                this._drag = { mode: 'radius' };
+                return;
+            }
+            // 3) 圆柱高度手柄
+            const hh = this._heightHandlePos();
+            if (Math.abs(pt.x - hh.x) <= hs && Math.abs(pt.y - hh.y) <= hs) {
+                this._drag = { mode: 'height' };
                 return;
             }
         }
-        // 2) 圆柱半径手柄
-        const rh = this._radiusHandlePos();
-        if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
-            this._drag = { mode: 'radius' };
-            return;
-        }
-        // 3) 圆柱高度手柄
-        const hh = this._heightHandlePos();
-        if (Math.abs(pt.x - hh.x) <= hs && Math.abs(pt.y - hh.y) <= hs) {
-            this._drag = { mode: 'height' };
-            return;
-        }
-        // 4) 矩形内部 / 底部椭圆内部 → 整体拖动（colliderOffset）
+        // 4) 矩形内部 / 底部椭圆内部 → 整体拖动（colliderOffset；按调整范围过滤）
         const g = this._rectGeom();
-        const inRect = pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
+        const inRect = !onlyCyl && pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
         const c = this._entity.collider;
         const rx = this._edit.radius;
         const ry = rx * PERSPECTIVE_SCALE_Y;
-        const inEllipse = rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
+        const inEllipse = !onlyRect && rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
         if (inRect || inEllipse) {
             this._drag = {
                 mode: 'move',
@@ -591,10 +1084,60 @@ export const CollisionEditor = {
         }
     },
 
+    /** 墙/门/障碍物/陷阱的场景内手柄命中 */
+    _onGeoMouseDown(pt) {
+        const hs = HANDLE_SCREEN / this._zoom();
+        if (this._kind === 'trap') {
+            if (!this._previewSprite) return;
+            const c = this._trapCenter();
+            const rh = { x: c.x + this._edit.triggerRadius, y: c.y };
+            if (Math.abs(pt.x - rh.x) <= hs && Math.abs(pt.y - rh.y) <= hs) {
+                this._drag = { mode: 'trapRadius' };
+            }
+            return;
+        }
+        if (!this._previewPiece) return;
+        if (this._kind === 'obstacle') {
+            for (const h of this._obstacleHandles()) {
+                if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
+                    this._drag = { mode: 'obstacleRect', handle: h.id };
+                    return;
+                }
+            }
+            return;
+        }
+        // 墙/门：线段类手柄
+        const { A, B, holeA, holeB } = this._geoSegGeom();
+        // 1) 门洞边缘（仅打开状态可调通行宽度）
+        if (this._kind === 'gate' && this._gateState === 'open') {
+            if (Math.abs(pt.x - holeA.x) <= hs && Math.abs(pt.y - holeA.y) <= hs) { this._drag = { mode: 'holeEdge', edge: 0 }; return; }
+            if (Math.abs(pt.x - holeB.x) <= hs && Math.abs(pt.y - holeB.y) <= hs) { this._drag = { mode: 'holeEdge', edge: 1 }; return; }
+        }
+        // 2) 墙 face 端点
+        if (this._kind === 'wall') {
+            if (Math.abs(pt.x - A.x) <= hs && Math.abs(pt.y - A.y) <= hs) { this._drag = { mode: 'faceEnd', end: 0 }; return; }
+            if (Math.abs(pt.x - B.x) <= hs && Math.abs(pt.y - B.y) <= hs) { this._drag = { mode: 'faceEnd', end: 1 }; return; }
+        }
+        // 3) 厚度手柄（线段中点 ± 法向×半厚）
+        const n = this._segNormal(A, B);
+        const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+        const ht = this._edit.halfThick;
+        for (const sign of [1, -1]) {
+            const hx = mx + n.x * ht * sign, hy = my + n.y * ht * sign;
+            if (Math.abs(pt.x - hx) <= hs && Math.abs(pt.y - hy) <= hs) {
+                this._drag = { mode: 'thickness' };
+                return;
+            }
+        }
+    },
+
     _onMouseMove(e) {
-        if (!this._drag || !this._entity || !this._edit) return;
+        if (!this._drag || !this._edit) return;
         const pt = this._clientToWorld(e);
         if (!pt) return;
+        // 墙/门/障碍物/陷阱：geo 类拖拽
+        if (this._isGeoKind()) { this._onGeoMouseMove(pt); return; }
+        if (!this._entity) return;
         const s = this._edit;
         const c = this._entity.collider;
         const d = this._drag;
@@ -631,16 +1174,80 @@ export const CollisionEditor = {
         }
     },
 
+    /** geo 类拖拽：trapRadius / obstacleRect / faceEnd / holeEdge / thickness */
+    _onGeoMouseMove(pt) {
+        const s = this._edit;
+        const d = this._drag;
+        if (d.mode === 'trapRadius') {
+            const c = this._trapCenter();
+            s.triggerRadius = Math.max(MIN_TRIGGER, Math.min(MAX_TRIGGER, Math.abs(pt.x - c.x)));
+            this._applyGeoEdit();
+            return;
+        }
+        if (d.mode === 'obstacleRect') {
+            const p = this._previewPiece;
+            const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
+            const rg = this._obstacleRectGeom();
+            // 宽：中心锚定（2×到中心距）；深：锚贴图底边（n=底边到点；s=点到顶边，底边不动）
+            if (d.handle.includes('e') || d.handle.includes('w')) {
+                s.foot.w = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (2 * Math.abs(pt.x - p.x)) / sx));
+            }
+            if (d.handle.includes('n')) {
+                s.foot.d = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (rg.bottom - pt.y) / sy));
+            } else if (d.handle.includes('s')) {
+                s.foot.d = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (pt.y - rg.top) / sy));
+            }
+            this._applyGeoEdit();
+            return;
+        }
+        const g = ISO_WALL_GEO[this._key];
+        if (d.mode === 'faceEnd') {
+            // face 端点：世界→贴图坐标，钳制贴图范围内 + 两端最小间距 20px
+            const t = this._worldToTex(pt.x, pt.y);
+            t.x = Math.max(0, Math.min(g.w, t.x));
+            t.y = Math.max(0, Math.min(g.h, t.y));
+            if (d.end === 0) t.x = Math.min(t.x, s.face[1][0] - 20);
+            else t.x = Math.max(t.x, s.face[0][0] + 20);
+            s.face[d.end] = [t.x, t.y];
+            this._applyGeoEdit();
+            return;
+        }
+        if (d.mode === 'holeEdge') {
+            // 门洞边缘：只沿贴图 x 调，钳制在 face 跨度内且保序（最小门洞 10px）
+            const face = g.face || g.base;
+            const t = this._worldToTex(pt.x, pt.y);
+            let tx = Math.max(face[0][0] + 4, Math.min(face[1][0] - 4, t.x));
+            if (d.edge === 0) tx = Math.min(tx, s.hole[1] - 10);
+            else tx = Math.max(tx, s.hole[0] + 10);
+            s.hole[d.edge] = tx;
+            this._applyGeoEdit();
+            return;
+        }
+        if (d.mode === 'thickness') {
+            // 点到墙线距离 = 新碰撞半厚
+            const { A, B } = this._geoSegGeom();
+            const dist = WallSystem._pointSegDist(pt.x, pt.y, A.x, A.y, B.x, B.y);
+            s.halfThick = Math.max(MIN_HALF_THICK, Math.min(MAX_HALF_THICK, dist));
+            this._applyGeoEdit();
+        }
+    },
+
     _onMouseUp() {
+        // 墙/门/障碍物拖拽结束：Phaser 静态体同步一次（拖拽中只重建线段模型，避免每帧重建物理体）
+        if (this._drag && this._edit && this._isGeoKind() && this._kind !== 'trap') {
+            if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        }
         this._drag = null;
     },
 
     // ==================== 覆盖层绘制 ====================
 
     _redraw() {
-        if (!this._gfx || !this._entity || !this._edit) return;
+        if (!this._gfx || !this._edit) return;
+        // 墙/门/障碍物/陷阱：geo 类覆盖层
+        if (this._isGeoKind()) { this._redrawGeo(); return; }
         const e = this._entity;
-        if (!e.active || !e.collider) { this._gfx.clear(); return; }
+        if (!e || !e.active || !e.collider) { this._gfx.clear(); return; }
         const g = this._gfx;
         const c = e.collider;
         const s = this._edit;
@@ -679,21 +1286,118 @@ export const CollisionEditor = {
         g.moveTo(c.x, c.y - hs); g.lineTo(c.x, c.y + hs);
         g.strokePath();
 
-        // ---- 手柄：矩形八点（白）+ 半径/高度（橙）----
-        g.fillStyle(0xffffff, 1);
-        g.lineStyle(1 / zoom, 0x333333, 1);
-        for (const h of this._rectHandles()) {
-            g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
-            g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+        // ---- 手柄：矩形八点（白）+ 半径/高度（橙），按调整范围过滤 ----
+        const onlyCyl = this._editMode === 'cylinder';
+        const onlyRect = this._editMode === 'rect';
+        if (!onlyCyl) {
+            g.fillStyle(0xffffff, 1);
+            g.lineStyle(1 / zoom, 0x333333, 1);
+            for (const h of this._rectHandles()) {
+                g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+            }
         }
-        g.fillStyle(0xffaa00, 1);
-        const rh = this._radiusHandlePos();
-        g.fillRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
-        g.strokeRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
-        g.fillStyle(0xff5500, 1);
-        const hh = this._heightHandlePos();
-        g.fillRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
-        g.strokeRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+        if (!onlyRect) {
+            g.fillStyle(0xffaa00, 1);
+            const rh = this._radiusHandlePos();
+            g.fillRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
+            g.strokeRect(rh.x - hs / 2, rh.y - hs / 2, hs, hs);
+            g.fillStyle(0xff5500, 1);
+            const hh = this._heightHandlePos();
+            g.fillRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+            g.strokeRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
+        }
+    },
+
+    /** 墙/门/障碍物/陷阱覆盖层绘制（绿=碰撞区、金=门洞可通行区、橙=厚度/半径手柄） */
+    _redrawGeo() {
+        const g = this._gfx;
+        const zoom = this._zoom();
+        const hs = HANDLE_SCREEN / zoom;
+        g.clear();
+
+        // ---- 陷阱：触发半径圈 + 右缘半径手柄 ----
+        if (this._kind === 'trap') {
+            if (!this._previewSprite) return;
+            const c = this._trapCenter();
+            const r = this._edit.triggerRadius;
+            g.fillStyle(0xff6600, 0.10);
+            g.fillCircle(c.x, c.y, r);
+            g.lineStyle(1.5 / zoom, 0xff8800, 0.9);
+            g.strokeCircle(c.x, c.y, r);
+            g.lineStyle(1 / zoom, 0xffffff, 0.5);
+            g.beginPath();
+            g.moveTo(c.x - hs, c.y); g.lineTo(c.x + hs, c.y);
+            g.moveTo(c.x, c.y - hs); g.lineTo(c.x, c.y + hs);
+            g.strokePath();
+            g.fillStyle(0xffaa00, 1);
+            g.lineStyle(1 / zoom, 0x333333, 1);
+            g.fillRect(c.x + r - hs / 2, c.y - hs / 2, hs, hs);
+            g.strokeRect(c.x + r - hs / 2, c.y - hs / 2, hs, hs);
+            return;
+        }
+        if (!this._previewPiece) return;
+
+        // ---- 障碍物：footprint 绿矩形 + 八点手柄 ----
+        if (this._kind === 'obstacle') {
+            const rg = this._obstacleRectGeom();
+            g.fillStyle(0x00ff66, 0.08);
+            g.fillRect(rg.left, rg.top, rg.right - rg.left, rg.bottom - rg.top);
+            g.lineStyle(1.5 / zoom, 0x00ff66, 0.9);
+            g.strokeRect(rg.left, rg.top, rg.right - rg.left, rg.bottom - rg.top);
+            g.fillStyle(0xffffff, 1);
+            g.lineStyle(1 / zoom, 0x333333, 1);
+            for (const h of this._obstacleHandles()) {
+                g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+            }
+            return;
+        }
+
+        // ---- 墙/门：碰撞线段 + 厚度带 + 手柄 ----
+        const { A, B, holeA, holeB } = this._geoSegGeom();
+        const ht = this._edit.halfThick;
+        const drawSeg = (P, Q, color, fillAlpha) => {
+            // 厚度带（半透粗线）+ 中心线（细线）
+            g.lineStyle(ht * 2, color, fillAlpha);
+            g.beginPath(); g.moveTo(P.x, P.y); g.lineTo(Q.x, Q.y); g.strokePath();
+            g.lineStyle(1.5 / zoom, color, 0.95);
+            g.beginPath(); g.moveTo(P.x, P.y); g.lineTo(Q.x, Q.y); g.strokePath();
+        };
+        if (this._kind === 'gate' && this._gateState === 'open') {
+            // 打开状态：两侧墙身绿 + 门洞金色高亮（可通行区）
+            drawSeg(A, holeA, 0x00ff66, 0.18);
+            drawSeg(holeB, B, 0x00ff66, 0.18);
+            drawSeg(holeA, holeB, 0xffd700, 0.22);
+            g.fillStyle(0xffd700, 1);
+            g.lineStyle(1 / zoom, 0x333333, 1);
+            for (const h of [holeA, holeB]) {
+                g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+            }
+        } else {
+            // 墙 / 门关闭状态：全跨度实心（绿）
+            drawSeg(A, B, 0x00ff66, 0.18);
+            if (this._kind === 'wall') {
+                // face 端点手柄（白）
+                g.fillStyle(0xffffff, 1);
+                g.lineStyle(1 / zoom, 0x333333, 1);
+                for (const h of [A, B]) {
+                    g.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                    g.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+                }
+            }
+        }
+        // 厚度手柄（橙，线段中点 ± 法向×半厚）
+        const n = this._segNormal(A, B);
+        const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+        g.fillStyle(0xff8800, 1);
+        g.lineStyle(1 / zoom, 0x333333, 1);
+        for (const sign of [1, -1]) {
+            const hx = mx + n.x * ht * sign, hy = my + n.y * ht * sign;
+            g.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+            g.strokeRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        }
     },
 };
 

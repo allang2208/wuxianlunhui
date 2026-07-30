@@ -11,7 +11,9 @@
  * 支持命名存为预设方案 / 一键删除。
  */
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
-import { loadWallPrefabs, getWallPrefabLibrary, saveWallPrefabs, saveObstacleLayout } from '../world/wall-prefabs.js';
+import { loadWallPrefabs, getWallPrefabLibrary, saveWallPrefabs, saveObstacleLayout, getObstacleDefaults, saveObstacleDefaults, saveGameConfig } from '../world/wall-prefabs.js';
+import { GAME_CONFIG } from '../config/game-config.js';
+import { CONFIG } from '../config/config.js';
 
 // 标准组件库（三大分类页签：墙类 / 门类 / 障碍物类）
 // 墙壁组件自动生成：ISO_WALL_GEO 条目带 editor 显示名即进面板（新墙/门组件加 editor 字段即可，无需改本文件）
@@ -72,6 +74,11 @@ export const WallEditor = {
     _commitTimer: 0,
     _blinkT: 0,
     _blinkOn: false,
+    // ===== NPC 拖动 / NPC 位置编辑器（摆墙模式下单选一个 NPC）=====
+    _npcSel: null,         // 当前选中的 NPC 实体（与墙件选中互斥）
+    _draggingNpc: false,
+    _npcDragOrig: { x: 0, y: 0 },
+    _npcEl: null,          // NPC 位置编辑器面板 DOM
 
     toggle() {
         if (this.active) this.close();
@@ -119,6 +126,9 @@ export const WallEditor = {
         if (this._keyFn) window.removeEventListener('keydown', this._keyFn, true);
         clearTimeout(this._commitTimer);
         this._setSelection([]);
+        this._clearNpcSel();
+        this._draggingNpc = false;
+        if (this._npcEl) { this._npcEl.remove(); this._npcEl = null; }
         if (this._boxGfx) { this._boxGfx.destroy(); this._boxGfx = null; }
         if (this._panel) { this._panel.remove(); this._panel = null; }
         if (this._obstacleEl) { this._obstacleEl.remove(); this._obstacleEl = null; }
@@ -151,6 +161,7 @@ export const WallEditor = {
             if (p._sprite) p._sprite.clearTint();
         }
         this.sel = arr;
+        if (arr.length && this._npcSel) this._clearNpcSel(); // 墙件与 NPC 选中互斥
         this._blinkT = 0;
         this._updateInfo();
         this._refreshLayers();
@@ -158,13 +169,16 @@ export const WallEditor = {
     },
 
     _onTick(time) {
-        if (!this.sel.length) return;
+        if (!this.sel.length && !this._npcSel) return;
         if (time - this._blinkT > 250) {
             this._blinkT = time;
             this._blinkOn = !this._blinkOn;
             for (const p of this.sel) {
                 if (p._sprite) p._sprite.setTint(this._blinkOn ? 0xffffff : 0x111111);
             }
+            // 选中 NPC 同步闪烁（贴图 NPC 有效；纯色圆 NPC 每帧被 _syncNeutralEntities 重染色，闪烁被覆盖）
+            const sp = this._npcSel ? this._npcSpriteOf(this._npcSel) : null;
+            if (sp) sp.setTint(this._blinkOn ? 0xffffff : 0x111111);
         }
     },
 
@@ -177,6 +191,58 @@ export const WallEditor = {
             }
         }
         return best;
+    },
+
+    /** NPC 命中检测：Game.entities 里 npcType 非空、且有无专属贴图的 Phaser 精灵（_neutralSprites） */
+    _hitTestNpc(wx, wy) {
+        const scene = window.__phaserScene;
+        const game = window.Game;
+        if (!scene || !scene._neutralSprites || !game || !game.entities) return null;
+        let best = null, bestDepth = -Infinity;
+        for (const e of game.entities.values()) {
+            if (!e || !e.npcType) continue;
+            const sp = this._npcSpriteOf(e);
+            if (!sp || !sp.active || !sp.visible) continue;
+            if (sp.getBounds().contains(wx, wy) && sp.depth >= bestDepth) {
+                best = e;
+                bestDepth = sp.depth;
+            }
+        }
+        return best;
+    },
+
+    /** NPC 实体 → 场景中的 Phaser 精灵（无则 null） */
+    _npcSpriteOf(e) {
+        const scene = window.__phaserScene;
+        if (!scene || !scene._neutralSprites) return null;
+        const data = scene._neutralSprites.get(e);
+        return data ? data.sprite : null;
+    },
+
+    /** 清除 NPC 选中（还原贴图染色 + 隐藏 NPC 编辑器） */
+    _clearNpcSel() {
+        if (this._npcSel) {
+            const sp = this._npcSpriteOf(this._npcSel);
+            if (sp) sp.clearTint();
+        }
+        this._npcSel = null;
+        this._updateNpcEditor();
+    },
+
+    /** 设置 NPC 选中（与墙件选中互斥；null=仅清除） */
+    _setNpcSelection(npc) {
+        if (npc) {
+            for (const p of this.sel) {
+                if (p._sprite) p._sprite.clearTint();
+            }
+            this.sel = [];
+            this._updateInfo();
+            this._refreshLayers();
+            this._updateObstacleEditor();
+        }
+        this._clearNpcSel();
+        this._npcSel = npc || null;
+        this._updateNpcEditor();
     },
 
     _selCenter() {
@@ -193,7 +259,7 @@ export const WallEditor = {
     _onMouseDown(e) {
         if (e.button !== 0 || this._pendingPiece) return;
         if (!(e.target instanceof Element)) return;
-        if (e.target.closest('.wall-editor-panel, .wall-editor-layers')) return; // 面板/图层栏自有交互
+        if (e.target.closest('.wall-editor-panel, .wall-editor-layers, .obstacle-editor, .npc-editor')) return; // 面板/编辑器自有交互
         if (e.target.closest('button, input, select, .invincible-toggle, .attack-range-toggle, .dev-tool-trigger, .quick-slot, .side-menu-btn')) return;
         const pt = this._clientToWorld(e);
         if (!pt || !pt.overCanvas) return;
@@ -211,8 +277,20 @@ export const WallEditor = {
             this._dragStart.x = pt.x;
             this._dragStart.y = pt.y;
             this._dragOrig = this.sel.map(p => ({ p, x: p.x, y: p.y }));
+            return;
+        }
+        // 墙件未命中再测 NPC（npcType 非空的实体精灵；noSeparation 固定 NPC 也允许拖动）
+        const npc = this._hitTestNpc(pt.x, pt.y);
+        if (npc) {
+            this._setNpcSelection(npc);
+            this._draggingNpc = true;
+            this._dragStart.x = pt.x;
+            this._dragStart.y = pt.y;
+            this._npcDragOrig.x = npc.x;
+            this._npcDragOrig.y = npc.y;
         } else {
             this._setSelection([]);
+            this._setNpcSelection(null);
         }
     },
 
@@ -247,6 +325,19 @@ export const WallEditor = {
                 this._applyToSprite(o.p);
             }
             this._updateInfo();
+            return;
+        }
+        // NPC 拖动：改实体坐标（精灵位置由 GameScene._syncNeutralEntities 每帧同步）；
+        // 游走 NPC 同步挪家，防止松手后 wander 把它拉回旧生成点
+        if (this._draggingNpc && this._npcSel) {
+            const e2 = this._npcSel;
+            e2.x = this._npcDragOrig.x + (pt.x - this._dragStart.x);
+            e2.y = this._npcDragOrig.y + (pt.y - this._dragStart.y);
+            if (e2._wanderHome) {
+                e2._wanderHome.x = e2.x;
+                e2._wanderHome.y = e2.y;
+            }
+            this._updateNpcInfo();
         }
     },
 
@@ -271,11 +362,18 @@ export const WallEditor = {
             this._dragging = false;
             this._commit();
         }
+        // NPC 拖动落位：实体坐标已在拖动中写好，无碰撞重建（位置保存走 NPC 编辑器「保存」）
+        if (this._draggingNpc) {
+            this._draggingNpc = false;
+            this._updateNpcInfo();
+        }
     },
 
     _onWheel(e) {
         const pt = this._clientToWorld(e);
         if (!pt || !pt.overCanvas) return;
+        // NPC 编辑器面板上的滚轮留给滑条交互，不波及场景选中件
+        if (e.target instanceof Element && e.target.closest('.npc-editor')) return;
         e.preventDefault();
         // 放置中的临时件：滚轮缩放 / Ctrl+滚轮镜像 / Shift+滚轮旋转（障碍物）
         if (this._pendingPiece) {
@@ -289,6 +387,12 @@ export const WallEditor = {
                 p.scaleY *= f;
             }
             this._applyGhost();
+            return;
+        }
+        // 选中 NPC：滚轮=大小，Shift+滚轮=旋转（贴图 NPC）
+        if (this._npcSel) {
+            if (e.shiftKey) this._applyNpcRotation((this._npcSel.spriteCfg?.rotation || 0) + (e.deltaY < 0 ? 5 : -5));
+            else this._applyNpcSize(this._npcCurSize() * (e.deltaY < 0 ? 1.05 : 1 / 1.05));
             return;
         }
         if (!this.sel.length) return;
@@ -361,6 +465,17 @@ export const WallEditor = {
             flipX: false, flipY: false, rotation: 0,
             depth: 0, family: isObstacle ? 'obstacle' : 'wall',
         };
+        // 障碍物：有类型默认状态（obstacle-defaults.json）则整套套用，覆盖 obstacleH 基准
+        if (isObstacle) {
+            const def = getObstacleDefaults()[this._obstacleGeoKey(comp.tex)];
+            if (def) {
+                this._pendingPiece.scaleX = def.scaleX ?? s;
+                this._pendingPiece.scaleY = def.scaleY ?? def.scaleX ?? s;
+                this._pendingPiece.rotation = def.rotation || 0;
+                this._pendingPiece.flipX = !!def.flipX;
+                this._pendingPiece.flipY = !!def.flipY;
+            }
+        }
         const scene = window.__phaserScene;
         this._ghost = scene.add.sprite(-9999, -9999, comp.tex).setOrigin(0.5, 0.5).setAlpha(0.6).setDepth(999998);
         this._placeUpFn = (e) => this._finishPlacement(e);
@@ -448,28 +563,249 @@ export const WallEditor = {
         }
     },
 
-    /** 重置：选中障碍物恢复初始变换（默认缩放/无旋转/无镜像） */
+    /** 障碍物贴图键 → ISO_WALL_GEO 键（geoKey，如 barrel/pillar/candle；非障碍物返回 null） */
+    _obstacleGeoKey(tex) {
+        for (const k of Object.keys(ISO_WALL_GEO)) {
+            const g = ISO_WALL_GEO[k];
+            if (g.tex === tex && g.category === 'obstacle') return k;
+        }
+        return null;
+    },
+
+    /** 重置：选中障碍物恢复类型默认状态（obstacle-defaults 记录值；无记录回 obstacleH 基准） */
     _resetObstacle() {
         const p = this.sel.length === 1 ? this.sel[0] : null;
         if (!p) return;
         const g = WallSystem._geoForTex(p.tex) || { wallH: 800, h: 800 };
-        const s = (g.category === 'obstacle') ? ((g.obstacleH ?? 120) / g.h) : (ISO_WALL_HEIGHT / g.wallH);
-        p.scaleX = s;
-        p.scaleY = s;
-        p.flipX = false;
-        p.flipY = false;
-        p.rotation = 0;
+        const def = (g.category === 'obstacle') ? getObstacleDefaults()[this._obstacleGeoKey(p.tex)] : null;
+        if (def) {
+            p.scaleX = def.scaleX ?? 1;
+            p.scaleY = def.scaleY ?? def.scaleX ?? 1;
+            p.rotation = def.rotation || 0;
+            p.flipX = !!def.flipX;
+            p.flipY = !!def.flipY;
+        } else {
+            const s = (g.category === 'obstacle') ? ((g.obstacleH ?? 120) / g.h) : (ISO_WALL_HEIGHT / g.wallH);
+            p.scaleX = s;
+            p.scaleY = s;
+            p.flipX = false;
+            p.flipY = false;
+            p.rotation = 0;
+        }
         this._applyToSprite(p);
         this._commit();
     },
 
-    /** 保存：场景内全部障碍物写入 data/obstacle-layout.json（回城按布局重建，免手工抄改） */
+    /**
+     * 保存（双写）：
+     * ① 选中件的变换写入 data/obstacle-defaults.json 对应类型（geoKey）——
+     *    之后摆墙拖新件 / 地牢地板装饰 / 重置都套用该类型默认状态；
+     * ② 场景内全部障碍物写入 data/obstacle-layout.json（回城按布局重建，免手工抄改）
+     */
     async _saveObstacleLayout() {
+        const p = this.sel.length === 1 ? this.sel[0] : null;
+        const geoKey = p ? this._obstacleGeoKey(p.tex) : null;
+        if (geoKey) {
+            const defs = { ...getObstacleDefaults() };
+            defs[geoKey] = {
+                scaleX: p.scaleX ?? 1,
+                scaleY: p.scaleY ?? p.scaleX ?? 1,
+                rotation: p.rotation || 0,
+                flipX: !!p.flipX,
+                flipY: !!p.flipY,
+            };
+            await saveObstacleDefaults(defs);
+        }
         const list = WallSystem.isoVisuals
-            .filter(p => (WallSystem._geoForTex(p.tex) || {}).category === 'obstacle')
+            .filter(q => (WallSystem._geoForTex(q.tex) || {}).category === 'obstacle')
             .map(cleanPiece);
         const ok = await saveObstacleLayout(list);
         const btn = this._obstacleEl && this._obstacleEl.querySelector('.oe-save');
+        if (btn) {
+            const old = btn.textContent;
+            btn.textContent = ok ? '✓ 已写入文件' : '⚠ 已下载';
+            setTimeout(() => { btn.textContent = old; }, 1200);
+        }
+    },
+
+    // ===== NPC 位置编辑器（摆墙模式单选一个 NPC 时显示，样式同障碍物编辑器，位于其下方） =====
+    _updateNpcEditor() {
+        const e = this._npcSel;
+        if (!this._npcEl) {
+            const el = document.createElement('div');
+            el.className = 'obstacle-editor npc-editor';
+            el.innerHTML = `
+                <div class="oe-title">NPC 编辑器</div>
+                <div class="oe-hints">拖动=移动 滚轮=大小 Shift+滚轮=旋转</div>
+                <div class="ne-info"></div>
+                <div class="ne-row">
+                    <label>大小</label>
+                    <input type="range" class="ne-size">
+                    <span class="ne-val ne-size-val"></span>
+                </div>
+                <div class="ne-row">
+                    <label>角度</label>
+                    <input type="range" class="ne-rot" min="-180" max="180" step="1">
+                    <span class="ne-val ne-rot-val"></span>
+                </div>
+                <div class="oe-row">
+                    <button class="oe-reset ne-reset">↺ 重置</button>
+                    <button class="oe-save ne-save">💾 保存</button>
+                </div>`;
+            document.body.appendChild(el);
+            this._npcEl = el;
+            el.querySelector('.ne-size').addEventListener('input', (ev) => this._applyNpcSize(Number(ev.target.value)));
+            el.querySelector('.ne-rot').addEventListener('input', (ev) => this._applyNpcRotation(Number(ev.target.value)));
+            el.querySelector('.ne-reset').addEventListener('click', () => this._resetNpc());
+            el.querySelector('.ne-save').addEventListener('click', () => this._saveNpc());
+        }
+        const el = this._npcEl;
+        el.style.display = e ? 'block' : 'none';
+        if (!e) return;
+        // 大小滑条量程：贴图 NPC=16~512（sprite.size 显示边长）；纯色圆 NPC=4~128（半径 size）
+        const isTex = !!e.spriteCfg;
+        const sizeSlider = el.querySelector('.ne-size');
+        sizeSlider.min = isTex ? 16 : 4;
+        sizeSlider.max = isTex ? 512 : 128;
+        // 角度仅贴图 NPC 有意义（纯色圆旋转对称）
+        el.querySelector('.ne-rot').disabled = !isTex;
+        // 跟随障碍物编辑器/墙壁编辑器面板下缘（与障碍物编辑器同一定位策略）
+        if (this._panel) {
+            let top = this._panel.getBoundingClientRect().bottom + 8;
+            if (this._obstacleEl && this._obstacleEl.style.display !== 'none') {
+                top = this._obstacleEl.getBoundingClientRect().bottom + 8;
+            }
+            el.style.top = Math.min(top, window.innerHeight - 220) + 'px';
+        }
+        this._updateNpcInfo();
+    },
+
+    /** 刷新 NPC 编辑器名称/坐标/数值显示（拖动中高频调用；滑条值同步但避开正在拖的那个） */
+    _updateNpcInfo() {
+        const e = this._npcSel;
+        const el = this._npcEl;
+        if (!e || !el) return;
+        el.querySelector('.oe-title').textContent = `NPC 编辑器 - ${e.name || 'NPC'}`;
+        el.querySelector('.ne-info').textContent = `位置 ${Math.round(e.x)}, ${Math.round(e.y)}`;
+        el.querySelector('.ne-size-val').textContent = Math.round(this._npcCurSize());
+        el.querySelector('.ne-rot-val').textContent = `${Math.round(e.spriteCfg ? (e.spriteCfg.rotation || 0) : 0)}°`;
+        const sizeSlider = el.querySelector('.ne-size');
+        if (document.activeElement !== sizeSlider) sizeSlider.value = this._npcCurSize();
+        const rotSlider = el.querySelector('.ne-rot');
+        if (document.activeElement !== rotSlider) rotSlider.value = e.spriteCfg ? (e.spriteCfg.rotation || 0) : 0;
+    },
+
+    /** 当前 NPC 显示大小（贴图=sprite.size 显示边长；纯色圆=半径 size） */
+    _npcCurSize() {
+        const e = this._npcSel;
+        if (!e) return 0;
+        return e.spriteCfg ? (e.spriteCfg.size || 128) : (e.size || 16);
+    },
+
+    /** 调整 NPC 显示大小（立即作用到场景精灵；保存才落盘） */
+    _applyNpcSize(v) {
+        const e = this._npcSel;
+        if (!e || !isFinite(v)) return;
+        const sp = this._npcSpriteOf(e);
+        if (e.spriteCfg) {
+            const size = Math.round(Math.min(512, Math.max(16, v)));
+            e.spriteCfg.size = size;
+            if (sp) sp.setDisplaySize(size, size);
+        } else {
+            const size = Math.round(Math.min(128, Math.max(4, v)));
+            e.size = size;
+            if (sp) sp.setDisplaySize(size * 2, size * 2);
+        }
+        this._updateNpcInfo();
+    },
+
+    /** 调整 NPC 旋转角（度数，归一 -180~180；仅贴图 NPC，渲染由 _syncNeutralEntities 每帧套用） */
+    _applyNpcRotation(deg) {
+        const e = this._npcSel;
+        if (!e || !e.spriteCfg || !isFinite(deg)) return;
+        e.spriteCfg.rotation = Math.round((((deg + 180) % 360) + 360) % 360) - 180;
+        this._updateNpcInfo();
+    },
+
+    /** NPC 实体 → game-config.json npcs 配置键（实体 id 直查，退回按名称匹配） */
+    _npcCfgKey(e) {
+        if (!e) return null;
+        const byId = {
+            npc_mouse_king: 'shopMouseKing',
+            npc_mouse_attendant: 'mouseAttendant',
+            npc_warehouse: 'warehouse',
+            npc_altar: 'altar',
+        };
+        if (byId[e.id]) return byId[e.id];
+        for (const [k, cfg] of Object.entries(GAME_CONFIG.npcs || {})) {
+            if (cfg && cfg.name === e.name) return k;
+        }
+        return null;
+    },
+
+    /** NPC 位置基准点：relativeTo='shopMouseKing' → 小鼠大王当前位置；否则世界中心 */
+    _npcBasePos(cfg) {
+        if (cfg && cfg.relativeTo === 'shopMouseKing') {
+            const game = window.Game;
+            if (game && game.entities) {
+                for (const ent of game.entities.values()) {
+                    if (ent && ent.id === 'npc_mouse_king') return { x: ent.x, y: ent.y };
+                }
+            }
+            // 找不到活体退回配置计算位（世界中心 + 小鼠大王 offset，与 spawnNPC 同口径）
+            const kingCfg = (GAME_CONFIG.npcs || {}).shopMouseKing || {};
+            return {
+                x: CONFIG.WORLD_WIDTH / 2 + ((kingCfg.offset && kingCfg.offset.x) || 0),
+                y: CONFIG.WORLD_HEIGHT / 2 + ((kingCfg.offset && kingCfg.offset.y) || 0),
+            };
+        }
+        return { x: CONFIG.WORLD_WIDTH / 2, y: CONFIG.WORLD_HEIGHT / 2 };
+    },
+
+    /** 重置：位置按配置 offset 重算、大小/角度回配置值（保存后 GAME_CONFIG 已同步，即回到最近保存点） */
+    _resetNpc() {
+        const e = this._npcSel;
+        const key = this._npcCfgKey(e);
+        if (!e || !key) return;
+        const cfg = (GAME_CONFIG.npcs || {})[key] || {};
+        const base = this._npcBasePos(cfg);
+        e.x = base.x + ((cfg.offset && cfg.offset.x) || 0);
+        e.y = base.y + ((cfg.offset && cfg.offset.y) || 0);
+        if (e._wanderHome) { e._wanderHome.x = e.x; e._wanderHome.y = e.y; }
+        const sp = this._npcSpriteOf(e);
+        if (e.spriteCfg) {
+            const c = cfg.sprite || {};
+            if (typeof c.size === 'number') e.spriteCfg.size = c.size;
+            e.spriteCfg.rotation = c.rotation || 0;
+            if (sp && e.spriteCfg.size) sp.setDisplaySize(e.spriteCfg.size, e.spriteCfg.size);
+        } else if (typeof cfg.size === 'number') {
+            e.size = cfg.size;
+            if (sp) sp.setDisplaySize(e.size * 2, e.size * 2);
+        }
+        this._updateNpcEditor();
+    },
+
+    /** 保存：写回 data/game-config.json 对应 npcs.*（位置=offset、大小、角度），运行时 GAME_CONFIG 同步生效 */
+    async _saveNpc() {
+        const e = this._npcSel;
+        const key = this._npcCfgKey(e);
+        if (!e || !key) return;
+        const cfg = GAME_CONFIG.npcs[key];
+        // 位置：relativeTo='shopMouseKing' 的写 offset = NPC 当前位置 − 小鼠大王当前位置；
+        // 主 NPC（shopMouseKing 自身）写 offset = 当前位置 − 世界中心
+        const base = this._npcBasePos(cfg);
+        cfg.offset = { x: Math.round(e.x - base.x), y: Math.round(e.y - base.y) };
+        if (e.spriteCfg) {
+            cfg.sprite = cfg.sprite || {};
+            if (typeof e.spriteCfg.size === 'number') cfg.sprite.size = e.spriteCfg.size;
+            const rot = e.spriteCfg.rotation || 0;
+            if (rot) cfg.sprite.rotation = rot;
+            else delete cfg.sprite.rotation;
+        } else if (typeof e.size === 'number') {
+            cfg.size = e.size;
+        }
+        const ok = await saveGameConfig(GAME_CONFIG);
+        const btn = this._npcEl && this._npcEl.querySelector('.ne-save');
         if (btn) {
             const old = btn.textContent;
             btn.textContent = ok ? '✓ 已写入文件' : '⚠ 已下载';
@@ -775,6 +1111,10 @@ export const WallEditor = {
     _updateInfo() {
         if (!this._panel) return;
         const info = this._panel.querySelector('.we-selinfo');
+        if (this._npcSel) {
+            info.textContent = `已选 NPC：${this._npcSel.name || 'NPC'}`;
+            return;
+        }
         if (!this.sel.length) {
             info.textContent = `未选中（共 ${WallSystem.isoVisuals.length} 件）`;
             return;

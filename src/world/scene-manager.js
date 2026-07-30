@@ -12,7 +12,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
-import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout } from './wall-prefabs.js';
+import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
@@ -454,6 +454,17 @@ export const SceneManager = {
             for (const o of getObstacleLayout()) {
                 WallSystem.isoVisuals.push({ ...o, family: 'obstacle' });
             }
+        }
+        // 墙体几何覆盖层（碰撞编辑器保存的 face/halfThick/foot/门洞）：先合并再建碰撞。
+        // 首启竞速兜底：覆盖层未加载完时到位后合并并重建一次（与障碍物布局同款兜底，仅主神空间）
+        if (isWallGeoOverridesLoaded()) {
+            WallSystem.applyGeoOverrides(getWallGeoOverrides());
+        } else {
+            WallSystem.loadGeoOverrides().then(() => {
+                if (this.currentScene !== 'main') return;
+                WallSystem.rebuildIsoCollision();
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+            });
         }
         WallSystem.rebuildIsoCollision();
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；

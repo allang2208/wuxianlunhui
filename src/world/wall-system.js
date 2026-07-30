@@ -1,5 +1,5 @@
 import { CONFIG } from '../config/config.js';
-import { getWallPrefabLibrary } from './wall-prefabs.js';
+import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
@@ -7,7 +7,7 @@ import { getWallPrefabLibrary } from './wall-prefabs.js';
 const ISO_WALL_GEO = {
     diag:   { tex: 'wall_diag', w: 1600, h: 1315, base: [[0, 625.6], [1600, 1409.2]], face: [[150, 699.1], [1450, 1335.7]], wallH: 824, slope: 0.4897 },
     straight: { tex: 'wall_straight', w: 1600, h: 1383, base: [[5, 617], [1594, 1418]], face: [[16, 622], [1516, 1379]], wallH: 691, slope: 0.5048, editor: '直墙·新' },
-    gate: { tex: 'wall_gate', w: 640, h: 641, frames: 16, base: [[4, 294.0], [634, 611.3]], face: [[4, 294.0], [634, 611.3]], gateX: [265, 360], wallH: 290, slope: 0.5037, editor: '门墙' },
+    gate: { tex: 'wall_gate', w: 640, h: 641, frames: 16, base: [[4, 294.0], [634, 611.3]], face: [[4, 294.0], [634, 611.3]], gateX: [265, 360], wallH: 290, slope: 0.5037, editor: '门墙', states: { open: { hole: [265, 360] }, closed: { hole: null } } },
     top:    { tex: 'wall_corner_top', w: 1600, h: 843, vertex: [854, 478], tipL: [250, 750], tipR: [1350, 640], wallH: 493, slope: 0.482 },
     bottom: { tex: 'wall_corner_bottom', w: 1600, h: 751, vertex: [850, 705], tipL: [130, 390], tipR: [1450, 380], wallH: 427, slope: 0.492 },
     left:   { tex: 'wall_corner_left', w: 1343, h: 1600, vertex: [50, 1020], tipUpper: [1180, 240], tipLower: [1326, 1500], wallH: 520, slope: 0.42 },
@@ -15,11 +15,11 @@ const ISO_WALL_GEO = {
     // 沼泽地墙（2026-07-25 素材管线：泛洪抠图+水印 inpaint+两端锥形裁切+腐蚀 2px 去颜色污染+白边压暗）
     swamp_straight: { tex: 'swamp_wall_straight', w: 1419, h: 1558, base: [[0, 775.0], [1418, 1583.0]], face: [[28, 791.0], [1389, 1566.5]], wallH: 799.2, slope: 0.5698, editor: '沼泽柴墙' },
     // 沼泽地门闸（gate.mp4 16 帧已反转：首帧=关闭(藤蔓封门)、末帧=打开；tools/swamp-gate-geo.json）
-    swamp_gate: { tex: 'swamp_gate', w: 640, h: 612, frames: 16, base: [[5, 275.0], [634, 632.8]], face: [[5, 275.0], [634, 632.8]], gateX: [248, 384], wallH: 301.1, slope: 0.5689, editor: '沼泽藤门' },
+    swamp_gate: { tex: 'swamp_gate', w: 640, h: 612, frames: 16, base: [[5, 275.0], [634, 632.8]], face: [[5, 275.0], [634, 632.8]], gateX: [248, 384], wallH: 301.1, slope: 0.5689, editor: '沼泽藤门', states: { open: { hole: [248, 384] }, closed: { hole: null } } },
     // 主神空间大理石墙（2026-07-29 v2 透明底素材，tools/prep-hub-wall-gate.py：最大连通域+几何实测）
     hub_straight: { tex: 'hub_wall_straight', w: 1365, h: 1183, base: [[0, 525.5], [1365, 1215.5]], face: [[41, 546.3], [1324, 1194.8]], wallH: 588.6, slope: 0.5055, editor: '主神大理石墙' },
     // 主神空间大理石门（单帧装饰门件：gateX=拱门洞跨度实测；openDoor=门洞碰撞常开可通行；非 16 帧门闸 spritesheet，不能作功能门闸）
-    hub_gate: { tex: 'hub_gate', w: 1365, h: 1181, base: [[0, 435.5], [1365, 1150.0]], face: [[0, 435.5], [1365, 1150.0]], gateX: [629, 738], wallH: 617.7, slope: 0.5235, openDoor: true, editor: '主神大理石门' },
+    hub_gate: { tex: 'hub_gate', w: 1365, h: 1181, base: [[0, 435.5], [1365, 1150.0]], face: [[0, 435.5], [1365, 1150.0]], gateX: [629, 738], wallH: 617.7, slope: 0.5235, openDoor: true, editor: '主神大理石门', states: { open: { hole: [629, 738] }, closed: { hole: null } } },
     // ===== 障碍物（摆墙编辑器障碍物类；foot=贴图底部 footprint 宽高，碰撞=矩形 footprint 墙；obstacleH=默认显示高度）=====
     barrel: { tex: 'obstacle_barrel', w: 352, h: 512, category: 'obstacle', foot: { w: 308, d: 107 }, obstacleH: 120, editor: '木桶' },
     pillar: { tex: 'obstacle_pillar', w: 236, h: 640, category: 'obstacle', foot: { w: 231, d: 80 }, obstacleH: 180, editor: '石柱' },
@@ -46,6 +46,19 @@ const FLOOR_SLOPE = 0.5774;
 /** 角度补偿：贴图固有斜率 → 显示斜率对齐地板线（scaleY 比例系数） */
 export function slopeFixOf(geo) {
     return FLOOR_SLOPE / (geo && geo.slope ? geo.slope : 0.49);
+}
+
+/**
+ * 门洞跨度（贴图 x 坐标 [x1, x2]）：门两状态数据模型 states.open.hole 优先，
+ * 回退旧 gateX 字段（碰撞编辑器按 states 写覆盖层，gateX 同步保持兼容）
+ */
+export function isoGateHole(g) {
+    return (g && g.states && g.states.open && g.states.open.hole) || (g && g.gateX) || null;
+}
+
+/** 墙件碰撞半厚（世界像素）：geo.halfThick 覆盖，缺省 10 */
+export function isoHalfThick(g) {
+    return (g && typeof g.halfThick === 'number') ? g.halfThick : 10;
 }
 // 转角图层顺序（由前到后）：下 > 左 > 右 > 上
 const ISO_CORNER_DEPTH_BIAS = { top: 0, right: 1, left: 2, bottom: 3 };
@@ -80,6 +93,43 @@ const WallSystem = {
         // ===== Phaser 墙壁同步 =====
         this._syncWallsToPhaser();
     },
+    /**
+     * 合并墙体几何覆盖层（data/wall-geo-overrides.json）进 ISO_WALL_GEO。
+     * 覆盖字段：face（墙端点）/ halfThick（碰撞半厚）/ foot（障碍物 footprint）/
+     * gateX + states（门两状态门洞）。幂等（赋值式合并，重复调用无副作用）；
+     * 合并后需调用方 rebuildIsoCollision() 重建碰撞生效。
+     */
+    applyGeoOverrides(ov) {
+        if (!ov || typeof ov !== 'object') return;
+        for (const [key, o] of Object.entries(ov)) {
+            const g = ISO_WALL_GEO[key];
+            if (!g || !o || typeof o !== 'object') continue;
+            if (Array.isArray(o.face) && o.face.length === 2) {
+                g.face = o.face.map(pt => [pt[0], pt[1]]);
+            }
+            if (typeof o.halfThick === 'number') g.halfThick = o.halfThick;
+            if (o.foot && typeof o.foot === 'object') {
+                g.foot = { w: o.foot.w ?? (g.foot && g.foot.w), d: o.foot.d ?? (g.foot && g.foot.d) };
+            }
+            if (Array.isArray(o.gateX) && o.gateX.length === 2) g.gateX = [o.gateX[0], o.gateX[1]];
+            if (o.states && typeof o.states === 'object') {
+                g.states = g.states || {};
+                for (const st of ['open', 'closed']) {
+                    const s = o.states[st];
+                    if (!s) continue;
+                    g.states[st] = { hole: Array.isArray(s.hole) ? [s.hole[0], s.hole[1]] : null };
+                }
+            }
+        }
+    },
+
+    /** 加载并合并几何覆盖层（BootScene 预载 / 主神空间首启竞速兜底共用；合并后由调用方重建碰撞） */
+    async loadGeoOverrides() {
+        const ov = await loadWallGeoOverrides();
+        this.applyGeoOverrides(ov);
+        return ov;
+    },
+
     /**
      * 将墙壁同步到 Phaser 的 staticGroup
      * 在 init() 和 addTree() 时调用
@@ -531,11 +581,13 @@ const WallSystem = {
         const base = g.face || g.base;
         if (base) {
             // 单帧装饰门（openDoor，如主神大理石门）：拱门永久开放——碰撞=门洞两侧墙身，门洞可通行
-            if (g.openDoor && g.gateX) {
+            // 门洞读 states.open.hole（两状态模型），兼容旧 gateX 字段
+            const hole = g.openDoor && isoGateHole(g);
+            if (hole) {
                 const at = (tx) => [tx, base[0][1] + (tx - base[0][0]) * g.slope];
                 return [
-                    [this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, ...at(g.gateX[0]))],
-                    [this.texPointToWorld(p, ...at(g.gateX[1])), this.texPointToWorld(p, base[1][0], base[1][1])],
+                    [this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, ...at(hole[0]))],
+                    [this.texPointToWorld(p, ...at(hole[1])), this.texPointToWorld(p, base[1][0], base[1][1])],
                 ];
             }
             return [[this.texPointToWorld(p, base[0][0], base[0][1]), this.texPointToWorld(p, base[1][0], base[1][1])]];
@@ -607,7 +659,7 @@ const WallSystem = {
         for (const [a, b] of this._pieceBaseSegments(p)) {
             const len = Math.hypot(b.x - a.x, b.y - a.y);
             if (len < 10) continue;
-            this.isoSegments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, halfThick: 10 });
+            this.isoSegments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, halfThick: isoHalfThick(geo) });
             const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
             for (let d = 15; d < len; d += 30) {
                 const px = a.x + ux * d, py = a.y + uy * d;

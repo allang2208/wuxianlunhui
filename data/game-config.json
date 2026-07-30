@@ -287,15 +287,12 @@
       },
       "name": "仓库",
       "size": 20,
-      "collisionRadius": 20,
+      "collisionRadius": 85,
       "color": "#8a6a3a",
       "npcType": "warehouse",
       "noSeparation": true,
       "noShadow": true,
-      "collisionShape": "rect",
-      "collisionWidth": 170,
-      "collisionHeight": 75,
-      "colliderOffsetY": 0,
+      "colliderOffsetY": -48,
       "sprite": {
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
         "idleKey": "npc_warehouse",
@@ -306,7 +303,8 @@
         "comment": "点击交互区域（按贴图内容收窄：内容 400×367/512 × size180 ≈ 141×129，锚定脚底）",
         "width": 141,
         "height": 129
-      }
+      },
+      "colliderOffsetX": 0
     },
     "altar": {
       "relativeTo": "shopMouseKing",
@@ -316,15 +314,12 @@
       },
       "name": "祭坛",
       "size": 24,
-      "collisionRadius": 16,
+      "collisionRadius": 110,
       "color": "#6a4a8a",
       "npcType": "altar",
       "noSeparation": true,
       "noShadow": true,
-      "collisionShape": "rect",
-      "collisionWidth": 220,
-      "collisionHeight": 100,
-      "colliderOffsetY": 0,
+      "colliderOffsetY": -69,
       "sprite": {
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
         "idleKey": "npc_altar",
@@ -335,7 +330,12 @@
         "comment": "点击交互区域（祭坛本体，锚定脚底）",
         "width": 200,
         "height": 190
-      }
+      },
+      "collisionShape": "rect",
+      "collisionWidth": 235,
+      "collisionHeight": 220,
+      "colliderOffsetX": -3.5,
+      "height": 107.5
     }
   },
   "trees": {

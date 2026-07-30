@@ -29,6 +29,16 @@ import { GateLight } from '../effects/gate-light.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
+import { getObstacleDefaults } from './wall-prefabs.js';
+
+/** 贴图键 → 障碍物 geoKey（ISO_WALL_GEO 中 category==='obstacle' 的键；非障碍物返回 null） */
+function _obstacleGeoKeyForTex(tex) {
+    for (const k of Object.keys(ISO_WALL_GEO)) {
+        const g = ISO_WALL_GEO[k];
+        if (g.tex === tex && g.category === 'obstacle') return k;
+    }
+    return null;
+}
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -572,9 +582,19 @@ export const CombatRoomSystem = {
                 const key = keys[Math.floor(Math.random() * keys.length)];
                 const sp = scene.add.image(cx, cy, key);
                 sp.setOrigin(0.5, 1); // 内容底边贴地
-                const th = sp.height || 1;
-                sp.setScale((90 / th) * (0.8 + Math.random() * 0.5));
-                sp.setFlipX(Math.random() < 0.5);
+                // 障碍物类装饰：有类型默认状态（obstacle-defaults.json）整套套用，否则走原随机逻辑
+                const defKey = _obstacleGeoKeyForTex(key);
+                const def = defKey ? getObstacleDefaults()[defKey] : null;
+                if (def) {
+                    sp.setScale(def.scaleX ?? 1, def.scaleY ?? def.scaleX ?? 1);
+                    sp.setRotation(def.rotation || 0);
+                    sp.setFlipX(!!def.flipX);
+                    sp.setFlipY(!!def.flipY);
+                } else {
+                    const th = sp.height || 1;
+                    sp.setScale((90 / th) * (0.8 + Math.random() * 0.5));
+                    sp.setFlipX(Math.random() < 0.5);
+                }
                 sp.setDepth(cy + 2); // 地面道具：高于地板、按脚底 y 参与排序
                 this._decoSprites.push(sp);
             }
