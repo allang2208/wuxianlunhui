@@ -1090,6 +1090,11 @@ _getPhaserOptions() {
 - **保存时机（三个，缺一不可）**：①`switchScene` 离开 main 时；②**出征 `depart()` 清实体前**——depart 绕开 switchScene 直接 `Game.entities.clear()`，不保存则任何地牢返回路径都拿到空缓存（"放弃返回后主神空间什么都没有"根因，2026-07-30 修复）；③`Game.init` 初始生成完毕后（安全网）。
 - **教训：场景切换的旁路（bypass switchScene 直接改 currentScene/清实体的路径）必须逐个核对状态保存**——depart() 设 `SceneManager.currentScene='scene7'` 跳过了整个 switchScene 生命周期（保存/清理/进度条），是隐性旁路的典型。
 
+### NPC 立绘调整工具（2026-07-30 重构）
+- **交互**：点击「调整立绘」后直接拖对话左侧立绘（X/Y 自由拖动）；面板只负责缩放/旋转/镜像/重置/保存。
+- **持久化**：`data/npc-portrait-params.json`（保存管道=Electron `save-json` IPC → Vite `__save-json` 双写 → 下载兜底，与 wall-prefabs 同规格）；参数模型 `{x,y,scale,rotation,flipX}`（旧 offsetX/bottom 自动迁移；锚 bottom 按 NPC 默认恢复，不入库）。
+- **关键细节**：拖动期禁用立绘 `transition: transform 0.3s`（否则拖拽滞后）；立绘 mousedown 必须 stopPropagation（对话框 clickOutside 关闭/画布抢事件）；`WeaponAnimConfig` 解析一律 `animConfigKey || weaponType`（R93 副手误吃 G18 pistol 配置翻转的根因——weaponType 是同族共享，animConfigKey 才是按枪配置键）。
+
 ### 主神空间菱形化（2026-07-29 落地，复用地牢标准工作流；**同日已按用户要求回退**，保留条目作参考）
 - **回退说明（V0.326）**：菱形世界（5436×3359/双材质地板/代码建墙）用户实机不满意，scene-manager/dungeon-floor-texture git 回退、game-config 手改回退（**npcs.altar 祭坛贴图配置保留**）；`inner` 双材质与 roomSize 机制随之移除。大理石墙/门改为**编辑器组件**路径：新透明底素材（墙.png/门.png）过 `tools/prep-hub-wall-gate.py`（透明底无需 GrabCut：最大连通域+腐蚀1px+几何实测；门洞 gateX 按"列最低不透明 y 高于底边线 60px 的连续区间"实测）→ `ISO_WALL_GEO.hub_straight/hub_gate`（editor 字段自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`。
 - **尺寸**：S=2048（`mainHub.roomSize`）→ rx=2457.6/ry=1419.0，边距 M=260，世界 5436×3359，origin=(2718,1679)；`_setupMainHubTerrain` 与地牢同路径：`applyDiamondFloor` + `setWallStyle('mainHub')` + `buildIsoDiamondWalls`；边界矩形墙降为 `noVisual` 隐形兜底；hub_diamond 预制分支已删。

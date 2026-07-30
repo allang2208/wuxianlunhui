@@ -409,7 +409,9 @@
       "type": "perFrame",
       "hitCheck": {
         "frame": 22,
-        "shape": "rect",
+        "shape": "sector",
+        "arcDeg": 120,
+        "rangeMul": 1.5,
         "knockback": 50,
         "stunMs": 1000
       },

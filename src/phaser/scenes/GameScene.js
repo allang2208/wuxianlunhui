@@ -1646,7 +1646,8 @@ export class GameScene extends Scene {
         
         // 根据 weaponType 和 weaponId 精确映射贴图
         let texture = getWeaponTextureKey(currentItem);
-        const wt = currentItem.weaponType;
+        // 动画/贴图配置键：animConfigKey 优先（R93 等新枪不再共用 G18 pistol 配置——副手翻转根因）
+        const wt = currentItem.animConfigKey || currentItem.weaponType;
         const isMelee = wt === 'sword' || wt === 'bow';
         
         if (wt === 'bow') {
@@ -1725,7 +1726,7 @@ export class GameScene extends Scene {
         // inAttackHold：攻击后定格保持窗口（连段等待）——武器定格在上一段轨迹末帧
         const inAttackHold = !!(player._attackHoldUntil && performance.now() < player._attackHoldUntil && !player.isMoving);
         if (weaponAnim.isAttacking || inAttackHold) {
-            const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGun) {
                 // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
                 // 连段二段读 attack2 轨迹块（缺失回退 attack）
@@ -1901,7 +1902,7 @@ export class GameScene extends Scene {
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
-        const isGun = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         // 瞄左（|rot|>90°）时贴图 flipY 防倒置——握把点的贴图内 Y 随之镜像，补偿必须同步取反
         const gunFlipY = isGun && Math.abs(rot) > Math.PI / 2;
         // rotOffset 随 flipY 镜像取反：右 -6° ↔ 左 +6°（否则枪管方向左右不对称，火焰/弹道同偏）
@@ -2117,7 +2118,8 @@ export class GameScene extends Scene {
         
         // 根据 weaponType 和 weaponId 精确映射贴图
         let texture = getWeaponTextureKey(offhandItem);
-        const wt = offhandItem.weaponType;
+        // 动画/贴图配置键：animConfigKey 优先（与 weapon-anim.js/subsystems 同口径；R93 副手误吃 G18 配置的根因）
+        const wt = offhandItem.animConfigKey || offhandItem.weaponType;
         
         // 创建或更新副手武器 Sprite
         if (!this.offhandWeaponSprite) {
@@ -2161,7 +2163,7 @@ export class GameScene extends Scene {
         // rotOffset（配置，度）：枪械贴图固有倾角修正；随 flipY 镜像取反（右 -6° ↔ 左 +6°）
         const rotOffsetOff = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
             ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
-        const flipYCand = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt)
+        const flipYCand = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt)
             && Math.abs(rot) > Math.PI / 2;
         rot += flipYCand ? -rotOffsetOff : rotOffsetOff;
         
@@ -2186,7 +2188,7 @@ export class GameScene extends Scene {
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunOff = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
 
         // 握把旋转轴心（与主手同口径；配置 grip，缺省贴图中心）

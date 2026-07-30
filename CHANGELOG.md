@@ -8,6 +8,17 @@
 - 测试结果
 - 已知问题
 
+### 对话：R93副手翻转/近战一段扇形化/冲刺数值/立绘工具重构/改造券红抖/祭坛换图（2026-07-30，V0.336）
+
+- **① R93 双持副手翻转根因**：`GameScene.syncWeapon/syncOffhandWeapon` 用 `weaponType` 解析 `WeaponAnimConfig`——R93（weaponType='pistol'）误吃 G18 的 pistol 配置。修复：主/副手、`_getMuzzleWorldPosition` 统一改 `animConfigKey || weaponType`（deagle/p4040 关键值与 pistol 一致已核对无回归）；`isGun/flipYCand/isGunOff` 三处名单补 `beretta93r`。
+- **② 近战一段扇形化**：`sword.attack.hitCheck` 从 rect 改为 `{shape:'sector', arcDeg:120, rangeMul:1.5}`——一段判定范围与二段扇形同口径（击退 50/眩晕 1000ms 保留一段原值，伤害倍率不加）。
+- **③ 冲刺攻击数值**：dashAttack/dashAttackFire 的 `dashDist 188→94`（突进减半）、`rangeBonusFlat 30→55`（扇形半径+25，成长字段 rangeBonusBase/rangeLevelBonus 不动）；dashAttackThrust 突刺系不动。共 3 处 getEffect 定义同步。
+- **④ 立绘工具重构**：点击「调整立绘」后**直接拖对话左侧立绘**（X/Y 自由拖动，拖动期禁用 transform 过渡、stopPropagation 防对话框抢事件）；面板只留缩放/旋转/镜像/重置/保存（canvas 预览区移除）；参数模型改 `{x,y,scale,rotation,flipX}`（旧 offsetX/bottom 自动迁移，锚 bottom 按 NPC 默认恢复不入库）；**保存直写 `data/npc-portrait-params.json`**（Electron save-json IPC → Vite __save-json 双写 → 下载兜底），localStorage 废弃。
+- **⑤ 改造券文案红字抖动**：openCraft 文案改「改造装备需要支付改造券，初次改造只需要 1 张，后续的改造需要 4 张。请注意选择。」，高亮段复用 typewriter 既有 `red-bold-shake` 样式（`typewriter._highlight='后续的改造需要 4 张'`）。
+- **⑥ 祭坛换图**：素材库新祭坛.png（30° 等距视角）→ 去孤岛+包围盒+512 → `assets/npc/altar.png`（509×512）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：①③⑤需实机确认（副手翻转/冲刺手感/红抖效果）；立绘保存管道（dev 中间件 vs Electron IPC）与拖动命中需实机验证；祭坛显示比例（沿用 size 220）可实机再调。
+
 ### 对话：93R音效/板机参数/鼠标置顶/掉落物紧凑（2026-07-30，V0.335）
 
 - **① Beretta 93R 开火音效**：素材库 gunshot.mp3 → `assets/sounds/weapons/beretta93r_fire.mp3`，EDM/equipment.json(+public)/shop 三处 fireSound 替换（编辑时误伤 p4040 音效一行，已当场恢复并核对）。
