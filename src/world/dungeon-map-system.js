@@ -25,6 +25,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop } from './zombie-dungeon.js';
 import { AgentInvasionSystem } from './agent-invasion-system.js';
+import { TrapSystem } from './trap-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
 import { coverRect, anchorRect } from '../utils/layout.js';
@@ -1043,6 +1044,13 @@ export const DungeonMapSystem = {
 
         // 所有僵尸战斗统一使用 CombatRoomSystem 生成随机房间
         CombatRoomSystem.enterCombatRoom(this.player, false, options);
+        // 陷阱：按地牢配置在房内摆放（zombieDungeon.traps；无碰撞，占用触发）
+        if (typeof TrapSystem !== 'undefined') {
+            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
+            if (zcfg.traps && zcfg.traps.count > 0) {
+                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps);
+            }
+        }
         // 精英战斗：场地中央生成宝箱房（门墙常闭 + 等级宝箱 + 60s 倒计时，房内不刷怪）
         if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
             ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);

@@ -113,6 +113,9 @@ export class BootScene extends Scene {
         this.load.image('obstacle_barrel', 'assets/terrain/obstacle_barrel.png');
         this.load.image('obstacle_pillar', 'assets/terrain/obstacle_pillar.png');
         this.load.image('obstacle_candle', 'assets/terrain/obstacle_candle.png');
+        // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
+        this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
+        this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----

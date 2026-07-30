@@ -24,6 +24,7 @@ import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { applyDungeonFloor, applyDiamondFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
+import { TrapSystem } from './trap-system.js';
 import { GateLight } from '../effects/gate-light.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { Input } from '../ui/input.js';
@@ -704,6 +705,8 @@ export const CombatRoomSystem = {
     /** 每帧驱动：门闸动画推进 + 悬停金色轮廓（dungeon-map-system.updateCombat 调用） */
     update(dt) {
         WallGate.update(dt);
+        // 陷阱：占用判定/延迟/动画/倒放/冷却
+        if (typeof TrapSystem !== 'undefined') TrapSystem.update(dt);
         // 宝箱房：倒计时/超时淡出/靠近开箱（仅精英战存在）
         if (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
             ChestRoomSystem.update(dt, this._player);
@@ -751,6 +754,8 @@ export const CombatRoomSystem = {
         
         // 清理门闸与门外白区/光束
         this.cleanupGate();
+        // 清理陷阱（贴图销毁）
+        TrapSystem.cleanup();
 
         // 清理掉落物（金币、装备等）
         this.cleanupDrops();

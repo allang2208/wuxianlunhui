@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+### 对话：僵尸地牢陷阱系统（2026-07-30，V0.342）
+
+- **新机制——陷阱（无碰撞体积，占用触发）**：素材 `trap-1.png`（格栅盖静态帧）+ `trap.png`（13 帧地刺动画，512² 帧）→ `assets/terrain/trap_idle/trap_anim.png`；`src/world/trap-system.js` 状态机：**占用判定**（非进入判定——每帧检查触发半径 45px 内有玩家或敌对目标 active&&hittable）→ 0.5s 延迟 → 0.5s 播完地刺动画（第 6 帧命中：半径内所有目标各吃**自身最大生命 10% 物理伤害**）→ 0.5s 倒放还原 → 2s 冷却；冷却结束仍被占用则循环触发（站桩约 3.5s/次）。贴图 depth = y-998 地板层（实体走过盖在陷阱上）；帧由 timer 逐帧驱动（不依赖 anims 链）。
+- **接入**：僵尸地牢战斗房入场（`_enterZombieCombat`）按 `zombieDungeon.traps` 配置摆放（默认 3 个，菱形内 25%~80% 半径拒绝采样）；`CombatRoomSystem.update` 每帧驱动；`cleanupRoom` 统一销毁。
+- **配置**：`data/dungeon-config.json` zombieDungeon.traps（count/triggerRadius/delayMs/animMs/reverseMs/cooldownMs/damagePercent/hitFrame 全可调，+public 同步）。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）；test-config-integrity 通过。
+- **已知问题**：触发手感（延迟/命中帧/冷却节奏）、陷阱贴图缩放（2.6×触发半径）、敌方怪物踩陷阱的伤害观感需实机确认。
+
 ### 对话：障碍编辑器修复/遮挡修复/地砖切图工具（2026-07-30，V0.341）
 
 - **① 障碍编辑器不弹出根因**：CSS 类 `.obstacle-editor { display:none }`，而 JS 显示时写 `style.display=''`——空串清除内联样式后回落到 CSS 的 none，永远不显示（两处同类 bug 一并修：display 改显式 `'block'`；面板 top 原 `calc(80px+80vh+8px)` 1080p 下≈952px 飘出视口，改为跟随墙壁编辑器面板下缘动态定位）。
