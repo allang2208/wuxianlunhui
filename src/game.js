@@ -103,6 +103,10 @@ export const Game = {
                 return;
             }
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
+            // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
+            SceneManager.init();
+            SceneManager.currentScene = 'main';
+            SceneManager._inMainHub = true;
             Renderer.generateWorld();
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (PhaserGame && !PhaserGame.isReady) {
@@ -151,10 +155,7 @@ export const Game = {
             const testAreaCfg = GAME_CONFIG.effects?.testArea || { x: 3478, y: 2363, width: 100, height: 100, thickness: 10, duration: 5000, label: '测试区域', labelColor: '#000000' };
             EffectManager.add(new SweepEffect(testAreaCfg.x, testAreaCfg.y, testAreaCfg.width, testAreaCfg.height, testAreaCfg.thickness, testAreaCfg.duration));
             EffectManager.add(new FloatingTextEffect(testAreaCfg.x, testAreaCfg.y - 20, testAreaCfg.label, testAreaCfg.labelColor));
-            // 初始化场景管理器
-            SceneManager.init();
-            SceneManager.currentScene = 'main'; // 游戏开始时当前场景为主场景
-            SceneManager._inMainHub = true;
+            // 场景管理器已在 init 开头初始化并标记主场景；此处只开启无敌保护
             SceneManager._mainHubInvincible = true;
             // 主神空间地形：由 GameScene.create 在贴图就绪后烘焙（此处不再直调，避免抢跑回退网格）
             // 主神空间保留铠甲骑士、手脑用于测试（其余测试怪已清除，spawn 方法保留备用）
@@ -349,6 +350,38 @@ export const Game = {
             greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
         });
         this.entities.set('npc_altar', altarNpc);
+        // 小鼠铁匠 NPC（小鼠大王右下方，idle 30 帧循环；对话提供强化/附魔/改造）
+        const bsCfg = npcCfg.mouseBlacksmith || { relativeTo: 'shopMouseKing', offset: { x: 460, y: -80 }, name: '小鼠铁匠', size: 20, collisionRadius: 60, color: '#8a6a4a', portrait: 'assets/npc/mouse_blacksmith/portrait.png', npcType: 'blacksmith', noSeparation: true };
+        const bsX = bsCfg.relativeTo === 'shopMouseKing' ? npcX + bsCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + bsCfg.offset.x;
+        const bsY = bsCfg.relativeTo === 'shopMouseKing' ? npcY + bsCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + bsCfg.offset.y;
+        const blacksmithNpc = new NPC(bsX, bsY, {
+            id: 'npc_mouse_blacksmith',
+            name: bsCfg.name,
+            size: bsCfg.size,
+            collisionRadius: bsCfg.collisionRadius,
+            color: bsCfg.color,
+            portrait: bsCfg.portrait,
+            npcType: bsCfg.npcType,
+            sprite: bsCfg.sprite,
+            noSeparation: bsCfg.noSeparation,
+            collisionShape: bsCfg.collisionShape,
+            collisionWidth: bsCfg.collisionWidth,
+            collisionHeight: bsCfg.collisionHeight,
+            clickArea: bsCfg.clickArea,
+            greetings: [
+                '叮——叮——听这声音，好钢就是这样炼出来的！',
+                '你的武器拿来我瞧瞧，锤两下保准焕然一新。',
+                '强化这门手艺，讲究的是火候和耐心，急不得。',
+                '附魔可不是撒点亮粉就行，得让魔力顺着锻纹走。',
+                '上次有个冒险者把剑强化到断掉，可别学他贪多。',
+                '改造装备就像给老鼠打洞，得顺着它本来的性子来。',
+                '铁矿要烧到发白，木材要选最硬的那根，这是规矩。',
+                '我这把锤子跟了我三十年，敲过的附魔武器数都数不清。',
+                '想让刀刃更利，还是想让盔甲更硬？我都能办到。',
+                '好装备是锤出来的，不是说出来的，交给我准没错。'
+            ]
+        });
+        this.entities.set('npc_mouse_blacksmith', blacksmithNpc);
         // 在小鼠大王右侧生成演示树木
         const treeCfg = GAME_CONFIG.trees?.demoLayout || { treeRadius: 25, groups: [] };
         const treeRadius = treeCfg.treeRadius || 25;

@@ -574,7 +574,6 @@
     "size": 60,
     "collisionRadius": 90,
     "noFootprint": true,
-    "height": 120,
     "hp": 800,
     "maxHp": 800,
     "speed": 0,
@@ -620,16 +619,18 @@
     },
     "render": {
       "spriteSize": 256,
-      "collisionWidth": 120,
-      "collisionHeight": 60,
+      "collisionWidth": 169,
+      "collisionHeight": 215,
       "footOffsetY": 30,
       "capsuleHudAnchor": true,
       "projectileHitbox": {
-        "width": 120,
-        "height": 60,
-        "offsetX": 0,
-        "bottom": 0
-      }
+        "width": 169,
+        "height": 215,
+        "offsetX": -1.5,
+        "bottom": -63
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
     },
     "textures": {
       "idle": "assets/enemies/tombstone/idle.png"
@@ -1811,16 +1812,17 @@
     },
     "render": {
       "spriteSize": 120,
-      "collisionWidth": 60,
-      "collisionHeight": 60,
+      "collisionWidth": 78,
+      "collisionHeight": 100,
       "footOffsetY": 30,
       "projectileHitbox": {
-        "width": 70,
-        "height": 70,
+        "width": 78,
+        "height": 100,
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 20
+      "colliderOffsetY": 20,
+      "colliderOffsetX": 0
     },
     "textures": {
       "idle": "assets/enemies/flyswarm/idle.png",

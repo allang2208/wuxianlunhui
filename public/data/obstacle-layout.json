@@ -11,5 +11,31 @@
     "depth": 1752.101318359375,
     "family": "obstacle",
     "label": "石柱 1"
+  },
+  {
+    "tex": "obstacle_woodpile",
+    "x": 2830,
+    "y": 1845,
+    "scaleX": 0.3,
+    "scaleY": 0.3,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1912.2,
+    "family": "obstacle",
+    "label": "木材堆 1"
+  },
+  {
+    "tex": "obstacle_orepile",
+    "x": 2845,
+    "y": 1735,
+    "scaleX": 0.3,
+    "scaleY": 0.3,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1794.55,
+    "family": "obstacle",
+    "label": "铁矿堆 1"
   }
 ]

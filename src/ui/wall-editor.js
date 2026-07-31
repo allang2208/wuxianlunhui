@@ -332,8 +332,7 @@ export const WallEditor = {
         // 钳制在世界边界内 64px——防止误拖出界导致 NPC"消失"（祭坛 offset -1428 教训）
         if (this._draggingNpc && this._npcSel) {
             const e2 = this._npcSel;
-            const maxX = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_WIDTH) || 4096;
-            const maxY = (typeof CONFIG !== 'undefined' && CONFIG.WORLD_HEIGHT) || 4096;
+            const { w: maxX, h: maxY } = this._mainWorldSize();
             e2.x = Math.max(64, Math.min(maxX - 64, this._npcDragOrig.x + (pt.x - this._dragStart.x)));
             e2.y = Math.max(64, Math.min(maxY - 64, this._npcDragOrig.y + (pt.y - this._dragStart.y)));
             if (e2._wanderHome) {
@@ -746,18 +745,28 @@ export const WallEditor = {
         return null;
     },
 
+    /** 主神空间世界尺寸以配置为准，避免 runtime CONFIG 在初始/回城阶段不一致导致 offset 漂移 */
+    _mainWorldSize() {
+        const mw = (GAME_CONFIG.world && GAME_CONFIG.world.main) || {};
+        return {
+            w: (mw.width) || CONFIG.WORLD_WIDTH || 4096,
+            h: (mw.height) || CONFIG.WORLD_HEIGHT || 4096,
+        };
+    },
+
     /** NPC 位置基准点：relativeTo='shopMouseKing' → 小鼠大王【配置锚点】（世界中心+大王配置 offset）；
      *  必须用配置锚点而非大王实时位置——大王会游走，按实时位置算 offset 会在下次生成时整体平移
      * （"调整 NPC 位置保存后重启回原位"根因）；否则世界中心 */
     _npcBasePos(cfg) {
+        const { w, h } = this._mainWorldSize();
         if (cfg && cfg.relativeTo === 'shopMouseKing') {
             const kingCfg = (GAME_CONFIG.npcs || {}).shopMouseKing || {};
             return {
-                x: CONFIG.WORLD_WIDTH / 2 + ((kingCfg.offset && kingCfg.offset.x) || 0),
-                y: CONFIG.WORLD_HEIGHT / 2 + ((kingCfg.offset && kingCfg.offset.y) || 0),
+                x: w / 2 + ((kingCfg.offset && kingCfg.offset.x) || 0),
+                y: h / 2 + ((kingCfg.offset && kingCfg.offset.y) || 0),
             };
         }
-        return { x: CONFIG.WORLD_WIDTH / 2, y: CONFIG.WORLD_HEIGHT / 2 };
+        return { x: w / 2, y: h / 2 };
     },
 
     /** 重置：位置按配置 offset 重算、大小/角度回配置值（保存后 GAME_CONFIG 已同步，即回到最近保存点） */
@@ -802,8 +811,9 @@ export const WallEditor = {
         } else if (typeof e.size === 'number') {
             cfg.size = e.size;
         }
-        const ok = await saveGameConfig(GAME_CONFIG);
-        console.log(`[WallEditor] NPC(${key}) 位置已保存: offset=(${cfg.offset.x},${cfg.offset.y}) base=(${base.x},${base.y}) → 实体(${Math.round(e.x)},${Math.round(e.y)})`);
+        // 深拷贝后落盘：防止 Vite HMR 在异步保存前替换 GAME_CONFIG 对象导致写入旧数据
+        const ok = await saveGameConfig(JSON.parse(JSON.stringify(GAME_CONFIG)));
+        console.log(`[WallEditor] NPC(${key}) 位置已保存: offset=(${cfg.offset.x},${cfg.offset.y}) base=(${base.x},${base.y}) → 实体(${Math.round(e.x)},${Math.round(e.y)}) ok=${ok}`);
         const btn = this._npcEl && this._npcEl.querySelector('.ne-save');
         if (btn) {
             const old = btn.textContent;

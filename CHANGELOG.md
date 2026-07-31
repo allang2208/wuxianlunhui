@@ -8,6 +8,16 @@
 - 测试结果
 - 已知问题
 
+### 对话：仓库 NPC 摆墙后再消失修复（2026-07-31，V0.359）
+
+- **根因**：`data/game-config.json` 中 `npcs.warehouse.offset` 再次被污染为 `(249, -1656)`，仓库实际生成在 y≈242 的屏幕极上方，玩家默认视野内看不到，表现为"消失"。污染由摆墙 NPC 位置编辑器的 offset 基准依赖运行时 `CONFIG.WORLD_WIDTH/HEIGHT` 引起——初始 `Renderer.generateWorld` 在 `SceneManager.currentScene` 尚未设为主场景时执行，主神空间可能按 7680×4320 默认尺寸生成，保存的 offset 在回城后 4096×4096 世界里整体漂移。
+- **修复**：
+  1. `data/game-config.json` 与 `public/data/game-config.json` 双份把仓库 offset 重置回 `(100, 0)`（紧贴小鼠大王右侧，与 V0.353 清洗后一致）。
+  2. `src/ui/wall-editor.js`：NPC 位置基准改读 `GAME_CONFIG.world.main.width/height`，不再依赖运行时 `CONFIG`，拖动边界与保存 offset 口径统一；保存前对 `GAME_CONFIG` 深拷贝再落盘，避免 Vite HMR 在异步保存窗口替换对象导致写入旧数据。
+  3. `src/game.js`：`SceneManager.init()` 与 `currentScene='main'` 提前到 `Renderer.generateWorld()` 之前，保证开局主神空间尺寸就是配置 4096×4096，避免 NPC 生成/保存基准漂移。
+- **测试**：lint 0 error；vite build ✓；npm test 全绿（133+10+12）。
+- **已知问题**：若用户主动把 NPC 拖到世界边缘再保存，仍可能放到视野外；NPC 编辑器已有 64px 边界钳制，后续可考虑加"回到默认位置"一键恢复。
+
 ### 对话：副手向左开火错位根修（CDP 实机取证）（2026-07-30，V0.358）
 
 - **根因（CDP 实机数值链）**：副手后坐踢角 `recoilAngle = -recoil × 0.05`（swing 时刻 ≈ **-36°**，`subsystems.js:1937`）在 `syncOffhandWeapon` 里无条件相加、不随 flipY 镜像——瞄左时贴图被拧到 133.6°（正确镜像应为 205.8°），枪口点从贴图状态计算，枪口/火焰/子弹整体偏低 ~33px。主手同函数系数仅 ±1.7°，所以主手一直正常。
