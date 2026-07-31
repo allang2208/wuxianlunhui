@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：替换小鼠铁匠 idle 动画（2026-07-31，V0.360）
+
+- 用 `E:\无尽轮回\游戏\素材库\人物\小鼠铁匠\idle.png` 替换 `assets/npc/mouse_blacksmith/idle.png`；尺寸 4096×4096，按 8×8 切帧，每帧 512×512。
+- 修正 `BootScene` 加载与动画注册：`endFrame` 从 29 改为 28（0 基 29 帧），动画 `generateFrameNumbers` end 改为 28，避免播到第 30 个空白帧。
+- `data/game-config.json` / `public/data/game-config.json` 中 `mouseBlacksmith.sprite` 注释同步为“idle 29 帧循环（8×8 切帧）”。
+- 测试：lint 0 error；npm test 133+10+12 全绿。
+
 ### 对话：仓库 NPC 摆墙后再消失修复（2026-07-31，V0.359）
 
 - **根因**：`data/game-config.json` 中 `npcs.warehouse.offset` 再次被污染为 `(249, -1656)`，仓库实际生成在 y≈242 的屏幕极上方，玩家默认视野内看不到，表现为"消失"。污染由摆墙 NPC 位置编辑器的 offset 基准依赖运行时 `CONFIG.WORLD_WIDTH/HEIGHT` 引起——初始 `Renderer.generateWorld` 在 `SceneManager.currentScene` 尚未设为主场景时执行，主神空间可能按 7680×4320 默认尺寸生成，保存的 offset 在回城后 4096×4096 世界里整体漂移。

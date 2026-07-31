@@ -226,8 +226,8 @@ export class BootScene extends Scene {
         this.load.image('npc_warehouse', 'assets/npc/warehouse/warehouse.png');
         // 祭坛：静态贴图（大理石祭坛，tools/prep-hub-assets.py 抠图）
         this.load.image('npc_altar', 'assets/npc/altar.png');
-        // 小鼠铁匠：8列×4行 512×512 切帧（idle 30 帧，泛洪抠图去白底）
-        this.load.spritesheet('npc_mouse_blacksmith_idle', 'assets/npc/mouse_blacksmith/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 29 });
+        // 小鼠铁匠：8列×8行 512×512 切帧（idle 29 帧，泛洪抠图去白底）
+        this.load.spritesheet('npc_mouse_blacksmith_idle', 'assets/npc/mouse_blacksmith/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 28 });
 
         // 矿工僵尸（普通）：8列×4行 512×512 切帧（idle 1 帧 / walking 14 帧 / attacking 24 帧 / dying 13 帧）
         this.load.spritesheet('enemy_miner_zombie_idle',   'assets/enemies/miner_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
@@ -1062,10 +1062,10 @@ export class BootScene extends Scene {
             frameRate: mouseKingSpriteCfg.walkFps ?? 10,
             repeat: -1,
         });
-        // 小鼠铁匠：idle 30 帧循环
+        // 小鼠铁匠：idle 29 帧循环
         this.anims.create({
             key: 'npc_mouse_blacksmith_idle',
-            frames: this.anims.generateFrameNumbers('npc_mouse_blacksmith_idle', { start: 0, end: 29 }),
+            frames: this.anims.generateFrameNumbers('npc_mouse_blacksmith_idle', { start: 0, end: 28 }),
             frameRate: 12,
             repeat: -1,
         });
