@@ -101,47 +101,44 @@ const NPCDialogue = {
         this._bindClickOutsideHandler();
     },
 
-    // 根据NPC类型更新对话框按钮
+    // 根据NPC类型更新对话框按钮；所有NPC默认带「调整立绘」与「关闭」
     _updateDialogueButtons(npc) {
         const dialogueOptions = getElement('npcDialogueOptions');
         if (!dialogueOptions) return;
         const npcType = npc.npcType || 'shop';
+        let typeButtons;
+        let closeText = '👋 再见';
         if (npcType === 'altar') {
-            dialogueOptions.innerHTML = `
+            typeButtons = `
                 <button class="npc-option-btn" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ 献祭出征</button>
                 <button class="npc-option-btn" id="npcOptionFusion" onclick="NPCDialogue.openFusion()">🔮 祭品合成</button>
-                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 退出</button>
             `;
-            return;
-        }
-        if (npcType === 'blacksmith') {
-            dialogueOptions.innerHTML = `
+            closeText = '👋 退出';
+        } else if (npcType === 'blacksmith') {
+            typeButtons = `
                 <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化</button>
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔</button>
                 <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造</button>
-                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
             `;
-            return;
-        }
-        if (npcType === 'quest') {
-            dialogueOptions.innerHTML = `
+        } else if (npcType === 'quest') {
+            typeButtons = `
                 <button class="npc-option-btn" id="npcOptionQuest" onclick="NPCDialogue.openQuest()">📜 开始任务</button>
                 <button class="npc-option-btn" id="npcOptionTeleport" onclick="NPCDialogue.teleportToQuest()">🌨️ 传送至任务地点</button>
                 <button class="npc-option-btn" id="npcOptionInfo" onclick="NPCDialogue.showInfo()">ℹ️ 了解信息</button>
                 <button class="npc-option-btn" id="npcOptionHelp" onclick="NPCDialogue.showHelp()">❓ 获取帮助</button>
-                <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
-                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
             `;
         } else {
-            dialogueOptions.innerHTML = `
+            typeButtons = `
                 <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 打开商店</button>
                 <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化装备</button>
                 <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造装备</button>
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔装备</button>
-                <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
-                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
             `;
         }
+        dialogueOptions.innerHTML = typeButtons + `
+            <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
+            <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">${closeText}</button>
+        `;
     },
 
     // 绑定点击外部退出

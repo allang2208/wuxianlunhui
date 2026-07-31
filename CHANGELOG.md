@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：小鼠铁匠立绘替换 + NPC 对话默认「调整立绘」按钮（2026-07-31，V0.361）
+
+- 用 `E:\无尽轮回\游戏\素材库\人物\小鼠铁匠\小鼠铁匠.png` 替换 `assets/npc/mouse_blacksmith/portrait.png`（1024×1539）。
+- `src/ui/npc-dialogue.js` 重构 `_updateDialogueButtons`：所有 NPC 类型（altar/blacksmith/quest/shop）的选项列表统一追加 `🖼️ 调整立绘` 按钮，点击复用 `NpcPortraitTool.toggle()`；关闭按钮文字按类型区分（altar 为「退出」，其余「再见」）。
+- `NpcPortraitTool` 仍靠 `NPCDialogue.open()` 时写入的 `_npcId` 和当前 `#npcPortrait` 的 `src` 工作，无需额外改动。
+- 测试：lint 0 error；npm test 133+10+12 全绿。
+
 ### 对话：替换小鼠铁匠 idle 动画（2026-07-31，V0.360）
 
 - 用 `E:\无尽轮回\游戏\素材库\人物\小鼠铁匠\idle.png` 替换 `assets/npc/mouse_blacksmith/idle.png`；尺寸 4096×4096，按 8×8 切帧，每帧 512×512。

@@ -344,8 +344,8 @@
     "mouseBlacksmith": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 460,
-        "y": -80
+        "x": 473,
+        "y": -48
       },
       "name": "小鼠铁匠",
       "size": 20,
@@ -357,7 +357,7 @@
       "sprite": {
         "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
         "idleKey": "npc_mouse_blacksmith_idle",
-        "size": 250,
+        "size": 196,
         "footOffsetY": 125
       },
       "clickArea": {
