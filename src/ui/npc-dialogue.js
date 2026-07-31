@@ -114,6 +114,15 @@ const NPCDialogue = {
             `;
             return;
         }
+        if (npcType === 'blacksmith') {
+            dialogueOptions.innerHTML = `
+                <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化</button>
+                <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔</button>
+                <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造</button>
+                <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">👋 再见</button>
+            `;
+            return;
+        }
         if (npcType === 'quest') {
             dialogueOptions.innerHTML = `
                 <button class="npc-option-btn" id="npcOptionQuest" onclick="NPCDialogue.openQuest()">📜 开始任务</button>

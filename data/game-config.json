@@ -284,7 +284,7 @@
       "offset": {
         "x": 100,
         "y": 0
-      },
+      }
       "name": "仓库",
       "size": 20,
       "collisionRadius": 72,
@@ -340,6 +340,34 @@
       "collisionHeight": 220,
       "colliderOffsetX": -3.5,
       "height": 107.5
+    },
+    "mouseBlacksmith": {
+      "relativeTo": "shopMouseKing",
+      "offset": {
+        "x": 460,
+        "y": -80
+      },
+      "name": "小鼠铁匠",
+      "size": 20,
+      "collisionRadius": 60,
+      "color": "#8a6a4a",
+      "portrait": "assets/npc/mouse_blacksmith/portrait.png",
+      "npcType": "blacksmith",
+      "noSeparation": true,
+      "sprite": {
+        "comment": "贴图动画：idle 30 帧循环（BootScene 注册，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
+        "idleKey": "npc_mouse_blacksmith_idle",
+        "size": 250,
+        "footOffsetY": 125
+      },
+      "clickArea": {
+        "comment": "点击交互区域（按贴图内容收窄：内容 420×505/512 × size250 ≈ 205×247，锚定脚底）",
+        "width": 205,
+        "height": 247
+      },
+      "collisionShape": "rect",
+      "collisionWidth": 150,
+      "collisionHeight": 110
     }
   },
   "trees": {
