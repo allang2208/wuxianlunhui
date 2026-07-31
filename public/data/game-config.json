@@ -282,8 +282,8 @@
     "warehouse": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 100,
-        "y": 0
+        "x": 142,
+        "y": -132
       },
       "name": "仓库",
       "size": 20,
@@ -313,8 +313,8 @@
     "altar": {
       "relativeTo": "shopMouseKing",
       "offset": {
-        "x": 20,
-        "y": 140
+        "x": -326,
+        "y": -187
       },
       "name": "祭坛",
       "size": 24,
@@ -355,7 +355,7 @@
       "npcType": "blacksmith",
       "noSeparation": true,
       "sprite": {
-        "comment": "贴图动画：idle 30 帧循环（BootScene 注册，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
+        "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
         "idleKey": "npc_mouse_blacksmith_idle",
         "size": 250,
         "footOffsetY": 125
