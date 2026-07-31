@@ -116,7 +116,12 @@ const WallSystem = {
             }
             if (typeof o.halfThick === 'number') g.halfThick = o.halfThick;
             if (o.foot && typeof o.foot === 'object') {
-                g.foot = { w: o.foot.w ?? (g.foot && g.foot.w), d: o.foot.d ?? (g.foot && g.foot.d) };
+                g.foot = {
+                    w: o.foot.w ?? (g.foot && g.foot.w),
+                    d: o.foot.d ?? (g.foot && g.foot.d),
+                    offsetX: o.foot.offsetX ?? (g.foot && g.foot.offsetX),
+                    offsetY: o.foot.offsetY ?? (g.foot && g.foot.offsetY),
+                };
             }
             if (Array.isArray(o.gateX) && o.gateX.length === 2) g.gateX = [o.gateX[0], o.gateX[1]];
             if (o.states && typeof o.states === 'object') {
@@ -697,9 +702,10 @@ const WallSystem = {
         if (geo && geo.category === 'obstacle' && geo.foot) {
             const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
             const fw = geo.foot.w * sx, fd = geo.foot.d * sy;
-            const bottomY = p.y + (geo.h * sy) / 2;
+            const offX = (geo.foot.offsetX || 0) * sx, offY = (geo.foot.offsetY || 0) * sy;
+            const bottomY = p.y + (geo.h * sy) / 2 + offY;
             this.walls.push({
-                x: p.x - fw / 2,
+                x: p.x - fw / 2 + offX,
                 y: bottomY - fd,
                 w: fw, h: fd,
                 height: 60, noVisual: true, _iso: true, _obstacle: true,

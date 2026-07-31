@@ -40,19 +40,22 @@
     "attackType": "撕咬",
     "render": {
       "spriteSize": 151,
-      "collisionWidth": 133,
-      "collisionHeight": 78,
+      "collisionWidth": 120,
+      "collisionHeight": 65,
       "footOffsetY": 41,
       "projectileHitbox": {
         "width": 120,
         "height": 65,
-        "offsetX": 0,
-        "bottom": 0
-      }
+        "offsetX": 1,
+        "bottom": -10
+      },
+      "colliderOffsetX": -1,
+      "colliderOffsetY": -10
     },
     "textures": {
       "idle": "assets/enemies/black_wolf_idle.png"
-    }
+    },
+    "height": 68.4
   },
   "redWolfKing": {
     "id": "redWolfKing",
@@ -174,8 +177,7 @@
     "family": "僵尸",
     "color": "#7a6a4a",
     "size": 17,
-    "collisionRadius": 36.25,
-    "height": 143.75,
+    "collisionRadius": 36.3,
     "hp": 150,
     "maxHp": 150,
     "speed": 140,
@@ -225,17 +227,19 @@
       "loseTimeout": 3000
     },
     "render": {
-      "spriteSize": 230,
-      "collisionWidth": 72.5,
-      "collisionHeight": 158.75,
+      "spriteSize": 260.7,
+      "collisionWidth": 57.5,
+      "collisionHeight": 158.8,
       "footOffsetY": 58,
       "projectileHitbox": {
         "width": 57.5,
-        "height": 158.75,
-        "offsetX": 0,
-        "bottom": 0
+        "height": 158.8,
+        "offsetX": 2,
+        "bottom": -9
       },
-      "capsuleHudAnchor": true
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
     },
     "textures": {
       "idle": "assets/enemies/miner_zombie/idle.png",

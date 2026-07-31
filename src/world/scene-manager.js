@@ -422,51 +422,46 @@ export const SceneManager = {
         // 测试房间：已移除代码默认菱形房间——用户用墙壁编辑器（HUD 摆墙）自行摆放
         // 仅当预制库存在 hub_diamond 时按预制渲染；否则无房间（isoVisuals 为空）
         // 碰撞由 rebuildIsoCollision() 按件底边自动生成阶梯矩形
-        WallSystem.isoVisuals = [];
-        const wallPrefabs = getWallPrefabLibrary();
-        const hubPrefab = wallPrefabs['hub_diamond'];
-        if (hubPrefab && Array.isArray(hubPrefab.pieces)) {
-            WallSystem.isoVisuals = hubPrefab.pieces.map(p => ({ ...p }));
-        } else if (!isWallPrefabsLoaded()) {
-            // 首启时预制库可能未加载完（BootScene 异步预载）：到位后补应用一次（仅主神空间）
-            loadWallPrefabs().then(() => {
-                if (this.currentScene !== 'main') return;
-                const def = getWallPrefabLibrary()['hub_diamond'];
-                if (!def || !Array.isArray(def.pieces)) return;
-                WallSystem.isoVisuals = def.pieces.map(p => ({ ...p }));
-                WallSystem.rebuildIsoCollision();
-                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-            });
-        }
-        // 障碍物布局（data/obstacle-layout.json）：追加到 isoVisuals，碰撞由
-        // rebuildIsoCollision() 按 geo.foot 生成矩形 footprint 墙（与墙体同入口重建，场景往返不丢）
-        if (getObstacleLayout().length === 0) {
-            // 首启竞速兜底：布局未加载完时到位后补应用一次（仅主神空间）
-            loadObstacleLayout().then(() => {
-                if (this.currentScene !== 'main' || getObstacleLayout().length === 0) return;
+        const buildHubIso = () => {
+            const wallPrefabs = getWallPrefabLibrary();
+            const hubPrefab = wallPrefabs['hub_diamond'];
+            WallSystem.isoVisuals = [];
+            if (hubPrefab && Array.isArray(hubPrefab.pieces)) {
+                WallSystem.isoVisuals = hubPrefab.pieces.map(p => ({ ...p }));
+            }
+            if (getObstacleLayout().length > 0) {
                 for (const o of getObstacleLayout()) {
                     WallSystem.isoVisuals.push({ ...o, family: 'obstacle' });
                 }
-                WallSystem.rebuildIsoCollision();
-                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-            });
-        } else {
-            for (const o of getObstacleLayout()) {
-                WallSystem.isoVisuals.push({ ...o, family: 'obstacle' });
             }
+            if (isWallGeoOverridesLoaded()) {
+                WallSystem.applyGeoOverrides(getWallGeoOverrides());
+            }
+            WallSystem.rebuildIsoCollision();
+            if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        };
+
+        // 首启时预制库/布局/覆盖层可能未加载完：到位后统一重建一次（仅主神空间）
+        if (!isWallPrefabsLoaded()) {
+            loadWallPrefabs().then(() => {
+                if (this.currentScene !== 'main') return;
+                buildHubIso();
+            });
         }
-        // 墙体几何覆盖层（碰撞编辑器保存的 face/halfThick/foot/门洞）：先合并再建碰撞。
-        // 首启竞速兜底：覆盖层未加载完时到位后合并并重建一次（与障碍物布局同款兜底，仅主神空间）
-        if (isWallGeoOverridesLoaded()) {
-            WallSystem.applyGeoOverrides(getWallGeoOverrides());
-        } else {
+        if (getObstacleLayout().length === 0) {
+            loadObstacleLayout().then(() => {
+                if (this.currentScene !== 'main') return;
+                buildHubIso();
+            });
+        }
+        if (!isWallGeoOverridesLoaded()) {
             WallSystem.loadGeoOverrides().then(() => {
                 if (this.currentScene !== 'main') return;
-                WallSystem.rebuildIsoCollision();
-                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+                buildHubIso();
             });
         }
-        WallSystem.rebuildIsoCollision();
+        buildHubIso();
+
         // 静态 NPC 底座障碍（如仓库宝箱）：宽=贴图底座、深=底座厚度，锚定脚底线；
         // noVisual 标记跳过墙面视觉（贴图 NPC 自身就是视觉）。与边界墙同入口重建，场景往返不丢
         if (typeof Game !== 'undefined' && Game.entities) {

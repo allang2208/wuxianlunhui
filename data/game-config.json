@@ -44,7 +44,10 @@
         "tiles": [
           "hub_brick"
         ],
-        "glow": false
+        "glow": false,
+        "overlapX": 12,
+        "overlapY": 8,
+        "backgroundColor": "#f4f3ee"
       }
     },
     "main": {
@@ -240,7 +243,7 @@
       },
       "name": "小鼠大王",
       "size": 20,
-      "collisionRadius": 14,
+      "collisionRadius": 32.5,
       "color": "#c4a35a",
       "portrait": "assets/ui/npc_portrait.png",
       "npcType": "shop",
@@ -264,7 +267,13 @@
         "idleMs": 7000,
         "moveMinMs": 2000,
         "moveMaxMs": 4000
-      }
+      },
+      "collisionShape": "rect",
+      "collisionWidth": 69,
+      "collisionHeight": 177,
+      "colliderOffsetX": -1.5,
+      "colliderOffsetY": -13.5,
+      "height": 92.5
     },
     "mouseAttendant": {
       "relativeTo": "shopMouseKing",
@@ -291,7 +300,6 @@
       "color": "#8a6a3a",
       "npcType": "warehouse",
       "noSeparation": true,
-      "noShadow": true,
       "colliderOffsetY": -51.5,
       "sprite": {
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
@@ -305,9 +313,6 @@
         "height": 129
       },
       "colliderOffsetX": 0,
-      "collisionShape": "rect",
-      "collisionWidth": 152,
-      "collisionHeight": 129,
       "height": 89.5
     },
     "altar": {
@@ -322,7 +327,6 @@
       "color": "#6a4a8a",
       "npcType": "altar",
       "noSeparation": true,
-      "noShadow": true,
       "colliderOffsetY": -69,
       "sprite": {
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
@@ -335,9 +339,6 @@
         "width": 200,
         "height": 190
       },
-      "collisionShape": "rect",
-      "collisionWidth": 235,
-      "collisionHeight": 220,
       "colliderOffsetX": -3.5,
       "height": 107.5
     },
@@ -367,7 +368,9 @@
       },
       "collisionShape": "rect",
       "collisionWidth": 150,
-      "collisionHeight": 110
+      "collisionHeight": 57,
+      "colliderOffsetX": -3,
+      "colliderOffsetY": -40.5
     }
   },
   "trees": {
