@@ -16,5 +16,21 @@
         "hole": null
       }
     }
+  },
+  "woodpile": {
+    "foot": {
+      "w": 411.2,
+      "d": 130.4,
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  },
+  "orepile": {
+    "foot": {
+      "w": 407,
+      "d": 163.5,
+      "offsetX": 0,
+      "offsetY": 0
+    }
   }
 }

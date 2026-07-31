@@ -355,7 +355,8 @@ export const CollisionEditor = {
                 + `<div>门洞: ${r1(s.hole[0])} ~ ${r1(s.hole[1])}（宽 ${r1(s.hole[1] - s.hole[0])}）</div>`
                 + `<div>碰撞半厚: ${r1(s.halfThick)}</div>`;
         } else if (this._kind === 'obstacle') {
-            this._infoEl.innerHTML = `<div>footprint: ${r1(s.foot.w)} × ${r1(s.foot.d)}</div>`;
+            this._infoEl.innerHTML = `<div>footprint: ${r1(s.foot.w)} × ${r1(s.foot.d)}</div>`
+                + `<div>偏移: X ${r1(s.foot.offsetX)} / Y ${r1(s.foot.offsetY)}</div>`;
         } else if (this._kind === 'trap') {
             this._infoEl.innerHTML = `<div>触发半径: ${r1(s.triggerRadius)} 数量: ${s.count}</div>`
                 + `<div>伤害: ${r1(s.damagePercent * 100)}% 冷却: ${s.cooldownMs}ms</div>`;
@@ -645,7 +646,7 @@ export const CollisionEditor = {
                 halfThick: isoHalfThick(g),
             };
         } else if (this._kind === 'obstacle') {
-            this._edit = { foot: { w: g.foot.w, d: g.foot.d } };
+            this._edit = { foot: { w: g.foot.w, d: g.foot.d, offsetX: g.foot.offsetX || 0, offsetY: g.foot.offsetY || 0 } };
         }
     },
 
@@ -681,7 +682,7 @@ export const CollisionEditor = {
             g.states.closed = { hole: null };
             g.gateX = [s.hole[0], s.hole[1]];
         } else if (this._kind === 'obstacle') {
-            g.foot = { w: s.foot.w, d: s.foot.d };
+            g.foot = { w: s.foot.w, d: s.foot.d, offsetX: s.foot.offsetX, offsetY: s.foot.offsetY };
         }
         WallSystem.rebuildIsoCollision();
         this._updateInfo();
@@ -706,7 +707,7 @@ export const CollisionEditor = {
             };
         }
         // 障碍物
-        return { foot: { w: r1(s.foot.w), d: r1(s.foot.d) } };
+        return { foot: { w: r1(s.foot.w), d: r1(s.foot.d), offsetX: r1(s.foot.offsetX), offsetY: r1(s.foot.offsetY) } };
     },
 
     /** 世界点 → 贴图坐标（texPointToWorld 逆变换） */
@@ -743,14 +744,16 @@ export const CollisionEditor = {
         return { x: -dy / len, y: dx / len };
     },
 
-    /** 障碍物 footprint 矩形世界几何（锚贴图底边中心，与 _addPieceCollision 同口径） */
+    /** 障碍物 footprint 矩形世界几何（贴图底边中心 + foot.offsetX/Y 偏移；与 _addPieceCollision 同口径） */
     _obstacleRectGeom() {
         const g = ISO_WALL_GEO[this._key];
         const p = this._previewPiece;
         const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
-        const fw = this._edit.foot.w * sx, fd = this._edit.foot.d * sy;
-        const bottomY = p.y + (g.h * sy) / 2;
-        return { left: p.x - fw / 2, right: p.x + fw / 2, top: bottomY - fd, bottom: bottomY };
+        const f = this._edit.foot;
+        const fw = f.w * sx, fd = f.d * sy;
+        const offX = (f.offsetX || 0) * sx, offY = (f.offsetY || 0) * sy;
+        const bottomY = p.y + (g.h * sy) / 2 + offY;
+        return { left: p.x - fw / 2 + offX, right: p.x + fw / 2 + offX, top: bottomY - fd, bottom: bottomY };
     },
 
     /** 障碍物矩形八点手柄（nw/n/ne/e/se/s/sw/w） */
@@ -783,6 +786,7 @@ export const CollisionEditor = {
         const c = e.collider;
         this._defaultHeight = c.height;
         let rect;
+        let isRect = false;
         if (this._kind === 'enemy') {
             // 绿色矩形 = 躯干判定（getTorsoRect 同一口径：projectileHitbox 或缺省回退）
             const t = getTorsoRect(e);
@@ -790,12 +794,12 @@ export const CollisionEditor = {
                 ? { width: t.halfW * 2, height: t.halfH * 2, offsetX: t.cx - c.x, bottom: c.y - (t.cy + t.halfH) }
                 : { width: c.radius * 2, height: c.height, offsetX: 0, bottom: 0 };
         } else {
-            // NPC 绿色矩形 = 矩形 footprint（中心与 collider 重合，见 GameScene 矩形 footprint 调试）
-            rect = {
-                width: e.collisionWidth > 0 ? e.collisionWidth : c.radius * 2,
-                height: e.collisionHeight > 0 ? e.collisionHeight : c.height,
-                offsetX: 0, bottom: 0,
-            };
+            // NPC：矩形 footprint 或椭圆 footprint。祭坛/仓库等固定 NPC 现在改用椭圆，
+            // 编辑器仍显示绿色矩形作为 footprint 外接框，但手柄仅用于整体移动 collider。
+            isRect = e.collisionShape === 'rect' && e.collisionWidth > 0 && e.collisionHeight > 0;
+            rect = isRect
+                ? { width: e.collisionWidth, height: e.collisionHeight, offsetX: 0, bottom: 0 }
+                : { width: c.radius * 2, height: c.height, offsetX: 0, bottom: 0 };
         }
         // 贴图尺寸（调整贴图大小模式用）：enemy=render.spriteSize（最长边 px）；NPC spriteCfg=size；纯色圆=size
         let spriteSize;
@@ -812,6 +816,7 @@ export const CollisionEditor = {
             offsetX: e.colliderOffsetX || 0,
             offsetY: e.colliderOffsetY || 0,
             rect,
+            isRect,
             spriteSize,
         };
     },
@@ -835,9 +840,18 @@ export const CollisionEditor = {
             e.collisionWidth = s.rect.width;
             e.collisionHeight = s.rect.height;
         } else {
-            e.collisionShape = 'rect';
-            e.collisionWidth = s.rect.width;
-            e.collisionHeight = s.rect.height;
+            if (s.isRect) {
+                e.collisionShape = 'rect';
+                e.collisionWidth = s.rect.width;
+                e.collisionHeight = s.rect.height;
+            } else {
+                e.collisionShape = 'circle';
+                e.collisionWidth = 0;
+                e.collisionHeight = 0;
+                // 椭圆 footprint 的外接框随半径/高度变化
+                s.rect.width = s.radius * 2;
+                s.rect.height = s.height;
+            }
         }
         e.rebuildCollider();
         // 贴图尺寸（调整贴图大小模式）：应用到预览精灵
@@ -890,9 +904,15 @@ export const CollisionEditor = {
             n.collisionRadius = r1(s.radius);
             if (Math.abs(s.height - this._defaultHeight) > 0.5) n.height = r1(s.height);
             else delete n.height;
-            n.collisionShape = 'rect';
-            n.collisionWidth = r1(s.rect.width);
-            n.collisionHeight = r1(s.rect.height);
+            if (s.isRect) {
+                n.collisionShape = 'rect';
+                n.collisionWidth = r1(s.rect.width);
+                n.collisionHeight = r1(s.rect.height);
+            } else {
+                delete n.collisionShape;
+                delete n.collisionWidth;
+                delete n.collisionHeight;
+            }
             n.colliderOffsetX = r1(s.offsetX);
             n.colliderOffsetY = r1(s.offsetY);
             // 贴图尺寸：spriteCfg → sprite.size；纯色圆 → size
@@ -1187,20 +1207,26 @@ export const CollisionEditor = {
                 return;
             }
         }
-        // 4) 矩形内部 / 底部椭圆内部 → 位置拖动（按调整范围：both=两体积同步、rect=只动矩形、cylinder=只动圆柱）
+        // 4) 矩形内部 / 圆柱体（底部椭圆 + 侧壁） → 位置拖动（按调整范围：both=两体积同步、rect=只动矩形、cylinder=只动圆柱）
         const g = this._rectGeom();
         const inRect = !onlyCyl && pt.x >= g.left && pt.x <= g.right && pt.y >= g.top && pt.y <= g.bottom;
         const c = this._entity.collider;
         const rx = this._edit.radius;
         const ry = rx * PERSPECTIVE_SCALE_Y;
         const inEllipse = !onlyRect && rx > 0 && (((pt.x - c.x) / rx) ** 2 + ((pt.y - c.y) / ry) ** 2) <= 1;
-        if (inRect || inEllipse) {
+        // 圆柱侧壁也允许拖拽（原仅底部椭圆命中，导致用户感觉"点不到圆柱"）
+        const inCylinderSide = !onlyRect && rx > 0 && pt.x >= c.x - rx && pt.x <= c.x + rx && pt.y >= c.y - this._edit.height && pt.y <= c.y;
+        if (inRect || inEllipse || inCylinderSide) {
             this._drag = {
                 // both 模式优先矩形内命中（重叠区按同步处理）
                 mode: (this._editMode === 'rect') ? 'rectMove' : 'move',
                 startPt: { x: pt.x, y: pt.y },
                 startOffset: { x: this._edit.offsetX, y: this._edit.offsetY },
-                startRect: { offsetX: this._edit.rect.offsetX, bottom: this._edit.rect.bottom },
+                startRect: {
+                    offsetX: this._edit.rect.offsetX,
+                    bottom: this._edit.rect.bottom,
+                    offsetY: this._edit.rect.offsetY,
+                },
             };
         }
     },
@@ -1221,7 +1247,10 @@ export const CollisionEditor = {
         if (this._kind === 'obstacle') {
             for (const h of this._obstacleHandles()) {
                 if (Math.abs(pt.x - h.x) <= hs && Math.abs(pt.y - h.y) <= hs) {
-                    this._drag = { mode: 'obstacleRect', handle: h.id };
+                    this._drag = {
+                        mode: 'obstacleRect', handle: h.id,
+                        anchor: this._obstacleRectGeom(),
+                    };
                     return;
                 }
             }
@@ -1276,7 +1305,7 @@ export const CollisionEditor = {
                 s.rect.offsetX = (left + right) / 2 - c.x;
                 s.rect.bottom = c.y - bottom;
             } else {
-                // NPC 矩形中心 = collider：非对称拖拽转化为 collider 偏移
+                // NPC 矩形与圆柱是同一个 footprint：拖动矩形等价于移动 collider
                 s.offsetX = (left + right) / 2 - this._entity.x;
                 s.offsetY = (top + bottom) / 2 - this._entity.y;
             }
@@ -1292,13 +1321,13 @@ export const CollisionEditor = {
             const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
             s.offsetX = d.startOffset.x + dx;
             s.offsetY = d.startOffset.y + dy;
-            if (this._editMode === 'cylinder' && d.startRect) {
-                // 圆柱单独移动：矩形锚定 collider（getTorsoRect cx=c.x+offsetX），
-                // 必须反向补偿让矩形保持原位——否则矩形跟着圆柱走（"不能单独移动圆柱"根因）
+            if (this._editMode === 'cylinder' && d.startRect && this._kind === 'enemy') {
+                // 敌人：圆柱单独移动，反向补偿绿色受击矩形，使其视觉上保持原位
                 s.rect.offsetX = d.startRect.offsetX - dx;
                 s.rect.bottom = d.startRect.bottom + dy;
             }
-            // both 模式：矩形随 collider 自动跟随，无需另写（此前同时写矩形=双倍位移"调整有差别"根因）
+            // NPC 矩形按实体位置锚定，圆柱移动时无需反向补偿即可保持原位
+            // both 模式：矩形随 entity 自动跟随，无需另写
             this._applyEdit();
         } else if (d.mode === 'spriteScale') {
             // 贴图等比缩放：上拖放大（150px 拖程=1 倍）
@@ -1306,10 +1335,15 @@ export const CollisionEditor = {
             s.spriteSize = Math.max(8, Math.min(1200, d.startSize * factor));
             this._applyEdit();
         } else if (d.mode === 'rectMove') {
-            // 只动矩形位置（rect.offsetX / rect.bottom），圆柱不动
+            // 只动矩形位置（enemy：rect.offsetX/bottom；NPC：矩形与圆柱共用 footprint，移动圆柱）
             const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
-            s.rect.offsetX = d.startRect.offsetX + dx;
-            s.rect.bottom = d.startRect.bottom - dy;
+            if (this._kind === 'enemy') {
+                s.rect.offsetX = d.startRect.offsetX + dx;
+                s.rect.bottom = d.startRect.bottom - dy;
+            } else {
+                s.offsetX = d.startOffset.x + dx;
+                s.offsetY = d.startOffset.y + dy;
+            }
             this._applyEdit();
         }
     },
@@ -1326,17 +1360,21 @@ export const CollisionEditor = {
         }
         if (d.mode === 'obstacleRect') {
             const p = this._previewPiece;
+            const g = ISO_WALL_GEO[this._key];
             const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
-            const rg = this._obstacleRectGeom();
-            // 宽：中心锚定（2×到中心距）；深：锚贴图底边（n=底边到点；s=点到顶边，底边不动）
-            if (d.handle.includes('e') || d.handle.includes('w')) {
-                s.foot.w = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (2 * Math.abs(pt.x - p.x)) / sx));
-            }
-            if (d.handle.includes('n')) {
-                s.foot.d = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (rg.bottom - pt.y) / sy));
-            } else if (d.handle.includes('s')) {
-                s.foot.d = Math.max(MIN_FOOT, Math.min(MAX_FOOT, (pt.y - rg.top) / sy));
-            }
+            let { left, right, top, bottom } = d.anchor;
+            // 以对侧为锚的 PhotoShop 式八点缩放
+            if (d.handle.includes('w')) left = Math.min(pt.x, right - MIN_FOOT * sx);
+            if (d.handle.includes('e')) right = Math.max(pt.x, left + MIN_FOOT * sx);
+            if (d.handle.includes('n')) top = Math.min(pt.y, bottom - MIN_FOOT * sy);
+            if (d.handle.includes('s')) bottom = Math.max(pt.y, top + MIN_FOOT * sy);
+            const newW = (right - left) / sx;
+            const newD = (bottom - top) / sy;
+            s.foot.w = Math.max(MIN_FOOT, Math.min(MAX_FOOT, newW));
+            s.foot.d = Math.max(MIN_FOOT, Math.min(MAX_FOOT, newD));
+            // footprint 中心相对贴图中心的偏移（保持对侧锚不动）
+            s.foot.offsetX = ((left + right) / 2 - p.x) / sx;
+            s.foot.offsetY = (bottom - p.y - (g.h * sy) / 2) / sy;
             this._applyGeoEdit();
             return;
         }

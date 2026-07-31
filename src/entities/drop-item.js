@@ -118,8 +118,8 @@ import { RARITY_COLORS } from '../config/rarity.js';
                     color: hover ? '#ffeb96' : rarityColor,
                     stroke: '#000000', strokeThickness: 3,
                 });
-                // 文字贴近放大后的贴图底部（紧凑布局），不随贴图浮动；整体上移 30px
-                this._phaserLabel.setPosition(this.x, this.y + 6);
+                // 文字放在贴图底部下方 20px（物品在名字上方 20px），不随贴图浮动
+                this._phaserLabel.setPosition(this.x, this.y + 20);
                 this._phaserLabel.setDepth(this.y + 11);
                 this._phaserLabel.setVisible(true);
             }

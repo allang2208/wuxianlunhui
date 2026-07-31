@@ -32,11 +32,11 @@ let _floorProfile = null;
 
 /**
  * 设置当前地板配置
- * @param {{tiles:string[], glow?:boolean}|null} profile null 恢复默认
+ * @param {{tiles:string[], glow?:boolean, overlapX?:number, overlapY?:number, backgroundColor?:string, deco?:object}|null} profile null 恢复默认
  */
 export function setDungeonFloorProfile(profile) {
     _floorProfile = (profile && Array.isArray(profile.tiles) && profile.tiles.length > 0)
-        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0, deco: profile.deco || null }
+        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0, backgroundColor: profile.backgroundColor || null, deco: profile.deco || null }
         : null;
 }
 
@@ -126,11 +126,11 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
     canvas.height = size;
     const ctx = canvas.getContext('2d');
 
-    // 1. 全屏纯黑背景
-    ctx.fillStyle = '#000000';
+    // 1. 全屏背景色（默认可通过 floor profile 覆盖，用于匹配地砖色调避免缝隙露黑）
+    const profile = _getProfile();
+    ctx.fillStyle = profile.backgroundColor || '#000000';
     ctx.fillRect(0, 0, size, size);
 
-    const profile = _getProfile();
     const tiles = [];
     for (const key of profile.tiles) {
         const img = _getSourceImage(key);

@@ -4162,10 +4162,11 @@ export class GameScene extends Scene {
                     sprite.setDisplaySize(size * 2, size * 2);
                 }
                 const label = this.add.text(e.x, e.y - (e.size || 16) - 8, '', {
-                    fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+                    fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
                     fontSize: '11px',
                     color: '#d4c5a9',
-                    align: 'center'
+                    align: 'center',
+                    stroke: '#000000', strokeThickness: 3,
                 });
                 label.setOrigin(0.5, 1);
                 label.setDepth(e.y + 1);

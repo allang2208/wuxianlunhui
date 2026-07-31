@@ -268,6 +268,12 @@ export const Game = {
             sprite: shopCfg.sprite,
             wander: shopCfg.wander,
             clickArea: shopCfg.clickArea,
+            collisionShape: shopCfg.collisionShape,
+            collisionWidth: shopCfg.collisionWidth,
+            collisionHeight: shopCfg.collisionHeight,
+            colliderOffsetX: shopCfg.colliderOffsetX,
+            colliderOffsetY: shopCfg.colliderOffsetY,
+            height: shopCfg.height,
             greetings: [
                 '你好，冒险者！欢迎来到无限轮回。',
                 '今天的天空格外晴朗呢。',
@@ -320,10 +326,12 @@ export const Game = {
             sprite: whCfg.sprite,
             noSeparation: whCfg.noSeparation,
             noShadow: whCfg.noShadow,
+            colliderOffsetX: whCfg.colliderOffsetX,
             colliderOffsetY: whCfg.colliderOffsetY,
             collisionShape: whCfg.collisionShape,
             collisionWidth: whCfg.collisionWidth,
             collisionHeight: whCfg.collisionHeight,
+            height: whCfg.height,
             clickArea: whCfg.clickArea,
             greetings: ['仓库为你敞开。']
         });
@@ -345,7 +353,9 @@ export const Game = {
             collisionShape: altarCfg.collisionShape,
             collisionWidth: altarCfg.collisionWidth,
             collisionHeight: altarCfg.collisionHeight,
+            colliderOffsetX: altarCfg.colliderOffsetX,
             colliderOffsetY: altarCfg.colliderOffsetY,
+            height: altarCfg.height,
             clickArea: altarCfg.clickArea,
             greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
         });
@@ -367,6 +377,9 @@ export const Game = {
             collisionShape: bsCfg.collisionShape,
             collisionWidth: bsCfg.collisionWidth,
             collisionHeight: bsCfg.collisionHeight,
+            colliderOffsetX: bsCfg.colliderOffsetX,
+            colliderOffsetY: bsCfg.colliderOffsetY,
+            height: bsCfg.height,
             clickArea: bsCfg.clickArea,
             greetings: [
                 '叮——叮——听这声音，好钢就是这样炼出来的！',
