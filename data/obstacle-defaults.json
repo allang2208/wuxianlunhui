@@ -5,5 +5,19 @@
     "rotation": 0,
     "flipX": false,
     "flipY": false
+  },
+  "woodpile": {
+    "scaleX": 0.23505784994053763,
+    "scaleY": 0.23505784994053763,
+    "rotation": 0,
+    "flipX": false,
+    "flipY": false
+  },
+  "orepile": {
+    "scaleX": 0.2857142857142857,
+    "scaleY": 0.2857142857142857,
+    "rotation": 0,
+    "flipX": false,
+    "flipY": false
   }
 }
