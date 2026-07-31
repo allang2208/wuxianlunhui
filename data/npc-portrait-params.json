@@ -5,5 +5,12 @@
     "scale": 1.56,
     "rotation": 0,
     "flipX": false
+  },
+  "npc_mouse_blacksmith": {
+    "x": -668,
+    "y": 24,
+    "scale": 1.56,
+    "rotation": 0,
+    "flipX": false
   }
 }
