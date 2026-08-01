@@ -208,11 +208,13 @@ export const CombatRoomSystem = {
         // 9. 门闸：距玩家最近的直墙件替换为带门直墙，播关门动画困场
         this._setupGate(player);
 
-        // 10. 墙面火把（贴墙摆放、无碰撞；避开门口/玩家出生点）
+        // 10. 障碍物：墙面火把（贴墙、无碰撞）+ 后墙预制组合；避开门口/玩家出生点
+        // （仅僵尸地牢大类生成；中央石柱只走竞技场路径，单房间不传 roomIndex）
         const gateInfo = WallGate.getGateInfo();
         const obstacleAvoid = [{ x: player.x, y: player.y, r: 150 }];
         if (gateInfo && gateInfo.center) obstacleAvoid.push({ x: gateInfo.center.x, y: gateInfo.center.y, r: 220 });
         ObstacleSpawnSystem.spawnForRoom(this._roomBounds, {
+            dungeonType: options.dungeonType,
             avoidPoints: obstacleAvoid,
         });
         WallSystem.rebuildIsoCollision();
@@ -1081,7 +1083,8 @@ export const CombatRoomSystem = {
         this._fillEdgeGaps(layout.rooms[2], 'LT', allGateSegs);
         this._fillEdgeGaps(layout.rooms[2], 'RB', allGateSegs);
 
-        // 8.5 墙面火把：每房独立一套（贴墙、无碰撞），避开门口/玩家出生点
+        // 8.5 障碍物：每房独立一套（墙面火把贴墙无碰撞；房间 1/2 中央石柱；
+        //     后墙预制组合只贴 LT/RT），避开门口/玩家出生点
         const r1 = layout.rooms[0];
         // 玩家出生点 = 入场地块中心（无入场门时回退房间 1 中心偏上）
         const spawnX = entryZone ? entryZone.cx : r1.cx;
@@ -1118,9 +1121,14 @@ export const CombatRoomSystem = {
             }
             ObstacleSpawnSystem.spawnForRoom(r.bounds, {
                 dungeonType: options.dungeonType,
+                roomIndex: r.index, // 房间 1/2 生成中央石柱；房间 3 宝箱房不生成
                 avoidPoints: avoid,
             });
         }
+        // 8.7 通道火把：每条通道右手侧墙按固定间隔均布（贴墙、无碰撞；仅僵尸大类）
+        ObstacleSpawnSystem.spawnForPassages(passageRecs, {
+            dungeonType: options.dungeonType,
+        });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 

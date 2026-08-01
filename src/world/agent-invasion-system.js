@@ -39,6 +39,7 @@ export const AgentInvasionSystem = {
     caught: false,
     invasionsUsed: 0,
     agentNodeId: null,
+    defeated: false,
     _dms: null,
     _label: null,
 
@@ -52,6 +53,7 @@ export const AgentInvasionSystem = {
         this.caught = false;
         this.invasionsUsed = 0;
         this.agentNodeId = null;
+        this.defeated = false;
         const list = DungeonConfig.getDungeonList();
         const grade = (list[dms.dungeonType] && list[dms.dungeonType].grade) || 'F';
         const minGrade = invasionConfig.minGrade || 'D';
@@ -59,6 +61,8 @@ export const AgentInvasionSystem = {
             && GRADE_ORDER.indexOf(grade) >= GRADE_ORDER.indexOf(minGrade);
         this.active = true;
         this._removeLabel();
+        // 进入地牢即展示几率标签（起始 0%），不再等 minRoomsToBoss 回合
+        if (this.eligible) this._updateLabel();
     },
 
     reset() {
@@ -80,7 +84,8 @@ export const AgentInvasionSystem = {
         this.turnCount++;
         const startTurns = this._getStartTurns();
         if (this.turnCount < startTurns) {
-            this._removeLabel();
+            // 判定未开始：几率保持 0%，但标签从进地牢起就展示（不删除）
+            this._updateLabel();
             return;
         }
         // 几率推进：初始 25%，每 2 回合 +5%
@@ -146,6 +151,17 @@ export const AgentInvasionSystem = {
 
     getArenaSize() { return invasionConfig.arenaSize || 4096; },
     getEdgeSpawnMargin() { return invasionConfig.edgeSpawnMargin || 200; },
+
+    /** 路线选择界面入侵者节点标记样式（display.nodeMarker；缺配置用兜底默认值） */
+    getNodeMarkerStyle() {
+        const m = (invasionConfig.display && invasionConfig.display.nodeMarker) || {};
+        return {
+            color: m.color || '#ff2222',
+            radius: m.radius || 10,
+            label: m.label !== undefined ? m.label : '特工',
+            pulse: m.pulse !== false,
+        };
+    },
 
     /** 供 CombatRoomSystem.spawnMonsters 使用的特工类工厂（其内部 new 调用等价工厂调用） */
     spawnAgentClass() { return createTimeAgentAssault; },
@@ -216,6 +232,8 @@ export const AgentInvasionSystem = {
     },
 
     _updateLabel() {
+        // 已战胜特工：本次地牢不再显示（onPlayerEnterNode 等仍会每回合调到此处）
+        if (this.defeated) { this._removeLabel(); return; }
         const d = invasionConfig.display || {};
         if (!this._label) {
             const el = document.createElement('div');
@@ -242,6 +260,12 @@ export const AgentInvasionSystem = {
         this._label.textContent = this.triggered
             ? `${d.label || '时空特工入侵几率'}：已入侵！`
             : `${d.label || '时空特工入侵几率'}：${pct}%`;
+    },
+
+    /** 入侵战斗胜利：删除左侧几率标签并标记已击败（本次地牢不再显示） */
+    onInvasionDefeated() {
+        this.defeated = true;
+        this._removeLabel();
     },
 
     _removeLabel() {

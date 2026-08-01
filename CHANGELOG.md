@@ -8,6 +8,137 @@
 - 测试结果
 - 已知问题
 
+### 对话：冲刺攻击应用武器模糊（2026-08-01）
+
+- 机制本已接入（`_syncSpecialWeaponAnim` 冲刺分支 `_isDashing` 期间调 `_applyWeaponBlur`），但 `sword.dash` 30 帧全是 `blurY=3`（m=3 → 强度仅 4.8），观感不明显。
+- `public/data/weapon-anim-config.json`：把 `sword.attack` 的 blurX/blurY 曲线复制到 `sword.dash` 对应帧（保留 offset/rotation/scale/stretch 不动），冲刺模糊与普通攻击同款（峰值 m=12 → 强度 19.2）。
+- 验证：CDP 实机冲刺时滤镜强度随帧变化（5.4→7.36，旧配置恒 4.8），确认新数据生效；`npm test` 全绿。
+
+### 对话：冲刺攻击末帧定格停顿期不采用武器模糊（2026-08-01）
+
+- `src/phaser/scenes/GameScene.js`：`_syncSpecialWeaponAnim` 冲刺分支的模糊应用改为仅 `player._isDashing`（冲刺位移期间）生效；末帧定格停顿（`_dashRecoverAt`）调 `_restoreWeaponBlurTexture` 恢复原贴图，停顿期武器清晰不模糊。
+- 测试：esbuild/eslint 通过；npm test 全绿。
+
+### 对话：武器运动模糊——迁移到 Phaser 4 Blur 滤镜（路线 A，运行时实时，无 canvas）（2026-08-01）
+
+- 背景：前一轮用 canvas 烘焙贴图复刻开发工具模糊（观感一致但运行时依赖 canvas 预烘焙）；按 Phaser 迁移计划（删除 Canvas 武器渲染路径）改为纯 Phaser 实现。
+- `src/phaser/scenes/GameScene.js`：`_ensureWeaponBlur` 用 `weaponSprite.enableFilters()` + `filters.internal.addBlur(2,1,1,0,…,2)`（quality2 7-tap 核 + steps2，`setPaddingOverride(null)` 自动扩边）；`_applyWeaponBlur` 各向同性（x=y=1）、strength = max×1.6（0.18→0.36→0.8→1.6 逐步加强，用户实机确认 0.8 已可见后再翻倍，峰值 max=12 → σ≈52px）；弱阈值归零。**残影与 canvas 烘焙均已移除**。
+- 冲刺末帧定格停顿（`_dashRecoverAt`）保持不模糊（仅 `_isDashing` 期间应用）。
+- 验证（CDP 实机全链路）：①固定屏幕测试精灵基线 0，滤镜 strength 9.6 时武器区域 11.3% 像素变化、max 450——滤镜真实渲染；②模拟 60fps 攻击逐帧调真实 `syncWeapon`，整个挥砍过程模糊持续应用、峰值 strength 9.0；③对比截图已存 `tmp-blur-compare.png`（左 OFF / 右 ON）。`npm test` 全绿；`eslint` 通过。
+
+### 对话：版本号入口化 + 僵尸地牢障碍物规则全套（石柱/预制组合/陷阱线/通道火把/图层/阴影）+ 通道遮挡根因修复（2026-08-01）
+
+- **版本号**：删除全局右上角 `.version-badge`（index.html/game.js/CSS 规则；meta.version 长期停在 0.198 已过时）；菜单层（menuLayer 标题界面）副标题下新增版本显示；`data/game-config.json` meta.version 0.198 → 0.366（public 同步）。
+- `src/world/obstacle-spawn-system.js`（v3 重写，仅僵尸大类生效，非僵尸返回 0）：
+  - `_spawnCenterPillar`：竞技场房间 1/2 菱形地面中央一根石柱——**底座**立菱形中心（`y = cy − h·scale/2`；锚点=贴图中心，旧写法底座沉到中心下 ~161px 偏南）；
+  - `_spawnPrefabCompositions`：池子 = 预制库键序「火把墙」之后的 10 组组合件，随机抽组平移到 LT/RT 后墙附近（wallDist 50~130），逐件校验不出界/不压墙/不挡门；数量 `countByRoom`（房间1/2=3、房间3=8、单房间=3）；烛台移出随机池；每件 depth = `max(obstacleDepthOf, 最近墙depth+0.1)` + depthManual（不被墙盖）；
+  - `_placeObstacle` + `_addObstacleShadow`：每件障碍物（含石柱）按 foot 碰撞 AABB（旋转件 |cos|/|sin| 展开）生成 entity_shadow 椭圆阴影（×PERSPECTIVE_SCALE_Y 0.5、alpha 0.35、depth−0.05），登记 `CombatRoomSystem._decoSprites` 随战斗房清理；
+  - `_spawnPassageTorches`（spawnForPassages 入口）：通道右墙（↘ 前进方向东北侧，用户实测确认）按 350px 固定间隔均布火把，「火把墙」锚定机制，无碰撞带火焰；房间墙面火把已整组删除（`wallTorches` 配置移除）。
+- `src/world/trap-system.js`：竞技场房间 1/2 陷阱改**石柱直线模式**——从石柱底座边缘（pillarR 实算）起随机左/右水平线，每 `lineSpacing`(30)px 一点直到墙边（数量由距离决定；线模式跳过环带专用的最小间距与前墙排除，canMoveTo/排除/可达校验保留）；房间 3 随机环带与单房间路径不变。
+- `src/world/dungeon-map-system.js`：6 处调用点补传 `dungeonType`（此前从未真正传入 spawnForRoom）；`_trapExtras` 注释同步。
+- `src/world/combat-room-system.js`：enterCombatRoom/enterCombatArena 调用点传 `dungeonType`/`roomIndex`；新增 8.7 步 `spawnForPassages`。
+- `src/phaser/scenes/GameScene.js`：**通道上墙误遮挡根因修复**——frontRange 公式 `displayHeight − footOffsetY` 改为 `footOffsetY + displayHeight/2`（footOffsetY 是 sprite 中心→脚底偏移，旧公式只有真实脚底→头顶高度一半：玩家 72 vs 144，留 72~144px 仲裁死带）。CDP 实机 21 点位复测 0 遮挡。
+- `data/dungeon-config.json`（+public 同步）：`combatRoom.obstacles` 新增 `prefabCompositions{countByRoom,wallDist,targetH}`/`centerPillar`/`passageTorches{interval}`，删 `wallTorches`；`zombieDungeon.traps` 新增 `lineSpacing: 30`。
+- `SKILL.md`：第 27 条补 frontRange 公式教训；新增第 30 条（位置/观感类改动必须 CDP 实机自验，含环境修复/调试方法/验证判例）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）；通道遮挡 CDP 实机 21 点位 0 遮挡；其余视觉项 CDP 自验进行中。
+- 已知问题：frontRange 封顶 160 对脚底→头顶 >160px 的大型敌人（如 fly-hand 260）仍留理论死带（既有设计取舍）。
+
+### 对话：冲刺攻击范围显示与判定口径统一（2026-08-01）
+
+- `src/ui/skill-manager.js`：技能详情「攻击范围」改为与实际判定同口径——扇形（冲刺攻击/冲刺攻击-火）= 武器 `attack.range + rangeBonusBase + 等级×rangeLevelBonus + rangeBonusFlat`（原为写死的 `165+25+等级×5`，低估 36+等级 px）；突刺（冲刺攻击-突刺）改为显示判定矩形长度 `hitCheck.length + lengthBonus + 改造 rangeDelta` 与判定宽度（武器 skillOverrides 优先，同 `_getSkillParam`）。
+- `src/entities/components/dash-system.js`：突刺的范围可视化（AttackRangeEffect）补上改造 `rangeDelta`，与 `_checkHit` 判定一致（画多少打多少）。
+- 测试：`node --check` ✓；`npm test` 全绿；`eslint` 通过。
+
+### 对话：路线窗口边界淡出 + 背景图提亮 + 近战命中音效（2026-08-01）
+
+- `src/world/dungeon-map-system.js`：路线图窗口（MAP_VIEW）四缘加渐变遮罩（12% 宽/高渐隐带，alpha 0.88→0）——节点/连线向窗口边缘淡出，弱化硬边；
+- 资源：`assets/ui/dungeon-map/map-bg.png` 亮度 +30%（ColorMatrix 1.3 倍，原地处理）；
+- 音效：`E:\无尽轮回\游戏\素材库\武器\剑\音效\hitting.mp3` → `assets/sounds/weapons/sword/hitting.mp3`（新建 sword 子目录）；
+- `src/combat/damage-pipeline.js`：`applyHit` 增加玩家近战命中音效（`isMelee && source._faction==='player'`，`playFile(hitting.mp3)`），90ms 节流防连段多目标刷音；远程/怪物命中不触发。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：冲刺/突刺/风车/推击等直伤路径补命中音效（2026-08-01）
+
+- 根因：冲刺攻击、骑士长剑冲刺突击、风车、推击等技能**不经过 `DamagePipeline.applyHit`**，直接在组件里 `entity.takeDamage`——原 applyHit 音效钩子覆盖不到。
+- `src/entities/components/dash-system.js`：新增 `_playMeleeHitSound()`（90ms 节流），在突刺首段（含大马士革钢双倍命中）、突刺二/三段、冲刺攻击/冲刺攻击-火三处伤害判定点立即播放。
+- `src/entities/components/whirlwind-system.js` / `push-strike-system.js`：同口径补齐风车、推击命中音效。
+- 说明：所有路径共用 `assets/sounds/weapons/sword/hitting.mp3`，节流 90ms 保证一次横扫/多段只响一次。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：路线界面下方背景图替换（2026-08-01）
+
+- 资源：`C:\Users\allan\Downloads\2026-08-01-20_53_26.png`（2048×688，宽幅，比例与地图区 ~2.96:1 几乎一致）→ 覆盖 `assets/ui/dungeon-map/map-bg.png`。
+- 渲染无需改动：`_drawMapAreaBackground` 已按拉伸铺满地图区域绘制，新图直接生效（含暗色覆盖层/暗角）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：前墙窗口按贴图高度解耦（通道上墙/墓碑遮挡）+ 火焰偏移 + 入侵几率标签进地牢即显/战胜删除（2026-08-01）
+
+- `src/world/wall-system.js` `junctionCorrectedDepth`：
+  - **线后/线前收集窗解耦**：新增第 4 参 `frontRange`（默认 60 兼容旧行为）——线前（前墙）窗口改用实体贴图"脚底→头顶"高度；旧版两侧统一 60px，实体站墙前 60~160px（贴图仍与墙像素重叠）收不到面线不抬升，被墙 flat depth 盖住（通道上侧墙"贴墙正常、稍远离反被挡"与墓碑贴墙生成被墙盖，同一根因；非 V0.364/365 回归，V0.363 起即存在）；
+  - **遮挡源/前墙优先级修正**：遮挡源只在"比所有前墙都深"时才压制，否则前墙抬升优先（修 V0.365 引入的门口 X 形楔形区误压：侧墙线前+门墙线后的实体应抬不应压）。
+- `src/phaser/scenes/GameScene.js`：玩家/敌人仲裁调用点传入 `frontRange = min(160, max(60, displayHeight − footOffsetY))`。
+- `src/world/obstacle-spawn-system.js`：火把火焰粒子发射点左移 3px、下移 2px（按用户实测）。
+- `src/world/agent-invasion-system.js`：入侵几率标签**进入地牢即展示**（0% 起，不再等 minRoomsToBoss 回合；判定未开始回合刷新标签而非删除）；新增 `defeated` 标记与 `onInvasionDefeated()`——战胜特工后删除左侧标签且本次地牢不再显示（`_updateLabel` 开头守卫）。
+- `src/world/dungeon-map-system.js`：`_leaveCombatViaPortal` 检测 `_invasionNode` 即调 `onInvasionDefeated()`（情况1/3 与混合战两条入侵战胜利出口均覆盖）。
+- `SKILL.md`：第 27 条补记 frontRange 窗口解耦与遮挡源/前墙优先级教训。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+- 已知问题：①宽前墙窗口下被抬实体会反超"站在它与墙之间"的其他实体（旧 60px 带内已存在，封顶 160 接受）；②通道/墓碑/楔形区遮挡修复未实机目检，建议 D 级竞技场四站位验证。
+
+### 对话：路线节点换贴图（起始/战斗/随机事件/空）+ 特效位置匹配 + 禁用缩放（2026-08-01）
+
+- 资源：素材库地牢界面四张透明底贴图 → `assets/ui/dungeon-map/node_start.png` / `node_combat.png` / `node_event.png` / `node_empty.png`（1536²，内容约 400×400；随机事件约 684×844）。
+- `src/world/dungeon-map-system.js`：
+  - 新增 `NODE_TEX` 类型→贴图映射 + `NODE_TEX_SIZE: 84`（地图单位，最大边；84 ≈ 72 时金色环直径，贴图与金色环匹配）与 `_getNodeTexImage` 懒加载；
+  - 节点绘制：start/combat/event/empty 已揭示时用贴图替换纯色圆（状态透明度/呼吸光晕同口径），迷雾 unknown 与 boss/reward 仍走原纯色圆+图标；
+  - 特效位置匹配：贴图节点 `radius = NODE_TEX_SIZE/2`；金色呼吸环贴紧贴图（+2）、白色脉冲环（+3+3pulse）、精英双圈（+4/+2）均随贴图尺寸定位；★/你 按贴图尺寸偏移；贴图节点 hover 加白色定位圈；贴图节点不再叠加 emoji 图标；
+  - 滚轮缩放禁用（只能拖动调整位置，防止贴图大小随缩放变化），保留拖动平移与区域钳制。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：移除贴图节点阴影光晕（"大金环"排查）（2026-08-01）
+
+- **根因**：贴图节点绘制时沿用了纯色圆时代的 `shadowBlur` 光晕——阴影按贴图轮廓向外扩散，在低 mapScale 下比贴图大数倍，形成"远远大于节点贴图的金色环"。
+- **修复**：`hasTex` 分支去掉阴影光晕（`shadowBlur = 0` 后直接 `drawImage`），状态提示交给金色呼吸环/白色脉冲环；纯色圆路径（boss/reward/迷雾）保留原光晕不变。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：节点贴图按内容包围盒裁剪（"大金环"真正根因）（2026-08-01）
+
+- **真正根因**：节点贴图绘制按**整张 1536×1536 画布**缩放（`drawImage` 无源矩形），而节点图案只占画布中央约 26%（406×400）——图标实际只显示 ~22 地图单位，金色呼吸环却按 84 单位的 `radius+2` 绘制，环 ≈ 图标 4 倍大小（正是"所有节点外部一圈固定大小、3~4 倍于节点图片"的观感）。
+- **修复**：新增 `NODE_TEX_CROP` 内容包围盒（alpha>30 实测 +4px 余量，四张贴图各自坐标），`drawImage` 用源矩形只画内容区——图标真正填满 84 单位，呼吸环/脉冲环/精英圈贴紧图标边缘。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：随机事件节点贴图裁剪修正（大小/位置对齐其他节点）（2026-08-01）
+
+- **根因**：随机事件贴图的裁剪配置误用了**稀疏几何包围盒**（687×845，左上大片空白、中心偏移到 (630,550)），导致图标按最大边缩放后偏小且位置偏；实际密集图案为 (568,576)~(972,972) = 405×397，与其他三张节点贴图（约 405×400）完全一致。
+- **修复**：`NODE_TEX_CROP.node_event` 从 `[284,124,692,852]` 改为 `[564,572,412,404]`——随机事件图标现在和其他节点同尺寸（84×~82）、同位置（图案中心对齐节点中心）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：时空特工动画消失修复 + 入侵战改三房间竞技场（特工第三房刷新）+ 路线图入侵者节点标记（2026-08-01）
+
+- `src/phaser/scenes/GameScene.js`：修复入侵特工动画全消失——根因是渲染管线的阵营闸门：入侵特工被 `markAsInvasion` 打成 `_faction='agent'`，而 `_syncBodiesToPhysics` 只给 `_faction==='enemy'` 创建 `_phaserSprite`，特工永远拿不到 sprite（实机被画成 neutral_circle 占位圆；07-22 入侵机制引入当天即存在的结构性缺口，主神空间测试特工不改 faction 所以未暴露）。4 处闸门放宽为 `'enemy' || 'agent'`：sprite 创建（:459）、`_syncEnemyAnimation`（:482）、脚底阴影（:673）、小地图红点（:4117）。中立渲染在拿到 sprite 后自动跳过；血条 HUD 无 faction 闸门不受影响；战斗逻辑的友军豁免口径不动，agent↔enemy 依旧互相敌对。
+- `src/world/dungeon-map-system.js`：
+  - 入侵混合战改三房间竞技场：`_enterZombieCombat` 删除 `!this._invasionMixed &&` 排除条件；`_enterInvasionBattle` 情况2 进场刷特工改为 `!CombatRoomSystem._arena` 才立即刷（回退单房间路径旧行为不变）；`_onArenaRoomSealed` 新增 `roomIdx===3 && _invasionMixed` 时在房间 3 随第 3 波同刷特工（此时 `_roomBounds` 已切到房间 3）；`_spawnInvasionAgentsOnFreeEdge` 加 `WallSystem.findSafeSpawn` 防穿墙兜底。情况1/3（纯特工强制战）保持现状。
+  - 路线选择界面新增入侵者节点标记：`render()` 节点循环后画红色脉冲圆点+"特工"字（`AgentInvasionSystem.triggered && agentNodeId` 定位，呼吸脉冲用 `_mapAnimT`，已追上时标记右移避免遮挡"你"节点），样式全走配置。
+- `src/world/agent-invasion-system.js`：新增 `getNodeMarkerStyle()` getter（逐项兜底）。
+- `data/agent-invasion.json`：`display` 块新增 `nodeMarker`（color/radius/label/pulse）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+- 已知问题：特工房间 3 刷新观感与地图标记视觉未实机验证，建议入侵混合战实测。
+
+### 对话：路线选择地图表现升级 B/C/D/E（连线/反缩放标签/背景协调/反馈）（2026-08-01）
+
+- `src/world/dungeon-map-system.js`：
+  - 新增 `_mapAnimT` 动画时钟（update 累计），驱动流动虚线与呼吸/脉冲环；
+  - **B 连线**：已走路径=暗色粗底+绿色细线双层；可点击路径=金色光晕底+流动虚线（`lineDashOffset` 动画、屏幕恒定光晕）；未开放/迷雾=暗色细虚线；
+  - **D 背景协调**：下方背景图叠加半透明暗色覆盖层（上下略深）+ 左右 16% 暗角，提升节点对比、统一色调；
+  - **E 反馈**：可点击节点金色呼吸外环；当前节点白色脉冲双环；精英节点双层紫圈；
+  - **C 反缩放标签**：图标/★/你 从地图空间移到屏幕空间绘制（`setTransform` 恢复坐标、保持区域裁剪），字号 12~18px 随节点屏幕半径约束恒定，缩放不再发虚/忽大忽小。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：路线选择界面下方改用 背景.png（2026-08-01）
+
+- 资源：`E:\无尽轮回\游戏\素材库\UI\地牢界面\背景.png`（2560×1440 全不透明整图）→ 复制为 `assets/ui/dungeon-map/map-bg.png`。
+- `src/world/dungeon-map-system.js`：新增 `_drawMapAreaBackground(ctx, area)`——背景图**拉伸放大铺满整个下方地图区域**（area.left/top/width/height），绘制在地图深色底块之上、节点/连线之下；图片未就绪时保持原 `#08080a` 底块兜底。cover 方案实机效果不佳已回退本版。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
 ### 对话：武器/阴影/奔跑特效继承墙体遮挡 + 火把套预制件「火把墙」锚定贴墙（2026-08-01）
 
 - `src/phaser/scenes/GameScene.js`：
@@ -21,7 +152,7 @@
 
 ### 对话：改造栏拖动贴图修复 + 祭坛/仓库去立绘 + 主神空间障碍物清理与 Delete 自动落盘（2026-08-01）
 
-- `src/ui/craft-system.js`：改造栏拖出装备的拖拽图像改为**同步**设置 56×56 小格子快照——优先用改造栏已加载的贴图实例直接绘制，异步加载仅作补绘兜底；修复此前 `img.onload` 里异步调用 `setDragImage` 的竞态（浏览器忽略晚到设置，默认快照显示 dropZone 大贴图），现与背包拖出同款小图标效果。
+- `src/ui/craft-system.js`：改造栏拖出装备的拖拽图像改为**复用背包格同款装备方块**——新增 `_buildDragGhostCell` 按 `slot-renderer.updateInventorySlots` 同口径离屏构造 `.inv-cell`（稀有度竖标签+强化/改造/附魔标+32px 图标+名称+堆叠数），并新增 `_measureBackpackCell` 从真实背包格量取尺寸（5 列 1fr 网格，宽随面板/高 56px，面板收起时 visibility:hidden 仍可取布局尺寸；未创建格子时按网格公式兜底），保证拖拽方块与背包格**结构、尺寸完全一致**；同步 `setDragImage` 修复此前异步/画布方案的竞态（默认快照显示 dropZone 大贴图）。
 - `src/entities/npc.js`：portrait 兜底由默认立绘改为空串——未配置 portrait 的 NPC（祭坛/仓库）默认无立绘。
 - `src/ui/npc-dialogue.js`：无立绘 NPC 隐藏立绘区、不进入立绘工具逻辑、不显示「调整立绘」按钮。
 - `data/obstacle-layout.json` / `public/data/obstacle-layout.json`：删除主神空间摆放实例中的石柱×2、木桶、头骨、陶罐、骨头堆、锁链、火把（保留木材堆/铁矿堆/烛台）。

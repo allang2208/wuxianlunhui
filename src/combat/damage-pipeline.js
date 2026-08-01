@@ -1,10 +1,13 @@
 import { applyEnchantOnHit } from './attack.js';
+import { SoundManager } from '../ui/sound-manager.js';
 
 /**
  * 统一伤害处理管道
  * 封装命中后的通用流程，消除 attack.js 和 projectile.js 中的重复代码
  */
 class DamagePipeline {
+    /** 玩家近战命中音效节流（连段/多目标防刷音） */
+    static _meleeHitSoundCd = 0;
     /**
      * 执行一次命中后的完整伤害流程
      * @param {object} source 攻击来源（玩家或敌人）
@@ -56,6 +59,16 @@ class DamagePipeline {
         }
         if (killed && killCountRef && typeof killCountRef.value === 'number') {
             killCountRef.value++;
+        }
+
+        // 玩家近战攻击命中音效（assets/sounds/weapons/sword/hitting.mp3；
+        // 节流 90ms 防连段多目标刷音）
+        if (isMelee && source && source._faction === 'player' && SoundManager && typeof SoundManager.playFile === 'function') {
+            const now = performance.now();
+            if (now >= DamagePipeline._meleeHitSoundCd) {
+                DamagePipeline._meleeHitSoundCd = now + 90;
+                SoundManager.playFile('assets/sounds/weapons/sword/hitting.mp3');
+            }
         }
 
         if (!parried && isValidKnockback(knockback, angle) && typeof target.applyKnockback === 'function') {

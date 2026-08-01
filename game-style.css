@@ -129,7 +129,6 @@
         .attack-range-toggle.active { border-color: #7a9a6a; color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
         .attack-range-toggle span { pointer-events: none; }
 
-        .version-badge { position: fixed; top: 12px; right: 12px; padding: 6px 14px; background: linear-gradient(135deg, #ff6b6b, #feca57, #ff6b6b); background-size: 200% 200%; animation: versionGlow 2s ease infinite; border: 2px solid #ffd700; border-radius: 20px; color: #1a1a2e; font-size: 14px; font-weight: 700; font-family: 'Courier New', monospace; letter-spacing: 1px; z-index: 9999; pointer-events: none; text-shadow: 0 0 4px rgba(255,255,255,0.5); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 107, 107, 0.3); }
         @keyframes versionGlow { 0% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 107, 107, 0.3); } 50% { background-position: 100% 50%; box-shadow: 0 0 25px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 107, 107, 0.5); } 100% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 107, 107, 0.3); } }
 
         /* ===== 装备动画效果 ===== */

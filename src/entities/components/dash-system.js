@@ -17,6 +17,18 @@ import { SoundManager } from '../../ui/sound-manager.js';
 class DashSystem {
     constructor(player) {
         this.player = player;
+        this._meleeHitSoundCd = 0; // 命中音效节流（防多目标/多段刷音）
+    }
+
+    /** 玩家冲刺攻击命中音效（与 DamagePipeline 同口径、同节流时长） */
+    _playMeleeHitSound() {
+        const now = performance.now();
+        if (now >= this._meleeHitSoundCd) {
+            this._meleeHitSoundCd = now + 90;
+            if (SoundManager && typeof SoundManager.playFile === 'function') {
+                SoundManager.playFile('assets/sounds/weapons/sword/hitting.mp3');
+            }
+        }
     }
 
     trigger(_entities) {
@@ -170,7 +182,11 @@ class DashSystem {
                     EffectManager.add(this.player._goldenConvergeEffect);
                     if (Game.showAttackRange) {
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
-                        const rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
+                        let rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
+                        // 与 _checkHit 同口径：改造「攻击距离」加进显示，画多少打多少
+                        if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
+                            rectLength += currentWeapon._craftEffects.rangeDelta;
+                        }
                         const rectWidth = this.player._getSkillParam('dashAttackThrust', 'hitCheck.width', effect.hitWidth);
                         const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', effect.hitBackOffset) || 0;
                         EffectManager.add(new AttackRangeEffect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, 'triangle', effect.rangeEffectLife, effect.rangeEffectAlpha, true, backOffset));
@@ -435,6 +451,7 @@ class DashSystem {
                         critMul = 1 + csEffect.damageBonus;
                     }
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
+                    this._playMeleeHitSound(); // 突刺首段命中
                     entity.takeDamage(finalDamage, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害
                     if (dashDoubleHit) {
@@ -473,6 +490,7 @@ class DashSystem {
                         critMul = 1 + csEffect.damageBonus;
                     }
                     const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
+                    this._playMeleeHitSound(); // 突刺二/三段命中
                     entity.takeDamage(finalDamage, this.player);
                     if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                     // 大马士革钢：只在第一次判定触发双倍伤害（hitIndex === 0 已处理，这里不触发）
@@ -524,6 +542,7 @@ class DashSystem {
                 }
                 const finalDamage = isCrit ? Math.floor(damage * critMul) : damage;
                 const wasAlive = entity.hp > 0;
+                this._playMeleeHitSound(); // 冲刺攻击/冲刺攻击-火命中
                 entity.takeDamage(finalDamage, this.player);
                 if (window.__phaserScene) window.__phaserScene.triggerZombieHitParticles(entity, this.player);
                 if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;

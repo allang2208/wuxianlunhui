@@ -228,6 +228,8 @@ this.ai = config.ai || {};
 - `WallSystem.junctionCorrectedDepth(x, y, depth)` 是实体（玩家/怪物）级遮挡仲裁的唯一入口，GameScene `_updateDynamicDepths` 每帧调用，参数是逻辑脚线 (x, y) + natural depth（sprite.y + footOffsetY + 10）。
 - **教训（V0.364 门口通道侧漏遮挡）**：门口处多条面线共存（通道侧墙/门墙/房间墙），旧版只取**最近一条**仲裁，门跨长（~477px、y 差 ~238px）的深端会选中非门墙的面线而放行——玩家几何上在门墙后却完整显示。正解：收集脚线 ±60px 内**所有**面线，y<yLine 记遮挡源、y≥yLine 记前墙；**有任一遮挡源则压到其下（-0.5），否则有前墙则抬到其上（+0.5）**。
 - **教训（V0.365 门墙左段时挡时不挡）**：多遮挡源共存时**遮挡源必须取最浅（min depth）**，实体压到所有遮挡线之下才算"被任一遮挡"——旧版取最深（max），门洞深端实体会被邻接 max 规则瓦片面线抬到门墙 depth 之上，门左段（RB 边深端）时挡时不挡；右侧浅端因脚底 y 天然浅于门洞中心 depth 一直正常。另：门墙面线 depth=门洞中心比深端浅 ~119px，±60px 收集窗覆盖不了深端墙后 60~119px 的实体（仲裁完全失效），收集窗要按"面线深端 y − depth"亏空加宽（普通 max 规则瓦片亏空为 0，行为不变）。
+- **教训（V0.366 通道上墙"稍远离反被挡" + 墓碑被墙盖）**：**线后（遮挡源）与线前（前墙）的收集窗必须解耦**——线前窗口要按实体贴图"脚底→头顶"高度传入（`junctionCorrectedDepth` 第 4 参 `frontRange`，默认 60 兼容旧行为）。旧版两侧统一 60：实体站墙前 60~160px 时贴图仍与墙像素重叠，却收不到面线不抬升，被墙 flat depth（整条瓦最深端 y，斜瓦 y 跨 ~238px）盖住——呈现"贴墙正常→稍远离被挡→更远又正常"的非单调带。墓碑 INSET=80 恰好越窗，同根因。**两侧共存的优先级**：遮挡源只在"比所有前墙都深"时才压制（浅遮挡源贴图本身画在深前墙之下，实体在深前墙之前不可能被它真遮挡——门口 X 形楔形区：侧墙线前 + 门墙线后的实体应抬不应压）。已知代价：被抬实体会反超"站在它与墙之间"的其他实体（旧 60px 带内已有，窗口加宽只是带更宽，封顶 160 接受）。
+- **教训（V0.366 二轮返工：frontRange 公式算错一半）**：脚底→头顶真实高度 = **`footOffsetY + displayHeight/2`**（`footOffsetY` 是 sprite **中心**→脚底的偏移，sprite origin 0.5）——写成 `displayHeight − footOffsetY` 只有真实值一半（玩家 72 vs 144），留下 72~144px 仲裁死带，一轮修复白做。**几何参数写下前先把每个量的参照系（锚点/原点/方向）在注释里钉死再推导**，位置/观感类修复必须实机复测才算完（见第 30 条 CDP 自验流程）。
 - **门墙 depth = 门洞中心底边 y**（不是 max 端点）：`_createArenaGate`、宝箱房 `_placeGate`、`WallGate.placeAt` 共 4 处。这样门洞中的实体（脚线≈门洞中心）按前墙抬起可见，门后实体被压下遮挡。
 - 门面线进仲裁缓存靠 `_getFaceSegCache` 主动收集实例（arena entryGate/passages gates、WallGate `_seg`、ChestRoom `_gate`），几何重建时失效；`wall-gate.js`/`chest-room-system.js` 末尾自挂载 `window` 避免环依赖。
 - **验证套路**：四站位矩阵（门后走廊/门洞中心/房间侧/浅端）断言 `playerSprite.depth` 与门 depth 的大小关系 + 截图目检；别只看函数返回值——要确认帧循环里实际写入的 depth。
@@ -241,3 +243,28 @@ this.ai = config.ai || {};
 - **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承（`_syncEntityShadows` 比 `_updateDynamicDepths` 先跑，读到上一帧 depth，差一帧无感）。
 - **定点特效（奔跑烟尘 DustEffect 等 graphics）**：生成位置固定，depth 用 `junctionCorrectedDepth(fx.x, fx.y, 自然 depth)` 过一遍仲裁（`window.WallSystem` 已挂载，效果类文件直接用全局引用即可），实体在墙后时烟尘同步压到墙下。
 - 通则：**任何以"实体深度 ± 偏移"或"自身 y + 偏移"赋 depth 的附属视觉，在墙体遮挡场景都要么跟随本体仲裁后 depth，要么自己过一遍仲裁**；新增此类视觉时把这条当 checklist。
+
+## 29. 新增阵营/实体类型先查 GameScene 渲染闸门清单（V0.365 特工动画消失）
+
+- `GameScene` 多处按 `_faction === 'enemy'` 设闸：`_syncBodiesToPhysics` 的 sprite 创建、`_syncEnemyAnimation`、`_syncEntityShadows`、小地图红点。入侵特工 `markAsInvasion` 打成 `_faction='agent'` 后全被闸住——拿不到 `_phaserSprite`，动画链一次不执行，实机被 `_syncNeutralEntities` 画成 neutral_circle 占位圆。
+- 该缺口藏了 10 天没被发现的原因：主神空间测试生成（`spawnMainTimeAgent`）不改 faction，素材/动画都在那里验收；入侵机制只做过状态机模拟，实机入侵战没人看过。**新机制验证必须包含实机目视**。
+- 修复口径：渲染闸门放宽为 `'enemy' || 'agent'`（4 处）；**不要**反过来让 `markAsInvasion` 不改 faction——战斗逻辑按 `source._faction === entity._faction` 判友军豁免，agent↔enemy 互相敌对依赖这个区分。
+- 新增阵营/实体类型时过一遍闸门清单：sprite 创建、动画同步、阴影、小地图、HUD、中立圆兜底（`_syncNeutralEntities` 有 `_phaserSprite` 会自动跳过，无需处理）。
+
+## 30. 位置/观感类改动必须 CDP 实机自验（V0.366 三轮返工的教训）
+
+本会话连续三次"代码逻辑对、视觉效果错"（火把没贴墙、通道遮挡参数错一半、石柱锚点偏 161px）——静态审查发现不了，必须实机验证。已验证可行的流程：
+
+- **起实例**：`npm run dev`（vite 5173 + electron）；electron 加 `--remote-debugging-port=9222`（可隐藏窗口）。先查端口占用，**不要杀用户自己的游戏实例**。若 `npx electron` 报 "Electron failed to install correctly"：重建 `node_modules/electron/path.txt`（内容 `electron.exe`）。
+- **CDP 调试**：`tools/cdp-eval.mjs` 用 `Runtime.evaluate(returnByValue)`，脚本写成**返回对象的 IIFE**（`console.log` 只得 undefined）；GameScene 实例 = `window.PhaserGame.scene`（`window.Game.scene` 不存在）；`window.WallSystem`/`window.CombatRoomSystem`/`window.DungeonMapSystem` 已挂载。
+- **快捷进入目标场景**：不必手动玩，CDP 直接调内部函数（如 DungeonMapSystem 的节点/战斗入口）让竞技场/战斗房建出来。
+- **验证方法**：量化断言优先（坐标/间距/depth 对比），像素级判定辅助（如遮挡 = 墙不透明带 ∩ 实体包围盒逐 x 扫描，21 点位矩阵实测 0 遮挡的判例），截图留证（`Page.captureScreenshot` 存 `tools/verify-shots/`）。
+- **收尾**：关调试实例、删临时文件（截图保留），验证数据写进汇报。
+
+## 31. 本轮零散但可复用的教训（V0.365~V0.366）
+
+- **缓存键必须包含全部渲染输入**：小地图静态层重绘缓存只看"墙数量"，地牢(2048)→主神空间(4096)切换后墙数量恰好相同 → 用错误世界尺寸画的放大层永久残留。任何"数量指纹"缓存都要把尺寸/比例等输入一并纳入键（`wallCount + WORLD_W×H`），场景切换完成处再显式失效一次双保险。
+- **状态机守卫放在分支外面**：竞技场第三间房弹回路线选择——`waveSpawned` 守卫嵌在 `stage < 3` 分支里，stage=3 的关门窗口期漏保护，误排定时器清掉刚刷的怪。涉及"等待外部事件"的守卫要覆盖**所有**分支，定时回调里再防御一次（触发时状态已变迁则放弃）。
+- **预生成内容的可达性校验锚点要用房内参考点**：陷阱改为房间生成时预生成后，`pathFinder` 到玩家的校验会把他房陷阱全拒（门关着不可达）。给校验加 `reachFrom` 参数，预生成锚房心/本房门点，运行时锚玩家，两条路径分开。
+- **代码计算放置位置先确认贴图锚点**：`isoVisuals` 件 origin 0.5（x,y = 贴图中心），"石柱立在菱形中央"要写成 `y = cy − h·scale/2`（底座 = 中心）；把贴图中心放中心 = 底座偏南 h·scale/2（石柱 640×0.505 偏了 161px）。
+- **波次/遭遇覆盖要有下限兜底**：事件 `combatWaves:1` 覆盖进三房间竞技场会软锁（房 1 清完即 isComplete、门不再开）——`forceArenaWaves(3)` 补足波次，强制怪压轴最后一波。容器有固定阶段数时，外部配置必须钳到阶段数下限。

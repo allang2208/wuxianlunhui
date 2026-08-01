@@ -3,6 +3,8 @@
  * 菜单层面板 - 动态创建模块
  * 对应 index.html 中的 menu-layer 部分
  */
+import { GAME_CONFIG } from '../../config/game-config.js';
+
 export function createMenuLayer() {
     // 根元素: menuLayer
     const menuLayer = document.createElement('div');
@@ -29,6 +31,13 @@ export function createMenuLayer() {
     gameSubtitle.className = 'game-subtitle';
     gameSubtitle.textContent = '俯视角动作RPG';
     menuContent.appendChild(gameSubtitle);
+
+    // 版本号（仅进入游戏界面展示；全局右上角 badge 已删除——meta.version 长期未递增已过时）
+    const versionText = document.createElement('p');
+    versionText.className = 'game-version';
+    versionText.style.cssText = 'margin:4px 0 0;font-size:13px;color:#8a7f6d;letter-spacing:1px;';
+    versionText.textContent = 'V' + (GAME_CONFIG.meta?.version || '');
+    menuContent.appendChild(versionText);
 
     // 子元素: div.menu-buttons
     const menuButtons = document.createElement('div');

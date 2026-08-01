@@ -3,10 +3,23 @@ import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 import { VerticalSector } from '../../physics/skill-shapes.js';
 export class PushStrikeSystem {
     constructor(player) {
         this.player = player;
+        this._meleeHitSoundCd = 0; // 命中音效节流
+    }
+
+    /** 玩家近战命中音效（与 DamagePipeline 同口径） */
+    _playMeleeHitSound() {
+        const now = performance.now();
+        if (now >= this._meleeHitSoundCd) {
+            this._meleeHitSoundCd = now + 90;
+            if (SoundManager && typeof SoundManager.playFile === 'function') {
+                SoundManager.playFile('assets/sounds/weapons/sword/hitting.mp3');
+            }
+        }
     }
 
     trigger() {
@@ -98,6 +111,7 @@ export class PushStrikeSystem {
             if (!shape.intersectsEntity(entity)) return;
             this.player._pushStrikeHitSet.add(entity);
             const wasAlive = entity.hp > 0;
+            this._playMeleeHitSound(); // 推击命中
             entity.takeDamage(damage, this.player);
             if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
             hitCount++;
