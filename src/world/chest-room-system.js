@@ -93,7 +93,7 @@ export const ChestRoomSystem = {
             // 全场统一 max 规则（与菱形战斗房墙体同口径，详见 wall-system buildIsoDiamondWalls 注释）
             const mode = 'max';
             if (p.tex === 'wall_gate' || p.tex === styleGateTex) {
-                gateDefs.push({ p, seg: segsByPiece[i][0], mode });
+                gateDefs.push({ p, seg: segsByPiece[i][0] });
                 return;
             }
             if (p.tex === 'wall_straight' && styleStraightTex !== 'wall_straight') {
@@ -115,8 +115,8 @@ export const ChestRoomSystem = {
         });
 
         // 2. 门墙件：独立控制（常闭 + 开门动画 + 碰撞启停），不进 isoVisuals
-        for (const { p, mode } of gateDefs) {
-            this._placeGate(scene, p, ox, oy, mode);
+        for (const { p } of gateDefs) {
+            this._placeGate(scene, p, ox, oy);
         }
 
         WallSystem.rebuildIsoCollision();
@@ -198,11 +198,10 @@ export const ChestRoomSystem = {
     /**
      * 门墙放置：按预制件保存的变换（x/y/scale/flip）原样放置，初始关门。
      * 碰撞从件自身变换推导（_pieceBaseSegments + gateX 映射），与 wall-gate 同模型。
-     * 图层（整块墙遮挡规则）：mode='min' 后墙取底边最小 y（室内实体永远在前），
-     * mode='max' 前墙取底边最大 y（墙后实体——含门口/接缝处——被整面门墙遮挡）；
-     * 不再用"底边最低点-墙高"的压低规则（门墙挡不住实体、接缝漏遮挡的根因）。
+     * 图层：门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）——
+     * 单位过门洞时门后遮挡、过半场显现；直墙件仍为整墙 max 规则，接缝天然衔接。
      */
-    _placeGate(scene, p, ox, oy, mode = 'max') {
+    _placeGate(scene, p, ox, oy) {
         const g = WallSystem._geoForTex(p.tex) || ISO_WALL_GEO.gate;
         if (!scene.textures.exists(p.tex)) return;
         this._gateGeoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex) || 'gate';
@@ -219,8 +218,8 @@ export const ChestRoomSystem = {
         const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
-        // 整块墙遮挡：深度 = 底边 min/max（与宝箱房直墙件同规则，接缝处由同一规则天然衔接）
-        const gateDepth = mode === 'min' ? Math.min(gA.y, gB.y) : Math.max(gA.y, gB.y);
+        // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案，与竞技场门同规则）
+        const gateDepth = (g1.y + g2.y) / 2;
         sprite.setDepth(gateDepth);
         const segs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _chestGate: true },
@@ -414,3 +413,8 @@ export const ChestRoomSystem = {
         this._timeLeft = 0;
     },
 };
+
+// 挂载到全局（wall-system 遮挡仲裁缓存引用用，避免模块环依赖）
+if (typeof window !== 'undefined' && !window.ChestRoomSystem) {
+    window.ChestRoomSystem = ChestRoomSystem;
+}

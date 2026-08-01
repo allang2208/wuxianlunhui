@@ -33,5 +33,12 @@
     "rotation": 0,
     "flipX": false,
     "flipY": false
+  },
+  "torch": {
+    "scaleX": 0.21691481028661888,
+    "scaleY": 0.21691481028661888,
+    "rotation": 0,
+    "flipX": false,
+    "flipY": false
   }
 }

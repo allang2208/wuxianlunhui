@@ -29,10 +29,12 @@ import { TrapSystem } from './trap-system.js';
 import { WallGate } from './wall-gate.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
-import { coverRect, anchorRect } from '../utils/layout.js';
+import { anchorRect } from '../utils/layout.js';
 
-/** 路线选择界面区域 spec（1920×1080 基准；由 2560×1440 实测 left:4 bottom:10 w:2545 h:542 换算） */
-const MAP_AREA_SPEC = { left: 4, bottom: 10, width: 1909, height: 407 };
+/** 路线选择界面区域 spec（1920×1080 基准；比例固定不随分辨率变化）：
+ *  下区地图 = 60%（648/1080），上区背景 = 40%（432/1080）；
+ *  left/bottom 零边距 + height 按视口等比缩放 → 任意分辨率下都是 40/60 分界 */
+const MAP_AREA_SPEC = { left: 0, bottom: 0, width: 1920, height: 648 };
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -451,8 +453,10 @@ export const DungeonMapSystem = {
 
     /**
      * 背景图显示：界面严格分两块——上方纯美观背景图（不可交互、不被地图遮盖），
-     * 下方为地图选择区域。背景图 cover 铺满上方区域（bottom 锚定到区域分界线），
-     * 裁剪到上区，绝不画进下方地图区域。
+     * 下方为地图选择区域。背景图 contain 等比例缩小铺进上区：整图完整显示、不变形，
+     * 上下居中、左右留黑边（40% 上区比原图比例宽，天然形成左右黑条）；
+     * 图片四缘叠加黑色渐变淡出（左右强、上下轻），融入黑幕避免生硬切边；
+     * 背景只画在上区内，绝不画进下方地图区域。
      * 图片路径按地牢类型走配置（DungeonConfig.mapBackground），新增地牢各自配置。
      * @param {number} topH 上方背景区高度（地图区域 top 边界）
      */
@@ -467,14 +471,38 @@ export const DungeonMapSystem = {
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
         if (!img || !img.complete || img.naturalWidth === 0 || topH <= 0) return;
-        // cover 铺满上区（0,0,viewW,topH），bottom 锚定使图片底边贴紧分区分界线
-        const r = coverRect(img.naturalWidth, img.naturalHeight, viewW, topH, 'bottom');
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, viewW, topH);
-        ctx.clip();
-        ctx.drawImage(img, Math.round(r.x), Math.round(r.y), r.w, r.h);
-        ctx.restore();
+        // contain：min 比例 = 整图可见（不裁剪、不变形），居中放置
+        const scale = Math.min(viewW / img.naturalWidth, topH / img.naturalHeight);
+        const w = Math.round(img.naturalWidth * scale);
+        const h = Math.round(img.naturalHeight * scale);
+        const x = Math.round((viewW - w) / 2);
+        const y = Math.round((topH - h) / 2);
+        ctx.drawImage(img, x, y, w, h);
+        // 边缘淡出：向纯黑底渐变（左右 10% 宽，上下 5% 高）
+        const fadeW = Math.max(24, w * 0.10);
+        const fadeH = Math.max(16, h * 0.05);
+        const gLeft = ctx.createLinearGradient(x, 0, x + fadeW, 0);
+        gLeft.addColorStop(0, 'rgba(0,0,0,0.92)');
+        gLeft.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gLeft;
+        ctx.fillRect(x, y, fadeW, h);
+        const gRight = ctx.createLinearGradient(x + w, 0, x + w - fadeW, 0);
+        gRight.addColorStop(0, 'rgba(0,0,0,0.92)');
+        gRight.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gRight;
+        ctx.fillRect(x + w - fadeW, y, fadeW, h);
+        const gTop = ctx.createLinearGradient(0, y, 0, y + fadeH);
+        gTop.addColorStop(0, 'rgba(0,0,0,0.70)');
+        gTop.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gTop;
+        ctx.fillRect(x, y, w, fadeH);
+        const gBottom = ctx.createLinearGradient(0, y + h, 0, y + h - fadeH);
+        gBottom.addColorStop(0, 'rgba(0,0,0,0.70)');
+        gBottom.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gBottom;
+        ctx.fillRect(x, y + h - fadeH, w, fadeH);
+        // 三个操作按钮水平居中到各自黑幕（图片显示宽即黑幕分界；未加载时上一帧已跳过）
+        this._positionMapButtons(viewW, w);
     },
 
     /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
@@ -487,7 +515,7 @@ export const DungeonMapSystem = {
      * 钳制地图偏移，使 2048×2048 的地图不会拖出显示区域
      */
     /** 路线选择界面显示区域（layout.js 统一适配；spec 为 1920×1080 基准坐标，
-     * 由 2560×1440 实测值 left:4 bottom:10 width:2545 height:542 换算） */
+     *  下区地图 = 60% 屏高、上区背景 = 40% 屏高，比例固定不随分辨率变化） */
     _getMapTargetArea(viewW, viewH) {
         const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
         const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080);
@@ -1109,29 +1137,19 @@ export const DungeonMapSystem = {
         const PROBE_RADIUS = 15;            // 寻路验证用僵尸半径（普通僵尸 groundRadius 量级）
         const INSET = TOMB_RADIUS + 20;     // 贴墙内收安全距离
 
-        // 候选角落（菱形房：矩形四角在界外，取对角线方向与边界的交点 s/rx + s/ry = 1）
-        let corners;
+        // 生成点：右上墙（T→R 边）中点，向房内内收（新规则；旧"距玩家最远角落"规则作废）
+        let anchor;
         if (bounds.diamond) {
-            const s = Math.max(0, (bounds.rx * bounds.ry) / (bounds.rx + bounds.ry) - INSET);
-            corners = [
-                { x: bounds.cx + s, y: bounds.cy + s },
-                { x: bounds.cx + s, y: bounds.cy - s },
-                { x: bounds.cx - s, y: bounds.cy + s },
-                { x: bounds.cx - s, y: bounds.cy - s },
-            ];
+            const midX = bounds.cx + bounds.rx / 2, midY = bounds.cy - bounds.ry / 2;
+            // 沿指向房心方向内收 INSET
+            const dx = bounds.cx - midX, dy = bounds.cy - midY;
+            const dl = Math.hypot(dx, dy) || 1;
+            anchor = { x: midX + dx / dl * INSET, y: midY + dy / dl * INSET };
         } else {
-            corners = [
-                { x: bounds.maxX - INSET, y: bounds.maxY - INSET },
-                { x: bounds.maxX - INSET, y: bounds.minY + INSET },
-                { x: bounds.minX + INSET, y: bounds.maxY - INSET },
-                { x: bounds.minX + INSET, y: bounds.minY + INSET },
-            ];
+            anchor = { x: bounds.maxX - INSET, y: bounds.minY + INSET };
         }
-        // 距玩家从远到近排序
-        corners.sort((a, b) =>
-            Math.hypot(b.x - player.x, b.y - player.y) - Math.hypot(a.x - player.x, a.y - player.y));
 
-        // 房内判定（菱形房按菱形内缩判定，外接矩形四角在界外）
+        // 房内判定（菱形房按菱形内缩判定）
         const inRoom = (x, y) => bounds.diamond
             ? Math.abs(x - bounds.cx) / Math.max(1, bounds.rx - INSET) + Math.abs(y - bounds.cy) / Math.max(1, bounds.ry - INSET) <= 1
             : (x >= bounds.minX + INSET && x <= bounds.maxX - INSET && y >= bounds.minY + INSET && y <= bounds.maxY - INSET);
@@ -1147,31 +1165,29 @@ export const DungeonMapSystem = {
             return true;
         };
 
-        for (const corner of corners) {
-            // 先试角落本身，再按递近半径做 8 向螺旋搜索
-            const candidates = [{ x: corner.x, y: corner.y }];
-            for (const r of [40, 80, 120, 160]) {
-                for (let i = 0; i < 8; i++) {
-                    const a = (i / 8) * Math.PI * 2;
-                    candidates.push({ x: corner.x + Math.cos(a) * r, y: corner.y + Math.sin(a) * r });
-                }
-            }
-            for (const c of candidates) {
-                if (!reachable(c.x, c.y)) continue;
-                const tombstone = createTombstone(c.x, c.y);
-                const key = `tombstone_main_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-                if (Game && Game.entities) Game.entities.set(key, tombstone);
-                // 纳入战斗怪物 key 追踪：波次切换/房间清理随 _combatMonsterKeys 统一删除
-                if (CombatRoomSystem._combatMonsterKeys) CombatRoomSystem._combatMonsterKeys.push(key);
-                // 地牢刷怪同款黑色粒子
-                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-                if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
-                    scene.playDungeonSpawnParticles(c.x, c.y);
-                }
-                return;
+        // 先试锚点本身，再按递近半径做 8 向螺旋搜索
+        const candidates = [{ x: anchor.x, y: anchor.y }];
+        for (const r of [40, 80, 120, 160]) {
+            for (let i = 0; i < 8; i++) {
+                const a = (i / 8) * Math.PI * 2;
+                candidates.push({ x: anchor.x + Math.cos(a) * r, y: anchor.y + Math.sin(a) * r });
             }
         }
-        console.warn('[DungeonMapSystem] 墓碑生成失败：所有角落均不可行走/不可达玩家，本次放弃生成');
+        for (const c of candidates) {
+            if (!reachable(c.x, c.y)) continue;
+            const tombstone = createTombstone(c.x, c.y);
+            const key = `tombstone_main_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            if (Game && Game.entities) Game.entities.set(key, tombstone);
+            // 纳入战斗怪物 key 追踪：波次切换/房间清理随 _combatMonsterKeys 统一删除
+            if (CombatRoomSystem._combatMonsterKeys) CombatRoomSystem._combatMonsterKeys.push(key);
+            // 地牢刷怪同款黑色粒子
+            const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
+                scene.playDungeonSpawnParticles(c.x, c.y);
+            }
+            return;
+        }
+        console.warn('[DungeonMapSystem] 墓碑生成失败：右上墙中点区域均不可行走/不可达玩家，本次放弃生成');
     },
 
     /** 月影庇护：进战斗给无敌，精英/Boss 战额外给增伤标记 */
@@ -1194,8 +1210,18 @@ export const DungeonMapSystem = {
             for (const rec of arena.passages) {
                 for (const inst of rec.gates) avoidPoints.push({ x: inst.center.x, y: inst.center.y, r: 150 });
             }
+            // 入场门也排除（门口 150px 不放陷阱）
+            if (arena.entryGate && arena.entryGate.center) {
+                avoidPoints.push({ x: arena.entryGate.center.x, y: arena.entryGate.center.y, r: 150 });
+            }
         }
-        return { player: this.player, exclusions, avoidPoints };
+        // 房间 1/2：陷阱直线布局锚点 = 本房中央石柱位置（无石柱回退房心）；房间 3 走随机环带
+        const stage = arena ? arena.stage : 0;
+        const bounds = CombatRoomSystem._roomBounds;
+        const lineFrom = (stage === 1 || stage === 2) && bounds
+            ? ((arena.centerPillars && arena.centerPillars[stage]) || { x: bounds.cx, y: bounds.cy })
+            : null;
+        return { player: this.player, exclusions, avoidPoints, lineFrom };
     },
 
     /**
@@ -1232,18 +1258,10 @@ export const DungeonMapSystem = {
             ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true });
         }
 
-        // 进入房间 1：关门走延迟判定（满 1s 且玩家离门口 ≥150px，防单位卡门）+ 第一波
+        // 玩家在入场地块（房间 1 左上墙入场门外）——走进房间 1 才触发关门+刷第 1 波
+        // （进场不刷怪/不关门，等待 _checkArenaRoomEntry 的进房判定）
         this._arenaRoomCleared = false;
-        this._armArenaDoorClose(1);
-        this._spawnZombieWave();
-
-        // 陷阱：按地牢配置在当前房间摆放（后续房间在进入时摆放）
-        if (typeof TrapSystem !== 'undefined') {
-            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
-            if (zcfg.traps && zcfg.traps.count > 0) {
-                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
-            }
-        }
+        if (CombatRoomSystem._arena) CombatRoomSystem._arena.awaiting = 1;
     },
 
     /**
@@ -1253,9 +1271,15 @@ export const DungeonMapSystem = {
     _armArenaDoorClose(roomIdx) {
         const arena = CombatRoomSystem._arena;
         if (!arena) return;
-        // 来路门（房间 1 无来路，用其去路门做距离参照）
-        const rec = roomIdx > 1 ? arena.passages[roomIdx - 2] : arena.passages[0];
-        this._arenaDoorPending = { roomIdx, elapsed: 0, gates: rec ? rec.gates : [] };
+        // 来路门：房间 1 = 入场门，其余房间 = 上一条通道的门（距离参照）
+        let gates;
+        if (roomIdx === 1 && arena.entryGate) {
+            gates = [arena.entryGate];
+        } else {
+            const rec = roomIdx > 1 ? arena.passages[roomIdx - 2] : arena.passages[0];
+            gates = rec ? rec.gates : [];
+        }
+        this._arenaDoorPending = { roomIdx, elapsed: 0, gates };
     },
 
     /** 每帧推进关门延迟判定（updateCombat 调用） */
@@ -1264,15 +1288,19 @@ export const DungeonMapSystem = {
         if (!p || !this.player) return;
         p.elapsed += dt;
         if (p.elapsed < 1000) return;
+        // 关门前提：玩家仍在该房间内（回退到入场地块/通道时不关，防锁在门外）
+        if (CombatRoomSystem.arenaRoomContaining(this.player.x, this.player.y) !== p.roomIdx) return;
         const minD = p.gates.length
             ? Math.min(...p.gates.map(g => Math.hypot(this.player.x - g.center.x, this.player.y - g.center.y)))
             : Infinity;
         if (minD < 150) return;
         CombatRoomSystem.setArenaRoomGates(p.roomIdx, false);
         this._arenaDoorPending = null;
+        // 关门后才刷怪/摆陷阱/启动倒计时（统一收口，防"刷怪不关门"）
+        this._onArenaRoomSealed(p.roomIdx);
     },
 
-    /** 竞技场：玩家进入等待中的下一房间 → 关门、切战斗边界、刷对应波次 */
+    /** 竞技场：玩家进入等待中的下一房间 → 只判定进房并布防关门；刷怪在关门后（_updateArenaDoorClose） */
     _checkArenaRoomEntry() {
         const arena = CombatRoomSystem._arena;
         if (!arena || !arena.awaiting || !this.player) return;
@@ -1280,18 +1308,40 @@ export const DungeonMapSystem = {
         if (roomIdx !== arena.awaiting) return;
         arena.awaiting = 0;
         this._arenaRoomCleared = false;
+        // 重置刷怪标记：否则关门前的 1s 窗口里，清场判定会拿上一房间的死怪（allDead 成立）
+        // 误触发"已清场"并把 _arenaRoomCleared 置真——真正杀完本房怪物时因标记已真而不再开门
+        // （"第二间房清完门不开"的根因）
+        arena.waveSpawned = false;
         CombatRoomSystem.setArenaStageRoom(roomIdx);
         this._armArenaDoorClose(roomIdx);
-        // 进入第三房间：宝箱房倒计时启动
+        // 注意：此处不再直接刷怪/摆陷阱/启动宝箱倒计时——统一等关门后执行，
+        // 堵"门没关就刷怪"的漏洞（关门条件见 _updateArenaDoorClose）
+    },
+
+    /** 关门后执行：刷对应波次 + 摆陷阱 + （房间 3）启动宝箱倒计时 */
+    _onArenaRoomSealed(roomIdx) {
+        const arena = CombatRoomSystem._arena;
+        if (!arena) return;
         if (roomIdx === 3 && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
             ChestRoomSystem.startCountdown();
         }
-        this._spawnZombieWave();
-        // 陷阱：按当前房间摆放
+        // waveSpawned 必须先置位再刷波：刷波流程内（墓碑/陷阱）若抛异常，
+        // 未置位会导致清场判定被 waveSpawned 守卫永久挡死（"清完怪物门不开"的根因）
+        arena.waveSpawned = true;
+        try {
+            this._spawnZombieWave();
+        } catch (e) {
+            console.error('[DungeonMapSystem] 刷波异常（已兜底，不阻塞清场判定）:', e);
+        }
+        // 陷阱：按地牢配置在当前房间摆放
         if (typeof TrapSystem !== 'undefined') {
             const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
             if (zcfg.traps && zcfg.traps.count > 0) {
-                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
+                try {
+                    TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
+                } catch (e) {
+                    console.error('[DungeonMapSystem] 陷阱生成异常（已兜底）:', e);
+                }
             }
         }
     },
@@ -1323,7 +1373,12 @@ export const DungeonMapSystem = {
 
         // 墓碑：普通战斗每次房间刷怪 25% 概率额外刷新（必须在 spawnMonsters 重置 keys 之后调用；
         // 内部有地牢类型/精英/Boss 守卫；F/E 跨波保留，D+ 换房间随清理删除）
-        this._maybeSpawnTombstone();
+        // 包 try/catch：墓碑生成异常不得阻塞波次流程（见 _onArenaRoomSealed 的置位顺序说明）
+        try {
+            this._maybeSpawnTombstone();
+        } catch (e) {
+            console.error('[DungeonMapSystem] 墓碑生成异常（已兜底）:', e);
+        }
     },
 
     _enterBoss(node) {
@@ -1455,6 +1510,8 @@ export const DungeonMapSystem = {
                 // 三房间竞技场：当前房间 < 3 → 开门等玩家进下一房间，不自动续波
                 const arena = CombatRoomSystem._arena;
                 if (arena && arena.stage < 3) {
+                    // 尚未刷过波（玩家在入场地块未进房间 1）：不判定清场
+                    if (!arena.waveSpawned) return false;
                     if (!this._arenaRoomCleared) {
                         this._arenaRoomCleared = true;
                         CombatRoomSystem.setArenaRoomGates(arena.stage, true);
@@ -1866,27 +1923,25 @@ export const DungeonMapSystem = {
     _createMouseShopButton() {
         if (getElement('mouseShopButton')) return;
         // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
+        // 位置：背景图左侧黑幕内、上区垂直居中（40% 上区中心 = 20vh）；
+        // 水平居中由 _positionMapButtons 按黑幕实际宽度校正；贴图 = 素材库按钮板（文字已烘焙）
+        // 背景直接用原图 1536²：371%×1038% 把按钮板整块显示并填满 164×66 按钮框
+        // （板宽 414→164、板高 148→66，仅垂直拉伸 12.6% 不裁剪），避免板与辉光之间
+        // 露出透明缝隙形成黑边；position 按板心对齐（板心 784,762）
         const btn = document.createElement('div');
         btn.id = 'mouseShopButton';
-        btn.textContent = '小鼠商店';
         btn.style.cssText = `
             position: fixed;
             left: 20px;
-            bottom: calc(18.84vh + 10px);
-            transform: translateY(50%);
-            width: 183px;
-            height: 65px;
-            background: linear-gradient(135deg, #3a5a7a, #5a8aaa, #3a5a7a);
-            background-size: 200% 200%;
-            animation: versionGlow 2s ease infinite;
-            border: 2px solid #5a8aaa;
-            border-radius: 12px;
-            color: #d4c5a9;
-            font-size: 20px;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: calc(20vh - 33px);
+            width: 164px;
+            height: 66px;
+            background-image: url('assets/ui/dungeon-map/btn_mouse_shop.png');
+            background-size: 371% 1038%;
+            background-repeat: no-repeat;
+            background-position: 51% 50%;
+            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
+            border: none;
             cursor: pointer;
             z-index: 9000;
             pointer-events: auto;
@@ -1908,27 +1963,22 @@ export const DungeonMapSystem = {
     _createAbandonButton() {
         if (getElement('abandonButton')) return;
         // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
+        // 位置：背景图右侧黑幕内、安全撤离按钮下方（右列从上到下：安全撤离 → 放弃并返回）
+        // 背景直接用原图 1536²：371%×1038% 整板显示并填满按钮框（板心 762,774）
         const btn = document.createElement('div');
         btn.id = 'abandonButton';
-        btn.textContent = '放弃并返回';
         btn.style.cssText = `
             position: fixed;
             right: 20px;
-            bottom: calc(18.84vh + 10px);
-            transform: translateY(50%);
+            top: calc(20vh + 8px);
             width: 164px;
             height: 66px;
-            background: linear-gradient(135deg, #7a3a3a, #aa5a5a, #7a3a3a);
-            background-size: 200% 200%;
-            animation: versionGlow 2s ease infinite;
-            border: 2px solid #ff6b6b;
-            border-radius: 12px;
-            color: #d4c5a9;
-            font-size: 20px;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-image: url('assets/ui/dungeon-map/btn_abandon.png');
+            background-size: 371% 1038%;
+            background-repeat: no-repeat;
+            background-position: 50% 50%;
+            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
+            border: none;
             cursor: pointer;
             z-index: 9000;
             pointer-events: auto;
@@ -1950,7 +2000,7 @@ export const DungeonMapSystem = {
         this._removeSafeEvacButton();
     },
 
-    /** 安全撤离按钮：仅在当前位于起始点时显示（放弃按钮左侧，绿色），撤离不丢背包物品 */
+    /** 安全撤离按钮：仅在当前位于起始点时显示（右列顶部，放弃按钮上方，绿色），撤离不丢背包物品 */
     _updateSafeEvacButton() {
         const current = this.getCurrentNode();
         const atStart = !!(current && current.type === 'start');
@@ -1962,25 +2012,18 @@ export const DungeonMapSystem = {
         if (existing) return;
         const btn = document.createElement('div');
         btn.id = 'safeEvacButton';
-        btn.textContent = '安全撤离';
         btn.style.cssText = `
             position: fixed;
-            right: 204px;
-            bottom: calc(18.84vh + 10px);
-            transform: translateY(50%);
-            width: 140px;
+            right: 20px;
+            top: calc(20vh - 74px);
+            width: 164px;
             height: 66px;
-            background: linear-gradient(135deg, #3a6a3a, #5aaa5a, #3a6a3a);
-            background-size: 200% 200%;
-            animation: versionGlow 2s ease infinite;
-            border: 2px solid #6aca6a;
-            border-radius: 12px;
-            color: #d4c5a9;
-            font-size: 20px;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background-image: url('assets/ui/dungeon-map/btn_safe_evac.png');
+            background-size: 371% 1038%;
+            background-repeat: no-repeat;
+            background-position: 50% 50%;
+            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
+            border: none;
             cursor: pointer;
             z-index: 9000;
             pointer-events: auto;
@@ -1992,6 +2035,26 @@ export const DungeonMapSystem = {
             }
         });
         document.body.appendChild(btn);
+    },
+
+    /**
+     * 三个操作按钮水平居中到各自黑幕（背景图 contain 等比例缩小后左右留黑区）：
+     * 黑幕宽 = (视口宽 − 图片显示宽) / 2，按钮中心对齐黑幕中心；
+     * 黑幕窄于按钮时兜底贴边（≥8px）。图片未就绪时跳过，render 每帧就绪后自动校正（幂等）。
+     * @param {number} viewW 视口宽（画布像素）
+     * @param {number} imgDispW 背景图 contain 后的显示宽度
+     */
+    _positionMapButtons(viewW, imgDispW) {
+        if (!imgDispW || imgDispW >= viewW) return;
+        const barW = (viewW - imgDispW) / 2;
+        const BTN_W = 164;
+        const offset = Math.max(8, Math.round(barW / 2 - BTN_W / 2));
+        const shop = getElement('mouseShopButton');
+        const evac = getElement('safeEvacButton');
+        const abandon = getElement('abandonButton');
+        if (shop) shop.style.left = offset + 'px';
+        if (evac) evac.style.right = offset + 'px';
+        if (abandon) abandon.style.right = offset + 'px';
     },
 
     _removeSafeEvacButton() {

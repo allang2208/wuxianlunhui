@@ -426,12 +426,18 @@
       "storage": {
         "mediumKeys": ["barrel", "pot"],
         "mediumCount": [2, 3],
-        "smallKeys": ["skull", "bones"],
+        "smallKeys": ["skull", "bones", "bottle1", "bottle2", "bottle3", "bottle4"],
         "smallCount": [1, 2],
         "targetHMedium": 140,
         "targetHSmall": 80,
         "cornerInset": 100,
         "spread": 110
+      },
+      "wallTorches": {
+        "count": [1, 2],
+        "ring": [0.80, 0.92],
+        "targetH": 160,
+        "collision": true
       },
       "wallDecor": {
         "keys": ["candle", "chains"],

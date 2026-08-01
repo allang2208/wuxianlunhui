@@ -2736,8 +2736,20 @@
 /* ===== 地图选择界面：统一隐藏 HUD（body.map-mode 驱动，防覆盖遗漏） ===== */
 body.map-mode .bottom-bar,
 body.map-mode .top-bar,
-body.map-mode .controls-hint-left {
+body.map-mode .controls-hint-left,
+body.map-mode .quest-tracker,
+body.map-mode #weaponInfo {
   display: none !important;
+}
+
+/* 地牢路线界面操作按钮：金色辉光直接附着在按钮贴图（图案）上——
+   filter: drop-shadow 按贴图 alpha 形状发光（跟随圆角/异形边缘），
+   不用 box-shadow（矩形框辉光会与贴图边缘之间露出缝隙/黑边）。
+   颜色全部用暖金（避免暗红叠加黑底变成"黑边"）。 */
+@keyframes dungeonBtnGlow {
+  0%   { filter: drop-shadow(0 0 5px rgba(255, 200, 60, 0.55)) drop-shadow(0 0 14px rgba(255, 170, 30, 0.20)); }
+  50%  { filter: drop-shadow(0 0 9px rgba(255, 215, 80, 0.85)) drop-shadow(0 0 24px rgba(255, 180, 40, 0.32)); }
+  100% { filter: drop-shadow(0 0 5px rgba(255, 200, 60, 0.55)) drop-shadow(0 0 14px rgba(255, 170, 30, 0.20)); }
 }
 
 /* ===== 墙壁编辑器面板（摆墙模式） ===== */
@@ -2824,8 +2836,8 @@ body.map-mode .controls-hint-left {
   border-radius: 3px; padding: 3px 0; font-size: 11px; cursor: pointer;
 }
 .wall-editor-panel .we-cat-tab.active { background: #263636; color: #a9d4c5; border-color: #6b8d7d; }
-/* 组件区拉高 + 滚动条（面板整体不超过 80vh，组件多了可滚动） */
-.wall-editor-panel { max-height: 80vh; overflow-y: auto; }
+/* 组件区拉高 + 滚动条（面板固定当前大小不整体滚动，仅组件区内部滚动；墙类/门类/障碍物类同规） */
+.wall-editor-panel { max-height: 80vh; overflow: hidden; }
 .wall-editor-panel .we-std-scroll {
   max-height: 52vh; overflow-y: auto; margin-bottom: 6px;
   scrollbar-width: thin; scrollbar-color: #5a5346 transparent;

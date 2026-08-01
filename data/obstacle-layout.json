@@ -128,5 +128,18 @@
     "depth": 1510.64501953125,
     "family": "obstacle",
     "label": "锁链 1"
+  },
+  {
+    "tex": "obstacle_torch",
+    "x": 2234.4415283203125,
+    "y": 1494.5126953125,
+    "scaleX": 0.21691481028661888,
+    "scaleY": 0.21691481028661888,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1603.5126953125,
+    "family": "obstacle",
+    "label": "火把 1"
   }
 ]

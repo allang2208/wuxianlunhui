@@ -8,6 +8,84 @@
 - 测试结果
 - 已知问题
 
+### 对话：门口通道侧实体漏遮挡修复——实体级多面线遮挡仲裁重写（2026-08-01）
+
+- `src/world/wall-system.js`：`junctionCorrectedDepth` 重写——旧版只取**最近一条**面线仲裁，门口多条面线（通道侧墙/门墙/房间墙）共存时选错，长门跨深端玩家在墙后仍完整显示（线上反馈截图）。新版收集脚线 ±60px 内所有面线，`y<yLine` 记遮挡源、`y≥yLine` 记前墙；**被任一贴近面线遮挡则遮挡**（压到遮挡墙 depth-0.5），否则有前墙抬到其上（+0.5）。`_getFaceSegCache` 扩展纳入门墙实例（arena entryGate/passages gates、WallGate `_seg`、宝箱房 `_gate`）。
+- `src/world/wall-gate.js`、`src/world/chest-room-system.js`：末尾自挂载 `window.WallGate`/`window.ChestRoomSystem`，供仲裁缓存收集（避免环依赖）。
+- 验证：无头实机四站位矩阵（门后走廊/门洞中心/房间侧/浅端 × 通道门/入场门/宝箱房门）depth 关系全正确 + 截图目检（`backup/arb_gate_corridor.png` 走廊侧玩家完全隐入墙后，`backup/arb_gate_doorway.png` 门洞内正常可见）。
+- 测试：npm test 全绿（177 项）；`npx vite build` 通过。
+
+### 对话：摆墙界面高危 bug 修复（拼接吸附崩溃 + 火把深度覆盖失效）（2026-08-01）
+
+- `src/ui/wall-editor.js`：
+  - `_snapJoin` 增加 `if (!segA) return;`——此前 A 为障碍物（无底边线段）时 `segA[1]` 直接 TypeError 崩溃；
+  - `_applyToSprite` 障碍物 depth 改为"手调优先"：`p.depthManual` 标记时读 `p.depth`，否则按贴图底边自动推导；
+  - Q/E 深度键与图层面板拖动排序对手调件写 `p.depthManual = true`——恢复障碍物手调图层的功能（此前渲染侧永远重算，静默无效）；
+  - 障碍物「重置」同时清除手调标记、恢复自动深度。
+- `src/world/wall-system.js`：`_placeIsoPiece` 同口径"手调优先"；`__depthAudit` 跳过障碍物（允许手调，不再误报违规）。
+- `src/world/obstacle-spawn-system.js`：火把贴墙成功时 `placed.piece.depth = wallDepth + 0.1` 加 `depthManual = true`（此前被渲染侧重算丢弃，火把会被墙盖住）；火焰粒子深度跟随火把实际图层（torchDepth + 1）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：地牢路线选择界面改为上 40% / 下 60% 固定分界 + 背景图等比例缩小留黑边（2026-08-01）
+
+- `src/world/dungeon-map-system.js`：`MAP_AREA_SPEC` 改为 `{ left:0, bottom:0, width:1920, height:648 }`——下区地图精确占屏高 60%、上区背景 40%（left/bottom 零边距 + height 按视口等比缩放，任意分辨率比例恒定）。
+- 背景图渲染从 cover 铺满裁剪改为 **contain 等比例缩小**（整图完整显示、不变形、上下居中，左右留黑边；zombie 2560×1065 / 兜底 2560×1440 在上区 4.44:1 比例下均形成左右黑条）。
+- 移除不再使用的 `coverRect` 导入。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：路线选择界面隐藏左侧追踪/武器栏 + 三个按钮移入背景黑幕竖排（2026-08-01）
+
+- `game-style.css`：`body.map-mode` 隐藏清单追加 `.quest-tracker`（任务追踪栏）与 `#weaponInfo`（武器状态提示栏）——CSS 驱动隐藏不删除，退出路线界面自动恢复（GameScene 移除 map-mode 类）。
+- `src/world/dungeon-map-system.js`：
+  - 小鼠商店按钮 → 背景图**左侧黑幕**（left:20px，上区垂直居中 top:20vh-32.5px）；
+  - 安全撤离、放弃并返回 → 背景图**右侧黑幕**（right:20px，右列从上到下：安全撤离 top:20vh-74px → 放弃并返回 top:20vh+8px，两组间距 16px、整体居中于 20vh）；
+  - 移除旧 `bottom: calc(18.84vh + 10px)` + `translateY(50%)` 定位（原分界线贴边布局）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：路线界面三个按钮统一尺寸并居中于各自黑幕（2026-08-01）
+
+- `src/world/dungeon-map-system.js`：
+  - 小鼠商店 / 安全撤离 / 放弃并返回 统一为 **164×66**（原 183×65 / 140×66 / 164×66），左侧按钮垂直居中改 top:20vh-33px；
+  - 新增 `_positionMapButtons(viewW, imgDispW)`：按背景图 contain 显示宽度算左右黑幕宽，按钮水平居中到黑幕中心（黑幕 = (视口宽−图片显示宽)/2；窄幕兜底 ≥8px 贴边）；背景图就绪后由 `_renderBackground` 每帧幂等校正，图片未加载时保持创建默认值。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：路线界面三个按钮换用素材库贴图 + 保留金色辉光（2026-08-01）
+
+- 资源：新建 `assets/ui/dungeon-map/` 子目录，从 `E:\无尽轮回\游戏\素材库\UI\地牢界面` 复制三张原图（安全撤离/小鼠商店/放弃并返回，1536×1536），并按按钮板包围盒裁剪出显示贴图 `btn_safe_evac.png` / `btn_mouse_shop.png` / `btn_abandon.png`（约 436×172，文字已烘焙在图中）。
+- `src/world/dungeon-map-system.js`：三个按钮背景改为 `background-image: url('assets/ui/dungeon-map/btn_*.png')`（100%×100% 铺满、无重复），删除 DOM 文字（图中自带）、渐变背景与彩色边框；点击/居中/尺寸（164×66）逻辑不变。
+- `game-style.css`：新增 `@keyframes dungeonBtnGlow`——与 `versionGlow` 同款金色辉光数值但**只动画 box-shadow**（图片背景不能再动 background-position，否则贴图会滑动），三个按钮动画切到它，金光特效保留。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：修复按钮黑边（改用原图 CSS 缩放匹配）+ 背景黑幕保留（2026-08-01）
+
+- 按钮黑边根因：上一版按包围盒硬裁剪贴图后，按钮板边缘的深色描边/软边直接顶在按钮框上，形成黑边。
+- 修复（按用户要求直接用原图、调整大小匹配，不做图片加工）：
+  - `btn_*.png` 恢复为**原始 1536×1536 素材图**；
+  - 按钮 `background-size: 451% 1121%`——把 1536² 原图等比放大到约 740px，使按钮板区域（约 414×148）恰好匹配 164×66 按钮框，过扫部分把板边缘的深色描边裁掉；`background-position` 按各图板心坐标对齐（小鼠商店 51% 50%，其余 50% 50%），无变形；
+  - 移除 `border-radius` 与 CSS 边框；金色辉光 `dungeonBtnGlow` 保留；
+  - 背景图保持 contain + 左右黑幕，`_positionMapButtons` 黑幕居中逻辑不变。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：背景图边缘淡出 + 按钮贴图取消裁剪仅等比缩放（2026-08-01）
+
+- `src/world/dungeon-map-system.js` `_renderBackground`：图片绘制后叠加四缘黑色线性渐变——左右 10% 宽、上下 5% 高，向纯黑底淡出，背景图与黑幕衔接不再生硬。
+- 按钮贴图：`background-size` 从 451%×1121%（过扫裁掉板缘）改为 **371%×922%**——1536² 原图等比放大到约 608px，整块按钮板（414×148）完整显示不裁剪，板宽匹配按钮框 164、板高 58.6 垂直居中，`background-position` 按板心对齐不变（小鼠商店 51% 50%，其余 50% 50%）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：按钮"贴图与辉光之间黑边"根因定位 + 修复（2026-08-01）
+
+- **根因（用户定位确认）**：`background-size:371%×922%` 下按钮板显示 164×58.6，未填满 164×66 按钮框——上下各留 ~3.7px 透明缝隙，辉光（box-shadow）贴着按钮框边缘渲染，于是在**贴图与辉光之间**露出一圈黑色缝隙。
+- **修复**：
+  1. 三个按钮 `background-size` 改为 **371%×1038%**：按钮板整块显示并填满按钮框（板宽 414→164、板高 148→66，仅垂直拉伸 12.6%、不裁剪），贴图边缘直接贴住辉光，缝隙消失；
+  2. 顺带把 `dungeonBtnGlow` 外圈暗红改为暖金（暗红外圈叠加黑底亮度仅 45~76/255，也会形成暗环，属次要同源问题）。
+- 测试：npm test 全绿（177 项）。
+
+### 对话：辉光改为 drop-shadow 直接附着按钮贴图形状（2026-08-01）
+
+- `game-style.css`：`dungeonBtnGlow` 关键帧从 `box-shadow` 改为 **`filter: drop-shadow`（双层暖金）**——辉光按按钮贴图 alpha 形状发光，跟随圆角/异形边缘直接附着在图案上，不再有矩形框辉光与贴图之间的缝隙；颜色保持纯暖金。
+- `src/world/dungeon-map-system.js`：三个按钮恢复 `animation: dungeonBtnGlow 2s ease infinite;`（此前调试期改为 none）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
 ### 对话：小鼠铁匠立绘替换 + NPC 对话默认「调整立绘」按钮（2026-07-31，V0.361）
 
 - 用 `E:\无尽轮回\游戏\素材库\人物\小鼠铁匠\小鼠铁匠.png` 替换 `assets/npc/mouse_blacksmith/portrait.png`（1024×1539）。

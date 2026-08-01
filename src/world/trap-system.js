@@ -17,6 +17,23 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { WallSystem } from './wall-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
 
+/** 点到房间两条前墙边（左下 L→B / 右下 R→B）的最小距离（透视遮挡区判定用，与 obstacle-spawn-system 同规则） */
+function _distToFrontEdges(bounds, pt) {
+    const edges = [
+        [{ x: bounds.cx - bounds.rx, y: bounds.cy }, { x: bounds.cx, y: bounds.cy + bounds.ry }],
+        [{ x: bounds.cx + bounds.rx, y: bounds.cy }, { x: bounds.cx, y: bounds.cy + bounds.ry }],
+    ];
+    let best = Infinity;
+    for (const [A, B] of edges) {
+        const dx = B.x - A.x, dy = B.y - A.y;
+        const len2 = dx * dx + dy * dy || 1;
+        let t = ((pt.x - A.x) * dx + (pt.y - A.y) * dy) / len2;
+        t = Math.max(0, Math.min(1, t));
+        best = Math.min(best, Math.hypot(pt.x - (A.x + dx * t), pt.y - (A.y + dy * t)));
+    }
+    return best;
+}
+
 const DEFAULTS = {
     count: 3,
     triggerRadius: 45,
@@ -40,6 +57,8 @@ export const TrapSystem = {
      *   - player：玩家实体——可达性校验（findPath 非空才放，杜绝刷在走不到的位置）
      *   - exclusions：排除菱形区数组（如宝箱房 _exclusion，区内不刷）
      *   - avoidPoints：排除点数组 [{x, y, r?}]（门洞中心等，r 默认 150）
+     *   - lineFrom：直线布局锚点（柱子位置 {x, y}）——房间 1/2 专用：
+     *     随机选锚点左/右侧，向左下（左）或右上（右）一条直线延伸到墙边，只生成一条
      */
     spawnForRoom(bounds, cfg, extras = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -52,25 +71,20 @@ export const TrapSystem = {
         const player = extras.player || null;
         const inExclusion = (x, y) => exclusions.some(e =>
             Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
-        let placed = 0, tries = 0;
-        while (placed < C.count && tries < 60) {
-            tries++;
-            const a = Math.random() * Math.PI * 2;
-            const r = 0.25 + Math.random() * 0.55; // 距中心 25%~80%，避开中心与墙边
-            const x = cx + Math.cos(a) * rx * r;
-            const y = cy + Math.sin(a) * ry * r;
-            if (this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) continue;
-            // 可行走：不嵌墙/不嵌障碍物 footprint
+        const valid = (x, y) => {
+            if (this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) return false;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                && !WallSystem.canMoveTo(x, y, C.triggerRadius)) continue;
-            // 排除区（宝箱房内不刷）与门口排除点
-            if (inExclusion(x, y)) continue;
-            if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) continue;
-            // 可达：玩家寻路能走到（墓碑同款判据；pathFinder 不可用时放行）
+                && !WallSystem.canMoveTo(x, y, C.triggerRadius)) return false;
+            if (inExclusion(x, y)) return false;
+            if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) return false;
+            if (_distToFrontEdges(bounds, { x, y }) < 180) return false;
             if (player && pathFinder && typeof pathFinder.findPath === 'function') {
                 const path = pathFinder.findPath(x, y, player.x, player.y, 15);
-                if (!path || path.length === 0) continue;
+                if (!path || path.length === 0) return false;
             }
+            return true;
+        };
+        const place = (x, y) => {
             const sprite = scene.add.sprite(x, y, 'trap_idle');
             sprite.setOrigin(0.5, 0.5);
             sprite.setDisplaySize(C.triggerRadius * 2.6, C.triggerRadius * 2.6);
@@ -81,6 +95,44 @@ export const TrapSystem = {
                 timer: 0,
                 damaged: false,     // 本次触发是否已结算伤害
             });
+        };
+
+        // ===== 直线布局（房间 1/2）：锚点左/右随机一条，沿直线严格均分到墙边 =====
+        if (extras.lineFrom) {
+            const lineCount = C.count + 2; // 在基础数量上再加 2 个，提高密度
+            const pickLeft = Math.random() < 0.5;
+            const dir = pickLeft ? { x: -0.866, y: 0.5 } : { x: 0.866, y: -0.5 }; // 左下 / 右上
+            const start = { x: extras.lineFrom.x + (pickLeft ? -90 : 90), y: extras.lineFrom.y };
+            // 找直线终点：出菱形 / 进入前墙遮挡区 / 不可行走（贴墙）即停
+            let endT = 0;
+            for (let t = 0; t <= 2000; t += 20) {
+                const x = start.x + dir.x * t, y = start.y + dir.y * t;
+                if (Math.abs(x - cx) / Math.max(1, rx - 40) + Math.abs(y - cy) / Math.max(1, ry - 40) > 1) break;
+                if (_distToFrontEdges(bounds, { x, y }) < 180) break;
+                if (WallSystem.canMoveTo && !WallSystem.canMoveTo(x, y, C.triggerRadius)) break;
+                endT = t;
+            }
+            // 严格均分 lineCount 个位置；校验不过就近沿轴微调（保持均分观感）
+            for (let i = 0; i < lineCount; i++) {
+                const t = endT * (i / Math.max(1, lineCount - 1));
+                for (const dt2 of [0, 25, -25, 50, -50, 75, -75, 100, -100, 130, -130]) {
+                    const x = start.x + dir.x * (t + dt2), y = start.y + dir.y * (t + dt2);
+                    if (valid(x, y)) { place(x, y); break; }
+                }
+            }
+            return;
+        }
+
+        // ===== 随机环带布局（房间 3 及旧路径） =====
+        let placed = 0, tries = 0;
+        while (placed < C.count && tries < 60) {
+            tries++;
+            const a = Math.random() * Math.PI * 2;
+            const r = 0.25 + Math.random() * 0.55; // 距中心 25%~80%，避开中心与墙边
+            const x = cx + Math.cos(a) * rx * r;
+            const y = cy + Math.sin(a) * ry * r;
+            if (!valid(x, y)) continue;
+            place(x, y);
             placed++;
         }
     },
@@ -145,28 +197,20 @@ export const TrapSystem = {
         return Math.hypot(dx, dy) <= C.triggerRadius + (e.groundRadius || 0);
     },
 
-    /** 占用判定：触发椭圆内有玩家或敌对目标（active && hittable && 地面单位） */
+    /** 占用判定：触发椭圆内是否有玩家（怪物不触发陷阱——新规则） */
     _isOccupied(t, C) {
-        if (typeof Game === 'undefined' || !Game.entities) return false;
-        for (const e of Game.entities.values()) {
-            if (!e || !e.active || !e.hittable) continue;
-            if (this._inTriggerZone(t, e, C)) return true;
-        }
-        return false;
+        if (typeof Game === 'undefined' || !Game.player || !Game.player.active) return false;
+        return this._inTriggerZone(t, Game.player, C);
     },
 
-    /** 伤害结算：触发椭圆内所有目标各吃自身最大生命值 10% 物理伤害 */
+    /** 伤害结算：只对玩家（触发椭圆内）造成其最大生命值 10% 物理伤害（怪物不吃） */
     _dealDamage(t, C) {
-        if (typeof Game === 'undefined' || !Game.entities) return;
-        for (const e of Game.entities.values()) {
-            if (!e || !e.active || !e.hittable) continue;
-            if (!this._inTriggerZone(t, e, C)) continue;
-            const maxHp = (e === Game.player)
-                ? (e.data && e.data.maxHp) || e.maxHp || 100
-                : e.maxHp || (e.data && e.data.maxHp) || 100;
-            const dmg = Math.max(1, Math.floor(maxHp * C.damagePercent));
-            if (typeof e.takeDamage === 'function') e.takeDamage(dmg, null, false);
-        }
+        if (typeof Game === 'undefined' || !Game.player || !Game.player.active) return;
+        const e = Game.player;
+        if (!this._inTriggerZone(t, e, C)) return;
+        const maxHp = (e.data && e.data.maxHp) || e.maxHp || 100;
+        const dmg = Math.max(1, Math.floor(maxHp * C.damagePercent));
+        if (typeof e.takeDamage === 'function') e.takeDamage(dmg, null, false);
     },
 
     /** 战斗房清理（cleanupRoom 调用） */
