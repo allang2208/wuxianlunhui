@@ -119,6 +119,11 @@ export class BootScene extends Scene {
         this.load.image('obstacle_skull', 'assets/terrain/obstacle_skull.png');
         this.load.image('obstacle_bones', 'assets/terrain/obstacle_bones.png');
         this.load.image('obstacle_chains', 'assets/terrain/obstacle_chains.png');
+        this.load.image('obstacle_torch', 'assets/terrain/obstacle_torch.png');
+        this.load.image('obstacle_bottle1', 'assets/terrain/obstacle_bottle1.png');
+        this.load.image('obstacle_bottle2', 'assets/terrain/obstacle_bottle2.png');
+        this.load.image('obstacle_bottle3', 'assets/terrain/obstacle_bottle3.png');
+        this.load.image('obstacle_bottle4', 'assets/terrain/obstacle_bottle4.png');
         // 小鼠铁匠铺装饰（木材堆/铁矿堆，泛洪抠图去白底）
         this.load.image('obstacle_woodpile', 'assets/terrain/obstacle_woodpile.png');
         this.load.image('obstacle_orepile', 'assets/terrain/obstacle_orepile.png');

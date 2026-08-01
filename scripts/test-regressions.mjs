@@ -11,8 +11,13 @@
  * 5. equipment.json 音效路径全部真实存在（双份漂移曾致开火音效 404）
  *
  * 用法：node --import ./scripts/register-json-loader.mjs scripts/test-regressions.mjs
- * （package.json test 脚本若引用本文件需带 --import；直接 node 运行也可，JSON 走 fs 读取）
+ * （package.json test 脚本若引用本文件需带 --import；直接 node 运行也可——
+ *  本文件头部已自注册 JSON loader，动态 import 的 src 模块内裸 JSON 导入也能工作）
  */
+// 自注册 JSON loader：使后续 await import() 的 src 模块内裸 .json 导入
+// 无需命令行 --import 也能工作（单跑/CI 直接 node 本文件不再报 ERR_IMPORT_ATTRIBUTE_MISSING）
+await import('./register-json-loader.mjs');
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -378,9 +383,9 @@ console.log('\n[10] 近期修复防回归');
     check('cleanupRoom 无 isPreservedCorpse 跳过', !cleanupRoomBody.includes('isPreservedCorpse'));
     check('cleanupMonstersOnly 保留 isPreservedCorpse 跳过', cleanupWavesBody.includes('isPreservedCorpse'));
 
-    // 宝箱房门墙/直墙深度规则（整块墙遮挡：后墙 min 底边 / 前墙 max 底边，与菱形战斗房墙体同口径）
+    // 宝箱房门墙深度=门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）；直墙仍为整墙 max
     const chestSrc = fs.readFileSync(path.join(ROOT, 'src/world/chest-room-system.js'), 'utf-8');
-    check('宝箱房门墙深度=整块墙 min/max 底边', chestSrc.includes("mode === 'min' ? Math.min(gA.y, gB.y) : Math.max(gA.y, gB.y)"));
+    check('宝箱房门墙深度=门洞中心底边 y', chestSrc.includes('const gateDepth = (g1.y + g2.y) / 2;'));
     check('宝箱房直墙深度=整块墙 min/max 底边', chestSrc.includes("mode === 'min' ? Math.min(ay, by) : Math.max(ay, by)"));
 
     // 主神空间状态缓存：depart 清实体前 + Game.init 末尾都必须保存

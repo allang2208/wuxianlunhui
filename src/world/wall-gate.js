@@ -81,14 +81,14 @@ export const WallGate = {
         this._cx = x0 + g.w * Math.abs(sx) / 2;
         this._cy = y0 + g.h * sy / 2;
         this._seg = [{ x: A.x, y: A.y }, { x: B.x, y: B.y }];
-        this._homeDepth = depth ?? Math.max(A.y, B.y); // 归属深度（继承被替换件的 min/max 规则）
+        // 归属深度（门洞中心规则，见下方 _gateCenter 计算后修正）
+        this._homeDepth = depth ?? Math.max(A.y, B.y);
 
         if (this.sprite) this.sprite.destroy();
         this.sprite = scene.add.sprite(this._cx, this._cy, g.tex, this._frame);
         this.sprite.setOrigin(0.5, 0.5);
         this.sprite.setScale(this._scale.sx, this._scale.sy);
         this.sprite.setFlipX(this._flip);
-        this.sprite.setDepth(this._homeDepth);
 
         // 门洞碰撞线段（states.open.hole/gateX 映射到世界）；门两侧墙体线段常开，门洞线段按状态启停
         const hole = isoGateHole(g);
@@ -103,6 +103,10 @@ export const WallGate = {
         ];
         this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _gate: true };
         this._gateCenter = { x: (g1.x + g2.x) / 2, y: (g1.y + g2.y) / 2 };
+        // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）：
+        // 单位过门洞时门后遮挡、过半场显现；调用方显式 depth 更低时（转角斜接 -0.1 退位）保留较低值
+        this._homeDepth = (depth != null && depth < this._gateCenter.y) ? depth : this._gateCenter.y;
+        this.sprite.setDepth(this._homeDepth);
         if (WallSystem.isoSegments) {
             for (const s of this._wallSegs) WallSystem.isoSegments.push(s);
         }
@@ -255,3 +259,8 @@ export const WallGate = {
         this._frame = FRAMES - 1;
     },
 };
+
+// 挂载到全局（wall-system 遮挡仲裁缓存引用用，避免模块环依赖）
+if (typeof window !== 'undefined' && !window.WallGate) {
+    window.WallGate = WallGate;
+}

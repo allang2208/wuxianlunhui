@@ -36,7 +36,25 @@ const DEFAULT_OBSTACLES = {
 const CENTER_EXCLUDE = 250;   // 房心排除（宝箱房/中场干净）
 const AVOID_GATE = 220;       // 门/通道门 approach 排除半径（avoidPoints 未带 r 时的默认）
 const CORRIDOR = 120;         // 跨组碰撞障碍物最小通行走廊
+const FRONT_WALL_EXCLUDE = 180; // 前墙（左下/右下边）遮挡区排除：墙后会被遮挡，不放障碍物/陷阱
 const MAX_REACHABILITY_ROLLBACK = 3;
+
+/** 点到房间两条前墙边（左下 L→B / 右下 R→B）的最小距离（透视遮挡区判定用） */
+function _distToFrontEdges(bounds, pt) {
+    const edges = [
+        [{ x: bounds.cx - bounds.rx, y: bounds.cy }, { x: bounds.cx, y: bounds.cy + bounds.ry }], // LB
+        [{ x: bounds.cx + bounds.rx, y: bounds.cy }, { x: bounds.cx, y: bounds.cy + bounds.ry }], // RB
+    ];
+    let best = Infinity;
+    for (const [A, B] of edges) {
+        const dx = B.x - A.x, dy = B.y - A.y;
+        const len2 = dx * dx + dy * dy || 1;
+        let t = ((pt.x - A.x) * dx + (pt.y - A.y) * dy) / len2;
+        t = Math.max(0, Math.min(1, t));
+        best = Math.min(best, Math.hypot(pt.x - (A.x + dx * t), pt.y - (A.y + dy * t)));
+    }
+    return best;
+}
 
 export const ObstacleSpawnSystem = {
     /**
@@ -45,7 +63,7 @@ export const ObstacleSpawnSystem = {
      * @param {Object} [opts]
      * @param {string} [opts.dungeonType] 地牢类型（读地牢级 combatRoom.obstacles 覆盖）
      * @param {Array}  [opts.avoidPoints] 排除点 [{x, y, r?, reach?}]（门中心/玩家出生点）
-     * @param {Object} [opts.player] 玩家位置（可达性兜底校验）
+     * @param {Object} [opts.player] 玩家位置（保留参数；可达性兜底已改用门中心为源点）
      * @param {Array}  [opts.decoSprites] 装饰件精灵登记数组（传 CombatRoomSystem._decoSprites）
      * @returns {number} 实际放置总数
      */
@@ -58,6 +76,7 @@ export const ObstacleSpawnSystem = {
 
         const ctx = {
             scene, bounds,
+            roomIndex: opts.roomIndex || 0,
             avoid: (opts.avoidPoints || []).map(p => ({ x: p.x, y: p.y, r: p.r ?? AVOID_GATE, reach: !!p.reach })),
             placedCollision: [], // { x, y, halfW, piece }（跨组走廊与可达性兜底用）
             deco: opts.decoSprites || null,
@@ -67,30 +86,36 @@ export const ObstacleSpawnSystem = {
         if (cfg.pillars) this._spawnPillars(cfg.pillars, ctx);
         if (cfg.storage) this._spawnStorage(cfg.storage, ctx);
         if (cfg.wallDecor) this._spawnWallDecor(cfg.wallDecor, ctx);
+        if (cfg.wallTorches) this._spawnWallTorches(cfg.wallTorches, ctx);
         if (cfg.boneYard) this._spawnBoneYard(cfg.boneYard, ctx);
 
-        // 可达性兜底：玩家 → 各开着的门（reach:true 标记）寻路全部非空；
-        // 被堵则移除最后放置的碰撞障碍物重测（上限 3 个）
+        // 可达性兜底：源点用第一个门中心（必可行走；玩家出生点在入场地块=房外虚空，
+        // 以其为源寻路必全灭，会误杀全部碰撞障碍物——房间1中央石柱消失的根因）；
+        // 只在"部分目标可达"时回滚（全部不可达 = 环境/源点问题，不能怪障碍物）
         const reachTargets = ctx.avoid.filter(a => a.reach);
-        if (opts.player && reachTargets.length && ctx.placedCollision.length) {
+        if (reachTargets.length > 1 && ctx.placedCollision.length) {
+            const src = reachTargets[0];
             let rollbacks = 0;
-            let blocked = _unreachableTargets(opts.player, reachTargets);
-            while (blocked.length && rollbacks < MAX_REACHABILITY_ROLLBACK && ctx.placedCollision.length) {
+            let blocked = _unreachableTargets(src, reachTargets);
+            while (blocked.length > 0 && blocked.length < reachTargets.length
+                && rollbacks < MAX_REACHABILITY_ROLLBACK && ctx.placedCollision.length) {
                 const last = ctx.placedCollision.pop();
                 const i = WallSystem.isoVisuals.indexOf(last.piece);
                 if (i >= 0) WallSystem.isoVisuals.splice(i, 1);
                 ctx.total--;
                 rollbacks++;
-                blocked = _unreachableTargets(opts.player, reachTargets);
+                blocked = _unreachableTargets(src, reachTargets);
             }
         }
+        this._lastCenterPillar = ctx.centerPillar || null; // 供陷阱直线锚点（dungeon-map-system 读取）
         return ctx.total;
     },
 
     /**
-     * 石柱（大件）：不贴墙，在场地中关于房心点对称生成——
-     * 随机一个偏移 (dx, dy)，放 (cx+dx, cy+dy) 与 (cx-dx, cy-dy) 两根（左一根右一根对应）。
-     * 两点都通过排除/走廊/可行走校验才成对放置。
+     * 石柱（大件）——只在指定位置生成，不再自行随机摆：
+     * - 房间 1/2：场地正中央上移 150px 一根（贴图底边锚定，上移补偿透视）；
+     * - 房间 3：宝箱房（房心）左侧水平 -200px 一根、右侧 +200px 镜像一根。
+     * 碰撞/排除校验通过才放置。
      */
     _spawnPillars(cfg, ctx) {
         const g = ISO_WALL_GEO.pillar;
@@ -98,29 +123,33 @@ export const ObstacleSpawnSystem = {
         const { bounds } = ctx;
         const scale = _scaleFor('pillar', g, cfg.targetH);
         const halfW = (g.foot ? g.foot.w : g.w * 0.5) * scale / 2;
-        const [xLo, xHi] = cfg.rangeX || [0.25, 0.60];
-        const [, yHi] = cfg.rangeY || [0, 0.40];
-        const pairs = _rollCount(cfg.pairs);
-        const ok = (pt) => {
+        const ok = (pt, skipCenter) => {
             if (!_insideDiamond(bounds, pt, halfW + 40)) return false;
-            if (Math.hypot(pt.x - bounds.cx, pt.y - bounds.cy) < CENTER_EXCLUDE) return false;
+            if (_distToFrontEdges(bounds, pt) < FRONT_WALL_EXCLUDE) return false;
+            if (!skipCenter && Math.hypot(pt.x - bounds.cx, pt.y - bounds.cy) < CENTER_EXCLUDE) return false;
             if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r)) return false;
             return true;
         };
-        for (let i = 0; i < pairs; i++) {
-            for (let t = 0; t < 20; t++) {
-                const dx = (xLo + Math.random() * (xHi - xLo)) * bounds.rx * (Math.random() < 0.5 ? -1 : 1);
-                const dy = (Math.random() * 2 - 1) * yHi * bounds.ry;
-                const p1 = { x: bounds.cx + dx, y: bounds.cy + dy };
-                const p2 = { x: bounds.cx - dx, y: bounds.cy - dy };
-                if (!ok(p1) || !ok(p2)) continue;
-                // 对称两点同时可放才成对落位（任一不过则重采）
-                if (!_canPlaceCollision(ctx, p1, halfW, 'pillar', false) || !_canPlaceCollision(ctx, p2, halfW, 'pillar', false)) continue;
-                _commitCollision(ctx, p1, g, scale, halfW, 'pillar');
-                _commitCollision(ctx, p2, g, scale, halfW, 'pillar');
-                break;
+        const tryPlace = (pt, skipCenter) => {
+            // 指定点不可放则沿 x 微探 ±60（宝箱房墙占位时让位）
+            for (const dx of [0, 60, -60]) {
+                const p = { x: pt.x + dx, y: pt.y };
+                if (ok(p, skipCenter) && _canPlaceCollision(ctx, p, halfW, 'pillar', false)) {
+                    _commitCollision(ctx, p, g, scale, halfW, 'pillar');
+                    return true;
+                }
             }
+            return false;
+        };
+        if (ctx.roomIndex === 1 || ctx.roomIndex === 2) {
+            // 场地正中央上移 150px
+            const pt = { x: bounds.cx, y: bounds.cy - 250 };
+            if (tryPlace(pt, true)) ctx.centerPillar = pt;
+            return;
         }
+        // 房间 3：宝箱房左右水平 ±200px 镜像双柱
+        tryPlace({ x: bounds.cx - 200, y: bounds.cy }, true);
+        tryPlace({ x: bounds.cx + 200, y: bounds.cy }, true);
     },
 
     /**
@@ -139,8 +168,11 @@ export const ObstacleSpawnSystem = {
             { x: bounds.cx - s, y: bounds.cy + s },
             { x: bounds.cx - s, y: bounds.cy - s },
         ].filter(c => !ctx.avoid.some(a => Math.hypot(c.x - a.x, c.y - a.y) < a.r + spread));
-        if (!corners.length) return;
-        const anchor = corners[Math.floor(Math.random() * corners.length)];
+        // 储物区只放后角（左下/右下前墙遮挡区不再生成——新规则）
+        const backCorners = corners.filter(c => c.y < bounds.cy);
+        const pool = backCorners.length ? backCorners : corners;
+        if (!pool.length) return;
+        const anchor = pool[Math.floor(Math.random() * pool.length)];
 
         // 中件（foot 碰撞，贴近堆叠：组内不设走廊，仅防嵌墙与轻微重叠）
         const mediumCount = _rollCount(cfg.mediumCount);
@@ -159,6 +191,7 @@ export const ObstacleSpawnSystem = {
                 if (ctx.placedCollision.some(o => o.group === 'storage'
                     && Math.hypot(pt.x - o.x, pt.y - o.y) < (o.halfW + halfW) * 0.4)) continue;
                 if (!_insideDiamond(bounds, pt, halfW + 30)) continue;
+                if (_distToFrontEdges(bounds, pt) < FRONT_WALL_EXCLUDE) continue;
                 if (!_placeCollision(ctx, pt, geoKey, g, scale, halfW, 'storage', true)) continue;
                 placed = true;
             }
@@ -176,6 +209,7 @@ export const ObstacleSpawnSystem = {
             const r = spread * (0.7 + Math.random() * 0.6);
             const pt = { x: anchor.x + Math.cos(a) * r, y: anchor.y + Math.sin(a) * r * 0.6 };
             if (!_insideDiamond(bounds, pt, 40)) continue;
+            if (_distToFrontEdges(bounds, pt) < FRONT_WALL_EXCLUDE) continue;
             if (!_decoSpotOk(pt)) continue;
             _placeDeco(ctx, pt, g, _scaleFor(geoKey, g, cfg.targetHSmall), 0);
             smallPlaced++;
@@ -194,6 +228,7 @@ export const ObstacleSpawnSystem = {
             if (!g || !ctx.scene.textures.exists(g.tex)) continue;
             const pt = _sampleInDiamond(ctx.bounds, cfg.ring);
             if (!_insideDiamond(ctx.bounds, pt, 40)) continue;
+            if (_distToFrontEdges(ctx.bounds, pt) < FRONT_WALL_EXCLUDE) continue;
             if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r)) continue;
             const scale = _scaleFor(geoKey, g, cfg.targetH);
             if (collisionKeys.includes(geoKey)) {
@@ -202,6 +237,68 @@ export const ObstacleSpawnSystem = {
             } else {
                 if (!_decoSpotOk(pt)) continue;
                 _placeDeco(ctx, pt, g, scale, 0);
+            }
+            placed++;
+        }
+    },
+
+    /** 墙面火把（独立类）：贴墙摆放（ring 默认 0.85~0.95），带持续火焰粒子（提灯矿工落地焰同款参数） */
+    _spawnWallTorches(cfg, ctx) {
+        const g = ISO_WALL_GEO.torch;
+        if (!g || !ctx.scene.textures.exists(g.tex)) return;
+        const count = _rollCount(cfg.count);
+        const scale = _scaleFor('torch', g, cfg.targetH);
+        const halfW = (g.foot ? g.foot.w : g.w * 0.5) * scale / 2;
+        let placed = 0, tries = 0;
+        while (placed < count && tries < 80) {
+            tries++;
+            const pt = _sampleInDiamond(ctx.bounds, cfg.ring);
+            if (!_insideDiamond(ctx.bounds, pt, 40)) continue;
+            if (_distToFrontEdges(ctx.bounds, pt) < FRONT_WALL_EXCLUDE) continue;
+            if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r)) continue;
+            // 火把图层（默认贴图底边；贴墙成功改锚墙件 depth + 0.1，火焰跟随）
+            let torchDepth = pt.y + (g.h * scale) / 2;
+            if (cfg.collision !== false) {
+                if (!_placeCollision(ctx, pt, 'torch', g, scale, halfW, 'torch', false)) continue;
+                // 火把是墙面挂饰：图层锚到最近墙件之上（直墙 depth=底边 max y，
+                // 火把底边锚点必低于墙面底边 → 永远被墙盖住（线上反馈）；
+                // 取最近墙件 depth + 0.1，保证火把始终画在墙面外侧
+                const placed = ctx.placedCollision[ctx.placedCollision.length - 1];
+                let wallDepth = -Infinity;
+                for (const q of WallSystem.isoVisuals) {
+                    if (q === placed.piece) continue;
+                    const gq = WallSystem._geoForTex(q.tex);
+                    if (!gq || gq.category === 'obstacle') continue;
+                    const d = Math.hypot(q.x - pt.x, q.y - pt.y);
+                    if (d < 400 && (q.depth ?? 0) > wallDepth) wallDepth = q.depth;
+                }
+                if (wallDepth !== -Infinity) {
+                    placed.piece.depth = wallDepth + 0.1;
+                    placed.piece.depthManual = true; // 手调深度：_placeIsoPiece 渲染尊重 p.depth
+                    torchDepth = wallDepth + 0.1;
+                }
+            } else {
+                _placeDeco(ctx, pt, g, scale, 0);
+            }
+            // 持续火焰（提灯矿工落地焰同款：impact_dot + 白/橙/黄三色 ADD 上飘）
+            // 不登记进清理列表——按用户要求火焰不随战斗房清理销毁
+            const scene = ctx.scene;
+            if (!scene.textures.exists('impact_dot') && typeof scene._ensureImpactDotTexture === 'function') {
+                scene._ensureImpactDotTexture();
+            }
+            if (scene.textures.exists('impact_dot')) {
+                const em = scene.add.particles(pt.x, pt.y - (g.h * scale) * 0.88, 'impact_dot', {
+                    frequency: 60,
+                    speedY: { min: -50, max: -110 },
+                    speedX: { min: -10, max: 10 },
+                    scale: { start: 2.4, end: 0.3 },
+                    alpha: { start: 0.9, end: 0 },
+                    lifespan: 600,
+                    tint: [0xffffff, 0xffcc55, 0xff8833],
+                    blendMode: 'ADD',
+                });
+                em.setDepth(torchDepth + 1);
+                em.addToUpdateList();
             }
             placed++;
         }
@@ -221,6 +318,7 @@ export const ObstacleSpawnSystem = {
             tries++;
             const pt = _sampleInDiamond(ctx.bounds, cfg.ring);
             if (!_insideDiamond(ctx.bounds, pt, 40)) continue;
+            if (_distToFrontEdges(ctx.bounds, pt) < FRONT_WALL_EXCLUDE) continue;
             if (Math.hypot(pt.x - ctx.bounds.cx, pt.y - ctx.bounds.cy) < CENTER_EXCLUDE) continue;
             if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r)) continue;
             if (!_decoSpotOk(pt)) continue;

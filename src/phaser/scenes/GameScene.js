@@ -138,7 +138,7 @@ export class GameScene extends Scene {
         this._mapModeActive = false;
 
         // X 光墙面透视总开关（2026-07-26 用户要求停用，代码保留；改 true 恢复）
-        this._xrayEnabled = false;
+        this._xrayEnabled = 'drops'; // false=全关 / true=全量 / 'drops'=仅掉落物（2026-07-31 定案）
 
         // 相机设置
         const viewW = CONFIG?.VIEW_WIDTH || window.innerWidth || 1920;
@@ -735,7 +735,7 @@ export class GameScene extends Scene {
     }
 
     _syncXRayCircles(_game) {
-        // 透视效果已全局停用（开关见 create；代码保留，_xrayEnabled=true 恢复）
+        // 透视效果：'drops'=仅掉落物（定案）/ true=全量 / false=全关
         if (this._xrayEnabled === false) {
             if (this._xrayMap && this._xrayMap.size) this._purgeXRayCircles();
             return;
@@ -778,6 +778,24 @@ export class GameScene extends Scene {
             if (!this._chestGateXrayLogged) {
                 this._chestGateXrayLogged = true;
                 console.log('[XRay] 宝箱房门已加入 occluders：', cgSegs.length, '段，hWall=', (cgg ? cgg.wallH : 800) * (cg.sprite.scaleY || 1), 'depth=', cg.sprite.depth);
+            }
+        }
+
+        // 竞技场门墙（入场门/通道门，独立实例）：纳入遮挡判定（与宝箱房门同模型）
+        const _crs = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
+        if (_crs && _crs._arena) {
+            const arenaGates = [..._crs._arena.passages.flatMap(r => r.gates)];
+            if (_crs._arena.entryGate) arenaGates.push(_crs._arena.entryGate);
+            for (const g of arenaGates) {
+                if (!g.sprite || !g.sprite.active) continue;
+                const gg = WallSystem._geoForTex(g.sprite.texture ? g.sprite.texture.key : 'wall_gate');
+                const gSegs = [...(g.wallSegs || []), ...(g.open ? [] : [g.gateSeg])].filter(Boolean)
+                    .map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]);
+                occluders.push({
+                    sprite: g.sprite,
+                    segs: gSegs,
+                    hWall: (gg ? gg.wallH : 800) * (g.sprite.scaleY || 1),
+                });
             }
         }
 
@@ -899,12 +917,15 @@ export class GameScene extends Scene {
             }
         };
 
-        if (_game.player && this.playerSprite && this.playerSprite.active) {
+        // 全量模式才透视玩家（'drops' 模式玩家/怪物不参与）
+        if (this._xrayEnabled === true && _game.player && this.playerSprite && this.playerSprite.active) {
             check(_game.player, this.playerSprite);
         }
         if (_game.entities) {
             _game.entities.forEach(e => {
                 if (!e || e === _game.player || !e.active) return;
+                // 'drops' 模式：仅掉落物（DropItem 以 itemData 标识）
+                if (this._xrayEnabled === 'drops' && !e.itemData) return;
                 if (e._phaserSprite) check(e, e._phaserSprite);
             });
         }

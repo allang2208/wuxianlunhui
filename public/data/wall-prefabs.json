@@ -715,5 +715,77 @@
         "label": "直墙·新 5"
       }
     ]
+  },
+  "骨头堆": {
+    "name": "骨头堆",
+    "cx": 2869,
+    "cy": 1431,
+    "pieces": [
+      {
+        "tex": "obstacle_skull",
+        "x": 2811.36865234375,
+        "y": 1428.64501953125,
+        "scaleX": 0.10820850387174034,
+        "scaleY": 0.10820850387174034,
+        "flipX": true,
+        "flipY": false,
+        "rotation": -1.134464013796314,
+        "depth": 1516.64501953125,
+        "family": "obstacle",
+        "label": "头骨 1"
+      },
+      {
+        "tex": "obstacle_bones",
+        "x": 2874.36865234375,
+        "y": 1427.64501953125,
+        "scaleX": 0.2386634844868735,
+        "scaleY": 0.2386634844868735,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1507.64501953125,
+        "family": "obstacle",
+        "label": "骨头堆 1"
+      },
+      {
+        "tex": "obstacle_bones",
+        "x": 2926.0001220703125,
+        "y": 1447.0982055664062,
+        "scaleX": 0.2386634844868735,
+        "scaleY": 0.2386634844868735,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1513.0982055664062,
+        "family": "obstacle",
+        "label": "骨头堆 2"
+      },
+      {
+        "tex": "obstacle_skull",
+        "x": 2912.0001220703125,
+        "y": 1398.0982055664062,
+        "scaleX": 0.11361892906532736,
+        "scaleY": 0.11361892906532736,
+        "flipX": true,
+        "flipY": false,
+        "rotation": 0,
+        "depth": 1419.913039946949,
+        "family": "obstacle",
+        "label": "头骨 2"
+      },
+      {
+        "tex": "obstacle_skull",
+        "x": 2848.0001220703125,
+        "y": 1464.0982055664062,
+        "scaleX": 0.11361892906532736,
+        "scaleY": 0.11361892906532736,
+        "flipX": false,
+        "flipY": false,
+        "rotation": 0.9599310885968811,
+        "depth": 1544.913039946949,
+        "family": "obstacle",
+        "label": "头骨 3"
+      }
+    ]
   }
 }

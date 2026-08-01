@@ -436,12 +436,14 @@ export const WallEditor = {
         if (e.code === 'Escape') {
             if (this._pendingPiece) this._cancelPlacement();
             else this.close();
-        } else if ((e.code === 'Delete' || e.code === 'Backspace') && this.sel.length) {
+        } else if (e.code === 'Delete' && this.sel.length) {
+            // 只有 Delete 键删除选中（Backspace 不删，防误触）
             this._deleteSelection();
         } else if (e.code === 'KeyQ' || e.code === 'KeyE') {
             const d = (e.shiftKey ? 10 : 1) * (e.code === 'KeyE' ? 1 : -1);
             for (const p of this.sel) {
                 p.depth = (p.depth ?? p.y) + d;
+                p.depthManual = true; // 手调深度：障碍物渲染改用 p.depth（不再按位置重算）
                 this._applyToSprite(p);
             }
             this._refreshLayers();
@@ -591,6 +593,11 @@ export const WallEditor = {
             p.flipX = false;
             p.flipY = false;
             p.rotation = 0;
+        }
+        // 重置同时恢复自动深度（清除手调标记，渲染回归贴图底边锚）
+        if (g.category === 'obstacle') {
+            p.depth = WallSystem.depthOf(p);
+            p.depthManual = false;
         }
         this._applyToSprite(p);
         this._commit();
@@ -847,6 +854,7 @@ export const WallEditor = {
         B.flipX = A.flipX;
         B.flipY = A.flipY;
         const segA = WallSystem._pieceBaseSegments(A)[0];
+        if (!segA) return; // A 为障碍物等无底边线段件时不可拼接（防 segA[1] 崩溃）
         const endA = segA[1]; // face 终点（已是世界坐标）
         // 沿 A 走向回退 SNAP_OVERLAP：接缝只叠不缺（face 锚点拟合公差兜底）
         const runLen = Math.hypot(segA[1].x - segA[0].x, segA[1].y - segA[0].y) || 1;
@@ -910,11 +918,12 @@ export const WallEditor = {
         p._sprite.setFlipX(!!p.flipX);
         p._sprite.setFlipY(!!p.flipY);
         p._sprite.setRotation(p.rotation || 0);
-        // 障碍物：depth 锚贴图底边（前墙规则——后方实体被正确遮挡；
-        // 之前 depth=中心点，背后人物脚线大于中心仍盖在柱子上"背后显示"）
+        // 障碍物：优先手调值（图层面板/Q+E/火把贴墙，p.depthManual 标记），
+        // 否则锚贴图底边（前墙规则——位置/缩放变化时自动跟随）
         const g = WallSystem._geoForTex(p.tex);
+        const obstacleDepth = p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2;
         const depth = (g && g.category === 'obstacle')
-            ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
+            ? (p.depthManual ? (p.depth ?? obstacleDepth) : obstacleDepth)
             : (p.depth ?? p.y);
         p._sprite.setDepth(depth);
     },
@@ -1003,6 +1012,7 @@ export const WallEditor = {
         if (above && below) moved.depth = ((above.depth ?? above.y) + (below.depth ?? below.y)) / 2;
         else if (above) moved.depth = (above.depth ?? above.y) - 1;
         else if (below) moved.depth = (below.depth ?? below.y) + 1;
+        moved.depthManual = true; // 图层手调：障碍物渲染改用 p.depth
         this._applyToSprite(moved);
         this._scheduleCommit();
         this._refreshLayers();

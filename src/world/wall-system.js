@@ -28,6 +28,11 @@ const ISO_WALL_GEO = {
     skull: { tex: 'obstacle_skull', w: 323, h: 384, category: 'obstacle', foot: { w: 179, d: 62 }, obstacleH: 100, editor: '头骨' },
     bones: { tex: 'obstacle_bones', w: 512, h: 419, category: 'obstacle', foot: { w: 300, d: 105 }, obstacleH: 100, editor: '骨头堆' },
     chains: { tex: 'obstacle_chains', w: 512, h: 204, category: 'obstacle', foot: { w: 460, d: 48 }, obstacleH: 72, editor: '锁链' },
+    torch: { tex: 'obstacle_torch', w: 144, h: 278, category: 'obstacle', foot: { w: 84, d: 42 }, obstacleH: 160, editor: '火把' },
+    bottle1: { tex: 'obstacle_bottle1', w: 412, h: 245, category: 'obstacle', foot: { w: 247, d: 61 }, obstacleH: 80, editor: '瓶-1' },
+    bottle2: { tex: 'obstacle_bottle2', w: 160, h: 476, category: 'obstacle', foot: { w: 96, d: 119 }, obstacleH: 80, editor: '瓶-2' },
+    bottle3: { tex: 'obstacle_bottle3', w: 190, h: 580, category: 'obstacle', foot: { w: 114, d: 145 }, obstacleH: 80, editor: '瓶-3' },
+    bottle4: { tex: 'obstacle_bottle4', w: 202, h: 448, category: 'obstacle', foot: { w: 121, d: 112 }, obstacleH: 80, editor: '瓶-4' },
     woodpile: { tex: 'obstacle_woodpile', w: 512, h: 448, category: 'obstacle', foot: { w: 400, d: 140 }, obstacleH: 134, editor: '木材堆' },
     orepile: { tex: 'obstacle_orepile', w: 512, h: 397, category: 'obstacle', foot: { w: 400, d: 120 }, obstacleH: 119, editor: '铁矿堆' },
 };
@@ -140,6 +145,9 @@ const WallSystem = {
         const bad = [];
         for (const p of this.isoVisuals) {
             if (p.depth == null) { bad.push({ tex: p.tex, reason: 'depth 缺失', x: Math.round(p.x), y: Math.round(p.y) }); continue; }
+            // 障碍物允许手调 depth（图层排序/Q+E/火把贴墙），不参与统一规则审计
+            const ga = this._geoForTex(p.tex);
+            if (ga && ga.category === 'obstacle') continue;
             const want = this.depthOf(p);
             const delta = p.depth - want;
             const exempt = (p._corner && Math.abs(delta - 5) < 0.5) || Math.abs(delta - 0.1) < 0.05;
@@ -608,10 +616,12 @@ const WallSystem = {
         sp.setFlipX(!!p.flipX);
         sp.setFlipY(!!p.flipY);
         if (p.rotation) sp.setRotation(p.rotation);
-        // 障碍物 depth 锚贴图底边（前墙规则，布局重建/编辑器移动均同口径）
+        // 障碍物 depth：优先手调值（图层面板/Q+E/火把贴墙，p.depthManual 标记），
+        // 否则锚贴图底边（前墙规则，位置/缩放变化时自动跟随）
         const g = this._geoForTex(p.tex);
+        const obstacleDepth = p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2;
         const depth = (g && g.category === 'obstacle')
-            ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
+            ? (p.depthManual ? (p.depth ?? obstacleDepth) : obstacleDepth)
             : (p.depth ?? p.y);
         sp.setDepth(depth);
         phaserScene.visualWalls.add(sp);
@@ -634,26 +644,38 @@ const WallSystem = {
      * 面线后（y 小）→ 深度不高于墙件；面线前（y 大）→ 深度不低于墙件。正常排序不受影响。
      * 生效范围：face 线 ±60px 内（贴近墙面的衔接带）；取最近面线，避免远处墙件拉扯。
      */
+    /**
+     * 实体级墙体遮挡仲裁（唯一规则）：
+     * 对实体脚线 (x, y)，收集所有贴近（|y−yLine| ≤ 60）的墙/门面线——
+     * y < yLine（实体在线后）记为遮挡源，y ≥ yLine（在线前）记为前墙。
+     * 有遮挡源 → 压到最前遮挡墙之下（depth-0.5）；
+     * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡）；
+     * 多面线共存的门口/衔接处按"被任一墙遮挡则遮挡"判定——
+     * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）
+     */
     junctionCorrectedDepth(x, y, depth) {
         const cache = this._getFaceSegCache();
-        let best = null;
+        let occluderDepth = -Infinity, frontDepth = -Infinity;
         for (const it of cache) {
             for (const [A, B] of it.segs) {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
                 if (x < minX || x > maxX) continue;
                 const t = (x - A.x) / ((B.x - A.x) || 1e-6);
                 const yLine = A.y + (B.y - A.y) * t;
-                const dist = Math.abs(y - yLine);
-                if (dist > 60) continue;
-                if (!best || dist < best.dist) best = { dist, yLine, pd: it.depth };
+                if (Math.abs(y - yLine) > 60) continue;
+                if (y < yLine) {
+                    if (it.depth > occluderDepth) occluderDepth = it.depth;
+                } else {
+                    if (it.depth > frontDepth) frontDepth = it.depth;
+                }
             }
         }
-        if (!best) return depth;
-        if (y < best.yLine) return Math.min(depth, best.pd - 0.5);
-        return Math.max(depth, best.pd + 0.5);
+        if (occluderDepth !== -Infinity) return Math.min(depth, occluderDepth - 0.5);
+        if (frontDepth !== -Infinity) return Math.max(depth, frontDepth + 0.5);
+        return depth;
     },
 
-    /** 衔接仲裁用的 face 世界线段缓存（非障碍物件；几何变更时由 rebuildIsoCollision 失效） */
+    /** 衔接仲裁用的 face 世界线段缓存（非障碍物件 + 门墙实例；几何变更时由 rebuildIsoCollision 失效） */
     _getFaceSegCache() {
         if (this._faceSegCache) return this._faceSegCache;
         const out = [];
@@ -663,6 +685,23 @@ const WallSystem = {
             const segs = this._pieceBaseSegments(p);
             if (!segs.length) continue;
             out.push({ segs, depth: p.depth !== undefined ? p.depth : p.y });
+        }
+        // 门墙实例：竞技场入场门/通道门（arena）、出口门（WallGate）、宝箱房门
+        const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
+        if (CRS && CRS._arena) {
+            const gates = [...CRS._arena.passages.flatMap(r => r.gates)];
+            if (CRS._arena.entryGate) gates.push(CRS._arena.entryGate);
+            for (const g of gates) {
+                if (g && g.sprite) out.push({ segs: [[g.baseA, g.baseB]], depth: g.sprite.depth });
+            }
+        }
+        const WG = (typeof window !== 'undefined') ? window.WallGate : null;
+        if (WG && WG._seg && WG.sprite) {
+            out.push({ segs: [WG._seg], depth: WG.sprite.depth });
+        }
+        const CH = (typeof window !== 'undefined') ? window.ChestRoomSystem : null;
+        if (CH && CH._gate && CH._gate.sprite && CH._gate.segs) {
+            out.push({ segs: CH._gate.segs.map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]), depth: CH._gate.sprite.depth });
         }
         this._faceSegCache = out;
         return out;
