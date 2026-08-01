@@ -50,6 +50,7 @@ import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setCurrentDungeonType, getRoomClearBonus, getStreakMultiplier, getRoomExpEstimate, getDungeonExpBase } from '../config/exp-system.js';
 import { DungeonRunStats } from './dungeon-run-stats.js';
+import { isWallPrefabsLoaded, loadWallPrefabs, whenWallPrefabsLoaded } from './wall-prefabs.js';
 
 import { GoldManager } from '../systems/gold-manager.js';
 
@@ -213,6 +214,9 @@ export const DungeonMapSystem = {
         setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
         // 墙样式（按地牢类型：僵尸砖墙 / 沼泽柴墙+藤门；离开时恢复默认）
         WallSystem.setWallStyle(dungeonType);
+        // 墙预制库加载补发（BootScene 已 fire-and-forget 预载；此处幂等补发，
+        // 让加载最迟在进地牢时已发起——仍未就绪时 _enterCombatArena 会等加载完成再构建）
+        loadWallPrefabs();
 
         this.generateMap();
         this._centerRouteMap();
@@ -1347,9 +1351,24 @@ export const DungeonMapSystem = {
      * 三房间串联竞技场（D 级及以上战斗事件）：
      * - 房间 1/2 = 普通战斗房大小，房间 3 = 精英战斗房大小（含宝箱房，普通/精英都生成）；
      * - 房间 N 刷第 N 波；进入房间才关门刷怪，清完开门；房间 3 清完开出口门墙。
-     * 构建失败（通道预制缺失等）回退原单房间流程。
+     * 墙预制库未就绪（BootScene 预载是 fire-and-forget，资源慢时可能还没拉完）时
+     * 不再静默回退——等加载完成后重试；仍构建失败（通道预制缺失等）才回退原单房间流程。
      */
     _enterCombatArena(node) {
+        // 预制库未就绪：延迟重试——等加载 Promise resolve 后再进战斗，期间给玩家短暂加载提示
+        if (!isWallPrefabsLoaded()) {
+            if (this._arenaPrefabsWaiting) return; // 已有等待在进行（防重入重复建场）
+            this._arenaPrefabsWaiting = true;
+            console.warn('[DungeonMapSystem] 墙预制库未就绪，等加载完成后重试竞技场构建…');
+            EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, '战斗场地加载中…', '#ffcc44'));
+            whenWallPrefabsLoaded().then(() => {
+                this._arenaPrefabsWaiting = false;
+                // 等待期间被其他流程接管（离开战斗 / 别的路径已建好战斗场地）则放弃重试
+                if (this.state !== 'combat' || CombatRoomSystem.state === 'combat') return;
+                this._enterCombatArena(node);
+            });
+            return;
+        }
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
@@ -1367,7 +1386,8 @@ export const DungeonMapSystem = {
         });
         if (!arenaInfo) {
             // 预制缺失等异常：回退旧单房间流程（状态字段已初始化，与正常路径一致）
-            console.warn('[DungeonMapSystem] 竞技场构建失败，回退单房间战斗');
+            // 注意：走到这里说明预制库已就绪仍构建失败（通道预制缺失/轴向不符），属配置级问题，打 error
+            console.error('[DungeonMapSystem] 竞技场构建失败（预制库已就绪：通道预制缺失/轴向不符），回退单房间战斗');
             CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize, dungeonType: this.dungeonType });
             if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
                 ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);

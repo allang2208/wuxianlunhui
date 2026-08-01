@@ -84,7 +84,7 @@ export class BoltSkillSystem {
         const src = this.source;
         src[this.kind.fields.active] = true;
         src[this.kind.fields.timer] = 0;
-        const projectiles = this.kind.makeProjectiles(effect);
+        const projectiles = this.kind.makeProjectiles(effect, src);
         src[this.kind.fields.spikes] = projectiles;
         // 单投射物别名（GameScene 渲染兼容：如火球 source._fireball 指单颗对象）
         if (this.kind.fields.alias) src[this.kind.fields.alias] = projectiles[0] || null;

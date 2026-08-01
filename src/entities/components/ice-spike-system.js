@@ -22,15 +22,21 @@ const ICE_SPIKE_KIND = {
     },
     img: { field: '_iceSpikeImg', src: 'assets/skills/icearrow.png' },
     spawnText: (effect) => `❄ 冰锥凝聚 x${effect.spikeCount}`,
-    makeProjectiles(effect) {
+    makeProjectiles(effect, source) {
         const projectiles = [];
+        // 立体环绕：围绕施法者圆柱体碰撞体积——水平角度均分 + 垂直高度沿圆柱体螺旋分布
+        const radius = ((source && source.groundRadius) || 40) + 18;
+        const bodyH = (source && source.bodyHeight) || 120;
+        const startAngle = -Math.PI / 2;
         for (let i = 0; i < effect.spikeCount; i++) {
-            const side = i % 2 === 0 ? -1 : 1; // 左右交替
-            const row = Math.floor(i / 2); // 0, 0, 1, 1, 2, 2...
+            const angle = startAngle + (i / effect.spikeCount) * Math.PI * 2;
+            // elev：圆柱体高度方向位置（0=地面，bodyH=顶沿），从下沿到上沿均匀铺开
+            const elev = bodyH * (0.12 + 0.76 * (effect.spikeCount > 1 ? i / (effect.spikeCount - 1) : 0.5));
             projectiles.push({
                 id: i,
-                offsetX: -30 - row * 30, // 身后，每对向后30px
-                offsetY: side * 30, // 左右30px
+                offsetX: Math.cos(angle) * radius,
+                offsetY: Math.sin(angle) * radius,
+                elev,
                 active: true,
                 launched: false,
                 flyX: 0, flyY: 0,

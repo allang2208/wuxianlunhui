@@ -9,17 +9,33 @@ const PREFAB_URL = '/data/wall-prefabs.json';
 const PREFAB_REL = 'data/wall-prefabs.json';
 
 let _library = null;
+let _loadingPromise = null; // 进行中的加载 Promise（并发去重 + 供"等加载完成"await）
 
-/** 预载预制库（幂等；失败给空库） */
+/** 预载预制库（幂等；并发调用共享同一 Promise；失败给空库） */
 export async function loadWallPrefabs() {
     if (_library) return _library;
-    try {
-        const r = await fetch(`${PREFAB_URL}?ts=${Date.now()}`);
-        _library = r.ok ? await r.json() : {};
-    } catch {
-        _library = {};
-    }
-    return _library;
+    if (_loadingPromise) return _loadingPromise;
+    _loadingPromise = (async () => {
+        try {
+            const r = await fetch(`${PREFAB_URL}?ts=${Date.now()}`);
+            _library = r.ok ? await r.json() : {};
+        } catch {
+            _library = {};
+        } finally {
+            _loadingPromise = null;
+        }
+        return _library;
+    })();
+    return _loadingPromise;
+}
+
+/**
+ * 等预制库加载完成（未发起则现场发起加载）。
+ * 供进战斗前 await：BootScene 预载是 fire-and-forget，资源加载慢时玩家进战斗节点
+ * 库可能还没拉完——调用方应等本 Promise 再构建竞技场，避免静默回退单房间。
+ */
+export function whenWallPrefabsLoaded() {
+    return loadWallPrefabs();
 }
 
 /** 取已缓存的预制库（未预载返回空对象） */

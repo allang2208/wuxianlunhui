@@ -28,7 +28,8 @@
  * 地面阴影：每个有 foot 碰撞的障碍物件（预制组合各件 + 中央石柱）放椭圆阴影
  * （entity_shadow，footprint 与 _addPieceCollision 同口径，alpha 0.35），
  * 登记进 CombatRoomSystem._decoSprites 随 cleanupRoom → cleanupGate 销毁
- * （通道火把无碰撞不放阴影；火把火焰按用户要求不清理，阴影必须清）。
+ * （通道火把无碰撞不放阴影；火把火焰 emitter 与阴影同口径登记 _decoSprites——
+ * 战斗内常驻、战斗结束才销毁，不再"永不销毁"逐场累积泄漏）。
  */
 import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
@@ -339,7 +340,9 @@ export const ObstacleSpawnSystem = {
 
     /**
      * 放一个火把渲染 piece + 持续火焰粒子（通道火把用）：
-     * 无 rotation/flip、depthManual 贴墙深度、提灯矿工落地焰三色 ADD 上飘、不登记清理列表
+     * 无 rotation/flip、depthManual 贴墙深度、提灯矿工落地焰三色 ADD 上飘；
+     * 火焰 emitter 登记 CombatRoomSystem._decoSprites（与障碍物阴影同口径）——
+     * 战斗内常驻、cleanupRoom 时统一销毁，不再"不登记清理列表"导致每场战斗累积泄漏
      */
     _placeTorch(ctx, g, pt, scale, torchDepth) {
         WallSystem.isoVisuals.push({
@@ -368,6 +371,11 @@ export const ObstacleSpawnSystem = {
             });
             em.setDepth(torchDepth + 1);
             em.addToUpdateList();
+            // 登记进战斗房清理链（window.CombatRoomSystem 晚绑定，防与 combat-room-system 循环导入；
+            // cleanupRoom → cleanupGate 统一销毁。拿不到 CRS 时 emitter 会多活一会儿，
+            // 场景切换仍随场景销毁，可接受）
+            const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
+            if (CRS) (CRS._decoSprites = CRS._decoSprites || []).push(em);
         }
     },
 };

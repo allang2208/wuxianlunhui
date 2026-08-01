@@ -86,8 +86,11 @@ export const TrapSystem = {
                 && !WallSystem.canMoveTo(x, y, C.triggerRadius)) return false;
             if (inExclusion(x, y)) return false;
             if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) return false;
-            // 前墙遮挡区排除：仅随机环带模式；水平陷阱线朝左/右顶点延伸到墙边，由菱形内缩边界收尾
-            if (!isLine && _distToFrontEdges(bounds, { x, y }) < 180) return false;
+            // 前墙遮挡区排除：随机环带模式 180；石柱陷阱线 170（2026-08-01 CDP 实测：
+            // 线朝左/右顶点延伸到墙边时，距前墙边 <~160px 的陷阱被前墙瓦完全盖住——
+            // 不可见但仍占用触发/造成伤害；170 = 实测遮挡边界 160 + 余量。
+            // 线末端视觉上本就没入前墙脚（被盖住的点本来也看不见），不会显眼截断）
+            if (_distToFrontEdges(bounds, { x, y }) < (isLine ? 170 : 180)) return false;
             if (reachAnchor && pathFinder && typeof pathFinder.findPath === 'function') {
                 const path = pathFinder.findPath(x, y, reachAnchor.x, reachAnchor.y, 15);
                 if (!path || path.length === 0) return false;
