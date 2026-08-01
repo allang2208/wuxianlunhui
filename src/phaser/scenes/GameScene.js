@@ -507,11 +507,11 @@ export class GameScene extends Scene {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
             playerNatural = this.playerSprite.y + footOffsetY + 10;
             // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）；
-            // frontRange = 贴图脚底→头顶高度（封顶 160）：墙前该范围内像素仍与墙重叠时也要抬升。
+            // frontRange = 贴图脚底→头顶高度（封顶 280）：墙前该范围内像素仍与墙重叠时也要抬升。
             // footOffsetY 语义 = 脚底相对贴图中心的偏移（见 _getFootOffsetY），
             // 故脚底→头顶 = footOffsetY + displayHeight/2（旧公式 displayHeight − footOffsetY
             // 把它算成 72，只有真实高度 144 的一半——通道上侧墙"稍远离即被挡"的死带根因）
-            const playerFrontRange = Math.min(160, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
+            const playerFrontRange = Math.min(280, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
             playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural, playerFrontRange);
             this.playerSprite.setDepth(playerCorrected);
         }
@@ -528,8 +528,9 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
-                // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，封顶 160）
-                const frontRange = Math.min(160, Math.max(60, footOffsetY + sprite.displayHeight / 2));
+                // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，
+                // 封顶 280——覆盖大型怪（如 fly-hand spriteSize 260）；旧封顶 160 给它们留理论死带）
+                const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
                 const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10), frontRange);
                 sprite.setDepth(d);
             });
@@ -2302,36 +2303,31 @@ export class GameScene extends Scene {
             
             if (sword.flyActive) {
                 // 飞行剑：使用世界坐标和 flyAngle
-                sprite.setPosition(sword.flyX, sword.flyY);
+                // 悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
+                sprite.setPosition(sword.flyX, sword.flyY - (sword.elev ?? (player.bodyHeight || 0) * 0.5));
                 sprite.setRotation(sword.flyAngle + Math.PI / 2);
                 sprite.setAlpha(1);
                 sprite.setVisible(true);
                 return;
             }
             
-            const s = player.size;
-            const baseX = -s * 0.3 - 50;
-            const baseY = sword.offsetX;
+            // 立体环绕：以玩家圆柱体碰撞体积为基准（环形 offsetX/offsetY + 各自 elev 高度）
             const swayX = Math.sin(sword.swayTimer * sword.swayFreqX) * sword.swayAmpX;
             const swayY = Math.cos(sword.swayTimer * sword.swayFreqY) * sword.swayAmpY;
             
-            const localX = baseX + swayX;
-            const localY = baseY + swayY;
+            const localX = sword.offsetX + swayX;
+            const localY = sword.offsetY + swayY;
             
             const cos = Math.cos(player.rotation);
             const sin = Math.sin(player.rotation);
-            const baseWorldX = player.x + cos * localX - sin * localY;
-            const baseWorldY = player.y + sin * localX + cos * localY;
+            const worldX = player.x + cos * localX - sin * localY;
+            const worldY = player.y - (sword.elev ?? (player.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
             
             // 计算朝向鼠标的角度（使用 Phaser 相机坐标，避免 window.Camera 偏移错误）
             const camera = this.cameras.main;
             const mouseX = camera.scrollX + (Input.mouse?.x || 0);
             const mouseY = camera.scrollY + (Input.mouse?.y || 0);
-            const absoluteAngle = Math.atan2(mouseY - baseWorldY, mouseX - baseWorldX);
-            
-            // 应用旋转后的偏移（对应 Canvas 的 ctx.translate(0, -s * 0.85)）
-            const worldX = baseWorldX + Math.cos(absoluteAngle) * s * 0.85;
-            const worldY = baseWorldY + Math.sin(absoluteAngle) * s * 0.85;
+            const absoluteAngle = Math.atan2(mouseY - worldY, mouseX - worldX);
             
             sprite.setPosition(worldX, worldY);
             sprite.setRotation(absoluteAngle + Math.PI / 2);
@@ -2376,10 +2372,58 @@ export class GameScene extends Scene {
                 iceSpikes: [],
                 iceSpikeFly: [],
                 fireball: null,
-                fireballFly: null
+                fireballFly: null,
+                fireballEmitters: null, // 火球粒子火焰（主火焰团 + 外层光晕，火炬火焰放大版）
             });
         }
         return this._magicSprites.get(caster);
+    }
+
+    // ==================== 火球粒子火焰（参考障碍物火炬火焰：impact_dot + 三色 ADD 上飘） ====================
+    _ensureFireballEmitters(caster, scale) {
+        const sprites = this._getMagicSprites(caster);
+        if (sprites.fireballEmitters) return sprites.fireballEmitters;
+        const s = scale || 1;
+        // ① 主火焰团：稍大的火球
+        const main = this.add.particles(0, 0, 'impact_dot', {
+            frequency: 45,
+            speedX: { min: -16, max: 16 },
+            speedY: { min: -160, max: -80 },
+            scale: { start: 5.5 * s, end: 0.9 * s },
+            alpha: { start: 0.95, end: 0 },
+            lifespan: 520,
+            tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
+            blendMode: 'ADD',
+        });
+        // ② 外层光晕：更大更淡
+        const glow = this.add.particles(0, 0, 'impact_dot', {
+            frequency: 30,
+            speedX: { min: -6, max: 6 },
+            speedY: { min: -34, max: -12 },
+            scale: { start: 9 * s, end: 2.6 * s },
+            alpha: { start: 0.32, end: 0 },
+            lifespan: 620,
+            tint: [0xff8830, 0xff5510],
+            blendMode: 'ADD',
+        });
+        sprites.fireballEmitters = [main, glow];
+        return sprites.fireballEmitters;
+    }
+
+    _positionFireballEmitters(caster, x, y, scale) {
+        const ems = this._ensureFireballEmitters(caster, scale || 1);
+        for (const em of ems) {
+            em.setPosition(x, y);
+            em.setDepth(y + 15); // 与世界特效同口径：按自身世界 Y 排序
+            em.setVisible(true);
+        }
+    }
+
+    _hideFireballEmitters(caster) {
+        const sprites = this._getMagicSprites(caster);
+        if (sprites.fireballEmitters) {
+            for (const em of sprites.fireballEmitters) em.setVisible(false);
+        }
     }
 
     /**
@@ -2415,8 +2459,9 @@ export class GameScene extends Scene {
 
             const cos = Math.cos(caster.rotation || 0);
             const sin = Math.sin(caster.rotation || 0);
+            // 生成位置：以施法者圆柱体碰撞体积为基准——立体环绕（每根冰锥按 elev 位于圆柱体不同高度）
             const worldX = caster.x + cos * localX - sin * localY;
-            const worldY = caster.y + sin * localX + cos * localY;
+            const worldY = caster.y - (spike.elev ?? (caster.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
 
             // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target
             let absoluteAngle;
@@ -2447,15 +2492,11 @@ export class GameScene extends Scene {
     _syncFireball(caster) {
         const sprites = this._getMagicSprites(caster);
         if (!caster._fireballActive || !caster._fireball || caster._fireball.launched) {
-            if (sprites.fireball) sprites.fireball.setVisible(false);
+            this._hideFireballEmitters(caster);
             return;
         }
 
         const fb = caster._fireball;
-
-        if (!sprites.fireball) {
-            sprites.fireball = this.add.sprite(0, 0, 'fireball');
-        }
 
         const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
         const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
@@ -2465,40 +2506,12 @@ export class GameScene extends Scene {
 
         const cos = Math.cos(caster.rotation || 0);
         const sin = Math.sin(caster.rotation || 0);
+        // 生成位置：以施法者圆柱体碰撞体积为基准（火球位于垂直中心 elev）
         const worldX = caster.x + cos * localX - sin * localY;
-        const worldY = caster.y + sin * localX + cos * localY;
+        const worldY = caster.y - (fb.elev ?? (caster.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
 
-        // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target
-        let absoluteAngle;
-        if (caster === Game.player) {
-            const camera = this.cameras.main;
-            const mouseX = camera.scrollX + ((Input.mouse?.x) || 0);
-            const mouseY = camera.scrollY + ((Input.mouse?.y) || 0);
-            absoluteAngle = Math.atan2(mouseY - caster.y, mouseX - caster.x);
-        } else {
-            const target = caster.target;
-            if (target && target.active) {
-                absoluteAngle = Math.atan2(target.y - caster.y, target.x - caster.x);
-            } else {
-                absoluteAngle = caster.rotation || 0;
-            }
-        }
-
-        sprites.fireball.setPosition(worldX, worldY);
-        sprites.fireball.setRotation(absoluteAngle + Math.PI / 2);
-        sprites.fireball.setAlpha(0.9);
-        sprites.fireball.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-
-        // 如果 fireball 是 spritesheet，设置当前帧
-        if (fb.frameIndex !== undefined) {
-            try {
-                sprites.fireball.setFrame(fb.frameIndex);
-            } catch (_e) {
-                // 不是 spritesheet 或帧不存在，忽略
-            }
-        }
-
-        sprites.fireball.setVisible(true);
+        // 火炬同款火焰粒子（放大版）替换固定贴图
+        this._positionFireballEmitters(caster, worldX, worldY, fb.scale || 1);
     }
 
     /**
@@ -2583,7 +2596,8 @@ export class GameScene extends Scene {
         sprites.iceSpikeFly.forEach(sprite => {
             if (activeIdx < activeSpikes.length) {
                 const spike = activeSpikes[activeIdx];
-                sprite.setPosition(spike.flyX, spike.flyY);
+                // 飞行视觉悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
+                sprite.setPosition(spike.flyX, spike.flyY - (spike.elev ?? (caster.bodyHeight || 0) * 0.5));
                 sprite.setRotation(spike.flyAngle + Math.PI / 2);
                 sprite.setAlpha(0.9);
                 sprite.setVisible(true);
@@ -2600,30 +2614,13 @@ export class GameScene extends Scene {
     _syncFlyingFireball(caster) {
         const sprites = this._getMagicSprites(caster);
         if (!caster._fireball || !caster._fireball.flyActive) {
-            if (sprites.fireballFly) sprites.fireballFly.setVisible(false);
+            this._hideFireballEmitters(caster);
             return;
         }
 
         const fb = caster._fireball;
-
-        if (!sprites.fireballFly) {
-            sprites.fireballFly = this.add.sprite(0, 0, 'fireball');
-        }
-
-        sprites.fireballFly.setPosition(fb.flyX, fb.flyY);
-        sprites.fireballFly.setRotation(fb.flyAngle + Math.PI / 2);
-        sprites.fireballFly.setAlpha(0.9);
-        sprites.fireballFly.setDisplaySize(50 * (fb.scale || 1), 50 * (fb.scale || 1));
-
-        if (fb.frameIndex !== undefined) {
-            try {
-                sprites.fireballFly.setFrame(fb.frameIndex);
-            } catch (_e) {
-                // 帧索引可能无效，忽略
-            }
-        }
-
-        sprites.fireballFly.setVisible(true);
+        // 飞行视觉悬浮在火球 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
+        this._positionFireballEmitters(caster, fb.flyX, fb.flyY - (fb.elev ?? (caster.bodyHeight || 0) * 0.5), fb.scale || 1);
     }
 
     // ==================== 挥砍残影（A 方案运动模糊的实现） ====================

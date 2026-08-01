@@ -18,29 +18,29 @@ export class RuneSwordSystem {
         if (this.player._specialAttackCooldowns['runeSword'] > 0 || this.player._runeSwordSpecialActive) return;
         this.player._runeSwordSpecialActive = true;
         this.player._runeSwordSpecialTimer = 0;
-        // 基础4把剑：左右两侧50px/100px偏移
-        const offsets = [
-            { side: 'left', offsetX: -50 },
-            { side: 'left', offsetX: -100 },
-            { side: 'right', offsetX: 50 },
-            { side: 'right', offsetX: 100 }
-        ];
-        // 符文重构：额外生成魔法剑，依次向外40px
+        // 符文重构：额外生成的魔法剑数量
         const ce = currentItem._craftEffects || {};
         const extraCount = ce.runeRestructureCount || 0;
-        for (let i = 0; i < extraCount; i++) {
-            const step = Math.floor(i / 2) + 1;
-            if (i % 2 === 0) {
-                offsets.push({ side: 'left', offsetX: -100 - step * 40 });
-            } else {
-                offsets.push({ side: 'right', offsetX: 100 + step * 40 });
-            }
+        // 立体环绕：围绕玩家圆柱体碰撞体积——水平环形分布 + 垂直高度沿圆柱体螺旋分布
+        // （基础4把 + 符文重构额外剑）
+        const total = 4 + extraCount;
+        const offsets = [];
+        for (let i = 0; i < total; i++) {
+            const angle = -Math.PI / 2 + (i / total) * Math.PI * 2;
+            const elev = this.player.bodyHeight * (0.15 + 0.7 * (total > 1 ? i / (total - 1) : 0.5));
+            offsets.push({
+                side: i % 2 === 0 ? 'left' : 'right',
+                offsetX: Math.cos(angle) * 55,
+                offsetY: Math.sin(angle) * 55,
+                elev,
+            });
         }
         this.player._runeSwordSwords = offsets.map((o, i) => ({
             id: i,
             side: o.side,
             offsetX: o.offsetX,
-            offsetY: 0,
+            offsetY: o.offsetY,
+            elev: o.elev,
             active: true,
             launched: false,
             fading: false,
@@ -106,11 +106,10 @@ export class RuneSwordSystem {
         const sword = available[idx];
         sword.launched = true;
         sword.flyActive = true;
-        // 计算发射起点（剑当前世界坐标）
+        // 计算发射起点（剑当前世界坐标：环形 offsetX/offsetY 随玩家朝向旋转）
         const cos = Math.cos(this.player.rotation), sin = Math.sin(this.player.rotation);
-        const perpX = -sin, perpY = cos;
-        sword.flyX = this.player.x + sword.offsetX * perpX;
-        sword.flyY = this.player.y + sword.offsetX * perpY;
+        sword.flyX = this.player.x + sword.offsetX * cos - sword.offsetY * sin;
+        sword.flyY = this.player.y + sword.offsetX * sin + sword.offsetY * cos;
         // 每把剑独立计算朝向：从剑位置到鼠标位置
         const sp = Renderer.worldToScreen(this.player.x, this.player.y);
         let mouseWorldX = this.player.x, mouseWorldY = this.player.y;

@@ -8,6 +8,35 @@
 - 测试结果
 - 已知问题
 
+### 对话：竞技场加载等待 + 火焰泄漏清理 + 陷阱线隐形伤害修复 + frontRange 封顶提高 + torch 碰撞防护（2026-08-01）
+
+- `src/world/wall-prefabs.js` + `src/world/dungeon-map-system.js`：修复竞技场静默回退单房间——`loadWallPrefabs()` 此前 fire-and-forget，进战斗时库未就绪则 `enterCombatArena` 失败静默回退。新增 `_loadingPromise`（并发去重）+ `whenWallPrefabsLoaded()`；`init` 幂等补发加载；`_enterCombatArena` 未就绪时浮字提示 + 等加载完成重试（`_arenaPrefabsWaiting` 防重入），回退路径保留但库就绪仍失败时日志升级 error。CDP 挂起 fetch 模拟加载慢验证：不再回退，放行后 ~2s 建成三房。
+- `src/world/obstacle-spawn-system.js`：火把火焰 emitter 改为登记 `CombatRoomSystem._decoSprites` 清理链（战斗内常驻、cleanupRoom 销毁）——此前按用户要求"不登记"实为永不销毁，每场战斗泄漏。CDP 验证 cleanupRoom 后 emitter 4→0。
+- `src/world/trap-system.js`：**修复陷阱线隐形伤害（真 gameplay bug）**——线模式延伸到前墙脚时，垂距 <~160px（= 前墙瓦渲染高度，实测量房2 ≈160/房1 ≈105~120）的陷阱被墙瓦完全盖住但仍占用触发（10% 最大生命伤害无视觉提示）。线模式前墙排除阈值 0→170（实测边界+余量；随机环带保持 180）。修后三房陷阱最小垂距 180/181/260，末端特写可见。
+- `src/phaser/scenes/GameScene.js`：frontRange 封顶 160→280（玩家/敌人两处），覆盖 fly-hand(260) 等大型怪的理论死带。
+- `src/world/wall-system.js`：`_addPieceCollision` 对 torch 硬性 return——摆墙/碰撞编辑器重新保存 foot 覆盖也不会让火把重新产生碰撞。
+- `tools/cdp-arena-verify.mjs`：新增可复用的竞技场 CDP 验证脚本（boot/traps/shot/cleanup 等子命令）。
+- `SKILL.md`：第 31 条补 3 条（fire-and-forget 加载要有 await 点、地面层遮挡阈值实测量、emitter 默认登记清理）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）；三项修复均 CDP 实机验证，截图 `tools/verify-shots/`。
+
+### 对话：删除旧防具/饰品套装（2026-08-01）
+
+- `data/equipment.json` / `public/data/equipment.json`（双份同步）：删除 9 个旧防具/饰品物品——旧木盾、新手布帽、粗制项链、旧皮甲、铜戒指、皮手套、铁戒指、腰带、旧皮靴；**保留**小圆盾（盾牌格挡/弹反系统与商店条目不动）。
+- `src/items/item-database.js`：`getDefaultEquip` 移除已删除物品引用，防具/饰品槽位暂时置空，副手默认改为小圆盾。
+- 说明：旧防具的 stats 经排查仅为显示数据、未真正挂接玩家属性（无装备→data.def/HP/移速的汇总逻辑）；新防具实现时需补装备属性挂接与强化成长。
+- 测试：npm test 全绿（双份 JSON 一致性通过）。
+
+### 对话：技能投射物立体环绕（圆柱碰撞体积）+ 火球粒子火焰特效（2026-08-01）
+
+- 投射物生成位置改为**围绕施法者圆柱体碰撞体积立体环绕**（此前贴地围绕 footprint；初版平面环已升级为立体）：
+  - `src/entities/components/ice-spike-system.js`：冰锥水平角度均分（半径 = groundRadius+18）+ **垂直高度沿圆柱体螺旋分布**（elev 从 12% 到 88% bodyHeight）。
+  - `src/entities/components/fireball-system.js`：火球位于施法者圆柱体垂直中心（elev = bodyHeight/2）。
+  - `src/entities/components/rune-sword-system.js`：符文剑水平环形（半径 55）+ **垂直高度螺旋分布**（elev 15%~85%），发射起点按环形 offsetX/offsetY 旋转（修复 offsetY 硬编码 0）。
+  - `src/entities/components/bolt-skill-system.js`：`_spawn` 透传施法者给 `makeProjectiles`。
+  - `src/phaser/scenes/GameScene.js`：悬浮与飞行视觉按各投射物 `elev` 抬升（立体高度；碰撞/落点仍走 flyX/flyY 地面坐标）。
+- 火球贴图替换：参考障碍物火炬火焰（`impact_dot` + 三色 ADD 上飘），新增双发射器粒子火焰（主火焰团 + 外层光晕，放大为稍大火球），深度按世界 Y 排序；删除固定 `fireball` spritesheet 精灵渲染。
+- 验证：CDP 实机确认冰锥/符文剑环形偏移、火球中心偏移、粒子发射器创建可见、Y 抬升生效；npm test 全绿；eslint 通过。
+
 ### 对话：冲刺攻击应用武器模糊（2026-08-01）
 
 - 机制本已接入（`_syncSpecialWeaponAnim` 冲刺分支 `_isDashing` 期间调 `_applyWeaponBlur`），但 `sword.dash` 30 帧全是 `blurY=3`（m=3 → 强度仅 4.8），观感不明显。

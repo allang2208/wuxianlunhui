@@ -23,13 +23,14 @@ const FIREBALL_KIND = {
     img: { field: '_fireballImg', src: 'assets/skills/fireball_spritesheet.png' },
     anim: { totalFrames: 73, hoverMs: 100, flyMs: 50 },
     spawnText: () => '🔥 火球凝聚',
-    makeProjectiles(effect) {
+    makeProjectiles(effect, source) {
         return [{
             id: 0,
             active: true,
             launched: false,
-            offsetX: 30, // 身前30px（纯视觉偏移）
+            offsetX: 0, // 以施法者圆柱体碰撞体积中心生成（y 抬升由渲染层按 bodyHeight/2 处理）
             offsetY: 0,
+            elev: ((source && source.bodyHeight) || 120) * 0.5, // 圆柱体碰撞体积垂直中心
             flyX: 0, flyY: 0,
             flyAngle: 0,
             flySpeed: effect.flySpeed,

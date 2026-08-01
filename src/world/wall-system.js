@@ -815,6 +815,8 @@ const WallSystem = {
     _addPieceCollision(p) {
         // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
         const geo = this._geoForTex(p.tex);
+        // 火把硬性无碰撞（用户规则）：即使摆墙编辑器/碰撞编辑器重新保存了 foot 覆盖也不生成
+        if (geo && geo.tex === ISO_WALL_GEO.torch.tex) return;
         if (geo && geo.category === 'obstacle' && geo.foot) {
             const sx = Math.abs(p.scaleX ?? 1), sy = Math.abs(p.scaleY ?? p.scaleX ?? 1);
             const fw = geo.foot.w * sx, fd = geo.foot.d * sy;

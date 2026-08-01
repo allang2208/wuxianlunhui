@@ -27,16 +27,16 @@
             },
             getDefaultEquip() {
                 return {
-                    helmet: this.get('novice_cap'),
-                    necklace: this.get('rough_necklace'),
+                    helmet: null,
+                    necklace: null,
                     weapon: this.get('rusty_sword'),
-                    armor: this.get('old_leather_armor'),
-                    offhand: this.get('old_wooden_shield'),
+                    armor: null,
+                    offhand: this.get('small_shield'), // 保留盾牌体系：默认小圆盾
                     ring1: null,
-                    gloves: this.get('leather_gloves'),
+                    gloves: null,
                     ring2: null,
-                    belt: this.get('basic_belt'),
-                    boots: this.get('old_leather_boots')
+                    belt: null,
+                    boots: null
                 };
             },
             getDefaultBackpack() {
