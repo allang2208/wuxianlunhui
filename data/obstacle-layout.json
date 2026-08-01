@@ -1,18 +1,5 @@
 [
   {
-    "tex": "obstacle_pillar",
-    "x": 4616.88818359375,
-    "y": 1638.101318359375,
-    "scaleX": 0.5050845916937241,
-    "scaleY": 0.5050845916937241,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1752.101318359375,
-    "family": "obstacle",
-    "label": "石柱 1"
-  },
-  {
     "tex": "obstacle_woodpile",
     "x": 2573,
     "y": 1843,
@@ -39,32 +26,6 @@
     "label": "铁矿堆 1"
   },
   {
-    "tex": "obstacle_barrel",
-    "x": 3186.36865234375,
-    "y": 1340.64501953125,
-    "scaleX": 0.234375,
-    "scaleY": 0.234375,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1400.64501953125,
-    "family": "obstacle",
-    "label": "木桶 1"
-  },
-  {
-    "tex": "obstacle_pillar",
-    "x": 3315.36865234375,
-    "y": 1237.64501953125,
-    "scaleX": 0.5050845916937241,
-    "scaleY": 0.5050845916937241,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1436.2720888732417,
-    "family": "obstacle",
-    "label": "石柱 2"
-  },
-  {
     "tex": "obstacle_candle",
     "x": 3319.36865234375,
     "y": 1413.64501953125,
@@ -76,70 +37,5 @@
     "depth": 1503.64501953125,
     "family": "obstacle",
     "label": "烛台 1"
-  },
-  {
-    "tex": "obstacle_skull",
-    "x": 3042.36865234375,
-    "y": 1444.64501953125,
-    "scaleX": 0.11361892906532736,
-    "scaleY": 0.11361892906532736,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1516.64501953125,
-    "family": "obstacle",
-    "label": "头骨 1"
-  },
-  {
-    "tex": "obstacle_pot",
-    "x": 3077.36865234375,
-    "y": 1344.64501953125,
-    "scaleX": 0.234375,
-    "scaleY": 0.234375,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1505.64501953125,
-    "family": "obstacle",
-    "label": "陶罐 1"
-  },
-  {
-    "tex": "obstacle_bones",
-    "x": 3113.36865234375,
-    "y": 1457.64501953125,
-    "scaleX": 0.2386634844868735,
-    "scaleY": 0.2386634844868735,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1507.64501953125,
-    "family": "obstacle",
-    "label": "骨头堆 1"
-  },
-  {
-    "tex": "obstacle_chains",
-    "x": 3424.36865234375,
-    "y": 1472.64501953125,
-    "scaleX": 0.2063573961481543,
-    "scaleY": 0.2063573961481543,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1510.64501953125,
-    "family": "obstacle",
-    "label": "锁链 1"
-  },
-  {
-    "tex": "obstacle_torch",
-    "x": 2234.4415283203125,
-    "y": 1494.5126953125,
-    "scaleX": 0.21691481028661888,
-    "scaleY": 0.21691481028661888,
-    "flipX": false,
-    "flipY": false,
-    "rotation": 0,
-    "depth": 1603.5126953125,
-    "family": "obstacle",
-    "label": "火把 1"
   }
 ]

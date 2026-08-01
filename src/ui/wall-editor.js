@@ -53,6 +53,15 @@ function cleanPiece(p) {
     return c;
 }
 
+/** 归一化角度到 [-π, π]（防止旋转无限累计，保持落盘 JSON 整洁） */
+function _normRot(r) {
+    if (!r) return 0;
+    let a = r % (Math.PI * 2);
+    if (a > Math.PI) a -= Math.PI * 2;
+    if (a < -Math.PI) a += Math.PI * 2;
+    return a;
+}
+
 export const WallEditor = {
     active: false,
     sel: [],               // 当前选中件（单选/框选统一为集合）
@@ -382,7 +391,7 @@ export const WallEditor = {
             const p = this._pendingPiece;
             if (e.ctrlKey) p.flipX = !p.flipX;
             else if (e.shiftKey) {
-                if (p.family === 'obstacle') p.rotation = ((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
+                if (p.family === 'obstacle') p.rotation = _normRot((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
             } else {
                 const f = e.deltaY < 0 ? 1.05 : 1 / 1.05;
                 p.scaleX *= f;
@@ -410,7 +419,7 @@ export const WallEditor = {
             // Shift+滚轮：障碍物旋转 ±5°（墙件不受影响，防止误转破坏拼接）
             for (const p of this.sel) {
                 if (p.family !== 'obstacle') continue;
-                p.rotation = ((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
+                p.rotation = _normRot((p.rotation || 0) + (e.deltaY < 0 ? 5 : -5) * Math.PI / 180);
                 this._applyToSprite(p);
             }
         } else {
@@ -475,9 +484,10 @@ export const WallEditor = {
             if (def) {
                 this._pendingPiece.scaleX = def.scaleX ?? s;
                 this._pendingPiece.scaleY = def.scaleY ?? def.scaleX ?? s;
-                this._pendingPiece.rotation = def.rotation || 0;
+                this._pendingPiece.rotation = _normRot(def.rotation || 0);
                 this._pendingPiece.flipX = !!def.flipX;
-                this._pendingPiece.flipY = !!def.flipY;
+                // flipY 会让碰撞类 billboard 上下颠倒、底座与 footprint 错位——障碍物不支持，强制 false
+                this._pendingPiece.flipY = false;
             }
         }
         const scene = window.__phaserScene;
@@ -492,6 +502,7 @@ export const WallEditor = {
         this._ghost.setPosition(p.x, p.y);
         this._ghost.setScale(p.scaleX, p.scaleY);
         this._ghost.setFlipX(p.flipX);
+        this._ghost.setFlipY(!!p.flipY);
         this._ghost.setRotation(p.rotation || 0);
     },
 
@@ -533,9 +544,12 @@ export const WallEditor = {
     _deleteSelection() {
         if (!this.sel.length) return;
         const set = new Set(this.sel);
+        const removedObstacle = this.sel.some(p => (WallSystem._geoForTex(p.tex) || {}).category === 'obstacle');
         WallSystem.isoVisuals = WallSystem.isoVisuals.filter(p => !set.has(p));
         this._setSelection([]);
         this._commit();
+        // 主神空间删除障碍物后自动落盘障碍物布局（Delete 键 /「删除选中」按钮均触发）
+        if (removedObstacle) this._saveObstacleLayout();
     },
 
     // ===== 障碍物编辑器（仅单选一个障碍物时显示，位于墙壁编辑器下方） =====
@@ -583,9 +597,9 @@ export const WallEditor = {
         if (def) {
             p.scaleX = def.scaleX ?? 1;
             p.scaleY = def.scaleY ?? def.scaleX ?? 1;
-            p.rotation = def.rotation || 0;
+            p.rotation = _normRot(def.rotation || 0);
             p.flipX = !!def.flipX;
-            p.flipY = !!def.flipY;
+            p.flipY = false; // 障碍物不支持 flipY（上下颠倒底座错位）
         } else {
             const s = (g.category === 'obstacle') ? ((g.obstacleH ?? 120) / g.h) : (ISO_WALL_HEIGHT / g.wallH);
             p.scaleX = s;
@@ -830,6 +844,9 @@ export const WallEditor = {
     /** 角度补偿：选中件的显示斜率对齐地板线 30°（scaleY 按比例重设，宽度/墙高不动） */
     _alignSlope() {
         for (const p of this.sel) {
+            // 障碍物是 billboard（scaleY=scaleX，无 30° 斜率概念）——跳过，防误变形
+            const g = WallSystem._geoForTex(p.tex);
+            if (g && g.category === 'obstacle') continue;
             p.scaleY = (p.scaleX ?? 1) * slopeFixOf(WallSystem._geoForTex(p.tex));
             this._applyToSprite(p);
         }
@@ -919,9 +936,9 @@ export const WallEditor = {
         p._sprite.setFlipY(!!p.flipY);
         p._sprite.setRotation(p.rotation || 0);
         // 障碍物：优先手调值（图层面板/Q+E/火把贴墙，p.depthManual 标记），
-        // 否则锚贴图底边（前墙规则——位置/缩放变化时自动跟随）
+        // 否则锚地面线（未旋转=贴图底边；旋转=包围盒最低点，obstacleDepthOf）
         const g = WallSystem._geoForTex(p.tex);
-        const obstacleDepth = p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2;
+        const obstacleDepth = WallSystem.obstacleDepthOf(p);
         const depth = (g && g.category === 'obstacle')
             ? (p.depthManual ? (p.depth ?? obstacleDepth) : obstacleDepth)
             : (p.depth ?? p.y);
@@ -941,7 +958,8 @@ export const WallEditor = {
 
     _scheduleCommit() {
         clearTimeout(this._commitTimer);
-        this._commitTimer = setTimeout(() => this._commit(), 300);
+        // 防抖 450ms：滚轮连续缩放/旋转时合并重建（_commit 全量重建碰撞+Phaser，过短会卡顿）
+        this._commitTimer = setTimeout(() => this._commit(), 450);
     },
 
     // ===== 图层面板（编辑器左侧，仿 Photoshop 图层） =====
@@ -1048,6 +1066,7 @@ export const WallEditor = {
             </div>
             <div class="we-page we-page-std">${stdHtml}</div>
             <div class="we-page we-page-pre" style="display:none">
+                <div class="we-pf-hint">拖动 ≡ 排序（自动保存，重启后顺序保留）</div>
                 <div class="we-prefab-list"></div>
             </div>
             <div class="we-row">
@@ -1124,16 +1143,53 @@ export const WallEditor = {
         const keys = Object.keys(lib);
         list.innerHTML = keys.length
             ? keys.map(k => `
-                <div class="we-pf" data-key="${k}">
+                <div class="we-pf" data-key="${k}" draggable="true" title="拖动排序">
+                    <span class="we-pf-handle">≡</span>
                     <span title="${k}">${lib[k].name || k}</span>
-                    <button class="we-pf-place">放置</button>
-                    <button class="we-pf-del">删</button>
+                    <button class="we-pf-place" draggable="false">放置</button>
+                    <button class="we-pf-del" draggable="false">删</button>
                 </div>`).join('')
             : '<div class="we-pf-empty">（暂无预设方案，框选后命名保存）</div>';
         for (const row of list.querySelectorAll('.we-pf')) {
             row.querySelector('.we-pf-place').addEventListener('click', () => this._placePrefab(row.dataset.key));
             row.querySelector('.we-pf-del').addEventListener('click', () => this._deletePrefab(row.dataset.key));
+            row.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', row.dataset.key);
+                e.dataTransfer.effectAllowed = 'move';
+                row.classList.add('dragging');
+            });
+            row.addEventListener('dragend', () => row.classList.remove('dragging'));
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                row.classList.add('drag-over');
+            });
+            row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                row.classList.remove('drag-over');
+                this._reorderPrefab(e.dataTransfer.getData('text/plain'), row.dataset.key);
+            });
         }
+    },
+
+    /**
+     * 预制组件拖动排序：把 fromKey 移到 toKey 所在位置（其余顺延），
+     * 按新键序重建库对象（JSON 对象键序 = 显示顺序）并落盘保存。
+     */
+    _reorderPrefab(fromKey, toKey) {
+        if (!fromKey || !toKey || fromKey === toKey) return;
+        const lib = getWallPrefabLibrary();
+        const keys = Object.keys(lib);
+        const fromIdx = keys.indexOf(fromKey);
+        const toIdx = keys.indexOf(toKey);
+        if (fromIdx < 0 || toIdx < 0) return;
+        const ordered = {};
+        const rest = keys.filter(k => k !== fromKey);
+        // 与图层面板 _reorderLayer 同口径：拖拽项落到目标行当前索引位，目标及其后顺延
+        rest.splice(toIdx, 0, fromKey);
+        for (const k of rest) ordered[k] = lib[k];
+        saveWallPrefabs(ordered).then(() => this._refreshPrefabList());
     },
 
     _updateInfo() {

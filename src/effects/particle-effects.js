@@ -235,11 +235,18 @@ class DustEffect {
             this._graphics.setVisible(true);
         }
     }
+    _depth() {
+        // 墙体遮挡仲裁与实体同口径（window.WallSystem 由 main.js 挂载）：
+        // 实体在墙后时烟尘压到遮挡墙之下，避免"人被墙挡住、烟尘却浮在墙上"
+        const d = this.y + 43;
+        const WS = (typeof window !== 'undefined') ? window.WallSystem : null;
+        return (WS && WS.junctionCorrectedDepth) ? WS.junctionCorrectedDepth(this.x, this.y, d) : d;
+    }
     _ensureGraphics() {
         const scene = window.__phaserScene;
         if (this._graphics || !scene) return;
         this._graphics = scene.add.graphics();
-        this._graphics.setDepth(this.y + 43);
+        this._graphics.setDepth(this._depth());
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
     }
     update(dt = 16.67) {
@@ -267,7 +274,7 @@ class DustEffect {
         const g = this._graphics;
         g.clear();
         g.setPosition(this.x, this.y);
-        g.setDepth(this.y + 43);
+        g.setDepth(this._depth());
         this.particles.forEach(p => {
             if (p.alpha <= 0) return;
             g.fillStyle(0xa09687, p.alpha * globalAlpha);

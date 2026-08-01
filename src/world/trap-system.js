@@ -54,10 +54,12 @@ export const TrapSystem = {
      * @param {Object} bounds 房间 bounds（菱形）
      * @param {Object} cfg 陷阱配置（count/triggerRadius 等）
      * @param {Object} [extras] 生成约束：
-     *   - player：玩家实体——可达性校验（findPath 非空才放，杜绝刷在走不到的位置）
+     *   - player：玩家实体——默认可达性锚点（findPath 非空才放，杜绝刷在走不到的位置）
+     *   - reachFrom：可达性锚点覆盖 {x, y}（竞技场创建时预生成：玩家在房外/门关着，
+     *     锚玩家会跨房寻路全灭，改锚本房内部参考点，如房心/本房门点；缺省回退 player）
      *   - exclusions：排除菱形区数组（如宝箱房 _exclusion，区内不刷）
      *   - avoidPoints：排除点数组 [{x, y, r?}]（门洞中心等，r 默认 150）
-     *   - lineFrom：直线布局锚点（柱子位置 {x, y}）——房间 1/2 专用：
+     *   - lineFrom：直线布局锚点（房心 {x, y}）——房间 1/2 专用：
      *     随机选锚点左/右侧，向左下（左）或右上（右）一条直线延伸到墙边，只生成一条
      */
     spawnForRoom(bounds, cfg, extras = {}) {
@@ -69,6 +71,8 @@ export const TrapSystem = {
         const exclusions = extras.exclusions || [];
         const avoidPoints = extras.avoidPoints || [];
         const player = extras.player || null;
+        // 可达性锚点：reachFrom 优先，缺省回退玩家位置（旧行为）
+        const reachAnchor = extras.reachFrom || (player ? { x: player.x, y: player.y } : null);
         const inExclusion = (x, y) => exclusions.some(e =>
             Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
         const valid = (x, y) => {
@@ -78,8 +82,8 @@ export const TrapSystem = {
             if (inExclusion(x, y)) return false;
             if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) return false;
             if (_distToFrontEdges(bounds, { x, y }) < 180) return false;
-            if (player && pathFinder && typeof pathFinder.findPath === 'function') {
-                const path = pathFinder.findPath(x, y, player.x, player.y, 15);
+            if (reachAnchor && pathFinder && typeof pathFinder.findPath === 'function') {
+                const path = pathFinder.findPath(x, y, reachAnchor.x, reachAnchor.y, 15);
                 if (!path || path.length === 0) return false;
             }
             return true;

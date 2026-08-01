@@ -243,7 +243,10 @@ const CraftSystem = {
             e.dataTransfer.setData('text/plain', 'craft');
             e.dataTransfer.effectAllowed = 'move';
             dropZone.classList.add('dragging');
-            // 创建自定义拖动图片：背包格子大小的装备方块
+            // 创建自定义拖动图片：背包格子大小的装备方块。
+            // 同步设置 setDragImage——此前在 img.onload 里异步调用存在竞态，
+            // dragstart 返回后浏览器忽略晚到的设置，默认快照显示 dropZone 大贴图；
+            // 优先用改造栏已加载的贴图实例同步绘制（complete 后 drawImage 立即可用）。
             const canvas = document.createElement('canvas');
             canvas.width = 56; canvas.height = 56;
             const ctx = canvas.getContext('2d');
@@ -253,29 +256,35 @@ const CraftSystem = {
             ctx.strokeStyle = '#5a4d3f';
             ctx.lineWidth = 2;
             ctx.strokeRect(0, 0, 56, 56);
-            // 绘制装备图标
-            const imgSrc = this._equippedItem.equipImage || this._equippedItem.slotImage || this._equippedItem.iconImage;
-            if (imgSrc) {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.drawImage(img, 4, 4, 48, 48);
-                    e.dataTransfer.setDragImage(canvas, 28, 28);
-                };
-                img.onerror = () => {
-                    ctx.fillStyle = '#d4c5a9';
-                    ctx.font = '24px serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this._equippedItem.icon || '❓', 28, 36);
-                    e.dataTransfer.setDragImage(canvas, 28, 28);
-                };
-                img.src = imgSrc;
-            } else {
+            const fallbackDraw = () => {
                 ctx.fillStyle = '#d4c5a9';
                 ctx.font = '24px serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(this._equippedItem.icon || '❓', 28, 36);
-                e.dataTransfer.setDragImage(canvas, 28, 28);
+            };
+            // 1) 同步：改造栏已加载的武器贴图实例（weaponDisplay 的 img，complete 即可直接绘制）
+            const weaponDisplay = getElement('craftWeaponDisplay');
+            const displayImg = weaponDisplay ? weaponDisplay.querySelector('img') : null;
+            if (displayImg && displayImg.complete && displayImg.naturalWidth > 0) {
+                ctx.drawImage(displayImg, 4, 4, 48, 48);
+            } else {
+                // 2) 异步回退：小图标加载完成后补绘（此时同步的小格子快照已设置，不会回退成大贴图）
+                const imgSrc = this._equippedItem.equipImage || this._equippedItem.slotImage || this._equippedItem.iconImage;
+                if (imgSrc) {
+                    const img = new Image();
+                    img.onload = () => {
+                        try {
+                            ctx.drawImage(img, 4, 4, 48, 48);
+                            e.dataTransfer.setDragImage(canvas, 28, 28);
+                        } catch { /* 拖拽已开始，忽略晚到的重设 */ }
+                    };
+                    img.onerror = fallbackDraw;
+                    img.src = imgSrc;
+                } else {
+                    fallbackDraw();
+                }
             }
+            e.dataTransfer.setDragImage(canvas, 28, 28); // 同步兜底：绝不用 dropZone 大贴图
         };
 
         const handleDragEnd = (_e) => {

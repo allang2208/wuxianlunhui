@@ -800,8 +800,20 @@ export class ZombieDungeonCombat {
         this._encounter = encounterOverride || DungeonConfig.getZombieEncounterConfig(isElite, dungeonType);
         // forceMonsters：事件强制刷新怪物（enemy-config 键名数组，如 ['armoredKnight']），首波插入
         this._forceMonsters = forceMonsters;
+        // 强制怪出场的波次（默认首波；竞技场 forceArenaWaves 改为最后一波压轴）
+        this._forceMonstersWave = 1;
         this._currentWave = 0;
         this._totalWaves = this._encounter.combatWaves;
+    }
+
+    /**
+     * 三房间竞技场强制 N 波编排（软锁修复）：遭遇覆盖 combatWaves < N
+     * （如诅咒铠甲事件 combatWaves:1）时补足到 N 波——否则房间 1 清完即 isComplete、
+     * 门不再开，玩家被软锁。强制怪（forceMonsters，如铠甲骑士）改到最后一波出场压轴。
+     */
+    forceArenaWaves(n) {
+        if (this._totalWaves < n) this._totalWaves = n;
+        this._forceMonstersWave = this._totalWaves;
     }
 
     reset() {
@@ -855,7 +867,7 @@ export class ZombieDungeonCombat {
         };
 
         // 事件强制怪物占位数：强制怪从总数中扣减，剩余名额才由怪物池随机（如 1 骑士 + 4 普通）
-        const forcedCount = (this._currentWave === 1 && Array.isArray(this._forceMonsters)) ? this._forceMonsters.length : 0;
+        const forcedCount = (this._currentWave === this._forceMonstersWave && Array.isArray(this._forceMonsters)) ? this._forceMonsters.length : 0;
         const drawTarget = Math.max(0, monstersPerWave - forcedCount);
 
         if (composition && typeof composition === 'object') {
@@ -895,8 +907,8 @@ export class ZombieDungeonCombat {
             }
         }
 
-        // 事件强制怪物（如诅咒铠甲必刷铠甲骑士）：首波插入，不参与怪物池随机
-        if (this._currentWave === 1 && Array.isArray(this._forceMonsters) && this._forceMonsters.length > 0) {
+        // 事件强制怪物（如诅咒铠甲必刷铠甲骑士）：默认首波插入，竞技场压轴波插入（forceArenaWaves）；不参与怪物池随机
+        if (this._currentWave === this._forceMonstersWave && Array.isArray(this._forceMonsters) && this._forceMonsters.length > 0) {
             for (const key of this._forceMonsters) {
                 const Forced = ZOMBIE_FACTORY_MAP[key];
                 if (Forced) classes.unshift({ MonsterClass: Forced, tier: 'forced' });
