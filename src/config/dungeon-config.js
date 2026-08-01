@@ -135,6 +135,33 @@ export const DungeonConfig = {
         return cfg;
     },
 
+    /** 地牢等级（F/E/D/C/B/A，未配置按 D） */
+    getDungeonGrade(dungeonType) {
+        const list = dungeonConfigData.dungeonList || {};
+        return (list[dungeonType] && list[dungeonType].grade) || 'D';
+    },
+
+    /**
+     * 三房间串联竞技场配置（D 级及以上战斗事件）：
+     * { minGrade, passagePrefabs: { 墙样式名: 预制名, default: 预制名 }, passageGap }
+     */
+    getCombatArenaConfig() {
+        const DEFAULT_ARENA = {
+            minGrade: 'D',
+            passagePrefabs: { default: '左右通道' },
+            passageGap: 0
+        };
+        return deepMerge(DEFAULT_ARENA, dungeonConfigData.combatArena || {});
+    },
+
+    /** 该地牢战斗事件是否启用三房间串联竞技场（grade ≥ combatArena.minGrade） */
+    isCombatArenaEnabled(dungeonType) {
+        const cfg = this.getCombatArenaConfig();
+        const gradeIdx = GRADE_ORDER_LOCAL.indexOf(this.getDungeonGrade(dungeonType));
+        const minIdx = Math.max(0, GRADE_ORDER_LOCAL.indexOf(cfg.minGrade || 'D'));
+        return gradeIdx >= minIdx;
+    },
+
     getEventConfig(eventType) {
         const events = dungeonConfigData.events || {};
         if (!eventType) return events;

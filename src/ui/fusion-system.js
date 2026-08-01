@@ -39,6 +39,8 @@ export const FusionSystem = {
         UIState.close('fusion');
         const panel = document.getElementById('fusionPanel');
         if (panel) panel.classList.remove('active');
+        // 退出时背包一并关闭（合成界面与背包是配套打开的）
+        if (SystemUI) SystemUI.close();
     },
 
     toggle() {
@@ -62,7 +64,7 @@ export const FusionSystem = {
 
     // ==================== 放入/取出 ====================
 
-    /** 背包 → 合成槽（双击/右键/拖放统一入口；堆叠祭品整组放入，直到堆空或格满） */
+    /** 背包 → 合成槽（双击/右键/拖放统一入口；堆叠祭品每次只取 1 个放入） */
     placeFromBackpack(bpIdx) {
         const bp = EquipManager.backpackItems || [];
         const item = bp.find(i => i.slot === bpIdx);
@@ -71,23 +73,20 @@ export const FusionSystem = {
             this._showMessage('只能放入祭品', 'error');
             return;
         }
-        // 整组堆叠放入：逐个取 1，直到堆空或合成栏满
-        while ((item.stack || 1) > 0) {
-            const slot = this._freeSlot();
-            if (slot === -1) {
-                this._showMessage('合成栏已满', 'error');
-                break;
-            }
-            const clone = JSON.parse(JSON.stringify(item));
-            clone.stack = 1;
-            if ((item.stack || 1) > 1) {
-                item.stack -= 1;
-            } else {
-                bp.splice(bp.indexOf(item), 1);
-                item.stack = 0; // 终止循环，防止拆空后复制品
-            }
-            this._placed.push({ slot, item: clone, seq: this._seq++ });
+        const slot = this._freeSlot();
+        if (slot === -1) {
+            this._showMessage('合成栏已满', 'error');
+            return;
         }
+        // 只取 1 个：堆叠 >1 只减数量，=1 整件移出
+        const clone = JSON.parse(JSON.stringify(item));
+        clone.stack = 1;
+        if ((item.stack || 1) > 1) {
+            item.stack -= 1;
+        } else {
+            bp.splice(bp.indexOf(item), 1);
+        }
+        this._placed.push({ slot, item: clone, seq: this._seq++ });
         this._refreshAll();
     },
 
@@ -122,7 +121,7 @@ export const FusionSystem = {
         this._refreshAll();
     },
 
-    /** 一键放入：按稀有度把背包中该稀有度祭品全部放入（按名称排序，决定奇数留存） */
+    /** 一键放入：按稀有度把背包中该稀有度祭品全部放入（堆叠展开逐个取 1；按名称排序，决定奇数留存） */
     storeAllByRarity(rarity) {
         const bp = EquipManager.backpackItems || [];
         const matched = bp.filter(i => i && i.category === 'tribute' && (i.rarity || 'common') === rarity);
@@ -133,11 +132,15 @@ export const FusionSystem = {
         // 按名称排序放入：保证奇数留存为字母序最后一个
         matched.sort((a, b) => String(a.name).localeCompare(String(b.name), 'zh'));
         for (const item of matched) {
-            if (this._freeSlot() === -1) {
-                this._showMessage('合成栏已满', 'error');
-                break;
+            // 堆叠展开：逐件取 1（placeFromBackpack 自身会递减堆叠/移除空堆）
+            const n = item.stack || 1;
+            for (let k = 0; k < n; k++) {
+                if (this._freeSlot() === -1) {
+                    this._showMessage('合成栏已满', 'error');
+                    return;
+                }
+                this.placeFromBackpack(item.slot);
             }
-            this.placeFromBackpack(item.slot);
         }
     },
 

@@ -100,6 +100,56 @@ const WallSystem = {
         // ===== Phaser 墙壁同步 =====
         this._syncWallsToPhaser();
     },
+
+    /**
+     * ============================================================
+     * 图层遮挡唯一规则（2026-07-31 合并定案）
+     * ============================================================
+     * 渲染机制：Phaser painter 算法（depth 小先画被盖，大后画遮挡）。
+     * 唯一赋值规则：所有世界对象 depth = 地面锚线 y + 层级常量。
+     * - 墙/门/填充/转角/预制件：锚线 = 底边线，depth = max(底边两端点 y) ——
+     *   墙贴图全部在底边线之上，底边线以下（室内/墙前）的实体与墙无像素重叠，
+     *   depth 比较天然不生效；只有墙后实体（脚线 y < 底边 y）才被遮挡。
+     *   因此对前墙/后墙/转角全部成立（旧"后墙 min"规则已被废除）。
+     * - 实体（玩家/怪物）：锚线 = 脚底 y（实体侧规则，不在本模块）。
+     * - 障碍物：锚线 = 贴图底边中心 y（footprint 底边，与墙同尺度）。
+     *
+     * 本模块提供唯一入口 depthOf(piece, bias)——所有墙件生成路径
+     * （编辑器/战斗房/宝箱房/通道预制/填充/封口）必须调用它，禁止各自赋值。
+     */
+
+    /** 墙件深度唯一入口：max(底边端点 y) + bias（无障碍线段时回退障碍物锚/中心 y） */
+    depthOf(piece, bias = 0) {
+        const segs = this._pieceBaseSegments(piece);
+        let maxY = -Infinity;
+        for (const [a, b] of segs) maxY = Math.max(maxY, a.y, b.y);
+        if (maxY === -Infinity) {
+            const g = this._geoForTex(piece.tex);
+            if (g && g.category === 'obstacle') {
+                maxY = piece.y + (g.h * (piece.scaleY ?? piece.scaleX ?? 1)) / 2;
+            } else {
+                maxY = piece.y;
+            }
+        }
+        return maxY + bias;
+    },
+
+    /** 运行时审计：扫描 isoVisuals 中 depth 与 depthOf 偏差 >1 的墙件（控制台调用 window.WallSystem.__depthAudit()）；
+     *  豁免文档化偏置：转角 +5（_corner）、接缝 +0.1 */
+    __depthAudit() {
+        const bad = [];
+        for (const p of this.isoVisuals) {
+            if (p.depth == null) { bad.push({ tex: p.tex, reason: 'depth 缺失', x: Math.round(p.x), y: Math.round(p.y) }); continue; }
+            const want = this.depthOf(p);
+            const delta = p.depth - want;
+            const exempt = (p._corner && Math.abs(delta - 5) < 0.5) || Math.abs(delta - 0.1) < 0.05;
+            if (!exempt && Math.abs(delta) > 1) {
+                bad.push({ tex: p.tex, x: Math.round(p.x), y: Math.round(p.y), depth: Math.round(p.depth), want: Math.round(want) });
+            }
+        }
+        console.log(`[DepthAudit] 共 ${this.isoVisuals.length} 件，违规 ${bad.length} 件（豁免：转角 +5 / 接缝 +0.1）`, bad);
+        return bad;
+    },
     /**
      * 合并墙体几何覆盖层（data/wall-geo-overrides.json）进 ISO_WALL_GEO。
      * 覆盖字段：face（墙端点）/ halfThick（碰撞半厚）/ foot（障碍物 footprint）/
@@ -409,7 +459,11 @@ const WallSystem = {
             }
         };
 
-        // 四角（点对点）：上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max
+        // 四角（点对点）：全场统一 max（底边最深端）——
+        // 墙体贴图全部在底边线之上，底边线以下（室内/墙前）的实体与墙无像素重叠，
+        // depth 比较天然不生效；只有墙后实体（脚线 y < 底边 y）才被遮挡。
+        // max 规则对前墙/后墙/转角全部成立（旧"后墙 min"规则让后墙永远挡不住人，
+        // 通道/宝箱房"门墙遮不住实体"的根因）。
         // 转角臂 +5 深度偏置：顶点侧盖住续接件（预制转角文档化同款规则）——
         // 纹理随机的墙（沼泽柴墙）若让续接件盖住转角臂，贴图切边会暴露在接缝上；
         // +5 为文档化安全值（不得加大：更大偏置会误挡顶点下方高个实体，+260 教训）
@@ -422,20 +476,20 @@ const WallSystem = {
         const cB = styleCorners && styleCorners.bottom ? this._placeCornerPrefab(styleCorners.bottom, B, CB, 'x', 'bottom', gateCorner === 'bottom') : null;
         const cL = styleCorners && styleCorners.left ? this._placeCornerPrefab(styleCorners.left, L, CB, 'y', 'left', gateCorner === 'left') : null;
         const cR = styleCorners && styleCorners.right ? this._placeCornerPrefab(styleCorners.right, R, CB, 'y', 'right', gateCorner === 'right') : null;
-        const tL = cT ? cT.neg : startAt(T, true, 'min', CB);   // 上顶点左臂（向 down-left）
-        const tR = cT ? cT.pos : startAt(T, false, 'min', CB);  // 上顶点右臂（向 down-right）
+        const tL = cT ? cT.neg : startAt(T, true, 'max', CB);   // 上顶点左臂（向 down-left）
+        const tR = cT ? cT.pos : startAt(T, false, 'max', CB);  // 上顶点右臂（向 down-right）
         const bL = cB ? cB.neg : endAt(B, false, 'max', CB);    // 下顶点左臂（从 up-left 来）
         const bR = cB ? cB.pos : endAt(B, true, 'max', CB);     // 下顶点右臂（从 up-right 来）
-        const lU = cL ? cL.neg : endAt(L, true, 'min', CB);     // 左顶点上臂（后墙，从 up-right 来）
-        const lD = cL ? cL.pos : startAt(L, false, 'max', CB);  // 左顶点下臂（前墙，向 down-right）
-        const rU = cR ? cR.neg : endAt(R, false, 'min', CB);    // 右顶点上臂（后墙，从 up-left 来）
-        const rD = cR ? cR.pos : startAt(R, true, 'max', CB);   // 右顶点下臂（前墙，向 down-left）
+        const lU = cL ? cL.neg : endAt(L, true, 'max', CB);     // 左顶点上臂（从 up-right 来）
+        const lD = cL ? cL.pos : startAt(L, false, 'max', CB);  // 左顶点下臂（向 down-right）
+        const rU = cR ? cR.neg : endAt(R, false, 'max', CB);    // 右顶点上臂（从 up-left 来）
+        const rD = cR ? cR.pos : startAt(R, true, 'max', CB);   // 右顶点下臂（向 down-left）
 
-        // 四边续接
-        edgeFill(tL, lU, true, 'min');   // T-L 边（后墙）
-        edgeFill(tR, rU, false, 'min');  // T-R 边（后墙）
-        edgeFill(lD, bL, false, 'max');  // L-B 边（前墙）
-        edgeFill(rD, bR, true, 'max');   // R-B 边（前墙）
+        // 四边续接（全场统一 max 规则）
+        edgeFill(tL, lU, true, 'max');   // T-L 边
+        edgeFill(tR, rU, false, 'max');  // T-R 边
+        edgeFill(lD, bL, false, 'max');  // L-B 边
+        edgeFill(rD, bR, true, 'max');   // R-B 边
     },
 
     /**
@@ -489,9 +543,7 @@ const WallSystem = {
         const styleGateTex = (ISO_WALL_GEO[styleGeos.gate] || ISO_WALL_GEO.gate).tex;
         const ordered = prefab.pieces.map((p, i) => ({ i, d: p.depth ?? p.y })).sort((m, n) => m.d - n.d);
         const orderEps = new Map(ordered.map((m, rank) => [m.i, rank * 0.1]));
-        const modeOf = (A, B) => cornerKind === 'top' ? 'min'
-            : cornerKind === 'bottom' ? 'max'
-            : ((A.y + B.y) / 2 < V.y ? 'min' : 'max');
+        const modeOf = (_A, _B) => 'max'; // 全场统一 max 规则（见 buildIsoDiamondWalls 注释）
         prefab.pieces.forEach((p, i) => {
             const seg = segs[i];
             const A = { x: seg[0].x + ox, y: seg[0].y + oy };
@@ -653,9 +705,9 @@ const WallSystem = {
     /** 按全部通用件重建阶梯碰撞矩形（编辑器拖动后调用；静态墙不动） */
     rebuildIsoCollision() {
         this.walls = this.walls.filter(w => !w._iso);
-        // 门闸线段（_gate 房间门 / _chestGate 宝箱房门）由门实体自管生命周期，
+        // 门闸线段（_gate 房间门 / _chestGate 宝箱房门 / _arenaGate 竞技场通道门）由门实体自管生命周期，
         // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）
-        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate);
+        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate || s._arenaGate);
         this._faceSegCache = null; // 衔接仲裁缓存随几何变更失效
         for (const p of this.isoVisuals) this._addPieceCollision(p);
     },

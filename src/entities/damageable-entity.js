@@ -9,7 +9,6 @@ import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getCurrentDungeonType } from '../config/exp-system.js';
 import { DungeonRunStats } from '../world/dungeon-run-stats.js';
-import { DungeonEmpower } from '../config/dungeon-empower.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { Enemy } from './enemy.js';
@@ -231,8 +230,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
                     const rankGoldMul = (COMBAT_FORMULAS.enemy?.goldDrop?.rankMultipliers || {})[this.rank];
                     if (rankGoldMul) goldAmount *= rankGoldMul;
-                    // 祭品加持：金币 ×(1 + goldPerStrength × S)
-                    goldAmount = Math.floor(goldAmount * DungeonEmpower.goldMul());
+                    goldAmount = Math.floor(goldAmount);
 
                     // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
                     const marbleRatio = getTributeKillHpHealRatio();

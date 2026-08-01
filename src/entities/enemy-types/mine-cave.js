@@ -34,6 +34,8 @@ export class MineCave extends Enemy {
         this._spawnInterval = spawnCfg.intervalMs ?? 10000;
         this._lanternSpawnInterval = spawnCfg.lanternIntervalMs ?? 45000;
         this._spawnForwardX = spawnCfg.forwardX ?? 50;
+        // 召唤方向（1=右 / -1=左，由生成工厂按墙面朝向镜像注入，防召唤物卡墙角）
+        this._spawnDirX = config.spawnDirX ?? 1;
         this._spawnTimer = this._spawnInterval;
         this._lanternSpawnTimer = this._lanternSpawnInterval;
         this._spawnFactory = config.spawnFactory || null;
@@ -83,7 +85,7 @@ export class MineCave extends Enemy {
         if (typeof this._spawnFactory !== 'function') return;
         const game = typeof window !== 'undefined' ? window.Game : null;
         if (!game || !game.entities) return;
-        const miner = this._spawnFactory(this.x + this._spawnForwardX, this.y);
+        const miner = this._spawnFactory(this.x + this._spawnForwardX * this._spawnDirX, this.y);
         if (!miner) return;
         // 落点墙壁解析（防卡墙，与召唤物同口径）
         if (WallSystem && typeof WallSystem.resolve === 'function') {
@@ -102,7 +104,7 @@ export class MineCave extends Enemy {
         if (typeof this._lanternSpawnFactory !== 'function') return;
         const game = typeof window !== 'undefined' ? window.Game : null;
         if (!game || !game.entities) return;
-        const lantern = this._lanternSpawnFactory(this.x + this._spawnForwardX, this.y);
+        const lantern = this._lanternSpawnFactory(this.x + this._spawnForwardX * this._spawnDirX, this.y);
         if (!lantern) return;
         // 落点墙壁解析（防卡墙，与召唤物同口径）
         if (WallSystem && typeof WallSystem.resolve === 'function') {
@@ -132,7 +134,7 @@ export class MineCave extends Enemy {
         if (!scene || !scene.add || !scene.textures.exists('smoke_particle')) return;
         const cfg = this.config?.smoke || {};
         const tint = typeof cfg.tint === 'string' ? parseInt(cfg.tint, 16) : (cfg.tint ?? 0x62cc62);
-        const mx = this.x + (cfg.offsetX ?? 50);
+        const mx = this.x + (cfg.offsetX ?? 50) * this._spawnDirX;
         const my = this.y - (cfg.offsetY ?? 45);
         const em = scene.add.particles(0, 0, 'smoke_particle', {
             x: mx,
@@ -175,7 +177,7 @@ export class MineCave extends Enemy {
             collisionWidth: renderCfg.collisionWidth || 200,
             collisionHeight: renderCfg.collisionHeight || 100,
             textOffsetY: -spriteSize / 2 - 10,
-            flipX: false,
+            flipX: this._spawnDirX < 0, // 召唤方向朝左时镜像贴图（洞口朝向与出怪一致）
             animState: 'idle',
             animKey: '__none__', // 静态贴图，无动画（GameScene 找不到动画键会保持纹理）
         };

@@ -308,6 +308,135 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
 }
 
 /**
+ * 烘焙多菱形竞技场地板并应用到渲染器（D 级及以上三房间串联竞技场）
+ * - 三房菱形 + 通道平行四边形 + 门口补丁矩形并集裁剪铺砖
+ * - 墙脚阴影与 E/F 单房间 applyDiamondFloor 同口径：菱形整圈内缩渐变带（含门口，
+ *   门洞处不断头）；走廊只描两条长边（侧墙墙脚），不描补丁轮廓
+ * @param {number} width 世界宽
+ * @param {number} height 世界高
+ * @param {Array} diamonds 菱形房间数组
+ * @param {Array} [corridors] 通道地板平行四边形数组（points: [a1+, a2+, a2-, a1-]）
+ * @param {Array} [patches] 门口门槛地板矩形数组
+ * @param {object} [fallbackTerrain] 回退网格地板样式
+ */
+export function applyArenaFloor(width, height, diamonds, corridors = [], patches = [], fallbackTerrain) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // 1. 全屏纯黑背景（房间/通道外区域保持全黑）
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    const profile = _getProfile();
+    const tiles = [];
+    for (const key of profile.tiles) {
+        const img = _getSourceImage(key);
+        if (img) tiles.push({ key, img, geo: _getTileGeometry(key, img) });
+        else console.warn('[DungeonFloor] 地砖纹理缺失（已从池中剔除）:', key);
+    }
+
+    const arenaPath = () => {
+        ctx.beginPath();
+        for (const d of diamonds) {
+            ctx.moveTo(d.cx, d.cy - d.ry);
+            ctx.lineTo(d.cx + d.rx, d.cy);
+            ctx.lineTo(d.cx, d.cy + d.ry);
+            ctx.lineTo(d.cx - d.rx, d.cy);
+            ctx.closePath();
+        }
+        // 统一多边形绕向与菱形一致（shoelace 正号）：nonzero 裁剪下绕向相反的子路径
+        // 会在与菱形/其他补丁的重叠区抵消成洞（地板纯黑平行四边形缺口的根因）
+        for (const q of [...corridors, ...patches]) {
+            let pts = q.points;
+            let area2 = 0;
+            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                area2 += pts[j].x * pts[i].y - pts[i].x * pts[j].y;
+            }
+            if (area2 < 0) pts = [...pts].reverse();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+            ctx.closePath();
+        }
+    };
+
+    if (tiles.length > 0) {
+        // 2. 房间+通道并集裁剪内平铺等距地板
+        ctx.save();
+        arenaPath();
+        ctx.clip();
+        _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.glow !== false) {
+            const glowTiles = [];
+            for (const t of tiles) {
+                const img = _getSourceImage(t.key + '_glow');
+                if (img) glowTiles.push({ key: t.key, img, geo: _getTileGeometry(t.key + '_glow', img) });
+            }
+            if (glowTiles.length > 0) {
+                ctx.globalCompositeOperation = 'lighter';
+                _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        ctx.restore();
+
+        // 3. 墙脚接触阴影（与 E/F 单房间 applyDiamondFloor 同口径的连续渐变带）：
+        //    - 房间菱形：整圈内缩渐变描边（含门口，老代码原文，门洞处不断头）；
+        //    - 走廊：只描两条长边（通道侧墙墙脚），不描端帽/补丁轮廓——
+        //      描补丁轮廓会在门口画出尖锐黑三角边框（线上教训）
+        const fade = FLOOR_EDGE_FADE;
+        for (let i = 0; i < fade; i += 2) {
+            ctx.beginPath();
+            for (const d of diamonds) {
+                const irx = d.rx - i, iry = d.ry - i * (d.ry / d.rx);
+                ctx.moveTo(d.cx, d.cy - iry);
+                ctx.lineTo(d.cx + irx, d.cy);
+                ctx.lineTo(d.cx, d.cy + iry);
+                ctx.lineTo(d.cx - irx, d.cy);
+                ctx.closePath();
+            }
+            ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+        for (const q of corridors) {
+            // 平行四边形 points: [a1+, a2+, a2-, a1-] —— 长边 = 0→1 与 3→2
+            for (const [lw, alpha] of [[30, 0.22], [18, 0.14], [9, 0.08]]) {
+                for (const [p0, p1] of [[q.points[0], q.points[1]], [q.points[3], q.points[2]]]) {
+                    ctx.beginPath();
+                    ctx.moveTo(p0.x, p0.y);
+                    ctx.lineTo(p1.x, p1.y);
+                    ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+                    ctx.lineWidth = lw;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+            }
+        }
+    } else {
+        console.warn('[DungeonFloor] 地板贴图未加载，竞技场回退为纯黑 + 轮廓线');
+        arenaPath();
+        ctx.strokeStyle = (fallbackTerrain && fallbackTerrain.edgeHighlight) || 'rgba(120, 80, 60, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // 3. 同步世界尺寸与渲染器
+    if (CONFIG) {
+        CONFIG.WORLD_WIDTH = width;
+        CONFIG.WORLD_HEIGHT = height;
+    }
+    if (Renderer) {
+        Renderer.terrainTexture = canvas;
+    }
+    if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
+        window.__phaserScene.syncTerrain();
+    }
+    return canvas;
+}
+
+/**
  * 烘焙地板并应用到渲染器（同步世界尺寸与 Phaser 地形）
  * @param {number} size 场地边长
  * @param {object} [fallbackTerrain] 回退网格地板样式

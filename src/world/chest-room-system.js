@@ -17,7 +17,8 @@ import { WallSystem, ISO_WALL_GEO, isoGateHole, isoHalfThick } from './wall-syst
 import { getWallPrefabLibrary } from './wall-prefabs.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { BossRewardSystem } from './boss-reward-system.js';
+import { EnhancementItems } from '../ui/reward-system.js';
+import { MagicDustItem } from '../config/enchant-config.js';
 import { SoundManager } from '../ui/sound-manager.js';
 
 const COUNTDOWN_SEC = 60;
@@ -49,8 +50,11 @@ export const ChestRoomSystem = {
      * 精英战斗入场后调用：在场地中央摆放宝箱房 + 宝箱 + 倒计时
      * @param {string} dungeonType 地牢类型（决定宝箱等级与奖励表）
      * @param {Object} bounds CombatRoomSystem._roomBounds（场地中心）
+     * @param {Object} [opts]
+     * @param {boolean} [opts.deferCountdown] 延迟倒计时（三房间竞技场：入场即 setup，
+     *   但 60s 倒计时等玩家进入第三房间 startCountdown() 后才走字）
      */
-    setup(dungeonType, bounds) {
+    setup(dungeonType, bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         // 宝箱房预制按墙样式选择（样式表 chestPrefab，缺失回退「宝箱房」）
         const wallStyle = WallSystem.getWallStyle ? WallSystem.getWallStyle() : { chestPrefab: '宝箱房', straight: 'straight', gate: 'gate' };
@@ -84,14 +88,14 @@ export const ChestRoomSystem = {
         const styleGateTex = (ISO_WALL_GEO[styleGeos.gate] || ISO_WALL_GEO.gate).tex;
         prefab.pieces.forEach((p, i) => {
             // 门墙件识别：僵尸门墙或当前样式门墙（如沼泽藤门预制件）
-            if (p.tex === 'wall_gate' || p.tex === styleGateTex) {
-                gateDefs.push({ p, seg: segsByPiece[i][0] });
-                return;
-            }
             const [a, b] = segsByPiece[i][0];
             const ay = a.y + oy, by = b.y + oy;
-            // 线段整体在中心线上方 = 上臂（后墙 min，室内实体永远在前）；否则下臂（前墙 max 正确遮挡）
-            const mode = Math.max(ay, by) < bounds.cy ? 'min' : 'max';
+            // 全场统一 max 规则（与菱形战斗房墙体同口径，详见 wall-system buildIsoDiamondWalls 注释）
+            const mode = 'max';
+            if (p.tex === 'wall_gate' || p.tex === styleGateTex) {
+                gateDefs.push({ p, seg: segsByPiece[i][0], mode });
+                return;
+            }
             if (p.tex === 'wall_straight' && styleStraightTex !== 'wall_straight') {
                 // 样式重映射：用样式几何把同一 face 线段重新铺件（_addSegPiece 直推 isoVisuals）
                 WallSystem._addSegPiece(
@@ -102,16 +106,17 @@ export const ChestRoomSystem = {
                 return;
             }
             const q = { ...p, x: p.x + ox, y: p.y + oy };
-            // 图层沿用预制保存值（仅平移）——编辑器里摆好的图层关系原样生效；
-            // 不再按 min/max 规则重算（重算会破坏预制图层，"导出后一片混乱"的根因）
-            q.depth = (p.depth ?? p.y) + oy;
+            // 整块墙遮挡规则（与菱形战斗房墙体同口径）：后墙 min / 前墙 max——
+            // 墙后（脚线 y 更小）的实体被整面墙遮挡，含边角/接缝；
+            // 不再沿用预制保存的 hub 手调图层（入口门墙挡不住实体、右上/右下接缝漏遮挡的根因）
+            q.depth = mode === 'min' ? Math.min(ay, by) : Math.max(ay, by);
             this._pieces.push(q);
             WallSystem.isoVisuals.push(q);
         });
 
         // 2. 门墙件：独立控制（常闭 + 开门动画 + 碰撞启停），不进 isoVisuals
-        for (const { p } of gateDefs) {
-            this._placeGate(scene, p, ox, oy);
+        for (const { p, mode } of gateDefs) {
+            this._placeGate(scene, p, ox, oy, mode);
         }
 
         WallSystem.rebuildIsoCollision();
@@ -163,10 +168,11 @@ export const ChestRoomSystem = {
         const exRx = (maxX - minX) / 2 + 60, exRy = (maxY - minY) / 2 + 60;
         this._exclusion = { cx: bounds.cx, cy: bounds.cy, rx: exRx, ry: exRy };
 
-        // 4. 宝箱（关闭态贴图 chest_closed；grade 仅用于奖励表）
+        // 4. 宝箱（未打开 = chest_open_anim 第 0 帧；开箱播 1~8 帧；grade 仅用于奖励表）
         const grade = this._gradeFor(dungeonType);
         const chestX = bounds.cx, chestY = bounds.cy;
-        const sprite = scene.add.sprite(chestX, chestY, 'chest_closed');
+        const chestTex = scene.textures.exists('chest_open_anim') ? 'chest_open_anim' : 'chest_closed';
+        const sprite = scene.add.sprite(chestX, chestY, chestTex, 0);
         sprite.setOrigin(0.5, 0.75);
         sprite.setDisplaySize(192, 192 * (sprite.height / sprite.width)); // 宽 192 等比
         sprite.setDepth(chestY);
@@ -174,6 +180,7 @@ export const ChestRoomSystem = {
 
         // 5. 倒计时（白字黑描边，无底色；最后 10s 同款样式）
         this._timeLeft = COUNTDOWN_SEC;
+        this._countdownArmed = !opts.deferCountdown;
         const ty = chestY - 130;
         this._timerText = scene.add.text(chestX, ty, `${COUNTDOWN_SEC}`, {
             fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
@@ -189,11 +196,13 @@ export const ChestRoomSystem = {
     },
 
     /**
-     * 门墙放置：按预制件保存的变换（x/y/scale/flip/depth）原样放置，初始关门。
-     * 不再做底边跨度重映射/跨长归一——编辑器里摆好的大小与图层原样生效；
+     * 门墙放置：按预制件保存的变换（x/y/scale/flip）原样放置，初始关门。
      * 碰撞从件自身变换推导（_pieceBaseSegments + gateX 映射），与 wall-gate 同模型。
+     * 图层（整块墙遮挡规则）：mode='min' 后墙取底边最小 y（室内实体永远在前），
+     * mode='max' 前墙取底边最大 y（墙后实体——含门口/接缝处——被整面门墙遮挡）；
+     * 不再用"底边最低点-墙高"的压低规则（门墙挡不住实体、接缝漏遮挡的根因）。
      */
-    _placeGate(scene, p, ox, oy) {
+    _placeGate(scene, p, ox, oy, mode = 'max') {
         const g = WallSystem._geoForTex(p.tex) || ISO_WALL_GEO.gate;
         if (!scene.textures.exists(p.tex)) return;
         this._gateGeoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex) || 'gate';
@@ -210,23 +219,8 @@ export const ChestRoomSystem = {
         const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
-        // 图层（2026-07-30 修复）：不再沿用预制保存值——宝箱房是低矮装饰围墙，实体应始终画在墙上
-        // （右侧直墙件因贴图够不着天然如此；门墙贴图高、门区实体脚线落入其覆盖带会被门框盖住，
-        //  "门墙左侧挡住玩家/怪物、右边正常"根因）。深度=底边最低点-显示墙高：凡脚线低于
-        //  门墙贴图顶沿的实体深度必然更高（画在墙上），脚线更高的实体贴图本就够不着。
-        //  顺带满足"门墙 depth 最低"手调规则（右侧件盖住门墙右端切边）。
-        const hWall = (g.wallH || 290) * (piece.scaleY ?? 1);
-        let gateDepth = Math.min(gA.y, gB.y) - hWall;
-        // 接缝图层（2026-07-30 续）：上端邻墙（房内上侧墙，端点距 gA ≤40px——预制手摆
-        // 端点有 ~25px 间隙，取不了 2px 精确共享）必须在门墙之下——"下>左"转角规则在门墙侧
-        // 的同款：门墙盖住上方墙面的切边，否则上方墙面的裁切边压在门墙上（"上方墙面阻挡门墙"）。
-        // 只拉 gA 上端邻墙，右侧件（gB 端）保持盖住门墙的手调规则不动。
-        // 门区实体深度（≈脚线+10）仍高于该值，实体遮挡行为不受影响
-        for (const q of WallSystem.isoVisuals) {
-            const segs2 = WallSystem._pieceBaseSegments(q);
-            const shares = segs2.some(seg => seg.some(pt => Math.hypot(pt.x - gA.x, pt.y - gA.y) < 40));
-            if (shares && (q.depth ?? 0) + 0.1 > gateDepth) gateDepth = q.depth + 0.1;
-        }
+        // 整块墙遮挡：深度 = 底边 min/max（与宝箱房直墙件同规则，接缝处由同一规则天然衔接）
+        const gateDepth = mode === 'min' ? Math.min(gA.y, gB.y) : Math.max(gA.y, gB.y);
         sprite.setDepth(gateDepth);
         const segs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _chestGate: true },
@@ -262,6 +256,12 @@ export const ChestRoomSystem = {
         }
     },
 
+    /** 启动倒计时（竞技场第三房间进入时调用；deferCountdown 未用时本已 armed，幂等） */
+    startCountdown() {
+        if (!this.active) return;
+        this._countdownArmed = true;
+    },
+
     /** 精英战斗完成（dungeon-map-system 调用）：限时内完成才开房门 */
     onCombatComplete() {
         if (!this.active || this._combatDone) return;
@@ -280,8 +280,8 @@ export const ChestRoomSystem = {
     update(dt, player) {
         if (!this.active) return;
 
-        // 倒计时（战斗未完成前）
-        if (!this._combatDone && !this._failed) {
+        // 倒计时（战斗未完成前；deferCountdown 时等 startCountdown 后才走字）
+        if (!this._combatDone && !this._failed && this._countdownArmed !== false) {
             this._timeLeft -= dt / 1000;
             const t = Math.max(0, Math.ceil(this._timeLeft));
             if (this._timerText) {
@@ -314,7 +314,7 @@ export const ChestRoomSystem = {
         }
     },
 
-    /** 开箱：换打开态贴图 + 音效 + 发奖 */
+    /** 开箱：播 9 帧开箱动画 + 音效 + 发奖（chest_open_anim 精灵图，停在开启帧） */
     _openChest(player) {
         const chest = this._chest;
         if (!chest || chest.opened) return;
@@ -325,34 +325,59 @@ export const ChestRoomSystem = {
             SoundManager.playFile(CHEST_SOUND);
         }
 
-        // 换打开态贴图（静态切换，无精灵图动画）
-        if (chest.sprite) {
-            chest.sprite.setTexture('chest_opened');
-            chest.sprite.setDisplaySize(192, 192 * (chest.sprite.height / chest.sprite.width));
+        // 开箱动画：播放第 1~8 帧（第 0 帧 = 未打开态，开箱后停在全开帧）
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (scene && chest.sprite && chest.sprite.texture.key === 'chest_open_anim') {
+            const src = scene.textures.get('chest_open_anim').getSourceImage();
+            const fw = src.width / 9, fh = src.height;
+            chest.sprite.setDisplaySize(192, 192 * (fh / fw));
+            chest.sprite.setFrame(1);
+            scene.tweens.addCounter({
+                from: 1, to: 8, duration: 900, ease: 'Linear',
+                onUpdate: (tw) => {
+                    if (chest.sprite && chest.sprite.active) {
+                        chest.sprite.setFrame(Math.round(tw.getValue()));
+                    }
+                },
+            });
         }
 
         this._giveRewards(player, chest.grade);
     },
 
-    /** 按等级宝箱事件奖励表发奖（50% 金币 / 25% 材料组 / 25% 宝箱怪位暂按金币兜底） */
+    /** 按等级宝箱事件奖励表发奖（50% 金币 / 25% 材料组 / 25% 宝箱怪位暂按金币兜底）——
+     *  奖励直接掉落到宝箱周围地上（DropItem，玩家拾取/金币自动拾取） */
     _giveRewards(player, grade) {
         const table = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest) || {};
         const g = table[grade] || { gold: 500, materialDust: 200, tributeChance: 0 };
+        const Game = (typeof window !== 'undefined') ? window.Game : null;
+        if (!Game || typeof Game.dropItem !== 'function') return;
+        const cx = this._chest ? this._chest.x : player.x;
+        const cy = this._chest ? this._chest.y : player.y;
+        let dropIdx = 0;
+        const drop = (template) => {
+            // 围绕宝箱散开（避免多件重叠在同一像素）
+            const a = (dropIdx * 2.1) + Math.random() * 0.6;
+            Game.dropItem(cx + Math.cos(a) * 46, cy + Math.sin(a) * 34, template);
+            dropIdx++;
+        };
+        const goldTemplate = () => ({ name: '金币', category: 'gold', stack: g.gold, rarity: 'mythic' });
         const roll = Math.random();
-        let items;
         if (roll < 0.5) {
-            items = [{ type: 'gold', count: g.gold }];
+            drop(goldTemplate());
         } else if (roll < 0.75) {
-            items = [
-                { type: 'stone', count: 1 },
-                { type: 'reforge_ticket', count: 1 },
-                { type: 'dust', count: g.materialDust },
-            ];
+            // 材料组：强化石 + 改造券 + 魔法晶尘
+            if (EnhancementItems && EnhancementItems.enhance_stone) {
+                drop({ ...EnhancementItems.enhance_stone, stack: 1 });
+            }
+            if (EnhancementItems && EnhancementItems.modify_ticket) {
+                drop({ ...EnhancementItems.modify_ticket, stack: 1 });
+            }
+            if (MagicDustItem) {
+                drop({ ...MagicDustItem, stack: g.materialDust });
+            }
         } else {
-            items = [{ type: 'gold', count: g.gold }];
-        }
-        if (BossRewardSystem && BossRewardSystem.rewardNode) {
-            BossRewardSystem.rewardNode.giveReward(player, items);
+            drop(goldTemplate());
         }
     },
 

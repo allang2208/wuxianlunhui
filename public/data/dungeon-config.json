@@ -130,7 +130,7 @@
     "traps": {
       "count": 3,
       "triggerRadius": 45,
-      "delayMs": 500,
+      "delayMs": 250,
       "animMs": 500,
       "reverseMs": 500,
       "cooldownMs": 2000,
@@ -416,7 +416,46 @@
       "monsterSpawnDepth": 120,
       "monsterMargin": 40,
       "minWallDistance": 150
+    },
+    "obstacles": {
+      "pillars": {
+        "pairs": [1, 2],
+        "rangeX": [0.25, 0.60],
+        "rangeY": [0, 0.40]
+      },
+      "storage": {
+        "mediumKeys": ["barrel", "pot"],
+        "mediumCount": [2, 3],
+        "smallKeys": ["skull", "bones"],
+        "smallCount": [1, 2],
+        "targetHMedium": 140,
+        "targetHSmall": 80,
+        "cornerInset": 100,
+        "spread": 110
+      },
+      "wallDecor": {
+        "keys": ["candle", "chains"],
+        "count": [2, 3],
+        "ring": [0.80, 0.92],
+        "targetH": 150,
+        "collisionKeys": ["candle"]
+      },
+      "boneYard": {
+        "count": [2, 3],
+        "targetH": 80,
+        "pairGap": 70,
+        "skullRotation": 0.5,
+        "ring": [0.25, 0.85]
+      }
     }
+  },
+  "combatArena": {
+    "minGrade": "D",
+    "passagePrefabs": {
+      "default": "左右通道",
+      "swamp": "左右通道"
+    },
+    "passageGap": 0
   },
   "events": {
     "eventWeights": {

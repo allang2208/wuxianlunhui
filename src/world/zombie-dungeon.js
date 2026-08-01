@@ -161,11 +161,13 @@ export function createOreSpider(x, y) {
     });
 }
 
-export function createMineCave(x, y) {
+export function createMineCave(x, y, opts = {}) {
     const cfg = enemyConfigData.mineCave;
     const mkCave = (cx, cy) => new MineCave(cx, cy, {
         ...(cfg || { name: '矿洞', hp: 1500, maxHp: 1500, size: 60, showWeapon: false }),
         showWeapon: false,
+        // 召唤方向镜像（1=右 / -1=左，按洞口朝向空旷侧注入，防召唤物卡墙角）
+        spawnDirX: opts.spawnDirX ?? 1,
         // 生成工厂注入（避免实体层反向依赖 world 层）
         spawnFactory: (mx, my) => createMinerZombie(mx, my),
         lanternSpawnFactory: (mx, my) => createLanternMinerZombie(mx, my)
@@ -174,7 +176,7 @@ export function createMineCave(x, y) {
 }
 
 // 墓碑（普通级站桩召唤器，noPool 不进怪物池）：
-// 仅由 DungeonMapSystem 在僵尸地牢普通战斗事件中按 33% 概率显式生成
+// 由 DungeonMapSystem 在僵尸地牢普通战斗的每次房间刷怪时按 25% 概率生成
 export function createTombstone(x, y) {
     const cfg = enemyConfigData.tombstone;
     return new Tombstone(x, y, {

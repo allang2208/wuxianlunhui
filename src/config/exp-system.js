@@ -14,7 +14,6 @@
 import combatFormulasData from '../../data/combat-formulas.json';
 import dungeonConfigData from '../../data/dungeon-config.json';
 import invasionConfig from '../../data/agent-invasion.json';
-import { DungeonEmpower } from './dungeon-empower.js';
 
 const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
 
@@ -204,13 +203,13 @@ export function getStreakMultiplier(streak) {
     return Math.min(cap, 1 + startBonus + stepBonus * (streak - startAt));
 }
 
-/** 怪物有效等级：锚定 + 种间偏移（offset = 配置等级 - 3） + 祭品加持等级加成 */
+/** 怪物有效等级：锚定 + 种间偏移（offset = 配置等级 - 3） */
 export function getMonsterEffectiveLevel(monster, dungeonType) {
     const anchors = _cfg().anchors || { F: 3, E: 13, D: 28, C: 43, B: 58, A: 73 };
     const grade = getGradeForDungeon(dungeonType);
     const anchor = anchors[grade] ?? 3;
     const configLevel = monster?.level ?? monster?.data?.level ?? 3;
-    return anchor + (configLevel - 3) + DungeonEmpower.levelBonus();
+    return anchor + (configLevel - 3);
 }
 
 /** 等级差倍率（双向）：压级衰减（diff>grace 每级 -slope，下限 floor[rank]）
@@ -240,7 +239,7 @@ export function getExpDecayMultiplier(playerLevel, monsterEffLevel, rank) {
     return getExpLevelMultiplier(playerLevel, monsterEffLevel, rank);
 }
 
-/** 单怪经验明细（唯一入口）：base_g × rankMul × 等级差倍率 × 祭品加持经验倍率；tag 供飘字标注 */
+/** 单怪经验明细（唯一入口）：base_g × rankMul × 等级差倍率；tag 供飘字标注 */
 export function getMonsterExpDetail(monster, playerLevel, dungeonType) {
     const rank = monster?.rank || 'normal';
     const rankMul = (_cfg().rankMul && _cfg().rankMul[rank]) ?? 1;
@@ -248,7 +247,7 @@ export function getMonsterExpDetail(monster, playerLevel, dungeonType) {
     const effLevel = getMonsterEffectiveLevel(monster, dungeonType);
     const mult = getExpLevelMultiplier(playerLevel, effLevel, rank);
     return {
-        exp: Math.max(1, Math.floor(base * rankMul * mult * DungeonEmpower.expMul())),
+        exp: Math.max(1, Math.floor(base * rankMul * mult)),
         mult,
         effLevel,
         tag: mult > 1 ? 'underdog' : (mult < 1 ? 'decay' : null),

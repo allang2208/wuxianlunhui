@@ -86,6 +86,7 @@ export class BootScene extends Scene {
         // 等级宝箱贴图（E/D/C/B/A；A 暂用 B 图兜底，素材库缺 A.png）+ 开箱 16 帧动画
         this.load.image('chest_closed', 'assets/terrain/chest_closed.png');
         this.load.image('chest_opened', 'assets/terrain/chest_opened.png');
+        this.load.spritesheet('chest_open_anim', 'assets/terrain/chest_open_anim.png', { frameWidth: 512, frameHeight: 512 });
         // 等距地板：基础层 + 发光层（glow 用 ADD/lighter 混合叠加发光）
         this.load.image('blackbrick5', 'assets/terrain/blackbrick5.png');
         this.load.image('blackbrick5_glow', 'assets/terrain/blackbrick5_glow.png');
