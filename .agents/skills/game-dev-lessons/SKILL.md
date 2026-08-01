@@ -260,6 +260,8 @@ this.ai = config.ai || {};
 - **快捷进入目标场景**：不必手动玩，CDP 直接调内部函数（如 DungeonMapSystem 的节点/战斗入口）让竞技场/战斗房建出来。
 - **验证方法**：量化断言优先（坐标/间距/depth 对比），像素级判定辅助（如遮挡 = 墙不透明带 ∩ 实体包围盒逐 x 扫描，21 点位矩阵实测 0 遮挡的判例），截图留证（`Page.captureScreenshot` 存 `tools/verify-shots/`）。
 - **收尾**：关调试实例、删临时文件（截图保留），验证数据写进汇报。
+- **headless 环境 rAF 冻结的泵帧法**：无头/隐藏窗口里 Phaser 的 rAF 不走，直接调实体 update 只能推进逻辑、视觉帧不动。双泵：逻辑帧手动 `Game.update(16.67)` + `scene.update` 推进；依赖真实 tween 的（抛物线投射物等）必须 `Page.captureScreenshot` 的 BeginFrame 泵真实帧。可复用脚本：`tools/cdp-arena-verify.mjs`、`tools/cdp-witch-*.mjs`（注释里有判例）。
+- **杀进程只按命令行特征杀自己的实例**：调试中 `taskkill /F /IM msedge.exe` 会把用户的浏览器也杀掉——清理时按启动参数/端口过滤。
 
 ## 31. 本轮零散但可复用的教训（V0.365~V0.366）
 

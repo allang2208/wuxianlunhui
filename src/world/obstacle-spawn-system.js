@@ -327,10 +327,13 @@ export const ObstacleSpawnSystem = {
             let t = ((px - A.x) * dx + (py - A.y) * dy) / (len * len);
             t = Math.max(0, Math.min(1, t));
             const mx = A.x + dx * t, my = A.y + dy * t;
-            // 垂距：朝通道中心一侧（两个法向里取指向通道中心的那个），按墙件 scaleY 折算
+            // 垂距：取背离通道中心一侧（两个法向里选朝墙面上方/外侧的那个）——
+            // 与预制件「火把墙」的火把相对墙底边线的方向一致（实测火把在底边线上方 ~60px，
+            // 挂在墙面上）；曾取朝通道中心一侧，实测火把落到墙脚/地板（底边线下方 ~60px）。
+            // 按墙件 scaleY 折算
             const anchor = anchors[Math.floor(Math.random() * anchors.length)];
             let nx = -dy / len, ny = dx / len;
-            if ((passage.center.x - mx) * nx + (passage.center.y - my) * ny < 0) { nx = -nx; ny = -ny; }
+            if ((passage.center.x - mx) * nx + (passage.center.y - my) * ny > 0) { nx = -nx; ny = -ny; }
             const d = anchor.d * ((q.scaleY ?? q.scaleX ?? 1) / prefabWallScaleY);
             const pt = { x: mx + nx * d, y: my + ny * d };
             const torchDepth = (q.depth ?? q.y) + anchor.depthDelta;

@@ -326,7 +326,6 @@ export class Witch extends Enemy {
 
     _updateDeathSequence(dt) {
         const D = this._getDeathConfig();
-        const animMs = D.animMs ?? 1500;
         if (this._deathAnimTimer > 0) {
             this._deathAnimTimer -= dt;
             if (this._deathAnimTimer <= 0) {

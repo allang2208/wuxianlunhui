@@ -272,6 +272,18 @@ export class BootScene extends Scene {
         // 墓碑（普通级，静态贴图，僵尸地牢普通战斗 33% 概率出现）
         this.load.image('enemy_tombstone', 'assets/enemies/tombstone/idle.png');
 
+        // 巫婆（领主）：8列×4行 512×512 切帧（idle 1 / walking 11 / attacking 14 / attacking-2 18 / dying 17）
+        this.load.spritesheet('enemy_witch_idle',    'assets/enemies/witch/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
+        this.load.spritesheet('enemy_witch_walk',    'assets/enemies/witch/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_witch_attack',  'assets/enemies/witch/attacking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_witch_attack2', 'assets/enemies/witch/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 17 });
+        this.load.spritesheet('enemy_witch_death',   'assets/enemies/witch/dying.png',       { frameWidth: 512, frameHeight: 512, endFrame: 16 });
+        // 毒液瓶投射物贴图（单帧）
+        this.load.image('enemy_witch_projectile', 'assets/enemies/witch/projective.png');
+
+        // 煮锅（其他，静态贴图，巫婆伴生）
+        this.load.image('enemy_cauldron', 'assets/enemies/cauldron/bowl.png');
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -987,6 +999,38 @@ export class BootScene extends Scene {
             key: 'enemy_lantern_miner_death',
             frames: this.anims.generateFrameNumbers('enemy_lantern_miner_death', { start: 0, end: 14 }),
             duration: 1500, // 15 帧一次性死亡动画（与 death.animMs 对齐）
+            repeat: 0,
+        });
+
+        // ---- 巫婆动画 ----
+        this.anims.create({
+            key: 'enemy_witch_idle',
+            frames: this.anims.generateFrameNumbers('enemy_witch_idle', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_witch_walk',
+            frames: this.anims.generateFrameNumbers('enemy_witch_walk', { start: 0, end: 10 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_witch_attack',
+            frames: this.anims.generateFrameNumbers('enemy_witch_attack', { start: 0, end: 13 }),
+            duration: 1500, // 与 magic.duration 对齐（14 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_witch_attack2',
+            frames: this.anims.generateFrameNumbers('enemy_witch_attack2', { start: 0, end: 17 }),
+            duration: 1500, // 与 venom.duration 对齐（18 帧 / 1.5s）
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_witch_death',
+            frames: this.anims.generateFrameNumbers('enemy_witch_death', { start: 0, end: 16 }),
+            duration: 1500, // 17 帧一次性死亡动画（与 death.animMs 对齐）
             repeat: 0,
         });
 

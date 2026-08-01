@@ -282,6 +282,18 @@ const CodexManager = {
             html += this.detailRow('稀有度', rarityLabel);
             html += this.detailRow('需求等级', 'Lv.' + (d.level || 1));
             html += `</div>`;
+            // 装备属性：数据驱动（stats 数组来自 equipment.json / ItemDatabase，禁止硬编码）
+            if (d.stats && d.stats.length) {
+                html += `<div class="cd-section"><h4>属性</h4>`;
+                for (const s of d.stats) {
+                    if (!s) continue;
+                    const statName = s.label || s.name;
+                    const statVal = s.value !== undefined && s.value !== null ? s.value : '';
+                    if (!statName && !statVal) continue;
+                    html += this.detailRow(statName, statVal);
+                }
+                html += `</div>`;
+            }
             if (d.attack) {
                 html += `<div class="cd-section"><h4>攻击参数</h4>`;
                 let atkFormula = this._getAtkFormula(d);

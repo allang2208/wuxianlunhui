@@ -2424,8 +2424,7 @@
     "family": "僵尸",
     "color": "#5a8a4a",
     "size": 16,
-    "collisionRadius": 40,
-    "height": 150,
+    "collisionRadius": 52.9,
     "hp": 1300,
     "maxHp": 1300,
     "speed": 130,
@@ -2494,14 +2493,27 @@
         },
         "flame": {
           "comment": "绿色烟雾填满影响区域：白色软圆 smoke_particle + 绿色 tint + ADD（亮色用加法混合，矿洞绿烟同款）",
-          "tint": ["0x7aff7a", "0x4ccc5a", "0x2a9a4a"],
+          "tint": [
+            "0x7aff7a",
+            "0x4ccc5a",
+            "0x2a9a4a"
+          ],
           "blendMode": "ADD",
           "morphMs": 90,
           "points": 3,
           "burstCount": 12,
-          "scale": { "start": 1.2, "end": 2.8 },
-          "alpha": { "start": 0.5, "end": 0 },
-          "speed": { "min": 5, "max": 25 },
+          "scale": {
+            "start": 1.2,
+            "end": 2.8
+          },
+          "alpha": {
+            "start": 0.5,
+            "end": 0
+          },
+          "speed": {
+            "min": 5,
+            "max": 25
+          },
           "lifespan": 1200
         },
         "cooldown": 8000
@@ -2526,16 +2538,18 @@
     },
     "render": {
       "spriteSize": 250,
-      "collisionWidth": 62.5,
-      "collisionHeight": 137.5,
+      "collisionWidth": 113,
+      "collisionHeight": 228,
       "footOffsetY": 63,
       "projectileHitbox": {
-        "width": 62.5,
-        "height": 137.5,
-        "offsetX": 0,
-        "bottom": 0
+        "width": 113,
+        "height": 228,
+        "offsetX": -3.6,
+        "bottom": -15.4
       },
-      "capsuleHudAnchor": true
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 14,
+      "colliderOffsetY": 39
     },
     "textures": {
       "idle": "assets/enemies/witch/idle.png",
@@ -2560,7 +2574,8 @@
         "desc": "1.5s 播放 18 帧动画，第 9 帧掷出毒液瓶（1.5s 抛物线，空中每秒 360° 旋转），落点 200px 椭圆毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒；冷却 8s"
       }
     ],
-    "attackType": "魔法"
+    "attackType": "魔法",
+    "height": 201.6
   },
   "cauldron": {
     "id": "cauldron",
@@ -2594,7 +2609,7 @@
       "offsetY": 70,
       "frequency": 200,
       "scaleStart": 0.3,
-      "scaleEnd": 1.0,
+      "scaleEnd": 1,
       "alpha": 0.5,
       "lifespan": 3000
     },
@@ -2627,14 +2642,27 @@
         },
         "flame": {
           "comment": "绿色烟雾填满影响区域（与巫婆毒液区同款配置）",
-          "tint": ["0x7aff7a", "0x4ccc5a", "0x2a9a4a"],
+          "tint": [
+            "0x7aff7a",
+            "0x4ccc5a",
+            "0x2a9a4a"
+          ],
           "blendMode": "ADD",
           "morphMs": 90,
           "points": 3,
           "burstCount": 12,
-          "scale": { "start": 1.2, "end": 2.8 },
-          "alpha": { "start": 0.5, "end": 0 },
-          "speed": { "min": 5, "max": 25 },
+          "scale": {
+            "start": 1.2,
+            "end": 2.8
+          },
+          "alpha": {
+            "start": 0.5,
+            "end": 0
+          },
+          "speed": {
+            "min": 5,
+            "max": 25
+          },
           "lifespan": 1200
         }
       }

@@ -91,7 +91,7 @@ export default {
   },
   server: {
     watch: {
-      ignored: ['**/node_modules/**', '**/.git/**', '**/AppData/**', '**/Cookies-journal', '**/*.log']
+      ignored: ['**/node_modules/**', '**/.git/**', '**/AppData/**', '**/Cookies-journal', '**/*.log', '**/.cdp-profile/**', '**/tools/.cdp-profile/**']
     }
   }
 }
