@@ -2415,5 +2415,253 @@
       }
     ],
     "height": 76
+  },
+  "witch": {
+    "id": "witch",
+    "name": "巫婆",
+    "type": "领主",
+    "category": "monster",
+    "family": "僵尸",
+    "color": "#5a8a4a",
+    "size": 16,
+    "collisionRadius": 40,
+    "height": 150,
+    "hp": 1300,
+    "maxHp": 1300,
+    "speed": 130,
+    "level": 8,
+    "rank": "lord",
+    "str": 20,
+    "dex": 15,
+    "int": 30,
+    "con": 33,
+    "wis": 25,
+    "luck": 13,
+    "atk": 20,
+    "matk": 70,
+    "mdef": 55,
+    "attackRange": 800,
+    "attackDistance": 800,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 4500,
+      "dynamicRange": 120,
+      "width": 22,
+      "knockback": 0
+    },
+    "attackSkills": {
+      "magic": {
+        "comment": "远程魔法：距离判定 800px，1.5s 播放 attacking 14 帧，第 5 帧发射 3 个投射物（毒蛆同款投射物贴图，扇形展开）并播放 attacking.mp3；每个投射物造成魔法攻击×0.75 魔法伤害；冷却 4s；攻击期间不可移动",
+        "range": 800,
+        "duration": 1500,
+        "frames": 14,
+        "fireFrame": 5,
+        "projectileCount": 3,
+        "fanAngle": 0.5235987755982988,
+        "projectileSpeed": 500,
+        "projectileRange": 900,
+        "projectileSize": 20,
+        "damageMul": 0.75,
+        "damageType": "magic",
+        "muzzleForward": 60,
+        "muzzleUpY": 80,
+        "cooldown": 4000
+      },
+      "venom": {
+        "comment": "投掷毒液瓶：1.5s 播放 attacking-2 18 帧，第 8 帧播放 throwing.mp3、第 9 帧掷出毒液瓶（projective.png 抛物线 1.5s 落地、落地前每秒 360° 旋转）→ 落点 200px 椭圆毒液区持续 6s（矿洞绿烟填满），每 0.5s 魔法攻击×0.75 魔法伤害并叠 1 层中毒；机制与煮锅共用 _shared/venom-bottle.js",
+        "throwRange": 800,
+        "duration": 1500,
+        "frames": 18,
+        "fireFrame": 9,
+        "flyDuration": 1500,
+        "arcHeight": 100,
+        "projectileSize": 48,
+        "impactRadius": 200,
+        "zoneDuration": 6000,
+        "tickMs": 500,
+        "damageMul": 0.75,
+        "poisonStacks": 1,
+        "oil": {
+          "comment": "毒液地面贴花：落地后 growMs 内从落点扩散到最大范围；反光只做边缘轮廓（描边环 ADD）",
+          "color": "0x1f6a2a",
+          "alpha": 0.5,
+          "growMs": 300,
+          "gloss": {
+            "color": "0x7aff7a",
+            "alpha": 0.4
+          }
+        },
+        "flame": {
+          "comment": "绿色烟雾填满影响区域：白色软圆 smoke_particle + 绿色 tint + ADD（亮色用加法混合，矿洞绿烟同款）",
+          "tint": ["0x7aff7a", "0x4ccc5a", "0x2a9a4a"],
+          "blendMode": "ADD",
+          "morphMs": 90,
+          "points": 3,
+          "burstCount": 12,
+          "scale": { "start": 1.2, "end": 2.8 },
+          "alpha": { "start": 0.5, "end": 0 },
+          "speed": { "min": 5, "max": 25 },
+          "lifespan": 1200
+        },
+        "cooldown": 8000
+      }
+    },
+    "death": {
+      "animMs": 1500,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "sounds": {
+      "magic": "assets/sounds/enemies/witch/attacking.mp3",
+      "magicFrame": 5,
+      "venom": "assets/sounds/enemies/witch/throwing.mp3",
+      "venomFrame": 8
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 300,
+      "loseTimeout": 3000,
+      "circleRadius": 650
+    },
+    "render": {
+      "spriteSize": 250,
+      "collisionWidth": 62.5,
+      "collisionHeight": 137.5,
+      "footOffsetY": 63,
+      "projectileHitbox": {
+        "width": 62.5,
+        "height": 137.5,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true
+    },
+    "textures": {
+      "idle": "assets/enemies/witch/idle.png",
+      "walk": "assets/enemies/witch/walking.png",
+      "attack": "assets/enemies/witch/attacking.png",
+      "attack2": "assets/enemies/witch/attacking-2.png",
+      "death": "assets/enemies/witch/dying.png",
+      "projectile": "assets/enemies/witch/projective.png",
+      "idleFrameWidth": 512,
+      "idleFrameHeight": 512,
+      "idleFrameCount": 1,
+      "idleSheetColumns": 8
+    },
+    "description": "熬着毒药的僵尸巫婆，身旁总伴着一口咕嘟作响的煮锅。她挥舞法杖施放远程毒法，也会掷出毒液瓶在地面形成毒液区，让踏入者中毒。",
+    "skills": [
+      {
+        "name": "远程魔法",
+        "desc": "距离判定 800px，1.5s 播放 14 帧动画，第 5 帧发射 3 个投射物（扇形展开、预判瞄准），每个造成魔法攻击 ×0.75 伤害；冷却 4s，攻击时不可移动"
+      },
+      {
+        "name": "投掷毒液瓶",
+        "desc": "1.5s 播放 18 帧动画，第 9 帧掷出毒液瓶（1.5s 抛物线，空中每秒 360° 旋转），落点 200px 椭圆毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒；冷却 8s"
+      }
+    ],
+    "attackType": "魔法"
+  },
+  "cauldron": {
+    "id": "cauldron",
+    "name": "煮锅",
+    "type": "其他",
+    "category": "monster",
+    "family": "其他",
+    "noPool": true,
+    "color": "#3a6a4a",
+    "size": 60,
+    "collisionRadius": 90,
+    "noFootprint": true,
+    "hp": 1500,
+    "maxHp": 1500,
+    "speed": 0,
+    "level": 6,
+    "rank": "minor",
+    "str": 0,
+    "dex": 0,
+    "int": 0,
+    "con": 0,
+    "wis": 0,
+    "luck": 0,
+    "matk": 70,
+    "attackRange": 0,
+    "aiInterval": 5000,
+    "smoke": {
+      "comment": "锅口绿烟（矿洞同款：白色烟雾纹理 + 绿色 tint + ADD 混合）",
+      "tint": "0x62cc62",
+      "offsetX": 0,
+      "offsetY": 70,
+      "frequency": 200,
+      "scaleStart": 0.3,
+      "scaleEnd": 1.0,
+      "alpha": 0.5,
+      "lifespan": 3000
+    },
+    "attackSkills": {
+      "bottle": {
+        "comment": "每 intervalMs 向玩家方向投掷 bottleCount 个巫婆毒液瓶（完全复用巫婆攻击2机制：抛物线 1.5s 落地、每秒 360° 旋转 → 落点 200px 毒液区 6s，每 0.5s 魔法攻击×0.75 + 1 层中毒）；第 1 瓶预判落点，其余在目标点 scatterRadius 内随机散落；伤害按煮锅自身 matk（与巫婆同口径 70）×damageMul",
+        "intervalMs": 30000,
+        "range": 800,
+        "bottleCount": 2,
+        "scatterRadius": 150,
+        "flyDuration": 1500,
+        "arcHeight": 100,
+        "projectileSize": 48,
+        "impactRadius": 200,
+        "zoneDuration": 6000,
+        "tickMs": 500,
+        "damageMul": 0.75,
+        "poisonStacks": 1,
+        "muzzleForward": 0,
+        "muzzleUpY": 80,
+        "oil": {
+          "comment": "毒液地面贴花（与巫婆毒液区同款绿色）",
+          "color": "0x1f6a2a",
+          "alpha": 0.5,
+          "growMs": 300,
+          "gloss": {
+            "color": "0x7aff7a",
+            "alpha": 0.4
+          }
+        },
+        "flame": {
+          "comment": "绿色烟雾填满影响区域（与巫婆毒液区同款配置）",
+          "tint": ["0x7aff7a", "0x4ccc5a", "0x2a9a4a"],
+          "blendMode": "ADD",
+          "morphMs": 90,
+          "points": 3,
+          "burstCount": 12,
+          "scale": { "start": 1.2, "end": 2.8 },
+          "alpha": { "start": 0.5, "end": 0 },
+          "speed": { "min": 5, "max": 25 },
+          "lifespan": 1200
+        }
+      }
+    },
+    "render": {
+      "spriteSize": 220,
+      "collisionWidth": 150,
+      "collisionHeight": 90,
+      "footOffsetY": 106,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 150,
+        "height": 90,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "textures": {
+      "idle": "assets/enemies/cauldron/bowl.png"
+    },
+    "description": "巫婆的煮锅，锅里翻滚着冒泡的绿色毒液。无法移动、免疫一切状态，每隔一段时间向入侵者泼洒毒液瓶。",
+    "skills": [
+      {
+        "name": "毒液泼洒",
+        "desc": "每 30s 向玩家方向投掷 2 个毒液瓶（第 1 瓶预判落点、第 2 瓶在目标点 150px 内随机散落），落点形成 200px 毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒"
+      }
+    ],
+    "attackType": "魔法"
   }
 }

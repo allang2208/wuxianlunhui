@@ -23,6 +23,8 @@ import { ForemanZombie } from './enemy-types/foreman-zombie.js';
 import { MineCave } from './enemy-types/mine-cave.js';
 import { Tombstone } from './enemy-types/tombstone.js';
 import { OreSpider } from './enemy-types/ore-spider.js';
+import { Witch } from './enemy-types/witch.js';
+import { Cauldron } from './enemy-types/cauldron.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -482,4 +484,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider };
+export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

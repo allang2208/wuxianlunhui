@@ -26,6 +26,8 @@ const ICE_SPIKE_KIND = {
         const projectiles = [];
         // 立体环绕：围绕施法者圆柱体碰撞体积——水平角度均分 + 垂直高度沿圆柱体螺旋分布
         const radius = ((source && source.groundRadius) || 40) + 18;
+        const orbitRx = radius;
+        const orbitRy = radius * 0.65; // 椭圆轨道（发射前待机环绕）
         const bodyH = (source && source.bodyHeight) || 120;
         const startAngle = -Math.PI / 2;
         for (let i = 0; i < effect.spikeCount; i++) {
@@ -37,6 +39,10 @@ const ICE_SPIKE_KIND = {
                 offsetX: Math.cos(angle) * radius,
                 offsetY: Math.sin(angle) * radius,
                 elev,
+                orbitAngle: angle, // 初始环绕角（环形分布）
+                orbitRx,
+                orbitRy,
+                orbitSpeed: 0.0015 + (i % 2) * 0.0002, // 相邻错速，避免整体刚性转圈
                 active: true,
                 launched: false,
                 flyX: 0, flyY: 0,

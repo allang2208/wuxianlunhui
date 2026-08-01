@@ -15,7 +15,7 @@ const baseMixin = {
         const formulas = COMBAT_FORMULAS.player || {};
 
         // 应用武器精通的属性加成
-        let bonusStr = 0, bonusDex = 0, bonusWis = 0, bonusCon = 0;
+        let bonusStr = 0, bonusDex = 0, bonusWis = 0, bonusCon = 0, bonusInt = 0, bonusLuck = 0;
         if (this.skills) {
             if (this.skills.machineGunMastery) {
                 bonusStr += this.skills.machineGunMastery.getEffect(this.skills.machineGunMastery.level).strBonus;
@@ -34,15 +34,29 @@ const baseMixin = {
             }
         }
 
+        // 装备加成（防具防御 + 首饰/防具 bonusStats：六维与面板属性；防御按 base + perEnhance×强化等级）
+        const eq = this._getEquipmentBonuses();
+        // 六维写入面板（差值法：移除上次装备加成再加本次，避免重复累加；公式侧直接读 d.str 等）
+        const prevAttr = this._equipAttrBonus || { str: 0, dex: 0, int: 0, con: 0, wis: 0, luck: 0 };
+        d.str += eq.str - prevAttr.str;
+        d.dex += eq.dex - prevAttr.dex;
+        d.int += eq.int - prevAttr.int;
+        d.con += eq.con - prevAttr.con;
+        d.wis += eq.wis - prevAttr.wis;
+        d.luck += eq.luck - prevAttr.luck;
+        this._equipAttrBonus = { str: eq.str, dex: eq.dex, int: eq.int, con: eq.con, wis: eq.wis, luck: eq.luck };
+
         // 攻击
         const atkFormula = formulas.attack || { base: 10, strMultiplier: 0.05, dexMultiplier: 0.1, round: true };
         d.atk = atkFormula.round
             ? Math.round(atkFormula.base + (d.str + bonusStr) * atkFormula.strMultiplier + (d.dex + bonusDex) * atkFormula.dexMultiplier)
             : atkFormula.base + (d.str + bonusStr) * atkFormula.strMultiplier + (d.dex + bonusDex) * atkFormula.dexMultiplier;
+        d.atk += Math.round(eq.atk); // 首饰物理攻击加成（猛攻戒指）
 
         // 防御
         const defFormula = formulas.defense || { conMultiplier: 1.2, strMultiplier: 0.3, round: 'floor' };
         d.def = this._applyRounding((d.con + bonusCon) * defFormula.conMultiplier + (d.str + bonusStr) * defFormula.strMultiplier, defFormula.round);
+        d.def += eq.defense; // 防具/盾牌防御（base + perEnhance×强化等级）
 
         // 应用改造效果：防御力变化
         if (this.equipments && this.weaponMode) {
@@ -57,10 +71,7 @@ const baseMixin = {
             const offhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
             const shield = this.equipments[offhandSlot];
             if (shield && shield.weaponType === 'shield') {
-                // 盾牌防御力计入玩家防御面板：base + perEnhance × 强化等级
-                // （此前 defense.base/perEnhance 只在 tooltip 展示，实战未生效——防具强化无消费端修复）
-                const sdef = shield.defense || {};
-                d.def += Math.floor((sdef.base || 0) + (sdef.perEnhance || 0) * (shield.enhanceLevel || 0));
+                // 盾牌防御力已由 _getEquipmentBonuses 统一计入 d.def；此处仅应用持盾技能百分比加成
                 const sdEffect = this.skills.shieldDefense.getEffect(this.skills.shieldDefense.level);
                 d.def = Math.floor(d.def * (1 + sdEffect.defBonusPercent));
             }
@@ -74,16 +85,46 @@ const baseMixin = {
         const critFormula = formulas.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
         const aspdFormula = formulas.attackSpeed || { base: 1.0, dexMultiplier: 0.02 };
         const speedFormula = formulas.speed || { base: CONFIG.PLAYER_SPEED, dexMultiplier: 0.05 };
+        const speedBase = speedFormula.usePlayerSpeedConfig ? CONFIG.PLAYER_SPEED : (speedFormula.base || CONFIG.PLAYER_SPEED);
         const critResFormula = formulas.critResist || { conMultiplier: 1.0, round: 'floor' };
 
-        d.matk = this._applyRounding(d.int * matkFormula.intMultiplier + (d.wis + bonusWis) * matkFormula.wisMultiplier, matkFormula.round);
-        d.mdef = this._applyRounding((d.wis + bonusWis) * mdefFormula.wisMultiplier + d.int * mdefFormula.intMultiplier, mdefFormula.round);
+        d.matk = this._applyRounding((d.int + bonusInt) * matkFormula.intMultiplier + (d.wis + bonusWis) * matkFormula.wisMultiplier, matkFormula.round);
+        d.mdef = this._applyRounding((d.wis + bonusWis) * mdefFormula.wisMultiplier + (d.int + bonusInt) * mdefFormula.intMultiplier, mdefFormula.round);
+        d.matk += Math.round(eq.matk); // 首饰魔法攻击加成（秘法戒指）
         d.hit = this._applyRounding(hitFormula.base + (d.dex + bonusDex) * hitFormula.dexMultiplier, hitFormula.round);
         d.dodge = this._applyRounding(dodgeFormula.base + (d.dex + bonusDex) * dodgeFormula.dexMultiplier, dodgeFormula.round);
-        d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
+        d.crit = this._applyRounding(critFormula.base + (d.luck + bonusLuck) * critFormula.luckMultiplier, critFormula.round);
+        d.crit += Math.round(eq.crit); // 首饰暴击率加成（致命戒指）
         d.aspd = aspdFormula.base + (d.dex + bonusDex) * aspdFormula.dexMultiplier;
-        d.speed = speedFormula.base + (d.dex + bonusDex) * speedFormula.dexMultiplier;
+        d.speed = speedBase + (d.dex + bonusDex) * speedFormula.dexMultiplier;
         d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
+
+        // ===== 三件套判定（头盔+护甲+靴子同 armorSet 齐穿激活）=====
+        this._armorSetActive = null;
+        this._cooldownReduction = 0;
+        this._magicDamageBonus = 0;
+        let armorSpeedMul = 1;
+        if (this.equipments) {
+            const setCount = {};
+            for (const slotKey of ['helmet', 'armor', 'boots']) {
+                const it = this.equipments[slotKey];
+                if (it && it.armorSet) setCount[it.armorSet] = (setCount[it.armorSet] || 0) + 1;
+            }
+            if (setCount.light === 3) {
+                this._armorSetActive = 'light';
+                armorSpeedMul = 1.10; // 轻甲：+10% 移速
+            } else if (setCount.robe === 3) {
+                this._armorSetActive = 'robe';
+                this._cooldownReduction = 0.12; // 法袍：技能冷却 -12%
+                this._magicDamageBonus = 0.18; // 法袍：魔法伤害 +18%
+            } else if (setCount.heavy === 3) {
+                this._armorSetActive = 'heavy';
+                armorSpeedMul = 0.85; // 重甲：-15% 移速（强化不影响格挡率）
+            }
+        }
+        // 实际移动读 this.maxSpeed（update.js），套装移速修正写回；面板 d.speed 同步
+        this.maxSpeed = Math.floor(CONFIG.PLAYER_SPEED * armorSpeedMul);
+        d.speed = Math.floor(d.speed * armorSpeedMul);
 
         // 闪避面板：配置基准 × 修饰百分比（后续装备/道具写入 _dodgeModifiers 后
         // 调用 calculateCombatStats 即生效；durationPercent 影响无敌时长，distancePercent 影响位移距离）
@@ -105,6 +146,29 @@ const baseMixin = {
         if (method === 'round') return Math.round(value);
         if (method === 'ceil') return Math.ceil(value);
         return Math.floor(value);
+    },
+
+    /**
+     * 汇总所有已装备物品的加成（防具防御 + 首饰/防具 bonusStats），含强化成长：
+     * bonusStats[k] + bonusPerEnhance[k] × 强化等级；defense 单独累加 base + perEnhance × 强化等级。
+     */
+    _getEquipmentBonuses() {
+        const totals = { str: 0, dex: 0, int: 0, con: 0, wis: 0, luck: 0, atk: 0, matk: 0, crit: 0, maxHp: 0, maxMp: 0, maxStamina: 0, defense: 0 };
+        if (!this.equipments) return totals;
+        for (const slotKey of Object.keys(this.equipments)) {
+            const it = this.equipments[slotKey];
+            if (!it) continue;
+            const el = it.enhanceLevel || 0;
+            const bs = it.bonusStats || {};
+            const pe = it.bonusPerEnhance || {};
+            for (const k of Object.keys(totals)) {
+                totals[k] += (bs[k] || 0) + (pe[k] || 0) * el;
+            }
+            if (it.defense) {
+                totals.defense += Math.floor((it.defense.base || 0) + (it.defense.perEnhance || 0) * el);
+            }
+        }
+        return totals;
     },
 
     /**
@@ -186,11 +250,15 @@ const baseMixin = {
         const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 10 };
         const mpFormula = formulas.maxMp || { base: 100, wisMultiplier: 10, intMultiplier: 5 };
         const staminaFormula = formulas.staminaRegen || { base: 1.0, dexMultiplier: 0.01 };
+        const eq = this._getEquipmentBonuses();
 
         const oldMaxHp = d.maxHp;
         const oldMaxMp = d.maxMp;
-        d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier;
-        d.maxMp = mpFormula.base + d.wis * mpFormula.wisMultiplier + d.int * mpFormula.intMultiplier;
+        // 属性加成（装备六维）与装备 maxHp/maxMp/maxStamina 一并计入
+        // d.con/wis/int 已含装备六维（calculateCombatStats 差值法写入），装备 maxHp/maxMp/maxStamina 另行累加
+        d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier + eq.maxHp;
+        d.maxMp = mpFormula.base + d.wis * mpFormula.wisMultiplier + d.int * mpFormula.intMultiplier + eq.maxMp;
+        d.maxStamina = (CONFIG.STAMINA_MAX || 100) + eq.maxStamina;
 
         // HP/MP 按比例缩放，避免满血时增加属性反而掉血
         if (oldMaxHp > 0) d.hp = Math.min(d.maxHp, d.hp + (d.maxHp - oldMaxHp));

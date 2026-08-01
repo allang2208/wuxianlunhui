@@ -557,8 +557,8 @@ export class GameScene extends Scene {
             this.defenseGlow.setDepth(playerDepth - 2);
         }
 
-        // 5. 魔法/技能特效按自身世界 Y 排序
-        [...this.runeSwordGroup.getChildren(), ...this.iceSpikeGroup.getChildren()].forEach(s => {
+        // 5. 魔法/技能特效按自身世界 Y 排序（符文剑/冰锥为浮空件，深度改由各同步函数按施法者精灵设置）
+        [...this.iceSpikeGroup.getChildren()].forEach(s => {
             if (s && s.active) s.setDepth(s.y + 15);
         });
         if (this.fireballSprite && this.fireballSprite.active) {
@@ -573,18 +573,16 @@ export class GameScene extends Scene {
 
         // 其他施法者（敌人巫师等）的特效
         if (this._magicSprites) {
-            for (const sprites of this._magicSprites.values()) {
+            for (const [caster, sprites] of this._magicSprites) {
+                const pd = this._projectileDepth(caster, 0);
                 if (sprites.iceSpikes) {
-                    sprites.iceSpikes.forEach(s => { if (s && s.active) s.setDepth(s.y + 15); });
+                    sprites.iceSpikes.forEach(s => { if (s && s.active) s.setDepth(pd); });
                 }
                 if (sprites.iceSpikeFly) {
-                    sprites.iceSpikeFly.forEach(s => { if (s && s.active) s.setDepth(s.y + 15); });
+                    sprites.iceSpikeFly.forEach(s => { if (s && s.active) s.setDepth(pd); });
                 }
-                if (sprites.fireball && sprites.fireball.active) {
-                    sprites.fireball.setDepth(sprites.fireball.y + 15);
-                }
-                if (sprites.fireballFly && sprites.fireballFly.active) {
-                    sprites.fireballFly.setDepth(sprites.fireballFly.y + 15);
+                if (sprites.fireballEmitters) {
+                    sprites.fireballEmitters.forEach(em => { if (em && em.visible) em.setDepth(pd); });
                 }
             }
         }
@@ -2305,6 +2303,7 @@ export class GameScene extends Scene {
                 // 飞行剑：使用世界坐标和 flyAngle
                 // 悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
                 sprite.setPosition(sword.flyX, sword.flyY - (sword.elev ?? (player.bodyHeight || 0) * 0.5));
+                sprite.setDepth(this._projectileDepth(player, sword.flyY));
                 sprite.setRotation(sword.flyAngle + Math.PI / 2);
                 sprite.setAlpha(1);
                 sprite.setVisible(true);
@@ -2330,6 +2329,7 @@ export class GameScene extends Scene {
             const absoluteAngle = Math.atan2(mouseY - worldY, mouseX - worldX);
             
             sprite.setPosition(worldX, worldY);
+            sprite.setDepth(this._projectileDepth(player, worldY));
             sprite.setRotation(absoluteAngle + Math.PI / 2);
             sprite.setAlpha(sword.fading ? Math.max(0, 1 - sword.fadeTimer / 300) : 1);
             sprite.setVisible(true);
@@ -2384,6 +2384,10 @@ export class GameScene extends Scene {
         const sprites = this._getMagicSprites(caster);
         if (sprites.fireballEmitters) return sprites.fireballEmitters;
         const s = scale || 1;
+        // 与火炬火焰同款：确保 impact_dot 粒子贴图存在（此前未确保，纹理缺失时粒子不可见）
+        if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
+            this._ensureImpactDotTexture();
+        }
         // ① 主火焰团：稍大的火球
         const main = this.add.particles(0, 0, 'impact_dot', {
             frequency: 45,
@@ -2414,9 +2418,17 @@ export class GameScene extends Scene {
         const ems = this._ensureFireballEmitters(caster, scale || 1);
         for (const em of ems) {
             em.setPosition(x, y);
-            em.setDepth(y + 15); // 与世界特效同口径：按自身世界 Y 排序
+            // 浮空件深度 = 施法者精灵深度 + 2（避免按抬升后 y 排序沉到施法者身后不可见）
+            em.setDepth(this._projectileDepth(caster, y));
             em.setVisible(true);
         }
+    }
+
+    /** 投射物/特效浮空深度：优先施法者精灵深度 + 2；无精灵时回退 y + 15 */
+    _projectileDepth(caster, fallbackY) {
+        if (caster === Game.player && this.playerSprite) return this.playerSprite.depth + 2;
+        if (caster && caster._phaserSprite) return caster._phaserSprite.depth + 2;
+        return (fallbackY || 0) + 15;
     }
 
     _hideFireballEmitters(caster) {
@@ -2454,8 +2466,10 @@ export class GameScene extends Scene {
             const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
             const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
 
-            const localX = spike.offsetX + swayX;
-            const localY = spike.offsetY + swayY;
+            // 发射前待机：按轨道角绕施法者圆柱体椭圆环绕（orbitAngle 由系统 update 推进）
+            const oa = spike.orbitAngle ?? Math.atan2(spike.offsetY || 0, spike.offsetX || 0);
+            const localX = Math.cos(oa) * (spike.orbitRx ?? 50) + swayX;
+            const localY = Math.sin(oa) * (spike.orbitRy ?? 30) + swayY;
 
             const cos = Math.cos(caster.rotation || 0);
             const sin = Math.sin(caster.rotation || 0);
@@ -2463,7 +2477,8 @@ export class GameScene extends Scene {
             const worldX = caster.x + cos * localX - sin * localY;
             const worldY = caster.y - (spike.elev ?? (caster.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
 
-            // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target
+            // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target。
+            // 参考调整前代码：所有冰锥统一以施法者中心→鼠标准星的朝向（整圈冰锥同一指向，全部对准准星方向）
             let absoluteAngle;
             if (caster === Game.player) {
                 const camera = this.cameras.main;
@@ -2480,6 +2495,7 @@ export class GameScene extends Scene {
             }
 
             sprite.setPosition(worldX, worldY);
+            sprite.setDepth(this._projectileDepth(caster, worldY)); // 浮空件：施法者精灵深度 + 2
             sprite.setRotation(absoluteAngle + Math.PI / 2);
             sprite.setAlpha(0.85);
             sprite.setVisible(true);
@@ -2501,8 +2517,10 @@ export class GameScene extends Scene {
         const swayX = Math.sin(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX;
         const swayY = Math.cos(fb.swayTimer * fb.swayFreqX) * fb.swayAmpX * 0.5;
 
-        const localX = fb.offsetX + swayX;
-        const localY = fb.offsetY + swayY;
+        // 发射前待机：按轨道角绕施法者圆柱体椭圆环绕（orbitAngle 由系统 update 推进）
+        const oa = fb.orbitAngle ?? 0;
+        const localX = Math.cos(oa) * (fb.orbitRx ?? 50) + swayX;
+        const localY = Math.sin(oa) * (fb.orbitRy ?? 30) + swayY;
 
         const cos = Math.cos(caster.rotation || 0);
         const sin = Math.sin(caster.rotation || 0);
@@ -2597,7 +2615,11 @@ export class GameScene extends Scene {
             if (activeIdx < activeSpikes.length) {
                 const spike = activeSpikes[activeIdx];
                 // 飞行视觉悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
-                sprite.setPosition(spike.flyX, spike.flyY - (spike.elev ?? (caster.bodyHeight || 0) * 0.5));
+                // 高度随飞行进度收敛：到达瞄准点（targetDist）时降到地面，所有冰锥精确汇聚于鼠标准星
+                const flyProg = spike.targetDist ? Math.min(1, spike.flyDistance / spike.targetDist) : 0;
+                const raiseY = (spike.elev ?? (caster.bodyHeight || 0) * 0.5) * (1 - flyProg);
+                sprite.setPosition(spike.flyX, spike.flyY - raiseY);
+                sprite.setDepth(this._projectileDepth(caster, spike.flyY));
                 sprite.setRotation(spike.flyAngle + Math.PI / 2);
                 sprite.setAlpha(0.9);
                 sprite.setVisible(true);
@@ -2614,13 +2636,16 @@ export class GameScene extends Scene {
     _syncFlyingFireball(caster) {
         const sprites = this._getMagicSprites(caster);
         if (!caster._fireball || !caster._fireball.flyActive) {
-            this._hideFireballEmitters(caster);
+            // 悬浮期（未发射）由 _syncFireball 负责显示发射器，这里不能隐藏——否则每帧互相抵消看不到火球；
+            // 火球完全结束时由 _syncFireball 的 early-return 统一隐藏
             return;
         }
 
         const fb = caster._fireball;
-        // 飞行视觉悬浮在火球 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
-        this._positionFireballEmitters(caster, fb.flyX, fb.flyY - (fb.elev ?? (caster.bodyHeight || 0) * 0.5), fb.scale || 1);
+        // 飞行高度随进度收敛：到达瞄准点（targetDist）时降到地面，与冰锥同口径
+        const flyProg = fb.targetDist ? Math.min(1, fb.flyDistance / fb.targetDist) : 0;
+        const raiseY = (fb.elev ?? (caster.bodyHeight || 0) * 0.5) * (1 - flyProg);
+        this._positionFireballEmitters(caster, fb.flyX, fb.flyY - raiseY, fb.scale || 1);
     }
 
     // ==================== 挥砍残影（A 方案运动模糊的实现） ====================

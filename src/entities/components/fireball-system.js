@@ -24,6 +24,7 @@ const FIREBALL_KIND = {
     anim: { totalFrames: 73, hoverMs: 100, flyMs: 50 },
     spawnText: () => '🔥 火球凝聚',
     makeProjectiles(effect, source) {
+        const radius = ((source && source.groundRadius) || 40) + 26;
         return [{
             id: 0,
             active: true,
@@ -31,6 +32,10 @@ const FIREBALL_KIND = {
             offsetX: 0, // 以施法者圆柱体碰撞体积中心生成（y 抬升由渲染层按 bodyHeight/2 处理）
             offsetY: 0,
             elev: ((source && source.bodyHeight) || 120) * 0.5, // 圆柱体碰撞体积垂直中心
+            orbitAngle: 0, // 发射前待机：绕施法者圆柱体椭圆轨道环绕
+            orbitRx: radius,
+            orbitRy: radius * 0.7,
+            orbitSpeed: 0.0018,
             flyX: 0, flyY: 0,
             flyAngle: 0,
             flySpeed: effect.flySpeed,
