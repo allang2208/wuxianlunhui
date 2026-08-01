@@ -95,9 +95,6 @@ export const Game = {
     },
     async start() {
         try {
-            // 自动同步版本号到页面
-            const versionBadge = getElement('versionBadge');
-            if (versionBadge) versionBadge.textContent = 'V' + this.VERSION;
             // 防止重复启动：游戏已在运行时直接返回
             if (this.isRunning) {
                 return;

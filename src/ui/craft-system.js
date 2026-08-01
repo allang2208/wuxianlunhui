@@ -12,6 +12,50 @@ import { CRAFT_DEFAULT_SLOTS } from '../config/craft-default-slots.js';
 import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-effects.js';
 import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { RARITY_LABELS } from '../config/rarity.js';
+
+/** 量取背包格实际渲染尺寸（.gear-inventory-col 5 列 1fr，宽随面板、高 56px） */
+function _measureBackpackCell() {
+    // 面板收起时是 visibility:hidden（非 display:none），offsetWidth 仍为真实布局尺寸；
+    // 格子未创建（背包从未打开）时按网格公式兜底：宽 = (网格宽 - 内边距 - 间距)/5
+    const cell = document.querySelector('.inventory-grid .inv-cell');
+    if (cell && cell.offsetWidth > 0) return { w: cell.offsetWidth, h: cell.offsetHeight };
+    const grid = document.querySelector('.inventory-grid');
+    if (grid && grid.clientWidth > 0) {
+        const cols = 5, gap = 2, pad = 4;
+        return { w: Math.floor((grid.clientWidth - pad * 2 - (cols - 1) * gap) / cols), h: 56 };
+    }
+    return { w: 56, h: 56 };
+}
+
+/**
+ * 构建背包格同款装备方块（拖拽快照用）。
+ * 与 src/ui/equip/slot-renderer.js updateInventorySlots 的 .inv-cell 结构完全一致：
+ * 稀有度竖标签 + 强化/改造/附魔标 + 32px 图标 + 名称（+堆叠数）；尺寸与背包格一致。
+ */
+function _buildDragGhostCell(item) {
+    const cell = document.createElement('div');
+    cell.className = 'inv-cell occupied';
+    // 离屏渲染，保证 .inv-cell 的 CSS（背景/边框/圆角）进入快照；尺寸按背包格实测
+    const { w, h } = _measureBackpackCell();
+    cell.style.cssText = `position:fixed;left:-9999px;top:0;width:${w}px;height:${h}px;font-size:18px;z-index:-1;pointer-events:none;`;
+    const imgSrc = item.slotImage || item.iconImage;
+    const rarityKey = item.rarity || 'common';
+    const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
+    const enhancedTag = (item.enhanceLevel || 0) > 0 ? '<div class="inv-enhanced">已强化</div>' : '';
+    const isCrafted = item._isCrafted || (item._craftData && Object.keys(item._craftData).length > 0);
+    const craftedTag = isCrafted ? '<div class="inv-crafted">已改造</div>' : '';
+    const isEnchanted = item._isEnchanted || (item._enchantData && (item._enchantData.prefix || item._enchantData.suffix));
+    const enchantedTag = isEnchanted ? '<div class="inv-enchanted">已附魔</div>' : '';
+    const nameTag = `<span class="inv-name" style="pointer-events:none;user-select:none;">${item.name}</span>`;
+    const stackTag = item.stack > 1 ? `<span class="inv-stack" style="pointer-events:none;user-select:none;">${item.stack}</span>` : '';
+    if (imgSrc) {
+        cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div>${enhancedTag}${craftedTag}${enchantedTag}<img src="${imgSrc}" draggable="false" ondragstart="return false;" style="width:32px;height:32px;object-fit:cover;pointer-events:none;border-radius:4px;user-select:none;-webkit-user-drag:none;">${nameTag}${stackTag}`;
+    } else {
+        cell.innerHTML = `<div class="inv-rarity rarity-${rarityKey}">${rarityLabel}</div>${enhancedTag}${craftedTag}${enchantedTag}<span style="pointer-events:none;user-select:none;">${item.icon || '❓'}</span>${nameTag}${stackTag}`;
+    }
+    return cell;
+}
 
 const CraftSystem = {
     _isOpen: false,
@@ -243,48 +287,23 @@ const CraftSystem = {
             e.dataTransfer.setData('text/plain', 'craft');
             e.dataTransfer.effectAllowed = 'move';
             dropZone.classList.add('dragging');
-            // 创建自定义拖动图片：背包格子大小的装备方块。
-            // 同步设置 setDragImage——此前在 img.onload 里异步调用存在竞态，
-            // dragstart 返回后浏览器忽略晚到的设置，默认快照显示 dropZone 大贴图；
-            // 优先用改造栏已加载的贴图实例同步绘制（complete 后 drawImage 立即可用）。
-            const canvas = document.createElement('canvas');
-            canvas.width = 56; canvas.height = 56;
-            const ctx = canvas.getContext('2d');
-            // 背景（背包格子样式）
-            ctx.fillStyle = '#2a2520';
-            ctx.fillRect(0, 0, 56, 56);
-            ctx.strokeStyle = '#5a4d3f';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, 56, 56);
-            const fallbackDraw = () => {
-                ctx.fillStyle = '#d4c5a9';
-                ctx.font = '24px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(this._equippedItem.icon || '❓', 28, 36);
-            };
-            // 1) 同步：改造栏已加载的武器贴图实例（weaponDisplay 的 img，complete 即可直接绘制）
-            const weaponDisplay = getElement('craftWeaponDisplay');
-            const displayImg = weaponDisplay ? weaponDisplay.querySelector('img') : null;
-            if (displayImg && displayImg.complete && displayImg.naturalWidth > 0) {
-                ctx.drawImage(displayImg, 4, 4, 48, 48);
-            } else {
-                // 2) 异步回退：小图标加载完成后补绘（此时同步的小格子快照已设置，不会回退成大贴图）
-                const imgSrc = this._equippedItem.equipImage || this._equippedItem.slotImage || this._equippedItem.iconImage;
-                if (imgSrc) {
-                    const img = new Image();
-                    img.onload = () => {
-                        try {
-                            ctx.drawImage(img, 4, 4, 48, 48);
-                            e.dataTransfer.setDragImage(canvas, 28, 28);
-                        } catch { /* 拖拽已开始，忽略晚到的重设 */ }
-                    };
-                    img.onerror = fallbackDraw;
-                    img.src = imgSrc;
-                } else {
-                    fallbackDraw();
-                }
+            // 复用「背包→改造栏」同款装备方块作为拖拽图像：背包格是已渲染的 DOM 元素，
+            // 浏览器直接快照即小格子；改造栏没有现成格子，离屏构造同结构 .inv-cell
+            // （与 slot-renderer.updateInventorySlots 同口径）后同步 setDragImage——
+            // 避免画布/异步竞态导致拖拽显示 dropZone 大贴图。
+            const ghost = _buildDragGhostCell(this._equippedItem);
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+            // 图标若尚未解码完成，加载后尽力重设快照（不生效也有小格子兜底，不会回退成大贴图）
+            const ghostImg = ghost.querySelector('img');
+            if (ghostImg && !ghostImg.complete) {
+                ghostImg.onload = () => {
+                    try { e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2); } catch { /* 拖拽已开始，忽略晚到的重设 */ }
+                };
             }
-            e.dataTransfer.setDragImage(canvas, 28, 28); // 同步兜底：绝不用 dropZone 大贴图
+            dropZone.addEventListener('dragend', () => {
+                if (ghost.parentNode) ghost.parentNode.removeChild(ghost);
+            }, { once: true });
         };
 
         const handleDragEnd = (_e) => {

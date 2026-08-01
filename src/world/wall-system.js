@@ -660,14 +660,14 @@ const WallSystem = {
      */
     /**
      * 实体级墙体遮挡仲裁（唯一规则）：
-     * 对实体脚线 (x, y)，收集所有贴近（|y−yLine| ≤ 60 + 深度亏空）的墙/门面线——
+     * 对实体脚线 (x, y)，收集墙/门面线分两侧判定：线后窗口 = 60 + 深度亏空；线前窗口 = frontRange（实体贴图脚底→头顶高度，默认 60）——
      * y < yLine（实体在线后）记为遮挡源，y ≥ yLine（在线前）记为前墙。
      * 有遮挡源 → 压到最浅遮挡面线之下（min depth − 0.5，即压到所有遮挡线之下）；
-     * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡）；
+     * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡；旧版窗口固定 60，实体在墙前 60~160px 贴图仍与墙重叠时不抬被盖——通道上墙/墓碑同根因）；
      * 多面线共存的门口/衔接处按"被任一墙遮挡则遮挡"判定——
      * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）
      */
-    junctionCorrectedDepth(x, y, depth) {
+    junctionCorrectedDepth(x, y, depth, frontRange = 60) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
         for (const it of cache) {
@@ -680,7 +680,7 @@ const WallSystem = {
                 // 收集窗按亏空加宽，否则深端墙后 60~119px 的实体收不到任何面线、仲裁完全失效
                 // （普通 max 规则瓦片亏空为 0，窗口不变、行为不变）
                 const deficit = Math.max(A.y, B.y) - it.depth;
-                const win = deficit > 0 ? 60 + deficit : 60;
+                const win = (y - yLine) < 0 ? (deficit > 0 ? 60 + deficit : 60) : frontRange; // 线后=60+亏空；线前=实体贴图高度
                 if (Math.abs(y - yLine) > win) continue;
                 if (y < yLine) {
                     // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正"被任一遮挡"。
@@ -692,8 +692,11 @@ const WallSystem = {
                 }
             }
         }
-        if (occluderDepth !== Infinity) return Math.min(depth, occluderDepth - 0.5);
+        // 遮挡源只在比所有前墙都深时才压制：浅遮挡源的贴图本身画在深前墙之下，
+        // 实体在深前墙之前不可能被它真正遮挡（门口 X 形楔形区误压修复）
+        if (occluderDepth !== Infinity && occluderDepth >= frontDepth) return Math.min(depth, occluderDepth - 0.5);
         if (frontDepth !== -Infinity) return Math.max(depth, frontDepth + 0.5);
+        if (occluderDepth !== Infinity) return Math.min(depth, occluderDepth - 0.5); // 无前墙时遮挡源兜底
         return depth;
     },
 

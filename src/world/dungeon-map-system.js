@@ -35,6 +35,9 @@ import { anchorRect } from '../utils/layout.js';
  *  下区地图 = 60%（648/1080），上区背景 = 40%（432/1080）；
  *  left/bottom 零边距 + height 按视口等比缩放 → 任意分辨率下都是 40/60 分界 */
 const MAP_AREA_SPEC = { left: 0, bottom: 0, width: 1920, height: 648 };
+// 路线图显示窗口（2K 2560×1440 基准，其他分辨率按视口等比换算）：
+// 地图内容（节点/连线）限定在此窗口内，居中于下方区域
+const MAP_VIEW_SPEC = { left: 572, bottom: 112, width: 1391, height: 579 };
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -83,6 +86,7 @@ export const DungeonMapSystem = {
     _mouseDownTime: 0,
     _mouseDownPos: { x: 0, y: 0 },
     _eventListeners: [],
+    _mapAnimT: 0, // 地图动画时钟（ms 累计：流动虚线/呼吸环/脉冲）
 
     // 地图缩放范围与初始倍数（滚轮与 _centerRouteMap 共用，勿再散落硬编码）
     MIN_MAP_SCALE: 0.3,
@@ -112,6 +116,23 @@ export const DungeonMapSystem = {
         boss:   "☠",
         reward: "💎",
         empty:  "·",
+    },
+    // 节点贴图（素材库地牢界面：已透明底；boss/reward 暂用纯色圆+图标）
+    NODE_TEX: {
+        start:  'node_start',
+        combat: 'node_combat',
+        event:  'node_event',
+        empty:  'node_empty',
+    },
+    NODE_TEX_SIZE: 42, // 节点贴图最大边（地图单位；84 → 42 缩小 50%）
+    // 节点贴图内容包围盒（1536² 画布内，密集图案实测 + 4px 余量）：
+    // 整画布缩放会让图标只占 ~26% 而显得极小（"环比节点大 3~4 倍"根因）；
+    // 随机事件须用密集区 bbox（568,576）~（972,972），几何包围盒被左上大片空白撑大
+    NODE_TEX_CROP: {
+        node_start:  [574, 566, 414, 408],
+        node_combat: [560, 556, 414, 408],
+        node_empty:  [572, 570, 414, 408],
+        node_event:  [564, 572, 412, 404],
     },
 
     COMBAT_ROOM_SIZE: 1024,
@@ -351,22 +372,12 @@ export const DungeonMapSystem = {
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
 
-        // 滚轮缩放：以鼠标位置为中心（仅当地图区域内，防止在背景图上误缩放）
+        // 滚轮：节点贴图版禁止缩放（只能拖动调整位置，防止贴图大小随缩放变化）——
+        // 仅阻止页面滚动，保留拖动平移
         const onWheel = (e) => {
             if (this.state !== "map") return;
             if (!this._isInMapArea(e.clientX, e.clientY)) return;
             e.preventDefault();
-            const mx = e.clientX, my = e.clientY;
-            const old = this.mapScale;
-            const factor = e.deltaY < 0 ? 1.1 : 0.9;
-            const next = Math.max(this.MIN_MAP_SCALE, Math.min(this.MAX_MAP_SCALE, old * factor));
-            if (next === old) return;
-            const wx = (mx - this.mapOffsetX) / old;
-            const wy = (my - this.mapOffsetY) / old;
-            this.mapScale = next;
-            this.mapOffsetX = mx - wx * next;
-            this.mapOffsetY = my - wy * next;
-            this._clampMapOffset();
         };
         canvas.addEventListener("wheel", onWheel, { passive: false });
 
@@ -505,10 +516,38 @@ export const DungeonMapSystem = {
         this._positionMapButtons(viewW, w);
     },
 
+    /**
+     * 下方地图选择区域背景图（assets/ui/dungeon-map/map-bg.png）：
+     * 拉伸放大铺满整个地图区域（area），节点/连线绘制在其上；
+     * 图片未就绪时保持默认深色底块（#08080a）。
+     */
+    _drawMapAreaBackground(ctx, area) {
+        const path = 'assets/ui/dungeon-map/map-bg.png';
+        if (!this._mapBgImg || this._mapBgImgPath !== path) {
+            this._mapBgImgPath = path;
+            this._mapBgImg = loadImage(path);
+        }
+        const img = this._mapBgImg;
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+        ctx.drawImage(img, area.left, area.top, area.width, area.height);
+    },
+
     /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
     _getMapBackgroundPath() {
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
+    },
+
+    /** 节点贴图懒加载（缓存于 this._nodeTexImgs） */
+    _getNodeTexImage(key) {
+        if (!this._nodeTexImgs) this._nodeTexImgs = {};
+        const path = `assets/ui/dungeon-map/${key}.png`;
+        const cached = this._nodeTexImgs[key];
+        if (cached && cached._path === path) return cached;
+        const img = loadImage(path);
+        img._path = path;
+        this._nodeTexImgs[key] = img;
+        return img;
     },
 
     /**
@@ -522,11 +561,68 @@ export const DungeonMapSystem = {
         return anchorRect(MAP_AREA_SPEC, vw, vh);
     },
 
-    /** 鼠标/指针是否落在下方地图选择区域内（区域外不可拖动、不可缩放） */
+    /** 路线图显示窗口（2K 2560×1440 基准等比换算；地图内容限定于此窗口内） */
+    _getMapViewRect(viewW, viewH) {
+        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560);
+        const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440);
+        const sx = vw / 2560;
+        const sy = vh / 1440;
+        const height = Math.round(MAP_VIEW_SPEC.height * sy);
+        return {
+            left: Math.round(MAP_VIEW_SPEC.left * sx),
+            top: Math.round(vh - MAP_VIEW_SPEC.bottom * sy - height),
+            width: Math.round(MAP_VIEW_SPEC.width * sx),
+            height,
+        };
+    },
+
+    /** 路线图内容离屏画布（按窗口尺寸缓存） */
+    _getMapViewCanvas(w, h) {
+        if (!this._mapViewCanvas) {
+            this._mapViewCanvas = document.createElement('canvas');
+        }
+        if (this._mapViewCanvas.width !== w || this._mapViewCanvas.height !== h) {
+            this._mapViewCanvas.width = w;
+            this._mapViewCanvas.height = h;
+        }
+        return this._mapViewCanvas;
+    },
+
+    /**
+     * 离屏内容边缘纯透明淡出：destination-out 蒙版（外缘 alpha 1 全擦 → 内缘 alpha 0 不擦），
+     * 节点/贴图/连线在窗口边缘真实渐隐，露出底层背景（不用黑色遮罩覆盖）。
+     * 注意不能用 destination-in：未覆盖区域（窗口中心）会被整体清空导致节点全消失。
+     */
+    _applyMapEdgeFade(ctx, w, h) {
+        const fw = Math.max(24, Math.round(w * 0.12));
+        const fh = Math.max(16, Math.round(h * 0.12));
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        const band = (grad, x, y, bw, bh) => { ctx.fillStyle = grad; ctx.fillRect(x, y, bw, bh); };
+        let g = ctx.createLinearGradient(0, 0, fw, 0);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        band(g, 0, 0, fw, h);
+        g = ctx.createLinearGradient(w, 0, w - fw, 0);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        band(g, w - fw, 0, fw, h);
+        g = ctx.createLinearGradient(0, 0, 0, fh);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        band(g, 0, 0, w, fh);
+        g = ctx.createLinearGradient(0, h, 0, h - fh);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        band(g, 0, h - fh, w, fh);
+        ctx.restore();
+    },
+
+    /** 鼠标/指针是否落在路线图窗口内（窗口外不可拖动） */
     _isInMapArea(x, y) {
-        const area = this._getMapTargetArea();
-        return x >= area.left && x <= area.left + area.width &&
-               y >= area.top && y <= area.top + area.height;
+        const v = this._getMapViewRect();
+        return x >= v.left && x <= v.left + v.width &&
+               y >= v.top && y <= v.top + v.height;
     },
 
     /** 退出按钮绘制/点击共用同一矩形（随视口右对齐，不再写死 1920） */
@@ -550,8 +646,8 @@ export const DungeonMapSystem = {
     },
 
     _clampMapOffset() {
-        // 钳制区域与初始定位同源（layout.js anchorRect），禁止两套区域计算
-        const area = this._getMapTargetArea();
+        // 钳制区域与初始定位同源（路线图显示窗口），禁止两套区域计算
+        const area = this._getMapViewRect();
         const b = this._getContentBounds();
         const s = this.mapScale;
         // 单轴钳制区间：内容覆盖区域（内容小于区域时居中）
@@ -582,8 +678,8 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
-        // 路线选择界面显示区域（坐标工具测量值，与拖动钳制共用 _getMapTargetArea）
-        const TARGET_AREA = this._getMapTargetArea();
+        // 路线图显示窗口（与拖动钳制共用 _getMapViewRect）
+        const TARGET_AREA = this._getMapViewRect();
 
         if (this.nodes.length === 0) {
             // 无节点时，默认居中显示在目标区域内
@@ -618,6 +714,7 @@ export const DungeonMapSystem = {
     // ───────────────────────────────────────────────
     update(_dt) {
         if (!this.active || this.state !== "map") return;
+        this._mapAnimT += _dt;
         this._setMapStatusBarVisible(true);
         this._updateHover();
         if (Input.mouse.leftPressed && !this._dragMoved) {
@@ -952,6 +1049,11 @@ export const DungeonMapSystem = {
         const player = this.player || Game.player;
         if (!player) return;
 
+        // 时空特工入侵战胜利（情况1/3 与混合战都经此出口）：删除左侧入侵几率标签
+        if (this._invasionNode && typeof AgentInvasionSystem !== 'undefined') {
+            AgentInvasionSystem.onInvasionDefeated();
+        }
+
         // 时空特工入侵战（情况1/3）：不标完成，清理后继续原节点事件
         if (this._invasionNode && !this._invasionMixed) {
             const node = this._invasionNode;
@@ -1061,7 +1163,7 @@ export const DungeonMapSystem = {
 
         // 场地固定档位（配置驱动，支持地牢级覆盖）：普通 1024 / 精英 1792
         const _crCfg = DungeonConfig.getCombatRoomConfig(this.dungeonType);
-        const combatOptions = { roomSize: node.isElite ? _crCfg.eliteSize : _crCfg.normalSize };
+        const combatOptions = { roomSize: node.isElite ? _crCfg.eliteSize : _crCfg.normalSize, dungeonType: this.dungeonType };
 
         if (this._isZombieFamily()) {
             this._enterZombieCombat(node, combatOptions);
@@ -1080,8 +1182,8 @@ export const DungeonMapSystem = {
     },
 
     _enterZombieCombat(node, options = {}) {
-        // D 级及以上地牢：三房间串联竞技场（入侵混合战保持原大单房间流程）
-        if (!this._invasionMixed && DungeonConfig.isCombatArenaEnabled(this.dungeonType)) {
+        // D 级及以上地牢：三房间串联竞技场（入侵混合战同走竞技场，特工留到房间 3 随第 3 波刷新）
+        if (DungeonConfig.isCombatArenaEnabled(this.dungeonType)) {
             return this._enterCombatArena(node);
         }
         this._zombieCombatNode = node;
@@ -1223,7 +1325,8 @@ export const DungeonMapSystem = {
         const bounds = (arena && roomIdx)
             ? CombatRoomSystem.getArenaRoomBounds(roomIdx)
             : CombatRoomSystem._roomBounds;
-        // 房间 1/2：陷阱直线布局锚点 = 房心（中央石柱已随障碍物规则删除）；房间 3 走随机环带
+        // 房间 1/2：石柱陷阱线锚点 = 房心（从中央石柱底座中心出发，随机左/右沿屏幕水平方向
+        // 每 traps.lineSpacing 放一个直到墙边，数量由距离决定）；房间 3 及单房间走随机环带
         const lineFrom = (stage === 1 || stage === 2) && bounds
             ? { x: bounds.cx, y: bounds.cy }
             : null;
@@ -1260,11 +1363,12 @@ export const DungeonMapSystem = {
         const arenaInfo = CombatRoomSystem.enterCombatArena(this.player, {
             normalSize: crCfg.normalSize,
             eliteSize: crCfg.eliteSize,
+            dungeonType: this.dungeonType, // 障碍物生成按地牢大类判定（僵尸/沼泽不同口径）
         });
         if (!arenaInfo) {
             // 预制缺失等异常：回退旧单房间流程（状态字段已初始化，与正常路径一致）
             console.warn('[DungeonMapSystem] 竞技场构建失败，回退单房间战斗');
-            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize });
+            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize, dungeonType: this.dungeonType });
             if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
                 ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
             }
@@ -1369,6 +1473,11 @@ export const DungeonMapSystem = {
         } catch (e) {
             console.error('[DungeonMapSystem] 刷波异常（已兜底，不阻塞清场判定）:', e);
         }
+        // 入侵混合战：特工在房间 3 随第 3 波同刷（setArenaStageRoom 已把 _roomBounds 切到房间 3，
+        // 自由边布点天然落在本房；登记进 _combatMonsterKeys 计入清场判定）
+        if (roomIdx === 3 && this._invasionMixed) {
+            this._spawnInvasionAgentsOnFreeEdge(AgentInvasionSystem.getAgentFactories());
+        }
     },
 
     _spawnZombieWave() {
@@ -1443,7 +1552,7 @@ export const DungeonMapSystem = {
             DungeonConfig.getBossEncounterConfig(this.dungeonType), this.dungeonType);
         // 月影庇护：Boss 战触发无敌并激活增伤
         this._triggerMoonshadow(true);
-        CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: DungeonConfig.getCombatRoomConfig(this.dungeonType).bossSize });
+        CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: DungeonConfig.getCombatRoomConfig(this.dungeonType).bossSize, dungeonType: this.dungeonType });
         this._spawnZombieWave();
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, "Boss 战！", "#ff0000"));
     },
@@ -1453,7 +1562,9 @@ export const DungeonMapSystem = {
     /**
      * 入侵战斗入口：
      * - 情况1/3（事件/BOSS/奖励节点）：4096 场地仅刷特工，胜利后继续原节点事件
-     * - 情况2（战斗节点）：4096 场地原怪物 + 随机自由边刷特工（全场敌对）
+     * - 情况2（战斗节点）：原怪物 + 随机自由边刷特工（全场敌对）；
+     *   竞技场启用时走三房间流程，特工留到房间 3 随第 3 波刷新（见 _onArenaRoomSealed），
+     *   未启用/构建失败回退单房间（4096）时保持进场立即刷
      */
     _enterInvasionBattle(node) {
         this.state = 'combat';
@@ -1467,13 +1578,17 @@ export const DungeonMapSystem = {
         if (node.type === 'combat') {
             // 情况2：战斗节点混入特工（正常波次流程；节点完成后正常置 empty）
             this._invasionMixed = true;
-            this._enterZombieCombat(node, { roomSize: arenaSize });
-            this._spawnInvasionAgentsOnFreeEdge(AgentInvasionSystem.getAgentFactories());
+            // roomSize 仅供回退单房间路径使用（竞技场用 combatRoomConfig 的 normal/eliteSize）
+            this._enterZombieCombat(node, { roomSize: arenaSize, dungeonType: this.dungeonType });
+            // 进了竞技场（_arena 存在）则不立即刷，留到房间 3；否则保持旧行为立即刷
+            if (!CombatRoomSystem._arena) {
+                this._spawnInvasionAgentsOnFreeEdge(AgentInvasionSystem.getAgentFactories());
+            }
         } else {
             // 情况1/3：仅特工的强制战（胜利后经 _leaveCombatViaPortal 继续原事件）
             this._invasionMixed = false;
             this._zombieWaveActive = false; // 无波次
-            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: arenaSize });
+            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: arenaSize, dungeonType: this.dungeonType });
             const factories = AgentInvasionSystem.getAgentFactories();
             CombatRoomSystem.spawnMonsters(factories.length, false, factories);
             for (const m of CombatRoomSystem._combatMonsters) AgentInvasionSystem.markAsInvasion(m);
@@ -1501,6 +1616,14 @@ export const DungeonMapSystem = {
             else if (edge === 1) { x = bounds.maxX - margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
             else { x = bounds.minX + margin; y = bounds.minY + (bounds.maxY - bounds.minY) * t; }
             const agent = AgentInvasionSystem.spawnAgent(x, y, factories[i]);
+            // [SAFE-SPAWN] 防穿墙兜底：菱形房间角落附近的直角边布点可能落到墙外，
+            // 沿用 CombatRoomSystem.spawnMonsters 同款处理——落在不可走位置时螺旋外推重取
+            const r = agent.groundRadius || 20;
+            if (WallSystem && WallSystem.findSafeSpawn && !WallSystem.canMoveTo(agent.x, agent.y, r)) {
+                const safe = WallSystem.findSafeSpawn(agent.x, agent.y, r);
+                agent.x = safe.x;
+                agent.y = safe.y;
+            }
             const key = `invasion_agent_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
             Game.entities.set(key, agent);
             // 加入战斗追踪（与首波怪物同数组，完成判定含特工）；
@@ -1761,18 +1884,39 @@ export const DungeonMapSystem = {
 
         // 界面分两块：上方背景图（纯美观），下方地图选择区域（area）
         const area = this._getMapTargetArea(viewW, viewH);
+        const view = this._getMapViewRect(viewW, viewH); // 路线图显示窗口（内容限定在此）
 
         // ── 上方：背景图，裁剪在上区内 ──
         this._renderBackground(ctx, viewW, viewH, area.top);
 
-        // ── 下方：地图选择区域底块（不透明深色，盖住黑底，与上区明确分界）──
+        // ── 下方：地图选择区域底块（默认不透明深色；背景图就绪后拉伸铺满）──
         ctx.fillStyle = "#08080a";
         ctx.fillRect(area.left, area.top, area.width, area.height);
+        this._drawMapAreaBackground(ctx, area);
 
-        // ── 地图内容：裁剪在区域内，无论怎么拖/缩放都不溢出 ──
+        // D: 背景协调——半透明暗色覆盖层（上下略深）+ 左右暗角，提升节点对比、统一色调
+        const ov = ctx.createLinearGradient(0, area.top, 0, area.top + area.height);
+        ov.addColorStop(0, 'rgba(8, 8, 12, 0.52)');
+        ov.addColorStop(0.5, 'rgba(8, 8, 12, 0.34)');
+        ov.addColorStop(1, 'rgba(8, 8, 12, 0.52)');
+        ctx.fillStyle = ov;
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+        const sideW = Math.round(area.width * 0.16);
+        const gL = ctx.createLinearGradient(area.left, 0, area.left + sideW, 0);
+        gL.addColorStop(0, 'rgba(0,0,0,0.40)');
+        gL.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gL;
+        ctx.fillRect(area.left, area.top, sideW, area.height);
+        const gR = ctx.createLinearGradient(area.left + area.width, 0, area.left + area.width - sideW, 0);
+        gR.addColorStop(0, 'rgba(0,0,0,0.40)');
+        gR.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gR;
+        ctx.fillRect(area.left + area.width - sideW, area.top, sideW, area.height);
+
+        // ── 地图内容：裁剪在路线图窗口内，无论怎么拖/缩放都不溢出 ──
         ctx.save();
         ctx.beginPath();
-        ctx.rect(area.left, area.top, area.width, area.height);
+        ctx.rect(view.left, view.top, view.width, view.height);
         ctx.clip();
 
         // 应用地图变换
@@ -1780,6 +1924,7 @@ export const DungeonMapSystem = {
         ctx.scale(this.mapScale, this.mapScale);
 
         // ── 绘制边（连线）─
+        const t = this._mapAnimT || 0;
         for (const edge of this.edges) {
             const fromNode = this.nodes.find(n => n.id === edge.from);
             const toNode = this.nodes.find(n => n.id === edge.to);
@@ -1789,27 +1934,57 @@ export const DungeonMapSystem = {
             const isAvailable = this.currentNodeId === fromNode.id && availableIds.has(toNode.id);
 
             if (isVisited) {
-                ctx.strokeStyle = "#5a8a5a";
-                ctx.lineWidth = 3;
-                ctx.globalAlpha = 0.8;
+                // 已走路径：暗色粗底 + 绿色细线（路径感双层）
+                ctx.strokeStyle = 'rgba(38, 54, 38, 0.7)';
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(90, 138, 90, 0.75)';
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
             } else if (isAvailable) {
-                ctx.strokeStyle = "#9a8a5a";
-                ctx.lineWidth = 2.5;
-                ctx.globalAlpha = 0.9;
+                // 可点击路径：金色光晕底 + 流动虚线（指向下一步）
+                ctx.shadowColor = 'rgba(230, 190, 90, 0.65)';
+                ctx.shadowBlur = 10 / this.mapScale; // 屏幕恒定光晕强度（缩放时补偿）
+                ctx.strokeStyle = 'rgba(180, 150, 70, 0.20)';
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(236, 200, 115, 0.95)';
+                ctx.lineWidth = 2.4;
+                ctx.setLineDash([12 / this.mapScale, 8 / this.mapScale]);
+                ctx.lineDashOffset = -(t * 0.04) / this.mapScale;
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.lineDashOffset = 0;
             } else {
-                ctx.strokeStyle = "#2a2a2a";
-                ctx.lineWidth = 1.5;
-                ctx.globalAlpha = 0.4;
+                // 未开放/迷雾路径：暗色细虚线（保持可见但不抢眼）
+                ctx.strokeStyle = 'rgba(42, 42, 42, 0.45)';
+                ctx.lineWidth = 1.6;
+                ctx.setLineDash([6 / this.mapScale, 6 / this.mapScale]);
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
-
-            ctx.beginPath();
-            ctx.moveTo(fromNode.x, fromNode.y);
-            ctx.lineTo(toNode.x, toNode.y);
-            ctx.stroke();
-            ctx.globalAlpha = 1.0;
         }
 
         // ── 绘制节点 ──
+        const labelMeta = [];
         for (const node of this.nodes) {
             const isVisited = this.visitedNodeIds.has(node.id);
             const isCurrent = node.id === this.currentNodeId;
@@ -1862,62 +2037,195 @@ export const DungeonMapSystem = {
                 borderColor = "#ffffff";
             }
 
-            if (glow) {
-                ctx.shadowColor = borderColor;
-                ctx.shadowBlur = 16 / this.mapScale; // 缩放时调整发光强度
+            // E: 呼吸发光（可点击/当前节点，随动画时钟脉动）
+            const breathe = 0.55 + 0.45 * Math.sin(t * 0.004);
+
+            // 节点贴图（start/combat/event/empty；迷雾 unknown 与 boss/reward 走纯色圆）
+            const texKey = this.NODE_TEX[displayType] || null;
+            const texImg = texKey ? this._getNodeTexImage(texKey) : null;
+            const hasTex = !!(texKey && texImg && texImg.complete && texImg.naturalWidth > 0 && displayType !== 'unknown');
+            let tw = 0, th = 0;
+            if (hasTex) {
+                radius = this.NODE_TEX_SIZE / 2; // 特效（环/★/你）按贴图尺寸定位
+                // 只画内容包围盒（源矩形），避免整画布透明边距把图标缩得极小
+                const crop = this.NODE_TEX_CROP[texKey] || [0, 0, texImg.naturalWidth, texImg.naturalHeight];
+                const texScale = this.NODE_TEX_SIZE / Math.max(crop[2], crop[3]);
+                tw = crop[2] * texScale;
+                th = crop[3] * texScale;
+            }
+            if (isHovered && isAvailable) {
+                radius += 5;
+                borderColor = "#ffffff";
+            }
+
+            if (hasTex) {
+                // 贴图节点：直接绘制贴图（状态透明度沿用上方 globalAlpha）。
+                // 不加阴影光晕——阴影会沿贴图轮廓扩散成一大圈金色光晕（低缩放时数倍于贴图），
+                // 金色呼吸环已足够提示可点击/当前位置
+                ctx.shadowBlur = 0;
+                const crop = this.NODE_TEX_CROP[texKey] || [0, 0, texImg.naturalWidth, texImg.naturalHeight];
+                ctx.drawImage(texImg, crop[0], crop[1], crop[2], crop[3],
+                    node.x - tw / 2, node.y - th / 2, tw, th);
+                ctx.shadowBlur = 0;
             } else {
+                // 纯色圆（boss/reward/迷雾 unknown）
+                if (isAvailable && glow) {
+                    ctx.shadowColor = this.TYPE_BORDER_COLORS[node.type] || '#aaaaaa';
+                    ctx.shadowBlur = (10 + 8 * breathe) / this.mapScale;
+                } else if (isCurrent) {
+                    ctx.shadowColor = '#ffffff';
+                    ctx.shadowBlur = 12 / this.mapScale;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = isHovered ? 3 : 2;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                ctx.stroke();
                 ctx.shadowBlur = 0;
             }
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = borderColor;
-            ctx.lineWidth = isHovered ? 3 : 2;
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
             ctx.globalAlpha = 1.0;
 
-            // 节点图标
-            let icon;
-            if (!isRevealed && !isVisited && !isCurrent) {
-                icon = "?"; // 迷雾：显示问号
-            } else {
-                icon = this.TYPE_ICONS[displayType] || "•";
+            // E: 可点击节点——金色呼吸外环（提示可前进）
+            if (isAvailable) {
+                ctx.strokeStyle = `rgba(230, 195, 110, ${0.30 + 0.30 * breathe})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 2, 0, Math.PI * 2); // 贴紧贴图边缘
+                ctx.stroke();
             }
-            ctx.fillStyle = (isAvailable || isCurrent || isRevealed) ? "#ffffff" : "#555555";
-            ctx.font = `${isHovered ? 18 : 16}px "Microsoft YaHei", sans-serif`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(icon, node.x, node.y);
-
-            // 精英节点标记（遵循迷雾规则，未揭示时不显示）
+            // E: 当前节点——白色脉冲双环
+            if (isCurrent) {
+                const pulse = 0.5 + 0.5 * Math.sin(t * 0.005);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.45 + 0.35 * pulse})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 3 + 3 * pulse, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            // E: 精英节点——双层紫圈（遵循迷雾规则，未揭示时不显示）
             if (node.isElite && isRevealed) {
-                ctx.strokeStyle = "#8a3a9a";
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = "rgba(138, 58, 154, 0.45)";
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, radius + 4, 0, Math.PI * 2);
                 ctx.stroke();
-
-                ctx.fillStyle = "#d08ae0";
-                ctx.font = "bold 14px \"Microsoft YaHei\", sans-serif";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText("★", node.x, node.y - radius - 10);
+                ctx.strokeStyle = "#8a3a9a";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            // 贴图节点 hover：白色定位圈
+            if (hasTex && isHovered && isAvailable) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 3, 0, Math.PI * 2);
+                ctx.stroke();
             }
 
-            // 当前节点标记
-            if (isCurrent) {
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 12px sans-serif";
-                ctx.fillText("你", node.x, node.y + radius + 16);
+            // 收集屏幕空间标签元数据（C：图标/★/你 反缩放绘制）
+            labelMeta.push({
+                displayType, isRevealed, isAvailable, isCurrent,
+                sx: node.x * this.mapScale + this.mapOffsetX,
+                sy: node.y * this.mapScale + this.mapOffsetY,
+                radius,
+                elite: node.isElite,
+                hasTex,
+            });
+        }
+
+        // ── 时空特工入侵者节点标记（不受迷雾限制；数据每回合更新、每帧重绘即随回合移动）──
+        if (AgentInvasionSystem.triggered && AgentInvasionSystem.agentNodeId) {
+            const agentNode = this.nodes.find(n => n.id === AgentInvasionSystem.agentNodeId);
+            if (agentNode) {
+                const mk = AgentInvasionSystem.getNodeMarkerStyle();
+                // 与玩家同节点（已追上待拦截）：右移标记，避免完全遮挡"你"所在节点
+                const mx = agentNode.x + (agentNode.id === this.currentNodeId ? this.NODE_RADIUS + mk.radius + 6 : 0);
+                const my = agentNode.y;
+                const mkPulse = 0.5 + 0.5 * Math.sin(t * 0.006);
+                // 外圈呼吸描边
+                if (mk.pulse) {
+                    ctx.strokeStyle = mk.color;
+                    ctx.globalAlpha = 0.35 + 0.45 * mkPulse;
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(mx, my, mk.radius + 4 + 5 * mkPulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+                // 实心圆点 + 白色描边
+                ctx.fillStyle = mk.color;
+                ctx.beginPath();
+                ctx.arc(mx, my, mk.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(mx, my, mk.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                // 标签文字（地图坐标系内，随地图缩放）
+                if (mk.label) {
+                    ctx.font = `bold ${Math.round(mk.radius * 1.2)}px "Microsoft YaHei", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = mk.color;
+                    ctx.fillText(mk.label, mx, my - mk.radius - 10);
+                }
             }
         }
+
+        // C: 反缩放标签（图标/★/你）——恢复屏幕坐标（保持区域裁剪），字号恒定不随缩放发虚
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const m of labelMeta) {
+            const screenR = Math.max(12, m.radius * this.mapScale);
+            const iconSize = Math.max(12, Math.min(18, Math.round(screenR * 0.60)));
+            // 贴图节点自带图案，不再叠加图标；迷雾/boss/reward 仍画图标
+            if (!m.hasTex) {
+                const icon = m.isRevealed ? (this.TYPE_ICONS[m.displayType] || '•') : '?';
+                ctx.font = `${iconSize}px "Microsoft YaHei", sans-serif`;
+                ctx.fillStyle = (m.isAvailable || m.isCurrent || m.isRevealed) ? '#ffffff' : '#8a8a8a';
+                ctx.fillText(icon, m.sx, m.sy + 1);
+            }
+            if (m.elite && m.isRevealed) {
+                ctx.font = `bold ${iconSize - 1}px "Microsoft YaHei", sans-serif`;
+                ctx.fillStyle = '#d08ae0';
+                ctx.fillText('★', m.sx, m.sy - screenR - 6);
+            }
+            if (m.isCurrent) {
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('你', m.sx, m.sy + screenR + 8);
+            }
+        }
+
+        // 窗口边界纯透明淡出（不用黑色遮罩）：
+        // 抓取视图（内容+背景）到离屏 → 重铺背景 → 离屏边缘 alpha 淡出 → 贴回
+        const ovc = this._getMapViewCanvas(view.width, view.height);
+        const oc = ovc.getContext('2d');
+        oc.clearRect(0, 0, ovc.width, ovc.height);
+        oc.drawImage(ctx.canvas, view.left, view.top, view.width, view.height, 0, 0, ovc.width, ovc.height);
+        // 重铺背景（当前 clip=view，整区绘制自动裁剪到窗口内，与原背景逐像素一致）
+        ctx.fillStyle = "#08080a";
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+        this._drawMapAreaBackground(ctx, area);
+        ctx.fillStyle = ov;
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+        ctx.fillStyle = gL;
+        ctx.fillRect(area.left, area.top, sideW, area.height);
+        ctx.fillStyle = gR;
+        ctx.fillRect(area.left + area.width - sideW, area.top, sideW, area.height);
+        // 离屏边缘透明淡出后贴回
+        this._applyMapEdgeFade(oc, ovc.width, ovc.height);
+        ctx.drawImage(ovc, view.left, view.top);
 
         // 恢复原始状态（解除区域裁剪与地图变换）
         ctx.restore();

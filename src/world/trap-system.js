@@ -14,7 +14,8 @@
 import { Game } from '../game.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
-import { WallSystem } from './wall-system.js';
+import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
+import { getObstacleDefaults } from './wall-prefabs.js';
 import { pathFinder } from '../ai/pathfinder.js';
 
 /** 点到房间两条前墙边（左下 L→B / 右下 R→B）的最小距离（透视遮挡区判定用，与 obstacle-spawn-system 同规则） */
@@ -36,6 +37,7 @@ function _distToFrontEdges(bounds, pt) {
 
 const DEFAULTS = {
     count: 3,
+    lineSpacing: 30, // 房间 1/2 石柱陷阱线的相邻陷阱间距（px，屏幕水平方向）
     triggerRadius: 45,
     delayMs: 250,
     animMs: 500,
@@ -59,8 +61,10 @@ export const TrapSystem = {
      *     锚玩家会跨房寻路全灭，改锚本房内部参考点，如房心/本房门点；缺省回退 player）
      *   - exclusions：排除菱形区数组（如宝箱房 _exclusion，区内不刷）
      *   - avoidPoints：排除点数组 [{x, y, r?}]（门洞中心等，r 默认 150）
-     *   - lineFrom：直线布局锚点（房心 {x, y}）——房间 1/2 专用：
-     *     随机选锚点左/右侧，向左下（左）或右上（右）一条直线延伸到墙边，只生成一条
+     *   - lineFrom：石柱陷阱线锚点（房心 {x, y}）——房间 1/2 专用：
+     *     从房心（= 中央石柱底座中心）出发，随机选左(-x)/右(+x)一边，沿屏幕水平方向
+     *     （朝菱形左/右顶点）每 lineSpacing 放一个陷阱直到墙边；数量由距离决定，
+     *     不受 count 限制（count 只用于房间 3 及单房间的随机环带模式）
      */
     spawnForRoom(bounds, cfg, extras = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -75,13 +79,15 @@ export const TrapSystem = {
         const reachAnchor = extras.reachFrom || (player ? { x: player.x, y: player.y } : null);
         const inExclusion = (x, y) => exclusions.some(e =>
             Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
-        const valid = (x, y) => {
-            if (this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) return false;
+        const valid = (x, y, isLine = false) => {
+            // 陷阱间最小间距：仅随机环带模式；石柱陷阱线间距 lineSpacing（30）是设计如此，不放逐
+            if (!isLine && this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) return false;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
                 && !WallSystem.canMoveTo(x, y, C.triggerRadius)) return false;
             if (inExclusion(x, y)) return false;
             if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) return false;
-            if (_distToFrontEdges(bounds, { x, y }) < 180) return false;
+            // 前墙遮挡区排除：仅随机环带模式；水平陷阱线朝左/右顶点延伸到墙边，由菱形内缩边界收尾
+            if (!isLine && _distToFrontEdges(bounds, { x, y }) < 180) return false;
             if (reachAnchor && pathFinder && typeof pathFinder.findPath === 'function') {
                 const path = pathFinder.findPath(x, y, reachAnchor.x, reachAnchor.y, 15);
                 if (!path || path.length === 0) return false;
@@ -101,28 +107,26 @@ export const TrapSystem = {
             });
         };
 
-        // ===== 直线布局（房间 1/2）：锚点左/右随机一条，沿直线严格均分到墙边 =====
+        // ===== 石柱陷阱线（房间 1/2）：从房心（= 中央石柱底座中心）出发，随机选左(-x)/右(+x)
+        // 一边，沿屏幕水平方向（朝菱形左/右顶点）每 lineSpacing 放一个陷阱直到墙边 =====
         if (extras.lineFrom) {
-            const lineCount = C.count + 2; // 在基础数量上再加 2 个，提高密度
-            const pickLeft = Math.random() < 0.5;
-            const dir = pickLeft ? { x: -0.866, y: 0.5 } : { x: 0.866, y: -0.5 }; // 左下 / 右上
-            const start = { x: extras.lineFrom.x + (pickLeft ? -90 : 90), y: extras.lineFrom.y };
-            // 找直线终点：出菱形 / 进入前墙遮挡区 / 不可行走（贴墙）即停
-            let endT = 0;
-            for (let t = 0; t <= 2000; t += 20) {
-                const x = start.x + dir.x * t, y = start.y + dir.y * t;
-                if (Math.abs(x - cx) / Math.max(1, rx - 40) + Math.abs(y - cy) / Math.max(1, ry - 40) > 1) break;
-                if (_distToFrontEdges(bounds, { x, y }) < 180) break;
-                if (WallSystem.canMoveTo && !WallSystem.canMoveTo(x, y, C.triggerRadius)) break;
-                endT = t;
+            const spacing = C.lineSpacing || 30;
+            const dirX = Math.random() < 0.5 ? -1 : 1; // 随机左(-x)/右(+x)
+            // 起点外移石柱触地半径（foot.w × 编辑器预设 scale 的一半），避开中央石柱底座；
+            // 读不到几何时兜底 60（pillar foot w=231 × scale 0.505 / 2 ≈ 58）
+            let pillarR = 60;
+            const pg = ISO_WALL_GEO && ISO_WALL_GEO.pillar;
+            if (pg && pg.foot) {
+                const pdef = getObstacleDefaults().pillar || {};
+                const ps = pdef.scaleY ?? pdef.scaleX ?? 1;
+                pillarR = (pg.foot.w * ps) / 2;
             }
-            // 严格均分 lineCount 个位置；校验不过就近沿轴微调（保持均分观感）
-            for (let i = 0; i < lineCount; i++) {
-                const t = endT * (i / Math.max(1, lineCount - 1));
-                for (const dt2 of [0, 25, -25, 50, -50, 75, -75, 100, -100, 130, -130]) {
-                    const x = start.x + dir.x * (t + dt2), y = start.y + dir.y * (t + dt2);
-                    if (valid(x, y)) { place(x, y); break; }
-                }
+            // 逐点步进：无效点（石柱底座/墙碰撞被 canMoveTo 拒、压排除点）跳过继续往外，
+            // 不中断整条线；点超出可移动菱形（内缩 40 不压墙）即结束——数量由距离决定
+            for (let t = pillarR; t < 3000; t += spacing) {
+                const x = extras.lineFrom.x + dirX * t, y = extras.lineFrom.y;
+                if (Math.abs(x - cx) / Math.max(1, rx - 40) + Math.abs(y - cy) / Math.max(1, ry - 40) > 1) break;
+                if (valid(x, y, true)) place(x, y);
             }
             return;
         }

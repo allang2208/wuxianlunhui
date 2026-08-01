@@ -468,14 +468,32 @@ export const SkillManager = {
             html += `</div>`;
             html += `<div class="sd-section"><h4>技能效果</h4>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却缩减</span><span class="sd-stat-val pos">${(effect.cooldownReduction * 100).toFixed(0)}%</span></div>`;
-            // 计算击退距离和触发时间
+            // 击退距离/触发时间；攻击范围与实际判定同口径（dash-system._checkHit）
             const baseKnockback = 8; // 默认武器击退
             const knockbackDist = baseKnockback + 150 + displaySkill.level * 5;
             const triggerTime = 333 * (1 - (displaySkill.level - 1) * 0.03);
-            const baseRange = 165; // 默认武器攻击范围
-            const attackRange = baseRange + 25 + displaySkill.level * 5;
+            const curWpn = Game.player && Game.player.equipments ? Game.player.equipments[Game.player.weaponMode] : null;
+            const craftRangeDelta = (curWpn && curWpn._craftEffects && curWpn._craftEffects.rangeDelta) || 0;
+            // 扇形范围：武器攻击范围 + rangeBonusBase + 等级×rangeLevelBonus + rangeBonusFlat
+            const baseRange = (curWpn && curWpn.attack && curWpn.attack.range)
+                || (Game.player && Game.player.attacks && Game.player.attacks.melee && Game.player.attacks.melee.config && Game.player.attacks.melee.config.range)
+                || 206;
+            // 突刺判定矩形：hitCheck.length + lengthBonus + 改造距离（武器 skillOverrides 优先）
+            const rectLen = (Game.player && typeof Game.player._getSkillParam === 'function')
+                ? (Game.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength || 0)
+                    + Game.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus || 0))
+                : ((effect.hitLength || 0) + (effect.hitLengthBonus || 0));
+            const rectW = (Game.player && typeof Game.player._getSkillParam === 'function')
+                ? Game.player._getSkillParam('dashAttackThrust', 'hitCheck.width', effect.hitWidth || 0)
+                : (effect.hitWidth || 0);
             html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${knockbackDist}px</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">攻击范围</span><span class="sd-stat-val pos">${attackRange}px</span></div>`;
+            if (skill.id === 'dashAttackThrust') {
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">攻击范围（判定长度）</span><span class="sd-stat-val pos">${rectLen + craftRangeDelta}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">判定宽度</span><span class="sd-stat-val pos">${rectW}px</span></div>`;
+            } else {
+                const attackRange = baseRange + effect.rangeBonusBase + displaySkill.level * effect.rangeLevelBonus + effect.rangeBonusFlat;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">攻击范围</span><span class="sd-stat-val pos">${attackRange}px</span></div>`;
+            }
             html += `<div class="sd-stat-row"><span class="sd-stat-name">触发时间</span><span class="sd-stat-val pos">${triggerTime.toFixed(0)}ms</span></div>`;
             if (skill.id === 'dashAttackThrust') {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">判定类型</span><span class="sd-stat-val pos">矩形（持续）</span></div>`;
@@ -488,9 +506,14 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却缩减</span><span class="sd-stat-val pos">${(nextEffect.cooldownReduction * 100).toFixed(0)}%</span></div>`;
                 const nextKnockback = baseKnockback + 150 + (displaySkill.level + 1) * 5;
                 const nextTrigger = 333 * (1 - displaySkill.level * 0.03);
-                const nextRange = baseRange + 25 + (displaySkill.level + 1) * 5;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级击退距离</span><span class="sd-stat-val pos">${nextKnockback}px</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级攻击范围</span><span class="sd-stat-val pos">${nextRange}px</span></div>`;
+                if (skill.id === 'dashAttackThrust') {
+                    const nextLen = rectLen + craftRangeDelta; // 突刺长度不随等级变化（lengthBonus=0）
+                    html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级攻击范围（判定长度）</span><span class="sd-stat-val pos">${nextLen}px</span></div>`;
+                } else {
+                    const nextRange = baseRange + nextEffect.rangeBonusBase + (displaySkill.level + 1) * nextEffect.rangeLevelBonus + nextEffect.rangeBonusFlat;
+                    html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级攻击范围</span><span class="sd-stat-val pos">${nextRange}px</span></div>`;
+                }
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级触发时间</span><span class="sd-stat-val pos">${nextTrigger.toFixed(0)}ms</span></div>`;
                 if (skill.id === 'dashAttackThrust') {
                     html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级判定类型</span><span class="sd-stat-val pos">矩形（持续）</span></div>`;

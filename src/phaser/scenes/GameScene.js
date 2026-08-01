@@ -50,6 +50,7 @@ export class GameScene extends Scene {
         this._collidersSet = false;
         this._playerAttackStartTime = 0;
         this._playerAttackDuration = 667;
+        this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
         // Velocity 驱动开关（默认关闭，避免与原有移动逻辑冲突）
         // 如需手动测试，可在控制台执行：__phaserScene._useVelocityDrive = true
         this._useVelocityDrive = false;
@@ -456,7 +457,9 @@ export class GameScene extends Scene {
             const isCorpse = entity._preserveCorpse && !entity.active &&
                 (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
             if (!entity.active && !isCorpse) return;
-            if (entity._faction === 'enemy' && (!entity._phaserSprite || !entity._phaserSprite.active)) {
+            // 入侵特工（_faction === 'agent'）与敌人同口径创建精灵图——
+            // 此前仅 'enemy'，入侵特工永远拿不到 sprite，只能画成 neutral_circle 占位圆（动画全消失）
+            if ((entity._faction === 'enemy' || entity._faction === 'agent') && (!entity._phaserSprite || !entity._phaserSprite.active)) {
                 const wanted = (typeof entity._getTextureKey === 'function')
                     ? entity._getTextureKey()
                     : 'enemy_circle';
@@ -479,7 +482,7 @@ export class GameScene extends Scene {
                 applyBodyFootOffset(entity._phaserSprite, shiftY);
                 entity._phaserSprite.body.reset(syncX, syncY - shiftY);
             }
-            if (entity._faction === 'enemy') {
+            if (entity._faction === 'enemy' || entity._faction === 'agent') {
                 this._syncEnemyAnimation(entity);
             }
             // 不旋转，仅通过 flipX 控制朝向（与玩家一致）
@@ -503,8 +506,13 @@ export class GameScene extends Scene {
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
             playerNatural = this.playerSprite.y + footOffsetY + 10;
-            // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）
-            playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural);
+            // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）；
+            // frontRange = 贴图脚底→头顶高度（封顶 160）：墙前该范围内像素仍与墙重叠时也要抬升。
+            // footOffsetY 语义 = 脚底相对贴图中心的偏移（见 _getFootOffsetY），
+            // 故脚底→头顶 = footOffsetY + displayHeight/2（旧公式 displayHeight − footOffsetY
+            // 把它算成 72，只有真实高度 144 的一半——通道上侧墙"稍远离即被挡"的死带根因）
+            const playerFrontRange = Math.min(160, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
+            playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural, playerFrontRange);
             this.playerSprite.setDepth(playerCorrected);
         }
 
@@ -520,8 +528,9 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
-                // 衔接处遮挡仲裁（与玩家同口径）
-                const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10));
+                // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，封顶 160）
+                const frontRange = Math.min(160, Math.max(60, footOffsetY + sprite.displayHeight / 2));
+                const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10), frontRange);
                 sprite.setDepth(d);
             });
         }
@@ -670,7 +679,7 @@ export class GameScene extends Scene {
         if (_game.entities) {
             _game.entities.forEach(e => {
                 if (!e || !e.active || e === _game.player) return;
-                if (e._faction !== 'enemy') return;
+                if (e._faction !== 'enemy' && e._faction !== 'agent') return; // 入侵特工与敌人同口径
                 if (e._noShadow) return; // 配置跳过阴影（如矿洞，贴图自带底座）
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
@@ -1804,10 +1813,10 @@ export class GameScene extends Scene {
                             wSize.width * (pfPos.stretchX || 1),
                             wSize.height * (pfPos.stretchY || 1)
                         );
-                        // A 方案（残影实现）：帧级运动模糊——blurX/blurY 驱动沿轨迹的历史姿态残影
-                        // （高斯滤镜对细长武器是"摊薄消失"，实测峰值帧剑身近乎不可见，已废弃）
+                        // 帧级运动模糊（blurX/blurY）：真实方向性高斯（Phaser 4 Blur 滤镜，
+                        // 与开发工具 canvas blur 同效果）。残影方案已停用（实测偏弱且观感是"残影"而非模糊）
                         const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
-                        this._syncWeaponGhosts(player, wt, progress, atkCfgKey, facingRight, Math.max(bx, by));
+                        this._applyWeaponBlur(bx, by);
                         // 二段攻击 18~24 帧：角色贴图在上层、武器贴图沉到人物之下（随进度逐帧判定）
                         const fi = Math.round(progress * (perFrameCfg.frames.length - 1));
                         const weaponUnder = atkCfgKey === 'attack2' && fi >= 18 && fi <= 24;
@@ -2665,6 +2674,50 @@ export class GameScene extends Scene {
         if (this._weaponGhosts) {
             for (const g of this._weaponGhosts) g.setVisible(false);
         }
+        // 非攻击/冲刺轨迹帧：关闭武器模糊（strength=0 → 无采样偏移，等同原图）
+        if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
+    }
+
+    // ==================== 武器真实模糊（Phaser 4 Blur 滤镜，路线 A） ====================
+    // 用 Phaser 内置高斯模糊滤镜（WebGL）复刻开发工具 canvas blur 的效果：
+    // 各向同性（x=y=1），强度按 CSS blur(max/2 px) 标定——
+    // quality2（7-tap 核）单遍轴向 σ ≈ 1.947×strength，steps=2（H/V 各 2 遍）后 σ ≈ 2.754×strength；
+    // 目标 σ = max/2（CSS blur(r) 的标准差 = r），故 strength ≈ max×0.18（峰值 max=12 → σ≈6px）。
+    _ensureWeaponBlur() {
+        if (this._weaponBlurFilter) return this._weaponBlurFilter;
+        if (!this.weaponSprite) return null;
+        try {
+            if (!this.weaponSprite.filters && typeof this.weaponSprite.enableFilters === 'function') {
+                this.weaponSprite.enableFilters();
+            }
+            if (this.weaponSprite.filters && this.weaponSprite.filters.internal && this.weaponSprite.filters.internal.addBlur) {
+                const f = this.weaponSprite.filters.internal.addBlur(2, 1, 1, 0, 0xffffff, 2);
+                // 自动按模糊半径扩边：细长武器边缘不会被裁掉
+                if (typeof f.setPaddingOverride === 'function') f.setPaddingOverride(null);
+                this._weaponBlurFilter = f;
+            }
+        } catch (e) {
+            console.warn('[GameScene] weapon blur filter unavailable:', e);
+            this._weaponBlurFilter = null;
+        }
+        return this._weaponBlurFilter;
+    }
+
+    /**
+     * 按逐帧 blurX/blurY 更新武器模糊（与开发工具同款：各向同性，半径 = max/2 px）。
+     * 弱于阈值直接归零；实时改滤镜 strength，无需切换贴图。
+     */
+    _applyWeaponBlur(bx, by) {
+        const m = Math.max(Math.abs(bx || 0), Math.abs(by || 0));
+        if (m < 1.5) {
+            if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
+            return;
+        }
+        const f = this._ensureWeaponBlur();
+        if (!f) return;
+        f.x = 1;
+        f.y = 1; // 各向同性（与开发工具 canvas blur 一致）
+        f.strength = m * 1.6; // 强度系数（0.8→1.6 再翻倍，峰值 σ≈52px）：想整体加/减模糊改这里
     }
 
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
@@ -2697,9 +2750,13 @@ export class GameScene extends Scene {
                     wSize.width * (pfPos.stretchX || 1),
                     wSize.height * (pfPos.stretchY || 1)
                 );
-                // 帧级运动模糊（残影实现，与攻击分支同管线）
+                // 帧级运动模糊：仅在冲刺位移期间生效；末帧定格停顿（_dashRecoverAt）恢复原贴图不模糊
                 const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
-                this._syncWeaponGhosts(player, wt, progress, 'dash', facingRight, Math.max(bx, by));
+                if (player._isDashing) {
+                    this._applyWeaponBlur(bx, by);
+                } else {
+                    if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
+                }
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
                 return;
             }
@@ -4114,7 +4171,7 @@ export class GameScene extends Scene {
                     const bossColor = this._parseColor(styles.boss || '#ff0000', 0xff0000, 1);
                     g.fillStyle(bossColor.color, bossColor.alpha);
                     g.fillCircle(ex, ey, (sizes.enemy || 1.5) * 2);
-                } else if (e._faction === 'enemy') {
+                } else if (e._faction === 'enemy' || e._faction === 'agent') { // 入侵特工同敌人红点
                     const enemyColor = this._parseColor(styles.enemy || '#ff4444', 0xff4444, 1);
                     g.fillStyle(enemyColor.color, enemyColor.alpha);
                     g.fillCircle(ex, ey, sizes.enemy || 1.5);

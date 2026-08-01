@@ -1,30 +1,52 @@
 /**
- * 战斗房墙面火把生成系统（2026-08-01 规则重写：预制件锚定贴墙）
+ * 僵尸地牢障碍物生成系统（2026-08-01 规则 v3：石柱/预制组合/通道火把；房间墙面火把整组删除）
  *
- * 旧障碍物规则（石柱/储物区/墙饰/骨堆）已全部删除，重新构思中；
- * 当前只保留墙面火把一组（data/dungeon-config.json combatRoom.obstacles.wallTorches，
- * 支持地牢级覆盖/关闭）：
- * - 贴墙规则：直接套摆墙编辑器预制件「火把墙」（data/wall-prefabs.json）的相对关系——
- *   运行时从预制件提取每个火把相对墙件底边线的锚定数据 (t, d, depthDelta)，
- *   再锚到房间真实墙件的底边线上放置（用户改预制件自动生效；缺失/异常回退硬编码常量）；
- * - scale 走 obstacle-defaults.json 编辑器预设、无 rotation/flip、depthManual 贴墙深度；
- * - 火把全局无碰撞体积（ISO_WALL_GEO.torch 已无 foot，rebuildIsoCollision 不推导碰撞），
- *   这里只放渲染 piece（WallSystem.isoVisuals），清理随战斗房恢复/重建自动消失。
+ * 仅僵尸地牢大类（zombie/zombieBeginner/zombieMid）生成障碍物；沼泽等非僵尸门类
+ * spawnForRoom/spawnForPassages 直接返回 0。
+ * 配置：data/dungeon-config.json combatRoom.obstacles（支持地牢级覆盖/关闭）。
  *
- * 约束：只贴直墙段（转角/门件跳过），放置点避开门/通道门 approach、玩家出生点，
- * 且垂距不得把火把推出房间菱形外。
+ * 三组规则：
+ * 1) 中央石柱（_spawnCenterPillar）：仅竞技场房间 1/2 的可移动菱形地面正中一根
+ *    （房间 3 是宝箱房；Boss/入侵情况1/3 单房间不传 roomIndex，不走这条），
+ *    scale 走 obstacle-defaults.json 编辑器预设。
+ * 2) 后墙预制组合（_spawnPrefabCompositions）：只贴左上（LT）/右上（RT）后墙附近，
+ *    左下/右下前墙一侧不放；每次从预制库「火把墙」之后的组合随机抽一组整体平移
+ *    （相对布局/scale/rotation/flip 保留）。depth 逐件重算 = max(obstacleDepthOf,
+ *    400px 内最近墙件 depth + 0.1) 并打 depthManual——静态件不走实体
+ *    junctionCorrectedDepth 仲裁，不抬深度会被 flat depth 更深的后墙后画盖住
+ *    （贴后墙的小件本来就该画在墙前/房内一侧，抬到墙上是正确语义）。
+ *    数量按房间配置 countByRoom（房间 1/2 各 3 组、房间 3 八组，
+ *    无 roomIndex 的单房间路径按房间 1 取值）；烛台不再单独生成
+ *    （「烛台+铁链」等含烛台的预制组合仍在池内可抽中）。
+ * 3) 通道火把（_spawnPassageTorches）：竞技场每条通道右手侧墙按固定间隔均布，
+ *    贴墙锚定复用预制件「火把墙」（data/wall-prefabs.json）的 (t, d, depthDelta)
+ *    机制——运行时从预制件提取每个火把相对墙件底边线的锚定数据（用户改预制件自动
+ *    生效；缺失/异常回退硬编码常量）；无碰撞、持续火焰粒子（提灯矿工落地焰同款）。
+ *
+ * 障碍物碰撞：piece 进 WallSystem.isoVisuals 后由调用方 rebuildIsoCollision()
+ * 按 foot 自动推导；清理随战斗房恢复/重建自动消失。
+ * 地面阴影：每个有 foot 碰撞的障碍物件（预制组合各件 + 中央石柱）放椭圆阴影
+ * （entity_shadow，footprint 与 _addPieceCollision 同口径，alpha 0.35），
+ * 登记进 CombatRoomSystem._decoSprites 随 cleanupRoom → cleanupGate 销毁
+ * （通道火把无碰撞不放阴影；火把火焰按用户要求不清理，阴影必须清）。
  */
 import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getObstacleDefaults, getWallPrefabLibrary } from './wall-prefabs.js';
 
-// 默认配置（JSON 未配置时兜底；正常走 combatRoom.obstacles.wallTorches）
+// 默认配置（JSON 未配置时兜底；正常走 combatRoom.obstacles.*）
 const DEFAULT_OBSTACLES = {
-    wallTorches: { count: [1, 2], ring: [0.80, 0.92], targetH: 160 },
+    prefabCompositions: { countByRoom: { 1: 3, 2: 3, 3: 8 }, wallDist: [50, 130], targetH: 180 },
+    centerPillar: { targetH: 180 },
+    passageTorches: { interval: 350 },
 };
 
+// 僵尸地牢大类（障碍物生成仅限此类）：dungeon-map-system._isZombieFamily 含 swamp，
+// 但障碍物规则明确不含沼泽——非僵尸门类 spawnForRoom/spawnForPassages 直接返回 0
+const ZOMBIE_OBSTACLE_FAMILY = ['zombie', 'zombieBeginner', 'zombieMid'];
+
 const AVOID_GATE = 220;       // 门/通道门 approach 排除半径（avoidPoints 未带 r 时的默认）
-const TORCH_MIN_GAP = 80;     // 同一房间两个火把间的最小间距（防抽中同墙同锚点重叠）
 
 // 预制件「火把墙」锚定数据兜底常量（2026-08-01 从 data/wall-prefabs.json 实测计算：
 // 墙件 wall_straight 底边线（face 变换到世界）为基准，t=投影参数、d=垂直距离、
@@ -38,105 +60,314 @@ const TORCH_PREFAB_WALL_SCALE_Y = 0.31450893; // 预制件墙件 scaleY（垂距
 
 export const ObstacleSpawnSystem = {
     /**
-     * 在单个战斗房间内生成墙面火把（贴墙、无碰撞）
+     * 在单个战斗房间内生成障碍物（中央石柱 + 后墙预制组合；墙面火把已整组删除，只保留通道火把）
      * @param {Object} bounds 房间 bounds（菱形：{cx, cy, rx, ry, diamond:true}）
      * @param {Object} [opts]
-     * @param {string} [opts.dungeonType] 地牢类型（读地牢级 combatRoom.obstacles 覆盖）
+     * @param {string} [opts.dungeonType] 地牢类型（僵尸门类判定 + 读地牢级 combatRoom.obstacles 覆盖）
+     * @param {number} [opts.roomIndex] 竞技场房间号（1/2/3；仅 1/2 生成中央石柱，单房间路径不传）
      * @param {Array}  [opts.avoidPoints] 排除点 [{x, y, r?}]（门中心/玩家出生点）
      * @returns {number} 实际放置总数
      */
     spawnForRoom(bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         if (!scene || !bounds || !bounds.diamond) return 0;
+        // 仅僵尸地牢大类生成障碍物（沼泽等非僵尸门类整组关闭）
+        if (!ZOMBIE_OBSTACLE_FAMILY.includes(opts.dungeonType)) return 0;
         const crCfg = DungeonConfig.getCombatRoomConfig(opts.dungeonType);
         const cfg = crCfg.obstacles === false ? null : (crCfg.obstacles || DEFAULT_OBSTACLES);
-        if (!cfg || !cfg.wallTorches) return 0;
+        if (!cfg) return 0;
 
         const ctx = {
             scene, bounds,
+            roomIndex: opts.roomIndex || 0, // 预制组合数量按房间取 countByRoom（0 = 单房间路径，按房间 1）
             avoid: (opts.avoidPoints || []).map(p => ({ x: p.x, y: p.y, r: p.r ?? AVOID_GATE })),
             total: 0,
         };
 
-        this._spawnWallTorches(cfg.wallTorches, ctx);
+        // 中央石柱：仅竞技场房间 1/2（房间 3 是宝箱房；Boss/入侵情况1/3 单房间不传 roomIndex）
+        if ((opts.roomIndex === 1 || opts.roomIndex === 2) && cfg.centerPillar !== false) {
+            this._spawnCenterPillar(cfg.centerPillar || {}, ctx);
+        }
+        if (cfg.prefabCompositions) this._spawnPrefabCompositions(cfg.prefabCompositions, ctx);
         return ctx.total;
     },
 
     /**
-     * 墙面火把：按预制件「火把墙」的锚定关系贴到房间真实墙件上（带持续火焰粒子，
-     * 提灯矿工落地焰同款参数）。每个火把随机抽一个候选直墙 + 随机抽预制件里的一个
-     * 锚定条目 (t, d, depthDelta)：位置 = 墙底边线 t 点 + 朝房间中心一侧垂线 × d
-     * （垂距按墙件 scaleY 与预制件墙 scaleY 的比值折算），depth = 墙 depth + depthDelta。
-     * 无碰撞体积，只放渲染 piece（isoVisuals），depthManual 贴墙深度
-     * （直墙 depth=底边 max y，火把底边锚点必低于墙面底边 → 不抬 depth 永远被墙盖住）。
-     * 找不到候选墙 = 该房间不放火把（不报错）。
+     * 房间中央石柱：可移动菱形地面正中一根（仅竞技场房间 1/2 调用）。
+     * scale 走 obstacle-defaults.json 编辑器预设（与摆墙编辑器拖出的一致，targetH 仅兜底）；
+     * depth 锚地面线（obstacleDepthOf，场地中间不存在被墙盖的问题，不做贴墙抬升），
+     * foot 碰撞由 rebuildIsoCollision 自动推导；带椭圆地面阴影（_placeObstacle）。
      */
-    _spawnWallTorches(cfg, ctx) {
+    _spawnCenterPillar(cfg, ctx) {
+        const g = ISO_WALL_GEO.pillar;
+        if (!g || !ctx.scene.textures.exists(g.tex)) return;
+        const scale = _scaleFor('pillar', g, cfg.targetH || 180);
+        // 锚点 = 贴图中心（_placeIsoPiece origin 0.5）：y 要向上抬半高，
+        // 让石柱**底座**立在菱形中心（贴图中心放中心 = 底座沉到中心下方 ~161px，视觉偏南）
+        const piece = {
+            tex: g.tex,
+            x: ctx.bounds.cx, y: ctx.bounds.cy - (g.h * scale) / 2,
+            scaleX: scale, scaleY: scale,
+            rotation: 0, flipX: false, flipY: false,
+        };
+        piece.depth = WallSystem.obstacleDepthOf(piece);
+        this._placeObstacle(ctx, piece);
+    },
+
+    /**
+     * 后墙预制组合障碍物（只贴左上 LT / 右上 RT 后墙附近，左下/右下前墙一侧不放）：
+     * 每个槽位从预制库「火把墙」之后的组合里随机抽一组，以预制 cx/cy 为基准整体平移
+     * （组合内相对布局、各件 scale/rotation/flip 保留；prefab 里的旧 depth 是主神空间
+     * 坐标不可用，逐件重算 = max(obstacleDepthOf, 400px 内最近墙件 depth + 0.1)，
+     * depthManual 一律打上——静态件不走实体 junctionCorrectedDepth 仲裁，不抬深度
+     * 会被 flat depth 更深的后墙后画盖住）。
+     * 烛台不单独生成（2026-08-01 v3：candleChance 分支已删；「烛台+铁链」等含烛台的
+     * 预制组合仍在池内可抽中）。
+     * 数量按房间配置 countByRoom（房间 1/2 各 3 组、房间 3 八组——房间 3 中央是宝箱房，
+     * 8 组只贴后墙；尝试上限内放不满就放实际数量，不报错）；无 roomIndex 的单房间
+     * 路径按房间 1 取值。
+     * 选点：随机选一条后墙边 → 沿线随机点（两端各留 15%）→ 朝房心法线方向取
+     * wallDist 距离为组合锚点。
+     * 整组校验：逐件中心在菱形可移动范围内（内缩 40+触地半径——不压墙线/不出界，
+     * wallDist 上限保证不靠场地中间）、不撞 avoidPoints（门/通道口/玩家出生点）；
+     * 任一件失败整组重抽。
+     */
+    _spawnPrefabCompositions(cfg, ctx) {
+        const pool = _prefabCompositionPool();
+        if (!pool.length) return;
+        const lib = getWallPrefabLibrary();
+        // 数量按房间：countByRoom["1"/"2"/"3"]；单房间路径（roomIndex 0）按房间 1
+        const byRoom = cfg.countByRoom || null;
+        const count = byRoom
+            ? (byRoom[String(ctx.roomIndex || 1)] ?? byRoom['1'] ?? 3)
+            : 3;
+        const dist = Array.isArray(cfg.wallDist) ? cfg.wallDist : [50, 130];
+
+        let placed = 0, tries = 0;
+        while (placed < count && tries < 60) {
+            tries++;
+            // 组合件清单：相对锚点的偏移 + 各件变换（预制组合原样保留）
+            const pf = lib[pool[Math.floor(Math.random() * pool.length)]];
+            // 基准点 cx/cy（结构约定见 wall-prefabs.js；缺失时回退各件中心，双保险）
+            let bx = pf.cx, by = pf.cy;
+            if (bx == null || by == null) {
+                bx = pf.pieces.reduce((sum, q) => sum + q.x, 0) / pf.pieces.length;
+                by = pf.pieces.reduce((sum, q) => sum + q.y, 0) / pf.pieces.length;
+            }
+            const items = pf.pieces.map(q => ({
+                tex: q.tex, dx: q.x - bx, dy: q.y - by,
+                scaleX: q.scaleX ?? 1, scaleY: q.scaleY ?? q.scaleX ?? 1,
+                rotation: q.rotation || 0, flipX: !!q.flipX, flipY: !!q.flipY,
+            }));
+            const anchor = _rollBackWallAnchor(ctx.bounds, dist);
+            // 整组校验（逐件：菱形可移动范围内 + 不压排除点），失败整组重抽
+            const staged = [];
+            let ok = true;
+            for (const it of items) {
+                const pt = { x: anchor.x + it.dx, y: anchor.y + it.dy };
+                const rad = _groundRadius(it.tex, it.scaleX, it.scaleY);
+                if (!_insideDiamond(ctx.bounds, pt, 40 + rad)) { ok = false; break; }
+                if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r + rad)) { ok = false; break; }
+                staged.push({ it, pt });
+            }
+            if (!ok) continue;
+            for (const { it, pt } of staged) {
+                const piece = {
+                    tex: it.tex, x: pt.x, y: pt.y,
+                    scaleX: it.scaleX, scaleY: it.scaleY,
+                    rotation: it.rotation, flipX: it.flipX, flipY: it.flipY,
+                };
+                // prefab 旧 depth 不可用，逐件重算；并抬到附近墙件之上（静态件不走实体
+                // junctionCorrectedDepth 仲裁，不抬会被 flat depth 更深的后墙后画盖住）
+                piece.depth = _liftDepthAboveWalls(piece, WallSystem.obstacleDepthOf(piece));
+                piece.depthManual = true; // 手调深度：_placeIsoPiece 渲染尊重 p.depth
+                this._placeObstacle(ctx, piece);
+            }
+            placed++;
+        }
+    },
+
+    /**
+     * 障碍物件统一放置：推 isoVisuals（碰撞由调用方 rebuildIsoCollision 推导）+ 椭圆地面阴影
+     */
+    _placeObstacle(ctx, piece) {
+        WallSystem.isoVisuals.push(piece);
+        ctx.total++;
+        this._addObstacleShadow(ctx, piece);
+    },
+
+    /**
+     * 障碍物椭圆地面阴影（匹配碰撞体积）：
+     * - 贴图 entity_shadow（GameScene._syncEntityShadows 同款；缺失时尝试
+     *   scene._ensureShadowTexture() 现生成，仍缺则跳过不报错）；
+     * - 位置/尺寸与 WallSystem._addPieceCollision 的 footprint 推导同口径：
+     *   中心 cx = p.x + foot.offsetX×sx、cy = bottomY − foot.d×sy/2
+     *   （bottomY = p.y + geo.h×sy/2 + foot.offsetY×sy）；旋转件按 |cos|/|sin|
+     *   展开 AABB 取阴影尺寸，阴影本身不旋转（椭圆近似）；
+     * - displaySize(fw, fd × PERSPECTIVE_SCALE_Y)（与 GameScene 实体阴影同口径），
+     *   alpha 0.35（与实体阴影一致），depth = 件 depth − 0.05（障碍物之下、地板之上）；
+     * - 生命周期：登记进 CombatRoomSystem._decoSprites——cleanupRoom → cleanupGate
+     *   统一销毁（window.CombatRoomSystem 晚绑定，避免与 combat-room-system 循环导入；
+     *   拿不到 CRS 时阴影会多活一会儿，场景切换仍会随场景销毁，可接受）。
+     */
+    _addObstacleShadow(ctx, piece) {
+        const scene = ctx.scene;
+        const g = WallSystem._geoForTex(piece.tex);
+        if (!g || g.category !== 'obstacle' || !g.foot) return; // 无碰撞体积（如火把）不放阴影
+        if (!scene.textures.exists('entity_shadow') && typeof scene._ensureShadowTexture === 'function') {
+            scene._ensureShadowTexture();
+        }
+        if (!scene.textures.exists('entity_shadow')) return; // 贴图缺失跳过，不报错
+        const sx = Math.abs(piece.scaleX ?? 1), sy = Math.abs(piece.scaleY ?? piece.scaleX ?? 1);
+        const fw = g.foot.w * sx, fd = g.foot.d * sy;
+        if (!(fw > 0) || !(fd > 0)) return;
+        const offX = (g.foot.offsetX || 0) * sx, offY = (g.foot.offsetY || 0) * sy;
+        const bottomY = piece.y + (g.h * sy) / 2 + offY;
+        // 旋转：footprint 随 p.rotation 旋转，阴影尺寸取旋转后 AABB（同 _addPieceCollision）
+        const rot = piece.rotation || 0;
+        let hw = fw / 2, hd = fd / 2;
+        if (rot) {
+            const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
+            const nw = hw * c + hd * s;
+            hd = hw * s + hd * c;
+            hw = nw;
+        }
+        const sp = scene.add.sprite(piece.x + offX, bottomY - fd / 2, 'entity_shadow');
+        sp.setOrigin(0.5, 0.5);
+        sp.setDisplaySize(hw * 2, hd * 2 * PERSPECTIVE_SCALE_Y);
+        sp.setAlpha(0.35);
+        sp.setDepth((piece.depth ?? WallSystem.obstacleDepthOf(piece)) - 0.05);
+        sp.addToUpdateList();
+        const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
+        if (CRS) (CRS._decoSprites = CRS._decoSprites || []).push(sp);
+    },
+
+    /**
+     * 竞技场通道火把（仅僵尸地牢大类；enterCombatArena 建完通道后调用）：
+     * 每条通道的右手侧墙（沿房间 N→N+1 前进方向的右手侧）按固定间隔均布火把，
+     * 贴墙锚定复用预制件「火把墙」的 (t, d, depthDelta) 机制（t 按间隔均匀分布），
+     * 无碰撞、持续火焰粒子（提灯矿工落地焰同款）。
+     * @param {Array} passages 通道记录 [{mid1, mid2, center, gates}]（combat-room-system passageRecs）
+     * @param {Object} [opts]
+     * @param {string} [opts.dungeonType] 地牢类型（僵尸门类判定 + 读地牢级覆盖）
+     * @returns {number} 实际放置总数
+     */
+    spawnForPassages(passages, opts = {}) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (!scene || !Array.isArray(passages) || !passages.length) return 0;
+        if (!ZOMBIE_OBSTACLE_FAMILY.includes(opts.dungeonType)) return 0;
+        const crCfg = DungeonConfig.getCombatRoomConfig(opts.dungeonType);
+        const cfg = crCfg.obstacles === false ? null : (crCfg.obstacles || DEFAULT_OBSTACLES);
+        if (!cfg || !cfg.passageTorches) return 0;
+        const ctx = { scene, total: 0 };
+        for (const p of passages) this._spawnPassageTorches(p, cfg.passageTorches, ctx);
+        return ctx.total;
+    },
+
+    /**
+     * 单条通道右手侧墙均布火把：
+     * 右手侧 = 通道轴（mid1→mid2，房 N→N+1 前进方向）的法线 (axis.y, -axis.x) 一侧。
+     * 注意（2026-08-01 用户实测修正）：↘ 前进方向（房 N→N+1）的右手侧 = 东北侧墙——
+     * 曾用法线 (-axis.y, axis.x)（数学上面向 ↘ 时的右手侧 = 西南侧），实测火把生成在
+     * 玩家体感左边墙上，故翻转为 (axis.y, -axis.x)；墙带判定侧随 right 一起翻转，
+     * 火把垂距仍取指向通道中心的法向（贴墙内侧，换侧后自动跟着翻转）。
+     * 侧墙件从 isoVisuals 实时收集（预制侧墙 + 封口补瓦同口径：单段直墙、平行通道轴、
+     * 在右手侧墙带内、投影落在通道跨度内）；火把锚点沿整墙跨度按 interval 均布
+     * （首尾各退半间隔），逐点找覆盖该投影位置的墙件锚定，垂距朝通道中心一侧。
+     */
+    _spawnPassageTorches(passage, cfg, ctx) {
         const g = ISO_WALL_GEO.torch;
         if (!g || !ctx.scene.textures.exists(g.tex)) return;
         // 预制件锚定数据（运行时提取；缺失/异常回退兜底常量）
         const extracted = _extractTorchAnchors();
         const anchors = extracted ? extracted.anchors : TORCH_ANCHOR_FALLBACK;
         const prefabWallScaleY = extracted ? extracted.wallScaleY : TORCH_PREFAB_WALL_SCALE_Y;
-        // 候选墙：非 obstacle、非门/gate、单段直墙、锚点在菱形内、不撞排除点
-        const candidates = _candidateWalls(ctx);
-        if (!candidates.length) return;
-
-        const count = _rollCount(cfg.count);
+        const interval = cfg.interval || 350;
+        // 通道轴（房 N→N+1 前进方向）与右手侧法线（实测：↘ 前进右手侧 = 东北侧墙）
+        const ax = passage.mid2.x - passage.mid1.x, ay = passage.mid2.y - passage.mid1.y;
+        const alen = Math.hypot(ax, ay) || 1;
+        const axis = { x: ax / alen, y: ay / alen };
+        const right = { x: axis.y, y: -axis.x };
+        // 收集右手侧墙件：单段直墙、平行通道轴、墙带 40~420px（实测约 170~210）、
+        // 投影在通道跨度 ±100 内（不过滤跨度会把房间平行墙并入）
+        const walls = [];
+        for (const q of WallSystem.isoVisuals) {
+            const gq = WallSystem._geoForTex(q.tex);
+            if (!gq || gq.category === 'obstacle') continue;
+            if (gq.states || gq.gateX || gq.openDoor) continue; // 门/gate 不贴
+            const segs = WallSystem._pieceBaseSegments(q);
+            if (segs.length !== 1) continue; // 只贴单段直墙
+            const [A, B] = segs[0];
+            const dx = B.x - A.x, dy = B.y - A.y;
+            const len = Math.hypot(dx, dy);
+            if (len < 10 || Math.abs(dx * axis.x + dy * axis.y) / len < 0.95) continue;
+            const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+            const side = (mx - passage.center.x) * right.x + (my - passage.center.y) * right.y;
+            if (side < 40 || side > 420) continue;
+            const s1 = (A.x - passage.mid1.x) * axis.x + (A.y - passage.mid1.y) * axis.y;
+            const s2 = (B.x - passage.mid1.x) * axis.x + (B.y - passage.mid1.y) * axis.y;
+            const lo = Math.min(s1, s2), hi = Math.max(s1, s2);
+            if (hi < -100 || lo > alen + 100) continue;
+            walls.push({ piece: q, A, B, lo, hi });
+        }
+        if (!walls.length) return;
+        const spanLo = Math.min(...walls.map(w => w.lo));
+        const spanHi = Math.max(...walls.map(w => w.hi));
         const scale = _scaleFor('torch', g, cfg.targetH);
-        const placedPts = [];
-        let placed = 0, tries = 0;
-        while (placed < count && tries < 80) {
-            tries++;
-            const cand = candidates[Math.floor(Math.random() * candidates.length)];
-            const anchor = anchors[Math.floor(Math.random() * anchors.length)];
-            const q = cand.piece;
-            const [A, B] = cand.seg;
+        // 固定间隔均布：锚点投影 s 沿整墙跨度每 interval 一个（首尾各退半间隔）
+        for (let s = spanLo + interval / 2; s <= spanHi - interval / 2 + 1; s += interval) {
+            const w = walls.find(v => s >= v.lo - 1 && s <= v.hi + 1);
+            if (!w) continue;
+            const { A, B, piece: q } = w;
             const dx = B.x - A.x, dy = B.y - A.y;
             const len = Math.hypot(dx, dy) || 1;
-            // 墙底边线 t 点 + 朝房间中心一侧的单位垂线 × d（两个法向里取指向房心的那个）
-            const mx = A.x + dx * anchor.t, my = A.y + dy * anchor.t;
+            // 投影位置 s → 墙底边线上的锚点（t 按间隔均匀分布）
+            const px = passage.mid1.x + axis.x * s, py = passage.mid1.y + axis.y * s;
+            let t = ((px - A.x) * dx + (py - A.y) * dy) / (len * len);
+            t = Math.max(0, Math.min(1, t));
+            const mx = A.x + dx * t, my = A.y + dy * t;
+            // 垂距：朝通道中心一侧（两个法向里取指向通道中心的那个），按墙件 scaleY 折算
+            const anchor = anchors[Math.floor(Math.random() * anchors.length)];
             let nx = -dy / len, ny = dx / len;
-            if ((ctx.bounds.cx - mx) * nx + (ctx.bounds.cy - my) * ny < 0) { nx = -nx; ny = -ny; }
+            if ((passage.center.x - mx) * nx + (passage.center.y - my) * ny < 0) { nx = -nx; ny = -ny; }
             const d = anchor.d * ((q.scaleY ?? q.scaleX ?? 1) / prefabWallScaleY);
             const pt = { x: mx + nx * d, y: my + ny * d };
-            // 校验：垂距不得推出房外/压到门，火把间最小间距（同墙抽中多次允许）
-            if (!_insideDiamond(ctx.bounds, pt, 40)) continue;
-            if (ctx.avoid.some(a => Math.hypot(pt.x - a.x, pt.y - a.y) < a.r)) continue;
-            if (placedPts.some(p => Math.hypot(pt.x - p.x, pt.y - p.y) < TORCH_MIN_GAP)) continue;
-            // 渲染 piece（预制件「火把墙」同款参数：无 rotation/flip、depthManual 贴墙深度）
             const torchDepth = (q.depth ?? q.y) + anchor.depthDelta;
-            WallSystem.isoVisuals.push({
-                tex: g.tex,
-                x: pt.x, y: pt.y,
-                scaleX: scale, scaleY: scale,
-                flipX: false, flipY: false,
-                depth: torchDepth,
-                depthManual: true, // 手调深度：_placeIsoPiece 渲染尊重 p.depth
+            this._placeTorch(ctx, g, pt, scale, torchDepth);
+        }
+    },
+
+    /**
+     * 放一个火把渲染 piece + 持续火焰粒子（通道火把用）：
+     * 无 rotation/flip、depthManual 贴墙深度、提灯矿工落地焰三色 ADD 上飘、不登记清理列表
+     */
+    _placeTorch(ctx, g, pt, scale, torchDepth) {
+        WallSystem.isoVisuals.push({
+            tex: g.tex,
+            x: pt.x, y: pt.y,
+            scaleX: scale, scaleY: scale,
+            flipX: false, flipY: false,
+            depth: torchDepth,
+            depthManual: true, // 手调深度：_placeIsoPiece 渲染尊重 p.depth
+        });
+        ctx.total++;
+        const scene = ctx.scene;
+        if (!scene.textures.exists('impact_dot') && typeof scene._ensureImpactDotTexture === 'function') {
+            scene._ensureImpactDotTexture();
+        }
+        if (scene.textures.exists('impact_dot')) {
+            const em = scene.add.particles(pt.x - 3, pt.y - (g.h * scale) * 0.88 + 2, 'impact_dot', {
+                frequency: 60,
+                speedY: { min: -50, max: -110 },
+                speedX: { min: -10, max: 10 },
+                scale: { start: 2.4, end: 0.3 },
+                alpha: { start: 0.9, end: 0 },
+                lifespan: 600,
+                tint: [0xffffff, 0xffcc55, 0xff8833],
+                blendMode: 'ADD',
             });
-            ctx.total++;
-            // 持续火焰（提灯矿工落地焰同款：impact_dot + 白/橙/黄三色 ADD 上飘）
-            // 不登记进清理列表——按用户要求火焰不随战斗房清理销毁
-            const scene = ctx.scene;
-            if (!scene.textures.exists('impact_dot') && typeof scene._ensureImpactDotTexture === 'function') {
-                scene._ensureImpactDotTexture();
-            }
-            if (scene.textures.exists('impact_dot')) {
-                const em = scene.add.particles(pt.x, pt.y - (g.h * scale) * 0.88, 'impact_dot', {
-                    frequency: 60,
-                    speedY: { min: -50, max: -110 },
-                    speedX: { min: -10, max: 10 },
-                    scale: { start: 2.4, end: 0.3 },
-                    alpha: { start: 0.9, end: 0 },
-                    lifespan: 600,
-                    tint: [0xffffff, 0xffcc55, 0xff8833],
-                    blendMode: 'ADD',
-                });
-                em.setDepth(torchDepth + 1);
-                em.addToUpdateList();
-            }
-            placedPts.push(pt);
-            placed++;
+            em.setDepth(torchDepth + 1);
+            em.addToUpdateList();
         }
     },
 };
@@ -176,39 +407,12 @@ function _extractTorchAnchors() {
 }
 
 /**
- * 候选墙：isoVisuals 中非 obstacle、非门/gate（states/gateX/openDoor 标记）、
- * 底边为单段直墙（_pieceBaseSegments 对障碍物返回空、对 openDoor 门返回两段墙身、
- * 对转角返回两臂两段——都只贴返回"单段"的直墙件）、锚点在房间菱形内、不撞排除点
- */
-function _candidateWalls(ctx) {
-    const out = [];
-    for (const q of WallSystem.isoVisuals) {
-        const gq = WallSystem._geoForTex(q.tex);
-        if (!gq || gq.category === 'obstacle') continue;
-        if (gq.states || gq.gateX || gq.openDoor) continue; // 门/gate 不贴
-        const segs = WallSystem._pieceBaseSegments(q);
-        if (segs.length !== 1) continue; // 只贴单段直墙
-        if (!_insideDiamond(ctx.bounds, q, 40)) continue;
-        if (ctx.avoid.some(a => Math.hypot(q.x - a.x, q.y - a.y) < a.r)) continue;
-        out.push({ piece: q, seg: segs[0] });
-    }
-    return out;
-}
-
-/**
  * 菱形房内包含校验（内缩 inset）：canMoveTo 在房间外黑域也返回 true
- * （墙外没有碰撞体），不做包含校验火把会刷到房间外（线上教训）
+ * （墙外没有碰撞体），不做包含校验障碍物会刷到房间外（线上教训）
  */
 function _insideDiamond(bounds, pt, inset = 30) {
     return Math.abs(pt.x - bounds.cx) / Math.max(1, bounds.rx - inset)
          + Math.abs(pt.y - bounds.cy) / Math.max(1, bounds.ry - inset) <= 1;
-}
-
-/** 数量区间 [min, max] 随机（缺省按 1 个） */
-function _rollCount(count) {
-    if (!Array.isArray(count)) return count || 1;
-    const [lo, hi] = count;
-    return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
 /**
@@ -219,4 +423,86 @@ function _scaleFor(geoKey, g, targetH) {
     const def = getObstacleDefaults()[geoKey];
     if (def && (def.scaleY ?? def.scaleX) != null) return def.scaleY ?? def.scaleX;
     return (targetH || 120) / g.h;
+}
+
+/**
+ * 障碍物组合池：预制库键序 = 编辑器显示序，取排在「火把墙」之后的预制件
+ * （池子约定 = 纯障碍物组合；兜底剔除缺件/含墙件的预制件，防用户改库后混入墙件）
+ */
+function _prefabCompositionPool() {
+    const lib = getWallPrefabLibrary();
+    const keys = Object.keys(lib);
+    const i = keys.indexOf(TORCH_PREFAB_KEY);
+    if (i < 0) return [];
+    return keys.slice(i + 1).filter(k => {
+        const pf = lib[k];
+        if (!pf || !Array.isArray(pf.pieces) || !pf.pieces.length) return false;
+        return pf.pieces.every(q => {
+            const g = WallSystem._geoForTex(q.tex);
+            return !g || g.category === 'obstacle';
+        });
+    });
+}
+
+/**
+ * 后墙锚点：随机选左上（LT：T→L）/ 右上（RT：T→R）边，沿线随机点（两端各留 15%
+ * 避开转角/门口），朝房心法线方向取 dist 区间内随机距离。前墙（LB/RB）一侧不放。
+ */
+function _rollBackWallAnchor(bounds, dist) {
+    const { cx, cy, rx, ry } = bounds;
+    const T = { x: cx, y: cy - ry };
+    const V = Math.random() < 0.5 ? { x: cx - rx, y: cy } : { x: cx + rx, y: cy };
+    const t = 0.15 + Math.random() * 0.7;
+    const P = { x: T.x + (V.x - T.x) * t, y: T.y + (V.y - T.y) * t };
+    let nx = -(V.y - T.y), ny = V.x - T.x;
+    const nl = Math.hypot(nx, ny) || 1;
+    nx /= nl; ny /= nl;
+    if ((cx - P.x) * nx + (cy - P.y) * ny < 0) { nx = -nx; ny = -ny; }
+    const [d0, d1] = dist;
+    const d = d0 + Math.random() * Math.max(0, d1 - d0);
+    return { x: P.x + nx * d, y: P.y + ny * d };
+}
+
+/** 触地半径（foot 半宽/半深取大；无 foot 按贴图半宽）：组合整组校验的内缩/排除余量 */
+function _groundRadius(tex, scaleX, scaleY) {
+    const g = WallSystem._geoForTex(tex);
+    if (!g) return 30;
+    const hw = (g.foot ? g.foot.w : g.w) * Math.abs(scaleX ?? 1) / 2;
+    const hd = (g.foot ? g.foot.d : g.w) * Math.abs(scaleY ?? scaleX ?? 1) / 2;
+    return Math.max(hw, hd);
+}
+
+/** 点到线段的最短距离 */
+function _ptSegDist(P, A, B) {
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const len2 = dx * dx + dy * dy || 1;
+    let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(P.x - (A.x + dx * t), P.y - (A.y + dy * t));
+}
+
+/**
+ * 障碍物 depth 抬升（预制组合贴后墙件用）：
+ * 静态件不走实体 junctionCorrectedDepth 仲裁——墙的 flat depth = 整条瓦最深端 y，
+ * 比障碍物底边深时墙会后画盖住障碍物。找 400px 内最近的非 obstacle 墙件
+ * （距离按到底边线段的最近距离算，无墙段的门件回退锚点距离），
+ * 返回 max(baseDepth, 最近墙 depth + 0.1)；找不到附近墙件返回 baseDepth（不报错）。
+ */
+function _liftDepthAboveWalls(piece, baseDepth) {
+    let best = null, bestDist = 400;
+    for (const q of WallSystem.isoVisuals) {
+        const gq = WallSystem._geoForTex(q.tex);
+        if (!gq || gq.category === 'obstacle') continue;
+        const segs = WallSystem._pieceBaseSegments(q);
+        let d;
+        if (segs.length) {
+            d = Infinity;
+            for (const [A, B] of segs) d = Math.min(d, _ptSegDist(piece, A, B));
+        } else {
+            d = Math.hypot(piece.x - q.x, piece.y - q.y);
+        }
+        if (d < bestDist) { bestDist = d; best = q; }
+    }
+    if (!best) return baseDepth;
+    return Math.max(baseDepth, (best.depth ?? best.y) + 0.1);
 }

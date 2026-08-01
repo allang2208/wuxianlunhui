@@ -129,6 +129,7 @@
     },
     "traps": {
       "count": 3,
+      "lineSpacing": 30,
       "triggerRadius": 45,
       "delayMs": 250,
       "animMs": 500,
@@ -409,10 +410,19 @@
       "minWallDistance": 150
     },
     "obstacles": {
-      "wallTorches": {
-        "count": [1, 2],
-        "ring": [0.80, 0.92],
-        "targetH": 160
+      "prefabCompositions": {
+        "comment": "后墙(LT/RT)附近的障碍物组合：每槽位从预制库「火把墙」之后的组合随机抽一组整体摆放（烛台不单独生成，「烛台+铁链」等含烛台的组合仍在池内）；countByRoom = 各房间组合数（房间1/2各3组、房间3八组只贴后墙；无 roomIndex 的单房间路径按房间1取值）；wallDist = 组合锚点离后墙边线的距离区间(px)",
+        "countByRoom": { "1": 3, "2": 3, "3": 8 },
+        "wallDist": [50, 130],
+        "targetH": 180
+      },
+      "centerPillar": {
+        "comment": "竞技场房间1/2可移动地面中央的石柱（scale 走 obstacle-defaults 编辑器预设，targetH 仅兜底）",
+        "targetH": 180
+      },
+      "passageTorches": {
+        "comment": "竞技场通道右手侧墙的均布火把（固定间隔、无碰撞，复用「火把墙」锚定机制）",
+        "interval": 350
       }
     }
   },
