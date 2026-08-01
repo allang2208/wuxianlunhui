@@ -2450,7 +2450,7 @@
       "type": "头盔",
       "icon": "🪖",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "helmet",
       "armorSet": "light",
@@ -2466,14 +2466,15 @@
           "pos": true
         }
       ],
-      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。",
+      "iconImage": "assets/icons/equipment/疾风轻盔.png"
     },
     "light_armor": {
       "name": "疾风轻甲",
       "type": "盔甲",
       "icon": "🥋",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "armor",
       "armorSet": "light",
@@ -2489,14 +2490,15 @@
           "pos": true
         }
       ],
-      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。",
+      "iconImage": "assets/icons/equipment/疾风轻甲.png"
     },
     "light_boots": {
       "name": "疾风轻靴",
       "type": "靴子",
       "icon": "👢",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "boots",
       "armorSet": "light",
@@ -2512,14 +2514,15 @@
           "pos": true
         }
       ],
-      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。",
+      "iconImage": "assets/icons/equipment/疾风轻靴.png"
     },
     "robe_helmet": {
       "name": "秘法法帽",
       "type": "头盔",
       "icon": "🎩",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "helmet",
       "armorSet": "robe",
@@ -2546,14 +2549,15 @@
           "pos": true
         }
       ],
-      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。",
+      "iconImage": "assets/icons/equipment/秘法法帽.png"
     },
     "robe_armor": {
-      "name": "秘法法袍",
+      "name": "秘法长袍",
       "type": "盔甲",
       "icon": "🧙",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "armor",
       "armorSet": "robe",
@@ -2580,14 +2584,15 @@
           "pos": true
         }
       ],
-      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。",
+      "iconImage": "assets/icons/equipment/秘法长袍.png"
     },
     "robe_boots": {
-      "name": "秘法法靴",
+      "name": "秘法长靴",
       "type": "靴子",
       "icon": "👠",
       "category": "armor",
-      "rarity": "common",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "boots",
       "armorSet": "robe",
@@ -2603,14 +2608,15 @@
           "pos": true
         }
       ],
-      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。",
+      "iconImage": "assets/icons/equipment/秘法长靴.png"
     },
     "heavy_helmet": {
       "name": "壁垒重盔",
       "type": "头盔",
       "icon": "⛑",
       "category": "armor",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "helmet",
       "armorSet": "heavy",
@@ -2637,14 +2643,15 @@
           "pos": true
         }
       ],
-      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。",
+      "iconImage": "assets/icons/equipment/壁垒重盔.png"
     },
     "heavy_armor": {
       "name": "壁垒重甲",
       "type": "盔甲",
       "icon": "🛡",
       "category": "armor",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "armor",
       "armorSet": "heavy",
@@ -2660,14 +2667,15 @@
           "pos": true
         }
       ],
-      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。",
+      "iconImage": "assets/icons/equipment/壁垒重甲.png"
     },
     "heavy_boots": {
       "name": "壁垒重靴",
       "type": "靴子",
       "icon": "🥾",
       "category": "armor",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "level": 1,
       "equipSlot": "boots",
       "armorSet": "heavy",
@@ -2683,7 +2691,8 @@
           "pos": true
         }
       ],
-      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。",
+      "iconImage": "assets/icons/equipment/壁垒重靴.png"
     },
     "necklace_strcon": {
       "name": "狮心项链",
@@ -2713,7 +2722,8 @@
           "pos": true
         }
       ],
-      "desc": "力量与体质的结合，适合近战站桩流派。"
+      "desc": "力量与体质的结合，适合近战站桩流派。",
+      "iconImage": "assets/icons/equipment/狮心项链.png"
     },
     "necklace_intwis": {
       "name": "贤者项链",
@@ -2743,7 +2753,8 @@
           "pos": true
         }
       ],
-      "desc": "智力与精神的结合，适合法伤流派。"
+      "desc": "智力与精神的结合，适合法伤流派。",
+      "iconImage": "assets/icons/equipment/贤者项链.png"
     },
     "necklace_dexluck": {
       "name": "风灵项链",
@@ -2773,7 +2784,8 @@
           "pos": true
         }
       ],
-      "desc": "敏捷与幸运的结合，适合暴击/回避流派。"
+      "desc": "敏捷与幸运的结合，适合暴击/回避流派。",
+      "iconImage": "assets/icons/equipment/风灵项链.png"
     },
     "ring_atk": {
       "name": "猛攻戒指",
@@ -2796,7 +2808,8 @@
           "pos": true
         }
       ],
-      "desc": "直接提升物理攻击力的输出戒指。"
+      "desc": "直接提升物理攻击力的输出戒指。",
+      "iconImage": "assets/icons/equipment/猛攻戒指.png"
     },
     "ring_crit": {
       "name": "致命戒指",
@@ -2819,7 +2832,8 @@
           "pos": true
         }
       ],
-      "desc": "提升暴击率的输出戒指。"
+      "desc": "提升暴击率的输出戒指。",
+      "iconImage": "assets/icons/equipment/致命戒指.png"
     },
     "ring_matk": {
       "name": "秘法戒指",
@@ -2842,7 +2856,8 @@
           "pos": true
         }
       ],
-      "desc": "直接提升魔法攻击力的法伤戒指。"
+      "desc": "直接提升魔法攻击力的法伤戒指。",
+      "iconImage": "assets/icons/equipment/秘法戒指.png"
     },
     "belt_hp": {
       "name": "生命腰带",
@@ -2865,7 +2880,8 @@
           "pos": true
         }
       ],
-      "desc": "提升最大生命值的生存腰带。"
+      "desc": "提升最大生命值的生存腰带。",
+      "iconImage": "assets/icons/equipment/生命腰带.png"
     },
     "belt_mp": {
       "name": "魔力腰带",
@@ -2888,7 +2904,8 @@
           "pos": true
         }
       ],
-      "desc": "提升最大魔法值的法师腰带。"
+      "desc": "提升最大魔法值的法师腰带。",
+      "iconImage": "assets/icons/equipment/魔力腰带.png"
     },
     "belt_stamina": {
       "name": "体力腰带",
@@ -2911,7 +2928,8 @@
           "pos": true
         }
       ],
-      "desc": "提升最大体力的敏捷腰带。"
+      "desc": "提升最大体力的敏捷腰带。",
+      "iconImage": "assets/icons/equipment/体力腰带.png"
     }
   }
 }

@@ -8,6 +8,44 @@
 - 测试结果
 - 已知问题
 
+### 对话：新增怪物巫婆（lord/僵尸）+ 煮锅（站桩伴生）（2026-08-02）
+
+- **巫婆（witch）**：rank=lord、family=僵尸，HP 1300、物攻 20/物防 55/魔攻 70/魔防 55（用户确认）、暴击 15%、移速 130。素材 `assets/enemies/witch/`（8列×4行 512×512 帧，PIL 扫帧定区间）：idle 单帧 / walking 11 帧 / attacking 14 帧 / attacking-2 18 帧 / dying 17 帧（播完定格 1s→淡出 0.3s，lanternMiner 同模式）。
+  - 攻击1（远程魔法）：800px 触发，1.5s，第 5 帧 `AimHelper.lead` 预判扇形 ±15° 发 3 个毒蛆投射物 + attacking.mp3，每个 matk×0.75 魔法伤害，冷却 4s，施法冻结移动；
+  - 攻击2（投掷毒液瓶）：复用提灯 `launchArcProjectile`（1.5s 抛物线+360°/s 旋转），第 8 帧 throwing.mp3、第 9 帧出手；落点 200px 椭圆毒区 6s（绿色底面贴花 + smoke_particle 绿 tint ADD 矿洞绿烟填满），每 0.5s matk×0.75 + `applyPoison(1)` 叠 1 层中毒；冷却暂定 8s（用户未给值，见已知问题）。
+- **煮锅（cauldron）**：rank=minor/family=其他 + noPool 双保险不进刷怪池；HP 1500、speed 0、常驻 `applyStatusImmune`（墓碑同口径）、贴图 bowl.png 静态。巫婆首次 update 经注入工厂伴生（zombieWizard `_createZombieDog` 同款，实体侧生成全场景生效——规则 5），8 向选点过 WallSystem 校验、唯一键；每 30s 向 800px 内最近敌对目标投 2 瓶（预判点 + 150px 散落点），毒区机制与巫婆共享 `_shared/venom-bottle.js`（单一实现零重复），伤害口径 = 煮锅自身 matk(70)×0.75。
+- **钩稽四端**：`data/enemy-config.json`（+public 双份一致）↔ `zombie-dungeon.js`（createWitch/createCauldron + ZOMBIE_FACTORY_MAP，witch 自动进领主池）↔ 图鉴（读 ENEMY_DATA 自动生效）↔ `BootScene`（贴图/动画/声音注册）。`src/game.js` 加 `spawnMainWitch()` 主神空间测试生成备用。
+- **测试**：node --check ✓、lint 0 error、vite build ✓、npm test 全绿（177 项）、config-integrity 零新增警告。**CDP 实机全项验证**：数值读回全中；攻击1 恰好 3 投射物+声音+施法冻结；攻击2 毒区 200 半径+玩家叠毒 32 层（无敌存档 hpLost=0 但 tick 全执行）；死亡定格最后帧→淡出销毁；煮锅伴生过墙检、30s 双毒区、5 次生成唯一键并存。截图 `tools/verify-shots/witch-*.png`、`cauldron-two-zones.png`。
+- **已知问题**：攻击 2 冷却 8s 为暂定值（用户未给，改 enemy-config 两份即可）；煮锅死亡无专属动画（静态贴图走通用清理）。
+
+### 对话：装备改名 + 素材库贴图替换 + 图鉴属性数据化（2026-08-02）
+
+- 改名：秘法法袍→秘法长袍、秘法法靴→秘法长靴（`data/equipment.json` + `public/data/equipment.json` 双份同步）。
+- 贴图：`E:\无尽轮回\游戏\素材库\装备` 下 18 张贴图（疾风/法袍/壁垒三件套 + 三项链 + 三戒指 + 三腰带）复制到 `assets/icons/equipment/`，按装备名一一对应写入各条目 `iconImage`——装备栏、掉落物、图鉴共用该字段，中文文件名与项目既有技能图标同口径（Vite 已实测 200 image/png）。
+- 图鉴：`src/ui/codex-manager.js` 非枪械详情页新增数据驱动「属性」区，直接渲染 equipment.json 的 `stats` 数组（`label || name` + `value`），无硬编码；枪械分支保持原公式字段不重复。`stats` 与 `defense/bonusStats` 为同源显示数据。
+- 稀有度：本次 18 件新装备稀有度统一改为 `uncommon`（优质）——轻甲/法袍套件原 common、壁垒套件原 rare，双份 JSON 同步。
+- 验证：CDP 实机确认图鉴打开「秘法长袍」显示新贴图 + 属性（物理防御+7 / 智力+1）；全仓无旧名残留；config-integrity 通过；eslint 通过。
+
+### 对话：通道火把贴墙方向修正（2026-08-02）
+
+- 现象：竞技场通道火把没有贴在墙面上（"没挂载/没贴墙"）。
+- 排查：CDP 复现确认火把正常生成（2 通道 × 2 个）、精灵可见，但每个火把相对锚定墙底边线的 y 偏移为 **+60px（底边线下方，墙脚/地板一侧）**；预制件「火把墙」参考的火把是 **-60px（底边线上方，墙面上）**——同一 69px 垂直距离，法线方向选反了。
+- 修复（`src/world/obstacle-spawn-system.js` `_spawnPassageTorches`）：垂距法线从"取指向通道中心一侧"改为"取背离通道中心一侧"（`dot > 0` 才翻转），与预制件参考同向。
+- 验证：CDP 重进竞技场实测 4 个火把 deltaY 全部变为 **-59/-60**（墙上），垂直距离 69~70 不变，depth = 墙深 + depthDelta 不变；eslint 通过。
+
+### 对话：Vite 开发服务器崩溃（资源 ERR_CONNECTION_REFUSED）排查修复（2026-08-02）
+
+- 现象：游戏页面加载 `/assets/**`（EX 剑、玩家帧图等）报 `net::ERR_CONNECTION_REFUSED`，但 `/data/**` 正常。
+- 根因：**Vite 文件监视器在监视 `tools/.cdp-profile`**（CDP 探测用 Electron 实例的 user-data 目录），其中的 `Cookies` 文件被运行中的 Electron 锁住 → 监听触发 `EBUSY: resource busy or locked` 未捕获错误 → **整个 Vite 进程崩溃**（5173 不再监听）。页面是旧会话，继续请求新资源就连不上 → CONNECTION_REFUSED。
+- 修复（`vite.config.js`）：`server.watch.ignored` 追加 `**/.cdp-profile/**`、`**/tools/.cdp-profile/**`，Vite 不再监视该锁定目录。
+- 验证：重启 Vite 后 `/assets/player/idle.png`、`EXsword_equipped_v2_.png`、`/data/equipment.json` 均 200，刷新游戏页面正常启动（hasGame=true）；观察无再崩溃。
+
+### 对话：删除的旧防具仍出现在装备栏——硬编码初始装备未清排查修复（2026-08-02）
+
+- 根因：删除旧装备时只清了 `equipment.json` 与 `item-database.js` 的 `getDefaultEquip`（死代码），但玩家**初始装备真正来源**是 `src/ui/equip-data-manager.js` 的 `TEST_EQUIPMENTS`（`equip-manager.js` 深拷贝作为初始装备）——里面仍硬编码新手布帽/粗制项链/旧皮甲/皮手套/腰带/旧皮靴。
+- 修复：`TEST_EQUIPMENTS` 的 helmet/necklace/armor/gloves/belt/boots 全部置 null，仅保留武器；刷新页面后初始装备防具/首饰槽为空。
+- 验证：CDP 刷新重开游戏确认各防具/首饰槽均为 null、武器保留；npm test 全绿；eslint 通过。
+
 ### 对话：冰锥发射精确汇聚鼠标准星（2026-08-02）
 
 - 问题：此前冰锥发射后沿直线**穿过**准星继续飞，未在瞄准点停下；且各冰锥悬浮高度不同，视觉上不落在鼠标点上。
