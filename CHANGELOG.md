@@ -8,6 +8,52 @@
 - 测试结果
 - 已知问题
 
+### 对话：冰锥发射精确汇聚鼠标准星（2026-08-02）
+
+- 问题：此前冰锥发射后沿直线**穿过**准星继续飞，未在瞄准点停下；且各冰锥悬浮高度不同，视觉上不落在鼠标点上。
+- 修复（`src/entities/components/bolt-skill-system.js`）：`_launchAll` 记录每根投射物的瞄准点 `tx/ty/targetDist`；`_updateFlying` 飞行距离达到 `targetDist` 时**精确停靠在瞄准点并触发 onImpact 结算**（不再穿过继续飞；maxRange 仍作为射程上限，目标在射程外时到上限停止）。
+- 修复（`src/phaser/scenes/GameScene.js`）：冰锥/火球飞行视觉高度随进度收敛——`elev × (1 − 飞行进度)`，到达瞄准点时降到地面，所有冰锥精确汇聚于鼠标准星。
+- 验证：CDP 实机（手动推进 update）确认 2 根冰锥命中结算位置均为 (1324, 1570.5) = 瞄准点，误差 <0.5px；eslint 通过。
+- 备注：`npm test` 中 config-integrity 有 2 个既有错误（`ZOMBIE_FACTORY_MAP['cauldron'/'witch']` 未同步进 enemy-config.json），与本改动无关，属并行会话怪物工作未完成。
+
+### 对话：冰锥瞄准改回统一朝向鼠标准星（2026-08-02）
+
+- `src/phaser/scenes/GameScene.js`：`_syncIceSpikes` 瞄准角恢复为调整前代码——所有冰锥统一用施法者中心→鼠标准星的角度（敌人为施法者→目标），整圈冰锥同一指向；发射逻辑不变（`_launchAll` 仍从各自环绕位置飞向目标）。
+- 验证：CDP 实机确认 4 根冰锥瞄准角完全一致（-152.5°×4）；npm test 全绿；eslint 通过。
+
+### 对话：火球/冰锥发射前椭圆环绕 + 冰锥瞄准修复（2026-08-02）
+
+- 发射前待机环绕：`src/entities/components/bolt-skill-system.js` 悬浮期按 `orbitSpeed` 推进 `orbitAngle`（椭圆轨道绕施法者圆柱体旋转），`_launchAll` 发射起点改为当前环绕位置；`ice-spike-system.js` / `fireball-system.js` 初始化 `orbitAngle/orbitRx/orbitRy/orbitSpeed`（火球椭圆 48.5×34、冰锥 40.5×26，相邻冰锥错速）；GameScene 悬浮渲染按轨道角取椭圆坐标。
+- 冰锥瞄准修复：`_syncIceSpikes` 瞄准角改为从**每根冰锥自身当前世界位置**指向鼠标/目标（此前统一用施法者中心角度，环上外侧冰锥不指向鼠标）。
+- 验证：CDP 实机确认各冰锥瞄准角各不相同（-151.8/-157/-161.6/-161.3，均指向同一鼠标点）、冰锥/火球位置随时间移动（手动推进 update 300ms 后火球发射器 1913→1928）；npm test 全绿；eslint 通过。
+
+### 对话：火球仍不可见——悬浮/飞行同步互相隐藏发射器修复（2026-08-02）
+
+- 排查：真实触发火球（`fireballSystem.trigger()`）后确认火球对象已生成、发射器已创建、位置/深度正确，但 `visible` 恒为 false。
+- 根因：悬浮与飞行共用同一组粒子发射器，但 `_syncFireball`（悬浮期）显示后，同一帧 `_syncFlyingFireball` 因未飞行 early-return 又调 `_hideFireballEmitters`——两个同步函数每帧互相抵消，火球永远不可见。
+- 修复（`src/phaser/scenes/GameScene.js`）：`_syncFlyingFireball` 未飞行时不再隐藏发射器（悬浮期由 `_syncFireball` 负责显示；火球完全结束时由 `_syncFireball` 统一隐藏）。
+- 验证：CDP 实机确认悬浮期发射器 visible、飞行期位置跟随（flyY−elev）且 visible；npm test 全绿；eslint 通过。
+
+### 对话：火球粒子火焰不可见排查修复（2026-08-02）
+
+- 根因①：`_ensureFireballEmitters` 未确保 `impact_dot` 粒子贴图存在（其它粒子代码均先 `_ensureImpactDotTexture`），本会话未生成过该纹理时 `add.particles('impact_dot')` 无渲染。
+- 根因②：投射物抬升到圆柱体中心高度后，深度仍按 `s.y + 15` 排序——抬升后的 y 小于地面，浮空火球/冰锥/符文剑沉到施法者精灵（深度≈施法者 y+10）**身后被遮挡**。
+- 修复（`src/phaser/scenes/GameScene.js`）：①创建发射器前确保 `impact_dot` 纹理；②新增 `_projectileDepth(caster, fallbackY)`（施法者精灵深度 + 2），火球双发射器、冰锥悬浮/飞行、符文剑悬浮/飞行统一使用；③重写深度排序段：`_magicSprites` 按施法者键取深度，符文剑移出 `s.y+15` 通用排序（由同步函数管理）。
+- 验证：CDP 实机确认火球发射器 visible、深度 1910 = 玩家精灵 1908 + 2、冰锥深度同口径、`impact_dot` 已创建；npm test 全绿；eslint 通过。
+
+### 对话：防具/首饰新体系实现（三件套 + 首饰，强化上限分档）（2026-08-01）
+
+- 数据（`data/equipment.json` / `public/data/equipment.json` 双份）：新增 18 件装备——
+  - 三件套：轻甲「疾风」（轻盔 6/+1.5、轻甲 10/+2、轻靴 4/+1，三件齐 +10% 移速）；法袍「秘法」（法帽 5/+1、法袍 7/+1、法靴 3/+1，附智力/精神，三件齐 技能冷却-12% + 魔法伤害+18%）；重甲「壁垒」（重盔 24/+2、重甲 34/+3、重靴 12/+2，附生命，三件齐 自动格挡 30% 减 80% 伤害【最后乘法结算，强化不影响概率】+ -15% 移速）。
+  - 首饰：项链三套（狮心=力量体质 / 贤者=智力精神 / 风灵=敏捷幸运，各 +2 基础 +1/级）；戒指三套（猛攻+攻 / 致命+暴击 / 秘法+魔法攻击）；腰带三套（生命+30/+15、魔力+20/+10、体力+20/+5）。
+- `src/entities/player/base.js`：`_getEquipmentBonuses()` 汇总装备防御（base+perEnhance×强化）与 bonusStats（六维/面板/资源）；六维差值法写入 d.str 等（避免重复累加）；修复速度公式 `usePlayerSpeedConfig` 导致 d.speed 为 NaN 的既有问题；三件套判定（_armorSetActive / _cooldownReduction / _magicDamageBonus）并把移速修正写入 this.maxSpeed（实际移动走 maxSpeed）。
+- `src/entities/damageable-entity.js`：重甲自动格挡（30% 概率 ×0.2，扣血前最后乘法，显示"格挡!"）；法袍玩家魔法伤害 +18%。
+- `src/entities/components/bolt-skill-system.js`：技能冷却应用 `_cooldownReduction`（法袍 -12%）。
+- `src/ui/enhance-system.js`：强化上限分档（武器含盾 15 级、防具/首饰 10 级，金币与强化石消耗同武器）；强化成功重算玩家面板。
+- `src/ui/equip-manager.js`：装备/卸下/切换后重算面板（updateEquipSlots 挂钩）。
+- `src/ui/equip-tooltip-manager.js`：防具/首饰浮窗显示防御成长、属性加成（含强化等级）、套装说明。
+- 验证：CDP 实机确认轻甲移速×1.1 / 重甲×0.85 / 套效激活 / 首饰力量体质+2 / 生命+150；npm test 全绿；eslint 通过。
+
 ### 对话：竞技场加载等待 + 火焰泄漏清理 + 陷阱线隐形伤害修复 + frontRange 封顶提高 + torch 碰撞防护（2026-08-01）
 
 - `src/world/wall-prefabs.js` + `src/world/dungeon-map-system.js`：修复竞技场静默回退单房间——`loadWallPrefabs()` 此前 fire-and-forget，进战斗时库未就绪则 `enterCombatArena` 失败静默回退。新增 `_loadingPromise`（并发去重）+ `whenWallPrefabsLoaded()`；`init` 幂等补发加载；`_enterCombatArena` 未就绪时浮字提示 + 等加载完成重试（`_arenaPrefabsWaiting` 防重入），回退路径保留但库就绪仍失败时日志升级 error。CDP 挂起 fetch 模拟加载慢验证：不再回退，放行后 ~2s 建成三房。

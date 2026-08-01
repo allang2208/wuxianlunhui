@@ -271,3 +271,25 @@ this.ai = config.ai || {};
 - **fire-and-forget 加载要有 await 点**：`loadWallPrefabs()` 在 BootScene 无等待发起，进战斗时库可能未就绪 → 竞技场静默回退单房间。给加载器加 `_loadingPromise`（并发去重）+ `whenWallPrefabsLoaded()` 导出，关键路径（进战斗）未就绪时挂起重试而不是降级；resilience 回退保留但日志升级为 error。**凡是"启动时发起、运行时才消费"的资源，消费点都要有等待/重试机制**。
 - **地面层物件的视觉遮挡阈值要实测量**：陷阱线（depth = y−998 地板层）延伸到前墙脚时，垂距 < ~160px（= 前墙瓦渲染高度）的陷阱被墙瓦完全盖住但**仍占用触发**——隐形伤害是 gameplay bug，不是视觉瑕疵。拍脑袋阈值（60~80）不够，按实测遮挡边界（160）+ 余量取 170；改完用"最小垂距 + 末端特写截图"复验。验证工具 `tools/cdp-arena-verify.mjs`（boot/traps/shot/cleanup 子命令）可复用。
 - **粒子 emitter 默认都要登记清理**："火焰不随战斗房清理"的用户要求曾写成永不销毁 = 每场战斗泄漏几个 emitter。正确口径：登记进 `_decoSprites`（`window.CombatRoomSystem` 晚绑定），战斗内常驻、cleanupRoom 销毁。用户说"不清理"时先确认是"战斗内常驻"还是"永不销毁"。
+
+## 32. 武器运动模糊 / 浮空投射物 / 防具属性挂接（V0.368 前后）
+
+### 武器运动模糊（Phaser 4 Blur 滤镜）
+- **三种方案对比**：① 残影幽灵副本（`_syncWeaponGhosts` 3 个半透明历史姿态，峰值 alpha 0.05~0.15）——实测肉眼几乎不可见，用户明确要"真实模糊"；② canvas 烘焙 `ctx.filter=blur(px)` 贴图变体——与开发工具观感一致但要缓存+换贴图；③ **Phaser 4 `sprite.enableFilters()` + `filters.internal.addBlur(quality,x,y,strength,color,steps)`（路线 A，最终采用）**——运行时实时、WebGL-only。
+- **强度校准不能拍脑袋**：quality0 3-tap shader 感知强度远弱于 CSS blur 同半径（σ_1pass≈1.12×strength），quality2 7-tap 为 σ_1pass≈1.947×strength，steps 次卷积再 ×√steps。用户按观感迭代定到 `strength = max(blurX,blurY) × 1.6`（quality2/steps2，峰值 σ≈52px 观感合适）。**调参交给用户实机反馈，给单一系数旋钮**（如 `f.strength = m * K`）。
+- **双同步函数共用资源会互相隐藏**：火球悬浮/飞行共用一组粒子发射器，`_syncFireball`（悬浮期）显示后同一帧 `_syncFlyingFireball`（未飞行 early-return）又隐藏 → 永远不可见。共用资源的多个管理函数必须**职责互斥**（谁显示谁隐藏约定清楚），实机采样 `visible` 排查这类"对象存在但看不见"。
+- **粒子贴图用前先 ensure**：`add.particles('impact_dot')` 前必须 `_ensureImpactDotTexture()`（其它粒子代码都先 ensure，漏掉就静默无渲染）。
+
+### 浮空投射物深度与环绕
+- **抬升后的浮空件深度不能用 `sprite.y + 15`**：把投射物抬到圆柱体中心（y − bodyHeight/2）后 y 变小，按 y+15 排序会沉到施法者精灵（深度≈施法者 y+10）身后被遮挡。统一用 `_projectileDepth(caster)` = **施法者精灵 depth + 2**，深度排序段也按施法者键取深度。
+- **发射前待机环绕**：`orbitAngle` 在系统 `update` 里按 `orbitSpeed` 推进，渲染取椭圆坐标 `(cos·orbitRx, sin·orbitRy)`（Rx≠Ry 成椭圆）；相邻投射物错速避免整体刚性转圈；**发射起点 = 当前环绕位置**（不能从初始角发射）。
+- **投射物精确汇聚于瞄准点**：光"朝鼠标方向飞"不够——直线会**穿过准星继续飞**。`_launchAll` 记录 `tx/ty/targetDist`，`_updateFlying` 飞行距离达 `targetDist` 时**钳到目标点并 onImpact 结算**；飞行视觉高度随进度收敛 `elev×(1−progress)`，否则各投射物悬浮高度不同、视觉不落在鼠标点。maxRange 仍是射程上限（目标超射程时到上限停止）。
+- **整圈投射物朝向**：统一朝向（施法者中心→鼠标，所有冰锥同角）vs 各自指向（每根从自身位置→鼠标）——按需求二选一，改回时要"参考调整前代码"按用户原话回滚。
+
+### 防具/首饰属性挂接（本项目旧装备 stats 只是显示）
+- **真正的属性汇总入口**：`src/entities/player/base.js` 的 `calculateCombatStats()`（战斗面板）+ `updateMaxStats()`（HP/MP/体力上限）——旧防具/饰品的 `stats` 数组从未接线到 `data.def/maxHp`，只有盾牌 defense 接了。新增装备系统必须在这两处挂接。
+- **六维写入面板用差值法**：`d.str += eq.str − prevAttr.str`（记录上次装备加成，先减再加）——直接累加会在每次重算时翻倍；同时公式侧不能再加一遍（避免双重计入）。
+- **强化成长**：防御 = `defense.base + defense.perEnhance × enhanceLevel`；首饰用 `bonusStats[k] + bonusPerEnhance[k] × enhanceLevel` 统一在 `_getEquipmentBonuses()` 汇总。
+- **强化上限分档**：`_getItemMaxLevel(item)` 按武器（含盾，15 级）/ 其他（10 级）；强化成功、装备/卸下/切换后都要重算面板（`updateEquipSlots` 挂钩）。
+- **套装套效绑定整套**（三件齐才激活移速/法系/格挡）——防混搭白嫖特效；移速修正写 `this.maxSpeed`（实际移动读它，`d.speed` 只是面板）。
+- **坑：`usePlayerSpeedConfig` 速度公式**：`formulas.speed` 无 base 时 `d.speed = speedFormula.base + …` 恒 NaN——实际移动靠 `this.maxSpeed || data.speed || 100` 兜底到 100。改速度相关面板先查这个公式。

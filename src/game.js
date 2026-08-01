@@ -54,6 +54,8 @@ import { ForemanZombie } from './entities/enemy-types/foreman-zombie.js';
 import { MineCave } from './entities/enemy-types/mine-cave.js';
 import { Tombstone } from './entities/enemy-types/tombstone.js';
 import { OreSpider } from './entities/enemy-types/ore-spider.js';
+import { Witch } from './entities/enemy-types/witch.js';
+import { Cauldron } from './entities/enemy-types/cauldron.js';
 import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
 import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
@@ -551,6 +553,30 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_lantern_miner', miner);
+    },
+
+    // 巫婆（领主）主神空间测试生成（保留备用，验证伴生煮锅/两种攻击/死亡流程用）
+    spawnMainWitch() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.witch || {};
+        const witch = new Witch(origin.x + 600, origin.y + 100, {
+            ...cfg,
+            showWeapon: false,
+            // 伴生煮锅工厂注入（与 zombie-dungeon createWitch 同口径）
+            createCauldron: (cx, cy) => new Cauldron(cx, cy, {
+                ...(enemyConfigData.cauldron || {}),
+                showWeapon: false
+            }),
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_witch', witch);
     },
 
     spawnMainMinerZombie() {

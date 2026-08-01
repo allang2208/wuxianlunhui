@@ -262,6 +262,38 @@ export const EquipTooltipManager = {
             }
         }
     }
+    // ===== 防具/首饰：防御成长 + 属性加成 + 套装信息 =====
+        if (fullItem && (fullItem.category === 'armor' || fullItem.category === 'accessory')) {
+            const el = (item.enhanceLevel || fullItem.enhanceLevel || 0);
+            const setNames = { light: '疾风（轻甲）', robe: '秘法（法袍）', heavy: '壁垒（重甲）' };
+            const setBonuses = {
+                light: '三件齐穿：+10% 移动速度',
+                robe: '三件齐穿：技能冷却-12%、魔法伤害+18%',
+                heavy: '三件齐穿：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度',
+            };
+            if (fullItem.armorSet) {
+                extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🧩 套装：${setNames[fullItem.armorSet] || fullItem.armorSet}</span><span class="tt-stat-val">${setBonuses[fullItem.armorSet] || ''}</span></div>`;
+            }
+            const defenseData = item.defense || fullItem.defense || (codexItem ? codexItem.defense : null);
+            if (defenseData) {
+                const baseDef = defenseData.base || 0;
+                const perEnhance = defenseData.perEnhance || 0;
+                const totalDef = baseDef + el * perEnhance;
+                extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">防御力</span><span class="tt-stat-val">${Math.floor(totalDef)}（基础 ${baseDef} + 强化等级 × ${perEnhance}）</span></div>`;
+            }
+            const bs = item.bonusStats || fullItem.bonusStats || (codexItem ? codexItem.bonusStats : null) || {};
+            const pe = item.bonusPerEnhance || fullItem.bonusPerEnhance || (codexItem ? codexItem.bonusPerEnhance : null) || {};
+            const attrNames = { str: '力量', dex: '敏捷', int: '智力', con: '体质', wis: '精神', luck: '幸运', atk: '物理攻击', matk: '魔法攻击', crit: '暴击率', maxHp: '最大生命', maxMp: '最大魔法', maxStamina: '最大体力' };
+            const keys = Object.keys(bs).filter(k => (bs[k] || 0) !== 0 || (pe[k] || 0) !== 0);
+            if (keys.length) {
+                extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">✨ 属性加成</span></div>`;
+                for (const k of keys) {
+                    const total = (bs[k] || 0) + (pe[k] || 0) * el;
+                    const suffix = k === 'crit' ? '%' : '';
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">${attrNames[k] || k}</span><span class="tt-stat-val">+${total}${suffix}（基础 ${bs[k] || 0} + 强化等级 × ${pe[k] || 0}）</span></div>`;
+                }
+            }
+        }
     // 特殊攻击信息：只显示伤害类型、伤害公式、持续时间、冷却时间
         if (fullItem && (fullItem.specialAttack || (codexItem && codexItem.specialAttack))) {
             const sa = fullItem.specialAttack || (codexItem && codexItem.specialAttack);

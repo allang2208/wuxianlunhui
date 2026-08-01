@@ -31,6 +31,13 @@ const EnhanceSystem = {
         return Math.floor(cfg.baseCost * Math.pow(cfg.costGrowth, level));
     },
 
+    // 强化上限：武器（含盾）15 级；防具/首饰等其他装备 10 级（金币与强化石消耗同武器）
+    _getItemMaxLevel(item) {
+        const isWeapon = item && (item.category === 'weapon_melee' || item.category === 'weapon_ranged' || item.category === 'weapon_shield'
+            || item.weaponType || item.weaponAsset || item.rangedType);
+        return isWeapon ? (this._getEnhanceConfig().maxLevel || 15) : 10;
+    },
+
     // 强化石匹配：优先按物品 id，无 id 的旧实例回退按名称
     _isEnhanceStone(item) {
         return item && (item.id === 'enhancement_stone' || (!item.id && item.name === '强化石'));
@@ -202,7 +209,7 @@ const EnhanceSystem = {
         if (!player) return;
 
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
+        if (currentLevel >= this._getItemMaxLevel(item)) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '已达最高强化等级！', '#ff4444'));
             return;
         }
@@ -244,6 +251,9 @@ const EnhanceSystem = {
 
         TimerManager.setTimeout(() => {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `强化成功！+${item.enhanceLevel}`, '#ffd700'));
+            // 防具/首饰强化后重算玩家面板（防御/属性/套装套效）
+            if (typeof player.calculateCombatStats === 'function') player.calculateCombatStats();
+            if (typeof player.updateMaxStats === 'function') player.updateMaxStats();
             this._updateUI();
             EquipManager.updateEquipSlots();
             EquipManager.updateInventorySlots();
@@ -288,7 +298,7 @@ const EnhanceSystem = {
             slot.classList.add('has-item');
             slotInfo.innerHTML = `
                 <div class="enhance-info-name">${item.name}</div>
-                <div class="enhance-info-level">当前强化等级: +${level} / ${this._getEnhanceConfig().maxLevel}</div>
+                <div class="enhance-info-level">当前强化等级: +${level} / ${this._getItemMaxLevel(item)}</div>
                 ${this._buildPredictedStats(item)}
             `;
             costEl.innerHTML = `💰 ${cost} + 💎 强化石×1`;
@@ -323,7 +333,7 @@ const EnhanceSystem = {
     _buildPredictedStats(item) {
         if (!item.weaponId || !Game.player || !Game.player.getCurrentWeaponAtk) return '';
         const currentLevel = item.enhanceLevel || 0;
-        if (currentLevel >= this._getEnhanceConfig().maxLevel) {
+        if (currentLevel >= this._getItemMaxLevel(item)) {
             return '<div class="enhance-predicted" style="margin-top:8px;color:#7a9a6a;font-size:12px;">已达到最高强化等级</div>';
         }
         // 计算当前攻击力

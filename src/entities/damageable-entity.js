@@ -93,6 +93,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                             baseDamage = minDamage;
                         }
                     }
+                    // 法袍套「秘法」：玩家魔法伤害 +18%（三件齐穿，source 侧生效）
+                    if (damageType === 'magic' && source && source._faction === 'player' && source._magicDamageBonus) {
+                        baseDamage = Math.floor(baseDamage * (1 + source._magicDamageBonus));
+                    }
                     // 应用魔力易伤：魔法伤害每层+5%
                     if (damageType === 'magic' && this._magicVulnerabilityStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._magicVulnerabilityStacks * 0.05));
@@ -165,6 +169,13 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 // 秒杀模式：玩家攻击直接致死（左下角"秒杀"调试开关，走正常伤害流程）
                 if (source && source._faction === 'player' && typeof window !== 'undefined' && window.Game && window.Game._oneHitKill) {
                     baseDamage = Math.max(baseDamage, this.hp);
+                }
+                // 重甲套「壁垒」自动格挡：30% 概率减少 80% 伤害（最后乘法结算；强化不影响概率）
+                if (this._faction === 'player' && this._armorSetActive === 'heavy' && Math.random() < 0.30) {
+                    baseDamage = Math.max(1, Math.floor(baseDamage * 0.2));
+                    if (EffectManager && EffectManager.createDamageText) {
+                        EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#9ab8c8');
+                    }
                 }
                 // 扣血
                 this.hp -= baseDamage;

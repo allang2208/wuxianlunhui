@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider } from '../entities/enemy-types.js';
+import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -185,6 +185,36 @@ export function createTombstone(x, y) {
         // 生成工厂注入（避免实体层反向依赖 world 层）
         spawnFactory: (mx, my) => createBasicZombie(mx, my),
         spitterSpawnFactory: (mx, my) => createSpitterZombie(mx, my)
+    });
+}
+
+// 煮锅（其他 family 站桩，noPool 不进怪物池）：仅作为巫婆伴生由巫婆实体生成
+export function createCauldron(x, y) {
+    const cfg = enemyConfigData.cauldron;
+    return new Cauldron(x, y, {
+        ...(cfg || { name: '煮锅', hp: 1500, maxHp: 1500, size: 60, showWeapon: false }),
+        showWeapon: false
+    });
+}
+
+// 巫婆（领主，僵尸 family）：生成时注入伴生煮锅工厂（避免实体层反向依赖 world 层），
+// 巫婆首次 update 自动在附近可行走落点生成一个煮锅
+export function createWitch(x, y) {
+    const cfg = enemyConfigData.witch;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: witch');
+        return new Witch(x, y, { name: '巫婆', hp: 1300, maxHp: 1300, size: 16, showWeapon: false, createCauldron: createCauldron });
+    }
+    return new Witch(x, y, {
+        ...cfg,
+        showWeapon: false,
+        createCauldron: (cx, cy) => createCauldron(cx, cy),
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
     });
 }
 
@@ -370,6 +400,8 @@ export const ZOMBIE_FACTORY_MAP = {
     oreSpider: createOreSpider,
     mineCave: createMineCave,
     tombstone: createTombstone,
+    cauldron: createCauldron,
+    witch: createWitch,
     fatZombie: createFatZombie,
     zombieWizard: createZombieWizard,
     mutant3: createMutant3,

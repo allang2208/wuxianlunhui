@@ -107,9 +107,17 @@ export class BoltSkillSystem {
             if (!spike.active || spike.launched) return;
             spike.launched = true;
             spike.flyActive = true;
-            spike.flyX = this.source.x + spike.offsetX * cos - spike.offsetY * sin;
-            spike.flyY = this.source.y + spike.offsetX * sin + spike.offsetY * cos;
+            // 发射起点 = 当前环绕位置（轨道角 → 椭圆坐标 → 随施法者朝向旋转）
+            const oa = spike.orbitAngle || 0;
+            const ox = Math.cos(oa) * (spike.orbitRx || 50);
+            const oy = Math.sin(oa) * (spike.orbitRy || 30);
+            spike.flyX = this.source.x + ox * cos - oy * sin;
+            spike.flyY = this.source.y + ox * sin + oy * cos;
             spike.flyAngle = Math.atan2(my - spike.flyY, mx - spike.flyX);
+            // 瞄准目标点：所有投射物精确汇聚于此（到达即结算，不再穿过准星继续飞）
+            spike.tx = mx;
+            spike.ty = my;
+            spike.targetDist = Math.hypot(mx - spike.flyX, my - spike.flyY);
         });
         this.source[this.kind.fields.timer] = 0;
     }
@@ -131,6 +139,8 @@ export class BoltSkillSystem {
             const now = Date.now() / 1000;
             spikes.forEach(spike => {
                 if (!spike.active || spike.launched) return;
+                // 发射前待机：推进椭圆环绕角（绕施法者圆柱体转圈）
+                spike.orbitAngle = (spike.orbitAngle || 0) + dt * (spike.orbitSpeed || 0.0015);
                 if (this.kind.anim) {
                     spike.animTimer = (spike.animTimer || 0) + dt;
                     spike.frameIndex = Math.floor(spike.animTimer / this.kind.anim.hoverMs) % this.kind.anim.totalFrames;
@@ -174,6 +184,16 @@ export class BoltSkillSystem {
             const nextX = spike.flyX + cos * moveDist;
             const nextY = spike.flyY + sin * moveDist;
             spike.flyDistance += moveDist;
+
+            // 到达瞄准目标点（鼠标准星/锁定目标）：精确汇聚并在该点结算
+            if (spike.targetDist != null && spike.flyDistance >= spike.targetDist) {
+                spike.flyX = spike.tx;
+                spike.flyY = spike.ty;
+                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill });
+                spike.flyActive = false;
+                spike.active = false;
+                return;
+            }
 
             // 最大飞行距离
             if (spike.flyDistance >= effect.maxRange) {
@@ -257,6 +277,7 @@ export class BoltSkillSystem {
         src[this.kind.fields.timer] = 0;
         src[this.kind.fields.spikes] = this.kind.fields.spikesArrayEmptyIsNull ? null : [];
         if (this.kind.fields.alias) src[this.kind.fields.alias] = null;
-        src[this.kind.fields.cooldown] = effect.cooldown * 1000;
+        // 法袍套「秘法」：技能冷却 -12%（source._cooldownReduction 由套装在 calculateCombatStats 设置）
+        src[this.kind.fields.cooldown] = effect.cooldown * 1000 * (1 - (src._cooldownReduction || 0));
     }
 }

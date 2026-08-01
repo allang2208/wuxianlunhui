@@ -2444,6 +2444,474 @@
         }
       ],
       "desc": "凝聚时空之力的锚点代币，可在祭坛作为 A 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+    },
+    "light_helmet": {
+      "name": "疾风轻盔",
+      "type": "头盔",
+      "icon": "🪖",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "helmet",
+      "armorSet": "light",
+      "armorSetSlot": "helmet",
+      "defense": {
+        "base": 6,
+        "perEnhance": 1.5
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+6",
+          "pos": true
+        }
+      ],
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+    },
+    "light_armor": {
+      "name": "疾风轻甲",
+      "type": "盔甲",
+      "icon": "🥋",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "armor",
+      "armorSet": "light",
+      "armorSetSlot": "armor",
+      "defense": {
+        "base": 10,
+        "perEnhance": 2
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+10",
+          "pos": true
+        }
+      ],
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+    },
+    "light_boots": {
+      "name": "疾风轻靴",
+      "type": "靴子",
+      "icon": "👢",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "boots",
+      "armorSet": "light",
+      "armorSetSlot": "boots",
+      "defense": {
+        "base": 4,
+        "perEnhance": 1
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+4",
+          "pos": true
+        }
+      ],
+      "desc": "轻甲三件套（头盔/护甲/靴）之一。三件齐穿激活：+10% 移动速度。"
+    },
+    "robe_helmet": {
+      "name": "秘法法帽",
+      "type": "头盔",
+      "icon": "🎩",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "helmet",
+      "armorSet": "robe",
+      "armorSetSlot": "helmet",
+      "defense": {
+        "base": 5,
+        "perEnhance": 1
+      },
+      "bonusStats": {
+        "wis": 1
+      },
+      "bonusPerEnhance": {
+        "wis": 1
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+5",
+          "pos": true
+        },
+        {
+          "name": "精神",
+          "value": "+1",
+          "pos": true
+        }
+      ],
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+    },
+    "robe_armor": {
+      "name": "秘法法袍",
+      "type": "盔甲",
+      "icon": "🧙",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "armor",
+      "armorSet": "robe",
+      "armorSetSlot": "armor",
+      "defense": {
+        "base": 7,
+        "perEnhance": 1
+      },
+      "bonusStats": {
+        "int": 1
+      },
+      "bonusPerEnhance": {
+        "int": 1
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+7",
+          "pos": true
+        },
+        {
+          "name": "智力",
+          "value": "+1",
+          "pos": true
+        }
+      ],
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+    },
+    "robe_boots": {
+      "name": "秘法法靴",
+      "type": "靴子",
+      "icon": "👠",
+      "category": "armor",
+      "rarity": "common",
+      "level": 1,
+      "equipSlot": "boots",
+      "armorSet": "robe",
+      "armorSetSlot": "boots",
+      "defense": {
+        "base": 3,
+        "perEnhance": 1
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+3",
+          "pos": true
+        }
+      ],
+      "desc": "法袍三件套（帽/袍/靴）之一。三件齐穿激活：技能冷却-12%、魔法伤害+18%。"
+    },
+    "heavy_helmet": {
+      "name": "壁垒重盔",
+      "type": "头盔",
+      "icon": "⛑",
+      "category": "armor",
+      "rarity": "rare",
+      "level": 1,
+      "equipSlot": "helmet",
+      "armorSet": "heavy",
+      "armorSetSlot": "helmet",
+      "defense": {
+        "base": 24,
+        "perEnhance": 2
+      },
+      "bonusStats": {
+        "maxHp": 15
+      },
+      "bonusPerEnhance": {
+        "maxHp": 5
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+24",
+          "pos": true
+        },
+        {
+          "name": "最大生命值",
+          "value": "+15",
+          "pos": true
+        }
+      ],
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+    },
+    "heavy_armor": {
+      "name": "壁垒重甲",
+      "type": "盔甲",
+      "icon": "🛡",
+      "category": "armor",
+      "rarity": "rare",
+      "level": 1,
+      "equipSlot": "armor",
+      "armorSet": "heavy",
+      "armorSetSlot": "armor",
+      "defense": {
+        "base": 34,
+        "perEnhance": 3
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+34",
+          "pos": true
+        }
+      ],
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+    },
+    "heavy_boots": {
+      "name": "壁垒重靴",
+      "type": "靴子",
+      "icon": "🥾",
+      "category": "armor",
+      "rarity": "rare",
+      "level": 1,
+      "equipSlot": "boots",
+      "armorSet": "heavy",
+      "armorSetSlot": "boots",
+      "defense": {
+        "base": 12,
+        "perEnhance": 2
+      },
+      "stats": [
+        {
+          "name": "物理防御",
+          "value": "+12",
+          "pos": true
+        }
+      ],
+      "desc": "重甲三件套（盔/甲/靴）之一。三件齐穿激活：自动格挡30%概率减少80%伤害（最后乘法结算）、-15%移动速度。"
+    },
+    "necklace_strcon": {
+      "name": "狮心项链",
+      "type": "项链",
+      "icon": "📿",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "necklace",
+      "bonusStats": {
+        "str": 2,
+        "con": 2
+      },
+      "bonusPerEnhance": {
+        "str": 1,
+        "con": 1
+      },
+      "stats": [
+        {
+          "name": "力量",
+          "value": "+2",
+          "pos": true
+        },
+        {
+          "name": "体质",
+          "value": "+2",
+          "pos": true
+        }
+      ],
+      "desc": "力量与体质的结合，适合近战站桩流派。"
+    },
+    "necklace_intwis": {
+      "name": "贤者项链",
+      "type": "项链",
+      "icon": "🔮",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "necklace",
+      "bonusStats": {
+        "int": 2,
+        "wis": 2
+      },
+      "bonusPerEnhance": {
+        "int": 1,
+        "wis": 1
+      },
+      "stats": [
+        {
+          "name": "智力",
+          "value": "+2",
+          "pos": true
+        },
+        {
+          "name": "精神",
+          "value": "+2",
+          "pos": true
+        }
+      ],
+      "desc": "智力与精神的结合，适合法伤流派。"
+    },
+    "necklace_dexluck": {
+      "name": "风灵项链",
+      "type": "项链",
+      "icon": "🍀",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "necklace",
+      "bonusStats": {
+        "dex": 2,
+        "luck": 2
+      },
+      "bonusPerEnhance": {
+        "dex": 1,
+        "luck": 1
+      },
+      "stats": [
+        {
+          "name": "敏捷",
+          "value": "+2",
+          "pos": true
+        },
+        {
+          "name": "幸运",
+          "value": "+2",
+          "pos": true
+        }
+      ],
+      "desc": "敏捷与幸运的结合，适合暴击/回避流派。"
+    },
+    "ring_atk": {
+      "name": "猛攻戒指",
+      "type": "戒指",
+      "icon": "💍",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "ring1",
+      "bonusStats": {
+        "atk": 3
+      },
+      "bonusPerEnhance": {
+        "atk": 2
+      },
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "+3",
+          "pos": true
+        }
+      ],
+      "desc": "直接提升物理攻击力的输出戒指。"
+    },
+    "ring_crit": {
+      "name": "致命戒指",
+      "type": "戒指",
+      "icon": "⚔️",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "ring1",
+      "bonusStats": {
+        "crit": 3
+      },
+      "bonusPerEnhance": {
+        "crit": 1
+      },
+      "stats": [
+        {
+          "name": "暴击率",
+          "value": "+3%",
+          "pos": true
+        }
+      ],
+      "desc": "提升暴击率的输出戒指。"
+    },
+    "ring_matk": {
+      "name": "秘法戒指",
+      "type": "戒指",
+      "icon": "💠",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "ring1",
+      "bonusStats": {
+        "matk": 3
+      },
+      "bonusPerEnhance": {
+        "matk": 2
+      },
+      "stats": [
+        {
+          "name": "魔法攻击",
+          "value": "+3",
+          "pos": true
+        }
+      ],
+      "desc": "直接提升魔法攻击力的法伤戒指。"
+    },
+    "belt_hp": {
+      "name": "生命腰带",
+      "type": "腰带",
+      "icon": "❤️",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "belt",
+      "bonusStats": {
+        "maxHp": 30
+      },
+      "bonusPerEnhance": {
+        "maxHp": 15
+      },
+      "stats": [
+        {
+          "name": "最大生命值",
+          "value": "+30",
+          "pos": true
+        }
+      ],
+      "desc": "提升最大生命值的生存腰带。"
+    },
+    "belt_mp": {
+      "name": "魔力腰带",
+      "type": "腰带",
+      "icon": "💙",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "belt",
+      "bonusStats": {
+        "maxMp": 20
+      },
+      "bonusPerEnhance": {
+        "maxMp": 10
+      },
+      "stats": [
+        {
+          "name": "最大魔法值",
+          "value": "+20",
+          "pos": true
+        }
+      ],
+      "desc": "提升最大魔法值的法师腰带。"
+    },
+    "belt_stamina": {
+      "name": "体力腰带",
+      "type": "腰带",
+      "icon": "⚡",
+      "category": "accessory",
+      "rarity": "uncommon",
+      "level": 1,
+      "equipSlot": "belt",
+      "bonusStats": {
+        "maxStamina": 20
+      },
+      "bonusPerEnhance": {
+        "maxStamina": 5
+      },
+      "stats": [
+        {
+          "name": "最大体力",
+          "value": "+20",
+          "pos": true
+        }
+      ],
+      "desc": "提升最大体力的敏捷腰带。"
     }
   }
 }

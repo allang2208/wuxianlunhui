@@ -316,6 +316,10 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 player.weaponAnim.timer = 0;
             },
             updateEquipSlots() {
+                // 装备/卸下/切换后重算玩家面板（防具防御/首饰加成/套装套效）
+                const p = this.player;
+                if (p && typeof p.calculateCombatStats === 'function') p.calculateCombatStats();
+                if (p && typeof p.updateMaxStats === 'function') p.updateMaxStats();
                 renderEquipSlots(this);
             },
             unequip(slotKey) {
@@ -708,5 +712,4 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 renderInventorySlots(this);
             }
         };
-
 
