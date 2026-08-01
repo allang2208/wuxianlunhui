@@ -171,28 +171,7 @@
       "direction": "left",
       "cooldownMs": 2000,
       "triggerDistance": 30,
-      "entries": [
-        {
-          "targetScene": "scene2",
-          "label": "场景二"
-        },
-        {
-          "targetScene": "scene3",
-          "label": "场景三"
-        },
-        {
-          "targetScene": "scene4",
-          "label": "场景四"
-        },
-        {
-          "targetScene": "scene5",
-          "label": "场景五"
-        },
-        {
-          "targetScene": "scene7",
-          "label": "僵尸地牢"
-        }
-      ]
+      "entries": []
     }
   },
   "targets": {

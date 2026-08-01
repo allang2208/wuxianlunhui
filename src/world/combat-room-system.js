@@ -1,4 +1,4 @@
-import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf } from '../world/wall-system.js';
+import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { pathFinder } from '../ai/pathfinder.js';
@@ -22,14 +22,17 @@ import { pathFinder } from '../ai/pathfinder.js';
 import { CONFIG } from '../config/config.js';
 import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { applyDungeonFloor, applyDiamondFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
+import { applyDungeonFloor, applyDiamondFloor, applyArenaFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
 import { TrapSystem } from './trap-system.js';
 import { GateLight } from '../effects/gate-light.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
-import { getObstacleDefaults } from './wall-prefabs.js';
+import { getObstacleDefaults, getWallPrefabLibrary } from './wall-prefabs.js';
+import { SoundManager } from '../ui/sound-manager.js';
+import { computeArenaLayout, pointInDiamond, ARENA_AXIS } from './combat-arena-layout.js';
+import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
 
 /** 贴图键 → 障碍物 geoKey（ISO_WALL_GEO 中 category==='obstacle' 的键；非障碍物返回 null） */
 function _obstacleGeoKeyForTex(tex) {
@@ -145,6 +148,9 @@ export const CombatRoomSystem = {
     _combatMonsterKeys: [],
     _player: null,
 
+    // 三房间串联竞技场（D 级及以上战斗事件；null = 单房间模式）
+    _arena: null,
+
     // 配置引用（从 data/dungeon-config.json 加载）
     config: createCombatRoomConfig(),
 
@@ -213,6 +219,18 @@ export const CombatRoomSystem = {
 
         // 9. 门闸：距玩家最近的直墙件替换为带门直墙，播关门动画困场
         this._setupGate(player);
+
+        // 10. 障碍物（大/中/小分档：大中 foot 碰撞、小纯装饰；避开房心/门口/玩家出生点）
+        const gateInfo = WallGate.getGateInfo();
+        const obstacleAvoid = [{ x: player.x, y: player.y, r: 150 }];
+        if (gateInfo && gateInfo.center) obstacleAvoid.push({ x: gateInfo.center.x, y: gateInfo.center.y, r: 220 });
+        ObstacleSpawnSystem.spawnForRoom(this._roomBounds, {
+            avoidPoints: obstacleAvoid,
+            player,
+            decoSprites: this._decoSprites || (this._decoSprites = []),
+        });
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         return {
             size: roomSize,
@@ -347,7 +365,7 @@ export const CombatRoomSystem = {
         return this._combatMonsters;
     },
 
-    /** 在工头附近生成一个矿洞（安全位置，保证生成的僵尸可以走出） */
+    /** 在工头附近生成一个矿洞（安全位置 + 召唤方向镜像，保证生成的僵尸可以走出、不卡墙角） */
     _spawnMineCaveNearForeman(foreman, Game, bounds) {
         try {
             if (!createMineCave) return;
@@ -356,11 +374,22 @@ export const CombatRoomSystem = {
             const minDist = 150, maxDist = 300;
             let caveX = foreman.x, caveY = foreman.y;
             let found = false;
+            let spawnDirX = 1;
 
             // 刷怪排除区（宝箱房：未开门的房内不刷矿洞，与 spawnMonsters 同款判定）
             const exc = (typeof ChestRoomSystem !== 'undefined') ? ChestRoomSystem._exclusion : null;
             const inExclusion = (x, y) => !!exc &&
                 Math.abs(x - exc.cx) / Math.max(1, exc.rx) + Math.abs(y - exc.cy) / Math.max(1, exc.ry) <= 1;
+
+            // 召唤出口校验：出怪点与外延探测点都可行走（出怪卡墙角的根因——
+            // 矿洞贴墙时出怪点嵌墙，WallSystem.resolve 沿墙切向弹出把矿工挤进墙角死袋）
+            const forwardX = 50; // enemy-config mineCave.attackSkills.spawn.forwardX
+            const probeRadius = 15; // 矿工 groundRadius 量级
+            const exitWalkable = (x, y, dir) => {
+                if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return true;
+                return WallSystem.canMoveTo(x + forwardX * dir, y, probeRadius)
+                    && WallSystem.canMoveTo(x + (forwardX + 80) * dir, y, probeRadius);
+            };
 
             // 尝试在工头周围找一个安全位置（可移动，不卡墙）
             for (let attempt = 0; attempt < 16 && !found; attempt++) {
@@ -377,19 +406,37 @@ export const CombatRoomSystem = {
                 if (inExclusion(tx, ty)) continue;
                 // 碰撞检查
                 if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(tx, ty, caveRadius)) continue;
+                // 召唤方向：优先朝房中心一侧；该侧出口不可走则镜像，两侧都堵换候选点
+                const prefDir = (bounds.cx >= tx) ? 1 : -1;
+                if (exitWalkable(tx, ty, prefDir)) {
+                    spawnDirX = prefDir;
+                } else if (exitWalkable(tx, ty, -prefDir)) {
+                    spawnDirX = -prefDir;
+                } else {
+                    continue;
+                }
                 caveX = tx; caveY = ty; found = true;
             }
 
-            // 兜底：找不到就往场地中心方向收（保证在菱形内）；落入排除区则放弃本次生成
+            // 兜底：找不到就往场地中心方向收（保证在菱形内）；落入排除区或出口两侧都堵则放弃本次生成
             if (!found) {
                 const dxc = bounds.cx - foreman.x, dyc = bounds.cy - foreman.y;
                 const dc = Math.hypot(dxc, dyc) || 1;
                 caveX = foreman.x + dxc / dc * minDist;
                 caveY = foreman.y + dyc / dc * minDist;
                 if (inExclusion(caveX, caveY)) return;
+                const prefDir = (bounds.cx >= caveX) ? 1 : -1;
+                if (exitWalkable(caveX, caveY, prefDir)) {
+                    spawnDirX = prefDir;
+                } else if (exitWalkable(caveX, caveY, -prefDir)) {
+                    spawnDirX = -prefDir;
+                } else {
+                    console.warn('[CombatRoomSystem] 矿洞生成放弃：召唤出口两侧均被墙堵住');
+                    return;
+                }
             }
 
-            const cave = createMineCave(caveX, caveY);
+            const cave = createMineCave(caveX, caveY, { spawnDirX });
             const key = `combat_minecave_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
             Game.entities.set(key, cave);
             // 只登记 key（清场按 keys 删除），不进 _combatMonsters——矿洞是生成器，不应阻塞战斗完成判定
@@ -428,19 +475,27 @@ export const CombatRoomSystem = {
      * 清理战斗场地并恢复原始场景
      * 调用此方法后，场地将被销毁，玩家回到地图模式
      */
-    /** 门闸：距玩家最近的直墙件替换为带门直墙，入场播关门动画困场 */
-    _setupGate(player) {
+    /**
+     * 门闸：距目标点最近的直墙件替换为带门直墙，入场播关门动画困场
+     * @param {Object} target 目标点（{x, y}；旧调用直接传 player，玩家实体自带 x/y）
+     * @param {Object} [opts]
+     * @param {boolean} [opts.straightOnly] 只替换直墙件（竞技场多房间场景：
+     *   跳过"优先样式门贴图件"分支——三房串联时转角装饰门可能离目标边中点很远）
+     */
+    _setupGate(target, opts = {}) {
         if (!this._diamond || !WallSystem.isoVisuals) return;
         // 被替换件候选：①优先样式门贴图件（转角装饰门→功能门，一间房天然只有一扇门）；
-        // ②无门件时回退到距玩家最近的直墙件（跳过转角预制件）
+        // ②无门件时回退到距目标点最近的直墙件（跳过转角预制件）
         const styleGeos = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos() : { straight: 'straight', gate: 'gate' };
         const straightTex = (ISO_WALL_GEO[styleGeos.straight] || ISO_WALL_GEO.straight).tex;
         const styleGateTex = (ISO_WALL_GEO[styleGeos.gate] || ISO_WALL_GEO.gate).tex;
         let best = null, bestD = Infinity;
-        for (const p of WallSystem.isoVisuals) {
-            if (p.tex !== styleGateTex) continue;
-            const d = Math.hypot(p.x - player.x, p.y - player.y);
-            if (d < bestD) { bestD = d; best = p; }
+        if (!opts.straightOnly) {
+            for (const p of WallSystem.isoVisuals) {
+                if (p.tex !== styleGateTex) continue;
+                const d = Math.hypot(p.x - target.x, p.y - target.y);
+                if (d < bestD) { bestD = d; best = p; }
+            }
         }
         if (!best) {
             // 排除"近顶点件"（转角臂与其近整瓦重复瓦片）：替换它们会暴露 overshoot 结构——
@@ -461,7 +516,7 @@ export const CombatRoomSystem = {
                 if (p.tex !== straightTex) continue;
                 if (p._corner) continue; // 转角预制件不替换（避免夹角处出现装饰门+功能门双门）
                 if (nearVertex(p)) continue;
-                const d2 = Math.hypot(p.x - player.x, p.y - player.y);
+                const d2 = Math.hypot(p.x - target.x, p.y - target.y);
                 if (d2 < bestD) { bestD = d2; best = p; }
             }
         }
@@ -571,13 +626,19 @@ export const CombatRoomSystem = {
         const geo = this._tileGeoFor(tileKey);
         const stepX = geo ? geo.w - (profile.overlapX ?? 0) : 380;
         const stepY = geo ? geo.h / 2 - (profile.overlapY ?? 0) : 110;
+        // 竞技场：逐房间菱形裁剪（单房间模式只有 _diamond 一个）
+        const diamonds = this._arena
+            ? this._arena.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry }))
+            : [{ cx: d.cx, cy: d.cy, rx: d.rx, ry: d.ry }];
         for (let r = -2; r * stepY < d.worldH + 200; r++) {
             const off = (r % 2 !== 0) ? stepX / 2 : 0;
             for (let gx = -stepX; gx < d.worldW + stepX; gx += stepX) {
                 const cx = gx + off, cy = r * stepY;
-                // 只在菱形内（内缩）且避开中心（宝箱房/宝箱）250px
-                if (Math.abs(cx - d.cx) / Math.max(1, d.rx - 120) + Math.abs(cy - d.cy) / Math.max(1, d.ry - 80) > 1) continue;
-                if (Math.hypot(cx - d.cx, cy - d.cy) < 250) continue;
+                // 只在某个房间菱形内（内缩）且避开该房中心（宝箱房/宝箱）250px
+                const room = diamonds.find(dm =>
+                    Math.abs(cx - dm.cx) / Math.max(1, dm.rx - 120) + Math.abs(cy - dm.cy) / Math.max(1, dm.ry - 80) <= 1);
+                if (!room) continue;
+                if (Math.hypot(cx - room.cx, cy - room.cy) < 250) continue;
                 if (Math.random() >= chance) continue;
                 const key = keys[Math.floor(Math.random() * keys.length)];
                 const sp = scene.add.image(cx, cy, key);
@@ -746,6 +807,8 @@ export const CombatRoomSystem = {
     cleanupGate() {
         WallGate.destroy();
         GateLight.destroy();
+        // 竞技场通道门（三房间串联）：拆门 sprite/碰撞段，墙件随场景恢复还原
+        this._cleanupArenaGates();
         // 宝箱房（精英战）：拆门墙/宝箱/倒计时，直墙件随场景恢复还原
         if (typeof ChestRoomSystem !== 'undefined') ChestRoomSystem.cleanup();
         // 销毁残留 X 光透视对象（墙后金币/怪物的透视圈与克隆会带到地图界面）
@@ -814,20 +877,27 @@ export const CombatRoomSystem = {
 
     /**
      * 仅清理怪物（保留场地，用于多波次战斗）
+     * F/E 单房间跨波次：保留墓碑及其召唤物（tombstone_ 前缀，25% 刷新的召唤器持续生效）；
+     * D+ 竞技场换房间（this._arena 存在）：照常全部清理
      */
     cleanupMonstersOnly() {
         // 经统一入口删除，同步销毁贴图（修复多波次战斗胖子僵尸尸体残留）；
         // 存活尸体（如胖子僵尸尸体）跳过删除，按自身计时器走完生命周期、持续造成腐蚀伤害
         const Game = gameRef();
+        const preserveTombstone = !this._arena;
         for (const key of this._combatMonsterKeys) {
+            if (preserveTombstone && key.startsWith('tombstone_')) continue;
             if (Game && typeof Game.removeEntity === 'function') {
                 if (typeof Game.isPreservedCorpse === 'function' && Game.isPreservedCorpse(Game.entities.get(key))) continue;
                 Game.removeEntity(key);
             }
         }
-        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工 / 墓碑召唤僵尸，未进追踪列表的泄漏）
+        // 兜底清理战斗召唤物（巫师召唤犬 zombieDog_ / 集合体召唤 amalgam_ / 矿洞召唤矿工，未进追踪列表的泄漏）；
+        // 墓碑系（tombstone_ 主键与召唤物）在 F/E 跨波次保留，竞技场换房间才走前缀清理
         if (Game && typeof Game.removeEntitiesByPrefix === 'function') {
-            Game.removeEntitiesByPrefix('zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_', 'tombstone_');
+            const prefixes = ['zombieDog_', 'amalgam_fat_', 'amalgam_zombie_', 'mineCave_miner_', 'mineCave_lantern_'];
+            if (!preserveTombstone) prefixes.push('tombstone_');
+            Game.removeEntitiesByPrefix(...prefixes);
         }
         this._combatMonsters = [];
         this._combatMonsterKeys = [];
@@ -932,6 +1002,697 @@ export const CombatRoomSystem = {
         }
 
         
+    },
+
+    // ============================================================
+    // 三房间串联竞技场（D 级及以上战斗事件）
+    // ============================================================
+    //
+    // 布局：3 个菱形房间沿左上→右下斜轴串联（combat-arena-layout.js 纯函数计算），
+    // 房间 1/2 = normalSize，房间 3 = eliteSize（含宝箱房）；相邻房间在"右下/左上墙壁中段"
+    // 开洞，用摆墙编辑器的通道预制（「上下通道」/「左右通道」镜像套）连接；
+    // 预制的门墙件建成可开闭功能门（_arenaGate 碰撞段，初始常开），
+    // 房间 3 右下墙中段的 WallGate 单例 + 门外白区作为清完后的退出区域。
+    //
+    // 波次编排（dungeon-map-system）：进入房间 N 才关门刷第 N 波，清完开门。
+
+    /**
+     * 进入三房间串联竞技场
+     * @param {Object} player 玩家实体
+     * @param {Object} options { normalSize, eliteSize }
+     * @returns {Object|false} 场地信息 { rooms, worldW, worldH }；预制缺失/轴向不符返回 false（调用方回退单房间）
+     */
+    enterCombatArena(player, options = {}) {
+        if (!player) {
+            console.error('[CombatRoomSystem] enterCombatArena: player is required');
+            return false;
+        }
+
+        // 1. 解析通道预制（墙样式键 → default 回退；两门墙件底边中心距 = 通道长度）
+        const arenaCfg = DungeonConfig.getCombatArenaConfig();
+        const analysis = this._resolvePassagePrefab(arenaCfg);
+        if (!analysis) {
+            console.warn('[CombatRoomSystem] 竞技场：无可用通道预制（combatArena.passagePrefabs），回退单房间');
+            return false;
+        }
+
+        const normalSize = options.normalSize || this.config.roomSize.normal;
+        const eliteSize = options.eliteSize || this.config.roomSize.elite;
+        const layout = computeArenaLayout({
+            normalSize, eliteSize,
+            passageLen: analysis.len,
+            gap: arenaCfg.passageGap || 0,
+        });
+
+        this._player = player;
+        this.state = 'combat';
+        this.active = true;
+
+        // 2. 备份场景（离场时 cleanupRoom → _restoreSceneState 一次性恢复）
+        this._backupSceneState();
+
+        // 3. 地形：三房地板 + 通道精确平行四边形（并集裁剪）+ 连续墙脚阴影
+        //    （E/F 同口径：菱形整圈渐变含门口；走廊只描两条长边），并同步世界尺寸
+        const corridors = [];
+        const patches = [];
+        for (let i = 0; i < 2; i++) {
+            corridors.push(this._arenaPassageFloorQuad(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]));
+        }
+        applyArenaFloor(layout.worldW, layout.worldH,
+            layout.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry })),
+            corridors, patches, this.config.terrain);
+
+        // 4. 墙体：三房菱形墙（一次清空后逐房追加）
+        WallSystem.walls = [];
+        WallSystem.trees = [];
+        WallSystem.isoVisuals = [];
+        for (const r of layout.rooms) {
+            WallSystem.buildIsoDiamondWalls(r.cx, r.cy, r.rx, r.ry);
+        }
+
+        // 5. 通道：平移预制 → 摘门洞覆盖的墙件（"移除对应大小的墙"）→ 直墙入件 / 门墙建功能门
+        const passageRecs = [];
+        for (let i = 0; i < 2; i++) {
+            const rec = this._placeArenaPassage(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+            if (!rec) {
+                console.warn('[CombatRoomSystem] 竞技场：通道放置失败，回退单房间');
+                // 已放好的通道门（如前一条通道）手动销毁——_arena 尚未建立，_cleanupArenaGates 管不到
+                for (const done of passageRecs) {
+                    for (const inst of done.gates) {
+                        if (WallSystem.isoSegments) {
+                            for (const s of [...inst.wallSegs, inst.gateSeg]) {
+                                const si = WallSystem.isoSegments.indexOf(s);
+                                if (si >= 0) WallSystem.isoSegments.splice(si, 1);
+                            }
+                        }
+                        if (inst.sprite && inst.sprite.scene) inst.sprite.destroy();
+                    }
+                }
+                this._restoreSceneState();
+                this.active = false;
+                this.state = 'idle';
+                this._player = null;
+                return false;
+            }
+            passageRecs.push(rec);
+        }
+
+        // 5.5 通道侧墙封口：预制侧墙比门到门跨度短，且与房间墙成 60° 相接，
+        //     两侧各留一个楔形缺口（可见黑三角/可走出世界）——沿侧墙延长线补瓦到房间边线
+        for (let i = 0; i < 2; i++) {
+            this._sealPassageSides(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+        }
+
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        // 6. 竞技场状态（_diamond 固定指向房间 3：出口门/白区/离场判定都以其为准；
+        //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/陷阱/墓碑共用现有逻辑）
+        const r3 = layout.rooms[2];
+        this._arena = { rooms: layout.rooms, passages: passageRecs, stage: 1, awaiting: 0 };
+        this._diamond = { rx: r3.rx, ry: r3.ry, cx: r3.cx, cy: r3.cy, worldW: layout.worldW, worldH: layout.worldH };
+        this._roomBounds = layout.rooms[0].bounds;
+        this._entranceEdge = 0;
+        this._oppositeEdge = 2; // 怪物统一刷当前房间下顶点附近
+
+        // 7. 地板装饰点缀（沼泽 deco：逐房间菱形裁剪）
+        this._spawnFloorDeco();
+
+        // 8. 出口门：房间 3 右下边中点（straightOnly——三房各有转角装饰门，必须锚定目标边中点）
+        this._setupGate({ x: r3.cx + r3.rx / 2, y: r3.cy + r3.ry / 2 }, { straightOnly: true });
+
+        // 8.6 开洞边缝隙填充：沿房间边线投影补瓦（只叠不缺，edgeFill 同口径）——
+        //     5 条开洞边：房1 RB、房2 LT/RB、房3 LT（通道门）、房3 RB（出口门）
+        const allGateSegs = passageRecs.flatMap(rec => rec.gates.map(g => [g.baseA, g.baseB]));
+        if (WallGate._seg) allGateSegs.push(WallGate._seg);
+        this._fillEdgeGaps(layout.rooms[0], 'RB', allGateSegs);
+        this._fillEdgeGaps(layout.rooms[1], 'LT', allGateSegs);
+        this._fillEdgeGaps(layout.rooms[1], 'RB', allGateSegs);
+        this._fillEdgeGaps(layout.rooms[2], 'LT', allGateSegs);
+        this._fillEdgeGaps(layout.rooms[2], 'RB', allGateSegs);
+
+        // 8.5 障碍物：每房独立一套（大中碰撞/小装饰），避开房心/门口/玩家出生点；
+        //     先于陷阱生成（陷阱 canMoveTo 校验才能包含障碍 footprint）
+        const r1 = layout.rooms[0];
+        const spawnX = r1.cx, spawnY = r1.cy - r1.ry * 0.3;
+        const exitInfo = WallGate.getGateInfo();
+        const gateNear = (rec, mid) => {
+            let best = null, bd = Infinity;
+            for (const inst of rec.gates) {
+                const d = Math.hypot(inst.center.x - mid.x, inst.center.y - mid.y);
+                if (d < bd) { bd = d; best = inst; }
+            }
+            return best ? best.center : mid;
+        };
+        for (const r of layout.rooms) {
+            const avoid = [];
+            if (r.index === 1) avoid.push({ x: spawnX, y: spawnY, r: 150 });
+            // 来路门（房间 2/3：上一条通道的 gB 端，开着 → 可达性校验目标）
+            if (r.index > 1) {
+                const c = gateNear(passageRecs[r.index - 2], layout.passages[r.index - 2].mid2);
+                avoid.push({ x: c.x, y: c.y, r: 220, reach: true });
+            }
+            // 去路门（房间 1/2：下一条通道的 gA 端，开着 → 可达性校验目标）
+            if (r.index < layout.rooms.length) {
+                const c = gateNear(passageRecs[r.index - 1], layout.passages[r.index - 1].mid1);
+                avoid.push({ x: c.x, y: c.y, r: 220, reach: true });
+            }
+            // 出口门（关闭中，不参与可达性校验，只排除放置）
+            if (r.index === 3 && exitInfo && exitInfo.center) {
+                avoid.push({ x: exitInfo.center.x, y: exitInfo.center.y, r: 220 });
+            }
+            ObstacleSpawnSystem.spawnForRoom(r.bounds, {
+                dungeonType: options.dungeonType,
+                avoidPoints: avoid,
+                player: { x: spawnX, y: spawnY },
+                decoSprites: this._decoSprites || (this._decoSprites = []),
+            });
+        }
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        // 9. 玩家生成：房间 1 中心偏上（防嵌墙兜底）
+        player.x = spawnX;
+        player.y = spawnY;
+        if (WallSystem.canMoveTo && !WallSystem.canMoveTo(player.x, player.y, player.groundRadius || 20) && WallSystem.findSafeSpawn) {
+            const safe = WallSystem.findSafeSpawn(player.x, player.y, player.groundRadius || 20);
+            player.x = safe.x;
+            player.y = safe.y;
+        }
+        const Game = gameRef();
+        if (Game && Game.entities) Game.entities.set('player', player);
+
+        // 10. 相机
+        this._setupCamera(player);
+
+        return { rooms: layout.rooms, worldW: layout.worldW, worldH: layout.worldH };
+    },
+
+    /** 解析通道预制：样式键 → default 回退；校验双门墙件与串联轴对齐（|dot| ≥ 0.8） */
+    _resolvePassagePrefab(arenaCfg) {
+        const lib = getWallPrefabLibrary();
+        const names = (arenaCfg && arenaCfg.passagePrefabs) || { default: '左右通道' };
+        // 当前墙样式键（zombie/swamp…）：取样式表第一个键名末段做模糊匹配，找不到再用 default
+        const candidates = [];
+        const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
+        if (style && style.chestPrefab) {
+            // 样式表以 chestPrefab 区分（宝箱房/沼泽宝箱房）：含"沼泽"键优先沼泽通道
+            const isSwamp = /沼泽/.test(style.chestPrefab);
+            if (isSwamp) candidates.push(names.swamp);
+        }
+        candidates.push(names.default);
+        for (const name of candidates) {
+            if (!name || !lib[name]) continue;
+            const analysis = this._analyzePassagePrefab(lib[name]);
+            if (analysis) return analysis;
+            console.warn(`[CombatRoomSystem] 通道预制「${name}」轴向不符或门墙件不足，尝试下一候选`);
+        }
+        return null;
+    },
+
+    /** 预制解析：提取两个功能门墙件的底边中心与间距（通道长度），校验与串联轴对齐 */
+    _analyzePassagePrefab(def) {
+        if (!def || !Array.isArray(def.pieces)) return null;
+        const gates = [];
+        for (const p of def.pieces) {
+            if (!this._isFunctionalGatePiece(p)) continue;
+            const seg = WallSystem._pieceBaseSegments(p)[0];
+            if (!seg) continue;
+            gates.push({
+                piece: p,
+                center: { x: (seg[0].x + seg[1].x) / 2, y: (seg[0].y + seg[1].y) / 2 },
+            });
+        }
+        if (gates.length !== 2) return null;
+        let [gA, gB] = gates;
+        let vx = gB.center.x - gA.center.x, vy = gB.center.y - gA.center.y;
+        const len = Math.hypot(vx, vy);
+        if (len < 100) return null;
+        // 与串联轴 (0.866, 0.5) 对齐校验；反向则交换两端（↖ 端接房间 N）
+        let dot = (vx * ARENA_AXIS.x + vy * ARENA_AXIS.y) / len;
+        if (dot < 0) { [gA, gB] = [gB, gA]; dot = -dot; }
+        if (dot < 0.8) return null;
+        // 门墙底边跨度（梯形地板的门口端宽度用）
+        const segA = WallSystem._pieceBaseSegments(gA.piece)[0];
+        const span = segA ? Math.hypot(segA[1].x - segA[0].x, segA[1].y - segA[0].y) : 300;
+        return { def, gA, gB, len, span };
+    },
+
+    /** 是否功能门墙件（有门洞几何且非永久开放装饰门、非障碍物） */
+    _isFunctionalGatePiece(p) {
+        const g = WallSystem._geoForTex(p.tex);
+        return !!(g && g.category !== 'obstacle' && !g.openDoor && isoGateHole(g));
+    },
+
+    /**
+     * 放置一条通道：预制按 gA→mid1 纯平移（gB 应落 mid2，容差 80px）；
+     * 先两轮摘除两门覆盖的墙件，再把直墙件推入 isoVisuals、门墙件建功能门（初始常开）
+     */
+    _placeArenaPassage(analysis, passage, roomA, roomB) {
+        const t = { x: passage.mid1.x - analysis.gA.center.x, y: passage.mid1.y - analysis.gA.center.y };
+        const bx = analysis.gB.center.x + t.x, by = analysis.gB.center.y + t.y;
+        if (Math.hypot(bx - passage.mid2.x, by - passage.mid2.y) > 80) {
+            console.warn('[CombatRoomSystem] 通道预制长度与房间间距不符',
+                Math.round(Math.hypot(bx - passage.mid2.x, by - passage.mid2.y)), 'px');
+            return null;
+        }
+        // 第一轮：平移全部件，先让两门墙"移除对应大小的墙"（摘覆盖跨度的房间墙件）
+        const translated = analysis.def.pieces.map(p => ({
+            ...p,
+            x: p.x + t.x,
+            y: p.y + t.y,
+            depth: p.depth != null ? p.depth + t.y : p.depth,
+        }));
+        for (const q of translated) {
+            if (!this._isFunctionalGatePiece(q)) continue;
+            const seg = WallSystem._pieceBaseSegments(q)[0];
+            if (seg) WallSystem.removeSpanCoveringPieces(seg);
+        }
+        // 第二轮：直墙件入件、门墙件建功能门（深度全场统一 max 规则）
+        const gates = [];
+        for (const q of translated) {
+            if (this._isFunctionalGatePiece(q)) {
+                const inst = this._createArenaGate(q, 'max');
+                if (inst) gates.push(inst);
+            } else {
+                // 直墙件裁剪：越进房间内部的部分裁掉（预制侧墙比门到门跨度长，
+                // 60° 相接处会越过房间边线探入房内/横跨门口——"墙壁突出通道"的根因）
+                const clipped = this._clipPassagePieceToRooms(q, passage, roomA, roomB);
+                if (clipped) {
+                    // 深度统一走 WallSystem.depthOf 唯一入口（丢弃预制保存的 hub 坐标深度值）
+                    clipped.depth = WallSystem.depthOf(clipped);
+                    WallSystem.isoVisuals.push(clipped);
+                }
+            }
+        }
+        return { index: passage.index, mid1: passage.mid1, mid2: passage.mid2, center: passage.center, gates };
+    },
+
+    /**
+     * 通道地板（精确平行四边形，唯一地板形状——不再用"走廊块+门口补丁"拼接）：
+     * - 两条侧边 = 通道两侧墙线的实测位置（预制直墙件到轴的垂直距离，内收 12px 藏入墙下）；
+     * - 两个端边 = 两侧房间的边线各向房内平移 80px（与房间菱形地板叠合，天然盖住门槛）。
+     * 侧边与房间墙成 60° 的楔形区由 _sealPassageSides 的封口墙件遮挡。
+     * 旧版"按走廊轴居中的等宽块"：两侧墙距轴不等（+184/-211），居中展宽一侧探出墙外、
+     * 另一侧露出黑条（"地板超出边界 + 黑色区域"的根因）。
+     */
+    _arenaPassageFloorQuad(analysis, passage, roomA, roomB) {
+        const axis = passage.axis;
+        const perp = { x: -axis.y, y: axis.x };
+        // 实测两侧墙距（预制坐标系下量取，平移不变量）
+        let dPos = Infinity, dNeg = Infinity;
+        for (const p of analysis.def.pieces) {
+            if (this._isFunctionalGatePiece(p)) continue;
+            const seg = WallSystem._pieceBaseSegments(p)[0];
+            if (!seg) continue;
+            const cx = (seg[0].x + seg[1].x) / 2, cy = (seg[0].y + seg[1].y) / 2;
+            const d = (cx - analysis.gA.center.x) * perp.x + (cy - analysis.gA.center.y) * perp.y;
+            if (d > 40 && d < dPos) dPos = d;
+            if (d < -40 && -d < dNeg) dNeg = -d;
+        }
+        if (dPos === Infinity) dPos = 172;
+        if (dNeg === Infinity) dNeg = 199;
+        const mid = passage.center;
+        // 两条侧边（点 + 方向 axis）
+        const near = { P: { x: mid.x + perp.x * (dPos - 12), y: mid.y + perp.y * (dPos - 12) }, d: axis };
+        const far = { P: { x: mid.x - perp.x * (dNeg - 12), y: mid.y - perp.y * (dNeg - 12) }, d: axis };
+        // 两个端边（房间边线向房内平移 80px）
+        const endA = {
+            P: { x: roomA.cx + roomA.rx - axis.x * 80, y: roomA.cy - axis.y * 80 },
+            d: { x: -roomA.rx, y: roomA.ry },
+        };
+        const endB = {
+            P: { x: roomB.cx + axis.x * 80, y: roomB.cy - roomB.ry + axis.y * 80 },
+            d: { x: -roomB.rx, y: roomB.ry },
+        };
+        const intersect = (l1, l2) => {
+            const ex = l2.P.x - l1.P.x, ey = l2.P.y - l1.P.y;
+            const denom = l1.d.x * l2.d.y - l1.d.y * l2.d.x;
+            if (Math.abs(denom) < 1e-6) return l1.P;
+            const t = (ex * l2.d.y - ey * l2.d.x) / denom;
+            return { x: l1.P.x + l1.d.x * t, y: l1.P.y + l1.d.y * t };
+        };
+        return {
+            points: [
+                intersect(near, endA),
+                intersect(near, endB),
+                intersect(far, endB),
+                intersect(far, endA),
+            ],
+        };
+    },
+
+    /**
+     * 建通道功能门（碰撞模型同宝箱房门：两侧墙身常开 + 门洞段按开关启停）
+     * 初始常开（帧 = 末帧，门洞段不入碰撞）；碰撞段标 _arenaGate（rebuildIsoCollision 保留）
+     * 深度 = 整墙 min/max 规则（mode='max' 前墙 / 'min' 后墙，与菱形墙、宝箱房全场统一）
+     */
+    _createArenaGate(piece, mode = 'max') {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (!scene || !scene.textures.exists(piece.tex)) return null;
+        const g = WallSystem._geoForTex(piece.tex) || ISO_WALL_GEO.gate;
+        const frames = g.frames || 16;
+        const sprite = scene.add.sprite(piece.x, piece.y, piece.tex, frames - 1);
+        sprite.setOrigin(0.5, 0.5);
+        sprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
+        sprite.setFlipX(!!piece.flipX);
+
+        const baseSegs = WallSystem._pieceBaseSegments(piece);
+        if (!baseSegs.length) { sprite.destroy(); return null; }
+        const [gA, gB] = baseSegs[0];
+        const hole = isoGateHole(g);
+        if (!hole) { sprite.destroy(); return null; }
+        const ht = isoHalfThick(g);
+        const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
+        const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
+        // 整墙遮挡：深度 = 底边 min/max（全场唯一规则；旧"底边-墙高"压低规则已废）
+        sprite.setDepth(mode === 'min' ? Math.min(gA.y, gB.y) : Math.max(gA.y, gB.y));
+
+        const wallSegs = [
+            { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _arenaGate: true },
+            { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _arenaGate: true },
+        ];
+        const gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _arenaGate: true };
+        if (WallSystem.isoSegments) {
+            for (const s of wallSegs) WallSystem.isoSegments.push(s);
+            // 初始常开：门洞段不入碰撞
+        }
+        // 门洞中心（世界）：障碍物/陷阱的门口排除与可达性校验用
+        const center = { x: (g1.x + g2.x) / 2, y: (g1.y + g2.y) / 2 };
+        return { sprite, wallSegs, gateSeg, center, baseA: gA, baseB: gB, open: true, frames, _animCounter: null };
+    },
+
+    /**
+     * 通道直墙件房间裁剪：预制侧墙比门到门跨度长，60° 相接处会越过房间边线
+     * 探入房内/横跨门口（"墙壁突出通道"的根因）。
+     * 处理：底边线段与两侧房间边线求交，越进房内的端点裁回边线（外留 8px 叠合），
+     * 整件全在房内的直接丢弃；中心/scaleX 同步折算（高度 scaleY 与深度不变）。
+     */
+    _clipPassagePieceToRooms(piece, passage, roomA, roomB) {
+        const seg = WallSystem._pieceBaseSegments(piece)[0];
+        if (!seg) return piece;
+        let [A, B] = seg.map(p => ({ ...p }));
+        // 房间边线：roomA RB（R→B）/ roomB LT（T→L），"房内" = 朝向房心一侧
+        const edges = [
+            { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry }, c: { x: roomA.cx, y: roomA.cy } },
+            { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry }, c: { x: roomB.cx, y: roomB.cy } },
+        ];
+        for (const e of edges) {
+            // 法线（指向房心）
+            let nx = -e.d.y, ny = e.d.x;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl; ny /= nl;
+            const signC = (e.c.x - e.P.x) * nx + (e.c.y - e.P.y) * ny;
+            if (signC < 0) { nx = -nx; ny = -ny; }
+            const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny; // >0 = 房内
+            const sA = sOf(A), sB = sOf(B);
+            const INSIDE = 8; // 允许越线 8px（叠合公差）
+            if (sA > INSIDE && sB > INSIDE) return null; // 整件在房内：丢弃
+            if (sA > INSIDE || sB > INSIDE) {
+                // 求与"边线向房内 +8px"的交点，裁回越线端点
+                const clipPt = (inside, outside) => {
+                    const si = sOf(inside), so = sOf(outside);
+                    const t = (so - INSIDE) / (so - si);
+                    return { x: outside.x + (inside.x - outside.x) * t, y: outside.y + (inside.y - outside.y) * t };
+                };
+                if (sA > INSIDE) A = clipPt(A, B);
+                if (sB > INSIDE) B = clipPt(B, A);
+            }
+        }
+        const oldLen = Math.hypot(seg[1].x - seg[0].x, seg[1].y - seg[0].y);
+        const newLen = Math.hypot(B.x - A.x, B.y - A.y);
+        if (newLen < 10) return null; // 裁完不足一截：丢弃
+        // 中心随底边中心平移，scaleX 按裁剪比例折算（高度/深度不变）
+        const cxOld = (seg[0].x + seg[1].x) / 2, cyOld = (seg[0].y + seg[1].y) / 2;
+        const cxNew = (A.x + B.x) / 2, cyNew = (A.y + B.y) / 2;
+        return {
+            ...piece,
+            x: piece.x + (cxNew - cxOld),
+            y: piece.y + (cyNew - cyOld),
+            scaleX: (piece.scaleX ?? 1) * (newLen / oldLen),
+        };
+    },
+
+    /**
+     * 通道侧墙封口：预制侧墙（与走廊轴平行的直墙件）两端若到不了两侧房间的边线，
+     * 沿走廊轴方向用整瓦补到边线交点（两端各 8px 叠合）。
+     * 楔形缺口的根因：预制侧墙长度 < 门到门跨度，且侧墙与房间墙成 60° 相接。
+     * @param {Object} analysis 通道预制解析（_analyzePassagePrefab）
+     * @param {Object} passage 布局通道（mid1/mid2/axis）
+     * @param {Object} roomA 房间 N（RB 边）/ roomB 房间 N+1（LT 边）
+     */
+    _sealPassageSides(analysis, passage, roomA, roomB) {
+        const axis = passage.axis;
+        const perp = { x: -axis.y, y: axis.x };
+        const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().straight : 'straight';
+        const flip = axis.x * axis.y <= 0; // ↘ 走廊为 "\" 方向（flip=false）
+        // 两条房间边线（点 + 方向）
+        const edgeA = { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry } }; // RB：R→B
+        const edgeB = { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry } }; // LT：T→L
+        // 收集该通道的侧墙件（平行于走廊轴、在走廊侧墙带内、且在本通道跨度范围内——
+        // 不过滤跨度会把其他通道/房间的平行墙并入，填充出横跨全场的 stray 墙）
+        const mid = passage.center;
+        const halfSpan = (passage.length || 1000) / 2 + 250;
+        const byPiece = [];
+        for (const p of WallSystem.isoVisuals) {
+            const seg = WallSystem._pieceBaseSegments(p)[0];
+            if (!seg) continue;
+            const [a, b] = seg;
+            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            const perpD = (mx - mid.x) * perp.x + (my - mid.y) * perp.y;
+            if (Math.abs(perpD) < 60 || Math.abs(perpD) > 400) continue; // 轴线（门/端帽）与远处排除
+            const along = (mx - mid.x) * axis.x + (my - mid.y) * axis.y;
+            if (Math.abs(along) > halfSpan) continue; // 本通道跨度之外（其他通道/房间边墙）
+            let dx = b.x - a.x, dy = b.y - a.y;
+            const L = Math.hypot(dx, dy) || 1;
+            if (Math.abs(dx * axis.x + dy * axis.y) / L < 0.96) continue; // 平行于走廊轴（<15°）
+            byPiece.push({ seg: [a, b], perpD });
+        }
+        if (!byPiece.length) return;
+        for (const sign of [1, -1]) {
+            const side = byPiece.filter(q => Math.sign(q.perpD) === sign);
+            if (!side.length) continue;
+            const dSide = side.reduce((s, q) => s + q.perpD, 0) / side.length;
+            const S0 = { x: mid.x + perp.x * dSide, y: mid.y + perp.y * dSide };
+            const projOf = (P) => (P.x - S0.x) * axis.x + (P.y - S0.y) * axis.y;
+            let lo = Infinity, hi = -Infinity;
+            for (const q of side) {
+                for (const pt of q.seg) {
+                    const t = projOf(pt);
+                    lo = Math.min(lo, t); hi = Math.max(hi, t);
+                }
+            }
+            // 与两条房间边线的交点（二维直线求交，交点在侧墙线上的投影）
+            const intersect = (edge) => {
+                const ex = edge.P.x - S0.x, ey = edge.P.y - S0.y;
+                const denom = axis.x * edge.d.y - axis.y * edge.d.x;
+                if (Math.abs(denom) < 1e-6) return null;
+                return (ex * edge.d.y - ey * edge.d.x) / denom;
+            };
+            const tA = intersect(edgeA), tB = intersect(edgeB);
+            // 深度：全场统一 max 规则（wall-system depthOf 注释）
+            const depthMode = 'max';
+            const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.straight;
+            const s = ISO_WALL_HEIGHT / g.wallH;
+            const sy = s * slopeFixOf(g);
+            const faceLen = Math.hypot((g.face[1][0] - g.face[0][0]) * s, (g.face[1][1] - g.face[0][1]) * sy);
+            const step = faceLen - 8;
+            const lay = (a, b) => {
+                const A = { x: S0.x + axis.x * a, y: S0.y + axis.y * a };
+                const B = { x: S0.x + axis.x * b, y: S0.y + axis.y * b };
+                WallSystem._addSegPiece(A, B, flip, geoKey, depthMode, 0.1);
+            };
+            // 整瓦锚定填充：瓦端锚在边界侧，绝不越过边界（旧版整瓦居中——缺口很小时
+            // 一整瓦越出房间边线 200+px 探入房内，"墙壁突出通道"的真正根因）
+            const fillToEnd = (t0, t1) => {   // 右端延伸（到房间 B 边线）：锚 t1
+                let end = t1;
+                while (end - faceLen > t0) { lay(end - faceLen, end); end -= step; }
+                lay(end - faceLen, end);
+            };
+            const fillFromStart = (t0, t1) => { // 左端延伸（到房间 A 边线）：锚 t0
+                let start = t0;
+                while (start + faceLen < t1) { lay(start, start + faceLen); start += step; }
+                lay(start, start + faceLen);
+            };
+            if (tA !== null && tA < lo - 12) fillFromStart(tA - 8, lo + 8);
+            if (tB !== null && tB > hi + 12) fillToEnd(hi - 8, tB + 8);
+        }
+    },
+
+    /**
+     * 房间开洞边的缝隙填充（只叠不缺，与 buildIsoDiamondWalls 的 edgeFill 同口径）：
+     * 把菱形目标边所在直线作为基准，投影收集所有共线覆盖段（房间瓦片 + 通道件 + 门墙底边），
+     * 合并后仍未覆盖的区间 ≥12px 即用 _addSegPiece 定伸瓦补上（两端各 8px 叠合）。
+     * 相比按"最近端点"猜测的散点填充：基准线是房间自己的边，不会误连到远处共线件
+     * （旧版按门端点散射填充、把墙填到场地中央的根因）。
+     * @param {Object} room 房间 {cx, cy, rx, ry}
+     * @param {string} edge 'RB'（右下前墙）| 'LT'（左上后墙）
+     * @param {Array} gateSegs 门墙底边线段 [[A, B]...]（通道门/出口门，非 isoVisuals 件需显式传入）
+     */
+    _fillEdgeGaps(room, edge, gateSegs = []) {
+        // 边的参数化方向必须与 buildIsoDiamondWalls 的 edgeFill 一致（上端→下端）：
+        // RB = R→B（edgeFill(rD, bR)），LT = T→L（edgeFill(tL, lU)）——
+        // LT 若按 L→T 参数化，_addSegPiece 的上端锚定反转，填充件就是"倒置"的（线上教训）
+        const verts = {
+            RB: [{ x: room.cx + room.rx, y: room.cy }, { x: room.cx, y: room.cy + room.ry }],
+            LT: [{ x: room.cx, y: room.cy - room.ry }, { x: room.cx - room.rx, y: room.cy }],
+        }[edge];
+        if (!verts) return;
+        const [V0, V1] = verts;
+        const edgeLen = Math.hypot(V1.x - V0.x, V1.y - V0.y);
+        const ux = (V1.x - V0.x) / edgeLen, uy = (V1.y - V0.y) / edgeLen;
+        const toLine = (P) => Math.abs((P.x - V0.x) * uy - (P.y - V0.y) * ux);
+        const proj = (P) => (P.x - V0.x) * ux + (P.y - V0.y) * uy;
+        // 收集覆盖区间（投影到 [0, edgeLen]）；门墙区间单独记录（填充锚定/裁剪用）
+        const intervals = [];
+        const gateIntervals = [];
+        const pushSeg = (a, b, isGate) => {
+            if (toLine(a) > 20 || toLine(b) > 20) return;
+            let s = proj(a), e = proj(b);
+            if (s > e) [s, e] = [e, s];
+            s = Math.max(0, s); e = Math.min(edgeLen, e);
+            if (e - s > 4) {
+                intervals.push([s, e]);
+                if (isGate) gateIntervals.push([s, e]);
+            }
+        };
+        for (const p of WallSystem.isoVisuals) {
+            for (const [a, b] of WallSystem._pieceBaseSegments(p)) pushSeg(a, b, false);
+        }
+        for (const [a, b] of gateSegs) pushSeg(a, b, true);
+        if (!intervals.length) return;
+        // 合并（<12px 微缝视为已覆盖——8px 叠合公差内）并求缺口
+        intervals.sort((x, y) => x[0] - y[0]);
+        const gaps = [];
+        let curE = intervals[0][1];
+        for (let i = 1; i < intervals.length; i++) {
+            const [s, e] = intervals[i];
+            if (s <= curE + 12) { curE = Math.max(curE, e); }
+            else { gaps.push([curE, s]); curE = e; }
+        }
+        const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().straight : 'straight';
+        const flip = ux * uy < 0; // RB/LT 边均为 "/" 方向
+        const depthMode = 'max'; // 全场统一 max 规则（wall-system depthOf 注释）
+        // 标准瓦长（与 _setupGate 同推导）：缺口填充用整瓦，避免"缩小"的压扁件
+        const g0geo = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.straight;
+        const s0 = ISO_WALL_HEIGHT / g0geo.wallH;
+        const sy0 = s0 * slopeFixOf(g0geo);
+        const faceLen = Math.hypot((g0geo.face[1][0] - g0geo.face[0][0]) * s0, (g0geo.face[1][1] - g0geo.face[0][1]) * sy0);
+        const step = faceLen - 8; // edgeFill 步进（8px 叠合）
+        const laySpan = (aProj, bProj) => {
+            const S = { x: V0.x + ux * aProj, y: V0.y + uy * aProj };
+            const T = { x: V0.x + ux * bProj, y: V0.y + uy * bProj };
+            WallSystem._addSegPiece(S, T, flip, geoKey, depthMode, 0.1);
+        };
+        for (const [g0, g1] of gaps) {
+            if (g1 - g0 < 12) continue;
+            // 门侧判定：缺口的左/右相邻覆盖是否为门墙（容差 30px）
+            const gateLeft = gateIntervals.some(([, e]) => Math.abs(e - g0) < 30);
+            const gateRight = gateIntervals.some(([s]) => Math.abs(s - g1) < 30);
+            if (gateRight && !gateLeft) {
+                // 右邻是门：瓦端锚定在 g1+8（仅 8px 叠合进门框区，绝不跨进门口），
+                // 向左整瓦步进，末件左端伸入左侧墙体覆盖区（同纹理整瓦互盖，edgeFill 同口径）
+                let end = g1 + 8;
+                while (end - faceLen > g0 - 8) { laySpan(end - faceLen, end); end -= step; }
+                laySpan(end - faceLen, end);
+            } else if (gateLeft && !gateRight) {
+                // 左邻是门：瓦端起锚在 g0-8，向右整瓦步进
+                let start = g0 - 8;
+                while (start + faceLen < g1 + 8) { laySpan(start, start + faceLen); start += step; }
+                laySpan(start, start + faceLen);
+            } else if (gateLeft && gateRight) {
+                // 两侧都是门（罕见）：裁剪到缺口本体（避免压门）
+                laySpan(g0 - 8, g1 + 8);
+            } else {
+                // 两侧都是墙体：整瓦长居中（两端 ≥8px 叠合，超一瓦按 edgeFill 步进续接）
+                const stepN = faceLen - 8;
+                const need = g1 - g0 + 16;
+                const n = Math.max(1, Math.ceil(need / stepN));
+                const total = (n - 1) * stepN + faceLen;
+                const mid = (g0 + g1) / 2;
+                for (let i = 0; i < n; i++) {
+                    const a = mid - total / 2 + i * stepN;
+                    laySpan(a, a + faceLen);
+                }
+            }
+        }
+    },
+
+    /** 通道门开闭（open=true 开门）：门洞碰撞段增删 + 16 帧动画 + 门闸音效 */
+    _setArenaGateOpen(inst, open) {
+        if (!inst || inst.open === open) return;
+        inst.open = open;
+        if (WallSystem.isoSegments) {
+            const i = WallSystem.isoSegments.indexOf(inst.gateSeg);
+            if (!open && i < 0) WallSystem.isoSegments.push(inst.gateSeg);
+            else if (open && i >= 0) WallSystem.isoSegments.splice(i, 1);
+        }
+        const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile((style && style.gateSound) || 'assets/sounds/environment/gate.mp3');
+        }
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const from = open ? 0 : inst.frames - 1, to = open ? inst.frames - 1 : 0;
+        if (!scene) { inst.sprite.setFrame(to); return; }
+        if (inst._animCounter) inst._animCounter.stop();
+        inst._animCounter = scene.tweens.addCounter({
+            from, to, duration: 900, ease: 'Linear',
+            onUpdate: (tw) => { if (inst.sprite && inst.sprite.active) inst.sprite.setFrame(Math.round(tw.getValue())); },
+        });
+    },
+
+    /** 点在哪个竞技场房间（1~3；不在任何房间返回 0，如通道内） */
+    arenaRoomContaining(x, y) {
+        if (!this._arena) return 0;
+        for (const r of this._arena.rooms) {
+            if (pointInDiamond(x, y, r)) return r.index;
+        }
+        return 0;
+    },
+
+    /** 房间 N 的相邻通道门统一开/关（来路 + 去路；房间 1 无来路、房间 3 无去路） */
+    setArenaRoomGates(roomIdx, open) {
+        const a = this._arena;
+        if (!a) return;
+        const passageIdxs = [];
+        if (roomIdx > 1) passageIdxs.push(roomIdx - 1); // 来路（rooms[N-1] ↔ rooms[N]）
+        if (roomIdx < a.rooms.length) passageIdxs.push(roomIdx); // 去路（rooms[N] ↔ rooms[N+1]）
+        for (const pi of passageIdxs) {
+            const rec = a.passages[pi - 1];
+            if (rec) for (const inst of rec.gates) this._setArenaGateOpen(inst, open);
+        }
+    },
+
+    /** 切换当前战斗房间（刷怪/陷阱/墓碑共用 _roomBounds 的现有逻辑） */
+    setArenaStageRoom(roomIdx) {
+        const a = this._arena;
+        if (!a) return;
+        a.stage = roomIdx;
+        this._roomBounds = a.rooms[roomIdx - 1].bounds;
+    },
+
+    /** 取竞技场房间 bounds（1~3；宝箱房 setup 用房间 3） */
+    getArenaRoomBounds(roomIdx) {
+        const a = this._arena;
+        return a && a.rooms[roomIdx - 1] ? a.rooms[roomIdx - 1].bounds : null;
+    },
+
+    /** 销毁全部通道门（sprite + 碰撞段 + 动画）；cleanupGate 调用，随后场景恢复重建碰撞 */
+    _cleanupArenaGates() {
+        if (!this._arena) return;
+        for (const rec of this._arena.passages) {
+            for (const inst of rec.gates) {
+                if (inst._animCounter) { inst._animCounter.stop(); inst._animCounter = null; }
+                if (WallSystem.isoSegments) {
+                    for (const s of [...inst.wallSegs, inst.gateSeg]) {
+                        const i = WallSystem.isoSegments.indexOf(s);
+                        if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+                    }
+                }
+                if (inst.sprite && inst.sprite.scene) inst.sprite.destroy();
+            }
+        }
+        this._arena = null;
     },
 
     // ============================================================

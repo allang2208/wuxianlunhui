@@ -26,6 +26,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop, createTombstone } from './zombie-dungeon.js';
 import { AgentInvasionSystem } from './agent-invasion-system.js';
 import { TrapSystem } from './trap-system.js';
+import { WallGate } from './wall-gate.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
 import { coverRect, anchorRect } from '../utils/layout.js';
@@ -43,7 +44,6 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setCurrentDungeonType, getRoomClearBonus, getStreakMultiplier, getRoomExpEstimate, getDungeonExpBase } from '../config/exp-system.js';
-import { DungeonEmpower } from '../config/dungeon-empower.js';
 import { DungeonRunStats } from './dungeon-run-stats.js';
 
 import { GoldManager } from '../systems/gold-manager.js';
@@ -215,6 +215,8 @@ export const DungeonMapSystem = {
         this._createMouseShopButton();
         this._createAbandonButton();
         this._createDungeonNameLabel();
+        // 地图选路模式顶部状态栏（生命/魔法/等级）
+        this._createMapStatusBar();
 
         
     },
@@ -229,14 +231,13 @@ export const DungeonMapSystem = {
         this.state = "idle";
         // 经验系统：离开地牢，回退主神空间口径（F 档）
         setCurrentDungeonType(null);
-        // 祭品加持：本次出征强度清零
-        DungeonEmpower.reset();
         this.nodes = [];
         this.edges = [];
         this._cleanupEventUI();
         this._removeMouseShopButton();
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
+        this._removeMapStatusBar();
         this._removeNodeTooltip();
         // 通关结算面板兜底移除（异常退出路径）
         const victoryOverlay = getElement('dungeonVictoryOverlay');
@@ -589,16 +590,25 @@ export const DungeonMapSystem = {
     // ───────────────────────────────────────────────
     update(_dt) {
         if (!this.active || this.state !== "map") return;
+        this._setMapStatusBarVisible(true);
         this._updateHover();
         if (Input.mouse.leftPressed && !this._dragMoved) {
             this._handleClick();
         }
         // 每帧重置拖动标记，避免拖动后的单次点击被误判
         this._dragMoved = false;
+        // 顶部状态栏（生命/魔法/等级，200ms 节流刷新）
+        this._statusBarTimer = (this._statusBarTimer || 0) + _dt;
+        if (this._statusBarTimer >= 200) {
+            this._statusBarTimer = 0;
+            this._updateMapStatusBar();
+        }
     },
 
     updateCombat(dt) {
         if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
+        // 战斗模式隐藏地图状态栏（战斗内使用游戏内 HUD 血条，避免双条重叠）
+        this._setMapStatusBarVisible(false);
 
         // Boss 战模式：委托给 BossRewardSystem 更新，并检测门闸白区/传送门
         if (this.state === "boss") {
@@ -645,8 +655,8 @@ export const DungeonMapSystem = {
                 // 清剿奖 + 连战奖励结算（开门时一次性发放；连战计数随之推进）
                 this._settleCombatRoom();
 
-                // 精英节点：通知宝箱房（限时内完成 → 打开宝箱房门墙）
-                if (isEliteNode && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
+                // 精英节点 / 三房间竞技场（普通战斗也生成宝箱房）：通知宝箱房（限时内完成 → 打开宝箱房门墙）
+                if ((isEliteNode || CombatRoomSystem._arena) && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
                     ChestRoomSystem.onCombatComplete();
                     if (SceneManager && SceneManager.showTopNotification) {
                         SceneManager.showTopNotification(ChestRoomSystem.hasUnopenedLoot() ? '精英已消灭，宝箱房已开启！' : '已完成战斗，从大门离开');
@@ -660,6 +670,12 @@ export const DungeonMapSystem = {
         // 驱动门闸动画与悬停高亮
         if (typeof CombatRoomSystem.update === 'function') {
             CombatRoomSystem.update(dt);
+        }
+
+        // 三房间竞技场：玩家进入等待中的下一房间 → 关门刷对应波次
+        if (CombatRoomSystem._arena) {
+            this._checkArenaRoomEntry();
+            this._updateArenaDoorClose(dt);
         }
 
         // 检测玩家是否走出门外白区（与传送门同效：回地牢地图）
@@ -1036,6 +1052,10 @@ export const DungeonMapSystem = {
     },
 
     _enterZombieCombat(node, options = {}) {
+        // D 级及以上地牢：三房间串联竞技场（入侵混合战保持原大单房间流程）
+        if (!this._invasionMixed && DungeonConfig.isCombatArenaEnabled(this.dungeonType)) {
+            return this._enterCombatArena(node);
+        }
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
@@ -1048,7 +1068,7 @@ export const DungeonMapSystem = {
         if (typeof TrapSystem !== 'undefined') {
             const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
             if (zcfg.traps && zcfg.traps.count > 0) {
-                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps);
+                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
             }
         }
         // 精英战斗：场地中央生成宝箱房（门墙常闭 + 等级宝箱 + 60s 倒计时，房内不刷怪）
@@ -1056,14 +1076,14 @@ export const DungeonMapSystem = {
             ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
         }
         this._spawnZombieWave();
-        // 墓碑事件：普通战斗（非精英）33% 概率在距玩家最远角落生成站桩召唤器
-        // （必须在 _spawnZombieWave 之后调用——spawnMonsters 会重置 _combatMonsterKeys）
-        if (!node.isElite) this._maybeSpawnTombstone();
     },
 
     /**
-     * 墓碑事件（僵尸地牢初级/中级/高级 · 普通战斗 33% 概率）：
+     * 墓碑事件（僵尸地牢初级/中级/高级 · 普通战斗每次房间刷怪 25% 概率）：
      * 在距玩家最远的角落生成墓碑（站桩召唤器，enemy-config noPool 不进任何刷怪池）。
+     * 由 _spawnZombieWave 在刷怪后调用（_combatMonsterKeys 重置之后才能登记 key）；
+     * F/E 单房间跨波次不删除墓碑及其召唤物（cleanupMonstersOnly 保留 tombstone_ 前缀），
+     * D+ 竞技场换房间时随房间清理删除。
      * 生成点判定流程：
      *   1. 候选角落：矩形房取外接矩形四角（内收），菱形房取对角线方向与菱形边界的交点（内收）；
      *      按距玩家从远到近排序，保证"最远角落"优先；
@@ -1075,9 +1095,12 @@ export const DungeonMapSystem = {
      * 生成器不计入战斗完成判定（与矿洞同口径）。
      */
     _maybeSpawnTombstone() {
-        // 仅僵尸地牢三级（zombieBeginner / zombieMid / zombie），沼泽等其他地牢不触发
+        // 仅僵尸地牢三级（zombieBeginner / zombieMid / zombie）的普通战斗，沼泽等其他地牢不触发
         if (!['zombieBeginner', 'zombieMid', 'zombie'].includes(this.dungeonType)) return;
-        if (Math.random() >= 0.33) return;
+        // 精英/Boss 节点不刷（与普通战斗区分；_enterBossCombat 的 boss 节点同样排除）
+        const node = this._zombieCombatNode;
+        if (!node || node.isElite || node.type === 'boss') return;
+        if (Math.random() >= 0.25) return;
         const bounds = CombatRoomSystem._roomBounds;
         const player = this.player;
         if (!bounds || !player) return;
@@ -1159,6 +1182,120 @@ export const DungeonMapSystem = {
         if (isEliteOrBoss) this.player._moonshadowBoostActive = true;
     },
 
+    /** 陷阱生成约束：玩家（可达性）+ 宝箱房排除区 + 门口排除点（出口门/竞技场通道门） */
+    _trapExtras() {
+        const exclusions = (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem._exclusion)
+            ? [ChestRoomSystem._exclusion] : [];
+        const avoidPoints = [];
+        const gateInfo = (typeof WallGate !== 'undefined' && WallGate.getGateInfo) ? WallGate.getGateInfo() : null;
+        if (gateInfo && gateInfo.center) avoidPoints.push({ x: gateInfo.center.x, y: gateInfo.center.y, r: 150 });
+        const arena = CombatRoomSystem._arena;
+        if (arena) {
+            for (const rec of arena.passages) {
+                for (const inst of rec.gates) avoidPoints.push({ x: inst.center.x, y: inst.center.y, r: 150 });
+            }
+        }
+        return { player: this.player, exclusions, avoidPoints };
+    },
+
+    /**
+     * 三房间串联竞技场（D 级及以上战斗事件）：
+     * - 房间 1/2 = 普通战斗房大小，房间 3 = 精英战斗房大小（含宝箱房，普通/精英都生成）；
+     * - 房间 N 刷第 N 波；进入房间才关门刷怪，清完开门；房间 3 清完开出口门墙。
+     * 构建失败（通道预制缺失等）回退原单房间流程。
+     */
+    _enterCombatArena(node) {
+        this._zombieCombatNode = node;
+        this._zombieWaveActive = true;
+        this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
+        // 月影庇护：进入战斗触发无敌；精英战同时激活增伤
+        this._triggerMoonshadow(!!node.isElite);
+
+        const crCfg = DungeonConfig.getCombatRoomConfig(this.dungeonType);
+        const arenaInfo = CombatRoomSystem.enterCombatArena(this.player, {
+            normalSize: crCfg.normalSize,
+            eliteSize: crCfg.eliteSize,
+        });
+        if (!arenaInfo) {
+            // 预制缺失等异常：回退旧单房间流程（状态字段已初始化，与正常路径一致）
+            console.warn('[DungeonMapSystem] 竞技场构建失败，回退单房间战斗');
+            CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize });
+            if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
+                ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+            }
+            this._spawnZombieWave();
+            return;
+        }
+
+        // 宝箱房：第三房间中央（普通/精英都生成；倒计时等玩家进入房间 3 才启动）
+        if (typeof ChestRoomSystem !== 'undefined') {
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true });
+        }
+
+        // 进入房间 1：关门走延迟判定（满 1s 且玩家离门口 ≥150px，防单位卡门）+ 第一波
+        this._arenaRoomCleared = false;
+        this._armArenaDoorClose(1);
+        this._spawnZombieWave();
+
+        // 陷阱：按地牢配置在当前房间摆放（后续房间在进入时摆放）
+        if (typeof TrapSystem !== 'undefined') {
+            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
+            if (zcfg.traps && zcfg.traps.count > 0) {
+                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
+            }
+        }
+    },
+
+    /**
+     * 竞技场关门延迟判定：进入房间后不立即关门——
+     * 满 1 秒且玩家距来路门 ≥150px 才关闭该房间相邻通道门（防单位卡在门上）
+     */
+    _armArenaDoorClose(roomIdx) {
+        const arena = CombatRoomSystem._arena;
+        if (!arena) return;
+        // 来路门（房间 1 无来路，用其去路门做距离参照）
+        const rec = roomIdx > 1 ? arena.passages[roomIdx - 2] : arena.passages[0];
+        this._arenaDoorPending = { roomIdx, elapsed: 0, gates: rec ? rec.gates : [] };
+    },
+
+    /** 每帧推进关门延迟判定（updateCombat 调用） */
+    _updateArenaDoorClose(dt) {
+        const p = this._arenaDoorPending;
+        if (!p || !this.player) return;
+        p.elapsed += dt;
+        if (p.elapsed < 1000) return;
+        const minD = p.gates.length
+            ? Math.min(...p.gates.map(g => Math.hypot(this.player.x - g.center.x, this.player.y - g.center.y)))
+            : Infinity;
+        if (minD < 150) return;
+        CombatRoomSystem.setArenaRoomGates(p.roomIdx, false);
+        this._arenaDoorPending = null;
+    },
+
+    /** 竞技场：玩家进入等待中的下一房间 → 关门、切战斗边界、刷对应波次 */
+    _checkArenaRoomEntry() {
+        const arena = CombatRoomSystem._arena;
+        if (!arena || !arena.awaiting || !this.player) return;
+        const roomIdx = CombatRoomSystem.arenaRoomContaining(this.player.x, this.player.y);
+        if (roomIdx !== arena.awaiting) return;
+        arena.awaiting = 0;
+        this._arenaRoomCleared = false;
+        CombatRoomSystem.setArenaStageRoom(roomIdx);
+        this._armArenaDoorClose(roomIdx);
+        // 进入第三房间：宝箱房倒计时启动
+        if (roomIdx === 3 && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
+            ChestRoomSystem.startCountdown();
+        }
+        this._spawnZombieWave();
+        // 陷阱：按当前房间摆放
+        if (typeof TrapSystem !== 'undefined') {
+            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
+            if (zcfg.traps && zcfg.traps.count > 0) {
+                TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
+            }
+        }
+    },
+
     _spawnZombieWave() {
         if (!this._zombieCombat || this._zombieCombat.isComplete) {
             this._cleanupCombat();
@@ -1183,6 +1320,10 @@ export const DungeonMapSystem = {
         this._combatMonsterKeys = CombatRoomSystem._combatMonsterKeys;
 
         EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `第 ${wave + 1} / ${total} 波敌人来袭！`, "#ff4444"));
+
+        // 墓碑：普通战斗每次房间刷怪 25% 概率额外刷新（必须在 spawnMonsters 重置 keys 之后调用；
+        // 内部有地牢类型/精英/Boss 守卫；F/E 跨波保留，D+ 换房间随清理删除）
+        this._maybeSpawnTombstone();
     },
 
     _enterBoss(node) {
@@ -1311,6 +1452,19 @@ export const DungeonMapSystem = {
         // 僵尸地牢：检查是否还有下一波
         if (this._isZombieFamily() && this.state === "combat" && this._zombieWaveActive) {
             if (this._zombieCombat && !this._zombieCombat.isComplete) {
+                // 三房间竞技场：当前房间 < 3 → 开门等玩家进下一房间，不自动续波
+                const arena = CombatRoomSystem._arena;
+                if (arena && arena.stage < 3) {
+                    if (!this._arenaRoomCleared) {
+                        this._arenaRoomCleared = true;
+                        CombatRoomSystem.setArenaRoomGates(arena.stage, true);
+                        arena.awaiting = arena.stage + 1;
+                        if (SceneManager && SceneManager.showTopNotification) {
+                            SceneManager.showTopNotification('通道已开启，前往下一房间');
+                        }
+                    }
+                    return false;
+                }
                 // 防止重复设置过渡
                 if (this._waveTransitioning) return false;
                 // 短暂延迟后生成下一波（暂停期间自动顺延，不再用真实时间刷波）
@@ -1376,6 +1530,8 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = null;
         this._waveTransitioning = false;
         this._exitPortalSpawned = false;
+        this._arenaRoomCleared = false;
+        this._arenaDoorPending = null;
 
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(this.player);
@@ -1873,6 +2029,65 @@ export const DungeonMapSystem = {
     _removeDungeonNameLabel() {
         const el = getElement('dungeonMapNameLabel');
         if (el) el.remove();
+    },
+
+    /** 地图选路模式顶部状态栏（生命/魔法/等级；进入战斗时地图 UI 隐藏，无需随战斗显隐） */
+    _createMapStatusBar() {
+        if (getElement('dungeonMapStatusBar')) return;
+        const el = document.createElement('div');
+        el.id = 'dungeonMapStatusBar';
+        el.style.cssText = `
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9002;
+            pointer-events: none;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 8px 20px;
+            background: rgba(20, 16, 12, 0.75);
+            border: 1px solid #5a4a3a;
+            border-radius: 8px;
+            font-family: SimHei, "Microsoft YaHei", sans-serif;
+            color: #d4c5a9;
+            font-size: 15px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        `;
+        document.body.appendChild(el);
+        this._updateMapStatusBar();
+    },
+
+    _updateMapStatusBar() {
+        const el = getElement('dungeonMapStatusBar');
+        if (!el) return;
+        const player = Game.player || this.player;
+        if (!player || !player.data) return;
+        const d = player.data;
+        const hpPct = Math.max(0, Math.min(100, (d.hp / Math.max(1, d.maxHp)) * 100));
+        const mpPct = Math.max(0, Math.min(100, (d.mp / Math.max(1, d.maxMp)) * 100));
+        const bar = (pct, color) => `
+            <span style="display:inline-block;width:110px;height:12px;background:rgba(0,0,0,0.6);border:1px solid #3a3028;border-radius:3px;overflow:hidden;vertical-align:middle;margin-left:6px;">
+                <span style="display:block;width:${pct}%;height:100%;background:${color};"></span>
+            </span>`;
+        el.innerHTML = `
+            <span style="color:#e8c878;">Lv.${d.level ?? 1}</span>
+            <span>生命 ${Math.ceil(d.hp)}/${d.maxHp}${bar(hpPct, 'linear-gradient(90deg,#b03030,#d05050)')}</span>
+            <span>魔法 ${Math.ceil(d.mp)}/${d.maxMp}${bar(mpPct, 'linear-gradient(90deg,#3060b0,#5090d0)')}</span>
+        `;
+    },
+
+    _removeMapStatusBar() {
+        const el = getElement('dungeonMapStatusBar');
+        if (el) el.remove();
+    },
+
+    _setMapStatusBarVisible(visible) {
+        const el = getElement('dungeonMapStatusBar');
+        if (el) el.style.display = visible ? 'flex' : 'none';
     },
 
     _showVictory() {

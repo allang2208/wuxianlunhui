@@ -20,7 +20,6 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Game } from '../game.js';
 import { RARITY_ORDER } from './rarity.js';
-import { DungeonEmpower } from './dungeon-empower.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
 
 /** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
@@ -254,15 +253,11 @@ export function rollTributeDrop(rank, dungeonType) {
     const isElite = rank === 'elite' || isLord || isBoss;
     const sub = isBoss ? table.boss : (isLord ? (table.lord || table.elite) : (isElite ? table.elite : table.normal));
     if (!sub) return null;
-    // 掉率加成（数据驱动，乘算）+ 祭品加持掉率加成（百分点加算）
-    const chance = Math.min(1, (sub.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul() + DungeonEmpower.dropChanceBonusPp() / 100);
+    // 掉率加成（数据驱动，乘算）
+    const chance = Math.min(1, (sub.chance ?? (isElite ? 1 : 0.05)) * getTributeDropChanceMul());
     if (Math.random() >= chance) return null;
-    // 稀有度上限过滤（F=稀有封顶 / E=史诗封顶 / D+全开放；祭品加持 S≥6 封顶 +1 档）
-    let maxRarity = table.maxRarity;
-    if (maxRarity && DungeonEmpower.rarityCapBoost() > 0) {
-        const idx = RARITY_ORDER.indexOf(maxRarity);
-        if (idx >= 0 && idx + 1 < RARITY_ORDER.length) maxRarity = RARITY_ORDER[idx + 1];
-    }
+    // 稀有度上限过滤（F=稀有封顶 / E=史诗封顶 / D+全开放）
+    const maxRarity = table.maxRarity;
     const weights = _capWeights(sub.weights || [], maxRarity);
     if (weights.length === 0) return null;
     return _pickTributeByRarity(_rollRarity(weights));

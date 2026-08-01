@@ -182,18 +182,6 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionTributeStats.appendChild(tributeStatsList);
     expeditionSupplies.appendChild(expeditionTributeStats);
     expeditionBody.appendChild(expeditionSupplies);
-    // 祭品加持（2026-07-28：投入祭品换怪物强度与奖励，出征时消耗；左栏实时显示强化内容）
-    const expeditionEmpower = document.createElement('div');
-    expeditionEmpower.className = 'expedition-supplies';
-    const empowerTitle = document.createElement('div');
-    empowerTitle.className = 'expedition-section-title';
-    empowerTitle.innerHTML = '祭品加持 <span class="expedition-hint">(从背包拖入，出征时消耗，强化怪物并提升奖励)</span>';
-    expeditionEmpower.appendChild(empowerTitle);
-    const expeditionEmpowerGrid = document.createElement('div');
-    expeditionEmpowerGrid.className = 'expedition-inventory-grid';
-    expeditionEmpowerGrid.id = 'expeditionEmpowerGrid';
-    expeditionEmpower.appendChild(expeditionEmpowerGrid);
-    expeditionBody.appendChild(expeditionEmpower);
     // 操作按钮
     const expeditionActions = document.createElement('div');
     expeditionActions.className = 'expedition-actions';

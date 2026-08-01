@@ -19,5 +19,19 @@
     "rotation": 0,
     "flipX": false,
     "flipY": false
+  },
+  "skull": {
+    "scaleX": 0.11361892906532736,
+    "scaleY": 0.11361892906532736,
+    "rotation": 0,
+    "flipX": false,
+    "flipY": false
+  },
+  "chains": {
+    "scaleX": 0.2063573961481543,
+    "scaleY": 0.2063573961481543,
+    "rotation": 0,
+    "flipX": false,
+    "flipY": false
   }
 }

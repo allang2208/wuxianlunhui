@@ -14,11 +14,13 @@
 import { Game } from '../game.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { WallSystem } from './wall-system.js';
+import { pathFinder } from '../ai/pathfinder.js';
 
 const DEFAULTS = {
     count: 3,
     triggerRadius: 45,
-    delayMs: 500,
+    delayMs: 250,
     animMs: 500,
     reverseMs: 500,
     cooldownMs: 2000,
@@ -30,13 +32,26 @@ export const TrapSystem = {
     _traps: [],
     _cfg: null,
 
-    /** 战斗房生成时调用：在菱形房内随机摆 cfg.count 个陷阱（拒绝采样避开中心与墙边） */
-    spawnForRoom(bounds, cfg) {
+    /**
+     * 战斗房生成时调用：在菱形房内随机摆 cfg.count 个陷阱（拒绝采样避开中心与墙边）
+     * @param {Object} bounds 房间 bounds（菱形）
+     * @param {Object} cfg 陷阱配置（count/triggerRadius 等）
+     * @param {Object} [extras] 生成约束：
+     *   - player：玩家实体——可达性校验（findPath 非空才放，杜绝刷在走不到的位置）
+     *   - exclusions：排除菱形区数组（如宝箱房 _exclusion，区内不刷）
+     *   - avoidPoints：排除点数组 [{x, y, r?}]（门洞中心等，r 默认 150）
+     */
+    spawnForRoom(bounds, cfg, extras = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         if (!scene || !bounds) return;
         this._cfg = { ...DEFAULTS, ...(cfg || {}) };
         const C = this._cfg;
         const { cx, cy, rx, ry } = bounds;
+        const exclusions = extras.exclusions || [];
+        const avoidPoints = extras.avoidPoints || [];
+        const player = extras.player || null;
+        const inExclusion = (x, y) => exclusions.some(e =>
+            Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
         let placed = 0, tries = 0;
         while (placed < C.count && tries < 60) {
             tries++;
@@ -45,6 +60,17 @@ export const TrapSystem = {
             const x = cx + Math.cos(a) * rx * r;
             const y = cy + Math.sin(a) * ry * r;
             if (this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) continue;
+            // 可行走：不嵌墙/不嵌障碍物 footprint
+            if (WallSystem && typeof WallSystem.canMoveTo === 'function'
+                && !WallSystem.canMoveTo(x, y, C.triggerRadius)) continue;
+            // 排除区（宝箱房内不刷）与门口排除点
+            if (inExclusion(x, y)) continue;
+            if (avoidPoints.some(p => Math.hypot(x - p.x, y - p.y) < (p.r ?? 150))) continue;
+            // 可达：玩家寻路能走到（墓碑同款判据；pathFinder 不可用时放行）
+            if (player && pathFinder && typeof pathFinder.findPath === 'function') {
+                const path = pathFinder.findPath(x, y, player.x, player.y, 15);
+                if (!path || path.length === 0) continue;
+            }
             const sprite = scene.add.sprite(x, y, 'trap_idle');
             sprite.setOrigin(0.5, 0.5);
             sprite.setDisplaySize(C.triggerRadius * 2.6, C.triggerRadius * 2.6);

@@ -498,11 +498,9 @@ export const WallEditor = {
         const overCanvas = pt && pt.overCanvas;
         if (overCanvas && this._pendingPiece) {
             const p = this._pendingPiece;
-            // 障碍物 depth 锚贴图底边（前墙规则）；墙件沿用 y（编辑器/图层后续可再调）
-            const g = WallSystem._geoForTex(p.tex);
-            p.depth = (g && g.category === 'obstacle')
-                ? p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2
-                : p.y;
+            // 新放置件 depth 走统一规则入口（墙件=底边 max y / 障碍物=贴图底边锚，同 depthOf）；
+            // 已保存的手调深度只在编辑器拖动/图层面板里保留，新件一律按规则
+            p.depth = WallSystem.depthOf(p);
             WallSystem.isoVisuals.push(p);
             this._pendingPiece = null;
             this._destroyGhost();
@@ -881,7 +879,18 @@ export const WallEditor = {
         const lib = getWallPrefabLibrary();
         const def = lib[key];
         if (!def || !Array.isArray(def.pieces)) return;
-        const pieces = def.pieces.map(p => ({ ...p }));
+        // 生成点 = 玩家单位所在位置：预制保存的中心 (cx, cy) 对齐到玩家
+        const player = window.Game && window.Game.player;
+        const cx = def.cx ?? (def.pieces[0] ? def.pieces[0].x : 0);
+        const cy = def.cy ?? (def.pieces[0] ? def.pieces[0].y : 0);
+        const dx = player ? player.x - cx : 0;
+        const dy = player ? player.y - cy : 0;
+        const pieces = def.pieces.map(p => ({
+            ...p,
+            x: p.x + dx,
+            y: p.y + dy,
+            depth: p.depth != null ? p.depth + dy : p.depth,
+        }));
         WallSystem.isoVisuals.push(...pieces);
         this._commit();
         this._setSelection(pieces);

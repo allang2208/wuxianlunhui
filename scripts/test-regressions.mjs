@@ -313,50 +313,20 @@ console.log('\n[7] 经验系统（pacing 闭环/压级衰减/锚定）');
     check('无地牢回退 F 档', getDungeonExpBase(null) === getDungeonExpBase('zombieBeginner'));
 }
 
-// ========== 8. 属性成长与祭品加持 ==========
-console.log('\n[8] 属性成长与祭品加持');
+// ========== 8. 属性成长 ==========
+console.log('\n[8] 属性成长');
 {
-    const { DungeonEmpower } = await import(pathToFileURL(path.join(ROOT, 'src/config/dungeon-empower.js')));
     const expSys = await import(pathToFileURL(path.join(ROOT, 'src/config/exp-system.js')));
     const cf2 = readJson('data/combat-formulas.json');
     const growth = cf2.enemy.monsterGrowth;
-    const emp = cf2.enemy.empower;
 
     // 配置完整性
     check('monsterGrowth 配置完整', growth && growth.hpPerLevel > 0 && growth.hpPerLevelBoss > 0 && growth.atkPerLevel > 0 && growth.defPerLevel > 0);
-    check('empower 配置完整', emp && emp.slots === 3 && emp.capStrength === 12 && emp.levelPerStrength > 0);
     check('首领 hp 系数低于普通（防马拉松）', growth.hpPerLevelBoss < growth.hpPerLevel);
 
-    // 强度计算
-    check('稀有度点数 legendary=6', DungeonEmpower.rarityPoints('legendary') === 6);
-    check('稀有度点数 common=1', DungeonEmpower.rarityPoints('common') === 1);
-    check('堆叠按数量计（rare×2 + common×1 = 7）', DungeonEmpower.strengthFromItems([{ rarity: 'rare', count: 2 }, { rarity: 'common', count: 1 }]) === 7);
-
-    // 强度上限与倍率
-    DungeonEmpower.setStrength(20);
-    check('强度上限 12', DungeonEmpower.strength === 12);
-    check('等级加成 +48', DungeonEmpower.levelBonus() === 48);
-    check('经验倍率 ≈1.96', Math.abs(DungeonEmpower.expMul() - 1.96) < 1e-9);
-    check('金币倍率 ≈2.8', Math.abs(DungeonEmpower.goldMul() - 2.8) < 1e-9);
-    check('掉率 +18pp', DungeonEmpower.dropChanceBonusPp() === 18);
-    check('S≥6 稀有度封顶+1', DungeonEmpower.rarityCapBoost() === 1);
-    DungeonEmpower.reset();
-    check('reset 清零', DungeonEmpower.strength === 0 && DungeonEmpower.levelBonus() === 0);
-
-    // 有效等级含加持加成
-    const effBefore = expSys.getMonsterEffectiveLevel({ level: 3 }, 'zombieBeginner');
-    DungeonEmpower.setStrength(5);
-    const effAfter = expSys.getMonsterEffectiveLevel({ level: 3 }, 'zombieBeginner');
-    check('S=5 → 有效等级 +20', effAfter - effBefore === 20, `${effBefore}→${effAfter}`);
-
-    // 经验明细含加持倍率（同级玩家，仅 expMul 差异）
-    const lv = effAfter; // 玩家等级=强化后有效等级，mult=1
-    const d5 = expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, lv, 'zombieBeginner');
-    DungeonEmpower.reset();
-    const d0 = expSys.getMonsterExpDetail({ rank: 'normal', level: 3 }, effBefore, 'zombieBeginner');
-    const ratio = d5.exp / d0.exp;
-    check('S=5 经验 ≈1.4×（±5%）', Math.abs(ratio - 1.4) / 1.4 <= 0.05, `实际=${ratio.toFixed(3)}`);
-    check('reset 后经验倍率归 1', DungeonEmpower.expMul() === 1);
+    // 有效等级 = 锚定 + 种间偏移
+    const eff = expSys.getMonsterEffectiveLevel({ level: 3 }, 'zombieBeginner');
+    check('F 档 lv3 有效等级 = 锚定 3', eff === 3, `实际=${eff}`);
 }
 
 // ========== 8. 机枪 -50% 移速口径（V0.311）——减速仅限机枪系，步枪/其他双手枪不得混入 ==========
@@ -408,10 +378,10 @@ console.log('\n[10] 近期修复防回归');
     check('cleanupRoom 无 isPreservedCorpse 跳过', !cleanupRoomBody.includes('isPreservedCorpse'));
     check('cleanupMonstersOnly 保留 isPreservedCorpse 跳过', cleanupWavesBody.includes('isPreservedCorpse'));
 
-    // 宝箱房门墙深度规则（实体恒在墙上 + 上端邻墙接缝 +0.1，容差 40px）
+    // 宝箱房门墙/直墙深度规则（整块墙遮挡：后墙 min 底边 / 前墙 max 底边，与菱形战斗房墙体同口径）
     const chestSrc = fs.readFileSync(path.join(ROOT, 'src/world/chest-room-system.js'), 'utf-8');
-    check('宝箱房门墙深度=min底边-墙高', chestSrc.includes('Math.min(gA.y, gB.y) - hWall'));
-    check('宝箱房门墙邻墙接缝容差 40px', chestSrc.includes('pt.y - gA.y) < 40'));
+    check('宝箱房门墙深度=整块墙 min/max 底边', chestSrc.includes("mode === 'min' ? Math.min(gA.y, gB.y) : Math.max(gA.y, gB.y)"));
+    check('宝箱房直墙深度=整块墙 min/max 底边', chestSrc.includes("mode === 'min' ? Math.min(ay, by) : Math.max(ay, by)"));
 
     // 主神空间状态缓存：depart 清实体前 + Game.init 末尾都必须保存
     const expSrc = fs.readFileSync(path.join(ROOT, 'src/ui/expedition-system.js'), 'utf-8');

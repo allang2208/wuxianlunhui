@@ -291,12 +291,13 @@ export class GameScene extends Scene {
                     if (sprites.fireballFly) sprites.fireballFly.setVisible(true);
                 }
             }
-            // 恢复并同步 HUD
+            // 恢复并同步 HUD（NPC 对话界面打开时隐藏左上角小地图）
+            const _dialogueOpen = !!(typeof window !== 'undefined' && window.NPCDialogue && window.NPCDialogue._active);
             if (this.worldHudGraphics) this.worldHudGraphics.setVisible(true);
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
-            if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(true);
-            if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(true);
-            if (this.minimapTitle) this.minimapTitle.setVisible(true);
+            if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(!_dialogueOpen);
+            if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(!_dialogueOpen);
+            if (this.minimapTitle) this.minimapTitle.setVisible(!_dialogueOpen);
             this._syncHud(_game);
             this._updateBossHpBar(_delta);
             this._syncHitFlashAndCharge(_game);
