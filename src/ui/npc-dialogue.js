@@ -43,27 +43,33 @@ const NPCDialogue = {
             this._typewriter = new TypewriterText(dialogueText, { highlight: '不能再进行更改' });
         }
         if (npcPortrait) {
-            npcPortrait.src = npc.portrait;
-            // 设置当前 NPC ID 到立绘工具，供 toggle 使用
-            NpcPortraitTool._npcId = npc.id;
-            // 加载已保存的立绘参数并应用；若无保存则使用默认参数。
-            // 锚 bottom 按 NPC 默认恢复（锚不入库，y 偏移全部走 params.y）
-            const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
-            NpcPortraitTool._anchorBottom = (defaults && defaults.anchorBottom) ?? 220;
-            if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
-                NpcPortraitTool.applyToDom(NpcPortraitTool._settings[npc.id]);
-            } else if (defaults) {
-                NpcPortraitTool.applyToDom(defaults);
+            if (!npc.portrait) {
+                // 无立绘 NPC（默认祭坛/仓库等）：隐藏立绘区，不进入立绘工具逻辑
+                npcPortrait.style.display = 'none';
+                npcPortrait.src = '';
             } else {
-                // 仅保留居中，垂直方向使用固定 bottom 220px
-                npcPortrait.style.transform = 'translateX(-50%)';
-                npcPortrait.style.bottom = '220px';
-            }
-            // 小鼠侍从立绘放大300%
-            if (npc.portrait && npc.portrait.includes('mouse_attendant')) {
-                npcPortrait.classList.add('mouse-attendant');
-            } else {
-                npcPortrait.classList.remove('mouse-attendant');
+                npcPortrait.src = npc.portrait;
+                // 设置当前 NPC ID 到立绘工具，供 toggle 使用
+                NpcPortraitTool._npcId = npc.id;
+                // 加载已保存的立绘参数并应用；若无保存则使用默认参数。
+                // 锚 bottom 按 NPC 默认恢复（锚不入库，y 偏移全部走 params.y）
+                const defaults = NpcPortraitTool.getDefaultParams(npc.portrait);
+                NpcPortraitTool._anchorBottom = (defaults && defaults.anchorBottom) ?? 220;
+                if (npc.id && NpcPortraitTool._settings && NpcPortraitTool._settings[npc.id]) {
+                    NpcPortraitTool.applyToDom(NpcPortraitTool._settings[npc.id]);
+                } else if (defaults) {
+                    NpcPortraitTool.applyToDom(defaults);
+                } else {
+                    // 仅保留居中，垂直方向使用固定 bottom 220px
+                    npcPortrait.style.transform = 'translateX(-50%)';
+                    npcPortrait.style.bottom = '220px';
+                }
+                // 小鼠侍从立绘放大300%
+                if (npc.portrait.includes('mouse_attendant')) {
+                    npcPortrait.classList.add('mouse-attendant');
+                } else {
+                    npcPortrait.classList.remove('mouse-attendant');
+                }
             }
         }
 
@@ -79,7 +85,7 @@ const NPCDialogue = {
             this._optionsVisible = true;
             if (this._typewriter) this._typewriter.setText(this._currentText);
 
-            if (npcPortrait) npcPortrait.style.display = 'block';
+            if (npcPortrait && npc.portrait) npcPortrait.style.display = 'block';
             if (dialogueOptions) {
                 dialogueOptions.style.display = 'flex';
                 this._updateDialogueButtons(npc);
@@ -135,8 +141,11 @@ const NPCDialogue = {
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔装备</button>
             `;
         }
-        dialogueOptions.innerHTML = typeButtons + `
-            <button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>
+        // 无立绘 NPC（祭坛/仓库等）不显示「调整立绘」按钮
+        const portraitBtn = npc.portrait
+            ? '<button class="npc-option-btn" id="npcOptionPortrait" onclick="NpcPortraitTool.toggle()">🖼️ 调整立绘</button>'
+            : '';
+        dialogueOptions.innerHTML = typeButtons + portraitBtn + `
             <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">${closeText}</button>
         `;
     },
@@ -208,7 +217,7 @@ const NPCDialogue = {
         // 控制立绘显示/隐藏
         const npcPortrait = getElement('npcPortrait');
         if (npcPortrait) {
-            npcPortrait.style.display = entry.speaker === 'npc' ? 'block' : 'none';
+            npcPortrait.style.display = (entry.speaker === 'npc' && this._currentNPC && this._currentNPC.portrait) ? 'block' : 'none';
         }
 
         if (this._typewriter) this._typewriter.setText(this._currentText);

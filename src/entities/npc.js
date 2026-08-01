@@ -11,7 +11,7 @@ class NPC extends Entity {
         this.active = true;
         this.name = config.name || '商人NPC';
         this.npcType = config.npcType || 'shop'; // 'shop' | 'quest'
-        this.portrait = config.portrait || 'assets/ui/npc_portrait.png';
+        this.portrait = config.portrait || ''; // 默认无立绘（祭坛/仓库等未配置 portrait 的 NPC 不显示）
         this.color = config.color || '#d4a373'; // 温暖棕色
         this.greetings = config.greetings || [
             '你好，冒险者！欢迎来到无限轮回。',

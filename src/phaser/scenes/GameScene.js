@@ -109,11 +109,11 @@ export class GameScene extends Scene {
         this._shadowSprites = new Map();
         this._ensureShadowTexture();
 
-        // 小地图静态层（背景/边界/墙壁），只在墙壁变化时重绘
+        // 小地图静态层（背景/边界/墙壁），只在墙壁或世界尺寸变化时重绘
         this._minimapStaticGraphics = this.add.graphics();
         this._minimapStaticGraphics.setDepth(99999);
         this._minimapStaticGraphics.setScrollFactor(0);
-        this._minimapStaticWallsCount = -1;
+        this._minimapStaticKey = null;
         // 小地图动态层（实体/相机框/玩家箭头），独立 graphics + 矩形 mask 裁剪（防止画出小地图框外）
         this._minimapDynamicGraphics = this.add.graphics();
         this._minimapDynamicGraphics.setDepth(99999);
@@ -499,11 +499,13 @@ export class GameScene extends Scene {
         if (!Game) return;
 
         // 1. 玩家：深度基于脚底 Y（Sprite.y + footOffsetY）
+        let playerNatural = 0, playerCorrected = 0;
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
+            playerNatural = this.playerSprite.y + footOffsetY + 10;
             // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）
-            const pd = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, this.playerSprite.y + footOffsetY + 10);
-            this.playerSprite.setDepth(pd);
+            playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural);
+            this.playerSprite.setDepth(playerCorrected);
         }
 
         // 2. 敌人 / 尸体
@@ -524,16 +526,20 @@ export class GameScene extends Scene {
             });
         }
 
-        // 3. 玩家手持武器 / 盾牌跟随玩家深度，保持相对层级
+        // 3. 玩家手持武器 / 盾牌跟随玩家深度，保持相对层级。
+        // 玩家被墙压下（仲裁后 depth < 自然 depth）时跟随件改用 <0.5 的紧凑偏移——
+        // 否则 +2/+1 的常规偏移会浮到遮挡墙之上（武器/盾牌穿墙显示）
         const playerDepth = (this.playerSprite && this.playerSprite.active) ? this.playerSprite.depth : 0;
+        const occluded = !!(this.playerSprite && this.playerSprite.active) && playerCorrected < playerNatural;
+        const weaponOff = occluded ? 0.4 : 2, offhandOff = occluded ? 0.3 : 1, shieldOff = occluded ? 0.2 : 1;
         if (this.weaponSprite && this.weaponSprite.active) {
-            this.weaponSprite.setDepth(playerDepth + 2);
+            this.weaponSprite.setDepth(playerDepth + weaponOff);
         }
         if (this.offhandWeaponSprite && this.offhandWeaponSprite.active) {
-            this.offhandWeaponSprite.setDepth(playerDepth + 1);
+            this.offhandWeaponSprite.setDepth(playerDepth + offhandOff);
         }
         if (this.shieldSprite && this.shieldSprite.active) {
-            this.shieldSprite.setDepth(playerDepth + 1);
+            this.shieldSprite.setDepth(playerDepth + shieldOff);
         }
 
         // 4. 防御光环位于玩家下方
@@ -654,7 +660,7 @@ export class GameScene extends Scene {
         if (_game.player && this.playerSprite && this.playerSprite.active) {
             const e = _game.player;
             active.add(e);
-            const depth = e.y + 9; // 比实体本身低 1
+            const depth = this.playerSprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
             const cx = e.collider ? e.collider.x : e.x;
             const cy = e.collider ? e.collider.y : e.y;
             ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
@@ -669,7 +675,7 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
-                const depth = e.y + 9;
+                const depth = sprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
                 const cx = e.collider ? e.collider.x : e.x;
                 const cy = e.collider ? e.collider.y : e.y;
                 ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
@@ -4059,11 +4065,12 @@ export class GameScene extends Scene {
         const clampX = (x) => Math.max(mx, Math.min(mx + minimapW, x));
         const clampY = (y) => Math.max(my, Math.min(my + minimapH, y));
 
-        // 墙壁数量变化时才重绘静态层
+        // 墙壁数量或世界尺寸变化时才重绘静态层（墙数可能跨场景恰好相同，尺寸必须参与缓存键）
         const wallCount = WallSystem && WallSystem.walls ? WallSystem.walls.length : 0;
-        if (wallCount !== this._minimapStaticWallsCount) {
+        const staticKey = wallCount + ':' + worldW + 'x' + worldH;
+        if (staticKey !== this._minimapStaticKey) {
             this._redrawMinimapStatic();
-            this._minimapStaticWallsCount = wallCount;
+            this._minimapStaticKey = staticKey;
         }
 
         // 相机视野框（与框求交集，超框部分不画）

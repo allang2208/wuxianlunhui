@@ -1198,8 +1198,11 @@ export const DungeonMapSystem = {
         if (isEliteOrBoss) this.player._moonshadowBoostActive = true;
     },
 
-    /** 陷阱生成约束：玩家（可达性）+ 宝箱房排除区 + 门口排除点（出口门/竞技场通道门） */
-    _trapExtras() {
+    /**
+     * 陷阱生成约束：可达性锚点 + 宝箱房排除区 + 门口排除点（出口门/竞技场通道门）
+     * @param {number} [roomIdx] 竞技场房间号（1~3，创建时逐房预生成）；缺省 = 当前房间
+     */
+    _trapExtras(roomIdx) {
         const exclusions = (typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem._exclusion)
             ? [ChestRoomSystem._exclusion] : [];
         const avoidPoints = [];
@@ -1215,13 +1218,26 @@ export const DungeonMapSystem = {
                 avoidPoints.push({ x: arena.entryGate.center.x, y: arena.entryGate.center.y, r: 150 });
             }
         }
-        // 房间 1/2：陷阱直线布局锚点 = 本房中央石柱位置（无石柱回退房心）；房间 3 走随机环带
-        const stage = arena ? arena.stage : 0;
-        const bounds = CombatRoomSystem._roomBounds;
+        // 目标房间：竞技场创建时逐房预生成（roomIdx 指定），否则当前房间 _roomBounds
+        const stage = arena ? (roomIdx || arena.stage) : 0;
+        const bounds = (arena && roomIdx)
+            ? CombatRoomSystem.getArenaRoomBounds(roomIdx)
+            : CombatRoomSystem._roomBounds;
+        // 房间 1/2：陷阱直线布局锚点 = 房心（中央石柱已随障碍物规则删除）；房间 3 走随机环带
         const lineFrom = (stage === 1 || stage === 2) && bounds
-            ? ((arena.centerPillars && arena.centerPillars[stage]) || { x: bounds.cx, y: bounds.cy })
+            ? { x: bounds.cx, y: bounds.cy }
             : null;
-        return { player: this.player, exclusions, avoidPoints, lineFrom };
+        // 可达性锚点（仅预生成时传；单房间/关门后路径缺省回退玩家位置，保持旧行为）：
+        // 房间 1/2 锚房心；房间 3 房心在宝箱房内（门墙常闭不可达）→ 锚本房通道门点
+        let reachFrom = null;
+        if (arena && roomIdx && bounds) {
+            reachFrom = { x: bounds.cx, y: bounds.cy };
+            if (stage === 3) {
+                const g = arena.passages[1] && arena.passages[1].gates[0];
+                if (g && g.center) reachFrom = { x: g.center.x, y: g.center.y };
+            }
+        }
+        return { player: this.player, exclusions, avoidPoints, lineFrom, reachFrom };
     },
 
     /**
@@ -1234,6 +1250,9 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
+        // 竞技场强制 3 波编排（一房一波）：遭遇覆盖 combatWaves<3（如诅咒铠甲事件 1 波）补足到 3 波
+        // 防软锁；强制怪（forceMonsters，如铠甲骑士）改到最后一波压轴出场
+        this._zombieCombat.forceArenaWaves(3);
         // 月影庇护：进入战斗触发无敌；精英战同时激活增伤
         this._triggerMoonshadow(!!node.isElite);
 
@@ -1256,6 +1275,23 @@ export const DungeonMapSystem = {
         // 宝箱房：第三房间中央（普通/精英都生成；倒计时等玩家进入房间 3 才启动）
         if (typeof ChestRoomSystem !== 'undefined') {
             ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true });
+        }
+
+        // 陷阱：房间生成时逐房摆放（不再等玩家进房关门）；可达性锚点用本房内部参考点
+        // （创建时玩家在入场地块、他房门未开，锚玩家会跨房寻路全灭——见 _trapExtras）
+        if (typeof TrapSystem !== 'undefined') {
+            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
+            if (zcfg.traps && zcfg.traps.count > 0) {
+                for (let roomIdx = 1; roomIdx <= 3; roomIdx++) {
+                    const rb = CombatRoomSystem.getArenaRoomBounds(roomIdx);
+                    if (!rb) continue;
+                    try {
+                        TrapSystem.spawnForRoom(rb, zcfg.traps, this._trapExtras(roomIdx));
+                    } catch (e) {
+                        console.error('[DungeonMapSystem] 陷阱生成异常（已兜底）:', e);
+                    }
+                }
+            }
         }
 
         // 玩家在入场地块（房间 1 左上墙入场门外）——走进房间 1 才触发关门+刷第 1 波
@@ -1296,7 +1332,7 @@ export const DungeonMapSystem = {
         if (minD < 150) return;
         CombatRoomSystem.setArenaRoomGates(p.roomIdx, false);
         this._arenaDoorPending = null;
-        // 关门后才刷怪/摆陷阱/启动倒计时（统一收口，防"刷怪不关门"）
+        // 关门后才刷怪/启动倒计时（统一收口，防"刷怪不关门"）
         this._onArenaRoomSealed(p.roomIdx);
     },
 
@@ -1314,11 +1350,11 @@ export const DungeonMapSystem = {
         arena.waveSpawned = false;
         CombatRoomSystem.setArenaStageRoom(roomIdx);
         this._armArenaDoorClose(roomIdx);
-        // 注意：此处不再直接刷怪/摆陷阱/启动宝箱倒计时——统一等关门后执行，
-        // 堵"门没关就刷怪"的漏洞（关门条件见 _updateArenaDoorClose）
+        // 注意：此处不再直接刷怪/启动宝箱倒计时——统一等关门后执行，
+        // 堵"门没关就刷怪"的漏洞（关门条件见 _updateArenaDoorClose；陷阱创建时已摆好）
     },
 
-    /** 关门后执行：刷对应波次 + 摆陷阱 + （房间 3）启动宝箱倒计时 */
+    /** 关门后执行：刷对应波次 + （房间 3）启动宝箱倒计时（陷阱已在竞技场创建时逐房预生成） */
     _onArenaRoomSealed(roomIdx) {
         const arena = CombatRoomSystem._arena;
         if (!arena) return;
@@ -1332,17 +1368,6 @@ export const DungeonMapSystem = {
             this._spawnZombieWave();
         } catch (e) {
             console.error('[DungeonMapSystem] 刷波异常（已兜底，不阻塞清场判定）:', e);
-        }
-        // 陷阱：按地牢配置在当前房间摆放
-        if (typeof TrapSystem !== 'undefined') {
-            const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
-            if (zcfg.traps && zcfg.traps.count > 0) {
-                try {
-                    TrapSystem.spawnForRoom(CombatRoomSystem._roomBounds, zcfg.traps, this._trapExtras());
-                } catch (e) {
-                    console.error('[DungeonMapSystem] 陷阱生成异常（已兜底）:', e);
-                }
-            }
         }
     },
 
@@ -1507,19 +1532,24 @@ export const DungeonMapSystem = {
         // 僵尸地牢：检查是否还有下一波
         if (this._isZombieFamily() && this.state === "combat" && this._zombieWaveActive) {
             if (this._zombieCombat && !this._zombieCombat.isComplete) {
-                // 三房间竞技场：当前房间 < 3 → 开门等玩家进下一房间，不自动续波
+                // 三房间竞技场：波次只能由 _onArenaRoomSealed 驱动，此处永不自动续波
                 const arena = CombatRoomSystem._arena;
-                if (arena && arena.stage < 3) {
-                    // 尚未刷过波（玩家在入场地块未进房间 1）：不判定清场
+                if (arena) {
+                    // 尚未刷过波（关门刷波窗口期，数组里还是上一房间的死怪）：一律不判定清场
                     if (!arena.waveSpawned) return false;
-                    if (!this._arenaRoomCleared) {
-                        this._arenaRoomCleared = true;
-                        CombatRoomSystem.setArenaRoomGates(arena.stage, true);
-                        arena.awaiting = arena.stage + 1;
-                        if (SceneManager && SceneManager.showTopNotification) {
-                            SceneManager.showTopNotification('通道已开启，前往下一房间');
+                    if (arena.stage < 3) {
+                        // 当前房间 < 3 → 开门等玩家进下一房间
+                        if (!this._arenaRoomCleared) {
+                            this._arenaRoomCleared = true;
+                            CombatRoomSystem.setArenaRoomGates(arena.stage, true);
+                            arena.awaiting = arena.stage + 1;
+                            if (SceneManager && SceneManager.showTopNotification) {
+                                SceneManager.showTopNotification('通道已开启，前往下一房间');
+                            }
                         }
+                        return false;
                     }
+                    // stage === 3：等本房间波次由关门流程驱动，战斗完成与否看 isComplete
                     return false;
                 }
                 // 防止重复设置过渡
@@ -1540,6 +1570,11 @@ export const DungeonMapSystem = {
         this._waveTransitioning = true;
         TimerManager.setTimeout(() => {
             if (!this.active || this.state !== "combat") {
+                this._waveTransitioning = false;
+                return;
+            }
+            // 防御：竞技场模式的波次只能由 _onArenaRoomSealed 驱动，此处直接放弃
+            if (CombatRoomSystem._arena) {
                 this._waveTransitioning = false;
                 return;
             }

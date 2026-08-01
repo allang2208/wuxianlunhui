@@ -8,6 +8,68 @@
 - 测试结果
 - 已知问题
 
+### 对话：武器/阴影/奔跑特效继承墙体遮挡 + 火把套预制件「火把墙」锚定贴墙（2026-08-01）
+
+- `src/phaser/scenes/GameScene.js`：
+  - 武器/副手/盾牌穿墙修复：`_updateDynamicDepths` 记录玩家仲裁前 natural depth，`corrected < natural` 判定被墙压下时跟随件改用 <0.5 紧凑偏移（武器 0.4/副手 0.3/盾 0.2）——旧版本体压到 `墙-0.5` 后 +2/+1 偏移 = `墙+1.5`，必然浮在遮挡墙之上；
+  - 地面阴影（`_syncEntityShadows`）：玩家/敌人阴影深度改随本体仲裁后 `sprite.depth - 0.1`（旧版自算 `e.y+9`，本体被压下后阴影仍浮在墙上），遮挡/抬升自动继承。
+- `src/effects/particle-effects.js`：`DustEffect`（奔跑/冲锋烟尘）depth 改走 `WallSystem.junctionCorrectedDepth` 仲裁，实体在墙后时烟尘同步压到墙下。
+- `src/world/obstacle-spawn-system.js`：`_spawnWallTorches` 改为**预制件锚定贴墙**——运行时从 `getWallPrefabLibrary()['火把墙']` 提取火把相对墙底边线的几何锚定（沿线参数 t + 垂直距离 d + depth 差值，预制件改动自动生效，缺失回退硬编码常量）；候选墙 = 非 obstacle、非门、`_pieceBaseSegments` 恰好单段（只贴直墙段）、菱形内、不撞排除点；放置点 = 墙底边线 t 处 + 朝房间中心法线 × d（垂距按 scaleY 比值折算）；删除旧的环带随机采样/前墙排除/400px 借 depth 逻辑。
+- `SKILL.md`：新增第 28 条——跟随件/特效必须继承本体遮挡仲裁（武器紧凑偏移、阴影跟本体 depth、定点特效过仲裁）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）；兜底常量独立复算与提取算法一致。
+- 已知问题：火把贴墙效果未做运行时目检（本机无 CDP 实例），建议进战斗房目测。
+
+### 对话：改造栏拖动贴图修复 + 祭坛/仓库去立绘 + 主神空间障碍物清理与 Delete 自动落盘（2026-08-01）
+
+- `src/ui/craft-system.js`：改造栏拖出装备的拖拽图像改为**同步**设置 56×56 小格子快照——优先用改造栏已加载的贴图实例直接绘制，异步加载仅作补绘兜底；修复此前 `img.onload` 里异步调用 `setDragImage` 的竞态（浏览器忽略晚到设置，默认快照显示 dropZone 大贴图），现与背包拖出同款小图标效果。
+- `src/entities/npc.js`：portrait 兜底由默认立绘改为空串——未配置 portrait 的 NPC（祭坛/仓库）默认无立绘。
+- `src/ui/npc-dialogue.js`：无立绘 NPC 隐藏立绘区、不进入立绘工具逻辑、不显示「调整立绘」按钮。
+- `data/obstacle-layout.json` / `public/data/obstacle-layout.json`：删除主神空间摆放实例中的石柱×2、木桶、头骨、陶罐、骨头堆、锁链、火把（保留木材堆/铁矿堆/烛台）。
+- `src/ui/wall-editor.js`：`_deleteSelection` 删除障碍物后自动调用 `_saveObstacleLayout` 落盘（Delete 键与「删除选中」按钮均触发）。
+- 测试：`node --check` ✓；`npm test` 全绿；`eslint` 通过。
+
+### 对话：门墙遮挡/竞技场波次/小地图修复 + 火把贴墙无碰撞 + 陷阱前置 + 地牢障碍物生成清空（2026-08-01）
+
+- `src/world/wall-system.js`：
+  - `junctionCorrectedDepth` 修复门墙左段（RB 边深端）时挡时不挡：①多遮挡源由取最深改为取**最浅**（min depth），实体压到所有遮挡面线之下才真正"被任一遮挡"——旧版门洞深端实体会被邻接 max 规则瓦片面线抬到门墙 depth 之上；②收集窗 ±60px 按"面线深端 y − depth"亏空加宽——门墙面线 depth=门洞中心比深端浅 ~119px，旧窗覆盖不到深端墙后 60~119px 的实体，仲裁完全失效（普通瓦片亏空为 0，行为不变）；
+  - `ISO_WALL_GEO.torch` 删除 `foot`：火把**全局无碰撞体积**（地牢/主神空间/编辑器/预制件统一）。
+- `src/world/dungeon-map-system.js`：
+  - 修复战斗事件第三间房被弹回路线选择：`_checkZombieCombatComplete` 的 `waveSpawned` 守卫提到 stage 判断之外（关门刷波窗口期不判定），竞技场模式永不走 `_scheduleNextWave`（旧版 stage=3 窗口期误排 1.5s 定时器清掉第 3 波怪并触发 `_returnToMap`）；`_scheduleNextWave` 回调加竞技场存在即放弃的双保险；
+  - `_enterCombatArena`：构造 `ZombieDungeonCombat` 后调 `forceArenaWaves(3)`；宝箱房 setup 后**逐房（1~3）预生成陷阱**（不再等玩家进房关门），可达性锚点用本房内部参考点（房心/通道门点）；`_onArenaRoomSealed` 删除关门后摆陷阱块；`_trapExtras(roomIdx)` 支持房间号参数与 `reachFrom`。
+- `src/world/zombie-dungeon.js`：`ZombieDungeonCombat` 新增 `forceArenaWaves(n)`——遭遇覆盖 `combatWaves<n`（如诅咒铠甲事件 1 波）补足到 n 波防软锁；强制怪（forceMonsters）出场波次 `_forceMonstersWave` 默认首波（旧行为不变），竞技场改最后一波压轴（铠甲骑士必在第 3 波）。
+- `src/phaser/scenes/GameScene.js` + `src/world/scene-manager.js`：修复放弃地牢返回主神空间后小地图墙层放大残留——静态层重绘缓存键由"墙数量"扩展为"墙数量+世界尺寸"（旧键在 switchScene 窗口期用地牢尺寸误绘主空间墙、回城后墙数量相同缓存不失效）；`switchScene` 完成后显式失效 `_minimapStaticKey` 双保险。
+- `src/world/obstacle-spawn-system.js`（437→172 行整体重写）：删除 `_spawnPillars`/`_spawnStorage`/`_spawnWallDecor`/`_spawnBoneYard` 及可达性回滚（用户清空重构思）；`_spawnWallTorches` 重写——强制贴墙（400px 内找不到非 obstacle 墙件直接放弃该点，绝不生成孤立火把）、不再生成碰撞、参数对齐预制件「火把墙」（scale 走 obstacle-defaults、depth=wallDepth+0.1+depthManual、火焰粒子保留）。
+- `src/world/combat-room-system.js`：删除 `_spawnFloorDeco`（沼泽地板点缀）及两处调用点、`_lastCenterPillar`/`centerPillars` 记录；`spawnForRoom` 调用点相应精简（保留 `rebuildIsoCollision`/`_syncWallsToPhaser`）。
+- `src/world/trap-system.js`：`spawnForRoom` 新增 `extras.reachFrom` 可达性锚点（缺省回退玩家位置，旧行为不变）。
+- `data/dungeon-config.json`（+`public/data` 同步）：`combatRoom.obstacles` 只保留 `wallTorches`（删 `collision` 字段及 pillars/storage/wallDecor/boneYard）；删除 `swampDungeon.floor.deco`。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+- 已知问题：①门墙遮挡修复与火把贴墙/陷阱预生成未做运行时目检，建议进 D 级竞技场验证四站位遮挡与房间 2/3 陷阱；②摆墙编辑器若给 torch 重新保存 foot 覆盖会重新引入碰撞（用户行为，未加防护）；③`BootScene` 仍 preload swamp_deco 贴图（不再使用，无害保留）。
+
+### 对话：文档体系整理——CHANGELOG 确立为唯一事实源（2026-08-01）
+
+- `PROJECT_STATE.md` → `PROJECT_STATE-ARCHIVED-20260711.md`：改名归档（保留 git 历史），顶部加「已归档」横幅，删除原「每次对话先读取此文件」工作准则。
+- 约定：项目现状（版本号、待办、已完成功能）统一从本文件（CHANGELOG.md）与 `git log` 读取。
+- 测试：纯文档变更，无需构建。
+
+### 对话：摆墙预制组件栏支持拖动排序（2026-08-01）
+
+- `src/ui/wall-editor.js`：
+  - 预制组件列表每行加拖动手柄 `≡`，整行可拖（`draggable` + dragstart/dragover/dragleave/drop）；放置/删除按钮 `draggable=false` 不干扰拖动；
+  - 新增 `_reorderPrefab(fromKey, toKey)`：把拖拽项移到目标行当前索引位（与图层面板 `_reorderLayer` 同口径），按新键序重建库对象并 `saveWallPrefabs` 落盘——JSON 对象键序即显示序，重启后顺序保留；
+  - 预制页顶部加提示"拖动 ≡ 排序（自动保存，重启后顺序保留）"。
+- `game-style.css`：`.we-pf-handle` 手柄样式、`.we-pf.dragging`（半透明）、`.we-pf.drag-over`（落点虚线高亮）、`.we-pf-hint` 提示。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：摆墙界面低风险修复（对齐/兜底/旋转归一/防抖）（2026-08-01）
+
+- `src/ui/wall-editor.js`：
+  - 「对齐地板角」跳过障碍物（billboard 无 30° 斜率概念，此前会被 slopeFixOf 误变形 scaleY）；
+  - 新增 `_normRot` 角度归一 [-π, π]，滚轮旋转、类型默认值应用（放置/重置）统一归一，防止旋转无限累计；
+  - 幽灵预览补 `setFlipY`（此前 flipY 预览与实际不一致）；
+  - `_scheduleCommit` 防抖 300ms → 450ms（`_commit` 全量重建碰撞+Phaser，过短在连续滚轮时卡顿）。
+- `src/world/wall-system.js`：`_addPieceCollision` 障碍物分支 `sy` 取绝对值 + 退化兜底（`fw/fd ≤ 0` 不生成 0 厚/反向碰撞墙）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
 ### 对话：门口通道侧实体漏遮挡修复——实体级多面线遮挡仲裁重写（2026-08-01）
 
 - `src/world/wall-system.js`：`junctionCorrectedDepth` 重写——旧版只取**最近一条**面线仲裁，门口多条面线（通道侧墙/门墙/房间墙）共存时选错，长门跨深端玩家在墙后仍完整显示（线上反馈截图）。新版收集脚线 ±60px 内所有面线，`y<yLine` 记遮挡源、`y≥yLine` 记前墙；**被任一贴近面线遮挡则遮挡**（压到遮挡墙 depth-0.5），否则有前墙抬到其上（+0.5）。`_getFaceSegCache` 扩展纳入门墙实例（arena entryGate/passages gates、WallGate `_seg`、宝箱房 `_gate`）。
@@ -24,6 +86,18 @@
   - 障碍物「重置」同时清除手调标记、恢复自动深度。
 - `src/world/wall-system.js`：`_placeIsoPiece` 同口径"手调优先"；`__depthAudit` 跳过障碍物（允许手调，不再误报违规）。
 - `src/world/obstacle-spawn-system.js`：火把贴墙成功时 `placed.piece.depth = wallDepth + 0.1` 加 `depthManual = true`（此前被渲染侧重算丢弃，火把会被墙盖住）；火焰粒子深度跟随火把实际图层（torchDepth + 1）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
+### 对话：摆墙界面中风险修复（旋转障碍物遮挡/碰撞基准 + flipY 约束）（2026-08-01）
+
+- `src/world/wall-system.js`：
+  - 新增 `obstacleDepthOf(piece)`：障碍物地面锚线统一入口——未旋转=贴图底边；有旋转=旋转后包围盒最低点（`y + 半宽×|sin| + 半高×|cos|`）。`_placeIsoPiece` 与 `depthOf` 改用它，旋转道具的遮挡基准跟随实际占据区域；
+  - `_addPieceCollision` 障碍物分支：footprint 矩形随 `p.rotation` 旋转后取 **AABB** 作为碰撞盒（半宽/深按 |cos|/|sin| 展开；未旋转退化为原矩形，零回归）。
+- `src/ui/wall-editor.js`：
+  - `_applyToSprite` 改用 `WallSystem.obstacleDepthOf`；
+  - 障碍物放置/重置时 **flipY 强制 false**（flipY 会让碰撞类 billboard 上下颠倒、底座与 footprint 错位；纯装饰件仍可翻转）；
+  - `_applyGhost` 补 `setFlipY`（预览与实际一致）。
+- 说明：碰撞编辑器预览为类型级编辑（预览件无旋转），`_obstacleRectGeom` 不受影响；foot.offsetY 属"碰撞可调、深度跟贴图底边"的设计语义，维持不变。
 - 测试：`node --check` ✓；npm test 全绿（177 项）。
 
 ### 对话：地牢路线选择界面改为上 40% / 下 60% 固定分界 + 背景图等比例缩小留黑边（2026-08-01）

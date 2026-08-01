@@ -179,6 +179,8 @@ export const SceneManager = {
 
             this.currentScene = sceneId;
             this._inMainHub = (sceneId === 'main');
+            // 双保险：世界尺寸可能刚变化，强制小地图静态层按新尺寸重绘（避免放大墙层残留）
+            if (window.__phaserScene) window.__phaserScene._minimapStaticKey = null;
             this.hideLoadingScreen();
             // 显示场景名称
             this._showSceneLabel(scene.name);

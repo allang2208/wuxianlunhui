@@ -29,19 +29,10 @@ import { GateLight } from '../effects/gate-light.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
-import { getObstacleDefaults, getWallPrefabLibrary } from './wall-prefabs.js';
+import { getWallPrefabLibrary } from './wall-prefabs.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { computeArenaLayout, pointInDiamond, ARENA_AXIS } from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
-
-/** 贴图键 → 障碍物 geoKey（ISO_WALL_GEO 中 category==='obstacle' 的键；非障碍物返回 null） */
-function _obstacleGeoKeyForTex(tex) {
-    for (const k of Object.keys(ISO_WALL_GEO)) {
-        const g = ISO_WALL_GEO[k];
-        if (g.tex === tex && g.category === 'obstacle') return k;
-    }
-    return null;
-}
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -202,9 +193,6 @@ export const CombatRoomSystem = {
         // 4. 生成边界墙壁（菱形斜墙 + 四角转角）
         this._generateWalls(roomSize);
 
-        // 4.5 地板装饰点缀（floor.deco 驱动：30% 地块随机场景道具，沼泽专用）
-        this._spawnFloorDeco();
-
         // 6. 确定玩家生成边并放置玩家
         const entranceEdge = this._rollEntranceEdge();
         this._entranceEdge = entranceEdge;
@@ -220,14 +208,12 @@ export const CombatRoomSystem = {
         // 9. 门闸：距玩家最近的直墙件替换为带门直墙，播关门动画困场
         this._setupGate(player);
 
-        // 10. 障碍物（大/中/小分档：大中 foot 碰撞、小纯装饰；避开房心/门口/玩家出生点）
+        // 10. 墙面火把（贴墙摆放、无碰撞；避开门口/玩家出生点）
         const gateInfo = WallGate.getGateInfo();
         const obstacleAvoid = [{ x: player.x, y: player.y, r: 150 }];
         if (gateInfo && gateInfo.center) obstacleAvoid.push({ x: gateInfo.center.x, y: gateInfo.center.y, r: 220 });
         ObstacleSpawnSystem.spawnForRoom(this._roomBounds, {
             avoidPoints: obstacleAvoid,
-            player,
-            decoSprites: this._decoSprites || (this._decoSprites = []),
         });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
@@ -577,7 +563,7 @@ export const CombatRoomSystem = {
         }
     },
 
-    /** 地板砖几何缓存：按贴图 alpha 扫描内容外接框（_spawnFloorDeco 先于 _spawnGateExitZone 执行，两处共用） */
+    /** 地板砖几何缓存：按贴图 alpha 扫描内容外接框（_spawnGateExitZone 门外白区晶格用） */
     _tileGeoFor(tileKey) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         if (!scene || !tileKey || !scene.textures.exists(tileKey)) return null;
@@ -604,63 +590,6 @@ export const CombatRoomSystem = {
             this._tileGeo[tileKey] = { w: maxX - minX + 1, h: maxY - minY + 1, cx: (minX + maxX + 1) / 2, cy: (minY + maxY + 1) / 2 };
         }
         return this._tileGeo[tileKey];
-    },
-
-    /** 地板装饰点缀（floor.deco 驱动：按地块网格 30% 随机摆放场景道具，脚底 y 排序；仅配置了 deco 的地牢生效） */
-    _spawnFloorDeco() {
-        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const d = this._diamond;
-        if (!scene || !d) return;
-        const profile = getDungeonFloorProfile();
-        const deco = profile && profile.deco;
-        if (!deco || !Array.isArray(deco.keys) || !deco.keys.length) return;
-        const keys = deco.keys.filter(k => scene.textures.exists(k));
-        if (!keys.length) {
-            console.warn('[FloorDeco] 装饰纹理缺失:', deco.keys);
-            return;
-        }
-        const chance = deco.chance ?? 0.3;
-        this._decoSprites = this._decoSprites || [];
-        // 与地板平铺同网格（步进近似：砖宽-overlap / 半高-overlap）
-        const tileKey = profile.tiles[0];
-        const geo = this._tileGeoFor(tileKey);
-        const stepX = geo ? geo.w - (profile.overlapX ?? 0) : 380;
-        const stepY = geo ? geo.h / 2 - (profile.overlapY ?? 0) : 110;
-        // 竞技场：逐房间菱形裁剪（单房间模式只有 _diamond 一个）
-        const diamonds = this._arena
-            ? this._arena.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry }))
-            : [{ cx: d.cx, cy: d.cy, rx: d.rx, ry: d.ry }];
-        for (let r = -2; r * stepY < d.worldH + 200; r++) {
-            const off = (r % 2 !== 0) ? stepX / 2 : 0;
-            for (let gx = -stepX; gx < d.worldW + stepX; gx += stepX) {
-                const cx = gx + off, cy = r * stepY;
-                // 只在某个房间菱形内（内缩）且避开该房中心（宝箱房/宝箱）250px
-                const room = diamonds.find(dm =>
-                    Math.abs(cx - dm.cx) / Math.max(1, dm.rx - 120) + Math.abs(cy - dm.cy) / Math.max(1, dm.ry - 80) <= 1);
-                if (!room) continue;
-                if (Math.hypot(cx - room.cx, cy - room.cy) < 250) continue;
-                if (Math.random() >= chance) continue;
-                const key = keys[Math.floor(Math.random() * keys.length)];
-                const sp = scene.add.image(cx, cy, key);
-                sp.setOrigin(0.5, 1); // 内容底边贴地
-                // 障碍物类装饰：有类型默认状态（obstacle-defaults.json）整套套用，否则走原随机逻辑
-                const defKey = _obstacleGeoKeyForTex(key);
-                const def = defKey ? getObstacleDefaults()[defKey] : null;
-                if (def) {
-                    sp.setScale(def.scaleX ?? 1, def.scaleY ?? def.scaleX ?? 1);
-                    sp.setRotation(def.rotation || 0);
-                    sp.setFlipX(!!def.flipX);
-                    sp.setFlipY(!!def.flipY);
-                } else {
-                    const th = sp.height || 1;
-                    sp.setScale((90 / th) * (0.8 + Math.random() * 0.5));
-                    sp.setFlipX(Math.random() < 0.5);
-                }
-                sp.setDepth(cy + 2); // 地面道具：高于地板、按脚底 y 参与排序
-                this._decoSprites.push(sp);
-            }
-        }
-        console.log(`[FloorDeco] 生成装饰 ${this._decoSprites.length} 件（chance=${chance}）`);
     },
 
     /** 门外白区：吸附地板晶格的一块黑砖（与房内地板无缝），远角径向圆滑淡出；
@@ -1113,16 +1042,13 @@ export const CombatRoomSystem = {
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         // 6. 竞技场状态（_diamond 固定指向房间 3：出口门/白区/离场判定都以其为准；
-        //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/陷阱/墓碑共用现有逻辑）
+        //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/墓碑共用现有逻辑）
         const r3 = layout.rooms[2];
         this._arena = { rooms: layout.rooms, passages: passageRecs, stage: 1, awaiting: 0 };
         this._diamond = { rx: r3.rx, ry: r3.ry, cx: r3.cx, cy: r3.cy, worldW: layout.worldW, worldH: layout.worldH };
         this._roomBounds = layout.rooms[0].bounds;
         this._entranceEdge = 0;
         this._oppositeEdge = 2; // 怪物统一刷当前房间下顶点附近
-
-        // 7. 地板装饰点缀（沼泽 deco：逐房间菱形裁剪）
-        this._spawnFloorDeco();
 
         // 8. 出口门：房间 3 右下边中点（straightOnly——三房各有转角装饰门，必须锚定目标边中点）
         this._setupGate({ x: r3.cx + r3.rx / 2, y: r3.cy + r3.ry / 2 }, { straightOnly: true });
@@ -1155,8 +1081,7 @@ export const CombatRoomSystem = {
         this._fillEdgeGaps(layout.rooms[2], 'LT', allGateSegs);
         this._fillEdgeGaps(layout.rooms[2], 'RB', allGateSegs);
 
-        // 8.5 障碍物：每房独立一套（大中碰撞/小装饰），避开房心/门口/玩家出生点；
-        //     先于陷阱生成（陷阱 canMoveTo 校验才能包含障碍 footprint）
+        // 8.5 墙面火把：每房独立一套（贴墙、无碰撞），避开门口/玩家出生点
         const r1 = layout.rooms[0];
         // 玩家出生点 = 入场地块中心（无入场门时回退房间 1 中心偏上）
         const spawnX = entryZone ? entryZone.cx : r1.cx;
@@ -1173,36 +1098,28 @@ export const CombatRoomSystem = {
         for (const r of layout.rooms) {
             const avoid = [];
             if (r.index === 1) avoid.push({ x: spawnX, y: spawnY, r: 150 });
-            // 入场门（开着 → 可达性校验目标；门口 220px 不放障碍物）
+            // 入场门（门口 220px 不放火把）
             if (r.index === 1 && entryGate) {
-                avoid.push({ x: entryGate.center.x, y: entryGate.center.y, r: 220, reach: true });
+                avoid.push({ x: entryGate.center.x, y: entryGate.center.y, r: 220 });
             }
-            // 来路门（房间 2/3：上一条通道的 gB 端，开着 → 可达性校验目标）
+            // 来路门（房间 2/3：上一条通道的 gB 端）
             if (r.index > 1) {
                 const c = gateNear(passageRecs[r.index - 2], layout.passages[r.index - 2].mid2);
-                avoid.push({ x: c.x, y: c.y, r: 220, reach: true });
+                avoid.push({ x: c.x, y: c.y, r: 220 });
             }
-            // 去路门（房间 1/2：下一条通道的 gA 端，开着 → 可达性校验目标）
+            // 去路门（房间 1/2：下一条通道的 gA 端）
             if (r.index < layout.rooms.length) {
                 const c = gateNear(passageRecs[r.index - 1], layout.passages[r.index - 1].mid1);
-                avoid.push({ x: c.x, y: c.y, r: 220, reach: true });
+                avoid.push({ x: c.x, y: c.y, r: 220 });
             }
-            // 出口门（关闭中，不参与可达性校验，只排除放置）
+            // 出口门
             if (r.index === 3 && exitInfo && exitInfo.center) {
                 avoid.push({ x: exitInfo.center.x, y: exitInfo.center.y, r: 220 });
             }
             ObstacleSpawnSystem.spawnForRoom(r.bounds, {
                 dungeonType: options.dungeonType,
-                roomIndex: r.index,
                 avoidPoints: avoid,
-                player: { x: spawnX, y: spawnY },
-                decoSprites: this._decoSprites || (this._decoSprites = []),
             });
-            // 记录各房中央石柱位置（陷阱直线锚点用）
-            if (ObstacleSpawnSystem._lastCenterPillar) {
-                this._arena.centerPillars = this._arena.centerPillars || {};
-                this._arena.centerPillars[r.index] = ObstacleSpawnSystem._lastCenterPillar;
-            }
         }
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
@@ -1777,7 +1694,7 @@ export const CombatRoomSystem = {
         }
     },
 
-    /** 切换当前战斗房间（刷怪/陷阱/墓碑共用 _roomBounds 的现有逻辑） */
+    /** 切换当前战斗房间（刷怪/墓碑共用 _roomBounds 的现有逻辑） */
     setArenaStageRoom(roomIdx) {
         const a = this._arena;
         if (!a) return;

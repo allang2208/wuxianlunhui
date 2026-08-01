@@ -28,7 +28,7 @@ const ISO_WALL_GEO = {
     skull: { tex: 'obstacle_skull', w: 323, h: 384, category: 'obstacle', foot: { w: 179, d: 62 }, obstacleH: 100, editor: '头骨' },
     bones: { tex: 'obstacle_bones', w: 512, h: 419, category: 'obstacle', foot: { w: 300, d: 105 }, obstacleH: 100, editor: '骨头堆' },
     chains: { tex: 'obstacle_chains', w: 512, h: 204, category: 'obstacle', foot: { w: 460, d: 48 }, obstacleH: 72, editor: '锁链' },
-    torch: { tex: 'obstacle_torch', w: 144, h: 278, category: 'obstacle', foot: { w: 84, d: 42 }, obstacleH: 160, editor: '火把' },
+    torch: { tex: 'obstacle_torch', w: 144, h: 278, category: 'obstacle', obstacleH: 160, editor: '火把' }, // 无 foot：火把全局无碰撞体积（墙面挂饰，2026-08 规则）
     bottle1: { tex: 'obstacle_bottle1', w: 412, h: 245, category: 'obstacle', foot: { w: 247, d: 61 }, obstacleH: 80, editor: '瓶-1' },
     bottle2: { tex: 'obstacle_bottle2', w: 160, h: 476, category: 'obstacle', foot: { w: 96, d: 119 }, obstacleH: 80, editor: '瓶-2' },
     bottle3: { tex: 'obstacle_bottle3', w: 190, h: 580, category: 'obstacle', foot: { w: 114, d: 145 }, obstacleH: 80, editor: '瓶-3' },
@@ -131,12 +131,26 @@ const WallSystem = {
         if (maxY === -Infinity) {
             const g = this._geoForTex(piece.tex);
             if (g && g.category === 'obstacle') {
-                maxY = piece.y + (g.h * (piece.scaleY ?? piece.scaleX ?? 1)) / 2;
+                maxY = this.obstacleDepthOf(piece);
             } else {
                 maxY = piece.y;
             }
         }
         return maxY + bias;
+    },
+
+    /**
+     * 障碍物地面锚线 y（与实体脚底/墙底边同尺度的遮挡基准）：
+     * 未旋转 = 贴图底边（y + 高×scaleY/2）；有旋转 = 旋转后包围盒最低点
+     * （y + 半宽×|sin| + 半高×|cos|）——旋转道具的遮挡基准跟随实际占据区域。
+     */
+    obstacleDepthOf(piece) {
+        const g = this._geoForTex(piece.tex);
+        const hw = (g ? g.w : 0) * Math.abs(piece.scaleX ?? 1) / 2;
+        const hh = (g ? g.h : 0) * Math.abs(piece.scaleY ?? piece.scaleX ?? 1) / 2;
+        const rot = piece.rotation || 0;
+        if (!rot) return piece.y + hh;
+        return piece.y + hw * Math.abs(Math.sin(rot)) + hh * Math.abs(Math.cos(rot));
     },
 
     /** 运行时审计：扫描 isoVisuals 中 depth 与 depthOf 偏差 >1 的墙件（控制台调用 window.WallSystem.__depthAudit()）；
@@ -617,9 +631,9 @@ const WallSystem = {
         sp.setFlipY(!!p.flipY);
         if (p.rotation) sp.setRotation(p.rotation);
         // 障碍物 depth：优先手调值（图层面板/Q+E/火把贴墙，p.depthManual 标记），
-        // 否则锚贴图底边（前墙规则，位置/缩放变化时自动跟随）
+        // 否则锚地面线（未旋转=贴图底边；旋转=包围盒最低点，obstacleDepthOf）
         const g = this._geoForTex(p.tex);
-        const obstacleDepth = p.y + (g.h * (p.scaleY ?? p.scaleX ?? 1)) / 2;
+        const obstacleDepth = this.obstacleDepthOf(p);
         const depth = (g && g.category === 'obstacle')
             ? (p.depthManual ? (p.depth ?? obstacleDepth) : obstacleDepth)
             : (p.depth ?? p.y);
@@ -646,31 +660,39 @@ const WallSystem = {
      */
     /**
      * 实体级墙体遮挡仲裁（唯一规则）：
-     * 对实体脚线 (x, y)，收集所有贴近（|y−yLine| ≤ 60）的墙/门面线——
+     * 对实体脚线 (x, y)，收集所有贴近（|y−yLine| ≤ 60 + 深度亏空）的墙/门面线——
      * y < yLine（实体在线后）记为遮挡源，y ≥ yLine（在线前）记为前墙。
-     * 有遮挡源 → 压到最前遮挡墙之下（depth-0.5）；
+     * 有遮挡源 → 压到最浅遮挡面线之下（min depth − 0.5，即压到所有遮挡线之下）；
      * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡）；
      * 多面线共存的门口/衔接处按"被任一墙遮挡则遮挡"判定——
      * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）
      */
     junctionCorrectedDepth(x, y, depth) {
         const cache = this._getFaceSegCache();
-        let occluderDepth = -Infinity, frontDepth = -Infinity;
+        let occluderDepth = Infinity, frontDepth = -Infinity;
         for (const it of cache) {
             for (const [A, B] of it.segs) {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
                 if (x < minX || x > maxX) continue;
                 const t = (x - A.x) / ((B.x - A.x) || 1e-6);
                 const yLine = A.y + (B.y - A.y) * t;
-                if (Math.abs(y - yLine) > 60) continue;
+                // 门墙面线 depth = 门洞中心底边 y，比深端浅（亏空 = 深端 y − depth，可达 ~119px）：
+                // 收集窗按亏空加宽，否则深端墙后 60~119px 的实体收不到任何面线、仲裁完全失效
+                // （普通 max 规则瓦片亏空为 0，窗口不变、行为不变）
+                const deficit = Math.max(A.y, B.y) - it.depth;
+                const win = deficit > 0 ? 60 + deficit : 60;
+                if (Math.abs(y - yLine) > win) continue;
                 if (y < yLine) {
-                    if (it.depth > occluderDepth) occluderDepth = it.depth;
+                    // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正"被任一遮挡"。
+                    // 旧版取最深（max），门洞深端的实体会被邻接深墙面线抬到门墙 depth 之上，
+                    // 门墙左段时挡时不挡（RB 边门，右侧浅端天然正常）
+                    if (it.depth < occluderDepth) occluderDepth = it.depth;
                 } else {
                     if (it.depth > frontDepth) frontDepth = it.depth;
                 }
             }
         }
-        if (occluderDepth !== -Infinity) return Math.min(depth, occluderDepth - 0.5);
+        if (occluderDepth !== Infinity) return Math.min(depth, occluderDepth - 0.5);
         if (frontDepth !== -Infinity) return Math.max(depth, frontDepth + 0.5);
         return depth;
     },
@@ -791,14 +813,27 @@ const WallSystem = {
         // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
         const geo = this._geoForTex(p.tex);
         if (geo && geo.category === 'obstacle' && geo.foot) {
-            const sx = Math.abs(p.scaleX ?? 1), sy = (p.scaleY ?? p.scaleX ?? 1);
+            const sx = Math.abs(p.scaleX ?? 1), sy = Math.abs(p.scaleY ?? p.scaleX ?? 1);
             const fw = geo.foot.w * sx, fd = geo.foot.d * sy;
+            // 数据兜底：负/零缩放或异常 foot 不生成退化碰撞（0 厚墙/反向墙）
+            if (!(fw > 0) || !(fd > 0)) return;
             const offX = (geo.foot.offsetX || 0) * sx, offY = (geo.foot.offsetY || 0) * sy;
             const bottomY = p.y + (geo.h * sy) / 2 + offY;
+            // 旋转：footprint 矩形随 p.rotation 旋转，碰撞盒取旋转后 AABB
+            // （半宽/深按 |cos|/|sin| 展开；未旋转退化为原矩形）
+            const rot = p.rotation || 0;
+            let hw = fw / 2, hd = fd / 2;
+            if (rot) {
+                const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
+                const nw = hw * c + hd * s;
+                hd = hw * s + hd * c;
+                hw = nw;
+            }
+            const cx = p.x + offX, cy = bottomY - fd / 2;
             this.walls.push({
-                x: p.x - fw / 2 + offX,
-                y: bottomY - fd,
-                w: fw, h: fd,
+                x: cx - hw,
+                y: cy - hd,
+                w: hw * 2, h: hd * 2,
                 height: 60, noVisual: true, _iso: true, _obstacle: true,
             });
             return;
