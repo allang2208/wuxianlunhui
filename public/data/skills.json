@@ -453,6 +453,9 @@
       "icon": "❄",
       "iconImage": "assets/skills/Icearrow-skill.png",
       "description": "释放后在角色身后生成冰锥，再次释放将所有冰锥瞄准鼠标方向射出",
+      "sounds": {
+        "hit": "assets/sounds/skills/ice.mp3"
+      },
       "maxLevel": 20,
       "tags": [
         {

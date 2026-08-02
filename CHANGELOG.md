@@ -8,6 +8,13 @@
 - 测试结果
 - 已知问题
 
+### 对话：小鼠铁匠帧触发音效（NPC 首例）+ 冰锥命中音效（2026-08-02）
+
+- `assets/sounds/npc/blacksmith/hammering.mp3`（新建 npc/ 分类）+ `assets/sounds/skills/ice.mp3`。
+- `src/phaser/scenes/GameScene.js`：NPC 侧首个帧音效机制——`_syncNeutralEntities` 贴图 NPC 创建时挂 `animationupdate` 回调，命中配置帧号播 `SoundManager.playFile`；`data/game-config.json`（+public 同步）`npcs.mouseBlacksmith.sprite.frameSounds = { frames: [5, 15], path }`——通用结构，其他贴图 NPC 加配置即复用。
+- `src/entities/components/ice-spike-system.js`：`onImpact` 的 hitEntity 分支播放（命中才播，撞墙不播），90ms 节流防同帧多颗刷音；`data/skills.json`（+public 同步）iceSpike 新增 `sounds.hit`（沿用 fireball 口径）。
+- 测试：`node --check` ✓；npm test 全绿（189 项）；CDP 实机：铁匠动画 2.2 轮捕获 hammering.mp3 ×4（恰在第 5/15 帧）、冰锥命中捕获 ice.mp3 ×1（伤害结算正常）。
+
 ### 对话：毒液瓶落地音效（巫婆+煮锅）+ 火球命中音效（2026-08-02）
 
 - `assets/sounds/enemies/witch/landing.mp3`（源 1.mp3 改名）+ `assets/sounds/skills/fireball.mp3`（新建 skills/ 目录）。
@@ -114,6 +121,20 @@
 - 现象：18 件新装备图标在 UI 里明显偏小。实测根因：装备贴图 1536×1536 画布内**内容只占 12%~60%**（如猛攻戒指 0.18×0.12、疾风轻盔 0.18×0.20），而武器图标内容占 **86%~98%**（G18 0.86×0.67、锈剑 0.98×0.95）——同一 `object-fit: contain` 的 44px 图标框里，装备可视面积只有武器的约 1/4。
 - 修复：`assets/icons/equipment/` 18 张 PNG 批量处理——裁剪到内容包围盒 → 双线性放大到最长边占画布 **90%**（保持宽高比、保留透明边距、画布仍 1536×1536，其余代码零改动）。
 - 验证：处理后 18 张最长边占比全部 = 0.9（宽扁/高瘦形状保持原比例，与武器同档）；尺寸仍 1536×1536；PNG 结构有效。
+
+### 对话：预制组合图层顺序丢失修复（桶*3+瓶 等 8/10 组合错层）（2026-08-02）
+
+- 现象：桶*3+瓶 在游戏里图层顺序与编辑器保存时不一致（保存时瓶子在前，实际生成桶把瓶子盖住）。
+- 根因：`_spawnPrefabCompositions` 逐件 `piece.depth = _liftDepthAboveWalls(piece, obstacleDepthOf(piece))` 按**世界 Y** 独立重算深度，完全丢弃了预制件保存的组内相对深度。纯数学对比：**10 个组合里 8 个顺序被打乱**（桶*3+瓶、桶+瓶-1、水缸+瓶-1、烛台+铁链(整组反转)、骨头堆-2、瓶-1/2/3）；只有全同类的木桶组合、水缸+水缸 碰巧一致。
+- 修复（`src/world/obstacle-spawn-system.js`）：保留 `q.depth` 为 `savedDepth`，以组内 savedDepth 最小（最靠后）的一件为基准做墙体抬升（`_liftDepthAboveWalls`），其余各件 depth = 基准 + 保存差值——编辑器里手调的遮挡关系完整保留，且整组仍在墙件之上。
+- 验证：CDP 连续 8 次进竞技场收集实际生成件，逐组对比实际深度序 vs 保存深度序——**每次放置的序列都与保存顺序一致**（烛台+铁链 由反转为正确，桶*3+瓶 瓶子回到桶前）；npm test 全绿；eslint 通过。
+
+### 对话：新装备贴图视觉居中（按质量中心对齐画布中心）（2026-08-02）
+
+- 现象：上一轮放大到 90% 后，部分图标仍显偏移（壁垒重盔、魔力腰带、壁垒重靴、秘法长袍等）。
+- 量化：内容包围盒已居中（偏移 0），但**alpha 加权质量中心偏移最高达 ±400px**（壁垒重盔 x=-393、魔力腰带 x=-374、壁垒重靴 x=+279、秘法长袍 (-298,-234)）——图形本体在包围盒内偏一边，观感不居中；武器图标基本视觉居中。
+- 修复：`assets/icons/equipment/` 18 张 PNG 重新处理——裁剪后按质量中心平移到画布中心（双线性缩放，对称件保持 0.9 占比，非对称件自动微缩保证 48px 边距不出画布）。
+- 验证：处理后 18 张质量中心偏移全部 = (0,0)；边界无越界（含 48px 边距）；尺寸仍 1536×1536；dev server 全部 200 image/png；非对称件占比 0.60~0.88、对称件 0.90。
 
 ### 对话：Vite 开发服务器崩溃（资源 ERR_CONNECTION_REFUSED）排查修复（2026-08-02）
 

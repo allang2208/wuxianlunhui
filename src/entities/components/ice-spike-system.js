@@ -1,6 +1,8 @@
 import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
+import { SoundManager } from '../../ui/sound-manager.js';
+import skillsData from '../../../data/skills.json';
 
 /**
  * 冰锥系统（通用版）——BoltSkillSystem 的冰锥 kind 封装。
@@ -8,6 +10,9 @@ import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js'
  * 差异点：N 颗悬浮冰锥（身后扇形）→ 全部发射 → 命中/撞墙 = 碎裂（同帧可多目标结算）；
  * 到达最大射程 = 静默消失（无特效）。
  */
+
+// 命中音效节流（防同帧多颗冰锥刷音，与近战命中音效同口径 90ms）
+let _iceHitSoundCd = 0;
 
 const ICE_SPIKE_KIND = {
     skillKey: 'iceSpike',
@@ -95,8 +100,15 @@ const ICE_SPIKE_KIND = {
             strokeColor: 0x9fd8ff, fillColor: 0xd8f0ff,
             lineWidth: 4, duration: 320, flicker: true,
         });
-        // 撞墙（无命中目标）只播特效；命中目标才结算伤害/经验
+        // 撞墙（无命中目标）只播特效；命中目标才结算伤害/经验 + 播放命中音效
         if (hitEntity) {
+            // 命中音效（skills.json iceSpike.sounds.hit 配置驱动；90ms 节流防同帧多颗刷音）
+            const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            const hitSound = skillsData.skills?.iceSpike?.sounds?.hit;
+            if (hitSound && now >= _iceHitSoundCd && SoundManager && typeof SoundManager.playFile === 'function') {
+                _iceHitSoundCd = now + 90;
+                SoundManager.playFile(hitSound);
+            }
             const wasAlive = hitEntity.hp > 0;
             hitEntity.takeDamage(damage, sys.source, 'magic');
             if (skill && sys._isPlayer()) {

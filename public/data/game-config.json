@@ -340,7 +340,12 @@
         "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
         "idleKey": "npc_mouse_blacksmith_idle",
         "size": 196,
-        "footOffsetY": 125
+        "footOffsetY": 125,
+        "frameSounds": {
+          "comment": "动画帧触发音效：idle 循环播到第 5/15 帧（1 基帧号）各播放一次（每轮两次，铁匠敲打声）",
+          "frames": [5, 15],
+          "path": "assets/sounds/npc/blacksmith/hammering.mp3"
+        }
       },
       "clickArea": {
         "comment": "点击交互区域（按贴图内容收窄：内容 420×505/512 × size250 ≈ 205×247，锚定脚底）",
