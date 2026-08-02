@@ -18,6 +18,7 @@
  *    数量按房间配置 countByRoom（房间 1/2 各 3 组、房间 3 八组，
  *    无 roomIndex 的单房间路径按房间 1 取值）；烛台不再单独生成
  *    （「烛台+铁链」等含烛台的预制组合仍在池内可抽中）。
+ *    同房间不重复抽同一预制 key；组合间有最小间隔（视作整体：净间隔 > 0.5×较大组半径，放不满就放实际数量）。
  * 3) 通道火把（_spawnPassageTorches）：竞技场每条通道右手侧墙按固定间隔均布，
  *    贴墙锚定复用预制件「火把墙」（data/wall-prefabs.json）的 (t, d, depthDelta)
  *    机制——运行时从预制件提取每个火把相对墙件底边线的锚定数据（用户改预制件自动
@@ -82,6 +83,8 @@ export const ObstacleSpawnSystem = {
             scene, bounds,
             roomIndex: opts.roomIndex || 0, // 预制组合数量按房间取 countByRoom（0 = 单房间路径，按房间 1）
             avoid: (opts.avoidPoints || []).map(p => ({ x: p.x, y: p.y, r: p.r ?? AVOID_GATE })),
+            usedPrefabs: new Set(), // 本房已抽中的预制组合 key（同房间不重复；ctx 逐房新建 = 逐房重置）
+            placedComps: [],        // 本房已放组合 {x, y, r}（组合间最小间隔校验，r = 整体包围半径）
             total: 0,
         };
 
@@ -122,6 +125,12 @@ export const ObstacleSpawnSystem = {
      * 坐标不可用，逐件重算 = max(obstacleDepthOf, 400px 内最近墙件 depth + 0.1)，
      * depthManual 一律打上——静态件不走实体 junctionCorrectedDepth 仲裁，不抬深度
      * 会被 flat depth 更深的后墙后画盖住）。
+     * 同房间不重复：本房已抽过的预制 key 不再抽（ctx.usedPrefabs 逐房重置；
+     * 池子剩余不足时放实际数量，不报错）。
+     * 组合间最小间隔（组合视作整体）：整体包围半径 r = 各件（锚距 + 旋转 AABB 半对角）
+     * 的最大值；新组合与每个已放组合要求 锚距 − (r新 + r已) > 0.5×max(r新, r已)
+     * （边缘到边缘的净间隔必须大于较大一组半径的一半——V0.369 用户定案系数 0.5，
+     * 兼顾间隔感与房间 3 放满率；尝试用尽放不满就放实际数量，不报错）。
      * 烛台不单独生成（2026-08-01 v3：candleChance 分支已删；「烛台+铁链」等含烛台的
      * 预制组合仍在池内可抽中）。
      * 数量按房间配置 countByRoom（房间 1/2 各 3 组、房间 3 八组——房间 3 中央是宝箱房，
@@ -129,9 +138,9 @@ export const ObstacleSpawnSystem = {
      * 路径按房间 1 取值。
      * 选点：随机选一条后墙边 → 沿线随机点（两端各留 15%）→ 朝房心法线方向取
      * wallDist 距离为组合锚点。
-     * 整组校验：逐件中心在菱形可移动范围内（内缩 40+触地半径——不压墙线/不出界，
-     * wallDist 上限保证不靠场地中间）、不撞 avoidPoints（门/通道口/玩家出生点）；
-     * 任一件失败整组重抽。
+     * 整组校验：组合间隔 → 逐件中心在菱形可移动范围内（内缩 40+触地半径——不压墙线/
+     * 不出界，wallDist 上限保证不靠场地中间）、不撞 avoidPoints（门/通道口/玩家出生点）；
+     * 任一项失败整组重抽。
      */
     _spawnPrefabCompositions(cfg, ctx) {
         const pool = _prefabCompositionPool();
@@ -147,8 +156,12 @@ export const ObstacleSpawnSystem = {
         let placed = 0, tries = 0;
         while (placed < count && tries < 60) {
             tries++;
+            // 同房间不重复：只从本房没抽过的 key 里抽；池子抽干放实际数量（不报错）
+            const avail = pool.filter(k => !ctx.usedPrefabs.has(k));
+            if (!avail.length) break;
+            const key = avail[Math.floor(Math.random() * avail.length)];
             // 组合件清单：相对锚点的偏移 + 各件变换（预制组合原样保留）
-            const pf = lib[pool[Math.floor(Math.random() * pool.length)]];
+            const pf = lib[key];
             // 基准点 cx/cy（结构约定见 wall-prefabs.js；缺失时回退各件中心，双保险）
             let bx = pf.cx, by = pf.cy;
             if (bx == null || by == null) {
@@ -160,7 +173,17 @@ export const ObstacleSpawnSystem = {
                 scaleX: q.scaleX ?? 1, scaleY: q.scaleY ?? q.scaleX ?? 1,
                 rotation: q.rotation || 0, flipX: !!q.flipX, flipY: !!q.flipY,
             }));
+            // 整体包围半径：以预制 cx/cy 为锚，各件 锚距 + 自身旋转 AABB 半对角 的最大值
+            let compR = 0;
+            for (const it of items) {
+                compR = Math.max(compR, Math.hypot(it.dx, it.dy)
+                    + _pieceHalfDiag(it.tex, it.scaleX, it.scaleY, it.rotation));
+            }
             const anchor = _rollBackWallAnchor(ctx.bounds, dist);
+            // 组合间最小间隔：与每个已放组合 净间隔 = 锚距 − (r新 + r已) 必须 > 0.5×max(r新, r已)
+            // （用户定案 V0.369：系数 0.5——保证间隔感同时让房间 3 能稳定放满；放不满就放实际数量）
+            if (ctx.placedComps.some(pc =>
+                Math.hypot(anchor.x - pc.x, anchor.y - pc.y) - (compR + pc.r) <= 0.5 * Math.max(compR, pc.r))) continue;
             // 整组校验（逐件：菱形可移动范围内 + 不压排除点），失败整组重抽
             const staged = [];
             let ok = true;
@@ -177,6 +200,8 @@ export const ObstacleSpawnSystem = {
                     tex: it.tex, x: pt.x, y: pt.y,
                     scaleX: it.scaleX, scaleY: it.scaleY,
                     rotation: it.rotation, flipX: it.flipX, flipY: it.flipY,
+                    // 组合来源标记（CDP/调试 dump 用；渲染/碰撞忽略下划线扩展字段）
+                    _prefabKey: key, _compAnchor: { x: anchor.x, y: anchor.y }, _compR: compR,
                 };
                 // prefab 旧 depth 不可用，逐件重算；并抬到附近墙件之上（静态件不走实体
                 // junctionCorrectedDepth 仲裁，不抬会被 flat depth 更深的后墙后画盖住）
@@ -184,6 +209,8 @@ export const ObstacleSpawnSystem = {
                 piece.depthManual = true; // 手调深度：_placeIsoPiece 渲染尊重 p.depth
                 this._placeObstacle(ctx, piece);
             }
+            ctx.usedPrefabs.add(key);
+            ctx.placedComps.push({ x: anchor.x, y: anchor.y, r: compR });
             placed++;
         }
     },
@@ -481,6 +508,26 @@ function _groundRadius(tex, scaleX, scaleY) {
     const hw = (g.foot ? g.foot.w : g.w) * Math.abs(scaleX ?? 1) / 2;
     const hd = (g.foot ? g.foot.d : g.w) * Math.abs(scaleY ?? scaleX ?? 1) / 2;
     return Math.max(hw, hd);
+}
+
+/**
+ * 件的旋转 AABB 半对角（组合整体包围半径用）：
+ * 半宽/半高 × scale，有旋转按 |cos|/|sin| 展开 AABB 后取半对角
+ * （数值上旋转不改变半对角，但按规格走 AABB 流程，口径与碰撞展开一致）；
+ * 无 geo 的未知贴图按 60×60 兜底
+ */
+function _pieceHalfDiag(tex, scaleX, scaleY, rot = 0) {
+    const g = WallSystem._geoForTex(tex);
+    const w = g ? g.w : 60, h = g ? g.h : 60;
+    let hw = w * Math.abs(scaleX ?? 1) / 2;
+    let hd = h * Math.abs(scaleY ?? scaleX ?? 1) / 2;
+    if (rot) {
+        const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
+        const nw = hw * c + hd * s;
+        hd = hw * s + hd * c;
+        hw = nw;
+    }
+    return Math.hypot(hw, hd);
 }
 
 /** 点到线段的最短距离 */

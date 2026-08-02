@@ -129,7 +129,7 @@
     },
     "traps": {
       "count": 3,
-      "lineSpacing": 30,
+      "lineSpacing": 180,
       "triggerRadius": 45,
       "delayMs": 250,
       "animMs": 500,

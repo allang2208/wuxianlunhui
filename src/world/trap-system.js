@@ -37,7 +37,7 @@ function _distToFrontEdges(bounds, pt) {
 
 const DEFAULTS = {
     count: 3,
-    lineSpacing: 30, // 房间 1/2 石柱陷阱线的相邻陷阱间距（px，屏幕水平方向）
+    lineSpacing: 180, // 房间 1/2 石柱陷阱线的相邻陷阱间距（px，屏幕水平方向；≥ 陷阱精灵宽 ~117px 才可见间隔）
     triggerRadius: 45,
     delayMs: 250,
     animMs: 500,
@@ -80,7 +80,7 @@ export const TrapSystem = {
         const inExclusion = (x, y) => exclusions.some(e =>
             Math.abs(x - e.cx) / Math.max(1, e.rx) + Math.abs(y - e.cy) / Math.max(1, e.ry) <= 1);
         const valid = (x, y, isLine = false) => {
-            // 陷阱间最小间距：仅随机环带模式；石柱陷阱线间距 lineSpacing（30）是设计如此，不放逐
+            // 陷阱间最小间距：仅随机环带模式；石柱陷阱线间距 lineSpacing（180）是设计如此，不放逐
             if (!isLine && this._traps.some(t => Math.hypot(t.x - x, t.y - y) < C.triggerRadius * 2.5)) return false;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
                 && !WallSystem.canMoveTo(x, y, C.triggerRadius)) return false;
