@@ -100,15 +100,15 @@ const ICE_SPIKE_KIND = {
             strokeColor: 0x9fd8ff, fillColor: 0xd8f0ff,
             lineWidth: 4, duration: 320, flicker: true,
         });
-        // 撞墙（无命中目标）只播特效；命中目标才结算伤害/经验 + 播放命中音效
+        // 命中音效：命中目标/撞墙都播放（V0.374 调整；skills.json iceSpike.sounds.hit 配置驱动；
+        // 90ms 节流防同帧多颗刷音）；伤害/经验只在命中目标时结算
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const hitSound = skillsData.skills?.iceSpike?.sounds?.hit;
+        if (hitSound && now >= _iceHitSoundCd && SoundManager && typeof SoundManager.playFile === 'function') {
+            _iceHitSoundCd = now + 90;
+            SoundManager.playFile(hitSound);
+        }
         if (hitEntity) {
-            // 命中音效（skills.json iceSpike.sounds.hit 配置驱动；90ms 节流防同帧多颗刷音）
-            const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-            const hitSound = skillsData.skills?.iceSpike?.sounds?.hit;
-            if (hitSound && now >= _iceHitSoundCd && SoundManager && typeof SoundManager.playFile === 'function') {
-                _iceHitSoundCd = now + 90;
-                SoundManager.playFile(hitSound);
-            }
             const wasAlive = hitEntity.hp > 0;
             hitEntity.takeDamage(damage, sys.source, 'magic');
             if (skill && sys._isPlayer()) {
