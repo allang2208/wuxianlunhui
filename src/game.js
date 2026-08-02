@@ -264,6 +264,7 @@ export const Game = {
             color: shopCfg.color,
             portrait: shopCfg.portrait,
             npcType: shopCfg.npcType,
+            shopId: shopCfg.shopId || 'main', // 商店目录键（ShopSystem.SHOP_CATALOGS；不同 NPC 配不同键卖不同商品）
             sprite: shopCfg.sprite,
             wander: shopCfg.wander,
             clickArea: shopCfg.clickArea,
@@ -369,9 +370,10 @@ export const Game = {
             size: bsCfg.size,
             collisionRadius: bsCfg.collisionRadius,
             color: bsCfg.color,
-            portrait: bsCfg.portrait,
-            npcType: bsCfg.npcType,
-            sprite: bsCfg.sprite,
+              portrait: bsCfg.portrait,
+              npcType: bsCfg.npcType,
+              shopId: bsCfg.shopId || 'blacksmith', // 商店目录键（黑铁商店：优质非武器装备）
+              sprite: bsCfg.sprite,
             noSeparation: bsCfg.noSeparation,
             collisionShape: bsCfg.collisionShape,
             collisionWidth: bsCfg.collisionWidth,

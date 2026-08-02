@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+### 对话：毒液瓶落地音效（巫婆+煮锅）+ 火球命中音效（2026-08-02）
+
+- `assets/sounds/enemies/witch/landing.mp3`（源 1.mp3 改名）+ `assets/sounds/skills/fireball.mp3`（新建 skills/ 目录）。
+- `src/entities/enemy-types/_shared/venom-bottle.js`：`createVenomZone()` 落地成区时 `playSoundFrom(host, 'land')`（提灯 burn 同口径）；巫婆/煮锅 config `sounds` 块新增 `land` key（双份同步）。
+- `src/entities/components/fireball-system.js`：`onImpact`（命中/撞墙/到射程统一结算点）播放 fireball 命中音；`data/skills.json`（+public 同步）fireball 条目新增 `sounds.hit`——**skills.json 音效字段首例**，后续技能接音效按此口径复制。
+- 测试：`node --check` ✓；npm test 全绿（189 项）；CDP 实机：煮锅 2 瓶捕获 2 次 landing.mp3、火球命中捕获 1 次 fireball.mp3。
+- 已知问题：火球命中音在命中/撞墙/到射程三种爆炸场景都会播（同一 onImpact 入口），只想命中实体才播需按 hitEntity 区分（未做）。
+
 ### 对话：巫婆/煮锅投射物放大 5 倍 + 煮锅 15s 间隔 + 锅口绿烟一排 7 个（2026-08-02）
 
 - `data/enemy-config.json`（+public 同步）：
@@ -82,6 +90,30 @@
 - 根因：`playBgmForScene(sceneId)` 只在 `SceneManager.switchScene` 尾部调用；出征入口 `expedition-system.depart()` 直接 `DungeonMapSystem.init('scene7') + SceneManager.currentScene = 'scene7'`，绕开 switchScene（与"depart 旁路 switchScene 导致主神空间缓存不保存"同一类旁路教训），BGM 切换从未执行。
 - 修复（`src/ui/expedition-system.js`）：depart 设置 currentScene 后手动补发 `SoundManager.playBgmForScene('scene7')`（新增 import）；退出地牢走 switchScene('main') → bgm.main=null 自动停 BGM，无需改。
 - 验证：CDP 出征（D 级+稀有祭品）实测 `dungeon_echo.mp3` 资源请求发出、地牢正常初始化；eslint 通过。
+
+### 对话：商店商品目录分店预修改（2026-08-02）
+
+- 排查结论：所有商店共用 `ShopSystem._items` 单一数组（购买/渲染/补全全走它），`open(npc)` 收到的 NPC 未参与商品过滤——换任何 NPC 开的都是同一批货。
+- 预修改（为后续"不同商店卖不同商品"铺路，当前行为不变）：
+  - `src/ui/shop-system.js`：`_items` → `SHOP_CATALOGS`（shopId → 商品数组），现有 24 件全量商品归入 `main` 目录；新增 `_shopIdFor(npc)` / `_itemsFor(npc)`（缺省/未知 shopId 回退 main）；购买查找、购买列表渲染、模块加载时字段补全全部改为按当前商店目录。
+  - `src/game.js`：NPC 配置透传 `shopId`（缺省 'main'）；`data/public/game-config.json` 的 `npcs.shopMouseKing` 显式声明 `"shopId": "main"`。
+  - `ShopSystem` 挂载到 `window`（控制台调试用，与 ExpeditionSystem/ChestRoomSystem 同口径）。
+  - 后续新增商店 = `SHOP_CATALOGS` 加键（如 'armory'）+ 对应 NPC 配置 `shopId` 指向该键即可。
+- 验证：CDP 实测 main 目录 24 件全量渲染；临时 `test` 目录只出 1 件；未知 shopId 回退 main；小鼠大王 NPC `config.shopId='main'`、开商店 24 格；npm test 全绿；eslint 通过。
+
+### 对话：小鼠铁匠新增商店（出售全部优质非武器装备）（2026-08-02）
+
+- NPC：小鼠铁匠对话新增 🏪 商店 按钮（`npc-dialogue.js` blacksmith 分支），`ShopSystem.open(npc)` 套用商店模板。
+- 目录：`SHOP_CATALOGS.blacksmith` = 18 个 ItemDatabase 装备 id（疾风/秘法/壁垒三件套 + 三项链 + 三戒指 + 三腰带），运行时懒解析自 equipment.json（属性/贴图单一数据源）；`_itemsFor` 支持"完整对象 / 装备 id"两种条目形态。
+- 定价：**如实汇报——代码里没有现成的稀有度定价函数**（历史价格逐件手写）；按 SKILL.md「全祭品按稀有度统一定价」约定同源补兜底表 `RARITY_STANDARD_PRICE`（common/uncommon/rare/epic/mythic/legendary = 100/200/400/800/1600/3200），18 件全为优质 → 单价 **200**。
+- 配置：`game-config.json`（双份）`mouseBlacksmith` 加 `"shopId": "blacksmith"`；`game.js` 铁匠 NPC 透传。
+- 验证：CDP 实测铁匠 shopId='blacksmith'、商品 18 件（全 uncommon、价 200、仅 armor/accessory、无武器）、商店渲染 18 格、对话含 npcOptionShop 按钮；npm test 全绿；eslint 通过。
+
+### 对话：新装备贴图放大对齐武器图标（2026-08-02）
+
+- 现象：18 件新装备图标在 UI 里明显偏小。实测根因：装备贴图 1536×1536 画布内**内容只占 12%~60%**（如猛攻戒指 0.18×0.12、疾风轻盔 0.18×0.20），而武器图标内容占 **86%~98%**（G18 0.86×0.67、锈剑 0.98×0.95）——同一 `object-fit: contain` 的 44px 图标框里，装备可视面积只有武器的约 1/4。
+- 修复：`assets/icons/equipment/` 18 张 PNG 批量处理——裁剪到内容包围盒 → 双线性放大到最长边占画布 **90%**（保持宽高比、保留透明边距、画布仍 1536×1536，其余代码零改动）。
+- 验证：处理后 18 张最长边占比全部 = 0.9（宽扁/高瘦形状保持原比例，与武器同档）；尺寸仍 1536×1536；PNG 结构有效。
 
 ### 对话：Vite 开发服务器崩溃（资源 ERR_CONNECTION_REFUSED）排查修复（2026-08-02）
 

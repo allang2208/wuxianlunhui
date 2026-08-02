@@ -122,6 +122,7 @@ const NPCDialogue = {
             closeText = '👋 退出';
         } else if (npcType === 'blacksmith') {
             typeButtons = `
+                <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 商店</button>
                 <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化</button>
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔</button>
                 <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造</button>

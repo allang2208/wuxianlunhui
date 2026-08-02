@@ -516,6 +516,9 @@
       "icon": "🔥",
       "iconImage": "assets/skills/fireball_icon.png",
       "description": "释放后在角色身前凝聚火球，再次释放将火球瞄准鼠标方向射出，命中后造成范围爆炸伤害",
+      "sounds": {
+        "hit": "assets/sounds/skills/fireball.mp3"
+      },
       "maxLevel": 20,
       "tags": [
         {

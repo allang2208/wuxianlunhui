@@ -224,9 +224,10 @@
       "size": 20,
       "collisionRadius": 32.5,
       "color": "#c4a35a",
-      "portrait": "assets/ui/npc_portrait.png",
-      "npcType": "shop",
-      "sprite": {
+    "portrait": "assets/ui/npc_portrait.png",
+    "npcType": "shop",
+    "shopId": "main",
+    "sprite": {
         "comment": "贴图动画：idle/walk 动画键（BootScene 注册）；size=显示边长(方形帧)；footOffsetY=逻辑脚底到贴图中心偏移；walkFps=行走动画帧率",
         "idleKey": "npc_mouse_king_idle",
         "walkKey": "npc_mouse_king_walk",
@@ -331,9 +332,10 @@
       "size": 20,
       "collisionRadius": 60,
       "color": "#8a6a4a",
-      "portrait": "assets/npc/mouse_blacksmith/portrait.png",
-      "npcType": "blacksmith",
-      "noSeparation": true,
+    "portrait": "assets/npc/mouse_blacksmith/portrait.png",
+    "npcType": "blacksmith",
+    "shopId": "blacksmith",
+    "noSeparation": true,
       "sprite": {
         "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
         "idleKey": "npc_mouse_blacksmith_idle",

@@ -1,6 +1,6 @@
 import { GroundEllipse } from '../../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../../config/perspective-config.js';
-import { hostilesOf } from './enemy-utils.js';
+import { hostilesOf, playSoundFrom } from './enemy-utils.js';
 import { launchArcProjectile } from '../../../effects/combat-fx.js';
 import { GroundZone } from '../../../effects/ground-zone.js';
 
@@ -52,6 +52,8 @@ export function throwVenomBottle(host, cfg, tx, ty) {
 
 /** 落点生成毒液区（绿色椭圆 + 绿烟粒子簇；伤害与叠毒在 onTick） */
 export function createVenomZone(host, cfg, x, y) {
+    // 落地音效（配置 sounds.land，巫婆/煮锅同 key 同文件）
+    playSoundFrom(host, 'land');
     // 绿烟配置（配置里 tint 为 "0x......" 字符串，Phaser 粒子需要数值）
     const flameCfg = {
         // 绿烟填满影响区域（smoke_particle + 绿色 tint + ADD，矿洞绿烟同款）
