@@ -5,8 +5,8 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
-import { WallSystem } from '../../world/wall-system.js';
 import { AimHelper } from '../../utils/aim-helper.js';
+import { summonMonster } from './_shared/summon-helper.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 /**
@@ -315,88 +315,17 @@ export class ZombieWizard extends Enemy {
         this._frozenForCast = true;
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '🐕 召唤僵尸犬', '#8a8a4a'));
 
-        const angle = this.rotation || 0;
-        const distance = 100;
-        const offsets = [-Math.PI / 6, 0, Math.PI / 6]; // -30°, 0°, +30°
-        const dogCfg = enemyConfigData.zombieDog || {};
-        const dogRadius = dogCfg.collisionRadius || 30;
-        const placed = [];
-
-        for (let i = 0; i < 3; i++) {
-            const a = angle + offsets[i];
-            const tx = this.x + Math.cos(a) * distance;
-            const ty = this.y + Math.sin(a) * distance;
-            const pos = this._findValidSummonPosition(tx, ty, dogRadius, placed);
-            placed.push(pos);
-
-            // 通过运行时工厂创建（在 zombie-dungeon.js 中注入）
-            const dog = this._createZombieDog ? this._createZombieDog(pos.x, pos.y) : null;
-            if (dog) {
-                // 召唤物统一标签：不掉金币/经验/技能修炼值（不影响地牢原有僵尸犬）
-                dog._summoned = true;
-                // [FIX] 每只召唤犬必须有唯一 key，否则会覆盖 entities map 中的同一条记录
-                const dogId = `zombieDog_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`;
-                dog.id = dogId;
-                if (entities && typeof entities.set === 'function') {
-                    entities.set(dogId, dog);
-                } else if (Array.isArray(entities)) {
-                    entities.push(dog);
-                }
-            }
-        }
-    }
-
-    /**
-     * 寻找合法的召唤位置：不能卡在墙里，也不要和其他召唤物过度重叠。
-     * 优先使用目标位置；若被墙挡住，则沿“巫师→目标”射线往回找，
-     * 再不行就在目标点附近做螺旋搜索，最后回退到巫师周围搜索。
-     */
-    _findValidSummonPosition(tx, ty, radius, existing = []) {
-        const canPlace = (x, y) => {
-            if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return true;
-            if (!WallSystem.canMoveTo(x, y, radius)) return false;
-            for (const p of existing) {
-                if (Math.hypot(x - p.x, y - p.y) < radius * 2.2) return false;
-            }
-            return true;
-        };
-
-        if (canPlace(tx, ty)) return { x: tx, y: ty };
-
-        // 沿射线往回找，确保与巫师在同一侧墙面
-        const dx = tx - this.x;
-        const dy = ty - this.y;
-        const dist = Math.hypot(dx, dy);
-        const step = Math.max(4, radius * 0.25);
-        for (let d = dist - step; d > 0; d -= step) {
-            const t = d / dist;
-            const x = this.x + dx * t;
-            const y = this.y + dy * t;
-            if (canPlace(x, y)) return { x, y };
-        }
-
-        // 在目标点附近螺旋搜索
-        const maxR = 160;
-        const ringStep = Math.max(8, radius * 0.3);
-        const angleStep = Math.PI / 4;
-        for (let r = ringStep; r <= maxR; r += ringStep) {
-            for (let a = 0; a < Math.PI * 2; a += angleStep) {
-                const x = tx + Math.cos(a) * r;
-                const y = ty + Math.sin(a) * r;
-                if (canPlace(x, y)) return { x, y };
-            }
-        }
-
-        // 最终回退：巫师附近螺旋搜索
-        for (let r = ringStep; r <= maxR; r += ringStep) {
-            for (let a = 0; a < Math.PI * 2; a += angleStep) {
-                const x = this.x + Math.cos(a) * r;
-                const y = this.y + Math.sin(a) * r;
-                if (canPlace(x, y)) return { x, y };
-            }
-        }
-
-        return { x: this.x, y: this.y };
+        if (typeof this._createZombieDog !== 'function') return;
+        summonMonster(this, {
+            factory: this._createZombieDog,
+            count: 3,
+            mode: 'sector',
+            radius: enemyConfigData.zombieDog?.collisionRadius || 30,
+            distance: 100,
+            arc: Math.PI / 3,
+            tag: 'zombieDog',
+            playFx: true,
+        });
     }
 
     triggerWeaponAnim() {

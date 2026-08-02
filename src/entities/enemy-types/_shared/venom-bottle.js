@@ -1,7 +1,7 @@
 import { GroundEllipse } from '../../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom } from './enemy-utils.js';
-import { launchArcProjectile } from '../../../effects/combat-fx.js';
+import { launchArcProjectile, createGroundWarning, destroyWarning } from '../../../effects/combat-fx.js';
 import { GroundZone } from '../../../effects/ground-zone.js';
 
 /**
@@ -34,6 +34,10 @@ export function throwVenomBottle(host, cfg, tx, ty) {
         sy += cfg.muzzleRightDy ?? 0;
     }
     const flyDuration = cfg.flyDuration ?? 1500;
+
+    // 落点红色椭圆预警（与集合体投掷同口径）
+    const warning = createGroundWarning(tx, ty, cfg.impactRadius ?? 200);
+
     const handle = launchArcProjectile({
         textureKey: 'enemy_witch_projectile',
         size: cfg.projectileSize || 48,
@@ -44,6 +48,7 @@ export function throwVenomBottle(host, cfg, tx, ty) {
         spin: Math.PI * 2,
         depth: host.y + 15,
         onImpact: (ix, iy) => {
+            destroyWarning(warning);
             createVenomZone(host, cfg, ix, iy);
         },
     });
@@ -82,6 +87,10 @@ export function createVenomZone(host, cfg, x, y) {
                 // 每次伤害判定命中叠中毒（复用 DamageableEntity.applyPoison 既有中毒实现）
                 if (typeof e.applyPoison === 'function') {
                     e.applyPoison(cfg.poisonStacks ?? 1);
+                }
+                // 毒液区内致残减速：刷新 2s slow，离开区域后仍持续 2s
+                if (typeof e.applyCripple === 'function') {
+                    e.applyCripple(2000, { silent: true });
                 }
             }
         },

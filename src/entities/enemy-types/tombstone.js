@@ -1,6 +1,6 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { WallSystem } from '../../world/wall-system.js';
+import { summonMonster } from './_shared/summon-helper.js';
 
 /**
  * 墓碑（普通级，僵尸 family）——站桩召唤器（参考矿洞 mine-cave.js）
@@ -40,8 +40,6 @@ export class Tombstone extends Enemy {
         this._spitterSpawnTimer = this._spitterSpawnInterval;
         this._spawnFactory = config.spawnFactory || null;
         this._spitterSpawnFactory = config.spitterSpawnFactory || null;
-        this._spawnSeq = 0;
-        this._spitterSpawnSeq = 0;
         this._smokeEmitters = null; // 黑烟粒子（惰性创建，见 _ensureSmoke）
     }
 
@@ -69,55 +67,30 @@ export class Tombstone extends Enemy {
         this._spawnTimer -= dt;
         if (this._spawnTimer <= 0) {
             this._spawnTimer = this._spawnInterval;
-            this._spawnSummoned(this._spawnFactory, 'zombie', this._spawnSeq++);
+            this._spawnSummoned(this._spawnFactory, 'zombie');
         }
         // 定时生成毒液僵尸（默认每 30s）
         this._spitterSpawnTimer -= dt;
         if (this._spitterSpawnTimer <= 0) {
             this._spitterSpawnTimer = this._spitterSpawnInterval;
-            this._spawnSummoned(this._spitterSpawnFactory, 'spitter', this._spitterSpawnSeq++);
+            this._spawnSummoned(this._spitterSpawnFactory, 'spitter');
         }
     }
 
     /**
-     * 在墓碑四周找一个可行走的落点生成召唤物（8 向 × 递近距离）；
-     * 全部失败则放弃本 tick（顺延下个周期），保证召唤物不卡墙、能走出寻敌
+     * 在墓碑四周生成召唤物（统一走 summon-helper，保证不卡墙、key 唯一、无掉落）
      */
-    _spawnSummoned(factory, tag, seq) {
+    _spawnSummoned(factory, tag) {
         if (typeof factory !== 'function') return;
-        const game = typeof window !== 'undefined' ? window.Game : null;
-        if (!game || !game.entities) return;
-
-        // 先在墓碑周围找安全落点，再生成（避免先生成再挪动的抖动）
-        const probeRadius = 15; // 普通僵尸 groundRadius 量级
-        let sx = 0, sy = 0, found = false;
-        outer:
-        for (const dist of [90, 130, 170]) {
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const tx = this.x + Math.cos(angle) * dist;
-                const ty = this.y + Math.sin(angle) * dist;
-                if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                    && !WallSystem.canMoveTo(tx, ty, probeRadius)) continue;
-                sx = tx; sy = ty; found = true;
-                break outer;
-            }
-        }
-        if (!found) return; // 本 tick 无可行走落点，顺延下个生成周期
-
-        const summoned = factory(sx, sy);
-        if (!summoned) return;
-        // 落点墙壁解析（防卡墙，与召唤物同口径）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const r = WallSystem.resolve(this.x, this.y, summoned.x, summoned.y, summoned.groundRadius || 10);
-            summoned.x = r.x;
-            summoned.y = r.y;
-        }
-        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数/掉落物）
-        summoned._summoned = true;
-        const key = `tombstone_${tag}_${Date.now()}_${seq}_${Math.floor(Math.random() * 1000)}`;
-        game.entities.set(key, summoned);
-        this._playSpawnFx(summoned.x, summoned.y);
+        summonMonster(this, {
+            factory,
+            count: 1,
+            mode: 'radial',
+            radius: 15,
+            distance: 90,
+            tag: `tombstone_${tag}`,
+            playFx: true,
+        });
     }
 
     /** 召唤物生成点黑色粒子（地牢刷怪同款 playDungeonSpawnParticles） */

@@ -133,41 +133,6 @@ export function createHudCore() {
 
     root.appendChild(topBar);
 
-    // ===== 状态条 =====
-    const statusBar = document.createElement('div');
-    statusBar.id = 'statusBar';
-    statusBar.className = 'status-bar';
-
-    // HP 条
-    const barHp = document.createElement('div');
-    barHp.className = 'bar-hp';
-    const barFillHp = document.createElement('div');
-    barFillHp.className = 'bar-fill-hp';
-    barFillHp.id = 'hpBar';
-    const hpText = document.createElement('span');
-    hpText.className = 'bar-text';
-    hpText.id = 'hpText';
-    hpText.textContent = '100/100';
-    barHp.appendChild(barFillHp);
-    barHp.appendChild(hpText);
-    statusBar.appendChild(barHp);
-
-    // 体力条
-    const barStamina = document.createElement('div');
-    barStamina.className = 'bar-stamina';
-    const barFillStamina = document.createElement('div');
-    barFillStamina.className = 'bar-fill-stamina';
-    barFillStamina.id = 'staminaBar';
-    const staminaText = document.createElement('span');
-    staminaText.className = 'bar-text';
-    staminaText.id = 'staminaText';
-    staminaText.textContent = '200/200';
-    barStamina.appendChild(barFillStamina);
-    barStamina.appendChild(staminaText);
-    statusBar.appendChild(barStamina);
-
-    root.appendChild(statusBar);
-
     // ===== 武器信息 =====
     const weaponInfo = document.createElement('div');
     weaponInfo.className = 'weapon-info';

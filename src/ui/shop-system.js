@@ -103,6 +103,11 @@ const ShopSystem = {
         };
     },
 
+    /** 商店出售价（购买价）：shopPrice（商店专供翻倍价）优先，缺省 price——与 buy() 同口径 */
+    _priceOf(item) {
+        return item ? (item.shopPrice ?? item.price ?? 0) : 0;
+    },
+
     open(npc) {
         UIState.open('shop');
         this._isOpen = true;
@@ -320,6 +325,7 @@ const ShopSystem = {
                     : item.icon;
                 cell.innerHTML = `
                     <div class="buy-cell-rarity rarity-${rarityKey}">${rarityLabel}</div>
+                    <div class="buy-cell-price">💰${this._priceOf(item)}</div>
                     <div class="buy-cell-icon">${iconHtml}</div>
                     <div class="buy-cell-name">${item.name}</div>
                 `;

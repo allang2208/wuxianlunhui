@@ -578,7 +578,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     }
                 }
             }
-            applyCripple(duration) {
+            applyCripple(duration, opts = {}) {
                 if (this.hasStatusEffect('statusImmune')) return;
                 // 状态栏显示
                 if (StatusBar) {
@@ -586,7 +586,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
                 // 内部状态数组（供 hasStatusEffect 查询）
                 this.addStatusEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
-                if (EffectManager) {
+                if (!opts.silent && EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🦴 致残！', '#8a8a7a'));
                 }
             }

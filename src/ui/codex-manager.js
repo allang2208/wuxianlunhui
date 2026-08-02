@@ -171,9 +171,14 @@ const CodexManager = {
     },
 
     getMonsterByCategory(cat) {
-        const items = Object.values(this.monsterDatabase);
-        if (cat === 'all') return items;
-        return items.filter(i => i.family === cat);
+        const typeOrder = { '次级': 0, '普通': 1, '精英': 2, '领主': 3, '首领': 4, '其他': 5 };
+        let items = Object.values(this.monsterDatabase);
+        if (cat !== 'all') {
+            items = items.filter(i => i.family === cat);
+        }
+        // 按类型由低向高排序（次级 → 普通 → 精英 → 领主 → 首领 → 其他）
+        items.sort((a, b) => (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99));
+        return items;
     },
 
     getEquipByCategory(cat) {
