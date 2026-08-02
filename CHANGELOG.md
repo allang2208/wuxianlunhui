@@ -8,6 +8,15 @@
 - 测试结果
 - 已知问题
 
+### 对话：巫婆/煮锅投射物放大 5 倍 + 煮锅 15s 间隔 + 锅口绿烟一排 7 个（2026-08-02）
+
+- `data/enemy-config.json`（+public 同步）：
+  - 巫婆 `attackSkills.venom.projectileSize` 与煮锅 `attackSkills.bottle.projectileSize` 48→240（×5；只改配置值，提灯灯笼/攻击1毒蛆投射物不受影响）；
+  - 煮锅 `attackSkills.bottle.intervalMs` 30000→15000，图鉴描述同步"每 15s"；
+  - 煮锅 `smoke` 块：`offsetY` 70→110（上移 40px），新增 `rowExtra: 3`。
+- `src/entities/enemy-types/cauldron.js` `_ensureSmoke()`：单 emitter 改一排 7 个（左3+原1+右3），间距 = collisionWidth/(2×rowExtra) 按碰撞宽度推导不硬编；depth/混合/清理链（`_destroyCustomEffects`）与原 emitter 同口径。
+- 测试：`node --check` ✓；npm test 全绿（189 项——并行会话给 test-regressions 新增 treasureChest 断言 12 项，基线 177→189）；CDP 实机：投射物 displaySize 240×240、7 个 emitter 间距 25 左右对称、y 上移 40 生效，截图 `cauldron-smoke-row(-big-bottle).png`。
+
 ### 对话：竞技场（含精英战斗事件）最后一波普通怪固定 10 只（2026-08-02）
 
 - `src/world/zombie-dungeon.js`：`ZombieDungeonCombat` 新增 `_arenaMode` 标记（`forceArenaWaves` 置位，仅竞技场路径）；`nextWaveMonsterClasses` 尾波（`_currentWave === _totalWaves`）普通怪补足/裁减到恰好 `arenaLastWaveNormals` 只——精英/领主/强制怪（如铠甲骑士压轴）不动，其余波次与非竞技场路径零变化；补足时沿用编组规则（已抽中矿石蜘蛛则补矿工僵尸）。
@@ -53,6 +62,26 @@
 - 排查（CDP 导出全部陷阱坐标）：非重复生成（无坐标重复）——石柱线模式按 `lineSpacing: 30` 中心距摆放，但陷阱精灵 `triggerRadius(45)×2.6 ≈ 117px`，30 < 117 → 相邻陷阱重叠 87px，视觉成一条实心带；触发椭圆（45 > 30）同样重叠。
 - 修复：`data/dungeon-config.json` + `public/data/dungeon-config.json` 的 `zombieDungeon.traps.lineSpacing` 30 → **180**（用户确认），`src/world/trap-system.js` 兜底默认值与注释同步；房间 3 随机环带模式不受影响（min 间距 112.5px）。
 - 验证：CDP 重进竞技场实测房间 1/2 陷阱间隔恰好 **180px**、精灵 117px → 可见空隙 63px；config-integrity 通过；eslint 通过。
+
+### 对话：宝箱奖励分档 + 精英宝箱房额外装备掉落（2026-08-02）
+
+- 宝箱奖励表（`data/combat-formulas.json universalEventRewards.treasureChest[F~A]`）新增分档强化石/改造券数量，并上调 B/A 祭品彩蛋概率：
+  - F/E/D：强化石×1 + 改造券×1；C：×2；B：×3；A：×4（用户确认档位）。
+  - 祭品彩蛋概率：D/C 10%、B 15%、A 20%。
+- 两处消费方同步按档取值：随机事件宝箱（`dungeon-event-system.getUniversalEventConfig` 材料组数量覆盖）+ 战斗宝箱房（`chest-room-system._giveRewards` 掉落数量）。
+- 新增：**精英战斗宝箱房额外 50% 概率掉落一件非武器装备**（铠甲/饰品池，数据源 ItemDatabase 自动扩充）：
+  - 稀有度 = 地牢等级稀有度 − 1 级（F 钳制 common）：E→普通、D→优质、C→稀有、B→史诗、A→神话；
+  - 池内无对应稀有度条目时整池随机并覆盖掉落实例稀有度为档位（保证各档都能出装）；
+  - 普通战斗宝箱房不触发（`setup` 新增 `isElite` 标记，3 处调用点由 `node.isElite` 传入）。
+- 出征界面宝箱房说明同步显示分档数量；回归测试扩展宝箱表字段断言（强化石/改造券/概率）。
+- 验证：CDP 实测 E 精英 21/40 掉装备全为普通、D 精英掉装全为优质、D 普通 0 掉装；材料数量 E=粉尘150/石1/券1、D=粉尘200；npm test 全绿（含 132 断言回归）；eslint 通过。
+
+### 对话：地牢模式 BGM 不播放修复（2026-08-02）
+
+- 现象：`data/audio-config.json` 已配 `bgm.scene7 = assets/sounds/music/dungeon_echo.mp3`，但进地牢后无 BGM。
+- 根因：`playBgmForScene(sceneId)` 只在 `SceneManager.switchScene` 尾部调用；出征入口 `expedition-system.depart()` 直接 `DungeonMapSystem.init('scene7') + SceneManager.currentScene = 'scene7'`，绕开 switchScene（与"depart 旁路 switchScene 导致主神空间缓存不保存"同一类旁路教训），BGM 切换从未执行。
+- 修复（`src/ui/expedition-system.js`）：depart 设置 currentScene 后手动补发 `SoundManager.playBgmForScene('scene7')`（新增 import）；退出地牢走 switchScene('main') → bgm.main=null 自动停 BGM，无需改。
+- 验证：CDP 出征（D 级+稀有祭品）实测 `dungeon_echo.mp3` 资源请求发出、地牢正常初始化；eslint 通过。
 
 ### 对话：Vite 开发服务器崩溃（资源 ERR_CONNECTION_REFUSED）排查修复（2026-08-02）
 

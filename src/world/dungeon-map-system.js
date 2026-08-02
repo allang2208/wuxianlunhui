@@ -1178,7 +1178,7 @@ export const DungeonMapSystem = {
         CombatRoomSystem.enterCombatRoom(this.player, false, combatOptions);
         // 精英战斗：场地中央生成宝箱房（与僵尸路径同规则）
         if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
         }
         // 生成普通怪物
         CombatRoomSystem.spawnMonsters(3, false);
@@ -1207,7 +1207,7 @@ export const DungeonMapSystem = {
         }
         // 精英战斗：场地中央生成宝箱房（门墙常闭 + 等级宝箱 + 60s 倒计时，房内不刷怪）
         if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
         }
         this._spawnZombieWave();
     },
@@ -1390,7 +1390,7 @@ export const DungeonMapSystem = {
             console.error('[DungeonMapSystem] 竞技场构建失败（预制库已就绪：通道预制缺失/轴向不符），回退单房间战斗');
             CombatRoomSystem.enterCombatRoom(this.player, false, { roomSize: node.isElite ? crCfg.eliteSize : crCfg.normalSize, dungeonType: this.dungeonType });
             if (node.isElite && typeof ChestRoomSystem !== 'undefined') {
-                ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds);
+                ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem._roomBounds, { isElite: !!node.isElite });
             }
             this._spawnZombieWave();
             return;
@@ -1398,7 +1398,7 @@ export const DungeonMapSystem = {
 
         // 宝箱房：第三房间中央（普通/精英都生成；倒计时等玩家进入房间 3 才启动）
         if (typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true });
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true, isElite: !!node.isElite });
         }
 
         // 陷阱：房间生成时逐房摆放（不再等玩家进房关门）；可达性锚点用本房内部参考点

@@ -40,8 +40,8 @@ export class Cauldron extends Enemy {
         // 毒液区（_shared/venom-bottle.js 管理）
         this._venomZones = [];
 
-        // 锅口绿烟粒子（惰性创建，见 _ensureSmoke）
-        this._smokeEmitter = null;
+        // 锅口绿烟粒子（一排：中间 1 + 左右各 rowExtra 个，惰性创建，见 _ensureSmoke）
+        this._smokeEmitters = null;
     }
 
     // 击退免疫（站桩）
@@ -113,40 +113,52 @@ export class Cauldron extends Enemy {
         }
     }
 
-    /** 锅口绿烟粒子（矿洞 _ensureSmoke 同款，smoke 配置驱动；ADD 混合亮绿） */
+    /**
+     * 锅口绿烟一排（矿洞 _ensureSmoke 同款机制，smoke 配置驱动；ADD 混合亮绿）：
+     * 中间 1 个 + 水平左右各 smoke.rowExtra 个（共 2×rowExtra+1 个均布），
+     * 间距由碰撞宽度推导（锅口宽度 ≈ 碰撞宽度，间距 = 碰撞宽度 / (2×rowExtra)），不硬编像素
+     */
     _ensureSmoke() {
-        if (this._smokeEmitter) return;
+        if (this._smokeEmitters) return;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.textures.exists('smoke_particle')) return;
         const cfg = this.config?.smoke || {};
         const tint = typeof cfg.tint === 'string' ? parseInt(cfg.tint, 16) : (cfg.tint ?? 0x62cc62);
-        const em = scene.add.particles(0, 0, 'smoke_particle', {
-            x: this.x + (cfg.offsetX ?? 0),
-            y: this.y - (cfg.offsetY ?? 70),
-            frequency: cfg.frequency ?? 200,
-            speedX: { min: -10, max: 10 },
-            speedY: { min: -20, max: -50 },
-            scale: { start: cfg.scaleStart ?? 0.3, end: cfg.scaleEnd ?? 1.0 },
-            alpha: { start: cfg.alpha ?? 0.5, end: 0 },
-            tint,
-            lifespan: cfg.lifespan ?? 3000,
-            blendMode: 'ADD',
-        });
-        // 高于煮锅贴图（实体 depth = 脚底 Y+10），低于前景实体
-        em.setDepth(this.y + 11);
-        em.addToUpdateList();
-        this._smokeEmitter = em;
+        const extra = cfg.rowExtra ?? 3;
+        const renderCfg = this.config?.render || {};
+        const spacing = (renderCfg.collisionWidth || 150) / (2 * Math.max(1, extra));
+        this._smokeEmitters = [];
+        for (let i = -extra; i <= extra; i++) {
+            const em = scene.add.particles(0, 0, 'smoke_particle', {
+                x: this.x + (cfg.offsetX ?? 0) + i * spacing,
+                y: this.y - (cfg.offsetY ?? 110),
+                frequency: cfg.frequency ?? 200,
+                speedX: { min: -10, max: 10 },
+                speedY: { min: -20, max: -50 },
+                scale: { start: cfg.scaleStart ?? 0.3, end: cfg.scaleEnd ?? 1.0 },
+                alpha: { start: cfg.alpha ?? 0.5, end: 0 },
+                tint,
+                lifespan: cfg.lifespan ?? 3000,
+                blendMode: 'ADD',
+            });
+            // 高于煮锅贴图（实体 depth = 脚底 Y+10），低于前景实体（与原单 emitter 同口径）
+            em.setDepth(this.y + 11);
+            em.addToUpdateList();
+            this._smokeEmitters.push(em);
+        }
     }
 
     /** 统一特效清理（game.js removeEntity / onDeath 约定入口） */
     _destroyCustomEffects() {
         destroyVenomZones(this);
-        if (this._smokeEmitter) {
-            if (this._smokeEmitter.active) {
-                this._smokeEmitter.stop();
-                this._smokeEmitter.destroy();
+        if (this._smokeEmitters) {
+            for (const em of this._smokeEmitters) {
+                if (em.active) {
+                    em.stop();
+                    em.destroy();
+                }
             }
-            this._smokeEmitter = null;
+            this._smokeEmitters = null;
         }
     }
 

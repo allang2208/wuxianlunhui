@@ -11,6 +11,7 @@ import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { EquipManager } from './equip-manager.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { SystemUI } from './system-ui.js';
+import { SoundManager } from './sound-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
@@ -658,7 +659,7 @@ export const ExpeditionSystem = {
         // 宝箱房奖励（精英战限时宝箱，按地牢等级读 universalEventRewards.treasureChest）
         const chestGrade = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest || {})[grade];
         if (chestGrade) {
-            lines.push(`宝箱房(${grade}级)：金币 ${chestGrade.gold} / 强化石+改造券+粉尘 ${chestGrade.materialDust}`);
+            lines.push(`宝箱房(${grade}级)：金币 ${chestGrade.gold} / 强化石×${chestGrade.enhancementStone ?? 1} + 改造券×${chestGrade.reforgeTicket ?? 1} + 粉尘 ${chestGrade.materialDust}`);
         }
         // Boss 奖励卡中的武器稀有度（boss-reward-system 配置）
         const bonusCards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];
@@ -778,6 +779,11 @@ export const ExpeditionSystem = {
 
             DungeonMapSystem.init('scene7', player, dungeonType);
             SceneManager.currentScene = 'scene7';
+            // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
+            // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨
+            if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
+                SoundManager.playBgmForScene('scene7');
+            }
         }
     },
 
