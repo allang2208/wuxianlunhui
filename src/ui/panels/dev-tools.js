@@ -79,9 +79,16 @@ export function createDevToolPanel() {
         ['attack2', '二段攻击'],
         ['dash', '冲刺攻击'],
         ['recover', '收势'],
+        ['dash_recover', '冲刺收势'],
+        ['dodge_roll', '翻滚'],
+        ['dodge_jump', '跳跃闪避'],
+        ['cast', '空手施法'],
+        ['staff_cast', '法杖施法'],
         ['bow_draw', '拉弓'],
         ['bow_release', '射箭'],
         ['gun_idle', '持枪待机'],
+        ['gun_idle_pistol', '持枪待机·手枪'],
+        ['gun_idle_dual', '持枪待机·双持'],
         ['gun_fire', '射击'],
         ['reload', '换弹'],
         ['hurt', '受击'],
@@ -121,7 +128,7 @@ export function createDevToolPanel() {
     fpsInput.type = 'number';
     fpsInput.id = 'devToolFps';
     fpsInput.min = '1';
-    fpsInput.max = '60';
+    fpsInput.max = '120';
     fpsInput.step = '1';
     fpsInput.placeholder = 'fps';
     fpsInput.title = '播放帧率（留空=动画配置帧率）';
@@ -137,9 +144,12 @@ export function createDevToolPanel() {
     weaponSelect.id = 'devToolWeaponSelect';
     const weaponOptions = [
         ['sword', '⚔️ 剑（生锈长剑）'],
+        ['staff', '🪄 法杖（学徒长杖）'],
         ['bow', '🏹 弓（训练弓）'],
         ['pistol', '🔫 手枪（G18）'],
         ['deagle', '🔫 沙漠之鹰'],
+        ['p4040', '🔫 P4040'],
+        ['beretta93r', '🔫 Beretta 93R'],
         ['pkm', '🔥 PKM'],
         ['akm', '🔥 AKM'],
         ['qbz191', '🔥 QBZ-191'],
@@ -175,6 +185,13 @@ export function createDevToolPanel() {
     btnCoord.id = 'devToolCoord';
     btnCoord.textContent = '📐 坐标工具';
     menu.appendChild(btnCoord);
+
+    const btnFlip = document.createElement('button');
+    btnFlip.className = 'dev-tool-menu-btn';
+    btnFlip.id = 'devToolFlip';
+    btnFlip.textContent = '↔ 朝左';
+    btnFlip.title = '切换武器朝向预览（朝左时位置镜像 + 旋转取反 + 贴图翻转，与游戏 flipX 绑定同口径）';
+    menu.appendChild(btnFlip);
 
     contentWeapon.appendChild(menu);
 

@@ -691,6 +691,54 @@
         "kill": 10
       }
     },
+    "iceWall": {
+      "id": "iceWall",
+      "name": "冰墙",
+      "icon": "🧱",
+      "iconImage": "assets/skills/冰墙.png",
+      "description": "在鼠标指向处生成一列冰墙障碍物，阻挡移动与投射物，持续一段时间后碎裂",
+      "sounds": {
+        "cast": "assets/sounds/skills/icewall.mp3",
+        "shatter": "assets/sounds/skills/ice.mp3"
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": 30,
+        "mpCost": 100,
+        "maxRange": 500,
+        "duration": "10 + (level - 1) * 0.5",
+        "segmentCount": "5 + (level - 1) * 2",
+        "segmentWidth": 48,
+        "segmentHeight": 64,
+        "segmentGap": 8,
+        "segmentSpacing": 28,
+        "spawnDelayMs": 500,
+        "damageBase": "10 + level * 10",
+        "damageIntMul": "1 + level * 0.25",
+        "damageWisMul": "1 + level * 0.25",
+        "hitKnockback": 50,
+        "pushDistanceMul": 2,
+        "chillRadius": 100,
+        "chillIntervalMs": 1000,
+        "chillStacks": 1
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 3,
+        "multiHit": 10,
+        "kill": 10
+      }
+    },
     "droneSkill": {
       "id": "droneSkill",
       "name": "无人机",

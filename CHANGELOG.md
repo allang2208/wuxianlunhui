@@ -8,6 +8,156 @@
 - 测试结果
 - 已知问题
 
+### 对话：冰墙战斗化——中级魔法门槛/落点伤害/寒冷光环/经验体系（2026-08-02）
+
+- **魔法等级体系（新）**：`magic-categories.js` 新增 `MAGIC_SKILL_TIERS`（iceWall=2 中级，其余四系=1 初级）+ `MAGIC_TIER_NAMES` + `meetsMagicWeaponReq(player, skillId)`——中级及以上魔法需当前武器组主/副手装备法杖（weaponType==='staff'）。
+- **释放门槛**：`IceWallSystem.trigger()` 开头拦截，不满足时 `SceneManager.showTopNotification('中级魔法需要装备法杖才能释放')` 并 return；快捷栏新增 `_renderSkillRequirements()`（updateCooldowns 节拍驱动），不满足条件的技能槽位加 `qb-skill-disabled` 类（CSS `grayscale(1) brightness(0.55)` 灰黑色）。
+- **生成延迟**：施法释放后按 `spawnDelayMs`(500ms) 进 `_pendingSpawns` 队列延迟成墙（施法者死亡则取消）。
+- **落点命中**：`_applySpawnHit` 对碰撞 footprint 内敌方单位造成**物理伤害**（`takeDamage(dmg, src, 'physical', true)` 走弹反通道）——公式 `damageBase(10+lv×10) + 智力×(1+lv×0.25) + 精神×(1+lv×0.25)`；命中击退 `hitKnockback`(50px)；弹开距离 ×`pushDistanceMul`(2)。只影响敌对阵营（玩家→enemy/agent，NPC/同阵营不受影响）。
+- **寒冷光环**：每段墙 `chillRadius`(100px) 内敌方每 `chillIntervalMs`(1s) 叠 `chillStacks`(1) 层 `applyChill`。
+- **数值/成长**：持续 10s、CD 30s、MP 100（skills.json effectFormula）；`segmentCount` 改公式 `"5 + (level - 1) * 2"`（每级两端各+1段，全部走 data-loader 公式求值，无硬编码）。
+- **经验体系**：新增 `SkillManager.addIceWallExp`（multiHit 惯例同火球）——命中 1 目标 +3、同时命中≥2 额外 +10、击杀 +10（skills.json expRewards 驱动）；经验在 `_spawnWall` 命中结算点发放。升级所需经验沿用通用 expFormula。
+- **技能面板**：照火球/冰锥格式重写三段——升级弹窗 effectText 含总伤害；详情页加"🧮 伤害公式（物理）"section（基础/智力/精神/总伤 + 下一级 7 行）+"技能效果"（魔法等级·需法杖/段数成长/延迟/击退/寒冷光环/持续/射程/CD/MP）；底部修炼说明改 命中+3/多目标+10/击杀+10 + 中级魔法使用提示。
+- **附带**：高等级段数膨胀（L20=43段）的寒气发射器降载——每 3 段才起一路。
+- 修改文件：skills.json×2、magic-categories.js、ice-wall-system.js、quick-bar.js、skill-manager.js、GameScene.js、game-style.css。
+- 验证：eslint 0 error；node --check；JSON 校验 ✓；vite build ✓ + dist 同步；npm test 全绿（189 断言）。实机由用户自行检查。
+
+### 对话：冰墙音效与技能图标（2026-08-02）
+
+- **音效对调/新增**：原释放音效 `ice.mp3` 改作碎裂消失音（`sounds.shatter`，`IceWallSystem._shatter` 播放，模块级 200ms 节流——同堵墙 5 段同帧碎裂只播一次）；新增素材库音效 `icewall.mp3`（复制到 `assets/sounds/skills/`）作释放音（`sounds.cast`）。
+- **技能图标**：素材库 `技能/冰墙/技能图标.png` 复制为 `assets/skills/冰墙.png`，skills.json 增加 `iconImage` 字段（emoji 🧱 保留作兜底，data-loader 既有 iconImage 链路自动生效）。
+- skills.json 描述同步更新为"阻挡移动与投射物，持续一段时间后碎裂"（data/ 与 public/data/ 两份）。
+- 验证：eslint 0 error；node --check；JSON 校验 ✓；vite build ✓ + dist 同步；npm test 全绿（189 断言）。实机待用户复测。
+
+### 对话：冰墙贴图池剔除 + 堆叠段距 + 段间图层（2026-08-02）
+
+- **随机池剔除 segment_3**（宽矮四柱）：GameScene 新增 `_iceWallVariantKeys()`——池 = `segment_0/1/2/4`（按存在性过滤，图片缺失时回退程序生成 0~3），IceWallSystem `variant` 改 0~3 作池索引；segment_3.png 文件保留未删。
+- **堆叠段距**：`segmentSpacing` 40→28（两 data/skills.json 同步）——段心距小于贴图显示宽（56~82px），段间重叠堆叠成连续冰脊；碰撞线段两端多探 2px 仍无缝隙。
+- **段间图层修复**：depth 从固定 `w.y+1` 改为 `w.y + 1 + (N−|i−中心|)×0.01`——斜/竖墙 y 主导（南段压北段），横向墙同 y 时中心段在前，消除重叠区随机互压/闪烁。
+- 验证：eslint 0 error；node --check；vite build ✓ + dist 同步；npm test 全绿（189 断言）。实机待用户复测。
+
+### 对话：冰墙碰撞 + 碎裂消失 + 视觉调校（2026-08-02）
+
+- **碰撞（挡移动/挡投射物/生成弹开）**：`IceWallSystem._spawnWall` 每段往 `WallSystem.isoSegments` 动态注册一条碰撞线段（沿墙向、两端多探 2px 消缝、`halfThick:14`、`_iceWall:true`，门闸同款 push/splice，到期 splice + `pathFinder.invalidateCache()`）——单位移动（MovementSystem/玩家 resolve 通道）与投射物（Projectile.blocked / BoltSkillSystem.resolve 通道）自动被挡，两类系统零改动；`_pushAwayUnits` 生成瞬间沿墙面法向弹开落点单位（敌人 `applyKnockback`，玩家直接位移过 `WallSystem.resolve`——玩家 knockback 字段无消费方）。
+- **碎裂消失（替换融化）**：`IceWallSystem._shatter` 到期触发——大冰屑四散（ice_shard ×14，全向+重力）+ 冰雾（impact_dot，同冰锥命中配色）+ 地面冲击环（fireGroundShockwave），参考 `ice-spike-system.js onImpact` 两层结构；渲染层删除 900ms 融化塌缩，改为到期前 350ms 高频闪烁 + 微抖动预警。
+- **视觉调校**：贴图放大 ×1.25（`SIZE_MUL`）、不透明度固定 0.6（呼吸 0.92~1.0 乘算）、段心距 56→40（skills.json 新增 `segmentSpacing: 40`，segmentGap 保留给面板显示做回退）。
+- **场景重启兜底**：GameScene `create()` 重置 `_iceWallFx/_iceWallMistBurst/_iceWallShardBurst`，防 stop/start 后悬挂已销毁对象。
+- 修改文件：`src/entities/components/ice-wall-system.js`、`src/phaser/scenes/GameScene.js`、`data/skills.json`、`public/data/skills.json`。
+- 验证：eslint 0 error；node --check；JSON 校验 ✓；vite build ✓ + dist 同步；npm test 全绿（189 断言）。实机待用户复测（碰撞手感、弹开力度、碎裂观感）。
+
+### 对话：冰墙特效重做——写实 AI 素材 + 全生命周期动画（2026-08-02）
+
+- **缘起**：冰墙原为 64×80 程序绘制蓝矩形（`Graphics` 直出），用户评"特效太差"；先按 Phaser 原生方案重做为程序冰晶簇，用户再评"太卡通，与写实画风不符"——确认 Phaser 程序化绘制天花板后切换为 AI 素材管线。
+- **素材处理**（`tools/process-icewall-sprites.py`，即梦出图 → 透明底 PNG）：
+  - 全图近黑抠除（阈值 24，按 5 张源图 22~35 亮度谷标定）——黑底 + 晶柱缝隙黑色区域一起透明（初版边缘洪泛会漏缝隙黑楔子）；
+  - scipy 连通域只留最大组件——自动去除右下角"即梦AI"水印（白色孤立小块）；
+  - alpha 高斯羽化 1.2 → 包围盒裁剪 → 统一高度 320px；产物 `assets/effects/icewall/segment_0~4.png`（224~471×320），原图存 `backup/icewall-src/`（不进 dist）。
+- **游戏接入**：
+  - `BootScene`：预加载 5 张 `ice_wall_segment_0~4`（不存在时 `_ensureIceWallTexture` 保留程序生成回退）；
+  - `GameScene._syncIceWalls` 重写：fx 池（sprite + 霜斑 image + 寒气 emitter）——贴图等比缩放（高 64 按配置、宽随纵横比自适应）、底部锚定 scaleY 破土生长（中心向两端 45ms stagger + 15% 回弹）、破土冰雾/碎冰屑迸溅（共享发射器 explode）、到期 900ms 融化塌缩渐隐 + 收尾冰雾、完全长成后 alpha 呼吸微光（0.86~1.0）、地面霜斑随墙同生共灭（宽度跟随实际显示宽度）；
+  - `IceWallSystem`：wall 增加 `age/spawnDelay/variant`（0~4 随机）三个渲染字段，玩法数值零改动。
+- **坑（已修）**：`_ensureIceWallTexture()` 原来只在 `ice_wall_segment_0` 不存在时调用——BootScene 预加载图片后该函数被跳过，霜斑/碎冰屑贴图永不生成，霜斑渲染成 Phaser 缺失贴图绿叉框；改为无条件调用（内部各块自带存在性守卫）。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（189 断言）；CDP 实机一轮（泵帧法）确认写实墙渲染/生长/霜斑/寒气在位、fx 池到期回收无泄漏（截图 `tools/verify-shots/icewall-*.png`）。
+- **遗留**：施法实战中的完整观感（生长 stagger、融化节奏、与写实贴图的配合）待用户实机复测；如需调整，墙高度改 `data/skills.json` iceWall `segmentHeight`，粒子参数在 `GameScene._ensureIceWallFx/_createIceWallMist`。
+- **工作流变更**：2026-08-02 起实机验证由用户自行负责（SKILL §30 已注记），交付标准 = eslint + build + npm test 绿。
+
+### 对话：开发面板接入施法动画/法杖与缺失姿态武器（2026-08-02）
+
+- `src/ui/dev-tool.js` + `src/ui/panels/dev-tools.js`：交互开发工具动画/武器清单补齐——
+  - 动画下拉新增：`cast`（空手施法）、`staff_cast`（法杖施法）、`dash_recover`（冲刺收势）、`dodge_roll`（翻滚）、`dodge_jump`（跳跃闪避）、`gun_idle_pistol`（持枪待机·手枪）、`gun_idle_dual`（持枪待机·双持）；`PANEL_ANIM_TO_CONFIG` 同步登记（读 `data/player-anim-config.json` 对应键），预览帧率/时长自动跟随配置（frameRate/weights/durations 既有链路）；
+  - 武器下拉/`WEAPON_MAP` 新增：`staff`（学徒长杖，melee）、`p4040`、`beretta93r`（pistol）——贴图路径取 `weapon-texture-map.js` 加载清单同源；
+  - fps 输入框上限 60→120（dodge_roll/dodge_jump 配置帧率 83/93 超出原上限）。
+- 新增姿态走「素材入库 + JSON 加条目 + 面板登记」三件套；面板登记位 = `dev-tools.js` animOptions + `dev-tool.js` ANIM_NAME/PANEL_ANIM_TO_CONFIG，新增武器 = weaponOptions + WEAPON_MAP。
+- 验证：eslint 0 error 0 warning；node --check 通过；vite build ✓；npm test 全绿（189+ 断言）。实机预览待用户开面板复测。
+
+### 对话：DevTool 与游戏基准/配置键全面统一（2026-08-02）
+
+- **尺寸基准统一**：dev-tool.js 残留 7 处硬编码 105（2026-07-28 武器 105→126 未同步）→ 全部改为引用 `WEAPON_ANIM.size`（126）。修复：传统模式预览武器尺寸小 30.6%、反复保存把 `idleScale` 越缩越小（×0.833/次）、固定点/命中测试区域偏差。
+- **配置键映射**：`WEAPON_MAP` 增加 `configKey` 字段（super90/saiga12k→shotgun、staff→sword、其余同名），新增 `_configKeyOf()` 并在所有 `WeaponTransform` / `WeaponAnimConfig` 调用点统一走配置键——修复散弹枪回退到 sword 配置导致面板调整无效/保存错位；`_exportPerFrameFile` 增加 panelWt 显示名。
+- **姿态键映射**：新增 `_stateKeyOf()`（gun_idle/gun_idle_pistol/gun_idle_dual/cast/staff_cast→idle），预览与保存统一走游戏读取口径——修复持枪/施法保存写顶层而游戏读 idle 子块不生效；保存时 targetState 按映射后的状态键写子块。
+- **浏览器落盘**：vite.config.js 新增 `/__save-weapon-config` 中间件（同 Electron save-weapon-config 路径、写前滚动备份）；`_persistWeaponConfig` 增加 fetch 回退——纯浏览器 dev 传统模式保存不再丢。
+- **walk 腿层按姿态**：`_loadCharacterFrames` 分别加载 gun_idle/gun_idle_pistol/gun_idle_dual 的 walkLegs/torso（`_gunLayers`），`_draw` 按 `_gunPoseKeyFor()`（pistol 类→pistol 姿态）选择——修正共用 gun_idle 腿层导致 bob 参数与游戏不一致。
+- **清理**：`_charFrames.idle` 数组写法；weapon-transform.js 三处 "105" 过时注释改为 126 并说明语义。
+- 验证：eslint 0 error 0 warning；node --check；vite build ✓；npm test 全绿。实机待用户开面板复测（散弹枪/持枪待机/施法姿态预览与保存）。
+
+### 对话：DevTool 渲染字段补齐 + 清理 + 调参体验增强（2026-08-02）
+
+- **渲染字段补齐（所见即所得）**：
+  - `WEAPON_MAP` 增加 `weaponId`，新增 `_getRenderOffsets()`——按游戏读取链（EDM 实例 > WeaponAnimConfig）读 `rotOffset` / `spriteOffsetX/Y`，预览绘制与固定点/命中链路通过 `_applyRenderOffsets()` 叠加（枪械才叠加，melee/bow 与游戏一致不叠加）；
+  - `aimSpriteOffsetX/Y`（瞄准态）、`dualOffsetX`（双持）、`bobWeaponScale`（移动 bob）依赖面板不模拟的上下文——画布底部只读提示，不误叠加。
+- **清理**：删除 `_baseWeaponScale`（赋值未使用）、`_updateScaleInfo` / `devToolScaleInfo` 死代码（现行面板未创建该元素）；角色待机贴图路径统一为 `PLAYER_ANIMS.idle.src`（此前硬编码 `assets/character/idle.png`，与 `assets/player/idle.png` 双份漂移隐患）。
+- **施法姿态节奏模拟**：`_loadCharacterFrames` 透传 `releaseFrame/forwardMs/recoverMs`；`_startFrameAnimation` 对 cast/staff_cast 走专用循环——前摇正放 → 释放帧 → 倒放后摇，与游戏 `startPlayerCast` 同节奏。
+- **帧标记可视化**：状态指示器进度条在 perFrame 攻击标出 `hitCheck.frame`（红）/ `soundFrame`（黄），施法标出 `releaseFrame`（蓝）——调判定节奏一眼看到视觉帧对应关系。
+- **朝向切换**：面板菜单新增「↔ 朝左」按钮，`_mirrorForFacing()` 做位置镜像 + 旋转取反（`π−rotation`）+ 贴图 flipX，与游戏 flipX 绑定同口径；命中/固定点链路同步镜像。
+- **自动同步装备**：`show()` 时 `_loadFromGamePlayer()` 按当前玩家武器（animConfigKey/weaponType → 面板 configKey 反查）与动画键（player_xxx → 面板姿态）自动选择，不再每次从 sword/idle 开始。
+- 验证：eslint 0 error 0 warning；node --check；vite build ✓；npm test 全绿。实机待用户复测（散弹枪 spriteOffset 叠加、施法节奏、朝左预览、打开面板自动同步）。
+
+### 对话：walking 武器握把跟随右手摆动（walkFrames 逐帧轨迹）（2026-08-02）
+
+- **需求**：walking 动画时剑类武器握把绑定到右手，随右手摆动调整武器位置。
+- **数据**：`public/data/weapon-anim-config.json` sword 新增 `walkFrames`（`type:'perFrame'`，21 帧与 walk 动画帧 0~20 一一对应）——从 `assets/character/walk.png` 逐帧像素分析提取右手轨迹（列直方图定位右侧手部凸起块 → 质心），按显示缩放（长边 144/516）换算成 local offset，再以现有 walk holdOffset 实际位置为基准对齐（平均手位 + 恒定 shift，保证整体仍在原位置附近）；rotation=110°（= baseRotation 90° + walk idleRotation 20°，perFrame 语义是最终旋转角）；scale=1.5 保持 walk idleScale。
+- **游戏侧**：`GameScene.syncWeapon` 在 walk 状态且 `WeaponAnimConfig[wt].walkFrames` 存在时，按 `playerSprite.anims.getProgress()` 读 `WeaponTransform.getInterpolatedPerFramePosition(..., 'walkFrames')` 逐帧插值；朝向硬绑定同攻击分支（朝左时位置镜像 + 旋转取反 + flipX），残影隐藏。
+- **面板**：`_perFrameCfgKey('walk')`→`walkFrames`；`_isPerFrameAnim('walk')` 仅当配置存在 walkFrames 时返回 true（否则回退传统 holdOffset）；`_seedPerFrameDefaults` 对 walk 播种 21 帧（读 walk 动画 frames 区间）；保存走 perFrame 分支，`_exportPerFrameFile` 的 anim 字段改为配置块名（walk→walkFrames，中间件白名单同步加 walkFrames）。
+- **中间件**：vite `/__save-weapon-frames` 与 Electron `save-weapon-frames` 的 blockKey 白名单加 `walkFrames`（此前 walk 保存会被误落 attack 块）。
+- 验证：eslint 0 error 0 warning；node --check；vite build ✓；npm test 全绿。实机待用户复测（行走时剑跟随右手摆动、左右朝向、面板 walk 逐帧可调）。后续如需微调，面板「walk」页逐帧拖武器保存即可；如需给其他近战武器加，复制 sword.walkFrames 并重测手位即可。
+
+### 对话：walkFrames 方向修正 + 平滑插值（2026-08-02）
+
+- **方向修正**：用户实机反馈武器摆动方向相反——walkFrames 全部帧 `offsetX` 关于摆动中心（34.32）完全镜像（`newX = 2×avgX − oldX`），左右摆动互换；`offsetY/rotation/scale` 不动。原始轨迹备份 `weapon-frames/walkFrames-before-mirror.json`。
+- **平滑插值（消除"瞬移/顿挫"）**：
+  - 根因：像素分析提取的右手轨迹存在单帧噪声突跳（offsetY 帧 9→10 跳 12.4px），而游戏侧原本是**直线插值**，噪声被放大为折线顿挫；
+  - `weapon-transform.js` 新增 `getSmoothPerFramePosition()`：**Catmull-Rom 闭合样条**（首尾循环无缝），仅 offsetX/Y 走样条，rotation/scale/blur/stretch 保持线性（数值稳定）；
+  - `GameScene.syncWeapon` walk 分支改用平滑插值；dev-tool 面板 walk 预览同步走同口径（attack/attack2/dash 维持线性插值不变）；
+  - 数据层对 walkFrames 做闭环 3 点移动平均（权重 1:2:1）消除提取噪声——相邻采样最大跳变 12.59px → 1.74px，循环闭合 1.87px。
+- 验证：eslint 0 error 0 warning；node --check；vite build ✓；npm test 全绿；dist 已重建同步。实机待用户复测（行走摆动平滑、循环无缝、左右朝向）。
+
+### 对话：walking 手部分层——手部贴图在武器之上（2026-08-02）
+
+- **需求**：walking 动画时把右手贴图单独切出，完整拼接回原动画，手部图层叠在武器贴图之上（视觉"手握剑"）。
+- **贴图**：`tools/` 像素脚本从 `assets/character/walk.png` 逐帧提取右手区域（帧内 y∈[160,330] 最右凸起块质心，帧 4~9 手收进身体时用前后有效帧线性插值补全；矩形 84×96 覆盖拳头+手腕），生成两张同网格 sheet：
+  - `assets/player/walk_body.png`（身体层：挖掉手部区域）
+  - `assets/player/walk_hand.png`（手层：只保留手部区域）
+  - **合成无损验证**：21/21 帧 body+hand alpha 与颜色逐像素等于原图；手层占比约 6%（拳头+手腕）。
+- **配置**：`data/` + `public/data/` 的 player-anim-config.json walk 条目新增 `handLayer { body, hand }`。
+- **BootScene**：sheet 加载 + 动画注册时，检测 `handLayer` 额外加载 `player_walk_body`/`player_walk_hand` 贴图并注册 body 动画（同帧区间/节奏）。
+- **GameScene**：
+  - `_createPlayerSprite` 创建 `playerHandSprite`（跟随身体位置/flipX/帧，帧号每帧 `_syncPlayerHandLayer` 同步）；
+  - `setPlayerAnimation`：循环动画且带 handLayer 时播 body 动画 + 显示手 sprite；单帧/一次性动作（攻击/施法等）隐藏手 sprite；
+  - 深度分层：手 sprite = 玩家深度 + 3（武器 +2，身体 0），地图模式/遮挡压低跟随；
+  - velocity 驱动分支同样同步手层。
+- **dev-tool 面板**：walk 预览同步分层（身体 → 武器 → 手），`_loadCharacterFrames` 读 handLayer、`_drawHandLayer` 武器绘制后叠回，朝左镜像同武器口径。
+- 验证：合成无损 21/21；eslint 0 error；node --check；vite build ✓；npm test 全绿；dist 已重建同步。实机待用户复测（行走时手在剑上、朝左镜像、面板预览一致）。
+
+### 对话：手部分层排查修复——裁到腿部 + 武器不动（2026-08-02）
+
+- **武器不动根因**：walk 改播 `player_walk_body`（身体层去手）后，`syncWeapon` 的 walkFrames 分支判断 `curAnim.key === playerTextureKey('walk')` 匹配不上（实际 key 为 `player_walk_body`），`walkProgress` 恒 0，武器卡在第一帧。修复：兼容 `player_walk_body` key。
+- **手层裁到腿部根因**：手部质心检测用 y∈[160,330] 带内"最右凸起块"，但帧 4~9 手收进身体后最右凸起是大腿——质心抓到腿，矩形包含腿部像素（用户实机看到"腿"）。修复：
+  - 检测带收紧为 **y∈[180,280]**（手臂/手高度带，杜绝大腿）；
+  - 拳头矩形半宽 34/半高 38，**y 上限硬性 clamp ≤ 300**（大腿从 y≈300 开始）；
+  - 21 帧全部检测成功（无退化帧需插值），质心 x 282~366 平滑摆动；
+  - 逐帧验证：**腿区（y>300）像素全为 0**，bbox y 全在 227~300，合成 21/21 无损。
+- 验证：合成无损 21/21（逐像素 alpha+颜色=原图）；eslint 0 error（我改的文件）；node --check；vite build ✓；npm test 全绿；dist 已重建同步（贴图/配置/代码）。实机待用户复测。
+
+### 对话：手部分层换手成功——截另一只手 + 经验定稿（2026-08-02）
+
+- **用户实机确认**：手层成功盖住武器连接点，需求达成。
+- **换手**：此前截的是画面右侧（默认"最右凸起"），用户反馈截错手 → 恢复（删 handLayer 配置回退原贴图）→ 渲染完整帧确认角色侧视朝右、目标手在**画面左侧**（x≈175~259）→ 重新生成两张 sheet：21/21 合成无损、bbox 全在左臂区（x<260）、无腿部。
+- **经验沉淀（写入 SKILL.md 手部分层章节）**：
+  - 先确认角色朝向与手的左右侧再定检测方向，不要默认最右凸起；
+  - 检测带收紧 y∈[180,280]（防手收进身体后最右凸起退化到大腿）；
+  - 拳头矩形 y 上限硬性 clamp ≤300，腿区逐帧断言全 0；
+  - 合成无损验证（逐像素 alpha+颜色=原图）；
+  - 改播放键（player_walk_body）会断 walkFrames 武器轨迹——按动画 key 判断处须兼容 body key。
+- 验证：合成无损 21/21；eslint 0 error；node --check；vite build ✓；npm test 全绿；dist 已重建同步。
+
+### 对话：法杖 walking/idle 同步——中段握持 + 换手镜像 + staffIdle（2026-08-02）
+
+- **walk 逐帧**：法杖复用剑配置（animConfigKey='sword'），新增 `sword.staffWalkFrames`（21 帧）——中段握持=贴图中心直接对准手部轨迹（非剑轨迹平移）；`syncWeapon` 按 weaponType==='staff' 分支读取，dev-tool 面板同步。
+- **换手（用户实机多轮反馈）**：直接检测"另一只手"会抓到手臂-胳膊不同段 → 垂直移动完全违和；正解=**镜像已验证贴手的手轨迹**（offsetX 取反、offsetY 保持稳定 2~3.8），只换侧不破坏贴手特性。
+- **idle 静态**：新增 `sword.staffIdle { holdOffsetX:-84.7, holdOffsetY:5.2 }`——手位必须定位**拳头（手臂末端 y≈265~295）**而非整条手臂质心（后者偏上浮空）；syncWeapon overrides + 面板 `_staffStateOverrides` 三处统一，不连带影响剑 idle。
+- **经验沉淀**：SKILL.md 新增「复用武器动画独立调参（staff）」，含中段握持换算、换手镜像、拳头定位三条铁律。
+- 验证：eslint 0 error；node --check；vite build ✓；npm test 全绿；dist 已同步。实机用户确认：法杖 walking 水平贴手、idle 拳头握持均成功。
+
 ### 对话：施法跨步——前摇向前 +30px、后摇退回（2026-08-02）
 
 - 施法动画含跨步动作：`GameScene.startPlayerCast` 起手记录朝向（rotation 单位向量）与原点，`player._updateCastStep`（subsystems，施法分支每帧调用）驱动：

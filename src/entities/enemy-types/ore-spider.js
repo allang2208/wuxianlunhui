@@ -105,7 +105,7 @@ export class OreSpider extends Enemy {
         }
 
         // 眩晕时中断攻击动作（同工头/提灯矿工：清攻击状态并停步；已出手的晶石飞行不受影响）
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackType = null;
             this._attackTimer = 0;
             this._attackAnimTimer = 0;

@@ -2212,7 +2212,10 @@ applyStun(duration) {
 
 // 眩晕时终止所有动作：攻击动画/闪避/技能/特殊攻击/蓄力/换弹/无人机操控全部中断
 _cancelAllActionsForStun() {
-                // 攻击动画回待机（主手+副手）
+                // 攻击动画回待机（主手+副手）：强制停止所有攻击 Tween，即使伤害判定尚未发生也中断
+                if (this.weaponAnim && this.weaponAnim.isAttacking) {
+                    this.clearAttackTweens();
+                }
                 if (this.weaponAnim) {
                     this.weaponAnim.state = 'idle';
                     this.weaponAnim.timer = 0;
@@ -2255,6 +2258,16 @@ _cancelAllActionsForStun() {
                 // 退出无人机操控
                 if (this.droneSystem && this.droneSystem.controlling) {
                     this.droneSystem._exitControl();
+                }
+                // 施法/后摇中断（通知 Phaser 场景清理动画监听，防止魔法延迟释放）
+                if (this._castState && this._castState !== 'idle') {
+                    const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                    if (scene && typeof scene.cancelPlayerCast === 'function') {
+                        scene.cancelPlayerCast(true);
+                    }
+                    this._castState = 'idle';
+                    this._castReleaseDone = false;
+                    this._castOnRelease = null;
                 }
                 // 速度清零，只播放 idle 精灵图
                 this.vx = 0;
@@ -2354,6 +2367,10 @@ _updateSubsystems(dt, entities) {
                 // ===== 圣光技能更新（冷却由系统自管） =====
                 if (this.holyLightSystem) {
                     this.holyLightSystem.update(dt);
+                }
+                // ===== 冰墙技能更新（冷却与生命周期由系统自管） =====
+                if (this.iceWallSystem) {
+                    this.iceWallSystem.update(dt);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

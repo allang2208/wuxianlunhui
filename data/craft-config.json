@@ -3290,18 +3290,44 @@
   },
   "weapon20": {
     "slots": [
-      { "id": "head_crystal", "name": "杖头晶石", "x": 0.5, "y": 0.12, "lineTarget": { "x": 0.5, "y": 0.12 } },
-      { "id": "crown", "name": "杖冠装饰", "x": 0.5, "y": 0.24, "lineTarget": { "x": 0.5, "y": 0.24 } },
-      { "id": "shaft_rune", "name": "杖身符文", "x": 0.5, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.4 } },
-      { "id": "grip_lining", "name": "握柄内衬", "x": 0.5, "y": 0.62, "lineTarget": { "x": 0.5, "y": 0.62 } },
-      { "id": "tail_charm", "name": "尾坠配饰", "x": 0.5, "y": 0.84, "lineTarget": { "x": 0.5, "y": 0.84 } },
-      { "id": "mana_line", "name": "导魔管线", "x": 0.5, "y": 0.5, "lineTarget": { "x": 0.5, "y": 0.5 } }
+      { "id": "head_crystal", "name": "杖头", "x": 0.5, "y": 0.12, "lineTarget": { "x": 0.5, "y": 0.12 } },
+      { "id": "crown", "name": "杖冠", "x": 0.5, "y": 0.24, "lineTarget": { "x": 0.5, "y": 0.24 } },
+      { "id": "shaft_rune", "name": "杖身", "x": 0.5, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.4 } },
+      { "id": "grip_lining", "name": "握柄", "x": 0.5, "y": 0.62, "lineTarget": { "x": 0.5, "y": 0.62 } },
+      { "id": "tail_charm", "name": "尾坠", "x": 0.5, "y": 0.84, "lineTarget": { "x": 0.5, "y": 0.84 } },
+      { "id": "mana_line", "name": "导魔", "x": 0.5, "y": 0.5, "lineTarget": { "x": 0.5, "y": 0.5 } }
     ],
-    "head_crystal": [],
-    "crown": [],
-    "shaft_rune": [],
-    "grip_lining": [],
-    "tail_charm": [],
-    "mana_line": []
+    "head_crystal": [
+      { "id": "frozen_crystal", "name": "永冻冰晶", "icon": "❄️", "desc": "杖头嵌入永不融化的冰晶，冰锥技能生成的冰锥+1", "effects": { "staffSpecialty": "ice", "iceSpikeCountDelta": 1 } },
+      { "id": "magma_core", "name": "熔岩晶核", "icon": "🔥", "desc": "杖头封存一滴熔岩精华，火球爆炸范围（判定范围）+50%", "effects": { "staffSpecialty": "fire", "fireballExplosionRadiusPercent": 0.5 } },
+      { "id": "jade_spirit_crystal", "name": "翠灵水晶", "icon": "💚", "desc": "杖头镶嵌蕴含生命脉动的翠灵水晶，圣光释放后给目标添加持续3秒的续疗buff，每秒恢复最大生命值1%", "effects": { "staffSpecialty": "light", "holyLightHoTStacks": 1, "holyLightHoTSeconds": 3 } },
+      { "id": "storm_core", "name": "风暴核心", "icon": "⚡", "desc": "杖头束缚一团微型雷云，闪电传导目标数+1", "effects": { "staffSpecialty": "electric", "lightningChainTargetsDelta": 1 } }
+    ],
+    "crown": [
+      { "id": "spike_crown", "name": "尖刺", "icon": "🗡️", "desc": "杖冠缠绕冰刺，当杖头为冰系专精时冰魔法伤害+25%", "effects": { "iceDamagePercent": 0.25 } },
+      { "id": "current_crown", "name": "电流", "icon": "⚡", "desc": "杖冠带电，当杖头为电系专精时电魔法伤害+25%", "effects": { "electricDamagePercent": 0.25 } },
+      { "id": "wreath_crown", "name": "花环", "icon": "🌸", "desc": "杖冠编织圣光花环，当杖头为光系专精时光魔法的生命恢复量+25%", "effects": { "lightHealPercent": 0.25 } },
+      { "id": "heat_crown", "name": "热浪", "icon": "🌋", "desc": "杖冠散发灼热气息，当杖头为火系专精时火魔法伤害+25%", "effects": { "fireDamagePercent": 0.25 } }
+    ],
+    "shaft_rune": [
+      { "id": "eagle_eye_rune", "name": "鹰眼符文", "icon": "🦅", "desc": "杖身铭刻鹰眼符文，所有魔法的释放距离+25%，MP消耗+25%", "effects": { "magicRangePercent": 0.25, "magicMpCostPercent": 0.25 } },
+      { "id": "crit_rune", "name": "暴击符文", "icon": "💥", "desc": "杖身铭刻暴击符文，魔法的暴击率+25%，MP消耗+25%", "effects": { "magicCritPercent": 0.25, "magicMpCostPercent": 0.25 } },
+      { "id": "storm_rune", "name": "风暴符文", "icon": "🌪️", "desc": "杖身铭刻风暴符文，魔法的冷却时间-25%，MP消耗+25%", "effects": { "magicCooldownPercent": 0.25, "magicMpCostPercent": 0.25 } }
+    ],
+    "grip_lining": [
+      { "id": "alloy_grip", "name": "合金", "icon": "🔩", "desc": "合金握柄缩短施法前摇25%，所有魔法的MP消耗+5%", "effects": { "castSpeedPercent": 0.25, "magicMpCostPercent": 0.05 } },
+      { "id": "pine_grip", "name": "松木", "icon": "🌲", "desc": "松木握柄在施法任意魔法后获得持续10秒的链式强化buff，可叠加，下次施法伤害+2%×层数，MP消耗+5%×层数", "effects": { "chainSpellDamagePercent": 0.02, "chainSpellMpCostPercent": 0.05 } },
+      { "id": "sandalwood_grip", "name": "檀木", "icon": "🪵", "desc": "檀木握柄在施法任意魔法后给自身添加5秒1层加速效果，所有魔法的MP消耗+5%", "effects": { "castHasteDuration": 5000, "castHasteStacks": 1, "magicMpCostPercent": 0.05 } }
+    ],
+    "tail_charm": [
+      { "id": "ice_soul_pendant", "name": "冰魄吊坠", "icon": "❄️", "desc": "冰系魔法造成伤害时给目标添加一层持续3秒的寒冷，每层降低5%移动速度", "effects": { "iceChillSlowPercent": 0.05, "iceChillDuration": 3000 } },
+      { "id": "thunder_bell", "name": "爆鸣雷铃", "icon": "🔔", "desc": "电系魔法造成伤害时附加0.25秒眩晕，若目标已有眩晕则延长0.25秒", "effects": { "electricStunExtendMs": 250 } },
+      { "id": "purification_vine", "name": "净厄藤坠", "icon": "🌿", "desc": "光系魔法对友方造成治疗时给目标添加持续5秒的2层加速buff", "effects": { "lightHasteStacks": 2, "lightHasteDuration": 5000 } },
+      { "id": "flame_pendant", "name": "烈焰吊坠", "icon": "🔥", "desc": "火系魔法造成伤害时给目标添加持续3秒的灼伤，每0.5秒造成施法者魔法伤害×0.5的伤害", "effects": { "fireBurnDamageMul": 0.5, "fireBurnTickMs": 500, "fireBurnDuration": 3000 } }
+    ],
+    "mana_line": [
+      { "id": "chain_mana", "name": "链式", "icon": "⛓️", "desc": "导魔管线采用链式传导，所有魔法伤害+10%，MP消耗+15%", "effects": { "magicDamagePercent": 0.10, "magicMpCostPercent": 0.15 } },
+      { "id": "direct_mana", "name": "直流", "icon": "⚡", "desc": "导魔管线采用直流通道，所有魔法的MP消耗-30%", "effects": { "magicMpCostPercent": -0.30 } }
+    ]
   }
 }

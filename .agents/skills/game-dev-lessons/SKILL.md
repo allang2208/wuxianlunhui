@@ -87,16 +87,103 @@ description: >
 - **`_getPhaserOptions` 不要硬编码 spriteSize/碰撞尺寸**：`_configureEnemyBody` 优先级 `options > config.render`，硬编码会让碰撞编辑器的调整完全不生效（突变体-3 教训）。统一 `const renderCfg = this.config?.render || {}; spriteSize: renderCfg.spriteSize || 默认值`。
 - **黑色粒子特效必须 `blendMode: 'NORMAL'`**：`smoke_particle` 是白色软圆靠 tint 上色，ADD 加法混合下黑色 tint 完全不可见（矿洞绿烟用 ADD 是因为亮色发光；墓碑黑烟改用 NORMAL）。
 
-## 11. 新增状态效果（debuff）流程
+## 11. 新增 Buff / Debuff 标准工作流
 
-以“束缚”为例：
-1. 在 `DamageableEntity.addStatusEffect` 的 `STATUS_CONFIG` 里加 `bind`。
-2. 加 `applyBind(duration)` 方法，调用 `addStatusEffect('bind', ...)` 并显示 `StatusBar` / `FloatingText`。
-3. 在 `MovementSystem.update` 早期判断 `hasStatusEffect('bind')`，直接 `vx=vy=0` 返回。
-4. 在玩家 `update.js` 的速度计算处也把 `bind` 的 `targetSpeed` 置 0。
-5. 实际调用时传入毫秒，例如 `target.applyBind(500)` 表示 0.5 秒。
+本项目所有限时状态效果（增益/减益/控制）统一走 `DamageableEntity` 状态系统：`addStatusEffect(type, duration, opts)` 登记效果，各子系统通过 `hasStatusEffect(type)` 消费，到期自动清除。Buff 与 Debuff 流程通用，唯一区别是消费点不同。
 
-**高频刷新的限时增益（如命中获得加速）不要走激励式数据层乘算**（maxSpeed 乘除会漂移）：参考 `applyHaste`——只记录 `_hasteSpeedMul` + `addStatusEffect`，玩家速度链按 `hasStatusEffect('haste')` 乘算，到期自动失效无需还原。
+### 11.1 最小实现步骤
+
+以新增 `frozen`（冻结）为例：
+
+1. **状态配置（实体层）**
+   在 `src/entities/damageable-entity.js` 的 `STATUS_CONFIG` 里增加类型键、图标、名称、颜色：
+   ```js
+   frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
+   ```
+
+2. **状态配置（UI 层）**
+   如果玩家需要状态栏显示，在 `src/ui/status-bar.js` 的 `STATUS_CONFIG` 里增加条目（含 `desc` 悬浮说明）：
+   ```js
+   frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff', desc: '无法移动、攻击...' },
+   ```
+
+3. **申请接口**
+   在 `DamageableEntity` 中新增 `applyXxx(...)` 方法，必须：
+   - 开头检查 `hasStatusEffect('statusImmune')`，免疫时直接 return（`statusImmune` 本身除外）。
+   - 调用 `addStatusEffect(type, duration, opts)` 入库。
+   - 用 `FloatingTextEffect` 做飘字提示。
+   - 玩家还需同步 `StatusBar.addEffect(...)`。
+   ```js
+   applyFreeze(duration = 3000) {
+       if (this.hasStatusEffect('statusImmune')) return;
+       this.addStatusEffect('frozen', duration, { stacks: 1 });
+       if (this._faction === 'player' && StatusBar) {
+           this._freezeEffectId = StatusBar.addEffect('frozen', duration, { stacks: 1 });
+       }
+       if (EffectManager) {
+           EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🧊 冻结！', '#a0d8ff'));
+       }
+   }
+   ```
+
+4. **效果消费**
+   根据效果类型在正确位置生效，不要直接修改数据层（见 11.3）：
+   - **移速 / 禁止移动**：`MovementSystem.update`（敌人）与 `player/update.js`（玩家）。
+   - **禁止攻击 / 技能**：`CombatSystem.update`、`DecisionSystem.update`、`ui/quick-bar.js`、各敌人 `update()`。
+   - **伤害结算**：`DamageableEntity.takeDamage`。
+   - **持续伤害 / 治疗**：`DamageableEntity.update` 内新增 `_updateXxx(dt)` 并在 `update()` 中调用。
+   - **视觉特效**：`GameScene` 的 `_syncXxxEffects`（如 `_syncFreezeEffects`）。
+
+5. **更新文档**
+   改完后同步更新 `docs/buff-reference.md`，填入对应分类表格与参考数值。
+
+### 11.2 可叠加层数型 Buff 的规范写法
+
+需要“按层数叠加、持续时间到后全部清空”的效果（如 `haste`、`chill`、`chainSpell`），统一使用以下模式：
+
+- 用 `_xxxStacks` 记录当前层数，`_xxxTimer` 记录剩余时间。
+- `applyXxx` 中：已有效果时 `stacks += 新增层数`，`remaining += 新增持续时间`；无效果时初始化。
+- `updateStatusEffects` 到期时调用 `_onXxxEnd()` 把 `_xxxStacks` 清零。
+- 消费点直接读取当前 `_xxxStacks` 计算倍率，**不要**在获得/消失时 `*= /=` 改 `maxSpeed` / `atk` 等数据层。
+
+示例：
+```js
+applyHaste(duration, opts = {}) {
+    if (this.hasStatusEffect('statusImmune')) return;
+    const perStackMul = opts.perStackMul ?? 0.10;
+    const existing = this.statusEffects.find(e => e.type === 'haste');
+    if (existing) {
+        existing.stacks += 1;
+        existing.remaining += duration;
+        existing.duration += duration;
+        this._hasteStacks = existing.stacks;
+    } else {
+        this._hastePerStackMul = perStackMul;
+        this._hasteStacks = 1;
+        this.addStatusEffect('haste', duration, { stacks: 1 });
+    }
+}
+_onHasteEnd() { this._hasteStacks = 0; }
+```
+
+### 11.3 高频限时增益不要走数据层乘算
+
+早期做法 `target.maxSpeed *= 1.1`、过期时 `/= 1.1` 会在高频刷新或叠加时漂移。正确做法：
+
+1. 给目标加一个状态效果（如 `haste`）。
+2. 在速度/伤害等计算链里判断 `hasStatusEffect('xxx')`，乘以固定 `speedMul` 或按层数计算。
+3. 到期由状态系统自己清除，计算链自动失效，无需手动还原。
+
+### 11.4 控制类效果要统一中断动作
+
+眩晕、冻结、束缚等控制效果如果会打断攻击/施法，应在申请接口中调用 `_cancelActionsForStun()`（通用）或 `_cancelAllActionsForStun()`（玩家），统一清空：
+
+- `weaponAnim` / `offhandWeaponAnim` 回到 `idle`
+- `_attackTelegraphTimer` / `_attackTelegraphFire`
+- `_attackAnimTimer`
+- `_animState === 'attack'` 切回 `idle`
+- `_frozenForCast`
+- 玩家额外：施法 `_castState`、特殊攻击、换弹、无人机操控等
 
 ## 12. 攻击判定改为距离判定
 
@@ -174,17 +261,13 @@ this.ai = config.ai || {};
 
 - `src/config/craft-effect-registry.js` 负责注册所有改造效果；`src/config/craft-effect-consumer.js`（或对应武器模板）负责在发射、命中等实际节点消费。
 - **条件生效键**：改造效果里加 `condition: { fireModeOverride: 'fullAuto' }`，消费点先判断当前武器的 `fireModeOverride` 是否匹配；匹配才消费，不匹配就当没这条改造。例如 V0.354 P4040 的 `autoSpreadStart`、`autoSpreadMax`、`autoMaxRecoil` 只在切换为全自动模式后生效。
-- **命中/事件 Buff 键**：`onHitSpeedBuff` 在命中时给自身加限时加速；不要直接改数据层 maxSpeed，而是调用 `applyHaste(duration, mul)` 并走状态系统（见第 21 条）。
+- **命中/事件 Buff 键**：`onHitSpeedBuff` 在命中时给自身加限时加速；不要直接改数据层 maxSpeed，而是调用 `applyHaste(duration, mul)` 并走状态系统（见第 11 条）。
 - **音效覆盖键**：`fireSoundOverride` 在命中特定改造（如 P4040 锤击点弹药）后替换开火音效。消费点优先读取覆盖值，没有覆盖再回退到武器默认。
 - **三角校验**：改完 `craft-config.json` 后，同步跑 `scripts/test-craft-sync.mjs`（或同类测试），确认 registry、consumer、数据文件三处一致，避免“数据写了但游戏没生效”。
 
 ## 21. 高频限时增益不要走数据层乘算
 
-- 早期做法在命中时 `target.maxSpeed *= 1.1`、过期时 `/= 1.1`，高频刷新或 buff 叠加时容易漂移。
-- **正确做法（V0.354）**：`applyHaste(duration, mul)` 只做两件事：
-  1. 给目标加一个 `haste` 状态效果；
-  2. 在玩家/怪物速度计算链里判断 `hasStatusEffect('haste')`，乘以固定 `speedMul`。
-- 到期由状态系统自己清除，速度链自动失效，无需手动还原。
+> 本节内容已整合到第 11 条《新增 Buff / Debuff 标准工作流》的 11.2 与 11.3 节，请统一查阅该条。
 
 ## 22. Iso 墙体深度遮挡：按“面线”几何仲裁，而不是按件端点
 
@@ -262,6 +345,7 @@ this.ai = config.ai || {};
 - **收尾**：关调试实例、删临时文件（截图保留），验证数据写进汇报。
 - **headless 环境 rAF 冻结的泵帧法**：无头/隐藏窗口里 Phaser 的 rAF 不走，直接调实体 update 只能推进逻辑、视觉帧不动。双泵：逻辑帧手动 `Game.update(16.67)` + `scene.update` 推进；依赖真实 tween 的（抛物线投射物等）必须 `Page.captureScreenshot` 的 BeginFrame 泵真实帧。可复用脚本：`tools/cdp-arena-verify.mjs`、`tools/cdp-witch-*.mjs`（注释里有判例）。
 - **杀进程只按命令行特征杀自己的实例**：调试中 `taskkill /F /IM msedge.exe` 会把用户的浏览器也杀掉——清理时按启动参数/端口过滤。
+- **2026-08-02 起用户改为自行实机验证**：CDP 验证链路长、易失败（Edge 后台 rAF 冻结要泵帧、冷启动加载卡死、实例清理繁琐），用户明确"跳过验证阶段，我自行验证"。默认做到 eslint + node --check + vite build + npm test 绿即交付，CHANGELOG 标注"实机待用户复测"；仅当用户明确要求时才走本节 CDP 流程。另：浏览器 user-data-dir 不能放项目目录内（vite watcher 撞锁文件 EBUSY 崩溃），放系统 TEMP。
 
 ## 31. 本轮零散但可复用的教训（V0.365~V0.366）
 
@@ -293,5 +377,30 @@ this.ai = config.ai || {};
 - **六维写入面板用差值法**：`d.str += eq.str − prevAttr.str`（记录上次装备加成，先减再加）——直接累加会在每次重算时翻倍；同时公式侧不能再加一遍（避免双重计入）。
 - **强化成长**：防御 = `defense.base + defense.perEnhance × enhanceLevel`；首饰用 `bonusStats[k] + bonusPerEnhance[k] × enhanceLevel` 统一在 `_getEquipmentBonuses()` 汇总。
 - **强化上限分档**：`_getItemMaxLevel(item)` 按武器（含盾，15 级）/ 其他（10 级）；强化成功、装备/卸下/切换后都要重算面板（`updateEquipSlots` 挂钩）。
+
+## 33. 冰墙案例：写实 AI 素材管线 / 临时碰撞 / 魔法门槛 / 本轮坑（2026-08-02）
+
+### 写实素材管线（Phaser 程序化绘制的写实天花板解）
+- 用户两次否掉程序绘制（先蓝矩形后冰晶簇）：Phaser canvas 矢量渐变天花板是"精致手绘风"，到不了 AI 素材的写实感。正解 = 即梦出图（纯黑背景+右下水印）→ 程序化抠图 → 贴图加载，程序生成只留为加载失败回退。
+- **抠图阈值先查亮度直方图找谷**（本批 5 张图在 22~35 有天然谷，定 24）；**全图近黑抠除优于边缘洪泛**——洪泛漏掉晶柱缝隙里不与边界连通的黑色区域（黑楔子），缝隙透明后露游戏地面反而真实。
+- **连通域最大组件自动去水印**："即梦AI"水印是孤立于主体的白色小块，`scipy.ndimage.label` 只留最大组件即去，无需手框。
+- 工具 `tools/process-icewall-sprites.py`（阈值/最大组件/羽化/裁剪/统一高度）；原图放 `backup/` 不进 `assets/`（copy-assets 会整个打进 dist）。
+- 接入三件套：BootScene 预加载（key 与程序生成同名，exists 守卫自动跳过回退）→ 等比缩放（高度按配置、宽随纵横比，别 setDisplaySize 硬压）→ 变体池映射（池内可剔除单张，variant 存池索引）。
+
+### 临时碰撞（限时障碍物挡移动+挡投射物）
+- **一条通道全覆盖**：往 `WallSystem.isoSegments` push 线段（门闸同款），单位移动（MovementSystem/玩家 resolve）与投射物（Projectile.blocked / BoltSkillSystem.resolve）自动被挡，投射物系统零改动；到期 splice + `pathFinder.invalidateCache()`。
+- **不要打 `_iso` 标记**（`rebuildIsoCollision` 会清掉所有 `_iso` 矩形）；段间碰撞线两端多探 2px 消缝。
+- **弹开落点单位**：敌人走 `applyKnockback`；**玩家 knockback 字段无消费方**（Player.update 不调基类 update），必须直接位移过 `WallSystem.resolve`。站桩怪（煮锅/墓碑）覆写 applyKnockback 为空，天然弹不动。
+
+### 魔法等级门槛 + 快捷栏灰化（新机制范式）
+- `magic-categories.js` 加 `MAGIC_SKILL_TIERS`（数据驱动，未登记=初级）+ `meetsMagicWeaponReq`（中级+需当前武器组主/副手 weaponType==='staff'）；释放入口（技能系统 trigger）拦截 + `SceneManager.showTopNotification` 提示（魔法系统惯例，**别学 pushStrike 手写红 div**）。
+- 快捷栏灰化：`_renderSkillRequirements()` 挂 updateCooldowns 节拍，槽位切 `qb-skill-disabled` 类（CSS `grayscale(1) brightness(0.55)`）——换装即时生效，无需事件挂钩。
+
+### 本轮坑
+- **懒生成辅助贴图被主贴图跳过**：`_ensureXxx()` 写成"主贴图已存在则整体 return"时，BootScene 预加载图片会让辅助贴图（霜斑/碎屑）永不生成 → Phaser 绿叉框。**ensure 无条件调用，内部各贴图块独立 exists 守卫**。
+- **场景 stop/start 后 fx 池悬挂**：池内 sprite/emitter 已被 Phaser 销毁但引用还在，`create()` 里必须重置池与共享发射器字段。
+- **重构删局部变量后必须 grep 残留引用**：bolt-skill-system 把 `const skill` 换成 `_getEffect()` 后 4 处仍传 `skill`，运行时才炸（冰锥一飞就崩）。改完变量重构先全文件搜变量名。
+- **成长公式化后的规模降载**：段数写成 `"5 + (level-1)*2"` 后 L20=43 段，粒子发射器按比例降载（每 3 段一路），防高等级掉帧。
+- **技能经验要接线才算数**：冰墙 expRewards 配了但没消费方 = 零经验（面板还写着不实的获取方式）。新技能必须同时写 `addXxxExp`（multiHit 惯例）+ 结算点调用 + 面板文案三方对齐（test-craft-sync 式三角校验）。
 - **套装套效绑定整套**（三件齐才激活移速/法系/格挡）——防混搭白嫖特效；移速修正写 `this.maxSpeed`（实际移动读它，`d.speed` 只是面板）。
 - **坑：`usePlayerSpeedConfig` 速度公式**：`formulas.speed` 无 base 时 `d.speed = speedFormula.base + …` 恒 NaN——实际移动靠 `this.maxSpeed || data.speed || 100` 兜底到 100。改速度相关面板先查这个公式。

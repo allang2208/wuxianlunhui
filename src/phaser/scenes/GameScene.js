@@ -32,6 +32,7 @@ import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
+import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -52,6 +53,10 @@ export class GameScene extends Scene {
         this._playerAttackStartTime = 0;
         this._playerAttackDuration = 667;
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
+        // 冰墙 fx 池与共享发射器：场景 stop/start 后旧对象已销毁，必须重置防悬挂引用
+        this._iceWallFx = [];
+        this._iceWallMistBurst = null;
+        this._iceWallShardBurst = null;
         // Velocity 驱动开关（默认关闭，避免与原有移动逻辑冲突）
         // 如需手动测试，可在控制台执行：__phaserScene._useVelocityDrive = true
         this._useVelocityDrive = false;
@@ -189,6 +194,10 @@ export class GameScene extends Scene {
                 this.playerSprite.setVisible(false);
                 this.playerSprite.setActive(false);
             }
+            if (this.playerHandSprite && this.playerHandSprite.visible) {
+                this.playerHandSprite.setVisible(false);
+                this.playerHandSprite.setActive(false);
+            }
             if (this.weaponSprite && this.weaponSprite.visible) {
                 this.weaponSprite.setVisible(false);
                 this.weaponSprite.setActive(false);
@@ -268,6 +277,7 @@ export class GameScene extends Scene {
             // （可见性仍由 syncWeapon 控制；枪口计算 _getMuzzleWorldPosition 依赖 active 标志）
             if (this.weaponSprite && !this.weaponSprite.active) this.weaponSprite.setActive(true);
             if (this.offhandWeaponSprite && !this.offhandWeaponSprite.active) this.offhandWeaponSprite.setActive(true);
+            if (this.playerHandSprite && !this.playerHandSprite.active) this.playerHandSprite.setActive(true);
             // 武器 Sprite 的可见性由 syncWeapon 控制，不在 update 中强制显示
             // 避免覆盖 syncWeapon 的隐藏逻辑（如武器切换为空时）
             // 恢复 2.5D 墙壁/树木与地形显示
@@ -315,6 +325,8 @@ export class GameScene extends Scene {
                 this._syncFlyingFireball(_game.player);
                 // Phase 续：同步无人机
                 this._syncDrone(_game.player);
+                // Phase 续：同步冰墙
+                this._syncIceWalls(_game.player);
 
                 // 同步其他施法者（如僵尸巫师）的冰锥/火球特效
                 this._syncOtherMagicCasters(_game);
@@ -345,6 +357,8 @@ export class GameScene extends Scene {
         this._syncEntityShadows(_game);
         // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
         this._syncStunEffects(_game);
+        // 同步冻结冰块特效（冻结持续时间内覆盖目标，结束消失）
+        this._syncFreezeEffects(_game);
         // 同步激励 buff 白色环绕光晕（持续时间内跟随目标，结束消失）
         this._syncInspireEffects(_game);
         // 调试范围圈与阴影使用同一脚底坐标，避免错位
@@ -430,6 +444,7 @@ export class GameScene extends Scene {
             // 把贴图中心坐标转回逻辑脚底坐标
             Game.player.x = this.playerSprite.x;
             Game.player.y = this.playerSprite.y + playerShift;
+            this._syncPlayerHandLayer();
             // 边界检查
             if (Game.player.x < -CONFIG.WORLD_WIDTH || Game.player.x > CONFIG.WORLD_WIDTH * 2 ||
                 Game.player.y < -CONFIG.WORLD_HEIGHT || Game.player.y > CONFIG.WORLD_HEIGHT * 2) {
@@ -445,6 +460,7 @@ export class GameScene extends Scene {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
             Game.player.footOffsetY = playerShift;
             this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
+            this._syncPlayerHandLayer();
             applyBodyFootOffset(this.playerSprite, playerShift);
             this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
         }
@@ -551,6 +567,11 @@ export class GameScene extends Scene {
         }
         if (this.shieldSprite && this.shieldSprite.active) {
             this.shieldSprite.setDepth(playerDepth + shieldOff);
+        }
+        // 手部分层：恒在武器之上（身体 + 常规偏移之上再 +1）
+        if (this.playerHandSprite && this.playerHandSprite.active) {
+            const handOff = occluded ? 0.5 : 3;
+            this.playerHandSprite.setDepth(playerDepth + handOff);
         }
 
         // 4. 防御光环位于玩家下方
@@ -1004,6 +1025,42 @@ export class GameScene extends Scene {
         // 位置由代码完全控制，关闭物理引擎自动积分，避免碰撞导致抖动/瞬移
         // 仅在 Velocity 驱动模式下开启物理自动积分
         body.moves = this._useVelocityDrive;
+        // 手部分层 sprite（walk 等 handLayer 姿态）：帧/位置/翻转由 _syncBodiesToPhysics 每帧跟随身体
+        this.playerHandSprite = this.add.sprite(0, 0, playerTextureKey('idle'));
+        this.playerHandSprite.setOrigin(0.5, 0.5);
+        this.playerHandSprite.setDisplaySize(spriteSize, spriteSize);
+        this.playerHandSprite.setVisible(false);
+        this.playerHandSprite.setDepth(this.playerSprite.depth + 3);
+    }
+
+    _ensurePlayerHandSprite() {
+        if (!this.playerHandSprite && this.playerSprite) {
+            const { spriteSize } = PLAYER_DEFAULTS.physics;
+            this.playerHandSprite = this.add.sprite(0, 0, playerTextureKey('idle'));
+            this.playerHandSprite.setOrigin(0.5, 0.5);
+            this.playerHandSprite.setDisplaySize(spriteSize, spriteSize);
+            this.playerHandSprite.setVisible(false);
+            this.playerHandSprite.setDepth(this.playerSprite.depth + 3);
+        }
+        return this.playerHandSprite;
+    }
+
+    // 手部分层每帧同步：帧号/位置/翻转跟随身体 sprite，深度恒为身体 +3（在武器 +2 之上）
+    _syncPlayerHandLayer() {
+        const hand = this.playerHandSprite;
+        if (!hand || !hand.active || !this.playerSprite) return;
+        hand.setPosition(this.playerSprite.x, this.playerSprite.y);
+        hand.setFlipX(this.playerSprite.flipX);
+        hand.setDepth(this.playerSprite.depth + 3);
+        // 帧跟随：身体播 body 动画时，手 sprite 用同一帧索引（两 sheet 同网格同帧序）
+        if (this.playerSprite.anims.currentAnim && this.playerSprite.anims.isPlaying) {
+            const frameName = this.playerSprite.frame && this.playerSprite.frame.name;
+            if (frameName !== undefined && hand.frame && Number(hand.frame.name) !== Number(frameName)) {
+                try {
+                    hand.setFrame(Number(frameName));
+                } catch (_e) { /* 帧越界忽略 */ }
+            }
+        }
     }
 
     _onPlayerSpawn(data) {
@@ -1162,6 +1219,10 @@ export class GameScene extends Scene {
 
         this._lastPlayerAnimKey = key;
         const currentAnim = this.playerSprite.anims.currentAnim?.key;
+        // 手部分层（如 walk）：身体层动画键 = player_<key>_body；手 sprite 帧每帧跟随身体帧
+        const def = getPlayerAnimDef(key);
+        const handLayer = (def && def.handLayer) || null;
+        const bodyTexKey = handLayer ? `${playerTextureKey(key)}_body` : null;
 
         // 根据朝向翻转（侧视精灵图默认朝右）——与武器/锚点同一中轴滞回判定（_getVisualFacingRight），
         // 禁用 _facingDir 四方向制（45° 边界），否则 45°~87° 区间身体与武器朝向相反
@@ -1170,7 +1231,6 @@ export class GameScene extends Scene {
             this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
         }
 
-        const def = getPlayerAnimDef(key);
         const texKey = playerTextureKey(key);
 
         // 切换动画前移除旧的完成回调：repeat 0 动画被打断时 Phaser 不发 animationcomplete，
@@ -1195,6 +1255,10 @@ export class GameScene extends Scene {
                 this.playerSprite.anims.stop();
             }
             this.playerSprite.anims.timeScale = 1;
+            // 手部分层：非 sheet（单帧/无配置）姿态隐藏手 sprite
+            if (this.playerHandSprite) {
+                this.playerHandSprite.setVisible(false);
+            }
             // 上半身分层扭转姿态（如持枪瞄准）：腿层贴玩家 Sprite，躯干层由 _syncGunTwist 驱动
             if (def && def.twist && this.textures.exists(`${texKey}_legs`) && this.textures.exists(`${texKey}_torso`)) {
                 this.playerSprite.setTexture(`${texKey}_legs`);
@@ -1210,6 +1274,10 @@ export class GameScene extends Scene {
 
         // 播放一次的动作（攻击等）：防重入，记录时长，完成后回 idle
         if ((def.repeat !== undefined ? def.repeat : -1) === 0) {
+            // 手部分层仅用于循环姿态（walk）；一次性动作（攻击/施法等）隐藏手 sprite
+            if (this.playerHandSprite) {
+                this.playerHandSprite.setVisible(false);
+            }
             if (currentAnim === texKey && this.playerSprite.anims.isPlaying) return;
             // 贴图与动画必须同源（扭转腿层/单帧姿态切换后 texture 可能不匹配，不重置会卡第一帧）
             if (this.playerSprite.texture.key !== texKey) {
@@ -1252,14 +1320,29 @@ export class GameScene extends Scene {
 
         // 循环动画（walk/run 等）
         this.playerSprite.anims.timeScale = 1;
+        // 手部分层：walk 用身体层动画（去手），手 sprite 单独叠加在武器之上
+        const playTexKey = handLayer ? bodyTexKey : texKey;
+        const playAnimKey = handLayer ? `${texKey}_body` : texKey;
         // currentAnim 相同但已停止（单帧 idle 切换会 anims.stop() 但不清 currentAnim 引用）也必须重播——
         // 否则"走路→停下→再走"时 walk 永远不重启（NPC 对话后走路失效根因）
-        if (currentAnim !== texKey || !this.playerSprite.anims.isPlaying) {
+        if (currentAnim !== playAnimKey || !this.playerSprite.anims.isPlaying) {
             // 贴图与动画必须同源（同上）
-            if (this.playerSprite.texture.key !== texKey) {
-                this.playerSprite.setTexture(texKey);
+            if (this.playerSprite.texture.key !== playTexKey) {
+                this.playerSprite.setTexture(playTexKey);
             }
-            this.playerSprite.play(texKey, true);
+            this.playerSprite.play(playAnimKey, true);
+        }
+        // 手 sprite：显示并同步纹理（帧在 _syncBodiesToPhysics 每帧跟随）
+        if (handLayer) {
+            this._ensurePlayerHandSprite();
+            if (this.playerHandSprite.texture.key !== `${texKey}_hand`) {
+                this.playerHandSprite.setTexture(`${texKey}_hand`);
+            }
+            this.playerHandSprite.setVisible(true);
+            this.playerHandSprite.setFlipX(this.playerSprite.flipX);
+            this.playerHandSprite.setPosition(this.playerSprite.x, this.playerSprite.y);
+        } else if (this.playerHandSprite) {
+            this.playerHandSprite.setVisible(false);
         }
     }
 
@@ -1286,6 +1369,12 @@ export class GameScene extends Scene {
         releaseFrame = (castDef && castDef.releaseFrame) || Math.ceil(totalFrames * 2 / 3);
         forwardMs = (castDef && castDef.forwardMs) || forwardMs;
         recoverMs = (castDef && castDef.recoverMs) || recoverMs;
+        // 合金握柄等改造：施法速度加快（前摇/后摇时长除以倍率）
+        const castSpeedMul = getCastSpeedMultiplier(p);
+        if (castSpeedMul > 1) {
+            forwardMs = Math.max(100, Math.floor(forwardMs / castSpeedMul));
+            recoverMs = Math.max(50, Math.floor(recoverMs / castSpeedMul));
+        }
         // 清掉可能残留的施法监听/状态（不重置玩家状态，避免打断自身流程）
         this.cancelPlayerCast(false);
         p._castState = 'casting';
@@ -1848,6 +1937,77 @@ export class GameScene extends Scene {
         // 动画/贴图配置键：animConfigKey 优先（R93 等新枪不再共用 G18 pistol 配置——副手翻转根因）
         const wt = currentItem.animConfigKey || currentItem.weaponType;
         const isMelee = wt === 'sword' || wt === 'bow';
+
+        // ===== 施法武器跟随（法杖举杖施法）=====
+        // 施法期间（前摇 casting / 后摇 recover）法杖按 staff_cast 动画帧读取 staffCastFrames 逐帧轨迹——
+        // 前摇正放（f0→f4 举杖到最高）、后摇倒放（f4→f8 放下），武器中段始终贴住左侧手
+        const castState = player._castState;
+        // TEMP DEBUG：施法期间 syncWeapon 是否被调用（200ms 节流，排查后删除）
+        if (castState && castState !== 'idle'
+            && (!this._castDbgOuter || performance.now() - this._castDbgOuter > 200)) {
+            this._castDbgOuter = performance.now();
+            console.log('[castWeapon] syncWeapon sees cast:', JSON.stringify({
+                castState,
+                weaponType: currentItem.weaponType,
+                wt,
+                hasStaffFrames: !!(WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames),
+            }));
+        }
+        if (currentItem.weaponType === 'staff' && castState && castState !== 'idle'
+            && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames
+            && WeaponAnimConfig[wt].staffCastFrames.type === 'perFrame'
+            && WeaponAnimConfig[wt].staffCastFrames.frames) {
+            const castFrames = WeaponAnimConfig[wt].staffCastFrames.frames;
+            // 当前施法动画帧（staff_cast 帧 0~8；倒放时 frame 递减，索引天然对应）
+            let castFrame = 0;
+            // 优先 anims.currentFrame.textureFrame（动画官方帧源：正放/倒放都准确）；
+            // 回退 sprite.frame.name（部分渲染路径下可能滞后于动画）
+            let rawFrame = NaN;
+            if (this.playerSprite.anims && this.playerSprite.anims.currentFrame) {
+                rawFrame = Number(this.playerSprite.anims.currentFrame.textureFrame);
+            }
+            if (Number.isNaN(rawFrame)) {
+                const curFrame = this.playerSprite.frame && this.playerSprite.frame.name;
+                if (curFrame !== undefined && curFrame !== null) rawFrame = Number(curFrame);
+            }
+            if (!Number.isNaN(rawFrame) && rawFrame < castFrames.length) {
+                castFrame = Math.max(0, Math.floor(rawFrame));
+            }
+            const cf = castFrames[castFrame];
+            if (cf) {
+                // TEMP DEBUG：施法武器追踪（200ms 节流，排查后删除）
+                if (!this._castDbgLast || performance.now() - this._castDbgLast > 200) {
+                    this._castDbgLast = performance.now();
+                    console.log('[castWeapon]', JSON.stringify({
+                        castState,
+                        rawFrame,
+                        castFrame,
+                        off: { x: cf.offsetX, y: cf.offsetY },
+                        animKey: this.playerSprite.anims.currentAnim ? this.playerSprite.anims.currentAnim.key : null,
+                        isPlaying: this.playerSprite.anims.isPlaying,
+                        framesLen: castFrames.length,
+                    }));
+                }
+                if (!this.weaponSprite) {
+                    this.weaponSprite = this.add.sprite(0, 0, texture);
+                } else if (this.weaponSprite.texture.key !== texture) {
+                    this.weaponSprite.setTexture(texture);
+                }
+                const facingRight = !this.playerSprite.flipX;
+                const offX = (facingRight ? 1 : -1) * cf.offsetX;
+                const offY = cf.offsetY;
+                let rot = cf.rotation * Math.PI / 180;
+                if (!facingRight) rot = Math.PI - rot;
+                this.weaponSprite.setPosition(player.x + offX, player.y + offY - this._getFootOffsetY(player, this.playerSprite));
+                this.weaponSprite.setRotation(rot);
+                this.weaponSprite.setFlipX(!facingRight);
+                const wSize = WeaponTransform.getWeaponSize(wt, cf.scale, 'idle');
+                this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
+                this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                this._hideWeaponGhosts();
+                return;
+            }
+        }
         
         if (wt === 'bow') {
             // 弓攻击：使用 spritesheet 帧动画
@@ -2049,7 +2209,57 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
-        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player));
+        // ===== 行走逐帧轨迹（walkFrames）：武器握把跟随行走动画右手摆动 =====
+        // 配置：WeaponAnimConfig[wt].walkFrames { type:'perFrame', frames:[21 帧，与 walk 动画帧一一对应] }
+        // 法杖（staff，animConfigKey='sword' 复用剑配置）：独立 staffWalkFrames 块——
+        // 剑柄在贴图中心下方 55px，法杖中段≈贴图中心，故法杖轨迹整体下移 55px 让中段对准手
+        // 朝向硬绑定同攻击分支：以朝右为基准取帧，朝左手动镜像（位置 x 取反 + 旋转取反 + 贴图 flipX）
+        const isStaffWeapon = currentItem && currentItem.weaponType === 'staff';
+        const walkFramesCfg = isMelee ? (WeaponAnimConfig[wt] && (isStaffWeapon
+            ? (WeaponAnimConfig[wt].staffWalkFrames || WeaponAnimConfig[wt].walkFrames)
+            : WeaponAnimConfig[wt].walkFrames)) : null;
+        if (animState === 'walk' && isMelee && walkFramesCfg
+            && walkFramesCfg.type === 'perFrame' && walkFramesCfg.frames && walkFramesCfg.frames.length) {
+            let walkProgress = 0;
+            const curAnim = this.playerSprite.anims.currentAnim;
+            // 兼容手部分层：walk 实际播 player_walk_body（身体层去手），进度口径一致
+            const walkBodyKey = `${playerTextureKey('walk')}_body`;
+            if (curAnim && (curAnim.key === playerTextureKey('walk') || curAnim.key === walkBodyKey)
+                && this.playerSprite.anims.getProgress) {
+                walkProgress = this.playerSprite.anims.getProgress();
+            }
+            const facingRight = !this.playerSprite.flipX;
+            // 平滑轨迹：Catmull-Rom 闭合样条插值（消除相邻帧提取噪声导致的"瞬移/顿挫"，
+            // 首尾闭合保证循环动画无跳变）
+            const wfPos = WeaponTransform.getSmoothPerFramePosition(
+                player, wt, walkProgress, true, isStaffWeapon ? 'staffWalkFrames' : 'walkFrames'
+            );
+            if (wfPos) {
+                const wx = facingRight ? wfPos.x : 2 * player.x - wfPos.x;
+                const wrot = facingRight ? wfPos.rotation : -wfPos.rotation;
+                this.weaponSprite.setPosition(wx, wfPos.y);
+                this.weaponSprite.setRotation(wrot);
+                this.weaponSprite.setFlipX(!facingRight);
+                const wSize = WeaponTransform.getWeaponSize(wt, wfPos.scale, 'walk');
+                this.weaponSprite.setDisplaySize(
+                    wSize.width * (wfPos.stretchX || 1),
+                    wSize.height * (wfPos.stretchY || 1)
+                );
+                this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                this._hideWeaponGhosts();
+                return;
+            }
+        }
+
+        // 法杖（staff）：idle/walk/running 静态姿态用独立 staffIdle 块（中段握持，与剑 idle 分离）
+        const staffIdleCfg = isStaffWeapon && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffIdle;
+        const staffOverrides = staffIdleCfg ? {
+            holdOffsetX: staffIdleCfg.holdOffsetX,
+            holdOffsetY: staffIdleCfg.holdOffsetY,
+            idleRotation: staffIdleCfg.idleRotation,
+            idleScale: staffIdleCfg.idleScale,
+        } : {};
+        const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, staffOverrides, isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player));
         const facingRight = isMelee ? !this.playerSprite.flipX : this._getVisualFacingRight(player); // 近战朝向硬绑定身体 flipX
 
         // 躯干扭转激活（持枪瞄准）：锚点在躯干空间计算（不随 player.rotation 公转）
@@ -3128,6 +3338,399 @@ export class GameScene extends Scene {
     _destroyStunFx(fx) {
         if (fx.s1 && fx.s1.active) fx.s1.destroy();
         if (fx.s2 && fx.s2.active) fx.s2.destroy();
+    }
+
+    /**
+     * 预生成冻结冰块纹理（半透明蓝色方块 + 裂纹）
+     */
+    _ensureIceBlockTexture() {
+        if (this.textures.exists('ice_block')) return;
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        const w = 64, h = 64;
+        // 冰块主体：半透明蓝
+        g.fillStyle(0x7ab8e0, 0.55);
+        g.fillRect(0, 0, w, h);
+        // 高亮边框
+        g.lineStyle(3, 0xa0d8ff, 0.9);
+        g.strokeRect(0, 0, w, h);
+        // 裂纹
+        g.lineStyle(2, 0xffffff, 0.6);
+        g.beginPath();
+        g.moveTo(12, 18);
+        g.lineTo(26, 30);
+        g.lineTo(22, 46);
+        g.moveTo(42, 14);
+        g.lineTo(38, 28);
+        g.lineTo(52, 38);
+        g.strokePath();
+        g.generateTexture('ice_block', w, h);
+        g.destroy();
+    }
+
+    /**
+     * 冻结动画特效：半透明冰块覆盖在冻结实体上，
+     * 冻结持续时间内跟随目标，结束后自动消失（含实体失效的兜底清理）
+     */
+    _syncFreezeEffects(_game) {
+        if (!_game || !_game.entities) return;
+        if (!this._freezeFx) this._freezeFx = new Map();
+        const isMapMode = SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map';
+        if (isMapMode) {
+            for (const [, fx] of this._freezeFx.entries()) this._destroyFreezeFx(fx);
+            this._freezeFx.clear();
+            return;
+        }
+        if (!this.textures.exists('ice_block')) this._ensureIceBlockTexture();
+        const active = new Set();
+        const process = (e, sprite) => {
+            if (!e || !e.active || !sprite || !sprite.active) return;
+            const frozen = typeof e.hasStatusEffect === 'function' && e.hasStatusEffect('frozen');
+            if (!frozen) return;
+            active.add(e);
+            let fx = this._freezeFx.get(e);
+            if (!fx) {
+                const block = this.add.sprite(0, 0, 'ice_block');
+                fx = { block };
+                this._freezeFx.set(e, fx);
+            }
+            const w = (sprite.displayWidth || 32) * 1.1;
+            const h = (sprite.displayHeight || 32) * 1.15;
+            fx.block.setPosition(sprite.x, sprite.y);
+            fx.block.setDisplaySize(w, h);
+            fx.block.setDepth((typeof sprite.depth === 'number' ? sprite.depth : 0) + 0.5);
+            fx.block.setVisible(true);
+            fx.block.setAlpha(0.75);
+        };
+        _game.entities.forEach(e => process(e, e && e._phaserSprite));
+        // 玩家被冻结：冰块挂在 this.playerSprite 上
+        process(_game.player, this.playerSprite);
+        // 冻结结束/实体失效：销毁特效
+        for (const [e, fx] of this._freezeFx.entries()) {
+            if (!active.has(e)) {
+                this._destroyFreezeFx(fx);
+                this._freezeFx.delete(e);
+            }
+        }
+    }
+
+    _destroyFreezeFx(fx) {
+        if (fx.block && fx.block.active) fx.block.destroy();
+    }
+
+    /**
+     * 确保冰墙贴图存在：4 个冰晶簇变体 + 地面霜斑 + 碎冰屑
+     * 用 canvas 2D 渐变绘制（Graphics.generateTexture 不支持 fillGradientStyle 渲出渐变）
+     */
+    _ensureIceWallTexture() {
+        if (!this.textures.exists('ice_wall_segment_0')) {
+            const W = 64, H = 80;
+            // 种子随机：每个变体布局固定，避免每次启动墙形不同
+            const mulberry32 = (seed) => () => {
+                seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+                let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+            for (let v = 0; v < 4; v++) {
+                const tex = this.textures.createCanvas(`ice_wall_segment_${v}`, W, H);
+                const ctx = tex.getContext();
+                const rand = mulberry32(1000 + v * 77);
+                const baseY = H - 5;
+
+                // 底座：深蓝冰坨（上半椭圆）
+                const baseGrad = ctx.createLinearGradient(0, baseY - 12, 0, H);
+                baseGrad.addColorStop(0, 'rgba(46,107,143,0.95)');
+                baseGrad.addColorStop(1, 'rgba(18,46,66,0.95)');
+                ctx.fillStyle = baseGrad;
+                ctx.beginPath();
+                ctx.ellipse(W / 2, baseY + 2, W * 0.45, 11, 0, Math.PI, 0);
+                ctx.fill();
+
+                // 晶柱参数：中央最高、两侧渐低、随机倾斜
+                const defs = [];
+                const n = 5;
+                for (let s = 0; s < n; s++) {
+                    const u = s / (n - 1);                              // 0..1 左→右
+                    const centerBoost = Math.max(0.2, 1 - Math.abs(u - 0.5) * 1.5);
+                    defs.push({
+                        bx: W * (0.12 + 0.76 * u) + (rand() - 0.5) * 6,
+                        bw: 6 + rand() * 4,
+                        h: H * (0.42 + 0.5 * centerBoost) + (rand() - 0.5) * 10,
+                        lean: (rand() - 0.5) * 10,
+                    });
+                }
+                // 先矮后高绘制，中央晶柱压在最前
+                defs.sort((a, b) => a.h - b.h);
+                for (const d of defs) {
+                    const apexY = baseY - d.h;
+                    // 主体：深蓝 → 亮蓝 → 尖顶近白 竖向渐变
+                    const grad = ctx.createLinearGradient(0, baseY, 0, apexY);
+                    grad.addColorStop(0, 'rgba(29,78,110,0.96)');
+                    grad.addColorStop(0.55, 'rgba(90,168,216,0.92)');
+                    grad.addColorStop(1, 'rgba(224,244,255,0.98)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(d.bx - d.bw, baseY);
+                    ctx.lineTo(d.bx + d.bw, baseY);
+                    ctx.lineTo(d.bx + d.bw * 0.75 + d.lean * 0.4, baseY - d.h * 0.55);
+                    ctx.lineTo(d.bx + d.lean, apexY);
+                    ctx.lineTo(d.bx - d.bw * 0.75 + d.lean * 0.4, baseY - d.h * 0.55);
+                    ctx.closePath();
+                    ctx.fill();
+                    // 右侧暗面（晶体棱面立体感）
+                    ctx.fillStyle = 'rgba(16,44,66,0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(d.bx + d.lean, apexY);
+                    ctx.lineTo(d.bx + d.bw * 0.75 + d.lean * 0.4, baseY - d.h * 0.55);
+                    ctx.lineTo(d.bx + d.bw, baseY);
+                    ctx.lineTo(d.bx + d.lean * 0.6, baseY);
+                    ctx.closePath();
+                    ctx.fill();
+                    // 左棱高光
+                    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(d.bx - d.bw * 0.75 + d.lean * 0.4, baseY - d.h * 0.55);
+                    ctx.lineTo(d.bx + d.lean, apexY);
+                    ctx.stroke();
+                    // 内部裂纹
+                    if (rand() > 0.35) {
+                        ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+                        ctx.lineWidth = 0.8;
+                        const cx0 = d.bx + (rand() - 0.5) * d.bw;
+                        const cy0 = baseY - d.h * (0.2 + rand() * 0.3);
+                        ctx.beginPath();
+                        ctx.moveTo(cx0, cy0);
+                        ctx.lineTo(cx0 + (rand() - 0.5) * 8, cy0 - 8 - rand() * 8);
+                        ctx.lineTo(cx0 + (rand() - 0.5) * 10, cy0 - 16 - rand() * 6);
+                        ctx.stroke();
+                    }
+                }
+
+                // 根部碎冰渣
+                ctx.fillStyle = 'rgba(160,216,255,0.8)';
+                for (let k = 0; k < 4; k++) {
+                    const sx = W * (0.15 + rand() * 0.7), sy = baseY + 2 + rand() * 3, r = 1 + rand() * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, sy - r);
+                    ctx.lineTo(sx + r, sy);
+                    ctx.lineTo(sx, sy + r * 0.6);
+                    ctx.lineTo(sx - r, sy);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                tex.refresh();
+            }
+        }
+        // 地面霜斑：竖向压扁的径向渐变椭圆
+        if (!this.textures.exists('ice_wall_frost')) {
+            const tex = this.textures.createCanvas('ice_wall_frost', 96, 48);
+            const ctx = tex.getContext();
+            ctx.save();
+            ctx.translate(48, 24);
+            ctx.scale(1, 0.5);
+            const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 46);
+            g.addColorStop(0, 'rgba(200,236,255,0.5)');
+            g.addColorStop(0.5, 'rgba(160,216,255,0.22)');
+            g.addColorStop(1, 'rgba(160,216,255,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(-48, -48, 96, 96);
+            ctx.restore();
+            tex.refresh();
+        }
+        // 碎冰屑粒子贴图
+        if (!this.textures.exists('ice_shard')) {
+            const tex = this.textures.createCanvas('ice_shard', 10, 10);
+            const ctx = tex.getContext();
+            ctx.fillStyle = 'rgba(224,244,255,1)';
+            ctx.beginPath();
+            ctx.moveTo(5, 0); ctx.lineTo(10, 5); ctx.lineTo(5, 10); ctx.lineTo(0, 5);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(90,168,216,0.65)';
+            ctx.beginPath();
+            ctx.moveTo(5, 0); ctx.lineTo(10, 5); ctx.lineTo(5, 5);
+            ctx.closePath(); ctx.fill();
+            tex.refresh();
+        }
+    }
+
+    /** 冰墙共享粒子发射器（破土冰雾 + 碎冰屑迸溅），懒创建一次，所有墙段共用 */
+    _ensureIceWallFx() {
+        if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
+        if (!this._iceWallMistBurst) {
+            this._iceWallMistBurst = this.add.particles(0, 0, 'impact_dot', {
+                emitting: false,
+                speed: { min: 30, max: 120 },
+                angle: { min: 200, max: 340 },
+                lifespan: { min: 350, max: 750 },
+                scale: { start: 1.6, end: 0.2 },
+                alpha: { start: 0.65, end: 0 },
+                tint: [0xffffff, 0xa0d8ff, 0x5aa8d8],
+                blendMode: 'ADD',
+            });
+        }
+        if (!this._iceWallShardBurst) {
+            this._iceWallShardBurst = this.add.particles(0, 0, 'ice_shard', {
+                emitting: false,
+                speed: { min: 70, max: 200 },
+                angle: { min: 220, max: 320 },
+                gravityY: 520,
+                lifespan: { min: 450, max: 850 },
+                scale: { min: 0.5, max: 1.1 },
+                rotate: { min: -180, max: 180 },
+                alpha: { start: 1, end: 0.4 },
+            });
+        }
+    }
+
+    /** 单段墙的常驻寒气：低频白雾缓慢上飘（跟随墙段生灭） */
+    _createIceWallMist() {
+        return this.add.particles(0, 0, 'impact_dot', {
+            emitting: false,
+            speedY: { min: -22, max: -10 },
+            speedX: { min: -6, max: 6 },
+            lifespan: { min: 900, max: 1600 },
+            scale: { start: 0.9, end: 0.15 },
+            alpha: { start: 0.22, end: 0 },
+            frequency: 240,
+            tint: [0xc8ecff, 0xa0d8ff],
+            blendMode: 'ADD',
+        });
+    }
+
+    /**
+     * 冰墙贴图随机池：segment_3（宽矮四柱）已按用户要求剔除，池 = segment_0/1/2/4；
+     * 图片缺失时回退到程序生成的 segment_0~3。首次调用时缓存（贴图在 BootScene/懒生成后不变）。
+     */
+    _iceWallVariantKeys() {
+        if (!this._iceWallVariantPool) {
+            const preferred = ['ice_wall_segment_0', 'ice_wall_segment_1', 'ice_wall_segment_2', 'ice_wall_segment_4'];
+            this._iceWallVariantPool = preferred.filter(k => this.textures.exists(k));
+            if (this._iceWallVariantPool.length === 0) {
+                this._iceWallVariantPool = [0, 1, 2, 3]
+                    .filter(i => this.textures.exists(`ice_wall_segment_${i}`))
+                    .map(i => `ice_wall_segment_${i}`);
+            }
+        }
+        return this._iceWallVariantPool;
+    }
+
+    /**
+     * 同步冰墙到 Phaser
+     * 视觉分层：地面霜斑（最底）→ 冰晶簇 sprite（底部锚定，中心向两端 stagger 破土生长、
+     * 半透明 0.6、贴图放大 1.25×、常驻呼吸微光、到期前 350ms 闪烁抖动预警）→ 寒气粒子。
+     * 生长进度由 IceWallSystem 维护的 age / spawnDelay 推导；到期碎裂特效（冰屑/冰雾/冲击环）
+     * 由逻辑层 IceWallSystem._shatter 直接触发，渲染层无消融动画。
+     */
+    _syncIceWalls(player) {
+        if (!this._iceWallFx) this._iceWallFx = [];
+        const isMapMode = SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active && DungeonMapSystem.state === 'map';
+        if (isMapMode || !player || !player.iceWallSystem) {
+            this._iceWallFx.forEach(fx => {
+                if (fx.sprite && fx.sprite.active) fx.sprite.setVisible(false);
+                if (fx.frost && fx.frost.active) fx.frost.setVisible(false);
+                if (fx.mist && fx.mist.active) fx.mist.stop();
+            });
+            return;
+        }
+
+        const walls = player.iceWallSystem.getWalls();
+        // 无条件调用：内部各贴图块自带存在性守卫（晶簇图片由 BootScene 预加载后会跳过程序生成，
+        // 但霜斑/碎冰屑仍需这里生成）
+        this._ensureIceWallTexture();
+        this._ensureIceWallFx();
+
+        // 按需扩展 fx 池（sprite + 霜斑 + 寒气发射器）
+        while (this._iceWallFx.length < walls.length) {
+            const sprite = this.add.sprite(0, 0, 'ice_wall_segment_0');
+            sprite.setOrigin(0.5, 1);
+            const frost = this.add.image(0, 0, 'ice_wall_frost');
+            frost.setOrigin(0.5, 0.5);
+            const mist = this._createIceWallMist();
+            this._iceWallFx.push({ sprite, frost, mist, wall: null, burstDone: false });
+        }
+        // 回收多余 fx
+        while (this._iceWallFx.length > walls.length) {
+            const fx = this._iceWallFx.pop();
+            if (fx.sprite && fx.sprite.active) fx.sprite.destroy();
+            if (fx.frost && fx.frost.active) fx.frost.destroy();
+            if (fx.mist && fx.mist.active) fx.mist.destroy();
+        }
+
+        const APPEAR_MS = 380;   // 破土生长时长
+        const WARN_MS = 350;     // 碎裂前预警（闪烁抖动）时长，随后逻辑层移除并触发碎裂特效
+        const BASE_ALPHA = 0.6;  // 冰体半透明度
+        const SIZE_MUL = 1.25;   // 贴图放大系数
+        const now = this.time.now;
+
+        walls.forEach((w, i) => {
+            const fx = this._iceWallFx[i];
+            const s = fx.sprite;
+            if (!s || !s.active) return;
+            // 池位复用到新墙：重置状态，variant 经随机池映射贴图（池内无 segment_3）
+            if (fx.wall !== w) {
+                fx.wall = w;
+                fx.burstDone = false;
+                const pool = this._iceWallVariantKeys();
+                s.setTexture(pool[(w.variant || 0) % pool.length]);
+                fx.mist.setPosition(w.x, w.y - 4);
+            }
+
+            const t = (w.age || 0) - (w.spawnDelay || 0);   // 扣除 stagger 延迟后的生长时间
+            // 生长进度（0→1，带回弹过冲）
+            let grow = 1;
+            if (t <= 0) {
+                grow = 0;
+            } else if (t < APPEAR_MS) {
+                const p = t / APPEAR_MS;
+                grow = Easing.easeOutQuart(p) * (1 + 0.15 * Math.sin(Math.PI * p));
+                if (!fx.burstDone) {
+                    fx.burstDone = true;
+                    this._iceWallMistBurst.setDepth(w.y + 2).explode(10, w.x, w.y - 4);
+                    this._iceWallShardBurst.setDepth(w.y + 2).explode(6, w.x, w.y - 6);
+                }
+            }
+            // 碎裂预警：最后 350ms 高频闪烁 + 微抖动（不塌缩，碎裂特效由逻辑层触发）
+            const warn = w.remaining < WARN_MS;
+            const warnFade = warn ? Math.max(0, w.remaining / WARN_MS) : 1;
+
+            // 主 sprite：晶簇屏幕朝上直立，底部锚定 scaleY 生长；半透明度 0.6
+            s.setPosition(w.x + (warn ? (Math.random() - 0.5) * 2.5 : 0), w.y);
+            s.setRotation(0);
+            // 段间图层：y 为主（南段压北段），同 y（横向墙）时中心段在前，堆叠成"冰脊"而非随机互压
+            const centerIdx = (walls.length - 1) / 2;
+            s.setDepth(w.y + 1 + (walls.length - Math.abs(i - centerIdx)) * 0.01);
+            const scaleY = Math.max(0.001, grow);
+            // 等比缩放：高度按技能配置 w.height×1.25，宽度随贴图纵横比自适应
+            const texH = (s.frame && s.frame.height) || 320;
+            s.setScale((w.height * SIZE_MUL * scaleY) / texH);
+            // 呼吸微光（完全长成且未预警时）
+            const breath = (t >= APPEAR_MS && !warn) ? 0.92 + 0.08 * Math.sin(now / 650 + i * 1.7) : 1;
+            const warnFlicker = warn ? 0.55 + 0.45 * Math.abs(Math.sin(now / 45 + i)) : 1;
+            s.setAlpha(BASE_ALPHA * Math.min(1, grow) * breath * warnFlicker);
+            s.setVisible(scaleY > 0.01);
+
+            // 地面霜斑：随墙同生共灭，宽度跟随实际贴图显示宽度，预警期同步衰减
+            const f = fx.frost;
+            if (f && f.active) {
+                const fg = Math.min(1, grow * 1.4);
+                const fw = Math.max(w.width * 2.1, s.displayWidth * 1.15);
+                f.setPosition(w.x, w.y);
+                f.setDepth(w.y - 1);
+                f.setDisplaySize(fw * (0.55 + 0.45 * fg), fw * 0.5 * (0.55 + 0.45 * fg));
+                f.setAlpha(0.6 * fg * warnFade);
+                f.setVisible(fg > 0.02 && warnFade > 0);
+            }
+
+            // 常驻寒气：长成后持续上飘，预警期停止；高等级墙段数多时每 3 段才起一路，控制发射器总数
+            const m = fx.mist;
+            if (m && m.active) {
+                const mistOn = (i % 3 === 0) && grow >= 0.8 && w.remaining > 120;
+                if (mistOn && !m.emitting) m.start();
+                else if (!mistOn && m.emitting) m.stop();
+                m.setAlpha(0.9 * warnFade);
+            }
+        });
     }
 
     /**

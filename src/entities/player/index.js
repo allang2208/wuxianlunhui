@@ -15,6 +15,7 @@ import { IceSpikeSystem } from '../components/ice-spike-system.js';
 import { FireballSystem } from '../components/fireball-system.js';
 import { LightningStrikeSystem } from '../components/lightning-strike-system.js';
 import { HolyLightSystem } from '../components/holy-light-system.js';
+import { IceWallSystem } from '../components/ice-wall-system.js';
 import { DroneSystem } from '../components/drone-system.js';
 import { ShieldSystem } from '../components/shield-system.js';
 
@@ -178,6 +179,7 @@ class Player extends Combatant {
             this.fireballSystem = new FireballSystem(this); // 火球技能系统
             this.lightningStrikeSystem = new LightningStrikeSystem(this); // 闪电锁定技能系统
             this.holyLightSystem = new HolyLightSystem(this); // 圣光技能系统
+            this.iceWallSystem = new IceWallSystem(this); // 冰墙技能系统
             this.droneSystem = new DroneSystem(this); // 无人机技能系统
             this.shieldSystem = new ShieldSystem(this); // 盾防御系统
             // ===== 独头弹后坐力系统（Super90）=====

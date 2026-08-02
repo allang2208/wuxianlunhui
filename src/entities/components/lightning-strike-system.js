@@ -8,6 +8,16 @@ import { LightningBoltEffect } from '../../effects/lightning-bolt.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import {
+    getCurrentWeaponCraftEffects,
+    getMagicRangeMultiplier,
+    getMagicMpCostMultiplier,
+    getMagicCooldownMultiplier,
+    getMagicDamageMultiplierWithChain,
+    consumeChainSpellBonus,
+    addChainSpellStack,
+    applyCastHaste,
+} from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
 /**
@@ -38,16 +48,7 @@ export class LightningStrikeSystem {
         if (!src || src._lightningStrikeCooldown > 0) return;
         const skill = src.skills && src.skills.lightningStrike;
         if (!skill) return;
-        const effect = skill.getEffect(skill.level);
-
-        // 魔法值校验（mpCost 当前 0）
-        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
-            if (src.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#b48bff'));
-                return;
-            }
-            src.data.mp -= effect.mpCost;
-        }
+        const baseEffect = skill.getEffect(skill.level);
 
         // 鼠标世界坐标（非玩家施法者回退自身前方）
         let aimX = src.x, aimY = src.y;
@@ -57,13 +58,11 @@ export class LightningStrikeSystem {
             aimY = aim.y;
         }
 
-        // ===== 三重判定（2026-08-02 定稿） =====
-        // ① 鼠标位置附近 aimRadius(200px) 内是否有敌方单位；
-        // ② 施法距离（玩家→目标 ≤ maxRange）——同半径内最近的超距时自动改选射程内目标；
-        // ③ 视线（玩家→目标 线段不被墙体阻挡）。
-        // 失败都不消耗冷却/耗蓝/音效，可立即重试。
-        const aimRadius = effect.aimRadius || 200;
-        const maxRange = effect.maxRange || 600;
+        // ===== 三重判定（2026-08-02 定稿）：失败不消耗冷却/耗蓝/链式强化 =====
+        const ce = getCurrentWeaponCraftEffects(src);
+        const rangeMul = getMagicRangeMultiplier(src, ce);
+        const aimRadius = (baseEffect.aimRadius || 200) * rangeMul;
+        const maxRange = (baseEffect.maxRange || 600) * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
         const nearMouse = [];
@@ -75,14 +74,12 @@ export class LightningStrikeSystem {
                 nearMouse.push({ e, dAim, dPlayer: Math.hypot(e.x - src.x, e.y - src.y) });
             }
         }
-        // ① 瞄准位置附近无目标
         if (nearMouse.length === 0) {
             if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
                 SceneManager.showTopNotification('⚡ 瞄准位置附近无目标！');
             }
             return;
         }
-        // ②③ 按"离鼠标近优先"智能改选：施法距离 + 视线都满足的第一个目标
         nearMouse.sort((a, b) => a.dAim - b.dAim);
         let best = null;
         let anyInRange = false;
@@ -107,15 +104,36 @@ export class LightningStrikeSystem {
             return;
         }
 
+        // 目标合法后：消费链式强化并计算改造后数值
+        const chain = consumeChainSpellBonus(src);
+        const effect = { ...baseEffect };
+        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
+        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+        effect.cooldown = (effect.cooldown || 3) * getMagicCooldownMultiplier(src, ce);
+        effect.chainRange = (effect.chainRange || 200) * rangeMul;
+        if (ce && ce.lightningChainTargetsDelta) {
+            effect.chainTargets = (effect.chainTargets || 1) + ce.lightningChainTargetsDelta;
+        }
+        effect.chainTargets = Math.max(1, effect.chainTargets || 1);
+        const damageMul = getMagicDamageMultiplierWithChain(src, 'lightningStrike', ce, chain.stacks);
+
+        // 魔法值校验
+        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
+            if (src.data.mp < effect.mpCost) {
+                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#b48bff'));
+                return;
+            }
+            src.data.mp -= effect.mpCost;
+        }
+
         src._lightningStrikeCooldown = (effect.cooldown || 3) * 1000;
-        // 播放施法动画，第 8 帧触发释放（音效/传导/伤害/经验在释放时执行）
+        // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
-            // 释放音效：skills.json sounds.cast 全部同时播放（1.mp3 + 2.mp3）
             const castSounds = skillsData.skills?.lightningStrike?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
             }
-            // ===== 传导链：初始目标 + 每5级多传导一个（chainTargets 配置驱动） =====
+            // 传导链
             const chainTargets = Math.max(1, effect.chainTargets || 1);
             const chainRange = effect.chainRange || 200;
             const chainDecay = effect.chainDecay ?? 0.1;
@@ -127,19 +145,19 @@ export class LightningStrikeSystem {
                 chain.push(next);
                 cursor = next;
             }
-            // ===== 逐目标结算：伤害×(1−decay)^hop + 击退 + 眩晕 =====
+            // 逐目标结算
             const stunMs = effect.stunMs || 750;
             const knockback = effect.knockback || 50;
             const baseDamage = Math.floor(
                 (effect.damageBase ?? 0) + (src.data.matk ?? 0) * (effect.magicMul ?? 0) + (src.data.int ?? 0) * (effect.intMul ?? 0)
             );
+            const stunExtend = (ce && ce.electricStunExtendMs) || 0;
             let hitCount = 0, killCount = 0;
             let prevX = src.x, prevY = src.y - ((src.bodyHeight || 120) * 0.5);
             chain.forEach((target, i) => {
                 const decayMul = Math.pow(1 - chainDecay, i);
-                const finalDamage = Math.floor(baseDamage * decayMul);
+                const finalDamage = Math.floor(baseDamage * decayMul * damageMul);
                 const wasAlive = target.hp > 0;
-                // 视觉：主链 施法者→目标0；传导链 前一目标→当前目标
                 const boltSource = i === 0 ? src : chain[i - 1];
                 EffectManager.add(new LightningBoltEffect(boltSource, target, {
                     durationMs: (effect.duration || 0.5) * 1000,
@@ -148,22 +166,26 @@ export class LightningStrikeSystem {
                     jitter: effect.jitter || 0.09,
                 }));
                 this._spawnImpact(target, decayMul);
-                // 伤害结算（与火球/冰锥同口径：魔法伤害）
                 target.takeDamage(finalDamage, src, 'magic');
                 if (wasAlive && target.hp <= 0 && !target._summoned) killCount++;
                 hitCount++;
-                // 击退：初始目标沿 施法者→目标 方向；传导目标沿 前一目标→当前目标 方向
                 const angle = Math.atan2(target.y - prevY, target.x - prevX);
                 if (target.applyKnockback) target.applyKnockback(angle, knockback);
-                if (target.applyStun) target.applyStun(stunMs);
+                if (stunExtend > 0 && target.applyStunExtend) {
+                    target.applyStunExtend(stunMs, stunExtend);
+                } else if (target.applyStun) {
+                    target.applyStun(stunMs);
+                }
                 prevX = target.x;
                 prevY = target.y - ((target.bodyHeight || 120) * 0.5);
             });
-            // ===== 修炼经验：击中 +3 / 击杀 +10 / 单次命中≥2 目标额外 +10 =====
             if (this._isPlayer()) {
                 SkillManager.addLightningStrikeExp(src, hitCount, killCount, hitCount >= 2);
             }
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, `⚡ 闪电 ×${hitCount}`, '#b48bff'));
+            // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
+            addChainSpellStack(src);
+            applyCastHaste(src);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);

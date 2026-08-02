@@ -7,6 +7,16 @@ import { SceneManager } from '../../world/scene-manager.js';
 import { HolyLightEffect } from '../../effects/holy-light.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import {
+    getCurrentWeaponCraftEffects,
+    getMagicRangeMultiplier,
+    getMagicMpCostMultiplier,
+    getMagicCooldownMultiplier,
+    getMagicHealMultiplierWithChain,
+    consumeChainSpellBonus,
+    addChainSpellStack,
+    applyCastHaste,
+} from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
 /**
@@ -34,16 +44,7 @@ export class HolyLightSystem {
         if (!src || src._holyLightCooldown > 0) return;
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
-        const effect = skill.getEffect(skill.level);
-
-        // 魔法消耗（工作流强制：魔法类必须配置 mpCost）
-        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
-            if (src.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
-                return;
-            }
-            src.data.mp -= effect.mpCost;
-        }
+        const baseEffect = skill.getEffect(skill.level);
 
         // 鼠标世界坐标
         let aimX = src.x, aimY = src.y;
@@ -53,14 +54,15 @@ export class HolyLightSystem {
             aimY = aim.y;
         }
 
-        // ===== 三重判定（同闪电，2026-08-02 定稿口径） =====
-        const aimRadius = effect.aimRadius || 200;
-        const maxRange = effect.maxRange || 600;
+        // ===== 三重判定：失败不消耗冷却/耗蓝/链式强化 =====
+        const ce = getCurrentWeaponCraftEffects(src);
+        const rangeMul = getMagicRangeMultiplier(src, ce);
+        const aimRadius = (baseEffect.aimRadius || 200) * rangeMul;
+        const maxRange = (baseEffect.maxRange || 600) * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
         const nearMouse = [];
         for (const e of entities) {
-            // 敌方与友方（玩家本体）都可作为圣光目标；NPC hittable=false 天然排除
             if (!e || !e.active || !e.hittable) continue;
             const dAim = Math.hypot(e.x - aimX, e.y - aimY);
             if (dAim <= aimRadius) {
@@ -97,30 +99,55 @@ export class HolyLightSystem {
             return;
         }
 
+        // 目标合法后：消费链式强化并计算改造后数值
+        const chain = consumeChainSpellBonus(src);
+        const effect = { ...baseEffect };
+        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
+        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+        effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
+        const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
+
+        // 魔法消耗
+        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
+            if (src.data.mp < effect.mpCost) {
+                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+                return;
+            }
+            src.data.mp -= effect.mpCost;
+        }
+
         src._holyLightCooldown = (effect.cooldown || 10) * 1000;
-        // 播放施法动画，第 8 帧触发释放（音效/结算/特效在释放时执行）
+        // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
-            // 释放音效：skills.json sounds.cast（1.mp3）
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
             }
-            // ===== 结算：友方回复生命 / 敌方造成伤害（僵尸类翻倍）=====
+            // 结算：友方回复生命 / 敌方造成伤害（僵尸类翻倍）
             const amount = Math.floor(
-                (effect.healBase ?? 0)
+                ((effect.healBase ?? 0)
                 + (src.data.matk ?? 0) * (effect.magicMul ?? 0)
                 + (src.data.int ?? 0) * (effect.intMul ?? 0)
-                + (src.data.wis ?? 0) * (effect.wisMul ?? 0)
+                + (src.data.wis ?? 0) * (effect.wisMul ?? 0)) * healMul
             );
             const isFriendly = best._faction === src._faction;
             let killCount = 0;
             if (isFriendly) {
-                // 治疗：HP 上限钳制（玩家自愈 / 未来友方同口径）
                 if (best.data) {
                     const maxHp = best.data.maxHp || best.maxHp || 0;
                     best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + amount);
                 }
                 EffectManager.add(new FloatingTextEffect(best.x, best.y - 30, `+${amount}`, '#7aff9a'));
+                // 翠灵水晶：治疗后给目标添加圣光续疗
+                if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
+                    best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
+                }
+                // 净厄藤坠：对友方治疗时给目标加速
+                if (ce && ce.lightHasteStacks && typeof best.applyHaste === 'function') {
+                    for (let i = 0; i < ce.lightHasteStacks; i++) {
+                        best.applyHaste(ce.lightHasteDuration || 5000);
+                    }
+                }
                 if (best === src && window.GameUIManager && typeof window.GameUIManager.updateUI === 'function') {
                     window.GameUIManager.updateUI();
                 }
@@ -133,7 +160,6 @@ export class HolyLightSystem {
                 best.takeDamage(dmg, src, 'magic');
                 if (wasAlive && best.hp <= 0 && !best._summoned) killCount++;
             }
-            // 修炼：命中 +hit（5）/ 击杀 +kill（10）
             if (this._isPlayer()) {
                 SkillManager.addHolyLightExp(src, 1, killCount);
             }
@@ -146,6 +172,9 @@ export class HolyLightSystem {
                 dissolveRatio: effect.dissolveRatio || 0.28,
             }));
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
+            addChainSpellStack(src);
+            applyCastHaste(src);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
@@ -160,9 +189,18 @@ export class HolyLightSystem {
         if (!src || src._holyLightCooldown > 0) return;
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
-        const effect = skill.getEffect(skill.level);
+        const baseEffect = skill.getEffect(skill.level);
 
-        // 魔法消耗（工作流强制：魔法类必须配 mpCost）
+        // 消费链式强化并计算改造后数值
+        const chain = consumeChainSpellBonus(src);
+        const ce = getCurrentWeaponCraftEffects(src);
+        const effect = { ...baseEffect };
+        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
+        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+        effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
+        const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
+
+        // 魔法消耗
         if ((effect.mpCost || 0) > 0) {
             if (src.data.mp < effect.mpCost) {
                 EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
@@ -172,27 +210,35 @@ export class HolyLightSystem {
         }
 
         src._holyLightCooldown = (effect.cooldown || 10) * 1000;
-        // 播放施法动画，第 8 帧触发释放（音效/自愈/特效在释放时执行）
+        // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
-            // 释放音效
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
             }
-            // 自愈：同一回复公式
+            // 自愈
             const amount = Math.floor(
-                (effect.healBase ?? 0)
+                ((effect.healBase ?? 0)
                 + (src.data.matk ?? 0) * (effect.magicMul ?? 0)
                 + (src.data.int ?? 0) * (effect.intMul ?? 0)
-                + (src.data.wis ?? 0) * (effect.wisMul ?? 0)
+                + (src.data.wis ?? 0) * (effect.wisMul ?? 0)) * healMul
             );
             const maxHp = src.data.maxHp || 0;
             src.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, src.data.hp + amount);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, `+${amount}`, '#7aff9a'));
+            // 翠灵水晶：自愈也添加续疗
+            if (ce && ce.holyLightHoTStacks && typeof src.applyHolyRenewal === 'function') {
+                src.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
+            }
+            // 净厄藤坠：自愈也添加加速
+            if (ce && ce.lightHasteStacks && typeof src.applyHaste === 'function') {
+                for (let i = 0; i < ce.lightHasteStacks; i++) {
+                    src.applyHaste(ce.lightHasteDuration || 5000);
+                }
+            }
             if (window.GameUIManager && typeof window.GameUIManager.updateUI === 'function') {
                 window.GameUIManager.updateUI();
             }
-            // 修炼：命中 +hit（5）/ 击杀 0
             if (this._isPlayer()) {
                 SkillManager.addHolyLightExp(src, 1, 0);
             }
@@ -205,6 +251,9 @@ export class HolyLightSystem {
                 dissolveRatio: effect.dissolveRatio || 0.28,
             }));
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
+            addChainSpellStack(src);
+            applyCastHaste(src);
         };
         this._startPlayerCast(doRelease);
     }

@@ -204,6 +204,7 @@
 - `frameDurations`（可选，ms/帧数组，2026-07-27 新增）：逐帧时长覆盖均匀帧率——如攻击末帧定格更久（`"frameDurations": [83,83,83,83,83,83,83,300]`）。总时长=各帧之和，武器轨迹 Tween 经 `animDef.duration` 自动同步，武器 30 点轨迹无需联动改；调节奏只报比例即可（助手换算成 ms 写双份 JSON）。
 - `frameWeights`（可选，占比数组，推荐）：按权重分配**原总时长**——总时长锁定（帧数/帧率），只改各帧占比（如 `"frameWeights": [1,1,1,1,1,1,1,3]` 末帧占 3/10），武器轨迹/命中时序零影响。调节奏优先用它；frameDurations 仅用于需要改变总时长的场景。**开发面板预览已同源（2026-07-27）：面板自动读取 weights/durations 并按累计时长窗口定位角色帧，调节奏只改配置即可，无需手动同步面板**；面板 fps 输入框手动输入时仍按均匀帧率预览（调试覆盖语义保留）。**时长陷阱（2026-07-27）**：Phaser `Animation.duration` 只按 frameRate 派生、无视逐帧时长——凡取动画时长必须 `getPlayerAnimDurationMs` 优先（它认识 weights/durations 求和），否则贴图与武器轨迹/命中 Tween 脱节（"慢半拍"根因）。
 - 纹理键自动 = `player_<键名>`；BootScene 加载注册、开发面板预览**全部自动生效，无需改代码**。
+- **面板登记（2026-08-02 补充）**：新增姿态**不是完全自动**——除 JSON 加条目外，还必须在开发面板登记三处：`src/ui/panels/dev-tools.js` 的 `animOptions`（下拉显示名）+ `src/ui/dev-tool.js` 的 `ANIM_NAME`（状态名）与 `PANEL_ANIM_TO_CONFIG`（面板键→配置键映射）；新增武器同理登记 `weaponOptions` + `WEAPON_MAP`（贴图路径读 `weapon-texture-map.js` 加载清单同源）。漏登记 = 面板看不到该姿态/武器（V0.375 施法动画首漏，已补）。
 
 ### 5. 运行时姿态切换
 - **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
@@ -1547,6 +1548,45 @@ addTree(x, y, radius, ...) {
 - **双手枪械类（步枪/机枪）**：akm、pkm、qbz191、qjb201、shotgun、energy_lmg——以 AKM 实测值为模板同步。
 - **贴图尺寸布局基准（2026-07-26 定稿）**：新武器贴图入库一律按类归一——步枪类：内容宽 0.915 / 中心 (0.500, 0.543) / 画布 2048²（AKM 布局）；手枪类：内容宽 0.862 / 中心 (0.487, 0.524) / 画布 2048²（沙鹰布局）。归一后必须重测 muzzle 分数坐标写入配置。
 - 调参入口：`public/data/weapon-anim-config.json`（仅此单份）；开发面板调试→💾→助手合并的流程不变。
+- **基准统一（2026-08-02 修复，防再犯）**：
+  - **武器尺寸基准 = `WEAPON_ANIM.size`（126）**，禁止硬编码 105（2026-07-28 105→126 后 dev-tool 曾残留 7 处 105，导致面板预览小 30.6%、反复保存把 idleScale 越缩越小）。dev-tool 一律引用 `WEAPON_ANIM.size`。
+  - **面板武器键 ≠ 配置键**：dev-tool `WEAPON_MAP` 的键只是选择器（super90/saiga12k 都映射 `configKey: 'shotgun'`；staff→sword；其余同名），传给 `WeaponTransform` / 读 `WeaponAnimConfig` 必须走 `_configKeyOf(type)`（游戏侧 `wt = animConfigKey || weaponType`）。**漏映射 = 回退到 sword 配置，散弹枪等面板调整全部无效**。
+  - **面板姿态键 ≠ 游戏读取键**：持枪待机（gun_idle/gun_idle_pistol/gun_idle_dual）与施法（cast/staff_cast）在游戏里武器按 `animState='idle'` 读取（`cfg.idle` 子块优先），面板预览/保存必须走 `_stateKeyOf(anim)` 映射到 idle，否则保存写顶层而游戏读 idle 子块 → 不生效。
+- **保存落盘**：Electron 走 `saveWeaponConfig` IPC；纯浏览器 dev 走 vite `/__save-weapon-config` 中间件（`_persistWeaponConfig` fetch 回退，防"只复制剪贴板刷新丢失"）。
+
+## 行走逐帧武器轨迹（walkFrames，2026-08-02）
+
+让剑类武器握把在 walking 时跟随右手摆动：`WeaponAnimConfig[wt].walkFrames`（`type:'perFrame'`，帧数与 walk 动画帧区间一一对应，如 sword 21 帧）。
+- **生成**：`tools/` 像素分析脚本从 `assets/character/walk.png` 提取每帧右手（列直方图定位右侧手部凸起 → 质心），按显示缩放（长边 144/516）换算 local offset；以现有 walk holdOffset 实际位置为基准对齐（平均手位 + 恒定 shift 保持原位附近）；`rotation` = 最终旋转角（baseRotation + idleRotation，sword=90°+20°=110°），`scale` = walk idleScale。
+- **游戏侧**：`GameScene.syncWeapon` walk 状态读 `walkFrames`，按 `playerSprite.anims.getProgress()` 插值；朝向同攻击分支（位置镜像 + 旋转取反 + flipX）。
+- **面板**：`_perFrameCfgKey('walk')`→`walkFrames`，存在配置时 walk 页即逐帧编辑；保存白名单含 walkFrames。
+- 新近战武器要加：复制 sword.walkFrames 结构，用同款脚本重测该武器贴图的手位/握把偏移。
+
+## 手部分层（handLayer，2026-08-02）
+
+让 walk 等循环姿态的手部贴图叠在武器之上（视觉"手握剑"）：
+- `player-anim-config.json` 姿态条目加 `handLayer: { body, hand }`（两张同网格 sheet：身体层挖手 / 手层只留手）；合成严格无损（逐像素 alpha+颜色等于原图）。
+- BootScene 自动加载 body/hand 贴图并注册 `player_<key>_body` 动画；GameScene 创建 `playerHandSprite` 每帧跟随身体（位置/flipX/帧号），深度 = 身体 + 3（武器 +2），攻击/施法等一次性动作自动隐藏手层。
+- dev-tool 面板 walk 预览同分层（身体 → 武器 → 手）。
+- **生成方法（2026-08-02 实测定稿，踩过坑）**：
+  1. **先确认哪只手**：角色侧视朝右时，画面右侧 = 近镜头手（持剑手通常在这侧），画面左侧 = 另一只手。**先用 ASCII 渲染完整帧确认角色朝向和手在画面的左右侧，再定检测方向**——本作最终需求是"另一只手"（画面左侧 x≈175~259），不要默认截"最右凸起"。
+  2. **检测带必须收紧为手臂/手高度带 y∈[180,280]**：不要用 y∈[160,330]——帧 4~9 手收进身体后"最右凸起"会退化到大腿，质心抓到腿、矩形把腿部像素切进 hand 层（实机表现"截到腿"）。
+  3. **拳头矩形半宽 34/半高 38，y 上限硬性 clamp ≤300**（大腿从 y≈300 开始）；腿区（y>300）逐帧断言必须全 0。
+  4. **合成无损验证**：逐像素 body+hand 的 alpha/颜色 = 原图（0 不匹配），每帧 bbox 必须在目标手区域。
+  5. **恢复方法**：删掉 `handLayer` 配置即回退原贴图（代码已判空兼容），无需改代码。
+- **坑：改播放键会断武器轨迹**——walk 播 body 动画后，`syncWeapon` walkFrames 分支判断 `curAnim.key === playerTextureKey('walk')` 匹配不上（实际 key 是 `player_walk_body`），walkProgress 恒 0 → 武器卡第一帧。凡按动画 key 做分支判断处都要兼容 `player_<key>_body`。
+- 新姿态要加手层：复制 walk 的脚本流程（确认左右手 → 收紧检测带 → 拳头矩形 clamp → 合成验证），配置加 handLayer 即可。
+
+## 复用武器动画独立调参（staff 法杖，2026-08-02 实测定稿）
+
+新武器复用剑配置（`animConfigKey: 'sword'`）时，游戏侧 `wt='sword'` 全走剑数据——要独立握持/轨迹必须**在 sword 块下加独立子块 + 按武器类型分支**，不能直接改 `sword.idle/walk`（会连带影响剑）：
+- **walk 逐帧**：`sword.staffWalkFrames`（`type:'perFrame'`，21 帧与 walk 动画对应）；`GameScene.syncWeapon` 按 `currentItem.weaponType === 'staff'` 读 `staffWalkFrames`，dev-tool 面板 `_perFrameCfgKey('walk')` 对 staff 返回 `staffWalkFrames`。
+- **idle/walk/running 静态**：`sword.staffIdle { holdOffsetX/Y, idleRotation, idleScale }`；`syncWeapon` 对 staff 传 overrides 覆盖，面板 `_staffStateOverrides()` 三处调用点统一。
+- **中段握持 = 贴图中心直接对准手**：法杖中段≈贴图中心，walkFrames/heldOffset 的 local 位置应**直接用手部轨迹**（`(手像素−贴图中心)×显示缩放`），不要从剑轨迹平移（剑柄在贴图中心下方 55px，平移法杖会整体错位）。
+- **换手正确姿势：镜像已验证贴手的手轨迹，不要重新检测另一只手**：
+  - 直接检测"另一只手"会因检测带/部位不同抓到手臂-胳膊不同段（实机表现"从手-手臂-胳膊垂直移动"，完全违和）；
+  - 正确做法：把已贴手的轨迹**水平镜像**（`offsetX` 取反、`offsetY` 保持稳定 2~3.8）——保持"Y 稳定、X 水平摆动"的贴手特性，只是换到另一侧。
+- **手位检测必须定位拳头（手臂末端），不是整条手臂质心**：idle 用整臂质心会偏上（法杖浮在手上面）；拳头 = 手臂最下端加宽块（如 idle y≈265~295 区域），idle 拳头 local=(-11.4,5.2) 与 walk 左侧手轨迹一致。
 - **枪口点自动烘焙（2026-07-26 定稿，优先于手工配置）**：BootScene 对每把武器贴图扫描"最大连通体（8 邻域、4x 降采样）最右端内容点"（含 1px 细枪管尖）写入 `window.__weaponMuzzlePoints`；`_getMuzzleWorldPosition` 优先级 `muzzle.manual` > 自动烘焙 > 配置 muzzle > 右缘中心。子弹/枪口火焰统一从贴图最前端出生。**教训：别拿"右缘估计"当枪口——Super90 手工估点 (0.96,0.35) 把 1px 发丝杂线当枪管，自动烘焙的 (0.908,0.526) 才是真管口（放大裁切证实）。**
 - 玩家碰撞基准（2026-07-26）：`PLAYER_DEFAULTS.physics`——受击矩形 40×60 + colliderOffset (-5,-5)（左拉 10、上移 5）；胶囊体随 collider 偏移。
 

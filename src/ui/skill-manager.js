@@ -191,6 +191,10 @@ export const SkillManager = {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
             const totalAmount = effect.healBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul) + Math.floor((d.wis || 0) * effect.wisMul);
             effectText = `圣光${totalAmount}（敌伤/友疗）  僵尸×${effect.zombieDamageMul || 2}  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'iceWall') {
+            const d = Game.player ? Game.player.data : { int: 10, wis: 10 };
+            const totalDamage = effect.damageBase + Math.floor((d.int || 0) * effect.damageIntMul) + Math.floor((d.wis || 0) * effect.damageWisMul);
+            effectText = `伤害${totalDamage}  冰墙段数${effect.segmentCount}  持续${effect.duration}秒  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         }
         // 使用特效队列顺序播放
         LevelUpEffectQueue.add({
@@ -303,6 +307,15 @@ export const SkillManager = {
         if (killCount >= 2) gained += rw.multiKill || 0;
         this._addSkillExp(player, sk, gained);
     },
+    addIceWallExp(player, hitCount, killCount) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.iceWall;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        if (hitCount >= 2) gained += rw.multiHit || 0;
+        this._addSkillExp(player, sk, gained);
+    },
     addLightningStrikeExp(player, hitCount, killCount, multiHit) {
         if (!player || !player.skills) return;
         const sk = player.skills.lightningStrike;
@@ -400,11 +413,11 @@ export const SkillManager = {
         const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
         } else if (hasThrustSkill && player.skills.dashAttackThrust) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
         } else {
-            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball];
+            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
         }
         // 筛选
         if (this._currentFilter !== 'all') {
@@ -821,6 +834,44 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
             }
             html += `</div>`;
+        } else if (skill.id === 'iceWall') {
+            const d = Game.player ? Game.player.data : { int: 10, wis: 10 };
+            const baseDamage = effect.damageBase;
+            const intDamage = Math.floor((d.int || 0) * effect.damageIntMul);
+            const wisDamage = Math.floor((d.wis || 0) * effect.damageWisMul);
+            const totalDamage = baseDamage + intDamage + wisDamage;
+            html += `<div class="sd-section"><h4>🧮 伤害公式（物理）</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础伤害</span><span class="sd-stat-val pos">${baseDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${intDamage} (智力×${effect.damageIntMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">精神加成</span><span class="sd-stat-val pos">${wisDamage} (精神×${effect.damageWisMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前总伤害</span><span class="sd-stat-val pos">${totalDamage}</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法等级</span><span class="sd-stat-val pos">中级魔法（需装备法杖）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冰墙段数</span><span class="sd-stat-val pos">${effect.segmentCount}（每级两端各+1段）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">墙体朝向</span><span class="sd-stat-val pos">垂直于施法方向，阻挡移动与投射物</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">生成延迟</span><span class="sd-stat-val pos">${((effect.spawnDelayMs || 0) / 1000).toFixed(1)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">命中击退</span><span class="sd-stat-val pos">${effect.hitKnockback}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">寒冷光环</span><span class="sd-stat-val pos">${effect.chillRadius}px 范围每${((effect.chillIntervalMs || 1000) / 1000).toFixed(0)}秒 ${effect.chillStacks}层</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">持续时间</span><span class="sd-stat-val pos">${effect.duration}秒（每级+0.5秒）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">最大射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextBase = nextEffect.damageBase;
+                const nextInt = Math.floor((d.int || 0) * nextEffect.damageIntMul);
+                const nextWis = Math.floor((d.wis || 0) * nextEffect.damageWisMul);
+                const nextTotal = nextBase + nextInt + nextWis;
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级基础伤害</span><span class="sd-stat-val pos">${nextBase}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级智力加成</span><span class="sd-stat-val pos">${nextInt} (智力×${nextEffect.damageIntMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级精神加成</span><span class="sd-stat-val pos">${nextWis} (精神×${nextEffect.damageWisMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级总伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冰墙段数</span><span class="sd-stat-val pos">${nextEffect.segmentCount}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级持续时间</span><span class="sd-stat-val pos">${nextEffect.duration}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
+            }
+            html += `</div>`;
         }
         if (!nextEffect) {
             html += `<div class="sd-stat-row" style="margin-top:8px;color:#7a9a6a;">已达到最高等级</div>`;
@@ -913,6 +964,11 @@ export const SkillManager = {
             html += `<p>• 圣光命中一个目标增加 5 点经验</p>`;
             html += `<p>• 击杀目标增加 10 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：拖入快捷栏后按 Q/E 释放（Alt+快捷键直接对自己释放），敌方=伤害（僵尸翻倍）、友方=回复生命</p>`;
+        } else if (skill.id === 'iceWall') {
+            html += `<p>• 冰墙命中一个目标增加 3 点经验</p>`;
+            html += `<p>• 同时命中 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 冰墙击杀一个目标增加 10 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">中级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，0.5秒延迟后在鼠标指向处生成一列垂直于施法方向的冰墙，阻挡移动与投射物，落点单位受物理伤害并被击退</p>`;
         } else if (skill.id === 'shieldDefense') {
             html += `<p>• 防御敌人近战攻击加 2 点经验</p>`;
             html += `<p>• 防御敌人远程攻击加 5 点经验</p>`;

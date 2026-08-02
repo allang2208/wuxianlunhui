@@ -107,8 +107,8 @@ export class TimeAgentShield extends Enemy {
         if (this._bashCd > 0) this._bashCd -= dt;
         if (this._defendCd > 0) this._defendCd -= dt;
 
-        // 眩晕：暂停一切决策与动作推进（恢复后继续）
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) return;
+        // 眩晕/冻结：暂停一切决策与动作推进（恢复后继续）
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) return;
 
         // 入侵特工（时空特工追击机制）：与全场敌对，每帧锁定最近的非 agent 单位为目标（同突击）
         if (this._invasionAgent) {

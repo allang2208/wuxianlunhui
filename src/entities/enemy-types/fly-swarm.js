@@ -68,7 +68,7 @@ export class FlySwarm extends Enemy {
         // 基类链统一推进状态效果（每帧一次）；
         // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
         super.update(dt, entities);
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this.vx = 0;
             this.vy = 0;
             this.isMoving = false;

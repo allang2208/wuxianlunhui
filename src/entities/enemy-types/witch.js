@@ -91,7 +91,7 @@ export class Witch extends Enemy {
         if (this._venomCd > 0) this._venomCd -= dt;
 
         // 眩晕时中断攻击动作
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackType = null;
             this._attackTimer = 0;
             this._attackAnimTimer = 0;

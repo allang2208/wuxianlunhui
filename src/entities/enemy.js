@@ -509,7 +509,7 @@ import { loadImage } from '../utils/image-loader.js';
             /** 预警计时推进（基类 update 每帧调用）：死亡/眩晕立即取消，计时归零后执行攻击 */
             _updateAttackTelegraph(dt) {
                 if (!(this._attackTelegraphTimer > 0)) return;
-                if (this._isDead || !this.active || (this.hasStatusEffect && this.hasStatusEffect('stun'))) {
+                if (this._isDead || !this.active || (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')))) {
                     this._clearAttackTelegraph();
                     return;
                 }
@@ -580,8 +580,8 @@ import { loadImage } from '../utils/image-loader.js';
                         this._dashStunned = false;
                     }
                 }
-                // 眩晕状态（通过状态栏系统检测）：无法移动、无法攻击
-                if (this.hasStatusEffect('stun')) {
+                // 眩晕/冻结状态（通过状态栏系统检测）：无法移动、无法攻击（冻结效果等同于眩晕）
+                if (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')) {
                     this.vx = 0; this.vy = 0;
                     this.isMoving = false;
                     return;
