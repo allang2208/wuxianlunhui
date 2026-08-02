@@ -8,6 +8,12 @@
 - 测试结果
 - 已知问题
 
+### 对话：竞技场（含精英战斗事件）最后一波普通怪固定 10 只（2026-08-02）
+
+- `src/world/zombie-dungeon.js`：`ZombieDungeonCombat` 新增 `_arenaMode` 标记（`forceArenaWaves` 置位，仅竞技场路径）；`nextWaveMonsterClasses` 尾波（`_currentWave === _totalWaves`）普通怪补足/裁减到恰好 `arenaLastWaveNormals` 只——精英/领主/强制怪（如铠甲骑士压轴）不动，其余波次与非竞技场路径零变化；补足时沿用编组规则（已抽中矿石蜘蛛则补矿工僵尸）。
+- `src/config/dungeon-config.js`：`DEFAULTS.zombieDungeon` 新增 `arenaLastWaveNormals: 10`（各地牢 JSON 可覆盖）。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
 ### 对话：障碍物组合同房间去重 + 组合间最小间隔（系数 0.5 定案）（2026-08-02）
 
 - `src/world/obstacle-spawn-system.js` `_spawnPrefabCompositions` 新增两条规则：
