@@ -1,6 +1,6 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { WallSystem } from '../../world/wall-system.js';
+import { summonMonster } from './_shared/summon-helper.js';
 
 /**
  * 矿洞（次级，其他 family）——站桩生成器（参考集合体站桩锁死）
@@ -40,8 +40,6 @@ export class MineCave extends Enemy {
         this._lanternSpawnTimer = this._lanternSpawnInterval;
         this._spawnFactory = config.spawnFactory || null;
         this._lanternSpawnFactory = config.lanternSpawnFactory || null;
-        this._spawnSeq = 0;
-        this._lanternSpawnSeq = 0;
 
         // 绿烟粒子（首次 update 惰性创建）
         this._smokeEmitter = null;
@@ -82,41 +80,29 @@ export class MineCave extends Enemy {
     }
 
     _spawnMiner() {
-        if (typeof this._spawnFactory !== 'function') return;
-        const game = typeof window !== 'undefined' ? window.Game : null;
-        if (!game || !game.entities) return;
-        const miner = this._spawnFactory(this.x + this._spawnForwardX * this._spawnDirX, this.y);
-        if (!miner) return;
-        // 落点墙壁解析（防卡墙，与召唤物同口径）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const r = WallSystem.resolve(this.x, this.y, miner.x, miner.y, miner.groundRadius || 10);
-            miner.x = r.x;
-            miner.y = r.y;
-        }
-        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数/掉落物）
-        miner._summoned = true;
-        const key = `mineCave_miner_${Date.now()}_${this._spawnSeq++}_${Math.floor(Math.random() * 1000)}`;
-        game.entities.set(key, miner);
-        this._playSpawnFx(miner.x, miner.y);
+        summonMonster(this, {
+            factory: this._spawnFactory,
+            count: 1,
+            mode: 'forward',
+            radius: 15,
+            forwardX: this._spawnForwardX,
+            forwardDirX: this._spawnDirX,
+            tag: 'mineCave_miner',
+            playFx: true,
+        });
     }
 
     _spawnLanternMiner() {
-        if (typeof this._lanternSpawnFactory !== 'function') return;
-        const game = typeof window !== 'undefined' ? window.Game : null;
-        if (!game || !game.entities) return;
-        const lantern = this._lanternSpawnFactory(this.x + this._spawnForwardX * this._spawnDirX, this.y);
-        if (!lantern) return;
-        // 落点墙壁解析（防卡墙，与召唤物同口径）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const r = WallSystem.resolve(this.x, this.y, lantern.x, lantern.y, lantern.groundRadius || 10);
-            lantern.x = r.x;
-            lantern.y = r.y;
-        }
-        // 唯一键（防 Map 覆盖）+ 召唤物标签（击杀无金币/经验/技能计数/掉落物）
-        lantern._summoned = true;
-        const key = `mineCave_lantern_${Date.now()}_${this._lanternSpawnSeq++}_${Math.floor(Math.random() * 1000)}`;
-        game.entities.set(key, lantern);
-        this._playSpawnFx(lantern.x, lantern.y);
+        summonMonster(this, {
+            factory: this._lanternSpawnFactory,
+            count: 1,
+            mode: 'forward',
+            radius: 15,
+            forwardX: this._spawnForwardX,
+            forwardDirX: this._spawnDirX,
+            tag: 'mineCave_lantern',
+            playFx: true,
+        });
     }
 
     /** 召唤物生成点黑色粒子（地牢刷怪同款 playDungeonSpawnParticles） */

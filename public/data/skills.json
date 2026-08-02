@@ -286,7 +286,7 @@
       "id": "shotgunMastery",
       "name": "散弹枪精通",
       "icon": "🔫",
-      "iconImage": "assets/icons/S12k-icon.png",
+      "iconImage": "assets/skills/散弹枪精通.png",
       "description": "精通散弹枪的近距离爆发，每次射击都能造成更强的击退",
       "maxLevel": 20,
       "tags": [
@@ -480,8 +480,10 @@
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
-        "hit": 3,
-        "kill": 10
+        "hit": 4,
+        "kill": 12,
+        "multiHit": 10,
+        "multiKill": 10
       }
     },
     "shieldDefense": {
@@ -508,9 +510,9 @@
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
-        "parry": 5,
-        "meleeBlock": 1,
-        "rangedBlock": 3
+        "parry": 10,
+        "meleeBlock": 2,
+        "rangedBlock": 5
       }
     },
     "fireball": {
@@ -546,8 +548,10 @@
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
-        "hit": 3,
-        "kill": 10
+        "hit": 4,
+        "kill": 12,
+        "multiHit": 10,
+        "multiKill": 10
       }
     },
     "nightFlame": {
@@ -592,6 +596,101 @@
         "kill": 10
       }
     },
+    "lightningStrike": {
+      "id": "lightningStrike",
+      "name": "闪电",
+      "icon": "⚡",
+      "iconImage": "assets/skills/闪电.png",
+      "description": "释放后锁定鼠标指向处 200px 内最近的敌方单位，蓝紫色闪电连接造成魔法伤害，闪电会向目标周围传导，命中目标被击退并眩晕；瞄准处无目标或超出施法距离时释放失败",
+      "sounds": {
+        "cast": [
+          "assets/sounds/skills/lightning-1.mp3",
+          "assets/sounds/skills/lightning-2.mp3"
+        ]
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": 12,
+        "mpCost": 30,
+        "aimRadius": 200,
+        "maxRange": 600,
+        "damageBase": "20 + level * 10",
+        "magicMul": "1.15 + level * 0.25",
+        "intMul": "1 + level * 0.25",
+        "stunMs": "750 + level * 20",
+        "knockback": "50 + level * 5",
+        "chainRange": 200,
+        "chainTargets": "1 + Math.floor((level - 1) / 5)",
+        "chainDecay": 0.1,
+        "duration": 0.5,
+        "fadeMs": 250,
+        "segments": 10,
+        "jitter": 0.09
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 4,
+        "kill": 10,
+        "multiHit": 10,
+        "multiKill": 10
+      }
+    },
+    "holyLight": {
+      "id": "holyLight",
+      "name": "圣光",
+      "icon": "✨",
+      "iconImage": "assets/skills/圣光.png",
+      "selfCast": true,
+      "description": "在鼠标指向处召唤金色圣光从天而降：对敌方造成魔法伤害（僵尸类伤害翻倍），对友方回复生命；金色光粒向上飘散，持续 2 秒",
+      "sounds": {
+        "cast": [
+          "assets/sounds/skills/holy-light-1.mp3"
+        ]
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": "10 - Math.floor((level - 1) / 5)",
+        "mpCost": 30,
+        "aimRadius": 200,
+        "maxRange": 600,
+        "duration": 2,
+        "fadeMs": 400,
+        "beamTopWidth": 60,
+        "beamBottomWidth": 110,
+        "beamHeight": 1400,
+        "dissolveRatio": 0.28,
+        "healBase": "5 + level * 5",
+        "magicMul": "0.25 + level * 0.25",
+        "intMul": "1 + level * 0.5",
+        "wisMul": "1 + level * 0.5",
+        "zombieDamageMul": 2
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 5,
+        "kill": 10
+      }
+    },
     "droneSkill": {
       "id": "droneSkill",
       "name": "无人机",
@@ -620,7 +719,7 @@
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
-        "kill": 10
+        "kill": 15
       }
     }
   }

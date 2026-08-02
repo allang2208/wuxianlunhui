@@ -6,6 +6,7 @@ import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { hostilesOf } from './_shared/enemy-utils.js';
+import { summonMonster } from './_shared/summon-helper.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireGroundShockwave } from '../../effects/combat-fx.js';
 
 /**
@@ -417,30 +418,19 @@ export class AmalgamZombie extends Enemy {
         const count = cfg.count ?? 2;
         const offsetY = cfg.offsetY ?? 150;
         const spreadX = cfg.spreadX ?? 40;
+        // 在下方 offsetY 处水平均匀分布 count 只僵尸
         for (let i = 0; i < count; i++) {
-            const rawX = this.x + (i - (count - 1) / 2) * spreadX * 2;
-            const rawY = this.y + offsetY;
-            let sx = rawX, sy = rawY;
-            try {
-                // 落点被墙阻挡时，沿螺旋外推到最近合法位置
-                if (WallSystem && typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(rawX, rawY, 15)) {
-                    const r = WallSystem.findSafeSpawn(rawX, rawY, 15);
-                    if (r && Number.isFinite(r.x) && Number.isFinite(r.y)) { sx = r.x; sy = r.y; }
-                }
-            } catch (_e) { /* 墙体校验失败时使用原始位置 */ }
-            const z = this._createBasicZombie(sx, sy);
-            if (z) {
-                // 召唤物统一标签：不掉金币/经验/技能修炼值（不影响地牢原有僵尸）
-                z._summoned = true;
-                // 召唤点脚下生成地牢刷怪同款黑色粒子效果
-                const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-                if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
-                    scene.playDungeonSpawnParticles(sx, sy);
-                }
-            }
-            if (z && typeof window !== 'undefined' && window.Game && window.Game.entities) {
-                window.Game.entities.set(`amalgam_zombie_${Date.now()}_${i}_${Math.floor(Math.random() * 10000)}`, z);
-            }
+            const offsetX = (i - (count - 1) / 2) * spreadX * 2;
+            summonMonster(this, {
+                factory: this._createBasicZombie,
+                count: 1,
+                mode: 'fixed',
+                radius: 15,
+                offsetX,
+                offsetY,
+                tag: 'amalgam_zombie',
+                playFx: true,
+            });
         }
     }
 

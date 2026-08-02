@@ -94,7 +94,7 @@ const WallSystem = {
     getWallStyle() {
         return ISO_WALL_STYLES[this._wallStyleKey] || ISO_WALL_STYLES.default;
     },
-    init(ww, wh) {
+    init(_ww, _wh) {
         this.walls = [];
         this.isoVisuals = [];
         this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）

@@ -12,7 +12,6 @@ import { UIState } from '../ui-state.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { isTwoHanded } from '../../config/gun-ammo.js';
 import { getElement, queryElement, queryAllElements } from '../../utils/dom-utils.js';
 
 export function createDragDropManager(EquipManager) {

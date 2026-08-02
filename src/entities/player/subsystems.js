@@ -3,6 +3,7 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import { WEAPON_ANIM } from '../../config/math-utils.js';
 
 import { Renderer } from '../../world/renderer.js';
+import { WallSystem } from '../../world/wall-system.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
@@ -312,6 +313,19 @@ respawn() {
                 this._fireballTimer = 0;
                 this._fireballCooldown = 0;
                 this._fireball = null;
+                // 清除闪电状态
+                this._lightningStrikeCooldown = 0;
+                // 清除圣光状态
+                this._holyLightCooldown = 0;
+                // 清除施法状态（死亡/复活复位）
+                this._castState = 'idle';
+                this._castReleaseDone = true;
+                this._castOnRelease = null;
+                this._castStep = 0;
+                this._castOriginX = null;
+                this._castOriginY = null;
+                this._castRecoverOriginX = null;
+                this._castRecoverOriginY = null;
                 // 清除死亡粒子效果
                 if (this._poisonEffect) this._poisonEffect.reset();
                 // 重置所有弹药状态
@@ -465,6 +479,29 @@ _initSkills() {
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
+                    // 兜底：确保闪电技能始终存在
+                    if (!skills.lightningStrike) {
+                        skills.lightningStrike = {
+                            id: 'lightningStrike', name: '闪电', icon: '⚡', iconImage: 'assets/skills/闪电.png',
+                            description: '释放后锁定鼠标指向处最近的敌方单位，蓝紫色闪电连接造成魔法伤害，闪电会向目标周围 200px 内传导，命中目标被击退并眩晕',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { damageBase: 20 + level * 10, magicMul: 1.15 + level * 0.25, intMul: 1 + level * 0.25, cooldown: 12, mpCost: 30, aimRadius: 200, maxRange: 600, stunMs: 750 + level * 20, knockback: 50 + level * 5, chainRange: 200, chainTargets: 1 + Math.floor((level - 1) / 5), chainDecay: 0.1, duration: 0.5, fadeMs: 250, segments: 10, jitter: 0.09 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保圣光技能始终存在
+                    if (!skills.holyLight) {
+                        skills.holyLight = {
+                            id: 'holyLight', name: '圣光', icon: '✨', iconImage: 'assets/skills/圣光.png',
+                            selfCast: true,
+                            description: '在鼠标指向处召唤金色圣光从天而降：对敌方造成魔法伤害（僵尸类伤害翻倍），对友方回复生命；金色光粒向上飘散，持续 2 秒',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 10 - Math.floor((level - 1) / 5), mpCost: 30, aimRadius: 200, maxRange: 600, duration: 2, fadeMs: 400, beamTopWidth: 60, beamBottomWidth: 110, beamHeight: 1400, dissolveRatio: 0.28, healBase: 5 + level * 5, magicMul: 0.25 + level * 0.25, intMul: 1 + level * 0.5, wisMul: 1 + level * 0.5, zombieDamageMul: 2 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
                     // 兜底：确保无人机技能始终存在（即使JSON中没有定义）
                     if (!skills.droneSkill) {
                         skills.droneSkill = {
@@ -572,7 +609,7 @@ _initSkills() {
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     shotgunMastery: {
-                        id: 'shotgunMastery', name: '散弹枪精通', icon: '🔫', iconImage: 'assets/icons/S12k-icon.png',
+                        id: 'shotgunMastery', name: '散弹枪精通', icon: '🔫', iconImage: 'assets/skills/散弹枪精通.png',
                         description: '精通散弹枪的毁灭性火力，每一发弹丸都更具威力',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '散弹枪', type: 'weapon' }, { name: '远程', type: 'ranged' }, { name: '被动', type: 'passive' }],
@@ -772,7 +809,7 @@ addAttribute(attr) {
                 return true;
             },
 
-triggerDodge(moveInput) {
+    triggerDodge(moveInput) {
                 if (this._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止闪避
                 if (this.shieldSystem && this.shieldSystem.defending) return; // 防御状态禁止闪避
                 if (this.hasStatusEffect && this.hasStatusEffect('bind')) return; // 束缚状态禁止闪避
@@ -1116,9 +1153,44 @@ _initAmmoForSlot(slot) {
                     // 改造弹夹后容量减小，同步当前弹药不超过最大值
                     if (this._ammoState[slot].current > maxAmmo) {
                         this._ammoState[slot].current = maxAmmo;
-                    }
                 }
-            },
+            }
+        },
+        /** 后摇打断：空格翻滚取消施法恢复动画（GameScene.cancelPlayerCast 同步清监听） */
+        _interruptCastRecover() {
+            if (this._castState !== 'recover') return;
+            this._castState = 'idle';
+            this._castReleaseDone = true;
+            this._castOnRelease = null;
+            const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+            if (scene && typeof scene.cancelPlayerCast === 'function') {
+                scene.cancelPlayerCast();
+            }
+        },
+        /** 施法跨步：前摇沿起手朝向推进到 +30px，后摇退回原位（每帧调用，WallSystem 解析防穿墙） */
+        _updateCastStep() {
+            if (!this._castState || this._castState === 'idle') return;
+            const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+            if (this._castState === 'casting') {
+                const t = Math.min(1, (now - (this._castStartTime || now)) / (this._castForwardMs || 500));
+                const targetX = (this._castOriginX ?? this.x) + (this._castStepDirX || 0) * (this._castStepMax || 30) * t;
+                const targetY = (this._castOriginY ?? this.y) + (this._castStepDirY || 0) * (this._castStepMax || 30) * t;
+                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
+                this.x = resolved.x;
+                this.y = resolved.y;
+            } else if (this._castState === 'recover') {
+                const t = Math.min(1, (now - (this._castRecoverStartTime || now)) / (this._castRecoverMs || 250));
+                const ox = this._castOriginX ?? this._castRecoverOriginX ?? this.x;
+                const oy = this._castOriginY ?? this._castRecoverOriginY ?? this.y;
+                const rx = this._castRecoverOriginX ?? this.x;
+                const ry = this._castRecoverOriginY ?? this.y;
+                const targetX = ox + (rx - ox) * (1 - t);
+                const targetY = oy + (ry - oy) * (1 - t);
+                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
+                this.x = resolved.x;
+                this.y = resolved.y;
+            }
+        },
 
 _getAmmoState(slot) {
                 return this._ammoState[slot] || null;
@@ -2274,6 +2346,14 @@ _updateSubsystems(dt, entities) {
                 if (this._fireballCooldown > 0) {
                     this._fireballCooldown -= dt;
                     if (this._fireballCooldown < 0) this._fireballCooldown = 0;
+                }
+                // ===== 闪电技能更新（冷却由系统自管） =====
+                if (this.lightningStrikeSystem) {
+                    this.lightningStrikeSystem.update(dt);
+                }
+                // ===== 圣光技能更新（冷却由系统自管） =====
+                if (this.holyLightSystem) {
+                    this.holyLightSystem.update(dt);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

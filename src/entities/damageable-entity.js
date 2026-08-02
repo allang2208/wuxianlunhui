@@ -20,10 +20,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
         /**
          * 根据配置计算怪物金币掉落
          * @param {number} level - 怪物等级
-         * @param {Object} source - 击杀来源（用于检测祭品效果）
+         * @param {Object} _source - 击杀来源（保留参数签名，当前未消费）
          * @returns {number} 金币数量
          */
-        function getEnemyGoldDrop(level, source) {
+        function getEnemyGoldDrop(level, _source) {
             const cfg = COMBAT_FORMULAS.enemy?.goldDrop || {};
             const base = cfg.base ?? 0;
             const levelMul = cfg.levelMultiplier ?? 4;
@@ -578,7 +578,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     }
                 }
             }
-            applyCripple(duration) {
+            applyCripple(duration, opts = {}) {
                 if (this.hasStatusEffect('statusImmune')) return;
                 // 状态栏显示
                 if (StatusBar) {
@@ -586,7 +586,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
                 // 内部状态数组（供 hasStatusEffect 查询）
                 this.addStatusEffect('slow', duration, { name: '致残', icon: '🦴', color: '#8a8a7a' });
-                if (EffectManager) {
+                if (!opts.silent && EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🦴 致残！', '#8a8a7a'));
                 }
             }

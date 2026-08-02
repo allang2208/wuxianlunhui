@@ -21,6 +21,8 @@
     "colorStart": "#7ee787",
     "colorEnd": "#c0392b",
     "left": 20,
+    "topCss": "calc(20vh - 33px)",
+    "comment_position": "2026-08-02：几率标签移到原小鼠商店按钮位置（左上，topCss 优先；bottomCss 保留作回退）",
     "bottomCss": "calc(18.84vh + 85px)",
     "comment_nodeMarker": "路线选择界面入侵者节点标记：color 颜色 / radius 半径 / label 文字（空串不画）/ pulse 呼吸闪烁",
     "nodeMarker": { "color": "#ff2222", "radius": 10, "label": "特工", "pulse": true }

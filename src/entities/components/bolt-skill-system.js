@@ -59,7 +59,12 @@ export class BoltSkillSystem {
         if (this._spikes().some(s => s.flyActive)) return;
         // 已有悬浮投射物 → 发射
         if (this.source[this.kind.fields.active] && this._spikes().some(s => s.active && !s.launched)) {
-            this._launchAll();
+            // 玩家二段发射走施法动画（空手施法第 8 帧真正发射）；敌人直接发射
+            if (this._isPlayer()) {
+                this._startPlayerCast(() => this._launchAll());
+            } else {
+                this._launchAll();
+            }
             return;
         }
         // 冷却检查
@@ -93,6 +98,16 @@ export class BoltSkillSystem {
             src[this.kind.img.field] = loadImage(this.kind.img.src);
         }
         EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, this.kind.spawnText(effect), this.kind.mpShortageColor));
+    }
+
+    /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease（魔法实际结算/发射） */
+    _startPlayerCast(onRelease) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (scene && typeof scene.startPlayerCast === 'function') {
+            scene.startPlayerCast({ onRelease });
+        } else if (onRelease) {
+            onRelease();
+        }
     }
 
     _launchAll() {

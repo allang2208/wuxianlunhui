@@ -1,9 +1,9 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { WallSystem } from '../../world/wall-system.js';
 import { playSoundFrom } from './_shared/enemy-utils.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
+import { summonMonster } from './_shared/summon-helper.js';
 import { throwVenomBottle, updateVenomZones, destroyVenomZones } from './_shared/venom-bottle.js';
 
 /**
@@ -151,49 +151,26 @@ export class Witch extends Enemy {
     // ========== 伴生煮锅 ==========
 
     /**
-     * 在巫婆四周找一个可行走的落点生成煮锅（8 向 × 递近距离，墓碑召唤同款选点）；
+     * 在巫婆四周找一个可行走的落点生成煮锅（统一走 summon-helper）；
      * 全部失败则放弃（不影响巫婆本体），保证煮锅不卡墙
      */
     _spawnCompanionCauldron() {
-        if (typeof this._createCauldron !== 'function') return;
-        const game = typeof window !== 'undefined' ? window.Game : null;
-        if (!game || !game.entities) return;
-
         const cauldronCfg = enemyConfigData.cauldron || {};
-        const probeRadius = cauldronCfg.collisionRadius || 70;
-        let sx = 0, sy = 0, found = false;
-        outer:
-        for (const dist of [120, 170, 220, 280]) {
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const tx = this.x + Math.cos(angle) * dist;
-                const ty = this.y + Math.sin(angle) * dist;
-                if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                    && !WallSystem.canMoveTo(tx, ty, probeRadius)) continue;
-                sx = tx; sy = ty; found = true;
-                break outer;
-            }
-        }
-        if (!found) return; // 无可行走落点，放弃伴生（防御性）
-
-        const cauldron = this._createCauldron(sx, sy);
-        if (!cauldron) return;
-        // 落点墙壁解析（防卡墙，与召唤物同口径）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const r = WallSystem.resolve(this.x, this.y, cauldron.x, cauldron.y, cauldron.groundRadius || probeRadius);
-            cauldron.x = r.x;
-            cauldron.y = r.y;
-            // 站桩锚点跟随解析后的落点
-            cauldron._anchorX = r.x;
-            cauldron._anchorY = r.y;
-        }
-        // 唯一键（防 Map 覆盖）
-        const key = `cauldron_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-        game.entities.set(key, cauldron);
-        // 生成点粒子（地牢刷怪同款）
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        if (scene && typeof scene.playDungeonSpawnParticles === 'function') {
-            scene.playDungeonSpawnParticles(cauldron.x, cauldron.y);
+        const created = summonMonster(this, {
+            factory: this._createCauldron,
+            count: 1,
+            mode: 'radial',
+            radius: cauldronCfg.collisionRadius || 70,
+            distance: 120,
+            tag: 'cauldron',
+            playFx: true,
+            setAnchor: true,
+        });
+        // 煮锅自身构造里已调用 applyStatusImmune，无需额外标记
+        if (created.length > 0) {
+            const cauldron = created[0];
+            cauldron._anchorX = cauldron.x;
+            cauldron._anchorY = cauldron.y;
         }
     }
 

@@ -1,8 +1,6 @@
 import { Game } from '../game.js';
-import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EquipManager } from './equip-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
-import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { GAME_CONFIG } from '../config/game-config.js';
@@ -333,9 +331,15 @@ export const QuickBar = {
             e.dataTransfer.effectAllowed = 'move';
             slot.classList.add('dragging');
         };
-        slot.ondragend = () => {
+        slot.ondragend = (e) => {
             slot.classList.remove('dragging');
             queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
+            // 拖出快捷栏范围（未落在任何槽位）：取消绑定（与消耗品拖出口径一致，2026-08-02 补齐）
+            if (e.dataTransfer && e.dataTransfer.dropEffect === 'none') {
+                delete this.skillAssignments[slot.dataset.keyCode];
+                slot.classList.add('empty');
+                slot.innerHTML = `<span style="font-size:20px">${slot.config.icon}</span><span class="key-hint">${slot.dataset.key}</span>`;
+            }
         };
     },
     _updateItemSlot(slot, item) {
@@ -367,13 +371,15 @@ export const QuickBar = {
             }
         };
     },
-    useSlot(keyCode) {
+    useSlot(keyCode, altKey = false) {
         const slot = this.slots.find(s => s.config.keyCode === keyCode);
         if (!slot) return;
         const player = Game.player;
         if (!player) return;
         // 眩晕状态：不可使用技能/物品
         if (player.isStunned) return;
+        // 施法/后摇期间：不可释放技能/物品
+        if (player._castState && player._castState !== 'idle') return;
         // 攻击期间禁止使用技能
         if (player.weaponAnim && player.weaponAnim.state !== 'idle') return;
         // 夜与火之剑特殊攻击期间禁止释放技能
@@ -453,6 +459,20 @@ export const QuickBar = {
                     player.fireballSystem.trigger();
                 }
                 // 冷却时间由 FireballSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'lightningStrike') {
+                // 闪电技能
+                if (player.lightningStrikeSystem) {
+                    player.lightningStrikeSystem.trigger();
+                }
+                // 冷却时间由 LightningStrikeSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'holyLight') {
+                // 圣光技能
+                if (player.holyLightSystem) {
+                    // Alt+快捷键：直接对自己释放（自目标技能，skills.json selfCast 标记）
+                    if (altKey) player.holyLightSystem.triggerSelf();
+                    else player.holyLightSystem.trigger();
+                }
+                // 冷却时间由 HolyLightSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -584,6 +604,18 @@ export const QuickBar = {
             this.cooldowns['fireball'] = Game.player._fireballCooldown;
         } else if (Game.player && Game.player._fireballCooldown === 0) {
             this.cooldowns['fireball'] = 0;
+        }
+        // 闪电技能冷却同步
+        if (Game.player && Game.player._lightningStrikeCooldown > 0) {
+            this.cooldowns['lightningStrike'] = Game.player._lightningStrikeCooldown;
+        } else if (Game.player && Game.player._lightningStrikeCooldown === 0) {
+            this.cooldowns['lightningStrike'] = 0;
+        }
+        // 圣光技能冷却同步
+        if (Game.player && Game.player._holyLightCooldown > 0) {
+            this.cooldowns['holyLight'] = Game.player._holyLightCooldown;
+        } else if (Game.player && Game.player._holyLightCooldown === 0) {
+            this.cooldowns['holyLight'] = 0;
         }
         this._renderCooldownOverlays();
     },

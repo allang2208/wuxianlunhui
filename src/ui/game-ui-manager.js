@@ -11,7 +11,6 @@ import { ShopSystem } from './shop-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { EquipManager } from './equip-manager.js';
 import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
-import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { getTributeHpRegenMultiplier, getTributeHpRegenFlat } from '../config/tribute-effects.js';
 import { completeWeaponFields } from './equip-data-manager.js';
 
@@ -85,13 +84,6 @@ export const GameUIManager = {
         if (cdAttack && cdAttack.childNodes[0]) cdAttack.childNodes[0].textContent = attackIcon;
         const attackLabelEl = getElementIfExists('attackLabel');
         if (attackLabelEl) attackLabelEl.textContent = attackLabel;
-        // 底部状态条更新
-        const hpBar = getElementIfExists('hpBar'), hpText = getElementIfExists('hpText');
-        const staminaBar = getElementIfExists('staminaBar'), staminaText = getElementIfExists('staminaText');
-        if (hpBar) hpBar.style.width = (d.maxHp ? ((d.hp || 0) / d.maxHp * 100) : 0) + '%';
-        if (hpText) hpText.textContent = `${Math.ceil(d.hp || 0)}/${d.maxHp || 0}`;
-        if (staminaBar) staminaBar.style.width = (d.maxStamina ? ((d.stamina || 0) / d.maxStamina * 100) : 0) + '%';
-        if (staminaText) staminaText.textContent = `${Math.ceil(d.stamina || 0)}/${d.maxStamina || 0}`;
         // 武器信息显示
         const weaponModeEl = getElementIfExists('weaponMode'), weaponNameEl = getElementIfExists('weaponName');
         if (weaponModeEl) weaponModeEl.textContent = p.weaponMode === 'weapon' ? '武器栏1' : '武器栏2';

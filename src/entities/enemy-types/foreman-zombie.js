@@ -290,7 +290,8 @@ export class ForemanZombie extends Enemy {
         this._howlCd = cfg.cooldown ?? 30000;
         // 号召音效（直接播放）
         playSoundFrom(this, 'howl');
-        // 场上全体僵尸方怪物获得激励（含自身）
+        // 场上与僵尸工头同阵营（_faction === 'enemy'）的友方单位获得激励（含自身）。
+        // 矿洞、煮锅等站桩召唤器通常持有 statusImmune，applyInspire 开头会主动拦截，故不会获得激励。
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
         for (const e of list) {
             if (!e || !e.active || e._faction !== 'enemy') continue;

@@ -626,5 +626,41 @@
     ],
     "frameRate": 93.33,
     "repeat": 0
+  },
+  "cast": {
+    "type": "sheet",
+    "src": "assets/player/cast.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 4,
+    "frameCount": 12,
+    "releaseFrame": 8,
+    "forwardMs": 500,
+    "recoverMs": 250,
+    "frames": [
+      0,
+      11
+    ],
+    "frameRate": 24,
+    "repeat": 0
+  },
+  "staff_cast": {
+    "type": "sheet",
+    "src": "assets/player/staff_cast.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "cols": 8,
+    "rows": 4,
+    "frameCount": 9,
+    "releaseFrame": 7,
+    "forwardMs": 500,
+    "recoverMs": 250,
+    "frames": [
+      0,
+      8
+    ],
+    "frameRate": 18,
+    "repeat": 0
   }
 }

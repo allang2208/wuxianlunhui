@@ -5,6 +5,7 @@ import { FlySwarm } from './fly-swarm.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { hostilesOf } from './_shared/enemy-utils.js';
+import { summonMonster } from './_shared/summon-helper.js';
 import { fireGroundShockwave } from '../../effects/combat-fx.js';
 /**
  * 蝇手（领主 lord，僵尸 family）
@@ -205,27 +206,19 @@ export class FlyHand extends Enemy {
         this._slamGraphics = [];
     }
 
-    /** 召唤蝇群：周围 spreadRadius 随机位置 count 只（_summoned 标签 + 地牢刷怪黑色粒子） */
+    /** 召唤蝇群：周围 spreadRadius 随机位置 count 只（统一走 summon-helper） */
     _summonFlySwarms(summon) {
         const count = summon.count ?? 3;
         const spread = summon.spreadRadius ?? 50;
-        const spawnScene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        for (let i = 0; i < count; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * spread;
-            const sx = this.x + Math.cos(angle) * dist;
-            const sy = this.y + Math.sin(angle) * dist;
-            const fly = new FlySwarm(sx, sy, { showWeapon: false });
-            // 召唤物统一标签：不掉金币/经验/技能修炼值
-            fly._summoned = true;
-            if (typeof window !== 'undefined' && window.Game && window.Game.entities) {
-                window.Game.entities.set(`flyhand_fly_${Date.now()}_${i}_${Math.floor(Math.random() * 10000)}`, fly);
-            }
-            // 地牢刷怪同款黑色粒子（脚下）
-            if (spawnScene && typeof spawnScene.playDungeonSpawnParticles === 'function') {
-                spawnScene.playDungeonSpawnParticles(sx, sy);
-            }
-        }
+        summonMonster(this, {
+            factory: (x, y) => new FlySwarm(x, y, { showWeapon: false }),
+            count,
+            mode: 'scatter',
+            radius: 15,
+            spread,
+            tag: 'flyhand_fly',
+            playFx: true,
+        });
     }
 
     _endAction() {

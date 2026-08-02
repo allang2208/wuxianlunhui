@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.6
+## 版本: 1.8
 
 ## 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
 
@@ -243,17 +243,19 @@
 ### 2. 处理步骤（一段式 pngjs 脚本）
 1. 画布规格：**1536×1536 透明底**（与现有装备图标一致；画布尺寸本身不重要，改动不影响代码）。
 2. 裁剪：内容包围盒（alpha>8）。
-3. 放大：双线性缩放到最长边 = 画布×0.90（对齐武器 86%~95%）。
-4. 居中：**alpha 加权质心平移到画布中心**；非对称图标（质心偏离大）自动微缩，保证 ≥48px 边距不出画布——居中优先，对称件保持 0.90，非对称件 0.60~0.88。
-5. 合成回透明画布，覆盖写原文件。
+3. **纵横比归一化（2026-08-02 增补，解决"扁平/细长条看起来小"）**：内容纵横比限制在 **[0.72, 1.4]**——宽扁条（>1.4）沿长轴裁剪到 1.4、细长条（<0.72）沿长轴裁剪到 0.72，裁剪窗口**以视觉重心（质心）为中心**（保住主体/扣件/坠子，裁掉细长尾/链端）；方形图标框（object-fit contain）里所有图标可见尺寸趋于一致。
+4. 放大：双线性缩放到最长边 = 画布×0.90（对齐武器 86%~95%）。
+5. 居中：**内容包围盒平移到画布中心**（与武器图标同口径——轮廓居中即可；图形本体固有重心偏移属素材构图，不为它缩图/裁切）。
+6. 合成回透明画布，覆盖写原文件。
 
 ### 3. 验证清单
-- 质心偏移 = (0,0)；最长边占比 0.90（非对称件允许 0.6~0.88）；边界无越界（≥48px 边距）；尺寸仍 1536×1536。
+- 最长边占比 = 0.90；纵横比 ∈ [0.72, 1.4]；包围盒中心偏移 ≤1px；尺寸仍 1536×1536；dev server 加载 200 image/png。
 - dev server 加载 200 image/png；商店/装备栏/图鉴实机目检与武器同档。
 
 ### 4. 关键点/坑
-- **只居中包围盒不够**：图形本体可能在包围盒内偏一边，必须按 alpha 加权质心居中（2026-08-02 实测教训）。
-- 居中与「填满」冲突时**优先居中**：越界就微缩，不要硬拉（壁垒重盔因此从 0.90 降到 0.60，观感正确）。
+- **不要按 alpha 加权质心居中**（2026-08-02 实测教训）：魔力腰带/壁垒重盔等素材固有构图偏重，质心居中会把它推到画布一侧甚至被迫缩图（0.60~0.75），观感反而更差——**统一按内容包围盒居中 + 0.90 硬性大小**，与武器图标一致。
+- 大小硬性 0.90：最长边 = 画布×0.90，不缩图、不裁切。
+- 只统一最长边不够：宽扁条（魔力腰带 2.34:1）在方形图标框里仍只有其他腰带的一半高——**必须做纵横比归一化**（上限 1.4），否则"大小一致"只停留在文件层、观感仍不一致（2026-08-02 实测教训）。
 - 图标全链路共用 `iconImage` 字段（装备栏 `slotImage || iconImage`、掉落、图鉴、商店）——改贴图即全局生效，无需改代码。
 - 源文件保留在 `E:\无尽轮回\游戏\素材库\装备`（原始大图）；游戏内使用 `assets/icons/equipment/` 的处理后副本；脚本按本流程用 pngjs 现写（临时脚本不入库）。
 
@@ -904,6 +906,138 @@ _getPhaserOptions() {
 - 呼吸反光：Tween `alpha` yoyo + ADD 混合
 - 火焰成簇：一次性 `add.particles` + `explode` + `delayedCall` 销毁
 - 伤害周期：`tickMs` + `GroundEllipse.intersectsEntity`
+
+---
+
+## 技能添加标准工作流（2026-08-02 定稿，闪电技能首航）
+
+新增技能一律按此开展（闪电：锁定+传导+伤害+击退+眩晕+修炼+音效+图标+面板全链路验证）。
+
+### 0. 形态选型（先定形态，再动手）
+
+| 形态 | 复用模板 | 适用场景 |
+|---|---|---|
+| 弹道投射物 | `bolt-skill-system.js` kind 配置 | 火球/冰锥：凝聚→发射→飞行→命中 |
+| 地面区域 | `GroundZone` 基类 | 毒雾/酸液/燃烧区 |
+| 锁定/传导 | `LightningStrikeSystem` + `LightningBoltEffect` | 闪电：点选最近敌人→立即命中→连锁 |
+| 其他自管 | 独立 system 组件 | 风车/推击等 |
+
+### 1. 数据（data/skills.json + public/data/skills.json 双份同步）
+
+- `id/name/icon/iconImage/description/maxLevel/tags`（tags 含 魔法+主动 → 技能面板筛选/可拖快捷栏）。
+- `effectFormula`：数值一律公式（含 `level`）或常量；每 5 级成长节点用 `Math.floor((level - 1) / 5)` 模式（冰锥数量/闪电传导同款）。
+- `expFormula`：`100 + (level - 1) * 100`（与其他技能一致）；`expRewards`：`{ hit, kill, multiHit, multiKill }`（multiHit=单次命中≥2 目标、multiKill=单次击杀≥2 目标；**经验函数须按整次施法累计命中/击杀数统计**，冰锥为此改为 _end 统一结算）。
+- **魔法类技能必须配置 `mpCost`（魔法消耗）**——遗漏/为 0 时助手必须主动提醒用户补上（2026-08-02 闪电曾漏配，用户明确要求此后工作流强制检查）；施法端 `trigger()` 统一做耗蓝校验（`mp` 不足 → 浮动提示「魔法不足」，不进入结算、不消耗冷却）。
+- `sounds`：`{ hit: '路径' }` 或 `{ cast: [p1, p2] }`（数组=同时播放，闪电首例）。
+- **双份必须字节一致**（test-regressions 断言，npm test 会查）。
+
+### 2. 系统组件（src/entities/components/xxx-system.js）
+
+- `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。
+- `update(dt)`：冷却递减（ms）。
+- **玩家接线四件套**：① `player/index.js` import + `this.xxxSystem = new XxxSystem(this)` + `_xxxCooldown = 0` 字段；② `subsystems.js` update 段 `this.xxxSystem.update(dt)`；③ `subsystems.js` 死亡复位段清 `_xxxCooldown`；④ `subsystems.js` `_initSkills` 加 `if (!skills.xxx)` 兜底（JSON 加载失败/旧缓存仍可用）。
+- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）。
+
+### 3. 快捷栏（quick-bar.js）
+
+- 触发分支：`else if (skillId === 'xxx') { player.xxxSystem.trigger(); }`。
+- 冷却同步：`updateCooldowns` 读 `Game.player._xxxCooldown` → `this.cooldowns['xxx']`（转圈显示）。
+- **自目标技能（可对自己释放）**：skills.json 标 `selfCast: true`（圣光首例）；`input.js` keydown 传 `e.altKey` → `QuickBar.useSlot(code, altKey)` → 对应系统实现 `triggerSelf()` 直接对自己释放（跳过瞄准/距离/视线三重判定，耗蓝/音效/冷却/经验照常）。
+
+### 4. 技能栏/面板（skill-manager.js）
+
+- `skillList` 三处数组加 `player.skills.xxx`（武器分支列表各加一遍）。
+- **技能栏默认排序（2026-08-02 定稿）**：精通类 → 被动类 → 主动类 → 魔法类（`_getSkillCategoryPriority`：精通按名称含「精通」识别、其余按 tags 的 passive/active/magic 归类；新技能 tags 决定归类，精通命名必须含「精通」）。
+- 详情面板三区（照火球/冰锥格式）：🧮 伤害公式（基础/魔攻加成=魔法攻击×系数/智力加成/当前总伤害）+ 技能效果（effect 全部字段）+ **下一级全项预览**（nextEffect）。
+- 升级方式说明（经验来源三条口径）+ 升级飘字 `effectText` 分支。
+- 经验函数 `addXxxExp(player, hitCount, killCount, multiHit)`——hit/kill/multiHit 各自独立累加。
+
+### 5. 特效（src/effects/）
+
+- 优先复用 `combat-fx` 共享件（burstParticles / fireGroundShockwave / 抛物线投射物）。
+- 锁定/传导类连接特效直接套用 **`LightningBoltEffect` 模板**（见下节，换 colors/widthScale 即可）。
+- 自管特效类：`EffectManager.add()` 驱动 `update(dt)`，`window.__phaserScene` + `worldEffectsGroup` 建 graphics，`active=false` 自动清理。
+- **色块/粒子风格优先**（impact_dot + ADD + 多层 tint / fillCircle 色块链）——避免线条感。
+- 禁止 per-object filters（数量多即卡）；深度=实体 depth+2 或地面 y-998 口径；位置/观感类必须 CDP 实机验证。
+
+### 6. 图标与音效（可选但推荐）
+
+- 图标：素材复制 `assets/skills/xxx.png`（1024×1024 与火球同规格），`iconImage` 指向。
+- 音效：素材复制 `assets/sounds/skills/xxx.mp3`，skills.json `sounds` 配置，系统内 `SoundManager.playFile` 播放。
+
+### 7. 验证
+
+- lint / npm test（含双份 JSON 断言）/ vite build / node --check。
+- **核对清单**：魔法类技能 `mpCost` 已配置（>0）；双份 JSON 字节一致；技能面板数值与 effectFormula 同源。
+- 数值逐级核验：按 L1/5/6/10/11/16/20 手算伤害/传导/眩晕/击退成长。
+- 开发面板「技能」页签 + 控制台 `await setSkillLevel('xxx', L)` 快速测各等级。
+- 实机：释放 / 锁定 / 范围外失败提示 / 冷却转圈 / 怪物受击表现（击退/眩晕/死亡）。
+
+### 8. 坑（闪电首航沉淀）
+
+- 形态别硬套：锁定型别塞 BoltSkillSystem（那是弹道基类）。
+- 特效需求先对齐：定格 vs 持续闪烁 vs 色块/线条，先问清再做（闪电经历 3 轮返工）。
+- 冷却字段名 `_xxxCooldown`（ms）必须与 quick-bar 同步口径一致。
+- 经验"命中/击杀/多目标命中/多目标击杀"四条口径各自独立累加，别合并；单次施法多目标奖励必须在施法端按整次累计（火球/闪电天然按次，冰锥需改 _end 统一结算）。
+- **魔法类技能漏配 mpCost 是高频遗漏**——数据配置完先核对，漏了提醒用户。
+- 直接改等级测主动技能 OK；被动技能不触发属性回算（需重新装备/升级触发）。
+
+---
+
+## 锁定/传导类技能特效模板（2026-08-02，LightningBoltEffect 首航）
+
+`src/effects/lightning-bolt.js` 的 `LightningBoltEffect` 是锁定/传导类（瞬发连接型）技能的标准化特效，同类型直接复用：
+
+```js
+EffectManager.add(new LightningBoltEffect(source, target, {
+    durationMs: 500,          // 定格显示时长
+    fadeMs: 250,              // 淡出时长
+    segments: 10,             // 锯齿段数
+    jitter: 0.12,             // 锯齿幅度（距离比例）
+    widthScale: 1,            // 整体粗细倍率
+    colors: {                 // 换配色（如红色闪电/金色锁链）只改这里
+        glowOuter: 0x6a4bff,  // 外层辉光（ADD）
+        glowInner: 0xa98fff,
+        core: 0xdcd6ff,       // 内芯色块（NORMAL）
+        white: 0xffffff,      // 白芯
+    },
+}));
+```
+
+**实现要点（改模板前先读）**：
+- 中点位移 → 每段中点细分 → Chaikin 切角平滑 → 按 4px 步长重采样成连续色块链（细端圆块仍相连）。
+- 每点半径烘焙 0.75~1.25 随机因子（创建时固定）；释放后不再重生成（定格）；末 fadeMs 线性淡出。
+- 深度 = 两端实体精灵 depth 较大者 + 1；目标死亡后终点冻结残留。
+- 不挂 per-object filters（数量多即卡）——色块堆叠自带辉光观感。
+- 离屏预览：`tools/sim-lightning-preview.mjs`（同算法渲染 PNG，调参不入游戏）。
+
+---
+
+## 魔法施法动作标准（2026-08-02 定稿：前摇/第 N 帧释放/倒放后摇/跨步）
+
+魔法类主动技能释放统一走施法动作（空手施法 cast / 法杖施法 staff_cast），规则：
+
+### 1. 素材与动画注册
+- 素材规格：4096×2048，**8 列×4 行 512×512 格**（"4×8 切割"= 4 行×8 列），帧连续（空手 12 帧=0~11、法杖 9 帧=0~8）；**入库前用 pngjs 扫格确认帧序与空白格**（法杖施法首次扫描误判为 4×8 导致错排，已修正）。
+- `player-anim-config.json`（双份）条目：`frameCount/frames/frameRate` + **`releaseFrame`（第几帧释放）/`forwardMs`（前摇）/`recoverMs`（后摇）**——全部配置驱动，代码零魔法数。
+
+### 2. 武器→施法动画选择
+- 武器数据（EDM）`castAnimKey: 'staff_cast'` 指定施法动画键；未配置回退 `cast`（GameScene `startPlayerCast` 读取，无硬编码武器类型判断）。
+
+### 3. 释放流程（GameScene.startPlayerCast）
+- 前摇播 forwardMs（默认 500ms）；`animationupdate` 到 `releaseFrame` 帧触发 `onRelease`（魔法实际结算，只一次）；**定时兜底**：事件未触发时按 `(releaseFrame/totalFrames)×forwardMs+40ms` 强制释放。
+- 前摇播完自动 `playReverse` recoverMs（默认 250ms）倒放回 idle；含超时兜底收尾。
+- **输入全锁**：前摇+后摇期间 update.js 施法分支 early-return（不可移动/攻击/技能/开枪）+ quick-bar 拦截；**后摇阶段空格翻滚可打断**（`_interruptCastRecover` → cancelPlayerCast + triggerDodge）。
+- **施法跨步**：前摇沿起手朝向推进 `+30px`（`_castStepMax`，记录起手原点），后摇向原点线性归位（每帧 WallSystem.resolve 防穿墙；被墙钳制也不会回退过头）；打断/死亡清理原点。
+
+### 4. 接入点
+- 系统 trigger 通过 `_startPlayerCast(doRelease)` 包装（第 N 帧才结算）：冰锥/火球**一段不播、二段发射时播**；闪电/圣光（含 Alt 自释放）起手即播。
+- 玩家接线：index.js 施法字段、subsystems.js 兜底/死亡复位/`_updateCastStep`、update.js 施法分支、quick-bar 拦截。
+
+### 5. 坑（必看）
+- **`GameScene._updatePlayerAnimation` 每帧状态机会覆盖施法动画** → 释放帧永远到不了、魔法不释放（闪电/圣光曾双双失效）。必须加施法守卫（`_castState !== 'idle'` 时 return）+ 卡死自愈（施法状态但动画未在播 → `_endPlayerCast`）。
+- 施法期间隐藏/保留武器：按用户口径**武器保持在 idle 右手持握位置**（不隐藏）。
+- 自目标技能：skills.json `selfCast: true` + 系统 `triggerSelf()` + Alt+快捷键（input.js 传 altKey → useSlot(code, altKey)）。
 
 ---
 

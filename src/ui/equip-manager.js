@@ -1,8 +1,6 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { RARITY_LABELS } from '../config/rarity.js';
 import { applyConsumableEffect } from '../config/consumable.js';
-import { Game } from '../game.js';
         // Item Tooltip System v2 - Cache Bust
 import { EquipDataManager } from './equip-data-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
@@ -16,10 +14,8 @@ import { FusionSystem } from './fusion-system.js';
 import { UIState } from './ui-state.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { loadImage } from '../utils/image-loader.js';
-import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
+import { queryElement, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { ShopSystem } from './shop-system.js';
-import { SkillManager } from './skill-manager.js';
 import { QuickBar } from './quick-bar.js';
 import { createDragDropManager } from './equip/drag-drop-manager.js';
 import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInventorySlots } from './equip/slot-renderer.js';
@@ -712,4 +708,3 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 renderInventorySlots(this);
             }
         };
-

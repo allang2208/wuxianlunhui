@@ -700,6 +700,46 @@
         "maxAngle": 5
       }
     },
+    "apprentice_staff": {
+      "weaponId": "weapon20",
+      "name": "学徒长杖",
+      "type": "法杖",
+      "icon": "🪄",
+      "iconImage": "assets/weapons/学徒法杖.png",
+      "category": "weapon_melee",
+      "rarity": "uncommon",
+      "level": 1,
+      "weaponCategory": "mainhand",
+      "weaponType": "staff",
+      "weaponTypeTag": "近战武器",
+      "equipImage": "assets/weapons/学徒法杖.png",
+      "stats": [
+        {
+          "name": "物理攻击",
+          "value": "3+敏捷×0.25+力量×0.25"
+        }
+      ],
+      "desc": "初学者的练习法杖，杖身刻有简单的导魔纹路，适合魔法初学者使用",
+      "equipSlot": "weapon",
+      "attack": {
+        "range": 110,
+        "knockback": 0,
+        "attackInterval": 500,
+        "hitType": "挥砍（扇形判定）",
+        "damageType": "物理"
+      },
+      "animation": {
+        "type": "swing（挥砍）",
+        "totalMs": "500ms",
+        "windupMs": 120,
+        "swingMs": 200,
+        "recoveryMs": 180,
+        "holdOffset": "(0, 0)",
+        "weaponSize": 84,
+        "timingMul": "1.0x (标准)",
+        "description": "法杖近战挥砍（套用剑类动画），攻击间隔 500ms，无击退"
+      }
+    },
     "pkm": {
       "weaponId": "weapon6",
       "name": "PKM",

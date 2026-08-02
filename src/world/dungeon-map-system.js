@@ -23,7 +23,7 @@ import { Input } from '../ui/input.js';
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
-import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, ZombieDungeonShop, createTombstone } from './zombie-dungeon.js';
+import { ZombieDungeonMapGenerator, ZOMBIE_DUNGEON_CONFIG, ZombieDungeonCombat, createTombstone } from './zombie-dungeon.js';
 import { AgentInvasionSystem } from './agent-invasion-system.js';
 import { TrapSystem } from './trap-system.js';
 import { WallGate } from './wall-gate.js';
@@ -38,13 +38,18 @@ const MAP_AREA_SPEC = { left: 0, bottom: 0, width: 1920, height: 648 };
 // 路线图显示窗口（2K 2560×1440 基准，其他分辨率按视口等比换算）：
 // 地图内容（节点/连线）限定在此窗口内，居中于下方区域
 const MAP_VIEW_SPEC = { left: 572, bottom: 112, width: 1391, height: 579 };
+// 地牢等级 → 稀有度档（与出征祭品门槛同序：F=普通、E=优质、D=稀有、C=史诗、B=神话、A=传说）
+const DUNGEON_GRADES = ['F', 'E', 'D', 'C', 'B', 'A'];
+const GRADE_RARITY = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { setDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallSystem } from './wall-system.js';
-import { BossRewardSystem } from './boss-reward-system.js';
+import { BossRewardSystem, BOSS_REWARD_CONFIG } from './boss-reward-system.js';
+import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
+import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -238,8 +243,8 @@ export const DungeonMapSystem = {
 
         this._bindEvents();
 
-        // 初始化时显示地图界面按钮与地牢名称
-        this._createMouseShopButton();
+        // 初始化时显示地图界面元素与地牢名称（入侵几率标签由 AgentInvasionSystem 管理）
+        this._createDungeonRewardPanel();
         this._createAbandonButton();
         this._createDungeonNameLabel();
         // 地图选路模式顶部状态栏（生命/魔法/等级）
@@ -249,11 +254,6 @@ export const DungeonMapSystem = {
     },
 
     shutdown() {
-        // 清理商店轮询，防止 shutdown 后 interval 泄漏触发 _returnToMap
-        if (this._shopCheckInterval) {
-            TimerManager.clearInterval(this._shopCheckInterval);
-            this._shopCheckInterval = null;
-        }
         this.active = false;
         this.state = "idle";
         // 经验系统：离开地牢，回退主神空间口径（F 档）
@@ -261,7 +261,7 @@ export const DungeonMapSystem = {
         this.nodes = [];
         this.edges = [];
         this._cleanupEventUI();
-        this._removeMouseShopButton();
+        this._removeDungeonRewardPanel();
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
         this._removeMapStatusBar();
@@ -966,7 +966,6 @@ export const DungeonMapSystem = {
 
     _enterNode(node) {
         // 进入节点前隐藏地图按钮
-        this._removeMouseShopButton();
         this._removeAbandonButton();
         this._removeNodeTooltip();
 
@@ -1038,7 +1037,6 @@ export const DungeonMapSystem = {
         this._focusOnCurrentNode();
 
         // 显示地图界面按钮
-        this._createMouseShopButton();
         this._createAbandonButton();
         this._updateSafeEvacButton();
 
@@ -1821,20 +1819,6 @@ export const DungeonMapSystem = {
         });
     },
 
-    _enterZombieShop(_node) {
-        // 保持 state='map'，避免游戏画面从地牢路线图切到真实世界造成“传送”感
-        this._removeMouseShopButton();
-        this._removeAbandonButton();
-        ZombieDungeonShop.open();
-        this._shopCheckInterval = TimerManager.setInterval(() => {
-            if (ZombieDungeonShop.isClosed()) {
-                TimerManager.clearInterval(this._shopCheckInterval);
-                this._shopCheckInterval = null;
-                this._returnToMap();
-            }
-        }, 300);
-    },
-
     _enterEvent(node) {
         this.state = "event";
         // 连战中断：选择随机事件节点（含宝箱/商店）连战计数清零（empty 空节点不计不断）
@@ -2283,44 +2267,65 @@ export const DungeonMapSystem = {
         ctx.textBaseline = "alphabetic";
     },
 
-    _createMouseShopButton() {
-        if (getElement('mouseShopButton')) return;
-        // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
-        // 位置：背景图左侧黑幕内、上区垂直居中（40% 上区中心 = 20vh）；
-        // 水平居中由 _positionMapButtons 按黑幕实际宽度校正；贴图 = 素材库按钮板（文字已烘焙）
-        // 背景直接用原图 1536²：371%×1038% 把按钮板整块显示并填满 164×66 按钮框
-        // （板宽 414→164、板高 148→66，仅垂直拉伸 12.6% 不裁剪），避免板与辉光之间
-        // 露出透明缝隙形成黑边；position 按板心对齐（板心 784,762）
-        const btn = document.createElement('div');
-        btn.id = 'mouseShopButton';
-        btn.style.cssText = `
+    /**
+     * 地牢路线选择界面奖励面板（数据驱动，随地牢类型显示）：
+     * - 预期通关奖励：dungeonList[type].reward
+     * - 预期装备稀有度范围：精英宝箱房装备掉落（grade−1 档）~ Boss 奖励武器稀有度
+     * - 预期祭品稀有度范围：tributes.dropTables[grade].maxRarity
+     * 原小鼠商店按钮位置让给了 AgentInvasionSystem 的入侵几率标签（左上），本面板在标签下方。
+     */
+    _createDungeonRewardPanel() {
+        if (getElement('dungeonRewardPanel')) return;
+        const el = document.createElement('div');
+        el.id = 'dungeonRewardPanel';
+        el.style.cssText = `
             position: fixed;
             left: 20px;
-            top: calc(20vh - 33px);
-            width: 164px;
-            height: 66px;
-            background-image: url('assets/ui/dungeon-map/btn_mouse_shop.png');
-            background-size: 371% 1038%;
-            background-repeat: no-repeat;
-            background-position: 51% 50%;
-            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
-            border: none;
-            cursor: pointer;
-            z-index: 9000;
-            pointer-events: auto;
+            top: calc(20vh + 45px);
+            width: 250px;
+            box-sizing: border-box;
+            z-index: 9001;
+            pointer-events: none;
             user-select: none;
+            font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+            color: #d4c5a9;
+            font-size: 13px;
+            line-height: 1.9;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+            background: rgba(20, 20, 20, 0.55);
+            border: 1px solid rgba(120, 110, 90, 0.5);
+            border-radius: 8px;
+            padding: 8px 12px;
         `;
-        btn.addEventListener('click', () => {
-            if (this.active && this.state === 'map') {
-                this._enterZombieShop();
-            }
-        });
-        document.body.appendChild(btn);
+        const g = (DungeonConfig.getDungeonList() || {})[this.dungeonType] || {};
+        const grade = g.grade || 'D';
+        const gradeIdx = DUNGEON_GRADES.indexOf(grade);
+        // 装备范围：精英宝箱房装备（grade−1，F 钳制 common）~ Boss 奖励武器
+        const chestTier = GRADE_RARITY[Math.max(0, gradeIdx < 0 ? 2 : gradeIdx - 1)];
+        let bossRarity = 'epic';
+        try {
+            const cards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];
+            const w = cards.flatMap(c => c.rewards || []).find(r => r && r.type === 'weapon');
+            if (w && w.rarity) bossRarity = w.rarity;
+            } catch (_e) { /* 配置缺失兜底 epic */ }
+        const ci = Math.max(0, RARITY_ORDER.indexOf(chestTier));
+        const bi = Math.max(0, RARITY_ORDER.indexOf(bossRarity));
+        const equipLo = RARITY_ORDER[Math.min(ci, bi)] || 'common';
+        const equipHi = RARITY_ORDER[Math.max(ci, bi)] || 'legendary';
+        // 祭品范围：普通 ~ 本档封顶（dropTables.maxRarity）
+        const tributeCap = (((COMBAT_FORMULAS.tributes || {}).dropTables || {})[grade] || {}).maxRarity || 'legendary';
+        el.innerHTML = `
+            <div style="font-weight:700;color:#e8d5a0;margin-bottom:4px;">预期奖励</div>
+            <div>通关奖励：${g.reward || '—'}</div>
+            <div>装备稀有度：${getRarityLabel(equipLo)} ~ ${getRarityLabel(equipHi)}</div>
+            <div>祭品稀有度：${getRarityLabel('common')} ~ ${getRarityLabel(tributeCap)}</div>
+        `;
+        document.body.appendChild(el);
     },
 
-    _removeMouseShopButton() {
-        const btn = getElement('mouseShopButton');
-        if (btn) btn.remove();
+    _removeDungeonRewardPanel() {
+        const el = getElement('dungeonRewardPanel');
+        if (el) el.remove();
     },
 
     _createAbandonButton() {
@@ -2412,12 +2417,15 @@ export const DungeonMapSystem = {
         const barW = (viewW - imgDispW) / 2;
         const BTN_W = 164;
         const offset = Math.max(8, Math.round(barW / 2 - BTN_W / 2));
-        const shop = getElement('mouseShopButton');
         const evac = getElement('safeEvacButton');
         const abandon = getElement('abandonButton');
-        if (shop) shop.style.left = offset + 'px';
         if (evac) evac.style.right = offset + 'px';
         if (abandon) abandon.style.right = offset + 'px';
+        // 入侵几率标签与奖励面板跟随原小鼠商店按钮位置（左侧黑幕水平居中）
+        const inv = getElement('invasionChanceLabel');
+        const reward = getElement('dungeonRewardPanel');
+        if (inv) inv.style.left = offset + 'px';
+        if (reward) reward.style.left = offset + 'px';
     },
 
     _removeSafeEvacButton() {

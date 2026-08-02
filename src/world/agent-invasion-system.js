@@ -241,12 +241,22 @@ export const AgentInvasionSystem = {
             el.style.cssText = `
                 position: fixed;
                 left: ${d.left ?? 20}px;
-                bottom: ${d.bottomCss || 'calc(18.84vh + 85px)'};
+                ${d.topCss ? `top: ${d.topCss};` : `bottom: ${d.bottomCss || 'calc(18.84vh + 85px)'};`}
+                width: 164px;
+                height: 66px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                box-sizing: border-box;
+                background: rgba(20, 20, 20, 0.55);
+                border: 1px solid rgba(120, 110, 90, 0.5);
+                border-radius: 8px;
                 z-index: 9000;
                 pointer-events: none;
                 user-select: none;
                 font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 700;
                 text-shadow: 0 2px 4px rgba(0,0,0,0.8);
             `;

@@ -223,7 +223,7 @@ class WeaponTransform {
 
         // 尺寸和缩放
         let size, scaleFactor;
-        if (weaponType === 'sword') {
+        if (weaponType === 'sword' || weaponType === 'staff') {
             size = ms;
             scaleFactor = wac.idleScale || 1;
         } else if (weaponType === 'bow') {
@@ -260,7 +260,7 @@ class WeaponTransform {
         if (wac.idleRotation) {
             let idleRot = wac.idleRotation * Math.PI / 180;
             // 朝左时镜像 idleRotation（对所有近战武器）
-            const isMelee = weaponType === 'sword' || weaponType === 'bow';
+            const isMelee = weaponType === 'sword' || weaponType === 'staff' || weaponType === 'bow';
             if (!facingRight && isMelee) {
                 idleRot = Math.PI - idleRot;  // 调转方向（180度反转）
             }
@@ -294,7 +294,7 @@ class WeaponTransform {
         const sin = Math.sin(rot);
         let x = player.x + cos * localOffset.x - sin * localOffset.y;
         // 朝左时镜像武器位置（对所有近战武器状态）
-        const isMelee = weaponType === 'sword' || weaponType === 'bow';
+        const isMelee = weaponType === 'sword' || weaponType === 'staff' || weaponType === 'bow';
         if (!facingRight && isMelee) {
             x = player.x - (x - player.x);
         }
@@ -308,7 +308,7 @@ class WeaponTransform {
     static getWeaponWorldPosition(player, weaponType, isOffhand = false, isDualWield = false, animState = null, overrides = {}, facingRightOverride = null) {
         const facingRight = facingRightOverride !== null ? facingRightOverride : Math.abs(player.rotation) < Math.PI / 2;
         const local = this.getWeaponLocalOffset(weaponType, player.size, isOffhand, isDualWield, animState, facingRight, overrides);
-        const isMelee = weaponType === 'sword' || weaponType === 'bow';
+        const isMelee = weaponType === 'sword' || weaponType === 'staff' || weaponType === 'bow';
         const useFixedRotation = isMelee;
         const world = this.localToWorld(player, local, useFixedRotation ? 0 : null, facingRight, animState, weaponType);
         return { ...local, x: world.x, y: world.y };
@@ -492,7 +492,7 @@ class WeaponTransform {
                 const rt = anim.timer / wa.recoverMs;
                 recoilX = -s * (rp.recoilRecover || 0.04) * (1 - rt);
             }
-        } else if (weaponType === 'sword') {
+        } else if (weaponType === 'sword' || weaponType === 'staff') {
             // 剑类攻击动画已禁用，武器保持静止
             // 刺击动画位移在 Canvas 中通过 ctx.translate 直接控制
             // 这里返回角度变化（已禁用）
@@ -523,7 +523,7 @@ class WeaponTransform {
             scale = cfg.idleScale || 1;
         }
 
-        if (weaponType === 'sword') {
+        if (weaponType === 'sword' || weaponType === 'staff') {
             return { width: ms * 0.63 * scale, height: ms * scale };
         } else if (weaponType === 'bow') {
             return { width: s * scale * 1.10, height: s * scale * 1.10, useAspectRatio: true };
