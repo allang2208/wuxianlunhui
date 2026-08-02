@@ -2528,7 +2528,8 @@
       "magic": "assets/sounds/enemies/witch/attacking.mp3",
       "magicFrame": 5,
       "venom": "assets/sounds/enemies/witch/throwing.mp3",
-      "venomFrame": 8
+      "venomFrame": 8,
+      "land": "assets/sounds/enemies/witch/landing.mp3"
     },
     "ai": {
       "aggroRange": 9999,
@@ -2602,6 +2603,9 @@
     "matk": 70,
     "attackRange": 0,
     "aiInterval": 5000,
+    "sounds": {
+      "land": "assets/sounds/enemies/witch/landing.mp3"
+    },
     "smoke": {
       "comment": "锅口绿烟一排（矿洞同款：白色烟雾纹理 + 绿色 tint + ADD 混合）：中间 1 个 + 左右各 rowExtra 个，共 2×rowExtra+1 个水平均布（间距由碰撞宽度推导，见 cauldron.js）；offsetY 已上移 40px",
       "tint": "0x62cc62",

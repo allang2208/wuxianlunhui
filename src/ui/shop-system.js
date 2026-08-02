@@ -12,13 +12,30 @@ import { completeWeaponFields } from './equip-data-manager.js';
 import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { SystemUI } from './system-ui.js';
+import { ItemDatabase } from '../items/item-database.js';
+
+// 稀有度标准价（common/uncommon/rare/epic/mythic/legendary = 100/200/400/800/1600/3200）。
+// 注：代码里没有现成的稀有度定价函数（历史价格逐件手写），此表与 SKILL.md
+// 「全祭品按稀有度统一定价」约定同源；黑铁商店等数据目录商品缺 price 时用它兜底。
+const RARITY_STANDARD_PRICE = {
+    common: 100,
+    uncommon: 200,
+    rare: 400,
+    epic: 800,
+    mythic: 1600,
+    legendary: 3200,
+};
 
 const ShopSystem = {
     _isOpen: false,
     _currentNPC: null,
     _selectedSellItems: [],
 
-    _items: [
+    // 商店商品目录：shopId → 商品数组。不同商店配不同 shopId 即卖不同商品；
+    // 缺省/未配置回退 'main'（全量目录 = 现状所有商品）。
+    // 新增商店 = 在此加一个键（如 'armory'）+ 对应 NPC 配置里设 shopId。
+    SHOP_CATALOGS: {
+        main: [
         { id: 'rusty_sword', weaponId: 'weapon1', name: '生锈的长剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', category: 'weapon_melee', rarity: 'common', type: '单手剑', price: 100, equipSlot: 'weapon', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/1-rusty_sword_euip.png', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%' }], desc: '一把锈迹斑斑的旧剑', level: 1, attack: { range: 124, knockback: 6, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, animation: { type: 'thrust（突刺）', totalMs: '1100ms (200+500+400)', windupMs: 200, swingMs: 500, recoveryMs: 400, idleAngle: '0°', windupAngle: '+30°', swingAngle: '-30°', holdOffset: '(-20, 11)', weaponSize: 63, timingMul: '1.0x (标准)', description: '三段式突刺动画：预备→前刺→回位。 windup 阶段剑身向后上方扬起，swing 阶段快速向前突刺，recover 阶段回到待机姿态。' } },
         { id: 'knights_sword', weaponId: 'weapon2', name: '骑士长剑', icon: '⚔', iconImage: 'assets/icons/knights_sword_v3_macro.png', category: 'weapon_melee', rarity: 'uncommon', type: '单手剑', price: 100, equipSlot: 'weapon2', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/knights_sword_v3_equip.png', stats: [{ name: '物理攻击', value: '18-23' }], desc: '骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。', level: 5, attack: { range: 155, rangeBonus: 50, knockback: 8, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, skillOverrides: { dashAttackThrust: { animation: { totalMs: 600, dashDist: 173, chargeMs: 0, thrustMs: 600, recoverMs: 0 }, hitCheck: { shape: 'rectangle', width: 75, length: 350, hitArc: 0, lengthBonus: 50, backOffset: -30 } } } },
         { id: 'rune_sword', weaponId: 'weapon4', name: '符文长剑', icon: '⚔', iconImage: 'assets/icons/EXsword_icon.png', category: 'weapon_melee', rarity: 'uncommon', type: '单手剑', price: 100, equipSlot: 'weapon', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/EXsword_equipped_v2_.png', stats: [{ name: '物理攻击', value: '45-55' }, { name: '暴击率', value: '+5%' }], desc: '剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。', level: 5, attack: { range: 124, knockback: 6, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, animation: { type: 'thrust（突刺）', totalMs: '1100ms (200+500+400)', windupMs: 200, swingMs: 500, recoveryMs: 400, idleAngle: '0°', windupAngle: '+30°', swingAngle: '-30°', holdOffset: '(-20, 11)', weaponSize: 63, timingMul: '1.0x (标准)', description: '三段式突刺动画：预备→前刺→回位。符文长剑的刺击带有符文残影，威力远超凡铁。' } },
@@ -44,7 +61,47 @@ const ShopSystem = {
         { id: 'anchorTokenC', name: 'C 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'epic', type: '祭品', price: 800, shopPrice: 1600, stats: [{ name: '用途', value: 'C 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 C 级地牢的出征凭证。', stack: 1, maxStack: 999 },
         { id: 'anchorTokenB', name: 'B 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'mythic', type: '祭品', price: 1600, shopPrice: 3200, stats: [{ name: '用途', value: 'B 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 B 级地牢的出征凭证。', stack: 1, maxStack: 999 },
         { id: 'anchorTokenA', name: 'A 级时空锚点代币', icon: '🌀', category: 'tribute', rarity: 'legendary', type: '祭品', price: 3200, shopPrice: 6400, stats: [{ name: '用途', value: 'A 级地牢钥匙' }], desc: '凝聚时空之力的锚点代币，可作为 A 级地牢的出征凭证。', stack: 1, maxStack: 999 }
-    ],
+        ],
+        // 小鼠铁匠商店：出售全部优质（uncommon）非武器装备（铠甲/饰品，共 18 件）。
+        // 条目 = ItemDatabase 装备 id，运行时懒解析自 equipment.json（属性/贴图单一数据源，
+        // 改数据自动生效）；缺 price 时按稀有度标准价（uncommon = 200）兜底。
+        blacksmith: [
+            'light_helmet', 'light_armor', 'light_boots',
+            'robe_helmet', 'robe_armor', 'robe_boots',
+            'heavy_helmet', 'heavy_armor', 'heavy_boots',
+            'necklace_strcon', 'necklace_intwis', 'necklace_dexluck',
+            'ring_atk', 'ring_crit', 'ring_matk',
+            'belt_hp', 'belt_mp', 'belt_stamina'
+        ]
+    },
+
+    /** 商店标识：NPC 配置 shopId（npc.shopId 或 npc.config.shopId），缺省 'main' */
+    _shopIdFor(npc) {
+        return (npc && (npc.shopId || (npc.config && npc.config.shopId))) || 'main';
+    },
+
+    /** 当前商店商品目录（缺省回退 main 全量目录） */
+    _itemsFor(npc = this._currentNPC) {
+        const cat = this.SHOP_CATALOGS[this._shopIdFor(npc)];
+        const list = cat || this.SHOP_CATALOGS.main || [];
+        // 目录条目支持两种形态：完整商品对象（main 现状）或 ItemDatabase 装备 id 字符串
+        // （数据目录，如 blacksmith——懒解析，缺 price 按稀有度标准价兜底）
+        return list
+            .map(it => (typeof it === 'string' ? this._equipFromDatabase(it) : it))
+            .filter(Boolean);
+    },
+
+    /** ItemDatabase 装备 id → 商店商品对象（找不到返回 null，调用方过滤） */
+    _equipFromDatabase(id) {
+        const items = (ItemDatabase && ItemDatabase.items) || {};
+        const base = items[id];
+        if (!base) return null;
+        return {
+            ...base,
+            id, // 购买查找用唯一 id（equipment.json 条目本身无 id 字段）
+            price: base.price ?? RARITY_STANDARD_PRICE[base.rarity || 'common'] ?? 0,
+        };
+    },
 
     open(npc) {
         UIState.open('shop');
@@ -92,7 +149,7 @@ const ShopSystem = {
     buy(itemId) {
         const player = Game.player;
         if (!player) return;
-        const item = this._items.find(i => i.id === itemId);
+        const item = this._itemsFor().find(i => i.id === itemId);
         if (!item) return;
         // 检查背包是否已满
         if (EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
@@ -253,7 +310,7 @@ const ShopSystem = {
         const buyGrid = getElement('shopBuyGrid');
         if (buyGrid) {
             buyGrid.innerHTML = '';
-            this._items.forEach(item => {
+            this._itemsFor().forEach(item => {
                 const cell = document.createElement('div');
                 cell.className = 'shop-buy-cell';
                 const rarityKey = item.rarity || 'common';
@@ -395,12 +452,20 @@ const ShopSystem = {
 
 // 商品列表补全：商店条目历史上缺 attackFormula/attackKey/ammoConfig 等字段（购买克隆不补全，
 // 导致商店货 tooltip 显示"-"、公式回退 base 错误、attackKey 缺省到 pistol）——
-// 模块加载时统一用 EquipDataManager 全量源补齐（与 main.js 启动合并同口径）
-for (const _shopItem of ShopSystem._items) {
-    completeWeaponFields(_shopItem);
+// 模块加载时统一用 EquipDataManager 全量源补齐（与 main.js 启动合并同口径）；
+// 遍历所有商店目录（新增商店目录自动被补全）
+for (const _catalog of Object.values(ShopSystem.SHOP_CATALOGS)) {
+    for (const _shopItem of _catalog) {
+        completeWeaponFields(_shopItem);
+    }
 }
 
 // 模块加载时注册跨 UI 事件监听
 EventBus.on('shop:addToSellGrid', (idx) => ShopSystem.addToSellGrid(idx));
+
+// 挂载到全局（控制台调试/外部系统检测用，与 ExpeditionSystem/ChestRoomSystem 同口径）
+if (typeof window !== 'undefined' && !window.ShopSystem) {
+    window.ShopSystem = ShopSystem;
+}
 
 export { ShopSystem };

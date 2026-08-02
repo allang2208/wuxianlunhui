@@ -1,6 +1,8 @@
 import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
+import { SoundManager } from '../../ui/sound-manager.js';
+import skillsData from '../../../data/skills.json';
 
 /**
  * 火球系统（通用版）——BoltSkillSystem 的火球 kind 封装。
@@ -68,6 +70,11 @@ const FIREBALL_KIND = {
     // 命中/撞墙：范围爆炸（特效三层 + AOE 距离衰减）
     onImpact(sys, spike, { x, y, entities, damage, effect, skill }) {
         const radius = effect.explosionRadius;
+        // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
+        const hitSound = skillsData.skills?.fireball?.sounds?.hit;
+        if (hitSound && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(hitSound);
+        }
         // 爆炸特效：① 冲击波扩散圈 ② ADD 火焰爆发 ③ 烟尘余韵
         fireGroundShockwave({
             x, y, maxRadius: radius,
