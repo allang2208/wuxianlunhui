@@ -125,6 +125,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                             if (ms && ms.damagePercent) baseDamage = Math.floor(baseDamage * (1 + ms.damagePercent / 100));
                         }
                     }
+                    // 冻结目标额外受到 50% 物理伤害（非魔法伤害）
+                    if (damageType !== 'magic' && this.hasStatusEffect && this.hasStatusEffect('frozen')) {
+                        baseDamage = Math.floor(baseDamage * 1.5);
+                    }
                     // 装甲僵尸持盾防御：50%概率格挡，减少50%伤害
                     if (this.data && this.data.equipShield === 'small_shield' && damageType !== 'magic') {
                         if (Math.random() < 0.5) {
@@ -146,8 +150,14 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     // 改造效果：暴击率加成
                     if (source && source.getCurrentWeapon) {
                         const currentWpn = source.getCurrentWeapon();
-                        if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.critChancePercent) {
-                            critRate += currentWpn._craftEffects.critChancePercent * 100;
+                        if (currentWpn && currentWpn._craftEffects) {
+                            if (currentWpn._craftEffects.critChancePercent) {
+                                critRate += currentWpn._craftEffects.critChancePercent * 100;
+                            }
+                            // 暴击符文：仅对魔法伤害生效
+                            if (damageType === 'magic' && currentWpn._craftEffects.magicCritPercent) {
+                                critRate += currentWpn._craftEffects.magicCritPercent * 100;
+                            }
                         }
                     }
                     // 无人机易伤：暴击率加成
@@ -331,6 +341,11 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
                     statusImmune: { icon: '🔰', name: '状态免疫', color: '#5ac8c8' },
                     haste: { icon: '💨', name: '加速', color: '#5ac85a' },
+                    holyRenewal: { icon: '💚', name: '圣光续疗', color: '#7aff9a' },
+                    chainSpell: { icon: '🔗', name: '链式强化', color: '#8a7a6a' },
+                    chill: { icon: '❄️', name: '寒冷', color: '#7ab8e0' },
+                    burn: { icon: '🔥', name: '灼伤', color: '#ff6b35' },
+                    frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -395,6 +410,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     if (e.remaining <= 0) {
                         // 激励到期：还原攻击/移速乘算
                         if (e.type === 'inspire') this._onInspireEnd();
+                        // 加速到期：清空层数
+                        if (e.type === 'haste') this._onHasteEnd();
+                        // 链式强化到期：清空层数
+                        if (e.type === 'chainSpell') this._onChainSpellEnd();
                         this.statusEffects.splice(i, 1);
                     }
                 }
@@ -436,17 +455,46 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
 
             /**
              * 加速 buff（如 P4040 轻量化快速板机命中获得）：
-             * 只记录乘数 + 登记状态，玩家速度链（player/update.js）按状态乘算——
-             * 不改 maxSpeed 数据层，到期自动失效无需还原（激励式数据层乘算不适合高频命中刷新）。
-             * 重复命中只刷新时长与乘数。
+             * 按层数叠加，每层提供固定比例移速加成；获得新层时层数+1，持续时间按来源追加。
+             * 全部持续时间到期后所有层数一并消失。
+             * 不改 maxSpeed 数据层，到期自动失效无需还原。
+             *
+             * @param {number} duration - 本次层数的持续时间（毫秒）
+             * @param {Object} opts - { speedMul?: 总倍率（兼容旧配置）, perStackMul?: 每层加成 }
              */
             applyHaste(duration, opts = {}) {
                 if (this.hasStatusEffect('statusImmune')) return;
-                this._hasteSpeedMul = opts.speedMul ?? 1.10;
-                this.addStatusEffect('haste', duration, { name: '加速', icon: '💨', color: '#5ac85a' });
-                if (this._faction === 'player' && StatusBar) {
-                    StatusBar.addEffect('haste', duration, { name: '加速', icon: '💨', color: '#5ac85a' });
+                // 兼容旧调用 speedMul=1.10 表示每层 +10%；新调用建议直接传 perStackMul=0.10
+                const perStackMul = opts.perStackMul ?? (opts.speedMul ? opts.speedMul - 1 : 0.10);
+
+                const existing = this.statusEffects.find(e => e.type === 'haste');
+                if (existing) {
+                    existing.stacks += 1;
+                    existing.remaining += duration;
+                    existing.duration += duration;
+                    this._hasteStacks = existing.stacks;
+                } else {
+                    this._hastePerStackMul = perStackMul;
+                    this._hasteStacks = 1;
+                    this.addStatusEffect('haste', duration, { stacks: 1, name: '加速', icon: '💨', color: '#5ac85a' });
                 }
+
+                if (this._faction === 'player' && StatusBar) {
+                    const effect = this.statusEffects.find(e => e.type === 'haste');
+                    if (effect) {
+                        StatusBar.addEffect('haste', effect.remaining, { name: '加速', icon: '💨', color: '#5ac85a', stacks: effect.stacks });
+                    }
+                }
+            }
+
+            /** 加速到期还原（updateStatusEffects 钩子） */
+            _onHasteEnd() {
+                this._hasteStacks = 0;
+            }
+
+            /** 链式强化到期还原（updateStatusEffects 钩子） */
+            _onChainSpellEnd() {
+                this._chainSpellStacks = 0;
             }
 
             /** 激励到期还原（updateStatusEffects 钩子） */
@@ -468,7 +516,49 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 if (this._isDead) return;
                 if (this.hasStatusEffect('statusImmune')) return;
                 this.addStatusEffect('stun', duration);
+                // 眩晕打断：攻击动画/预警/施法冻结全部回 idle
+                this._cancelActionsForStun();
                 // 显示眩晕浮动文字
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
+                }
+            }
+            /** 眩晕/冻结时强制中断当前动作（攻击动画、预警、施法冻结） */
+            _cancelActionsForStun() {
+                if (this.weaponAnim) {
+                    this.weaponAnim.state = 'idle';
+                    this.weaponAnim.timer = 0;
+                    if (this.weaponAnim.isAttacking !== undefined) this.weaponAnim.isAttacking = false;
+                }
+                if (this.offhandWeaponAnim) {
+                    this.offhandWeaponAnim.state = 'idle';
+                    this.offhandWeaponAnim.timer = 0;
+                    if (this.offhandWeaponAnim.isAttacking !== undefined) this.offhandWeaponAnim.isAttacking = false;
+                }
+                if (this._attackTelegraphTimer > 0) {
+                    this._attackTelegraphTimer = 0;
+                    this._attackTelegraphFire = null;
+                }
+                // 中断攻击动画计时（如 zombie/_attackAnimTimer），避免眩晕/冻结结束后仍被锁在攻击状态
+                if (this._attackAnimTimer > 0) this._attackAnimTimer = 0;
+                if (this._animState === 'attack') this._animState = 'idle';
+                if (this._frozenForCast) this._frozenForCast = false;
+            }
+            /**
+             * 应用/延长眩晕（电系改造用）：已有眩晕则延长，否则施加 base+extend
+             * @param {number} baseDuration - 基础眩晕时长（毫秒）
+             * @param {number} extendDuration - 延长时长（毫秒）
+             */
+            applyStunExtend(baseDuration, extendDuration) {
+                if (this._isDead) return;
+                if (this.hasStatusEffect('statusImmune')) return;
+                const existing = this.statusEffects.find(e => e.type === 'stun');
+                if (existing) {
+                    existing.remaining += extendDuration;
+                    existing.duration += extendDuration;
+                } else {
+                    this.addStatusEffect('stun', baseDuration + extendDuration);
+                }
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
                 }
@@ -645,14 +735,244 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🛸 无人机易伤 +${stacks}层`, '#5a7a9a'));
                 }
             }
+
+            // --- 状态效果：圣光续疗（HoT，每秒恢复最大生命值百分比） ---
+            _updateHolyRenewal(dt) {
+                if (!this._holyRenewalStacks || this._holyRenewalStacks <= 0) return;
+                this._holyRenewalTimer -= dt;
+                this._holyRenewalTickTimer -= dt;
+                if (this._holyRenewalTickTimer <= 0) {
+                    const maxHp = (this.data && this.data.maxHp) || this.maxHp || 1;
+                    const healPercent = this._holyRenewalHealPercent || 0.01;
+                    const heal = Math.max(1, Math.floor(maxHp * healPercent * this._holyRenewalStacks));
+                    if (this.data) this.data.hp = Math.min((this.data.maxHp || this.maxHp || Infinity), (this.data.hp || 0) + heal);
+                    if (EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `+${heal}`, '#7aff9a'));
+                    }
+                    this._holyRenewalTickTimer = 1000;
+                }
+                if (this._holyRenewalTimer <= 0) {
+                    this._holyRenewalStacks = 0;
+                    this._holyRenewalTimer = 0;
+                    if (this._holyRenewalEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._holyRenewalEffectId);
+                        this._holyRenewalEffectId = null;
+                    }
+                }
+            }
+            applyHolyRenewal(stacks = 1, duration = 3000, healPercent = 0.01) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                if (this._holyRenewalStacks > 0) {
+                    this._holyRenewalStacks += stacks;
+                    this._holyRenewalTimer += duration;
+                } else {
+                    this._holyRenewalStacks = stacks;
+                    this._holyRenewalTimer = duration;
+                    this._holyRenewalTickTimer = 1000;
+                    this._holyRenewalHealPercent = healPercent;
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `💚 圣光续疗 +${stacks}层`, '#7aff9a'));
+                }
+                const effect = this.statusEffects.find(e => e.type === 'holyRenewal');
+                if (effect) {
+                    effect.stacks = this._holyRenewalStacks;
+                    effect.remaining = this._holyRenewalTimer;
+                    effect.duration = Math.max(effect.duration, this._holyRenewalTimer);
+                } else {
+                    this.addStatusEffect('holyRenewal', this._holyRenewalTimer, { stacks: this._holyRenewalStacks });
+                }
+                if (this._faction === 'player' && StatusBar) {
+                    this._holyRenewalEffectId = StatusBar.addEffect('holyRenewal', this._holyRenewalTimer, { stacks: this._holyRenewalStacks });
+                }
+            }
+
+            // --- 状态效果：寒冷（每层减速，加法叠加最终乘算） ---
+            _updateChill(dt) {
+                if (!this._chillStacks || this._chillStacks <= 0) return;
+                this._chillTimer -= dt;
+                if (this._chillTimer <= 0) {
+                    this._chillStacks = 0;
+                    this._chillTimer = 0;
+                    const effect = this.statusEffects.find(e => e.type === 'chill');
+                    if (effect) this.removeStatusEffect('chill');
+                    if (this._chillEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._chillEffectId);
+                        this._chillEffectId = null;
+                    }
+                }
+            }
+            applyChill(stacks = 1, duration = 3000, slowPercent = 0.05) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                // 冻结状态下不再叠加寒冷
+                if (this.hasStatusEffect('frozen')) return;
+                if (this._chillStacks > 0) {
+                    this._chillStacks += stacks;
+                    this._chillTimer += duration;
+                } else {
+                    this._chillStacks = stacks;
+                    this._chillTimer = duration;
+                    this._chillSlowPercent = slowPercent;
+                }
+                // 寒冷达到 20 层 → 触发冻结并减少 10 层寒冷
+                if (this._chillStacks >= 20) {
+                    this._chillStacks -= 10;
+                    if (this._chillStacks < 0) this._chillStacks = 0;
+                    this.applyFreeze(duration);
+                    // 如果寒冷被扣光，清理寒冷状态显示
+                    if (this._chillStacks === 0) {
+                        this._chillTimer = 0;
+                        this.removeStatusEffect('chill');
+                        if (this._chillEffectId && StatusBar) {
+                            StatusBar.removeEffect(this._chillEffectId);
+                            this._chillEffectId = null;
+                        }
+                    }
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `❄️ 寒冷 +${stacks}层`, '#7ab8e0'));
+                }
+                const effect = this.statusEffects.find(e => e.type === 'chill');
+                if (effect) {
+                    effect.stacks = this._chillStacks;
+                    effect.remaining = this._chillTimer;
+                    effect.duration = Math.max(effect.duration, this._chillTimer);
+                } else {
+                    this.addStatusEffect('chill', this._chillTimer, { stacks: this._chillStacks });
+                }
+                if (this._faction === 'player' && StatusBar) {
+                    this._chillEffectId = StatusBar.addEffect('chill', this._chillTimer, { stacks: this._chillStacks });
+                }
+            }
+            // --- 状态效果：冻结（等同于眩晕 + 50% 额外物理伤害 + 冰块视觉） ---
+            _updateFreeze(dt) {
+                if (!this._freezeStacks || this._freezeStacks <= 0) return;
+                this._freezeTimer -= dt;
+                if (this._freezeTimer <= 0) {
+                    this._freezeStacks = 0;
+                    this._freezeTimer = 0;
+                    const effect = this.statusEffects.find(e => e.type === 'frozen');
+                    if (effect) this.removeStatusEffect('frozen');
+                    if (this._freezeEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._freezeEffectId);
+                        this._freezeEffectId = null;
+                    }
+                }
+            }
+            applyFreeze(duration = 3000) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                // 冻结等同于眩晕：强制中断当前动作
+                if (typeof this._cancelAllActionsForStun === 'function') {
+                    this._cancelAllActionsForStun(); // 玩家专用：施法/特殊攻击/换弹等
+                } else {
+                    this._cancelActionsForStun();    // 通用实体：攻击动画/预警等
+                }
+                this._freezeStacks = 1;
+                this._freezeTimer = duration;
+                // 对玩家：冻结同时进入眩晕控制状态，控制时长取两者较长
+                if (this._faction === 'player') {
+                    this.isStunned = true;
+                    this.stunTimer = Math.max(this.stunTimer || 0, duration);
+                }
+                // 清理已有的冻结显示，避免重复
+                this.removeStatusEffect('frozen');
+                if (this._freezeEffectId && StatusBar) StatusBar.removeEffect(this._freezeEffectId);
+                this.addStatusEffect('frozen', duration, { stacks: 1 });
+                if (this._faction === 'player' && StatusBar) {
+                    this._freezeEffectId = StatusBar.addEffect('frozen', duration, { stacks: 1 });
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🧊 冻结！', '#a0d8ff'));
+                }
+                if (SoundManager && SoundManager.playFile) {
+                    SoundManager.playFile('assets/sounds/skills/frozn.mp3');
+                }
+            }
+            /** 是否处于冻结状态 */
+            isFrozen() {
+                return this._freezeStacks > 0 && this._freezeTimer > 0;
+            }
+            /** 寒冷移速倍率：1 - 层数×每层减速，下限 0.01 */
+            getChillSpeedMul() {
+                if (!this._chillStacks || this._chillStacks <= 0) return 1;
+                const perStack = this._chillSlowPercent || 0.05;
+                return Math.max(0.01, 1 - this._chillStacks * perStack);
+            }
+
+            // --- 状态效果：灼伤（每 0.5s 造成施法者魔法攻击×倍率伤害，可叠加） ---
+            _updateBurn(dt) {
+                if (!this._burnStacks || this._burnStacks.length === 0) return;
+                this._burnTickTimer -= dt;
+                for (const stack of this._burnStacks) stack.remaining -= dt;
+                // 移除已到期层
+                this._burnStacks = this._burnStacks.filter(s => s.remaining > 0);
+                if (this._burnStacks.length === 0) {
+                    this._burnTickTimer = 0;
+                    const effect = this.statusEffects.find(e => e.type === 'burn');
+                    if (effect) this.removeStatusEffect('burn');
+                    if (this._burnEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._burnEffectId);
+                        this._burnEffectId = null;
+                    }
+                    return;
+                }
+                if (this._burnTickTimer <= 0) {
+                    let totalDmg = 0;
+                    let source = null;
+                    for (const stack of this._burnStacks) {
+                        const matk = stack.matk || 0;
+                        totalDmg += Math.max(1, Math.floor(matk * stack.damageMul));
+                        if (!source && stack.source && stack.source.active !== false) source = stack.source;
+                    }
+                    if (totalDmg > 0) {
+                        // 灼伤属于魔法持续伤害；source 失效时用 this 自身占位，确保伤害数字正常结算
+                        this.takeDamage(totalDmg, source || this, 'magic');
+                        if (EffectManager) {
+                            EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${totalDmg}`, '#ff6b35'));
+                        }
+                    }
+                    this._burnTickTimer = this._burnTickMs || 500;
+                }
+            }
+            applyBurn(source, stacks = 1, duration = 3000, damageMul = 0.5, tickMs = 500) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                const matk = (source && source.data && source.data.matk) || 0;
+                if (!this._burnStacks) this._burnStacks = [];
+                for (let i = 0; i < stacks; i++) {
+                    this._burnStacks.push({ source, matk, damageMul, remaining: duration });
+                }
+                this._burnTickMs = tickMs;
+                if (this._burnTickTimer <= 0) this._burnTickTimer = tickMs;
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🔥 灼伤 +${stacks}层`, '#ff6b35'));
+                }
+                const totalStacks = this._burnStacks.length;
+                const effect = this.statusEffects.find(e => e.type === 'burn');
+                if (effect) {
+                    effect.stacks = totalStacks;
+                    effect.remaining = Math.max(effect.remaining, duration);
+                    effect.duration = Math.max(effect.duration, duration);
+                } else {
+                    this.addStatusEffect('burn', duration, { stacks: totalStacks });
+                }
+                if (this._faction === 'player' && StatusBar) {
+                    this._burnEffectId = StatusBar.addEffect('burn', duration, { stacks: totalStacks });
+                }
+            }
+
             update(dt) {
                 // 更新状态栏效果计时器
                 this.updateStatusEffects(dt);
-                // 更新伤害型状态效果（中毒、流血、易伤）
+                // 更新伤害型状态效果（中毒、流血、易伤、灼伤）
                 this._updatePoison(dt);
                 this._updateBleed(dt);
                 this._updateMagicVulnerability(dt);
                 this._updateDroneVulnerability(dt);
+                this._updateBurn(dt);
+                // 更新治疗/减速/控制型状态效果
+                this._updateHolyRenewal(dt);
+                this._updateChill(dt);
+                this._updateFreeze(dt);
                 if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;

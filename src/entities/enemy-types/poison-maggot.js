@@ -46,7 +46,7 @@ export class PoisonMaggot extends Enemy {
         if (this._spitCooldown > 0) this._spitCooldown -= dt;
 
         // 眩晕时中断攻击
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackState = 'idle';
             this._attackTimer = 0;
             return;

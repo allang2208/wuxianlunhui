@@ -2,7 +2,7 @@
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WEAPON_ANIM, Easing } from '../config/math-utils.js';
 
-const WEAPON_SIZE_BASE = WEAPON_ANIM.size; // 105
+const WEAPON_SIZE_BASE = WEAPON_ANIM.size; // 126（2026-07-28 起 105→126，与人物 spriteSize 144 同步放大 20%）
 const MELEE_SCALE = 0.75;
 
 /**
@@ -190,7 +190,8 @@ class WeaponTransform {
     /**
      * 获取武器在玩家本地坐标系中的偏移（待机状态）
      * @param {string} weaponType - 武器类型（sword/bow/pistol/akm/pkm 等）
-     * @param {number} playerSize - 玩家尺寸（默认 WEAPON_ANIM.size = 105）
+     * @param {number} playerSize - 玩家尺寸（dev-tool 预览传 WEAPON_ANIM.size=126；游戏传 player.size=18，
+     *      位置 x/y 与该参数无关，仅 size/scale 字段受比例影响）
      * @param {boolean} isOffhand - 是否为副手
      * @param {boolean} isDualWield - 是否双持
      * @param {string} animState - 动画状态（idle/walk/running/attack）
@@ -200,7 +201,7 @@ class WeaponTransform {
      */
     static getWeaponLocalOffset(weaponType, playerSize, isOffhand = false, isDualWield = false, animState = null, _facingRight = true, overrides = {}) {
         const cfg = this._getConfig(weaponType);
-        const s = WEAPON_SIZE_BASE; // 105，不是 player.size（18）
+        const s = WEAPON_SIZE_BASE; // 126，不是 player.size（18）
         const ms = s * MELEE_SCALE; // 78.75
         const scale = playerSize ? playerSize / WEAPON_SIZE_BASE : 1; // 缩放比例
 
@@ -425,6 +426,57 @@ class WeaponTransform {
         };
     }
 
+    /**
+     * 平滑逐帧位置（Catmull-Rom 闭合样条）：
+     * 适用于循环动画（如 walk 21 帧）——相邻帧的提取噪声被直线插值放大后表现为"瞬移/顿挫"，
+     * 样条保证经过每个配置点且帧间切线连续（首尾闭合，循环无跳变）。
+     * 仅 offsetX/offsetY 走样条；rotation/scale/blur/stretch 保持线性插值（数值稳定）。
+     * 与 getInterpolatedPerFramePosition 同接口（cfgKey 支持 walkFrames/attack/attack2/dash）。
+     */
+    static getSmoothPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'walkFrames') {
+        const cfg = WeaponAnimConfig[weaponType] || {};
+        const block = cfg[cfgKey] || cfg.attack;
+        const perFrame = block && block.type === 'perFrame' ? block.frames : null;
+        if (!perFrame || perFrame.length === 0) return null;
+
+        progress = Math.max(0, Math.min(1, progress));
+        const n = perFrame.length;
+        if (n === 1) return this._applyPerFrameToWorld(player, perFrame[0], facingRight);
+        if (progress <= 0) return this._applyPerFrameToWorld(player, perFrame[0], facingRight);
+        if (progress >= 1) return this._applyPerFrameToWorld(player, perFrame[n - 1], facingRight);
+
+        // 样条段数 = 帧数（闭合循环）：raw ∈ [0,n)，i 为当前段，t 为段内进度
+        const raw = progress * n;
+        const i = Math.floor(raw);
+        const t = raw - i;
+        const idx = (k) => ((k % n) + n) % n; // 循环取模，首尾闭合
+        const p0 = perFrame[idx(i - 1)];
+        const p1 = perFrame[idx(i)];
+        const p2 = perFrame[idx(i + 1)];
+        const p3 = perFrame[idx(i + 2)];
+        const v = (f, key, dflt) => (f && f[key] !== undefined ? f[key] : dflt);
+        // Catmull-Rom 公式：0.5*(2P1 + (−P0+P2)t + (2P0−5P1+4P2−P3)t² + (−P0+3P1−3P2+P3)t³)
+        const cr = (a, b, c, d) => 0.5 * (
+            2 * b
+            + (-a + c) * t
+            + (2 * a - 5 * b + 4 * c - d) * t * t
+            + (-a + 3 * b - 3 * c + d) * t * t * t
+        );
+        const lerp = (a, b) => a + (b - a) * t;
+
+        const frame = {
+            offsetX: cr(v(p0, 'offsetX', 0), v(p1, 'offsetX', 0), v(p2, 'offsetX', 0), v(p3, 'offsetX', 0)),
+            offsetY: cr(v(p0, 'offsetY', 0), v(p1, 'offsetY', 0), v(p2, 'offsetY', 0), v(p3, 'offsetY', 0)),
+            rotation: lerp(v(p1, 'rotation', 0), v(p2, 'rotation', 0)),
+            scale: lerp(v(p1, 'scale', 1), v(p2, 'scale', 1)),
+            blurX: lerp(v(p1, 'blurX', 0), v(p2, 'blurX', 0)),
+            blurY: lerp(v(p1, 'blurY', 0), v(p2, 'blurY', 0)),
+            stretchX: lerp(v(p1, 'stretchX', 1), v(p2, 'stretchX', 1)),
+            stretchY: lerp(v(p1, 'stretchY', 1), v(p2, 'stretchY', 1)),
+        };
+        return this._applyPerFrameToWorld(player, frame, facingRight);
+    }
+
     static _applyPerFrameToWorld(player, frame, facingRight) {
         const offsetX = (facingRight ? 1 : -1) * (frame.offsetX || 0);
         const offsetY = frame.offsetY || 0;
@@ -507,8 +559,8 @@ class WeaponTransform {
     // ==================== 武器尺寸计算 ====================
 
     static getWeaponSize(weaponType, scaleOverride = null, animState = null) {
-        // 武器尺寸基于 WEAPON_ANIM.size（105），不是 player.size（18）
-        const s = WEAPON_ANIM.size; // 105
+        // 武器尺寸基于 WEAPON_ANIM.size（126），不是 player.size（18）
+        const s = WEAPON_ANIM.size; // 126
         const ms = s * MELEE_SCALE; // 78.75
         const cfg = WeaponAnimConfig[weaponType] || {};
         

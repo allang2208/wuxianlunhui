@@ -2,6 +2,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
+import { getCurrentWeaponCraftEffects } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
 /**
@@ -108,6 +109,11 @@ const ICE_SPIKE_KIND = {
         if (hitEntity) {
             const wasAlive = hitEntity.hp > 0;
             hitEntity.takeDamage(damage, sys.source, 'magic');
+            // 冰魄吊坠：冰系魔法命中附加寒冷
+            const ce = getCurrentWeaponCraftEffects(sys.source);
+            if (ce && ce.iceChillSlowPercent && typeof hitEntity.applyChill === 'function') {
+                hitEntity.applyChill(1, (ce.iceChillDuration || 3000), ce.iceChillSlowPercent);
+            }
             // 经验改为整次施法累计（multiHit/multiKill 需要整次命中/击杀数），_end 清场时统一结算
             if (skill && sys._isPlayer()) {
                 sys._castHits = (sys._castHits || 0) + 1;

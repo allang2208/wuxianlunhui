@@ -69,8 +69,8 @@ export class ForemanZombie extends Enemy {
         if (this._whipCd > 0) this._whipCd -= dt;
         if (this._howlCd > 0) this._howlCd -= dt;
 
-        // 眩晕时中断攻击动作
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        // 眩晕/冻结时中断攻击动作
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackType = null;
             this._attackTimer = 0;
             this._attackAnimTimer = 0;

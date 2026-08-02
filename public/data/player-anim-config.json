@@ -196,6 +196,10 @@
   "walk": {
     "type": "sheet",
     "src": "assets/character/walk.png",
+    "handLayer": {
+      "body": "assets/player/walk_body.png",
+      "hand": "assets/player/walk_hand.png"
+    },
     "frameWidth": 512,
     "frameHeight": 516,
     "cols": 8,

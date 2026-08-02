@@ -36,7 +36,7 @@ const registeredKeys = new Set([...registrySrc.matchAll(/^    (\w+): \{/gm)].map
 
 // ④ 消费端：战斗代码中的 _craftEffects.X / ce.X 引用
 const consumerFiles = [
-    'src/combat', 'src/entities', 'src/systems', 'src/config',
+    'src/combat', 'src/entities', 'src/systems', 'src/config', 'src/utils',
 ].flatMap(d => fs.readdirSync(path.join(ROOT, d), { recursive: true })
     .filter(f => f.endsWith('.js'))
     .map(f => path.join(d, f)));

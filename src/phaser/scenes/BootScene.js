@@ -56,6 +56,16 @@ export class BootScene extends Scene {
                 this.load.spritesheet(texKey, def.src, {
                     frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
                 });
+                // 手部分层（handLayer，如 walk）：身体层（去手）+ 手层（只手），武器渲染在两者之间，
+                // 视觉上"手握剑"（武器不再盖住手部贴图）
+                if (def.handLayer) {
+                    this.load.spritesheet(`${texKey}_body`, def.handLayer.body, {
+                        frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
+                    });
+                    this.load.spritesheet(`${texKey}_hand`, def.handLayer.hand, {
+                        frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
+                    });
+                }
             }
         }
 
@@ -291,6 +301,8 @@ export class BootScene extends Scene {
         this.load.image('shell_ground', 'assets/ammo/shell_ground.png');
         this.load.image('sword_hilt_icon', 'assets/icons/sword_hilt_icon.png');
         this.load.image('blackbrick', 'assets/terrain/blackbrick.png');
+        // 冰墙技能：写实冰晶簇素材（即梦出图，tools/process-icewall-sprites.py 抠图处理）
+        for (let i = 0; i < 5; i++) this.load.image(`ice_wall_segment_${i}`, `assets/effects/icewall/segment_${i}.png`);
         // 粒子用程序化生成，暂不需要加载图片
 
     }
@@ -334,6 +346,15 @@ export class BootScene extends Scene {
                 frameRate: def.frameRate || 12,
                 repeat: def.repeat !== undefined ? def.repeat : -1,
             });
+            // 手部分层动画：body 用身体贴图（与主动画同帧区间/节奏），hand 由 GameScene 每帧手动同步帧
+            if (def.handLayer) {
+                this.anims.create({
+                    key: `${texKey}_body`,
+                    frames: this.anims.generateFrameNumbers(`${texKey}_body`, { start, end }),
+                    frameRate: def.frameRate || 12,
+                    repeat: def.repeat !== undefined ? def.repeat : -1,
+                });
+            }
         }
 
         // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的

@@ -717,6 +717,10 @@
         {
           "name": "物理攻击",
           "value": "3+敏捷×0.25+力量×0.25"
+        },
+        {
+          "name": "魔法攻击",
+          "value": "5+智力×0.5+精神×0.5"
         }
       ],
       "desc": "初学者的练习法杖，杖身刻有简单的导魔纹路，适合魔法初学者使用",
@@ -728,6 +732,14 @@
         "hitType": "挥砍（扇形判定）",
         "damageType": "物理"
       },
+      "matkFormula": {
+        "base": 5,
+        "intMul": 0.5,
+        "wisMul": 0.5,
+        "enhanceBase": 1,
+        "enhanceIntMul": 0.25,
+        "enhanceWisMul": 0.25
+      },
       "animation": {
         "type": "swing（挥砍）",
         "totalMs": "500ms",
@@ -737,7 +749,7 @@
         "holdOffset": "(0, 0)",
         "weaponSize": 84,
         "timingMul": "1.0x (标准)",
-        "description": "法杖近战挥砍（套用剑类动画），攻击间隔 500ms，无击退"
+        "description": "法杖近战挥砍（套用剑类动画），攻击间隔 500ms，无击退；附加智力/精神成长的魔法攻击"
       }
     },
     "pkm": {

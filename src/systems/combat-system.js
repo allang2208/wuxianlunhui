@@ -40,7 +40,7 @@ class CombatSystemImpl {
         this._updateDashStun(enemy, dt);
 
         // 2. 眩晕状态：不执行战斗行为
-        if (enemy.hasStatusEffect && enemy.hasStatusEffect('stun')) return;
+        if (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen'))) return;
 
         // 3. 攻击执行（需要目标存在且有视线）
         this._updateAttack(enemy, dt, entities);

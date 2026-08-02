@@ -51,8 +51,8 @@ const MovementSystem = {
             return;
         }
 
-        // 眩晕状态：强制停止
-        if (enemy._dashStunned || enemy.hasStatusEffect && enemy.hasStatusEffect('stun')) {
+        // 眩晕/冻结状态：强制停止（冻结效果等同于眩晕）
+        if (enemy._dashStunned || (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen')))) {
             enemy.vx = 0;
             enemy.vy = 0;
             enemy.isMoving = false;
@@ -82,7 +82,7 @@ const MovementSystem = {
                 const dx = enemy.x - src.x, dy = enemy.y - src.y;
                 const d = Math.hypot(dx, dy) || 1;
                 const mul = typeof enemy.getFearSpeedMul === 'function' ? enemy.getFearSpeedMul() : 1;
-                const spd = (enemy.maxSpeed ?? enemy.speed ?? 100) * mul;
+                const spd = this._getEnemyBaseSpeed(enemy) * mul;
                 enemy.vx = (dx / d) * spd;
                 enemy.vy = (dy / d) * spd;
                 enemy.isMoving = true;
@@ -364,6 +364,16 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * 处理击退位移
      * @returns {boolean} 是否正在击退中
      */
+    /**
+     * 获取敌人基础移速（含寒冷 debuff 乘算）。
+     * 寒冷为乘法减速，与恐惧/直行加速等独立叠加。
+     */
+    _getEnemyBaseSpeed(enemy) {
+        const base = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
+        return base * chillMul;
+    },
+
     _applyKnockback(enemy, dt) {
         if (!enemy.knockbackX && !enemy.knockbackY) return false;
 
@@ -371,7 +381,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const sc = dt / 1000;
 
         // [ANTI-TELEPORT] 限制击退每帧最大移动距离
-        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const maxSpd = this._getEnemyBaseSpeed(enemy);
         const maxStep = maxSpd * sc;
         const nextX = enemy.x + (enemy.knockbackX || 0) * sc;
         const nextY = enemy.y + (enemy.knockbackY || 0) * sc;
@@ -665,7 +675,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 if (len > 0) { moveX /= len; moveY /= len; }
             }
 
-            let maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+            let maxSpd = this._getEnemyBaseSpeed(enemy);
             if (chargeStraight) {
                 maxSpd *= 1.3;
             }
@@ -794,7 +804,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
-        let maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        let maxSpd = this._getEnemyBaseSpeed(enemy);
         // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
         if (chargeStraight && dist > (enemy.attackRange || 70)) {
             maxSpd *= 1.3;
@@ -953,7 +963,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // 卡死恢复改 resolve 小步滑移（玩家贴墙同口径），不再 45px 盲跳——
         // 旧版 8 方向 canMoveTo 瞬移是"贴墙周期性瞬移"的根因：跳完仍卡，500ms 后再跳。
         // 只在能缩短与目标距离时移动；移动量 ≤ 3 倍单帧步长，视觉上仍是连续移动
-        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const maxSpd = this._getEnemyBaseSpeed(enemy);
         const step = Math.max(Math.min(maxSpd * 0.05, r * 0.8), 8);
         let best = null, bestDist = Infinity;
         // 步长递增（1×/2×/3×）：正常贴墙小步滑出；深嵌（击退撞进墙厚区）也能合法脱出，不再依赖盲跳
@@ -1141,7 +1151,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 0.1) return;
 
-        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const maxSpd = this._getEnemyBaseSpeed(enemy);
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1192,7 +1202,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = (enemy.maxSpeed ?? enemy.speed ?? 100) * 0.3;
+        const maxSpd = this._getEnemyBaseSpeed(enemy) * 0.3;
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1248,7 +1258,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         if (moveDist < 0.1) return;
 
-        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const maxSpd = this._getEnemyBaseSpeed(enemy);
         enemy.vx += (moveDx / moveDist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy / moveDist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1305,7 +1315,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = enemy.maxSpeed ?? enemy.speed ?? 100;
+        const maxSpd = this._getEnemyBaseSpeed(enemy);
         enemy.vx += (moveDx * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 

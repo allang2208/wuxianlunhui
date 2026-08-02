@@ -96,8 +96,8 @@ export class ArmoredKnight extends Enemy {
         // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速
         super.update(dt, entities);
 
-        // 眩晕时强制中断所有动作
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        // 眩晕/冰冻时强制中断所有动作
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._endCombo();
             this._endCharge();
             this._endBlock();

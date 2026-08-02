@@ -98,6 +98,18 @@ export const EquipTooltipManager = {
                     const computed = Game.player.getCurrentWeaponAtk(fullItem);
                     if (computed > 0) value = computed;
                 }
+                // 装备 matkFormula 魔法攻击：按配置实时计算
+                if (statName === '魔法攻击' && fullItem.matkFormula && Game.player && Game.player.data) {
+                    const el = fullItem.enhanceLevel || 0;
+                    const f = fullItem.matkFormula;
+                    const flat = (f.base || 0) + el * (f.enhanceBase || 0);
+                    const intMul = (f.intMul || 0) + el * (f.enhanceIntMul || 0);
+                    const wisMul = (f.wisMul || 0) + el * (f.enhanceWisMul || 0);
+                    const int = Game.player.data.int || 0;
+                    const wis = Game.player.data.wis || 0;
+                    const computed = Math.round(flat + int * intMul + wis * wisMul);
+                    if (computed > 0) value = computed;
+                }
                 return `<div class="tt-stat"><span class="tt-stat-name">${statName}</span><span class="tt-stat-val ${s.pos ? 'pos' : ''}">${value}</span></div>`;
             }).join('');
         }
@@ -135,6 +147,19 @@ export const EquipTooltipManager = {
             const el = (item.enhanceLevel || fullItem.enhanceLevel || 0);
             let atkFormula = this._buildFormulaDisplay(fullItem.attackFormula, el, fullItem._craftEffects);
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击力公式</span><span class="tt-stat-val">${atkFormula || '-'}</span></div>`;
+            // 装备 matkFormula 魔法攻击公式
+            if (fullItem.matkFormula) {
+                const mf = fullItem.matkFormula;
+                const baseFlat = (mf.base || 0) + el * (mf.enhanceBase || 0);
+                const intCoeff = (mf.intMul || 0) + el * (mf.enhanceIntMul || 0);
+                const wisCoeff = (mf.wisMul || 0) + el * (mf.enhanceWisMul || 0);
+                const parts = [];
+                if (baseFlat !== 0) parts.push(`${baseFlat}`);
+                if (intCoeff !== 0) parts.push(`${intCoeff >= 0 ? '+' : '-'} 智力×${Math.abs(intCoeff).toFixed(2)}`);
+                if (wisCoeff !== 0) parts.push(`${wisCoeff >= 0 ? '+' : '-'} 精神×${Math.abs(wisCoeff).toFixed(2)}`);
+                const matkFormulaText = parts.join(' ') || '0';
+                extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">魔法攻击公式</span><span class="tt-stat-val">${matkFormulaText}</span></div>`;
+            }
             // 从 codexItem 或 fullItem 获取 attack 数据，如没有则尝试 ItemDatabase
             let attackParams = item.attack || fullItem.attack || (codexItem ? codexItem.attack : null);
             if (!attackParams && ItemDatabase && ItemDatabase.items) {

@@ -90,6 +90,7 @@ const baseMixin = {
         d.matk = this._applyRounding((d.int + bonusInt) * matkFormula.intMultiplier + (d.wis + bonusWis) * matkFormula.wisMultiplier, matkFormula.round);
         d.mdef = this._applyRounding((d.wis + bonusWis) * mdefFormula.wisMultiplier + (d.int + bonusInt) * mdefFormula.intMultiplier, mdefFormula.round);
         d.matk += Math.round(eq.matk); // 首饰魔法攻击加成（秘法戒指）
+        d.matk += this._getEquipmentMatkBonus(bonusInt, bonusWis); // 装备 matkFormula 魔法攻击加成
         d.hit = this._applyRounding(hitFormula.base + (d.dex + bonusDex) * hitFormula.dexMultiplier, hitFormula.round);
         d.dodge = this._applyRounding(dodgeFormula.base + (d.dex + bonusDex) * dodgeFormula.dexMultiplier, dodgeFormula.round);
         d.crit = this._applyRounding(critFormula.base + (d.luck + bonusLuck) * critFormula.luckMultiplier, critFormula.round);
@@ -168,6 +169,30 @@ const baseMixin = {
             }
         }
         return totals;
+    },
+
+    /**
+     * 装备 matkFormula 魔法攻击加成（独立公式，含强化成长）。
+     * 任何装备只要配置了 matkFormula 即生效，不硬编码武器类型或具体数值。
+     * 公式：base + 强化等级×enhanceBase + (智力+技能加成)×(intMul + 强化等级×enhanceIntMul)
+     *                            + (精神+技能加成)×(wisMul + 强化等级×enhanceWisMul)
+     */
+    _getEquipmentMatkBonus(bonusInt, bonusWis) {
+        let total = 0;
+        if (!this.equipments) return total;
+        for (const slotKey of Object.keys(this.equipments)) {
+            const it = this.equipments[slotKey];
+            if (!it || !it.matkFormula) continue;
+            const el = it.enhanceLevel || 0;
+            const f = it.matkFormula;
+            const flat = (f.base || 0) + el * (f.enhanceBase || 0);
+            const intMul = (f.intMul || 0) + el * (f.enhanceIntMul || 0);
+            const wisMul = (f.wisMul || 0) + el * (f.enhanceWisMul || 0);
+            const intTotal = (this.data.int || 0) + (bonusInt || 0);
+            const wisTotal = (this.data.wis || 0) + (bonusWis || 0);
+            total += flat + intTotal * intMul + wisTotal * wisMul;
+        }
+        return Math.round(total);
     },
 
     /**

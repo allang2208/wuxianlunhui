@@ -2,6 +2,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
+import { getCurrentWeaponCraftEffects } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
 /**

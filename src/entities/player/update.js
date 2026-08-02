@@ -40,10 +40,13 @@ update(dt, entities) {
                     }
                     return; // 死亡期间不执行任何其他逻辑
                 }
-                // ===== 眩晕状态处理 =====
-                if (this.isStunned) {
-                    this.stunTimer -= dt;
-                    if (this.stunTimer <= 0) {
+                // ===== 眩晕/冻结状态处理 =====
+                // 冻结效果等同于眩晕；任一存在即进入控制状态
+                if (typeof this._updateFreeze === 'function') this._updateFreeze(dt);
+                const stillFrozen = this.hasStatusEffect && this.hasStatusEffect('frozen');
+                if (this.isStunned || stillFrozen) {
+                    if (this.stunTimer > 0) this.stunTimer -= dt;
+                    if (this.stunTimer <= 0 && !stillFrozen) {
                         this.isStunned = false;
                         this.stunTimer = 0;
                         // 从状态栏移除眩晕效果
@@ -52,11 +55,11 @@ update(dt, entities) {
                             this._stunEffectId = null;
                         }
                     }
-                    // 眩晕期间强制取消防御状态
+                    // 眩晕/冻结期间强制取消防御状态
                     if (this.shieldSystem && this.shieldSystem.defending) {
                         this.shieldSystem.exitDefense();
                     }
-                    // 眩晕期间：无法移动、无法攻击、无法调准朝向、无法释放技能
+                    // 眩晕/冻结期间：无法移动、无法攻击、无法调准朝向、无法释放技能
                     // 更新其他子系统（如武器特效、动画复位等）
                     this._updateSubsystems(dt, entities);
                     return;
@@ -277,9 +280,15 @@ update(dt, entities) {
                         const pm = this.skills.pistolMastery.getEffect(this.skills.pistolMastery.level);
                         targetSpeed *= (1 + pm.speedPercent);
                     }
-                    // 加速 buff（命中获得，如 P4040 轻量化快速板机）：状态存续期乘算移动速度
+                    // 加速 buff（命中获得，如 P4040 轻量化快速板机）：按层数叠加移速
                     if (this.hasStatusEffect && this.hasStatusEffect('haste')) {
-                        targetSpeed *= (this._hasteSpeedMul || 1.10);
+                        const hasteStacks = this._hasteStacks || 1;
+                        const hastePerStack = this._hastePerStackMul || 0.10;
+                        targetSpeed *= (1 + hasteStacks * hastePerStack);
+                    }
+                    // 寒冷 debuff：按层数降低移速（加法叠加最终乘算）
+                    if (this.hasStatusEffect && this.hasStatusEffect('chill')) {
+                        targetSpeed *= (typeof this.getChillSpeedMul === 'function' ? this.getChillSpeedMul() : 1);
                     }
                     // 双手枪械开火/瞄准时禁止 Shift 奔跑（开火或右键瞄准即中断奔跑退回 walking，
                     // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）

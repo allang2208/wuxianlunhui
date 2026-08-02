@@ -139,7 +139,7 @@ async function mergeWeaponFramesIntoConfig(payload) {
     const readPath = paths.read;
     const cfg = JSON.parse(await fs.promises.readFile(readPath, 'utf8'));
     if (!cfg[wt]) cfg[wt] = {};
-    const blockKey = ['attack', 'attack2', 'dash'].includes(payload.anim) ? payload.anim : 'attack';
+    const blockKey = ['attack', 'attack2', 'dash', 'walkFrames'].includes(payload.anim) ? payload.anim : 'attack';
     cfg[wt][blockKey] = { ...(cfg[wt][blockKey] || {}), type: 'perFrame', frames: payload.frames };
     const backupPath = path.join(path.dirname(getWeaponFramesPath()), 'weapon-anim-config.backup.json');
     await fs.promises.copyFile(readPath, backupPath);

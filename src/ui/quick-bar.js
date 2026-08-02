@@ -5,6 +5,8 @@ import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { applyConsumableEffect } from '../config/consumable.js';
+import { getMagicCooldownMultiplier } from '../utils/magic-craft-helper.js';
+import { getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -376,8 +378,8 @@ export const QuickBar = {
         if (!slot) return;
         const player = Game.player;
         if (!player) return;
-        // 眩晕状态：不可使用技能/物品
-        if (player.isStunned) return;
+        // 眩晕/冻结状态：不可使用技能/物品（冻结效果等同于眩晕）
+        if (player.isStunned || (player.hasStatusEffect && player.hasStatusEffect('frozen'))) return;
         // 施法/后摇期间：不可释放技能/物品
         if (player._castState && player._castState !== 'idle') return;
         // 攻击期间禁止使用技能
@@ -473,6 +475,12 @@ export const QuickBar = {
                     else player.holyLightSystem.trigger();
                 }
                 // 冷却时间由 HolyLightSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'iceWall') {
+                // 冰墙技能
+                if (player.iceWallSystem) {
+                    player.iceWallSystem.trigger();
+                }
+                // 冷却时间由 IceWallSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -535,6 +543,7 @@ export const QuickBar = {
     _droneMoveCommand() {
         const player = Game.player;
         if (!player || !player.droneSystem) return;
+        if (player.isStunned || (player.hasStatusEffect && player.hasStatusEffect('frozen'))) return;
         if (player.weaponAnim && player.weaponAnim.state !== 'idle') return;
         if (player._specialAttackActive) return;
         const skill = player.skills && player.skills.droneSkill;
@@ -617,8 +626,50 @@ export const QuickBar = {
         } else if (Game.player && Game.player._holyLightCooldown === 0) {
             this.cooldowns['holyLight'] = 0;
         }
+        // 冰墙技能冷却同步
+        if (Game.player && Game.player._iceWallCooldown > 0) {
+            this.cooldowns['iceWall'] = Game.player._iceWallCooldown;
+        } else if (Game.player && Game.player._iceWallCooldown === 0) {
+            this.cooldowns['iceWall'] = 0;
+        }
         this._renderCooldownOverlays();
+        this._renderSkillRequirements();
     },
+
+    /**
+     * 技能释放条件不满足时槽位图标灰黑色（数据驱动：中级及以上魔法需装备法杖，
+     * 见 magic-categories.js MAGIC_SKILL_TIERS / meetsMagicWeaponReq）
+     */
+    _renderSkillRequirements() {
+        if (!this.slots) return;
+        const player = Game.player;
+        this.slots.forEach(slot => {
+            if (!slot || !slot.element) return;
+            const skillId = this.skillAssignments && this.skillAssignments[slot.config.keyCode];
+            if (!skillId) {
+                slot.element.classList.remove('qb-skill-disabled');
+                return;
+            }
+            let disabled = false;
+            if (player && getSkillMagicTier(skillId) >= 2) {
+                disabled = !meetsMagicWeaponReq(player, skillId).ok;
+            }
+            slot.element.classList.toggle('qb-skill-disabled', disabled);
+        });
+    },
+    /**
+     * 获取技能总冷却时间（毫秒），对冰/火/电/光四系魔法应用改造冷却修正。
+     */
+    _getTotalCooldown(skillId, skill, effect) {
+        const baseMs = (effect.cooldown || 0) * 1000;
+        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall'].includes(skillId)) return baseMs;
+        const player = Game.player;
+        if (!player) return baseMs;
+        const currentWpn = player.equipments && player.equipments[player.weaponMode];
+        const ce = currentWpn && currentWpn._craftEffects;
+        return Math.max(0, baseMs * getMagicCooldownMultiplier(player, ce));
+    },
+
     _flashAllCooldownSlots() {
         this.slots.forEach(slot => {
             if (slot.config.type === 'special') return;
@@ -666,7 +717,7 @@ export const QuickBar = {
             const skill = Game.player && Game.player.skills[skillId];
             if (!skill) return;
             const effect = skill.getEffect(skill.level);
-            const totalCooldown = effect.cooldown * 1000;
+            const totalCooldown = this._getTotalCooldown(skillId, skill, effect);
             const remaining = this.cooldowns[skillId] || 0;
             const overlay = slot.element.querySelector('.cooldown-overlay');
             const text = slot.element.querySelector('.cooldown-text');

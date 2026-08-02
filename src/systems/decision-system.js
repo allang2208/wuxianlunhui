@@ -32,7 +32,7 @@ class DecisionSystemImpl {
 
         // 眩晕或冲击状态下暂停决策
         if (enemy._dashStunned) return;
-        if (typeof enemy.hasStatusEffect === 'function' && enemy.hasStatusEffect('stun')) return;
+        if (typeof enemy.hasStatusEffect === 'function' && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen'))) return;
 
         // 1. 目标决策：选择并跟踪目标
         this._updateTargetDecision(enemy, dt, entities);

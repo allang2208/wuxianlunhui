@@ -8,6 +8,17 @@ import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
 import { burstParticles } from '../../effects/combat-fx.js';
+import {
+    getCurrentWeaponCraftEffects,
+    getMagicRangeMultiplier,
+    getMagicMpCostMultiplier,
+    getMagicCooldownMultiplier,
+    getMagicDamageMultiplierWithChain,
+    consumeChainSpellBonus,
+    addChainSpellStack,
+    applyCastHaste,
+} from '../../utils/magic-craft-helper.js';
+import { getSkillMagicCategory } from '../../config/magic-categories.js';
 
 /**
  * 法系投射物技能系统基类（2026-07-28：FireballSystem/IceSpikeSystem ~90% 雷同合并）
@@ -40,6 +51,46 @@ export class BoltSkillSystem {
         return entity._faction !== this.source._faction;
     }
 
+    _isMagic() {
+        return !!getSkillMagicCategory(this.kind.skillKey);
+    }
+
+    /** 获取经改造效果修正后的 effect（MP/冷却/距离/伤害倍率均按当前武器改造计算） */
+    _getEffect() {
+        const skill = this.source.skills && this.source.skills[this.kind.skillKey];
+        const base = skill ? skill.getEffect(skill.level) : {};
+        if (!this._isMagic()) return { ...base };
+
+        const ce = getCurrentWeaponCraftEffects(this.source);
+        const effect = { ...base };
+        const chainStacks = this._chainSpellStacksConsumed || 0;
+
+        // MP 消耗
+        const mpMul = getMagicMpCostMultiplier(this.source, ce, chainStacks);
+        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+
+        // 冷却
+        const cdMul = getMagicCooldownMultiplier(this.source, ce);
+        if (effect.cooldown) effect.cooldown *= cdMul;
+
+        // 距离
+        const rangeMul = getMagicRangeMultiplier(this.source, ce);
+        if (effect.maxRange) effect.maxRange *= rangeMul;
+
+        // 杖头改造：冰锥数量 / 火球爆炸半径
+        if (this.kind.skillKey === 'iceSpike' && ce && ce.iceSpikeCountDelta) {
+            effect.spikeCount = (effect.spikeCount || 1) + ce.iceSpikeCountDelta;
+        }
+        if (this.kind.skillKey === 'fireball' && ce && ce.fireballExplosionRadiusPercent) {
+            effect.explosionRadius = (effect.explosionRadius || 1) * (1 + ce.fireballExplosionRadiusPercent);
+        }
+
+        // 伤害倍率（供本次施法缓存）
+        this._magicDamageMul = getMagicDamageMultiplierWithChain(this.source, this.kind.skillKey, ce, chainStacks);
+
+        return effect;
+    }
+
     _getAimTarget() {
         if (this._isPlayer()) {
             return Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
@@ -67,12 +118,11 @@ export class BoltSkillSystem {
             }
             return;
         }
-        // 冷却检查
+
+        // 冷却检查（使用改造后冷却）
         if (this.source[this.kind.fields.cooldown] > 0) return;
 
-        const skill = this.source.skills && this.source.skills[this.kind.skillKey];
-        if (!skill) return;
-        const effect = skill.getEffect(skill.level);
+        const effect = this._getEffect();
 
         // 玩家消耗魔法值；敌人不消耗
         if (this._isPlayer()) {
@@ -82,6 +132,17 @@ export class BoltSkillSystem {
             }
             this.source.data.mp -= effect.mpCost;
         }
+
+        // 链式强化：在 MP 扣除成功后消费已有层数（伤害/MP 加成计入本次施法）
+        if (this._isMagic()) {
+            const chain = consumeChainSpellBonus(this.source);
+            this._chainSpellStacksConsumed = chain.stacks;
+            this._chainSpellMpCostMul = chain.mpCostMul;
+            // 重新计算并缓存本次施法伤害倍率
+            const ce = getCurrentWeaponCraftEffects(this.source);
+            this._magicDamageMul = getMagicDamageMultiplierWithChain(this.source, this.kind.skillKey, ce, chain.stacks);
+        }
+
         this._spawn(effect);
     }
 
@@ -139,8 +200,7 @@ export class BoltSkillSystem {
 
     update(dt, entities) {
         const src = this.source;
-        const skill = src.skills && src.skills[this.kind.skillKey];
-        const effect = skill ? skill.getEffect(skill.level) : {};
+        const effect = this._getEffect();
         if (src[this.kind.fields.active]) {
             src[this.kind.fields.timer] += dt;
             const spikes = this._spikes();
@@ -187,9 +247,11 @@ export class BoltSkillSystem {
         const dtSec = dt / 1000;
         const src = this.source;
         const skill = src.skills && src.skills[this.kind.skillKey];
-        const effect = skill ? skill.getEffect(skill.level) : {};
+        const effect = this._getEffect();
         const d = src.data;
-        const damage = Math.floor((effect.damageBase ?? 0) + (d.matk ?? 0) * (effect.magicMul ?? 0) + (d.int ?? 0) * (effect.intMul ?? 0));
+        const baseDamage = Math.floor((effect.damageBase ?? 0) + (d.matk ?? 0) * (effect.magicMul ?? 0) + (d.int ?? 0) * (effect.intMul ?? 0));
+        const damageMul = this._magicDamageMul || 1;
+        const damage = Math.floor(baseDamage * damageMul);
         const entityList = Array.from(entities.values ? entities.values() : entities);
 
         this._spikes().forEach(spike => {
@@ -261,6 +323,10 @@ export class BoltSkillSystem {
         let hitCount = 0;
         let killCount = 0;
         const explosionShape = new GroundCircle(x, y, radius);
+        const ce = getCurrentWeaponCraftEffects(this.source);
+        const burnMul = ce && ce.fireBurnDamageMul;
+        const burnDuration = (ce && ce.fireBurnDuration) || 3000;
+        const burnTickMs = (ce && ce.fireBurnTickMs) || 500;
         entityList.forEach(entity => {
             if (!this._isHostile(entity) || !entity.active || !entity.hittable) return;
             if (!explosionShape.intersectsEntity(entity)) return;
@@ -270,6 +336,10 @@ export class BoltSkillSystem {
             const distRatio = 1 - Math.min(dist / radius, 1);
             const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
             entity.takeDamage(finalDamage, this.source, 'magic');
+            // 烈焰吊坠：火系魔法造成伤害附加灼伤
+            if (burnMul && typeof entity.applyBurn === 'function') {
+                entity.applyBurn(this.source, 1, burnDuration, burnMul, burnTickMs);
+            }
             hitCount++;
             if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
         });
@@ -286,13 +356,21 @@ export class BoltSkillSystem {
             });
         }
         if (this._spikes().some(s => s.flyActive)) return;
-        const skill = src.skills && src.skills[this.kind.skillKey];
-        const effect = skill ? skill.getEffect(skill.level) : {};
+        const effect = this._getEffect();
         src[this.kind.fields.active] = false;
         src[this.kind.fields.timer] = 0;
         src[this.kind.fields.spikes] = this.kind.fields.spikesArrayEmptyIsNull ? null : [];
         if (this.kind.fields.alias) src[this.kind.fields.alias] = null;
         // 法袍套「秘法」：技能冷却 -12%（source._cooldownReduction 由套装在 calculateCombatStats 设置）
         src[this.kind.fields.cooldown] = effect.cooldown * 1000 * (1 - (src._cooldownReduction || 0));
+        // 松木握柄：本次施法结束后添加 1 层链式强化；檀木握柄：施法后给自身加速
+        if (this._isMagic()) {
+            addChainSpellStack(src);
+            applyCastHaste(src);
+        }
+        // 清本次施法缓存
+        this._magicDamageMul = 1;
+        this._chainSpellStacksConsumed = 0;
+        this._chainSpellMpCostMul = 0;
     }
 }

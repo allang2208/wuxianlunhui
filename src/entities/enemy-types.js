@@ -183,7 +183,7 @@ class BlackWolf extends Enemy {
     }
 
     _getTextureKey() {
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             return 'enemy_black_wolf_idle';
         }
         if (this._animState === 'attack') {
@@ -243,7 +243,7 @@ class BlackWolf extends Enemy {
         let { bounceY, scaleX, scaleY, leanAngle, swayX } = params;
 
         let currentSprite;
-        if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             // 眩晕状态：显示 idle 图片（被弹反后）
             currentSprite = this._sprites.idle;
         } else if (this._animState === 'attack') {
@@ -263,7 +263,7 @@ class BlackWolf extends Enemy {
         if (shouldFlip) ctx.scale(-1, 1);
         ctx.rotate(leanAngle);
         if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
-            if (this.hasStatusEffect && this.hasStatusEffect('stun')) {
+            if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
                 // 眩晕 idle 图片：单张，直接绘制，缩放至 151x151
                 const renderCfg = this._animCfg?.render || {};
                 const spriteSize = renderCfg.spriteSize ?? 151;
