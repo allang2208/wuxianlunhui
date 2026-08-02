@@ -172,6 +172,8 @@ export const ObstacleSpawnSystem = {
                 tex: q.tex, dx: q.x - bx, dy: q.y - by,
                 scaleX: q.scaleX ?? 1, scaleY: q.scaleY ?? q.scaleX ?? 1,
                 rotation: q.rotation || 0, flipX: !!q.flipX, flipY: !!q.flipY,
+                // 编辑器保存的组内图层深度（相对顺序以此为准，不再逐件按世界 Y 重算）
+                savedDepth: q.depth ?? q.y,
             }));
             // 整体包围半径：以预制 cx/cy 为锚，各件 锚距 + 自身旋转 AABB 半对角 的最大值
             let compR = 0;
@@ -195,6 +197,17 @@ export const ObstacleSpawnSystem = {
                 staged.push({ it, pt });
             }
             if (!ok) continue;
+            // 组内图层顺序：以「保存深度最小（最靠后）」的一件为基准，抬到附近墙件之上，
+            // 其余各件按保存深度差值递增——完整保留编辑器里手调的遮挡关系
+            // （旧实现逐件 _liftDepthAboveWalls(piece, obstacleDepthOf(piece)) 按世界 Y
+            // 独立重算，桶*3+瓶等 8/10 组合的保存图层被丢弃/错层）
+            const minItem = items.reduce((m, it) => (it.savedDepth < m.savedDepth ? it : m), items[0]);
+            const basePiece = {
+                tex: minItem.tex, x: anchor.x + minItem.dx, y: anchor.y + minItem.dy,
+                scaleX: minItem.scaleX, scaleY: minItem.scaleY,
+                rotation: minItem.rotation, flipX: minItem.flipX, flipY: minItem.flipY,
+            };
+            const baseDepth = _liftDepthAboveWalls(basePiece, WallSystem.obstacleDepthOf(basePiece));
             for (const { it, pt } of staged) {
                 const piece = {
                     tex: it.tex, x: pt.x, y: pt.y,
@@ -203,9 +216,8 @@ export const ObstacleSpawnSystem = {
                     // 组合来源标记（CDP/调试 dump 用；渲染/碰撞忽略下划线扩展字段）
                     _prefabKey: key, _compAnchor: { x: anchor.x, y: anchor.y }, _compR: compR,
                 };
-                // prefab 旧 depth 不可用，逐件重算；并抬到附近墙件之上（静态件不走实体
-                // junctionCorrectedDepth 仲裁，不抬会被 flat depth 更深的后墙后画盖住）
-                piece.depth = _liftDepthAboveWalls(piece, WallSystem.obstacleDepthOf(piece));
+                // 组内相对深度 = 基准深度 + 保存差值（保存顺序完整保留；整体已抬到墙件之上）
+                piece.depth = baseDepth + (it.savedDepth - minItem.savedDepth);
                 piece.depthManual = true; // 手调深度：_placeIsoPiece 渲染尊重 p.depth
                 this._placeObstacle(ctx, piece);
             }

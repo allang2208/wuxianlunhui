@@ -18,6 +18,7 @@ import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
+import { SoundManager } from '../../ui/sound-manager.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
@@ -4256,6 +4257,17 @@ export class GameScene extends Scene {
                     sprite.setDisplaySize(sz, sz);
                     // 静态贴图（无动画注册）直接显示首帧，不 play
                     if (this.anims.exists(sprCfg.idleKey)) sprite.play(sprCfg.idleKey);
+                    // 动画帧触发音效（game-config npcs.*.sprite.frameSounds：
+                    // 循环动画播到指定帧（1 基帧号）各播放一次；sprite 每实体只创建一次，监听不重复）
+                    const fsCfg = sprCfg.frameSounds;
+                    if (fsCfg && Array.isArray(fsCfg.frames) && fsCfg.frames.length && fsCfg.path) {
+                        sprite.on('animationupdate', (_anim, frame) => {
+                            if (fsCfg.frames.includes(frame.index)
+                                && SoundManager && typeof SoundManager.playFile === 'function') {
+                                SoundManager.playFile(fsCfg.path);
+                            }
+                        });
+                    }
                 } else {
                     if (!this.textures.exists('neutral_circle')) {
                         const g = this.add.graphics();
