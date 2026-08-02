@@ -8,6 +8,14 @@
 - 测试结果
 - 已知问题
 
+### 对话：障碍物组合同房间去重 + 组合间最小间隔（系数 0.5 定案）（2026-08-02）
+
+- `src/world/obstacle-spawn-system.js` `_spawnPrefabCompositions` 新增两条规则：
+  - **同房间不重复**：`ctx.usedPrefabs` 逐房记录已抽预制 key，抽过的不再抽（池 10 组 ≥ 房间 3 的 8 组；抽干放实际数量不报错）；
+  - **组合间最小间隔**（组合视作整体）：整体包围半径 r = 各件（锚距 + 旋转 AABB 半对角）最大值；净间隔 = 锚距 − (r新 + r已) 必须 > **0.5×max(r新, r已)**——首版 max(r) 导致房间 3 只有 40% 概率放满 8 组，用户定案改 0.5 系数 + 放不满就放实际数量；改后模拟（`tools/sim-comp-spacing.mjs`，300 次/房）：房间 1/2 放满 100%、房间 3 放满 8 组 83.3%（7 组 16.3%、6 组 0.3%），重复/间隔违规均 0。
+- CDP 实机 dump（`tools/cdp-comps-dump.mjs` + `tools/comps-dump.json`）：三房无重复 key、两两净间隔全满足；截图 `tools/verify-shots/room3-comps.png`。
+- 测试：`node --check` ✓；npm test 全绿（177 项）。
+
 ### 对话：新增怪物巫婆（lord/僵尸）+ 煮锅（站桩伴生）（2026-08-02）
 
 - **巫婆（witch）**：rank=lord、family=僵尸，HP 1300、物攻 20/物防 55/魔攻 70/魔防 55（用户确认）、暴击 15%、移速 130。素材 `assets/enemies/witch/`（8列×4行 512×512 帧，PIL 扫帧定区间）：idle 单帧 / walking 11 帧 / attacking 14 帧 / attacking-2 18 帧 / dying 17 帧（播完定格 1s→淡出 0.3s，lanternMiner 同模式）。
@@ -32,6 +40,13 @@
 - 排查：CDP 复现确认火把正常生成（2 通道 × 2 个）、精灵可见，但每个火把相对锚定墙底边线的 y 偏移为 **+60px（底边线下方，墙脚/地板一侧）**；预制件「火把墙」参考的火把是 **-60px（底边线上方，墙面上）**——同一 69px 垂直距离，法线方向选反了。
 - 修复（`src/world/obstacle-spawn-system.js` `_spawnPassageTorches`）：垂距法线从"取指向通道中心一侧"改为"取背离通道中心一侧"（`dot > 0` 才翻转），与预制件参考同向。
 - 验证：CDP 重进竞技场实测 4 个火把 deltaY 全部变为 **-59/-60**（墙上），垂直距离 69~70 不变，depth = 墙深 + depthDelta 不变；eslint 通过。
+
+### 对话：僵尸地牢陷阱叠放——石柱陷阱线间距修正（2026-08-02）
+
+- 现象：竞技场房间 1/2 的石柱陷阱线看起来叠在一起。
+- 排查（CDP 导出全部陷阱坐标）：非重复生成（无坐标重复）——石柱线模式按 `lineSpacing: 30` 中心距摆放，但陷阱精灵 `triggerRadius(45)×2.6 ≈ 117px`，30 < 117 → 相邻陷阱重叠 87px，视觉成一条实心带；触发椭圆（45 > 30）同样重叠。
+- 修复：`data/dungeon-config.json` + `public/data/dungeon-config.json` 的 `zombieDungeon.traps.lineSpacing` 30 → **180**（用户确认），`src/world/trap-system.js` 兜底默认值与注释同步；房间 3 随机环带模式不受影响（min 间距 112.5px）。
+- 验证：CDP 重进竞技场实测房间 1/2 陷阱间隔恰好 **180px**、精灵 117px → 可见空隙 63px；config-integrity 通过；eslint 通过。
 
 ### 对话：Vite 开发服务器崩溃（资源 ERR_CONNECTION_REFUSED）排查修复（2026-08-02）
 
