@@ -15,6 +15,8 @@ const DEFAULTS = {
         shortestCombatPath: 9,
         typeRatios: { combat: 0.70, event: 0.30 },
         eliteCombatChance: 0.20,
+        // 竞技场（含精英战斗事件）最后一波普通怪数量（精英/领主/强制怪另算不动）
+        arenaLastWaveNormals: 10,
         encounters: {
             normal: {
                 combatWaves: 3,

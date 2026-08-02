@@ -830,10 +830,13 @@ export class ZombieDungeonCombat {
         this._isElite = isElite;
         // encounterOverride：Boss 战等独立遭遇配置（如 zombieDungeonBeginner.bossEncounter）
         this._encounter = encounterOverride || DungeonConfig.getZombieEncounterConfig(isElite, dungeonType);
+        this._dungeonType = dungeonType;
         // forceMonsters：事件强制刷新怪物（enemy-config 键名数组，如 ['armoredKnight']），首波插入
         this._forceMonsters = forceMonsters;
         // 强制怪出场的波次（默认首波；竞技场 forceArenaWaves 改为最后一波压轴）
         this._forceMonstersWave = 1;
+        // 竞技场模式标记（forceArenaWaves 置位；尾波普通怪固定 10 只的生效范围）
+        this._arenaMode = false;
         this._currentWave = 0;
         this._totalWaves = this._encounter.combatWaves;
     }
@@ -846,6 +849,7 @@ export class ZombieDungeonCombat {
     forceArenaWaves(n) {
         if (this._totalWaves < n) this._totalWaves = n;
         this._forceMonstersWave = this._totalWaves;
+        this._arenaMode = true;
     }
 
     reset() {
@@ -963,6 +967,24 @@ export class ZombieDungeonCombat {
         if (this._isElite && classes.some(c => c.tier === 'elite' && c.MonsterClass === createOreSpider)) {
             for (const c of classes) {
                 if (c.tier === 'normal') c.MonsterClass = createMinerZombie;
+            }
+        }
+
+        // 竞技场（含精英战斗事件）最后一波：普通怪数量固定（配置 arenaLastWaveNormals，默认 10）——
+        // 精英/领主/强制怪不动；普通怪不足补足、超出随机裁掉（V0.370 用户定案，其余编排不变）
+        if (this._arenaMode && this._currentWave === this._totalWaves) {
+            const zcfg = DungeonConfig.getZombieDungeonConfig(this._dungeonType) || {};
+            const target = zcfg.arenaLastWaveNormals ?? 10;
+            const oreSpiderPaired = this._isElite && classes.some(c => c.tier === 'elite' && c.MonsterClass === createOreSpider);
+            let normalCount = classes.filter(c => c.tier === 'normal').length;
+            while (normalCount < target) {
+                // 与上方编组规则同口径：已抽中矿石蜘蛛时补的普通怪也用矿工僵尸
+                const pool = oreSpiderPaired ? [createMinerZombie] : getPool('normal');
+                classes.push({ MonsterClass: pool[Math.floor(Math.random() * pool.length)], tier: 'normal' });
+                normalCount++;
+            }
+            for (let i = classes.length - 1; i >= 0 && normalCount > target; i--) {
+                if (classes[i].tier === 'normal') { classes.splice(i, 1); normalCount--; }
             }
         }
 
