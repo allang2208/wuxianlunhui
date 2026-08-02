@@ -296,38 +296,50 @@
         "rewardDust": 1000
       }
     },
-    "treasureChest": {
-      "F": {
-        "gold": 300,
-        "materialDust": 100,
-        "tributeChance": 0
-      },
-      "E": {
-        "gold": 400,
-        "materialDust": 150,
-        "tributeChance": 0
-      },
-      "D": {
-        "gold": 500,
-        "materialDust": 200,
-        "tributeChance": 0.1
-      },
-      "C": {
-        "gold": 700,
-        "materialDust": 300,
-        "tributeChance": 0.1
-      },
-      "B": {
-        "gold": 900,
-        "materialDust": 400,
-        "tributeChance": 0.1
-      },
-      "A": {
-        "gold": 1200,
-        "materialDust": 500,
-        "tributeChance": 0.1
-      }
+  "treasureChest": {
+    "F": {
+      "gold": 300,
+      "materialDust": 100,
+      "enhancementStone": 1,
+      "reforgeTicket": 1,
+      "tributeChance": 0
     },
+    "E": {
+      "gold": 400,
+      "materialDust": 150,
+      "enhancementStone": 1,
+      "reforgeTicket": 1,
+      "tributeChance": 0
+    },
+    "D": {
+      "gold": 500,
+      "materialDust": 200,
+      "enhancementStone": 1,
+      "reforgeTicket": 1,
+      "tributeChance": 0.1
+    },
+    "C": {
+      "gold": 700,
+      "materialDust": 300,
+      "enhancementStone": 2,
+      "reforgeTicket": 2,
+      "tributeChance": 0.1
+    },
+    "B": {
+      "gold": 900,
+      "materialDust": 400,
+      "enhancementStone": 3,
+      "reforgeTicket": 3,
+      "tributeChance": 0.15
+    },
+    "A": {
+      "gold": 1200,
+      "materialDust": 500,
+      "enhancementStone": 4,
+      "reforgeTicket": 4,
+      "tributeChance": 0.2
+    }
+  },
     "supplyPile": {
       "F": {
         "hp": 20,

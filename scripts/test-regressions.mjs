@@ -154,6 +154,13 @@ console.log('\n[4] 宝箱奖励表完整性');
     check('treasureChest 表存在', !!table);
     for (const g of ['F', 'E', 'D', 'C', 'B', 'A']) {
         check(`treasureChest 含 ${g} 档`, !!(table && table[g]));
+        if (table && table[g]) {
+            check(`treasureChest ${g} 含 gold/materialDust`, typeof table[g].gold === 'number' && typeof table[g].materialDust === 'number');
+            check(`treasureChest ${g} 含强化石/改造券/祭品概率`,
+                typeof table[g].enhancementStone === 'number' &&
+                typeof table[g].reforgeTicket === 'number' &&
+                typeof table[g].tributeChance === 'number');
+        }
     }
     // chest-room-system 的 GRADES 必须覆盖表内全部档（防配置有档、代码不读）
     const chestSrc = fs.readFileSync(path.join(ROOT, 'src/world/chest-room-system.js'), 'utf-8');

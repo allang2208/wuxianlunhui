@@ -19,6 +19,7 @@ import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EnhancementItems } from '../ui/reward-system.js';
 import { MagicDustItem } from '../config/enchant-config.js';
+import { ItemDatabase } from '../items/item-database.js';
 import { SoundManager } from '../ui/sound-manager.js';
 
 const COUNTDOWN_SEC = 60;
@@ -26,6 +27,42 @@ const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
 const GATE_ANIM_MS = 900;
 const CHEST_SOUND = 'assets/sounds/environment/chest_open.mp3';
 const GRADES = ['F', 'E', 'D', 'C', 'B', 'A']; // 由低到高，F 级地牢可被事件强制精英战
+// 地牢等级 → 稀有度档（与出征祭品门槛同序：F=普通、E=优质、D=稀有、C=史诗、B=神话、A=传说）
+const RARITY_BY_GRADE = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
+// 精英宝箱房额外装备掉落的稀有度下探级数（如 D 级 → 优质，即稀有度低一级）
+const EQUIP_RARITY_DROP_STEP = 1;
+// 精英宝箱房额外装备掉落概率（50%）
+const EQUIP_DROP_CHANCE = 0.5;
+
+/**
+ * 非武器装备池（铠甲/饰品；排除武器/盾牌/消耗品/祭品/矿石）。
+ * 数据源 ItemDatabase（equipment.json）——新增装备自动进池，无需改代码。
+ */
+function _equipmentPool() {
+    const items = (ItemDatabase && ItemDatabase.items) || {};
+    return Object.values(items).filter(it =>
+        it && it.name &&
+        (it.category === 'armor' || it.category === 'accessory') &&
+        !it.weaponType && !it.weaponId
+    );
+}
+
+/**
+ * 精英宝箱房额外装备掉落：稀有度 = 地牢等级稀有度 − 1 级（F 钳制到 common）。
+ * 优先抽同稀有度条目（池子未来扩充后自然按档出装）；无匹配条目时整池随机，
+ * 并把掉落实例的稀有度覆盖为档位（保证 E 级也能掉"普通"、D 级掉"优质"）。
+ */
+function _rollEquipmentDrop(grade) {
+    const pool = _equipmentPool();
+    if (!pool.length) return null;
+    const gradeIdx = GRADES.indexOf(grade);
+    const tierIdx = Math.max(0, (gradeIdx < 0 ? 2 : gradeIdx) - EQUIP_RARITY_DROP_STEP);
+    const tier = RARITY_BY_GRADE[tierIdx] || 'common';
+    const sameTier = pool.filter(it => (it.rarity || 'common') === tier);
+    const src = sameTier.length ? sameTier : pool;
+    const item = src[Math.floor(Math.random() * src.length)];
+    return { ...item, rarity: tier };
+}
 
 export const ChestRoomSystem = {
     active: false,
@@ -38,6 +75,7 @@ export const ChestRoomSystem = {
     _combatDone: false,
     _failed: false,     // 超时未打完：宝箱已淡出
     _fadeTween: null,
+    _isElite: false,    // 精英战斗宝箱房：额外 50% 非武器装备掉落
 
     /** 地牢类型 → 宝箱等级（地牢 grade 即宝箱等级；奖励表见 combat-formulas.json treasureChest[F..A]） */
     _gradeFor(dungeonType) {
@@ -56,6 +94,7 @@ export const ChestRoomSystem = {
      */
     setup(dungeonType, bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        this._isElite = !!opts.isElite; // 精英战斗宝箱房：额外 50% 非武器装备掉落
         // 宝箱房预制按墙样式选择（样式表 chestPrefab，缺失回退「宝箱房」）
         const wallStyle = WallSystem.getWallStyle ? WallSystem.getWallStyle() : { chestPrefab: '宝箱房', straight: 'straight', gate: 'gate' };
         const prefabName = wallStyle.chestPrefab || '宝箱房';
@@ -348,7 +387,7 @@ export const ChestRoomSystem = {
      *  奖励直接掉落到宝箱周围地上（DropItem，玩家拾取/金币自动拾取） */
     _giveRewards(player, grade) {
         const table = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest) || {};
-        const g = table[grade] || { gold: 500, materialDust: 200, tributeChance: 0 };
+        const g = table[grade] || { gold: 500, materialDust: 200, enhancementStone: 1, reforgeTicket: 1, tributeChance: 0 };
         const Game = (typeof window !== 'undefined') ? window.Game : null;
         if (!Game || typeof Game.dropItem !== 'function') return;
         const cx = this._chest ? this._chest.x : player.x;
@@ -365,18 +404,24 @@ export const ChestRoomSystem = {
         if (roll < 0.5) {
             drop(goldTemplate());
         } else if (roll < 0.75) {
-            // 材料组：强化石 + 改造券 + 魔法晶尘
+            // 材料组：强化石 + 改造券 + 魔法晶尘（数量按地牢等级表：C 起强化石/改造券递增）
             if (EnhancementItems && EnhancementItems.enhance_stone) {
-                drop({ ...EnhancementItems.enhance_stone, stack: 1 });
+                drop({ ...EnhancementItems.enhance_stone, stack: g.enhancementStone ?? 1 });
             }
             if (EnhancementItems && EnhancementItems.modify_ticket) {
-                drop({ ...EnhancementItems.modify_ticket, stack: 1 });
+                drop({ ...EnhancementItems.modify_ticket, stack: g.reforgeTicket ?? 1 });
             }
             if (MagicDustItem) {
                 drop({ ...MagicDustItem, stack: g.materialDust });
             }
         } else {
             drop(goldTemplate());
+        }
+        // 精英战斗宝箱房额外奖励：50% 概率再掉一件非武器装备
+        // （稀有度 = 地牢等级稀有度 − 1 级，如 D 级→优质；池子=铠甲/饰品）
+        if (this._isElite && Math.random() < EQUIP_DROP_CHANCE) {
+            const equip = _rollEquipmentDrop(grade);
+            if (equip) drop(equip);
         }
     },
 
@@ -410,6 +455,7 @@ export const ChestRoomSystem = {
         this.active = false;
         this._combatDone = false;
         this._failed = false;
+        this._isElite = false;
         this._timeLeft = 0;
     },
 };

@@ -203,7 +203,12 @@ function getUniversalEventConfig(type) {
             cfg.outcomes = cfg.outcomes.map(o => {
                 if (o.type === 'gold') return { ...o, amount: g.gold };
                 if (o.type === 'materials' && Array.isArray(o.rewards)) {
-                    return { ...o, rewards: o.rewards.map(r => r.type === 'magic_dust' ? { ...r, count: g.materialDust } : r) };
+                    return { ...o, rewards: o.rewards.map(r => {
+                        if (r.type === 'magic_dust') return { ...r, count: g.materialDust };
+                        if (r.type === 'enhancement_stone') return { ...r, count: g.enhancementStone ?? 1 };
+                        if (r.type === 'reforge_ticket') return { ...r, count: g.reforgeTicket ?? 1 };
+                        return r;
+                    }) };
                 }
                 return o;
             });

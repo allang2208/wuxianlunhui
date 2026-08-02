@@ -2468,14 +2468,14 @@
         "cooldown": 4000
       },
       "venom": {
-        "comment": "投掷毒液瓶：1.5s 播放 attacking-2 18 帧，第 8 帧播放 throwing.mp3、第 9 帧掷出毒液瓶（projective.png 抛物线 1.5s 落地、落地前每秒 360° 旋转）→ 落点 200px 椭圆毒液区持续 6s（矿洞绿烟填满），每 0.5s 魔法攻击×0.75 魔法伤害并叠 1 层中毒；机制与煮锅共用 _shared/venom-bottle.js",
+        "comment": "投掷毒液瓶：1.5s 播放 attacking-2 18 帧，第 8 帧播放 throwing.mp3、第 9 帧掷出毒液瓶（projective.png 抛物线 1.5s 落地、落地前每秒 360° 旋转，显示尺寸 240=48×5 放大）→ 落点 200px 椭圆毒液区持续 6s（矿洞绿烟填满），每 0.5s 魔法攻击×0.75 魔法伤害并叠 1 层中毒；机制与煮锅共用 _shared/venom-bottle.js",
         "throwRange": 800,
         "duration": 1500,
         "frames": 18,
         "fireFrame": 9,
         "flyDuration": 1500,
         "arcHeight": 100,
-        "projectileSize": 48,
+        "projectileSize": 240,
         "impactRadius": 200,
         "zoneDuration": 6000,
         "tickMs": 500,
@@ -2603,10 +2603,11 @@
     "attackRange": 0,
     "aiInterval": 5000,
     "smoke": {
-      "comment": "锅口绿烟（矿洞同款：白色烟雾纹理 + 绿色 tint + ADD 混合）",
+      "comment": "锅口绿烟一排（矿洞同款：白色烟雾纹理 + 绿色 tint + ADD 混合）：中间 1 个 + 左右各 rowExtra 个，共 2×rowExtra+1 个水平均布（间距由碰撞宽度推导，见 cauldron.js）；offsetY 已上移 40px",
       "tint": "0x62cc62",
       "offsetX": 0,
-      "offsetY": 70,
+      "offsetY": 110,
+      "rowExtra": 3,
       "frequency": 200,
       "scaleStart": 0.3,
       "scaleEnd": 1,
@@ -2615,14 +2616,14 @@
     },
     "attackSkills": {
       "bottle": {
-        "comment": "每 intervalMs 向玩家方向投掷 bottleCount 个巫婆毒液瓶（完全复用巫婆攻击2机制：抛物线 1.5s 落地、每秒 360° 旋转 → 落点 200px 毒液区 6s，每 0.5s 魔法攻击×0.75 + 1 层中毒）；第 1 瓶预判落点，其余在目标点 scatterRadius 内随机散落；伤害按煮锅自身 matk（与巫婆同口径 70）×damageMul",
-        "intervalMs": 30000,
+        "comment": "每 intervalMs 向玩家方向投掷 bottleCount 个巫婆毒液瓶（完全复用巫婆攻击2机制：抛物线 1.5s 落地、每秒 360° 旋转，显示尺寸 240=48×5 放大 → 落点 200px 毒液区 6s，每 0.5s 魔法攻击×0.75 + 1 层中毒）；第 1 瓶预判落点，其余在目标点 scatterRadius 内随机散落；伤害按煮锅自身 matk（与巫婆同口径 70）×damageMul",
+        "intervalMs": 15000,
         "range": 800,
         "bottleCount": 2,
         "scatterRadius": 150,
         "flyDuration": 1500,
         "arcHeight": 100,
-        "projectileSize": 48,
+        "projectileSize": 240,
         "impactRadius": 200,
         "zoneDuration": 6000,
         "tickMs": 500,
@@ -2687,7 +2688,7 @@
     "skills": [
       {
         "name": "毒液泼洒",
-        "desc": "每 30s 向玩家方向投掷 2 个毒液瓶（第 1 瓶预判落点、第 2 瓶在目标点 150px 内随机散落），落点形成 200px 毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒"
+        "desc": "每 15s 向玩家方向投掷 2 个毒液瓶（第 1 瓶预判落点、第 2 瓶在目标点 150px 内随机散落），落点形成 200px 毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒"
       }
     ],
     "attackType": "魔法"
