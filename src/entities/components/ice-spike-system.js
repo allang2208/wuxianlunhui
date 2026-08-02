@@ -77,9 +77,6 @@ const ICE_SPIKE_KIND = {
             blendMode: 'ADD',
         },
     },
-    addSkillExp(source, hitCount, killCount) {
-        SkillManager.addIceSpikeExp(source, hitCount, killCount);
-    },
     // 命中/撞墙：冰锥碎裂（特效两层：冰屑带重力 + 小冰环）；同帧多目标逐目标结算（准穿透）
     onImpact(sys, spike, { x, y, damage, skill, hitEntity }) {
         burstParticles({
@@ -111,8 +108,12 @@ const ICE_SPIKE_KIND = {
         if (hitEntity) {
             const wasAlive = hitEntity.hp > 0;
             hitEntity.takeDamage(damage, sys.source, 'magic');
+            // 经验改为整次施法累计（multiHit/multiKill 需要整次命中/击杀数），_end 清场时统一结算
             if (skill && sys._isPlayer()) {
-                this.addSkillExp(sys.source, 1, (wasAlive && hitEntity.hp <= 0 && !hitEntity._summoned) ? 1 : 0);
+                sys._castHits = (sys._castHits || 0) + 1;
+                if (wasAlive && hitEntity.hp <= 0 && !hitEntity._summoned) {
+                    sys._castKills = (sys._castKills || 0) + 1;
+                }
             }
         }
         spike.flyActive = false;
@@ -125,5 +126,17 @@ const ICE_SPIKE_KIND = {
 export class IceSpikeSystem extends BoltSkillSystem {
     constructor(source, options = {}) {
         super(source, ICE_SPIKE_KIND, options);
+        this._castHits = 0;  // 整次施法累计命中数（multiHit/multiKill 依赖整次统计）
+        this._castKills = 0; // 整次施法累计击杀数
+    }
+
+    /** 整次施法结束后统一结算经验（全部冰锥命中/飞完/超时后清场时 flush） */
+    _end(forced) {
+        super._end(forced);
+        if (this._spikes().length === 0 && this._castHits > 0 && this._isPlayer()) {
+            SkillManager.addIceSpikeExp(this.source, this._castHits, this._castKills);
+            this._castHits = 0;
+            this._castKills = 0;
+        }
     }
 }

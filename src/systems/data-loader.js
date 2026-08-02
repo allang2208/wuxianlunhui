@@ -249,6 +249,7 @@ const DataLoader = {
             name: skillData.name,
             icon: skillData.icon,
             iconImage: skillData.iconImage,
+            selfCast: skillData.selfCast, // 可对玩家自己释放（快捷栏 Alt+快捷键 自目标）
             description: skillData.description,
             level: 1,
             maxLevel: skillData.maxLevel,

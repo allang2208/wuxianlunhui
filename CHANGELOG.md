@@ -8,6 +8,233 @@
 - 测试结果
 - 已知问题
 
+### 对话：施法跨步——前摇向前 +30px、后摇退回（2026-08-02）
+
+- 施法动画含跨步动作：`GameScene.startPlayerCast` 起手记录朝向（rotation 单位向量）与原点，`player._updateCastStep`（subsystems，施法分支每帧调用）驱动：
+  - **前摇（casting）**：沿起手朝向从原点线性推进到 `+30px`（`_castStepMax`，前摇时长 t 进度）；
+  - **后摇（recover）**：从后摇起点向**起手原点**线性归位（`_castRecoverOrigin → _castOrigin`），即使前摇被墙钳制也精确回到原位，不会回退过头；
+  - 每帧过 `WallSystem.resolve` 防穿墙；空格打断/死亡/取消时原点清理。
+- 实现走实体位置（施法期输入全锁，安全），武器/阴影/特效自动跟随；方向=起手时玩家朝向（施法期朝向冻结）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。实机观感（跨步幅度/节奏）待用户复测，`_castStepMax: 30` 可调。
+
+### 对话：主神空间生成学徒长杖供测试拾取（2026-08-02）
+
+- `src/game.js` 启动测试物品生成区新增学徒长杖掉落（`Game.dropItem(origin + offset, APPRENTICE_STAFF_ITEM)`），与 G18/SAIGA/附魔卷轴/晶尘/材料同排。
+- 出生点偏移配置化：`game-config.json` 双份 `loot.drops.mainHub.apprenticeStaff { x: 200, y: 80 }`（相对主神空间原点），代码带兜底默认值。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；game-config 双份一致。
+
+### 对话：法杖实现去硬编码化（2026-08-02）
+
+- 用户要求核查硬编码，修正两处：
+  - `GameScene.startPlayerCast` 原先写死 staff 判定与 9/7/12/8 帧数 → **全配置驱动**：施法动画键取武器数据 `castAnimKey`（EDM 学徒长杖=staff_cast），释放帧/前摇/后摇时长取 player-anim-config 的 `releaseFrame/forwardMs/recoverMs`（cast=8/500/250、staff_cast=7/500/250，双份），总帧数由 frames 区间推导；`_updatePlayerAnimation` 卡死自愈守卫同步改为读当前武器的 castAnimKey。
+  - 保留说明：`weapon-anim-config.js` staff→sword 一行配置别名（JSON 无法跨条目引用，复制 200 行违背单一真相源，别名带注释属显式复用）；weapon-transform 的近战分类列表（sword/staff/bow）沿用该文件既有模式，未引入新硬编码。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；anim 双份一致（releaseFrame/时长校验）。
+
+### 对话：新增武器类型「法杖」——学徒长杖 + 法杖施法动画（2026-08-02）
+
+- **新武器 学徒长杖（weapon20）**，类型 法杖（staff）、稀有度 优质、单手近战：`category: weapon_melee`、`weaponType: staff`、攻击间隔 500ms、物理伤害、击退 0；近战攻击套用剑类动画。
+- **攻击公式**（`attackFormula { base:3, enhanceFlat:0.25, attrs:[dex 0.25/0.1, str 0.25/0.15] }`）——computeWeaponAttack 全链路生效：`3 + 强化×0.25 + 敏捷×(0.25+强化×0.1) + 力量×(0.25+强化×0.15)`（数值核验 el0=20.5 / el5=66.75 / el10=113，dex30/str40 例）。
+- **数据接入**：EDM `APPRENTICE_STAFF_ITEM`（weapon20）+ `data/public` equipment.json 双份模板；`weapon-texture-map` 注册 `weapon_staff`（学徒法杖.png 入库）；`src/items/weapon-anim-config.js` 加载后 **staff 配置别名指向 sword**（近战动画/持握/攻击轨迹全复用，免维护双份）；weapon-transform 把 staff 纳入近战判定（固定朝向/镜像）与剑类尺寸。
+- **法杖施法动画**：`法杖施法.png`（4096×2048，8×4 512×512，**9 帧 = 帧 0~8 连续**）入库 `assets/player/staff_cast.png`；player-anim-config 双份新增 `staff_cast`（18fps = 9帧/0.5s）；GameScene `startPlayerCast` 按装备切换——**装备法杖时播 staff_cast、第 7 帧释放、9 帧**；否则空手 cast 第 8 帧/12 帧；`_updatePlayerAnimation` 卡死自愈守卫兼容两种施法动画。
+- **改造预置**：`data/public` craft-config 双份新增 `weapon20`，6 个槽位（杖头晶石/杖冠装饰/杖身符文/握柄内衬/尾坠配饰/导魔管线），改造项目数组**留空**（`[]`），后续逐项补充。
+- 验证：lint 0 error 0 warning；npm test 全绿（含 craft-sync/双份 JSON 断言）；vite build ✓；公式逐级核验通过。**获取途径未配置**（商店/掉落/初始背包暂未加，图鉴自动收录）；实机待用户复测（装备→挥砍/施法动画/强化公式）。
+
+### 对话：修复闪电/圣光施法动画不播放（2026-08-02 二轮）
+
+- **闪电（确认缺失）**：`LightningStrikeSystem` 之前完全没接施法动画——trigger 直接即时结算。已重构为与圣光同款：三重判定通过后 `_startPlayerCast(doRelease)`，第 8 帧触发释放（音效/传导链/伤害/击退/眩晕/经验全部移入 doRelease）。
+- **圣光（路径与火球一致，加双保险）**：
+  - `startPlayerCast` 新增**定时兜底释放**：animationupdate 万一未触发（事件异常/动画被外部打断），按帧时间 `(releaseFrame/totalFrames)×forwardMs+40ms` 强制释放，魔法不会再"永远不释放"；
+  - `_updatePlayerAnimation` 施法守卫升级为**卡死自愈**：`_castState !== 'idle'` 但施法动画未在播（注册失败/被打断）时自动 `_endPlayerCast` 收尾，防状态软锁。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。实机待用户复测；若圣光仍不播动画，多半是三重判定未通过（看提示栏「瞄准位置附近无目标/超出施法距离/目标被遮挡」）。
+
+### 对话：修复施法动画不播放/魔法不释放（2026-08-02）
+
+- 根因：`GameScene._updatePlayerAnimation` 每帧按移动/状态机驱动玩家动画，且不识别 `_castState`——施法动画一播放就被覆盖回 idle/walk，永远到不了第 8 帧，onRelease 不触发（魔法不释放）。
+- 修复：`_updatePlayerAnimation` 开头加施法守卫（`_castState !== 'idle'` 时直接 return），前摇+后摇期间动画由 `startPlayerCast` 独立驱动；`play(config)`/`playReverse` 均确认受 Phaser 4 支持。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。实机待用户复测。
+
+### 对话：魔法施法动作（空手施法 12 帧前摇 + 0.25s 倒放后摇 + 空格打断）（2026-08-02）
+
+- **素材**：`素材库/人物/主角动画/空手施法/空手施法.png`（4096×2048，**8 列×4 行 512×512 格**，12 帧=帧 0..11 连续）复制入库 `assets/player/cast.png`（PIL/pngjs 双口径扫描确认布局，纠正"4×8"实为 4 行×8 列）；`player-anim-config.json` 双份新增 `cast` 条目（frameRate 24 = 12帧/0.5s）。
+- **GameScene**：`startPlayerCast({onRelease, forwardMs:500, recoverMs:250, releaseFrame:8})`——播放 cast 前摇（12 帧/0.5s），**animationupdate 到第 8 帧触发 onRelease**（魔法实际释放，只一次）；前摇播完自动 `playReverse` 0.25s 倒放后摇，完成后回 idle（含超时兜底）；施法期间**武器不隐藏、保持在 idle 右手持握位置**（2026-08-02 用户要求，weaponAnim.state 保持 idle 自然停右手）；`cancelPlayerCast` 清监听（空格打断、死亡、重开共用）。
+- **输入锁定**：`player/update.js` 施法分支（stun 后、fear 前）——casting/recover 均 vx=vy=0 且 early-return（不可移动/攻击/技能/开枪/施法）；**recover 阶段空格翻滚可打断后摇**（`_interruptCastRecover` → cancelPlayerCast + triggerDodge）；`quick-bar useSlot` 施法期间拦截；死亡复位清施法状态。
+- **技能接入**：`bolt-skill-system`（冰锥/火球）**一段不播施法动画，仅二段发射时** `_startPlayerCast(() => _launchAll())`（第 8 帧真正发射）；`holy-light-system` trigger/triggerSelf 均改为第 8 帧释放（音效/结算/特效在释放时执行，耗蓝/冷却在起手时执行）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；config 双份一致（12帧/500ms）。动画观感/帧 8 触发时机待用户实机复测。
+
+### 对话：自目标技能 Alt+快捷键直接对自己释放（2026-08-02）
+
+- **机制**：可对玩家自己释放的技能（圣光首例）标 `selfCast: true`（skills.json 双份 + subsystems 兜底 + `DataLoader.buildSkillFromJSON` 透传）；`input.js` keydown 传 `e.altKey` → `QuickBar.useSlot(code, altKey)` → 快捷栏对应分支 Alt 时调系统 `triggerSelf()`。
+- **triggerSelf**（holy-light-system）：跳过瞄准/距离/视线三重判定，目标=自身——耗蓝 30 校验、释放音效、冷却照常（CD 成长生效）、同一回复公式自愈（绿色 +X 飘字 + UI 刷新）、修炼命中 +5、圣光特效照常播放。
+- **面板**：圣光详情新增「自释放：Alt+快捷键」行，升级方式说明同步。
+- **SKILL.md 工作流**：第 3 节新增自目标技能模式（selfCast 标记 + altKey 传递 + triggerSelf 实现），后续自目标技能照此接入。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。实机待用户复测（圣光拖入快捷栏后按 Alt+Q/E）。
+
+### 对话：圣光技能完整版——治疗/伤害双效 + 僵尸翻倍 + CD 成长 + 修炼 + 音效图标（2026-08-02）
+
+- **双效结算**（`holy-light-system.js`）：锁定目标不再限敌方——敌方=伤害、友方（玩家本体）=回复生命，同一公式：
+  `amount = floor(healBase(5+5L) + matk×(0.25+0.25L) + int×(1+0.5L) + wis×(1+0.5L))`；
+  敌方 `takeDamage(amount, 'magic')`，**僵尸类（config.family === '僵尸'）伤害 ×zombieDamageMul(2)**；友方 `data.hp` 上限钳制治疗 + 绿色 `+X` 飘字 + UI 刷新。
+- **CD 成长**：`cooldown = 10 − floor((L−1)/5)`——L1~5 10s、L6~10 9s、L11~15 8s、L16~20 7s；mpCost 30。
+- **修炼**：`expRewards { hit: 5, kill: 10 }`，`SkillManager.addHolyLightExp` 接入（命中 +5/击杀 +10）；升级曲线与其他技能一致。
+- **音效/图标**：`素材库/音效/技能音效/圣光/1.mp3` → `assets/sounds/skills/holy-light-1.mp3`（skills.json `sounds.cast` 释放时播放）；`素材库/技能/圣光/技能图标.png` → `assets/skills/圣光.png`（iconImage 原指向即此路径）。
+- **面板**：详情页新增 🧮 回复/伤害公式区（基础/魔攻/智力/精神/总量）+ 技能效果区（目标效果/僵尸翻倍/冷却成长说明）+ 下一级全项预览；升级飘字与升级方式同步。
+- 数值核验：CD 10→7s 阶梯正确；治疗量 L1 180 → L20 1510（matk100/int50/wis30 例）；僵尸伤害 ×2。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。实机待用户复测。
+
+### 对话：圣光特效回退 v1 干净光束 + 仅底部接触地面处不规则淡出（2026-08-02）
+
+- 用户实机反馈：不规则锯齿+持续跳动版本不如上一版干净，**回退**。
+- `src/effects/holy-light.js` v2 定稿：主体恢复**规整锥形光束**（直边、三层：软填充/宽辉光/白金色内芯、sin 呼吸微闪、末 fadeMs 线性淡出、金色上升粒子、脚下光池）；
+- **仅底部 `dissolveRatio`（默认 28%）接触地面段做不规则淡出**：切成 10 片，每片左右边缘随机锯齿 + 逐片随机透明度 + 越靠地越淡，形成自然消散的接触面；主体其余部分保持干净整齐；光束位置每帧跟随目标（形状静态）。
+- `skills.json` 可配置 `dissolveRatio`（当前未写入 effectFormula，需要可调时再加；特效默认 0.28）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。实机观感待用户复测。
+
+### 对话：圣光特效优化——不规则边缘 + 持续跳动 + 斑驳淡出（2026-08-02）
+
+- 用户实机反馈：光束边缘太整齐。重写 `src/effects/holy-light.js` 渲染：
+  - **不规则边缘**：光束左右边缘按 14 个采样点随机偏移成锯齿（上小下大，天然自然形态），三层渲染（软填充/辉光/内芯）逐片绘制同一套锯齿边缘；
+  - **持续跳动**：每 55ms 重新生成边缘 + 每帧全束随机闪烁（0.8~1.15，10% 概率暗闪 ×0.35）；
+  - **不规则淡出**：逐片独立随机透明度（0.7~1.3 系数）× 全局淡出——消失时呈斑驳碎片感而非整齐整体；
+  - 光池椭圆半径随再生微幅脉冲；上升粒子逻辑不变。
+- 量化验证：锥形渐变保持（顶 23→底 64 半宽）、边缘不规则（min/max 差异）、两次再生形态差异 106px（跳动明显）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。实机观感待用户复测。
+
+### 对话：新增技能「圣光」——金色光束 + 上升光粒（效果先行版，2026-08-02）
+
+- **新技能 holyLight（圣光）**，锁定类，释放方式与闪电同口径三重判定：① 鼠标位置附近 `aimRadius 200px` 内有敌方单位；② 施法距离 ≤ `maxRange 600px`（最近超距自动改选射程内目标）；③ 视线畅通（WallSystem.resolve 检测）；失败提示「瞄准位置附近无目标 / 超出施法距离 / 目标被遮挡」，均不消耗冷却/蓝。
+- **特效**（`src/effects/holy-light.js`）：金色光束从天而降——NORMAL 软填充 + ADD 宽辉光 + 白金色细内芯三层锥形光束（天上宽 60px → 落地 110px，高 1400px，alpha 呼吸微闪）+ 目标脚下金色光池椭圆（ADD）+ **目标身上金色粒子向上飘散**（impact_dot + ADD + 四档金色 tint，speedY 上飘，持续发射）；持续 `duration 2s` 后 `fadeMs 400ms` 淡出，粒子淡出期停发余粒飘完。
+- **数据**：`data/skills.json` + `public/data/skills.json` 双份新增 `holyLight`（cooldown 12 / **mpCost 30（工作流强制：魔法类必须配耗蓝）** / aimRadius / maxRange / duration / fadeMs / beam 三参数）；图标 `assets/skills/圣光.png` 暂缺走 emoji 兜底。
+- **接线**：`holy-light-system.js` 新系统 + `player/index.js`（字段/实例）+ `subsystems.js`（兜底/死亡复位/update）+ `quick-bar.js`（触发分支/冷却同步）+ `skill-manager.js`（skillList 三处/详情面板/升级飘字/升级方式）。
+- **效果先行版**：不含伤害/眩晕/修炼结算（面板标注"试验版"），后续按工作流接入。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。光束观感待用户实机复测。
+
+### 对话：技能栏默认排序改为 精通→被动→主动→魔法（2026-08-02）
+
+- `skill-manager.js` `_getSkillCategoryPriority` 重定义默认排序口径：**精通类（name 含「精通」，剑/弓/机枪/步枪/手枪/散弹枪）→ 被动类 → 主动类 → 魔法类**（其余兜底）；组内按名称字典序。
+- 排序结果：精通 6 个 → 被动 5 个（暴击/持盾/冲刺攻击三件套）→ 主动 7 个（火球/冰锥/闪电/风车/推击/无人机/夜与火）→ 魔法（当前全为主动技能，自然归入主动组）。
+- SKILL.md 技能添加标准工作流记录该排序约定（新技能 tags 决定归类，精通命名必须含「精通」）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；UTF-8 脚本实测排序结果正确。
+
+### 对话：散弹枪精通技能图标替换（2026-08-02）
+
+- `E:\无尽轮回\游戏\素材库\技能\散弹枪精通.png`（1024×1024）双三次高质量放大为 **2048×2048** 入库 `assets/skills/散弹枪精通.png`——对齐精通类主体规格（步枪/弓/剑/原散弹图标均为 2048；机枪/手枪为历史遗留 48×48 小图）。
+- `data/skills.json` + `public/data/skills.json` 双份：`shotgunMastery.iconImage` `assets/icons/S12k-icon.png` → `assets/skills/散弹枪精通.png`；`subsystems.js` 硬编码兜底同步。
+- **保留** `assets/icons/S12k-icon.png`：仍是 SAIGA-12K 武器图标（equipment/商店/贴图映射在用），本次只换技能图标。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致；图标文件存在性校验通过。
+
+### 对话：修炼体系调整——火球/冰锥/闪电多目标奖励 + 持盾/无人机补强（2026-08-02）
+
+- 用户定稿口径：修炼经验获取量须与动作频率/难度成反比——**枪械命中不计算经验（一梭子 30 发 = 30 次修炼会崩）**，击杀制是天然限速；夜与火之剑是武器绑定特殊攻击、无修炼方式，剔除分析（确认 addNightFlameExp 不存在）。
+- **expRewards 调整**（data/public 双份）：
+  - 火球/冰锥：hit 3→**4**、kill 10→**12**、新增 **multiHit(≥2)+10**、**multiKill(≥2)+10**（单次命中/击杀 ≥2 目标各 +10）；
+  - 闪电：hit 3→**4**、新增 **multiKill(≥2)+10**（已有 multiHit）；
+  - 无人机：kill 10→**15**；
+  - 持盾防御：近战格挡 1→**2**、远程格挡 3→**5**、弹反 5→**10**（多怪围攻成倍修炼）。
+- **冰锥结构改动**（`ice-spike-system.js`）：经验从"每命中单独结算"改为**整次施法累计**（`_castHits/_castKills`，`_end` 清场统一 flush）——multiHit/multiKill 依赖整次统计；火球/闪电天然按次施法统计无需改。
+- 经验函数（skill-manager）：addFireballExp / addIceSpikeExp / addLightningStrikeExp 全部支持 multiHit/multiKill；技能面板「升级方式」五处说明同步。
+- SKILL.md 工作流 expRewards 口径更新（含 multiKill + 整次累计要求）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致；数值核验（火球 3 杀 2 = 56、冰锥 2 命 1 杀 = 30、闪电 2 命 2 杀 = 48）。
+
+### 对话：快捷栏技能拖出取消绑定 + 全技能修炼效率分析（2026-08-02）
+
+- **快捷栏修复**（`quick-bar.js`）：技能槽 `_updateSlot` 的 `dragend` 补齐"拖出取消绑定"——`dropEffect === 'none'`（未落在任何槽位）时删除 `skillAssignments[keyCode]` 并还原空槽，与消耗品拖出口径一致。
+- **快捷栏排查结论**：槽位交换/移动/清源逻辑正常；已知小瑕疵——HTML5 拖拽在 **ESC 取消时 dropEffect 也是 'none'**，会一并解绑（物品槽旧行为如此，技能槽现同口径），如要区分"拖出解绑 vs ESC 保留"需额外监听，暂记为低优先级。
+- **修炼效率分析**（数据源 skills.json expRewards + skill-manager 升级方式 + expMultiplier=2）：全部技能共用 `maxExp = 200×当前等级`（L1→2 需 200、L19→20 需 3800，全程 38,000）；最效率：推击/风车/闪电（AOE 多目标）；最低效：持盾防御（L19→20 约 950~1267 次格挡）、暴击（暴击+1 太低）、无人机（仅击杀+10）、四系枪械精通（仅击杀）。**建议**：expMultiplier 2→1 或高等级封顶；补低效被动技能的经验来源；火球/冰锥补 multiHit 与闪电对齐。调整待用户拍板。
+
+### 对话：闪电视线判定 + 智能改选射程内目标 + 魔法消耗 30 + mpCost 工作流强制（2026-08-02）
+
+- **视线判定**：`LightningStrikeSystem._isLineOfSightClear` 用 `WallSystem.resolve`（与弹道撞墙同口径）检测 玩家→目标 线段是否被墙体阻挡；被挡 → 提示「⚡ 目标被遮挡！」（主目标锁定阶段生效）。
+- **智能改选**：②③ 合并为"离鼠标近优先"扫描——鼠标 200px 内候选按距离排序，取第一个同时满足 施法距离 ≤600px + 视线畅通 的目标；最近目标超距时自动改选更远但在射程内的目标；候选全部超距 → 「超出施法距离」，全部被挡 → 「目标被遮挡」。
+- 两重判定升级为**三重判定**：① 瞄准附近无目标 → ② 施法距离（智能改选）→ ③ 视线；失败均不消耗冷却/蓝/音效。
+- **魔法消耗**：`lightningStrike.effectFormula.mpCost` 0 → **30**（双份 JSON + 兜底）；施法端原有耗蓝校验生效（不足 → 「魔法不足」浮动提示）；面板/升级飘字显示 30 MP。
+- **工作流强制**：SKILL.md「技能添加标准工作流」第 1/7/8 节写入"魔法类技能必须配置 mpCost（>0），遗漏时助手必须主动提醒用户补上"（闪电曾漏配，用户定规）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。视线/改选实机待用户复测。
+
+### 对话：闪电两重判定——瞄准附近无目标 / 超出施法距离（2026-08-02）
+
+- `lightning-strike-system.js` 目标锁定改**两重判定**：① 鼠标位置附近 `aimRadius`（200px，skills.json 配置）内无任何敌方单位 → 提示「⚡ 瞄准位置附近无目标！」；② 锁定"瞄准处最近目标"后校验 玩家→目标 ≤ `maxRange`（600px），不满足 → 提示「⚡ 超出施法距离！」。两重失败均不消耗冷却/蓝/音效，可立即重试。
+- `data/skills.json` + `public/data/skills.json` 双份：`lightningStrike.effectFormula` 新增 `aimRadius: 200`；description 同步（瞄准处无目标或超出施法距离时释放失败）；`subsystems.js` 兜底与技能面板「瞄准范围」行同步。
+- 漏洞排查结论：NPC/中立单位有 `hittable=false` 天然排除（不会误锁）；已锁目标中途死亡则闪电残留冻结；**已知缺口**：闪电无视墙体（可隔墙锁定，火球/冰锥是飞行物会撞墙）——是否加视线判定待用户拍板。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。
+
+### 对话：技能添加标准工作流写入 SKILL.md + 闪电特效模板化（2026-08-02）
+
+- **SKILL.md 版本 1.6 → 1.7**，新增两个章节：
+  - 「技能添加标准工作流」（2026-08-02 定稿，闪电首航）：0 形态选型（弹道/GroundZone/锁定传导/自管四类模板表）→ 1 数据双份同步（effectFormula/expRewards/sounds 口径）→ 2 系统组件（trigger/update + 玩家接线四件套 + 怪物复用）→ 3 快捷栏（触发分支+冷却同步）→ 4 面板（skillList 三处/详情三区/nextEffect/经验函数）→ 5 特效（combat-fx 优先 + LightningBoltEffect 模板 + 色块风格 + 禁止 filters）→ 6 图标音效 → 7 验证（含数值逐级核验 + setSkillLevel 快速调级）→ 8 坑（形态别硬套/需求先对齐/冷却字段口径/经验三条独立/被动不回算）。
+  - 「锁定/传导类技能特效模板」：`LightningBoltEffect` 标准化用法（构造参数表 + 实现要点 + 离屏预览工具），同类型技能换 `colors/widthScale` 即复用。
+- `src/effects/lightning-bolt.js` 模板化：新增 `options.colors`（glowOuter/glowInner/core/white，默认蓝紫闪电配色）与 `options.widthScale`（整体粗细倍率）——红色闪电/金色锁链等变体零改动套用；默认行为与现闪电一致。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；SKILL.md 章节定位确认。
+
+### 对话：闪电技能 CD 12s + 专属图标入库（2026-08-02）
+
+- `data/skills.json` + `public/data/skills.json` 双份：`lightningStrike.effectFormula.cooldown` 3 → **12**；`subsystems.js` 兜底同步（快捷栏冷却显示/转圈自动跟随）。
+- 图标：`E:\无尽轮回\游戏\素材库\技能\闪电\技能图标.png`（1024×1024，与火球图标同规格）复制入库为 `assets/skills/闪电.png`（skills.json `iconImage` 原指向即此路径，无需改配置）；技能卡片/详情/快捷栏自动显示，不再走 emoji 兜底。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致；图标文件存在性校验通过。
+
+### 对话：技能等级快速调试入口——开发面板「技能」页签 + 控制台 setSkillLevel（2026-08-02）
+
+- `src/ui/panels/dev-tools.js`：左下开发面板新增**「技能」页签**——下拉选择任意技能（含实时等级）+ 等级输入框 +「− / + / ✓ 应用」按钮 + 当前等级/升级所需经验状态行；改后立即生效并刷新技能面板，toast 确认。
+- `src/main.js`：全局挂载调试助手 `window.setSkillLevel(skillId, level)`（控制台 `await setSkillLevel('lightningStrike', 10)`）——钳制 1~maxLevel、重置 exp/maxExp（getExpForNext 同源）、动态导入 SkillLevelSystem.refreshUI 刷新技能面板；开发面板页签同源调用。
+- 用途：快速测试闪电（及火球/冰锥等）各等级的伤害/传导/眩晕/击退成长，无需攒经验。**注意：直接改等级不触发被动技能的回算（剑精通等被动加成需重新装备/升级触发），主要面向主动技能测试。**
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓。
+
+### 对话：闪电技能完整版——伤害/传导/击退/眩晕成长/修炼/音效/面板（2026-08-02）
+
+- **伤害公式**（skills.json `effectFormula`）：`damageBase = 20 + 10L`、`magicMul = 1.15 + 0.25L`、`intMul = 1 + 0.25L`，结算 `floor(基础 + matk×系数 + int×系数)`（bolt-skill-system 同口径，魔法伤害走 takeDamage 'magic'，吃秘法套 +18% / 易伤）。
+- **传导链**：初始目标 → 目标 `chainRange 200px` 内最近的敌方单位逐跳传导，`chainTargets = 1 + floor((L−1)/5)`（L1~5 一个、L6~10 两个、L11~15 三个、L16~20 四个）；每跳伤害 ×(1−`chainDecay` 0.1)，即 100% → 90% → 81% → 72.9%；传导链视觉 = 前一目标→当前目标各生成一条色块闪电，每条独立爆炸。
+- **击退**：每命中目标 `knockback = 50 + 5L` px，初始目标沿 施法者→目标 方向、传导目标沿 前一目标→当前目标 方向（`applyKnockback` 标准通道，过 WallSystem 解析）。
+- **眩晕**：`stunMs = 750 + 20L` ms（L1 0.77s → L20 1.15s），走 applyStun 标准状态系统（怪物冻结+头顶双星）。
+- **音效**：`E:\无尽轮回\游戏\素材库\音效\技能音效\闪电\1.mp3、2.mp3` 复制入库为 `assets/sounds/skills/lightning-1.mp3 / lightning-2.mp3`；skills.json `sounds.cast` 数组（技能音效字段首例数组形态），释放时 `SoundManager.playFile` 同时播放两个。
+- **修炼经验**：`expRewards { hit: 3, kill: 10, multiHit: 10 }`——击中 +3/目标、击杀 +10/目标、单次命中 ≥2 目标额外 +10；`SkillManager.addLightningStrikeExp` 接入；升级所需经验沿用 `100 + (level−1)×100`（与其他技能一致）。
+- **技能面板**（skill-manager）：详情页按火球/冰锥格式补全——伤害公式区（基础/魔攻加成/智力加成/当前总伤害）+ 技能效果区（射程/传导范围/传导目标/每跳衰减/眩晕/击退/持续/消失/冷却/耗蓝）+ 下一级全项预览 + 升级方式说明；升级飘字 effectText 同步。
+- **验证**：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致；数值逐级核验（L1 伤害 232/1 目标，L6 传导 2、每跳 90%，L20 4 目标/眩晕 1.15s/击退 150px）。实机待用户复测。
+
+### 对话：闪电技能加眩晕 0.75s + 落点爆炸效果强化（2026-08-02）
+
+- **眩晕**：命中目标 `applyStun(750)`（skills.json `stunMs: 750` 配置驱动）——走 DamageableEntity 标准状态系统，怪物移动/行为冻结（movement-system + enemy update 的 stun 分支），头顶自动出眩晕双星特效；技能面板新增「命中眩晕 0.75 秒」行。
+- **爆炸强化**（排查结论：非 bug，原参数过保守——14 颗/scale 2.2/寿命 450ms，埋在 30px 辉光团里看不出）：
+  - 蓝紫冲击波扩散圈（fireGroundShockwave：stroke 0xa98fff / fill 0x6a4bff / lineWidth 7 / 420ms 闪烁）；
+  - 白热内芯爆闪（18 颗、scale 3.6→0.4、speed 120~520、寿命 380~650ms、白/亮紫 tint）；
+  - 蓝紫外圈（26 颗、scale 4.4→0.5、speed 90~420、寿命 450~750ms、四档蓝紫 tint）——全部 ADD 混合，命中瞬间有"炸开"体积感。
+- `data/skills.json` + `public/data/skills.json` 双份 effectFormula 新增 `stunMs: 750`；子系统兜底同步。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。实机待用户复测。
+
+### 对话：闪电特效终版——色块/粒子风格 + 0.5s 定格 + 0.25s 淡出（2026-08-02）
+
+- 用户实机反馈（终版口径）：①边缘折线"拼接感"太强 → **参考火球魔法，用色块避免线条感**；②释放后形态直接定格、不再扭动；③施法端粗、目标端细；④时长改为 **0.5s 显示 + 0.25s 淡出**（总可见 ~0.75s）。
+- `src/effects/lightning-bolt.js` 重写渲染（去除全部描边/ribbon）：
+  - 中点位移 → 细分 → Chaikin 平滑 → **按 4px 步长重采样成连续色块链**（细端圆块仍相连）；
+  - 沿链逐点堆叠**圆块**：外层蓝紫辉光（ADD 混合，30→5px）+ 内芯白蓝色块（NORMAL，11→2px + 白芯 5→1px），每点半径烘焙 0.75~1.25 随机因子——重叠处自然增亮，观感同火球火焰簇；
+  - **定格**：形态只在创建时随机生成一次，持续期不再重生成；末 fadeMs 线性淡出；目标死亡冻结终点；深度=两端实体较深者+1。
+- `src/entities/components/lightning-strike-system.js`：落点新增**火球同款 burstParticles 蓝紫粒子爆发**（impact_dot + ADD + 白/淡紫/蓝紫四色 tint）。
+- `data/skills.json` + `public/data/skills.json` 双份：`duration` 1.5→**0.5**、`fadeMs` 500→**250**；子系统兜底同步。
+- `tools/sim-lightning-preview.mjs` 同步为色块链算法，预览已重新生成（`tools/verify-shots/lightning-preview.png`）。
+- 验证：lint 0 error 0 warning；npm test 全绿；vite build ✓；JSON 双份一致。实机观感待用户复测。
+
+### 对话：新增闪电锁定技能（试验版，无伤害/修炼）（2026-08-02）
+
+- **新技能形态**：区别于投射物（火球/冰锥）与区域（毒雾/燃烧区）——`LightningStrikeSystem`（`src/entities/components/lightning-strike-system.js`）释放时立即锁定"鼠标指向处最近 + 玩家 maxRange 内"的敌方单位，范围内无目标则提示栏提示「⚡ 范围内无目标！」且不消耗冷却；锁定成功则生成蓝紫色锯齿闪电连接施法者与目标，持续 1.5s 后淡出。
+- **闪电特效**：`src/effects/lightning-bolt.js`——中点位移锯齿折线（每 60ms 重生成抖动）+ 三层描边（宽紫辉光 0x4b2bff / 中蓝紫 0x8f7bff / 细白芯 0xe8e4ff）+ 末 30% 淡出 + 深度=两端实体精灵较深者 +1；不挂 per-object filters（SKILL.md 教训）；目标死亡后终点冻结残留。
+- **数据**：`data/skills.json` + `public/data/skills.json` 双份新增 `lightningStrike`（名称 闪电/图标 ⚡/effectFormula：cooldown 3、mpCost 0、maxRange 600、duration 1.5、segments 10、jitter 0.09；**试验版无 expRewards**）。
+- **接线**：`player/index.js` 创建 `lightningStrikeSystem` + `_lightningStrikeCooldown` 字段；`subsystems.js` 兜底技能定义 + 死亡复位 + update 冷却驱动；`quick-bar.js` 触发分支 + 冷却同步（拖入快捷栏后按 Q/E 释放）；`skill-manager.js` 技能栏 skillList 三处 + 详情面板（射程/持续/冷却/试验版标注）。
+- **验证**：lint 0 error 0 warning；npm test 全绿（189 项断言，含 skills.json 双份一致）；vite build ✓；node --check 全部通过。**未做 CDP 实机验证**（用户自有 vite/游戏实例在跑，避免打扰；目标锁定逻辑与特效观感待用户实机试验反馈）。
+- **已知问题/待办**：无伤害/无修炼（按用户要求留空，接入点已留）；图标用 emoji 兜底（assets/skills/闪电.png 未做，后续可补）；范围失败提示走 showTopNotification。
+
+### 对话：版本号对齐 V0.375 + lint 17 个历史 warning 清零（2026-08-02）
+
+- `data/game-config.json` + `public/data/game-config.json`：`meta.version` 0.366 → **0.375**（最近 8 个提交 V0.368~V0.374 未递增版本号，本次补账；双份同步一致，hash 相同）。
+- lint 清理（0 error / 0 warning，此前 17 个历史遗留全部消除）：
+  - `src/entities/damageable-entity.js`：`getEnemyGoldDrop(level, source)` 参数 `source` 未消费 → 改名 `_source`（JSDoc 同步）。
+  - `src/entities/enemy-types/zombie-wizard.js`：`_summonZombieDogs(entities)` 参数改名 `_entities`。
+  - `src/entities/player/base.js` / `update.js`：删除未使用的 `DungeonMapSystem` import。
+  - `src/phaser/scenes/GameScene.js`：`_syncFireball`/`_syncFlyingFireball` 删除死行 `const sprites = this._getMagicSprites(caster)`（map 条目由 `_positionFireballEmitters → _ensureFireballEmitters` 兜底，行为不变）。
+  - `src/ui/collision-editor.js`：`let e = null` → `let e`（初始值恒被两分支覆盖）。
+  - `src/ui/equip-manager.js`：删未使用 import（RARITY_LABELS / Game / queryAllElements / ShopSystem / SkillManager）。
+  - `src/ui/equip/drag-drop-manager.js`：删未使用 import `isTwoHanded`（文件内其余 13 处均为 `item.isTwoHanded` 数据字段，与函数无关）。
+  - `src/ui/quick-bar.js`：删未使用 import（FloatingTextEffect / EffectManager）。
+  - `src/world/wall-system.js`：`init(ww, wh)` 参数改名 `_ww` / `_wh`（调用点位置传参，不受影响）。
+- 测试：lint 0 error 0 warning；npm test 全绿（189 项断言）；vite build ✓（仅历史已知 INEFFECTIVE_DYNAMIC_IMPORT / chunk 体积警告）。
+
 ### 对话：冰锥命中音效调整为撞墙也播放（2026-08-02）
 
 - `src/entities/components/ice-spike-system.js`：命中音效调用从 `hitEntity` 分支移到 `onImpact` 公共路径——命中目标/撞墙都播放（伤害/经验仍只在命中时结算；90ms 节流保留）。火球此前就是命中/撞墙/到射程统一播放（同一 onImpact 入口），无需改动。

@@ -15,7 +15,6 @@ import { CONFIG } from '../../config/config.js';
 import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeStaminaRegenMul, getTributeHpRegenFlat } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
-import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 
 const updateMixin = {
 update(dt, entities) {
@@ -59,6 +58,23 @@ update(dt, entities) {
                     }
                     // 眩晕期间：无法移动、无法攻击、无法调准朝向、无法释放技能
                     // 更新其他子系统（如武器特效、动画复位等）
+                    this._updateSubsystems(dt, entities);
+                    return;
+                }
+                // ===== 施法状态处理（2026-08-02：空手施法 0.5s 前摇 + 0.25s 后摇） =====
+                if (this._castState === 'casting' || this._castState === 'recover') {
+                    // 施法跨步位移（前摇向前 +30px / 后摇退回，WallSystem 解析防穿墙）
+                    this._updateCastStep();
+                    // 后摇阶段允许空格翻滚打断（前摇不可打断）
+                    if (this._castState === 'recover' && Input.isPressed(CONFIG.KEYS.SPACE)
+                        && this.dodgeCooldown <= 0 && this.data.stamina >= CONFIG.STAMINA_DODGE_COST) {
+                        this._interruptCastRecover();
+                        this.triggerDodge(Input.getMovement());
+                    }
+                    // 施法/后摇期间：无法移动、无法攻击、无法释放技能/魔法/开枪
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.isMoving = false;
                     this._updateSubsystems(dt, entities);
                     return;
                 }

@@ -21,7 +21,7 @@ import DevTool from './dev-tool.js';
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
             _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
             init() {
-                window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code); });
+    window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code, e.altKey); });
                 window.addEventListener('keyup', e => {
                     this.keys.delete(e.code);
                     // 无人机技能键松开：短按/长按在 QuickBar 侧判定
@@ -41,7 +41,7 @@ import DevTool from './dev-tool.js';
                 window.addEventListener('mouseup', e => { if (e.button === 0) this.mouse.leftDown = false; if (e.button === 2) this.mouse.rightDown = false; });
                 window.addEventListener('contextmenu', e => e.preventDefault());
             },
-            handleKey(code) {
+    handleKey(code, altKey = false) {
                 if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：按键交给编辑器（捕获监听先处理）
                 if (code === CONFIG.KEYS.PAUSE) {
                     Game._paused = !Game._paused;
@@ -100,7 +100,7 @@ import DevTool from './dev-tool.js';
                             QuickBar.droneKeyDown(code);
                         }
                     } else {
-                        QuickBar.useSlot(code);
+                        QuickBar.useSlot(code, altKey);
                     }
                 }
                 if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);

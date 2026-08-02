@@ -1,7 +1,7 @@
 {
   "$schema": "./game-config.schema.json",
   "meta": {
-    "version": "0.366"
+  "version": "0.375"
   },
   "display": {
     "defaultResolution": {
@@ -151,6 +151,10 @@
             "stack": 999
           }
         ],
+        "apprenticeStaff": {
+          "x": 200,
+          "y": 80
+        },
         "materials": {
           "baseX": 280,
           "baseY": 40,

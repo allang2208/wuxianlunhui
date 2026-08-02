@@ -13,6 +13,8 @@ import { SpecialAttackSystem } from '../components/special-attack-system.js';
 import { RuneSwordSystem } from '../components/rune-sword-system.js';
 import { IceSpikeSystem } from '../components/ice-spike-system.js';
 import { FireballSystem } from '../components/fireball-system.js';
+import { LightningStrikeSystem } from '../components/lightning-strike-system.js';
+import { HolyLightSystem } from '../components/holy-light-system.js';
 import { DroneSystem } from '../components/drone-system.js';
 import { ShieldSystem } from '../components/shield-system.js';
 
@@ -109,6 +111,20 @@ class Player extends Combatant {
             this._fireballCooldown = 0; // 冷却（ms）
             this._fireball = null; // 火球对象
             this._fireballImg = null; // 火球贴图
+            // ===== 闪电技能状态 =====
+            this._lightningStrikeCooldown = 0; // 冷却（ms）
+            // ===== 圣光技能状态 =====
+            this._holyLightCooldown = 0; // 冷却（ms）
+            // ===== 施法状态（空手施法前摇/后摇，2026-08-02） =====
+            this._castState = 'idle'; // idle | casting | recover
+            this._castReleaseDone = false; // 第 8 帧释放是否已触发
+            this._castOnRelease = null; // 释放回调（魔法实际结算）
+            this._castStep = 0; // 施法跨步当前位移（px）
+            this._castStepMax = 30; // 跨步最大位移
+            this._castStepDirX = 0; // 跨步方向（起手朝向）
+            this._castStepDirY = 0;
+            this._castStartTime = null; // 前摇起始时间
+            this._castRecoverStartTime = null; // 后摇起始时间
             // ===== 蓄力攻击状态（边境长弓） =====
             this._chargeState = 'idle'; // idle/charging/charged/firing
             this._chargeTimer = 0; // 蓄力计时器
@@ -160,6 +176,8 @@ class Player extends Combatant {
             this.runeSwordSystem = new RuneSwordSystem(this); // 符文长剑特殊攻击系统
             this.iceSpikeSystem = new IceSpikeSystem(this); // 冰锥技能系统
             this.fireballSystem = new FireballSystem(this); // 火球技能系统
+            this.lightningStrikeSystem = new LightningStrikeSystem(this); // 闪电锁定技能系统
+            this.holyLightSystem = new HolyLightSystem(this); // 圣光技能系统
             this.droneSystem = new DroneSystem(this); // 无人机技能系统
             this.shieldSystem = new ShieldSystem(this); // 盾防御系统
             // ===== 独头弹后坐力系统（Super90）=====

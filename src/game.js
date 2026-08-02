@@ -124,6 +124,9 @@ export const Game = {
             const saiga12k = lootCfg.saiga12k || { x: 160, y: 0 };
             this.dropItem(origin.x + g18.x, origin.y + g18.y, EquipDataManager.G18_PISTOL_ITEM);
             this.dropItem(origin.x + saiga12k.x, origin.y + saiga12k.y, EquipDataManager.SAIGA12K_ITEM);
+            // 学徒长杖（2026-08-02 新武器测试；偏移配置 game-config loot.drops.mainHub.apprenticeStaff）
+            const staffCfg = lootCfg.apprenticeStaff || { x: 200, y: 80 };
+            this.dropItem(origin.x + staffCfg.x, origin.y + staffCfg.y, EquipDataManager.APPRENTICE_STAFF_ITEM);
             // 在主神空间横向生成所有武器
             this.spawnAllWeapons();
             // 在出生点附近生成所有附魔卷轴（供测试拾取）

@@ -3287,5 +3287,21 @@
         }
       ]
     }
+  },
+  "weapon20": {
+    "slots": [
+      { "id": "head_crystal", "name": "杖头晶石", "x": 0.5, "y": 0.12, "lineTarget": { "x": 0.5, "y": 0.12 } },
+      { "id": "crown", "name": "杖冠装饰", "x": 0.5, "y": 0.24, "lineTarget": { "x": 0.5, "y": 0.24 } },
+      { "id": "shaft_rune", "name": "杖身符文", "x": 0.5, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.4 } },
+      { "id": "grip_lining", "name": "握柄内衬", "x": 0.5, "y": 0.62, "lineTarget": { "x": 0.5, "y": 0.62 } },
+      { "id": "tail_charm", "name": "尾坠配饰", "x": 0.5, "y": 0.84, "lineTarget": { "x": 0.5, "y": 0.84 } },
+      { "id": "mana_line", "name": "导魔管线", "x": 0.5, "y": 0.5, "lineTarget": { "x": 0.5, "y": 0.5 } }
+    ],
+    "head_crystal": [],
+    "crown": [],
+    "shaft_rune": [],
+    "grip_lining": [],
+    "tail_charm": [],
+    "mana_line": []
   }
 }

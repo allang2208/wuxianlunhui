@@ -307,7 +307,7 @@ export class ZombieWizard extends Enemy {
         SoundManager.play('bow_fire');
     }
 
-    _summonZombieDogs(entities) {
+    _summonZombieDogs(_entities) {
         this._summonCooldown = 30000;
         this._animState = 'summon';
         this._summonAnimPhase = 1;

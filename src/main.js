@@ -54,6 +54,24 @@ async function initModules() {
     window.QuestSystem = QuestSystem;
     window.NpcPortraitTool = NpcPortraitTool;
     window.DevTool = DevTool;
+    // 调试助手：快速设置技能等级（控制台：await setSkillLevel('lightningStrike', 10)；开发面板「技能」页签同源调用）
+    window.setSkillLevel = async (skillId, level) => {
+        const player = window.Game && window.Game.player;
+        if (!player || !player.skills) return { ok: false, error: '游戏角色未就绪' };
+        const sk = player.skills[skillId];
+        if (!sk) return { ok: false, error: `技能不存在: ${skillId}` };
+        const maxL = sk.maxLevel || 20;
+        const L = Math.max(1, Math.min(maxL, Math.floor(Number(level) || 1)));
+        sk.level = L;
+        sk.exp = 0;
+        if (typeof sk.getExpForNext === 'function') sk.maxExp = sk.getExpForNext(L);
+        if (L >= maxL) sk.exp = sk.maxExp || 0;
+        try {
+            const { SkillLevelSystem } = await import('./combat/skill-level-system.js');
+            SkillLevelSystem.refreshUI(skillId);
+        } catch (_e) { /* 面板刷新失败不影响等级设置 */ }
+        return { ok: true, skillId, name: sk.name || skillId, level: L, maxLevel: maxL };
+    };
 
     // 初始化 UI 面板（动态创建 DOM）
     const gameContainer = getElement('gameContainer');

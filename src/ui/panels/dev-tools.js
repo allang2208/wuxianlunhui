@@ -44,6 +44,16 @@ export function createDevToolPanel() {
     tabCollision.textContent = '碰撞';
     tabs.appendChild(tabCollision);
 
+    const tabSkill = document.createElement('div');
+    tabSkill.className = 'dev-tool-tab';
+    tabSkill.dataset.tab = 'skill';
+    tabSkill.addEventListener('click', () => {
+        DevTool.switchTab('skill');
+        fillSkillSelect();
+    });
+    tabSkill.textContent = '技能';
+    tabs.appendChild(tabSkill);
+
     root.appendChild(tabs);
 
     // ===== Tab 内容：武器 =====
@@ -365,6 +375,118 @@ export function createDevToolPanel() {
 
     contentCollision.appendChild(collisionWrap);
     root.appendChild(contentCollision);
+
+    // ===== Tab 内容：技能等级调试 =====
+    const contentSkill = document.createElement('div');
+    contentSkill.className = 'dev-tool-tab-content';
+    contentSkill.dataset.tabContent = 'skill';
+    contentSkill.style.cssText = 'display:none;';
+
+    const skillWrap = document.createElement('div');
+    skillWrap.className = 'collision-tab-wrap';
+
+    const skillDesc = document.createElement('div');
+    skillDesc.className = 'collision-tab-desc';
+    skillDesc.innerHTML = '<p>⚡ 快速调整技能等级（测试用，改后立即生效）：</p>';
+    skillWrap.appendChild(skillDesc);
+
+    const skillRow = document.createElement('div');
+    skillRow.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:10px 0;';
+
+    const skillSelect = document.createElement('select');
+    skillSelect.id = 'devToolSkillSelect';
+    skillSelect.style.cssText = 'width:100%;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #3a3a3a;';
+    skillRow.appendChild(skillSelect);
+
+    const levelRow = document.createElement('div');
+    levelRow.style.cssText = 'display:flex;gap:6px;align-items:center;';
+    const levelLabel = document.createElement('span');
+    levelLabel.textContent = '等级:';
+    levelLabel.style.cssText = 'color:#d4c5a9;font-size:13px;';
+    const levelInput = document.createElement('input');
+    levelInput.type = 'number';
+    levelInput.id = 'devToolSkillLevel';
+    levelInput.min = '1';
+    levelInput.max = '20';
+    levelInput.value = '1';
+    levelInput.style.cssText = 'width:56px;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #3a3a3a;';
+    const btnMinus = document.createElement('button');
+    btnMinus.className = 'dev-tool-menu-btn';
+    btnMinus.textContent = '−';
+    const btnPlus = document.createElement('button');
+    btnPlus.className = 'dev-tool-menu-btn';
+    btnPlus.textContent = '+';
+    const btnApply = document.createElement('button');
+    btnApply.className = 'dev-tool-menu-btn';
+    btnApply.textContent = '✓ 应用';
+    btnApply.style.cssText = 'margin-left:auto;';
+    levelRow.append(levelLabel, levelInput, btnMinus, btnPlus, btnApply);
+    skillRow.appendChild(levelRow);
+
+    const skillStatus = document.createElement('div');
+    skillStatus.id = 'devToolSkillStatus';
+    skillStatus.style.cssText = 'color:#b8d8ff;font-size:12px;min-height:16px;';
+    skillRow.appendChild(skillStatus);
+
+    skillWrap.appendChild(skillRow);
+    contentSkill.appendChild(skillWrap);
+    root.appendChild(contentSkill);
+
+    // ===== 技能等级调试逻辑 =====
+    const fillSkillSelect = () => {
+        const player = window.Game && window.Game.player;
+        const sel = document.getElementById('devToolSkillSelect');
+        if (!sel || !player || !player.skills) return;
+        const current = sel.value;
+        sel.innerHTML = '';
+        for (const [id, sk] of Object.entries(player.skills)) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `${sk.name || id}（Lv.${sk.level}/${sk.maxLevel || 20}）`;
+            sel.appendChild(opt);
+        }
+        if (current && player.skills[current]) sel.value = current;
+        updateSkillStatus();
+    };
+    const updateSkillStatus = () => {
+        const player = window.Game && window.Game.player;
+        const sel = document.getElementById('devToolSkillSelect');
+        const status = document.getElementById('devToolSkillStatus');
+        const input = document.getElementById('devToolSkillLevel');
+        if (!player || !sel || !status || !input) return;
+        const sk = player.skills[sel.value];
+        if (!sk) { status.textContent = ''; return; }
+        input.max = sk.maxLevel || 20;
+        input.value = sk.level;
+        status.textContent = sk.level >= (sk.maxLevel || 20)
+            ? `${sk.name}：已满级`
+            : `${sk.name}：当前 Lv.${sk.level}，升级需 ${sk.maxExp - sk.exp} 经验`;
+    };
+    const applySkillLevel = (delta) => {
+        const player = window.Game && window.Game.player;
+        const sel = document.getElementById('devToolSkillSelect');
+        const input = document.getElementById('devToolSkillLevel');
+        if (!player || !sel || !input || !player.skills[sel.value]) {
+            if (DevTool && typeof DevTool._showToast === 'function') DevTool._showToast('❌ 请先进入游戏');
+            return;
+        }
+        const target = delta ? Number(player.skills[sel.value].level) + delta : Number(input.value || 1);
+        const result = typeof window.setSkillLevel === 'function'
+            ? window.setSkillLevel(sel.value, target)
+            : Promise.resolve({ ok: false, error: 'setSkillLevel 未挂载' });
+        Promise.resolve(result).then(r => {
+            if (r && r.ok) {
+                updateSkillStatus();
+                fillSkillSelect();
+                if (DevTool && typeof DevTool._showToast === 'function') DevTool._showToast(`✅ ${r.name} → Lv.${r.level}`);
+            } else if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(`❌ ${(r && r.error) || '设置失败'}`);
+            }
+        });
+    };
+    btnPlus.addEventListener('click', () => applySkillLevel(1));
+    btnMinus.addEventListener('click', () => applySkillLevel(-1));
+    btnApply.addEventListener('click', () => applySkillLevel(0));
 
     return root;
 }

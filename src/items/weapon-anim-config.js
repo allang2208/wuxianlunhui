@@ -38,6 +38,10 @@ async function loadWeaponAnimConfig() {
     }
     // stab 配置无法 JSON 化（含函数），始终由 JS 提供
     WeaponAnimConfig.stab = STAB_CONFIG;
+    // 法杖（staff，2026-08-02 新增）：近战攻击套用剑类动画——配置别名指向 sword，免维护双份
+    if (WeaponAnimConfig.sword && !WeaponAnimConfig.staff) {
+        WeaponAnimConfig.staff = WeaponAnimConfig.sword;
+    }
 }
 
 await loadWeaponAnimConfig();

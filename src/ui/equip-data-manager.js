@@ -122,6 +122,34 @@ export const EquipDataManager = {
             ]
         }
     },
+    APPRENTICE_STAFF_ITEM: {
+        weaponId: 'weapon20',
+        name: '学徒长杖', type: '法杖', icon: '🪄', iconImage: 'assets/weapons/学徒法杖.png',
+        dropImage: 'assets/weapons/学徒法杖.png',
+        equipImage: 'assets/weapons/学徒法杖.png',
+        slotImage: 'assets/weapons/学徒法杖.png',
+        category: 'weapon_melee', rarity: 'uncommon', level: 1,
+        weaponCategory: 'mainhand', weaponType: 'staff',
+        weaponTypeTag: '近战武器',
+        stats: [{ name: '物理攻击', value: '3+敏捷×0.25+力量×0.25' }],
+        desc: '初学者的练习法杖，杖身刻有简单的导魔纹路，适合魔法初学者使用',
+        equipSlot: 'weapon',
+        attack: { range: 110, knockback: 0, attackInterval: 500, hitType: '挥砍（扇形判定）', damageType: '物理' },
+        attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
+        castAnimKey: 'staff_cast', // 装备法杖释放魔法时的施法动画（player-anim-config 键）
+        attackFormula: { base: 3, enhanceFlat: 0.25, attrs: [{ key: 'dex', base: 0.25, perEnhance: 0.1 }, { key: 'str', base: 0.25, perEnhance: 0.15 }] },
+        craftConfig: {
+            weaponId: 'weapon20',
+            slots: [
+                { id: 'head_crystal', name: '杖头晶石', x: 0.5, y: 0.12, lineTarget: { x: 0.5, y: 0.12 } },
+                { id: 'crown', name: '杖冠装饰', x: 0.5, y: 0.24, lineTarget: { x: 0.5, y: 0.24 } },
+                { id: 'shaft_rune', name: '杖身符文', x: 0.5, y: 0.4, lineTarget: { x: 0.5, y: 0.4 } },
+                { id: 'grip_lining', name: '握柄内衬', x: 0.5, y: 0.62, lineTarget: { x: 0.5, y: 0.62 } },
+                { id: 'tail_charm', name: '尾坠配饰', x: 0.5, y: 0.84, lineTarget: { x: 0.5, y: 0.84 } },
+                { id: 'mana_line', name: '导魔管线', x: 0.5, y: 0.5, lineTarget: { x: 0.5, y: 0.5 } }
+            ]
+        }
+    },
     PKM_ITEM: {
         weaponId: 'weapon6',
         name: 'PKM', type: '机枪', icon: '🔫', iconImage: 'assets/icons/pkm_side_clean.png',

@@ -1264,6 +1264,144 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 玩家施法动作（2026-08-02，空手施法 12 帧/0.5s + 0.25s 倒放后摇）：
+     * - 前摇播放 cast 动画，播放到第 releaseFrame 帧（默认第 8 帧）触发 onRelease（魔法实际释放）；
+     * - 前摇期间输入全锁（player/update.js 施法分支 early-return）；
+     * - 前摇播完自动 0.25s 倒放恢复 idle；后摇阶段空格翻滚可打断（_interruptCastRecover → cancelPlayerCast）；
+     * - 施法期间武器不隐藏，保持在 idle 右手持握位置（weaponAnim.state 保持 idle 自然停右手）。
+     * 冰锥/火球二段发射、圣光释放等魔法统一走此入口（各系统 _startPlayerCast 包装）。
+     */
+    startPlayerCast({ onRelease, forwardMs = 500, recoverMs = 250, releaseFrame = 8, totalFrames = 12 }) {
+        const p = window.Game && window.Game.player;
+        if (!p || !this.playerSprite) return;
+        // 施法动画全配置驱动：动画键来自武器数据 castAnimKey（法杖=staff_cast），
+        // 释放帧/前摇/后摇时长来自 player-anim-config（releaseFrame/forwardMs/recoverMs）
+        const currentItem = p.equipments && p.equipments[p.weaponMode];
+        const castKey = (currentItem && currentItem.castAnimKey) || 'cast';
+        const castDef = getPlayerAnimDef(castKey);
+        const texKey = playerTextureKey(castKey);
+        if (!this.anims.exists(texKey)) { if (onRelease) onRelease(); return; }
+        const frameRange = (castDef && castDef.frames) ? castDef.frames : [0, ((castDef && castDef.frameCount) || 1) - 1];
+        totalFrames = frameRange[1] - frameRange[0] + 1;
+        releaseFrame = (castDef && castDef.releaseFrame) || Math.ceil(totalFrames * 2 / 3);
+        forwardMs = (castDef && castDef.forwardMs) || forwardMs;
+        recoverMs = (castDef && castDef.recoverMs) || recoverMs;
+        // 清掉可能残留的施法监听/状态（不重置玩家状态，避免打断自身流程）
+        this.cancelPlayerCast(false);
+        p._castState = 'casting';
+        p._castReleaseDone = false;
+        p._castOnRelease = onRelease || null;
+        // 施法跨步：前摇沿起手朝向推进 +30px、后摇退回（update.js 每帧 _updateCastStep 驱动）
+        p._castStep = 0;
+        p._castStepMax = 30;
+        p._castForwardMs = forwardMs;
+        p._castRecoverMs = recoverMs;
+        p._castStepDirX = Math.cos(p.rotation || 0);
+        p._castStepDirY = Math.sin(p.rotation || 0);
+        p._castOriginX = p.x; // 起手位置（后摇向此归位，防穿墙钳制后回退过头）
+        p._castOriginY = p.y;
+        p._castStartTime = performance.now();
+        p._castRecoverStartTime = null;
+        // 退出扭转/分层姿态
+        this._twistConfig = null;
+        this._twistState = null;
+        if (this.playerTorsoSprite) this.playerTorsoSprite.setVisible(false);
+        if (this.playerArmSprite) this.playerArmSprite.setVisible(false);
+        if (this.playerSprite.texture.key !== texKey) this.playerSprite.setTexture(texKey);
+        this.playerSprite.setFlipX(!this._getVisualFacingRight(p));
+        // 前摇：12 帧 / forwardMs
+        this.playerSprite.play({ key: texKey, frameRate: totalFrames / (forwardMs / 1000), repeat: 0 });
+        this.playerSprite.anims.timeScale = 1;
+        this._playerAttackDuration = forwardMs;
+        this._playerAttackStartTime = performance.now();
+        // 帧回调：播放到第 releaseFrame 帧释放魔法（只触发一次）
+        this._castUpdateHandler = (_anim, frame) => {
+            if (p._castState !== 'casting') return;
+            if (frame.index === releaseFrame - 1 && !p._castReleaseDone) {
+                p._castReleaseDone = true;
+                const fn = p._castOnRelease;
+                p._castOnRelease = null;
+                if (fn) fn();
+            }
+        };
+        this.playerSprite.on('animationupdate', this._castUpdateHandler);
+        // 兜底：animationupdate 万一未触发（事件异常/动画被外部打断），按帧时间释放，避免魔法永远不释放
+        if (this._castReleaseTimer) this.time.removeEvent(this._castReleaseTimer);
+        this._castReleaseTimer = this.time.delayedCall((releaseFrame / totalFrames) * forwardMs + 40, () => {
+            if (p._castState === 'casting' && !p._castReleaseDone) {
+                p._castReleaseDone = true;
+                const fn = p._castOnRelease;
+                p._castOnRelease = null;
+                if (fn) fn();
+            }
+        });
+        // 前摇播完 → 倒放后摇（0.25s）
+        this._castCompleteHandler = () => {
+            if (p._castState !== 'casting') return;
+            p._castState = 'recover';
+            p._castRecoverOriginX = p.x; // 后摇起点（线性归位到起手位置）
+            p._castRecoverOriginY = p.y;
+            p._castRecoverStartTime = performance.now();
+            this.playerSprite.playReverse({ key: texKey, frameRate: totalFrames / (recoverMs / 1000) });
+            this.playerSprite.anims.timeScale = 1;
+            this._castRecoverHandler = () => this._endPlayerCast();
+            this.playerSprite.once('animationcomplete', this._castRecoverHandler);
+            // 兜底：倒放完成事件万一不触发，超时强制收尾
+            if (this._castRecoverTimer) this.time.removeEvent(this._castRecoverTimer);
+            this._castRecoverTimer = this.time.delayedCall(recoverMs + 80, () => {
+                if (p._castState === 'recover') this._endPlayerCast();
+            });
+        };
+        this.playerSprite.once('animationcomplete', this._castCompleteHandler);
+    }
+
+    /** 取消/结束施法：清监听、恢复武器显示；resetState=false 仅清监听（startPlayerCast 内部用） */
+    cancelPlayerCast(resetState = true) {
+        const p = window.Game && window.Game.player;
+        if (this._castUpdateHandler) {
+            if (this.playerSprite) this.playerSprite.off('animationupdate', this._castUpdateHandler);
+            this._castUpdateHandler = null;
+        }
+        if (this._castCompleteHandler) {
+            if (this.playerSprite) this.playerSprite.off('animationcomplete', this._castCompleteHandler);
+            this._castCompleteHandler = null;
+        }
+        if (this._castRecoverHandler) {
+            if (this.playerSprite) this.playerSprite.off('animationcomplete', this._castRecoverHandler);
+            this._castRecoverHandler = null;
+        }
+        if (this._castRecoverTimer) {
+            this.time.removeEvent(this._castRecoverTimer);
+            this._castRecoverTimer = null;
+        }
+        if (this._castReleaseTimer) {
+            this.time.removeEvent(this._castReleaseTimer);
+            this._castReleaseTimer = null;
+        }
+        if (resetState) {
+            if (p) {
+                p._castState = 'idle';
+                p._castReleaseDone = true;
+                p._castOnRelease = null;
+                p._castStep = 0;
+                p._castStartTime = null;
+                p._castRecoverStartTime = null;
+                p._castOriginX = null;
+                p._castOriginY = null;
+                p._castRecoverOriginX = null;
+                p._castRecoverOriginY = null;
+            }
+        }
+    }
+
+    /** 后摇倒放完成/被打断后的收尾：回 idle */
+    _endPlayerCast() {
+        const p = window.Game && window.Game.player;
+        this.cancelPlayerCast();
+        if (p) this.setPlayerAnimation('idle');
+    }
+
+    /**
      * 创建/复用躯干层 Sprite（原点=腰轴心，位置由 _syncGunTwist 每帧贴到腰轴世界点）
      */
     _ensureTorsoSprite(torsoKey, twist) {
@@ -1531,6 +1669,18 @@ export class GameScene extends Scene {
         if (!_game || !_game.player || !this.playerSprite || !this.playerSprite.active) return;
         const player = _game.player;
         if (player._isDead) return;
+        // 施法动画期间不被移动/状态机覆盖（前摇+后摇由 startPlayerCast 独立驱动，
+        // 第 8 帧释放依赖动画完整播放到目标帧；否则每帧 idle/walk 覆盖导致永远不释放）
+        if (player._castState && player._castState !== 'idle') {
+            // 兜底：施法动画没在播（注册失败/被外部打断等）时自动收尾，防施法状态软锁
+            const curCastKey = (player.equipments && player.equipments[player.weaponMode] && player.equipments[player.weaponMode].castAnimKey) || 'cast';
+            const castAnimKey = playerTextureKey(curCastKey);
+            const cur = this.playerSprite.anims.currentAnim?.key;
+            if (cur !== castAnimKey || !this.playerSprite.anims.isPlaying) {
+                this._endPlayerCast();
+            }
+            return;
+        }
 
         // 攻击/特殊动画期间不覆盖
         const weaponAnim = player.weaponAnim || {};
@@ -2507,7 +2657,6 @@ export class GameScene extends Scene {
      * Phase 3: 同步火球到 Phaser Sprite
      */
     _syncFireball(caster) {
-        const sprites = this._getMagicSprites(caster);
         if (!caster._fireballActive || !caster._fireball || caster._fireball.launched) {
             this._hideFireballEmitters(caster);
             return;
@@ -2635,7 +2784,6 @@ export class GameScene extends Scene {
      * Phase 3 续：同步飞行中的火球到 Phaser Sprite
      */
     _syncFlyingFireball(caster) {
-        const sprites = this._getMagicSprites(caster);
         if (!caster._fireball || !caster._fireball.flyActive) {
             // 悬浮期（未发射）由 _syncFireball 负责显示发射器，这里不能隐藏——否则每帧互相抵消看不到火球；
             // 火球完全结束时由 _syncFireball 的 early-return 统一隐藏

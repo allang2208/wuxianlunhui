@@ -481,7 +481,7 @@ export const CollisionEditor = {
         // 生成在玩家右侧（相机跟随玩家，必在视野内）
         const px = Game.player.x + 170;
         const py = Game.player.y;
-        let e = null;
+        let e;
         if (this._kind === 'enemy') {
             const factory = ZOMBIE_FACTORY_MAP[this._key];
             if (factory) {
