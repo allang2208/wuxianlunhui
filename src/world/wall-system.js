@@ -75,7 +75,25 @@ export function isoHalfThick(g) {
 const ISO_CORNER_DEPTH_BIAS = { top: 0, right: 1, left: 2, bottom: 3 };
 
 const WallSystem = {
-    walls: [],
+    // [PERF-2026-08-03] 碰撞空间加速：walls/isoSegments/trees 以"原始数组 + 访问器"暴露。
+    // 读侧返回惰性代理，任何 push/splice/下标赋值自动标记脏；_getCollisionGrid 惰性重建
+    // 空间网格，canMoveTo/blocked/_nearestBlockingSeg 改为网格近邻查询（谓词与线性版完全一致，
+    // 关掉 _collisionAccel 即回退线性扫描，供差分测试/疑难排查）。语义零变化。
+    _wallsRaw: [],
+    _isoSegmentsRaw: null,
+    _treesRaw: null,
+    _wallsProxy: null,
+    _isoSegmentsProxy: null,
+    _treesProxy: null,
+    _collisionGrid: null,
+    _collisionGridDirty: true,
+    _collisionAccel: true,
+    get walls() { return this._trackedArray('walls'); },
+    set walls(v) { this._setTrackedArray('walls', v); },
+    get isoSegments() { return this._trackedArray('isoSegments'); },
+    set isoSegments(v) { this._setTrackedArray('isoSegments', v); },
+    get trees() { return this._trackedArray('trees'); },
+    set trees(v) { this._setTrackedArray('trees', v); },
     isoVisuals: [],  // 等距斜墙视觉件（仅渲染，碰撞由 walls 中的阶梯矩形承担）
     mazeEndY: 0,
     _wallHeight: 60,
@@ -104,6 +122,142 @@ const WallSystem = {
         this.mazeEndY = 0;
         // ===== Phaser 墙壁同步 =====
         this._syncWallsToPhaser();
+    },
+
+    // ============ [PERF-2026-08-03] 碰撞空间加速 ============
+
+    /** 返回跟踪代理（惰性创建并缓存）；raw 为 null/undefined 时原样返回（保持旧语义） */
+    _trackedArray(name) {
+        const rawKey = `_${name}Raw`;
+        const proxyKey = `_${name}Proxy`;
+        const raw = this[rawKey];
+        if (raw === null || raw === undefined) return raw;
+        if (this[proxyKey]) return this[proxyKey];
+        const owner = this;
+        this[proxyKey] = new Proxy(raw, {
+            set(t, p, v, r) { owner._markCollisionDirty(); return Reflect.set(t, p, v, r); },
+            deleteProperty(t, p) { owner._markCollisionDirty(); return Reflect.deleteProperty(t, p); },
+        });
+        return this[proxyKey];
+    },
+
+    _setTrackedArray(name, v) {
+        this[`_${name}Raw`] = v;
+        this[`_${name}Proxy`] = null;
+        this._markCollisionDirty();
+    },
+
+    _markCollisionDirty() {
+        this._collisionGridDirty = true;
+    },
+
+    /** 取空间网格（脏/缺失/长度指纹变化时重建）。长度指纹兜底捕获"整体赋值后再直接改原数组"的绕过场景 */
+    _getCollisionGrid() {
+        if (this._collisionGrid && !this._collisionGridDirty) {
+            const g = this._collisionGrid;
+            const wLen = this._wallsRaw ? this._wallsRaw.length : 0;
+            const sLen = this._isoSegmentsRaw ? this._isoSegmentsRaw.length : 0;
+            const tLen = this._treesRaw ? this._treesRaw.length : 0;
+            if (g.wallsLen === wLen && g.segsLen === sLen && g.treesLen === tLen) return g;
+            this._collisionGridDirty = true;
+        }
+        if (this._collisionGridDirty || !this._collisionGrid) this._buildCollisionGrid();
+        return this._collisionGrid;
+    },
+
+    _buildCollisionGrid() {
+        const cell = 128;
+        const cells = new Map();
+        const key = (cx, cy) => `${cx},${cy}`;
+        const put = (item, minX, minY, maxX, maxY) => {
+            const minCX = Math.floor(minX / cell);
+            const maxCX = Math.floor(maxX / cell);
+            const minCY = Math.floor(minY / cell);
+            const maxCY = Math.floor(maxY / cell);
+            for (let cy = minCY; cy <= maxCY; cy++) {
+                for (let cx = minCX; cx <= maxCX; cx++) {
+                    const k = key(cx, cy);
+                    let arr = cells.get(k);
+                    if (!arr) { arr = []; cells.set(k, arr); }
+                    arr.push(item);
+                }
+            }
+        };
+        let maxSegThick = 0;
+        let maxTreeR = 0;
+        const walls = this._wallsRaw || [];
+        const segs = this._isoSegmentsRaw || [];
+        const trees = this._treesRaw || [];
+        for (const w of walls) put({ type: 'wall', obj: w }, w.x, w.y, w.x + w.w, w.y + w.h);
+        for (let si = 0; si < segs.length; si++) {
+            const s = segs[si];
+            const ht = s.halfThick || 0;
+            if (ht > maxSegThick) maxSegThick = ht;
+            put({ type: 'seg', obj: s, idx: si },
+                Math.min(s.x1, s.x2) - ht, Math.min(s.y1, s.y2) - ht,
+                Math.max(s.x1, s.x2) + ht, Math.max(s.y1, s.y2) + ht);
+        }
+        for (const t of trees) {
+            const tr = t.collisionRadius || t.radius * 0.6 || 0;
+            if (tr > maxTreeR) maxTreeR = tr;
+            put({ type: 'tree', obj: t }, t.x - tr, t.y - tr, t.x + tr, t.y + tr);
+        }
+        this._collisionGrid = {
+            cell, cells, key,
+            wallsLen: walls.length, segsLen: segs.length, treesLen: trees.length,
+            maxSegThick, maxTreeR,
+        };
+        this._collisionGridDirty = false;
+    },
+
+    /** 线性版 canMoveTo（_collisionAccel=false 时使用，与历史实现逐行一致） */
+    _linearCanMoveTo(x, y, radius) {
+        for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
+        // iso 墙线段模型：点到线段距离 < 半径 + 半厚
+        if (this.isoSegments) {
+            for (const s of this.isoSegments) {
+                if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+            }
+        }
+        // 检查树木碰撞：使用独立的 collisionRadius（视觉半径的60%）
+        for (const t of this.trees) {
+            const dx = x - t.x, dy = y - t.y;
+            const treeR = t.collisionRadius || t.radius * 0.6;
+            if (Math.sqrt(dx * dx + dy * dy) < treeR + radius) return false;
+        }
+        return true;
+    },
+
+    /** 线性版 blocked（保留 ignore 语义） */
+    _linearBlocked(x1, y1, x2, y2, ignore = null) {
+        for (const w of this.walls) {
+            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
+            if (this.lineRect(x1, y1, x2, y2, w)) return true;
+        }
+        // iso 墙线段：移动线与墙段相交
+        if (this.isoSegments) {
+            for (const s of this.isoSegments) {
+                if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
+            }
+        }
+        // 检查树木：使用独立的 collisionRadius（视觉半径的60%）
+        for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
+        return false;
+    },
+
+    /** 线性版最近阻挡墙段 */
+    _linearNearestBlockingSeg(nx, ny, r) {
+        if (!this.isoSegments) return null;
+        let best = null, bestD = Infinity;
+        for (const s of this.isoSegments) {
+            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
+            if (d < r + s.halfThick + 4 && d < bestD) {
+                bestD = d;
+                best = s;
+            }
+        }
+        return best;
     },
 
     /**
@@ -944,20 +1098,34 @@ const WallSystem = {
         return (cx - clX) ** 2 + (cy - clY) ** 2 < r * r;
     },
     canMoveTo(x, y, radius) {
-        for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
-        // iso 墙线段模型：点到线段距离 < 半径 + 半厚
-        if (this.isoSegments) {
-            for (const s of this.isoSegments) {
-                if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+        if (this._collisionAccel) {
+            const g = this._getCollisionGrid();
+            if (!g) return this._linearCanMoveTo(x, y, radius);
+            const { cell, cells, key, maxSegThick, maxTreeR } = g;
+            const range = Math.ceil((radius + Math.max(maxSegThick, maxTreeR)) / cell) + 1;
+            const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
+            for (let dy = -range; dy <= range; dy++) {
+                for (let dx = -range; dx <= range; dx++) {
+                    const arr = cells.get(key(cx + dx, cy + dy));
+                    if (!arr) continue;
+                    for (const item of arr) {
+                        if (item.type === 'wall') {
+                            if (this.circleRect(x, y, radius, item.obj)) return false;
+                        } else if (item.type === 'seg') {
+                            const s = item.obj;
+                            if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+                        } else {
+                            const t = item.obj;
+                            const ddx = x - t.x, ddy = y - t.y;
+                            const treeR = t.collisionRadius || t.radius * 0.6;
+                            if (Math.sqrt(ddx * ddx + ddy * ddy) < treeR + radius) return false;
+                        }
+                    }
+                }
             }
+            return true;
         }
-        // 检查树木碰撞：使用独立的 collisionRadius（视觉半径的60%）
-        for (const t of this.trees) {
-            const dx = x - t.x, dy = y - t.y;
-            const treeR = t.collisionRadius || t.radius * 0.6;
-            if (Math.sqrt(dx * dx + dy * dy) < treeR + radius) return false;
-        }
-        return true;
+        return this._linearCanMoveTo(x, y, radius);
     },
     /** 点 (px,py) 到线段 (x1,y1)-(x2,y2) 的距离 */
     _pointSegDist(px, py, x1, y1, x2, y2) {
@@ -1012,16 +1180,34 @@ const WallSystem = {
     },
     /** 找离目标点最近的阻挡 iso 墙段（距离 < r + 半厚 + 容差） */
     _nearestBlockingSeg(nx, ny, r) {
-        if (!this.isoSegments) return null;
-        let best = null, bestD = Infinity;
-        for (const s of this.isoSegments) {
-            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
-            if (d < r + s.halfThick + 4 && d < bestD) {
-                bestD = d;
-                best = s;
+        if (this._collisionAccel) {
+            const g = this._getCollisionGrid();
+            if (g) {
+                const { cell, cells, key, maxSegThick } = g;
+                const range = Math.ceil((r + maxSegThick + 4) / cell) + 1;
+                const cx = Math.floor(nx / cell), cy = Math.floor(ny / cell);
+                let best = null, bestD = Infinity, bestIdx = Infinity;
+                for (let dy = -range; dy <= range; dy++) {
+                    for (let dx = -range; dx <= range; dx++) {
+                        const arr = cells.get(key(cx + dx, cy + dy));
+                        if (!arr) continue;
+                        for (const item of arr) {
+                            if (item.type !== 'seg') continue;
+                            const s = item.obj;
+                            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
+                            // 平局按数组下标决胜（与线性版"先到先得"严格一致）
+                            if (d < r + s.halfThick + 4 && (d < bestD || (d === bestD && item.idx < bestIdx))) {
+                                bestD = d;
+                                best = s;
+                                bestIdx = item.idx;
+                            }
+                        }
+                    }
+                }
+                return best;
             }
         }
-        return best;
+        return this._linearNearestBlockingSeg(nx, ny, r);
     },
     lineCircle(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1, dy = y2 - y1;
@@ -1045,20 +1231,41 @@ const WallSystem = {
         return u1 < u2;
     },
     blocked(x1, y1, x2, y2, ignore = null) {
-        for (const w of this.walls) {
-            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
-            if (this.lineRect(x1, y1, x2, y2, w)) return true;
-        }
-        // iso 墙线段：移动线与墙段相交
-        if (this.isoSegments) {
-            for (const s of this.isoSegments) {
-                if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-                if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
+        if (this._collisionAccel) {
+            const g = this._getCollisionGrid();
+            if (!g) return this._linearBlocked(x1, y1, x2, y2, ignore);
+            const { cell, cells, key, maxSegThick, maxTreeR } = g;
+            // 射线 AABB 按最大树半径/段半厚外扩，保证相交件必被候选捕获（保守超集）
+            const margin = Math.max(maxSegThick, maxTreeR);
+            const minX = Math.min(x1, x2) - margin;
+            const maxX = Math.max(x1, x2) + margin;
+            const minY = Math.min(y1, y2) - margin;
+            const maxY = Math.max(y1, y2) + margin;
+            const minCX = Math.floor(minX / cell), maxCX = Math.floor(maxX / cell);
+            const minCY = Math.floor(minY / cell), maxCY = Math.floor(maxY / cell);
+            for (let cy = minCY; cy <= maxCY; cy++) {
+                for (let cx = minCX; cx <= maxCX; cx++) {
+                    const arr = cells.get(key(cx, cy));
+                    if (!arr) continue;
+                    for (const item of arr) {
+                        if (item.type === 'wall') {
+                            const w = item.obj;
+                            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
+                            if (this.lineRect(x1, y1, x2, y2, w)) return true;
+                        } else if (item.type === 'seg') {
+                            const s = item.obj;
+                            if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
+                        } else {
+                            const t = item.obj;
+                            if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
+                        }
+                    }
+                }
             }
+            return false;
         }
-        // 检查树木：使用独立的 collisionRadius（视觉半径的60%）
-        for (const t of this.trees) if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
-        return false;
+        return this._linearBlocked(x1, y1, x2, y2, ignore);
     },
 
     /**

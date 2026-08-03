@@ -2,6 +2,47 @@
 
 ## 版本: 1.8
 
+## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
+
+### 背景（全量审计实测，2026-08-03）
+冷路径 findPath ≈ 10ms（`_buildGrid` 占 92%）；刷怪瞬间 15 只怪同帧冷寻路可达 50~115ms
+主线程卡顿；不可达目标每 500ms 卡住重算重复付冷 A*（20ms/次）；冰墙生成/破碎误调
+`invalidateCache()`（冰墙只改 isoSegments，A* 网格有意不建模——纯开销零收益）；
+墙体碰撞对全部墙/线段/树线性扫描。
+
+### 本次完成
+1. **静态格子记忆化**：`_getCellData` 合并 blocked+moveCost 单趟查询，按 `(格子坐标, 半径)`
+   跨寻路复用；`_buildGrid` 原点对齐 gridSize 倍数 → 15 怪同帧批量 106ms→~10ms。
+2. **每帧寻路预算**：`PATH_DEFERRED` 哨兵 + `beginFrame()` 帧预算（3ms），超预算保留旧路径
+   下帧重试，杜绝同帧多怪冷寻路叠加。
+3. **不可达负缓存**（500ms TTL）+ **出口路径短缓存**：重复失败 20ms→0.01ms。
+4. **首寻路错峰**：PathManager 创建后 0~250ms 随机延迟，刷怪同帧错开。
+5. **墙体碰撞空间网格**：walls/isoSegments/trees 经代理自动标脏 + 128px 惰性网格，
+   resolve 提速 ~11×（20 怪 × 3 resolve/帧 1.40ms→0.12ms）。
+6. **分离/侧翼空间分区**：`_computeSeparation`/`_computeFlankOffset` 改
+   `SpatialPartitionSystem.queryRadius`，替代每怪每帧遍历全部实体。
+7. **冰墙缓存失效删除**：`ice-wall-system` 不再调 `invalidateCache()`（约束已写死）。
+8. **P3 收尾**：`setPath` 防御性拷贝（修共享缓存数组别名）、`_setCache` LRU、
+   console.warn 1s 节流、删除死代码 `isReachableByRegion`。
+
+### 验证
+- eslint 0 error / `vite build` ✓ / `npm test` 全绿（新增 collision-grid 差分 12 + 寻路基准 27）。
+- 回归防线已入 `npm test`：`tools/pathfinding-bench.mjs`（合成战斗房基准+宽松阈值）、
+  `scripts/test-collision-grid.mjs`（线性 vs 网格差分：12 场景×250 查询 + 变更追踪 + 空场景）。
+
+### 关键改动文件
+`src/ai/pathfinder.js`、`src/ai/path-manager.js`、`src/systems/movement-system.js`、
+`src/world/wall-system.js`、`src/entities/components/ice-wall-system.js`、`src/game.js`、
+`scripts/test-collision-grid.mjs`、`tools/pathfinding-bench.mjs`、`tools/pathfinding-hooks.mjs`、
+`package.json`。
+
+### 后续方向（已评估，暂缓）
+- `findPathToExit` 的 RegionIndex 按房间 bounds 限定（当前全墙 bounds，负缓存+预算已兜底）。
+- 冷路径首建 ~10ms 的"按障碍物栅格化"优化（预算下单帧一次，收益边际）。
+- 跨房间怪物追踪（门闸软成本进寻路等）——需设计确认，非实现项。
+
+---
+
 ## 阶段性进度总结（2026-08-03：距离音效/游戏菜单/冰墙与魔法改造修复/全量审计）
 
 ### 本次完成
@@ -1584,8 +1625,11 @@ addTree(x, y, radius, ...) {
 - 生成脚本 `tools/prep-sword-attack-hand.py`：从 attack_sword.png 8 帧读拳头中心，
   换算 local（`(px-256)×144/516`），30 点插值后只替换 offsetX/offsetY
   （rotation/scale/blur/stretch 保留手动调参）。
-- 当前轨迹：f0 `(-15.6,-35.2)` → f8 `(-26.8,-40.3)`（蓄力顶）→ f15 `(15.6,-39.3)`
-  （前举）→ f22+ `(9.5,-3.3)`（下劈收势）。
+- 当前轨迹（握把，即减去剑柄补偿后的手位）：f0 `(-15.6,-35.2)` → f8 `(-26.8,-40.3)`
+  （蓄力顶）→ f15 `(15.6,-39.3)`（前举）→ f22+ `(51.4,6.7)`（下劈到前伸手收势）。
+- **f7/定格必须用「前伸手」**（2026-08-03 实机反馈"最后一帧+定格武器在后方、与手不相交"）：
+  f7 全身实测手向前伸（x400-464），握把锚点应为 **f7=(440,280)→local (51.4,6.7)**，
+  不是后手 x275（之前误读后手导致武器落在身后）。生成脚本 HAND_PX f7 已改。
 - **握把（剑柄）贴手（2026-08-03 修订）**：perFrame 偏移是**贴图中心**，而剑柄在贴图中心下方
   ——中心贴手 = 剑柄悬在手下。修正：按每帧旋转角反推中心 `offsetX = 手X + G·sin(rot)`、
   `offsetY = 手Y − G·cos(rot)`，使剑柄落点=手。
@@ -1601,6 +1645,32 @@ addTree(x, y, radius, ...) {
 - **验证**：CDP 实机采样（`tools/cdp-sword-attack-check.mjs`）确认 blur 峰值帧
   x=1/y=0.08/strength≈14；视觉模型粗验收"剑贴手 + 横向拉丝 + 刀身不糊"。
 - 残影（`_syncWeaponGhosts`）为死代码，勿再启用。
+
+## 二段攻击（attack_sword_2）双手横挥优化（2026-08-03）
+
+- **动画**：30 帧（50ms/帧），"单手切双手 → 向前横向挥砍"；命中帧 15（sector 扇形）。
+- **代码**：`syncWeapon` 近战分支按 `player.n === 2` 读 `attack2` 轨迹块；
+  **已移除旧 `weaponUnder` 逻辑**（原 18~24 帧把武器压到人物下方 depth -0.01——
+  双手横挥时剑在身前却被身体遮挡 = "涂层遮盖"根因），武器恒在人物前方（+2）。
+- **横向挥砍（透视）修正**：F14~F25 剑保持在**胸口高度**（Y ≈ -2~15）且**近水平**
+  （rotation 95~120，不再 45~85 上劈姿态），避免剑身盖脸；握把（剑柄）绑定**前伸手**
+  （近侧手 ~local (52,-6)，握把校正 G=40 同攻击一段）。F0~F13 蓄力、F26~F29 收势保留。
+- **验证**：lint/build/npm test 全绿；预览 `attack2_FINAL.png`（绿圈=握把）。
+- **二段收势 0.3s（2026-08-03 用户指定）**：恢复动画共用 `recover`（13 帧×25.4ms=330ms）；
+  GameScene 恢复触发处按 `_meleeComboStage === 2` 传 `setPlayerAnimation('recover', 300)`，
+  武器滑回 `recDur` 同步 300ms（一段保持自然 330ms）。实机 timeScale=1.1007 ✓。
+- **二段末帧定格 0.2s（2026-08-03 用户指定）**：`weapon-anim.js` 定格/连段窗口按段区分——
+  二段 `_attackHoldUntil = 攻击结束 + 200ms`（连段回一段的窗口同步 200ms），一段保持 500ms。
+  实机采样：一段 holdMs=500、二段 holdMs=200 ✓。
+
+## 冲刺攻击（dash_attack）跟手优化（2026-08-03）
+
+- **动画**：dash_attack 17 帧（24fps），"从后往前 180° 大回砍"；配置 sword.dash 30 点。
+- **2026-08-03 修正：握把校正已回退**——dash 原始 30 点位置（用户实机验证"大体正确"）保持不变；
+  全量握把校正（G=40）会把剑从正确位置移开（实机"贴图与手错位"），dash 不再套用。
+  冲刺攻击触发：`dashSystem.trigger`（奔跑 333ms 后），武器/位移由 `_syncSpecialWeaponAnim` dash 分支驱动。
+- **高斯模糊**：冲刺分支复用 `_applyWeaponBlur` 方向性模糊（x=1/y=0.08，刀身不摊薄）；
+  实机峰值 strength≈18.5。此改进保留（代码级，与位置无关）。
 
 ## 武器动画调试基准（2026-07-26 定稿）
 
@@ -1972,6 +2042,47 @@ if (enemy._pathManager) {
 
 ---
 
+## 寻路性能优化（2026-08-03 落地，改寻路代码前必读）
+
+2026-07-13 全量审计实测：冷路径 findPath ≈ 10ms（`_buildGrid` 占 92%），
+刷怪瞬间 15 只怪同帧冷寻路可达 50~115ms 主线程卡顿。以下机制已内嵌，**改动时必须保持**：
+
+1. **静态格子记忆化（`_getCellData`）**：blocked 与 moveCost 合并为单趟空间哈希查询，
+   结果按 `(格子坐标, 半径)` 缓存（**半径必须参与 key**：阻挡判定随半径线性膨胀，跨半径
+   复用会读到错误结果；同型怪同半径天然共享）。`_buildGrid` 网格原点对齐到 gridSize 倍数
+   （格子中心稳定为 k×40+20），使同一几何下同半径怪物共享同一份成本网格——15 怪同帧批量
+   从 106ms → ~10ms。动态障碍成本（250ms 更新）不进 memo，每格实时叠加。
+2. **每帧寻路预算**：`PathFinder.beginFrame()` 由 `MovementSystem.beginFrame()` 在
+   game.js 主循环每帧调用一次；`frameBudgetMs` 耗尽后 `findPath`/`findPathToExit` 返回
+   `PATH_DEFERRED` 哨兵，PathManager 保留旧路径、下帧重试。**禁止**把超预算当"不可达"处理。
+3. **不可达负缓存**：A* 失败结果按 500ms 短 TTL 入 `_pathCache`，卡住重算循环不再每 500ms
+   付一次冷 A*（20ms → 0.01ms）。`findPathToExit` 另有独立 500ms 出口缓存 + 预算门禁。
+4. **首寻路错峰**：PathManager 创建后 `_firstRecalcAt = now + rand×250ms`，刷怪同帧错开。
+5. **防御性拷贝**：`setPath` 在副本上对齐首点，不再原地改 `path[0]`——路径缓存数组为多怪
+   共享对象，原地改写是别名 bug。
+6. **缓存 LRU + 告警节流**：`_setCache` 满容量先清过期再淘汰最旧；A*/forceRecalc 失败告警
+   1s 节流，避免卡住循环刷屏。
+
+**2026-08-03 剩余清单已清（改代码前必读）**：
+1. **冰墙不得调 `pathFinder.invalidateCache()`**：冰墙只往 `WallSystem.isoSegments` 推段，
+   而 A* 网格只建模 walls/trees（isoSegments 有意排除）——清缓存是纯开销零收益，已删除
+   （ice-wall-system 头部有注释）。几何类失效只发生在真正改 walls/trees 的地方
+   （清房/场景切换/Boss 奖励恢复等）。
+2. **WallSystem 碰撞空间网格**：walls/isoSegments/trees 经访问器暴露惰性代理，任何
+   push/splice/下标赋值自动标脏；`canMoveTo/blocked/_nearestBlockingSeg/resolve` 走 128px
+   网格近邻查询（谓词与线性版逐行一致，`_collisionAccel=false` 可回退线性）。
+   实测 resolve 提速 ~11×。**禁止**直接用 `WallSystem.walls = [...]` 之外的原地下标改
+   几何坐标（长度指纹只能兜底长度变化）；`scripts/test-collision-grid.mjs` 差分测试已入
+   `npm test`，改这三处函数必须保持差分全绿。
+3. **分离/侧翼近邻查询**：`MovementSystem._computeSeparation/_computeFlankOffset` 改用
+   `SpatialPartitionSystem.queryRadius`（game.js 每帧重建），无分区时回退全量遍历。
+4. `isReachableByRegion` 死代码已删除（BFS 预检 0.14ms 足够，勿重新引入）。
+
+**回归防线**：`tools/pathfinding-bench.mjs`（寻路性能基准）+ `scripts/test-collision-grid.mjs`
+（墙体网格差分）均已入 `npm test`。
+
+---
+
 ## 常见陷阱：isReachable 步数限制导致路径计算失败
 
 ### 问题
@@ -2165,6 +2276,13 @@ Phaser Sprite.x / y / rotation / scale
 ---
 
 ## 变更记录
+
+- v1.13 (2026-08-03) — 怪物寻路全面审计 + 性能优化落地（详见文首阶段总结）
+  - 静态格子记忆化 / 每帧寻路预算（PATH_DEFERRED）/ 不可达负缓存 / 首寻路错峰
+  - 墙体碰撞空间网格（resolve ×11）/ 分离侧翼空间分区 / 冰墙缓存失效删除
+  - 回归防线：pathfinding-bench.mjs + test-collision-grid.mjs 入 npm test
+  - **文件**：src/ai/pathfinder.js、src/ai/path-manager.js、src/systems/movement-system.js、
+    src/world/wall-system.js、src/entities/components/ice-wall-system.js、src/game.js
 
 - v1.9 (2026-07-07) — 攻击系统修复（Phaser 4 Tween API 兼容性）
   - 修复 `scene.tweens.createTimeline()` 在 Phaser 4 中不存在的问题，改用 `scene.tweens.chain()` 链式 Tween

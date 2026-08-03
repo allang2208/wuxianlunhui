@@ -1220,6 +1220,10 @@ if (Input.mouse.leftPressed) {
         }
 
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
+        // 寻路帧预算重置（必须在任何 MovementSystem.update 之前）
+        if (MovementSystem && typeof MovementSystem.beginFrame === 'function') {
+            MovementSystem.beginFrame();
+        }
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0 || e._fadeTimer > 0);

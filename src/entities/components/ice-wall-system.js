@@ -5,7 +5,6 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { WallSystem } from '../../world/wall-system.js';
-import { pathFinder } from '../../ai/pathfinder.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -29,7 +28,9 @@ let _shatterSoundCd = 0;
  * 在鼠标/目标位置生成一列垂直于施法方向的冰墙障碍物：
  * - 碰撞：每段往 WallSystem.isoSegments 动态注册一条碰撞线段（门闸同款 push/splice），
  *   挡单位移动（MovementSystem/玩家 resolve 通道）+ 挡投射物（Projectile.blocked /
- *   BoltSkillSystem.resolve 通道），到期 splice 并失效寻路缓存；
+ *   BoltSkillSystem.resolve 通道），到期 splice；
+ *   [PERF-2026-08-03] 注意：冰墙只改 isoSegments，不进 A* 网格（网格只建模 walls/trees，
+ *   门闸/冰墙有意排除）——**不得**再调 pathFinder.invalidateCache()，那是纯开销零收益；
  * - 生成瞬间沿墙面法向弹开落点上的单位（敌人 knockback 通道，玩家直接位移——
  *   玩家 applyKnockback 无消费方）；
  * - 到期碎裂：冰屑四散 + 冰雾 + 地面冲击环（参考冰锥 onImpact 两层结构）。
@@ -195,7 +196,6 @@ export class IceWallSystem {
             });
             spawned.push({ x: wx, y: wy });
         }
-        if (pathFinder && typeof pathFinder.invalidateCache === 'function') pathFinder.invalidateCache();
         // 落点命中：物理伤害 + 击退 50px + 弹开（距离翻倍），返回命中/击杀数结算技能经验
         const { hits, kills } = this._applySpawnHit(spawned, perpX, perpY, normalX, normalY, spacing, effect);
         if (this._isPlayer() && (hits > 0 || kills > 0) && SkillManager && typeof SkillManager.addIceWallExp === 'function') {
@@ -311,7 +311,6 @@ export class IceWallSystem {
         }
         this._walls.length = 0;
         this._pendingSpawns.length = 0;
-        if (pathFinder && typeof pathFinder.invalidateCache === 'function') pathFinder.invalidateCache();
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease */
@@ -338,7 +337,6 @@ export class IceWallSystem {
                 if (p.src && p.src.active !== false) this._spawnWall(p.src, p.aimX, p.aimY, p.effect);
             }
         }
-        let removed = false;
         for (let i = this._walls.length - 1; i >= 0; i--) {
             const w = this._walls[i];
             w.remaining -= dt;
@@ -350,7 +348,6 @@ export class IceWallSystem {
                     if (si >= 0) WallSystem.isoSegments.splice(si, 1);
                 }
                 this._walls.splice(i, 1);
-                removed = true;
                 continue;
             }
         }
@@ -362,7 +359,6 @@ export class IceWallSystem {
                 this._applyChillAuraGroup();
             }
         }
-        if (removed && pathFinder && typeof pathFinder.invalidateCache === 'function') pathFinder.invalidateCache();
     }
 
     /** 到期碎裂：大冰屑四散（重力下落）+ 冰雾 + 地面冲击环（参考冰锥 onImpact 两层结构） */
