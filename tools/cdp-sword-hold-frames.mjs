@@ -110,15 +110,17 @@ const run = async (label, withWeapon) => {
     s.weaponSprite.setVisible(${withWeapon});
     return true;
   })()`);
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 30; i++) {
     await ev(cdp, `(() => {
       const s = window.__phaserScene, p = window.Game.player;
       if (!s.playerSprite.anims.isPlaying) s.playerSprite.play('player_attack_sword', true);
       s.playerSprite.anims.timeScale = 0;
-      s.playerSprite.setFrame(${i});
+      const p0 = ${i} / 29;
+      const sf = p0 >= 0.7 ? 7 : Math.min(6, Math.floor(p0 * 10));
+      s.playerSprite.setFrame(sf);
       s.playerSprite.flipX = false;
       s._playerAttackDuration = 40000;
-      s._playerAttackStartTime = performance.now() - ${i} / 7 * 40000;
+      s._playerAttackStartTime = performance.now() - p0 * 40000;
       if (!p._activeAttackTweens || !p._activeAttackTweens.length) {
         p._activeAttackTweens = [s.tweens.add({ targets: { v: 0 }, v: 1, duration: 60000, ease: 'Linear' })];
       }
@@ -137,6 +139,7 @@ const run = async (label, withWeapon) => {
       const now = performance.now();
       return {
         frame: s.playerSprite.frame.name,
+        cfgFrame: ${i},
         weapon: { x:+ws.x.toFixed(2), y:+ws.y.toFixed(2), rot:+((ws.rotation*180/Math.PI)%360).toFixed(2) },
         player: { x:+p.x.toFixed(2), y:+p.y.toFixed(2) },
         sprite: { x:+s.playerSprite.x.toFixed(2), y:+s.playerSprite.y.toFixed(2), w:+s.playerSprite.displayWidth.toFixed(2), h:+s.playerSprite.displayHeight.toFixed(2), flipX:s.playerSprite.flipX },
