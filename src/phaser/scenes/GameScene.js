@@ -2843,6 +2843,10 @@ export class GameScene extends Scene {
                 return;
             }
 
+            // 随机贴图：每颗冰锥独立抽取（4 张 AI 生成贴图）
+            const tex = spike.tex || 'iceSpike';
+            if (sprite.texture.key !== tex) sprite.setTexture(tex);
+
             const swayX = Math.sin(spike.swayTimer * spike.swayFreqX) * spike.swayAmpX;
             const swayY = Math.cos(spike.swayTimer * spike.swayFreqY) * spike.swayAmpY;
 
@@ -2993,6 +2997,9 @@ export class GameScene extends Scene {
         sprites.iceSpikeFly.forEach(sprite => {
             if (activeIdx < activeSpikes.length) {
                 const spike = activeSpikes[activeIdx];
+                // 随机贴图：与悬浮期一致，每颗冰锥独立抽取
+                const tex = spike.tex || 'iceSpike';
+                if (sprite.texture.key !== tex) sprite.setTexture(tex);
                 // 飞行视觉悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
                 // 高度随飞行进度收敛：到达瞄准点（targetDist）时降到地面，所有冰锥精确汇聚于鼠标准星
                 const flyProg = spike.targetDist ? Math.min(1, spike.flyDistance / spike.targetDist) : 0;

@@ -730,13 +730,59 @@
         "pushDistanceMul": 2,
         "chillRadius": 100,
         "chillIntervalMs": 1000,
-        "chillStacks": 1
+        "chillStacks": 1,
+        "chillSlowPercent": 0.035,
+        "chillDurationMs": 2500
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {
         "hit": 3,
         "multiHit": 10,
         "kill": 10
+      }
+    },
+    "blizzard": {
+      "id": "blizzard",
+      "name": "暴风雪",
+      "icon": "❄",
+      "iconImage": "assets/skills/blizzard_icon.png",
+      "description": "在鼠标指向处召唤暴风雪：椭圆形区域内每 0.5 秒造成魔法伤害并叠加一层寒冷减速，随等级提升伤害、持续时间与范围",
+      "sounds": {
+        "cast": "assets/sounds/skills/icewall.mp3",
+        "hit": "assets/sounds/skills/ice.mp3"
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": "40 - Math.floor((level - 1) * 5 / 19)",
+        "mpCost": 150,
+        "maxRange": 650,
+        "duration": "5 + Math.floor((level - 1) * 5 / 19)",
+        "tickMs": 500,
+        "radiusX": "200 + level * 8",
+        "radiusY": "124 + level * 5",
+        "damageBase": "5 + level * 2",
+        "magicMul": "0.12 + level * 0.02",
+        "intMul": "0.12 + level * 0.02",
+        "chillStacks": 1,
+        "chillDurationMs": 2500,
+        "chillSlowPercent": 0.035
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 1,
+        "kill": 6,
+        "multiHit": 5,
+        "multiKill": 10
       }
     },
     "droneSkill": {

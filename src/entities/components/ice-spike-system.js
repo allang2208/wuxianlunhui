@@ -15,6 +15,9 @@ import skillsData from '../../../data/skills.json';
 // 命中音效节流（防同帧多颗冰锥刷音，与近战命中音效同口径 90ms）
 let _iceHitSoundCd = 0;
 
+// 冰锥贴图池（AI 生成，4 张，每次施法每颗冰锥随机抽取一张）
+const ICE_SPIKE_TEXES = ['iceSpike', 'iceSpike2', 'iceSpike3', 'iceSpike4'];
+
 const ICE_SPIKE_KIND = {
     skillKey: 'iceSpike',
     mpShortageColor: '#5a8aaa',
@@ -42,6 +45,7 @@ const ICE_SPIKE_KIND = {
             const elev = bodyH * (0.12 + 0.76 * (effect.spikeCount > 1 ? i / (effect.spikeCount - 1) : 0.5));
             projectiles.push({
                 id: i,
+                tex: ICE_SPIKE_TEXES[Math.floor(Math.random() * ICE_SPIKE_TEXES.length)],
                 offsetX: Math.cos(angle) * radius,
                 offsetY: Math.sin(angle) * radius,
                 elev,

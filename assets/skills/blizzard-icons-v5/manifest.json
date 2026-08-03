@@ -1,0 +1,18 @@
+[
+  {
+    "file": "blizzard_inpaint_01.png",
+    "base": "blizzard_emblem_01.png"
+  },
+  {
+    "file": "blizzard_inpaint_02.png",
+    "base": "blizzard_emblem_01.png"
+  },
+  {
+    "file": "blizzard_inpaint_03.png",
+    "base": "blizzard_emblem_01.png"
+  },
+  {
+    "file": "blizzard_inpaint_04.png",
+    "base": "blizzard_emblem_01.png"
+  }
+]
