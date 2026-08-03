@@ -1689,6 +1689,14 @@ addTree(x, y, radius, ...) {
    `_activeAttackTweens` 塞 60s 占位 tween 保 attacking 状态机，`_playerAttackDuration=40000`
    + 反推 `_playerAttackStartTime` 接管进度。坑：`weaponAnim.timer>5000` 卡死保护会重置状态，
    需每帧清零；`tweens.timeScale` 曾被探针改慢导致攻击 tween 3 秒后才 complete 干扰定格。
+6. **手部分层（handLayer）同步只在"显示期"做帧跟随，且 setFrame 前必须校验目标帧存在**
+   （2026-08-03 普通攻击/收势告警刷屏复盘）：`_syncPlayerHandLayer` 曾每帧
+   `hand.setFrame(身体帧号)`——手层隐藏期（recover/attack/idle）纹理可能只含 `__BASE`
+   （如 `player_idle`），或 WebGL context lost 后手层贴图帧被清空，导致 Phaser
+   "Texture has no frame" 告警刷屏（GameScene.js:1060 / phaser.esm.js:229893）。
+   修复：`if (!hand.visible) return;` + 帧名在 `tex.getFrameNames()` 内才 setFrame。
+   教训：跨动画复用 sprite 做帧同步时，"帧存在性"和"显示期"两个前提必须显式守卫，
+   否则任何纹理状态异常都会变成每帧告警。
 
 ### 方向性运动模糊（替换各向同性高斯，修"摊薄消失"）
 - **根因**：刀身在贴图内沿纵向（逐行质心 x 恒定已验证），旧版 Blur 滤镜 x=y=1 各向同性，
