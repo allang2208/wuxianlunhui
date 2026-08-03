@@ -7,6 +7,7 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import { applyConsumableEffect } from '../config/consumable.js';
 import { getMagicCooldownMultiplier } from '../utils/magic-craft-helper.js';
 import { getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
+import { isSkillCheatEnabled } from '../config/dev-cheats.js';
 
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
@@ -392,7 +393,7 @@ export const QuickBar = {
             const skill = player.skills[skillId];
             const effect = skill.getEffect(skill.level);
             // Check cooldown
-            if (this.cooldowns[skillId] > 0) return;
+            if (!isSkillCheatEnabled() && this.cooldowns[skillId] > 0) return;
             // Check stamina for whirlwind
             if (skillId === 'whirlwind') {
                 // 应用改造效果：技能体力消耗
@@ -403,7 +404,7 @@ export const QuickBar = {
                     if (typeof ce.skillStaminaCostDelta === 'number' && isFinite(ce.skillStaminaCostDelta)) staminaCost += ce.skillStaminaCostDelta;
                 }
                 if (!isFinite(staminaCost) || staminaCost < 0) staminaCost = 0;
-                if (player.data.stamina < staminaCost) return;
+                if (!isSkillCheatEnabled() && player.data.stamina < staminaCost) return;
                 // Check melee weapon (including offhand when main is empty)
                 const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const offhandWeapon = player.equipments[offhandSlot];
@@ -411,13 +412,13 @@ export const QuickBar = {
                 const isMelee = effectiveWeapon && (effectiveWeapon.category === 'weapon_melee' || effectiveWeapon.weaponType === 'sword');
                 if (!isMelee) return;
                 player.triggerWhirlwind();
-                player.data.stamina -= staminaCost;
+                if (!isSkillCheatEnabled()) player.data.stamina -= staminaCost;
                 if (player.data.stamina < 0) player.data.stamina = 0;
                 // Set cooldown in ms
-                this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
+                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
             } else if (skillId === 'pushStrike') {
                 const pushCost = (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) ? effect.staminaCost : 0;
-                if (player.data.stamina < pushCost) return;
+                if (!isSkillCheatEnabled() && player.data.stamina < pushCost) return;
                 // Check ranged weapon (including offhand when main is empty)
                 const currentWeapon = player.equipments[player.weaponMode];
                 const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
@@ -438,17 +439,17 @@ export const QuickBar = {
                     return;
                 }
                 player.triggerPushStrike();
-                player.data.stamina -= pushCost;
+                if (!isSkillCheatEnabled()) player.data.stamina -= pushCost;
                 if (player.data.stamina < 0) player.data.stamina = 0;
                 // Set cooldown in ms
-                this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
+                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
             } else if (skillId === 'droneSkill') {
                 // 无人机技能
                 if (player.droneSystem) {
                     player.droneSystem.toggle();
                 }
                 // 设置冷却时间
-                this.cooldowns[skillId] = effect.cooldown * 1000;
+                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = effect.cooldown * 1000;
             } else if (skillId === 'iceSpike') {
                 // 冰锥技能
                 if (player.iceSpikeSystem) {
@@ -481,6 +482,12 @@ export const QuickBar = {
                     player.iceWallSystem.trigger();
                 }
                 // 冷却时间由 IceWallSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'blizzard') {
+                // 暴风雪技能
+                if (player.blizzardSystem) {
+                    player.blizzardSystem.trigger();
+                }
+                // 冷却时间由 BlizzardSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -631,6 +638,12 @@ export const QuickBar = {
             this.cooldowns['iceWall'] = Game.player._iceWallCooldown;
         } else if (Game.player && Game.player._iceWallCooldown === 0) {
             this.cooldowns['iceWall'] = 0;
+        }
+        // 暴风雪技能冷却同步
+        if (Game.player && Game.player._blizzardCooldown > 0) {
+            this.cooldowns['blizzard'] = Game.player._blizzardCooldown;
+        } else if (Game.player && Game.player._blizzardCooldown === 0) {
+            this.cooldowns['blizzard'] = 0;
         }
         this._renderCooldownOverlays();
         this._renderSkillRequirements();

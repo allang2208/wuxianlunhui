@@ -1,5 +1,6 @@
 import DevTool from '../dev-tool.js';
 import { CollisionEditor } from '../collision-editor.js';
+import { QuickBar } from '../quick-bar.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -444,6 +445,46 @@ export function createDevToolPanel() {
     skillStatus.id = 'devToolSkillStatus';
     skillStatus.style.cssText = 'color:#b8d8ff;font-size:12px;min-height:16px;';
     skillRow.appendChild(skillStatus);
+
+    // ===== 测试开关：技能无CD无消耗 =====
+    const cheatRow = document.createElement('div');
+    cheatRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    const btnCheat = document.createElement('button');
+    btnCheat.id = 'devToolSkillCheat';
+    btnCheat.className = 'dev-tool-menu-btn';
+    const syncCheatBtn = () => {
+        const on = !!(window.Game && window.Game._devNoSkillCost);
+        btnCheat.textContent = on ? '⏱ 技能无CD无消耗：开' : '⏱ 技能无CD无消耗：关';
+        btnCheat.style.background = on ? '#3a6b3a' : '';
+    };
+    btnCheat.addEventListener('click', () => {
+        if (!window.Game) {
+            if (DevTool && typeof DevTool._showToast === 'function') DevTool._showToast('❌ 请先进入游戏');
+            return;
+        }
+        const next = !window.Game._devNoSkillCost;
+        window.Game._devNoSkillCost = next;
+        // 开启时清空当前所有冷却，立即生效
+        if (next) {
+            const p = window.Game.player;
+            if (p) {
+                for (const k of Object.keys(p)) {
+                    if (k.endsWith('Cooldown')) p[k] = 0;
+                }
+            }
+            for (const k of Object.keys(QuickBar.cooldowns || {})) QuickBar.cooldowns[k] = 0;
+        }
+        syncCheatBtn();
+        if (DevTool && typeof DevTool._showToast === 'function') {
+            DevTool._showToast(next ? '✅ 技能无CD无消耗 已开启' : '技能无CD无消耗 已关闭');
+        }
+    });
+    syncCheatBtn();
+    const cheatHint = document.createElement('span');
+    cheatHint.textContent = '测试用：施放技能不消耗 MP/体力、无冷却';
+    cheatHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
+    cheatRow.append(btnCheat, cheatHint);
+    skillRow.appendChild(cheatRow);
 
     skillWrap.appendChild(skillRow);
     contentSkill.appendChild(skillWrap);

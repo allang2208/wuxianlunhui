@@ -7,6 +7,7 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
+import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import {
     getCurrentWeaponCraftEffects,
@@ -47,6 +48,8 @@ export class IceWallSystem {
         this._chillRadius = 0;
         this._chillStacks = 1;
         this._chillIntervalMs = 1000;
+        this._chillSlowPercent = 0.05;
+        this._chillDurationMs = 3000;
         // 链式强化伤害加成（本次施法消费的层数对应倍率，_spawnWall 落点伤害乘算）
         this._chainDamageMul = 0;
     }
@@ -62,7 +65,7 @@ export class IceWallSystem {
 
     trigger() {
         const src = this.source;
-        if (!src || src._iceWallCooldown > 0) return;
+        if (!src || (!isSkillCheatEnabled() && src._iceWallCooldown > 0)) return;
         const skill = src.skills && src.skills.iceWall;
         if (!skill) return;
         // 中级魔法门槛：需装备法杖才能释放（快捷栏灰化由 quick-bar 同步显示）
@@ -104,18 +107,18 @@ export class IceWallSystem {
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = baseEffect.mpCost ? Math.max(0, Math.floor(baseEffect.mpCost * mpMul)) : 0;
-        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（与 bolt-skill-system 同口径：施法成功才消耗）
         const chain = consumeChainSpellBonus(src);
-        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         this._chainDamageMul = chain.damageMul || 0;
         const effect = { ...baseEffect, mpCost };
         effect.cooldown = (effect.cooldown || 12) * getMagicCooldownMultiplier(src, ce);
 
-        src._iceWallCooldown = (effect.cooldown || 12) * 1000;
+        if (!isSkillCheatEnabled()) src._iceWallCooldown = (effect.cooldown || 12) * 1000;
 
         // 施法音效：释放技能（按键确认、消耗扣除）瞬间播放，不等施法动画释放帧
         const castSound = skillsData.skills?.iceWall?.sounds?.cast;
@@ -156,6 +159,8 @@ export class IceWallSystem {
         this._chillRadius = effect.chillRadius || 0;
         this._chillStacks = effect.chillStacks || 1;
         this._chillIntervalMs = effect.chillIntervalMs || 1000;
+        this._chillSlowPercent = effect.chillSlowPercent ?? 0.05;
+        this._chillDurationMs = effect.chillDurationMs ?? 3000;
 
         const aimAngle = Math.atan2(aimY - src.y, aimX - src.x);
         const perpAngle = aimAngle + Math.PI / 2;
@@ -290,7 +295,7 @@ export class IceWallSystem {
                     break;
                 }
             }
-            if (inAura) t.applyChill(this._chillStacks || 1);
+            if (inAura) t.applyChill(this._chillStacks || 1, this._chillDurationMs || 3000, this._chillSlowPercent ?? 0.05);
         }
     }
 

@@ -5,6 +5,12 @@ import { isSwordCategory } from '../config/gun-ammo.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { SystemUI } from './system-ui.js';
+import {
+    getSkillMagicCategory,
+    getSkillMagicTier,
+    MAGIC_CATEGORY_STYLE,
+    MAGIC_TIER_STYLE,
+} from '../config/magic-categories.js';
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
@@ -195,6 +201,10 @@ export const SkillManager = {
             const d = Game.player ? Game.player.data : { int: 10, wis: 10 };
             const totalDamage = effect.damageBase + Math.floor((d.int || 0) * effect.damageIntMul) + Math.floor((d.wis || 0) * effect.damageWisMul);
             effectText = `伤害${totalDamage}  冰墙段数${effect.segmentCount}  持续${effect.duration}秒  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'blizzard') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const totalDamage = effect.damageBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul);
+            effectText = `每跳伤害${totalDamage}  范围${effect.radiusX}px  持续${effect.duration}秒  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         }
         // 使用特效队列顺序播放
         LevelUpEffectQueue.add({
@@ -316,6 +326,16 @@ export const SkillManager = {
         if (hitCount >= 2) gained += rw.multiHit || 0;
         this._addSkillExp(player, sk, gained);
     },
+    addBlizzardExp(player, hitCount, killCount, multiHit) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.blizzard;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        if (multiHit) gained += rw.multiHit || 0;
+        if (killCount >= 2) gained += rw.multiKill || 0;
+        this._addSkillExp(player, sk, gained);
+    },
     addLightningStrikeExp(player, hitCount, killCount, multiHit) {
         if (!player || !player.skills) return;
         const sk = player.skills.lightningStrike;
@@ -413,11 +433,11 @@ export const SkillManager = {
         const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
         } else if (hasThrustSkill && player.skills.dashAttackThrust) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
         } else {
-            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall];
+            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
         }
         // 筛选
         if (this._currentFilter !== 'all') {
@@ -486,6 +506,16 @@ export const SkillManager = {
             skill.tags.forEach(tag => {
                 html += `<span class="sd-tag tag-${tag.type}">${tag.name}</span>`;
             });
+            // 魔法分类词条（冰/火/电/光）与魔法等级词条（初级/中级/高级），带分类色
+            const catKey = getSkillMagicCategory(skill.id);
+            if (catKey && MAGIC_CATEGORY_STYLE[catKey]) {
+                const cs = MAGIC_CATEGORY_STYLE[catKey];
+                html += `<span class="sd-tag" style="background:${cs.color}22;color:${cs.color};border:1px solid ${cs.color}66;">${cs.name}</span>`;
+            }
+            if (catKey && MAGIC_TIER_STYLE[getSkillMagicTier(skill.id)]) {
+                const ts = MAGIC_TIER_STYLE[getSkillMagicTier(skill.id)];
+                html += `<span class="sd-tag" style="background:${ts.color}22;color:${ts.color};border:1px solid ${ts.color}66;">${ts.name}</span>`;
+            }
             html += `</div>`;
         }
         // 技能效果区域
@@ -711,6 +741,39 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级智力加成</span><span class="sd-stat-val pos">${nextInt} (智力×${nextEffect.intMul.toFixed(2)})</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级总伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冰锥数量</span><span class="sd-stat-val pos">${nextEffect.spikeCount}个</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
+            }
+        } else if (skill.id === 'blizzard') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础伤害</span><span class="sd-stat-val pos">${baseDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法攻击加成</span><span class="sd-stat-val pos">${magicDamage} (魔法攻击×${effect.magicMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${intDamage} (智力×${effect.intMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳伤害</span><span class="sd-stat-val pos">${totalDamage} / ${(effect.tickMs / 1000).toFixed(1)}秒</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">区域范围</span><span class="sd-stat-val pos">${effect.radiusX}×${effect.radiusY}px（椭圆）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">持续时间</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">寒冷减速</span><span class="sd-stat-val pos">每跳叠1层 / ${(effect.chillSlowPercent * 100).toFixed(1)}%每层</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">最大射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextBase = nextEffect.damageBase;
+                const nextMagic = Math.floor(d.matk * nextEffect.magicMul);
+                const nextInt = Math.floor(d.int * nextEffect.intMul);
+                const nextTotal = nextBase + nextMagic + nextInt;
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级基础伤害</span><span class="sd-stat-val pos">${nextBase}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法攻击加成</span><span class="sd-stat-val pos">${nextMagic} (魔法攻击×${nextEffect.magicMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级智力加成</span><span class="sd-stat-val pos">${nextInt} (智力×${nextEffect.intMul.toFixed(2)})</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级总伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级范围</span><span class="sd-stat-val pos">${nextEffect.radiusX}×${nextEffect.radiusY}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级持续时间</span><span class="sd-stat-val pos">${nextEffect.duration}秒</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
             }
@@ -969,6 +1032,12 @@ export const SkillManager = {
             html += `<p>• 同时命中 2 个及以上目标，额外获得 10 点经验</p>`;
             html += `<p>• 冰墙击杀一个目标增加 10 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">中级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，0.5秒延迟后在鼠标指向处生成一列垂直于施法方向的冰墙，阻挡移动与投射物，落点单位受物理伤害并被击退</p>`;
+        } else if (skill.id === 'blizzard') {
+            html += `<p>• 暴风雪每跳命中一个目标增加 1 点经验（每 0.5 秒一跳，整次施法累计）</p>`;
+            html += `<p>• 单跳同时命中 2 个及以上目标，额外获得 5 点经验</p>`;
+            html += `<p>• 一次施法击杀 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 暴风雪击杀一个目标增加 6 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，在鼠标指向处召唤暴风雪，椭圆区域内每 0.5 秒造成魔法伤害并叠加一层寒冷减速，随等级提升伤害、持续时间与范围</p>`;
         } else if (skill.id === 'shieldDefense') {
             html += `<p>• 防御敌人近战攻击加 2 点经验</p>`;
             html += `<p>• 防御敌人远程攻击加 5 点经验</p>`;

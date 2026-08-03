@@ -19,6 +19,7 @@ import {
     applyCastHaste,
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
+import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
 /**
  * 闪电锁定技能系统（2026-08-02，区别于投射物/区域类技能的新形态：锁定+传导）
@@ -45,7 +46,7 @@ export class LightningStrikeSystem {
 
     trigger() {
         const src = this.source;
-        if (!src || src._lightningStrikeCooldown > 0) return;
+        if (!src || (!isSkillCheatEnabled() && src._lightningStrikeCooldown > 0)) return;
         const skill = src.skills && src.skills.lightningStrike;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
@@ -109,13 +110,13 @@ export class LightningStrikeSystem {
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
-        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#b48bff'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
         const chain = consumeChainSpellBonus(src);
-        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = (effect.cooldown || 3) * getMagicCooldownMultiplier(src, ce);
         effect.chainRange = (effect.chainRange || 200) * rangeMul;
@@ -125,7 +126,7 @@ export class LightningStrikeSystem {
         effect.chainTargets = Math.max(1, effect.chainTargets || 1);
         const damageMul = getMagicDamageMultiplierWithChain(src, 'lightningStrike', ce, chain.stacks);
 
-        src._lightningStrikeCooldown = (effect.cooldown || 3) * 1000;
+        if (!isSkillCheatEnabled()) src._lightningStrikeCooldown = (effect.cooldown || 3) * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.lightningStrike?.sounds?.cast;

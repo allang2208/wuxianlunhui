@@ -317,6 +317,11 @@ respawn() {
                 this._lightningStrikeCooldown = 0;
                 // 清除圣光状态
                 this._holyLightCooldown = 0;
+                // 清除暴风雪状态（含正在持续的区域特效）
+                this._blizzardCooldown = 0;
+                if (this.blizzardSystem && typeof this.blizzardSystem.clearZones === 'function') {
+                    this.blizzardSystem.clearZones();
+                }
                 // 清除施法状态（死亡/复活复位）
                 this._castState = 'idle';
                 this._castReleaseDone = true;
@@ -454,6 +459,17 @@ _initSkills() {
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                             getEffect(level) { return { damageBase: 30 + level * 5, magicMul: 1.2 + 0.25 * level, intMul: 1.2 + 0.25 * level, cooldown: 10, mpCost: 30, spikeCount: 2 + Math.floor((level - 1) / 5), duration: 30, flySpeed: 1600, maxRange: 800 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保暴风雪技能始终存在
+                    if (!skills.blizzard) {
+                        skills.blizzard = {
+                            id: 'blizzard', name: '暴风雪', icon: '❄', iconImage: 'assets/skills/blizzard_icon.png',
+                            description: '在鼠标指向处召唤暴风雪：椭圆形区域内持续下雪，区域内的敌人持续受到魔法伤害并被减速',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 40 - Math.floor((level - 1) * 5 / 19), mpCost: 150, maxRange: 650, duration: 5 + Math.floor((level - 1) * 5 / 19), tickMs: 500, radiusX: 200 + level * 8, radiusY: 124 + level * 5, damageBase: 5 + level * 2, magicMul: 0.12 + level * 0.02, intMul: 0.12 + level * 0.02, chillStacks: 1, chillDurationMs: 2500, chillSlowPercent: 0.035 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -2371,6 +2387,10 @@ _updateSubsystems(dt, entities) {
                 // ===== 冰墙技能更新（冷却与生命周期由系统自管） =====
                 if (this.iceWallSystem) {
                     this.iceWallSystem.update(dt);
+                }
+                // ===== 暴风雪技能更新（冷却与区域生命周期由系统自管） =====
+                if (this.blizzardSystem) {
+                    this.blizzardSystem.update(dt, entities);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

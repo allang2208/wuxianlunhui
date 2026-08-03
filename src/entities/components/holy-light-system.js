@@ -18,6 +18,7 @@ import {
     applyCastHaste,
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
+import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
 /**
  * 圣光技能系统（2026-08-02 新增，锁定类——释放方式与闪电同口径）
@@ -41,7 +42,7 @@ export class HolyLightSystem {
 
     trigger() {
         const src = this.source;
-        if (!src || src._holyLightCooldown > 0) return;
+        if (!src || (!isSkillCheatEnabled() && src._holyLightCooldown > 0)) return;
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
@@ -104,18 +105,18 @@ export class HolyLightSystem {
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
-        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
         const chain = consumeChainSpellBonus(src);
-        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
 
-        src._holyLightCooldown = (effect.cooldown || 10) * 1000;
+        if (!isSkillCheatEnabled()) src._holyLightCooldown = (effect.cooldown || 10) * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
@@ -185,7 +186,7 @@ export class HolyLightSystem {
     /** Alt+快捷键 直接对自己释放（跳过瞄准/距离/视线三重判定，目标=自身） */
     triggerSelf() {
         const src = this.source;
-        if (!src || src._holyLightCooldown > 0) return;
+        if (!src || (!isSkillCheatEnabled() && src._holyLightCooldown > 0)) return;
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
@@ -196,18 +197,18 @@ export class HolyLightSystem {
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
-        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
         const chain = consumeChainSpellBonus(src);
-        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
 
-        src._holyLightCooldown = (effect.cooldown || 10) * 1000;
+        if (!isSkillCheatEnabled()) src._holyLightCooldown = (effect.cooldown || 10) * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;

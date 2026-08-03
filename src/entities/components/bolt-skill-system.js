@@ -19,6 +19,7 @@ import {
     applyCastHaste,
 } from '../../utils/magic-craft-helper.js';
 import { getSkillMagicCategory } from '../../config/magic-categories.js';
+import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
 /**
  * 法系投射物技能系统基类（2026-07-28：FireballSystem/IceSpikeSystem ~90% 雷同合并）
@@ -119,17 +120,17 @@ export class BoltSkillSystem {
         }
 
         // 冷却检查（使用改造后冷却）
-        if (this.source[this.kind.fields.cooldown] > 0) return;
+        if (!isSkillCheatEnabled() && this.source[this.kind.fields.cooldown] > 0) return;
 
         const effect = this._getEffect();
 
         // 玩家消耗魔法值；敌人不消耗
         if (this._isPlayer()) {
-            if (this.source.data.mp < effect.mpCost) {
+            if (!isSkillCheatEnabled() && this.source.data.mp < effect.mpCost) {
                 EffectManager.add(new FloatingTextEffect(this.source.x, this.source.y - 30, '魔法不足！', this.kind.mpShortageColor));
                 return;
             }
-            this.source.data.mp -= effect.mpCost;
+            if (!isSkillCheatEnabled()) this.source.data.mp -= effect.mpCost;
         }
 
         // 链式强化：在 MP 扣除成功后消费已有层数（伤害/MP 加成计入本次施法）

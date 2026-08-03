@@ -830,7 +830,15 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     }
                 }
                 if (EffectManager) {
-                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `❄️ 寒冷 +${stacks}层`, '#7ab8e0'));
+                    // 统一寒冷反馈：任何来源（暴风雪/冰墙光环）都显示当前总层数，
+                    // 冻结结束恢复叠层时同样能看到 x11、x12…；横向抖动避免同点堆叠
+                    const jx = (Math.random() - 0.5) * 22;
+                    EffectManager.add(new FloatingTextEffect(
+                        this.x + jx,
+                        this.y - this.size - 12,
+                        `❄️ 寒冷 x${this._chillStacks}`,
+                        '#7ab8e0'
+                    ));
                 }
                 const effect = this.statusEffects.find(e => e.type === 'chill');
                 if (effect) {

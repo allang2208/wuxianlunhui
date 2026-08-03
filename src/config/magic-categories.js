@@ -1,3 +1,5 @@
+import { isSkillCheatEnabled } from './dev-cheats.js';
+
 /**
  * 魔法分类体系
  * 把 skillId 映射到冰/火/电/光四大类，供改造效果、伤害结算、UI 提示统一使用。
@@ -6,7 +8,7 @@
  */
 
 export const MAGIC_CATEGORIES = {
-    ice:      { key: 'ice',      name: '冰魔法', skills: ['iceSpike', 'iceWall'] },
+    ice:      { key: 'ice',      name: '冰魔法', skills: ['iceSpike', 'iceWall', 'blizzard'] },
     fire:     { key: 'fire',     name: '火魔法', skills: ['fireball'] },
     electric: { key: 'electric', name: '电魔法', skills: ['lightningStrike'] },
     light:    { key: 'light',    name: '光魔法', skills: ['holyLight'] },
@@ -15,6 +17,7 @@ export const MAGIC_CATEGORIES = {
 /** 魔法等级：1=初级 2=中级 3=高级（未登记的默认初级） */
 export const MAGIC_SKILL_TIERS = {
     iceSpike: 1,
+    blizzard: 3,
     fireball: 1,
     lightningStrike: 1,
     holyLight: 1,
@@ -22,6 +25,21 @@ export const MAGIC_SKILL_TIERS = {
 };
 
 export const MAGIC_TIER_NAMES = { 1: '初级魔法', 2: '中级魔法', 3: '高级魔法' };
+
+/** 魔法分类词条样式（详情面板用） */
+export const MAGIC_CATEGORY_STYLE = {
+    ice: { name: '冰魔法', color: '#7ec8ff' },
+    fire: { name: '火魔法', color: '#ff8f7a' },
+    electric: { name: '电魔法', color: '#b98cff' },
+    light: { name: '光魔法', color: '#ffe08a' },
+};
+
+/** 魔法等级词条样式（详情面板用，初级→高级逐步加深） */
+export const MAGIC_TIER_STYLE = {
+    1: { name: '初级魔法', color: '#8fd9a0' },
+    2: { name: '中级魔法', color: '#f0a34a' },
+    3: { name: '高级魔法', color: '#f2605a' },
+};
 
 /** 根据 skillId 获取魔法分类键（ice/fire/electric/light），未分类返回 null */
 export function getSkillMagicCategory(skillId) {
@@ -51,6 +69,8 @@ export function getSkillMagicTier(skillId) {
  * 返回 { ok, reason } — ok=false 时 reason 为玩家提示文案。
  */
 export function meetsMagicWeaponReq(player, skillId) {
+    // 开发测试开关：技能无CD无消耗时同时绕过法杖门槛
+    if (isSkillCheatEnabled()) return { ok: true, reason: '' };
     const tier = getSkillMagicTier(skillId);
     if (tier < 2) return { ok: true, reason: '' };
     if (!player || !player.equipments) return { ok: false, reason: `${MAGIC_TIER_NAMES[tier] || '中级魔法'}需要装备法杖才能释放` };

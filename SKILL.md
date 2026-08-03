@@ -24,6 +24,40 @@ node "...\describe-image.js" --latest
 - 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
   deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
 
+## 本地 AI 出图工作流（ComfyUI + GLM-4V 验收，2026-08-03 暴风雪/冰锥落地）
+
+新技能贴图/图标/素材一律优先走本地 ComfyUI 出图管线（不依赖外部 API），出图后必须过 GLM-4V 验收再入库。
+
+### 环境
+- 本地 ComfyUI（SDXL base 1.0，RTX 3080 Ti 12GB）：http://127.0.0.1:8188，启动 `start-comfyui.bat`
+- 命令行客户端：`tools/ai-gen/comfyui-gen.py`（--prompt / --size / --seed / --out）
+- 批量生成/抠图/校验脚本：`tools/ai-gen/`（gen-*.py / cutout-*.py / check-*.py / finalize-*.py）
+- 大文件下载：`tools/ai-gen/parallel_download.py`（多线程分段，国内网络适配）
+
+### 标准流程（五步）
+1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
+2. **生成**：白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考
+3. **粗筛**：像素统计（opaque% 主体占比、白底比例、bbox 宽高比、中心偏移）
+4. **视觉验收**：GLM-4V 定性（内容/风格/构图）+ 像素统计定量交叉，二者矛盾时以像素统计为准
+5. **抠图入库**：角点自适应背景色 flood fill + 边缘去污染 + 白边检查；1024×1024 透明底入库
+
+### 技能贴图要点（逐步沉淀，2026-08-03 首版）
+- **同系列优先**：魔法技能图标必须复刻现有"六边形徽章+浮雕底座"风格，不要自由发挥（暴风雪 v1 白底贴纸被否）
+- **img2img 主体替换顽固**：低 denoise（0.55~0.65）保框架但主体不换，高 denoise（0.75+）换主体但丢底座细节
+  → 两段式：先合适 denoise 出主体，再对局部区域 inpaint 补回底座
+- **ComfyUI inpaint 遮罩坑**：`SetLatentNoiseMask` 的 mask 来自 `LoadImage` 的 **alpha 通道输出**（节点第 2 个输出）；
+  遮罩存成无 alpha 的灰度图会被当空遮罩 → inpaint 只改 ~1% 像素。遮罩必须存 RGBA，alpha=255 为重绘区
+- **白底出图**：提示含 "sticker style, isolated on plain pure white background"，负面含 gradient/dark/frame/border/hexagon；
+  SDXL 对"纯白背景"遵循不稳定（可能出浅灰/渐变底）——背景色以角点像素均值判定，不要信 GLM 描述
+- **纯色小物件**（雪球等）：直接用运行时 createCanvas 径向渐变生成纹理，不要 AI 出图再抠（白边抠不净）
+- **抠图去污染**：边缘 alpha 反推前景色（decontamination），半透明边缘"灰调残留比例"应 <5%
+- **GLM-4V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
+
+### 落地范例
+- 冰锥 4 张贴图：img2img 参考 Meshy 冰锥图 → 抠图 → 随机抽取入库
+- 暴风雪图标：v1 白底贴纸（否）→ v6 冰墙参考 + 局部 inpaint 补底座（定稿）
+- 雪球：运行时生成纯白圆（不占贴图资源）
+
 ## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
 
 ### 背景（全量审计实测，2026-08-03）
@@ -1043,7 +1077,9 @@ _getPhaserOptions() {
 
 ### 6. 图标与音效（可选但推荐）
 
-- 图标：素材复制 `assets/skills/xxx.png`（1024×1024 与火球同规格），`iconImage` 指向。
+- 图标（本地 ComfyUI 出图，2026-08-03 起）：先读文首「本地 AI 出图工作流」——用本地 ComfyUI 生成
+  （同系列风格参照现有技能图标），过 GLM-4V 验收 + 像素统计后抠图入库 `assets/skills/xxx.png`
+  （1024×1024 透明底，与火球同规格），`iconImage` 指向。技能贴图要点见文首「技能贴图要点」清单。
 - 音效：素材复制 `assets/sounds/skills/xxx.mp3`，skills.json `sounds` 配置，系统内 `SoundManager.playFile` 播放。
 
 ### 7. 验证
@@ -2338,6 +2374,23 @@ Phaser Sprite.x / y / rotation / scale
 ---
 
 ## 变更记录
+
+- v1.14 (2026-08-03) — 暴风雪技能全链路 + 本地 AI 出图工作流沉淀
+  - 新技能「暴风雪」（高级冰魔法，需法杖）：地面区域 DoT（每 0.5 秒一跳，L20 持续 10s / 范围 360×224 / 冷却 35s），
+    每跳叠 1 层寒冷（3.5%/层），冰墙+暴风雪组合叠 20 层触发冻结（冻结=定身+冰块视觉+物理伤害+50%）
+  - 特效：乌云（柔边色块+粒子烟雾，随区域半径缩放、恒置顶）+ 雪球/冰锥从云中砸落（密度/速度/落点椭圆内随机/
+    落地冰屑迸溅）+ 底部雪花/云雾/风线，全部配置化（skills.json 调范围/持续，构造 options 调观感）
+  - 图标：本地 ComfyUI 生成（六边形徽章同系列，两段式 img2img+inpaint 定稿）+ GLM-4V 验收；
+    冰锥投射物 4 张 AI 贴图随机抽取
+  - 开发工具：技能页签「技能无CD无消耗」开关（含法杖门槛绕过）；详情面板魔法分类（冰/火/电/光）与
+    等级（初/中/高）词条着色；暴风雪修炼方式（4 条经验途径）说明补全
+  - 寒冷系统：冻结阈值参数化（默认 20 保留，冰墙/暴风雪组合触发）；寒冷反馈统一显示总层数（寒冷 xN）
+  - 沉淀：本地 AI 出图工作流 + 技能贴图要点 + ComfyUI inpaint 遮罩坑（见文首）
+  - **文件**：src/effects/blizzard-zone.js、src/entities/components/blizzard-system.js、src/config/dev-cheats.js、
+    src/entities/damageable-entity.js、ice-wall-system.js、bolt/holy-light/lightning-strike-system.js、
+    src/ui/skill-manager.js、quick-bar.js、panels/dev-tools.js、subsystems.js、player/index.js、
+    BootScene.js、GameScene.js、magic-categories.js、data|public/data/skills.json、
+    assets/skills/blizzard_icon.png、assets/skills/ice_spike_icon_01~04.png、tools/ai-gen/（出图管线脚本）
 
 - v1.13 (2026-08-03) — 怪物寻路全面审计 + 性能优化落地（详见文首阶段总结）
   - 静态格子记忆化 / 每帧寻路预算（PATH_DEFERRED）/ 不可达负缓存 / 首寻路错峰
