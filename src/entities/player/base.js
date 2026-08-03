@@ -120,6 +120,16 @@ const baseMixin = {
             } else if (setCount.heavy === 3) {
                 this._armorSetActive = 'heavy';
                 armorSpeedMul = 0.85; // 重甲：-15% 移速（强化不影响格挡率）
+            } else if (setCount.flowing === 3) {
+                this._armorSetActive = 'flowing';
+                armorSpeedMul = 1.15; // 流云（稀有轻甲）：+15% 移速
+            } else if (setCount.eclipse === 3) {
+                this._armorSetActive = 'eclipse';
+                this._cooldownReduction = 0.18; // 蚀月（稀有法袍）：技能冷却 -18%
+                this._magicDamageBonus = 0.25; // 蚀月（稀有法袍）：魔法伤害 +25%
+            } else if (setCount.zhenyue === 3) {
+                this._armorSetActive = 'zhenyue';
+                armorSpeedMul = 0.88; // 镇岳（稀有重甲）：-12% 移速（强化不影响格挡率）
             }
         }
         // 实际移动读 this.maxSpeed（update.js），套装移速修正写回；面板 d.speed 同步
@@ -293,6 +303,8 @@ const baseMixin = {
         // 体力恢复速度：每点敏捷 +1%
         let regenMul = staminaFormula.base + d.dex * staminaFormula.dexMultiplier;
         if (!isFinite(regenMul) || regenMul < 0) regenMul = 1.0;
+        // 流云套（稀有轻甲）：体力恢复 +12%（三件齐穿，乘算在装备/祭品倍率之后）
+        if (this._armorSetActive === 'flowing') regenMul *= 1.12;
         this._staminaRegenMul = regenMul;
 
         // 升级所需经验：按公式动态计算

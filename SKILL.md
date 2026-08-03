@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.8
+## 版本: 1.9
 
 ## ⭐ 识图优先入口：GLM-4V 识图系统（2026-08-03 构建，读图一律先走这里）
 
@@ -24,11 +24,28 @@ node "...\describe-image.js" --latest
 - 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
   deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
 
-## 本地 AI 出图工作流（ComfyUI + GLM-4V 验收，2026-08-03 暴风雪/冰锥落地）
+## 本地 AI 出图工作流（智谱 API 优先 + ComfyUI 兜底 + GLM-4V 验收，2026-08-03 障碍物落地）
 
-新技能贴图/图标/素材一律优先走本地 ComfyUI 出图管线（不依赖外部 API），出图后必须过 GLM-4V 验收再入库。
+新技能贴图/图标/素材一律**优先走智谱 API 生图**（用户智谱账号有免费额度，2026-08-03 确认），
+出图后必须过 GLM-4V 验收再入库；本地 ComfyUI 作为兜底（离线 / 免费额度耗尽时）。
 
-### 环境
+### 生图入口（优先：智谱 API，2026-08-03 障碍物落地）
+- 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
+- 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）
+- key：环境变量 `ZHIPU_API_KEY` → 自动读 deepseek-vision-skill 的 `config.json`（与 GLM-4V 共用智谱账号）
+- **可用模型（2026-08-03 实测）**：`cogview-3-flash`（1024×1024，单物件图标可出）同样可用；
+  `glm-4v-flash` 是**识图模型不能生图**，别混用。批量多图脚本参考 `tools/zhipu-gen-necklaces.py`
+  （一次提交多 prompt，逐张下载）。
+- **不支持负面词参数**：避项（watermark / text / blurry 等）必须写进正向提示词
+- **固定水印**：每张图右下角带"AI生成"水印；去水印需账号在智谱后台签免责声明
+  （cogview-3-flash 实测同样带水印）。处理：`tools/zhipu-process.py` 检测右下角
+  **面积最小、最靠角落**的暗色连通域为水印框（y≥78% 区域，面积 >800px 跳过防误伤主体）→
+  白底覆盖 → BiRefNet 抠图丢弃。**教训：全右下象限暗像素 bbox 会把戒指底部误当水印
+  覆盖出缺口（2026-08-03 星陨之戒两连坑），必须按连通域+面积过滤。**
+- 障碍物统一提示词策略：`tools/ai-gen/obstacle-prompt-strategy.md`
+  （风格基准块 + 视角块 + 避项，新道具必须同一视角）；抠图走 `tools/ai-gen/prep-obstacle.py`
+
+### 环境（ComfyUI 兜底）
 - 本地 ComfyUI（SDXL base 1.0，RTX 3080 Ti 12GB）：http://127.0.0.1:8188，启动 `start-comfyui.bat`
 - 命令行客户端：`tools/ai-gen/comfyui-gen.py`（--prompt / --size / --seed / --out）
 - 批量生成/抠图/校验脚本：`tools/ai-gen/`（gen-*.py / cutout-*.py / check-*.py / finalize-*.py）
@@ -56,6 +73,19 @@ node "...\describe-image.js" --latest
 - **废案必清**：入库后删除迭代废案/未调用图片（2026-08-03 教训：blizzard-icons v1~v6、ice-icons-v1、
   snowball 变体共 79MB 全部删除），只保留最终被引用资产
 - **GLM-4V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
+
+### 多视图/多件排列硬筛（2026-08-03 沉淀：SDXL 帽子/法袍顽固出多视图）
+- SDXL 对 "wizard hat" / "robe" 极易画成**多视图设计稿**（5~10 个分离主体），GLM-4V 描述
+  "五个视角"不可轻信；**连通域计数是唯一硬证据**：`tools/check-components.py` 对
+  BiRefNet alpha>60 做 `ndimage.label`，**components == 1 才合格**。
+- 兜底流程：批量生成 4 个候选（`gen-hat-candidates.py` / `gen-robe-candidates.py`，不同 seed）→
+  逐张连通域筛选单主体 → GLM-4V 复核构图/装饰 → 选最优。
+- **提示词权重语法**：`(exactly one hat:1.5), (one hat only:1.5), (single straight front
+  view:1.4), (isolated single object:1.3)` + 负面 `multiple views, turnaround, design
+  sheet, blueprint, multiple hats/robes, duplicate items, clothing rack, mannequin`。
+- **简笔画陷阱**：为去中间徽章写 `plain hat body, completely blank surface` 会把帽子画成
+  无纹理简笔画——去徽章应写 `no large emblem, no diamond, no triangle, no crest`，
+  同时保留 `velvet fabric texture, folds, rich shading` 写实质感（2026-08-03 蚀月法帽两连坑）。
 
 ### 落地范例
 - 冰锥 4 张贴图：img2img 参考 Meshy 冰锥图 → 抠图 → 随机抽取入库
@@ -408,6 +438,61 @@ node "...\describe-image.js" --latest
 - 只统一最长边不够：宽扁条（魔力腰带 2.34:1）在方形图标框里仍只有其他腰带的一半高——**必须做纵横比归一化**（上限 1.4），否则"大小一致"只停留在文件层、观感仍不一致（2026-08-02 实测教训）。
 - 图标全链路共用 `iconImage` 字段（装备栏 `slotImage || iconImage`、掉落、图鉴、商店）——改贴图即全局生效，无需改代码。
 - 源文件保留在 `E:\无尽轮回\游戏\素材库\装备`（原始大图）；游戏内使用 `assets/icons/equipment/` 的处理后副本；脚本按本流程用 pngjs 现写（临时脚本不入库）。
+
+---
+
+## 装备/首饰添加标准工作流（2026-08-03 定稿，稀有套装入库首航）
+
+新防具/首饰（非武器）一律按此开展。与武器工作流同规格：**equipment.json 双份是唯一数据源**，
+图标/掉落/图鉴/商店全链路共用 `iconImage` 字段，改数据即全局生效。
+
+### 1. 数据（data/equipment.json + public/data/equipment.json 双份）
+防具条目结构：
+```json
+{ "name", "type", "icon", "category": "armor", "rarity": "rare", "level": 10,
+  "equipSlot": "helmet|armor|boots", "armorSet": "flowing|eclipse|zhenyue",
+  "armorSetSlot": "helmet|armor|boots",
+  "defense": { "base": 8, "perEnhance": 2 },
+  "bonusStats": { "wis": 2 }, "bonusPerEnhance": { "wis": 1.5 },
+  "stats": [{ "name": "物理防御", "value": "+8", "pos": true }],
+  "desc", "iconImage": "assets/icons/equipment/xxx.png" }
+```
+首饰条目：`category: "accessory"`、无 defense/armorSet，`bonusStats/bonusPerEnhance`
+为六维或 atk/matk/crit/maxHp/maxMp/maxStamina（tooltip 的 attrNames 决定显示名）。
+新增条目脚本：`tools/add-eclipse-set-to-equipment.py`（幂等，双份同步，改完跑
+`tools/verify-set-shop.mjs` 确认双份一致 + 图标文件存在 + 商店目录齐全）。
+
+### 2. 套装键（base.js 三件套判定）
+- `calculateCombatStats` 中 `setCount` 按 helmet/armor/boots 同 `armorSet` 计数，
+  新键照抄 light/robe/heavy 分支（移速乘子 / `_cooldownReduction` / `_magicDamageBonus`）。
+- 稀有三套定稿：`flowing`（移速+15%、体力恢复+12%）、`eclipse`（冷却-18%、魔伤+25%）、
+  `zhenyue`（40% 格挡 85%、移速-12%）。
+- 体力恢复加成：`updateMaxStats` 里 `_staminaRegenMul` 乘 1.12（装备/祭品倍率之后）。
+- 格挡类套装键：`damageable-entity.js` takeDamage 分支按 `_armorSetActive` 区分
+  壁垒（30%×80%）与镇岳（40%×85%），统一 `blockCfg { chance, remain }` 结构。
+
+### 3. tooltip（equip-tooltip-manager.js）
+`setNames` / `setBonuses` 两个 map 同步补新套装键（防具/首饰分支按 category 命中）。
+
+### 4. 商店（shop-system.js SHOP_CATALOGS.blacksmith）
+- blacksmith 目录 = ItemDatabase 装备 id 字符串数组，运行时懒解析（`_equipFromDatabase`），
+  缺 price 按稀有度标准价兜底（rare=400）。新装备加 id 即上架，无需完整商品对象。
+- 掉落：`chest-room-system.js _equipmentPool()` 自动含全部 armor/accessory（ItemDatabase 数据源），
+  新增装备零登记自动进精英宝箱房掉落池。
+
+### 5. 验证四件套
+- `tools/verify-set-shop.mjs`（双份一致/图标存在/商店目录/套装件数=3）
+- JSON 双份一致（test-regressions 会拦）；`npm run lint`；`npx vite build`；
+  `node scripts/test-config-integrity.mjs`；实机：商店购买 → 装备三件 → 面板套装生效
+  （移速/冷却/魔伤/格挡）→ tooltip 套装文案。
+
+### 6. 本次教训（2026-08-03 蚀月/流云/镇岳套首航）
+- 数值取整：稀有 = 优质 ×1.25 后**向上取整**（12.5→13），成长保留 0.5 步进；
+  属性点取整（1.25→2），保证"不低于 25%"。
+- 细长物品（法袍/项链）纵横比裁剪后 alpha 边缘收缩会让 ar 略低于 0.72（0.685），
+  强裁会砍下摆——保留原状并在交付说明，不做无谓二次裁剪。
+- 用户视角的"没调整/超出边界"常是**新图标与原图撞设计**（心形吊坠撞车）或水印误伤，
+  用 GLM 对比新旧图 + 像素边界量化（`tools/check-margins.py`）定位，别只看单文件。
 
 ---
 
@@ -2411,6 +2496,14 @@ Phaser Sprite.x / y / rotation / scale
 ---
 
 ## 变更记录
+
+- v1.16 (2026-08-03) — 生图改为智谱 API 优先
+  - 本地 AI 出图工作流新增「生图入口（优先：智谱 API）」：`tools/ai-gen/zhipu-gen.py`，
+    默认模型 glm-image（1280×1280），不支持负面词参数（避项写进正向提示词），
+    右下角固定"AI生成"水印（去水印需智谱后台签免责声明，抠图时水印在白边可随背景丢弃）
+  - 障碍物统一提示词策略沉淀为 `tools/ai-gen/obstacle-prompt-strategy.md`；
+    抠图管线 `tools/ai-gen/prep-obstacle.py`（GrabCut + 背景过滤 + 最大连通域 + 边缘去污染 + footprint 实测）
+  - ComfyUI 降级为兜底（离线 / 免费额度耗尽时）
 
 - v1.15 (2026-08-03) — 废案清理 + 工作流补规则
   - 删除暴风雪/冰锥迭代全部废案与未调用图片（blizzard-icons v1~v6、ice-icons-v1、snowball 变体、

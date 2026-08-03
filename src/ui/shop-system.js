@@ -71,7 +71,12 @@ const ShopSystem = {
             'heavy_helmet', 'heavy_armor', 'heavy_boots',
             'necklace_strcon', 'necklace_intwis', 'necklace_dexluck',
             'ring_atk', 'ring_crit', 'ring_matk',
-            'belt_hp', 'belt_mp', 'belt_stamina'
+            'belt_hp', 'belt_mp', 'belt_stamina',
+            // 稀有套装（流云/蚀月/镇岳）+ 稀有首饰（2026-08-03 新增）
+            'flowing_helmet', 'flowing_armor', 'flowing_boots',
+            'eclipse_helmet', 'eclipse_armor', 'eclipse_boots',
+            'zhenyue_helmet', 'zhenyue_armor', 'zhenyue_boots',
+            'ring_starfall', 'belt_endless', 'necklace_boulder'
         ]
     },
 

@@ -1,5 +1,15 @@
 # 变更日志
 
+### 对话：稀有套装入库 + 小鼠铁匠商店出售（2026-08-03）
+
+- **12 件稀有装备入库**：流云（轻甲三件套）／蚀月（法袍三件套）／镇岳（重甲三件套）＋星陨之戒／不息腰带／磐心项链，稀有度 rare、等级 10，双份 equipment.json（data/ + public/data/，99 条一致）。
+- **新套装键**：base.js 三件套判定新增 `flowing`（移速+15%、体力恢复+12%）、`eclipse`（冷却-18%、魔法伤害+25%）、`zhenyue`（40% 格挡 85%、移速-12%）；damageable-entity.js 格挡分支按套装键区分壁垒/镇岳。
+- **tooltip 文案**：equip-tooltip-manager.js setNames/setBonuses 补三套稀有套装显示。
+- **商店接入**：shop-system.js blacksmith 目录追加 12 个 id（懒解析自 ItemDatabase，缺 price 按稀有度标准价 400 兜底）。
+- **图片**：12 件 1536² 透明图标已按 BiRefNet 管线生成入库；贤者/风灵项链经智谱 cogview-3-flash 重制（含右下角水印处理脚本 tools/zhipu-*）。
+- **修改文件**：data/equipment.json、public/data/equipment.json、src/entities/player/base.js、src/entities/damageable-entity.js、src/ui/equip-tooltip-manager.js、src/ui/shop-system.js、CHANGELOG.md。
+- **验证**：lint ✓；vite build ✓；test-config-integrity ✓（14 条既有警告）；test-regressions 173 通过；test-collider ✓；test-craft-sync ✓；tools/verify-set-shop.mjs 12 件双份一致/图标存在/商店目录齐全。
+
 ## 格式
 每次对话结束时记录：
 - 对话日期
