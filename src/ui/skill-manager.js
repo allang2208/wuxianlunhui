@@ -205,6 +205,15 @@ export const SkillManager = {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
             const totalDamage = effect.damageBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul);
             effectText = `每跳伤害${totalDamage}  范围${effect.radiusX}px  持续${effect.duration}秒  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'meteor') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const totalDamage = effect.damageBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul);
+            effectText = `爆炸伤害${totalDamage}  范围${effect.explosionRadius}px  灼伤${effect.burnStacks}层  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'flameArmor') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const hitBonus = effect.hitDamageBase + Math.floor(d.matk * effect.hitMagicMul) + Math.floor(d.int * effect.hitIntMul);
+            const auraBonus = effect.auraDamageBase + Math.floor(d.matk * effect.auraMagicMul) + Math.floor(d.int * effect.auraIntMul);
+            effectText = `命中附伤${hitBonus}  光环每跳${auraBonus}  持续${effect.duration}秒  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         }
         // 使用特效队列顺序播放
         LevelUpEffectQueue.add({
@@ -336,6 +345,26 @@ export const SkillManager = {
         if (killCount >= 2) gained += rw.multiKill || 0;
         this._addSkillExp(player, sk, gained);
     },
+    addMeteorExp(player, hitCount, killCount, multiHit) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.meteor;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        if (multiHit) gained += rw.multiHit || 0;
+        if (killCount >= 2) gained += rw.multiKill || 0;
+        this._addSkillExp(player, sk, gained);
+    },
+    addFlameArmorExp(player, hitCount, killCount, multiHit) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.flameArmor;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+        if (multiHit) gained += rw.multiHit || 0;
+        if (killCount >= 2) gained += rw.multiKill || 0;
+        this._addSkillExp(player, sk, gained);
+    },
     addLightningStrikeExp(player, hitCount, killCount, multiHit) {
         if (!player || !player.skills) return;
         const sk = player.skills.lightningStrike;
@@ -433,11 +462,11 @@ export const SkillManager = {
         const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
         } else if (hasThrustSkill && player.skills.dashAttackThrust) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
         } else {
-            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard];
+            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
         }
         // 筛选
         if (this._currentFilter !== 'all') {
@@ -607,7 +636,7 @@ export const SkillManager = {
             html += `</div>`;
             html += `<div class="sd-section"><h4>技能效果</h4>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">判定范围</span><span class="sd-stat-val pos">${effect.radius}px</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${effect.knockback}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">爆炸眩晕</span><span class="sd-stat-val pos">${(effect.stunMs / 1000).toFixed(1)}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown.toFixed(1)}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">体力消耗</span><span class="sd-stat-val pos">${effect.staminaCost}</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">力量加成</span><span class="sd-stat-val pos">+${effect.strBonus}</span></div>`;
@@ -777,6 +806,84 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
             }
+        } else if (skill.id === 'meteor') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const baseDamage = effect.damageBase;
+            const magicDamage = Math.floor(d.matk * effect.magicMul);
+            const intDamage = Math.floor(d.int * effect.intMul);
+            const totalDamage = baseDamage + magicDamage + intDamage;
+            const lavaBase = effect.lavaDamageBase;
+            const lavaMagic = Math.floor(d.matk * effect.lavaMagicMul);
+            const lavaInt = Math.floor(d.int * effect.lavaIntMul);
+            const lavaTotal = lavaBase + lavaMagic + lavaInt;
+            html += `<div class="sd-section"><h4>🧮 爆炸伤害公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础伤害</span><span class="sd-stat-val pos">${baseDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法攻击加成</span><span class="sd-stat-val pos">${magicDamage} (魔法攻击×${effect.magicMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${intDamage} (智力×${effect.intMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前总伤害</span><span class="sd-stat-val pos">${totalDamage}</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>🔥 熔岩灼烧（每跳）</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳伤害</span><span class="sd-stat-val pos">${lavaTotal} / ${(effect.lavaTickMs / 1000).toFixed(1)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳灼伤</span><span class="sd-stat-val pos">+${effect.lavaBurnStacks}层（魔法攻击×${effect.lavaBurnDamageMul.toFixed(2)}/层）</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">爆炸范围</span><span class="sd-stat-val pos">${effect.explosionRadius}px（中心全额，边缘衰减）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">爆炸灼伤</span><span class="sd-stat-val pos">+${effect.burnStacks}层（魔法攻击×${effect.burnDamageMul.toFixed(2)}/层）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${effect.knockback}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">熔岩范围</span><span class="sd-stat-val pos">${effect.lavaRadius}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">熔岩持续</span><span class="sd-stat-val pos">${effect.lavaDuration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">最大射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextBase = nextEffect.damageBase;
+                const nextMagic = Math.floor(d.matk * nextEffect.magicMul);
+                const nextInt = Math.floor(d.int * nextEffect.intMul);
+                const nextTotal = nextBase + nextMagic + nextInt;
+                const nextLavaTotal = nextEffect.lavaDamageBase + Math.floor(d.matk * nextEffect.lavaMagicMul) + Math.floor(d.int * nextEffect.lavaIntMul);
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级爆炸伤害</span><span class="sd-stat-val pos">${nextTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级爆炸范围</span><span class="sd-stat-val pos">${nextEffect.explosionRadius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级熔岩每跳</span><span class="sd-stat-val pos">${nextLavaTotal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级熔岩范围/持续</span><span class="sd-stat-val pos">${nextEffect.lavaRadius}px / ${nextEffect.lavaDuration}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级魔法消耗</span><span class="sd-stat-val pos">${nextEffect.mpCost} MP</span></div>`;
+            }
+            html += `</div>`;
+        } else if (skill.id === 'flameArmor') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
+            const hitBase = effect.hitDamageBase;
+            const hitMagic = Math.floor(d.matk * effect.hitMagicMul);
+            const hitInt = Math.floor(d.int * effect.hitIntMul);
+            const hitTotal = hitBase + hitMagic + hitInt;
+            const auraBase = effect.auraDamageBase;
+            const auraMagic = Math.floor(d.matk * effect.auraMagicMul);
+            const auraInt = Math.floor(d.int * effect.auraIntMul);
+            const auraTotal = auraBase + auraMagic + auraInt;
+            html += `<div class="sd-section"><h4>🧮 命中附伤公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">基础附伤</span><span class="sd-stat-val pos">${hitBase}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法攻击加成</span><span class="sd-stat-val pos">${hitMagic} (魔法攻击×${effect.hitMagicMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">智力加成</span><span class="sd-stat-val pos">${hitInt} (智力×${effect.hitIntMul.toFixed(2)})</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每次攻击附伤</span><span class="sd-stat-val pos">${hitTotal}</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>🔥 灼烧光环（每跳）</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳伤害</span><span class="sd-stat-val pos">${auraTotal} / ${(effect.auraTickMs / 1000).toFixed(1)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">灼烧范围</span><span class="sd-stat-val pos">${effect.auraRadius}px</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">Buff 持续</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">生效方式</span><span class="sd-stat-val pos">除魔法技能外的攻击命中附带魔法伤害+火花；武器上浮火焰粒子</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextHit = nextEffect.hitDamageBase + Math.floor(d.matk * nextEffect.hitMagicMul) + Math.floor(d.int * nextEffect.hitIntMul);
+                const nextAura = nextEffect.auraDamageBase + Math.floor(d.matk * nextEffect.auraMagicMul) + Math.floor(d.int * nextEffect.auraIntMul);
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级附伤</span><span class="sd-stat-val pos">${nextHit}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级光环每跳</span><span class="sd-stat-val pos">${nextAura}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级范围</span><span class="sd-stat-val pos">${nextEffect.auraRadius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级持续</span><span class="sd-stat-val pos">${nextEffect.duration}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+            }
+            html += `</div>`;
         } else if (skill.id === 'shieldDefense') {
             html += `<div class="sd-stat-row"><span class="sd-stat-name">装备盾牌防御力加成</span><span class="sd-stat-val pos">+${(effect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">防御减伤加成</span><span class="sd-stat-val pos">+${(effect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
@@ -1038,6 +1145,19 @@ export const SkillManager = {
             html += `<p>• 一次施法击杀 2 个及以上目标，额外获得 10 点经验</p>`;
             html += `<p>• 暴风雪击杀一个目标增加 6 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，在鼠标指向处召唤暴风雪，椭圆区域内每 0.5 秒造成魔法伤害并叠加一层寒冷减速，随等级提升伤害、持续时间与范围</p>`;
+        } else if (skill.id === 'meteor') {
+            html += `<p>• 陨星爆炸命中一个目标增加 2 点经验</p>`;
+            html += `<p>• 熔岩区域每跳命中一个目标增加 2 点经验（每 0.5 秒一跳，整次施法累计）</p>`;
+            html += `<p>• 单跳同时命中 2 个及以上目标，额外获得 8 点经验</p>`;
+            html += `<p>• 一次施法击杀 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 陨星击杀一个目标增加 10 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，在鼠标指向处召唤陨星坠落：预警后陨星砸落造成大范围爆炸（击退+灼伤），随后留下熔岩区域持续灼烧敌人</p>`;
+        } else if (skill.id === 'flameArmor') {
+            html += `<p>• 命中附伤与光环每跳命中一个目标各增加 1 点经验（整次 Buff 累计）</p>`;
+            html += `<p>• 光环单跳同时命中 2 个及以上目标，额外获得 5 点经验</p>`;
+            html += `<p>• 一次 Buff 期间击杀 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 灼锋焰甲击杀一个目标增加 8 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">初级魔法：拖入快捷栏后按 Q/E 释放，为自己添加灼锋焰甲 Buff——非魔法攻击命中附带魔法伤害+火花，灼烧光环每 0.5 秒灼烧周围敌人，武器持续上浮火焰粒子</p>`;
         } else if (skill.id === 'shieldDefense') {
             html += `<p>• 防御敌人近战攻击加 2 点经验</p>`;
             html += `<p>• 防御敌人远程攻击加 5 点经验</p>`;

@@ -140,6 +140,9 @@ export class BootScene extends Scene {
         // 小鼠铁匠铺装饰（木材堆/铁矿堆，泛洪抠图去白底）
         this.load.image('obstacle_woodpile', 'assets/terrain/obstacle_woodpile.png');
         this.load.image('obstacle_orepile', 'assets/terrain/obstacle_orepile.png');
+        // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
+        this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
+        this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
         // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
         this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
         this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
@@ -357,6 +360,17 @@ export class BootScene extends Scene {
                     frameRate: def.frameRate || 12,
                     repeat: def.repeat !== undefined ? def.repeat : -1,
                 });
+                // 手层帧序守卫：body/hand 必须同网格同帧序（_syncPlayerHandLayer 按帧号直接跟随），
+                // 帧数不一致会在运行时错位，加载期直接告警
+                const bodyTex = this.textures.get(`${texKey}_body`);
+                const handTex = this.textures.get(`${texKey}_hand`);
+                if (bodyTex && handTex) {
+                    const bodyCount = bodyTex.getFrameNames ? bodyTex.getFrameNames().length : 0;
+                    const handCount = handTex.getFrameNames ? handTex.getFrameNames().length : 0;
+                    if (bodyCount !== handCount) {
+                        console.warn(`[BootScene] 手层帧数不匹配：${texKey}_body(${bodyCount}) vs ${texKey}_hand(${handCount})——手 sprite 逐帧跟随会错位`);
+                    }
+                }
             }
         }
 

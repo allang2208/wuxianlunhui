@@ -11,6 +11,7 @@ import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
+import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { playerTextureKey, getPlayerAnimDurationMs } from '../../config/player-anim.js';
 
 const weaponAnimMixin = {
@@ -290,9 +291,9 @@ const weaponAnimMixin = {
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
             // 连段：上一段攻击结束后 500ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
             // 二段素材未加载（纹理缺失）时自动回退一段；后续三段突刺加入只需扩展此数组
-            const COMBO_WINDOW_MS = 500;
+            const COMBO_WINDOW_MS = COMBAT_CONFIG.meleeCombo?.stage1HoldMs ?? 500;
             // 2026-08-03：二段攻击的末帧定格（连段窗口）固定 0.2s，一段保持 0.5s
-            const STAGE2_HOLD_MS = 200;
+            const STAGE2_HOLD_MS = COMBAT_CONFIG.meleeCombo?.stage2HoldMs ?? 200;
             const now = performance.now();
             // 连段窗口按上一段判定：二段结束后只剩 0.2s 可再连（回一段），一段后仍 0.5s
             const prevChainWindow = this._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS;
@@ -383,10 +384,13 @@ const weaponAnimMixin = {
                     anim.state = 'idle';
                     if (hand === 'main') {
                         self._lastMeleeAttackEnd = performance.now(); // 连段窗口起点
-                        // 攻击后定格保持：定格 0.5s（=连段判定窗口）——
+                        // 攻击后定格保持：按段区分（一段 0.5s / 二段 0.2s，=各自连段窗口）——
                         // 定格期间武器朝向绑定身体 flipX（身体冻结故武器冻结），超时播 recover 收势
                         self._attackHoldAnimKey = animKey;
-                        self._attackHoldUntil = self._lastMeleeAttackEnd + 500;
+                        // 2026-08-03 修复：此前这里固定 +500，把二段预写的 200ms 定格覆盖成 500ms
+                        //（SKILL"实机采样二段 holdMs=200"实为冻结管线未触发 onComplete 采到的预写值）
+                        self._attackHoldUntil = self._lastMeleeAttackEnd
+                            + (self._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS);
                     }
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;

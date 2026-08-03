@@ -322,6 +322,16 @@ respawn() {
                 if (this.blizzardSystem && typeof this.blizzardSystem.clearZones === 'function') {
                     this.blizzardSystem.clearZones();
                 }
+                // 清除陨星坠落状态（含正在预警/坠落/熔岩的打击）
+                this._meteorCooldown = 0;
+                if (this.meteorSystem && typeof this.meteorSystem.clearStrikes === 'function') {
+                    this.meteorSystem.clearStrikes();
+                }
+                // 清除灼锋焰甲状态（含武器火焰与灼烧光环）
+                this._flameArmorCooldown = 0;
+                if (this.flameArmorSystem && typeof this.flameArmorSystem.clearBuff === 'function') {
+                    this.flameArmorSystem.clearBuff();
+                }
                 // 清除施法状态（死亡/复活复位）
                 this._castState = 'idle';
                 this._castReleaseDone = true;
@@ -371,7 +381,14 @@ applyPoison(stacks) {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `☠️ 中毒 +${stacks}层`, '#7a9a5a'));
             },
 
-_initSkills() {
+            /** 灼锋焰甲 Buff 到期钩子（updateStatusEffects 调用）：结算经验并回收武器火焰 */
+            _onFlameArmorEnd() {
+                if (this.flameArmorSystem && typeof this.flameArmorSystem.onBuffEnd === 'function') {
+                    this.flameArmorSystem.onBuffEnd();
+                }
+            },
+
+            _initSkills() {
                 // 优先从 JSON 数据加载技能配置
                 if (typeof window !== 'undefined' && window.SKILL_DATA) {
                     const skills = {};
@@ -2391,6 +2408,14 @@ _updateSubsystems(dt, entities) {
                 // ===== 暴风雪技能更新（冷却与区域生命周期由系统自管） =====
                 if (this.blizzardSystem) {
                     this.blizzardSystem.update(dt, entities);
+                }
+                // ===== 陨星坠落技能更新（冷却与打击生命周期由系统自管） =====
+                if (this.meteorSystem) {
+                    this.meteorSystem.update(dt, entities);
+                }
+                // ===== 灼锋焰甲技能更新（冷却与光环由系统自管） =====
+                if (this.flameArmorSystem) {
+                    this.flameArmorSystem.update(dt, entities);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

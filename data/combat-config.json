@@ -10,6 +10,11 @@
       "staminaRangedCostConfigKey": "STAMINA_RANGED_COST"
     }
   },
+  "meleeCombo": {
+    "stage1HoldMs": 500,
+    "stage2HoldMs": 200,
+    "stage2RecoverMs": 300
+  },
   "slashAttack": {
     "cooldown": 500,
     "range": 100,

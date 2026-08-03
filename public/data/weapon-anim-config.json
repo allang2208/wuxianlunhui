@@ -382,6 +382,7 @@
     "animType": "thrust",
     "idleRotation": -10,
     "idleScale": 1.5,
+    "gripOffset": 40,
     "hitBox": {
       "forwardRange": 155,
       "backExtension": 55,

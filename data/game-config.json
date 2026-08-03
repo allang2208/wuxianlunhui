@@ -122,6 +122,18 @@
         "y": 512
       },
       "dungeonType": "zombie"
+    },
+    "scene8": {
+      "name": "沼泽地",
+      "type": "instance",
+      "label": "场景八",
+      "width": 4096,
+      "height": 4096,
+      "background": "#0d1b0a",
+      "origin": {
+        "x": 2048,
+        "y": 2048
+      }
     }
   },
   "loot": {
@@ -167,15 +179,21 @@
   },
   "portals": {
     "mainHub": {
+      "comment": "主神空间传送门：base 取祭坛世界坐标（2048+120-326, 2048-150-187 = 1842,1711），direction=left + spacing=160 → 首个传送门落在祭坛左侧 160px（1842-160, 1711）",
       "base": {
-        "x": 3478,
-        "y": 2363
+        "x": 1842,
+        "y": 1711
       },
-      "spacing": 100,
+      "spacing": 160,
       "direction": "left",
       "cooldownMs": 2000,
       "triggerDistance": 30,
-      "entries": []
+      "entries": [
+        {
+          "targetScene": "scene8",
+          "label": "沼泽地"
+        }
+      ]
     }
   },
   "targets": {

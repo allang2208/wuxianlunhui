@@ -166,6 +166,8 @@ const flyingLike = { ...zombieLike, collider: { ...zombieLike.collider, elevatio
 assert(!pointHitsTorso(flyingLike, 100, 160, 12), 'flying entity immune to torso point check');
 
 // --- GroundSector / GroundDirectedRect (melee ground-flat detection) ---
+// 命中口径与 AttackRangeEffect 显示一致：地面判定把 dy 按 PERSPECTIVE_SCALE_Y(0.5) 逆透视
+// 后再按圆/矩形判定——红扇/红框画多大就实际打多大（Y 方向判定比世界空间更"扁"）。
 const { GroundSector, GroundDirectedRect } = await import('../src/physics/skill-shapes.js');
 const mkEntity = (x, y, r = 20, ground = true) => ({ collider: { x, y, radius: r, isGroundTarget: ground } });
 
@@ -175,13 +177,15 @@ assert(sector.intersectsEntity(mkEntity(80, 0)), 'ground sector: target dead ahe
 assert(sector.intersectsEntity(mkEntity(115, 0)), 'ground sector: edge within footprint radius hits');
 assert(!sector.intersectsEntity(mkEntity(130, 0)), 'ground sector: beyond range misses');
 assert(!sector.intersectsEntity(mkEntity(70, 70)), 'ground sector: outside arc misses');
+assert(!sector.intersectsEntity(mkEntity(100, 40)), 'ground sector: iso-space Y shrink (outside visual fan) misses');
 assert(!sector.intersectsEntity(mkEntity(-80, 0)), 'ground sector: behind origin misses');
 assert(!sector.intersectsEntity(mkEntity(80, 0, 20, false)), 'ground sector: flying target immune');
 
 // 地面有向矩形：起点 (0,0)，朝右，长 100，宽 40，后摆 20
 const gRect = new GroundDirectedRect(0, 0, 0, 100, 40, 20);
 assert(gRect.intersectsEntity(mkEntity(60, 0)), 'ground rect: center hits');
-assert(gRect.intersectsEntity(mkEntity(60, 30)), 'ground rect: within width + footprint hits');
+assert(gRect.intersectsEntity(mkEntity(60, 15)), 'ground rect: within width + footprint hits');
+assert(!gRect.intersectsEntity(mkEntity(60, 30)), 'ground rect: outside iso width (Y 逆透视 0.5) misses');
 assert(!gRect.intersectsEntity(mkEntity(60, 50)), 'ground rect: outside width misses');
 assert(!gRect.intersectsEntity(mkEntity(140, 0)), 'ground rect: beyond length misses');
 assert(gRect.intersectsEntity(mkEntity(-10, 0)), 'ground rect: backExtension hits behind');
