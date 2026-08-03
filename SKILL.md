@@ -2,6 +2,28 @@
 
 ## 版本: 1.8
 
+## ⭐ 识图优先入口：GLM-4V 识图系统（2026-08-03 构建，读图一律先走这里）
+
+需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
+**优先调用已构建的 GLM-4V 识图系统**（deepseek-vision-skill，智谱 GLM-4V-Flash 接口）：
+
+```bash
+# 读本地图片（可多张）：
+node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.js" "路径\图片.png"
+# 带具体问题：
+node "...\describe-image.js" --prompt "图片里剑柄是否在手中？" "路径\图片.png"
+# 恢复用户最新发送的图片（本模型收不到图时）：
+node "...\describe-image.js" --latest
+```
+
+要点（实战沉淀，2026-08-03 一段攻击跟手三轮）：
+- **定位坐标不可靠**：GLM-4V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
+  需要精确定位时用它做定性判断（ON/OFF、方向、内容描述、OCR），坐标以贴图真值掩码为准。
+- **特写图效果最好**：把目标区域裁小（~140px）、2 倍/3 倍放大、必要时加红点标记当前点，
+  问"红点是否在目标上 / 偏哪个方向多少像素"，回答稳定可用。
+- 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
+  deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
+
 ## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
 
 ### 背景（全量审计实测，2026-08-03）
