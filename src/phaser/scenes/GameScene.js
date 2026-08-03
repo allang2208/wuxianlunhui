@@ -1049,6 +1049,11 @@ export class GameScene extends Scene {
     _syncPlayerHandLayer() {
         const hand = this.playerHandSprite;
         if (!hand || !hand.active || !this.playerSprite) return;
+        // 2026-08-03 修复：手层仅在 handLayer 动画（walk/staff_cast）显示时才需要同步。
+        // 隐藏期（recover/attack/idle）纹理可能是只含 __BASE 的 player_idle 或旧手层贴图，
+        // 此前每帧 setFrame(身体帧) 会触发 Phaser "Texture has no frame" 告警刷屏
+        // （普通攻击/收势期间 100% 复现；截图 GameScene.js:1060 即此处的 setFrame）。
+        if (!hand.visible) return;
         hand.setPosition(this.playerSprite.x, this.playerSprite.y);
         hand.setFlipX(this.playerSprite.flipX);
         hand.setDepth(this.playerSprite.depth + 3);
@@ -1056,9 +1061,16 @@ export class GameScene extends Scene {
         if (this.playerSprite.anims.currentAnim && this.playerSprite.anims.isPlaying) {
             const frameName = this.playerSprite.frame && this.playerSprite.frame.name;
             if (frameName !== undefined && hand.frame && Number(hand.frame.name) !== Number(frameName)) {
-                try {
-                    hand.setFrame(Number(frameName));
-                } catch (_e) { /* 帧越界忽略 */ }
+                const idx = Number(frameName);
+                const tex = hand.texture;
+                // 帧存在性守卫：目标帧不在手层贴图内则跳过
+                // （idx 0 由 Phaser 回落 __BASE 不告警；NaN/越界直接忽略）
+                const frameNames = tex && tex.getFrameNames ? tex.getFrameNames() : [];
+                if (idx === 0 || frameNames.includes(String(idx))) {
+                    try {
+                        hand.setFrame(idx);
+                    } catch (_e) { /* 帧越界忽略 */ }
+                }
             }
         }
     }
