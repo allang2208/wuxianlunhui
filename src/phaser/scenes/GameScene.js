@@ -1859,7 +1859,8 @@ export class GameScene extends Scene {
                     player._attackRecovering = true;
                     player._attackRecoverStart = now; // 收势起点（武器线性滑回 idle 位的时间基准）
                     // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
-                    this.setPlayerAnimation('recover');
+                    // 2026-08-03：二段攻击的收势动画固定 0.3s（一段保持配置自然时长 0.33s）
+                    this.setPlayerAnimation('recover', player._meleeComboStage === 2 ? 300 : 0);
                     return;
                 }
             }
@@ -2132,10 +2133,10 @@ export class GameScene extends Scene {
                         // 帧级运动模糊（blurX/blurY）：Phaser 4 Blur 滤镜，方向性（见 _applyWeaponBlur）
                         const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
                         this._applyWeaponBlur(bx, by);
-                        // 二段攻击 18~24 帧：角色贴图在上层、武器贴图沉到人物之下（随进度逐帧判定）
-                        const fi = Math.round(progress * (perFrameCfg.frames.length - 1));
-                        const weaponUnder = atkCfgKey === 'attack2' && fi >= 18 && fi <= 24;
-                        this.weaponSprite.setDepth(this.playerSprite.depth + (weaponUnder ? -0.01 : 2));
+                        // 2026-08-03：移除二段 18~24 帧"武器沉到人物之下"的旧逻辑——
+                        // 双手横向挥砍时剑在身体前方，压到人物下方会被身体遮挡（涂层遮盖）。
+                        // 武器恒在人物前方（+2）；若个别帧剑身盖脸，应调位置/角度而非改深度。
+                        this.weaponSprite.setDepth(this.playerSprite.depth + 2);
                     }
                     return;
                 }
@@ -2162,7 +2163,8 @@ export class GameScene extends Scene {
             const isGunR = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGunR) {
                 const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
-                const recDur = getPlayerAnimDurationMs('recover') || 800;
+                // 2026-08-03：二段收势 0.3s（与恢复动画同步）；一段用配置自然时长
+                const recDur = player._meleeComboStage === 2 ? 300 : (getPlayerAnimDurationMs('recover') || 800);
                 const t = Math.max(0, Math.min(1, (performance.now() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
                 // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标
