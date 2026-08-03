@@ -63,7 +63,9 @@ export class BoltSkillSystem {
 
         const ce = getCurrentWeaponCraftEffects(this.source);
         const effect = { ...base };
-        const chainStacks = this._chainSpellStacksConsumed || 0;
+        // 链式层数读当前真实值（consume 前的 _chainSpellStacks）：MP 折扣与本次实际消费的层数对齐，
+        // 不再沿用上一 cast 缓存的消费值（否则折扣滞后一 cast）
+        const chainStacks = (this.source && this.source._chainSpellStacks) || 0;
 
         // MP 消耗
         const mpMul = getMagicMpCostMultiplier(this.source, ce, chainStacks);
@@ -84,9 +86,6 @@ export class BoltSkillSystem {
         if (this.kind.skillKey === 'fireball' && ce && ce.fireballExplosionRadiusPercent) {
             effect.explosionRadius = (effect.explosionRadius || 1) * (1 + ce.fireballExplosionRadiusPercent);
         }
-
-        // 伤害倍率（供本次施法缓存）
-        this._magicDamageMul = getMagicDamageMultiplierWithChain(this.source, this.kind.skillKey, ce, chainStacks);
 
         return effect;
     }
@@ -136,8 +135,6 @@ export class BoltSkillSystem {
         // 链式强化：在 MP 扣除成功后消费已有层数（伤害/MP 加成计入本次施法）
         if (this._isMagic()) {
             const chain = consumeChainSpellBonus(this.source);
-            this._chainSpellStacksConsumed = chain.stacks;
-            this._chainSpellMpCostMul = chain.mpCostMul;
             // 重新计算并缓存本次施法伤害倍率
             const ce = getCurrentWeaponCraftEffects(this.source);
             this._magicDamageMul = getMagicDamageMultiplierWithChain(this.source, this.kind.skillKey, ce, chain.stacks);
@@ -370,7 +367,5 @@ export class BoltSkillSystem {
         }
         // 清本次施法缓存
         this._magicDamageMul = 1;
-        this._chainSpellStacksConsumed = 0;
-        this._chainSpellMpCostMul = 0;
     }
 }

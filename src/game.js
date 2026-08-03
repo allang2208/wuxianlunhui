@@ -113,6 +113,8 @@ export const Game = {
             }
             await this.spawnPlayer();
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
+            // 新局清理状态栏残留 buff 图标（上一局的增益/减益不带到新局）
+            if (StatusBar && typeof StatusBar.clear === 'function') StatusBar.clear();
             GameUIManager.startTimer();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             // 使用主神空间固定原点，不随分辨率变化
@@ -149,7 +151,7 @@ export const Game = {
                 this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY, { ...EnhancementItems.enhance_stone });
                 this.dropItem(origin.x + matCfg.baseX + i * matCfg.spacingX, origin.y + matCfg.baseY + matCfg.spacingY, { ...EnhancementItems.modify_ticket });
             }
-            // EventBus 解耦：订阅 Player 的拾取事件（使用具名回调以便 toMenu 中取消订阅）
+            // EventBus 解耦：订阅 Player 的拾取事件（使用具名回调以便取消订阅）
             this._onPickup = this._onPickup || ((px, py, range) => this.tryPickupItem(px, py, range));
             EventBus.off('player:pickup', this._onPickup); EventBus.on('player:pickup', this._onPickup);
             GameUIManager.setupWeaponSwitchButtons();
@@ -1087,6 +1089,8 @@ export const Game = {
         requestAnimationFrame(t => this.loop(t));
     },
     update(dt) {
+        // 位置音效：按与玩家距离逐帧刷新音量（蝇群等声源；无位置音效时是廉价空转）
+        if (SoundManager && typeof SoundManager.update === 'function') SoundManager.update(dt);
         // ===== 地牢模式：地牢地图系统拦截 =====
         if (SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active) {
             if (DungeonMapSystem.state === 'map') {

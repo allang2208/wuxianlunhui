@@ -1792,6 +1792,7 @@
       "loopVolumeMax": 1.5,
       "loopNearDist": 150,
       "loopFarDist": 600,
+      "loopMaxDist": 2000,
       "loopCrossfadeSec": 0.5
     },
     "hitCircles": [
@@ -1849,7 +1850,7 @@
       },
       {
         "name": "嗡鸣",
-        "desc": "持续循环嗡鸣（音量 50%，接近玩家逐渐提高，最大 150%）"
+        "desc": "持续循环嗡鸣（音量 50%，接近玩家逐渐提高，最大 150%，超过 2000px 静音）"
       }
     ]
   },

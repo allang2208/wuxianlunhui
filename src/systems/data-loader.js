@@ -127,7 +127,9 @@ const DataLoader = {
         const lvl = Number(level) || 0;
         // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量
         // 使用 * 允许纯 level / Math.PI 等公式剥离后为空字符串的情况
-        const allowedPattern = /^[0-9+\-*/().,\s]*$/i;
+        // 逗号不允许：Math.max(a,b) 等多参调用无法正确求值（分词器丢弃逗号会静默算错），
+        // 一律白名单拦截（console.error + 返回 0），公式只支持单参 Math 函数
+        const allowedPattern = /^[0-9+\-*/().\s]*$/i;
         const mathPattern = /\b(Math\.[a-zA-Z]+|Math\.[A-Z]+|level|PI|E)\b/g;
         const stripped = formulaStr.replace(mathPattern, '');
         if (!allowedPattern.test(stripped)) {
@@ -168,7 +170,8 @@ const DataLoader = {
 
     _tokenizeExpression(expr) {
         const tokens = [];
-        const regex = /(__MATH_FN_\d+__|\d+\.?\d*|[+\-*/()])/g;
+        // 数字支持前导小数点（.5）与整数/小数（0.5 / 5.）
+        const regex = /(__MATH_FN_\d+__|(?:\d+\.?\d*|\.\d+)|[+\-*/()])/g;
         let m;
         while ((m = regex.exec(expr)) !== null) {
             tokens.push(m[1]);
@@ -180,10 +183,11 @@ const DataLoader = {
         // 使用调度场算法将中缀转后缀再求值
         const output = [];
         const ops = [];
-        const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+        const precedence = { '+': 1, '-': 1, '*': 2, '/': 2, 'neg': 3 };
+        let prevToken = null; // 上一个中缀 token（用于区分一元负号）
 
         for (const token of tokens) {
-            if (token.match(/^\d+\.?\d*$/)) {
+            if (token.match(/^(?:\d+\.?\d*|\.\d+)$/)) {
                 output.push(parseFloat(token));
             } else if (token.startsWith('__MATH_FN_')) {
                 ops.push(token);
@@ -197,13 +201,27 @@ const DataLoader = {
                 if (ops.length && ops[ops.length - 1].startsWith('__MATH_FN_')) {
                     output.push(ops.pop());
                 }
-            } else if ('+-*/'.includes(token)) {
+            } else if (token === '-' || token === '+') {
+                // 一元正负号：表达式开头、左括号后、运算符后视为一元
+                const isUnary = !prevToken || prevToken === '(' || '+-*/'.includes(prevToken);
+                if (isUnary) {
+                    if (token === '-') ops.push('neg');
+                    // 一元正号直接忽略（+5 → 5）
+                } else {
+                    while (ops.length && ops[ops.length - 1] !== '(' &&
+                           precedence[ops[ops.length - 1]] >= precedence[token]) {
+                        output.push(ops.pop());
+                    }
+                    ops.push(token);
+                }
+            } else if ('*/'.includes(token)) {
                 while (ops.length && ops[ops.length - 1] !== '(' &&
                        precedence[ops[ops.length - 1]] >= precedence[token]) {
                     output.push(ops.pop());
                 }
                 ops.push(token);
             }
+            if (token !== ')') prevToken = token;
         }
         while (ops.length) output.push(ops.pop());
 
@@ -212,6 +230,9 @@ const DataLoader = {
         for (const item of output) {
             if (typeof item === 'number') {
                 stack.push(item);
+            } else if (item === 'neg') {
+                const a = stack.pop() || 0;
+                stack.push(-a);
             } else if (typeof item === 'string' && item.startsWith('__MATH_FN_')) {
                 const idx = parseInt(item.match(/\d+/)[0], 10);
                 const a = stack.pop();
@@ -259,10 +280,16 @@ const DataLoader = {
             expRewards: skillData.expRewards || {},
             tags: skillData.tags || [],
             getEffect(level) {
+                // 按等级缓存：getEffect 在每帧热路径反复调用（移速/伤害/施法/面板预览），
+                // 等级不变时直接复用求值结果，避免每帧重跑公式 tokenize/parse
+                if (this._effectCache && this._effectCache.level === level) {
+                    return this._effectCache.effect;
+                }
                 const result = {};
                 for (const [key, formula] of Object.entries(effectFormula)) {
                     result[key] = DataLoader.parseSkillFormula(formula, level);
                 }
+                this._effectCache = { level, effect: result };
                 return result;
             },
             getExpForNext(level) {

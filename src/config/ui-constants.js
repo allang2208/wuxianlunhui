@@ -114,6 +114,9 @@ const SCREEN_FLASH = 99999;
 /** 升级提示文字 */
 const LEVEL_UP_TEXT = 100000;
 
+/** 游戏菜单覆盖层（暂停菜单，需盖过一切面板/特效） */
+const GAME_MENU_OVERLAY = 100000;
+
 // ============================================================
 // 导出对象
 // ============================================================
@@ -163,6 +166,7 @@ export const Z_INDEX = {
   loadingOverlay: LOADING_OVERLAY,
   screenFlash: SCREEN_FLASH,
   levelUpText: LEVEL_UP_TEXT,
+  gameMenu: GAME_MENU_OVERLAY,
 };
 
 /**
@@ -214,4 +218,5 @@ export const CSS_Z_INDEX = {
   '--z-loading-overlay': String(LOADING_OVERLAY),
   '--z-screen-flash': String(SCREEN_FLASH),
   '--z-level-up-text': String(LEVEL_UP_TEXT),
+  '--z-game-menu': String(GAME_MENU_OVERLAY),
 };

@@ -37,10 +37,17 @@ let _shatterSoundCd = 0;
 export class IceWallSystem {
     constructor(source) {
         this.source = source;
-        // 当前存活的冰墙段：{ x, y, angle, width, height, duration, remaining, age, spawnDelay, variant, _colSeg, chillRadius/chillStacks/chillIntervalMs/_chillTimer }
+        // 当前存活的冰墙段：{ x, y, angle, width, height, duration, remaining, age, spawnDelay, variant, _colSeg }
         this._walls = [];
         // 待生成队列：施法释放后延迟 spawnDelayMs 毫秒才真正成墙 { src, aimX, aimY, effect, timer }
         this._pendingSpawns = [];
+        // 寒冷光环（整组墙共享一个节拍：同一目标每秒只叠一次，防多段重叠叠层爆炸）
+        this._chillTimer = 0;
+        this._chillRadius = 0;
+        this._chillStacks = 1;
+        this._chillIntervalMs = 1000;
+        // 链式强化伤害加成（本次施法消费的层数对应倍率，_spawnWall 落点伤害乘算）
+        this._chainDamageMul = 0;
     }
 
     _isPlayer() {
@@ -92,21 +99,20 @@ export class IceWallSystem {
             return;
         }
 
-        // 消费链式强化并计算改造后数值
-        const chain = consumeChainSpellBonus(src);
-        const effect = { ...baseEffect };
-        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
-        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
-        effect.cooldown = (effect.cooldown || 12) * getMagicCooldownMultiplier(src, ce);
-
-        // 魔法消耗
-        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
-            if (src.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
-                return;
-            }
-            src.data.mp -= effect.mpCost;
+        // 先按"含链式减免的 MP 成本"做门禁：读层数但不消费——施法失败不丢链式层数
+        const chainStacks = src._chainSpellStacks || 0;
+        const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
+        const mpCost = baseEffect.mpCost ? Math.max(0, Math.floor(baseEffect.mpCost * mpMul)) : 0;
+        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+            return;
         }
+        // 门禁通过：正式消费链式强化并扣蓝（与 bolt-skill-system 同口径：施法成功才消耗）
+        const chain = consumeChainSpellBonus(src);
+        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        this._chainDamageMul = chain.damageMul || 0;
+        const effect = { ...baseEffect, mpCost };
+        effect.cooldown = (effect.cooldown || 12) * getMagicCooldownMultiplier(src, ce);
 
         src._iceWallCooldown = (effect.cooldown || 12) * 1000;
 
@@ -145,6 +151,10 @@ export class IceWallSystem {
         // 段心距：优先读 segmentSpacing（段间视觉可重叠），否则回退 width+gap 旧口径
         const spacing = effect.segmentSpacing || (width + (effect.segmentGap || 8));
         const duration = (effect.duration || 5) * 1000;
+        // 寒冷光环配置随本次施法登记（整组墙共享）
+        this._chillRadius = effect.chillRadius || 0;
+        this._chillStacks = effect.chillStacks || 1;
+        this._chillIntervalMs = effect.chillIntervalMs || 1000;
 
         const aimAngle = Math.atan2(aimY - src.y, aimX - src.x);
         const perpAngle = aimAngle + Math.PI / 2;
@@ -182,11 +192,6 @@ export class IceWallSystem {
                 spawnDelay: Math.round(Math.abs(i - center) * 45),
                 variant: Math.floor(Math.random() * 4),
                 _colSeg: seg,
-                // 寒冷光环配置（数据驱动，随墙段携带）
-                chillRadius: effect.chillRadius || 0,
-                chillStacks: effect.chillStacks || 1,
-                chillIntervalMs: effect.chillIntervalMs || 1000,
-                _chillTimer: effect.chillIntervalMs || 1000,
             });
             spawned.push({ x: wx, y: wy });
         }
@@ -204,8 +209,11 @@ export class IceWallSystem {
         if (!game) return [];
         const src = this.source;
         const out = [];
+        // 玩家可能同时出现在 game.player 与 game.entities 中，Set 去重防同一目标被结算两次
+        const seen = new Set();
         const consider = (e) => {
-            if (!e || e === src || e.active === false || !e._faction) return;
+            if (!e || seen.has(e) || e === src || e.active === false || !e._faction) return;
+            seen.add(e);
             if (src._faction === 'player') {
                 if (e._faction === 'enemy' || e._faction === 'agent') out.push(e);
             } else if (e._faction === 'player') {
@@ -229,6 +237,8 @@ export class IceWallSystem {
         const damage = Math.floor((effect.damageBase || 0)
             + (d.int || 0) * (effect.damageIntMul || 0)
             + (d.wis || 0) * (effect.damageWisMul || 0));
+        // 链式强化伤害加成（消费了层数就必须吃到加成，与 bolt-skill-system 同口径）
+        const chainMul = 1 + (this._chainDamageMul || 0);
         const kb = effect.hitKnockback || 0;
         const pushMul = effect.pushDistanceMul || 1;
         let hits = 0, kills = 0;
@@ -245,10 +255,10 @@ export class IceWallSystem {
                     if (pushDist <= 0) break;
                     const wasAlive = t.hp > 0;
                     if (damage > 0 && typeof t.takeDamage === 'function') {
-                        t.takeDamage(damage, this.source, 'physical', true);
+                        t.takeDamage(Math.max(1, Math.floor(damage * chainMul)), this.source, 'physical', true);
+                        hits++;
+                        if (wasAlive && t.hp <= 0 && !t._summoned) kills++;
                     }
-                    hits++;
-                    if (wasAlive && t.hp <= 0 && !t._summoned) kills++;
                     if (t._faction === 'player') {
                         const res = WallSystem.resolve(t.x, t.y, t.x + normalX * side * pushDist, t.y + normalY * side * pushDist, r);
                         t.x = res.x; t.y = res.y;
@@ -262,18 +272,46 @@ export class IceWallSystem {
         return { hits, kills };
     }
 
-    /** 寒冷光环：墙周 chillRadius 内敌方单位每 chillIntervalMs 叠 chillStacks 层寒冷 */
-    _applyChillAura(w) {
-        if (!w.chillRadius) return;
+    /**
+     * 寒冷光环（整组墙共享节拍）：墙周 chillRadius 内敌方单位每 chillIntervalMs 叠 chillStacks 层。
+     * 同一目标每秒只叠一次——多段墙半径重叠不再叠加爆炸（高等级段数膨胀只加覆盖面积，不加叠层速度）。
+     */
+    _applyChillAuraGroup() {
+        if (!this._chillRadius || this._walls.length === 0) return;
         const targets = this._hostileTargets();
         for (const t of targets) {
             if (typeof t.applyChill !== 'function') continue;
             const r = (t.collisionRadius || t.groundRadius || 16);
-            const dx = t.x - w.x, dy = t.y - w.y;
-            if (Math.hypot(dx, dy) <= w.chillRadius + r) {
-                t.applyChill(w.chillStacks || 1);
+            let inAura = false;
+            for (const w of this._walls) {
+                const dx = t.x - w.x, dy = t.y - w.y;
+                if (Math.hypot(dx, dy) <= this._chillRadius + r) {
+                    inAura = true;
+                    break;
+                }
+            }
+            if (inAura) t.applyChill(this._chillStacks || 1);
+        }
+    }
+
+    /**
+     * 房间/场景清理：移除全部碰撞段、清空存活墙与待生成队列（碎裂特效不再触发）。
+     * 由战斗房 cleanupRoom 与场景切换调用——地牢 map 模式实体更新冻结，墙与 pending
+     * 计时器会冻结在旧房间状态，不清理就会跨房间残留（视觉/寒冷光环/待生成幽灵碰撞）。
+     */
+    breakdown() {
+        if (this._walls.length === 0 && this._pendingSpawns.length === 0) return;
+        if (WallSystem && WallSystem.isoSegments) {
+            for (const w of this._walls) {
+                if (w._colSeg) {
+                    const si = WallSystem.isoSegments.indexOf(w._colSeg);
+                    if (si >= 0) WallSystem.isoSegments.splice(si, 1);
+                }
             }
         }
+        this._walls.length = 0;
+        this._pendingSpawns.length = 0;
+        if (pathFinder && typeof pathFinder.invalidateCache === 'function') pathFinder.invalidateCache();
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease */
@@ -315,13 +353,13 @@ export class IceWallSystem {
                 removed = true;
                 continue;
             }
-            // 寒冷光环节拍
-            if (w.chillRadius) {
-                w._chillTimer -= dt;
-                if (w._chillTimer <= 0) {
-                    w._chillTimer = w.chillIntervalMs || 1000;
-                    this._applyChillAura(w);
-                }
+        }
+        // 寒冷光环（整组墙共享一个节拍：每帧只跑一次，防按段数倍速叠层）
+        if (this._chillRadius && this._walls.length > 0) {
+            this._chillTimer -= dt;
+            if (this._chillTimer <= 0) {
+                this._chillTimer = this._chillIntervalMs || 1000;
+                this._applyChillAuraGroup();
             }
         }
         if (removed && pathFinder && typeof pathFinder.invalidateCache === 'function') pathFinder.invalidateCache();

@@ -114,6 +114,11 @@ export class OreSpider extends Enemy {
             return;
         }
 
+        // 恐惧时中断攻击决策（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 攻击帧触发
         if (this._attackTimer > 0 && this._attackType) {
             this._updateAttackFrames(entities);

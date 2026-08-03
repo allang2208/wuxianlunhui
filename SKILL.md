@@ -2,6 +2,23 @@
 
 ## 版本: 1.8
 
+## 阶段性进度总结（2026-08-03：距离音效/游戏菜单/冰墙与魔法改造修复/全量审计）
+
+### 本次完成
+1. **位置音效（距离衰减）**：SoundManager 通用能力——`setLoopPosition(id,x,y,opts)` 挂声源坐标 + 衰减参数（base/max/nearDist/farDist/maxDist），`computeDistanceVolume` 双段线性曲线（≤nearDist 恒 max → farDist 处 base → maxDist 处 0，超出静音），`playFileAt` 一次性位置音效，`distanceGain` 倍率；主循环 `SoundManager.update()` 每帧统一刷新。蝇群已接入（loopMaxDist 2000）。音量持久化 localStorage（150ms 防抖落盘）。
+2. **游戏内菜单（左上角 ☰ 菜单）**：`GameMenu` 覆盖层三入口（返回游戏/设置/退出游戏）；**暂停三冻结 = `Game._paused`（旧逻辑循环）+ `PhaserGame.game.pause()`（渲染/动画）+ `TimerManager.pause()`（JS 定时器：波次/冷却/计时）**——三者缺一就不是真暂停。设置页：音量（master）/背景音量（music 声道，实时联动地牢 BGM）/全屏切换（打包版按钮）。退出走 `window.electronAPI.exitApp()`。ESC 开/关统一走 input.js MENU 键链。
+3. **Electron ESC/全屏理顺**：主进程 `globalShortcut('Escape')` 不再退全屏/退游戏，改为转发 `esc-pressed` 给渲染进程（失焦不转发）→ input.js `handleKey('Escape')` 完整 MENU 链；全屏切换移入设置按钮（`toggle-fullscreen` IPC + `fullscreen-changed` 推送 + `get-fullscreen` 主动查询防竞态）。preload 事件监听接线不再是死代码。
+4. **冰墙修复**：新增 `IceWallSystem.breakdown()`（splice 全部 isoSegments + 清 `_walls/_pendingSpawns` + 失效寻路缓存）——**动态障碍物必须挂三钩子：战斗房 `cleanupRoom` / `SceneManager.switchScene` / 出征前（depart 绕开 switchScene 直清实体）**，否则地牢 map 模式冻结计时导致墙体跨房残留/待生成幽灵碰撞。链式 MP 门禁、寒冷光环整组节拍（同目标每秒只叠一次）、破土粒子一次性 burstParticles。
+5. **魔法改造修复（bolt/闪电/圣光/冰墙/冰锥/火球统一）**：**链式强化 MP 门禁口径 = 先按当前 `_chainSpellStacks` 算含减免 MP 成本做门禁（只读不消费），通过后才 `consumeChainSpellBonus` + 扣蓝**——失败施法不丢层数；消费了层数必须吃到 `damageMul`。火球 `onImpact` 加 `if (!spike.flyActive) return`（同帧多目标重叠只爆一次；冰锥不加，保住准穿透）。`addChainSpellStack` 在 statusImmune 期间直接 return。
+6. **热路径性能**：`skill.getEffect(level)` 按等级缓存（移速每帧/施法飞行期每帧不再重复公式 parse）；StatusBar 渲染 100ms 节流。
+7. **审计**：全量排查（新怪受控检查补齐站桩三怪 + 6 怪 fear 中断、僵尸巫师眩晕中断、公式求值器一元负号/前导小数/多参 Math 白名单、事件监听全配对、pathfinder 设计确认、Electron 错误兜底 + 崩溃重载）。
+
+### 沉淀约定（防再犯）
+- **craft-config 新武器改造配置必须 `options` 嵌套**：`weapon20 = { slots:[...], options:{ slotId:[配件...] } }`——配平列表放顶层会导致 `config.options` 为 undefined、点击无反应，且 **test-craft-sync 只校验效果键与 registry 三角，校验不到嵌套层级**，此类结构错误靠人工审计。新武器上线时验证：改造弹窗能点、能装备、重置布局有默认槽位（craft-default-slots.js 同步补键）。
+- **自定义怪受控检查清单**：覆盖 `update()` 的怪（含站桩怪）都必须有 stun/frozen/fear 检查——站桩怪（煮锅/墓碑/矿洞）也要在站桩钉死后拦生成/投掷；基类的检查只到得了 `super.update` 之后，状态机在 super 之前的怪（僵尸巫师）必须在顶部拦截。
+- **pathfinder 有意不含 isoSegments**：动态碰撞段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路只建模静态 walls/trees——不要"顺手"把 isoSegments 纳入寻路，会削弱临时障碍阻挡设计。
+- **渲染进程错误兜底已内置**：`window.onerror`/`unhandledrejection` 控制台 + 左下角错误条；Electron 主进程 `render-process-gone`/`did-fail-load` 崩溃重载。
+
 ## 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
 
 ### 本次完成（V0.291~V0.302）
@@ -1558,6 +1575,32 @@ addTree(x, y, radius, ...) {
 所有使用 `t.radius` 的位置（`canMoveTo`、`blocked`、Phaser 同步）统一使用 `t.collisionRadius || t.radius * 0.6`。
 
 ---
+
+## 普通攻击一段跟手 + 方向性运动模糊（2026-08-03 落地，用户验收通过）
+
+### 跟手：sword.attack 30 点轨迹改为跟随挥剑手
+- **挥剑手 = 远侧手**（attack_sword 动画里唯一做大回环的手）：f0~f2 高举头后
+  → f3 头顶最高 → f4~f6 挥到前方 → f7 下劈到位（命中帧在 f7，frame 22）。
+- 生成脚本 `tools/prep-sword-attack-hand.py`：从 attack_sword.png 8 帧读拳头中心，
+  换算 local（`(px-256)×144/516`），30 点插值后只替换 offsetX/offsetY
+  （rotation/scale/blur/stretch 保留手动调参）。
+- 当前轨迹：f0 `(-15.6,-35.2)` → f8 `(-26.8,-40.3)`（蓄力顶）→ f15 `(15.6,-39.3)`
+  （前举）→ f22+ `(9.5,-3.3)`（下劈收势）。
+- **握把（剑柄）贴手（2026-08-03 修订）**：perFrame 偏移是**贴图中心**，而剑柄在贴图中心下方
+  ——中心贴手 = 剑柄悬在手下。修正：按每帧旋转角反推中心 `offsetX = 手X + G·sin(rot)`、
+  `offsetY = 手Y − G·cos(rot)`，使剑柄落点=手。
+  **G（柄质心距中心）实测**：锈剑 39.2 / 骑士 41.6 / EX 36.1 / 夜火 44.1 display px，
+  取 **40**（旧值 55 偏大→握把落柄下端，实机"还有错位"；40 版视觉模型 8 帧判"更准"）。
+
+### 方向性运动模糊（替换各向同性高斯，修"摊薄消失"）
+- **根因**：刀身在贴图内沿纵向（逐行质心 x 恒定已验证），旧版 Blur 滤镜 x=y=1 各向同性，
+  模糊沿刀身摊薄 → 3px 细剑峰值帧"近乎消失"（SKILL 旧记录因此一度改残影，残影又停用）。
+- **升级**：`_applyWeaponBlur` 固定 `f.x=1, f.y=0.08`——只沿**垂直刀身（贴图横向）**拉丝，
+  刀身保持清晰、拖影沿挥砍方向；强度仍由 max(blurX,blurY) 驱动（峰值帧最浓）。
+  Phaser 4 `filters.internal.addBlur`，`strength = max×1.6`。
+- **验证**：CDP 实机采样（`tools/cdp-sword-attack-check.mjs`）确认 blur 峰值帧
+  x=1/y=0.08/strength≈14；视觉模型粗验收"剑贴手 + 横向拉丝 + 刀身不糊"。
+- 残影（`_syncWeaponGhosts`）为死代码，勿再启用。
 
 ## 武器动画调试基准（2026-07-26 定稿）
 

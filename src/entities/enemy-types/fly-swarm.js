@@ -24,12 +24,16 @@ export class FlySwarm extends Enemy {
         // 伤害完全由触碰自管：关闭 CombatSystem 的通用近战触发（同集合体模式），无默认普攻
         this.aiInterval = Number.MAX_SAFE_INTEGER;
         this._contactTickTimer = 0;
-        // 循环音轨（idleing 持续循环，音量随与玩家距离 50%→150%）
+        // 循环音轨（idleing 持续循环；音量由 SoundManager 位置音效按与玩家距离衰减）
         this._loopSoundId = 'flyswarm_' + Math.random().toString(36).slice(2, 10);
         this._loopSoundStarted = false;
     }
 
-    /** 循环音轨同步：持续循环；音量按与玩家距离在 base~max 间线性插值 */
+    /**
+     * 循环音轨同步：持续循环；把声源坐标 + 衰减参数挂给 SoundManager，
+     * 音量由主循环 SoundManager.update() 统一按与玩家距离刷新
+     * （贴近 150%，600px 处 50%，超出 2000px 静音）。
+     */
     _syncLoopSound() {
         const s = this.config?.sounds;
         if (!s || !s.loop || this.hp <= 0) {
@@ -43,18 +47,13 @@ export class FlySwarm extends Enemy {
             this._loopSoundStarted = true;
             SoundManager.playLoop(this._loopSoundId, s.loop, s.loopVolumeBase ?? 0.5, s.loopCrossfadeSec ?? 0.5);
         }
-        const base = s.loopVolumeBase ?? 0.5;
-        const max = s.loopVolumeMax ?? 1.5;
-        const near = s.loopNearDist ?? 150;
-        const far = s.loopFarDist ?? 600;
-        let vol = base;
-        const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
-        if (p && p.active) {
-            const d = Math.hypot(p.x - this.x, p.y - this.y);
-            const t = Math.max(0, Math.min(1, (far - d) / Math.max(1, far - near)));
-            vol = base + (max - base) * t;
-        }
-        SoundManager.setLoopVolume(this._loopSoundId, vol);
+        SoundManager.setLoopPosition(this._loopSoundId, this.x, this.y, {
+            base: s.loopVolumeBase ?? 0.5,
+            max: s.loopVolumeMax ?? 1.5,
+            nearDist: s.loopNearDist ?? 150,
+            farDist: s.loopFarDist ?? 600,
+            maxDist: s.loopMaxDist ?? 2000,
+        });
     }
 
     _destroyCustomEffects() {

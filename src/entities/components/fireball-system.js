@@ -2,7 +2,6 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
-import { getCurrentWeaponCraftEffects } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
 /**
@@ -70,6 +69,9 @@ const FIREBALL_KIND = {
     },
     // 命中/撞墙：范围爆炸（特效三层 + AOE 距离衰减）
     onImpact(sys, spike, { x, y, entities, damage, effect, skill }) {
+        // 同帧多目标重叠时命中循环会重复调用本方法：首爆后 flyActive=false，后续调用直接忽略
+        // （火球一次只能爆一次；冰锥是准穿透逐目标结算，不加此守卫）
+        if (!spike.flyActive) return;
         const radius = effect.explosionRadius;
         // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
         const hitSound = skillsData.skills?.fireball?.sounds?.hit;

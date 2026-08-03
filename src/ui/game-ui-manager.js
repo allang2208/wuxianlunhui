@@ -1,16 +1,12 @@
-import { EventBus } from '../core/event-bus.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, getElement, getElementIfExists } from '../utils/dom-utils.js';
+import { queryAllElements, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
-import { NPCDialogue } from './npc-dialogue.js';
-import { ShopSystem } from './shop-system.js';
-import { EnhanceSystem } from './enhance-system.js';
 import { EquipManager } from './equip-manager.js';
-import { SystemUI, UI_DATA_CONFIG } from './system-ui.js';
+import { UI_DATA_CONFIG } from './system-ui.js';
 import { getTributeHpRegenMultiplier, getTributeHpRegenFlat } from '../config/tribute-effects.js';
 import { completeWeaponFields } from './equip-data-manager.js';
 
@@ -285,6 +281,11 @@ export const GameUIManager = {
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
     startTimer() {
+        // 防重入：重复开始先清旧间隔（toMenu 删除后 stopTimer 无调用方，此处自守卫）
+        if (this._timerInterval) {
+            TimerManager.clearInterval(this._timerInterval);
+            this._timerInterval = null;
+        }
         this._gameStartTime = Date.now();
         const timerEl = getElementIfExists('gameTimer');
         if (timerEl) timerEl.style.display = 'flex';
@@ -312,16 +313,6 @@ export const GameUIManager = {
         const seconds = totalSeconds % 60;
         const pad = n => n.toString().padStart(2, '0');
         return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    },
-    toMenu() {
-        this.stopTimer();
-        this.isRunning = false; this.entities.clear(); this.player = null; SystemUI.close();
-        if (NPCDialogue) NPCDialogue.close();
-        if (ShopSystem) ShopSystem.close();
-        if (EnhanceSystem) EnhanceSystem.close();
-        // EventBus 解耦：取消拾取事件订阅，避免重复
-        if (this._onPickup) EventBus.off('player:pickup', this._onPickup);
-        const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.remove('hidden'); if (uiLayer) uiLayer.style.display = 'none'; if (gameLayer) gameLayer.style.display = 'none';
     },
     setupWeaponSwitchButtons() {
         // quickMelee/quickRanged buttons are optional; weapon switching via F key always works

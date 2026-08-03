@@ -139,6 +139,10 @@ export const SceneManager = {
             if (SoundManager && SoundManager.stopAllLoops) {
                 SoundManager.stopAllLoops();
             }
+            // 冰墙动态障碍/待生成队列随场景切换清理（墙坐标属于旧场景，禁止跨场景残留）
+            if (player && player.iceWallSystem && typeof player.iceWallSystem.breakdown === 'function') {
+                player.iceWallSystem.breakdown();
+            }
             // 清除战术小队AI
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
             // 清除裂隙系统

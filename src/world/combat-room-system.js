@@ -771,6 +771,10 @@ export const CombatRoomSystem = {
     },
 
     cleanupRoom() {
+        // 冰墙等玩家技能动态障碍：房间拆除时一并清理（防跨房间残留/待生成幽灵碰撞）
+        if (this._player && this._player.iceWallSystem && typeof this._player.iceWallSystem.breakdown === 'function') {
+            this._player.iceWallSystem.breakdown();
+        }
         
         // 清理门闸与门外白区/光束
         this.cleanupGate();

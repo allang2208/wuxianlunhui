@@ -1,6 +1,9 @@
         // ==================== 音效管理系统 ====================
         import audioConfig from '../../data/audio-config.json';
 
+        // 音量持久化防抖句柄（滑块 input 高频触发时合并写入）
+        let _volumeSaveTimer = null;
+
         export const SoundManager = {
             ctx: null,
             masterVolume: 0.6,
@@ -18,8 +21,31 @@
                     if (AudioContext) {
                         this.ctx = new AudioContext();
                         this._initialized = true;
+                        this._loadSavedVolumes();
                     }
                 } catch (e) { console.warn('Web Audio API 不可用:', e); }
+            },
+
+            /** 读回上次设置的音量（localStorage，主音量/背景音量） */
+            _loadSavedVolumes() {
+                try {
+                    const master = parseFloat(localStorage.getItem('wuxian_audio_master'));
+                    if (Number.isFinite(master)) this.masterVolume = Math.max(0, Math.min(1, master));
+                    const music = parseFloat(localStorage.getItem('wuxian_audio_music'));
+                    if (Number.isFinite(music)) this.channelVolumes.music = Math.max(0, Math.min(1, music));
+                } catch (_e) { /* localStorage 不可用时忽略 */ }
+            },
+
+            _saveVolumes() {
+                // 150ms trailing 防抖：拖动滑块时只落盘一次，避免每次 input 都写 localStorage
+                if (_volumeSaveTimer) clearTimeout(_volumeSaveTimer);
+                _volumeSaveTimer = setTimeout(() => {
+                    _volumeSaveTimer = null;
+                    try {
+                        localStorage.setItem('wuxian_audio_master', String(this.masterVolume));
+                        localStorage.setItem('wuxian_audio_music', String(this.channelVolumes.music ?? 1));
+                    } catch (_e) { /* 忽略 */ }
+                }, 150);
             },
 
             _ensureCtx() {
@@ -71,11 +97,31 @@
                 }
             },
 
+            /**
+             * 一次性位置音效：按播放瞬间声源与玩家的距离计算音量倍率，
+             * 超出 maxDist 直接不播。
+             * @param {string} path 音频路径
+             * @param {number} x 声源世界坐标 x
+             * @param {number} y 声源世界坐标 y
+             * @param {number} [volume=1.0] 基础音量（近端满音量）
+             * @param {string} [channel='sfx'] 声道
+             * @param {object} [opts] 衰减参数：nearDist（满音量距离，默认 0）/ maxDist（静音距离，默认 2000）
+             */
+            playFileAt(path, x, y, volume = 1.0, channel = 'sfx', opts = {}) {
+                if (!this.enabled) return;
+                const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
+                const d = (p && p.active) ? Math.hypot(p.x - x, p.y - y) : 0;
+                const gain = this.distanceGain(d, opts);
+                if (gain <= 0) return;
+                this.playFile(path, volume * gain, channel);
+            },
+
             /** 设置声道音量（sfx/ui/music，0~1；配置持久化见 data/audio-config.json） */
             setChannelVolume(channel, v) {
                 this.channelVolumes[channel] = Math.max(0, Math.min(1, v));
                 // BGM 实时联动 music 声道
                 if (channel === 'music') this.setLoopVolume('bgm', (this._bgmVolume ?? 1) * (this.channelVolumes.music ?? 1));
+                this._saveVolumes();
             },
 
             getChannelVolume(channel) {
@@ -188,6 +234,89 @@
                 for (const id of Object.keys(this._loops)) {
                     this._stopLoopInternal(id);
                 }
+            },
+
+            // ==================== 位置音效（距离衰减，通用能力） ====================
+
+            /**
+             * 每帧刷新所有位置音效的音量（game.js 主循环调用）。
+             * 无玩家时保持当前音量不变；有玩家时按声源与玩家距离重算，
+             * 超出 maxDist 音量归 0（直接无声）。
+             */
+            update() {
+                const loops = this._loops;
+                if (!loops) return;
+                const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
+                if (!p || !p.active) return;
+                for (const id of Object.keys(loops)) {
+                    const l = loops[id];
+                    if (!l || !l.positional) continue;
+                    const pos = l.positional;
+                    const d = Math.hypot(p.x - pos.x, p.y - pos.y);
+                    l.volume = this.computeDistanceVolume(d, pos);
+                    if (l.gain) l.gain.gain.value = l.volume * this.masterVolume;
+                }
+            },
+
+            /**
+             * 给循环音轨挂声源坐标 + 距离衰减参数，之后音量由 SoundManager.update()
+             * 按与玩家的距离逐帧刷新（调用方无需自己算距离/音量）。
+             * @param {string} id 音轨唯一标识
+             * @param {number} x 声源世界坐标 x
+             * @param {number} y 声源世界坐标 y
+             * @param {object} [opts] 衰减参数：
+             *   base（远端音量，默认 0.5）/ max（近端音量，默认 1.5）/
+             *   nearDist（满音量距离，默认 150）/ farDist（base 音量距离，默认 600）/
+             *   maxDist（静音距离，超出后音量 0，默认 2000）
+             */
+            setLoopPosition(id, x, y, opts = {}) {
+                const l = this._loops && this._loops[id];
+                if (!l) return;
+                l.positional = {
+                    x, y,
+                    base: opts.base ?? 0.5,
+                    max: opts.max ?? 1.5,
+                    nearDist: opts.nearDist ?? 150,
+                    farDist: opts.farDist ?? 600,
+                    maxDist: opts.maxDist ?? 2000,
+                };
+            },
+
+            /**
+             * 循环音轨距离→音量曲线（双段线性，连续无跳变）：
+             *   d ≤ nearDist            → max
+             *   nearDist < d < farDist  → max 线性降至 base
+             *   farDist ≤ d < maxDist   → base 线性降至 0
+             *   d ≥ maxDist             → 0（无声）
+             */
+            computeDistanceVolume(d, cfg = {}) {
+                const base = cfg.base ?? 0.5;
+                const max = cfg.max ?? 1.5;
+                const nearDist = cfg.nearDist ?? 150;
+                const farDist = cfg.farDist ?? 600;
+                const maxDist = cfg.maxDist ?? 2000;
+                if (maxDist > 0 && d > maxDist) return 0;
+                if (d <= nearDist) return max;
+                if (d >= farDist) {
+                    // 未配置静音段（maxDist ≤ farDist）时保持 base，兼容旧行为
+                    if (maxDist <= farDist) return base;
+                    const span = maxDist - farDist;
+                    return base * Math.max(0, 1 - (d - farDist) / span);
+                }
+                const span = Math.max(1, farDist - nearDist);
+                return base + (max - base) * (1 - (d - nearDist) / span);
+            },
+
+            /**
+             * 一次性音效距离→倍率：nearDist 内恒 1，线性降至 maxDist 处 0，超出为 0。
+             */
+            distanceGain(d, opts = {}) {
+                const nearDist = opts.nearDist ?? 0;
+                const maxDist = opts.maxDist ?? (opts.farDist ?? 2000);
+                if (d <= nearDist) return 1;
+                if (d >= maxDist) return 0;
+                const span = Math.max(1, maxDist - nearDist);
+                return Math.max(0, 1 - (d - nearDist) / span);
             },
 
             _playMeleeSwing() {
@@ -438,6 +567,16 @@
                 osc.start(t); osc.stop(t + 0.04);
             },
 
-            setVolume(v) { this.masterVolume = Math.max(0, Math.min(1, v)); },
+            setVolume(v) {
+                this.masterVolume = Math.max(0, Math.min(1, v));
+                // 实时作用于所有运行中的循环音轨（BGM/环境音）
+                if (this._loops) {
+                    for (const id of Object.keys(this._loops)) {
+                        const l = this._loops[id];
+                        if (l && l.gain) l.gain.gain.value = (l.volume ?? 1) * this.masterVolume;
+                    }
+                }
+                this._saveVolumes();
+            },
             toggle() { this.enabled = !this.enabled; return this.enabled; }
         };

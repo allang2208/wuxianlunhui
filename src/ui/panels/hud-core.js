@@ -11,7 +11,8 @@ export function createHudCore() {
     const backMenuBtn = document.createElement('button');
     backMenuBtn.className = 'back-menu-btn';
     backMenuBtn.id = 'backMenuBtn';
-    backMenuBtn.textContent = '返回主菜单';
+    backMenuBtn.textContent = '☰ 菜单';
+    backMenuBtn.title = '游戏菜单';
     root.appendChild(backMenuBtn);
 
     // ===== 玩家状态栏（显示眩晕、中毒等状态效果） =====

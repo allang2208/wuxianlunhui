@@ -33,6 +33,7 @@ import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
+import { burstParticles } from '../../effects/combat-fx.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -55,8 +56,7 @@ export class GameScene extends Scene {
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
         // 冰墙 fx 池与共享发射器：场景 stop/start 后旧对象已销毁，必须重置防悬挂引用
         this._iceWallFx = [];
-        this._iceWallMistBurst = null;
-        this._iceWallShardBurst = null;
+        this._iceWallVariantPool = null;
         // Velocity 驱动开关（默认关闭，避免与原有移动逻辑冲突）
         // 如需手动测试，可在控制台执行：__phaserScene._useVelocityDrive = true
         this._useVelocityDrive = false;
@@ -2129,8 +2129,7 @@ export class GameScene extends Scene {
                             wSize.width * (pfPos.stretchX || 1),
                             wSize.height * (pfPos.stretchY || 1)
                         );
-                        // 帧级运动模糊（blurX/blurY）：真实方向性高斯（Phaser 4 Blur 滤镜，
-                        // 与开发工具 canvas blur 同效果）。残影方案已停用（实测偏弱且观感是"残影"而非模糊）
+                        // 帧级运动模糊（blurX/blurY）：Phaser 4 Blur 滤镜，方向性（见 _applyWeaponBlur）
                         const bx = pfPos.blurX || 0, by = pfPos.blurY || 0;
                         this._applyWeaponBlur(bx, by);
                         // 二段攻击 18~24 帧：角色贴图在上层、武器贴图沉到人物之下（随进度逐帧判定）
@@ -3091,8 +3090,11 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 按逐帧 blurX/blurY 更新武器模糊（与开发工具同款：各向同性，半径 = max/2 px）。
-     * 弱于阈值直接归零；实时改滤镜 strength，无需切换贴图。
+     * 按逐帧 blurX/blurY 更新武器运动模糊（2026-08-03 升级为方向性）：
+     * 刀身在贴图内沿纵向（各行质心 x 恒定），挥砍运动垂直于刀身 = 贴图横向（x 轴）。
+     * 旧版各向同性（x=y=1）会沿刀身方向摊薄——细长武器峰值帧"近乎消失"；
+     * 新版固定 x=1 / y=0.08：只沿挥砍方向横向拉丝（sweep trail），刀身保持清晰。
+     * 强度仍由 max(blurX, blurY) 驱动（峰值帧最浓，起势/收势无）。
      */
     _applyWeaponBlur(bx, by) {
         const m = Math.max(Math.abs(bx || 0), Math.abs(by || 0));
@@ -3102,9 +3104,9 @@ export class GameScene extends Scene {
         }
         const f = this._ensureWeaponBlur();
         if (!f) return;
-        f.x = 1;
-        f.y = 1; // 各向同性（与开发工具 canvas blur 一致）
-        f.strength = m * 1.6; // 强度系数（0.8→1.6 再翻倍，峰值 σ≈52px）：想整体加/减模糊改这里
+        f.x = 1;       // 挥砍方向（垂直刀身）
+        f.y = 0.08;    // 沿刀身方向几乎不模糊（防摊薄消失）
+        f.strength = m * 1.6;
     }
 
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
@@ -3560,33 +3562,9 @@ export class GameScene extends Scene {
         }
     }
 
-    /** 冰墙共享粒子发射器（破土冰雾 + 碎冰屑迸溅），懒创建一次，所有墙段共用 */
+    /** 冰墙粒子贴图兜底：破土/碎裂用一次性 burstParticles（自带 impact_dot 保障），这里只需确保贴图存在 */
     _ensureIceWallFx() {
         if (!this.textures.exists('impact_dot')) this._ensureImpactDotTexture();
-        if (!this._iceWallMistBurst) {
-            this._iceWallMistBurst = this.add.particles(0, 0, 'impact_dot', {
-                emitting: false,
-                speed: { min: 30, max: 120 },
-                angle: { min: 200, max: 340 },
-                lifespan: { min: 350, max: 750 },
-                scale: { start: 1.6, end: 0.2 },
-                alpha: { start: 0.65, end: 0 },
-                tint: [0xffffff, 0xa0d8ff, 0x5aa8d8],
-                blendMode: 'ADD',
-            });
-        }
-        if (!this._iceWallShardBurst) {
-            this._iceWallShardBurst = this.add.particles(0, 0, 'ice_shard', {
-                emitting: false,
-                speed: { min: 70, max: 200 },
-                angle: { min: 220, max: 320 },
-                gravityY: 520,
-                lifespan: { min: 450, max: 850 },
-                scale: { min: 0.5, max: 1.1 },
-                rotate: { min: -180, max: 180 },
-                alpha: { start: 1, end: 0.4 },
-            });
-        }
     }
 
     /** 单段墙的常驻寒气：低频白雾缓慢上飘（跟随墙段生灭） */
@@ -3652,7 +3630,9 @@ export class GameScene extends Scene {
             sprite.setOrigin(0.5, 1);
             const frost = this.add.image(0, 0, 'ice_wall_frost');
             frost.setOrigin(0.5, 0.5);
-            const mist = this._createIceWallMist();
+            // 寒气发射器对象级降载：每 3 段才建一个（高等级 43 段 → 15 个发射器对象，
+            // 只发射 1/3 时不再为其余段白白持有 emitter 对象）
+            const mist = (this._iceWallFx.length % 3 === 0) ? this._createIceWallMist() : null;
             this._iceWallFx.push({ sprite, frost, mist, wall: null, burstDone: false });
         }
         // 回收多余 fx
@@ -3679,7 +3659,7 @@ export class GameScene extends Scene {
                 fx.burstDone = false;
                 const pool = this._iceWallVariantKeys();
                 s.setTexture(pool[(w.variant || 0) % pool.length]);
-                fx.mist.setPosition(w.x, w.y - 4);
+                if (fx.mist) fx.mist.setPosition(w.x, w.y - 4);
             }
 
             const t = (w.age || 0) - (w.spawnDelay || 0);   // 扣除 stagger 延迟后的生长时间
@@ -3692,8 +3672,34 @@ export class GameScene extends Scene {
                 grow = Easing.easeOutQuart(p) * (1 + 0.15 * Math.sin(Math.PI * p));
                 if (!fx.burstDone) {
                     fx.burstDone = true;
-                    this._iceWallMistBurst.setDepth(w.y + 2).explode(10, w.x, w.y - 4);
-                    this._iceWallShardBurst.setDepth(w.y + 2).explode(6, w.x, w.y - 6);
+                    // 破土冰雾/碎冰屑：一次性 burstParticles——共享发射器同帧多段（对称段 stagger 相同）
+                    // 会互相覆盖位置，一次性发射器各段独立、位置互不干扰
+                    burstParticles({
+                        texture: 'impact_dot', x: w.x, y: w.y - 4, count: 10, jitter: 8,
+                        config: {
+                            speed: { min: 30, max: 120 },
+                            angle: { min: 200, max: 340 },
+                            lifespan: { min: 350, max: 750 },
+                            scale: { start: 1.6, end: 0.2 },
+                            alpha: { start: 0.65, end: 0 },
+                            tint: [0xffffff, 0xa0d8ff, 0x5aa8d8],
+                            blendMode: 'ADD',
+                        },
+                        destroyAfterMs: 800, depth: w.y + 2,
+                    });
+                    burstParticles({
+                        texture: 'ice_shard', x: w.x, y: w.y - 6, count: 6, jitter: 6,
+                        config: {
+                            speed: { min: 70, max: 200 },
+                            angle: { min: 220, max: 320 },
+                            gravityY: 520,
+                            lifespan: { min: 450, max: 850 },
+                            scale: { min: 0.5, max: 1.1 },
+                            rotate: { min: -180, max: 180 },
+                            alpha: { start: 1, end: 0.4 },
+                        },
+                        destroyAfterMs: 800, depth: w.y + 2,
+                    });
                 }
             }
             // 碎裂预警：最后 350ms 高频闪烁 + 微抖动（不塌缩，碎裂特效由逻辑层触发）

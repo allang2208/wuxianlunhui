@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, globalShortcut } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -66,9 +66,42 @@ function createWindow() {
         mainWindow = null;
     });
 
-    // 记录全屏状态变化
-    mainWindow.on('enter-full-screen', () => { isFullScreen = true; });
-    mainWindow.on('leave-full-screen', () => { isFullScreen = false; });
+    // 渲染进程崩溃/加载失败恢复：崩溃后状态本已丢失，弹窗提示并重载回首页
+    mainWindow.webContents.on('render-process-gone', (_event, details) => {
+        console.error('[main] Renderer process gone:', details.reason);
+        if (details.reason === 'clean-exit') return;
+        dialog.showMessageBox(mainWindow, {
+            type: 'error',
+            title: '游戏崩溃',
+            message: '游戏运行出现异常，即将重新加载。',
+            buttons: ['重新加载'],
+        }).then(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
+        }).catch(err => console.error('[main] crash dialog failed:', err));
+    });
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDesc) => {
+        console.error('[main] Failed to load page:', errorCode, errorDesc);
+        if (mainWindow && !mainWindow.isDestroyed() && errorCode !== -3) {
+            // -3 = ERR_ABORTED（主动导航中断，忽略）
+            mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+        }
+    });
+
+    // 记录并转发全屏状态变化（渲染进程设置界面"全屏切换"按钮文案同步）
+    mainWindow.on('enter-full-screen', () => {
+        isFullScreen = true;
+        if (!mainWindow.isDestroyed()) mainWindow.webContents.send('fullscreen-changed', true);
+    });
+    mainWindow.on('leave-full-screen', () => {
+        isFullScreen = false;
+        if (!mainWindow.isDestroyed()) mainWindow.webContents.send('fullscreen-changed', false);
+    });
+    // 启动就绪后同步一次当前全屏状态（初始 fullscreen:true 不保证触发 enter-full-screen）
+    mainWindow.webContents.on('did-finish-load', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('fullscreen-changed', mainWindow.isFullScreen());
+        }
+    });
 
     return mainWindow;
 }
@@ -206,6 +239,10 @@ ipcMain.on('toggle-fullscreen', () => {
     }
 });
 
+ipcMain.handle('get-fullscreen', () => {
+    return mainWindow ? mainWindow.isFullScreen() : false;
+});
+
 ipcMain.on('exit-app', () => {
     app.quit();
 });
@@ -214,20 +251,12 @@ ipcMain.on('exit-app', () => {
 app.whenReady().then(() => {
     createWindow();
 
-    // 注册 ESC 全局快捷键：全屏↔窗口 切换
+    // 注册 ESC 全局快捷键：转发给渲染进程由游戏菜单统一处理
+    // （原实现"全屏退全屏/窗口直接退游戏"误触即退，且拦截导致渲染进程收不到 ESC；
+    //  全屏切换改由设置界面按钮触发，见 toggle-fullscreen IPC）
     globalShortcut.register('Escape', () => {
-        if (mainWindow) {
-            if (mainWindow.isFullScreen()) {
-                // 全屏 → 退出全屏（窗口模式）
-                mainWindow.setFullScreen(false);
-                isFullScreen = false;
-            } else if (mainWindow.isMaximized()) {
-                // 窗口模式（最大化）→ 退出游戏
-                app.quit();
-            } else {
-                // 普通窗口 → 退出游戏
-                app.quit();
-            }
+        if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isFocused()) {
+            mainWindow.webContents.send('esc-pressed');
         }
     });
 
