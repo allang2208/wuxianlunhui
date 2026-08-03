@@ -2,6 +2,28 @@
 
 ## 版本: 1.8
 
+## ⭐ 识图优先入口：GLM-4V 识图系统（2026-08-03 构建，读图一律先走这里）
+
+需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
+**优先调用已构建的 GLM-4V 识图系统**（deepseek-vision-skill，智谱 GLM-4V-Flash 接口）：
+
+```bash
+# 读本地图片（可多张）：
+node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.js" "路径\图片.png"
+# 带具体问题：
+node "...\describe-image.js" --prompt "图片里剑柄是否在手中？" "路径\图片.png"
+# 恢复用户最新发送的图片（本模型收不到图时）：
+node "...\describe-image.js" --latest
+```
+
+要点（实战沉淀，2026-08-03 一段攻击跟手三轮）：
+- **定位坐标不可靠**：GLM-4V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
+  需要精确定位时用它做定性判断（ON/OFF、方向、内容描述、OCR），坐标以贴图真值掩码为准。
+- **特写图效果最好**：把目标区域裁小（~140px）、2 倍/3 倍放大、必要时加红点标记当前点，
+  问"红点是否在目标上 / 偏哪个方向多少像素"，回答稳定可用。
+- 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
+  deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
+
 ## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
 
 ### 背景（全量审计实测，2026-08-03）
@@ -1647,6 +1669,26 @@ addTree(x, y, radius, ...) {
   `offsetY = 手Y − G·cos(rot)`，使剑柄落点=手。
   **G（柄质心距中心）实测**：锈剑 39.2 / 骑士 41.6 / EX 36.1 / 夜火 44.1 display px，
   取 **40**（旧值 55 偏大→握把落柄下端，实机"还有错位"；40 版视觉模型 8 帧判"更准"）。
+
+### 经验教训（2026-08-03 一段攻击跟手三轮复盘，可迁移）
+1. **手部只有离散帧时，武器 perFrame 必须"阶梯映射"，不能帧间平滑插值**：
+   30 个武器点 ≠ 手部 8 帧姿势。插值会让握把在精灵帧没动时自己漂移
+   （f3→f4 手位跨度 154px，cfg11 曾脱手 122px）。正确做法：按帧权重
+   `f = p≥0.7 ? 7 : min(6, int(p*10))` 取当前精灵帧锚点，旋转照常插值。
+2. **锚点是否"贴手"用贴图真值掩码验证，勿用场景截图暗像素**：
+   将精灵帧 alpha 用 BILINEAR 缩放到显示尺寸（`frame.resize((w,h), BILINEAR)`，
+   `alpha>100` 为角色像素），握把落点采 7×7 邻域贴附率，>20% 视为贴手。
+   场景截图的暗像素会被背景阴影/杂物误报（曾把 12 帧悬空误判为全贴手）。
+3. **GLM-4V 的边界**：读绝对坐标不可靠（全图/网格/裁剪多格式都会跑飞）；
+   但"红点是否在手"的 ON/OFF 判断在 140px 握把特写（2 倍放大 + 红点标记）上稳定。
+   定位用掩码，复核用 GLM，二者交叉。
+4. **改 JSON 配置后必须刷新页面**：ESM 静态 import 缓存旧配置，游戏启动时读一次，
+   不刷新页面则"改完没生效"（曾导致对着旧配置调参的误判）。
+5. **冻结抓取管线（tools/cdp-sword-hold-frames.mjs）**：
+   `play + anims.timeScale=0` 冻结精灵帧（满足 GameScene 卡死守卫的 isPlaying 条件），
+   `_activeAttackTweens` 塞 60s 占位 tween 保 attacking 状态机，`_playerAttackDuration=40000`
+   + 反推 `_playerAttackStartTime` 接管进度。坑：`weaponAnim.timer>5000` 卡死保护会重置状态，
+   需每帧清零；`tweens.timeScale` 曾被探针改慢导致攻击 tween 3 秒后才 complete 干扰定格。
 
 ### 方向性运动模糊（替换各向同性高斯，修"摊薄消失"）
 - **根因**：刀身在贴图内沿纵向（逐行质心 x 恒定已验证），旧版 Blur 滤镜 x=y=1 各向同性，
