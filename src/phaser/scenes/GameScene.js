@@ -1274,16 +1274,28 @@ export class GameScene extends Scene {
 
         // 播放一次的动作（攻击等）：防重入，记录时长，完成后回 idle
         if ((def.repeat !== undefined ? def.repeat : -1) === 0) {
-            // 手部分层仅用于循环姿态（walk）；一次性动作（攻击/施法等）隐藏手 sprite
-            if (this.playerHandSprite) {
+            // 手部分层仅用于循环姿态（walk）与带 handLayer 的一次性动作（如 staff_cast）；
+            // 其余一次性动作（攻击/施法等）隐藏手 sprite
+            const oneShotKey = handLayer ? `${texKey}_body` : texKey;
+            if (!handLayer && this.playerHandSprite) {
                 this.playerHandSprite.setVisible(false);
             }
-            if (currentAnim === texKey && this.playerSprite.anims.isPlaying) return;
+            if (currentAnim === oneShotKey && this.playerSprite.anims.isPlaying) return;
             // 贴图与动画必须同源（扭转腿层/单帧姿态切换后 texture 可能不匹配，不重置会卡第一帧）
-            if (this.playerSprite.texture.key !== texKey) {
-                this.playerSprite.setTexture(texKey);
+            if (this.playerSprite.texture.key !== oneShotKey) {
+                this.playerSprite.setTexture(oneShotKey);
             }
-            this.playerSprite.play(texKey, true);
+            this.playerSprite.play(oneShotKey, true);
+            // 带 handLayer 的一次性动作：显示手 sprite 叠在武器之上（帧跟随由 _syncPlayerHandLayer 每帧同步）
+            if (handLayer) {
+                this._ensurePlayerHandSprite();
+                if (this.playerHandSprite.texture.key !== `${texKey}_hand`) {
+                    this.playerHandSprite.setTexture(`${texKey}_hand`);
+                }
+                this.playerHandSprite.setVisible(true);
+                this.playerHandSprite.setFlipX(this.playerSprite.flipX);
+                this.playerHandSprite.setPosition(this.playerSprite.x, this.playerSprite.y);
+            }
             const animDef = this.anims.get(texKey);
             // naturalMs 同样按逐帧时长求和优先（否则 frameDurations 系动画 timeScale 算错，
             // 贴图与 Tween 时长再次脱节）
@@ -1363,7 +1375,10 @@ export class GameScene extends Scene {
         const castKey = (currentItem && currentItem.castAnimKey) || 'cast';
         const castDef = getPlayerAnimDef(castKey);
         const texKey = playerTextureKey(castKey);
-        if (!this.anims.exists(texKey)) { if (onRelease) onRelease(); return; }
+        // 手部分层（法杖施法 staff_cast）：身体层去手 + 手层 sprite 叠在武器之上
+        const castHandLayer = (castDef && castDef.handLayer) || null;
+        const castPlayKey = castHandLayer ? `${texKey}_body` : texKey;
+        if (!this.anims.exists(castPlayKey)) { if (onRelease) onRelease(); return; }
         const frameRange = (castDef && castDef.frames) ? castDef.frames : [0, ((castDef && castDef.frameCount) || 1) - 1];
         totalFrames = frameRange[1] - frameRange[0] + 1;
         releaseFrame = (castDef && castDef.releaseFrame) || Math.ceil(totalFrames * 2 / 3);
@@ -1396,10 +1411,20 @@ export class GameScene extends Scene {
         this._twistState = null;
         if (this.playerTorsoSprite) this.playerTorsoSprite.setVisible(false);
         if (this.playerArmSprite) this.playerArmSprite.setVisible(false);
-        if (this.playerSprite.texture.key !== texKey) this.playerSprite.setTexture(texKey);
+        if (this.playerSprite.texture.key !== castPlayKey) this.playerSprite.setTexture(castPlayKey);
         this.playerSprite.setFlipX(!this._getVisualFacingRight(p));
+        // 手部分层：显示手 sprite（帧/位置/翻转由 _syncPlayerHandLayer 每帧跟随）
+        if (castHandLayer) {
+            this._ensurePlayerHandSprite();
+            if (this.playerHandSprite.texture.key !== `${texKey}_hand`) {
+                this.playerHandSprite.setTexture(`${texKey}_hand`);
+            }
+            this.playerHandSprite.setVisible(true);
+            this.playerHandSprite.setFlipX(this.playerSprite.flipX);
+            this.playerHandSprite.setPosition(this.playerSprite.x, this.playerSprite.y);
+        }
         // 前摇：12 帧 / forwardMs
-        this.playerSprite.play({ key: texKey, frameRate: totalFrames / (forwardMs / 1000), repeat: 0 });
+        this.playerSprite.play({ key: castPlayKey, frameRate: totalFrames / (forwardMs / 1000), repeat: 0 });
         this.playerSprite.anims.timeScale = 1;
         this._playerAttackDuration = forwardMs;
         this._playerAttackStartTime = performance.now();
@@ -1431,7 +1456,7 @@ export class GameScene extends Scene {
             p._castRecoverOriginX = p.x; // 后摇起点（线性归位到起手位置）
             p._castRecoverOriginY = p.y;
             p._castRecoverStartTime = performance.now();
-            this.playerSprite.playReverse({ key: texKey, frameRate: totalFrames / (recoverMs / 1000) });
+            this.playerSprite.playReverse({ key: castPlayKey, frameRate: totalFrames / (recoverMs / 1000) });
             this.playerSprite.anims.timeScale = 1;
             this._castRecoverHandler = () => this._endPlayerCast();
             this.playerSprite.once('animationcomplete', this._castRecoverHandler);
@@ -1480,6 +1505,8 @@ export class GameScene extends Scene {
                 p._castRecoverOriginX = null;
                 p._castRecoverOriginY = null;
             }
+            // 施法被打断（眩晕/冻结/翻滚打断后摇）时同步隐藏手层，避免残留可见帧
+            if (this.playerHandSprite) this.playerHandSprite.setVisible(false);
         }
     }
 
@@ -1764,8 +1791,11 @@ export class GameScene extends Scene {
             // 兜底：施法动画没在播（注册失败/被外部打断等）时自动收尾，防施法状态软锁
             const curCastKey = (player.equipments && player.equipments[player.weaponMode] && player.equipments[player.weaponMode].castAnimKey) || 'cast';
             const castAnimKey = playerTextureKey(curCastKey);
+            // 兼容手部分层：法杖施法实际播 player_staff_cast_body（身体层去手）
+            const castDefG = getPlayerAnimDef(curCastKey);
+            const castPlayKey = (castDefG && castDefG.handLayer) ? `${castAnimKey}_body` : castAnimKey;
             const cur = this.playerSprite.anims.currentAnim?.key;
-            if (cur !== castAnimKey || !this.playerSprite.anims.isPlaying) {
+            if (cur !== castPlayKey || !this.playerSprite.anims.isPlaying) {
                 this._endPlayerCast();
             }
             return;
@@ -1942,17 +1972,6 @@ export class GameScene extends Scene {
         // 施法期间（前摇 casting / 后摇 recover）法杖按 staff_cast 动画帧读取 staffCastFrames 逐帧轨迹——
         // 前摇正放（f0→f4 举杖到最高）、后摇倒放（f4→f8 放下），武器中段始终贴住左侧手
         const castState = player._castState;
-        // TEMP DEBUG：施法期间 syncWeapon 是否被调用（200ms 节流，排查后删除）
-        if (castState && castState !== 'idle'
-            && (!this._castDbgOuter || performance.now() - this._castDbgOuter > 200)) {
-            this._castDbgOuter = performance.now();
-            console.log('[castWeapon] syncWeapon sees cast:', JSON.stringify({
-                castState,
-                weaponType: currentItem.weaponType,
-                wt,
-                hasStaffFrames: !!(WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames),
-            }));
-        }
         if (currentItem.weaponType === 'staff' && castState && castState !== 'idle'
             && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames
             && WeaponAnimConfig[wt].staffCastFrames.type === 'perFrame'
@@ -1975,19 +1994,6 @@ export class GameScene extends Scene {
             }
             const cf = castFrames[castFrame];
             if (cf) {
-                // TEMP DEBUG：施法武器追踪（200ms 节流，排查后删除）
-                if (!this._castDbgLast || performance.now() - this._castDbgLast > 200) {
-                    this._castDbgLast = performance.now();
-                    console.log('[castWeapon]', JSON.stringify({
-                        castState,
-                        rawFrame,
-                        castFrame,
-                        off: { x: cf.offsetX, y: cf.offsetY },
-                        animKey: this.playerSprite.anims.currentAnim ? this.playerSprite.anims.currentAnim.key : null,
-                        isPlaying: this.playerSprite.anims.isPlaying,
-                        framesLen: castFrames.length,
-                    }));
-                }
                 if (!this.weaponSprite) {
                     this.weaponSprite = this.add.sprite(0, 0, texture);
                 } else if (this.weaponSprite.texture.key !== texture) {

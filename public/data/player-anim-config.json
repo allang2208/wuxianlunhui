@@ -652,6 +652,10 @@
   "staff_cast": {
     "type": "sheet",
     "src": "assets/player/staff_cast.png",
+    "handLayer": {
+      "body": "assets/player/staff_cast_body.png",
+      "hand": "assets/player/staff_cast_hand.png"
+    },
     "frameWidth": 512,
     "frameHeight": 512,
     "cols": 8,
