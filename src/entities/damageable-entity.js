@@ -180,9 +180,13 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 if (source && source._faction === 'player' && typeof window !== 'undefined' && window.Game && window.Game._oneHitKill) {
                     baseDamage = Math.max(baseDamage, this.hp);
                 }
-                // 重甲套「壁垒」自动格挡：30% 概率减少 80% 伤害（最后乘法结算；强化不影响概率）
-                if (this._faction === 'player' && this._armorSetActive === 'heavy' && Math.random() < 0.30) {
-                    baseDamage = Math.max(1, Math.floor(baseDamage * 0.2));
+                // 重甲套自动格挡（最后乘法结算；强化不影响概率）：
+                // 壁垒（优质）= 30% 概率减少 80% 伤害；镇岳（稀有）= 40% 概率减少 85% 伤害
+                const blockCfg = this._armorSetActive === 'zhenyue'
+                    ? { chance: 0.40, remain: 0.15 }
+                    : (this._armorSetActive === 'heavy' ? { chance: 0.30, remain: 0.20 } : null);
+                if (this._faction === 'player' && blockCfg && Math.random() < blockCfg.chance) {
+                    baseDamage = Math.max(1, Math.floor(baseDamage * blockCfg.remain));
                     if (EffectManager && EffectManager.createDamageText) {
                         EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#9ab8c8');
                     }
