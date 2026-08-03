@@ -1612,56 +1612,56 @@
       "type": "perFrame",
       "frames": [
         {
-          "offsetX": -11.4,
-          "offsetY": 5.2,
+          "offsetX": -9.6,
+          "offsetY": 26.2,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -15.5,
-          "offsetY": 5.2,
+          "offsetX": -8.4,
+          "offsetY": 26.4,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -22.0,
-          "offsetY": 5.2,
+          "offsetX": -6.2,
+          "offsetY": 27.3,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -18.0,
-          "offsetY": 5.2,
+          "offsetX": -4.0,
+          "offsetY": 28.1,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -10.5,
-          "offsetY": 5.2,
+          "offsetX": -1.6,
+          "offsetY": 29.3,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -4.5,
-          "offsetY": 5.2,
+          "offsetX": -3.4,
+          "offsetY": 29.5,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -1.0,
-          "offsetY": 5.2,
+          "offsetX": -8.4,
+          "offsetY": 29.8,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -5.5,
-          "offsetY": 5.2,
+          "offsetX": -10.6,
+          "offsetY": 29.5,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -11.4,
-          "offsetY": 5.2,
+          "offsetX": -11.8,
+          "offsetY": 29.3,
           "rotation": 110,
           "scale": 1.5
         }

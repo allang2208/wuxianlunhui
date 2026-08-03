@@ -1942,17 +1942,6 @@ export class GameScene extends Scene {
         // 施法期间（前摇 casting / 后摇 recover）法杖按 staff_cast 动画帧读取 staffCastFrames 逐帧轨迹——
         // 前摇正放（f0→f4 举杖到最高）、后摇倒放（f4→f8 放下），武器中段始终贴住左侧手
         const castState = player._castState;
-        // TEMP DEBUG：施法期间 syncWeapon 是否被调用（200ms 节流，排查后删除）
-        if (castState && castState !== 'idle'
-            && (!this._castDbgOuter || performance.now() - this._castDbgOuter > 200)) {
-            this._castDbgOuter = performance.now();
-            console.log('[castWeapon] syncWeapon sees cast:', JSON.stringify({
-                castState,
-                weaponType: currentItem.weaponType,
-                wt,
-                hasStaffFrames: !!(WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames),
-            }));
-        }
         if (currentItem.weaponType === 'staff' && castState && castState !== 'idle'
             && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].staffCastFrames
             && WeaponAnimConfig[wt].staffCastFrames.type === 'perFrame'
@@ -1975,19 +1964,6 @@ export class GameScene extends Scene {
             }
             const cf = castFrames[castFrame];
             if (cf) {
-                // TEMP DEBUG：施法武器追踪（200ms 节流，排查后删除）
-                if (!this._castDbgLast || performance.now() - this._castDbgLast > 200) {
-                    this._castDbgLast = performance.now();
-                    console.log('[castWeapon]', JSON.stringify({
-                        castState,
-                        rawFrame,
-                        castFrame,
-                        off: { x: cf.offsetX, y: cf.offsetY },
-                        animKey: this.playerSprite.anims.currentAnim ? this.playerSprite.anims.currentAnim.key : null,
-                        isPlaying: this.playerSprite.anims.isPlaying,
-                        framesLen: castFrames.length,
-                    }));
-                }
                 if (!this.weaponSprite) {
                     this.weaponSprite = this.add.sprite(0, 0, texture);
                 } else if (this.weaponSprite.texture.key !== texture) {
