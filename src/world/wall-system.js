@@ -35,6 +35,8 @@ const ISO_WALL_GEO = {
     bottle4: { tex: 'obstacle_bottle4', w: 202, h: 448, category: 'obstacle', foot: { w: 121, d: 112 }, obstacleH: 80, editor: '瓶-4' },
     woodpile: { tex: 'obstacle_woodpile', w: 512, h: 448, category: 'obstacle', foot: { w: 400, d: 140 }, obstacleH: 134, editor: '木材堆' },
     orepile: { tex: 'obstacle_orepile', w: 512, h: 397, category: 'obstacle', foot: { w: 400, d: 120 }, obstacleH: 119, editor: '铁矿堆' },
+    sandbag: { tex: 'obstacle_sandbag', w: 1224, h: 974, category: 'obstacle', foot: { w: 1100, d: 250 }, obstacleH: 140, editor: '沙袋' },
+    barricade: { tex: 'obstacle_barricade', w: 1086, h: 1099, category: 'obstacle', foot: { w: 980, d: 160 }, obstacleH: 140, editor: '木制拒马' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）

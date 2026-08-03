@@ -815,6 +815,104 @@
       "expRewards": {
         "kill": 15
       }
+    },
+    "meteor": {
+      "id": "meteor",
+      "name": "陨星坠落",
+      "icon": "☄",
+      "iconImage": "assets/skills/陨星坠落.png",
+      "description": "在鼠标指向处召唤陨星坠落：陨星砸落后大范围爆炸伤害+眩晕2秒+叠加灼伤，随后留下熔岩区域持续灼烧敌人",
+      "sounds": {
+        "cast": "assets/sounds/skills/fireball.mp3",
+        "hit": "assets/sounds/skills/陨星落地.mp3"
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": "32 - Math.floor((level - 1) * 4 / 19)",
+        "mpCost": "100 + Math.floor((level - 1) * 50 / 19)",
+        "maxRange": 650,
+        "fallMs": 650,
+        "explosionRadius": "140 + level * 5",
+        "lavaRadius": "120 + level * 4",
+        "lavaDuration": "3 + Math.floor((level - 1) * 3 / 19)",
+        "lavaTickMs": 500,
+        "damageBase": "120 + level * 12",
+        "magicMul": "2.2 + 0.4 * level",
+        "intMul": "2.4 + 0.45 * level",
+        "lavaDamageBase": "8 + level * 3",
+        "lavaMagicMul": "0.25 + level * 0.03",
+        "lavaIntMul": "0.25 + level * 0.03",
+        "stunMs": 2000,
+        "burnStacks": 3,
+        "burnDurationMs": 3500,
+        "burnDamageMul": 0.5,
+        "lavaBurnStacks": 1,
+        "lavaBurnDurationMs": 2500,
+        "lavaBurnDamageMul": 0.3,
+        "shakeIntensity": 14
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 2,
+        "kill": 10,
+        "multiHit": 8,
+        "multiKill": 10
+      }
+    },
+    "flameArmor": {
+      "id": "flameArmor",
+      "name": "灼锋焰甲",
+      "icon": "🔥",
+      "iconImage": "assets/skills/灼锋焰甲.png",
+      "description": "为自身添加灼锋焰甲 Buff：持续时间内，除魔法技能外的任何攻击命中都会附带魔法伤害并迸发火花，同时灼烧光环每 0.5 秒对周围敌方单位造成魔法伤害；武器持续上浮火焰粒子",
+      "sounds": {
+        "cast": "assets/sounds/skills/fireball.mp3"
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        },
+        {
+          "name": "增益",
+          "type": "buff"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": 60,
+        "mpCost": "40 + Math.floor((level - 1) * 40 / 19)",
+        "duration": "12 + Math.floor((level - 1) * 18 / 19)",
+        "hitDamageBase": "10 + level * 2.5",
+        "hitMagicMul": "0.35 + level * 0.06",
+        "hitIntMul": "0.35 + level * 0.06",
+        "auraTickMs": 500,
+        "auraRadius": "130 + level * 6",
+        "auraDamageBase": "5 + level * 2",
+        "auraMagicMul": "0.12 + level * 0.03",
+        "auraIntMul": "0.12 + level * 0.03"
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 1,
+        "kill": 8,
+        "multiHit": 5,
+        "multiKill": 10
+      }
     }
   }
 }

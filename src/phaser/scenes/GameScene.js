@@ -23,6 +23,7 @@ import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -1872,7 +1873,8 @@ export class GameScene extends Scene {
                     player._attackRecoverStart = now; // 收势起点（武器线性滑回 idle 位的时间基准）
                     // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
                     // 2026-08-03：二段攻击的收势动画固定 0.3s（一段保持配置自然时长 0.33s）
-                    this.setPlayerAnimation('recover', player._meleeComboStage === 2 ? 300 : 0);
+                    this.setPlayerAnimation('recover', player._meleeComboStage === 2
+                        ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300) : 0);
                     return;
                 }
             }
@@ -2176,7 +2178,9 @@ export class GameScene extends Scene {
             if (!isGunR) {
                 const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
                 // 2026-08-03：二段收势 0.3s（与恢复动画同步）；一段用配置自然时长
-                const recDur = player._meleeComboStage === 2 ? 300 : (getPlayerAnimDurationMs('recover') || 800);
+                const recDur = player._meleeComboStage === 2
+                    ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300)
+                    : (getPlayerAnimDurationMs('recover') || 800);
                 const t = Math.max(0, Math.min(1, (performance.now() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
                 // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标

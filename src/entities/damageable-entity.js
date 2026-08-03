@@ -346,6 +346,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     chill: { icon: '❄️', name: '寒冷', color: '#7ab8e0' },
                     burn: { icon: '🔥', name: '灼伤', color: '#ff6b35' },
                     frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
+                    flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -414,6 +415,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                         if (e.type === 'haste') this._onHasteEnd();
                         // 链式强化到期：清空层数
                         if (e.type === 'chainSpell') this._onChainSpellEnd();
+                        // 灼锋焰甲到期：结算经验并回收武器火焰（玩家专有，方法在 subsystems mixin）
+                        if (e.type === 'flameArmor' && typeof this._onFlameArmorEnd === 'function') this._onFlameArmorEnd();
                         this.statusEffects.splice(i, 1);
                     }
                 }

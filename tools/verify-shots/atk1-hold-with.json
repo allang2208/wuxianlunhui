@@ -1,0 +1,902 @@
+[
+  {
+    "frame": 0,
+    "cfgFrame": 0,
+    "weapon": {
+      "x": 1981.7,
+      "y": 1800.23,
+      "rot": 109.45
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.0034
+  },
+  {
+    "frame": 0,
+    "cfgFrame": 1,
+    "weapon": {
+      "x": 1983.42,
+      "y": 1793.37,
+      "rot": 99.24
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.0379
+  },
+  {
+    "frame": 0,
+    "cfgFrame": 2,
+    "weapon": {
+      "x": 1983.49,
+      "y": 1782.68,
+      "rot": 83.93
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.0725
+  },
+  {
+    "frame": 1,
+    "cfgFrame": 3,
+    "weapon": {
+      "x": 1977.58,
+      "y": 1769.39,
+      "rot": 63.93
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.107
+  },
+  {
+    "frame": 1,
+    "cfgFrame": 4,
+    "weapon": {
+      "x": 1969.5,
+      "y": 1758.18,
+      "rot": 43.94
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.1414
+  },
+  {
+    "frame": 1,
+    "cfgFrame": 5,
+    "weapon": {
+      "x": 1958.18,
+      "y": 1750.58,
+      "rot": 24.49
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.1759
+  },
+  {
+    "frame": 2,
+    "cfgFrame": 6,
+    "weapon": {
+      "x": 1947.98,
+      "y": 1748.23,
+      "rot": 14.25
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.2103
+  },
+  {
+    "frame": 2,
+    "cfgFrame": 7,
+    "weapon": {
+      "x": 1937.78,
+      "y": 1746.93,
+      "rot": -0.47
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.2446
+  },
+  {
+    "frame": 2,
+    "cfgFrame": 8,
+    "weapon": {
+      "x": 1930.6,
+      "y": 1747.42,
+      "rot": -10
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.2793
+  },
+  {
+    "frame": 3,
+    "cfgFrame": 9,
+    "weapon": {
+      "x": 1919,
+      "y": 1746.05,
+      "rot": -10.74
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.3137
+  },
+  {
+    "frame": 3,
+    "cfgFrame": 10,
+    "weapon": {
+      "x": 1908.65,
+      "y": 1749.54,
+      "rot": -26.46
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.3498
+  },
+  {
+    "frame": 3,
+    "cfgFrame": 11,
+    "weapon": {
+      "x": 1902.61,
+      "y": 1754.67,
+      "rot": -40
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.3829
+  },
+  {
+    "frame": 4,
+    "cfgFrame": 12,
+    "weapon": {
+      "x": 1937.27,
+      "y": 1756.23,
+      "rot": -40.48
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.417
+  },
+  {
+    "frame": 4,
+    "cfgFrame": 13,
+    "weapon": {
+      "x": 1933.26,
+      "y": 1760.39,
+      "rot": -48.8
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.4516
+  },
+  {
+    "frame": 4,
+    "cfgFrame": 14,
+    "weapon": {
+      "x": 1946.22,
+      "y": 1750.8,
+      "rot": -25.98
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.4861
+  },
+  {
+    "frame": 5,
+    "cfgFrame": 15,
+    "weapon": {
+      "x": 1944.25,
+      "y": 1758,
+      "rot": -42.7
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.5207
+  },
+  {
+    "frame": 5,
+    "cfgFrame": 16,
+    "weapon": {
+      "x": 1972.31,
+      "y": 1747.29,
+      "rot": 1.85
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.5552
+  },
+  {
+    "frame": 5,
+    "cfgFrame": 17,
+    "weapon": {
+      "x": 1994.32,
+      "y": 1754.26,
+      "rot": 35
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.59
+  },
+  {
+    "frame": 6,
+    "cfgFrame": 18,
+    "weapon": {
+      "x": 1999.98,
+      "y": 1755.64,
+      "rot": 35.74
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.6241
+  },
+  {
+    "frame": 6,
+    "cfgFrame": 19,
+    "weapon": {
+      "x": 2007.65,
+      "y": 1762.92,
+      "rot": 51.03
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.6586
+  },
+  {
+    "frame": 6,
+    "cfgFrame": 20,
+    "weapon": {
+      "x": 2015.57,
+      "y": 1776.67,
+      "rot": 70
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.6932
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 21,
+    "weapon": {
+      "x": 2040.91,
+      "y": 1819,
+      "rot": 70.73
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.7275
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 22,
+    "weapon": {
+      "x": 2042.89,
+      "y": 1829.55,
+      "rot": 86.25
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.762
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 23,
+    "weapon": {
+      "x": 2040.67,
+      "y": 1846.1,
+      "rot": 110.46
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.7978
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 24,
+    "weapon": {
+      "x": 2039.23,
+      "y": 1849.29,
+      "rot": 115.48
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.8308
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 25,
+    "weapon": {
+      "x": 2035.7,
+      "y": 1855.36,
+      "rot": 125.47
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.8668
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 26,
+    "weapon": {
+      "x": 2033.8,
+      "y": 1857.9,
+      "rot": 130
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.9014
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 27,
+    "weapon": {
+      "x": 2033.8,
+      "y": 1857.9,
+      "rot": 130
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.9357
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 28,
+    "weapon": {
+      "x": 2033.99,
+      "y": 1857.65,
+      "rot": 129.55
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 0.9701
+  },
+  {
+    "frame": 7,
+    "cfgFrame": 29,
+    "weapon": {
+      "x": 2035.9,
+      "y": 1855.1,
+      "rot": 125
+    },
+    "player": {
+      "x": 1956,
+      "y": 1898
+    },
+    "sprite": {
+      "x": 1956,
+      "y": 1826,
+      "w": 142.88,
+      "h": 144,
+      "flipX": false
+    },
+    "cam": {
+      "scrollX": 1268,
+      "scrollY": 1494,
+      "zoom": 1,
+      "w": 1376,
+      "h": 808
+    },
+    "attacking": true,
+    "animKey": "player_attack_sword",
+    "progress": 1
+  }
+]

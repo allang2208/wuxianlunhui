@@ -1,5 +1,5 @@
 import { Game } from '../game.js';
-import { WallSystem } from '../world/wall-system.js';
+import { WallSystem, ISO_WALL_GEO } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { Portal } from './portal.js';
@@ -36,7 +36,8 @@ export const SceneManager = {
             scene3: cfg.scene3 || { name: '列车上', type: 'instance', label: '场景三', width: 3000, height: 1200, background: '#4a4538', origin: { x: 1500, y: 600 } },
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
             scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
-            scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' }
+            scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
+            scene8: cfg.scene8 || { name: '沼泽地', type: 'instance', label: '场景八', width: 4096, height: 4096, background: '#0d1b0a', origin: { x: 2048, y: 2048 } }
         };
     },
 
@@ -174,6 +175,8 @@ export const SceneManager = {
                 this._loadScene5(player);
             } else if (sceneId === 'scene7') {
                 this._loadScene7(player, 'zombie');
+            } else if (sceneId === 'scene8') {
+                this._loadScene8(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -899,6 +902,89 @@ export const SceneManager = {
         Game.entities.set('portal_return', portal);
 
         if (player) QuickBar.refreshSpecialAttack(player);
+    },
+
+    /** 沼泽地（场景八）：4096×4096 全图铺满沼泽地砖（与沼泽地-高级地牢同一贴图/铺设参数） */
+    _loadScene8(player) {
+        // 重置相机状态，避免从其他场景带入偏移
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene8;
+        // 直接用 scene8 自身尺寸（4096×4096），不走 _resolveWorldSize 的 world.default 覆盖
+        CONFIG.WORLD_WIDTH = scene.width;
+        CONFIG.WORLD_HEIGHT = scene.height;
+        const size = CONFIG.WORLD_WIDTH;
+
+        // 沼泽地砖（swampbrick_new1）：与 data/dungeon-config.json swampDungeon.floor 同款
+        // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），全场景平铺
+        setDungeonFloorProfile({
+            tiles: ['swampbrick_new1'],
+            glow: false,
+            overlapX: 6,
+            overlapY: 3,
+            backgroundColor: '#0d1b0a',
+        });
+        applyDungeonFloor(size);
+
+        // 边界墙，防止走出地图
+        WallSystem.init(size, size);
+        WallSystem.walls = [
+            { x: 0, y: 0, w: size, h: 20 },
+            { x: 0, y: size - 20, w: size, h: 20 },
+            { x: 0, y: 0, w: 20, h: size },
+            { x: size - 20, y: 0, w: 20, h: size },
+        ];
+        if (WallSystem._syncWallsToPhaser) {
+            WallSystem._syncWallsToPhaser();
+        }
+
+        // 玩家直接传送到场景中央
+        if (player) {
+            player.x = size / 2;
+            player.y = size / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+        }
+
+        // 返回主神空间传送门
+        const portal = new Portal(size / 2, size - 100, 'main', '返回主神空间');
+        Game.entities.set('portal_return', portal);
+
+        // 障碍物演示：中央偏南摆一排沙袋 + 两侧木制拒马（等距版 2026-08-03 新入库，
+        // ISO_WALL_GEO obstacle 类，碰撞=底部矩形 footprint；深度走 obstacleDepthOf）
+        const sandbagScale = 120 / ISO_WALL_GEO.sandbag.h;      // obstacleH 120 / 591
+        const barricadeScale = 120 / ISO_WALL_GEO.barricade.h;  // obstacleH 120 / 620
+        const sandbagY = 2300 - (591 * sandbagScale) / 2;       // 底边落在 y=2300
+        const barricadeY = 2450 - (620 * barricadeScale) / 2;   // 底边落在 y=2450
+        const demoPieces = [
+            { tex: 'obstacle_sandbag', x: 1800, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
+            { tex: 'obstacle_sandbag', x: 2000, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
+            { tex: 'obstacle_sandbag', x: 2200, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
+            { tex: 'obstacle_barricade', x: 1650, y: barricadeY, scaleX: barricadeScale, scaleY: barricadeScale },
+            { tex: 'obstacle_barricade', x: 2350, y: barricadeY, scaleX: barricadeScale, scaleY: barricadeScale },
+        ];
+        for (const p of demoPieces) {
+            p.flipX = false;
+            p.flipY = false;
+            p.rotation = 0;
+            p.family = 'obstacle';
+            p.depth = WallSystem.obstacleDepthOf(p);
+            WallSystem.isoVisuals.push(p);
+        }
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) {
+            WallSystem._syncWallsToPhaser();
+        }
+
+        if (player) {
+            QuickBar.refreshSpecialAttack(player);
+        }
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

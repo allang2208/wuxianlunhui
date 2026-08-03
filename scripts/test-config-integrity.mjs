@@ -26,6 +26,18 @@ const warn = (msg) => warnings.push(msg);
 const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf-8'));
 const fileExists = (rel) => fs.existsSync(path.join(ROOT, rel));
 
+// ---------- 0. data/ 与 public/data/ 双份配置一致性 ----------
+// SKILL 反复记录"双份同步"是配置改坏重灾区（player-anim-config 等），机器强制 diff
+for (const f of fs.readdirSync(path.join(ROOT, 'data')).filter(f => f.endsWith('.json'))) {
+    const pub = path.join(ROOT, 'public/data', f);
+    if (!fs.existsSync(pub)) continue; // 单份配置（combat-config 等只存在于 data/）
+    const a = fs.readFileSync(path.join(ROOT, 'data', f));
+    const b = fs.readFileSync(pub);
+    if (!a.equals(b)) {
+        err(`双份配置不一致：data/${f} 与 public/data/${f} 内容不同（必须双份同步）`);
+    }
+}
+
 // ---------- 1. BootScene 贴图加载 ----------
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');
 const loadedKeys = new Set();

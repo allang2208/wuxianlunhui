@@ -51,6 +51,12 @@ class DamagePipeline {
         target.takeDamage(damage, source, damageType, isMelee);
         const killed = wasAlive && target.hp <= 0;
 
+        // 灼锋焰甲：Buff 期间非魔法攻击命中附带魔法伤害 + 火花（火焰护甲附伤）
+        if (damageType !== 'magic' && source && source._faction === 'player' && source.flameArmorSystem
+                && typeof source.hasStatusEffect === 'function' && source.hasStatusEffect('flameArmor')) {
+            source.flameArmorSystem.onPhysicalHit(target, source);
+        }
+
         // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
 

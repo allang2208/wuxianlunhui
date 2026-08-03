@@ -48,4 +48,47 @@ function getPlayerAnimDurationMs(animKey) {
     return Math.round(((end - start + 1) / def.frameRate) * 1000);
 }
 
+/**
+ * 精灵帧边界占比（0~1，长度=帧数，末项恒 1）。
+ * 与 BootScene 注册动画完全同口径：frameWeights 按权重分配 / frameDurations 按 ms 分配 / 缺省等分。
+ * 单一数据源：近战武器 30 点跟手轨迹的"阶梯映射"必须按此边界取帧（生成脚本读同一份 JSON），
+ * 任何改动 frameWeights/帧数都会改变边界——改节奏后必须重新运行生成脚本重烘焙轨迹。
+ */
+export function getSpriteFrameBounds(animKey) {
+    const def = PLAYER_ANIMS[animKey];
+    if (!def || def.type !== 'sheet') return null;
+    const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+    const n = end - start + 1;
+    let per;
+    if (def.frameWeights && def.frameWeights.length) {
+        const wsum = def.frameWeights.reduce((a, b) => a + (b || 0), 0) || 1;
+        per = def.frameWeights.slice(0, n).map(w => (w || 1) / wsum);
+        while (per.length < n) per.push(1 / n);
+    } else if (def.frameDurations && def.frameDurations.length) {
+        const dsum = def.frameDurations.reduce((a, b) => a + (b || 0), 0) || 1;
+        per = def.frameDurations.slice(0, n).map(d => (d || 1) / dsum);
+        while (per.length < n) per.push(1 / n);
+    } else {
+        per = Array(n).fill(1 / n);
+    }
+    const bounds = [];
+    let acc = 0;
+    for (const w of per) {
+        acc += w;
+        bounds.push(acc);
+    }
+    return bounds;
+}
+
+/** progress 0~1 → 精灵帧索引（末帧含 p==1）；无配置返回 0 */
+export function getSpriteFrameAtProgress(animKey, progress) {
+    const bounds = getSpriteFrameBounds(animKey);
+    if (!bounds || bounds.length === 0) return 0;
+    const p = Math.max(0, Math.min(1, progress));
+    for (let i = 0; i < bounds.length; i++) {
+        if (p < bounds[i]) return i;
+    }
+    return bounds.length - 1;
+}
+
 export { PLAYER_ANIMS, playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs };

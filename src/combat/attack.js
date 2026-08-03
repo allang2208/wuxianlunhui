@@ -5,6 +5,7 @@ import { AttackRangeEffect } from '../effects/attack-range-effect.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
@@ -300,10 +301,13 @@ function applyEnchantOnHit(weapon, target, source) {
                 const c = entity?.collider;
                 if (!c || !c.isGroundTarget) return false;
                 const dx = c.x - ax, dy = c.y - ay;
-                const dist = Math.hypot(dx, dy);
+                // dy 逆透视变换（÷PERSPECTIVE_SCALE_Y）：与 AttackRangeEffect('sector')
+                // 的 Y 压缩显示同口径——红扇画多大就实际打多大（footprint 相交口径保留）
+                const isoDy = dy / PERSPECTIVE_SCALE_Y;
+                const dist = Math.hypot(dx, isoDy);
                 if (dist > radius + c.radius) return false;
                 if (dist <= c.radius) return true; // footprint 覆盖扇形原点，必中
-                let diff = Math.atan2(dy, dx) - angle;
+                let diff = Math.atan2(isoDy, dx) - angle;
                 diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // 归一化到 [-π, π]
                 return Math.abs(diff) <= halfArc + Math.asin(Math.min(1, c.radius / dist));
             }

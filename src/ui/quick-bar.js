@@ -488,6 +488,18 @@ export const QuickBar = {
                     player.blizzardSystem.trigger();
                 }
                 // 冷却时间由 BlizzardSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'meteor') {
+                // 陨星坠落技能
+                if (player.meteorSystem) {
+                    player.meteorSystem.trigger();
+                }
+                // 冷却时间由 MeteorSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'flameArmor') {
+                // 灼锋焰甲技能（Buff 型：直接生效）
+                if (player.flameArmorSystem) {
+                    player.flameArmorSystem.trigger();
+                }
+                // 冷却时间由 FlameArmorSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -644,6 +656,18 @@ export const QuickBar = {
             this.cooldowns['blizzard'] = Game.player._blizzardCooldown;
         } else if (Game.player && Game.player._blizzardCooldown === 0) {
             this.cooldowns['blizzard'] = 0;
+        }
+        // 陨星坠落技能冷却同步
+        if (Game.player && Game.player._meteorCooldown > 0) {
+            this.cooldowns['meteor'] = Game.player._meteorCooldown;
+        } else if (Game.player && Game.player._meteorCooldown === 0) {
+            this.cooldowns['meteor'] = 0;
+        }
+        // 灼锋焰甲技能冷却同步
+        if (Game.player && Game.player._flameArmorCooldown > 0) {
+            this.cooldowns['flameArmor'] = Game.player._flameArmorCooldown;
+        } else if (Game.player && Game.player._flameArmorCooldown === 0) {
+            this.cooldowns['flameArmor'] = 0;
         }
         this._renderCooldownOverlays();
         this._renderSkillRequirements();

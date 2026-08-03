@@ -5,6 +5,7 @@
  */
 
 import { MathUtils } from '../config/math-utils.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 
 /**
  * 检查目标 Collider 是否与给定高度区间有重叠
@@ -104,8 +105,11 @@ export class VerticalSector {
         if (!entity || !entity.collider) return false;
         const c = entity.collider;
         if (!hasVerticalOverlap(c, this.minZ, this.maxZ)) return false;
-        // 水平面：把实体 footprint 半径加进扇形半径，避免边缘只擦到 footprint 中心 miss
-        return MathUtils.pointInSector(c.x, c.y, this.x, this.y, this.angle, this.radius + c.radius, this.arcAngle);
+        // 水平面：dy 先做逆透视变换（÷PERSPECTIVE_SCALE_Y），与 AttackRangeEffect('sector')
+        // 的 Y 压缩显示同口径——红扇画多大就实际打多大（footprint 半径照旧膨胀进半径）
+        const dx = c.x - this.x;
+        const dy = (c.y - this.y) / PERSPECTIVE_SCALE_Y;
+        return MathUtils.pointInSector(dx, dy, 0, 0, this.angle, this.radius + c.radius, this.arcAngle);
     }
 }
 
@@ -139,9 +143,10 @@ export class VerticalRect {
         const c = entity.collider;
         if (!hasVerticalOverlap(c, this.minZ, this.maxZ)) return false;
 
-        // 把实体中心转换到矩形本地坐标系
+        // 把实体中心转换到矩形本地坐标系（dy 先做逆透视变换，
+        // 与 AttackRangeEffect('triangle') 的 Y 压缩显示同口径——红框画多大就打多大）
         const dx = c.x - this.x;
-        const dy = c.y - this.y;
+        const dy = (c.y - this.y) / PERSPECTIVE_SCALE_Y;
         const cos = Math.cos(-this.angle);
         const sin = Math.sin(-this.angle);
         const lx = dx * cos - dy * sin;
@@ -176,8 +181,11 @@ export class GroundSector {
     intersectsEntity(entity) {
         const c = entity?.collider;
         if (!c || !c.isGroundTarget) return false;
-        // 把实体 footprint 半径加进扇形半径，避免边缘只擦到 footprint 中心 miss
-        return MathUtils.pointInSector(c.x, c.y, this.x, this.y, this.angle, this.radius + c.radius, this.arcAngle);
+        // 把实体 footprint 半径加进扇形半径；dy 先做逆透视变换（÷PERSPECTIVE_SCALE_Y），
+        // 与 AttackRangeEffect('sector') 的 Y 压缩显示同口径——红扇画多大就实际打多大
+        const dx = c.x - this.x;
+        const dy = (c.y - this.y) / PERSPECTIVE_SCALE_Y;
+        return MathUtils.pointInSector(dx, dy, 0, 0, this.angle, this.radius + c.radius, this.arcAngle);
     }
 }
 
@@ -207,9 +215,10 @@ export class GroundDirectedRect {
         const c = entity?.collider;
         if (!c || !c.isGroundTarget) return false;
 
-        // 把实体中心转换到矩形本地坐标系
+        // 把实体中心转换到矩形本地坐标系（dy 先做逆透视变换，
+        // 与 AttackRangeEffect('triangle') 的 Y 压缩显示同口径——红框画多大就打多大）
         const dx = c.x - this.x;
-        const dy = c.y - this.y;
+        const dy = (c.y - this.y) / PERSPECTIVE_SCALE_Y;
         const cos = Math.cos(-this.angle);
         const sin = Math.sin(-this.angle);
         const lx = dx * cos - dy * sin;
