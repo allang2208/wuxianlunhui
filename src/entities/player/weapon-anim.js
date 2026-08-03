@@ -291,8 +291,12 @@ const weaponAnimMixin = {
             // 连段：上一段攻击结束后 500ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
             // 二段素材未加载（纹理缺失）时自动回退一段；后续三段突刺加入只需扩展此数组
             const COMBO_WINDOW_MS = 500;
+            // 2026-08-03：二段攻击的末帧定格（连段窗口）固定 0.2s，一段保持 0.5s
+            const STAGE2_HOLD_MS = 200;
             const now = performance.now();
-            const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= COMBO_WINDOW_MS;
+            // 连段窗口按上一段判定：二段结束后只剩 0.2s 可再连（回一段），一段后仍 0.5s
+            const prevChainWindow = this._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS;
+            const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= prevChainWindow;
             let stage = chained ? ((this._meleeComboStage || 1) % 2) + 1 : 1;
             let animKey = stage === 2 ? 'attack_sword_2' : 'attack_sword';
             if (stage === 2 && !scene.textures.exists(playerTextureKey(animKey))) {
@@ -325,7 +329,8 @@ const weaponAnimMixin = {
                 this._attackRecovering = false;
                 this._attackHoldAnimKey = animKey;
                 this._lastMeleeAttackEnd = now + totalDuration; // onComplete 会按实际结束时间复写
-                this._attackHoldUntil = now + totalDuration + COMBO_WINDOW_MS;
+                // 定格时长按当前段：二段末帧停 0.2s，一段末帧停 0.5s
+                this._attackHoldUntil = now + totalDuration + (stage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS);
             }
 
             // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
