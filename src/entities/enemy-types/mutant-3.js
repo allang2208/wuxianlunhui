@@ -66,6 +66,11 @@ export class Mutant3 extends Enemy {
             return;
         }
 
+        // 恐惧时中断连击/飞扑决策（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 5 连击优先
         if (this._comboState === 'attacking') {
             this._updateCombo(dt, entities);

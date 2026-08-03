@@ -767,6 +767,10 @@ export const ExpeditionSystem = {
                 if (phaserScene.clearAllEntitySprites) phaserScene.clearAllEntitySprites();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) EffectManager.clearFloatingTexts();
+            // 冰墙动态障碍/待生成队列：出征前清理（主场景坐标不得带入地牢）
+            if (player && player.iceWallSystem && typeof player.iceWallSystem.breakdown === 'function') {
+                player.iceWallSystem.breakdown();
+            }
             Game.entities.clear();
             Game.entities.set('player', player);
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();

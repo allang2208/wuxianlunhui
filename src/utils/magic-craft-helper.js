@@ -150,6 +150,9 @@ export function applyCastHaste(source) {
  */
 export function addChainSpellStack(source, durationMs = 10000) {
     if (!source) return;
+    // 状态免疫期间不获得链式强化：addStatusEffect 会拒绝入库，硬设 _chainSpellStacks
+    // 会导致无状态条目驱动到期清理、层数永久滞留
+    if (typeof source.hasStatusEffect === 'function' && source.hasStatusEffect('statusImmune')) return;
     const existing = source.statusEffects?.find(e => e.type === 'chainSpell');
     if (existing) {
         existing.stacks += 1;

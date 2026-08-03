@@ -111,6 +111,9 @@ class SpatialHash {
     rebuild() {
         this.clear();
         if (!WallSystem) return;
+        // 注意：只建模 WallSystem.walls/trees（静态几何）。isoSegments（门闸/冰墙等动态碰撞段）
+        // 有意不纳入寻路——动态段由 MovementSystem 的 WallSystem.resolve 实际挡停（撞墙即停），
+        // 若纳入寻路会让敌人绕开冰墙/门闸，削弱临时障碍的阻挡设计。改此行为前先与设计对齐。
         // 矩形墙壁
         if (WallSystem.walls) {
             for (const w of WallSystem.walls) {

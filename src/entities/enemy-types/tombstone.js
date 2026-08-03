@@ -63,6 +63,11 @@ export class Tombstone extends Enemy {
         this.vy = 0;
         this.isMoving = false;
 
+        // 受控（眩晕/冻结/恐惧）时中断召唤（站桩怪移动由 MovementSystem 兜底）
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'))) {
+            return;
+        }
+
         // 定时生成普通僵尸（默认每 10s）
         this._spawnTimer -= dt;
         if (this._spawnTimer <= 0) {

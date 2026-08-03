@@ -408,5 +408,108 @@ console.log('\n[10] 近期修复防回归');
         !saveBody.includes('_mainTrees') && !saveBody.includes('_mainEffects') && !saveBody.includes('_mainCamera'));
 }
 
+// ========== 11. 距离衰减音量（SoundManager 位置音效） ==========
+console.log('\n[11] 距离衰减音量');
+{
+    const { SoundManager } = await import(pathToFileURL(path.join(ROOT, 'src/ui/sound-manager.js')));
+    const cfg = { base: 0.5, max: 1.5, nearDist: 150, farDist: 600, maxDist: 2000 };
+
+    check('贴近（d=0）音量=最大值 1.5', SoundManager.computeDistanceVolume(0, cfg) === 1.5);
+    check('nearDist 内音量=最大值', SoundManager.computeDistanceVolume(150, cfg) === 1.5);
+    check('farDist 处音量=base 0.5', SoundManager.computeDistanceVolume(600, cfg) === 0.5);
+    const mid = SoundManager.computeDistanceVolume(1300, cfg);
+    check('far→maxDist 中点=base 一半', Math.abs(mid - 0.25) < 1e-9, `got ${mid}`);
+    check('maxDist 处音量=0', SoundManager.computeDistanceVolume(2000, cfg) === 0);
+    check('超出 maxDist 音量=0', SoundManager.computeDistanceVolume(2600, cfg) === 0);
+    const seq = [0, 100, 300, 600, 1200, 2000, 2600].map(d => SoundManager.computeDistanceVolume(d, cfg));
+    check('音量随距离单调不增', seq.every((v, i) => i === 0 || v <= seq[i - 1] + 1e-12), seq.join(','));
+    check('maxDist=0 显式关闭衰减段时远端保持 base（兼容旧行为）', SoundManager.computeDistanceVolume(99999, { base: 0.5, max: 1.5, nearDist: 150, farDist: 600, maxDist: 0 }) === 0.5);
+
+    check('distanceGain 近端=1', SoundManager.distanceGain(0, { maxDist: 2000 }) === 1);
+    check('distanceGain 远端=0', SoundManager.distanceGain(2000, { maxDist: 2000 }) === 0);
+    check('distanceGain 超距=0', SoundManager.distanceGain(3000, { maxDist: 2000 }) === 0);
+
+    // flySwarm 配置双份一致且静音距离 = 2000
+    const flyA = readJson('data/enemy-config.json').flySwarm.sounds;
+    const flyB = readJson('public/data/enemy-config.json').flySwarm.sounds;
+    check('flySwarm.loopMaxDist=2000（双份）', flyA.loopMaxDist === 2000 && flyB.loopMaxDist === 2000, `data=${flyA.loopMaxDist} public=${flyB.loopMaxDist}`);
+    check('flySwarm.sounds 含全部衰减键（双份一致）',
+        flyA.loopVolumeBase === flyB.loopVolumeBase && flyA.loopVolumeMax === flyB.loopVolumeMax &&
+        flyA.loopNearDist === flyB.loopNearDist && flyA.loopFarDist === flyB.loopFarDist &&
+        flyA.loopMaxDist === flyB.loopMaxDist && flyA.loopCrossfadeSec === flyB.loopCrossfadeSec);
+}
+
+// ========== 12. 主音量设置（clamp + 实时作用于循环音轨） ==========
+console.log('\n[12] 主音量设置');
+{
+    const { SoundManager } = await import(pathToFileURL(path.join(ROOT, 'src/ui/sound-manager.js')));
+    const saved = SoundManager.masterVolume;
+    SoundManager.setVolume(0.5);
+    check('setVolume(0.5) 生效', SoundManager.masterVolume === 0.5);
+    SoundManager.setVolume(1.5);
+    check('setVolume 上限 clamp 到 1', SoundManager.masterVolume === 1);
+    SoundManager.setVolume(-1);
+    check('setVolume 下限 clamp 到 0', SoundManager.masterVolume === 0);
+
+    // 循环音轨 gain 实时联动（BGM/环境音改主音量立即生效）
+    const fakeLoop = { volume: 0.7, gain: { gain: { value: 0.7 } } };
+    SoundManager._loops = { test: fakeLoop };
+    SoundManager.setVolume(0.5);
+    check('循环音轨 gain 实时 = volume×master（0.35）', Math.abs(fakeLoop.gain.gain.value - 0.35) < 1e-9, `got ${fakeLoop.gain.gain.value}`);
+    delete SoundManager._loops;
+    SoundManager.masterVolume = saved;
+}
+
+// ========== 13. 技能效果缓存（getEffect 按等级复用，防每帧热路径重复求值） ==========
+console.log('\n[13] 技能效果缓存');
+{
+    const { DataLoader } = await import(pathToFileURL(path.join(ROOT, 'src/systems/data-loader.js')));
+    const skill = DataLoader.buildSkillFromJSON('testSkill', {
+        name: '测试技能',
+        maxLevel: 5,
+        effectFormula: { a: 'level * 2', b: 10 },
+    });
+    const e3a = skill.getEffect(3);
+    const e3b = skill.getEffect(3);
+    check('同等级返回同一缓存对象', e3a === e3b);
+    check('求值正确（a=level×2, b=10）', e3a.a === 6 && e3a.b === 10);
+    const e4 = skill.getEffect(4);
+    check('不同等级重新求值', e4 !== e3a && e4.a === 8);
+    check('缓存按等级切换回旧值仍正确', skill.getEffect(3).a === 6);
+}
+
+// ========== 14. 技能公式求值器边界 ==========
+console.log('\n[14] 技能公式求值器');
+{
+    const { DataLoader } = await import(pathToFileURL(path.join(ROOT, 'src/systems/data-loader.js')));
+    const f = (expr, level = 1) => DataLoader.parseSkillFormula(expr, level);
+
+    check('基础四则+括号', f('2 + 3 * 4', 1) === 14);
+    check('除零返回 0', f('1 / 0', 1) === 0);
+    check('level 代入', f('10 + level * 2', 5) === 20);
+    check('前导小数点 .5', f('.5 + 1', 1) === 1.5);
+    check('一元负号开头', f('-5 + 2', 1) === -3);
+    check('二元后一元负号', f('5 + -3', 1) === 2);
+    check('括号前一元负号', f('-(2 + 3)', 1) === -5);
+    check('乘法后一元负号', f('2 * -3', 1) === -6);
+    check('Math.round 单参', f('Math.round(1600 / 1.5)', 1) === 1067);
+    check('Math.floor + level', f('2 + Math.floor((level - 1) / 5)', 6) === 3);
+    check('Math.PI 常量', Math.abs(f('2 * Math.PI / 3', 1) - 2.0944) < 0.001);
+    check('非法字符返回 0', f('5 + evil', 1) === 0);
+    check('多参 Math 被白名单拒绝返回 0', f('Math.max(1, 2)', 1) === 0);
+    check('数字直接透传', f(42, 1) === 42);
+    check('空串返回 0', f('', 1) === 0);
+
+    // 真实技能公式抽样（升级曲线不被 parser 改动影响）
+    const skillsData = readJson('data/skills.json').skills;
+    const iceSpike = DataLoader.buildSkillFromJSON('iceSpike', skillsData.iceSpike);
+    check('iceSpike.spikeCount L1=2', iceSpike.getEffect(1).spikeCount === 2);
+    check('iceSpike.spikeCount L6=3', iceSpike.getEffect(6).spikeCount === 3);
+    check('iceSpike.spikeCount L11=4', iceSpike.getEffect(11).spikeCount === 4);
+    const holyLight = DataLoader.buildSkillFromJSON('holyLight', skillsData.holyLight);
+    check('holyLight.cooldown L1=10', holyLight.getEffect(1).cooldown === 10);
+    check('holyLight.cooldown L6=9', holyLight.getEffect(6).cooldown === 9);
+}
+
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

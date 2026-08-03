@@ -5,6 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
     // 全屏控制
     toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
+    getFullscreen: () => ipcRenderer.invoke('get-fullscreen'),
     exitApp: () => ipcRenderer.send('exit-app'),
     
     // 平台信息

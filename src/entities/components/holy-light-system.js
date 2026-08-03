@@ -99,22 +99,21 @@ export class HolyLightSystem {
             return;
         }
 
-        // 目标合法后：消费链式强化并计算改造后数值
-        const chain = consumeChainSpellBonus(src);
+        // 目标合法后：先按"含链式减免的 MP 成本"做门禁（读层数不消费——失败不丢链式层数）
         const effect = { ...baseEffect };
-        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
-        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+        const chainStacks = src._chainSpellStacks || 0;
+        const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
+        const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
+        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+            return;
+        }
+        // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
+        const chain = consumeChainSpellBonus(src);
+        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        effect.mpCost = mpCost;
         effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
-
-        // 魔法消耗
-        if (this._isPlayer() && (effect.mpCost || 0) > 0) {
-            if (src.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
-                return;
-            }
-            src.data.mp -= effect.mpCost;
-        }
 
         src._holyLightCooldown = (effect.cooldown || 10) * 1000;
         // 播放施法动画，第 8 帧触发释放
@@ -191,23 +190,22 @@ export class HolyLightSystem {
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
 
-        // 消费链式强化并计算改造后数值
-        const chain = consumeChainSpellBonus(src);
+        // 先按"含链式减免的 MP 成本"做门禁（读层数不消费——失败不丢链式层数）
         const ce = getCurrentWeaponCraftEffects(src);
         const effect = { ...baseEffect };
-        const mpMul = getMagicMpCostMultiplier(src, ce, chain.stacks);
-        if (effect.mpCost) effect.mpCost = Math.max(0, Math.floor(effect.mpCost * mpMul));
+        const chainStacks = src._chainSpellStacks || 0;
+        const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
+        const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
+        if (this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+            return;
+        }
+        // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
+        const chain = consumeChainSpellBonus(src);
+        if (this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        effect.mpCost = mpCost;
         effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
-
-        // 魔法消耗
-        if ((effect.mpCost || 0) > 0) {
-            if (src.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
-                return;
-            }
-            src.data.mp -= effect.mpCost;
-        }
 
         src._holyLightCooldown = (effect.cooldown || 10) * 1000;
         // 播放施法动画，第 8 帧触发释放

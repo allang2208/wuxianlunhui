@@ -62,6 +62,11 @@ export class MineCave extends Enemy {
         this.vy = 0;
         this.isMoving = false;
 
+        // 受控（眩晕/冻结/恐惧）时中断生成（站桩怪移动由 MovementSystem 兜底）
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'))) {
+            return;
+        }
+
         // 洞口绿烟
         this._ensureSmoke();
 

@@ -88,6 +88,11 @@ export class LanternMinerZombie extends Enemy {
             return;
         }
 
+        // 恐惧时中断攻击决策（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 攻击帧推进（砸击判定 / 提灯出手 / 攻击音效帧）
         if (this._attackType) {
             this._updateAttack(dt, entities);

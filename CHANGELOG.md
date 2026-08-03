@@ -8,6 +8,133 @@
 - 测试结果
 - 已知问题
 
+### 对话：Electron ESC/全屏逻辑理顺——ESC 交菜单、设置界面全屏切换（2026-08-03）
+
+- **ESC 全局快捷键改造**：主进程 `globalShortcut('Escape')` 不再"全屏退全屏/窗口直接退游戏"，改为向渲染进程发送 `esc-pressed`（失焦不转发）——打包版 ESC 到达渲染进程后走 input.js 完整 MENU 键处理链（关面板/关对话/开关游戏菜单），与浏览器开发环境行为完全一致；"窗口模式误触 ESC 直接退出"的风险消除。
+- **全屏切换移入设置界面**：游戏菜单 → 设置 新增"⛶ 全屏模式"按钮（打包版经 `toggleFullscreen` IPC 切换，文案实时显示开/关；浏览器开发环境禁用显示"仅打包版可用"）。`enter/leave-full-screen` 主进程主动 `fullscreen-changed` 转发，`did-finish-load` 与菜单打开时各同步一次（新增 `get-fullscreen` IPC 防初始化竞态）。
+- **preload 死监听接线**：`esc-pressed` / `fullscreen-changed` 两个监听从此有真实来源，不再是死代码。
+- **注意**：打包版全屏下按 ESC 现在是"开关菜单"而非"退全屏"——退全屏请用设置按钮。
+- **修改文件**：electron/main.js、electron/preload.js、src/ui/input.js、src/ui/game-menu.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check（含 electron 两文件）；vite build ✓；npm test 全绿（173 回归断言）。实机待用户打包后复测（打包版 ESC 开关菜单、设置按钮全屏切换、文案同步）。
+
+### 对话：Electron 生命周期/异常恢复审计——全局错误兜底 + 崩溃重载（2026-08-03）
+
+- **渲染进程无错误兜底（已修）**：src/main.js 增加 `window.onerror` + `unhandledrejection` 全局处理——控制台完整记录 + 屏幕左下角 6s 错误条（含文件/行号），运行时异常不再静默。
+- **主进程无崩溃恢复（已修）**：electron/main.js 增加 `render-process-gone`（弹窗提示 + 重载，clean-exit 忽略）与 `did-fail-load`（非 ERR_ABORTED 时重载 dist 首页）——渲染进程崩溃不再白屏无响应。
+- **审计确认 OK**：preload 暴露面合理（contextIsolation + nodeIntegration:false，JSON 读写经 assertJsonRel 限 data/ 目录）；`exit-app` → app.quit、window-all-closed 退出链路正常；`will-quit` 注销全局快捷键。
+- **待用户拍板（设计问题，未改）**：
+  1. Electron 全局 ESC 快捷键在**窗口模式直接退出游戏**（全屏→退全屏，窗口/最大化→quit）——误触即退；且该快捷键会在打包版拦截 ESC，游戏菜单的 ESC 关闭在打包版永远收不到。是否改为"ESC 发送给渲染进程由菜单处理 / 双击 ESC 才退"？
+  2. preload 的 `esc-pressed` / `fullscreen-changed` 两个监听主进程从未发送，是死代码（清理或接线二选一）。
+- **修改文件**：src/main.js、electron/main.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check（含 electron/main.js）；vite build ✓；npm test 全绿（173 回归断言）。
+
+### 对话：动态碰撞/寻路缓存失效审计——设计使然，无 bug（2026-08-03）
+
+- **审计结论**：pathfinder 的 spatialHash 只建模 `WallSystem.walls/trees`（静态几何），**有意不纳入 isoSegments**（门闸/冰墙等动态段）——动态段由 MovementSystem 的 `WallSystem.resolve` 实际挡停（撞墙即停），纳入寻路反而会让敌人绕开临时障碍、削弱阻挡设计。敌人被冰墙挡住后由卡住检测（500ms 无位移重寻路）兜底，路径缓存 3s 自然过期，无脏数据问题。
+- **无效 invalidateCache（无危害）**：冰墙/战斗房等动态段增删点调用的 `pathFinder.invalidateCache()` 实际只重建不变的静态哈希 + 清 3s 路径缓存——段本身不在寻路模型里，调用无害但冗余，保留。门闸增删点未调 invalidateCache 同理无影响。
+- **改动**：pathfinder.js SpatialHash.rebuild 补设计说明注释（防后续误把 isoSegments 纳入寻路改变行为）。
+- **验证**：eslint 0 error；node --check 通过。
+
+### 对话：事件/监听器泄漏审计——整体干净，两项潜在加固（2026-08-03）
+
+- **审计结论**：全 src 的 window/document/Phaser 监听逐一核对——EventBus 订阅均为模块级单例或 off+on 自去重（拾取事件）；craft 编辑模式、改造弹窗、NPC 对话、坐标工具、立绘拖拽、墙壁/碰撞编辑器的 add/removeEventListener 全部成对；fusion 面板 mousedown 有 `_panelBuilt` 一次性守卫；per-精灵 animationupdate 随对象销毁。未发现活跃泄漏。
+- **潜在加固两项**：
+  - `GameUIManager.startTimer` 防重入：toMenu 删除后 stopTimer 无调用方，重复 start 会叠一个计时间隔（当前被 Game.start 的 isRunning 守卫挡住，纯防御）——start 时先清旧间隔。
+  - `Game.start` 新局清理 `StatusBar.clear()`：上一局遗留的 buff/debuff 图标不带到新局（当前仅冷启动一次，纯防御）。
+- **修改文件**：src/ui/game-ui-manager.js、src/game.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（173 回归断言）。
+
+### 对话：学徒长杖改造点击无反应修复 + 僵尸巫师眩晕中断（2026-08-03）
+
+- **学徒长杖改造点击无反应（根因：craft-config 结构错误）**：`weapon20`（法杖）的 6 个配件列表被放在顶层（`weapon20.head_crystal` 等），而代码读取 `config.options[slotId]`（`_onModCellClick` / `aggregateCraftEffects` 两处）——`config.options` 为 undefined，点击静默 return。修复：6 个槽位（杖头/杖冠/杖身/握柄/尾坠/导魔）的配件数组统一收进 `weapon20.options`（data/ 与 public/data/ 双份逐字节一致）；`craft-default-slots.js` 补 weapon20 出厂布局（重置按钮此前对法杖无效）。
+- **僵尸巫师（zombie-wizard）受控中断**：其召唤/施法状态机在 `super.update`（基类受控检查）之前推进，被眩晕/冻结时照常出招；新增 `_abortWizardAction()`（清召唤/施法/pending 攻击/动画计时）并在 update 顶部按 stun/frozen/fear 拦截，受控期间推进状态效果计时后 return。
+- **修改文件**：data/craft-config.json、public/data/craft-config.json、src/config/craft-default-slots.js、src/entities/enemy-types/zombie-wizard.js、CHANGELOG.md。
+- **验证**：craft-config 双份逐字节一致 + weapon20 slots/options 键名全覆盖断言；eslint 0 error；node --check；test-craft-sync 三角校验通过；vite build ✓；npm test 全绿（173 回归断言）。实机待用户复测（法杖改造弹窗可选配件并装备、重置布局、眩晕僵尸巫师不再出招）。
+
+### 对话：技能公式求值器审计——一元负号/前导小数点支持 + 多参 Math 白名单拦截（2026-08-03）
+
+- **parser 三处静默算错缺陷（防御性修复，当前配置无公式触发）**：
+  - 一元负号（`-5`、`5 + -3`、`-(2+3)`、`2 * -3`）原被当二元运算求值 → NaN → 静默返回 0；新增 `neg` 一元算子（调度场算法，表达式开头/左括号后/运算符后判定一元，优先级高于二元）。
+  - 前导小数点（`.5`）分词正则要求数字开头 → 被丢弃；改为 `(?:\d+\.?\d*|\.\d+)`。
+  - 多参 Math（`Math.max(a,b)`）逗号被分词器丢弃 → 静默算错；白名单移除逗号，此类公式一律 console.error + 返回 0（失败出声，不再静默错值）。
+- **配置实测无回归**：全部公式串扫描确认无前导小数/一元负号/多参 Math（Math 均为单参 round/floor + Math.PI 常量）。
+- **新增 20 条边界断言**：四则/括号/除零/level 代入/前导小数/四种一元负号形态/单参 Math/Math.PI/非法字符/多参拒绝/数字透传/空串，加真实技能公式抽样（冰锥 spikeCount L1/L6/L11、圣光冷却 L1/L6）。
+- **修改文件**：src/systems/data-loader.js、scripts/test-regressions.mjs、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（173 回归断言）。
+
+### 对话：新怪 AI 受控状态审计——站桩怪补齐控制检查 + 自定义怪统一恐惧中断（2026-08-03）
+
+- **站桩三怪无受控检查（可达 bug）**：煮锅/墓碑/矿洞覆盖 `update()` 但完全没查 stun/frozen/fear——玩家闪电眩晕、冰墙寒冷冻结时它们照常投毒瓶/召唤僵尸/生成矿工。修复：各自在站桩钉死后加统一受控检查（眩晕/冻结/恐惧直接 return），毒液区/生成计时随控制冻结。
+- **自定义怪统一补恐惧中断**：巫婆/工头/提灯矿工/毒液蛆/矿石蜘蛛/突变体3 已有 stun/frozen 检查但缺 fear（当前恐惧只作用于玩家、属防御性补齐，与 SKILL.md §11.3 自定义怪标准一致）；手脑/铠甲骑士/蝇手/蝇群本就完整。
+- **发现未修（待沟通）**：僵尸巫师（zombie-wizard）的召唤/施法状态机在 `super.update` 之前推进，被眩晕时状态机仍会继续（可能照常出招）——属旧怪、改法需谨慎（状态机各分支加检查），未在本次范围，待确认后处理。
+- **修改文件**：cauldron.js、tombstone.js、mine-cave.js、witch.js、foreman-zombie.js、lantern-miner-zombie.js、poison-maggot.js、ore-spider.js、mutant-3.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check 全过；vite build ✓；npm test 全绿（153 回归断言）。实机待用户复测（眩晕/冻结煮锅不投瓶、墓碑不刷怪、恐惧怪不再攻击）。
+
+### 对话：每帧热路径性能审计——技能效果按等级缓存 / 状态栏渲染节流（2026-08-03）
+
+- **技能效果公式缓存（data-loader）**：`getEffect(level)` 按等级缓存求值结果——该方法在每帧热路径被反复调用（玩家移速计算每帧、施法/飞行期 `_getEffect()` 每帧、攻击公式/伤害路径），此前每次调用都对全部 effectFormula 键重新 tokenize/parse。缓存按 level 自失效（升级自动重算），消费端全部走拷贝/只读模式，无缓存污染风险；新增回归断言（同等级同引用/跨等级重算/回切旧等级正确）。
+- **状态栏渲染节流（status-bar）**：原 `update()` 只要存在任何状态效果就每帧整块 `innerHTML` 重建（60fps 持续 DOM 开销）；改为效果增删时立即重渲染，倒计时最长每 100ms 一次（进度条从逐帧平滑变为 100ms 步进，观感基本无差；如需恢复逐帧平滑可改增量 DOM 更新）。
+- **修改文件**：src/systems/data-loader.js、src/ui/status-bar.js、scripts/test-regressions.mjs（新增 4 断言）、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（153 回归断言）。实机待用户复测（状态栏 buff 倒计时/进度条观感）。
+
+### 对话：审计低危项处理——TimerManager 暂停支持/施法打断隐藏手层/toMenu 死代码清理/bolt 死字段/音量落盘防抖（2026-08-03）
+
+- **TimerManager 暂停/恢复（真暂停）**：重写为逻辑 id + 冻结队列——`pause()` 记录全部定时器剩余时长并清原生句柄（interval 保留相位），`resume()` 按剩余时长续跑；暂停期间新注册的定时器按完整时长排队（游戏时间冻结语义）；`clearAll` 连冻结队列一起清；回调异常 try/catch 保留原生 setInterval 的容错。接线：`GameMenu` 开/关调用 pause/resume，`input.js` P 键暂停同口径 `setPaused`——菜单/P 暂停时波次生成、冷却、计时器等全部冻结。
+- **施法打断隐藏手层**：`GameScene.cancelPlayerCast(resetState=true)`（眩晕/冻结/翻滚打断路径）补 `playerHandSprite.setVisible(false)`，消除手层残留帧；新施法路径 resetState=false 不受影响。
+- **删除损坏死代码 `GameUIManager.toMenu()`**：方法体引用不存在的 `this.isRunning/this.entities`（GameUIManager 上无此属性），按钮与 ESC 已改走 GameMenu 后无任何调用方——整体删除并清理 6 个随之失效的 import（EventBus/getElement/NPCDialogue/ShopSystem/EnhanceSystem/SystemUI），game.js 相关注释同步。
+- **bolt 只写不读字段清理**：`_chainSpellStacksConsumed` / `_chainSpellMpCostMul` 在 BUG 2 修复后成为纯写死字段（trigger 写、_end 清零、无人读），删除。
+- **音量持久化防抖**：`SoundManager._saveVolumes` 加 150ms trailing 防抖，滑块拖动时 localStorage 只落盘一次（原每次 input 事件都写）。
+- **修改文件**：src/utils/timer-manager.js（重写）、src/ui/game-menu.js、src/ui/input.js、src/phaser/scenes/GameScene.js、src/ui/game-ui-manager.js、src/game.js、src/entities/components/bolt-skill-system.js、src/ui/sound-manager.js、CHANGELOG.md。
+- **验证**：TimerManager 暂停/恢复行为 9 断言独立脚本全过；eslint 0 error；node --check；vite build ✓；npm test 全绿（149 回归断言）。实机待用户复测（菜单暂停时波次/计时冻结、施法被打断无手层残留、P 键暂停同步冻结）。
+
+### 对话：法杖改造+buff 排查修复——火球多次爆炸/链式 MP 折扣滞后/闪电圣光链式白丢/免疫期链式滞留（2026-08-03）
+
+- **BUG 1（高）火球同帧多目标重叠多次爆炸**：bolt-skill-system 命中循环对每个相交实体都调 `kind.onImpact` 且不检查投射物状态——火球一次擦过 N 个抱团敌人就爆炸 N 次（N×伤害/经验）。修复：fireball onImpact 开头加 `if (!spike.flyActive) return;`（首爆后忽略后续调用）；冰锥不加（准穿透逐目标结算为设计）。
+- **BUG 2（中）bolt 链式强化 MP 折扣滞后一 cast**：`_getEffect()` 用上一 cast 缓存的 `_chainSpellStacksConsumed` 算 MP 成本（trigger 里要 consume 之后才更新），折扣永远对不上本次层数；且每帧 update 都会顺手重算 `_magicDamageMul`。修复：MP 折扣改读当前 `src._chainSpellStacks`，`_magicDamageMul` 只由 trigger 消费链式后缓存一次。
+- **BUG 3/4（中）闪电/圣光链式强化在 MP 检查前被消费**：lightning-strike trigger、holy-light trigger + triggerSelf 共三处 `consumeChainSpellBonus` 先于"魔法不足"校验——失败施法白丢层数（与注释"失败不消耗链式强化"相悖）。修复：先按含链式减免的 MP 成本门禁（读层数不消费），通过后才消费+扣蓝（与冰墙同口径）。
+- **BUG 5（低）statusImmune 期间链式强化永久滞留**：`addChainSpellStack` 硬设 `_chainSpellStacks` 后 addStatusEffect 被免疫拦截、无状态条目驱动到期清理。修复：免疫期间直接 return。
+- **修改文件**：src/entities/components/fireball-system.js、bolt-skill-system.js、lightning-strike-system.js、holy-light-system.js、src/utils/magic-craft-helper.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（149 回归断言）。实机待用户复测（火球穿抱团怪单次爆炸、链式 MP 折扣与层数一致、蓝不够不丢链式、免疫期间不叠加链式）。
+
+### 对话：冰墙加固二轮——命中计数守卫/寒气发射器对象级降载/目标去重/变体池复位（2026-08-03）
+
+- **命中/击杀计数守卫**：`_applySpawnHit` 的 hits/kills 移入"伤害实际结算"分支内——0 伤害命中不再计入经验（当前公式 damageBase≥20 恒正，纯防御性加固，行为不变）。
+- **寒气发射器对象级降载**：原来每段墙都创建一个 mist 发射器对象（43 段=43 个 emitter），只是 1/3 在发射；改为每 3 段才创建一个（L20 43→15 个对象），`fx.mist` 空值全部有守卫（stop/destroy/setPosition），视觉零变化。
+- **目标集合去重**：`_hostileTargets` 玩家可能同时出现在 `game.player` 与 `game.entities` 中，新增 Set 去重防同一目标被重复结算（当前无敌方施法者，纯防潜）。
+- **变体池复位**：`GameScene.create()` 重置 `_iceWallVariantPool = null`，与 fx 池/发射器复位同口径，防场景重启后引用旧贴图池。
+- **修改文件**：src/entities/components/ice-wall-system.js、src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（149 回归断言）。
+
+### 对话：冰墙技能排查修复——跨房间残留/链式消费顺序/寒冷叠层/共享发射器（2026-08-03）
+
+- **BUG 1（高）冰墙跨房间/场景残留**：冰墙生命周期原完全挂在玩家上、无房间/场景清理钩子；地牢 map 模式实体更新冻结导致墙的剩余时间与待生成队列计时器冻结在旧房间状态——切房间后墙以旧坐标渲染进新房间（最长 19.5s），pending 生成会在新房间旧坐标注册真·幽灵碰撞段。修复：`IceWallSystem.breakdown()`（splice 全部碰撞段 + 清空 `_walls/_pendingSpawns` + 失效寻路缓存），挂在三处——`CombatRoomSystem.cleanupRoom()`（战斗房拆除）、`SceneManager.switchScene()`（场景切换）、`ExpeditionSystem` 出征前（depart 绕开 switchScene 直清实体）。
+- **BUG 2（中）链式强化在 MP 检查前被消费**：原 `consumeChainSpellBonus` 在"魔法不足"return 之前执行，失败施法白丢层数。修复：先按含链式减免的 MP 成本做门禁（读 `_chainSpellStacks` 不消费），通过后才消费并扣蓝（与 bolt-skill-system 同口径）；同时把链式伤害加成接入落点伤害（原消费了层数但 `damageMul` 从未生效）。
+- **BUG 3（低-中）寒冷光环按段叠层**：原每段墙各自结算光环，L20（43 段、间距 28、半径 100）目标同时落进 ~7 段半径 → 7 层/秒非线性膨胀（面板文案"每 1 秒 1 层"不符）。修复：整组墙共享一个节拍（系统级 `_chillTimer`，每帧只跑一次），同一目标每秒只叠一次——高等级只加覆盖面积不加叠层速度。
+- **BUG 4（低）共享破土发射器同帧互相覆盖位置**：对称段 spawnDelay 相同（如 5 段的 i=1/i=3 都是 45ms），共享 `_iceWallMistBurst/_iceWallShardBurst` 的 explode 位置被后调用的段覆盖。修复：破土冰雾/碎冰屑改一次性 `burstParticles`（各段独立发射器，与碎裂特效同套路），删除共享发射器字段。
+- **修改文件**：src/entities/components/ice-wall-system.js、src/world/combat-room-system.js、src/world/scene-manager.js、src/ui/expedition-system.js、src/phaser/scenes/GameScene.js、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（149 回归断言）。实机待用户复测（跨房间施墙后切房、蓝不够时链式层数保留、高等级墙寒冷叠层速度、多段破土粒子位置）。
+
+### 对话：游戏内菜单——左上角按钮改为暂停菜单（返回游戏/设置/退出游戏）（2026-08-03）
+
+- **根因**：左上角"返回主菜单"按钮点击绑定 `GameUIManager.toMenu()`——该方法从 Game.js 拆出时遗留 `this.isRunning/this.entities` 引用（GameUIManager 上不存在），点击即抛异常，按钮形同虚设。
+- **新菜单（src/ui/game-menu.js，新文件）**：按钮改名为"☰ 菜单"，点击弹出全屏暂停菜单（`Game._paused` + Phaser `game.pause()` 双重冻结；覆盖层 z-index 走 ui-constants 新增 `GAME_MENU_OVERLAY`）：
+  - 返回游戏：关闭菜单、恢复游戏（旧循环 + Phaser 双 resume）；
+  - 设置：进入设置视图，两个滚动条——音量（主音量 `SoundManager.setVolume`）与背景音量（music 声道，实时联动地牢 BGM）；滑块数值打开菜单时从 SoundManager 同步；
+  - 退出游戏：`window.electronAPI.exitApp()`（Electron 打包经 preload IPC → `app.quit()`），浏览器开发环境回退 `window.close()`；
+  - 打开时自动收起所有交互面板（NPC/商店/强化/改造/附魔/系统/仓库/出征/合成，与 game.js 关闭面板同口径）；ESC 开/关菜单统一走 input.js 的 MENU 键处理链（替换了原 ESC 兜底调用已损坏的 `GameUIManager.toMenu()`；Electron 打包版 ESC 由主进程全局快捷键接管）。
+- **音量持久化**：SoundManager 新增 localStorage 存取（`wuxian_audio_master` / `wuxian_audio_music`），init 时读回上次设置；`setVolume` 现在实时作用于所有运行中的循环音轨（此前只改数值、BGM/环境音不生效）。
+- **修改文件**：src/ui/game-menu.js（新）、src/main.js、src/ui/input.js、src/ui/panels/hud-core.js、ui/components/hud-layer.html（legacy 文案同步）、src/ui/sound-manager.js、src/config/ui-constants.js、game-style.css、scripts/test-regressions.mjs、CHANGELOG.md。
+- **验证**：eslint 0 error；node --check；vite build ✓；npm test 全绿（新增音量 clamp/循环音轨实时联动断言）。实机待用户复测（菜单弹出/暂停/音量调节/BGM 联动/退出游戏）。
+
+### 对话：距离衰减音效——SoundManager 位置音效通用能力（2026-08-03）
+
+- **通用位置音效（SoundManager）**：新增 `setLoopPosition(id, x, y, opts)` 给循环音轨挂声源坐标 + 衰减参数（base/max/nearDist/farDist/maxDist）；`computeDistanceVolume` 双段线性曲线（nearDist 内恒 max → farDist 处 base → maxDist 处 0，连续无跳变）；`distanceGain` 一次性音效距离倍率；`playFileAt(path,x,y,volume,channel,opts)` 一次性位置音效（超出 maxDist 直接不播）。
+- **每帧刷新**：`game.js update(dt)` 顶部统一调 `SoundManager.update(dt)`，所有位置音效按与玩家距离刷新音量；无玩家时保持当前音量（兼容旧行为）。
+- **蝇群接入**：`fly-swarm.js _syncLoopSound` 改为每帧 `setLoopPosition` 挂坐标，音量计算全部收归 SoundManager；`enemy-config.json flySwarm.sounds` 新增 `loopMaxDist: 2000`（贴近 150% → 600px 处 50% → 2000px 处 0，超出无声），嗡鸣技能描述同步更新（data/ 与 public/data/ 双份一致）。
+- **回归测试**：test-regressions.mjs 新增第 11 节——距离音量曲线端点/中点/超距静音/单调性/旧行为兼容/配置双份一致，共 13 断言。
+- 修改文件：src/ui/sound-manager.js、src/game.js、src/entities/enemy-types/fly-swarm.js、data/enemy-config.json、public/data/enemy-config.json、scripts/test-regressions.mjs、SKILL.md、CHANGELOG.md。
+- 验证：eslint 0 error；node --check；vite build ✓；npm test 全绿。实机待用户复测（贴近/远离/超 2000px 听感）。
+
 ### 对话：冰墙战斗化——中级魔法门槛/落点伤害/寒冷光环/经验体系（2026-08-02）
 
 - **魔法等级体系（新）**：`magic-categories.js` 新增 `MAGIC_SKILL_TIERS`（iceWall=2 中级，其余四系=1 初级）+ `MAGIC_TIER_NAMES` + `meetsMagicWeaponReq(player, skillId)`——中级及以上魔法需当前武器组主/副手装备法杖（weaponType==='staff'）。

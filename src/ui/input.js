@@ -14,8 +14,9 @@ import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
 import { SystemUI } from './system-ui.js';
 import { ExpeditionSystem } from './expedition-system.js';
-import { GameUIManager } from './game-ui-manager.js';
+import { GameMenu } from './game-menu.js';
 import DevTool from './dev-tool.js';
+import { TimerManager } from '../utils/timer-manager.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
@@ -40,11 +41,16 @@ import DevTool from './dev-tool.js';
                 });
                 window.addEventListener('mouseup', e => { if (e.button === 0) this.mouse.leftDown = false; if (e.button === 2) this.mouse.rightDown = false; });
                 window.addEventListener('contextmenu', e => e.preventDefault());
+                // Electron 打包版：主进程 ESC 全局快捷键转发（globalShortcut 拦截系统级 ESC，
+                // keydown 到不了渲染进程）——等效于本地按 ESC，走完整 MENU 键处理链
+                window.addEventListener('electron-esc', () => this.handleKey(CONFIG.KEYS.MENU));
             },
     handleKey(code, altKey = false) {
                 if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：按键交给编辑器（捕获监听先处理）
                 if (code === CONFIG.KEYS.PAUSE) {
                     Game._paused = !Game._paused;
+                    // P 键暂停与菜单暂停同口径：冻结全部定时器（波次/计时/冷却等）
+                    TimerManager.setPaused(Game._paused);
                     EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, Game._paused ? '游戏暂停' : '游戏继续', '#ffdd00'));
                     return;
                 }
@@ -74,7 +80,7 @@ import DevTool from './dev-tool.js';
                     SystemUI.close(); return;
                 }
                     if (NPCDialogue._active) { NPCDialogue.goodbye(); return; }
-                    GameUIManager.toMenu(); return;
+                    if (Game.isRunning) GameMenu.toggle(); return;
                 }
                 if (SystemUI.isOpen) {
                     // 面板打开时：允许Tab切换快捷键，允许F切换武器，允许Z范围拾取，其他按键拦截

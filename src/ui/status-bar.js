@@ -235,19 +235,20 @@ export const StatusBar = {
             const effect = this.effects[i];
             // 按战斗场次持续的效果不参与毫秒倒计时
             if (effect.battleRemaining !== undefined) {
-                changed = true;
                 continue;
             }
             effect.remaining -= dt;
             if (effect.remaining <= 0) {
                 this.effects.splice(i, 1);
                 changed = true;
-            } else {
-                changed = true;
             }
         }
         
-        if (changed) {
+        // 倒计时渲染节流：仅当效果增删时立即重渲染，否则最长每 100ms 一次
+        // （原实现只要有效果就每帧整块 innerHTML 重建，60fps 下是持续 DOM 开销）
+        const now = Date.now();
+        if (changed || !this._lastRenderAt || now - this._lastRenderAt >= 100) {
+            this._lastRenderAt = now;
             this.render();
         }
     },

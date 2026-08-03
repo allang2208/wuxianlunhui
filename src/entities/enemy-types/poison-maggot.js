@@ -52,6 +52,11 @@ export class PoisonMaggot extends Enemy {
             return;
         }
 
+        // 恐惧时中断喷射决策（移动由 MovementSystem 恐惧分支接管逃跑）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            return;
+        }
+
         // 朝向目标（喷射毒液期间锁定朝向，不可转向）
         const t = this.target && this.target.active ? this.target : null;
         if (t && this._attackState !== 'spitting') this.rotation = Math.atan2(t.y - this.y, t.x - this.x);

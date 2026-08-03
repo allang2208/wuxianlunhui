@@ -116,6 +116,23 @@
 
         .back-menu-btn { position: absolute; top: 12px; left: 12px; padding: 8px 16px; background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f; border-radius: 8px; color: #d4c5a9; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 13px; transition: all 0.2s; }
         .back-menu-btn:hover { background: rgba(90, 77, 63, 0.9); border-color: #8a7d6b; }
+        .back-menu-btn.active { border-color: #c9a227; color: #ffe9a8; box-shadow: 0 0 8px rgba(201, 162, 39, 0.4); }
+
+        /* ===== 游戏菜单（左上角菜单按钮弹出的暂停菜单） ===== */
+        .game-menu-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.55); z-index: var(--z-game-menu, 100000); }
+        .game-menu-panel { width: 340px; padding: 24px 28px; background: rgba(28, 24, 20, 0.97); border: 2px solid #5a4d3f; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.65); display: flex; flex-direction: column; gap: 16px; }
+        .game-menu-title { text-align: center; font-size: 24px; font-weight: 700; color: #ffd700; letter-spacing: 6px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.35); }
+        .game-menu-view { display: flex; flex-direction: column; gap: 12px; }
+        .game-menu-view.hidden { display: none; }
+        .game-menu-subtitle { text-align: center; font-size: 17px; color: #d4c5a9; padding-bottom: 2px; border-bottom: 1px solid rgba(90, 77, 63, 0.5); }
+        .game-menu-btn { padding: 12px 16px; font-size: 16px; background: rgba(66, 58, 48, 0.9); border: 2px solid #6a5c4c; border-radius: 8px; color: #e8dcc0; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .game-menu-btn:hover { background: rgba(100, 88, 72, 0.95); border-color: #a0907c; transform: translateX(3px); }
+        .game-menu-btn.danger { border-color: #7a3f34; color: #f0b0a0; }
+        .game-menu-btn.danger:hover { background: rgba(110, 55, 45, 0.95); border-color: #b06050; }
+        .game-menu-setting-row { display: flex; align-items: center; gap: 10px; }
+        .game-menu-setting-label { width: 72px; flex-shrink: 0; color: #d4c5a9; font-size: 14px; }
+        .game-menu-setting-value { width: 44px; flex-shrink: 0; text-align: right; color: #ffd700; font-size: 14px; }
+        .game-menu-setting-row input[type="range"] { flex: 1; min-width: 0; accent-color: #c9a227; cursor: pointer; }
 
         .attack-indicator-left { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
         .attack-cd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #5a4d3f; background: rgba(42, 37, 32, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #8a7d6b; position: relative; overflow: hidden; }

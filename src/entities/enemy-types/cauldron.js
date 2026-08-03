@@ -68,6 +68,11 @@ export class Cauldron extends Enemy {
         this.vy = 0;
         this.isMoving = false;
 
+        // 受控（眩晕/冻结/恐惧）时中断投掷与毒液区推进（与自定义怪同口径）
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'))) {
+            return;
+        }
+
         // 定时投掷 2 个毒液瓶（默认每 30s；玩家在射程内才出手）
         this._bottleTimer -= dt;
         if (this._bottleTimer <= 0) {

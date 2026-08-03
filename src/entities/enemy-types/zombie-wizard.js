@@ -112,11 +112,32 @@ export class ZombieWizard extends Enemy {
         this._attackAnimTimer = 0; // 攻击动画剩余时间（ms）
     }
 
+    /** 眩晕/冻结/恐惧时强制中断召唤与施法状态机（防受控期间照常出招） */
+    _abortWizardAction() {
+        this._animState = 'idle';
+        this._summonAnimPhase = 0;
+        this._summonAnimTimer = 0;
+        this._frozenForCast = false;
+        this._castState = 'idle';
+        this._castTimer = 0;
+        this._pendingWizardAttack = null;
+        this._attackAnimTimer = 0;
+    }
+
     update(dt, entities) {
         // 召唤/技能冷却
         if (this._summonCooldown > 0) this._summonCooldown -= dt;
         if (this._iceSpikeCooldown > 0) this._iceSpikeCooldown -= dt;
         if (this._fireballCooldown > 0) this._fireballCooldown -= dt;
+
+        // 眩晕/冻结/恐惧：强制中断召唤与施法状态机
+        // （基类的受控检查在 super.update 内部，而本类状态机在其之前推进——不在此拦截会照常出招）
+        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'))) {
+            this._abortWizardAction();
+            this.vx = 0; this.vy = 0; this.isMoving = false;
+            super.update(dt, entities); // 推进状态效果/DoT 计时（本类正常路径在召唤/施法分支不调 super）
+            return;
+        }
 
         // 召唤动画状态机：2 秒内先正放再倒放，期间无法移动/攻击
         if (this._animState === 'summon') {

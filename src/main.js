@@ -19,9 +19,34 @@ import { QuestSystem } from './ui/quest-system.js';
 import { NpcPortraitTool } from './ui/npc-portrait-tool.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantSystem } from './ui/enchant-system.js';
+import { GameMenu } from './ui/game-menu.js';
 import DevTool from './ui/dev-tool.js';
 
 import { getElement } from './utils/dom-utils.js';
+
+// ===== 全局错误兜底：运行时异常不静默（控制台 + 屏幕小提示，崩溃现场可复现） =====
+let _errorToast = null;
+function _showErrorToast(text) {
+    try {
+        if (!_errorToast) {
+            _errorToast = document.createElement('div');
+            _errorToast.style.cssText = 'position:fixed;bottom:8px;left:8px;right:8px;z-index:999999;background:rgba(120,30,25,0.92);color:#ffd0c8;font:12px/1.5 monospace;padding:6px 10px;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-break:break-all;';
+            document.body.appendChild(_errorToast);
+        }
+        _errorToast.textContent = `⚠ ${text}`;
+        clearTimeout(_errorToast._t);
+        _errorToast._t = setTimeout(() => { if (_errorToast) _errorToast.textContent = ''; }, 6000);
+    } catch (_e) { /* 兜底本身失败不影响游戏 */ }
+}
+window.addEventListener('error', (e) => {
+    console.error('[GlobalError]', e.message, e.filename, e.lineno);
+    _showErrorToast(`${e.message} (${e.filename?.split('/').pop()}:${e.lineno})`);
+});
+window.addEventListener('unhandledrejection', (e) => {
+    const reason = (e && e.reason) ? (e.reason.message || String(e.reason)) : 'Promise rejected';
+    console.error('[UnhandledRejection]', e && e.reason);
+    _showErrorToast(`Promise: ${reason}`);
+});
 
 async function initModules() {
     const data = await DataLoader.loadAll();
@@ -78,6 +103,7 @@ async function initModules() {
     if (gameContainer) {
         initUIPanels(gameContainer);
     }
+    GameMenu.init();
 
     // 游戏入口与 Phaser 迁移系统
     window.Game = Game;
@@ -89,7 +115,7 @@ async function initModules() {
     const helpBtn = getElement('showHelpBtn');
     if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); GameUIManager.showHelp(); });
     const backBtn = getElement('backMenuBtn');
-    if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); GameUIManager.toMenu(); });
+    if (backBtn) backBtn.addEventListener('click', () => { backBtn.blur(); GameMenu.open(); });
 
     DevTool.init();
     NpcPortraitTool.init();
