@@ -15,6 +15,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { PathManager } from '../ai/path-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { dynamicObstacleMap } from '../ai/dynamic-obstacle-map.js';
+import SpatialPartitionSystem from './spatial-partition-system.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -24,6 +25,17 @@ const MAX_PATHFIND_RANGE = 800;
  */
 const MovementSystem = {
     _lastObstacleUpdate: 0,
+
+    /**
+     * [PERF-2026-08-03] 每帧寻路预算重置：由 game.js 主循环每帧调用一次。
+     * PathFinder 帧预算耗尽后返回 PATH_DEFERRED，怪物保留旧路径下帧重试，
+     * 避免刷怪瞬间多只怪同帧冷寻路造成主线程长卡顿。
+     */
+    beginFrame() {
+        if (pathFinder && typeof pathFinder.beginFrame === 'function') {
+            pathFinder.beginFrame();
+        }
+    },
 
     /**
      * 每帧更新敌人移动状态
@@ -293,7 +305,6 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * - 返回 {dx, dy} 偏移量，若无偏移需要返回 null
      */
     _computeFlankOffset(enemy, target, _entities) {
-        if (!Game || !Game.entities) return null;
         const now = Date.now();
         const cooldown = 200;
         // 复用缓存结果，避免每帧遍历全部实体
@@ -308,10 +319,28 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const cosA = (target.x - enemy.x) / Math.max(1, Math.sqrt((target.x - enemy.x) ** 2 + (target.y - enemy.y) ** 2));
         const sinA = (target.y - enemy.y) / Math.max(1, Math.sqrt((target.x - enemy.x) ** 2 + (target.y - enemy.y) ** 2));
 
+        // [PERF-2026-08-03] 候选优先走空间分区（game.js 每帧重建，取目标周围近邻），
+        // 替代每 200ms 遍历全部实体；无分区/未构建时回退全量遍历
+        let candidates = null;
+        if (SpatialPartitionSystem && typeof SpatialPartitionSystem.queryRadius === 'function') {
+            const grid = SpatialPartitionSystem;
+            if (!grid.allEntities || grid.allEntities.length > 0) {
+                candidates = grid.queryRadius(target.x, target.y, attackRange * 1.3);
+            }
+        }
+        if (!candidates && Game && Game.entities) {
+            candidates = Game.entities;
+        }
+        if (!candidates) {
+            enemy._flankCache = { time: now, value: null };
+            return null;
+        }
+
         // 性能保护：最多遍历 80 个实体，防止极端场景
         let iterated = 0;
         const maxIterate = 80;
-        for (const other of Game.entities.values()) {
+        const iter = candidates.values ? candidates.values() : candidates;
+        for (const other of iter) {
             if (++iterated > maxIterate) break;
             if (other === enemy || !other.active || other.hp <= 0) continue;
             if (other._faction !== enemy._faction) continue;
@@ -527,9 +556,6 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * - 加入微小随机抖动，打破对称拥堵
      */
     _computeSeparation(enemy, minDist, entities) {
-        const list = entities || (Game && Game.entities);
-        if (!list) return { dx: 0, dy: 0 };
-
         const separationRadius = minDist > 0
             ? minDist
             : Math.max(24, Math.min(80, (enemy.groundRadius) * 1.8));
@@ -551,8 +577,21 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
         const strength = inCombatRange ? 0.6 : 1.4;
 
+        // [PERF-2026-08-03] 候选优先走空间分区（game.js 每帧重建），替代每怪每帧遍历全部实体；
+        // 无分区/未构建时回退原全量遍历
+        let list = null;
+        if (SpatialPartitionSystem && typeof SpatialPartitionSystem.queryRadius === 'function') {
+            const grid = SpatialPartitionSystem;
+            if (!grid.allEntities || grid.allEntities.length > 0) {
+                list = grid.queryRadius(enemy.x, enemy.y, separationRadius, enemy);
+            }
+        }
+        if (!list) list = entities || (Game && Game.entities);
+        if (!list) return { dx: 0, dy: 0 };
+
         let sumX = 0, sumY = 0, count = 0;
-        for (const other of list.values()) {
+        const iter = list.values ? list.values() : list;
+        for (const other of iter) {
             if (other === enemy || !other.active || other.hp <= 0) continue;
             if (other._faction !== enemy._faction) continue;
             const dx = enemy.x - other.x;

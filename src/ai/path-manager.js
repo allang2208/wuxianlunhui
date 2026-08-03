@@ -1,4 +1,6 @@
 
+import { PATH_DEFERRED } from './pathfinder.js';
+
 /**
  * PathManager — 智能路径管理器（参考《环世界》）
  *
@@ -23,6 +25,9 @@ class PathManager {
         this.isValid = false;        // 路径是否有效
         this.lastRecalcTime = 0;     // 上次重算时间
         this.stuckCount = 0;         // 连续修复失败次数
+        // [PERF-2026-08-03] 首寻路错峰：创建后随机延迟 0~250ms，避免刷怪瞬间多只怪同帧冷寻路
+        this._firstRecalcAt = Date.now() + Math.random() * 250;
+        this._lastWarnAt = 0;        // console.warn 节流
     }
 
     // ==================== 路径设置 ====================
@@ -36,12 +41,15 @@ class PathManager {
             this._clearPath();
             return;
         }
+        // [PERF-2026-08-03] 防御性拷贝：路径缓存数组为多怪共享对象，直接持有并在
+        // 副本上改首点，避免污染其他怪物/缓存（原实现原地改 path[0] 是潜在别名 bug）
+        const ownPath = path.slice();
         // 首点对齐到怪物当前位置：A* 起点 snap 到所在格子中心，
         // 若格子中心在怪物行进方向身后，跟随首点会"瞬间掉头"折返（往左走时尤为明显）
-        if (this.enemy && path.length > 0) {
-            path[0] = { x: this.enemy.x, y: this.enemy.y };
+        if (this.enemy && ownPath.length > 0) {
+            ownPath[0] = { x: this.enemy.x, y: this.enemy.y };
         }
-        this.path = path;
+        this.path = ownPath;
         this.pathIdx = 0;
         this.isValid = true;
         this.checkTimer = this.checkInterval;
@@ -115,8 +123,11 @@ class PathManager {
         try {
             altPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, end.x, end.y, radius);
         } catch (e) {
-            console.warn('[PathManager] findPath failed:', e.message);
+            this._warn('[PathManager] findPath failed: ' + e.message);
         }
+
+        // 帧预算不足：保留旧路径，下帧 _checkValidity 会重试
+        if (altPath === PATH_DEFERRED) return;
 
         if (altPath && altPath.length > 1) {
             // 新路径 = 替代段（altPath[0]≈当前位置，从下一节点开始跟随） + 阻挡点之后的路径段
@@ -133,8 +144,10 @@ class PathManager {
         try {
             newPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, finalTarget.x, finalTarget.y, radius);
         } catch (e) {
-            console.warn('[PathManager] full recalc failed:', e.message);
+            this._warn('[PathManager] full recalc failed: ' + e.message);
         }
+
+        if (newPath === PATH_DEFERRED) return;
 
         if (newPath && newPath.length > 1) {
             this.path = newPath;
@@ -210,13 +223,17 @@ class PathManager {
         if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
             return; // 间隔不足，跳过
         }
+        // [PERF-2026-08-03] 首寻路错峰（含卡住 bypass）：刷怪同帧错开，冷路径不集中在同一帧
+        if (Date.now() < this._firstRecalcAt) return;
         const radius = this.enemy.groundRadius;
         let path = null;
         try {
             path = pathPlanner.findPath(this.enemy.x, this.enemy.y, targetX, targetY, radius);
         } catch (e) {
-            console.warn('[PathManager] forceRecalc failed:', e.message);
+            this._warn('[PathManager] forceRecalc failed: ' + e.message);
         }
+        // 帧预算不足：保留旧路径，下一帧 MovementSystem 的 shouldRecalc 会再次尝试
+        if (path === PATH_DEFERRED) return;
         if (path) {
             this.setPath(path);
             this._isExitPath = false;
@@ -226,6 +243,7 @@ class PathManager {
         // [NEW] A* 失败：尝试 RegionIndex 找最近出口
         // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
         const exitResult = pathPlanner.findPathToExit(this.enemy.x, this.enemy.y, targetX, targetY, radius);
+        if (exitResult === PATH_DEFERRED) return;
         if (exitResult && exitResult.path) {
             this.setPath(exitResult.path);
             this._isExitPath = true;
@@ -237,6 +255,14 @@ class PathManager {
         // 完全无法移动
         this._clearPath();
         this._isExitPath = false;
+    }
+
+    _warn(msg) {
+        const now = Date.now();
+        if (now - this._lastWarnAt > 1000) {
+            this._lastWarnAt = now;
+            console.warn(msg);
+        }
     }
 }
 
