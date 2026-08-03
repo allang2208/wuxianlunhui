@@ -1380,6 +1380,24 @@ _playSound(key) {
 - 砸地命中帧（hitFrames）：`_playSound('slamHit')`
 - 死亡：`onDeath()` 中 `_playSound('death')`
 
+### 步骤4: 距离衰减（可选，位置音效，2026-08-03）
+需要"声源离玩家越近越大声、超出最大距离无声"的音效，走 SoundManager 位置音效能力（音量逐帧由主循环统一刷新，调用方不自己算距离）：
+
+- **循环音轨**：播放后每帧把声源坐标与衰减参数挂上——
+  ```javascript
+  SoundManager.setLoopPosition(id, x, y, {
+      base: s.loopVolumeBase ?? 0.5,     // 远端音量
+      max: s.loopVolumeMax ?? 1.5,       // 近端音量（可 >100%）
+      nearDist: s.loopNearDist ?? 150,   // 满音量距离
+      farDist: s.loopFarDist ?? 600,     // base 音量距离
+      maxDist: s.loopMaxDist ?? 2000,    // 静音距离，超出后音量 0
+  });
+  ```
+  曲线：d≤nearDist 恒 max → farDist 处 base → maxDist 处 0（双段线性连续）。
+- **一次性音效**：`SoundManager.playFileAt(path, x, y, volume, channel, { nearDist, maxDist })`——按播放瞬间距离衰减，超出 maxDist 不播。
+- **配置键**：enemy-config.json `sounds` 块用 `loopVolumeBase/loopVolumeMax/loopNearDist/loopFarDist/loopMaxDist`（蝇群范式，值全部进配置不硬编码）；音量刷新由 `game.js update()` 顶部 `SoundManager.update(dt)` 统一完成。
+- **注意**：无玩家（或玩家 inactive）时保持当前音量不变；死亡/场景切换清理走既有 `_destroyCustomEffects` / `stopAllLoops`，位置音效无需额外清理。
+
 ---
 
 ## 常见问题
@@ -1576,6 +1594,41 @@ addTree(x, y, radius, ...) {
   5. **恢复方法**：删掉 `handLayer` 配置即回退原贴图（代码已判空兼容），无需改代码。
 - **坑：改播放键会断武器轨迹**——walk 播 body 动画后，`syncWeapon` walkFrames 分支判断 `curAnim.key === playerTextureKey('walk')` 匹配不上（实际 key 是 `player_walk_body`），walkProgress 恒 0 → 武器卡第一帧。凡按动画 key 做分支判断处都要兼容 `player_<key>_body`。
 - 新姿态要加手层：复制 walk 的脚本流程（确认左右手 → 收紧检测带 → 拳头矩形 clamp → 合成验证），配置加 handLayer 即可。
+
+### 法杖施法手层（staff_cast，2026-08-03 落地）
+
+施法动画（staff_cast 9 帧）同机制：手层独立 → 法杖握把绑定手部 → 共同运动。
+- **素材**：`assets/player/staff_cast_body.png`（挖手身体层）+ `staff_cast_hand.png`（只手层），生成脚本
+  `tools/prep-staff-cast-hand.py`（逐帧拳头窗口 + 无损合成验证）。
+- **配置**：`player-anim-config.json`（双份）staff_cast 条目加 `handLayer { body, hand }`；
+  `weapon-anim-config.json` sword 块 `staffCastFrames`。
+- **代码**：`startPlayerCast` / `setPlayerAnimation` 一次性动作分支支持 handLayer——播
+  `player_<key>_body` 动画 + 显示手 sprite（帧/位置/翻转由 `_syncPlayerHandLayer` 每帧跟随）；
+  `_updatePlayerAnimation` 施法守卫兼容 body key（`cur !== player_<key>_body` 才算施法中断）。
+- **实机验证**：CDP 工具 `tools/cdp-staff-cast-verify.mjs` / `cdp-staff-walk-check.mjs`
+  （装备学徒长杖→采样 idle/施法逐帧武器/手 sprite + 截图）；lint/build/npm test 全绿。
+
+### 法杖施法最终方案（2026-08-03 用户验收通过）
+
+**idle 绑左手（参考行走位置）+ 施法 f0→f8 设计插值轨迹（全程不换手、无跳变）：**
+- `staffIdle`：左手拳位置——holdOffsetX **−84.7** → local (−11.4, 0.6)，与行走同侧（行走 X −12~−34）。
+  **⚠ 反推公式**：`getWeaponLocalOffset` 的 afterX = `WEAPON_ANIM.size(126)×0.75×0.85 = 80.325`
+  （不是 66.94）——按 66.94 反推 holdOffsetX 会整体偏右 ~13px（本次踩坑）。
+- `staffCastFrames`：**设计插值**，不逐帧抠手：
+  - f0 = idle (−11.4, 0.6, rotation **105**) —— idle↔f0 零跳变；
+  - f8 = 前伸手举杖 (45.6, −43.9, rotation **20**，用户拍板)；
+  - f1~f7 逐帧线性插值位置与角度（105°→20°）——法杖从左手腰侧平滑扫到右手举杖位。
+- **为什么握把终点是「前伸手」**：施法手势是双手抬起后右手前推发力（f5~f8 右手从腰侧 x325
+  前伸到 x418、上抬到 y100）；杆身 rotation 110°→20°（竖举指向右上，横杖不像举杖）。
+  竖杖跟前伸手全帧 0 盖脸；跟远侧手（贴下巴的手）时 f3~f8 杆身直穿头部（盖脸 500px+），不可用。
+- **坑（本次沉淀）**：
+  1. 拳头中心用**手层内容质心**（像素级可复现），不用左边缘+半宽估算（会偏到手臂）。
+  2. 抬举帧拳头比腰侧帧大得多（x≈231~300, y94~112），窗口右缘止于近侧手 x300 前，避免裁进另一只手。
+  3. **GLM-4V（deepseek-vision-skill）定位手不可靠**：坐标误差 50~150px、同图两次回答矛盾，
+     只配做粗验收（"法杖是否握在手里"），像素级修正一律用像素分析。
+- **GLM-4V（deepseek-vision-skill）定位手不可靠**（2026-08-03 实测）：对 1024² 图坐标误差
+  50~150px，同图两次回答互相矛盾，不能用于像素级修正；只适合粗粒度验收（"法杖是否握在手里"，
+  实机截图判定通过）。精确定位仍用手层内容质心（像素级，可复现）。
 
 ## 复用武器动画独立调参（staff 法杖，2026-08-02 实测定稿）
 
