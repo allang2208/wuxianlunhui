@@ -10,10 +10,15 @@
 
 ```text
 game skill icon emblem, keep the exact same hexagonal badge template, size, position
-and layout as the reference image: purple hexagonal badge with gold trim and embossed
-translucent crystal block base at the bottom, the center shows <主题>,
-centered, game asset art, high detail, crisp, isolated on a plain pure white background
+and layout as the reference image: a single clean purple hexagonal badge with embossed
+purple surface and uniform gold trim (no crystal base, no protrusions below the hexagon),
+the center shows <主题>, centered, game asset art, high detail, crisp,
+isolated on a plain pure white background
 ```
+
+> 2026-08-04 v2 固化：系列形态统一为**火球式干净六边形徽章 + 紫色浮雕 + 均匀金边**，
+> 明确移除 "embossed translucent crystal block base"（旧模板导致 LoRA 输出底座时有时无）。
+> LoRA 触发词：`wuxianlunhui magic skill icon`（klein-skillicon-v2）。
 
 ## 负面词（ComfyUI 用 --negative；智谱并入正向）
 

@@ -13,9 +13,9 @@ import sys
 import numpy as np
 from PIL import Image
 
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILLS = os.path.join(BASE, "game-dev", "data", "skills.json")
-ASSETS = os.path.join(BASE, "game-dev")
+BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SKILLS = os.path.join(BASE, "data", "skills.json")
+ASSETS = BASE
 
 
 def measure(path):
