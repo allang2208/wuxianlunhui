@@ -111,3 +111,44 @@
   入库前用 `normalize-skill-icon.py` 归一化到基准（fill≈70% / cx≈0 / cy≈+28 / aspect 0.78~0.85）。
 - 部署：LoRA → 5080 `models\loras\` + NAS `scratch\klein-lora-skillicon\` + `models.json` 的
   `flux2-klein-4b.lora` 注册；ComfyUI 需重启后生效。
+
+## v2（2026-08-04）：统一"干净六边形"风格
+
+### 背景
+
+v1 验收发现形态不一致：金边粗细不一、水晶底座时有时无、六边形下方突出物随机。
+逐张审计训练集后定位根因——**数据集自相矛盾**：7 张图里 4 张是干净六边形、3 张带水晶底座
+（大小形态各异），但 7 条标注全部写 "embossed translucent crystal block base at the bottom"。
+LoRA 学到的是一套分裂风格，加强训练只会固化矛盾，改提示词也只是碰运气。
+
+### 决策（用户确认）
+
+系列形态统一为**火球式干净六边形徽章 + 紫色浮雕 + 均匀金边**，明确移除水晶底座。
+风格块（数据集标注 / 生成提示词 / `prompts/skill-icon.md` 三处一致）：
+
+```text
+wuxianlunhui magic skill icon, game skill icon emblem, a single clean purple hexagonal
+badge with embossed purple surface and uniform gold trim, the center shows <主题>,
+centered, game asset art, high detail, crisp, isolated on a plain pure white background
+```
+
+### 数据集重建（dataset-v2）
+
+- 保留 4 张本来就干净的图（00001 火球 / 00003 灼锋焰甲 / 00006 闪电 / 00007 圣光）；
+- 3 张带底座的（00002 陨星 / 00004 暴风雪 / 00005 冰墙）用 v1 LoRA + 干净风格提示词
+  多候选重抽（每主题 4 张），GLM-4V 逐张审计（无底座 / 主题清晰 / 金边完整）后选入：
+  meteor_101 / blizzard_101 / icewall_202；
+- 7 条标注全部重写为干净风格块（去掉 crystal base）。
+
+### 重训参数（v2）
+
+- `klein-skillicon-v2.yaml`：250 → **500 步**，save/sample 每 50 步，其余同 v1
+  （dim 32/alpha 16、lr 1e-4、1024²、qfloat8 量化、TE fp16）；
+- 实测步速 ~3~11s/it（Windows Defender 扫描新 safetensors 时明显变慢；
+  建议给 `D:\开发文件\lora-train` 加 Defender 排除项）；
+- **训练峰值显存 ~15.6GB/16GB——必须关闭 ComfyUI 再训**（空闲的 ComfyUI 也会让采样阶段 OOM）。
+
+### 验收（v2 待跑）
+
+4 张新主题 → GLM-4V 逐张查：干净单六边形 / 紫色浮雕 / 金边完整 / 无底座无突出 →
+`normalize-skill-icon.py` 归一化 → 部署 `klein-skillicon-v2.safetensors`。
