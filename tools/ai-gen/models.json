@@ -20,7 +20,8 @@
     "sampler": "euler",
     "size": "1024x1024",
     "negative": "",
-    "lora": null,
+    "lora": "klein-skillicon-v1.safetensors",
+    "lora_strength": 1.0,
     "note": "FLUX.2 klein 4B distilled（fp8）；文本编码器 qwen_3_4b 与 Z-Image 共用"
   },
   "flux2-dev-fp8": {
@@ -34,7 +35,8 @@
     "scheduler": "simple",
     "size": "1024x1024",
     "negative": "",
-    "lora": null,
+    "lora": "klein-skillicon-v1.safetensors",
+    "lora_strength": 1.0,
     "note": "FLUX.2 dev fp8（NVIDIA 合作量化，5080 主力）；20~30 步 / CFG 2.5~4.0 推荐 3.5；支持 JSON 结构化提示词（固定视角/方向）"
   },
   "flux2-dev-depth": {
@@ -48,7 +50,8 @@
     "scheduler": "simple",
     "size": "1024x1024",
     "negative": "",
-    "lora": null,
+    "lora": "klein-skillicon-v1.safetensors",
+    "lora_strength": 1.0,
     "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
     "control_type": "depth",
     "control_strength": 0.75,
