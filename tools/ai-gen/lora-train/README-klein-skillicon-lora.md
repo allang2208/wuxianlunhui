@@ -1,5 +1,7 @@
 # 训练任务书：FLUX.2 Klein 4B 技能图标风格 LoRA（v1）
 
+> **新模块开训前先看 [`new-module-checklist.md`](new-module-checklist.md)**（通用训练模板/清单）。
+
 ## 目标
 
 用游戏已入库的"六边形徽章魔法技能图标"系列（7 张，1024² 白底）训练一个
