@@ -1,5 +1,77 @@
 # 变更日志
 
+### 对话：跨机 ComfyUI-Mesh 打通 + 模型选择矩阵定稿（2026-08-04 四轮）
+
+- **Mesh 跨机出图实测通过**：FLUX.2 dev fp8（33GB）拆两卡——5080 Icarus 前端 +
+  本机 3080 Ti Daedalus 后端（n_blocks=4，NVENC 压缩，8 步 turbo，服务端每步约 0.8s）。
+- **兼容修复链全部落地**：flux2fun-controlnet v1.1.0 两处补丁（`timestep_zero_index` /
+  `multigpu_clones`）+ comfyui-mesh Icarus stub 低显存遍历补丁 + 本机 safetensors
+  绑定崩溃绕过（`safetensors_raw.py` 纯字节读取），修复文件在 `tools/remote-patch/`
+  （NAS 同步一份）。
+- **客户端工具**：`tools/comfyui-gen.py` 新增 `flux2-dev-mesh` 模型（8 步 turbo，
+  Turbo LoRA 两端本地加载；工作流 = UNETLoader→MeshSplitFlux→LoraLoaderModelOnly→
+  BasicGuider/FluxGuidance/Flux2Scheduler）；`tools/start-daedalus.ps1` 一键启动后端；
+  `tools/mesh-dev-workflow.json` 为可提交的 API 工作流模板。
+- **模型选择矩阵定稿**：WORKFLOW.md §1.6——入库资产=Dev（mesh 在线时 8 步 turbo 提速）、
+  批量/探索=Klein 4B、兜底=SDXL+智谱 API、视频=MiniMax H3；mesh 开关规则；
+  **mesh 不支持 ControlNet**（锁视角必须走单卡 `flux2-dev-depth`）。
+- **文档同步**：WORKFLOW 入口矩阵补 mesh 行、阻塞点改"已修复"、§4 补 mesh 运维坑；
+  SKILL.md 补 mesh 与矩阵指针；.gitignore 忽略 `assets/videos/`（测试视频入 Y: scratch）。
+
+### 对话：透明主体方案一固化——AI 选纯色底 + 阈值抠图（2026-08-04 三轮）
+
+- **背景色 AI 选择器**：`tools/pick_bg_color.py` 扫描提示词颜色词（中/英/hex）
+  估算主体色板，选与主体色距离最远的候选纯色（默认品红 #FF00FF）；可
+  `--bg-color #RRGGBB` 人工覆盖。
+- **客户端一键链**：`tools/comfyui-gen.py` 新增 `--transparent`（默认 `--bg-color auto`）：
+  底色自动写入提示词并替换 "white background" 类短语 → 出图后自动
+  `tools/transparent_cutout.py` 阈值抠图 + BiRefNet 精修；产物 `out.png`（RGBA）
+  + `out_raw.png`（原图）。纯色底解决白色要素多主体白底抠不净的问题。
+- **背景均匀性自适应**：`transparent_cutout.py` 检测边框色散与底色占比；均匀时阈值主导、
+  非均匀时自动切 BiRefNet 主导（SDXL 实测会出灰蓝渐变底，已按此兜底）。
+- **BiRefNet 复用**：`tools/birefnet-cutout.py` 新增 `predict_alpha()` /
+  `--predict-alpha`，透明抠图器自动走 ComfyUI .venv（torch）子进程精修。
+- **提示词模板固化**：`game-dev/tools/ai-gen/prompts/transparent-subject.md` 新增，
+  prompts/README 索引 + WORKFLOW §3.7 + SKILL 贴图要点同步。
+- **实测**：SDXL 512² 端到端跑通（白盔→AI 选纯蓝→自动抠图 34.6% 占比、无背景残留）；
+  FLUX.2 全家族（dev/klein）仍被 flux2fun-controlnet 全局 patch 阻塞
+  （`timestep_zero_index`），待 5080 部署 tools/remote-patch 后复测。
+
+### 对话：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定（2026-08-04 二轮）
+
+- **入口优先级调整**：双机 ComfyUI 自建生图系统优先（远程 5080 主力 + 本机 3080 Ti 兜底）→
+  本地零成本；智谱 API 降级为第三兜底。
+- **5080 主力模型登记**：FLUX.2 dev fp8（flux2_dev_fp8mixed + mistral_3_small_flux2_fp4_mixed +
+  flux2-vae）+ FLUX.2-dev-Fun-Controlnet-Union（Depth/Canny/HED/Pose 单文件多模式）；
+  tools/models.json 新增 flux2-dev-fp8（24 步/CFG 3.5）与 flux2-dev-depth（默认强度 0.75）。
+- **客户端升级**：tools/comfyui-gen.py 新增 --control-image / --strength 与 ControlNet
+  工作流分支（Flux2FunControlNetLoader/Apply），深度图固定视角/方向；BFL JSON 结构化
+  提示词（camera 块）作双保险。
+- **兼容修复（阻塞点）**：flux2fun-controlnet v1.1.0 monkey-patch 不接收
+  timestep_zero_index（实测 FLUX.2 dev 生成即崩）；备好修复版 tools/remote-patch/flux_patch.py
+  + 远程替换任务书，委托 5080 替换重启后复测。
+- **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 五类模板补深度锁用法、
+  SKILL.md v2.1、CHANGELOG。
+- **验证**：远程 5080 在线且模型/节点实机核对；comfyui-gen.py --list-models 通过；
+  flux2-dev-fp8 冒烟测试定位 timestep_zero_index 兼容问题（修复方案已备，待部署复测）。
+
+### 对话：生图标准工作流 + 提示词固化（2026-08-04）
+
+- **生图标准工作流定稿**：新增 `tools/ai-gen/WORKFLOW.md`——六步全流程（定风格→生成→粗筛→
+  视觉验收→抠图入库→清理废案）+ 生成入口矩阵（智谱 API 优先 / ComfyUI 兜底 / 远程 5080 主力 /
+  本地 3080 Ti 兜底 / models.json 模型登记表）+ 各类资产子流程（技能图标 / 装备图标 / 障碍物 /
+  怪物 / 投射物 / 视频）+ 沉淀坑位清单 + NAS 归置原则。
+- **提示词固化**：新增 `tools/ai-gen/prompts/` 提示词库——README（拼接顺序 / 权重语法 /
+  智谱 vs ComfyUI 差异 / img2img 模板锁定规则）+ 五类固化模板：skill-icon（六边形徽章系列，
+  含 fireball 内容框基准 788×939/0.84/~70%/cy+29）、equipment-icon（style_prefix + 负面词 +
+  单件强制 + 构图硬性规则）、obstacle、monster-sprite、video（MiniMax H3）。
+- **一致性修正**：SKILL.md 文首工作流「标准流程」命名由五步修正为六步；障碍物提示词引用改指
+  prompts/obstacle.md；SKILL.md 版本 1.9 → 2.0。
+- **修改文件**：tools/ai-gen/WORKFLOW.md（新增）、tools/ai-gen/prompts/（新增 6 文件）、
+  SKILL.md、CHANGELOG.md。
+- **验证**：WORKFLOW 引用的工具路径全部核实存在；模板内容全部来自实战沉淀
+  （陨星/暴风雪图标、稀有三套+首饰、沙袋/拒马、陨星 VFX 视频）。
+
 ### 对话：稀有套装入库 + 小鼠铁匠商店出售（2026-08-03）
 
 - **12 件稀有装备入库**：流云（轻甲三件套）／蚀月（法袍三件套）／镇岳（重甲三件套）＋星陨之戒／不息腰带／磐心项链，稀有度 rare、等级 10，双份 equipment.json（data/ + public/data/，99 条一致）。

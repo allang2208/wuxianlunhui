@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 1.9
+## 版本: 2.1
 
 ## ⭐ 识图优先入口：GLM-4V 识图系统（2026-08-03 构建，读图一律先走这里）
 
@@ -24,12 +24,24 @@ node "...\describe-image.js" --latest
 - 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
   deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
 
-## 本地 AI 出图工作流（智谱 API 优先 + ComfyUI 兜底 + GLM-4V 验收，2026-08-03 障碍物落地）
+## 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4V 验收，2026-08-04 二轮调整）
 
-新技能贴图/图标/素材一律**优先走智谱 API 生图**（用户智谱账号有免费额度，2026-08-03 确认），
-出图后必须过 GLM-4V 验收再入库；本地 ComfyUI 作为兜底（离线 / 免费额度耗尽时）。
+> **标准执行入口（2026-08-04 定稿）**：`game-dev/tools/ai-gen/WORKFLOW.md`（六步全流程 + 入口矩阵 +
+> 各类资产子流程 + 沉淀坑位）与 `game-dev/tools/ai-gen/prompts/`（固化提示词库，五类模板）。
+> 本节约为摘要速查，细则以 WORKFLOW.md 为准；提示词一律从 prompts/ 库取用，禁止现场自由发挥。
+>
+> **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
+> 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 降级为第三兜底。5080 主力模型
+> **FLUX.2 dev fp8 + Flux.2 Depth ControlNet**（固定视角/方向出图）。
 
-### 生图入口（优先：智谱 API，2026-08-03 障碍物落地）
+新技能贴图/图标/素材一律**优先走双机 ComfyUI**（本地零成本、不限量）：
+远程 5080 主力出图（FLUX.2 dev fp8 + Depth ControlNet 锁视角/方向），本机 3080 Ti 兜底；
+智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4V 验收再入库。
+
+### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
+- **远程 5080 主力（默认）**：`python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`
+- **固定视角/方向**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
+- **本机 3080 Ti 兜底**：`python tools/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
 - 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
 - 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）
 - key：环境变量 `ZHIPU_API_KEY` → 自动读 deepseek-vision-skill 的 `config.json`（与 GLM-4V 共用智谱账号）
@@ -42,37 +54,103 @@ node "...\describe-image.js" --latest
   **面积最小、最靠角落**的暗色连通域为水印框（y≥78% 区域，面积 >800px 跳过防误伤主体）→
   白底覆盖 → BiRefNet 抠图丢弃。**教训：全右下象限暗像素 bbox 会把戒指底部误当水印
   覆盖出缺口（2026-08-03 星陨之戒两连坑），必须按连通域+面积过滤。**
-- 障碍物统一提示词策略：`tools/ai-gen/obstacle-prompt-strategy.md`
+- 障碍物统一提示词策略：`game-dev/tools/ai-gen/prompts/obstacle.md`
   （风格基准块 + 视角块 + 避项，新道具必须同一视角）；抠图走 `tools/ai-gen/prep-obstacle.py`
 
-### 环境（ComfyUI 兜底）
-- 本地 ComfyUI（SDXL base 1.0，RTX 3080 Ti 12GB）：http://127.0.0.1:8188，启动 `start-comfyui.bat`
-- 命令行客户端：`tools/ai-gen/comfyui-gen.py`（--prompt / --size / --seed / --out）
-- 批量生成/抠图/校验脚本：`tools/ai-gen/`（gen-*.py / cutout-*.py / check-*.py / finalize-*.py）
-- 大文件下载：`tools/ai-gen/parallel_download.py`（多线程分段，国内网络适配）
+### 环境（ComfyUI 双机系统，2026-08-04 二轮）
+- **远程 5080 主力机（2026-08-04 沉淀）**：`192.168.3.142:8188`（RTX 5080 16GB，ComfyUI 0.30）；
+  启动 `tools/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行 8188/专用网络；
+  机器休眠会断服务，需关闭休眠）
+- 已装模型（2026-08-04 实机核对）：**FLUX.2 dev fp8**（`flux2_dev_fp8mixed` +
+  `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ **FLUX.2 Depth ControlNet**
+  （`FLUX.2-dev-Fun-Controlnet-Union.safetensors`，Depth/Canny/HED/Pose 单文件多模式）+
+  SDXL（`sd_xl_base_1.0`，对比/兜底）+ FLUX.2 klein 4B（`flux-2-klein-4b-fp8` +
+  `qwen_3_4b`，蒸馏备用）+ MiniMax H3 视频模型
+- **多模型切换客户端**：`tools/comfyui-gen.py`（`--model` / `--host` / `--list-models`，
+  模型登记表 `tools/models.json`，每模型独立工作流+默认参数）
+  ```bash
+  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
+  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
+  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
+  python tools/comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "..." --out out.png
+  ```
+- **兼容修复已应用（2026-08-04）**：flux2fun-controlnet v1.1.0 两处补丁
+  （`timestep_zero_index` / `multigpu_clones`）与 comfyui-mesh Icarus stub 补丁已在 5080
+  部署（备份与修复版在 `tools/remote-patch/`），FLUX.2 全系列正常出图。
+- **跨机 Mesh（2026-08-04 实测通过）**：FLUX.2 dev fp8 拆两卡——5080 跑前端（Icarus），
+  本机 3080 Ti 跑后端 4 块（Daedalus @192.168.3.153:7777，n_blocks=4，Turbo LoRA 两端本地加载）。
+  用法：`--model flux2-dev-mesh`（8 步 turbo，服务端每步约 0.8s）。前提：本机 Daedalus 已启动
+  （`tools/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃遗留会话会卡死 Daedalus，重启即可。
+- **模型选择矩阵（2026-08-04 定稿）**：入库资产用 FLUX.2 Dev（mesh 在线时 8 步 turbo 提速），
+  批量/探索用 Klein 4B（4 步），兜底 SDXL / 智谱 API，视频只有 MiniMax H3；
+  完整矩阵（含各资产子流程的规则/参数）见 `game-dev/tools/ai-gen/WORKFLOW.md §1.6`。
+- 本地 3080 Ti 兜底：http://127.0.0.1:8188，启动 `start-comfyui.bat`（同一客户端，`--host 127.0.0.1`）
+- 抠图/校验：`tools/make-transparent-icon.py`（白底→透明 RGBA）、`tools/check-icon-sizes.py`（内容框测量）
+- 同系列新图标模板化生成：`tools/gen-meteor-icon-template.py`（换参考图+提示词即可复用）
 
-### 标准流程（五步）
+### 标准流程（六步）
 1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
-2. **生成**：白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考
-3. **粗筛**：像素统计（opaque% 主体占比、白底比例、bbox 宽高比、中心偏移）
+   → 同系列内容框基准（2026-08-04 陨星教训）：fireball=788×939、宽高比 0.84、占比~70%、偏下构图(cy≈+29)，
+   用 `tools/check-icon-sizes.py` 量化对齐
+2. **生成**：默认 `flux2-dev-fp8`（5080）；**固定视角/方向走 `flux2-dev-depth` +
+   `--control-image` 深度图**（同系列复用已定稿图深度，见 WORKFLOW §1.5）；
+   白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考；
+   **模板锁定 img2img**：参考图先压白底再上传（透明角直传会被合成黑底→出黑角图），
+   提示词强调 same template/size/position as reference
+3. **粗筛**：像素统计（opaque% 主体占比、白底比例、bbox 宽高比、中心偏移）；
+   新图标入库前必须过 `tools/check-icon-sizes.py`，内容框与系列基准偏差 >5% 需重抽或归一
 4. **视觉验收**：GLM-4V 定性（内容/风格/构图）+ 像素统计定量交叉，二者矛盾时以像素统计为准
-5. **抠图入库**：角点自适应背景色 flood fill + 边缘去污染 + 白边检查；1024×1024 透明底入库
+5. **抠图入库**：统一走 `tools/make-transparent-icon.py`（角点 flood fill + 羽化 + 边缘去污染，
+   1024×1024 透明底入库），入库后再跑 `tools/check-icon-sizes.py` 复核
 6. **清理废案（强制）**：确认最终资产已被引用后，删除迭代过程中的全部废案与未调用图片——
    被否方案、v1/v2…迭代版、候选图、预览图、临时抠图一律清除，只保留最终被引用的文件，防止仓库膨胀
 
 ### 技能贴图要点（逐步沉淀，2026-08-03 首版）
 - **同系列优先**：魔法技能图标必须复刻现有"六边形徽章+浮雕底座"风格，不要自由发挥（暴风雪 v1 白底贴纸被否）
+- **同系列大小统一（2026-08-04 陨星教训）**：图标观感由内容框（非透明 bbox）决定，与画布像素无关；
+  系列基准=fireball 788×939/宽高比 0.84/占比~70%/偏下 cy≈+29。FLUX.2 直出窄徽章（750×951）观感偏小 →
+  必须用参考图模板锁定 img2img 重抽 + check-icon-sizes.py 校验后入库
 - **img2img 主体替换顽固**：低 denoise（0.55~0.65）保框架但主体不换，高 denoise（0.75+）换主体但丢底座细节
   → 两段式：先合适 denoise 出主体，再对局部区域 inpaint 补回底座
 - **ComfyUI inpaint 遮罩坑**：`SetLatentNoiseMask` 的 mask 来自 `LoadImage` 的 **alpha 通道输出**（节点第 2 个输出）；
   遮罩存成无 alpha 的灰度图会被当空遮罩 → inpaint 只改 ~1% 像素。遮罩必须存 RGBA，alpha=255 为重绘区
 - **白底出图**：提示含 "sticker style, isolated on plain pure white background"，负面含 gradient/dark/frame/border/hexagon；
   SDXL 对"纯白背景"遵循不稳定（可能出浅灰/渐变底）——背景色以角点像素均值判定，不要信 GLM 描述
+- **透明主体走纯色底（方案一，2026-08-04）**：白色要素多的主体禁用白底（抠不净需人工介入）；
+  生成加 `--transparent`（AI 选底色 `tools/pick_bg_color.py` + 阈值抠图
+  `tools/transparent_cutout.py` + BiRefNet 精修；背景非均匀时自动切 BiRefNet 主导）
 - **纯色小物件**（雪球等）：直接用运行时 createCanvas 径向渐变生成纹理，不要 AI 出图再抠（白边抠不净）
 - **抠图去污染**：边缘 alpha 反推前景色（decontamination），半透明边缘"灰调残留比例"应 <5%
 - **废案必清**：入库后删除迭代废案/未调用图片（2026-08-03 教训：blizzard-icons v1~v6、ice-icons-v1、
   snowball 变体共 79MB 全部删除），只保留最终被引用资产
 - **GLM-4V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
+
+### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
+- 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
+  **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
+- 客户端：`tools/minimax-h3-gen.py`（--prompt / --duration / --size / --seed / --out）
+  官方 T2V 管线：UNETLoader+CLIPLoader+双VAE → MiniMaxH3ImageToVideo →
+  BasicGuider + RandomNoise + KSamplerSelect(res_multistep) + BasicScheduler(simple 20步) →
+  SamplerCustomAdvanced → VAEDecode+VAEDecodeAudio → CreateVideo(24fps) → SaveVideo(mp4)
+- 实测：1344×768、2s（56 帧）≈ 315s（5080 int8）；时长按 17k+5 网格（24fps），
+  如 2s=56 帧、5s=124 帧；生成中机器休眠会断，需关休眠
+- 用法两条路：
+  - 视频资源：MP4 直入项目（Phaser video key 播放）
+  - 精灵序列：PyAV 抽帧 → sprite sheet（动作动画截帧路线）
+- R2V 参考模式：`MiniMaxH3ReferenceToVideo`，按接入顺序用 `<Picture 1>` / `<Video 1>` / `<Audio 1>`
+  标签引用，可锁角色/风格/动作/声音；ref_image_size=match 快 / max 保真（更慢）
+- 提示词规范：整场描述（场景 → 分镜 → 镜头运动 → 音效）写在一个块里；
+  短边 768px、尺寸 32 的倍数（H3 原生画布）
+
+### 素材/模型/备份归置（NAS Y:\，2026-08-04）
+- Y:\ = NAS 映射盘（\\192.168.3.2 共享，SMB），素材库双机共用；目录约定：
+  - `Y:\素材库\`：原始素材/参考图
+  - `Y:\工作\无尽轮回\scratch\`：AI 出图/视频中间产物与候选（生成脚本默认输出地，定稿才进仓库）
+  - `Y:\模型库\ComfyUI\models\`：大模型归档（双机共用；冷模型可 junction：
+    `mklink /J models Y:\模型库\ComfyUI\models`，热模型留本机保证加载速度）
+- **版本控制走 GitHub**（origin `allang2208/wuxianlunhui`），`tools/backup-to-nas.ps1`
+  保留为手动可选备份，不做定时
+- 原则：仓库只保留被引用资产；候选/废案/大视频一律落 Y:，E: 只放源码+入库资产
 
 ### 多视图/多件排列硬筛（2026-08-03 沉淀：SDXL 帽子/法袍顽固出多视图）
 - SDXL 对 "wizard hat" / "robe" 极易画成**多视图设计稿**（5~10 个分离主体），GLM-4V 描述
@@ -91,6 +169,57 @@ node "...\describe-image.js" --latest
 - 冰锥 4 张贴图：img2img 参考 Meshy 冰锥图 → 抠图 → 随机抽取入库
 - 暴风雪图标：v1 白底贴纸（否）→ v6 冰墙参考 + 局部 inpaint 补底座（定稿）
 - 雪球：运行时生成纯白圆（不占贴图资源）
+- 陨星坠落（2026-08-04）：FLUX.2 文生图初稿（窄 750×951，观感偏小被否）→ 火球白底参考
+  模板锁定 img2img 重抽 8 候选 → 自动抠底 + 内容框校验（793×945 达标）→ 定稿替换
+- MiniMax H3 视频（2026-08-04）：陨星 VFX 2s 文生视频（1344×768/56帧/原生音效）
+  → `assets/videos/`（远程 5080 生成，约 5 分钟）
+
+## 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
+
+### 本次完成
+1. **生图标准工作流定稿**：`game-dev/tools/ai-gen/WORKFLOW.md`——六步全流程
+   （定风格→生成→粗筛→视觉验收→抠图入库→清理废案）+ 生成入口矩阵（智谱 API 优先 /
+   ComfyUI 兜底 / 远程 5080 主力 / 本地 3080 Ti 兜底 / models.json 模型登记表）+
+   各类资产子流程（技能图标 / 装备图标 / 障碍物 / 怪物 / 投射物 / 视频）+
+   沉淀坑位清单 + NAS 归置原则。
+2. **提示词固化**：`game-dev/tools/ai-gen/prompts/` 提示词库——
+   README（拼接顺序 / 权重语法 / 智谱 vs ComfyUI 差异 / img2img 模板锁定规则）+
+   五类固化模板：skill-icon（六边形徽章系列，含 fireball 内容框基准）、
+   equipment-icon（style_prefix + 负面词 + 单件强制 + 构图硬性规则）、obstacle、
+   monster-sprite、video（MiniMax H3）。
+3. **一致性修正**：文首工作流「标准流程」命名由五步修正为六步（实际条目一直是 6 条）；
+   障碍物提示词引用改指 prompts/obstacle.md（旧 obstacle-prompt-strategy.md 收敛为跳转桩）。
+
+### 验证
+- WORKFLOW.md 引用的工具路径全部核实存在（tools/comfyui-gen.py、tools/models.json、
+  make-transparent-icon.py、check-icon-sizes.py、birefnet-cutout.py、verify-eclipse-icons.py、
+  flip-boots-right.py、check-components.py、minimax-h3-gen.py、start-comfyui-remote.bat 等）。
+- 模板内容全部来自实战沉淀（陨星/暴风雪图标、稀有三套+首饰、沙袋/拒马、陨星 VFX 视频），非虚构。
+
+## 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
+
+### 本次完成
+1. **入口优先级调整**：双机 ComfyUI 优先（远程 5080 主力 + 本机 3080 Ti 兜底）→ 本地零成本；
+   智谱 API 降级为第三兜底（双机不可用/特殊场景）。
+2. **5080 主力模型实机核对并登记**：FLUX.2 dev fp8（`flux2_dev_fp8mixed` +
+   `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ FLUX.2 Depth ControlNet
+   （`FLUX.2-dev-Fun-Controlnet-Union`，Depth/Canny/HED/Pose 单文件多模式）已装；
+   `tools/models.json` 登记 `flux2-dev-fp8`（24 步/CFG 3.5）+ `flux2-dev-depth`（默认强度 0.75）。
+3. **客户端升级**：`tools/comfyui-gen.py` 新增 `--control-image` / `--strength` 与
+   ControlNet 工作流分支（Flux2FunControlNetLoader/Apply），深度图锁视角/方向；
+   官方 BFL JSON 结构化提示词（camera 块）作双保险。
+4. **兼容修复（已应用 2026-08-04）**：flux2fun-controlnet v1.1.0 的
+   `timestep_zero_index` / `multigpu_clones` 两处补丁与 comfyui-mesh Icarus stub 补丁
+   已在 5080 替换并重启（原文件备份 + 修复版在 `tools/remote-patch/`，NAS 同步一份）；
+   Mesh 跨机出图实测通过（`flux2-dev-mesh`，8 步 turbo，Turbo LoRA 两端本地加载）。
+5. **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 五类模板补深度锁用法、
+   SKILL.md v2.1、CHANGELOG。
+
+### 验证
+- 远程 5080 在线（192.168.3.142，RTX 5080 16GB，ComfyUI 0.30.0），模型/节点清单实机核对
+  （Flux2FunControlNetLoader/Apply 存在，ControlNet 文件在 models/controlnet）。
+- `tools/comfyui-gen.py --list-models` 通过；`flux2-dev-mesh` 跨机实测出图成功
+  （5080 Icarus + 3080 Ti Daedalus，8 步 turbo，服务端每步 decode~140ms/fwd~9ms/enc~650ms）。
 
 ## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
 
