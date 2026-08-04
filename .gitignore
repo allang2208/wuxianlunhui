@@ -29,3 +29,4 @@ tmp_*.png
 vite.probe.config.js
 tools/normalized/
 assets/videos/
+__pycache__/

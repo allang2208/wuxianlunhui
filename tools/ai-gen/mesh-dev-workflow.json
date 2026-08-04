@@ -1,0 +1,117 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux2_dev_fp8mixed.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "mistral_3_small_flux2_fp4_mixed.safetensors",
+      "type": "flux2"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "MeshSplitFlux",
+    "inputs": {
+      "model": ["1", 0],
+      "n_blocks_remote": 4,
+      "remote_host": "192.168.3.153",
+      "remote_port": 7777,
+      "codec_mode": "nvenc",
+      "codec_qp": 18,
+      "codec_lossless": false,
+      "codec_tile_dim": 8,
+      "forward_client_loras": true
+    }
+  },
+  "15": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["4", 0],
+      "lora_name": "Flux2TurboComfyv2.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "a cute cartoon meteor fireball icon, game skill icon style",
+      "clip": ["2", 0]
+    }
+  },
+  "6": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "conditioning": ["5", 0],
+      "guidance": 4
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["15", 0],
+      "conditioning": ["6", 0]
+    }
+  },
+  "8": {
+    "class_type": "Flux2Scheduler",
+    "inputs": {
+      "steps": 8,
+      "width": 1024,
+      "height": 1024
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "10": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 20260804
+    }
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["10", 0],
+      "guider": ["7", 0],
+      "sampler": ["9", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["12", 0]
+    }
+  },
+  "12": {
+    "class_type": "EmptyFlux2LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "13": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["11", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "14": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["13", 0],
+      "filename_prefix": "mesh-dev-test"
+    }
+  }
+}
