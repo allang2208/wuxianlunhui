@@ -291,9 +291,9 @@ export class BootScene extends Scene {
         // 晶石投射物贴图（单帧）
         this.load.image('enemy_ore_spider_projectile', 'assets/enemies/ore_spider/projective.png');
 
-        // 僵尸工头（领主）：8列×4行 512×512 切帧（idle 1 / walking 15 / attacking 31 / howling 24 / dying 14）
+        // 僵尸工头（领主）：512×512 切帧（idle 1 / walking 20（H3 循环动画，5列×4行，同相周期截取）/ attacking 31 / howling 24 / dying 14）
         this.load.spritesheet('enemy_foreman_idle',   'assets/enemies/foreman_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 19 });
         this.load.spritesheet('enemy_foreman_attack', 'assets/enemies/foreman_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 30 });
         this.load.spritesheet('enemy_foreman_howl',   'assets/enemies/foreman_zombie/howling.png',   { frameWidth: 512, frameHeight: 512, endFrame: 23 });
         this.load.spritesheet('enemy_foreman_death',  'assets/enemies/foreman_zombie/dying.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -1129,8 +1129,8 @@ export class BootScene extends Scene {
         });
         this.anims.create({
             key: 'enemy_foreman_walk',
-            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 14 }),
-            frameRate: 10,
+            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 19 }),
+            frameRate: 8,
             repeat: -1,
         });
         this.anims.create({

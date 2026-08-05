@@ -240,6 +240,13 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   rectangular bricks aligned in neat rows` 为骨架，仍带碎裂边缘/磨损，保持无阴影平光；
   旧自然版备份 `.bak.brick`。校验：FFT 砖缝周期性（新 D 39px/46px 峰值强于直墙基线）
   + GLM 局部放大确认网格 + `audit-perspective` MIRROR 对。
+- **E/C/B/A 强化重做（2026-08-05 三版）**：用户反馈“体现不出墙壁强度”→ 只重做
+  E/C/B/A（F/D 保留），48 步 + 颜色分级：F 白灰 / E 沙色米黄+橄榄绿沙袋 /
+  D 暖灰红砖 / C 冷灰蓝混凝土+锈钢板角件 / B 深钢蓝炭黑铆接钢板（砖格 60%+钢板 40%）/
+  A 黑砖+蓝色发光符文（符文画在砖面）。提示词先写砖格再写强度元素（防钢板/符文盖掉
+  网格，第一版 B/A 网格被盖，FFT 周期弱于直墙基线）；旧版备份 `.bak.brick2`。
+  **校验铁律**：强度元素必须“砖格为主、元素为辅”，FFT 双轴峰值 ≥ 直墙基线（~0.03）
+  才算过；GLM 缩略图误读网格，必须放大单看砖缝。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3453,3 +3460,96 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 | 贯穿·基础 | 124 | 180 | 250 | 320 | 390 |
 | 贯穿·魔攻/智力系数 | 2.06 / 2.30 | 3.1 / 3.5 | 4.4 / 5.0 | 5.7 / 6.5 | 7.0 / 8.0 |
 | 感电增伤 | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% |
+
+## 视频→精灵图→游戏落地全管线（2026-08-05 工头 walk 实战沉淀，100% 达标）
+
+### 1. 视频模型选择：H3 首帧模式（不是 ref2va）
+- H3 的 `MiniMaxH3ImageToVideo` 节点（`comfy_extras.nodes_minimax_h3`）自带 `first_frame` / `last_frame`
+  输入：首帧=参考图 → **像素级锁定角色**，这才是"图生视频"的正确姿势。
+- **ref2va（`MiniMaxH3ReferenceToVideo`）是参考注入不是首帧**：特征能锁、画风锁不住，
+  角色会"从头到尾不是原贴图那个角色"（实测踩坑，曾误判为模型缺陷）。
+- 客户端：`tools/ai-gen/minimax-h3-gen.py --first-frame x.png [--last-frame x.png] --duration 5.17 ...`
+  （脚本已支持；ref2va 用 `--ref-image`，首帧模式用 `--first-frame`，二者互斥）。
+- 时长网格 17k+5 @24fps：2s=56 帧、5.17s=124 帧；**H3 训练区间 124~362 帧（5~15s），
+  2s 在训练分布外**，循环/图生视频至少取 124 帧。
+- 实测耗时（5080 int8，1344×768，20 步）：56 帧≈6min、124 帧≈17min；机器休眠会断服务。
+
+### 2. 视频背景色选择（关键，直接决定抠图成败）
+- **背景色必须与主体色系距离最大**；选色前先对参考图做像素统计确认主体调色板
+  （不要信 GLM 描述，GLM 背景色判断不可靠）。
+- 工头案例：品红底失败——主体含红血污/红眼/头灯暖光/粉色过渡，品红抠图容差一松就吃掉
+  同色系区域（用户反馈"部分缺失"）；**换纯白底成功**——主体是深色系（深棕/灰/黑），
+  与白色色距极远。
+- 规则：① 扫主体调色板，选统计上完全缺席的颜色；② 主体含大量白色的禁止白底（如雪球）；
+  ③ 生成后做**孤立背景色斑检测**（连通域：不贴画布边框的孤立背景色块=角色内部真实孔洞），
+  用形态学闭运算填孔（工头唯一近白点=头灯高光，约 20px，闭运算 3×3 即填掉）。
+- 白底视频提示词：`flat solid pure white background identical to the first frame,
+  completely uniform white, no ground, no shadow, no reflection`。
+
+### 3. 镜头/构图（防"超出显示区域"）
+- **首帧角色高度占画布 70~75%、四周留 ≥10% 安全边距**；顶天立地（100%）时实测
+  56 帧里 45 帧贴边、头脚被裁。
+- 提示词：`static camera locked in place, no camera movement, no pan, no zoom,
+  no push-in, no pull-out, no tilt, no rotation, the body stays perfectly centered
+  in the frame and never drifts left or right, only the arms and legs move,
+  the entire character with hat and bare feet always fully visible inside the frame
+  with generous empty margin on all sides, nothing is cropped or touches the frame edges`。
+- 验收量化：逐帧主体 bbox 贴边帧数必须 = 0；水平中心漂移初始 206px → 缩 75% + 强化
+  静态镜头后 35px（可接受，拼图时逐帧居中可消）。
+
+### 4. 无缝循环生成（首帧=尾帧）
+- `--first-frame` 与 `--last-frame` 传**同一张图**：结尾姿势/位置强制回到首帧
+  （实测中心差 (0,0)px、轮廓重合 IoU 0.99、结尾 5 帧速度无突变=无橡皮筋回弹）。
+- 提示词加：`at the end of the video the character naturally returns to the exact
+  same pose and the exact same position as the first frame, seamless loop,
+  no freeze and no slow down at the end`。
+- 已知现象：模型仍会在片头/片尾各留 ~8 帧缓动（"慢起→匀速→缓回"），这是正常现象，
+  靠截取算法规避（见 §5），不要因此误判视频失败。
+
+### 5. 循环截取算法（h3-loop-spritesheet.py，本次核心沉淀）
+- **全身平均像素差 / 全身 IoU ≠ 步态相似度**：躯干占比大，这些指标到处 0.9+，
+  找不到周期（实测误判过 T=113、T=112 都是错的）；**必须用腿部区域
+  （身体 bbox 下 35%）IoU** 判"同相位"。
+- 流程：
+  1. 抠底：背景阈值 235 → 3×3 闭运算填孔 → alpha 高斯羽化（3×3, σ0.8）软边；
+  2. 在匀速中段（如 steady=12,105）扫 `leg_iou(s, s+P)`，P∈[70,120]，
+     取 IoU>0.80 的最强配对（工头：s=24, e=104, P=80, leg-IoU=0.952）；
+  3. **循环 = [s, e-step]，必须去掉重复端点 e**：pose(e)≈pose(s)（同相位），
+     留着会让接缝变成"定格"；去掉后接缝 = 一次正常步幅；
+  4. 验证：接缝步幅必须落在正常步幅区间内（工头：正常 27.4~61.0，接缝 31.2）。
+- 判定铁律：**接缝步幅 ≈ 正常步幅 ±50% 才合格**；偏小=接缝定格、偏大=接缝跳变，
+  两者用户都能一眼看出"一段播完突兀开新段"。
+
+### 6. 精灵图抠图/对齐（防"扯回"）
+- 抠图：白底阈值 235 → 形态学闭运算（3×3，填头灯高光等小孔）→ alpha 高斯羽化软边。
+- **对齐三铁律（逐帧量化，必须零偏差）**：
+  - 角色高度固定（先实测旧图标定，工头=262px）；
+  - 脚底基线固定（工头 y=410，防上下跳）；
+  - 水平中心固定（工头 x=256，防左右扯/滑步）。
+- 尺寸/脚底/中心与旧图一致 ⇒ 碰撞体积配置（collisionWidth/Height、footOffsetY）不用动。
+- 进游戏前**先扫空白帧**（格内 alpha>10 像素数 <50 视为空），禁止把空格注册进动画
+  （否则周期闪没，毒液僵尸 idle 24 格仅带 0 有内容的旧教训）。
+
+### 7. 游戏集成（Phaser 512 切帧惯例）
+- 一律 512×512 格子；工头 walk 旧规格：15 帧 8×4 网格 → 新版 20 帧 5×4 网格。
+- BootScene：`load.spritesheet` 的 `endFrame = 帧数-1`；`anims.create` frames 0..N-1、
+  walk 用 `repeat:-1`；frameRate 按观感调（工头 20 帧 8fps=2.5s/圈，10fps 偏快）。
+- `_getTextureKey()` 必须与动画源 spritesheet 一致；换素材前先备份旧图到
+  `Y:\工作\无尽轮回\scratch\backup\`（git 里也有历史版本，可放心清）。
+
+### 8. 验证清单（像素统计优先，GLM 辅助）
+- **像素统计优先级 > GLM 描述**：GLM 会跑偏（曾说视频衣服是绿色、背景判断不可靠、
+  还会输出模板化"assuming…"套话）。量化证据：直方图相关度、步幅差值、贴边帧数、
+  中心漂移、对齐三铁律。
+- 循环验证：首尾中心差、(腿部)同相 IoU、接缝步幅 vs 正常步幅、结尾 5 帧速度无突变。
+- 抠图验证：每帧背景占比稳定、角色内部孤立背景斑（连通域）、无空格帧。
+- 集成验证：`npx vite build` + `npx eslint` + 无空格帧 + GLM **单张**抽查
+  （多图并排 GLM 会串扰，联系图只用于定性）。
+
+### 9. 本次产物与可复用命令
+- 循环视频：75% 白底首帧，`--first-frame` = `--last-frame`，5.17s/124 帧，
+  seed 2026080504 → `foreman_walk_loop_5s_h3_white.mp4`。
+- 精灵图：`h3-loop-spritesheet.py --video <loop.mp4> --out walking.png --cols 5`
+  （自动出 20 帧 5×4、2560×2048，附 GIF 预览）。
+- 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
+  anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。
