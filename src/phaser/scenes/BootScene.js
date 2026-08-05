@@ -143,6 +143,22 @@ export class BootScene extends Scene {
         // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
         this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
         this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
+        // 世界-122 掩体（F→A 六档 × 水平摆(_h)/垂直摆(_v)，2026-08-04 dev+mesh 批量生图入库）
+        for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
+            for (const orient of ['h', 'v']) {
+                this.load.image(`obstacle_cover_${grade}_${orient}`, `assets/terrain/obstacle_cover_${grade}_${orient}.png`);
+            }
+        }
+        // 世界-122 防御塔（基座+上方机械臂武器挂载点）
+        this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
+        // 世界-122 防御塔机械臂（独立贴图，绕塔顶枢轴 360° 旋转）
+        this.load.image('obstacle_defense_tower_arm', 'assets/terrain/obstacle_defense_tower_arm.png');
+        // 阔叶树五变体（2026-08-05 Blender 白模深度 + flux2-dev-depth 生图入库，摆墙编辑器障碍物类）
+        for (const tree of ['tall', 'bushy', 'twin', 'wind', 'tiered']) {
+            this.load.image(`obstacle_tree_${tree}`, `assets/terrain/obstacle_tree_${tree}.png`);
+        }
+        // 防御塔挂载弓（玩家弓走箭矢帧，塔用单张弓贴图）
+        this.load.image('weapon_bow', 'assets/weapons/bow.png');
         // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
         this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
         this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
@@ -275,9 +291,9 @@ export class BootScene extends Scene {
         // 晶石投射物贴图（单帧）
         this.load.image('enemy_ore_spider_projectile', 'assets/enemies/ore_spider/projective.png');
 
-        // 僵尸工头（领主）：8列×4行 512×512 切帧（idle 1 / walking 15 / attacking 31 / howling 24 / dying 14）
+        // 僵尸工头（领主）：512×512 切帧（idle 1 / walking 20（H3 循环动画，5列×4行，同相周期截取）/ attacking 31 / howling 24 / dying 14）
         this.load.spritesheet('enemy_foreman_idle',   'assets/enemies/foreman_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        this.load.spritesheet('enemy_foreman_walk',   'assets/enemies/foreman_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 19 });
         this.load.spritesheet('enemy_foreman_attack', 'assets/enemies/foreman_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 30 });
         this.load.spritesheet('enemy_foreman_howl',   'assets/enemies/foreman_zombie/howling.png',   { frameWidth: 512, frameHeight: 512, endFrame: 23 });
         this.load.spritesheet('enemy_foreman_death',  'assets/enemies/foreman_zombie/dying.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -1113,8 +1129,8 @@ export class BootScene extends Scene {
         });
         this.anims.create({
             key: 'enemy_foreman_walk',
-            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 14 }),
-            frameRate: 10,
+            frames: this.anims.generateFrameNumbers('enemy_foreman_walk', { start: 0, end: 19 }),
+            frameRate: 8,
             repeat: -1,
         });
         this.anims.create({

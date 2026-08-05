@@ -3,7 +3,7 @@
 ## 系列基准（新图标必须对齐，偏差 >5% 重抽或归一）
 
 - 内容框基准（fireball 实测）：**bbox 788×939 / 宽高比 0.84 / 占比 ~70% / 偏下构图 cy≈+29**
-- 校验：`python tools/check-icon-sizes.py`（跑 skills.json 全量）；入库 1024×1024 透明底
+- 校验：`python tools/ai-gen/check-icon-sizes.py`（跑 skills.json 全量）；入库 1024×1024 透明底
 - 同系列范例：fireball_icon（火球）、blizzard_icon（暴风雪）、陨星坠落.png（陨星）
 
 ## 风格基准（img2img 模板锁定用；固化不可随意改动）
@@ -49,7 +49,7 @@ glowing icy blue highlights`
 - 参考图：用**同色系**现有图标（火球做火系参考；换色系参考会回染，如暴风雪蓝→冰锥必蓝）。
 - 参考图处理：先压白底再上传；候选批量：4 档 denoise × 多 seed。
 - 出主体 → 若底座/边框丢失，对中央区域 inpaint 补回（mask 存 RGBA，alpha=255 为重绘区）。
-- 抠图：`tools/make-transparent-icon.py`；入库后跑 check-icon-sizes 复核。
+- 抠图：`tools/ai-gen/make-transparent-icon.py`；入库后跑 check-icon-sizes 复核。
 
 ## 深度图锁徽章视角（2026-08-04 新增，推荐）
 

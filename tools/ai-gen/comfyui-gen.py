@@ -36,12 +36,78 @@ from transparent_cutout import cutout_file  # noqa: E402
 
 DEFAULT_NEGATIVE = "blurry, low quality, watermark, text, signature"
 REGISTRY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models.json")
+MODEL_HIDDEN_DIM = {
+    "flux2-klein-4b": 3072,
+    "flux2-dev-fp8": 6144,
+    "flux2-dev-depth": 6144,
+    "flux2-dev-mesh": 6144,
+}
 SCRATCH_DIR = r"Y:\工作\无尽轮回\scratch"
 
 
 def load_registry():
     with open(REGISTRY_FILE, "r", encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def _safetensors_header(path):
+    """Read the JSON header of a safetensors file (pure python, no deps)."""
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(8)
+            if len(head) < 8:
+                return None
+            n = int.from_bytes(head, "little")
+            data = fh.read(n)
+        return json.loads(data.decode("utf-8"))
+    except Exception:
+        return None
+
+
+def check_lora_dim(entry, model_name):
+    """Pre-flight guard: a LoRA's txt_attn.proj dim must match the model's
+    hidden dim (klein=3072, dev=6144). Catches the previous runtime crash
+    'shape [6144, 6144] is invalid for input of size ...' before it happens.
+    """
+    lora_name = entry.get("lora")
+    expected = MODEL_HIDDEN_DIM.get(model_name)
+    if not lora_name or not expected:
+        return
+    backup_root = os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__)))))
+    lora_dirs = [
+        os.path.join(backup_root, "ComfyUI", "models", "loras"),
+        os.path.join(backup_root, "comfyui-mesh", "server"),
+    ]
+    path = next((os.path.join(d, lora_name) for d in lora_dirs
+                 if os.path.exists(os.path.join(d, lora_name))), None)
+    if not path or not os.path.exists(path):
+        print(f"[lora] '{lora_name}' not found locally (may live on remote 5080); "
+              "dim pre-check skipped", file=sys.stderr)
+        return
+    header = _safetensors_header(path)
+    if not header:
+        print(f"[lora] cannot parse '{lora_name}' header; dim pre-check skipped",
+              file=sys.stderr)
+        return
+    dims = set()
+    for key, meta in header.items():
+        if "txt_attn.proj" in key:
+            shape = (meta or {}).get("shape") or []
+            if len(shape) == 2:
+                dims.add(int(shape[0]))
+    if not dims:
+        print(f"[lora] '{lora_name}' has no txt_attn.proj key; dim pre-check skipped",
+              file=sys.stderr)
+        return
+    dim = dims.pop()
+    if dim != expected:
+        print(f"ERROR: lora '{lora_name}' dim={dim} does not match model "
+              f"'{model_name}' hidden_dim={expected}. Do not attach the klein "
+              "(3072) LoRA to dev (6144) models.", file=sys.stderr)
+        sys.exit(1)
+    print(f"[lora] '{lora_name}' dim={dim} matches {model_name} (ok)",
+          file=sys.stderr)
 
 
 def build_checkpoint_workflow(prompt, negative, ckpt, seed, steps, cfg, width, height, sampler, scheduler, prefix):
@@ -67,7 +133,7 @@ def build_checkpoint_workflow(prompt, negative, ckpt, seed, steps, cfg, width, h
 
 def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, width, height,
                          sampler, prefix, lora=None, controlnet=None, control_image=None,
-                         strength=0.75):
+                         strength=0.75, guidance=None):
     """FLUX.2 workflow: UNETLoader + CLIPLoader(flux2) + Flux2Scheduler + SamplerCustom.
 
     controlnet: file name under models/controlnet (e.g. FLUX.2-dev-Fun-Controlnet-Union.safetensors).
@@ -75,6 +141,7 @@ def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, wi
     strength: ControlNet conditioning strength (0.6~0.8 for depth).
     """
     model_ref = ["1", 0]
+    guide_val = guidance if guidance is not None else (cfg if cfg and cfg > 1 else 4.0)
     nodes = {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": unet, "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": clip, "type": "flux2"}},
@@ -84,22 +151,23 @@ def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, wi
         "6": {"class_type": "Flux2Scheduler", "inputs": {"steps": steps, "width": width, "height": height}},
         "7": {"class_type": "EmptyFlux2LatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}},
         "8": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": sampler}},
-        "9": {
-            "class_type": "SamplerCustom",
+        "9": {"class_type": "FluxGuidance", "inputs": {"conditioning": ["4", 0], "guidance": guide_val}},
+        "10": {"class_type": "BasicGuider", "inputs": {"model": model_ref, "conditioning": ["9", 0]}},
+        "11": {"class_type": "RandomNoise", "inputs": {"noise_seed": seed}},
+        "12": {
+            "class_type": "SamplerCustomAdvanced",
             "inputs": {
-                "model": model_ref, "add_noise": True, "noise_seed": seed, "cfg": cfg,
-                "positive": ["4", 0], "negative": ["5", 0], "sampler": ["8", 0],
+                "noise": ["11", 0], "guider": ["10", 0], "sampler": ["8", 0],
                 "sigmas": ["6", 0], "latent_image": ["7", 0],
             },
         },
-        "10": {"class_type": "VAEDecode", "inputs": {"samples": ["9", 0], "vae": ["3", 0]}},
-        "11": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["10", 0]}},
+        "13": {"class_type": "VAEDecode", "inputs": {"samples": ["12", 0], "vae": ["3", 0]}},
+        "14": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["13", 0]}},
     }
     if lora:
-        nodes["12"] = {"class_type": "LoraLoaderModelOnly", "inputs": {
+        nodes["15"] = {"class_type": "LoraLoaderModelOnly", "inputs": {
             "model": model_ref, "lora_name": lora, "strength_model": 1.0}}
-        model_ref = ["12", 0]
-    nodes["9"]["inputs"]["model"] = model_ref
+        nodes["10"]["inputs"]["model"] = ["15", 0]
 
     if controlnet and control_image:
         nodes["20"] = {"class_type": "LoadImage", "inputs": {"image": control_image}}
@@ -107,8 +175,8 @@ def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, wi
         nodes["22"] = {"class_type": "Flux2FunControlNetApply", "inputs": {
             "conditioning": ["4", 0], "controlnet": ["21", 0], "vae": ["3", 0],
             "strength": strength, "control_image": ["20", 0]}}
-        nodes["9"]["inputs"]["positive"] = ["22", 0]
-    return nodes, "11"
+        nodes["9"]["inputs"]["conditioning"] = ["22", 0]
+    return nodes, "14"
 
 
 def build_mesh_workflow(prompt, unet, clip, vae, lora, seed, steps, guidance, width, height,
@@ -253,6 +321,7 @@ def main():
         ap.error(f"--model '{model_name}' not in {REGISTRY_FILE}; run --list-models to see options")
     entry = registry[model_name]
     mtype = entry["type"]
+    check_lora_dim(entry, model_name)
 
     if args.prompt_file:
         with open(args.prompt_file, "r", encoding="utf-8") as fh:
@@ -273,6 +342,8 @@ def main():
     sampler = args.sampler or entry.get("sampler", "euler")
     scheduler = args.scheduler or entry.get("scheduler", "normal")
     negative = args.negative if args.negative is not None else entry.get("negative", DEFAULT_NEGATIVE)
+    if args.negative and mtype != "checkpoint":
+        print(f"警告：模型 '{model_name}'（{mtype} 类型）不支持负面词，--negative 已忽略", flush=True)
 
     bg_hex = None
     if args.transparent:
@@ -288,7 +359,8 @@ def main():
             print(f"[transparent] 底色 AI 选择: {bg_name} #{bg_hex} — {pick['reason']}", flush=True)
         prompt = inject_background(prompt, bg_name, bg_hex)
         negative = (f"{negative}, gradient background, textured background, "
-                    "shadow on background, glow behind subject, frame, border").strip(" ,")
+                    "shadow on background, drop shadow, cast shadow, hard lighting, "
+                    "directional light, rim light, glow behind subject, frame, border").strip(" ,")
         print(f"[transparent] 最终提示词: {prompt[:260]}{'...' if len(prompt) > 260 else ''}", flush=True)
 
     seed = args.seed if args.seed is not None else random.randint(0, 2**31 - 1)
@@ -313,7 +385,8 @@ def main():
         workflow, save_node = build_flux2_workflow(
             prompt, negative, entry.get("unet"), entry.get("clip"), entry.get("vae"),
             seed, steps, cfg, width, height, sampler, args.prefix, lora=entry.get("lora"),
-            controlnet=controlnet, control_image=control_image, strength=strength)
+            controlnet=controlnet, control_image=control_image, strength=strength,
+            guidance=entry.get("guidance"))
     elif mtype == "mesh":
         if args.checkpoint:
             print(f"note: --checkpoint ignored for mesh model '{model_name}'", file=sys.stderr)
@@ -333,10 +406,10 @@ def main():
           f"(seed={seed}, {width}x{height}, {steps} steps, {param_label})...", flush=True)
     t0 = time.time()
     queued = api(args.host, args.port, "/prompt", "POST", {"prompt": workflow})
-    pid = queued["prompt_id"]
-    if queued.get("node_errors"):
-        print("Workflow errors:", json.dumps(queued["node_errors"], ensure_ascii=False, indent=2))
+    if queued.get("node_errors") or queued.get("error"):
+        print("Workflow rejected:", json.dumps(queued, ensure_ascii=False, indent=2))
         sys.exit(1)
+    pid = queued["prompt_id"]
 
     deadline = time.time() + args.timeout
     images = None

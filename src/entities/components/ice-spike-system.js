@@ -21,6 +21,18 @@ const ICE_SPIKE_TEXES = ['iceSpike', 'iceSpike2', 'iceSpike3', 'iceSpike4'];
 const ICE_SPIKE_KIND = {
     skillKey: 'iceSpike',
     mpShortageColor: '#5a8aaa',
+    // 配置缺省兜底（配置唯一真相：skills.json iceSpike effectFormula 必有；缺省统一收敛于此）
+    defaults: {
+        cooldown: 10,
+        mpCost: 30,
+        damageBase: 0,
+        magicMul: 0,
+        intMul: 0,
+        spikeCount: 1,
+        duration: 30,
+        flySpeed: 1600,
+        maxRange: 800,
+    },
     wallRadius: 8,
     hitRadius: 12,
     fields: {

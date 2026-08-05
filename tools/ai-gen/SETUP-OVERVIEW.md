@@ -43,7 +43,7 @@
 | 服务 | 启动 | 停止 |
 |---|---|---|
 | 5080 ComfyUI | `Start-Process <venv python> main.py --listen 0.0.0.0 --port 8188`（隐藏窗口） | `taskkill /PID <python main.py> /T /F` |
-| 本机 Daedalus | `tools/start-daedalus.ps1 -SkipSmoke` | 结束对应 python |
+| 本机 Daedalus | `tools/ai-gen/start-daedalus.ps1 -SkipSmoke` | 结束对应 python |
 | 5080 Icarus（mesh 客户端） | 与 ComfyUI 一起随 custom_nodes 加载，ComfyUI 重启即恢复 | 随 ComfyUI |
 
 **训练前必须关 5080 ComfyUI**（训练峰值 ~15.6GB/16GB）；训练后按上表重启。

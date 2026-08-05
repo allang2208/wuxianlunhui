@@ -124,7 +124,7 @@
       "dungeonType": "zombie"
     },
     "scene8": {
-      "name": "沼泽地",
+      "name": "世界-122",
       "type": "instance",
       "label": "场景八",
       "width": 4096,
@@ -191,7 +191,7 @@
       "entries": [
         {
           "targetScene": "scene8",
-          "label": "沼泽地"
+          "label": "世界-122"
         }
       ]
     }

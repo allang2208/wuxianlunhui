@@ -332,6 +332,16 @@ respawn() {
                 if (this.flameArmorSystem && typeof this.flameArmorSystem.clearBuff === 'function') {
                     this.flameArmorSystem.clearBuff();
                 }
+                // 清除雷暴领域状态（含头顶雷云）
+                this._stormDomainCooldown = 0;
+                if (this.stormDomainSystem && typeof this.stormDomainSystem.clearCloud === 'function') {
+                    this.stormDomainSystem.clearCloud();
+                }
+                // 清除贯穿雷枪状态（含蓄力瞄准标记与感电地面）
+                this._thunderLanceCooldown = 0;
+                if (this.thunderLanceSystem && typeof this.thunderLanceSystem.clearLance === 'function') {
+                    this.thunderLanceSystem.clearLance();
+                }
                 // 清除施法状态（死亡/复活复位）
                 this._castState = 'idle';
                 this._castReleaseDone = true;
@@ -516,10 +526,32 @@ applyPoison(stacks) {
                     if (!skills.lightningStrike) {
                         skills.lightningStrike = {
                             id: 'lightningStrike', name: '闪电', icon: '⚡', iconImage: 'assets/skills/闪电.png',
-                            description: '释放后锁定鼠标指向处最近的敌方单位，蓝紫色闪电连接造成魔法伤害，闪电会向目标周围 200px 内传导，命中目标被击退并眩晕',
+                            description: '释放后锁定鼠标指向处最近的敌方单位，蓝紫色闪电连接造成魔法伤害，闪电会向目标周围 200px 内传导，命中目标被眩晕并叠加感电',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
-                            getEffect(level) { return { damageBase: 20 + level * 10, magicMul: 1.15 + level * 0.25, intMul: 1 + level * 0.25, cooldown: 12, mpCost: 30, aimRadius: 200, maxRange: 600, stunMs: 750 + level * 20, knockback: 50 + level * 5, chainRange: 200, chainTargets: 1 + Math.floor((level - 1) / 5), chainDecay: 0.1, duration: 0.5, fadeMs: 250, segments: 10, jitter: 0.09 }; },
+                            getEffect(level) { return { damageBase: 20 + level * 10, magicMul: 1.15 + level * 0.25, intMul: 1 + level * 0.25, cooldown: 12, mpCost: 30, aimRadius: 200, maxRange: 600, stunMs: 750 + level * 20, chainRange: 200, chainTargets: 1 + Math.floor((level - 1) / 5), chainDecay: 0.1, duration: 0.5, fadeMs: 250, segments: 10, jitter: 0.09, electrifyStacks: 1, electrifyDurationMs: 4000 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保雷暴领域技能始终存在（电系中级，需法杖）
+                    if (!skills.stormDomain) {
+                        skills.stormDomain = {
+                            id: 'stormDomain', name: '雷暴领域', icon: '🌩️', iconImage: 'assets/skills/雷暴领域.png',
+                            description: '中级电魔法：在头顶凝聚雷云跟随自己，持续期内每 0.9 秒对范围内最近的敌人落雷，落雷可传导、眩晕打断并叠加感电',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 30, mpCost: 80 + Math.floor((level - 1) * 40 / 19), maxRange: 550, duration: 10 + Math.floor((level - 1) * 3 / 19), strikeIntervalMs: 900, radius: 220 + level * 8, strikeDamageBase: 25 + level * 4, strikeMagicMul: 0.45 + level * 0.05, strikeIntMul: 0.45 + level * 0.05, chainExtraTargets: 1 + Math.floor((level - 1) / 8), chainRange: 160, chainDecay: 0.3, stunMs: 250, electrifyStacks: 1, electrifyDurationMs: 4000 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保贯穿雷枪技能始终存在（电系高级，需法杖）
+                    if (!skills.thunderLance) {
+                        skills.thunderLance = {
+                            id: 'thunderLance', name: '贯穿雷枪', icon: '⚡', iconImage: 'assets/skills/贯穿雷枪.png',
+                            description: '高级电魔法：长按 Q 蓄力（可随鼠标改变瞄准方向），蓄满 2.5 秒或松开后沿鼠标方向射出电磁炮直线光束——笔直贯穿路径上所有敌人，蓄力 0.5~2.5 秒按时间比例造成 20%~100% 伤害（满蓄力 100%），命中目标被击退（50→150px 随等级），不足 0.5 秒释放失败且不进入冷却不耗魔；目标感电层数越高伤害越高（每层 +10%）；射程尽头或撞墙处电爆',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 32 - Math.floor((level - 1) * 4 / 19), mpCost: 120 + Math.floor((level - 1) * 35 / 19), maxRange: 900 + level * 15, delayMs: 2500, minChargeMs: 500, lanceDamageBase: 110 + level * 14, lanceMagicMul: 1.8 + level * 0.26, lanceIntMul: 2.0 + level * 0.30, knockback: 50 + Math.floor((level - 1) * 100 / 19), electrifyDamagePerStack: 0.1, electrifyStacks: 2, electrifyDurationMs: 5000, chargeBonusMul: 1.3, coneHalfWidth: 40, endExplosionRadius: 90, shakeIntensity: 10 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -1278,6 +1310,9 @@ _startReload(slot) {
                     }
                 }
                 state.reloadTimer = actualReloadTime;
+                // 记录本次实际换弹时长（含双持 +50% 等修正；state.reloadTime 保持基础值，
+                // 避免下次换弹在已加成的值上重复叠加）。UI 读 reloadDuration ?? reloadTime。
+                state.reloadDuration = actualReloadTime;
                 
                 if (singleReloadMode) {
                     // 单发装填模式（如Super90）
@@ -1334,7 +1369,7 @@ _updateReload(dt) {
                                 }
                             } else {
                                 // 继续装填下一发
-                                state.reloadTimer = state.reloadTime;
+                                state.reloadTimer = (state.reloadDuration || state.reloadTime);
                                 SoundManager.playFile('assets/sounds/weapons/Super90-reload.mp3');
                             }
                         } else {
@@ -1380,7 +1415,7 @@ getAmmoDisplay() {
                         current: mainState.current,
                         max: mainState.max,
                         reloading: mainState.reloading,
-                        reloadPercent: mainState.reloading ? 1 - (mainState.reloadTimer / mainState.reloadTime) : 0,
+                        reloadPercent: mainState.reloading ? 1 - (mainState.reloadTimer / (mainState.reloadDuration || mainState.reloadTime)) : 0,
                         isMain: true
                     });
                 }
@@ -1397,7 +1432,7 @@ getAmmoDisplay() {
                             current: offState.current,
                             max: offState.max,
                             reloading: offState.reloading,
-                            reloadPercent: offState.reloading ? 1 - (offState.reloadTimer / offState.reloadTime) : 0,
+                            reloadPercent: offState.reloading ? 1 - (offState.reloadTimer / (offState.reloadDuration || offState.reloadTime)) : 0,
                             isMain: false
                         });
                     }
@@ -1426,7 +1461,10 @@ _updateAmmoDisplay() {
                 let html = '';
                 for (const data of ammoData) {
                     const color = data.reloading ? '#888888' : (data.current <= data.max * 0.2 ? '#ff6b6b' : '#d4c5a9');
-                    const statusText = data.reloading ? `换弹中 ${Math.ceil(data.reloadPercent * 100)}%` : `${data.current}/${data.max}`;
+                    // 无限弹药（能量轻机枪 max=Infinity）：显示"无限"而非 Infinity/Infinity
+                    const statusText = data.reloading
+                        ? `换弹中 ${Math.ceil(data.reloadPercent * 100)}%`
+                        : (Number.isFinite(data.max) ? `${data.current}/${data.max}` : '∞ 无限');
                     html += `<div style="background:rgba(40,35,30,0.85);color:${color};padding:4px 10px;border-radius:6px;border:1px solid rgba(120,100,80,0.5);font-size:14px;white-space:nowrap;"><span style="font-size:12px;color:#8a7a6a;margin-right:4px;">${data.isMain ? '主' : '副'}</span>${data.name}: ${statusText}</div>`;
                 }
                 this._ammoDisplayEl.innerHTML = html;
@@ -2416,6 +2454,14 @@ _updateSubsystems(dt, entities) {
                 // ===== 灼锋焰甲技能更新（冷却与光环由系统自管） =====
                 if (this.flameArmorSystem) {
                     this.flameArmorSystem.update(dt, entities);
+                }
+                // ===== 雷暴领域技能更新（雷云与冷却由系统自管） =====
+                if (this.stormDomainSystem) {
+                    this.stormDomainSystem.update(dt, entities);
+                }
+                // ===== 贯穿雷枪技能更新（蓄力/感电地面与冷却由系统自管） =====
+                if (this.thunderLanceSystem) {
+                    this.thunderLanceSystem.update(dt, entities);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

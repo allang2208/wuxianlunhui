@@ -1,19 +1,19 @@
 # 障碍物提示词模板（2026-08-03 固化，统一于 obstacle-prompt-strategy.md）
 
 > 目标：新障碍物（沙袋掩体、木制拒马等）与项目现有障碍物（木桶/陶罐/骨头/铁链/火把/
-> 木材堆/石柱）风格统一、彼此统一。依据：GLM-4V 对现有道具的风格审计。
+> 木材堆/石柱）风格统一、彼此统一。依据：GLM-4.6V 对现有道具的风格审计。
 
 ## 风格基准（所有障碍物提示词固定共用；固化不可随意改动）
 
 ```text
 game asset prop, photorealistic 3D render, dark realistic materials,
-soft studio lighting from upper-left, subtle drop shadow,
+flat diffuse ambient lighting, no light source, no shadows, no drop shadow,
 centered composition, isolated on plain pure white background, high detail,
 no text, no watermark
 ```
 
 要点：写实 3D 渲染（非卡通/像素风）；材质"暗色真实质感"（木/石/帆布/金属）；
-光源一律左上、主体底部带轻微地面阴影；主体居中、占画面 60~75%、四周留白；背景纯白
+无光源、无阴影（flat diffuse ambient lighting；禁止 studio/directional/rim light、drop/cast shadow）；主体居中、占画面 60~75%、四周留白；背景纯白
 （角点像素均值判定，浅灰渐变也算不合格）。
 
 ## 视角块（单独一行，按用户要求替换；新道具之间必须同一视角）
@@ -29,7 +29,8 @@ no text, no watermark
 
 ```text
 blurry, low quality, watermark, text, signature, gradient background, gray background,
-dark background, vignette, frame, border, people, hands, grass, floor, shadows on walls
+dark background, vignette, frame, border, people, hands, grass, floor, shadows on walls,
+drop shadow, cast shadow, hard lighting, directional light, rim light, studio lighting
 ```
 
 （等距时追加 `front view, straight-on view`；正面时追加 `isometric view, top-down view`）
@@ -53,9 +54,53 @@ wooden barricade made of crossed logs with sharpened pointed tips, medieval defe
 weathered dark brown wood with bark and grain, <视角块>, <风格基准>
 ```
 
+### 树木（2026-08-05 白模深度固化，推荐流程）
+
+树木是有机形态，提示词锁不住结构，**必须从 Blender 白模深度起步**
+（`tools/ai-gen/blender-depth-render.py` + `_blockout_specs/tree_{round,pine,dead}.json`）：
+
+- 白模配方：阔叶树 = 1 树干圆柱 + 4~5 球树冠团；松树 = 1 树干 + 3 叠锥；
+  枯树 = 主干 + 3~4 倾斜圆柱枝（非对称朝向可被真实 3D 深度锁定，见 SKILL 朝向节）。
+- **树枝定位必须按 rot 方向向量反算中心点**（枝下端要伸进主干内 ≥0.3 单位），
+  凭感觉摆必悬空（首版三枝全浮空教训）。
+- 模型会按球团自己补枝叶细节，白模只管大形/朝向/比例，不用堆图元。
+
+阔叶树（正面，实测入库级）：
+
+```text
+a mature broadleaf tree, one dense rounded lush green canopy made of clustered foliage
+masses, thick sturdy trunk with rough dark brown bark, <视角块>, <风格基准>
+```
+
+枯树（正面，朝向锁定实测通过）：
+
+```text
+a leafless dead tree, gnarled twisted bare branches reaching upward, weathered dark
+gray-brown wood, cracked rough bark, broken branch stumps, the main branch leans to the
+upper right, <视角块>, <风格基准>
+```
+
+> 产物：`scratch\test_tree_round_01.png` / `test_tree_dead_01.png`；strength 0.75。
+
+### 阔叶树五变体（2026-08-05 已入库）
+
+同一白模配方衍生 5 个形态，全部一次通过、已抠图入库 `assets/terrain/`：
+
+| 资产 | spec | 形态 | footprint w×d / 高 |
+|---|---|---|---|
+| `obstacle_tree_tall.png` | `tree_round_tall.json` | 高瘦长干高冠 | 42×15 / 170 |
+| `obstacle_tree_bushy.png` | `tree_round_bushy.json` | 矮胖宽冠短干 | 90×31 / 119 |
+| `obstacle_tree_twin.png` | `tree_round_twin.json` | 双干外张双冠 | 208×73 / 147 |
+| `obstacle_tree_wind.png` | `tree_round_wind.json` | 风斜偏冠 | 85×30 / 159 |
+| `obstacle_tree_tiered.png` | `tree_round_tiered.json` | 双层老树冠 | 111×39 / 134 |
+
+> 原图在 `scratch\test_tree_{tall,bushy,twin,wind,tiered}_01.png`；footprint/高为
+> `prep-obstacle.py` 输出的注册参考值。注意：白模比例与成品比例一致（twin 白模干距
+> 偏宽，成品 footprint 208 远超其他——建白模时 footprint 即决定入库碰撞占地）。
+
 ## 验收标准
 
-1. GLM-4V 定性：主体正确 / 视角符合指定 / 无文字水印 / 无断裂残影 / 背景纯净。
+1. GLM-4.6V 定性：主体正确 / 视角符合指定 / 无文字水印 / 无断裂残影 / 背景纯净。
 2. 像素统计定量：角点背景均值接近纯白；半透明边缘灰调残留 <5%。
 3. 两张新道具互相并排验收时**分开单张提问**（GLM 多图会串扰）。
 

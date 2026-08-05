@@ -3,6 +3,7 @@ export const GUN_AMMO_CAP = {
     weapon9:  { max: 12, reloadTime: 1000 },
     weapon10: { max: 6,  reloadTime: 1750 },
     weapon19: { max: 9,  reloadTime: 1500 },
+    weapon18: { max: 12, reloadTime: 1200 },
     weapon6:  { max: 75, reloadTime: 3500 },
     weapon7:  { max: 30, reloadTime: 1150 },
     weapon8:  { max: 30, reloadTime: 1000 },

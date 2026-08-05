@@ -14,6 +14,8 @@ import { RuneSwordSystem } from '../components/rune-sword-system.js';
 import { IceSpikeSystem } from '../components/ice-spike-system.js';
 import { FireballSystem } from '../components/fireball-system.js';
 import { LightningStrikeSystem } from '../components/lightning-strike-system.js';
+import { StormDomainSystem } from '../components/storm-domain-system.js';
+import { ThunderLanceSystem } from '../components/thunder-lance-system.js';
 import { HolyLightSystem } from '../components/holy-light-system.js';
 import { IceWallSystem } from '../components/ice-wall-system.js';
 import { BlizzardSystem } from '../components/blizzard-system.js';
@@ -125,6 +127,10 @@ class Player extends Combatant {
             this._meteorCooldown = 0; // 冷却（ms）
             // ===== 灼锋焰甲技能状态 =====
             this._flameArmorCooldown = 0; // 冷却（ms）
+            // ===== 雷暴领域技能状态 =====
+            this._stormDomainCooldown = 0; // 冷却（ms）
+            // ===== 贯穿雷枪技能状态 =====
+            this._thunderLanceCooldown = 0; // 冷却（ms）
             // ===== 施法状态（空手施法前摇/后摇，2026-08-02） =====
             this._castState = 'idle'; // idle | casting | recover
             this._castReleaseDone = false; // 第 8 帧释放是否已触发
@@ -192,6 +198,8 @@ class Player extends Combatant {
             this.blizzardSystem = new BlizzardSystem(this); // 暴风雪技能系统
             this.meteorSystem = new MeteorSystem(this); // 陨星坠落技能系统
             this.flameArmorSystem = new FlameArmorSystem(this); // 灼锋焰甲技能系统
+            this.stormDomainSystem = new StormDomainSystem(this); // 雷暴领域技能系统
+            this.thunderLanceSystem = new ThunderLanceSystem(this); // 贯穿雷枪技能系统
             this.droneSystem = new DroneSystem(this); // 无人机技能系统
             this.shieldSystem = new ShieldSystem(this); // 盾防御系统
             // ===== 独头弹后坐力系统（Super90）=====

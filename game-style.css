@@ -957,7 +957,8 @@
         .craft-mod-cell { position: absolute; width: 48px; height: 48px; background: linear-gradient(to bottom, #3d342b, #2a2520); border: 1px solid #5a4d3f; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; z-index: 3; pointer-events: auto; }
         .craft-mod-cell:hover { border-color: #d4c5a9; background: linear-gradient(to bottom, #4a3f35, #3d342b); transform: scale(1.1); box-shadow: 0 0 10px rgba(212,197,169,0.3); }
         .craft-mod-cell.equipped { border-color: #7a9a6a; background: linear-gradient(to bottom, #3d4a35, #2a3520); }
-        .craft-mod-cell-icon { font-size: 20px; line-height: 1; }
+        .craft-mod-cell-icon { font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+        .craft-mod-cell-icon img { width: 24px; height: 24px; object-fit: contain; }
         .craft-mod-cell-name { font-size: 12px; color: #8a7d6b; text-align: center; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40px; }
         .craft-mod-cell.equipped .craft-mod-cell-name { color: #d4e8c5; }
 
@@ -969,7 +970,8 @@
         .craft-mod-option { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid rgba(90, 77, 63, 0.5); cursor: pointer; transition: all 0.2s; }
         .craft-mod-option:hover { background: rgba(60, 50, 40, 0.4); border-color: #8a7d6b; }
         .craft-mod-option.selected { border-color: #7a9a6a; background: rgba(60, 80, 50, 0.3); }
-        .craft-mod-option-icon { font-size: 24px; width: 34px; text-align: center; flex-shrink: 0; }
+        .craft-mod-option-icon { font-size: 24px; width: 34px; height: 34px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .craft-mod-option-icon img { width: 34px; height: 34px; object-fit: contain; }
         .craft-mod-option-info { flex: 1; min-width: 0; }
         .craft-mod-option-name { color: #d4c5a9; font-size: 16px; font-weight: 600; }
         .craft-mod-option-desc { color: #8a7d6b; font-size: 12px; margin-top: 3px; }

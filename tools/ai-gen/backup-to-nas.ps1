@@ -1,6 +1,6 @@
 # 增量备份 game-dev 仓库到 NAS Y:\备份\game-dev（非镜像，不删除远端文件）
 $ErrorActionPreference = "Stop"
-$src = Join-Path (Split-Path $PSScriptRoot -Parent) "game-dev"
+$src = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $dst = "Y:\备份\game-dev"
 
 if (-not (Test-Path $src)) { Write-Error "source not found: $src" }

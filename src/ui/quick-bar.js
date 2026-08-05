@@ -500,6 +500,23 @@ export const QuickBar = {
                     player.flameArmorSystem.trigger();
                 }
                 // 冷却时间由 FlameArmorSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'stormDomain') {
+                // 雷暴领域技能（移动雷云持续落雷）
+                if (player.stormDomainSystem) {
+                    player.stormDomainSystem.trigger();
+                }
+                // 冷却时间由 StormDomainSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'thunderLance') {
+                // 贯穿雷枪技能（长按蓄力；点击快捷栏=二段式：无蓄力→开始蓄力，蓄力中→释放）
+                if (player.thunderLanceSystem) {
+                    player.thunderLanceSystem.setHoldKey(keyCode);
+                    if (player.thunderLanceSystem.isCharging()) {
+                        player.thunderLanceSystem.release();
+                    } else {
+                        player.thunderLanceSystem.trigger();
+                    }
+                }
+                // 冷却时间由 ThunderLanceSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -557,6 +574,21 @@ export const QuickBar = {
         } else {
             this.useSlot(keyCode); // 短按：维持原 toggle 行为
         }
+    },
+    // ===== 雷枪蓄力键：长按开始蓄力（瞄准随鼠标），松开/满蓄释放（<0.5s 失败不进 CD） =====
+    isThunderLanceKey(keyCode) {
+        return !!(this.skillAssignments && this.skillAssignments[keyCode] === 'thunderLance');
+    },
+    thunderLanceKeyDown(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.thunderLanceSystem) return;
+        player.thunderLanceSystem.setHoldKey(_keyCode);
+        player.thunderLanceSystem.trigger(); // 开始蓄力（内部完成冷却/法杖/MP 门禁）
+    },
+    thunderLanceKeyUp(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.thunderLanceSystem) return;
+        player.thunderLanceSystem.release(); // 蓄力时长满足则释放，不足则失败
     },
     // 长按：命令无人机飞往鼠标指针位置（未部署则先部署，部署等同施放受冷却限制）
     _droneMoveCommand() {
@@ -664,11 +696,21 @@ export const QuickBar = {
             this.cooldowns['meteor'] = 0;
         }
         // 灼锋焰甲技能冷却同步
-        if (Game.player && Game.player._flameArmorCooldown > 0) {
-            this.cooldowns['flameArmor'] = Game.player._flameArmorCooldown;
-        } else if (Game.player && Game.player._flameArmorCooldown === 0) {
-            this.cooldowns['flameArmor'] = 0;
-        }
+            if (Game.player && Game.player._flameArmorCooldown > 0) {
+                this.cooldowns['flameArmor'] = Game.player._flameArmorCooldown;
+            } else if (Game.player && Game.player._flameArmorCooldown === 0) {
+                this.cooldowns['flameArmor'] = 0;
+            }
+            if (Game.player && Game.player._stormDomainCooldown > 0) {
+                this.cooldowns['stormDomain'] = Game.player._stormDomainCooldown;
+            } else if (Game.player && Game.player._stormDomainCooldown === 0) {
+                this.cooldowns['stormDomain'] = 0;
+            }
+            if (Game.player && Game.player._thunderLanceCooldown > 0) {
+                this.cooldowns['thunderLance'] = Game.player._thunderLanceCooldown;
+            } else if (Game.player && Game.player._thunderLanceCooldown === 0) {
+                this.cooldowns['thunderLance'] = 0;
+            }
         this._renderCooldownOverlays();
         this._renderSkillRequirements();
     },
@@ -699,7 +741,7 @@ export const QuickBar = {
      */
     _getTotalCooldown(skillId, skill, effect) {
         const baseMs = (effect.cooldown || 0) * 1000;
-        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall'].includes(skillId)) return baseMs;
+        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall', 'stormDomain', 'thunderLance'].includes(skillId)) return baseMs;
         const player = Game.player;
         if (!player) return baseMs;
         const currentWpn = player.equipments && player.equipments[player.weaponMode];

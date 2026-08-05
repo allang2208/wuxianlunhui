@@ -35,6 +35,7 @@ import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
+import { DEFENSE_TOWER_VISUAL } from '../../world/defense-system.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -112,6 +113,8 @@ export class GameScene extends Scene {
         this._collisionRadiusGraphics = null;
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
+        // 防御塔三层渲染（基座/机械臂/挂载武器）
+        this._defenseSprites = new Map();
 
         // 可移动实体脚底阴影：按 groundRadius 绘制黑色圆影
         this._shadowSprites = new Map();
@@ -315,6 +318,8 @@ export class GameScene extends Scene {
             this._updateBossHpBar(_delta);
             this._syncHitFlashAndCharge(_game);
             this._syncNeutralEntities(_game);
+            // 防御塔三层渲染（基座 + 旋转机械臂 + 挂载武器）
+            this._syncDefenseTowers(_game);
             // Phase 3: 同步特效 Sprite
             if (_game && _game.player) {
                 this._syncRuneSwords(_game.player);
@@ -624,7 +629,11 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 const footOffsetY = this._getFootOffsetY(e, data.sprite);
-                const depth = data.sprite.y + footOffsetY + 10;
+                // 掩体等带显式地面锚线深度（_faceDepth = 底边线 max y + 12）的实体
+                // 不能按“贴图中心 + footOffsetY + 10”（= e.y + 10）覆盖——e.y 是显示框
+                // 底边，比掩体接地线深 22~137px，会把墙前实体错误排到墙后被盖
+                // （2026-08-05 实机复现：怪物 depth 2100 < 掩体 2121）
+                const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
                 data.sprite.setDepth(depth);
                 if (data.label && data.label.active) data.label.setDepth(depth + 1);
             }
@@ -1379,7 +1388,7 @@ export class GameScene extends Scene {
      * - 施法期间武器不隐藏，保持在 idle 右手持握位置（weaponAnim.state 保持 idle 自然停右手）。
      * 冰锥/火球二段发射、圣光释放等魔法统一走此入口（各系统 _startPlayerCast 包装）。
      */
-    startPlayerCast({ onRelease, forwardMs = 500, recoverMs = 250, releaseFrame = 8, totalFrames = 12 }) {
+    startPlayerCast({ onRelease, forwardMs = 500, recoverMs = 250, releaseFrame = 8, totalFrames = 12, holdAtRelease = false }) {
         const p = window.Game && window.Game.player;
         if (!p || !this.playerSprite) return;
         // 施法动画全配置驱动：动画键来自武器数据 castAnimKey（法杖=staff_cast），
@@ -1449,6 +1458,29 @@ export class GameScene extends Scene {
                 const fn = p._castOnRelease;
                 p._castOnRelease = null;
                 if (fn) fn();
+                // 蓄力定格：冻结在释放帧（保持 casting 输入锁定），等 resumePlayerCastHold 再继续
+                if (holdAtRelease && p._castState === 'casting') {
+                    // 先站稳：瞬间完成前摇跨步（+30px），蓄力期间玩家/手完全静止，光球不随跨步漂移
+                    const stepT = 1;
+                    const tx = (p._castOriginX ?? p.x) + (p._castStepDirX || 0) * (p._castStepMax || 30) * stepT;
+                    const ty = (p._castOriginY ?? p.y) + (p._castStepDirY || 0) * (p._castStepMax || 30) * stepT;
+                    if (WallSystem && typeof WallSystem.resolve === 'function') {
+                        const resolved = WallSystem.resolve(p.x, p.y, tx, ty, p.groundRadius);
+                        p.x = resolved.x;
+                        p.y = resolved.y;
+                    } else {
+                        p.x = tx;
+                        p.y = ty;
+                    }
+                    p._castStartTime = performance.now() - (p._castForwardMs || 500); // t=1：后续跨步不再推进
+                    if (this.playerSprite && this.playerSprite.anims) {
+                        this.playerSprite.anims.timeScale = 0;
+                    }
+                    if (this._castCompleteHandler) {
+                        if (this.playerSprite) this.playerSprite.off('animationcomplete', this._castCompleteHandler);
+                    }
+                    this._castHoldActive = true;
+                }
             }
         };
         this.playerSprite.on('animationupdate', this._castUpdateHandler);
@@ -1482,9 +1514,29 @@ export class GameScene extends Scene {
         this.playerSprite.once('animationcomplete', this._castCompleteHandler);
     }
 
+    /** 蓄力定格结束：恢复施法动画继续播完前摇 → 现有倒放后摇回 idle（贯穿雷枪蓄力释放/取消后调用） */
+    resumePlayerCastHold() {
+        if (!this._castHoldActive) return false;
+        this._castHoldActive = false;
+        if (this.playerSprite && this.playerSprite.anims) {
+            this.playerSprite.anims.timeScale = 1;
+        }
+        const p = window.Game && window.Game.player;
+        if (p && p._castState === 'casting' && this._castCompleteHandler && this.playerSprite) {
+            // 重新挂前摇播完 → 倒放后摇 → idle
+            this.playerSprite.once('animationcomplete', this._castCompleteHandler);
+            return true;
+        }
+        return false;
+    }
+
     /** 取消/结束施法：清监听、恢复武器显示；resetState=false 仅清监听（startPlayerCast 内部用） */
     cancelPlayerCast(resetState = true) {
         const p = window.Game && window.Game.player;
+        if (this._castHoldActive) {
+            this._castHoldActive = false;
+            if (this.playerSprite && this.playerSprite.anims) this.playerSprite.anims.timeScale = 1;
+        }
         if (this._castUpdateHandler) {
             if (this.playerSprite) this.playerSprite.off('animationupdate', this._castUpdateHandler);
             this._castUpdateHandler = null;
@@ -4672,7 +4724,7 @@ export class GameScene extends Scene {
         if (currentItem && isGunWeapon(currentItem)) {
             const mainState = player._ammoState && player._ammoState[currentSlot];
             if (mainState && mainState.reloading) {
-                const reloadPercent = 1 - (mainState.reloadTimer / mainState.reloadTime);
+                const reloadPercent = 1 - (mainState.reloadTimer / (mainState.reloadDuration || mainState.reloadTime));
                 this.worldHudGraphics.fillStyle(0x000000, 0.6);
                 this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
                 this.worldHudGraphics.fillStyle(0xffffff, 1);
@@ -4687,7 +4739,7 @@ export class GameScene extends Scene {
             if (isDualWield) {
                 const offState = player._ammoState && player._ammoState[offhandSlot];
                 if (offState && offState.reloading) {
-                    const offReloadPercent = 1 - (offState.reloadTimer / offState.reloadTime);
+                    const offReloadPercent = 1 - (offState.reloadTimer / (offState.reloadDuration || offState.reloadTime));
                     this.worldHudGraphics.fillStyle(0x000000, 0.6);
                     this.worldHudGraphics.fillRect(stX, nextY, stBarW, stBarH);
                     this.worldHudGraphics.fillStyle(0xcccccc, 1);
@@ -5028,6 +5080,8 @@ export class GameScene extends Scene {
             if (!e || e === player) continue;
             if (e._phaserSprite && e._phaserSprite.active) continue;
             if (!e.active) continue;
+            // 防御塔由 _syncDefenseTowers 专属渲染（基座/臂/武器三层）
+            if (e._skipNeutralSprite) continue;
             // 敌人由 _syncEntityHud 统一绘制名字/血条，避免重复标签
             if (e._faction === 'enemy') continue;
             active.add(e);
@@ -5040,9 +5094,10 @@ export class GameScene extends Scene {
                 let sprite;
                 if (sprCfg) {
                     const sz = sprCfg.size || 128;
+                    const szH = sprCfg.sizeH || sz; // 等比非方形显示（防御塔等竖版建筑）
                     sprite = this.add.sprite(e.x, e.y, sprCfg.idleKey);
                     sprite.setOrigin(0.5, 0.5);
-                    sprite.setDisplaySize(sz, sz);
+                    sprite.setDisplaySize(sz, szH);
                     // 静态贴图（无动画注册）直接显示首帧，不 play
                     if (this.anims.exists(sprCfg.idleKey)) sprite.play(sprCfg.idleKey);
                     // 动画帧触发音效（game-config npcs.*.sprite.frameSounds：
@@ -5130,6 +5185,15 @@ export class GameScene extends Scene {
             // 名字标签：贴图 NPC 放在贴图顶部，圆形占位保持按 size 偏移
             const labelTop = sprCfg ? sprite.displayHeight / 2 : size;
             label.setPosition(e.x, sprite.y - labelTop - 8);
+            // 防御建筑（基地核心/防御塔/掩体）：按地面锚线 Y 参与墙体深度排序。
+            // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
+            // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
+            // 实体错误排到墙后被盖（2026-08-05 实机复现）
+            if (e._isDefenseStructure) {
+                const dd = (typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12;
+                sprite.setDepth(dd);
+                label.setDepth(dd + 1);
+            }
             if (label.text !== text) {
                 label.setText(text);
             }
@@ -5144,6 +5208,84 @@ export class GameScene extends Scene {
                 data.sprite.destroy();
                 data.label.destroy();
                 this._neutralSprites.delete(e);
+            }
+        }
+    }
+
+    /**
+     * 防御塔三层渲染：基座（静态，已去臂贴图）+ 机械臂（绕塔顶枢轴 360° 旋转）+
+     * 挂载武器（跟随臂尖，朝向=塔 aimAngle）。
+     * 世界-122 防守塔：臂贴图 `obstacle_defense_tower_arm`，几何见 DEFENSE_TOWER_VISUAL。
+     */
+    _syncDefenseTowers(_game) {
+        if (!_game || !_game.entities) return;
+        const V = DEFENSE_TOWER_VISUAL;
+        const active = new Set();
+        for (const e of _game.entities.values()) {
+            if (!e || !e._isDefenseTower || !e.active || e.hp <= 0) continue;
+            active.add(e);
+            let sp = this._defenseSprites.get(e);
+            if (!sp) {
+                sp = {
+                    base: this.add.sprite(0, 0, 'obstacle_defense_tower'),
+                    arm: this.add.sprite(0, 0, 'obstacle_defense_tower_arm'),
+                    weapon: this.add.sprite(0, 0, 'weapon_rusty_sword'),
+                };
+                sp.base.setOrigin(0.5, 0.5);
+                sp.arm.setOrigin(0.5, 0.5);
+                sp.weapon.setOrigin(0.5, 0.5);
+                this._defenseSprites.set(e, sp);
+            }
+            // 基座
+            sp.base.setPosition(e.x, e.y - V.base.footOffsetY);
+            sp.base.setDisplaySize(V.base.w, V.base.h);
+            sp.base.setFlipX(!!e._mirrored);
+            sp.base.setDepth(e.y + 12);
+            sp.base.setVisible(true);
+            // 机械臂：枢轴=塔顶中心，绕枢轴旋转（rotation = aimAngle − 臂自然角）
+            const pivotX = e.x;
+            const pivotY = e.y - V.arm.pivotWorldY;
+            const s = V.arm.s;
+            const plx = V.arm.pivot.x * s;
+            const ply = V.arm.pivot.y * s;
+            sp.arm.setPosition(pivotX - plx + V.arm.w / 2, pivotY - ply + V.arm.h / 2);
+            sp.arm.setDisplaySize(V.arm.w, V.arm.h);
+            sp.arm.setRotation(e.aimAngle - V.arm.naturalAngle);
+            sp.arm.setDepth(e.y + 12.5);
+            sp.arm.setVisible(true);
+            // 挂载武器：臂尖世界坐标 + 沿瞄准方向小前置；朝左 flipX
+            const item = e.weaponItem;
+            if (item) {
+                let tex = getWeaponTextureKey(item);
+                if (!this.textures.exists(tex)) tex = 'weapon_rusty_sword';
+                if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
+                const rot = e.aimAngle - V.arm.naturalAngle;
+                const tdx = (V.arm.tip.x - V.arm.pivot.x) * s;
+                const tdy = (V.arm.tip.y - V.arm.pivot.y) * s;
+                const cosR = Math.cos(rot);
+                const sinR = Math.sin(rot);
+                const tipX = pivotX + tdx * cosR - tdy * sinR;
+                const tipY = pivotY + tdx * sinR + tdy * cosR;
+                // 与玩家枪械同口径：rotation=瞄准角；朝左（|角|>90°）用 flipY 防倒置
+                const flipY = Math.abs(e.aimAngle) > Math.PI / 2;
+                const wH = V.weapon.heights[item.weaponType] || V.weapon.defaultHeight;
+                sp.weapon.setPosition(tipX + Math.cos(e.aimAngle) * 10, tipY + Math.sin(e.aimAngle) * 10);
+                sp.weapon.setRotation(e.aimAngle);
+                sp.weapon.setFlipX(false);
+                sp.weapon.setFlipY(flipY);
+                sp.weapon.setScale(wH / Math.max(1, sp.weapon.height));
+                sp.weapon.setDepth(e.y + 13);
+                sp.weapon.setVisible(true);
+            } else {
+                sp.weapon.setVisible(false);
+            }
+        }
+        for (const [e, sp] of this._defenseSprites.entries()) {
+            if (!active.has(e)) {
+                sp.base.destroy();
+                sp.arm.destroy();
+                sp.weapon.destroy();
+                this._defenseSprites.delete(e);
             }
         }
     }

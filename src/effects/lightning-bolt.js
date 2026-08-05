@@ -13,6 +13,8 @@
  * 可配置（同类型技能换配色/粗细直接套用）：
  * - options.colors：{ glowOuter, glowInner, core, white }（默认蓝紫闪电配色）
  * - options.widthScale：整体粗细倍率（默认 1）
+ * - options.uniform：等宽模式（默认 false）——关闭"施法端粗→目标端细"的渐变，
+ *   整条闪电半径恒定（过载传导等"细闪电"场景用；true 时忽略每点随机大小抖动）
  * - options.durationMs / options.fadeMs / options.segments / options.jitter
  *
  * 生命周期由 EffectManager.update 驱动，active=false 后自动移除。
@@ -34,6 +36,7 @@ class LightningBoltEffect {
             white: 0xffffff,
         };
         this.widthScale = options.widthScale ?? 1;
+        this.uniform = !!options.uniform;
         this._points = [];
         this._chain = []; // 重采样后的色块链 [{x, y, s}]（s=大小变化因子，创建时烘焙）
         this._endX = null; // 目标死亡后冻结终点，闪电残留在最后位置
@@ -117,7 +120,7 @@ class LightningBoltEffect {
                 chain.push({
                     x: p1.x + (p2.x - p1.x) * t,
                     y: p1.y + (p2.y - p1.y) * t,
-                    s: 0.75 + Math.random() * 0.5, // 色块大小变化（0.75~1.25），创建时固定
+                    s: this.uniform ? 1 : (0.75 + Math.random() * 0.5), // 色块大小变化（0.75~1.25）；等宽模式固定 1
                 });
                 acc += step;
                 t = acc / segLen;
@@ -172,16 +175,21 @@ class LightningBoltEffect {
         for (let i = 0; i < n; i++) {
             const c = this._chain[i];
             const t = i / (n - 1);
+            // 等宽模式：整条闪电半径恒定且偏细（过载传导等场景）；默认保留施法端粗→目标端细
+            const outerR = this.uniform ? 12 : (30 + (5 - 30) * t);
+            const innerR = this.uniform ? 7.5 : (19 + (4 - 19) * t);
+            const coreR = this.uniform ? 4.6 : (11 + (2 - 11) * t);
+            const whiteR = this.uniform ? 2.2 : (5 + (1 - 5) * t);
             // 外层辉光（ADD）：大圆块，施法端粗 → 目标端细
             glow.fillStyle(this.colors.glowOuter, 0.26 * alpha);
-            glow.fillCircle(c.x, c.y, (30 + (5 - 30) * t) * c.s * ws);
+            glow.fillCircle(c.x, c.y, outerR * c.s * ws);
             glow.fillStyle(this.colors.glowInner, 0.18 * alpha);
-            glow.fillCircle(c.x, c.y, (19 + (4 - 19) * t) * c.s * ws);
+            glow.fillCircle(c.x, c.y, innerR * c.s * ws);
             // 内芯色块（NORMAL）：白蓝色，重叠自然增亮
             g.fillStyle(this.colors.core, 0.88 * alpha);
-            g.fillCircle(c.x, c.y, (11 + (2 - 11) * t) * c.s * ws);
+            g.fillCircle(c.x, c.y, coreR * c.s * ws);
             g.fillStyle(this.colors.white, 0.92 * alpha);
-            g.fillCircle(c.x, c.y, (5 + (1 - 5) * t) * c.s * ws);
+            g.fillCircle(c.x, c.y, whiteR * c.s * ws);
         }
     }
 }

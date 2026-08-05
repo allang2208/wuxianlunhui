@@ -283,3 +283,189 @@ export function burstParticles({ texture, x, y, count, config, destroyAfterMs, j
     scene.time.delayedCall(destroyAfterMs, () => { if (emitter && emitter.active) emitter.destroy(); });
     return emitter;
 }
+
+/**
+ * ⑧ 天顶闪电光柱：白蓝梯形闪电柱从天顶劈下、一闪而逝（圣光光束同款梯形 + 闪电配色）。
+ * 三层：宽蓝辉光（ADD）+ 白蓝主体（NORMAL）+ 窄白芯（ADD），整柱闪烁淡出。
+ * 完成后自动 destroy。→ graphics（无引用回收需求，一次性视觉）
+ */
+export function spawnLightningColumn({ x, y, height = 440, topW = 52, bottomW = 28, duration = 240, depth }) {
+    const scene = getScene();
+    if (!scene || !scene.add || !scene.tweens) return null;
+    const skyY = y - height;
+    const d = depth ?? (y + 2);
+    const g = scene.add.graphics();
+    const glow = scene.add.graphics();
+    glow.setBlendMode('ADD');
+    if (scene.worldEffectsGroup) {
+        scene.worldEffectsGroup.add(g);
+        scene.worldEffectsGroup.add(glow);
+    }
+    g.setDepth(d);
+    glow.setDepth(d);
+    const col = { a: 1 };
+    const draw = () => {
+        const a = col.a;
+        const flick = 0.75 + 0.25 * Math.sin(Date.now() * 0.06);
+        g.clear();
+        glow.clear();
+        // 主体：白蓝芯（NORMAL 半透明，梯形两三角）
+        g.fillStyle(0x9fc6ff, 0.16 * a * flick);
+        g.fillTriangle(x - topW / 2, skyY, x + topW / 2, skyY, x + bottomW / 2, y);
+        g.fillTriangle(x - topW / 2, skyY, x + bottomW / 2, y, x - bottomW / 2, y);
+        // ADD 辉光：宽蓝 + 窄白
+        glow.fillStyle(0x4b6fff, 0.28 * a * flick);
+        glow.fillTriangle(x - topW * 0.72, skyY, x + topW * 0.72, skyY, x + bottomW * 0.72, y);
+        glow.fillTriangle(x - topW * 0.72, skyY, x + bottomW * 0.72, y, x - bottomW * 0.72, y);
+        glow.fillStyle(0xffffff, 0.5 * a * flick);
+        glow.fillTriangle(x - topW * 0.26, skyY, x + topW * 0.26, skyY, x + bottomW * 0.26, y);
+        glow.fillTriangle(x - topW * 0.26, skyY, x + bottomW * 0.26, y, x - bottomW * 0.26, y);
+    };
+    draw();
+    scene.tweens.add({
+        targets: col,
+        a: 0,
+        duration,
+        ease: 'Quad.easeOut',
+        onUpdate: draw,
+        onComplete: () => {
+            if (g && g.active) g.destroy();
+            if (glow && glow.active) glow.destroy();
+        },
+    });
+    return null;
+}
+
+/**
+ * ⑨ 电磁炮直线光束（railgun）：一条笔直的贯穿光束（贯穿雷枪专用，区别于蛇形闪电链）。
+ * - 三层线：宽蓝辉光（ADD）+ 白蓝中辉光 + 白热芯，整条呼吸闪烁（默认较粗，可 widthScale 再放大）；
+ * - **加速环**：3~4 个椭圆环沿光束从后往前扫过（railgun 加速线圈 signature）；
+ * - 持续 duration 后线性淡出销毁。完成后自动 destroy。
+ */
+export function spawnRailgunBeam({ x, y, endX, endY, duration = 260, widthScale = 1, depth }) {
+    const scene = getScene();
+    if (!scene || !scene.add || !scene.tweens) return null;
+    const dx = endX - x;
+    const dy = endY - y;
+    const len = Math.hypot(dx, dy) || 1;
+    const angle = Math.atan2(dy, dx);
+    const g = scene.add.graphics();
+    const glow = scene.add.graphics();
+    glow.setBlendMode('ADD');
+    if (scene.worldEffectsGroup) {
+        scene.worldEffectsGroup.add(g);
+        scene.worldEffectsGroup.add(glow);
+    }
+    const d = depth ?? (y + 2);
+    g.setDepth(d);
+    glow.setDepth(d);
+    g.setPosition(x, y);
+    glow.setPosition(x, y);
+    g.setRotation(angle);
+    glow.setRotation(angle);
+    const beam = { a: 1 };
+    let lastNow = Date.now();
+    const rings = [];
+    for (let i = 0; i < 4; i++) {
+        rings.push({
+            pos: -0.2 - i * 0.24,
+            speed: 0.36 + Math.random() * 0.08,
+            size: 14 + Math.random() * 8,
+        });
+    }
+    const draw = () => {
+        const now = Date.now();
+        const dsec = Math.min(0.05, (now - lastNow) / 1000);
+        lastNow = now;
+        const a = beam.a;
+        const flick = 0.82 + 0.18 * Math.sin(now * 0.09);
+        g.clear();
+        glow.clear();
+        // 主光束（本地坐标沿 x 轴，笔直）
+        glow.lineStyle(40 * widthScale, 0x4b6fff, 0.24 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        glow.lineStyle(19 * widthScale, 0x9fc6ff, 0.42 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        glow.lineStyle(9 * widthScale, 0xffffff, 0.92 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        // 加速环：沿光束从后往前扫（本地 y 方向竖椭圆 = 垂直光束）
+        for (const ring of rings) {
+            ring.pos += ring.speed * dsec;
+            if (ring.pos > 1.25) ring.pos = -0.25;
+            const px = len * Math.max(0, Math.min(1, ring.pos));
+            const rr = ring.size * widthScale;
+            glow.lineStyle(7 * widthScale, 0xffffff, 0.75 * a * flick);
+            glow.strokeEllipse(px, 0, rr * 0.9, rr * 2.4);
+            glow.lineStyle(3.5 * widthScale, 0x8fb8ff, 0.95 * a * flick);
+            glow.strokeEllipse(px, 0, rr * 1.5 * 0.9, rr * 1.5 * 2.4);
+        }
+        // 附着的电流（参考闪电技能 LightningBoltEffect 的"色块圆点链"避免线条感）：
+        // 沿光束随机位置生成**平行于光束方向**的短折线，重采样成小圆点色块链——
+        // 首尾用 sin 权重**不规则淡出**（中间亮、两端熄灭，每点叠加随机），半径缩小；
+        // 按时间分段伪随机 → 90ms 稳定后跳变闪烁，形成电流沿光柱爬行熄灭的观感。
+        const seedBase = Math.floor(now / 90);
+        let seed = (seedBase * 2654435761) >>> 0;
+        const rand = () => {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed / 0x7fffffff;
+        };
+        const branchCount = 3 + (seedBase % 2);
+        const ws = Math.max(1, Math.sqrt(widthScale)); // 圆点半径随光柱弱缩放（缩小）
+        for (let i = 0; i < branchCount; i++) {
+            const bx = len * (0.1 + rand() * 0.8);     // 起点沿光束
+            const dirX = rand() < 0.5 ? 1 : -1;        // 沿光束方向（平行）
+            const yOff = (rand() - 0.5) * 18;          // 贴近光束轴的偏移（缩小）
+            const segs = 3 + Math.floor(rand() * 2);   // 段数减少（缩短）
+            const pts = [{ x: bx, y: yOff }];
+            let px = bx;
+            let py = yOff;
+            for (let s = 0; s < segs; s++) {
+                px += dirX * (8 + rand() * 12);        // 缩短的平行伸展
+                py += (rand() - 0.5) * 8;              // 更小的垂直抖动
+                pts.push({ x: px, y: py });
+            }
+            // 重采样成色块圆点链（步长 4px），首尾 sin 淡出 + 每点随机（不规则电流感）
+            const step = 4;
+            let acc = 0;
+            let dotIdx = 0;
+            const chainLen = (pts[pts.length - 1].x - pts[0].x) * dirX + Math.abs(pts[pts.length - 1].y - pts[0].y);
+            for (let k = 0; k < pts.length - 1; k++) {
+                const p1 = pts[k];
+                const p2 = pts[k + 1];
+                const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                if (segLen < 1e-6) continue;
+                let t = acc / segLen;
+                while (t <= 1) {
+                    const dx2 = p1.x + (p2.x - p1.x) * t;
+                    const dy2 = p1.y + (p2.y - p1.y) * t;
+                    const prog = Math.min(1, (dotIdx * step) / Math.max(chainLen, 1));
+                    const edgeFade = Math.sin(prog * Math.PI);      // 首尾不规则淡出（两端熄灭）
+                    const rnd = 0.5 + rand() * 0.5;                 // 每点随机（不规则断续）
+                    const dotAlpha = (0.55 + 0.35 * a) * flick * edgeFade * rnd;
+                    const r = (1.6 + rand() * 1.2) * ws;            // 缩小的小圆点
+                    glow.fillStyle(0x8fb8ff, dotAlpha * 0.85);
+                    glow.fillCircle(dx2, dy2, r * 1.7);
+                    glow.fillStyle(0xffffff, dotAlpha);
+                    glow.fillCircle(dx2, dy2, r);
+                    dotIdx++;
+                    acc += step;
+                    t = acc / segLen;
+                }
+                acc -= segLen;
+            }
+        }
+    };
+    draw();
+    scene.tweens.add({
+        targets: beam,
+        a: 0,
+        duration,
+        ease: 'Quad.easeOut',
+        onUpdate: draw,
+        onComplete: () => {
+            if (g && g.active) g.destroy();
+            if (glow && glow.active) glow.destroy();
+        },
+    });
+    return null;
+}

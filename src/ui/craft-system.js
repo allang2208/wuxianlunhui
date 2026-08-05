@@ -14,6 +14,14 @@ import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { RARITY_LABELS } from '../config/rarity.js';
 
+/** 改造选项图标：emoji 直接显示；图片路径渲染为 <img>（武器改造预案图片替换 2026-08-05） */
+function renderCraftIcon(icon, fallback = '🔧') {
+    if (typeof icon === 'string' && /^(assets\/|data:|https?:)/.test(icon)) {
+        return `<img src="${icon}" alt="" draggable="false">`;
+    }
+    return icon || fallback;
+}
+
 /** 量取背包格实际渲染尺寸（.gear-inventory-col 5 列 1fr，宽随面板、高 56px） */
 function _measureBackpackCell() {
     // 面板收起时是 visibility:hidden（非 display:none），offsetWidth 仍为真实布局尺寸；
@@ -600,7 +608,7 @@ const CraftSystem = {
             const equipped = itemMods[slot.id];
             if (equipped) {
                 const option = config.options[slot.id]?.find(o => o.id === equipped);
-                cell.innerHTML = `<div class="craft-mod-cell-icon">${option?.icon || '🔧'}</div><div class="craft-mod-cell-name">${option?.name || '已装备'}</div>`;
+                cell.innerHTML = `<div class="craft-mod-cell-icon">${renderCraftIcon(option?.icon)}</div><div class="craft-mod-cell-name">${option?.name || '已装备'}</div>`;
                 cell.classList.add('equipped');
             } else {
                 cell.innerHTML = `<div class="craft-mod-cell-icon">➕</div><div class="craft-mod-cell-name">${slot.name}</div>`;
@@ -762,7 +770,7 @@ const CraftSystem = {
             row.className = 'craft-mod-option' + (current === opt.id ? ' selected' : '');
             const ticketLabel = current ? '🔧 替换需4张改造券' : '🔧 需1张改造券';
             row.innerHTML = `
-                <div class="craft-mod-option-icon">${opt.icon}</div>
+                <div class="craft-mod-option-icon">${renderCraftIcon(opt.icon)}</div>
                 <div class="craft-mod-option-info">
                     <div class="craft-mod-option-name">${opt.name}</div>
                     <div class="craft-mod-option-desc">${opt.desc}</div>

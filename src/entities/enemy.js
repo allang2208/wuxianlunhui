@@ -327,6 +327,8 @@ import { loadImage } from '../utils/image-loader.js';
                 if (!arr) return { entity: null, distance: Infinity };
                 for (const e of arr) {
                     if (e && e._faction === 'player' && e.active) {
+                        // 防守模式（世界-122 进攻波次）：只锁定基地/防御塔
+                        if (this._preferDefenseTargets && !e._isDefenseStructure) continue;
                         const dx = e.x - this.x;
                         const dy = e.y - this.y;
                         const d = Math.sqrt(dx * dx + dy * dy);

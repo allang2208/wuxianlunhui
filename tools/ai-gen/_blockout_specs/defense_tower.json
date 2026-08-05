@@ -1,0 +1,13 @@
+{
+  "elevation": 12,
+  "primitives": [
+    { "type": "box", "size": [4.0, 3.0, 3.6], "pos": [0, 0, 1.8] },
+    { "type": "box", "size": [3.2, 2.6, 1.0], "pos": [0, 0, 4.1] },
+    { "type": "box", "size": [0.9, 2.0, 1.4], "pos": [-1.55, 0, 2.9] },
+    { "type": "sphere", "radius": 0.55, "pos": [0.5, -1.5, 3.2] },
+    { "type": "cylinder", "radius": 0.5, "depth": 1.3, "pos": [0.6, -1.95, 2.65], "rot": [35, 0, 0] },
+    { "type": "sphere", "radius": 0.45, "pos": [0.68, -2.35, 1.95] },
+    { "type": "cylinder", "radius": 0.42, "depth": 0.9, "pos": [0.72, -2.62, 1.55], "rot": [60, 0, 0] },
+    { "type": "cylinder", "radius": 0.56, "depth": 0.22, "pos": [0.75, -2.95, 1.15], "rot": [90, 0, 0] }
+  ]
+}

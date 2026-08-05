@@ -6,10 +6,14 @@ param(
     [switch]$SkipSmoke
 )
 
-$root     = Split-Path -Parent $PSScriptRoot
+$root     = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $server   = Join-Path $root 'comfyui-mesh\server'
 $weights  = Join-Path $server $WeightsName
 $venvPy   = Join-Path $server '.venv\Scripts\python.exe'
+
+if (-not (Test-Path -LiteralPath $server)) {
+    throw "server dir not found: $server"
+}
 
 if (-not (Test-Path -LiteralPath $weights)) {
     throw "weights not found: $weights"

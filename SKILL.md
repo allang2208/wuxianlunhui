@@ -2,10 +2,10 @@
 
 ## 版本: 2.1
 
-## ⭐ 识图优先入口：GLM-4V 识图系统（2026-08-03 构建，读图一律先走这里）
+## ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
 
 需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
-**优先调用已构建的 GLM-4V 识图系统**（deepseek-vision-skill，智谱 GLM-4V-Flash 接口）：
+**优先调用已构建的 GLM-4.6V 识图系统**（deepseek-vision-skill，智谱 GLM-4.6V 接口）：
 
 ```bash
 # 读本地图片（可多张）：
@@ -17,17 +17,18 @@ node "...\describe-image.js" --latest
 ```
 
 要点（实战沉淀，2026-08-03 一段攻击跟手三轮）：
-- **定位坐标不可靠**：GLM-4V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
+- **定位坐标不可靠**：GLM-4.6V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
   需要精确定位时用它做定性判断（ON/OFF、方向、内容描述、OCR），坐标以贴图真值掩码为准。
 - **特写图效果最好**：把目标区域裁小（~140px）、2 倍/3 倍放大、必要时加红点标记当前点，
   问"红点是否在目标上 / 偏哪个方向多少像素"，回答稳定可用。
 - 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
   deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
 
-## 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4V 验收，2026-08-04 二轮调整）
+## 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4.6V 验收，2026-08-04 二轮调整）
 
 > **标准执行入口（2026-08-04 定稿）**：`game-dev/tools/ai-gen/WORKFLOW.md`（六步全流程 + 入口矩阵 +
-> 各类资产子流程 + 沉淀坑位）与 `game-dev/tools/ai-gen/prompts/`（固化提示词库，五类模板）。
+> 各类资产子流程 + 沉淀坑位）与 `game-dev/tools/ai-gen/prompts/`（固化提示词库，8 个模板：skill-icon / equipment-icon /
+obstacle / monster-sprite / video / cover / defense-tower / transparent-subject）。
 > 本节约为摘要速查，细则以 WORKFLOW.md 为准；提示词一律从 prompts/ 库取用，禁止现场自由发挥。
 >
 > **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
@@ -36,21 +37,22 @@ node "...\describe-image.js" --latest
 
 新技能贴图/图标/素材一律**优先走双机 ComfyUI**（本地零成本、不限量）：
 远程 5080 主力出图（FLUX.2 dev fp8 + Depth ControlNet 锁视角/方向），本机 3080 Ti 兜底；
-智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4V 验收再入库。
+智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4.6V 验收再入库。
 
 ### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
-- **远程 5080 主力（默认）**：`python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`
+- **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
 - **固定视角/方向**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
-- **本机 3080 Ti 兜底**：`python tools/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
+- **本机 3080 Ti 兜底**：`python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
 - 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
 - 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）
-- key：环境变量 `ZHIPU_API_KEY` → 自动读 deepseek-vision-skill 的 `config.json`（与 GLM-4V 共用智谱账号）
+- key：环境变量 `ZHIPU_API_KEY` → 自动读 deepseek-vision-skill 的 `config.json`（与 GLM-4.6V 共用智谱账号）
 - **可用模型（2026-08-03 实测）**：`cogview-3-flash`（1024×1024，单物件图标可出）同样可用；
-  `glm-4v-flash` 是**识图模型不能生图**，别混用。批量多图脚本参考 `tools/zhipu-gen-necklaces.py`
-  （一次提交多 prompt，逐张下载）。
+  `glm-4.6v` 是**识图模型不能生图**，别混用。批量多图脚本参考
+  `tools/ai-gen/archive/one-off/zhipu-gen-necklaces.py`（一次性脚本已归档，仅作写法参考，
+  勿当通用工具；一次提交多 prompt，逐张下载）。
 - **不支持负面词参数**：避项（watermark / text / blurry 等）必须写进正向提示词
 - **固定水印**：每张图右下角带"AI生成"水印；去水印需账号在智谱后台签免责声明
-  （cogview-3-flash 实测同样带水印）。处理：`tools/zhipu-process.py` 检测右下角
+  （cogview-3-flash 实测同样带水印）。处理：`tools/ai-gen/zhipu-process.py` 检测右下角
   **面积最小、最靠角落**的暗色连通域为水印框（y≥78% 区域，面积 >800px 跳过防误伤主体）→
   白底覆盖 → BiRefNet 抠图丢弃。**教训：全右下象限暗像素 bbox 会把戒指底部误当水印
   覆盖出缺口（2026-08-03 星陨之戒两连坑），必须按连通域+面积过滤。**
@@ -59,49 +61,53 @@ node "...\describe-image.js" --latest
 
 ### 环境（ComfyUI 双机系统，2026-08-04 二轮）
 - **远程 5080 主力机（2026-08-04 沉淀）**：`192.168.3.142:8188`（RTX 5080 16GB，ComfyUI 0.30）；
-  启动 `tools/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行 8188/专用网络；
+  启动 `tools/ai-gen/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行 8188/专用网络；
   机器休眠会断服务，需关闭休眠）
 - 已装模型（2026-08-04 实机核对）：**FLUX.2 dev fp8**（`flux2_dev_fp8mixed` +
   `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ **FLUX.2 Depth ControlNet**
   （`FLUX.2-dev-Fun-Controlnet-Union.safetensors`，Depth/Canny/HED/Pose 单文件多模式）+
   SDXL（`sd_xl_base_1.0`，对比/兜底）+ FLUX.2 klein 4B（`flux-2-klein-4b-fp8` +
   `qwen_3_4b`，蒸馏备用）+ MiniMax H3 视频模型
-- **多模型切换客户端**：`tools/comfyui-gen.py`（`--model` / `--host` / `--list-models`，
-  模型登记表 `tools/models.json`，每模型独立工作流+默认参数）
+- **多模型切换客户端**：`tools/ai-gen/comfyui-gen.py`（`--model` / `--host` / `--list-models`，
+  模型登记表 `tools/ai-gen/models.json`，每模型独立工作流+默认参数）
   ```bash
-  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
-  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
-  python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
-  python tools/comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "..." --out out.png
   ```
 - **兼容修复已应用（2026-08-04）**：flux2fun-controlnet v1.1.0 两处补丁
   （`timestep_zero_index` / `multigpu_clones`）与 comfyui-mesh Icarus stub 补丁已在 5080
-  部署（备份与修复版在 `tools/remote-patch/`），FLUX.2 全系列正常出图。
+  部署（备份与修复版在 `tools/ai-gen/remote-patch/`），FLUX.2 全系列正常出图。
 - **跨机 Mesh（2026-08-04 实测通过）**：FLUX.2 dev fp8 拆两卡——5080 跑前端（Icarus），
   本机 3080 Ti 跑后端 4 块（Daedalus @192.168.3.153:7777，n_blocks=4，Turbo LoRA 两端本地加载）。
   用法：`--model flux2-dev-mesh`（8 步 turbo，服务端每步约 0.8s）。前提：本机 Daedalus 已启动
-  （`tools/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃遗留会话会卡死 Daedalus，重启即可。
+  （`tools/ai-gen/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃遗留会话会卡死 Daedalus，重启即可。
 - **模型选择矩阵（2026-08-04 定稿）**：入库资产用 FLUX.2 Dev（mesh 在线时 8 步 turbo 提速），
   批量/探索用 Klein 4B（4 步），兜底 SDXL / 智谱 API，视频只有 MiniMax H3；
   完整矩阵（含各资产子流程的规则/参数）见 `game-dev/tools/ai-gen/WORKFLOW.md §1.6`。
-- 本地 3080 Ti 兜底：http://127.0.0.1:8188，启动 `start-comfyui.bat`（同一客户端，`--host 127.0.0.1`）
-- 抠图/校验：`tools/make-transparent-icon.py`（白底→透明 RGBA）、`tools/check-icon-sizes.py`（内容框测量）
-- 同系列新图标模板化生成：`tools/gen-meteor-icon-template.py`（换参考图+提示词即可复用）
+- **类目路由（2026-08-05 定稿）**：中大型物件（建筑/道具/植被/家具）默认从 Blender 白模
+  深度起步（`tools/ai-gen/blender-depth-render.py` + `_blockout_specs/`，锁视角/朝向/比例）；
+  小型装备/图标不走白模，直接 prompts/ 统一模板 + 标准生图。细则见 WORKFLOW.md §1.5。
+- 本地 3080 Ti 兜底：http://127.0.0.1:8188，启动 `start-comfyui.bat`（位于备份根目录
+  `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内；同一客户端，`--host 127.0.0.1`）
+- 抠图/校验：`tools/ai-gen/make-transparent-icon.py`（白底→透明 RGBA）、`tools/ai-gen/check-icon-sizes.py`（内容框测量）
+- 同系列新图标模板化生成：`tools/ai-gen/gen-meteor-icon-template.py`（换参考图+提示词即可复用）
 
 ### 标准流程（六步）
 1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
    → 同系列内容框基准（2026-08-04 陨星教训）：fireball=788×939、宽高比 0.84、占比~70%、偏下构图(cy≈+29)，
-   用 `tools/check-icon-sizes.py` 量化对齐
+   用 `tools/ai-gen/check-icon-sizes.py` 量化对齐
 2. **生成**：默认 `flux2-dev-fp8`（5080）；**固定视角/方向走 `flux2-dev-depth` +
    `--control-image` 深度图**（同系列复用已定稿图深度，见 WORKFLOW §1.5）；
    白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考；
    **模板锁定 img2img**：参考图先压白底再上传（透明角直传会被合成黑底→出黑角图），
    提示词强调 same template/size/position as reference
 3. **粗筛**：像素统计（opaque% 主体占比、白底比例、bbox 宽高比、中心偏移）；
-   新图标入库前必须过 `tools/check-icon-sizes.py`，内容框与系列基准偏差 >5% 需重抽或归一
-4. **视觉验收**：GLM-4V 定性（内容/风格/构图）+ 像素统计定量交叉，二者矛盾时以像素统计为准
-5. **抠图入库**：统一走 `tools/make-transparent-icon.py`（角点 flood fill + 羽化 + 边缘去污染，
-   1024×1024 透明底入库），入库后再跑 `tools/check-icon-sizes.py` 复核
+   新图标入库前必须过 `tools/ai-gen/check-icon-sizes.py`，内容框与系列基准偏差 >5% 需重抽或归一
+4. **视觉验收**：GLM-4.6V 定性（内容/风格/构图）+ 像素统计定量交叉，二者矛盾时以像素统计为准
+5. **抠图入库**：统一走 `tools/ai-gen/make-transparent-icon.py`（角点 flood fill + 羽化 + 边缘去污染，
+   1024×1024 透明底入库），入库后再跑 `tools/ai-gen/check-icon-sizes.py` 复核
 6. **清理废案（强制）**：确认最终资产已被引用后，删除迭代过程中的全部废案与未调用图片——
    被否方案、v1/v2…迭代版、候选图、预览图、临时抠图一律清除，只保留最终被引用的文件，防止仓库膨胀
 
@@ -117,18 +123,19 @@ node "...\describe-image.js" --latest
 - **白底出图**：提示含 "sticker style, isolated on plain pure white background"，负面含 gradient/dark/frame/border/hexagon；
   SDXL 对"纯白背景"遵循不稳定（可能出浅灰/渐变底）——背景色以角点像素均值判定，不要信 GLM 描述
 - **透明主体走纯色底（方案一，2026-08-04）**：白色要素多的主体禁用白底（抠不净需人工介入）；
-  生成加 `--transparent`（AI 选底色 `tools/pick_bg_color.py` + 阈值抠图
-  `tools/transparent_cutout.py` + BiRefNet 精修；背景非均匀时自动切 BiRefNet 主导）
+  生成加 `--transparent`（AI 选底色 `tools/ai-gen/pick_bg_color.py` + 阈值抠图
+  `tools/ai-gen/transparent_cutout.py` + GrabCut/BiRefNet 兜底；背景非均匀时自动切
+  GrabCut 主导——SDXL 渐变底实测 BiRefNet 残留多、GrabCut 残留清零）
 - **纯色小物件**（雪球等）：直接用运行时 createCanvas 径向渐变生成纹理，不要 AI 出图再抠（白边抠不净）
 - **抠图去污染**：边缘 alpha 反推前景色（decontamination），半透明边缘"灰调残留比例"应 <5%
 - **废案必清**：入库后删除迭代废案/未调用图片（2026-08-03 教训：blizzard-icons v1~v6、ice-icons-v1、
   snowball 变体共 79MB 全部删除），只保留最终被引用资产
-- **GLM-4V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
+- **GLM-4.6V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
 
 ### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
 - 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
   **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
-- 客户端：`tools/minimax-h3-gen.py`（--prompt / --duration / --size / --seed / --out）
+- 客户端：`tools/ai-gen/minimax-h3-gen.py`（--prompt / --duration / --size / --seed / --out）
   官方 T2V 管线：UNETLoader+CLIPLoader+双VAE → MiniMaxH3ImageToVideo →
   BasicGuider + RandomNoise + KSamplerSelect(res_multistep) + BasicScheduler(simple 20步) →
   SamplerCustomAdvanced → VAEDecode+VAEDecodeAudio → CreateVideo(24fps) → SaveVideo(mp4)
@@ -148,16 +155,16 @@ node "...\describe-image.js" --latest
   - `Y:\工作\无尽轮回\scratch\`：AI 出图/视频中间产物与候选（生成脚本默认输出地，定稿才进仓库）
   - `Y:\模型库\ComfyUI\models\`：大模型归档（双机共用；冷模型可 junction：
     `mklink /J models Y:\模型库\ComfyUI\models`，热模型留本机保证加载速度）
-- **版本控制走 GitHub**（origin `allang2208/wuxianlunhui`），`tools/backup-to-nas.ps1`
+- **版本控制走 GitHub**（origin `allang2208/wuxianlunhui`），`tools/ai-gen/backup-to-nas.ps1`
   保留为手动可选备份，不做定时
 - 原则：仓库只保留被引用资产；候选/废案/大视频一律落 Y:，E: 只放源码+入库资产
 
 ### 多视图/多件排列硬筛（2026-08-03 沉淀：SDXL 帽子/法袍顽固出多视图）
-- SDXL 对 "wizard hat" / "robe" 极易画成**多视图设计稿**（5~10 个分离主体），GLM-4V 描述
-  "五个视角"不可轻信；**连通域计数是唯一硬证据**：`tools/check-components.py` 对
+- SDXL 对 "wizard hat" / "robe" 极易画成**多视图设计稿**（5~10 个分离主体），GLM-4.6V 描述
+  "五个视角"不可轻信；**连通域计数是唯一硬证据**：`tools/ai-gen/check-components.py` 对
   BiRefNet alpha>60 做 `ndimage.label`，**components == 1 才合格**。
 - 兜底流程：批量生成 4 个候选（`gen-hat-candidates.py` / `gen-robe-candidates.py`，不同 seed）→
-  逐张连通域筛选单主体 → GLM-4V 复核构图/装饰 → 选最优。
+  逐张连通域筛选单主体 → GLM-4.6V 复核构图/装饰 → 选最优。
 - **提示词权重语法**：`(exactly one hat:1.5), (one hat only:1.5), (single straight front
   view:1.4), (isolated single object:1.3)` + 负面 `multiple views, turnaround, design
   sheet, blueprint, multiple hats/robes, duplicate items, clothing rack, mannequin`。
@@ -171,8 +178,192 @@ node "...\describe-image.js" --latest
 - 雪球：运行时生成纯白圆（不占贴图资源）
 - 陨星坠落（2026-08-04）：FLUX.2 文生图初稿（窄 750×951，观感偏小被否）→ 火球白底参考
   模板锁定 img2img 重抽 8 候选 → 自动抠底 + 内容框校验（793×945 达标）→ 定稿替换
+- 陨星图标 FLUX.2 dev 重制（2026-08-04 五轮）：dev 恢复后用 `tools/gen-meteor-dev.py`
+  （一次性脚本，已删除未入库，仅留此记录；火球模板 + SplitSigmasDenoise img2img）两轮 14 候选 → GLM-4.6V 验收「流星撞击地面」→
+  定稿 d0.62_s04（794×941/0.84/71.3%）→ 替换 `assets/skills/陨星坠落.png`（旧图备份
+  Y:\scratch\backup）
 - MiniMax H3 视频（2026-08-04）：陨星 VFX 2s 文生视频（1344×768/56帧/原生音效）
   → `assets/videos/`（远程 5080 生成，约 5 分钟）
+
+## 世界-122 防守地图（雏形，2026-08-04）
+
+主神空间传送门 →「世界-122」（scene8，原沼泽地改名）。防守玩法第一版，纯代码零新素材。
+
+### 基地区域（scene-manager `_loadScene8`）
+- 沙袋矩形围栏（1508/2588 × 1780/2820）：北/南边横向沙袋、西/东边旋转 90° 沙袋，
+  两端延伸封死四角；**南侧留真实缺口当门口（≈352px）——不要摆门件**：门贴图
+  （hub_gate/swamp_gate）可通行门洞只占贴图跨度 8%~21%，按门口尺寸摆会堵死入口。
+- 沼泽柴墙三瓦片后墙（完整落在基地北侧，30° 地板线）+ 拒马门口内侧路障。
+
+### 刷怪波次（`src/world/defense-system.js`）
+- 边界 8 个刷怪点；`MONSTER_POOL` 按「类型 × 权重」加权随机生成，**只生成可移动怪物**
+  （站桩：矿洞/墓碑/煮锅/集合体排除）；波次随用时成长（HP +16%/波、攻击 +8%/波、
+  数量递增、间隔缩短有下限、场上存活上限 40）。
+- 怪物标记 `_preferDefenseTargets = true` → 只锁定基地/防御塔（`PerceptionSystem._isValidTarget`
+  与 `Enemy._findNearestPlayer` 已加守卫），不追玩家；基地核心被摧毁 → 防守失败、停波次。
+
+### 防御塔（DefenseTower，复用 Combatant）
+- 独立装备栏：背包内**远程武器、手枪除外**（bow/pkm/akm/qbz191/qjb201/shotgun/energy_lmg）；
+  弹道/开火特效直接复用 `Combatant.fireProjectile` + `EffectFactory` 枪口火焰/弹壳 +
+  `GameScene.playMuzzleFire`（不需要新素材）。
+- 每发伤害 = 武器基准 × 玩家六维加成 × (1 + 0.22×(等级−1))；升级=金币（120×1.55^(L−1)，
+  满级 10），同时提升耐久；点塔弹出面板（装载/卸下/升级），卸下归还背包。
+- 塔渲染走 `_syncNeutralEntities`（spriteCfg 贴图复用：石柱/祭坛，`sizeH` 支持等比非方形）；
+  深度按脚底 Y 参与墙体排序。**2026-08-04 生图入库**：防御塔专用贴图
+  `obstacle_defense_tower.png`（基座 + 上方机械臂空置武器挂载点），塔 spriteCfg 已切换。
+
+### 掩体（DefenseCover，可被攻击的防御墙段，2026-08-04）
+- **生图**：dev+mesh 批量（`tools/ai-gen/gen-world122-assets.py` + `prompts/cover.md`），
+  F→A 六档 × 水平摆(_h)/垂直摆(_v) 共 12 张；视觉基准=游戏墙体 30° 底边。
+- **斜向坑**：FLUX.2 不区分 h/v 斜向（全部产出 "/"）→ 处理脚本将 _h 组水平镜像归一为 "\"
+  （`tools/ai-gen/process-world122-assets.py`）；入库 `assets/terrain/obstacle_cover_<grade>_<orient>.png`。
+- **数值**：hp = F400/E700/D1100/C1600/B2200/A3000，**def/mdef 均为 0**（怪物全额伤害）；
+  `_isDefenseStructure=true` 供怪物锁定攻击、`immovable=true` 不可击退/位移、
+  `_noShadow=true` 无脚底阴影；碰撞 footprint 见 `COVER_FOOT`（198×133、thick=26）。
+- **摆放**：基地菱形房预置（见下节「路线 B 最终管线」）；玩家 B 面板自行加建。
+
+### 掩体最终管线（路线 B）与基地菱形房 v2（2026-08-05 定稿）
+- **素材**：Blender 完整 box 230×52×150 绕 Z 44.8°（中段底边斜率 −0.4976）+
+  AI 材质纹理（36 步、bump 0.25、无阴影），透明背景零抠图；入库 1024×1024，
+  显示 260×260（aspect 1.0），`h = flip(v)`。
+- **几何统一**（`COVER_FACE`，6 级完全相同）：v: A(−88,−21)→B(88,−109)；
+  h 镜像 A(−88,−109)→B(88,−21)。face 线 = 墙段接底线，**拼接/碰撞一律用 face**；
+  完整 box 实心端帽（端面宽 ≈52），深度锚点 = max(face 端点 y)+12。
+- **自然贴图重做（2026-08-05）**：旧材质“生硬、塑料感”→ 提示词强化手凿/风化/
+  碎裂不规则边缘（`gen-cover-textures.py` THEME+TAIL），36 步批量重出 6 级纹理
+  → Blender 重渲染 → `prep-cover-render.py` 复标（几何不变，face 端点微调 −25/−112→−21/−109，
+  全部一致）→ 备份 `.bak.natural` 后替换 assets（v 原样、h=flip(v)）。
+- **方格砖墙改版（2026-08-05 同日，用户指定“参考原来的直墙”）**：掩体材质从乱石堆
+  统一改为**规整方格砖墙**（横竖对齐砖块网格 + 均匀细砖缝，视觉对齐 wall_straight），
+  6 级按主题区分（F 旧灰砖 / E 砖+沙袋 / D 标准暖灰红砖 / C 混凝土砖+钢板角件 /
+  B 深色砖+铆接钢板 / A 暗色魔纹砖）；提示词以 `regular square brick grid pattern,
+  rectangular bricks aligned in neat rows` 为骨架，仍带碎裂边缘/磨损，保持无阴影平光；
+  旧自然版备份 `.bak.brick`。校验：FFT 砖缝周期性（新 D 39px/46px 峰值强于直墙基线）
+  + GLM 局部放大确认网格 + `audit-perspective` MIRROR 对。
+- **E/C/B/A 强化重做（2026-08-05 三版）**：用户反馈“体现不出墙壁强度”→ 只重做
+  E/C/B/A（F/D 保留），48 步 + 颜色分级：F 白灰 / E 沙色米黄+橄榄绿沙袋 /
+  D 暖灰红砖 / C 冷灰蓝混凝土+锈钢板角件 / B 深钢蓝炭黑铆接钢板（砖格 60%+钢板 40%）/
+  A 黑砖+蓝色发光符文（符文画在砖面）。提示词先写砖格再写强度元素（防钢板/符文盖掉
+  网格，第一版 B/A 网格被盖，FFT 周期弱于直墙基线）；旧版备份 `.bak.brick2`。
+  **校验铁律**：强度元素必须“砖格为主、元素为辅”，FFT 双轴峰值 ≥ 直墙基线（~0.03）
+  才算过；GLM 缩略图误读网格，必须放大单看砖缝。
+- **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
+  非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
+  先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
+- **拼接规则**：相邻件 face 沿走向重叠 `SNAP_OVERLAP=40`px（≥ 端帽宽，只叠不缺），
+  即沿墙步长 = faceLen(196.33) − 40 ≈ 156.33px；镜像后吸附方向判定
+  `dir = dot>=0 ? -1 : 1`（左/右外接都向既有件重叠）。
+- **菱形房 v2 算法**（`_buildBaseRoom`，与建筑面板吸附同源）：每边 n 件均布，
+  覆盖 [−cornerExtend, len+cornerExtend]（cornerExtend=45，转角由相邻两边端帽互叠），
+  n = ceil((len+2·cornerExtend−faceLen)/step)+1；openEdge 边中点的开放带内的件
+  face 命中即跳过 → 天然形成居中门洞（本房 RB 边 ≈270px，门柱底边与墙线共线，
+  无需旧版 doorAlignY 精调，置 0）。
+- **校验**：`tools/render-defense-room.py`（FACE_OVERLAY=1 画 face 线做像素连续性校验）
+  + `tools/cdp-defense-audit.mjs`（实机截图 + 深度/遮挡审计）；渲染与精灵映射同源
+  （display 260×260、中心 (x, y−sizeH/2)、底边中心 (x,y)）。
+
+### 防御塔贴图视觉基准（2026-08-04 二轮核验定稿）
+- **建筑/道具一律正面平视 billboard + 平底**（祭坛/仓库/沙袋/拒马基准）；墙体才是 30° 斜底边
+  （墙段专用）。塔/建筑贴图**禁止 45° 等距俯视（可见顶面）**——首版 A 图因此返工。
+- **机械臂武器挂载点必须空**：主体写 `empty circular flange socket with no gun`，负面词补
+  `gun barrel, cannon, rifle, machine gun, weapon attached`——首版臂尖带枪管状突起被否。
+- 提示词模板见 `prompts/defense-tower.md`；产物 `assets/terrain/obstacle_defense_tower.png`
+  （正面平视、基座台阶+上方机械臂空法兰挂载座）。
+- **工具位置**：生图/抠图工具统一在 `game-dev/tools/ai-gen/`（版本化），
+  批量入口 `gen-world122-assets.py`、后处理 `process-world122-assets.py`。
+
+### 防御塔机械臂 360° 旋转 + 武器挂载（2026-08-04 实现）
+- **拆臂**：行剖面定位塔顶臂区 → 独立臂贴图（枢轴=塔顶中心、臂尖=挂载点、自然角
+  =atan2(臂尖−枢轴)）；基座抹臂区。几何统一存 `DEFENSE_TOWER_VISUAL`（defense-system.js）。
+- **渲染**：GameScene `_syncDefenseTowers` 三层——基座静态；臂 `rotation = aimAngle − 自然角`
+  绕枢轴 360°；武器锚臂尖、`rotation = aimAngle`。
+- **武器朝向铁律（玩家同口径）**：`rotation = 瞄准角`；朝左（|角|>90°）用 **flipY** 防倒置
+  （禁 flipX+π——方向对但贴图倒，实机截图"枪口与臂不一致"根因）；按高度等比 setScale。
+- **塔 AI**：`aimAngle` 最短弧平滑（有目标 9 rad/s、回位 4 rad/s）；枪口=臂尖世界坐标
+  （弹道与视觉同源）；无武器时臂空转。
+- **实机验证工具**：`tools/cdp-defense-tower.mjs`（无头 Edge+CDP，截图 + 控制台错误采集）；
+  Edge profile 必须放 vite 监听目录外（防 EBUSY）。
+
+### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
+- 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
+  （摆墙编辑器障碍物类自动上架）；foot=底部 15% 带实测（矩形 footprint 碰撞）；
+  obstacleH=默认显示高度（掩体 260 宽等比、塔 262）；depth 走 obstacleDepthOf 自动。
+- 纯视觉层（防御塔机械臂）**不注册碰撞**——注册会让旋转臂带静止碰撞、挡弹道。
+
+### 世界-122 建筑面板（B 键，2026-08-04 实现）
+- **入口**：仅 scene8（世界-122）B 键开关；复用摆墙面板 CSS（wall-editor-panel）；
+  面板打开时置 `Game._buildMode`（input.js 鼠标/按键交给编辑器，与摆墙同守卫）。
+- **物品**：`BUILD_ITEMS`（防御塔 300 金 + 每级掩体**仅一个条目** `cover_<g>_v`，
+  名称 `掩体·<g>级`，不再分水平/垂直；F 键镜像即得水平 "\" 向——贴图/碰撞/face 线
+  全部跟随镜像，2026-08-05 简化）；
+  点选 → 鼠标幽灵预览 → 左键放置扣金币（GoldManager）→ 生成真实实体
+  （DefenseTower 入 towers 数组；DefenseCover 带 HP/可被攻击）。
+- **变换约束**：不能缩放；只能镜像调方向（F/按钮）——塔=基座 flipX，掩体=实体 `_facingLeft`。
+- **校验**：地图边界 + `WallSystem.canMoveTo` + 与已有建筑距离 ≥70px；右键/Esc 取消。
+- **CDP 验证铁律**：动态 import 必须用 performance 资源表里带 `?t=` 的真实 URL
+  （否则拿到重复模块实例，singleton 不同步）；先等页面稳定再点官方开始按钮。
+
+### 世界-122 布局与刷怪（2026-08-05 定稿）
+- 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
+  **scene8 不再生成返回主神空间传送门**（portal_return 已删，玩家用菜单离场）。
+- 基地菱形房由 `DefenseSystem.setup → _buildBaseRoom()` 预置（2026-08-05 v2，
+  可被攻击掩体墙，def/mdef=0）：外接 1024×512（rx512/ry256，墙底边斜率 0.5）；
+  **每边 4 件 D 级掩体**，face 线相邻重叠 40px、边链两端各越顶点 45px 让转角端帽叠盖；
+  RB 边中点留居中门洞（沿边 ≈270px）。布局参数在 `DEFENSE_CONFIG.room`。
+- 玩家仍可用 B 面板加建防线（防御塔 + 六档掩体，只能镜像不能缩放）。
+- 刷怪点全在**右端尽头**（x≈3936/3736 两列 7 点），怪物自右向左进攻。
+- 刷怪节奏：常规流 = 普通怪池加权（zombie/miner/fat/dog/wolf/spitter/flySwarm）；
+  **30s 精英**（lantern/oreSpider/wizard/knight/maggot/mutant3，HP×1.4）、
+  **90s 领主**（foreman/shounao/flyHand/witch，HP×2.8），在普通流之上额外生成；
+  精英/领主生成有飘字+音效提示；等级成长沿用波次 HP/攻击倍率。
+
+### ControlNet 深度锁视角（2026-08-04 实测定稿）
+- **入口**：`flux2-dev-depth` + `--control-image <深度图>`（单卡 5080，不依赖 mesh）。
+- **铁律：FLUX.2 非 mesh 路径必须用引导采样**（FluxGuidance+BasicGuider+
+  SamplerCustomAdvanced+RandomNoise）；旧 SamplerCustom+cfg 出**全黑图**
+  （2026-08-04 已修进 comfyui-gen.py）。
+- **LoRA 归属**：Klein 训练的 LoRA（3072 维）只能挂 `flux2-klein-4b`；挂 dev/depth
+  （6144 维）会 `double_blocks.*.txt_attn.proj` 形状不匹配报错。
+- **深度模板**：手绘剪影（`_depth_templates/`）即可稳定锁"正面 billboard、平底、居中"；
+  实测 10 组件 9/10 视角稳定；**宽扁平地类（农田）需模板加前景高度**，否则会被读成俯视。
+- **复用**：`gen-depth-test-assets.py`（批量）+ `make-depth-templates.py`（模板生成）
+  + `depth-extract.py`（从参考图提真深度，HF 下载可能超时，剪影优先）。
+
+### 朝向（水平/垂直）经验（2026-08-04 定稿）
+- ControlNet 深度**锁视角/剪影大形可靠，锁细节朝向不可靠**：枯树/战旗等带非对称细节的
+  模板，h/v 生成结果仍同向（镜像相似度 Δ≈0），模型默认朝向覆盖模板细微差异。
+  ⚠ **2026-08-05 白模实测部分推翻**：该结论基于 2D 手绘剪影模板；改用 Blender 3D 白模
+  深度（`blender-depth-render.py` + `_blockout_specs/tree_dead.json`）后，枯树主干+
+  右侧主枝的非对称朝向被忠实锁定（`scratch\test_tree_dead_01.png`）。原因推测：真实 3D
+  深度的前后遮挡/亮度台阶比 2D 剪影的形状差异信号强得多。细微朝向仍建议镜像兜底，
+  但主枝级朝向可用白模锁定。
+- 可靠双方向做法：**入库后水平镜像**（掩体 `_h/_v` 同款）或运行时 `flipX`；
+  不要在模板里赌细微非对称。
+- **2026-08-04 首轮 18 组件 × 2 批量因"风格/角度不一"被用户删除**（仓库/NAS/注册全清）。
+  重做采用"锚点派生"路线：先定一张满意视角/朝向的图 → 同族 img2img 低 denoise
+  从锚点生成（构图/姿势继承）；攒够系列后训风格 LoRA，摆脱逐张参考。
+
+### 视角标准基准（2026-08-04 全量审计定稿）
+
+> 审计方法：GLM-4.6V 只用于"正面 vs 俯视 vs 侧视"粗分类；**30° 斜底边必须以
+> 代码几何（ISO_WALL_GEO base/face 斜率）或像素斜率为准**——GLM 读斜边不可靠。
+
+| 形态族 | 标准 | 标准件（可当锚点/参照） | 判定要点 |
+|---|---|---|---|
+| 墙段/掩体 | **30° 斜底边**（\\ 或 /） | wall_straight、swamp_wall_straight、12 张掩体 | 底边斜率 0.49~0.57（ISO_WALL_GEO） |
+| 道具/障碍物 | **正面平视 billboard、平底、居中** | sandbag、barrel、pot、pillar、barricade | GLM 正面 + 像素平底 |
+| 建筑/塔 | **正面平视 billboard、平底** | npc_altar、npc_warehouse、防御塔 | GLM 正面 + 像素平底 |
+| 角色/怪物 | 侧视 billboard 精灵 | 现有敌人贴图 | 侧视全身体 |
+| 地板 | 30° 等距菱形 | hub_brick、swampbrick | 地板线 30° |
+
+- **问题件记录**：obstacle_woodpile（GLM 非单件居中，待复查/重做）；
+  旧塔 45° 等距版已重做；宽扁道具（农田类）深度模板易出俯视，需前景立墙高度。
+- 新素材入库前：先判形态族 → 对照对应标准件 → GLM 粗分类 + 像素/几何校验。
+
+### 后续打磨方向（未做）
+- 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
+  塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
+  （需标定臂尖挂载点 + GameScene 塔武器 sprite 叠加）；D 级石垒底边不规则，后续可精修。
 
 ## 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
 
@@ -184,16 +375,18 @@ node "...\describe-image.js" --latest
    沉淀坑位清单 + NAS 归置原则。
 2. **提示词固化**：`game-dev/tools/ai-gen/prompts/` 提示词库——
    README（拼接顺序 / 权重语法 / 智谱 vs ComfyUI 差异 / img2img 模板锁定规则）+
-   五类固化模板：skill-icon（六边形徽章系列，含 fireball 内容框基准）、
+   8 个固化模板：skill-icon（六边形徽章系列，含 fireball 内容框基准）、
    equipment-icon（style_prefix + 负面词 + 单件强制 + 构图硬性规则）、obstacle、
-   monster-sprite、video（MiniMax H3）。
+   monster-sprite、video（MiniMax H3）、cover（世界-122 掩体六档）、
+   defense-tower（世界-122 防御塔）、transparent-subject（透明主体纯色底）。
 3. **一致性修正**：文首工作流「标准流程」命名由五步修正为六步（实际条目一直是 6 条）；
    障碍物提示词引用改指 prompts/obstacle.md（旧 obstacle-prompt-strategy.md 收敛为跳转桩）。
 
 ### 验证
-- WORKFLOW.md 引用的工具路径全部核实存在（tools/comfyui-gen.py、tools/models.json、
-  make-transparent-icon.py、check-icon-sizes.py、birefnet-cutout.py、verify-eclipse-icons.py、
-  flip-boots-right.py、check-components.py、minimax-h3-gen.py、start-comfyui-remote.bat 等）。
+- WORKFLOW.md 引用的工具路径全部核实存在（当时位于根 `tools/`，现已整体迁入
+  `game-dev/tools/ai-gen/`：comfyui-gen.py、models.json、make-transparent-icon.py、
+  check-icon-sizes.py、birefnet-cutout.py、verify-eclipse-icons.py、flip-boots-right.py、
+  check-components.py、minimax-h3-gen.py、start-comfyui-remote.bat 等）。
 - 模板内容全部来自实战沉淀（陨星/暴风雪图标、稀有三套+首饰、沙袋/拒马、陨星 VFX 视频），非虚构。
 
 ## 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
@@ -204,21 +397,21 @@ node "...\describe-image.js" --latest
 2. **5080 主力模型实机核对并登记**：FLUX.2 dev fp8（`flux2_dev_fp8mixed` +
    `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ FLUX.2 Depth ControlNet
    （`FLUX.2-dev-Fun-Controlnet-Union`，Depth/Canny/HED/Pose 单文件多模式）已装；
-   `tools/models.json` 登记 `flux2-dev-fp8`（24 步/CFG 3.5）+ `flux2-dev-depth`（默认强度 0.75）。
-3. **客户端升级**：`tools/comfyui-gen.py` 新增 `--control-image` / `--strength` 与
+   `tools/ai-gen/models.json` 登记 `flux2-dev-fp8`（24 步/CFG 3.5）+ `flux2-dev-depth`（默认强度 0.75）。
+3. **客户端升级**：`tools/ai-gen/comfyui-gen.py` 新增 `--control-image` / `--strength` 与
    ControlNet 工作流分支（Flux2FunControlNetLoader/Apply），深度图锁视角/方向；
    官方 BFL JSON 结构化提示词（camera 块）作双保险。
 4. **兼容修复（已应用 2026-08-04）**：flux2fun-controlnet v1.1.0 的
    `timestep_zero_index` / `multigpu_clones` 两处补丁与 comfyui-mesh Icarus stub 补丁
-   已在 5080 替换并重启（原文件备份 + 修复版在 `tools/remote-patch/`，NAS 同步一份）；
+   已在 5080 替换并重启（原文件备份 + 修复版在 `tools/ai-gen/remote-patch/`，NAS 同步一份）；
    Mesh 跨机出图实测通过（`flux2-dev-mesh`，8 步 turbo，Turbo LoRA 两端本地加载）。
-5. **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 五类模板补深度锁用法、
+5. **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 8 个模板补深度锁用法、
    SKILL.md v2.1、CHANGELOG。
 
 ### 验证
 - 远程 5080 在线（192.168.3.142，RTX 5080 16GB，ComfyUI 0.30.0），模型/节点清单实机核对
   （Flux2FunControlNetLoader/Apply 存在，ControlNet 文件在 models/controlnet）。
-- `tools/comfyui-gen.py --list-models` 通过；`flux2-dev-mesh` 跨机实测出图成功
+- `tools/ai-gen/comfyui-gen.py --list-models` 通过；`flux2-dev-mesh` 跨机实测出图成功
   （5080 Icarus + 3080 Ti Daedalus，8 步 turbo，服务端每步 decode~140ms/fwd~9ms/enc~650ms）。
 
 ## 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
@@ -302,7 +495,7 @@ node "...\describe-image.js" --latest
 - 未提交批次：V0.291~V0.302 全部在本提交
 
 ### 后续计划
-- **即梦 API 接入**（用户已确认排期）：火山引擎视觉服务（jimeng_t2i_v40）文生图脚本 `tools/jimeng-gen.py`——提示词用本文件工作流标准模板；密钥由用户自建 `tools/.secrets/jimeng.json`（不入库、需加 .gitignore），不贴对话。接入后 AI 出图→标准化管线→入库全自动化；视频生成接口（动作动画截帧路线）作为二期。
+- **即梦 API 接入**（⚠ 截至 2026-08-04 未实施的计划，`tools/jimeng-gen.py` 尚不存在，勿当已有能力；用户已确认排期）：火山引擎视觉服务（jimeng_t2i_v40）文生图脚本 `tools/jimeng-gen.py`——提示词用本文件工作流标准模板；密钥由用户自建 `tools/.secrets/jimeng.json`（不入库、需加 .gitignore），不贴对话。接入后 AI 出图→标准化管线→入库全自动化；视频生成接口（动作动画截帧路线）作为二期。
 
 ---
 
@@ -519,7 +712,7 @@ node "...\describe-image.js" --latest
 - 量化方法（pngjs 扫 alpha>8）：内容包围盒宽高占比 + 质心偏移。目标：**最长边 ≈90%、质心偏移 = (0,0)**。
 
 ### 1.5 抠图（AI 生图一律先抠底，2026-08-03 定稿：本地 BiRefNet 透明抠图）
-- **首选：BiRefNet 透明抠图**（`tools/birefnet-cutout.py` 独立脚本 + `tools/birefnet-icon-pipeline.py` 全管线：
+- **首选：BiRefNet 透明抠图**（`tools/ai-gen/birefnet-cutout.py` 独立脚本 + `tools/ai-gen/birefnet-icon-pipeline.py` 全管线：
   生图 → BiRefNet 透明 PNG → 归一化）。模型权重走 ModelScope 镜像
   `modelscope/BiRefNet`（`model.safetensors`，transformers remote-code 格式，目录
   `ComfyUI/models/BiRefNet/MS-BiRefNet/`），HuggingFace 直连超时、hf-mirror 403，勿再试。
@@ -531,15 +724,15 @@ node "...\describe-image.js" --latest
 - **生图提示词仍必须写"主体完全在画面内、四周留白"**，否则细长物品（腰带等）延伸到
   画面外被裁切，即使 BiRefNet 也只能抠出残缺主体（2026-08-03 不息腰带两连坑：
   金属徽章误生成、皮带横穿出界被裁；改为"盘绕成圈、完整居中"后通过）。
-- 抠图完成后必须验证：`tools/edge-check-*.py` 扫 alpha∈(10,245) 的边缘像素，
+- 抠图完成后必须验证：`tools/ai-gen/edge-check-*.py` 扫 alpha∈(10,245) 的边缘像素，
   **白色占比应为 0%**（>0.5% 即白边残留，需重抠或重生成）；另跑
-  `tools/verify-eclipse-icons.py` 确认 1536² / 内容 90% / 纵横比 ∈[0.72,1.4] / 居中。
+  `tools/ai-gen/verify-eclipse-icons.py` 确认 1536² / 内容 90% / 纵横比 ∈[0.72,1.4] / 居中。
 
 ### 1.6 装备构图硬性规则（2026-08-03 定稿，AI 提示词必须遵守）
 - **靴子/鞋类只生成一只、朝右**：提示词写 `a single right-facing boot, one boot only facing
   right, no pair`；SDXL 常无视 "right-facing" 仍生成朝左，兜底方案是出图后
-  `tools/flip-boots-right.py` 水平镜像（单只靴子镜像无左右脚问题）。
-  判定用 GLM-4V 逐张问"鞋头指向左还是右"。
+  `tools/ai-gen/flip-boots-right.py` 水平镜像（单只靴子镜像无左右脚问题）。
+  判定用 GLM-4.6V 逐张问"鞋头指向左还是右"。
 - **盔甲类要写全下半身**：仅写 "chest piece" 会得到只有胸口的残件，必须写
   `full torso armor from shoulders down to hips, abdominal plates, waist belt,
   faulds (segmented skirt armor), tassets`，并让 GLM 确认"是否有下半身/裙甲"。
@@ -566,7 +759,8 @@ node "...\describe-image.js" --latest
 - 大小硬性 0.90：最长边 = 画布×0.90，不缩图、不裁切。
 - 只统一最长边不够：宽扁条（魔力腰带 2.34:1）在方形图标框里仍只有其他腰带的一半高——**必须做纵横比归一化**（上限 1.4），否则"大小一致"只停留在文件层、观感仍不一致（2026-08-02 实测教训）。
 - 图标全链路共用 `iconImage` 字段（装备栏 `slotImage || iconImage`、掉落、图鉴、商店）——改贴图即全局生效，无需改代码。
-- 源文件保留在 `E:\无尽轮回\游戏\素材库\装备`（原始大图）；游戏内使用 `assets/icons/equipment/` 的处理后副本；脚本按本流程用 pngjs 现写（临时脚本不入库）。
+- 源文件此前保留在 `E:\无尽轮回\游戏\素材库\装备`（原始大图；⚠ 该路径已废弃，
+  素材库现约定为 NAS `Y:\素材库\`）；游戏内使用 `assets/icons/equipment/` 的处理后副本；脚本按本流程用 pngjs 现写（临时脚本不入库）。
 
 ---
 
@@ -588,8 +782,8 @@ node "...\describe-image.js" --latest
 ```
 首饰条目：`category: "accessory"`、无 defense/armorSet，`bonusStats/bonusPerEnhance`
 为六维或 atk/matk/crit/maxHp/maxMp/maxStamina（tooltip 的 attrNames 决定显示名）。
-新增条目脚本：`tools/add-eclipse-set-to-equipment.py`（幂等，双份同步，改完跑
-`tools/verify-set-shop.mjs` 确认双份一致 + 图标文件存在 + 商店目录齐全）。
+新增条目脚本：`tools/ai-gen/add-eclipse-set-to-equipment.py`（幂等，双份同步，改完跑
+`tools/verify-set-shop.mjs` 确认双份一致 + 图标文件存在 + 商店目录齐全——⚠ 该校验脚本已丢失、待重建）。
 
 ### 2. 套装键（base.js 三件套判定）
 - `calculateCombatStats` 中 `setCount` 按 helmet/armor/boots 同 `armorSet` 计数，
@@ -610,7 +804,7 @@ node "...\describe-image.js" --latest
   新增装备零登记自动进精英宝箱房掉落池。
 
 ### 5. 验证四件套
-- `tools/verify-set-shop.mjs`（双份一致/图标存在/商店目录/套装件数=3）
+- `tools/verify-set-shop.mjs`（双份一致/图标存在/商店目录/套装件数=3；⚠ 脚本已丢失、待重建，重建前以 JSON 双份比对 + 实机目检代替）
 - JSON 双份一致（test-regressions 会拦）；`npm run lint`；`npx vite build`；
   `node scripts/test-config-integrity.mjs`；实机：商店购买 → 装备三件 → 面板套装生效
   （移速/冷却/魔伤/格挡）→ tooltip 套装文案。
@@ -1284,6 +1478,8 @@ _getPhaserOptions() {
 | 弹道投射物 | `bolt-skill-system.js` kind 配置 | 火球/冰锥：凝聚→发射→飞行→命中 |
 | 地面区域 | `GroundZone` 基类 | 毒雾/酸液/燃烧区 |
 | 锁定/传导 | `LightningStrikeSystem` + `LightningBoltEffect` | 闪电：点选最近敌人→立即命中→连锁 |
+| 移动雷云（跟身持续） | `StormDomainSystem` + `StormCloudFx` | 雷暴领域：头顶雷云跟随自己周期落雷+传导 |
+| 电磁炮直线光束 | `ThunderLanceSystem` + `spawnRailgunBeam` | 贯穿雷枪：长按蓄力→沿鼠标方向笔直贯穿全部敌人（感电增伤+击退）→终点电爆 |
 | 其他自管 | 独立 system 组件 | 风车/推击等 |
 
 ### 1. 数据（data/skills.json + public/data/skills.json 双份同步）
@@ -1300,7 +1496,15 @@ _getPhaserOptions() {
 - `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。
 - `update(dt)`：冷却递减（ms）。
 - **玩家接线四件套**：① `player/index.js` import + `this.xxxSystem = new XxxSystem(this)` + `_xxxCooldown = 0` 字段；② `subsystems.js` update 段 `this.xxxSystem.update(dt)`；③ `subsystems.js` 死亡复位段清 `_xxxCooldown`；④ `subsystems.js` `_initSkills` 加 `if (!skills.xxx)` 兜底（JSON 加载失败/旧缓存仍可用）。
-- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）。
+- **数值兜底收敛（配置唯一真相，2026-08-05 全魔法系统落地）**：系统顶部定义 `XXX_DEFAULTS` 常量
+  （值与 skills.json 同字段缺省兜底一致），`trigger()` 里 `const effect = { ...XXX_DEFAULTS, ...baseEffect, mpCost }`
+  合并——skills.json effectFormula 是唯一真源，业务代码**禁止散落 `effect.cooldown || 25` 之类魔法数字**；
+  伤害公式内 `?? 0` 防御读取可保留（合并后不会触发）。已覆盖：贯穿雷枪/雷暴领域/闪电锁定/暴风雪/陨星/
+  圣光/冰墙/灼锋焰甲/无人机/冰锥/火球（投射物走 `kind.defaults` 并入 `BoltSkillSystem._getEffect`）。
+- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）；
+  **瞄准类技能 `trigger` 必须可传参 `trigger(optAimX, optAimY)`**——玩家用鼠标（内部读 Renderer.screenToWorld），
+  怪物传面向方向（缺省回退自身前方 100px，贯穿雷枪已按此实现）；蓄力光球类特效玩家锚定施法手，
+  怪物同样生成但先用默认锚点（`_defaultChargeAnchor` 身体中线上方）占位，待怪物绑定点做好再替换。
 
 ### 3. 快捷栏（quick-bar.js）
 
@@ -1327,7 +1531,7 @@ _getPhaserOptions() {
 ### 6. 图标与音效（可选但推荐）
 
 - 图标（本地 ComfyUI 出图，2026-08-03 起）：先读文首「本地 AI 出图工作流」——用本地 ComfyUI 生成
-  （同系列风格参照现有技能图标），过 GLM-4V 验收 + 像素统计后抠图入库 `assets/skills/xxx.png`
+  （同系列风格参照现有技能图标），过 GLM-4.6V 验收 + 像素统计后抠图入库 `assets/skills/xxx.png`
   （1024×1024 透明底，与火球同规格），`iconImage` 指向。技能贴图要点见文首「技能贴图要点」清单。
 - 清理（2026-08-03 起强制）：确认 iconImage/贴图引用后，删除生成过程全部废案与未调用图片
   （迭代版本/候选图/预览图），只保留最终被引用资产，避免仓库膨胀。
@@ -1950,7 +2154,7 @@ addTree(x, y, radius, ...) {
 - **实机复核（冻结逐帧）**：`tools/cdp-sword-hold-frames.mjs` 手动定格 8 帧
   （play+timeScale=0 冻结帧 + 占位 tween 保 attacking 状态机 + 40s 进度时钟反推），
   现支持 30 帧全量定格（进度 i/29，精灵帧按权重同步）；对 30 帧握把落点做贴图真值掩码采样，
-  **30/30 全部落在角色像素上（37%~100%）**；GLM-4V 逐帧特写复核 30/30 ON-HAND。
+  **30/30 全部落在角色像素上（37%~100%）**；GLM-4.6V 逐帧特写复核 30/30 ON-HAND。
 - **握把（剑柄）贴手（2026-08-03 修订）**：perFrame 偏移是**贴图中心**，而剑柄在贴图中心下方
   ——中心贴手 = 剑柄悬在手下。修正：按每帧旋转角反推中心 `offsetX = 手X + G·sin(rot)`、
   `offsetY = 手Y − G·cos(rot)`，使剑柄落点=手。
@@ -1966,7 +2170,7 @@ addTree(x, y, radius, ...) {
    将精灵帧 alpha 用 BILINEAR 缩放到显示尺寸（`frame.resize((w,h), BILINEAR)`，
    `alpha>100` 为角色像素），握把落点采 7×7 邻域贴附率，>20% 视为贴手。
    场景截图的暗像素会被背景阴影/杂物误报（曾把 12 帧悬空误判为全贴手）。
-3. **GLM-4V 的边界**：读绝对坐标不可靠（全图/网格/裁剪多格式都会跑飞）；
+3. **GLM-4.6V 的边界**：读绝对坐标不可靠（全图/网格/裁剪多格式都会跑飞）；
    但"红点是否在手"的 ON/OFF 判断在 140px 握把特写（2 倍放大 + 红点标记）上稳定。
    定位用掩码，复核用 GLM，二者交叉。
 4. **改 JSON 配置后必须刷新页面**：ESM 静态 import 缓存旧配置，游戏启动时读一次，
@@ -2086,9 +2290,9 @@ addTree(x, y, radius, ...) {
 - **坑（本次沉淀）**：
   1. 拳头中心用**手层内容质心**（像素级可复现），不用左边缘+半宽估算（会偏到手臂）。
   2. 抬举帧拳头比腰侧帧大得多（x≈231~300, y94~112），窗口右缘止于近侧手 x300 前，避免裁进另一只手。
-  3. **GLM-4V（deepseek-vision-skill）定位手不可靠**：坐标误差 50~150px、同图两次回答矛盾，
+  3. **GLM-4.6V（deepseek-vision-skill）定位手不可靠**：坐标误差 50~150px、同图两次回答矛盾，
      只配做粗验收（"法杖是否握在手里"），像素级修正一律用像素分析。
-- **GLM-4V（deepseek-vision-skill）定位手不可靠**（2026-08-03 实测）：对 1024² 图坐标误差
+- **GLM-4.6V（deepseek-vision-skill）定位手不可靠**（2026-08-03 实测）：对 1024² 图坐标误差
   50~150px，同图两次回答互相矛盾，不能用于像素级修正；只适合粗粒度验收（"法杖是否握在手里"，
   实机截图判定通过）。精确定位仍用手层内容质心（像素级，可复现）。
 
@@ -2627,6 +2831,8 @@ Phaser Sprite.x / y / rotation / scale
 ## 变更记录
 
 - v1.16 (2026-08-03) — 生图改为智谱 API 优先
+  - ⚠ 已被 2026-08-04 二轮推翻：双机 ComfyUI 优先（远程 5080 主力 + 本机 3080 Ti 兜底）、
+    智谱 API 降级为第三兜底；以下条目保留作历史记录
   - 本地 AI 出图工作流新增「生图入口（优先：智谱 API）」：`tools/ai-gen/zhipu-gen.py`，
     默认模型 glm-image（1280×1280），不支持负面词参数（避项写进正向提示词），
     右下角固定"AI生成"水印（去水印需智谱后台签免责声明，抠图时水印在白边可随背景丢弃）
@@ -2644,7 +2850,7 @@ Phaser Sprite.x / y / rotation / scale
     每跳叠 1 层寒冷（3.5%/层），冰墙+暴风雪组合叠 20 层触发冻结（冻结=定身+冰块视觉+物理伤害+50%）
   - 特效：乌云（柔边色块+粒子烟雾，随区域半径缩放、恒置顶）+ 雪球/冰锥从云中砸落（密度/速度/落点椭圆内随机/
     落地冰屑迸溅）+ 底部雪花/云雾/风线，全部配置化（skills.json 调范围/持续，构造 options 调观感）
-  - 图标：本地 ComfyUI 生成（六边形徽章同系列，两段式 img2img+inpaint 定稿）+ GLM-4V 验收；
+  - 图标：本地 ComfyUI 生成（六边形徽章同系列，两段式 img2img+inpaint 定稿）+ GLM-4.6V 验收；
     冰锥投射物 4 张 AI 贴图随机抽取
   - 开发工具：技能页签「技能无CD无消耗」开关（含法杖门槛绕过）；详情面板魔法分类（冰/火/电/光）与
     等级（初/中/高）词条着色；暴风雪修炼方式（4 条经验途径）说明补全
@@ -3102,7 +3308,7 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 3. **接线**：magic-categories（fire+meteor、tier 3）、skills.json 双份、player/index + subsystems 更新与死亡清理、
    quick-bar 触发与冷却同步、skill-manager 四分支（经验/网格/详情/经验说明）。
 4. **图标（2026-08-03 二版重做）**：初版与火球同质（都是橙红火团）被否；二版强调**暗色岩石核心 +
-   熔岩裂纹 + 长拖尾**（负面词排除 fireball/flame sphere），GLM-4V 验收"不是纯火球、是带岩石核心的流星"，
+   熔岩裂纹 + 长拖尾**（负面词排除 fireball/flame sphere），GLM-4.6V 验收"不是纯火球、是带岩石核心的流星"，
    角点背景抠图 + 去污染入库 1024×1024 透明底。
 
 ### 性能实测（熔岩 54 发射器，cdp-meteor-perf.mjs）
@@ -3152,7 +3358,7 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 1. **灼锋焰甲（flameArmor，火系初级魔法，Buff 型新形态）**：施放给自己上 Buff（持续 12→30s，冷却 60s，MP 40→80 随级增长）：
    - 命中附伤：除魔法技能外的任何攻击命中附带魔法伤害 + 四散红色火花粒子；
    - 灼烧光环：每 0.5s 对半径 130+5L px 内敌方造成魔法伤害（同样迸发火花）；
-   - 武器火焰（**2026-08-03 实机+GLM-4V 验收定稿**）：运行时读武器贴图像素定位剑身区间，火焰整段覆盖剑身
+   - 武器火焰（**2026-08-03 实机+GLM-4.6V 验收定稿**）：运行时读武器贴图像素定位剑身区间，火焰整段覆盖剑身
      （密集采样 + 三层光带）、排除剑柄/把手、左右对称、无漂浮；脚底火焰环旋转。
 2. **实现形态**：`FlameArmorSystem`（MP 门禁含改造减免/冷却改造/状态效果 + StatusBar 图标/
    到期 `_onFlameArmorEnd` 钩子统一结算经验）+ `FlameArmorFx`（EffectManager 常驻特效）：
@@ -3163,7 +3369,7 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
    伤害挂钩零侵入：在 `DamagePipeline.applyHit` 加一行，凡物理攻击命中即附伤，魔法技能天然排除。
 3. **接线**：skills.json 双份、magic-categories（fire+flameArmor、tier 1）、damageable-entity 状态注册与到期钩子、
    status-bar 配置、player/subsystems（更新/死亡清理/到期钩子）、quick-bar、skill-manager 五分支。
-4. **图标**：直接使用用户素材库 `灼锋焰甲/1.png`（1024 透明底，六边形徽章+紫金+火焰剑盾），GLM-4V 验收通过，无需再生成。
+4. **图标**：直接使用用户素材库 `灼锋焰甲/1.png`（1024 透明底，六边形徽章+紫金+火焰剑盾），GLM-4.6V 验收通过，无需再生成。
 
 ### 沉淀约定（Buff 型技能模板）
 - **挂伤害用 DamagePipeline 而非攻击代码**：近战/远程/冲刺/风车/推击等物理攻击全部汇聚在 `applyHit`，
@@ -3198,3 +3404,152 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 | 经验：多命中/多击杀 | 5 / 10 | — | — | — | — |
 | 升级经验公式 | 100+(L−1)×100（1→20 累计 21000） | | | | |
 | 附伤/光环对枪械 | **生效**（投射物命中走 DamagePipeline，每发子弹命中附伤+火花） | | | | |
+
+## 阶段性进度总结（2026-08-05：电系中高级技能 + 感电叠层机制落地）
+
+### 本次完成
+1. **电系专属状态「感电」（electrified，新 Buff/Debuff）**：每层使目标受到的电系伤害 +3%；**叠满 5 层自动触发「过载」**——眩晕 1.2s + 对周围 150px 每个敌方单位传导一次电击（`20 + matk×1.2 + int×1.2`）并清空全部层数。与冰系 chill→冻结平行，电系性格 = 伤害放大 + 连锁爆发。
+   - 实现全流程：`damageable-entity.js` STATUS_CONFIG + `applyElectrified(stacks, duration, source)`（免疫拦截→叠层→满层过载→StatusBar→飘字）+ `_updateElectrified` 到期清空；`status-bar.js` 条目（desc 悬停）；伤害结算段新增 **`damageType='electric'` 子类型**（按魔法伤害口径结算 mdef/魔力易伤/法袍加成/暴击符文），并乘 `(1 + 0.03×层数)`；`docs/buff-reference.md` 登记。
+2. **闪电（初级）调整**：不再造成击退（移除 `applyKnockback` 结算与面板行）；命中叠加 1 层感电（4s），融入电系叠层闭环。
+3. **雷暴领域（stormDomain，电·中级，tier 2 需法杖）**：移动雷云跟身炮台——头顶雷云（`storm-cloud-fx.js` v2：参照暴风雪乌云——运行时柔边贴图 + **深蓝黑/靛蓝/电光蓝四层色块**云团 + 云内电弧锯齿 + 蓝色云雾/电花/坠落电弧粒子，深度恒为 1<<28；**不画云底圆环描边**）跟随自己，持续 10→13s（L1 起 10s），每 0.9s 对雷云范围内（220+8L px）最近敌人落雷：主目标全额 + 邻近传导（每 8 级 +1 目标、每跳衰减 30%）+ 250ms 打断眩晕 + 感电 1 层。CD 30s / MP 80→120。落雷数随持续增长（L1≈11 → L20≈14）。
+4. **贯穿雷枪（thunderLance，电·高级，tier 3 需法杖）**：**长按快捷键蓄力**（input.js `_chargeKeyHeldCode` 长按检测 + quick-bar `thunderLanceKeyDown/KeyUp`，参照无人机长按模式；**按键松开安全网**：系统记录绑定键 `setHoldKey`（keydown 时 Input.keys 已含该键标记 `_holdKeyPressed`），update 每帧检测键已松开但 release 未被调用（首次进入绑定未就绪走 useSlot 等路径）→ 自动 release，杜绝蓄力到满；鼠标点击二段式不启用安全网。施法姿势释放帧定格且不可移动——`startPlayerCast` 新增 `holdAtRelease`，`resumePlayerCastHold` 收尾回 idle；**蓄力期间瞄准随鼠标实时变化**，最终释放方向以松开/满蓄时鼠标为准，鼠标转到背后时翻转玩家贴图朝向（flipX）；**伤害随蓄力比例**：蓄力 0.5~2.5s → 20%~100%（满蓄 ×chargeBonusMul 1.3），**不足 0.5s 释放失败：不进入冷却（清 CD）+ 返还 MP**；**手部蓄力汇聚光球** `charge-orb-fx.js`：粒子向手握点汇聚 + 光球随进度放大，成功爆散/取消淡出；**手部锚点 = 施法武器握把（weaponSprite，法杖中段=前伸手，CDP 实机确认暂停帧手位）优先 + 手层内容质心回退**，每帧取（不锁定，翻转朝向时跟随镜像）；眩晕/冻结/死亡自动取消；目标地点无提示特效）→ 沿鼠标方向射出**电磁炮直线光束**（`spawnRailgunBeam`：白蓝三层辉光直线 + 4 个加速环从后往前扫过 + **附着电流=色块圆点链**（见特效沉淀⑨），非蛇形闪电；widthScale 4.0，残留 373ms）——**锥形判定贯穿路径上所有敌人**（视线可达、按距离排序），命中目标**沿光束方向击退 50→150px 随等级**，**感电层数越高伤害越高（每层 +10%）**，命中叠 2 层感电；射程尽头/撞墙处电爆（冲击波+放射线+粒子，无天顶光柱/无感电地面蓝圈）。CD 32→28s / MP 120→155，射程 915→1200px（随等级）。
+   - **2026-08-05 特效沉淀**：① `LightningBoltEffect` 新增 `uniform` 等宽模式（关闭施法端粗→目标端细，半径恒定 + 整体偏细）——感电过载电弧已切细等宽（`widthScale: 0.45`）；② 雷暴领域云删除云底蓝色椭圆描边，只保留云团/电弧/粒子；③ 天顶闪电光柱抽为共享件 **`spawnLightningColumn`（combat-fx.js ⑧）**——白蓝梯形闪电柱一闪而逝（贯穿雷枪已不再使用：施法者/终点光柱均取消）；④ 电磁炮直线光束抽为共享件 **`spawnRailgunBeam`（combat-fx.js ⑨）**——笔直三层辉光直线 + 4 加速环，widthScale 4.0；⑤ **蓄力定格模板**：`startPlayerCast({ holdAtRelease })` 第 releaseFrame 帧触发 onRelease 后**先完成前摇跨步站稳（+30px）**，再冻结动画（timeScale 0）保持 casting 输入锁定，`resumePlayerCastHold()` 恢复播完前摇→倒放后摇回 idle，取消走 `cancelPlayerCast`；⑥ **蓄力汇聚光球模板**：`ChargeOrbFx`（charge-orb-fx.js）——锚点取施法武器握把/手层质心（见正文），粒子从手周围椭圆环四面八方生成、寿命=到达时间（视觉"收进"光球），`finish()` 爆散 / `cancel()` 淡出；⑦ **电流去线条化模板（光柱附着电流）**：参考 `LightningBoltEffect` 的"色块圆点链"避免线条感——沿光柱**平行方向**生成短折线，重采样成小圆点色块链（辉光 ADD + 白芯），**首尾用 sin 权重不规则淡出**（两端熄灭、中间亮，每点叠加随机断续），半径随光柱弱缩放（√widthScale），90ms 分段伪随机跳变闪烁——任何"光束/电流"类特效都按此做，禁止纯线条 stroke。
+   - **2026-08-05 重设计说明**：原「雷神审判」为定点蓄力连环 AOE，与暴风雪（定点持续）/陨星（定点爆发）设计重叠，已整体替换为「贯穿雷枪」（蓄力贯穿型，追踪/直线操作）；旧组件 thunder-judgment-system.js 与图标 雷神审判.png 已删除。
+5. **接线**：skills.json 双份（25 技能）、magic-categories（electric 三技能 + tier 2/3）、玩家四件套（index.js 导入/字段/实例化，subsystems.js update + 死亡复位 `clearCloud`/`clearStorm` + `_initSkills` 兜底）、quick-bar（触发分支 + 冷却同步 + `_getTotalCooldown` 名单）、skill-manager（三处 skillList + effectText + 经验函数 + 详情面板 + 经验说明）。
+6. **图标（2026-08-05 LoRA + 不规则切割 + HSV 明度柔光定稿）**：`assets/skills/雷暴领域.png` / `贯穿雷枪.png`
+   提示词：**irregular low-poly faceted surface with facets of uneven sizes and shapes, not a uniform
+   grid + soft diffuse glossy sheen + no harsh contrast + translucent like crystal glass**，
+   12 步重出（雷暴 seed 111111 / 雷枪 seed 151515，不规则切割 + 水晶通透 + 深紫高饱和）。
+   **反光后处理必须用 HSV 只压明度（V）对比、完整保留色相（H）/饱和度（S）**——第一版 RGB 向中值压缩
+   导致饱和度下降、蒙雾感（用户反馈"色彩失真蒙雾"）；HSV 版 S 中值完全保留（雷暴 158 / 雷枪 135），
+   V 标准差 -41%（雷暴 43.8→25.7、雷枪 46.8→27.7），GLM 复验
+   **柔和漫反射 + 饱和纯正无蒙雾 + 不规则切割 + 水晶通透全项通过**。归一后同系列规格
+   （雷暴 786×932 / 0.84 / fill 69.9% / cy+28，aspect 与 fireball 一致；贯穿 800×918 / 0.87 / 70.0% / cy+28），
+   废案与 .bak 已清。
+   - **教训沉淀**：技能图标正式出图必须走 `flux2-klein-4b` + klein-skillicon-v2 LoRA（触发词开头）；
+     **steps ≥12**；切割写 irregular / uneven sizes / not a uniform grid；Klein+LoRA 对"不规则切割"
+     稳定绑定强对比高光（提示词/cfg/步数压不住）→ 入库前做**HSV 明度柔化**：`convert('HSV')` 后
+     只把紫面（b>r>g）的 V 向中值压缩（strength≈0.55，-40% 明度差），H/S 不动——
+     **禁止 RGB 向中值压缩**（会掉饱和出雾感）；主体写 translucent like crystal glass；
+     电系主题不写 dark/gray 云；归一后复核 aspect >5% 换 seed；多 seed 抽选 + GLM 逐项验收。
+### 沉淀约定（电系叠层模板）
+- **感电消费点 = takeDamage 伤害结算段**：新增 `damageType='electric'` 与 magic 同口径结算（mdef/魔力易伤/法袍秘法/暴击符文都认），再乘感电系数——不要在各技能系统里手乘，避免遗漏。
+- **叠层转质变阈值 5 层**：`applyElectrified` 内部达到即触发过载并清空（重复施放可再次叠层），与 chill 20→冻结同模式；数值走参数不硬编码（stacks/duration 由 skills.json effectFormula 传入）。
+- **移动雷云形态**：跟身持续类技能 = 系统组件自管计时 + EffectManager 常驻特效（`StormCloudFx`，active 自检 buff 是否仍在），死亡/场景切换走 `clearCloud` 不结算经验（与灼锋焰甲同口径）。
+- **蓄力连环形态**：`createGroundWarning` 保活续命（每帧 `keepWarningAlive`），结束时必须 `destroyWarning` 显式销毁；阶段状态机放系统 `update(dt)` 里推进（warning → storming → final → end）。
+- **优先目标**：落雷优先感电层数最高者（并列取最近），让「先叠层再引爆」的连招有明确收益。
+- **fallback 收敛 + 怪物复用（2026-08-05 收尾沉淀）**：① 所有魔法系统数值缺省统一收敛到顶部
+  `XXX_DEFAULTS` + `{ ...DEFAULTS, ...baseEffect }` 合并，skills.json 为唯一真源，禁止业务代码散落
+  `|| 默认值`（详见「技能添加标准工作流」§2）；② 贯穿雷枪瞄准参数化 `trigger(optAimX, optAimY)`——
+  玩家=鼠标、怪物=面向方向（缺省自身前方 100px）；③ 怪物也生成蓄力光球，锚点暂用
+  `_defaultChargeAnchor()`（身体中线上方）占位，怪物绑定点做好后替换该锚点即可。
+### 电系数值（V1.1 定稿：2026-08-05 精调——雷暴领域持续/传导成长、贯穿雷枪蓄力收益上调）
+| 雷暴领域 | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 / MP | 30s / 80 | 30 / 88 | 30 / 99 | 30 / 109 | 30 / 120 |
+| 持续 | 10s | 10s | 11s | 12s | 13s |
+| 雷云半径 | 228px | 260 | 300 | 340 | 380 |
+| 每雷·基础 / 魔攻系数 | 29 / 0.50 | 45 / 0.70 | 65 / 0.95 | 85 / 1.20 | 105 / 1.45 |
+| 传导目标（额外） | 1 | 1 | 2 | 2 | 3 |
+
+| 贯穿雷枪（电磁炮） | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 / MP | 32s / 120 | 32 / 127 | 31 / 136 | 30 / 145 | 28 / 155 |
+| 蓄力 | 2.5s（贯穿伤害 ×1.3） | 2.5s | 2.5s | 2.5s | 2.5s |
+| 贯穿射程 | 915px | 975 | 1050 | 1125 | 1200 |
+| 贯穿·基础 | 124 | 180 | 250 | 320 | 390 |
+| 贯穿·魔攻/智力系数 | 2.06 / 2.30 | 3.1 / 3.5 | 4.4 / 5.0 | 5.7 / 6.5 | 7.0 / 8.0 |
+| 感电增伤 | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% |
+
+## 视频→精灵图→游戏落地全管线（2026-08-05 工头 walk 实战沉淀，100% 达标）
+
+### 1. 视频模型选择：H3 首帧模式（不是 ref2va）
+- H3 的 `MiniMaxH3ImageToVideo` 节点（`comfy_extras.nodes_minimax_h3`）自带 `first_frame` / `last_frame`
+  输入：首帧=参考图 → **像素级锁定角色**，这才是"图生视频"的正确姿势。
+- **ref2va（`MiniMaxH3ReferenceToVideo`）是参考注入不是首帧**：特征能锁、画风锁不住，
+  角色会"从头到尾不是原贴图那个角色"（实测踩坑，曾误判为模型缺陷）。
+- 客户端：`tools/ai-gen/minimax-h3-gen.py --first-frame x.png [--last-frame x.png] --duration 5.17 ...`
+  （脚本已支持；ref2va 用 `--ref-image`，首帧模式用 `--first-frame`，二者互斥）。
+- 时长网格 17k+5 @24fps：2s=56 帧、5.17s=124 帧；**H3 训练区间 124~362 帧（5~15s），
+  2s 在训练分布外**，循环/图生视频至少取 124 帧。
+- 实测耗时（5080 int8，1344×768，20 步）：56 帧≈6min、124 帧≈17min；机器休眠会断服务。
+
+### 2. 视频背景色选择（关键，直接决定抠图成败）
+- **背景色必须与主体色系距离最大**；选色前先对参考图做像素统计确认主体调色板
+  （不要信 GLM 描述，GLM 背景色判断不可靠）。
+- 工头案例：品红底失败——主体含红血污/红眼/头灯暖光/粉色过渡，品红抠图容差一松就吃掉
+  同色系区域（用户反馈"部分缺失"）；**换纯白底成功**——主体是深色系（深棕/灰/黑），
+  与白色色距极远。
+- 规则：① 扫主体调色板，选统计上完全缺席的颜色；② 主体含大量白色的禁止白底（如雪球）；
+  ③ 生成后做**孤立背景色斑检测**（连通域：不贴画布边框的孤立背景色块=角色内部真实孔洞），
+  用形态学闭运算填孔（工头唯一近白点=头灯高光，约 20px，闭运算 3×3 即填掉）。
+- 白底视频提示词：`flat solid pure white background identical to the first frame,
+  completely uniform white, no ground, no shadow, no reflection`。
+
+### 3. 镜头/构图（防"超出显示区域"）
+- **首帧角色高度占画布 70~75%、四周留 ≥10% 安全边距**；顶天立地（100%）时实测
+  56 帧里 45 帧贴边、头脚被裁。
+- 提示词：`static camera locked in place, no camera movement, no pan, no zoom,
+  no push-in, no pull-out, no tilt, no rotation, the body stays perfectly centered
+  in the frame and never drifts left or right, only the arms and legs move,
+  the entire character with hat and bare feet always fully visible inside the frame
+  with generous empty margin on all sides, nothing is cropped or touches the frame edges`。
+- 验收量化：逐帧主体 bbox 贴边帧数必须 = 0；水平中心漂移初始 206px → 缩 75% + 强化
+  静态镜头后 35px（可接受，拼图时逐帧居中可消）。
+
+### 4. 无缝循环生成（首帧=尾帧）
+- `--first-frame` 与 `--last-frame` 传**同一张图**：结尾姿势/位置强制回到首帧
+  （实测中心差 (0,0)px、轮廓重合 IoU 0.99、结尾 5 帧速度无突变=无橡皮筋回弹）。
+- 提示词加：`at the end of the video the character naturally returns to the exact
+  same pose and the exact same position as the first frame, seamless loop,
+  no freeze and no slow down at the end`。
+- 已知现象：模型仍会在片头/片尾各留 ~8 帧缓动（"慢起→匀速→缓回"），这是正常现象，
+  靠截取算法规避（见 §5），不要因此误判视频失败。
+
+### 5. 循环截取算法（h3-loop-spritesheet.py，本次核心沉淀）
+- **全身平均像素差 / 全身 IoU ≠ 步态相似度**：躯干占比大，这些指标到处 0.9+，
+  找不到周期（实测误判过 T=113、T=112 都是错的）；**必须用腿部区域
+  （身体 bbox 下 35%）IoU** 判"同相位"。
+- 流程：
+  1. 抠底：背景阈值 235 → 3×3 闭运算填孔 → alpha 高斯羽化（3×3, σ0.8）软边；
+  2. 在匀速中段（如 steady=12,105）扫 `leg_iou(s, s+P)`，P∈[70,120]，
+     取 IoU>0.80 的最强配对（工头：s=24, e=104, P=80, leg-IoU=0.952）；
+  3. **循环 = [s, e-step]，必须去掉重复端点 e**：pose(e)≈pose(s)（同相位），
+     留着会让接缝变成"定格"；去掉后接缝 = 一次正常步幅；
+  4. 验证：接缝步幅必须落在正常步幅区间内（工头：正常 27.4~61.0，接缝 31.2）。
+- 判定铁律：**接缝步幅 ≈ 正常步幅 ±50% 才合格**；偏小=接缝定格、偏大=接缝跳变，
+  两者用户都能一眼看出"一段播完突兀开新段"。
+
+### 6. 精灵图抠图/对齐（防"扯回"）
+- 抠图：白底阈值 235 → 形态学闭运算（3×3，填头灯高光等小孔）→ alpha 高斯羽化软边。
+- **对齐三铁律（逐帧量化，必须零偏差）**：
+  - 角色高度固定（先实测旧图标定，工头=262px）；
+  - 脚底基线固定（工头 y=410，防上下跳）；
+  - 水平中心固定（工头 x=256，防左右扯/滑步）。
+- 尺寸/脚底/中心与旧图一致 ⇒ 碰撞体积配置（collisionWidth/Height、footOffsetY）不用动。
+- 进游戏前**先扫空白帧**（格内 alpha>10 像素数 <50 视为空），禁止把空格注册进动画
+  （否则周期闪没，毒液僵尸 idle 24 格仅带 0 有内容的旧教训）。
+
+### 7. 游戏集成（Phaser 512 切帧惯例）
+- 一律 512×512 格子；工头 walk 旧规格：15 帧 8×4 网格 → 新版 20 帧 5×4 网格。
+- BootScene：`load.spritesheet` 的 `endFrame = 帧数-1`；`anims.create` frames 0..N-1、
+  walk 用 `repeat:-1`；frameRate 按观感调（工头 20 帧 8fps=2.5s/圈，10fps 偏快）。
+- `_getTextureKey()` 必须与动画源 spritesheet 一致；换素材前先备份旧图到
+  `Y:\工作\无尽轮回\scratch\backup\`（git 里也有历史版本，可放心清）。
+
+### 8. 验证清单（像素统计优先，GLM 辅助）
+- **像素统计优先级 > GLM 描述**：GLM 会跑偏（曾说视频衣服是绿色、背景判断不可靠、
+  还会输出模板化"assuming…"套话）。量化证据：直方图相关度、步幅差值、贴边帧数、
+  中心漂移、对齐三铁律。
+- 循环验证：首尾中心差、(腿部)同相 IoU、接缝步幅 vs 正常步幅、结尾 5 帧速度无突变。
+- 抠图验证：每帧背景占比稳定、角色内部孤立背景斑（连通域）、无空格帧。
+- 集成验证：`npx vite build` + `npx eslint` + 无空格帧 + GLM **单张**抽查
+  （多图并排 GLM 会串扰，联系图只用于定性）。
+
+### 9. 本次产物与可复用命令
+- 循环视频：75% 白底首帧，`--first-frame` = `--last-frame`，5.17s/124 帧，
+  seed 2026080504 → `foreman_walk_loop_5s_h3_white.mp4`。
+- 精灵图：`h3-loop-spritesheet.py --video <loop.mp4> --out walking.png --cols 5`
+  （自动出 20 帧 5×4、2560×2048，附 GIF 预览）。
+- 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
+  anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。

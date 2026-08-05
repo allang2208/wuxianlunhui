@@ -8,9 +8,15 @@ MiniMaxH3ImageToVideo -> BasicGuider + RandomNoise + KSamplerSelect(res_multiste
 -> CreateVideo(24fps) -> SaveVideo(mp4). Video and native stereo audio are
 generated together in one pass.
 
+With --ref-image the workflow switches to the reference mode
+(MiniMaxH3ReferenceToVideo, ref2va): the image is uploaded to the ComfyUI input
+folder, referenced via LoadImage + ref_images (prompt tag <Picture 1>), which
+locks character/style/sound. --ref-size max gives best identity fidelity.
+
 Usage:
     python minimax-h3-gen.py --prompt "..." --duration 5 --out video.mp4
     python minimax-h3-gen.py --prompt-file prompt.txt --size 1024x576 --seed 42
+    python minimax-h3-gen.py --ref-image idle.png --prompt "the character in <Picture 1> walks ..." --out video.mp4
 """
 
 import argparse
@@ -23,25 +29,60 @@ import time
 import urllib.request
 
 UNET = "minimax_h3_fl2va_pruned_int8_convrot.safetensors"
+REF2VA_UNET = "minimax_h3_ref2va_pruned_int8_convrot.safetensors"
 CLIP = "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"
 VAE_VIDEO = "minimax_h3_video_vae_fp16.safetensors"
 VAE_AUDIO = "minimax_h3_audio_vae_fp32.safetensors"
 SCRATCH_DIR = r"Y:\工作\无尽轮回\scratch"
 
 
-def build_workflow(prompt, seed, width, height, length, steps, scheduler, sampler, prefix):
-    return {
-        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": UNET, "weight_dtype": "default"}},
+def build_workflow(prompt, seed, width, height, length, steps, scheduler, sampler, prefix,
+                   ref_images=None, ref_image_size="max", first_frame=None, last_frame=None):
+    ref_images = ref_images or []
+    unet_name = REF2VA_UNET if ref_images else UNET
+    wf = {
+        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": unet_name, "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": CLIP, "type": "minimax"}},
         "3": {"class_type": "VAELoader", "inputs": {"vae_name": VAE_VIDEO}},
         "4": {"class_type": "VAELoader", "inputs": {"vae_name": VAE_AUDIO}},
-        "5": {
+    }
+    if first_frame or last_frame:
+        if ref_images:
+            raise ValueError("--ref-image cannot be combined with --first-frame/--last-frame")
+        if first_frame:
+            wf["15"] = {"class_type": "LoadImage", "inputs": {"image": first_frame}}
+        if last_frame:
+            wf["16"] = {"class_type": "LoadImage", "inputs": {"image": last_frame}}
+        i2v_inputs = {
+            "clip": ["2", 0], "vae": ["3", 0],
+            "prompt": prompt, "width": width, "height": height, "length": length,
+        }
+        if first_frame:
+            i2v_inputs["first_frame"] = ["15", 0]
+        if last_frame:
+            i2v_inputs["last_frame"] = ["16", 0]
+        wf["5"] = {"class_type": "MiniMaxH3ImageToVideo", "inputs": i2v_inputs}
+    elif ref_images:
+        for i, fname in enumerate(ref_images):
+            wf[str(15 + i)] = {"class_type": "LoadImage", "inputs": {"image": fname}}
+        wf["5"] = {
+            "class_type": "MiniMaxH3ReferenceToVideo",
+            "inputs": {
+                "clip": ["2", 0], "vae": ["3", 0], "audio_vae": ["4", 0],
+                "prompt": prompt, "width": width, "height": height, "length": length,
+                "ref_image_size": ref_image_size,
+                "ref_images": {f"ref_image_{i}": [str(15 + i), 0] for i in range(len(ref_images))},
+            },
+        }
+    else:
+        wf["5"] = {
             "class_type": "MiniMaxH3ImageToVideo",
             "inputs": {
                 "clip": ["2", 0], "vae": ["3", 0],
                 "prompt": prompt, "width": width, "height": height, "length": length,
             },
-        },
+        }
+    wf.update({
         "6": {"class_type": "BasicGuider", "inputs": {"model": ["1", 0], "conditioning": ["5", 0]}},
         "7": {"class_type": "RandomNoise", "inputs": {"noise_seed": seed}},
         "8": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": sampler}},
@@ -56,13 +97,33 @@ def build_workflow(prompt, seed, width, height, length, steps, scheduler, sample
             "images": ["11", 0], "fps": 24, "audio": ["12", 0], "bit_depth": 8}},
         "14": {"class_type": "SaveVideo", "inputs": {
             "video": ["13", 0], "filename_prefix": prefix, "format": "mp4", "codec": "h264"}},
-    }
+    })
+    return wf
 
 
 def duration_to_frames(duration):
     """Frame count at 24fps snapped up to the model's 17k+5 grid."""
     n = max(5, round(duration * 24))
     return n + (5 - n % 17) % 17
+
+
+def upload_image(host, port, path, timeout=120):
+    """Upload a local image to the ComfyUI input folder (multipart /upload/image)."""
+    import mimetypes
+    boundary = "----codexboundary%08x" % random.randint(0, 0xFFFFFFFF)
+    filename = os.path.basename(path)
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    with open(path, "rb") as fh:
+        blob = fh.read()
+    body = bytearray()
+    body += f"--{boundary}\r\nContent-Disposition: form-data; name=\"image\"; filename=\"{filename}\"\r\nContent-Type: {content_type}\r\n\r\n".encode()
+    body += blob
+    body += f"\r\n--{boundary}\r\nContent-Disposition: form-data; name=\"type\"\r\n\r\ninput\r\n--{boundary}--\r\n".encode()
+    req = urllib.request.Request(
+        f"http://{host}:{port}/upload/image", data=bytes(body), method="POST",
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
 
 
 def api(host, port, path, method="GET", payload=None, timeout=60):
@@ -85,6 +146,12 @@ def main():
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--out", default=None, help="output mp4 path")
     ap.add_argument("--prefix", default="video/minimax_h3")
+    ap.add_argument("--ref-image", action="append", default=None,
+                    help="local reference image for ref2va (repeatable; <Picture 1..N> in prompt)")
+    ap.add_argument("--ref-size", choices=["match", "max"], default="max",
+                    help="reference sizing: match=faster, max=best identity fidelity")
+    ap.add_argument("--first-frame", default=None, help="local image used as the exact first video frame (H3 I2V)")
+    ap.add_argument("--last-frame", default=None, help="local image used as the exact last video frame (H3 I2V)")
     ap.add_argument("--host", default="192.168.3.142")
     ap.add_argument("--port", type=int, default=8188)
     ap.add_argument("--timeout", type=int, default=2400, help="max seconds to wait for generation")
@@ -104,9 +171,30 @@ def main():
 
     seed = args.seed if args.seed is not None else random.randint(0, 2**31 - 1)
     length = duration_to_frames(args.duration)
-    wf = build_workflow(prompt, seed, width, height, length, args.steps, args.scheduler, args.sampler, args.prefix)
+    ref_images = []
+    if args.ref_image:
+        for p in args.ref_image:
+            up = upload_image(args.host, args.port, p)
+            sub = up.get("subfolder", "")
+            ref_images.append(f"{sub}/{up['name']}" if sub else up["name"])
+        print(f"[minimax-h3] uploaded {len(ref_images)} ref image(s): {ref_images} (ref_size={args.ref_size})", flush=True)
+    first_frame = last_frame = None
+    if args.first_frame:
+        up = upload_image(args.host, args.port, args.first_frame)
+        sub = up.get("subfolder", "")
+        first_frame = f"{sub}/{up['name']}" if sub else up["name"]
+        print(f"[minimax-h3] uploaded first frame: {first_frame}", flush=True)
+    if args.last_frame:
+        up = upload_image(args.host, args.port, args.last_frame)
+        sub = up.get("subfolder", "")
+        last_frame = f"{sub}/{up['name']}" if sub else up["name"]
+        print(f"[minimax-h3] uploaded last frame: {last_frame}", flush=True)
+    wf = build_workflow(prompt, seed, width, height, length, args.steps, args.scheduler,
+                        args.sampler, args.prefix, ref_images=ref_images, ref_image_size=args.ref_size,
+                        first_frame=first_frame, last_frame=last_frame)
 
-    print(f"[minimax-h3] {args.host}:{args.port} seed={seed} {width}x{height} "
+    mode = "ref2va" if ref_images else ("i2v_firstframe" if (first_frame or last_frame) else "t2v")
+    print(f"[minimax-h3] {args.host}:{args.port} mode={mode} seed={seed} {width}x{height} "
           f"{args.duration}s -> {length} frames, {args.steps} steps ({args.sampler}/{args.scheduler})", flush=True)
     t0 = time.time()
     queued = api(args.host, args.port, "/prompt", "POST", {"prompt": wf})

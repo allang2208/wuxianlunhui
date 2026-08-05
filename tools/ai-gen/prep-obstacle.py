@@ -8,6 +8,8 @@
     python tools/ai-gen/prep-obstacle.py <raw.png> <out.png> [--center 0.25,0.25,0.75,0.75]
 """
 import argparse
+import os
+import shutil
 import sys
 
 import cv2
@@ -102,6 +104,9 @@ def main():
     x0, x1 = max(0, xs.min() - args.margin), min(w, xs.max() + 1 + args.margin)
     y0, y1 = max(0, ys.min() - args.margin), min(h, ys.max() + 1 + args.margin)
     crop = rgba[y0:y1, x0:x1]
+    if os.path.exists(args.out):
+        shutil.copy2(args.out, args.out + ".bak")
+        print(f"  backed up existing -> {args.out}.bak")
     Image.fromarray(crop).save(args.out, optimize=True)
 
     bw, bh = x1 - x0, y1 - y0
