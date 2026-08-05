@@ -4,9 +4,9 @@
 
 - 入库 1536×1536 透明底；**最长边占画布 0.90、纵横比 ∈[0.72,1.4]、包围盒居中**
 - 提示词必须写"主体完全在画面内、四周留白"，否则细长物品（腰带等）出界被裁（不息腰带两连坑）
-- 抠图：BiRefNet 优先（`tools/birefnet-cutout.py` / `birefnet-icon-pipeline.py`），
+- 抠图：BiRefNet 优先（`tools/ai-gen/birefnet-cutout.py` / `tools/ai-gen/birefnet-icon-pipeline.py`），
   不用颜色阈值（浅灰渐变底 + 贴边主体会抠残）
-- 复核：`tools/verify-eclipse-icons.py`（1536²/0.90/[0.72,1.4]/居中）+ `tools/edge-check-eclipse.py`
+- 复核：`tools/ai-gen/verify-eclipse-icons.py`（1536²/0.90/[0.72,1.4]/居中）+ `tools/ai-gen/edge-check-eclipse.py`
   （边缘白色占比 0%，>0.5% 重抠）
 
 ## 风格基准（style_prefix，所有装备固定共用；固化不可随意改动）
@@ -35,7 +35,7 @@ blueprint, multiple hats, multiple boots, duplicate items, clothing rack, manneq
 
 1. **靴子/鞋类只生成一只、朝右**：
    `a single right-facing <材质> boot, one boot only facing right, no pair, no second boot`；
-   SDXL 常无视朝右 → 出图后 GLM-4V 问"鞋头指向左还是右"，朝左用 `tools/flip-boots-right.py` 镜像。
+   SDXL 常无视朝右 → 出图后 GLM-4.6V 问"鞋头指向左还是右"，朝左用 `tools/ai-gen/flip-boots-right.py` 镜像。
 2. **盔甲类写全下半身**：只写 "chest piece" 会出残件，必须写
    `full torso armor from shoulders down to hips, breastplate with abdominal plates,
    waist belt and faulds (segmented skirt armor), tassets over the hips, layered pauldrons`，
@@ -77,7 +77,7 @@ game equipment icon
   `--control-image` 传**同系列已定稿件的深度图**（或手绘摆好的剪影深度），
   把正面/朝右/构图锁死，主题材质照常换。
 - 靴子仍保留文字 `a single right-facing boot, one boot only` 作第二道保险 +
-  出图后 `tools/flip-boots-right.py` 兜底镜像。
+  出图后 `tools/ai-gen/flip-boots-right.py` 兜底镜像。
 - 强度 0.6~0.8；装饰细节（刺绣/刻纹）靠主题块给足材质词，防深度控制下变简笔画。
 
 ## 坑（防再犯）

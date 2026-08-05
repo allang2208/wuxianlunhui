@@ -9,36 +9,42 @@
 
 ## 0. 工作根目录约定
 
-- 本文档位于 `game-dev/tools/ai-gen/`（随仓库版本化）；命令相对**工作区根目录**执行：
-  `E:\无尽轮回\长期备份\2026-7-13-1`
-- 根目录 `tools/` = 生图/抠图/校验工具（ComfyUI 多模型客户端、models.json、BiRefNet 等）；
-  `game-dev/` = 版本仓库（源码 + 入库资产 + 本工作流与提示词库）
-- 所有脚本在根目录下以 `python tools/xxx.py ...` 调用；ComfyUI 启动脚本见下表。
+- 本文档位于 `game-dev/tools/ai-gen/`（随仓库版本化）；命令相对 **game-dev/ 仓库根目录**执行：
+  `E:\无尽轮回\长期备份\2026-7-13-1\game-dev`
+- `game-dev/tools/ai-gen/` = 生图/抠图/校验工具（ComfyUI 多模型客户端、models.json、BiRefNet 等）；
+  `game-dev/tools/` 根 = 游戏侧工具（sprite-normalizer、cdp-* 实机验证等），勿与生图工具混用；
+  一次性批量脚本（gen-blizzard-icon-v5.py、zhipu-gen-necklaces.py 等）已归档
+  `tools/ai-gen/archive/one-off/`，勿当通用工具使用
+- 所有生图脚本以 `python tools/ai-gen/xxx.py ...` 调用；ComfyUI 启动脚本见下表。
 
 ## 1. 生成入口矩阵（先选入口，再选模型）
 
 | 场景 | 入口 | 命令 |
 |---|---|---|
-| **远程主力机（默认）** | 远程 5080 | `python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png` |
-| 远程·固定视角/方向 | 远程 5080 + Depth ControlNet | `python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png` |
-| 跨机双卡·最高质量提速（Daedalus 在线） | 5080 Icarus + 本机 3080 Ti Daedalus | `python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png`（8 步 turbo；Daedalus 需先启动，见 §1.6） |
-| 本地兜底 | 本机 3080 Ti | `python tools/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`（已装 sdxl；FLUX.2 dev 建议 5080） |
-| 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
+| **远程主力机（默认）** | 远程 5080 | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png` |
+| 远程·固定视角/方向 | 远程 5080 + Depth ControlNet | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png` |
+| 跨机双卡·最高质量提速（Daedalus 在线） | 5080 Icarus + 本机 3080 Ti Daedalus | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png`（8 步 turbo；Daedalus 需先启动，见 §1.6） |
+| 本地兜底 | 本机 3080 Ti | `python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`（已装 sdxl；FLUX.2 dev 建议 5080） |
+| 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
 | 兜底·智谱 API | 智谱 | `python tools/ai-gen/zhipu-gen.py --prompt-file prompt.txt --model glm-image --size 1280x1280 --out ...`（双机不可用/免费额度场景） |
-| 同系列模板锁定重抽 | img2img | `python tools/gen-meteor-icon-template.py`（换参考图 + 提示词即可复用） |
-| 批量多图 | 智谱/ComfyUI | 参考 `tools/zhipu-gen-necklaces.py`（多 prompt 逐张下载）、`tools/gen-eclipse-set.py`（批量入队轮询） |
+| 同系列模板锁定重抽 | img2img | `python tools/ai-gen/gen-meteor-icon-template.py`（换参考图 + 提示词即可复用） |
+| 批量多图 | 智谱/ComfyUI | 参考 `tools/ai-gen/archive/one-off/` 下归档的一次性批量脚本（如 zhipu-gen-necklaces.py 多 prompt 逐张下载、gen-eclipse-set.py 批量入队轮询），仅作写法参考 |
 
-- 模型登记表：`tools/models.json`（`python tools/comfyui-gen.py --list-models` 查看）。
+- 模型登记表：`tools/ai-gen/models.json`（`python tools/ai-gen/comfyui-gen.py --list-models` 查看）。
   当前：`flux2-dev-fp8`（**5080 主力**，20~30 步/CFG≈3.5）+ `flux2-dev-depth`（同模型 +
   Fun-Controlnet-Union 深度控制）+ `flux2-dev-mesh`（**跨机双卡**，8 步 turbo + Turbo LoRA 两端本地加载）+
   `sdxl`（checkpoint，通用）+ `flux2-klein-4b`（FLUX.2 蒸馏，4 步备用）。
+  视频模型（MiniMax H3）不走 models.json——`tools/ai-gen/minimax-h3-gen.py` 独立硬编码工作流。
+- **`--negative` 仅对 SDXL（checkpoint）生效**：flux2/klein/mesh 的 BasicGuider 只接 positive，
+  传负面词会打印"不支持负面词已忽略"警告并丢弃——负面约束（watermark/blurry 等）必须写进正向提示词。
 - **5080 已装模型（2026-08-04 实机核对）**：diffusion `flux2_dev_fp8mixed.safetensors`、
   文本编码器 `mistral_3_small_flux2_fp4_mixed.safetensors`、VAE `flux2-vae.safetensors`、
   ControlNet `FLUX.2-dev-Fun-Controlnet-Union.safetensors`（Depth/Canny/Pose 等单文件多模式）。
 - 智谱 API 注意事项：**不支持负面词参数**（避项写进正向提示词）；出图固定带右下角
-  "AI生成"水印（`tools/zhipu-process.py` 按连通域+面积过滤去水印，见 §4.5）。
-- 远程 5080 开机方式：`tools/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行
-  8188/专用网络；**机器休眠会断服务，需关休眠**）。本地启动 `start-comfyui.bat`。
+  "AI生成"水印（`tools/ai-gen/zhipu-process.py` 按连通域+面积过滤去水印，见 §4.5）。
+- 远程 5080 开机方式：`tools/ai-gen/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行
+  8188/专用网络；**机器休眠会断服务，需关休眠**）。本地启动 `start-comfyui.bat`
+  （位于备份根目录 `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内）。
 
 ### 1.5 FLUX.2 dev + Depth ControlNet（固定视角/方向，5080 主力）
 
@@ -49,8 +55,8 @@
 **命令**（`--model flux2-dev-depth` + `--control-image` 必传）：
 
 ```bash
-python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
-  --control-image tools/_depth_template.png \
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+  --control-image tools/ai-gen/_depth_templates/depth_box.png \
   --prompt "a magic skill icon, purple hexagonal badge with gold trim, embossed crystal base, centered on white background, high detail" \
   --out Y:\工作\无尽轮回\scratch\badge_v2.png
 ```
@@ -62,6 +68,26 @@ python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
 - 深度图预处理建议装 `comfyui_controlnet_aux`（DepthAnything V2/MiDaS）到 5080 或本机，
   在工作流内一条龙；未装时先在外部生成深度图 PNG，再经 `--control-image` 传入。
 
+**3D 白模深度图（`blender-depth-render.py`，2026-08-05 新增）**：上面来源 2 的"白模"路线
+已有 Blender 管线，比手绘剪影模板（`make-depth-templates.py`）几何/朝向更精确，适合
+防御塔、掩体这类有明确结构关系的资产；手绘模板仍适合快速试探构图。
+
+> **类目路由（2026-08-05 定稿）**：**中大型物件**（建筑/道具/植被/家具）默认从白模
+> 深度起步——视角/朝向/比例/遮挡是主要矛盾，白模一次锁死（枯树主枝朝向、防御塔 45°
+> 等距均已实测根治）；**小型装备/图标**（细节即本体，白模提供不了信息）不走白模，
+> 直接按 prompts/ 统一提示词模板 + 标准生图（模板锁定 img2img / Klein LoRA）。
+> 白模只管大形，细节交给扩散模型 + 提示词，不要在白模里堆细结构。
+```bash
+"E:/Program Files/Blender Foundation/Blender 5.1/blender.exe" --background --factory-startup \
+  --python tools/ai-gen/blender-depth-render.py -- spec.json out.png [--mirror]
+```
+- spec 示例：`tools/ai-gen/_blockout_specs/defense_tower.json`（基座+探出机械臂）、
+  `cover_wall.json`（低矮宽扁墙段）；图元 box/cylinder/cone/sphere，字段与单位语义见
+  脚本 docstring（x=右、y=纵深远离相机为正、z=上，pos=图元中心）。
+- 输出与手绘模板同约定：1024² 灰度、黑=远/背景、白=近、居中、底边 y≈880、正面视角；
+  相机俯仰默认 30°（spec 顶层 `elevation` 覆盖，billboard 资产建议 ≤12°），`--mirror`
+  出 `_v` 水平镜像。成品示例 `_depth_templates/blender_defense_tower_h.png` 等。
+
 **参数**：
 - ControlNet 强度 0.6~0.8（models.json 默认 0.75）；强度过高主体变形，过低视角锁不住。
 - 步数 20~30、CFG 2.5~4.0（推荐 3.5）；Euler。
@@ -71,7 +97,7 @@ python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
 
 **环境依赖（已修复 2026-08-04）**：远程 5080 的 `comfyui-flux2fun-controlnet`（v1.1.0）
 两处兼容补丁（`timestep_zero_index` / `multigpu_clones`）与 comfyui-mesh Icarus stub 补丁
-均已部署并重启（备份 + 修复版在 `tools/remote-patch/`），`flux2-dev-fp8` / `flux2-dev-depth` /
+均已部署并重启（备份 + 修复版在 `tools/ai-gen/remote-patch/`），`flux2-dev-fp8` / `flux2-dev-depth` /
 `flux2-dev-mesh` 全部可用。
 
 ### 1.6 模型选择矩阵（内容 → 首选模型 → 规则，2026-08-04 定稿）
@@ -90,11 +116,11 @@ python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
 | 投射物贴图 | FLUX.2 Dev（img2img 参考既有） | Klein 4B | 抠图入库；**纯色小物件（雪球等）禁止 AI**，运行时 createCanvas |
 | 透明主体 PNG（图标/装备/怪物/道具） | FLUX.2 Dev + `--transparent` | SDXL | AI 选纯色底 + 阈值抠图 + BiRefNet；**白主体禁白底**（§3.7） |
 | 背景/场景大图 | FLUX.2 Dev（单卡 20~30 步，1536²+） | — | 大图优先单卡避免 mesh 低显存开销；批量草稿可 mesh |
-| 视频/动画 | MiniMax H3（唯一） | — | `tools/minimax-h3-gen.py`；MP4 入 assets/videos 或抽帧转 sprite sheet |
+| 视频/动画 | MiniMax H3（唯一） | — | `tools/ai-gen/minimax-h3-gen.py`；MP4 入 assets/videos 或抽帧转 sprite sheet |
 | 兜底链（双机不可用） | 智谱 API glm-image | — | 不支持负面词（写进正向）；去水印走 zhipu-process.py |
 
 **mesh 开关规则**：
-- 启用：Daedalus 在线（本机 `tools/start-daedalus.ps1 -SkipSmoke`，n_blocks=4，
+- 启用：Daedalus 在线（本机 `tools/ai-gen/start-daedalus.ps1 -SkipSmoke`，n_blocks=4，
   Turbo LoRA 两端本地加载）+ 需要提速/双卡。
 - 关闭：Daedalus 未启动时 mesh 工作流会失败——回退 `flux2-dev-fp8`（单卡）或
   `flux2-dev-depth`（锁视角）。
@@ -110,7 +136,7 @@ python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
 ### 第 1 步：定风格
 
 - 先看项目现有同类素材，锁定**系列基准**：风格块 + 内容框（bbox）宽/高、宽高比、占比、中心偏移。
-- 用 `python tools/check-icon-sizes.py` 量化现有同系列图，记录基准后再生成。
+- 用 `python tools/ai-gen/check-icon-sizes.py` 量化现有同系列图，记录基准后再生成。
 - 已固化的系列基准（新同类必须对齐，偏差 >5% 重抽或归一）：
 
 | 系列 | 基准 | 基准来源 |
@@ -135,11 +161,11 @@ python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
 ### 第 3 步：粗筛（像素统计，先量化）
 
 - 指标：opaque% 主体占比、白底/背景比例、bbox 宽高比、中心偏移、连通域数量。
-- **连通域计数是唯一硬证据**（多视图/多件排列）：`python tools/check-components.py`
-  对 BiRefNet alpha>60 做 `ndimage.label`，**components == 1 才合格**（GLM-4V 说"五个视角"不可轻信）。
+- **连通域计数是唯一硬证据**（多视图/多件排列）：`python tools/ai-gen/check-components.py`
+  对 BiRefNet alpha>60 做 `ndimage.label`，**components == 1 才合格**（GLM-4.6V 说"五个视角"不可轻信）。
 - 内容框与系列基准偏差 >5% → 重抽或归一化，不直接入库。
 
-### 第 4 步：视觉验收（GLM-4V 定性 × 像素统计定量）
+### 第 4 步：视觉验收（GLM-4.6V 定性 × 像素统计定量）
 
 ```bash
 node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.js" --prompt "画面主体是什么？构图/风格是否符合要求？" "候选图.png"
@@ -151,18 +177,18 @@ node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.
 
 ### 第 5 步：抠图入库
 
-- 白底简单主体：`python tools/make-transparent-icon.py <src.png> <dst.png>`
+- 白底简单主体：`python tools/ai-gen/make-transparent-icon.py <src.png> <dst.png>`
   （角点 flood fill + 最大连通域 + 羽化 + 边缘去污染）。
 - 透明主体默认（方案一）：生成时加 `--transparent` 一键完成「AI 选纯色底 → 出图 →
-  阈值抠图 → BiRefNet 精修」（`tools/pick_bg_color.py` + `tools/transparent_cutout.py`），
+  阈值抠图 → GrabCut/BiRefNet 兜底」（`tools/ai-gen/pick_bg_color.py` + `tools/ai-gen/transparent_cutout.py`），
   纯色底由 AI 决定，不再手写白底；产物 `out.png`（RGBA）+ `out_raw.png`（原图）。
 - 复杂背景/贴边主体（装备类）：**BiRefNet 优先**
-  （`tools/birefnet-cutout.py` / `tools/birefnet-icon-pipeline.py`，模型权重走 ModelScope 镜像，
+  （`tools/ai-gen/birefnet-cutout.py` / `tools/ai-gen/birefnet-icon-pipeline.py`，模型权重走 ModelScope 镜像，
   运行环境用 ComfyUI venv）。纯色阈值抠图会把贴边主体/浅灰渐变抠残，禁止用于装备。
 - 入库规格：技能图标 1024×1024 透明底；装备图标 1536×1536 透明底 + 归一化
-  （最长边 0.90 / 纵横比 [0.72,1.4] / 包围盒居中，脚本 `tools/verify-eclipse-icons.py` 复核）。
+  （最长边 0.90 / 纵横比 [0.72,1.4] / 包围盒居中，脚本 `tools/ai-gen/verify-eclipse-icons.py` 复核）。
 - 边缘白边硬筛：alpha∈(10,245) 边缘像素白色占比应为 0%（>0.5% 重抠或重生成，
-  参考 `tools/edge-check-eclipse.py`）。
+  参考 `tools/ai-gen/edge-check-eclipse.py`）。
 
 ### 第 6 步：清理废案（强制）
 
@@ -182,12 +208,27 @@ node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.
 
 提示词模板：`prompts/equipment-icon.md`；流程：FLUX.2 Dev 文生图（首选；风格已调流程可保留
 SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归一化（0.90 / [0.72,1.4] / 居中）→
-`tools/verify-eclipse-icons.py` 复核 → 入库 `assets/icons/equipment/`（或 `assets/skills/` 对应引用路径）。
+`tools/ai-gen/verify-eclipse-icons.py` 复核 → 入库 `assets/icons/equipment/`（或 `assets/skills/` 对应引用路径）。
 
 ### 3.3 障碍物/道具
 
 提示词模板：`prompts/obstacle.md`；抠图走 `tools/ai-gen/prep-obstacle.py`；
 入库 `assets/terrain/obstacle_*.png` + `ISO_WALL_GEO` 注册。新道具必须同一视角块。
+
+#### 3.3.1 掩体（世界-122 防守地图，可被攻击的防御墙段）
+
+提示词模板：`prompts/cover.md`；模型：FLUX.2 dev + mesh（`flux2-dev-mesh`，批量脚本
+`tools/ai-gen/gen-world122-assets.py`）。F→A 六档材质递进（木栅→沙袋→石垒→砖混→钢甲→符文钢），
+每档**水平摆/垂直摆两组贴图**（30° 底边斜向互为镜像）；生命值配置
+`{F:400, E:700, D:1100, C:1600, B:2200, A:3000}`，**def/mdef 均为 0**（怪物可攻击）。
+抠图入库 `assets/terrain/obstacle_cover_<grade>_h.png`/`_v.png` + `ISO_WALL_GEO` 注册
+（foot/obstacleH），实体侧提供可受击结构（hp/maxHp + noDefense）。
+
+#### 3.3.2 防御塔（世界-122）
+
+提示词模板：`prompts/defense-tower.md`；模型：FLUX.2 dev + mesh。塔身=下方基座 +
+上方探出的机械臂（空置武器挂载点，供武器贴图挂载）；写实风格、六档共用同一视觉语言。
+抠图入库后 DefenseTower.spriteCfg 指向，footOffsetY 按内容底边校准。
 
 ### 3.4 怪物/角色贴图
 
@@ -201,16 +242,46 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 ### 3.6 视频（MiniMax H3）
 
-提示词模板：`prompts/video.md`；客户端 `python tools/minimax-h3-gen.py`；
+提示词模板：`prompts/video.md`；客户端 `python tools/ai-gen/minimax-h3-gen.py`；
 输出 MP4 直入 `assets/videos/` 或 PyAV 抽帧转 sprite sheet（动作动画截帧路线）。
 
 ### 3.7 透明主体（需要透明 PNG 的图标/装备/怪物/道具）
 
 提示词模板：`prompts/transparent-subject.md`；入口加 `--transparent`：
-`tools/comfyui-gen.py --transparent`（AI 选色 `tools/pick_bg_color.py` 写入提示词 →
-出图后 `tools/transparent_cutout.py` 阈值抠图 + BiRefNet 精修；检测到背景非均匀时
-自动切 BiRefNet 主导）。产物 `out.png`（RGBA）+ `out_raw.png`（原图）。
+`tools/ai-gen/comfyui-gen.py --transparent`（AI 选色 `tools/ai-gen/pick_bg_color.py` 写入提示词 →
+出图后 `tools/ai-gen/transparent_cutout.py` 阈值抠图；检测到背景非均匀时自动切
+**GrabCut 主导**（`tools/ai-gen/grabcut-alpha.py`，边框+中心 GMM 建模，实测残留清零，
+失败回退 BiRefNet）。产物 `out.png`（RGBA）+ `out_raw.png`（原图）。
 **白色要素多的主体（白衣/白甲/银饰）禁用白底**——白底抠不净需人工介入，纯色底阈值一刀切。
+
+### 3.8 改造图标（craft mod icons，法杖/枪械/剑类，2026-08-05 实测定稿）
+
+**目标**：craft-config.json 里每把武器的改造选项从 emoji 换成 `assets/icons/craft/<key>.png`。
+已跑通 95 张（法杖 20 + 枪械 53 + 剑类 22），53+22 张经历三轮抽验修复。
+
+- **共享映射（先做）**：选项 id → 唯一组件 key。同名同 id 全武器共用一张；
+  同名不同 id 合并（`shotgun_suppressor`→`suppressor`、`light_extended_mag`→`light_extended`、
+  `light_pommel`→`light_blade_body`）；跨类复用已有图（剑类 `eagle_eye_rune` 用法杖那张）。
+  用脚本扫描 data/craft-config.json 生成 key 清单并校验覆盖（防漏/防孤儿）。
+- **提示词模板**：`prompts/equipment-icon.md` 风格 + `(exactly one <key>:1.5)` +
+  `(isolated single object:1.3)` + 固定负面 `no second object, no detached pieces,
+  no whole weapon`；长条件（枪管/剑身/消音器/瞄具）加 `completely inside the frame with
+  generous white margins`。黑色金属件直接白底出图（对比好，BiRefNet 抠得净）。
+- **批量生成**：
+  `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8
+  --prompt-file <Y:\...\prompts\gun\key.txt> --seed <递增> --out <Y:\...\raw\key.png>`
+  4 并发；客户端超时（420s）后图仍会落盘 → 调度脚本按"文件存在且 >10KB"判成功并自动重试。
+  调度器参考 `tools/ai-gen/_gun_gen.js` / `_sword_gen.js`。
+- **抠图+硬筛**：BiRefNet（ComfyUI venv python + `birefnet-cutout.py`，folder 模式默认
+  `_cutout` 后缀，`--suffix ""` 会被 shell 吞 → 生成后批量改名）；再用 alpha>60 连通域
+  `components==1` 硬筛（等价 `check-components.py` 的"禁止多余元素"规则）+ 边缘半透白
+  <0.5% → `tools/ai-gen/_gun_filter.py`。
+- **验收（GLM-4.6V）**：**单张 + 具体问题**（多图一起传会串扰/错位）；"长短/圆平头"等
+  定量几何以 alpha bbox 实测为准，GLM 只信定性。易错形态与修法见 §4 第 10~15 条。
+- **入库**：`assets/icons/craft/<key>.png`；craft-config.json **data+public 双份同步**
+  （`JSON.stringify(cfg, null, 2) + '\n'`），脚本校验双份字节一致 + 引用文件全存在；
+  UI 渲染走 `craft-system.js` 的 `renderCraftIcon()`（`assets/` 前缀渲染 `<img>`）。
+  收尾：`npm run lint` / `npm test` / `vite build`。
 
 ## 4. 沉淀的坑（防再犯）
 
@@ -227,10 +298,27 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
    `plain blank surface`，同时保留 `velvet fabric texture, folds, rich shading` 写实质感。
 8. **纯白背景遵循不稳**：SDXL 可能出浅灰/渐变底，背景色以角点像素均值判定，不要信 GLM 描述。
 9. **废案必清**：见第 6 步；入库后必须删除迭代废案，防止仓库膨胀。
+10. **多室制退器/收束器被画成鸟笼开长槽**：sub 必须写 `separate rows of small round vent
+    ports / mostly smooth tube with knurled band and small holes, no long slots`。
+11. **扳机类（auto/burst/competition/lightweight）易带出整枪，轻量扳机甚至画成刀**：写
+    `standalone trigger part only, no receiver, no grip, no gun, no blade, no sharp edge`；
+    burst 用 `small box-shaped module with rotary selector dial` 更稳。
+12. **无护手必被画护手**：sub 强调 `absolutely no crossguard, no quillon, no disc guard,
+    no hand protection anywhere`，验收时专门问 NO-GUARD/HAS-GUARD。
+13. **短管/近战短管易画成长管**：sub 加 `very short stubby, much shorter than a full
+    barrel`；用 alpha bbox 长边量化对比 long_barrel 校准。
+14. **锤击点弹头/弧形扳机**：平头弹写 `wide flat meplat like a wadcutter, no round nose`；
+    弧形扳机写 `short curved finger lever with a mounting hole, no blade, no point`。
+15. **Y: 中文路径坑**：Node fs 在 NAS 中文路径下 mkdir 会 ENOENT 乱码 → 提示词用
+    PowerShell 写/复制；Python 读 Y: 中文路径 OK，但更稳的是 Y: → `%TEMP%` 本地中转再跑
+    抠图/筛选（`_gun_filter.py` 同理）。
+16. **小件占幅过低**（扳机等 cov≈3%）：对 alpha bbox crop 后回填 1024 画布（长边约 430px，
+    ~42% 画布），与同批图标观感对齐。
 10. **白色要素多禁用白底**：白/银主体白底必然抠不净 → 走 `--transparent` 纯色底方案一
-    （AI 选底色 + 阈值抠图 + BiRefNet 精修；SDXL 不按 hex 渲染出渐变底时，抠图器自动切
-    BiRefNet 主导，无需人工介入）。
-11. **Mesh 跨机运维**：Daedalus 需先启动（`tools/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃
+    （AI 选底色 + 阈值抠图 + GrabCut/BiRefNet 兜底；SDXL 不按 hex 渲染出渐变底时，
+    抠图器自动切 GrabCut 主导——BiRefNet 会把渐变底残留成主体，GrabCut 残留清零，
+    无需人工介入）。
+11. **Mesh 跨机运维**：Daedalus 需先启动（`tools/ai-gen/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃
     遗留半截会话会把 Daedalus 卡死（socket 显示监听但拒绝新连接）→ 重启 Daedalus 即可；
     n_blocks_remote 只能增不能减（调小要重启 ComfyUI）；单客户端独占；
     wire-contract 文件（codec/protocol/vec_io/lora_io）两端必须字节级一致；
@@ -246,4 +334,13 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 - `Y:\工作\无尽轮回\scratch\`：AI 出图/视频中间产物与候选（生成脚本默认输出地，定稿才进仓库）
 - `Y:\模型库\ComfyUI\models\`：大模型归档（双机共用；冷模型 junction，热模型留本机）
 - 仓库只保留被引用资产；候选/废案/大视频一律落 Y:，E: 只放源码 + 入库资产。
-- 版本控制走 GitHub（origin `allang2208/wuxianlunhui`）；`tools/backup-to-nas.ps1` 为手动可选备份。
+- 版本控制走 GitHub（origin `allang2208/wuxianlunhui`）；`tools/ai-gen/backup-to-nas.ps1` 为手动可选备份。
+
+## 掩体 h/v 朝向经验（2026-08-05 实测固化）
+
+- FLUX.2（dev/klein）对"水平摆/垂直摆"提示词不区分方向，raw 一律产出 "/" 向；
+  独立生成 h/v 两张必撞方向（世界-122 的 B/D 掩体即因此报废，已改为镜像修复）。
+- **一图两向**：每级只生成一张 raw（"/"），`_h`=镜像（"\"），`_v`=原样；
+  镜像后跑 `audit-perspective.py` 确认 pair=MIRROR 再入库。
+- 无光源/无阴影规则见 `prompt_principles.py` 与 `check-prompts.py`（防回潮扫描）。
+- 新增掩体纹理优先 img2img 锚点派生（待 comfyui-gen 支持 `--ref-image`）。

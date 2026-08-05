@@ -27,7 +27,7 @@ import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
  * 释放 = 立即锁定"鼠标指向处最近 + 玩家 maxRange 内"的敌方单位：
  * - 主目标全额伤害；随后在目标 chainRange(200px) 内找最近的敌方单位传导，
  *   每 5 级多传导一个目标，每传导一跳伤害 ×(1−chainDecay)；
- * - 每个命中目标被击退 knockback px（施法端粗、目标端细的色块闪电连接）并眩晕 stunMs；
+ * - 每个命中目标被眩晕 stunMs 并叠加感电（applyElectrified，叠满 5 层触发过载）；
  * - 伤害公式：floor( damageBase + matk×magicMul + int×intMul )；
  * - 释放时播放 skills.json sounds.cast 全部音效（1.mp3 + 2.mp3 同时）；
  * - 修炼经验：击中 +hit、击杀 +kill、单次命中 ≥2 目标额外 +multiHit。
@@ -147,13 +147,11 @@ export class LightningStrikeSystem {
             }
             // 逐目标结算
             const stunMs = effect.stunMs || 750;
-            const knockback = effect.knockback || 50;
             const baseDamage = Math.floor(
                 (effect.damageBase ?? 0) + (src.data.matk ?? 0) * (effect.magicMul ?? 0) + (src.data.int ?? 0) * (effect.intMul ?? 0)
             );
             const stunExtend = (ce && ce.electricStunExtendMs) || 0;
             let hitCount = 0, killCount = 0;
-            let prevX = src.x, prevY = src.y - ((src.bodyHeight || 120) * 0.5);
             chain.forEach((target, i) => {
                 const decayMul = Math.pow(1 - chainDecay, i);
                 const finalDamage = Math.floor(baseDamage * decayMul * damageMul);
@@ -166,18 +164,18 @@ export class LightningStrikeSystem {
                     jitter: effect.jitter || 0.09,
                 }));
                 this._spawnImpact(target, decayMul);
-                target.takeDamage(finalDamage, src, 'magic');
+                target.takeDamage(finalDamage, src, 'electric');
+                // 电系专属：命中叠加感电（叠满 5 层触发过载）
+                if (typeof target.applyElectrified === 'function') {
+                    target.applyElectrified(effect.electrifyStacks || 1, effect.electrifyDurationMs || 4000, src);
+                }
                 if (wasAlive && target.hp <= 0 && !target._summoned) killCount++;
                 hitCount++;
-                const angle = Math.atan2(target.y - prevY, target.x - prevX);
-                if (target.applyKnockback) target.applyKnockback(angle, knockback);
                 if (stunExtend > 0 && target.applyStunExtend) {
                     target.applyStunExtend(stunMs, stunExtend);
                 } else if (target.applyStun) {
                     target.applyStun(stunMs);
                 }
-                prevX = target.x;
-                prevY = target.y - ((target.bodyHeight || 120) * 0.5);
             });
             if (this._isPlayer()) {
                 SkillManager.addLightningStrikeExp(src, hitCount, killCount, hitCount >= 2);

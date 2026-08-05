@@ -5,6 +5,8 @@ import { Renderer } from '../world/renderer.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
+import { LightningBoltEffect } from '../effects/lightning-bolt.js';
+import { burstParticles } from '../effects/combat-fx.js';
 import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getCurrentDungeonType } from '../config/exp-system.js';
@@ -46,6 +48,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 super(x, y); this._faction = config.faction || 'neutral'; this.hittable = true; this.hp = config.hp || 100; this.maxHp = config.maxHp || 100;
                 this.size = config.size || 20; this.collisionRadius = config.collisionRadius || this.size || 12; this.name = config.name || '目标'; this.hitFlash = 0; this.hitFlashDuration = 300;
                 this.knockbackX = 0; this.knockbackY = 0; this.knockbackFriction = 0.962;
+                this.immovable = false; // 建筑/掩体等置 true：任何击退/位移通道一律无效
                 // 子类在 super() 后才设置碰撞字段，需要重建统一 Collider
                 this.rebuildCollider();
                 // ===== 状态栏系统（每个实体独立） =====
@@ -59,7 +62,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 let isCrit = false;
                 if (source && source.data && this.data) {
                     let atk, def;
-                    if (damageType === 'magic') {
+                    if (damageType === 'magic' || damageType === 'electric') {
                         // 魔法伤害：使用传入的 damage 作为 atk（已包含技能公式计算），fallback 到 matk
                         atk = (damage > 0) ? damage : (source.data.matk || 0);
                         def = this.data.mdef || 0;
@@ -94,12 +97,16 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                         }
                     }
                     // 法袍套「秘法」：玩家魔法伤害 +18%（三件齐穿，source 侧生效）
-                    if (damageType === 'magic' && source && source._faction === 'player' && source._magicDamageBonus) {
+                    if ((damageType === 'magic' || damageType === 'electric') && source && source._faction === 'player' && source._magicDamageBonus) {
                         baseDamage = Math.floor(baseDamage * (1 + source._magicDamageBonus));
                     }
                     // 应用魔力易伤：魔法伤害每层+5%
-                    if (damageType === 'magic' && this._magicVulnerabilityStacks > 0) {
+                    if ((damageType === 'magic' || damageType === 'electric') && this._magicVulnerabilityStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._magicVulnerabilityStacks * 0.05));
+                    }
+                    // 应用感电：电系伤害每层 +3%（感电叠满 5 层触发过载，见 applyElectrified）
+                    if (damageType === 'electric' && this._electrifiedStacks > 0) {
+                        baseDamage = Math.floor(baseDamage * (1 + this._electrifiedStacks * 0.03));
                     }
                     // 远程物理伤害减免（在魔力易伤之后应用）
                     // 枪械等远程物理攻击的 damageType 为 'physical' 且 isMelee=false
@@ -126,11 +133,11 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                         }
                     }
                     // 冻结目标额外受到 50% 物理伤害（非魔法伤害）
-                    if (damageType !== 'magic' && this.hasStatusEffect && this.hasStatusEffect('frozen')) {
+                    if (damageType !== 'magic' && damageType !== 'electric' && this.hasStatusEffect && this.hasStatusEffect('frozen')) {
                         baseDamage = Math.floor(baseDamage * 1.5);
                     }
                     // 装甲僵尸持盾防御：50%概率格挡，减少50%伤害
-                    if (this.data && this.data.equipShield === 'small_shield' && damageType !== 'magic') {
+                    if (this.data && this.data.equipShield === 'small_shield' && damageType !== 'magic' && damageType !== 'electric') {
                         if (Math.random() < 0.5) {
                             baseDamage = Math.floor(baseDamage * 0.5);
                             // 显示格挡特效
@@ -155,7 +162,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                                 critRate += currentWpn._craftEffects.critChancePercent * 100;
                             }
                             // 暴击符文：仅对魔法伤害生效
-                            if (damageType === 'magic' && currentWpn._craftEffects.magicCritPercent) {
+                            if ((damageType === 'magic' || damageType === 'electric') && currentWpn._craftEffects.magicCritPercent) {
                                 critRate += currentWpn._craftEffects.magicCritPercent * 100;
                             }
                         }
@@ -314,6 +321,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
             applyKnockback(angle, totalPx) {
+                if (this.immovable) return; // 不可位移实体（掩体/建筑）拒绝一切击退
                 // 统一单位：totalPx 表示总击退距离（像素）
                 const friction = this.knockbackFriction || 0.88;
                 // 物理公式：总位移 = initialSpeed / (1 - friction)
@@ -351,6 +359,7 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     burn: { icon: '🔥', name: '灼伤', color: '#ff6b35' },
                     frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
                     flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a' },
+                    electrified: { icon: '⚡', name: '感电', color: '#b98cff' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -975,6 +984,136 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
             }
 
+            // --- 状态效果：感电（每层使受到的电系伤害 +3%；叠满 5 层触发过载） ---
+            _updateElectrified(dt) {
+                if (!this._electrifiedStacks || this._electrifiedStacks <= 0) return;
+                this._electrifiedTimer -= dt;
+                if (this._electrifiedTimer <= 0) {
+                    this._electrifiedStacks = 0;
+                    this._electrifiedTimer = 0;
+                    this._electrifiedSource = null;
+                    const effect = this.statusEffects.find(e => e.type === 'electrified');
+                    if (effect) this.removeStatusEffect('electrified');
+                    if (this._electrifiedEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._electrifiedEffectId);
+                        this._electrifiedEffectId = null;
+                    }
+                }
+            }
+            /**
+             * 应用感电（debuff 工作流见 SKILL.md）：
+             * - 每层使该目标受到的电系魔法伤害 +3%（takeDamage 电系分支消费）；
+             * - 叠满 5 层自动触发「过载」：眩晕 1.2s + 对周围 150px 敌方传导一次电击，清空全部层数；
+             * - 层数加法叠加、持续时间累加，到期全部清空（与寒冷同模式）。
+             * @param {number} stacks - 新增层数
+             * @param {number} duration - 新增持续时间（毫秒）
+             * @param {object} source - 施放来源（过载伤害归属）
+             */
+            applyElectrified(stacks = 1, duration = 4000, source) {
+                if (this._isDead) return;
+                if (this.hasStatusEffect('statusImmune')) return;
+                this._electrifiedStacks = (this._electrifiedStacks || 0) + stacks;
+                this._electrifiedTimer = (this._electrifiedTimer || 0) + duration;
+                if (source && source.active !== false) this._electrifiedSource = source;
+                // 叠满 5 层：触发过载并清空
+                if (this._electrifiedStacks >= 5) {
+                    this._electrifiedStacks = 0;
+                    this._electrifiedTimer = 0;
+                    this._triggerElectrifiedOverload(source);
+                    this.removeStatusEffect('electrified');
+                    if (this._electrifiedEffectId && StatusBar) {
+                        StatusBar.removeEffect(this._electrifiedEffectId);
+                        this._electrifiedEffectId = null;
+                    }
+                    return;
+                }
+                if (EffectManager) {
+                    // 横向抖动避免同点堆叠
+                    const jx = (Math.random() - 0.5) * 22;
+                    EffectManager.add(new FloatingTextEffect(this.x + jx, this.y - this.size - 12, `⚡ 感电 x${this._electrifiedStacks}`, '#b98cff'));
+                }
+                const effect = this.statusEffects.find(e => e.type === 'electrified');
+                if (effect) {
+                    effect.stacks = this._electrifiedStacks;
+                    effect.remaining = this._electrifiedTimer;
+                    effect.duration = Math.max(effect.duration, this._electrifiedTimer);
+                } else {
+                    this.addStatusEffect('electrified', this._electrifiedTimer, { stacks: this._electrifiedStacks });
+                }
+                if (this._faction === 'player' && StatusBar) {
+                    this._electrifiedEffectId = StatusBar.addEffect('electrified', this._electrifiedTimer, { stacks: this._electrifiedStacks });
+                }
+            }
+            /** 过载：眩晕 1.2s + 对周围 150px 敌方单位传导一次电击（伤害归属施放来源） */
+            _triggerElectrifiedOverload(source) {
+                const src = (source && source.active !== false) ? source : (this._electrifiedSource || this);
+                // 控制效果：眩晕 1.2s（applyStun 内部统一中断动作）
+                this.applyStun(1200);
+                const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
+                    ? Array.from(window.Game.entities.values()) : [];
+                const matk = (src.data && src.data.matk) || 0;
+                const int = (src.data && src.data.int) || 0;
+                const damage = Math.floor(20 + matk * 1.2 + int * 1.2);
+                const overloadRadius = 150;
+                const hitX = this.x;
+                const hitY = this.y - ((this.bodyHeight || 120) * 0.5);
+                const hitDepth = (this._phaserSprite ? this._phaserSprite.depth : this.y + 10) + 2;
+                for (const e of entities) {
+                    if (!e || e === this || !e.active || !e.hittable) continue;
+                    if (e._faction === this._faction) continue;
+                    if (Math.hypot(e.x - this.x, e.y - this.y) > overloadRadius) continue;
+                    EffectManager.add(new LightningBoltEffect(this, e, {
+                        durationMs: 450,
+                        fadeMs: 220,
+                        segments: 8,
+                        jitter: 0.11,
+                        uniform: true,
+                        widthScale: 0.45,
+                    }));
+                    burstParticles({
+                        texture: 'impact_dot',
+                        x: e.x,
+                        y: e.y - ((e.bodyHeight || 120) * 0.5),
+                        count: 12,
+                        jitter: 36,
+                        config: {
+                            speed: { min: 90, max: 420 },
+                            scale: { start: 3.2, end: 0.4 },
+                            alpha: { start: 1.0, end: 0 },
+                            lifespan: { min: 300, max: 600 },
+                            tint: [0xffffff, 0xcbb4ff, 0x8f7bff, 0x6a4bff],
+                            blendMode: 'ADD',
+                        },
+                        destroyAfterMs: 700,
+                        depth: (e._phaserSprite ? e._phaserSprite.depth : e.y + 10) + 2,
+                    });
+                    e.takeDamage(damage, src, 'electric');
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 18, '⚡ 过载！', '#b98cff'));
+                    burstParticles({
+                        texture: 'impact_dot',
+                        x: hitX,
+                        y: hitY,
+                        count: 22,
+                        jitter: 48,
+                        config: {
+                            speed: { min: 120, max: 520 },
+                            scale: { start: 4.2, end: 0.4 },
+                            alpha: { start: 1.0, end: 0 },
+                            lifespan: { min: 380, max: 700 },
+                            tint: [0xffffff, 0xddd2ff, 0x8f7bff, 0x4b2bff],
+                            blendMode: 'ADD',
+                        },
+                        destroyAfterMs: 800,
+                        depth: hitDepth,
+                    });
+                }
+                if (SoundManager && SoundManager.playFile) {
+                    SoundManager.playFile('assets/sounds/skills/lightning-1.mp3');
+                }
+            }
+
             update(dt) {
                 // 更新状态栏效果计时器
                 this.updateStatusEffects(dt);
@@ -988,7 +1127,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 this._updateHolyRenewal(dt);
                 this._updateChill(dt);
                 this._updateFreeze(dt);
-                if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
+                this._updateElectrified(dt);
+                if (!this.immovable && (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1)) {
                     const nx = this.x + this.knockbackX;
                     const ny = this.y + this.knockbackY;
                     // 击退时加入墙壁碰撞检测，防止穿墙

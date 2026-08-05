@@ -26,10 +26,11 @@ from PIL import Image
 from scipy import ndimage
 
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKUP_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(TOOLS_DIR)))  # 备份根（ComfyUI 所在）
 BIRefNet_MODEL_DIR = os.path.join(
-    os.path.dirname(TOOLS_DIR), "ComfyUI", "models", "BiRefNet", "MS-BiRefNet")
+    BACKUP_ROOT, "ComfyUI", "models", "BiRefNet", "MS-BiRefNet")
 COMFY_VENV_PY = os.path.join(
-    os.path.dirname(TOOLS_DIR), "ComfyUI", ".venv", "Scripts", "python.exe")
+    BACKUP_ROOT, "ComfyUI", ".venv", "Scripts", "python.exe")
 GRABCUT_ALPHA_PY = os.path.join(TOOLS_DIR, "grabcut-alpha.py")
 
 
@@ -115,10 +116,13 @@ def _birefnet_subprocess(image_rgb):
     src = os.path.join(tmp, "input.png")
     dst = os.path.join(tmp, "alpha.png")
     Image.fromarray(image_rgb).save(src)
-    subprocess.run(
-        [COMFY_VENV_PY, os.path.join(TOOLS_DIR, "birefnet-cutout.py"),
-         "--predict-alpha", src, dst],
-        check=True, capture_output=True)
+    try:
+        subprocess.run(
+            [COMFY_VENV_PY, os.path.join(TOOLS_DIR, "birefnet-cutout.py"),
+             "--predict-alpha", src, dst],
+            check=True, capture_output=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("BiRefNet 子进程超时（300s）") from None
     return np.asarray(Image.open(dst).convert("L")) / 255.0
 
 
@@ -128,9 +132,12 @@ def _grabcut_subprocess(image_rgb):
     src = os.path.join(tmp, "input.png")
     dst = os.path.join(tmp, "alpha.npy")
     Image.fromarray(image_rgb).save(src)
-    subprocess.run(
-        [COMFY_VENV_PY, GRABCUT_ALPHA_PY, "--input", src, "--out", dst],
-        check=True, capture_output=True)
+    try:
+        subprocess.run(
+            [COMFY_VENV_PY, GRABCUT_ALPHA_PY, "--input", src, "--out", dst],
+            check=True, capture_output=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("GrabCut 子进程超时（300s）") from None
     return np.load(dst)
 
 

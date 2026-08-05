@@ -283,3 +283,134 @@ export function burstParticles({ texture, x, y, count, config, destroyAfterMs, j
     scene.time.delayedCall(destroyAfterMs, () => { if (emitter && emitter.active) emitter.destroy(); });
     return emitter;
 }
+
+/**
+ * ⑧ 天顶闪电光柱：白蓝梯形闪电柱从天顶劈下、一闪而逝（圣光光束同款梯形 + 闪电配色）。
+ * 三层：宽蓝辉光（ADD）+ 白蓝主体（NORMAL）+ 窄白芯（ADD），整柱闪烁淡出。
+ * 完成后自动 destroy。→ graphics（无引用回收需求，一次性视觉）
+ */
+export function spawnLightningColumn({ x, y, height = 440, topW = 52, bottomW = 28, duration = 240, depth }) {
+    const scene = getScene();
+    if (!scene || !scene.add || !scene.tweens) return null;
+    const skyY = y - height;
+    const d = depth ?? (y + 2);
+    const g = scene.add.graphics();
+    const glow = scene.add.graphics();
+    glow.setBlendMode('ADD');
+    if (scene.worldEffectsGroup) {
+        scene.worldEffectsGroup.add(g);
+        scene.worldEffectsGroup.add(glow);
+    }
+    g.setDepth(d);
+    glow.setDepth(d);
+    const col = { a: 1 };
+    const draw = () => {
+        const a = col.a;
+        const flick = 0.75 + 0.25 * Math.sin(Date.now() * 0.06);
+        g.clear();
+        glow.clear();
+        // 主体：白蓝芯（NORMAL 半透明，梯形两三角）
+        g.fillStyle(0x9fc6ff, 0.16 * a * flick);
+        g.fillTriangle(x - topW / 2, skyY, x + topW / 2, skyY, x + bottomW / 2, y);
+        g.fillTriangle(x - topW / 2, skyY, x + bottomW / 2, y, x - bottomW / 2, y);
+        // ADD 辉光：宽蓝 + 窄白
+        glow.fillStyle(0x4b6fff, 0.28 * a * flick);
+        glow.fillTriangle(x - topW * 0.72, skyY, x + topW * 0.72, skyY, x + bottomW * 0.72, y);
+        glow.fillTriangle(x - topW * 0.72, skyY, x + bottomW * 0.72, y, x - bottomW * 0.72, y);
+        glow.fillStyle(0xffffff, 0.5 * a * flick);
+        glow.fillTriangle(x - topW * 0.26, skyY, x + topW * 0.26, skyY, x + bottomW * 0.26, y);
+        glow.fillTriangle(x - topW * 0.26, skyY, x + bottomW * 0.26, y, x - bottomW * 0.26, y);
+    };
+    draw();
+    scene.tweens.add({
+        targets: col,
+        a: 0,
+        duration,
+        ease: 'Quad.easeOut',
+        onUpdate: draw,
+        onComplete: () => {
+            if (g && g.active) g.destroy();
+            if (glow && glow.active) glow.destroy();
+        },
+    });
+    return null;
+}
+
+/**
+ * ⑨ 电磁炮直线光束（railgun）：一条笔直的贯穿光束（贯穿雷枪专用，区别于蛇形闪电链）。
+ * - 三层线：宽蓝辉光（ADD）+ 白蓝中辉光 + 白热芯，整条呼吸闪烁（默认较粗，可 widthScale 再放大）；
+ * - **加速环**：3~4 个椭圆环沿光束从后往前扫过（railgun 加速线圈 signature）；
+ * - 持续 duration 后线性淡出销毁。完成后自动 destroy。
+ */
+export function spawnRailgunBeam({ x, y, endX, endY, duration = 260, widthScale = 1, depth }) {
+    const scene = getScene();
+    if (!scene || !scene.add || !scene.tweens) return null;
+    const dx = endX - x;
+    const dy = endY - y;
+    const len = Math.hypot(dx, dy) || 1;
+    const angle = Math.atan2(dy, dx);
+    const g = scene.add.graphics();
+    const glow = scene.add.graphics();
+    glow.setBlendMode('ADD');
+    if (scene.worldEffectsGroup) {
+        scene.worldEffectsGroup.add(g);
+        scene.worldEffectsGroup.add(glow);
+    }
+    const d = depth ?? (y + 2);
+    g.setDepth(d);
+    glow.setDepth(d);
+    g.setPosition(x, y);
+    glow.setPosition(x, y);
+    g.setRotation(angle);
+    glow.setRotation(angle);
+    const beam = { a: 1 };
+    let lastNow = Date.now();
+    const rings = [];
+    for (let i = 0; i < 4; i++) {
+        rings.push({
+            pos: -0.2 - i * 0.24,
+            speed: 0.36 + Math.random() * 0.08,
+            size: 14 + Math.random() * 8,
+        });
+    }
+    const draw = () => {
+        const now = Date.now();
+        const dsec = Math.min(0.05, (now - lastNow) / 1000);
+        lastNow = now;
+        const a = beam.a;
+        const flick = 0.82 + 0.18 * Math.sin(now * 0.09);
+        g.clear();
+        glow.clear();
+        // 主光束（本地坐标沿 x 轴，笔直）
+        glow.lineStyle(40 * widthScale, 0x4b6fff, 0.24 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        glow.lineStyle(19 * widthScale, 0x9fc6ff, 0.42 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        glow.lineStyle(9 * widthScale, 0xffffff, 0.92 * a * flick);
+        glow.lineBetween(0, 0, len, 0);
+        // 加速环：沿光束从后往前扫（本地 y 方向竖椭圆 = 垂直光束）
+        for (const ring of rings) {
+            ring.pos += ring.speed * dsec;
+            if (ring.pos > 1.25) ring.pos = -0.25;
+            const px = len * Math.max(0, Math.min(1, ring.pos));
+            const rr = ring.size * widthScale;
+            glow.lineStyle(7 * widthScale, 0xffffff, 0.75 * a * flick);
+            glow.strokeEllipse(px, 0, rr * 0.9, rr * 2.4);
+            glow.lineStyle(3.5 * widthScale, 0x8fb8ff, 0.95 * a * flick);
+            glow.strokeEllipse(px, 0, rr * 1.5 * 0.9, rr * 1.5 * 2.4);
+        }
+    };
+    draw();
+    scene.tweens.add({
+        targets: beam,
+        a: 0,
+        duration,
+        ease: 'Quad.easeOut',
+        onUpdate: draw,
+        onComplete: () => {
+            if (g && g.active) g.destroy();
+            if (glow && glow.active) glow.destroy();
+        },
+    });
+    return null;
+}

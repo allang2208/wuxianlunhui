@@ -34,8 +34,8 @@
 ## 验收（修复后由本机重新跑）
 
 ```bat
-python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "a magic skill icon, purple hexagonal badge, white background" --size 512x512 --steps 12 --out test.png
-python tools/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --size 512x512 --steps 12 --out test2.png
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "a magic skill icon, purple hexagonal badge, white background" --size 512x512 --steps 12 --out test.png
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --size 512x512 --steps 12 --out test2.png
 ```
 
 两张图都能正常出图即修复完成。

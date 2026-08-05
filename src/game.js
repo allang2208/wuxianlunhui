@@ -74,6 +74,7 @@ import { SystemUI } from './ui/system-ui.js';
 import { UIState } from './ui/ui-state.js';
 import { ExpeditionSystem } from './ui/expedition-system.js';
 import { FusionSystem } from './ui/fusion-system.js';
+import { DefenseSystem } from './world/defense-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -1178,6 +1179,11 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
+            // 世界-122 防守地图：点击防御塔打开升级/装载面板，点击基地核心查看耐久
+            if (DefenseSystem && DefenseSystem.active && DefenseSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
             for (const [key, entity] of this.entities) {
                 if (clickedPickup) break;
                 if (!clickedPickup && entity instanceof DropItem && entity.active) {
@@ -1255,6 +1261,11 @@ CombatSystem.update(e, dt, this.entities);
             }
         }
         // === [REFACTOR-END] ===
+
+        // 世界-122 防守地图：波次生成（实体自身的更新已在上方主循环完成）
+        if (SceneManager.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
+            DefenseSystem.update(dt);
+        }
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
 if (FormationSystem) {

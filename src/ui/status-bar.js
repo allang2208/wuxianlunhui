@@ -32,6 +32,7 @@ export const StatusBar = {
         burn: { icon: '🔥', name: '灼伤', color: '#ff6b35', desc: '每 0.5 秒受到施法者魔法攻击×0.5 的魔法伤害。' },
         frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff', desc: '无法移动、攻击、使用技能与物品；受到的非魔法伤害提高 50%。' },
         flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a', desc: '攻击附带魔法伤害并迸发火花；每 0.5 秒灼烧周围敌人；武器持续上浮火焰粒子。' },
+        electrified: { icon: '⚡', name: '感电', color: '#b98cff', desc: '每层使受到的电系伤害提高 3%；叠满 5 层触发过载：眩晕并释放电弧传导。' },
     },
 
     init() {

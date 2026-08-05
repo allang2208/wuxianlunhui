@@ -1,5 +1,5 @@
 import { Game } from '../game.js';
-import { WallSystem, ISO_WALL_GEO } from '../world/wall-system.js';
+import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
 import { Portal } from './portal.js';
@@ -18,6 +18,8 @@ import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
+import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
+import { BuildingSystem } from './building-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -37,7 +39,7 @@ export const SceneManager = {
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
             scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
-            scene8: cfg.scene8 || { name: '沼泽地', type: 'instance', label: '场景八', width: 4096, height: 4096, background: '#0d1b0a', origin: { x: 2048, y: 2048 } }
+            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 4096, height: 4096, background: '#0d1b0a', origin: { x: 2048, y: 2048 } }
         };
     },
 
@@ -121,6 +123,14 @@ export const SceneManager = {
             if (phaserScene) {
                 if (phaserScene.clearCombatView) phaserScene.clearCombatView();
                 if (phaserScene.clearAllEntitySprites) phaserScene.clearAllEntitySprites();
+            }
+            // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
+            if (this.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
+                DefenseSystem.teardown();
+            }
+            // 世界-122 建筑面板随场景离场关闭
+            if (BuildingSystem && BuildingSystem.active) {
+                BuildingSystem.close();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
@@ -944,47 +954,28 @@ export const SceneManager = {
             WallSystem._syncWallsToPhaser();
         }
 
-        // 玩家直接传送到场景中央
+        // 基地菱形房由 DefenseSystem.setup → _buildBaseRoom() 构建：
+        // 四边新掩体墙（h="\"/v="/"）+ 预制件夹角参考（26.57°）+ RB 边中点开口
+        // （配置见 defense-system.js DEFENSE_CONFIG.room）
+
+        // 玩家出生在基地房内左侧（基地 x=900；刷怪点全在右端尽头）
         if (player) {
-            player.x = size / 2;
-            player.y = size / 2;
+            player.x = 760;
+            player.y = 2048;
             Game.entities.set('player', player);
             Camera.follow(player);
         }
 
-        // 返回主神空间传送门
-        const portal = new Portal(size / 2, size - 100, 'main', '返回主神空间');
+        // 返回主神空间传送门（基地房内右侧）
+        const portal = new Portal(1040, 2048, 'main', '返回主神空间');
         Game.entities.set('portal_return', portal);
-
-        // 障碍物演示：中央偏南摆一排沙袋 + 两侧木制拒马（等距版 2026-08-03 新入库，
-        // ISO_WALL_GEO obstacle 类，碰撞=底部矩形 footprint；深度走 obstacleDepthOf）
-        const sandbagScale = 120 / ISO_WALL_GEO.sandbag.h;      // obstacleH 120 / 591
-        const barricadeScale = 120 / ISO_WALL_GEO.barricade.h;  // obstacleH 120 / 620
-        const sandbagY = 2300 - (591 * sandbagScale) / 2;       // 底边落在 y=2300
-        const barricadeY = 2450 - (620 * barricadeScale) / 2;   // 底边落在 y=2450
-        const demoPieces = [
-            { tex: 'obstacle_sandbag', x: 1800, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
-            { tex: 'obstacle_sandbag', x: 2000, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
-            { tex: 'obstacle_sandbag', x: 2200, y: sandbagY, scaleX: sandbagScale, scaleY: sandbagScale },
-            { tex: 'obstacle_barricade', x: 1650, y: barricadeY, scaleX: barricadeScale, scaleY: barricadeScale },
-            { tex: 'obstacle_barricade', x: 2350, y: barricadeY, scaleX: barricadeScale, scaleY: barricadeScale },
-        ];
-        for (const p of demoPieces) {
-            p.flipX = false;
-            p.flipY = false;
-            p.rotation = 0;
-            p.family = 'obstacle';
-            p.depth = WallSystem.obstacleDepthOf(p);
-            WallSystem.isoVisuals.push(p);
-        }
-        WallSystem.rebuildIsoCollision();
-        if (WallSystem._syncWallsToPhaser) {
-            WallSystem._syncWallsToPhaser();
-        }
 
         if (player) {
             QuickBar.refreshSpecialAttack(player);
         }
+
+        // 世界-122 防守战：基地核心 + 防御塔 + 边界刷怪波次
+        DefenseSystem.setup(player);
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

@@ -100,7 +100,7 @@ Copy-Item "D:\开发文件\lora-train\output\klein-<module>-v1\klein-<module>-v1
 ## 5. 验收
 
 1. 生成 4-6 张**训练集外新主题**（不同 seed）；
-2. GLM-4V 逐张审计（按模块类型写检查项，如图标：干净单六边形/金边完整/无多余突出物）；
+2. GLM-4.6V 逐张审计（按模块类型写检查项，如图标：干净单六边形/金边完整/无多余突出物）；
 3. 尺寸/构图校验 + 归一化：
    - 技能图标：`normalize-skill-icon.py`（fill 70% / cy +29）+ `check-icon-sizes.py`
    - 怪物贴图：`sprite-normalizer.py`（内容高 477px / 脚底 y=492）

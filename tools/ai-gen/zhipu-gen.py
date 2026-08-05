@@ -2,7 +2,7 @@
 """智谱图像生成客户端（open.bigmodel.cn /images/generations，2026-08-03）。
 
 密钥来源（按序）：环境变量 ZHIPU_API_KEY → 默认读取 deepseek-vision-skill 的 config.json
-（该项目 GLM-4V 识图与智谱生图共用同一智谱账号 key）。
+（该项目 GLM-4.6V 识图与智谱生图共用同一智谱账号 key）。
 
 用法：
     python tools/ai-gen/zhipu-gen.py --prompt "..." --out out.png

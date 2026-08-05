@@ -692,6 +692,7 @@ update(dt, entities) {
                             : (hp.overheatRecoverTime || 1500);
                         if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
                         if (recoverTime < 500) recoverTime = 500; // 最小0.5秒
+                        this._lastOverheatRecoverMs = recoverTime;
                         this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
                         if (this._overheatRecoverTimer <= 0 || this._overheatValue <= 0) {
                             this._overheatOverheated = false;
@@ -733,18 +734,27 @@ update(dt, entities) {
                             : (hp.overheatCooldownTime || 1500);
                         if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
                         if (recoverTime < 500) recoverTime = 500;
+                        this._lastOverheatCoolMs = recoverTime;
                         this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
                         if (this._overheatValue <= 0) {
                             this._overheatActive = false;
                         }
                     }
                 } else {
-                    // 非机枪武器：隐藏过热条
+                    // 非机枪武器：隐藏过热条，但保留过热/锁定状态（防止切换武器绕过冷却）。
+                    // 冷却计时与降温在离手期间继续推进（时间驱动），切回机枪后按剩余计时生效。
                     this._overheatActive = false;
-                    this._overheatValue = 0;
-                    this._overheatOverheated = false;
-                    this._overheatRecoverTimer = 0;
-                    this._overheatWeaponType = null;
+                    if (this._overheatOverheated) {
+                        this._overheatRecoverTimer -= dt;
+                        if (this._overheatRecoverTimer <= 0) {
+                            this._overheatOverheated = false;
+                            this._overheatRecoverTimer = 0;
+                            this._overheatValue = 0;
+                        }
+                    } else if (this._overheatValue > 0) {
+                        // 部分过热值按该机枪的冷却速率继续降温（默认 1500ms 满值排空）
+                        this._overheatValue = Math.max(0, this._overheatValue - dt / (this._lastOverheatCoolMs || 1500));
+                    }
                 }
                 this.updateWeaponAnim(dt);
                 this._updateSubsystems(dt, entities);
@@ -1007,8 +1017,9 @@ update(dt, entities) {
                         const hasAmmo = isEnergyLMG ? true : this._hasAmmo(effectiveSlot);
                         const isReloading = isEnergyLMG ? false : this._isReloading(effectiveSlot);
 
-                        // 过热时禁止射击
-                        const isOverheated = this._overheatOverheated;
+                        // 过热时禁止射击（按武器类型匹配：只有引发过热的机枪被锁定，
+                        // 切到其他武器不受影响，但切回仍处于锁定计时中）
+                        const isOverheated = this._overheatOverheated && this._overheatWeaponType === effectiveItem.weaponType;
                         if (isOverheated) {
                             // 过热中，禁止开火
                         } else if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.leftDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {

@@ -107,7 +107,8 @@ def name_for_hex(hexcode):
 
 def background_clause(name, hexcode):
     return (f"isolated on a perfectly uniform solid {name} background (#{hexcode}), "
-            "flat solid color backdrop, no gradient, no texture, no shadow, "
+            "flat solid color backdrop, no gradient, no texture, no light source, "
+            "no directional lighting, no shadows, no drop shadow, "
             "no reflection, no other objects")
 
 
@@ -120,7 +121,9 @@ def inject_background(prompt, name, hexcode):
             r"(?:pure|plain|clean)?\s*white\s+background", prompt, re.I):
         return prompt.rstrip(" .,") + ", " + clause
     replaced = re.sub(r"(?:pure|plain|clean)?\s*white\s+background",
-                      f"solid {name} background (#{hexcode})", prompt, flags=re.I)
+                      f"solid {name} background (#{hexcode}), flat diffuse ambient lighting, "
+                      "no light source, no directional lighting, no shadows, no drop shadow",
+                      prompt, flags=re.I)
     if replaced != prompt:
         return replaced
     return prompt.rstrip(" .,") + ", " + clause

@@ -92,8 +92,8 @@
     "baseCooldown": 333,
     "maxCooldown": 50,
     "rampUpTime": 2500,
-    "overheatTime": 4000,
-    "overheatRecoverTime": 2500,
+    "overheatTime": 5000,
+    "overheatRecoverTime": 4000,
     "overheatCooldownTime": 4000,
     "spreadMaxTime": 2500,
     "maxSpreadAngle": 15

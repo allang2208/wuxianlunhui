@@ -1,4 +1,4 @@
-import { CONFIG } from '../config/config.js';
+﻿import { CONFIG } from '../config/config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
@@ -37,6 +37,29 @@ const ISO_WALL_GEO = {
     orepile: { tex: 'obstacle_orepile', w: 512, h: 397, category: 'obstacle', foot: { w: 400, d: 120 }, obstacleH: 119, editor: '铁矿堆' },
     sandbag: { tex: 'obstacle_sandbag', w: 1224, h: 974, category: 'obstacle', foot: { w: 1100, d: 250 }, obstacleH: 140, editor: '沙袋' },
     barricade: { tex: 'obstacle_barricade', w: 1086, h: 1099, category: 'obstacle', foot: { w: 980, d: 160 }, obstacleH: 140, editor: '木制拒马' },
+    // 世界-122 掩体（F→A 六档 × 水平摆(_h)/垂直摆(_v)，2026-08-04 dev+mesh 生图入库；
+    // foot=底部 15% 带实测，obstacleH=默认显示高度（掩体≈260 宽等比、塔=262））
+    cover_F_h: { tex: 'obstacle_cover_F_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·F级·水平' },
+    cover_F_v: { tex: 'obstacle_cover_F_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·F级·垂直' },
+    cover_E_h: { tex: 'obstacle_cover_E_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·E级·水平' },
+    cover_E_v: { tex: 'obstacle_cover_E_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·E级·垂直' },
+    cover_D_h: { tex: 'obstacle_cover_D_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·D级·水平' },
+    cover_D_v: { tex: 'obstacle_cover_D_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·D级·垂直' },
+    cover_C_h: { tex: 'obstacle_cover_C_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·C级·水平' },
+    cover_C_v: { tex: 'obstacle_cover_C_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·C级·垂直' },
+    cover_B_h: { tex: 'obstacle_cover_B_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·B级·水平' },
+    cover_B_v: { tex: 'obstacle_cover_B_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·B级·垂直' },
+    cover_A_h: { tex: 'obstacle_cover_A_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·A级·水平' },
+    cover_A_v: { tex: 'obstacle_cover_A_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·A级·垂直' },
+    // 防御塔（基座去臂版；机械臂是独立视觉层 obstacle_defense_tower_arm，无碰撞不注册）
+    defense_tower: { tex: 'obstacle_defense_tower', w: 539, h: 832, category: 'obstacle', foot: { w: 468, d: 164 }, obstacleH: 262, editor: '防御塔' },
+    // 阔叶树五变体（2026-08-05 Blender 白模深度+flux2-dev-depth 生图，prompts/obstacle.md 树木节；
+    // foot=底部 15% 带实测树干占地，obstacleH 按防御塔同世界比例 0.315 折算）
+    tree_tall: { tex: 'obstacle_tree_tall', w: 404, h: 947, category: 'obstacle', foot: { w: 42, d: 15 }, obstacleH: 300, editor: '阔叶树·高瘦' },
+    tree_bushy: { tex: 'obstacle_tree_bushy', w: 903, h: 662, category: 'obstacle', foot: { w: 90, d: 31 }, obstacleH: 210, editor: '阔叶树·矮胖' },
+    tree_twin: { tex: 'obstacle_tree_twin', w: 722, h: 818, category: 'obstacle', foot: { w: 208, d: 73 }, obstacleH: 259, editor: '阔叶树·双干' },
+    tree_wind: { tex: 'obstacle_tree_wind', w: 752, h: 884, category: 'obstacle', foot: { w: 85, d: 30 }, obstacleH: 280, editor: '阔叶树·风斜' },
+    tree_tiered: { tex: 'obstacle_tree_tiered', w: 598, h: 743, category: 'obstacle', foot: { w: 111, d: 39 }, obstacleH: 235, editor: '阔叶树·双层' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -826,26 +849,39 @@ const WallSystem = {
     junctionCorrectedDepth(x, y, depth, frontRange = 60) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
-        for (const it of cache) {
-            for (const [A, B] of it.segs) {
+        const applySeg = (A, B, segDepth) => {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
-                if (x < minX || x > maxX) continue;
+                if (x < minX || x > maxX) return;
                 const t = (x - A.x) / ((B.x - A.x) || 1e-6);
                 const yLine = A.y + (B.y - A.y) * t;
                 // 门墙面线 depth = 门洞中心底边 y，比深端浅（亏空 = 深端 y − depth，可达 ~119px）：
                 // 收集窗按亏空加宽，否则深端墙后 60~119px 的实体收不到任何面线、仲裁完全失效
                 // （普通 max 规则瓦片亏空为 0，窗口不变、行为不变）
-                const deficit = Math.max(A.y, B.y) - it.depth;
+                const deficit = Math.max(A.y, B.y) - segDepth;
                 const win = (y - yLine) < 0 ? (deficit > 0 ? 60 + deficit : 60) : frontRange; // 线后=60+亏空；线前=实体贴图高度
-                if (Math.abs(y - yLine) > win) continue;
+                if (Math.abs(y - yLine) > win) return;
                 if (y < yLine) {
                     // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正"被任一遮挡"。
                     // 旧版取最深（max），门洞深端的实体会被邻接深墙面线抬到门墙 depth 之上，
                     // 门墙左段时挡时不挡（RB 边门，右侧浅端天然正常）
-                    if (it.depth < occluderDepth) occluderDepth = it.depth;
+                    if (segDepth < occluderDepth) occluderDepth = segDepth;
                 } else {
-                    if (it.depth > frontDepth) frontDepth = it.depth;
+                    if (segDepth > frontDepth) frontDepth = segDepth;
                 }
+        };
+        for (const it of cache) {
+            for (const [A, B] of it.segs) applySeg(A, B, it.depth);
+        }
+        // 掩体墙段（DefenseCover）：动态实体（可增删），不进面线缓存，逐帧现取。
+        // 与墙件同一套仲裁：实体脚线在掩体底边线（face line）前 → 抬到掩体之上，
+        // 在线后 → 压到掩体之下。2026-08-05 实机复现修复（墙前怪被盖）。
+        const G = (typeof window !== 'undefined') ? window.Game : null;
+        if (G && G.entities) {
+            for (const e of G.entities.values()) {
+                if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
+                const [A, B] = e._faceLine;
+                if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
+                applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
             }
         }
         // 遮挡源只在比所有前墙都深时才压制：浅遮挡源的贴图本身画在深前墙之下，

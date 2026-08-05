@@ -426,6 +426,8 @@ class PerceptionSystemImpl {
         if (entity.hittable === false) return false;
         // 需要位置信息
         if (typeof entity.x !== 'number' || typeof entity.y !== 'number') return false;
+        // 防守模式（世界-122 进攻波次）：只锁定基地/防御塔，不追玩家
+        if (enemy._preferDefenseTargets && !entity._isDefenseStructure) return false;
         return true;
     }
 

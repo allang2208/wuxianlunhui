@@ -55,8 +55,8 @@
 1. 本机从 NAS 取 LoRA → 复制到两端 `models\loras\`：
    - 5080：`D:\开发文件\ComfyUI\models\loras\`
    - 本机 Daedalus 目录（mesh 后端，小 LoRA 可只走客户端转发，无需两端）
-2. 用 `tools/comfyui-gen.py --model flux2-klein-4b --lora klein-skillicon-v1.safetensors`
-   生成 4 张新主题图标（触发词开头 + 主题块），走 GLM-4V + `check-icon-sizes.py` 验收。
+2. 用 `tools/ai-gen/comfyui-gen.py --model flux2-klein-4b --lora klein-skillicon-v1.safetensors`
+   生成 4 张新主题图标（触发词开头 + 主题块），走 GLM-4.6V + `check-icon-sizes.py` 验收。
 
 ## 备注
 
@@ -108,7 +108,7 @@
 
 ### 验收结果（v1）
 
-- 4 张新主题（毒镖/风刃/暗影/石拳）GLM-4V 全部确认：紫色六边形徽章 + 金描边 + 水晶底座 + 白底居中 ✓。
+- 4 张新主题（毒镖/风刃/暗影/石拳）GLM-4.6V 全部确认：紫色六边形徽章 + 金描边 + 水晶底座 + 白底居中 ✓。
 - 生成尺寸偏小（占比 52~64% vs 基准 70%）——蒸馏 4 步推理的构图缩放漂移，属正常现象；
   入库前用 `normalize-skill-icon.py` 归一化到基准（fill≈70% / cx≈0 / cy≈+28 / aspect 0.78~0.85）。
 - 部署：LoRA → 5080 `models\loras\` + NAS `scratch\klein-lora-skillicon\` + `models.json` 的
@@ -138,7 +138,7 @@ centered, game asset art, high detail, crisp, isolated on a plain pure white bac
 
 - 保留 4 张本来就干净的图（00001 火球 / 00003 灼锋焰甲 / 00006 闪电 / 00007 圣光）；
 - 3 张带底座的（00002 陨星 / 00004 暴风雪 / 00005 冰墙）用 v1 LoRA + 干净风格提示词
-  多候选重抽（每主题 4 张），GLM-4V 逐张审计（无底座 / 主题清晰 / 金边完整）后选入：
+  多候选重抽（每主题 4 张），GLM-4.6V 逐张审计（无底座 / 主题清晰 / 金边完整）后选入：
   meteor_101 / blizzard_101 / icewall_202；
 - 7 条标注全部重写为干净风格块（去掉 crystal base）。
 
@@ -152,5 +152,5 @@ centered, game asset art, high detail, crisp, isolated on a plain pure white bac
 
 ### 验收（v2 待跑）
 
-4 张新主题 → GLM-4V 逐张查：干净单六边形 / 紫色浮雕 / 金边完整 / 无底座无突出 →
+4 张新主题 → GLM-4.6V 逐张查：干净单六边形 / 紫色浮雕 / 金边完整 / 无底座无突出 →
 `normalize-skill-icon.py` 归一化 → 部署 `klein-skillicon-v2.safetensors`。

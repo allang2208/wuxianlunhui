@@ -364,26 +364,32 @@ class Combatant extends DamageableEntity {
             this._overheatActive = false;
             return;
         }
+        // 与玩家路径（player/update.js）同口径：时长全部读武器 heatParams，
+        // 不再硬编码 3 秒冷却（旧实现忽略配置，冷却恒为 3000ms）
+        const hp = weapon.heatParams || {};
+        const overheatTime = Math.max(500, hp.overheatTime || 5000);
+        const cooldownTime = Math.max(500, hp.overheatCooldownTime || hp.overheatRecoverTime || 1500);
+        const recoverTime = Math.max(500, hp.overheatRecoverTime || hp.overheatCooldownTime || 1500);
 
         if (isFiring && !this._overheatOverheated) {
             // 开火时累积过热
-            const overheatRate = 0.0002; // 每毫秒累积0.0002
-            this._overheatValue += dt * overheatRate;
+            this._overheatValue += dt / overheatTime;
             if (this._overheatValue >= this._overheatMax) {
                 this._overheatValue = this._overheatMax;
                 this._overheatOverheated = true;
-                this._overheatRecoverTimer = 3000; // 3秒冷却
+                this._overheatRecoverTimer = cooldownTime;
             }
         } else {
             // 停止开火时恢复
             if (this._overheatOverheated) {
                 this._overheatRecoverTimer -= dt;
-                if (this._overheatRecoverTimer <= 0) {
+                this._overheatValue = Math.max(0, this._overheatValue - dt / recoverTime);
+                if (this._overheatRecoverTimer <= 0 || this._overheatValue <= 0) {
                     this._overheatOverheated = false;
                     this._overheatValue = 0;
                 }
             } else {
-                this._overheatValue = Math.max(0, this._overheatValue - dt * 0.0005);
+                this._overheatValue = Math.max(0, this._overheatValue - dt / cooldownTime);
             }
         }
         this._overheatActive = this._overheatValue > 0.1;

@@ -13,6 +13,7 @@ Output is a transparent 1024x1024 PNG (white background removed).
 
 import argparse
 import os
+import shutil
 import sys
 
 import numpy as np
@@ -65,6 +66,9 @@ def main():
     px = int(round(FRAME / 2 - nw / 2 + TARGET_CX))
     py = int(round(FRAME / 2 - nh / 2 + TARGET_CY))
     canvas.paste(scaled, (px, py), scaled)
+    if os.path.exists(args.dst):
+        shutil.copy2(args.dst, args.dst + ".bak")
+        print(f"backed up existing -> {args.dst}.bak")
     canvas.save(args.dst)
 
     # report

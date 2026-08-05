@@ -404,3 +404,167 @@ this.ai = config.ai || {};
 - **技能经验要接线才算数**：冰墙 expRewards 配了但没消费方 = 零经验（面板还写着不实的获取方式）。新技能必须同时写 `addXxxExp`（multiHit 惯例）+ 结算点调用 + 面板文案三方对齐（test-craft-sync 式三角校验）。
 - **套装套效绑定整套**（三件齐才激活移速/法系/格挡）——防混搭白嫖特效；移速修正写 `this.maxSpeed`（实际移动读它，`d.speed` 只是面板）。
 - **坑：`usePlayerSpeedConfig` 速度公式**：`formulas.speed` 无 base 时 `d.speed = speedFormula.base + …` 恒 NaN——实际移动靠 `this.maxSpeed || data.speed || 100` 兜底到 100。改速度相关面板先查这个公式。
+
+## 34. 墙体类实体的深度锚线 + 遮挡仲裁接入（2026-08-05 掩体案例）
+
+新增“墙体类实体”（如世界-122 的掩体 DefenseCover，不走 WallSystem isoVisuals 而是独立实体）时，
+只做碰撞不做图层必踩遮挡坑：**怪物明明站在墙前却被墙盖住一部分**。
+
+- **根因**：掩体精灵 depth 若用 `e.y + 12`（贴图显示框底边），而贴图内容（墙段）实际在框内偏上
+  （接地线比 e.y 高 22~137px），深度锚点就比视觉底边深几十~上百 px——墙前实体
+  （脚线在接地线之下、但仍在 e.y 之上）被错误排到墙后。实机复现：怪物 depth 2100 < 掩体 2121。
+- **修复（三件套，缺一不可）**：
+  1. 实体构造时算好 `_faceLine`（墙段底边线/接地线两端点）与 `_faceDepth`（= max 底边端点 y + 12，
+     与 `WallSystem.depthOf` 的“max 底边端点 y”同规则）；
+  2. `GameScene._updateDynamicDepths` 第 7 步“中立实体统一深度”（`sprite.y + footOffsetY + 10`）要认
+     `_faceDepth`——它是**每帧覆盖**所有中立精灵深度的地方，`_syncNeutralEntities` 里设了也会被它盖掉；
+  3. `WallSystem.junctionCorrectedDepth` 把动态实体的 `_faceLine` 逐帧并入面线集合（不能进
+     `_getFaceSegCache` 缓存，实体可增删），否则斜墙高端前侧（自然深度 < 平面锚线深度）仍会被盖。
+- **验证判例**：高端前侧（face 线浅端）实体自然深度 2000 < 锚线 2090，必须靠仲裁抬到 2090.5 才正确；
+  无面线处仲裁返回值应原样不变（隔离测试）。
+- **已知限制**：镜像（F）只翻贴图、不改逻辑朝向，`_faceLine` 跟随逻辑 orient（h/v），镜像摆放的掩体
+  遮挡线可能与视觉有偏差，属可接受取舍。
+
+## 35. 墙段贴图底边必须拉直成 30° 直线，否则端到端拼接“底部不平”（2026-08-05）
+
+掩体/墙段类贴图即使提示词要求“底边 30° 直线”，模型也常画出**曲线底边**
+（两端 30~40px 弧度 + 中段更陡，如 D_v 端点斜率 -0.51、中段 -0.62）。
+端点贴合（face line 端点重合）时底边高度连续，但拼接点两侧斜率突变 → 底边线折角
+~3°，用户感知为“拼接底部不在同一水平”。
+
+- **像素级判据**：端到端拼接（吸附步长 209,-104）后，拼接点两侧墙段底边拟合线在
+  拼接点处的 y 差应 < 1px；实测弯曲底边为 -17~-21px。
+- **修复（工具 `tools/straighten-cover-base.py`）**：按 COVER_FACE 端点
+  （世界空间 30° 直线，v 向 A=(-105,-33) B=(104,-137)）换算到每张贴图原图坐标
+  （foot 原图 = (W/2, H)，显示缩放 sx=260/W、sy=sizeH/H），削除直线以下像素 +
+  2px 羽化。修后拼接台阶收敛到 ±0.2px。备份 `.bak.straighten`。
+- **一图两向的 grade 必须统一 aspect**：D 级 h = flip(v) 同一张贴图，但旧
+  COVER_ASPECT 里 h=1.151（sizeH 226）、v=1.029（sizeH 253）——同一墙段两种显示
+  高度，且分别拉直后镜像一致性（IoU）从 1.0 掉到 0.89。统一 aspect 后重新
+  派生 h = flip(v)，IoU 恢复 1.0。
+- **渲染/测量自验坑**：PIL 拼接渲染的 canvas 背景必须透明（alpha 0），否则
+  alpha 掩码把背景全算成“墙”（trace 全落在画布底边）；测量用 alpha>128 且
+  背景 (0,0,0,0)。拉直前/后各跑一次 `tools/render-join-test.py` 对比 gapAtJoin。
+
+### 35.1 数据表化 + 一图两向（2026-08-05 二轮）
+
+底边拉直只解决了 D 级：**D 级单点实测硬编码的 face 端点对其他级别无效**
+（审计：E~A 级拉直后底边端点仍偏 5~31px、斜率偏 10~15%），每张新图都要手动调，
+这就是“基底错误→每张图都修”的实锤。正源修复：
+
+- **COVER_FACE 按 grade 数据表化**（audit-cover-geometry.py 自动标定每级 v 端点），
+  吸附/碰撞/深度/拉直全部读表；每级吸附步长 = 该级 face 端点差（如 D 209,-97、
+  A 244,-152），**严禁硬编码 209,-104**。
+- **一图两向强制镜像派生**：h 贴图 = flip(v)（同尺寸同 aspect），COVER_ASPECT 的
+  h/v 必须同值；严禁 h 独立渲染/独立标定（否则 h/v 拼接永远不对称，镜像 IoU 掉
+  到 0.88）。straighten 只处理 v，h 由 v 翻转生成。
+- **遗留代价**：每级斜率 = 该级内容底边实测（D -0.48、A -0.62），同 grade 拼接
+  完美（端点重合 + 斜率相同），跨 grade 拼接端点重合但斜率差 4~12% 有折角——
+  要彻底统一斜率需内容框归一化（重处理贴图），作为后续选项。
+- **验证套路**：`straighten-cover-base.py --grade <g>` → 校验 h=flip(v) IoU=1.0 →
+  `cdp-grade-join.mjs` 断言各 grade 吸附 same:true、placeable:true、endGap≈8。
+
+## 36. 路线 B：Blender 几何 + AI 材质纹理（零裁剪墙段管线，2026-08-05 定稿）
+
+掩体/墙段资产的**最终管线**：几何由 Blender 精确控制（底边直线、端帽垂直），
+AI 只生成材质纹理，渲染成品贴图（透明背景，无需抠图），零裁剪、零拉直。
+上一轮"AI 直出 + 拉直"是过渡方案（生成图底边参差，拉直削贴图）。
+
+- **Blender 几何**：box 230×52×150（长/厚/高），绕 Z 转 **44.8°**——该角度用
+  `iter-cover-depth.py` 按"**中段底边斜率**"（排除端帽凸起 20%）校准到 -0.4976。
+  注意不能用"每列最低像素端点"校准（端帽凸起会骗斜率，rot 52 时假斜率 -0.49、
+  真中段 -0.635）。
+- **相机**：正交、俯仰 30°、正面；底边落 y≈880（与深度管线同取景口径）。
+- **材质**：AI 生成 1024×668（墙段正面比例 1.53:1，避免横向拉伸）无缝材质纹理，
+  Principled BSDF + 轻 bump（强度 0.12），无影平光（环境 + SUN shadow off）。
+- **sizeH 反推**：显示 260×sizeH 非等比，世界斜率 = 原图像素斜率 × sizeH/260；
+  必须 `sizeH = round(260×|原图斜率|/0.4976)`，不能按内容框宽高比定。
+- **face 端点 = 端帽底部角点**（墙段真正接地处），不是中段直线外推。
+- **几何统一 → 跨级天然共线**：6 级同一 box 只换材质纹理 → face/aspect 完全一致，
+  同向（v-v/h-h）拼接端点精确重合、跨级拼接也共线，彻底消灭"每张图调"。
+- **一图两向**：h = flip(v)（镜像派生，IoU=1.0）。
+- **工具链**：`gen-cover-textures.py`（AI 材质）→ `render-cover-real.py`（Blender
+  渲染，film_transparent=RGBA）→ `render-cover-batch.py`（批量）→
+  `prep-cover-render.py`（标定 face/aspect + 入库）。旧资产备份 `.bak.renderB`。
+- **拼接验证**：CDP 断言 v-v/h-h 两端 `_faceLine` 端点世界重合；v-h 转角两端帽
+  相邻（端帽底部 y 差为墙段高度，属正常转角形态）。
+
+### 36.1 端帽凸起 → 楔形端部（2026-08-05 二轮返工）
+
+第一版路线 B 用完整 box 棱柱：拼接处**端帽底部投影比正面底边低 ~15px**
+（box 端面短边投影方向 ≠ 正面底边），两段墙拼接时 B 侧端帽凸出，脚底线
+不连续（V 形/台阶）——用户反馈"吸附拼接脚底水平没对齐"。
+
+- **根因**：box 端面是垂直矩形，端面底边（厚度方向短边）与正面底边（长边）
+  投影方向不同，端帽角点必然低于正面底边。face 端点无论取端帽角点还是
+  中段直线外推都救不了（凸起是几何固有）。
+- **正解（楔形端部）**：`render-cover-real.py` 的 `wedge_ends` 把 box 两端
+  （短边方向）做成沿正面底边方向的薄片——端帽底部与正面底边共线。
+  实现：bmesh 把两端背面角顶点移到正面平面并沿底边方向外延
+  （x → ±(1+T/L)，y → -1），再 apply 世界变换。
+- **验证**：楔形后整条底边（含端部）斜率 -0.496、残差 0.5px；v-v 拼接区
+  （跨拼接点）拟合斜率 -0.48、残差 0.7px——脚底线完全连续。
+- **face 端点 = 楔形端部底边端点**（不再是垂直端帽角点）。
+
+### 36.2 最终定稿：完整 box 端帽 + face=正面底边 + 重叠互盖（2026-08-05 三轮）
+
+楔形薄片端部虽底边共线，但端部太薄（尖角），拼接处**透空缝隙**（用户反馈
+"墙和墙之间有间隙没有贴图"）。参考成功案例（僵尸地牢/通道墙段
+`wall_straight` / `swamp_wall_straight` 实测：**端部斜率 ±1.6~2.8 的陡峭收口是
+正常形态**），最终定稿：
+
+- **几何回到完整 box（实心端帽）**——端帽有内容，拼接重叠时互盖无缝隙。
+- **face 用正面底边（中段直线端点），不是端帽角点**——拼接时正面底边共线
+  （斜线连续），端帽凸起在拼接点两侧**对称收口**（成功案例同款形态）。
+- **重叠 8px（SNAP_OVERLAP）**保持"只叠不缺"：实心端帽重叠互盖。
+- 实测：拼接点最小 alpha 221px（无缝隙）、底边拟合斜率 -0.50（连续）、
+  GLM"端部收口自然"。
+- **关键教训**：端帽凸起不可怕（成功案例也有），可怕的是端帽不对称/face 标错；
+  楔形薄片"对齐"是伪解（牺牲实心 → 缝隙）。
+- face 定稿（6 级统一）：v A(-88,-25) B(88,-112)，h 镜像。
+
+### 36.3 掩体碰撞必须接入 WallSystem.isoSegments（2026-08-05 用户反馈"没碰撞体积"）
+
+掩体（DefenseCover）旧碰撞 = COVER_FOOT 46×300 轴对齐矩形（中心在脚底 y）——
+只有斜向墙段视觉（~176px）的 26% 宽且位置偏下，**怪物可从墙段大部分穿过**，
+玩家/怪物/投射物都不受墙段阻挡。修复（skill #33 冰墙同管线）：
+
+- **COVER_FOOT 改为匹配视觉的轴对齐包围盒 + colliderOffsetY**：
+  v/h 统一 `{w:220, d:140, offY:-68}`（墙段 face x±88、y-25..-112 + 厚度），
+  矩形中心上移对准墙段主体（collider.x/y = entity + colliderOffsetX/Y）。
+- **face 线段注册进 WallSystem.isoSegments**：构造时
+  `WallSystem.isoSegments.push({x1,y1,x2,y2, halfThick: min(w,d)/2, _cover:true})`，
+  销毁/active=false 时 `removeFromCollision()` splice。isoSegments 是跟踪数组
+  （push/splice 自动重建碰撞缓存），怪物移动/投射物（Projectile.blocked）/
+  寻路全部自动被墙段阻挡，与成功案例墙段/门闸同管线。
+- 场景切换 WallSystem.init 会清 isoSegments，残留自动清理。
+- **验证**：CDP 断言 `blocked(穿墙)=true`、`blocked(不穿)=false`、线段已注册；
+  实体 rect（含 offY）覆盖墙段视觉范围。
+- **注意**：防御塔在基地房内开火，弹道出墙会被自家墙段挡（嵌墙弹道"只出不进"
+  见 #18）；如需塔能射墙外，要按 #18 处理或塔弹道忽略 _cover 线段。
+## 37. 改造图标批量生成（craft mod icons，2026-08-05 实测 95 张入库）
+
+给 craft-config.json 的武器改造选项配 `assets/icons/craft/<key>.png` 的标准流程，
+细则是 `game-dev/tools/ai-gen/WORKFLOW.md §3.8`，这里只留可复用的骨架与坑位：
+
+- **共享映射先行**：同名同 id 全武器共用一张；同名不同 id 合并（`shotgun_suppressor`→
+  `suppressor`、`light_extended_mag`→`light_extended`、`light_pommel`→`light_blade_body`）；
+  跨类复用已有图（剑类 `eagle_eye_rune` 用法杖那张）。写脚本扫 data/craft-config.json
+  生成 key 清单并校验覆盖，防漏/防孤儿。
+- **提示词**：equipment-icon.md 模板 + `(exactly one <key>:1.5)` + `(isolated single
+  object:1.3)` + 负面 `no second object, no detached pieces, no whole weapon`；长条件加
+  `completely inside the frame with generous white margins`。黑金属件白底出图（BiRefNet 抠得净）。
+- **生成**：远程 5080 `flux2-dev-fp8`，`--prompt-file` + 递增 seed，4 并发；客户端超时后图
+  仍会落盘，按"文件存在且 >10KB"判成功（调度器 `_gun_gen.js`/`_sword_gen.js`）。
+- **硬筛**：BiRefNet 抠图（ComfyUI venv python + `birefnet-cutout.py`）→ alpha>60 连通域
+  `components==1`（等价 check-components.py 的"禁止多余元素"）+ 边缘半透白 <0.5%
+  （`_gun_filter.py`）。
+- **验收**：GLM-4.6V **单张+具体问题**（多图会串扰）；长短/圆平头等几何以 alpha bbox 实测。
+- **易错形态**（重抽修复过的）：多室制退器/收束器易被画成鸟笼开长槽；auto/burst/competition/
+  lightweight 扳机易带出整枪或画成刀；无护手必被画护手；短管易画成长管；锤击点弹头圆头；
+  斜握把变垂直握把。修法：sub 里显式 `no long slots / standalone part only / absolutely no
+  crossguard / much shorter than full barrel / flat wadcutter meplat`。
+- **入库**：craft-config.json data+public 双份同步（`JSON.stringify(cfg,null,2)+'\n'`），
+  校验双份一致 + 引用文件全存在；lint/test/vite build 三绿。
+- **路径坑**：Y: NAS 中文路径 Node fs 会 ENOENT 乱码 → 提示词用 PowerShell 写；抠图/筛选
+  走 `%TEMP%` 本地中转。`--suffix ""` 空串参数会被 shell 吞，用默认后缀再改名。

@@ -281,7 +281,9 @@ class Projectile {
         this._phaserSprite.setPosition(this.x, this.y);
         // 显式纹理键投射物不随弹道旋转（球体光照贴图旋转会丢失光照方向）
         this._phaserSprite.setRotation(this.textureKey ? 0 : this.angle);
-        this._phaserSprite.setDepth((this.y || 0) + 12 + (this.depthBonus || 0));
+        // 深度=脚底 y + 500（与 _createPhaserSprite 同口径）：弹道贴图必须压在墙壁之上——
+        // 贴墙飞行时被墙面盖住又露出的根因；此处曾残留 y+12 覆盖掉创建时的 y+500，修复未生效
+        this._phaserSprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));
         if (this._noRender) {
             this._phaserSprite.setVisible(false);
             return;

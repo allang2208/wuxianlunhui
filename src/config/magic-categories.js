@@ -10,7 +10,7 @@ import { isSkillCheatEnabled } from './dev-cheats.js';
 export const MAGIC_CATEGORIES = {
     ice:      { key: 'ice',      name: '冰魔法', skills: ['iceSpike', 'iceWall', 'blizzard'] },
     fire:     { key: 'fire',     name: '火魔法', skills: ['fireball', 'meteor', 'flameArmor'] },
-    electric: { key: 'electric', name: '电魔法', skills: ['lightningStrike'] },
+    electric: { key: 'electric', name: '电魔法', skills: ['lightningStrike', 'stormDomain', 'thunderLance'] },
     light:    { key: 'light',    name: '光魔法', skills: ['holyLight'] },
 };
 
@@ -20,6 +20,8 @@ export const MAGIC_SKILL_TIERS = {
     blizzard: 3,
     fireball: 1,
     lightningStrike: 1,
+    stormDomain: 2,
+    thunderLance: 3,
     holyLight: 1,
     iceWall: 2,
     meteor: 3,

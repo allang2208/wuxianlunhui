@@ -500,6 +500,18 @@ export const QuickBar = {
                     player.flameArmorSystem.trigger();
                 }
                 // 冷却时间由 FlameArmorSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'stormDomain') {
+                // 雷暴领域技能（移动雷云持续落雷）
+                if (player.stormDomainSystem) {
+                    player.stormDomainSystem.trigger();
+                }
+                // 冷却时间由 StormDomainSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'thunderLance') {
+                // 贯穿雷枪技能（蓄力贯穿）
+                if (player.thunderLanceSystem) {
+                    player.thunderLanceSystem.trigger();
+                }
+                // 冷却时间由 ThunderLanceSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -664,11 +676,21 @@ export const QuickBar = {
             this.cooldowns['meteor'] = 0;
         }
         // 灼锋焰甲技能冷却同步
-        if (Game.player && Game.player._flameArmorCooldown > 0) {
-            this.cooldowns['flameArmor'] = Game.player._flameArmorCooldown;
-        } else if (Game.player && Game.player._flameArmorCooldown === 0) {
-            this.cooldowns['flameArmor'] = 0;
-        }
+            if (Game.player && Game.player._flameArmorCooldown > 0) {
+                this.cooldowns['flameArmor'] = Game.player._flameArmorCooldown;
+            } else if (Game.player && Game.player._flameArmorCooldown === 0) {
+                this.cooldowns['flameArmor'] = 0;
+            }
+            if (Game.player && Game.player._stormDomainCooldown > 0) {
+                this.cooldowns['stormDomain'] = Game.player._stormDomainCooldown;
+            } else if (Game.player && Game.player._stormDomainCooldown === 0) {
+                this.cooldowns['stormDomain'] = 0;
+            }
+            if (Game.player && Game.player._thunderLanceCooldown > 0) {
+                this.cooldowns['thunderLance'] = Game.player._thunderLanceCooldown;
+            } else if (Game.player && Game.player._thunderLanceCooldown === 0) {
+                this.cooldowns['thunderLance'] = 0;
+            }
         this._renderCooldownOverlays();
         this._renderSkillRequirements();
     },
@@ -699,7 +721,7 @@ export const QuickBar = {
      */
     _getTotalCooldown(skillId, skill, effect) {
         const baseMs = (effect.cooldown || 0) * 1000;
-        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall'].includes(skillId)) return baseMs;
+        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall', 'stormDomain', 'thunderLance'].includes(skillId)) return baseMs;
         const player = Game.player;
         if (!player) return baseMs;
         const currentWpn = player.equipments && player.equipments[player.weaponMode];

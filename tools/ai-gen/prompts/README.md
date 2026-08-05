@@ -17,6 +17,8 @@
 | [monster-sprite.md](monster-sprite.md) | 怪物/角色贴图 | 初版（基于动画工作流，待实战补坑） |
 | [video.md](video.md) | MiniMax H3 视频 | 实战固化（陨星 VFX 2026-08-04） |
 | [transparent-subject.md](transparent-subject.md) | 透明主体（需透明 PNG 的图标/装备/怪物/道具） | 新增（2026-08-04 方案一固化） |
+| [cover.md](cover.md) | 掩体（世界-122 防守地图 F→A 六档 × 水平/垂直摆） | 新增（2026-08-04） |
+| [defense-tower.md](defense-tower.md) | 防御塔建筑（基座+机械臂挂载点） | 新增（2026-08-04） |
 
 ## 拼接规则（顺序固定）
 
@@ -55,16 +57,16 @@
 ## 透明主体：纯色底出图（方案一，2026-08-04 新增）
 
 - 需要透明 PNG 且主体白色要素多（白衣/白甲/银饰）→ **禁用白底**，走
-  `python tools/comfyui-gen.py --transparent ...`：AI 选纯色底写入提示词，
-  出图后自动「阈值抠图 + BiRefNet 精修」；
-- 选色器：`tools/pick_bg_color.py`（扫描提示词颜色词，选与主体色距离最远的纯色）；
-  抠图器：`tools/transparent_cutout.py`（自动检测背景均匀性，非均匀时切 BiRefNet 主导）；
+  `python tools/ai-gen/comfyui-gen.py --transparent ...`：AI 选纯色底写入提示词，
+  出图后自动「阈值抠图 + GrabCut/BiRefNet 兜底」；
+- 选色器：`tools/ai-gen/pick_bg_color.py`（扫描提示词颜色词，选与主体色距离最远的纯色）；
+  抠图器：`tools/ai-gen/transparent_cutout.py`（自动检测背景均匀性，非均匀时切 GrabCut 主导）；
 - 提示词里原本的 "pure white background" 会被自动替换成纯色底块，详见模板
   `transparent-subject.md`。
 
 ## 新增类目的固化流程
 
-1. 定风格：用 `tools/check-icon-sizes.py` 等量化现有同类基准；
+1. 定风格：用 `tools/ai-gen/check-icon-sizes.py` 等量化现有同类基准；
 2. 写模板文件（风格基准/视角/负面/主题范例/坑）；
 3. 实战一轮，把坑追加到对应文件底部；
 4. 更新本 README 索引与 WORKFLOW.md 子流程。

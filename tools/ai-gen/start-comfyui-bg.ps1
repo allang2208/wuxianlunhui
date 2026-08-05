@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
-$ComfyRoot = Join-Path (Split-Path $ToolsDir -Parent) "ComfyUI"
+$ComfyRoot = Join-Path (Split-Path (Split-Path (Split-Path $ToolsDir -Parent) -Parent) -Parent) "ComfyUI"
 $py = Join-Path $ComfyRoot ".venv\Scripts\python.exe"
 $main = Join-Path $ComfyRoot "main.py"
 $log = Join-Path $ComfyRoot "comfyui.log"

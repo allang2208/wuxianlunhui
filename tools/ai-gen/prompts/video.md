@@ -4,7 +4,7 @@
 
 - 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；
   视频+音频双 VAE——**音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出。
-- 客户端：`python tools/minimax-h3-gen.py --prompt "..." --duration 2 --size 1344x768 --out ...`
+- 客户端：`python tools/ai-gen/minimax-h3-gen.py --prompt "..." --duration 2 --size 1344x768 --out ...`
 - 参考模式：`MiniMaxH3ReferenceToVideo`，按接入顺序用 `<Picture 1>` / `<Video 1>` / `<Audio 1>`
   标签引用，可锁角色/风格/动作/声音；`ref_image_size=match` 快 / `max` 保真（更慢）。
 

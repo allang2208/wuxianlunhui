@@ -20,14 +20,14 @@ import requests
 from PIL import Image
 
 HOST, PORT = "192.168.3.142", 8188
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # game-dev
 TOOLS = os.path.dirname(os.path.abspath(__file__))
-OUT_DIR = os.path.join(BASE, "game-dev", "assets", "skills", "meteor-icons-v5-template")
-REF_SRC = os.path.join(BASE, "game-dev", "assets", "skills", "fireball_icon.png")
+OUT_DIR = os.path.join(BASE, "assets", "skills", "meteor-icons-v5-template")
+REF_SRC = os.path.join(BASE, "assets", "skills", "fireball_icon.png")
 REF_LOCAL = os.path.join(TOOLS, "_fireball_white.png")
 REF_NAME = "fireball_white.png"
-DST_ICON = os.path.join(BASE, "game-dev", "assets", "skills", "陨星坠落.png")
-BACKUP_DIR = os.path.join(BASE, "game-dev", "backup", "current", "assets", "skills")
+DST_ICON = os.path.join(BASE, "assets", "skills", "陨星坠落.png")
+BACKUP_DIR = os.path.join(BASE, "backup", "current", "assets", "skills")
 MAKE_CUT = os.path.join(TOOLS, "make-transparent-icon.py")
 CKPT = "sd_xl_base_1.0.safetensors"
 
@@ -119,7 +119,10 @@ def generate(seed, denoise, tag):
     with open(raw, "wb") as fh:
         fh.write(data)
     cut = os.path.join(OUT_DIR, f"{tag}_cut.png")
-    subprocess.run([sys.executable, MAKE_CUT, raw, cut], check=True, capture_output=True)
+    try:
+        subprocess.run([sys.executable, MAKE_CUT, raw, cut], check=True, capture_output=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"抠图子进程超时（300s）: {raw}") from None
     return raw, cut
 
 

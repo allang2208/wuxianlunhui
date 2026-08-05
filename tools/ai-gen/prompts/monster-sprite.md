@@ -53,7 +53,7 @@ cluttered background, gradient background, dark background
 
 ## 验收
 
-- GLM-4V 单张问：主体/朝向/姿态/是否无武器；多张一起描述会串扰。
+- GLM-4.6V 单张问：主体/朝向/姿态/是否无武器；多张一起描述会串扰。
 - 像素统计：脚底贴底边、内容高度对齐基准、边缘无白边（alpha∈(10,245) 白色占比 0%）。
 
 ## 待补坑位（实战后追加）

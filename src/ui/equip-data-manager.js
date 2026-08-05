@@ -53,7 +53,7 @@ export const EquipDataManager = {
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/icons/DesertEagle_icon.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
         stats: [{ name: '物理攻击', value: '3-8' }, { name: '射程', value: '750' }],
-        desc: '沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火2秒后计算散布',
+        desc: '沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火0.5秒后计算散布',
         equipSlot: 'weapon',
         attack: { range: 750, knockback: 10, attackInterval: 800, hitType: '深黄色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         attackKey: 'deagle', offhandAttackKey: 'deagleOffhand', animConfigKey: 'deagle', fireSound: 'assets/sounds/weapons/cs_deagle_35_80.wav', isDarkGold: true, canvasImageProp: 'deagleImage',
@@ -165,8 +165,8 @@ export const EquipDataManager = {
         desc: 'PKM通用机枪，650发/分钟，亮金色曳光弹，火力压制利器',
         equipSlot: 'weapon2',
         attack: { range: 1200, knockback: 3, attackInterval: 92, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
-        heatParams: { overheatTime: 5000, overheatRecoverTime: 1500, overheatCooldownTime: 1500 },
-        attackKey: 'pkm', animConfigKey: 'pkm', fireSound: 'assets/sounds/weapons/pkm_single_600ms.wav', canvasImageProp: 'pkmImage',
+        heatParams: { overheatTime: 5000, overheatRecoverTime: 3000, overheatCooldownTime: 3000 },
+        attackKey: 'pkm', animConfigKey: 'pkm', fireSound: 'assets/sounds/weapons/pkm_half_sec.wav', canvasImageProp: 'pkmImage',
         ammoConfig: { max: 75, reloadTime: 3500 }, fireMode: 'fullAuto',
         attackFormula: { base: 10, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.5, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.12 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
@@ -385,6 +385,28 @@ export const EquipDataManager = {
             maxSpreadAngle: 15
         }
     },
+    TRAINING_BOW_ITEM: {
+        weaponId: 'weapon14',
+        name: '训练用弓', type: '弓', icon: '🏹', iconImage: 'assets/icons/trainingBOW.png',
+        dropImage: 'assets/weapons/trainingBOW.png',
+        equipImage: 'assets/weapons/trainingBOW.png',
+        slotImage: 'assets/icons/trainingBOW.png',
+        category: 'weapon_ranged', rarity: 'common', level: 1,
+        weaponCategory: 'mainhand', weaponType: 'bow',
+        weaponTypeTag: '远程武器', isTwoHanded: true,
+        weaponAsset: { image: 'assets/weapons/trainingBOW.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
+        stats: [{ name: '物理攻击', value: '50-85' }, { name: '射程', value: '1500' }],
+        desc: '一把适合初学者练习的弓，经过改良后拥有更远的射程和更强的威力。攻击前会先将弓旋转14°蓄力，攻击动画结束后箭矢才射出。',
+        equipSlot: 'weapon',
+        attack: { range: 1500, knockback: 30, attackInterval: 1500, hitType: '箭矢（直线弹道，攻击动画结束后射出）', damageType: '物理', projectileSpeed: 1248 },
+        attackKey: 'ranged', animConfigKey: 'bow', fireMode: 'charge',
+        attackFormula: { base: 50, enhanceFlat: 1, attrs: [] },
+        chargeAttack: { chargeTime: 1500, flashDuration: 500 },
+        sound: {
+            rotateComplete: 'assets/sounds/bow/rope_pull_1s.wav',
+            attackEnd: 'assets/sounds/arrow_flyby_1s.mp3'
+        }
+    },
     BORDER_BOW_ITEM: {
         weaponId: 'weapon16',
         name: '边境长弓', type: '弓', icon: '🏹', iconImage: 'assets/icons/border_bow_icon.png',
@@ -435,7 +457,7 @@ const COMPLETE_WEAPON_FIELDS = [
     'attackFormula', 'matkFormula', 'ammoConfig', 'spreadParams', 'heatParams',
     'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
     'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
-    'sound', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
+    'sound', 'chargeAttack', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
     'isDarkGold', 'dropImage', 'equipImage', 'slotImage',
     'spriteOffsetX', 'spriteOffsetY', 'aimSpriteOffsetX', 'aimSpriteOffsetY'
 ];

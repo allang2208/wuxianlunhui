@@ -34,7 +34,7 @@ import { TimerManager } from '../utils/timer-manager.js';
                 window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; this._droneKeyHeldCode = null; });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
-                    if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：鼠标交给编辑器，不触发攻击
+                    if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
                     const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn');
                     if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
                     if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
@@ -46,7 +46,7 @@ import { TimerManager } from '../utils/timer-manager.js';
                 window.addEventListener('electron-esc', () => this.handleKey(CONFIG.KEYS.MENU));
             },
     handleKey(code, altKey = false) {
-                if (Game._wallEditMode || Game._collisionEditMode) return; // 墙壁/碰撞编辑模式：按键交给编辑器（捕获监听先处理）
+                if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
                 if (code === CONFIG.KEYS.PAUSE) {
                     Game._paused = !Game._paused;
                     // P 键暂停与菜单暂停同口径：冻结全部定时器（波次/计时/冷却等）

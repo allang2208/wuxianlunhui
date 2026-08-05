@@ -30,3 +30,10 @@ vite.probe.config.js
 tools/normalized/
 assets/videos/
 __pycache__/
+*.bak
+*.bak.*
+*.orig
+*.log.*
+*.pid
+tools/.depth-*
+tools/ai-gen/_*_gen*.log*

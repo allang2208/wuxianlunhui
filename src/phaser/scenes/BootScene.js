@@ -143,6 +143,22 @@ export class BootScene extends Scene {
         // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
         this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
         this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
+        // 世界-122 掩体（F→A 六档 × 水平摆(_h)/垂直摆(_v)，2026-08-04 dev+mesh 批量生图入库）
+        for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
+            for (const orient of ['h', 'v']) {
+                this.load.image(`obstacle_cover_${grade}_${orient}`, `assets/terrain/obstacle_cover_${grade}_${orient}.png`);
+            }
+        }
+        // 世界-122 防御塔（基座+上方机械臂武器挂载点）
+        this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
+        // 世界-122 防御塔机械臂（独立贴图，绕塔顶枢轴 360° 旋转）
+        this.load.image('obstacle_defense_tower_arm', 'assets/terrain/obstacle_defense_tower_arm.png');
+        // 阔叶树五变体（2026-08-05 Blender 白模深度 + flux2-dev-depth 生图入库，摆墙编辑器障碍物类）
+        for (const tree of ['tall', 'bushy', 'twin', 'wind', 'tiered']) {
+            this.load.image(`obstacle_tree_${tree}`, `assets/terrain/obstacle_tree_${tree}.png`);
+        }
+        // 防御塔挂载弓（玩家弓走箭矢帧，塔用单张弓贴图）
+        this.load.image('weapon_bow', 'assets/weapons/bow.png');
         // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
         this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
         this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
