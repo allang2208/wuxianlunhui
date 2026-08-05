@@ -15,6 +15,21 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
+/** 灼锋焰甲数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const FLAME_ARMOR_DEFAULTS = {
+    cooldown: 24,
+    mpCost: 40,
+    duration: 12,
+    hitDamageBase: 10,
+    hitMagicMul: 0.35,
+    hitIntMul: 0.35,
+    auraRadius: 130,
+    auraTickMs: 500,
+    auraDamageBase: 5,
+    auraMagicMul: 0.12,
+    auraIntMul: 0.12,
+};
+
 /**
  * 灼锋焰甲技能系统（2026-08-03，火系初级 Buff 型技能首航）
  *
@@ -62,17 +77,17 @@ export class FlameArmorSystem {
         }
         if (!isSkillCheatEnabled()) src.data.mp -= mpCost;
 
-        const effect = { ...baseEffect, mpCost };
-        effect.cooldown = (effect.cooldown || 24) * getMagicCooldownMultiplier(src, ce);
-        if (!isSkillCheatEnabled()) src._flameArmorCooldown = (effect.cooldown || 24) * 1000;
+        const effect = { ...FLAME_ARMOR_DEFAULTS, ...baseEffect, mpCost };
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
+        if (!isSkillCheatEnabled()) src._flameArmorCooldown = effect.cooldown * 1000;
 
         // 施加 Buff（同类型只刷新时长；statusImmune 期间 addStatusEffect 会自动拒绝）
-        src.addStatusEffect('flameArmor', (effect.duration || 12) * 1000, { name: '灼锋焰甲', icon: '🔥', color: '#ff7a3a' });
+        src.addStatusEffect('flameArmor', effect.duration * 1000, { name: '灼锋焰甲', icon: '🔥', color: '#ff7a3a' });
         this._acc = { hits: 0, kills: 0, multiHit: false };
         this._auraTimer = 0;
         this._ensureWeaponFx();
         if (src._faction === 'player' && StatusBar && typeof StatusBar.addEffect === 'function') {
-            this._statusBarEffectId = StatusBar.addEffect('flameArmor', (effect.duration || 12) * 1000,
+            this._statusBarEffectId = StatusBar.addEffect('flameArmor', effect.duration * 1000,
                 { name: '灼锋焰甲', icon: '🔥', color: '#ff7a3a' });
         }
         EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🔥 灼锋焰甲', '#ff8f7a'));
@@ -110,7 +125,7 @@ export class FlameArmorSystem {
     /** 灼烧光环每跳 */
     _tickAura(entities, effect) {
         const src = this.source;
-        const radius = effect.auraRadius || 130;
+        const radius = effect.auraRadius;
         const shape = new GroundCircle(src.x, src.y, radius);
         const d = src.data;
         const mul = getMagicDamageMultiplier(src, 'flameArmor', getCurrentWeaponCraftEffects(src));
@@ -165,7 +180,7 @@ export class FlameArmorSystem {
         if (!this.isActive()) return;
         const effect = this._getEffect();
         this._auraTimer += dt;
-        if (this._auraTimer >= (effect.auraTickMs || 500)) {
+        if (this._auraTimer >= effect.auraTickMs) {
             this._auraTimer = 0;
             this._tickAura(entities, effect);
         }

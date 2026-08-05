@@ -18,9 +18,15 @@ function _getScene() {
 }
 
 export class StormCloudFx {
-    constructor(source, { heightOffset = 170 } = {}) {
+    /**
+     * @param {number} opts.radius - 雷云影响半径（雷暴领域 radius = 220 + 8×等级），
+     *   云团/粒子按 radius/220 基准等比缩放，随等级扩大匹配影响范围
+     */
+    constructor(source, { heightOffset = 170, radius = 220 } = {}) {
         this.source = source;
         this.heightOffset = heightOffset;
+        this.radius = radius;
+        this._scale = Math.max(0.8, radius / 220);
         this.active = true;
         this._blobs = [];        // [{ img, ox, oy }]
         this._arcGfx = null;     // 电弧锯齿（闪烁）
@@ -66,9 +72,9 @@ export class StormCloudFx {
             for (let i = 0; i < L.count; i++) {
                 const rr = Math.sqrt(Math.random()) * L.spread;
                 const a = Math.random() * Math.PI * 2;
-                const ox = Math.cos(a) * rr * 96;
-                const oy = Math.sin(a) * rr * 44 + L.yOff * 58;
-                const size = 92 * (L.sizeMin + Math.random() * (L.sizeMax - L.sizeMin));
+                const ox = Math.cos(a) * rr * 96 * this._scale;
+                const oy = Math.sin(a) * rr * 44 * this._scale + L.yOff * 58 * this._scale;
+                const size = 92 * this._scale * (L.sizeMin + Math.random() * (L.sizeMax - L.sizeMin));
                 const blob = scene.add.image(0, 0, 'stormCloudPuff');
                 blob.setTint(L.tint);
                 blob.setDisplaySize(size, size);
@@ -99,15 +105,15 @@ export class StormCloudFx {
         const base = this._cloudBase();
         const scene = _getScene();
         if (!scene || !scene.tweens) return;
-        const x0 = p.x + (Math.random() - 0.5) * 90;
-        const y0 = base + 18;
+        const x0 = p.x + (Math.random() - 0.5) * 90 * this._scale;
+        const y0 = base + 18 * this._scale;
         const segs = 4 + Math.floor(Math.random() * 3);
         const pts = [{ x: x0, y: y0 }];
         let cx = x0;
         let cy = y0;
         for (let i = 0; i < segs; i++) {
-            cx += (Math.random() - 0.5) * 26;
-            cy += 14 + Math.random() * 22;
+            cx += (Math.random() - 0.5) * 26 * this._scale;
+            cy += (14 + Math.random() * 22) * this._scale;
             pts.push({ x: cx, y: cy });
         }
         const g = this._arcGfx;
@@ -135,7 +141,7 @@ export class StormCloudFx {
     _spawnSpark() {
         const p = this.source;
         const base = this._cloudBase();
-        const sx = p.x + (Math.random() - 0.5) * 110;
+        const sx = p.x + (Math.random() - 0.5) * 110 * this._scale;
         const sy = base + 34;
         burstParticles({
             texture: 'impact_dot',
@@ -163,7 +169,7 @@ export class StormCloudFx {
         const p = this.source;
         const base = this._cloudBase();
         const a = Math.random() * Math.PI * 2;
-        const rr = 70 + Math.random() * 110;
+        const rr = (70 + Math.random() * 110) * this._scale;
         const mx = p.x + Math.cos(a) * rr;
         const my = base + Math.sin(a) * rr * 0.45 + (Math.random() - 0.5) * 30;
         burstParticles({
@@ -191,7 +197,7 @@ export class StormCloudFx {
     _spawnFalling() {
         const p = this.source;
         const base = this._cloudBase();
-        const sx = p.x + (Math.random() - 0.5) * 150;
+        const sx = p.x + (Math.random() - 0.5) * 150 * this._scale;
         const sy = base + 26;
         burstParticles({
             texture: 'impact_dot',

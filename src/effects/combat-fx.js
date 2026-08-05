@@ -399,6 +399,61 @@ export function spawnRailgunBeam({ x, y, endX, endY, duration = 260, widthScale 
             glow.lineStyle(3.5 * widthScale, 0x8fb8ff, 0.95 * a * flick);
             glow.strokeEllipse(px, 0, rr * 1.5 * 0.9, rr * 1.5 * 2.4);
         }
+        // 附着的电流（参考闪电技能 LightningBoltEffect 的"色块圆点链"避免线条感）：
+        // 沿光束随机位置生成**平行于光束方向**的短折线，重采样成小圆点色块链——
+        // 首尾用 sin 权重**不规则淡出**（中间亮、两端熄灭，每点叠加随机），半径缩小；
+        // 按时间分段伪随机 → 90ms 稳定后跳变闪烁，形成电流沿光柱爬行熄灭的观感。
+        const seedBase = Math.floor(now / 90);
+        let seed = (seedBase * 2654435761) >>> 0;
+        const rand = () => {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed / 0x7fffffff;
+        };
+        const branchCount = 3 + (seedBase % 2);
+        const ws = Math.max(1, Math.sqrt(widthScale)); // 圆点半径随光柱弱缩放（缩小）
+        for (let i = 0; i < branchCount; i++) {
+            const bx = len * (0.1 + rand() * 0.8);     // 起点沿光束
+            const dirX = rand() < 0.5 ? 1 : -1;        // 沿光束方向（平行）
+            const yOff = (rand() - 0.5) * 18;          // 贴近光束轴的偏移（缩小）
+            const segs = 3 + Math.floor(rand() * 2);   // 段数减少（缩短）
+            const pts = [{ x: bx, y: yOff }];
+            let px = bx;
+            let py = yOff;
+            for (let s = 0; s < segs; s++) {
+                px += dirX * (8 + rand() * 12);        // 缩短的平行伸展
+                py += (rand() - 0.5) * 8;              // 更小的垂直抖动
+                pts.push({ x: px, y: py });
+            }
+            // 重采样成色块圆点链（步长 4px），首尾 sin 淡出 + 每点随机（不规则电流感）
+            const step = 4;
+            let acc = 0;
+            let dotIdx = 0;
+            const chainLen = (pts[pts.length - 1].x - pts[0].x) * dirX + Math.abs(pts[pts.length - 1].y - pts[0].y);
+            for (let k = 0; k < pts.length - 1; k++) {
+                const p1 = pts[k];
+                const p2 = pts[k + 1];
+                const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                if (segLen < 1e-6) continue;
+                let t = acc / segLen;
+                while (t <= 1) {
+                    const dx2 = p1.x + (p2.x - p1.x) * t;
+                    const dy2 = p1.y + (p2.y - p1.y) * t;
+                    const prog = Math.min(1, (dotIdx * step) / Math.max(chainLen, 1));
+                    const edgeFade = Math.sin(prog * Math.PI);      // 首尾不规则淡出（两端熄灭）
+                    const rnd = 0.5 + rand() * 0.5;                 // 每点随机（不规则断续）
+                    const dotAlpha = (0.55 + 0.35 * a) * flick * edgeFade * rnd;
+                    const r = (1.6 + rand() * 1.2) * ws;            // 缩小的小圆点
+                    glow.fillStyle(0x8fb8ff, dotAlpha * 0.85);
+                    glow.fillCircle(dx2, dy2, r * 1.7);
+                    glow.fillStyle(0xffffff, dotAlpha);
+                    glow.fillCircle(dx2, dy2, r);
+                    dotIdx++;
+                    acc += step;
+                    t = acc / segLen;
+                }
+                acc -= segLen;
+            }
+        }
     };
     draw();
     scene.tweens.add({

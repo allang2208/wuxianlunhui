@@ -20,6 +20,21 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
+/** 圣光数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const HOLY_LIGHT_DEFAULTS = {
+    cooldown: 10,
+    mpCost: 30,
+    aimRadius: 200,
+    maxRange: 600,
+    duration: 2,
+    fadeMs: 400,
+    beamTopWidth: 60,
+    beamBottomWidth: 110,
+    beamHeight: 1400,
+    dissolveRatio: 0.28,
+    zombieDamageMul: 2,
+};
+
 /**
  * 圣光技能系统（2026-08-02 新增，锁定类——释放方式与闪电同口径）
  *
@@ -46,6 +61,8 @@ export class HolyLightSystem {
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
+        // 配置唯一真相：默认值集中收敛于 HOLY_LIGHT_DEFAULTS，代码不再散落魔法数字
+        const effect = { ...HOLY_LIGHT_DEFAULTS, ...baseEffect };
 
         // 鼠标世界坐标
         let aimX = src.x, aimY = src.y;
@@ -58,8 +75,8 @@ export class HolyLightSystem {
         // ===== 三重判定：失败不消耗冷却/耗蓝/链式强化 =====
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const aimRadius = (baseEffect.aimRadius || 200) * rangeMul;
-        const maxRange = (baseEffect.maxRange || 600) * rangeMul;
+        const aimRadius = effect.aimRadius * rangeMul;
+        const maxRange = effect.maxRange * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
         const nearMouse = [];
@@ -101,7 +118,6 @@ export class HolyLightSystem {
         }
 
         // 目标合法后：先按"含链式减免的 MP 成本"做门禁（读层数不消费——失败不丢链式层数）
-        const effect = { ...baseEffect };
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -113,10 +129,10 @@ export class HolyLightSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
-        effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
 
-        if (!isSkillCheatEnabled()) src._holyLightCooldown = (effect.cooldown || 10) * 1000;
+        if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
@@ -154,7 +170,7 @@ export class HolyLightSystem {
             } else {
                 let dmg = amount;
                 if (best.config && best.config.family === '僵尸') {
-                    dmg = Math.floor(dmg * (effect.zombieDamageMul || 2));
+                    dmg = Math.floor(dmg * effect.zombieDamageMul);
                 }
                 const wasAlive = best.hp > 0;
                 best.takeDamage(dmg, src, 'magic');
@@ -164,12 +180,12 @@ export class HolyLightSystem {
                 SkillManager.addHolyLightExp(src, 1, killCount);
             }
             EffectManager.add(new HolyLightEffect(src, best, {
-                durationMs: (effect.duration || 2) * 1000,
-                fadeMs: effect.fadeMs || 400,
-                beamTopWidth: effect.beamTopWidth || 60,
-                beamBottomWidth: effect.beamBottomWidth || 110,
-                beamHeight: effect.beamHeight || 1400,
-                dissolveRatio: effect.dissolveRatio || 0.28,
+                durationMs: effect.duration * 1000,
+                fadeMs: effect.fadeMs,
+                beamTopWidth: effect.beamTopWidth,
+                beamBottomWidth: effect.beamBottomWidth,
+                beamHeight: effect.beamHeight,
+                dissolveRatio: effect.dissolveRatio,
             }));
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
@@ -190,10 +206,10 @@ export class HolyLightSystem {
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
+        const effect = { ...HOLY_LIGHT_DEFAULTS, ...baseEffect };
 
         // 先按"含链式减免的 MP 成本"做门禁（读层数不消费——失败不丢链式层数）
         const ce = getCurrentWeaponCraftEffects(src);
-        const effect = { ...baseEffect };
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -205,10 +221,10 @@ export class HolyLightSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
-        effect.cooldown = (effect.cooldown || 10) * getMagicCooldownMultiplier(src, ce);
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
 
-        if (!isSkillCheatEnabled()) src._holyLightCooldown = (effect.cooldown || 10) * 1000;
+        if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
@@ -242,12 +258,12 @@ export class HolyLightSystem {
                 SkillManager.addHolyLightExp(src, 1, 0);
             }
             EffectManager.add(new HolyLightEffect(src, src, {
-                durationMs: (effect.duration || 2) * 1000,
-                fadeMs: effect.fadeMs || 400,
-                beamTopWidth: effect.beamTopWidth || 60,
-                beamBottomWidth: effect.beamBottomWidth || 110,
-                beamHeight: effect.beamHeight || 1400,
-                dissolveRatio: effect.dissolveRatio || 0.28,
+                durationMs: effect.duration * 1000,
+                fadeMs: effect.fadeMs,
+                beamTopWidth: effect.beamTopWidth,
+                beamBottomWidth: effect.beamBottomWidth,
+                beamHeight: effect.beamHeight,
+                dissolveRatio: effect.dissolveRatio,
             }));
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速

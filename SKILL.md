@@ -218,8 +218,42 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **斜向坑**：FLUX.2 不区分 h/v 斜向（全部产出 "/"）→ 处理脚本将 _h 组水平镜像归一为 "\"
   （`tools/ai-gen/process-world122-assets.py`）；入库 `assets/terrain/obstacle_cover_<grade>_<orient>.png`。
 - **数值**：hp = F400/E700/D1100/C1600/B2200/A3000，**def/mdef 均为 0**（怪物全额伤害）；
-  矩形 footprint（水平 300×46 / 垂直 46×300），`_isDefenseStructure=true` 供怪物锁定攻击。
-- **摆放**：世界-122 基地防线（门口 F 木栅 ×3 + 中场 D 石垒 ×2 + 核心近卫 B 钢甲 ×2）。
+  `_isDefenseStructure=true` 供怪物锁定攻击、`immovable=true` 不可击退/位移、
+  `_noShadow=true` 无脚底阴影；碰撞 footprint 见 `COVER_FOOT`（198×133、thick=26）。
+- **摆放**：基地菱形房预置（见下节「路线 B 最终管线」）；玩家 B 面板自行加建。
+
+### 掩体最终管线（路线 B）与基地菱形房 v2（2026-08-05 定稿）
+- **素材**：Blender 完整 box 230×52×150 绕 Z 44.8°（中段底边斜率 −0.4976）+
+  AI 材质纹理（36 步、bump 0.25、无阴影），透明背景零抠图；入库 1024×1024，
+  显示 260×260（aspect 1.0），`h = flip(v)`。
+- **几何统一**（`COVER_FACE`，6 级完全相同）：v: A(−88,−21)→B(88,−109)；
+  h 镜像 A(−88,−109)→B(88,−21)。face 线 = 墙段接底线，**拼接/碰撞一律用 face**；
+  完整 box 实心端帽（端面宽 ≈52），深度锚点 = max(face 端点 y)+12。
+- **自然贴图重做（2026-08-05）**：旧材质“生硬、塑料感”→ 提示词强化手凿/风化/
+  碎裂不规则边缘（`gen-cover-textures.py` THEME+TAIL），36 步批量重出 6 级纹理
+  → Blender 重渲染 → `prep-cover-render.py` 复标（几何不变，face 端点微调 −25/−112→−21/−109，
+  全部一致）→ 备份 `.bak.natural` 后替换 assets（v 原样、h=flip(v)）。
+- **方格砖墙改版（2026-08-05 同日，用户指定“参考原来的直墙”）**：掩体材质从乱石堆
+  统一改为**规整方格砖墙**（横竖对齐砖块网格 + 均匀细砖缝，视觉对齐 wall_straight），
+  6 级按主题区分（F 旧灰砖 / E 砖+沙袋 / D 标准暖灰红砖 / C 混凝土砖+钢板角件 /
+  B 深色砖+铆接钢板 / A 暗色魔纹砖）；提示词以 `regular square brick grid pattern,
+  rectangular bricks aligned in neat rows` 为骨架，仍带碎裂边缘/磨损，保持无阴影平光；
+  旧自然版备份 `.bak.brick`。校验：FFT 砖缝周期性（新 D 39px/46px 峰值强于直墙基线）
+  + GLM 局部放大确认网格 + `audit-perspective` MIRROR 对。
+- **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
+  非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
+  先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
+- **拼接规则**：相邻件 face 沿走向重叠 `SNAP_OVERLAP=40`px（≥ 端帽宽，只叠不缺），
+  即沿墙步长 = faceLen(196.33) − 40 ≈ 156.33px；镜像后吸附方向判定
+  `dir = dot>=0 ? -1 : 1`（左/右外接都向既有件重叠）。
+- **菱形房 v2 算法**（`_buildBaseRoom`，与建筑面板吸附同源）：每边 n 件均布，
+  覆盖 [−cornerExtend, len+cornerExtend]（cornerExtend=45，转角由相邻两边端帽互叠），
+  n = ceil((len+2·cornerExtend−faceLen)/step)+1；openEdge 边中点的开放带内的件
+  face 命中即跳过 → 天然形成居中门洞（本房 RB 边 ≈270px，门柱底边与墙线共线，
+  无需旧版 doorAlignY 精调，置 0）。
+- **校验**：`tools/render-defense-room.py`（FACE_OVERLAY=1 画 face 线做像素连续性校验）
+  + `tools/cdp-defense-audit.mjs`（实机截图 + 深度/遮挡审计）；渲染与精灵映射同源
+  （display 260×260、中心 (x, y−sizeH/2)、底边中心 (x,y)）。
 
 ### 防御塔贴图视觉基准（2026-08-04 二轮核验定稿）
 - **建筑/道具一律正面平视 billboard + 平底**（祭坛/仓库/沙袋/拒马基准）；墙体才是 30° 斜底边
@@ -252,7 +286,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### 世界-122 建筑面板（B 键，2026-08-04 实现）
 - **入口**：仅 scene8（世界-122）B 键开关；复用摆墙面板 CSS（wall-editor-panel）；
   面板打开时置 `Game._buildMode`（input.js 鼠标/按键交给编辑器，与摆墙同守卫）。
-- **物品**：`BUILD_ITEMS`（防御塔 300 金 + 掩体 F/A × 水平/垂直，价格按档位）；
+- **物品**：`BUILD_ITEMS`（防御塔 300 金 + 每级掩体**仅一个条目** `cover_<g>_v`，
+  名称 `掩体·<g>级`，不再分水平/垂直；F 键镜像即得水平 "\" 向——贴图/碰撞/face 线
+  全部跟随镜像，2026-08-05 简化）；
   点选 → 鼠标幽灵预览 → 左键放置扣金币（GoldManager）→ 生成真实实体
   （DefenseTower 入 towers 数组；DefenseCover 带 HP/可被攻击）。
 - **变换约束**：不能缩放；只能镜像调方向（F/按钮）——塔=基座 flipX，掩体=实体 `_facingLeft`。
@@ -260,9 +296,14 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **CDP 验证铁律**：动态 import 必须用 performance 资源表里带 `?t=` 的真实 URL
   （否则拿到重复模块实例，singleton 不同步）；先等页面稳定再点官方开始按钮。
 
-### 世界-122 布局与刷怪（2026-08-04 十二轮定稿）
-- 基地核心在**左端**（320,2048），玩家出生/返回门在左端；**无任何预制障碍物/塔/掩体**
-  （isoVisuals=0），玩家用 B 面板自建防线。
+### 世界-122 布局与刷怪（2026-08-05 定稿）
+- 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
+  **scene8 不再生成返回主神空间传送门**（portal_return 已删，玩家用菜单离场）。
+- 基地菱形房由 `DefenseSystem.setup → _buildBaseRoom()` 预置（2026-08-05 v2，
+  可被攻击掩体墙，def/mdef=0）：外接 1024×512（rx512/ry256，墙底边斜率 0.5）；
+  **每边 4 件 D 级掩体**，face 线相邻重叠 40px、边链两端各越顶点 45px 让转角端帽叠盖；
+  RB 边中点留居中门洞（沿边 ≈270px）。布局参数在 `DEFENSE_CONFIG.room`。
+- 玩家仍可用 B 面板加建防线（防御塔 + 六档掩体，只能镜像不能缩放）。
 - 刷怪点全在**右端尽头**（x≈3936/3736 两列 7 点），怪物自右向左进攻。
 - 刷怪节奏：常规流 = 普通怪池加权（zombie/miner/fat/dog/wolf/spitter/flySwarm）；
   **30s 精英**（lantern/oreSpider/wizard/knight/maggot/mutant3，HP×1.4）、
@@ -1431,7 +1472,7 @@ _getPhaserOptions() {
 | 地面区域 | `GroundZone` 基类 | 毒雾/酸液/燃烧区 |
 | 锁定/传导 | `LightningStrikeSystem` + `LightningBoltEffect` | 闪电：点选最近敌人→立即命中→连锁 |
 | 移动雷云（跟身持续） | `StormDomainSystem` + `StormCloudFx` | 雷暴领域：头顶雷云跟随自己周期落雷+传导 |
-| 电磁炮直线光束 | `ThunderLanceSystem` + `spawnRailgunBeam` | 贯穿雷枪：蓄力→沿鼠标方向笔直贯穿全部敌人（感电增伤）→终点电爆+感电地面 |
+| 电磁炮直线光束 | `ThunderLanceSystem` + `spawnRailgunBeam` | 贯穿雷枪：长按蓄力→沿鼠标方向笔直贯穿全部敌人（感电增伤+击退）→终点电爆 |
 | 其他自管 | 独立 system 组件 | 风车/推击等 |
 
 ### 1. 数据（data/skills.json + public/data/skills.json 双份同步）
@@ -1448,7 +1489,15 @@ _getPhaserOptions() {
 - `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。
 - `update(dt)`：冷却递减（ms）。
 - **玩家接线四件套**：① `player/index.js` import + `this.xxxSystem = new XxxSystem(this)` + `_xxxCooldown = 0` 字段；② `subsystems.js` update 段 `this.xxxSystem.update(dt)`；③ `subsystems.js` 死亡复位段清 `_xxxCooldown`；④ `subsystems.js` `_initSkills` 加 `if (!skills.xxx)` 兜底（JSON 加载失败/旧缓存仍可用）。
-- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）。
+- **数值兜底收敛（配置唯一真相，2026-08-05 全魔法系统落地）**：系统顶部定义 `XXX_DEFAULTS` 常量
+  （值与 skills.json 同字段缺省兜底一致），`trigger()` 里 `const effect = { ...XXX_DEFAULTS, ...baseEffect, mpCost }`
+  合并——skills.json effectFormula 是唯一真源，业务代码**禁止散落 `effect.cooldown || 25` 之类魔法数字**；
+  伤害公式内 `?? 0` 防御读取可保留（合并后不会触发）。已覆盖：贯穿雷枪/雷暴领域/闪电锁定/暴风雪/陨星/
+  圣光/冰墙/灼锋焰甲/无人机/冰锥/火球（投射物走 `kind.defaults` 并入 `BoltSkillSystem._getEffect`）。
+- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）；
+  **瞄准类技能 `trigger` 必须可传参 `trigger(optAimX, optAimY)`**——玩家用鼠标（内部读 Renderer.screenToWorld），
+  怪物传面向方向（缺省回退自身前方 100px，贯穿雷枪已按此实现）；蓄力光球类特效玩家锚定施法手，
+  怪物同样生成但先用默认锚点（`_defaultChargeAnchor` 身体中线上方）占位，待怪物绑定点做好再替换。
 
 ### 3. 快捷栏（quick-bar.js）
 
@@ -3356,8 +3405,8 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
    - 实现全流程：`damageable-entity.js` STATUS_CONFIG + `applyElectrified(stacks, duration, source)`（免疫拦截→叠层→满层过载→StatusBar→飘字）+ `_updateElectrified` 到期清空；`status-bar.js` 条目（desc 悬停）；伤害结算段新增 **`damageType='electric'` 子类型**（按魔法伤害口径结算 mdef/魔力易伤/法袍加成/暴击符文），并乘 `(1 + 0.03×层数)`；`docs/buff-reference.md` 登记。
 2. **闪电（初级）调整**：不再造成击退（移除 `applyKnockback` 结算与面板行）；命中叠加 1 层感电（4s），融入电系叠层闭环。
 3. **雷暴领域（stormDomain，电·中级，tier 2 需法杖）**：移动雷云跟身炮台——头顶雷云（`storm-cloud-fx.js` v2：参照暴风雪乌云——运行时柔边贴图 + **深蓝黑/靛蓝/电光蓝四层色块**云团 + 云内电弧锯齿 + 蓝色云雾/电花/坠落电弧粒子，深度恒为 1<<28；**不画云底圆环描边**）跟随自己，持续 10→13s（L1 起 10s），每 0.9s 对雷云范围内（220+8L px）最近敌人落雷：主目标全额 + 邻近传导（每 8 级 +1 目标、每跳衰减 30%）+ 250ms 打断眩晕 + 感电 1 层。CD 30s / MP 80→120。落雷数随持续增长（L1≈11 → L20≈14）。
-4. **贯穿雷枪（thunderLance，电·高级，tier 3 需法杖）**：蓄力 2.5s（**施法姿势释放帧定格且不可移动**——`startPlayerCast` 新增 `holdAtRelease` 模式，`resumePlayerCastHold` 在释放/取消后恢复后摇回 idle；**手部蓄力汇聚光球** `charge-orb-fx.js`：蓝色粒子从四面八方汇聚到手部 + 光球半径随进度 4→38px 放大，施法成功爆散消散/取消淡出；**手部锚点 = 手层内容质心（SKILL 手部判定沉淀直接用：拳头中心=手层内容质心，像素级可复现；曾试 weaponSprite 法杖中心被否——法杖贴图中心≠拳头）**；眩晕/冻结/死亡自动取消；**目标地点无提示特效**）→ 沿鼠标方向射出**电磁炮直线光束**（`spawnRailgunBeam`：白蓝三层辉光直线 + 4 个加速环从后往前扫过，**非蛇形闪电**；2026-08-05 加粗 widthScale 2.0）——**锥形判定贯穿路径上所有敌人**（视线可达、按距离排序），蓄力贯穿伤害 **×1.3**，**目标感电层数越高伤害越高（每层 +10%）**，命中叠 2 层感电；射程尽头/撞墙处电爆 + 感电地面（2s 内周期叠感电）。CD 32→28s / MP 120→155，射程 915→1200px。
-   - **2026-08-05 特效沉淀**：① `LightningBoltEffect` 新增 `uniform` 等宽模式（关闭施法端粗→目标端细，半径恒定 + 整体偏细）——感电过载电弧已切细等宽（`widthScale: 0.45`）；② 雷暴领域云删除云底蓝色椭圆描边，只保留云团/电弧/粒子；③ 天顶闪电光柱抽为共享件 **`spawnLightningColumn`（combat-fx.js ⑧）**——白蓝梯形闪电柱一闪而逝，后续任意技能直接复用（贯穿雷枪释放瞬间/终点电爆已用）；④ 电磁炮直线光束抽为共享件 **`spawnRailgunBeam`（combat-fx.js ⑨）**——笔直三层辉光直线 + 加速环，默认加粗（宽 40/19/9 ×widthScale，贯穿雷枪用 1.35）；⑤ **蓄力定格模板**：`startPlayerCast({ holdAtRelease })` 在第 releaseFrame 帧触发 onRelease 后**先完成前摇跨步站稳（+30px 一步到位，防蓄力期玩家继续前移）**，再冻结动画（timeScale 0）保持 casting 输入锁定（禁移动/攻击/技能），`resumePlayerCastHold()` 恢复继续播完前摇→倒放后摇回 idle；取消走 `cancelPlayerCast`（清 hold 标记 + 恢复 timeScale）；⑥ **蓄力汇聚光球模板**：`ChargeOrbFx`（charge-orb-fx.js）——锚点**每帧取施法手层内容质心**（`getHandFrameCentroid`：纹理键+帧名缓存、alpha>40 质心归一化局部偏移 ×displaySize ×flip；**不要锁定一次**——锁定在 onRelease 瞬间会取到尚未同步的旧帧质心，位置会落在非施法手），跨步站稳后手静止、锚点天然稳定，光球逐步变大（外层辉光先行铺开、内核过半浮现）；粒子从手周围椭圆环四面八方生成、寿命=到达时间（飞到/即将到手即消散，视觉"收进"光球而非定向飘过），`finish()` 爆散 / `cancel()` 淡出。
+4. **贯穿雷枪（thunderLance，电·高级，tier 3 需法杖）**：**长按快捷键蓄力**（input.js `_chargeKeyHeldCode` 长按检测 + quick-bar `thunderLanceKeyDown/KeyUp`，参照无人机长按模式；**按键松开安全网**：系统记录绑定键 `setHoldKey`（keydown 时 Input.keys 已含该键标记 `_holdKeyPressed`），update 每帧检测键已松开但 release 未被调用（首次进入绑定未就绪走 useSlot 等路径）→ 自动 release，杜绝蓄力到满；鼠标点击二段式不启用安全网。施法姿势释放帧定格且不可移动——`startPlayerCast` 新增 `holdAtRelease`，`resumePlayerCastHold` 收尾回 idle；**蓄力期间瞄准随鼠标实时变化**，最终释放方向以松开/满蓄时鼠标为准，鼠标转到背后时翻转玩家贴图朝向（flipX）；**伤害随蓄力比例**：蓄力 0.5~2.5s → 20%~100%（满蓄 ×chargeBonusMul 1.3），**不足 0.5s 释放失败：不进入冷却（清 CD）+ 返还 MP**；**手部蓄力汇聚光球** `charge-orb-fx.js`：粒子向手握点汇聚 + 光球随进度放大，成功爆散/取消淡出；**手部锚点 = 施法武器握把（weaponSprite，法杖中段=前伸手，CDP 实机确认暂停帧手位）优先 + 手层内容质心回退**，每帧取（不锁定，翻转朝向时跟随镜像）；眩晕/冻结/死亡自动取消；目标地点无提示特效）→ 沿鼠标方向射出**电磁炮直线光束**（`spawnRailgunBeam`：白蓝三层辉光直线 + 4 个加速环从后往前扫过 + **附着电流=色块圆点链**（见特效沉淀⑨），非蛇形闪电；widthScale 4.0，残留 373ms）——**锥形判定贯穿路径上所有敌人**（视线可达、按距离排序），命中目标**沿光束方向击退 50→150px 随等级**，**感电层数越高伤害越高（每层 +10%）**，命中叠 2 层感电；射程尽头/撞墙处电爆（冲击波+放射线+粒子，无天顶光柱/无感电地面蓝圈）。CD 32→28s / MP 120→155，射程 915→1200px（随等级）。
+   - **2026-08-05 特效沉淀**：① `LightningBoltEffect` 新增 `uniform` 等宽模式（关闭施法端粗→目标端细，半径恒定 + 整体偏细）——感电过载电弧已切细等宽（`widthScale: 0.45`）；② 雷暴领域云删除云底蓝色椭圆描边，只保留云团/电弧/粒子；③ 天顶闪电光柱抽为共享件 **`spawnLightningColumn`（combat-fx.js ⑧）**——白蓝梯形闪电柱一闪而逝（贯穿雷枪已不再使用：施法者/终点光柱均取消）；④ 电磁炮直线光束抽为共享件 **`spawnRailgunBeam`（combat-fx.js ⑨）**——笔直三层辉光直线 + 4 加速环，widthScale 4.0；⑤ **蓄力定格模板**：`startPlayerCast({ holdAtRelease })` 第 releaseFrame 帧触发 onRelease 后**先完成前摇跨步站稳（+30px）**，再冻结动画（timeScale 0）保持 casting 输入锁定，`resumePlayerCastHold()` 恢复播完前摇→倒放后摇回 idle，取消走 `cancelPlayerCast`；⑥ **蓄力汇聚光球模板**：`ChargeOrbFx`（charge-orb-fx.js）——锚点取施法武器握把/手层质心（见正文），粒子从手周围椭圆环四面八方生成、寿命=到达时间（视觉"收进"光球），`finish()` 爆散 / `cancel()` 淡出；⑦ **电流去线条化模板（光柱附着电流）**：参考 `LightningBoltEffect` 的"色块圆点链"避免线条感——沿光柱**平行方向**生成短折线，重采样成小圆点色块链（辉光 ADD + 白芯），**首尾用 sin 权重不规则淡出**（两端熄灭、中间亮，每点叠加随机断续），半径随光柱弱缩放（√widthScale），90ms 分段伪随机跳变闪烁——任何"光束/电流"类特效都按此做，禁止纯线条 stroke。
    - **2026-08-05 重设计说明**：原「雷神审判」为定点蓄力连环 AOE，与暴风雪（定点持续）/陨星（定点爆发）设计重叠，已整体替换为「贯穿雷枪」（蓄力贯穿型，追踪/直线操作）；旧组件 thunder-judgment-system.js 与图标 雷神审判.png 已删除。
 5. **接线**：skills.json 双份（25 技能）、magic-categories（electric 三技能 + tier 2/3）、玩家四件套（index.js 导入/字段/实例化，subsystems.js update + 死亡复位 `clearCloud`/`clearStorm` + `_initSkills` 兜底）、quick-bar（触发分支 + 冷却同步 + `_getTotalCooldown` 名单）、skill-manager（三处 skillList + effectText + 经验函数 + 详情面板 + 经验说明）。
 6. **图标（2026-08-05 LoRA + 不规则切割 + HSV 明度柔光定稿）**：`assets/skills/雷暴领域.png` / `贯穿雷枪.png`
@@ -3382,6 +3431,11 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - **移动雷云形态**：跟身持续类技能 = 系统组件自管计时 + EffectManager 常驻特效（`StormCloudFx`，active 自检 buff 是否仍在），死亡/场景切换走 `clearCloud` 不结算经验（与灼锋焰甲同口径）。
 - **蓄力连环形态**：`createGroundWarning` 保活续命（每帧 `keepWarningAlive`），结束时必须 `destroyWarning` 显式销毁；阶段状态机放系统 `update(dt)` 里推进（warning → storming → final → end）。
 - **优先目标**：落雷优先感电层数最高者（并列取最近），让「先叠层再引爆」的连招有明确收益。
+- **fallback 收敛 + 怪物复用（2026-08-05 收尾沉淀）**：① 所有魔法系统数值缺省统一收敛到顶部
+  `XXX_DEFAULTS` + `{ ...DEFAULTS, ...baseEffect }` 合并，skills.json 为唯一真源，禁止业务代码散落
+  `|| 默认值`（详见「技能添加标准工作流」§2）；② 贯穿雷枪瞄准参数化 `trigger(optAimX, optAimY)`——
+  玩家=鼠标、怪物=面向方向（缺省自身前方 100px）；③ 怪物也生成蓄力光球，锚点暂用
+  `_defaultChargeAnchor()`（身体中线上方）占位，怪物绑定点做好后替换该锚点即可。
 ### 电系数值（V1.1 定稿：2026-08-05 精调——雷暴领域持续/传导成长、贯穿雷枪蓄力收益上调）
 | 雷暴领域 | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
 |---|---|---|---|---|---|

@@ -19,6 +19,25 @@ import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 
+/** 雷暴领域数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const STORM_DEFAULTS = {
+    cooldown: 30,
+    mpCost: 80,
+    maxRange: 550,
+    duration: 10,
+    strikeIntervalMs: 900,
+    radius: 220,
+    strikeDamageBase: 29,
+    strikeMagicMul: 0.5,
+    strikeIntMul: 0.5,
+    chainExtraTargets: 1,
+    chainRange: 160,
+    chainDecay: 0.3,
+    stunMs: 250,
+    electrifyStacks: 1,
+    electrifyDurationMs: 4000,
+};
+
 /**
  * 雷暴领域技能系统（2026-08-05，电系中级：移动雷云跟身炮台）
  *
@@ -76,10 +95,10 @@ export class StormDomainSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
-        const effect = { ...baseEffect, mpCost };
-        effect.cooldown = (effect.cooldown || 30) * getMagicCooldownMultiplier(src, ce);
+        const effect = { ...STORM_DEFAULTS, ...baseEffect, mpCost };
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'stormDomain', ce, chain.stacks);
-        if (!isSkillCheatEnabled()) src._stormDomainCooldown = (effect.cooldown || 30) * 1000;
+        if (!isSkillCheatEnabled()) src._stormDomainCooldown = effect.cooldown * 1000;
 
         const doRelease = () => {
             const castSounds = skillsData.skills?.stormDomain?.sounds?.cast;
@@ -102,12 +121,13 @@ export class StormDomainSystem {
         const src = this.source;
         this._active = true;
         src._stormDomainActive = true;
-        this._remaining = (effect.duration || 8) * 1000;
+        this._remaining = effect.duration * 1000;
         this._strikeTimer = 0;
         this._acc = { hits: 0, kills: 0, multiHit: false };
         this._effect = effect;
         if (!this._fx) {
-            this._fx = new StormCloudFx(src);
+            // 云团随等级半径扩大匹配影响范围（radius = 220 + 8×等级）
+            this._fx = new StormCloudFx(src, { radius: effect.radius });
             EffectManager.add(this._fx);
         }
     }
@@ -118,18 +138,18 @@ export class StormDomainSystem {
         if (!src || !src.active) return;
         const effect = this._effect;
         if (!effect) return;
-        const radius = effect.radius || 260;
+        const radius = effect.radius;
         const d = src.data;
         const damageMul = this._magicDamageMul || 1;
         const baseDamage = Math.floor(
-            (effect.strikeDamageBase ?? 0)
-            + (d.matk ?? 0) * (effect.strikeMagicMul ?? 0)
-            + (d.int ?? 0) * (effect.strikeIntMul ?? 0)
+            effect.strikeDamageBase
+            + (d.matk ?? 0) * effect.strikeMagicMul
+            + (d.int ?? 0) * effect.strikeIntMul
         );
-        const chainExtra = Math.max(0, effect.chainExtraTargets || 0);
-        const chainRange = effect.chainRange || 160;
-        const chainDecay = effect.chainDecay ?? 0.3;
-        const stunMs = effect.stunMs || 250;
+        const chainExtra = Math.max(0, effect.chainExtraTargets);
+        const chainRange = effect.chainRange;
+        const chainDecay = effect.chainDecay;
+        const stunMs = effect.stunMs;
         const entityList = Array.from(entities.values ? entities.values() : entities);
 
         // 主目标：雷云（=施法者）范围内最近敌人
@@ -172,7 +192,7 @@ export class StormDomainSystem {
             this._spawnHitFx(target, decayMul);
             target.takeDamage(finalDamage, src, 'electric');
             if (typeof target.applyElectrified === 'function') {
-                target.applyElectrified(effect.electrifyStacks || 1, effect.electrifyDurationMs || 4000, src);
+                target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
             }
             if (stunMs > 0 && typeof target.applyStun === 'function') {
                 target.applyStun(stunMs);
@@ -264,7 +284,7 @@ export class StormDomainSystem {
         this._remaining -= dt;
         this._strikeTimer -= dt;
         if (this._strikeTimer <= 0) {
-            this._strikeTimer = (this._effect && this._effect.strikeIntervalMs) || 900;
+            this._strikeTimer = this._effect.strikeIntervalMs;
             this._strike(entities);
         }
         if (this._remaining <= 0) {

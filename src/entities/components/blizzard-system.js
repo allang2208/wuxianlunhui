@@ -21,6 +21,20 @@ import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 
+/** 暴风雪数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const BLIZZARD_DEFAULTS = {
+    cooldown: 25,
+    mpCost: 150,
+    maxRange: 600,
+    duration: 5,
+    tickMs: 500,
+    radiusX: 180,
+    radiusY: 108, // 旧回退口径 = 0.6 × radiusX(180)
+    chillStacks: 1,
+    chillDurationMs: 2500,
+    chillSlowPercent: 0.35,
+};
+
 /**
  * 暴风雪技能系统（2026-08-03，地面区域形态首航）
  *
@@ -56,6 +70,8 @@ export class BlizzardSystem {
         const skill = src.skills && src.skills.blizzard;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
+        // 配置唯一真相：默认值集中收敛于 BLIZZARD_DEFAULTS，代码不再散落魔法数字
+        const effect = { ...BLIZZARD_DEFAULTS, ...baseEffect };
 
         // 瞄准点：玩家=鼠标世界坐标
         let aimX = src.x;
@@ -69,7 +85,7 @@ export class BlizzardSystem {
         // 施法距离门禁（失败不耗蓝/冷却/链式层数）
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const maxRange = (baseEffect.maxRange || 600) * rangeMul;
+        const maxRange = effect.maxRange * rangeMul;
         if (Math.hypot(aimX - src.x, aimY - src.y) > maxRange) {
             if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
                 SceneManager.showTopNotification('❄ 超出施法距离！');
@@ -78,7 +94,6 @@ export class BlizzardSystem {
         }
 
         // MP 门禁（含链式减免）
-        const effect = { ...baseEffect };
         const chainStacks = (src._chainSpellStacks) || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -89,10 +104,10 @@ export class BlizzardSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
-        effect.cooldown = (effect.cooldown || 25) * getMagicCooldownMultiplier(src, ce);
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'blizzard', ce, chain.stacks);
 
-        if (!isSkillCheatEnabled()) src._blizzardCooldown = (effect.cooldown || 25) * 1000;
+        if (!isSkillCheatEnabled()) src._blizzardCooldown = effect.cooldown * 1000;
 
         const doRelease = () => {
             const castSounds = skillsData.skills?.blizzard?.sounds?.cast;
@@ -113,8 +128,8 @@ export class BlizzardSystem {
 
     _spawnZone(x, y, effect) {
         const src = this.source;
-        const radiusX = effect.radiusX || 180;
-        const radiusY = effect.radiusY || radiusX * 0.6;
+        const radiusX = effect.radiusX;
+        const radiusY = effect.radiusY;
         const acc = { hits: 0, kills: 0, multiHit: false };
 
         const zone = new BlizzardZone({
@@ -122,8 +137,8 @@ export class BlizzardSystem {
             y,
             radiusX,
             radiusY,
-            durationMs: (effect.duration || 5) * 1000,
-            tickMs: effect.tickMs || 500,
+            durationMs: effect.duration * 1000,
+            tickMs: effect.tickMs,
             onTick: (z, entities) => {
                 const shape = new GroundEllipse(z.x, z.y, radiusX, radiusY);
                 const baseDamage = Math.floor(
@@ -141,7 +156,7 @@ export class BlizzardSystem {
                     const wasAlive = e.hp > 0;
                     e.takeDamage(damage, src, 'magic');
                     if (effect.chillStacks && typeof e.applyChill === 'function') {
-                        e.applyChill(effect.chillStacks, effect.chillDurationMs || 2500, effect.chillSlowPercent || 0.35);
+                        e.applyChill(effect.chillStacks, effect.chillDurationMs, effect.chillSlowPercent);
                     }
                     tickHits++;
                     acc.hits++;

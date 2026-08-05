@@ -7,6 +7,18 @@ import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+
+/** 无人机数值默认（配置唯一真相：skills.json droneSkill effectFormula 必有；缺省兜底统一收敛于此） */
+const DRONE_DEFAULTS = {
+    cooldown: 20,
+    mpCost: 50,
+    duration: 30,
+    moveSpeed: 500,
+    radius: 300,
+    damageBonusPercent: 10,
+    critBonusPercent: 10,
+};
+
 export class DroneSystem {
     constructor(player) {
         this.player = player;
@@ -61,13 +73,13 @@ export class DroneSystem {
     _deploy() {
         const skill = this.player.skills && this.player.skills.droneSkill;
         if (!skill) return;
-        const effect = skill.getEffect(skill.level);
+        const effect = { ...DRONE_DEFAULTS, ...skill.getEffect(skill.level) };
         this.active = true;
         this.controlling = false;
-        this.maxDuration = (effect.duration || 30) * 1000;
+        this.maxDuration = effect.duration * 1000;
         this.duration = this.maxDuration;
-        this.speed = effect.moveSpeed || 500;
-        this.radius = effect.radius || 300;
+        this.speed = effect.moveSpeed;
+        this.radius = effect.radius;
         this.checkTimer = 0;
         // 放置在玩家正前方50px
         const angle = this.player.rotation;
@@ -240,9 +252,9 @@ export class DroneSystem {
     _applyDebuff(entities) {
         const skill = this.player.skills && this.player.skills.droneSkill;
         if (!skill) return;
-        const effect = skill.getEffect(skill.level);
-        const _baseDamageBonus = (effect && effect.damageBonusPercent) || 10;
-        const _baseCritBonus = (effect && effect.critBonusPercent) || 10;
+        const effect = { ...DRONE_DEFAULTS, ...skill.getEffect(skill.level) };
+        const _baseDamageBonus = effect.damageBonusPercent;
+        const _baseCritBonus = effect.critBonusPercent;
         // 先收集当前在范围内的实体
         const inRangeEntities = new Set();
         const shape = new GroundCircle(this.x, this.y, this.radius);

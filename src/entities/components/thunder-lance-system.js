@@ -5,10 +5,8 @@ import { WallSystem } from '../../world/wall-system.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { SceneManager } from '../../world/scene-manager.js';
-import { burstParticles, fireGroundShockwave, fireRadialBurst, spawnLightningColumn, spawnRailgunBeam } from '../../effects/combat-fx.js';
+import { burstParticles, fireGroundShockwave, fireRadialBurst, spawnRailgunBeam } from '../../effects/combat-fx.js';
 import { ChargeOrbFx } from '../../effects/charge-orb-fx.js';
-import { GroundCircle } from '../../physics/skill-shapes.js';
-import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import {
@@ -27,20 +25,40 @@ import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 /** 手层内容质心缓存（纹理键+帧名 → 归一化局部偏移），像素分析一次后复用 */
 const HAND_CENTROID_CACHE = new Map();
 
+/** 雷枪数值默认（配置唯一真相：skills.json effectFormula 必有这些字段；缺省兜底统一收敛于此） */
+const LANCE_DEFAULTS = {
+    cooldown: 32,
+    mpCost: 120,
+    maxRange: 1000,
+    delayMs: 2500,
+    minChargeMs: 500,
+    lanceDamageBase: 124,
+    lanceMagicMul: 2.06,
+    lanceIntMul: 2.3,
+    knockback: 50,
+    electrifyDamagePerStack: 0.1,
+    electrifyStacks: 2,
+    electrifyDurationMs: 5000,
+    chargeBonusMul: 1.3,
+    coneHalfWidth: 40,
+    endExplosionRadius: 90,
+    shakeIntensity: 10,
+};
+
 /**
- * 手层当前帧的内容质心（像素级，SKILL.md 手部分层沉淀：拳头中心=手层内容质心）。
+ * 指定施法帧的手层内容质心（像素级，SKILL.md 手部分层沉淀：拳头中心=手层内容质心）。
+ * 不依赖 hand.frame（蓄力冻结后手层帧可能停在 0），直接按 frameIndex 从纹理取帧分析。
  * 返回 { x, y } = 帧内归一化偏移（相对 sprite 中心，-0.5~0.5）；读取失败回退 (0,0)。
  */
-function getHandFrameCentroid(hand, scene) {
+function getHandFrameCentroid(hand, scene, frameIndex = 0) {
     const texKey = hand.texture && hand.texture.key;
-    const frameName = hand.frame ? String(hand.frame.name) : '0';
-    const cacheKey = `${texKey}:${frameName}`;
+    const cacheKey = `${texKey}:f${frameIndex}`;
     if (HAND_CENTROID_CACHE.has(cacheKey)) return HAND_CENTROID_CACHE.get(cacheKey);
     let centroid = { x: 0, y: 0 };
     try {
         const tex = scene.textures.get(texKey);
         const src = tex && typeof tex.getSourceImage === 'function' ? tex.getSourceImage() : null;
-        const frame = tex && tex.get ? tex.get(frameName) : null;
+        const frame = tex && tex.get ? tex.get(String(frameIndex)) : null;
         const cw = src ? src.width : 0;
         const ch = src ? src.height : 0;
         if (src && cw > 0 && ch > 0 && typeof document !== 'undefined') {
@@ -92,8 +110,9 @@ export class ThunderLanceSystem {
     constructor(source) {
         this.source = source;
         this._charging = null; // { remaining, aimX, aimY, effect, eye, acc, chargeParticleTimer }
-        this._grounds = [];    // [{ x, y, radius, remaining, tickTimer, gfx }]
         this._chargeOrb = null; // 蓄力汇聚光球（手部粒子团）
+        this._holdKeyCode = null; // 当前蓄力绑定键（安全网：键已松开且仍蓄力时自动释放）
+        this._holdKeyPressed = false; // 该键是否由键盘按下（鼠标点击二段式不启用安全网）
         this._magicDamageMul = 1;
     }
 
@@ -101,7 +120,25 @@ export class ThunderLanceSystem {
         return this.source && this.source._faction === 'player';
     }
 
-    trigger() {
+    /** 是否正在蓄力（点击快捷栏二段式：再点一次释放） */
+    isCharging() {
+        return !!this._charging;
+    }
+
+    /** 记录当前蓄力绑定键（keydown 任意路径触发蓄力时由 QuickBar 调用） */
+    setHoldKey(keyCode) {
+        this._holdKeyCode = keyCode;
+        // 键盘长按：keydown 先 add 再 handleKey，此时 Input.keys 已含该键；
+        // 鼠标点击二段式：无键盘事件，keys 不含 → 不启用安全网（避免误判松开立即失败）
+        this._holdKeyPressed = !!(Input && Input.keys && Input.keys.has(keyCode));
+    }
+
+    /**
+     * 开始蓄力（长按蓄力入口）。
+     * @param {number} [optAimX] - 怪物/非玩家传瞄准点 X（玩家忽略，用鼠标）；缺省回退自身前方 100px
+     * @param {number} [optAimY]
+     */
+    trigger(optAimX, optAimY) {
         const src = this.source;
         if (!src || (!isSkillCheatEnabled() && src._thunderLanceCooldown > 0)) return;
         if (this._charging) return;
@@ -119,13 +156,16 @@ export class ThunderLanceSystem {
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
 
-        // 瞄准方向：玩家=鼠标世界坐标
+        // 瞄准方向：玩家=鼠标世界坐标；怪物/其他单位=调用方传入的瞄准点（如面向玩家），缺省回退自身前方
         let aimX = src.x + 100;
         let aimY = src.y;
         if (this._isPlayer()) {
             const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
             aimX = aim.x;
             aimY = aim.y;
+        } else if (Number.isFinite(optAimX) && Number.isFinite(optAimY)) {
+            aimX = optAimX;
+            aimY = optAimY;
         }
 
         // MP 门禁（含链式减免）
@@ -140,10 +180,12 @@ export class ThunderLanceSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
-        const effect = { ...baseEffect, mpCost };
-        effect.cooldown = (effect.cooldown || 34) * getMagicCooldownMultiplier(src, ce);
+        // 配置唯一真相：默认值集中收敛于 LANCE_DEFAULTS（skills.json 双份必有），代码不再散落魔法数字
+        const effect = { ...LANCE_DEFAULTS, ...baseEffect, mpCost };
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'thunderLance', ce, chain.stacks);
-        if (!isSkillCheatEnabled()) src._thunderLanceCooldown = (effect.cooldown || 34) * 1000;
+        // 长按蓄力：按下即进入冷却（用户定稿：没有蓄力满也要进入 CD，失败/提前释放都计 CD）
+        if (!isSkillCheatEnabled()) src._thunderLanceCooldown = effect.cooldown * 1000;
 
         const doRelease = () => {
             const castSounds = skillsData.skills?.thunderLance?.sounds?.cast;
@@ -166,32 +208,67 @@ export class ThunderLanceSystem {
     _startCharge(aimX, aimY, effect) {
         const src = this.source;
         this._charging = {
-            remaining: effect.delayMs || 2500,
+            remaining: effect.delayMs,
+            elapsed: 0,          // 已蓄力时长（ms），用于松开释放判定与伤害比例
             aimX,
             aimY,
             effect,
             acc: { hits: 0, kills: 0, multiHit: false },
             chargeParticleTimer: 0,
         };
-        // 手部汇聚光球：每帧跟施法手层（手静止后锚点稳定），粒子向手汇聚，半径随蓄力进度放大
+        // 手部汇聚光球：玩家锚定施法手（手层内容质心，SKILL 沉淀）；
+        // 怪物/其他单位同样生成，暂用默认锚点（身体中线上方），待怪物绑定点做好后再替换
         this._chargeOrb = new ChargeOrbFx(src, {
-            anchorFn: () => this._handAnchor(),
-            durationMs: effect.delayMs || 2500,
+            anchorFn: this._isPlayer() ? () => this._handAnchor() : () => this._defaultChargeAnchor(),
+            durationMs: effect.delayMs,
             radiusMax: 38,
         });
         EffectManager.add(this._chargeOrb);
     }
 
-    /** 蓄力取消（眩晕/冻结/死亡）：不发射、恢复施法收尾回 idle */
+    /** 蓄力取消（眩晕/冻结/死亡/释放失败）：不发射、不进入冷却、恢复施法收尾回 idle */
     _cancelCharge() {
         const c = this._charging;
         if (!c) return;
         this._charging = null;
+        this._holdKeyCode = null;
+        this._holdKeyPressed = false;
         if (this._chargeOrb) {
             this._chargeOrb.cancel();
             this._chargeOrb = null;
         }
         this._resumeCastHold();
+    }
+
+    /**
+     * 松开快捷键释放（长按蓄力模式）：
+     * - 已蓄力 ≥ minChargeMs（0.5s）→ 发射，伤害按蓄力比例；
+     * - 不足最短蓄力 → 释放失败：不发射、不进入冷却。
+     */
+    release() {
+        const c = this._charging;
+        if (!c) return;
+        const minMs = (c.effect && c.effect.minChargeMs);
+        if (c.elapsed >= minMs) {
+            const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
+                ? window.Game.entities : [];
+            this._fire(entities);
+        } else {
+            this._cancelCharge();
+            // 蓄力不足 0.5s 释放失败：清掉按下时已进入的冷却（用户定稿：不足最短蓄力不进入 CD）
+            if (this.source && !isSkillCheatEnabled()) {
+                this.source._thunderLanceCooldown = 0;
+            }
+            // 释放失败不扣魔法值：返还按下蓄力时已扣的 MP（不超上限）
+            if (!isSkillCheatEnabled() && this._isPlayer() && c.effect && c.effect.mpCost > 0
+                && this.source && this.source.data) {
+                const maxMp = this.source.data.maxMp ?? Infinity;
+                this.source.data.mp = Math.min(maxMp, (this.source.data.mp || 0) + c.effect.mpCost);
+            }
+            if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
+                SceneManager.showTopNotification('⚡ 蓄力不足（需 ≥0.5s），释放失败！');
+            }
+        }
     }
 
     /** 蓄力完成：射出贯穿雷枪 */
@@ -201,6 +278,8 @@ export class ThunderLanceSystem {
         if (!c) return;
         const effect = c.effect;
         this._charging = null;
+        this._holdKeyCode = null;
+        this._holdKeyPressed = false;
         // 蓄力成功：手部光球向外爆散消散
         if (this._chargeOrb) {
             this._chargeOrb.finish();
@@ -209,9 +288,7 @@ export class ThunderLanceSystem {
         // 蓄力完成：恢复施法动画收尾（播完前摇 → 倒放后摇回 idle）
         this._resumeCastHold();
 
-        const entityList = Array.from(entities.values ? entities.values() : entities);
-        // 释放瞬间：天雷注入手中雷枪（玩家位置小光柱）
-        spawnLightningColumn({ x: src.x, y: src.y, height: 320, topW: 42, bottomW: 26, duration: 240 });
+        const entityList = Array.from(entities && entities.values ? entities.values() : (entities || []));
         if (effect.shakeIntensity && Camera && typeof Camera.triggerShake === 'function') {
             Camera.triggerShake(effect.shakeIntensity);
         }
@@ -223,8 +300,8 @@ export class ThunderLanceSystem {
             y: src.y - ((src.bodyHeight || 120) * 0.5),
             endX: end.x,
             endY: end.y - 8,
-            duration: 280,
-            widthScale: 2.0,
+            duration: 373, // 2026-08-05 用户反馈：光柱残留时间延长 33%（280→373ms）
+            widthScale: 4.0, // 2026-08-05 用户反馈：光柱加粗一倍（等效 80→160px）
             depth: Math.max(src.y, end.y) + 2,
         });
 
@@ -236,17 +313,30 @@ export class ThunderLanceSystem {
             + (d.matk ?? 0) * (effect.lanceMagicMul ?? 0)
             + (d.int ?? 0) * (effect.lanceIntMul ?? 0)
         );
-        const perStack = effect.electrifyDamagePerStack ?? 0.1;
-        const chargeMul = effect.chargeBonusMul ?? 1;
+        const perStack = effect.electrifyDamagePerStack;
+        const chargeMul = effect.chargeBonusMul;
+        // 伤害随蓄力比例：满蓄力（delayMs）= 100%；最短 0.5s 释放 ≈ 20%
+        const maxMs = Math.max(1, effect.delayMs);
+        const chargeRatio = Math.min(1, Math.max(0.2, (c.elapsed || maxMs) / maxMs));
+        const damageMul = chargeRatio * chargeMul * this._magicDamageMul;
+        // 击退方向 = 光束方向（鼠标瞄准方向），击退距离随等级 50→150px
+        const kbx = c.aimX - src.x;
+        const kby = c.aimY - src.y;
+        const kbd = Math.hypot(kbx, kby) || 1;
+        const knockAngle = Math.atan2(kby / kbd, kbx / kbd);
         for (const { e } of targets) {
             const stacks = e._electrifiedStacks || 0;
-            const damage = Math.floor(baseDamage * chargeMul * (1 + stacks * perStack) * this._magicDamageMul);
+            const damage = Math.floor(baseDamage * damageMul * (1 + stacks * perStack));
             const wasAlive = e.hp > 0;
             // 贯穿命中火花（直线光束已画，这里只做命中爆点）
             this._spawnHitFx(e.x, e.y, stacks);
             e.takeDamage(damage, src, 'electric');
+            // 命中击退：沿光束方向，距离随等级（knockback 50→150px）
+            if (effect.knockback && typeof e.applyKnockback === 'function') {
+                e.applyKnockback(knockAngle, effect.knockback);
+            }
             if (typeof e.applyElectrified === 'function') {
-                e.applyElectrified(effect.electrifyStacks || 2, effect.electrifyDurationMs || 5000, src);
+                e.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
             }
             c.acc.hits++;
             if (wasAlive && e.hp <= 0 && !e._summoned) c.acc.kills++;
@@ -270,8 +360,8 @@ export class ThunderLanceSystem {
         const dirDist = Math.hypot(dx, dy) || 1;
         const ux = dx / dirDist;
         const uy = dy / dirDist;
-        const maxRange = effect.maxRange || 1000;
-        const coneHalf = effect.coneHalfWidth || 40;
+        const maxRange = effect.maxRange;
+        const coneHalf = effect.coneHalfWidth;
         const hits = [];
         for (const e of entityList) {
             if (!e || e === src || !e.active || !e.hittable) continue;
@@ -293,7 +383,7 @@ export class ThunderLanceSystem {
     /** 射线末端（撞墙截断到墙前 20px） */
     _rayEnd(aimX, aimY, effect) {
         const src = this.source;
-        const maxRange = effect.maxRange || 1000;
+        const maxRange = effect.maxRange;
         const dx = aimX - src.x;
         const dy = aimY - src.y;
         const dist = Math.hypot(dx, dy) || 1;
@@ -315,17 +405,16 @@ export class ThunderLanceSystem {
         return { x: ex, y: ey };
     }
 
-    /** 终点电爆 + 感电地面 */
-    _spawnEndBurst(x, y, effect, src) {
-        spawnLightningColumn({ x, y, height: 420, topW: 56, bottomW: 32, duration: 320 });
+    /** 终点电爆（2026-08-05：取消天顶光柱与感电地面蓝圈，保留冲击波/放射线/粒子） */
+    _spawnEndBurst(x, y, effect, _src) {
         fireGroundShockwave({
             x,
             y,
-            maxRadius: effect.endExplosionRadius || 90,
+            maxRadius: effect.endExplosionRadius,
             strokeColor: 0xa98fff,
             fillColor: 0x6a4bff,
             lineWidth: 8,
-            duration: 420,
+            duration: 559, // 特效残留延长 33%（420→559ms）
             flicker: true,
             strokeAlpha: 1.0,
             fillAlpha: 0.16,
@@ -339,7 +428,7 @@ export class ThunderLanceSystem {
             lenMax: 66,
             widthMin: 1.5,
             widthMax: 3.5,
-            duration: 360,
+            duration: 479, // 特效残留延长 33%（360→479ms）
             perspective: true,
             depth: y + 2,
         });
@@ -353,78 +442,13 @@ export class ThunderLanceSystem {
                 speed: { min: 120, max: 520 },
                 scale: { start: 3.2, end: 0.3 },
                 alpha: { start: 1.0, end: 0 },
-                lifespan: { min: 350, max: 700 },
+                lifespan: { min: 466, max: 931 },
                 tint: [0xffffff, 0xf0e9ff, 0xddd2ff, 0x8f7bff],
                 blendMode: 'ADD',
             },
-            destroyAfterMs: 800,
+            destroyAfterMs: 1064,
             depth: y + 2,
         });
-        this._grounds.push({
-            x,
-            y,
-            radius: effect.groundRadius || 100,
-            remaining: effect.groundDurationMs || 2000,
-            tickTimer: 0,
-            gfx: null,
-            src,
-        });
-    }
-
-    /** 感电地面：蓝紫椭圆呼吸 + 周期叠感电 */
-    _tickGrounds(dt, entities) {
-        const entityList = Array.from(entities.values ? entities.values() : entities);
-        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        for (let i = this._grounds.length - 1; i >= 0; i--) {
-            const g = this._grounds[i];
-            g.remaining -= dt;
-            g.tickTimer -= dt;
-            if (!g.gfx && scene && scene.add) {
-                const gr = scene.add.graphics();
-                gr.setBlendMode('ADD');
-                gr.setDepth(g.y - 998);
-                g.gfx = gr;
-            }
-            if (g.gfx && g.gfx.active) {
-                const breathe = 0.5 + 0.5 * Math.sin(Date.now() * 0.01);
-                g.gfx.clear();
-                g.gfx.lineStyle(3, 0x7f9cff, 0.30 + 0.25 * breathe);
-                g.gfx.strokeEllipse(g.x, g.y, g.radius * 2, g.radius * PERSPECTIVE_SCALE_Y * 2);
-            }
-            if (g.tickTimer <= 0) {
-                g.tickTimer = 500;
-                for (const e of entityList) {
-                    if (!e || !e.active || !e.hittable) continue;
-                    if (e._faction === g.src._faction) continue;
-                    const shape = new GroundCircle(g.x, g.y, g.radius);
-                    if (!shape.intersectsEntity(e)) continue;
-                    if (typeof e.applyElectrified === 'function') {
-                        e.applyElectrified(1, 2000, g.src);
-                    }
-                    burstParticles({
-                        texture: 'impact_dot',
-                        x: e.x,
-                        y: e.y - ((e.bodyHeight || 120) * 0.5),
-                        count: 4,
-                        jitter: 14,
-                        config: {
-                            speed: { min: 40, max: 160 },
-                            scale: { start: 1.6, end: 0.15 },
-                            alpha: { start: 0.9, end: 0 },
-                            lifespan: { min: 220, max: 460 },
-                            tint: [0xffffff, 0xbcdcff, 0x7fb8ff],
-                            blendMode: 'ADD',
-                        },
-                        destroyAfterMs: 560,
-                        depth: e.y + 2,
-                    });
-                }
-            }
-            if (g.remaining <= 0) {
-                if (g.gfx && g.gfx.active) g.gfx.destroy();
-                this._grounds.splice(i, 1);
-            }
-        }
     }
 
     _spawnHitFx(x, y, stacks) {
@@ -437,7 +461,7 @@ export class ThunderLanceSystem {
             strokeColor: 0xa98fff,
             fillColor: 0x6a4bff,
             lineWidth: 6,
-            duration: 380,
+            duration: 505, // 特效残留延长 33%（380→505ms）
             flicker: true,
             strokeAlpha: 1.0,
             fillAlpha: 0.14,
@@ -452,11 +476,11 @@ export class ThunderLanceSystem {
                 speed: { min: 100, max: 480 },
                 scale: { start: 3.2, end: 0.4 },
                 alpha: { start: 1.0, end: 0 },
-                lifespan: { min: 320, max: 620 },
+                lifespan: { min: 426, max: 825 },
                 tint: [0xffffff, 0xf0e9ff, 0xddd2ff, 0x8f7bff],
                 blendMode: 'ADD',
             },
-            destroyAfterMs: 720,
+            destroyAfterMs: 958,
             depth: hitDepth,
         });
     }
@@ -487,18 +511,32 @@ export class ThunderLanceSystem {
     }
 
     /**
-     * 手部世界坐标锚点（SKILL 手部判定沉淀，直接用）：
-     * 拳头中心 = 手层内容质心（像素级可复现；GLM 定位不可靠只配粗验收）。
-     * 每帧取 playerHandSprite 当前帧内容质心 → (手像素−贴图中心)×显示缩放 → 世界坐标；
-     * 无手层回退玩家身前上方。
+     * 手部世界坐标锚点：
+     * 1) 优先施法武器轨迹——**法杖握把=手**（SKILL：法杖握把绑定手部共同运动、握把终点=前伸手；
+     *    GameScene 按 staffCastFrames 逐帧把 weaponSprite 定位到握把，蓄力定格时停在暂停帧，
+     *    即"暂停帧画面中手部的位置"，与画面完全一致）。跨步已一步站稳 + 80ms 延迟锁定，不漂移。
+     * 2) 回退手层内容质心（像素级，SKILL 沉淀）。
+     * 3) 最后回退玩家身前上方。
      */
     _handAnchor() {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        // 优先：法杖握把（施法武器）位置 = 暂停帧画面中手部位置
+        if (scene && scene.weaponSprite && scene.weaponSprite.active && scene.weaponSprite.visible) {
+            return { x: scene.weaponSprite.x, y: scene.weaponSprite.y };
+        }
+        // 回退：手层内容质心（像素级）
         if (scene && scene.playerHandSprite && scene.playerHandSprite.active && scene.playerHandSprite.visible) {
             const hand = scene.playerHandSprite;
-            const off = getHandFrameCentroid(hand, scene);
+            // 施法当前帧号（蓄力定格 = release 帧 index 6）：冻结后 playerSprite 停在 release 帧
+            let castIdx = 0;
+            if (scene.playerSprite && scene.playerSprite.anims && scene.playerSprite.anims.currentFrame) {
+                const raw = Number(scene.playerSprite.anims.currentFrame.textureFrame);
+                if (!Number.isNaN(raw)) castIdx = Math.max(0, Math.floor(raw));
+            }
+            const off = getHandFrameCentroid(hand, scene, castIdx);
             const flip = hand.flipX ? -1 : 1;
             return {
+                // release 帧 = 施法前伸手（质心偏上偏右），直接使用
                 x: hand.x + off.x * hand.displayWidth * flip,
                 y: hand.y + off.y * hand.displayHeight,
             };
@@ -510,6 +548,12 @@ export class ThunderLanceSystem {
             x: p.x + facing * 34,
             y: p.y - ((p.bodyHeight || 120) * 0.5) - 46,
         };
+    }
+
+    /** 怪物/其他单位蓄力光球默认锚点（身体中线上方；怪物绑定点确定后替换） */
+    _defaultChargeAnchor() {
+        const p = this.source;
+        return { x: p.x, y: p.y - ((p.bodyHeight || 120) * 0.5) - 30 };
     }
 
     update(dt, entities) {
@@ -526,11 +570,33 @@ export class ThunderLanceSystem {
             if (interrupted) {
                 this._cancelCharge();
             } else {
+                // 安全网：绑定键已松开（keyup 已删 Input.keys）但 release 未被触发（如首次进入绑定未就绪
+                // 走了 useSlot 路径）→ 自动释放，避免蓄力到满
+                if (this._isPlayer() && this._holdKeyCode && this._holdKeyPressed && Input && Input.keys
+                    && !Input.keys.has(this._holdKeyCode)) {
+                    this.release();
+                    return;
+                }
                 c.remaining -= dt;
+                c.elapsed += dt;
+                // 蓄力期间瞄准跟随鼠标：最终释放方向以松开/满蓄时的鼠标位置为准；
+                // 鼠标方向转到背后时翻转释放者贴图朝向（施法定格不覆盖 flipX，安全）
+                if (this._isPlayer() && Input && Renderer) {
+                    const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                    c.aimX = aim.x;
+                    c.aimY = aim.y;
+                    const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                    if (scene && scene.playerSprite) {
+                        const facingLeft = aim.x < src.x;
+                        if (scene.playerSprite.flipX !== facingLeft) {
+                            scene.playerSprite.setFlipX(facingLeft);
+                        }
+                    }
+                }
                 c.chargeParticleTimer -= dt;
                 if (c.chargeParticleTimer <= 0) {
                     // 充能越接近完成，粒子越密（2.5s 蓄力的蓄能感）
-                    const progress = 1 - Math.max(0, c.remaining) / (c.effect.delayMs || 2500);
+                    const progress = 1 - Math.max(0, c.remaining) / c.effect.delayMs;
                     c.chargeParticleTimer = Math.max(60, 140 - progress * 80);
                     burstParticles({
                         texture: 'impact_dot',
@@ -557,15 +623,10 @@ export class ThunderLanceSystem {
                 }
             }
         }
-        this._tickGrounds(dt, entities);
     }
 
     /** 死亡/场景切换统一清理（不结算经验，与暴风雪 clearZones 同口径） */
     clearLance() {
         this._cancelCharge();
-        for (const g of this._grounds) {
-            if (g.gfx && g.gfx.active) g.gfx.destroy();
-        }
-        this._grounds = [];
     }
 }

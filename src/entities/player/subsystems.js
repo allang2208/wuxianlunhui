@@ -548,10 +548,10 @@ applyPoison(stacks) {
                     if (!skills.thunderLance) {
                         skills.thunderLance = {
                             id: 'thunderLance', name: '贯穿雷枪', icon: '⚡', iconImage: 'assets/skills/贯穿雷枪.png',
-                            description: '高级电魔法：按 Q 蓄力 2.5 秒，随后沿鼠标方向射出电磁炮直线光束——笔直贯穿路径上所有敌人（蓄力贯穿伤害 ×1.3），目标感电层数越高伤害越高（每层 +10%）；射程尽头或撞墙处电爆并留下感电地面',
+                            description: '高级电魔法：长按 Q 蓄力（可随鼠标改变瞄准方向），蓄满 2.5 秒或松开后沿鼠标方向射出电磁炮直线光束——笔直贯穿路径上所有敌人，蓄力 0.5~2.5 秒按时间比例造成 20%~100% 伤害（满蓄力 100%），命中目标被击退（50→150px 随等级），不足 0.5 秒释放失败且不进入冷却不耗魔；目标感电层数越高伤害越高（每层 +10%）；射程尽头或撞墙处电爆',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
-                            getEffect(level) { return { cooldown: 32 - Math.floor((level - 1) * 4 / 19), mpCost: 120 + Math.floor((level - 1) * 35 / 19), maxRange: 900 + level * 15, delayMs: 2500, lanceDamageBase: 110 + level * 14, lanceMagicMul: 1.8 + level * 0.26, lanceIntMul: 2.0 + level * 0.30, electrifyDamagePerStack: 0.1, electrifyStacks: 2, electrifyDurationMs: 5000, chargeBonusMul: 1.3, coneHalfWidth: 40, endExplosionRadius: 90, groundRadius: 100, groundDurationMs: 2000, groundTickMs: 500, shakeIntensity: 10 }; },
+                            getEffect(level) { return { cooldown: 32 - Math.floor((level - 1) * 4 / 19), mpCost: 120 + Math.floor((level - 1) * 35 / 19), maxRange: 900 + level * 15, delayMs: 2500, minChargeMs: 500, lanceDamageBase: 110 + level * 14, lanceMagicMul: 1.8 + level * 0.26, lanceIntMul: 2.0 + level * 0.30, knockback: 50 + Math.floor((level - 1) * 100 / 19), electrifyDamagePerStack: 0.1, electrifyStacks: 2, electrifyDurationMs: 5000, chargeBonusMul: 1.3, coneHalfWidth: 40, endExplosionRadius: 90, shakeIntensity: 10 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }

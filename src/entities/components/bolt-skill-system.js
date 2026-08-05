@@ -60,10 +60,11 @@ export class BoltSkillSystem {
     _getEffect() {
         const skill = this.source.skills && this.source.skills[this.kind.skillKey];
         const base = skill ? skill.getEffect(skill.level) : {};
-        if (!this._isMagic()) return { ...base };
+        // 配置唯一真相：kind.defaults 集中收敛缺省兜底（skills.json effectFormula 必有）
+        if (!this._isMagic()) return { ...(this.kind.defaults || {}), ...base };
 
         const ce = getCurrentWeaponCraftEffects(this.source);
-        const effect = { ...base };
+        const effect = { ...(this.kind.defaults || {}), ...base };
         // 链式层数读当前真实值（consume 前的 _chainSpellStacks）：MP 折扣与本次实际消费的层数对齐，
         // 不再沿用上一 cast 缓存的消费值（否则折扣滞后一 cast）
         const chainStacks = (this.source && this.source._chainSpellStacks) || 0;
@@ -82,10 +83,10 @@ export class BoltSkillSystem {
 
         // 杖头改造：冰锥数量 / 火球爆炸半径
         if (this.kind.skillKey === 'iceSpike' && ce && ce.iceSpikeCountDelta) {
-            effect.spikeCount = (effect.spikeCount || 1) + ce.iceSpikeCountDelta;
+            effect.spikeCount = effect.spikeCount + ce.iceSpikeCountDelta;
         }
         if (this.kind.skillKey === 'fireball' && ce && ce.fireballExplosionRadiusPercent) {
-            effect.explosionRadius = (effect.explosionRadius || 1) * (1 + ce.fireballExplosionRadiusPercent);
+            effect.explosionRadius = effect.explosionRadius * (1 + ce.fireballExplosionRadiusPercent);
         }
 
         return effect;
@@ -98,8 +99,9 @@ export class BoltSkillSystem {
         const target = this.source.target;
         if (!target || !target.active) return null;
         const skill = this.source.skills && this.source.skills[this.kind.skillKey];
-        const effect = skill ? skill.getEffect(skill.level) : {};
-        const speed = effect.flySpeed || 1600;
+        const base = skill ? skill.getEffect(skill.level) : {};
+        const effect = { ...(this.kind.defaults || {}), ...base };
+        const speed = effect.flySpeed;
         return AimHelper.lead(this.source.x, this.source.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
     }
 

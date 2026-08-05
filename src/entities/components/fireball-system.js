@@ -13,6 +13,18 @@ import skillsData from '../../../data/skills.json';
 const FIREBALL_KIND = {
     skillKey: 'fireball',
     mpShortageColor: '#ff6b35',
+    // 配置缺省兜底（配置唯一真相：skills.json fireball effectFormula 必有；缺省统一收敛于此）
+    defaults: {
+        cooldown: 20,
+        mpCost: 50,
+        damageBase: 0,
+        magicMul: 0,
+        intMul: 0,
+        explosionRadius: 1,
+        duration: 30,
+        flySpeed: 1600,
+        maxRange: 1200,
+    },
     wallRadius: 12,
     hitRadius: 20,
     fields: {

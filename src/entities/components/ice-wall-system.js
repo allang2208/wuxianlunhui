@@ -20,6 +20,30 @@ import {
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 
+/** 冰墙数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const ICE_WALL_DEFAULTS = {
+    cooldown: 12,
+    mpCost: 100,
+    maxRange: 500,
+    segmentCount: 5,
+    segmentWidth: 48,
+    segmentHeight: 64,
+    segmentGap: 8,
+    segmentSpacing: 56, // 旧回退口径 = width(48) + gap(8)
+    duration: 5,
+    spawnDelayMs: 500,
+    chillRadius: 0,
+    chillStacks: 1,
+    chillIntervalMs: 1000,
+    chillSlowPercent: 0.05,
+    chillDurationMs: 3000,
+    hitKnockback: 0,
+    pushDistanceMul: 1,
+    damageBase: 0,
+    damageIntMul: 0,
+    damageWisMul: 0,
+};
+
 // 碎裂音效节流（同一堵墙各段同帧碎裂只播一次）
 let _shatterSoundCd = 0;
 
@@ -48,8 +72,8 @@ export class IceWallSystem {
         this._chillRadius = 0;
         this._chillStacks = 1;
         this._chillIntervalMs = 1000;
-        this._chillSlowPercent = 0.05;
-        this._chillDurationMs = 3000;
+        this._chillSlowPercent = ICE_WALL_DEFAULTS.chillSlowPercent;
+        this._chillDurationMs = ICE_WALL_DEFAULTS.chillDurationMs;
         // 链式强化伤害加成（本次施法消费的层数对应倍率，_spawnWall 落点伤害乘算）
         this._chainDamageMul = 0;
     }
@@ -79,6 +103,8 @@ export class IceWallSystem {
             }
         }
         const baseEffect = skill.getEffect(skill.level);
+        // 配置唯一真相：默认值集中收敛于 ICE_WALL_DEFAULTS，代码不再散落魔法数字
+        const effect = { ...ICE_WALL_DEFAULTS, ...baseEffect };
 
         // 瞄准点：玩家用鼠标，非玩家用当前目标
         let aimX = src.x, aimY = src.y;
@@ -94,7 +120,7 @@ export class IceWallSystem {
         // 施法距离判定
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const maxRange = (baseEffect.maxRange || 500) * rangeMul;
+        const maxRange = effect.maxRange * rangeMul;
         const dist = Math.hypot(aimX - src.x, aimY - src.y);
         if (dist > maxRange) {
             if (this._isPlayer() && SceneManager && typeof SceneManager.showTopNotification === 'function') {
@@ -115,10 +141,10 @@ export class IceWallSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         this._chainDamageMul = chain.damageMul || 0;
-        const effect = { ...baseEffect, mpCost };
-        effect.cooldown = (effect.cooldown || 12) * getMagicCooldownMultiplier(src, ce);
+        effect.mpCost = mpCost;
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
 
-        if (!isSkillCheatEnabled()) src._iceWallCooldown = (effect.cooldown || 12) * 1000;
+        if (!isSkillCheatEnabled()) src._iceWallCooldown = effect.cooldown * 1000;
 
         // 施法音效：释放技能（按键确认、消耗扣除）瞬间播放，不等施法动画释放帧
         const castSound = skillsData.skills?.iceWall?.sounds?.cast;
@@ -128,7 +154,7 @@ export class IceWallSystem {
 
         const doRelease = () => {
             // 冰墙生成延迟（spawnDelayMs）：破土前有一个凝聚过程
-            const delayMs = (typeof effect.spawnDelayMs === 'number') ? effect.spawnDelayMs : 500;
+            const delayMs = effect.spawnDelayMs;
             if (delayMs > 0) {
                 this._pendingSpawns.push({ src, aimX, aimY, effect, timer: delayMs });
             } else {
@@ -149,18 +175,18 @@ export class IceWallSystem {
 
     /** 生成垂直于施法方向的冰墙段（含碰撞注册 + 落点单位弹开） */
     _spawnWall(src, aimX, aimY, effect) {
-        const count = effect.segmentCount || 5;
-        const width = effect.segmentWidth || 48;
-        const height = effect.segmentHeight || 64;
-        // 段心距：优先读 segmentSpacing（段间视觉可重叠），否则回退 width+gap 旧口径
-        const spacing = effect.segmentSpacing || (width + (effect.segmentGap || 8));
-        const duration = (effect.duration || 5) * 1000;
+        const count = effect.segmentCount;
+        const width = effect.segmentWidth;
+        const height = effect.segmentHeight;
+        // 段心距：segmentSpacing 由配置驱动（段间视觉可重叠）
+        const spacing = effect.segmentSpacing;
+        const duration = effect.duration * 1000;
         // 寒冷光环配置随本次施法登记（整组墙共享）
-        this._chillRadius = effect.chillRadius || 0;
-        this._chillStacks = effect.chillStacks || 1;
-        this._chillIntervalMs = effect.chillIntervalMs || 1000;
-        this._chillSlowPercent = effect.chillSlowPercent ?? 0.05;
-        this._chillDurationMs = effect.chillDurationMs ?? 3000;
+        this._chillRadius = effect.chillRadius;
+        this._chillStacks = effect.chillStacks;
+        this._chillIntervalMs = effect.chillIntervalMs;
+        this._chillSlowPercent = effect.chillSlowPercent;
+        this._chillDurationMs = effect.chillDurationMs;
 
         const aimAngle = Math.atan2(aimY - src.y, aimX - src.x);
         const perpAngle = aimAngle + Math.PI / 2;
@@ -239,13 +265,13 @@ export class IceWallSystem {
         const targets = this._hostileTargets();
         const d = this.source.data || {};
         // 伤害 = damageBase + 智力×damageIntMul + 精神×damageWisMul（公式见 skills.json，随等级解析）
-        const damage = Math.floor((effect.damageBase || 0)
-            + (d.int || 0) * (effect.damageIntMul || 0)
-            + (d.wis || 0) * (effect.damageWisMul || 0));
+        const damage = Math.floor(effect.damageBase
+            + (d.int || 0) * effect.damageIntMul
+            + (d.wis || 0) * effect.damageWisMul);
         // 链式强化伤害加成（消费了层数就必须吃到加成，与 bolt-skill-system 同口径）
         const chainMul = 1 + (this._chainDamageMul || 0);
-        const kb = effect.hitKnockback || 0;
-        const pushMul = effect.pushDistanceMul || 1;
+        const kb = effect.hitKnockback;
+        const pushMul = effect.pushDistanceMul;
         let hits = 0, kills = 0;
         for (const t of targets) {
             const r = (t.collisionRadius || t.groundRadius || 16);
@@ -295,7 +321,7 @@ export class IceWallSystem {
                     break;
                 }
             }
-            if (inAura) t.applyChill(this._chillStacks || 1, this._chillDurationMs || 3000, this._chillSlowPercent ?? 0.05);
+            if (inAura) t.applyChill(this._chillStacks, this._chillDurationMs, this._chillSlowPercent);
         }
     }
 
@@ -360,7 +386,7 @@ export class IceWallSystem {
         if (this._chillRadius && this._walls.length > 0) {
             this._chillTimer -= dt;
             if (this._chillTimer <= 0) {
-                this._chillTimer = this._chillIntervalMs || 1000;
+                this._chillTimer = this._chillIntervalMs;
                 this._applyChillAuraGroup();
             }
         }

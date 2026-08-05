@@ -21,6 +21,23 @@ import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 
+/** 陨星坠落数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const METEOR_DEFAULTS = {
+    cooldown: 32,
+    mpCost: 100,
+    maxRange: 650,
+    explosionRadius: 150,
+    lavaRadius: 130,
+    lavaDuration: 3,
+    lavaTickMs: 500,
+    fallMs: 650,
+    shakeIntensity: 0,
+    burnDurationMs: 3500,
+    burnDamageMul: 0.5,
+    lavaBurnDurationMs: 2500,
+    lavaBurnDamageMul: 0.3,
+};
+
 /**
  * 陨星坠落技能系统（2026-08-03，火系高级魔法）
  *
@@ -55,6 +72,8 @@ export class MeteorSystem {
         const skill = src.skills && src.skills.meteor;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
+        // 配置唯一真相：默认值集中收敛于 METEOR_DEFAULTS，代码不再散落魔法数字
+        const effect = { ...METEOR_DEFAULTS, ...baseEffect };
 
         // 瞄准点：玩家=鼠标世界坐标
         let aimX = src.x;
@@ -68,7 +87,7 @@ export class MeteorSystem {
         // 施法距离门禁（失败不耗蓝/冷却/链式层数）
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const maxRange = (baseEffect.maxRange || 650) * rangeMul;
+        const maxRange = effect.maxRange * rangeMul;
         if (Math.hypot(aimX - src.x, aimY - src.y) > maxRange) {
             if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
                 SceneManager.showTopNotification('☄ 超出施法距离！');
@@ -77,7 +96,6 @@ export class MeteorSystem {
         }
 
         // MP 门禁（含链式减免）
-        const effect = { ...baseEffect };
         const chainStacks = (src._chainSpellStacks) || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -88,10 +106,10 @@ export class MeteorSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
-        effect.cooldown = (effect.cooldown || 32) * getMagicCooldownMultiplier(src, ce);
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
         this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'meteor', ce, chain.stacks);
 
-        if (!isSkillCheatEnabled()) src._meteorCooldown = (effect.cooldown || 32) * 1000;
+        if (!isSkillCheatEnabled()) src._meteorCooldown = effect.cooldown * 1000;
 
         const doRelease = () => {
             const castSounds = skillsData.skills?.meteor?.sounds?.cast;
@@ -117,7 +135,7 @@ export class MeteorSystem {
 
         // 爆炸命中结算：范围伤害（中心全额→边缘 50% 距离衰减）+ 击退 + 叠灼伤
         const onImpact = (ix, iy, entities) => {
-            const shape = new GroundCircle(ix, iy, effect.explosionRadius || 150);
+            const shape = new GroundCircle(ix, iy, effect.explosionRadius);
             const baseDamage = Math.floor(
                 (effect.damageBase ?? 0)
                 + (d.matk ?? 0) * (effect.magicMul ?? 0)
@@ -132,12 +150,12 @@ export class MeteorSystem {
                 if (!shape.intersectsEntity(e)) continue;
                 const wasAlive = e.hp > 0;
                 const dist = Math.sqrt((e.x - ix) ** 2 + (e.y - iy) ** 2);
-                const distRatio = 1 - Math.min(dist / (effect.explosionRadius || 150), 1);
+                const distRatio = 1 - Math.min(dist / effect.explosionRadius, 1);
                 const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
                 e.takeDamage(finalDamage, src, 'magic');
                 // 灼伤：爆炸固有 3 层（烈焰吊坠的增伤倍率走 applyBurn damageMul）
                 if (effect.burnStacks && typeof e.applyBurn === 'function') {
-                    e.applyBurn(src, effect.burnStacks, effect.burnDurationMs || 3500, effect.burnDamageMul || 0.5, 500);
+                    e.applyBurn(src, effect.burnStacks, effect.burnDurationMs, effect.burnDamageMul, 500);
                 }
                 // 眩晕 2s（替换原击退）
                 if (effect.stunMs && typeof e.applyStun === 'function') {
@@ -152,7 +170,7 @@ export class MeteorSystem {
 
         // 熔岩区域每跳：灼烧伤害 + 叠灼伤
         const onTick = (zone, entities) => {
-            const shape = new GroundEllipse(zone.x, zone.y, effect.lavaRadius || 130, (effect.lavaRadius || 130) * 0.5);
+            const shape = new GroundEllipse(zone.x, zone.y, effect.lavaRadius, effect.lavaRadius * 0.5);
             const tickDamage = Math.floor(
                 ((effect.lavaDamageBase ?? 0)
                 + (d.matk ?? 0) * (effect.lavaMagicMul ?? 0)
@@ -168,7 +186,7 @@ export class MeteorSystem {
                 const wasAlive = e.hp > 0;
                 e.takeDamage(tickDamage, src, 'magic');
                 if (effect.lavaBurnStacks && typeof e.applyBurn === 'function') {
-                    e.applyBurn(src, effect.lavaBurnStacks, effect.lavaBurnDurationMs || 2500, effect.lavaBurnDamageMul || 0.3, 500);
+                    e.applyBurn(src, effect.lavaBurnStacks, effect.lavaBurnDurationMs, effect.lavaBurnDamageMul, 500);
                 }
                 tickHits++;
                 acc.hits++;
@@ -189,10 +207,10 @@ export class MeteorSystem {
             y,
             explosionRadius: effect.explosionRadius,
             lavaRadius: effect.lavaRadius,
-            lavaDurationMs: (effect.lavaDuration || 3) * 1000,
-            lavaTickMs: effect.lavaTickMs || 500,
-            fallMs: effect.fallMs ?? 650,
-            shakeIntensity: effect.shakeIntensity || 0,
+            lavaDurationMs: effect.lavaDuration * 1000,
+            lavaTickMs: effect.lavaTickMs,
+            fallMs: effect.fallMs,
+            shakeIntensity: effect.shakeIntensity,
             onImpact,
             onTick,
             onEnd,

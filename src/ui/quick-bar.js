@@ -507,9 +507,14 @@ export const QuickBar = {
                 }
                 // 冷却时间由 StormDomainSystem 内部管理，通过 updateCooldowns 同步
             } else if (skillId === 'thunderLance') {
-                // 贯穿雷枪技能（蓄力贯穿）
+                // 贯穿雷枪技能（长按蓄力；点击快捷栏=二段式：无蓄力→开始蓄力，蓄力中→释放）
                 if (player.thunderLanceSystem) {
-                    player.thunderLanceSystem.trigger();
+                    player.thunderLanceSystem.setHoldKey(keyCode);
+                    if (player.thunderLanceSystem.isCharging()) {
+                        player.thunderLanceSystem.release();
+                    } else {
+                        player.thunderLanceSystem.trigger();
+                    }
                 }
                 // 冷却时间由 ThunderLanceSystem 内部管理，通过 updateCooldowns 同步
             }
@@ -569,6 +574,21 @@ export const QuickBar = {
         } else {
             this.useSlot(keyCode); // 短按：维持原 toggle 行为
         }
+    },
+    // ===== 雷枪蓄力键：长按开始蓄力（瞄准随鼠标），松开/满蓄释放（<0.5s 失败不进 CD） =====
+    isThunderLanceKey(keyCode) {
+        return !!(this.skillAssignments && this.skillAssignments[keyCode] === 'thunderLance');
+    },
+    thunderLanceKeyDown(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.thunderLanceSystem) return;
+        player.thunderLanceSystem.setHoldKey(_keyCode);
+        player.thunderLanceSystem.trigger(); // 开始蓄力（内部完成冷却/法杖/MP 门禁）
+    },
+    thunderLanceKeyUp(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.thunderLanceSystem) return;
+        player.thunderLanceSystem.release(); // 蓄力时长满足则释放，不足则失败
     },
     // 长按：命令无人机飞往鼠标指针位置（未部署则先部署，部署等同施放受冷却限制）
     _droneMoveCommand() {

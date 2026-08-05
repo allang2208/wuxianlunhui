@@ -21,6 +21,7 @@ import { TimerManager } from '../utils/timer-manager.js';
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
             _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
+            _chargeKeyHeldCode: null, // 正在按住雷枪蓄力键的 keyCode（长按蓄力检测）
             init() {
     window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code, e.altKey); });
                 window.addEventListener('keyup', e => {
@@ -30,8 +31,28 @@ import { TimerManager } from '../utils/timer-manager.js';
                         this._droneKeyHeldCode = null;
                         QuickBar.droneKeyUp(e.code);
                     }
+                    // 雷枪蓄力键松开：蓄力时长满足则释放，不足则失败（QuickBar/系统侧判定）
+                    if (this._chargeKeyHeldCode === e.code) {
+                        this._chargeKeyHeldCode = null;
+                        QuickBar.thunderLanceKeyUp(e.code);
+                    } else if (QuickBar.isThunderLanceKey(e.code)) {
+                        // 兜底：第一次进入游戏时绑定可能尚未就绪（keydown 走了 useSlot 未记录长按键），
+                        // 松开时只要该键已绑定雷枪且正在蓄力，一律释放，避免蓄力到满
+                        const _p = window.Game && window.Game.player;
+                        if (_p && _p.thunderLanceSystem && _p.thunderLanceSystem.isCharging()) {
+                            _p.thunderLanceSystem.release();
+                        }
+                    }
                 });
-                window.addEventListener('blur', () => { this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; this._droneKeyHeldCode = null; });
+                window.addEventListener('blur', () => {
+                    this.keys.clear(); this.mouse.leftDown = false; this.mouse.rightDown = false; this._droneKeyHeldCode = null;
+                    // 失焦视同松开：雷枪蓄力按当前时长释放（不足最短蓄力则失败）
+                    if (this._chargeKeyHeldCode) {
+                        const code = this._chargeKeyHeldCode;
+                        this._chargeKeyHeldCode = null;
+                        QuickBar.thunderLanceKeyUp(code);
+                    }
+                });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
@@ -99,8 +120,14 @@ import { TimerManager } from '../utils/timer-manager.js';
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
                 if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
                 if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) {
-                    // 无人机技能键：按下只记录，松开时按持有时长区分短按(toggle)/长按(指挥飞行)
-                    if (QuickBar.isDroneSkillKey(code)) {
+                    // 雷枪蓄力键：按下即开始蓄力，松开/满蓄释放（<0.5s 失败不进 CD）
+                    if (QuickBar.isThunderLanceKey(code)) {
+                        if (!this._chargeKeyHeldCode) {
+                            this._chargeKeyHeldCode = code;
+                            QuickBar.thunderLanceKeyDown(code);
+                        }
+                    } else if (QuickBar.isDroneSkillKey(code)) {
+                        // 无人机技能键：按下只记录，松开时按持有时长区分短按(toggle)/长按(指挥飞行)
                         if (!this._droneKeyHeldCode) {
                             this._droneKeyHeldCode = code;
                             QuickBar.droneKeyDown(code);

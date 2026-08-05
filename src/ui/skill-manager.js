@@ -200,7 +200,7 @@ export const SkillManager = {
         } else if (skill.id === 'thunderLance') {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
             const lanceDamage = Math.floor(effect.lanceDamageBase + d.matk * effect.lanceMagicMul + d.int * effect.lanceIntMul);
-            effectText = `贯穿伤害${lanceDamage}（蓄力×${effect.chargeBonusMul || 1.3}）  射程${effect.maxRange}px  感电每层+${Math.round((effect.electrifyDamagePerStack || 0.1) * 100)}%  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+            effectText = `贯穿伤害${lanceDamage}（满蓄×${effect.chargeBonusMul || 1.3}，随蓄力比例）  射程${effect.maxRange}px  击退${effect.knockback}px  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         } else if (skill.id === 'holyLight') {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
             const totalAmount = effect.healBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul) + Math.floor((d.wis || 0) * effect.wisMul);
@@ -450,8 +450,8 @@ export const SkillManager = {
         if (!skill || !skill.tags) return 5;
         if (skill.name && skill.name.includes('精通')) return 1;
         if (skill.tags.some(t => t.type === 'passive')) return 2;
-        if (skill.tags.some(t => t.type === 'active')) return 3;
         if (skill.tags.some(t => t.type === 'magic')) return 4;
+        if (skill.tags.some(t => t.type === 'active')) return 3;
         return 5;
     },
     _sortSkills(skills) {
@@ -459,6 +459,16 @@ export const SkillManager = {
             const pa = this._getSkillCategoryPriority(a);
             const pb = this._getSkillCategoryPriority(b);
             if (pa !== pb) return pa - pb;
+            // 魔法类内部：按魔法等级（初级→中级→高级）→ 系别（火→冰→电→光）→ 名称
+            if (pa === 4) {
+                const ta = getSkillMagicTier(a.id);
+                const tb = getSkillMagicTier(b.id);
+                if (ta !== tb) return ta - tb;
+                const catOrder = { fire: 1, ice: 2, electric: 3, light: 4 };
+                const oa = catOrder[getSkillMagicCategory(a.id)] ?? 9;
+                const ob = catOrder[getSkillMagicCategory(b.id)] ?? 9;
+                if (oa !== ob) return oa - ob;
+            }
             return (a.name || '').localeCompare(b.name || '');
         });
     },
@@ -1040,10 +1050,11 @@ export const SkillManager = {
             html += `</div>`;
             html += `<div class="sd-section"><h4>技能效果</h4>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">形态</span><span class="sd-stat-val pos">蓄力后电磁炮直线光束（railgun）</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力延迟</span><span class="sd-stat-val pos">${((effect.delayMs || 2500) / 1000).toFixed(1)}秒（定格施法姿势且不可移动，充能粒子随进度变密）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力方式</span><span class="sd-stat-val pos">长按快捷键蓄力，瞄准随鼠标移动；松开或蓄满 ${((effect.delayMs || 2500) / 1000).toFixed(1)}秒 释放</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">贯穿射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">贯穿判定</span><span class="sd-stat-val pos">鼠标方向锥形内全部敌人（按距离）</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力加成</span><span class="sd-stat-val pos">贯穿伤害 ×${effect.chargeBonusMul || 1.3}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">命中击退</span><span class="sd-stat-val pos">沿光束方向击退 ${effect.knockback}px（50→150px 随等级）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力伤害</span><span class="sd-stat-val pos">蓄力 0.5~2.5 秒按时间比例 20%~100%（满蓄 ×${effect.chargeBonusMul || 1.3}）；不足 0.5 秒释放失败且不进入冷却</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">感电增伤</span><span class="sd-stat-val pos">目标每层感电 +${Math.round((effect.electrifyDamagePerStack || 0.1) * 100)}% 伤害</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">终点电爆</span><span class="sd-stat-val pos">射程尽头/撞墙处爆炸 + 感电地面（2秒）</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">感电</span><span class="sd-stat-val pos">命中+${effect.electrifyStacks}层（叠满5层过载）</span></div>`;
@@ -1236,7 +1247,7 @@ export const SkillManager = {
             html += `<p>• 单次贯穿命中 2 个及以上目标，额外获得 8 点经验</p>`;
             html += `<p>• 一次击杀 2 个及以上目标，额外获得 10 点经验</p>`;
             html += `<p>• 贯穿雷枪击杀一个目标增加 10 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，蓄力 2.5 秒后沿鼠标方向射出电磁炮直线光束，笔直贯穿路径上所有敌人，目标感电层数越高伤害越高</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按住 Q/E 蓄力（瞄准随鼠标），松开或蓄满 2.5 秒后沿鼠标方向射出电磁炮直线光束，蓄力 0.5~2.5 秒按时间比例造成 20%~100% 伤害，不足 0.5 秒释放失败且不进入冷却</p>`;
         } else if (skill.id === 'holyLight') {
             html += `<p>• 圣光命中一个目标增加 5 点经验</p>`;
             html += `<p>• 击杀目标增加 10 点经验</p>`;

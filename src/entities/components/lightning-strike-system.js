@@ -21,6 +21,24 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 
+/** 闪电锁定数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
+const LIGHTNING_STRIKE_DEFAULTS = {
+    cooldown: 3,
+    mpCost: 30,
+    aimRadius: 200,
+    maxRange: 600,
+    chainRange: 200,
+    chainTargets: 1,
+    chainDecay: 0.1,
+    stunMs: 750,
+    duration: 0.5,
+    fadeMs: 250,
+    segments: 10,
+    jitter: 0.09,
+    electrifyStacks: 1,
+    electrifyDurationMs: 4000,
+};
+
 /**
  * 闪电锁定技能系统（2026-08-02，区别于投射物/区域类技能的新形态：锁定+传导）
  *
@@ -50,6 +68,8 @@ export class LightningStrikeSystem {
         const skill = src.skills && src.skills.lightningStrike;
         if (!skill) return;
         const baseEffect = skill.getEffect(skill.level);
+        // 配置唯一真相：默认值集中收敛于 LIGHTNING_STRIKE_DEFAULTS，代码不再散落魔法数字
+        const effect = { ...LIGHTNING_STRIKE_DEFAULTS, ...baseEffect };
 
         // 鼠标世界坐标（非玩家施法者回退自身前方）
         let aimX = src.x, aimY = src.y;
@@ -62,8 +82,8 @@ export class LightningStrikeSystem {
         // ===== 三重判定（2026-08-02 定稿）：失败不消耗冷却/耗蓝/链式强化 =====
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const aimRadius = (baseEffect.aimRadius || 200) * rangeMul;
-        const maxRange = (baseEffect.maxRange || 600) * rangeMul;
+        const aimRadius = effect.aimRadius * rangeMul;
+        const maxRange = effect.maxRange * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
         const nearMouse = [];
@@ -106,7 +126,6 @@ export class LightningStrikeSystem {
         }
 
         // 目标合法后：先按"含链式减免的 MP 成本"做门禁（读层数不消费——失败不丢链式层数）
-        const effect = { ...baseEffect };
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -118,15 +137,15 @@ export class LightningStrikeSystem {
         const chain = consumeChainSpellBonus(src);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
-        effect.cooldown = (effect.cooldown || 3) * getMagicCooldownMultiplier(src, ce);
-        effect.chainRange = (effect.chainRange || 200) * rangeMul;
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
+        effect.chainRange = effect.chainRange * rangeMul;
         if (ce && ce.lightningChainTargetsDelta) {
-            effect.chainTargets = (effect.chainTargets || 1) + ce.lightningChainTargetsDelta;
+            effect.chainTargets = effect.chainTargets + ce.lightningChainTargetsDelta;
         }
-        effect.chainTargets = Math.max(1, effect.chainTargets || 1);
+        effect.chainTargets = Math.max(1, effect.chainTargets);
         const damageMul = getMagicDamageMultiplierWithChain(src, 'lightningStrike', ce, chain.stacks);
 
-        if (!isSkillCheatEnabled()) src._lightningStrikeCooldown = (effect.cooldown || 3) * 1000;
+        if (!isSkillCheatEnabled()) src._lightningStrikeCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
             const castSounds = skillsData.skills?.lightningStrike?.sounds?.cast;
@@ -134,9 +153,9 @@ export class LightningStrikeSystem {
                 for (const p of castSounds) SoundManager.playFile(p);
             }
             // 传导链
-            const chainTargets = Math.max(1, effect.chainTargets || 1);
-            const chainRange = effect.chainRange || 200;
-            const chainDecay = effect.chainDecay ?? 0.1;
+            const chainTargets = Math.max(1, effect.chainTargets);
+            const chainRange = effect.chainRange;
+            const chainDecay = effect.chainDecay;
             const chain = [best];
             let cursor = best;
             for (let hop = 1; hop < chainTargets; hop++) {
@@ -146,7 +165,7 @@ export class LightningStrikeSystem {
                 cursor = next;
             }
             // 逐目标结算
-            const stunMs = effect.stunMs || 750;
+            const stunMs = effect.stunMs;
             const baseDamage = Math.floor(
                 (effect.damageBase ?? 0) + (src.data.matk ?? 0) * (effect.magicMul ?? 0) + (src.data.int ?? 0) * (effect.intMul ?? 0)
             );
@@ -158,16 +177,16 @@ export class LightningStrikeSystem {
                 const wasAlive = target.hp > 0;
                 const boltSource = i === 0 ? src : chain[i - 1];
                 EffectManager.add(new LightningBoltEffect(boltSource, target, {
-                    durationMs: (effect.duration || 0.5) * 1000,
-                    fadeMs: effect.fadeMs || 250,
-                    segments: effect.segments || 10,
-                    jitter: effect.jitter || 0.09,
+                    durationMs: effect.duration * 1000,
+                    fadeMs: effect.fadeMs,
+                    segments: effect.segments,
+                    jitter: effect.jitter,
                 }));
                 this._spawnImpact(target, decayMul);
                 target.takeDamage(finalDamage, src, 'electric');
                 // 电系专属：命中叠加感电（叠满 5 层触发过载）
                 if (typeof target.applyElectrified === 'function') {
-                    target.applyElectrified(effect.electrifyStacks || 1, effect.electrifyDurationMs || 4000, src);
+                    target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
                 }
                 if (wasAlive && target.hp <= 0 && !target._summoned) killCount++;
                 hitCount++;
