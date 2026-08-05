@@ -38,8 +38,13 @@ export { COVER_SNAP };
 
 /** 吸附触发距离（世界像素）：鼠标预览的墙端锚点与既有墙端锚点在此距离内即吸附 */
 const SNAP_RADIUS = 60;
-/** 接缝叠合量（世界像素）：吸附后新件沿走向回退，保证接缝只叠不缺（参考摆墙 SNAP_OVERLAP） */
-const SNAP_OVERLAP = 8;
+/**
+ * 接缝叠合量（世界像素）：吸附后新件沿走向回退，保证接缝只叠不缺。
+ * 2026-08-05 从 8 加大到 40：完整 box 端帽（端面宽 ≈52）在 8px 重叠下未被
+ * 完全覆盖，实机拼接处端帽 V 形开口透空（用户反馈"非常明显间隙"）。
+ * 40px ≥ 端帽宽度，两端帽完全叠合互盖（skill #25 覆盖区互盖无害），无缝隙。
+ */
+const SNAP_OVERLAP = 40;
 
 /**
  * 有效朝向：镜像（F）只翻贴图，视觉方向 = 逻辑方向 h/v 互换。
@@ -54,17 +59,17 @@ export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower' },
 ];
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
-    for (const orient of ['h', 'v']) {
-        BUILD_ITEMS.push({
-            id: `cover_${grade}_${orient}`,
-            name: `掩体·${grade}级·${orient === 'h' ? '水平' : '垂直'}`,
-            grade,
-            orient,
-            kind: 'cover',
-            cost: DEFENSE_CONFIG.covers.hp[grade] * 0.25,
-            tex: `obstacle_cover_${grade}_${orient}`,
-        });
-    }
+    // 只保留一种掩体条目（垂直 "/" 向）；F 键镜像即得水平 "\" 向（mirror → eff 交换），
+    // 贴图/碰撞/face 线全部跟随镜像，无需水平/垂直两个条目（2026-08-05 简化）。
+    BUILD_ITEMS.push({
+        id: `cover_${grade}_v`,
+        name: `掩体·${grade}级`,
+        grade,
+        orient: 'v',
+        kind: 'cover',
+        cost: DEFENSE_CONFIG.covers.hp[grade] * 0.25,
+        tex: `obstacle_cover_${grade}_v`,
+    });
 }
 
 // ==================== 建筑系统 ====================
@@ -144,7 +149,7 @@ export const BuildingSystem = {
             </div>
             <div class="we-hints">
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
-                左键放置（扣金币）| F=镜像 | 右键/Esc=取消<br>
+                左键放置（扣金币）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
                 掩体靠近已有掩体端点自动吸附（变绿=已吸附）<br>
                 墙段只能端点拼接，不能重叠摆放
             </div>`;
@@ -268,9 +273,11 @@ export const BuildingSystem = {
         if (e.button !== 0 || !this._placing) return;
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
-        // 以点击点实时重算吸附（预览与落点一致，避免鼠标未移动时使用过期吸附位）
-        const snap = this._snapPosition(p.x, p.y);
-        this._place(snap ? snap.x : p.x, snap ? snap.y : p.y);
+        // 落点 = 幽灵已确认可放的吸附位（_onMouseMove 已过滤 canPlace）；
+        // 否则用鼠标原始位置。避免"吸附显示绿但点击落点被拒"（右边吸附放不下）
+        const snapped = (this._snapped && this._canPlace(this._snapped.x, this._snapped.y))
+            ? this._snapped : null;
+        this._place(snapped ? snapped.x : p.x, snapped ? snapped.y : p.y);
     },
 
     _onKey(e) {
@@ -330,11 +337,14 @@ export const BuildingSystem = {
             }
         }
         if (!best) return null;
-        // 沿新件轴线回退 SNAP_OVERLAP：接缝只叠不缺（避免拟合公差造成透光缝隙）
+        // 沿新件轴线向「既有件方向」回退 SNAP_OVERLAP：接缝只叠不缺。
+        // 方向判定：既有件在新件轴线上的投影方向（dot>0 = 既有在 +axis 侧）。
+        // 旧实现 dir 取反了——左外接时新件被推离 40px 产生大间隙（2026-08-05 用户反馈）
         const ax = off.R.x - off.L.x;
         const ay = off.R.y - off.L.y;
         const al = Math.hypot(ax, ay) || 1;
-        const dir = ((best.e.x - best.x) * ax + (best.e.y - best.y) * ay) >= 0 ? 1 : -1;
+        const dot = (best.e.x - best.x) * ax + (best.e.y - best.y) * ay;
+        const dir = dot >= 0 ? -1 : 1;
         best.x -= (ax / al) * SNAP_OVERLAP * dir;
         best.y -= (ay / al) * SNAP_OVERLAP * dir;
         return best;
@@ -395,13 +405,13 @@ export const BuildingSystem = {
         if (this._placing.item.kind === 'cover') {
             const eff = effOrient(this._placing.item, this._placing.mirror);
             const foot = COVER_FOOT[eff] || COVER_FOOT[this._placing.item.orient] || COVER_FOOT.v;
-            const thick = Math.min(foot.w, foot.d);
+            const thick = foot.thick ?? 26; // 墙厚一半，不是碰撞 rect 的 min（140 会成空气墙）
             const seg = this._coverSeg(x, y, this._placing.item.grade, eff);
             for (const e of Game.entities.values()) {
                 if (!e || !e._isDefenseStructure || !e.active) continue;
                 if (e._faceLine && e._faceLine.length === 2) {
                     // 已有掩体：线段 + 墙厚
-                    const eThick = Math.min(e.collisionWidth || 46, e.collisionHeight || 300);
+                    const eThick = e._coverHalfThick ?? 26;
                     const minGap = (thick + eThick) / 2 - SNAP_OVERLAP;
                     const cp = this._segSegClosest(seg[0], seg[1], e._faceLine[0], e._faceLine[1]);
                     // 端点-端点接触（吸附拼接的 8px 叠合）允许；只有“端部插入

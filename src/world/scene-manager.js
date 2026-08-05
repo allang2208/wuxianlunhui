@@ -955,8 +955,8 @@ export const SceneManager = {
         }
 
         // 基地菱形房由 DefenseSystem.setup → _buildBaseRoom() 构建：
-        // 四边新掩体墙（h="\"/v="/"）+ 预制件夹角参考（26.57°）+ RB 边中点开口
-        // （配置见 defense-system.js DEFENSE_CONFIG.room）
+        // 四边新掩体墙（h="\"/v="/"），face 线 40px 端帽叠合拼接，
+        // 转角端帽互相叠盖；RB 边中点留居中门洞（配置见 DEFENSE_CONFIG.room）
 
         // 玩家出生在基地房内左侧（基地 x=900；刷怪点全在右端尽头）
         if (player) {
@@ -965,10 +965,6 @@ export const SceneManager = {
             Game.entities.set('player', player);
             Camera.follow(player);
         }
-
-        // 返回主神空间传送门（基地房内右侧）
-        const portal = new Portal(1040, 2048, 'main', '返回主神空间');
-        Game.entities.set('portal_return', portal);
 
         if (player) {
             QuickBar.refreshSpecialAttack(player);

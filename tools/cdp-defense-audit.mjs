@@ -71,8 +71,21 @@ for (let i = 0; i < 50; i++) {
     await new Promise(r => setTimeout(r, 500));
 }
 await evalJs(`(async () => { await window.__sm.switchScene('scene8', window.Game.player); return true; })()`);
-// 等精灵创建 + 首帧渲染
-await new Promise((r) => setTimeout(r, 1500));
+// 等精灵创建 + 首帧渲染（最多 8s；掩体精灵在 _neutralSprites 中）
+let spritesReady = false;
+for (let i = 0; i < 16 && !spritesReady; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    spritesReady = await evalJs(`(async () => {
+        const scene = window.PhaserGame ? window.PhaserGame.scene : null;
+        if (!scene || !scene._neutralSprites) return false;
+        let n = 0;
+        for (const e of window.Game.entities.values()) {
+            if (e && e.grade !== undefined && scene._neutralSprites.has(e)) n++;
+        }
+        return n >= 14;
+    })()`).catch(() => false);
+}
+console.log('sprites ready:', spritesReady);
 
 // ---- 深度/遮挡审计 ----
 const audit = await evalJs(`(async () => {

@@ -20,19 +20,23 @@ os.makedirs(OUT_DIR, exist_ok=True)
 ROOM = {
     'rx': 512, 'ry': 256,
     'coverGrade': 'D',
-    'hSpacing': 130, 'vSpacing': 75,
-    'cornerOverlap': 25,
+    'cornerExtend': 45,
     'openEdge': 'RB', 'openRadius': 90,
-    'coverFoot': {'h': {'w': 320, 'd': 70}, 'v': {'w': 70, 'd': 320}},
+    'doorAlignY': 0,
 }
 BASE = {'x': 900, 'y': 2048}
 COVER_DISPLAY_W = 260
-COVER_ASPECT = {'D': {'h': 1.151, 'v': 1.029}}
+COVER_ASPECT = {'D': {'h': 1.0, 'v': 1.0}}
 
-# 入口精调模式（env DOOR_MODE）：none / slope / level
-DOOR_MODE = os.environ.get('DOOR_MODE', 'none')
 # 与 defense-system.js 一致：开口上侧所有掩体整体下移 doorAlignY
-DOOR_ALIGN_Y = {'none': 0, 'slope': 7, 'level': 31}.get(DOOR_MODE, 0)
+DOOR_ALIGN_Y = ROOM['doorAlignY']
+# 与 defense-system.js COVER_FACE 同源（6 级统一）：v: A(-88,-21) B(88,-109)；h 镜像
+COVER_FACE = {
+    'v': {'A': (-88, -21), 'B': (88, -109)},
+    'h': {'A': (-88, -109), 'B': (88, -21)},
+}
+JOIN_OVERLAP = 40  # 端帽叠合（= building-system SNAP_OVERLAP）
+FACE_OVERLAY = os.environ.get('FACE_OVERLAY', '') == '1'
 
 
 def build_layout():
@@ -48,19 +52,28 @@ def build_layout():
         ('LB', L, B, 'h'),
         ('RB', R, B, 'v'),
     ]
+    face = COVER_FACE['v']
+    face_len = math.hypot(face['B'][0] - face['A'][0], face['B'][1] - face['A'][1])
+    step = face_len - JOIN_OVERLAP
+    corner_ext = room.get('cornerExtend', 45)
+    open_edge = room['openEdge']
+    open_radius = room.get('openRadius', 90)
     layout = []
     for key, frm, to, orient in edges:
         dx = to[0] - frm[0]
         dy = to[1] - frm[1]
         ln = math.hypot(dx, dy)
         ux, uy = dx / ln, dy / ln
-        spacing = room['hSpacing'] if orient == 'h' else room['vSpacing']
-        foot = room['coverFoot'][orient]
-        open_mid = ln / 2 if key == room['openEdge'] else None
-        t = -room['cornerOverlap']
-        while t <= ln + room['cornerOverlap'] + 1e-9:
-            if open_mid is not None and abs(t - open_mid) < room['openRadius']:
-                t += spacing
+        span = ln + 2 * corner_ext
+        n = max(2, math.ceil((span - face_len) / step) + 1)
+        spacing = (span - face_len) / (n - 1) if n > 1 else 0
+        t0 = -corner_ext + face_len / 2
+        open_mid = ln / 2 if key == open_edge else None
+        for i in range(n):
+            t = t0 + i * spacing
+            f0 = t - face_len / 2
+            f1 = t + face_len / 2
+            if open_mid is not None and f1 > open_mid - open_radius and f0 < open_mid + open_radius:
                 continue
             layout.append({
                 'x': round(frm[0] + ux * t),
@@ -68,7 +81,6 @@ def build_layout():
                 'orient': orient,
                 'grade': room['coverGrade'],
             })
-            t += spacing
     return layout
 
 
@@ -100,12 +112,24 @@ def render_room(scale=1.0):
         px = round((c['x'] - cx0) * scale) - dw // 2
         py = round((c['y'] - cy0) * scale) - dh
         canvas.paste(resized, (px, py), resized)
+    if FACE_OVERLAY:
+        from PIL import ImageDraw
+        dr = ImageDraw.Draw(canvas)
+        segs = []
+        for c in layout:
+            gf = COVER_FACE[c['orient']]
+            segs.append((
+                ((c['x'] + gf['A'][0] - cx0) * scale, (c['y'] + gf['A'][1] - cy0) * scale),
+                ((c['x'] + gf['B'][0] - cx0) * scale, (c['y'] + gf['B'][1] - cy0) * scale),
+            ))
+        for s in segs:
+            dr.line([s[0], s[1]], fill=(255, 0, 255, 255), width=max(1, int(round(1.5 * scale))))
     return canvas, layout
 
 
 def main():
     canvas, layout = render_room(1.0)
-    tag = DOOR_MODE
+    tag = 'v2'
     out = os.path.join(OUT_DIR, f'room_render_full_{tag}.png')
     canvas.convert('RGB').save(out)
     print('saved', out, 'covers:', len(layout))

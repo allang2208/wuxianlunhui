@@ -211,10 +211,10 @@ const after = await evalJs(`(async () => {
 })()`);
 console.log('place tower:', JSON.stringify({ before, after }));
 
-// 5) 选掩体 F 水平 + 镜像 + 放置
+// 5) 选掩体 F 级（唯一 v 条目）+ 镜像 + 放置（F 镜像即水平 "\" 向）
 await evalJs(`(async () => {
     const m = await window.__imp('/src/world/building-system');
-    m.BuildingSystem._selectItem(m.BUILD_ITEMS.find((i) => i.id === 'cover_F_h'));
+    m.BuildingSystem._selectItem(m.BUILD_ITEMS.find((i) => i.id === 'cover_F_v'));
     m.BuildingSystem._toggleMirror();
     return m.BuildingSystem._placing ? { mirror: m.BuildingSystem._placing.mirror, item: m.BuildingSystem._placing.item.name } : null;
 })()`);
@@ -239,7 +239,7 @@ await new Promise((r) => setTimeout(r, 400));
 const coverState = await evalJs(`(async () => {
     let mirror = null;
     for (const e of window.Game.entities.values()) {
-        if (e && e.grade && e.id && String(e.id).startsWith('built_cover_F_h')) {
+        if (e && e.grade && e.id && String(e.id).startsWith('built_cover_F_v')) {
             mirror = !!e._facingLeft;
         }
     }

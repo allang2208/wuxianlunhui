@@ -43,26 +43,21 @@ export const DEFENSE_CONFIG = {
         // 预置掩体环由 _buildBaseRoom() 生成（基地菱形房，2026-08-05 修正版）
         layout: [],
     },
-    // 基地菱形房（2026-08-05 修正版）：四边用新掩体墙（可被攻击，def/mdef=0），
+    // 基地菱形房（2026-08-05 修正版 v2）：四边用新掩体墙（可被攻击，def/mdef=0），
     // 夹角按预制件 26.57° 参考（ry/rx = 0.5，与地板透视一致，见 tools/wall-room-sim.py）；
     // h="\"（TR/LB 边）、v="/"（TL/RB 边）；开口在 RB 边中点，只此一处。
+    // 拼接规则（skill 沉淀）：face 线步长 = (176, ±87) − 40px 端帽叠合 ≈ (140, ∓69)，
+    // 相邻件 face 重叠 40px（端帽完全叠合互盖，无缝隙）；cornerExtend 让边链端帽越过顶点，
+    // 转角由相邻两边端帽互相叠盖，实心无洞。
     room: {
         enabled: true,
         rx: 512,            // 房间宽 = 2*rx = 1024
-        ry: 256,            // ry/rx = 0.5
+        ry: 256,            // ry/rx = 0.5（墙底边斜率 0.5）
         coverGrade: 'D',
-        hSpacing: 130,      // "\" 边（TR/LB）掩体中心间距
-        vSpacing: 75,       // "/" 边（TL/RB）掩体中心间距（<70/0.8944 保证矩形密封）
-        cornerOverlap: 25,  // 边端伸入转角（只叠不缺）
+        cornerExtend: 45,   // 边链 face 向两端顶点各延伸 45px（≥ 端帽 52 的一半，转角叠盖）
         openEdge: 'RB',
-        openRadius: 90,     // 开口半宽（跳过该半径内的掩体）
-        // 入口精调：开口上侧门柱沿世界 Y 下移量（px）。
-        // 2026-08-05 实测：D 级掩体贴图底边斜率(~-0.51)与开口两侧门柱底边连线斜率
-        // 不一致，导致门洞底边偏陡、看起来“底部没对齐”。下移 7px 后门洞底边
-        // 延续墙体斜率（-0.5），与 RB 边墙带共线（渲染像素验证：两门柱底端
-        // 高度差由 31px 收敛为斜率预期值，且相邻墙段接缝不产生可见台阶）。
-        doorAlignY: 7,
-        coverFoot: { h: { w: 320, d: 70 }, v: { w: 70, d: 320 } },
+        openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞 ≈270（沿边）
+        doorAlignY: 0,      // 新拼接规则下门柱底边与墙线天然共线，无需旧版下移精调
     },
     // 无预置防御塔（玩家用 B 建筑面板自行摆放）
     towers: [],
@@ -177,15 +172,15 @@ const MONSTER_FACTORY = {
     witch: Witch,
 };
 
-/** 掩体贴图内容框宽高比（2026-08-04 处理产物实测），显示宽度统一 260，高度按比例 */
-// 显示宽高比（路线 B：Blender 楔形端部棱柱，sizeH≈259 使世界底边斜率 = 0.4976）
+/** 掩体贴图内容框宽高比（2026-08-05 自然贴图重做后实测），显示宽度统一 260，高度按比例 */
+// 显示宽高比（路线 B：Blender 完整 box 棱柱，sizeH=260 使世界底边斜率 = 0.4976）
 const COVER_ASPECT = {
-    F: { h: 1.004, v: 1.004 },
-    E: { h: 1.004, v: 1.004 },
-    D: { h: 1.004, v: 1.004 },
-    C: { h: 1.004, v: 1.004 },
-    B: { h: 1.004, v: 1.004 },
-    A: { h: 1.004, v: 1.004 },
+    F: { h: 1.0, v: 1.0 },
+    E: { h: 1.0, v: 1.0 },
+    D: { h: 1.0, v: 1.0 },
+    C: { h: 1.0, v: 1.0 },
+    B: { h: 1.0, v: 1.0 },
+    A: { h: 1.0, v: 1.0 },
 };
 const COVER_DISPLAY_W = 260;
 
@@ -194,35 +189,37 @@ const COVER_DISPLAY_W = 260;
  * 与 building-system 的吸附端点同源（贴图内容底边 = 墙段接地线）：
  * - v（"/"）：A=低端（近地），B=高端（远地）
  * - h（"\"）：镜像，A=高端，B=低端
- * 数值来源：路线 B（Blender 楔形端部棱柱 + AI 材质纹理）渲染图底边端点标定
- * （prep-cover-render.py，2026-08-05）。楔形端部使端帽底部与正面底边共线，
- * 拼接处脚底线连续无凸起。几何统一 → 6 级 face 完全一致，
+ * 数值来源：路线 B（Blender 完整 box 棱柱 + AI 材质纹理）渲染图底边端点标定
+ * （prep-cover-render.py，2026-08-05 自然贴图重做后复标：A(-88,-21)/B(88,-109)）。
+ * 完整 box 实心端帽使端帽底部与正面底边共线，拼接处脚底线连续无凸起。
+ * 几何统一 → 6 级 face 完全一致，
  * 同向/跨级拼接天然共线；h 一律 = v 镜像派生。
  * 供图层排序（深度锚点 = max 底边端点 y + 12）和遮挡仲裁（junctionCorrectedDepth 面线）使用。
  */
 export const COVER_FACE = {
-    F: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
-    E: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
-    D: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
-    C: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
-    B: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
-    A: { v: { A: { x: -88, y: -25 }, B: { x: 88, y: -112 } }, h: { A: { x: -88, y: -112 }, B: { x: 88, y: -25 } } },
+    F: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    E: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    D: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    C: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    B: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    A: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
 };
 /** 兼容旧访问（COVER_FACE.v / COVER_FACE.h）：默认取 D 级 */
 COVER_FACE.v = COVER_FACE.D.v;
 COVER_FACE.h = COVER_FACE.D.h;
 
 /**
- * 玩家摆放掩体的碰撞 footprint（轴对齐包围盒，匹配斜向墙段视觉）：
- * 墙段 face 从 (x±88, y-25..y-112)，含厚度 → 包围盒 220×140，中心上移 offY。
- * v/h 是镜像，轴对齐包围盒相同。colliderOffsetY 让矩形中心对准墙段主体
- * （旧 46×300 竖矩形只有视觉 26% 宽且偏下，怪物可穿墙段大部分——用户反馈
- * "障碍物根本没有碰撞体积"的根因，2026-08-05 修复）。
- * 另：face 线段会注册进 WallSystem.isoSegments（移动/投射物/寻路自动阻挡）。
+ * 玩家摆放掩体的碰撞 footprint（墙段底部判定面积，参考 WallSystem 障碍物 foot 口径）：
+ * 墙段 face 从 (x±88, y-25..y-112) → 沿墙段 ±thick 的轴对齐 AABB 198×133，
+ * 中心上移 offY=-68（对准墙段主体）。thick = 墙厚一半（52 世界 → 26）。
+ * v/h 是镜像，AABB 相同。colliderOffsetY 让矩形中心对准墙段（旧 46×300 竖矩形
+ * 只有视觉 26% 宽且偏下，怪物可穿墙段大部分——用户反馈"障碍物根本没碰撞体积"根因）。
+ * 注意：线段碰撞（_canPlace / isoSegments）必须用 thick（26），不能用
+ * min(collisionWidth, collisionHeight)（会把 140 当墙厚 → 140px 空气墙，吸附右侧被拒）。
  */
 export const COVER_FOOT = {
-    v: { w: 220, d: 140, offY: -68 },
-    h: { w: 220, d: 140, offY: -68 },
+    v: { w: 198, d: 133, offY: -68, thick: 26 },
+    h: { w: 198, d: 133, offY: -68, thick: 26 },
 };
 
 /**
@@ -266,6 +263,7 @@ class DefenseBase extends Combatant {
         this._isDefenseStructure = true;
         this.noSeparation = true;
         this.noNameLabel = true; // 名字/HP 走 _syncNeutralEntities 的贴图标签（避免与 HUD 重复）
+        this._noShadow = true;   // 障碍物取消脚底阴影（贴图自带接地底座，无投影）
         const def = config.def ?? DEFENSE_CONFIG.base.def;
         const mdef = config.mdef ?? DEFENSE_CONFIG.base.mdef;
         this.def = def;
@@ -319,6 +317,7 @@ class DefenseCover extends Combatant {
         this._isDefenseStructure = true;
         this.noSeparation = true;
         this.noNameLabel = true;
+        this._noShadow = true;   // 障碍物取消脚底阴影
         this.immovable = true; // 掩体不可被击退/移动（任何位移通道一律无效）
         // 掩体不设置任何防御/魔法防御（怪物可攻击，伤害全额结算）
         this.def = 0;
@@ -334,6 +333,7 @@ class DefenseCover extends Combatant {
         this.collisionWidth = foot.w;
         this.collisionHeight = foot.d;
         this.colliderOffsetY = foot.offY ?? 0; // 矩形中心对准墙段主体（匹配视觉）
+        this._coverHalfThick = foot.thick ?? 26; // 墙厚一半（线段碰撞/阻挡宽度用）
         this.grade = grade;
         this.orient = orient;
         this._facingLeft = mirror; // 镜像：中立精灵渲染 flipX
@@ -359,7 +359,7 @@ class DefenseCover extends Combatant {
             this._coverSeg = {
                 x1: this._faceLine[0].x, y1: this._faceLine[0].y,
                 x2: this._faceLine[1].x, y2: this._faceLine[1].y,
-                halfThick: Math.min(this.collisionWidth, this.collisionHeight) / 2,
+                halfThick: this._coverHalfThick,
                 _cover: true,
             };
             WallSystem.isoSegments.push(this._coverSeg);
@@ -411,6 +411,7 @@ class DefenseTower extends Combatant {
         });
         this.id = config.id || `defense_tower_${Math.random().toString(36).slice(2, 8)}`;
         this._isDefenseStructure = true;
+        this._noShadow = true;   // 障碍物取消脚底阴影
         this._isDefenseTower = true;
         this._skipNeutralSprite = true; // 塔由 GameScene._syncDefenseTowers 三层渲染（基座/臂/武器）
         this.noSeparation = true;
@@ -894,7 +895,12 @@ export const DefenseSystem = {
         }
     },
 
-    /** 生成基地菱形掩体环（新掩体墙）：四边按 h/v 方向铺放，夹角 26.57°，RB 边中点留开口 */
+    /**
+     * 生成基地菱形掩体环（新掩体墙，2026-08-05 v2）：
+     * 四边按 h/v 方向铺放，face 线相邻件重叠 40px（端帽叠合，无缝隙），
+     * 边链两端各延伸 cornerExtend，转角由相邻两边端帽互相叠盖。
+     * 开口：openEdge 边中点的开放带内的件跳过 → 天然形成居中门洞。
+     */
     _buildBaseRoom() {
         const room = DEFENSE_CONFIG.room;
         if (!room || !room.enabled) return;
@@ -907,27 +913,39 @@ export const DefenseSystem = {
             { key: 'LB', from: L, to: B, orient: 'h' },
             { key: 'RB', from: R, to: B, orient: 'v' },
         ];
+        // face 线几何（6 级统一，见 COVER_FACE）：|A→B| = 196.33px，端帽叠合 40px
+        const face = (COVER_FACE[room.coverGrade] && COVER_FACE[room.coverGrade].v) || COVER_FACE.D.v;
+        const faceLen = Math.hypot(face.B.x - face.A.x, face.B.y - face.A.y);
+        const joinOverlap = 40; // 与 building-system SNAP_OVERLAP 同源（端帽宽 ≈52 ≥ 40）
+        const step = faceLen - joinOverlap; // 相邻件中心沿墙步长 ≈156.33
+        const cornerExt = room.cornerExtend ?? 45;
+        const openEdge = room.openEdge;
+        const openRadius = room.openRadius ?? 90;
         const layout = [];
         for (const e of edges) {
             const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
             const len = Math.hypot(dx, dy);
             const ux = dx / len, uy = dy / len;
-            const spacing = e.orient === 'h' ? room.hSpacing : room.vSpacing;
-            const foot = room.coverFoot[e.orient];
-            const openMid = e.key === room.openEdge ? len / 2 : null;
-            const alignY = e.key === room.openEdge ? (room.doorAlignY || 0) : 0;
-            for (let t = -room.cornerOverlap; t <= len + room.cornerOverlap; t += spacing) {
-                if (openMid !== null && Math.abs(t - openMid) < room.openRadius) continue;
-                // 入口精调：开口上侧门柱（t 小于开口中点）整体下移 doorAlignY，
-                // 使门洞底边延续墙体斜率（渲染验证见 room 配置注释）。
-                const ay = (openMid !== null && t < openMid) ? alignY : 0;
+            // 边链覆盖 [−cornerExt, len+cornerExt]；n 件均布，相邻 face 重叠 ≥40px
+            const span = len + 2 * cornerExt;
+            const n = Math.max(2, Math.ceil((span - faceLen) / step) + 1);
+            const spacing = n > 1 ? (span - faceLen) / (n - 1) : 0;
+            const t0 = -cornerExt + faceLen / 2;
+            const openMid = e.key === openEdge ? len / 2 : null;
+            const alignY = e.key === openEdge ? (room.doorAlignY || 0) : 0;
+            for (let i = 0; i < n; i++) {
+                const t = t0 + i * spacing;
+                // face 沿边区间 [t−faceLen/2, t+faceLen/2] 命中开放带则跳过（门洞）
+                if (openMid !== null) {
+                    const f0 = t - faceLen / 2;
+                    const f1 = t + faceLen / 2;
+                    if (f1 > openMid - openRadius && f0 < openMid + openRadius) continue;
+                }
                 layout.push({
                     x: Math.round(e.from.x + ux * t),
-                    y: Math.round(e.from.y + uy * t) + ay,
+                    y: Math.round(e.from.y + uy * t) + alignY,
                     grade: room.coverGrade,
                     orient: e.orient,
-                    w: foot.w,
-                    d: foot.d,
                 });
             }
         }

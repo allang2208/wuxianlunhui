@@ -67,10 +67,10 @@ def build_wall(prims, tex_path):
         tex.interpolation = "Closest" if img.size[0] < 512 else "Linear"
         # 纹理直连 Base Color（可靠；AO/Mix 在 EEVEE 输出不稳定会把墙刷成纯色）
         links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-        # 明显 bump：石块/编织立体感（之前 0.12 太平面 = 纸片感）
+        # 适度 bump：细节立体感但不生硬/不产生阴影感（0.42 太深 = 生硬，用户反馈）
         bump = nodes.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.42
-        bump.inputs["Distance"].default_value = 0.35
+        bump.inputs["Strength"].default_value = 0.25
+        bump.inputs["Distance"].default_value = 0.25
         links.new(tex.outputs["Color"], bump.inputs["Height"])
         links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
         o.data.materials.append(mat)
@@ -151,20 +151,20 @@ def setup_lighting(scene):
     world = bpy.data.worlds.new("env")
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.30, 0.30, 0.34, 1.0)
+    bg.inputs[0].default_value = (0.42, 0.42, 0.46, 1.0)  # 环境更亮更平
     bg.inputs[1].default_value = 1.0
     scene.world = world
 
     sun_data = bpy.data.lights.new("key", "SUN")
-    sun_data.energy = 1.6
+    sun_data.energy = 0.9  # 主光减弱：更平、无阴影感
     sun_data.use_shadow = False
     sun = bpy.data.objects.new("key", sun_data)
     scene.collection.objects.link(sun)
     sun.rotation_euler = (math.radians(48), 0, math.radians(38))
 
     fill_data = bpy.data.lights.new("fill", "AREA")
-    fill_data.energy = 30.0
-    fill_data.size = 4.0
+    fill_data.energy = 60.0  # 补光增强：整体更亮更均匀
+    fill_data.size = 6.0
     fill_data.use_shadow = False
     fill = bpy.data.objects.new("fill", fill_data)
     scene.collection.objects.link(fill)
