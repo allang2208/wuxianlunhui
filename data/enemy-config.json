@@ -23,7 +23,7 @@
     "pounceCooldown": 12000,
     "pounceRange": 500,
     "pounceHitDistance": 100,
-    "pounceStunMs": 2000,
+    "pounceCrippleMs": 3000,
     "pounceMaxDist": 1000,
     "pounceOvershoot": 200,
     "ai": {

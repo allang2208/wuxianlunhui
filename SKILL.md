@@ -132,6 +132,27 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   snowball 变体共 79MB 全部删除），只保留最终被引用资产
 - **GLM-4.6V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
 
+### 技能图标重出沉淀（2026-08-06：雷暴领域/贯穿雷枪 v2 定稿）
+
+- **正式出图必须走 FLUX.2 Dev + 控制图，klein 4B 只做初筛/草图**：8 张 klein 12 步候选全被否
+  （主题细节糊）；Dev 24 步 + 控制图可出高画质。工作流"入库=Dev、探索=klein"再次验证。
+- **控制图首选"原图 alpha 剪影"（hf 深度模型被墙时的零依赖替代）**：定稿图标透明底 alpha>10
+  填白 + 3px 高斯羽化 → `tools/ai-gen/_depth_templates/<名>_sil.png`，锁原图构图/主体占比/位置；
+  实测无需 DepthAnything 权重（hf-mirror 404、hf.co 超时）。
+- **提示词三段分离**：①背景风格块 `the hexagonal badge background is <切割宝石/冰晶/晶簇>`；
+  ②原风格主体块（写实体积感雷云=深紫暗部+浅蓝亮部+亮白分支闪电；水晶棱面雷枪=浅蓝白渐变+
+  电光蓝+能量环），明写"占比约 2/3"；③徽章模板块（六边形+金边）。
+- **"草图感"根因 = 未归一化就交付**：原始出图是白底 1024² 未裁剪，直接给人看像草图；交付前
+  必须走 `tools/ai-gen/normalize-skill-icon.py`（自带白底移除）归一到系列基准
+  （~790×930 / 0.85 / fill70% / cy+28）再验收。
+- **验收对照原图而非只看模板**：像素统计（bbox/aspect/fill/cy）+ GLM 单张，主体色调与占比逐项
+  对照原图（雷云亮部浅蓝 vs 浅紫、占比 60~70% vs 80% 都是肉眼可辨的偏差）。
+- **流程纪律**：被否后先诊断"模板没锁住 vs 风格没对上 vs 没归一化"，别盲目换 seed 重跑；
+  本轮三轮（klein → dev 缺风格块 → dev+剪影+归一化）才收敛。
+- **并行会话注意**：`models.json` 的 LoRA 版本（klein-skillicon-v3 / klein-equipment-v1）由并行
+  会话更新，本地 klein 需同步拷 v3；5080 被并行任务占用时 dev 出图 5~15min/张，
+  klein 可本机 18~30s/张。
+
 ### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
 - 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
   **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
@@ -299,6 +320,20 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
   - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
     GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
+- **红狼王 H3 全动作升级（2026-08-06 九版，视频→精灵图）**：
+  - 10 段 H3 首帧循环视频：狼 idle/walk/run/飞扑挥爪/飞扑撕咬/变身 + 红狼人
+    idle/run/挥爪攻击/仰天嚎叫；**优化配置 1024×576 + 16 步 = 6 分钟/段**
+    （原 1344×768+20 步 17 分钟，快 2.6 倍；H3 最短可靠 124 帧，循环靠截取）。
+  - 切帧帧数（h3-loop/h3-attack）：狼 walk P=34→11 帧(4×3)、run P=14→7 帧(7×1)、
+    红狼人 run P=24→12 帧(7×2)；攻击/变身/嚎叫各 12 帧(4×3)；idle 抽 1 帧静态。
+  - **cv2.imwrite 中文路径静默失败（不回错误）**：切帧输出必须走 ASCII temp 再拷回
+    （tools/h3-*.py 输出到 `%TEMP%/world122-cover`）。h3-loop-spritesheet 补了
+    末行不足 cols 时补透明格（11 帧 4×3 场景会崩 vstack）。
+  - RedWolfKing 类重建（extends BlackWolf）：HP≤50% 触发 2s transform →
+    红狼人形态（伤害×2、回血、先 howl），狼形态双攻击
+    pounceClaw(远/飞扑挥爪)/pounceBite(近/撕咬)；animation-config 双份校准
+    frameLayouts/attackTypes/transformedFrameLayout；BootScene 注册 10 纹理键。
+  - 实机验证：狼形态 + 变身红狼人均正常渲染、无报错；测试/构建全绿。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3671,16 +3706,24 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
     → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
     固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
   - 命中：charge 每帧 `_isTargetInRange(hitTarget, pounceHitDistance)` →
-    `takeDamage + applyStun(2000)`；盾牌弹反 `_lastParried` 不再眩晕；
+    `takeDamage + applyCripple(3000)`（致残减速 debuff，非眩晕）；
+    盾牌弹反 `_lastParried` 不施加致残；
   - `aiInterval = Number.MAX_SAFE_INTEGER` 关闭通用 CombatSystem 攻击，
     状态机自主触发（目标距离 ≤ pounceRange 500 且冷却 12s）；
   - `_attackAnimTimer` 在 charge 期间保持 >0，阻止 MovementSystem 覆盖朝向；
-  - 冲刺残影 `_spawnPounceGhost`（Phaser 克隆 + tween 淡出）。
+  - 冲锋速度线条 `_spawnSpeedLine`（替代残影）：沿狼身后反方向拖出短色块链，
+    白芯 + 浅蓝辉光 ADD——参考 LightningBoltEffect 的圆块链风格，
+    线条感强于纯粒子、柔于纯线条（折中方案），每 80ms 一条、170ms 淡出。
 - **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
   charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
 - **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、
-  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceStunMs/
+  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/
   pounceMaxDist/pounceOvershoot；移除 bite 资产/配置/加载（废案已删）。
+- **飞扑动画重制（2026-08-06 v3 定稿）**：提示词强化爪子细节
+  （"swing forward in a wide visible arc like a cat swiping, claws spread wide
+  apart and clearly visible with sharp distinct claw tips"）后重生成，
+  特写验收确认"前爪前伸 + 爪尖张开可见"（挥击弧线是 H3 侧视模型的生成极限）；
+  游戏内动作时长按用户要求调到 ~3s（prepareMs 1200 + chargeMs 1800）。
 - 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
