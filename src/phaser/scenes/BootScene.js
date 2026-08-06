@@ -179,18 +179,19 @@ export class BootScene extends Scene {
         // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 5 });
         this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
         // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
         this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce_claw', 'assets/enemies/red_wolf_king_pounce_claw.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce_bite', 'assets/enemies/red_wolf_king_pounce_bite.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
-        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 7 });
-        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 7 });
+        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 6 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce_claw', 'assets/enemies/red_wolf_king_pounce_claw.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce_bite', 'assets/enemies/red_wolf_king_pounce_bite.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.image('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png');
+        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
 
         // 僵尸犬精灵图动画
         this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');

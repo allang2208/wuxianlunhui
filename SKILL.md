@@ -403,6 +403,43 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **CDP 验证铁律**：动态 import 必须用 performance 资源表里带 `?t=` 的真实 URL
   （否则拿到重复模块实例，singleton 不同步）；先等页面稳定再点官方开始按钮。
 
+### 防御塔/基地点击命中盒（2026-08-06 修复"点塔打不开面板"）
+- **根因**：`tryInteract` 的点击判定是"塔脚周围 70px 圆"——塔身高达 262px、
+  视觉中心在脚底上方 131px，点塔身/手臂/枪必然脱靶（探针实测：点脚命中、
+  点塔身/塔顶全部 false），只有点最底部台阶才开得了。
+- **修复**：命中判定改为覆盖整塔视觉范围的**矩形命中盒**
+  `DEFENSE_TOWER_VISUAL.hit`：塔 `{cx:0, cy:-130, hw:100, hh:170}`（含机械臂+武器）、
+  基地核心 `{cx:0, cy:-107, hw:90, hh:120}`；玩家交互距离 260px 保留。
+- **验证**：`tools/cdp-tower-click-e2e.mjs`——真实 CDP 鼠标点击塔身中部 → 面板打开、
+  再点关闭（toggle），无控制台报错；点击链路 = input.js mousedown → `mouse.leftPressed`
+  → game.js 点击块 → `tryInteract`（模块实例必须用 performance 表 `?t=` URL 导入）。
+
+### 防御塔/基地不可移动·不可击退（2026-08-06，与墙壁/掩体同口径）
+- 防御塔与基地核心此前只有 `noSeparation`（防实体分离推动），缺少 `immovable`
+  （`damageable-entity` 的击退闸门：`applyKnockback` 直接 return、位移积分跳过）。
+- 修复：`DefenseTower`/`DefenseBase` 构造补 `this.immovable = true`（掩体已有），
+  塔/基地现在等同墙壁——任何击退/位移通道一律无效。
+- 验证：`tools/cdp-tower-immovable-probe.mjs`——双向 500px 击退 + 30 帧更新，
+  位置零位移、knockbackX/Y 恒 0；lint/build 全绿。
+
+### 防御塔枪械属性与玩家对齐（2026-08-06 排查定稿）
+- **排查结论**：换弹/弹匣/命中效果本就走共享链路（Combatant `getAmmoConfig` +
+  改造 `reloadTimeDelta/magazineDelta`；投射物快照 `_enchantEffects/_craftEffects` →
+  DamagePipeline 附魔 on-hit/流血/易伤/穿甲；`Combatant.takeDamage` 附魔暴击），
+  与玩家一致；**不一致的只有两处**：
+  1. **每发伤害**：旧实现按武器类型硬编码基准（`BASE_WEAPON_DAMAGE`）× 扁平六维系数，
+     无视 attackFormula/强化 enhanceLevel/改造·附魔 damagePercent。
+  2. **射速**：旧实现只读 `item.attack.attackInterval`，改造 `attackIntervalDelta`、
+     附魔 `attackIntervalMul` 不生效。
+- **修复**：`_computeDamage` 改走唯一实战公式 `computeWeaponAttack(item, player.data, null)`
+  （含强化/改造/附魔；`null skills` = 不挂玩家技能精通——那是玩家技能非武器属性，
+  如需塔吃精通再放开）× 塔等级独立增益 ×(1+0.22×(L−1))；射速按
+  `_applyEnchantAttackInterval` 同口径 `base×intervalMul+delta`（下限 100ms）。
+- **验证**：`tools/cdp-tower-weapon-parity.mjs`——同一把 AKM（强化+3、改造
+  damagePercent+20%/attackIntervalDelta−80/magazineDelta+10/reloadTimeDelta+300、附魔
+  damagePercent+15%/attackIntervalMul×0.9）：塔 L1 伤害 39 == 玩家无精通公式 39、
+  射速 370==500×0.9−80、换弹 1450==1150+300、弹匣 40==30+10；lint/build 全绿。
+
 ### 世界-122 布局与刷怪（2026-08-05 定稿）
 - 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
   **scene8 不再生成返回主神空间传送门**（portal_return 已删，玩家用菜单离场）。
@@ -3751,6 +3788,15 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   修复：crop 用阈值 mask(248) bbox（完整狼）+ **alpha = max(BiRefNet, 阈值mask)**
   腿部兜底 + 固定 scale + 加强去污染（亮半透边缘 lum>180 清零）。
   修复后各帧高度 -1%~-4%（之前 -22%），四腿完整，白边 0.00%，GLM 六项全过。
+- **飞扑垂直提升 + 速度调整 + 普通撕咬（2026-08-06）**：
+  - 空中效果：精灵图层 charge 帧脚底按抛物线提升（起跳 +8px → 空中 +30px → 落地 +4px），
+    游戏内无需额外偏移；准备帧脚底保持地面 410；
+  - 飞扑速度 -25%：`pounceSpeed = 距离/(chargeMs/1000)`（原硬编码 /1），
+    chargeMs 1333 = 原 1s 的 1.333 倍（525px/s vs 700px/s，精确 -25%）；
+  - **普通攻击（近距离撕咬）**：`_biteState` 状态机——距离 ≤ biteRange 150 触发，
+    6 帧 3×2 小幅前探张嘴咬（无回转、无位移），中段 200~450ms 命中一次，
+    无致残/眩晕；命中距离 biteHitDistance 165 须 ≥ 触发范围（否则空挥）。
+    攻击决策：近距撕咬优先，中距（150~500）飞扑技能。
 - 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。

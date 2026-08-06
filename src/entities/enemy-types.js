@@ -49,6 +49,7 @@ class BlackWolf extends Enemy {
             run: loadImage(spritePaths.run || 'assets/enemies/black_wolf_run.png'),
             front: loadImage(spritePaths.front || 'assets/enemies/black_wolf_updown.png'),
             back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
+            bite: loadImage(spritePaths.bite || 'assets/enemies/black_wolf_bite_regular.png'),
             pounce: loadImage(spritePaths.pounce || 'assets/enemies/black_wolf_pounce.png'),
             pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_pacing.png'),
             idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
@@ -60,8 +61,14 @@ class BlackWolf extends Enemy {
         
         // 动画状态
         this._animState = 'idle'; // idle, walk, run, attack, pacing
-        this._attackTypes = anim.attackTypes || {}; // 飞扑：prepare + charge 阶段（参照 mutant-3）
-        this._attackType = 'pounce'; // 只保留飞扑一种攻击
+        this._attackTypes = anim.attackTypes || {}; // bite(普通撕咬) + pounce(飞扑技能)
+        this._attackType = 'bite';
+        // 普通撕咬（近距离常态化攻击，无突进）
+        this._biteState = 'idle'; // idle | attacking
+        this._biteTimer = 0;
+        this._biteCooldown = 0;
+        this._biteTarget = null;
+        this._biteDamaged = false;
         // 飞扑状态机（参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）
         this._pounceState = 'idle'; // idle | prepare | charge
         this._pounceAnimPhase = null; // null | prepare | charge
@@ -105,42 +112,55 @@ class BlackWolf extends Enemy {
         // === 根据主导速度方向确定 facing（攻击期间锁定）===
         // 飞扑冷却计时
         if (this._pounceCooldown > 0) this._pounceCooldown -= dt;
+        // 普通撕咬冷却计时
+        if (this._biteCooldown > 0) this._biteCooldown -= dt;
 
-        // 眩晕/冰冻：中断飞扑、禁止移动（参照 mutant-3）
+        // 眩晕/冰冻：中断攻击、禁止移动（参照 mutant-3）
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             if (this._pounceState !== 'idle') this._endPounce();
+            if (this._biteState !== 'idle') this._endBite();
             this.vx = 0;
             this.vy = 0;
             this.isMoving = false;
             return;
         }
 
-        // ===== 飞扑状态机（参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）=====
-        if (this._pounceState === 'idle') {
-            if (this._pounceCooldown <= 0 && this.target && this.target.active) {
+        // ===== 普通撕咬状态（近距离常态化攻击，无突进）=====
+        if (this._biteState === 'attacking') {
+            this._updateBite(dt);
+        } else if (this._pounceState !== 'idle') {
+            // ===== 飞扑状态机（参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）=====
+            if (this._pounceState === 'prepare') {
+                this._pounceTimer -= dt;
+                this.vx = 0;
+                this.vy = 0;
+                this.isMoving = false;
+                this._animState = 'attack';
+                // 蓄力期间面向目标
+                if (this.target && this.target.active) {
+                    this._facing = this.target.x >= this.x ? 'right' : 'left';
+                    this._lastHorizontalFacing = this._facing;
+                }
+                if (this._pounceTimer <= 0) {
+                    this._startCharge();
+                }
+            } else if (this._pounceState === 'charge') {
+                this._updatePounceCharge(dt);
+            }
+        } else {
+            // 攻击决策：近距离普通撕咬优先，中距离飞扑（技能）
+            if (this.target && this.target.active) {
                 const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-                if (dist <= (this.config?.pounceRange ?? 500)) {
+                if (this._biteCooldown <= 0 && dist <= (this.config?.biteRange ?? 150)) {
+                    this._startBite();
+                    return;
+                }
+                if (this._pounceCooldown <= 0 && dist <= (this.config?.pounceRange ?? 500)) {
                     this._startPounce();
                     return;
                 }
             }
             this._updateNormalState();
-        } else if (this._pounceState === 'prepare') {
-            this._pounceTimer -= dt;
-            this.vx = 0;
-            this.vy = 0;
-            this.isMoving = false;
-            this._animState = 'attack';
-            // 蓄力期间面向目标
-            if (this.target && this.target.active) {
-                this._facing = this.target.x >= this.x ? 'right' : 'left';
-                this._lastHorizontalFacing = this._facing;
-            }
-            if (this._pounceTimer <= 0) {
-                this._startCharge();
-            }
-        } else if (this._pounceState === 'charge') {
-            this._updatePounceCharge(dt);
         }
 
         // ===== 更新帧动画（攻击按阶段帧区间推进，其余按状态）=====
@@ -148,7 +168,7 @@ class BlackWolf extends Enemy {
     }
 
     triggerWeaponAnim() {
-        // 黑狼只保留飞扑（自定义状态机自主触发），不使用通用攻击动画触发
+        // 黑狼攻击由自定义状态机自主触发（普通撕咬 + 飞扑），不使用通用攻击动画触发
     }
 
     // 正常移动态：facing + 动画状态
@@ -240,21 +260,30 @@ class BlackWolf extends Enemy {
     _updateAnimFrame(dt) {
         this._animTimer += dt;
         if (this._animState === 'attack') {
-            const pounceCfg = this._attackTypes?.pounce || {};
-            const total = this._getStateFrameCount();
-            const prepareFrames = pounceCfg.prepareFrames ?? 4;
-            if (this._pounceState === 'prepare') {
-                const frameDur = (pounceCfg.prepareMs ?? 1000) / Math.max(1, prepareFrames);
-                if (this._animTimer >= frameDur) {
+            if (this._biteState === 'attacking') {
+                // 普通撕咬：6 帧匀速推进（100ms/帧）
+                const frameDuration = this._frameDurations.bite || 100;
+                if (this._animTimer >= frameDuration) {
                     this._animTimer = 0;
-                    this._animFrame = Math.min(this._animFrame + 1, prepareFrames - 1);
+                    this._animFrame = Math.min(this._animFrame + 1, this._getStateFrameCount() - 1);
                 }
-            } else if (this._pounceState === 'charge') {
-                const chargeFrames = Math.max(1, total - prepareFrames);
-                const frameDur = (pounceCfg.chargeMs ?? 1000) / chargeFrames;
-                if (this._animTimer >= frameDur) {
-                    this._animTimer = 0;
-                    this._animFrame = Math.min(this._animFrame + 1, total - 1);
+            } else {
+                const pounceCfg = this._attackTypes?.pounce || {};
+                const total = this._getStateFrameCount();
+                const prepareFrames = pounceCfg.prepareFrames ?? 4;
+                if (this._pounceState === 'prepare') {
+                    const frameDur = (pounceCfg.prepareMs ?? 1000) / Math.max(1, prepareFrames);
+                    if (this._animTimer >= frameDur) {
+                        this._animTimer = 0;
+                        this._animFrame = Math.min(this._animFrame + 1, prepareFrames - 1);
+                    }
+                } else if (this._pounceState === 'charge') {
+                    const chargeFrames = Math.max(1, total - prepareFrames);
+                    const frameDur = (pounceCfg.chargeMs ?? 1000) / chargeFrames;
+                    if (this._animTimer >= frameDur) {
+                        this._animTimer = 0;
+                        this._animFrame = Math.min(this._animFrame + 1, total - 1);
+                    }
                 }
             }
         } else {
@@ -264,6 +293,62 @@ class BlackWolf extends Enemy {
                 this._animFrame = (this._animFrame + 1) % this._getStateFrameCount();
             }
         }
+    }
+
+    // ===== 普通撕咬（近距离常态化攻击，小幅度、无突进）=====
+    _startBite() {
+        if (this._biteState !== 'idle') return;
+        this._biteState = 'attacking';
+        this._animState = 'attack';
+        this._biteTimer = this._attackTypes?.bite?.durationMs ?? 600;
+        this._biteCooldown = this.config?.biteCooldown ?? 1200;
+        this._biteTarget = this.target;
+        this._biteDamaged = false;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        if (this.target && this.target.active) {
+            this._facing = this.target.x >= this.x ? 'right' : 'left';
+            this._lastHorizontalFacing = this._facing;
+        }
+    }
+
+    _updateBite(dt) {
+        this._biteTimer -= dt;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this._animState = 'attack';
+        // 面向目标（原地小幅咬，无位移）
+        if (this._biteTarget && this._biteTarget.active) {
+            this._facing = this._biteTarget.x >= this.x ? 'right' : 'left';
+            this._lastHorizontalFacing = this._facing;
+        }
+        // 动画中段（约 200~450ms）命中一次
+        const elapsed = (this._attackTypes?.bite?.durationMs ?? 600) - this._biteTimer;
+        if (!this._biteDamaged && elapsed >= 200 && elapsed <= 450) {
+            const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
+            if (t && t.active && t.hittable && this._isTargetInRange(t, this.config?.biteHitDistance ?? 90)) {
+                t.takeDamage(this._getBiteDamage(), this, 'physical', true);
+                this._biteDamaged = true;
+            }
+        }
+        if (this._biteTimer <= 0) {
+            this._endBite();
+        }
+    }
+
+    _endBite() {
+        this._biteState = 'idle';
+        this._biteTimer = 0;
+        this._biteTarget = null;
+        this._biteDamaged = false;
+        this._animState = 'idle';
+        this._animFrame = 0;
+    }
+
+    _getBiteDamage() {
+        // 普通撕咬：物理攻击基础伤害（无致残/眩晕附加）
+        return this.data.atk || this.data.str || 20;
     }
 
     // ===== 飞扑（参照 mutant-3）=====
@@ -318,10 +403,11 @@ class BlackWolf extends Enemy {
             this._pounceChargeDistance = Math.min(overshoot, maxDist);
         }
 
-        // 冲锋阶段固定 1 秒，速度按距离自动调整
-        this._pounceTimer = this._attackTypes?.pounce?.chargeMs ?? 1000;
-        this._attackAnimTimer = 1000;
-        this._pounceSpeed = this._pounceChargeDistance / 1;
+        // 冲锋时长由配置驱动（chargeMs），速度 = 距离/时长（当前 1250ms = 比原 1s 慢 25%）
+        const chargeMs = this._attackTypes?.pounce?.chargeMs ?? 1000;
+        this._pounceTimer = chargeMs;
+        this._attackAnimTimer = chargeMs;
+        this._pounceSpeed = this._pounceChargeDistance / (chargeMs / 1000);
 
         // 帧从蓄力区切到冲锋区（保持视觉连续）
         const prepareFrames = this._attackTypes?.pounce?.prepareFrames ?? 4;
@@ -401,7 +487,7 @@ class BlackWolf extends Enemy {
             return 'enemy_black_wolf_idle';
         }
         if (this._animState === 'attack') {
-            return 'enemy_black_wolf_pounce';
+            return this._biteState === 'attacking' ? 'enemy_black_wolf_bite' : 'enemy_black_wolf_pounce';
         }
         if (this._animState === 'pacing') {
             return 'enemy_black_wolf_walk';
@@ -418,14 +504,16 @@ class BlackWolf extends Enemy {
     // 当前状态的精灵图网格与帧数
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
-        const key = state === 'attack' ? 'pounce' : state;
+        const key = state === 'attack' ? (this._biteState === 'attacking' ? 'bite' : 'pounce') : state;
         return layouts[key] || layouts.walk || { cols: 4, rows: 4 };
     }
 
     _getStateFrameCount() {
         const layouts = this._frameLayouts || {};
         if (this._animState === 'attack') {
-            return layouts.pounce?.frames || 11;
+            return this._biteState === 'attacking'
+                ? (layouts.bite?.frames || 6)
+                : (layouts.pounce?.frames || 11);
         }
         return layouts[this._animState]?.frames || (this._animState === 'run' ? 14 : (this._animState === 'walk' ? 16 : 8));
     }
@@ -469,7 +557,9 @@ class BlackWolf extends Enemy {
             currentSprite = this._sprites.idle;
             staticImage = true;
         } else if (this._animState === 'attack') {
-            currentSprite = this._sprites.pounce;
+            currentSprite = this._biteState === 'attacking'
+                ? (this._sprites.bite || this._sprites.pounce)
+                : this._sprites.pounce;
         } else if (this._animState === 'pacing') {
             currentSprite = this._sprites.pacing;
         } else if (this._animState === 'run') {
