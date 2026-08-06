@@ -3648,6 +3648,21 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   `anims.create` 集成方式不同——`_getTextureKey` 换贴图 + `_getPhaserOptions.frame`
   切帧即可，不要套用 anims 注册（黑狼本来就不注册动画）。
 
+### 2.1 攻击帧必须固定缩放比例 + 防裁切（2026-08-06 撕咬反馈修复）
+- **症状**：撕咬时狼被误放大、前扑帧左右被裁。根因二连：
+  ① 逐帧 `scale = 262/当前高` 统一缩放到 262——蓄力压低帧（视频高 525 vs idle 556）
+  被放大 6%，前扑帧高度波动导致狼忽大忽小；
+  ② 前扑帧内容宽（视频 903→1024）+ 水平位移 dx → `ox+nw > 512` 直接裁剪
+  （旧 sheet 多帧宽 512 贴满 cell、左右触边）。
+- **修复（`h3-attack-spritesheet.py --fixed-scale 1`，默认）**：
+  ① **固定缩放**：所有攻击帧用首帧（idle）同比例 `scale = 262/首帧高`——
+  狼与 idle 恒等尺寸，蓄力压低/前扑伸展读作真实姿态（高 224~261 自然变化），
+  不放大；② **防裁切 clamp**：`ox = clamp(ox, 0, cell-nw)` 内容优先完整，
+  不再裁剪超界像素。
+- **验收判据**：各帧 bbox 无 touch（x1<510）、高度含蓄力帧自然矮、
+  GLM 确认"大小一致无突然放大、前扑头爪完整"。
+- 撕咬 v3：帧高 224~261、宽 405~482 全完整；飞扑 v3：宽 431~504 完整。
+
 ### 3. 双攻击（撕咬/飞扑）数据驱动
 - `animation-config.blackWolf.animation.attackTypes`：`bite`（range 170 / duration 1000 /
   dash 60 / 10 帧）与 `pounce`（range 99999 / duration 1250 / dash 240 / 11 帧）；
