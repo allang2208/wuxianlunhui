@@ -3671,11 +3671,14 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
     → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
     固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
   - 命中：charge 每帧 `_isTargetInRange(hitTarget, pounceHitDistance)` →
-    `takeDamage + applyStun(2000)`；盾牌弹反 `_lastParried` 不再眩晕；
+    `takeDamage + applyCripple(3000)`（致残减速 debuff，非眩晕）；
+    盾牌弹反 `_lastParried` 不施加致残；
   - `aiInterval = Number.MAX_SAFE_INTEGER` 关闭通用 CombatSystem 攻击，
     状态机自主触发（目标距离 ≤ pounceRange 500 且冷却 12s）；
   - `_attackAnimTimer` 在 charge 期间保持 >0，阻止 MovementSystem 覆盖朝向；
-  - 冲刺残影 `_spawnPounceGhost`（Phaser 克隆 + tween 淡出）。
+  - 冲锋速度线条 `_spawnSpeedLine`（替代残影）：沿狼身后反方向拖出短色块链，
+    白芯 + 浅蓝辉光 ADD——参考 LightningBoltEffect 的圆块链风格，
+    线条感强于纯粒子、柔于纯线条（折中方案），每 80ms 一条、170ms 淡出。
 - **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
   charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
 - **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、

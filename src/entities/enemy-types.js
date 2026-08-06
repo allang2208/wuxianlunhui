@@ -213,19 +213,20 @@ class BlackWolf extends Enemy {
                     this._endPounce();
                     return;
                 }
-                if (hitTarget.applyStun) {
-                    hitTarget.applyStun(this.config?.pounceStunMs ?? 2000);
+                // 命中不眩晕，改为 3 秒致残（减速 debuff）
+                if (hitTarget.applyCripple) {
+                    hitTarget.applyCripple(this.config?.pounceCrippleMs ?? 3000);
                     this._endPounce();
                     return;
                 }
             }
         }
 
-        // 飞扑残影
+        // 冲锋速度线条（色块链风格，参考 LightningBoltEffect；替代残影）
         this._pounceGhostTimer -= dt;
         if (this._pounceGhostTimer <= 0) {
-            this._spawnPounceGhost();
-            this._pounceGhostTimer = 60;
+            this._spawnSpeedLine();
+            this._pounceGhostTimer = 80;
         }
 
         this._pounceTimer -= dt;
@@ -354,24 +355,45 @@ class BlackWolf extends Enemy {
         return dist <= r + targetR;
     }
 
-    _spawnPounceGhost() {
-        const sprite = this._phaserSprite;
+    // 冲锋速度线条：狼身后沿反方向拖出短色块链（参考 LightningBoltEffect 的
+    // 圆块辉光风格——线条感强于纯粒子、柔于纯线条，折中方案）
+    _spawnSpeedLine() {
         const scene = window.__phaserScene;
-        if (!sprite || !scene) return;
-        const textureKey = this._getTextureKey();
-        if (!scene.textures.exists(textureKey)) return;
-        const frame = sprite.frame ? sprite.frame.name : 0;
-        const ghost = scene.add.sprite(this.x, this.y, textureKey, frame)
-            .setAlpha(0.5)
-            .setDisplaySize(sprite.displayWidth, sprite.displayHeight)
-            .setFlipX(sprite.flipX)
-            .setDepth((sprite.depth || 0) - 1);
-        scene.tweens.add({
-            targets: ghost,
-            alpha: 0,
-            duration: 250,
-            onComplete: () => { if (ghost && ghost.active) ghost.destroy(); }
-        });
+        if (!scene || !this._pounceDir) return;
+        const dirX = -this._pounceDir.x; // 反方向 = 狼身后
+        const dirY = -this._pounceDir.y;
+        const len = 55 + Math.random() * 35;
+        const perp = Math.random() < 0.5 ? -1 : 1; // 上下随机偏移，避免整齐呆板
+        const off = 6 + Math.random() * 10;
+        const sx = this.x + dirX * 25 + (-dirY * perp * off);
+        const sy = this.y + dirY * 25 + (dirX * perp * off);
+        const n = 6;
+        const life = { t: 0, max: 170 };
+        const g = scene.add.graphics();
+        g.setBlendMode('ADD');
+        const spriteDepth = this._phaserSprite ? this._phaserSprite.depth : 0;
+        g.setDepth(spriteDepth + 1);
+        if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(g);
+        const onUpdate = () => {
+            life.t += 16;
+            const p = Math.max(0, 1 - life.t / life.max);
+            g.clear();
+            for (let i = 0; i < n; i++) {
+                const f = i / (n - 1);
+                const x = sx + dirX * len * f;
+                const y = sy + dirY * len * f;
+                const r = Math.max(1, (4.5 - 2 * f) * p);
+                g.fillStyle(0xffffff, 0.65 * p);
+                g.fillCircle(x, y, r + 2); // 外层辉光
+                g.fillStyle(0x9fd4ff, 0.85 * p);
+                g.fillCircle(x, y, r); // 内芯
+            }
+            if (life.t >= life.max) {
+                g.destroy();
+                scene.events.off('update', onUpdate);
+            }
+        };
+        scene.events.on('update', onUpdate);
     }
 
     _getTextureKey() {
