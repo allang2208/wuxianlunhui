@@ -76,7 +76,13 @@ const ShopSystem = {
             'flowing_helmet', 'flowing_armor', 'flowing_boots',
             'eclipse_helmet', 'eclipse_armor', 'eclipse_boots',
             'zhenyue_helmet', 'zhenyue_armor', 'zhenyue_boots',
-            'ring_starfall', 'belt_endless', 'necklace_boulder'
+            'ring_starfall', 'belt_endless', 'necklace_boulder',
+            // 史诗套装（星穹，2026-08-06 新增）
+            'stellar_helmet', 'stellar_armor', 'stellar_boots',
+            'necklace_stellar', 'ring_stellar', 'belt_stellar',
+            // 史诗法袍（苍月）+ 史诗重甲（天罡）
+            'lunar_helmet', 'lunar_armor', 'lunar_boots',
+            'tiangang_helmet', 'tiangang_armor', 'tiangang_boots'
         ]
     },
 

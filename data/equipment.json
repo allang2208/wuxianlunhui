@@ -3319,6 +3319,345 @@
             ],
             "desc": "山岩之心铸成的吊坠，岿然不动，佩戴者如磐石般坚不可摧。",
             "iconImage": "assets/icons/equipment/磐心项链.png"
+        },
+        "stellar_helmet": {
+            "name": "星穹战盔",
+            "type": "头盔",
+            "icon": "⛨",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "helmet",
+            "armorSet": "stellar",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 10,
+                "perEnhance": 2.5
+            },
+            "bonusStats": {
+                "maxHp": 24
+            },
+            "bonusPerEnhance": {
+                "maxHp": 8.5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+10",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+24",
+                    "pos": true
+                }
+            ],
+            "desc": "星穹三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+15%、物理攻击+10%、移动速度+8%。",
+            "iconImage": "assets/icons/equipment/星穹战盔.png"
+        },
+        "stellar_armor": {
+            "name": "星穹战甲",
+            "type": "盔甲",
+            "icon": "🥋",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "armor",
+            "armorSet": "stellar",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 17,
+                "perEnhance": 3.5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+17",
+                    "pos": true
+                }
+            ],
+            "desc": "星穹三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+15%、物理攻击+10%、移动速度+8%。",
+            "iconImage": "assets/icons/equipment/星穹战甲.png"
+        },
+        "stellar_boots": {
+            "name": "星穹战靴",
+            "type": "靴子",
+            "icon": "👢",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "boots",
+            "armorSet": "stellar",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 7,
+                "perEnhance": 2
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+7",
+                    "pos": true
+                }
+            ],
+            "desc": "星穹三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+15%、物理攻击+10%、移动速度+8%。",
+            "iconImage": "assets/icons/equipment/星穹战靴.png"
+        },
+        "necklace_stellar": {
+            "name": "星穹项链",
+            "type": "项链",
+            "icon": "📿",
+            "category": "accessory",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "necklace",
+            "bonusStats": {
+                "str": 4,
+                "dex": 4
+            },
+            "bonusPerEnhance": {
+                "str": 2,
+                "dex": 2
+            },
+            "stats": [
+                {
+                    "name": "力量",
+                    "value": "+4",
+                    "pos": true
+                },
+                {
+                    "name": "敏捷",
+                    "value": "+4",
+                    "pos": true
+                }
+            ],
+            "desc": "以天穹陨铁铸成的项链，链坠为星辰核心，佩戴者身法如星轨流转。",
+            "iconImage": "assets/icons/equipment/星穹项链.png"
+        },
+        "ring_stellar": {
+            "name": "星穹之戒",
+            "type": "戒指",
+            "icon": "💍",
+            "category": "accessory",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "ring1",
+            "bonusStats": {
+                "atk": 5
+            },
+            "bonusPerEnhance": {
+                "atk": 3.5
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "+5",
+                    "pos": true
+                }
+            ],
+            "desc": "星穹之力的戒环，戒面刻着流转星图，挥击间星光迸溅。",
+            "iconImage": "assets/icons/equipment/星穹之戒.png"
+        },
+        "belt_stellar": {
+            "name": "星穹腰带",
+            "type": "腰带",
+            "icon": "❤️",
+            "category": "accessory",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "belt",
+            "bonusStats": {
+                "maxHp": 48
+            },
+            "bonusPerEnhance": {
+                "maxHp": 24
+            },
+            "stats": [
+                {
+                    "name": "最大生命值",
+                    "value": "+48",
+                    "pos": true
+                }
+            ],
+            "desc": "织入星辉丝线的腰带，生命如星河不息。",
+            "iconImage": "assets/icons/equipment/星穹腰带.png"
+        },
+        "lunar_helmet": {
+            "name": "苍月法帽",
+            "type": "头盔",
+            "icon": "🧙",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "helmet",
+            "armorSet": "lunar",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 9,
+                "perEnhance": 2
+            },
+            "bonusStats": {
+                "wis": 3
+            },
+            "bonusPerEnhance": {
+                "wis": 2
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+9",
+                    "pos": true
+                },
+                {
+                    "name": "精神",
+                    "value": "+3",
+                    "pos": true
+                }
+            ],
+            "desc": "苍月三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-22%、魔法伤害+30%。",
+            "iconImage": "assets/icons/equipment/苍月法帽.png"
+        },
+        "lunar_armor": {
+            "name": "苍月法袍",
+            "type": "盔甲",
+            "icon": "🧙",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "armor",
+            "armorSet": "lunar",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 12,
+                "perEnhance": 2
+            },
+            "bonusStats": {
+                "int": 3
+            },
+            "bonusPerEnhance": {
+                "int": 2
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+12",
+                    "pos": true
+                },
+                {
+                    "name": "智力",
+                    "value": "+3",
+                    "pos": true
+                }
+            ],
+            "desc": "苍月三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-22%、魔法伤害+30%。",
+            "iconImage": "assets/icons/equipment/苍月法袍.png"
+        },
+        "lunar_boots": {
+            "name": "苍月长靴",
+            "type": "靴子",
+            "icon": "👢",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "boots",
+            "armorSet": "lunar",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 5,
+                "perEnhance": 2
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+5",
+                    "pos": true
+                }
+            ],
+            "desc": "苍月三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-22%、魔法伤害+30%。",
+            "iconImage": "assets/icons/equipment/苍月长靴.png"
+        },
+        "tiangang_helmet": {
+            "name": "天罡重盔",
+            "type": "头盔",
+            "icon": "⛑",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "helmet",
+            "armorSet": "tiangang",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 38,
+                "perEnhance": 3.5
+            },
+            "bonusStats": {
+                "maxHp": 24
+            },
+            "bonusPerEnhance": {
+                "maxHp": 8.5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+38",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+24",
+                    "pos": true
+                }
+            ],
+            "desc": "天罡三件套（重盔/重甲/重靴）之一。三件齐穿激活：自动格挡50%概率减少90%伤害、-10%移动速度。",
+            "iconImage": "assets/icons/equipment/天罡重盔.png"
+        },
+        "tiangang_armor": {
+            "name": "天罡重甲",
+            "type": "盔甲",
+            "icon": "🛡",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "armor",
+            "armorSet": "tiangang",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 54,
+                "perEnhance": 5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+54",
+                    "pos": true
+                }
+            ],
+            "desc": "天罡三件套（重盔/重甲/重靴）之一。三件齐穿激活：自动格挡50%概率减少90%伤害、-10%移动速度。",
+            "iconImage": "assets/icons/equipment/天罡重甲.png"
+        },
+        "tiangang_boots": {
+            "name": "天罡重靴",
+            "type": "靴子",
+            "icon": "🥾",
+            "category": "armor",
+            "rarity": "epic",
+            "level": 15,
+            "equipSlot": "boots",
+            "armorSet": "tiangang",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 19,
+                "perEnhance": 3.5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+19",
+                    "pos": true
+                }
+            ],
+            "desc": "天罡三件套（重盔/重甲/重靴）之一。三件齐穿激活：自动格挡50%概率减少90%伤害、-10%移动速度。",
+            "iconImage": "assets/icons/equipment/天罡重靴.png"
         }
     }
 }

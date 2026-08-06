@@ -103,6 +103,8 @@ const baseMixin = {
         this._armorSetActive = null;
         this._cooldownReduction = 0;
         this._magicDamageBonus = 0;
+        this._critSetBonus = 0;
+        this._physicalDamageBonus = 0;
         let armorSpeedMul = 1;
         if (this.equipments) {
             const setCount = {};
@@ -130,8 +132,23 @@ const baseMixin = {
             } else if (setCount.zhenyue === 3) {
                 this._armorSetActive = 'zhenyue';
                 armorSpeedMul = 0.88; // 镇岳（稀有重甲）：-12% 移速（强化不影响格挡率）
+            } else if (setCount.stellar === 3) {
+                this._armorSetActive = 'stellar';
+                armorSpeedMul = 1.08; // 星穹（史诗输出）：+8% 移速
+                this._critSetBonus = 15; // 星穹：暴击率 +15%
+                this._physicalDamageBonus = 0.10; // 星穹：物理攻击 +10%
+            } else if (setCount.lunar === 3) {
+                this._armorSetActive = 'lunar';
+                this._cooldownReduction = 0.22; // 苍月（史诗法袍）：技能冷却 -22%
+                this._magicDamageBonus = 0.30; // 苍月（史诗法袍）：魔法伤害 +30%
+            } else if (setCount.tiangang === 3) {
+                this._armorSetActive = 'tiangang';
+                armorSpeedMul = 0.90; // 天罡（史诗重甲）：-10% 移速（格挡在 damageable-entity）
             }
         }
+        // 史诗星穹套：暴击率/物理攻击加成（在套装判定后应用）
+        if (this._critSetBonus) d.crit += this._critSetBonus;
+        if (this._physicalDamageBonus) d.atk = Math.floor(d.atk * (1 + this._physicalDamageBonus));
         // 实际移动读 this.maxSpeed（update.js），套装移速修正写回；面板 d.speed 同步
         this.maxSpeed = Math.floor(CONFIG.PLAYER_SPEED * armorSpeedMul);
         d.speed = Math.floor(d.speed * armorSpeedMul);
