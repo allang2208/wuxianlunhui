@@ -143,10 +143,15 @@ export class BootScene extends Scene {
         // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
         this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
         this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
-        // 世界-122 掩体（F→A 六档 × 水平摆(_h)/垂直摆(_v)，2026-08-04 dev+mesh 批量生图入库）
+        // 世界-122 掩体（F→A 六档；v1=定稿 + v2~v5 随机变体库，2026-08-05 入库）
         for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
             for (const orient of ['h', 'v']) {
                 this.load.image(`obstacle_cover_${grade}_${orient}`, `assets/terrain/obstacle_cover_${grade}_${orient}.png`);
+            }
+            for (let v = 2; v <= 5; v++) {
+                for (const orient of ['h', 'v']) {
+                    this.load.image(`obstacle_cover_${grade}_v${v}_${orient}`, `assets/terrain/obstacle_cover_${grade}_v${v}_${orient}.png`);
+                }
             }
         }
         // 世界-122 防御塔（基座+上方机械臂武器挂载点）
@@ -171,6 +176,22 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
+        // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
+        this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
+        this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
+        this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
+        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce_claw', 'assets/enemies/red_wolf_king_pounce_claw.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce_bite', 'assets/enemies/red_wolf_king_pounce_bite.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
+        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 7 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 7 });
 
         // 僵尸犬精灵图动画
         this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');

@@ -44,10 +44,14 @@ class BlackWolf extends Enemy {
 
         // 加载精灵图
         this._sprites = {
-            side: loadImage(spritePaths.side || 'assets/enemies/black_wolf.png'),
+            side: loadImage(spritePaths.side || 'assets/enemies/black_wolf_walk.png'),
+            walk: loadImage(spritePaths.walk || 'assets/enemies/black_wolf_walk.png'),
+            run: loadImage(spritePaths.run || 'assets/enemies/black_wolf_run.png'),
             front: loadImage(spritePaths.front || 'assets/enemies/black_wolf_updown.png'),
             back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
-            attack: loadImage(spritePaths.attack || 'assets/enemies/black_wolf_attack.png'),
+            attack: loadImage(spritePaths.attack || 'assets/enemies/black_wolf_bite.png'),
+            bite: loadImage(spritePaths.bite || 'assets/enemies/black_wolf_bite.png'),
+            pounce: loadImage(spritePaths.pounce || 'assets/enemies/black_wolf_pounce.png'),
             pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_pacing.png'),
             idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
         };
@@ -58,14 +62,17 @@ class BlackWolf extends Enemy {
         
         // 动画状态
         this._animState = 'idle'; // idle, walk, run, attack, pacing
-        this._attackDuration = anim.attackDuration ?? 1600; // 攻击动画总时长(ms)，匹配 8帧 × 200ms/帧
+        this._attackDuration = anim.attackDuration ?? 1600; // 攻击动画总时长(ms)
+        this._attackTypes = anim.attackTypes || {}; // 双攻击：bite(撕咬) / pounce(飞扑)
+        this._attackType = 'bite'; // 当前攻击类型
         this._dashDistance = config.dashDistance || 200; // 从配置读取突进距离
         // 帧动画
         const frameLayout = anim.frameLayout || {};
-        this._frameW = frameLayout.width ?? 250;
-        this._frameH = frameLayout.height ?? 215;
+        this._frameW = frameLayout.width ?? 512;
+        this._frameH = frameLayout.height ?? 512;
         this._cols = frameLayout.cols ?? 4;
-        this._rows = frameLayout.rows ?? 2;
+        this._rows = frameLayout.rows ?? 4;
+        this._frameLayouts = anim.frameLayouts || {};
         // 帧率配置 (ms/帧)
         this._frameDurations = anim.frameDurations || {
             idle: 200,
@@ -163,23 +170,30 @@ class BlackWolf extends Enemy {
 
         // === 更新帧动画 ===
         this._animTimer += dt;
-        const frameDuration = this._frameDurations[this._animState] || 150;
-        if (this._animState === 'attack') {
-            if (this._animTimer >= frameDuration) {
-                this._animTimer = 0;
-                this._animFrame = (this._animFrame + 1) % 8;
-            }
-        } else {
-            if (this._animTimer >= frameDuration) {
-                this._animTimer = 0;
-                const totalFrames = (this._animState === 'run' || this._animState === 'pacing') ? 8 : 4;
-                this._animFrame = (this._animFrame + 1) % totalFrames;
-            }
+        const durKey = this._animState === 'attack' ? (this._attackType || 'bite') : this._animState;
+        const frameDuration = this._frameDurations[durKey] || this._frameDurations[this._animState] || 150;
+        if (this._animTimer >= frameDuration) {
+            this._animTimer = 0;
+            this._animFrame = (this._animFrame + 1) % this._getStateFrameCount();
         }
     }
 
     triggerWeaponAnim() {
+        if (this._attackTimer > 0) return;
+        // 双攻击：近距离撕咬 / 中距离飞扑（按攻击时与目标的距离选择）
+        let type = 'bite';
+        if (this.target && this.target.active) {
+            const d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
+            const biteRange = this._attackTypes?.bite?.range ?? 170;
+            if (d > biteRange) type = 'pounce';
+        }
+        this._attackType = type;
+        const atk = this._attackTypes?.[type] || {};
+        if (atk.duration) this._attackDuration = atk.duration;
         super.triggerWeaponAnim();
+        // 按攻击类型限制冲刺距离（bite 短扑、pounce 大跳）
+        const dashCap = atk.dash ?? (type === 'bite' ? 60 : 240);
+        if (this._dashDistance > dashCap) this._dashDistance = dashCap;
     }
 
     _getTextureKey() {
@@ -187,12 +201,33 @@ class BlackWolf extends Enemy {
             return 'enemy_black_wolf_idle';
         }
         if (this._animState === 'attack') {
-            return 'enemy_black_wolf_attack';
+            return this._attackType === 'pounce' ? 'enemy_black_wolf_pounce' : 'enemy_black_wolf_bite';
         }
         if (this._animState === 'pacing') {
-            return 'enemy_black_wolf_pacing';
+            return 'enemy_black_wolf_walk';
         }
-        return 'enemy_black_wolf';
+        if (this._animState === 'run') {
+            return 'enemy_black_wolf_run';
+        }
+        if (this._animState === 'idle') {
+            return 'enemy_black_wolf_idle';
+        }
+        return 'enemy_black_wolf_walk';
+    }
+
+    // 当前状态（含攻击子类型）的精灵图网格与帧数
+    _getFrameLayout(state) {
+        const layouts = this._frameLayouts || {};
+        const key = state === 'attack' ? (this._attackType || 'bite') : state;
+        return layouts[key] || layouts.walk || { cols: 4, rows: 4 };
+    }
+
+    _getStateFrameCount() {
+        const layouts = this._frameLayouts || {};
+        if (this._animState === 'attack') {
+            return layouts[this._attackType]?.frames || (this._attackType === 'pounce' ? 11 : 8);
+        }
+        return layouts[this._animState]?.frames || (this._animState === 'run' ? 14 : (this._animState === 'walk' ? 16 : 8));
     }
 
     _getPhaserOptions() {
@@ -243,15 +278,24 @@ class BlackWolf extends Enemy {
         let { bounceY, scaleX, scaleY, leanAngle, swayX } = params;
 
         let currentSprite;
+        let staticImage = false;
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             // 眩晕状态：显示 idle 图片（被弹反后）
             currentSprite = this._sprites.idle;
+            staticImage = true;
         } else if (this._animState === 'attack') {
-            currentSprite = this._sprites.attack;
+            currentSprite = this._attackType === 'pounce'
+                ? (this._sprites.pounce || this._sprites.attack)
+                : (this._sprites.bite || this._sprites.attack);
         } else if (this._animState === 'pacing') {
             currentSprite = this._sprites.pacing;
+        } else if (this._animState === 'run') {
+            currentSprite = this._sprites.run || this._sprites.side;
+        } else if (this._animState === 'idle') {
+            currentSprite = this._sprites.idle;
+            staticImage = true;
         } else {
-            currentSprite = this._sprites.side;
+            currentSprite = this._sprites.walk || this._sprites.side;
         }
 
         const shouldFlip = this._facing === 'left' ||
@@ -263,8 +307,8 @@ class BlackWolf extends Enemy {
         if (shouldFlip) ctx.scale(-1, 1);
         ctx.rotate(leanAngle);
         if (currentSprite && currentSprite.complete && currentSprite.naturalWidth > 0) {
-            if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
-                // 眩晕 idle 图片：单张，直接绘制，缩放至 151x151
+            if (staticImage) {
+                // idle / 眩晕冻结图片：单张，直接绘制，缩放至 151x151
                 const renderCfg = this._animCfg?.render || {};
                 const spriteSize = renderCfg.spriteSize ?? 151;
                 const spriteOffset = renderCfg.spriteOffset ?? -76;
@@ -276,10 +320,11 @@ class BlackWolf extends Enemy {
                 ctx.restore();
             } else {
                 // 正常帧动画
-                const frameW = currentSprite.naturalWidth / this._cols;
-                const frameH = currentSprite.naturalHeight / this._rows;
-                const col = this._animFrame % this._cols;
-                const row = Math.floor(this._animFrame / this._cols);
+                const layout = this._getFrameLayout(this._animState);
+                const frameW = currentSprite.naturalWidth / layout.cols;
+                const frameH = currentSprite.naturalHeight / layout.rows;
+                const col = this._animFrame % layout.cols;
+                const row = Math.floor(this._animFrame / layout.cols);
                 const renderCfg = this._animCfg?.render || {};
                 const spriteSize = renderCfg.spriteSize ?? 151;
                 const spriteOffset = renderCfg.spriteOffset ?? -76;
@@ -350,6 +395,209 @@ class BlackWolf extends Enemy {
             bounceY = Math.sin(t) * (stateCfg.bounceAmplitude ?? 2);
         }
         return { bounceY, scaleX, scaleY, leanAngle, swayX };
+    }
+}
+
+/**
+ * 红狼王（elite，2026-08-06 贴图升级重建，H3 视频→精灵图管线）：
+ * - 狼形态：idle / walk / run + 双攻击（飞扑挥爪 pounceClaw / 飞扑撕咬 pounceBite）+ 变身 transform；
+ * - HP ≤ 阈值（默认 0.5）触发变身：2s transform 动画 → 红狼人形态（伤害 ×2、回血），
+ *   变身完成先仰天嚎叫（howl）；
+ * - 红狼人形态：idle / run / 挥爪攻击 attack / 嚎叫 howl；
+ * - 动画走 Phaser setFrame 帧索引路径（同黑狼），贴图/网格由 animation-config redWolfKing 驱动。
+ */
+class RedWolfKing extends BlackWolf {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.redWolfKing, ...config });
+        this._animCfg = getAnimConfig('redWolfKing');
+        const anim = this._animCfg.animation || {};
+        const spritePaths = this._animCfg.sprites || {};
+        const tPaths = this._animCfg.transformedSprites || {};
+        // 狼形态贴图
+        this._wolfSprites = {
+            side: loadImage(spritePaths.side || 'assets/enemies/red_wolf_king_run.png'),
+            walk: loadImage(spritePaths.walk || 'assets/enemies/red_wolf_king_pacing.png'),
+            run: loadImage(spritePaths.run || 'assets/enemies/red_wolf_king_run.png'),
+            attack: loadImage(spritePaths.attack || 'assets/enemies/red_wolf_king_attack.png'),
+            pounceClaw: loadImage(spritePaths.pounceClaw || 'assets/enemies/red_wolf_king_pounce_claw.png'),
+            pounceBite: loadImage(spritePaths.pounceBite || 'assets/enemies/red_wolf_king_pounce_bite.png'),
+            pacing: loadImage(spritePaths.pacing || 'assets/enemies/red_wolf_king_pacing.png'),
+            idle: loadImage(spritePaths.idle || 'assets/enemies/red_wolf_king_idle.png'),
+            transform: loadImage(spritePaths.transform || 'assets/enemies/red_wolf_king_change.png'),
+            howl: loadImage(spritePaths.howl || 'assets/enemies/red_wolf_king_howl.png'),
+        };
+        // 红狼人形态贴图
+        this._humanSprites = {
+            idle: loadImage(tPaths.idle || 'assets/enemies/red_wolf_king_transformed_idle.png'),
+            run: loadImage(tPaths.run || tPaths.side || 'assets/enemies/red_wolf_king_changed_run.png'),
+            attack: loadImage(tPaths.attack || 'assets/enemies/red_wolf_king_changed_attack.png'),
+            howl: loadImage(tPaths.howl || 'assets/enemies/red_wolf_king_howl.png'),
+        };
+        this._sprites = this._wolfSprites;
+        // 变身配置
+        this._transformCfg = this._animCfg.transform || {};
+        this._isTransforming = false;
+        this._isTransformed = false;
+        this._transformTriggered = false;
+        this._transformTimer = 0;
+        this._howlTimer = 0;
+        // 狼形态双攻击（近咬 / 中距离飞扑挥爪）
+        this._attackTypes = anim.attackTypes || {
+            pounceClaw: { range: 210, duration: 1100, dash: 220 },
+            pounceBite: { range: 170, duration: 1000, dash: 60 },
+        };
+        this._attackType = 'pounceBite';
+    }
+
+    update(dt, entities) {
+        // 变身触发：HP 阈值
+        if (!this._transformTriggered && this.maxHp > 0 && this.hp / this.maxHp <= (this._transformCfg.hpThreshold ?? 0.5)) {
+            this._transformTriggered = true;
+            this._isTransforming = true;
+            this._transformTimer = this._transformCfg.duration ?? 2000;
+        }
+        if (this._isTransforming) {
+            this.vx = 0;
+            this.vy = 0;
+            this._transformTimer -= dt;
+            if (this._transformTimer <= 0) {
+                this._isTransforming = false;
+                this._isTransformed = true;
+                this._applyTransform();
+                this._howlTimer = this._transformCfg.howlDuration ?? 2000;
+            }
+        }
+        if (this._howlTimer > 0) {
+            this._howlTimer -= dt;
+            this.vx = 0;
+            this.vy = 0;
+        }
+        super.update(dt, entities);
+        // 覆盖动画状态：变身/嚎叫期间锁定
+        if (this._isTransforming) {
+            this._animState = 'transform';
+            this._animFrame = this._timerFrame(this._transformTimer, this._transformCfg.duration ?? 2000);
+        } else if (this._howlTimer > 0) {
+            this._animState = 'howl';
+            this._animFrame = this._timerFrame(this._howlTimer, this._transformCfg.howlDuration ?? 2000);
+        }
+        // 红狼人形态切换贴图组
+        this._sprites = this._isTransformed ? this._humanSprites : this._wolfSprites;
+    }
+
+    _timerFrame(remaining, total) {
+        const n = this._getStateFrameCount();
+        const progress = 1 - Math.max(0, remaining) / Math.max(1, total);
+        return Math.max(0, Math.min(n - 1, Math.floor(progress * n)));
+    }
+
+    _applyTransform() {
+        // 伤害 ×2（transform.damageMultiplier）
+        const atk = this.attacks && this.attacks.melee;
+        if (atk && atk.config && atk.config.damage) {
+            const d = atk.config.damage;
+            atk.config.damage = typeof d === 'object'
+                ? { min: (d.min || 0) * 2, max: (d.max || 0) * 2 }
+                : (typeof d === 'number' ? d * 2 : d);
+        }
+        // 回血（hpRecover 比例，1=回满）
+        const recover = this._transformCfg.hpRecover ?? 0;
+        if (recover && this.maxHp) {
+            this.hp = Math.min(this.maxHp, this.hp + this.maxHp * recover);
+        }
+    }
+
+    triggerWeaponAnim() {
+        if (this._attackTimer > 0) return;
+        let type = 'pounceBite';
+        if (this.target && this.target.active) {
+            const d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
+            const clawRange = this._attackTypes?.pounceClaw?.range ?? 210;
+            if (d > clawRange) type = 'pounceClaw';
+        }
+        this._attackType = type;
+        const atk = this._attackTypes?.[type] || {};
+        if (atk.duration) this._attackDuration = atk.duration;
+        super.triggerWeaponAnim();
+        const dashCap = atk.dash ?? 220;
+        if (this._dashDistance > dashCap) this._dashDistance = dashCap;
+    }
+
+    _getTextureKey() {
+        const frozen = this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'));
+        if (this._isTransforming) return 'enemy_red_wolf_king_change';
+        if (this._isTransformed) {
+            if (frozen) return 'enemy_red_wolf_king_transformed_idle';
+            if (this._howlTimer > 0) return 'enemy_red_wolf_king_howl';
+            if (this._animState === 'attack') return 'enemy_red_wolf_king_changed_attack';
+            if (this._animState === 'run') return 'enemy_red_wolf_king_changed_run';
+            return 'enemy_red_wolf_king_transformed_idle';
+        }
+        if (frozen) return 'enemy_red_wolf_king_idle';
+        if (this._animState === 'attack') {
+            return this._attackType === 'pounceClaw'
+                ? 'enemy_red_wolf_king_pounce_claw'
+                : 'enemy_red_wolf_king_pounce_bite';
+        }
+        if (this._animState === 'pacing') return 'enemy_red_wolf_king_pacing';
+        if (this._animState === 'run') return 'enemy_red_wolf_king_run';
+        if (this._animState === 'idle') return 'enemy_red_wolf_king_idle';
+        return 'enemy_red_wolf_king_pacing';
+    }
+
+    _getFrameLayout(state) {
+        const layouts = this._frameLayouts || {};
+        if (this._isTransformed) {
+            const tf = this._animCfg?.render?.transformedFrameLayout || {};
+            const key = state === 'attack' ? 'attack' : state;
+            return tf[key] || { cols: 4, rows: 2, frames: 8 };
+        }
+        if (this._animState === 'transform') return layouts.transform || { cols: 4, rows: 2, frames: 8 };
+        if (this._animState === 'howl') return layouts.howl || { cols: 4, rows: 2, frames: 8 };
+        if (this._animState === 'attack') {
+            return layouts[this._attackType] || layouts.pounceBite || { cols: 4, rows: 2, frames: 8 };
+        }
+        return super._getFrameLayout(state);
+    }
+
+    _getStateFrameCount() {
+        const layouts = this._frameLayouts || {};
+        if (this._isTransformed) {
+            const tf = this._animCfg?.render?.transformedFrameLayout || {};
+            const key = this._animState === 'attack' ? 'attack' : this._animState;
+            return (tf[key] && tf[key].frames) || (tf[key] && tf[key].cols * tf[key].rows) || 8;
+        }
+        if (this._animState === 'transform') return (layouts.transform && layouts.transform.frames) || 8;
+        if (this._animState === 'howl') return (layouts.howl && layouts.howl.frames) || 8;
+        if (this._animState === 'attack') {
+            return (layouts[this._attackType] && layouts[this._attackType].frames) || 8;
+        }
+        return super._getStateFrameCount();
+    }
+
+    _drawBody(ctx) {
+        if (this._isTransforming) {
+            this._drawSheetFrame(ctx, this._wolfSprites.transform, this._frameLayouts.transform);
+            return;
+        }
+        if (this._howlTimer > 0 && this._isTransformed) {
+            this._drawSheetFrame(ctx, this._humanSprites.howl, this._frameLayouts.howl);
+            return;
+        }
+        super._drawBody(ctx);
+    }
+
+    _drawSheetFrame(ctx, img, layout) {
+        if (!img || !img.complete || !img.naturalWidth) return;
+        const lay = layout || { cols: 4, rows: 2 };
+        const frameW = img.naturalWidth / lay.cols;
+        const frameH = img.naturalHeight / lay.rows;
+        const col = this._animFrame % lay.cols;
+        const row = Math.floor(this._animFrame / lay.cols);
+        const renderCfg = this._animCfg?.render || {};
+        const spriteSize = renderCfg.spriteSize ?? 151;
+        const spriteOffset = renderCfg.spriteOffset ?? -76;
+        ctx.drawImage(img, col * frameW, row * frameH, frameW, frameH, spriteOffset, spriteOffset, spriteSize, spriteSize);
     }
 }
 
@@ -484,4 +732,4 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

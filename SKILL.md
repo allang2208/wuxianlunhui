@@ -247,6 +247,58 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   网格，第一版 B/A 网格被盖，FFT 周期弱于直墙基线）；旧版备份 `.bak.brick2`。
   **校验铁律**：强度元素必须“砖格为主、元素为辅”，FFT 双轴峰值 ≥ 直墙基线（~0.03）
   才算过；GLM 缩略图误读网格，必须放大单看砖缝。
+- **E/C 修复 + 8 角圆角（2026-08-05 四版，用户先让全网查墙壁贴图做法）**：
+  - 行业做法（全网检索）：墙体贴图走“UV 映射 + 烘焙”管线，中段用 tileable 纹理、
+    端头/转角用 trim；材质配 PBR 通道；白色残留 = 生成时背景色/alpha 问题，须在
+    纹理层消除（渲染成品 0% 白为准）。路线 B 符合该方向（几何 Blender 控制 + AI 只出材质）。
+  - E 修复：沙袋固定“仅顶部一行 + 砖格铺满其余”，提示词加 `sandbags only at the top edge,
+    no sandbags elsewhere` + `no white background, no pure white areas`（旧版沙袋乱入
+    墙体中部/白色残留即“贴合位置错误 + 看到白底”的根因）。
+  - C 修复：加 `bright even lighting with subtle highlight and shadow detail, high contrast
+    between concrete blocks and mortar lines`（旧版灰闷无层次）+ 钢板改小点缀不盖砖格。
+  - **8 角圆滑（用户要求尝试）**：Blender box 加 `bmesh.ops.bevel(affect='VERTICES')`，
+    只圆 8 个顶角、不动长棱边（保住底边直线）；bevel=10 世界 px、segments=3，
+    先 `transform_apply(scale)` 再 bevel（否则偏移随非均匀缩放）。圆角后底边端点复标
+    A(-88,-21)/B(88,-108)、sizeH 259（aspect 1.004），拼接仍连续（40px 端帽叠合覆盖圆角）。
+    旧版备份 `.bak.bevel`。
+- **⚠ 重大根因：Blender 默认 cube 的 UV 是 3×2 分块布局（2026-08-05 五版修复）**：
+  新建 cube 的 UV 不是每面 [0,1]²，而是每张面只采样纹理的一小块——材质贴图
+  **只有上半部分被显示**（砖墙上下纹理一致看不出来，E 级沙袋"位置错误/露白"暴露）。
+  修复：`render-cover-real.py` 新增 `box_full_uv()`——每个面按局部主轴投影归一化到
+  [0,1]²（V 轴优先世界 Z 朝上），纹理顶部始终在墙顶；bevel 后同样适用。
+  验证方法：方向标记测试纹理（上洋红/下青色/中黄线）渲染后沿中列采样——修复前只见
+  洋红，修复后正面自上而下完整显示洋红→黄→青。**此后任何 Blender 立方体资产
+  必须检查 UV 是否为整图映射，不能再吃默认 cube UV**。旧版备份 `.bak.uvfix`。
+- **E 改砂岩墙 / A 改大符文（2026-08-05 六版）**：E 级放弃沙袋（用户认为沙袋还有
+  优化空间，先不做）→ 纯**沙色/米黄砂岩砖墙**（sandstone brick wall, warm sand and
+  beige tones, no sandbags）；A 级符文放大：`one single large glowing blue rune
+  engraved across the center, exactly one large rune, no small runes, no repeated
+  runes`——成品正面 1 个大符文（顶面映射 1 个，共 2 个），符文约占正面 1/4~1/3。
+  旧版备份 `.bak.sandrunes`。验证：GLM 确认 E 无沙袋/砖格规整、A 大符文单点不密集；
+  白色像素 0%、MIRROR 对、拼接像素、实机审计全过。
+- **变体随机贴图库（2026-08-05/06 七版）**：每级 5 个"高度类似、细节微调"变体
+  （v1=定稿；v2~v5 由 `VARIANT_SUFFIX` 微调砖色/磨损/苔藓/色温，A 级由
+  `A_RUNE_VARIANTS` 随机替换大符文形态：棱角/圆形/菱形/十字）。
+  生成：`gen-cover-textures.py --variants 5 --from-variant 2`（v1 从定稿 tex_<g>.png
+  复制保留）；渲染 `render-cover-batch.py FEDCBA 5`；入库
+  `obstacle_cover_<g>_v<n>_v/h.png`（v 原样 + h=flip，共 24 变体 × 2 向）。
+  游戏集成：BootScene 加载 v2~v5 变体；`DefenseCover` 构造时
+  `variant = 1+floor(random()*5)` 随机选贴图（v1 无后缀，v2+ 带 `_v<n>_`）——
+  同一房间/防线的墙段不再千篇一律。实机验证：14 件 D 掩体随机分布到 5 变体。
+  **mesh 弃用（2026-08-05 实测）**：mesh（Icarus@5080+Daedalus@3080Ti，8 步 Turbo）
+  单张 283s vs 5080 单机 fp8 48 步 84s——mesh 更慢 2~3 倍（通信 + 服务端弱卡），
+  仅适合"主卡显存装不下大模型"的救急，纹理批量继续 5080 单机 fp8。
+- **祭坛/仓库 Blender 重做（2026-08-06 八版，建筑管线）**：
+  - 视角体系定论：墙/掩体=等距 2.5D（30° 俯仰、可见顶面）；人物/防御塔/祭坛/仓库=
+    **正面平视 billboard、平底**（2.5D 惯例：地形等距 + 立绘建筑，不冲突；
+    红线=建筑顶面可见度勿超过墙量级，防御塔 45° 等距版即因此被否）。
+  - 新工具 `render-building-real.py`：多 box + prism（三角棱柱坡屋顶）组合、
+    每部件独立材质纹理、相机俯仰默认 5°（最多一条极窄顶边）、无阴影、透明底。
+  - 祭坛=多层台座+中央碑（大理石+金饰+蓝宝石 AI 材质）；仓库=木屋 box+坡屋顶 prism。
+  - **标定**：内容底边比例 cb（如 0.8506）→ `sizeH = size×内容高/内容宽`、
+    `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
+  - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
+    GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -816,6 +868,25 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   强裁会砍下摆——保留原状并在交付说明，不做无谓二次裁剪。
 - 用户视角的"没调整/超出边界"常是**新图标与原图撞设计**（心形吊坠撞车）或水印误伤，
   用 GLM 对比新旧图 + 像素边界量化（`tools/check-margins.py`）定位，别只看单文件。
+
+### 7. 史诗套首航（2026-08-06 星穹 stellar，输出向）
+### 7. 史诗三套（2026-08-06 星穹/苍月/天罡，轻/法/重齐备）
+- **体系对齐**：装备分轻甲/法袍/重甲三系，史诗档必须三套齐备（用户提醒），
+  与优质三套（疾风/秘法/壁垒）→ 稀有三套（流云/蚀月/镇岳）的递推链一致。
+- **数值递推**：史诗 = 稀有 ×1.25 向上取整（基础值取整、成长取整到 0.5 步进）：
+  - 星穹（轻甲，稀有流云上位）：盔 8+2→10+2.5、甲 13+2.5→17+3.5、靴 5+1.5→7+2
+  - 苍月（法袍，稀有蚀月上位）：盔 7+1.5→9+2(wis 2+1.5→3+2)、袍 9+1.5→12+2(int 同)、靴 4+1.5→5+2
+  - 天罡（重甲，稀有镇岳上位）：盔 30+2.5→38+3.5(maxHp 19+6.5→24+8.5)、甲 43+4→54+5、靴 15+2.5→19+3.5
+- **套装效果**（base.js 三个分支 + damageable-entity 格挡）：
+  - stellar：暴击率+15%、物攻+10%（`_critSetBonus`/`_physicalDamageBonus` 新字段）、移速+8%
+  - lunar：冷却-22%、魔伤+30%（复用 `_cooldownReduction`/`_magicDamageBonus`）
+  - tiangang：格挡 50%×90%（blockCfg 新分支）、移速-10%
+- **配套首饰**：仅星穹配 3 件（项链 str+dex / 戒指 atk / 腰带 maxHp，稀有首饰 ×1.25）；
+  苍月/天罡纯三件套（与稀有套无配套首饰的模式一致）。
+- **图标**：`flux2-klein-4b-equipment` LoRA 生成（星穹深蓝金辉/苍月月银蓝光/天罡暗铁金纹），
+  GLM 6+6 全过 → BiRefNet 抠图 → 1536² 最长边 0.90 居中，细长件保留 aspect。
+- **接线**：equipment.json 双份 12 件 + base.js 3 分支 + tooltip 3 键 +
+  shop blacksmith 12 id（epic 兜底 800）；验证四件套同 §5。
 
 ---
 
@@ -3553,3 +3624,67 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   （自动出 20 帧 5×4、2560×2048，附 GIF 预览）。
 - 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
   anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。
+
+## 黑狼动画升级（2026-08-06，H3 全动作管线落地）
+
+### 1. 步态周期不能沿用工头默认（关键）
+- `h3-loop-spritesheet.py` 默认 `--period 70,120` 是按工头 walk（P=80）标定的；
+  **黑狼 walk 实测周期 P=48（s=36,e=84）、run P=28（s=40,e=68）**，用默认周期
+  直接报 "no same-phase gait pair found"。换动物必须先做腿部 IoU 周期扫描
+  （`leg_iou(s, s+P)`，P∈[16,120]）定真实周期，再传 `--period P,P`。
+- 首尾高 IoU 配（~0.98）是"首帧=尾帧 idle 重影"，不是步态周期，别被它骗；
+  限定匀速中段（steady 12..105）再找周期。
+- 步进：walk P=48 用 `--step 3` → 16 帧（4×4）；run P=28 用 `--step 2` → 14 帧（7×2）。
+
+### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
+- 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
+  用狼 mask 相对首帧的 IoU 差定位攻击窗口（撕咬 21..43、飞扑 14..74）。
+- **水平位移必须保留**：攻击帧不能像循环那样逐帧居中——否则前扑/撕咬的
+  水平 reach 全被抹掉。以首帧 bbox 中心为参照，各帧按相对位移 dx×scale
+  平移（飞扑 cx 从 638→737，占格内 36px）；脚底基线仍固定 410。
+- 攻击帧数：撕咬 8 帧（step 3）、飞扑 11 帧（step 6）；cols 不满行补透明格。
+- 黑狼步态动画走 **Phaser setFrame 帧索引路径（无 anims）**：每状态独立
+  `frameLayouts`（cols/rows/frames），`_animFrame` 按状态取模，比 foreman 的
+  `anims.create` 集成方式不同——`_getTextureKey` 换贴图 + `_getPhaserOptions.frame`
+  切帧即可，不要套用 anims 注册（黑狼本来就不注册动画）。
+
+### 3. 双攻击（撕咬/飞扑）数据驱动
+- `animation-config.blackWolf.animation.attackTypes`：`bite`（range 170 / duration 1000 /
+  dash 60 / 10 帧）与 `pounce`（range 99999 / duration 1250 / dash 240 / 11 帧）；
+  `enemy-config.attackDistance: 300` 让中距离飞扑能触发（旧 161 只会咬）。
+- `triggerWeaponAnim` 按触发时与目标距离选型；冲刺距离按类型封顶
+  （bite ≤60、pounce ≤240），冲刺仍走 dashEasing 前 12.5% 快速到位，
+  与旧黑狼突进一致，命中判定（dynamicRange 160 + 冲刺偏移）无需改。
+- 资产：`black_wolf_walk/run/bite/pounce.png` + `black_wolf_idle.png` 全部
+  512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
+  碰撞体积（120×65 / footOffsetY 41）不用动。
+
+### 4. H3 视频抽帧必须走 BiRefNet 抠图（2026-08-06 白边教训，已重做）
+- **阈值 235 + 羽化 σ0.8 必留白边**：H3 视频背景实测纯白 254~255，但狼体边缘有
+  压缩光晕（235~253 灰白）与浅色毛混在一起（帧 68 有 41% 亮像素深达狼体内部），
+  阈值顾此失彼：调低留灰白边、调高切浅毛。**半透明边缘像素 80% 亮度>200 即白边**
+  （量化判据），修复后必须 <1%。
+- **正确做法**：抽帧后逐帧过 BiRefNet（`birefnet-cutout.py`，模型
+  `Y:\模型库\ComfyUI\models\BiRefNet`，junction 到 `ComfyUI\models\BiRefNet`）→
+  用 BiRefNet alpha 重建 sheet → 边缘反推去污染兜底（白色半透明像素直接清零，
+  灰调半透明像素反推前景色）。修复后白边 0.00~0.25%，GLM 复验浅毛高光完整。
+- 工具 `h3-loop-spritesheet.py` / `h3-attack-spritesheet.py` 已加
+  `--threshold`（默认 248）/ `--feather`（默认 0.3）参数，但**只用于定位/快速预览，
+  正式入库一律走 BiRefNet**。
+- **攻击提示词必须写"肢体前扑"**：光写 "lunges its head forward, opens jaws" 会被
+  H3 理解成只张嘴（v1 实锤）。v2 改成 "drops its chest low, steps its front legs
+  forward in a long stride, stretches its whole torso and shoulders toward the
+  target, thrusts its head forward with jaws wide open" 后，帧宽 433→512
+  （前扑拉伸 79px）、GLM 确认"身体前倾/前腿跨步/躯干前探"。攻击帧抽 10 帧
+  （windup→lunge→bite→retract→return），5×2 网格。
+
+### 5. Phaser displaySize 只在创建时按初始纹理算（2026-08-06 idle 小图根因）
+- **症状**：idle 显示小/扁。根因：`_configureEnemyBody` 只执行一次，按创建时
+  纹理的帧尺寸算 displaySize；黑狼初始 `_aiState='pacing'` → 创建时用旧
+  250×215 pacing 贴图 → displaySize=151×130，之后切到任何 512² 新贴图都不重算。
+- **修复**：`GameScene._syncEnemyAnimation` 在 setTexture 后按当前帧尺寸重算
+  `setDisplaySize`（spriteSize 语义）；同时 pacing 也统一走新 walk 贴图
+  （16 帧慢速 180ms），全状态 512² 显示一致。
+- **多贴图混用纪律**：同一敌人的新旧贴图画布尺寸必须统一（本项目 512²），
+  否则创建时算的一次性 displaySize 会压扁后续贴图；新增贴图先查初始状态
+  用的纹理尺寸。

@@ -21,9 +21,24 @@
     "sampler": "euler",
     "size": "1024x1024",
     "negative": "",
-    "lora": "klein-skillicon-v2.safetensors",
+    "lora": "klein-skillicon-v3.safetensors",
     "lora_strength": 1.0,
     "note": "FLUX.2 klein 4B distilled（fp8）；文本编码器 qwen_3_4b 与 Z-Image 共用"
+  },
+  "flux2-klein-4b-equipment": {
+    "type": "flux2",
+    "unet": "flux-2-klein-4b-fp8.safetensors",
+    "clip": "qwen_3_4b.safetensors",
+    "vae": "flux2-vae.safetensors",
+    "steps": 12,
+    "cfg": 1.0,
+    "guidance": 1.0,
+    "sampler": "euler",
+    "size": "1024x1024",
+    "negative": "",
+    "lora": "klein-equipment-v1.safetensors",
+    "lora_strength": 1.0,
+    "note": "FLUX.2 klein 4B + 装备图标风格 LoRA（klein-equipment-v1，2026-08-06 训，写实3D单件白底）"
   },
   "flux2-dev-fp8": {
     "type": "flux2",

@@ -5422,6 +5422,14 @@ export class GameScene extends Scene {
         const safeTexture = this.textures.exists(wanted) ? wanted : 'enemy_circle';
         if (sprite.texture.key !== safeTexture) {
             sprite.setTexture(safeTexture);
+            // 纹理切换后按当前帧尺寸重算显示大小：
+            // 旧 250×215 贴图（黑狼 pacing/attack）与新 512² 贴图混用时，
+            // 创建时一次性计算的 displaySize 会压扁/缩小（2026-08-06 黑狼 idle 小图根因）
+            const size = options.spriteSize || 151;
+            const fw = (sprite.frame && sprite.frame.width) || 1;
+            const fh = (sprite.frame && sprite.frame.height) || 1;
+            const longest = Math.max(fw, fh);
+            sprite.setDisplaySize(fw * size / longest, fh * size / longest);
         }
         if (options.flipX !== undefined) {
             sprite.setFlipX(options.flipX);

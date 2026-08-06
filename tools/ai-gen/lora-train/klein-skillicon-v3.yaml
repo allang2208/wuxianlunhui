@@ -1,0 +1,59 @@
+---
+job: extension
+config:
+  name: "klein-skillicon-v3"
+  process:
+    - type: 'sd_trainer'
+      training_folder: "D:/开发文件/lora-train/output"
+      device: cuda:0
+      trigger_word: "wuxianlunhui magic skill icon"
+      network:
+        type: "lora"
+        linear: 32
+        linear_alpha: 16
+      save:
+        dtype: float16
+        save_every: 100
+        max_step_saves_to_keep: 10
+        push_to_hub: false
+      datasets:
+        - folder_path: "D:/开发文件/lora-train/dataset-v3"
+          caption_ext: "txt"
+          caption_dropout_rate: 0.05
+          shuffle_tokens: false
+          cache_latents_to_disk: true
+          resolution: [ 1024, 1024 ]
+      train:
+        batch_size: 1
+        steps: 1000
+        gradient_accumulation_steps: 1
+        train_unet: true
+        train_text_encoder: false
+        gradient_checkpointing: true
+        noise_scheduler: "flowmatch"
+        optimizer: "adamw8bit"
+        lr: 1e-4
+        ema_config:
+          use_ema: true
+          ema_decay: 0.99
+        dtype: bf16
+      model:
+        # FLUX.2 klein 4B BASE (undistilled) - BFL recommended training base
+        name_or_path: "D:/开发文件/lora-train/base/flux-2-klein-base-4b.safetensors"
+        arch: "flux2_klein_4b"
+        te_dtype: "fp16"
+        quantize: true
+        qtype: "qfloat8"
+        quantize_te: false
+        model_kwargs:
+          flux2_klein_te_path: "D:/开发文件/lora-train/te/Qwen3-4B"
+          flux2_vae_path: "D:/开发文件/ComfyUI/models/vae/flux2-vae.safetensors"
+      sample:
+        sampler: "flowmatch"
+        sample_every: 100
+        sample_start_step: 100
+        width: 1024
+        height: 1024
+        prompts:
+          - "[trigger] a single purple hexagonal badge with uniform gold trim, irregular faceted crystal surface with glossy translucent reflections like glass, the center shows a howling wind blade, crescent of sharp wind energy with blue-white glow, centered, game asset art, high detail, crisp, isolated on a plain pure white background"
+          - "[trigger] a single purple hexagonal badge with uniform gold trim, irregular faceted crystal surface with glossy translucent reflections like glass, the center shows a venomous green poison dart with dripping toxin and glowing bubbles, centered, game asset art, high detail, crisp, isolated on a plain pure white background"

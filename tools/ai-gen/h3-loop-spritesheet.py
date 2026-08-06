@@ -41,7 +41,7 @@ def load_frames(video_path):
     return frames
 
 
-def bg_masks(frames, threshold=235):
+def bg_masks(frames, threshold=248):
     masks = []
     for f in frames:
         b = f[..., 0].astype(int)
@@ -99,21 +99,23 @@ def find_cycle(frames, masks, steady=(12, 105), period_range=(70, 120), step=4, 
     return best[0][1], best[0][2]
 
 
-def key_frame(f, threshold=235):
+def key_frame(f, threshold=248, feather=0.3):
     b = f[..., 0].astype(int)
     g = f[..., 1].astype(int)
     r = f[..., 2].astype(int)
     white = ((r > threshold) & (g > threshold) & (b > threshold)).astype(np.uint8)
     white = cv2.morphologyEx(white, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
     alpha = (1 - white) * 255
-    alpha = cv2.GaussianBlur(alpha.astype(np.float32), (3, 3), 0.8)
+    if feather > 0:
+        alpha = cv2.GaussianBlur(alpha.astype(np.float32), (3, 3), feather)
     return np.clip(alpha, 0, 255).astype(np.uint8)
 
 
-def build_sheet(frames, cells, step, target_h, feet_y, center_x, cell_size, cols, gif_path=None):
+def build_sheet(frames, cells, step, target_h, feet_y, center_x, cell_size, cols, gif_path=None,
+                threshold=248, feather=0.3):
     out_cells = []
     for k in cells:
-        alpha = key_frame(frames[k])
+        alpha = key_frame(frames[k], threshold=threshold, feather=feather)
         f = frames[k]
         ys, xs = np.where(alpha > 30)
         if len(xs) == 0:
@@ -163,10 +165,14 @@ def main():
     ap.add_argument("--steady", default="12,105", help="steady middle scan range s0,s1")
     ap.add_argument("--period", default="70,120", help="gait period scan range P0,P1")
     ap.add_argument("--min-iou", type=float, default=0.80)
+    ap.add_argument("--threshold", type=int, default=248,
+                    help="white background threshold (0-255); H3 videos bg ~254-255, use 248")
+    ap.add_argument("--feather", type=float, default=0.3,
+                    help="alpha edge feather sigma; 0 = hard mask (no white halo)")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
-    masks = bg_masks(frames)
+    masks = bg_masks(frames, threshold=args.threshold)
     s0, s1 = (int(x) for x in args.steady.split(","))
     p0, p1 = (int(x) for x in args.period.split(","))
     s, e = find_cycle(frames, masks, steady=(s0, s1), period_range=(p0, p1),
@@ -184,7 +190,8 @@ def main():
         print("[h3-loop] WARNING: seam step outside normal range - check the GIF preview", flush=True)
 
     sheet, cells_out = build_sheet(frames, cells, args.step, args.target_h, args.feet_y,
-                                   args.center_x, args.cell, args.cols, args.out_gif)
+                                   args.center_x, args.cell, args.cols, args.out_gif,
+                                   args.threshold, args.feather)
     cv2.imwrite(args.out, sheet)
     print(f"[h3-loop] sheet {sheet.shape} -> {args.out}  ({len(cells_out)} frames)", flush=True)
 

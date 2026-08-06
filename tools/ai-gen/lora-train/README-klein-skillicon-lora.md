@@ -154,3 +154,98 @@ centered, game asset art, high detail, crisp, isolated on a plain pure white bac
 
 4 张新主题 → GLM-4.6V 逐张查：干净单六边形 / 紫色浮雕 / 金边完整 / 无底座无突出 →
 `normalize-skill-icon.py` 归一化 → 部署 `klein-skillicon-v2.safetensors`。
+
+## v3（2026-08-06）：抓全特征——正六边形 + 水晶切割 + 反光半透明
+
+### 背景
+
+v2 后用户要求把技能图标的完整特征抓全：**正六边形徽章 / 金边 / 水晶切割面 /
+反光半透明（玻璃质感）**，做细致保证还原；并明确**排除 贯穿雷枪 / 雷暴领域
+两个电系图标**出训练集。
+
+### 数据集重建（dataset-v3，8 张，全部 GLM 审计通过）
+
+逐张审计（GLM-4.6V 单张 + 像素统计）确认全部具备目标特征后入选：
+
+| 序号 | 图标 | 主题 |
+|---|---|---|
+| 00001 | fireball_icon | 火球 |
+| 00002 | blizzard_icon | 暴风雪 |
+| 00003 | 冰墙 | 冰墙 |
+| 00004 | 圣光 | 圣光 |
+| 00005 | 闪电 | 闪电 |
+| 00006 | 灼锋焰甲 | 火焰剑 |
+| 00007 | 陨星坠落 | 陨星 |
+| 00008 | Icearrow-skill | 冰箭 |
+
+- 入库图标是透明底 → 统一合成 1024² 纯白底（角落白 255，内容框统一
+  785~821 × 934~973，fill 52~55%）；
+- 标注统一特征块（与 prompts/skill-icon.md 对齐）：
+  `a single purple hexagonal badge with uniform gold trim, irregular faceted
+  crystal surface with glossy translucent reflections like glass, the center
+  shows <主题>...`；
+- 数据集：`Y:\工作\无尽轮回\scratch\klein-lora-skillicon-v3\dataset` +
+  5080 `D:\开发文件\lora-train\dataset-v3`。
+
+### 训练参数（v3）
+
+- `klein-skillicon-v3.yaml`：**1000 步**（v2 500 步翻倍，"做多步"），
+  save/sample 每 100 步；其余同 v2（dim 32/alpha 16、lr 1e-4、1024²、
+  qfloat8 量化、TE fp16、train_unet only）；
+- 实测 ~2.7s/it（比 v2 的 10s/it 快，Defender 排除项生效），1000 步约 48 分钟；
+- 产物 `klein-skillicon-v3.safetensors`（92.4MB，3072 维，只能挂 flux2-klein-4b）；
+- 部署：5080 `ComfyUI\models\loras\` + NAS `scratch\klein-lora-skillicon-v3\` +
+  `models.json` `flux2-klein-4b.lora` 指向 v3。
+
+### 验收（v3 通过）
+
+6 张训练集外主题（毒镖 / 风刃 / 暗影 / 石拳 / 寒冰环 / 圣盾）12 步出图，
+GLM-4.6V 逐张全项通过：**正六边形（六边等长 120°）/ 金边完整 / 水晶切割面 /
+反光半透明玻璃质感 / 主题清晰 / 白底居中无多余物体**（6/6）。
+构图 fill 19~48%（Klein 蒸馏推理缩放漂移，同 v1/v2 现象），
+aspect 0.81~0.89 达标，入库前 `normalize-skill-icon.py` 归一化即可。
+
+### 运维备忘（本次踩坑）
+
+- **ComfyUI 是 watchdog 循环启动的**（`start_comfyui.bat` 内含 `:loop` +
+  `timeout 5` + `goto loop`）：杀 python 后 5 秒自动复活，必须连 cmd 父进程一起杀；
+  训练完用 `schtasks` 一次性任务 + GBK 编码 bat 重启 ComfyUI
+  （SSH 直启的进程随会话被杀，schtasks SYSTEM 任务才能长驻）。
+- **scp 的 .ps1/.cmd 中文路径必须 UTF-8 BOM（ps1）/ GBK（cmd）**：
+  PowerShell 5.1 按 ANSI 读无 BOM UTF-8 会把中文路径变乱码（Set-Location 找不到）。
+- 训练进程由前台 ssh 拉起后仍存活（Services 会话），但稳妥起见仍走 schtasks。
+
+## 装备图标 LoRA（klein-equipment-v1，2026-08-06）
+
+### 目标与数据集（30 张，逐张 GLM 审计）
+
+项目第二类可训练资产：**装备/首饰图标**（`assets/icons/equipment/`，30 张，
+1536² 透明底）。逐张 GLM 确认风格统一：写实 3D 渲染 / 单件居中 / 纯白背景 /
+金属+布料+宝石材质质感（壁垒重甲/蚀月法袍/星陨之戒/镇岳重盔抽样 4/4 过）。
+
+- 30 张透明底 → 统一合成 1024² 纯白底（内容框随装备形态 0.45~1.40 aspect）；
+- 每张 GLM 提取视觉特征（类型/材质/配色/装饰/姿态）写进 caption，
+  标注同构：`wuxianlunhui equipment icon, game asset art, a single <主题>,
+  photorealistic 3D render, dark realistic materials, centered, isolated on
+  a plain pure white background, high detail, crisp`；
+- caption 库沉淀：`tools/ai-gen/lora-train/equipment-captions.json`；
+- 数据集：`Y:\工作\无尽轮回\scratch\klein-lora-equipment-v1\dataset` +
+  5080 `D:\开发文件\lora-train\dataset-equipment`。
+
+### 训练参数
+
+- `klein-equipment-v1.yaml`：**1200 步**（30 张 × 40 epochs），
+  **dim 48 / alpha 24**（比技能图标 32 高半档，增强金属/布料/宝石材质细节还原）；
+  lr 1e-4、1024²、qfloat8、TE fp16、save/sample 每 100 步；
+- 实测 ~3.7s/it，1200 步约 74 分钟，TRAIN_EXIT=0；
+- 产物 `klein-equipment-v1.safetensors`（138.6MB，dim 48）；
+- 部署：5080 `ComfyUI\models\loras\` + NAS + `models.json` 新增
+  **`flux2-klein-4b-equipment`** 独立条目（steps 12）。
+
+### 验收（6/6 主题达成）
+
+训练集外 6 主题（魔法护符/神话巨斧/冰霜法杖/龙鳞护腕/圣骑士胸甲/影袭匕首）
+12 步出图，GLM 逐张：写实 3D、单件居中、白底、材质配色与描述一致、无瑕疵
+（shadow_dagger 偏风格化幻想渲染，其余全写实；材质/配色/构图均达标）。
+构图 fill 7~54% 偏小为 Klein 蒸馏已知漂移，入库前
+`verify-eclipse-icons.py` 归一化（细长件如法杖/匕首保留自身 aspect）。

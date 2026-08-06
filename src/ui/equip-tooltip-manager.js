@@ -290,7 +290,7 @@ export const EquipTooltipManager = {
     // ===== 防具/首饰：防御成长 + 属性加成 + 套装信息 =====
         if (fullItem && (fullItem.category === 'armor' || fullItem.category === 'accessory')) {
             const el = (item.enhanceLevel || fullItem.enhanceLevel || 0);
-            const setNames = { light: '疾风（轻甲）', robe: '秘法（法袍）', heavy: '壁垒（重甲）', flowing: '流云（稀有轻甲）', eclipse: '蚀月（稀有法袍）', zhenyue: '镇岳（稀有重甲）' };
+            const setNames = { light: '疾风（轻甲）', robe: '秘法（法袍）', heavy: '壁垒（重甲）', flowing: '流云（稀有轻甲）', eclipse: '蚀月（稀有法袍）', zhenyue: '镇岳（稀有重甲）', stellar: '星穹（史诗轻甲）', lunar: '苍月（史诗法袍）', tiangang: '天罡（史诗重甲）' };
             const setBonuses = {
                 light: '三件齐穿：+10% 移动速度',
                 robe: '三件齐穿：技能冷却-12%、魔法伤害+18%',
@@ -298,6 +298,9 @@ export const EquipTooltipManager = {
                 flowing: '三件齐穿：移动速度+15%、体力恢复+12%',
                 eclipse: '三件齐穿：技能冷却-18%、魔法伤害+25%',
                 zhenyue: '三件齐穿：自动格挡40%概率减少85%伤害（最后乘法结算）、-12%移动速度',
+                stellar: '三件齐穿：暴击率+15%、物理攻击+10%、移动速度+8%',
+                lunar: '三件齐穿：技能冷却-22%、魔法伤害+30%',
+                tiangang: '三件齐穿：自动格挡50%概率减少90%伤害（最后乘法结算）、-10%移动速度',
             };
             if (fullItem.armorSet) {
                 extraHtml += `<div class="tt-extra-row" style="border-top:1px solid rgba(0,0,0,0.08);margin-top:4px;padding-top:4px;"><span class="tt-stat-name" style="font-weight:700;">🧩 套装：${setNames[fullItem.armorSet] || fullItem.armorSet}</span><span class="tt-stat-val">${setBonuses[fullItem.armorSet] || ''}</span></div>`;
