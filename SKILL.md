@@ -362,14 +362,27 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### 防御塔机械臂 360° 旋转 + 武器挂载（2026-08-04 实现）
 - **拆臂**：行剖面定位塔顶臂区 → 独立臂贴图（枢轴=塔顶中心、臂尖=挂载点、自然角
   =atan2(臂尖−枢轴)）；基座抹臂区。几何统一存 `DEFENSE_TOWER_VISUAL`（defense-system.js）。
+  ⚠ **2026-08-06 重新抠图（旧臂是错的）**：旧 347×64 版把塔顶平板左半段当成了手臂，
+  与塔图对不上（IoU~0.68），实机就是"一块板 + 竖条"。像素审计后确认真手臂是塔身左侧的
+  大结构：x∈[0,116]、y∈[240,463]（肩→臂→末端双爪钳），重新抠出 113×223。
+- **新几何（2026-08-06 定稿，`DEFENSE_TOWER_VISUAL.arm`）**：纹理 113×223；
+  枢轴=肩部上沿 (77,28)、挂载点=爪心 (44,155)、自然角 1.8250（≈104.6°，指向左下≈垂直向下）、
+  pivotWorldY=177.6（塔图 y=268）；工具 `tools/ai-gen/cut-defense-tower-arm.py`
+  （矩形裁剪+最大连通域去塔身角料；基座擦除手臂并对 y262~290 过渡带做对角 inpaint 补平）。
 - **渲染**：GameScene `_syncDefenseTowers` 三层——基座静态；臂 `rotation = aimAngle − 自然角`
   绕枢轴 360°；武器锚臂尖、`rotation = aimAngle`。
+- **旋转铁律（2026-08-06 修复）**：臂 sprite 的 **origin 必须设在枢轴**（`pivot/tw, pivot/th`），
+  setPosition 直接落在世界枢轴——旧实现把贴图枢轴对齐到世界点后仍绕 sprite 中心旋转，
+  枢轴会画圈漂移（偏差最大 ≈ 15px）。武器尖端仍用 `(tip−pivot)×s` 旋转公式，与臂同源。
 - **武器朝向铁律（玩家同口径）**：`rotation = 瞄准角`；朝左（|角|>90°）用 **flipY** 防倒置
   （禁 flipX+π——方向对但贴图倒，实机截图"枪口与臂不一致"根因）；按高度等比 setScale。
 - **塔 AI**：`aimAngle` 最短弧平滑（有目标 9 rad/s、回位 4 rad/s）；枪口=臂尖世界坐标
   （弹道与视觉同源）；无武器时臂空转。
-- **实机验证工具**：`tools/cdp-defense-tower.mjs`（无头 Edge+CDP，截图 + 控制台错误采集）；
-  Edge profile 必须放 vite 监听目录外（防 EBUSY）。
+- **实机验证工具**：`tools/cdp-defense-tower-arm.mjs`（建 3 塔 + 冻结瞄准 + 六向截图 +
+  单塔特写）、`tools/cdp-defense-tower-arm-fire.mjs`（解除冻结 + 假想敌 → 自动索敌/转臂/
+  开火截图）；旧 `tools/cdp-defense-tower.mjs` 依赖 DEFENSE_CONFIG.towers 预置塔已过时。
+  2026-08-06 验证结果：自然/右/左/上/下/混合角度全部正确（肩部固定、枪随臂转、朝左不颠倒）；
+  PKM/AKM/能量LMG 均从爪子枪口出弹、弹道沿枪方向；lint/build 全绿。
 
 ### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
@@ -3724,6 +3737,14 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   apart and clearly visible with sharp distinct claw tips"）后重生成，
   特写验收确认"前爪前伸 + 爪尖张开可见"（挥击弧线是 H3 侧视模型的生成极限）；
   游戏内动作时长按用户要求调到 ~3s（prepareMs 1200 + chargeMs 1800）。
+- **飞扑动画重制 v4（2026-08-06 定稿）**：两阶段提示词——
+  phase one 准备（"lowers its body close to the ground, belly almost touching
+  the ground, stretches all four legs wide apart, muscles tensed"）、
+  phase two 飞扑（"leaps through the air, opens its mouth wide in a fierce
+  biting snap, swings both front paws forward in wide slashing arcs with claws
+  fully extended, biting and clawing at the same time, strong exaggerated
+  motion"）。GLM 五项全过：准备下压+四肢张开 / 飞扑嘴张撕咬+爪挥 /
+  幅度力度更大 / 大小一致无裁切 / 连贯。准备帧高度 204~233（压低明显）。
 - 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
