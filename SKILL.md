@@ -340,6 +340,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     pounceClaw(远/飞扑挥爪)/pounceBite(近/撕咬)；animation-config 双份校准
     frameLayouts/attackTypes/transformedFrameLayout；BootScene 注册 10 纹理键。
   - 实机验证：狼形态 + 变身红狼人均正常渲染、无报错；测试/构建全绿。
+- **红狼王抠图+体型修复（2026-08-06 十版）**：
+  - **白底残留**：切帧阈值 248 会留下压缩伪影白边/半透明白边。修复：cv2
+    `connectedComponents` 对"不透明且 rgb>200"做 4 连通标记，凡连通帧边缘的
+    连通域置 alpha=0（flood-fill 思路，但纯 Python BFS 太慢会超时）；主体内部
+    浅色毛不连通边缘，安全保留。处理后全部贴图 `white_total=0`。
+  - **红狼人太小（108 宽 vs 狼 317 宽）**：H3 参考图把红狼人画瘦了。重生成
+    参考图（提示词加强 broad-shouldered / heavily muscular / bulky / large
+    imposing frame）→ 4 段视频重生成 → 重切帧，红狼人 108→161 宽（人形
+    宽高比 0.61 协调）。**视频模型受参考图体型影响极大，人形参考必须先做壮**
+    （宽度目标 ≥150/262 高）。
+  - 实机验证：变身红狼人新贴图、纹理匹配、大小协调、无白边；测试/构建全绿。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3734,6 +3745,10 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   ③ 游戏帧率 80→40ms/帧（28×40=1120ms，与原 14×80 圈时一致）。
   经验：**快速动作（run）帧数宁多勿少，step 1 逼近视频原帧最顺滑**；
   慢速动作（walk）step 3 可接受。
+- **飞扑同款提帧（2026-08-06）**：飞扑 11 帧 → 20 帧（prepare 4→6、charge 7→14，
+  4×5 网格），相邻帧 IoU 0.418→0.553（+32%）；垂直提升抛物线按 14 帧细化
+  （起跳 10 → 空中 32 → 落地 2px）；prepare 帧 200ms/帧、charge 95ms/帧。
+  攻击动画提帧同样适用"密采样 + 阈值兜底"，GLM 五项全过。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），

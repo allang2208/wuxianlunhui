@@ -18,10 +18,10 @@
           "durationMs": 600
         },
         "pounce": {
-          "frames": 11,
+          "frames": 20,
           "prepareMs": 1200,
           "chargeMs": 1333,
-          "prepareFrames": 4
+          "prepareFrames": 6
         }
       },
       "frameLayout": {
@@ -54,8 +54,8 @@
         },
         "pounce": {
           "cols": 4,
-          "rows": 3,
-          "frames": 11
+          "rows": 5,
+          "frames": 20
         },
         "pacing": {
           "cols": 4,
