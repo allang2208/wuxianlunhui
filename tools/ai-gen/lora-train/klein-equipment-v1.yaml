@@ -1,0 +1,59 @@
+---
+job: extension
+config:
+  name: "klein-equipment-v1"
+  process:
+    - type: 'sd_trainer'
+      training_folder: "D:/开发文件/lora-train/output"
+      device: cuda:0
+      trigger_word: "wuxianlunhui equipment icon"
+      network:
+        type: "lora"
+        linear: 48
+        linear_alpha: 24
+      save:
+        dtype: float16
+        save_every: 100
+        max_step_saves_to_keep: 10
+        push_to_hub: false
+      datasets:
+        - folder_path: "D:/开发文件/lora-train/dataset-equipment"
+          caption_ext: "txt"
+          caption_dropout_rate: 0.05
+          shuffle_tokens: false
+          cache_latents_to_disk: true
+          resolution: [ 1024, 1024 ]
+      train:
+        batch_size: 1
+        steps: 1200
+        gradient_accumulation_steps: 1
+        train_unet: true
+        train_text_encoder: false
+        gradient_checkpointing: true
+        noise_scheduler: "flowmatch"
+        optimizer: "adamw8bit"
+        lr: 1e-4
+        ema_config:
+          use_ema: true
+          ema_decay: 0.99
+        dtype: bf16
+      model:
+        # FLUX.2 klein 4B BASE (undistilled) - BFL recommended training base
+        name_or_path: "D:/开发文件/lora-train/base/flux-2-klein-base-4b.safetensors"
+        arch: "flux2_klein_4b"
+        te_dtype: "fp16"
+        quantize: true
+        qtype: "qfloat8"
+        quantize_te: false
+        model_kwargs:
+          flux2_klein_te_path: "D:/开发文件/lora-train/te/Qwen3-4B"
+          flux2_vae_path: "D:/开发文件/ComfyUI/models/vae/flux2-vae.safetensors"
+      sample:
+        sampler: "flowmatch"
+        sample_every: 100
+        sample_start_step: 100
+        width: 1024
+        height: 1024
+        prompts:
+          - "[trigger] a single legendary magic amulet with an obsidian frame and a glowing crimson rune gem, photorealistic 3D render, dark realistic materials, centered, isolated on a plain pure white background, high detail, crisp"
+          - "[trigger] a single mythic greataxe with a dark iron head and golden rune engravings on the handle, photorealistic 3D render, dark realistic materials, centered, isolated on a plain pure white background, high detail, crisp"
