@@ -3663,14 +3663,25 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   GLM 确认"大小一致无突然放大、前扑头爪完整"。
 - 撕咬 v3：帧高 224~261、宽 405~482 全完整；飞扑 v3：宽 431~504 完整。
 
-### 3. 双攻击（撕咬/飞扑）数据驱动
-- `animation-config.blackWolf.animation.attackTypes`：`bite`（range 170 / duration 1000 /
-  dash 60 / 10 帧）与 `pounce`（range 99999 / duration 1250 / dash 240 / 11 帧）；
-  `enemy-config.attackDistance: 300` 让中距离飞扑能触发（旧 161 只会咬）。
-- `triggerWeaponAnim` 按触发时与目标距离选型；冲刺距离按类型封顶
-  （bite ≤60、pounce ≤240），冲刺仍走 dashEasing 前 12.5% 快速到位，
-  与旧黑狼突进一致，命中判定（dynamicRange 160 + 冲刺偏移）无需改。
-- 资产：`black_wolf_walk/run/bite/pounce.png` + `black_wolf_idle.png` 全部
+### 3. 黑狼攻击 = 突变体-3 式飞扑状态机（2026-08-06 定稿，移除撕咬）
+- **用户反馈**：双攻击(撕咬/飞扑)导致移动/攻击衔接错位、意外频发；
+  要求**完全参照 mutant-3、只保留飞扑一种攻击**。
+- **机制（与 mutant-3 同构）**：
+  - `_pounceState`：idle → prepare（蓄力 1s，`_frozenForCast=true` 锁定移动、面向目标）
+    → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
+    固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
+  - 命中：charge 每帧 `_isTargetInRange(hitTarget, pounceHitDistance)` →
+    `takeDamage + applyStun(2000)`；盾牌弹反 `_lastParried` 不再眩晕；
+  - `aiInterval = Number.MAX_SAFE_INTEGER` 关闭通用 CombatSystem 攻击，
+    状态机自主触发（目标距离 ≤ pounceRange 500 且冷却 12s）；
+  - `_attackAnimTimer` 在 charge 期间保持 >0，阻止 MovementSystem 覆盖朝向；
+  - 冲刺残影 `_spawnPounceGhost`（Phaser 克隆 + tween 淡出）。
+- **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
+  charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
+- **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、
+  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceStunMs/
+  pounceMaxDist/pounceOvershoot；移除 bite 资产/配置/加载（废案已删）。
+- 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
 
