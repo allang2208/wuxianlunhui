@@ -3648,14 +3648,40 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   `anims.create` 集成方式不同——`_getTextureKey` 换贴图 + `_getPhaserOptions.frame`
   切帧即可，不要套用 anims 注册（黑狼本来就不注册动画）。
 
-### 3. 双攻击（撕咬/飞扑）数据驱动
-- `animation-config.blackWolf.animation.attackTypes`：`bite`（range 170 / duration 1000 /
-  dash 60 / 10 帧）与 `pounce`（range 99999 / duration 1250 / dash 240 / 11 帧）；
-  `enemy-config.attackDistance: 300` 让中距离飞扑能触发（旧 161 只会咬）。
-- `triggerWeaponAnim` 按触发时与目标距离选型；冲刺距离按类型封顶
-  （bite ≤60、pounce ≤240），冲刺仍走 dashEasing 前 12.5% 快速到位，
-  与旧黑狼突进一致，命中判定（dynamicRange 160 + 冲刺偏移）无需改。
-- 资产：`black_wolf_walk/run/bite/pounce.png` + `black_wolf_idle.png` 全部
+### 2.1 攻击帧必须固定缩放比例 + 防裁切（2026-08-06 撕咬反馈修复）
+- **症状**：撕咬时狼被误放大、前扑帧左右被裁。根因二连：
+  ① 逐帧 `scale = 262/当前高` 统一缩放到 262——蓄力压低帧（视频高 525 vs idle 556）
+  被放大 6%，前扑帧高度波动导致狼忽大忽小；
+  ② 前扑帧内容宽（视频 903→1024）+ 水平位移 dx → `ox+nw > 512` 直接裁剪
+  （旧 sheet 多帧宽 512 贴满 cell、左右触边）。
+- **修复（`h3-attack-spritesheet.py --fixed-scale 1`，默认）**：
+  ① **固定缩放**：所有攻击帧用首帧（idle）同比例 `scale = 262/首帧高`——
+  狼与 idle 恒等尺寸，蓄力压低/前扑伸展读作真实姿态（高 224~261 自然变化），
+  不放大；② **防裁切 clamp**：`ox = clamp(ox, 0, cell-nw)` 内容优先完整，
+  不再裁剪超界像素。
+- **验收判据**：各帧 bbox 无 touch（x1<510）、高度含蓄力帧自然矮、
+  GLM 确认"大小一致无突然放大、前扑头爪完整"。
+- 撕咬 v3：帧高 224~261、宽 405~482 全完整；飞扑 v3：宽 431~504 完整。
+
+### 3. 黑狼攻击 = 突变体-3 式飞扑状态机（2026-08-06 定稿，移除撕咬）
+- **用户反馈**：双攻击(撕咬/飞扑)导致移动/攻击衔接错位、意外频发；
+  要求**完全参照 mutant-3、只保留飞扑一种攻击**。
+- **机制（与 mutant-3 同构）**：
+  - `_pounceState`：idle → prepare（蓄力 1s，`_frozenForCast=true` 锁定移动、面向目标）
+    → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
+    固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
+  - 命中：charge 每帧 `_isTargetInRange(hitTarget, pounceHitDistance)` →
+    `takeDamage + applyStun(2000)`；盾牌弹反 `_lastParried` 不再眩晕；
+  - `aiInterval = Number.MAX_SAFE_INTEGER` 关闭通用 CombatSystem 攻击，
+    状态机自主触发（目标距离 ≤ pounceRange 500 且冷却 12s）；
+  - `_attackAnimTimer` 在 charge 期间保持 >0，阻止 MovementSystem 覆盖朝向；
+  - 冲刺残影 `_spawnPounceGhost`（Phaser 克隆 + tween 淡出）。
+- **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
+  charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
+- **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、
+  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceStunMs/
+  pounceMaxDist/pounceOvershoot；移除 bite 资产/配置/加载（废案已删）。
+- 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
 

@@ -26,14 +26,14 @@ ROOM = {
 }
 BASE = {'x': 900, 'y': 2048}
 COVER_DISPLAY_W = 260
-COVER_ASPECT = {'D': {'h': 1.0, 'v': 1.0}}
+COVER_ASPECT = {'D': {'h': 1.004, 'v': 1.004}}
 
 # 与 defense-system.js 一致：开口上侧所有掩体整体下移 doorAlignY
 DOOR_ALIGN_Y = ROOM['doorAlignY']
-# 与 defense-system.js COVER_FACE 同源（6 级统一）：v: A(-88,-21) B(88,-109)；h 镜像
+# 与 defense-system.js COVER_FACE 同源（6 级统一）：v: A(-88,-21) B(88,-108)；h 镜像
 COVER_FACE = {
-    'v': {'A': (-88, -21), 'B': (88, -109)},
-    'h': {'A': (-88, -109), 'B': (88, -21)},
+    'v': {'A': (-88, -21), 'B': (88, -108)},
+    'h': {'A': (-88, -108), 'B': (88, -21)},
 }
 JOIN_OVERLAP = 40  # 端帽叠合（= building-system SNAP_OVERLAP）
 FACE_OVERLAY = os.environ.get('FACE_OVERLAY', '') == '1'

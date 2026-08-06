@@ -80,11 +80,21 @@ def detect_attack_frames(frames, min_diff=0.10, min_frames=6):
 
 
 def build_sheet(frames, idxs, out, cols, target_h=262, feet_y=410, center_x=256,
-                cell_size=512, out_gif=None, threshold=248, feather=0.3):
-    """Build attack sheet; horizontal offset preserves the lunge vs frame 0."""
+                cell_size=512, out_gif=None, threshold=248, feather=0.3,
+                fixed_scale=True):
+    """Build attack sheet; horizontal offset preserves the lunge vs frame 0.
+
+    fixed_scale=True (default): all frames use the SAME scale as the reference
+    frame (frame 0), so the wolf stays the same on-screen size as idle and the
+    lunge/lean reads as pose change, not zoom. Per-frame height rescaling
+    (fixed_scale=False) was found to magnify crouch frames and clip wide
+    pounce frames (2026-08-06 black wolf bite feedback).
+    """
     a0 = key_frame(frames[0], threshold=threshold, feather=feather)
     ys0, xs0 = np.where(a0 > 30)
     ref_cx = (xs0.min() + xs0.max()) / 2
+    ref_h = ys0.max() - ys0.min() + 1
+    fixed_scale_val = target_h / max(1, ref_h) if fixed_scale else None
     cells = []
     for k in idxs:
         alpha = key_frame(frames[k], threshold=threshold, feather=feather)
@@ -93,23 +103,29 @@ def build_sheet(frames, idxs, out, cols, target_h=262, feet_y=410, center_x=256,
         x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
         crop = f[y0:y1 + 1, x0:x1 + 1]
         a = alpha[y0:y1 + 1, x0:x1 + 1]
-        scale = target_h / (y1 - y0 + 1)
-        nw = max(1, round((x1 - x0 + 1) * scale))
-        crop = cv2.resize(crop, (nw, target_h), interpolation=cv2.INTER_AREA)
-        a = cv2.resize(a, (nw, target_h), interpolation=cv2.INTER_AREA)
+        ch = y1 - y0 + 1
+        if fixed_scale:
+            scale = fixed_scale_val
+            nh = max(1, round(ch * scale))
+            nw = max(1, round((x1 - x0 + 1) * scale))
+        else:
+            scale = target_h / ch
+            nh = target_h
+            nw = max(1, round((x1 - x0 + 1) * scale))
+        crop = cv2.resize(crop, (nw, nh), interpolation=cv2.INTER_AREA)
+        a = cv2.resize(a, (nw, nh), interpolation=cv2.INTER_AREA)
         cx = (x0 + x1) / 2
         dx = round((cx - ref_cx) * scale)  # preserve horizontal lunge
         cell = np.zeros((cell_size, cell_size, 4), np.uint8)
         ox = int(center_x - nw // 2 + dx)
-        oy = int(feet_y - target_h + 1)
-        if ox < 0:
-            ox = 0
-        if ox + nw > cell_size:
-            nw2 = cell_size - ox
-            crop = crop[:, :nw2]
-            a = a[:, :nw2]
-            nw = nw2
-        cell[oy:oy + target_h, ox:ox + nw] = np.dstack([crop, a])
+        oy = int(feet_y - nh + 1)
+        # 防裁切：内容优先完整，clamp 到 cell 内（不裁剪）
+        ox = max(0, min(ox, cell_size - nw))
+        if ox + nw <= cell_size and oy + nh <= cell_size and oy >= 0:
+            cell[oy:oy + nh, ox:ox + nw] = np.dstack([crop, a])
+        else:
+            print(f"[h3-attack] WARN frame {k} too large for cell "
+                  f"({nw}x{nh} at {ox},{oy}) - skipped")
         cells.append(cell)
     while len(cells) % cols != 0:
         cells.append(np.zeros((cell_size, cell_size, 4), np.uint8))
@@ -155,6 +171,8 @@ def main():
     ap.add_argument("--cell", type=int, default=512)
     ap.add_argument("--threshold", type=int, default=248)
     ap.add_argument("--feather", type=float, default=0.3)
+    ap.add_argument("--fixed-scale", type=int, default=1,
+                    help="1=所有帧用首帧同比例缩放(推荐,防误放大/裁切); 0=逐帧缩放到 target_h")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -164,7 +182,8 @@ def main():
         idxs, start, end = detect_attack_frames(frames, min_diff=args.min_diff)
         print(f"[h3-attack] detected window [{start},{end}] -> {len(idxs)} frames", flush=True)
     build_sheet(frames, idxs, args.out, args.cols, args.target_h, args.feet_y,
-                args.center_x, args.cell, args.out_gif, args.threshold, args.feather)
+                args.center_x, args.cell, args.out_gif, args.threshold, args.feather,
+                args.fixed_scale == 1)
 
 
 if __name__ == "__main__":

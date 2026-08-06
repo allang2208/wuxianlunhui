@@ -1,7 +1,7 @@
 {
   "$schema": "./game-config.schema.json",
   "meta": {
-  "version": "0.375"
+    "version": "0.375"
   },
   "display": {
     "defaultResolution": {
@@ -246,10 +246,10 @@
       "size": 20,
       "collisionRadius": 32.5,
       "color": "#c4a35a",
-    "portrait": "assets/ui/npc_portrait.png",
-    "npcType": "shop",
-    "shopId": "main",
-    "sprite": {
+      "portrait": "assets/ui/npc_portrait.png",
+      "npcType": "shop",
+      "shopId": "main",
+      "sprite": {
         "comment": "贴图动画：idle/walk 动画键（BootScene 注册）；size=显示边长(方形帧)；footOffsetY=逻辑脚底到贴图中心偏移；walkFps=行走动画帧率",
         "idleKey": "npc_mouse_king_idle",
         "walkKey": "npc_mouse_king_walk",
@@ -307,7 +307,8 @@
         "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
         "idleKey": "npc_warehouse",
         "size": 180,
-        "footOffsetY": 64
+        "footOffsetY": 51,
+        "sizeH": 146
       },
       "clickArea": {
         "comment": "点击交互区域（按贴图内容收窄：内容 400×367/512 × size180 ≈ 141×129，锚定脚底）",
@@ -334,7 +335,8 @@
         "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
         "idleKey": "npc_altar",
         "size": 220,
-        "footOffsetY": 107
+        "footOffsetY": 66,
+        "sizeH": 189
       },
       "clickArea": {
         "comment": "点击交互区域（祭坛本体，锚定脚底）",
@@ -354,10 +356,10 @@
       "size": 20,
       "collisionRadius": 60,
       "color": "#8a6a4a",
-    "portrait": "assets/npc/mouse_blacksmith/portrait.png",
-    "npcType": "blacksmith",
-    "shopId": "blacksmith",
-    "noSeparation": true,
+      "portrait": "assets/npc/mouse_blacksmith/portrait.png",
+      "npcType": "blacksmith",
+      "shopId": "blacksmith",
+      "noSeparation": true,
       "sprite": {
         "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
         "idleKey": "npc_mouse_blacksmith_idle",
@@ -365,7 +367,10 @@
         "footOffsetY": 125,
         "frameSounds": {
           "comment": "动画帧触发音效：idle 循环播到第 5/15 帧（1 基帧号）各播放一次（每轮两次，铁匠敲打声）",
-          "frames": [5, 15],
+          "frames": [
+            5,
+            15
+          ],
           "path": "assets/sounds/npc/blacksmith/hammering.mp3"
         }
       },
