@@ -43,9 +43,9 @@
           "frames": 16
         },
         "run": {
-          "cols": 7,
-          "rows": 2,
-          "frames": 14
+          "cols": 4,
+          "rows": 7,
+          "frames": 28
         },
         "bite": {
           "cols": 3,
@@ -66,7 +66,7 @@
       "frameDurations": {
         "idle": 200,
         "walk": 120,
-        "run": 80,
+        "run": 40,
         "bite": 100,
         "pacing": 180
       },

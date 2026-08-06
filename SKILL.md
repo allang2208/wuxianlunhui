@@ -320,6 +320,12 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
   - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
     GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
+  - ⚠ **2026-08-06 用户验收不合格 → 已整体还原**：祭坛/仓库图片与标定全部回退到
+    ec069a7 之前的原版（祭坛 411KB/512×497 紧贴裁剪、仓库 176KB/宝箱容器风格），
+    `git checkout ec069a7^ -- assets/npc/altar.png assets/npc/warehouse/warehouse.png
+    data/game-config.json public/data/game-config.json` 四件套；`sizeH` 字段移除后
+    GameScene `sprCfg.sizeH || sz` 自动回退方形显示，无需改代码。新 Blender 版
+    （仓库木屋/多层台座）保留在 git 历史可查，不删。
 - **红狼王 H3 全动作升级（2026-08-06 九版，视频→精灵图）**：
   - 10 段 H3 首帧循环视频：狼 idle/walk/run/飞扑挥爪/飞扑撕咬/变身 + 红狼人
     idle/run/挥爪攻击/仰天嚎叫；**优化配置 1024×576 + 16 步 = 6 分钟/段**
@@ -3720,6 +3726,14 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 首尾高 IoU 配（~0.98）是"首帧=尾帧 idle 重影"，不是步态周期，别被它骗；
   限定匀速中段（steady 12..105）再找周期。
 - 步进：walk P=48 用 `--step 3` → 16 帧（4×4）；run P=28 用 `--step 2` → 14 帧（7×2）。
+- **四足奔跑提帧优化（2026-08-06）**：run 14 帧（step 2）实测僵硬——
+  相邻帧腿部 IoU 仅 0.140（帧间腿部跳变 = 僵硬）。优化：
+  ① **提高采样密度** step 2→1（28 帧 = 视频原帧，4×7 网格），
+    相邻帧腿部 IoU 0.538，平滑度 +285%；
+  ② 重建走阈值 bbox + max(BiRefNet, 阈值) 腿部兜底（run 四腿运动同样会丢腿）；
+  ③ 游戏帧率 80→40ms/帧（28×40=1120ms，与原 14×80 圈时一致）。
+  经验：**快速动作（run）帧数宁多勿少，step 1 逼近视频原帧最顺滑**；
+  慢速动作（walk）step 3 可接受。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
