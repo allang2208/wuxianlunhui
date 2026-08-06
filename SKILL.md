@@ -340,6 +340,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     pounceClaw(远/飞扑挥爪)/pounceBite(近/撕咬)；animation-config 双份校准
     frameLayouts/attackTypes/transformedFrameLayout；BootScene 注册 10 纹理键。
   - 实机验证：狼形态 + 变身红狼人均正常渲染、无报错；测试/构建全绿。
+- **红狼王抠图+体型修复（2026-08-06 十版）**：
+  - **白底残留**：切帧阈值 248 会留下压缩伪影白边/半透明白边。修复：cv2
+    `connectedComponents` 对"不透明且 rgb>200"做 4 连通标记，凡连通帧边缘的
+    连通域置 alpha=0（flood-fill 思路，但纯 Python BFS 太慢会超时）；主体内部
+    浅色毛不连通边缘，安全保留。处理后全部贴图 `white_total=0`。
+  - **红狼人太小（108 宽 vs 狼 317 宽）**：H3 参考图把红狼人画瘦了。重生成
+    参考图（提示词加强 broad-shouldered / heavily muscular / bulky / large
+    imposing frame）→ 4 段视频重生成 → 重切帧，红狼人 108→161 宽（人形
+    宽高比 0.61 协调）。**视频模型受参考图体型影响极大，人形参考必须先做壮**
+    （宽度目标 ≥150/262 高）。
+  - 实机验证：变身红狼人新贴图、纹理匹配、大小协调、无白边；测试/构建全绿。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -364,6 +375,20 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   （正面平视、基座台阶+上方机械臂空法兰挂载座）。
 - **工具位置**：生图/抠图工具统一在 `game-dev/tools/ai-gen/`（版本化），
   批量入口 `gen-world122-assets.py`、后处理 `process-world122-assets.py`。
+- ⚠ **2026-08-06 v2/v2b 重制（用户口径覆盖旧基准）**：用户指定"参考地面、墙壁的视角/风格 +
+  下方基座做圆柱体 + 机械臂单独上方突出"。新塔：30° 等距视角（对齐墙壁、可见圆柱
+  椭圆顶面）、暗色石+铆钉金属做旧、圆柱基座 + 顶部单独突出的机械臂（末端空法兰）。
+  - 白模 spec `_blockout_specs/defense_tower_v2.json`（elevation 30）→ 深度模板
+    `_depth_templates/blender_defense_tower_v2_h.png` → `flux2-dev-depth` strength 0.8
+    → `make-transparent-icon.py` 抠图 → `cut-defense-tower-arm-v2.py` 拆臂入库。
+  - **v2b 定稿（机械臂重做）**：v2 首版臂"太抽象"（细棍/装饰符号，GLM 诊断缺粗壮感/
+    液压/关节护罩/螺栓）→ 白模加粗：肩/肘关节护罩圆柱 + 液压缸细柱 + 粗法兰，
+    提示词强化 heavy industrial robotic arm / hydraulic piston / bolts / rust；
+    定稿基座 393×496 → 显示 170×214.6（footOffsetY 107.3）、臂 280×308，枢轴
+    (140,305)、挂载点 (201,40)、自然角 -1.3445（朝上）、pivotWorldY 215；
+    武器显示高度按塔高放大回（akm 78 / 默认 74）。
+  - 旧 billboard 版素材在 git 历史可查；候选图已落 `Y:\工作\无尽轮回\scratch\world122\tower_v2\`
+    与 `tower_v2b\`。
 
 ### 防御塔机械臂 360° 旋转 + 武器挂载（2026-08-04 实现）
 - **拆臂**：行剖面定位塔顶臂区 → 独立臂贴图（枢轴=塔顶中心、臂尖=挂载点、自然角
@@ -446,6 +471,21 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   damagePercent+15%/attackIntervalMul×0.9）：塔 L1 伤害 39 == 玩家无精通公式 39、
   射速 370==500×0.9−80、换弹 1450==1150+300、弹匣 40==30+10；lint/build 全绿。
 
+### 防御塔机枪射速提升 + 过热（2026-08-06，能量轻机枪修复）
+- **现象**：塔装能量轻机枪只能以基础 333ms 慢速射击、永不发热（玩家侧是 333→50ms
+  ramp 加速 + 5s 过热停射 + 4s 冷却）。
+- **根因**：塔的 `equipWeapon` 只设基础冷却，`update` 未实现 ramp 与过热；
+  且 `Combatant.update` 有一段旧残留恢复（`_overheatValue -= dt*0.0005` ≈0.5/s）
+  会抵消任何积累（玩家不调 super.update 所以没暴露）。
+- **修复**：
+  1. `DefenseTower.update` 补机枪逻辑——"接敌=持续开火"：能量 LMG 按
+     `energyLMGParams`（兜底 `item.attack`）做 ramp（base→max 线性，rampUpTime 内）
+     与过热积累/恢复（overheatTime/Cooldown/Recover），`canFire` 过热即拦停射；
+     PKM/QJB201 走 `Combatant._updateOverheat`（读 heatParams）。
+  2. 删除 `Combatant.update` 旧残留恢复（全库无依赖，玩家不调 super.update）。
+- **验证**：`tools/cdp-tower-lmg-overheat.mjs` 实测——cd 333→50ms 线性 ramp（2.5s）、
+  heat 5s 到 1 强制停射、4s 冷却后重新 ramp，循环正常；lint/build 全绿。
+
 ### 世界-122 布局与刷怪（2026-08-05 定稿）
 - 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
   **scene8 不再生成返回主神空间传送门**（portal_return 已删，玩家用菜单离场）。
@@ -502,6 +542,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **问题件记录**：obstacle_woodpile（GLM 非单件居中，待复查/重做）；
   旧塔 45° 等距版已重做；宽扁道具（农田类）深度模板易出俯视，需前景立墙高度。
 - 新素材入库前：先判形态族 → 对照对应标准件 → GLM 粗分类 + 像素/几何校验。
+- ⚠ **2026-08-06 例外**：防御塔 v2 按用户口径改走"30° 等距（对齐墙壁，可见圆柱顶面）"，
+  不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
+  维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
@@ -3734,6 +3777,16 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   ③ 游戏帧率 80→40ms/帧（28×40=1120ms，与原 14×80 圈时一致）。
   经验：**快速动作（run）帧数宁多勿少，step 1 逼近视频原帧最顺滑**；
   慢速动作（walk）step 3 可接受。
+- **飞扑同款提帧（2026-08-06）**：飞扑 11 帧 → 20 帧（prepare 4→6、charge 7→14，
+  4×5 网格），相邻帧 IoU 0.418→0.553（+32%）；垂直提升抛物线按 14 帧细化
+  （起跳 10 → 空中 32 → 落地 2px）；prepare 帧 200ms/帧、charge 95ms/帧。
+  攻击动画提帧同样适用"密采样 + 阈值兜底"，GLM 五项全过。
+- **H3 撕咬生成坑（2026-08-06）**：H3 对"咬合撕咬"不敏感，4 版提示词
+  （强调 jaw snap/clamp）仍生成"张嘴吼"（嘴巴大张保持）。解决：
+  **抽帧避开大张帧，选"闭嘴→小张→闭合→松开"的闭合帧序列**（v3 视频的
+  f36/40/52/56/60/64），GLM 确认小幅咬合、无大张吼叫帧。
+  经验：H3 生成嘴部动作节奏慢，撕咬动画靠帧选取塑造咬合感，
+  游戏帧率调快（6 帧 ~500ms）强化"咬一下"节奏。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
