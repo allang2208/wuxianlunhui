@@ -6,16 +6,21 @@
       "run": "assets/enemies/black_wolf_run.png",
       "front": "assets/enemies/black_wolf_updown.png",
       "back": "assets/enemies/black_wolf_updown.png",
+      "bite": "assets/enemies/black_wolf_bite_regular.png",
       "pounce": "assets/enemies/black_wolf_pounce.png",
       "pacing": "assets/enemies/black_wolf_walk.png",
       "idle": "assets/enemies/black_wolf_idle.png"
     },
     "animation": {
       "attackTypes": {
+        "bite": {
+          "frames": 6,
+          "durationMs": 600
+        },
         "pounce": {
           "frames": 11,
           "prepareMs": 1200,
-          "chargeMs": 1800,
+          "chargeMs": 1333,
           "prepareFrames": 4
         }
       },
@@ -38,9 +43,14 @@
           "frames": 16
         },
         "run": {
-          "cols": 7,
+          "cols": 4,
+          "rows": 7,
+          "frames": 28
+        },
+        "bite": {
+          "cols": 3,
           "rows": 2,
-          "frames": 14
+          "frames": 6
         },
         "pounce": {
           "cols": 4,
@@ -56,7 +66,8 @@
       "frameDurations": {
         "idle": 200,
         "walk": 120,
-        "run": 80,
+        "run": 40,
+        "bite": 100,
         "pacing": 180
       },
       "speedThresholds": {

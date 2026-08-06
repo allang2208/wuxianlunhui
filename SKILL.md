@@ -320,6 +320,12 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
   - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
     GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
+  - ⚠ **2026-08-06 用户验收不合格 → 已整体还原**：祭坛/仓库图片与标定全部回退到
+    ec069a7 之前的原版（祭坛 411KB/512×497 紧贴裁剪、仓库 176KB/宝箱容器风格），
+    `git checkout ec069a7^ -- assets/npc/altar.png assets/npc/warehouse/warehouse.png
+    data/game-config.json public/data/game-config.json` 四件套；`sizeH` 字段移除后
+    GameScene `sprCfg.sizeH || sz` 自动回退方形显示，无需改代码。新 Blender 版
+    （仓库木屋/多层台座）保留在 git 历史可查，不删。
 - **红狼王 H3 全动作升级（2026-08-06 九版，视频→精灵图）**：
   - 10 段 H3 首帧循环视频：狼 idle/walk/run/飞扑挥爪/飞扑撕咬/变身 + 红狼人
     idle/run/挥爪攻击/仰天嚎叫；**优化配置 1024×576 + 16 步 = 6 分钟/段**
@@ -362,14 +368,27 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### 防御塔机械臂 360° 旋转 + 武器挂载（2026-08-04 实现）
 - **拆臂**：行剖面定位塔顶臂区 → 独立臂贴图（枢轴=塔顶中心、臂尖=挂载点、自然角
   =atan2(臂尖−枢轴)）；基座抹臂区。几何统一存 `DEFENSE_TOWER_VISUAL`（defense-system.js）。
+  ⚠ **2026-08-06 重新抠图（旧臂是错的）**：旧 347×64 版把塔顶平板左半段当成了手臂，
+  与塔图对不上（IoU~0.68），实机就是"一块板 + 竖条"。像素审计后确认真手臂是塔身左侧的
+  大结构：x∈[0,116]、y∈[240,463]（肩→臂→末端双爪钳），重新抠出 113×223。
+- **新几何（2026-08-06 定稿，`DEFENSE_TOWER_VISUAL.arm`）**：纹理 113×223；
+  枢轴=肩部上沿 (77,28)、挂载点=爪心 (44,155)、自然角 1.8250（≈104.6°，指向左下≈垂直向下）、
+  pivotWorldY=177.6（塔图 y=268）；工具 `tools/ai-gen/cut-defense-tower-arm.py`
+  （矩形裁剪+最大连通域去塔身角料；基座擦除手臂并对 y262~290 过渡带做对角 inpaint 补平）。
 - **渲染**：GameScene `_syncDefenseTowers` 三层——基座静态；臂 `rotation = aimAngle − 自然角`
   绕枢轴 360°；武器锚臂尖、`rotation = aimAngle`。
+- **旋转铁律（2026-08-06 修复）**：臂 sprite 的 **origin 必须设在枢轴**（`pivot/tw, pivot/th`），
+  setPosition 直接落在世界枢轴——旧实现把贴图枢轴对齐到世界点后仍绕 sprite 中心旋转，
+  枢轴会画圈漂移（偏差最大 ≈ 15px）。武器尖端仍用 `(tip−pivot)×s` 旋转公式，与臂同源。
 - **武器朝向铁律（玩家同口径）**：`rotation = 瞄准角`；朝左（|角|>90°）用 **flipY** 防倒置
   （禁 flipX+π——方向对但贴图倒，实机截图"枪口与臂不一致"根因）；按高度等比 setScale。
 - **塔 AI**：`aimAngle` 最短弧平滑（有目标 9 rad/s、回位 4 rad/s）；枪口=臂尖世界坐标
   （弹道与视觉同源）；无武器时臂空转。
-- **实机验证工具**：`tools/cdp-defense-tower.mjs`（无头 Edge+CDP，截图 + 控制台错误采集）；
-  Edge profile 必须放 vite 监听目录外（防 EBUSY）。
+- **实机验证工具**：`tools/cdp-defense-tower-arm.mjs`（建 3 塔 + 冻结瞄准 + 六向截图 +
+  单塔特写）、`tools/cdp-defense-tower-arm-fire.mjs`（解除冻结 + 假想敌 → 自动索敌/转臂/
+  开火截图）；旧 `tools/cdp-defense-tower.mjs` 依赖 DEFENSE_CONFIG.towers 预置塔已过时。
+  2026-08-06 验证结果：自然/右/左/上/下/混合角度全部正确（肩部固定、枪随臂转、朝左不颠倒）；
+  PKM/AKM/能量LMG 均从爪子枪口出弹、弹道沿枪方向；lint/build 全绿。
 
 ### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
@@ -389,6 +408,43 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **校验**：地图边界 + `WallSystem.canMoveTo` + 与已有建筑距离 ≥70px；右键/Esc 取消。
 - **CDP 验证铁律**：动态 import 必须用 performance 资源表里带 `?t=` 的真实 URL
   （否则拿到重复模块实例，singleton 不同步）；先等页面稳定再点官方开始按钮。
+
+### 防御塔/基地点击命中盒（2026-08-06 修复"点塔打不开面板"）
+- **根因**：`tryInteract` 的点击判定是"塔脚周围 70px 圆"——塔身高达 262px、
+  视觉中心在脚底上方 131px，点塔身/手臂/枪必然脱靶（探针实测：点脚命中、
+  点塔身/塔顶全部 false），只有点最底部台阶才开得了。
+- **修复**：命中判定改为覆盖整塔视觉范围的**矩形命中盒**
+  `DEFENSE_TOWER_VISUAL.hit`：塔 `{cx:0, cy:-130, hw:100, hh:170}`（含机械臂+武器）、
+  基地核心 `{cx:0, cy:-107, hw:90, hh:120}`；玩家交互距离 260px 保留。
+- **验证**：`tools/cdp-tower-click-e2e.mjs`——真实 CDP 鼠标点击塔身中部 → 面板打开、
+  再点关闭（toggle），无控制台报错；点击链路 = input.js mousedown → `mouse.leftPressed`
+  → game.js 点击块 → `tryInteract`（模块实例必须用 performance 表 `?t=` URL 导入）。
+
+### 防御塔/基地不可移动·不可击退（2026-08-06，与墙壁/掩体同口径）
+- 防御塔与基地核心此前只有 `noSeparation`（防实体分离推动），缺少 `immovable`
+  （`damageable-entity` 的击退闸门：`applyKnockback` 直接 return、位移积分跳过）。
+- 修复：`DefenseTower`/`DefenseBase` 构造补 `this.immovable = true`（掩体已有），
+  塔/基地现在等同墙壁——任何击退/位移通道一律无效。
+- 验证：`tools/cdp-tower-immovable-probe.mjs`——双向 500px 击退 + 30 帧更新，
+  位置零位移、knockbackX/Y 恒 0；lint/build 全绿。
+
+### 防御塔枪械属性与玩家对齐（2026-08-06 排查定稿）
+- **排查结论**：换弹/弹匣/命中效果本就走共享链路（Combatant `getAmmoConfig` +
+  改造 `reloadTimeDelta/magazineDelta`；投射物快照 `_enchantEffects/_craftEffects` →
+  DamagePipeline 附魔 on-hit/流血/易伤/穿甲；`Combatant.takeDamage` 附魔暴击），
+  与玩家一致；**不一致的只有两处**：
+  1. **每发伤害**：旧实现按武器类型硬编码基准（`BASE_WEAPON_DAMAGE`）× 扁平六维系数，
+     无视 attackFormula/强化 enhanceLevel/改造·附魔 damagePercent。
+  2. **射速**：旧实现只读 `item.attack.attackInterval`，改造 `attackIntervalDelta`、
+     附魔 `attackIntervalMul` 不生效。
+- **修复**：`_computeDamage` 改走唯一实战公式 `computeWeaponAttack(item, player.data, null)`
+  （含强化/改造/附魔；`null skills` = 不挂玩家技能精通——那是玩家技能非武器属性，
+  如需塔吃精通再放开）× 塔等级独立增益 ×(1+0.22×(L−1))；射速按
+  `_applyEnchantAttackInterval` 同口径 `base×intervalMul+delta`（下限 100ms）。
+- **验证**：`tools/cdp-tower-weapon-parity.mjs`——同一把 AKM（强化+3、改造
+  damagePercent+20%/attackIntervalDelta−80/magazineDelta+10/reloadTimeDelta+300、附魔
+  damagePercent+15%/attackIntervalMul×0.9）：塔 L1 伤害 39 == 玩家无精通公式 39、
+  射速 370==500×0.9−80、换弹 1450==1150+300、弹匣 40==30+10；lint/build 全绿。
 
 ### 世界-122 布局与刷怪（2026-08-05 定稿）
 - 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
@@ -3670,6 +3726,14 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 首尾高 IoU 配（~0.98）是"首帧=尾帧 idle 重影"，不是步态周期，别被它骗；
   限定匀速中段（steady 12..105）再找周期。
 - 步进：walk P=48 用 `--step 3` → 16 帧（4×4）；run P=28 用 `--step 2` → 14 帧（7×2）。
+- **四足奔跑提帧优化（2026-08-06）**：run 14 帧（step 2）实测僵硬——
+  相邻帧腿部 IoU 仅 0.140（帧间腿部跳变 = 僵硬）。优化：
+  ① **提高采样密度** step 2→1（28 帧 = 视频原帧，4×7 网格），
+    相邻帧腿部 IoU 0.538，平滑度 +285%；
+  ② 重建走阈值 bbox + max(BiRefNet, 阈值) 腿部兜底（run 四腿运动同样会丢腿）；
+  ③ 游戏帧率 80→40ms/帧（28×40=1120ms，与原 14×80 圈时一致）。
+  经验：**快速动作（run）帧数宁多勿少，step 1 逼近视频原帧最顺滑**；
+  慢速动作（walk）step 3 可接受。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
@@ -3724,6 +3788,29 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   apart and clearly visible with sharp distinct claw tips"）后重生成，
   特写验收确认"前爪前伸 + 爪尖张开可见"（挥击弧线是 H3 侧视模型的生成极限）；
   游戏内动作时长按用户要求调到 ~3s（prepareMs 1200 + chargeMs 1800）。
+- **飞扑动画重制 v4（2026-08-06 定稿）**：两阶段提示词——
+  phase one 准备（"lowers its body close to the ground, belly almost touching
+  the ground, stretches all four legs wide apart, muscles tensed"）、
+  phase two 飞扑（"leaps through the air, opens its mouth wide in a fierce
+  biting snap, swings both front paws forward in wide slashing arcs with claws
+  fully extended, biting and clawing at the same time, strong exaggerated
+  motion"）。GLM 五项全过：准备下压+四肢张开 / 飞扑嘴张撕咬+爪挥 /
+  幅度力度更大 / 大小一致无裁切 / 连贯。准备帧高度 204~233（压低明显）。
+- **BiRefNet 压低帧丢腿坑（2026-08-06 v6 定稿）**：GLM 复验发现中间帧明显偏小，
+  像素统计定位根因——**BiRefNet 对四肢张开/下腹贴地的压低帧把腿部大量识别为背景**
+  （f32 腿部仅保留 5%，bbox 高收缩 21%），按 BiRefNet bbox 重建 → 帧变小。
+  修复：crop 用阈值 mask(248) bbox（完整狼）+ **alpha = max(BiRefNet, 阈值mask)**
+  腿部兜底 + 固定 scale + 加强去污染（亮半透边缘 lum>180 清零）。
+  修复后各帧高度 -1%~-4%（之前 -22%），四腿完整，白边 0.00%，GLM 六项全过。
+- **飞扑垂直提升 + 速度调整 + 普通撕咬（2026-08-06）**：
+  - 空中效果：精灵图层 charge 帧脚底按抛物线提升（起跳 +8px → 空中 +30px → 落地 +4px），
+    游戏内无需额外偏移；准备帧脚底保持地面 410；
+  - 飞扑速度 -25%：`pounceSpeed = 距离/(chargeMs/1000)`（原硬编码 /1），
+    chargeMs 1333 = 原 1s 的 1.333 倍（525px/s vs 700px/s，精确 -25%）；
+  - **普通攻击（近距离撕咬）**：`_biteState` 状态机——距离 ≤ biteRange 150 触发，
+    6 帧 3×2 小幅前探张嘴咬（无回转、无位移），中段 200~450ms 命中一次，
+    无致残/眩晕；命中距离 biteHitDistance 165 须 ≥ 触发范围（否则空挥）。
+    攻击决策：近距撕咬优先，中距（150~500）飞扑技能。
 - 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
