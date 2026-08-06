@@ -299,6 +299,20 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
   - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
     GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
+- **红狼王 H3 全动作升级（2026-08-06 九版，视频→精灵图）**：
+  - 10 段 H3 首帧循环视频：狼 idle/walk/run/飞扑挥爪/飞扑撕咬/变身 + 红狼人
+    idle/run/挥爪攻击/仰天嚎叫；**优化配置 1024×576 + 16 步 = 6 分钟/段**
+    （原 1344×768+20 步 17 分钟，快 2.6 倍；H3 最短可靠 124 帧，循环靠截取）。
+  - 切帧帧数（h3-loop/h3-attack）：狼 walk P=34→11 帧(4×3)、run P=14→7 帧(7×1)、
+    红狼人 run P=24→12 帧(7×2)；攻击/变身/嚎叫各 12 帧(4×3)；idle 抽 1 帧静态。
+  - **cv2.imwrite 中文路径静默失败（不回错误）**：切帧输出必须走 ASCII temp 再拷回
+    （tools/h3-*.py 输出到 `%TEMP%/world122-cover`）。h3-loop-spritesheet 补了
+    末行不足 cols 时补透明格（11 帧 4×3 场景会崩 vstack）。
+  - RedWolfKing 类重建（extends BlackWolf）：HP≤50% 触发 2s transform →
+    红狼人形态（伤害×2、回血、先 howl），狼形态双攻击
+    pounceClaw(远/飞扑挥爪)/pounceBite(近/撕咬)；animation-config 双份校准
+    frameLayouts/attackTypes/transformedFrameLayout；BootScene 注册 10 纹理键。
+  - 实机验证：狼形态 + 变身红狼人均正常渲染、无报错；测试/构建全绿。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3682,8 +3696,13 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
   charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
 - **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、
-  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceStunMs/
+  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/
   pounceMaxDist/pounceOvershoot；移除 bite 资产/配置/加载（废案已删）。
+- **飞扑动画重制（2026-08-06 v3 定稿）**：提示词强化爪子细节
+  （"swing forward in a wide visible arc like a cat swiping, claws spread wide
+  apart and clearly visible with sharp distinct claw tips"）后重生成，
+  特写验收确认"前爪前伸 + 爪尖张开可见"（挥击弧线是 H3 侧视模型的生成极限）；
+  游戏内动作时长按用户要求调到 ~3s（prepareMs 1200 + chargeMs 1800）。
 - 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
   碰撞体积（120×65 / footOffsetY 41）不用动。
