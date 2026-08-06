@@ -172,15 +172,15 @@ const MONSTER_FACTORY = {
     witch: Witch,
 };
 
-/** 掩体贴图内容框宽高比（2026-08-05 自然贴图重做后实测），显示宽度统一 260，高度按比例 */
-// 显示宽高比（路线 B：Blender 完整 box 棱柱，sizeH=260 使世界底边斜率 = 0.4976）
+/** 掩体贴图内容框宽高比（2026-08-05 圆角 bevel 后复测），显示宽度统一 260，高度按比例 */
+// 显示宽高比（路线 B：Blender 完整 box 棱柱 + 8 角 bevel，sizeH=259 使世界底边斜率 = 0.4976）
 const COVER_ASPECT = {
-    F: { h: 1.0, v: 1.0 },
-    E: { h: 1.0, v: 1.0 },
-    D: { h: 1.0, v: 1.0 },
-    C: { h: 1.0, v: 1.0 },
-    B: { h: 1.0, v: 1.0 },
-    A: { h: 1.0, v: 1.0 },
+    F: { h: 1.004, v: 1.004 },
+    E: { h: 1.004, v: 1.004 },
+    D: { h: 1.004, v: 1.004 },
+    C: { h: 1.004, v: 1.004 },
+    B: { h: 1.004, v: 1.004 },
+    A: { h: 1.004, v: 1.004 },
 };
 const COVER_DISPLAY_W = 260;
 
@@ -189,20 +189,20 @@ const COVER_DISPLAY_W = 260;
  * 与 building-system 的吸附端点同源（贴图内容底边 = 墙段接地线）：
  * - v（"/"）：A=低端（近地），B=高端（远地）
  * - h（"\"）：镜像，A=高端，B=低端
- * 数值来源：路线 B（Blender 完整 box 棱柱 + AI 材质纹理）渲染图底边端点标定
- * （prep-cover-render.py，2026-08-05 自然贴图重做后复标：A(-88,-21)/B(88,-109)）。
+ * 数值来源：路线 B（Blender 完整 box 棱柱 + 8 角 bevel + AI 材质纹理）渲染图底边端点标定
+ * （prep-cover-render.py，2026-08-05 圆角后复标：A(-88,-21)/B(88,-108)）。
  * 完整 box 实心端帽使端帽底部与正面底边共线，拼接处脚底线连续无凸起。
  * 几何统一 → 6 级 face 完全一致，
  * 同向/跨级拼接天然共线；h 一律 = v 镜像派生。
  * 供图层排序（深度锚点 = max 底边端点 y + 12）和遮挡仲裁（junctionCorrectedDepth 面线）使用。
  */
 export const COVER_FACE = {
-    F: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
-    E: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
-    D: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
-    C: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
-    B: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
-    A: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -109 } }, h: { A: { x: -88, y: -109 }, B: { x: 88, y: -21 } } },
+    F: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
+    E: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
+    D: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
+    C: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
+    B: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
+    A: { v: { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } }, h: { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } } },
 };
 /** 兼容旧访问（COVER_FACE.v / COVER_FACE.h）：默认取 D 级 */
 COVER_FACE.v = COVER_FACE.D.v;
@@ -210,7 +210,7 @@ COVER_FACE.h = COVER_FACE.D.h;
 
 /**
  * 玩家摆放掩体的碰撞 footprint（墙段底部判定面积，参考 WallSystem 障碍物 foot 口径）：
- * 墙段 face 从 (x±88, y-25..y-112) → 沿墙段 ±thick 的轴对齐 AABB 198×133，
+ * 墙段 face 从 (x±88, y-21..y-108) → 沿墙段 ±thick 的轴对齐 AABB 198×133，
  * 中心上移 offY=-68（对准墙段主体）。thick = 墙厚一半（52 世界 → 26）。
  * v/h 是镜像，AABB 相同。colliderOffsetY 让矩形中心对准墙段（旧 46×300 竖矩形
  * 只有视觉 26% 宽且偏下，怪物可穿墙段大部分——用户反馈"障碍物根本没碰撞体积"根因）。
@@ -348,7 +348,9 @@ class DefenseCover extends Combatant {
                 { x: x + face.A.x, y: y + face.A.y },
                 { x: x + face.B.x, y: y + face.B.y },
             ];
-            this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12;
+            // depthBias：上夹角左臂（TL 边）加 0.5，让左臂盖住右臂（TR），
+            // 否则两臂 faceDepth 相同 + TL 先建 → 右挡左（2026-08-06 用户反馈）
+            this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12 + (config.depthBias || 0);
         } else {
             this._faceDepth = y + 12;
         }
@@ -364,8 +366,13 @@ class DefenseCover extends Combatant {
             };
             WallSystem.isoSegments.push(this._coverSeg);
         }
-        // 贴图：水平摆(_h)/垂直摆(_v) 两组；显示尺寸按内容框宽高比校准
-        const tex = `obstacle_cover_${grade}_${orient}`;
+        // 贴图：随机变体库（2026-08-05）——同档 5 个高度类似变体随机选，防单调：
+        // v1=定稿（无后缀）；v2~v5=细节微调变体（A 级符文形态随机替换）。
+        // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）。
+        const variant = 1 + Math.floor(Math.random() * 5);
+        const tex = variant === 1
+            ? `obstacle_cover_${grade}_${orient}`
+            : `obstacle_cover_${grade}_v${variant}_${orient}`;
         const aspect = (COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1;
         const sizeH = Math.round(COVER_DISPLAY_W / aspect);
         this.spriteCfg = { idleKey: tex, size: COVER_DISPLAY_W, sizeH, footOffsetY: sizeH / 2 };
@@ -885,6 +892,7 @@ export const DefenseSystem = {
                 orient: c.orient,
                 w: c.w,
                 d: c.d,
+                depthBias: c.depthBias,
                 id: `defense_cover_${i}`,
             });
             Game.entities.set(`defense_cover_${i}`, cover);
@@ -946,6 +954,9 @@ export const DefenseSystem = {
                     y: Math.round(e.from.y + uy * t) + alignY,
                     grade: room.coverGrade,
                     orient: e.orient,
+                    // 上夹角：左臂（TL）盖右臂（TR）——两臂 faceDepth 相同，
+                    // 不加偏置会因创建顺序右挡左（2026-08-06 修复）
+                    depthBias: e.key === 'TL' ? 0.5 : 0,
                 });
             }
         }

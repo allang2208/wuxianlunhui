@@ -38,8 +38,64 @@ def parse_args():
     return argv[0], argv[1], argv[2], mirror
 
 
+def bevel_corners(o, amount=10.0, segments=3):
+    """8 个顶角圆滑（2026-08-05 用户要求）：只圆 8 个角顶点，不动长棱边，
+    保住底边直线与拼接几何。先 transform_apply(scale) 让 bevel 按世界单位生效，
+    再用 bmesh.ops.bevel(affect='VERTICES')（bpy.ops.mesh.bevel 的 affect 参数
+    版本间不稳定）。"""
+    import bmesh
+    bpy.ops.object.select_all(action="DESELECT")
+    o.select_set(True)
+    bpy.context.view_layer.objects.active = o
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bm = bmesh.from_edit_mesh(o.data)
+    bmesh.ops.bevel(
+        bm,
+        geom=[v for v in bm.verts],
+        offset=amount,
+        offset_type="OFFSET",
+        segments=segments,
+        profile=0.5,
+        affect="VERTICES",
+    )
+    bmesh.update_edit_mesh(o.data)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def box_full_uv(o):
+    """每个面独立展开到整张纹理 [0,1]²（盒形展开，V 轴朝上）。
+
+    2026-08-05 修复：Blender 默认 cube 的 UV 是 3×2 分块布局，每张面只采样纹理的
+    一小块——材质贴图只有上半部分被显示（E 级沙袋位置错误/白色残留的根因）。
+    对每个面按局部坐标主轴投影归一化到 [0,1]²，纹理顶部（v=1）始终朝上。
+    """
+    me = o.data
+    uvl = me.uv_layers[0] if me.uv_layers else me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        n = poly.normal
+        main = max(range(3), key=lambda i: abs(n[i]))
+        others = [i for i in range(3) if i != main]
+        # V 轴优先世界 Z（向上），其余作 U 轴
+        if 2 in others:
+            u_ax, v_ax = (others[0], 2) if others[0] != 2 else (others[1], 2)
+        else:
+            u_ax, v_ax = others[0], others[1]
+        coords = []
+        for li in poly.loop_indices:
+            co = me.vertices[me.loops[li].vertex_index].co
+            coords.append((co[u_ax], co[v_ax]))
+        u0, u1 = min(c[0] for c in coords), max(c[0] for c in coords)
+        v0, v1 = min(c[1] for c in coords), max(c[1] for c in coords)
+        du = (u1 - u0) or 1.0
+        dv = (v1 - v0) or 1.0
+        for li, (cu, cv) in zip(poly.loop_indices, coords):
+            uvl.data[li].uv = ((cu - u0) / du, (cv - v0) / dv)
+    me.update()
+
+
 def build_wall(prims, tex_path):
-    """建 box 棱柱 + 端部薄片（底边共线）+ 写实材质（bump + AO + 明暗）。"""
+    """建 box 棱柱（8 角可圆滑）+ 写实材质（bump；无 AO 阴影）。"""
     img = bpy.data.images.load(tex_path)
     objs = []
     for i, p in enumerate(prims):
@@ -55,6 +111,11 @@ def build_wall(prims, tex_path):
         o.location = p.get("pos", [0, 0, 0])
         rot = p.get("rot", [0, 0, 0])
         o.rotation_euler = [math.radians(a) for a in rot]
+        # 8 角圆滑（用户要求尝试；默认 10 世界 px，spec 可覆盖）
+        if p.get("bevel", 0) > 0:
+            bevel_corners(o, amount=float(p["bevel"]), segments=int(p.get("bevelSegments", 3)))
+        # 每面整张纹理（修默认 cube 分块 UV）
+        box_full_uv(o)
 
         mat = bpy.data.materials.new(f"m_{i}")
         mat.use_nodes = True

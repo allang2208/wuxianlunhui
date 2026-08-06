@@ -95,18 +95,17 @@ def check_lora_dim(entry, model_name):
         if "txt_attn.proj" in key:
             shape = (meta or {}).get("shape") or []
             if len(shape) == 2:
-                dims.add(int(shape[0]))
+                dims.update(int(s) for s in shape)
     if not dims:
         print(f"[lora] '{lora_name}' has no txt_attn.proj key; dim pre-check skipped",
               file=sys.stderr)
         return
-    dim = dims.pop()
-    if dim != expected:
-        print(f"ERROR: lora '{lora_name}' dim={dim} does not match model "
+    if expected not in dims:
+        print(f"ERROR: lora '{lora_name}' dims={sorted(dims)} do not include model "
               f"'{model_name}' hidden_dim={expected}. Do not attach the klein "
               "(3072) LoRA to dev (6144) models.", file=sys.stderr)
         sys.exit(1)
-    print(f"[lora] '{lora_name}' dim={dim} matches {model_name} (ok)",
+    print(f"[lora] '{lora_name}' hidden_dim={expected} matches {model_name} (ok)",
           file=sys.stderr)
 
 
