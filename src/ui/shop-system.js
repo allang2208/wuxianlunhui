@@ -85,7 +85,10 @@ const ShopSystem = {
             'tiangang_helmet', 'tiangang_armor', 'tiangang_boots',
             // 神话套装（神谕，2026-08-07 新增）
             'oracle_helmet', 'oracle_armor', 'oracle_boots',
-            'necklace_oracle', 'ring_oracle', 'belt_oracle'
+            'necklace_oracle', 'ring_oracle', 'belt_oracle',
+            // 神话法袍（神域）+ 神话重甲（神域）
+            'oracle_robe_helmet', 'oracle_robe_armor', 'oracle_robe_boots',
+            'oracle_heavy_helmet', 'oracle_heavy_armor', 'oracle_heavy_boots'
         ]
     },
 
