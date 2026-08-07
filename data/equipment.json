@@ -3658,6 +3658,190 @@
             ],
             "desc": "天罡三件套（重盔/重甲/重靴）之一。三件齐穿激活：自动格挡50%概率减少90%伤害、-10%移动速度。",
             "iconImage": "assets/icons/equipment/天罡重靴.png"
+        },
+        "oracle_helmet": {
+            "name": "神谕战盔",
+            "type": "头盔",
+            "icon": "⛨",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "helmet",
+            "armorSet": "oracle",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 12,
+                "perEnhance": 3.0
+            },
+            "bonusStats": {
+                "maxHp": 28
+            },
+            "bonusPerEnhance": {
+                "maxHp": 9.5
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+12",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+28",
+                    "pos": true
+                }
+            ],
+            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/神谕战盔.png"
+        },
+        "oracle_armor": {
+            "name": "神谕战甲",
+            "type": "盔甲",
+            "icon": "🥋",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "armor",
+            "armorSet": "oracle",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 20,
+                "perEnhance": 4.2
+            },
+            "bonusStats": {
+                "maxHp": 45
+            },
+            "bonusPerEnhance": {
+                "maxHp": 13
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+20",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+45",
+                    "pos": true
+                }
+            ],
+            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/神谕战甲.png"
+        },
+        "oracle_boots": {
+            "name": "神谕战靴",
+            "type": "靴子",
+            "icon": "👢",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "boots",
+            "armorSet": "oracle",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 9,
+                "perEnhance": 2.4
+            },
+            "bonusStats": {
+                "maxHp": 20
+            },
+            "bonusPerEnhance": {
+                "maxHp": 7
+            },
+            "stats": [
+                {
+                    "name": "物理防御",
+                    "value": "+9",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+20",
+                    "pos": true
+                }
+            ],
+            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/神谕战靴.png"
+        },
+        "necklace_oracle": {
+            "name": "神谕项链",
+            "type": "项链",
+            "icon": "📿",
+            "category": "accessory",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "necklace",
+            "bonusStats": {
+                "str": 6,
+                "dex": 6
+            },
+            "bonusPerEnhance": {
+                "str": 3,
+                "dex": 3
+            },
+            "stats": [
+                {
+                    "name": "力量",
+                    "value": "+6",
+                    "pos": true
+                },
+                {
+                    "name": "敏捷",
+                    "value": "+6",
+                    "pos": true
+                }
+            ],
+            "desc": "神辉铸就的圣链，坠饰为永恒烈阳，佩戴者沐浴神圣之力。",
+            "iconImage": "assets/icons/equipment/神谕项链.png"
+        },
+        "ring_oracle": {
+            "name": "神谕之戒",
+            "type": "戒指",
+            "icon": "💍",
+            "category": "accessory",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "ring1",
+            "bonusStats": {
+                "atk": 8
+            },
+            "bonusPerEnhance": {
+                "atk": 4.5
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "+8",
+                    "pos": true
+                }
+            ],
+            "desc": "白金戒环嵌着圣辉钻石，神谕之光照耀每一次挥击。",
+            "iconImage": "assets/icons/equipment/神谕之戒.png"
+        },
+        "belt_oracle": {
+            "name": "神谕腰带",
+            "type": "腰带",
+            "icon": "❤️",
+            "category": "accessory",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "belt",
+            "bonusStats": {
+                "maxHp": 60
+            },
+            "bonusPerEnhance": {
+                "maxHp": 30
+            },
+            "stats": [
+                {
+                    "name": "最大生命值",
+                    "value": "+60",
+                    "pos": true
+                }
+            ],
+            "desc": "神纹织成的腰带，生命之力如圣泉不息。",
+            "iconImage": "assets/icons/equipment/神谕腰带.png"
         }
     }
 }
