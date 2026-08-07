@@ -3909,6 +3909,21 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   清理后 GLM 确认：边缘无白点/白边/锯齿、白毛自然、整体干净。
   经验：白点分"边缘噪声"（清）与"白毛"（留），按到内容边缘距离区分，
   不要一刀切删全部近白像素（会毁掉腹部白毛）。
+- **彻底去白（2026-08-07 用户要求）**：孤立点清理仍不够，用户要求"直接排除
+  白色/类白色像素"。终极方案：**RGB min>220 的近白像素（含 alpha<200 半透白）
+  一律替换为 5×5 邻域非白像素的毛色均值**（不是删 alpha，是颜色替换——
+  无白点、无洞、白毛区变深色毛），半透白边缘 alpha 压到 120。
+  处理后 5 张贴图残留类白像素 = 0。经验：用户要"无白"就颜色替换整片去白，
+  别只清孤立点（孤立法漏掉连片浅白边缘）。
+- **黑狼攻击冻结移动（2026-08-07）**：bite 攻击阶段设 `_frozenForCast=true`
+  （MovementSystem 检查禁移动），pounce 沿用 prepare `_frozenForCast` +
+  charge `_attackAnimTimer`——攻击期间不再边攻击边漂移。
+- **撕咬攻击性重生成（2026-08-07 v5）**：提示词强化 "snaps jaws open and shut
+  with strong force, teeth clashing, lower jaw closes up fast and hard with
+  visible impact, aggressive and fierce, the head jerks forward slightly"。
+  H3 仍不生成闭合帧（全程大张），但抽帧后节奏呈"张→咬→张"，GLM 确认
+  攻击性/力量感强、无静止吼叫帧。经验：H3 撕咬要力量感靠"大张嘴+头前探+
+  快速帧节奏"，闭合细节依赖帧选取。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
