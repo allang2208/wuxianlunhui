@@ -267,9 +267,13 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **白金/白底为主的装备主体（白金色金属、圣光白亮件）禁止在白底上生成**：阈值抠图会把主体亮部
   当背景啃掉，留下白边残留/亮部缺失。必须走 `comfyui-gen.py --transparent`（AI 自动选主体完全没有的
   背景色，实测选纯蓝 #0000FF），出图后按真实底色阈值抠图，再归一化。
-- 同稀有度套装 = **轻甲/法袍/重甲三系**（对照 epic：星穹轻甲/苍月法袍/天罡重甲）；神话神域 =
-  神域战盔/战甲/战靴（轻甲 6 件含首饰）+ 神域法帽/法袍/长靴（法袍 3 件）+ 神域重盔/重甲/重靴
-  （重甲 3 件）。生成时三系分别出图，不要只出一套。
+- 同稀有度套装 = **轻甲/法袍/重甲三系**（对照 epic：星穹轻甲/苍月法袍/天罡重甲）。神话三系**三命名**：
+  神域（重甲：战盔/战甲/战靴 + 首饰 6 件）+ 圣辉（轻甲：轻盔/轻甲/轻靴 3 件）+ 神谕（法袍：
+  法帽/法袍/长靴 3 件）。生成时三系分别出图，不要只出一套、也不要三系共用同一前缀名。
+- **JSON 中文被 GBK 管道吃成 "????"（2026-08-07 神域返工教训）**：PowerShell 管道 heredoc 喂 Python
+  时 stdin 是 GBK，脚本里的中文字符串会变 "????"（本次把装备 name/iconImage 全改坏、商店显示 ???）。
+  凡脚本要写中文 → 用 apply_patch 写 UTF-8 文件再跑，或全用 unicode 转义；改完必须抽查 JSON 实际
+  codepoints（如 `"?" in name` 检查）。
 
 ### CDP 残留教训（2026-08-07，C 盘爆满根因）
 - headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
@@ -454,6 +458,16 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 修复后：run 433×262、walk 368×262、claw 344×246、bite 354×226
     （步态高度统一 262，攻击为前扑压低姿态，黑狼同款）；毛色深红正常；
     近白半透 0.5%（浅毛软边，黑狼基准 <1%）；GLM 确认脚步无白边。
+- **红狼王 idle 蓝色残留 + 攻击身高统一（2026-08-07 十四版）**：
+  - **idle 仍蓝**：idle 是早期 cv2.imwrite bug 版本，重生成（PIL 保存 + uniform-h）
+    后 RGB [90,18,18] 正常；**入库必须核对入库后的文件**（此前一次入库因
+    Python cwd 相对路径失败，assets 里还是旧蓝版——GLM 复核才暴露）。
+  - **撕咬 vs idle 身高差 15%（226 vs 262）**：H3 撕咬前扑固有压低，重生成视频
+    （提示词 keep body tall / no extreme lowering）仍 223。**治本=全部狼形态动作
+    uniform-h 统一高度 262**（黑狼同款）：idle 320 / walk 368 / run 433 /
+    claw 371 / bite 432，高度全 262；宽度随姿态（站立窄、前扑/奔跑伸展）。
+    H3 视频内狼大小漂移是生成特性（run 首帧 471→中段 631 宽），切帧只能
+    统一高度，宽度差异读作姿态；黑狼 idle 408 / pounce 458 同样 +12%。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3909,6 +3923,21 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   清理后 GLM 确认：边缘无白点/白边/锯齿、白毛自然、整体干净。
   经验：白点分"边缘噪声"（清）与"白毛"（留），按到内容边缘距离区分，
   不要一刀切删全部近白像素（会毁掉腹部白毛）。
+- **彻底去白（2026-08-07 用户要求）**：孤立点清理仍不够，用户要求"直接排除
+  白色/类白色像素"。终极方案：**RGB min>220 的近白像素（含 alpha<200 半透白）
+  一律替换为 5×5 邻域非白像素的毛色均值**（不是删 alpha，是颜色替换——
+  无白点、无洞、白毛区变深色毛），半透白边缘 alpha 压到 120。
+  处理后 5 张贴图残留类白像素 = 0。经验：用户要"无白"就颜色替换整片去白，
+  别只清孤立点（孤立法漏掉连片浅白边缘）。
+- **黑狼攻击冻结移动（2026-08-07）**：bite 攻击阶段设 `_frozenForCast=true`
+  （MovementSystem 检查禁移动），pounce 沿用 prepare `_frozenForCast` +
+  charge `_attackAnimTimer`——攻击期间不再边攻击边漂移。
+- **撕咬攻击性重生成（2026-08-07 v5）**：提示词强化 "snaps jaws open and shut
+  with strong force, teeth clashing, lower jaw closes up fast and hard with
+  visible impact, aggressive and fierce, the head jerks forward slightly"。
+  H3 仍不生成闭合帧（全程大张），但抽帧后节奏呈"张→咬→张"，GLM 确认
+  攻击性/力量感强、无静止吼叫帧。经验：H3 撕咬要力量感靠"大张嘴+头前探+
+  快速帧节奏"，闭合细节依赖帧选取。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），

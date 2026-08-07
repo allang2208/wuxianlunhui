@@ -300,6 +300,7 @@ class BlackWolf extends Enemy {
         if (this._biteState !== 'idle') return;
         this._biteState = 'attacking';
         this._animState = 'attack';
+        this._frozenForCast = true; // 攻击期间锁定移动（防边攻击边漂移）
         this._biteTimer = this._attackTypes?.bite?.durationMs ?? 600;
         this._biteCooldown = this.config?.biteCooldown ?? 1200;
         this._biteTarget = this.target;
@@ -339,6 +340,7 @@ class BlackWolf extends Enemy {
 
     _endBite() {
         this._biteState = 'idle';
+        this._frozenForCast = false;
         this._biteTimer = 0;
         this._biteTarget = null;
         this._biteDamaged = false;

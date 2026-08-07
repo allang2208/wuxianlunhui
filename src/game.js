@@ -36,7 +36,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, ZombieDogEnemy } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
@@ -75,6 +75,7 @@ import { UIState } from './ui/ui-state.js';
 import { ExpeditionSystem } from './ui/expedition-system.js';
 import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
+import { DefenseTrapSystem } from './world/defense-trap-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -436,7 +437,9 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 当前无测试怪（墓碑黑烟/召唤验证完毕已撤下；需要时恢复 this.spawnMainTombstone()）
+        // 红狼王 H3 贴图升级验证：贴图资产尚未入库（10 张 red_wolf_king_* 缺失），
+        // 生成会显示蓝色占位块（Phaser 缺失纹理）干扰观感——先停用，资产补齐后再恢复。
+        // this.spawnMainRedWolfKing();
     },
 
     spawnMainTombstone() {
@@ -543,6 +546,24 @@ export const Game = {
             }
         });
         this.entities.set('enemy_main_foreman', foreman);
+    },
+
+    // 红狼王（精英，2026-08-06 H3 贴图升级接入）：主神空间测试生成，验证狼形态+变身
+    spawnMainRedWolfKing() {
+        const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
+            GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
+        );
+        const cfg = enemyConfigData.redWolfKing || {};
+        const wolf = new RedWolfKing(origin.x + 900, origin.y + 100, {
+            ...cfg,
+            ai: {
+                ...(cfg.ai || {}),
+                aggroRange: 9999,
+                pacingRange: 0,
+                loseTimeout: 999999
+            }
+        });
+        this.entities.set('enemy_main_red_wolf', wolf);
     },
 
     spawnMainLanternMinerZombie() {
@@ -1180,6 +1201,11 @@ if (Input.mouse.leftPressed) {
                 return;
             }
             // 世界-122 防守地图：点击防御塔打开升级/装载面板，点击基地核心查看耐久
+            // 陷阱优先于防御塔（陷阱是地面小体积，命中盒更贴近点击处）
+            if (DefenseTrapSystem && DefenseTrapSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
             if (DefenseSystem && DefenseSystem.active && DefenseSystem.tryInteract(mx, my, this.player)) {
                 Input.mouse.leftPressed = false;
                 return;

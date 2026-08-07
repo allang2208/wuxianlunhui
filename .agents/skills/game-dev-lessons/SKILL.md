@@ -570,3 +570,21 @@ this.ai = config.ai || {};
   校验双份一致 + 引用文件全存在；lint/test/vite build 三绿。
 - **路径坑**：Y: NAS 中文路径 Node fs 会 ENOENT 乱码 → 提示词用 PowerShell 写；抠图/筛选
   走 `%TEMP%` 本地中转。`--suffix ""` 空串参数会被 shell 吞，用默认后缀再改名。
+
+## 38. 白色要素多的主体必须 `--transparent` 生成（2026-08-07 神话神域返工）
+- 白金鎏金/圣光白亮装备生成在白底上 → 阈值抠图把主体亮部当背景啃掉（白边残留/亮部缺失）。
+- 正解：`comfyui-gen.py --transparent`（AI 自动选主体完全没有的背景色，实测纯蓝 #0000FF），
+  出图后按真实底色阈值抠图（脚本会检测实际底色，不必写死 #0000FF），再归一化 1536²。
+- 同类坑在 SKILL.md「白色主体的生图/抠图铁律」；生成后灰底合成检查边缘（无白边/蓝边/毛刺）。
+
+## 39. PowerShell 管道 heredoc 喂 Python：中文会被 GBK 吃成 "????"（2026-08-07）
+- `@'...'@ | python -` 的 stdin 是 GBK：脚本源码里的中文字符串会变 "????"——本次把
+  equipment.json 12 件神话装备的 name/iconImage 全写坏，商店显示 ???、图标路径失效。
+- 正解：要写中文的脚本一律 `apply_patch` 存 UTF-8 文件再 `python file.py`，或全用
+  `\uXXXX` 转义；改完抽查 JSON 实际 codepoints（`"?" in name` 检查），别信控制台显示。
+
+## 40. CDP headless Edge 残留 profile 吃满 C 盘（2026-08-07）
+- 每次 CDP 实机运行在 `%TEMP%` 建 `edge-cdp-*` profile（~600MB/个）；累积 111 个 47.7GB
+  直接 C 盘 0GB 满。用完即删或定期清 `%TEMP%\edge-*`。
+- 删除递归目录用 `.NET Directory.Delete(path, true)`（`Remove-Item -Recurse` 被安全策略拦）。
+- 同批结论：墙体材质只训"贴图"不训端到端（几何是确定性 Blender 数据层）；NAS-first 输出。

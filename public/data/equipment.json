@@ -3660,7 +3660,7 @@
             "iconImage": "assets/icons/equipment/天罡重靴.png"
         },
         "oracle_helmet": {
-            "name": "????",
+            "name": "神域战盔",
             "type": "头盔",
             "icon": "⛨",
             "category": "armor",
@@ -3691,11 +3691,11 @@
                     "pos": true
                 }
             ],
-            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "神域三件套（战盔/战甲/战靴）之一。三件齐穿激活：自动格挡60%概率减少90%伤害、-12%移动速度。",
+            "iconImage": "assets/icons/equipment/神域战盔.png"
         },
         "oracle_armor": {
-            "name": "????",
+            "name": "神域战甲",
             "type": "盔甲",
             "icon": "🥋",
             "category": "armor",
@@ -3726,11 +3726,11 @@
                     "pos": true
                 }
             ],
-            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "神域三件套（战盔/战甲/战靴）之一。三件齐穿激活：自动格挡60%概率减少90%伤害、-12%移动速度。",
+            "iconImage": "assets/icons/equipment/神域战甲.png"
         },
         "oracle_boots": {
-            "name": "????",
+            "name": "神域战靴",
             "type": "靴子",
             "icon": "👢",
             "category": "armor",
@@ -3761,11 +3761,11 @@
                     "pos": true
                 }
             ],
-            "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "神域三件套（战盔/战甲/战靴）之一。三件齐穿激活：自动格挡60%概率减少90%伤害、-12%移动速度。",
+            "iconImage": "assets/icons/equipment/神域战靴.png"
         },
         "necklace_oracle": {
-            "name": "????",
+            "name": "神域项链",
             "type": "项链",
             "icon": "📿",
             "category": "accessory",
@@ -3793,10 +3793,10 @@
                 }
             ],
             "desc": "神辉铸就的圣链，坠饰为永恒烈阳，佩戴者沐浴神圣之力。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神域项链.png"
         },
         "ring_oracle": {
-            "name": "????",
+            "name": "神域之戒",
             "type": "戒指",
             "icon": "💍",
             "category": "accessory",
@@ -3817,10 +3817,10 @@
                 }
             ],
             "desc": "白金戒环嵌着圣辉钻石，神谕之光照耀每一次挥击。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神域之戒.png"
         },
         "belt_oracle": {
-            "name": "????",
+            "name": "神域腰带",
             "type": "腰带",
             "icon": "❤️",
             "category": "accessory",
@@ -3841,10 +3841,10 @@
                 }
             ],
             "desc": "神纹织成的腰带，生命之力如圣泉不息。",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神域腰带.png"
         },
         "oracle_robe_helmet": {
-            "name": "????",
+            "name": "神谕法帽",
             "type": "??",
             "icon": "??",
             "category": "armor",
@@ -3876,10 +3876,10 @@
                 }
             ],
             "desc": "????????/??/?????????????????-28%?????+35%?",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神谕法帽.png"
         },
         "oracle_robe_armor": {
-            "name": "????",
+            "name": "神谕法袍",
             "type": "??",
             "icon": "??",
             "category": "armor",
@@ -3911,10 +3911,10 @@
                 }
             ],
             "desc": "????????/??/?????????????????-28%?????+35%?",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神谕法袍.png"
         },
         "oracle_robe_boots": {
-            "name": "????",
+            "name": "神谕长靴",
             "type": "??",
             "icon": "??",
             "category": "armor",
@@ -3935,90 +3935,112 @@
                 }
             ],
             "desc": "????????/??/?????????????????-28%?????+35%?",
-            "iconImage": "assets/icons/equipment/????.png"
+            "iconImage": "assets/icons/equipment/神谕长靴.png"
         },
-        "oracle_heavy_helmet": {
-            "name": "????",
-            "type": "??",
-            "icon": "?",
+        "holy_helmet": {
+            "name": "圣辉轻盔",
+            "type": "头盔",
+            "icon": "🪖",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
             "equipSlot": "helmet",
-            "armorSet": "oracle_heavy",
+            "armorSet": "holy",
             "armorSetSlot": "helmet",
             "defense": {
-                "base": 45,
-                "perEnhance": 4.5
+                "base": 12,
+                "perEnhance": 3.0
             },
             "bonusStats": {
-                "maxHp": 30
+                "maxHp": 28
             },
             "bonusPerEnhance": {
-                "maxHp": 10
+                "maxHp": 9.5
             },
             "stats": [
                 {
-                    "name": "????",
-                    "value": "+45",
+                    "name": "物理防御",
+                    "value": "+12",
                     "pos": true
                 },
                 {
-                    "name": "?????",
-                    "value": "+30",
+                    "name": "最大生命值",
+                    "value": "+28",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????60%????90%???-12%?????",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "圣辉三件套（轻盔/轻甲/轻靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/圣辉轻盔.png"
         },
-        "oracle_heavy_armor": {
-            "name": "????",
-            "type": "??",
-            "icon": "??",
+        "holy_armor": {
+            "name": "圣辉轻甲",
+            "type": "盔甲",
+            "icon": "🥋",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
             "equipSlot": "armor",
-            "armorSet": "oracle_heavy",
+            "armorSet": "holy",
             "armorSetSlot": "armor",
             "defense": {
-                "base": 65,
-                "perEnhance": 6.5
+                "base": 20,
+                "perEnhance": 4.2
+            },
+            "bonusStats": {
+                "maxHp": 45
+            },
+            "bonusPerEnhance": {
+                "maxHp": 13
             },
             "stats": [
                 {
-                    "name": "????",
-                    "value": "+65",
+                    "name": "物理防御",
+                    "value": "+20",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+45",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????60%????90%???-12%?????",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "圣辉三件套（轻盔/轻甲/轻靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/圣辉轻甲.png"
         },
-        "oracle_heavy_boots": {
-            "name": "????",
-            "type": "??",
-            "icon": "??",
+        "holy_boots": {
+            "name": "圣辉轻靴",
+            "type": "靴子",
+            "icon": "👢",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
             "equipSlot": "boots",
-            "armorSet": "oracle_heavy",
+            "armorSet": "holy",
             "armorSetSlot": "boots",
             "defense": {
-                "base": 23,
-                "perEnhance": 4.5
+                "base": 9,
+                "perEnhance": 2.4
+            },
+            "bonusStats": {
+                "maxHp": 20
+            },
+            "bonusPerEnhance": {
+                "maxHp": 7
             },
             "stats": [
                 {
-                    "name": "????",
-                    "value": "+23",
+                    "name": "物理防御",
+                    "value": "+9",
+                    "pos": true
+                },
+                {
+                    "name": "最大生命值",
+                    "value": "+20",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????60%????90%???-12%?????",
-            "iconImage": "assets/icons/equipment/????.png"
+            "desc": "圣辉三件套（轻盔/轻甲/轻靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
+            "iconImage": "assets/icons/equipment/圣辉轻靴.png"
         }
     }
 }
