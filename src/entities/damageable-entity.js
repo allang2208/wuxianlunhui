@@ -189,8 +189,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 }
                 // 重甲套自动格挡（最后乘法结算；强化不影响概率）：
                 // 壁垒（优质）= 30% 概率减少 80% 伤害；镇岳（稀有）= 40% 概率减少 85% 伤害；
-                // 天罡（史诗）= 50% 概率减少 90% 伤害；神域重甲（神话）= 60% 概率减少 90% 伤害
-                const blockCfg = this._armorSetActive === 'oracle_heavy'
+                // 天罡（史诗）= 50% 概率减少 90% 伤害；神域（神话重甲）= 60% 概率减少 90% 伤害
+                const blockCfg = this._armorSetActive === 'oracle'
                     ? { chance: 0.60, remain: 0.10 }
                     : (this._armorSetActive === 'tiangang'
                         ? { chance: 0.50, remain: 0.10 }
