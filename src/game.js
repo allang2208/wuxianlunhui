@@ -437,9 +437,9 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 红狼王 H3 贴图升级验证：贴图资产尚未入库（10 张 red_wolf_king_* 缺失），
-        // 生成会显示蓝色占位块（Phaser 缺失纹理）干扰观感——先停用，资产补齐后再恢复。
-        // this.spawnMainRedWolfKing();
+        // 红狼王（2026-08-07 素材完整入库：狼形态 idle/run/pacing/飞扑爪/飞扑咬/嚎叫/变身 +
+        // 红狼人形态 idle/run/attack 共 10 张，H3 视频管线生成）
+        this.spawnMainRedWolfKing();
     },
 
     spawnMainTombstone() {

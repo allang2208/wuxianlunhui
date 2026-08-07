@@ -8,6 +8,7 @@ import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../../world/wall-prefabs.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
+import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -158,6 +159,12 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 防御塔机械臂（独立贴图，绕塔顶枢轴 360° 旋转）
         this.load.image('obstacle_defense_tower_arm', 'assets/terrain/obstacle_defense_tower_arm.png');
+        // 世界-122 陷阱（4 类 × F→A 六档，2026-08-07 新增）
+        for (const type of Object.keys(TRAP_CONFIG)) {
+            for (const grade of TRAP_GRADES) {
+                this.load.image(`trap_${type}_${grade}`, `assets/terrain/trap_${type}_${grade}.png`);
+            }
+        }
         // 阔叶树五变体（2026-08-05 Blender 白模深度 + flux2-dev-depth 生图入库，摆墙编辑器障碍物类）
         for (const tree of ['tall', 'bushy', 'twin', 'wind', 'tiered']) {
             this.load.image(`obstacle_tree_${tree}`, `assets/terrain/obstacle_tree_${tree}.png`);
@@ -172,9 +179,6 @@ export class BootScene extends Scene {
         // ---- 敌人资源 ----
         // 蜘蛛与黑狼保留，其它敌人使用程序化 enemy_circle
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
-        this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
         // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
@@ -183,14 +187,14 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 512, frameHeight: 512, endFrame: 19 });
         // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
         this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 10 });
-        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 6 });
+        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
+        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_red_wolf_king_pounce_claw', 'assets/enemies/red_wolf_king_pounce_claw.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_red_wolf_king_pounce_bite', 'assets/enemies/red_wolf_king_pounce_bite.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.image('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
         this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
 
         // 僵尸犬精灵图动画
