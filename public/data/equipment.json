@@ -3660,7 +3660,7 @@
             "iconImage": "assets/icons/equipment/天罡重靴.png"
         },
         "oracle_helmet": {
-            "name": "神谕战盔",
+            "name": "????",
             "type": "头盔",
             "icon": "⛨",
             "category": "armor",
@@ -3692,10 +3692,10 @@
                 }
             ],
             "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/神谕战盔.png"
+            "iconImage": "assets/icons/equipment/????.png"
         },
         "oracle_armor": {
-            "name": "神谕战甲",
+            "name": "????",
             "type": "盔甲",
             "icon": "🥋",
             "category": "armor",
@@ -3727,10 +3727,10 @@
                 }
             ],
             "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/神谕战甲.png"
+            "iconImage": "assets/icons/equipment/????.png"
         },
         "oracle_boots": {
-            "name": "神谕战靴",
+            "name": "????",
             "type": "靴子",
             "icon": "👢",
             "category": "armor",
@@ -3762,10 +3762,10 @@
                 }
             ],
             "desc": "神谕三件套（战盔/战甲/战靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
-            "iconImage": "assets/icons/equipment/神谕战靴.png"
+            "iconImage": "assets/icons/equipment/????.png"
         },
         "necklace_oracle": {
-            "name": "神谕项链",
+            "name": "????",
             "type": "项链",
             "icon": "📿",
             "category": "accessory",
@@ -3793,10 +3793,10 @@
                 }
             ],
             "desc": "神辉铸就的圣链，坠饰为永恒烈阳，佩戴者沐浴神圣之力。",
-            "iconImage": "assets/icons/equipment/神谕项链.png"
+            "iconImage": "assets/icons/equipment/????.png"
         },
         "ring_oracle": {
-            "name": "神谕之戒",
+            "name": "????",
             "type": "戒指",
             "icon": "💍",
             "category": "accessory",
@@ -3817,10 +3817,10 @@
                 }
             ],
             "desc": "白金戒环嵌着圣辉钻石，神谕之光照耀每一次挥击。",
-            "iconImage": "assets/icons/equipment/神谕之戒.png"
+            "iconImage": "assets/icons/equipment/????.png"
         },
         "belt_oracle": {
-            "name": "神谕腰带",
+            "name": "????",
             "type": "腰带",
             "icon": "❤️",
             "category": "accessory",
@@ -3841,7 +3841,184 @@
                 }
             ],
             "desc": "神纹织成的腰带，生命之力如圣泉不息。",
-            "iconImage": "assets/icons/equipment/神谕腰带.png"
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_robe_helmet": {
+            "name": "????",
+            "type": "??",
+            "icon": "??",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "helmet",
+            "armorSet": "oracle_robe",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 11,
+                "perEnhance": 2.6
+            },
+            "bonusStats": {
+                "wis": 4
+            },
+            "bonusPerEnhance": {
+                "wis": 2.5
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+11",
+                    "pos": true
+                },
+                {
+                    "name": "??",
+                    "value": "+4",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_robe_armor": {
+            "name": "????",
+            "type": "??",
+            "icon": "??",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "armor",
+            "armorSet": "oracle_robe",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 15,
+                "perEnhance": 2.6
+            },
+            "bonusStats": {
+                "int": 4
+            },
+            "bonusPerEnhance": {
+                "int": 2.5
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+15",
+                    "pos": true
+                },
+                {
+                    "name": "??",
+                    "value": "+4",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_robe_boots": {
+            "name": "????",
+            "type": "??",
+            "icon": "??",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "boots",
+            "armorSet": "oracle_robe",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 6,
+                "perEnhance": 2.5
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+6",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_heavy_helmet": {
+            "name": "????",
+            "type": "??",
+            "icon": "?",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "helmet",
+            "armorSet": "oracle_heavy",
+            "armorSetSlot": "helmet",
+            "defense": {
+                "base": 45,
+                "perEnhance": 4.5
+            },
+            "bonusStats": {
+                "maxHp": 30
+            },
+            "bonusPerEnhance": {
+                "maxHp": 10
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+45",
+                    "pos": true
+                },
+                {
+                    "name": "?????",
+                    "value": "+30",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????60%????90%???-12%?????",
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_heavy_armor": {
+            "name": "????",
+            "type": "??",
+            "icon": "??",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "armor",
+            "armorSet": "oracle_heavy",
+            "armorSetSlot": "armor",
+            "defense": {
+                "base": 65,
+                "perEnhance": 6.5
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+65",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????60%????90%???-12%?????",
+            "iconImage": "assets/icons/equipment/????.png"
+        },
+        "oracle_heavy_boots": {
+            "name": "????",
+            "type": "??",
+            "icon": "??",
+            "category": "armor",
+            "rarity": "mythic",
+            "level": 18,
+            "equipSlot": "boots",
+            "armorSet": "oracle_heavy",
+            "armorSetSlot": "boots",
+            "defense": {
+                "base": 23,
+                "perEnhance": 4.5
+            },
+            "stats": [
+                {
+                    "name": "????",
+                    "value": "+23",
+                    "pos": true
+                }
+            ],
+            "desc": "????????/??/?????????????????60%????90%???-12%?????",
+            "iconImage": "assets/icons/equipment/????.png"
         }
     }
 }

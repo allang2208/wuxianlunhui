@@ -153,6 +153,33 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   会话更新，本地 klein 需同步拷 v3；5080 被并行任务占用时 dev 出图 5~15min/张，
   klein 可本机 18~30s/张。
 
+### 武器精通图标系列 v2（2026-08-07 定稿：蓝宝石切割徽章 + 原武器主体）
+
+- **系列基线（精通系列与魔法系列不同，先量后定）**：六把精通图标（剑/机枪/步枪/手枪/散弹枪/弓）
+  统一归一化到 **825×889 / aspect≈0.93 / fill 70% / cx=0 / cy=+28**（魔法技能系列是
+  ~790×930 / 0.85——两个系列基线不同，不能混用；`normalize-skill-icon.py` 默认值即精通基线）。
+  验收用 `tools/ai-gen/check-icon-sizes.py`，六张必须同框。
+- **深度控制图锁"武器大形"是刚需，光靠提示词会飘**：机枪 v2d 只用徽章剪影当控制图，FLUX
+  把"机枪"画成了 AK 突击步枪（弯弹匣）——深度图里没有武器形状，提示词再详细也拦不住
+  FLUX 对常见枪型的先验。修复：把**游戏内已定稿武器素材的 alpha 剪影直接合成进徽章剪影**
+  （徽章灰 130 + 武器白 255，黑底），PKM 一次收敛。同理其余五把也应有武器剪影模板
+  （`_depth_templates/sword_sil.png` 等，与徽章模板同构）。
+- **合成剪影的两个坑**：①System.Drawing 的 DrawImage 合成透明 PNG 会丢 alpha，改用 PIL
+  按 alpha 逐像素合成；②整张 2048² 画布直接缩到 560 宽会把武器压成 ~90px 细条，必须先
+  **裁剪武器实际 bbox 再缩放**（PKM 实占 1871×328，按 640 宽缩放后 ~112px 高才可辨）。
+- **宝石背景质感 = 提示词显式描述，否则出"闷蓝"**：机枪首版宝石偏深偏闷、与其他五张
+  （明亮宝蓝、切面丰富、通透带内部折射）差一档。补足提示词后收敛：`vivid luminous deep
+  blue sapphire, multi-faceted crystalline cut, crisp facet planes, strong specular
+  highlights, inner light refraction and translucency`——宝石效果靠显式视觉词驱动，
+  同款控制图+同 seed 重跑不换描述不会改善。
+- **多 seed 候选 + GLM 双维度验收再定稿**：武器形体（是否 PKM、侧视朝右、无变形）与
+  背景宝石（饱和/切面/通透/高光）分开打分；GLM 单张评分稳定（9~10 分可收），多图并列
+  对比会串扰/超时，改用单张同题逐个打分再横向比较。用户从候选里挑 v2f2，未挑更高
+  seed——**验收时给候选让用户选，别自作主张**。
+- **系列统一后入库**：旧 48px 占位（pistol/machine_gun）与旧 2048² 旧风格图全部备份到
+  `Y:\工作\无尽轮回\scratch\backup\` 再替换；UI 是 `<img>` + CSS 48×48 object-fit:contain
+  渲染，1024² 透明底直接可用，无需改代码。
+
 ### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
 - 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
   **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
@@ -235,6 +262,14 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### NAS-first 约定（2026-08-07 起）
 - 新增输出（候选/训练产物/报告/临时文件）一律落 `Y:\工作\无尽轮回\scratch\` 对应模块目录，
   本地 scratch_tmp 只做中转不长期留存；大模型/素材库按既有 `Y:\模型库` / `Y:\素材库` 约定。
+
+### 白色主体的生图/抠图铁律（2026-08-07，神域返工教训）
+- **白金/白底为主的装备主体（白金色金属、圣光白亮件）禁止在白底上生成**：阈值抠图会把主体亮部
+  当背景啃掉，留下白边残留/亮部缺失。必须走 `comfyui-gen.py --transparent`（AI 自动选主体完全没有的
+  背景色，实测选纯蓝 #0000FF），出图后按真实底色阈值抠图，再归一化。
+- 同稀有度套装 = **轻甲/法袍/重甲三系**（对照 epic：星穹轻甲/苍月法袍/天罡重甲）；神话神域 =
+  神域战盔/战甲/战靴（轻甲 6 件含首饰）+ 神域法帽/法袍/长靴（法袍 3 件）+ 神域重盔/重甲/重靴
+  （重甲 3 件）。生成时三系分别出图，不要只出一套。
 
 ### CDP 残留教训（2026-08-07，C 盘爆满根因）
 - headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
@@ -409,6 +444,16 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     21763→14823（占 0.5%，余为浅毛软边），GLM 确认无白边。
   - idle 同管线重做（318×262，与攻击/步态高度一致 262）。
   - 跑 BiRefNet 用 ComfyUI venv python（系统 python 无 transformers）。
+- **红狼王蓝色 bug + run 脚步白边（2026-08-07 十三版）**：
+  - **攻击全蓝根因：cv2.imwrite 按 BGR 解析数组**——rebuild 脚本把 RGB 数组直接
+    `cv2.imwrite` → 通道翻转，红狼变蓝。修复：`Image.fromarray(sheet, "RGBA").save()`
+    （PIL 正确解释 RGBA）；所有 BiRefNet 重建 sheet 必须 PIL 保存，禁止 cv2.imwrite。
+  - **run/walk 高度被切（204 高）根因二连**：① 去污染 lum>150 太激进切浅色毛
+    → 改 200（只清近白边）；② **bbox 用 `gray<248` 把画布顶部 235~247 灰白噪点
+    圈进 bbox（y0=0）导致狼被压缩** → bbox 改用合成 alpha（>30）。
+  - 修复后：run 433×262、walk 368×262、claw 344×246、bite 354×226
+    （步态高度统一 262，攻击为前扑压低姿态，黑狼同款）；毛色深红正常；
+    近白半透 0.5%（浅毛软边，黑狼基准 <1%）；GLM 确认脚步无白边。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。

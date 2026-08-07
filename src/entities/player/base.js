@@ -146,9 +146,16 @@ const baseMixin = {
                 armorSpeedMul = 0.90; // 天罡（史诗重甲）：-10% 移速（格挡在 damageable-entity）
             } else if (setCount.oracle === 3) {
                 this._armorSetActive = 'oracle';
-                armorSpeedMul = 1.10; // 神谕（神话轻甲）：+10% 移速
-                this._critSetBonus = 20; // 神谕：暴击率 +20%
-                this._physicalDamageBonus = 0.15; // 神谕：物理攻击 +15%
+                armorSpeedMul = 1.10; // 神域（神话轻甲）：+10% 移速
+                this._critSetBonus = 20; // 神域：暴击率 +20%
+                this._physicalDamageBonus = 0.15; // 神域：物理攻击 +15%
+            } else if (setCount.oracle_robe === 3) {
+                this._armorSetActive = 'oracle_robe';
+                this._cooldownReduction = 0.28; // 神域（神话法袍）：技能冷却 -28%
+                this._magicDamageBonus = 0.35; // 神域（神话法袍）：魔法伤害 +35%
+            } else if (setCount.oracle_heavy === 3) {
+                this._armorSetActive = 'oracle_heavy';
+                armorSpeedMul = 0.88; // 神域（神话重甲）：-12% 移速（格挡在 damageable-entity）
             }
         }
         // 史诗星穹套：暴击率/物理攻击加成（在套装判定后应用）
