@@ -64,7 +64,20 @@ export const DEFENSE_CONFIG = {
     tower: {
         hp: 1400, radius: 44, def: 70, mdef: 70,
         maxLevel: 10,
-        baseCost: 120, costGrowth: 1.55, levelDamageMul: 0.22,
+        baseCost: 120, costGrowth: 1.55,
+        // 塔等级伤害成长：等级仅作为"解锁门槛 + 小幅增益"，主要成长走模块（2026-08-07）
+        levelDamageMul: 0.06,
+        // 模块位：Lv1 开 3 个，之后每 2 级 +1，Lv9 满 7 个（模块总数 6 + 预留 1）
+        moduleSlots: { base: 3, stepEveryLevels: 2, stepIncrease: 1, max: 7 },
+        // 升级模块（数据驱动；per = 每级效果量，正数为增益倍率/百分比，负数为减益）
+        modules: {
+            damage:    { name: '伤害强化', icon: '⚔️', per: 0.10, maxLevel: 5, baseCost: 150, costGrowth: 1.45, desc: '每发伤害 +{pct}%' },
+            range:     { name: '射程增强', icon: '🎯', per: 0.12, maxLevel: 4, baseCost: 130, costGrowth: 1.45, desc: '射程 +{pct}%' },
+            attackSpd: { name: '速射模块', icon: '⚡', per: -0.08, maxLevel: 5, baseCost: 140, costGrowth: 1.45, desc: '攻击间隔 -{pct}%' },
+            reload:    { name: '快速换弹', icon: '🔁', per: -0.10, maxLevel: 4, baseCost: 100, costGrowth: 1.45, desc: '换弹时间 -{pct}%' },
+            overheat:  { name: '过热抑制', icon: '🌡️', per: 0.12, maxLevel: 4, baseCost: 120, costGrowth: 1.45, desc: '过热时间 +{pct}%' },
+            cooling:   { name: '快速散热', icon: '❄️', per: -0.12, maxLevel: 4, baseCost: 120, costGrowth: 1.45, desc: '过热冷却 -{pct}%' },
+        },
     },
     spawn: {
         firstDelay: 6000,
@@ -77,6 +90,11 @@ export const DEFENSE_CONFIG = {
         hpPerWave: 0.16,
         atkPerWave: 0.08,
         alertRange: 3800,
+        // 防守局内金币经济（2026-08-07）：击杀掉落走本倍率（怪物标 _noGoldDrop，
+        // 不走地面掉落物，直接进背包），随波次成长；精英 ×2 / 领主 ×3
+        goldDropMul: 6,
+        goldRandomMin: 1,
+        goldRandomMax: 8,
         // 精英/领主定时刷（在普通怪流之上额外生成）
         eliteEveryMs: 30000,
         lordEveryMs: 90000,
@@ -101,6 +119,48 @@ const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 
 /** 防御塔每发基准伤害（按武器类型；行业惯例按 DPS 反推的占位数值，后续数值打磨） */
 const BASE_WEAPON_DAMAGE = { bow: 42, pkm: 6, akm: 9, qbz191: 10, qjb201: 7, shotgun: 10, energy_lmg: 8 };
 const BASE_WEAPON_DAMAGE_BY_ID = { super90: 12, saiga12k: 10 };
+
+// ==================== 塔升级模块：通用计算（唯一真源 DEFENSE_CONFIG.tower.modules） ====================
+
+/** 当前等级可用的模块位数量 */
+export function getTowerModuleSlots(level) {
+    const s = DEFENSE_CONFIG.tower.moduleSlots || { base: 3, stepEveryLevels: 2, stepIncrease: 1, max: 7 };
+    const steps = level > 1 ? Math.floor((level - 1) / s.stepEveryLevels) : 0;
+    return Math.min(s.max ?? 7, (s.base ?? 3) + steps * (s.stepIncrease ?? 1));
+}
+
+/** 模块当前等级对应的效果倍率（damage/range 为增倍率，interval/reload/cooling 为减倍率，overheat 为增倍率） */
+export function getTowerModuleMults(modules) {
+    const m = modules || {};
+    const cfg = DEFENSE_CONFIG.tower.modules || {};
+    const out = {
+        damage: 1, range: 1, attackInterval: 1, reload: 1, overheatTime: 1, overheatCooldown: 1,
+    };
+    const d = cfg.damage;    if (d && m.damage)    out.damage = 1 + d.per * m.damage;
+    const r = cfg.range;     if (r && m.range)     out.range = 1 + r.per * m.range;
+    const a = cfg.attackSpd; if (a && m.attackSpd) out.attackInterval = 1 + a.per * m.attackSpd;
+    const rel = cfg.reload;  if (rel && m.reload)  out.reload = Math.max(0.2, 1 + rel.per * m.reload);
+    const oh = cfg.overheat; if (oh && m.overheat) out.overheatTime = 1 + oh.per * m.overheat;
+    const co = cfg.cooling;  if (co && m.cooling)  out.overheatCooldown = Math.max(0.2, 1 + co.per * m.cooling);
+    return out;
+}
+
+/** 模块升级费用：baseCost × costGrowth^(当前等级-1) */
+export function getTowerModuleCost(moduleId, currentLevel) {
+    const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+    if (!mod) return 0;
+    return Math.floor(mod.baseCost * Math.pow(mod.costGrowth, Math.max(0, currentLevel - 1)));
+}
+
+/** 面板用：模块当前/下一级描述文本 */
+export function getTowerModuleDesc(moduleId, level) {
+    const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+    if (!mod) return '';
+    const pct = Math.round(Math.abs(mod.per) * 100);
+    const txt = mod.desc.replace('{pct}', `${pct * level}`);
+    const next = mod.desc.replace('{pct}', `${pct * Math.min(mod.maxLevel, level + 1)}`);
+    return { current: txt, next, maxed: level >= mod.maxLevel };
+}
 
 /** 弹丸贴图直接复用现有武器贴图（无映射则默认曳光弹） */
 const WEAPON_IMAGE_PATHS = {
@@ -437,12 +497,116 @@ class DefenseTower extends Combatant {
         this.weaponItem = null;
         this._attackKey = null;
         this.range = 800;
+        // 升级模块状态：{ moduleId: level }，等级解锁模块位（2026-08-07）
+        this.modules = {};
         this._currentSpreadFactor = 0.08;
         this._currentSpreadMaxAngle = 7;
         // 机械臂朝向（世界角，y 向下；自然姿态=臂贴图原始朝向）
         this.aimAngle = DEFENSE_TOWER_VISUAL.arm.naturalAngle;
         this._aimTargetPos = null;
         this.rebuildCollider();
+    }
+
+    /** 当前可用模块位数量（由塔等级决定） */
+    getModuleSlots() {
+        return getTowerModuleSlots(this.level);
+    }
+
+    /** 已解锁（已购买）模块数 */
+    getPurchasedModuleCount() {
+        return Object.keys(this.modules || {}).length;
+    }
+
+    /** 该模块是否可购买：有模块位且未满级 */
+    canUpgradeModule(moduleId) {
+        const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+        if (!mod) return false;
+        const cur = this.modules[moduleId] || 0;
+        if (cur >= mod.maxLevel) return false;
+        // 已占用的模块位 = 已有等级≥1 的模块数（未购买模块不占位）
+        const occupied = Object.keys(this.modules || {}).length;
+        return occupied < this.getModuleSlots();
+    }
+
+    getModuleCost(moduleId) {
+        return getTowerModuleCost(moduleId, this.modules[moduleId] || 0);
+    }
+
+    /** 当前模块倍率表 */
+    moduleMults() {
+        return getTowerModuleMults(this.modules);
+    }
+
+    /** 玩家支付金币升级模块；成功则重算所有武器参数 */
+    upgradeModule(moduleId, player) {
+        const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+        if (!mod) return { ok: false, reason: '未知模块' };
+        const cur = this.modules[moduleId] || 0;
+        if (cur >= mod.maxLevel) return { ok: false, reason: '模块已满级' };
+        if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块位不足，请先升级防御塔等级' };
+        const cost = this.getModuleCost(moduleId);
+        if (!GoldManager || !GoldManager.deductGold(cost)) return { ok: false, reason: '金币不足' };
+        this.modules[moduleId] = cur + 1;
+        // 重算武器参数（伤害/射速/射程/换弹）
+        if (this.weaponItem && this._attackKey) {
+            this._applyModuleWeaponParams();
+        }
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        return { ok: true, cost, moduleId, level: this.modules[moduleId] };
+    }
+
+    /** 将模块倍率应用到武器参数（射程/射速/换弹），在升级模块或装载武器后调用 */
+    _applyModuleWeaponParams() {
+        if (!this.weaponItem || !this._attackKey) return;
+        const mults = this.moduleMults();
+        const atk = this.attacks[this._attackKey];
+        const atkCfg = this.weaponItem.attack || {};
+        // 射程：基础配置 × 模块倍率
+        const baseRange = atkCfg.range || atk.config?.projectileRange || 900;
+        this.range = Math.round(baseRange * mults.range);
+        // 射速：基础间隔 × 模块倍率（保留原冷却语义，baseMaxCooldown 同步）
+        if (atkCfg.attackInterval) {
+            const interval = Math.max(80, Math.round(atkCfg.attackInterval * mults.attackInterval));
+            atk.config.cooldown = interval;
+            atk.maxCooldown = interval;
+            atk.baseMaxCooldown = interval;
+        }
+        // 换弹：由 _initAmmoForSlot 覆盖统一处理（读模块倍率）
+        if (this._ammoState && this._ammoState.weapon) {
+            const st = this._ammoState.weapon;
+            st.reloadTime = Math.max(120, Math.round(st.reloadTime * mults.reload));
+            if (!st.reloading) st.reloadTimer = 0;
+        }
+    }
+
+    /** 换弹时间覆盖：基础弹药配置 × 模块倍率（与玩家口径一致：读 _craftEffects 后乘模块） */
+    _initAmmoForSlot(slot) {
+        super._initAmmoForSlot(slot);
+        if (slot !== 'weapon' || !this._ammoState || !this._ammoState.weapon) return;
+        const st = this._ammoState.weapon;
+        st.reloadTime = Math.max(120, Math.round(st.reloadTime * this.moduleMults().reload));
+    }
+
+    /** 过热/散热模块倍率：Combatant._updateOverheat 读 weapon.heatParams，此处按模块倍率改写后委托 */
+    _updateOverheat(dt, isFiring) {
+        const weapon = this.getCurrentWeapon ? this.getCurrentWeapon() : (this.weaponItem || null);
+        if (!weapon) return;
+        const mults = this.moduleMults();
+        const hp = weapon.heatParams || {};
+        const ohTime = Math.max(500, hp.overheatTime || 5000);
+        const cooldownTime = Math.max(500, hp.overheatCooldownTime || hp.overheatRecoverTime || 1500);
+        const recoverTime = Math.max(500, hp.overheatRecoverTime || hp.overheatCooldownTime || 1500);
+        weapon.heatParams = {
+            ...hp,
+            overheatTime: ohTime * mults.overheatTime,
+            overheatCooldownTime: cooldownTime * mults.overheatCooldown,
+            overheatRecoverTime: recoverTime * mults.overheatCooldown,
+        };
+        super._updateOverheat(dt, isFiring);
+        // 还原，避免污染武器配置
+        weapon.heatParams = hp;
     }
 
     /** 是否防御塔可装载武器（远程武器，手枪除外） */
@@ -482,6 +646,8 @@ class DefenseTower extends Combatant {
         this.range = atkCfg.range || this.attacks[attackKey].config.projectileRange || 900;
         // 弹药初始化（Combatant 默认无限弹药；枪械弹匣状态仅供换弹动画/节奏使用）
         this._initAmmoForSlot('weapon');
+        // 升级模块倍率应用到武器参数（射程/射速/换弹）
+        this._applyModuleWeaponParams();
         // 弹丸贴图直接复用现有武器贴图（无则默认曳光弹）
         const path = WEAPON_IMAGE_PATHS[item.weaponId] || WEAPON_IMAGE_PATHS[item.weaponType];
         if (path) this.weaponImages[item.weaponType] = loadImage(path);
@@ -520,7 +686,8 @@ class DefenseTower extends Combatant {
         if (!this.weaponItem) return 0;
         const base = this._baseDamageFor(this.weaponItem);
         const levelMul = 1 + (level - 1) * DEFENSE_CONFIG.tower.levelDamageMul;
-        return Math.max(1, Math.round(base * this._statMul(player) * levelMul));
+        const moduleMul = this.moduleMults().damage;
+        return Math.max(1, Math.round(base * this._statMul(player) * levelMul * moduleMul));
     }
 
     _recalcDamage(player) {
@@ -690,7 +857,7 @@ class DefenseTowerPanel extends BasePanel {
 
     buildContent(el) {
         el.style.cssText = [
-            'position:fixed;right:26px;top:50%;transform:translateY(-50%);width:370px;',
+            'position:fixed;right:26px;top:50%;transform:translateY(-50%);width:410px;',
             'background:rgba(16,15,13,0.97);border:2px solid #6a5a3a;border-radius:10px;',
             'padding:16px 18px;color:#d4c5a9;font-family:SimHei,"Microsoft YaHei",sans-serif;',
             'box-shadow:0 8px 30px rgba(0,0,0,0.65);z-index:9000;',
@@ -704,6 +871,7 @@ class DefenseTowerPanel extends BasePanel {
             <div style="font-size:13px;color:#9a8a6a;margin-bottom:6px;">可装载武器（背包 · 远程 · 手枪除外）</div>
             <div id="dtWeaponList" style="max-height:210px;overflow-y:auto;border:1px solid #3a3528;border-radius:8px;padding:4px 8px;margin-bottom:12px;"></div>
             <div id="dtUpgrade" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;background:rgba(60,50,20,0.18);"></div>
+            <div id="dtModules" style="margin-top:10px;border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
             <div id="dtStatHint" style="margin-top:8px;font-size:12px;color:#8a8a8a;"></div>
         `;
         el.querySelector('#dtClose').addEventListener('click', () => this.close());
@@ -764,6 +932,17 @@ class DefenseTowerPanel extends BasePanel {
         const res = tower.upgrade(player);
         if (res.ok) {
             this._notify(`防御塔升级至 Lv.${res.level}`, '#ffd700');
+        } else {
+            this._notify(res.reason, '#ff5555');
+        }
+        this.refresh();
+    }
+
+    _upgradeModule(tower, moduleId, _player) {
+        const player = _player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
+        const res = tower.upgradeModule(moduleId, player);
+        if (res.ok) {
+            this._notify(`模块已升级：${DEFENSE_CONFIG.tower.modules[moduleId].name} Lv.${res.level}`, '#8ad0ff');
         } else {
             this._notify(res.reason, '#ff5555');
         }
@@ -834,6 +1013,41 @@ class DefenseTowerPanel extends BasePanel {
             up.querySelector('#dtUpgradeBtn').addEventListener('click', () => this._upgrade(t, player));
         }
 
+        // 升级模块（等级解锁模块位，模块独立升级）
+        const modBox = el.querySelector('#dtModules');
+        const slots = t.getModuleSlots();
+        const purchased = t.getPurchasedModuleCount();
+        const modRows = Object.entries(DEFENSE_CONFIG.tower.modules || {}).map(([mid, mod]) => {
+            const lv = t.modules[mid] || 0;
+            const desc = getTowerModuleDesc(mid, lv);
+            const maxedMod = lv >= mod.maxLevel;
+            const canBuy = t.canUpgradeModule(mid);
+            const cost = t.getModuleCost(mid);
+            const lockReason = !canBuy && !maxedMod ? '需升级防御塔等级解锁模块位' : '';
+            const btn = maxedMod
+                ? '<span style="color:#8a8a8a;font-size:12px;">已满级</span>'
+                : canBuy
+                    ? `<button data-mod="${mid}" style="background:#2a4a6a;color:#c8e8ff;border:1px solid #4a7a9a;border-radius:6px;padding:3px 10px;cursor:pointer;">升级 ${cost}金</button>`
+                    : `<span style="color:#7a6a5a;font-size:11px;">🔒 ${lockReason}</span>`;
+            return `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #22303a;gap:8px;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;color:#d4e8ff;">${mod.icon} ${mod.name} <span style="color:#8ad0ff;">Lv.${lv}/${mod.maxLevel}</span></div>
+                        <div style="font-size:11px;color:#8a9a9a;">${desc.current}</div>
+                    </div>
+                    <div style="flex-shrink:0;">${btn}</div>
+                </div>`;
+        }).join('');
+        modBox.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:13px;font-weight:700;color:#8ad0ff;">升级模块</span>
+                <span style="font-size:12px;color:#9a9a9a;">模块位 ${purchased}/${slots}（塔 Lv.${t.level}）</span>
+            </div>
+            ${modRows || '<div style="font-size:12px;color:#8a8a8a;">暂无模块</div>'}`;
+        modBox.querySelectorAll('[data-mod]').forEach((btn) => {
+            btn.addEventListener('click', () => this._upgradeModule(t, btn.dataset.mod, player));
+        });
+
         // 六维参考
         const d = player && player.data ? player.data : {};
         el.querySelector('#dtStatHint').textContent =
@@ -853,6 +1067,7 @@ export const DefenseSystem = {
     _lordTimer: 0,
     _elapsed: 0,
     _seq: 0,
+    _goldGranted: null,
     _panel: null,
 
     _ensurePanel() {
@@ -869,6 +1084,7 @@ export const DefenseSystem = {
         this._eliteTimer = 0;
         this._lordTimer = 0;
         this._seq = 0;
+        this._goldGranted = new Set();
         this._buildBaseRoom();
 
         const baseCfg = DEFENSE_CONFIG.base;
@@ -973,6 +1189,8 @@ export const DefenseSystem = {
         this._lordTimer = 0;
         this._elapsed = 0;
         this._seq = 0;
+        if (this._goldGranted) this._goldGranted.clear();
+        this._goldGranted = null;
         if (this._panel) {
             if (this._panel.isOpen) this._panel.close();
             this._panel.tower = null;
@@ -990,6 +1208,7 @@ export const DefenseSystem = {
     update(dt) {
         if (!this.active || this.defeated) return;
         this._elapsed += dt;
+        this._grantMonsterGold();
         this._spawnTimer += dt;
         this._eliteTimer += dt;
         this._lordTimer += dt;
@@ -1030,6 +1249,37 @@ export const DefenseSystem = {
         return n;
     },
 
+    /** 防守击杀金币结算：怪物死亡标记后由本钩子统一发金币（地面掉落物已按 _noGoldDrop 关闭） */
+    _grantMonsterGold() {
+        if (!this.active || !Game || !Game.entities) return;
+        if (!this._goldGranted) this._goldGranted = new Set();
+        const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
+        let grantedThisFrame = 0;
+        for (const e of Game.entities.values()) {
+            if (!e || !e._defenseMonster || !e._noGoldDrop) continue;
+            if (e.hp > 0 || e.active) continue;
+            if (this._goldGranted.has(e.id)) continue;
+            this._goldGranted.add(e.id);
+            const cfg = DEFENSE_CONFIG.spawn;
+            const base = wave * (cfg.goldDropMul || 1);
+            const randMin = cfg.goldRandomMin ?? 1;
+            const randMax = cfg.goldRandomMax ?? 8;
+            const amount = Math.max(1, Math.round(base + (randMax > randMin ? Math.random() * (randMax - randMin) : 0)));
+            if (GoldManager && typeof GoldManager.addGold === 'function') GoldManager.addGold(amount);
+            if (Game.player && EffectManager) {
+                EffectManager.add(new FloatingTextEffect(e.x, e.y - 30, `+${amount} 金币`, '#ffd700'));
+            }
+            // 建筑面板开着时同步金币显示（BuildingSystem 从未导入，typeof 恒 false，
+            // 收敛为仅 window.__BuildingSystem 引用，消除 no-undef）
+            const bs = typeof window !== 'undefined' ? window.__BuildingSystem : null;
+            if (bs && bs._panel && typeof bs._refreshGold === 'function') {
+                bs._refreshGold();
+            }
+            grantedThisFrame++;
+            if (grantedThisFrame >= 8) break;
+        }
+    },
+
     _spawnMonster(wave, pool, hpMulExtra = 1) {
         const type = this._pickMonsterType(pool);
         const Factory = MONSTER_FACTORY[type];
@@ -1037,6 +1287,9 @@ export const DefenseSystem = {
         const pt = DEFENSE_CONFIG.spawnPoints[Math.floor(Math.random() * DEFENSE_CONFIG.spawnPoints.length)];
         const monster = new Factory(pt.x, pt.y);
         monster._defenseMonster = true;
+        // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
+        monster._noGoldDrop = true;
+        monster._defenseGoldMul = DEFENSE_CONFIG.spawn.goldDropMul || 1;
         // 防守模式：只锁定基地/防御塔（PerceptionSystem/Enemy._findNearestPlayer 已支持）
         monster._preferDefenseTargets = true;
         monster._alertRange = DEFENSE_CONFIG.spawn.alertRange;
@@ -1115,7 +1368,21 @@ export const DefenseSystem = {
             const pos = Renderer.worldToScreen(t.x, t.y);
             return Math.hypot(mx - pos.x, my - pos.y) < r;
         };
+        // 点击目标：优先自身 towers 数组，同时兜底扫描 Game.entities（测试/运行期
+        // 直接入实体表的塔也要可点；按实体 id 去重，避免同塔重复命中）
+        const seen = new Set();
+        const candidates = [];
+        if (Game && Game.entities) {
+            for (const e of Game.entities.values()) {
+                if (e && e._isDefenseTower && e.active) {
+                    if (!seen.has(e.id)) { seen.add(e.id); candidates.push(e); }
+                }
+            }
+        }
         for (const t of this.towers) {
+            if (t && t.active && !seen.has(t.id)) candidates.push(t);
+        }
+        for (const t of candidates) {
             if (!t.active) continue;
             if (!inReach(t, 70)) continue;
             if (panel.isOpen && panel.tower === t) {
