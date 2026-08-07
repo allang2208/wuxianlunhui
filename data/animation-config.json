@@ -226,17 +226,17 @@
         "walk": {
           "cols": 4,
           "rows": 3,
-          "frames": 11
+          "frames": 13
         },
         "run": {
-          "cols": 7,
-          "rows": 1,
-          "frames": 7
+          "cols": 4,
+          "rows": 4,
+          "frames": 16
         },
         "pacing": {
           "cols": 4,
           "rows": 3,
-          "frames": 11
+          "frames": 13
         },
         "pounceClaw": {
           "cols": 4,
@@ -300,7 +300,7 @@
         "run": {
           "cols": 7,
           "rows": 2,
-          "frames": 12
+          "frames": 14
         }
       },
       "body": {
