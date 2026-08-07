@@ -125,7 +125,6 @@
       "side": "assets/enemies/red_wolf_king_run.png",
       "front": "assets/enemies/red_wolf_king_run.png",
       "back": "assets/enemies/red_wolf_king_run.png",
-      "attack": "assets/enemies/red_wolf_king_attack.png",
       "pacing": "assets/enemies/red_wolf_king_pacing.png",
       "idle": "assets/enemies/red_wolf_king_idle.png",
       "transform": "assets/enemies/red_wolf_king_change.png",

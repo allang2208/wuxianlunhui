@@ -179,9 +179,6 @@ export class BootScene extends Scene {
         // ---- 敌人资源 ----
         // 蜘蛛与黑狼保留，其它敌人使用程序化 enemy_circle
         this.load.image('enemy_spider', 'assets/enemies/spider.png');
-        this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_black_wolf_pacing', 'assets/enemies/black_wolf_pacing.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
-        this.load.spritesheet('enemy_black_wolf_attack', 'assets/enemies/black_wolf_attack.png', { frameWidth: 250, frameHeight: 215, endFrame: 7 });
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
         // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });

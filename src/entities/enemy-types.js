@@ -51,7 +51,7 @@ class BlackWolf extends Enemy {
             back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
             bite: loadImage(spritePaths.bite || 'assets/enemies/black_wolf_bite_regular.png'),
             pounce: loadImage(spritePaths.pounce || 'assets/enemies/black_wolf_pounce.png'),
-            pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_pacing.png'),
+            pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_walk.png'),
             idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
         };
         
@@ -692,7 +692,6 @@ class RedWolfKing extends BlackWolf {
             side: loadImage(spritePaths.side || 'assets/enemies/red_wolf_king_run.png'),
             walk: loadImage(spritePaths.walk || 'assets/enemies/red_wolf_king_pacing.png'),
             run: loadImage(spritePaths.run || 'assets/enemies/red_wolf_king_run.png'),
-            attack: loadImage(spritePaths.attack || 'assets/enemies/red_wolf_king_attack.png'),
             pounceClaw: loadImage(spritePaths.pounceClaw || 'assets/enemies/red_wolf_king_pounce_claw.png'),
             pounceBite: loadImage(spritePaths.pounceBite || 'assets/enemies/red_wolf_king_pounce_bite.png'),
             pacing: loadImage(spritePaths.pacing || 'assets/enemies/red_wolf_king_pacing.png'),
