@@ -206,6 +206,41 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - MiniMax H3 视频（2026-08-04）：陨星 VFX 2s 文生视频（1344×768/56帧/原生音效）
   → `assets/videos/`（远程 5080 生成，约 5 分钟）
 
+## 场景要素训练结论 + 墙体材质 LoRA（2026-08-07）
+
+### 诚实评测结论（先结论后干活）
+- **端到端"训练构建场景要素"（地板/墙壁/障碍物）无意义且有害**：几何/碰撞/拼接/视角是确定性
+  数据层（Blender spec + face 线 + 30° 底边 + ISO_WALL_GEO + 镜像规则），AI 几何不可靠有大量实证
+  （h/v 斜向不分、白底残留、沙袋位置错误、圆角/UV 只能 Blender 修）。训练它=把唯一确定性层换掉。
+- **只训练"贴图"（材质风格 LoRA）有意义**，且是 BL+贴图管线唯一值得训的部分（痛点全在材质侧：
+  E/C/B/A 多轮返工、提示词 roulette、变体靠微调提示词）。
+
+### klein-walltex-v1（已训已部署，2026-08-07）
+- 数据集：30 张 Blender 面纹理（6 级 × 5 变体，1024×656，NAS `world122\raw\tex_<G>_v1..v5`），
+  平光无阴影无透视；**不能拿烘焙透视的 cover 成品/直墙入训练集**。
+- 6 族独立触发词：`pale brick / sandstone / red brick / concrete steel / riveted steel / rune brick
+  wall texture`；统一尾块 = TAIL（flat frontal view / regular square brick grid / no shadows）。
+- 训练：klein 4B base、dim 48/alpha 24、1200 步、lr 1e-4、**resolution [1024,656]**（非方形，
+  不能默认 center-crop）；实测 ~28 分钟。
+- 部署：5080 `ComfyUI\models\loras\` + NAS `klein-lora-walltex-v1\` + models.json
+  `flux2-klein-4b-walltex`（size 1024x656）；训练文件版本化在 `tools/ai-gen/lora-train/`。
+- 验收：6 族材质 GLM 识别 + 砖格 FFT 峰 0.98~3.80（对照 dev 0.64~5.08）+ white%=0 + 变体平光；
+  完整管线（生成 → 平场 → Blender 渲染 → 实机 CDP 并排对比）已验证，质感 ≥ dev 现有纹理。
+- **已知坑**：klein 金属/符文自带方向光照（B 族左右亮度斜坡 ~25 点，dev 仅 ~10）→ 出图后统一
+  平场校正（除以大核高斯模糊，实测压到 ~12 点）；C 族（混凝土+钢板复合）识别偏弱，补数据或单独训。
+- **触发词注入机制**：AI-Toolkit 的 `trigger_word` 只注入 sample prompts
+  （`inject_trigger_into_prompt(..., add_if_not_present=False)`），训练标注直接用 txt 原文 → 多触发词
+  数据集的正确做法=每条标注自带触发词，yaml 的 trigger_word 只写兜底。
+
+### NAS-first 约定（2026-08-07 起）
+- 新增输出（候选/训练产物/报告/临时文件）一律落 `Y:\工作\无尽轮回\scratch\` 对应模块目录，
+  本地 scratch_tmp 只做中转不长期留存；大模型/素材库按既有 `Y:\模型库` / `Y:\素材库` 约定。
+
+### CDP 残留教训（2026-08-07，C 盘爆满根因）
+- headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
+  实测 111 个 47.7GB → C 盘 0GB 满。**用完即删或定期清 `%TEMP%\edge-*`**。
+- 本机删除递归目录用 `.NET Directory.Delete(path, true)`（`Remove-Item -Recurse` 被安全策略拦）。
+
 ## 世界-122 防守地图（雏形，2026-08-04）
 
 主神空间传送门 →「世界-122」（scene8，原沼泽地改名）。防守玩法第一版，纯代码零新素材。
@@ -351,6 +386,29 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     宽高比 0.61 协调）。**视频模型受参考图体型影响极大，人形参考必须先做壮**
     （宽度目标 ≥150/262 高）。
   - 实机验证：变身红狼人新贴图、纹理匹配、大小协调、无白边；测试/构建全绿。
+- **红狼王狼形态大小统一（2026-08-07 十一版）**：
+  - 用户反馈"狼形态大小不一"：idle 317×260 / walk 354×253 / run 422×242 高度宽度
+    都不齐。根因：`--fixed-scale` 保留视频内狼的绝对尺寸，但 H3 各视频中狼体型
+    漂移不同；逐帧 target_h 又只统一高度、宽度仍随视频。
+  - 修复：**全部狼形态动作用 target_h=262（非 fixed-scale）+ attack 工具
+    `--fixed-scale 0`**，与黑狼管线一致 → 高度全部 262、宽度随姿态
+    （idle 317 / walk 356 / run 430 / 前扑 369~413，黑狼同款惯例
+    idle 408 / walk 415 / run 458）。
+  - run 视频 H3 固有水平拉伸（v2 提示词加 "body stays compact" 仍 430），
+    与黑狼 run 458 同量级，接受为奔跑姿态；GLM 把低伏 run 误读为"最小"，
+    以像素高度为准。H3 参考图宽高比 1.22（站立狼正常），黑狼 1.56 是姿态差异。
+- **红狼王 idle/攻击重做（2026-08-07 十二版，套黑狼白边+大小经验）**：
+  - **攻击必须 `--fixed-scale 1`（首帧同比例）**：之前错用 0（逐帧 target_h）
+    导致 pounce_bite 413 宽 vs idle 317（+30%）。fixed-scale 后 claw 345 / bite 355
+    vs idle 318（+9~12%），与黑狼 pounce 458 vs idle 408 同款；高度 247/227
+    是前扑压低姿态（黑狼 224~261 同理），基础体型恒等。
+  - **白底必须 BiRefNet**：阈值 248+max 合成会把 235~248 灰白压缩背景判成主体
+    （alpha 255 白边）。修复（`rebuild-h3-birefnet.py` 新增）：阈值兜底只对
+    深色区（gray ≤ 阈值-13）强制主体，灰白区交给 BiRefNet；alpha = max(BiRefNet,
+    深色阈值)；去污染 lum>150 且 alpha<250 半透清零。修复后近白半透
+    21763→14823（占 0.5%，余为浅毛软边），GLM 确认无白边。
+  - idle 同管线重做（318×262，与攻击/步态高度一致 262）。
+  - 跑 BiRefNet 用 ComfyUI venv python（系统 python 无 transformers）。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -381,12 +439,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 白模 spec `_blockout_specs/defense_tower_v2.json`（elevation 30）→ 深度模板
     `_depth_templates/blender_defense_tower_v2_h.png` → `flux2-dev-depth` strength 0.8
     → `make-transparent-icon.py` 抠图 → `cut-defense-tower-arm-v2.py` 拆臂入库。
-  - **v2b 定稿（机械臂重做）**：v2 首版臂"太抽象"（细棍/装饰符号，GLM 诊断缺粗壮感/
-    液压/关节护罩/螺栓）→ 白模加粗：肩/肘关节护罩圆柱 + 液压缸细柱 + 粗法兰，
-    提示词强化 heavy industrial robotic arm / hydraulic piston / bolts / rust；
-    定稿基座 393×496 → 显示 170×214.6（footOffsetY 107.3）、臂 280×308，枢轴
-    (140,305)、挂载点 (201,40)、自然角 -1.3445（朝上）、pivotWorldY 215；
-    武器显示高度按塔高放大回（akm 78 / 默认 74）。
+  - **v2b 定稿（机械臂重做）**：v2 首版臂"太抽象"（细棍/装饰符号）→ 白模加粗
+    （肩/肘关节护罩 + 液压缸 + 粗法兰）+ 提示词强化 heavy industrial robotic arm /
+    hydraulic piston / bolts / rust。
+  - **v2c 定稿（2026-08-07 截取优化）**：臂"截取不对"根因——①白底抠图把肩部近白
+    高光（x400~460）当背景抠成洞，最大连通域把碎片丢了；②切割线落在肩部中段；
+    ③臂肩质量偏心（左角 + 颈偏右）。修复：改用 BiRefNet 显著性抠图（不吃背景色
+    假设）+ 内部孔洞填充 + 切割线下移到细颈（y85~425），并换用肩颈过渡更对称的
+    候选 fc39ae；枢轴=细颈底部中心 (150,338)、挂载点=法兰中心 (149,23)、
+    自然角 -1.5740（≈-90.2° 正上方，法兰/颈/枢轴同轴）、pivotWorldY 200.8；
+    基座 386×457 → 170×201.3（footOffsetY 100.6）。验证：实机特写/自然/朝右
+    连接干净无毛边碎片、臂居中、枪在臂尖。
   - 旧 billboard 版素材在 git 历史可查；候选图已落 `Y:\工作\无尽轮回\scratch\world122\tower_v2\`
     与 `tower_v2b\`。
 
@@ -3794,6 +3857,13 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   run 近白像素是狼真实白毛/高光（腹部/胸口），非背景残留，勿误删。
   经验：移动动画边缘残留先量化半透像素数，浅色地面会放大浅灰边缘；
   资产确认干净后仍见白底 = 游戏缓存旧图，刷新/重启 dev server。
+- **抠图白点清理（2026-08-07）**：阈值兜底会把 235~248 的浅色边缘像素保留为
+  白色噪点（walk 孤立白点 4235 / run 7366 / pounce 4791，99% 在内容边缘 2px 内）。
+  修复：近白像素（RGB min>235 且 alpha>200）在内容边缘 2px 内一律 alpha 归零 +
+  3×3 孤立白点清除 + 低 alpha 白残留清零；内部连片白毛（距离>2px）保留。
+  清理后 GLM 确认：边缘无白点/白边/锯齿、白毛自然、整体干净。
+  经验：白点分"边缘噪声"（清）与"白毛"（留），按到内容边缘距离区分，
+  不要一刀切删全部近白像素（会毁掉腹部白毛）。
 
 ### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
 - 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），

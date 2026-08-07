@@ -82,7 +82,10 @@ const ShopSystem = {
             'necklace_stellar', 'ring_stellar', 'belt_stellar',
             // 史诗法袍（苍月）+ 史诗重甲（天罡）
             'lunar_helmet', 'lunar_armor', 'lunar_boots',
-            'tiangang_helmet', 'tiangang_armor', 'tiangang_boots'
+            'tiangang_helmet', 'tiangang_armor', 'tiangang_boots',
+            // 神话套装（神谕，2026-08-07 新增）
+            'oracle_helmet', 'oracle_armor', 'oracle_boots',
+            'necklace_oracle', 'ring_oracle', 'belt_oracle'
         ]
     },
 
