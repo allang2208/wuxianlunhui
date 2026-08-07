@@ -52,11 +52,13 @@
           "rows": 2,
           "frames": 6
         },
-        "pounce": {
-          "cols": 4,
-          "rows": 5,
-          "frames": 20
-        },
+   "pounce": {
+    "width": 640,
+    "height": 640,
+    "cols": 4,
+    "rows": 5,
+    "frames": 20
+   },
         "pacing": {
           "cols": 4,
           "rows": 4,
@@ -166,6 +168,7 @@
         "walk": 240,
         "run": 160,
         "attack": 100,
+        "bite": 100,
         "pacing": 320
       },
       "speedThresholds": {
@@ -214,6 +217,14 @@
           "range": 170,
           "duration": 1000,
           "dash": 60
+        },
+        "bite": {
+          "durationMs": 1200
+        },
+        "pounce": {
+          "prepareMs": 900,
+          "chargeMs": 900,
+          "prepareFrames": 4
         }
       },
       "frameLayouts": {
@@ -224,8 +235,8 @@
         },
         "walk": {
           "cols": 4,
-          "rows": 3,
-          "frames": 13
+          "rows": 4,
+          "frames": 14
         },
         "run": {
           "cols": 4,
@@ -234,8 +245,8 @@
         },
         "pacing": {
           "cols": 4,
-          "rows": 3,
-          "frames": 13
+          "rows": 4,
+          "frames": 14
         },
         "pounceClaw": {
           "cols": 4,

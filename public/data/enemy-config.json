@@ -87,8 +87,17 @@
     "attackRange": 210,
     "aiInterval": 2000,
     "dashDistance": 300,
+    "biteRange": 180,
+    "biteCooldown": 1500,
+    "biteHitDistance": 185,
+    "pounceCooldown": 12000,
+    "pounceRange": 400,
+    "pounceHitDistance": 130,
+    "pounceCrippleMs": 3000,
+    "pounceMaxDist": 1000,
+    "pounceOvershoot": 200,
     "ai": {
-      "aggroRange": 200,
+      "aggroRange": 2500,
       "pacingRange": 200,
       "loseTimeout": 2000
     },

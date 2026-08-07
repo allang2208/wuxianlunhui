@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 2.1
+## 版本: 2.2
 
 ## ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
 
@@ -468,6 +468,99 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     claw 371 / bite 432，高度全 262；宽度随姿态（站立窄、前扑/奔跑伸展）。
     H3 视频内狼大小漂移是生成特性（run 首帧 471→中段 631 宽），切帧只能
     统一高度，宽度差异读作姿态；黑狼 idle 408 / pounce 458 同样 +12%。
+- **红狼王双攻击完整重建（2026-08-07 十八版，撕咬补帧+攻击链路修复）**：
+  - **撕咬贴图中间行全空根因**：原采样帧列表漏掉扑咬爆发段（视频 28~48 帧），
+    且爆发帧宽超 512 格会裁切/空行。重建：`rwk_pbite.mp4`（%TEMP% 留存）+
+    `rebuild-h3-birefnet.py`，采样覆盖爆发段（6,14,22,28,32,36,40,44,52,62,74,85），
+    **格子放大到 576²（--cell 576 --center-x 288）**，12 帧全满、高度统一 261；
+    BootScene 该贴图 frameWidth/Height 同步 576（其余仍 512²）。
+  - **pounceClaw 播不出来的根因（代码层）**：黑狼状态机 `_startBite/_startPounce`
+    不设置 `_attackType`，原 RedWolfKing 只在死代码 `triggerWeaponAnim` 里切——
+    通用战斗系统被 aiInterval=MAX_SAFE_INTEGER 禁用，永远不触发。修复：
+    RedWolfKing 覆写 `_startBite→pounceBite`、`_startPounce→pounceClaw`。
+  - **attack 帧数落回 8 帧的根因**：RedWolfKing 构造器在 `super()`（黑狼构造器）之后
+    才重设 `_animCfg`，但没重取 `_frameLayouts/_frameDurations` → 一直用黑狼表，
+    pounceClaw/pounceBite 键不存在 → 兜底 8 帧，撕咬永远播不到爆发段。
+    修复：构造器重设 `_animCfg` 后同步重取 frameLayouts/frameDurations。
+  - 攻击节奏：bite 1.2s/12 帧（100ms/帧，命中窗 42%~75% 落在扑咬爆发段）、
+    pounce 蓄力 900ms + 冲刺 900ms（4+8 帧）；pacing/walk 修正为 14 帧（4×4，
+    原配置 13 帧 4×3 与实际 14 有效帧不符，末帧被丢弃）。
+  - **vite JSON 缓存坑**：改 `data/*.json` 后若 `animation-config.js` 服务端仍带旧
+    `?t=`，页面 import 会拿到旧数据（实测 attackTypes 少新键）——touch 文件触发
+    失效即可；双份 data/ + public/data/ 都要改。
+- **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
+  - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
+    ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
+    ② 半透白边（alpha 30~250 且 lum>150，浅色地面显灰圈——黑狼经验 3808）；
+    ③ 半透黑边（黑狼毛边缘羽化，浅背景显黑晕）。
+  - 清理三步：透明区 RGB 归零 → lum>150 半透清零 → **硬边（alpha<245 全部清零）**
+    （黑狼最终半透≈0，接受轻微锯齿）。
+  - 定量铁律：`stray_alpha=0 && semi=0 && trans_nonblack=0` 才算 CLEAN；
+    GLM 对黑狼图集仍会误读锯齿边缘为"色块"，以定量为准；实机黑狼确认干净。
+  - 用户仍见色块 = 游戏/浏览器缓存旧图，刷新+重启 dev server。
+  - **补漏：`black_wolf_bite_regular.png`（撕咬）和 `black_wolf_updown.png` 未清**——
+    黑狼攻击默认 `_attackType='bite'` → 用 bite_regular；BootScene 加载它（186 行）。
+    清理同一三步后全 CLEAN。**清理脚本必须用绝对路径写回**（Python cwd 飘忽时
+    相对路径保存静默失败/FileNotFoundError，且上次"保存成功"的假象掩盖了漏清）。
+    黑狼全套贴图（idle/walk/run/pounce/bite_regular/updown）现全部 CLEAN。
+- **黑狼移动贴图白边（2026-08-07 十六版，像素级定位）**：
+  - 用户指出移动贴图仍有残留且 GLM 识别不了——**用像素分析定位**：
+    不透明像素（alpha>245）中 lum>150 的亮像素 walk 4.6 万 / run 11.4 万；
+    用形态学边界（不透明且 8 邻域有透明）区分：**边缘亮像素 walk 2.2 万 /
+    run 4.8 万 = 背景白边残留**（黑狼纯黑毛，边缘不该亮），内部亮像素是
+    黑狼真实白腹/牙齿（保留）。
+  - 修复：**轮廓边缘亮像素（lum>150 且贴透明）RGB 压暗到 18（黑毛色）**，
+    内部白毛保留。修复后边缘亮像素全 0，黑狼边缘为自然黑毛线。
+  - 判据沉淀：黑狼贴图 CLEAN 标准除了 stray/semi/trans_nonblack，还要
+    **edge_bright=0**（边缘不透明亮像素）；GLM 对黑狼图集误读锯齿，以像素为准。
+- **AI 贴图边缘去污终极方案（2026-08-07 十七版）**：
+  - **本质**：AI 生成主体边缘像素是"背景+主体"混合色（RGB 灰 + α 半透），
+    贴图透明背景看不出，合成到游戏地板就显灰圈/白边——单纯调 α 阈值永远
+    顾此失彼（黑狼反复"抠不干净"根因）。
+  - **工具 `tools/ai-gen/sprite-decontaminate.py`**（matting decontamination）：
+    ① 半透像素反推前景色 `F = (C−(1−α)·B)/α`（B=背景白），混合灰还原真实毛色；
+    ② 反推后仍亮（F≈背景）的半透像素归零（未分离残留）；
+    ③ 轮廓边缘不透明亮像素压暗到主体色（黑狼 18）；
+    ④ 透明区 RGB 归零。
+  - **验证铁律：合成测试**——`--composite-bg 180` 把贴图合成到浅灰背景，
+    边缘带残留必须 = 0（比看贴图 alpha 更真实，暴露地面混合问题）。
+    黑狼 6 张贴图全部 composite_residue=0，实机轮廓干净。
+- 黑狼最终 CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
+    composite_residue=0。
+- **黑狼从原视频完整重建（2026-08-07 十八版，BiRefNet 管线终版）**：
+  - 原视频在 `Y:\工作\无尽轮回\scratch\black_wolf\videos\`（walk/run/attack_pounce_v4/
+    attack_bite_regular_v5，全部 1344×768/24fps/124 帧含首尾 pad）；idle 是静态图
+    （`black_wolf_idle_new_250x215.png`），updown 无视频源。
+  - 工具：`blackwolf-rebuild-from-video.py`（驱动）+ `rebuild-h3-birefnet.py`
+    （新增 `--frames-count` 支持 16/28/20/6 帧采样，红狼王 12 帧照旧）。
+  - 参数：uniform-h 高度统一 262、512 格（pounce 640 格）、feet-y 410（pounce 513，
+    保持 feet fraction 0.80 与其它状态同世界高度）、center-x 256（pounce 320）、
+    lum-clear 200、threshold 248、hard-edge 245、edge-dark 18、zero-transparent-rgb。
+  - **resize 后必须逐格清理**（不清理必 DIRTY）：alpha 硬二值化（>=245→255，清插值
+    半透带）→ 每格只保留最大连通域（清 1~140px 噪点色块）→ 不透明亮像素邻接透明区
+    （2px 膨胀）压暗 18（清 resize 白圈）→ 透明区 RGB 归零。验证
+    `blackwolf-rebuild-verify.py` 全指标 0 才算 CLEAN。
+  - **扑跃帧宽超 512**（前扑伸展 545~583px）→ 格子放大 640²，BootScene spritesheet
+    frameWidth/Height 同步 640，animation-config（data/ + public/ 双份）pounce 补
+    width/height 640；canvas 渲染按 naturalWidth/cols 自动切帧，其余状态 512 不变。
+  - 朝向判定：黑狼左右对称，质量中心偏移不可靠（误报 FLIPPED），用新旧首帧
+    交叉相关（flip diff 大即 SAME）才可靠；重建后四状态全部与原资产同向。
+  - 循环衔接验证：首尾帧 alpha IoU（0.90~0.95）应显著高于正常步进 IoU（0.75~0.80），
+    否则抽帧窗口没覆盖完整步态周期。
+- **黑狼步态周期采样 + 腿部兜底（2026-08-07 十八版补）**：
+  - **抽帧必须按步态周期，不能均匀抽样**：run 均分抽样（帧间隔 3~4）导致奔跑僵硬；
+    实测周期 run P=28（s=40，leg_iou 0.66）、walk P=48（s=40，leg_iou 0.80）。
+    run 用 step 1 连续 28 帧（=视频原帧，4×7），walk 用 step 3 抽 16 帧（40+3k），
+    相邻帧腿部 IoU 从 0.18/0.30 提到 0.45/0.60。
+  - **run 低伏姿态腿部运动模糊坑**：腿部区域灰度中位数 203~245，一半以上像素超
+    235 深色阈值兜底线 → 交给 BiRefNet 判定 → BiRefNet 对模糊腿 alpha 不稳 →
+    hard-edge 后腿型逐帧抖动（重建后腿部 IoU 仅 0.28，视频原帧 0.64）。
+    修复：`rebuild-h3-birefnet.py` 对 **bbox 底部 35% 腿部区域用 threshold=248
+    强制主体**（max(BiRefNet, 全身235阈值, 腿部248阈值)），白边由后处理清理。
+  - **腿部区域去残留**：脚底贴地/运动模糊产生的不透明灰白像素（lum>160，
+    alpha=255，BiRefNet 判为主体）不会被"邻接透明压暗"清掉（离透明区>2px）——
+    改为对 bbox 底部 35% 内亮像素做 5×5 邻域毛色均值替换（躯干白毛不受影响）。
+    修复后 run 腿部亮像素 228→0、walk 64→0。
 - **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
   非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
   先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
@@ -3881,6 +3974,116 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
   anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。
 
+## 四足动物（狼系）动画精灵图全管线（2026-08-07 黑狼/红狼王定稿）
+
+适用范围：黑狼/红狼王等四足狼系怪物，H3 视频 → 精灵图 → 游戏入库。
+管线段：视频生成 → 周期/窗口检测 → 抽帧 → BiRefNet 抠图 → 缩放摆放 →
+去污染去白 → 定量验证 → 游戏接入。以下每条都是踩坑后定稿，换新四足动物
+（虎/熊/犬等）直接照抄流程，只重测周期参数。
+
+### 1. 视频生成（MiniMax H3）
+- 配置：1024×576 + 16 步 = 6 分钟/段（1344×768+20 步 17 分钟，快 2.6 倍）；
+  H3 最短可靠 124 帧（5.17s），循环靠截取不靠续帧。
+- 首帧模式：loop 视频 `--first-frame` = `--last-frame` 同图；攻击视频是
+  "idle → 动作 → 回 idle" 的一次性弧线。
+- 提示词铁律：
+  - 攻击必须写"肢体前扑"（steps front legs forward / stretches torso /
+    thrusts head），只写 lunge/open jaws 会被 H3 理解成只张嘴（v1 实锤）。
+  - 撕咬力量感靠"大张嘴+头前探+快速帧节奏"，H3 不生成闭合帧，闭合靠
+    抽帧选取（张→咬→张），不要指望模型咬合。
+  - 参考图体型必须做壮（宽度目标 ≥150/262 高），H3 受参考图体型影响极大
+    （红狼人 108→161 宽的教训）。
+  - run 视频固有水平拉伸（提示词 "body stays compact" 仍 430），接受为
+    奔跑姿态，不要为此重生成。
+- 视频特性：狼大小漂移是生成特性（run 首帧 471→中段 631 宽）；切帧只能
+  统一高度，宽度差异读作姿态（黑狼 idle 408 / walk 415 / run 458 同款）。
+
+### 2. 周期/窗口检测（先扫参数，别沿用工头默认）
+- 周期扫描：`leg_iou(s, s+P)`，P∈[16,120]，限定匀速中段 steady(12..105)；
+  **首尾高 IoU（~0.98）是 idle 重影不是周期，别信**。
+- 黑狼实测：walk P=48（s=40，iou 0.80）、run P=28（s=40，iou 0.66——
+  低伏姿态腿部占比小，阈值要放宽，0.66 就是正常值）。
+- 攻击窗口：mask 相对首帧 IoU 差定位（撕咬 21..43、飞扑 14..74）。
+
+### 3. 抽帧策略
+- walk：step 3 → 16 帧（4×4）覆盖完整周期；run：**step 1 连续 28 帧**
+  （=视频原帧，4×7）。快速动作帧数宁多勿少：run 14 帧 step2 腿部 IoU 0.14
+  僵硬，28 帧连续 0.45+ 顺滑。
+- 攻击：**保留水平位移**（以首帧 bbox 中心为参照，按 dx×scale 平移，不
+  逐帧居中——否则前扑 reach 被抹掉）；`--fixed-scale 1`（首帧同比例）防
+  蓄力压低帧被放大；飞扑 20 帧（4×5）、撕咬 6 帧（3×2）。
+- idle 抽 1 帧静态；攻击帧 cols 不满行补透明格。
+
+### 4. 抠图（BiRefNet 管线，正式入库唯一路径）
+- 模型：`ComfyUI/models/BiRefNet/MS-BiRefNet`，**必须用 ComfyUI venv
+  python**（系统 python 无 transformers）。
+- alpha = max(BiRefNet, 全身深色阈值 threshold-13=235, 腿部区域阈值 248)：
+  - 235 只兜深色区，灰白压缩背景（235~248）交给 BiRefNet 判定，否则留白边；
+  - **腿部区域（bbox 底部 35%）单独用 248**：run 低伏奔跑腿部运动模糊
+    灰度 200~248，超 235 兜底线，BiRefNet 对模糊腿 alpha 不稳 → 硬边后
+    腿型逐帧抖动（重建后腿部 IoU 0.28 vs 视频原帧 0.64）。腿部兜底后 0.45。
+- 去污染（sprite-decontaminate.py）：半透反推前景色 F=(C-(1-α)·B)/α；
+  亮半透（lum>150 且 alpha<250）清零；白色半透直接清零。
+- 硬边：黑狼 alpha<245 全清零（semi=0，接受轻微锯齿）；红狼王留 0.5%
+  浅毛软边（lum-clear 200 只清近白边，保浅色毛）。
+- 边缘亮像素（lum>150 且贴透明 2px 内）压暗到 18（黑毛色）；内部白毛保留。
+- 透明区 RGB 归零（trans_nonblack=0）。
+- **腿部区域去残留**：bbox 底部 35% 内不透明亮像素（lum>160）→ 5×5 邻域
+  毛色均值替换（清脚底贴地/运动模糊灰白；躯干白毛不受影响）。脚底残留
+  alpha=255 离透明区>2px，光靠"邻接透明压暗"清不掉。
+- 彻底去白（用户要无白时）：RGB min>220 近白像素替换 5×5 邻域非白毛色均值
+  （白毛区变深色毛），别只清孤立点。
+- 白点分类：边缘噪声（清）vs 白毛（留），按到内容边缘距离区分，勿一刀切。
+- **resize 后必须逐格清理**（硬二值化 → 每格最大连通域 → 边缘压暗 →
+  透明归零 → 腿部去白），否则插值会再造半透带/白圈（walk 首版 DIRTY 教训）。
+
+### 5. 缩放/摆放
+- 高度统一：uniform-h target_h=262（黑狼/红狼王全部狼形态），宽度随姿态；
+  攻击帧 fixed-scale 1（首帧同比例）防"忽大忽小"。
+- 脚底基线：512 格 feet-y 410（feet fraction 0.80）；格子放大按比例
+  （640 格 feet-y 513），保证与其它状态同世界高度。
+- 前扑伸展帧宽超 512（545~583px）→ 格子放大 640²（红狼王撕咬同款 576²），
+  BootScene frameWidth/Height 同步，canvas 按 naturalWidth/cols 自动切帧。
+- 显示 151×151、内容高 262/脚底 410/居中；碰撞体积不动。
+
+### 6. 验证（定量铁律，GLM 辅助）
+- CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
+  composite_residue=0（合成到 180 背景，暴露地面混合问题）。
+- 动画平滑：相邻帧腿部 IoU（run≥0.4、walk≥0.5 合格；视频原帧 0.64 为上限）。
+- 循环衔接：首尾帧 alpha IoU 应显著高于正常步进 IoU（黑狼 0.90~0.95 vs 0.75~0.80）。
+- 朝向：新旧首帧交叉相关（flip diff 大=同向）；质量中心偏移对对称狼不可靠
+  （误报过 FLIPPED）。
+- 体型：各状态高度统一 ±1.5%；宽度差异读作姿态，GLM 会把低伏 run 误读为
+  "最小"，以像素高度为准。
+- GLM 复核构图/动作；**黑狼图集锯齿会被误读为色块，以像素为准**。
+
+### 7. 游戏接入
+- BootScene：spritesheet frameWidth/Height = 格子尺寸（512/640），
+  endFrame = 帧数-1；动画键与 `_getTextureKey()` 一致。
+- animation-config frameLayouts **双份同步**（data/ + public/data/）
+  cols/rows/frames 与 sheet 严格一致。
+- 黑狼走 Phaser setFrame 帧索引路径（无 anims 注册）；帧率 run 40ms/帧、
+  walk 120ms/帧（28×40 与原 14×80 圈时一致）。
+- 多贴图混用纪律：同敌人新旧贴图画布尺寸必须统一（本项目 512²/640²），
+  否则创建时一次性 displaySize 会压扁后续贴图。
+- 攻击动画帧率快（撕咬 6 帧 ~500ms）强化"咬一下"节奏。
+
+### 8. 坑清单（技术）
+- **cv2.imwrite 按 BGR 解析 RGBA 数组 → 红狼变蓝 bug**：sheet 必须
+  `Image.fromarray(sheet, "RGBA").save()`（PIL），禁止 cv2.imwrite。
+- 中文路径：写文件用绝对路径（cwd 飘忽静默失败）；cv2 中文路径静默失败；
+  PowerShell 管道 heredoc 是 GBK 会吃中文字符串 → 用环境变量传路径。
+- 游戏缓存旧图：资产确认干净仍见白底 = 浏览器缓存，硬刷新/重启 dev server。
+- 数值回退用 `??` 不用 `||`（falsy-0 把显式 0 回退成默认值）。
+
+### 9. 工具链
+- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程）。
+- 重建：`rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底）+
+  `blackwolf-rebuild-from-video.py`（黑狼驱动，含逐格清理）。
+- 验证：`blackwolf-rebuild-verify.py`（CLEAN 五指标）、
+  `blackwolf-rmbg-compare.py`（旧新对比）、`sprite-decontaminate.py`（去污）。
+- 识图：`tools/glm-analyze-image.mjs`（GLM-4.6V 复核）。
+
 ## 黑狼动画升级（2026-08-06，H3 全动作管线落地）
 
 ### 1. 步态周期不能沿用工头默认（关键）
@@ -4048,3 +4251,27 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - **多贴图混用纪律**：同一敌人的新旧贴图画布尺寸必须统一（本项目 512²），
   否则创建时算的一次性 displaySize 会压扁后续贴图；新增贴图先查初始状态
   用的纹理尺寸。
+
+### 6. 防守陷阱贴图管线（2026-08-07，世界-122 地面陷阱）
+- **范围**：4 类（地刺 spike / 地雷 mine / 减速带 tar / 燃烧区 burn）× F→A 六档 = 24 张，
+  入库 `assets/terrain/trap_<type>_<grade>.png`；显示尺寸 70~92 × 50~68（trap-config.js）。
+- **视角**：等距地面物件——30° 俯视、顶面可见、平贴地面、单件居中（与掩体 30° 底边
+  斜墙同视角体系，但陷阱强调"俯视看到顶面/内部"，不是立墙）。
+- **视角定稿（2026-08-07 用户三轮校正）**：陷阱视角基准 = **游戏掩体墙的 2.5D 等距
+  30° 地板线**（`front face visible, top surface slightly visible and foreshortened`），
+  **不是**障碍物的 2:1 diamond 俯视基准（第一轮错用），也**不是**正俯视/立式桶鼓。
+  各类型差异：地刺/减速带/燃烧区天然有立面感，通用视角块即可；**地雷必须按
+  "平贴地面的扁平圆盘"写**——`flat round mine lying flat on the ground, seen from a
+  30-degree elevated angle, the circular top is a foreshortened ellipse (not a full
+  circle), only a thin low side wall is visible below the top rim, low and flat like a
+  pancake`（写"standing upright drum/side dominant"会被画成油桶，已否）。
+- **提示词模板**：`tools/ai-gen/prompts/trap.md`（风格基准 + 视角块 + 类型×档位主题词 +
+  负面词；材质逐档递进：F 木/铁简陋 → A 符文魔改）。
+- **生成**：`tools/ai-gen/gen-trap-assets.py`（5080 `flux2-dev-fp8`，默认 24 步；
+  支持 `--keys` 小批验证、`--skip-existing` 断点续传、`--timeout` 单张超时）。
+  5080 空闲单张 ~56s；被并行任务占用时 10~20min/张，务必断点续传分批跑。
+- **抠图铁律**：用 `make-transparent-icon.py`（flood fill，半透明残留 ~0.7%）；
+  **不要用 `prep-obstacle.py`（GrabCut）抠陷阱**——白底 AI 出图的浅色主体边缘
+  灰边残留 6~37% 超标（掩体深色材质不受影响，陷阱的浅木/金属/火焰必翻车）。
+- **验收**：GLM 检查视角/主体/无白边；实机放 4 类 D 级陷阱截图，GLM 确认与地面
+  墙壁协调、大小合适、类型可辨识。

@@ -687,6 +687,22 @@ class RedWolfKing extends BlackWolf {
         const anim = this._animCfg.animation || {};
         const spritePaths = this._animCfg.sprites || {};
         const tPaths = this._animCfg.transformedSprites || {};
+        // 帧网格/帧率必须重取红狼王自己的配置：BlackWolf 构造器已按 blackWolf 配置
+        // 填过 _frameLayouts/_frameDurations，不重取会导致 attack 帧数落回黑狼表
+        // （pounceClaw/pounceBite 键不存在 → 兜底 8 帧，撕咬只播前 8 帧、扑咬爆发段永远放不出来）。
+        const frameLayout = anim.frameLayout || {};
+        this._frameW = frameLayout.width ?? 512;
+        this._frameH = frameLayout.height ?? 512;
+        this._cols = frameLayout.cols ?? 4;
+        this._rows = frameLayout.rows ?? 4;
+        this._frameLayouts = anim.frameLayouts || {};
+        this._frameDurations = anim.frameDurations || {
+            idle: 200,
+            walk: 120,
+            run: 80,
+            attack: 100,
+            pacing: 160
+        };
         // 狼形态贴图
         this._wolfSprites = {
             side: loadImage(spritePaths.side || 'assets/enemies/red_wolf_king_run.png'),
@@ -780,20 +796,45 @@ class RedWolfKing extends BlackWolf {
         }
     }
 
-    triggerWeaponAnim() {
-        if (this._attackTimer > 0) return;
-        let type = 'pounceBite';
-        if (this.target && this.target.active) {
-            const d = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-            const clawRange = this._attackTypes?.pounceClaw?.range ?? 210;
-            if (d > clawRange) type = 'pounceClaw';
+    // 狼形态双攻击绑定：黑狼状态机的 _startBite/_startPounce 不会设置 _attackType，
+    // 导致 pounceClaw（远/飞扑挥爪）永远播不出来、近咬也错播成 pounce_bite。
+    // 这里把 近距离撕咬 → pounceBite、中距离飞扑 → pounceClaw，贴图/网格随之正确切换。
+    _startBite() {
+        this._attackType = 'pounceBite';
+        super._startBite();
+    }
+
+    _startPounce() {
+        this._attackType = 'pounceClaw';
+        super._startPounce();
+    }
+
+    // 撕咬 1.2s（12 帧 @100ms/帧），伤害判定落在扑咬爆发段（约 42%~75% 时长，对应帧 5~9），
+    // 避免命中落在蓄力前段。
+    _updateBite(dt) {
+        this._biteTimer -= dt;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this._animState = 'attack';
+        if (this._biteTarget && this._biteTarget.active) {
+            this._facing = this._biteTarget.x >= this.x ? 'right' : 'left';
+            this._lastHorizontalFacing = this._facing;
         }
-        this._attackType = type;
-        const atk = this._attackTypes?.[type] || {};
-        if (atk.duration) this._attackDuration = atk.duration;
-        super.triggerWeaponAnim();
-        const dashCap = atk.dash ?? 220;
-        if (this._dashDistance > dashCap) this._dashDistance = dashCap;
+        const duration = this._attackTypes?.bite?.durationMs ?? 600;
+        const elapsed = duration - this._biteTimer;
+        const hitStart = Math.round(duration * 0.42);
+        const hitEnd = Math.round(duration * 0.75);
+        if (!this._biteDamaged && elapsed >= hitStart && elapsed <= hitEnd) {
+            const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
+            if (t && t.active && t.hittable && this._isTargetInRange(t, this.config?.biteHitDistance ?? 100)) {
+                t.takeDamage(this._getBiteDamage(), this, 'physical', true);
+                this._biteDamaged = true;
+            }
+        }
+        if (this._biteTimer <= 0) {
+            this._endBite();
+        }
     }
 
     _getTextureKey() {
@@ -855,6 +896,27 @@ class RedWolfKing extends BlackWolf {
         }
         if (this._howlTimer > 0 && this._isTransformed) {
             this._drawSheetFrame(ctx, this._humanSprites.howl, this._frameLayouts.howl);
+            return;
+        }
+        if (this._animState === 'attack') {
+            // Canvas 兜底路径：黑狼 _drawBody 只认 _sprites.bite/pounce（红狼王没有），
+            // 攻击态会掉成火柴人——这里按 _attackType 直接画撕咬/挥爪（狼形态），
+            // 红狼人形态画 changed_attack。
+            const img = this._isTransformed
+                ? this._humanSprites.attack
+                : (this._sprites[this._attackType] || this._sprites.pounceBite);
+            const layout = this._isTransformed
+                ? (this._animCfg?.render?.transformedFrameLayout || {}).attack
+                : (this._frameLayouts[this._attackType] || this._frameLayouts.pounceBite);
+            const shouldFlip = this._facing === 'left' ||
+                ((this._facing === 'up' || this._facing === 'down') && (
+                    (Math.abs(this.vx) > 0.1 && this.vx < 0) ||
+                    (Math.abs(this.vx) <= 0.1 && this._lastHorizontalFacing === 'left')
+                ));
+            ctx.save();
+            if (shouldFlip) ctx.scale(-1, 1);
+            this._drawSheetFrame(ctx, img, layout);
+            ctx.restore();
             return;
         }
         super._drawBody(ctx);
