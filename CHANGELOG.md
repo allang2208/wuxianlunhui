@@ -1,5 +1,40 @@
 # 变更日志
 
+### 对话：黑狼步态周期采样 + 腿部兜底（2026-08-07 重建版修正）
+- **用户反馈**：抠图 90% 成功但脚底贴地残留；奔跑动画僵硬。
+- **脚底残留根因**：视频腿部运动模糊 + 白底混合产生不透明灰白像素（lum>160，
+  alpha=255），BiRefNet 判为主体，且离透明区>2px 不会被"邻接透明压暗"清理。
+  修复：post_clean 改为对 bbox 底部 35% 腿部区域做 5×5 邻域毛色均值替换，
+  run 腿部亮像素 228→0、walk 64→0。
+- **奔跑僵硬根因二连**：① run 用均分抽样（帧间隔 3~4）而非步态周期采样；
+  ② 低伏姿态腿部灰度 200~248 超 235 兜底线，BiRefNet 对模糊腿 alpha 不稳。
+  修复：run 按周期 P=28 取连续 28 帧（视频原帧）、walk 按 P=48 step 3 抽 16 帧；
+  rebuild 对腿部区域（bbox 底部 35%）阈值提高到 248 强制主体。
+  相邻帧腿部 IoU：walk 0.30→0.60、run 0.18→0.45。
+- **验证**：两状态 CLEAN（全指标 0）；vite build ✓（0.198.5）。
+- **修改文件**：assets/enemies/black_wolf_{walk,run}.png（替换，旧版在
+  backup/2026-08-07-blackwolf-rebuild/）、rebuild-h3-birefnet.py、
+  blackwolf-rebuild-from-video.py、SKILL.md。
+
+### 对话：黑狼精灵图从原视频完整重建（2026-08-07，BiRefNet 管线）
+- **背景**：黑狼反复"抠不干净"（白边/灰圈/色块），此前的清理都是在已抠贴图上
+  二次加工；本次用原视频从头重建（红狼王已验证的 BiRefNet 管线）。
+- **素材**：`Y:\工作\无尽轮回\scratch\black_wolf\videos\`——walk_loop/run_loop/
+  attack_pounce_v4/attack_bite_regular_v5（1344×768/24fps/124 帧）；idle 静态图、
+  updown 无视频源，保持原样。
+- **重建**：`blackwolf-rebuild-from-video.py` + `rebuild-h3-birefnet.py`
+  （新增 `--frames-count`）。统一高度 262（uniform-h）、硬边 245、边缘压暗 18、
+  透明区 RGB 归零；resize 后逐格清理（二值化+最大连通域+白圈压暗）。
+- **pounce 修复**：前扑帧宽 545~583px 超 512 格会被裁空 10 帧 → 格子放大 640²，
+  BootScene pounce spritesheet frameWidth/Height 640，animation-config 双份补 640。
+- **验证**：四状态全 CLEAN（stray=0/semi=0/trans_nonblack=0/edge_bright=0/
+  composite_residue=0）；高度 247~262 统一（pounce 前扑压低）；朝向与原资产一致
+  （交叉相关）；循环衔接首尾 IoU 0.90~0.95；vite build ✓。
+- **修改文件**：assets/enemies/black_wolf_{walk,run,pounce,bite_regular}.png（替换，
+  旧版备份 backup/2026-08-07-blackwolf-rebuild/）、BootScene.js、data/public 双份
+  animation-config.json、tools/ai-gen/{blackwolf-rebuild-from-video,rebuild-h3-birefnet,
+  blackwolf-rebuild-verify,blackwolf-rmbg-recut,blackwolf-rmbg-compare}.py、SKILL.md。
+
 ### 对话：神话稀有度三系套装（神域重甲/圣辉轻甲/神谕法袍，12 件）+ 墙体材质 LoRA（2026-08-07）
 - **神话三系 12 件**（mythic / lv18，对照 epic 星穹轻甲/苍月法袍/天罡重甲，三系独立命名）：
   - 神域（重甲）：战盔/战甲/战靴 + 项链/之戒/腰带（6 件）；三件套=自动格挡60%概率减90%伤害（最后乘法结算）、-12%移速

@@ -112,7 +112,13 @@ def key_frame(f, threshold=248, feather=0.3):
 
 
 def build_sheet(frames, cells, step, target_h, feet_y, center_x, cell_size, cols, gif_path=None,
-                threshold=248, feather=0.3):
+                threshold=248, feather=0.3, fixed_scale=False):
+    ref_scale = None
+    if fixed_scale:
+        alpha0 = key_frame(frames[cells[0]], threshold=threshold, feather=feather)
+        ys0, xs0 = np.where(alpha0 > 30)
+        ref_h = ys0.max() - ys0.min() + 1
+        ref_scale = target_h / max(1, ref_h)
     out_cells = []
     for k in cells:
         alpha = key_frame(frames[k], threshold=threshold, feather=feather)
@@ -123,21 +129,32 @@ def build_sheet(frames, cells, step, target_h, feet_y, center_x, cell_size, cols
         x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
         crop = f[y0 : y1 + 1, x0 : x1 + 1]
         a = alpha[y0 : y1 + 1, x0 : x1 + 1]
-        scale = target_h / (y1 - y0 + 1)
-        nw = max(1, int(round((x1 - x0 + 1) * scale)))
-        crop = cv2.resize(crop, (nw, target_h), interpolation=cv2.INTER_AREA)
-        a = cv2.resize(a, (nw, target_h), interpolation=cv2.INTER_AREA)
+        ch = y1 - y0 + 1
+        if fixed_scale:
+            scale = ref_scale
+            nh = max(1, round(ch * scale))
+            nw = max(1, round((x1 - x0 + 1) * scale))
+        else:
+            scale = target_h / ch
+            nh = target_h
+            nw = max(1, round((x1 - x0 + 1) * scale))
+        crop = cv2.resize(crop, (nw, nh), interpolation=cv2.INTER_AREA)
+        a = cv2.resize(a, (nw, nh), interpolation=cv2.INTER_AREA)
         cell = np.zeros((cell_size, cell_size, 4), np.uint8)
         ox = center_x - nw // 2
-        oy = feet_y - target_h + 1
-        cell[oy : oy + target_h, ox : ox + nw] = np.dstack([crop, a])
+        oy = feet_y - nh + 1
+        if oy >= 0 and oy + nh <= cell_size:
+            cell[oy : oy + nh, ox : ox + nw] = np.dstack([crop, a])
         out_cells.append(cell)
 
     n = len(out_cells)
-    rows = [
-        np.hstack(out_cells[r * cols : (r + 1) * cols])
-        for r in range(int(np.ceil(n / cols)))
-    ]
+    rows = []
+    for r in range(int(np.ceil(n / cols))):
+        row_cells = out_cells[r * cols : (r + 1) * cols]
+        if len(row_cells) < cols:
+            blank = np.zeros((cell_size, cell_size, 4), np.uint8)
+            row_cells = row_cells + [blank] * (cols - len(row_cells))
+        rows.append(np.hstack(row_cells))
     sheet = np.vstack(rows)
     if gif_path:
         mag = np.array([255, 0, 255], np.uint8)
@@ -169,6 +186,8 @@ def main():
                     help="white background threshold (0-255); H3 videos bg ~254-255, use 248")
     ap.add_argument("--feather", type=float, default=0.3,
                     help="alpha edge feather sigma; 0 = hard mask (no white halo)")
+    ap.add_argument("--fixed-scale", action="store_true",
+                    help="use first cell scale for all frames (uniform body size; pose deform preserved)")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -191,7 +210,7 @@ def main():
 
     sheet, cells_out = build_sheet(frames, cells, args.step, args.target_h, args.feet_y,
                                    args.center_x, args.cell, args.cols, args.out_gif,
-                                   args.threshold, args.feather)
+                                   args.threshold, args.feather, args.fixed_scale)
     cv2.imwrite(args.out, sheet)
     print(f"[h3-loop] sheet {sheet.shape} -> {args.out}  ({len(cells_out)} frames)", flush=True)
 
