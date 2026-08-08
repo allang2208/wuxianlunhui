@@ -171,8 +171,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     ap.add_argument("--files", default=None)
+    ap.add_argument("--assets", default=None, help="override ASSETS dir (default game-dev/assets/enemies)")
     args = ap.parse_args()
 
+    if args.assets:
+        global ASSETS
+        ASSETS = os.path.abspath(args.assets)
     os.makedirs(args.out, exist_ok=True)
     model = rmbg2.BEN2Model()
     ok, msg = model.check_model_cache("BEN2")

@@ -711,6 +711,49 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**脚部残留不只在底部带**——中亮低饱和块会延伸到脚踝上方；
     "亮度阈值"和"底部带"两个维度都要放开，用"低饱和 + 偏离主体深红"双条件
     全格覆盖才不漏。
+- **红狼王"底部像地面的大块色块"真正根因 = 游戏运行时椭圆阴影（2026-08-08 二十九版）**：
+  - 用户多次反馈"脚下像地面的大块色块"，贴图 alpha 清理到 0 后仍存在。
+    排查结论：**GameScene._syncEntityShadows 在运行时给每个敌人脚下绘制
+    entity_shadow 黑色椭圆**（alpha 0.35，尺寸 = groundRadius×2 × ×2×0.5，
+    红狼王 collisionRadius=45 → 90×45px），**完全不在贴图里**——抠图/清 alpha
+    永远抓不到；且阴影固定跟随 collider，红狼王奔跑贴图上下弹跳时阴影不动，
+    视觉上像贴图底部拖着一块地面色块。
+  - 修复：RedWolfKing 构造函数设 `this._noShadow = true`（贴图自带脚部接地感，
+    取消运行时阴影；GameScene 已支持该开关）。实机验证（cdp-redwolf-shot.mjs）：
+    GLM 确认关闭后"脚下无深色椭圆阴影、浅色地面干净"。
+  - 教训：**"色块残留"不一定是贴图问题——先实机截图区分渲染层阴影 vs 贴图
+    alpha**；GameScene._syncEntityShadows 的 shadow 是通用机制，个别贴图自带
+    接地感的怪可设 _noShadow。
+- **红狼人奔跑贴图"地面平台矩形色带"根因 = H3 视频生成的脚下地面条（2026-08-08 三十版）**：
+  - 用户纠正：问题在**狼人形态**（红狼人奔跑），不是狼形态。贴图逐行扫描发现
+    每帧脚下 y 380~408 有一条 **252px 宽完整水平矩形深色带**（x 110~362，
+    每行完全连续无缺口，颜色 (35,3,4)），而狼人身体只占 x 190~380、腿部宽仅
+    40~50px——这是 H3 视频生成时狼人脚下的"地面平台"被当主体保留。
+  - 为什么此前全部漏掉：带在 y 380~408（不在底部 60 行统计范围）；颜色与深红
+    毛相近（灰粉/阴影清理不覆盖）；GLM 看缩略图会误判为"正常脚部"。
+  - 修复（新工具 `rw-remove-ground-band.py`）：自下而上找"连续跨度 >200px 的
+    行"组成矩形带；带内像素与"带顶部上方 40px 腿部列范围"取交集——只保留
+    腿列，删除平台左右延伸（实测 removed 52652px / 14 帧）。
+  - **注意：参考窗口必须取带顶上方（y_lo-44 ~ y_lo-4），不能逐行取 y-24~y——
+    带厚 29px 会滑入带自身导致 leg_cols 覆盖全带，0px 删除。**
+  - 验证：14 帧均无 >200px 连续行；GLM 确认"两条腿分开有自然空隙、无矩形
+    色带、腿部无残缺"；assets + dist 两处 SYNCED。
+- **"脚下色块与主体同色"真正根因 = 浅灰接触阴影被染成深红毛（2026-08-08 三十一版）**：
+  - 用户反馈"下方色块跟主体颜色太相似了，颜色清理无效"，问是否重做视频。
+  - **关键结论：v3 视频本身完全干净**（124 帧逐帧检测底部 40px 无暗像素、
+    仅 11414px 浅灰 200~244）。**不需要重做视频**。
+  - 完整根因链：
+    ① H3 视频生成时角色脚下自带**浅灰接触阴影**（lum 200~244，非纯白 254+）；
+    ② 切帧（阈值 248）把它当主体保留——v5 的"白色带" lum 229 就是它；
+    ③ `rw-cutout-clean` 脚底带归一化把它**染成深红毛色 (35,3,4)**——从此
+       色块和主体颜色一模一样，颜色清理永远分不开。
+  - 修复（新工具 `rw-clear-foot-gray.py`）：**浅灰阴影直接删除（alpha=0），
+    不染色**。红狼毛是深红 (35,3,4)，lum 200~244 不可能是毛色，只可能是
+    背景/阴影残留；仅处理 y≥300 脚下带，防误伤浅色毛发。removed 109554px。
+  - 验证：v3 视频重建贴图 14 帧 GLM 全过（无矩形带、脚下干净、腿部完整）；
+    实机截图 GLM 确认奔跑形态脚下"无深色大块、浅色地面整洁"。
+  - 教训：**"色块与主体同色"时先查处理链是否把背景残留染成了主体色**——
+    染色类后处理（脚底带归一化）会固化残留，应改为删除而非染色。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1573,7 +1616,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
      渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
   - **⚠ 通道侧墙探入房间内部（2026-08-08 五修）**：用户报"通道2 侵入第二间房
-     场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
+    场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
      边线投影）：沼泽预制 `t_start=-40`（门中心前 40px 起铺）在 60° 房间边线面前
      不够——row −211 首件端面探入房A **140.6px**、row +184 末件探入房B **125.9px**，
      且带碰撞挡住房内可走区（房2 内 (4238,2313)/(4300,2350) pre 不可通行）。根因
@@ -1583,8 +1626,39 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      "定长定高、尾端由封口补"同口径，不缩放、不削墙顶。验证：post 房2 门洞内侧
      (4238,2313)/(4300,2350)/(4400,2330) 全部可通行；精灵列表无突出件、有封口瓦；
      arena-layout/wall-embed/gate-corner/wall-depth + npm test 全绿；僵尸版侧墙端面
-     均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
-     铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
+    均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
+    铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
+  - **✅ 多房迷宫竞技场（2026-08-08 六修/新章）**：三房直线串联 → 任意房数
+    蛇形网格迷宫（默认 5 房 2 排）。核心复用：菱形四对边（LT/RB、TR/BL）的通道
+    连接中心距公式**完全相同**（= (rx_A+rx_B)*EDGE_MID_FACTOR + passageLen），
+    四方向通道几何对称，只需补 v2 轴（上下通道）识别 + 反向放置旋转。
+    实现要点：
+    1. `computeMazeLayout`（combat-arena-layout.js）：蛇形拓扑（排内 ±v1 交替、
+       排间 +v2 折返），房记 inEdge/outEdge（末房出口 = 入口对边，避免出入口同边冲突）；
+       **世界尺寸含负方向——蛇形会向 -y 走，整组平移使 minX/minY ≥ margin**。
+    2. `_analyzePassagePrefab` 双轴校验（v1=(0.866,0.5) / v2=(0.866,-0.5)，取
+       |dot| 大者）；配置 `passagePrefabs` 改 `{ v1, v2 }` 对象格式（坑：deepMerge
+       的 DEFAULT_ARENA 也必须是对象，字符串会被逐字拆开成 {0:'左',1:'右',...}）。
+    3. `_placeArenaPassage` 反向通道**绕 gA 中心旋转 180°**（x'=2gA.x−x，
+       y'=2gA.y−y，flipX/flipY 取反）——水平镜像只翻 x 得到的是 -v2 方向，
+       y 不翻会落点校验失败（反向通道 = 上下通道镜像，不是左右通道镜像）。
+       门洞/底边几何经 texPointToWorld 的 flip 变换自动正确。
+    4. 地板/封口/裁剪的边线动态化：新增 `_roomEdgeLine(room, edge)`（TR/BL 边），
+       `_arenaPassageFloorQuad`/`_sealPassageSides`/`_clipPassagePieceToRooms`
+       不再硬编码 RB/LT——转弯通道（TR→BL）地板/封口全靠这个。
+    5. 波次/门控/出口/宝箱泛化：硬编码 3 → `arena.rooms.length`（forceArenaWaves、
+       `_checkZombieCombatComplete` stage<len、`_onArenaRoomSealed` 末房、宝箱房
+       setup 末房、`_trapExtras` 末房来路通道索引 len−2）；出口门锚定末房 outEdge
+       中点（`_setupGate` 通用）。
+    6. 沼泽上下通道预制：`gen-swamp-passage-prefab.py` 双源（左右/上下）生成
+       「上下通道·沼泽」，L=964.6 与左右一致；data/ + public/data/ 双份同步。
+    配置：`combatArena.maze = { enabled, roomCount, rows }`（默认 5 房 2 排启用；
+    关掉或 roomCount≤3 走原三房直线）。验证：`tools/cdp-maze-check.mjs` 进沼泽
+    竞技场——5 房 4 通道门位置 d1=d2=0、通道中点可通行、四条地板 quad 端点
+    errA/errB=0（转弯 TR→BL 与反向 LT→RB 全对）、三房回归 roomCount=3；
+    npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
+    → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
+    地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

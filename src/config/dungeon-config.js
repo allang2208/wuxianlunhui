@@ -150,8 +150,12 @@ export const DungeonConfig = {
     getCombatArenaConfig() {
         const DEFAULT_ARENA = {
             minGrade: 'D',
-            passagePrefabs: { default: '左右通道' },
-            passageGap: 0
+            passagePrefabs: {
+                default: { v1: '左右通道', v2: '上下通道' },
+            },
+            passageGap: 0,
+            // 多房迷宫（2026-08-08）：roomCount ≥ 4 启用蛇形网格；默认三房直线
+            maze: { enabled: false, roomCount: 5, rows: 0 },
         };
         return deepMerge(DEFAULT_ARENA, dungeonConfigData.combatArena || {});
     },

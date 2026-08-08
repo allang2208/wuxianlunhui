@@ -1666,5 +1666,116 @@
     "label": "沼泽藤门"
    }
   ]
+ },
+ "上下通道·沼泽": {
+  "name": "上下通道·沼泽",
+  "cx": 5338,
+  "cy": 1678,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5517.405888172302,
+    "y": 1328.8978240817385,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5227.151365264196,
+    "y": 1496.7935540992416,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4936.89684235609,
+    "y": 1664.6892841167448,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5715.312110728432,
+    "y": 1671.0338403019623,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5425.057587820326,
+    "y": 1838.9295703194655,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5134.80306491222,
+    "y": 2006.825300336969,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 5755.275571758616,
+    "y": 1447.984877839901,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1559.2103271484375,
+    "family": "wall",
+    "label": "沼泽藤门"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 4920.275571758616,
+    "y": 1930.984877839901,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 2124.271580168877,
+    "family": "wall",
+    "label": "沼泽藤门"
+   }
+  ]
  }
 }
