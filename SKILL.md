@@ -768,6 +768,26 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**H3 单首帧 i2v 做不了跨形态转变（模型倾向保持首帧形态）**；
     变身/形态转换必须 first+last 双端锁定，且用像素 diff 验证转变轨迹
     （GLM 对首帧形态判断不稳，t_000 被误读为红狼人，diff 对比才可靠）。
+- **红狼王变身重复 + 嚎叫改独立技能（2026-08-08 三十三版）**：
+  - 用户反馈"变身有重复动画、变身完还有红狼嚎叫"。排查：
+    ① 变身完成处代码自动 `_howlTimer = howlDuration ?? 2000`——变身完强制接嚎叫；
+    ② 原 howl.png 是**四足狼**嚎叫，红狼人形态播它形态不匹配（GLM 确认）。
+  - 修复：
+    ① 变身完成 `_howlTimer = 0`，不再自动嚎叫；首次嚎叫延迟 5s（`_howlCd =
+       min(cooldown, 5000)`）避免变身动画后立即接嚎叫；
+    ② 嚎叫改为**红狼人形态主动技能**（参照 foreman-zombie）：红狼人形态 +
+       冷却就绪（默认 30s）+ 有目标 + 咬/扑空闲 → `_startHowl(entities)`，
+       给场上全体 enemy 阵营 `applyInspire(buffDuration ?? 30000)`（移速×1.33、
+       物攻×1.5，复用已有激励系统）；
+    ③ 重生成**红狼人两足嚎叫**动画（`rw-humanoid-howl-regen.py`，首末帧锁红狼人
+       参考图）→ 入格 `red_wolf_king_changed_howl.png`（4×3=12 帧），
+       transformedSprites.howl / BootScene / _getTextureKey / _drawBody 全链指向它。
+  - 关键坑：**嚎叫触发判断不能用 `!_attackType`**——RedWolfKing 的 _attackType
+    初始即 'pounceBite' 且不随咬/扑结束重置，条件永远不满足；改看
+    `_biteState === 'idle' && _pounceState === 'idle'`。
+  - 实机验证：变身完成 howlTimer=0（不再自动嚎叫）；嚎叫技能触发纹理切换
+    changed_howl、激励 buff 生效（自身 remaining 28s/30s）；lint 0 error、
+    vite build 通过、config-integrity 通过。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
