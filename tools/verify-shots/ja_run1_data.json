@@ -1,0 +1,2040 @@
+{
+ "room": {
+  "base": {
+   "x": 900,
+   "y": 2048
+  },
+  "room": {
+   "rx": 512,
+   "ry": 256
+  },
+  "top": {
+   "x": 900,
+   "y": 1792
+  },
+  "right": {
+   "x": 1412,
+   "y": 2048
+  },
+  "bottom": {
+   "x": 900,
+   "y": 2304
+  },
+  "left": {
+   "x": 388,
+   "y": 2048
+  }
+ },
+ "shots": {
+  "TL": {
+   "cam": {
+    "scrollX": 0,
+    "scrollY": 1426,
+    "w": 1896,
+    "h": 988
+   },
+   "items": [
+    {
+     "id": "defense_cover_0",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v3_v",
+     "x": 852,
+     "y": 1816,
+     "depth": 1807.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 1795
+      },
+      {
+       "x": 940,
+       "y": 1708
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_1",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 713,
+     "y": 1885,
+     "depth": 1876.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 1864
+      },
+      {
+       "x": 801,
+       "y": 1777
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_2",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 575,
+     "y": 1955,
+     "depth": 1946.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 1934
+      },
+      {
+       "x": 663,
+       "y": 1847
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_3",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v",
+     "x": 436,
+     "y": 2024,
+     "depth": 2015.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 2003
+      },
+      {
+       "x": 524,
+       "y": 1916
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_4",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 948,
+     "y": 1816,
+     "depth": 1807,
+     "face": [
+      {
+       "x": 860,
+       "y": 1708
+      },
+      {
+       "x": 1036,
+       "y": 1795
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_5",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v3_h",
+     "x": 1087,
+     "y": 1885,
+     "depth": 1876,
+     "face": [
+      {
+       "x": 999,
+       "y": 1777
+      },
+      {
+       "x": 1175,
+       "y": 1864
+      }
+     ],
+     "b": {
+      "left": 957,
+      "right": 1217,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1905,
+      "sR": 2165,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_6",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v5_h",
+     "x": 1225,
+     "y": 1955,
+     "depth": 1946,
+     "face": [
+      {
+       "x": 1137,
+       "y": 1847
+      },
+      {
+       "x": 1313,
+       "y": 1934
+      }
+     ],
+     "b": {
+      "left": 1095,
+      "right": 1355,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 2043,
+      "sR": 2303,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_7",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 1364,
+     "y": 2024,
+     "depth": 2015,
+     "face": [
+      {
+       "x": 1276,
+       "y": 1916
+      },
+      {
+       "x": 1452,
+       "y": 2003
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_8",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 436,
+     "y": 2072,
+     "depth": 2063.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 1964
+      },
+      {
+       "x": 524,
+       "y": 2051
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 881,
+      "sB": 1140
+     }
+    },
+    {
+     "id": "defense_cover_9",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 575,
+     "y": 2141,
+     "depth": 2132.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 2033
+      },
+      {
+       "x": 663,
+       "y": 2120
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1882,
+      "bottom": 2141,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 950,
+      "sB": 1209
+     }
+    },
+    {
+     "id": "defense_cover_10",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 713,
+     "y": 2211,
+     "depth": 2202.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 2103
+      },
+      {
+       "x": 801,
+       "y": 2190
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1952,
+      "bottom": 2211,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 1020,
+      "sB": 1279
+     }
+    },
+    {
+     "id": "defense_cover_11",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 852,
+     "y": 2280,
+     "depth": 2271.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 2172
+      },
+      {
+       "x": 940,
+       "y": 2259
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 1089,
+      "sB": 1348
+     }
+    },
+    {
+     "id": "defense_cover_12",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 1364,
+     "y": 2072,
+     "depth": 2063,
+     "face": [
+      {
+       "x": 1276,
+       "y": 2051
+      },
+      {
+       "x": 1452,
+       "y": 1964
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 881,
+      "sB": 1140
+     }
+    },
+    {
+     "id": "defense_cover_13",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v2_v",
+     "x": 948,
+     "y": 2280,
+     "depth": 2271,
+     "face": [
+      {
+       "x": 860,
+       "y": 2259
+      },
+      {
+       "x": 1036,
+       "y": 2172
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 1089,
+      "sB": 1348
+     }
+    }
+   ]
+  },
+  "TR": {
+   "cam": {
+    "scrollX": 0,
+    "scrollY": 1426,
+    "w": 1896,
+    "h": 988
+   },
+   "items": [
+    {
+     "id": "defense_cover_0",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v3_v",
+     "x": 852,
+     "y": 1816,
+     "depth": 1807.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 1795
+      },
+      {
+       "x": 940,
+       "y": 1708
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_1",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 713,
+     "y": 1885,
+     "depth": 1876.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 1864
+      },
+      {
+       "x": 801,
+       "y": 1777
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_2",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 575,
+     "y": 1955,
+     "depth": 1946.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 1934
+      },
+      {
+       "x": 663,
+       "y": 1847
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_3",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v",
+     "x": 436,
+     "y": 2024,
+     "depth": 2015.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 2003
+      },
+      {
+       "x": 524,
+       "y": 1916
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_4",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 948,
+     "y": 1816,
+     "depth": 1807,
+     "face": [
+      {
+       "x": 860,
+       "y": 1708
+      },
+      {
+       "x": 1036,
+       "y": 1795
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_5",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v3_h",
+     "x": 1087,
+     "y": 1885,
+     "depth": 1876,
+     "face": [
+      {
+       "x": 999,
+       "y": 1777
+      },
+      {
+       "x": 1175,
+       "y": 1864
+      }
+     ],
+     "b": {
+      "left": 957,
+      "right": 1217,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1905,
+      "sR": 2165,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_6",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v5_h",
+     "x": 1225,
+     "y": 1955,
+     "depth": 1946,
+     "face": [
+      {
+       "x": 1137,
+       "y": 1847
+      },
+      {
+       "x": 1313,
+       "y": 1934
+      }
+     ],
+     "b": {
+      "left": 1095,
+      "right": 1355,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 2043,
+      "sR": 2303,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_7",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 1364,
+     "y": 2024,
+     "depth": 2015,
+     "face": [
+      {
+       "x": 1276,
+       "y": 1916
+      },
+      {
+       "x": 1452,
+       "y": 2003
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_8",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 436,
+     "y": 2072,
+     "depth": 2063.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 1964
+      },
+      {
+       "x": 524,
+       "y": 2051
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 881,
+      "sB": 1140
+     }
+    },
+    {
+     "id": "defense_cover_9",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 575,
+     "y": 2141,
+     "depth": 2132.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 2033
+      },
+      {
+       "x": 663,
+       "y": 2120
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1882,
+      "bottom": 2141,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 950,
+      "sB": 1209
+     }
+    },
+    {
+     "id": "defense_cover_10",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 713,
+     "y": 2211,
+     "depth": 2202.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 2103
+      },
+      {
+       "x": 801,
+       "y": 2190
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1952,
+      "bottom": 2211,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 1020,
+      "sB": 1279
+     }
+    },
+    {
+     "id": "defense_cover_11",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 852,
+     "y": 2280,
+     "depth": 2271.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 2172
+      },
+      {
+       "x": 940,
+       "y": 2259
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 1089,
+      "sB": 1348
+     }
+    },
+    {
+     "id": "defense_cover_12",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 1364,
+     "y": 2072,
+     "depth": 2063,
+     "face": [
+      {
+       "x": 1276,
+       "y": 2051
+      },
+      {
+       "x": 1452,
+       "y": 1964
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 881,
+      "sB": 1140
+     }
+    },
+    {
+     "id": "defense_cover_13",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v2_v",
+     "x": 948,
+     "y": 2280,
+     "depth": 2271,
+     "face": [
+      {
+       "x": 860,
+       "y": 2259
+      },
+      {
+       "x": 1036,
+       "y": 2172
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 1089,
+      "sB": 1348
+     }
+    }
+   ]
+  },
+  "LB": {
+   "cam": {
+    "scrollX": 0,
+    "scrollY": 1681.8,
+    "w": 1896,
+    "h": 988
+   },
+   "items": [
+    {
+     "id": "defense_cover_0",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v3_v",
+     "x": 852,
+     "y": 1816,
+     "depth": 1807.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 1795
+      },
+      {
+       "x": 940,
+       "y": 1708
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 369,
+      "sB": 628
+     }
+    },
+    {
+     "id": "defense_cover_1",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 713,
+     "y": 1885,
+     "depth": 1876.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 1864
+      },
+      {
+       "x": 801,
+       "y": 1777
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 438,
+      "sB": 697
+     }
+    },
+    {
+     "id": "defense_cover_2",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 575,
+     "y": 1955,
+     "depth": 1946.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 1934
+      },
+      {
+       "x": 663,
+       "y": 1847
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 508,
+      "sB": 767
+     }
+    },
+    {
+     "id": "defense_cover_3",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v",
+     "x": 436,
+     "y": 2024,
+     "depth": 2015.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 2003
+      },
+      {
+       "x": 524,
+       "y": 1916
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 577,
+      "sB": 836
+     }
+    },
+    {
+     "id": "defense_cover_4",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 948,
+     "y": 1816,
+     "depth": 1807,
+     "face": [
+      {
+       "x": 860,
+       "y": 1708
+      },
+      {
+       "x": 1036,
+       "y": 1795
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 369,
+      "sB": 628
+     }
+    },
+    {
+     "id": "defense_cover_5",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v3_h",
+     "x": 1087,
+     "y": 1885,
+     "depth": 1876,
+     "face": [
+      {
+       "x": 999,
+       "y": 1777
+      },
+      {
+       "x": 1175,
+       "y": 1864
+      }
+     ],
+     "b": {
+      "left": 957,
+      "right": 1217,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1905,
+      "sR": 2165,
+      "sT": 438,
+      "sB": 697
+     }
+    },
+    {
+     "id": "defense_cover_6",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v5_h",
+     "x": 1225,
+     "y": 1955,
+     "depth": 1946,
+     "face": [
+      {
+       "x": 1137,
+       "y": 1847
+      },
+      {
+       "x": 1313,
+       "y": 1934
+      }
+     ],
+     "b": {
+      "left": 1095,
+      "right": 1355,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 2043,
+      "sR": 2303,
+      "sT": 508,
+      "sB": 767
+     }
+    },
+    {
+     "id": "defense_cover_7",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 1364,
+     "y": 2024,
+     "depth": 2015,
+     "face": [
+      {
+       "x": 1276,
+       "y": 1916
+      },
+      {
+       "x": 1452,
+       "y": 2003
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 577,
+      "sB": 836
+     }
+    },
+    {
+     "id": "defense_cover_8",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 436,
+     "y": 2072,
+     "depth": 2063.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 1964
+      },
+      {
+       "x": 524,
+       "y": 2051
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_9",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 575,
+     "y": 2141,
+     "depth": 2132.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 2033
+      },
+      {
+       "x": 663,
+       "y": 2120
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1882,
+      "bottom": 2141,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_10",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 713,
+     "y": 2211,
+     "depth": 2202.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 2103
+      },
+      {
+       "x": 801,
+       "y": 2190
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1952,
+      "bottom": 2211,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_11",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 852,
+     "y": 2280,
+     "depth": 2271.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 2172
+      },
+      {
+       "x": 940,
+       "y": 2259
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_12",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 1364,
+     "y": 2072,
+     "depth": 2063,
+     "face": [
+      {
+       "x": 1276,
+       "y": 2051
+      },
+      {
+       "x": 1452,
+       "y": 1964
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_13",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v2_v",
+     "x": 948,
+     "y": 2280,
+     "depth": 2271,
+     "face": [
+      {
+       "x": 860,
+       "y": 2259
+      },
+      {
+       "x": 1036,
+       "y": 2172
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 833,
+      "sB": 1092
+     }
+    }
+   ]
+  },
+  "RB": {
+   "cam": {
+    "scrollX": 0,
+    "scrollY": 1682,
+    "w": 1896,
+    "h": 988
+   },
+   "items": [
+    {
+     "id": "defense_cover_0",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v3_v",
+     "x": 852,
+     "y": 1816,
+     "depth": 1807.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 1795
+      },
+      {
+       "x": 940,
+       "y": 1708
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 369,
+      "sB": 628
+     }
+    },
+    {
+     "id": "defense_cover_1",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 713,
+     "y": 1885,
+     "depth": 1876.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 1864
+      },
+      {
+       "x": 801,
+       "y": 1777
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 438,
+      "sB": 697
+     }
+    },
+    {
+     "id": "defense_cover_2",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 575,
+     "y": 1955,
+     "depth": 1946.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 1934
+      },
+      {
+       "x": 663,
+       "y": 1847
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 508,
+      "sB": 767
+     }
+    },
+    {
+     "id": "defense_cover_3",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v",
+     "x": 436,
+     "y": 2024,
+     "depth": 2015.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 2003
+      },
+      {
+       "x": 524,
+       "y": 1916
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 577,
+      "sB": 836
+     }
+    },
+    {
+     "id": "defense_cover_4",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 948,
+     "y": 1816,
+     "depth": 1807,
+     "face": [
+      {
+       "x": 860,
+       "y": 1708
+      },
+      {
+       "x": 1036,
+       "y": 1795
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 369,
+      "sB": 628
+     }
+    },
+    {
+     "id": "defense_cover_5",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v3_h",
+     "x": 1087,
+     "y": 1885,
+     "depth": 1876,
+     "face": [
+      {
+       "x": 999,
+       "y": 1777
+      },
+      {
+       "x": 1175,
+       "y": 1864
+      }
+     ],
+     "b": {
+      "left": 957,
+      "right": 1217,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1905,
+      "sR": 2165,
+      "sT": 438,
+      "sB": 697
+     }
+    },
+    {
+     "id": "defense_cover_6",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v5_h",
+     "x": 1225,
+     "y": 1955,
+     "depth": 1946,
+     "face": [
+      {
+       "x": 1137,
+       "y": 1847
+      },
+      {
+       "x": 1313,
+       "y": 1934
+      }
+     ],
+     "b": {
+      "left": 1095,
+      "right": 1355,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 2043,
+      "sR": 2303,
+      "sT": 508,
+      "sB": 767
+     }
+    },
+    {
+     "id": "defense_cover_7",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 1364,
+     "y": 2024,
+     "depth": 2015,
+     "face": [
+      {
+       "x": 1276,
+       "y": 1916
+      },
+      {
+       "x": 1452,
+       "y": 2003
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 577,
+      "sB": 836
+     }
+    },
+    {
+     "id": "defense_cover_8",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 436,
+     "y": 2072,
+     "depth": 2063.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 1964
+      },
+      {
+       "x": 524,
+       "y": 2051
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_9",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 575,
+     "y": 2141,
+     "depth": 2132.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 2033
+      },
+      {
+       "x": 663,
+       "y": 2120
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1882,
+      "bottom": 2141,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 694,
+      "sB": 953
+     }
+    },
+    {
+     "id": "defense_cover_10",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 713,
+     "y": 2211,
+     "depth": 2202.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 2103
+      },
+      {
+       "x": 801,
+       "y": 2190
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1952,
+      "bottom": 2211,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 764,
+      "sB": 1023
+     }
+    },
+    {
+     "id": "defense_cover_11",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 852,
+     "y": 2280,
+     "depth": 2271.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 2172
+      },
+      {
+       "x": 940,
+       "y": 2259
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 833,
+      "sB": 1092
+     }
+    },
+    {
+     "id": "defense_cover_12",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 1364,
+     "y": 2072,
+     "depth": 2063,
+     "face": [
+      {
+       "x": 1276,
+       "y": 2051
+      },
+      {
+       "x": 1452,
+       "y": 1964
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 625,
+      "sB": 884
+     }
+    },
+    {
+     "id": "defense_cover_13",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v2_v",
+     "x": 948,
+     "y": 2280,
+     "depth": 2271,
+     "face": [
+      {
+       "x": 860,
+       "y": 2259
+      },
+      {
+       "x": 1036,
+       "y": 2172
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 833,
+      "sB": 1092
+     }
+    }
+   ]
+  },
+  "TOP": {
+   "cam": {
+    "scrollX": 0,
+    "scrollY": 1418,
+    "w": 1896,
+    "h": 988
+   },
+   "items": [
+    {
+     "id": "defense_cover_0",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v3_v",
+     "x": 852,
+     "y": 1816,
+     "depth": 1807.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 1795
+      },
+      {
+       "x": 940,
+       "y": 1708
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 633,
+      "sB": 892
+     }
+    },
+    {
+     "id": "defense_cover_1",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 713,
+     "y": 1885,
+     "depth": 1876.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 1864
+      },
+      {
+       "x": 801,
+       "y": 1777
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 702,
+      "sB": 961
+     }
+    },
+    {
+     "id": "defense_cover_2",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 575,
+     "y": 1955,
+     "depth": 1946.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 1934
+      },
+      {
+       "x": 663,
+       "y": 1847
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 772,
+      "sB": 1031
+     }
+    },
+    {
+     "id": "defense_cover_3",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v",
+     "x": 436,
+     "y": 2024,
+     "depth": 2015.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 2003
+      },
+      {
+       "x": 524,
+       "y": 1916
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 841,
+      "sB": 1100
+     }
+    },
+    {
+     "id": "defense_cover_4",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 948,
+     "y": 1816,
+     "depth": 1807,
+     "face": [
+      {
+       "x": 860,
+       "y": 1708
+      },
+      {
+       "x": 1036,
+       "y": 1795
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 1557,
+      "bottom": 1816,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 633,
+      "sB": 892
+     }
+    },
+    {
+     "id": "defense_cover_5",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v3_h",
+     "x": 1087,
+     "y": 1885,
+     "depth": 1876,
+     "face": [
+      {
+       "x": 999,
+       "y": 1777
+      },
+      {
+       "x": 1175,
+       "y": 1864
+      }
+     ],
+     "b": {
+      "left": 957,
+      "right": 1217,
+      "top": 1626,
+      "bottom": 1885,
+      "sL": 1905,
+      "sR": 2165,
+      "sT": 702,
+      "sB": 961
+     }
+    },
+    {
+     "id": "defense_cover_6",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v5_h",
+     "x": 1225,
+     "y": 1955,
+     "depth": 1946,
+     "face": [
+      {
+       "x": 1137,
+       "y": 1847
+      },
+      {
+       "x": 1313,
+       "y": 1934
+      }
+     ],
+     "b": {
+      "left": 1095,
+      "right": 1355,
+      "top": 1696,
+      "bottom": 1955,
+      "sL": 2043,
+      "sR": 2303,
+      "sT": 772,
+      "sB": 1031
+     }
+    },
+    {
+     "id": "defense_cover_7",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 1364,
+     "y": 2024,
+     "depth": 2015,
+     "face": [
+      {
+       "x": 1276,
+       "y": 1916
+      },
+      {
+       "x": 1452,
+       "y": 2003
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1765,
+      "bottom": 2024,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 841,
+      "sB": 1100
+     }
+    },
+    {
+     "id": "defense_cover_8",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v2_h",
+     "x": 436,
+     "y": 2072,
+     "depth": 2063.5,
+     "face": [
+      {
+       "x": 348,
+       "y": 1964
+      },
+      {
+       "x": 524,
+       "y": 2051
+      }
+     ],
+     "b": {
+      "left": 306,
+      "right": 566,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 1254,
+      "sR": 1514,
+      "sT": 889,
+      "sB": 1148
+     }
+    },
+    {
+     "id": "defense_cover_9",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 575,
+     "y": 2141,
+     "depth": 2132.5,
+     "face": [
+      {
+       "x": 487,
+       "y": 2033
+      },
+      {
+       "x": 663,
+       "y": 2120
+      }
+     ],
+     "b": {
+      "left": 445,
+      "right": 705,
+      "top": 1882,
+      "bottom": 2141,
+      "sL": 1393,
+      "sR": 1653,
+      "sT": 958,
+      "sB": 1217
+     }
+    },
+    {
+     "id": "defense_cover_10",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 713,
+     "y": 2211,
+     "depth": 2202.5,
+     "face": [
+      {
+       "x": 625,
+       "y": 2103
+      },
+      {
+       "x": 801,
+       "y": 2190
+      }
+     ],
+     "b": {
+      "left": 583,
+      "right": 843,
+      "top": 1952,
+      "bottom": 2211,
+      "sL": 1531,
+      "sR": 1791,
+      "sT": 1028,
+      "sB": 1287
+     }
+    },
+    {
+     "id": "defense_cover_11",
+     "orient": "h",
+     "tex": "obstacle_cover_D_v4_h",
+     "x": 852,
+     "y": 2280,
+     "depth": 2271.5,
+     "face": [
+      {
+       "x": 764,
+       "y": 2172
+      },
+      {
+       "x": 940,
+       "y": 2259
+      }
+     ],
+     "b": {
+      "left": 722,
+      "right": 982,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1670,
+      "sR": 1930,
+      "sT": 1097,
+      "sB": 1356
+     }
+    },
+    {
+     "id": "defense_cover_12",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v4_v",
+     "x": 1364,
+     "y": 2072,
+     "depth": 2063,
+     "face": [
+      {
+       "x": 1276,
+       "y": 2051
+      },
+      {
+       "x": 1452,
+       "y": 1964
+      }
+     ],
+     "b": {
+      "left": 1234,
+      "right": 1494,
+      "top": 1813,
+      "bottom": 2072,
+      "sL": 2182,
+      "sR": 2442,
+      "sT": 889,
+      "sB": 1148
+     }
+    },
+    {
+     "id": "defense_cover_13",
+     "orient": "v",
+     "tex": "obstacle_cover_D_v2_v",
+     "x": 948,
+     "y": 2280,
+     "depth": 2271,
+     "face": [
+      {
+       "x": 860,
+       "y": 2259
+      },
+      {
+       "x": 1036,
+       "y": 2172
+      }
+     ],
+     "b": {
+      "left": 818,
+      "right": 1078,
+      "top": 2021,
+      "bottom": 2280,
+      "sL": 1766,
+      "sR": 2026,
+      "sT": 1097,
+      "sB": 1356
+     }
+    }
+   ]
+  }
+ }
+}

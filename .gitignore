@@ -28,6 +28,7 @@ weapon-frames/
 tmp_*.png
 vite.probe.config.js
 tools/normalized/
+tools/ai-gen/_scratch/
 assets/videos/
 __pycache__/
 *.bak

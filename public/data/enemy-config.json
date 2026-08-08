@@ -113,7 +113,8 @@
       "duration": 2000,
       "howlDuration": 2000,
       "damageMultiplier": 2,
-      "hpRecover": 1
+      "hpRecover": 1,
+      "damageReduction": 0.9
     }
   },
   "fatZombie": {

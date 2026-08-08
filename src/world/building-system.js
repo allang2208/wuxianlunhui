@@ -16,6 +16,7 @@ import { UIState } from '../ui/ui-state.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { DefenseSystem, DefenseTower, DefenseCover, DEFENSE_CONFIG, COVER_FACE, COVER_FOOT } from './defense-system.js';
+import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
 
 // ==================== 可建造项 ====================
 
@@ -71,6 +72,25 @@ for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
         tex: `obstacle_cover_${grade}_v`,
     });
 }
+// 陷阱：4 类 × F~A 六档（数据源 TRAP_CONFIG，唯一真源）
+for (const type of Object.keys(TRAP_CONFIG)) {
+    const t = TRAP_CONFIG[type];
+    for (const grade of TRAP_GRADES) {
+        const d = getTrapDef(type, grade);
+        if (!d) continue;
+        BUILD_ITEMS.push({
+            id: `trap_${type}_${grade}`,
+            name: `${t.displayName}·${grade}级`,
+            grade,
+            trapType: type,
+            kind: 'trap',
+            cost: d.gradeCfg.cost,
+            tex: t.tex,
+            trapW: t.w,
+            trapH: t.h,
+        });
+    }
+}
 
 // ==================== 建筑系统 ====================
 
@@ -97,6 +117,10 @@ export const BuildingSystem = {
         // 塔升级面板与建筑面板互斥
         if (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen) {
             DefenseSystem._panel.close();
+        }
+        // 陷阱面板与建筑面板互斥
+        if (DefenseTrapSystem && DefenseTrapSystem._panel && DefenseTrapSystem._panel.isOpen) {
+            DefenseTrapSystem._panel.close();
         }
         this._buildPanel();
         this._downFn = (e) => this._onMouseDown(e);
@@ -135,7 +159,7 @@ export const BuildingSystem = {
         el.innerHTML = `
             <div class="we-title">建筑面板（世界-122） <span class="we-close" id="bpClose">×</span></div>
             <div class="we-info" id="bpGold">金币：<b style="color:#ffd700;">${gold}</b>（点击建筑后到场景里放置）</div>
-            <div class="we-grid" id="bpGrid">
+            <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:52vh;overflow-y:auto;">
                 ${BUILD_ITEMS.map((it) => `
                     <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${it.cost} 金币">
                         <img src="assets/terrain/${it.tex}.png" draggable="false" alt="${it.name}">
@@ -191,6 +215,8 @@ export const BuildingSystem = {
             // 显示尺寸 = 实体显示尺寸（塔 170×262；掩体 260 宽等比）
             if (item.kind === 'tower') {
                 this._ghost.setDisplaySize(170, 262);
+            } else if (item.kind === 'trap') {
+                this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
@@ -397,7 +423,7 @@ export const BuildingSystem = {
 
     _canPlace(x, y) {
         if (x < 20 || y < 20 || x > CONFIG.WORLD_WIDTH - 20 || y > CONFIG.WORLD_HEIGHT - 20) return false;
-        const radius = this._placing.item.kind === 'tower' ? 40 : 28;
+        const radius = this._placing.item.kind === 'tower' ? 40 : (this._placing.item.kind === 'trap' ? TRAP_SPACING : 28);
         if (WallSystem && typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, radius)) return false;
         // 不与已建建筑重叠：掩体按「墙段真实 footprint（底边线段 + 墙厚）」判定——
         // 只检查底部碰撞体积，斜墙不再用轴对齐保守矩形（避免“该能放却红”）；
@@ -425,6 +451,16 @@ export const BuildingSystem = {
                     const dy = e.y - y;
                     if (dx * dx + dy * dy < 70 * 70) return false;
                 }
+            }
+            return true;
+        }
+        if (this._placing.item.kind === 'trap') {
+            // 陷阱：放路上（不参与掩体墙段判定），但不得压塔/基座/其他陷阱
+            for (const e of Game.entities.values()) {
+                if (!e || !e.active) continue;
+                const dx = e.x - x;
+                const dy = e.y - y;
+                if (dx * dx + dy * dy < TRAP_SPACING * TRAP_SPACING) return false;
             }
             return true;
         }
@@ -459,6 +495,13 @@ export const BuildingSystem = {
             tower._mirrored = mirror;
             Game.entities.set(id, tower);
             DefenseSystem.towers.push(tower);
+        } else if (item.kind === 'trap') {
+            const trap = new DefenseTrap(x, y, {
+                type: item.trapType,
+                grade: item.grade,
+                id,
+            });
+            Game.entities.set(id, trap);
         } else {
             const cover = new DefenseCover(x, y, {
                 grade: item.grade,

@@ -1,5 +1,6 @@
 import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
+import { distanceToEntityShape } from '../utils/collision-helpers.js';
 
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
@@ -108,6 +109,8 @@ class BlackWolf extends Enemy {
 
     update(dt, entities) {
         super.update(dt, entities);
+        // 死亡防御：game.js 已跳过 active=false 实体的 update，这里双保险
+        if (this._isDead || !this.active) return;
         
         // === 根据主导速度方向确定 facing（攻击期间锁定）===
         // 飞扑冷却计时
@@ -122,6 +125,16 @@ class BlackWolf extends Enemy {
             this.vx = 0;
             this.vy = 0;
             this.isMoving = false;
+            return;
+        }
+
+        // 恐惧：中断攻击并停止攻击决策（移动由 MovementSystem 恐惧分支接管逃跑；
+        // 参照 mutant-3 的 fear 中断，且补上逃跑动画跟随）
+        if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
+            if (this._pounceState !== 'idle') this._endPounce();
+            if (this._biteState !== 'idle') this._endBite();
+            this._updateNormalState();
+            this._updateAnimFrame(dt);
             return;
         }
 
@@ -150,12 +163,15 @@ class BlackWolf extends Enemy {
         } else {
             // 攻击决策：近距离普通撕咬优先，中距离飞扑（技能）
             if (this.target && this.target.active) {
+                const hasLOS = this._hasLOSTo(this.target);
                 const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-                if (this._biteCooldown <= 0 && dist <= (this.config?.biteRange ?? 150)) {
+                // bite 触发与命中同口径（边缘距 ≤ biteRange），避免"触发严格于命中"的空窗
+                if (this._biteCooldown <= 0 && hasLOS && this._isTargetInRange(this.target, this.config?.biteRange ?? 150)) {
                     this._startBite();
                     return;
                 }
-                if (this._pounceCooldown <= 0 && dist <= (this.config?.pounceRange ?? 500)) {
+                // pounce 触发保持技能射程语义（中心距 ≤ pounceRange，与 mutant-3 一致）
+                if (this._pounceCooldown <= 0 && hasLOS && dist <= (this.config?.pounceRange ?? 500)) {
                     this._startPounce();
                     return;
                 }
@@ -437,10 +453,20 @@ class BlackWolf extends Enemy {
 
     _isTargetInRange(target, range) {
         if (!target) return false;
-        const r = Math.max(0, range);
-        const targetR = target.groundRadius || target.collisionRadius || target.size * 0.6 || 0;
-        const dist = Math.hypot(target.x - this.x, target.y - this.y);
-        return dist <= r + targetR;
+        // 统一口径：与 CombatSystem/inMeleeRange 同语义（distanceToEntityShape 边缘距）
+        return distanceToEntityShape(target, this.x, this.y) <= Math.max(0, range);
+    }
+
+    // LOS 检查：复用 PerceptionSystem 缓存，缺省回退 WallSystem（与 CombatSystem 同模式）
+    _hasLOSTo(target) {
+        if (!target) return false;
+        if (this._perception && this._perception.lastLOSTargetId === target.id) {
+            return !!this._perception.lastLOSResult;
+        }
+        if (WallSystem && WallSystem.blocked) {
+            return !WallSystem.blocked(this.x, this.y, target.x, target.y);
+        }
+        return true;
     }
 
     // 冲锋速度线条：狼身后沿反方向拖出短色块链（参考 LightningBoltEffect 的
@@ -748,10 +774,16 @@ class RedWolfKing extends BlackWolf {
         if (this._isTransforming) {
             this.vx = 0;
             this.vy = 0;
+            // 变身期不可移动、不可攻击：先终止进行中的撕咬/飞扑（_endBite/_endPounce 会清
+            // _frozenForCast），再锁移动，避免变身期间边漂移边咬人。
+            if (this._biteState === 'attacking') this._endBite();
+            if (this._pounceState !== 'idle') this._endPounce();
+            this._frozenForCast = true;
             this._transformTimer -= dt;
             if (this._transformTimer <= 0) {
                 this._isTransforming = false;
                 this._isTransformed = true;
+                this._frozenForCast = false;
                 this._applyTransform();
                 this._howlTimer = this._transformCfg.howlDuration ?? 2000;
             }
@@ -760,6 +792,11 @@ class RedWolfKing extends BlackWolf {
             this._howlTimer -= dt;
             this.vx = 0;
             this.vy = 0;
+            // 嚎叫期同锁移动/禁攻击（变身流程的延续）
+            if (this._biteState === 'attacking') this._endBite();
+            if (this._pounceState !== 'idle') this._endPounce();
+            this._frozenForCast = true;
+            if (this._howlTimer <= 0) this._frozenForCast = false;
         }
         super.update(dt, entities);
         // 覆盖动画状态：变身/嚎叫期间锁定
@@ -794,6 +831,16 @@ class RedWolfKing extends BlackWolf {
         if (recover && this.maxHp) {
             this.hp = Math.min(this.maxHp, this.hp + this.maxHp * recover);
         }
+    }
+
+    // 变身期减伤（默认 90%，transform.damageReduction 可配）：
+    // 在暴击计算前先砍掉伤害，让变身动画期间站着挨打也站得住。
+    takeDamage(damage, source, damageType = 'physical', _isMelee = true) {
+        if (this._isTransforming) {
+            const reduction = this._transformCfg?.damageReduction ?? 0.9;
+            damage = Math.max(0, Math.round(damage * (1 - reduction)));
+        }
+        return super.takeDamage(damage, source, damageType, _isMelee);
     }
 
     // 狼形态双攻击绑定：黑狼状态机的 _startBite/_startPounce 不会设置 _attackType，
@@ -889,6 +936,18 @@ class RedWolfKing extends BlackWolf {
         return super._getStateFrameCount();
     }
 
+    // 红狼人形态独立显示尺寸：狼形态 151，红狼人按 render.transformedSpriteSize
+    // （默认 200，比狼更魁梧；Phaser 纹理切换时会按此重算 displaySize）。
+    _getPhaserOptions() {
+        const opts = super._getPhaserOptions();
+        if (this._isTransformed) {
+            // 默认 200；JSON 里 render.transformedSpriteSize 可覆盖
+            // （vite 对 data/*.json 的模块缓存可能滞后，代码兜底保证生效）
+            opts.spriteSize = this._animCfg?.render?.transformedSpriteSize ?? 200;
+        }
+        return opts;
+    }
+
     _drawBody(ctx) {
         if (this._isTransforming) {
             this._drawSheetFrame(ctx, this._wolfSprites.transform, this._frameLayouts.transform);
@@ -930,8 +989,11 @@ class RedWolfKing extends BlackWolf {
         const col = this._animFrame % lay.cols;
         const row = Math.floor(this._animFrame / lay.cols);
         const renderCfg = this._animCfg?.render || {};
-        const spriteSize = renderCfg.spriteSize ?? 151;
-        const spriteOffset = renderCfg.spriteOffset ?? -76;
+        const baseSize = renderCfg.spriteSize ?? 151;
+        const spriteSize = this._isTransformed
+            ? (renderCfg.transformedSpriteSize ?? 200)
+            : baseSize;
+        const spriteOffset = (renderCfg.spriteOffset ?? -76) * (spriteSize / baseSize);
         ctx.drawImage(img, col * frameW, row * frameH, frameW, frameH, spriteOffset, spriteOffset, spriteSize, spriteSize);
     }
 }

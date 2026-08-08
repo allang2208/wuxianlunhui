@@ -5245,10 +5245,9 @@ export class GameScene extends Scene {
             // 机械臂：枢轴=塔顶中心，绕枢轴旋转（rotation = aimAngle − 臂自然角）
             const pivotX = e.x;
             const pivotY = e.y - V.arm.pivotWorldY;
-            const s = V.arm.s;
-            const plx = V.arm.pivot.x * s;
-            const ply = V.arm.pivot.y * s;
-            sp.arm.setPosition(pivotX - plx + V.arm.w / 2, pivotY - ply + V.arm.h / 2);
+            // origin 设在枢轴（纹理内枢轴比例），旋转绕枢轴而不是绕 sprite 中心
+            sp.arm.setOrigin(V.arm.pivot.x / V.arm.tw, V.arm.pivot.y / V.arm.th);
+            sp.arm.setPosition(pivotX, pivotY);
             sp.arm.setDisplaySize(V.arm.w, V.arm.h);
             sp.arm.setRotation(e.aimAngle - V.arm.naturalAngle);
             sp.arm.setDepth(e.y + 12.5);
@@ -5259,6 +5258,7 @@ export class GameScene extends Scene {
                 let tex = getWeaponTextureKey(item);
                 if (!this.textures.exists(tex)) tex = 'weapon_rusty_sword';
                 if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
+                const s = V.arm.s;
                 const rot = e.aimAngle - V.arm.naturalAngle;
                 const tdx = (V.arm.tip.x - V.arm.pivot.x) * s;
                 const tdy = (V.arm.tip.y - V.arm.pivot.y) * s;
