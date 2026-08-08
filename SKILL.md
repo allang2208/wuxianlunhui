@@ -1702,6 +1702,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     一律走真实 GPU（不要 --disable-gpu）；先查 `window.__phaserScene` 是否就绪，
     再判断"渲染问题"还是"数据问题"**。本次最终结论：数据+渲染均正常，用户所见
     是浏览器加载中间版本缓存（HMR 未生效），强刷后恢复。
+  - **⚠ 通道侧墙全丢根因：signC 用错字段（2026-08-08 七修）**：用户持续报
+    "衔接通道没做墙 / 看不到墙壁"。深挖（完整启动流程 cdp-swamp-webgl-check）：
+    `_clipPassagePieceToRooms` 里 `const signC = (e.c.x - e.P.x)*nx + (e.c.y - e.P.y)*ny`
+    ——**e.c 是房间对象（字段 cx/cy），e.c.x/e.c.y 是 undefined** → signC=NaN →
+    `NaN < 0` 恒 false → **法线永不翻转** → 通道对侧（LT 等）边线方向错 →
+    五修"任一端点越线即丢"把所有侧墙件误判"整件在房内"**全部丢弃**（三房旧逻辑
+    只丢整件进房、部分越线保留，NaN 符号错误影响小，所以三房一直正常）。
+    修复：`e.c.cx`/`e.c.cy`。验证：修复后完整流程 wallTotal 99→125、通道 1 墙件
+    1→12、渲染棕色墙恢复；npm test 全绿。教训：**几何判定里房间对象一律用 cx/cy
+    （不是 x/y），NaN 比较恒 false 会静默走错分支——排查"墙消失"先怀疑符号/法线
+    判定**。headless 首次场 scene 未就绪会掩盖此问题（墙精灵 0 与墙件被丢混在一起），
+    必须走完整启动流程验证。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

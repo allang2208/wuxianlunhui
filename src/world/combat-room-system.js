@@ -1467,7 +1467,10 @@ export const CombatRoomSystem = {
             let nx = -e.d.y, ny = e.d.x;
             const nl = Math.hypot(nx, ny) || 1;
             nx /= nl; ny /= nl;
-            const signC = (e.c.x - e.P.x) * nx + (e.c.y - e.P.y) * ny;
+            // ⚠ 2026-08-08 七修：e.c 是房间对象（字段 cx/cy），旧版误用 e.c.x/e.c.y
+            // → undefined → signC=NaN → 法线永不翻转 → 边线方向错 → 通道侧墙件被误判
+            // "整件在房内"全部丢弃（用户"衔接通道没做墙/看不到墙壁"的根因）
+            const signC = (e.c.cx - e.P.x) * nx + (e.c.cy - e.P.y) * ny;
             if (signC < 0) { nx = -nx; ny = -ny; }
             const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny; // >0 = 房内
             const sA = sOf(A), sB = sOf(B);
