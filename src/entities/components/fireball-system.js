@@ -84,44 +84,51 @@ const FIREBALL_KIND = {
         // 同帧多目标重叠时命中循环会重复调用本方法：首爆后 flyActive=false，后续调用直接忽略
         // （火球一次只能爆一次；冰锥是准穿透逐目标结算，不加此守卫）
         if (!spike.flyActive) return;
-        const radius = effect.explosionRadius;
-        // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
-        const hitSound = skillsData.skills?.fireball?.sounds?.hit;
-        if (hitSound && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(hitSound);
-        }
-        // 爆炸特效：① 冲击波扩散圈 ② ADD 火焰爆发 ③ 烟尘余韵
-        fireGroundShockwave({
-            x, y, maxRadius: radius,
-            strokeColor: 0xff7020, fillColor: 0xff9540,
-            lineWidth: 7, duration: 420, flicker: true,
-        });
-        burstParticles({
-            texture: 'impact_dot', x, y, count: 26, jitter: radius * 0.25,
-            config: {
-                speed: { min: 120, max: 420 },
-                scale: { start: 2.8, end: 0.2 },
-                alpha: { start: 0.9, end: 0 },
-                lifespan: { min: 350, max: 600 },
-                tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
-                blendMode: 'ADD',
-            },
-            destroyAfterMs: 800, depth: y + 60,
-        });
-        burstParticles({
-            texture: 'smoke_particle', x, y, count: 8, jitter: radius * 0.2,
-            config: {
-                speed: { min: 20, max: 70 },
-                scale: { start: 1.5, end: 3.5 },
-                alpha: { start: 0.35, end: 0 },
-                lifespan: { min: 700, max: 1100 },
-                tint: 0x555555,
-            },
-            destroyAfterMs: 1300, depth: y + 55,
-        });
-        sys._explodeAoE(x, y, damage, radius, entities, skill);
+        // ⚠ 2026-08-08 九修：状态清理提前到结算前——音效/特效/爆炸任一步抛异常
+        // 会导致 flyActive 残留（僵尸巫师火球命中后残留不消失）。先标记结束，结算包 try。
         spike.flyActive = false;
         spike.active = false;
+        const radius = effect.explosionRadius;
+        try {
+            // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
+            const hitSound = skillsData.skills?.fireball?.sounds?.hit;
+            if (hitSound && SoundManager && typeof SoundManager.playFile === 'function') {
+                SoundManager.playFile(hitSound);
+            }
+            // 爆炸特效：① 冲击波扩散圈 ② ADD 火焰爆发 ③ 烟尘余韵
+            fireGroundShockwave({
+                x, y, maxRadius: radius,
+                strokeColor: 0xff7020, fillColor: 0xff9540,
+                lineWidth: 7, duration: 420, flicker: true,
+            });
+            burstParticles({
+                texture: 'impact_dot', x, y, count: 26, jitter: radius * 0.25,
+                config: {
+                    speed: { min: 120, max: 420 },
+                    scale: { start: 2.8, end: 0.2 },
+                    alpha: { start: 0.9, end: 0 },
+                    lifespan: { min: 350, max: 600 },
+                    tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
+                    blendMode: 'ADD',
+                },
+                destroyAfterMs: 800, depth: y + 60,
+            });
+            burstParticles({
+                texture: 'smoke_particle', x, y, count: 8, jitter: radius * 0.2,
+                config: {
+                    speed: { min: 20, max: 70 },
+                    scale: { start: 1.5, end: 3.5 },
+                    alpha: { start: 0.35, end: 0 },
+                    lifespan: { min: 700, max: 1100 },
+                    tint: 0x555555,
+                },
+                destroyAfterMs: 1300, depth: y + 55,
+            });
+            sys._explodeAoE(x, y, damage, radius, entities, skill);
+        } catch (e) {
+            // 结算异常不阻塞火球回收（状态已清）
+            if (typeof console !== 'undefined') console.error('[Fireball] 命中结算异常（火球已回收）:', e);
+        }
     },
     // 到达最大射程：原地爆炸
     onMaxRange(sys, spike, ctx) {

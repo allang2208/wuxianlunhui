@@ -1748,6 +1748,19 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     验证：分阶段 seal 后横墙 2→0，通道 3 碰撞剖面 t=300~500 全部可通行，
     渲染棕色提升、暗区大减；npm test 全绿。教训：**转弯通道（v2/-v1）与房间边平行，
     任何"收集平行件"的逻辑都必须按来源标记过滤；flip 瓦的 A/B 朝向要按贴图语义**。
+  - **⚠ 火球命中后残留不消失（2026-08-08 九修）**：僵尸巫师的火球命中目标后残留在
+    原地。两处根因：
+    1. `fireball-system.js onImpact`：`spike.flyActive/active=false` 在**音效/特效/AOE
+       结算之后**才执行——任一步抛异常（音效缺失、粒子/爆炸异常）→ 状态残留 →
+       火球粒子一直显示。修复：**状态清理提前到结算前** + 结算包 try/catch（异常不
+       阻塞火球回收）。
+    2. `GameScene _syncOtherMagicCasters`：`hasFire` 只看 `_fireballActive`/
+       `_fireball.active`——巫师死亡（hp<=0）或状态残留（active 但 flyActive=false）
+       时仍判"有火球" → 清理循环跳过 → 粒子残留。修复：hasFire 增加**施法者存活
+       （hp>0）**与**发射后 flyActive** 双条件。
+    验证：npm test 全绿；命中后火球粒子立即回收、施法者死亡同样清理。
+    教训：**投射物/特效的"结束标记"必须原子化提前置位（先清状态再结算），渲染层
+    判"活跃"要同时看施法者存活与飞行状态**。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
