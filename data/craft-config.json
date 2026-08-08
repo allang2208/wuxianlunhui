@@ -1299,6 +1299,251 @@
       ]
     }
   },
+  "weapon21": {
+    "slots": [
+      {
+        "id": "muzzle",
+        "name": "枪口",
+        "x": 0.08,
+        "y": 0.15,
+        "lineTarget": {
+          "x": 0.497,
+          "y": 0.232
+        }
+      },
+      {
+        "id": "barrel",
+        "name": "枪管",
+        "x": 0.08,
+        "y": 0.4,
+        "lineTarget": {
+          "x": 0.497,
+          "y": 0.278
+        }
+      },
+      {
+        "id": "sight",
+        "name": "瞄具",
+        "x": 0.08,
+        "y": 0.65,
+        "lineTarget": {
+          "x": 0.499,
+          "y": 0.49
+        }
+      },
+      {
+        "id": "magazine",
+        "name": "弹夹",
+        "x": 0.92,
+        "y": 0.08,
+        "lineTarget": {
+          "x": 0.401,
+          "y": 0.488
+        }
+      },
+      {
+        "id": "bullet",
+        "name": "子弹",
+        "x": 0.92,
+        "y": 0.32,
+        "lineTarget": {
+          "x": 0.401,
+          "y": 0.488
+        }
+      },
+      {
+        "id": "grip",
+        "name": "握把",
+        "x": 0.92,
+        "y": 0.45,
+        "lineTarget": {
+          "x": 0.503,
+          "y": 0.555
+        }
+      },
+      {
+        "id": "stock",
+        "name": "后托",
+        "x": 0.92,
+        "y": 0.7,
+        "lineTarget": {
+          "x": 0.497,
+          "y": 0.664
+        }
+      }
+    ],
+    "options": {
+      "muzzle": [
+        {
+          "id": "suppressor",
+          "name": "消音器",
+          "icon": "assets/icons/craft/suppressor.png",
+          "desc": "射程 -300px，击退 +5px",
+          "effects": {
+            "rangeDelta": -300,
+            "knockbackDelta": 5
+          }
+        },
+        {
+          "id": "flash_hider",
+          "name": "鸟笼消焰器",
+          "icon": "assets/icons/craft/flash_hider.png",
+          "desc": "射程 +150px，最大散布角度 -10°",
+          "effects": {
+            "rangeDelta": 150,
+            "maxSpreadAngleDelta": -10
+          }
+        },
+        {
+          "id": "muzzle_brake",
+          "name": "DTK制退器",
+          "icon": "assets/icons/craft/muzzle_brake.png",
+          "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+          "effects": {
+            "spreadStartDelta": 500,
+            "spreadTimeDelta": 500
+          }
+        }
+      ],
+      "barrel": [
+        {
+          "id": "long_barrel",
+          "name": "长枪管",
+          "icon": "assets/icons/craft/long_barrel.png",
+          "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+          "effects": {
+            "rangeDelta": 200,
+            "projectileSpeedPercent": 0.2,
+            "spreadStartDelta": 1000,
+            "spreadTimeDelta": 1000
+          }
+        },
+        {
+          "id": "short_barrel",
+          "name": "短枪管",
+          "icon": "assets/icons/craft/short_barrel.png",
+          "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+          "effects": {
+            "rangeDelta": -200,
+            "spreadStartDelta": 500,
+            "moveSpeedPercent": 0.05
+          }
+        }
+      ],
+      "magazine": [
+        {
+          "id": "light_mag",
+          "name": "轻型弹夹",
+          "icon": "assets/icons/craft/light_mag.png",
+          "desc": "换弹时间 -1.5秒，弹夹 -30发，移动速度增加10%",
+          "effects": {
+            "reloadTimeDelta": -1500,
+            "magazineDelta": -30,
+            "moveSpeedPercent": 0.1
+          }
+        },
+        {
+          "id": "extended_mag",
+          "name": "扩容弹箱",
+          "icon": "assets/icons/craft/extended_mag.png",
+          "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+          "effects": {
+            "magazineDelta": 25,
+            "moveSpeedPercent": -0.1,
+            "reloadTimeDelta": 500
+          }
+        }
+      ],
+      "bullet": [
+        {
+          "id": "ap_ammo",
+          "name": "钢芯穿甲弹",
+          "icon": "assets/icons/craft/ap_ammo.png",
+          "desc": "攻击时无视目标35%防御力",
+          "effects": {
+            "armorPenetrationPercent": 0.35
+          }
+        },
+        {
+          "id": "sniper_ammo",
+          "name": "高精度狙击弹",
+          "icon": "assets/icons/craft/sniper_ammo.png",
+          "desc": "射程+200px，散布达到最大时间+0.5秒",
+          "effects": {
+            "rangeDelta": 200,
+            "spreadTimeDelta": 500
+          }
+        }
+      ],
+      "stock": [
+        {
+          "id": "skeleton_stock",
+          "name": "骨架枪托",
+          "icon": "assets/icons/craft/skeleton_stock.png",
+          "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+          "effects": {
+            "moveSpeedPercent": 0.05,
+            "spreadStartDelta": 500,
+            "spreadTimeDelta": -1000
+          }
+        },
+        {
+          "id": "solid_core_stock",
+          "name": "稳固核心枪托",
+          "icon": "assets/icons/craft/solid_core_stock.png",
+          "desc": "散布开始 +0.5秒，最大散布 +1秒",
+          "effects": {
+            "spreadStartDelta": 500,
+            "spreadTimeDelta": 1000
+          }
+        }
+      ],
+      "grip": [
+        {
+          "id": "light_grip",
+          "name": "轻型后握",
+          "icon": "assets/icons/craft/light_grip.png",
+          "desc": "移动速度 +10%，最大散布角度 +10°",
+          "effects": {
+            "moveSpeedPercent": 0.1,
+            "maxSpreadAngleDelta": 10
+          }
+        },
+        {
+          "id": "heavy_grip",
+          "name": "重型后握",
+          "icon": "assets/icons/craft/heavy_grip.png",
+          "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+          "effects": {
+            "spreadStartDelta": 250,
+            "maxSpreadAngleDelta": -5
+          }
+        }
+      ],
+      "sight": [
+        {
+          "id": "red_dot",
+          "name": "全景红点瞄具",
+          "icon": "assets/icons/craft/red_dot.png",
+          "desc": "散布开始 +1秒，单倍瞄准模式",
+          "effects": {
+            "spreadStartDelta": 1000,
+            "redDotScope": true
+          }
+        },
+        {
+          "id": "russian_3x_scope",
+          "name": "俄制三倍镜",
+          "icon": "assets/icons/craft/russian_3x_scope.png",
+          "desc": "散布开始 +1秒，高倍镜瞄准模式",
+          "effects": {
+            "spreadStartDelta": 1000,
+            "highPowerScope": true
+          }
+        }
+      ]
+    }
+  },
   "weapon9": {
     "slots": [
       {

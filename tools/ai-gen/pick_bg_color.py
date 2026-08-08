@@ -15,6 +15,9 @@
 import argparse
 import re
 
+import numpy as np
+from PIL import Image
+
 # (正则, RGB, 权重) —— 权重越高表示该颜色在提示词里越明确/越重要，越要避开
 COLOR_PATTERNS = [
     (r"white|pure white|银白|雪白|白", (255, 255, 255), 2.0),
@@ -75,14 +78,11 @@ def detect_subject_colors(prompt):
     return found
 
 
-def pick_bg_color(prompt):
-    """选底色。返回 {name, hex, rgb, reason}。"""
-    palette = detect_subject_colors(prompt)
+def _pick_from_palette(palette, fallback_reason="提示词未检测到颜色信息，默认品红（与常见主体色冲突概率最低）"):
+    """从主体色板选冲突最小的纯色背景。palette=[(rgb, weight), ...]。"""
     if not palette:
         name, h, rgb = CANDIDATES[0]
-        return {"name": name, "hex": h, "rgb": rgb,
-                "reason": "提示词未检测到颜色信息，默认品红（与常见主体色冲突概率最低）"}
-
+        return {"name": name, "hex": h, "rgb": rgb, "reason": fallback_reason}
     avg_lum = sum(c[0] * 0.3 + c[1] * 0.6 + c[2] * 0.1 for c, _ in palette) / len(palette)
     best, best_score = None, -1.0
     for name, h, rgb in CANDIDATES:
@@ -97,6 +97,39 @@ def pick_bg_color(prompt):
     min_d = min(_dist(rgb, c) / (w ** 0.5) for c, w in palette)
     return {"name": name, "hex": h, "rgb": rgb,
             "reason": f"主体色板 {colors}；{name} #{h} 与最近主体色距离≈{int(min_d)}，冲突概率最低"}
+
+
+def pick_bg_color(prompt):
+    """基于提示词颜色词选底色。返回 {name, hex, rgb, reason}。"""
+    return _pick_from_palette(detect_subject_colors(prompt))
+
+
+def pick_bg_color_from_image(img_path, n_samples=30000, min_dist=60):
+    """基于参考图实际颜色选主体没有的纯色背景（2026-08-08 工作流强制项）。
+
+    背景色 = 图内占比最大的量化色（32 级）；主体色板 = 与背景距离 > min_dist 的
+    像素量化 top3；再从 CANDIDATES 选与主体色板冲突最小的纯色。
+    """
+    im = np.array(Image.open(img_path).convert("RGB")).reshape(-1, 3).astype(np.float64)
+    if len(im) > n_samples:
+        rng = np.random.default_rng(0)
+        im = im[rng.choice(len(im), n_samples, replace=False)]
+    q = (im // 32 * 32)
+    keys, counts = np.unique(q, axis=0, return_counts=True)
+    top = np.argsort(-counts)
+    bg_color = keys[top[0]]
+    dist_bg = np.linalg.norm(q - bg_color, axis=1)
+    subj = q[dist_bg > min_dist]
+    palette = []
+    if len(subj):
+        ks, cs = np.unique(subj, axis=0, return_counts=True)
+        for k in np.argsort(-cs)[:3]:
+            palette.append((ks[k] + 16, 2.0))
+    else:
+        palette = [(bg_color + 16, 1.0)]
+    pick = _pick_from_palette(palette, fallback_reason="参考图未检出主体色，默认品红")
+    pick["reason"] += f"；参考图背景≈#{_hex(bg_color + 16)}"
+    return pick
 
 
 def name_for_hex(hexcode):
@@ -124,6 +157,7 @@ def inject_background(prompt, name, hexcode):
                       f"solid {name} background (#{hexcode}), flat diffuse ambient lighting, "
                       "no light source, no directional lighting, no shadows, no drop shadow",
                       prompt, flags=re.I)
+    replaced = re.sub(r"\bsolid\s+solid\b", "solid", replaced)
     if replaced != prompt:
         return replaced
     return prompt.rstrip(" .,") + ", " + clause
@@ -131,15 +165,15 @@ def inject_background(prompt, name, hexcode):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--prompt", required=True, help="生成提示词/主体描述（中英文均可）")
+    ap.add_argument("--prompt", default=None, help="生成提示词/主体描述（中英文均可）")
+    ap.add_argument("--image", default=None, help="参考图路径（基于实际颜色选背景色）")
     ap.add_argument("--debug", action="store_true", help="打印检测到的主体色板")
     args = ap.parse_args()
 
-    palette = detect_subject_colors(args.prompt)
-    if args.debug:
-        for c, w in palette:
-            print(f"  subject color #{_hex(c)} weight={w:.1f}")
-    pick = pick_bg_color(args.prompt)
+    if args.image:
+        pick = pick_bg_color_from_image(args.image)
+    else:
+        pick = pick_bg_color(args.prompt)
     print(f"selected: {pick['name']} #{pick['hex']}")
     print(f"reason: {pick['reason']}")
 

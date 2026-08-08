@@ -114,9 +114,12 @@ class SpatialHash {
     rebuild() {
         this.clear();
         if (!WallSystem) return;
-        // 注意：只建模 WallSystem.walls/trees（静态几何）。isoSegments（门闸/冰墙等动态碰撞段）
-        // 有意不纳入寻路——动态段由 MovementSystem 的 WallSystem.resolve 实际挡停（撞墙即停），
-        // 若纳入寻路会让敌人绕开冰墙/门闸，削弱临时障碍的阻挡设计。改此行为前先与设计对齐。
+        // 注意：只建模 WallSystem.walls/trees（静态几何）。isoSegments 中**动态**段
+        // （门闸/冰墙等，无 _cover 标记）有意不纳入寻路——动态段由 MovementSystem 的
+        // WallSystem.resolve 实际挡停（撞墙即停），若纳入寻路会让敌人绕开冰墙/门闸，
+        // 削弱临时障碍的阻挡设计。**掩体墙段（_cover 标记）是静态实体**，必须纳入寻路
+        // （2026-08-08 用户反馈：世界-122 怪物寻路把基地掩体墙当可通行，直线穿墙后在
+        // 左右下夹角被 resolve 卡在墙根土块上抖动；纳入后怪物绕墙走、从门洞进入）。
         // 矩形墙壁
         if (WallSystem.walls) {
             for (const w of WallSystem.walls) {
@@ -149,6 +152,24 @@ class SpatialHash {
                 }
             }
         }
+        // 静态掩体墙段（DefenseCover._coverSeg）：按线段包围盒塞格，阻挡口径与
+        // WallSystem.canMoveTo 一致（点到线段距离 < 半径 + halfThick）
+        if (WallSystem.isoSegments) {
+            for (const s of WallSystem.isoSegments) {
+                if (!s._cover) continue; // 动态段（门闸/冰墙）不纳入
+                const minCX = Math.floor(Math.min(s.x1, s.x2) / this.cellSize);
+                const maxCX = Math.floor(Math.max(s.x1, s.x2) / this.cellSize);
+                const minCY = Math.floor(Math.min(s.y1, s.y2) / this.cellSize);
+                const maxCY = Math.floor(Math.max(s.y1, s.y2) / this.cellSize);
+                for (let cx = minCX; cx <= maxCX; cx++) {
+                    for (let cy = minCY; cy <= maxCY; cy++) {
+                        const key = this._getKey(cx, cy);
+                        if (!this.cells.has(key)) this.cells.set(key, []);
+                        this.cells.get(key).push({ type: 'seg', obj: s });
+                    }
+                }
+            }
+        }
     }
     // 检查点是否在障碍物内（只检查相关 cell）
     isBlocked(x, y, radius) {
@@ -173,11 +194,27 @@ class SpatialHash {
                         if (Math.sqrt(ddx * ddx + ddy * ddy) < t.radius + radius) {
                             return true;
                         }
+                    } else if (item.type === 'seg') {
+                        const s = item.obj;
+                        if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + (s.halfThick || 26)) {
+                            return true;
+                        }
                     }
                 }
             }
         }
         return false;
+    }
+
+    /** 点到线段距离（与 WallSystem._pointSegDist 同口径） */
+    _pointSegDist(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const len2 = dx * dx + dy * dy;
+        if (len2 === 0) return Math.hypot(px - x1, py - y1);
+        let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+        t = Math.max(0, Math.min(1, t));
+        const cx = x1 + dx * t, cy = y1 + dy * t;
+        return Math.hypot(px - cx, py - cy);
     }
 }
 
@@ -313,9 +350,9 @@ class PathFinder {
                             blocked = true;
                             break outer;
                         }
-                    } else if (item.type === 'tree') {
-                        const t = item.obj;
-                        const ddx = x - t.x, ddy = y - t.y;
+                      } else if (item.type === 'tree') {
+                          const t = item.obj;
+                          const ddx = x - t.x, ddy = y - t.y;
                         const distSq = ddx * ddx + ddy * ddy;
                         // 阻挡：与原 _isBlocked 同口径（视觉半径 + 实体半径）
                         const blockR = t.radius + entityRadius;
@@ -327,11 +364,18 @@ class PathFinder {
                         if (cost === 1.0) {
                             const treeR = t.collisionRadius || t.radius * 0.6;
                             const nearR = treeR + entityRadius * 1.5;
-                            if (distSq < nearR * nearR) cost += 0.5;
-                        }
-                    }
-                }
-            }
+                              if (distSq < nearR * nearR) cost += 0.5;
+                          }
+                      } else if (item.type === 'seg') {
+                          const s = item.obj;
+                          if (this.spatialHash._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2)
+                              < entityRadius + (s.halfThick || 26)) {
+                              blocked = true;
+                              break outer;
+                          }
+                      }
+                  }
+              }
         }
         const result = { blocked, cost };
         this._cellMemo.set(memoKey, result);

@@ -2158,7 +2158,7 @@ export class GameScene extends Scene {
         // inAttackHold：攻击后定格保持窗口（连段等待）——武器定格在上一段轨迹末帧
         const inAttackHold = !!(player._attackHoldUntil && performance.now() < player._attackHoldUntil && !player.isMoving);
         if (weaponAnim.isAttacking || inAttackHold) {
-            const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGun) {
                 // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
                 // 连段二段读 attack2 轨迹块（缺失回退 attack）
@@ -2226,7 +2226,7 @@ export class GameScene extends Scene {
         // 收势滑行（recover 播放中）：武器从上一段轨迹末帧**线性滑回 idle 持械位**（位置/旋转/缩放同步渐变），
         // 不瞬移；朝向沿用定格冻结朝向（收势期间鼠标转向不影响）
         if (player._attackRecovering && player._attackRecoverStart) {
-            const isGunR = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            const isGunR = ['pistol', 'deagle', 'p4040', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
             if (!isGunR) {
                 const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
                 // 2026-08-03：二段收势 0.3s（与恢复动画同步）；一段用配置自然时长
@@ -2386,7 +2386,7 @@ export class GameScene extends Scene {
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
-        const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGun = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         // 瞄左（|rot|>90°）时贴图 flipY 防倒置——握把点的贴图内 Y 随之镜像，补偿必须同步取反
         const gunFlipY = isGun && Math.abs(rot) > Math.PI / 2;
         // rotOffset 随 flipY 镜像取反：右 -6° ↔ 左 +6°（否则枪管方向左右不对称，火焰/弹道同偏）
@@ -2584,7 +2584,7 @@ export class GameScene extends Scene {
         
         // 如果副手不是武器（如盾牌），隐藏 Sprite
         const isWeapon = offhandItem.category === 'weapon_melee' || offhandItem.category === 'weapon_ranged' ||
-                         ['pistol', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 'bow', 'sword'].includes(offhandItem.weaponType);
+                         ['pistol', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'bow', 'sword'].includes(offhandItem.weaponType);
         if (!isWeapon) {
             if (this.offhandWeaponSprite) this.offhandWeaponSprite.setVisible(false);
             return;
@@ -2650,7 +2650,7 @@ export class GameScene extends Scene {
         // rotOffset（配置，度）：枪械贴图固有倾角修正；随 flipY 镜像取反（右 -6° ↔ 左 +6°）
         const rotOffsetOff = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
             ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
-        const isGunOff = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGunOff = ['pistol', 'deagle', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         // flipY 与主手同口径：用 rotOffset 修正【前】的 rot 判定（此前在加过 -6° 偏移后重判，
         // 90°~96° 窗口内主/副手 flipY 相反——双持手枪左右朝向不对称根因）
         const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
@@ -3304,7 +3304,7 @@ export class GameScene extends Scene {
         // this.weaponSprite.setFlipX(specialFlipX);
         
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGunSpecial = ['pistol', 'deagle', 'p4040', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
         if (isGunSpecial) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
             const flipY = Math.abs(finalRot) > Math.PI / 2;

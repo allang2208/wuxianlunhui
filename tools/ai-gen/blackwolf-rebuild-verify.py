@@ -35,7 +35,10 @@ def verify_sheet(path, cell=512):
                 continue
             # 连通域计数
             from scipy import ndimage
-            lab, n = ndimage.label((sub > 30).astype(np.uint8))
+            # 8 连通（与 quadruped-rebuild 的 cv2.connectedComponents 同口径，
+            # 默认 4 连通会把毛屑碎片拆开导致 stray 虚高）
+            lab, n = ndimage.label((sub > 30).astype(np.uint8),
+                                   structure=np.ones((3, 3), np.uint8))
             if n != 1:
                 stray += n - 1
 
@@ -67,6 +70,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=r"E:\无尽轮回\长期备份\2026-7-13-1\game-dev\tools\ai-gen\blackwolf-rebuild-out")
     ap.add_argument("--file", default=None)
+    ap.add_argument("--cell", type=int, default=None, help="格子尺寸（默认黑狼文件名自动，其余 512）")
     args = ap.parse_args()
 
     names = (["black_wolf_walk.png", "black_wolf_run.png", "black_wolf_pounce.png",
@@ -76,7 +80,7 @@ def main():
         if not os.path.exists(p):
             print(f"{n}: MISSING")
             continue
-        cell = 640 if n == "black_wolf_pounce.png" else 512
+        cell = args.cell or (640 if n == "black_wolf_pounce.png" else 512)
         r = verify_sheet(p, cell=cell)
         ok = all(v == 0 for k, v in r.items() if k != "cov")
         print(f"{n}: cov={r['cov']:.1f}% stray={r['stray']} semi={r['semi']} "

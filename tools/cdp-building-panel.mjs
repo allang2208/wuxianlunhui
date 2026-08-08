@@ -18,6 +18,8 @@ const OUT_DIR = 'Y:/工作/无尽轮回/scratch/world122/verify';
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-cdp-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new',
     `--remote-debugging-port=${CDP_PORT}`,

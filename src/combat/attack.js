@@ -443,6 +443,8 @@ function applyEnchantOnHit(weapon, target, source) {
                     SoundManager.playFile('assets/sounds/weapons/pkm_half_sec.wav');
                 } else if (wType === 'qbz191') {
                     SoundManager.playFile('assets/sounds/weapons/qbz191_shot6_valley.mp3');
+                } else if (wType === 'm416') {
+                    SoundManager.playFile('assets/sounds/weapons/m416_fire.wav');
                 } else if (wType === 'pistol') {
                     SoundManager.play('gun_fire');
                 } else {

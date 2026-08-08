@@ -426,7 +426,7 @@ export const QuickBar = {
                 const effectiveWeapon = (currentWeapon && currentWeapon.name) ? currentWeapon : offhandWeapon;
                 const isRanged = effectiveWeapon && (
                     effectiveWeapon.weaponType === 'pistol' || effectiveWeapon.rangedType === 'pistol' ||
-                    effectiveWeapon.weaponType === 'pkm' || effectiveWeapon.weaponType === 'akm' ||
+                    effectiveWeapon.weaponType === 'pkm' || effectiveWeapon.weaponType === 'akm' || effectiveWeapon.weaponType === 'm416' ||
                     effectiveWeapon.weaponType === 'qbz191' || effectiveWeapon.weaponType === 'bow'
                 );
                 if (!isRanged) {

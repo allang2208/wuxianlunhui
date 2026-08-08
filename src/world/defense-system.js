@@ -10,6 +10,7 @@
  */
 import { Game } from '../game.js';
 import { WallSystem } from './wall-system.js';
+import { pathFinder } from '../ai/pathfinder.js';
 import { Combatant } from '../entities/combatant.js';
 import {
     BlackWolf, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie,
@@ -49,16 +50,25 @@ export const DEFENSE_CONFIG = {
     // 拼接规则（skill 沉淀）：face 线步长 = (176, ±87) − 40px 端帽叠合 ≈ (140, ∓69)，
     // 相邻件 face 重叠 40px（端帽完全叠合互盖，无缝隙）；cornerExtend 让边链端帽越过顶点，
     // 转角由相邻两边端帽互相叠盖，实心无洞。
-    room: {
-        enabled: true,
-        rx: 512,            // 房间宽 = 2*rx = 1024
-        ry: 256,            // ry/rx = 0.5（墙底边斜率 0.5）
-        coverGrade: 'D',
-        cornerExtend: 45,   // 边链 face 向两端顶点各延伸 45px（≥ 端帽 52 的一半，转角叠盖）
-        openEdge: 'RB',
-        openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞 ≈270（沿边）
-        doorAlignY: 0,      // 新拼接规则下门柱底边与墙线天然共线，无需旧版下移精调
-    },
+      room: {
+          enabled: true,
+          rx: 512,            // 房间宽 = 2*rx = 1024
+          ry: 256,            // ry/rx = 0.5（墙底边斜率 0.5）
+          coverGrade: 'D',
+          // 边链 face 向两端顶点各延伸的量（2026-08-08 修正：按真实投影计算后
+          // 该值才是实际越界量；45 过大导致转角侵入式叠合 ~147px）。
+          // 29 = 两臂 face 端点正好在角点 face 交线交点相接（干净斜接，不侵入），
+          // 墙体本体仍靠 17px 端帽叠盖保证转角实心。按 rx/ry=2 菱形算得，
+          // 改房间比例需重算（面线相对边线有垂直偏移）。
+          cornerExtend: 29,
+          // 转角图层：'rightOnTop' = 右侧臂盖左侧臂（上角 TR 盖 TL、下角 RB 盖 LB；
+          // 2026-08-08 上夹角 A/B 实机对比 + GLM：右盖左砖纹连贯、无暗缝）；
+          // 'leftOnTop' = 旧行为（上角 TL 盖 TR、下角 LB 盖 RB）
+          cornerLayer: 'rightOnTop',
+          openEdge: 'RB',
+          openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞 ≈270（沿边）
+          doorAlignY: 0,      // 新拼接规则下门柱底边与墙线天然共线，无需旧版下移精调
+      },
     // 无预置防御塔（玩家用 B 建筑面板自行摆放）
     towers: [],
     tower: {
@@ -114,10 +124,10 @@ export const DEFENSE_CONFIG = {
 };
 
 /** 防御塔可装载武器（远程武器，手枪除外） */
-const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 /** 防御塔每发基准伤害（按武器类型；行业惯例按 DPS 反推的占位数值，后续数值打磨） */
-const BASE_WEAPON_DAMAGE = { bow: 42, pkm: 6, akm: 9, qbz191: 10, qjb201: 7, shotgun: 10, energy_lmg: 8 };
+const BASE_WEAPON_DAMAGE = { bow: 42, pkm: 6, akm: 9, m416: 8, qbz191: 10, qjb201: 7, shotgun: 10, energy_lmg: 8 };
 const BASE_WEAPON_DAMAGE_BY_ID = { super90: 12, saiga12k: 10 };
 
 // ==================== 塔升级模块：通用计算（唯一真源 DEFENSE_CONFIG.tower.modules） ====================
@@ -180,6 +190,7 @@ const TOWER_FIRE_SOUNDS = {
     akm: 'assets/sounds/weapons/akm_burst.mp3',
     qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
     qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
+    m416: 'assets/sounds/weapons/m416_fire.wav',
     energy_lmg: 'assets/sounds/weapons/apex_shot_600ms.wav',
     super90: 'assets/sounds/weapons/apex2_shot_1s.wav',
     saiga12k: 'assets/sounds/weapons/apex2_shot_1s.wav',
@@ -302,7 +313,7 @@ export const DEFENSE_TOWER_VISUAL = {
     },
     weapon: {
         // 挂载武器显示高度（按高度等比缩放，与玩家枪械 setScale 口径一致；朝左 flipY）
-        heights: { bow: 120, pkm: 100, akm: 96, qbz191: 92, qjb201: 100, shotgun: 105, energy_lmg: 100 },
+        heights: { bow: 120, pkm: 100, akm: 96, m416: 96, qbz191: 92, qjb201: 100, shotgun: 105, energy_lmg: 100 },
         defaultHeight: 90,
     },
 };
@@ -425,8 +436,13 @@ class DefenseCover extends Combatant {
                 _cover: true,
             };
             WallSystem.isoSegments.push(this._coverSeg);
-        }
-        // 贴图：随机变体库（2026-08-05）——同档 5 个高度类似变体随机选，防单调：
+            // 掩体墙段注册后让寻路网格失效重建（玩家摆放/基地搭建都会走到这里；
+            // 重建惰性触发，重复调用无害）
+            if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
+                pathFinder.invalidateCache();
+            }
+          }
+          // 贴图：随机变体库（2026-08-05）——同档 5 个高度类似变体随机选，防单调：
         // v1=定稿（无后缀）；v2~v5=细节微调变体（A 级符文形态随机替换）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）
@@ -458,9 +474,12 @@ class DefenseCover extends Combatant {
         if (this._coverSeg && WallSystem && WallSystem.isoSegments) {
             const i = WallSystem.isoSegments.indexOf(this._coverSeg);
             if (i >= 0) WallSystem.isoSegments.splice(i, 1);
-            this._coverSeg = null;
-        }
-    }
+              this._coverSeg = null;
+            if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
+                pathFinder.invalidateCache();
+            }
+          }
+      }
 
     update(dt) {
         super.update(dt);
@@ -1103,20 +1122,25 @@ export const DefenseSystem = {
         // 原型演示：1 号塔预装 PKM（其余塔由玩家从背包装载；卸下会归还背包）
         this._presetTowerWeapon(this.towers[0], 'pkm');
         // 掩体防线（可被攻击，def/mdef=0）
-        (DEFENSE_CONFIG.covers.layout || []).forEach((c, i) => {
-            const cover = new DefenseCover(c.x, c.y, {
-                grade: c.grade,
-                orient: c.orient,
-                w: c.w,
-                d: c.d,
-                depthBias: c.depthBias,
-                id: `defense_cover_${i}`,
-            });
-            Game.entities.set(`defense_cover_${i}`, cover);
-        });
+          (DEFENSE_CONFIG.covers.layout || []).forEach((c, i) => {
+              const cover = new DefenseCover(c.x, c.y, {
+                  grade: c.grade,
+                  orient: c.orient,
+                  w: c.w,
+                  d: c.d,
+                  depthBias: c.depthBias,
+                  id: `defense_cover_${i}`,
+              });
+              Game.entities.set(`defense_cover_${i}`, cover);
+          });
+          // 掩体墙段已注册进 WallSystem.isoSegments：让寻路器把静态掩体墙纳入
+          // 阻挡网格（怪物绕墙走/从门洞进，不再直线穿墙后在夹角被卡），2026-08-08
+          if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
+              pathFinder.invalidateCache();
+          }
 
-        if (player) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 60, '世界-122 防守战开始！守住基地核心', '#ffd700'));
+          if (player) {
+              EffectManager.add(new FloatingTextEffect(player.x, player.y - 60, '世界-122 防守战开始！守住基地核心', '#ffd700'));
         }
     },
 
@@ -1144,6 +1168,9 @@ export const DefenseSystem = {
         const joinOverlap = 40; // 与 building-system SNAP_OVERLAP 同源（端帽宽 ≈52 ≥ 40）
         const step = faceLen - joinOverlap; // 相邻件中心沿墙步长 ≈156.33
         const cornerExt = room.cornerExtend ?? 45;
+        // 转角图层（2026-08-08）：上角 TR(h) 盖 TL(v)、下角 RB(v) 盖 LB(h) 时
+        // 砖纹过渡更连贯（A/B 实机对比 + GLM）；旧行为左臂在上（TL/LB +0.5）
+        const rightOnTop = room.cornerLayer !== 'leftOnTop';
         const openEdge = room.openEdge;
         const openRadius = room.openRadius ?? 90;
         const layout = [];
@@ -1151,21 +1178,36 @@ export const DefenseSystem = {
             const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
             const len = Math.hypot(dx, dy);
             const ux = dx / len, uy = dy / len;
-            // 边链覆盖 [−cornerExt, len+cornerExt]；n 件均布，相邻 face 重叠 ≥40px
-            const span = len + 2 * cornerExt;
-            const n = Math.max(2, Math.ceil((span - faceLen) / step) + 1);
-            const spacing = n > 1 ? (span - faceLen) / (n - 1) : 0;
-            const t0 = -cornerExt + faceLen / 2;
+            // ⚠ 2026-08-08 修正：face 端点在边方向上的投影不对称（朝顶点端
+            // 127px、朝另一端 69.3px），旧代码用 faceLen/2（98px）当对称半跨，
+            // 导致转角件实际越过顶点 73.8px（意图 cornerExtend），两臂在角点
+            // 侵入式叠合 ~147px。这里按真实投影定首/末件位置：
+            const g = (COVER_FACE[room.coverGrade] && COVER_FACE[room.coverGrade][e.orient])
+                || COVER_FACE.D[e.orient] || COVER_FACE.D.v;
+            const projA = g.A.x * ux + g.A.y * uy;
+            const projB = g.B.x * ux + g.B.y * uy;
+            // 朝顶点（t 减小方向）的端点是投影更小的一端
+            const towardV = projA < projB ? 'A' : 'B';
+            const halfToV = Math.abs(towardV === 'A' ? projA : projB);   // 朝顶点半跨 127
+            const halfAway = Math.abs(towardV === 'A' ? projB : projA);  // 另一端半跨 69.3
+            // 首件中心：朝顶点端 face 端点落在 t = −cornerExt
+            const t0 = -cornerExt + halfToV;
+            // 末件中心：另一端 face 端点落在 t = len + cornerExt
+            const tLast = len + cornerExt - halfAway;
+            // n 件均布：相邻 face 重叠 ≥ joinOverlap（spacing ≤ step）
+            const span = tLast - t0;
+            const n = Math.max(2, Math.ceil(span / step) + 1);
+            const spacing = n > 1 ? span / (n - 1) : 0;
             const openMid = e.key === openEdge ? len / 2 : null;
             const alignY = e.key === openEdge ? (room.doorAlignY || 0) : 0;
             // 上夹角 TL/TR 边：整条边共享同一纹理变体（相邻件端帽互叠，
             // 独立随机会在接缝处出现"两层墙皮"式砖纹错位）；
             for (let i = 0; i < n; i++) {
                 const t = t0 + i * spacing;
-                // face 沿边区间 [t−faceLen/2, t+faceLen/2] 命中开放带则跳过（门洞）
+                // face 沿边区间 [t−halfToV, t+halfAway] 命中开放带则跳过（门洞）
                 if (openMid !== null) {
-                    const f0 = t - faceLen / 2;
-                    const f1 = t + faceLen / 2;
+                    const f0 = t - halfToV;
+                    const f1 = t + halfAway;
                     if (f1 > openMid - openRadius && f0 < openMid + openRadius) continue;
                 }
                 layout.push({
@@ -1173,12 +1215,11 @@ export const DefenseSystem = {
                     y: Math.round(e.from.y + uy * t) + alignY,
                     grade: room.coverGrade,
                     orient: e.orient,
-                    // 图层覆盖顺序（skill/git 沉淀：4b1cb5a「上方相交垂直墙在上，
-                    // 下方相交水平墙在上」）：
-                    // - 上角 TL(v) 盖 TR(h)：TL 边 +0.5
-                    // - 下角 LB(h) 盖 RB(v)：LB 边 +0.5
-                    // 两臂 faceDepth 相同，不加偏置会因创建顺序右挡左（2026-08-06 修复）
-                    depthBias: (e.key === 'TL' || e.key === 'LB') ? 0.5 : 0,
+                    // 图层覆盖顺序（2026-08-08 A/B 实测定稿）：
+                    // - 上角 TR(h) 盖 TL(v)：TR 边 +0.5
+                    // - 下角 RB(v) 盖 LB(h)：RB 边 +0.5
+                    // 两臂 faceDepth 相同，偏置决定谁在上；右盖左时转角无暗缝
+                    depthBias: (rightOnTop ? (e.key === 'TR' || e.key === 'RB') : (e.key === 'TL' || e.key === 'LB')) ? 0.5 : 0,
                 });
             }
         }
@@ -1191,13 +1232,17 @@ export const DefenseSystem = {
         this.base = null;
         this.towers = [];
         this._spawnTimer = 0;
-        this._eliteTimer = 0;
-        this._lordTimer = 0;
-        this._elapsed = 0;
-        this._seq = 0;
-        if (this._goldGranted) this._goldGranted.clear();
-        this._goldGranted = null;
-        if (this._panel) {
+          this._eliteTimer = 0;
+          this._lordTimer = 0;
+          this._elapsed = 0;
+          this._seq = 0;
+          if (this._goldGranted) this._goldGranted.clear();
+          this._goldGranted = null;
+          // 掩体墙段已移除：寻路网格随之重建（怪物不再绕不存在的墙）
+          if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
+              pathFinder.invalidateCache();
+          }
+          if (this._panel) {
             if (this._panel.isOpen) this._panel.close();
             this._panel.tower = null;
             this._panel.player = null;

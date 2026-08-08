@@ -1020,7 +1020,7 @@ switchWeaponMode() {
                     this._chargeFlashTimer = 0;
                 }
                 // G18 切换保护：切换到 pistol 后 300ms 内不能开火
-                if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol' || nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
+                if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol' || nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
                     this.weaponSwitchCooldown = 300;
                 }
                 // 视觉反馈：屏幕中央显示切换提示
@@ -1034,7 +1034,7 @@ switchWeaponMode() {
                 let modeIcon = '⚔';
                 if (nextItem) {
                     if (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol') modeIcon = '🔫';
-                    else if (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qjb201') modeIcon = '🔥';
+                    else if (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qjb201') modeIcon = '🔥';
                     else if (nextItem.weaponType === 'bow') modeIcon = '🏹';
                 }
                 hint.textContent = `${modeIcon} ${modeName}`;
@@ -1087,7 +1087,7 @@ switchWeaponMode() {
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
-                } else if (nextItem && (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
+                } else if (nextItem && (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
                     this.equippedRangedType = nextItem.weaponType;
                     if (nextItem.equipImage) {
                         if (nextItem.weaponType === 'pkm') {
@@ -1096,6 +1096,8 @@ switchWeaponMode() {
                             this.qbz191Image = loadImage(nextItem.equipImage);
                         } else if (nextItem.weaponType === 'qjb201') {
                             this.qjb201Image = loadImage(nextItem.equipImage);
+                        } else if (nextItem.weaponType === 'm416') {
+                            this.m416Image = loadImage(nextItem.equipImage);
                         } else {
                             this.akmImage = loadImage(nextItem.weaponAsset?.image || nextItem.equipImage);
                         }
@@ -1474,7 +1476,7 @@ _getOffhandAnimMs(offhandItem, baseMs) {
                 if (!offhandItem) return baseMs;
                 let cfgKey = 'sword';
                 if (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol') cfgKey = offhandItem.animConfigKey || 'pistol';
-                else if (offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201') cfgKey = offhandItem.weaponType;
+                else if (offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'm416' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201') cfgKey = offhandItem.weaponType;
                 else if (offhandItem.weaponType === 'bow') cfgKey = 'bow';
                 const cfg = WeaponAnimConfig[cfgKey];
                 const mul = (cfg ? cfg.timingMul : 1) * (this.animTimingMul || 1);
@@ -1662,7 +1664,7 @@ _fireRanged(hand = 'main') {
                 const currentItem = this.equipments[mainSlot];
                 const isPistol = currentItem && (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol');
                 const isBow = currentItem && currentItem.weaponType === 'bow';
-                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg');
+                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg');
                 const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
                 const wac = WeaponAnimConfig[isPistol ? 'pistol' : (isBow ? 'bow' : (isPkmOrAkm ? currentItem.weaponType : (isShotgun ? 'shotgun' : 'sword')))];
                 const _holdX = wac ? wac.holdOffsetX : WEAPON_ANIM.holdX;
@@ -1958,7 +1960,7 @@ _getWeaponAnimParams() {
                 if (!currentItem || !currentItem.name) return params;
 
                 const isPistol = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
-                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg';
+                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg';
                 const isShotgun = currentItem.weaponType === 'shotgun';
                 const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const s = wa.size;
@@ -2056,7 +2058,7 @@ _getOffhandWeaponAnimParams() {
 
                 const offhandAnim = this.offhandWeaponAnim || { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 const isPistol = offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol';
-                const _isPkmOrAkm = offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201';
+                const _isPkmOrAkm = offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'm416' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201';
                 const _isShotgun = offhandItem.weaponType === 'shotgun';
                 const isMelee = offhandItem.category === 'weapon_melee' || offhandItem.weaponType === 'sword';
                 const s = wa.size;

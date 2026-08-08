@@ -88,6 +88,7 @@ export const PLAYER_DEFAULTS = {
         p4040: 'assets/weapons/P4040-icon.png',
         pkm: 'assets/icons/pkm_side_clean.png',
         akm: 'assets/weapons/akm-equip.png',
+        m416: 'assets/weapons/m416-equip.png',
         qbz191: 'assets/icons/191icon.png',
         qjb201: 'assets/icons/201-icon.png',
         super90: 'assets/icons/M4s90_icon.png',

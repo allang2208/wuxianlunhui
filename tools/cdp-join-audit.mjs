@@ -15,6 +15,8 @@ const OUT_DIR = path.join(process.cwd(), 'tools', 'verify-shots');
 const PREFIX = process.argv[2] || 'join_audit2';
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-join-audit2-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',
@@ -199,6 +201,70 @@ const LB = await snapAt('LB', info.bottom.x - 10, (info.bottom.y + info.left.y) 
 const RB = await snapAt('RB', info.bottom.x + 10, (info.bottom.y + info.right.y) / 2);
 const TOP = await snapAt('corner_top', info.top.x + 10, info.top.y + 120);
 const FULL = await snapAt('room_full', 900, 2048);
+const CORNER_L = await snapAt('corner_L', 480, 2020);
+const CORNER_R = await snapAt('corner_R', 1320, 2020);
+const CORNER_B = await snapAt('corner_B', 900, 2280);
+
+// 玩家放到左角附近，检查玩家 depth 与附近掩体 depth 的遮挡关系
+const depthCheck = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource').map((e) => e.name);
+    const pick = (name) => {
+        const withT = perfs.find((u) => u.includes('/src/' + name) && u.includes('?t='));
+        return withT || perfs.find((u) => u.includes('/src/' + name)) || null;
+    };
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    p.x = 480; p.y = 2030;
+    Camera.x = 480; Camera.y = 2030;
+    await new Promise((r) => setTimeout(r, 700));
+    const scene = window.__phaserScene;
+    const covers = [];
+    for (const e of window.Game.entities.values()) {
+        if (!e._isDefenseStructure || !e._faceLine) continue;
+        if (Math.abs(e.x - 388) < 200 && Math.abs(e.y - 2048) < 160) {
+            const data = scene && scene._neutralSprites ? scene._neutralSprites.get(e) : null;
+            const spr = data ? data.sprite : null;
+            covers.push({ id: e.id, faceDepth: e._faceDepth, sprDepth: spr ? spr.depth : null, x: e.x, y: e.y });
+        }
+    }
+    const playerSpr = scene && scene.playerSprite ? scene.playerSprite : null;
+    return {
+        player: { x: p.x, y: p.y, depth: playerSpr ? playerSpr.depth : null, foot: p.y },
+        covers,
+        cam: { x: Camera.x, y: Camera.y },
+    };
+})()`);
+console.log('depth check at left corner:', JSON.stringify(depthCheck, null, 1));
+
+// 沿左角从外到内走一圈，记录玩家 depth 与掩体 depth（遮挡关系）
+const walk = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource').map((e) => e.name);
+    const pick = (name) => {
+        const withT = perfs.find((u) => u.includes('/src/' + name) && u.includes('?t='));
+        return withT || perfs.find((u) => u.includes('/src/' + name)) || null;
+    };
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene;
+    const playerSpr = scene && scene.playerSprite ? scene.playerSprite : null;
+    const out = [];
+    const pts = [
+        [300, 1990], [340, 2000], [370, 2010], [390, 2020], [410, 2030],
+        [430, 2040], [460, 2050], [500, 2060], [550, 2070],
+    ];
+    for (const [px, py] of pts) {
+        p.x = px; p.y = py;
+        Camera.x = px; Camera.y = py;
+        await new Promise((r) => setTimeout(r, 120));
+        out.push({
+            px, py,
+            playerDepth: playerSpr ? Math.round(playerSpr.depth * 10) / 10 : null,
+            playerSprY: playerSpr ? Math.round(playerSpr.y) : null,
+        });
+    }
+    return out;
+})()`);
+console.log('walk around left corner:', JSON.stringify(walk));
 
 // 画标记：在每个掩体 face 端点画红/蓝方块，再截一次 TL（校验坐标系）
 await evalJs(`(async () => {
@@ -245,7 +311,7 @@ await new Promise((r) => setTimeout(r, 200));
 
 fs.writeFileSync(`${OUT_DIR}/${PREFIX}_data.json`, JSON.stringify({
     room: info,
-    shots: { TL, TR, LB, RB, TOP, FULL },
+    shots: { TL, TR, LB, RB, TOP, FULL, CORNER_L, CORNER_R, CORNER_B },
 }, null, 1));
 console.log('data written');
 console.log('errs:', errs.slice(0, 5));

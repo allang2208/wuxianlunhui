@@ -1,0 +1,105 @@
+{
+  "weaponId": "weapon21",
+  "weaponType": "m416",
+  "key": "m416",
+  "name": "M416",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "uncommon",
+  "rarityLabel": "优质",
+  "level": 8,
+  "price": 450,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "M416自动步枪，750发/分钟，亮金色曳光弹，均衡可靠的模块化步枪",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "3-5" },
+    { "name": "射程", "value": "1150" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "8-13" },
+    { "name": "射程", "value": "1150" }
+  ],
+  "attack": {
+    "range": 1150,
+    "knockback": 2,
+    "attackInterval": 110,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1248
+  },
+  "attackKey": "m416",
+  "animConfigKey": "m416",
+  "canvasImageProp": "m416Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": {
+    "max": 30,
+    "reloadTime": 1200,
+    "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+  },
+  "attackFormula": {
+    "base": 8,
+    "enhanceFlat": 0.8,
+    "attrs": [
+      { "key": "int", "base": 0.4, "perEnhance": 0.1 },
+      { "key": "wis", "base": 0.4, "perEnhance": 0.1 }
+    ]
+  },
+  "spreadParams": {
+    "startDelay": 500,
+    "maxTime": 4000,
+    "maxAngle": 25
+  },
+  "fireSound": "assets/sounds/weapons/m416_fire.wav",
+  "equipSound": "assets/sounds/weapons/m416_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "110ms (约)",
+    "windupMs": "≈22",
+    "swingMs": "≈33",
+    "recoveryMs": "≈55",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 96,
+    "timingMul": "0.11x (高速)",
+    "recoilAmount": "0.11rad",
+    "description": "M416 以750RPM的射速连续射击，单次开火动画约110ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/m416-equip.png",
+    "iconImage": "assets/icons/m416-equip.png",
+    "slotImage": "assets/icons/m416-equip.png",
+    "dropImage": "assets/weapons/m416-equip.png",
+    "weaponAssetImage": "assets/weapons/m416-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon7",
+  "animTemplateWeaponType": "akm",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/m416_fire.wav",
+    "reload": "assets/sounds/weapons/m416_reload.wav",
+    "equip": "assets/sounds/weapons/m416_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "game equipment icon, realistic dark fantasy RPG item icon, centered single item occupying most of frame, pure white background, no text, no watermark, no human, high detail, dramatic rim lighting",
+      "subject: a single modern assault rifle strongly resembling the HK416, side view facing right, flat-top receiver with a full picatinny rail, short heavy barrel with a birdcage flash hider, M4-style round handguard, curved 30-round STANAG magazine, angled pistol grip, collapsible telescoping stock, black finish with dark gray polymer furniture and steel accents",
+      "(exactly one rifle:1.5), (a single rifle only:1.5), isolated single object, one rifle side view facing right, centered single item with generous white margin around it, no hands",
+      "no multiple views, no turnaround, no design sheet, no blueprint, no duplicate items, no second object, no detached pieces, no whole weapon variants, no circular emblem, no badge frame, no border, no text, no watermark, no blurry, no low quality"
+    ],
+    "video": [
+      "a modern assault rifle strongly resembling the HK416 (black with dark gray polymer furniture) displayed alone in a dim dark-fantasy armory on a low stone pedestal, soft blue rim light from the left and warm amber light from the right",
+      "shot one: static side view, the rifle slowly rotates on a turntable revealing receiver, handguard, curved magazine and collapsible stock",
+      "shot two: close-up on the receiver, the bolt carrier slides back with a metallic clack, a bright golden tracer round fires from the muzzle with a sharp crisp rifle shot, a brass shell casing ejects and clinks on the stone floor, subtle muzzle smoke drifts",
+      "camera slowly orbits from side view to three-quarter front view, shallow depth of field, subtle dust particles in the air",
+      "audio: sharp punchy rifle shot with a metallic action clack and a brass casing tinkling on stone, short tail echo in the stone hall"
+    ]
+  }
+}

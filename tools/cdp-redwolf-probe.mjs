@@ -17,6 +17,8 @@ const OUT_DIR = path.join(process.cwd(), 'tools', 'verify-shots');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-rw-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const gpuArgs = process.env.RW_NO_DISABLE_GPU === '1' ? [] : ['--disable-gpu'];
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,

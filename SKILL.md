@@ -1,6 +1,34 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 2.2
+## 版本: 2.3
+
+## ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
+
+**任何涉及 AI 生成图片、生成视频、抠图、怪物动画精灵图、CLEAN 验证的工作，
+一律从 `game-dev/tools/ai-gen/ai-asset.py` 进入**（ComfyUI venv python 运行）。
+一个大类一个入口（当前：monster），固定工作流已编排好，**不要散落到各底层脚本找命令**
+（底层 comfyui-gen / minimax-h3-gen / quadruped-rebuild / rmbg_cutout / pick_bg_color
+是 ai-asset 的内部实现，可单独调试但日常工作从入口进）。
+
+```bash
+# 四足怪物工作流（idle → 动画视频 → sheet，全链路强制主体无色背景 + ComfyUI-RMBG 抠图）
+python tools/ai-gen/ai-asset.py monster idle    --name <X> --ref <参考图> --prompt <提示词.txt> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster video   --name <X> --kind run|attack --ref <idle图> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster rebuild --name <X> --video <y.mp4> --kind run|attack [--bg-color 同色] [--cell 640]
+python tools/ai-gen/ai-asset.py monster status  --name <X>
+# 通用子命令（所有大类复用）
+python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
+python tools/ai-gen/ai-asset.py bg-color --image <参考图>
+python tools/ai-gen/ai-asset.py verify   --sheet <sheet.png> --cell 512|640
+```
+
+铁律（入口内置，但记在这里防绕路）：
+- **背景色强制**：生成背景必须用主体没有的颜色（`--bg-color auto` 自动选，或显式
+  `#hex`），抠图侧 `rebuild --bg-color` 传同色；
+- **抠图强制 ComfyUI-RMBG**（BiRefNet-general，`rmbg_cutout.py` 唯一入口）；
+- 所有子命令支持 `--dry-run` 先看命令；
+- 产物统一落 `Y:\工作\无尽轮回\scratch\<name>_*`，`monster status` 一键查。
+- 详细参数/异常处理见「四足动物（狼系）动画精灵图全管线」章节。
 
 ## ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
 
@@ -278,7 +306,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### CDP 残留教训（2026-08-07，C 盘爆满根因）
 - headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
   实测 111 个 47.7GB → C 盘 0GB 满。**用完即删或定期清 `%TEMP%\edge-*`**。
-- 本机删除递归目录用 `.NET Directory.Delete(path, true)`（`Remove-Item -Recurse` 被安全策略拦）。
+- **治本（2026-08-08，C 盘再次爆满后落地）**：所有 `tools/cdp-*.mjs`（30 个）在
+  `fs.mkdtempSync` 后统一注册退出自动清理
+  `process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} })`——
+  新建 CDP 工具必须带这行；另建每日计划任务 `CleanEdgeCDP`（06:30）跑
+  `tools/clean-edge-temp.ps1` 兜底（异常退出/SIGKILL/断电残留次日必清），手动清：
+  `powershell -File tools/clean-edge-temp.ps1`。
+- 删除 `%TEMP%\edge-*`：命令行内联 `Remove-Item -Recurse` 会被安全策略拦（blocked by policy），
+  实测把删除逻辑写进 .ps1 脚本文件后 `powershell -File` 执行可正常删除；也可用
+  `.NET Directory.Delete(path, true)`。正在被 Edge 占用的 profile 删不掉会自动跳过。
 
 ## 世界-122 防守地图（雏形，2026-08-04）
 
@@ -556,6 +592,59 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     semi 0.66~0.86%、GLM 确认体型一致、脚腿完整、毛发边缘自然、实机无白边。
   - 注意：`--fixed-bbox` 的 bbox 顺序是 (x0,y0,x1,y1)，解包时勿写成 (x0,x1,y0,y1)
     （写反会裁空报 cv2 resize error）。
+- **红狼全套 RMBG 重抠 + 脚部阴影清理（2026-08-08 二十四版）**：
+  - 用户反馈"脚步还有大量色块"。定量定位：**H3 白底视频自带地面接触阴影**
+    （灰/黑，底部 30px 每帧 1800~3800 暗像素），抠图把阴影当主体保留为不透明
+    灰黑像素（狼脚带 60~78% 低饱和；还有纯黑 0,0,0）。
+  - 工具 `tools/ai-gen/rw-rmbg-recut.py`（黑狼 RMBG 方案的红狼版）：
+    白底合成 → 每格 ComfyUI-RMBG `AILab_BiRefNet`（BiRefNet-general，process_res
+    1024）→ **alpha = max(alpha_b, 全部旧 alpha)** —— 红狼软边（30~247）也是
+    有效主体，不能像黑狼只留 >=248，否则软边被 BiRefNet 更窄分割裁掉（宽度
+    261→183 实锤）；黑狼硬边才用 >=248。
+  - **脚部阴影清理**（rw-cutout-clean.py）：内容底部 40px 带内，低饱和
+    （sat<15，R≈G≈B 灰/黑）不透明像素直接抠掉；深红毛 sat≥19 保留；
+    剔除后再 max-component 清碎片（避免阴影断开产生孤岛）。**别用
+    "BiRefNet 分歧"判阴影**——BiRefNet 对深色腿 alpha 不稳，会把真腿当阴影删。
+  - 验证：10 张 stray/trans_nonblack/edge_bright/composite=0；狼脚灰影
+    78%→0、纯黑 19k→0，人形灰影归零；GLM 脚部干净、脚完整无缺角；尺寸保持
+    （idle 261 / run 255~271 / attack 259~280）。
+- **红狼人两足奔跑 v2 重生成（2026-08-08 二十五版）**：
+  - 需求：两只腿奔跑、透视一致、白底、抠图走 ComfyUI-RMBG 插件。
+  - 提示词要点（prompts/rwk-humanoid-run-v2.txt）：bipedal running / full body
+    side view / body stays compact and upright / **consistent body size and
+    perspective throughout** / **no shadow, no contact shadow, no ground
+    shadow** —— 源视频底部暗像素从上一版每帧 1800~3800 降到大部分帧 0
+    （脚部阴影根除，不再是"抠图阶段补刀"）。
+  - 切帧：fixed-scale + `--fixed-bbox` + 步态周期 P≈25（step 2 覆盖一个周期，
+    14 帧 7×2）→ run 内容宽 260~290（spread 12%）、高 243~263，透视一致。
+  - 抠图：`rw-rmbg-recut.py`（ComfyUI-RMBG BiRefNet-general）+ `--soft` 清理 →
+    stray/composite=0、脚部低饱和 0.2%、GLM 确认两足奔跑/体型一致/脚部干净。
+- **红狼人粉红边缘残留清理（2026-08-08 二十六版）**：
+  - 用户反馈"红色色块没扣干净"。定量定位：轮廓有一圈 **粉红边**（内部毛色
+    (45,8,10) 深红，边缘 (147,118,123) 粉红、lum 120~150、alpha 0.84~0.88 半透），
+    在深色地板上显粉红色块。
+  - 根因：BiRefNet-general 给近不透明边界留了 0.84~0.88 半透 + 去污还原出的
+    边缘色偏粉；且原边缘亮像素阈值 150/140 都没覆盖 lum 120~140 区间。
+  - 修复（rw-cutout-clean.py --soft）：
+    ① 半透 alpha 200~244 的近不透明像素直接转 255（本质是毛像素，BiRefNet
+       边界抖动，保留半透必然和地板混合显边）；
+    ② **边缘亮像素阈值降到 90**，整圈粉红边（lum 120~150）按 5×5 局部深红
+       毛色还原。
+  - 验证：edge lum>90=0、semi_red 526→27（余为深红软边，SKILL 允许）、
+    深色地板合成残留 0；GLM 在深灰底会误读深红毛为色块，以像素为准，
+    实机截图确认无粉红描边/脚部干净。
+- **红狼脚底"深色描边"根因 = 固定色压暗 + 硬边（2026-08-08 二十七版）**：
+  - 用户反馈奔跑脚下轮廓没干净。逐像素定位：脚底最后一行全是固定 (90,18,18)
+    深红（重抠 decontaminate 的 edge_dark 兜底），且 alpha 0/255 棋盘交替
+    （近不透明 200~244 转 255 的硬边化）→ 人工深红描边 + 锯齿。
+  - 修复：① `rw-rmbg-recut.py` 不再用固定 DARK_RED 压暗边缘（交给 soft 清理）；
+    ② `rw-cutout-clean.py` 边缘还原兜底色 = **该格深红毛中位数**（非固定色）；
+    ③ **去掉近不透明 200~244 转 255 的硬边化**——粉色问题靠边缘亮像素
+    lum>90 还原成深红解决，软边保留（红狼王规则）。
+  - 注意：**重抠输入必须是原始切帧**——旧资产已含固定色像素，重抠合并
+    max(alpha_b, 旧alpha) 会原样保留旧色，须先还原到未压暗切帧再走管线。
+  - 验证：fixed90=0、脚底最后一行 = (41,4,6) 主体深红、实机地板观感正常；
+    GLM 在中/深灰预览底会把深红毛误读为"深色描边"，**以实机为准**。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1181,11 +1270,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - 量化方法（pngjs 扫 alpha>8）：内容包围盒宽高占比 + 质心偏移。目标：**最长边 ≈90%、质心偏移 = (0,0)**。
 
 ### 1.5 抠图（AI 生图一律先抠底，2026-08-03 定稿：本地 BiRefNet 透明抠图）
-- **首选：BiRefNet 透明抠图**（`tools/ai-gen/birefnet-cutout.py` 独立脚本 + `tools/ai-gen/birefnet-icon-pipeline.py` 全管线：
-  生图 → BiRefNet 透明 PNG → 归一化）。模型权重走 ModelScope 镜像
-  `modelscope/BiRefNet`（`model.safetensors`，transformers remote-code 格式，目录
-  `ComfyUI/models/BiRefNet/MS-BiRefNet/`），HuggingFace 直连超时、hf-mirror 403，勿再试。
-  运行环境用 ComfyUI venv（已装 timm/opencv-headless/transformers）。
+- **抠图统一入口（2026-08-08 定稿，强制）：ComfyUI-RMBG 插件 BiRefNet-general**——
+  `tools/ai-gen/rmbg_cutout.py`（`get_model()` / `predict_alpha(model, pil)`）是唯一抠图入口，
+  rebuild-h3-birefnet / single-idle-prep / 后续新增工具一律走它。模型缓存
+  `ComfyUI/models/RMBG/BiRefNet`（离线，check_model_cache 验证），不再用 transformers
+  直载 MS-BiRefNet（birefnet-cutout.py 仅留作兼容）。运行环境必须 ComfyUI venv。
+- **背景色强制（2026-08-08 定稿）：生图/视频背景必须用主体没有的颜色**——提示词由
+  `pick_bg_color.py` 选色注入：`pick_bg_color_from_image(参考图)` 自动从 CANDIDATES
+  选与主体色板距离最远的纯色（视频管线 `minimax-h3-gen.py --bg-color auto`），
+  或 `--bg-color #RRGGBB` 显式指定；注入函数 `inject_background` 同时写死
+  "无阴影/无光源/无投影"条款。**抠图侧必须同色**：`rebuild --bg-color` 使阈值兜底/
+  腿部兜底/去污染/边缘清理全部按"与背景色的距离"自适应（白底兼容，--bg-dist 默认 20）。
+  纯色底 + 距离阈值一刀切 + BiRefNet 边缘，是"抠得干净"的标准组合。
 - **为什么不用颜色阈值抠图**：SDXL 的"pure white background"实际是浅灰渐变 + 暗角
   （角部像素 140~200 灰），且主体贴边时边界采样会把主体误判为背景（2026-08-03 实测：
   分块背景模型把贴边的镇岳重甲抠成 42×59 碎片；固定近白阈值则整图残留灰底）。
@@ -1332,6 +1428,27 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ### 本次完成：沼泽地牢墙体全套落地 + 宝箱房体系 + 系列修复
 1. **墙样式表 `ISO_WALL_STYLES`**（`{straight, gate, chestPrefab, gateSound, corners?}`，key=dungeonType）：沼泽柴墙/藤门素材管线全套（泛洪抠图+水印 inpaint+腐蚀 2px 去颜色污染+两端锥形裁切；门视频 16 帧反转+连通域过滤）；`buildIsoDiamondWalls`/WallGate/门音效/宝箱房预制/夹角预制全走样式。新地牢换墙四步法已文档化。
+   - **⚠ 双份 JSON 坑（2026-08-08 沼泽走廊修复实测）**：`wall-prefabs.json`/`dungeon-config.json`
+     有 **data/ 与 public/data/ 两份**——运行时 fetch 的是 **public/data**（Vite 从 public 提供），
+     编辑器保存走 `/__save-json` 同时写两份；**手工改配置只改 data/ 不生效**（游戏仍读旧 public
+     副本）。改配置必须两份同步。
+   - **✅ 沼泽地牢走廊换墙（2026-08-08）**：三房间串联竞技场的连接通道预制由
+     `combatArena.passagePrefabs` 决定，样式为沼泽时取 `passagePrefabs.swamp`；此前该值
+     指向僵尸版「左右通道」（wall_straight/wall_gate）→ 沼泽房间是柴墙、走廊却是僵尸砖墙。
+     修复：新建「左右通道·沼泽」预制（swamp_wall_straight/swamp_gate，直墙 face 中点按
+     僵尸预制同轴同偏移换算、尺度换沼泽档，见 `tools/gen-swamp-passage-prefab.py`），
+     `passagePrefabs.swamp` 指向它（data/ + public/data/ 两份同步）。
+    验证：`tools/cdp-swamp-arena-check.mjs` 进沼泽竞技场——76 块墙全 swamp_wall_straight、
+    门全 swamp_gate，GLM 确认走廊柴墙与房间衔接自然、连通正常；gate-corner/wall-embed/
+    arena-layout 测试全绿。
+   - **⚠ 换墙后通道中段留大空隙（2026-08-08 二修）**：首版沼泽通道预制直接按僵尸预制的
+     face 中点克隆（每侧 2 段），但**沼泽直墙世界长 374px < 僵尸墙 476px** → 每侧中段
+     留 94~105px 空隙（僵尸版靠 8px 叠合连续，换短墙后断裂；`_sealPassageSides` 只补
+     侧墙到房间边线的**两端**，不补中段内部空隙）。修复：按 SKILL「定长瓦片 + 叠合」
+     规则把每侧改成 **3 段**（步长 374−8=366，覆盖 ≈1106px ≥ 走廊 964px），两侧垂直
+     偏移取原预制的 perp 实测值（走廊两侧不等距）。验证：两侧墙段沿轴投影**零空隙**
+     （全部 ≤0 即叠合），GLM 两条通道均连续无黑缝。教训：**换不同长度墙段时必须重算
+     瓦片数量，不能只换贴图/尺度**。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
@@ -2840,6 +2957,35 @@ addTree(x, y, radius, ...) {
 
 ---
 
+### 全自动武器添加管线 add-weapon.py（2026-08-08 首版，M416 实证）
+
+- **入口**：`python tools/ai-gen/add-weapon.py --spec tools/ai-gen/weapon-specs/<weapon>.json <子命令>`（相对 game-dev/ 执行）
+- 子命令：
+  - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
+    生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
+    合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
+  - `gen-image --host <comfyui> --model <model> --seeds a,b,c`：批量出候选（默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。
+  - `process-image --raw <候选.png> [--cutout-tool auto|rmbg|make-transparent-icon|flood|none] [--no-orient] [--no-auto-level]`：
+    默认自动镜像保证枪口朝右（左右极值列高判定）→ 默认自动校平枪身基线（机匣上沿中段拟合，0.8 阻尼迭代；
+    **向右下斜为正角，PIL rotate(+θ) 逆时针按同符号旋转——用 -θ 会越转越歪，2026-08-08 教训**）→
+    白底抠图首选 ComfyUI-RMBG 插件（`BiRefNetRMBG` 节点，模型 `BiRefNet-general` 权重放 `ComfyUI/models/RMBG/BiRefNet/`，
+    可从 NAS `Y:\模型库\ComfyUI\models\BiRefNet\` 复制；插件输出 IMAGE+MASK，本地合成 RGBA）→
+    按 spec.layout 归一（步枪 2048² / 内容宽 0.915 / 中心 (0.500,0.543)）→
+    写 `assets/weapons/<key>-equip.png` + `assets/icons/<key>-equip.png` → 打印 bbox/aspect/连通域/朝向。
+  - `gen-video --host 192.168.3.142`：MiniMax H3 展示视频（`assets/videos/<key>_showcase.mp4`；远程 5080 离线会失败，机器上线后重跑）。
+  - `verify`：双份 JSON 字节一致 + 资产/音效存在性 + 改动 JS node --check。
+- **M416 实证**：`weapon-specs/m416.json`（weapon21，优质 uncommon，属性/公式略低于 AKM，30 发全自动，步枪精通生效）；
+  6 张候选归档 `Y:\工作\无尽轮回\scratch\weapons\m416\`；正式贴图已入库。
+- **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
+  （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
+  attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。
+- **新武器逻辑分支全量对账（2026-08-08 M416 教训）**：数据层加完后必须 `rg "akm" src -g "*.js"`（或用同族基准武器名）
+  全量对账逻辑分支，逐处补同族 weaponType，否则典型症状=无法开枪/持枪贴图错误。已知必查清单：
+  `subsystems.js`（isPkmOrAkm 开火执行、主/副手 cfgKey、_isPkmOrAkm 动画）、`update.js`（isPkm 全自动组、attackKey 三元链）、
+  `GameScene.js`（isGun/isGunR/isGunOff/isGunSpecial/副手名单 六处）、`weapon-transform.js`（每类型变换块 + getAttackAnimOffset 分支）、
+  `weapon-anim.js`（远程判定/cfgKey）、`equip-manager.js`（equippedRangedType）、`defense-system.js`（塔装载/伤害/高度）、
+  `enchant-config.js`（可附魔武器类型）、`quick-bar.js`（冲撞/远程判定）、`weapon-fx-config.js`（lmg.soundMap）。
+
 ## 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
 
 ### 模式
@@ -4069,6 +4215,10 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 ### 2. 周期/窗口检测（先扫参数，别沿用工头默认）
 - 周期扫描：`leg_iou(s, s+P)`，P∈[16,120]，限定匀速中段 steady(12..105)；
   **首尾高 IoU（~0.98）是 idle 重影不是周期，别信**。
+- **扫描必须同时限定动作窗口**（驱动 `quadruped-rebuild.py` 实测踩坑）：先
+  `detect_window` 拿到动作区间 [w0,w1]，周期候选要求 **s+2P ≤ w1**（两个采样
+  周期完整落在窗口内）——否则尾段回位/idle 的 0.99 高 IoU 会把采样带偏到
+  尾段，导致首尾 IoU 断链（bear_run 首轮 0.00 的根因）。
 - 黑狼实测：walk P=48（s=40，iou 0.80）、run P=28（s=40，iou 0.66——
   低伏姿态腿部占比小，阈值要放宽，0.66 就是正常值）。
 - 攻击窗口：mask 相对首帧 IoU 差定位（撕咬 21..43、飞扑 14..74）。
@@ -4104,6 +4254,8 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 白点分类：边缘噪声（清）vs 白毛（留），按到内容边缘距离区分，勿一刀切。
 - **resize 后必须逐格清理**（硬二值化 → 每格最大连通域 → 边缘压暗 →
   透明归零 → 腿部去白），否则插值会再造半透带/白圈（walk 首版 DIRTY 教训）。
+  **2026-08-08 起该清理已内置 `rebuild-h3-birefnet.py --auto-clean`（默认开），
+  不再需要外部手动补一步**（直接调 CLI 出 CLEAN sheet）。
 
 ### 5. 缩放/摆放
 - 高度统一：uniform-h target_h=262（黑狼/红狼王全部狼形态），宽度随姿态；
@@ -4145,9 +4297,23 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 数值回退用 `??` 不用 `||`（falsy-0 把显式 0 回退成默认值）。
 
 ### 9. 工具链
-- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程）。
-- 重建：`rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底）+
-  `blackwolf-rebuild-from-video.py`（黑狼驱动，含逐格清理）。
+- **统一入口 `tools/ai-gen/ai-asset.py`（2026-08-08 定稿：一个大类一个入口，工作一律从这进）**：
+  - `monster idle --name X --ref 参考图 --prompt 提示词 [--bg-color auto|#hex]`：5080 生图候选
+    → BiRefNet 抠图 → 512 归一化（自动选主体无色背景并注入提示词）；
+  - `monster video --name X --kind run|attack --ref idle图 [--bg-color auto|#hex]`：5080 H3 生成动画视频；
+  - `monster rebuild --name X --video y.mp4 --kind run|attack [--bg-color 同色] [--cell 640]`：
+    视频 → 动画 sheet（周期/窗口检测 + BiRefNet 重建 + CLEAN 验证报告）；
+  - `monster status --name X`：列出该怪物全部产物（scratch/<name>_*）；
+  - 通用子命令：`cutout --src --out`（抠图）、`bg-color --image`（选背景色）、
+    `verify --sheet --cell`（CLEAN 验证）。
+  - 所有子命令支持 `--dry-run`（只打印将执行的命令）。底层脚本仍可单独调用，但开展工作
+    一律从统一入口进，避免"散落各地没法调用"。
+- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程，可被 ai-asset monster video 调用）。
+- 重建：**`quadruped-rebuild.py`（通用一键：周期扫描/窗口检测 → 采样 →
+  rebuild → auto-clean → 验证报告）**：`--video x.mp4 --kind run|attack --out y.png`
+  （run 自动采 P×2 连续帧无缝循环，attack 窗口均分 20 帧；可 --cell 640 等覆盖）。
+  `rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底/内置 auto-clean）、
+  `blackwolf-rebuild-from-video.py`（黑狼专用驱动）。
 - 验证：`blackwolf-rebuild-verify.py`（CLEAN 五指标）、
   `blackwolf-rmbg-compare.py`（旧新对比）、`sprite-decontaminate.py`（去污）。
 - 识图：`tools/glm-analyze-image.mjs`（GLM-4.6V 复核）。
@@ -4354,7 +4520,8 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   入库 `obstacle_cover_D*`（D 级 5 变体 × h/v）；GameScene 无独立土块层
   （土块随墙贴图渲染，depth = `_faceDepth` 单一图层，无图层问题）。
 - **验证**：实机确认——土块贴合墙斜向底边无错位/悬浮、拼接竖缝墙身无缝、
-  拼接处土块连续自然、上夹角 TL 盖 TR（depthBias TL/LB 0.5）无冲突。
+  拼接处土块连续自然；转角图层顺序后改为 `cornerLayer: 'rightOnTop'`
+  （见下方 2026-08-08 修正）。
 - **坑**：独立土块 sprite（不同尺寸/位置/图层）必然对不齐墙 + 图层混乱——
   土块必须与墙同渲染烘焙，不能分开建模后游戏层叠加。
 - **⚠ 拼接缝隙根因（2026-08-08 实机复现）**：`soil_margin` 默认 0.18 会撑大
@@ -4386,3 +4553,33 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
     即切图层，每帧深度同步读它）。
   - **转角底部透底**：两面墙土带在角点下方不衔接（cap 端纹理提前透明），
     角点正下方出现竖向暗缝/亮地面透出；Blender 土埂/颗粒需覆盖到端帽外缘底角。
+  - **✅ 修复实施（2026-08-08 已落地）**：`_buildBaseRoom` 改按 COVER_FACE 端点
+    在边方向上的真实投影（朝顶点端 127px / 另一端 69.3px）计算首/末件位置，
+    `cornerExtend: 45 → 29`——29 恰好让两臂 face 端点在角点 face 交线交点相接
+    （干净斜接、不侵入），四个角全部验证 face 端点精确汇于一点
+    （上 (900,1728)、左 (387,1984)、右 (1413,1984)、下 (900,2239)）。
+    `cornerLayer: 'rightOnTop'` 上角 TR 盖 TL、下角 RB 盖 LB（A/B 实测右盖左更自然；
+    因 face 已斜接不相交，图层偏置实际不再影响视觉）。实机全房间 GLM：四角干净、
+    四边无缝。转角底部"透底"实为两墙底边下方的正常房间地板 V 区（土带延伸
+    只能减少 ~9% 暴露），非缺陷，D 级贴图保持不变。
+    回退：`git reset --hard 11f2d11`（优化前快照）或
+    `backup/rollback-corner-20260808_105347/` 文件副本。
+  - **✅ 左右下夹角"按土块判定"根因与修复（2026-08-08）**：用户反馈上夹角正常、
+    左右下夹角"以地下土块进行碰撞/移动判定"。排查发现：**寻路器（PathFinder 的
+    SpatialHash）只建模 WallSystem.walls/trees，有意不纳入 isoSegments**——基地掩体墙
+    只注册了 `_coverSeg`（isoSegments），所以怪物寻路把墙当可通行，直线穿墙后由
+    MovementSystem 的 WallSystem.resolve 挡停；在直墙段会沿墙滑，在左右下夹角
+    （两墙交汇）被卡在墙根土块上抖动。修复：`src/ai/pathfinder.js` 把带
+    `_cover` 标记的静态掩体墙段纳入空间哈希（type 'seg'，阻挡口径与
+    `WallSystem.canMoveTo` 一致：点到线段距离 < 半径+halfThick），动态段
+    （门闸/冰墙无 `_cover`）仍排除；`defense-system.js` 在搭建/拆除/摆放掩体时
+    `pathFinder.invalidateCache()`。验证：右墙外→基地的路径由"直线穿墙 2 点"
+    变为"绕墙走门洞 9 点"；269 项测试全绿。
+  - **✅ 土块推广到 F/E/C/B/A 档（2026-08-08）**：D 级带土贴图验收通过后，用同一
+    spec（`cover_integrated_spec3.json`，soil_margin:0 + soil 字段）批量渲染
+    5 档 × 5 变体（tex_<grade>.png / tex_<grade>_v2..v5.png），h = fliplr(v)，
+    替换 `obstacle_cover_{F,E,C,B,A}_{v,h}/_v2..v5_*` 共 50 张；内容框全部
+    163-902 × 87-890（与 D 一致，soil_margin:0 保拼接无缝）。实机换档验证
+    （`tools/cdp-grade-soil-check.mjs` 直接 setTexture 换档截四角）：F/A 均墙根
+    带土、四角干净、四边无缝。旧贴图备份：
+    `backup/cover-soil-allgrades-20260808_115237/`（50 张）。

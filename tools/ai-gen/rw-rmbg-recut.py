@@ -86,17 +86,8 @@ def decontaminate(rgb, alpha, bg=255, lum_clear=200, edge_dark=DARK_RED):
         a[light_semi] = 0
         rgb[light_semi] = 0
 
-    # 不透明边缘亮像素压暗（红毛深色；黑狼用 18）
-    opaque = a >= 0.98
-    bright_px = opaque & (rgb.mean(axis=2) > 150)
-    trans = a < 0.8
-    big = trans.astype(np.uint8)
-    near_trans = np.zeros_like(big, bool)
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            near_trans |= (np.roll(np.roll(big, dy, axis=0), dx, axis=1) > 0)
-    edge_bright = near_trans & bright_px
-    rgb[edge_bright] = edge_dark
+    # 边缘亮像素还原交给 rw-cutout-clean --soft（局部毛色 + 该格毛色中位数兜底）；
+    # 这里不再压暗——固定 DARK_RED 会在脚底形成一圈深色描边 + 棋盘锯齿（红狼观感差）
 
     rgb[a < 0.03] = 0
     return rgb.astype(np.uint8), (a * 255).astype(np.uint8)
@@ -150,7 +141,8 @@ def main():
                 cell_img = comp.crop((bx, by, bx + cell, by + cell))
                 alpha_b[by:by + cell, bx:bx + cell] = birefnet_alpha(model, cell_img)
 
-        alpha = np.maximum(alpha_b, (alpha_orig >= args.threshold).astype(np.uint8) * 255)
+        # 红狼王软边 alpha（30~247）也是有效主体，必须保留（黑狼硬边才只留 >=248）
+        alpha = np.maximum(alpha_b, alpha_orig)
         rgb = np.array(comp)
         rgb_clean, alpha_clean = decontaminate(rgb, alpha, lum_clear=args.lum_clear)
         out_rgba = np.dstack([rgb_clean, alpha_clean]).astype(np.uint8)

@@ -905,6 +905,58 @@
                 "description": "AKM 以600RPM的射速连续射击，单次开火动画约100ms。采用后坐力抖动模式，与PKM共用相同动画系统。"
             }
         },
+        "m416": {
+            "weaponId": "weapon21",
+            "name": "M416",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/m416-equip.png",
+            "slotImage": "assets/icons/m416-equip.png",
+            "equipImage": "assets/weapons/m416-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "uncommon",
+            "level": 8,
+            "weaponCategory": "mainhand",
+            "weaponType": "m416",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/m416-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "8-13"
+                },
+                {
+                    "name": "射程",
+                    "value": "1150"
+                }
+            ],
+            "desc": "M416自动步枪，750发/分钟，亮金色曳光弹，均衡可靠的模块化步枪",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1150,
+                "knockback": 2,
+                "attackInterval": 110,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1248
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "110ms (约)",
+                "windupMs": "≈22",
+                "swingMs": "≈33",
+                "recoveryMs": "≈55",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 96,
+                "timingMul": "0.11x (高速)",
+                "recoilAmount": "0.11rad",
+                "description": "M416 以750RPM的射速连续射击，单次开火动画约110ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+            }
+        },
         "qbz191": {
             "weaponId": "weapon8",
             "name": "QBZ-191",

@@ -79,6 +79,15 @@ const WEAPON_TRANSFORM_CONFIG = {
         afterRotateOffsetY: 0,
         baseRotation: 0,
     },
+    m416: {
+        mainBaseX: (isDual) => isDual ? 0 : 8,
+        mainBaseY: (isDual) => isDual ? 8 : 0,
+        offBaseX: 0, offBaseY: -8,
+        holdOffsetKey: 'm416',
+        afterRotateOffsetX: (s) => s * 0.42,
+        afterRotateOffsetY: 0,
+        baseRotation: 0,
+    },
     qbz191: {
         mainBaseX: (isDual) => isDual ? 0 : 8,
         mainBaseY: (isDual) => isDual ? 8 : 0,
@@ -522,7 +531,7 @@ class WeaponTransform {
                 const rt = anim.timer / wa.recoverMs;
                 recoilX = -s * (rp.recoilRecover || 0.04) * (1 - rt);
             }
-        } else if (weaponType === 'pkm' || weaponType === 'akm' || weaponType === 'qbz191' || weaponType === 'qjb201' || weaponType === 'energy_lmg') {
+        } else if (weaponType === 'pkm' || weaponType === 'akm' || weaponType === 'm416' || weaponType === 'qbz191' || weaponType === 'qjb201' || weaponType === 'energy_lmg') {
             if (anim.state === 'windup') {
                 recoilX = -s * (rp.recoilWindup || 0.03) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {

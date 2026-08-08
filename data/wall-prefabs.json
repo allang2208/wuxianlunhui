@@ -1,1559 +1,1670 @@
 {
-  "下夹角": {
-    "name": "下夹角",
-    "cx": 4551,
-    "cy": 2263,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 4354.126,
-        "y": 2383.775,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 2602,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 3934.752,
-        "y": 2141.692,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 2357.9168922643635,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4747.874,
-        "y": 2383.775,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 2601,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5167.248,
-        "y": 2141.692,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 2357.9168922643635,
-        "family": "wall",
-        "label": "直墙·新 4"
-      }
-    ]
-  },
-  "上夹角": {
-    "name": "上夹角",
-    "cx": 4551,
-    "cy": 1498,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 4335.096076688053,
-        "y": 1380.252685546875,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1358.394,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 3929.578857421876,
-        "y": 1614.3364828263889,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1592.478,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4766.518310546875,
-        "y": 1381.2507934570312,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1359.392,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5172.035529813052,
-        "y": 1615.334590736545,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1593.476,
-        "family": "wall",
-        "label": "直墙·新 4"
-      }
-    ]
-  },
-  "左夹角": {
-    "name": "左夹角",
-    "cx": 3809,
-    "cy": 1899,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 3596.874,
-        "y": 1783.775,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1761.9166290729117,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4016.248,
-        "y": 1541.692,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1519.8336290729117,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 3615.572,
-        "y": 2021.858,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 2238.082892264363,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4021.089,
-        "y": 2255.942,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 2472.1668922643635,
-        "family": "wall",
-        "label": "直墙·新 4"
-      }
-    ]
-  },
-  "右夹角": {
-    "name": "右夹角",
-    "cx": 5291,
-    "cy": 1899,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 5503.126,
-        "y": 1783.775,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1761.9166290729117,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5083.752,
-        "y": 1541.692,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1519.8336290729117,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5484.428,
-        "y": 2021.858,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 2238.082892264363,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5078.911,
-        "y": 2255.942,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 2472.1668922643635,
-        "family": "wall",
-        "label": "直墙·新 4"
-      }
-    ]
-  },
-  "宝箱房": {
-    "name": "宝箱房",
-    "cx": 3951,
-    "cy": 1146,
-    "pieces": [
-      {
-        "tex": "wall_gate",
-        "x": 3729.197509765625,
-        "y": 1271.6521606445312,
-        "scaleX": 0.6551724137931034,
-        "scaleY": 0.7510354411835177,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1355.5396728515625,
-        "family": "wall",
-        "label": "门墙 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4148.8564453125,
-        "y": 1259.5396118164062,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1354.5396728515625,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 3739.8564453125,
-        "y": 1020.5396728515625,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1136.5396728515625,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 4172.282958984375,
-        "y": 1022.471923828125,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1115.584228515625,
-        "family": "wall",
-        "label": "直墙·新 3"
-      }
-    ]
-  },
-  "沼泽宝箱房": {
-    "name": "沼泽宝箱房",
-    "cx": 3953,
-    "cy": 1235,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4115.564208984375,
-        "y": 1148.7747192382812,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1148.7747192382812,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 3789.564208984375,
-        "y": 1142.7747192382812,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1092.7747192382812,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4118.564208984375,
-        "y": 1327.7747192382812,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1452.7747192382812,
-        "family": "wall",
-        "label": "沼泽柴墙 3"
-      },
-      {
-        "tex": "swamp_gate",
-        "x": 3787.564208984375,
-        "y": 1323.7747192382812,
-        "scaleX": 0.6310195948189969,
-        "scaleY": 0.6404477307936173,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1332.7747192382812,
-        "family": "wall",
-        "label": "沼泽藤门 1"
-      }
-    ]
-  },
-  "沼泽上夹角": {
-    "name": "沼泽上夹角",
-    "cx": 4883,
-    "cy": 1490,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 5049.70751953125,
-        "y": 1487.80712890625,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1483.80712890625,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_gate",
-        "x": 4715.34130859375,
-        "y": 1491.9849853515625,
-        "scaleX": 0.6310195948189969,
-        "scaleY": 0.6404477307936173,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1460.80712890625,
-        "family": "wall",
-        "label": "沼泽藤门 1"
-      }
-    ]
-  },
-  "沼泽下夹角": {
-    "name": "沼泽下夹角",
-    "cx": 4202,
-    "cy": 1426,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4361.996337890625,
-        "y": 1427.647216796875,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1427.647216796875,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4042.996337890625,
-        "y": 1424.647216796875,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1426.647216796875,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      }
-    ]
-  },
-  "沼泽右夹角": {
-    "name": "沼泽右夹角",
-    "cx": 5253,
-    "cy": 1750,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 5262.151123046875,
-        "y": 1652.9439697265625,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1652.9439697265625,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_gate",
-        "x": 5244.151123046875,
-        "y": 1847.9439697265625,
-        "scaleX": 0.6310195948189969,
-        "scaleY": 0.6404477307936173,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1835.9439697265625,
-        "family": "wall",
-        "label": "沼泽藤门 1"
-      }
-    ]
-  },
-  "沼泽左夹角": {
-    "name": "沼泽左夹角",
-    "cx": 4698,
-    "cy": 1772,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4689.151123046875,
-        "y": 1673.9439697265625,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1590.9439697265625,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      },
-      {
-        "tex": "swamp_gate",
-        "x": 4707.151123046875,
-        "y": 1869.9439697265625,
-        "scaleX": 0.6310195948189969,
-        "scaleY": 0.6404477307936173,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1878.9439697265625,
-        "family": "wall",
-        "label": "沼泽藤门 2"
-      }
-    ]
-  },
-  "沼泽墙上夹角": {
-    "name": "沼泽墙上夹角",
-    "cx": 3964,
-    "cy": 1239,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4119.23291015625,
-        "y": 1237.0933837890625,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1237.0933837890625,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 3808.233154296875,
-        "y": 1240.09326171875,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1252.09326171875,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      }
-    ]
-  },
-  "沼泽墙右夹角": {
-    "name": "沼泽墙右夹角",
-    "cx": 4270,
-    "cy": 1380,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4270.186279296875,
-        "y": 1289.917724609375,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1258.917724609375,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 4269.186279296875,
-        "y": 1470.917724609375,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1603.917724609375,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      }
-    ]
-  },
-  "沼泽墙左夹角": {
-    "name": "沼泽墙左夹角",
-    "cx": 3697,
-    "cy": 1293,
-    "pieces": [
-      {
-        "tex": "swamp_wall_straight",
-        "x": 3697.186279296875,
-        "y": 1382.917724609375,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": false,
-        "flipY": false,
-        "depth": 1278.917724609375,
-        "family": "wall",
-        "label": "沼泽柴墙 1"
-      },
-      {
-        "tex": "swamp_wall_straight",
-        "x": 3696.186279296875,
-        "y": 1203.917724609375,
-        "scaleX": 0.23773773773773774,
-        "scaleY": 0.24090868685463282,
-        "flipX": true,
-        "flipY": false,
-        "depth": 1277.917724609375,
-        "family": "wall",
-        "label": "沼泽柴墙 2"
-      }
-    ]
-  },
-  "上下通道": {
-    "name": "上下通道",
-    "cx": 5338,
-    "cy": 1678,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 4936.098015108823,
-        "y": 1669.5415609513886,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1880.766453215752,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5719.56689453125,
-        "y": 1672.962890625,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1662.962890625,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5314.049675265073,
-        "y": 1907.0466879045136,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 2123.271580168877,
-        "family": "wall",
-        "label": "直墙·新 4"
-      },
-      {
-        "tex": "wall_gate",
-        "x": 5755.615234375,
-        "y": 1443.457763671875,
-        "scaleX": 0.6551724137931034,
-        "scaleY": 0.7510354411835177,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1559.2103271484375,
-        "family": "wall",
-        "label": "门墙 1"
-      },
-      {
-        "tex": "wall_gate",
-        "x": 4920.615234375,
-        "y": 1926.457763671875,
-        "scaleX": 0.6551724137931034,
-        "scaleY": 0.7510354411835177,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 2124.271580168877,
-        "family": "wall",
-        "label": "门墙 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 5350.615234375,
-        "y": 1430.457763671875,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1455.457763671875,
-        "family": "wall",
-        "label": "直墙·新 5"
-      }
-    ]
-  },
-  "左右通道": {
-    "name": "左右通道",
-    "cx": 2253,
-    "cy": 1376,
-    "pieces": [
-      {
-        "tex": "wall_straight",
-        "x": 2655.375856980581,
-        "y": 1367.4585217579543,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1578.6834140223177,
-        "family": "wall",
-        "label": "直墙·新 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 1871.9069775581543,
-        "y": 1370.8798514315656,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1360.8798514315656,
-        "family": "wall",
-        "label": "直墙·新 3"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 2277.424196824331,
-        "y": 1604.9636487110793,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1821.1885409754425,
-        "family": "wall",
-        "label": "直墙·新 4"
-      },
-      {
-        "tex": "wall_gate",
-        "x": 1835.8586377144043,
-        "y": 1141.3747244784406,
-        "scaleX": 0.6551724137931034,
-        "scaleY": 0.7510354411835177,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1257.127287955003,
-        "family": "wall",
-        "label": "门墙 1"
-      },
-      {
-        "tex": "wall_gate",
-        "x": 2670.8586377144043,
-        "y": 1624.3747244784406,
-        "scaleX": 0.6551724137931034,
-        "scaleY": 0.7510354411835177,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1822.1885409754425,
-        "family": "wall",
-        "label": "门墙 2"
-      },
-      {
-        "tex": "wall_straight",
-        "x": 2240.8586377144043,
-        "y": 1128.3747244784406,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1153.3747244784406,
-        "family": "wall",
-        "label": "直墙·新 5"
-      }
-    ]
-  },
-  "骨头堆": {
-    "name": "骨头堆",
-    "cx": 2869,
-    "cy": 1431,
-    "pieces": [
-      {
-        "tex": "obstacle_skull",
-        "x": 2811.36865234375,
-        "y": 1428.64501953125,
-        "scaleX": 0.10820850387174034,
-        "scaleY": 0.10820850387174034,
-        "flipX": true,
-        "flipY": false,
-        "rotation": -1.134464013796314,
-        "depth": 1516.64501953125,
-        "family": "obstacle",
-        "label": "头骨 1"
-      },
-      {
-        "tex": "obstacle_bones",
-        "x": 2874.36865234375,
-        "y": 1427.64501953125,
-        "scaleX": 0.2386634844868735,
-        "scaleY": 0.2386634844868735,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1507.64501953125,
-        "family": "obstacle",
-        "label": "骨头堆 1"
-      },
-      {
-        "tex": "obstacle_bones",
-        "x": 2926.0001220703125,
-        "y": 1447.0982055664062,
-        "scaleX": 0.2386634844868735,
-        "scaleY": 0.2386634844868735,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1513.0982055664062,
-        "family": "obstacle",
-        "label": "骨头堆 2"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2912.0001220703125,
-        "y": 1398.0982055664062,
-        "scaleX": 0.11361892906532736,
-        "scaleY": 0.11361892906532736,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1419.913039946949,
-        "family": "obstacle",
-        "label": "头骨 2"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2848.0001220703125,
-        "y": 1464.0982055664062,
-        "scaleX": 0.11361892906532736,
-        "scaleY": 0.11361892906532736,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0.9599310885968811,
-        "depth": 1544.913039946949,
-        "family": "obstacle",
-        "label": "头骨 3"
-      }
-    ]
-  },
-  "火把墙": {
-    "name": "火把墙",
-    "cx": 2513,
-    "cy": 1149,
-    "pieces": [
-      {
-        "tex": "obstacle_torch",
-        "x": 2420.4415283203125,
-        "y": 1095.5126953125,
-        "scaleX": 0.21691481028661888,
-        "scaleY": 0.21691481028661888,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1380.820301356791,
-        "family": "obstacle",
-        "label": "火把 1",
-        "depthManual": true
-      },
-      {
-        "tex": "wall_straight",
-        "x": 2554.19482421875,
-        "y": 1149.7706909179688,
-        "scaleX": 0.27496382054992763,
-        "scaleY": 0.31450893420271037,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1360.9955831823322,
-        "family": "wall",
-        "label": "直墙·新 1"
-      },
-      {
-        "tex": "obstacle_torch",
-        "x": 2606.19482421875,
-        "y": 1201.7706909179688,
-        "scaleX": 0.21691481028661888,
-        "scaleY": 0.21691481028661888,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1389.7326604440204,
-        "family": "obstacle",
-        "label": "火把 2",
-        "depthManual": true
-      }
-    ]
-  },
-  "桶+瓶-1": {
-    "name": "桶+瓶-1",
-    "cx": 2590,
-    "cy": 1204,
-    "pieces": [
-      {
-        "tex": "obstacle_barrel",
-        "x": 2595.6473388671875,
-        "y": 1217.7706909179688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1277.7706909179688,
-        "family": "obstacle",
-        "label": "木桶 2"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2561.6473388671875,
-        "y": 1255.7706909179688,
-        "scaleX": 0.10317869807407715,
-        "scaleY": 0.10317869807407715,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1339.2078552246094,
-        "family": "obstacle",
-        "label": "瓶-2 1",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2585.6473388671875,
-        "y": 1152.7706909179688,
-        "scaleX": 0.08891157465073063,
-        "scaleY": 0.08891157465073063,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1308.489273071289,
-        "family": "obstacle",
-        "label": "瓶-3 1",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_bottle1",
-        "x": 2618.6473388671875,
-        "y": 1170.7706909179688,
-        "scaleX": 0.10124666458208974,
-        "scaleY": 0.10124666458208974,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1293.129981994629,
-        "family": "obstacle",
-        "label": "瓶-1 1",
-        "depthManual": true
-      }
-    ]
-  },
-  "骨头堆-2": {
-    "name": "骨头堆-2",
-    "cx": 2499,
-    "cy": 1367,
-    "pieces": [
-      {
-        "tex": "obstacle_chains",
-        "x": 2524.6473388671875,
-        "y": 1367.7706909179688,
-        "scaleX": 0.2063573961481543,
-        "scaleY": 0.2063573961481543,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1388.8191453250804,
-        "family": "obstacle",
-        "label": "锁链 2"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2528.9866943359375,
-        "y": 1375.1085815429688,
-        "scaleX": 0.08478419421791208,
-        "scaleY": 0.08478419421791208,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0.6981317007977318,
-        "depth": 1405.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 2"
-      },
-      {
-        "tex": "obstacle_bones",
-        "x": 2470.9866943359375,
-        "y": 1361.1085815429688,
-        "scaleX": 0.13289675851493055,
-        "scaleY": 0.13289675851493055,
-        "flipX": true,
-        "flipY": false,
-        "rotation": -0.2617993877991539,
-        "depth": 1413.1085815429688,
-        "family": "obstacle",
-        "label": "骨头堆 2"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2492.9866943359375,
-        "y": 1382.1085815429688,
-        "scaleX": 0.08074685163610675,
-        "scaleY": 0.08074685163610675,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1403.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 3"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2513.9866943359375,
-        "y": 1360.1085815429688,
-        "scaleX": 0.08478419421791207,
-        "scaleY": 0.08478419421791207,
-        "flipX": false,
-        "flipY": false,
-        "rotation": -0.9599310885968813,
-        "depth": 1394.732082428165,
-        "family": "obstacle",
-        "label": "头骨 4",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2513.9866943359375,
-        "y": 1381.1085815429688,
-        "scaleX": 0.08478419421791208,
-        "scaleY": 0.08478419421791208,
-        "flipX": false,
-        "flipY": false,
-        "rotation": -1.9198621771937614,
-        "depth": 1459.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 5"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2444.9866943359375,
-        "y": 1360.1085815429688,
-        "scaleX": 0.0890234039288077,
-        "scaleY": 0.0890234039288077,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1380.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 6"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2552.9866943359375,
-        "y": 1381.1085815429688,
-        "scaleX": 0.0769017634629588,
-        "scaleY": 0.0769017634629588,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1363.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 7"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2529.9866943359375,
-        "y": 1352.1085815429688,
-        "scaleX": 0.08478419421791208,
-        "scaleY": 0.08478419421791208,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1373.9234159235116,
-        "family": "obstacle",
-        "label": "头骨 8"
-      }
-    ]
-  },
-  "水缸+瓶-1": {
-    "name": "水缸+瓶-1",
-    "cx": 2541,
-    "cy": 1408,
-    "pieces": [
-      {
-        "tex": "obstacle_pot",
-        "x": 2554.79443359375,
-        "y": 1382.1085815429688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1442.1085815429688,
-        "family": "obstacle",
-        "label": "陶罐 2"
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2501.79443359375,
-        "y": 1417.1085815429688,
-        "scaleX": 0.08891157465073063,
-        "scaleY": 0.08891157465073063,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1453.1085815429688,
-        "family": "obstacle",
-        "label": "瓶-3 2"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2534.79443359375,
-        "y": 1433.1085815429688,
-        "scaleX": 0.11375451462667006,
-        "scaleY": 0.11375451462667006,
-        "flipX": false,
-        "flipY": false,
-        "rotation": -1.3962634015954631,
-        "depth": 1531.1085815429688,
-        "family": "obstacle",
-        "label": "瓶-2 2"
-      },
-      {
-        "tex": "obstacle_bottle4",
-        "x": 2580.79443359375,
-        "y": 1427.1085815429688,
-        "scaleX": 0.12086417179083697,
-        "scaleY": 0.12086417179083697,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1451.1085815429688,
-        "family": "obstacle",
-        "label": "瓶-4 1"
-      }
-    ]
-  },
-  "烛台+铁链": {
-    "name": "烛台+铁链",
-    "cx": 2667,
-    "cy": 1397,
-    "pieces": [
-      {
-        "tex": "obstacle_candle",
-        "x": 2643.5335693359375,
-        "y": 1357.1085815429688,
-        "scaleX": 0.28125,
-        "scaleY": 0.28125,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1481.901027740665,
-        "family": "obstacle",
-        "label": "烛台 2",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_chains",
-        "x": 2689.5335693359375,
-        "y": 1437.1085815429688,
-        "scaleX": 0.2063573961481543,
-        "scaleY": 0.2063573961481543,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1459.1570359500804,
-        "family": "obstacle",
-        "label": "锁链 2",
-        "depthManual": true
-      }
-    ]
-  },
-  "水缸+水缸": {
-    "name": "水缸+水缸",
-    "cx": 2708,
-    "cy": 1357,
-    "pieces": [
-      {
-        "tex": "obstacle_pot",
-        "x": 2740.536376953125,
-        "y": 1370.1085815429688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1413.1085815429688,
-        "family": "obstacle",
-        "label": "陶罐 2"
-      },
-      {
-        "tex": "obstacle_pot",
-        "x": 2674.536376953125,
-        "y": 1344.1085815429688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1428.1085815429688,
-        "family": "obstacle",
-        "label": "陶罐 3"
-      }
-    ]
-  },
-  "桶*3+瓶": {
-    "name": "桶*3+瓶",
-    "cx": 2603,
-    "cy": 1204,
-    "pieces": [
-      {
-        "tex": "obstacle_barrel",
-        "x": 2595.6473388671875,
-        "y": 1217.7706909179688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1277.7706909179688,
-        "family": "obstacle",
-        "label": "木桶 2"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2561.6473388671875,
-        "y": 1255.7706909179688,
-        "scaleX": 0.10317869807407715,
-        "scaleY": 0.10317869807407715,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1339.2078552246094,
-        "family": "obstacle",
-        "label": "瓶-2 1",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2585.6473388671875,
-        "y": 1152.7706909179688,
-        "scaleX": 0.08891157465073063,
-        "scaleY": 0.08891157465073063,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1308.489273071289,
-        "family": "obstacle",
-        "label": "瓶-3 1",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_bottle1",
-        "x": 2618.6473388671875,
-        "y": 1170.7706909179688,
-        "scaleX": 0.10124666458208974,
-        "scaleY": 0.10124666458208974,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1293.129981994629,
-        "family": "obstacle",
-        "label": "瓶-1 1",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 2663.536376953125,
-        "y": 1200.4427490234375,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1267.4427490234375,
-        "family": "obstacle",
-        "label": "木桶 3"
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 2597.536376953125,
-        "y": 1157.4427490234375,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1188.4427490234375,
-        "family": "obstacle",
-        "label": "木桶 4"
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 2542.536376953125,
-        "y": 1201.4427490234375,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": -1.6580627893946123,
-        "depth": 1261.4427490234375,
-        "family": "obstacle",
-        "label": "木桶 5"
-      }
-    ]
-  },
-  "瓶-2": {
-    "name": "瓶-2",
-    "cx": 2835,
-    "cy": 1257,
-    "pieces": [
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2848.682373046875,
-        "y": 1248.2052612304688,
-        "scaleX": 0.10807257468530466,
-        "scaleY": 0.10807257468530466,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1288.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-3 1"
-      },
-      {
-        "tex": "obstacle_bottle1",
-        "x": 2813.682373046875,
-        "y": 1281.2052612304688,
-        "scaleX": 0.13568021383428008,
-        "scaleY": 0.13568021383428008,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1339.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-1 1"
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2819.682373046875,
-        "y": 1233.2052612304688,
-        "scaleX": 0.10292626160505206,
-        "scaleY": 0.10292626160505206,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1261.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-3 2"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2855.682373046875,
-        "y": 1281.2052612304688,
-        "scaleX": 0.15244192915261343,
-        "scaleY": 0.15244192915261343,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 1.658062789394617,
-        "depth": 1329.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-2 1"
-      },
-      {
-        "tex": "obstacle_bottle4",
-        "x": 2828.682373046875,
-        "y": 1248.2052612304688,
-        "scaleX": 0.109627366703707,
-        "scaleY": 0.109627366703707,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1265.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-4 1"
-      }
-    ]
-  },
-  "瓶-1": {
-    "name": "瓶-1",
-    "cx": 2852,
-    "cy": 1260,
-    "pieces": [
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2848.682373046875,
-        "y": 1248.2052612304688,
-        "scaleX": 0.10807257468530466,
-        "scaleY": 0.10807257468530466,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1288.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-3 1"
-      },
-      {
-        "tex": "obstacle_bottle1",
-        "x": 2887.682373046875,
-        "y": 1267.2052612304688,
-        "scaleX": 0.13568021383428008,
-        "scaleY": 0.13568021383428008,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1339.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-1 1"
-      },
-      {
-        "tex": "obstacle_bottle4",
-        "x": 2865.682373046875,
-        "y": 1278.2052612304688,
-        "scaleX": 0.11510873503889235,
-        "scaleY": 0.11510873503889235,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1280.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-4 2"
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2815.682373046875,
-        "y": 1261.2052612304688,
-        "scaleX": 0.10292626160505206,
-        "scaleY": 0.10292626160505206,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1279.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-3 4"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2830.682373046875,
-        "y": 1241.2052612304688,
-        "scaleX": 0.12541435237590376,
-        "scaleY": 0.12541435237590376,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1273.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-2 2"
-      }
-    ]
-  },
-  "瓶-3": {
-    "name": "瓶-3",
-    "cx": 2827,
-    "cy": 1254,
-    "pieces": [
-      {
-        "tex": "obstacle_bottle1",
-        "x": 2865.780526594008,
-        "y": 1258.184043219455,
-        "scaleX": 0.11720567008684166,
-        "scaleY": 0.11720567008684166,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1339.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-1 1"
-      },
-      {
-        "tex": "obstacle_bottle2",
-        "x": 2831.5417834777136,
-        "y": 1242.7242656576364,
-        "scaleX": 0.10833763297778101,
-        "scaleY": 0.10833763297778101,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1273.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-2 2"
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2817.682373046875,
-        "y": 1275.2052612304688,
-        "scaleX": 0.09802501105243053,
-        "scaleY": 0.09802501105243053,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 1.7453292519943286,
-        "depth": 1319.2052612304688,
-        "family": "obstacle",
-        "label": "瓶-3 4"
-      },
-      {
-        "tex": "obstacle_bottle3",
-        "x": 2864.7779541015625,
-        "y": 1268.3244018554688,
-        "scaleX": 0.09802501105243053,
-        "scaleY": 0.09802501105243053,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 1.4835298641951795,
-        "depth": 1303.3244018554688,
-        "family": "obstacle",
-        "label": "瓶-3 5"
-      },
-      {
-        "tex": "obstacle_bottle4",
-        "x": 2809.7779541015625,
-        "y": 1241.3244018554688,
-        "scaleX": 0.12086417179083697,
-        "scaleY": 0.12086417179083697,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 8.326672684688674e-17,
-        "depth": 1272.3244018554688,
-        "family": "obstacle",
-        "label": "瓶-4 1"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2831.7779541015625,
-        "y": 1232.3244018554688,
-        "scaleX": 0.0890234039288077,
-        "scaleY": 0.0890234039288077,
-        "flipX": true,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1267.1392362360116,
-        "family": "obstacle",
-        "label": "头骨 1"
-      },
-      {
-        "tex": "obstacle_skull",
-        "x": 2787.7779541015625,
-        "y": 1262.3244018554688,
-        "scaleX": 0.0890234039288077,
-        "scaleY": 0.0890234039288077,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1289.1392362360116,
-        "family": "obstacle",
-        "label": "头骨 2"
-      }
-    ]
-  },
-  "木桶组合": {
-    "name": "木桶组合",
-    "cx": 3137,
-    "cy": 1040,
-    "pieces": [
-      {
-        "tex": "obstacle_barrel",
-        "x": 3108.7779541015625,
-        "y": 1063.3244018554688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1124.3244018554688,
-        "family": "obstacle",
-        "label": "木桶 2",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 3107.7779541015625,
-        "y": 975.3244018554688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1216.8582648695497,
-        "family": "obstacle",
-        "label": "木桶 3",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 3172.7779541015625,
-        "y": 1080.3244018554688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1141.3244018554688,
-        "family": "obstacle",
-        "label": "木桶 4",
-        "depthManual": true
-      },
-      {
-        "tex": "obstacle_barrel",
-        "x": 3101.7779541015625,
-        "y": 1105.3244018554688,
-        "scaleX": 0.234375,
-        "scaleY": 0.234375,
-        "flipX": false,
-        "flipY": false,
-        "rotation": 0,
-        "depth": 1166.3244018554688,
-        "family": "obstacle",
-        "label": "木桶 5",
-        "depthManual": true
-      }
-    ]
-  }
+ "下夹角": {
+  "name": "下夹角",
+  "cx": 4551,
+  "cy": 2263,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 4354.126,
+    "y": 2383.775,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 2602,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 3934.752,
+    "y": 2141.692,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 2357.9168922643635,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4747.874,
+    "y": 2383.775,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 2601,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5167.248,
+    "y": 2141.692,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 2357.9168922643635,
+    "family": "wall",
+    "label": "直墙·新 4"
+   }
+  ]
+ },
+ "上夹角": {
+  "name": "上夹角",
+  "cx": 4551,
+  "cy": 1498,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 4335.096076688053,
+    "y": 1380.252685546875,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1358.394,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 3929.578857421876,
+    "y": 1614.3364828263889,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1592.478,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4766.518310546875,
+    "y": 1381.2507934570312,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1359.392,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5172.035529813052,
+    "y": 1615.334590736545,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1593.476,
+    "family": "wall",
+    "label": "直墙·新 4"
+   }
+  ]
+ },
+ "左夹角": {
+  "name": "左夹角",
+  "cx": 3809,
+  "cy": 1899,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 3596.874,
+    "y": 1783.775,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1761.9166290729117,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4016.248,
+    "y": 1541.692,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1519.8336290729117,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 3615.572,
+    "y": 2021.858,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 2238.082892264363,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4021.089,
+    "y": 2255.942,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 2472.1668922643635,
+    "family": "wall",
+    "label": "直墙·新 4"
+   }
+  ]
+ },
+ "右夹角": {
+  "name": "右夹角",
+  "cx": 5291,
+  "cy": 1899,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 5503.126,
+    "y": 1783.775,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1761.9166290729117,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5083.752,
+    "y": 1541.692,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1519.8336290729117,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5484.428,
+    "y": 2021.858,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 2238.082892264363,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5078.911,
+    "y": 2255.942,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 2472.1668922643635,
+    "family": "wall",
+    "label": "直墙·新 4"
+   }
+  ]
+ },
+ "宝箱房": {
+  "name": "宝箱房",
+  "cx": 3951,
+  "cy": 1146,
+  "pieces": [
+   {
+    "tex": "wall_gate",
+    "x": 3729.197509765625,
+    "y": 1271.6521606445312,
+    "scaleX": 0.6551724137931034,
+    "scaleY": 0.7510354411835177,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1355.5396728515625,
+    "family": "wall",
+    "label": "门墙 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4148.8564453125,
+    "y": 1259.5396118164062,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1354.5396728515625,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 3739.8564453125,
+    "y": 1020.5396728515625,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1136.5396728515625,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 4172.282958984375,
+    "y": 1022.471923828125,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1115.584228515625,
+    "family": "wall",
+    "label": "直墙·新 3"
+   }
+  ]
+ },
+ "沼泽宝箱房": {
+  "name": "沼泽宝箱房",
+  "cx": 3953,
+  "cy": 1235,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4115.564208984375,
+    "y": 1148.7747192382812,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1148.7747192382812,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 3789.564208984375,
+    "y": 1142.7747192382812,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1092.7747192382812,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4118.564208984375,
+    "y": 1327.7747192382812,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1452.7747192382812,
+    "family": "wall",
+    "label": "沼泽柴墙 3"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 3787.564208984375,
+    "y": 1323.7747192382812,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1332.7747192382812,
+    "family": "wall",
+    "label": "沼泽藤门 1"
+   }
+  ]
+ },
+ "沼泽上夹角": {
+  "name": "沼泽上夹角",
+  "cx": 4883,
+  "cy": 1490,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5049.70751953125,
+    "y": 1487.80712890625,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1483.80712890625,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 4715.34130859375,
+    "y": 1491.9849853515625,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1460.80712890625,
+    "family": "wall",
+    "label": "沼泽藤门 1"
+   }
+  ]
+ },
+ "沼泽下夹角": {
+  "name": "沼泽下夹角",
+  "cx": 4202,
+  "cy": 1426,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4361.996337890625,
+    "y": 1427.647216796875,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1427.647216796875,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4042.996337890625,
+    "y": 1424.647216796875,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1426.647216796875,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   }
+  ]
+ },
+ "沼泽右夹角": {
+  "name": "沼泽右夹角",
+  "cx": 5253,
+  "cy": 1750,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 5262.151123046875,
+    "y": 1652.9439697265625,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1652.9439697265625,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 5244.151123046875,
+    "y": 1847.9439697265625,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1835.9439697265625,
+    "family": "wall",
+    "label": "沼泽藤门 1"
+   }
+  ]
+ },
+ "沼泽左夹角": {
+  "name": "沼泽左夹角",
+  "cx": 4698,
+  "cy": 1772,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4689.151123046875,
+    "y": 1673.9439697265625,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1590.9439697265625,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 4707.151123046875,
+    "y": 1869.9439697265625,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1878.9439697265625,
+    "family": "wall",
+    "label": "沼泽藤门 2"
+   }
+  ]
+ },
+ "沼泽墙上夹角": {
+  "name": "沼泽墙上夹角",
+  "cx": 3964,
+  "cy": 1239,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4119.23291015625,
+    "y": 1237.0933837890625,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1237.0933837890625,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 3808.233154296875,
+    "y": 1240.09326171875,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1252.09326171875,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   }
+  ]
+ },
+ "沼泽墙右夹角": {
+  "name": "沼泽墙右夹角",
+  "cx": 4270,
+  "cy": 1380,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4270.186279296875,
+    "y": 1289.917724609375,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1258.917724609375,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 4269.186279296875,
+    "y": 1470.917724609375,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1603.917724609375,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   }
+  ]
+ },
+ "沼泽墙左夹角": {
+  "name": "沼泽墙左夹角",
+  "cx": 3697,
+  "cy": 1293,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 3697.186279296875,
+    "y": 1382.917724609375,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "depth": 1278.917724609375,
+    "family": "wall",
+    "label": "沼泽柴墙 1"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 3696.186279296875,
+    "y": 1203.917724609375,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": true,
+    "flipY": false,
+    "depth": 1277.917724609375,
+    "family": "wall",
+    "label": "沼泽柴墙 2"
+   }
+  ]
+ },
+ "上下通道": {
+  "name": "上下通道",
+  "cx": 5338,
+  "cy": 1678,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 4936.098015108823,
+    "y": 1669.5415609513886,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1880.766453215752,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5719.56689453125,
+    "y": 1672.962890625,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1662.962890625,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5314.049675265073,
+    "y": 1907.0466879045136,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 2123.271580168877,
+    "family": "wall",
+    "label": "直墙·新 4"
+   },
+   {
+    "tex": "wall_gate",
+    "x": 5755.615234375,
+    "y": 1443.457763671875,
+    "scaleX": 0.6551724137931034,
+    "scaleY": 0.7510354411835177,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1559.2103271484375,
+    "family": "wall",
+    "label": "门墙 1"
+   },
+   {
+    "tex": "wall_gate",
+    "x": 4920.615234375,
+    "y": 1926.457763671875,
+    "scaleX": 0.6551724137931034,
+    "scaleY": 0.7510354411835177,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 2124.271580168877,
+    "family": "wall",
+    "label": "门墙 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 5350.615234375,
+    "y": 1430.457763671875,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1455.457763671875,
+    "family": "wall",
+    "label": "直墙·新 5"
+   }
+  ]
+ },
+ "左右通道": {
+  "name": "左右通道",
+  "cx": 2253,
+  "cy": 1376,
+  "pieces": [
+   {
+    "tex": "wall_straight",
+    "x": 2655.375856980581,
+    "y": 1367.4585217579543,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "直墙·新 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 1871.9069775581543,
+    "y": 1370.8798514315656,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1360.8798514315656,
+    "family": "wall",
+    "label": "直墙·新 3"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 2277.424196824331,
+    "y": 1604.9636487110793,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1821.1885409754425,
+    "family": "wall",
+    "label": "直墙·新 4"
+   },
+   {
+    "tex": "wall_gate",
+    "x": 1835.8586377144043,
+    "y": 1141.3747244784406,
+    "scaleX": 0.6551724137931034,
+    "scaleY": 0.7510354411835177,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1257.127287955003,
+    "family": "wall",
+    "label": "门墙 1"
+   },
+   {
+    "tex": "wall_gate",
+    "x": 2670.8586377144043,
+    "y": 1624.3747244784406,
+    "scaleX": 0.6551724137931034,
+    "scaleY": 0.7510354411835177,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1822.1885409754425,
+    "family": "wall",
+    "label": "门墙 2"
+   },
+   {
+    "tex": "wall_straight",
+    "x": 2240.8586377144043,
+    "y": 1128.3747244784406,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1153.3747244784406,
+    "family": "wall",
+    "label": "直墙·新 5"
+   }
+  ]
+ },
+ "骨头堆": {
+  "name": "骨头堆",
+  "cx": 2869,
+  "cy": 1431,
+  "pieces": [
+   {
+    "tex": "obstacle_skull",
+    "x": 2811.36865234375,
+    "y": 1428.64501953125,
+    "scaleX": 0.10820850387174034,
+    "scaleY": 0.10820850387174034,
+    "flipX": true,
+    "flipY": false,
+    "rotation": -1.134464013796314,
+    "depth": 1516.64501953125,
+    "family": "obstacle",
+    "label": "头骨 1"
+   },
+   {
+    "tex": "obstacle_bones",
+    "x": 2874.36865234375,
+    "y": 1427.64501953125,
+    "scaleX": 0.2386634844868735,
+    "scaleY": 0.2386634844868735,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1507.64501953125,
+    "family": "obstacle",
+    "label": "骨头堆 1"
+   },
+   {
+    "tex": "obstacle_bones",
+    "x": 2926.0001220703125,
+    "y": 1447.0982055664062,
+    "scaleX": 0.2386634844868735,
+    "scaleY": 0.2386634844868735,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1513.0982055664062,
+    "family": "obstacle",
+    "label": "骨头堆 2"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2912.0001220703125,
+    "y": 1398.0982055664062,
+    "scaleX": 0.11361892906532736,
+    "scaleY": 0.11361892906532736,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1419.913039946949,
+    "family": "obstacle",
+    "label": "头骨 2"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2848.0001220703125,
+    "y": 1464.0982055664062,
+    "scaleX": 0.11361892906532736,
+    "scaleY": 0.11361892906532736,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0.9599310885968811,
+    "depth": 1544.913039946949,
+    "family": "obstacle",
+    "label": "头骨 3"
+   }
+  ]
+ },
+ "火把墙": {
+  "name": "火把墙",
+  "cx": 2513,
+  "cy": 1149,
+  "pieces": [
+   {
+    "tex": "obstacle_torch",
+    "x": 2420.4415283203125,
+    "y": 1095.5126953125,
+    "scaleX": 0.21691481028661888,
+    "scaleY": 0.21691481028661888,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1380.820301356791,
+    "family": "obstacle",
+    "label": "火把 1",
+    "depthManual": true
+   },
+   {
+    "tex": "wall_straight",
+    "x": 2554.19482421875,
+    "y": 1149.7706909179688,
+    "scaleX": 0.27496382054992763,
+    "scaleY": 0.31450893420271037,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1360.9955831823322,
+    "family": "wall",
+    "label": "直墙·新 1"
+   },
+   {
+    "tex": "obstacle_torch",
+    "x": 2606.19482421875,
+    "y": 1201.7706909179688,
+    "scaleX": 0.21691481028661888,
+    "scaleY": 0.21691481028661888,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1389.7326604440204,
+    "family": "obstacle",
+    "label": "火把 2",
+    "depthManual": true
+   }
+  ]
+ },
+ "桶+瓶-1": {
+  "name": "桶+瓶-1",
+  "cx": 2590,
+  "cy": 1204,
+  "pieces": [
+   {
+    "tex": "obstacle_barrel",
+    "x": 2595.6473388671875,
+    "y": 1217.7706909179688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1277.7706909179688,
+    "family": "obstacle",
+    "label": "木桶 2"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2561.6473388671875,
+    "y": 1255.7706909179688,
+    "scaleX": 0.10317869807407715,
+    "scaleY": 0.10317869807407715,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1339.2078552246094,
+    "family": "obstacle",
+    "label": "瓶-2 1",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2585.6473388671875,
+    "y": 1152.7706909179688,
+    "scaleX": 0.08891157465073063,
+    "scaleY": 0.08891157465073063,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1308.489273071289,
+    "family": "obstacle",
+    "label": "瓶-3 1",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_bottle1",
+    "x": 2618.6473388671875,
+    "y": 1170.7706909179688,
+    "scaleX": 0.10124666458208974,
+    "scaleY": 0.10124666458208974,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1293.129981994629,
+    "family": "obstacle",
+    "label": "瓶-1 1",
+    "depthManual": true
+   }
+  ]
+ },
+ "骨头堆-2": {
+  "name": "骨头堆-2",
+  "cx": 2499,
+  "cy": 1367,
+  "pieces": [
+   {
+    "tex": "obstacle_chains",
+    "x": 2524.6473388671875,
+    "y": 1367.7706909179688,
+    "scaleX": 0.2063573961481543,
+    "scaleY": 0.2063573961481543,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1388.8191453250804,
+    "family": "obstacle",
+    "label": "锁链 2"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2528.9866943359375,
+    "y": 1375.1085815429688,
+    "scaleX": 0.08478419421791208,
+    "scaleY": 0.08478419421791208,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0.6981317007977318,
+    "depth": 1405.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 2"
+   },
+   {
+    "tex": "obstacle_bones",
+    "x": 2470.9866943359375,
+    "y": 1361.1085815429688,
+    "scaleX": 0.13289675851493055,
+    "scaleY": 0.13289675851493055,
+    "flipX": true,
+    "flipY": false,
+    "rotation": -0.2617993877991539,
+    "depth": 1413.1085815429688,
+    "family": "obstacle",
+    "label": "骨头堆 2"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2492.9866943359375,
+    "y": 1382.1085815429688,
+    "scaleX": 0.08074685163610675,
+    "scaleY": 0.08074685163610675,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1403.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 3"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2513.9866943359375,
+    "y": 1360.1085815429688,
+    "scaleX": 0.08478419421791207,
+    "scaleY": 0.08478419421791207,
+    "flipX": false,
+    "flipY": false,
+    "rotation": -0.9599310885968813,
+    "depth": 1394.732082428165,
+    "family": "obstacle",
+    "label": "头骨 4",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2513.9866943359375,
+    "y": 1381.1085815429688,
+    "scaleX": 0.08478419421791208,
+    "scaleY": 0.08478419421791208,
+    "flipX": false,
+    "flipY": false,
+    "rotation": -1.9198621771937614,
+    "depth": 1459.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 5"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2444.9866943359375,
+    "y": 1360.1085815429688,
+    "scaleX": 0.0890234039288077,
+    "scaleY": 0.0890234039288077,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1380.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 6"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2552.9866943359375,
+    "y": 1381.1085815429688,
+    "scaleX": 0.0769017634629588,
+    "scaleY": 0.0769017634629588,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1363.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 7"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2529.9866943359375,
+    "y": 1352.1085815429688,
+    "scaleX": 0.08478419421791208,
+    "scaleY": 0.08478419421791208,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1373.9234159235116,
+    "family": "obstacle",
+    "label": "头骨 8"
+   }
+  ]
+ },
+ "水缸+瓶-1": {
+  "name": "水缸+瓶-1",
+  "cx": 2541,
+  "cy": 1408,
+  "pieces": [
+   {
+    "tex": "obstacle_pot",
+    "x": 2554.79443359375,
+    "y": 1382.1085815429688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1442.1085815429688,
+    "family": "obstacle",
+    "label": "陶罐 2"
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2501.79443359375,
+    "y": 1417.1085815429688,
+    "scaleX": 0.08891157465073063,
+    "scaleY": 0.08891157465073063,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1453.1085815429688,
+    "family": "obstacle",
+    "label": "瓶-3 2"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2534.79443359375,
+    "y": 1433.1085815429688,
+    "scaleX": 0.11375451462667006,
+    "scaleY": 0.11375451462667006,
+    "flipX": false,
+    "flipY": false,
+    "rotation": -1.3962634015954631,
+    "depth": 1531.1085815429688,
+    "family": "obstacle",
+    "label": "瓶-2 2"
+   },
+   {
+    "tex": "obstacle_bottle4",
+    "x": 2580.79443359375,
+    "y": 1427.1085815429688,
+    "scaleX": 0.12086417179083697,
+    "scaleY": 0.12086417179083697,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1451.1085815429688,
+    "family": "obstacle",
+    "label": "瓶-4 1"
+   }
+  ]
+ },
+ "烛台+铁链": {
+  "name": "烛台+铁链",
+  "cx": 2667,
+  "cy": 1397,
+  "pieces": [
+   {
+    "tex": "obstacle_candle",
+    "x": 2643.5335693359375,
+    "y": 1357.1085815429688,
+    "scaleX": 0.28125,
+    "scaleY": 0.28125,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1481.901027740665,
+    "family": "obstacle",
+    "label": "烛台 2",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_chains",
+    "x": 2689.5335693359375,
+    "y": 1437.1085815429688,
+    "scaleX": 0.2063573961481543,
+    "scaleY": 0.2063573961481543,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1459.1570359500804,
+    "family": "obstacle",
+    "label": "锁链 2",
+    "depthManual": true
+   }
+  ]
+ },
+ "水缸+水缸": {
+  "name": "水缸+水缸",
+  "cx": 2708,
+  "cy": 1357,
+  "pieces": [
+   {
+    "tex": "obstacle_pot",
+    "x": 2740.536376953125,
+    "y": 1370.1085815429688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1413.1085815429688,
+    "family": "obstacle",
+    "label": "陶罐 2"
+   },
+   {
+    "tex": "obstacle_pot",
+    "x": 2674.536376953125,
+    "y": 1344.1085815429688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1428.1085815429688,
+    "family": "obstacle",
+    "label": "陶罐 3"
+   }
+  ]
+ },
+ "桶*3+瓶": {
+  "name": "桶*3+瓶",
+  "cx": 2603,
+  "cy": 1204,
+  "pieces": [
+   {
+    "tex": "obstacle_barrel",
+    "x": 2595.6473388671875,
+    "y": 1217.7706909179688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1277.7706909179688,
+    "family": "obstacle",
+    "label": "木桶 2"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2561.6473388671875,
+    "y": 1255.7706909179688,
+    "scaleX": 0.10317869807407715,
+    "scaleY": 0.10317869807407715,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1339.2078552246094,
+    "family": "obstacle",
+    "label": "瓶-2 1",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2585.6473388671875,
+    "y": 1152.7706909179688,
+    "scaleX": 0.08891157465073063,
+    "scaleY": 0.08891157465073063,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1308.489273071289,
+    "family": "obstacle",
+    "label": "瓶-3 1",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_bottle1",
+    "x": 2618.6473388671875,
+    "y": 1170.7706909179688,
+    "scaleX": 0.10124666458208974,
+    "scaleY": 0.10124666458208974,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1293.129981994629,
+    "family": "obstacle",
+    "label": "瓶-1 1",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 2663.536376953125,
+    "y": 1200.4427490234375,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1267.4427490234375,
+    "family": "obstacle",
+    "label": "木桶 3"
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 2597.536376953125,
+    "y": 1157.4427490234375,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1188.4427490234375,
+    "family": "obstacle",
+    "label": "木桶 4"
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 2542.536376953125,
+    "y": 1201.4427490234375,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": -1.6580627893946123,
+    "depth": 1261.4427490234375,
+    "family": "obstacle",
+    "label": "木桶 5"
+   }
+  ]
+ },
+ "瓶-2": {
+  "name": "瓶-2",
+  "cx": 2835,
+  "cy": 1257,
+  "pieces": [
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2848.682373046875,
+    "y": 1248.2052612304688,
+    "scaleX": 0.10807257468530466,
+    "scaleY": 0.10807257468530466,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1288.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-3 1"
+   },
+   {
+    "tex": "obstacle_bottle1",
+    "x": 2813.682373046875,
+    "y": 1281.2052612304688,
+    "scaleX": 0.13568021383428008,
+    "scaleY": 0.13568021383428008,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1339.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-1 1"
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2819.682373046875,
+    "y": 1233.2052612304688,
+    "scaleX": 0.10292626160505206,
+    "scaleY": 0.10292626160505206,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1261.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-3 2"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2855.682373046875,
+    "y": 1281.2052612304688,
+    "scaleX": 0.15244192915261343,
+    "scaleY": 0.15244192915261343,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 1.658062789394617,
+    "depth": 1329.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-2 1"
+   },
+   {
+    "tex": "obstacle_bottle4",
+    "x": 2828.682373046875,
+    "y": 1248.2052612304688,
+    "scaleX": 0.109627366703707,
+    "scaleY": 0.109627366703707,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1265.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-4 1"
+   }
+  ]
+ },
+ "瓶-1": {
+  "name": "瓶-1",
+  "cx": 2852,
+  "cy": 1260,
+  "pieces": [
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2848.682373046875,
+    "y": 1248.2052612304688,
+    "scaleX": 0.10807257468530466,
+    "scaleY": 0.10807257468530466,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1288.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-3 1"
+   },
+   {
+    "tex": "obstacle_bottle1",
+    "x": 2887.682373046875,
+    "y": 1267.2052612304688,
+    "scaleX": 0.13568021383428008,
+    "scaleY": 0.13568021383428008,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1339.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-1 1"
+   },
+   {
+    "tex": "obstacle_bottle4",
+    "x": 2865.682373046875,
+    "y": 1278.2052612304688,
+    "scaleX": 0.11510873503889235,
+    "scaleY": 0.11510873503889235,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1280.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-4 2"
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2815.682373046875,
+    "y": 1261.2052612304688,
+    "scaleX": 0.10292626160505206,
+    "scaleY": 0.10292626160505206,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1279.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-3 4"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2830.682373046875,
+    "y": 1241.2052612304688,
+    "scaleX": 0.12541435237590376,
+    "scaleY": 0.12541435237590376,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1273.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-2 2"
+   }
+  ]
+ },
+ "瓶-3": {
+  "name": "瓶-3",
+  "cx": 2827,
+  "cy": 1254,
+  "pieces": [
+   {
+    "tex": "obstacle_bottle1",
+    "x": 2865.780526594008,
+    "y": 1258.184043219455,
+    "scaleX": 0.11720567008684166,
+    "scaleY": 0.11720567008684166,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1339.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-1 1"
+   },
+   {
+    "tex": "obstacle_bottle2",
+    "x": 2831.5417834777136,
+    "y": 1242.7242656576364,
+    "scaleX": 0.10833763297778101,
+    "scaleY": 0.10833763297778101,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1273.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-2 2"
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2817.682373046875,
+    "y": 1275.2052612304688,
+    "scaleX": 0.09802501105243053,
+    "scaleY": 0.09802501105243053,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 1.7453292519943286,
+    "depth": 1319.2052612304688,
+    "family": "obstacle",
+    "label": "瓶-3 4"
+   },
+   {
+    "tex": "obstacle_bottle3",
+    "x": 2864.7779541015625,
+    "y": 1268.3244018554688,
+    "scaleX": 0.09802501105243053,
+    "scaleY": 0.09802501105243053,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 1.4835298641951795,
+    "depth": 1303.3244018554688,
+    "family": "obstacle",
+    "label": "瓶-3 5"
+   },
+   {
+    "tex": "obstacle_bottle4",
+    "x": 2809.7779541015625,
+    "y": 1241.3244018554688,
+    "scaleX": 0.12086417179083697,
+    "scaleY": 0.12086417179083697,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 8.326672684688674e-17,
+    "depth": 1272.3244018554688,
+    "family": "obstacle",
+    "label": "瓶-4 1"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2831.7779541015625,
+    "y": 1232.3244018554688,
+    "scaleX": 0.0890234039288077,
+    "scaleY": 0.0890234039288077,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1267.1392362360116,
+    "family": "obstacle",
+    "label": "头骨 1"
+   },
+   {
+    "tex": "obstacle_skull",
+    "x": 2787.7779541015625,
+    "y": 1262.3244018554688,
+    "scaleX": 0.0890234039288077,
+    "scaleY": 0.0890234039288077,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1289.1392362360116,
+    "family": "obstacle",
+    "label": "头骨 2"
+   }
+  ]
+ },
+ "木桶组合": {
+  "name": "木桶组合",
+  "cx": 3137,
+  "cy": 1040,
+  "pieces": [
+   {
+    "tex": "obstacle_barrel",
+    "x": 3108.7779541015625,
+    "y": 1063.3244018554688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1124.3244018554688,
+    "family": "obstacle",
+    "label": "木桶 2",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 3107.7779541015625,
+    "y": 975.3244018554688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1216.8582648695497,
+    "family": "obstacle",
+    "label": "木桶 3",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 3172.7779541015625,
+    "y": 1080.3244018554688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1141.3244018554688,
+    "family": "obstacle",
+    "label": "木桶 4",
+    "depthManual": true
+   },
+   {
+    "tex": "obstacle_barrel",
+    "x": 3101.7779541015625,
+    "y": 1105.3244018554688,
+    "scaleX": 0.234375,
+    "scaleY": 0.234375,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1166.3244018554688,
+    "family": "obstacle",
+    "label": "木桶 5",
+    "depthManual": true
+   }
+  ]
+ },
+ "左右通道·沼泽": {
+  "name": "左右通道·沼泽",
+  "cx": 2253,
+  "cy": 1376,
+  "pieces": [
+   {
+    "tex": "swamp_wall_straight",
+    "x": 2068.87397399611,
+    "y": 1034.3507732423734,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 2359.1284969042163,
+    "y": 1202.2465032598766,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 2649.3830198123223,
+    "y": 1370.1422332773798,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 1870.9677514399805,
+    "y": 1376.4867894625975,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 2161.2222743480866,
+    "y": 1544.3825194801007,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_wall_straight",
+    "x": 2451.4767972561926,
+    "y": 1712.2782494976038,
+    "scaleX": 0.23773773773773774,
+    "scaleY": 0.24090868685463282,
+    "flipX": false,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1578.6834140223177,
+    "family": "wall",
+    "label": "沼泽柴墙"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 1835.5189750980207,
+    "y": 1145.9018386464666,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1257.127287955003,
+    "family": "wall",
+    "label": "沼泽藤门"
+   },
+   {
+    "tex": "swamp_gate",
+    "x": 2670.5189750980207,
+    "y": 1628.9018386464666,
+    "scaleX": 0.6310195948189969,
+    "scaleY": 0.6404477307936173,
+    "flipX": true,
+    "flipY": false,
+    "rotation": 0,
+    "depth": 1822.1885409754425,
+    "family": "wall",
+    "label": "沼泽藤门"
+   }
+  ]
+ }
 }

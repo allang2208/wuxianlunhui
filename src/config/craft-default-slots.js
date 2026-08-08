@@ -334,6 +334,78 @@ export const CRAFT_DEFAULT_SLOTS = {
       }
     }
   ],
+  "weapon21": [
+    {
+      "id": "muzzle",
+      "name": "枪口",
+      "x": 0.08,
+      "y": 0.15,
+      "lineTarget": {
+        "x": 0.497,
+        "y": 0.232
+      }
+    },
+    {
+      "id": "barrel",
+      "name": "枪管",
+      "x": 0.08,
+      "y": 0.4,
+      "lineTarget": {
+        "x": 0.497,
+        "y": 0.278
+      }
+    },
+    {
+      "id": "sight",
+      "name": "瞄具",
+      "x": 0.08,
+      "y": 0.65,
+      "lineTarget": {
+        "x": 0.499,
+        "y": 0.49
+      }
+    },
+    {
+      "id": "magazine",
+      "name": "弹夹",
+      "x": 0.92,
+      "y": 0.08,
+      "lineTarget": {
+        "x": 0.401,
+        "y": 0.488
+      }
+    },
+    {
+      "id": "bullet",
+      "name": "子弹",
+      "x": 0.92,
+      "y": 0.32,
+      "lineTarget": {
+        "x": 0.401,
+        "y": 0.488
+      }
+    },
+    {
+      "id": "grip",
+      "name": "握把",
+      "x": 0.92,
+      "y": 0.45,
+      "lineTarget": {
+        "x": 0.503,
+        "y": 0.555
+      }
+    },
+    {
+      "id": "stock",
+      "name": "后托",
+      "x": 0.92,
+      "y": 0.7,
+      "lineTarget": {
+        "x": 0.497,
+        "y": 0.664
+      }
+    }
+  ],
   "weapon9": [
     {
       "id": "muzzle",

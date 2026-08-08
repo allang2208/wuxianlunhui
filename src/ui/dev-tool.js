@@ -90,6 +90,7 @@ const DevTool = {
         beretta93r: { name: 'Beretta 93R', img: WEAPON_TEX_PATH.weapon_beretta93r, type: 'pistol', configKey: 'beretta93r', weaponId: 'weapon19' },
         pkm:        { name: 'PKM',        img: WEAPON_TEX_PATH.weapon_pkm,      type: 'machinegun', configKey: 'pkm', weaponId: 'weapon6' },
         akm:        { name: 'AKM',        img: WEAPON_TEX_PATH.weapon_akm, type: 'rifle', configKey: 'akm', weaponId: 'weapon7' },
+        m416:       { name: 'M416',       img: WEAPON_TEX_PATH.weapon_m416, type: 'rifle', configKey: 'm416', weaponId: 'weapon21' },
         qbz191:     { name: 'QBZ-191',    img: WEAPON_TEX_PATH.weapon_qbz191,   type: 'rifle', configKey: 'qbz191', weaponId: 'weapon8' },
         qjb201:     { name: 'QJB-201',    img: WEAPON_TEX_PATH.weapon_qjb201,         type: 'machinegun', configKey: 'qjb201', weaponId: 'weapon11' },
         super90:    { name: 'Super90',    img: WEAPON_TEX_PATH.weapon_super90,      type: 'shotgun', configKey: 'shotgun', weaponId: 'weapon12' },

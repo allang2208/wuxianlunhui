@@ -28,6 +28,11 @@ import sys
 import time
 import urllib.request
 
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+if TOOLS_DIR not in sys.path:
+    sys.path.insert(0, TOOLS_DIR)
+from pick_bg_color import inject_background, name_for_hex, pick_bg_color_from_image  # noqa: E402
+
 UNET = "minimax_h3_fl2va_pruned_int8_convrot.safetensors"
 REF2VA_UNET = "minimax_h3_ref2va_pruned_int8_convrot.safetensors"
 CLIP = "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"
@@ -155,6 +160,9 @@ def main():
     ap.add_argument("--host", default="192.168.3.142")
     ap.add_argument("--port", type=int, default=8188)
     ap.add_argument("--timeout", type=int, default=2400, help="max seconds to wait for generation")
+    ap.add_argument("--bg-color", default=None,
+                    help="背景色 #RRGGBB 或 auto（用 --first-frame 参考图自动选主体没有的颜色，"
+                         "强制注入纯色底+无阴影条款；缺省不注入=沿用提示词原背景描述）")
     args = ap.parse_args()
 
     if args.prompt_file:
@@ -164,6 +172,21 @@ def main():
         prompt = args.prompt
     if not prompt:
         ap.error("provide --prompt or --prompt-file")
+    if args.bg_color:
+        if args.bg_color.lower() == "auto":
+            ref = args.first_frame or (args.ref_image[0] if args.ref_image else None)
+            if not ref:
+                print("[minimax-h3] --bg-color auto 但无参考图，跳过注入", flush=True)
+            else:
+                pick = pick_bg_color_from_image(ref)
+                prompt = inject_background(prompt, pick["name"], pick["hex"])
+                print(f"[minimax-h3] bg-color auto: {pick['name']} #{pick['hex']} "
+                      f"({pick['reason']})", flush=True)
+        else:
+            h = args.bg_color.lstrip("#")
+            name = name_for_hex(h)
+            prompt = inject_background(prompt, name, h)
+            print(f"[minimax-h3] bg-color: {name} #{h}", flush=True)
     try:
         width, height = (int(x) for x in args.size.lower().split("x"))
     except ValueError:
