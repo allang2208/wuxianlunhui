@@ -788,6 +788,25 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 实机验证：变身完成 howlTimer=0（不再自动嚎叫）；嚎叫技能触发纹理切换
     changed_howl、激励 buff 生效（自身 remaining 28s/30s）；lint 0 error、
     vite build 通过、config-integrity 通过。
+- **H3 视频精细度 = 参考图质量 + 分辨率/步数（2026-08-08 三十四版）**：
+  - 用户反馈"H3 动画过于粗糙"。两层根因：
+    ① 分辨率/步数被砍：SKILL 九版为提速用 1024×576 + 16 步（原生
+       1344×768 + 20 步），毛发细节和边缘明显糊；
+    ② **参考图从游戏贴图（512²）放大生成，本身模糊**——H3 i2v 锁形态时
+       参考图质量直接决定输出精细度，放大贴图当参考 = 糊上加糊。
+  - 修复流程：
+    ① 参考图改用 AI 文生图（智谱 glm-image，1280×1280，
+       `zhipu-gen.py --model glm-image`），提示词强调
+       "crisp fur texture / high detail / sharp focus / 8k illustration"；
+    ② 生成后用 GLM 验收（主体形态、毛发清晰、无畸形）；
+    ③ 清理背景阴影（低饱和 + 中亮 + 非红色调压白，防误删红毛）；
+    ④ 缩放到 1344×768 白底画布贴底居中 → 作 first/last frame；
+    ⑤ 视频 1344×768 + 20 步生成（每段 ~16min），切帧后照常
+       band + 浅灰清理。
+  - 结果：run 14 帧 / attack 12 帧 GLM 确认"毛发纹理、肌肉线条、动态细节
+    明显更精细"，脚下无残留、身体完整、动作连贯；已部署 assets + dist。
+  - 教训：**H3 i2v 参考图必须是高质量原生成图，不能用贴图放大**；文生图
+    参考 + HD 参数 + 20 步是精细动画的固定组合。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
