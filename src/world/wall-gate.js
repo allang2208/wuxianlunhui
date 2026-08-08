@@ -8,6 +8,7 @@
  */
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { pathFinder } from '../ai/pathfinder.js';
 
 const FRAMES = 16;
 const ANIM_MS = 900; // 16 帧总时长
@@ -101,7 +102,9 @@ export const WallGate = {
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _gate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _gate: true },
         ];
-        this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _gate: true };
+        // [GATE-WAIT] _gateHole 标记：区分门洞段与两侧门墙段（均 _gate）。
+        // MovementSystem 卡住检测只认门洞段做"门前等待"——门墙段是永久墙，不在此列
+        this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _gate: true, _gateHole: true };
         this._gateCenter = { x: (g1.x + g2.x) / 2, y: (g1.y + g2.y) / 2 };
         // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）：
         // 单位过门洞时门后遮挡、过半场显现；调用方显式 depth 更低时（转角斜接 -0.1 退位）保留较低值
@@ -119,10 +122,21 @@ export const WallGate = {
     setPassable(passable) {
         if (!WallSystem.isoSegments || !this._gateSeg) return;
         const i = WallSystem.isoSegments.indexOf(this._gateSeg);
+        let changed = false;
         if (!passable && i < 0) {
             WallSystem.isoSegments.push(this._gateSeg);
+            changed = true;
         } else if (passable && i >= 0) {
             WallSystem.isoSegments.splice(i, 1);
+            changed = true;
+        }
+        // [GATE-SOFT-COST] 门开关切换（低频事件）：局部失效门段区域寻路缓存，
+        // 让关门软成本/开门零成本及时反映（格子 memo 与 SpatialHash 均按区域清）
+        if (changed && pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+            const s = this._gateSeg;
+            pathFinder.invalidateRegion(
+                Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                Math.max(s.x1, s.x2), Math.max(s.y1, s.y2));
         }
     },
 

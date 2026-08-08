@@ -21,6 +21,7 @@ class RegionIndex {
         this.nextRegionId = 1;
         this._dirty = true;
         this._lastWallHash = null;
+        this._lastRadius = null; // [PERF-2026-08-08] 上次重建用的（桶）半径：半径档变化才需重建
     }
 
     // 标记需要重新计算
@@ -29,8 +30,13 @@ class RegionIndex {
     }
 
     // 检查是否需要重算（墙壁变化时）
-    checkDirty() {
+    // [PERF-2026-08-08] 可选传（桶）半径：索引按半径建，半径档变了同样要重算，
+    // 同桶半径重复调用不触发全量重建
+    checkDirty(radius) {
         if (this._dirty) return true;
+        if (radius !== undefined && this._lastRadius !== null && radius !== this._lastRadius) {
+            return true;
+        }
         // 检查墙壁哈希是否变化
         const currentHash = this._computeWallHash();
         if (currentHash !== this._lastWallHash) {
@@ -121,6 +127,7 @@ class RegionIndex {
 
         this._dirty = false;
         this._lastWallHash = this._computeWallHash();
+        this._lastRadius = entityRadius;
     }
 
     // 快速阻挡检测（不使用 SpatialHash，避免循环依赖）

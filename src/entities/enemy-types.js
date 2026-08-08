@@ -709,6 +709,11 @@ class BlackWolf extends Enemy {
 class RedWolfKing extends BlackWolf {
     constructor(x, y, config = {}) {
         super(x, y, { ...enemyConfigData.redWolfKing, ...config });
+        // 红狼王贴图自带脚部接地感，关闭运行时椭圆阴影——用户多次反馈
+        // "脚下像地面的大块色块"（GameScene._syncEntityShadows 绘制的
+        // entity_shadow，90×45px、alpha 0.35，固定跟随 collider 而贴图
+        // 奔跑弹跳，视觉上像贴图底部拖着一块地面色块）。
+        this._noShadow = true;
         this._animCfg = getAnimConfig('redWolfKing');
         const anim = this._animCfg.animation || {};
         const spritePaths = this._animCfg.sprites || {};

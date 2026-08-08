@@ -14,6 +14,14 @@ const CELL_STRIDE = 131072;
 // 桶外（>90）半径保持原值各自成桶。实际半径集合 10/28/33/40/60/90/180 → 桶 20/40/40/40/90/90/180。
 const RADIUS_BUCKETS = [20, 40, 90];
 
+// [GATE-SOFT-COST] 门闸软成本乘数：关着的门段（_gate 标记）纳入 SpatialHash 但不作阻挡，
+// 只给贴身格子加成本乘数。取 6 的依据：门段 halfThick(≈26) + 半径桶 20 的贴身带宽约 46px，
+// 跨门一次约经过 2 个格子，附加成本 ≈ 2×(6-1)×40 = 400px 等效绕程——战斗房尺度
+// （500~1000px）内有可绕路线时优先绕门，绕行代价 >400px 或门是唯一通路时仍规划穿门
+// （保持"不把临时障碍当永久墙"的原设计意图）。开门时门洞段已从 isoSegments splice 掉，
+// 成本自然归零。bench: tools/pathfinding-bench.mjs [GATE-SOFT-COST] 段。
+export const GATE_SOFT_COST = 6;
+
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
  * 优化内容：
@@ -25,6 +33,9 @@ const RADIUS_BUCKETS = [20, 40, 90];
  * 6. 路径平滑（简化冗余路径点）
  * 7. [NEW] Region Index 连通性预检查（RimWorld 机制）
  * 8. [NEW] 目标不可达时自动寻找最近出口
+ * 9. [PERF-2026-08-08] 掩体增删局部失效 invalidateRegion（替代全清）
+ * 10. [PERF-2026-08-08] 半径档归并桶（memo/路径缓存/RegionIndex 按桶共享）
+ * 11. [PERF-2026-08-08] 热路径整数 key + 堆 remove O(log n)
  * ================================================================ */
 
 /* ---------- 二叉堆优先队列 ---------- */
@@ -175,10 +186,15 @@ class SpatialHash {
             }
         }
         // 静态掩体墙段（DefenseCover._coverSeg）：按线段包围盒塞格，阻挡口径与
-        // WallSystem.canMoveTo 一致（点到线段距离 < 半径 + halfThick）
+        // WallSystem.canMoveTo 一致（点到线段距离 < 半径 + halfThick）。
+        // [GATE-SOFT-COST] 门闸段（_gate 标记）也纳入哈希但类型为 'gate'：
+        // isBlocked/_getCellData 的阻挡判定都不认它（保持可通行语义），
+        // 只在 _getCellData 里给贴身格子加 GATE_SOFT_COST 软成本乘数；
+        // 开门时门洞段已被 WallGate.setPassable 从 isoSegments splice 掉，成本自然归零
         if (WallSystem.isoSegments) {
             for (const s of WallSystem.isoSegments) {
-                if (!s._cover) continue; // 动态段（门闸/冰墙）不纳入
+                if (!s._cover && !s._gate) continue; // 其余动态段（冰墙等）不纳入
+                const type = s._cover ? 'seg' : 'gate';
                 const minCX = Math.floor(Math.min(s.x1, s.x2) / this.cellSize);
                 const maxCX = Math.floor(Math.max(s.x1, s.x2) / this.cellSize);
                 const minCY = Math.floor(Math.min(s.y1, s.y2) / this.cellSize);
@@ -187,7 +203,7 @@ class SpatialHash {
                     for (let cy = minCY; cy <= maxCY; cy++) {
                         const key = this._getKey(cx, cy);
                         if (!this.cells.has(key)) this.cells.set(key, []);
-                        this.cells.get(key).push({ type: 'seg', obj: s });
+                        this.cells.get(key).push({ type, obj: s });
                     }
                 }
             }
@@ -300,6 +316,73 @@ class PathFinder {
     }
 
     /**
+     * [PERF-2026-08-08] 半径档归并：返回该半径所属桶的代表半径（桶上界，保守不缩水）；
+     * 桶外（>90）半径原值返回、各自成桶。memo/路径缓存/RegionIndex 统一用桶半径，
+     * 同桶怪共享缓存，避免不同半径各建一套。
+     */
+    _bucketRadius(radius) {
+        for (const b of RADIUS_BUCKETS) {
+            if (radius <= b) return b;
+        }
+        return radius;
+    }
+
+    /**
+     * [PERF-2026-08-08] 局部失效（掩体增删专用）：只清与指定区域相关的缓存，
+     * 替代 invalidateCache() 的核弹级全清（世界-122 掩体被摧毁/加建频繁，
+     * 全清会让全部怪集体冷启动）。
+     * 传入矩形为变化源 bbox（如掩体线段包围盒），内部外扩 maxSearchRange(800px)——
+     * 任何搜索窗口最大外扩量，覆盖所有可能读到该几何的寻路。
+     * 清除范围：
+     *  1. _pathCache：路径任一节点落入外扩窗口的条目；负缓存(null)按起/终点判断
+     *  2. _exitCache：同口径按起/终点判断
+     *  3. _cellMemo：窗口内格子的全部半径桶条目
+     *  4. SpatialHash / RegionIndex：无增量结构，仍标脏惰性全量重建（下次查询触发一次）
+     */
+    invalidateRegion(minX, minY, maxX, maxY) {
+        const R = this.maxSearchRange;
+        const x0 = minX - R, x1 = maxX + R;
+        const y0 = minY - R, y1 = maxY + R;
+        const inWindow = (x, y) => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+        // 1) 路径缓存：节点命中窗口 → 删；null 负缓存按起终点命中判断
+        for (const [k, v] of this._pathCache) {
+            let hit = false;
+            if (v.path) {
+                for (const n of v.path) {
+                    if (inWindow(n.x, n.y)) { hit = true; break; }
+                }
+            }
+            if (!hit && v.meta &&
+                (inWindow(v.meta.sx, v.meta.sy) || inWindow(v.meta.ex, v.meta.ey))) {
+                hit = true;
+            }
+            if (hit) this._pathCache.delete(k);
+        }
+        // 2) 出口缓存（含 null 结果）：按起终点命中判断
+        for (const [k, v] of this._exitCache) {
+            if (v.meta && (inWindow(v.meta.sx, v.meta.sy) || inWindow(v.meta.ex, v.meta.ey))) {
+                this._exitCache.delete(k);
+            }
+        }
+        // 3) 格子 memo：窗口覆盖的格子，逐半径桶删除
+        const g0x = Math.floor(x0 / this.gridSize), g1x = Math.floor(x1 / this.gridSize);
+        const g0y = Math.floor(y0 / this.gridSize), g1y = Math.floor(y1 / this.gridSize);
+        for (let gx = g0x; gx <= g1x; gx++) {
+            for (let gy = g0y; gy <= g1y; gy++) {
+                const base = (gx + gy * CELL_STRIDE) * 4096;
+                for (const r of this._memoRadii) this._cellMemo.delete(base + r);
+            }
+        }
+        // 4) SpatialHash（掩体 _cover 段来源）无增量移除：标脏后下次 _ensureHash 全量重建，
+        //    重建读 WallSystem.isoSegments 当前状态，增删后的段自然反映，不漏
+        this._hashValid = false;
+        this._maxTreeRadius = 0;
+        this._geometryVersion++;
+        // RegionIndex：保持 markDirty 惰性重建（机制不变）
+        regionIndex.markDirty();
+    }
+
+    /**
      * [PERF-2026-08-03] 每帧寻路预算：由 MovementSystem.beginFrame() 在每帧开始时调用。
      * 帧预算防止"刷怪瞬间 N 只怪同帧冷寻路"造成主线程长卡顿。
      */
@@ -324,9 +407,11 @@ class PathFinder {
     }
 
     // [NEW] 确保 RegionIndex 已构建（用于地牢战斗房间等封闭空间）
+    // [PERF-2026-08-08] 按桶半径建索引：同桶怪复用同一索引，不同桶才触发全量重建
     _ensureRegionIndex(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius) {
-        if (regionIndex.checkDirty()) {
-            regionIndex.rebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius);
+        const r = this._bucketRadius(entityRadius);
+        if (regionIndex.checkDirty(r)) {
+            regionIndex.rebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, r);
         }
     }
 
@@ -337,25 +422,27 @@ class PathFinder {
 
     /**
      * [PERF-2026-08-03] 合并单趟格子查询：一次空间哈希遍历同时算出 blocked 与静态 moveCost。
-     * 结果按(格子坐标, 半径)记忆化——同一几何下同半径寻路共享，消除 _buildGrid 每格两次
+     * 结果按(格子坐标, 半径桶)记忆化——同一几何下同桶寻路共享，消除 _buildGrid 每格两次
      * 空间查询的重复开销（实测单次冷路径 9.2ms 的根因，占冷路径 ~92%）。
-     * 半径必须参与 key：阻挡判定随半径线性膨胀，跨半径复用会读到错误结果
-     * （不同怪半径各异：10/28/33/40/60/90/180…；同型怪同半径天然共享）。
+     * [PERF-2026-08-08] 半径档归并：memo key 与阻挡判定统一用桶代表半径（桶上界，
+     * ≥ 桶内任意实际半径，路径只会变保守绕更宽、不会穿墙）；
+     * key 改整数 (gx + gy*CELL_STRIDE) * 4096 + 桶半径，消除热路径字符串拼接。
      * 注意：只缓存静态几何（墙/树）；动态障碍成本仍由 _buildGrid 每格实时叠加。
      */
     _getCellData(x, y, entityRadius) {
         this._ensureHash();
         // 契约：仅允许格子中心坐标调用（k×40+20）——memo 按格子复用，
         // 同格子内的不同采样点共享同一结果，只有中心采样才保证一致性
+        const r = this._bucketRadius(entityRadius);
         const gx = Math.floor(x / this.gridSize);
         const gy = Math.floor(y / this.gridSize);
-        const memoKey = `${gx},${gy},${entityRadius}`;
+        const memoKey = (gx + gy * CELL_STRIDE) * 4096 + r;
         const cached = this._cellMemo.get(memoKey);
         if (cached) return cached;
 
         const cellSize = this.spatialHash.cellSize;
         const [baseCX, baseCY] = this.spatialHash._getCell(x, y);
-        const searchR = Math.max(entityRadius, entityRadius * 1.5 + this._maxTreeRadius);
+        const searchR = Math.max(r, r * 1.5 + this._maxTreeRadius);
         const range = Math.ceil(searchR / cellSize) + 1;
         let cost = 1.0;
         let blocked = false;
@@ -368,8 +455,8 @@ class PathFinder {
                 for (const item of items) {
                     if (item.type === 'wall') {
                         const w = item.obj;
-                        if (x + entityRadius > w.x && x - entityRadius < w.x + w.w &&
-                            y + entityRadius > w.y && y - entityRadius < w.y + w.h) {
+                        if (x + r > w.x && x - r < w.x + w.w &&
+                            y + r > w.y && y - r < w.y + w.h) {
                             blocked = true;
                             break outer;
                         }
@@ -378,7 +465,7 @@ class PathFinder {
                           const ddx = x - t.x, ddy = y - t.y;
                         const distSq = ddx * ddx + ddy * ddy;
                         // 阻挡：与原 _isBlocked 同口径（视觉半径 + 实体半径）
-                        const blockR = t.radius + entityRadius;
+                        const blockR = t.radius + r;
                         if (distSq < blockR * blockR) {
                             blocked = true;
                             break outer;
@@ -386,21 +473,30 @@ class PathFinder {
                         // 近树软成本：与原 _getMoveCost 同口径（碰撞半径 + 实体半径×1.5），只计一棵
                         if (cost === 1.0) {
                             const treeR = t.collisionRadius || t.radius * 0.6;
-                            const nearR = treeR + entityRadius * 1.5;
+                            const nearR = treeR + r * 1.5;
                               if (distSq < nearR * nearR) cost += 0.5;
                           }
                       } else if (item.type === 'seg') {
                           const s = item.obj;
                           if (this.spatialHash._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2)
-                              < entityRadius + (s.halfThick || 26)) {
+                              < r + (s.halfThick || 26)) {
                               blocked = true;
                               break outer;
+                          }
+                      } else if (item.type === 'gate') {
+                          // [GATE-SOFT-COST] 门闸段不阻挡（不设 blocked，isBlocked 同口径不认），
+                          // 只给贴身格子加软成本乘数；与掩体阻挡判定同口径距离
+                          const s = item.obj;
+                          if (this.spatialHash._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2)
+                              < r + (s.halfThick || 26)) {
+                              if (cost < GATE_SOFT_COST) cost = GATE_SOFT_COST;
                           }
                       }
                   }
               }
         }
         const result = { blocked, cost };
+        this._memoRadii.add(r);
         this._cellMemo.set(memoKey, result);
         return result;
     }
@@ -415,7 +511,8 @@ class PathFinder {
         const maxSteps = Math.ceil(maxDist / step) * 3 + 20;
         const visited = new Set();
         const queue = [{ x: startX, y: startY }];
-        visited.add(`${Math.floor(startX / step)},${Math.floor(startY / step)}`);
+        // [PERF-2026-08-08] visited 整数 key（gx + gy*CELL_STRIDE），替代 "gx,gy" 字符串拼接
+        visited.add(Math.floor(startX / step) + Math.floor(startY / step) * CELL_STRIDE);
         let steps = 0;
         while (queue.length > 0 && steps < maxSteps) {
             steps++;
@@ -429,7 +526,7 @@ class PathFinder {
             for (const [dr, dc] of dirs) {
                 const nx = x + dr * step;
                 const ny = y + dc * step;
-                const key = `${Math.floor(nx / step)},${Math.floor(ny / step)}`;
+                const key = Math.floor(nx / step) + Math.floor(ny / step) * CELL_STRIDE;
                 if (visited.has(key)) continue;
                 if (this._isBlocked(nx, ny, entityRadius)) continue;
                 visited.add(key);
@@ -480,20 +577,26 @@ class PathFinder {
         }
         this._chargeBudget(budgetStart);
         // 结果（含 null）短时缓存；防无限增长
+        // [PERF-2026-08-08] meta 记录起终点：invalidateRegion 局部失效按区域相交判断
         if (this._exitCache.size > 100) this._exitCache.clear();
-        this._exitCache.set(exitKey, { result, timestamp: Date.now() });
+        this._exitCache.set(exitKey, {
+            result,
+            timestamp: Date.now(),
+            meta: { sx: startX, sy: startY, ex: targetX, ey: targetY }
+        });
         return result;
     }
 
     // [ENHANCE] 缓存管理
     _getCacheKey(startX, startY, endX, endY, radius) {
         // 坐标量化到 gridSize 的倍数，减少缓存 key 的精度
+        // [PERF-2026-08-08] 半径归并为桶：同桶怪共享路径缓存
         const gs = this.gridSize;
         const qx = Math.floor(startX / gs) * gs;
         const qy = Math.floor(startY / gs) * gs;
         const qex = Math.floor(endX / gs) * gs;
         const qey = Math.floor(endY / gs) * gs;
-        return `${qx},${qy},${qex},${qey},${radius}`;
+        return `${qx},${qy},${qex},${qey},${this._bucketRadius(radius)}`;
     }
 
     // 读取路径缓存：未命中返回 undefined；命中返回 path（可能为 null = 不可达负缓存）
@@ -507,7 +610,9 @@ class PathFinder {
         return cached.path;
     }
 
-    _setCache(key, path, ttl = this._cacheMaxAge) {
+    // [PERF-2026-08-08] meta 记录起终点：invalidateRegion 局部失效时按区域相交判断
+    // （负缓存 path=null 无节点可判，正缓存也用作兜底）
+    _setCache(key, path, ttl = this._cacheMaxAge, meta = null) {
         // 超过容量：先清过期，仍满则淘汰最旧（简单 LRU，避免只清过期导致的无限增长）
         if (this._pathCache.size >= this._cacheMaxSize) {
             const now = Date.now();
@@ -523,7 +628,7 @@ class PathFinder {
                 if (oldestKey !== null) this._pathCache.delete(oldestKey);
             }
         }
-        this._pathCache.set(key, { path, timestamp: Date.now(), ttl });
+        this._pathCache.set(key, { path, timestamp: Date.now(), ttl, meta });
     }
 
     _buildGrid(startX, startY, endX, endY, entityRadius) {
@@ -640,7 +745,7 @@ class PathFinder {
         return smoothed;
     }
 
-    _reconstructPath(endNode, entityRadius, cacheKey) {
+    _reconstructPath(endNode, entityRadius, cacheKey, cacheMeta) {
         const path = [];
         let node = endNode;
         while (node) {
@@ -648,7 +753,7 @@ class PathFinder {
             node = node.parent;
         }
         const smoothed = this._smoothPath(path, entityRadius);
-        this._setCache(cacheKey, smoothed);
+        this._setCache(cacheKey, smoothed, this._cacheMaxAge, cacheMeta);
         return smoothed;
     }
 
@@ -671,7 +776,7 @@ class PathFinder {
         this._chargeBudget(budgetStart);
         if (path === null && cacheUsable) {
             // [PERF-2026-08-03] 不可达负缓存（短 TTL）：避免卡住重算循环每 500ms 付一次冷 A* 成本
-            this._setCache(cacheKey, null, 500);
+            this._setCache(cacheKey, null, 500, { sx: startX, sy: startY, ex: endX, ey: endY });
         }
         return path;
     }
@@ -682,6 +787,7 @@ class PathFinder {
         if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
             return null;
         }
+        const cacheMeta = { sx: startX, sy: startY, ex: endX, ey: endY };
         const { grid, minX, minY, cols, rows } = this._buildGrid(startX, startY, endX, endY, entityRadius);
         const startC = Math.floor((startX - minX) / this.gridSize);
         const startR = Math.floor((startY - minY) / this.gridSize);
@@ -708,15 +814,16 @@ class PathFinder {
             if (++iterations > maxIterations) {
                 // 超时回退：返回通往当前最接近目标节点的路径
                 this._warn('[PathFinder] A* iteration limit reached, returning best-effort path');
-                return this._reconstructPath(bestNode, entityRadius, cacheKey);
+                return this._reconstructPath(bestNode, entityRadius, cacheKey, cacheMeta);
             }
             const current = openHeap.pop();
-            closedSet.add(`${current.r},${current.c}`);
+            // [PERF-2026-08-08] closedSet 整数 key（r*cols+c），替代 "r,c" 字符串拼接
+            closedSet.add(current.r * cols + current.c);
             if (!bestNode || current.h < bestNode.h) {
                 bestNode = current;
             }
             if (current === endNode || (Math.abs(current.x - endNode.x) < this.gridSize && Math.abs(current.y - endNode.y) < this.gridSize)) {
-                return this._reconstructPath(current, entityRadius, cacheKey);
+                return this._reconstructPath(current, entityRadius, cacheKey, cacheMeta);
             }
             const neighbors = [
                 [-1, -1], [-1, 0], [-1, 1],
@@ -729,7 +836,7 @@ class PathFinder {
                 if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
                 const neighbor = grid[nr][nc];
                 if (neighbor.blocked) continue;
-                if (closedSet.has(`${nr},${nc}`)) continue;
+                if (closedSet.has(nr * cols + nc)) continue;
                 if (this._isCornerCut(grid, rows, cols, current.r, current.c, dr, dc)) continue;
                 const isDiagonal = dr !== 0 && dc !== 0;
                 // [ENHANCE] 使用格子的 moveCost 权重

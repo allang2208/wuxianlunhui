@@ -545,6 +545,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
             // [FIX] 移除 dist > enemy.attackRange 限制：任何距离下卡住都触发寻路
             if (movedDist < 3) {
+                // [GATE-WAIT] 贴身阻挡段若是关着的门闸洞段：跳过 forceRecalc 与侧向
+                // reposition，让怪在门前等待——重算也只会得到同样的穿门软成本路径
+                // （[GATE-SOFT-COST] 保证可通行），空转循环无意义；门开后门洞段被
+                // WallGate.setPassable splice 掉，下一次卡住检测自然恢复重算（无需事件）。
+                // 门闸不可攻击（WallGate 无 hp/伤害接口），故只做等待、不发明转火机制。
+                const waitAtGate = this._findBlockingGateHole(enemy);
                 // [FIX] 寻路目标与实际移动目标一致（优先级同 _computeMoveDirection）
                 let targetX = enemy.x, targetY = enemy.y;
                 if (enemy._specialTacticalTarget) {
@@ -557,12 +563,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                     targetX = enemy.target.x;
                     targetY = enemy.target.y;
                 }
-                
+
                 // [ENHANCE] 卡住时强制触发 PathManager 重算（绕过频率限制）
                 const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
-                if (enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
+                if (!waitAtGate && enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
-                } else if (enemy._pathManager && pathFinder && !(enemy.ai && enemy.ai.chargeStraight)) {
+                } else if (!waitAtGate && enemy._pathManager && pathFinder && !(enemy.ai && enemy.ai.chargeStraight)) {
                     // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
                     if (!enemy._relayTarget) {
                         enemy._relayTarget = this._pickRelayPoint(enemy, targetX, targetY);
@@ -572,7 +578,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
                 // 直冲型怪物不做侧向 reposition，避免瞬间反向调头
-                if (!enemy._pathManager?.hasValidPath() && !(enemy.ai && enemy.ai.chargeStraight)) {
+                if (!waitAtGate && !enemy._pathManager?.hasValidPath() && !(enemy.ai && enemy.ai.chargeStraight)) {
                     this._setStuckRepositionTarget(enemy, targetX, targetY);
                 } else {
                     // 寻路成功时清除旧的临时 reposition 目标
@@ -592,6 +598,29 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             enemy._lastX = enemy.x;
             enemy._lastY = enemy.y;
         }
+    },
+
+    /**
+     * [GATE-WAIT] 贴身检测：怪物是否正被关着的门闸洞段（_gateHole）挡住。
+     * 门洞段只在关门时挂在 isoSegments（WallGate.setPassable push/splice），
+     * 开门即移除——检测结果随门开关自然翻转，无需事件订阅。
+     * 写法与 _retargetBlockingCover 的贴身段扫描同口径（半径 + 墙半厚 + 余量）。
+     * @param {Enemy} enemy
+     * @returns {Object|null} 贴身阻挡的门洞段，无则 null
+     */
+    _findBlockingGateHole(enemy) {
+        if (!WallSystem || !WallSystem.isoSegments) return null;
+        const touch = (enemy.groundRadius || 20) + 26 + 12; // 半径 + 墙半厚 + 余量
+        let best = null, bestD = Infinity;
+        for (const s of WallSystem.isoSegments) {
+            if (!s._gateHole) continue;
+            const d = this._pointSegDistance(enemy.x, enemy.y, s.x1, s.y1, s.x2, s.y2);
+            if (d <= touch && d < bestD) {
+                bestD = d;
+                best = s;
+            }
+        }
+        return best;
     },
 
     /**

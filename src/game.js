@@ -1298,7 +1298,8 @@ CombatSystem.update(e, dt, this.entities);
         }
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
-if (FormationSystem) {
+        // 无编队时跳过全表遍历（阵型成员才有 _formationId，空 Map 时逐实体调用纯属空转）
+if (FormationSystem && FormationSystem.formations && FormationSystem.formations.size > 0) {
             for (const e of this.entities.values()) {
                 if (e.active) FormationSystem.update(e, dt, this.entities);
             }
