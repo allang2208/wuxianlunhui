@@ -3067,6 +3067,31 @@ addTree(x, y, radius, ...) {
    CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
 8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
 
+### .357麦格农左轮实证（weapon22，2026-08-08 第二轮，手枪族）
+
+- **手枪族关键设定**：weaponType 复用 `'pistol'`（双持/副手/手枪精通/attack.js 等全部
+  逻辑自动覆盖），但 attackKey/offhandAttackKey/animConfigKey/canvasImageProp 每把枪独立
+  （`revolver`/`revolverOffhand`/`revolver`/`revolverImage`）——避免双持互盖（P4040 教训）。
+- **JS 补丁清单（手枪族，按 deagle 基准）**：EDM 加 ITEM（含 equipSound/ammoConfig/reloadSound）、
+  shop-system 加条目、player-defaults images 加 key、player/index.js 预载 `revolverImage`、
+  weapon-texture-map specialMap weapon22 + 加载列表、weapon-attack-config 加 `revolver`+`revolverOffhand`
+  两攻击块、weapon-transform 加 `revolver` 变换块 + **getWeaponSize/getAttackAnimOffset 的手枪判定
+  三处加 'revolver'**（wt=animConfigKey 会落默认 rifle 尺寸，必须显式加）、GameScene 五处
+  isGun/isGunR/isGunOff/isGunSpecial 加 'revolver'、subsystems/equip-manager 的 canvasImageProp
+  分支加 `revolverImage`（否则误映射 pistolImage）、gun-ammo GUN_AMMO_CAP + GUN_EQUIP_SOUND、
+  craft-default-slots 复制同族槽位、game.js 掉落列表、dev-tool/panels、attack.js 开火音效
+  **改为通用 `fireWeapon.fireSound` 优先**（新枪专属开火音自动生效，无需逐枪 else-if）。
+- **auto-level 对左轮不可靠**：圆形转轮 + 下垂握把导致上沿拟合法 8 次迭代不收敛（越转越歪）。
+  修复：`--no-orient` 后手动迭代——GLM 定性判断方向（偏高/偏低），用枪管段（右端细长部分）
+  中心线拟合做像素仲裁（±1° 内可接受）。枪口朝右基准：右端细=枪管。
+- **参考图**：S&W 左轮白底侧视（Britannica）→ 归档 `Y:\工作\无尽轮回\scratch\weapons\revolver357\`；
+  gen-image 用 `--ref-image` 自动剪影锁形，4 张候选 seed27 定稿（GLM 9 分）。
+- **音效**：开火 = .357 重击+金属回音（0.42s）；换弹 = 转轮甩出→6 发装填→合上→锁定（2.0s）；
+  装备 = 拔枪+转轮锁定双咔哒（0.55s）。三种均 44.1kHz 立体声。
+- **验证**：verify 全过（双份 JSON/资产/音效/node --check）+ lint 0 error + npm test 全绿 +
+  CDP 实机（EDM 物品/改造 6 槽/纹理注册 `weapon_revolver357`/攻击表 revolver+revolverOffhand/
+  装备音效触发/掉落列表）。
+
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
   attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。

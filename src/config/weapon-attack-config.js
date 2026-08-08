@@ -75,6 +75,28 @@ export const WEAPON_ATTACK_CONFIG = {
         knockback: 10
     },
 
+    // .357 麦格农左轮
+    revolver: {
+        type: 'RangedAttack',
+        cooldown: 700,
+        projectileSpeed: 1248,
+        projectileRange: 700,
+        projectileSize: 6,
+        damage: { min: 5, max: 10 },
+        piercing: false,
+        knockback: 12
+    },
+    revolverOffhand: {
+        type: 'RangedAttack',
+        cooldown: 700,
+        projectileSpeed: 1248,
+        projectileRange: 700,
+        projectileSize: 6,
+        damage: { min: 5, max: 10 },
+        piercing: false,
+        knockback: 12
+    },
+
     // P4040
     p4040: {
         type: 'RangedAttack',

@@ -1080,6 +1080,8 @@ switchWeaponMode() {
                     if (nextItem.equipImage) {
                         if (nextItem.canvasImageProp === 'deagleImage') {
                             this.deagleImage = loadImage(nextItem.equipImage);
+                        } else if (nextItem.canvasImageProp === 'revolverImage') {
+                            this.revolverImage = loadImage(nextItem.equipImage);
                         } else {
                             this.pistolImage = loadImage(nextItem.equipImage);
                         }
@@ -1170,6 +1172,8 @@ loadWeaponAssets(item) {
                 } else if (wt === 'pistol' && wa.image) {
                     if (item.canvasImageProp === 'deagleImage') {
                         this.deagleImage = loadImage(wa.image);
+                    } else if (item.canvasImageProp === 'revolverImage') {
+                        this.revolverImage = loadImage(wa.image);
                     } else {
                         this.pistolImage = loadImage(wa.image);
                     }

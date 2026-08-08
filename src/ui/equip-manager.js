@@ -284,6 +284,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         if (currentItem.equipImage) {
                             if (currentItem.canvasImageProp === 'deagleImage') {
                                 player.deagleImage = loadImage(currentItem.equipImage);
+                            } else if (currentItem.canvasImageProp === 'revolverImage') {
+                                player.revolverImage = loadImage(currentItem.equipImage);
                             } else {
                                 player.pistolImage = loadImage(currentItem.equipImage);
                             }
@@ -658,6 +660,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         if (item.equipImage) {
                             if (item.canvasImageProp === 'deagleImage') {
                                 player.deagleImage = loadImage(item.equipImage);
+                            } else if (item.canvasImageProp === 'revolverImage') {
+                                player.revolverImage = loadImage(item.equipImage);
                             } else {
                                 player.pistolImage = loadImage(item.equipImage);
                             }
