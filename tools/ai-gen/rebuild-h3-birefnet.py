@@ -22,38 +22,25 @@ import numpy as np
 from PIL import Image
 import torch
 
-MODEL_DIR = r"E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI\models\BiRefNet\MS-BiRefNet"
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+if TOOLS_DIR not in sys.path:
+    sys.path.insert(0, TOOLS_DIR)
+from rmbg_cutout import get_model, predict_alpha as rmbg_predict_alpha  # noqa: E402
 
 
 def load_model():
-    from transformers import AutoModelForImageSegmentation
-    model = AutoModelForImageSegmentation.from_pretrained(
-        MODEL_DIR, trust_remote_code=True, local_files_only=True
-    )
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-    model.eval()
-    if device == "cuda":
-        model.half()
-    print(f"[birefnet] model on {device}", flush=True)
+    model = get_model()
+    device = model.device
     return model, device
 
 
 def predict_alpha(model, device, pil):
-    from torchvision import transforms
-    tf = transforms.Compose([
-        transforms.Resize((1024, 1024)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0]),
-    ])
-    inp = tf(pil).unsqueeze(0).to(device)
-    if device == "cuda":
-        inp = inp.half()
-    with torch.no_grad():
-        preds = model(inp)[-1].sigmoid().cpu()
-    pred = preds[0].squeeze()
-    alpha = (pred.numpy() * 255).astype(np.uint8)
-    return cv2.resize(alpha, (pil.width, pil.height), interpolation=cv2.INTER_LINEAR)
+    return rmbg_predict_alpha(model, pil)
+
+
+def parse_hex_color(h):
+    h = h.lstrip("#")
+    return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.float64)
 
 
 def load_frames(video_path):
@@ -88,14 +75,16 @@ def sample_idxs(window, n, total):
     return sorted(set(max(0, min(total - 1, i)) for i in idxs))
 
 
-def post_clean_sheet(sheet, cell, hard=245, edge_dark=18):
+def post_clean_sheet(sheet, cell, hard=245, edge_dark=18, bg=None, bg_dist=20):
     """逐格后处理（黑狼 CLEAN 铁律，2026-08-08 内置到 rebuild）：
     1) alpha 硬二值化（>=245 -> 255，清 resize 插值半透带）；
     2) 每格只保留最大连通域（清孤立噪点色块）；
     3) 不透明亮像素邻接透明区（2px 膨胀）压暗到 edge_dark（清 resize 白圈）；
-    4) 腿部区域（bbox 底部 35%）亮像素 -> 5x5 邻域毛色均值（清脚底贴地残留）；
+    4) 腿部区域（bbox 底部 35%）近背景像素 -> 5x5 邻域毛色均值（清脚底贴地残留）；
     5) 透明区 RGB 归零。
     """
+    if bg is None:
+        bg = np.array([255.0, 255.0, 255.0])
     rgb = sheet[..., :3].copy()
     alpha = sheet[..., 3].copy()
     h, w = alpha.shape
@@ -115,20 +104,22 @@ def post_clean_sheet(sheet, cell, hard=245, edge_dark=18):
                 drop = (lab > 0) & (lab != keep)
                 a_bin[drop] = 0
                 rc[drop] = 0
-            # 边缘亮像素压暗
+            # 边缘近背景像素压暗（resize 白圈/背景混边）
+            dist_bg = np.linalg.norm(rc.astype(np.float64) - bg, axis=2)
+            lum = rc.mean(axis=2)
             opaque = a_bin >= 250
-            bright = opaque & (rc.mean(axis=2) > 150)
+            bright = opaque & ((dist_bg < bg_dist) | (lum > 150))
             trans = (a_bin < 200).astype(np.uint8)
             near = cv2.dilate(trans, np.ones((3, 3), np.uint8), iterations=2) > 0
             rc[near & bright] = edge_dark
-            # 腿部区域去残留（bbox 底部 35%）
+            # 腿部区域去残留（bbox 底部 35% 内近背景像素 -> 邻域毛色均值）
             ys, xs = np.where(a_bin >= 200)
             if len(ys):
                 y0b, y1b = ys.min(), ys.max()
                 cut = max(0, y0b + int((y1b - y0b) * 0.65))
                 band = np.zeros_like(a_bin, bool)
                 band[cut:y1b + 1, :] = True
-                bright_leg = band & (a_bin >= 200) & (rc.mean(axis=2) > 160)
+                bright_leg = band & (a_bin >= 200) & ((dist_bg < bg_dist) | (lum > 160))
                 if bright_leg.any():
                     dark = (a_bin >= 200) & (~bright_leg)
                     cnt = cv2.blur(dark.astype(np.float32), (5, 5)) * 25.0
@@ -175,6 +166,10 @@ def main():
                     help="透明区 RGB 归零（黑狼 CLEAN 判据 trans_nonblack=0）")
     ap.add_argument("--no-auto-clean", action="store_true",
                     help="关闭重建后逐格自动清理（默认开启：硬二值化/最大连通域/边缘压暗/腿部去白）")
+    ap.add_argument("--bg-color", default="#FFFFFF",
+                    help="背景色 #RRGGBB（强制用主体没有的颜色做底，默认白；阈值兜底/去污染按此色自适应）")
+    ap.add_argument("--bg-dist", type=float, default=20.0,
+                    help="与背景色的距离阈值（> 此值判为主体，默认 20）")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -213,38 +208,47 @@ def main():
             print(f"[rebuild] fixed bbox={bb}", flush=True)
 
     out_cells = []
+    bg_rgb = parse_hex_color(args.bg_color)
+    bg_is_white = float(bg_rgb.mean()) > 250
     for k in idxs:
         frame = frames[k]
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil = Image.fromarray(rgb)
         alpha_b = predict_alpha(model, device, pil)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        thr_white = (gray > args.threshold).astype(np.uint8)
-        alpha_thr = (1 - thr_white) * 255
-        # 合成：max(BiRefNet, 阈值兜底) —— 阈值只对深色区（≤阈值-13）强制主体，
-        # 灰白压缩背景（阈值-13 ~ 阈值）交给 BiRefNet 判定（否则留白边，黑狼教训）
-        alpha_thr = (gray <= args.threshold - 13).astype(np.uint8) * 255
-        # 腿部区域阈值兜底（run 低伏奔跑腿部运动模糊，灰度 200~248 超深色兜底线，
-        # BiRefNet 对模糊腿部 alpha 不稳 -> 腿型逐帧抖动，SKILL 3977）：bbox 底部 35%
-        # 内阈值提高到 threshold(248) 强制主体，白边由后处理清理
+        # 与背景色的距离（阈值兜底/腿部兜底/去污染统一按此）
+        dist_bg = np.linalg.norm(rgb.astype(np.float64) - bg_rgb, axis=2)
+        # 合成：max(BiRefNet, 背景色距离阈值兜底) —— 距离 > bg_dist 强制主体，
+        # 距离 bg_dist 附近（压缩混合边）交给 BiRefNet 判定（防留底边）
+        alpha_thr = (dist_bg > args.bg_dist).astype(np.uint8) * 255
+        # 腿部区域阈值兜底（run 低伏奔跑腿部运动模糊，与背景色距离不足、
+        # BiRefNet 对模糊腿 alpha 不稳 -> 腿型逐帧抖动）：bbox 底部 35% 内
+        # 用同一距离阈值强制主体，底边由后处理清理
         alpha_leg = np.zeros_like(alpha_b)
         ys, xs = np.where(alpha_b > 30)
         if bb:
             y0, y1 = bb[1], bb[3]
             cut = max(0, y0 + int((y1 - y0) * 0.65))
-            leg_region = np.zeros_like(gray, bool)
+            leg_region = np.zeros_like(alpha_b, bool)
             leg_region[cut:y1 + 1, :] = True
-            alpha_leg[leg_region & (gray <= args.threshold)] = 255
+            alpha_leg[leg_region & (dist_bg > args.bg_dist)] = 255
         elif len(ys):
             y0, y1 = ys.min(), ys.max()
             cut = max(0, y0 + int((y1 - y0) * 0.65))
-            leg_region = np.zeros_like(gray, bool)
+            leg_region = np.zeros_like(alpha_b, bool)
             leg_region[cut:y1 + 1, :] = True
-            alpha_leg[leg_region & (gray <= args.threshold)] = 255
+            alpha_leg[leg_region & (dist_bg > args.bg_dist)] = 255
         alpha = np.maximum.reduce([alpha_b, alpha_thr, alpha_leg]).astype(np.uint8)
-        # 去污染：亮半透清零（lum>lum_clear 且 alpha<250）
-        lum = rgb.astype(int).mean(axis=2)
-        light_semi = (lum > args.lum_clear) & (alpha < 250)
+        # 去污染：半透像素反推前景色后仍接近背景 -> 清半透（白底走旧 lum 逻辑兼容）
+        a = alpha.astype(np.float64) / 255.0
+        inv = 1.0 - a
+        fg = (rgb.astype(np.float64) - inv[..., None] * bg_rgb) / np.maximum(a[..., None], 1e-3)
+        fg = np.clip(fg, 0, 255)
+        dist_fg_bg = np.linalg.norm(fg - bg_rgb, axis=2)
+        if bg_is_white:
+            lum = rgb.astype(int).mean(axis=2)
+            light_semi = (lum > args.lum_clear) & (alpha < 250)
+        else:
+            light_semi = (dist_fg_bg < args.bg_dist) & (alpha < 250)
         alpha[light_semi] = 0
         # 黑狼硬边：清除剩余半透（alpha<245 全部清零，接受轻微锯齿——黑狼十五版惯例）
         if args.hard_edge > 0:
@@ -309,7 +313,8 @@ def main():
         rows.append(np.hstack(row_cells))
     sheet = np.vstack(rows)
     if not args.no_auto_clean:
-        sheet = post_clean_sheet(sheet, args.cell)
+        sheet = post_clean_sheet(sheet, args.cell,
+                                 bg=parse_hex_color(args.bg_color), bg_dist=args.bg_dist)
         print("[rebuild] auto-clean done", flush=True)
     # cv2.imwrite 按 BGR 解析数组——RGBA 直接写会把 RGB 通道翻转成蓝色（红狼变蓝 bug）：
     # 必须用 PIL 保存（PIL 正确解释 RGBA）

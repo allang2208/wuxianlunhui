@@ -591,6 +591,20 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     14 帧 7×2）→ run 内容宽 260~290（spread 12%）、高 243~263，透视一致。
   - 抠图：`rw-rmbg-recut.py`（ComfyUI-RMBG BiRefNet-general）+ `--soft` 清理 →
     stray/composite=0、脚部低饱和 0.2%、GLM 确认两足奔跑/体型一致/脚部干净。
+- **红狼人粉红边缘残留清理（2026-08-08 二十六版）**：
+  - 用户反馈"红色色块没扣干净"。定量定位：轮廓有一圈 **粉红边**（内部毛色
+    (45,8,10) 深红，边缘 (147,118,123) 粉红、lum 120~150、alpha 0.84~0.88 半透），
+    在深色地板上显粉红色块。
+  - 根因：BiRefNet-general 给近不透明边界留了 0.84~0.88 半透 + 去污还原出的
+    边缘色偏粉；且原边缘亮像素阈值 150/140 都没覆盖 lum 120~140 区间。
+  - 修复（rw-cutout-clean.py --soft）：
+    ① 半透 alpha 200~244 的近不透明像素直接转 255（本质是毛像素，BiRefNet
+       边界抖动，保留半透必然和地板混合显边）；
+    ② **边缘亮像素阈值降到 90**，整圈粉红边（lum 120~150）按 5×5 局部深红
+       毛色还原。
+  - 验证：edge lum>90=0、semi_red 526→27（余为深红软边，SKILL 允许）、
+    深色地板合成残留 0；GLM 在深灰底会误读深红毛为色块，以像素为准，
+    实机截图确认无粉红描边/脚部干净。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1216,11 +1230,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - 量化方法（pngjs 扫 alpha>8）：内容包围盒宽高占比 + 质心偏移。目标：**最长边 ≈90%、质心偏移 = (0,0)**。
 
 ### 1.5 抠图（AI 生图一律先抠底，2026-08-03 定稿：本地 BiRefNet 透明抠图）
-- **首选：BiRefNet 透明抠图**（`tools/ai-gen/birefnet-cutout.py` 独立脚本 + `tools/ai-gen/birefnet-icon-pipeline.py` 全管线：
-  生图 → BiRefNet 透明 PNG → 归一化）。模型权重走 ModelScope 镜像
-  `modelscope/BiRefNet`（`model.safetensors`，transformers remote-code 格式，目录
-  `ComfyUI/models/BiRefNet/MS-BiRefNet/`），HuggingFace 直连超时、hf-mirror 403，勿再试。
-  运行环境用 ComfyUI venv（已装 timm/opencv-headless/transformers）。
+- **抠图统一入口（2026-08-08 定稿，强制）：ComfyUI-RMBG 插件 BiRefNet-general**——
+  `tools/ai-gen/rmbg_cutout.py`（`get_model()` / `predict_alpha(model, pil)`）是唯一抠图入口，
+  rebuild-h3-birefnet / single-idle-prep / 后续新增工具一律走它。模型缓存
+  `ComfyUI/models/RMBG/BiRefNet`（离线，check_model_cache 验证），不再用 transformers
+  直载 MS-BiRefNet（birefnet-cutout.py 仅留作兼容）。运行环境必须 ComfyUI venv。
+- **背景色强制（2026-08-08 定稿）：生图/视频背景必须用主体没有的颜色**——提示词由
+  `pick_bg_color.py` 选色注入：`pick_bg_color_from_image(参考图)` 自动从 CANDIDATES
+  选与主体色板距离最远的纯色（视频管线 `minimax-h3-gen.py --bg-color auto`），
+  或 `--bg-color #RRGGBB` 显式指定；注入函数 `inject_background` 同时写死
+  "无阴影/无光源/无投影"条款。**抠图侧必须同色**：`rebuild --bg-color` 使阈值兜底/
+  腿部兜底/去污染/边缘清理全部按"与背景色的距离"自适应（白底兼容，--bg-dist 默认 20）。
+  纯色底 + 距离阈值一刀切 + BiRefNet 边缘，是"抠得干净"的标准组合。
 - **为什么不用颜色阈值抠图**：SDXL 的"pure white background"实际是浅灰渐变 + 暗角
   （角部像素 140~200 灰），且主体贴边时边界采样会把主体误判为背景（2026-08-03 实测：
   分块背景模型把贴边的镇岳重甲抠成 42×59 碎片；固定近白阈值则整图残留灰底）。
@@ -1377,9 +1398,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      修复：新建「左右通道·沼泽」预制（swamp_wall_straight/swamp_gate，直墙 face 中点按
      僵尸预制同轴同偏移换算、尺度换沼泽档，见 `tools/gen-swamp-passage-prefab.py`），
      `passagePrefabs.swamp` 指向它（data/ + public/data/ 两份同步）。
-     验证：`tools/cdp-swamp-arena-check.mjs` 进沼泽竞技场——76 块墙全 swamp_wall_straight、
-     门全 swamp_gate，GLM 确认走廊柴墙与房间衔接自然、连通正常；gate-corner/wall-embed/
-     arena-layout 测试全绿。
+    验证：`tools/cdp-swamp-arena-check.mjs` 进沼泽竞技场——76 块墙全 swamp_wall_straight、
+    门全 swamp_gate，GLM 确认走廊柴墙与房间衔接自然、连通正常；gate-corner/wall-embed/
+    arena-layout 测试全绿。
+   - **⚠ 换墙后通道中段留大空隙（2026-08-08 二修）**：首版沼泽通道预制直接按僵尸预制的
+     face 中点克隆（每侧 2 段），但**沼泽直墙世界长 374px < 僵尸墙 476px** → 每侧中段
+     留 94~105px 空隙（僵尸版靠 8px 叠合连续，换短墙后断裂；`_sealPassageSides` 只补
+     侧墙到房间边线的**两端**，不补中段内部空隙）。修复：按 SKILL「定长瓦片 + 叠合」
+     规则把每侧改成 **3 段**（步长 374−8=366，覆盖 ≈1106px ≥ 走廊 964px），两侧垂直
+     偏移取原预制的 perp 实测值（走廊两侧不等距）。验证：两侧墙段沿轴投影**零空隙**
+     （全部 ≤0 即叠合），GLM 两条通道均连续无黑缝。教训：**换不同长度墙段时必须重算
+     瓦片数量，不能只换贴图/尺度**。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。

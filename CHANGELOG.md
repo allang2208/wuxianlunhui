@@ -1,5 +1,20 @@
 # 变更日志
 
+### 对话：抠图/背景色强制进工作流（2026-08-08）
+- **抠图强制 ComfyUI-RMBG**：新增 `tools/ai-gen/rmbg_cutout.py` 统一抠图入口
+  （BiRefNet-general，models/RMBG/BiRefNet 离线缓存）；rebuild-h3-birefnet /
+  single-idle-prep 全部切换，不再 transformers 直载 MS-BiRefNet。
+- **背景色强制**：`pick_bg_color.py` 新增 `pick_bg_color_from_image(参考图)` 自动选
+  主体没有的纯色（熊棕 → 青色 #00FFFF，距离 207）；`minimax-h3-gen.py --bg-color
+  auto|#RRGGBB` 注入提示词（纯色底+无阴影条款）；rebuild 新增 `--bg-color/--bg-dist`，
+  阈值兜底/腿部兜底/去污染/边缘清理全部按与背景色的距离自适应。
+- **驱动增强**：quadruped-rebuild.py 透传背景色；周期检测改为 top 候选按"采样序列
+  相邻帧腿部 IoU 均值"选优（熊 P 选择稳定）；verify 不过时自动二次清理（零星
+  edge_bright 自愈）。
+- **回验**：白底 + 青底（合成）各跑通，CLEAN 五指标全 0；青底周期/阈值/抠图全链路正常。
+- **修改文件**：tools/ai-gen/{rmbg_cutout,pick_bg_color,minimax-h3-gen,rebuild-h3-birefnet,
+  quadruped-rebuild,single-idle-prep}.py、SKILL.md。
+
 ### 对话：四足怪物动画管线工作流优化（2026-08-08）
 - **痛点**：熊动画重建直接跑 rebuild CLI 出 DIRTY（需手动补 post_clean），
   且"周期扫描→采样→重建→清理→验证"全是手工步骤。

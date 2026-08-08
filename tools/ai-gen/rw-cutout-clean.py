@@ -36,7 +36,7 @@ CELLS = {
 }
 
 
-def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False):
+def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
     """soft=True = 红狼王规则：不硬二值化，保留浅毛软边（semi≈0.5%），只清污染。
     黑狼规则（soft=False）：alpha 硬二值化（>=245），semi=0，接受锯齿。"""
     im = np.array(Image.open(path).convert("RGBA"))
@@ -74,10 +74,6 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False)
             if soft:
                 # 红狼王：保留软边 alpha（浅毛软边是特征，不是残留）；污染已全局去污
                 a_bin = ac.copy().astype(np.uint8)
-                # 近不透明半透像素（alpha 200~244，本质是毛像素，BiRefNet 边界抖动）
-                # 直接转不透明——否则保留半透会在深色地板上显出亮粉色边/红色块
-                near_opaque = (a_bin >= 200) & (a_bin < 250)
-                a_bin[near_opaque] = 255
             else:
                 # 黑狼：alpha 硬二值化（清 resize/插值半透带）
                 a_bin = np.where(ac >= hard, 255, 0).astype(np.uint8)
@@ -95,6 +91,9 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False)
             trans = a_bin < 200
             near = ndimage.binary_dilation(trans, iterations=2)
             # 3) 边缘亮像素 -> 5x5 邻域毛色均值（黑狼固定 18 会把红毛压成黑点）
+            #    邻域无毛色时用"该格深红毛中位数"兜底，避免固定色形成整圈人工描边
+            fur_px = rc[opaque & (rc.mean(axis=2) < 90)]
+            cell_fur = np.median(fur_px, axis=0) if len(fur_px) else np.array(DARK_RED, dtype=np.float64)
             dark = opaque & (~bright)
             cnt = ndimage.uniform_filter(dark.astype(np.float32), size=5) * 25.0
             mean = np.stack([
@@ -102,7 +101,7 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False)
                 for i in range(3)
             ], axis=-1) / np.maximum(cnt[..., None], 1e-6)
             mean = np.clip(mean, 0, 255).astype(np.uint8)
-            mean[cnt < 1] = DARK_RED
+            mean[cnt < 1] = cell_fur
             rc[near & bright] = mean[near & bright]
             # 4) 透明区 RGB 归零
             rc[a_bin < 8] = 0
@@ -142,7 +141,7 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False)
                         for i in range(3)
                     ], axis=-1) / np.maximum(cnt2[..., None], 1e-6)
                     mean2 = np.clip(mean2, 0, 255).astype(np.uint8)
-                    mean2[cnt2 < 1] = DARK_RED
+                    mean2[cnt2 < 1] = cell_fur
                     rc[bright_leg] = mean2[bright_leg]
             ac[...] = a_bin
     out = np.dstack([rgb, alpha]).astype(np.uint8)

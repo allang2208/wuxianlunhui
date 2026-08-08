@@ -13,6 +13,7 @@ run 默认取连续 P×2 帧（两个步态周期，首尾同相无缝）；atta
 """
 
 import argparse
+import importlib.util
 import os
 import subprocess
 import sys
@@ -37,14 +38,19 @@ def load_frames(video_path):
     return frames
 
 
-def masks_of(frames, threshold=248):
+def masks_of(frames, bg=(255.0, 255.0, 255.0), bg_dist=20.0):
+    """背景掩码：与背景色距离 > bg_dist 判为主体（彩色背景通用，2026-08-08）。"""
+    bg = np.array(bg, dtype=np.float64)
     out = []
     for f in frames:
-        r = f[..., 2].astype(int)
-        g = f[..., 1].astype(int)
-        b = f[..., 0].astype(int)
-        out.append(~((r > threshold) & (g > threshold) & (b > threshold)))
+        rgb = f[..., ::-1].astype(np.float64)  # BGR -> RGB
+        out.append(np.linalg.norm(rgb - bg, axis=2) > bg_dist)
     return out
+
+
+def parse_hex_color(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
 
 def leg_iou(m1, m2, frac=0.35):
@@ -64,8 +70,8 @@ def body_iou(m1, m2):
     return np.logical_and(m1, m2).sum() / max(1, np.logical_or(m1, m2).sum())
 
 
-def scan_gait(frames, masks, steady=(12, 105), prange=(16, 120), min_iou=0.60, window=None):
-    """步态周期扫描：leg_iou(s, s+P)。
+def scan_gait(frames, masks, steady=(12, 105), prange=(16, 120), min_iou=0.60, window=None, top_n=6):
+    """步态周期扫描：leg_iou(s, s+P)，返回 top_n 候选 [(iou, s, P)]。
     限定在动作窗口（window=(w0,w1)）的匀速中段内找，且保证 s+2P ≤ w1
     （两个周期完整落在窗口内）——排除尾部 idle 重影高 IoU 候选。
     """
@@ -89,14 +95,16 @@ def scan_gait(frames, masks, steady=(12, 105), prange=(16, 120), min_iou=0.60, w
     if not best:
         return None
     best.sort(reverse=True)
-    v, s, P = best[0]
-    # P 可能被 2 倍周期污染，取更小的同相位 P
+    out = []
+    seen_p = set()
     for vv, ss, pp in best:
-        if abs(pp - P) < 6:
+        if pp in seen_p:
             continue
-        if pp < P and vv >= v - 0.03:
-            v, s, P = vv, ss, pp
-    return s, P, v
+        seen_p.add(pp)
+        out.append((vv, ss, pp))
+        if len(out) >= top_n:
+            break
+    return out
 
 
 def detect_window(frames, masks, min_diff=0.10):
@@ -150,6 +158,13 @@ def cell_alpha(path, idx, cols, rows, cell):
     return im[r * ch:(r + 1) * ch, c * cw:(c + 1) * cw]
 
 
+def load_rebuild_module():
+    spec = importlib.util.spec_from_file_location("rebuild_h3_birefnet", REBUILD)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
@@ -165,27 +180,42 @@ def main():
     ap.add_argument("--min-iou", type=float, default=0.60, help="周期扫描腿部 IoU 下限")
     ap.add_argument("--min-diff", type=float, default=0.10, help="attack 窗口检测阈值")
     ap.add_argument("--seed-frames", default=None, help="显式帧列表（逗号分隔，跳过自动检测）")
+    ap.add_argument("--bg-color", default="#FFFFFF",
+                    help="视频背景色 #RRGGBB（生成时若用了主体无色底，这里必须传同色，默认白）")
+    ap.add_argument("--bg-dist", type=float, default=20.0, help="与背景色的距离阈值")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
     if len(frames) < 30:
         raise SystemExit(f"video too short: {len(frames)} frames")
-    masks = masks_of(frames)
+    masks = masks_of(frames, bg=parse_hex_color(args.bg_color), bg_dist=args.bg_dist)
     print(f"[quadruped] {os.path.basename(args.video)}: {len(frames)} frames", flush=True)
 
     if args.seed_frames:
         idxs = [int(x) for x in args.seed_frames.split(",")]
     elif args.kind == "run":
         w0, w1, _ = detect_window(frames, masks, args.min_diff)
-        g = scan_gait(frames, masks, min_iou=args.min_iou, window=(w0, w1))
-        if not g:
+        cands = scan_gait(frames, masks, min_iou=args.min_iou, window=(w0, w1))
+        if not cands:
             raise SystemExit("no gait period found - lower --min-iou or regenerate the loop video")
-        s, P, iou = g
-        n = P * args.cycles
-        if s + n > len(frames):
-            n = len(frames) - s
-        idxs = list(range(s, s + n))
-        print(f"[quadruped] gait: P={P} s={s} leg_iou={iou:.2f} -> {n} 连续帧", flush=True)
+        # 用"采样序列相邻帧腿部 IoU 均值"选最优候选（直接以最终平滑度为准）
+        best_cand, best_score, best_idxs = None, -1.0, None
+        for v, s, P in cands:
+            n = P * args.cycles
+            if s + n > len(frames):
+                n = len(frames) - s
+            idx_t = list(range(s, s + n))
+            if len(idx_t) < 6:
+                continue
+            adj = [leg_iou(masks[idx_t[i]], masks[idx_t[i + 1]]) for i in range(len(idx_t) - 1)]
+            score = sum(adj) / len(adj)
+            if score > best_score:
+                best_score, best_cand, best_idxs = score, (v, s, P), idx_t
+        if not best_cand:
+            raise SystemExit("no usable gait candidate")
+        v, s, P = best_cand
+        idxs = best_idxs
+        print(f"[quadruped] gait: P={P} s={s} leg_iou={v:.2f} 采样平滑度={best_score:.2f} -> {len(idxs)} 连续帧", flush=True)
     else:
         w0, w1, peak = detect_window(frames, masks, args.min_diff)
         idxs = sample_even(w0, w1, args.frames_count)
@@ -197,10 +227,22 @@ def main():
            "--center-x", str(args.center_x), "--feet-y", str(args.feet_y),
            "--target-h", str(args.target_h), "--uniform-h",
            "--lum-clear", "200", "--hard-edge", "245",
-           "--edge-dark", "18", "--zero-transparent-rgb"]
+           "--edge-dark", "18", "--zero-transparent-rgb",
+           "--bg-color", args.bg_color, "--bg-dist", str(args.bg_dist)]
     subprocess.run(cmd, check=True, stderr=subprocess.STDOUT)
 
     r = verify_sheet(args.out, args.cell)
+    # 自动二次清理保险：首次 post_clean 偶发零星 edge_bright，重跑一次必清
+    if not r["clean"]:
+        print("[quadruped] auto re-clean...", flush=True)
+        rmod = load_rebuild_module()
+        im = np.array(Image.open(args.out).convert("RGBA"))
+        cleaned = rmod.post_clean_sheet(
+            im, args.cell,
+            bg=np.array(parse_hex_color(args.bg_color), dtype=np.float64),
+            bg_dist=args.bg_dist)
+        Image.fromarray(cleaned, "RGBA").save(args.out)
+        r = verify_sheet(args.out, args.cell)
     n = r["rows"] * r["cols"]
     adj = []
     for i in range(n - 1):
