@@ -2781,7 +2781,12 @@ export class GameScene extends Scene {
         _game.entities.forEach(entity => {
             if (entity === _game.player) return;
             const hasIce = entity._iceSpikeActive || (entity._iceSpikeSpikes && entity._iceSpikeSpikes.some(s => s.active));
-            const hasFire = entity._fireballActive || (entity._fireball && entity._fireball.active);
+            // ⚠ 2026-08-08 九修：发射后的火球必须 flyActive 才算"活跃"——巫师死亡/命中后
+            // 状态未清（_fireballActive 残留 true）或施法者已死（hp<=0）时，粒子也应被清理
+            // 循环销毁，避免"火球命中后残留不消失"。
+            const casterAlive = entity.hp == null || entity.hp > 0;
+            const fb = entity._fireball;
+            const hasFire = casterAlive && entity._fireballActive && fb && (fb.launched ? fb.flyActive : fb.active);
             if (!hasIce && !hasFire) return;
             activeCasters.add(entity);
             this._syncIceSpikes(entity);
