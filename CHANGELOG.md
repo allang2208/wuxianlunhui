@@ -1,5 +1,13 @@
 # 变更日志
 
+### 对话：AI 资产统一入口（2026-08-08，一个大类一个工作流）
+- 新增 `tools/ai-gen/ai-asset.py` 统一入口：monster 大类（idle / video / rebuild / status）
+  + 通用子命令（cutout / bg-color / verify），内部编排现有脚本（comfyui-gen /
+  minimax-h3-gen / quadruped-rebuild / rmbg_cutout / pick_bg_color），支持 --dry-run。
+- 修两个口径问题：idle 的 --seeds 按逗号拆分；verify 的连通域统一为 8 连通
+  （scipy ndimage.label 默认 4 连通会把毛屑拆开导致 stray 虚高，与 cv2 口径对齐）。
+- **修改文件**：tools/ai-gen/ai-asset.py（新增）、blackwolf-rebuild-verify.py、SKILL.md。
+
 ### 对话：抠图/背景色强制进工作流（2026-08-08）
 - **抠图强制 ComfyUI-RMBG**：新增 `tools/ai-gen/rmbg_cutout.py` 统一抠图入口
   （BiRefNet-general，models/RMBG/BiRefNet 离线缓存）；rebuild-h3-birefnet /

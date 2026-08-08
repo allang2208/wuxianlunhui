@@ -1,6 +1,34 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 2.2
+## 版本: 2.3
+
+## ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
+
+**任何涉及 AI 生成图片、生成视频、抠图、怪物动画精灵图、CLEAN 验证的工作，
+一律从 `game-dev/tools/ai-gen/ai-asset.py` 进入**（ComfyUI venv python 运行）。
+一个大类一个入口（当前：monster），固定工作流已编排好，**不要散落到各底层脚本找命令**
+（底层 comfyui-gen / minimax-h3-gen / quadruped-rebuild / rmbg_cutout / pick_bg_color
+是 ai-asset 的内部实现，可单独调试但日常工作从入口进）。
+
+```bash
+# 四足怪物工作流（idle → 动画视频 → sheet，全链路强制主体无色背景 + ComfyUI-RMBG 抠图）
+python tools/ai-gen/ai-asset.py monster idle    --name <X> --ref <参考图> --prompt <提示词.txt> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster video   --name <X> --kind run|attack --ref <idle图> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster rebuild --name <X> --video <y.mp4> --kind run|attack [--bg-color 同色] [--cell 640]
+python tools/ai-gen/ai-asset.py monster status  --name <X>
+# 通用子命令（所有大类复用）
+python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
+python tools/ai-gen/ai-asset.py bg-color --image <参考图>
+python tools/ai-gen/ai-asset.py verify   --sheet <sheet.png> --cell 512|640
+```
+
+铁律（入口内置，但记在这里防绕路）：
+- **背景色强制**：生成背景必须用主体没有的颜色（`--bg-color auto` 自动选，或显式
+  `#hex`），抠图侧 `rebuild --bg-color` 传同色；
+- **抠图强制 ComfyUI-RMBG**（BiRefNet-general，`rmbg_cutout.py` 唯一入口）；
+- 所有子命令支持 `--dry-run` 先看命令；
+- 产物统一落 `Y:\工作\无尽轮回\scratch\<name>_*`，`monster status` 一键查。
+- 详细参数/异常处理见「四足动物（狼系）动画精灵图全管线」章节。
 
 ## ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
 
@@ -605,6 +633,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 验证：edge lum>90=0、semi_red 526→27（余为深红软边，SKILL 允许）、
     深色地板合成残留 0；GLM 在深灰底会误读深红毛为色块，以像素为准，
     实机截图确认无粉红描边/脚部干净。
+- **红狼脚底"深色描边"根因 = 固定色压暗 + 硬边（2026-08-08 二十七版）**：
+  - 用户反馈奔跑脚下轮廓没干净。逐像素定位：脚底最后一行全是固定 (90,18,18)
+    深红（重抠 decontaminate 的 edge_dark 兜底），且 alpha 0/255 棋盘交替
+    （近不透明 200~244 转 255 的硬边化）→ 人工深红描边 + 锯齿。
+  - 修复：① `rw-rmbg-recut.py` 不再用固定 DARK_RED 压暗边缘（交给 soft 清理）；
+    ② `rw-cutout-clean.py` 边缘还原兜底色 = **该格深红毛中位数**（非固定色）；
+    ③ **去掉近不透明 200~244 转 255 的硬边化**——粉色问题靠边缘亮像素
+    lum>90 还原成深红解决，软边保留（红狼王规则）。
+  - 注意：**重抠输入必须是原始切帧**——旧资产已含固定色像素，重抠合并
+    max(alpha_b, 旧alpha) 会原样保留旧色，须先还原到未压暗切帧再走管线。
+  - 验证：fixed90=0、脚底最后一行 = (41,4,6) 主体深红、实机地板观感正常；
+    GLM 在中/深灰预览底会把深红毛误读为"深色描边"，**以实机为准**。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -4257,7 +4297,18 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 数值回退用 `??` 不用 `||`（falsy-0 把显式 0 回退成默认值）。
 
 ### 9. 工具链
-- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程）。
+- **统一入口 `tools/ai-gen/ai-asset.py`（2026-08-08 定稿：一个大类一个入口，工作一律从这进）**：
+  - `monster idle --name X --ref 参考图 --prompt 提示词 [--bg-color auto|#hex]`：5080 生图候选
+    → BiRefNet 抠图 → 512 归一化（自动选主体无色背景并注入提示词）；
+  - `monster video --name X --kind run|attack --ref idle图 [--bg-color auto|#hex]`：5080 H3 生成动画视频；
+  - `monster rebuild --name X --video y.mp4 --kind run|attack [--bg-color 同色] [--cell 640]`：
+    视频 → 动画 sheet（周期/窗口检测 + BiRefNet 重建 + CLEAN 验证报告）；
+  - `monster status --name X`：列出该怪物全部产物（scratch/<name>_*）；
+  - 通用子命令：`cutout --src --out`（抠图）、`bg-color --image`（选背景色）、
+    `verify --sheet --cell`（CLEAN 验证）。
+  - 所有子命令支持 `--dry-run`（只打印将执行的命令）。底层脚本仍可单独调用，但开展工作
+    一律从统一入口进，避免"散落各地没法调用"。
+- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程，可被 ai-asset monster video 调用）。
 - 重建：**`quadruped-rebuild.py`（通用一键：周期扫描/窗口检测 → 采样 →
   rebuild → auto-clean → 验证报告）**：`--video x.mp4 --kind run|attack --out y.png`
   （run 自动采 P×2 连续帧无缝循环，attack 窗口均分 20 帧；可 --cell 640 等覆盖）。
