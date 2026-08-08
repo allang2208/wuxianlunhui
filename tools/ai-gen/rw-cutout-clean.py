@@ -139,6 +139,15 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
                 sat_f = rc.max(axis=2) - rc.min(axis=2)
                 foot_fix = band & opaque & ((dist_f > 12) | ((lum_f > 100) & (sat_f < 20)))
                 rc[foot_fix] = cell_fur
+                # 5c) 脚部/腿部中亮灰粉块 -> 深红毛色还原（2026-08-08 红狼人奔跑脚部大片色块根因）：
+                #     不透明 + 低饱和(sat<25) + 中亮(lum 40~160) 且偏离深红毛 >40 的像素
+                #     是白底×红毛混合残留（实测 (97,80,82) vs 深红 (34,2,3)，lum 86 低于
+                #     旧阈值 90、sat 17 高于旧阈值 15，被 3b/5b 漏掉——5b 的 band 只覆盖
+                #     底部 40px，灰粉块延伸到脚踝上方 y 300-369 超出 band）。
+                #     统一还原深红毛，保留 alpha（它们在脚部核心、非边缘，删 alpha 会缺脚）。
+                gray_mid = opaque & (sat_f < 25) & (lum_f > 40) & (lum_f < 160) & (dist_f > 40)
+                if gray_mid.any():
+                    rc[gray_mid] = cell_fur
                 # 6) 腿部区域（bbox 底部 35%）内不透明亮像素 -> 局部毛色（清贴地灰白）
                 cut2 = max(0, ymin + int((ymax - ymin) * 0.65))
                 band2 = np.zeros_like(body)

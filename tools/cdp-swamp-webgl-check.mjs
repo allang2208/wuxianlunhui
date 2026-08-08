@@ -169,6 +169,45 @@ await evalJs(`(async () => {
     return true;
 })()`);
 await shot('swamp_corridor2');
+// 通道2 房2 入口门洞交界（房2 RB 门 ~4167,2421；看侧墙是否探入房内）
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
+    if (scene) scene.cameras.main.setZoom(1);
+    p.x = 4430; p.y = 2470;
+    Camera.x = 4430; Camera.y = 2470;
+    if (scene) scene.cameras.main.setZoom(1.7);
+    await new Promise((r) => setTimeout(r, 700));
+    return true;
+})()`);
+await shot('swamp_corridor2_roomA_gate');
+console.log('cam state gate17:', JSON.stringify(await evalJs(`(async () => {
+    const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
+    return scene ? { zoom: scene.cameras.main.zoom, scrollX: scene.cameras.main.scrollX, scrollY: scene.cameras.main.scrollY } : null;
+})()`)));
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
+    if (scene) scene.cameras.main.setZoom(1);
+    p.x = 4400; p.y = 2400;
+    Camera.x = 4400; Camera.y = 2400;
+    if (scene) scene.cameras.main.setZoom(3);
+    await new Promise((r) => setTimeout(r, 600));
+    if (scene) scene.cameras.main.setZoom(3);
+    await new Promise((r) => setTimeout(r, 300));
+    return true;
+})()`);
+await shot('swamp_corridor2_roomA_gate_zoom3');
+console.log('cam state:', JSON.stringify(await evalJs(`(async () => {
+    const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
+    return scene ? { zoom: scene.cameras.main.zoom, x: scene.cameras.main.scrollX, y: scene.cameras.main.scrollY, cw: scene.scale.width, ch: scene.scale.height } : null;
+})()`)));
 
 // 放大通道1中段（3 段墙的接缝区）+ 端部（封口与预制交界）
 await evalJs(`(async () => {
@@ -408,6 +447,29 @@ const geoNow = await evalJs(`(async () => {
     return { walls, hasQuad: !!CombatRoomSystem._arenaCorridors };
 })()`);
 console.log('geo now:', JSON.stringify(geoNow, null, 1));
+
+// 通道2（房2→房3）突出审计：列出房2 RB 边到房3 LT 边之间的走廊直墙/地板端点
+const pass2Probe = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    const out = { walls: [], floors: [] };
+    for (const p of WallSystem.isoVisuals) {
+        if (p.tex !== 'swamp_wall_straight') continue;
+        const seg = WallSystem._pieceBaseSegments(p)[0];
+        if (!seg) continue;
+        const mx = (seg[0].x + seg[1].x) / 2;
+        if (mx > 3800 && mx < 5300) {
+            out.walls.push({
+                x: Math.round(p.x), y: Math.round(p.y), sx: p.scaleX,
+                A: [Math.round(seg[0].x), Math.round(seg[0].y)],
+                B: [Math.round(seg[1].x), Math.round(seg[1].y)],
+            });
+        }
+    }
+    return out;
+})()`);
+console.log('passage2 walls:', JSON.stringify(pass2Probe.walls, null, 1));
 
 // 导出烘焙地板纹理（terrainTexture canvas -> dataURL -> 保存）
 const floorImg = await evalJs(`(async () => {
