@@ -31,7 +31,10 @@ import { Input } from '../ui/input.js';
 import { createMineCave } from './zombie-dungeon.js';
 import { getWallPrefabLibrary } from './wall-prefabs.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { computeArenaLayout, pointInDiamond, ARENA_AXIS } from './combat-arena-layout.js';
+import {
+    computeArenaLayout, computeMazeLayout,
+    pointInDiamond, ARENA_AXIS, MAZE_AXIS_V1, MAZE_AXIS_V2,
+} from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
@@ -971,19 +974,42 @@ export const CombatRoomSystem = {
 
         // 1. 解析通道预制（墙样式键 → default 回退；两门墙件底边中心距 = 通道长度）
         const arenaCfg = DungeonConfig.getCombatArenaConfig();
-        const analysis = this._resolvePassagePrefab(arenaCfg);
-        if (!analysis) {
+        const analysisV1 = this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V1);
+        if (!analysisV1) {
             console.warn('[CombatRoomSystem] 竞技场：无可用通道预制（combatArena.passagePrefabs），回退单房间');
             return false;
         }
+        // 迷宫折返用 v2（上下通道）预制；缺失则迷宫降级为三房直线
+        const analysisV2 = this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V2);
+        const analysisFor = (axis) => {
+            const isV2 = Math.abs(axis.x * MAZE_AXIS_V2.x + axis.y * MAZE_AXIS_V2.y) > 0.8;
+            return isV2 && analysisV2 ? analysisV2 : analysisV1;
+        };
 
         const normalSize = options.normalSize || this.config.roomSize.normal;
         const eliteSize = options.eliteSize || this.config.roomSize.elite;
-        const layout = computeArenaLayout({
-            normalSize, eliteSize,
-            passageLen: analysis.len,
-            gap: arenaCfg.passageGap || 0,
-        });
+        const mazeCfg = arenaCfg.maze || {};
+        const mazeEnabled = mazeCfg.enabled !== false;
+        const roomCount = mazeEnabled ? (mazeCfg.roomCount || 3) : 3;
+        let layout;
+        if (roomCount <= 3 || !analysisV2) {
+            // 三房直线串联（历史行为）：房间 1/2 normal、房间 3 elite
+            layout = computeArenaLayout({
+                normalSize, eliteSize,
+                passageLen: analysisV1.len,
+                gap: arenaCfg.passageGap || 0,
+            });
+        } else {
+            // 多房蛇形迷宫：除末房 elite（宝箱房）外全 normal
+            const sizes = [];
+            for (let i = 0; i < roomCount; i++) sizes.push(i === roomCount - 1 ? eliteSize : normalSize);
+            layout = computeMazeLayout({
+                sizes,
+                passageLen: analysisV1.len,
+                gap: arenaCfg.passageGap || 0,
+                rows: mazeCfg.rows || 0,
+            });
+        }
 
         this._player = player;
         this.state = 'combat';
@@ -996,8 +1022,8 @@ export const CombatRoomSystem = {
         //    （E/F 同口径：菱形整圈渐变含门口；走廊只描两条长边），并同步世界尺寸
         const corridors = [];
         const patches = [];
-        for (let i = 0; i < 2; i++) {
-            corridors.push(this._arenaPassageFloorQuad(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]));
+        for (let i = 0; i < layout.passages.length; i++) {
+            corridors.push(this._arenaPassageFloorQuad(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]));
         }
         applyArenaFloor(layout.worldW, layout.worldH,
             layout.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry })),
@@ -1013,8 +1039,8 @@ export const CombatRoomSystem = {
 
         // 5. 通道：平移预制 → 摘门洞覆盖的墙件（"移除对应大小的墙"）→ 直墙入件 / 门墙建功能门
         const passageRecs = [];
-        for (let i = 0; i < 2; i++) {
-            const rec = this._placeArenaPassage(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+        for (let i = 0; i < layout.passages.length; i++) {
+            const rec = this._placeArenaPassage(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
             if (!rec) {
                 console.warn('[CombatRoomSystem] 竞技场：通道放置失败，回退单房间');
                 // 已放好的通道门（如前一条通道）手动销毁——_arena 尚未建立，_cleanupArenaGates 管不到
@@ -1040,24 +1066,31 @@ export const CombatRoomSystem = {
 
         // 5.5 通道侧墙封口：预制侧墙比门到门跨度短，且与房间墙成 60° 相接，
         //     两侧各留一个楔形缺口（可见黑三角/可走出世界）——沿侧墙延长线补瓦到房间边线
-        for (let i = 0; i < 2; i++) {
-            this._sealPassageSides(analysis, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+        for (let i = 0; i < layout.passages.length; i++) {
+            this._sealPassageSides(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
         }
 
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
-        // 6. 竞技场状态（_diamond 固定指向房间 3：出口门/白区/离场判定都以其为准；
+        // 6. 竞技场状态（_diamond 固定指向最后一房：出口门/白区/离场判定都以其为准；
         //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/墓碑共用现有逻辑）
-        const r3 = layout.rooms[2];
+        const rLast = layout.rooms[layout.rooms.length - 1];
         this._arena = { rooms: layout.rooms, passages: passageRecs, stage: 1, awaiting: 0 };
-        this._diamond = { rx: r3.rx, ry: r3.ry, cx: r3.cx, cy: r3.cy, worldW: layout.worldW, worldH: layout.worldH };
+        this._diamond = { rx: rLast.rx, ry: rLast.ry, cx: rLast.cx, cy: rLast.cy, worldW: layout.worldW, worldH: layout.worldH };
         this._roomBounds = layout.rooms[0].bounds;
         this._entranceEdge = 0;
         this._oppositeEdge = 2; // 怪物统一刷当前房间下顶点附近
 
-        // 8. 出口门：房间 3 右下边中点（straightOnly——三房各有转角装饰门，必须锚定目标边中点）
-        this._setupGate({ x: r3.cx + r3.rx / 2, y: r3.cy + r3.ry / 2 }, { straightOnly: true });
+        // 8. 出口门：最后一房出口边中点（三房=RB；迷宫末房 = 入口对边，可能是 LT/TR/BL）
+        //    straightOnly——各房有转角装饰门，必须锚定目标边中点
+        const outMid = {
+            LT: { x: rLast.cx - rLast.rx / 2, y: rLast.cy - rLast.ry / 2 },
+            TR: { x: rLast.cx + rLast.rx / 2, y: rLast.cy - rLast.ry / 2 },
+            RB: { x: rLast.cx + rLast.rx / 2, y: rLast.cy + rLast.ry / 2 },
+            BL: { x: rLast.cx - rLast.rx / 2, y: rLast.cy + rLast.ry / 2 },
+        }[rLast.outEdge || 'RB'];
+        this._setupGate(outMid, { straightOnly: true });
 
         // 8.1 入场门：房间 1 左上墙（LT 边）中段直墙件原位替换为门墙（初始常开）+ 门外入场地块
         const entryGate = this._setupEntryGate(layout.rooms[0]);
@@ -1076,16 +1109,19 @@ export const CombatRoomSystem = {
         }
 
         // 8.6 开洞边缝隙填充：沿房间边线投影补瓦（只叠不缺，edgeFill 同口径）——
-        //     5 条开洞边：房1 RB、房2 LT/RB、房3 LT（通道门）、房3 RB（出口门）
+        //     动态边集合：每房来路/去路通道边 + 房1 LT（入场门）+ 末房 RB（出口门）
         const allGateSegs = passageRecs.flatMap(rec => rec.gates.map(g => [g.baseA, g.baseB]));
         if (WallGate._seg) allGateSegs.push(WallGate._seg);
         if (entryGate) allGateSegs.push([entryGate.baseA, entryGate.baseB]);
-        this._fillEdgeGaps(layout.rooms[0], 'RB', allGateSegs);
-        this._fillEdgeGaps(layout.rooms[0], 'LT', allGateSegs);
-        this._fillEdgeGaps(layout.rooms[1], 'LT', allGateSegs);
-        this._fillEdgeGaps(layout.rooms[1], 'RB', allGateSegs);
-        this._fillEdgeGaps(layout.rooms[2], 'LT', allGateSegs);
-        this._fillEdgeGaps(layout.rooms[2], 'RB', allGateSegs);
+        const lastIdx = layout.rooms.length;
+        for (const r of layout.rooms) {
+            const edges = new Set();
+            if (r.index === 1) edges.add('LT');                 // 入场门
+            if (r.index === lastIdx) edges.add('RB');           // 出口门
+            if (r.index < lastIdx) edges.add(r.outEdge);        // 去路通道
+            if (r.index > 1) edges.add(r.inEdge);               // 来路通道
+            for (const e of edges) this._fillEdgeGaps(r, e, allGateSegs);
+        }
 
         // 8.5 障碍物：每房独立一套（墙面火把贴墙无碰撞；房间 1/2 中央石柱；
         //     后墙预制组合只贴 LT/RT），避开门口/玩家出生点
@@ -1153,8 +1189,19 @@ export const CombatRoomSystem = {
         return { rooms: layout.rooms, worldW: layout.worldW, worldH: layout.worldH };
     },
 
-    /** 解析通道预制：样式键 → default 回退；校验双门墙件与串联轴对齐（|dot| ≥ 0.8） */
-    _resolvePassagePrefab(arenaCfg) {
+    /** 取样式对应的预制名（兼容旧字符串 = v1；新格式 { v1, v2 } 按通道轴取值） */
+    _passagePrefabName(names, axis) {
+        if (!names) return null;
+        if (typeof names === 'string') return names;
+        const isV2 = Math.abs(axis.x * MAZE_AXIS_V2.x + axis.y * MAZE_AXIS_V2.y) > 0.8;
+        return isV2 ? (names.v2 || names.v1) : (names.v1 || names);
+    },
+
+    /**
+     * 解析通道预制：按通道轴（v1 左右 / v2 上下）选样式键 → default 回退；
+     * 校验双门墙件与轴对齐（|dot| ≥ 0.8）。返回 analysis 含预制固有轴 axis。
+     */
+    _resolvePassagePrefab(arenaCfg, axis = MAZE_AXIS_V1) {
         const lib = getWallPrefabLibrary();
         const names = (arenaCfg && arenaCfg.passagePrefabs) || { default: '左右通道' };
         // 当前墙样式键（zombie/swamp…）：取样式表第一个键名末段做模糊匹配，找不到再用 default
@@ -1163,9 +1210,9 @@ export const CombatRoomSystem = {
         if (style && style.chestPrefab) {
             // 样式表以 chestPrefab 区分（宝箱房/沼泽宝箱房）：含"沼泽"键优先沼泽通道
             const isSwamp = /沼泽/.test(style.chestPrefab);
-            if (isSwamp) candidates.push(names.swamp);
+            if (isSwamp) candidates.push(this._passagePrefabName(names.swamp, axis));
         }
-        candidates.push(names.default);
+        candidates.push(this._passagePrefabName(names.default, axis));
         for (const name of candidates) {
             if (!name || !lib[name]) continue;
             const analysis = this._analyzePassagePrefab(lib[name]);
@@ -1175,7 +1222,11 @@ export const CombatRoomSystem = {
         return null;
     },
 
-    /** 预制解析：提取两个功能门墙件的底边中心与间距（通道长度），校验与串联轴对齐 */
+    /**
+     * 预制解析：提取两个功能门墙件的底边中心与间距（通道长度）。
+     * 轴校验改为双轴（v1=(0.866,0.5) 左右通道 / v2=(0.866,-0.5) 上下通道），
+     * 取 |dot| 大者，交换 gA/gB 使预制固有轴 axis 与 v1/v2 同向。
+     */
     _analyzePassagePrefab(def) {
         if (!def || !Array.isArray(def.pieces)) return null;
         const gates = [];
@@ -1193,14 +1244,23 @@ export const CombatRoomSystem = {
         let vx = gB.center.x - gA.center.x, vy = gB.center.y - gA.center.y;
         const len = Math.hypot(vx, vy);
         if (len < 100) return null;
-        // 与串联轴 (0.866, 0.5) 对齐校验；反向则交换两端（↖ 端接房间 N）
-        let dot = (vx * ARENA_AXIS.x + vy * ARENA_AXIS.y) / len;
-        if (dot < 0) { [gA, gB] = [gB, gA]; dot = -dot; }
-        if (dot < 0.8) return null;
+        // 双轴对齐校验：v1（左右）/ v2（上下），取 |dot| 大者；反向则交换两端
+        const dot1 = (vx * MAZE_AXIS_V1.x + vy * MAZE_AXIS_V1.y) / len;
+        const dot2 = (vx * MAZE_AXIS_V2.x + vy * MAZE_AXIS_V2.y) / len;
+        let axis;
+        if (Math.abs(dot1) >= Math.abs(dot2) && Math.abs(dot1) >= 0.8) {
+            axis = { ...MAZE_AXIS_V1 };
+            if (dot1 < 0) { [gA, gB] = [gB, gA]; }
+        } else if (Math.abs(dot2) >= 0.8) {
+            axis = { ...MAZE_AXIS_V2 };
+            if (dot2 < 0) { [gA, gB] = [gB, gA]; }
+        } else {
+            return null;
+        }
         // 门墙底边跨度（梯形地板的门口端宽度用）
         const segA = WallSystem._pieceBaseSegments(gA.piece)[0];
         const span = segA ? Math.hypot(segA[1].x - segA[0].x, segA[1].y - segA[0].y) : 300;
-        return { def, gA, gB, len, span };
+        return { def, gA, gB, len, span, axis };
     },
 
     /** 是否功能门墙件（有门洞几何且非永久开放装饰门、非障碍物） */
@@ -1212,22 +1272,37 @@ export const CombatRoomSystem = {
     /**
      * 放置一条通道：预制按 gA→mid1 纯平移（gB 应落 mid2，容差 80px）；
      * 先两轮摘除两门覆盖的墙件，再把直墙件推入 isoVisuals、门墙件建功能门（初始常开）
+     * ⚠ 2026-08-08 多房迷宫：预制固有轴与通道轴反向时（如蛇形折返排沿 -v1 走），
+     * 整组绕 gA 中心旋转 180°（x' = 2*gA.x − x，y' = 2*gA.y − y，flipX/flipY 取反）
+     * 再平移——旋转后 gA 端原位、gB 端翻到对侧，底边/门洞几何经 texPointToWorld
+     * 的 flip 变换自动正确，无需维护四方向预制数据。
      */
     _placeArenaPassage(analysis, passage, roomA, roomB) {
-        const t = { x: passage.mid1.x - analysis.gA.center.x, y: passage.mid1.y - analysis.gA.center.y };
-        const bx = analysis.gB.center.x + t.x, by = analysis.gB.center.y + t.y;
+        const mirror = analysis.axis
+            && (analysis.axis.x * passage.axis.x + analysis.axis.y * passage.axis.y) < -0.8;
+        const gAX = analysis.gA.center.x, gAY = analysis.gA.center.y;
+        const t = { x: passage.mid1.x - gAX, y: passage.mid1.y - gAY };
+        const gBx = mirror ? 2 * gAX - analysis.gB.center.x : analysis.gB.center.x;
+        const gBy = mirror ? 2 * gAY - analysis.gB.center.y : analysis.gB.center.y;
+        const bx = gBx + t.x, by = gBy + t.y;
         if (Math.hypot(bx - passage.mid2.x, by - passage.mid2.y) > 80) {
             console.warn('[CombatRoomSystem] 通道预制长度与房间间距不符',
                 Math.round(Math.hypot(bx - passage.mid2.x, by - passage.mid2.y)), 'px');
             return null;
         }
-        // 第一轮：平移全部件，先让两门墙"移除对应大小的墙"（摘覆盖跨度的房间墙件）
-        const translated = analysis.def.pieces.map(p => ({
-            ...p,
-            x: p.x + t.x,
-            y: p.y + t.y,
-            depth: p.depth != null ? p.depth + t.y : p.depth,
-        }));
+        // 第一轮：先旋转 180°（反向通道）再平移全部件；门墙先"移除对应大小的墙"
+        const translated = analysis.def.pieces.map(p => {
+            const px = mirror ? 2 * gAX - p.x : p.x;
+            const py = mirror ? 2 * gAY - p.y : p.y;
+            return {
+                ...p,
+                x: px + t.x,
+                y: py + t.y,
+                flipX: mirror ? !p.flipX : p.flipX,
+                flipY: mirror ? !p.flipY : p.flipY,
+                depth: p.depth != null ? p.depth + t.y : p.depth,
+            };
+        });
         for (const q of translated) {
             if (!this._isFunctionalGatePiece(q)) continue;
             const seg = WallSystem._pieceBaseSegments(q)[0];
@@ -1261,6 +1336,17 @@ export const CombatRoomSystem = {
      * 旧版"按走廊轴居中的等宽块"：两侧墙距轴不等（+184/-211），居中展宽一侧探出墙外、
      * 另一侧露出黑条（"地板超出边界 + 黑色区域"的根因）。
      */
+    /** 房间边线（点 + 方向，参数化方向与 buildIsoDiamondWalls 的 edgeFill 一致：上端→下端） */
+    _roomEdgeLine(room, edge) {
+        switch (edge) {
+            case 'RB': return { P: { x: room.cx + room.rx, y: room.cy }, d: { x: -room.rx, y: room.ry } };
+            case 'LT': return { P: { x: room.cx, y: room.cy - room.ry }, d: { x: -room.rx, y: room.ry } };
+            case 'TR': return { P: { x: room.cx, y: room.cy - room.ry }, d: { x: room.rx, y: room.ry } };
+            case 'BL': return { P: { x: room.cx, y: room.cy + room.ry }, d: { x: -room.rx, y: -room.ry } };
+            default: return { P: { x: room.cx + room.rx, y: room.cy }, d: { x: -room.rx, y: room.ry } };
+        }
+    },
+
     _arenaPassageFloorQuad(analysis, passage, roomA, roomB) {
         const axis = passage.axis;
         const perp = { x: -axis.y, y: axis.x };
@@ -1288,8 +1374,9 @@ export const CombatRoomSystem = {
         // × 房间边线"的交点（= 60° 墙角点），保证地板精确盖到墙角；旧版用边线向内
         // 平移 80/250px，端点落在房间内部，墙角楔形区留黑（"草地没盖到墙角"）。
         // 地板继续向房内延伸由房间菱形地板（并集）补齐，重叠区裁剪去重。
-        const edgeA = { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry } };
-        const edgeB = { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry } };
+        // 端边 = 房间实际出/入边（三房 RB/LT；迷宫折返 TR/BL——旧版硬编码 RB/LT 会算错地板）
+        const edgeA = this._roomEdgeLine(roomA, roomA.outEdge || 'RB');
+        const edgeB = this._roomEdgeLine(roomB, roomB.inEdge || 'LT');
         const intersect = (l1, l2) => {
             const ex = l2.P.x - l1.P.x, ey = l2.P.y - l1.P.y;
             const denom = l1.d.x * l2.d.y - l1.d.y * l2.d.x;
@@ -1366,11 +1453,15 @@ export const CombatRoomSystem = {
         const seg = WallSystem._pieceBaseSegments(piece)[0];
         if (!seg) return piece;
         let [A, B] = seg.map(p => ({ ...p }));
-        // 房间边线：roomA RB（R→B）/ roomB LT（T→L），"房内" = 朝向房心一侧
-        const edges = [
-            { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry }, c: { x: roomA.cx, y: roomA.cy } },
-            { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry }, c: { x: roomB.cx, y: roomB.cy } },
-        ];
+        // 房间边线：实际出/入边（三房 RB/LT；迷宫折返 TR/BL），"房内" = 朝向房心一侧
+        const edges = [];
+        for (const [room, edge, center] of [
+            [roomA, roomA.outEdge || 'RB', roomA],
+            [roomB, roomB.inEdge || 'LT', roomB],
+        ]) {
+            const e = this._roomEdgeLine(room, edge);
+            edges.push({ P: e.P, d: e.d, c: center });
+        }
         for (const e of edges) {
             // 法线（指向房心）
             let nx = -e.d.y, ny = e.d.x;
@@ -1402,9 +1493,9 @@ export const CombatRoomSystem = {
         const perp = { x: -axis.y, y: axis.x };
         const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().straight : 'straight';
         const flip = axis.x * axis.y <= 0; // ↘ 走廊为 "\" 方向（flip=false）
-        // 两条房间边线（点 + 方向）
-        const edgeA = { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry } }; // RB：R→B
-        const edgeB = { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry } }; // LT：T→L
+        // 两条房间边线（点 + 方向）：实际出/入边（三房 RB/LT；迷宫折返 TR/BL）
+        const edgeA = this._roomEdgeLine(roomA, roomA.outEdge || 'RB');
+        const edgeB = this._roomEdgeLine(roomB, roomB.inEdge || 'LT');
         // 收集该通道的侧墙件（平行于走廊轴、在走廊侧墙带内、且在本通道跨度范围内——
         // 不过滤跨度会把其他通道/房间的平行墙并入，填充出横跨全场的 stray 墙）
         const mid = passage.center;
@@ -1564,11 +1655,14 @@ export const CombatRoomSystem = {
      */
     _fillEdgeGaps(room, edge, gateSegs = []) {
         // 边的参数化方向必须与 buildIsoDiamondWalls 的 edgeFill 一致（上端→下端）：
-        // RB = R→B（edgeFill(rD, bR)），LT = T→L（edgeFill(tL, lU)）——
+        // RB = R→B（edgeFill(rD, bR)），LT = T→L（edgeFill(tL, lU)），
+        // TR = T→R，BL = B→L（迷宫折返通道的开洞边）——
         // LT 若按 L→T 参数化，_addSegPiece 的上端锚定反转，填充件就是"倒置"的（线上教训）
         const verts = {
             RB: [{ x: room.cx + room.rx, y: room.cy }, { x: room.cx, y: room.cy + room.ry }],
             LT: [{ x: room.cx, y: room.cy - room.ry }, { x: room.cx - room.rx, y: room.cy }],
+            TR: [{ x: room.cx, y: room.cy - room.ry }, { x: room.cx + room.rx, y: room.cy }],
+            BL: [{ x: room.cx, y: room.cy + room.ry }, { x: room.cx - room.rx, y: room.cy }],
         }[edge];
         if (!verts) return;
         const [V0, V1] = verts;
@@ -1711,6 +1805,11 @@ export const CombatRoomSystem = {
     getArenaRoomBounds(roomIdx) {
         const a = this._arena;
         return a && a.rooms[roomIdx - 1] ? a.rooms[roomIdx - 1].bounds : null;
+    },
+
+    /** 竞技场房间数（3 = 三房直线；迷宫 >3；未启用返回 0） */
+    getArenaRoomCount() {
+        return this._arena && this._arena.rooms ? this._arena.rooms.length : 0;
     },
 
     /** 销毁全部通道门（sprite + 碰撞段 + 动画）；cleanupGate 调用，随后场景恢复重建碰撞 */

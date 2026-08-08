@@ -1616,7 +1616,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
      渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
   - **⚠ 通道侧墙探入房间内部（2026-08-08 五修）**：用户报"通道2 侵入第二间房
-     场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
+    场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
      边线投影）：沼泽预制 `t_start=-40`（门中心前 40px 起铺）在 60° 房间边线面前
      不够——row −211 首件端面探入房A **140.6px**、row +184 末件探入房B **125.9px**，
      且带碰撞挡住房内可走区（房2 内 (4238,2313)/(4300,2350) pre 不可通行）。根因
@@ -1626,8 +1626,39 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      "定长定高、尾端由封口补"同口径，不缩放、不削墙顶。验证：post 房2 门洞内侧
      (4238,2313)/(4300,2350)/(4400,2330) 全部可通行；精灵列表无突出件、有封口瓦；
      arena-layout/wall-embed/gate-corner/wall-depth + npm test 全绿；僵尸版侧墙端面
-     均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
-     铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
+    均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
+    铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
+  - **✅ 多房迷宫竞技场（2026-08-08 六修/新章）**：三房直线串联 → 任意房数
+    蛇形网格迷宫（默认 5 房 2 排）。核心复用：菱形四对边（LT/RB、TR/BL）的通道
+    连接中心距公式**完全相同**（= (rx_A+rx_B)*EDGE_MID_FACTOR + passageLen），
+    四方向通道几何对称，只需补 v2 轴（上下通道）识别 + 反向放置旋转。
+    实现要点：
+    1. `computeMazeLayout`（combat-arena-layout.js）：蛇形拓扑（排内 ±v1 交替、
+       排间 +v2 折返），房记 inEdge/outEdge（末房出口 = 入口对边，避免出入口同边冲突）；
+       **世界尺寸含负方向——蛇形会向 -y 走，整组平移使 minX/minY ≥ margin**。
+    2. `_analyzePassagePrefab` 双轴校验（v1=(0.866,0.5) / v2=(0.866,-0.5)，取
+       |dot| 大者）；配置 `passagePrefabs` 改 `{ v1, v2 }` 对象格式（坑：deepMerge
+       的 DEFAULT_ARENA 也必须是对象，字符串会被逐字拆开成 {0:'左',1:'右',...}）。
+    3. `_placeArenaPassage` 反向通道**绕 gA 中心旋转 180°**（x'=2gA.x−x，
+       y'=2gA.y−y，flipX/flipY 取反）——水平镜像只翻 x 得到的是 -v2 方向，
+       y 不翻会落点校验失败（反向通道 = 上下通道镜像，不是左右通道镜像）。
+       门洞/底边几何经 texPointToWorld 的 flip 变换自动正确。
+    4. 地板/封口/裁剪的边线动态化：新增 `_roomEdgeLine(room, edge)`（TR/BL 边），
+       `_arenaPassageFloorQuad`/`_sealPassageSides`/`_clipPassagePieceToRooms`
+       不再硬编码 RB/LT——转弯通道（TR→BL）地板/封口全靠这个。
+    5. 波次/门控/出口/宝箱泛化：硬编码 3 → `arena.rooms.length`（forceArenaWaves、
+       `_checkZombieCombatComplete` stage<len、`_onArenaRoomSealed` 末房、宝箱房
+       setup 末房、`_trapExtras` 末房来路通道索引 len−2）；出口门锚定末房 outEdge
+       中点（`_setupGate` 通用）。
+    6. 沼泽上下通道预制：`gen-swamp-passage-prefab.py` 双源（左右/上下）生成
+       「上下通道·沼泽」，L=964.6 与左右一致；data/ + public/data/ 双份同步。
+    配置：`combatArena.maze = { enabled, roomCount, rows }`（默认 5 房 2 排启用；
+    关掉或 roomCount≤3 走原三房直线）。验证：`tools/cdp-maze-check.mjs` 进沼泽
+    竞技场——5 房 4 通道门位置 d1=d2=0、通道中点可通行、四条地板 quad 端点
+    errA/errB=0（转弯 TR→BL 与反向 LT→RB 全对）、三房回归 roomCount=3；
+    npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
+    → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
+    地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

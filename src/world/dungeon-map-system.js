@@ -1337,8 +1337,10 @@ export const DungeonMapSystem = {
         let reachFrom = null;
         if (arena && roomIdx && bounds) {
             reachFrom = { x: bounds.cx, y: bounds.cy };
-            if (stage === 3) {
-                const g = arena.passages[1] && arena.passages[1].gates[0];
+            const lastIdx = arena.rooms ? arena.rooms.length : 3;
+            if (stage === lastIdx) {
+                const inPass = arena.passages[lastIdx - 2];
+                const g = inPass && inPass.gates[0];
                 if (g && g.center) reachFrom = { x: g.center.x, y: g.center.y };
             }
         }
@@ -1370,9 +1372,10 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
-        // 竞技场强制 3 波编排（一房一波）：遭遇覆盖 combatWaves<3（如诅咒铠甲事件 1 波）补足到 3 波
+        // 竞技场强制 N 波编排（一房一波，N = 房间数）：遭遇覆盖 combatWaves<N 补足到 N 波
         // 防软锁；强制怪（forceMonsters，如铠甲骑士）改到最后一波压轴出场
-        this._zombieCombat.forceArenaWaves(3);
+        const arenaRoomCount = CombatRoomSystem.getArenaRoomCount ? CombatRoomSystem.getArenaRoomCount() : 3;
+        this._zombieCombat.forceArenaWaves(arenaRoomCount);
         // 月影庇护：进入战斗触发无敌；精英战同时激活增伤
         this._triggerMoonshadow(!!node.isElite);
 
@@ -1394,9 +1397,10 @@ export const DungeonMapSystem = {
             return;
         }
 
-        // 宝箱房：第三房间中央（普通/精英都生成；倒计时等玩家进入房间 3 才启动）
+        // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）
         if (typeof ChestRoomSystem !== 'undefined') {
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(3), { deferCountdown: true, isElite: !!node.isElite });
+            const lastRoomIdx = CombatRoomSystem.getArenaRoomCount();
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(lastRoomIdx), { deferCountdown: true, isElite: !!node.isElite });
         }
 
         // 陷阱：房间生成时逐房摆放（不再等玩家进房关门）；可达性锚点用本房内部参考点
@@ -1404,7 +1408,8 @@ export const DungeonMapSystem = {
         if (typeof TrapSystem !== 'undefined') {
             const zcfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
             if (zcfg.traps && zcfg.traps.count > 0) {
-                for (let roomIdx = 1; roomIdx <= 3; roomIdx++) {
+                const roomN = CombatRoomSystem.getArenaRoomCount();
+                for (let roomIdx = 1; roomIdx <= roomN; roomIdx++) {
                     const rb = CombatRoomSystem.getArenaRoomBounds(roomIdx);
                     if (!rb) continue;
                     try {
@@ -1476,11 +1481,12 @@ export const DungeonMapSystem = {
         // 堵"门没关就刷怪"的漏洞（关门条件见 _updateArenaDoorClose；陷阱创建时已摆好）
     },
 
-    /** 关门后执行：刷对应波次 + （房间 3）启动宝箱倒计时（陷阱已在竞技场创建时逐房预生成） */
+    /** 关门后执行：刷对应波次 + （末房）启动宝箱倒计时（陷阱已在竞技场创建时逐房预生成） */
     _onArenaRoomSealed(roomIdx) {
         const arena = CombatRoomSystem._arena;
         if (!arena) return;
-        if (roomIdx === 3 && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
+        const lastIdx = arena.rooms ? arena.rooms.length : 3;
+        if (roomIdx === lastIdx && typeof ChestRoomSystem !== 'undefined' && ChestRoomSystem.active) {
             ChestRoomSystem.startCountdown();
         }
         // waveSpawned 必须先置位再刷波：刷波流程内（墓碑/陷阱）若抛异常，
@@ -1491,9 +1497,9 @@ export const DungeonMapSystem = {
         } catch (e) {
             console.error('[DungeonMapSystem] 刷波异常（已兜底，不阻塞清场判定）:', e);
         }
-        // 入侵混合战：特工在房间 3 随第 3 波同刷（setArenaStageRoom 已把 _roomBounds 切到房间 3，
+        // 入侵混合战：特工在末房随最后一波同刷（setArenaStageRoom 已把 _roomBounds 切到末房，
         // 自由边布点天然落在本房；登记进 _combatMonsterKeys 计入清场判定）
-        if (roomIdx === 3 && this._invasionMixed) {
+        if (roomIdx === lastIdx && this._invasionMixed) {
             this._spawnInvasionAgentsOnFreeEdge(AgentInvasionSystem.getAgentFactories());
         }
     },
@@ -1678,8 +1684,8 @@ export const DungeonMapSystem = {
                 if (arena) {
                     // 尚未刷过波（关门刷波窗口期，数组里还是上一房间的死怪）：一律不判定清场
                     if (!arena.waveSpawned) return false;
-                    if (arena.stage < 3) {
-                        // 当前房间 < 3 → 开门等玩家进下一房间
+                    if (arena.stage < arena.rooms.length) {
+                        // 当前房间 < 末房 → 开门等玩家进下一房间
                         if (!this._arenaRoomCleared) {
                             this._arenaRoomCleared = true;
                             CombatRoomSystem.setArenaRoomGates(arena.stage, true);
@@ -1690,7 +1696,7 @@ export const DungeonMapSystem = {
                         }
                         return false;
                     }
-                    // stage === 3：等本房间波次由关门流程驱动，战斗完成与否看 isComplete
+                    // stage === 末房：等本房间波次由关门流程驱动，战斗完成与否看 isComplete
                     return false;
                 }
                 // 防止重复设置过渡
