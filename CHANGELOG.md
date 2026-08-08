@@ -1,5 +1,11 @@
 # 变更日志
 
+### 对话：ai-asset 统一入口扩展 weapon 大类（2026-08-08）
+- ai-asset.py 新增 `weapon` 大类：scaffold / gen-image / process-image / gen-video / verify
+  五子命令透传 add-weapon.py（全自动枪械管线），工作统一从 ai-asset 进。
+- 已回验：dry-run 命令正确、`weapon verify --spec m416.json` 实际执行通过（node --check 全 OK）。
+- **修改文件**：tools/ai-gen/ai-asset.py、SKILL.md。
+
 ### 对话：AI 索敌/寻路二轮优化 + 门闸寻路循环修复（2026-08-08）
 - **感知降频**：有活跃目标的怪 PerceptionSystem 改 100ms tick（无目标怪/战术小队成员每帧不变，
   节流口径不变）；**搜索行为接线**——`_updateSearchBehavior` 的 `_searchTarget` 原只有死代码

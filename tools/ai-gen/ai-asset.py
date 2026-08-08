@@ -132,6 +132,47 @@ def monster_status(args):
         print(f"no artifacts for '{args.name}' under {SCRATCH}")
 
 
+def _weapon_spec_default():
+    return os.path.join(TOOLS_DIR, "weapon-specs", "m416.json")
+
+
+def weapon_scaffold(args):
+    run(["PY", tool("add-weapon.py"), "--spec", args.spec, "scaffold"], args.dry_run)
+
+
+def weapon_gen_image(args):
+    cmd = ["PY", tool("add-weapon.py"), "--spec", args.spec, "gen-image",
+           "--host", args.host, "--model", args.model, "--seeds", args.seeds,
+           "--timeout", str(args.timeout)]
+    if args.ref_image:
+        cmd += ["--ref-image", args.ref_image]
+    run(cmd, args.dry_run)
+
+
+def weapon_process_image(args):
+    cmd = ["PY", tool("add-weapon.py"), "--spec", args.spec, "process-image",
+           "--raw", args.raw, "--cutout-tool", args.cutout_tool,
+           "--rmbg-host", args.rmbg_host, "--rmbg-port", str(args.rmbg_port),
+           "--rmbg-model", args.rmbg_model, "--rmbg-timeout", str(args.rmbg_timeout)]
+    if args.force:
+        cmd += ["--force"]
+    if args.no_orient:
+        cmd += ["--no-orient"]
+    if args.no_auto_level:
+        cmd += ["--no-auto-level"]
+    run(cmd, args.dry_run)
+
+
+def weapon_gen_video(args):
+    run(["PY", tool("add-weapon.py"), "--spec", args.spec, "gen-video",
+         "--host", args.host, "--port", str(args.port),
+         "--duration", str(args.duration), "--timeout", str(args.timeout)], args.dry_run)
+
+
+def weapon_verify(args):
+    run(["PY", tool("add-weapon.py"), "--spec", args.spec, "verify"], args.dry_run)
+
+
 def cutout(args):
     run(["PY", tool("rmbg_cutout.py"), "--src", args.src, "--out", args.out], args.dry_run)
 
@@ -192,6 +233,51 @@ def main():
     p = msub.add_parser("status", parents=[common], help="列出该怪物的全部产物")
     p.add_argument("--name", required=True)
     p.set_defaults(func=monster_status)
+
+    # ===== weapon 大类（add-weapon.py 全自动枪械管线）=====
+    w = sub.add_parser("weapon", parents=[common], help="枪械武器全自动添加工作流（add-weapon.py）")
+    wsub = w.add_subparsers(dest="action", required=True)
+
+    wp = wsub.add_parser("scaffold", parents=[common],
+                         help="数据双份写入 + 深度剪影模板 + 提示词 + 三音效 + JS 锚点清单")
+    wp.add_argument("--spec", default=_weapon_spec_default())
+    wp.set_defaults(func=weapon_scaffold)
+
+    wp = wsub.add_parser("gen-image", parents=[common], help="批量出候选图（comfyui-gen.py）")
+    wp.add_argument("--spec", default=_weapon_spec_default())
+    wp.add_argument("--host", default="192.168.3.142")
+    wp.add_argument("--model", default="flux2-klein-4b")
+    wp.add_argument("--seeds", default="1,2,3")
+    wp.add_argument("--timeout", type=int, default=900)
+    wp.add_argument("--ref-image", default=None, help="真实参考图（白底完整侧视，自动抠剪影锁形）")
+    wp.set_defaults(func=weapon_gen_image)
+
+    wp = wsub.add_parser("process-image", parents=[common],
+                         help="抠图 + 按 spec.layout 归一化入库 assets/weapons")
+    wp.add_argument("--spec", default=_weapon_spec_default())
+    wp.add_argument("--raw", required=True)
+    wp.add_argument("--force", action="store_true")
+    wp.add_argument("--cutout-tool", choices=["auto", "make-transparent-icon", "flood", "none", "rmbg"],
+                    default="auto")
+    wp.add_argument("--no-orient", action="store_true")
+    wp.add_argument("--no-auto-level", action="store_true")
+    wp.add_argument("--rmbg-host", default="127.0.0.1")
+    wp.add_argument("--rmbg-port", type=int, default=8188)
+    wp.add_argument("--rmbg-model", default="BiRefNet-general")
+    wp.add_argument("--rmbg-timeout", type=int, default=900)
+    wp.set_defaults(func=weapon_process_image)
+
+    wp = wsub.add_parser("gen-video", parents=[common], help="生成武器展示视频（H3，5080）")
+    wp.add_argument("--spec", default=_weapon_spec_default())
+    wp.add_argument("--host", default="192.168.3.142")
+    wp.add_argument("--port", type=int, default=8188)
+    wp.add_argument("--duration", type=int, default=2)
+    wp.add_argument("--timeout", type=int, default=1800)
+    wp.set_defaults(func=weapon_gen_video)
+
+    wp = wsub.add_parser("verify", parents=[common], help="JSON 双份一致 + 资产存在性 + node --check")
+    wp.add_argument("--spec", default=_weapon_spec_default())
+    wp.set_defaults(func=weapon_verify)
 
     # ===== 通用子命令 =====
     p = sub.add_parser("cutout", parents=[common], help="通用抠图（ComfyUI-RMBG BiRefNet-general）")

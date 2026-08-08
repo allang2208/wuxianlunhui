@@ -16,6 +16,12 @@ python tools/ai-gen/ai-asset.py monster idle    --name <X> --ref <参考图> --p
 python tools/ai-gen/ai-asset.py monster video   --name <X> --kind run|attack --ref <idle图> [--bg-color auto|#hex]
 python tools/ai-gen/ai-asset.py monster rebuild --name <X> --video <y.mp4> --kind run|attack [--bg-color 同色] [--cell 640]
 python tools/ai-gen/ai-asset.py monster status  --name <X>
+# 枪械武器全自动添加（add-weapon.py 编排：scaffold → gen-image → process-image → gen-video → verify）
+python tools/ai-gen/ai-asset.py weapon scaffold      --spec tools/ai-gen/weapon-specs/<key>.json
+python tools/ai-gen/ai-asset.py weapon gen-image     --spec <spec> [--seeds 1,2,3] [--ref-image 参考图]
+python tools/ai-gen/ai-asset.py weapon process-image --spec <spec> --raw <候选图.png>
+python tools/ai-gen/ai-asset.py weapon gen-video     --spec <spec>
+python tools/ai-gen/ai-asset.py weapon verify        --spec <spec>
 # 通用子命令（所有大类复用）
 python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
 python tools/ai-gen/ai-asset.py bg-color --image <参考图>
