@@ -5,6 +5,15 @@ import { dynamicObstacleMap } from './dynamic-obstacle-map.js';
 /** 寻路帧预算耗尽时的哨兵返回值：调用方应保留旧路径、下一帧重试，而非当作"不可达" */
 export const PATH_DEFERRED = Symbol('PATH_DEFERRED');
 
+// [PERF-2026-08-08] 整数格 key 步长：key = gx + gy * CELL_STRIDE，替代 "gx,gy" 字符串拼接
+// （热路径每格多次拼字符串的开销实测可观）。|gx| < 65536（±262 万 px）内唯一。
+const CELL_STRIDE = 131072;
+
+// [PERF-2026-08-08] 半径档归并桶：memo/路径缓存按桶共享（原 7 档精确半径 key 共享率差）。
+// 取桶上界为代表半径（≥ 桶内任意实际半径，只可能绕更宽、不可能穿墙）。
+// 桶外（>90）半径保持原值各自成桶。实际半径集合 10/28/33/40/60/90/180 → 桶 20/40/40/40/90/90/180。
+const RADIUS_BUCKETS = [20, 40, 90];
+
 /* ================================================================
  *  PathFinder — 局部A*寻路系统（用于怪物绕过障碍物）
  * 优化内容：
@@ -19,30 +28,38 @@ export const PATH_DEFERRED = Symbol('PATH_DEFERRED');
  * ================================================================ */
 
 /* ---------- 二叉堆优先队列 ---------- */
+// [PERF-2026-08-08] 元素→下标索引表：remove 由 indexOf O(n) 降为 O(log n)，
+// push/pop/sink 同步维护。纯性能重构，堆序语义不变。
 class BinaryHeap {
     constructor(scoreFn) {
         this.content = [];
         this.scoreFn = scoreFn;
+        this._index = new Map(); // element -> content 下标
     }
     push(element) {
+        this._index.set(element, this.content.length);
         this.content.push(element);
         this._sinkUp(this.content.length - 1);
     }
     pop() {
         const result = this.content[0];
         const end = this.content.pop();
+        this._index.delete(result);
         if (this.content.length > 0) {
             this.content[0] = end;
+            this._index.set(end, 0);
             this._sinkDown(0);
         }
         return result;
     }
     remove(node) {
-        const i = this.content.indexOf(node);
-        if (i === -1) return;
+        const i = this._index.get(node);
+        if (i === undefined) return;
         const end = this.content.pop();
+        this._index.delete(node);
         if (i !== this.content.length) {
             this.content[i] = end;
+            this._index.set(end, i);
             if (this.scoreFn(end) < this.scoreFn(node)) {
                 this._sinkUp(i);
             } else {
@@ -61,6 +78,8 @@ class BinaryHeap {
             if (this.scoreFn(element) >= this.scoreFn(parent)) break;
             this.content[parentN] = element;
             this.content[n] = parent;
+            this._index.set(element, parentN);
+            this._index.set(parent, n);
             n = parentN;
         }
     }
@@ -86,6 +105,8 @@ class BinaryHeap {
             if (swap === null) break;
             this.content[n] = this.content[swap];
             this.content[swap] = element;
+            this._index.set(this.content[n], n);
+            this._index.set(element, swap);
             n = swap;
         }
     }
@@ -95,7 +116,7 @@ class BinaryHeap {
 class SpatialHash {
     constructor(cellSize = 40) {
         this.cellSize = cellSize;
-        this.cells = new Map(); // key: "cx,cy" -> [{type:'wall'|'tree', obj}]
+        this.cells = new Map(); // key: cx + cy*CELL_STRIDE（整数） -> [{type:'wall'|'tree'|'seg', obj}]
         this._wallHash = null;
         this._treeHash = null;
     }
@@ -105,7 +126,8 @@ class SpatialHash {
         this._treeHash = null;
     }
     _getKey(cx, cy) {
-        return `${cx},${cy}`;
+        // [PERF-2026-08-08] 整数 key 替代 `${cx},${cy}` 字符串拼接
+        return cx + cy * CELL_STRIDE;
     }
     _getCell(x, y) {
         return [Math.floor(x / this.cellSize), Math.floor(y / this.cellSize)];
@@ -238,6 +260,7 @@ class PathFinder {
         // [PERF-2026-08-03] 静态格子结果记忆化：按(格子坐标, 半径)缓存 blocked/moveCost。
         // 同一几何下多只怪共享一份结果，避免每次寻路都重建整张成本网格（实测占冷路径 ~92%）
         this._cellMemo = new Map();
+        this._memoRadii = new Set(); // memo 中出现过的桶半径（invalidateRegion 按格清除时枚举用）
         this._geometryVersion = 0;   // 几何版本：invalidateCache() 自增，几何变化时清 memo
         // [PERF-2026-08-03] 每帧寻路预算：主线程 A* 同步执行，超预算请求返回 PATH_DEFERRED，
         // 由调用方保留旧路径、下一帧重试（MovementSystem.beginFrame 每帧重置）

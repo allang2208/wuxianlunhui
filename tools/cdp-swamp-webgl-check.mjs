@@ -111,14 +111,39 @@ const r = await evalJs(`(async () => {
     player.x = 1024; player.y = 1024;
     const dungeonType = '${process.env.DUNGEON || 'swamp'}';
     DungeonMapSystem.init('scene7', player, dungeonType);
-    SceneManager.currentScene = 'scene7';
-    await new Promise((r) => setTimeout(r, 1200));
+SceneManager.currentScene = 'scene7';
+await new Promise((r) => setTimeout(r, 1200));
+await new Promise((r) => setTimeout(r, 600));
+return { nodes: DungeonMapSystem.nodes.length, dungeonType: DungeonMapSystem.dungeonType };
+})()`);
+console.log('map entered:', JSON.stringify(r));
+await shot('swamp_map_select');
+// 背景图状态
+const bgCheck = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { DungeonMapSystem } = await import(pick('world/dungeon-map-system.js'));
+    const { DungeonConfig } = await import(pick('config/dungeon-config.js'));
+    const zcfg = DungeonConfig.getZombieDungeonConfig(DungeonMapSystem.dungeonType);
+    const img = DungeonMapSystem._bgImg;
+    return {
+        dungeonType: DungeonMapSystem.dungeonType,
+        mapBackground: zcfg && zcfg.mapBackground,
+        bgLoaded: !!(img && img.complete && img.naturalWidth > 0),
+        bgSize: img ? [img.naturalWidth, img.naturalHeight] : null,
+    };
+})()`);
+console.log('bg check:', JSON.stringify(bgCheck));
+const arena = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { DungeonMapSystem } = await import(pick('world/dungeon-map-system.js'));
     const node = DungeonMapSystem.nodes.find((n) => n.type === 'combat' || n.type === 'elite');
     if (node) { DungeonMapSystem.currentNodeId = node.id; await DungeonMapSystem._enterNode(node); }
     await new Promise((r) => setTimeout(r, 1800));
     return { node: node ? node.type : null };
 })()`);
-console.log('arena:', JSON.stringify(r));
+console.log('arena:', JSON.stringify(arena));
 await shot('swamp_webgl_arena');
 // 放大通道1（门 ~2103,1230 / 2938,1713 → 中段 ~2520,1470）
 await evalJs(`(async () => {

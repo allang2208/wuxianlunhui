@@ -29,6 +29,9 @@ const PERCEPTION_WEIGHTS = {
 /** [PERF] 第二级 LOS 精评的候选上限：只对基础分 top-K 候选做 WallSystem 射线检测 */
 const LOS_TOP_K = 5;
 
+/** [PERF] 降频 tick 间隔（ms）：有有效目标的怪按此节奏跑完整 update 逻辑 */
+const PERCEPTION_TICK_INTERVAL = 100;
+
 /** 默认感知参数 */
 const DEFAULT_PERCEPTION = {
     alertRange: 1500,         // 警戒范围（像素）
@@ -56,6 +59,17 @@ class PerceptionSystemImpl {
 
         // 初始化感知属性（首次运行时）
         this._ensurePerceptionState(enemy);
+
+        // [PERF] 降频：有有效目标且非战术小队的怪每 100ms tick 一次，不足直接返回；
+        // 计时器类字段（遗忘/重扫/威胁衰减/搜索）统一按累加的 dt 结算，结果与逐帧等价。
+        // 无目标的怪保持每帧跑以便尽快重选；战术小队由 TacticalSquadAI 接管目标，保持每帧跑
+        if (enemy.target && enemy.target.active && !enemy._tacticalRole) {
+            const p = enemy._perception;
+            p.tickTimer += dt;
+            if (p.tickTimer < PERCEPTION_TICK_INTERVAL) return;
+            dt = p.tickTimer;
+            p.tickTimer = 0;
+        }
 
         // 1. 更新目标状态
         this._updateTargetState(enemy, dt, entities);
@@ -326,8 +340,12 @@ class PerceptionSystemImpl {
         }
 
         if (!enemy._lastKnownTargetPos) {
-            enemy._searchTarget = null;
-            return;
+            // [SEARCH] 移动系统到达最后已知位置后会清除记忆，但 searchAround 阶段的
+            // 巡逻要继续，由搜索计时耗尽后的 giveUp 分支负责清场；其余阶段照常终止搜索
+            if (!enemy._searchTarget || enemy._searchTarget.phase !== 'searchAround') {
+                enemy._searchTarget = null;
+                return;
+            }
         }
 
         const p = enemy._perception;
@@ -368,8 +386,10 @@ class PerceptionSystemImpl {
                         // 到达搜索点，移除
                         search.searchPoints.shift();
                     }
-                } else if (search.timer > p.searchDuration) {
-                    // 搜索时间耗尽，放弃
+                }
+                // [SEARCH] 搜索计时耗尽即放弃（兜底：个别搜索点落在墙内不可达时
+                // 也不会永远卡在巡逻里，giveUp 分支统一清场）
+                if (search.timer > p.searchDuration) {
                     search.phase = 'giveUp';
                 }
                 break;
@@ -514,6 +534,7 @@ class PerceptionSystemImpl {
             scanInterval: perceptionCfg.scanInterval || DEFAULT_PERCEPTION.scanInterval,
             losCache: new Map(),   // [PERF] per-target LOS 缓存: targetId -> {result, time}
             scanTimer: 0,
+            tickTimer: 0,          // [PERF] 降频累加器：有有效目标的怪攒够 100ms 才 tick
             lastSeenTime: 0
         };
 

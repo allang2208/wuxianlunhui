@@ -929,6 +929,31 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
   维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
 
+### 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
+- **移动目标优先级契约**（movement-system `_computeMoveDirection`）：
+  `_specialTacticalTarget` > `_tacticalTarget` > BattleCommander > `enemy.target` > `_lastKnownTargetPos`。
+  **防守怪（`_defenseMonster`）不走 BattleCommander**（战术点围绕玩家，与基地/掩体目标冲突，
+  game.js 收集处 + 优先级判断双保险）；chargeStraight 怪只认 enemy.target 直线。
+- **分段接力寻路 [RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 时 `_pickRelayPoint`
+  （主方向 +±30°/±60° 共 5 条 `WallSystem.blocked` 射线，选 600~700px 通畅点）逐段 A*，
+  `_relayTarget` 非永久状态，接近 <120px/路径失效/终点偏 >100px 接力下一段；帧预算 3ms、
+  PATH_DEFERRED、500ms 最小重算全部复用现有机制。例外：chargeStraight、战术目标移动保持直线。
+- **掩体可攻击链路三件套**：① `_coverSeg._owner` 回链 DefenseCover；② 卡住 500ms 且目标够不着时
+  `_retargetBlockingCover` 直接转火贴身掩体（绕过感知 1.3× 滞回）；③ LOS/Combat 对掩体目标
+  `blocked(..., {segs:[target._coverSeg]})` 忽略自身 face 段——不忽略则从墙背面接近永判无视线、拒不出手。
+- **索敌性能口径**：PerceptionSystem 候选走 SpatialPartitionSystem.queryRadius
+  （`_sourceEntities` 引用校验，防网格与传入集合不一致串数据）；两级筛选（基础分 top-5 才补 LOS）；
+  LOS 缓存 per-target Map（200ms TTL）——**新增 LOS 读取方一律走 `_checkLineOfSight`/`losCache`，
+  别再读已删除的 lastLOSTargetId 单槽**。
+- **防守 aggro 归一化**：spawn 时 `_aggroRange` 抬到 alertRange(3800)（`ai.defenseAggroRange` 覆盖）——
+  pacing AI 怪（黑狼 2500）出生即 chasing 进场；aggro 只服务 pacing AI 与 alertRange 兜底，
+  非 pacing 怪索敌完全由 PerceptionSystem `_alertRange` 决定。
+- **RegionIndex 口径**：`_isBlockedQuick` 与 pathfinder SpatialHash 同源（walls/trees/`_cover` 段，
+  点到线段距离 < 半径+halfThick）——改任何一边的阻挡判定，另一边必须同步。
+- **CDP 探针坑**：vite HMR 后 `await import('/src/x.js')` 会拿到第二份模块实例（状态全零、
+  DefenseSystem.active 恒 false）——必须按 resource entries 真实带 `?t=` query 的 URL import
+  （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）。
+
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
   塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
@@ -1038,7 +1063,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### 沉淀约定（防再犯）
 - **craft-config 新武器改造配置必须 `options` 嵌套**：`weapon20 = { slots:[...], options:{ slotId:[配件...] } }`——配平列表放顶层会导致 `config.options` 为 undefined、点击无反应，且 **test-craft-sync 只校验效果键与 registry 三角，校验不到嵌套层级**，此类结构错误靠人工审计。新武器上线时验证：改造弹窗能点、能装备、重置布局有默认槽位（craft-default-slots.js 同步补键）。
 - **自定义怪受控检查清单**：覆盖 `update()` 的怪（含站桩怪）都必须有 stun/frozen/fear 检查——站桩怪（煮锅/墓碑/矿洞）也要在站桩钉死后拦生成/投掷；基类的检查只到得了 `super.update` 之后，状态机在 super 之前的怪（僵尸巫师）必须在顶部拦截。
-- **pathfinder 有意不含 isoSegments**：动态碰撞段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路只建模静态 walls/trees——不要"顺手"把 isoSegments 纳入寻路，会削弱临时障碍阻挡设计。
+- **pathfinder 只纳入静态 `_cover` 掩体段，不含动态 isoSegments**（2026-08-08 修订）：动态段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路建模静态 walls/trees + `_cover` 掩体段（2e5e43c 起）——不要把动态段纳入寻路，会削弱临时障碍阻挡设计。
 - **渲染进程错误兜底已内置**：`window.onerror`/`unhandledrejection` 控制台 + 左下角错误条；Electron 主进程 `render-process-gone`/`did-fail-load` 崩溃重载。
 
 ## 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
@@ -1468,13 +1493,23 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      由邻居盖住」规则），仅整件进房才丢弃。验证：关闭裁剪后门口自然、墙不突入房间；
      `scripts/test-wall-depth.mjs` 的 `_sealPassageSides` 正则窗口 3000→5000（封口
      中位数逻辑使函数变长）。教训：**定长瓦片禁按比例缩放；越线交给邻居遮挡**。
-   - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
+  - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
      "房间边线向内平移 80px"，端点落在房间内部，60° 墙角楔形区地板不到墙线
      （墙脚露黑）。修复：`_arenaPassageFloorQuad` 侧边取**实际墙线**（不再内收 12px），
      端边改为**房间真实边线**——地板端点 = 走廊侧墙线 × 房间边线交点（=墙角点），
      精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
      墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
      渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
+  - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
+    `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
+    `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
+    僵尸默认 `assets/scenes/dungeon-bg/zombie.png`（2560×1065，湿地+地牢废墟风格，
+    注意与兜底 `dungeon-map-bg.png`（2560×1440 城堡）不是同一张）。新增地牢背景：
+    参考僵尸原图 → `flux2-dev-fp8` 文生图（无深度图时用强构图提示词；HuggingFace
+    被墙下不了 Depth-Anything，深度控制不可用）→ 放大到与参考同尺寸 → 存
+    `assets/scenes/dungeon-map-bg-<主题>.png` → data/ + public/data/ 两份配置
+    `swampDungeon.mapBackground`。验证：`tools/cdp-swamp-webgl-check.mjs` 进地图
+    截图 + GLM。生成提示词见 `tools/_swamp_bg_prompt2.txt`（宽幅 2.4:1）。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
