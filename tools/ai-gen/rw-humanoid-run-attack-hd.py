@@ -14,8 +14,8 @@ import subprocess
 PY = r"E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI\.venv\Scripts\python.exe"
 TOOL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "minimax-h3-gen.py")
 PROMPT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts")
-REF = os.path.join(os.environ["TEMP"], "rw-humanoid-ref-hd.png")
-OUT_DIR = os.path.join(os.environ["TEMP"], "rw-humanoid-hd-v2")
+REF = os.path.join(os.environ["TEMP"], "rw-humanoid-ref-real-hd.png")
+OUT_DIR = os.path.join(os.environ["TEMP"], "rw-humanoid-real-v2")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 JOBS = [

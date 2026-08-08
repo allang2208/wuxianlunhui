@@ -825,6 +825,23 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     明显更精细"，脚下无残留、身体完整、动作连贯；已部署 assets + dist。
   - 教训：**H3 i2v 参考图必须是高质量原生成图，不能用贴图放大**；文生图
     参考 + HD 参数 + 20 步是精细动画的固定组合。
+- **4096² 精灵图规格 + 写实参考图（2026-08-08 三十五版）**：
+  - 用户定规格：**4096×4096 画布、8 列 × 4 行 = 32 格取 30 帧（末行留 2 空）、
+    每帧 512×1024 竖条、不压缩**。旧 512×512 小格（14/12 帧）画质被压缩。
+  - 切帧工具 `rw-humanoid-sheet-4096.py`：步态周期均匀采样 30 帧 → fixed-scale
+    （高度 target_h=900 + 宽度≤480 双约束，防竖条超宽）→ 512×1024 竖条贴底
+    居中 → 组装 8×4 sheet。清理 `rw-clean-4096.py`（脚下浅灰 + band +
+    max-component，适配 512×1024 竖条）。
+  - 游戏接入：BootScene spritesheet 改 `frameWidth:512 frameHeight:1024
+    endFrame:29`；animation-config transformedFrameLayout run/attack →
+    `{cols:8, rows:4, frames:30, frameWidth:512, frameHeight:1024}`（双份同步）；
+    GameScene `_configureEnemyBody` 已有非方形帧等比缩放（longest 边=spriteSize），
+    512×1024 自动显示为 100×200，无需改渲染。
+  - 画风：项目偏写实，参考图用智谱 glm-image 生成（photorealistic / realistic
+    fur / horror creature），GLM 验收 + 清背景阴影后作 H3 首末帧。
+  - 视角：**水平侧视**（与现有怪物/玩家 billboard 一致，勿改等距透视）。
+  - 验证：run 6.8MB / attack 6.2MB（旧 0.5MB），GLM 确认写实毛发、无残留、
+    姿态连贯；实机非方形帧等比缩放正常、无拉伸。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
