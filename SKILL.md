@@ -1539,6 +1539,19 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
      墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
      渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
+  - **⚠ 通道侧墙探入房间内部（2026-08-08 五修）**：用户报"通道2 侵入第二间房
+     场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
+     边线投影）：沼泽预制 `t_start=-40`（门中心前 40px 起铺）在 60° 房间边线面前
+     不够——row −211 首件端面探入房A **140.6px**、row +184 末件探入房B **125.9px**，
+     且带碰撞挡住房内可走区（房2 内 (4238,2313)/(4300,2350) pre 不可通行）。根因
+     是三修把 `_clipPassagePieceToRooms` 改成"部分越线保留整件"后失去裁剪；再早的
+     scaleX 裁剪会削墙顶。修复：**任一端点越进房内（>8px 公差）即整件丢弃**，缺口由
+     既有 `_sealPassageSides` 用整瓦补到房间边线（两端各 8px 叠合）——与僵尸版
+     "定长定高、尾端由封口补"同口径，不缩放、不削墙顶。验证：post 房2 门洞内侧
+     (4238,2313)/(4300,2350)/(4400,2330) 全部可通行；精灵列表无突出件、有封口瓦；
+     arena-layout/wall-embed/gate-corner/wall-depth + npm test 全绿；僵尸版侧墙端面
+     均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
+     铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

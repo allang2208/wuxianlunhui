@@ -1356,8 +1356,11 @@ export const CombatRoomSystem = {
     /**
      * 通道直墙件房间裁剪：预制侧墙比门到门跨度长，60° 相接处会越过房间边线
      * 探入房内/横跨门口（"墙壁突出通道"的根因）。
-     * 处理：底边线段与两侧房间边线求交，越进房内的端点裁回边线（外留 8px 叠合），
-     * 整件全在房内的直接丢弃；中心/scaleX 同步折算（高度 scaleY 与深度不变）。
+     * 处理：任一端点越进房内（>8px 叠合公差）即整件丢弃，缺口由 _sealPassageSides
+     * 用整瓦补到房间边线（两端各 8px 叠合）——与僵尸版"定长定高、尾端由封口补"同口径。
+     * ⚠ 2026-08-08 三修：旧版"部分越线保留整件"会让侧墙端面探入房内 140px
+     * （用户"通道侵入第二间房场地，突出来"）；再早的按比例缩 scaleX 会同时削短墙顶、
+     * 门口出现台阶错位（129a0eb 教训）。丢弃+封口既去侵入又不缩放。
      */
     _clipPassagePieceToRooms(piece, passage, roomA, roomB) {
         const seg = WallSystem._pieceBaseSegments(piece)[0];
@@ -1378,12 +1381,11 @@ export const CombatRoomSystem = {
             const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny; // >0 = 房内
             const sA = sOf(A), sB = sOf(B);
             const INSIDE = 8; // 允许越线 8px（叠合公差）
-            if (sA > INSIDE && sB > INSIDE) return null; // 整件在房内：丢弃
+            // 任一端点越进房内（整件在房内是其子集）→ 丢弃，由封口逻辑补瓦
+            if (sA > INSIDE || sB > INSIDE) return null;
         }
-        // ⚠ 2026-08-08 修：部分越线不再按比例缩 scaleX——削短会同时削短墙顶，
-        // 通道口墙顶出现台阶/错位（实机：沼泽柴墙 3 段瓦被裁 136~154px，门口扭曲；
-        // 关闭裁剪后门口自然、墙不突入房间）。按 SKILL「定长定高瓦片、尾端超出
-        // 由邻居（房间墙/门）盖住」规则，部分越线保留整件；仅整件进房才丢弃。
+        // 丢弃越线件后缺口由 _sealPassageSides 用整瓦补到房间边线（两端各 8px 叠合），
+        // 与僵尸版"定长定高、尾端由封口补"同口径——不缩放、不削墙顶。
         return piece;
     },
 
