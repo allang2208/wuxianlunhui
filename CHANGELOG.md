@@ -1,5 +1,19 @@
 # 变更日志
 
+### 对话：ai-asset 统一入口收编 icon / humanoid / lora 三大类（2026-08-08）
+- `icon`：transparent / normalize / check / pipeline（装备/技能图标全处理）；
+- `humanoid`：loop / attack（h3-loop / h3-attack 人形怪抽帧，含 period/steady/feather 等参数透传）；
+- `lora`：prep / train / status（本地数据集准备；5080 训练走 ssh + schtasks EncodedCommand 防断连杀进程；
+  本地 yaml 自动 scp 到 D:/lora-train-src/；status 查进程/GPU/checkpoint）。
+- 已回验：dry-run 命令正确、`lora status` 实际 SSH 查询成功（5080 在线，列出现有 LoRA）。
+- **修改文件**：tools/ai-gen/ai-asset.py、SKILL.md。
+
+### 对话：ai-asset 统一入口扩展 weapon 大类（2026-08-08）
+- ai-asset.py 新增 `weapon` 大类：scaffold / gen-image / process-image / gen-video / verify
+  五子命令透传 add-weapon.py（全自动枪械管线），工作统一从 ai-asset 进。
+- 已回验：dry-run 命令正确、`weapon verify --spec m416.json` 实际执行通过（node --check 全 OK）。
+- **修改文件**：tools/ai-gen/ai-asset.py、SKILL.md。
+
 ### 对话：AI 索敌/寻路二轮优化 + 门闸寻路循环修复（2026-08-08）
 - **感知降频**：有活跃目标的怪 PerceptionSystem 改 100ms tick（无目标怪/战术小队成员每帧不变，
   节流口径不变）；**搜索行为接线**——`_updateSearchBehavior` 的 `_searchTarget` 原只有死代码

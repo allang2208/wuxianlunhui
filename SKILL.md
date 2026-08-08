@@ -16,6 +16,24 @@ python tools/ai-gen/ai-asset.py monster idle    --name <X> --ref <参考图> --p
 python tools/ai-gen/ai-asset.py monster video   --name <X> --kind run|attack --ref <idle图> [--bg-color auto|#hex]
 python tools/ai-gen/ai-asset.py monster rebuild --name <X> --video <y.mp4> --kind run|attack [--bg-color 同色] [--cell 640]
 python tools/ai-gen/ai-asset.py monster status  --name <X>
+# 枪械武器全自动添加（add-weapon.py 编排：scaffold → gen-image → process-image → gen-video → verify）
+python tools/ai-gen/ai-asset.py weapon scaffold      --spec tools/ai-gen/weapon-specs/<key>.json
+python tools/ai-gen/ai-asset.py weapon gen-image     --spec <spec> [--seeds 1,2,3] [--ref-image 参考图]
+python tools/ai-gen/ai-asset.py weapon process-image --spec <spec> --raw <候选图.png>
+python tools/ai-gen/ai-asset.py weapon gen-video     --spec <spec>
+python tools/ai-gen/ai-asset.py weapon verify        --spec <spec>
+# 装备/道具/技能图标
+python tools/ai-gen/ai-asset.py icon transparent --src <白底图> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon normalize   --src <png> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon pipeline    [--keys k1,k2]
+python tools/ai-gen/ai-asset.py icon check
+# 人形怪/工头动画（h3-loop / h3-attack 抽帧）
+python tools/ai-gen/ai-asset.py humanoid loop   --video <loop.mp4> --out walking.png [--period 48,48]
+python tools/ai-gen/ai-asset.py humanoid attack --video <attack.mp4> --out attack.png
+# LoRA 训练（5080）
+python tools/ai-gen/ai-asset.py lora prep    # 从技能图标生成训练集
+python tools/ai-gen/ai-asset.py lora train --yaml <本地或远程配置.yaml>   # schtasks 启动，防断连杀进程
+python tools/ai-gen/ai-asset.py lora status  # 进程/GPU/checkpoint
 # 通用子命令（所有大类复用）
 python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
 python tools/ai-gen/ai-asset.py bg-color --image <参考图>
@@ -3469,6 +3487,21 @@ addTree(x, y, radius, ...) {
   1-2 件机制级配件（P4040 的 auto_trigger 是范本）。
 - **审计工具沉淀**：一次性脚本思路——效果键合法性用正则提取 registry 键对比；
   数值失衡用"基础数据×改造叠加"模拟；同族一致性用 options 全量 diff。
+- **枪械改造审计落地（2026-08-08 首轮修复）**：
+  - light_mag 弹匣 -30 改为百分比：新增 `magazinePercent` 效果键（multiply，
+    消费端 subsystems/combatant 均 `maxAmmo = round(maxAmmo * (1 + pct))`），
+    light_mag = -40%（30 发→18、75→45、60→36，不再废枪）。
+  - 左轮专属改造：9发弹仓（magazineDelta:3）、快速装弹器（fastReload，单发装填
+    每次装 2 发 → 6 发装 3 次≈原 3 发时间）、麦格农高压弹（伤害+10%击退+15）、
+    平头铅弹（穿透+1）、甩锤速射（攻速-250ms 散布+2°）、重型枪口配重、
+    麦格农补偿器。图标复用现有 craft 图标（缺图用 fmj/muzzle_brake/light_trigger
+    等代替）。
+  - QBZ-191/QJB-201 muzzle 残留 bug：suppressor -200/隐藏火光/缺 spreadStartDelta，
+    统一为 AKM 同族标准（suppressor -300 击退+5、flash_hider +150 射程 -10°、
+    muzzle_brake 双 500ms）。
+  - 沙鹰加机制件：double_tap_trigger（burstMode:2 + 散布+1°），epic 手枪机制差异化。
+  - 教训：**弹容量改造必须按比例或分档，固定值-30 会废掉 30 发弹匣枪**；
+    **同族 muzzle 复制后手改会残留不一致**，加武器后用 options diff 校验。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

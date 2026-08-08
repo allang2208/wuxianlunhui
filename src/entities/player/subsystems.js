@@ -1204,6 +1204,9 @@ _initAmmoForSlot(slot) {
                     } else if (ce.magazineDelta) {
                         maxAmmo += ce.magazineDelta;
                     }
+                    if (ce.magazinePercent) {
+                        maxAmmo = Math.round(maxAmmo * (1 + ce.magazinePercent));
+                    }
                     if (ce.reloadTimeDelta) reloadTime += ce.reloadTimeDelta;
                     if (maxAmmo < 1) maxAmmo = 1;
                     if (reloadTime < 100) reloadTime = 100;

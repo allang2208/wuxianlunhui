@@ -108,6 +108,12 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => `${v >= 0 ? '+' : ''}${v}弹容量`,
         tooltip: '改变弹夹容量',
     },
+    magazinePercent: {
+        category: 'ammo',
+        applyMode: 'multiply',
+        display: (v) => `弹容量${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '按比例改变弹夹容量（与固定值叠加）',
+    },
     magazineOverride: {
         category: 'ammo',
         applyMode: 'override',
