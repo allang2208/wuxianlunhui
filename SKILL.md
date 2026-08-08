@@ -3487,6 +3487,21 @@ addTree(x, y, radius, ...) {
   1-2 件机制级配件（P4040 的 auto_trigger 是范本）。
 - **审计工具沉淀**：一次性脚本思路——效果键合法性用正则提取 registry 键对比；
   数值失衡用"基础数据×改造叠加"模拟；同族一致性用 options 全量 diff。
+- **枪械改造审计落地（2026-08-08 首轮修复）**：
+  - light_mag 弹匣 -30 改为百分比：新增 `magazinePercent` 效果键（multiply，
+    消费端 subsystems/combatant 均 `maxAmmo = round(maxAmmo * (1 + pct))`），
+    light_mag = -40%（30 发→18、75→45、60→36，不再废枪）。
+  - 左轮专属改造：9发弹仓（magazineDelta:3）、快速装弹器（fastReload，单发装填
+    每次装 2 发 → 6 发装 3 次≈原 3 发时间）、麦格农高压弹（伤害+10%击退+15）、
+    平头铅弹（穿透+1）、甩锤速射（攻速-250ms 散布+2°）、重型枪口配重、
+    麦格农补偿器。图标复用现有 craft 图标（缺图用 fmj/muzzle_brake/light_trigger
+    等代替）。
+  - QBZ-191/QJB-201 muzzle 残留 bug：suppressor -200/隐藏火光/缺 spreadStartDelta，
+    统一为 AKM 同族标准（suppressor -300 击退+5、flash_hider +150 射程 -10°、
+    muzzle_brake 双 500ms）。
+  - 沙鹰加机制件：double_tap_trigger（burstMode:2 + 散布+1°），epic 手枪机制差异化。
+  - 教训：**弹容量改造必须按比例或分档，固定值-30 会废掉 30 发弹匣枪**；
+    **同族 muzzle 复制后手改会残留不一致**，加武器后用 options diff 校验。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
