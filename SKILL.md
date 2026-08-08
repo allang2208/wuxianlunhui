@@ -22,6 +22,18 @@ python tools/ai-gen/ai-asset.py weapon gen-image     --spec <spec> [--seeds 1,2,
 python tools/ai-gen/ai-asset.py weapon process-image --spec <spec> --raw <候选图.png>
 python tools/ai-gen/ai-asset.py weapon gen-video     --spec <spec>
 python tools/ai-gen/ai-asset.py weapon verify        --spec <spec>
+# 装备/道具/技能图标
+python tools/ai-gen/ai-asset.py icon transparent --src <白底图> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon normalize   --src <png> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon pipeline    [--keys k1,k2]
+python tools/ai-gen/ai-asset.py icon check
+# 人形怪/工头动画（h3-loop / h3-attack 抽帧）
+python tools/ai-gen/ai-asset.py humanoid loop   --video <loop.mp4> --out walking.png [--period 48,48]
+python tools/ai-gen/ai-asset.py humanoid attack --video <attack.mp4> --out attack.png
+# LoRA 训练（5080）
+python tools/ai-gen/ai-asset.py lora prep    # 从技能图标生成训练集
+python tools/ai-gen/ai-asset.py lora train --yaml <本地或远程配置.yaml>   # schtasks 启动，防断连杀进程
+python tools/ai-gen/ai-asset.py lora status  # 进程/GPU/checkpoint
 # 通用子命令（所有大类复用）
 python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
 python tools/ai-gen/ai-asset.py bg-color --image <参考图>

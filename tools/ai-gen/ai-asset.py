@@ -23,6 +23,7 @@
 """
 
 import argparse
+import base64
 import os
 import subprocess
 import sys
@@ -173,6 +174,92 @@ def weapon_verify(args):
     run(["PY", tool("add-weapon.py"), "--spec", args.spec, "verify"], args.dry_run)
 
 
+def _ssh(cmd, dry_run=False):
+    full = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "r5080", cmd]
+    print("$ " + " ".join(full), flush=True)
+    if dry_run:
+        return
+    subprocess.run(full, check=True)
+
+
+def _ps_b64(script):
+    return base64.b64encode(script.encode("utf-16-le")).decode()
+
+
+def icon_transparent(args):
+    run(["PY", tool("make-transparent-icon.py"), args.src, args.dst], args.dry_run)
+
+
+def icon_normalize(args):
+    run(["PY", tool("normalize-skill-icon.py"), args.src, args.dst], args.dry_run)
+
+
+def icon_check(args):
+    run(["PY", tool("check-icon-sizes.py")], args.dry_run)
+
+
+def icon_pipeline(args):
+    cmd = ["PY", tool("birefnet-icon-pipeline.py")]
+    if args.keys:
+        cmd += ["--keys", args.keys]
+    run(cmd, args.dry_run)
+
+
+def humanoid_loop(args):
+    cmd = ["PY", tool("h3-loop-spritesheet.py"), "--video", args.video, "--out", args.out,
+           "--cols", str(args.cols), "--step", str(args.step),
+           "--target-h", str(args.target_h), "--feet-y", str(args.feet_y),
+           "--center-x", str(args.center_x), "--cell", str(args.cell),
+           "--steady", args.steady, "--period", args.period,
+           "--min-iou", str(args.min_iou)]
+    if args.out_gif:
+        cmd += ["--out-gif", args.out_gif]
+    run(cmd, args.dry_run)
+
+
+def humanoid_attack(args):
+    cmd = ["PY", tool("h3-attack-spritesheet.py"), "--video", args.video, "--out", args.out,
+           "--cols", str(args.cols), "--min-diff", str(args.min_diff),
+           "--target-h", str(args.target_h), "--feet-y", str(args.feet_y),
+           "--center-x", str(args.center_x), "--cell", str(args.cell),
+           "--threshold", str(args.threshold), "--feather", str(args.feather)]
+    if args.frames:
+        cmd += ["--frames", args.frames]
+    if args.out_gif:
+        cmd += ["--out-gif", args.out_gif]
+    run(cmd, args.dry_run)
+
+
+def lora_prep(args):
+    run(["PY", tool("prep-lora-dataset.py")], args.dry_run)
+
+
+def lora_train(args):
+    yaml = args.yaml
+    if not yaml.startswith("D:"):
+        local = os.path.abspath(yaml)
+        fname = os.path.basename(local)
+        cmd = ["scp", "-o", "BatchMode=yes", local, f"r5080:D:/lora-train-src/{fname}"]
+        print("$ " + " ".join(cmd), flush=True)
+        if not args.dry_run:
+            subprocess.run(cmd, check=True)
+        yaml = f"D:/lora-train-src/{fname}"
+    script = (f"cd /d D:\\开发文件\\lora-train && "
+              f".venv\\Scripts\\python.exe -u run.py {yaml} *> train.log 2>&1")
+    b64 = _ps_b64(script)
+    remote = (f"schtasks /create /tn LoraTrain "
+              f"/tr \"powershell -NoProfile -ExecutionPolicy Bypass -EncodedCommand {b64}\" "
+              f"/sc once /st 00:00 /ru SYSTEM /f && schtasks /run /tn LoraTrain")
+    _ssh(remote, args.dry_run)
+
+
+def lora_status(args):
+    remote = ("tasklist | findstr /i python & "
+              "nvidia-smi --query-gpu=name,memory.used,memory.total,utilization.gpu --format=csv,noheader & "
+              "dir D:\\开发文件\\lora-train\\output /o-d /b 2>nul")
+    _ssh(remote, args.dry_run)
+
+
 def cutout(args):
     run(["PY", tool("rmbg_cutout.py"), "--src", args.src, "--out", args.out], args.dry_run)
 
@@ -278,6 +365,75 @@ def main():
     wp = wsub.add_parser("verify", parents=[common], help="JSON 双份一致 + 资产存在性 + node --check")
     wp.add_argument("--spec", default=_weapon_spec_default())
     wp.set_defaults(func=weapon_verify)
+
+    # ===== icon 大类（装备/道具/技能图标）=====
+    ic = sub.add_parser("icon", parents=[common], help="装备/道具/技能图标统一处理")
+    icsub = ic.add_subparsers(dest="action", required=True)
+
+    ip = icsub.add_parser("transparent", parents=[common], help="白底图抠成透明 RGBA")
+    ip.add_argument("--src", required=True)
+    ip.add_argument("--dst", required=True)
+    ip.set_defaults(func=icon_transparent)
+
+    ip = icsub.add_parser("normalize", parents=[common], help="技能图标归一化到系列基线")
+    ip.add_argument("--src", required=True)
+    ip.add_argument("--dst", required=True)
+    ip.set_defaults(func=icon_normalize)
+
+    ip = icsub.add_parser("check", parents=[common], help="扫描 skills.json 全部图标内容尺寸")
+    ip.set_defaults(func=icon_check)
+
+    ip = icsub.add_parser("pipeline", parents=[common], help="图标全管线：BiRefNet 抠图 → 1536² 归一化")
+    ip.add_argument("--keys", default=None, help="逗号分隔 key 列表（缺省全部）")
+    ip.set_defaults(func=icon_pipeline)
+
+    # ===== humanoid 大类（人形怪/工头动画：h3-loop / h3-attack）=====
+    hm = sub.add_parser("humanoid", parents=[common], help="人形怪动画精灵图（h3-loop/h3-attack 抽帧）")
+    hmsub = hm.add_subparsers(dest="action", required=True)
+
+    hp = hmsub.add_parser("loop", parents=[common], help="循环动画抽帧（无缝循环 sheet）")
+    hp.add_argument("--video", required=True)
+    hp.add_argument("--out", required=True)
+    hp.add_argument("--cols", type=int, default=5)
+    hp.add_argument("--step", type=int, default=4)
+    hp.add_argument("--target-h", type=int, default=262)
+    hp.add_argument("--feet-y", type=int, default=410)
+    hp.add_argument("--center-x", type=int, default=256)
+    hp.add_argument("--cell", type=int, default=512)
+    hp.add_argument("--steady", default="12,105")
+    hp.add_argument("--period", default="70,120")
+    hp.add_argument("--min-iou", type=float, default=0.80)
+    hp.add_argument("--out-gif", default=None)
+    hp.set_defaults(func=humanoid_loop)
+
+    hp = hmsub.add_parser("attack", parents=[common], help="攻击动画抽帧（一次性弧线）")
+    hp.add_argument("--video", required=True)
+    hp.add_argument("--out", required=True)
+    hp.add_argument("--cols", type=int, default=4)
+    hp.add_argument("--frames", default=None, help="显式帧列表（逗号分隔）")
+    hp.add_argument("--min-diff", type=float, default=0.10)
+    hp.add_argument("--target-h", type=int, default=262)
+    hp.add_argument("--feet-y", type=int, default=410)
+    hp.add_argument("--center-x", type=int, default=256)
+    hp.add_argument("--cell", type=int, default=512)
+    hp.add_argument("--threshold", type=int, default=248)
+    hp.add_argument("--feather", type=float, default=0.3)
+    hp.add_argument("--out-gif", default=None)
+    hp.set_defaults(func=humanoid_attack)
+
+    # ===== lora 大类（5080 LoRA 训练）=====
+    lr = sub.add_parser("lora", parents=[common], help="LoRA 训练（数据集准备 / 5080 训练 / 状态）")
+    lrsub = lr.add_subparsers(dest="action", required=True)
+
+    lp = lrsub.add_parser("prep", parents=[common], help="从技能图标生成训练集（dataset + 提示词）")
+    lp.set_defaults(func=lora_prep)
+
+    lp = lrsub.add_parser("train", parents=[common], help="启动 5080 训练（schtasks 防断连杀进程）")
+    lp.add_argument("--yaml", required=True, help="训练配置（远程 D:/... 路径或本地文件自动 scp 到 D:/lora-train-src/）")
+    lp.set_defaults(func=lora_train)
+
+    lp = lrsub.add_parser("status", parents=[common], help="查询 5080 训练状态（进程/GPU/checkpoint）")
+    lp.set_defaults(func=lora_status)
 
     # ===== 通用子命令 =====
     p = sub.add_parser("cutout", parents=[common], help="通用抠图（ComfyUI-RMBG BiRefNet-general）")
