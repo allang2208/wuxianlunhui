@@ -1761,6 +1761,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     验证：npm test 全绿；命中后火球粒子立即回收、施法者死亡同样清理。
     教训：**投射物/特效的"结束标记"必须原子化提前置位（先清状态再结算），渲染层
     判"活跃"要同时看施法者存活与飞行状态**。
+  - **⚠ 迷宫房3 清完不开门（2026-08-08 十修）**：用户报"第三个房间完成战斗不打开，
+    是不是宝箱房的缘故（原来三间房第三间有宝箱房）"。排查：`_enterCombatArena` 里
+    `forceArenaWaves(CombatRoomSystem.getArenaRoomCount())` 在 `enterCombatArena`
+    **之前**调用——此时 `_arena` 尚未建立，`getArenaRoomCount()` 返回 **0** →
+    `forceArenaWaves(0)` 无效 → `_totalWaves` 保持遭遇默认（沼泽 3 波）→ 迷宫 5 房
+    只有 3 波：房3（第 3 波）清完 `_zombieCombat.isComplete` 提前 true →
+    `_checkZombieCombatComplete` 跳过"开门等下一房间"分支、走"战斗完成"只开末房
+    出口门 → 房3 去路门（通道 3）永不开启，玩家卡死（观感像宝箱房/开门逻辑错）。
+    修复：`forceArenaWaves` 移到 `enterCombatArena` 成功**之后**，用真实房间数
+    （5 波）。验证：roomCount=5→totalWaves=5、房3 清完 isComplete=false、通道 3
+    门正常开启；npm test 全绿。教训：**竞技场波次数必须等场地建成后再按房间数编排，
+    进场前 getArenaRoomCount() 返回 0 会让 forceArenaWaves 静默失效**。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
@@ -3437,6 +3449,26 @@ addTree(x, y, radius, ...) {
   - 案例：左轮四音效替换为 B 站真实录音（fire=M500 真枪单发 0.44s；reload=金属咔哒 0.15s；
     reload_last=装填+转轮合上+闭锁 0.55s；equip=转轮甩出 0.16s）。旧合成版留 `.synthbak`。
   - 兼容：44.1kHz 16-bit 单声道 WAV，浏览器 Audio 直接播。
+
+### 枪械改造全面审计（2026-08-08 首轮，13 把枪械）
+
+- **方法**：craft-config.json 全量导出 → CRAFT_EFFECT_REGISTRY 校验效果键 → 同族
+  横向对比 → 消费端（subsystems/combatant）模拟改造后数值。
+- **结论一（最严重）**：步枪族 `light_mag` = `magazineDelta:-30`，对 30 发弹匣
+  （AKM/M416/QBZ-191）装后 maxAmmo=0→钳到 1，**枪废**。PKM(75→45)/QJB(60→30)
+  尚可。修复：-30 应改按百分比（如 -40%）或按弹容比例（30 发枪 -8、75 发枪 -30）。
+- **结论二**：左轮改造=沙鹰逐字复制（含 extended_mag +2→8 发弹巢，违背左轮固定
+  弹巢设定；单发装填无 fastReload 专属配件）。手枪族应差异化：左轮加
+  speed_loader（fastReload）、cylinder_lighten（reloadTimeDelta）、magnum_round
+  （伤害/击退）等。
+- **结论三**：QBZ-191/QJB-201 muzzle 数值与 AKM/PKM/M416 不同族（suppressor
+  -200 vs -300、flash_hider 隐藏火光 vs +射程）——功能差异应有描述支撑，
+  否则为复制时手改残留。
+- **结论四**：全部枪械 sight 只有 red_dot/russian_3x 两件；高稀有度枪
+  （epic）无专属改造（沙鹰/左轮/P4040 无弹种深度改造）。建议 epic 加
+  1-2 件机制级配件（P4040 的 auto_trigger 是范本）。
+- **审计工具沉淀**：一次性脚本思路——效果键合法性用正则提取 registry 键对比；
+  数值失衡用"基础数据×改造叠加"模拟；同族一致性用 options 全量 diff。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

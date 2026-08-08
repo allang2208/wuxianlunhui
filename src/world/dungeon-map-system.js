@@ -1372,10 +1372,6 @@ export const DungeonMapSystem = {
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
         this._zombieCombat = new ZombieDungeonCombat(undefined, !!node.isElite, node.encounterOverride || null, this.dungeonType, node.forceMonsters || null);
-        // 竞技场强制 N 波编排（一房一波，N = 房间数）：遭遇覆盖 combatWaves<N 补足到 N 波
-        // 防软锁；强制怪（forceMonsters，如铠甲骑士）改到最后一波压轴出场
-        const arenaRoomCount = CombatRoomSystem.getArenaRoomCount ? CombatRoomSystem.getArenaRoomCount() : 3;
-        this._zombieCombat.forceArenaWaves(arenaRoomCount);
         // 月影庇护：进入战斗触发无敌；精英战同时激活增伤
         this._triggerMoonshadow(!!node.isElite);
 
@@ -1396,6 +1392,13 @@ export const DungeonMapSystem = {
             this._spawnZombieWave();
             return;
         }
+        // ⚠ 2026-08-08 十修：竞技场强制 N 波编排（一房一波，N = 房间数）必须放在
+        // enterCombatArena **之后**——此前在进场前调用 getArenaRoomCount() 时 _arena
+        // 尚未建立返回 0 → forceArenaWaves(0) 无效 → _totalWaves 保持遭遇默认（沼泽 3 波）
+        // → 迷宫房3 清完 isComplete 提前 true → 走"战斗完成"只开末房出口门，房3 去路门
+        // 永不开启（"第三个房间清完不开门"根因）。进场后再按真实房间数补足波次。
+        const arenaRoomCount = CombatRoomSystem.getArenaRoomCount ? CombatRoomSystem.getArenaRoomCount() : 3;
+        this._zombieCombat.forceArenaWaves(arenaRoomCount);
 
         // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）
         if (typeof ChestRoomSystem !== 'undefined') {
