@@ -148,6 +148,17 @@ await evalJs(`(() => {
 await new Promise((r) => setTimeout(r, 7000));
 await shot('rw_shot_humanoid');
 
+// 强制切到奔跑动画再截图
+await evalJs(`(() => {
+    const e = window.Game.entities.get('enemy_main_red_wolf');
+    if (!e) return;
+    e._animState = 'run';
+    try { e._endBite(); } catch (_) {}
+    try { e._endPounce(); } catch (_) {}
+})()`).catch(() => {});
+await new Promise((r) => setTimeout(r, 1500));
+await shot('rw_shot_humanoid_run');
+
 const state = await evalJs(`(() => {
     const e = window.Game.entities.get('enemy_main_red_wolf');
     const sp = e && e._phaserSprite;

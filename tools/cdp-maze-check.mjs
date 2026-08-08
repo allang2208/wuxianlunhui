@@ -184,6 +184,39 @@ const firstPassageWalls = await evalJs(`(async () => {
 })()`);
 console.log('first passage walls:', JSON.stringify(firstPassageWalls));
 
+// 首次场玩家周围墙精灵检查（用户位置 2190,2225）
+const firstP1 = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const scene = window.__phaserScene;
+    if (!scene) return { err: 'no scene' };
+    const all = scene.children.list.filter((s) => s.texture && s.texture.key === 'swamp_wall_straight');
+    const near = all.filter((s) => Math.hypot(s.x - 2190, s.y - 2225) < 1200);
+    const inCam = all.filter((s) => s.x > 616 && s.x < 2512 && s.y > 1257 && s.y < 2245);
+    return {
+        total: all.length,
+        nearPlayer: near.length,
+        inCameraView: inCam.length,
+        nearSamples: near.slice(0, 8).map((s) => ({ x: Math.round(s.x), y: Math.round(s.y), depth: Math.round(s.depth * 10) / 10, visible: s.visible, alpha: s.alpha })),
+    };
+})()`);
+console.log('first p1 walls:', JSON.stringify(firstP1));
+
+// 首次 _enterNode 场的用户视角截图（相机 1564,1751，与用户实测一致）
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene;
+    if (scene) scene.cameras.main.setZoom(1);
+    p.x = 1564; p.y = 1751;
+    Camera.x = p.x; Camera.y = p.y;
+    await new Promise((r) => setTimeout(r, 900));
+    return true;
+})()`);
+await shot('maze_first_cam_user');
+
 // 门创建诊断：scene/纹理/功能门判定/实际调用
 const gateDiag = await evalJs(`(async () => {
     const perfs = performance.getEntriesByType('resource');
@@ -690,15 +723,69 @@ const syncShot = await evalJs(`(async () => {
     if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
     const scene = window.__phaserScene;
     const gateCount = scene ? scene.children.list.filter((s) => s.texture && s.texture.key === 'swamp_gate').length : -1;
+    const wallSpriteCount = scene ? scene.children.list.filter((s) => s.texture && s.texture.key === 'swamp_wall_straight').length : -1;
+    const texWall = scene ? scene.textures.exists('swamp_wall_straight') : null;
+    const visualWallsCount = scene && scene.visualWalls ? scene.visualWalls.countActive(true) : -1;
+    const wallDepthSample = scene
+        ? scene.children.list
+            .filter((s) => s.texture && s.texture.key === 'swamp_wall_straight')
+            .slice(0, 4)
+            .map((s) => ({ x: Math.round(s.x), y: Math.round(s.y), depth: s.depth, dNaN: Number.isNaN(s.depth), dInf: !Number.isFinite(s.depth), visible: s.visible }))
+        : null;
     const Camera = (await import(pick('world/camera.js'))).Camera;
     const p = window.Game.player;
     p.x = 6650; p.y = 3555;
     Camera.x = p.x; Camera.y = p.y;
     await new Promise((r) => setTimeout(r, 700));
-    return { hadScene, gateCount, iso: WallSystem.isoVisuals.length };
+    return { hadScene, gateCount, wallSpriteCount, texWall, visualWallsCount, wallDepthSample, iso: WallSystem.isoVisuals.length };
 })()`);
 console.log('sync state:', JSON.stringify(syncShot));
 await shot('maze_synced_turn');
+// 通道 1（房1→房2）墙精灵精确检查：玩家位于通道 1 入口附近（用户实测 2190,2225）
+const p1Check = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    const scene = window.__phaserScene;
+    if (!scene) return { err: 'no scene' };
+    const all = scene.children.list.filter((s) => s.texture && s.texture.key === 'swamp_wall_straight');
+    const inP1 = all.filter((s) => s.x > 1900 && s.x < 3200 && s.y > 1900 && s.y < 2700);
+    const nearPlayer = all.filter((s) => Math.hypot(s.x - 2190, s.y - 2225) < 700);
+    return {
+        total: all.length,
+        inP1: inP1.length,
+        nearPlayer: nearPlayer.length,
+        p1Samples: inP1.slice(0, 8).map((s) => ({ x: Math.round(s.x), y: Math.round(s.y), depth: Math.round(s.depth * 10) / 10, visible: s.visible, alpha: s.alpha, flipX: s.flipX, flipY: s.flipY })),
+        nearSamples: nearPlayer.slice(0, 6).map((s) => ({ x: Math.round(s.x), y: Math.round(s.y), depth: Math.round(s.depth * 10) / 10 })),
+    };
+})()`);
+console.log('passage1 check:', JSON.stringify(p1Check, null, 1));
+// 通道 1 视角截图（玩家位置）
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    p.x = 2190; p.y = 2225;
+    Camera.x = p.x; Camera.y = p.y;
+    await new Promise((r) => setTimeout(r, 700));
+    return true;
+})()`);
+await shot('maze_passage1_playerview');
+// 用户相机视角 (1564,1751) zoom1 对比
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene;
+    if (scene) scene.cameras.main.setZoom(1);
+    p.x = 1564; p.y = 1751;
+    Camera.x = p.x; Camera.y = p.y;
+    await new Promise((r) => setTimeout(r, 800));
+    return true;
+})()`);
+await shot('maze_user_cam');
 console.log('errs:', JSON.stringify(errs.slice(0, 8)));
 edge.kill();
 process.exit(0);
