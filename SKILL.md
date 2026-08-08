@@ -695,6 +695,22 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 验证：狼形态 run 16 帧 / pacing 14 帧 / pounce / change / howl 全部 GLM 通过
     （脚下零残留、无白边红边、身体完整）；10 张贴图 assets + dist 两处 SYNCED；
     dev server 与本地 md5 一致。
+- **红狼人奔跑脚部"大片灰粉块"根因 = 不透明中亮低饱和残留（2026-08-08 二十八版再补）**：
+  - 用户仍反馈"脚部大片色块处理不了"（ACCEPT 图第 3 帧灰块、第 9 帧红块）。
+    逐像素定位：每帧 145~344px **不透明**灰粉像素 (97,80,82)，位于脚掌/脚踝
+    核心（非透明边缘），与深红毛 (34,2,3) 欧氏距离 128~255。
+  - 为什么全部旧规则漏掉：① 5b 脚底带只覆盖内容底部 40px，灰粉块延伸到
+    y 300~369（脚踝上方）超出 band；② lum≈86 低于旧阈值 90；③ sat≈17 高于
+    旧阈值 15。三个条件同时不满足 = 漏网。
+  - 修复（rw-cutout-clean.py 新增 5c）：**全格**（不限于底部 band）不透明 +
+    低饱和（sat<25）+ 中亮（lum 40~160）+ 偏离深红毛 >40 → 统一染成该格
+    深红毛中位数，保留 alpha（非边缘，删 alpha 会缺脚）。
+  - 结果：10 张贴图灰粉块 run 14841→0、pacing 9831→0、change 10873→33、
+    changed_run 3136→72（余为深红毛过渡）；不透明度不变；GLM 14 帧全过、
+    第 3/9 帧脚部干净；assets + dist 两处 SYNCED。
+  - 教训：**脚部残留不只在底部带**——中亮低饱和块会延伸到脚踝上方；
+    "亮度阈值"和"底部带"两个维度都要放开，用"低饱和 + 偏离主体深红"双条件
+    全格覆盖才不漏。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -991,7 +1007,24 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   点到线段距离 < 半径+halfThick）——改任何一边的阻挡判定，另一边必须同步。
 - **CDP 探针坑**：vite HMR 后 `await import('/src/x.js')` 会拿到第二份模块实例（状态全零、
   DefenseSystem.active 恒 false）——必须按 resource entries 真实带 `?t=` query 的 URL import
-  （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）。
+  （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）；探针挂 `__v` 的
+  页面被 HMR 重载后会失效，工具需 boot()/injectProbe() 函数化 + 失效自动重建。
+
+### 二轮优化口径（2026-08-08：感知降频/局部失效/半径桶/门闸软成本/墙背啃墙）
+- **感知降频**：有活跃目标的怪 PerceptionSystem 100ms tick；无目标怪与战术小队成员每帧不变。
+  丢失目标搜索行为已接线（`_searchTarget` 三阶段 moveToLastKnown→searchAround→giveUp，
+  movement-system 优先级链第 5 档）——别再往 DecisionSystem（死代码）里接东西。
+- **缓存失效口径**：掩体/门闸增删 toggle → `pathFinder.invalidateRegion(bbox)`（内部外扩 800px
+  局部清）；只有整图切换（地牢/战斗房/Boss 房/setup/teardown）才 `invalidateCache` 全清。
+- **半径桶**：`RADIUS_BUCKETS=[20,40,90]`（>90 各自成桶），桶上界为代表半径（只保守不穿墙）；
+  `_cellMemo`/`_pathCache`/RegionIndex 全部按桶共享——新怪加半径不用管，自动归桶。
+- **门闸寻路**：关门 `_gate` 段进 SpatialHash 作 `GATE_SOFT_COST=6` 软成本（不阻挡，绕路优先、
+  唯一通路仍穿门）；门洞段额外标 `_gateHole`，被关着的门洞贴身挡住的怪门前等待不重算
+  （`_findBlockingGateHole`，门开自然恢复）；门开关 toggle 必须 invalidateRegion。
+- **结构目标 LOS 总口径**：`_isDefenseStructure` 在攻击距离内（distanceToEntityShape +
+  attackDistance ?? attackRange×1.15）免 LOS——perception `_checkLineOfSight`、
+  combat-system LOS 分支、attack.js `checkTriangleHit` 命中判定**三处必须同口径**，
+  漏任何一处墙背出手都会断（P3 回归就是漏了 attack.js）。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
