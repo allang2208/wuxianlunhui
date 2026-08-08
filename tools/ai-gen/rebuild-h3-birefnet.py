@@ -88,6 +88,63 @@ def sample_idxs(window, n, total):
     return sorted(set(max(0, min(total - 1, i)) for i in idxs))
 
 
+def post_clean_sheet(sheet, cell, hard=245, edge_dark=18):
+    """逐格后处理（黑狼 CLEAN 铁律，2026-08-08 内置到 rebuild）：
+    1) alpha 硬二值化（>=245 -> 255，清 resize 插值半透带）；
+    2) 每格只保留最大连通域（清孤立噪点色块）；
+    3) 不透明亮像素邻接透明区（2px 膨胀）压暗到 edge_dark（清 resize 白圈）；
+    4) 腿部区域（bbox 底部 35%）亮像素 -> 5x5 邻域毛色均值（清脚底贴地残留）；
+    5) 透明区 RGB 归零。
+    """
+    rgb = sheet[..., :3].copy()
+    alpha = sheet[..., 3].copy()
+    h, w = alpha.shape
+    rows, cols = h // cell, w // cell
+    for r in range(rows):
+        for c in range(cols):
+            y0, x0 = r * cell, c * cell
+            ac = alpha[y0:y0 + cell, x0:x0 + cell]
+            rc = rgb[y0:y0 + cell, x0:x0 + cell]
+            a_bin = np.where(ac >= hard, 255, 0).astype(np.uint8)
+            # 最大连通域
+            n_lab, lab = cv2.connectedComponents((a_bin > 30).astype(np.uint8))
+            if n_lab > 2:
+                areas = [(int((lab == i).sum()), i) for i in range(1, n_lab)]
+                areas.sort(reverse=True)
+                keep = areas[0][1]
+                drop = (lab > 0) & (lab != keep)
+                a_bin[drop] = 0
+                rc[drop] = 0
+            # 边缘亮像素压暗
+            opaque = a_bin >= 250
+            bright = opaque & (rc.mean(axis=2) > 150)
+            trans = (a_bin < 200).astype(np.uint8)
+            near = cv2.dilate(trans, np.ones((3, 3), np.uint8), iterations=2) > 0
+            rc[near & bright] = edge_dark
+            # 腿部区域去残留（bbox 底部 35%）
+            ys, xs = np.where(a_bin >= 200)
+            if len(ys):
+                y0b, y1b = ys.min(), ys.max()
+                cut = max(0, y0b + int((y1b - y0b) * 0.65))
+                band = np.zeros_like(a_bin, bool)
+                band[cut:y1b + 1, :] = True
+                bright_leg = band & (a_bin >= 200) & (rc.mean(axis=2) > 160)
+                if bright_leg.any():
+                    dark = (a_bin >= 200) & (~bright_leg)
+                    cnt = cv2.blur(dark.astype(np.float32), (5, 5)) * 25.0
+                    mean = np.stack([
+                        cv2.blur((rc[..., i] * dark).astype(np.float32), (5, 5)) * 25.0
+                        for i in range(3)
+                    ], axis=-1) / np.maximum(cnt[..., None], 1e-6)
+                    mean = np.clip(mean, 0, 255).astype(np.uint8)
+                    mean[cnt < 1] = edge_dark
+                    rc[bright_leg] = mean[bright_leg]
+            # 透明区 RGB 归零
+            rc[a_bin < 8] = 0
+            ac[...] = a_bin
+    return np.dstack([rgb, alpha]).astype(np.uint8)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
@@ -116,6 +173,8 @@ def main():
                     help="轮廓边缘亮像素压暗到该色（黑狼 18；<0 关闭）")
     ap.add_argument("--zero-transparent-rgb", action="store_true",
                     help="透明区 RGB 归零（黑狼 CLEAN 判据 trans_nonblack=0）")
+    ap.add_argument("--no-auto-clean", action="store_true",
+                    help="关闭重建后逐格自动清理（默认开启：硬二值化/最大连通域/边缘压暗/腿部去白）")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -249,6 +308,9 @@ def main():
             row_cells = row_cells + [blank] * (args.cols - len(row_cells))
         rows.append(np.hstack(row_cells))
     sheet = np.vstack(rows)
+    if not args.no_auto_clean:
+        sheet = post_clean_sheet(sheet, args.cell)
+        print("[rebuild] auto-clean done", flush=True)
     # cv2.imwrite 按 BGR 解析数组——RGBA 直接写会把 RGB 通道翻转成蓝色（红狼变蓝 bug）：
     # 必须用 PIL 保存（PIL 正确解释 RGBA）
     Image.fromarray(sheet, "RGBA").save(args.out)

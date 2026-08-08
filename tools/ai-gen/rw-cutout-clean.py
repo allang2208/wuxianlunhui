@@ -36,7 +36,7 @@ CELLS = {
 }
 
 
-def clean_sheet(path, cell=512, hard=245, lum_edge=150, lum_leg=160, soft=False):
+def clean_sheet(path, cell=512, hard=245, lum_edge=140, lum_leg=160, soft=False):
     """soft=True = 红狼王规则：不硬二值化，保留浅毛软边（semi≈0.5%），只清污染。
     黑狼规则（soft=False）：alpha 硬二值化（>=245），semi=0，接受锯齿。"""
     im = np.array(Image.open(path).convert("RGBA"))
@@ -74,6 +74,10 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=150, lum_leg=160, soft=False)
             if soft:
                 # 红狼王：保留软边 alpha（浅毛软边是特征，不是残留）；污染已全局去污
                 a_bin = ac.copy().astype(np.uint8)
+                # 近不透明半透像素（alpha 200~244，本质是毛像素，BiRefNet 边界抖动）
+                # 直接转不透明——否则保留半透会在深色地板上显出亮粉色边/红色块
+                near_opaque = (a_bin >= 200) & (a_bin < 250)
+                a_bin[near_opaque] = 255
             else:
                 # 黑狼：alpha 硬二值化（清 resize/插值半透带）
                 a_bin = np.where(ac >= hard, 255, 0).astype(np.uint8)

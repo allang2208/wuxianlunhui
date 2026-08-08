@@ -1,5 +1,18 @@
 # 变更日志
 
+### 对话：四足怪物动画管线工作流优化（2026-08-08）
+- **痛点**：熊动画重建直接跑 rebuild CLI 出 DIRTY（需手动补 post_clean），
+  且"周期扫描→采样→重建→清理→验证"全是手工步骤。
+- **优化**：① `rebuild-h3-birefnet.py` 内置 `--auto-clean`（默认开）——硬二值化/
+  最大连通域/边缘压暗/腿部去白/透明归零，重建直接出 CLEAN；② 新增
+  `quadruped-rebuild.py` 通用一键驱动：`--kind run` 自动扫步态周期（限定动作
+  窗口 + s+2P≤w1 防尾段 idle 重影）采 P×2 连续帧，`--kind attack` 窗口均分 20 帧，
+  重建后自动验证 CLEAN 五指标 + 相邻帧腿部 IoU + 首尾衔接并输出报告。
+- **回验（熊）**：run 自动 P=16 采 32 帧（4×8），CLEAN、相邻腿部 IoU 0.83、
+  首尾 0.78 无缝；attack 20 帧（4×5/640²），CLEAN、IoU 0.76。黑狼/树精/任意
+  四足怪物此后一条命令出图。
+- **修改文件**：tools/ai-gen/rebuild-h3-birefnet.py、quadruped-rebuild.py（新增）、SKILL.md。
+
 ### 对话：C 盘再次爆满（2026-08-08，CDP 残留 183 个 95.4GB）+ 治本
 - **根因**：`tools/cdp-*.mjs` 每次运行在 `%TEMP%` 建 `edge-*` 临时 Edge profile（~0.6GB/个），
   用完从不删除；8/7 清过 111 个 47.7GB 后几天又积了 183 个 95.4GB → C 盘剩 1.2GB。

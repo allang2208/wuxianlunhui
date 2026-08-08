@@ -580,6 +580,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 验证：10 张 stray/trans_nonblack/edge_bright/composite=0；狼脚灰影
     78%→0、纯黑 19k→0，人形灰影归零；GLM 脚部干净、脚完整无缺角；尺寸保持
     （idle 261 / run 255~271 / attack 259~280）。
+- **红狼人两足奔跑 v2 重生成（2026-08-08 二十五版）**：
+  - 需求：两只腿奔跑、透视一致、白底、抠图走 ComfyUI-RMBG 插件。
+  - 提示词要点（prompts/rwk-humanoid-run-v2.txt）：bipedal running / full body
+    side view / body stays compact and upright / **consistent body size and
+    perspective throughout** / **no shadow, no contact shadow, no ground
+    shadow** —— 源视频底部暗像素从上一版每帧 1800~3800 降到大部分帧 0
+    （脚部阴影根除，不再是"抠图阶段补刀"）。
+  - 切帧：fixed-scale + `--fixed-bbox` + 步态周期 P≈25（step 2 覆盖一个周期，
+    14 帧 7×2）→ run 内容宽 260~290（spread 12%）、高 243~263，透视一致。
+  - 抠图：`rw-rmbg-recut.py`（ComfyUI-RMBG BiRefNet-general）+ `--soft` 清理 →
+    stray/composite=0、脚部低饱和 0.2%、GLM 确认两足奔跑/体型一致/脚部干净。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1356,6 +1367,19 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ### 本次完成：沼泽地牢墙体全套落地 + 宝箱房体系 + 系列修复
 1. **墙样式表 `ISO_WALL_STYLES`**（`{straight, gate, chestPrefab, gateSound, corners?}`，key=dungeonType）：沼泽柴墙/藤门素材管线全套（泛洪抠图+水印 inpaint+腐蚀 2px 去颜色污染+两端锥形裁切；门视频 16 帧反转+连通域过滤）；`buildIsoDiamondWalls`/WallGate/门音效/宝箱房预制/夹角预制全走样式。新地牢换墙四步法已文档化。
+   - **⚠ 双份 JSON 坑（2026-08-08 沼泽走廊修复实测）**：`wall-prefabs.json`/`dungeon-config.json`
+     有 **data/ 与 public/data/ 两份**——运行时 fetch 的是 **public/data**（Vite 从 public 提供），
+     编辑器保存走 `/__save-json` 同时写两份；**手工改配置只改 data/ 不生效**（游戏仍读旧 public
+     副本）。改配置必须两份同步。
+   - **✅ 沼泽地牢走廊换墙（2026-08-08）**：三房间串联竞技场的连接通道预制由
+     `combatArena.passagePrefabs` 决定，样式为沼泽时取 `passagePrefabs.swamp`；此前该值
+     指向僵尸版「左右通道」（wall_straight/wall_gate）→ 沼泽房间是柴墙、走廊却是僵尸砖墙。
+     修复：新建「左右通道·沼泽」预制（swamp_wall_straight/swamp_gate，直墙 face 中点按
+     僵尸预制同轴同偏移换算、尺度换沼泽档，见 `tools/gen-swamp-passage-prefab.py`），
+     `passagePrefabs.swamp` 指向它（data/ + public/data/ 两份同步）。
+     验证：`tools/cdp-swamp-arena-check.mjs` 进沼泽竞技场——76 块墙全 swamp_wall_straight、
+     门全 swamp_gate，GLM 确认走廊柴墙与房间衔接自然、连通正常；gate-corner/wall-embed/
+     arena-layout 测试全绿。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
@@ -4122,6 +4146,10 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 ### 2. 周期/窗口检测（先扫参数，别沿用工头默认）
 - 周期扫描：`leg_iou(s, s+P)`，P∈[16,120]，限定匀速中段 steady(12..105)；
   **首尾高 IoU（~0.98）是 idle 重影不是周期，别信**。
+- **扫描必须同时限定动作窗口**（驱动 `quadruped-rebuild.py` 实测踩坑）：先
+  `detect_window` 拿到动作区间 [w0,w1]，周期候选要求 **s+2P ≤ w1**（两个采样
+  周期完整落在窗口内）——否则尾段回位/idle 的 0.99 高 IoU 会把采样带偏到
+  尾段，导致首尾 IoU 断链（bear_run 首轮 0.00 的根因）。
 - 黑狼实测：walk P=48（s=40，iou 0.80）、run P=28（s=40，iou 0.66——
   低伏姿态腿部占比小，阈值要放宽，0.66 就是正常值）。
 - 攻击窗口：mask 相对首帧 IoU 差定位（撕咬 21..43、飞扑 14..74）。
@@ -4157,6 +4185,8 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 - 白点分类：边缘噪声（清）vs 白毛（留），按到内容边缘距离区分，勿一刀切。
 - **resize 后必须逐格清理**（硬二值化 → 每格最大连通域 → 边缘压暗 →
   透明归零 → 腿部去白），否则插值会再造半透带/白圈（walk 首版 DIRTY 教训）。
+  **2026-08-08 起该清理已内置 `rebuild-h3-birefnet.py --auto-clean`（默认开），
+  不再需要外部手动补一步**（直接调 CLI 出 CLEAN sheet）。
 
 ### 5. 缩放/摆放
 - 高度统一：uniform-h target_h=262（黑狼/红狼王全部狼形态），宽度随姿态；
@@ -4199,8 +4229,11 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
 
 ### 9. 工具链
 - 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程）。
-- 重建：`rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底）+
-  `blackwolf-rebuild-from-video.py`（黑狼驱动，含逐格清理）。
+- 重建：**`quadruped-rebuild.py`（通用一键：周期扫描/窗口检测 → 采样 →
+  rebuild → auto-clean → 验证报告）**：`--video x.mp4 --kind run|attack --out y.png`
+  （run 自动采 P×2 连续帧无缝循环，attack 窗口均分 20 帧；可 --cell 640 等覆盖）。
+  `rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底/内置 auto-clean）、
+  `blackwolf-rebuild-from-video.py`（黑狼专用驱动）。
 - 验证：`blackwolf-rebuild-verify.py`（CLEAN 五指标）、
   `blackwolf-rmbg-compare.py`（旧新对比）、`sprite-decontaminate.py`（去污）。
 - 识图：`tools/glm-analyze-image.mjs`（GLM-4.6V 复核）。
