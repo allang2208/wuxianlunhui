@@ -1,4 +1,5 @@
 import { SoundManager } from '../ui/sound-manager.js';
+import { getFireSound } from '../config/gun-ammo.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AttackRangeEffect } from '../effects/attack-range-effect.js';
@@ -439,16 +440,11 @@ function applyEnchantOnHit(weapon, target, source) {
                 const wType = source.equippedRangedType;
                 // 播放武器开火音效
                 const fireWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : null;
-                if (fireWeapon && fireWeapon.fireSound && fireWeapon.fireSound.startsWith('assets/')) {
-                    // 新枪专属开火音效优先（如 .357麦格农左轮 revolver357_fire.wav）
-                    SoundManager.playFile(fireWeapon.fireSound);
-                } else if (wType === 'pkm') {
-                    
-                    SoundManager.playFile('assets/sounds/weapons/pkm_half_sec.wav');
-                } else if (wType === 'qbz191') {
-                    SoundManager.playFile('assets/sounds/weapons/qbz191_shot6_valley.mp3');
-                } else if (wType === 'm416') {
-                    SoundManager.playFile('assets/sounds/weapons/m416_fire.wav');
+                // 配置驱动：实例 fireSound 优先，缺失时按 weaponType 查 GUN_FIRE_SOUND 回退表。
+                // 新枪只需在数据层配 fireSound，无需改攻击代码（2026-08-08 去硬编码）。
+                const fireSound = getFireSound(fireWeapon);
+                if (fireSound) {
+                    SoundManager.playFile(fireSound);
                 } else if (wType === 'pistol') {
                     SoundManager.play('gun_fire');
                 } else {

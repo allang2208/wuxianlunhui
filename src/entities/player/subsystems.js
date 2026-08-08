@@ -1328,7 +1328,9 @@ _startReload(slot) {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
                     if (SoundManager && SoundManager.playFile) {
-                        SoundManager.playFile('assets/sounds/weapons/reload_sharp.mp3', 1.69);
+                        // 配置驱动：实例 reloadSound 优先（新枪配专属换弹音），
+                        // 缺失回退通用换弹音（2026-08-08 去硬编码）
+                        SoundManager.playFile(reloadSound || 'assets/sounds/weapons/reload_sharp.mp3', 1.69);
                     }
                 }
                 return true;

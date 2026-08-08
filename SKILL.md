@@ -3174,6 +3174,19 @@ addTree(x, y, radius, ...) {
     缺失再回退旧值。**改通用机制时必须检查硬编码回退，否则同族武器全串音**。
   - 左轮四音效：开火 0.5s（重击+脆响）/ 每发装填 0.35s 金属咔哒 /
     最后一发+转轮回摆合上 1.0s / 装备拔枪+转轮锁定 0.6s。
+- **音效链路去硬编码（2026-08-08 专项）**：
+  - 原则：**所有枪械音效路径配置化（fireSound/reloadSound/reloadFinishSound/equipSound），
+    攻击/换弹代码零逐枪硬编码**；新枪只在数据层配字段，无需改逻辑。
+  - `GUN_FIRE_SOUND` 回退表（gun-ammo.js，weaponType/animConfigKey → 默认开火音）：
+    attack.js 开火统一 `getFireSound(item)`——实例 fireSound 优先，缺失按
+    animConfigKey→weaponType 查表兜底（**先 animConfigKey 再 weaponType**：
+    左轮 weaponType 复用 pistol，若只按 weaponType 会查到 G18 的音）。
+  - 换弹：普通武器一次性装填改 `reloadSound || reload_sharp.mp3`；单发装填每发
+    读 `reloadSound`、满弹读 `reloadFinishSound`（旧代码硬编码 Super90-reload.mp3 /
+    bolt_pull 会串音，2026-08-08 已修）。
+  - 过热音：`heatParams.overheatSound` 可选配置，缺失回退类型硬编码（PKM/能量机枪）。
+  - 保留项：GameScene isGun/isGunR/isGunOff/isGunSpecial 数组差异有语义
+    （isGunR/Special 不含 beretta93r），不改；add-weapon 锚点清单已提醒新枪同步。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

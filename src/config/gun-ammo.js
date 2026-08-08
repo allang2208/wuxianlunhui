@@ -116,3 +116,27 @@ export const getEquipSound = (item) => {
     if (!item) return null;
     return item.equipSound || GUN_EQUIP_SOUND[item.weaponId] || null;
 };
+
+// 开火音效回退表（weaponType → 默认开火音）：实例缺 fireSound 时按类型回退。
+// 正常枪械在 EDM/shop 数据里都配了 fireSound（含敌人 config.sounds.fire），
+// 此表仅作兜底，避免 attack.js 逐枪硬编码 else-if（新枪无需改攻击代码）。
+export const GUN_FIRE_SOUND = {
+    pistol: 'assets/sounds/weapons/akm_burst.mp3',
+    deagle: 'assets/sounds/weapons/cs_deagle_35_80.wav',
+    revolver: 'assets/sounds/weapons/revolver357_fire.wav',
+    p4040: 'assets/sounds/weapons/apex2_shot_1s.wav',
+    beretta93r: 'assets/sounds/weapons/beretta93r_fire.mp3',
+    pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
+    akm: 'assets/sounds/weapons/akm_burst.mp3',
+    m416: 'assets/sounds/weapons/m416_fire.wav',
+    qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+    qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
+    shotgun: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    energy_lmg: 'assets/sounds/weapons/akm_burst.mp3',
+};
+export const getFireSound = (item) => {
+    if (!item) return null;
+    if (item.fireSound && item.fireSound.startsWith('assets/')) return item.fireSound;
+    // 优先 animConfigKey（左轮等独立动画键），再按 weaponType 回退
+    return GUN_FIRE_SOUND[item.animConfigKey] || GUN_FIRE_SOUND[item.weaponType] || null;
+};
