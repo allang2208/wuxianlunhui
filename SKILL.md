@@ -3126,6 +3126,18 @@ addTree(x, y, radius, ...) {
 - **验证**：verify 全过（双份 JSON/资产/音效/node --check）+ lint 0 error + npm test 全绿 +
   CDP 实机（EDM 物品/改造 6 槽/纹理注册 `weapon_revolver357`/攻击表 revolver+revolverOffhand/
   装备音效触发/掉落列表）。
+- **"机线严格水平向右"专项（2026-08-08 用户验收）**：
+  - 用户强调枪身/枪口/整条机线必须严格水平向右。验收方法：**像素仲裁为准**，
+    GLM 目测只做方向与"偏高/偏低"定性（度数不可靠，SKILL 既有结论）。
+  - 测量窗口坑：左轮含圆形转轮+下垂握把+枪口收窄，选区不同结果差异大（center 可从
+    -0.4° 到 +8°）。**必须取纯枪管段**（右端 25%~45% 宽度、列高<主体 55%、排除最前准星 30px）
+    拟合中心线；整体 bbox 中心线拟合会被握把带偏（-14° 假象）。
+  - 校正迭代：先逆时针转 2~3° 看方向，再按中心线余角微调（0.85° 级），目标 ±0.5° 内；
+    **PIL rotate(+θ)=逆时针**（向右下斜=右端低→逆时针抬右端）。每轮旋转后重测纯枪管段。
+  - 抠图白边：旋转 expand 用黑填充+BICUBIC 会留黑边/白羽化。修复链：压白底→BiRefNet 重抠→
+    清"邻域有低 alpha 的近白像素"（仅外圈，保留枪身内部高光——不锈钢反光近白 6 万是正常材质）→
+    alpha 形态学腐蚀 1px 剥最外圈。验收：过渡带(alpha 8~250)亮色占比 <1% 即干净。
+  - 用户验收口径：枪口朝右（右端细=枪管）、枪管中心线水平、转轮清晰、无白边。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
