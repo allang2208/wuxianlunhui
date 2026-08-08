@@ -1,4 +1,5 @@
 import { WallSystem } from '../world/wall-system.js';
+import { distanceToEntityShape } from '../utils/collision-helpers.js';
 /**
  * PerceptionSystem — 敌人感知子系统
  *
@@ -309,6 +310,18 @@ class PerceptionSystemImpl {
         const cached = p.losCache.get(target.id);
         if (cached && (now - cached.time) < p.losCheckInterval) {
             return cached.result;
+        }
+
+        // [FIX-LOS] 防守结构（掩体/基地）在攻击距离内免 LOS：footprint 贴身即代表可出手，
+        // 掩体中心在自身 face 线后方，墙背面射线必被自身/相邻段误挡（与 combat-system 同口径）；
+        // 超出射程仍走原射线逻辑
+        const _structReach = enemy.attackDistance !== undefined
+            ? enemy.attackDistance
+            : (enemy.attackRange ? enemy.attackRange * 1.15 : 0);
+        if (target._isDefenseStructure && _structReach > 0
+            && distanceToEntityShape(target, enemy.x, enemy.y) <= _structReach) {
+            p.losCache.set(target.id, { result: true, time: now });
+            return true;
         }
 
         // 无 WallSystem 时默认有视线

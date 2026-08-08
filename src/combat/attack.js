@@ -253,7 +253,16 @@ function applyEnchantOnHit(weapon, target, source) {
                     // 新增：怪物之间不互相攻击
                     if (source._faction === 'enemy' && entity._faction === 'enemy') return;
                     // 墙壁视线检测：不能攻击墙后的目标
-                    if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
+                    // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：掩体中心在自身 face 线后方，
+                    // 从墙背面挥击时到中心的射线必被自身/相邻掩体段误挡，导致贴身啃墙零伤害
+                    // （2026-08-08 实机复现）；footprint 在攻击距离内即代表贴身，与 combat-system 同口径
+                    if (WallSystem.blocked(ax, ay, entity.x, entity.y)) {
+                        const _structReach = source.attackDistance !== undefined
+                            ? source.attackDistance
+                            : (source.attackRange ? source.attackRange * 1.15 : 0);
+                        if (!(entity._isDefenseStructure && _structReach > 0
+                            && distanceToEntityShape(entity, ax, ay) <= _structReach)) return;
+                    }
                     // === 动态距离判定（优先于矩形判定）===
                     if (pt.dynamicRange > 0) {
                         // 计算黑狼当前实际位置（含冲刺偏移）

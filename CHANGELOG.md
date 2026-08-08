@@ -1,5 +1,36 @@
 # 变更日志
 
+### 对话：AI 索敌/寻路二轮优化 + 门闸寻路循环修复（2026-08-08）
+- **感知降频**：有活跃目标的怪 PerceptionSystem 改 100ms tick（无目标怪/战术小队成员每帧不变，
+  节流口径不变）；**搜索行为接线**——`_updateSearchBehavior` 的 `_searchTarget` 原只有死代码
+  DecisionSystem 读，实际不生效；现 movement-system 目标优先级链新增第 5 档（searchAround 阶段
+  朝搜索点巡逻，giveUp 后清除），怪到最后已知位置后周边搜索再放弃，不再是直奔点位干等。
+- **pathfinder 内核三项**：
+  - 局部失效 `invalidateRegion(minX,minY,maxX,maxY)`（内部外扩 800px）：掩体增删只清窗口内
+    路径缓存/cellMemo/负缓存条目，替代核弹级全清——波次中掩体被拆不再 40 怪集体冷启动；
+    地牢/战斗房/Boss 房整图切换保持 `invalidateCache` 全清。
+  - 半径档归并 `RADIUS_BUCKETS=[20,40,90]`（>90 各自成桶）：7 档半径 → 4 桶，桶上界为
+    代表半径（只保守不穿墙）；`_cellMemo`/`_pathCache`/RegionIndex 同桶共享；顺带修掉
+    RegionIndex 旧有半径盲区（`checkDirty` 不看半径会复用错误半径索引）。
+  - 整数 key + 堆索引表：closedSet/SpatialHash/memo 去 `"x,y"` 字符串 key（`CELL_STRIDE`）；
+    `BinaryHeap.remove` 由 `indexOf` O(n) 降 O(log n)。冷路径中位 1.46→1.36ms。
+- **门闸寻路循环修复**：关门 `_gate` 段纳入 SpatialHash 作 `GATE_SOFT_COST=6` 软成本
+  （不阻挡——有绕路优先绕门，唯一通路仍穿门，保持"动态段不当永久墙"原设计）；门开关
+  toggle 时 `invalidateRegion(门段bbox)` 刷新成本；被关着的门洞段（`_gateHole`）贴身挡住时
+  跳过 forceRecalc/接力/reposition 门前等待，门开自然恢复（原：每 500ms 空转重算穿门路径）。
+- **主循环**：FormationSystem 无编队（formations.size===0）时跳过全表遍历。
+- **墙背啃墙根因修复（CDP 回归揪出）**：P3 墙背出手失败的真正断点在命中判定——
+  `attack.js checkTriangleHit` 对候选做 raw `WallSystem.blocked` 射线且不忽略掩体段，
+  掩体中心恒在自身 face 线后方，墙背挥击必被挡 → 贴身零伤害。按"`_isDefenseStructure`
+  目标在攻击距离内免 LOS（distanceToEntityShape + attackDistance ?? attackRange×1.15）"口径
+  修三处：attack.js 命中判定放行、combat-system LOS 分支、perception `_checkLineOfSight`。
+- **验证**：pathfinding-bench 51 断言（+7 门闸软成本、+8 局部失效/半径桶）；npm test 全绿；
+  eslint 0 error；vite build ✓；CDP 实机回归 9/9 PASS（cdp-defense-ai-verify 全量，
+  P3 掩体真实掉血 1100→1087、40 怪 fps 238 帧均 0.78ms、零控制台报错；
+  探针工具已加固：HMR/页面重载后自动重建 __v）。
+- **修改文件**：src/ai/{pathfinder,region-index}.js、src/systems/{perception,movement,formation}-system.js、
+  src/world/{wall-gate,defense-system}.js、src/game.js、tools/pathfinding-bench.mjs、SKILL.md。
+
 ### 对话：世界-122 大场景 AI 索敌 + 寻路优化（2026-08-08，结合每只怪自带 AI 机制）
 - **行为修复（5 项）**：
   - BattleCommander 与防守模式冲突：战术点全围绕玩家且优先级高于 enemy.target，防守怪被拉向玩家——

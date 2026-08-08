@@ -92,16 +92,23 @@ class CombatSystemImpl {
             return;
         }
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
-        let isBlocked;
-        const losCache = enemy._perception && enemy._perception.losCache;
-        const cachedLos = losCache ? losCache.get(enemy.target.id) : null;
-        if (cachedLos) {
-            // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
-            isBlocked = !cachedLos.result;
-        } else {
-            // 缓存未命中：fallback 到 WallSystem 直接检测（掩体目标忽略自身墙段，同上）
-            const ignore = enemy.target._coverSeg ? { segs: new Set([enemy.target._coverSeg]) } : null;
-            isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY, ignore);
+        // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：footprint 距离在 effectiveRange 内即代表贴身，
+        // 墙体静止不会躲；掩体中心位于自身 face 线后方，从墙背面接近时到中心的射线必穿自身/相邻
+        // 掩体段，射线判定会永远误挡（2026-08-08 实机复现：僵尸贴背啃不动相邻掩体）
+        const _losExempt = !!enemy.target._isDefenseStructure
+            && distanceToEntityShape(enemy.target, enemy.x, enemy.y) <= effectiveRange;
+        let isBlocked = false;
+        if (!_losExempt) {
+            const losCache = enemy._perception && enemy._perception.losCache;
+            const cachedLos = losCache ? losCache.get(enemy.target.id) : null;
+            if (cachedLos) {
+                // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
+                isBlocked = !cachedLos.result;
+            } else {
+                // 缓存未命中：fallback 到 WallSystem 直接检测（掩体目标忽略自身墙段，同上）
+                const ignore = enemy.target._coverSeg ? { segs: new Set([enemy.target._coverSeg]) } : null;
+                isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY, ignore);
+            }
         }
         // === END REFACTOR ===
         if (isBlocked) {

@@ -437,10 +437,15 @@ class DefenseCover extends Combatant {
                 _owner: this, // 回链：怪物被挡路时转火本掩体（movement-system 卡住检测用）
             };
             WallSystem.isoSegments.push(this._coverSeg);
-            // 掩体墙段注册后让寻路网格失效重建（玩家摆放/基地搭建都会走到这里；
-            // 重建惰性触发，重复调用无害）
-            if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
-                pathFinder.invalidateCache();
+            // [PERF-2026-08-08] 掩体墙段注册后只局部失效该线段周边（bbox 外扩 800px 由
+            // invalidateRegion 内部处理），不再核弹级全清——世界-122 掩体增删频繁，
+            // 全清会让全部怪的路径/格子缓存集体冷启动
+            if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+                const s = this._coverSeg;
+                pathFinder.invalidateRegion(
+                    Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                    Math.max(s.x1, s.x2), Math.max(s.y1, s.y2)
+                );
             }
           }
           // 贴图：随机变体库（2026-08-05）——同档 5 个高度类似变体随机选，防单调：
@@ -475,9 +480,15 @@ class DefenseCover extends Combatant {
         if (this._coverSeg && WallSystem && WallSystem.isoSegments) {
             const i = WallSystem.isoSegments.indexOf(this._coverSeg);
             if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+              // [PERF-2026-08-08] 局部失效前先取线段 bbox（随后 _coverSeg 置空）；
+              // 只清该线段周边缓存，不再全清（掩体被摧毁在世界-122 高频发生）
+              const s = this._coverSeg;
               this._coverSeg = null;
-            if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
-                pathFinder.invalidateCache();
+            if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+                pathFinder.invalidateRegion(
+                    Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                    Math.max(s.x1, s.x2), Math.max(s.y1, s.y2)
+                );
             }
           }
       }

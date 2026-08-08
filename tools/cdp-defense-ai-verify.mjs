@@ -52,11 +52,28 @@ ws.onmessage = (ev) => {
     else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') consoleErrs.push('[console.error] ' + m.params.args.map(a => a.value ?? a.description ?? '').join(' ').slice(0, 300));
 };
 const send = (method, params = {}) => new Promise(res => { const id = ++seq; pending.set(id, res); ws.send(JSON.stringify({ id, method, params })); });
-const evalJs = async (expression) => {
+const rawEval = async (expression) => {
     const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
     if (r.result?.exceptionDetails) throw new Error('eval: ' + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text));
     return r.result?.result?.value;
 };
+// [FIX-P5] 探针健壮性：vite HMR/页面重载会清掉 window.__v/__imp（2026-08-08 实机 P5 崩溃复现），
+// 所有引用探针的 eval 先经 ensureProbe 检查，失效则重走 boot 重建（重进 scene8 + 重注入）
+let probeLive = false;
+const evalJs = async (expression) => {
+    if (probeLive && (expression.includes('__v') || expression.includes('__imp'))) await ensureProbe();
+    return rawEval(expression);
+};
+async function ensureProbe() {
+    const ok = await rawEval(`!!(window.__v && window.__imp && window.Game && window.Game.player)`).catch(() => false);
+    if (ok) return;
+    console.warn('  [probe] 探针失效（页面重载?），重建中…');
+    probeLive = false;
+    await boot();
+    probeLive = true;
+    // 重建后是全新场景：重新关闭自然刷怪，恢复验证的受控环境
+    await evalJs(`window.__v.naturalSpawn(false)`).catch(() => {});
+}
 const shot = async (name) => {
     const r = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(`${OUT_DIR}/${name}.png`, Buffer.from(r.result.data, 'base64'));
@@ -66,10 +83,11 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 await send('Runtime.enable');
 await send('Page.enable');
 
-// ---------- 启动游戏 + 进 scene8 ----------
+// ---------- 启动游戏 + 进 scene8（函数化：探针失效重建时复用） ----------
+async function boot() {
 let started = false;
 for (let i = 0; i < 60 && !started; i++) {
-    started = await evalJs(`(async () => {
+    started = await rawEval(`(async () => {
         if (window.Game && window.Game.isRunning && window.Game.player) return true;
         const b = document.getElementById('startGameBtn');
         if (b && getComputedStyle(b).display !== 'none') b.click();
@@ -78,7 +96,7 @@ for (let i = 0; i < 60 && !started; i++) {
     if (!started) await sleep(500);
 }
 for (let i = 0; i < 90; i++) {
-    const ok = await evalJs(`(async () => {
+    const ok = await rawEval(`(async () => {
         try {
             if (!(window.Game && window.Game.player && window.__phaserScene)) return null;
             // 真实模块实例解析器：vite HMR 后页面里的是带 ?t= 的 URL，
@@ -99,25 +117,29 @@ for (let i = 0; i < 90; i++) {
     await sleep(500);
 }
 console.log('game started:', started);
-const preState = await evalJs(`(async () => {
+const preState = await rawEval(`(async () => {
     return { hasGame: !!window.Game, isRunning: !!(window.Game && window.Game.isRunning),
         hasPlayer: !!(window.Game && window.Game.player), hasSM: !!window.__sm,
         scene: window.__sm ? window.__sm.currentScene : null,
         btn: !!document.getElementById('startGameBtn') };
 })()`).catch(e => String(e));
 console.log('pre-switch state:', JSON.stringify(preState));
-const swRes = await evalJs(`(async () => {
-    try {
-        if (!Object.keys(window.__sm.scenes || {}).length) window.__sm.init();
-        await window.__sm.switchScene('scene8', window.Game.player, 'explore');
-        return { ok: true, scene: window.__sm.currentScene };
-    } catch (e) { return { ok: false, err: String(e && e.stack || e).slice(0, 500) }; }
-})()`);
-console.log('switch result:', JSON.stringify(swRes));
+// 已在 scene8（重建场景）则跳过切换，直接等防守就绪
+const cur = await rawEval(`window.__sm ? window.__sm.currentScene : null`).catch(() => null);
+if (cur !== 'scene8') {
+    const swRes = await rawEval(`(async () => {
+        try {
+            if (!Object.keys(window.__sm.scenes || {}).length) window.__sm.init();
+            await window.__sm.switchScene('scene8', window.Game.player, 'explore');
+            return { ok: true, scene: window.__sm.currentScene };
+        } catch (e) { return { ok: false, err: String(e && e.stack || e).slice(0, 500) }; }
+    })()`);
+    console.log('switch result:', JSON.stringify(swRes));
+}
 let defenseActive = false;
 for (let i = 0; i < 60 && !defenseActive; i++) {
     await sleep(600);
-    defenseActive = await evalJs(`(async () => {
+    defenseActive = await rawEval(`(async () => {
         const { DefenseSystem } = await window.__imp('defense-system');
         const { SceneManager } = await window.__imp('scene-manager');
         return !!(SceneManager.currentScene === 'scene8' && DefenseSystem.active && DefenseSystem.base);
@@ -125,9 +147,11 @@ for (let i = 0; i < 60 && !defenseActive; i++) {
 }
 console.log('defense active:', defenseActive);
 if (!defenseActive) { console.error('scene8 defense not active, abort'); await cleanup(1); }
-
+await injectProbe();
+}
 // ---------- 页面侧探针辅助 ----------
-await evalJs(`(() => {
+async function injectProbe() {
+await rawEval(`(() => {
     window.__v = {
         // 强制指定类型走真实 _spawnMonster 管线（验证 aggro 归一化等出生逻辑）
         async spawnForced(type) {
@@ -194,6 +218,9 @@ await evalJs(`(() => {
     };
     return true;
 })()`);
+}
+await boot();
+probeLive = true;
 
 const results = [];
 const record = (name, pass, detail) => { results.push({ name, pass, detail }); console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}  ${detail}`); };

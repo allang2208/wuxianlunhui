@@ -27,7 +27,7 @@ await import('../scripts/register-json-loader.mjs');
 register(pathToFileURL(path.join(ROOT, 'tools/pathfinding-hooks.mjs')).href, pathToFileURL(ROOT + path.sep).href);
 
 const { WallSystem } = await import(pathToFileURL(path.join(ROOT, 'src/world/wall-system.js')).href);
-const { pathFinder, PATH_DEFERRED } = await import(pathToFileURL(path.join(ROOT, 'src/ai/pathfinder.js')).href);
+const { pathFinder, PATH_DEFERRED, GATE_SOFT_COST } = await import(pathToFileURL(path.join(ROOT, 'src/ai/pathfinder.js')).href);
 const { regionIndex } = await import(pathToFileURL(path.join(ROOT, 'src/ai/region-index.js')).href);
 
 let passed = 0, failed = 0;
@@ -139,22 +139,26 @@ function bench(label, rx, ry) {
     const ex2 = pathFinder.findPath(start.x, start.y, outside.x, outside.y, radius);
     const exitRepeat = performance.now() - t0;
 
-    // 5) 半径隔离正确性（memo 契约 = 格子中心采样，与 _buildGrid 一致）：
-    // 找一颗树附近 86~100px 的格子中心——r=16 可走（d>70+16），r=30 阻挡（d<70+30）。
-    // 必须在加冰墙前测，避免冰墙矩形误挡探针。
+    // 5) 半径桶隔离正确性（memo 契约 = 格子中心采样，与 _buildGrid 一致）：
+    // [PERF-2026-08-08] 半径档归并后按桶判定：r=16→桶20（blockR=70+20=90），
+    // r=30→桶40（blockR=70+40=110）。找一颗树附近 95~105px 的格子中心——
+    // 桶20 可走（d>90），桶40 阻挡（d<110）。必须在加冰墙前测，避免冰墙矩形误挡探针。
     const tree = WallSystem.trees[0];
     let probe = null;
     probeLoop:
-    for (let gx = Math.floor(tree.x / 40) - 3; gx <= Math.floor(tree.x / 40) + 3; gx++) {
-        for (let gy = Math.floor(tree.y / 40) - 1; gy <= Math.floor(tree.y / 40) + 4; gy++) {
+    for (let gx = Math.floor(tree.x / 40) - 4; gx <= Math.floor(tree.x / 40) + 4; gx++) {
+        for (let gy = Math.floor(tree.y / 40) - 4; gy <= Math.floor(tree.y / 40) + 4; gy++) {
             const cx = gx * 40 + 20, cy = gy * 40 + 20;
             const d = Math.hypot(cx - tree.x, cy - tree.y);
-            if (d > 86 && d < 100) { probe = { x: cx, y: cy }; break probeLoop; }
+            if (d > 95 && d < 105) { probe = { x: cx, y: cy }; break probeLoop; }
         }
     }
     const cd16 = probe ? pathFinder._getCellData(probe.x, probe.y, 16) : null;
     const cd30 = probe ? pathFinder._getCellData(probe.x, probe.y, 30) : null;
     const cd16Again = probe ? pathFinder._getCellData(probe.x, probe.y, 16) : null;
+    // 同桶共享：r=10 与 r=18 同属桶20，应命中同一条 memo（对象同一）
+    const cd10 = probe ? pathFinder._getCellData(probe.x, probe.y, 10) : null;
+    const cd18 = probe ? pathFinder._getCellData(probe.x, probe.y, 18) : null;
 
     // 6) 冰墙增删：加 10 段后 resolve 单次开销（移动碰撞热路径）
     for (let i = 0; i < 10; i++) {
@@ -185,14 +189,119 @@ function bench(label, rx, ry) {
     check(`${label} 首批路径完成数 + 推迟数 = 15`, paths + deferred === 15, `${paths}+${deferred}`);
     check(`${label} 不可达重复查询 < 5ms（负缓存生效）`, exitRepeat < 5, exitRepeat.toFixed(3));
     check(`${label} 不可达两次都判 null（ex1=${ex1 === null}, ex2=${ex2 === null}）`, ex1 === null && ex2 === null);
-    check(`${label} 半径隔离：r16 可走 r30 阻挡且互不污染`, probe !== null && cd16.blocked === false && cd30.blocked === true && cd16Again.blocked === false,
+    check(`${label} 半径桶隔离：r16(桶20) 可走 r30(桶40) 阻挡且互不污染`, probe !== null && cd16.blocked === false && cd30.blocked === true && cd16Again.blocked === false,
         `${probe ? cd16.blocked + '/' + cd30.blocked + '/' + cd16Again.blocked : '探针未找到'}`);
+    check(`${label} 同桶半径共享 memo（r10/r18 同属桶20，对象同一）`,
+        probe !== null && cd10 === cd18, `${cd10 === cd18}`);
 }
 
 console.log('寻路性能基准 + 回归（合成战斗房，真实源码）');
 bench('普通战斗房', 512, 512);
 bench('精英战斗房', 896, 896);
 bench('Boss战斗房', 1024, 1024);
+
+// ==================== [局部失效] 掩体增删 invalidateRegion ====================
+// 合成：房内两条路径（远区/近区），在远区放一段 _cover 掩体并局部失效——
+// 断言远区缓存被清、近区缓存与格子 memo 保留（不再核弹级全清）。
+{
+    setup(896, 896);
+    console.log('\n[局部失效] 掩体放入远区，近区缓存应保留');
+    const nearA = { x: 500, y: -300 }, nearB = { x: 650, y: -100 };
+    const farA = { x: -500, y: 300 }, farB = { x: -300, y: 500 };
+    // 分帧算两条路径（帧预算 3ms，同帧第二条可能被推迟）
+    pathFinder.beginFrame();
+    const pNear = pathFinder.findPath(nearA.x, nearA.y, nearB.x, nearB.y, 16);
+    pathFinder.beginFrame();
+    const pFar = pathFinder.findPath(farA.x, farA.y, farB.x, farB.y, 16);
+    const nearKey = pathFinder._getCacheKey(nearA.x, nearA.y, nearB.x, nearB.y, 16);
+    const farKey = pathFinder._getCacheKey(farA.x, farA.y, farB.x, farB.y, 16);
+    check('局部失效 前置：两条路径都算出并入缓存',
+        pNear && pFar && pathFinder._getCachedPath(nearKey) !== undefined
+        && pathFinder._getCachedPath(farKey) !== undefined);
+    const memoBefore = pathFinder._cellMemo.size;
+    // 远区放入掩体段（_cover 静态段），局部失效其 bbox（内部外扩 800px）
+    WallSystem.isoSegments.push({ x1: -660, y1: 620, x2: -528, y2: 620, halfThick: 26, _cover: true });
+    pathFinder.invalidateRegion(-660, 620, -528, 620);
+    check('局部失效 远区路径缓存被清除', pathFinder._getCachedPath(farKey) === undefined);
+    const nearCached = pathFinder._getCachedPath(nearKey);
+    check('局部失效 近区路径缓存保留', nearCached !== undefined && Array.isArray(nearCached));
+    const memoAfter = pathFinder._cellMemo.size;
+    check('局部失效 格子 memo 只清窗口内（减少但未全清）',
+        memoAfter < memoBefore && memoAfter > 0, `${memoBefore} -> ${memoAfter}`);
+    // 局部失效后寻路正确性：掩体已纳入空间哈希重建，远区重算应绕开/判阻
+    pathFinder.beginFrame();
+    const pFar2 = pathFinder.findPath(farA.x, farA.y, farB.x, farB.y, 16);
+    check('局部失效 远区重算路径仍合法（非 DEFERRED 报错路径）', pFar2 !== PATH_DEFERRED);
+}
+
+// ==================== [GATE-SOFT-COST] 门闸软成本 ====================
+// 合成关门场景：y=0 一道墙（矩形墙块），x∈[-60,60] 门洞挂 _gate 段（关门态，
+// 镜像 WallGate.setPassable(false) 后的 isoSegments 状态），x∈[80,200] 另有开口可绕行。
+// 断言：门洞可通行但带软成本、有绕路时路径绕门、唯一通路仍穿门、开门后成本归零。
+{
+    console.log('\n[GATE-SOFT-COST] 关门软成本场景（墙 y=0，门洞 x-60~60，开口 x80~200）');
+    WallSystem.trees = [];
+    WallSystem.walls = [];
+    WallSystem.isoSegments = [];
+    const mkWall = (x0, x1) => WallSystem.walls.push({ x: x0, y: -10, w: x1 - x0, h: 20, height: 60, noVisual: true, _iso: true });
+    mkWall(-800, -60); mkWall(60, 80); mkWall(200, 800);
+    const gateSeg = { x1: -60, y1: 0, x2: 60, y2: 0, halfThick: 5, _gate: true, _gateHole: true };
+    WallSystem.isoSegments.push(gateSeg);
+    pathFinder.invalidateCache();
+    regionIndex.markDirty();
+
+    // 路径折线到门段的最小距离（10px 采样；> 半径16+halfThick5=21 即不跨门段）
+    const minDistToGate = (path) => {
+        let min = Infinity;
+        for (let i = 0; i < path.length - 1; i++) {
+            const a = path[i], b = path[i + 1];
+            const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 10));
+            for (let k = 0; k <= steps; k++) {
+                const d = pathFinder.spatialHash._pointSegDist(
+                    a.x + (b.x - a.x) * k / steps, a.y + (b.y - a.y) * k / steps,
+                    gateSeg.x1, gateSeg.y1, gateSeg.x2, gateSeg.y2);
+                if (d < min) min = d;
+            }
+        }
+        return min;
+    };
+
+    // 1) 门洞格子：可通行（不作阻挡）+ 软成本乘数
+    const cdGate = pathFinder._getCellData(20, 20, 16);
+    check('门闸 门洞格子不作阻挡（可通行语义）', cdGate.blocked === false, `blocked=${cdGate.blocked}`);
+    check('门闸 门洞格子带 GATE_SOFT_COST 软成本', cdGate.cost === GATE_SOFT_COST, `cost=${cdGate.cost}`);
+    check('门闸 _isBlocked 不把门段当阻挡（A*/BFS 同口径）',
+        pathFinder._isBlocked(20, 20, 16) === false);
+
+    // 2) 有开口可绕：路径应绕开门、不跨门段（直行穿门 600+软成本400 > 绕行 ~730）
+    const S = { x: -20, y: -300 }, E = { x: -20, y: 300 };
+    pathFinder.beginFrame();
+    const pDetour = pathFinder.findPath(S.x, S.y, E.x, E.y, 16);
+    const dDetour = pDetour && pDetour !== PATH_DEFERRED ? minDistToGate(pDetour) : -1;
+    check('门闸 有绕行路线时路径不跨门段（走开口）',
+        pDetour && pDetour !== PATH_DEFERRED && dDetour > 21, `minDist=${dDetour.toFixed ? dDetour.toFixed(1) : dDetour}`);
+
+    // 3) 堵死开口（唯一通路=关门）：仍给出穿门路径（不把临时障碍当永久墙）
+    mkWall(80, 200);
+    pathFinder.invalidateRegion(80, -10, 200, 10);
+    pathFinder.beginFrame();
+    const pOnly = pathFinder.findPath(S.x, S.y, E.x, E.y, 16);
+    const dOnly = pOnly && pOnly !== PATH_DEFERRED ? minDistToGate(pOnly) : Infinity;
+    check('门闸 唯一通路时仍规划穿门路径',
+        pOnly && pOnly !== PATH_DEFERRED && dOnly <= 21, `minDist=${dOnly === Infinity ? 'N/A' : dOnly.toFixed(1)}`);
+
+    // 4) 开门 toggle（镜像 WallGate.setPassable(true)：splice 门段 + invalidateRegion）→ 成本归零
+    WallSystem.isoSegments.splice(WallSystem.isoSegments.indexOf(gateSeg), 1);
+    pathFinder.invalidateRegion(-60, 0, 60, 0);
+    const cdOpen = pathFinder._getCellData(20, 20, 16);
+    check('门闸 开门后门洞格子成本归零', cdOpen.blocked === false && cdOpen.cost === 1.0,
+        `blocked=${cdOpen.blocked} cost=${cdOpen.cost}`);
+    pathFinder.beginFrame();
+    const pOpen = pathFinder.findPath(S.x, S.y, E.x, E.y, 16);
+    const dOpen = pOpen && pOpen !== PATH_DEFERRED ? minDistToGate(pOpen) : Infinity;
+    check('门闸 开门后路径直穿门洞（原门洞位置）',
+        pOpen && pOpen !== PATH_DEFERRED && dOpen <= 21, `minDist=${dOpen === Infinity ? 'N/A' : dOpen.toFixed(1)}`);
+}
 
 // ==================== [RELAY] 世界-122 大场景分段接力寻路 ====================
 // 合成 3000px 场景：起点 (3900,2048) → 基地 (900,2048)，
