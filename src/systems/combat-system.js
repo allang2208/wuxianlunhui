@@ -93,9 +93,11 @@ class CombatSystemImpl {
         }
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
         let isBlocked;
-        if (enemy._perception && enemy._perception.lastLOSTargetId === enemy.target.id) {
+        const losCache = enemy._perception && enemy._perception.losCache;
+        const cachedLos = losCache ? losCache.get(enemy.target.id) : null;
+        if (cachedLos) {
             // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
-            isBlocked = !enemy._perception.lastLOSResult;
+            isBlocked = !cachedLos.result;
         } else {
             // 缓存未命中：fallback 到 WallSystem 直接检测（掩体目标忽略自身墙段，同上）
             const ignore = enemy.target._coverSeg ? { segs: new Set([enemy.target._coverSeg]) } : null;

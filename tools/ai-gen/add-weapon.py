@@ -206,7 +206,11 @@ def scaffold_data(spec):
     if tpl_type not in anim:
         log(f"WARN: anim template '{tpl_type}' missing in {rel}; skip anim entry")
     else:
-        anim = insert_after(anim, tpl_type, spec["weaponType"], anim[tpl_type])
+        anim_key = spec.get("animConfigKey") or spec["weaponType"]
+        if anim_key == tpl_type:
+            log(f"anim key '{anim_key}' == template; no clone needed")
+        else:
+            anim = insert_after(anim, tpl_type, anim_key, anim[tpl_type])
         write_json(rel, anim)
 
 
@@ -277,15 +281,49 @@ def build_depth_template(spec, out_rel):
         (cx - half + r, cy - r), (cx - r, cy - half + r),
     ]
     d.polygon(pts, fill=130)
-    # M416 剪影：白 255（徽章内部）
+    # 武器剪影：白 255（徽章内部）；按 key 分发，缺省用简单矩形
     s = 0.92
-    for poly in _m416_polygons(cx, cy, s):
+    key = spec.get("key", "")
+    polys = _weapon_polygons(key, cx, cy, s)
+    for poly in polys:
         d.polygon(poly, fill=255)
     canvas = canvas.filter(ImageFilter.GaussianBlur(0.8))
     arr = np.asarray(canvas)
     arr = np.where(arr >= 252, 255, np.where(arr >= 120, 130, 0)).astype(np.uint8)
     Image.fromarray(arr).save(repo_path(out_rel))
     log(f"depth template -> {out_rel}")
+
+
+def _weapon_polygons(key, cx, cy, s):
+    """按武器 key 返回侧视剪影多边形（相对中心 cx,cy，比例因子 s）。"""
+    if key == "m416":
+        return _m416_polygons(cx, cy, s)
+    if key in ("revolver357", "deagle", "pistol"):
+        # 手枪/左轮：短枪管 + 套筒/转轮 + 握把
+        return [
+            # 枪管 + 准星
+            [(cx + 90 * s, cy - 14 * s), (cx + 300 * s, cy - 14 * s),
+             (cx + 300 * s, cy + 2 * s), (cx + 90 * s, cy + 2 * s)],
+            [(cx + 292 * s, cy - 20 * s), (cx + 308 * s, cy - 20 * s),
+             (cx + 308 * s, cy - 2 * s), (cx + 292 * s, cy - 2 * s)],
+            # 套筒（上半部）
+            [(cx - 70 * s, cy - 30 * s), (cx + 100 * s, cy - 30 * s),
+             (cx + 100 * s, cy + 6 * s), (cx - 70 * s, cy + 6 * s)],
+            # 套筒座（下半部）
+            [(cx - 60 * s, cy + 6 * s), (cx + 80 * s, cy + 6 * s),
+             (cx + 80 * s, cy + 22 * s), (cx - 60 * s, cy + 22 * s)],
+            # 扳机护圈
+            [(cx - 30 * s, cy + 12 * s), (cx + 6 * s, cy + 12 * s),
+             (cx + 12 * s, cy + 38 * s), (cx - 24 * s, cy + 38 * s)],
+            # 握把
+            [(cx - 56 * s, cy + 22 * s), (cx - 20 * s, cy + 22 * s),
+             (cx - 40 * s, cy + 105 * s), (cx - 76 * s, cy + 105 * s)],
+        ]
+    # 缺省：居中简单矩形（防空白模板）
+    return [
+        [(cx - 240 * s, cy - 30 * s), (cx + 240 * s, cy - 30 * s),
+         (cx + 240 * s, cy + 30 * s), (cx - 240 * s, cy + 30 * s)],
+    ]
 
 
 # ---------------------------------------------------------------------------

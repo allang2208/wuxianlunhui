@@ -1236,6 +1236,9 @@ export const DefenseSystem = {
           this._eliteTimer = 0;
           this._lordTimer = 0;
           this._elapsed = 0;
+          this._goldScanTimer = 0;
+          this._aliveCountCache = undefined;
+          this._aliveCountTime = 0;
           this._seq = 0;
           if (this._goldGranted) this._goldGranted.clear();
           this._goldGranted = null;
@@ -1260,7 +1263,7 @@ export const DefenseSystem = {
     update(dt) {
         if (!this.active || this.defeated) return;
         this._elapsed += dt;
-        this._grantMonsterGold();
+        this._grantMonsterGold(dt);
         this._spawnTimer += dt;
         this._eliteTimer += dt;
         this._lordTimer += dt;
@@ -1287,23 +1290,37 @@ export const DefenseSystem = {
             DEFENSE_CONFIG.spawn.countCap,
             Math.floor(DEFENSE_CONFIG.spawn.baseCount + wave * DEFENSE_CONFIG.spawn.countPerWave)
         );
+        // [PERF] 循环内用本地计数累加，配合 _aliveCount 节流缓存避免重复全表扫描
+        let alive = this._aliveCount();
         for (let i = 0; i < count; i++) {
-            if (this._aliveCount() >= DEFENSE_CONFIG.spawn.maxAlive) break;
+            if (alive >= DEFENSE_CONFIG.spawn.maxAlive) break;
             this._spawnMonster(wave, NORMAL_POOL);
+            alive++;
         }
     },
 
     _aliveCount() {
+        // [PERF] 计数节流：250ms 内复用缓存结果，避免每帧全表扫描 Game.entities
+        const now = this._elapsed || 0;
+        if (this._aliveCountCache !== undefined && now - this._aliveCountTime < 250) {
+            return this._aliveCountCache;
+        }
         let n = 0;
         for (const e of Game.entities.values()) {
             if (e && e._defenseMonster && e.active && e.hp > 0) n++;
         }
+        this._aliveCountCache = n;
+        this._aliveCountTime = now;
         return n;
     },
 
     /** 防守击杀金币结算：怪物死亡标记后由本钩子统一发金币（地面掉落物已按 _noGoldDrop 关闭） */
-    _grantMonsterGold() {
+    _grantMonsterGold(dt) {
         if (!this.active || !Game || !Game.entities) return;
+        // [PERF] 结算节流：每 250ms 扫描一次尸体统一发金币（金币延迟 ≤250ms 可接受）
+        this._goldScanTimer = (this._goldScanTimer || 0) + (dt || 0);
+        if (this._goldScanTimer < 250) return;
+        this._goldScanTimer = 0;
         if (!this._goldGranted) this._goldGranted = new Set();
         const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
         let grantedThisFrame = 0;

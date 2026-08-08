@@ -177,9 +177,19 @@ const moveData = this._computeMoveDirection(enemy, entities);
             const targetY = enemy.target.y;
             const distToTarget = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
 
-            // 目标太远时直接移动，不做 A*，避免生成巨大网格造成卡顿
+            // 目标太远时不做全程 A*，避免生成巨大网格造成卡顿
             if (distToTarget > MAX_PATHFIND_RANGE) {
-                enemy._pathManager._clearPath();
+                if (enemy.ai && enemy.ai.chargeStraight) {
+                    // [RELAY] 直冲型（胖子僵尸/突变体-3）保持原直线行为，不参与接力
+                    enemy._pathManager._clearPath();
+                    enemy._relayTarget = null;
+                } else if (enemy._specialTacticalTarget || enemy._tacticalTarget) {
+                    // [RELAY] 战术目标优先：接力只针对最终目标，战术移动期间保持原直线行为
+                    enemy._pathManager._clearPath();
+                } else {
+                    // [RELAY] 大场景分段接力寻路：超距不再纯直线，逐段 A* 到中继点推进
+                    this._updateRelayPath(enemy, targetX, targetY);
+                }
             } else {
                 let shouldRecalc = !enemy._pathManager.hasValidPath();
 
@@ -390,6 +400,74 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     },
 
     /**
+     * [RELAY] 大场景分段接力寻路：目标超出 MAX_PATHFIND_RANGE 时，不直接寻路全程，
+     * 而是选一个 600~700px 外的中继点做局部 A*，到达后再接力下一段。
+     * 中继点非永久状态：接近/路径失效/终点偏离即重选，目标移动后下一段自然校正。
+     * 重算节流沿用 PathManager 500ms 最小间隔 + pathFinder 帧预算（PATH_DEFERRED 下帧重试）。
+     * @param {Enemy} enemy
+     * @param {number} tx - 最终目标 X
+     * @param {number} ty - 最终目标 Y
+     */
+    _updateRelayPath(enemy, tx, ty) {
+        const pm = enemy._pathManager;
+        if (!pm) return;
+
+        let needRecalc = false;
+        const relay = enemy._relayTarget;
+        if (!relay) {
+            needRecalc = true; // 首次进入接力
+        } else if (Math.hypot(relay.x - enemy.x, relay.y - enemy.y) < 120) {
+            needRecalc = true; // 已接近中继点：推进下一段
+        } else if (!pm.hasValidPath()) {
+            needRecalc = true; // 路径失效（含 PATH_DEFERRED 后下帧重试）
+        } else {
+            // 路径终点偏离中继点 >100px：路径已过时
+            const end = pm.path[pm.path.length - 1];
+            if (Math.hypot(end.x - relay.x, end.y - relay.y) > 100) needRecalc = true;
+        }
+        if (!needRecalc) return;
+
+        const next = this._pickRelayPoint(enemy, tx, ty);
+        enemy._relayTarget = next;
+        pm.forceRecalc(pathFinder, next.x, next.y);
+    },
+
+    /**
+     * [RELAY] 选择中继点：从怪指向目标方向取 600~700px 处，
+     * 候选方向为主方向 + ±30°/±60° 共 5 条射线，用 WallSystem.blocked 选第一条不被挡的；
+     * 都不通时回退主方向（撞墙滑动 + 卡住检测兜底）。
+     * 抽成纯函数便于 tools/pathfinding-bench.mjs 直接单测。
+     * @param {Enemy} enemy
+     * @param {number} tx - 最终目标 X
+     * @param {number} ty - 最终目标 Y
+     * @returns {{x:number, y:number}}
+     */
+    _pickRelayPoint(enemy, tx, ty) {
+        const dx = tx - enemy.x;
+        const dy = ty - enemy.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const baseAngle = Math.atan2(dy, dx);
+        // 中继距离 600~700px，且不超过剩余路程的 80%（靠近 800px 边界时避免 overshoot）
+        const relayDist = Math.min(650, dist * 0.8);
+        const offsets = [0, Math.PI / 6, -Math.PI / 6, Math.PI / 3, -Math.PI / 3];
+        let mainPoint = null;
+        for (const off of offsets) {
+            const a = baseAngle + off;
+            const px = enemy.x + Math.cos(a) * relayDist;
+            const py = enemy.y + Math.sin(a) * relayDist;
+            if (off === 0) {
+                mainPoint = { x: px, y: py };
+                // 无墙系统时直接用主方向
+                if (!WallSystem || !WallSystem.blocked) return mainPoint;
+            }
+            if (!WallSystem.blocked(enemy.x, enemy.y, px, py)) {
+                return { x: px, y: py };
+            }
+        }
+        return mainPoint;
+    },
+
+    /**
      * 处理击退位移
      * @returns {boolean} 是否正在击退中
      */
@@ -475,6 +553,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
                 if (enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
+                } else if (enemy._pathManager && pathFinder && !(enemy.ai && enemy.ai.chargeStraight)) {
+                    // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
+                    if (!enemy._relayTarget) {
+                        enemy._relayTarget = this._pickRelayPoint(enemy, targetX, targetY);
+                    }
+                    enemy._pathManager.forceRecalc(pathFinder, enemy._relayTarget.x, enemy._relayTarget.y, true);
                 }
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴

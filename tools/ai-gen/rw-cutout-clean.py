@@ -55,15 +55,9 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
             alpha[idx[0][still_bright], idx[1][still_bright]] = 0
             keep = ~still_bright
             rgb[idx[0][keep], idx[1][keep]] = f[keep]
-        # 合成判据后处理：软边中"合成到灰底会显白"（lum>175）的半透像素直接清零，
-        # 保留深色毛软边，只去掉会形成白圈的边缘残留（红狼王 composite=0 由这步保证）
-        a2 = alpha / 255.0
-        comp2 = rgb * a2[..., None] + 180.0 * (1.0 - a2[..., None])
-        lum2 = comp2.mean(axis=2)
-        edge_band = (a2 > 0.05) & (a2 < 0.98)
-        white_halo = edge_band & (lum2 > 175)
-        alpha[white_halo] = 0
-        rgb[white_halo] = 0
+        # 注：不做 composite 亮半透清零——实测会切断腿部/身体连接处的半透，
+        # max-component 随后把整条腿当孤立域删掉（frame 宽 272→193）。
+        # 粉色/亮红残留由 3b 欧氏距离染深红解决（只改色不改 alpha，形状完整）。
     h, w = alpha.shape
     rows, cols = h // cell, w // cell
     for r in range(rows):
@@ -107,7 +101,7 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
             #     欧氏距离 > 35 = 白底×红毛混合残留，如 (85,47,53) vs (39,4,5)，
             #     实测全身轮廓一圈，亮度 27~90 之前阈值漏网）
             edge_dist = np.sqrt(((rc - cell_fur[None, None, :]) ** 2).sum(axis=2))
-            edge_red = near & opaque & (edge_dist > 35)
+            edge_red = near & opaque & (edge_dist > 12)
             rc[edge_red] = cell_fur
             # 4) 透明区 RGB 归零
             rc[a_bin < 8] = 0
@@ -121,7 +115,10 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
                 band = np.zeros_like(body)
                 band[cut:ymax + 1, :] = True
                 sat_full = rc.max(axis=2) - rc.min(axis=2)
-                shadow = band & body & (sat_full < 15)
+                lum_full = rc.mean(axis=2)
+                # 只删"暗灰黑"（地面接触阴影，lum<100）；亮灰白（H3 运动模糊/浅毛，
+                # 如 frame1 腿 192,185,185）不是阴影，交给 leg-bright 染成深红毛色
+                shadow = band & body & (sat_full < 15) & (lum_full < 100)
                 if shadow.any():
                     a_bin[shadow] = 0
                     rc[shadow] = 0
@@ -134,6 +131,14 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=90, lum_leg=160, soft=False):
                         drop2 = (lab2 > 0) & (lab2 != keep2)
                         a_bin[drop2] = 0
                         rc[drop2] = 0
+                # 5b) 脚底带颜色归一化：脚底带（内容底部 40px）内，偏离该格深红毛的
+                #     亮红粉/灰像素（被脚包围、不邻接透明，3b 边缘判定覆盖不到）
+                #     统一染成深红毛色——脚下"地板色块"（亮红粉/灰）由此清除
+                dist_f = np.sqrt(((rc - cell_fur[None, None, :]) ** 2).sum(axis=2))
+                lum_f = rc.mean(axis=2)
+                sat_f = rc.max(axis=2) - rc.min(axis=2)
+                foot_fix = band & opaque & ((dist_f > 12) | ((lum_f > 100) & (sat_f < 20)))
+                rc[foot_fix] = cell_fur
                 # 6) 腿部区域（bbox 底部 35%）内不透明亮像素 -> 局部毛色（清贴地灰白）
                 cut2 = max(0, ymin + int((ymax - ymin) * 0.65))
                 band2 = np.zeros_like(body)

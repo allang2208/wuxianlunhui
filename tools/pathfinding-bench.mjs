@@ -194,5 +194,116 @@ bench('普通战斗房', 512, 512);
 bench('精英战斗房', 896, 896);
 bench('Boss战斗房', 1024, 1024);
 
+// ==================== [RELAY] 世界-122 大场景分段接力寻路 ====================
+// 合成 3000px 场景：起点 (3900,2048) → 基地 (900,2048)，
+// 中间一道横向掩体墙带（y=2048，x 1200~3300，缺口 2450~2650）+ 成片 iso 掩体段。
+// 验证：中继点选择正确、逐段接力推进、单帧预算分摊、chargeStraight 行为不变。
+{
+    const { MovementSystem } = await import(pathToFileURL(path.join(ROOT, 'src/systems/movement-system.js')).href);
+
+    WallSystem.trees = [];
+    WallSystem.walls = [];
+    WallSystem.isoSegments = [];
+    for (let x = 1200; x <= 3300; x += 30) {
+        if (x > 2450 && x < 2650) continue; // 缺口
+        WallSystem.walls.push({ x: x - 18, y: 2048 - 10, w: 36, h: 20, height: 60, noVisual: true, _iso: true });
+    }
+    for (let x = 1200; x <= 3300; x += 140) {
+        if (x > 2400 && x < 2700) continue;
+        WallSystem.isoSegments.push({ x1: x, y1: 2048, x2: Math.min(x + 132, 3300), y2: 2048, halfThick: 5 });
+    }
+    pathFinder.invalidateCache();
+    regionIndex.markDirty();
+
+    const mkEnemy = (x, y, ai = {}) => ({
+        active: true, hp: 100, x, y, vx: 0, vy: 0,
+        groundRadius: 16, friction: 0.82, accel: 0.7, maxSpeed: 140, speed: 140,
+        attackRange: 70, animTime: 0, rotation: 0, isMoving: false,
+        ai, _faction: 'enemy', hasStatusEffect: () => false,
+        target: { x: 900, y: 2048, active: true, hp: 1000 },
+    });
+
+    console.log('\n[世界-122 接力寻路] 3000px 场景，掩体墙带 x1200~3300 + 缺口 2450~2650');
+
+    // 1) 中继点选择：主方向通畅 → 主方向 650px 处
+    const eA = mkEnemy(3900, 1000);
+    const rA = MovementSystem._pickRelayPoint(eA, 900, 1000);
+    check('接力 主方向通畅时选主方向 650px', Math.abs(rA.x - 3250) < 1 && Math.abs(rA.y - 1000) < 1,
+        `${rA.x.toFixed(1)},${rA.y.toFixed(1)}`);
+
+    // 2) 主方向被掩体挡住 → 偏转到 +30°，且选中射线不被挡
+    const eB = mkEnemy(3900, 2048);
+    const rB = MovementSystem._pickRelayPoint(eB, 900, 2048);
+    const expBx = 3900 - 650 * Math.cos(Math.PI / 6);
+    const expBy = 2048 - 650 * Math.sin(Math.PI / 6);
+    const rBBlocked = WallSystem.blocked(3900, 2048, rB.x, rB.y);
+    check('接力 主方向被挡时偏转 +30° 且射线通畅',
+        Math.abs(rB.x - expBx) < 1 && Math.abs(rB.y - expBy) < 1 && !rBBlocked,
+        `${rB.x.toFixed(1)},${rB.y.toFixed(1)} blocked=${rBBlocked}`);
+
+    // 3) 5 条射线全被挡 → 回退主方向
+    WallSystem.walls.push({ x: 3100, y: 1400, w: 790, h: 1300, height: 60, noVisual: true, _iso: true });
+    const rC = MovementSystem._pickRelayPoint(eB, 900, 2048);
+    check('接力 全方向被挡时回退主方向', Math.abs(rC.x - 3250) < 1 && Math.abs(rC.y - 2048) < 1,
+        `${rC.x.toFixed(1)},${rC.y.toFixed(1)}`);
+    WallSystem.walls.pop();
+    pathFinder.invalidateCache();
+    regionIndex.markDirty();
+
+    // 4) 全程模拟：分段接力推进到基地（统计中继重选次数 + 单帧耗时）
+    // 虚拟时钟：PathManager 的 500ms 节流/首寻路错峰都按 Date.now 真实时间，
+    // 模拟帧跑得太快会一直被节流跳过，这里按 dt 推进虚拟时间还原真实节流行为
+    const realNow = Date.now;
+    let vNow = realNow();
+    Date.now = () => vNow;
+
+    let relayPicks = 0;
+    const origPick = MovementSystem._pickRelayPoint;
+    MovementSystem._pickRelayPoint = function (...args) { relayPicks++; return origPick.apply(this, args); };
+
+    const sim = mkEnemy(3900, 2048);
+    const dt = 16.67;
+    let maxFrame = 0, relaySeen = false, frames = 0;
+    let distNow = Math.hypot(sim.target.x - sim.x, sim.target.y - sim.y);
+    const distSamples = [distNow];
+    while (distNow > 120 && frames < 6000) {
+        MovementSystem.beginFrame();
+        const t0 = performance.now();
+        MovementSystem.update(sim, dt, new Map());
+        const ft = performance.now() - t0;
+        if (ft > maxFrame) maxFrame = ft;
+        frames++;
+        vNow += dt;
+        distNow = Math.hypot(sim.target.x - sim.x, sim.target.y - sim.y);
+        if (distNow > 800 && sim._relayTarget) relaySeen = true;
+        if (frames % 300 === 0) distSamples.push(distNow);
+    }
+    distSamples.push(distNow);
+    MovementSystem._pickRelayPoint = origPick;
+
+    console.log(`  模拟 ${frames} 帧（${(frames * dt / 1000).toFixed(1)}s 游戏时间），末距 ${distNow.toFixed(0)}px，单帧最高 ${maxFrame.toFixed(2)}ms，中继重选 ${relayPicks} 次`);
+    console.log(`  距离抽样(每300帧): ${distSamples.map(d => d.toFixed(0)).join(' → ')}`);
+    let progressing = true;
+    for (let i = 1; i < distSamples.length; i++) {
+        if (distSamples[i] >= distSamples[i - 1]) { progressing = false; break; }
+    }
+    check('接力 超距阶段设置了中继点', relaySeen);
+    check('接力 逐段推进最终抵达基地（<120px）', distNow <= 120 && frames < 6000, `dist=${distNow.toFixed(0)} frames=${frames}`);
+    check('接力 距离抽样逐窗递减（持续推进无卡死）', progressing, distSamples.map(d => d.toFixed(0)).join('→'));
+    check('接力 分多段推进（中继重选 ≥3 次）', relayPicks >= 3, `picks=${relayPicks}`);
+    check('接力 单帧 update < 50ms（寻路耗时分摊）', maxFrame < 50, maxFrame.toFixed(2));
+
+    // 5) chargeStraight 怪（胖子僵尸/突变体-3）：超距时不设中继、不留路径，直线行为不变
+    const cs = mkEnemy(3900, 2048, { chargeStraight: true });
+    for (let i = 0; i < 120; i++) {
+        MovementSystem.beginFrame();
+        MovementSystem.update(cs, dt, new Map());
+        vNow += dt;
+    }
+    Date.now = realNow;
+    check('接力 chargeStraight 怪保持直线（无中继无路径）',
+        !cs._relayTarget && !(cs._pathManager && cs._pathManager.hasValidPath()));
+}
+
 console.log(`\n结果: ${passed} 通过, ${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

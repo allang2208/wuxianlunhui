@@ -223,6 +223,23 @@ await evalJs(`(async () => {
     return true;
 })()`);
 await shot('swamp_seam_zoom4');
+// 通道与房间交界处 zoom 1.5（看地板覆盖墙角）
+await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
+    if (scene) scene.cameras.main.setZoom(1);
+    p.x = 2050; p.y = 1320;
+    Camera.x = 2050; Camera.y = 1320;
+    if (scene) scene.cameras.main.setZoom(1.5);
+    await new Promise((r) => setTimeout(r, 600));
+    if (scene) scene.cameras.main.setZoom(1.5);
+    await new Promise((r) => setTimeout(r, 300));
+    return true;
+})()`);
+await shot('swamp_floor_junction15');
 await evalJs(`(() => {
     const scene = window.__phaserScene || (window.Game && window.Game._phaserGame && window.Game._phaserGame.scene ? window.Game._phaserGame.scene.scenes.find((s) => s.sys && s.sys.isActive()) : null);
     if (scene) scene.cameras.main.setZoom(1);
@@ -314,6 +331,74 @@ const endPieces = await evalJs(`(async () => {
 })()`);
 console.log('end pieces detail:', JSON.stringify(endPieces, null, 1));
 fs.writeFileSync(path.join(OUT_DIR, 'swamp_end_pieces.json'), JSON.stringify(endPieces));
+
+// 探测烘焙地板纹理在关键点（墙角/楔形区）的像素：亮=草地，暗=黑/漏洞
+const floorProbe = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { Renderer } = await import(pick('world/renderer.js'));
+    const canvas = Renderer.terrainTexture;
+    const out = { hasCanvas: !!canvas };
+    if (!canvas) return out;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const pts = {
+        'corr_wall_x_roomA_plus': [1921, 1431],
+        'corr_wall_x_roomA_minus': [2316, 1202],
+        'corr_wall_x_roomB_plus': [2754, 1912],
+        'corr_wall_x_roomB_minus': [3150, 1683],
+        'gate_mid1': [2103, 1324],
+        'corridor_mid': [2521, 1565],
+        'corridor_sideA': [2429, 1724],
+        'wedge_plus_A': [1900, 1400],
+        'wedge_minus_A': [2280, 1210],
+    };
+    out.points = {};
+    for (const [k, [x, y]] of Object.entries(pts)) {
+        if (x < 0 || y < 0 || x >= w || y >= h) { out.points[k] = 'out'; continue; }
+        const d = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+        out.points[k] = { rgb: [d[0], d[1], d[2]], lum: (d[0] + d[1] + d[2]) / 3 };
+    }
+    out.canvasSize = [w, h];
+    return out;
+})()`);
+console.log('floor probe:', JSON.stringify(floorProbe, null, 1));
+
+// 通道墙端点 + 地板 quad（运行时）
+const geoNow = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    const { CombatRoomSystem } = await import(pick('world/combat-room-system.js'));
+    const walls = [];
+    for (const p of WallSystem.isoVisuals) {
+        if (p.tex !== 'swamp_wall_straight') continue;
+        const seg = WallSystem._pieceBaseSegments(p)[0];
+        if (!seg) continue;
+        const mx = (seg[0].x + seg[1].x) / 2;
+        if (mx > 1800 && mx < 3400) {
+            walls.push({ x: Math.round(p.x), y: Math.round(p.y), A: [Math.round(seg[0].x), Math.round(seg[0].y)], B: [Math.round(seg[1].x), Math.round(seg[1].y)], sx: p.scaleX });
+        }
+    }
+    return { walls, hasQuad: !!CombatRoomSystem._arenaCorridors };
+})()`);
+console.log('geo now:', JSON.stringify(geoNow, null, 1));
+
+// 导出烘焙地板纹理（terrainTexture canvas -> dataURL -> 保存）
+const floorImg = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { Renderer } = await import(pick('world/renderer.js'));
+    const canvas = Renderer.terrainTexture;
+    if (!canvas) return { ok: false };
+    return { ok: true, url: canvas.toDataURL('image/png') };
+})()`);
+if (floorImg && floorImg.ok) {
+    const b64 = floorImg.url.split(',')[1];
+    const buf = Buffer.from(b64, 'base64');
+    fs.writeFileSync(path.join(OUT_DIR, 'swamp_terrain_floor.png'), buf);
+    console.log('saved terrain floor', buf.length);
+}
 // 截图后检查 canvas 是否还在渲染（非全黑）
 const px = await evalJs(`(() => {
     const c = document.querySelector('canvas');

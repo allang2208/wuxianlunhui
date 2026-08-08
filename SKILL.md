@@ -1468,6 +1468,13 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      由邻居盖住」规则），仅整件进房才丢弃。验证：关闭裁剪后门口自然、墙不突入房间；
      `scripts/test-wall-depth.mjs` 的 `_sealPassageSides` 正则窗口 3000→5000（封口
      中位数逻辑使函数变长）。教训：**定长瓦片禁按比例缩放；越线交给邻居遮挡**。
+   - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
+     "房间边线向内平移 80px"，端点落在房间内部，60° 墙角楔形区地板不到墙线
+     （墙脚露黑）。修复：`_arenaPassageFloorQuad` 侧边取**实际墙线**（不再内收 12px），
+     端边改为**房间真实边线**——地板端点 = 走廊侧墙线 × 房间边线交点（=墙角点），
+     精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
+     墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
+     渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。

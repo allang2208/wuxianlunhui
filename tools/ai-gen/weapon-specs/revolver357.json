@@ -1,0 +1,107 @@
+{
+  "weaponId": "weapon22",
+  "weaponType": "pistol",
+  "key": "revolver357",
+  "name": ".357麦格农左轮",
+  "type": "手枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "epic",
+  "rarityLabel": "史诗",
+  "level": 15,
+  "price": 800,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": false,
+  "equipSlot": "weapon",
+  "desc": ".357麦格农左轮手枪，6发弹巢，亮银色曳光弹，威力巨大的经典左轮",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "4-9" },
+    { "name": "射程", "value": "700" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "12-20" },
+    { "name": "射程", "value": "700" }
+  ],
+  "attack": {
+    "range": 700,
+    "knockback": 12,
+    "attackInterval": 700,
+    "hitType": "亮银色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1248,
+    "bulletSpeed": 1248
+  },
+  "attackKey": "revolver",
+  "offhandAttackKey": "revolverOffhand",
+  "animConfigKey": "revolver",
+  "canvasImageProp": "revolverImage",
+  "fireMode": "semiAuto",
+  "ammoConfig": {
+    "max": 6,
+    "reloadTime": 2000,
+    "reloadSound": "assets/sounds/weapons/revolver357_reload.wav"
+  },
+  "attackFormula": {
+    "base": 26,
+    "enhanceFlat": 0,
+    "attrs": [
+      { "key": "dex", "base": 0.8, "perEnhance": 0.1 },
+      { "key": "wis", "base": 1.6, "perEnhance": 0.15 }
+    ]
+  },
+  "spreadParams": {
+    "startDelay": 500,
+    "maxTime": 4000,
+    "maxAngle": 28
+  },
+  "fireSound": "assets/sounds/weapons/revolver357_fire.wav",
+  "equipSound": "assets/sounds/weapons/revolver357_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "700ms (约)",
+    "windupMs": "≈175",
+    "swingMs": "≈250",
+    "recoveryMs": "≈275",
+    "holdOffset": "(0, 4)",
+    "weaponSize": 84,
+    "timingMul": "0.5x (慢速)",
+    "recoilAmount": "0.12rad",
+    "description": ".357麦格农左轮以较慢射速开火，单次开火动画约700ms。后坐力抖动幅度较大，与射击频率一致。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/revolver357-equip.png",
+    "iconImage": "assets/icons/revolver357-equip.png",
+    "slotImage": "assets/icons/revolver357-equip.png",
+    "dropImage": "assets/weapons/revolver357-equip.png",
+    "weaponAssetImage": "assets/weapons/revolver357-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon10",
+  "animTemplateWeaponType": "deagle",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.86,
+    "centerX": 0.5,
+    "centerY": 0.52
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/revolver357_fire.wav",
+    "reload": "assets/sounds/weapons/revolver357_reload.wav",
+    "equip": "assets/sounds/weapons/revolver357_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "game equipment icon, realistic dark fantasy RPG item icon, centered single item occupying most of frame, pure white background, no text, no watermark, no human, high detail, dramatic rim lighting",
+      "subject: a single classic .357 Magnum revolver (like Colt Python / S&W Model 686), pure side view, the muzzle and barrel pointing to the RIGHT side of the frame, exposed hammer at the LEFT rear, six-round cylinder wheel in the middle, short heavy barrel with a front sight blade, smooth wooden grips with finger grooves, blued steel finish with polished accents",
+      "(exactly one revolver:1.5), (a single revolver only:1.5), isolated single object, one revolver side view facing right, centered single item with generous white margin around it, no hands",
+      "no multiple views, no turnaround, no design sheet, no blueprint, no duplicate items, no second object, no detached pieces, no whole weapon variants, no circular emblem, no badge frame, no border, no text, no watermark, no blurry, no low quality"
+    ],
+    "video": [
+      "a classic .357 Magnum revolver (blued steel with wooden grips) displayed alone in a dim dark-fantasy armory on a low stone pedestal, soft blue rim light from the left and warm amber light from the right",
+      "shot one: static side view, the revolver slowly rotates on a turntable revealing the six-round cylinder and exposed hammer",
+      "shot two: close-up on the cylinder, it swings open with a metallic clack, six brass rounds are loaded, the cylinder snaps shut, a bright silver tracer round fires from the muzzle with a sharp heavy pistol shot, subtle muzzle smoke drifts",
+      "camera slowly orbits from side view to three-quarter front view, shallow depth of field, subtle dust particles in the air",
+      "audio: heavy punchy revolver shot with a metallic cylinder clack and a short tail echo in the stone hall"
+    ]
+  }
+}

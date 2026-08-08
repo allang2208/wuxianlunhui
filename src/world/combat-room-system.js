@@ -1278,18 +1278,18 @@ export const CombatRoomSystem = {
         if (dPos === Infinity) dPos = 172;
         if (dNeg === Infinity) dNeg = 199;
         const mid = passage.center;
-        // 两条侧边（点 + 方向 axis）
-        const near = { P: { x: mid.x + perp.x * (dPos - 12), y: mid.y + perp.y * (dPos - 12) }, d: axis };
-        const far = { P: { x: mid.x - perp.x * (dNeg - 12), y: mid.y - perp.y * (dNeg - 12) }, d: axis };
-        // 两个端边（房间边线向房内平移 80px）
-        const endA = {
-            P: { x: roomA.cx + roomA.rx - axis.x * 80, y: roomA.cy - axis.y * 80 },
-            d: { x: -roomA.rx, y: roomA.ry },
-        };
-        const endB = {
-            P: { x: roomB.cx + axis.x * 80, y: roomB.cy - roomB.ry + axis.y * 80 },
-            d: { x: -roomB.rx, y: roomB.ry },
-        };
+        // 两条侧边（点 + 方向 axis）——⚠ 2026-08-08 修：侧边延伸到实际墙线
+        // （不再内收 12px）。旧版内收使地板在 60° 墙角楔形区到不了墙线，
+        // 封口墙底落在地板外的黑区，墙角露黑（用户"草地没盖到墙角"）。
+        // 墙线本身被不透明墙身盖住，地板伸到墙线不会外露。
+        const near = { P: { x: mid.x + perp.x * dPos, y: mid.y + perp.y * dPos }, d: axis };
+        const far = { P: { x: mid.x - perp.x * dNeg, y: mid.y - perp.y * dNeg }, d: axis };
+        // 两个端边：房间真实边线（RB/LT）——⚠ 2026-08-08 修：地板端点取"走廊侧墙线
+        // × 房间边线"的交点（= 60° 墙角点），保证地板精确盖到墙角；旧版用边线向内
+        // 平移 80/250px，端点落在房间内部，墙角楔形区留黑（"草地没盖到墙角"）。
+        // 地板继续向房内延伸由房间菱形地板（并集）补齐，重叠区裁剪去重。
+        const edgeA = { P: { x: roomA.cx + roomA.rx, y: roomA.cy }, d: { x: -roomA.rx, y: roomA.ry } };
+        const edgeB = { P: { x: roomB.cx, y: roomB.cy - roomB.ry }, d: { x: -roomB.rx, y: roomB.ry } };
         const intersect = (l1, l2) => {
             const ex = l2.P.x - l1.P.x, ey = l2.P.y - l1.P.y;
             const denom = l1.d.x * l2.d.y - l1.d.y * l2.d.x;
@@ -1299,10 +1299,10 @@ export const CombatRoomSystem = {
         };
         return {
             points: [
-                intersect(near, endA),
-                intersect(near, endB),
-                intersect(far, endB),
-                intersect(far, endA),
+                intersect(near, edgeA),
+                intersect(near, edgeB),
+                intersect(far, edgeB),
+                intersect(far, edgeA),
             ],
         };
     },
