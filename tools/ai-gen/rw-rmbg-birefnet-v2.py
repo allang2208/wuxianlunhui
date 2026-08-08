@@ -36,9 +36,18 @@ ASSETS = os.path.abspath(
 
 # (file, cols, rows, cell)
 JOBS = [
+    # 红狼人形态（已按 BEN2 重抠）
     ("red_wolf_king_transformed_idle.png", 1, 1, 512),
     ("red_wolf_king_changed_run.png", 7, 2, 512),
     ("red_wolf_king_changed_attack.png", 4, 3, 512),
+    # 狼形态（本次补充，全部重抠 + 脚底阴影清理）
+    ("red_wolf_king_idle.png", 1, 1, 512),
+    ("red_wolf_king_run.png", 4, 4, 512),
+    ("red_wolf_king_pacing.png", 4, 4, 512),
+    ("red_wolf_king_pounce_claw.png", 4, 3, 512),
+    ("red_wolf_king_pounce_bite.png", 4, 3, 576),
+    ("red_wolf_king_change.png", 4, 3, 512),
+    ("red_wolf_king_howl.png", 4, 3, 512),
 ]
 
 
@@ -118,6 +127,25 @@ def remove_foot_shadow(rgb, alpha, cell, cols, rows, sat_thr=15, lum_thr=100):
     return rgb, alpha
 
 
+def remove_dark_semi(rgb, alpha, sat_thr=15, lum_thr=100):
+    """清除全图低饱和暗半透明像素（旧 alpha 保留的黑色/深灰阴影残留）。
+
+    半透明黑像素（RGB≈0）是 H3 白底视频的地面阴影，alpha 5~250 时在深色
+    地板上显示为浅灰块。深红毛 sat≥19 不受影响（阈值 15）。
+    """
+    rgb = rgb.copy()
+    alpha = alpha.copy()
+    a = alpha.astype(np.float64)
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    lum = rgb.mean(axis=2)
+    dark_semi = (a > 5) & (a < 250) & (sat < sat_thr) & (lum < lum_thr)
+    if dark_semi.any():
+        alpha[dark_semi] = 0
+        rgb[dark_semi] = 0
+        print(f"[clean] dark semi removed: {int(dark_semi.sum())}px", flush=True)
+    return rgb, alpha
+
+
 def verify(rgb, alpha, cell, cols, rows, name):
     """定量指标：白边/红边/孤立色块/脚底残留。"""
     a = alpha.astype(np.float64) / 255.0
@@ -181,6 +209,7 @@ def main():
         alpha = np.maximum(alpha_b, alpha_orig)
         rgb = np.array(comp)
         rgb_clean, alpha_clean = decontaminate(rgb, alpha)
+        rgb_clean, alpha_clean = remove_dark_semi(rgb_clean, alpha_clean)
         rgb_clean, alpha_clean = remove_foot_shadow(rgb_clean, alpha_clean, cell, cols, rows)
         out_rgba = np.dstack([rgb_clean, alpha_clean]).astype(np.uint8)
         out_im = Image.fromarray(out_rgba, "RGBA")

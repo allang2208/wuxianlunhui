@@ -679,6 +679,22 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     的 resources/assets 是第二份），8/8 凌晨打包版全是旧贴图（无半透、白边 1135、
     红色残留 18164、opaque 多 27 万 px）→ 用户"根本没改变"。**贴图改完必须同步
     assets + dist 两处 + dev server 验证 hash 一致**（curl 5173 与本地 md5 对比）。
+- **狼形态 7 张贴图漏抠 + 旧 alpha 半透黑影残留（2026-08-08 二十八版补）**：
+  - 用户仍反馈"脚下还是一堆残留"。复盘：上一版只重抠了**红狼人形态** 3 张
+    （changed_run/attack/idle），**狼形态 7 张（idle/run/pacing/pounce_claw/
+    pounce_bite/change/howl）完全没重抠**——游戏里红狼王平时就是狼形态行动，
+    用户看到的正是这些旧贴图脚下 200~600px/帧 的暗灰阴影（run 总计 4879px、
+    pacing 6408px）。
+  - 新修复（rw-rmbg-birefnet-v2.py 增补）：
+    ① **remove_dark_semi**：全图清除低饱和（sat<15）暗（lum<100）半透明像素——
+       旧 alpha 被 max(alpha_b, 旧alpha) 原样保留的黑影（RGB≈0，alpha 5~250），
+       在深色地板上显示浅灰块；深红毛 sat≥19 不受影响。
+    ② JOBS 扩展到全部 10 张（狼形态 7 + 红狼人 3），统一 BEN2 + 阴影清理 + soft。
+  - pacing 布局 4×4 但 frames=14，r3c2/r3c3 是未读取的第 15/16 格——里面残留
+    45k 半透像素，直接整格清零，避免文件级检查误报。
+  - 验证：狼形态 run 16 帧 / pacing 14 帧 / pounce / change / howl 全部 GLM 通过
+    （脚下零残留、无白边红边、身体完整）；10 张贴图 assets + dist 两处 SYNCED；
+    dev server 与本地 md5 一致。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
