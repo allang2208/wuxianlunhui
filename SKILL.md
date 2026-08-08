@@ -656,6 +656,29 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**"亮度>N"判定会漏掉比主体亮但仍<阈值的中亮残留**；用"与主体色差
     （欧氏距离）"更稳；GLM 深灰底误读≠没问题，用户肉眼在精灵图/浅底上
     看到的红轮廓是真实的，以用户实际看到为准去查。
+- **红狼人抠图模型换代：BiRefNet-general → BEN2 + 打包版不同步根因（2026-08-08 二十八版）**：
+  - 用户反馈"只扣了部分，还有很多没扣、现有方法解决不了"，要求全网检索更先进方案。
+  - **全网检索结论**：插件 `ComfyUI-RMBG` 已内置候选（AILab_BiRefNet: general/HR/
+    matting/ToonOut/Lucida；AILab_RMBG: RMBG-2.0/BEN/BEN2/INSPYRENET）。
+    ToonOut（动漫/游戏专用微调，99.5% 精度）适合卡通素材；RMBG-2.0 数据更强；
+    BEN2（22K 专有数据 + CGM 置信度引导）边缘最干净。
+  - **实测结论（rw-rmbg-compare-models.py，GLM 四宫格验收）**：
+    BiRefNet-general 有红晕边；ToonOut 残留最少但有白边；RMBG-2.0 红边明显、
+    尾巴缺失；**BEN2 边缘最干净、身体最完整、无白边/红边 → 主抠图模型**。
+  - **下载通道**：HF 直连/镜像不可达时用 **ModelScope**（modelscope.cn）：
+    `1038lab/BiRefNet`（含 BiRefNet_toonout/Lucida）、`briaai/RMBG-2.0`、
+    `PramaLLC/BEN2`；resolve/master/<文件名> 直接 curl 下载，~18MB/s。
+  - **新管线 `rw-rmbg-birefnet-v2.py`**：白底合成 → 每格 BEN2(1024) →
+    alpha=max(BEN2, 旧alpha) → decontaminate → **remove_foot_shadow**
+    （内容底部 25% 带内 sat<15 且 lum<100 的暗灰黑块抠掉，防 H3 地面接触
+    阴影被当主体保留，逐帧 4000px→0）→ `rw-cutout-clean --soft` 毛色还原。
+  - 验证：run 14 帧 / attack 12 帧 GLM 全过（脚下零残留、无白边红边、身体完整）；
+    changed_run/attack/idle 三张已部署到 assets 并同步 dist-electron-new 两个加载目录。
+  - **重大根因教训：assets 更新 ≠ 游戏更新**。electron 生产模式加载
+    `dist-electron-new/win-unpacked/resources/app/dist/assets/enemies/`（extraResources
+    的 resources/assets 是第二份），8/8 凌晨打包版全是旧贴图（无半透、白边 1135、
+    红色残留 18164、opaque 多 27 万 px）→ 用户"根本没改变"。**贴图改完必须同步
+    assets + dist 两处 + dev server 验证 hash 一致**（curl 5173 与本地 md5 对比）。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
