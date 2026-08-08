@@ -206,7 +206,11 @@ def scaffold_data(spec):
     if tpl_type not in anim:
         log(f"WARN: anim template '{tpl_type}' missing in {rel}; skip anim entry")
     else:
-        anim = insert_after(anim, tpl_type, spec["weaponType"], anim[tpl_type])
+        anim_key = spec.get("animConfigKey") or spec["weaponType"]
+        if anim_key == tpl_type:
+            log(f"anim key '{anim_key}' == template; no clone needed")
+        else:
+            anim = insert_after(anim, tpl_type, anim_key, anim[tpl_type])
         write_json(rel, anim)
 
 
@@ -277,15 +281,49 @@ def build_depth_template(spec, out_rel):
         (cx - half + r, cy - r), (cx - r, cy - half + r),
     ]
     d.polygon(pts, fill=130)
-    # M416 剪影：白 255（徽章内部）
+    # 武器剪影：白 255（徽章内部）；按 key 分发，缺省用简单矩形
     s = 0.92
-    for poly in _m416_polygons(cx, cy, s):
+    key = spec.get("key", "")
+    polys = _weapon_polygons(key, cx, cy, s)
+    for poly in polys:
         d.polygon(poly, fill=255)
     canvas = canvas.filter(ImageFilter.GaussianBlur(0.8))
     arr = np.asarray(canvas)
     arr = np.where(arr >= 252, 255, np.where(arr >= 120, 130, 0)).astype(np.uint8)
     Image.fromarray(arr).save(repo_path(out_rel))
     log(f"depth template -> {out_rel}")
+
+
+def _weapon_polygons(key, cx, cy, s):
+    """按武器 key 返回侧视剪影多边形（相对中心 cx,cy，比例因子 s）。"""
+    if key == "m416":
+        return _m416_polygons(cx, cy, s)
+    if key in ("revolver357", "deagle", "pistol"):
+        # 手枪/左轮：短枪管 + 套筒/转轮 + 握把
+        return [
+            # 枪管 + 准星
+            [(cx + 90 * s, cy - 14 * s), (cx + 300 * s, cy - 14 * s),
+             (cx + 300 * s, cy + 2 * s), (cx + 90 * s, cy + 2 * s)],
+            [(cx + 292 * s, cy - 20 * s), (cx + 308 * s, cy - 20 * s),
+             (cx + 308 * s, cy - 2 * s), (cx + 292 * s, cy - 2 * s)],
+            # 套筒（上半部）
+            [(cx - 70 * s, cy - 30 * s), (cx + 100 * s, cy - 30 * s),
+             (cx + 100 * s, cy + 6 * s), (cx - 70 * s, cy + 6 * s)],
+            # 套筒座（下半部）
+            [(cx - 60 * s, cy + 6 * s), (cx + 80 * s, cy + 6 * s),
+             (cx + 80 * s, cy + 22 * s), (cx - 60 * s, cy + 22 * s)],
+            # 扳机护圈
+            [(cx - 30 * s, cy + 12 * s), (cx + 6 * s, cy + 12 * s),
+             (cx + 12 * s, cy + 38 * s), (cx - 24 * s, cy + 38 * s)],
+            # 握把
+            [(cx - 56 * s, cy + 22 * s), (cx - 20 * s, cy + 22 * s),
+             (cx - 40 * s, cy + 105 * s), (cx - 76 * s, cy + 105 * s)],
+        ]
+    # 缺省：居中简单矩形（防空白模板）
+    return [
+        [(cx - 240 * s, cy - 30 * s), (cx + 240 * s, cy - 30 * s),
+         (cx + 240 * s, cy + 30 * s), (cx - 240 * s, cy + 30 * s)],
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -428,7 +466,7 @@ def scaffold_sounds(spec):
 # 5. 图片生成 / 处理
 # ---------------------------------------------------------------------------
 
-def gen_image(spec, host, model, seeds, timeout):
+def gen_image(spec, host, model, seeds, timeout, ref_image=None):
     key = spec["key"]
     out_dir = os.path.join(CAND_DIR, key)
     os.makedirs(out_dir, exist_ok=True)
@@ -436,6 +474,17 @@ def gen_image(spec, host, model, seeds, timeout):
     base = [sys.executable, os.path.join(TOOLS_DIR, "comfyui-gen.py"),
             "--host", host, "--model", model, "--prompt-file", prompt_file,
             "--timeout", str(timeout)]
+    control = None
+    if ref_image:
+        # 从真实参考图（白底/纯色底完整侧视）抠剪影 → 黑底白枪深度图，
+        # 传 --control-image 锁武器大形（光靠提示词会飘，2026-08-08 M416 教训）
+        sil = _build_ref_silhouette(ref_image)
+        if sil:
+            control = sil
+            base += ["--control-image", sil]
+            log(f"ref silhouette -> {sil} (control image)")
+        else:
+            log("WARN: ref silhouette build failed, falling back to prompt-only")
     for seed in seeds:
         out = os.path.join(out_dir, f"{key}_icon_seed{seed}.png")
         if os.path.exists(out) and os.path.getsize(out) > 10000:
@@ -448,6 +497,40 @@ def gen_image(spec, host, model, seeds, timeout):
             log(f"gen failed seed={seed} rc={r.returncode}")
         elif os.path.exists(out):
             log(f"candidate -> {out}")
+
+
+def _build_ref_silhouette(ref_path, size=1024, content_frac=0.92):
+    """从参考图生成黑底白枪剪影深度图（对齐 spec.layout centerY=0.543）。
+    白底/纯色底完整侧视效果最佳；返回剪影 PNG 路径，失败返回 None。"""
+    try:
+        from PIL import Image, ImageFilter
+        import numpy as np
+        im = Image.open(ref_path).convert("RGB")
+        a = np.asarray(im).astype(int)
+        nonwhite = np.abs(a - 255).max(axis=2) > 25
+        if nonwhite.mean() < 0.01:
+            return None
+        ys, xs = np.where(nonwhite)
+        x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+        crop = im.crop((x0, y0, x1 + 1, y1 + 1))
+        w, h = crop.size
+        target_w = int(size * content_frac)
+        nh = int(h * (target_w / w))
+        crop2 = crop.resize((target_w, nh), Image.LANCZOS)
+        mask = (np.abs(np.asarray(crop2.convert("RGB")).astype(int) - 255).max(axis=2) > 25)
+        sil = np.where(mask, 255, 0).astype(np.uint8)
+        sil_img = Image.fromarray(sil, "L").filter(ImageFilter.GaussianBlur(0.8))
+        canvas = Image.new("L", (size, size), 0)
+        ox = (size - target_w) // 2
+        oy = int(size * 0.543 - nh // 2)
+        canvas.paste(sil_img, (ox, oy))
+        out = os.path.join(CAND_DIR, os.path.splitext(os.path.basename(ref_path))[0] + "_sil.png")
+        os.makedirs(CAND_DIR, exist_ok=True)
+        canvas.save(out)
+        return out
+    except Exception as e:
+        log(f"ref silhouette error: {e}")
+        return None
 
 
 def _alpha_bbox(alpha, thresh=8):
@@ -816,11 +899,12 @@ def js_todo(spec):
         ("src/combat/weapon-transform.js", "加 m416 变换块（抄 akm）+ getAttackAnimOffset 分支"),
         ("src/config/enchant-config.js", "枪械类可附魔名单加 m416"),
         ("src/ui/quick-bar.js", "冲撞/远程判定加 m416"),
-        ("src/ui/equip-manager.js", "weapon2 槽 equippedRangedType 加 m416"),
+        ("src/ui/equip-manager.js", "weapon2 槽 equippedRangedType 加 m416；装备音效触发已提升为通用（equipSound 非空即播，勿删）"),
         ("src/combat/attack.js", "RangedAttack 开火音效加 m416"),
         ("src/game.js", "_WEAPON_SPAWN_LIST 在 AKM 后加 M416_ITEM"),
         ("src/ui/dev-tool.js", "WEAPON_MAP 加 m416"),
         ("src/world/defense-system.js", "TOWER_WEAPON_TYPES/BASE_WEAPON_DAMAGE/heights/TOWER_FIRE_SOUNDS 加 m416"),
+        ("src/config/gun-ammo.js", "GUN_EQUIP_SOUND 加 weaponN → 装备音效（新枪若无专属音效可不加；触发已通用化）"),
     ]
     for rel, what in rows:
         log(f"  - {rel}: {what}")
@@ -838,6 +922,8 @@ def main():
     g.add_argument("--model", default="flux2-klein-4b")
     g.add_argument("--seeds", default="1,2,3")
     g.add_argument("--timeout", type=int, default=900)
+    g.add_argument("--ref-image", default=None,
+                   help="真实参考图（白底完整侧视）：自动抠剪影作 --control-image 锁武器大形")
     p = sub.add_parser("process-image")
     p.add_argument("--raw", required=True)
     p.add_argument("--force", action="store_true")
@@ -872,7 +958,7 @@ def main():
         verify(spec)
     elif args.cmd == "gen-image":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
-        gen_image(spec, args.host, args.model, seeds, args.timeout)
+        gen_image(spec, args.host, args.model, seeds, args.timeout, ref_image=args.ref_image)
     elif args.cmd == "process-image":
         process_image(spec, args.raw, args.force, cutout_tool=args.cutout_tool,
                       orient=not args.no_orient, auto_level=not args.no_auto_level,

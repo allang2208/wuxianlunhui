@@ -16,6 +16,7 @@ import { WallSystem } from '../world/wall-system.js';
 
 import { MathUtils } from '../config/math-utils.js';
 import aiConfigData from '../../data/ai-config.json';
+import SpatialPartitionSystem from './spatial-partition-system.js';
 
 /** 感知优先级权重配置 */
 const PERCEPTION_WEIGHTS = {
@@ -24,6 +25,9 @@ const PERCEPTION_WEIGHTS = {
     IS_PLAYER: 2.0,       // 玩家目标优先
     HP_RATIO: 0.3         // 血量越低优先级越高（收割残血）
 };
+
+/** [PERF] 第二级 LOS 精评的候选上限：只对基础分 top-K 候选做 WallSystem 射线检测 */
+const LOS_TOP_K = 5;
 
 /** 默认感知参数 */
 const DEFAULT_PERCEPTION = {
@@ -53,16 +57,13 @@ class PerceptionSystemImpl {
         // 初始化感知属性（首次运行时）
         this._ensurePerceptionState(enemy);
 
-        // 1. 更新视线检测冷却
-        enemy._perception.losTimer -= dt;
-
-        // 2. 更新目标状态
+        // 1. 更新目标状态
         this._updateTargetState(enemy, dt, entities);
 
-        // 3. 更新威胁衰减
+        // 2. 更新威胁衰减
         this._updateThreatDecay(enemy, dt);
 
-        // 4. 更新搜索行为
+        // 3. 更新搜索行为
         this._updateSearchBehavior(enemy, dt);
     }
 
@@ -133,25 +134,55 @@ class PerceptionSystemImpl {
     }
 
     /**
+     * [PERF] 收集警戒范围内的候选实体：优先走空间分区网格粗筛（queryRadius 按
+     * bbox 格迭代，支持防守模式 3800 大半径），网格未重建或来源集合不匹配时
+     * 回退原全表扫描
+     * @private
+     * @returns {Array} 候选实体数组
+     */
+    _collectCandidates(enemy, entities, alertRange) {
+        const sps = SpatialPartitionSystem;
+        // 仅当网格存在且就是由本次传入的 entities 重建时才可信，
+        // 避免用到其他场景/上一帧的陈旧网格
+        if (sps && sps.cells && sps.cells.size > 0 && sps._sourceEntities === entities) {
+            return sps.queryRadius(enemy.x, enemy.y, alertRange, enemy);
+        }
+        // 回退：全表扫描（保持原语义）
+        return Array.from(entities.values ? entities.values() : entities);
+    }
+
+    /**
      * 寻找最佳目标
      * @private
      */
     _findBestTarget(enemy, entities) {
-        let bestTarget = null;
-        let bestScore = -Infinity;
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
+        const candidates = this._collectCandidates(enemy, entities, alertRange);
 
-        for (const entity of entities.values()) {
+        // [PERF] 第一级粗筛：只算不含 LOS 的基础分（距离/玩家/威胁/残血，权重不变）
+        const scored = [];
+        for (const entity of candidates) {
             if (!this._isValidTarget(enemy, entity)) continue;
 
             const dist = MathUtils.distance(enemy.x, enemy.y, entity.x, entity.y);
+            // 快速过滤：超出警戒范围的目标不考虑
             if (dist > alertRange) continue;
 
-            // 快速过滤：超出警戒范围的目标不考虑
-            const score = this._evaluateTarget(enemy, entity, dist);
+            scored.push({ entity, score: this._evaluateBaseScore(enemy, entity, dist) });
+        }
+        if (scored.length === 0) return null;
+
+        // [PERF] 第二级精评：只对基础分 top-K 候选补 LOS 射线检测（+0.5）后定最终选择
+        scored.sort((a, b) => b.score - a.score);
+        let bestTarget = null;
+        let bestScore = -Infinity;
+        const k = Math.min(LOS_TOP_K, scored.length);
+        for (let i = 0; i < k; i++) {
+            let score = scored[i].score;
+            if (this._checkLineOfSight(enemy, scored[i].entity)) score += 0.5;
             if (score > bestScore) {
                 bestScore = score;
-                bestTarget = entity;
+                bestTarget = scored[i].entity;
             }
         }
 
@@ -163,21 +194,33 @@ class PerceptionSystemImpl {
      * @private
      */
     _findBetterTarget(enemy, entities) {
-        let bestTarget = null;
-        let bestScore = -Infinity;
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
+        const candidates = this._collectCandidates(enemy, entities, alertRange);
 
-        for (const entity of entities.values()) {
+        // [PERF] 第一级粗筛：只算不含 LOS 的基础分
+        const scored = [];
+        for (const entity of candidates) {
             if (!this._isValidTarget(enemy, entity)) continue;
             if (entity === enemy.target) continue;
 
             const dist = MathUtils.distance(enemy.x, enemy.y, entity.x, entity.y);
             if (dist > alertRange) continue;
 
-            const score = this._evaluateTarget(enemy, entity, dist);
+            scored.push({ entity, score: this._evaluateBaseScore(enemy, entity, dist) });
+        }
+        if (scored.length === 0) return null;
+
+        // [PERF] 第二级精评：只对基础分 top-K 候选补 LOS 射线检测（+0.5）
+        scored.sort((a, b) => b.score - a.score);
+        let bestTarget = null;
+        let bestScore = -Infinity;
+        const k = Math.min(LOS_TOP_K, scored.length);
+        for (let i = 0; i < k; i++) {
+            let score = scored[i].score;
+            if (this._checkLineOfSight(enemy, scored[i].entity)) score += 0.5;
             if (score > bestScore) {
                 bestScore = score;
-                bestTarget = entity;
+                bestTarget = scored[i].entity;
             }
         }
 
@@ -185,10 +228,26 @@ class PerceptionSystemImpl {
     }
 
     /**
-     * 评估目标优先级
+     * 评估目标优先级（完整分 = 基础分 + 视线加成）
+     * 用于滞回比较等需要完整分的场合；批量粗筛请用 _evaluateBaseScore
      * @private
      */
     _evaluateTarget(enemy, target, precomputedDist) {
+        let score = this._evaluateBaseScore(enemy, target, precomputedDist);
+
+        // 视线加成：有直接视线的目标优先
+        if (this._checkLineOfSight(enemy, target)) {
+            score += 0.5;
+        }
+
+        return score;
+    }
+
+    /**
+     * [PERF] 基础评分（不含 LOS）：距离/玩家加成/威胁/残血，权重不变
+     * @private
+     */
+    _evaluateBaseScore(enemy, target, precomputedDist) {
         const dist = precomputedDist !== undefined
             ? precomputedDist
             : MathUtils.distance(enemy.x, enemy.y, target.x, target.y);
@@ -216,11 +275,6 @@ class PerceptionSystemImpl {
             score += (1 - hpRatio) * PERCEPTION_WEIGHTS.HP_RATIO;
         }
 
-        // 视线加成：有直接视线的目标优先
-        if (this._checkLineOfSight(enemy, target)) {
-            score += 0.5;
-        }
-
         return score;
     }
 
@@ -228,32 +282,34 @@ class PerceptionSystemImpl {
 
     /**
      * 检查与目标之间是否有视线
-     * 带缓存机制，避免每帧多次检测同一目标
+     * [PERF] per-target 缓存 Map：多候选评估时互不冲刷，TTL（losCheckInterval）内复用结果
      * @private
      */
     _checkLineOfSight(enemy, target) {
         if (!target) return false;
 
         const p = enemy._perception;
+        if (!p.losCache) p.losCache = new Map();
 
-        // 视线检测有冷却，使用上一次的检测结果
-        if (p.losTimer > 0 && p.lastLOSTargetId === target.id) {
-            return p.lastLOSResult;
-        }
-
-        p.losTimer = p.losCheckInterval;
-        p.lastLOSTargetId = target.id;
-
-        // 使用 WallSystem 检测视线阻挡
-        if (WallSystem && WallSystem.blocked) {
-            const blocked = WallSystem.blocked(enemy.x, enemy.y, target.x, target.y);
-            p.lastLOSResult = !blocked;
-            return !blocked;
+        const now = Date.now();
+        const cached = p.losCache.get(target.id);
+        if (cached && (now - cached.time) < p.losCheckInterval) {
+            return cached.result;
         }
 
         // 无 WallSystem 时默认有视线
-        p.lastLOSResult = true;
-        return true;
+        let result = true;
+        if (WallSystem && WallSystem.blocked) {
+            // 掩体目标忽略自身 face 墙段：从墙背面接近时射线必穿自身线段，
+            // 不忽略会永远判"无视线"导致 CombatSystem 拒绝对掩体出手
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            result = !WallSystem.blocked(enemy.x, enemy.y, target.x, target.y, ignore);
+        }
+
+        // 缓存兜底：异常膨胀时整体清空重建（玩家阵营目标数量有限，正常不会触发）
+        if (p.losCache.size > 64) p.losCache.clear();
+        p.losCache.set(target.id, { result, time: now });
+        return result;
     }
 
     // ==================== 搜索行为 ====================
@@ -456,10 +512,8 @@ class PerceptionSystemImpl {
             memoryDuration: perceptionCfg.memoryDuration || DEFAULT_PERCEPTION.memoryDuration,
             searchDuration: perceptionCfg.searchDuration || DEFAULT_PERCEPTION.searchDuration,
             scanInterval: perceptionCfg.scanInterval || DEFAULT_PERCEPTION.scanInterval,
-            losTimer: 0,
+            losCache: new Map(),   // [PERF] per-target LOS 缓存: targetId -> {result, time}
             scanTimer: 0,
-            lastLOSTargetId: null,
-            lastLOSResult: true,
             lastSeenTime: 0
         };
 

@@ -905,6 +905,59 @@
                 "description": "AKM 以600RPM的射速连续射击，单次开火动画约100ms。采用后坐力抖动模式，与PKM共用相同动画系统。"
             }
         },
+        "revolver357": {
+            "weaponId": "weapon22",
+            "name": ".357麦格农左轮",
+            "type": "手枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/revolver357-equip.png",
+            "slotImage": "assets/icons/revolver357-equip.png",
+            "equipImage": "assets/weapons/revolver357-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "epic",
+            "level": 15,
+            "weaponCategory": "mainhand",
+            "weaponType": "pistol",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": false,
+            "weaponAsset": {
+                "image": "assets/weapons/revolver357-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "12-20"
+                },
+                {
+                    "name": "射程",
+                    "value": "700"
+                }
+            ],
+            "desc": ".357麦格农左轮手枪，6发弹巢，亮银色曳光弹，威力巨大的经典左轮",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 700,
+                "knockback": 12,
+                "attackInterval": 700,
+                "hitType": "亮银色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1248,
+                "bulletSpeed": 1248
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "700ms (约)",
+                "windupMs": "≈175",
+                "swingMs": "≈250",
+                "recoveryMs": "≈275",
+                "holdOffset": "(0, 4)",
+                "weaponSize": 84,
+                "timingMul": "0.5x (慢速)",
+                "recoilAmount": "0.12rad",
+                "description": ".357麦格农左轮以较慢射速开火，单次开火动画约700ms。后坐力抖动幅度较大，与射击频率一致。"
+            }
+        },
         "m416": {
             "weaponId": "weapon21",
             "name": "M416",

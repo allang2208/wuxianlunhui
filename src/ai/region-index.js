@@ -139,7 +139,28 @@ class RegionIndex {
                 if (Math.sqrt(dx * dx + dy * dy) < treeR + radius) return true;
             }
         }
+        // 静态掩体墙段（与 pathfinder SpatialHash 同口径：点到线段距离 < 半径 + halfThick；
+        // 动态段门闸/冰墙不纳入——此前漏掉掩体，含掩体图里连通区/出口判定失真）
+        if (WallSystem.isoSegments) {
+            for (const s of WallSystem.isoSegments) {
+                if (!s._cover) continue;
+                if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + (s.halfThick || 26)) {
+                    return true;
+                }
+            }
+        }
         return false;
+    }
+
+    /** 点到线段距离（与 pathfinder/WallSystem 同口径） */
+    _pointSegDist(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        const cx = x1 + t * dx, cy = y1 + t * dy;
+        return Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
     }
 
     // O(1) 获取某点的区域编号

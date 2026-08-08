@@ -460,9 +460,9 @@ class BlackWolf extends Enemy {
     // LOS 检查：复用 PerceptionSystem 缓存，缺省回退 WallSystem（与 CombatSystem 同模式）
     _hasLOSTo(target) {
         if (!target) return false;
-        if (this._perception && this._perception.lastLOSTargetId === target.id) {
-            return !!this._perception.lastLOSResult;
-        }
+        const losCache = this._perception && this._perception.losCache;
+        const cached = losCache ? losCache.get(target.id) : null;
+        if (cached) return !!cached.result;
         if (WallSystem && WallSystem.blocked) {
             return !WallSystem.blocked(this.x, this.y, target.x, target.y);
         }

@@ -673,13 +673,14 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
                         }
-                        // 装备Super90时播放枪栓音效（getEquipSound 回退武器ID）
-                        const equipSnd = getEquipSound(item);
-                        if (equipSnd && SoundManager && SoundManager.playFile) {
-                            SoundManager.playFile(equipSnd);
-                        }
                     } else if (item.category === 'weapon_melee' || item.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
+                    }
+                    // 装备/切换任意枪械时播放装备音效（拉机柄上膛；仅配置了 equipSound 的枪响，
+                    // 如 M416/Super90；getEquipSound 按实例字段优先、weaponId 回退）
+                    const equipSnd = getEquipSound(item);
+                    if (equipSnd && SoundManager && SoundManager.playFile) {
+                        SoundManager.playFile(equipSnd);
                     }
                     // 安全：装备到当前武器栏时，设置切换冷却，防止装备后立即攻击
                     if (targetSlot === player.weaponMode && (item.weaponType === 'pistol' || item.rangedType === 'pistol')) {

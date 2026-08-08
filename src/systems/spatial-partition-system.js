@@ -38,6 +38,7 @@ class SpatialPartitionSystemImpl {
         this._rebuildInterval = 0;    // 每帧全量重建，避免 AI/战斗/投射物使用陈旧网格
         this._rebuildTimer = 0;
         this._version = 0;            // 网格版本号，用于增量更新检测
+        this._sourceEntities = null;  // [PERF] 本次网格重建所用的实体集合（供调用方校验网格来源）
     }
 
     /**
@@ -73,6 +74,7 @@ class SpatialPartitionSystemImpl {
         this._tempSet.clear();
         this.allEntities.length = 0;
         this._version++;
+        this._sourceEntities = entities; // [PERF] 记录网格来源集合，感知系统据此判断网格是否可信
 
         const iter = entities.values ? entities.values() : entities;
         for (const entity of iter) {

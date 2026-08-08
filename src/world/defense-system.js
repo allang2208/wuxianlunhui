@@ -434,6 +434,7 @@ class DefenseCover extends Combatant {
                 x2: this._faceLine[1].x, y2: this._faceLine[1].y,
                 halfThick: this._coverHalfThick,
                 _cover: true,
+                _owner: this, // 回链：怪物被挡路时转火本掩体（movement-system 卡住检测用）
             };
             WallSystem.isoSegments.push(this._coverSeg);
             // 掩体墙段注册后让寻路网格失效重建（玩家摆放/基地搭建都会走到这里；
@@ -1235,6 +1236,9 @@ export const DefenseSystem = {
           this._eliteTimer = 0;
           this._lordTimer = 0;
           this._elapsed = 0;
+          this._goldScanTimer = 0;
+          this._aliveCountCache = undefined;
+          this._aliveCountTime = 0;
           this._seq = 0;
           if (this._goldGranted) this._goldGranted.clear();
           this._goldGranted = null;
@@ -1259,7 +1263,7 @@ export const DefenseSystem = {
     update(dt) {
         if (!this.active || this.defeated) return;
         this._elapsed += dt;
-        this._grantMonsterGold();
+        this._grantMonsterGold(dt);
         this._spawnTimer += dt;
         this._eliteTimer += dt;
         this._lordTimer += dt;
@@ -1286,23 +1290,37 @@ export const DefenseSystem = {
             DEFENSE_CONFIG.spawn.countCap,
             Math.floor(DEFENSE_CONFIG.spawn.baseCount + wave * DEFENSE_CONFIG.spawn.countPerWave)
         );
+        // [PERF] 循环内用本地计数累加，配合 _aliveCount 节流缓存避免重复全表扫描
+        let alive = this._aliveCount();
         for (let i = 0; i < count; i++) {
-            if (this._aliveCount() >= DEFENSE_CONFIG.spawn.maxAlive) break;
+            if (alive >= DEFENSE_CONFIG.spawn.maxAlive) break;
             this._spawnMonster(wave, NORMAL_POOL);
+            alive++;
         }
     },
 
     _aliveCount() {
+        // [PERF] 计数节流：250ms 内复用缓存结果，避免每帧全表扫描 Game.entities
+        const now = this._elapsed || 0;
+        if (this._aliveCountCache !== undefined && now - this._aliveCountTime < 250) {
+            return this._aliveCountCache;
+        }
         let n = 0;
         for (const e of Game.entities.values()) {
             if (e && e._defenseMonster && e.active && e.hp > 0) n++;
         }
+        this._aliveCountCache = n;
+        this._aliveCountTime = now;
         return n;
     },
 
     /** 防守击杀金币结算：怪物死亡标记后由本钩子统一发金币（地面掉落物已按 _noGoldDrop 关闭） */
-    _grantMonsterGold() {
+    _grantMonsterGold(dt) {
         if (!this.active || !Game || !Game.entities) return;
+        // [PERF] 结算节流：每 250ms 扫描一次尸体统一发金币（金币延迟 ≤250ms 可接受）
+        this._goldScanTimer = (this._goldScanTimer || 0) + (dt || 0);
+        if (this._goldScanTimer < 250) return;
+        this._goldScanTimer = 0;
         if (!this._goldGranted) this._goldGranted = new Set();
         const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
         let grantedThisFrame = 0;
@@ -1344,6 +1362,12 @@ export const DefenseSystem = {
         // 防守模式：只锁定基地/防御塔（PerceptionSystem/Enemy._findNearestPlayer 已支持）
         monster._preferDefenseTargets = true;
         monster._alertRange = DEFENSE_CONFIG.spawn.alertRange;
+        // aggro 归一化：pacing AI 怪（黑狼 _aggroRange 2500）出生点距基地 ~3000px，
+        // aggro 小于 alertRange 会原地踱步不进场；统一抬到 alertRange（ai.defenseAggroRange 可覆盖）
+        const defAggro = (monster.ai && monster.ai.defenseAggroRange) || DEFENSE_CONFIG.spawn.alertRange;
+        if (monster._aggroRange && monster._aggroRange < defAggro) {
+            monster._aggroRange = defAggro;
+        }
         // 波次成长：HP/攻击随波次提升
         const hpMul = (1 + (wave - 1) * DEFENSE_CONFIG.spawn.hpPerWave) * hpMulExtra;
         const atkMul = 1 + (wave - 1) * DEFENSE_CONFIG.spawn.atkPerWave;

@@ -1934,6 +1934,201 @@
       ]
     }
   },
+  "weapon22": {
+    "slots": [
+      {
+        "id": "muzzle",
+        "name": "枪口",
+        "x": 0.08,
+        "y": 0.15,
+        "lineTarget": {
+          "x": 0.497,
+          "y": 0.232
+        }
+      },
+      {
+        "id": "barrel",
+        "name": "枪管",
+        "x": 0.08,
+        "y": 0.4,
+        "lineTarget": {
+          "x": 0.497,
+          "y": 0.278
+        }
+      },
+      {
+        "id": "sight",
+        "name": "瞄具",
+        "x": 0.08,
+        "y": 0.65,
+        "lineTarget": {
+          "x": 0.499,
+          "y": 0.49
+        }
+      },
+      {
+        "id": "magazine",
+        "name": "弹夹",
+        "x": 0.92,
+        "y": 0.08,
+        "lineTarget": {
+          "x": 0.401,
+          "y": 0.488
+        }
+      },
+      {
+        "id": "bullet",
+        "name": "子弹",
+        "x": 0.92,
+        "y": 0.32,
+        "lineTarget": {
+          "x": 0.401,
+          "y": 0.488
+        }
+      },
+      {
+        "id": "trigger",
+        "name": "扳机",
+        "x": 0.92,
+        "y": 0.45,
+        "lineTarget": {
+          "x": 0.503,
+          "y": 0.555
+        }
+      }
+    ],
+    "options": {
+      "muzzle": [
+        {
+          "id": "multi_chamber_brake",
+          "name": "多室枪口制退器",
+          "icon": "assets/icons/craft/multi_chamber_brake.png",
+          "desc": "后坐力恢复时间-200ms，每次射击扩散角度-2°",
+          "effects": {
+            "recoilRecoveryDelta": -200,
+            "shotSpreadDelta": -2
+          }
+        },
+        {
+          "id": "large_caliber_suppressor",
+          "name": "大口径消音器",
+          "icon": "assets/icons/craft/large_caliber_suppressor.png",
+          "desc": "后坐力恢复时间-100ms，射程-200px，击退+30px",
+          "effects": {
+            "recoilRecoveryDelta": -100,
+            "rangeDelta": -200,
+            "knockbackDelta": 30
+          }
+        }
+      ],
+      "barrel": [
+        {
+          "id": "competition_barrel",
+          "name": "加长竞赛枪管",
+          "icon": "assets/icons/craft/competition_barrel.png",
+          "desc": "射程+300px，后坐力恢复时间-100ms",
+          "effects": {
+            "rangeDelta": 300,
+            "recoilRecoveryDelta": -100
+          }
+        },
+        {
+          "id": "lightweight_barrel",
+          "name": "轻量化短枪管",
+          "icon": "assets/icons/craft/lightweight_barrel.png",
+          "desc": "移动速度+5%，后坐力恢复时间+50ms",
+          "effects": {
+            "moveSpeedPercent": 0.05,
+            "recoilRecoveryDelta": 50
+          }
+        }
+      ],
+      "bullet": [
+        {
+          "id": "fmj_ammo",
+          "name": "FMJ钢芯弹",
+          "icon": "assets/icons/craft/fmj_ammo.png",
+          "desc": "穿透目标+1，伤害+5%",
+          "effects": {
+            "piercingBonus": 1,
+            "damagePercent": 0.05
+          }
+        },
+        {
+          "id": "hollow_point",
+          "name": "空尖弹",
+          "icon": "assets/icons/craft/hollow_point.png",
+          "desc": "击退+30px，伤害+5%",
+          "effects": {
+            "knockbackDelta": 30,
+            "damagePercent": 0.05
+          }
+        }
+      ],
+      "trigger": [
+        {
+          "id": "light_trigger",
+          "name": "轻量化击发组件",
+          "icon": "assets/icons/craft/light_trigger.png",
+          "desc": "射击间隔-300ms",
+          "effects": {
+            "attackIntervalDelta": -300
+          }
+        },
+        {
+          "id": "curved_trigger",
+          "name": "弧形竞技扳机片",
+          "icon": "assets/icons/craft/curved_trigger.png",
+          "desc": "后坐力恢复时间-100ms",
+          "effects": {
+            "recoilRecoveryDelta": -100
+          }
+        }
+      ],
+      "magazine": [
+        {
+          "id": "extended_mag",
+          "name": "扩容弹夹",
+          "icon": "assets/icons/craft/extended_mag.png",
+          "desc": "备弹+2",
+          "effects": {
+            "magazineDelta": 2
+          }
+        },
+        {
+          "id": "carbon_fiber_mag",
+          "name": "碳纤维快速弹夹",
+          "icon": "assets/icons/craft/carbon_fiber_mag.png",
+          "desc": "换弹时间-500ms",
+          "effects": {
+            "reloadTimeDelta": -500
+          }
+        }
+      ],
+      "sight": [
+        {
+          "id": "red_dot",
+          "name": "全景红点瞄具",
+          "icon": "assets/icons/craft/red_dot.png",
+          "desc": "散布开始 +1秒，单倍瞄准模式",
+          "effects": {
+            "spreadStartDelta": 1000,
+            "redDotScope": true
+          }
+        },
+        {
+          "id": "russian_3x_scope",
+          "name": "俄制三倍镜",
+          "icon": "assets/icons/craft/russian_3x_scope.png",
+          "desc": "散布开始 +1秒，高倍镜瞄准模式",
+          "effects": {
+            "spreadStartDelta": 1000,
+            "highPowerScope": true
+          }
+        }
+      ]
+    }
+  },
   "weapon19": {
     "slots": [
       {

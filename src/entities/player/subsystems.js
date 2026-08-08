@@ -1112,14 +1112,14 @@ switchWeaponMode() {
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
-                    // 装备Super90时播放枪栓音效（SAIGA-12K不播放；getEquipSound 回退武器ID）
-                    const equipSnd = getEquipSound(nextItem);
-                    if (equipSnd && SoundManager && SoundManager.playFile) {
-                        SoundManager.playFile(equipSnd);
-                    }
                 } else {
                     this.equippedRangedType = null;
                     this.equippedBowFrames = null;
+                }
+                // Play equip sound (bolt pull) for any gun with equipSound configured
+                const equipSnd = getEquipSound(nextItem);
+                if (equipSnd && SoundManager && SoundManager.playFile) {
+                    SoundManager.playFile(equipSnd);
                 }
                 // 切换武器时结束符文长剑特殊攻击（未发射的剑淡出消失，持续300ms）
                 if (this._runeSwordSpecialActive) {

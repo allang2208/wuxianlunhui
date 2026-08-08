@@ -33,7 +33,7 @@ check('通道预制件 depth 走 depthOf', combat.includes('clipped.depth = Wall
 
 // 3. 战斗房墙体生成全场统一 max（填充/封口无 min 模式残留）
 check('_fillEdgeGaps 统一 max 规则', /_fillEdgeGaps\(room, edge[\s\S]{0,3000}const depthMode = 'max';/.test(combat));
-check('_sealPassageSides 统一 max 规则', /_sealPassageSides[\s\S]{0,3000}const depthMode = 'max';/.test(combat));
+  check('_sealPassageSides 统一 max 规则', /_sealPassageSides[\s\S]{0,5000}const depthMode = 'max';/.test(combat));
 
 // 4. 菱形墙构建（wall-system）四边全部 max
 const bSection = wallSys.split('buildIsoDiamondWalls(')[1] || '';

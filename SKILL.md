@@ -645,6 +645,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     max(alpha_b, 旧alpha) 会原样保留旧色，须先还原到未压暗切帧再走管线。
   - 验证：fixed90=0、脚底最后一行 = (41,4,6) 主体深红、实机地板观感正常；
     GLM 在中/深灰预览底会把深红毛误读为"深色描边"，**以实机为准**。
+- **红狼轮廓一圈亮红残留 (85,47,53)（2026-08-08 二十七版补）**：
+  - 用户坚持精灵图可见"脚部一圈红色轮廓 + 零散红块"。逐像素定位：每帧边缘
+    466~667 个亮红像素，均值 (85,47,53) vs 主体深红 (38,4,5)——白底×红毛
+    混合残留，亮度 27~90 **低于旧阈值 90 漏网**（不是 GLM 误读，是查漏了）。
+  - 修复（rw-cutout-clean --soft 3b/3c）：边缘不透明像素与"该格深红中位数"
+    （lum<60 严格深红）的**欧氏距离 >35 → 还原成深红**；不透明偏离深红的孤立
+    小连通域（面积<80）→ 透明。参考色必须用 lum<60 的深红中位数（<90 会混入
+    浅毛导致阈值偏高失效）。
+  - 教训：**"亮度>N"判定会漏掉比主体亮但仍<阈值的中亮残留**；用"与主体色差
+    （欧氏距离）"更稳；GLM 深灰底误读≠没问题，用户肉眼在精灵图/浅底上
+    看到的红轮廓是真实的，以用户实际看到为准去查。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1449,6 +1460,21 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      偏移取原预制的 perp 实测值（走廊两侧不等距）。验证：两侧墙段沿轴投影**零空隙**
      （全部 ≤0 即叠合），GLM 两条通道均连续无黑缝。教训：**换不同长度墙段时必须重算
      瓦片数量，不能只换贴图/尺度**。
+   - **⚠ 通道口"错位扭曲"根因（2026-08-08 三修）**：3 段瓦补连续后用户仍报门口
+     "错位扭曲"。排查：`_clipPassagePieceToRooms` 把部分越线的通道直墙件**按比例缩
+     scaleX**（沼泽墙被裁 136~154px），削短同时削短**墙顶** → 通道口墙顶台阶/错位；
+     僵尸走廊几何相同但砖纹不明显、且瓦长 476 未被裁，故旧观感正常。修复：部分越线
+     不再缩 scaleX（保留整件，尾端超出由房间墙/门盖住——SKILL「定长定高瓦片、尾端
+     由邻居盖住」规则），仅整件进房才丢弃。验证：关闭裁剪后门口自然、墙不突入房间；
+     `scripts/test-wall-depth.mjs` 的 `_sealPassageSides` 正则窗口 3000→5000（封口
+     中位数逻辑使函数变长）。教训：**定长瓦片禁按比例缩放；越线交给邻居遮挡**。
+   - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
+     "房间边线向内平移 80px"，端点落在房间内部，60° 墙角楔形区地板不到墙线
+     （墙脚露黑）。修复：`_arenaPassageFloorQuad` 侧边取**实际墙线**（不再内收 12px），
+     端边改为**房间真实边线**——地板端点 = 走廊侧墙线 × 房间边线交点（=墙角点），
+     精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
+     墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
+     渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
@@ -2964,7 +2990,12 @@ addTree(x, y, radius, ...) {
   - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
     生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
     合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
-  - `gen-image --host <comfyui> --model <model> --seeds a,b,c`：批量出候选（默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。
+  - `gen-image --host <comfyui> --model <model> --seeds a,b,c [--ref-image <真实参考图>]`：批量出候选
+    （默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。**新武器必须传 `--ref-image`**
+    （白底/纯色底完整侧视实拍图）：工具自动抠剪影→黑底白枪深度图→`--control-image` 锁武器大形，
+    否则 FLUX 凭文字先验画会"不像真枪"（2026-08-08 M416 教训）。参考图获取走国内图搜
+    （360 图搜 `image.so.com/j?q=<枪名>&pn=1&ps=40` / 必应中国 `cn.bing.com/images/async`，
+    百度 acjson 被反爬）。生图模型用远程 5080 `flux2-dev-depth`（本地无 Flux2FunControlNet 节点）。
   - `process-image --raw <候选.png> [--cutout-tool auto|rmbg|make-transparent-icon|flood|none] [--no-orient] [--no-auto-level]`：
     默认自动镜像保证枪口朝右（左右极值列高判定）→ 默认自动校平枪身基线（机匣上沿中段拟合，0.8 阻尼迭代；
     **向右下斜为正角，PIL rotate(+θ) 逆时针按同符号旋转——用 -θ 会越转越歪，2026-08-08 教训**）→
@@ -2976,6 +3007,66 @@ addTree(x, y, radius, ...) {
   - `verify`：双份 JSON 字节一致 + 资产/音效存在性 + 改动 JS node --check。
 - **M416 实证**：`weapon-specs/m416.json`（weapon21，优质 uncommon，属性/公式略低于 AKM，30 发全自动，步枪精通生效）；
   6 张候选归档 `Y:\工作\无尽轮回\scratch\weapons\m416\`；正式贴图已入库。
+- **M416 贴图重做：必须用真实参考图+剪影锁形（2026-08-08 二版教训）**：
+  - 首版只靠文字提示词"strongly resembling HK416"生成，FLUX 凭先验画，结果"不像真枪"
+    （用户一眼看穿）。教训：**武器贴图"像不像"由真实参考图决定，不是提示词措辞**。
+  - 参考图来源：open_page/维基被墙时改用**国内图搜直连**——`image.so.com/j?q=HK416&pn=1&ps=40`
+    （360 图搜 JSON，字段 img/thumb）与 `cn.bing.com/images/async?q=HK416+side+view&first=0&count=40`
+    （必应中国，正则抓 `murl&quot;:&quot;...` 直链）均可用；百度 `acjson` 被反爬拦（antiFlag=1）。
+  - 筛选：优先"白底/纯色底+完整侧视+枪口朝右"（`ref20.jpg` 2143×834 黑枪白底=最佳）。
+    白底宽图用像素统计粗筛（white%>70 且 aspect>2.4），再 GLM 逐张确认完整性与 HK416 特征
+    （导轨/伸缩托/鸟笼消焰器/弹匣）。
+  - **生成必须传 `--control-image`**：从参考图抠剪影→黑底白枪 1024² 深度图（对齐 spec.layout
+    centerY=0.543），`comfyui-gen.py --model flux2-dev-depth --control-image <剪影>` 锁大形；
+    **add-weapon.py gen-image 默认不传控制图，是"不像"的直接根因**（首版正是如此）。
+  - 本地 127.0.0.1 无 `Flux2FunControlNetLoader` 节点，远程 5080 有；`flux2-dev-depth` 走远程。
+  - **方向判定坑**：`orient_right` 的左右条带高度法误判过 seed27（GLM 说右、脚本判 LEFT 并翻转→
+    入库变左）。修复：`process-image --no-orient` 保留参考图原始方向，像素仲裁（右端细=枪管）确认。
+  - 参考图与剪影已归档 `Y:\工作\无尽轮回\scratch\weapons\m416\ref_*`，候选
+    `m416_icon_refgen_seed27.png`（GLM 9 分，朝右，已入库 2048²）。
+- **武器装备音效：触发链路与 shotgun 分支捆绑是坑（2026-08-08 M416 补录）**：
+  - 症状：M416 的 `equipSound` 已配置且 wav 存在，但装备/切换时不响。
+  - 根因：装备音效播放代码**只写在 `weaponType==='shotgun'` 分支里**（super90 注释
+    "装备Super90时播放枪栓音效"），rifle/lmg 分支只换贴图不发声——配置有、触发无。
+  - 修复：把 `getEquipSound(item)` + `SoundManager.playFile` 从 shotgun 分支**提升到
+    武器槽处理块末尾**（subsystems.js switchWeaponMode 与 equip-manager.js
+    equipFromBackpack 两处），对任意配置了 equipSound 的枪统一生效；无配置的枪
+    （如 AKM）自然静音。运行时打桩验证：切回 M416 播 m416_equip.wav、AKM 不播。
+  - 音效内容：参考射击游戏"拉机柄上膛"——中频金属滑动(0~0.16s) + 拉机柄到位清脆
+    咔哒(0.16s) + 枪机闭锁低频金属撞击(0.27s) + 击锤/弹匣锁定余响(0.42s)，0.62s
+    立体声 WAV（44.1kHz）。模板见 add-weapon.py 的 synth_equip（可按需替换）。
+  - 教训：**新增武器"有配置≠有触发"**，音效/特效/逻辑都要沿触发链路查一遍，
+    不能只看数据层；找同族基准（super90）的代码位置直接抄结构。
+
+### 标准全自动添加枪械武器工作流（2026-08-08 M416 全流程定稿）
+
+按序执行，每步可单独跑、可断点续传：
+
+1. **写 spec**：`tools/ai-gen/weapon-specs/<key>.json`。字段模板抄 `m416.json`：
+   weaponId 顺延（weaponN）、name/rarity/price、statsJson + attackFormula（略低于同族基准）、
+   attack/ammoConfig（弹容/换弹/三种音效路径）、fireMode、spreadParams、craftTemplateWeaponId、
+   animTemplateWeaponType（同族基准）、layout（2048²/0.915/centerY 0.543）、imagePrompts.icon/video。
+2. **scaffold**：`python tools/ai-gen/add-weapon.py --spec ... scaffold` → 自动写
+   equipment.json/craft-config.json（data+public 双份）、weapon-anim-config.json、深度剪影模板、
+   出图/视频提示词、三音效（开火/换弹/装备），并输出 JS 补丁锚点清单。
+3. **搜真实参考图（国内直连）**：360 图搜 `image.so.com/j?q=<枪名>+侧视&pn=1&ps=40` 或
+   必应中国 `cn.bing.com/images/async`，优先"白底+完整侧视+枪口朝右"实拍图；
+   GLM-4.6V 逐张确认完整性与枪型特征。参考图归档 `Y:\工作\无尽轮回\scratch\weapons\<key>\ref_*`。
+4. **生图（必须带参考图）**：`gen-image --model flux2-dev-depth --host 192.168.3.142
+   --ref-image <参考图> --seeds a,b,c`（自动抠剪影锁形）；GLM 验收候选（完整侧视/枪型/白底/无缺陷），
+   定稿候选归档同目录。
+5. **处理入库**：`process-image --raw <候选> --cutout-tool rmbg --no-orient`（参考图朝右时
+   **必须 --no-orient**，避免 orient_right 误判翻转；用像素仲裁方向：右端细=枪管）。BiRefNet 抠图 →
+   校平 → 2048² 归一 → 写 assets/weapons + assets/icons。
+6. **JS 补丁**：按 scaffold 锚点清单用 apply_patch 落盘（EDM/shop/player-defaults/weapon-texture-map/
+   weapon-attack-config/gun-ammo/craft-default-slots/weapon-fx-config/attack-formula/weapon-anim/update/
+   subsystems/GameScene/weapon-transform/enchant-config/quick-bar/equip-manager/attack/game/dev-tool/
+   defense-system）。**音效触发已通用化**（getEquipSound 非空即播），新枪只需在
+   `GUN_EQUIP_SOUND` 或 spec.equipSound 配置路径，无需改 shotgun 分支。
+7. **验证**：`verify`（JSON 双份一致 + 资产/音效存在 + JS node --check）+ `npm run lint` +
+   CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
+8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
+
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
   attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。

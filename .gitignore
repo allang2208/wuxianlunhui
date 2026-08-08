@@ -25,6 +25,7 @@ Thumbs.db
 *.swo
 .venv-sprites/
 weapon-frames/
+tools/ai-gen/_weapon_candidates/
 tmp_*.png
 vite.probe.config.js
 tools/normalized/

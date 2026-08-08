@@ -1270,7 +1270,9 @@ e.update(dt, this.entities);
                 e.collider.syncPosition();
             }
 if (e instanceof Enemy) {
-                if (e.hp > 0) this._battleCommanderEnemies.push(e);
+                // 防守怪（世界-122）不参与 BattleCommander——战术点全围绕玩家坐标，
+                // 会把怪从基地/掩体目标上拉走（movement-system 中 commander 优先级高于 enemy.target）
+                if (e.hp > 0 && !e._defenseMonster) this._battleCommanderEnemies.push(e);
                 if (PerceptionSystem) {
 PerceptionSystem.update(e, dt, this.entities);
 }
