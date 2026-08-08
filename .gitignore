@@ -39,3 +39,5 @@ __pycache__/
 *.pid
 tools/.depth-*
 tools/ai-gen/_*_gen*.log*
+tools/ai-gen/rw-rmbg-*-out/
+tools/ai-gen/rw-rmbg-compare-out/

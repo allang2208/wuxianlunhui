@@ -87,7 +87,7 @@ export const EquipDataManager = {
         equipSlot: 'weapon',
         attack: { range: 700, knockback: 12, attackInterval: 700, hitType: '亮银色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
         attackKey: 'revolver', offhandAttackKey: 'revolverOffhand', animConfigKey: 'revolver', fireSound: 'assets/sounds/weapons/revolver357_fire.wav', equipSound: 'assets/sounds/weapons/revolver357_equip.wav', canvasImageProp: 'revolverImage',
-        ammoConfig: { max: 6, reloadTime: 2000, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav' }, fireMode: 'semiAuto',
+        ammoConfig: { max: 6, reloadTime: 900, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav', reloadFinishSound: 'assets/sounds/weapons/revolver357_reload_last.wav' }, fireMode: 'semiAuto',
         attackFormula: { base: 26, enhanceFlat: 0, attrs: [{ key: 'dex', base: 0.8, perEnhance: 0.1 }, { key: 'wis', base: 1.6, perEnhance: 0.15 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 28 }
     },

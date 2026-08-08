@@ -400,7 +400,7 @@ console.log('restart attempt:', JSON.stringify(restart, null, 2));
 // 把红狼王拉到玩家旁边再截图
 await evalJs(`(() => {
     const e = window.Game && window.Game.entities.get('enemy_main_red_wolf');
-    const p = window.Game.player;
+    const p = window.Game && window.Game.player;
     if (e && p) { e.x = p.x + 140; e.y = p.y - 40; }
 })()`);
 await new Promise((r) => setTimeout(r, 1200));

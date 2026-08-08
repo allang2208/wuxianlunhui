@@ -1328,7 +1328,9 @@ _startReload(slot) {
                     // 普通武器：一次性装填
                     state.singleReloadMode = false;
                     if (SoundManager && SoundManager.playFile) {
-                        SoundManager.playFile('assets/sounds/weapons/reload_sharp.mp3', 1.69);
+                        // 配置驱动：实例 reloadSound 优先（新枪配专属换弹音），
+                        // 缺失回退通用换弹音（2026-08-08 去硬编码）
+                        SoundManager.playFile(reloadSound || 'assets/sounds/weapons/reload_sharp.mp3', 1.69);
                     }
                 }
                 return true;
@@ -1369,14 +1371,19 @@ _updateReload(dt) {
                                 state.singleReloadMode = false;
                                 this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
                                 this._gunSpreadTimerOff = 0; // 同时重置副手散布
-                                // 单发装填满弹时播放枪栓音效
+                                // 单发装填满弹时播放收尾音效（左轮：最后一发+转轮回摆合上；
+                                // 未配置 reloadFinishSound 时回退枪栓音）
                                 if (SoundManager && SoundManager.playFile) {
-                                    SoundManager.playFile('assets/sounds/weapons/bolt_pull_1s_clean.wav');
+                                    const ammoCfg = getAmmoConfig(item);
+                                    const finishSnd = ammoCfg && ammoCfg.reloadFinishSound;
+                                    SoundManager.playFile(finishSnd || 'assets/sounds/weapons/bolt_pull_1s_clean.wav');
                                 }
                             } else {
                                 // 继续装填下一发
                                 state.reloadTimer = (state.reloadDuration || state.reloadTime);
-                                SoundManager.playFile('assets/sounds/weapons/Super90-reload.mp3');
+                                const ammoCfg2 = getAmmoConfig(item);
+                                const roundSnd = ammoCfg2 && ammoCfg2.reloadSound;
+                                SoundManager.playFile(roundSnd || 'assets/sounds/weapons/Super90-reload.mp3');
                             }
                         } else {
                             // 普通武器：一次性装满

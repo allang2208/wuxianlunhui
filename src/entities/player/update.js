@@ -719,7 +719,11 @@ update(dt, entities) {
                             this._overheatRecoverTimer = recoverTimer;
                             // 过热音效
                             if (SoundManager) {
-                                if (_currentWep2.weaponType === 'energy_lmg') {
+                                // 配置驱动：heatParams.overheatSound 优先（新机枪可配置专属过热音），
+                                // 缺失回退现有类型硬编码（2026-08-08 去硬编码）
+                                if (hp.overheatSound) {
+                                    SoundManager.playFile(hp.overheatSound);
+                                } else if (_currentWep2.weaponType === 'energy_lmg') {
                                     SoundManager.playFile('assets/sounds/weapons/pkm_ammo_steam_mixed.wav');
                                     SoundManager.playFile('assets/sounds/weapons/apex_reload_4s_raw.mp3');
                                 } else {

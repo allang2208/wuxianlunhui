@@ -656,6 +656,29 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**"亮度>N"判定会漏掉比主体亮但仍<阈值的中亮残留**；用"与主体色差
     （欧氏距离）"更稳；GLM 深灰底误读≠没问题，用户肉眼在精灵图/浅底上
     看到的红轮廓是真实的，以用户实际看到为准去查。
+- **红狼人抠图模型换代：BiRefNet-general → BEN2 + 打包版不同步根因（2026-08-08 二十八版）**：
+  - 用户反馈"只扣了部分，还有很多没扣、现有方法解决不了"，要求全网检索更先进方案。
+  - **全网检索结论**：插件 `ComfyUI-RMBG` 已内置候选（AILab_BiRefNet: general/HR/
+    matting/ToonOut/Lucida；AILab_RMBG: RMBG-2.0/BEN/BEN2/INSPYRENET）。
+    ToonOut（动漫/游戏专用微调，99.5% 精度）适合卡通素材；RMBG-2.0 数据更强；
+    BEN2（22K 专有数据 + CGM 置信度引导）边缘最干净。
+  - **实测结论（rw-rmbg-compare-models.py，GLM 四宫格验收）**：
+    BiRefNet-general 有红晕边；ToonOut 残留最少但有白边；RMBG-2.0 红边明显、
+    尾巴缺失；**BEN2 边缘最干净、身体最完整、无白边/红边 → 主抠图模型**。
+  - **下载通道**：HF 直连/镜像不可达时用 **ModelScope**（modelscope.cn）：
+    `1038lab/BiRefNet`（含 BiRefNet_toonout/Lucida）、`briaai/RMBG-2.0`、
+    `PramaLLC/BEN2`；resolve/master/<文件名> 直接 curl 下载，~18MB/s。
+  - **新管线 `rw-rmbg-birefnet-v2.py`**：白底合成 → 每格 BEN2(1024) →
+    alpha=max(BEN2, 旧alpha) → decontaminate → **remove_foot_shadow**
+    （内容底部 25% 带内 sat<15 且 lum<100 的暗灰黑块抠掉，防 H3 地面接触
+    阴影被当主体保留，逐帧 4000px→0）→ `rw-cutout-clean --soft` 毛色还原。
+  - 验证：run 14 帧 / attack 12 帧 GLM 全过（脚下零残留、无白边红边、身体完整）；
+    changed_run/attack/idle 三张已部署到 assets 并同步 dist-electron-new 两个加载目录。
+  - **重大根因教训：assets 更新 ≠ 游戏更新**。electron 生产模式加载
+    `dist-electron-new/win-unpacked/resources/app/dist/assets/enemies/`（extraResources
+    的 resources/assets 是第二份），8/8 凌晨打包版全是旧贴图（无半透、白边 1135、
+    红色残留 18164、opaque 多 27 万 px）→ 用户"根本没改变"。**贴图改完必须同步
+    assets + dist 两处 + dev server 验证 hash 一致**（curl 5173 与本地 md5 对比）。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -3138,6 +3161,44 @@ addTree(x, y, radius, ...) {
     清"邻域有低 alpha 的近白像素"（仅外圈，保留枪身内部高光——不锈钢反光近白 6 万是正常材质）→
     alpha 形态学腐蚀 1px 剥最外圈。验收：过渡带(alpha 8~250)亮色占比 <1% 即干净。
   - 用户验收口径：枪口朝右（右端细=枪管）、枪管中心线水平、转轮清晰、无白边。
+- **左轮音效与单发装填（2026-08-08 用户验收二轮）**：
+  - 开火音效用户嫌"小声不脆"→ 重做：低频冲击(70Hz,×1.0)+主爆裂(250-4000Hz,×1.1)+
+    尖锐高频 snap(2-9kHz,×0.95) 叠加，峰值拉满到 0.98。**合成音效要"响亮"就把峰值
+    归一化到 0.9+ 并叠高频层**，别留安全余量。
+  - 换弹改**一发一发装填**（参考 Super90）：`ammoConfig.singleReloadMode: true` +
+    `reloadTime: 900`（每发 900ms）。未满弹期间 `state.reloading=true` 自动阻止开火，
+    无需额外逻辑。改三处配置：EDM / shop-system / gun-ammo 回退表。
+  - **单发装填音效坑**：`_updateReload` 继续装填分支硬编码
+    `Super90-reload.mp3`、满弹分支硬编码 `bolt_pull_1s_clean.wav`——新枪会播错音。
+    修复：优先读 `ammoConfig.reloadSound`（每发）与新增 `reloadFinishSound`（满弹收尾），
+    缺失再回退旧值。**改通用机制时必须检查硬编码回退，否则同族武器全串音**。
+  - 左轮四音效：开火 0.5s（重击+脆响）/ 每发装填 0.35s 金属咔哒 /
+    最后一发+转轮回摆合上 1.0s / 装备拔枪+转轮锁定 0.6s。
+- **音效链路去硬编码（2026-08-08 专项）**：
+  - 原则：**所有枪械音效路径配置化（fireSound/reloadSound/reloadFinishSound/equipSound），
+    攻击/换弹代码零逐枪硬编码**；新枪只在数据层配字段，无需改逻辑。
+  - `GUN_FIRE_SOUND` 回退表（gun-ammo.js，weaponType/animConfigKey → 默认开火音）：
+    attack.js 开火统一 `getFireSound(item)`——实例 fireSound 优先，缺失按
+    animConfigKey→weaponType 查表兜底（**先 animConfigKey 再 weaponType**：
+    左轮 weaponType 复用 pistol，若只按 weaponType 会查到 G18 的音）。
+  - 换弹：普通武器一次性装填改 `reloadSound || reload_sharp.mp3`；单发装填每发
+    读 `reloadSound`、满弹读 `reloadFinishSound`（旧代码硬编码 Super90-reload.mp3 /
+    bolt_pull 会串音，2026-08-08 已修）。
+  - 过热音：`heatParams.overheatSound` 可选配置，缺失回退类型硬编码（PKM/能量机枪）。
+  - 保留项：GameScene isGun/isGunR/isGunOff/isGunSpecial 数组差异有语义
+    （isGunR/Special 不含 beretta93r），不改；add-weapon 锚点清单已提醒新枪同步。
+- **真实音效抓取：B 站音频流方案（2026-08-08，合成音效不理想后启用）**：
+  - 搜索：`api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=<关键词>`
+    （需 Referer: bilibili.com + UA）。选"自制音效/实拍录制"类视频，标题描述能确认内容。
+  - 取流：`view?bvid=` 拿 cid → `x/player/playurl?bvid=&cid=&fnval=16` 拿 DASH 音频
+    （选 bandwidth 最高的 audio，baseUrl 直接下载 m4s，需带 Referer）。
+  - 解码：无 ffmpeg 时 `pip install av`（PyAV 自带 FFmpeg），m4s 是标准 MP4 容器。
+  - 截取：波形 RMS 找事件（10ms 块），单发枪声=孤立短促尖峰+衰减尾音；
+    **连射视频前段常有连续峰值，要选中间孤立的单发**（M500 视频 9.30s 处 peak 0.216 最干净）。
+    归一化峰值 0.9 保证响亮。合成音效"小声"根因是留了安全余量，真实录音归一化即可。
+  - 案例：左轮四音效替换为 B 站真实录音（fire=M500 真枪单发 0.44s；reload=金属咔哒 0.15s；
+    reload_last=装填+转轮合上+闭锁 0.55s；equip=转轮甩出 0.16s）。旧合成版留 `.synthbak`。
+  - 兼容：44.1kHz 16-bit 单声道 WAV，浏览器 Audio 直接播。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

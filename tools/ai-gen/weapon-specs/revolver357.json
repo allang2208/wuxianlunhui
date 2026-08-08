@@ -14,7 +14,7 @@
   "weaponTypeTag": "远程武器",
   "isTwoHanded": false,
   "equipSlot": "weapon",
-  "desc": ".357麦格农左轮手枪，6发弹巢，亮银色曳光弹，威力巨大的经典左轮",
+  "desc": ".357麦格农左轮手枪，6发弹巢，亮银色曳光弹，单发装填换弹机制，威力巨大的经典左轮",
   "statsDisplay": [
     { "name": "物理攻击", "value": "4-9" },
     { "name": "射程", "value": "700" }
@@ -39,8 +39,10 @@
   "fireMode": "semiAuto",
   "ammoConfig": {
     "max": 6,
-    "reloadTime": 2000,
-    "reloadSound": "assets/sounds/weapons/revolver357_reload.wav"
+    "reloadTime": 900,
+    "singleReloadMode": true,
+    "reloadSound": "assets/sounds/weapons/revolver357_reload.wav",
+    "reloadFinishSound": "assets/sounds/weapons/revolver357_reload_last.wav"
   },
   "attackFormula": {
     "base": 26,
