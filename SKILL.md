@@ -1714,6 +1714,21 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     （不是 x/y），NaN 比较恒 false 会静默走错分支——排查"墙消失"先怀疑符号/法线
     判定**。headless 首次场 scene 未就绪会掩盖此问题（墙精灵 0 与墙件被丢混在一起），
     必须走完整启动流程验证。
+  - **⚠ 转弯通道横墙挡路（2026-08-08 八修/九修）**：用户报"第三四间房衔接通道没做好、
+    墙壁没衔接、不可移动区域也有墙壁"。分阶段重建定位：横墙（通道中间 perp≈0 的墙）
+    在 `_sealPassageSides` 阶段产生。两个根因叠加：
+    1. **flip 瓦方向**：`lay` 沿通道轴铺瓦时 a<b（从通道外向内），flip=true 的通道
+       （v2 轴）`_addSegPiece` 期望 A 端=上端（贴图朝向）→ A/B 反向 → 瓦被翻转、
+       base 段横在通道中间（v2 通道的 seal 瓦方向显示为 -v1 横墙）。修复：flip 时
+       lay 交换 a/b。
+    2. **halfSpan 过窄**：`length/2+250` 会把 3 段瓦的末端件（沿轴 ~L/2+340）排除 →
+       hi/lo 偏小 → 封口瓦从通道中段补起。修复：`length/2+500`。
+    3. **相邻房间平行边墙误收集**：转弯通道轴（v2/-v1）与房间 TR/BL/LT 边平行，
+       seal 会把房间边墙当侧墙（perp 落在 60-400）→ 补瓦错位。修复：`_placeArenaPassage`
+       给预制侧墙打 `_passageWall` 标记，seal 只收集标记件。
+    验证：分阶段 seal 后横墙 2→0，通道 3 碰撞剖面 t=300~500 全部可通行，
+    渲染棕色提升、暗区大减；npm test 全绿。教训：**转弯通道（v2/-v1）与房间边平行，
+    任何"收集平行件"的逻辑都必须按来源标记过滤；flip 瓦的 A/B 朝向要按贴图语义**。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

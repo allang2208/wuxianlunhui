@@ -1321,6 +1321,11 @@ export const CombatRoomSystem = {
                 if (clipped) {
                     // 深度统一走 WallSystem.depthOf 唯一入口（丢弃预制保存的 hub 坐标深度值）
                     clipped.depth = WallSystem.depthOf(clipped);
+                    // ⚠ 2026-08-08 八修：标记预制侧墙件——_sealPassageSides 只收集带标记的
+                    // 侧墙，避免迷宫转弯通道（v2/-v1 轴）误收集相邻房间的平行边墙
+                    // （房3/房4 的 TR/BL/LT 边与通道轴平行、perp 落在侧墙带内 →
+                    // 封口瓦被补到通道中间，横墙挡路）
+                    clipped._passageWall = true;
                     WallSystem.isoVisuals.push(clipped);
                 }
             }
@@ -1502,9 +1507,15 @@ export const CombatRoomSystem = {
         // 收集该通道的侧墙件（平行于走廊轴、在走廊侧墙带内、且在本通道跨度范围内——
         // 不过滤跨度会把其他通道/房间的平行墙并入，填充出横跨全场的 stray 墙）
         const mid = passage.center;
-        const halfSpan = (passage.length || 1000) / 2 + 250;
+        // ⚠ 2026-08-08 八修：halfSpan 需覆盖预制侧墙件全程（t=-40..L+40，3 段瓦末端
+        // 沿轴 ~L/2+340）。旧值 length/2+250=732.5 会把末端件（沿 818）排除 →
+        // hi/lo 偏小 → 封口瓦从通道中段铺起（横墙挡路，用户"第三四房衔接混乱"）
+        const halfSpan = (passage.length || 1000) / 2 + 500;
         const byPiece = [];
         for (const p of WallSystem.isoVisuals) {
+            // ⚠ 2026-08-08 八修：只收集预制侧墙件（_passageWall）——防止转弯通道误收集
+            // 相邻房间的平行边墙（房 TR/BL/LT 边与 v2/-v1 通道轴平行且 perp 落在侧墙带）
+            if (!p._passageWall) continue;
             const seg = WallSystem._pieceBaseSegments(p)[0];
             if (!seg) continue;
             const [a, b] = seg;
@@ -1556,6 +1567,9 @@ export const CombatRoomSystem = {
             const faceLen = Math.hypot((g.face[1][0] - g.face[0][0]) * s, (g.face[1][1] - g.face[0][1]) * sy);
             const step = faceLen - 8;
             const lay = (a, b) => {
+                // ⚠ 2026-08-08 八修实验：flip（"\"方向）时 _addSegPiece 的 A 端=上端，
+                // fill 的 a<b 沿轴铺会让 A 落在下端 → 瓦被翻转横在通道（转弯通道 v2 横墙）
+                if (flip) { const t = a; a = b; b = t; }
                 const A = { x: S0.x + axis.x * a, y: S0.y + axis.y * a };
                 const B = { x: S0.x + axis.x * b, y: S0.y + axis.y * b };
                 WallSystem._addSegPiece(A, B, flip, geoKey, depthMode, 0.1);
