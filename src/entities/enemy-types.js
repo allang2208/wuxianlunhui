@@ -751,7 +751,7 @@ class RedWolfKing extends BlackWolf {
             idle: loadImage(tPaths.idle || 'assets/enemies/red_wolf_king_transformed_idle.png'),
             run: loadImage(tPaths.run || tPaths.side || 'assets/enemies/red_wolf_king_changed_run.png'),
             attack: loadImage(tPaths.attack || 'assets/enemies/red_wolf_king_changed_attack.png'),
-            howl: loadImage(tPaths.howl || 'assets/enemies/red_wolf_king_howl.png'),
+            howl: loadImage(tPaths.howl || 'assets/enemies/red_wolf_king_changed_howl.png'),
         };
         this._sprites = this._wolfSprites;
         // 变身配置
@@ -767,6 +767,8 @@ class RedWolfKing extends BlackWolf {
             pounceBite: { range: 170, duration: 1000, dash: 60 },
         };
         this._attackType = 'pounceBite';
+        // 嚎叫技能（红狼人形态主动释放，给场上全体怪物激励 30s）
+        this._howlCd = 0;
     }
 
     update(dt, entities) {
@@ -790,7 +792,13 @@ class RedWolfKing extends BlackWolf {
                 this._isTransformed = true;
                 this._frozenForCast = false;
                 this._applyTransform();
-                this._howlTimer = this._transformCfg.howlDuration ?? 2000;
+                // 变身完成不再自动嚎叫（原逻辑自动接红狼嚎叫动画，用户反馈
+                // "变身有重复动画、变身完还有嚎叫"）——嚎叫改为独立技能，
+                // 由红狼人形态 AI 主动释放（见 _startHowl）。
+                this._howlTimer = 0;
+                // 首次嚎叫延迟：避免变身动画后立即接嚎叫（视觉重复），
+                // 先正常行动 5s 再释放技能；后续按 cooldown 30s 循环。
+                this._howlCd = Math.min(this._getHowlConfig().cooldown ?? 30000, 5000);
             }
         }
         if (this._howlTimer > 0) {
@@ -804,16 +812,60 @@ class RedWolfKing extends BlackWolf {
             if (this._howlTimer <= 0) this._frozenForCast = false;
         }
         super.update(dt, entities);
+        // 嚎叫技能冷却递减
+        if (this._howlCd > 0) this._howlCd -= dt;
+        // 嚎叫技能触发：红狼人形态 + 冷却就绪 + 有目标 + 无进行中攻击/变身/嚎叫
+        // （_attackType 初始即 'pounceBite' 且不随咬/扑结束重置，不能用它判断空闲，
+        //   改看 _biteState/_pounceState）
+        if (this._isTransformed && this._howlCd <= 0 && this.target && this.target.active
+            && this._biteState === 'idle' && this._pounceState === 'idle'
+            && !this._isTransforming && this._howlTimer <= 0) {
+            this._startHowl(entities);
+        }
         // 覆盖动画状态：变身/嚎叫期间锁定
         if (this._isTransforming) {
             this._animState = 'transform';
             this._animFrame = this._timerFrame(this._transformTimer, this._transformCfg.duration ?? 2000);
         } else if (this._howlTimer > 0) {
             this._animState = 'howl';
-            this._animFrame = this._timerFrame(this._howlTimer, this._transformCfg.howlDuration ?? 2000);
+            const howlTotal = this._getHowlConfig().duration ?? 3000;
+            this._animFrame = this._timerFrame(this._howlTimer, howlTotal);
         }
         // 红狼人形态切换贴图组
         this._sprites = this._isTransformed ? this._humanSprites : this._wolfSprites;
+    }
+
+    _getHowlConfig() {
+        return this.config?.attackSkills?.howl || {};
+    }
+
+    // 嚎叫技能：3s 动画 + 锁定，释放后场上全体敌方怪物获得激励 buff
+    // （参照 foreman-zombie _startHowl；激励 = 移速×speedMul、物攻×atkMul）
+    _startHowl(entities) {
+        const cfg = this._getHowlConfig();
+        const duration = cfg.duration ?? 3000;
+        // 终止进行中的咬/扑，避免嚎叫动画与攻击重叠
+        if (this._biteState === 'attacking') this._endBite();
+        if (this._pounceState !== 'idle') this._endPounce();
+        this._howlTimer = duration;
+        this._howlCd = cfg.cooldown ?? 30000;
+        this._animState = 'howl';
+        this._frozenForCast = true;
+        this.vx = 0; this.vy = 0; this.isMoving = false;
+        const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
+        for (const e of list) {
+            if (!e || !e.active || e._faction !== 'enemy') continue;
+            if (typeof e.applyInspire === 'function') {
+                e.applyInspire(cfg.buffDuration ?? 30000, {
+                    speedMul: cfg.speedMul ?? 1.33,
+                    atkMul: cfg.atkMul ?? 1.5,
+                });
+            }
+        }
+        const sound = this.config?.sounds?.howl;
+        if (sound && typeof window !== 'undefined' && window.SoundManager?.playFile) {
+            window.SoundManager.playFile(sound);
+        }
     }
 
     _timerFrame(remaining, total) {
@@ -852,11 +904,15 @@ class RedWolfKing extends BlackWolf {
     // 导致 pounceClaw（远/飞扑挥爪）永远播不出来、近咬也错播成 pounce_bite。
     // 这里把 近距离撕咬 → pounceBite、中距离飞扑 → pounceClaw，贴图/网格随之正确切换。
     _startBite() {
+        // 嚎叫技能进行中禁止撕咬（避免嚎叫期黑狼 AI 又触发 bite）
+        if (this._howlTimer > 0) return;
         this._attackType = 'pounceBite';
         super._startBite();
     }
 
     _startPounce() {
+        // 嚎叫技能进行中禁止飞扑
+        if (this._howlTimer > 0) return;
         this._attackType = 'pounceClaw';
         super._startPounce();
     }
@@ -894,7 +950,7 @@ class RedWolfKing extends BlackWolf {
         if (this._isTransforming) return 'enemy_red_wolf_king_change';
         if (this._isTransformed) {
             if (frozen) return 'enemy_red_wolf_king_transformed_idle';
-            if (this._howlTimer > 0) return 'enemy_red_wolf_king_howl';
+            if (this._howlTimer > 0) return 'enemy_red_wolf_king_changed_howl';
             if (this._animState === 'attack') return 'enemy_red_wolf_king_changed_attack';
             if (this._animState === 'run') return 'enemy_red_wolf_king_changed_run';
             return 'enemy_red_wolf_king_transformed_idle';

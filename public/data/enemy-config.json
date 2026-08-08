@@ -101,17 +101,31 @@
       "pacingRange": 200,
       "loseTimeout": 2000
     },
-    "attack": {
-      "type": "thrust",
-      "cooldown": 2000,
-      "dynamicRange": 240,
-      "width": 22,
-      "knockback": 20
-    },
-    "transform": {
-      "hpThreshold": 0.5,
-      "duration": 2000,
-      "howlDuration": 2000,
+ "attack": {
+  "type": "thrust",
+  "cooldown": 2000,
+  "dynamicRange": 240,
+  "width": 22,
+  "knockback": 20
+ },
+ "attackSkills": {
+  "howl": {
+   "comment": "红狼人嚎叫技能：3s 动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+   "duration": 3000,
+   "frames": 12,
+   "buffDuration": 30000,
+   "speedMul": 1.33,
+   "atkMul": 1.5,
+   "cooldown": 30000
+  }
+ },
+ "sounds": {
+  "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
+ },
+ "transform": {
+  "hpThreshold": 0.5,
+  "duration": 2000,
+  "howlDuration": 2000,
       "damageMultiplier": 2,
       "hpRecover": 1,
       "damageReduction": 0.9

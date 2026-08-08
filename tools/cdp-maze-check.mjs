@@ -13,7 +13,7 @@ const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-maze-'));
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',
-    '--disable-gpu', `--user-data-dir=${profile}`, 'about:blank',
+    `--user-data-dir=${profile}`, 'about:blank',
 ], { stdio: 'ignore' });
 for (let i = 0; i < 40; i++) {
     try { const r = await fetch(`http://127.0.0.1:${CDP_PORT}/json/version`); await r.json(); break; }
@@ -119,7 +119,16 @@ const r = await evalJs(`(async () => {
         if (n > 80) { isoCount = n; break; }
         await new Promise((r) => setTimeout(r, 500));
     }
-    return { dungeonType: DungeonMapSystem.dungeonType, node: node ? node.type : null, isoCount, enterErr, phaserScene: !!window.__phaserScene };
+    // 页面实际加载的模块 URL（排查 HMR/缓存）
+    const urls = performance.getEntriesByType('resource')
+        .filter((u) => u.name.includes('combat-room-system'))
+        .map((u) => u.name.slice(0, 120));
+    let hasClipDbg = null;
+    try {
+        const CRS = (await import(pick('world/combat-room-system.js'))).CombatRoomSystem;
+        hasClipDbg = String(CRS._clipPassagePieceToRooms).includes('CLIPDBG');
+    } catch (e) { hasClipDbg = 'ERR'; }
+    return { dungeonType: DungeonMapSystem.dungeonType, node: node ? node.type : null, isoCount, enterErr, phaserScene: !!window.__phaserScene, urls, hasClipDbg };
 })()`);
 console.log('entered:', JSON.stringify(r));
 
@@ -141,6 +150,39 @@ const manual = await evalJs(`(async () => {
     }
 })()`);
 console.log('manual arena:', JSON.stringify(manual, null, 1));
+
+// 首次 _enterNode 场的通道墙计数（wrapDiag 重建前）
+const firstPassageWalls = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { CombatRoomSystem } = await import(pick('world/combat-room-system.js'));
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    const arena = CombatRoomSystem._arena;
+    const out = [];
+    if (!arena) return { none: true };
+    for (let i = 0; i < arena.passages.length; i++) {
+        const p = arena.passages[i];
+        const plen = Math.hypot(p.mid2.x - p.mid1.x, p.mid2.y - p.mid1.y);
+        const axisDir = { x: (p.mid2.x - p.mid1.x) / plen, y: (p.mid2.y - p.mid1.y) / plen };
+        const perpDir = { x: -axisDir.y, y: axisDir.x };
+        let cnt = 0, sides = [0, 0];
+        for (const q of WallSystem.isoVisuals) {
+            if (q.tex !== 'swamp_wall_straight') continue;
+            const seg = WallSystem._pieceBaseSegments(q)[0];
+            if (!seg) continue;
+            const mx = (seg[0].x + seg[1].x) / 2, my = (seg[0].y + seg[1].y) / 2;
+            const pd = (mx - p.center.x) * perpDir.x + (my - p.center.y) * perpDir.y;
+            if (Math.abs(pd) < 60 || Math.abs(pd) > 400) continue;
+            const along = (mx - p.center.x) * axisDir.x + (my - p.center.y) * axisDir.y;
+            if (Math.abs(along) > plen / 2 + 260) continue;
+            cnt++;
+            sides[pd > 0 ? 0 : 1]++;
+        }
+        out.push({ i: i + 1, count: cnt, sides: sides.join('/') });
+    }
+    return out;
+})()`);
+console.log('first passage walls:', JSON.stringify(firstPassageWalls));
 
 // 门创建诊断：scene/纹理/功能门判定/实际调用
 const gateDiag = await evalJs(`(async () => {
@@ -203,8 +245,10 @@ const step = await evalJs(`(async () => {
     for (let i = 0; i < layout.passages.length; i++) {
         const a = analysisFor(layout.passages[i].axis);
         try {
+            const before = WallSystem.isoVisuals.length;
             const rec = CombatRoomSystem._placeArenaPassage(a, layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
-            out.placed.push({ i: i + 1, ok: !!rec, gates: rec ? rec.gates.length : -1, axis: [layout.passages[i].axis.x.toFixed(3), layout.passages[i].axis.y.toFixed(3)], outEdge: layout.rooms[i].outEdge, inEdge: layout.rooms[i + 1].inEdge });
+            const added = WallSystem.isoVisuals.length - before;
+            out.placed.push({ i: i + 1, ok: !!rec, gates: rec ? rec.gates.length : -1, wallsAdded: added, axis: [layout.passages[i].axis.x.toFixed(3), layout.passages[i].axis.y.toFixed(3)], outEdge: layout.rooms[i].outEdge, inEdge: layout.rooms[i + 1].inEdge });
         } catch (e) {
             out.placed.push({ i: i + 1, err: String(e) });
         }
@@ -212,6 +256,170 @@ const step = await evalJs(`(async () => {
     return out;
 })()`);
 console.log('step place:', JSON.stringify(step, null, 1));
+
+// 包装 _clipPassagePieceToRooms：捕获真实放置链路中每件的判定
+const wrapDiag = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { CombatRoomSystem } = await import(pick('world/combat-room-system.js'));
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    const calls = [];
+    const orig = CombatRoomSystem._clipPassagePieceToRooms.bind(CombatRoomSystem);
+    const edgeCalls = [];
+    const origEdge = CombatRoomSystem._roomEdgeLine.bind(CombatRoomSystem);
+    CombatRoomSystem._roomEdgeLine = function (room, edge) {
+        const r = origEdge(room, edge);
+        edgeCalls.push({ edge, P: [Math.round(r.P.x), Math.round(r.P.y)], d: [r.d.x.toFixed(2), r.d.y.toFixed(2)], room: [Math.round(room.cx), Math.round(room.cy)] });
+        return r;
+    };
+    CombatRoomSystem._clipPassagePieceToRooms = function (piece, passage, roomA, roomB) {
+        const seg = WallSystem._pieceBaseSegments(piece)[0];
+        // 同上下文手动复刻
+        let manualKept = true;
+        let manualDetail = null;
+        let insideSegs = null;
+        let origRet2 = null;
+        let compiledRet = null;
+        if (seg && piece.tex === 'swamp_wall_straight' && Math.abs(piece.x - 2626) < 3) {
+            // 观察 orig 内部 _pieceBaseSegments 返回的 seg（patch 后调用 orig）
+            const origBase = WallSystem._pieceBaseSegments;
+            insideSegs = [];
+            WallSystem._pieceBaseSegments = function (p) {
+                const s = origBase.call(this, p);
+                insideSegs.push(s && s[0] ? [[Math.round(s[0][0].x), Math.round(s[0][0].y)], [Math.round(s[0][1].x), Math.round(s[0][1].y)]] : null);
+                return s;
+            };
+            const r2 = orig(piece, passage, roomA, roomB);
+            WallSystem._pieceBaseSegments = origBase;
+            // 编译源码副本执行（替换 this._roomEdgeLine 为参数函数）
+            try {
+                const src = orig.toString().replace(/this\._roomEdgeLine/g, 'roomEdgeLine');
+                const impl = new Function('WallSystem2', 'roomEdgeLine', 'piece', 'passage', 'roomA', 'roomB', 'return ((' + src + ')).call({}, piece, passage, roomA, roomB);');
+                const cr = impl(WallSystem, CombatRoomSystem._roomEdgeLine.bind(CombatRoomSystem), piece, passage, roomA, roomB);
+                compiledRet = !!cr;
+            } catch (e) { compiledRet = 'ERR:' + e; }
+            const [MA, MB] = seg.map((pp) => ({ ...pp }));
+            for (const entry of [[roomA, roomA.outEdge || 'RB', roomA], [roomB, roomB.inEdge || 'LT', roomB]]) {
+                const e = CombatRoomSystem._roomEdgeLine(entry[0], entry[1]);
+                let nx = -e.d.y, ny = e.d.x;
+                const nl = Math.hypot(nx, ny) || 1;
+                nx /= nl; ny /= nl;
+                const sc = (entry[2].cx - e.P.x) * nx + (entry[2].cy - e.P.y) * ny;
+                if (sc < 0) { nx = -nx; ny = -ny; }
+                const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny;
+                const sA = sOf(MA), sB = sOf(MB);
+                manualDetail = { edge: entry[1], sA: Math.round(sA), sB: Math.round(sB), drop: sA > 8 || sB > 8 };
+                if (sA > 8 || sB > 8) { manualKept = false; break; }
+            }
+        }
+        const r = orig(piece, passage, roomA, roomB);
+        calls.push({
+            tex: piece.tex,
+            x: Math.round(piece.x), y: Math.round(piece.y),
+            seg: seg ? [[Math.round(seg[0].x), Math.round(seg[0].y)], [Math.round(seg[1].x), Math.round(seg[1].y)]] : null,
+            kept: !!r,
+            manualKept,
+            manualDetail,
+            insideSegs,
+            origRet2,
+            compiledRet,
+            roomAOut: roomA.outEdge, roomBIn: roomB.inEdge,
+        });
+        return r;
+    };
+    // 重新建场捕获真实调用
+    if (CombatRoomSystem._arena) CombatRoomSystem.cleanupRoom();
+    WallSystem.walls = []; WallSystem.isoVisuals = []; WallSystem.trees = [];
+    try {
+        CombatRoomSystem.enterCombatArena(window.Game.player, { normalSize: 1024, eliteSize: 1792, dungeonType: 'swamp' });
+    } catch (e) { return { err: String(e), calls }; }
+    CombatRoomSystem._clipPassagePieceToRooms = orig;
+    CombatRoomSystem._roomEdgeLine = origEdge;
+    return { calls: calls.filter((c) => c.tex === 'swamp_wall_straight' && c.x > 1900 && c.x < 3200), edgeCalls };
+})()`);
+console.log('wrap diag:', JSON.stringify(wrapDiag, null, 1));
+
+// 裁剪判定诊断：对通道 1 预制直墙件逐件打印 sA/sB 与结果
+const clipDiag = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { CombatRoomSystem } = await import(pick('world/combat-room-system.js'));
+    const { computeMazeLayout, MAZE_AXIS_V1, MAZE_AXIS_V2 } = await import(pick('world/combat-arena-layout.js'));
+    const { DungeonConfig } = await import(pick('config/dungeon-config.js'));
+    const arenaCfg = DungeonConfig.getCombatArenaConfig();
+    const aV1 = CombatRoomSystem._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V1);
+    const layout = computeMazeLayout({ sizes: [1024, 1024, 1024, 1024, 1792], passageLen: aV1.len, gap: 0, rows: 2 });
+    const p1 = layout.passages[0], rA = layout.rooms[0], rB = layout.rooms[1];
+    const t = { x: p1.mid1.x - aV1.gA.center.x, y: p1.mid1.y - aV1.gA.center.y };
+    const out = { roomA: [rA.cx, rA.cy, rA.outEdge], roomB: [rB.cx, rB.cy, rB.inEdge], pieces: [] };
+    try { out.fnSrc = CombatRoomSystem._clipPassagePieceToRooms.toString(); } catch (e) { out.fnSrc = 'ERR ' + e; }
+    for (const q of aV1.def.pieces) {
+        const translated = { ...q, x: q.x + t.x, y: q.y + t.y };
+        if (CombatRoomSystem._isFunctionalGatePiece(translated)) { out.pieces.push({ tex: q.tex, gate: true }); continue; }
+        const seg = WallSystem._pieceBaseSegments(translated)[0];
+        const clipped = CombatRoomSystem._clipPassagePieceToRooms(translated, p1, rA, rB);
+        // 手动复刻 _clipPassagePieceToRooms 判定
+        const manualEdges = [
+            { P: CombatRoomSystem._roomEdgeLine(rA, rA.outEdge || 'RB').P, d: CombatRoomSystem._roomEdgeLine(rA, rA.outEdge || 'RB').d, c: rA },
+            { P: CombatRoomSystem._roomEdgeLine(rB, rB.inEdge || 'LT').P, d: CombatRoomSystem._roomEdgeLine(rB, rB.inEdge || 'LT').d, c: rB },
+        ];
+        let manualKept = true;
+        for (const e of manualEdges) {
+            let nx = -e.d.y, ny = e.d.x;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl; ny /= nl;
+            const sc = (e.c.cx - e.P.x) * nx + (e.c.cy - e.P.y) * ny;
+            if (sc < 0) { nx = -nx; ny = -ny; }
+            const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny;
+            if (sOf(seg[0]) > 8 || sOf(seg[1]) > 8) { manualKept = false; break; }
+        }
+        // 逐行复刻实际函数体（复制粘贴语义，打印每边判定）
+        const trace = [];
+        const seg2 = WallSystem._pieceBaseSegments(translated)[0];
+        const [A2, B2] = seg2.map((pp) => ({ ...pp }));
+        const edges2 = [];
+        for (const entry of [
+            [rA, rA.outEdge || 'RB', rA],
+            [rB, rB.inEdge || 'LT', rB],
+        ]) {
+            const e2 = CombatRoomSystem._roomEdgeLine(entry[0], entry[1]);
+            edges2.push({ P: e2.P, d: e2.d, c: entry[2] });
+        }
+        for (const e of edges2) {
+            let nx = -e.d.y, ny = e.d.x;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl; ny /= nl;
+            const signC = (e.c.cx - e.P.x) * nx + (e.c.cy - e.P.y) * ny;
+            if (signC < 0) { nx = -nx; ny = -ny; }
+            const sOf2 = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny;
+            const sA2 = sOf2(A2), sB2 = sOf2(B2);
+            trace.push({ P: [Math.round(e.P.x), Math.round(e.P.y)], d: [e.d.x.toFixed(3), e.d.y.toFixed(3)], sA: Math.round(sA2), sB: Math.round(sB2), drop: sA2 > 8 || sB2 > 8 });
+        }
+        // 手动计算两房边线的 s 值
+        const sVals = [];
+        for (const [room, edge] of [[rA, rA.outEdge], [rB, rB.inEdge]]) {
+            const e = CombatRoomSystem._roomEdgeLine(room, edge);
+            let nx = -e.d.y, ny = e.d.x;
+            const nl = Math.hypot(nx, ny) || 1;
+            nx /= nl; ny /= nl;
+            const sc = (room.cx - e.P.x) * nx + (room.cy - e.P.y) * ny;
+            if (sc < 0) { nx = -nx; ny = -ny; }
+            const sOf = (P) => (P.x - e.P.x) * nx + (P.y - e.P.y) * ny;
+            sVals.push({ edge, sA: Math.round(sOf(seg[0])), sB: Math.round(sOf(seg[1])) });
+        }
+        out.pieces.push({
+            tex: q.tex,
+            A: seg ? [Math.round(seg[0].x), Math.round(seg[0].y)] : null,
+            B: seg ? [Math.round(seg[1].x), Math.round(seg[1].y)] : null,
+            kept: !!clipped,
+            manualKept,
+            trace,
+            sVals,
+        });
+    }
+    return out;
+})()`);
+console.log('clip diag:', JSON.stringify(clipDiag, null, 1));
 
 // 配置与预制解析诊断
 const diag = await evalJs(`(async () => {
@@ -376,10 +584,34 @@ const probe = await evalJs(`(async () => {
             } catch (e) { quads.push({ i: i + 1, err: String(e) }); }
         }
     }
+    // 通道侧墙计数：每条通道侧墙带（|perpD| 60~400）内的直墙件数量
+    const passageWalls = [];
+    if (arena) {
+        for (let i = 0; i < arena.passages.length; i++) {
+            const p = arena.passages[i];
+            const plen = Math.hypot(p.mid2.x - p.mid1.x, p.mid2.y - p.mid1.y);
+            const axisDir = { x: (p.mid2.x - p.mid1.x) / plen, y: (p.mid2.y - p.mid1.y) / plen };
+            const perpDir = { x: -axisDir.y, y: axisDir.x };
+            const found = [];
+            for (const q of WallSystem.isoVisuals) {
+                if (q.tex !== 'swamp_wall_straight') continue;
+                const seg = WallSystem._pieceBaseSegments(q)[0];
+                if (!seg) continue;
+                const mx = (seg[0].x + seg[1].x) / 2, my = (seg[0].y + seg[1].y) / 2;
+                const pd = (mx - p.center.x) * perpDir.x + (my - p.center.y) * perpDir.y;
+                if (Math.abs(pd) < 60 || Math.abs(pd) > 400) continue;
+                const along = (mx - p.center.x) * axisDir.x + (my - p.center.y) * axisDir.y;
+                if (Math.abs(along) > plen / 2 + 260) continue;
+                found.push({ side: Math.sign(pd), x: Math.round(mx), y: Math.round(my) });
+            }
+            passageWalls.push({ i: i + 1, count: found.length, sides: found.filter((f) => f.side > 0).length + '/' + found.filter((f) => f.side < 0).length });
+        }
+    }
     return {
         roomCount: arena ? arena.rooms.length : 0,
         world: arena ? [Math.round(CombatRoomSystem._diamond.worldW), Math.round(CombatRoomSystem._diamond.worldH)] : null,
         rooms, passages, gateChecks, can, quads,
+        passageWalls,
         wallCount: walls.length,
         errs: [],
     };
@@ -448,6 +680,25 @@ await evalJs(`(async () => {
     return true;
 })()`);
 await shot('maze_reverse_p4_p5');
+// 等 Phaser scene 就绪后强制同步墙精灵，确认数据渲染一致
+const syncShot = await evalJs(`(async () => {
+    const perfs = performance.getEntriesByType('resource');
+    const pick = ${pickExpr()};
+    const { WallSystem } = await import(pick('world/wall-system.js'));
+    for (let i = 0; i < 20 && !window.__phaserScene; i++) await new Promise((r) => setTimeout(r, 500));
+    const hadScene = !!window.__phaserScene;
+    if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+    const scene = window.__phaserScene;
+    const gateCount = scene ? scene.children.list.filter((s) => s.texture && s.texture.key === 'swamp_gate').length : -1;
+    const Camera = (await import(pick('world/camera.js'))).Camera;
+    const p = window.Game.player;
+    p.x = 6650; p.y = 3555;
+    Camera.x = p.x; Camera.y = p.y;
+    await new Promise((r) => setTimeout(r, 700));
+    return { hadScene, gateCount, iso: WallSystem.isoVisuals.length };
+})()`);
+console.log('sync state:', JSON.stringify(syncShot));
+await shot('maze_synced_turn');
 console.log('errs:', JSON.stringify(errs.slice(0, 8)));
 edge.kill();
 process.exit(0);

@@ -754,6 +754,40 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     实机截图 GLM 确认奔跑形态脚下"无深色大块、浅色地面整洁"。
   - 教训：**"色块与主体同色"时先查处理链是否把背景残留染成了主体色**——
     染色类后处理（脚底带归一化）会固化残留，应改为删除而非染色。
+- **红狼王变身动画重生成：旧版实为"狼咆哮"，新版狼→红狼人真转变（2026-08-08 三十二版）**：
+  - 用户问"变身动画是根据原模型生成的吗"——排查发现旧 rwk_change.mp4 首末帧
+    都是四足狼（GLM 逐帧确认 12 帧全是狼咆哮），**根本没有狼→红狼人的形态转换**，
+    游戏里变身实际是"狼咆哮 2s + 瞬间切换"。
+  - 重生成（`rw-transform-regen.py`）：H3 i2v **首帧狼站立 + 末帧红狼人站立**
+    （--first-frame rw-wolf-ref-1024.png --last-frame rw-humanoid-ref-1024.png），
+    提示词强调 transformation / wolf rises up / body expands / legs become arms。
+  - 验证（像素 diff 轨迹）：frame0 diff_wolf=1.0 → frame60 中间态 → frame120
+    diff_human=4.2——真转变；GLM 逐帧：狼→过渡→红狼人 12 帧连贯、脚下无残留、
+    边缘干净、身体完整。
+  - 切帧 12 帧(4×3) fixed-bbox → band 清理(65356px) + 浅灰清理(123px) 入格。
+  - 教训：**H3 单首帧 i2v 做不了跨形态转变（模型倾向保持首帧形态）**；
+    变身/形态转换必须 first+last 双端锁定，且用像素 diff 验证转变轨迹
+    （GLM 对首帧形态判断不稳，t_000 被误读为红狼人，diff 对比才可靠）。
+- **红狼王变身重复 + 嚎叫改独立技能（2026-08-08 三十三版）**：
+  - 用户反馈"变身有重复动画、变身完还有红狼嚎叫"。排查：
+    ① 变身完成处代码自动 `_howlTimer = howlDuration ?? 2000`——变身完强制接嚎叫；
+    ② 原 howl.png 是**四足狼**嚎叫，红狼人形态播它形态不匹配（GLM 确认）。
+  - 修复：
+    ① 变身完成 `_howlTimer = 0`，不再自动嚎叫；首次嚎叫延迟 5s（`_howlCd =
+       min(cooldown, 5000)`）避免变身动画后立即接嚎叫；
+    ② 嚎叫改为**红狼人形态主动技能**（参照 foreman-zombie）：红狼人形态 +
+       冷却就绪（默认 30s）+ 有目标 + 咬/扑空闲 → `_startHowl(entities)`，
+       给场上全体 enemy 阵营 `applyInspire(buffDuration ?? 30000)`（移速×1.33、
+       物攻×1.5，复用已有激励系统）；
+    ③ 重生成**红狼人两足嚎叫**动画（`rw-humanoid-howl-regen.py`，首末帧锁红狼人
+       参考图）→ 入格 `red_wolf_king_changed_howl.png`（4×3=12 帧），
+       transformedSprites.howl / BootScene / _getTextureKey / _drawBody 全链指向它。
+  - 关键坑：**嚎叫触发判断不能用 `!_attackType`**——RedWolfKing 的 _attackType
+    初始即 'pounceBite' 且不随咬/扑结束重置，条件永远不满足；改看
+    `_biteState === 'idle' && _pounceState === 'idle'`。
+  - 实机验证：变身完成 howlTimer=0（不再自动嚎叫）；嚎叫技能触发纹理切换
+    changed_howl、激励 buff 生效（自身 remaining 28s/30s）；lint 0 error、
+    vite build 通过、config-integrity 通过。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1659,6 +1693,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
     → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
     地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
+  - **⚠ headless 探针禁用 --disable-gpu（2026-08-08 迷宫通道墙排查）**：用户报
+    "衔接通道没做墙"。排查中 `cdp-swamp-arena-check` 系探针带 `--disable-gpu`，
+    导致 headless Edge 里 **Phaser scene 不启动（window.__phaserScene 恒 false）**：
+    墙精灵不渲染、`_createArenaGate` 因无 scene 返回 null（门 0）、截图空白，
+    数据层（isoVisuals）却是正常的——误判为"代码没墙"。去掉 `--disable-gpu`
+    后 scene 就绪（门 18 扇、墙件 96、渲染连续）。教训：**headless 渲染类探针
+    一律走真实 GPU（不要 --disable-gpu）；先查 `window.__phaserScene` 是否就绪，
+    再判断"渲染问题"还是"数据问题"**。本次最终结论：数据+渲染均正常，用户所见
+    是浏览器加载中间版本缓存（HMR 未生效），强刷后恢复。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；

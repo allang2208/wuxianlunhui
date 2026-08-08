@@ -198,6 +198,8 @@ export class BootScene extends Scene {
         this.load.image('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png');
         this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
         this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        // 红狼人（两足）嚎叫技能动画（2026-08-08 重生成，原 howl 是四足狼形态）
+        this.load.spritesheet('enemy_red_wolf_king_changed_howl', 'assets/enemies/red_wolf_king_changed_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
 
         // 僵尸犬精灵图动画
         this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');
