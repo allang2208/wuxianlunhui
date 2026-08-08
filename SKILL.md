@@ -1693,6 +1693,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
     → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
     地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
+  - **⚠ headless 探针禁用 --disable-gpu（2026-08-08 迷宫通道墙排查）**：用户报
+    "衔接通道没做墙"。排查中 `cdp-swamp-arena-check` 系探针带 `--disable-gpu`，
+    导致 headless Edge 里 **Phaser scene 不启动（window.__phaserScene 恒 false）**：
+    墙精灵不渲染、`_createArenaGate` 因无 scene 返回 null（门 0）、截图空白，
+    数据层（isoVisuals）却是正常的——误判为"代码没墙"。去掉 `--disable-gpu`
+    后 scene 就绪（门 18 扇、墙件 96、渲染连续）。教训：**headless 渲染类探针
+    一律走真实 GPU（不要 --disable-gpu）；先查 `window.__phaserScene` 是否就绪，
+    再判断"渲染问题"还是"数据问题"**。本次最终结论：数据+渲染均正常，用户所见
+    是浏览器加载中间版本缓存（HMR 未生效），强刷后恢复。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
