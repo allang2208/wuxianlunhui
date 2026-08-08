@@ -298,6 +298,12 @@ class Combatant extends DamageableEntity {
             spreadMaxTime += craftEffects.spreadTimeDelta || 0;
             if (spreadMaxTime < 500) spreadMaxTime = 500;
             maxSpreadAngle += craftEffects.maxSpreadAngleDelta || 0;
+            // 移动/静止散布倍率（负值=更准）：按玩家移动状态对最大散布角做乘法
+            const isMovingNow = !!this.isMoving;
+            const moveMul = craftEffects.moveSpreadPercent || 0;
+            const staticMul = craftEffects.stationarySpreadPercent || 0;
+            const mul = isMovingNow ? (1 + moveMul) : (1 + staticMul);
+            maxSpreadAngle *= Math.max(0.1, mul);
         }
 
         const factor = (spreadMaxTime <= 0)

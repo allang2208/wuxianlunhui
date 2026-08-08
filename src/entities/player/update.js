@@ -691,6 +691,8 @@ update(dt, entities) {
                             ? (elp ? elp.overheatRecoverTime : 2500)
                             : (hp.overheatRecoverTime || 1500);
                         if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
+                        const ohPct = _currentWep2._craftEffects && _currentWep2._craftEffects.overheatRecoverPercent;
+                        if (ohPct) recoverTime = recoverTime * (1 + ohPct);
                         if (recoverTime < 500) recoverTime = 500; // 最小0.5秒
                         this._lastOverheatRecoverMs = recoverTime;
                         this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
@@ -715,6 +717,8 @@ update(dt, entities) {
                                 ? (elp ? elp.overheatCooldownTime : 4000)
                                 : (hp.overheatCooldownTime || 1500);
                             if (_currentWep2.weaponType === 'energy_lmg') recoverTimer += ohRecDelta;
+                            const ohPct2 = _currentWep2._craftEffects && _currentWep2._craftEffects.overheatRecoverPercent;
+                            if (ohPct2) recoverTimer = recoverTimer * (1 + ohPct2);
                             if (recoverTimer < 500) recoverTimer = 500;
                             this._overheatRecoverTimer = recoverTimer;
                             // 过热音效

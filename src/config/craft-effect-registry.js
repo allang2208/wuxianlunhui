@@ -140,6 +140,18 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => `${v >= 0 ? '+' : ''}${v}°最大散布`,
         tooltip: '改变最大散布角度',
     },
+    moveSpreadPercent: {
+        category: 'spread',
+        applyMode: 'multiply',
+        display: (v) => `移动散布${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '移动射击时的散布倍率（负值=移动中更准）',
+    },
+    stationarySpreadPercent: {
+        category: 'spread',
+        applyMode: 'multiply',
+        display: (v) => `静止散布${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '静止射击时的散布倍率（负值=架枪更准）',
+    },
     spreadStartDelta: {
         category: 'spread',
         applyMode: 'add',
@@ -260,6 +272,12 @@ export const CRAFT_EFFECT_REGISTRY = {
         applyMode: 'add',
         display: (v) => `${v >= 0 ? '+' : ''}${v}ms过热恢复`,
         tooltip: '改变过热恢复时间',
+    },
+    overheatRecoverPercent: {
+        category: 'overheat',
+        applyMode: 'multiply',
+        display: (v) => `过热恢复${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '按比例改变过热恢复时间（负值=恢复更快）',
     },
 
     // ========== 防御类 ==========

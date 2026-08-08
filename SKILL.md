@@ -3519,6 +3519,20 @@ addTree(x, y, radius, ...) {
   - 沙鹰加机制件：double_tap_trigger（burstMode:2 + 散布+1°），epic 手枪机制差异化。
   - 教训：**弹容量改造必须按比例或分档，固定值-30 会废掉 30 发弹匣枪**；
     **同族 muzzle 复制后手改会残留不一致**，加武器后用 options diff 校验。
+- **枪械专属独特改造批量落地（2026-08-08 二轮，12 把枪 +42 件）**：
+  - 新效果键 3 个：`moveSpreadPercent`（移动散布倍率，消费端 combatant.getSpreadInfo
+    按 this.isMoving 乘算 maxAngle）、`stationarySpreadPercent`（静止散布倍率，同处）、
+    `overheatRecoverPercent`（过热恢复百分比，消费端 update.js 两处 recoverTime 乘算）。
+    注意 multiply 模式聚合仍是加和，百分比乘算必须在消费端手动应用。
+  - 每把枪专属件（机制差异化而非数值堆叠）：AKM 木托/侧折叠/7.62重弹；M416 HK托/
+    活塞调校/导轨；QBZ 无托平衡/高速扳机/光瞄；PKM 弹链箱/快换枪管/两脚架；
+    QJB 弹鼓/散热管/持续火力托；能量机枪 过载电池/散热鳍/聚焦透镜；沙鹰 .50重弹/
+    比赛枪管/重型机匣；G18 弹鼓/三连发/内置消音；P4040 穿甲弹/激光/快拔；
+    Beretta 双发点射/加长握把/制退器；Super90 加长弹管/重鹿弹/弹壳快挂；
+    SAIGA 竞赛扳机/独头弹精调/战术灯；左轮 镜座/强化击锤簧/轻量弹巢。
+  - 图标复用：新件 icon 映射到现有 craft 图标（fmj/muzzle_brake/light_trigger/
+    burst_trigger/carbon_fiber_mag/drum_mag 等），无需生成新图。
+  - 验证：三份 JSON hash 一致、聚合逻辑运行时确认 3 新键生效、测试全绿。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
