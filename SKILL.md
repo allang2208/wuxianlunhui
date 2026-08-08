@@ -754,6 +754,20 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     实机截图 GLM 确认奔跑形态脚下"无深色大块、浅色地面整洁"。
   - 教训：**"色块与主体同色"时先查处理链是否把背景残留染成了主体色**——
     染色类后处理（脚底带归一化）会固化残留，应改为删除而非染色。
+- **红狼王变身动画重生成：旧版实为"狼咆哮"，新版狼→红狼人真转变（2026-08-08 三十二版）**：
+  - 用户问"变身动画是根据原模型生成的吗"——排查发现旧 rwk_change.mp4 首末帧
+    都是四足狼（GLM 逐帧确认 12 帧全是狼咆哮），**根本没有狼→红狼人的形态转换**，
+    游戏里变身实际是"狼咆哮 2s + 瞬间切换"。
+  - 重生成（`rw-transform-regen.py`）：H3 i2v **首帧狼站立 + 末帧红狼人站立**
+    （--first-frame rw-wolf-ref-1024.png --last-frame rw-humanoid-ref-1024.png），
+    提示词强调 transformation / wolf rises up / body expands / legs become arms。
+  - 验证（像素 diff 轨迹）：frame0 diff_wolf=1.0 → frame60 中间态 → frame120
+    diff_human=4.2——真转变；GLM 逐帧：狼→过渡→红狼人 12 帧连贯、脚下无残留、
+    边缘干净、身体完整。
+  - 切帧 12 帧(4×3) fixed-bbox → band 清理(65356px) + 浅灰清理(123px) 入格。
+  - 教训：**H3 单首帧 i2v 做不了跨形态转变（模型倾向保持首帧形态）**；
+    变身/形态转换必须 first+last 双端锁定，且用像素 diff 验证转变轨迹
+    （GLM 对首帧形态判断不稳，t_000 被误读为红狼人，diff 对比才可靠）。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
