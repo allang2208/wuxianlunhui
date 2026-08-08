@@ -33,10 +33,10 @@ def clean_sheet(path, out, cols, rows, cell_w=512, cell_h=1024):
             idx = np.argwhere(body)
             ymax = int(idx[:, 0].max())
             lum = rc.mean(axis=2)
-            # 1) 脚下浅灰接触阴影
+            # 1) 脚下浅灰接触阴影（FLUX 视频阴影可低至 lum 150）
             b = np.zeros_like(body)
-            b[max(0, ymax - 40):ymax + 1, :] = True
-            gray = b & body & (lum >= 200) & (lum < 245)
+            b[max(0, ymax - 60):ymax + 1, :] = True
+            gray = b & body & (lum >= 150) & (lum < 245)
             n = int(gray.sum())
             if n:
                 ac[gray] = 0
