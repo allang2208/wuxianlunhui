@@ -3187,6 +3187,18 @@ addTree(x, y, radius, ...) {
   - 过热音：`heatParams.overheatSound` 可选配置，缺失回退类型硬编码（PKM/能量机枪）。
   - 保留项：GameScene isGun/isGunR/isGunOff/isGunSpecial 数组差异有语义
     （isGunR/Special 不含 beretta93r），不改；add-weapon 锚点清单已提醒新枪同步。
+- **真实音效抓取：B 站音频流方案（2026-08-08，合成音效不理想后启用）**：
+  - 搜索：`api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=<关键词>`
+    （需 Referer: bilibili.com + UA）。选"自制音效/实拍录制"类视频，标题描述能确认内容。
+  - 取流：`view?bvid=` 拿 cid → `x/player/playurl?bvid=&cid=&fnval=16` 拿 DASH 音频
+    （选 bandwidth 最高的 audio，baseUrl 直接下载 m4s，需带 Referer）。
+  - 解码：无 ffmpeg 时 `pip install av`（PyAV 自带 FFmpeg），m4s 是标准 MP4 容器。
+  - 截取：波形 RMS 找事件（10ms 块），单发枪声=孤立短促尖峰+衰减尾音；
+    **连射视频前段常有连续峰值，要选中间孤立的单发**（M500 视频 9.30s 处 peak 0.216 最干净）。
+    归一化峰值 0.9 保证响亮。合成音效"小声"根因是留了安全余量，真实录音归一化即可。
+  - 案例：左轮四音效替换为 B 站真实录音（fire=M500 真枪单发 0.44s；reload=金属咔哒 0.15s；
+    reload_last=装填+转轮合上+闭锁 0.55s；equip=转轮甩出 0.16s）。旧合成版留 `.synthbak`。
+  - 兼容：44.1kHz 16-bit 单声道 WAV，浏览器 Audio 直接播。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
