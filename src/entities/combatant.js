@@ -589,10 +589,9 @@ class Combatant extends DamageableEntity {
             if (this._gunSpreadTimerOff < 0) this._gunSpreadTimerOff = 0;
         }
 
-        // 更新过热恢复
-        if (!this._overheatOverheated && this._overheatValue > 0) {
-            this._overheatValue = Math.max(0, this._overheatValue - dt * 0.0005);
-        }
+        // 过热统一走 _updateOverheat（玩家 update 自管；防御塔/敌人各自按武器调用）。
+        // 2026-08-06 删除旧残留恢复：dt*0.0005（≈0.5/s）会抵消塔的能量LMG过热积累，
+        // 且全库无人依赖此路径（玩家不调 super.update，敌人不积累过热）。
     }
 
     // ==================== 受击 ====================

@@ -108,6 +108,8 @@ def main():
                     help="显式固定缩放（如 0.624 = idle 参考）；缺省用首帧自动算")
     ap.add_argument("--uniform-h", action="store_true",
                     help="逐帧缩放到 target_h（高度统一，黑狼步态同款；宽度随姿态）")
+    ap.add_argument("--fixed-bbox", action="store_true",
+                    help="用全序列联合 bbox 固定裁切/腿部兜底区域（防 BiRefNet 单帧 bbox 收紧裁掉肢体）")
     ap.add_argument("--hard-edge", type=int, default=0,
                     help="黑狼硬边：alpha<该值清零（黑狼 CLEAN 惯例 245；0=关闭保留软边）")
     ap.add_argument("--edge-dark", type=int, default=-1,
@@ -138,6 +140,19 @@ def main():
         fixed_scale = args.target_h / max(1, ref_h)
         print(f"[rebuild] fixed_scale={fixed_scale:.3f} (ref_h={ref_h})", flush=True)
 
+    # 全序列联合 bbox（灰度<245 白底 mask），固定裁切与腿部兜底区域
+    bb = None
+    if args.fixed_bbox:
+        x0s, y0s, x1s, y1s = [], [], [], []
+        for f in frames:
+            g = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
+            ys, xs = np.where(g < 245)
+            if len(xs):
+                x0s.append(xs.min()); x1s.append(xs.max()); y0s.append(ys.min()); y1s.append(ys.max())
+        if x0s:
+            bb = (min(x0s), min(y0s), max(x1s), max(y1s))
+            print(f"[rebuild] fixed bbox={bb}", flush=True)
+
     out_cells = []
     for k in idxs:
         frame = frames[k]
@@ -155,7 +170,13 @@ def main():
         # 内阈值提高到 threshold(248) 强制主体，白边由后处理清理
         alpha_leg = np.zeros_like(alpha_b)
         ys, xs = np.where(alpha_b > 30)
-        if len(ys):
+        if bb:
+            y0, y1 = bb[1], bb[3]
+            cut = max(0, y0 + int((y1 - y0) * 0.65))
+            leg_region = np.zeros_like(gray, bool)
+            leg_region[cut:y1 + 1, :] = True
+            alpha_leg[leg_region & (gray <= args.threshold)] = 255
+        elif len(ys):
             y0, y1 = ys.min(), ys.max()
             cut = max(0, y0 + int((y1 - y0) * 0.65))
             leg_region = np.zeros_like(gray, bool)
@@ -185,11 +206,14 @@ def main():
         if args.zero_transparent_rgb:
             rgb[alpha < 8] = 0
         # bbox 用合成 alpha（排除 235~248 灰白背景噪点；完整狼含腿部/压低帧）
-        bbox_mask = (alpha > 30)
-        ys, xs = np.where(bbox_mask)
-        if len(xs) == 0:
-            ys, xs = np.where(alpha > 30)
-        x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+        if bb:
+            x0, y0, x1, y1 = bb
+        else:
+            bbox_mask = (alpha > 30)
+            ys, xs = np.where(bbox_mask)
+            if len(xs) == 0:
+                ys, xs = np.where(alpha > 30)
+            x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
         ch = y1 - y0 + 1
         cw = x1 - x0 + 1
         if args.uniform_h:
@@ -199,6 +223,8 @@ def main():
             fscale = fixed_scale
             nh = max(1, round(ch * fixed_scale))
         nw = max(1, round(cw * fscale))
+        if rgb[y0:y1+1, x0:x1+1].size == 0:
+            print(f"[rebuild] DEBUG k={k} bb={bb} rgb={rgb.shape} y0={y0} y1={y1} x0={x0} x1={x1}", flush=True)
         crop = cv2.resize(rgb[y0:y1+1, x0:x1+1], (nw, nh), interpolation=cv2.INTER_AREA)
         a = cv2.resize(alpha[y0:y1+1, x0:x1+1], (nw, nh), interpolation=cv2.INTER_AREA)
         cell = np.zeros((args.cell, args.cell, 4), np.uint8)

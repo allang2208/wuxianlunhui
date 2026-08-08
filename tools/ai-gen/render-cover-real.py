@@ -94,10 +94,129 @@ def box_full_uv(o):
     me.update()
 
 
+def make_soil_texture(name="soil_tex", size=256, seed=7):
+    """程序化泥土纹理：深棕噪点 + 碎石斑点（土底座颗粒用，无外部依赖）。"""
+    rng = np.random.default_rng(seed)
+    size = int(size)
+    base = np.array([112.0, 84.0, 58.0])  # 浅棕土（真实泥土偏浅棕/灰褐，避免深棕块状感）
+    noise = rng.normal(0, 16, (size, size)).astype(np.float32)
+    img = np.zeros((size, size, 4), dtype=np.float32)
+    for c in range(3):
+        img[..., c] = np.clip(base[c] + noise, 10, 245) / 255.0
+    img[..., 3] = 1.0
+    # 碎石斑点（深浅混杂）
+    for _ in range(80):
+        x, y = int(rng.integers(0, size)), int(rng.integers(0, size))
+        r = int(rng.integers(2, 6))
+        tone = rng.uniform(-0.35, 0.35)
+        for dy in range(-r, r + 1):
+            for dx in range(-r, r + 1):
+                if dx * dx + dy * dy <= r * r:
+                    xx, yy = x + dx, y + dy
+                    if 0 <= xx < size and 0 <= yy < size:
+                        img[yy, xx, 0] = np.clip(img[yy, xx, 0] + tone, 0, 1)
+                        img[yy, xx, 1] = np.clip(img[yy, xx, 1] + tone * 0.9, 0, 1)
+                        img[yy, xx, 2] = np.clip(img[yy, xx, 2] + tone * 0.8, 0, 1)
+    bpy_image = bpy.data.images.new(name, width=size, height=size)
+    bpy_image.pixels = img.ravel()
+    return bpy_image
+
+
+def soil_material(name="m_soil", tex=None):
+    """土底座颗粒材质（泥土纹理 + 轻微 bump）。"""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nodes, links = nt.nodes, nt.links
+    bsdf = nodes.get("Principled BSDF")
+    bsdf.inputs["Roughness"].default_value = 0.95
+    tex_node = nodes.new("ShaderNodeTexImage")
+    tex_node.image = tex
+    tex_node.interpolation = "Linear"
+    links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
+    bump = nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.35
+    bump.inputs["Distance"].default_value = 0.3
+    links.new(tex_node.outputs["Color"], bump.inputs["Height"])
+    links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    return mat
+
+
+def _local_to_world(lx, ly, lz, pos, rot_z_deg):
+    r = math.radians(rot_z_deg)
+    c, s = math.cos(r), math.sin(r)
+    return (pos[0] + lx * c - ly * s, pos[1] + lx * s + ly * c, pos[2] + lz)
+
+
+def build_soil_particles(prim, o, soil_mat):
+    """box 底部生成一圈碎石土块（土底座颗粒）：沿底边散布、前侧微微突出、部分埋地。
+    颗粒跟随 box 的旋转（手动应用 rot.z），保持 30° 视角下墙根有挖开泥土的颗粒感。"""
+    import random
+    cfg = prim.get("soil") or {}
+    count = int(cfg.get("count", 18))
+    rng = random.Random(int(cfg.get("seed", 7)))
+    w, d, h = prim["size"]
+    # 土带铺满整条墙根（含端帽边缘）：拼接时两墙端帽叠合区土带重叠自然连续，
+    # 土带不超出墙段 box（不侵入相邻墙段非叠合区），墙身砖面拼接保持原样无缝
+    half_w = float(cfg.get("halfW", w / 2 - 2))
+    out_y = float(cfg.get("outY", 8))       # 前侧向外突出
+    sx = cfg.get("sx", [4, 10]); sy = cfg.get("sy", [3, 8]); sz = cfg.get("sz", [2, 6])
+    pos = prim.get("pos", [0, 0, 0])
+    rot_z = prim.get("rot", [0, 0, 0])[2]
+    # 沿墙底边整条连续土埂（两端延伸到端帽外，保证墙根 + 转角都有泥土带）
+    bpy.ops.mesh.primitive_cube_add(size=2)
+    bank = bpy.context.active_object
+    bank.name = "soil_bank"
+    bank_w = float(cfg.get("bankW", w - 4))
+    bank_d = float(cfg.get("bankD", 24))
+    bank_h = float(cfg.get("bankH", 10))
+    bank.scale = (bank_w / 2, bank_d / 2, bank_h / 2)
+    blx, bly = 0.0, 0.0  # 居中铺在墙底边（前后各突出 bank_d/2 - d/2）
+    blz = -h / 2 + bank_h / 2 - 1
+    bwx, bwy, bwz = _local_to_world(blx, bly, blz, pos, rot_z)
+    bank.location = (bwx, bwy, bwz)
+    bank.rotation_euler = (0, 0, math.radians(rot_z))
+    bevel_corners(bank, amount=2, segments=2)
+    box_full_uv(bank)
+    bank.data.materials.append(soil_mat)
+    bank.parent = o
+    bank.matrix_parent_inverse = o.matrix_world.inverted()
+    # 随机颗粒点缀（碎石感）
+    for k in range(count):
+        bpy.ops.mesh.primitive_cube_add(size=2)
+        s = bpy.context.active_object
+        s.name = f"soil_{k}"
+        sdim = (rng.uniform(*sx), rng.uniform(*sy), rng.uniform(*sz))
+        s.scale = (sdim[0] / 2, sdim[1] / 2, sdim[2] / 2)
+        # box 局部坐标：底边 z=0，前侧 y=-d/2（相机侧），沿底边 x 散布
+        lx = rng.uniform(-half_w, half_w)
+        # 全部放前侧（相机侧 -y），outY 更突出：后侧会被墙身挡住不可见，
+        # 前侧沿整条底边（含端帽外延）分布才能覆盖全墙根 + 转角
+        ly = -(d / 2) - rng.uniform(0, out_y)
+        # box 局部坐标：底部 z = -h/2（box 中心在 pos，高 h）→ 颗粒落在墙底地面
+        lz = -h / 2 + sdim[2] / 2 - rng.uniform(0, 2)  # 部分埋地
+        wx, wy, wz = _local_to_world(lx, ly, lz, pos, rot_z)
+        s.location = (wx, wy, wz)
+        s.rotation_euler = (rng.uniform(0, math.pi), rng.uniform(0, math.pi), math.radians(rot_z) + rng.uniform(-0.4, 0.4))
+        if cfg.get("bevel", 1) > 0:
+            bevel_corners(s, amount=float(cfg.get("bevel", 1)), segments=2)
+        box_full_uv(s)
+        s.data.materials.append(soil_mat)
+        # 颗粒跟随主墙（不参与相机取景 bbox）；matrix_parent_inverse 保持世界位置
+        s.parent = o
+        s.matrix_parent_inverse = o.matrix_world.inverted()
+
+
 def build_wall(prims, tex_path):
     """建 box 棱柱（8 角可圆滑）+ 写实材质（bump；无 AO 阴影）。"""
     img = bpy.data.images.load(tex_path)
     objs = []
+    soil_img = None
+    soil_mat = None
+    need_soil = any(p.get("soil") or p.get("material") == "soil" for p in prims)
+    if need_soil:
+        soil_img = make_soil_texture(seed=int(prims[0].get("soilSeed", 7)))
+        soil_mat = soil_material("m_soil", soil_img)
     for i, p in enumerate(prims):
         t = p["type"]
         if t == "box":
@@ -111,12 +230,19 @@ def build_wall(prims, tex_path):
         o.location = p.get("pos", [0, 0, 0])
         rot = p.get("rot", [0, 0, 0])
         o.rotation_euler = [math.radians(a) for a in rot]
+        # 独立土块组精灵：墙身隐藏（hidden），只渲染土块/颗粒（供游戏叠加）
+        if p.get("hidden"):
+            o.hide_render = True
         # 8 角圆滑（用户要求尝试；默认 10 世界 px，spec 可覆盖）
         if p.get("bevel", 0) > 0:
             bevel_corners(o, amount=float(p["bevel"]), segments=int(p.get("bevelSegments", 3)))
         # 每面整张纹理（修默认 cube 分块 UV）
         box_full_uv(o)
 
+        if p.get("material") == "soil":
+            o.data.materials.append(soil_mat)
+            objs.append(o)
+            continue
         mat = bpy.data.materials.new(f"m_{i}")
         mat.use_nodes = True
         nt = mat.node_tree
@@ -135,6 +261,9 @@ def build_wall(prims, tex_path):
         links.new(tex.outputs["Color"], bump.inputs["Height"])
         links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
         o.data.materials.append(mat)
+        # 土底座颗粒（spec prim 带 soil 字段时）
+        if p.get("soil"):
+            build_soil_particles(p, o, soil_mat)
         objs.append(o)
     return objs
 
@@ -168,6 +297,7 @@ def setup_camera(spec, objs):
     bottom_y = spec.get("bottom_y", 880)
     max_w_frac = spec.get("max_width_frac", 0.8)
     top_margin = spec.get("top_margin_px", 64)
+    soil_margin = spec.get("soil_margin", 0.18)  # 土底座颗粒的额外取景余量（防颗粒出界）
 
     bpy.context.view_layer.update()
     corners = []
@@ -199,7 +329,7 @@ def setup_camera(spec, objs):
     miny, maxy = pts[:, 1].min(), pts[:, 1].max()
     s_w = (maxx - minx) / max_w_frac
     s_h = (maxy - miny) / ((bottom_y - top_margin) / SIZE)
-    s = max(s_w, s_h) * 1.02
+    s = max(s_w, s_h) * (1.02 + soil_margin)
     cam_data.ortho_scale = s
     cam_data.shift_x = float((minx + maxx) / 2) / s
     target_bottom = (0.5 - bottom_y / SIZE) * s

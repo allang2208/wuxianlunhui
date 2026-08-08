@@ -429,6 +429,7 @@ class DefenseCover extends Combatant {
         // 贴图：随机变体库（2026-08-05）——同档 5 个高度类似变体随机选，防单调：
         // v1=定稿（无后缀）；v2~v5=细节微调变体（A 级符文形态随机替换）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）。
+        // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）
         const variant = 1 + Math.floor(Math.random() * 5);
         const tex = variant === 1
             ? `obstacle_cover_${grade}_${orient}`
@@ -1157,6 +1158,8 @@ export const DefenseSystem = {
             const t0 = -cornerExt + faceLen / 2;
             const openMid = e.key === openEdge ? len / 2 : null;
             const alignY = e.key === openEdge ? (room.doorAlignY || 0) : 0;
+            // 上夹角 TL/TR 边：整条边共享同一纹理变体（相邻件端帽互叠，
+            // 独立随机会在接缝处出现"两层墙皮"式砖纹错位）；
             for (let i = 0; i < n; i++) {
                 const t = t0 + i * spacing;
                 // face 沿边区间 [t−faceLen/2, t+faceLen/2] 命中开放带则跳过（门洞）
@@ -1170,9 +1173,12 @@ export const DefenseSystem = {
                     y: Math.round(e.from.y + uy * t) + alignY,
                     grade: room.coverGrade,
                     orient: e.orient,
-                    // 上夹角：左臂（TL）盖右臂（TR）——两臂 faceDepth 相同，
-                    // 不加偏置会因创建顺序右挡左（2026-08-06 修复）
-                    depthBias: e.key === 'TL' ? 0.5 : 0,
+                    // 图层覆盖顺序（skill/git 沉淀：4b1cb5a「上方相交垂直墙在上，
+                    // 下方相交水平墙在上」）：
+                    // - 上角 TL(v) 盖 TR(h)：TL 边 +0.5
+                    // - 下角 LB(h) 盖 RB(v)：LB 边 +0.5
+                    // 两臂 faceDepth 相同，不加偏置会因创建顺序右挡左（2026-08-06 修复）
+                    depthBias: (e.key === 'TL' || e.key === 'LB') ? 0.5 : 0,
                 });
             }
         }

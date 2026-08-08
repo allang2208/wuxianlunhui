@@ -1,0 +1,16 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "primitives": [
+    { "type": "cylinder", "radius": 1.6, "depth": 0.4, "pos": [0, 0, 0.2] },
+    { "type": "cylinder", "radius": 1.25, "depth": 2.4, "pos": [0, 0, 1.6] },
+    { "type": "cylinder", "radius": 0.85, "depth": 0.3, "pos": [0, 0, 2.95] },
+    { "type": "cylinder", "radius": 0.6, "depth": 0.55, "pos": [0, 0, 3.45] },
+    { "type": "cylinder", "radius": 0.4, "depth": 1.0, "pos": [0, 0, 4.3] },
+    { "type": "cylinder", "radius": 0.11, "depth": 1.0, "pos": [0.55, 0, 4.25], "rot": [10, 0, 0] },
+    { "type": "cylinder", "radius": 0.5, "depth": 0.45, "pos": [0, 0, 4.95] },
+    { "type": "cylinder", "radius": 0.34, "depth": 0.85, "pos": [0, 0, 5.55] },
+    { "type": "cylinder", "radius": 0.42, "depth": 0.3, "pos": [0, 0, 6.05] },
+    { "type": "cylinder", "radius": 0.55, "depth": 0.2, "pos": [0, 0, 6.3] }
+  ]
+}

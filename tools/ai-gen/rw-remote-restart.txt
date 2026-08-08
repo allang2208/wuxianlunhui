@@ -1,0 +1,2 @@
+schtasks /create /tn ComfyUI_H3 /tr "powershell -NoProfile -Command Start-Process -FilePath D:\开发文件\ComfyUI\.venv\Scripts\python.exe -ArgumentList main.py,--listen,0.0.0.0,--port,8188,--enable-cors-header,* -WorkingDirectory D:\开发文件\ComfyUI -WindowStyle Hidden" /sc once /st 00:00 /f
+schtasks /run /tn ComfyUI_H3

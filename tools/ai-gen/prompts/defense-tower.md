@@ -1,7 +1,7 @@
-# 防御塔提示词模板（世界-122 防守地图，2026-08-04 新增）
+# 防御塔提示词模板（世界-122 防守地图，2026-08-04 新增；2026-08-06 v2 重制）
 
-> 目标：防御塔建筑贴图——下方基座 + 上方探出的机械臂（用于挂载武器贴图），
-> 写实风格、六档共用同一套视觉语言。
+> 目标：防御塔建筑贴图 v2——圆柱基座 + 顶部单独突出的机械臂（用于挂载武器贴图）；
+> 视角对齐游戏地面/墙壁（30° 等距、可见圆柱椭圆顶面）；写实暗黑风格。
 
 ## 风格基准（固定，与 obstacle.md 同源）
 
@@ -15,22 +15,27 @@ no text, no watermark
 ## 视角块
 
 ```text
-frontal view, straight-on, slight three-quarter perspective, facing the camera,
-base sitting flat on the ground, flat bottom edge, no visible top surface,
-the whole tower fully visible with generous margin
+isometric view matching the game floor perspective, three-quarter view,
+visible elliptical top surface of the cylinder, base sitting flat on the ground
 ```
 
-> **2026-08-04 二轮修正**：首版 A 图出现 45° 等距俯视（可见顶面），与游戏内建筑/道具
-> （祭坛/仓库/沙袋=正面平视 billboard、平底）不匹配；B 图视角正确但臂尖带枪管。
-> 视角块改为与 obstacle.md 同源的"正面平视"措辞，禁止"elevated/isometric/top"词。
+> **2026-08-06 v2 定稿（覆盖 08-04 billboard 版本）**：用户指定"参考地面、墙壁的
+> 视角/风格 + 下方基座做圆柱体 + 机械臂单独上方突出"，视角块改用 30° 等距
+> （与墙壁一致、可见圆柱椭圆顶面）；08-04 的"正面平视、no visible top"版本
+> 仅作历史参考。白模深度对视角是根治级锁定，必须走 Blender 白模。
 
 ## 主体块
 
 ```text
-a compact defense tower: sturdy dark stone and metal base at the bottom,
-and a mechanical robotic arm hanging from the top front, with an empty weapon
-mounting rail at the arm tip, a clean empty circular flange socket with no gun,
-riveted metal joints, worn paint, modular weapon socket ready to hold a gun
+main subject: a compact defense tower, a sturdy dark stone and metal cylindrical
+base at the bottom, weathered charcoal stone and riveted dark metal panels
+matching the game wall texture style, and a heavy industrial robotic arm
+protruding straight up from the top of the tower, built like a real robot arm:
+a bulky shoulder joint housing, a thick upper arm segment with a hydraulic
+piston cylinder alongside, a large elbow joint housing, a forearm segment, and
+at the arm tip a wide empty circular mounting flange socket with visible bolts
+and rivets, no gun, weathered dark metal with rust and scratches, worn paint,
+a modular weapon socket ready to hold a gun
 ```
 
 > 主体块明确"empty … no gun"；负面词再补枪械类，双保险。
@@ -44,18 +49,12 @@ multiple towers, duplicate objects, top-down view, UI element,
 gun barrel, cannon, rifle, machine gun, pistol, weapon attached, weapon on the arm
 ```
 
-## 验收
+## 管线（2026-08-06 v2 实测）
 
-1. GLM-4.6V：塔身 = 基座 + 上方机械臂、臂尖为空置武器挂载点、无枪械本体、无文字水印。
-2. 入库：`assets/terrain/obstacle_defense_tower.png`（或 `assets/npc/`），
-   DefenseTower.spriteCfg 指向；footOffsetY 按内容底边校准。
-
-## 白模深度迭代记录（2026-08-04 三轮实测）
-
-- 白模几何暗示会被 ControlNet 忠实放大：**裸斜圆柱 = 枪管邀请**（R1 臂上长出步枪管）；
-  机械臂必须用"关节球 + 短粗段"表达（R2 起枪械绝迹）。
-- 臂尖挂载件：小法兰 + 细段会被读成机械爪（R2）；放大浅环后被读成吊环（R3）——
-  空环可接受，要更像法兰需继续调 spec/种子。
-- strength 0.7 外轮廓会漂移（R2 塔身梯形化、顶部机房丢失）；**锁外轮廓用 0.8**。
-- 三轮均未复发 45° 等距/顶面可见——白模深度对视角是根治级锁定。
-- 产物：`scratch\test_tower_depth_01~03.png`；spec：`_blockout_specs/defense_tower.json`。
+1. 白模 spec：`_blockout_specs/defense_tower_v2.json`（底部圆环+圆柱基座+顶部安装盘+
+   机械臂 shoulder/upper arm/elbow/forearm/末端法兰，elevation 30）。
+2. 深度：`blender-depth-render.py` → `_depth_templates/blender_defense_tower_v2_h.png`。
+3. 出图：`comfyui-gen.py --model flux2-dev-depth --control-image <深度图> --strength 0.8`。
+4. 抠图：`make-transparent-icon.py`（白底→透明）。
+5. 拆臂：`cut-defense-tower-arm-v2.py`（机械臂=顶部 y78~388，基座=安装盘+圆柱，
+   输出 obstacle_defense_tower_arm.png / obstacle_defense_tower.png，并打印几何）。

@@ -488,6 +488,74 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - **vite JSON 缓存坑**：改 `data/*.json` 后若 `animation-config.js` 服务端仍带旧
     `?t=`，页面 import 会拿到旧数据（实测 attackTypes 少新键）——touch 文件触发
     失效即可；双份 data/ + public/data/ 都要改。
+- **红狼王全套抠图清理（2026-08-07 十九版，套黑狼 CLEAN 铁律）**：
+  - 用户反馈抠图有问题。用黑狼判据跑全套 10 张：**全部 DIRTY**——
+    run stray 1792 / edge_bright 2.5 万 / composite 843，其他张同量级；
+    trans_nonblack 1.7 万~82 万（透明区 RGB 残留）、semi 数百~3 万。
+  - 边缘亮像素定量：均值 RGB ~(200,184,186) 灰粉（背景白×红毛混合），
+    内邻毛色 (128,89,94)，**边缘无白毛** → 可安全压暗还原。
+  - 工具 `tools/ai-gen/rw-cutout-clean.py`（复用黑狼 post_clean_sheet 五步：
+    alpha 硬二值化 245 → 每格最大连通域 → 透明区 RGB 归零 → 腿部 5×5 毛色均值），
+    **差异点：边缘亮像素用 5×5 邻域毛色均值还原，不用黑狼固定 18**
+    （固定 18 会把红毛压成黑点）；兜底深红 (90,18,18)。
+    注意 pounce_bite 是 576² 格（cell=576），其余 512²。
+  - 清理后 10 张全 CLEAN（stray/semi/trans_nonblack/edge_bright/composite 全 0），
+    GLM 合成灰底预览 + 实机截图均无白边/白点/脚底灰圈，狼身完整无洞。
+- **红狼人形态独立显示尺寸（2026-08-07 二十版）**：
+  - 红狼人贴图本身够壮（172×259），但上屏与狼形态共用 spriteSize 151 → 内容
+    只有 ~51px 宽，看起来比狼还小。新增 `render.transformedSpriteSize`（默认 200，
+    data/ + public/ 双份），变身态按此重算 displaySize（200≈+32%），实机红狼人
+    明显高于玩家/普通怪，有压迫感。
+  - 实现：RedWolfKing `_getPhaserOptions` 覆写（变身态替换 spriteSize）+ 兜底
+    `_drawSheetFrame`（canvas 路径按同一尺寸/偏移等比缩放）。
+  - **vite 对 data/*.json 模块缓存可能滞后**：改 JSON 后代码内用 `?? 默认值`
+    兜底保证生效（本次 JSON 加了键但页面仍读到旧模块，靠代码默认 200 落地）；
+    最终以 JSON 为准需重启 dev server 或等缓存刷新。
+- **红狼王变身期锁移动 + 减伤 90%（2026-08-07 二十一版）**：
+  - 需求：变身动画期间不可移动、减伤 90%（站着挨打也站得住）。
+  - 实现：变身期 `_frozenForCast=true`（MovementSystem 每帧 return，真锁移动，
+    不是只清零 vx/vy）+ 终止进行中的撕咬/飞扑（_endBite/_endPounce 会清
+    frozenForCast，顺序必须先终止再上锁）；嚎叫期沿用同锁。
+  - 减伤：覆写 `takeDamage`，在暴击计算前 `damage × (1 - damageReduction)`，
+    默认 0.9，`transform.damageReduction` 可配（animation-config/enemy-config
+    data+public 双份四文件同步）。
+  - 实机验证：变身中 frozenForCast=true、vx=vy=0、takeDamage(100) 实际掉 10；
+    变身+嚎叫结束解锁，红狼人 200 尺寸/攻击/移动正常。
+- **红狼人 v2 统一体型（2026-08-08 二十二版，方案 A 重生成）**：
+  - 根因：三个红狼人 H3 视频本身体型不一致（待机视频最瘦 ~371 源宽、run ~559、
+    attack ~482）→ 切帧后 idle sheet 176 宽 vs run/attack ~257，游戏里待机时人形
+    ~69px、跑攻突然 ~100px（+45%），看起来像截取错乱。应用链无问题。
+  - 修复：统一参考图 = rwk_tatk 视频 f10（最壮站立帧，GLM 选定），裁 1024×576
+    白底；run/attack 用 `minimax-h3-gen.py --first-frame/--last-frame <同一参考>`
+    重新生成（i2v 锁体型，1024×576/16 步/124 帧）；idle 直接裁参考图。
+  - 产物：idle 261×260、run 14 帧 7×2（步态周期 P≈25，step 2 覆盖一个周期，
+    loop IoU 0.717 > step 0.603）、attack 12 帧 4×3；三张 uniform-h 262、脚底 410、
+    CLEAN 五指标全 0、GLM 通过；实机红狼人三态体型一致且魁梧。
+  - 新工具：`rw-humanoid-idle-cut.py`（单帧静态裁剪）、
+    `rw-normalize-cell-height.py`（逐格高度归一化——BiRefNet bbox 被脚底噪声拉高
+    导致该格主体偏矮 206~221 的补偿，清理后再归一化一次）、`rw-humanoid-deploy.ps1`。
+  - 坑：远程 ComfyUI 崩溃（进程在但不监听）→ SSH 断连会杀会话进程树 →
+    必须用 `schtasks /create + /run` 计划任务启动；系统 python 缺 sqlalchemy，
+    必须用 `D:\开发文件\ComfyUI\.venv\Scripts\python.exe`；远程操作中文路径
+    用 UTF-16LE base64 `-EncodedCommand` 绕过引号/GBK 坑。
+- **红狼人抠图规则修正 + 形变修复（2026-08-08 二十三版）**：
+  - 用户反馈：没按 SKILL 抠图规则（红狼王不能套黑狼硬边），且大小形变严重。
+  - **抠图规则**：红狼王 = 保留浅毛软边（semi≈0.5~1%）+ 去污染，不是黑狼硬二值化
+    （semi=0 会把浅毛削平、边缘生硬）。`rw-cutout-clean.py --soft`：
+    ① 半透反推前景色 F=(C-(1-α)B)/α（B=255），反推后仍亮(>165)=未分离残留清零；
+    ② **composite 判据后处理**：软边中合成到灰底显白（lum>175）的半透像素清零，
+       深色毛软边保留 → composite=0 且 semi 保持 0.5~1%；
+    ③ 每格最大连通域 / 透明区 RGB 归零 / 边缘亮像素局部毛色 / 腿部去残留照旧。
+  - **大小形变根因**：视频源红狼人体型稳定（源宽 spread 仅 8%），是 **uniform-h
+    把矮帧放大导致 sheet 宽度暴涨**（估计 spread 23~45%）。修复：
+    **fixed-scale（首帧同比例）+ `rebuild-h3-birefnet.py --fixed-bbox`
+    （全序列联合 bbox 固定裁切/腿部兜底区域，防 BiRefNet 单帧 bbox 收紧裁掉
+    肢体尖）**。结果：idle 261 / run 255~271（spread 6%）/ attack 259~280
+    （spread 8%），高度随姿态自然起伏（run 186~217、attack 208~260）。
+  - 实测：三态全 CLEAN（stray/trans_nonblack/edge_bright/composite=0）、
+    semi 0.66~0.86%、GLM 确认体型一致、脚腿完整、毛发边缘自然、实机无白边。
+  - 注意：`--fixed-bbox` 的 bbox 顺序是 (x0,y0,x1,y1)，解包时勿写成 (x0,x1,y0,y1)
+    （写反会裁空报 cv2 resize error）。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -4275,3 +4343,46 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   灰边残留 6~37% 超标（掩体深色材质不受影响，陷阱的浅木/金属/火焰必翻车）。
 - **验收**：GLM 检查视角/主体/无白边；实机放 4 类 D 级陷阱截图，GLM 确认与地面
   墙壁协调、大小合适、类型可辨识。
+
+### 8. 掩体墙根土块（Blender 整合建模，2026-08-08 最终定稿）
+- **最终方案（用户反复校正后定稿）**：**土块与墙在同一个 Blender 渲染中整合建模**
+  （烘焙进墙贴图），土块沿墙底边精确贴合；独立叠加方案（sprite/贴花）已否——
+  对不齐墙体、图层混乱。
+- **实现**：`render-cover-real.py` 的 `build_wall` 加 `soil` 字段（墙 box 不设 hidden，
+  土块一起渲染）：土埂（bankW≈w 铺满整条底边）+ 60 个碎石颗粒（sz 8-16 高低起伏、
+  前后错落、bevel 2，前侧 -y + 土埂），程序化泥土材质。
+  入库 `obstacle_cover_D*`（D 级 5 变体 × h/v）；GameScene 无独立土块层
+  （土块随墙贴图渲染，depth = `_faceDepth` 单一图层，无图层问题）。
+- **验证**：实机确认——土块贴合墙斜向底边无错位/悬浮、拼接竖缝墙身无缝、
+  拼接处土块连续自然、上夹角 TL 盖 TR（depthBias TL/LB 0.5）无冲突。
+- **坑**：独立土块 sprite（不同尺寸/位置/图层）必然对不齐墙 + 图层混乱——
+  土块必须与墙同渲染烘焙，不能分开建模后游戏层叠加。
+- **⚠ 拼接缝隙根因（2026-08-08 实机复现）**：`soil_margin` 默认 0.18 会撑大
+    ortho 取景、让墙身贴图缩小（内容 x 215-843 vs 原版 163-856），端帽边缘偏移 →
+   水平拼接处露 1-2px 暗缝。土块在墙身 box 内（`bankW`/`halfW` ≤ w）时不需要余量，
+   必须设 `soil_margin: 0`——墙身恢复原版尺寸、拼接无缝。渲染后核对内容框
+    x 范围（原版 163-856 基准）。
+  - **⚠ 用户报“拼接还有缝”先查构建版本（2026-08-08 二次复现）**：源码贴图修好后，
+    实机仍报“同一水平线拼合有明显缝隙”，排查发现用户运行的是**旧打包版
+    （dist-electron-new 0.198.6，构建于修图前）**——打包版 resources/app/dist/assets
+    里的贴图仍是旧内容框（163-860/无土），dev server 才是新图（163-902/带土）。
+    结论：**改贴图后必须重新打包**（`npm run build:win`，产物 `dist-electron-new/无限轮回 X.Y.Z.exe`），
+    并核对 win-unpacked/resources/app/dist/assets 与源图 SHA 一致；dev 侧用户硬刷新
+    （Ctrl+F5）即可。验证工具：`tools/cdp-join-audit.mjs`（带坐标系校验标记 +
+    精确定位接缝）+ `tools/join-sim.py`（25 组变体组合确定性模拟，0 缝隙）。
+  - **⚠ 上夹角“侵入式叠合”根因（2026-08-08 诊断）**：`_buildBaseRoom` 用
+    `faceLen/2`（98.17）当作 face 在边方向上的对称半跨来算首件位置
+    （`t0 = -cornerExtend + faceLen/2`），但 COVER_FACE 端点在边方向上的真实投影
+    不对称（v 向在 TL/RB 边：A 投影 +69.3、B 投影 −127；h 向反之）→
+    转角件 face 实际越过顶点 **73.8px**（意图 cornerExtend=45px），
+    两臂在角点叠合 ~147px，即用户看到的“侵入式贴合/图层错误”。
+    修正：按真实投影算首/末件 t0/t_last（朝顶点端投影 127），让 face 端点正好
+    越过顶点 cornerExtend；`faceLen/2` 假设仅适用于对称 face。
+  - **图层顺序 A/B 实测（2026-08-08）**：上夹角 TL(v) 盖 TR(h)（当前 depthBias+0.5）
+    vs TR(h) 盖 TL(v)，GLM 对比实机截图认为 **TR 盖 TL 更自然**（砖纹过渡连贯、
+    尖角像单层、无明显暗缝；反之转角有暗缝/断层）。叠合区（face 交线上方）图层
+    顺序肉眼可辨；下方（face 交线下）两者相同。下夹角 LB(h) 盖 RB(v) 是否也要
+    反过来需同样 A/B 复核。验证：`tools/cdp-corner-audit.mjs`（改 e._faceDepth
+    即切图层，每帧深度同步读它）。
+  - **转角底部透底**：两面墙土带在角点下方不衔接（cap 端纹理提前透明），
+    角点正下方出现竖向暗缝/亮地面透出；Blender 土埂/颗粒需覆盖到端帽外缘底角。

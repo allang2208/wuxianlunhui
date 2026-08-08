@@ -20,6 +20,7 @@ import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { BuildingSystem } from './building-system.js';
+import { DefenseTrapSystem } from './defense-trap-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -131,6 +132,9 @@ export const SceneManager = {
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
+            }
+            if (DefenseTrapSystem && typeof DefenseTrapSystem.teardown === 'function') {
+                DefenseTrapSystem.teardown();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();

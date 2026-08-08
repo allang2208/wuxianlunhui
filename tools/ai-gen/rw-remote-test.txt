@@ -1,0 +1,2 @@
+Set-Location -LiteralPath 'D:\开发文件\ComfyUI'
+& 'C:\Users\WINDOWS\AppData\Local\Programs\Python\Python311\python.exe' main.py --listen 0.0.0.0 --port 8188 --enable-cors-header '*' *> D:\comfy_start.log

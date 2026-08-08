@@ -30,7 +30,7 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getTorsoRect } from '../physics/torso-hitbox.js';
 import { Enemy } from '../entities/enemy.js';
 import { NPC } from '../entities/npc.js';
-import { BlackWolf, AmalgamZombie } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, AmalgamZombie } from '../entities/enemy-types.js';
 import { ZOMBIE_FACTORY_MAP } from '../world/zombie-dungeon.js';
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from '../world/wall-system.js';
 import { getWallGeoOverrides, saveWallGeoOverrides } from '../world/wall-prefabs.js';
@@ -39,6 +39,7 @@ import { DungeonConfig } from '../config/dungeon-config.js';
 // 无地牢工厂但有专属类的怪物：补充类映射（其余老怪走通用 Enemy 圆形占位预览）
 const EXTRA_CLASS_MAP = {
     blackWolf: BlackWolf,
+    redWolfKing: RedWolfKing,
     amalgamZombie: AmalgamZombie,
 };
 
