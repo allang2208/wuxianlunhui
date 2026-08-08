@@ -248,8 +248,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             ty = enemy._tacticalTarget.y;
             hasTarget = true;
         }
-        // 2. 战斗指挥官目标
-        else if (Game && Game._battleCommander && !chargeStraight) {
+        // 2. 战斗指挥官目标（防守怪不走指挥官——战术点围绕玩家，与防守目标冲突）
+        else if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 tx = tp.targetX;
@@ -487,12 +487,64 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                         enemy._repositionTimer = 0;
                     }
                 }
+
+                // [DEFENSE] 被掩体墙挡住且当前目标够不着时，主动转火挡路的掩体
+                // （不等感知 500ms 重扫 + 1.3× 滞回；掩体摧毁后走正常重选）
+                if (enemy._defenseMonster) {
+                    this._retargetBlockingCover(enemy);
+                }
             }
 
             enemy._stuckTimer = 0;
             enemy._lastX = enemy.x;
             enemy._lastY = enemy.y;
         }
+    },
+
+    /**
+     * [DEFENSE] 卡住时若身旁有挡路的掩体墙段，且当前目标在攻击距离外，
+     * 主动把目标切换为该掩体（啃墙开路）。仅世界-122 防守怪调用。
+     * @param {Enemy} enemy
+     */
+    _retargetBlockingCover(enemy) {
+        if (!WallSystem || !WallSystem.isoSegments) return;
+        // 当前目标已在攻击距离内（正在打/马上能打）时不抢目标
+        if (enemy.target && enemy.target.active) {
+            const reach = enemy.attackDistance !== undefined ? enemy.attackDistance : (enemy.attackRange || 70) * 1.15;
+            const td = Math.sqrt((enemy.target.x - enemy.x) ** 2 + (enemy.target.y - enemy.y) ** 2);
+            // 结构目标 footprint 较大，中心距离放宽一个墙厚量级
+            const slack = enemy.target._isDefenseStructure ? 120 : 0;
+            if (td <= reach + slack) return;
+        }
+        const touch = (enemy.groundRadius || 20) + 26 + 12; // 半径 + 墙半厚 + 余量
+        let best = null, bestD = Infinity;
+        for (const s of WallSystem.isoSegments) {
+            if (!s._cover) continue;
+            const owner = s._owner;
+            if (!owner || !owner.active || owner.hp <= 0) continue;
+            if (enemy.target === owner) return; // 已经在打这堵墙
+            const d = this._pointSegDistance(enemy.x, enemy.y, s.x1, s.y1, s.x2, s.y2);
+            if (d <= touch && d < bestD) {
+                bestD = d;
+                best = owner;
+            }
+        }
+        if (best) {
+            enemy.target = best;
+            enemy._lastKnownTargetPos = { x: best.x, y: best.y };
+            enemy._lostSightTimer = 0;
+        }
+    },
+
+    /** 点到线段最短距离 */
+    _pointSegDistance(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        const cx = x1 + t * dx, cy = y1 + t * dy;
+        return Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
     },
 
     /**

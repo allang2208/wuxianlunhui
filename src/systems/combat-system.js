@@ -97,8 +97,9 @@ class CombatSystemImpl {
             // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
             isBlocked = !enemy._perception.lastLOSResult;
         } else {
-            // 缓存未命中：fallback 到 WallSystem 直接检测
-            isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY);
+            // 缓存未命中：fallback 到 WallSystem 直接检测（掩体目标忽略自身墙段，同上）
+            const ignore = enemy.target._coverSeg ? { segs: new Set([enemy.target._coverSeg]) } : null;
+            isBlocked = WallSystem && WallSystem.blocked(enemy.x, enemy.y, targetX, targetY, ignore);
         }
         // === END REFACTOR ===
         if (isBlocked) {

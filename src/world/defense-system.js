@@ -434,6 +434,7 @@ class DefenseCover extends Combatant {
                 x2: this._faceLine[1].x, y2: this._faceLine[1].y,
                 halfThick: this._coverHalfThick,
                 _cover: true,
+                _owner: this, // 回链：怪物被挡路时转火本掩体（movement-system 卡住检测用）
             };
             WallSystem.isoSegments.push(this._coverSeg);
             // 掩体墙段注册后让寻路网格失效重建（玩家摆放/基地搭建都会走到这里；
@@ -1344,6 +1345,12 @@ export const DefenseSystem = {
         // 防守模式：只锁定基地/防御塔（PerceptionSystem/Enemy._findNearestPlayer 已支持）
         monster._preferDefenseTargets = true;
         monster._alertRange = DEFENSE_CONFIG.spawn.alertRange;
+        // aggro 归一化：pacing AI 怪（黑狼 _aggroRange 2500）出生点距基地 ~3000px，
+        // aggro 小于 alertRange 会原地踱步不进场；统一抬到 alertRange（ai.defenseAggroRange 可覆盖）
+        const defAggro = (monster.ai && monster.ai.defenseAggroRange) || DEFENSE_CONFIG.spawn.alertRange;
+        if (monster._aggroRange && monster._aggroRange < defAggro) {
+            monster._aggroRange = defAggro;
+        }
         // 波次成长：HP/攻击随波次提升
         const hpMul = (1 + (wave - 1) * DEFENSE_CONFIG.spawn.hpPerWave) * hpMulExtra;
         const atkMul = 1 + (wave - 1) * DEFENSE_CONFIG.spawn.atkPerWave;

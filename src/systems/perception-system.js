@@ -246,7 +246,10 @@ class PerceptionSystemImpl {
 
         // 使用 WallSystem 检测视线阻挡
         if (WallSystem && WallSystem.blocked) {
-            const blocked = WallSystem.blocked(enemy.x, enemy.y, target.x, target.y);
+            // 掩体目标忽略自身 face 墙段：从墙背面接近时射线必穿自身线段，
+            // 不忽略会永远判"无视线"导致 CombatSystem 拒绝对掩体出手
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            const blocked = WallSystem.blocked(enemy.x, enemy.y, target.x, target.y, ignore);
             p.lastLOSResult = !blocked;
             return !blocked;
         }

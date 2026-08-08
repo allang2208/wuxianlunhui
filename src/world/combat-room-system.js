@@ -1379,29 +1379,12 @@ export const CombatRoomSystem = {
             const sA = sOf(A), sB = sOf(B);
             const INSIDE = 8; // 允许越线 8px（叠合公差）
             if (sA > INSIDE && sB > INSIDE) return null; // 整件在房内：丢弃
-            if (sA > INSIDE || sB > INSIDE) {
-                // 求与"边线向房内 +8px"的交点，裁回越线端点
-                const clipPt = (inside, outside) => {
-                    const si = sOf(inside), so = sOf(outside);
-                    const t = (so - INSIDE) / (so - si);
-                    return { x: outside.x + (inside.x - outside.x) * t, y: outside.y + (inside.y - outside.y) * t };
-                };
-                if (sA > INSIDE) A = clipPt(A, B);
-                if (sB > INSIDE) B = clipPt(B, A);
-            }
         }
-        const oldLen = Math.hypot(seg[1].x - seg[0].x, seg[1].y - seg[0].y);
-        const newLen = Math.hypot(B.x - A.x, B.y - A.y);
-        if (newLen < 10) return null; // 裁完不足一截：丢弃
-        // 中心随底边中心平移，scaleX 按裁剪比例折算（高度/深度不变）
-        const cxOld = (seg[0].x + seg[1].x) / 2, cyOld = (seg[0].y + seg[1].y) / 2;
-        const cxNew = (A.x + B.x) / 2, cyNew = (A.y + B.y) / 2;
-        return {
-            ...piece,
-            x: piece.x + (cxNew - cxOld),
-            y: piece.y + (cyNew - cyOld),
-            scaleX: (piece.scaleX ?? 1) * (newLen / oldLen),
-        };
+        // ⚠ 2026-08-08 修：部分越线不再按比例缩 scaleX——削短会同时削短墙顶，
+        // 通道口墙顶出现台阶/错位（实机：沼泽柴墙 3 段瓦被裁 136~154px，门口扭曲；
+        // 关闭裁剪后门口自然、墙不突入房间）。按 SKILL「定长定高瓦片、尾端超出
+        // 由邻居（房间墙/门）盖住」规则，部分越线保留整件；仅整件进房才丢弃。
+        return piece;
     },
 
     /**
@@ -1443,7 +1426,15 @@ export const CombatRoomSystem = {
         for (const sign of [1, -1]) {
             const side = byPiece.filter(q => Math.sign(q.perpD) === sign);
             if (!side.length) continue;
-            const dSide = side.reduce((s, q) => s + q.perpD, 0) / side.length;
+            // ⚠ 2026-08-08 修：侧墙线不能取平均值——走廊带内还会收集到平行的
+            // 房间边墙（perpD 远大于走廊侧墙），平均会被带偏，封口墙与预制侧墙
+            // 错位 25~54px（通道"扭曲/台阶"根因）。改取**中位数**（抗离群值）：
+            // 走廊自己的侧墙段数量最多、落在同一线上，中位数即正确侧墙偏移。
+            const sorted = side.map(q => q.perpD).sort((a, b) => a - b);
+            const n = sorted.length;
+            const dSide = n % 2 === 1
+                ? sorted[(n - 1) / 2]
+                : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
             const S0 = { x: mid.x + perp.x * dSide, y: mid.y + perp.y * dSide };
             const projOf = (P) => (P.x - S0.x) * axis.x + (P.y - S0.y) * axis.y;
             let lo = Infinity, hi = -Infinity;

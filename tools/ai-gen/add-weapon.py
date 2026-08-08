@@ -428,7 +428,7 @@ def scaffold_sounds(spec):
 # 5. 图片生成 / 处理
 # ---------------------------------------------------------------------------
 
-def gen_image(spec, host, model, seeds, timeout):
+def gen_image(spec, host, model, seeds, timeout, ref_image=None):
     key = spec["key"]
     out_dir = os.path.join(CAND_DIR, key)
     os.makedirs(out_dir, exist_ok=True)
@@ -436,6 +436,17 @@ def gen_image(spec, host, model, seeds, timeout):
     base = [sys.executable, os.path.join(TOOLS_DIR, "comfyui-gen.py"),
             "--host", host, "--model", model, "--prompt-file", prompt_file,
             "--timeout", str(timeout)]
+    control = None
+    if ref_image:
+        # 从真实参考图（白底/纯色底完整侧视）抠剪影 → 黑底白枪深度图，
+        # 传 --control-image 锁武器大形（光靠提示词会飘，2026-08-08 M416 教训）
+        sil = _build_ref_silhouette(ref_image)
+        if sil:
+            control = sil
+            base += ["--control-image", sil]
+            log(f"ref silhouette -> {sil} (control image)")
+        else:
+            log("WARN: ref silhouette build failed, falling back to prompt-only")
     for seed in seeds:
         out = os.path.join(out_dir, f"{key}_icon_seed{seed}.png")
         if os.path.exists(out) and os.path.getsize(out) > 10000:
@@ -448,6 +459,40 @@ def gen_image(spec, host, model, seeds, timeout):
             log(f"gen failed seed={seed} rc={r.returncode}")
         elif os.path.exists(out):
             log(f"candidate -> {out}")
+
+
+def _build_ref_silhouette(ref_path, size=1024, content_frac=0.92):
+    """从参考图生成黑底白枪剪影深度图（对齐 spec.layout centerY=0.543）。
+    白底/纯色底完整侧视效果最佳；返回剪影 PNG 路径，失败返回 None。"""
+    try:
+        from PIL import Image, ImageFilter
+        import numpy as np
+        im = Image.open(ref_path).convert("RGB")
+        a = np.asarray(im).astype(int)
+        nonwhite = np.abs(a - 255).max(axis=2) > 25
+        if nonwhite.mean() < 0.01:
+            return None
+        ys, xs = np.where(nonwhite)
+        x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+        crop = im.crop((x0, y0, x1 + 1, y1 + 1))
+        w, h = crop.size
+        target_w = int(size * content_frac)
+        nh = int(h * (target_w / w))
+        crop2 = crop.resize((target_w, nh), Image.LANCZOS)
+        mask = (np.abs(np.asarray(crop2.convert("RGB")).astype(int) - 255).max(axis=2) > 25)
+        sil = np.where(mask, 255, 0).astype(np.uint8)
+        sil_img = Image.fromarray(sil, "L").filter(ImageFilter.GaussianBlur(0.8))
+        canvas = Image.new("L", (size, size), 0)
+        ox = (size - target_w) // 2
+        oy = int(size * 0.543 - nh // 2)
+        canvas.paste(sil_img, (ox, oy))
+        out = os.path.join(CAND_DIR, os.path.splitext(os.path.basename(ref_path))[0] + "_sil.png")
+        os.makedirs(CAND_DIR, exist_ok=True)
+        canvas.save(out)
+        return out
+    except Exception as e:
+        log(f"ref silhouette error: {e}")
+        return None
 
 
 def _alpha_bbox(alpha, thresh=8):
@@ -816,11 +861,12 @@ def js_todo(spec):
         ("src/combat/weapon-transform.js", "加 m416 变换块（抄 akm）+ getAttackAnimOffset 分支"),
         ("src/config/enchant-config.js", "枪械类可附魔名单加 m416"),
         ("src/ui/quick-bar.js", "冲撞/远程判定加 m416"),
-        ("src/ui/equip-manager.js", "weapon2 槽 equippedRangedType 加 m416"),
+        ("src/ui/equip-manager.js", "weapon2 槽 equippedRangedType 加 m416；装备音效触发已提升为通用（equipSound 非空即播，勿删）"),
         ("src/combat/attack.js", "RangedAttack 开火音效加 m416"),
         ("src/game.js", "_WEAPON_SPAWN_LIST 在 AKM 后加 M416_ITEM"),
         ("src/ui/dev-tool.js", "WEAPON_MAP 加 m416"),
         ("src/world/defense-system.js", "TOWER_WEAPON_TYPES/BASE_WEAPON_DAMAGE/heights/TOWER_FIRE_SOUNDS 加 m416"),
+        ("src/config/gun-ammo.js", "GUN_EQUIP_SOUND 加 weaponN → 装备音效（新枪若无专属音效可不加；触发已通用化）"),
     ]
     for rel, what in rows:
         log(f"  - {rel}: {what}")
@@ -838,6 +884,8 @@ def main():
     g.add_argument("--model", default="flux2-klein-4b")
     g.add_argument("--seeds", default="1,2,3")
     g.add_argument("--timeout", type=int, default=900)
+    g.add_argument("--ref-image", default=None,
+                   help="真实参考图（白底完整侧视）：自动抠剪影作 --control-image 锁武器大形")
     p = sub.add_parser("process-image")
     p.add_argument("--raw", required=True)
     p.add_argument("--force", action="store_true")
@@ -872,7 +920,7 @@ def main():
         verify(spec)
     elif args.cmd == "gen-image":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
-        gen_image(spec, args.host, args.model, seeds, args.timeout)
+        gen_image(spec, args.host, args.model, seeds, args.timeout, ref_image=args.ref_image)
     elif args.cmd == "process-image":
         process_image(spec, args.raw, args.force, cutout_tool=args.cutout_tool,
                       orient=not args.no_orient, auto_level=not args.no_auto_level,
