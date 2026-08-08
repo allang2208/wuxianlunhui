@@ -3161,6 +3161,19 @@ addTree(x, y, radius, ...) {
     清"邻域有低 alpha 的近白像素"（仅外圈，保留枪身内部高光——不锈钢反光近白 6 万是正常材质）→
     alpha 形态学腐蚀 1px 剥最外圈。验收：过渡带(alpha 8~250)亮色占比 <1% 即干净。
   - 用户验收口径：枪口朝右（右端细=枪管）、枪管中心线水平、转轮清晰、无白边。
+- **左轮音效与单发装填（2026-08-08 用户验收二轮）**：
+  - 开火音效用户嫌"小声不脆"→ 重做：低频冲击(70Hz,×1.0)+主爆裂(250-4000Hz,×1.1)+
+    尖锐高频 snap(2-9kHz,×0.95) 叠加，峰值拉满到 0.98。**合成音效要"响亮"就把峰值
+    归一化到 0.9+ 并叠高频层**，别留安全余量。
+  - 换弹改**一发一发装填**（参考 Super90）：`ammoConfig.singleReloadMode: true` +
+    `reloadTime: 900`（每发 900ms）。未满弹期间 `state.reloading=true` 自动阻止开火，
+    无需额外逻辑。改三处配置：EDM / shop-system / gun-ammo 回退表。
+  - **单发装填音效坑**：`_updateReload` 继续装填分支硬编码
+    `Super90-reload.mp3`、满弹分支硬编码 `bolt_pull_1s_clean.wav`——新枪会播错音。
+    修复：优先读 `ammoConfig.reloadSound`（每发）与新增 `reloadFinishSound`（满弹收尾），
+    缺失再回退旧值。**改通用机制时必须检查硬编码回退，否则同族武器全串音**。
+  - 左轮四音效：开火 0.5s（重击+脆响）/ 每发装填 0.35s 金属咔哒 /
+    最后一发+转轮回摆合上 1.0s / 装备拔枪+转轮锁定 0.6s。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

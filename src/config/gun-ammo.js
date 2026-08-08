@@ -2,7 +2,7 @@
 export const GUN_AMMO_CAP = {
     weapon9:  { max: 12, reloadTime: 1000 },
     weapon10: { max: 6,  reloadTime: 1750 },
-    weapon22: { max: 6,  reloadTime: 2000, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav' },
+    weapon22: { max: 6, reloadTime: 900, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav', reloadFinishSound: 'assets/sounds/weapons/revolver357_reload_last.wav' },
     weapon19: { max: 9,  reloadTime: 1500 },
     weapon18: { max: 12, reloadTime: 1200 },
     weapon6:  { max: 75, reloadTime: 3500 },
