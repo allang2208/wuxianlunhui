@@ -877,7 +877,7 @@ update(dt, entities) {
                     // 判断当前有效武器的类型
                     const isPistol = effectiveItem && (effectiveItem.weaponType === 'pistol' || effectiveItem.rangedType === 'pistol');
                     const isBow = effectiveItem && effectiveItem.weaponType === 'bow';
-                    const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
+                    const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'm416' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
                     const isShotgun = effectiveItem && effectiveItem.weaponType === 'shotgun';
                     const isMelee = effectiveItem && (effectiveItem.category === 'weapon_melee' || effectiveItem.weaponType === 'sword');
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);
@@ -1011,7 +1011,7 @@ update(dt, entities) {
                     } else if (isPkm) {
                         // PKM / AKM / 191 / 201 / 能量轻机枪 全自动模式：按住 leftDown 持续射击
                         const isEnergyLMG = effectiveItem.weaponType === 'energy_lmg';
-                        const attackKey = effectiveItem.weaponType === 'pkm' ? 'pkm' : (effectiveItem.weaponType === 'akm' ? 'akm' : (effectiveItem.weaponType === 'qbz191' ? 'qbz191' : (effectiveItem.weaponType === 'qjb201' ? 'qjb201' : 'energy_lmg')));
+                        const attackKey = effectiveItem.weaponType === 'pkm' ? 'pkm' : (effectiveItem.weaponType === 'akm' ? 'akm' : (effectiveItem.weaponType === 'qbz191' ? 'qbz191' : (effectiveItem.weaponType === 'qjb201' ? 'qjb201' : (effectiveItem.weaponType === 'm416' ? 'm416' : 'energy_lmg'))));
 
                         // 检查弹药和换弹状态（能量轻机枪无限子弹，不检查弹药）
                         const hasAmmo = isEnergyLMG ? true : this._hasAmmo(effectiveSlot);

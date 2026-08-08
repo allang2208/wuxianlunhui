@@ -138,6 +138,15 @@ export const WEAPON_ATTACK_CONFIG = {
         damage: { min: 1, max: 1 },
         piercing: false
     },
+    m416: {
+        type: 'RangedAttack',
+        cooldown: 110,
+        projectileSpeed: 1248,
+        projectileRange: 1150,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false
+    },
     qbz191: {
         type: 'RangedAttack',
         cooldown: 70,

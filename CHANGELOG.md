@@ -1,5 +1,44 @@
 # 变更日志
 
+### 对话：C 盘再次爆满（2026-08-08，CDP 残留 183 个 95.4GB）+ 治本
+- **根因**：`tools/cdp-*.mjs` 每次运行在 `%TEMP%` 建 `edge-*` 临时 Edge profile（~0.6GB/个），
+  用完从不删除；8/7 清过 111 个 47.7GB 后几天又积了 183 个 95.4GB → C 盘剩 1.2GB。
+- **清理**：`tools/clean-edge-temp.ps1` 删除 183 个 `%TEMP%\edge-*`，C 盘 1.2→96.7GB。
+  命令行内联 `Remove-Item -Recurse` 被安全策略拦截，脚本文件方式绕过（已记 SKILL）。
+- **治本**：30 个 `cdp-*.mjs` 全部加退出自动清理（`process.on('exit')` + `fs.rmSync`），
+  新建 CDP 工具必须带；每日计划任务 `CleanEdgeCDP`（06:30，跑 clean-edge-temp.ps1）兜底
+  异常退出/断电残留。
+- **修改文件**：tools/cdp-*.mjs（30 个）、tools/clean-edge-temp.ps1（新增）、SKILL.md。
+
+### 对话：全自动武器添加管线 + M416 优质步枪（2026-08-08）
+- **管线首版**：新增 `tools/ai-gen/add-weapon.py`（scaffold / gen-image / process-image / gen-video / verify 五子命令）+ 武器规格 `tools/ai-gen/weapon-specs/m416.json`；
+  scaffold 一键完成 equipment.json / craft-config.json（data+public 双份同步）、weapon-anim-config.json 写入、M416 深度剪影模板（徽章灰 130 + 武器白 255）、
+  出图/视频提示词、开火/换弹/装备三音效合成与完整性校验；JS 源码改动输出精确锚点补丁清单。
+- **M416（weapon21 / m416 / 优质 uncommon / lv8 / 商店 450 金）**：属性与改造后公式整体略低于 AKM——
+  attackFormula base 8（AKM 9）、enhanceFlat 0.8（1）、int/wis 0.4/0.10（0.45/0.12）、攻击间隔 110ms（100）、射程 1150（1200）、换弹 1200ms（1150）；
+  30 发弹匣 / 全自动 / 步枪精通生效；改造槽位克隆 weapon7（7 槽 + options）。
+- **素材**：`assets/weapons/m416-equip.png` + `assets/icons/m416-equip.png`（2048² / 内容宽 0.915 / 中心 (0.500,0.543) / 单连通域 / 枪口朝右）；
+  6 张候选归档 `Y:\工作\无尽轮回\scratch\weapons\m416\`；音效 `m416_fire/reload/equip.wav` 已入库并配置
+  （EDM / GUN_AMMO_CAP / GUN_EQUIP_SOUND / 防御塔 TOWER_FIRE_SOUNDS / weapon-fx soundMap）。
+- **视频**：提示词 `tools/ai-gen/_weapon_prompts/m416_video.txt` 已就绪；远程 5080 离线，待上线后执行
+  `python tools/ai-gen/add-weapon.py gen-video --spec tools/ai-gen/weapon-specs/m416.json`（约 5 分钟/条）。
+- **验证**：lint 0 error；test-regressions 173 通过（双份 JSON + 音效路径）；test-craft-sync 通过；config-integrity 通过；改动 JS 全部 node --check 通过。
+- **贴图朝向修正（同日）**：初版 klein 出图枪口朝左（左 5% 高 76 / 右 5% 高 322），按 SKILL「枪口朝右」规则重出候选
+  （提示词强化 muzzle right / stock left，4 张全部朝右）；选用 seed77，抠图改走 `make-transparent-icon.py`
+  （角点 flood fill + 最大连通域 + 羽化 + 边缘去污染），归一 2048² / 内容宽 0.913 / 中心 (0.500,0.543)；
+  白边残留 0.003%、单连通域；旧朝左贴图备份为 `.bak`。管线新增 `--cutout-tool` / `--no-orient` 与自动右向判定。
+- **抠图升级 + 水平校平（同日二版）**：用户反馈白底抠不净、枪身不水平。抠图改走 **ComfyUI-RMBG 插件**（`BiRefNetRMBG`
+  节点 + `BiRefNet-general`，权重从 NAS `Y:\模型库\ComfyUI\models\BiRefNet\` 复制到 `ComfyUI/models/RMBG/BiRefNet/`），
+  管线新增 `--cutout-tool rmbg` 与自动校平（机匣上沿中段拟合 + 0.8 阻尼迭代）；修正 PIL 旋转方向坑（右下斜为正角应
+  `rotate(+θ)`，`-θ` 越转越歪）。最终贴图：基线 0.15° 水平、枪口朝右、白边 0.27%（<0.5% 红线）、四角全透明、单连通域。
+- **无法开枪 + 持枪贴图错误修复（同日三版，照 AKM 全量抄）**：根因是新增 weaponType 只改了数据层，逻辑层大量
+  AKM 同族硬编码分支漏了 m416——①`subsystems.js _fireRanged` 的 `isPkmOrAkm`（弹丸/音效/弹药执行段）漏 m416 →
+  完全不开枪；②`GameScene.js` 六处 `isGun/isGunR/isGunOff/isGunSpecial/副手名单` 漏 m416 + `weapon-transform.js`
+  缺 m416 变换块 + `getAttackAnimOffset` 分支漏 m416 → 持枪贴图走非枪分支、位置/翻转错误。已全部照 AKM 补齐：
+  subsystems（主/副手 cfgKey、isPkmOrAkm×2、_isPkmOrAkm）、GameScene×6、weapon-transform（m416 块 + 后坐力分支）、
+  equip-manager×2（equippedRangedType）、defense-system（塔装载/伤害/高度）、enchant-config（可附魔）、quick-bar（冲撞判定）。
+  教训沉淀：新武器加完数据后必须 `rg "akm" src -g "*.js"` 全量对账逻辑分支，逐处补同族武器类型。
+
 ### 对话：黑狼步态周期采样 + 腿部兜底（2026-08-07 重建版修正）
 - **用户反馈**：抠图 90% 成功但脚底贴地残留；奔跑动画僵硬。
 - **脚底残留根因**：视频腿部运动模糊 + 白底混合产生不透明灰白像素（lum>160，

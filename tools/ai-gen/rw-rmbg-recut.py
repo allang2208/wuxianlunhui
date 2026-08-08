@@ -150,7 +150,8 @@ def main():
                 cell_img = comp.crop((bx, by, bx + cell, by + cell))
                 alpha_b[by:by + cell, bx:bx + cell] = birefnet_alpha(model, cell_img)
 
-        alpha = np.maximum(alpha_b, (alpha_orig >= args.threshold).astype(np.uint8) * 255)
+        # 红狼王软边 alpha（30~247）也是有效主体，必须保留（黑狼硬边才只留 >=248）
+        alpha = np.maximum(alpha_b, alpha_orig)
         rgb = np.array(comp)
         rgb_clean, alpha_clean = decontaminate(rgb, alpha, lum_clear=args.lum_clear)
         out_rgba = np.dstack([rgb_clean, alpha_clean]).astype(np.uint8)

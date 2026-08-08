@@ -44,6 +44,7 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_beretta93r', path: 'assets/weapons/beretta93r.png' },
         { key: 'weapon_pkm', path: 'assets/icons/pkm_side_clean.png' },
         { key: 'weapon_akm', path: 'assets/weapons/akm-equip.png' },
+        { key: 'weapon_m416', path: 'assets/weapons/m416-equip.png' },
         { key: 'weapon_qbz191', path: 'assets/icons/191icon.png' },
         { key: 'weapon_qjb201', path: 'assets/icons/201-icon.png' },
         { key: 'weapon_energy_lmg', path: 'assets/icons/devotion-icon.png' },

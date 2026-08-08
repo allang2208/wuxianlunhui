@@ -172,6 +172,46 @@
       "y": 0.52
     }
   },
+  "m416": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
   "pkm": {
     "holdOffsetX": -64,
     "holdOffsetY": -6,

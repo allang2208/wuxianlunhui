@@ -17,6 +17,8 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 // profile 放系统临时目录（避免 vite watcher EBUSY）
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-cdp-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new',
     `--remote-debugging-port=${CDP_PORT}`,

@@ -11,6 +11,7 @@ export const GUN_AMMO_CAP = {
     weapon12: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' },
     weapon13: { max: 12, reloadTime: 2000 },
     weapon15: { max: Infinity, reloadTime: 0 },
+    weapon21: { max: 30, reloadTime: 1200, reloadSound: 'assets/sounds/weapons/m416_reload.wav' },
 };
 
 export function isGunWeapon(item) {
@@ -23,7 +24,7 @@ export function isGunWeapon(item) {
 }
 
 // 枪械 weaponType 合集（isGunWeapon 的第三级判定）
-const GUN_WEAPON_TYPES = ['pistol', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+const GUN_WEAPON_TYPES = ['pistol', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 export function isCraftableWeapon(item) {
     if (!item) return false;
@@ -33,7 +34,7 @@ export function isCraftableWeapon(item) {
 // 武器大类合集（已弃用：优先使用 item.isTwoHanded / item.ammoConfig / item.fireMode 判断）
 export const WEAPON_CATEGORIES = {
     machineGun: ['pkm', 'qjb201', 'energy_lmg'],
-    rifle: ['akm', 'qbz191'],
+    rifle: ['akm', 'qbz191', 'm416'],
     pistol: ['pistol'],
     shotgun: ['shotgun'],
     sword: ['sword'],
@@ -48,7 +49,7 @@ export const isSwordCategory = (weaponType) => WEAPON_CATEGORIES.sword.includes(
 // ===== 射击模式分类（已弃用：优先使用 item.fireMode） =====
 export const FIRE_MODES = {
     semiAuto: ['weapon10', 'weapon12', 'weapon19'],
-    fullAuto: ['weapon6', 'weapon7', 'weapon8', 'weapon9', 'weapon11', 'weapon13', 'weapon15'],
+    fullAuto: ['weapon6', 'weapon7', 'weapon8', 'weapon9', 'weapon11', 'weapon13', 'weapon15', 'weapon21'],
 };
 
 export const isSemiAuto = (weaponId) => FIRE_MODES.semiAuto.includes(weaponId);
@@ -69,7 +70,7 @@ export const getFireMode = (item) => {
 // 单手武器：可以双持，也可以装备到副手槽
 export const ONE_HANDED_WEAPONS = ['pistol', 'shield'];
 // 双手武器：不可双持，只能装备到主手槽（weapon/weapon2）
-export const TWO_HANDED_WEAPONS = ['pkm', 'akm', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+export const TWO_HANDED_WEAPONS = ['pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 export const isOneHanded = (arg) => {
     if (typeof arg === 'string') return ONE_HANDED_WEAPONS.includes(arg); // 旧接口兼容
@@ -107,6 +108,7 @@ export const getAmmoConfig = (item) => {
 // 装备音效回退表（与 GUN_AMMO_CAP 同模式：实例缺 equipSound 时按 weaponId 回退）
 export const GUN_EQUIP_SOUND = {
     weapon12: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', // Super90 枪栓音效
+    weapon21: 'assets/sounds/weapons/m416_equip.wav', // M416 装备音效
 };
 export const getEquipSound = (item) => {
     if (!item) return null;

@@ -1034,6 +1034,7 @@ export const Game = {
         EquipDataManager.NIGHT_FLAME_SWORD_ITEM,      // 夜与火之剑 (weapon5)
         EquipDataManager.PKM_ITEM,                     // PKM (weapon6)
         EquipDataManager.AKM_ITEM,                     // AKM (weapon7)
+        EquipDataManager.M416_ITEM,                  // M416 (weapon21)
         EquipDataManager.QBZ191_ITEM,                  // QBZ-191 (weapon8)
         EquipDataManager.G18_PISTOL_ITEM,               // G18 (weapon9)
         EquipDataManager.DESERT_EAGLE_ITEM,            // 沙漠之鹰 (weapon10)

@@ -57,7 +57,7 @@ const EnchantConfig = {
             type: 'suffix',
             cost: 400,
             restrictions: {
-                weaponTypes: ['pistol', 'pkm', 'akm', 'qbz191', 'qjb201', 'shotgun'], // 枪械类
+                weaponTypes: ['pistol', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun'], // 枪械类
             },
             effects: {
                 piercingBonus: 2, // 穿透目标+2

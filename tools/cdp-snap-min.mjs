@@ -8,6 +8,8 @@ import path from 'node:path';
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const PORT = 9240;
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-cdp-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, ['--headless=new', `--remote-debugging-port=${PORT}`, '--window-size=1600,900', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, 'http://localhost:5173/'], { stdio: 'ignore' });
 console.log(`edge pid=${edge.pid}`);
 await new Promise((r) => setTimeout(r, 7000));

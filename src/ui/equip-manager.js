@@ -86,6 +86,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     player.equippedRangedType = 'pkm';
                 } else if (w2 && w2.weaponType === 'akm') {
                     player.equippedRangedType = 'akm';
+                } else if (w2 && w2.weaponType === 'm416') {
+                    player.equippedRangedType = 'm416';
                 } else if (w2 && w2.weaponType === 'qbz191') {
                     player.equippedRangedType = 'qbz191';
                 }
@@ -232,6 +234,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         player.equippedRangedType = 'pkm';
                     } else if (currentItem.weaponType === 'akm') {
                         player.equippedRangedType = 'akm';
+                    } else if (currentItem.weaponType === 'm416') {
+                        player.equippedRangedType = 'm416';
                     } else if (currentItem.weaponType === 'qbz191') {
                         player.equippedRangedType = 'qbz191';
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
@@ -291,6 +295,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                         player.equippedRangedType = 'pkm';
                     } else if (currentItem.weaponType === 'akm') {
                         player.equippedRangedType = 'akm';
+                    } else if (currentItem.weaponType === 'm416') {
+                        player.equippedRangedType = 'm416';
                     } else if (currentItem.weaponType === 'qbz191') {
                         player.equippedRangedType = 'qbz191';
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {

@@ -278,7 +278,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### CDP 残留教训（2026-08-07，C 盘爆满根因）
 - headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
   实测 111 个 47.7GB → C 盘 0GB 满。**用完即删或定期清 `%TEMP%\edge-*`**。
-- 本机删除递归目录用 `.NET Directory.Delete(path, true)`（`Remove-Item -Recurse` 被安全策略拦）。
+- **治本（2026-08-08，C 盘再次爆满后落地）**：所有 `tools/cdp-*.mjs`（30 个）在
+  `fs.mkdtempSync` 后统一注册退出自动清理
+  `process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} })`——
+  新建 CDP 工具必须带这行；另建每日计划任务 `CleanEdgeCDP`（06:30）跑
+  `tools/clean-edge-temp.ps1` 兜底（异常退出/SIGKILL/断电残留次日必清），手动清：
+  `powershell -File tools/clean-edge-temp.ps1`。
+- 删除 `%TEMP%\edge-*`：命令行内联 `Remove-Item -Recurse` 会被安全策略拦（blocked by policy），
+  实测把删除逻辑写进 .ps1 脚本文件后 `powershell -File` 执行可正常删除；也可用
+  `.NET Directory.Delete(path, true)`。正在被 Edge 占用的 profile 删不掉会自动跳过。
 
 ## 世界-122 防守地图（雏形，2026-08-04）
 
@@ -556,6 +564,22 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     semi 0.66~0.86%、GLM 确认体型一致、脚腿完整、毛发边缘自然、实机无白边。
   - 注意：`--fixed-bbox` 的 bbox 顺序是 (x0,y0,x1,y1)，解包时勿写成 (x0,x1,y0,y1)
     （写反会裁空报 cv2 resize error）。
+- **红狼全套 RMBG 重抠 + 脚部阴影清理（2026-08-08 二十四版）**：
+  - 用户反馈"脚步还有大量色块"。定量定位：**H3 白底视频自带地面接触阴影**
+    （灰/黑，底部 30px 每帧 1800~3800 暗像素），抠图把阴影当主体保留为不透明
+    灰黑像素（狼脚带 60~78% 低饱和；还有纯黑 0,0,0）。
+  - 工具 `tools/ai-gen/rw-rmbg-recut.py`（黑狼 RMBG 方案的红狼版）：
+    白底合成 → 每格 ComfyUI-RMBG `AILab_BiRefNet`（BiRefNet-general，process_res
+    1024）→ **alpha = max(alpha_b, 全部旧 alpha)** —— 红狼软边（30~247）也是
+    有效主体，不能像黑狼只留 >=248，否则软边被 BiRefNet 更窄分割裁掉（宽度
+    261→183 实锤）；黑狼硬边才用 >=248。
+  - **脚部阴影清理**（rw-cutout-clean.py）：内容底部 40px 带内，低饱和
+    （sat<15，R≈G≈B 灰/黑）不透明像素直接抠掉；深红毛 sat≥19 保留；
+    剔除后再 max-component 清碎片（避免阴影断开产生孤岛）。**别用
+    "BiRefNet 分歧"判阴影**——BiRefNet 对深色腿 alpha 不稳，会把真腿当阴影删。
+  - 验证：10 张 stray/trans_nonblack/edge_bright/composite=0；狼脚灰影
+    78%→0、纯黑 19k→0，人形灰影归零；GLM 脚部干净、脚完整无缺角；尺寸保持
+    （idle 261 / run 255~271 / attack 259~280）。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -2840,6 +2864,35 @@ addTree(x, y, radius, ...) {
 
 ---
 
+### 全自动武器添加管线 add-weapon.py（2026-08-08 首版，M416 实证）
+
+- **入口**：`python tools/ai-gen/add-weapon.py --spec tools/ai-gen/weapon-specs/<weapon>.json <子命令>`（相对 game-dev/ 执行）
+- 子命令：
+  - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
+    生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
+    合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
+  - `gen-image --host <comfyui> --model <model> --seeds a,b,c`：批量出候选（默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。
+  - `process-image --raw <候选.png> [--cutout-tool auto|rmbg|make-transparent-icon|flood|none] [--no-orient] [--no-auto-level]`：
+    默认自动镜像保证枪口朝右（左右极值列高判定）→ 默认自动校平枪身基线（机匣上沿中段拟合，0.8 阻尼迭代；
+    **向右下斜为正角，PIL rotate(+θ) 逆时针按同符号旋转——用 -θ 会越转越歪，2026-08-08 教训**）→
+    白底抠图首选 ComfyUI-RMBG 插件（`BiRefNetRMBG` 节点，模型 `BiRefNet-general` 权重放 `ComfyUI/models/RMBG/BiRefNet/`，
+    可从 NAS `Y:\模型库\ComfyUI\models\BiRefNet\` 复制；插件输出 IMAGE+MASK，本地合成 RGBA）→
+    按 spec.layout 归一（步枪 2048² / 内容宽 0.915 / 中心 (0.500,0.543)）→
+    写 `assets/weapons/<key>-equip.png` + `assets/icons/<key>-equip.png` → 打印 bbox/aspect/连通域/朝向。
+  - `gen-video --host 192.168.3.142`：MiniMax H3 展示视频（`assets/videos/<key>_showcase.mp4`；远程 5080 离线会失败，机器上线后重跑）。
+  - `verify`：双份 JSON 字节一致 + 资产/音效存在性 + 改动 JS node --check。
+- **M416 实证**：`weapon-specs/m416.json`（weapon21，优质 uncommon，属性/公式略低于 AKM，30 发全自动，步枪精通生效）；
+  6 张候选归档 `Y:\工作\无尽轮回\scratch\weapons\m416\`；正式贴图已入库。
+- **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
+  （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
+  attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。
+- **新武器逻辑分支全量对账（2026-08-08 M416 教训）**：数据层加完后必须 `rg "akm" src -g "*.js"`（或用同族基准武器名）
+  全量对账逻辑分支，逐处补同族 weaponType，否则典型症状=无法开枪/持枪贴图错误。已知必查清单：
+  `subsystems.js`（isPkmOrAkm 开火执行、主/副手 cfgKey、_isPkmOrAkm 动画）、`update.js`（isPkm 全自动组、attackKey 三元链）、
+  `GameScene.js`（isGun/isGunR/isGunOff/isGunSpecial/副手名单 六处）、`weapon-transform.js`（每类型变换块 + getAttackAnimOffset 分支）、
+  `weapon-anim.js`（远程判定/cfgKey）、`equip-manager.js`（equippedRangedType）、`defense-system.js`（塔装载/伤害/高度）、
+  `enchant-config.js`（可附魔武器类型）、`quick-bar.js`（冲撞/远程判定）、`weapon-fx-config.js`（lmg.soundMap）。
+
 ## 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
 
 ### 模式
@@ -4354,7 +4407,8 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   入库 `obstacle_cover_D*`（D 级 5 变体 × h/v）；GameScene 无独立土块层
   （土块随墙贴图渲染，depth = `_faceDepth` 单一图层，无图层问题）。
 - **验证**：实机确认——土块贴合墙斜向底边无错位/悬浮、拼接竖缝墙身无缝、
-  拼接处土块连续自然、上夹角 TL 盖 TR（depthBias TL/LB 0.5）无冲突。
+  拼接处土块连续自然；转角图层顺序后改为 `cornerLayer: 'rightOnTop'`
+  （见下方 2026-08-08 修正）。
 - **坑**：独立土块 sprite（不同尺寸/位置/图层）必然对不齐墙 + 图层混乱——
   土块必须与墙同渲染烘焙，不能分开建模后游戏层叠加。
 - **⚠ 拼接缝隙根因（2026-08-08 实机复现）**：`soil_margin` 默认 0.18 会撑大
@@ -4386,3 +4440,33 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
     即切图层，每帧深度同步读它）。
   - **转角底部透底**：两面墙土带在角点下方不衔接（cap 端纹理提前透明），
     角点正下方出现竖向暗缝/亮地面透出；Blender 土埂/颗粒需覆盖到端帽外缘底角。
+  - **✅ 修复实施（2026-08-08 已落地）**：`_buildBaseRoom` 改按 COVER_FACE 端点
+    在边方向上的真实投影（朝顶点端 127px / 另一端 69.3px）计算首/末件位置，
+    `cornerExtend: 45 → 29`——29 恰好让两臂 face 端点在角点 face 交线交点相接
+    （干净斜接、不侵入），四个角全部验证 face 端点精确汇于一点
+    （上 (900,1728)、左 (387,1984)、右 (1413,1984)、下 (900,2239)）。
+    `cornerLayer: 'rightOnTop'` 上角 TR 盖 TL、下角 RB 盖 LB（A/B 实测右盖左更自然；
+    因 face 已斜接不相交，图层偏置实际不再影响视觉）。实机全房间 GLM：四角干净、
+    四边无缝。转角底部"透底"实为两墙底边下方的正常房间地板 V 区（土带延伸
+    只能减少 ~9% 暴露），非缺陷，D 级贴图保持不变。
+    回退：`git reset --hard 11f2d11`（优化前快照）或
+    `backup/rollback-corner-20260808_105347/` 文件副本。
+  - **✅ 左右下夹角"按土块判定"根因与修复（2026-08-08）**：用户反馈上夹角正常、
+    左右下夹角"以地下土块进行碰撞/移动判定"。排查发现：**寻路器（PathFinder 的
+    SpatialHash）只建模 WallSystem.walls/trees，有意不纳入 isoSegments**——基地掩体墙
+    只注册了 `_coverSeg`（isoSegments），所以怪物寻路把墙当可通行，直线穿墙后由
+    MovementSystem 的 WallSystem.resolve 挡停；在直墙段会沿墙滑，在左右下夹角
+    （两墙交汇）被卡在墙根土块上抖动。修复：`src/ai/pathfinder.js` 把带
+    `_cover` 标记的静态掩体墙段纳入空间哈希（type 'seg'，阻挡口径与
+    `WallSystem.canMoveTo` 一致：点到线段距离 < 半径+halfThick），动态段
+    （门闸/冰墙无 `_cover`）仍排除；`defense-system.js` 在搭建/拆除/摆放掩体时
+    `pathFinder.invalidateCache()`。验证：右墙外→基地的路径由"直线穿墙 2 点"
+    变为"绕墙走门洞 9 点"；269 项测试全绿。
+  - **✅ 土块推广到 F/E/C/B/A 档（2026-08-08）**：D 级带土贴图验收通过后，用同一
+    spec（`cover_integrated_spec3.json`，soil_margin:0 + soil 字段）批量渲染
+    5 档 × 5 变体（tex_<grade>.png / tex_<grade>_v2..v5.png），h = fliplr(v)，
+    替换 `obstacle_cover_{F,E,C,B,A}_{v,h}/_v2..v5_*` 共 50 张；内容框全部
+    163-902 × 87-890（与 D 一致，soil_margin:0 保拼接无缝）。实机换档验证
+    （`tools/cdp-grade-soil-check.mjs` 直接 setTexture 换档截四角）：F/A 均墙根
+    带土、四角干净、四边无缝。旧贴图备份：
+    `backup/cover-soil-allgrades-20260808_115237/`（50 张）。

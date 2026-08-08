@@ -108,7 +108,7 @@ function computeWeaponAttack(item, playerData, skills) {
     }
 
     // 步枪精通加成
-    if ((wType === 'akm' || wType === 'qbz191') && skills && skills.rifleMastery) {
+    if ((wType === 'akm' || wType === 'qbz191' || wType === 'm416') && skills && skills.rifleMastery) {
         const rm = skills.rifleMastery.getEffect(skills.rifleMastery.level);
         weaponAtk = Math.round(weaponAtk * (1 + rm.damagePercent) + rm.damageBonus);
     }

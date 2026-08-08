@@ -102,15 +102,34 @@ def clean_sheet(path, cell=512, hard=245, lum_edge=150, lum_leg=160, soft=False)
             rc[near & bright] = mean[near & bright]
             # 4) 透明区 RGB 归零
             rc[a_bin < 8] = 0
-            # 5) 腿部区域（bbox 底部 35%）内不透明亮像素 -> 局部毛色（清贴地灰白）
+            # 5) 脚部地面接触阴影清理：内容底部带内低饱和（灰/黑，R≈G≈B）不透明像素
+            #    直接抠掉（H3 白底视频自带接触阴影，红毛 sat≥19 保留，阴影 sat<15 剔除）
             body = a_bin >= 200
             ys, xs = np.where(body)
             if len(ys):
                 ymin, ymax = ys.min(), ys.max()
-                cut = max(0, ymin + int((ymax - ymin) * 0.65))
+                cut = max(0, ymax - min(40, int((ymax - ymin) * 0.25)))
                 band = np.zeros_like(body)
                 band[cut:ymax + 1, :] = True
-                bright_leg = band & body & (rc.mean(axis=2) > lum_leg)
+                sat_full = rc.max(axis=2) - rc.min(axis=2)
+                shadow = band & body & (sat_full < 15)
+                if shadow.any():
+                    a_bin[shadow] = 0
+                    rc[shadow] = 0
+                    # 阴影剔除后可能产生小碎片：只保留最大连通域
+                    lab2, n2 = ndimage.label(a_bin > 30)
+                    if n2 > 1:
+                        areas2 = [(int((lab2 == i).sum()), i) for i in range(1, n2 + 1)]
+                        areas2.sort(reverse=True)
+                        keep2 = areas2[0][1]
+                        drop2 = (lab2 > 0) & (lab2 != keep2)
+                        a_bin[drop2] = 0
+                        rc[drop2] = 0
+                # 6) 腿部区域（bbox 底部 35%）内不透明亮像素 -> 局部毛色（清贴地灰白）
+                cut2 = max(0, ymin + int((ymax - ymin) * 0.65))
+                band2 = np.zeros_like(body)
+                band2[cut2:ymax + 1, :] = True
+                bright_leg = band2 & body & (rc.mean(axis=2) > lum_leg)
                 if bright_leg.any():
                     dark2 = body & (~bright_leg)
                     cnt2 = ndimage.uniform_filter(dark2.astype(np.float32), size=5) * 25.0

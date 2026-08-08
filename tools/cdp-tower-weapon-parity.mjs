@@ -13,6 +13,8 @@ const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
 const CDP_PORT = 9239;
 const CDP = `http://127.0.0.1:${CDP_PORT}`;
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-parity-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',

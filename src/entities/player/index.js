@@ -175,6 +175,7 @@ class Player extends Combatant {
             this.p4040Image = loadImage(defs.images.p4040);
             this.pkmImage = loadImage(defs.images.pkm);
             this.akmImage = loadImage(defs.images.akm);
+            this.m416Image = loadImage(defs.images.m416);
             this.qbz191Image = loadImage(defs.images.qbz191);
             this.qjb201Image = loadImage(defs.images.qjb201);
             this.super90Image = loadImage(defs.images.super90);

@@ -47,7 +47,8 @@ export const WEAPON_FX_CONFIG = {
             pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
             qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
             qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
-            akm: 'assets/sounds/weapons/akm_burst.mp3'
+            akm: 'assets/sounds/weapons/akm_burst.mp3',
+            m416: 'assets/sounds/weapons/m416_fire.wav'
         }
     },
 

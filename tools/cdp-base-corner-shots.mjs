@@ -10,6 +10,8 @@ const CDP_PORT = 9251;
 const OUT_DIR = path.join(process.cwd(), 'tools', 'verify-shots');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-corner-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',

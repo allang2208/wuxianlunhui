@@ -189,6 +189,24 @@ export const EquipDataManager = {
         attackFormula: { base: 9, enhanceFlat: 1, attrs: [{ key: 'int', base: 0.45, perEnhance: 0.12 }, { key: 'wis', base: 0.45, perEnhance: 0.12 }] },
         spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
     },
+    M416_ITEM: {
+        weaponId: 'weapon21',
+        name: 'M416', type: '自动步枪', icon: '🔫', iconImage: 'assets/icons/m416-equip.png',
+        slotImage: 'assets/icons/m416-equip.png',
+        equipImage: 'assets/weapons/m416-equip.png',
+        category: 'weapon_ranged', rarity: 'uncommon', level: 8,
+        weaponCategory: 'mainhand', weaponType: 'm416',
+        weaponTypeTag: '远程武器', isTwoHanded: true,
+        weaponAsset: { image: 'assets/weapons/m416-equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
+        stats: [{ name: '物理攻击', value: '3-5' }, { name: '射程', value: '1150' }],
+        desc: 'M416自动步枪，750发/分钟，亮金色曳光弹，均衡可靠的模块化步枪',
+        equipSlot: 'weapon',
+        attack: { range: 1150, knockback: 2, attackInterval: 110, hitType: '亮金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
+        attackKey: 'm416', animConfigKey: 'm416', fireSound: 'assets/sounds/weapons/m416_fire.wav', equipSound: 'assets/sounds/weapons/m416_equip.wav', canvasImageProp: 'm416Image',
+        ammoConfig: { max: 30, reloadTime: 1200, reloadSound: 'assets/sounds/weapons/m416_reload.wav' }, fireMode: 'fullAuto',
+        attackFormula: { base: 8, enhanceFlat: 0.8, attrs: [{ key: 'int', base: 0.4, perEnhance: 0.1 }, { key: 'wis', base: 0.4, perEnhance: 0.1 }] },
+        spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 25 }
+    },
     QBZ191_ITEM: {
         weaponId: 'weapon8',
         name: 'QBZ-191', type: '自动步枪', icon: '🔫', iconImage: 'assets/icons/191icon.png',

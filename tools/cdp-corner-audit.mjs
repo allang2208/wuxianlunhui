@@ -15,6 +15,8 @@ const CDP_PORT = 9273;
 const OUT_DIR = path.join(process.cwd(), 'tools', 'verify-shots');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-corner-audit-'));
+// ???????? profile?2026-08-08?CDP ????? C ??
+process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} });
 const edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',
@@ -189,7 +191,33 @@ await evalJs(`(() => {
 await new Promise((r) => setTimeout(r, 150));
 await shot('corner_audit_clean');
 
-// A/B 图层顺序测试：修改 e._faceDepth（每帧深度同步读它），让 TR(h) 盖 TL(v)
+// A/B 图层顺序测试（新几何下）：当前=TR 在上；切换为 TL 在上对比
+await evalJs(`(() => {
+    for (const e of window.Game.entities.values()) {
+        if (!e._isDefenseStructure || !e._faceLine) continue;
+        if (Math.abs(e.x - 900) < 220 && Math.abs(e.y - 1792) < 160) {
+            if (e.orient === 'v') e._faceDepth += 1;
+            else e._faceDepth -= 1;
+        }
+    }
+    return true;
+})()`);
+await new Promise((r) => setTimeout(r, 300));
+await shot('corner_audit_new_TLtop');
+await evalJs(`(() => {
+    for (const e of window.Game.entities.values()) {
+        if (!e._isDefenseStructure || !e._faceLine) continue;
+        if (Math.abs(e.x - 900) < 220 && Math.abs(e.y - 1792) < 160) {
+            if (e.orient === 'v') e._faceDepth -= 1;
+            else e._faceDepth += 1;
+        }
+    }
+    return true;
+})()`);
+await new Promise((r) => setTimeout(r, 300));
+await shot('corner_audit_new_TRtop');
+
+// 旧 A/B 保留（原偏置语义已失效，忽略即可）
 await evalJs(`(() => {
     for (const e of window.Game.entities.values()) {
         if (!e._isDefenseStructure || !e._faceLine) continue;
@@ -202,13 +230,13 @@ await evalJs(`(() => {
 })()`);
 await new Promise((r) => setTimeout(r, 300));
 await shot('corner_audit_layer_B');
-// 恢复原 depth（重新读 _faceDepth 原始值：max(face y)+12 + bias）
+// 恢复
 await evalJs(`(() => {
     for (const e of window.Game.entities.values()) {
         if (!e._isDefenseStructure || !e._faceLine) continue;
         if (Math.abs(e.x - 900) < 220 && Math.abs(e.y - 1792) < 160) {
             const base = Math.max(e._faceLine[0].y, e._faceLine[1].y) + 12;
-            e._faceDepth = e.orient === 'v' ? base + 0.5 : base;
+            e._faceDepth = e.orient === 'v' ? base : base + 0.5;
         }
     }
     return true;
