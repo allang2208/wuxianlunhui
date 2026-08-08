@@ -788,6 +788,25 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 实机验证：变身完成 howlTimer=0（不再自动嚎叫）；嚎叫技能触发纹理切换
     changed_howl、激励 buff 生效（自身 remaining 28s/30s）；lint 0 error、
     vite build 通过、config-integrity 通过。
+- **H3 视频精细度 = 参考图质量 + 分辨率/步数（2026-08-08 三十四版）**：
+  - 用户反馈"H3 动画过于粗糙"。两层根因：
+    ① 分辨率/步数被砍：SKILL 九版为提速用 1024×576 + 16 步（原生
+       1344×768 + 20 步），毛发细节和边缘明显糊；
+    ② **参考图从游戏贴图（512²）放大生成，本身模糊**——H3 i2v 锁形态时
+       参考图质量直接决定输出精细度，放大贴图当参考 = 糊上加糊。
+  - 修复流程：
+    ① 参考图改用 AI 文生图（智谱 glm-image，1280×1280，
+       `zhipu-gen.py --model glm-image`），提示词强调
+       "crisp fur texture / high detail / sharp focus / 8k illustration"；
+    ② 生成后用 GLM 验收（主体形态、毛发清晰、无畸形）；
+    ③ 清理背景阴影（低饱和 + 中亮 + 非红色调压白，防误删红毛）；
+    ④ 缩放到 1344×768 白底画布贴底居中 → 作 first/last frame；
+    ⑤ 视频 1344×768 + 20 步生成（每段 ~16min），切帧后照常
+       band + 浅灰清理。
+  - 结果：run 14 帧 / attack 12 帧 GLM 确认"毛发纹理、肌肉线条、动态细节
+    明显更精细"，脚下无残留、身体完整、动作连贯；已部署 assets + dist。
+  - 教训：**H3 i2v 参考图必须是高质量原生成图，不能用贴图放大**；文生图
+    参考 + HD 参数 + 20 步是精细动画的固定组合。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -1702,6 +1721,33 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     一律走真实 GPU（不要 --disable-gpu）；先查 `window.__phaserScene` 是否就绪，
     再判断"渲染问题"还是"数据问题"**。本次最终结论：数据+渲染均正常，用户所见
     是浏览器加载中间版本缓存（HMR 未生效），强刷后恢复。
+  - **⚠ 通道侧墙全丢根因：signC 用错字段（2026-08-08 七修）**：用户持续报
+    "衔接通道没做墙 / 看不到墙壁"。深挖（完整启动流程 cdp-swamp-webgl-check）：
+    `_clipPassagePieceToRooms` 里 `const signC = (e.c.x - e.P.x)*nx + (e.c.y - e.P.y)*ny`
+    ——**e.c 是房间对象（字段 cx/cy），e.c.x/e.c.y 是 undefined** → signC=NaN →
+    `NaN < 0` 恒 false → **法线永不翻转** → 通道对侧（LT 等）边线方向错 →
+    五修"任一端点越线即丢"把所有侧墙件误判"整件在房内"**全部丢弃**（三房旧逻辑
+    只丢整件进房、部分越线保留，NaN 符号错误影响小，所以三房一直正常）。
+    修复：`e.c.cx`/`e.c.cy`。验证：修复后完整流程 wallTotal 99→125、通道 1 墙件
+    1→12、渲染棕色墙恢复；npm test 全绿。教训：**几何判定里房间对象一律用 cx/cy
+    （不是 x/y），NaN 比较恒 false 会静默走错分支——排查"墙消失"先怀疑符号/法线
+    判定**。headless 首次场 scene 未就绪会掩盖此问题（墙精灵 0 与墙件被丢混在一起），
+    必须走完整启动流程验证。
+  - **⚠ 转弯通道横墙挡路（2026-08-08 八修/九修）**：用户报"第三四间房衔接通道没做好、
+    墙壁没衔接、不可移动区域也有墙壁"。分阶段重建定位：横墙（通道中间 perp≈0 的墙）
+    在 `_sealPassageSides` 阶段产生。两个根因叠加：
+    1. **flip 瓦方向**：`lay` 沿通道轴铺瓦时 a<b（从通道外向内），flip=true 的通道
+       （v2 轴）`_addSegPiece` 期望 A 端=上端（贴图朝向）→ A/B 反向 → 瓦被翻转、
+       base 段横在通道中间（v2 通道的 seal 瓦方向显示为 -v1 横墙）。修复：flip 时
+       lay 交换 a/b。
+    2. **halfSpan 过窄**：`length/2+250` 会把 3 段瓦的末端件（沿轴 ~L/2+340）排除 →
+       hi/lo 偏小 → 封口瓦从通道中段补起。修复：`length/2+500`。
+    3. **相邻房间平行边墙误收集**：转弯通道轴（v2/-v1）与房间 TR/BL/LT 边平行，
+       seal 会把房间边墙当侧墙（perp 落在 60-400）→ 补瓦错位。修复：`_placeArenaPassage`
+       给预制侧墙打 `_passageWall` 标记，seal 只收集标记件。
+    验证：分阶段 seal 后横墙 2→0，通道 3 碰撞剖面 t=300~500 全部可通行，
+    渲染棕色提升、暗区大减；npm test 全绿。教训：**转弯通道（v2/-v1）与房间边平行，
+    任何"收集平行件"的逻辑都必须按来源标记过滤；flip 瓦的 A/B 朝向要按贴图语义**。
   - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
     `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
     `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
