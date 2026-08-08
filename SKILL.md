@@ -711,6 +711,19 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**脚部残留不只在底部带**——中亮低饱和块会延伸到脚踝上方；
     "亮度阈值"和"底部带"两个维度都要放开，用"低饱和 + 偏离主体深红"双条件
     全格覆盖才不漏。
+- **红狼王"底部像地面的大块色块"真正根因 = 游戏运行时椭圆阴影（2026-08-08 二十九版）**：
+  - 用户多次反馈"脚下像地面的大块色块"，贴图 alpha 清理到 0 后仍存在。
+    排查结论：**GameScene._syncEntityShadows 在运行时给每个敌人脚下绘制
+    entity_shadow 黑色椭圆**（alpha 0.35，尺寸 = groundRadius×2 × ×2×0.5，
+    红狼王 collisionRadius=45 → 90×45px），**完全不在贴图里**——抠图/清 alpha
+    永远抓不到；且阴影固定跟随 collider，红狼王奔跑贴图上下弹跳时阴影不动，
+    视觉上像贴图底部拖着一块地面色块。
+  - 修复：RedWolfKing 构造函数设 `this._noShadow = true`（贴图自带脚部接地感，
+    取消运行时阴影；GameScene 已支持该开关）。实机验证（cdp-redwolf-shot.mjs）：
+    GLM 确认关闭后"脚下无深色椭圆阴影、浅色地面干净"。
+  - 教训：**"色块残留"不一定是贴图问题——先实机截图区分渲染层阴影 vs 贴图
+    alpha**；GameScene._syncEntityShadows 的 shadow 是通用机制，个别贴图自带
+    接地感的怪可设 _noShadow。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；

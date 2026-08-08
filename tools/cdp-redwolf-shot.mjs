@@ -72,29 +72,64 @@ async function shot(name) {
 await send('Runtime.enable');
 await send('Page.enable');
 
+// 重新加载页面，让 Phaser 场景完整启动
+await send('Page.reload');
+await new Promise((r) => setTimeout(r, 2500));
+
 const ready = await waitFor(async () => {
-    const s = await evalJs(`({ g: !!(window.Game && window.Game.entities), p: !!(window.Game && window.Game.player) })`);
-    return s && s.g ? s : null;
+    const s = await evalJs(`({ g: !!(window.Game && window.Game.entities), p: !!(window.Game && window.Game.player), scene: !!(window.__phaserScene) })`);
+    if (s && s.g && !s.p) {
+        // 停在主菜单：先启动游戏生成玩家
+        const r = await evalJs(`(async () => {
+            try {
+                if (window.Game && !window.Game.isRunning) { await window.Game.start(); }
+                return { started: window.Game.isRunning, hasPlayer: !!window.Game.player, hasScene: !!window.__phaserScene, canvas: document.querySelectorAll('canvas').length };
+            } catch (e) { return { err: String(e && e.stack || e) }; }
+        })()`);
+        console.log('start result:', JSON.stringify(r));
+        return null;
+    }
+    return s && s.g && s.p && s.scene ? s : null;
 });
 if (!ready) { console.error('game not ready'); edge.kill(); process.exit(2); }
 console.log('game ready');
 
 // 强制生成/复用红狼王，拉到玩家旁
+const diag = await evalJs(`(() => {
+    const g = window.Game;
+    const p = g.player;
+    const e = g.entities.get('enemy_main_red_wolf');
+    const cam = window.__phaserScene && window.__phaserScene.cameras && window.__phaserScene.cameras.main;
+    return {
+        player: p ? { x: p.x, y: p.y } : null,
+        wolf: e ? { x: e.x, y: e.y, hasSprite: !!e._phaserSprite } : null,
+        cam: cam ? { x: cam.scrollX, y: cam.scrollY, w: cam.width, h: cam.height } : null,
+    };
+})()`);
+console.log('diag:', JSON.stringify(diag));
+
 const spawnResult = await evalJs(`(async () => {
     const g = window.Game;
     const p = g.player;
     if (!p) return { error: 'no player' };
     let e = g.entities.get('enemy_main_red_wolf');
     if (!e) {
-        const EnemyClass = (await import('/src/entities/enemy-types.js')).default || (await import('/src/entities/enemy-types.js'));
-        // 尝试多种取类方式
-        const ctor = EnemyClass.RedWolfKing || EnemyClass.redWolfKing || Object.values(EnemyClass).find((v) => v && v.name === 'RedWolfKing');
-        if (!ctor) return { error: 'no RedWolfKing ctor', keys: Object.keys(EnemyClass) };
-        e = new ctor(p.x + 140, p.y - 40, {});
-        g.entities.set('enemy_main_red_wolf', e);
+        if (typeof g.spawnMainRedWolfKing === 'function') g.spawnMainRedWolfKing();
+        await new Promise((r) => setTimeout(r, 800));
+        e = g.entities.get('enemy_main_red_wolf');
     }
+    if (!e) return { error: 'no wolf after spawn' };
     e.x = p.x + 140; e.y = p.y - 40;
-    return { made: true, name: e.name, x: e.x, y: e.y };
+    // 强制创建 Phaser sprite
+    const scene = window.__phaserScene;
+    if (scene && typeof scene.getOrCreateEnemySprite === 'function' && !e._phaserSprite) {
+        scene.getOrCreateEnemySprite(e, e._getTextureKey ? e._getTextureKey() : 'enemy_circle');
+    }
+    if (window.__phaserScene && window.__phaserScene.cameras && window.__phaserScene.cameras.main) {
+        window.__phaserScene.cameras.main.centerOn(p.x, p.y);
+    }
+    await new Promise((r) => setTimeout(r, 1200));
+    return { made: true, name: e.name, x: e.x, y: e.y, hasSprite: !!e._phaserSprite };
 })()`);
 console.log('spawn:', JSON.stringify(spawnResult));
 
