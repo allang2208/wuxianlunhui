@@ -305,9 +305,11 @@
      "frames": 1
     },
     "attack": {
-     "cols": 4,
-     "rows": 3,
-     "frames": 12
+     "cols": 8,
+     "rows": 4,
+     "frames": 30,
+     "frameWidth": 512,
+     "frameHeight": 1024
     },
     "howl": {
      "cols": 4,
@@ -315,9 +317,11 @@
      "frames": 12
     },
     "run": {
-     "cols": 7,
-     "rows": 2,
-     "frames": 14
+     "cols": 8,
+     "rows": 4,
+     "frames": 30,
+     "frameWidth": 512,
+     "frameHeight": 1024
     }
    },
    "body": {

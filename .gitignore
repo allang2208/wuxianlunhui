@@ -34,10 +34,16 @@ assets/videos/
 __pycache__/
 *.bak
 *.bak.*
+*.bak-*
 *.orig
 *.log.*
 *.pid
 tools/.depth-*
 tools/ai-gen/_*_gen*.log*
+tools/.trash-*/
+tools/ai-gen/*-tmp/
+tools/ai-gen/*-pipeline-out/
+tools/ai-gen/rw-v3-pipeline/
+start-vite.bat
 tools/ai-gen/rw-rmbg-*-out/
 tools/ai-gen/rw-rmbg-compare-out/

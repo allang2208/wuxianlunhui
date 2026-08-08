@@ -938,6 +938,16 @@
                         "spreadStartDelta": 500,
                         "moveSpeedPercent": 0.05
                     }
+                },
+                {
+                    "id": "quick_change_barrel",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/long_barrel.png",
+                    "desc": "????-1500ms?????-500ms",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "overheatTimeDelta": -500
+                    }
                 }
             ],
             "magazine": [
@@ -961,6 +971,16 @@
                         "magazineDelta": 25,
                         "moveSpeedPercent": -0.1,
                         "reloadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "belt_box",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/extended_mag.png",
+                    "desc": "???+50?????-8%",
+                    "effects": {
+                        "magazineDelta": 50,
+                        "moveSpeedPercent": -0.08
                     }
                 }
             ],
@@ -1027,6 +1047,15 @@
                     "effects": {
                         "spreadStartDelta": 250,
                         "maxSpreadAngleDelta": -5
+                    }
+                },
+                {
+                    "id": "bipod",
+                    "name": "???",
+                    "icon": "assets/icons/craft/angled_grip.png",
+                    "desc": "????-25%",
+                    "effects": {
+                        "stationarySpreadPercent": -0.25
                     }
                 }
             ],
@@ -1228,6 +1257,17 @@
                         "rangeDelta": 200,
                         "spreadTimeDelta": 500
                     }
+                },
+                {
+                    "id": "heavy_762",
+                    "name": "7.62??",
+                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "desc": "??+12%?????+20ms???+5px",
+                    "effects": {
+                        "damagePercent": 0.12,
+                        "attackIntervalDelta": 20,
+                        "knockbackDelta": 5
+                    }
                 }
             ],
             "stock": [
@@ -1250,6 +1290,26 @@
                     "effects": {
                         "spreadStartDelta": 500,
                         "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "wood_furniture",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "desc": "????-150ms?????-5%",
+                    "effects": {
+                        "recoilRecoveryDelta": -150,
+                        "moveSpeedPercent": -0.05
+                    }
+                },
+                {
+                    "id": "side_folding_stock",
+                    "name": "????",
+                    "icon": "assets/icons/craft/ar_folding.png",
+                    "desc": "????+8%?????-250ms",
+                    "effects": {
+                        "moveSpeedPercent": 0.08,
+                        "spreadStartDelta": -250
                     }
                 }
             ],
@@ -1428,6 +1488,16 @@
                         "spreadStartDelta": 500,
                         "moveSpeedPercent": 0.05
                     }
+                },
+                {
+                    "id": "piston_tuning",
+                    "name": "???????",
+                    "icon": "assets/icons/craft/long_barrel.png",
+                    "desc": "????-20ms?????-100ms",
+                    "effects": {
+                        "attackIntervalDelta": -20,
+                        "recoilRecoveryDelta": -100
+                    }
                 }
             ],
             "magazine": [
@@ -1496,6 +1566,16 @@
                         "spreadStartDelta": 500,
                         "spreadTimeDelta": 1000
                     }
+                },
+                {
+                    "id": "hk_stock",
+                    "name": "HK???",
+                    "icon": "assets/icons/craft/ar_folding.png",
+                    "desc": "????+5%?????-200ms",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "reloadTimeDelta": -200
+                    }
                 }
             ],
             "grip": [
@@ -1538,6 +1618,17 @@
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "picatinny_rail",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/red_dot.png",
+                    "desc": "????+500ms?????-5????3??",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "maxSpreadAngleDelta": -5,
                         "highPowerScope": true
                     }
                 }
@@ -1629,6 +1720,17 @@
                         "rangeDelta": -200,
                         "knockbackDelta": 30
                     }
+                },
+                {
+                    "id": "integrated_suppressor",
+                    "name": "????",
+                    "icon": "assets/icons/craft/pistol_suppressor.png",
+                    "desc": "??-150px????????????-1?",
+                    "effects": {
+                        "rangeDelta": -150,
+                        "hideMuzzleFlash": true,
+                        "shotSpreadDelta": -1
+                    }
                 }
             ],
             "barrel": [
@@ -1693,6 +1795,26 @@
                     "effects": {
                         "recoilRecoveryDelta": -100
                     }
+                },
+                {
+                    "id": "burst_conversion",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "desc": "??????????+2?",
+                    "effects": {
+                        "burstMode": 3,
+                        "shotSpreadDelta": 2
+                    }
+                },
+                {
+                    "id": "stabilized_grip",
+                    "name": "????",
+                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "desc": "????-150ms?????-1?",
+                    "effects": {
+                        "recoilRecoveryDelta": -150,
+                        "shotSpreadDelta": -1
+                    }
                 }
             ],
             "magazine": [
@@ -1712,6 +1834,27 @@
                     "desc": "换弹时间-500ms",
                     "effects": {
                         "reloadTimeDelta": -500
+                    }
+                },
+                {
+                    "id": "drum_mag",
+                    "name": "33???",
+                    "icon": "assets/icons/craft/drum_mag.png",
+                    "desc": "????33?????+1500ms?????-5%",
+                    "effects": {
+                        "magazineOverride": 33,
+                        "reloadTimeDelta": 1500,
+                        "moveSpeedPercent": -0.05
+                    }
+                },
+                {
+                    "id": "quick_mag_holster",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "desc": "????-400ms?????+5%",
+                    "effects": {
+                        "reloadTimeDelta": -400,
+                        "moveSpeedPercent": 0.05
                     }
                 }
             ],
@@ -1846,6 +1989,17 @@
                         "moveSpeedPercent": 0.05,
                         "recoilRecoveryDelta": 50
                     }
+                },
+                {
+                    "id": "match_barrel",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/competition_barrel.png",
+                    "desc": "??+100px?????-2??????+100ms",
+                    "effects": {
+                        "rangeDelta": 100,
+                        "shotSpreadDelta": -2,
+                        "attackIntervalDelta": 100
+                    }
                 }
             ],
             "bullet": [
@@ -1867,6 +2021,17 @@
                     "effects": {
                         "knockbackDelta": 30,
                         "damagePercent": 0.05
+                    }
+                },
+                {
+                    "id": "magnum_load",
+                    "name": ".50??????",
+                    "icon": "assets/icons/craft/fmj_ammo.png",
+                    "desc": "??+20%???+15px?????+150ms",
+                    "effects": {
+                        "damagePercent": 0.2,
+                        "knockbackDelta": 15,
+                        "recoilRecoveryDelta": 150
                     }
                 }
             ],
@@ -1939,6 +2104,18 @@
                     "effects": {
                         "spreadStartDelta": 1000,
                         "highPowerScope": true
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "heavy_frame",
+                    "name": "????",
+                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "desc": "????-250ms?????-8%",
+                    "effects": {
+                        "recoilRecoveryDelta": -250,
+                        "moveSpeedPercent": -0.08
                     }
                 }
             ]
@@ -2103,6 +2280,16 @@
                     "effects": {
                         "attackIntervalDelta": -300
                     }
+                },
+                {
+                    "id": "hammer_spring",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/light_trigger.png",
+                    "desc": "????-150ms?????-100ms",
+                    "effects": {
+                        "attackIntervalDelta": -150,
+                        "recoilRecoveryDelta": -100
+                    }
                 }
             ],
             "magazine": [
@@ -2122,6 +2309,16 @@
                     "desc": "????2???????????",
                     "effects": {
                         "fastReload": true
+                    }
+                },
+                {
+                    "id": "cylinder_lighten",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "desc": "????-300ms?????+3%",
+                    "effects": {
+                        "reloadTimeDelta": -300,
+                        "moveSpeedPercent": 0.03
                     }
                 }
             ],
@@ -2144,6 +2341,17 @@
                     "effects": {
                         "spreadStartDelta": 1000,
                         "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "scope_mount",
+                    "name": "????",
+                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "desc": "??+150px???3???????+100ms",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "highPowerScope": true,
+                        "attackIntervalDelta": 100
                     }
                 }
             ]
@@ -2234,6 +2442,16 @@
                         "rangeDelta": -200,
                         "knockbackDelta": 35
                     }
+                },
+                {
+                    "id": "compensator",
+                    "name": "???",
+                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "desc": "????-150ms?????-1?",
+                    "effects": {
+                        "recoilRecoveryDelta": -150,
+                        "shotSpreadDelta": -1
+                    }
                 }
             ],
             "barrel": [
@@ -2291,6 +2509,16 @@
                         "magazineDelta": 9,
                         "reloadTimeDelta": 500
                     }
+                },
+                {
+                    "id": "extended_grip",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/long_extended_mag.png",
+                    "desc": "???+9?????+300ms",
+                    "effects": {
+                        "magazineDelta": 9,
+                        "reloadTimeDelta": 300
+                    }
                 }
             ],
             "bullet": [
@@ -2339,6 +2567,16 @@
                             "maxTime": 3000,
                             "maxAngle": 15
                         }
+                    }
+                },
+                {
+                    "id": "double_tap",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "desc": "??????????-1?",
+                    "effects": {
+                        "burstMode": 2,
+                        "shotSpreadDelta": -1
                     }
                 }
             ]
@@ -2473,6 +2711,15 @@
                         "spreadStartDelta": 500,
                         "moveSpeedPercent": 0.05
                     }
+                },
+                {
+                    "id": "cooling_barrel",
+                    "name": "????",
+                    "icon": "assets/icons/craft/long_barrel.png",
+                    "desc": "????-20%",
+                    "effects": {
+                        "overheatRecoverPercent": -0.2
+                    }
                 }
             ],
             "magazine": [
@@ -2496,6 +2743,16 @@
                         "magazineDelta": 25,
                         "moveSpeedPercent": -0.1,
                         "reloadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "drum_belt",
+                    "name": "????",
+                    "icon": "assets/icons/craft/drum_mag.png",
+                    "desc": "???+30?????+800ms",
+                    "effects": {
+                        "magazineDelta": 30,
+                        "reloadTimeDelta": 800
                     }
                 }
             ],
@@ -2540,6 +2797,16 @@
                     "effects": {
                         "spreadStartDelta": 500,
                         "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "sustained_fire",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "desc": "????-200ms?????-3?",
+                    "effects": {
+                        "recoilRecoveryDelta": -200,
+                        "maxSpreadAngleDelta": -3
                     }
                 }
             ],
@@ -2808,6 +3075,15 @@
                         "spreadStartDelta": 250,
                         "maxSpreadAngleDelta": -5
                     }
+                },
+                {
+                    "id": "bullpup_balance",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/angled_grip.png",
+                    "desc": "????-15%",
+                    "effects": {
+                        "moveSpreadPercent": -0.15
+                    }
                 }
             ],
             "sight": [
@@ -2829,6 +3105,29 @@
                     "effects": {
                         "spreadStartDelta": 1000,
                         "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/red_dot.png",
+                    "desc": "????+750ms????????+50px",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "redDotScope": true,
+                        "rangeDelta": 50
+                    }
+                }
+            ],
+            "trigger": [
+                {
+                    "id": "rapid_trigger",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/light_trigger.png",
+                    "desc": "????-15ms?????+1?",
+                    "effects": {
+                        "attackIntervalDelta": -15,
+                        "shotSpreadDelta": 1
                     }
                 }
             ]
@@ -2974,6 +3273,17 @@
                         "damagePercent": -0.1,
                         "piercingBonus": 1
                     }
+                },
+                {
+                    "id": "buckshot_heavy",
+                    "name": "???",
+                    "icon": "assets/icons/craft/flechette.png",
+                    "desc": "??+10%?????+3????+8px",
+                    "effects": {
+                        "damagePercent": 0.1,
+                        "maxSpreadAngleDelta": 3,
+                        "knockbackDelta": 8
+                    }
                 }
             ],
             "magazine": [
@@ -2983,6 +3293,26 @@
                     "icon": "assets/icons/craft/fast_loader.png",
                     "desc": "每次装填2发弹药",
                     "effects": {
+                        "fastReload": true
+                    }
+                },
+                {
+                    "id": "extended_tube",
+                    "name": "????",
+                    "icon": "assets/icons/craft/extended_mag.png",
+                    "desc": "???+2?????-3%",
+                    "effects": {
+                        "magazineDelta": 2,
+                        "moveSpeedPercent": -0.03
+                    }
+                },
+                {
+                    "id": "shell_caddy",
+                    "name": "????",
+                    "icon": "assets/icons/craft/fast_loader.png",
+                    "desc": "????-150ms?????",
+                    "effects": {
+                        "reloadTimeDelta": -150,
                         "fastReload": true
                     }
                 }
@@ -3181,6 +3511,17 @@
                         "critChancePercent": 0.1,
                         "maxSpreadAngleDelta": 5
                     }
+                },
+                {
+                    "id": "slug_precision",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/long_barrel.png",
+                    "desc": "???????-200ms???+100px?????-2?",
+                    "effects": {
+                        "slugRecoilRecovery": -200,
+                        "rangeDelta": 100,
+                        "shotSpreadDelta": -2
+                    }
                 }
             ],
             "bullet": [
@@ -3279,6 +3620,16 @@
                         "moveSpeedPercent": 0.1,
                         "maxSpreadAngleDelta": 5
                     }
+                },
+                {
+                    "id": "tactical_light",
+                    "name": "???",
+                    "icon": "assets/icons/craft/angled_grip.png",
+                    "desc": "????-250ms?????",
+                    "effects": {
+                        "spreadStartDelta": -250,
+                        "redDotScope": true
+                    }
                 }
             ],
             "sight": [
@@ -3300,6 +3651,18 @@
                     "effects": {
                         "spreadStartDelta": 1000,
                         "highPowerScope": true
+                    }
+                }
+            ],
+            "trigger": [
+                {
+                    "id": "race_trigger",
+                    "name": "????",
+                    "icon": "assets/icons/craft/light_trigger.png",
+                    "desc": "????-40ms?????+2?",
+                    "effects": {
+                        "attackIntervalDelta": -40,
+                        "shotSpreadDelta": 2
                     }
                 }
             ]
@@ -3445,6 +3808,26 @@
                         "overheatTimeDelta": -1000,
                         "moveSpeedPercent": 0.1
                     }
+                },
+                {
+                    "id": "overload_cell",
+                    "name": "??????",
+                    "icon": "assets/icons/craft/energy_extended.png",
+                    "desc": "??+15%?????-1500ms",
+                    "effects": {
+                        "damagePercent": 0.15,
+                        "overheatTimeDelta": -1500
+                    }
+                },
+                {
+                    "id": "cooling_fin",
+                    "name": "????",
+                    "icon": "assets/icons/craft/energy_fast.png",
+                    "desc": "????-2000ms?????-3%",
+                    "effects": {
+                        "overheatRecoverDelta": -2000,
+                        "moveSpeedPercent": -0.03
+                    }
                 }
             ],
             "bullet": [
@@ -3466,6 +3849,17 @@
                     "desc": "穿透目标 +2",
                     "effects": {
                         "piercingBonus": 2
+                    }
+                },
+                {
+                    "id": "focus_lens",
+                    "name": "????",
+                    "icon": "assets/icons/craft/high_energy.png",
+                    "desc": "????-5??????+500ms???+5%",
+                    "effects": {
+                        "maxSpreadAngleDelta": -5,
+                        "spreadStartDelta": 500,
+                        "damagePercent": 0.05
                     }
                 }
             ],
@@ -3690,6 +4084,16 @@
                         "magazineDelta": 12,
                         "reloadTimeDelta": 300
                     }
+                },
+                {
+                    "id": "quick_mag",
+                    "name": "?????",
+                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "desc": "????-500ms?????+3%",
+                    "effects": {
+                        "reloadTimeDelta": -500,
+                        "moveSpeedPercent": 0.03
+                    }
                 }
             ],
             "bullet": [
@@ -3712,6 +4116,17 @@
                     "effects": {
                         "magazineDelta": 6,
                         "reloadTimeDelta": -300
+                    }
+                },
+                {
+                    "id": "ap_round",
+                    "name": "???",
+                    "icon": "assets/icons/craft/hammer_point.png",
+                    "desc": "????+30%???+1???-3%",
+                    "effects": {
+                        "armorPenetrationPercent": 0.3,
+                        "piercingBonus": 1,
+                        "damagePercent": -0.03
                     }
                 }
             ],
@@ -3743,6 +4158,18 @@
                             "durationMs": 2000,
                             "speedPercent": 0.1
                         }
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "tactical_laser",
+                    "name": "????",
+                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "desc": "????-250ms?????-1?",
+                    "effects": {
+                        "spreadStartDelta": -250,
+                        "shotSpreadDelta": -1
                     }
                 }
             ]

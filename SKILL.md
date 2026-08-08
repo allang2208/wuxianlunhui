@@ -825,6 +825,23 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     明显更精细"，脚下无残留、身体完整、动作连贯；已部署 assets + dist。
   - 教训：**H3 i2v 参考图必须是高质量原生成图，不能用贴图放大**；文生图
     参考 + HD 参数 + 20 步是精细动画的固定组合。
+- **4096² 精灵图规格 + 写实参考图（2026-08-08 三十五版）**：
+  - 用户定规格：**4096×4096 画布、8 列 × 4 行 = 32 格取 30 帧（末行留 2 空）、
+    每帧 512×1024 竖条、不压缩**。旧 512×512 小格（14/12 帧）画质被压缩。
+  - 切帧工具 `rw-humanoid-sheet-4096.py`：步态周期均匀采样 30 帧 → fixed-scale
+    （高度 target_h=900 + 宽度≤480 双约束，防竖条超宽）→ 512×1024 竖条贴底
+    居中 → 组装 8×4 sheet。清理 `rw-clean-4096.py`（脚下浅灰 + band +
+    max-component，适配 512×1024 竖条）。
+  - 游戏接入：BootScene spritesheet 改 `frameWidth:512 frameHeight:1024
+    endFrame:29`；animation-config transformedFrameLayout run/attack →
+    `{cols:8, rows:4, frames:30, frameWidth:512, frameHeight:1024}`（双份同步）；
+    GameScene `_configureEnemyBody` 已有非方形帧等比缩放（longest 边=spriteSize），
+    512×1024 自动显示为 100×200，无需改渲染。
+  - 画风：项目偏写实，参考图用智谱 glm-image 生成（photorealistic / realistic
+    fur / horror creature），GLM 验收 + 清背景阴影后作 H3 首末帧。
+  - 视角：**水平侧视**（与现有怪物/玩家 billboard 一致，勿改等距透视）。
+  - 验证：run 6.8MB / attack 6.2MB（旧 0.5MB），GLM 确认写实毛发、无残留、
+    姿态连贯；实机非方形帧等比缩放正常、无拉伸。
 - **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
   - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
     ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
@@ -3502,6 +3519,20 @@ addTree(x, y, radius, ...) {
   - 沙鹰加机制件：double_tap_trigger（burstMode:2 + 散布+1°），epic 手枪机制差异化。
   - 教训：**弹容量改造必须按比例或分档，固定值-30 会废掉 30 发弹匣枪**；
     **同族 muzzle 复制后手改会残留不一致**，加武器后用 options diff 校验。
+- **枪械专属独特改造批量落地（2026-08-08 二轮，12 把枪 +42 件）**：
+  - 新效果键 3 个：`moveSpreadPercent`（移动散布倍率，消费端 combatant.getSpreadInfo
+    按 this.isMoving 乘算 maxAngle）、`stationarySpreadPercent`（静止散布倍率，同处）、
+    `overheatRecoverPercent`（过热恢复百分比，消费端 update.js 两处 recoverTime 乘算）。
+    注意 multiply 模式聚合仍是加和，百分比乘算必须在消费端手动应用。
+  - 每把枪专属件（机制差异化而非数值堆叠）：AKM 木托/侧折叠/7.62重弹；M416 HK托/
+    活塞调校/导轨；QBZ 无托平衡/高速扳机/光瞄；PKM 弹链箱/快换枪管/两脚架；
+    QJB 弹鼓/散热管/持续火力托；能量机枪 过载电池/散热鳍/聚焦透镜；沙鹰 .50重弹/
+    比赛枪管/重型机匣；G18 弹鼓/三连发/内置消音；P4040 穿甲弹/激光/快拔；
+    Beretta 双发点射/加长握把/制退器；Super90 加长弹管/重鹿弹/弹壳快挂；
+    SAIGA 竞赛扳机/独头弹精调/战术灯；左轮 镜座/强化击锤簧/轻量弹巢。
+  - 图标复用：新件 icon 映射到现有 craft 图标（fmj/muzzle_brake/light_trigger/
+    burst_trigger/carbon_fiber_mag/drum_mag 等），无需生成新图。
+  - 验证：三份 JSON hash 一致、聚合逻辑运行时确认 3 新键生效、测试全绿。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
