@@ -172,6 +172,7 @@ class Player extends Combatant {
             this.bowEquipImage = loadImage(defs.images.bowEquip);
             this.pistolImage = loadImage(defs.images.pistol);
             this.deagleImage = loadImage(defs.images.deagle);
+            this.revolverImage = loadImage(defs.images.revolver);
             this.p4040Image = loadImage(defs.images.p4040);
             this.pkmImage = loadImage(defs.images.pkm);
             this.akmImage = loadImage(defs.images.akm);

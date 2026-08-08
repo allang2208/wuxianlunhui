@@ -438,7 +438,11 @@ function applyEnchantOnHit(weapon, target, source) {
                 }
                 const wType = source.equippedRangedType;
                 // 播放武器开火音效
-                if (wType === 'pkm') {
+                const fireWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : null;
+                if (fireWeapon && fireWeapon.fireSound && fireWeapon.fireSound.startsWith('assets/')) {
+                    // 新枪专属开火音效优先（如 .357麦格农左轮 revolver357_fire.wav）
+                    SoundManager.playFile(fireWeapon.fireSound);
+                } else if (wType === 'pkm') {
                     
                     SoundManager.playFile('assets/sounds/weapons/pkm_half_sec.wav');
                 } else if (wType === 'qbz191') {

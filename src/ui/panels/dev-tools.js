@@ -149,6 +149,7 @@ export function createDevToolPanel() {
         ['bow', '🏹 弓（训练弓）'],
         ['pistol', '🔫 手枪（G18）'],
         ['deagle', '🔫 沙漠之鹰'],
+        ['revolver357', '🔫 .357麦格农左轮'],
         ['p4040', '🔫 P4040'],
         ['beretta93r', '🔫 Beretta 93R'],
         ['pkm', '🔥 PKM'],

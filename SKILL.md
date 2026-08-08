@@ -929,6 +929,31 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
   维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
 
+### 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
+- **移动目标优先级契约**（movement-system `_computeMoveDirection`）：
+  `_specialTacticalTarget` > `_tacticalTarget` > BattleCommander > `enemy.target` > `_lastKnownTargetPos`。
+  **防守怪（`_defenseMonster`）不走 BattleCommander**（战术点围绕玩家，与基地/掩体目标冲突，
+  game.js 收集处 + 优先级判断双保险）；chargeStraight 怪只认 enemy.target 直线。
+- **分段接力寻路 [RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 时 `_pickRelayPoint`
+  （主方向 +±30°/±60° 共 5 条 `WallSystem.blocked` 射线，选 600~700px 通畅点）逐段 A*，
+  `_relayTarget` 非永久状态，接近 <120px/路径失效/终点偏 >100px 接力下一段；帧预算 3ms、
+  PATH_DEFERRED、500ms 最小重算全部复用现有机制。例外：chargeStraight、战术目标移动保持直线。
+- **掩体可攻击链路三件套**：① `_coverSeg._owner` 回链 DefenseCover；② 卡住 500ms 且目标够不着时
+  `_retargetBlockingCover` 直接转火贴身掩体（绕过感知 1.3× 滞回）；③ LOS/Combat 对掩体目标
+  `blocked(..., {segs:[target._coverSeg]})` 忽略自身 face 段——不忽略则从墙背面接近永判无视线、拒不出手。
+- **索敌性能口径**：PerceptionSystem 候选走 SpatialPartitionSystem.queryRadius
+  （`_sourceEntities` 引用校验，防网格与传入集合不一致串数据）；两级筛选（基础分 top-5 才补 LOS）；
+  LOS 缓存 per-target Map（200ms TTL）——**新增 LOS 读取方一律走 `_checkLineOfSight`/`losCache`，
+  别再读已删除的 lastLOSTargetId 单槽**。
+- **防守 aggro 归一化**：spawn 时 `_aggroRange` 抬到 alertRange(3800)（`ai.defenseAggroRange` 覆盖）——
+  pacing AI 怪（黑狼 2500）出生即 chasing 进场；aggro 只服务 pacing AI 与 alertRange 兜底，
+  非 pacing 怪索敌完全由 PerceptionSystem `_alertRange` 决定。
+- **RegionIndex 口径**：`_isBlockedQuick` 与 pathfinder SpatialHash 同源（walls/trees/`_cover` 段，
+  点到线段距离 < 半径+halfThick）——改任何一边的阻挡判定，另一边必须同步。
+- **CDP 探针坑**：vite HMR 后 `await import('/src/x.js')` 会拿到第二份模块实例（状态全零、
+  DefenseSystem.active 恒 false）——必须按 resource entries 真实带 `?t=` query 的 URL import
+  （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）。
+
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
   塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
@@ -1038,7 +1063,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 ### 沉淀约定（防再犯）
 - **craft-config 新武器改造配置必须 `options` 嵌套**：`weapon20 = { slots:[...], options:{ slotId:[配件...] } }`——配平列表放顶层会导致 `config.options` 为 undefined、点击无反应，且 **test-craft-sync 只校验效果键与 registry 三角，校验不到嵌套层级**，此类结构错误靠人工审计。新武器上线时验证：改造弹窗能点、能装备、重置布局有默认槽位（craft-default-slots.js 同步补键）。
 - **自定义怪受控检查清单**：覆盖 `update()` 的怪（含站桩怪）都必须有 stun/frozen/fear 检查——站桩怪（煮锅/墓碑/矿洞）也要在站桩钉死后拦生成/投掷；基类的检查只到得了 `super.update` 之后，状态机在 super 之前的怪（僵尸巫师）必须在顶部拦截。
-- **pathfinder 有意不含 isoSegments**：动态碰撞段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路只建模静态 walls/trees——不要"顺手"把 isoSegments 纳入寻路，会削弱临时障碍阻挡设计。
+- **pathfinder 只纳入静态 `_cover` 掩体段，不含动态 isoSegments**（2026-08-08 修订）：动态段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路建模静态 walls/trees + `_cover` 掩体段（2e5e43c 起）——不要把动态段纳入寻路，会削弱临时障碍阻挡设计。
 - **渲染进程错误兜底已内置**：`window.onerror`/`unhandledrejection` 控制台 + 左下角错误条；Electron 主进程 `render-process-gone`/`did-fail-load` 崩溃重载。
 
 ## 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
@@ -1468,13 +1493,23 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
      由邻居盖住」规则），仅整件进房才丢弃。验证：关闭裁剪后门口自然、墙不突入房间；
      `scripts/test-wall-depth.mjs` 的 `_sealPassageSides` 正则窗口 3000→5000（封口
      中位数逻辑使函数变长）。教训：**定长瓦片禁按比例缩放；越线交给邻居遮挡**。
-   - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
+  - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
      "房间边线向内平移 80px"，端点落在房间内部，60° 墙角楔形区地板不到墙线
      （墙脚露黑）。修复：`_arenaPassageFloorQuad` 侧边取**实际墙线**（不再内收 12px），
      端边改为**房间真实边线**——地板端点 = 走廊侧墙线 × 房间边线交点（=墙角点），
      精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
      墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
      渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
+  - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
+    `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
+    `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
+    僵尸默认 `assets/scenes/dungeon-bg/zombie.png`（2560×1065，湿地+地牢废墟风格，
+    注意与兜底 `dungeon-map-bg.png`（2560×1440 城堡）不是同一张）。新增地牢背景：
+    参考僵尸原图 → `flux2-dev-fp8` 文生图（无深度图时用强构图提示词；HuggingFace
+    被墙下不了 Depth-Anything，深度控制不可用）→ 放大到与参考同尺寸 → 存
+    `assets/scenes/dungeon-map-bg-<主题>.png` → data/ + public/data/ 两份配置
+    `swampDungeon.mapBackground`。验证：`tools/cdp-swamp-webgl-check.mjs` 进地图
+    截图 + GLM。生成提示词见 `tools/_swamp_bg_prompt2.txt`（宽幅 2.4:1）。
 2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
 3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
 4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
@@ -3066,6 +3101,43 @@ addTree(x, y, radius, ...) {
 7. **验证**：`verify`（JSON 双份一致 + 资产/音效存在 + JS node --check）+ `npm run lint` +
    CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
 8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
+
+### .357麦格农左轮实证（weapon22，2026-08-08 第二轮，手枪族）
+
+- **手枪族关键设定**：weaponType 复用 `'pistol'`（双持/副手/手枪精通/attack.js 等全部
+  逻辑自动覆盖），但 attackKey/offhandAttackKey/animConfigKey/canvasImageProp 每把枪独立
+  （`revolver`/`revolverOffhand`/`revolver`/`revolverImage`）——避免双持互盖（P4040 教训）。
+- **JS 补丁清单（手枪族，按 deagle 基准）**：EDM 加 ITEM（含 equipSound/ammoConfig/reloadSound）、
+  shop-system 加条目、player-defaults images 加 key、player/index.js 预载 `revolverImage`、
+  weapon-texture-map specialMap weapon22 + 加载列表、weapon-attack-config 加 `revolver`+`revolverOffhand`
+  两攻击块、weapon-transform 加 `revolver` 变换块 + **getWeaponSize/getAttackAnimOffset 的手枪判定
+  三处加 'revolver'**（wt=animConfigKey 会落默认 rifle 尺寸，必须显式加）、GameScene 五处
+  isGun/isGunR/isGunOff/isGunSpecial 加 'revolver'、subsystems/equip-manager 的 canvasImageProp
+  分支加 `revolverImage`（否则误映射 pistolImage）、gun-ammo GUN_AMMO_CAP + GUN_EQUIP_SOUND、
+  craft-default-slots 复制同族槽位、game.js 掉落列表、dev-tool/panels、attack.js 开火音效
+  **改为通用 `fireWeapon.fireSound` 优先**（新枪专属开火音自动生效，无需逐枪 else-if）。
+- **auto-level 对左轮不可靠**：圆形转轮 + 下垂握把导致上沿拟合法 8 次迭代不收敛（越转越歪）。
+  修复：`--no-orient` 后手动迭代——GLM 定性判断方向（偏高/偏低），用枪管段（右端细长部分）
+  中心线拟合做像素仲裁（±1° 内可接受）。枪口朝右基准：右端细=枪管。
+- **参考图**：S&W 左轮白底侧视（Britannica）→ 归档 `Y:\工作\无尽轮回\scratch\weapons\revolver357\`；
+  gen-image 用 `--ref-image` 自动剪影锁形，4 张候选 seed27 定稿（GLM 9 分）。
+- **音效**：开火 = .357 重击+金属回音（0.42s）；换弹 = 转轮甩出→6 发装填→合上→锁定（2.0s）；
+  装备 = 拔枪+转轮锁定双咔哒（0.55s）。三种均 44.1kHz 立体声。
+- **验证**：verify 全过（双份 JSON/资产/音效/node --check）+ lint 0 error + npm test 全绿 +
+  CDP 实机（EDM 物品/改造 6 槽/纹理注册 `weapon_revolver357`/攻击表 revolver+revolverOffhand/
+  装备音效触发/掉落列表）。
+- **"机线严格水平向右"专项（2026-08-08 用户验收）**：
+  - 用户强调枪身/枪口/整条机线必须严格水平向右。验收方法：**像素仲裁为准**，
+    GLM 目测只做方向与"偏高/偏低"定性（度数不可靠，SKILL 既有结论）。
+  - 测量窗口坑：左轮含圆形转轮+下垂握把+枪口收窄，选区不同结果差异大（center 可从
+    -0.4° 到 +8°）。**必须取纯枪管段**（右端 25%~45% 宽度、列高<主体 55%、排除最前准星 30px）
+    拟合中心线；整体 bbox 中心线拟合会被握把带偏（-14° 假象）。
+  - 校正迭代：先逆时针转 2~3° 看方向，再按中心线余角微调（0.85° 级），目标 ±0.5° 内；
+    **PIL rotate(+θ)=逆时针**（向右下斜=右端低→逆时针抬右端）。每轮旋转后重测纯枪管段。
+  - 抠图白边：旋转 expand 用黑填充+BICUBIC 会留黑边/白羽化。修复链：压白底→BiRefNet 重抠→
+    清"邻域有低 alpha 的近白像素"（仅外圈，保留枪身内部高光——不锈钢反光近白 6 万是正常材质）→
+    alpha 形态学腐蚀 1px 剥最外圈。验收：过渡带(alpha 8~250)亮色占比 <1% 即干净。
+  - 用户验收口径：枪口朝右（右端细=枪管）、枪管中心线水平、转轮清晰、无白边。
 
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /

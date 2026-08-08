@@ -1,5 +1,36 @@
 # 变更日志
 
+### 对话：世界-122 大场景 AI 索敌 + 寻路优化（2026-08-08，结合每只怪自带 AI 机制）
+- **行为修复（5 项）**：
+  - BattleCommander 与防守模式冲突：战术点全围绕玩家且优先级高于 enemy.target，防守怪被拉向玩家——
+    game.js 收集 `_battleCommanderEnemies` 排除 `_defenseMonster` + movement-system 优先级守卫双保险。
+  - aggro 归一化：防守 spawn 把 `_aggroRange` 抬到 alertRange(3800)（`ai.defenseAggroRange` 可覆盖）——
+    黑狼(2500)/骑士·手脑·蝇手(900)/蝇群(700) 出生 ~3000px 外即进场，不再原地踱步。
+  - 卡住主动转火挡路掩体：`_coverSeg._owner` 回链 + movement-system `_retargetBlockingCover`
+    （卡住 500ms + 当前目标够不着 + 贴身掩体 → 直接转火，不等感知 500ms 重扫 + 1.3× 滞回）。
+  - 掩体 LOS 修复：对掩体的 LOS 射线忽略其自身 `_coverSeg`（perception/combat 两处）——
+    从墙背面（TL/TR 侧）接近也能出手，此前射线必穿自身 face 段永判无视线。
+  - `RegionIndex._isBlockedQuick` 纳入 `_cover` 段（与 pathfinder SpatialHash 同口径），
+    含掩体图里连通区/出口判定不再失真。
+- **索敌性能**：PerceptionSystem 候选改走 SpatialPartitionSystem.queryRadius
+  （`_sourceEntities` 引用校验防串集合，不可用回退全表）；两级筛选——基础分 top-5 才补 LOS(+0.5)；
+  LOS 缓存单槽改 per-target Map（200ms TTL，消除多候选互相冲刷），combat-system/enemy-types `_hasLOSTo` 同步适配；
+  DefenseSystem `_aliveCount`/`_grantMonsterGold` 250ms 节流。
+- **大场景寻路：分段接力 [RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 不再纯直线硬挤——
+  `_pickRelayPoint` 主方向 +±30°/±60° 5 条 WallSystem.blocked 射线选 600~700px 中继点逐段 A*，
+  复用现有帧预算 3ms/PATH_DEFERRED/PathManager 500ms 节流；chargeStraight（胖子/突变体）与
+  战术目标（_tacticalTarget）保持原直线行为；800px 内逻辑一字未动。
+- **验证**：pathfinding-bench 36 断言（新增接力 9 条：3000px 合成场景 22.4s 游戏时间抵达、
+  中继重选 19 次、单帧 ≤4ms）；CDP 实机 9/9 PASS（新工具 tools/cdp-defense-ai-verify.mjs：
+  黑狼出生即 chasing 推进 2052px/近战绕墙走门洞/堵门 407ms 转火啃墙/背面出手/远程环绕不卡死/
+  胖子直冲零接力/骑士远距索敌/40 怪 fps 238 帧均 0.73ms/全程零控制台报错）；
+  eslint 0 error、vite build ✓、npm test 全绿。
+- **修改文件**：src/game.js、src/systems/{movement,perception,combat,spatial-partition}-system.js、
+  src/ai/region-index.js、src/world/defense-system.js、src/entities/enemy-types.js、
+  tools/pathfinding-bench.mjs、tools/cdp-defense-ai-verify.mjs（新增）、SKILL.md。
+- **坑沉淀**：vite HMR 后 `import('/src/x.js')` 拿到的是第二份模块实例（状态全零），CDP 探针
+  必须按 resource entries 真实带 query 的 URL import（__imp 模式，与 cdp-defense-audit 同法）。
+
 ### 对话：AI 资产统一入口（2026-08-08，一个大类一个工作流）
 - 新增 `tools/ai-gen/ai-asset.py` 统一入口：monster 大类（idle / video / rebuild / status）
   + 通用子命令（cutout / bg-color / verify），内部编排现有脚本（comfyui-gen /

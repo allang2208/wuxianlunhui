@@ -17,10 +17,15 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 // 临时 Edge profile 必须退出即清（C 盘爆过两次，SKILL.md 铁律）
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-cdp-'));
 let edge = null;
-process.on('exit', () => {
-    try { if (edge) edge.kill(); } catch {}
-    try { fs.rmSync(profile, { recursive: true, force: true }); } catch {}
-});
+// 退出即清 profile（SKILL.md 铁律）：正常路径先 kill 再延时删（Edge 退出持锁会删不掉），exit 钩子兜底
+const rmProfile = () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} };
+async function cleanup(code) {
+    try { if (edge) edge.kill('SIGKILL'); } catch {}
+    await new Promise(r => setTimeout(r, 1500));
+    for (let i = 0; i < 5; i++) { rmProfile(); if (!fs.existsSync(profile)) break; await new Promise(r => setTimeout(r, 800)); }
+    if (code !== undefined) process.exit(code);
+}
+process.on('exit', () => { try { if (edge) edge.kill(); } catch {} rmProfile(); });
 
 edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
@@ -36,7 +41,7 @@ async function waitFor(fn, t = 30000) {
     for (;;) { try { const v = await fn(); if (v) return v; } catch {} if (Date.now() - t0 > t) return null; await new Promise(r => setTimeout(r, 300)); }
 }
 const page = await waitFor(async () => (await fetchJson(`${CDP}/json/list`)).find(t => t.type === 'page' && t.url.includes('localhost:5173')));
-if (!page) { console.error('no page'); process.exit(1); }
+if (!page) { console.error('no page'); await cleanup(1); }
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let seq = 0; const pending = new Map(); const consoleErrs = [];
@@ -72,35 +77,61 @@ for (let i = 0; i < 60 && !started; i++) {
     })()`).catch(() => false);
     if (!started) await sleep(500);
 }
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 90; i++) {
     const ok = await evalJs(`(async () => {
         try {
-            const { SceneManager } = await import('/src/world/scene-manager.js');
+            if (!(window.Game && window.Game.player && window.__phaserScene)) return null;
+            // 真实模块实例解析器：vite HMR 后页面里的是带 ?t= 的 URL，
+            // 直接 import 无 query 路径会拿到第二份模块实例（状态隔离），
+            // 必须按 resource entries 里的真实 URL import（与 cdp-defense-audit 同法）
+            window.__imp = async (name) => {
+                const urls = performance.getEntriesByType('resource').map(e => e.name)
+                    .filter(n => n.includes('/src/world/' + name + '.js'));
+                const u = urls.find(n => n.includes('.js?')) || urls[0] || ('/src/world/' + name + '.js');
+                return import(u);
+            };
+            const { SceneManager } = await window.__imp('scene-manager');
             window.__sm = SceneManager;
-            return SceneManager.currentScene || null;
+            return 'ready';
         } catch { return null; }
     })()`).catch(() => null);
-    if (ok) break;
+    if (ok) { console.log('game ready'); break; }
     await sleep(500);
 }
-await evalJs(`(async () => { await window.__sm.switchScene('scene8', window.Game.player); return true; })()`);
+console.log('game started:', started);
+const preState = await evalJs(`(async () => {
+    return { hasGame: !!window.Game, isRunning: !!(window.Game && window.Game.isRunning),
+        hasPlayer: !!(window.Game && window.Game.player), hasSM: !!window.__sm,
+        scene: window.__sm ? window.__sm.currentScene : null,
+        btn: !!document.getElementById('startGameBtn') };
+})()`).catch(e => String(e));
+console.log('pre-switch state:', JSON.stringify(preState));
+const swRes = await evalJs(`(async () => {
+    try {
+        if (!Object.keys(window.__sm.scenes || {}).length) window.__sm.init();
+        await window.__sm.switchScene('scene8', window.Game.player, 'explore');
+        return { ok: true, scene: window.__sm.currentScene };
+    } catch (e) { return { ok: false, err: String(e && e.stack || e).slice(0, 500) }; }
+})()`);
+console.log('switch result:', JSON.stringify(swRes));
 let defenseActive = false;
-for (let i = 0; i < 20 && !defenseActive; i++) {
+for (let i = 0; i < 60 && !defenseActive; i++) {
     await sleep(600);
     defenseActive = await evalJs(`(async () => {
-        const { DefenseSystem } = await import('/src/world/defense-system.js');
-        return !!(DefenseSystem.active && DefenseSystem.base);
+        const { DefenseSystem } = await window.__imp('defense-system');
+        const { SceneManager } = await window.__imp('scene-manager');
+        return !!(SceneManager.currentScene === 'scene8' && DefenseSystem.active && DefenseSystem.base);
     })()`).catch(() => false);
 }
 console.log('defense active:', defenseActive);
-if (!defenseActive) { console.error('scene8 defense not active, abort'); process.exit(1); }
+if (!defenseActive) { console.error('scene8 defense not active, abort'); await cleanup(1); }
 
 // ---------- 页面侧探针辅助 ----------
 await evalJs(`(() => {
     window.__v = {
         // 强制指定类型走真实 _spawnMonster 管线（验证 aggro 归一化等出生逻辑）
         async spawnForced(type) {
-            const { DefenseSystem } = await import('/src/world/defense-system.js');
+            const { DefenseSystem } = await window.__imp('defense-system');
             const orig = DefenseSystem._pickMonsterType;
             DefenseSystem._pickMonsterType = () => type;
             const before = new Set([...window.Game.entities.keys()]);
@@ -125,7 +156,7 @@ await evalJs(`(() => {
         coverHp(id) { const c = window.Game.entities.get(id); return c ? { hp: c.hp, max: c.maxHp, active: c.active } : null; },
         baseHp() { const b = window.Game.entities.get('defense_base'); return b ? b.hp : null; },
         async blockGate() {
-            const { DefenseCover } = await import('/src/world/defense-system.js');
+            const { DefenseCover } = await window.__imp('defense-system');
             const mk = (x, y, id) => { const c = new DefenseCover(x, y, { grade: 'A', orient: 'v', id }); window.Game.entities.set(id, c); return { id, x: Math.round(c.x), y: Math.round(c.y), hp: c.hp }; };
             return [mk(1086, 2211, 'probe_gate_a'), mk(1226, 2141, 'probe_gate_b')];
         },
@@ -140,7 +171,7 @@ await evalJs(`(() => {
             return n;
         },
         async naturalSpawn(on) {
-            const { DefenseSystem } = await import('/src/world/defense-system.js');
+            const { DefenseSystem } = await window.__imp('defense-system');
             if (!on) { DefenseSystem._spawnTimer = 9e9; DefenseSystem._eliteTimer = 9e9; DefenseSystem._lordTimer = 9e9; }
             else { DefenseSystem._spawnTimer = 100; }
             return true;
@@ -166,6 +197,8 @@ await evalJs(`(() => {
 
 const results = [];
 const record = (name, pass, detail) => { results.push({ name, pass, detail }); console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}  ${detail}`); };
+const ONLY = process.env.ONLY ? process.env.ONLY.split(',') : null;
+const runPhase = (key) => !ONLY || ONLY.includes(key);
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const BASE = { x: 900, y: 2048 };
 const GATE = { x: 1156, y: 2176 };
@@ -174,6 +207,7 @@ await evalJs(`window.__v.naturalSpawn(false)`);
 
 // ========== 1. 黑狼：出生即朝基地推进，不原地踱步 ==========
 console.log('--- P1 黑狼进场 ---');
+if (runPhase('P1'))
 {
     const w = await evalJs(`window.__v.spawnForced('blackWolf')`);
     console.log('  wolf spawned:', JSON.stringify(w));
@@ -191,6 +225,7 @@ console.log('--- P1 黑狼进场 ---');
 
 // ========== 2a. 普通近战：绕掩体走门洞 ==========
 console.log('--- P2a 僵尸群走门洞 ---');
+if (runPhase('P2a'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const ids = [];
@@ -220,6 +255,7 @@ console.log('--- P2a 僵尸群走门洞 ---');
 
 // ========== 3. 掩体 LOS：墙背面接近也能出手 ==========
 console.log('--- P3 墙背 LOS ---');
+if (runPhase('P3'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     // TR 边中点 (1156,1920) 附近找掩体，从房间外（东北侧）贴脸放僵尸
@@ -237,7 +273,11 @@ console.log('--- P3 墙背 LOS ---');
     const z = await evalJs(`window.__v.spawnForced('zombie')`);
     await evalJs(`window.__v.teleport('${z.id}', ${zx}, ${zy})`);
     const hp0 = (await evalJs(`window.__v.coverHp('${info.id}')`)).hp;
-    let hpEnd = hp0, tgt = null, stayedOutside = true;
+    // 目标掩体及其相邻件都可能成为实际攻击对象（最近结构判定）：统一盯 TR 边墙外可及的所有掩体
+    const watchIds = (await evalJs(`(() => window.__v.covers().filter(c => Math.hypot(c.x - ${info.x}, c.y - ${info.y}) < 400).map(c => c.id))()`));
+    const hpStart = {};
+    for (const id of watchIds) hpStart[id] = (await evalJs(`window.__v.coverHp('${id}')`)).hp;
+    let hpEnd = hp0, tgt = null, stayedOutside = true, chewedId = null;
     const t0 = Date.now();
     while (Date.now() - t0 < 15000) {
         await sleep(500);
@@ -246,19 +286,22 @@ console.log('--- P3 墙背 LOS ---');
         tgt = s.target;
         // 菱形房内判定：|x-900|/512 + |y-2048|/256 < 1 视为进了房
         if (Math.abs(s.x - BASE.x) / 512 + Math.abs(s.y - BASE.y) / 256 < 0.95) stayedOutside = false;
-        const c = await evalJs(`window.__v.coverHp('${info.id}')`);
-        hpEnd = c.hp;
-        if (hpEnd < hp0) break;
+        for (const id of watchIds) {
+            const c = await evalJs(`window.__v.coverHp('${id}')`);
+            if (c && c.hp < hpStart[id]) { chewedId = id; hpEnd = c.hp; }
+        }
+        if (chewedId) break;
     }
     await evalJs(`window.__v.movePlayer(${zx}, ${zy})`);
     await sleep(700);
     await shot('defense_ai_los_behind');
-    const pass = hpEnd < hp0 && tgt === info.id && stayedOutside;
-    record('P3 墙背 LOS 出手', pass, `掩体=${info.id} hp ${hp0}->${hpEnd} 僵尸target=${tgt} 始终在墙外=${stayedOutside}`);
+    const pass = chewedId !== null && stayedOutside;
+    record('P3 墙背 LOS 出手', pass, `贴脸掩体=${info.id} 被啃掩体=${chewedId} hp ${chewedId ? hpStart[chewedId] + '->' + hpEnd : 'n/a'} 僵尸target=${tgt} 始终在墙外=${stayedOutside}`);
 }
 
 // ========== 4. 远程怪：环绕风筝不卡死 ==========
 console.log('--- P4 远程风筝 ---');
+if (runPhase('P4'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const sp = await evalJs(`window.__v.spawnForced('spitterZombie')`);
@@ -291,6 +334,7 @@ console.log('--- P4 远程风筝 ---');
 
 // ========== 5. chargeStraight 胖子僵尸：直冲不走接力 ==========
 console.log('--- P5 胖子直冲 ---');
+if (runPhase('P5'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const f = await evalJs(`window.__v.spawnForced('fatZombie')`);
@@ -327,6 +371,7 @@ console.log('--- P5 胖子直冲 ---');
 
 // ========== 6. 骑士：aggro 900→3800 远距离索敌 ==========
 console.log('--- P6 骑士远距索敌 ---');
+if (runPhase('P6'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const k = await evalJs(`window.__v.spawnForced('armoredKnight')`);
@@ -334,17 +379,20 @@ console.log('--- P6 骑士远距索敌 ---');
     const samples = [];
     for (let i = 0; i < 20; i++) { await sleep(300); const s = await evalJs(`window.__v.snap('${k.id}')`); if (s) samples.push(s); }
     const last = samples[samples.length - 1];
-    const sawChasing = samples.some(s => s.ai === 'chasing');
+    // 骑士非 pacing-AI（aiInterval=MAX 关闭通用状态机），索敌走 PerceptionSystem 直接写 target；
+    // 判定标准：aggro 抬到 3800 + 感知系统给到防守目标 + 实际向基地推进
+    const sawTarget = samples.some(s => s.target);
     const approach = dist(k, BASE) - dist(last, BASE);
     await evalJs(`window.__v.movePlayer(${last.x}, ${last.y})`);
     await sleep(700);
     await shot('defense_ai_knight_aggro');
-    const pass = k.aggro >= 3800 && sawChasing && approach > 300;
-    record('P6 骑士 aggro3800', pass, `aggro=${k.aggro} chasing=${sawChasing} 推进=${Math.round(approach)}px`);
+    const pass = k.aggro >= 3800 && sawTarget && approach > 300;
+    record('P6 骑士 aggro3800', pass, `aggro=${k.aggro} 感知索敌=${sawTarget} target=${last.target} 推进=${Math.round(approach)}px`);
 }
 
 // ========== 2b. 堵门：卡住 ~500ms 主动转火掩体啃墙 ==========
 console.log('--- P2b 堵门转火啃墙 ---');
+if (runPhase('P2b'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const gate = await evalJs(`window.__v.blockGate()`);
@@ -387,6 +435,7 @@ console.log('--- P2b 堵门转火啃墙 ---');
 
 // ========== 7. 性能：~35 怪 FPS/帧耗时 ==========
 console.log('--- P7 索敌性能 ---');
+if (runPhase('P7'))
 {
     await evalJs(`window.__v.killDefenseMonsters()`);
     const types = ['zombie', 'blackWolf', 'minerZombie', 'spitterZombie', 'fatZombie', 'armoredKnight', 'zombie'];
@@ -411,5 +460,5 @@ console.log('--- P7 索敌性能 ---');
 console.log('\n===== 汇总 =====');
 for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}`);
 ws.close();
-edge.kill();
+await cleanup();
 console.log('done');

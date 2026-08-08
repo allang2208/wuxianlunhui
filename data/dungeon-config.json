@@ -396,7 +396,8 @@
       "glow": false,
       "overlapX": 6,
       "overlapY": 3
-    }
+    },
+    "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png"
   },
   "combatRoom": {
     "normalSize": 1024,
@@ -653,5 +654,6 @@
         "category": "consumable"
       }
     }
-  }
+  },
+  "swamp": {}
 }

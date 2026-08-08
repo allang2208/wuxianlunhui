@@ -73,6 +73,24 @@ export const EquipDataManager = {
             ]
         }
     },
+    REVOLVER357_ITEM: {
+        weaponId: 'weapon22',
+        name: '.357麦格农左轮', type: '手枪', icon: '🔫', iconImage: 'assets/icons/revolver357-equip.png',
+        slotImage: 'assets/icons/revolver357-equip.png',
+        equipImage: 'assets/weapons/revolver357-equip.png',
+        category: 'weapon_ranged', rarity: 'epic', level: 15,
+        weaponCategory: 'mainhand', weaponType: 'pistol',
+        weaponTypeTag: '远程武器', isTwoHanded: false,
+        weaponAsset: { image: 'assets/weapons/revolver357-equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
+        stats: [{ name: '物理攻击', value: '4-9' }, { name: '射程', value: '700' }],
+        desc: '.357麦格农左轮手枪，6发弹巢，亮银色曳光弹，威力巨大的经典左轮',
+        equipSlot: 'weapon',
+        attack: { range: 700, knockback: 12, attackInterval: 700, hitType: '亮银色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
+        attackKey: 'revolver', offhandAttackKey: 'revolverOffhand', animConfigKey: 'revolver', fireSound: 'assets/sounds/weapons/revolver357_fire.wav', equipSound: 'assets/sounds/weapons/revolver357_equip.wav', canvasImageProp: 'revolverImage',
+        ammoConfig: { max: 6, reloadTime: 2000, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav' }, fireMode: 'semiAuto',
+        attackFormula: { base: 26, enhanceFlat: 0, attrs: [{ key: 'dex', base: 0.8, perEnhance: 0.1 }, { key: 'wis', base: 1.6, perEnhance: 0.15 }] },
+        spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 28 }
+    },
     P4040_ITEM: {
         weaponId: 'weapon18',
         name: 'P4040', type: '手枪', icon: '🔫', iconImage: 'assets/weapons/P4040-icon.png',

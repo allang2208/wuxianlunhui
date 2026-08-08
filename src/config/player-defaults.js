@@ -85,6 +85,7 @@ export const PLAYER_DEFAULTS = {
         bowEquip: 'assets/weapons/trainingBOW.png',
         pistol: 'assets/icons/G18icon.png',
         deagle: 'assets/icons/DesertEagle_icon.png',
+        revolver: 'assets/weapons/revolver357-equip.png',
         p4040: 'assets/weapons/P4040-icon.png',
         pkm: 'assets/icons/pkm_side_clean.png',
         akm: 'assets/weapons/akm-equip.png',

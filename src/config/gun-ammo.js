@@ -2,6 +2,7 @@
 export const GUN_AMMO_CAP = {
     weapon9:  { max: 12, reloadTime: 1000 },
     weapon10: { max: 6,  reloadTime: 1750 },
+    weapon22: { max: 6,  reloadTime: 2000, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav' },
     weapon19: { max: 9,  reloadTime: 1500 },
     weapon18: { max: 12, reloadTime: 1200 },
     weapon6:  { max: 75, reloadTime: 3500 },
@@ -109,6 +110,7 @@ export const getAmmoConfig = (item) => {
 export const GUN_EQUIP_SOUND = {
     weapon12: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', // Super90 枪栓音效
     weapon21: 'assets/sounds/weapons/m416_equip.wav', // M416 装备音效
+    weapon22: 'assets/sounds/weapons/revolver357_equip.wav', // .357麦格农左轮装备音效
 };
 export const getEquipSound = (item) => {
     if (!item) return null;

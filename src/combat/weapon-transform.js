@@ -52,6 +52,15 @@ const WEAPON_TRANSFORM_CONFIG = {
         afterRotateOffsetY: 0,
         baseRotation: 0,
     },
+    revolver: {
+        // .357 麦格农左轮：对齐 deagle（手枪族）
+        mainBaseX: -15, mainBaseY: 16.5,
+        offBaseX: -23, offBaseY: 19,
+        holdOffsetKey: 'revolver',
+        afterRotateOffsetX: (s) => s * 0.42,
+        afterRotateOffsetY: 0,
+        baseRotation: 0,
+    },
     beretta93r: {
         // Beretta 93R：全面对齐 G18（pistol 条目；主手 (-9,-35.5)、副手 (-17,-33) 终值一致）
         mainBaseX: -15, mainBaseY: 16.5,
@@ -520,7 +529,7 @@ class WeaponTransform {
         const wac = WeaponAnimConfig[weaponType] || {};
         const rp = wac.renderParams || {};
 
-        if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040' || weaponType === 'beretta93r') {
+        if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'revolver' || weaponType === 'p4040' || weaponType === 'beretta93r') {
             if (anim.state === 'windup') {
                 recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
@@ -588,7 +597,7 @@ class WeaponTransform {
             return { width: ms * 0.63 * scale, height: ms * scale };
         } else if (weaponType === 'bow') {
             return { width: s * scale * 1.10, height: s * scale * 1.10, useAspectRatio: true };
-        } else if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'p4040' || weaponType === 'beretta93r') {
+        } else if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'revolver' || weaponType === 'p4040' || weaponType === 'beretta93r') {
             return { width: s * 0.275 * scale, height: s * 0.5 * scale };
         } else {
             return { width: s * 0.75 * scale, height: s * scale };

@@ -239,7 +239,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     },
 
     /**
-     * 计算移动方向（目标、最后已知位置、战术目标、战斗指挥官目标）
+     * 计算移动方向（战术目标、战斗指挥官目标、当前目标、最后已知位置、搜索巡逻点）
      * @returns {{dx:number, dy:number, dist:number}|null}
      */
     _computeMoveDirection(enemy, _entities) {
@@ -277,6 +277,15 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         else if (enemy._lastKnownTargetPos) {
             tx = enemy._lastKnownTargetPos.x;
             ty = enemy._lastKnownTargetPos.y;
+            hasTarget = true;
+        }
+        // 5. [SEARCH] 搜索巡逻：到达最后已知位置后，在周边搜索点间移动一段时间再放弃
+        // （战术小队的 _searchTarget 无 phase 字段，不会命中此分支；重新锁定目标后
+        // 优先级 3 的目标分支会立即接管，防守怪不会被巡逻拖住）
+        else if (enemy._searchTarget && enemy._searchTarget.phase === 'searchAround'
+            && enemy._searchTarget.searchPoints && enemy._searchTarget.searchPoints.length > 0) {
+            tx = enemy._searchTarget.searchPoints[0].x;
+            ty = enemy._searchTarget.searchPoints[0].y;
             hasTarget = true;
         }
 

@@ -86,6 +86,7 @@ const DevTool = {
                      },
         pistol:     { name: 'G18',        img: WEAPON_TEX_PATH.weapon_g18,         type: 'pistol', configKey: 'pistol', weaponId: 'weapon9' },
         deagle:     { name: '沙漠之鹰',   img: WEAPON_TEX_PATH.weapon_deagle,  type: 'pistol', configKey: 'deagle', weaponId: 'weapon10' },
+        revolver357: { name: '.357麦格农左轮', img: WEAPON_TEX_PATH.weapon_revolver357, type: 'pistol', configKey: 'revolver', weaponId: 'weapon22' },
         p4040:      { name: 'P4040',      img: WEAPON_TEX_PATH.weapon_p4040,   type: 'pistol', configKey: 'p4040', weaponId: 'weapon18' },
         beretta93r: { name: 'Beretta 93R', img: WEAPON_TEX_PATH.weapon_beretta93r, type: 'pistol', configKey: 'beretta93r', weaponId: 'weapon19' },
         pkm:        { name: 'PKM',        img: WEAPON_TEX_PATH.weapon_pkm,      type: 'machinegun', configKey: 'pkm', weaponId: 'weapon6' },
