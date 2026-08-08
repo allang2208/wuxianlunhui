@@ -142,14 +142,16 @@ await evalJs(`(() => {
     if (!e) return;
     e.hp = e.maxHp * 0.3;
     e._transformTriggered = false; e._isTransforming = false; e._isTransformed = false;
-    e.takeDamage(100, null, 'physical', true);
+    // 确保 update 里能触发变身
+    if (e._transformCfg && e._transformCfg.hpThreshold) e._transformCfg.hpThreshold = 0.5;
 })()`).catch(() => {});
-await new Promise((r) => setTimeout(r, 5500));
+await new Promise((r) => setTimeout(r, 7000));
 await shot('rw_shot_humanoid');
 
 const state = await evalJs(`(() => {
     const e = window.Game.entities.get('enemy_main_red_wolf');
-    return e ? { isTransformed: e._isTransformed, animState: e._animState, texKey: e._getTextureKey() } : null;
+    const sp = e && e._phaserSprite;
+    return e ? { isTransformed: e._isTransformed, animState: e._animState, texKey: e._getTextureKey(), spriteTex: sp && sp.texture ? sp.texture.key : null, hasSprite: !!sp } : null;
 })()`).catch(() => null);
 console.log('final state:', JSON.stringify(state));
 console.log('errs:', errs.length ? errs : 'none');
