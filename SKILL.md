@@ -2983,7 +2983,12 @@ addTree(x, y, radius, ...) {
   - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
     生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
     合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
-  - `gen-image --host <comfyui> --model <model> --seeds a,b,c`：批量出候选（默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。
+  - `gen-image --host <comfyui> --model <model> --seeds a,b,c [--ref-image <真实参考图>]`：批量出候选
+    （默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。**新武器必须传 `--ref-image`**
+    （白底/纯色底完整侧视实拍图）：工具自动抠剪影→黑底白枪深度图→`--control-image` 锁武器大形，
+    否则 FLUX 凭文字先验画会"不像真枪"（2026-08-08 M416 教训）。参考图获取走国内图搜
+    （360 图搜 `image.so.com/j?q=<枪名>&pn=1&ps=40` / 必应中国 `cn.bing.com/images/async`，
+    百度 acjson 被反爬）。生图模型用远程 5080 `flux2-dev-depth`（本地无 Flux2FunControlNet 节点）。
   - `process-image --raw <候选.png> [--cutout-tool auto|rmbg|make-transparent-icon|flood|none] [--no-orient] [--no-auto-level]`：
     默认自动镜像保证枪口朝右（左右极值列高判定）→ 默认自动校平枪身基线（机匣上沿中段拟合，0.8 阻尼迭代；
     **向右下斜为正角，PIL rotate(+θ) 逆时针按同符号旋转——用 -θ 会越转越歪，2026-08-08 教训**）→
@@ -3025,6 +3030,36 @@ addTree(x, y, radius, ...) {
     立体声 WAV（44.1kHz）。模板见 add-weapon.py 的 synth_equip（可按需替换）。
   - 教训：**新增武器"有配置≠有触发"**，音效/特效/逻辑都要沿触发链路查一遍，
     不能只看数据层；找同族基准（super90）的代码位置直接抄结构。
+
+### 标准全自动添加枪械武器工作流（2026-08-08 M416 全流程定稿）
+
+按序执行，每步可单独跑、可断点续传：
+
+1. **写 spec**：`tools/ai-gen/weapon-specs/<key>.json`。字段模板抄 `m416.json`：
+   weaponId 顺延（weaponN）、name/rarity/price、statsJson + attackFormula（略低于同族基准）、
+   attack/ammoConfig（弹容/换弹/三种音效路径）、fireMode、spreadParams、craftTemplateWeaponId、
+   animTemplateWeaponType（同族基准）、layout（2048²/0.915/centerY 0.543）、imagePrompts.icon/video。
+2. **scaffold**：`python tools/ai-gen/add-weapon.py --spec ... scaffold` → 自动写
+   equipment.json/craft-config.json（data+public 双份）、weapon-anim-config.json、深度剪影模板、
+   出图/视频提示词、三音效（开火/换弹/装备），并输出 JS 补丁锚点清单。
+3. **搜真实参考图（国内直连）**：360 图搜 `image.so.com/j?q=<枪名>+侧视&pn=1&ps=40` 或
+   必应中国 `cn.bing.com/images/async`，优先"白底+完整侧视+枪口朝右"实拍图；
+   GLM-4.6V 逐张确认完整性与枪型特征。参考图归档 `Y:\工作\无尽轮回\scratch\weapons\<key>\ref_*`。
+4. **生图（必须带参考图）**：`gen-image --model flux2-dev-depth --host 192.168.3.142
+   --ref-image <参考图> --seeds a,b,c`（自动抠剪影锁形）；GLM 验收候选（完整侧视/枪型/白底/无缺陷），
+   定稿候选归档同目录。
+5. **处理入库**：`process-image --raw <候选> --cutout-tool rmbg --no-orient`（参考图朝右时
+   **必须 --no-orient**，避免 orient_right 误判翻转；用像素仲裁方向：右端细=枪管）。BiRefNet 抠图 →
+   校平 → 2048² 归一 → 写 assets/weapons + assets/icons。
+6. **JS 补丁**：按 scaffold 锚点清单用 apply_patch 落盘（EDM/shop/player-defaults/weapon-texture-map/
+   weapon-attack-config/gun-ammo/craft-default-slots/weapon-fx-config/attack-formula/weapon-anim/update/
+   subsystems/GameScene/weapon-transform/enchant-config/quick-bar/equip-manager/attack/game/dev-tool/
+   defense-system）。**音效触发已通用化**（getEquipSound 非空即播），新枪只需在
+   `GUN_EQUIP_SOUND` 或 spec.equipSound 配置路径，无需改 shotgun 分支。
+7. **验证**：`verify`（JSON 双份一致 + 资产/音效存在 + JS node --check）+ `npm run lint` +
+   CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
+8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
+
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
   attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。
