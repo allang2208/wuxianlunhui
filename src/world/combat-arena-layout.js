@@ -40,21 +40,27 @@ export function leftTopMid(room) {
 }
 
 /**
- * 计算三房间串联布局
+ * 计算多房线性串联布局（2026-08-11：由三房推广到 N 房）
+ * 所有房间沿同一斜轴（30° 等距投影 v1）串联，入口边统一 LT、出口边统一 RB——
+ * 与已验证的房间 1-3 完全同构（"复制前房"模式），全程只用成熟的左右通道（v1）连接，
+ * 不再走蛇形折返（v2/-v1 通道会让后段房间墙壁错位）。
  * @param {Object} opts
- * @param {number} opts.normalSize 房间 1/2 尺寸档（combatRoom.normalSize）
- * @param {number} opts.eliteSize  房间 3 尺寸档（combatRoom.eliteSize）
+ * @param {number} opts.normalSize 普通房尺寸档（combatRoom.normalSize）
+ * @param {number} opts.eliteSize  末房（宝箱房）尺寸档（combatRoom.eliteSize）
  * @param {number} opts.passageLen 通道长度（两房间墙洞间距，像素；取通道预制两门墙中心距）
  * @param {number} [opts.gap]      额外间距微调（combatArena.passageGap）
+ * @param {number} [opts.roomCount] 房间数（默认 3；末房 elite，其余 normal）
  * @returns {{ rooms: Array, passages: Array, worldW: number, worldH: number }}
- *   rooms[i]    = { index, size, cx, cy, rx, ry, bounds }
+ *   rooms[i]    = { index, size, cx, cy, rx, ry, bounds, inEdge: 'LT', outEdge: 'RB' }
  *   passages[i] = { index, mid1, mid2, center, axis, length }  连接 rooms[i] → rooms[i+1]
  */
-export function computeArenaLayout({ normalSize, eliteSize, passageLen, gap = 0 }) {
-    const sizes = [normalSize, normalSize, eliteSize];
+export function computeArenaLayout({ normalSize, eliteSize, passageLen, gap = 0, roomCount = 3 }) {
+    const n = Math.max(1, Math.floor(roomCount) || 3);
+    const sizes = [];
+    for (let i = 0; i < n; i++) sizes.push(i === n - 1 ? eliteSize : normalSize);
     const rooms = [];
     let prev = null;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < n; i++) {
         const { rx, ry } = diamondRadii(sizes[i]);
         let cx, cy;
         if (!prev) {
@@ -70,7 +76,7 @@ export function computeArenaLayout({ normalSize, eliteSize, passageLen, gap = 0 
             index: i + 1,
             size: sizes[i],
             cx, cy, rx, ry,
-            // 三房直线串联：入口 LT、出口 RB（与迷宫接口统一）
+            // 线性串联：入口 LT、出口 RB（与迷宫接口统一）
             inEdge: 'LT',
             outEdge: 'RB',
             bounds: {
@@ -84,7 +90,7 @@ export function computeArenaLayout({ normalSize, eliteSize, passageLen, gap = 0 
     }
 
     const passages = [];
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < n - 1; i++) {
         const mid1 = rightBottomMid(rooms[i]);
         const mid2 = leftTopMid(rooms[i + 1]);
         const length = Math.hypot(mid2.x - mid1.x, mid2.y - mid1.y);

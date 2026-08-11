@@ -9,7 +9,7 @@ import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
@@ -47,7 +47,7 @@ export const SceneManager = {
     showLoadingScreen() {
         this.isLoading = true;
         this.loadProgress = 0;
-        let overlay = getElement('loadingOverlay');
+        let overlay = getElementIfExists('loadingOverlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'loadingOverlay';
@@ -67,7 +67,7 @@ export const SceneManager = {
     },
 
     hideLoadingScreen() {
-        const overlay = getElement('loadingOverlay');
+        const overlay = getElementIfExists('loadingOverlay');
         if (overlay) {
             overlay.style.opacity = '0';
             TimerManager.setTimeout(() => { overlay.style.display = 'none'; }, 300);

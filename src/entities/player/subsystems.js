@@ -18,6 +18,7 @@ import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { GunFeel } from '../../effects/gunfeel.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
@@ -1626,6 +1627,9 @@ _fireRanged(hand = 'main') {
                 const craftEffects = this.equipments[this.weaponMode] && this.equipments[this.weaponMode]._craftEffects;
                 const _fireMaxAngle = this._currentSpreadMaxAngle || 25;
                 this._crosshairShotKick = Math.max(0, 1.0 + ((craftEffects && craftEffects.shotSpreadDelta) || 0) / _fireMaxAngle);
+
+                // 开火手感反馈（trauma 微震 + zoom punch；重武器另有 Camera.triggerShake 大力震屏）
+                if (GunFeel) GunFeel.onShot(this.equipments[this.weaponMode]);
 
                 // === 副手独立处理 ===
                 if (hand === 'offhand') {

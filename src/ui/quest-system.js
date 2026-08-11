@@ -6,7 +6,7 @@ import { SceneManager } from '../world/scene-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { queryAllElements, getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { DropItem } from '../entities/drop-item.js';
 import { NPCDialogue } from './npc-dialogue.js';
@@ -311,7 +311,7 @@ export const QuestTracker = {
     },
 
     _createElement() {
-        const existing = getElement('questTracker');
+        const existing = getElementIfExists('questTracker');
         if (existing) return;
         const tracker = document.createElement('div');
         tracker.id = 'questTracker';

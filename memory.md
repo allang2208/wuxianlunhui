@@ -1,5 +1,7 @@
 # game-dev 项目状态记忆
 
+> 📁 **3D 化迁移已暂停（2026-08-10）**：3D 实验文件已清理（2026-08-11，移至 `.trash-3d-experiments/`）；经验归档见用户级技能 `C:\Users\allan\.codex\skills\godot-3d-dev\`。3D 原型在 `E:\3d\3-dfps` 完整保留。
+
 ## 项目信息
 - **路径**: `C:\Users\allan\Documents\kimi\workspace\game-dev`
 - **架构**: Vite + ES6 模块化（32 个模块），版本 V0.140

@@ -1,7 +1,7 @@
 import { Game } from '../game.js';
 import { NpcPortraitTool } from './npc-portrait-tool.js';
 import { UIState } from './ui-state.js';
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { ShopSystem } from './shop-system.js';
 import { EnhanceSystem } from './enhance-system.js';
@@ -95,7 +95,7 @@ const NPCDialogue = {
         // 隐藏小地图、任务追踪、返回主菜单按钮
         const backMenuBtn = getElement('backMenuBtn');
         if (backMenuBtn) backMenuBtn.style.display = 'none';
-        const questTracker = getElement('questTracker');
+        const questTracker = getElementIfExists('questTracker');
         if (questTracker) questTracker.style.display = 'none';
 
         // 暂停游戏（可选）
@@ -271,7 +271,7 @@ const NPCDialogue = {
         // 恢复小地图、任务追踪、返回主菜单按钮
         const backMenuBtn = getElement('backMenuBtn');
         if (backMenuBtn) backMenuBtn.style.display = 'block';
-        const questTracker = getElement('questTracker');
+        const questTracker = getElementIfExists('questTracker');
         if (questTracker) questTracker.style.display = 'block';
 
         // 恢复游戏
