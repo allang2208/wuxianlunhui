@@ -142,6 +142,16 @@ const r = await evalJs(`(async () => {
             x: Math.round(inst.sprite ? inst.sprite.x : -1),
             y: Math.round(inst.sprite ? inst.sprite.y : -1),
         }));
+        const WG = window.WallGate;
+        if (WG && WG.sprite) {
+            gateInfo.push({
+                kind: 'exit',
+                tex: WG.sprite.texture ? WG.sprite.texture.key : null,
+                frame: WG.sprite.frame.name,
+                x: Math.round(WG.sprite.x),
+                y: Math.round(WG.sprite.y),
+            });
+        }
     } catch (e) { gateInfo = { err: String(e) }; }
     const wallTexs = new Set();
     const ws2 = (await import(pick('world/wall-system.js'))).WallSystem;

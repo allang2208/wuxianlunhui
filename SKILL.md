@@ -92,18 +92,35 @@
 > 一条龙做完的完整参考（墙/地砖/铁闸门/数据/验证），新地牢照此走。
 
 **生成（远程 5080，队列共享）**：
-- 岩壁墙：Blender 白模 spec（`_blockout_specs/demon_wall.json`：主墙 + 不规则顶）
-  → `blender-depth-render.py` 出深度模板 → `flux2-dev-depth` + `prompts/demon-wall.md`
-  → `prep-demon-wall.py`（白底抠图 → 裁岩突 → **水平镜像**（底边向右下，同
-  wall_straight/swamp 方向）→ 底边拉直 → 标定 base/face/slope）。成品 slope 0.3754
-  （slopeFix 校正到 30°）。
-- 地砖：`make-demon-floor-depth.py` 用 swampbrick 剪影做深度模板 → FLUX depth →
-  `prep-demon-floor.py` 抠图入库 `demonbrick1.png`。
-- 铁闸门：MiniMax H3 视频（白底 + 铁栅升起，首帧关/末帧开）→ `prep-demon-gate.py`
-  （白底洪泛抠图 → **垂直剪切 y'=y+k(x-cx) 以水平中心为轴**把平底边切成 0.5 原生
-  斜率 → 16 帧 4×4 打包）。**坑**：PIL AFFINE 是逆映射、剪切必须以门体中心为轴
-  （否则推出画面被裁）；白底视频必须纯白背景提示词（场景版不可用）；H3 可能不
-  执行"升起"指令——帧间 diff 确认动画真实存在再入库。
+- 岩壁墙（路线 B 定稿 2026-08-11）：Blender box 几何 spec
+  （`_blockout_specs/demon_wall_b.json`：520×52×150 rot52）→ `render-cover-real.py`
+  直接渲染成品墙（AI 岩质材质 `demon_rock_tex.png` 贴 box 正面/顶面，无投影、
+  透明底、底边由几何精确控制）→ `prep-demon-wall-B.py`（水平镜像 → 内容裁剪 →
+  标定 base/face/slope）。成品 `demon_wall_straight.png` 684×659，slope 0.64
+  （32.6°），wallH 326。**渲染坑**：`box_full_uv` 每面整张纹理（默认 cube UV 只
+  显示上半部）；材质直连 Base Color，EEVEE 下 AO/Mix 会刷成纯色；`bevelTopOnly`
+  保底边直线。
+- 地砖：`demon_floor_b.json`（230×230×10 box rot45）→ render-cover-real →
+  内容包围盒裁剪入库 `demonbrick1.png`（640×334 菱形板；floor 系统按 alpha 包围盒
+  实测几何，无需手写 geo）。
+- 铁闸门（路线 B，弃用 H3 视频）：岩壁单块（`demon_gate_wall.json` 406×56×102）+
+  铁栅独立渲染（`demon_gate_bars.json`：7 立柱 181 高 + 顶梁，AI 铸铁材质
+  `demon_iron_tex.png`）→ `compose-demon-gate-B.py` 程序化合成 16 帧升起
+  （**平行四边形门洞**：洞顶/洞底与墙底边平行；铁栅按"顶部对齐 + 立柱加高 +
+  逐列地面线裁剪 + 底部 40px 冗余"填满门洞；关闭帧用深铁色底梁填实立柱锯齿）。
+  成品 `demon_gate.png` 640×576/帧，slope 0.6347，wallH 291，gateX [159,481]。
+  **坑**：
+  1. 闸门 wallH 必须与直墙同长宽比（直墙 684/326≈2.10 → 640 宽门墙高≈305），
+     否则闸门世界宽度 ≠ 被替换墙段（歪门/悬空）；
+  2. 铁栅立柱底边是锯齿线（每根柱的端盖投影），绝不能直接对齐底边——用
+     "洞顶对齐 + 高度冗余 + 裁齐"方案；
+  3. 合成后**帧高变化必须同步 `BootScene` 的 spritesheet frameHeight**
+     （786→576）：帧错位时 placeAt 创建的精灵无有效帧，闸门整扇不显示；
+  4. `WallGate.placeAt` 在贴图未就绪时**静默返回 false**（闸门消失、墙件回插）：
+     真实流程 BootScene 加载完才进游戏没问题；测试脚本必须等
+     `textures.exists('demon_gate')` 再进竞技场；
+  5. 竞技场门是 `_createArenaGate` 实例（`_arena.entryGate` +
+     `passages[].gates`），不是 WallGate 单例；出口门才是 WallGate。
 
 **数据驱动（不硬编码）**：
 - `dungeonList.demonCavern` + `demonCavern` 配置块（C 级，floor tiles demonbrick1）。
@@ -118,8 +135,11 @@
   预制（wall_straight/wall_gate）按当前墙样式从底边重建件——新地牢通道自动换
   匹配墙/铁闸门，无需为每套样式维护专属通道预制。
 
-**验证**：CDP 进 demonCavern → 5 房竞技场、8 门全 demon_gate 且全开、负 sy 0；
-GLM：房 1 岩地+岩壁+橙矿晶、通道铁闸清晰、无贴图异常；npm test 51/51、build ✓。
+**验证**：CDP 进 demonCavern → 5 房竞技场、10 门全 demon_gate 且全开
+（入口 1 + 通道 8 + 出口 WallGate 1）、帧 0/15 切换正常、无负 sy；GLM：房 1 岩地+
+岩壁+橙矿晶、通道铁闸底边与岩壁齐、关闭帧铁栅完全覆盖门洞、无贴图异常；
+墙/门相关测试 248 项通过（test-gate-corner / arena-layout / wall-depth / wall-embed /
+collision-grid / regressions）、vite build ✓。
 
 **遗留**：demon 转角预制未做（当前回退程序化转角臂）；宝箱房用通用「宝箱房」
 （直墙件自动重映射、门件仍默认纹理）。
