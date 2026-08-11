@@ -220,6 +220,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                     EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit);
                 }
                 const isKill = this.hp <= 0;
+                // 供 DamagePipeline 读取的本次命中暴击标记（hitmarker 分级用，每次 takeDamage 重置）
+                this._lastHitCrit = isCrit;
                 if (isKill) {
                     this.hp = 0;
                     this.onDeath(source);

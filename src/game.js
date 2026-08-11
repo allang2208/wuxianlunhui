@@ -28,6 +28,7 @@ import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
 import { GAME_CONFIG } from './config/game-config.js';
 import { EffectManager } from './effects/effect-manager.js';
+import { GunFeel } from './effects/gunfeel.js';
 import { getElement } from './utils/dom-utils.js';
 import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
@@ -1103,8 +1104,11 @@ export const Game = {
         if (this._paused) { this.lastTime = timestamp; requestAnimationFrame(t => this.loop(t)); return; }
         try {
             const maxDt = GAME_CONFIG.gameLoop?.maxDtMs || 100;
-            const dt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
-            this.frameCount++; this.fpsTimer += dt;
+            const rawDt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
+            // 枪械手感：hitstop（击杀冻结）期间世界 dt 缩放；GunFeel 自身按真实时间衰减
+            GunFeel.update(rawDt);
+            const dt = rawDt * GunFeel.timeScale();
+            this.frameCount++; this.fpsTimer += rawDt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
             this.update(dt); this.render(); GameUIManager.updateUI(); Input.update();
         } catch (e) {

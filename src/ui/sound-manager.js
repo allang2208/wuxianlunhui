@@ -70,6 +70,9 @@
                     case 'gun_fire': this._playGunFire(); break;
                     case 'hit': this._playHit(); break;
                     case 'crit': this._playCrit(); break;
+                    case 'hitmark': this._playHitmark(); break;
+                    case 'hitmark_crit': this._playHitmarkCrit(); break;
+                    case 'kill_confirm': this._playKillConfirm(); break;
                     case 'dodge': this._playDodge(); break;
                     case 'pickup': this._playPickup(); break;
                     case 'drop': this._playDrop(); break;
@@ -422,6 +425,53 @@
                 nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
                 noise.connect(nGain).connect(this.ctx.destination);
                 noise.start(t);
+            },
+
+            /** 命中 tick（COD 式 hitmarker 音：极短、明亮、不掩枪声） */
+            _playHitmark() {
+                const t = this._now();
+                const osc = this.ctx.createOscillator();
+                const gain = this._gain(0.09, t);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1500, t);
+                osc.frequency.exponentialRampToValueAtTime(1100, t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+                osc.connect(gain).connect(this.ctx.destination);
+                osc.start(t); osc.stop(t + 0.035);
+            },
+
+            /** 暴击 tick：更高更亮，带一点金属泛音 */
+            _playHitmarkCrit() {
+                const t = this._now();
+                const osc = this.ctx.createOscillator();
+                const gain = this._gain(0.11, t);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(2100, t);
+                osc.frequency.exponentialRampToValueAtTime(1500, t + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                osc.connect(gain).connect(this.ctx.destination);
+                osc.start(t); osc.stop(t + 0.05);
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this._gain(0.05, t);
+                osc2.type = 'square';
+                osc2.frequency.setValueAtTime(3150, t);
+                gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+                osc2.connect(gain2).connect(this.ctx.destination);
+                osc2.start(t); osc2.stop(t + 0.03);
+            },
+
+            /** 击杀确认音：上行双音（低→高），明确区别于普通命中 */
+            _playKillConfirm() {
+                const t = this._now();
+                const osc = this.ctx.createOscillator();
+                const gain = this._gain(0.14, t);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, t);
+                osc.frequency.setValueAtTime(1320, t + 0.06);
+                gain.gain.setValueAtTime(0.14, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+                osc.connect(gain).connect(this.ctx.destination);
+                osc.start(t); osc.stop(t + 0.14);
             },
 
             _playDodge() {

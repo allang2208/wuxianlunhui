@@ -1,4 +1,4 @@
-﻿
+
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
 
@@ -35,6 +35,7 @@ import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
+import { GunFeel } from '../../effects/gunfeel.js';
 import { DEFENSE_TOWER_VISUAL } from '../../world/defense-system.js';
 
 export class GameScene extends Scene {
@@ -1005,8 +1006,14 @@ export class GameScene extends Scene {
         }
 
         // 直接同步原有系统的相机位置，避免两个 Canvas 错位
-        this.cameras.main.scrollX = Camera.x - viewW / 2;
-        this.cameras.main.scrollY = Camera.y - viewH / 2;
+        // 震屏：旧随机震（Camera.shakeX/Y，此前 Phaser 路径未消费）+ GunFeel trauma² 平滑震叠加
+        const shakeX = (Camera.shakeX || 0) + GunFeel.shakeX;
+        const shakeY = (Camera.shakeY || 0) + GunFeel.shakeY;
+        // zoom punch：开火瞬间视角轻微推近（2D 等价 FOV punch），GunFeel 内指数回落
+        const zoom = 1 + GunFeel.zoomPunch;
+        if (Math.abs(this.cameras.main.zoom - zoom) > 0.0004) this.cameras.main.setZoom(zoom);
+        this.cameras.main.scrollX = Camera.x + shakeX - viewW / (2 * zoom);
+        this.cameras.main.scrollY = Camera.y + shakeY - viewH / (2 * zoom);
     }
 
     // ---- 实体管理 ----
@@ -4895,6 +4902,30 @@ export class GameScene extends Scene {
         dctx.beginPath(); dctx.arc(dcx, dcy, centerDot.outerRadius || 1.5, 0, Math.PI * 2); dctx.fill();
         dctx.fillStyle = mainColor;
         dctx.beginPath(); dctx.arc(dcx, dcy, centerDot.innerRadius || 0.8, 0, Math.PI * 2); dctx.fill();
+
+        // Hitmarker（COD 式三级命中确认：命中白 / 暴击金 / 击杀红，出现瞬间外扩后淡出）
+        const hm = GunFeel.hitmarker;
+        if (hm && hm.t > 0 && hm.dur > 0) {
+            const prog = 1 - hm.t / hm.dur;                    // 0→1
+            const hmOff = 7 + prog * 5;                        // 外扩动画
+            const hmLen = 6;
+            const hmAlpha = Math.min(1, hm.t / (hm.dur * 0.6));
+            const hmColor = GunFeel.HITMARK_COLORS[hm.tier] || '#FAFAF2';
+            dctx.save();
+            dctx.globalAlpha = hmAlpha;
+            for (const [w, color] of [[4.5, outlineColor], [2, hmColor]]) {
+                dctx.strokeStyle = color;
+                dctx.lineWidth = w;
+                dctx.beginPath();
+                for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+                    const c = 0.7071; // cos45°
+                    dctx.moveTo(dcx + sx * hmOff * c, dcy + sy * hmOff * c);
+                    dctx.lineTo(dcx + sx * (hmOff + hmLen) * c, dcy + sy * (hmOff + hmLen) * c);
+                }
+                dctx.stroke();
+            }
+            dctx.restore();
+        }
         dom.style.left = (mx - 32) + 'px';
         dom.style.top = (my - 32) + 'px';
         dom.style.display = 'block';

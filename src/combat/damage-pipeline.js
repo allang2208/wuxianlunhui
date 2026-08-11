@@ -1,5 +1,6 @@
 import { applyEnchantOnHit } from './attack.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { GunFeel } from '../effects/gunfeel.js';
 
 /**
  * 统一伤害处理管道
@@ -50,6 +51,12 @@ class DamagePipeline {
         const wasAlive = target.hp > 0;
         target.takeDamage(damage, source, damageType, isMelee);
         const killed = wasAlive && target.hp <= 0;
+
+        // 枪械手感反馈（COD/Sakanako 式命中确认链）：远程命中 → hitmarker 三级 + 音效 + trauma + 击杀 hitstop
+        // 近战已有独立打击音（下方节流播放），不重复触发
+        if (!isMelee && source && source._faction === 'player' && GunFeel) {
+            GunFeel.onPlayerHit({ killed, crit: !!target._lastHitCrit });
+        }
 
         // 灼锋焰甲：Buff 期间非魔法攻击命中附带魔法伤害 + 火花（火焰护甲附伤）
         if (damageType !== 'magic' && source && source._faction === 'player' && source.flameArmorSystem
