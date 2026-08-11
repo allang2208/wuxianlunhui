@@ -38,11 +38,10 @@ def parse_args():
     return argv[0], argv[1], argv[2], mirror
 
 
-def bevel_corners(o, amount=10.0, segments=3):
+def bevel_corners(o, amount=10.0, segments=3, top_only=False):
     """8 个顶角圆滑（2026-08-05 用户要求）：只圆 8 个角顶点，不动长棱边，
-    保住底边直线与拼接几何。先 transform_apply(scale) 让 bevel 按世界单位生效，
-    再用 bmesh.ops.bevel(affect='VERTICES')（bpy.ops.mesh.bevel 的 affect 参数
-    版本间不稳定）。"""
+    保住底边直线与拼接几何。top_only：只圆顶部 4 角（多件拼接的闸门立柱/门槛
+    底边必须是完整直线，底部圆角会把底边整段啃掉）。"""
     import bmesh
     bpy.ops.object.select_all(action="DESELECT")
     o.select_set(True)
@@ -50,9 +49,10 @@ def bevel_corners(o, amount=10.0, segments=3):
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     bpy.ops.object.mode_set(mode="EDIT")
     bm = bmesh.from_edit_mesh(o.data)
+    geom = [v for v in bm.verts if not top_only or v.co.z > -0.001]
     bmesh.ops.bevel(
         bm,
-        geom=[v for v in bm.verts],
+        geom=geom,
         offset=amount,
         offset_type="OFFSET",
         segments=segments,
@@ -207,10 +207,12 @@ def build_soil_particles(prim, o, soil_mat):
         s.matrix_parent_inverse = o.matrix_world.inverted()
 
 
-def build_wall(prims, tex_path):
+def build_wall(prims, tex_path, tex2_path=None):
     """建 box 棱柱（8 角可圆滑）+ 写实材质（bump；无 AO 阴影）。"""
     img = bpy.data.images.load(tex_path)
+    img2 = bpy.data.images.load(tex2_path) if tex2_path else None
     objs = []
+    gate_bars = []  # (object, barHeight) — 程序化升起帧用（2026-08-11）
     soil_img = None
     soil_mat = None
     need_soil = any(p.get("soil") or p.get("material") == "soil" for p in prims)
@@ -230,12 +232,17 @@ def build_wall(prims, tex_path):
         o.location = p.get("pos", [0, 0, 0])
         rot = p.get("rot", [0, 0, 0])
         o.rotation_euler = [math.radians(a) for a in rot]
+        # 闸门铁栅：name 前缀 bar_，main() 按 gate_bars_rise 整体上移（确定性动画帧）
+        if p.get("gate_bar"):
+            o.name = f"bar_{i}"
+            gate_bars.append((o, float(p["size"][2])))
         # 独立土块组精灵：墙身隐藏（hidden），只渲染土块/颗粒（供游戏叠加）
         if p.get("hidden"):
             o.hide_render = True
         # 8 角圆滑（用户要求尝试；默认 10 世界 px，spec 可覆盖）
         if p.get("bevel", 0) > 0:
-            bevel_corners(o, amount=float(p["bevel"]), segments=int(p.get("bevelSegments", 3)))
+            bevel_corners(o, amount=float(p["bevel"]), segments=int(p.get("bevelSegments", 3)),
+                          top_only=bool(p.get("bevelTopOnly", False)))
         # 每面整张纹理（修默认 cube 分块 UV）
         box_full_uv(o)
 
@@ -250,7 +257,8 @@ def build_wall(prims, tex_path):
         bsdf = nodes.get("Principled BSDF")
         bsdf.inputs["Roughness"].default_value = 0.85
         tex = nodes.new("ShaderNodeTexImage")
-        tex.image = img
+        # 双材质：spec prim 带 material:'iron' 用第二张纹理（铁闸门铁栅），其余用主纹理
+        tex.image = img2 if (p.get("material") == "iron" and img2) else img
         tex.interpolation = "Closest" if img.size[0] < 512 else "Linear"
         # 纹理直连 Base Color（可靠；AO/Mix 在 EEVEE 输出不稳定会把墙刷成纯色）
         links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
@@ -265,7 +273,7 @@ def build_wall(prims, tex_path):
         if p.get("soil"):
             build_soil_particles(p, o, soil_mat)
         objs.append(o)
-    return objs
+    return objs, gate_bars
 
 
 def wedge_ends(obj, L, T):
@@ -302,6 +310,9 @@ def setup_camera(spec, objs):
     bpy.context.view_layer.update()
     corners = []
     for o in objs:
+        # 闸门铁栅（bar_*）不参与取景：升起帧相机固定，画面不缩放
+        if o.name.startswith("bar_"):
+            continue
         for c in o.bound_box:
             corners.append(o.matrix_world @ mathutils.Vector(c))
     ws = np.array([[c.x, c.y, c.z] for c in corners])
@@ -329,7 +340,8 @@ def setup_camera(spec, objs):
     miny, maxy = pts[:, 1].min(), pts[:, 1].max()
     s_w = (maxx - minx) / max_w_frac
     s_h = (maxy - miny) / ((bottom_y - top_margin) / SIZE)
-    s = max(s_w, s_h) * (1.02 + soil_margin)
+    # 固定取景（多件/多次渲染需同比例时用 spec.ortho_scale 覆盖，如闸门墙+铁栅分别渲染）
+    s = float(spec.get("ortho_scale") or 0) or max(s_w, s_h) * (1.02 + soil_margin)
     cam_data.ortho_scale = s
     cam_data.shift_x = float((minx + maxx) / 2) / s
     target_bottom = (0.5 - bottom_y / SIZE) * s
@@ -394,7 +406,12 @@ def main():
     scene.render.image_settings.color_depth = "8"
     scene.render.dither_intensity = 0.0
 
-    objs = build_wall(spec["primitives"], tex_path)
+    objs, gate_bars = build_wall(spec["primitives"], tex_path, spec.get("tex2"))
+    # 闸门铁栅程序化升起（2026-08-11）：gate_bars_rise 0~1，铁栅按原高度上移，确定性动画帧
+    rise = float(spec.get("gate_bars_rise", 0) or 0)
+    if rise > 0:
+        for o, bar_h in gate_bars:
+            o.location.z += rise * bar_h
     setup_lighting(scene)
     cam = setup_camera(spec, objs)
     scene.camera = cam

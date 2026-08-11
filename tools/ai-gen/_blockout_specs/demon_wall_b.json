@@ -1,0 +1,6 @@
+{
+  "elevation": 30,
+  "primitives": [
+    { "type": "box", "size": [520, 52, 150], "pos": [0, 0, 75], "rot": [0, 0, 52], "bevel": 6 }
+  ]
+}

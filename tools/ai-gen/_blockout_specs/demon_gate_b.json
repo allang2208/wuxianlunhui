@@ -1,0 +1,19 @@
+{
+  "elevation": 30,
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "gate_bars_rise": 0.0,
+  "primitives": [
+    { "type": "box", "size": [380, 90, 34], "pos": [0, 0, 17], "rot": [0, 0, 52], "bevel": 6, "bevelTopOnly": true },
+    { "type": "box", "size": [40, 60, 430], "pos": [-155, 0, 232], "rot": [0, 0, 52], "bevel": 6, "bevelTopOnly": true },
+    { "type": "box", "size": [40, 60, 430], "pos": [155, 0, 232], "rot": [0, 0, 52], "bevel": 6, "bevelTopOnly": true },
+    { "type": "box", "size": [380, 60, 46], "pos": [0, 0, 470], "rot": [0, 0, 52], "bevel": 6, "bevelTopOnly": true },
+    { "type": "box", "size": [14, 34, 400], "pos": [-120, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [-80, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [-40, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [0, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [40, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [80, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [14, 34, 400], "pos": [120, 0, 224], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" },
+    { "type": "box", "size": [280, 34, 18], "pos": [0, 0, 415], "rot": [0, 0, 52], "gate_bar": true, "material": "iron" }
+  ]
+}
