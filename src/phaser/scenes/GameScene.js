@@ -57,6 +57,14 @@ export class GameScene extends Scene {
         this._playerAttackStartTime = 0;
         this._playerAttackDuration = 667;
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
+        this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
+        // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
+        if (this.game && this.game.canvas && typeof window !== 'undefined') {
+            this.game.canvas.addEventListener('webglcontextlost', () => {
+                this._weaponBlurDisabled = true;
+                this._weaponBlurFilter = null;
+            });
+        }
         // 冰墙 fx 池与共享发射器：场景 stop/start 后旧对象已销毁，必须重置防悬挂引用
         this._iceWallFx = [];
         this._iceWallVariantPool = null;
@@ -3161,6 +3169,15 @@ export class GameScene extends Scene {
     _ensureWeaponBlur() {
         if (this._weaponBlurFilter) return this._weaponBlurFilter;
         if (!this.weaponSprite) return null;
+        // 防崩守卫：context lost 或超大贴图（模糊帧缓冲超 GPU 上限）时禁用，避免 Framebuffer Unsupported → 渲染器崩溃
+        if (this._weaponBlurDisabled) return null;
+        const srcImg = this.weaponSprite.texture && typeof this.weaponSprite.texture.getSourceImage === 'function'
+            ? this.weaponSprite.texture.getSourceImage() : null;
+        if (srcImg && Math.max(srcImg.width, srcImg.height) >= 4096) {
+            console.warn('[GameScene] weapon texture 过大（≥4096px），运动模糊已禁用（帧缓冲可能超 GPU 上限）');
+            this._weaponBlurDisabled = true;
+            return null;
+        }
         try {
             if (!this.weaponSprite.filters && typeof this.weaponSprite.enableFilters === 'function') {
                 this.weaponSprite.enableFilters();
@@ -5471,8 +5488,19 @@ export class GameScene extends Scene {
             sprite.setFlipX(options.flipX);
         }
         if (options.frame !== undefined) {
+            let frame = options.frame;
+            // 帧索引防越界：眩晕/冰冻时纹理切到单帧 idle 图，但 _animFrame 仍指向原动画帧号
+            // （如 run 2 / attack 5），setFrame 会在 1 帧贴图上刷 "has no frame" 错误——
+            // 按当前贴图实际帧数钳制（超范围回退到末帧/0），避免每帧 console 报错刷屏
+            const tex = sprite.texture;
+            if (typeof frame === 'number' && tex && typeof tex.getFrameNames === 'function') {
+                const names = tex.getFrameNames();
+                const count = (names && names.length) || 1;
+                if (frame >= count) frame = count - 1;
+                if (frame < 0) frame = 0;
+            }
             try {
-                sprite.setFrame(options.frame);
+                sprite.setFrame(frame);
             } catch (_e) {
                 // 帧索引无效时忽略
             }

@@ -38,6 +38,10 @@ class BlackWolf extends Enemy {
             usePacingAI: true,
             ...config
         });
+        // 与红狼王同例（SKILL 二十九版）：贴图自带脚部接地感，关闭运行时椭圆阴影——
+        // 否则"脚底像地板的黑边"实为 GameScene._syncEntityShadows 画的 entity_shadow
+        // （collider 处 90×45 黑椭圆、alpha 0.35），抠图永远清不掉
+        this._noShadow = true;
         // 加载动画配置
         this._animCfg = getAnimConfig('blackWolf');
         const anim = this._animCfg.animation || {};
@@ -566,7 +570,8 @@ class BlackWolf extends Enemy {
         return {
             spriteSize: renderCfg.spriteSize ?? 151,
             rotation: 0,
-            frame: this._animFrame,
+            // 眩晕/冰冻时纹理切到单帧 idle 图，帧号必须归零，否则 setFrame 在 1 帧贴图上刷 "has no frame"
+            frame: (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) ? 0 : this._animFrame,
             flipX: flipX,
             flipY: false,
             textOffsetY: -64,

@@ -5,7 +5,7 @@ import { SceneManager } from '../world/scene-manager.js';
 // Rift System - 时空裂隙系统
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { QuestState } from '../ui/quest-system.js';
 export const RiftSystem = {
@@ -120,7 +120,7 @@ export const RiftSystem = {
 
     // 显示进度条
     _showProgressBar(progress) {
-        let container = getElement('riftProgressBar');
+        let container = getElementIfExists('riftProgressBar');
         if (!container) {
             container = document.createElement('div');
             container.id = 'riftProgressBar';
@@ -135,7 +135,7 @@ export const RiftSystem = {
 
     // 隐藏进度条
     _hideProgressBar() {
-        const container = getElement('riftProgressBar');
+        const container = getElementIfExists('riftProgressBar');
         if (container) container.style.display = 'none';
     },
 
@@ -202,7 +202,7 @@ export const RiftSystem = {
     clear() {
         this.rifts = [];
         this._hideProgressBar();
-        const container = getElement('riftProgressBar');
+        const container = getElementIfExists('riftProgressBar');
         if (container && container.parentNode) container.remove();
     }
 };
