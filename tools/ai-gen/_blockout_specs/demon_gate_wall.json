@@ -1,0 +1,7 @@
+{
+  "elevation": 30,
+  "ortho_scale": 520,
+  "primitives": [
+    { "type": "box", "size": [406, 56, 102], "pos": [0, 0, 51], "rot": [0, 0, 52], "bevel": 6, "bevelTopOnly": true }
+  ]
+}

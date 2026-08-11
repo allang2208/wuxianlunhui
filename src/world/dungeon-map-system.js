@@ -409,7 +409,9 @@ export const DungeonMapSystem = {
 
     // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner / zombieMid / swamp
     _isZombieFamily() {
-        return this.dungeonType === 'zombie' || this.dungeonType === 'zombieBeginner' || this.dungeonType === 'zombieMid' || this.dungeonType === 'swamp';
+        // 数据驱动：地牢配置块 family === 'zombie' 即走僵尸家族管线（战斗/竞技场/怪物池）
+        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+        return cfg.family === 'zombie';
     },
 
     // 僵尸地牢：rows 条路线 converging to BOSS

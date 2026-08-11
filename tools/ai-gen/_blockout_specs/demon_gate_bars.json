@@ -1,0 +1,15 @@
+{
+  "elevation": 30,
+  "ortho_scale": 520,
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "primitives": [
+    { "type": "box", "size": [12, 26, 181], "pos": [-60, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [-40, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [-20, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [0, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [20, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [40, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [12, 26, 181], "pos": [60, 0, 90.5], "rot": [0, 0, 52], "material": "iron" },
+    { "type": "box", "size": [120, 26, 14], "pos": [0, 0, 188], "rot": [0, 0, 52], "material": "iron" }
+  ]
+}

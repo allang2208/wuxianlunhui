@@ -87,6 +87,63 @@
 - headless 渲染探针先查 `window.__phaserScene` 是否就绪，再判断"渲染问题 vs 数据
   问题"；浏览器缓存会让旧代码看起来"没修改"——改完让用户 **Ctrl+F5** 强刷。
 
+### 7. 新地牢全流程实录：C 级「恶魔洞窟」（2026-08-11，矿洞主题）
+
+> 一条龙做完的完整参考（墙/地砖/铁闸门/数据/验证），新地牢照此走。
+
+**生成（远程 5080，队列共享）**：
+- 岩壁墙（路线 B 定稿 2026-08-11）：Blender box 几何 spec
+  （`_blockout_specs/demon_wall_b.json`：520×52×150 rot52）→ `render-cover-real.py`
+  直接渲染成品墙（AI 岩质材质 `demon_rock_tex.png` 贴 box 正面/顶面，无投影、
+  透明底、底边由几何精确控制）→ `prep-demon-wall-B.py`（水平镜像 → 内容裁剪 →
+  标定 base/face/slope）。成品 `demon_wall_straight.png` 684×659，slope 0.64
+  （32.6°），wallH 326。**渲染坑**：`box_full_uv` 每面整张纹理（默认 cube UV 只
+  显示上半部）；材质直连 Base Color，EEVEE 下 AO/Mix 会刷成纯色；`bevelTopOnly`
+  保底边直线。
+- 地砖：`demon_floor_b.json`（230×230×10 box rot45）→ render-cover-real →
+  内容包围盒裁剪入库 `demonbrick1.png`（640×334 菱形板；floor 系统按 alpha 包围盒
+  实测几何，无需手写 geo）。
+- 铁闸门（路线 B，弃用 H3 视频）：岩壁单块（`demon_gate_wall.json` 406×56×102）+
+  铁栅独立渲染（`demon_gate_bars.json`：7 立柱 181 高 + 顶梁，AI 铸铁材质
+  `demon_iron_tex.png`）→ `compose-demon-gate-B.py` 程序化合成 16 帧升起
+  （**平行四边形门洞**：洞顶/洞底与墙底边平行；铁栅按"顶部对齐 + 立柱加高 +
+  逐列地面线裁剪 + 底部 40px 冗余"填满门洞；关闭帧用深铁色底梁填实立柱锯齿）。
+  成品 `demon_gate.png` 640×576/帧，slope 0.6347，wallH 291，gateX [159,481]。
+  **坑**：
+  1. 闸门 wallH 必须与直墙同长宽比（直墙 684/326≈2.10 → 640 宽门墙高≈305），
+     否则闸门世界宽度 ≠ 被替换墙段（歪门/悬空）；
+  2. 铁栅立柱底边是锯齿线（每根柱的端盖投影），绝不能直接对齐底边——用
+     "洞顶对齐 + 高度冗余 + 裁齐"方案；
+  3. 合成后**帧高变化必须同步 `BootScene` 的 spritesheet frameHeight**
+     （786→576）：帧错位时 placeAt 创建的精灵无有效帧，闸门整扇不显示；
+  4. `WallGate.placeAt` 在贴图未就绪时**静默返回 false**（闸门消失、墙件回插）：
+     真实流程 BootScene 加载完才进游戏没问题；测试脚本必须等
+     `textures.exists('demon_gate')` 再进竞技场；
+  5. 竞技场门是 `_createArenaGate` 实例（`_arena.entryGate` +
+     `passages[].gates`），不是 WallGate 单例；出口门才是 WallGate。
+
+**数据驱动（不硬编码）**：
+- `dungeonList.demonCavern` + `demonCavern` 配置块（C 级，floor tiles demonbrick1）。
+- `_keyFor('demonCavern')`（SKILL 规定的唯一代码登记点）。
+- **`family: 'zombie'` 数据字段**：`_isZombieFamily()` 改为读配置
+  `getZombieDungeonConfig(type).family === 'zombie'`，替代硬编码地牢列表——新地牢
+  进僵尸家族（战斗/竞技场/怪物池）只需在配置块加 family。
+- `ISO_WALL_STYLES.demonCavern`（straight/gate/chestPrefab/gateSound）+ `ISO_WALL_GEO`
+  demon_straight/demon_gate（**geo 的 w/h 是单帧格子尺寸**，不是整表尺寸——整表会
+  让门闸辉光烘焙只算 1 格、刷 "has no frame"）。
+- **通道预制样式重映射**（`_placeArenaPassage._remapPassagePieceToStyle`）：默认
+  预制（wall_straight/wall_gate）按当前墙样式从底边重建件——新地牢通道自动换
+  匹配墙/铁闸门，无需为每套样式维护专属通道预制。
+
+**验证**：CDP 进 demonCavern → 5 房竞技场、10 门全 demon_gate 且全开
+（入口 1 + 通道 8 + 出口 WallGate 1）、帧 0/15 切换正常、无负 sy；GLM：房 1 岩地+
+岩壁+橙矿晶、通道铁闸底边与岩壁齐、关闭帧铁栅完全覆盖门洞、无贴图异常；
+墙/门相关测试 248 项通过（test-gate-corner / arena-layout / wall-depth / wall-embed /
+collision-grid / regressions）、vite build ✓。
+
+**遗留**：demon 转角预制未做（当前回退程序化转角臂）；宝箱房用通用「宝箱房」
+（直墙件自动重映射、门件仍默认纹理）。
+
 ## ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
 
 **任何涉及 AI 生成图片、生成视频、抠图、怪物动画精灵图、CLEAN 验证的工作，
@@ -224,6 +281,23 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内；同一客户端，`--host 127.0.0.1`）
 - 抠图/校验：`tools/ai-gen/make-transparent-icon.py`（白底→透明 RGBA）、`tools/ai-gen/check-icon-sizes.py`（内容框测量）
 - 同系列新图标模板化生成：`tools/ai-gen/gen-meteor-icon-template.py`（换参考图+提示词即可复用）
+- **队列/超时/抠图坑（2026-08-11 铁匠正面版实战）**：
+  - **5080 队列会被视频任务挤压**：ComfyUI 队列里有 minimax_h3 视频任务时，一张
+    dev 图排队 10~20 分钟甚至更久——提交前先查 `/queue`，长任务客户端
+    `--timeout 900` 也不够，**shell 调用本身的 timeout 要 ≥15 分钟**（否则 shell
+    截断客户端，任务留在服务端继续跑）。
+  - **客户端超时退出后图不会下载到 --out**：任务完成后 PNG 留在 ComfyUI
+    output 目录——查 `/history` 拿文件名，再用
+    `/view?filename=<名>&subfolder=&type=output` 手动下载（本例 comfyui_0060X）。
+  - **BiRefNet 会吞"站立底座"**：铁匠脚下棕色木桩被判为背景抠掉（底部只剩脚宽
+    170px vs 木桩应 ~320px）。抠图后必须**像素检查底部不透明宽度**；从 raw 用
+    **背景色距离阈值**把底座单独抠回（`tools/ai-gen/restore-blacksmith-stump.py`，
+    自动检测四角背景色 + 底部区域合并，max alpha）。
+  - **正面人形剪影深度图**：头+鼠耳+身体+裙摆+腿+底座即可锁正面（IoU 0.82 验证）；
+    锤子必须把**锤柄画到手上**（柄斜线连到腰侧手位），否则模型出"悬浮锤"
+    （v1 教训）；提示词补 "hammer held firmly in her hand" 双保险。
+  - **验收要合成灰底预览**（restore 脚本自带 `_preview.png`），GLM 单张逐项过；
+    透明底直接看会漏底座缺失（v1 教训）。
 
 ### 标准流程（六步）
 1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
@@ -854,6 +928,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     远程操作走 `ssh r5080`（长任务必须 schtasks，SSH 断连杀会话进程树）。
   - 验证：28 帧循环闭合 IoU 0.696 ≈ 相邻帧步进；品红底/深地砖底/动态 GIF 三验；
     `scratch_tmp/wolf_clean/run_preview_v2.gif`。
+  - **v2 追加教训（同日用户实机发现）**：
+    ① **首帧清理禁用开运算**——opening(3x3, iters=3) 会吃掉狼爪尖（腿末端变平口柱），
+       I2V 以首帧为锚会把"无爪"传导到全部视频；首帧只需保最大连通域（老 idle 的
+       "171px 实心阴影条"是段长解析 bug 的误报，实为 1px 抖动，视频重绘会自然抹掉）；
+    ② **尺寸统一必须按游戏显示逻辑算**：GameScene:1199 按"帧最长边 → spriteSize(151)"
+       等比显示，512 格 ×0.295 / 640 格 ×0.236——pounce（640 格）内容要按 640/512
+       放大（scale 0.562 vs 其他 0.4497），否则飞扑狼比走路狼小 20%（老资产即如此）；
+    ③ 实机截图工具 `tools/cdp-blackwolf-shot2.mjs`（注入黑狼 + 逐帧记录
+       世界坐标→屏幕坐标精确裁剪，连拍覆盖 walk/run/attack 状态）。
+  - 全套部署（2026-08-11）：run/walk/bite/pounce/idle 五张绿幕版入库
+    （原图 .bak-greenscreen），站立显示高统一 67.2px（228@512 格 / 285@640 格）。
 - **红狼人奔跑贴图"地面平台矩形色带"根因 = H3 视频生成的脚下地面条（2026-08-08 三十版）**：
   - 用户纠正：问题在**狼人形态**（红狼人奔跑），不是狼形态。贴图逐行扫描发现
     每帧脚下 y 380~408 有一条 **252px 宽完整水平矩形深色带**（x 110~362，
@@ -1217,12 +1302,19 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 | 墙段/掩体 | **30° 斜底边**（\\ 或 /） | wall_straight、swamp_wall_straight、12 张掩体 | 底边斜率 0.49~0.57（ISO_WALL_GEO） |
 | 道具/障碍物 | **正面平视 billboard、平底、居中** | sandbag、barrel、pot、pillar、barricade | GLM 正面 + 像素平底 |
 | 建筑/塔 | **正面平视 billboard、平底** | npc_altar、npc_warehouse、防御塔 | GLM 正面 + 像素平底 |
-| 角色/怪物 | 侧视 billboard 精灵 | 现有敌人贴图 | 侧视全身体 |
+| 角色/怪物 | 侧视 billboard 精灵 | 玩家、现有敌人贴图 | 侧视全身体 |
+| NPC（站桩对话/立绘系） | **正面平视 billboard、平底** | 小鼠铁匠/鼠王/侍从、npc_altar | GLM 正面 + 像素平底 |
 | 地板 | 30° 等距菱形 | hub_brick、swampbrick | 地板线 30° |
 
 - **问题件记录**：obstacle_woodpile（GLM 非单件居中，待复查/重做）；
   旧塔 45° 等距版已重做；宽扁道具（农田类）深度模板易出俯视，需前景立墙高度。
 - 新素材入库前：先判形态族 → 对照对应标准件 → GLM 粗分类 + 像素/几何校验。
+- **NPC 视角定论（2026-08-11 实机核验）**：站桩对话 NPC（铁匠/鼠王/侍从）与玩家/怪物
+  **不是同一视角**——玩家与全部怪物是**侧视**（像素翻转 IoU 0.09~0.26），鼠王/侍从是
+  **正对观众**（IoU 0.82~1.00），铁匠原贴图是 **3/4 斜侧**（IoU 0.54，带脚下木桩）。
+  按八版定论统一：**NPC 归入"正面平视 billboard、平底"立绘系**（与祭坛/仓库/防御塔一致），
+  玩家/怪物维持侧视；铁匠 3/4 → 正面重做方向正确（原形象保留：银灰板甲+白衬衫+棕皮围裙+
+  灰发鼠耳+卷尾+木桩底座+日系动漫）。
 - ⚠ **2026-08-06 例外**：防御塔 v2 按用户口径改走"30° 等距（对齐墙壁，可见圆柱顶面）"，
   不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
   维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
@@ -2740,7 +2832,8 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 | 沿地面延伸的"线" | 与地板线平行（±30°，斜率 0.5774） | 墙、栅栏、地板纹路、道路、河流、桌台长边 |
 | 站立物件 | 立面垂直（billboard）；俯视可见的**顶面**边缘走 ±30° | 柱子、柜子、箱子、树、门、墙柱/端头 |
 | 贴地影子/占位 | 2:1 压扁椭圆（跟碰撞投影 0.5，不与地板线对齐也看不出） | 落地阴影、篝火/锅/石块底面 |
-| 角色/怪物/NPC | 侧视 billboard，与投影角度无关 | 维持现有精灵图流程 |
+| 角色/怪物 | 侧视 billboard，与投影角度无关 | 玩家、现有敌人贴图 |
+| NPC（站桩对话/立绘系） | 正面平视 billboard、平底 | 小鼠铁匠/鼠王/侍从、npc_altar（2026-08-06 八版定论） |
 
 ### 出图提示词要点
 - 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1

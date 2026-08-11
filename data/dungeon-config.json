@@ -35,6 +35,15 @@
    "reward": "2000金币",
    "grade": "C",
    "recLevel": "40~55级"
+  },
+  "demonCavern": {
+   "name": "☠ 恶魔洞窟",
+   "nodeCount": "55~60",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "2000金币",
+   "grade": "C",
+   "recLevel": "40~55级"
   }
  },
  "zombieDungeon": {
@@ -137,7 +146,8 @@
    "cooldownMs": 2000,
    "damagePercent": 0.1,
    "hitFrame": 6
-  }
+  },
+  "family": "zombie"
  },
  "zombieDungeonBeginner": {
   "nodeCount": {
@@ -221,7 +231,8 @@
     "blackbrick_8"
    ],
    "glow": false
-  }
+  },
+  "family": "zombie"
  },
  "zombieDungeonMid": {
   "nodeCount": {
@@ -304,7 +315,8 @@
     "blackbrick_8"
    ],
    "glow": false
-  }
+  },
+  "family": "zombie"
  },
  "swampDungeon": {
   "combatRoom": {
@@ -397,7 +409,8 @@
    "overlapX": 6,
    "overlapY": 3
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png"
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie"
  },
  "combatRoom": {
   "normalSize": 1024,
@@ -666,5 +679,99 @@
    }
   }
  },
- "swamp": {}
+ "swamp": {},
+ "demonCavern": {
+  "combatRoom": {
+   "bossSize": 1024
+  },
+  "nodeCount": {
+   "min": 55,
+   "max": 60
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "tiles": [
+    "demonbrick1"
+   ],
+   "glow": false,
+   "overlapX": 6,
+   "overlapY": 3
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie"
+ }
 }

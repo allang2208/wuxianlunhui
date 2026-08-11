@@ -67,6 +67,7 @@ export const DungeonConfig = {
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
         if (dungeonType === 'zombieMid') return 'zombieDungeonMid';
         if (dungeonType === 'swamp') return 'swampDungeon';
+        if (dungeonType === 'demonCavern') return 'demonCavern';
         return 'zombieDungeon';
     },
 
