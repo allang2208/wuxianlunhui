@@ -1,5 +1,28 @@
 # 变更日志
 
+### 对话：沼泽地牢 4/5 房墙壁错乱根因修复 + 地牢信息面板仅路线图显示（2026-08-11）
+- **多房蛇形迷宫修复（保留转折布局）**：CDP 插桩定位并修复三类墙件异常——
+  ① `_sealPassageSides` 端点交换与 flip 解耦：`swap = axis.y<0`、
+  `flip = (axis.x<0) !== swap`（旧公式对 -v1 反向轴判断相反，封口瓦上下颠倒）；
+  ② `_fillEdgeGaps` BL 边参数化改 L→B（上端→下端，填充件不再倒置）；
+  ③ **4→5 门口错位/方向反的最终根因：`_placeArenaPassage` 的 180° 镜像改几何重建**
+  ——反射件底边线段（绕 gA 底边中心）后由 `_buildSegPiece`/`_buildGatePieceAt`
+  重建件（锚点/缩放/朝向自动推导），取代"位置反射 + flipX(±flipY) 翻转"
+  （会把门墙精灵锚点翻到门洞另一侧、贴图朝向反转）。
+- 验证：5 房蛇形（v1/v1/v2/-v1 四通道）、8 门全开、房间零重叠、负 sy 件 0、
+  游离墙件 0；P4 门精灵与 P1 同构（锚点在门洞上方 ~93px、flipX=true、flipY=false）；
+  GLM 全景"蛇形排列、四面墙完整、4→5 通道门洞与通道墙对齐自然方向正确、
+  无竖摆/断口/重叠/游离墙、纹理方向正常"。
+- **地牢左侧信息面板仅路线图显示**：入侵几率标签 + 预期奖励面板进战斗/事件/奖励
+  时隐藏（`_enterNode` + 各状态入口兜底），返回地图恢复——不再出现在游戏画面。
+- **修改文件**：src/world/combat-room-system.js、src/world/dungeon-map-system.js、
+  SKILL.md。
+
+### 对话（中间过程，已被上方"迷宫修复"取代）：多房迷宫临时改线性串联（2026-08-11）
+- 曾按"删除后房、复制前房"把蛇形迷宫临时改为纯 v1 线性串联（computeArenaLayout
+  推广到 N 房）应急；随后插桩定位到蛇形折返的真根因（seal/fill 的 flip 解耦），
+  已恢复蛇形布局并彻底修复，见上方条目。
+
 ### 对话：ai-asset 统一入口收编 icon / humanoid / lora 三大类（2026-08-08）
 - `icon`：transparent / normalize / check / pipeline（装备/技能图标全处理）；
 - `humanoid`：loop / attack（h3-loop / h3-attack 人形怪抽帧，含 period/steady/feather 等参数透传）；

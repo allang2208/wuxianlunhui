@@ -585,6 +585,13 @@ const WallSystem = {
 
     /** 直墙瓦片通用件：正面墙底边(face)映射到世界线段 A->B（独立 sx/sy 精确贴合），flip 为 "/" 方向 */
     _addSegPiece(A, B, flip, geoKey = 'diag', depthMode = 'max', depthBias = 0) {
+        const piece = this._buildSegPiece(A, B, flip, geoKey, depthMode, depthBias);
+        this.isoVisuals.push(piece);
+        return piece;
+    },
+
+    /** 纯构建：由底边线段生成直墙件（不推入 isoVisuals；2026-08-11 供通道镜像重建复用） */
+    _buildSegPiece(A, B, flip, geoKey = 'diag', depthMode = 'max', depthBias = 0) {
         const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.diag;
         const [p0, p1] = g.face || g.base;
         let sx, sy, x0, y0;
@@ -603,14 +610,14 @@ const WallSystem = {
         }
         // 深度规则：后墙(室内朝镜头)取 min 底边 y 让室内实体永远在前；前墙取 max 正确遮挡
         const depth = (depthMode === 'min' ? Math.min(A.y, B.y) : Math.max(A.y, B.y)) + depthBias;
-        this.isoVisuals.push({
+        return {
             tex: g.tex,
             x: x0 + g.w * Math.abs(sx) / 2,
             y: y0 + g.h * sy / 2,
             scaleX: Math.abs(sx), scaleY: sy,
             flipX: !!flip, flipY: false,
             depth,
-        });
+        };
     },
 
     /**

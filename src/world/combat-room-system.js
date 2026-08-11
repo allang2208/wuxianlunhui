@@ -1029,7 +1029,7 @@ export const CombatRoomSystem = {
             layout.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry })),
             corridors, patches, this.config.terrain);
 
-        // 4. 墙体：三房菱形墙（一次清空后逐房追加）
+        // 4. 墙体：N 房菱形墙（一次清空后逐房追加；线性布局全部 LT/RB 同构）
         WallSystem.walls = [];
         WallSystem.trees = [];
         WallSystem.isoVisuals = [];
@@ -1292,16 +1292,35 @@ export const CombatRoomSystem = {
         }
         // 第一轮：先旋转 180°（反向通道）再平移全部件；门墙先"移除对应大小的墙"
         const translated = analysis.def.pieces.map(p => {
-            const px = mirror ? 2 * gAX - p.x : p.x;
-            const py = mirror ? 2 * gAY - p.y : p.y;
-            return {
-                ...p,
-                x: px + t.x,
-                y: py + t.y,
-                flipX: mirror ? !p.flipX : p.flipX,
-                flipY: mirror ? !p.flipY : p.flipY,
-                depth: p.depth != null ? p.depth + t.y : p.depth,
-            };
+            if (!mirror) {
+                return { ...p, x: p.x + t.x, y: p.y + t.y, depth: p.depth != null ? p.depth + t.y : p.depth };
+            }
+            // ⚠ 2026-08-11 三修（用户定案"复制通道 + 镜像翻转"）：180° 镜像按几何重做——
+            // 反射件**底边线段**（绕 gA 底边中心），再由墙体系统从反射底边**重建件**。
+            // 旧"位置反射 + flipX(±flipY) 翻转"会把门墙精灵锚点翻错（门洞错位）、
+            // 贴图朝向翻反（"4→5 方向反了"）——重建让锚点/缩放/朝向全部由几何自动推导，
+            // 与正向通道（房 1-3）完全同构。
+            const seg = WallSystem._pieceBaseSegments(p)[0];
+            if (!seg) {
+                // 无底边的装饰件：位置反射 + flipX/flipY 双翻
+                return {
+                    ...p,
+                    x: 2 * gAX - p.x + t.x,
+                    y: 2 * gAY - p.y + t.y,
+                    flipX: !p.flipX,
+                    flipY: !(p.flipY ?? false),
+                    depth: p.depth != null ? p.depth + t.y : p.depth,
+                };
+            }
+            let A = { x: 2 * gAX - seg[0].x + t.x, y: 2 * gAY - seg[0].y + t.y };
+            let B = { x: 2 * gAX - seg[1].x + t.x, y: 2 * gAY - seg[1].y + t.y };
+            // 上端在前（_addSegPiece/_buildGatePieceAt 的 A=上端约定，保证 sy>0 不倒置）
+            if (B.y < A.y) { const tmp = A; A = B; B = tmp; }
+            if (this._isFunctionalGatePiece(p)) {
+                return this._buildGatePieceAt(A, B, !!p.flipX, p.depth != null ? p.depth + t.y : undefined);
+            }
+            const geoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
+            return WallSystem._buildSegPiece(A, B, !!p.flipX, geoKey || 'straight', 'max');
         });
         for (const q of translated) {
             if (!this._isFunctionalGatePiece(q)) continue;
@@ -1416,6 +1435,7 @@ export const CombatRoomSystem = {
         sprite.setOrigin(0.5, 0.5);
         sprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
         sprite.setFlipX(!!piece.flipX);
+        sprite.setFlipY(!!piece.flipY);
 
         const baseSegs = WallSystem._pieceBaseSegments(piece);
         if (!baseSegs.length) { sprite.destroy(); console.warn('[CombatRoomSystem] _createArenaGate 失败：无底线段', piece.tex); return null; }
@@ -1500,7 +1520,16 @@ export const CombatRoomSystem = {
         const axis = passage.axis;
         const perp = { x: -axis.y, y: axis.x };
         const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().straight : 'straight';
-        const flip = axis.x * axis.y <= 0; // ↘ 走廊为 "\" 方向（flip=false）
+        // ⚠ 2026-08-11 二修：端点交换与 flip 解耦——
+        //   swap 只由轴方向定（axis.y<0 的 v2/-v1 向上轴：A/B 交换后 B 在下端 → sy>0）；
+        //   flip（贴图横轴镜像）另行按 dx 与端点顺序组合推导，保证 sx>0。
+        //   旧实现 flip=axis.x*axis.y<=0 且 swap 绑定 flip：
+        //     -v1 时 flip=false → 不交换 → A 在下端 → sy<0 上下颠倒飘进房间（6 块负 sy 件）；
+        //   首修改成 axis.y<0 后 -v1 flip=true → 交换正确但 flip 传 true → sx<0，
+        //     底边镜像偏移（残留 2 块离房 5 RB 边 324px 的游离件）。
+        //   正确组合：swap = axis.y<0；flip = (axis.x<0) !== swap。
+        const swap = axis.y < 0;
+        const flip = (axis.x < 0) !== swap;
         // 两条房间边线（点 + 方向）：实际出/入边（三房 RB/LT；迷宫折返 TR/BL）
         const edgeA = this._roomEdgeLine(roomA, roomA.outEdge || 'RB');
         const edgeB = this._roomEdgeLine(roomB, roomB.inEdge || 'LT');
@@ -1567,11 +1596,11 @@ export const CombatRoomSystem = {
             const faceLen = Math.hypot((g.face[1][0] - g.face[0][0]) * s, (g.face[1][1] - g.face[0][1]) * sy);
             const step = faceLen - 8;
             const lay = (a, b) => {
-                // ⚠ 2026-08-08 八修实验：flip（"\"方向）时 _addSegPiece 的 A 端=上端，
-                // fill 的 a<b 沿轴铺会让 A 落在下端 → 瓦被翻转横在通道（转弯通道 v2 横墙）
-                if (flip) { const t = a; a = b; b = t; }
-                const A = { x: S0.x + axis.x * a, y: S0.y + axis.y * a };
-                const B = { x: S0.x + axis.x * b, y: S0.y + axis.y * b };
+                // 端点顺序：swap（axis.y<0 的向上轴）时交换，保证 A 在上端/B 在下端（sy>0）
+                let p1 = a, p2 = b;
+                if (swap) { const t = p1; p1 = p2; p2 = t; }
+                const A = { x: S0.x + axis.x * p1, y: S0.y + axis.y * p1 };
+                const B = { x: S0.x + axis.x * p2, y: S0.y + axis.y * p2 };
                 WallSystem._addSegPiece(A, B, flip, geoKey, depthMode, 0.1);
             };
             // 整瓦锚定填充：瓦端锚在边界侧，绝不越过边界（旧版整瓦居中——缺口很小时
@@ -1673,13 +1702,13 @@ export const CombatRoomSystem = {
     _fillEdgeGaps(room, edge, gateSegs = []) {
         // 边的参数化方向必须与 buildIsoDiamondWalls 的 edgeFill 一致（上端→下端）：
         // RB = R→B（edgeFill(rD, bR)），LT = T→L（edgeFill(tL, lU)），
-        // TR = T→R，BL = B→L（迷宫折返通道的开洞边）——
-        // LT 若按 L→T 参数化，_addSegPiece 的上端锚定反转，填充件就是"倒置"的（线上教训）
+        // TR = T→R，BL = L→B（迷宫折返通道的开洞边；2026-08-11 修正旧 B→L 下端→上端，
+        // 会让填充件 _addSegPiece sy<0 上下颠倒——LT 同理，参数化顺序必须上端在前）
         const verts = {
             RB: [{ x: room.cx + room.rx, y: room.cy }, { x: room.cx, y: room.cy + room.ry }],
             LT: [{ x: room.cx, y: room.cy - room.ry }, { x: room.cx - room.rx, y: room.cy }],
             TR: [{ x: room.cx, y: room.cy - room.ry }, { x: room.cx + room.rx, y: room.cy }],
-            BL: [{ x: room.cx, y: room.cy + room.ry }, { x: room.cx - room.rx, y: room.cy }],
+            BL: [{ x: room.cx - room.rx, y: room.cy }, { x: room.cx, y: room.cy + room.ry }],
         }[edge];
         if (!verts) return;
         const [V0, V1] = verts;

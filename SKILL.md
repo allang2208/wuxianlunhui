@@ -1,6 +1,91 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 2.3
+## 版本: 2.4
+
+## ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
+
+> 本节沉淀 D+ 级地牢竞技场（5 房蛇形迷宫）的完整自动生成体系：布局纯函数 → 房间
+> 菱形墙 → 通道预制放置 → 门墙/封口/补缝 → 波次门控。后续新增地牢、改布局、加
+> 通道方向，一律以本节为唯一参考；先读「铁律」再动手。
+
+### 0. 架构与文件地图
+- `src/world/combat-arena-layout.js`：**纯函数**布局（无 Phaser 依赖，可单测）。
+  - `diamondRadii(size)`：rx = size×1.2，ry = rx×0.5774（30° 等距投影）。
+  - `computeArenaLayout({ normalSize, eliteSize, passageLen, gap, roomCount })`：
+    N 房线性串联（全部 LT 进 / RB 出，纯 v1 通道，房间 1-3 的同构模式）。
+  - `computeMazeLayout({ sizes, passageLen, gap, rows })`：蛇形网格（排内 ±v1 交替、
+    排间 +v2 折返），每房记 inEdge/outEdge（末房出口 = 入口对边）。
+  - `MAZE_AXIS_V1=(0.866,0.5)`（左右通道轴）、`MAZE_AXIS_V2=(0.866,-0.5)`（上下
+    通道轴）、`passageEdges(dir)` 方向→出入口边映射、`pointInDiamond`。
+- `src/world/combat-room-system.js`：布局消费端——菱形墙、通道放置、门墙、封口、补缝。
+- `src/world/dungeon-map-system.js`：竞技场入口（`_enterCombatArena`）、波次/门控编排。
+- 配置：`data/dungeon-config.json` → `combatArena.maze = { enabled, roomCount, rows }`；
+  `passagePrefabs = { v1: '左右通道·样式', v2: '上下通道·样式' }`。
+
+### 1. 菱形几何铁律
+- 四顶点 T(cx,cy−ry) R(cx+rx,cy) B(cx,cy+ry) L(cx−rx,cy)；四边斜率 ±0.5774。
+- 对边中点连接的中心距公式**四方向相同**：
+  `(rx_A + rx_B) × EDGE_MID_FACTOR + passageLen`（EDGE_MID_FACTOR = hypot(1,0.5774)/2）。
+- 边参数化必须**上端→下端**：RB=R→B、LT=T→L、TR=T→R、**BL=L→B**——旧 B→L 会让
+  `_fillEdgeGaps` 补缝瓦 sy<0 上下颠倒（2026-08-11 修复）。
+- 深度唯一规则：墙件 depth = max(底边两端点 y)（`WallSystem.depthOf`）；门墙 depth =
+  门洞中心底边 y（"墙看底边 max、门看门洞中心"）。
+
+### 2. 通道系统（核心复用件）
+- 通道 = 墙样式预制件（`左右通道`/`上下通道`），`_analyzePassagePrefab` 解析：
+  两个功能门墙件底边中心距 = 通道长度；双轴校验（v1/v2，取 |dot|≥0.8，反向交换两端）。
+- `_placeArenaPassage`：平移预制 → 摘门洞覆盖墙件（removeSpanCoveringPieces）→
+  直墙件裁剪入件 / 门墙建功能门（`_createArenaGate`，初始常开）。
+- **180° 镜像（反向通道 -v1/-v2）——本轮最重要教训**：
+  - **禁止**"位置反射 + flipX(±flipY) 翻转"：门墙精灵锚点（在门洞中心上方 ~93px）
+    会被反射到门洞另一侧 → 视觉门洞偏移 ~187px、贴图朝向反转（用户实测"4→5 门口
+    错位、方向反了"）。补 flipY 只是贴标签，不治本。
+  - **正解（2026-08-11 定稿）**：反射件**底边线段**（绕 gA 底边中心 180°），再由
+    `WallSystem._buildSegPiece`（直墙）/ `_buildGatePieceAt`（门墙）从反射底边
+    **重建件**——锚点/缩放/朝向全部由几何自动推导，镜像结果与正向通道完全同构
+    （门精灵锚点在门洞上方、flipX 保持预制件原生值、flipY=false）。
+  - `_buildSegPiece` 是 `_addSegPiece` 抽出的纯构建（wall-system.js），不推入
+    isoVisuals，返回件对象供调用方走裁剪/入件流程。
+  - 无底边的装饰件才用"位置反射 + flipX/flipY 双翻"兜底。
+
+### 3. 封口/补缝 flip 解耦（2026-08-11）
+- `_sealPassageSides` 补通道侧墙端到房间边的楔形缺口：
+  - **端点交换与 flip 解耦**：`swap = axis.y < 0`（向上轴 v2/-v1 交换端点 → B 在下端
+    → sy>0）；`flip = (axis.x < 0) !== swap`（保 sx>0）。`lay()` 内先 swap 再按轴
+    铺 A/B。
+  - 旧 `flip = axis.x*axis.y <= 0` 且 swap 绑定 flip：-v1 判断相反 → 封口瓦上下颠倒
+    飘进房间（6 块负 sy 件）。
+- `_fillEdgeGaps` 补开洞边缝隙：边参数化上端→下端（§1）；门侧瓦端锚定 8px 叠合，
+  绝不跨进门口；两侧都是墙时整瓦居中步进。
+
+### 4. 波次/门控/出口/宝箱泛化（硬编码 3 全部改成 arena.rooms.length）
+- `forceArenaWaves(getArenaRoomCount())` 必须在 `enterCombatArena` **之后**调用
+  （之前 `_arena` 未建返回 0 → 波次不足 → "房 3 清完不开门"）。
+- 出口门锚定末房 outEdge 中点（`_setupGate` 通用）；宝箱房 setup 末房；`_trapExtras`
+  末房来路通道索引 len−2；入侵混合战特工末房随最后一波刷新。
+
+### 5. 验证方法论（每次改迷宫必须走）
+1. **CDP 数值审计**（headless Edge 走真实 GPU，勿 `--disable-gpu`）：
+   - 房间零重叠（菱形中心互不包含）；通道轴正确（v1/v2/-v1）；
+   - 8 门全开、门中心 = 通道边中点；**负 sy 件 = 0、游离墙件 = 0**（离所有房间边线
+     >160px 且非宝箱房墙）；
+   - **门精灵锚点对比正向通道**：锚点在门洞中心上方 ~93px、flipX 与同向边一致——
+     这是"门口错位 / 方向反"的最快判据（P4 镜像门曾翻到下方 94px + flipX 反转）。
+2. **GLM-4.6V 识图复核**：全景（蛇形排列、四面墙完整、通道对齐自然）+ P4 通道特写
+   （两侧墙平行完整、门洞横跨通道且与房间墙对齐、无竖摆/断口/重叠/游离墙、
+   纹理方向正常）。
+3. `npm test`（51/51，含 pathfinding-bench 竞技场断言）、lint 0 error、vite build。
+
+### 6. 踩坑清单（按时间线）
+- 通道直墙件越线**不要缩 scaleX**（削墙顶出台阶/错位），整件进房才丢，缺口由封口补。
+- `_clipPassagePieceToRooms` 房间对象字段用 `cx/cy`（不是 x/y）——NaN 比较恒 false
+  会把全部侧墙件误丢（"通道没做墙"）。
+- seal 收集侧墙只认 `_passageWall` 标记件——转弯通道轴与房间 TR/BL/LT 边平行，不
+  标记会把房间边墙当侧墙补到通道中间（横墙挡路）。
+- `halfSpan = length/2 + 500` 才够覆盖 3 段瓦末端件（+250 会把末端排除 → 封口从
+  通道中段铺起）。
+- headless 渲染探针先查 `window.__phaserScene` 是否就绪，再判断"渲染问题 vs 数据
+  问题"；浏览器缓存会让旧代码看起来"没修改"——改完让用户 **Ctrl+F5** 强刷。
 
 ## ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
 
@@ -742,6 +827,33 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   - 教训：**"色块残留"不一定是贴图问题——先实机截图区分渲染层阴影 vs 贴图
     alpha**；GameScene._syncEntityShadows 的 shadow 是通用机制，个别贴图自带
     接地感的怪可设 _noShadow。
+- **黑狼绿幕重生成管线 + "脚底黑边"三连根因（2026-08-11）**：
+  - 背景：黑狼老资产（白底视频+阈值抠图）白边/碎块/地面阴影条修不净，改治本：
+    **绿幕重生成**（MiniMax H3 I2V，绿幕首帧 + `--bg-color 00FF00` 自动注入纯色底
+    无阴影条款）→ `rebuild-h3-birefnet.py --bg-color '#00FF00' --bg-dist 80`
+    （黑毛与绿底 RGB 距离 >200，距离通道=确定性硬切，无概率雾）。
+  - 一键脚本 `tools/ai-gen/blackwolf-green-run.py`（生成+选帧+重建+后处理）；
+    后处理 `tools/ai-gen/blackwolf-post.py`；首帧制作注意：源图脚底的抖动阴影条
+    （~50% 密度点阵）会带进视频，须先开运算（`clean_sprite_matte.py`，对抖动
+    点阵唯一有效，连续段/密度阈值都抓不住）+ 超宽行剥除。
+  - 参数坑：绿幕狼更"长"，target-h 262 下宽 536~568 超 512 格 → clamp 丢整格
+    （空格帧），run 用 **target-h 228**（最大宽 494）；`--edge-dark` CLI 传 -1
+    关不掉 auto-clean 内嵌的 18（post_clean_sheet 不接 CLI），必须 `--no-auto-clean`。
+  - **"脚底黑边类似地板"三连根因**（逐层排查，每层都是真问题）：
+    ① 重建 `--edge-dark 18` 固定色压暗 = 红狼王二十七版同款人工描边（黑狼
+       底行清一色 RGB 13~19 实锤）→ 禁固定色，边缘污染按**该格深色毛中位数**
+       （lum<60）欧氏距离 >35 还原；
+    ② `--zero-transparent-rgb` 置黑 + 线性过滤缩采样 = 边缘渗黑（图片查看器
+       和游戏内同样可见）→ 透明区 RGB **颜色外渗**（最近实体色，≤24px）替代置黑；
+    ③ **最终根因 = 运行时椭圆阴影**（红狼王二十九版重演）：黑狼没设 `_noShadow`，
+       GameScene._syncEntityShadows 在 collider 处画 alpha 0.35 黑椭圆，贴图清到
+       0 也没用 → BlackWolf 构造函数 `this._noShadow = true`。
+  - **教训：贴图问题先实机截图排除渲染层**；凡"清理到 0 还有"必在渲染层。
+  - 环境：5080（Blackwell sm_120）xformers 全崩 → ComfyUI 启动加
+    `--disable-xformers`（已固化进 ComfyUIStart / ComfyUI_RESTART_3D 计划任务）；
+    远程操作走 `ssh r5080`（长任务必须 schtasks，SSH 断连杀会话进程树）。
+  - 验证：28 帧循环闭合 IoU 0.696 ≈ 相邻帧步进；品红底/深地砖底/动态 GIF 三验；
+    `scratch_tmp/wolf_clean/run_preview_v2.gif`。
 - **红狼人奔跑贴图"地面平台矩形色带"根因 = H3 视频生成的脚下地面条（2026-08-08 三十版）**：
   - 用户纠正：问题在**狼人形态**（红狼人奔跑），不是狼形态。贴图逐行扫描发现
     每帧脚下 y 380~408 有一条 **252px 宽完整水平矩形深色带**（x 110~362，
@@ -1747,6 +1859,34 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
     → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
     地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
+  - **⚠ 多房迷宫房 4/5 墙壁错乱根因：seal/fill 的 flip 解耦（2026-08-11 二修定稿）**：
+    蛇形折返的 v2/-v1 通道在房 4/5 出现墙体重叠/错位。CDP 插桩（isoVisuals.push +
+    _addSegPiece 全量栈）定位到两类"上下颠倒/镜像偏移"墙件：
+    1. **`_sealPassageSides` 的 flip 公式**：旧 `flip = axis.x*axis.y<=0` 且
+       `if(flip) swap` 绑定——-v1（反向轴，(-,-) 得 + → flip=false）不交换端点，
+       A 落下端 → `_addSegPiece` sy<0 上下颠倒（6 块负 sy 件飘进房间）；
+       首修改成 `axis.y<0` 又令 -v1 flip=true → sx<0 底边镜像偏移（残留 2 块）。
+       **正解：swap 与 flip 解耦**——`swap = axis.y<0`（向上轴交换端点保 sy>0），
+       `flip = (axis.x<0) !== swap`（保 sx>0）。四轴 v1/v2/-v1/-v2 全验证。
+    2. **`_fillEdgeGaps` 的 BL 边参数化顺序反了**：BL 应为 **L→B**（上端→下端，
+       与 TR 同方向），旧 B→L 下端→上端 → 填充件 sy<0 上下颠倒。
+    3. 验证：5 房蛇形（1-2 LT/RB、房 3 出 TR、房 4 入 BL 出 LT、房 5 入 RB 出 LT）、
+       4 通道轴 v1/v1/v2/-v1、8 门全开、房间零重叠、**negSy=0、游离件=0**、
+       GLM 全景"蛇形排列、四面墙完整、通道衔接自然、无异常"；lint/build/npm test 全绿。
+  - **⚠ 4→5 通道门口错位的真根因：镜像旋转漏了 flipY（2026-08-11 三修定稿）**：
+    第 3→4（v2）通道正常、4→5（-v1 镜像通道）门口错位/通道墙一塌糊涂/方向反——
+    前两轮"补 flipY / 解耦 seal flip"都没根治（用户实测无变化）。最终定案
+    （按用户"直接复制通道做镜像翻转"）：`_placeArenaPassage` 的 180° 镜像
+    **改为几何重建**——反射每个件的**底边线段**（绕 gA 底边中心），再用墙体系统
+    （`_buildSegPiece` / `_buildGatePieceAt`）从反射底边重建件，锚点/缩放/朝向
+    全部由几何自动推导。旧"位置反射 + flipX(±flipY) 翻转"会把门墙精灵锚点翻到
+    门洞另一侧（视觉门洞偏移 187px）且贴图朝向反转。验证：P4 门精灵与 P1 同构
+    （锚点在门洞上方 ~93px、flipX=true、flipY=false）；GLM"两侧墙完整平行、
+    门洞与房间墙对齐、无竖摆/断口/重叠/游离墙、纹理方向正确"。
+  - **⚠ 地牢左侧信息面板仅路线图显示（2026-08-11）**：时空特工入侵几率标签
+    （AgentInvasionSystem）与预期奖励面板（DungeonMapSystem）不再进战斗画面——
+    `_enterNode` 隐藏 + 各状态入口兜底（_enterCombat/_enterBoss/_enterBossCombat/
+    _enterInvasionBattle/_enterReward/_enterEvent），`_returnToMap` 恢复。
   - **⚠ headless 探针禁用 --disable-gpu（2026-08-08 迷宫通道墙排查）**：用户报
     "衔接通道没做墙"。排查中 `cdp-swamp-arena-check` 系探针带 `--disable-gpu`，
     导致 headless Edge 里 **Phaser scene 不启动（window.__phaserScene 恒 false）**：

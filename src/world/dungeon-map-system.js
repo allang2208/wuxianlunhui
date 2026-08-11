@@ -51,7 +51,7 @@ import { BossRewardSystem, BOSS_REWARD_CONFIG } from './boss-reward-system.js';
 import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setCurrentDungeonType, getRoomClearBonus, getStreakMultiplier, getRoomExpEstimate, getDungeonExpBase } from '../config/exp-system.js';
 import { DungeonRunStats } from './dungeon-run-stats.js';
@@ -968,6 +968,9 @@ export const DungeonMapSystem = {
         // 进入节点前隐藏地图按钮
         this._removeAbandonButton();
         this._removeNodeTooltip();
+        // 左侧地牢信息（入侵几率标签 + 预期奖励面板）仅路线选择画面显示，
+        // 进战斗/事件/奖励一律隐藏，返回地图时再恢复
+        this._setMapInfoVisibility(false);
 
         // empty 节点仅用于通行；需要把当前位置移到该节点，否则无法继续向后续节点前进
         if (node.type === 'empty') {
@@ -1039,6 +1042,8 @@ export const DungeonMapSystem = {
         // 显示地图界面按钮
         this._createAbandonButton();
         this._updateSafeEvacButton();
+        // 恢复左侧地牢信息（仅路线选择画面显示）
+        this._setMapInfoVisibility(true);
 
         const current = this.getCurrentNode();
         if (current && current.type === "boss" && this.visitedNodeIds.has(current.id)) {
@@ -1156,6 +1161,8 @@ export const DungeonMapSystem = {
 
     _enterCombat(node) {
         this.state = "combat";
+        // 左侧地牢信息仅路线选择画面显示（_enterNode 已隐藏；此处兜底直调路径）
+        this._setMapInfoVisibility(false);
         // 普通战斗入口重置入侵标记（入侵混合战由 _enterInvasionBattle 单独设置）
         this._invasionNode = null;
         this._invasionMixed = false;
@@ -1549,6 +1556,7 @@ export const DungeonMapSystem = {
             return;
         }
         this.state = "boss";
+        this._setMapInfoVisibility(false);
         // 进入 Boss 战前清理残留的战斗场景
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
@@ -1571,6 +1579,7 @@ export const DungeonMapSystem = {
      */
     _enterBossCombat(node) {
         this.state = "combat";
+        this._setMapInfoVisibility(false);
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
         this._zombieCombatNode = node;
@@ -1595,6 +1604,7 @@ export const DungeonMapSystem = {
      */
     _enterInvasionBattle(node) {
         this.state = 'combat';
+        this._setMapInfoVisibility(false);
         this._cleanupCombatScene();
         this._exitPortalSpawned = false;
         this._invasionNode = node;
@@ -1816,6 +1826,7 @@ export const DungeonMapSystem = {
 
     _enterReward(node) {
         this.state = "reward";
+        this._setMapInfoVisibility(false);
         // 使用 BossRewardSystem 的奖励节点管理器
         BossRewardSystem.enterRewardNode(this.player, () => {
             // 奖励领取完毕后标记节点完成并触发胜利
@@ -1830,6 +1841,7 @@ export const DungeonMapSystem = {
 
     _enterEvent(node) {
         this.state = "event";
+        this._setMapInfoVisibility(false);
         // 连战中断：选择随机事件节点（含宝箱/商店）连战计数清零（empty 空节点不计不断）
         DungeonRunStats.combatStreak = 0;
         // 使用 DungeonEventSystem 提供完整的随机事件
@@ -2335,6 +2347,18 @@ export const DungeonMapSystem = {
     _removeDungeonRewardPanel() {
         const el = getElement('dungeonRewardPanel');
         if (el) el.remove();
+    },
+
+    /**
+     * 左侧地牢信息（时空特工入侵几率标签 + 预期奖励面板）显隐：
+     * 仅路线选择（地图）画面显示，进入战斗/事件/奖励节点时隐藏，
+     * 返回地图时恢复（2026-08-11 用户要求：不进游戏画面）。
+     */
+    _setMapInfoVisibility(visible) {
+        for (const id of ['invasionChanceLabel', 'dungeonRewardPanel']) {
+            const el = getElementIfExists(id);
+            if (el) el.style.display = visible ? '' : 'none';
+        }
     },
 
     _createAbandonButton() {
