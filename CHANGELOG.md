@@ -1,5 +1,27 @@
 # 变更日志
 
+### 对话：C 级「恶魔洞窟」新地牢全流程（2026-08-11，矿洞主题）
+- **素材**（远程 5080 FLUX.2 dev / MiniMax H3，全部走项目标准工作流）：
+  ① 岩壁墙 `demon_wall_straight.png`（Blender 白模深度 + FLUX depth + prep 标定，
+  裁岩突/水平镜像/底边拉直，slope 0.3754）；② 矿洞地砖 `demonbrick1.png`
+  （swampbrick 剪影深度模板 + FLUX depth）；③ 铁闸门 `demon_gate.png`
+  （H3 白底视频 16 帧升起动画 + 垂直剪切 iso 化，prep 切帧打包）。
+- **数据驱动**：`dungeonList.demonCavern` + `demonCavern` 配置块（C 级、5 房蛇形
+  迷宫、demonbrick1 地砖）；`family:'zombie'` 数据字段替代 `_isZombieFamily`
+  硬编码列表（5 个僵尸家族地牢配置块同步补字段）。
+- **代码登记**：`ISO_WALL_STYLES.demonCavern` + `ISO_WALL_GEO.demon_straight/
+  demon_gate`；BootScene 加载；`_placeArenaPassage` 新增**通道预制样式重映射**
+  （默认预制按当前墙样式从底边重建，新地牢通道自动换匹配墙/铁闸门）。
+- **验证**：CDP 进 demonCavern → 5 房竞技场、8 门全 demon_gate 全开、负 sy 0；
+  GLM 房1岩地+岩壁+橙矿晶、通道铁闸清晰无异常；npm test 51/51、lint 0 error、
+  vite build ✓。
+- **修改文件**：wall-system.js、combat-room-system.js、dungeon-map-system.js、
+  BootScene.js、dungeon-config.js、data/public dungeon-config.json、assets/terrain/
+  demon_wall_straight.png、demonbrick1.png、demon_gate.png、tools/prep-demon-*.py、
+  tools/compose-demon-gate-anim.py、tools/add-demon-cavern-config.py、
+  tools/add-dungeon-family.py、tools/ai-gen/_blockout_specs/demon_wall.json、
+  tools/ai-gen/prompts/demon-*.md/txt、tools/ai-gen/make-demon-*.py、SKILL.md。
+
 ### 对话：沼泽地牢 4/5 房墙壁错乱根因修复 + 地牢信息面板仅路线图显示（2026-08-11）
 - **多房蛇形迷宫修复（保留转折布局）**：CDP 插桩定位并修复三类墙件异常——
   ① `_sealPassageSides` 端点交换与 flip 解耦：`swap = axis.y<0`、

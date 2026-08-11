@@ -120,6 +120,10 @@ export class BootScene extends Scene {
         // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
         this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });
+        // 恶魔洞窟（2026-08-11）：矿洞岩壁 + 铁闸门（16 帧）
+        this.load.image('demonbrick1', 'assets/terrain/demonbrick1.png');
+        this.load.image('demon_wall_straight', 'assets/terrain/demon_wall_straight.png');
+        this.load.spritesheet('demon_gate', 'assets/terrain/demon_gate.png', { frameWidth: 640, frameHeight: 786, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）

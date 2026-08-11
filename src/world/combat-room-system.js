@@ -1292,9 +1292,10 @@ export const CombatRoomSystem = {
         }
         // 第一轮：先旋转 180°（反向通道）再平移全部件；门墙先"移除对应大小的墙"
         const translated = analysis.def.pieces.map(p => {
+            let piece;
             if (!mirror) {
-                return { ...p, x: p.x + t.x, y: p.y + t.y, depth: p.depth != null ? p.depth + t.y : p.depth };
-            }
+                piece = { ...p, x: p.x + t.x, y: p.y + t.y, depth: p.depth != null ? p.depth + t.y : p.depth };
+            } else {
             // ⚠ 2026-08-11 三修（用户定案"复制通道 + 镜像翻转"）：180° 镜像按几何重做——
             // 反射件**底边线段**（绕 gA 底边中心），再由墙体系统从反射底边**重建件**。
             // 旧"位置反射 + flipX(±flipY) 翻转"会把门墙精灵锚点翻错（门洞错位）、
@@ -1303,7 +1304,7 @@ export const CombatRoomSystem = {
             const seg = WallSystem._pieceBaseSegments(p)[0];
             if (!seg) {
                 // 无底边的装饰件：位置反射 + flipX/flipY 双翻
-                return {
+                piece = {
                     ...p,
                     x: 2 * gAX - p.x + t.x,
                     y: 2 * gAY - p.y + t.y,
@@ -1311,16 +1312,22 @@ export const CombatRoomSystem = {
                     flipY: !(p.flipY ?? false),
                     depth: p.depth != null ? p.depth + t.y : p.depth,
                 };
+            } else {
+                let A = { x: 2 * gAX - seg[0].x + t.x, y: 2 * gAY - seg[0].y + t.y };
+                let B = { x: 2 * gAX - seg[1].x + t.x, y: 2 * gAY - seg[1].y + t.y };
+                // 上端在前（_addSegPiece/_buildGatePieceAt 的 A=上端约定，保证 sy>0 不倒置）
+                if (B.y < A.y) { const tmp = A; A = B; B = tmp; }
+                if (this._isFunctionalGatePiece(p)) {
+                    piece = this._buildGatePieceAt(A, B, !!p.flipX, p.depth != null ? p.depth + t.y : undefined);
+                } else {
+                    const geoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
+                    piece = WallSystem._buildSegPiece(A, B, !!p.flipX, geoKey || 'straight', 'max');
+                }
             }
-            let A = { x: 2 * gAX - seg[0].x + t.x, y: 2 * gAY - seg[0].y + t.y };
-            let B = { x: 2 * gAX - seg[1].x + t.x, y: 2 * gAY - seg[1].y + t.y };
-            // 上端在前（_addSegPiece/_buildGatePieceAt 的 A=上端约定，保证 sy>0 不倒置）
-            if (B.y < A.y) { const tmp = A; A = B; B = tmp; }
-            if (this._isFunctionalGatePiece(p)) {
-                return this._buildGatePieceAt(A, B, !!p.flipX, p.depth != null ? p.depth + t.y : undefined);
             }
-            const geoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
-            return WallSystem._buildSegPiece(A, B, !!p.flipX, geoKey || 'straight', 'max');
+            // ⚠ 2026-08-11：样式重映射——默认预制（wall_straight/wall_gate）按当前墙样式
+            // 重建件（新地牢换墙自动获得匹配的通道墙/铁闸门，无需为每套样式维护专属通道预制）
+            return this._remapPassagePieceToStyle(piece);
         });
         for (const q of translated) {
             if (!this._isFunctionalGatePiece(q)) continue;
@@ -1350,6 +1357,28 @@ export const CombatRoomSystem = {
             }
         }
         return { index: passage.index, mid1: passage.mid1, mid2: passage.mid2, center: passage.center, gates };
+    },
+
+    /** 通道预制件按当前墙样式重映射（默认纹理 → 当前样式纹理，几何从底边重建） */
+    _remapPassagePieceToStyle(piece) {
+        const style = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos() : { straight: 'straight', gate: 'gate' };
+        const styleStraightTex = (ISO_WALL_GEO[style.straight] || ISO_WALL_GEO.straight).tex;
+        const styleGateTex = (ISO_WALL_GEO[style.gate] || ISO_WALL_GEO.gate).tex;
+        if (piece.tex === 'wall_straight' && styleStraightTex !== 'wall_straight') {
+            const seg = WallSystem._pieceBaseSegments(piece)[0];
+            if (!seg) return piece;
+            let A = seg[0], B = seg[1];
+            if (B.y < A.y) { const t = A; A = B; B = t; }
+            return WallSystem._buildSegPiece(A, B, !!piece.flipX, style.straight, 'max');
+        }
+        if (piece.tex === 'wall_gate' && styleGateTex !== 'wall_gate') {
+            const seg = WallSystem._pieceBaseSegments(piece)[0];
+            if (!seg) return piece;
+            let A = seg[0], B = seg[1];
+            if (B.y < A.y) { const t = A; A = B; B = t; }
+            return this._buildGatePieceAt(A, B, !!piece.flipX, piece.depth);
+        }
+        return piece;
     },
 
     /**
