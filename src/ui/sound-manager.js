@@ -10,6 +10,9 @@
             enabled: true,
             // 声道音量（data/audio-config.json channels；sfx/ui/music 二级调节）
             channelVolumes: { ...(audioConfig.channels || { sfx: 1, ui: 1, music: 0.6 }) },
+            // 世界音效距离衰减配置（data/audio-config.json distanceAttenuation；
+            // 默认传播距离/循环衰减曲线都在配置里，后续调整只改配置不硬编码）
+            _distance: audioConfig.distanceAttenuation || {},
             _stepTimer: 0,
             _stepInterval: 280,
             _initialized: false,
@@ -114,9 +117,31 @@
                 if (!this.enabled) return;
                 const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
                 const d = (p && p.active) ? Math.hypot(p.x - x, p.y - y) : 0;
-                const gain = this.distanceGain(d, opts);
+                // 距离衰减总开关：enabled=false 时退化为全局音量（近端满音量），不静音
+                const effectiveOpts = (this._distance && this._distance.enabled === false)
+                    ? { nearDist: 0, maxDist: Infinity }
+                    : opts;
+                const gain = this.distanceGain(d, effectiveOpts);
                 if (gain <= 0) return;
                 this.playFile(path, volume * gain, channel);
+            },
+
+            /**
+             * 世界音效统一入口（距离衰减，2026-08-11）：
+             * 按声源世界坐标与玩家的距离自动衰减——越近越大直到 100%（nearDist 内），
+             * 远离逐步减小直到 0（超过 maxDist 不播）。默认传播距离读
+             * data/audio-config.json distanceAttenuation.defaultMaxDist（默认 2000px）。
+             * 单次调用可用 opts.maxDist 覆盖（如特殊音效传播更远/更近）。
+             * 注意：声源=玩家自身的声音（枪声/脚步/技能/UI）请用 playFile，不要走此入口。
+             * @param {string} path 音频路径
+             * @param {number} x 声源世界坐标 x
+             * @param {number} y 声源世界坐标 y
+             * @param {number} [volume=1.0] 基础音量（近端满音量）
+             * @param {string} [channel='sfx'] 声道
+             * @param {object} [opts] 覆盖衰减参数：nearDist / maxDist
+             */
+            playWorld(path, x, y, volume = 1.0, channel = 'sfx', opts = {}) {
+                this.playFileAt(path, x, y, volume, channel, opts);
             },
 
             /** 设置声道音量（sfx/ui/music，0~1；配置持久化见 data/audio-config.json） */
@@ -275,13 +300,14 @@
             setLoopPosition(id, x, y, opts = {}) {
                 const l = this._loops && this._loops[id];
                 if (!l) return;
+                const loop = (this._distance && this._distance.loop) || {};
                 l.positional = {
                     x, y,
-                    base: opts.base ?? 0.5,
-                    max: opts.max ?? 1.5,
-                    nearDist: opts.nearDist ?? 150,
-                    farDist: opts.farDist ?? 600,
-                    maxDist: opts.maxDist ?? 2000,
+                    base: opts.base ?? loop.base ?? 0.5,
+                    max: opts.max ?? loop.max ?? 1.5,
+                    nearDist: opts.nearDist ?? loop.nearDist ?? 150,
+                    farDist: opts.farDist ?? loop.farDist ?? 600,
+                    maxDist: opts.maxDist ?? loop.maxDist ?? 2000,
                 };
             },
 
@@ -293,11 +319,12 @@
              *   d ≥ maxDist             → 0（无声）
              */
             computeDistanceVolume(d, cfg = {}) {
-                const base = cfg.base ?? 0.5;
-                const max = cfg.max ?? 1.5;
-                const nearDist = cfg.nearDist ?? 150;
-                const farDist = cfg.farDist ?? 600;
-                const maxDist = cfg.maxDist ?? 2000;
+                const loop = (this._distance && this._distance.loop) || {};
+                const base = cfg.base ?? loop.base ?? 0.5;
+                const max = cfg.max ?? loop.max ?? 1.5;
+                const nearDist = cfg.nearDist ?? loop.nearDist ?? 150;
+                const farDist = cfg.farDist ?? loop.farDist ?? 600;
+                const maxDist = cfg.maxDist ?? loop.maxDist ?? 2000;
                 if (maxDist > 0 && d > maxDist) return 0;
                 if (d <= nearDist) return max;
                 if (d >= farDist) {
@@ -314,8 +341,9 @@
              * 一次性音效距离→倍率：nearDist 内恒 1，线性降至 maxDist 处 0，超出为 0。
              */
             distanceGain(d, opts = {}) {
-                const nearDist = opts.nearDist ?? 0;
-                const maxDist = opts.maxDist ?? (opts.farDist ?? 2000);
+                const cfg = this._distance || {};
+                const nearDist = opts.nearDist ?? cfg.defaultNearDist ?? 0;
+                const maxDist = opts.maxDist ?? (opts.farDist ?? cfg.defaultMaxDist ?? 2000);
                 if (d <= nearDist) return 1;
                 if (d >= maxDist) return 0;
                 const span = Math.max(1, maxDist - nearDist);

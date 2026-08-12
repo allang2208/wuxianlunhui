@@ -14,14 +14,14 @@
   "animation": {
    "attackTypes": {
     "bite": {
-     "frames": 6,
+     "frames": 12,
      "durationMs": 600
     },
     "pounce": {
-     "frames": 20,
+     "frames": 24,
      "prepareMs": 1200,
      "chargeMs": 1333,
-     "prepareFrames": 6
+     "prepareFrames": 8
     }
    },
    "frameLayout": {
@@ -48,16 +48,16 @@
      "frames": 28
     },
     "bite": {
-     "cols": 3,
-     "rows": 2,
-     "frames": 6
+     "cols": 4,
+     "rows": 3,
+     "frames": 12
     },
     "pounce": {
      "width": 640,
      "height": 640,
      "cols": 4,
-     "rows": 5,
-     "frames": 20
+     "rows": 6,
+     "frames": 24
     },
     "pacing": {
      "cols": 4,

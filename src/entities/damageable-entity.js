@@ -11,6 +11,7 @@ import { Entity } from './entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getCurrentDungeonType } from '../config/exp-system.js';
 import { DungeonRunStats } from '../world/dungeon-run-stats.js';
+import { PartySystem } from '../systems/party-system.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { Enemy } from './enemy.js';
@@ -254,7 +255,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 // 统一清理自定义特效（循环音轨/头部粒子/范围圈/投射物等）：
                 // 死亡后 update 多数被跳过，各实体自身的"死亡即停"检查未必执行，必须在此兜底
                 if (typeof this._destroyCustomEffects === 'function') this._destroyCustomEffects();
-                if (SoundManager && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playWorld) {
+                    // 世界音效（2026-08-11 距离衰减）：死亡声按尸体位置衰减
+                    SoundManager.playWorld('assets/sounds/ui/knockdown_1.mp3', this.x, this.y);
+                } else if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/ui/knockdown_1.mp3');
                 }
                 if (source && source.data) source.data.kills++;
@@ -315,6 +319,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                             DungeonRunStats.recordExp(amount);
                         }
                         _expSrc.gainExp(amount, detail ? detail.tag : null);
+                        // 侍从队经验：与玩家同额、无平分机制（仅进入战斗击杀时获得）
+                        PartySystem.grantCombatExp(amount);
                     }
                 }
                 // 延迟删除尸体（3秒后从 entities 中移除）
@@ -915,7 +921,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '🧊 冻结！', '#a0d8ff'));
                 }
-                if (SoundManager && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playWorld) {
+                    // 世界音效（2026-08-11 距离衰减）：冻结声按被冻目标位置衰减
+                    SoundManager.playWorld('assets/sounds/skills/frozn.mp3', this.x, this.y);
+                } else if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/skills/frozn.mp3');
                 }
             }
@@ -1116,7 +1125,10 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                         depth: hitDepth,
                     });
                 }
-                if (SoundManager && SoundManager.playFile) {
+                if (SoundManager && SoundManager.playWorld) {
+                    // 世界音效（2026-08-11 距离衰减）：闪电音效按受击位置衰减
+                    SoundManager.playWorld('assets/sounds/skills/lightning-1.mp3', this.x, this.y);
+                } else if (SoundManager && SoundManager.playFile) {
                     SoundManager.playFile('assets/sounds/skills/lightning-1.mp3');
                 }
             }

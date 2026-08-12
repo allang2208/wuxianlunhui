@@ -9,6 +9,7 @@ import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../..
 import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
+import companionConfigData from '../../../data/companion-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -67,6 +68,19 @@ export class BootScene extends Scene {
                         frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
                     });
                 }
+            }
+        }
+
+        // ---- 侍从动作动画（配置驱动：companion-config.json animations；纹理键 companion_<id>_<动画>） ----
+        for (const companion of companionConfigData.companions || []) {
+            const anims = companion.animations || {};
+            for (const [animKey, def] of Object.entries(anims)) {
+                if (!def || !def.src) continue;
+                this.load.spritesheet(`companion_${companion.id}_${animKey}`, def.src, {
+                    frameWidth: def.frameWidth || 512,
+                    frameHeight: def.frameHeight || 512,
+                    endFrame: (def.frameCount || 1) - 1,
+                });
             }
         }
 
@@ -187,9 +201,9 @@ export class BootScene extends Scene {
         // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
-        this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 5 });
-        // 2026-08-07 从原视频重建：扑跃帧宽超 512 会裁切 → 640² 网格（20 帧 4×5）
-        this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        // 2026-08-07 从原视频重建：扑跃帧宽超 512 会裁切 → 640² 网格（2026-08-11 加密至 24 帧 4×6）
+        this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 23 });
         // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
         this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
         this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -419,6 +433,42 @@ export class BootScene extends Scene {
                     const handCount = handTex.getFrameNames ? handTex.getFrameNames().length : 0;
                     if (bodyCount !== handCount) {
                         console.warn(`[BootScene] 手层帧数不匹配：${texKey}_body(${bodyCount}) vs ${texKey}_hand(${handCount})——手 sprite 逐帧跟随会错位`);
+                    }
+                }
+            }
+        }
+
+        // ---- 侍从动作动画注册（配置驱动；纹理/动画键 companion_<id>_<动画>） ----
+        for (const companion of companionConfigData.companions || []) {
+            const anims = companion.animations || {};
+            for (const [animKey, def] of Object.entries(anims)) {
+                if (!def || !def.src) continue;
+                const texKey = `companion_${companion.id}_${animKey}`;
+                if (!this.anims.exists(texKey)) {
+                    if (def.startFrames && def.loopFrames) {
+                        // 起步 + 循环两段（如 running）：start 播一次 → loop 循环
+                        const [ss, se] = def.startFrames;
+                        const [ls, le] = def.loopFrames;
+                        this.anims.create({
+                            key: `${texKey}_start`,
+                            frames: this.anims.generateFrameNumbers(texKey, { start: ss, end: se }),
+                            frameRate: def.startFrameRate || def.frameRate || 12,
+                            repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
+                        });
+                        this.anims.create({
+                            key: texKey,
+                            frames: this.anims.generateFrameNumbers(texKey, { start: ls, end: le }),
+                            frameRate: def.frameRate || 12,
+                            repeat: def.repeat !== undefined ? def.repeat : -1,
+                        });
+                    } else {
+                        const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+                        this.anims.create({
+                            key: texKey,
+                            frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                            frameRate: def.frameRate || 12,
+                            repeat: def.repeat !== undefined ? def.repeat : -1,
+                        });
                     }
                 }
             }

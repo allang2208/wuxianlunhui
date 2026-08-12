@@ -939,6 +939,39 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
        世界坐标→屏幕坐标精确裁剪，连拍覆盖 walk/run/attack 状态）。
   - 全套部署（2026-08-11）：run/walk/bite/pounce/idle 五张绿幕版入库
     （原图 .bak-greenscreen），站立显示高统一 67.2px（228@512 格 / 285@640 格）。
+- **主角全帧瞄准扫描管线（2026-08-12，twist 拆分的替代方案验证通过）**：
+  - 背景：骷髅模型"腿/躯干/手臂"拆分扭转在复杂人物上必然割裂（用户结论：
+    单图拆分无法拼接）。新方案=**零拆分全帧**：瞄准扫描视频（边扫边连续开火）
+    → 按角度分桶抽 (neutral, flinch) 帧对 → 运行时瞄准角最近邻选帧 + 开火相位偏
+    移 + flipX 镜像；武器层照旧独立旋转（±5° 量化余量，绕握把锚点）。
+  - 管线：`player_char/firstframe_aim.png`（用户抠图合成绿幕）→ H3 三条视频
+    （下扫/中段/上扫，**单一扫描视频模型只在锚点附近徘徊，必须按角度分段生成**；
+    prompt 必须写死 strict side-profile 否则转身）→
+    `tools/ai-gen/player-aimsweep-extract.py`（chroma 抠图 + 红底帧剔除 +
+    掩膜测角分桶 + 体外高亮=火光定位后座相位 + despill/defringe/外渗）→
+    `assets/player/aim_sweep.png` + 角度表嵌入 player-anim-config.json
+    `gun_idle.aimSweep`（data/public 双份）。
+  - 运行时：GameScene `_syncAimSweep`（姿态状态机 gun_idle 分支优先接管，
+    `_crosshairShotKick>0.5` = flinch 相位）；BootScene 按 aimSweep 配置加载。
+    **角度表符号：掩膜"手臂上抬为正"与游戏世界 y 向下相反，必须取反**；
+    angleScale 1.25 补估算压缩。
+  - **骷髅模型保留**：twist 配置/贴图/代码全部原样（手枪/双持仍在用），
+    gun_idle 只是新增 aimSweep 键；删除 aimSweep 配置即整体回退旧方案。
+  - 待办：武器-手部锚点按角度表 tip 逐桶校准（当前用旧 syncWeapon 偏移，
+    有轻微脱手）；极限压枪（<-30°）/正上方（>+75°）角度未覆盖可补专项视频；
+    走姿扫描（边走边扫枪）二期。
+  - 验证：tools/cdp-aimsweep-verify.mjs（装备 M416 + CDP 鼠标控制各角度截图）。
+  - **最终结论（2026-08-12，用户实机验收后判定）：玩家全帧视频管线方案废弃**。
+    技术上全链路跑通（扫描帧组/开火相位/双手锚点/移动矩阵/近距平滑全部实现），
+    但**视频模型的漂移和不一致对主角不可接受**——主角 100% 时间挂在屏幕上，
+    帧间服装/体型细节漂移比怪物显眼得多，12+24 条视频矩阵把不一致放大到不可用。
+    已回退：aimSweep 配置/代码/资产全部移除，骷髅 twist 拆分扭转恢复原位
+    （spriteSize 144 / WEAPON_ANIM.size 126 一并回退）。
+    **教训：AI 视频帧组对"配角/敌人"可行（黑狼全套已上线），对"主角"目前不可行——
+    主角级一致性仍需 Spine/建模手工管线。敌人继续用视频管线，主角维持拆分扭转，
+    后续主角造型升级应走 Spine 或约稿，不要再试 AI 视频全帧。**
+  - 工具留存（敌人/道具仍可用）：`player-aimsweep-extract.py`（角度分桶/火光相位）、
+    `player-locomotion-matrix.py`（步态矩阵）——用于怪物时漂移容忍度高，可直接复用。
 - **红狼人奔跑贴图"地面平台矩形色带"根因 = H3 视频生成的脚下地面条（2026-08-08 三十版）**：
   - 用户纠正：问题在**狼人形态**（红狼人奔跑），不是狼形态。贴图逐行扫描发现
     每帧脚下 y 380~408 有一条 **252px 宽完整水平矩形深色带**（x 110~362，
@@ -1696,6 +1729,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
 - **枪械握把轴心（2026-07-26）**：`WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）——游戏内/面板统一以握把为旋转轴与锚点（360 瞄准不滑手）；扭转激活时锚点在躯干空间计算（禁止 localToWorld 按 player.rotation 公转，否则与扭转轨道叠加成双重旋转）。
+- **冲刺攻击 Lerp 模式（2026-08-12）**：`sword.dashLerp { type:'lerp', grip:{x,y},
+  from:{x,y,rotation}, to:{x,y,rotation}, scale, stretchX/Y, blurPeak }`——剑柄锚手 +
+  起始/结束双端点线性插值（位置 + 角度），替代 30 帧 perFrame 手调。铁律：
+  ① 角度**字面线性**（不做短弧解卷绕——端点 -100°→115° 是大扫意图，解卷绕会反向扫）；
+  ② `origin = grip`（翻转时 X 镜像 1−x）→ 旋转绕剑柄 → 剑柄钉在插值位置、剑身绕手转；
+  ③ **非冲刺路径必须复位 origin 0.5**（`_syncSpecialWeaponAnim` 只在 isSpecialAnim 调用，
+  普通攻击路径自行复位，否则残留绕剑柄旋转）；④ 旧 `dash` perFrame 数据保留可回退。
+  调参只动 from/to（起止剑柄位置+剑身角）与 grip（剑柄贴图内分数位置）。单测
+  `scripts/test-dash-lerp.mjs`、实机探针 `tools/cdp-dash-lerp.mjs`。
 
 ### 7. 验证
 - JSON 双份一致；lint / vite build / test-collider。
@@ -5367,10 +5409,159 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
     `pathFinder.invalidateCache()`。验证：右墙外→基地的路径由"直线穿墙 2 点"
     变为"绕墙走门洞 9 点"；269 项测试全绿。
   - **✅ 土块推广到 F/E/C/B/A 档（2026-08-08）**：D 级带土贴图验收通过后，用同一
-    spec（`cover_integrated_spec3.json`，soil_margin:0 + soil 字段）批量渲染
-    5 档 × 5 变体（tex_<grade>.png / tex_<grade>_v2..v5.png），h = fliplr(v)，
-    替换 `obstacle_cover_{F,E,C,B,A}_{v,h}/_v2..v5_*` 共 50 张；内容框全部
-    163-902 × 87-890（与 D 一致，soil_margin:0 保拼接无缝）。实机换档验证
-    （`tools/cdp-grade-soil-check.mjs` 直接 setTexture 换档截四角）：F/A 均墙根
-    带土、四角干净、四边无缝。旧贴图备份：
-    `backup/cover-soil-allgrades-20260808_115237/`（50 张）。
+  spec（`cover_integrated_spec3.json`，soil_margin:0 + soil 字段）批量渲染
+  5 档 × 5 变体（tex_<grade>.png / tex_<grade>_v2..v5.png），h = fliplr(v)，
+  替换 `obstacle_cover_{F,E,C,B,A}_{v,h}/_v2..v5_*` 共 50 张；内容框全部
+  163-902 × 87-890（与 D 一致，soil_margin:0 保拼接无缝）。实机换档验证
+  （`tools/cdp-grade-soil-check.mjs` 直接 setTexture 换档截四角）：F/A 均墙根
+  带土、四角干净、四边无缝。旧贴图备份：
+  `backup/cover-soil-allgrades-20260808_115237/`（50 张）。
+
+## 侍从系统框架（2026-08-12，占位符阶段）
+
+> 框架已验收通过；当前为数据/UI/队伍管理骨架，战斗模型贴图未渲染（占位）。
+
+### 架构与文件地图
+- `data/companion-config.json`：候选侍从档案（id/name/title/desc/avatar 占位/
+  modelPlaceholder/growthRule/初始六维/skills 占位/weaponType）。新增侍从 = 加档案 + 成长规则。
+- `src/config/companion-growth.js`：成长规则注册表（`GROWTH_RULES[id] = (companion, points) =>
+  {str,dex,int,con,wis,luck}` + `registerGrowthRule(id,fn)` 扩展）——升级属性点自动分配，
+  **不硬编码**；未知规则回退 balanced（总点数不丢，缺额补体质）。
+- `src/entities/companion.js`：数据模型与玩家对齐（六维 data/level/exp/equipments/backpack/
+  skills）；`gainExp` 战斗专用（升级曲线=玩家 computeMaxExp，升级回满 HP/MP）；序列化接口。
+- `src/systems/party-system.js`：单例，最多 3 名侍从（玩家+3=4 人队）；`grantCombatExp`
+  **与玩家同额、无平分机制**；onChange 订阅刷新。
+- UI：`party-ui.js`（组队栏，替换 questTracker 位置）、`recruit-ui.js`（卡片招募）、
+  `companion-panel.js`（右侧队员面板三 tab + 背包拖入）、expedition 四圆圈（hud-panels-
+  expedition-quest-reward.js 的 `expeditionMemberBar` + expedition-system.js `_renderMemberBar`）。
+
+### 铁律/坑
+- 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
+- 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
+  spread 会覆盖目标槽位，实机抓出）。
+- 拖入队员背包：`CompanionPanel._moveFromPlayerToCompanion` 读
+  `Game.EquipManager._dragDropManager._dragSrc` 并置 `_dropHandled=true`（阻止 dragend 丢弃）。
+- **队员装备与玩家通用（2026-08-12）**：`src/ui/equip/equip-rules.js` 共享
+  `canEquipSlot`/`getEquipmentBonuses`（玩家 drag-drop-manager 与侍从同一套，勿再各写）；
+  队员背包装备走 `Companion.equipFromBackpack`（自动槽位：单手主手→weapon2→offhand→全满替换
+  主手；盾进副手且卸双手主手；双手武器只进主手；被占槽替换回包）+ `unequip` + `calculateCombatStats`
+  （六维差值法 + atk/def 同玩家公式）；队员背包格拖回玩家背包走
+  `text/companion-item` → drag-drop-manager inv-cell drop → EventBus
+  `companion:moveToPlayerBackpack`。
+- **调试铁律**：Runtime.evaluate 里 `import('/src/xxx.js')` 会创建**平行模块实例**——
+  调试/探针一律用 `window.Game.PartySystem/RecruitUI/CompanionPanel/ExpeditionSystem`
+  （game.js init 挂载的单一权威），否则 addCompanion 加到平行实例而 UI 读静态实例（实测抓出）。
+- **技能通用模块（2026-08-12）**：技能公式/构建单一来源 `src/systems/skill-formula.js`
+  （纯函数，data-loader 委托 + skill-system 共用）；`src/systems/skill-system.js` 提供
+  buildSkillMap / grantSkillExp（修炼，升级逻辑与 SkillLevelSystem 同源内联——保持无 Phaser
+  依赖可 node 单测）/ onSkillLevelUp（按 effectFormula 属性奖励）/ renderSkillList（通用技能卡）。
+  侍从技能 = companion-config.skills 的 id 数组（当前空=占位，填 id 即自动拥有/修炼/渲染）。
+  **坑**：skill-system 勿 import data-loader / skill-level-system（会拉 Phaser 依赖链，
+  node 单测 `window is not defined`）；公式解析器改动必须同步 skill-formula.js（唯一实现）。
+- **队员管理入口（2026-08-12）**：右侧 side-menu（hud-panels-misc.js）「👥 队员管理」→
+  `CompanionPanel.openManage()`（顶部队员切换条 + 空状态招募按钮 + 打开时隐藏 side-menu）。
+  **坑**：清空队伍用 `while(members.length) remove(members[0].id)`（遍历中 splice 会跳项）。
+- **解除招募保留状态（2026-08-12）**：PartySystem._roster 档案库——removeCompanion 存
+  `serialize()`（等级/属性/装备/背包/技能全保留），addCompanion 有档案走 `fromSerialized`
+  恢复继承；招募卡片按 `unlocked/inParty` 显示「再次加入（继承状态）」/「已在队」；
+  `serializeRoster()/restoreRoster()` 为存档接口预留。
+- **队员背包双栏（2026-08-12）**：companion-panel「装备背包」tab 时左侧同步弹出玩家背包栏
+  （`.companion-player-pack`，实时读 `EquipManager.backpackItems`），与队员面板并排紧贴
+  （`.companion-panel.with-pack` 圆角切换）；玩家背包格 draggable 写
+  `EquipManager._dragDropManager._dragSrc` 后拖到队员背包/装备槽（既有转移接口）。
+  **复刻铁律（2026-08-12 返工）**：玩家背包栏必须**逐字段复刻** slot-renderer 的格子格式
+  （`.inv-cell.occupied` + inv-rarity 稀有度竖条 + 强化/改造/附魔标签 + 图标 + inv-name +
+  inv-stack + data-slot/dragType/dragId/itemName），tooltip 调
+  `EquipTooltipManager.bindInventoryTooltip()` 复用；**容器勿用 .inventory-grid 类**
+  （updateInventorySlots 用 queryAllElements 全局索引会把它后面的格子 slot 错位），
+  用独立容器类 + `.inv-cell` 格子（CSS/tooltip 自动复用）。
+- **属性/技能面板复刻（2026-08-12）**：队员属性 tab 生成玩家系统面板同款
+  `.status-page` 结构（status-header + 状态条 bar-fill + 基础属性 attr-list 两列 +
+  战斗属性 + 详细信息 + 档案）；技能 tab 用 skill-system.renderSkillList 输出玩家同款
+  `.skill-card`（skill-icon/name/level/exp-bar）网格——复用全局 CSS，勿自造样式类。
+- **队员面板=玩家 system-panel 完整复刻（2026-08-12 二轮返工铁律）**：队员面板外层必须用
+  `.system-panel`（右侧滑出 45vw 全高毛玻璃）+ `.panel-tabs`/`.tab-page`；装备页完整复制
+  `.gear-layout`（上 `.equip-grid` 3×5 网格 15 槽 + 下 5 列背包格）；**但装备槽/背包格
+  必须用 `companion-*` 独立类复制样式**（`.companion-diablo-slot`/`.companion-pack-grid`/
+  `.companion-cell`），不能直接用 `.diablo-slot`/`.inv-cell`——玩家渲染器
+  （updateEquipSlots/updateInventorySlots）和 tooltip 全局绑定会污染队员槽位。
+  展示类（status-page/gear-layout/equip-grid/skill-card）可复用，数据类槽位需隔离类名。
+  **玩家装备栏复制（2026-08-12）**：左侧玩家背包栏的装备栏**可以**直接用 `.equip-grid` +
+  `.diablo-slot` 类（数据显示的就是玩家装备，玩家渲染器 updateEquipSlots/bindEquipTooltip
+  遍历填充/绑 tooltip 恰好正确）；玩家背包格仍用独立容器 + `.inv-cell`（自渲染，
+  避免 updateInventorySlots 全局索引错位）。队员侧装备槽/背包必须 `companion-*` 隔离类。
+  **双界面同步（2026-08-12）**：队员面板玩家背包栏与玩家系统面板背包 = 同数据
+  （EquipManager.backpackItems）、两套 DOM；必须包装 `EquipManager.updateInventorySlots`
+  （CompanionPanel._syncPlayerPackHook）让玩家侧操作同步刷新队员侧；队员侧操作已调
+  updateInventorySlots 天然同步。玩家装备栏（.diablo-slot）由 updateEquipSlots 全局遍历
+  自动同步，无需 hook。
+  **组队面板交互（2026-08-12）**：① 弹出动画复用 `.system-panel` 的 `.active` 机制
+  （translateX 滑入 0.25s），pack 用 `pack-active` 同款；② 打开 SystemUI/出征等面板必须
+  emit `ui:panel-open`（EventBus），CompanionPanel 监听关闭——新增"打开其他面板"的入口时
+  记得 emit，否则组队面板不关闭。
+  **组队审计铁律（2026-08-12 排查 5 bug）**：
+  ① 技能序列化必须 `restoreSkills` 重建（JSON 丢方法，档案恢复后 getEffect/getExpForNext
+    TypeError）；② 装备替换/卸下前检查背包空位（满则拒绝，防旧装备静默丢失）；
+  ③ `_show()` 必须 `clearTimeout(_closeTimer)`（close 260ms 定时器与快速重开竞态）；
+  ④ 拖入队员背包/装备槽前检查容量（满拒绝 + `_returnToPlayerBackpack` 还回，杜绝物品丢失）。
+  **成长/技能配置（2026-08-12）**：玩家与队员 maxHp/maxMp 公式统一含
+  `(level-1)*10`（每级 +10 生命/魔法）；队员成长规则在 companion-growth.js 注册表；
+  队员技能配置 = companion-config.skills（初始）+ unlockSkills（{技能id: 解锁等级}，
+  Companion._checkUnlocks 构造/升级自动解锁，通用机制）。新增队员 = 档案 + 成长规则 +
+  技能/解锁表即可，无需改业务代码。
+  **侍从场景渲染（2026-08-12）**：队员动作动画在 companion-config.animations 配置
+  （src/frameWidth/frameHeight/cols/rows/frameCount/frames/frameRate/repeat）；
+  BootScene 配置驱动加载注册（键 `companion_<id>_<动画>`）；GameScene
+  `_syncCompanionSprites` 每帧跟随玩家（左后偏移、翻转镜像），按玩家状态切
+  spell/run/walk/停帧。显示尺寸引用 `PLAYER_DEFAULTS.physics.spriteSize`（2026-08-12
+  为 173，与玩家单位完全一致）；跟随水平偏移 150px（原 95 @110px，放大后按比例拉远）。
+  新增队员动画 = 素材入库 + animations 配置即可，代码零改动。
+  **动画两段注册（2026-08-12）**：需要「起步 + 循环」的动作（如 running）在配置里写
+  `startFrames:[s,e] + startFrameRate + startRepeat:0` 与 `loopFrames:[s,e] + frameRate
+  + repeat:-1`；BootScene 会生成 `<key>_start`（播一次）与 `<key>`（循环）两个动画键，
+  共用同一 sheet 纹理。GameScene `_syncCompanionSprites` 用 sprite 的 `lunaRunning`
+  data 标记起步态：首帧进入 sprint 播 `run_start` 并 `once('animationcomplete')` 切
+  `<key>` 循环；停止奔跑（idle 分支）复位标记。判定存在用 `this.anims.exists`。
+  **循环边界像素分析法（2026-08-12）**：AI 生成动作 sheet 常有首尾不闭环问题。用
+  `tools/ai-gen/analyze-sheet-loop.py <png> <fw> <fh> --pair <n>` 对比 alpha 剪影差异
+  （0..1，越小越接近）；walking [0,31] 首尾 0.113 → 选 [7,31] 仅 0.023（双脚并拢的
+  「过步姿态」两端几乎一致）；running 起步 [0,18]（19 帧，18→19 衔接 0.040）+ 循环
+  [19,31]（13 帧，31→19 包裹 0.104，为该素材短循环最优）。**站立/停帧帧号必须跟随
+  walk 循环首帧**（GameScene 用 `anims.walk.frames[0]` + `companionIdleFrame` data），
+  否则循环起点不在 0 时静止→走路会跳变。**有奔跑素材时站立姿态优先取奔跑动画首帧**
+  （2026-08-12 三修）：源视频起跑前就是该姿态，idle→起跑完全连续；GameScene 创建
+  精灵时按 `anims.run` 存在与否选 idle 纹理/帧（`companionIdleKey` + `companionIdleFrame`
+  data），站立分支用 `setTexture(idleKey, idleFrame)` 切换（跨纹理不能只 setFrame）。
+  **循环闪回=水平漂移（2026-08-12 二轮修复）**：AI 生成 running 整张 sheet 每帧人物
+  沿水平方向漂移（帧 19 包围盒 x46-465 → 帧 31 x22-489，质心跨度 ~30px），循环回跳
+  时人物整体横跳 ~25px 造成「闪回卡顿」——**原始帧剪影差异会高估姿态差异**，先算
+  每帧 bbox/质心确认是否漂移。修复：`tools/ai-gen/luna-run-align.py` 把全部帧按内容
+  质心水平对齐（保持 512×512、自动求可行参考 X 避免裁切），导出 running_norm.png，
+  质心跨度 30px→1.1px，31→19 回跳 0.104→0.070（与相邻帧 0.02~0.06 同级，回跳退化为
+  普通帧间变化）。**新增/修改动作图后先做漂移检查**（帧质心跨度 >2px 即需归一化）。
+  **headless 验证铁律（2026-08-12）**：`_isSprinting`/`isMoving` 每帧由
+  `Input.isSprint()`/速度重算，直接改字段会被覆盖；必须派发真实
+  `new KeyboardEvent('keydown',{code:'ShiftLeft'/'KeyW'})`（Input 模块监听真实键盘）
+  + 补丁 `player._isFacingMouse=()=>true` + 补满体力，才能稳定驱动 walk/run 状态。
+  Phaser 4 动画帧对象取索引用 `frames[i].textureFrame`（非 `.frame`/`.name`）；
+  `Game.loop` 是本项目应用层方法，Phaser 循环诊断用 `__phaserScene.game.loop.frame`。
+- **侍从属性结算缺口（2026-08-12 审计修复）**：`Companion.calculateCombatStats` 必须
+  结算装备 `matkFormula`（与玩家 `_getEquipmentMatkBonus` 同口径：base + 强化×enhanceBase
+  + int×intMul + wis×wisMul）——否则法杖等魔法武器魔攻恒 0。装备测试铁律：装备后检查
+  int/wis/maxMp/def（含强化）/matk 五项全变，缺一项即结算缺口。
+- **overlay z-index 铁律（2026-08-12 实锤）**：招募界面 `.recruit-overlay` 必须 > 队员管理
+  `.companion-overlay`（现 4400 > 4300）——低层级 overlay 打开时点按钮会被高层全屏遮罩
+  拦截（无反应无报错）；招募打开时还需临时隐藏队员管理面板（close 恢复）。
+  新增全屏 overlay 前先查现有 overlay 的 z-index，勿低于其上层。
+  **2026-08-12 修正**：z-index 已保证招募在上层后，**不要再临时隐藏下层面板**——
+  隐藏会导致 onChange（display===block 条件）不刷新、恢复后内容陈旧；同时
+  CompanionPanel 的 onChange 刷新须处理"空状态加入后 _memberId 停留 null"：
+  无当前队员且有成员时自动选中 members[0]。
+- **高斯武器滤镜已彻底停用（2026-08-12）**：`GameScene._applyWeaponBlur/_ensureWeaponBlur`
+  为 no-op/返回 null——`filters.internal.addBlur` 在部分 GPU 下创建 framebuffer 失败
+  （Framebuffer Unsupported）→ WebGL context lost → 黑屏（招募黑屏根因）。运动模糊唯一
+  正式方案 = 残影（_syncWeaponGhosts）；blurX/blurY 仍驱动残影长度/浓度，勿再启用高斯滤镜。
+- 单测带 JSON 导入需自注册 loader：`await import('./scripts/register-json-loader.mjs')`
+  + 动态 import src 模块（静态 import 在 loader 注册前解析会报 ERR_IMPORT_ATTRIBUTE_MISSING）。
+- 新增侍从技能/战斗模型/装备属性结算/存档落盘：在框架对应留白处接入（skills 空对象、
+  modelPlaceholder 未渲染、equipments 无属性结算）。
