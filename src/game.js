@@ -37,7 +37,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, RedWolfKing, ZombieDogEnemy } from './entities/enemy-types.js';
+import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
@@ -70,6 +70,10 @@ import { QuestState, QuestTracker } from './ui/quest-system.js';
 import { RiftSystem } from './quest/rift-system.js';
 import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
+import { PartySystem } from './systems/party-system.js';
+import { PartyUI } from './ui/party-ui.js';
+import { RecruitUI } from './ui/recruit-ui.js';
+import { CompanionPanel } from './ui/companion-panel.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI } from './ui/system-ui.js';
 import { UIState } from './ui/ui-state.js';
@@ -97,6 +101,14 @@ export const Game = {
         SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
         GameUIManager.init(this.player); GameUIManager.initAttackRangeToggle();
         if (QuestTracker) QuestTracker.init();
+        // 侍从队伍系统（组队栏替换左侧任务追踪栏位置）
+        PartySystem.init();
+        PartyUI.init();
+        this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
+        this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
+        this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
+        this.CompanionPanel = CompanionPanel;
+        this.ExpeditionSystem = ExpeditionSystem;
     },
     async start() {
         try {
@@ -438,9 +450,8 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 红狼王（2026-08-07 素材完整入库：狼形态 idle/run/pacing/飞扑爪/飞扑咬/嚎叫/变身 +
-        // 红狼人形态 idle/run/attack 共 10 张，H3 视频管线生成）
-        this.spawnMainRedWolfKing();
+        // 黑狼（2026-08-11 绿幕管线全套重生成：idle/walk/run/bite/pounce 五张入库）
+        this.spawnMainBlackWolf();
     },
 
     spawnMainTombstone() {
@@ -549,13 +560,13 @@ export const Game = {
         this.entities.set('enemy_main_foreman', foreman);
     },
 
-    // 红狼王（精英，2026-08-06 H3 贴图升级接入）：主神空间测试生成，验证狼形态+变身
-    spawnMainRedWolfKing() {
+    // 黑狼（2026-08-11 绿幕管线全套重生成后替换红狼王）：主神空间测试生成
+    spawnMainBlackWolf() {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
-        const cfg = enemyConfigData.redWolfKing || {};
-        const wolf = new RedWolfKing(origin.x + 900, origin.y + 100, {
+        const cfg = enemyConfigData.blackWolf || {};
+        const wolf = new BlackWolf(origin.x + 900, origin.y + 100, {
             ...cfg,
             ai: {
                 ...(cfg.ai || {}),
@@ -564,7 +575,7 @@ export const Game = {
                 loseTimeout: 999999
             }
         });
-        this.entities.set('enemy_main_red_wolf', wolf);
+        this.entities.set('enemy_main_black_wolf', wolf);
     },
 
     spawnMainLanternMinerZombie() {
