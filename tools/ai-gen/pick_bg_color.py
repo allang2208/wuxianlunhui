@@ -38,6 +38,7 @@ COLOR_PATTERNS = [
 
 # 候选纯色背景（高饱和；FLUX/SDXL 对 hex 颜色指令跟随稳定）
 CANDIDATES = [
+    ("pure white", "FFFFFF", (255, 255, 255)),
     ("vivid magenta", "FF00FF", (255, 0, 255)),
     ("pure green", "00FF00", (0, 255, 0)),
     ("pure blue", "0000FF", (0, 0, 255)),
