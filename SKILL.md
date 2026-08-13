@@ -438,6 +438,44 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - MiniMax H3 视频（2026-08-04）：陨星 VFX 2s 文生视频（1344×768/56帧/原生音效）
   → `assets/videos/`（远程 5080 生成，约 5 分钟）
 
+## 双机开源 AI 工具实机盘点（2026-08-13：TRELLIS 2 已就绪、Hunyuan 3D 未装）
+> SSH 进 5080 实机核对磁盘后的权威清单（配合 `SETUP-OVERVIEW.md` 使用）；以后查"哪台机器有什么模型"
+> 一律以此节为准，先 SSH/实盘再下结论。
+
+**拓扑（与 SETUP-OVERVIEW.md 一致）**
+- 5080 主力机：RTX 5080 16GB，`192.168.3.142`，SSH 别名 `r5080`（免密，hostname=小鼠），
+  ComfyUI 0.30.0 @ `D:\开发文件\ComfyUI`，端口 8188（生产中，只认真正 LISTENING 的进程）。
+- 本机：RTX 3080 Ti 12GB，`192.168.3.153`，Daedalus 7777 + 本地 ComfyUI 0.30.0 @
+  `E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI`。
+- NAS 群晖：`192.168.3.2`（Y:）备份/中转——`Y:\开发\ComfyUI`（5080 备份）、`Y:\flux2_dev`
+  （dev fp8 33GB + Turbo）、`Y:\工作\无尽轮回\scratch\klein-lora-*`。
+- ⚠ 查 GPU 用 `nvidia-smi`，别信 `Win32_VideoController`（本机 CIM 误报 GTX 750 Ti，nvidia-smi 才是 3080 Ti）。
+
+**5080 主力机（模型最全）**
+- custom_nodes：ComfyUI-Trellis2、comfyui-mesh（Icarus）、comfyui-flux2fun-controlnet（打过补丁）、
+  ComfyUI-BiRefNet-ZHO、ComfyUI-Image-Removal、ComfyUI-Manager。
+- 3D：**微软 TRELLIS 2 全套已就绪**（TRELLIS.2-4B 九个 ckpt + TRELLIS-image-large + facebook/dinov3）——
+  图生 3D 直接用 5080 的 ComfyUI-Trellis2 节点，无需再装；`tools/ai-gen/trellis-gen.py` 是 API 客户端备用。
+- 视频：MiniMax H3 开源权重（`minimax_h3_fl2va/ref2va_pruned_int8_convrot` 各 19.5GB + qwen3vl-32b
+  nvfp4 awq 14.6GB + 音视频 VAE）。
+- 2D：FLUX.2 Klein 4B fp8（3.8GB，生产主力）+ FLUX.2 Dev fp8（33GB）+ FLUX.2-dev-Fun-Controlnet-Union
+  （7.7GB）+ Mistral3 Small 文本编码器（11.4GB）+ Qwen3-4B（7.5GB）+ flux2-vae。
+- LoRA：Flux2TurboComfyv2 + klein 六件套（epic/equipment/skillicon v1~v3/walltex）；SDXL 底模；BiRefNet。
+- 训练环境 `D:\开发文件\lora-train`：AI-Toolkit + 6 套数据集 + Klein 4B Base 7.2GB + venv cu128。
+
+**本机（3080 Ti）**
+- ComfyUI 0.30.0 @ `E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI`：Klein 4B fp8 + Qwen3-4B + flux2-vae +
+  klein LoRAs（epic/skillicon v2~v3）+ SDXL + 抠图三件套（BEN2/BiRefNet×2/RMBG-2.0）；
+  custom_nodes：ComfyUI-Manager、comfyui-mesh（Icarus）、ComfyUI-RMBG。
+- comfyui-mesh Daedalus 后端 @ `comfyui-mesh\server`（dev fp8 33GB + Turbo，端口 7777，NVENC 跨机编码）。
+- 训练环境 `D:\lora-train`：AI-Toolkit + diffusers + Klein 4B Base + Qwen3-4B + venv。
+
+**选型结论（2026-08-13）**
+- **Hunyuan 3D 两台机器均未安装**；评估：TRELLIS 2 对硬表面白模起步更强且已就绪，Hunyuan 2.1 的 PBR
+  优势在"先白模后贴图"流程暂不需要，且 16GB 跑其纹理生成贴线（fp8/offload 才稳）→ 暂不装。
+- 运维：5080 上曾出现多个 `main.py --port 8188` 进程并存，只有真正 LISTENING 8188 的生效；重启/清理
+  按 PID 核对，别全杀。
+
 ## 场景要素训练结论 + 墙体材质 LoRA（2026-08-07）
 
 ### 诚实评测结论（先结论后干活）
@@ -1213,6 +1251,41 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   开火截图）；旧 `tools/cdp-defense-tower.mjs` 依赖 DEFENSE_CONFIG.towers 预置塔已过时。
   2026-08-06 验证结果：自然/右/左/上/下/混合角度全部正确（肩部固定、枪随臂转、朝左不颠倒）；
   PKM/AKM/能量LMG 均从爪子枪口出弹、弹道沿枪方向；lint/build 全绿。
+
+### 防御塔 Blender 建模重做（2026-08-12/13 纯色参考版，AI 生图 v2 弃用）
+> 用户对 AI 生图版防御塔不满意 → 本轮**先建模出纯色参考版**（不生成贴图），造型/视角/比例验收后再谈贴图。
+> 复用"Blender 建模 → AI 材质"路线 B 的几何端；产物与代码已入库（`tools/render-defense-tower.py` +
+> `tools/prep-defense-tower.py` + `tools/cdp-world122-shot.mjs`）。
+
+**视角/构造前置分析（GLM-4.6V + 代码常量双确认）**
+- 世界-122 = **30° 俯视等距投影**（基地房间 ry/rx=0.5）；掩体底边斜率 ±0.5（26.57°），h/v 互为镜像
+  （`defense-system.js` 的 `COVER_FACE`）。塔基=圆柱底座、机械臂=顶部关节结构。
+- 游戏内是**双层渲染**：基座贴图 `obstacle_defense_tower` + 独立机械臂贴图 `obstacle_defense_tower_arm`，
+  机械臂绕塔顶（pivotWorldY=235）360° 旋转（GameScene `_syncDefenseTowers`）。
+
+**建模（Blender 5.1，`tools/render-defense-tower.py`）**
+- 塔基：圆柱柱身 + 底部法兰 + 中部加固环 + 顶部平台/檐口；机械臂：枢轴柱→上臂→肘关节→前臂→
+  腕部武器挂载（橙色点缀）。正交相机 30° 俯视，无阴影、透明底、纯色材质（先不贴图）。
+- 坑：① 肘关节圆柱初始放 (0,0) 而非 x=128（已修）；② 相机只居中原点会裁掉机械臂侧——
+  `setup_camera` 加 `target` 参数：塔基 (0,0,75)、机械臂 (129,0,175)。
+- 渲染产物：`Y:\工作\无尽轮回\scratch\world122\tower_base.png`（324×498）、`tower_arm.png`（687×162）。
+
+**入库标定（`tools/prep-defense-tower.py`）**
+- 流程：裁剪包围盒 → 备份旧图到 `assets/terrain/.bak-tower-20260812/` → 覆盖 → 输出标定值。
+- `DEFENSE_TOWER_VISUAL.arm`（src/world/defense-system.js）：w:360, h:85, s:360/687；
+  pivot:{x:41,y:73}（pivotWorldY:235）；tip:{x:669,y:80}；naturalAngle:0（新图指向 +x）。
+- 单位换算：渲染 px/unit=2.56；game_per_unit ≈ 170/(324/2.56) ≈ 1.343。
+
+**实机验证（`tools/cdp-world122-shot.mjs`，CDP headless Edge）**
+- 关键调用顺序：`sm.init()` → `switchScene('scene8')` → `ds.setup(player)`（active 不会自动拉起）→
+  B 面板自建 demo_tower（塔/掩体实体在 Game.entities，不是 ds.towers）→ 截图。
+- 截图：`Y:\工作\无尽轮回\scratch\world122\verify\`（w122-overview / w122-tower / w122-tower-aim2 / w122-cover）。
+- GLM 验收：机枪挂在机械臂尖端、朝向一致；旋转后朝向明显不同（360° 机制正常）；无 console 错误；vite build 通过。
+
+**沉淀原则**
+- 美术重做走"**纯色/白模参考版先验收 → 造型视角比例通过 → 再做贴图**"，避免整轮返工。
+- 替换素材前先把旧图备份到 `assets/terrain/.bak-*`（保持可选回退）。
+- 换模型后 pivot/tip/pivotWorldY/naturalAngle 四参数必须随新图同步重标定，不能只换 png。
 
 ### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
