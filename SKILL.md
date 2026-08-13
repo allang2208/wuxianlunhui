@@ -1,6 +1,6 @@
 # Sprite Pipeline 技能文档
 
-## 版本: 2.4
+## 版本: 2.5
 
 ## ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 
@@ -3217,6 +3217,16 @@ _playSound(key) {
 - **一次性音效**：`SoundManager.playFileAt(path, x, y, volume, channel, { nearDist, maxDist })`——按播放瞬间距离衰减，超出 maxDist 不播。
 - **配置键**：enemy-config.json `sounds` 块用 `loopVolumeBase/loopVolumeMax/loopNearDist/loopFarDist/loopMaxDist`（蝇群范式，值全部进配置不硬编码）；音量刷新由 `game.js update()` 顶部 `SoundManager.update(dt)` 统一完成。
 - **注意**：无玩家（或玩家 inactive）时保持当前音量不变；死亡/场景切换清理走既有 `_destroyCustomEffects` / `stopAllLoops`，位置音效无需额外清理。
+- **NPC/世界实体帧音效必须走 `playWorld`**（2026-08-12 铁匠打铁声修复）：GameScene 的
+  `frameSounds`（game-config `npcs.*.sprite.frameSounds`，动画播到指定帧触发一次）原来调
+  `playFile`——无世界坐标、永远满音量、远离 NPC 仍听得见。改为
+  `SoundManager.playWorld(fsCfg.path, e.x, e.y)` + `playFile` 兜底。铁律：新增任何"世界内发声"
+  （NPC 动画帧、敌人、机关、门、宝箱）先查是否带坐标走 `playWorld`，别默认 `playFile`；
+  玩家自身音效（枪声/脚步/技能/UI）才用 `playFile`。
+- **音效放大优先做进文件**（2026-08-11 左轮 .357 开火声 1.5 倍）：源素材 mean -26.1dB →
+  ffmpeg `volume=1.5` → 入库 -23.0dB，播放端默认 volume=1.0 不再乘系数（避免双份放大）。
+  文件峰值已 0dB 后（mean 接近满幅）再放大只能走播放音量参数 `playFile(path, v)` 或声道音量，
+  禁止对文件再放大（会削波失真）。
 
 ---
 
@@ -5020,6 +5030,58 @@ lint / vite build / test-collider / test-craft-sync；实机验证：状态栏�
   （自动出 20 帧 5×4、2560×2048，附 GIF 预览）。
 - 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
   anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。
+
+## 人形角色视频→精灵图全流程（2026-08-12 露娜 Luna 四动作 32 帧实战定稿）
+
+适用：已有角色动作视频（walk/run/jump/spell），直接产出游戏精灵图，不再走 AI 生图。
+工具：`tools/ai-gen/luna-sprite-builder.py`（BiRefNet 批量抠图 + 对齐三铁律 + 拼 sheet；
+模型加载一次后 CUDA 约 0.6s/帧）。产物落 `Y:\工作\无尽轮回\scratch\luna-sheets\`。
+
+### 1. 素材结构分析（先分段再动手）
+- 720×720 24fps；`walking and running.mp4` 常是"走路段 + 静止过渡 + 跑步段"三段：
+  用**相邻帧差曲线**定位分界（露娜：walking 0-45 / 静止 48-81 / running 81-120）。
+- `spelling.mp4` 可能含"施法→坐地"完整流程，只取站立施法段（露娜 0-63），坐地帧不能进施法动画。
+- `jumping.mp4` 是"准备→起跳→空中→落地→静止"；空中帧离地高度用 BiRefNet alpha 实测
+  （露娜 81px，占主体高 12%）。
+
+### 2. 动作循环检测（素材常不是无缝循环，先量化再选窗）
+- **腿 IoU 会饱和**（0.85~0.99 全周期都高，分不清周期）；全身 RGB 帧差又混入整体位移。
+  正确姿势：**先按 bbox 对齐（消除位移）再比腿部姿态**；或提取"腿部质心相对身体中心 /
+  腿部展开度"相位特征做自相关（走路 leg_spread 周期信号比 RGB 可靠）。
+- 无同相帧对时（走路/跑步段不足完整步态周期，露娜走路 0-44 内任何帧对腿差 ≥37）：
+  用**视觉均匀重采样**——按帧间视觉差等距选帧压接缝，不要均匀跳帧（跳帧 = 步伐节奏卡顿）。
+- running 由"起步 + 奔跑"构成：起步段（加速过程，帧差由小变大）视觉压缩 N 帧 +
+  奔跑段取"对齐后腿差最小"的窗口；交付时**明确循环起始帧**（露娜：起步 10 帧 + 奔跑 22 帧，
+  从帧 10 开始循环奔跑段）。
+
+### 3. 对齐与出格（512/640 格决策）
+- 地面循环（走/跑/施法）：高度固定 + 脚底基线固定 + 水平中心固定（对齐三铁律，std≈0）。
+- **跳跃必须 ground-relative**：以序列最低脚底为地面基准，空中帧保留离地高度
+  （`feet_y - lift×scale`），否则空中帧被拉到地面，跳跃感消失。
+- 出格量化：跳跃空中帧 `lift×scale + target_h` 超出格子必切头/切法杖
+  （露娜 512 格 target_h=500 时出格 61px）——空中帧需要空间，**跳跃单独用 640 格**
+  （游戏显示大小由 spriteSize 控制，与格子分辨率无关）。
+- 跑步跨步帧横向贴边：target_h 放大后手臂/法杖出格，露娜实测**内容 470/512=92% 是安全值**
+  （也匹配玩家 idle 92% 占格）；跨步最宽帧 651px 原始 → 470 高缩放后 430px，居中 256 不出格。
+
+### 4. 玩家大小匹配基准
+- 玩家 `PLAYER_DEFAULTS.physics.spriteSize = 173`，玩家贴图内容占格 92~99%（接近满格）。
+- 新角色精灵图内容高度按同比例定（露娜 470/512 = 92%）；游戏内显示尺寸由 spriteSize 控制。
+
+### 5. 验证清单
+- 接缝 vs 相邻帧差：walking 接缝须落在正常步幅区间内；running 奔跑接缝 ≤ 段内 max×1.5。
+- 贴边检查：每格 alpha 距边缘 6px 内像素数（横向/顶部），露娜 470 高无贴边、跳跃 top8px=0。
+- 空帧检查：格内 alpha>10 像素数 <50 视为空（禁注册进动画）。
+- GIF 按**游戏内播放方式**生成：running = 起步 10 帧一次 + 奔跑 22 帧循环 3 轮；
+  不要全序列循环（31→0 会闪回起步帧，被误判为"循环截取错误"）。
+
+### 6. 坑（2026-08-12 全踩过）
+- cv2/PIL 读中文路径失败 → 帧先 Copy-Item 到 `%TEMP%`（无中文），产出再 Copy-Item 回中文路径。
+- 阈值 mask 粗查 bbox 会被**脚下阴影**骗到（bbox 贴底/贴边误判"角色出画布被裁"），
+  必须用 BiRefNet alpha 复检（露娜跑步段左边缘 alpha=0，实际完整无裁切）。
+- 阈值 mask 把背景暗角算进主体（背景角落 159-236，纯阈值抠图不可靠），统一 BiRefNet。
+- 重采样选帧用"视觉距离"而非"帧号均匀"：`linspace(0,33,32)` 取整会跳帧造成卡顿，
+  等视觉距离选帧（相邻 RGB 差均匀）后露娜 walking 接缝从 17.1 → 11.8（落在正常步幅区间）。
 
 ## 四足动物（狼系）动画精灵图全管线（2026-08-07 黑狼/红狼王定稿）
 
