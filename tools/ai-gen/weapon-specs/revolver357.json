@@ -57,7 +57,7 @@
     "maxTime": 4000,
     "maxAngle": 28
   },
-  "fireSound": "assets/sounds/weapons/revolver357_fire.wav",
+  "fireSound": "assets/sounds/weapons/revolver357_fire.mp3",
   "equipSound": "assets/sounds/weapons/revolver357_equip.wav",
   "animation": {
     "type": "recoil（后坐力抖动）",
@@ -87,7 +87,7 @@
     "centerY": 0.52
   },
   "sounds": {
-    "fire": "assets/sounds/weapons/revolver357_fire.wav",
+    "fire": "assets/sounds/weapons/revolver357_fire.mp3",
     "reload": "assets/sounds/weapons/revolver357_reload.wav",
     "equip": "assets/sounds/weapons/revolver357_equip.wav"
   },

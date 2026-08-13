@@ -303,13 +303,16 @@ export const COVER_FOOT = {
 export const DEFENSE_TOWER_VISUAL = {
     base: { w: 170, h: 262, footOffsetY: 131 },
     arm: {
-        w: 170,
-        h: 31,
-        s: 170 / 347,
-        pivot: { x: 173, y: 64 },
-        tip: { x: 331, y: 5 },
-        naturalAngle: -0.3697,
-        pivotWorldY: 242,
+        // 2026-08-12 重做：Blender 圆柱塔基 + 机械臂（纯色无贴图，参考版）。
+        // 机械臂贴图指向 +x（自然角 0），枢轴=臂根部柱中心，尖端=腕部挂载中心；
+        // 标定见 tools/prep-defense-tower.py（模型 2.56px/unit、游戏 1.343 game-px/unit）
+        w: 360,
+        h: 85,
+        s: 360 / 687,
+        pivot: { x: 41, y: 73 },
+        tip: { x: 669, y: 80 },
+        naturalAngle: 0,
+        pivotWorldY: 235,
     },
     weapon: {
         // 挂载武器显示高度（按高度等比缩放，与玩家枪械 setScale 口径一致；朝左 flipY）
@@ -520,8 +523,8 @@ class DefenseTower extends Combatant {
         this.mdef = mdef;
         this.data.def = def;
         this.data.mdef = mdef;
-        // 贴图：世界-122 防御塔（正面平视基座+上方机械臂空挂载点，2026-08-04 二轮重生成入库，
-        // 内容框 539×832/宽高比 0.648）
+        // 贴图：世界-122 防御塔（2026-08-12 Blender 圆柱塔基 + 机械臂，纯色参考版；
+        // 内容框 324×498，显示 170×262）
         this.spriteCfg = { idleKey: 'obstacle_defense_tower', size: 170, sizeH: 262, footOffsetY: 131 };
         this.footOffsetY = 131;
         this.level = 1;

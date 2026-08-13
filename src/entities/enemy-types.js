@@ -868,8 +868,10 @@ class RedWolfKing extends BlackWolf {
             }
         }
         const sound = this.config?.sounds?.howl;
-        if (sound && typeof window !== 'undefined' && window.SoundManager?.playFile) {
-            window.SoundManager.playFile(sound);
+        if (sound && typeof window !== 'undefined' && window.SoundManager) {
+            // 世界音效（2026-08-11 距离衰减）：嚎叫按敌人位置衰减
+            if (window.SoundManager.playWorld) window.SoundManager.playWorld(sound, this.x, this.y);
+            else window.SoundManager.playFile(sound);
         }
     }
 

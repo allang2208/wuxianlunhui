@@ -164,7 +164,10 @@ export const TrapSystem = {
                         t.state = 'playing'; t.timer = 0; t.damaged = false;
                         if (t.sprite) t.sprite.setTexture('trap_anim', 0); // 帧由 timer 逐帧驱动（门闸同款 tween 教训：不依赖 anims 链）
                         // 触发音效（地刺弹出）
-                        if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playWorld) {
+                            // 世界音效（2026-08-11 距离衰减）：陷阱弹出按陷阱位置衰减
+                            SoundManager.playWorld('assets/sounds/environment/trap.mp3', t.x, t.y);
+                        } else if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
                             SoundManager.playFile('assets/sounds/environment/trap.mp3');
                         }
                     }

@@ -71,7 +71,10 @@ export function isTargetMeleeStyle(t) {
 /** 播放配置音效（enemy-config.json 该怪物 sounds 块驱动） */
 export function playSoundFrom(host, key) {
     const path = host.config?.sounds?.[key];
-    if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+    if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
+        // 世界音效（2026-08-11 距离衰减）：怪物音效按自身位置衰减，覆盖全部走此共享函数的怪物
+        SoundManager.playWorld(path, host.x, host.y);
+    } else if (path && SoundManager && typeof SoundManager.playFile === 'function') {
         SoundManager.playFile(path);
     }
 }

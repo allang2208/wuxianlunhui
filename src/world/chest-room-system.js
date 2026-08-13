@@ -359,7 +359,10 @@ export const ChestRoomSystem = {
         chest.opened = true;
 
         // 音效（视频原声）
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
+        if (SoundManager && typeof SoundManager.playWorld === 'function') {
+            // 世界音效（2026-08-11 距离衰减）：开箱声按宝箱位置衰减
+            SoundManager.playWorld(CHEST_SOUND, chest.x, chest.y);
+        } else if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(CHEST_SOUND);
         }
 

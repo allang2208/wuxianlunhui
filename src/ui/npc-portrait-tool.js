@@ -104,6 +104,9 @@ export const NpcPortraitTool = {
             if (!this._active) return;
             if (e.key === 'Escape') {
                 this.hide();
+                // 立绘工具是对话的子界面：ESC 只关工具，不传给 Input 的全局 ESC——
+                // 否则一次 ESC 会同时关掉工具和整个对话（两级退出：再按一次才退出对话）。
+                e.stopPropagation();
             } else if (e.key === 'r' || e.key === 'R') {
                 this.reset();
             }

@@ -106,7 +106,9 @@ export class AmalgamZombie extends Enemy {
      */
     _playSound(key) {
         const path = this.config?.sounds?.[key];
-        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+        if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, this.x, this.y);
+        } else if (path && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(path);
         }
     }

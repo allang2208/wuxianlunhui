@@ -89,7 +89,14 @@ import { TimerManager } from '../utils/timer-manager.js';
                         if (UIState.isOpen('enchant')) EnchantSystem.close();
                         if (UIState.isOpen('warehouse')) WarehouseSystem.close();
                         if (UIState.isOpen('fusion')) FusionSystem.close();
-                        if (NPCDialogue._active) NPCDialogue.exitCompactMode();
+                        if (NPCDialogue._active) {
+                            // 子页面（商店/强化/附魔/改造等）ESC 只退回对话主界面：
+                            // 同步关闭子页面配套的背包面板——各子系统 close() 里的
+                            // SystemUI.close() 有 300ms 延迟，不立即关会让紧接着的
+                            // 第二次 ESC 仍被下方 SystemUI 分支拦截（需按第三次才退出对话）。
+                            SystemUI.close();
+                            NPCDialogue.exitCompactMode();
+                        }
                         return;
                     }
                     if (SystemUI.isOpen) {

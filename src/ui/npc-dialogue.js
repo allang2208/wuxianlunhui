@@ -103,8 +103,6 @@ const NPCDialogue = {
             Game._npcDialoguePaused = true;
         }
 
-        // 绑定点击外部退出事件
-        this._bindClickOutsideHandler();
     },
 
     // 根据NPC类型更新对话框按钮；所有NPC默认带「调整立绘」与「关闭」
@@ -149,34 +147,6 @@ const NPCDialogue = {
         dialogueOptions.innerHTML = typeButtons + portraitBtn + `
             <button class="npc-option-btn" id="npcOptionClose" onclick="NPCDialogue.goodbye()">${closeText}</button>
         `;
-    },
-
-    // 绑定点击外部退出
-    _bindClickOutsideHandler() {
-        const self = this;
-        // 先移除旧的
-        if (this._clickOutsideHandler) {
-            document.removeEventListener('mousedown', this._clickOutsideHandler);
-        }
-        this._clickOutsideHandler = function(e) {
-            // 子页面打开时不退出
-            if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant')) return;
-            // 任务面板打开时不退出
-            if (UIState.isOpen('quest')) return;
-            // 背包打开时不退出
-            if (SystemUI.isOpen) return;
-            // 任务后对话模式下点击外部不退出
-            if (self._isInPostQuestDialogue) return;
-            // 立绘调整工具打开时不退出（防止点击面板内按钮关闭对话框）
-            if (NpcPortraitTool._active) return;
-            const dialogueBox = getElement('npcDialogueBox');
-            if (!dialogueBox) return;
-            // 点击对话框外部时退出
-            if (!dialogueBox.contains(e.target)) {
-                self.close();
-            }
-        };
-        document.addEventListener('mousedown', this._clickOutsideHandler);
     },
 
     // 启动任务后对话序列
@@ -248,12 +218,6 @@ const NPCDialogue = {
         if (!keepBackpack) SystemUI.close();
         // 关闭立绘调整工具
         NpcPortraitTool.hide();
-
-        // 移除点击外部退出事件
-        if (this._clickOutsideHandler) {
-            document.removeEventListener('mousedown', this._clickOutsideHandler);
-            this._clickOutsideHandler = null;
-        }
 
         const dialogueBox = getElement('npcDialogueBox');
         const npcPortrait = getElement('npcPortrait');

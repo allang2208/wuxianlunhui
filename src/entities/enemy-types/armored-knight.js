@@ -81,7 +81,9 @@ export class ArmoredKnight extends Enemy {
     // 播放配置音效（enemy-config.json 的 sounds 块驱动）
     _playSound(key) {
         const path = this.config?.sounds?.[key];
-        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+        if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, this.x, this.y);
+        } else if (path && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(path);
         }
     }
