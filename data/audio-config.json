@@ -11,5 +11,19 @@
     "main": null,
     "scene7": "assets/sounds/music/dungeon_echo.mp3"
   },
-  "bgmCrossfadeSec": 1.5
+    "bgmCrossfadeSec": 1.5,
+    "distanceAttenuation": {
+        "comment": "世界音效距离衰减（2026-08-11）：playWorld / playFileAt / setLoopPosition 的默认衰减参数。后续调整音效传播距离只改这里，勿硬编码。",
+        "enabled": true,
+        "defaultNearDist": 0,
+        "defaultMaxDist": 2000,
+        "loop": {
+            "comment": "循环音轨（蝇群/持续声源）默认衰减曲线：nearDist 内满音量 max，farDist 降到底音 base，maxDist 归零",
+            "base": 0.5,
+            "max": 1.5,
+            "nearDist": 150,
+            "farDist": 600,
+            "maxDist": 2000
+        }
+    }
 }

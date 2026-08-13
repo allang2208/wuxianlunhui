@@ -145,7 +145,10 @@ export const WallGate = {
         this.state = 'closing';
         this._onDone = onDone || null;
         this.setPassable(false);
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
+        if (SoundManager && typeof SoundManager.playWorld === 'function') {
+            // 世界音效（2026-08-11 距离衰减）：关门声按门闸位置衰减
+            SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
+        } else if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(this._gateSound());
         }
         this._playAnim(FRAMES - 1, 0);
@@ -156,7 +159,10 @@ export const WallGate = {
         this.state = 'opening';
         this._onDone = onDone || null;
         this.setPassable(true);
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
+        if (SoundManager && typeof SoundManager.playWorld === 'function') {
+            // 世界音效（2026-08-11 距离衰减）：开门声按门闸位置衰减
+            SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
+        } else if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(this._gateSound());
         }
         this._playAnim(0, FRAMES - 1);

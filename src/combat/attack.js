@@ -453,7 +453,13 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 新枪只需在数据层配 fireSound，无需改攻击代码（2026-08-08 去硬编码）。
                 const fireSound = getFireSound(fireWeapon);
                 if (fireSound) {
-                    SoundManager.playFile(fireSound);
+                    // 世界音效（2026-08-11 距离衰减）：敌人远程开火按声源位置衰减；
+                    // 玩家开火声源=玩家自身，全局响
+                    if (source && source._faction === 'enemy' && SoundManager.playWorld) {
+                        SoundManager.playWorld(fireSound, source.x, source.y);
+                    } else {
+                        SoundManager.playFile(fireSound);
+                    }
                 } else if (wType === 'pistol') {
                     SoundManager.play('gun_fire');
                 } else {

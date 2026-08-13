@@ -123,7 +123,7 @@ export const getEquipSound = (item) => {
 export const GUN_FIRE_SOUND = {
     pistol: 'assets/sounds/weapons/akm_burst.mp3',
     deagle: 'assets/sounds/weapons/cs_deagle_35_80.wav',
-    revolver: 'assets/sounds/weapons/revolver357_fire.wav',
+    revolver: 'assets/sounds/weapons/revolver357_fire.mp3',
     p4040: 'assets/sounds/weapons/apex2_shot_1s.wav',
     beretta93r: 'assets/sounds/weapons/beretta93r_fire.mp3',
     pkm: 'assets/sounds/weapons/pkm_half_sec.wav',

@@ -43,7 +43,9 @@ export class FlyHand extends Enemy {
     _playSound(key) {
         let path = this.config?.sounds?.[key];
         if (Array.isArray(path)) path = path[Math.floor(Math.random() * path.length)];
-        if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+        if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, this.x, this.y);
+        } else if (path && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(path);
         }
     }

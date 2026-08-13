@@ -593,6 +593,12 @@ update(dt, entities) {
                                 if (spreadMaxTime < 500) spreadMaxTime = 500;
                                 maxSpreadAngle += craftEffects.autoMaxSpreadAngleDelta || 0;
                             }
+                            // 移动/静止散布倍率（两脚架/无托平衡等改造）：按移动状态对最大散布角乘算——
+                            // combatant.js 的 _computeSpreadForWeapon 含此逻辑但 _updateSpreadTimers 无调用者，
+                            // 玩家实际散布在此计算，必须在此消费（2026-08-11 修复）
+                            const spreadMoveMul = craftEffects.moveSpreadPercent || 0;
+                            const spreadStaticMul = craftEffects.stationarySpreadPercent || 0;
+                            maxSpreadAngle *= Math.max(0.1, this.isMoving ? (1 + spreadMoveMul) : (1 + spreadStaticMul));
                         }
                         this._currentSpreadFactor = (spreadMaxTime <= 0)
                             ? (this._gunSpreadTimer > spreadStartDelay ? 1 : 0)
@@ -643,6 +649,10 @@ update(dt, entities) {
                                 if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
                                 offMaxSpreadAngle += offCraftEffects.autoMaxSpreadAngleDelta || 0;
                             }
+                            // 副手同口径：移动/静止散布倍率
+                            const offSpreadMoveMul = offCraftEffects.moveSpreadPercent || 0;
+                            const offSpreadStaticMul = offCraftEffects.stationarySpreadPercent || 0;
+                            offMaxSpreadAngle *= Math.max(0.1, this.isMoving ? (1 + offSpreadMoveMul) : (1 + offSpreadStaticMul));
                         }
                         this._currentSpreadFactorOff = (offSpreadMaxTime <= 0)
                             ? (this._gunSpreadTimerOff > offSpreadStartDelay ? 1 : 0)
