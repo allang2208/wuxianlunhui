@@ -701,6 +701,22 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   接缝帧差 10.89（低于相邻 mean 13.49）。已替换 `assets/companions/luna/running.png`（旧图备份
   `Y:\工作\无尽轮回\scratch\luna-sheets\running_old_20260813.png`）。
 
+#### 7b. 左右脚交替筛选（2026-08-14 二轮，AI 视频老问题根治）
+用户反馈 v2 仍"左右脚错误替换"：GLM 证实 v2 窗口帧 31（左腿前）→帧 0（右腿前）左右脚互换，
+且帧 0/1/30/31 每帧都在换腿——**源视频步态交替节奏本身混乱**（脚部特征谷值间隔 22~32 帧波动）。
+教训：**接缝帧差/质心小 ≠ 循环正确**，必须验证左右脚同相。第二轮流程：
+- **多 seed 生成候选**（同一参考图/提示词，seed 换号），提示词加
+  `left and right legs alternate naturally in a steady rhythm, each leg takes a full stride
+  before switching to the other leg, no leg swapping, no twitching, no abrupt leg switching`。
+- **自动筛选（脚部交替规整性）**：逐帧脚部特征 = 脚部区域（底部 20%）质心相对身体中心 X
+  （注意 np.where 返回 (rows, cols)，质心 x 必须用 cols！），5 点平滑后找局部极值；
+  谷值（脚收回）间隔的 std 衡量交替规整度。候选 2 谷值间隔 31/31/31（std=0）= 双步周期 31 帧；
+  候选 1 脚部特征几乎不动（帧差 2-3）= 角色没在跑，直接淘汰。
+- **循环窗口同相验证（GLM 必做）**：裁窗口后抽帧 0/15/16/31 问 GLM"每帧哪条腿在前"，
+  要求帧 31 与帧 0 前腿一致（同相、无左右脚互换）。v3 帧 0/15/31=右腿前、帧 16=左腿前（交替中）✓。
+- **成品 v3**：候选 2 帧 30-61 窗口，seam=1.43（远小于内均 5.73）、接缝帧差 7.38、接缝质心跳变 1.4px；
+  双步周期 31 帧交替规整。已替换 running.png（v2 备份 running_v2_20260814.png）。
+
 #### 8. 远程 5080 H3 生成故障排查（2026-08-13 实录）
 - **症状**：提交即 `SamplerCustomAdvanced` 执行失败，`NotImplementedError: No operator found for
   memory_efficient_attention_forward`，`fa3F/cutlassF-pt ... requires device with capability <(8,0)
