@@ -3,6 +3,7 @@ import { QuestSystem } from '../quest-system.js';
 import { SystemUI } from '../system-ui.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { WallEditor } from '../wall-editor.js';
+import { CompanionPanel } from '../companion-panel.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 
@@ -15,6 +16,7 @@ export function createHudPanelsMisc() {
         { tab: 'skill', title: '技能 (K)', icon: 'assets/ui/icons/skills.png', alt: '技能', key: 'K', label: '技能栏' },
         { tab: 'codex', title: '图鉴 (O)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'O', label: '图鉴栏' },
         { action: 'QuestSystem.open()', title: '任务 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务', key: 'L', label: '任务栏' },
+        { action: 'CompanionPanel.openManage()', title: '管理队员', icon: 'assets/ui/icons/party.png', alt: '队员', key: null, label: '队员管理' },
         { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' }
     ];
     sideMenuItems.forEach(item => {
@@ -29,12 +31,20 @@ export function createHudPanelsMisc() {
             btn.onclick = function() {
                 if (action === 'QuestSystem.open()') QuestSystem.open();
                 else if (action === 'Game.handleAddPoint()') Game.handleAddPoint();
+                else if (action === 'CompanionPanel.openManage()') CompanionPanel.openManage();
             };
         }
-        const img = document.createElement('img');
-        img.src = item.icon;
-        img.alt = item.alt;
-        btn.appendChild(img);
+        if (item.emoji) {
+            const emojiEl = document.createElement('span');
+            emojiEl.className = 'side-menu-emoji';
+            emojiEl.textContent = item.emoji;
+            btn.appendChild(emojiEl);
+        } else {
+            const img = document.createElement('img');
+            img.src = item.icon;
+            img.alt = item.alt;
+            btn.appendChild(img);
+        }
         if (item.key) {
             const keyHint = document.createElement('span');
             keyHint.className = 'key-hint';

@@ -499,6 +499,7 @@ const DevTool = {
             stretchY: this.weaponParams.stretchY !== undefined ? this.weaponParams.stretchY : 1,
         };
         this._frameDirty = true; // 标记当前帧已修改：切帧时下一帧继承本帧位置（见帧滑块处理）
+        WeaponTransform.invalidatePerFrameCache(); // 原地改帧（frames 数组身份不变）→ 显式失效预计算缓存（Phase 4）
     },
 
     _updateWeaponPreview() {

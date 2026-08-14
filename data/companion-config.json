@@ -1,0 +1,104 @@
+{
+  "maxPartySize": 3,
+  "companions": [
+    {
+      "id": "warrior_bruno",
+      "name": "布鲁诺",
+      "title": "重剑护卫",
+      "desc": "边境退役重装步兵，擅长正面格挡与破甲斩击。",
+      "role": "warrior",
+      "growthRule": "warrior",
+      "avatar": "⚔️",
+      "modelPlaceholder": "assets/companions/warrior.png",
+      "baseLevel": 1,
+      "baseExp": 0,
+      "baseData": { "str": 12, "dex": 8, "int": 4, "con": 12, "wis": 6, "luck": 4 },
+      "skills": [],
+      "weaponType": "sword"
+    },
+    {
+      "id": "mage_luna",
+      "name": "露娜",
+      "title": "占星术士",
+      "desc": "观星塔的见习术士，精通元素法术的远程打击。",
+      "role": "mage",
+      "growthRule": "mage",
+      "avatar": "🔮",
+      "modelPlaceholder": "assets/companions/mage.png",
+      "baseLevel": 1,
+      "baseExp": 0,
+      "baseData": { "str": 4, "dex": 6, "int": 13, "con": 6, "wis": 12, "luck": 6 },
+      "skills": ["fireball", "iceSpike", "lightningStrike"],
+      "unlockSkills": { "holyLight": 10 },
+      "ai": {
+        "role": "ranged_mage",
+        "followOffset": 150,
+        "followArriveDist": 55,
+        "combatRange": 640,
+        "safeDistance": 230,
+        "castFrozenMs": 1300,
+        "castCooldown": 350,
+        "walkSpeed": 115,
+        "runSpeed": 185,
+        "decisionMs": 120,
+        "runDist": 260,
+        "teleportDist": 700,
+        "teleportHardDist": 1100
+      },
+      "animations": {
+        "idle": {
+          "src": "assets/companions/luna/idle.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 1, "rows": 1,
+          "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+        },
+        "walk": {
+          "src": "assets/companions/luna/walking.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 32, "frames": [7, 31], "frameRate": 24, "repeat": -1
+        },
+        "run": {
+          "src": "assets/companions/luna/running.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
+          "frameCount": 24,
+          "loopFrames": [0, 23], "frameRate": 18, "repeat": -1
+        },
+        "spell": {
+          "src": "assets/companions/luna/spelling.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 32, "frames": [0, 31], "frameRate": 20, "repeat": -1
+        }
+      },
+      "weaponType": "staff"
+    },
+    {
+      "id": "ranger_keith",
+      "name": "凯斯",
+      "title": "巡林猎手",
+      "desc": "常年游走于林间湿地的猎手，箭术精准、身形迅捷。",
+      "role": "ranger",
+      "growthRule": "ranger",
+      "avatar": "🏹",
+      "modelPlaceholder": "assets/companions/ranger.png",
+      "baseLevel": 1,
+      "baseExp": 0,
+      "baseData": { "str": 8, "dex": 13, "int": 5, "con": 8, "wis": 8, "luck": 7 },
+      "skills": [],
+      "weaponType": "bow"
+    },
+    {
+      "id": "priest_sera",
+      "name": "塞拉",
+      "title": "圣光祭司",
+      "desc": "地下圣所的随军祭司，以圣光护佑队伍、驱散不死。",
+      "role": "priest",
+      "growthRule": "priest",
+      "avatar": "✨",
+      "modelPlaceholder": "assets/companions/priest.png",
+      "baseLevel": 1,
+      "baseExp": 0,
+      "baseData": { "str": 5, "dex": 6, "int": 9, "con": 8, "wis": 14, "luck": 5 },
+      "skills": [],
+      "weaponType": "staff"
+    }
+  ]
+}

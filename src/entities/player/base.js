@@ -319,8 +319,11 @@ const baseMixin = {
         const oldMaxMp = d.maxMp;
         // 属性加成（装备六维）与装备 maxHp/maxMp/maxStamina 一并计入
         // d.con/wis/int 已含装备六维（calculateCombatStats 差值法写入），装备 maxHp/maxMp/maxStamina 另行累加
-        d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier + eq.maxHp;
-        d.maxMp = mpFormula.base + d.wis * mpFormula.wisMultiplier + d.int * mpFormula.intMultiplier + eq.maxMp;
+        // 每级成长 +10 生命 / +10 魔法（1 级为 0，2 级 +10；与侍从同口径）
+        const lvlHp = (d.level - 1) * 10;
+        const lvlMp = (d.level - 1) * 10;
+        d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier + eq.maxHp + lvlHp;
+        d.maxMp = mpFormula.base + d.wis * mpFormula.wisMultiplier + d.int * mpFormula.intMultiplier + eq.maxMp + lvlMp;
         d.maxStamina = (CONFIG.STAMINA_MAX || 100) + eq.maxStamina;
 
         // HP/MP 按比例缩放，避免满血时增加属性反而掉血

@@ -71,6 +71,7 @@ import { RiftSystem } from './quest/rift-system.js';
 import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
 import { PartySystem } from './systems/party-system.js';
+import { CompanionAI } from './ai/companion-ai.js';
 import { PartyUI } from './ui/party-ui.js';
 import { RecruitUI } from './ui/recruit-ui.js';
 import { CompanionPanel } from './ui/companion-panel.js';
@@ -103,6 +104,8 @@ export const Game = {
         if (QuestTracker) QuestTracker.init();
         // 侍从队伍系统（组队栏替换左侧任务追踪栏位置）
         PartySystem.init();
+        // 注册侍从 AI 工厂（浏览器运行时；companion-config.ai 驱动远程法师等）
+        PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
         PartyUI.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
@@ -1307,6 +1310,11 @@ CombatSystem.update(e, dt, this.entities);
         }
         // === [REFACTOR-END] ===
 
+        // 侍从 AI（跟随/施法/撤退）：在实体（敌人/玩家）更新后驱动，保证读到最新战场位置
+        if (PartySystem && PartySystem.members.length) {
+            PartySystem.updateCombat(dt, this.entities, this.player);
+        }
+
         // 世界-122 防守地图：波次生成（实体自身的更新已在上方主循环完成）
         if (SceneManager.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
             DefenseSystem.update(dt);
@@ -1621,6 +1629,12 @@ if (SceneManager.currentScene === 'scene3') {
         for (let i = 0; i < entities.length; i++) {
             for (let j = i + 1; j < entities.length; j++) {
                 const a = entities[i], b = entities[j];
+                // 防御塔只挡怪物、不挡玩家/友军（友方可贴塔站位；2026-08-14）
+                const aTower = !!a._isDefenseTower, bTower = !!b._isDefenseTower;
+                if (aTower !== bTower) {
+                    const other = aTower ? b : a;
+                    if (other._faction === 'player' || other._faction === 'companion') continue;
+                }
                 // 玩家与正在攻击自己的敌人不再互相推开，避免近战攻击时把目标小幅挤开
                 if (player && (
                     (a === player && this._isEnemyAttackingTarget(b, player)) ||

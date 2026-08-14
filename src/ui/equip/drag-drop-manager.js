@@ -13,6 +13,7 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { getElement, queryElement, queryAllElements } from '../../utils/dom-utils.js';
+import { canEquipSlot as sharedCanEquipSlot } from './equip-rules.js';
 
 export function createDragDropManager(EquipManager) {
     return {
@@ -302,6 +303,20 @@ export function createDragDropManager(EquipManager) {
                             e.stopPropagation();
                             cell.classList.remove('drag-over');
                             self._dropHandled = true;
+                            // 侍从背包 → 玩家背包（companion-panel 的背包格源标记；EventBus 桥接）
+                            const companionData = e.dataTransfer.getData('text/companion-item');
+                            if (companionData) {
+                                try {
+                                    const parsed = JSON.parse(companionData);
+                                    EventBus.emit('companion:moveToPlayerBackpack', {
+                                        memberId: parsed.memberId,
+                                        slot: parsed.slot,
+                                        targetSlot: parseInt(cell.dataset.slot, 10),
+                                    });
+                                } catch (_err) { /* 忽略非法数据 */ }
+                                self._dragSrc = null;
+                                return;
+                            }
                             const src = self._dragSrc;
                             if (!src || src.slot === cell.dataset.slot) return;
                             self.handleDrop(src, 'inventory', cell.dataset.slot);
@@ -770,21 +785,8 @@ export function createDragDropManager(EquipManager) {
                     },
 
                     _canEquipSlot(item, slot) {
-                        if (!item || !slot) return true;
-                        const isWeaponSlot = (slot === 'weapon' || slot === 'weapon2');
-                        const isOffhandSlot = (slot === 'offhand' || slot === 'ring2');
-                        const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                        if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return false;
-                        if (isWeaponSlot && !isWeaponItem) return false;
-                        // 盾类只能装备到副手栏
-                        if (item.weaponType === 'shield' && !isOffhandSlot) return false;
-                        // 所有武器都可以装备到 offhand/ring2（副手武器槽），但双手武器除外
-                        if (isOffhandSlot && isWeaponItem) {
-                            if (item.isTwoHanded) return false;
-                            return true;
-                        }
-                        if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== slot) return false;
-                        return true;
+                        // 与侍从共用同一套装备规则（equip-rules.js）
+                        return sharedCanEquipSlot(item, slot);
                     }
                 };
 }

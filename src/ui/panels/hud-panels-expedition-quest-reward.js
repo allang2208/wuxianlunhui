@@ -81,81 +81,18 @@ export function createHudPanelsExpeditionQuestReward() {
     });
     expeditionInfo.appendChild(expeditionInfoRow);
     expeditionBody.appendChild(expeditionInfo);
-    // 队伍
+    // 出征队员界面栏（四圆圈：玩家固定 + 3 名侍从槽；空=加号，有=头像）
     const expeditionParty = document.createElement('div');
     expeditionParty.className = 'expedition-party';
     const expeditionSectionTitle = document.createElement('div');
     expeditionSectionTitle.className = 'expedition-section-title';
-    expeditionSectionTitle.innerHTML = '队伍 <span class="expedition-hint">(3人)</span>';
+    expeditionSectionTitle.innerHTML = '出征队员 <span class="expedition-hint">(最多4人)</span>';
     expeditionParty.appendChild(expeditionSectionTitle);
-    const expeditionPartyList = document.createElement('div');
-    expeditionPartyList.className = 'expedition-party-list';
-    expeditionPartyList.id = 'expeditionPartyList';
-    // 队长
-    const expeditionPartyLeader = document.createElement('div');
-    expeditionPartyLeader.className = 'expedition-party-member';
-    expeditionPartyLeader.id = 'expeditionPartyLeader';
-    const leaderAvatar = document.createElement('div');
-    leaderAvatar.className = 'expedition-party-avatar';
-    leaderAvatar.textContent = '🧙';
-    const leaderInfo = document.createElement('div');
-    leaderInfo.className = 'expedition-party-info';
-    const leaderName = document.createElement('div');
-    leaderName.className = 'expedition-party-name';
-    leaderName.textContent = '队长（主角）';
-    const leaderDetail = document.createElement('div');
-    leaderDetail.className = 'expedition-party-detail';
-    leaderDetail.textContent = '点击左侧背包拖入队友';
-    leaderInfo.appendChild(leaderName);
-    leaderInfo.appendChild(leaderDetail);
-    expeditionPartyLeader.appendChild(leaderAvatar);
-    expeditionPartyLeader.appendChild(leaderInfo);
-    expeditionPartyList.appendChild(expeditionPartyLeader);
-    // 空位1
-    const expeditionPartySlot1 = document.createElement('div');
-    expeditionPartySlot1.className = 'expedition-party-member';
-    expeditionPartySlot1.id = 'expeditionPartySlot1';
-    const slot1Avatar = document.createElement('div');
-    slot1Avatar.className = 'expedition-party-avatar';
-    slot1Avatar.style.opacity = '0.5';
-    slot1Avatar.textContent = '?';
-    const slot1Info = document.createElement('div');
-    slot1Info.className = 'expedition-party-info';
-    const slot1Name = document.createElement('div');
-    slot1Name.className = 'expedition-party-name';
-    slot1Name.style.color = '#888';
-    slot1Name.textContent = '空位';
-    const slot1Detail = document.createElement('div');
-    slot1Detail.className = 'expedition-party-detail';
-    slot1Detail.textContent = '待招募';
-    slot1Info.appendChild(slot1Name);
-    slot1Info.appendChild(slot1Detail);
-    expeditionPartySlot1.appendChild(slot1Avatar);
-    expeditionPartySlot1.appendChild(slot1Info);
-    expeditionPartyList.appendChild(expeditionPartySlot1);
-    // 空位2
-    const expeditionPartySlot2 = document.createElement('div');
-    expeditionPartySlot2.className = 'expedition-party-member';
-    expeditionPartySlot2.id = 'expeditionPartySlot2';
-    const slot2Avatar = document.createElement('div');
-    slot2Avatar.className = 'expedition-party-avatar';
-    slot2Avatar.style.opacity = '0.5';
-    slot2Avatar.textContent = '?';
-    const slot2Info = document.createElement('div');
-    slot2Info.className = 'expedition-party-info';
-    const slot2Name = document.createElement('div');
-    slot2Name.className = 'expedition-party-name';
-    slot2Name.style.color = '#888';
-    slot2Name.textContent = '空位';
-    const slot2Detail = document.createElement('div');
-    slot2Detail.className = 'expedition-party-detail';
-    slot2Detail.textContent = '待招募';
-    slot2Info.appendChild(slot2Name);
-    slot2Info.appendChild(slot2Detail);
-    expeditionPartySlot2.appendChild(slot2Avatar);
-    expeditionPartySlot2.appendChild(slot2Info);
-    expeditionPartyList.appendChild(expeditionPartySlot2);
-    expeditionParty.appendChild(expeditionPartyList);
+    const expeditionMemberBar = document.createElement('div');
+    expeditionMemberBar.className = 'expedition-member-bar';
+    expeditionMemberBar.id = 'expeditionMemberBar';
+    // 四个圆圈由 ExpeditionSystem._renderMemberBar 渲染（玩家 + PartySystem 侍从）
+    expeditionParty.appendChild(expeditionMemberBar);
     expeditionBody.appendChild(expeditionParty);
     // 祭品栏
     const expeditionSupplies = document.createElement('div');

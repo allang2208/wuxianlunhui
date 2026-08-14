@@ -1,6 +1,7 @@
 
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
+import { PartySystem } from '../../systems/party-system.js';
 
 
 // ============================================================
@@ -22,6 +23,7 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
+import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
@@ -31,6 +33,7 @@ import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
 import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon, isTwoHanded } from '../../config/gun-ammo.js';
+import { GUN_FAMILY } from '../../config/weapon-families.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
@@ -58,6 +61,7 @@ export class GameScene extends Scene {
         this._playerAttackDuration = 667;
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
         this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
+        this._companionSprites = {}; // 侍从跟随渲染：memberId → Phaser Sprite
         // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
         if (this.game && this.game.canvas && typeof window !== 'undefined') {
             this.game.canvas.addEventListener('webglcontextlost', () => {
@@ -368,6 +372,8 @@ export class GameScene extends Scene {
 
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        // 侍从跟随渲染（露娜等有动作素材的队员：跟随玩家播 walk/run/spell）
+        this._syncCompanionSprites(_game);
         // 同步可移动实体脚底阴影
         this._syncEntityShadows(_game);
         // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
@@ -415,6 +421,148 @@ export class GameScene extends Scene {
                     sprite.clearTint();
                 }
             });
+        }
+    }
+
+    /** 侍从跟随渲染：有动作素材的队员（露娜等）跟随玩家，按移动/冲刺/施法播 walk/run/spell */
+    _syncCompanionSprites(_game) {
+        const player = _game && _game.player;
+        // 地图模式 / 无玩家：隐藏全部队员精灵
+        if (!player || !this.playerSprite || this._mapModeActive || !this.playerSprite.visible) {
+            for (const k of Object.keys(this._companionSprites)) {
+                this._companionSprites[k].setVisible(false);
+            }
+            return;
+        }
+        const members = PartySystem.members;
+        const activeIds = new Set();
+        const isMoving = !!player.isMoving;
+        const isSprinting = !!player._isSprinting;
+        const casting = !!(player._castState && player._castState !== 'idle');
+        const facingRight = !this.playerSprite.flipX;
+        for (const member of members) {
+            const anims = member.animations || {};
+            const walkKey = `companion_${member.id}_walk`;
+            const runKey = `companion_${member.id}_run`;
+            if (!anims.walk || !this.textures.exists(walkKey)) continue; // 无动作素材不渲染
+            activeIds.add(member.id);
+            let sprite = this._companionSprites[member.id];
+            if (!sprite) {
+                const fw = anims.walk.frameWidth || 512;
+                const fh = anims.walk.frameHeight || 512;
+                // 站立姿态：优先 idle 动画首帧（2026-08-14 新增 idle 素材）；
+                // 其次奔跑动画首帧（idle→起跑完全连续）；无奔跑素材退回 walk 首帧
+                const idleTexKey = `companion_${member.id}_idle`;
+                const hasIdleTex = anims.idle && this.textures.exists(idleTexKey);
+                const runIdle = anims.run && this.textures.exists(runKey);
+                const idleKey = hasIdleTex ? idleTexKey : (runIdle ? runKey : walkKey);
+                const idleFrame = hasIdleTex ? 0 : (runIdle ? 0 : (Array.isArray(anims.walk.frames) ? anims.walk.frames[0] : 0));
+                sprite = this.add.sprite(player.x, player.y, idleKey, idleFrame);
+                sprite.setOrigin(0.5, 0.5);
+                const longest = Math.max(fw, fh);
+                // 显示尺寸与玩家单位一致（PLAYER_DEFAULTS.physics.spriteSize，当前 144）
+                const size = PLAYER_DEFAULTS.physics.spriteSize;
+                sprite.setDisplaySize(fw * size / longest, fh * size / longest);
+                sprite.setData('companionIdleKey', idleKey);
+                sprite.setData('companionIdleFrame', idleFrame);
+                sprite.setDepth(this.playerSprite.depth + 0.5);
+                this._companionSprites[member.id] = sprite;
+            }
+            // 位置：AI 队员用自身逻辑坐标（跟随/站位/撤退由 AI 移动）；纯渲染队员跟随玩家左后偏移
+            const aiMode = !!member.aiConfig;
+            if (aiMode) {
+                sprite.setPosition(member.x, member.y);
+            } else {
+                const offX = facingRight ? -150 : 150;
+                sprite.setPosition(player.x + offX, player.y + 34);
+            }
+            // 朝向：AI 队员按自身移动方向（往哪边走面朝哪边）；施法面朝目标；
+            // idle 保持最后朝向。纯渲染队员仍跟随玩家镜像。
+            let faceRight = facingRight;
+            if (aiMode) {
+                if (member._castState !== 'idle' && member.target && member.target.active) {
+                    faceRight = member.target.x >= member.x;
+                } else if (Math.abs(member.vx) > 5) {
+                    faceRight = member.vx > 0;
+                } else if (member._lastFaceRight !== undefined) {
+                    faceRight = member._lastFaceRight;
+                }
+                member._lastFaceRight = faceRight;
+            }
+            sprite.setFlipX(!faceRight);
+            sprite.setDepth(this.playerSprite.depth + 0.5);
+            // 动画：施法 > 冲刺 > 移动 > 站立停帧
+            const spellKey = `companion_${member.id}_spell`;
+            if (aiMode) {
+                // AI 状态驱动：spell > run > walk > idle（站立帧 = 奔跑首帧）
+                const st = member._animState || 'idle';
+                if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
+                    // 只在动画键变化时播放：spell repeat 0 播完一次 isPlaying=false，
+                    // 若用 !isPlaying 判重播会每帧从头重播 → 视觉上"没播放/卡首帧"。
+                    if (sprite.anims.currentAnim?.key !== spellKey) {
+                        sprite.play(spellKey, true);
+                    }
+                } else if (st === 'run' && anims.run && this.textures.exists(runKey)) {
+                    if (sprite.anims.currentAnim?.key !== runKey) {
+                        sprite.play(runKey, true);
+                    }
+                } else if (st === 'walk') {
+                    if (sprite.anims.currentAnim?.key !== walkKey) {
+                        sprite.play(walkKey, true);
+                    }
+                } else {
+                    sprite.setData('lunaRunning', false);
+                    if (sprite.anims.isPlaying) sprite.anims.stop();
+                    const idleKey = sprite.getData('companionIdleKey');
+                    const idleFrame = sprite.getData('companionIdleFrame');
+                    if (idleKey && (sprite.texture.key !== idleKey || sprite.frame.name !== idleFrame)) {
+                        sprite.setTexture(idleKey, idleFrame);
+                    }
+                }
+            } else if (casting && anims.spell && this.textures.exists(spellKey)) {
+                if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== spellKey) {
+                    sprite.play(spellKey, true);
+                }
+            } else if (isSprinting && anims.run && this.textures.exists(runKey)) {
+                // 起步（startFrames 播一次）+ 奔跑循环（loopFrames）：站立/走→跑时先起步
+                const runStartKey = `${runKey}_start`;
+                if (!sprite.getData('lunaRunning')) {
+                    sprite.setData('lunaRunning', true);
+                    if (anims.run.startFrames && this.anims.exists(runStartKey)) {
+                        sprite.play(runStartKey, true);
+                        sprite.once('animationcomplete', () => {
+                            if (sprite.getData('lunaRunning') && sprite.anims.currentAnim?.key === runStartKey) {
+                                sprite.play(runKey, true);
+                            }
+                        });
+                    } else {
+                        sprite.play(runKey, true);
+                    }
+                } else if (!sprite.anims.isPlaying
+                    || (sprite.anims.currentAnim?.key !== runKey && sprite.anims.currentAnim?.key !== runStartKey)) {
+                    sprite.play(runKey, true);
+                }
+            } else if (isMoving) {
+                if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkKey) {
+                    sprite.play(walkKey, true);
+                }
+            } else {
+                sprite.setData('lunaRunning', false);
+                if (sprite.anims.isPlaying) sprite.anims.stop();
+                const idleKey = sprite.getData('companionIdleKey');
+                const idleFrame = sprite.getData('companionIdleFrame');
+                if (idleKey && (sprite.texture.key !== idleKey || sprite.frame.name !== idleFrame)) {
+                    sprite.setTexture(idleKey, idleFrame);
+                }
+            }
+            sprite.setVisible(true);
+        }
+        // 清理已移出队伍的精灵
+        for (const id of Object.keys(this._companionSprites)) {
+            if (!activeIds.has(id)) {
+                this._companionSprites[id].destroy();
+                delete this._companionSprites[id];
+            }
         }
     }
 
@@ -566,6 +714,21 @@ export class GameScene extends Scene {
                 const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10), frontRange);
                 sprite.setDepth(d);
             });
+        }
+
+        // 2.5 侍从跟随精灵：AI 队员按自身世界 Y 排序（墙后时应被墙遮挡，
+        // 不再固定跟随玩家深度导致"图层在墙壁之上"）；纯渲染队员保持玩家层
+        if (this._companionSprites) {
+            for (const [cid, sprite] of Object.entries(this._companionSprites)) {
+                if (!sprite || !sprite.active || !sprite.visible) continue;
+                const member = PartySystem.members.find(m => m.id === cid);
+                if (!member || !member.aiConfig) continue;
+                const footOffsetY = this._getFootOffsetY(member, sprite);
+                const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
+                const d = WallSystem.junctionCorrectedDepth(
+                    member.x, member.y, sprite.y + footOffsetY + 10, frontRange);
+                sprite.setDepth(d);
+            }
         }
 
         // 3. 玩家手持武器 / 盾牌跟随玩家深度，保持相对层级。
@@ -1341,7 +1504,7 @@ export class GameScene extends Scene {
                 ? naturalMs / targetDurationMs
                 : 1;
             this._playerAttackDuration = targetDurationMs > 0 ? targetDurationMs : naturalMs;
-            this._playerAttackStartTime = performance.now();
+            this._playerAttackStartTime = nowMs();
             const completeHandler = () => {
                 this._playerAnimCompleteHandler = null;
                 this.playerSprite.anims.timeScale = 1;
@@ -1350,13 +1513,14 @@ export class GameScene extends Scene {
                 const p = window.Game && window.Game.player;
                 // 收势动画播完：解除收势标记（原 _updatePlayerAnimation 里的独立 once 会残留，已并入此处）
                 if (p && (key === 'recover' || key === 'dash_recover')) {
-                    p._attackRecovering = false;
-                    p._recoverCfgKey = null; // 冲刺恢复轨迹块标记一并清除
+                    // pose session 全清（收势标记 + 冲刺恢复轨迹块标记等）；此刻不存在更新的 hold——
+                    // 收势期间新攻击被输入守卫拒绝，且 setPlayerAnimation 切动画时已移除本回调
+                    clearPose(p);
                 }
                 // 冲刺期间/冲刺末帧定格期：不切 idle——dash_attack 播完也应停在末帧等恢复动画，
                 // 否则定格窗口里贴图被换回 idle（"最后一帧用的是 idle 贴图"的根因）
                 if (p && (p._isDashing || p._dashRecoverAt)) return;
-                if (p && p._attackHoldUntil && performance.now() < p._attackHoldUntil
+                if (p && p._attackHoldUntil && nowMs() < p._attackHoldUntil
                     && (key === 'attack_sword' || key === 'attack_sword_2')) {
                     return;
                 }
@@ -1441,7 +1605,7 @@ export class GameScene extends Scene {
         p._castStepDirY = Math.sin(p.rotation || 0);
         p._castOriginX = p.x; // 起手位置（后摇向此归位，防穿墙钳制后回退过头）
         p._castOriginY = p.y;
-        p._castStartTime = performance.now();
+        p._castStartTime = nowMs();
         p._castRecoverStartTime = null;
         // 退出扭转/分层姿态
         this._twistConfig = null;
@@ -1464,7 +1628,7 @@ export class GameScene extends Scene {
         this.playerSprite.play({ key: castPlayKey, frameRate: totalFrames / (forwardMs / 1000), repeat: 0 });
         this.playerSprite.anims.timeScale = 1;
         this._playerAttackDuration = forwardMs;
-        this._playerAttackStartTime = performance.now();
+        this._playerAttackStartTime = nowMs();
         // 帧回调：播放到第 releaseFrame 帧释放魔法（只触发一次）
         this._castUpdateHandler = (_anim, frame) => {
             if (p._castState !== 'casting') return;
@@ -1487,7 +1651,7 @@ export class GameScene extends Scene {
                         p.x = tx;
                         p.y = ty;
                     }
-                    p._castStartTime = performance.now() - (p._castForwardMs || 500); // t=1：后续跨步不再推进
+                    p._castStartTime = nowMs() - (p._castForwardMs || 500); // t=1：后续跨步不再推进
                     if (this.playerSprite && this.playerSprite.anims) {
                         this.playerSprite.anims.timeScale = 0;
                     }
@@ -1515,7 +1679,7 @@ export class GameScene extends Scene {
             p._castState = 'recover';
             p._castRecoverOriginX = p.x; // 后摇起点（线性归位到起手位置）
             p._castRecoverOriginY = p.y;
-            p._castRecoverStartTime = performance.now();
+            p._castRecoverStartTime = nowMs();
             this.playerSprite.playReverse({ key: castPlayKey, frameRate: totalFrames / (recoverMs / 1000) });
             this.playerSprite.anims.timeScale = 1;
             this._castRecoverHandler = () => this._endPlayerCast();
@@ -1636,7 +1800,7 @@ export class GameScene extends Scene {
             const aimCfg = twist.aimFrames || twist.aimLift;
             const aiming = !!(twoHandedGun && player._aimModeActive && aimCfg);
             const ms = (aimCfg && aimCfg.transitionMs) || 150;
-            const now = performance.now();
+            const now = nowMs();
             const dtMs = this._aimEaseLastT ? Math.min(50, now - this._aimEaseLastT) : 16.67;
             this._aimEaseLastT = now;
             if (this._aimEaseT === undefined) this._aimEaseT = 0;
@@ -1662,7 +1826,7 @@ export class GameScene extends Scene {
         const distToMouse = Math.hypot(mouseWorld.x - player.x, mouseWorld.y - player.y);
         let aim = rawAim;
         if (distToMouse < smoothR) {
-            const now2 = performance.now();
+            const now2 = nowMs();
             const dtMs2 = this._aimSmoothLastT ? Math.min(50, now2 - this._aimSmoothLastT) : 16.67;
             // 平滑时间常数：边缘≈0（零延迟）→ 中心 aimSmoothTau（默认 120ms，越大越"肉"，近战弱可加大）
             const t = 1 - distToMouse / smoothR;
@@ -1678,11 +1842,12 @@ export class GameScene extends Scene {
             this._smoothedAim = rawAim;
             this._frozenAimActive = false;
         }
-        this._aimSmoothLastT = performance.now();
+        this._aimSmoothLastT = nowMs();
         this._effectiveAim = aim;
         let facingRight = this._twistState ? this._twistState.facingRight : true;
-        if (Math.cos(aim) > 0.05) facingRight = true;
-        else if (Math.cos(aim) < -0.05) facingRight = false;
+        const cosAim = Math.cos(aim); // 同帧同值复用（恒等化简，数学结果不变；Phase 4）
+        if (cosAim > 0.05) facingRight = true;
+        else if (cosAim < -0.05) facingRight = false;
         // 面向系内相对角，归一化后按比例钳制
         let rel = facingRight ? aim : Math.PI - aim;
         rel = Math.atan2(Math.sin(rel), Math.cos(rel));
@@ -1864,10 +2029,17 @@ export class GameScene extends Scene {
     _updatePlayerAnimation(_game) {
         if (!_game || !_game.player || !this.playerSprite || !this.playerSprite.active) return;
         const player = _game.player;
-        if (player._isDead) return;
+        // 动画通道仲裁（玩家动画优化 Phase 2 / 步骤 2.1）：原 6 级 if 守卫收敛为查表分派。
+        // 通道谓词见 src/entities/player/anim-state.js（只读、与原 if 链条件/顺序逐字等价）；
+        // 各 case 体内代码为原 if 链逐行搬运，写副作用（近战卡死复位、dash 到点触发等）保持原位。
+        const animCtx = {}; // 通道判定的附带产物（如 gunPose 解析结果），case 内复用避免二次计算
+        const channel = resolveAnimChannel(player, animCtx);
+        switch (channel) {
+        case AnimChannel.DEAD:
+            return;
         // 施法动画期间不被移动/状态机覆盖（前摇+后摇由 startPlayerCast 独立驱动，
         // 第 8 帧释放依赖动画完整播放到目标帧；否则每帧 idle/walk 覆盖导致永远不释放）
-        if (player._castState && player._castState !== 'idle') {
+        case AnimChannel.CAST: {
             // 兜底：施法动画没在播（注册失败/被外部打断等）时自动收尾，防施法状态软锁
             const curCastKey = (player.equipments && player.equipments[player.weaponMode] && player.equipments[player.weaponMode].castAnimKey) || 'cast';
             const castAnimKey = playerTextureKey(curCastKey);
@@ -1882,28 +2054,35 @@ export class GameScene extends Scene {
         }
 
         // 攻击/特殊动画期间不覆盖
-        const weaponAnim = player.weaponAnim || {};
-        const currentItem = player.equipments[player.weaponMode];
-        const isMeleeWeapon = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
-        const currentAnimKey = this.playerSprite.anims.currentAnim?.key;
-        // 仅对近战武器做安全防护：逻辑层标记为攻击中，但剑攻击动画已停止，说明状态卡住，强制恢复
-        const isPlayingAttackAnim = isMeleeWeapon && (currentAnimKey === playerTextureKey('attack_sword') || currentAnimKey === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.isPlaying;
-        if (isMeleeWeapon && weaponAnim.isAttacking && !isPlayingAttackAnim) {
-            weaponAnim.isAttacking = false;
-            weaponAnim.state = 'idle';
+        case AnimChannel.MELEE_ATTACK: {
+            const weaponAnim = player.weaponAnim || {};
+            const currentItem = player.equipments[player.weaponMode];
+            const isMeleeWeapon = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
+            const currentAnimKey = this.playerSprite.anims.currentAnim?.key;
+            // 仅对近战武器做安全防护：逻辑层标记为攻击中，但剑攻击动画已停止，说明状态卡住，强制恢复
+            const isPlayingAttackAnim = isMeleeWeapon && (currentAnimKey === playerTextureKey('attack_sword') || currentAnimKey === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.isPlaying;
+            if (isMeleeWeapon && weaponAnim.isAttacking && !isPlayingAttackAnim) {
+                weaponAnim.isAttacking = false;
+                weaponAnim.state = 'idle';
+                // 卡死复位后原 if 链会继续向下执行 → 按新状态重新仲裁（复位后 MELEE_ATTACK 不再成立，递归即等价落闸）
+                this._updatePlayerAnimation(_game);
+                return;
+            }
+            // 枪械放行：枪开火时 weaponAnim.state='attacking'，但枪的攻击动画在武器贴图层，
+            // playerSprite 只承载腿/躯干层——此处 early-return 会冻结腿层（冲刺开火时 runlegs 切不回 walklegs）。
+            // 近战保留守卫（attack_sword 动画在 playerSprite 上，不能被覆盖）；
+            // 枪械姿态下通道谓词不成立、不会进入本 case——见 anim-state.js #3
+            return;
         }
-        // 枪械放行：枪开火时 weaponAnim.state='attacking'，但枪的攻击动画在武器贴图层，
-        // playerSprite 只承载腿/躯干层——此处 early-return 会冻结腿层（冲刺开火时 runlegs 切不回 walklegs）。
-        // 近战保留守卫（attack_sword 动画在 playerSprite 上，不能被覆盖）
-        const _isGunPose = currentItem && isGunWeapon(currentItem);
-        if (!_isGunPose && (weaponAnim.isAttacking || (weaponAnim.state && weaponAnim.state !== 'idle'))) return;
         // 闪避翻滚动画播放期间不被移动状态机覆盖（结束/被打断后由下方正常逻辑接管）
-        if (player.isDodging) return;
-        if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return;
+        case AnimChannel.DODGE:
+            return;
+        case AnimChannel.SKILL:
+            return;
 
         // 冲刺攻击末帧定格：dash 结束后 0.5s 内保持定格（不切 idle），到点播恢复动画（0.5s）
-        if (player._dashRecoverAt) {
-            if (performance.now() < player._dashRecoverAt) {
+        case AnimChannel.DASH_RECOVER: {
+            if (nowMs() < player._dashRecoverAt) {
                 // 定格贴图 = dash_recover 首帧（2026-07-29 起；原定格=dash_attack 末帧）
                 // 纹理键必须走 playerTextureKey（player_<动画键>），裸键不存在会渲染成空白
                 const freezeTex = playerTextureKey('dash_recover');
@@ -1913,10 +2092,10 @@ export class GameScene extends Scene {
                 }
                 return;
             }
-            player._dashRecoverAt = 0;
-            player._attackRecovering = true;
-            player._attackRecoverStart = performance.now(); // 武器滑回时间基准（走近战同款末帧滑回，轨迹块=dash）
-            player._recoverCfgKey = 'dash';
+            // 到点：退出定格（clearPose 全清）并进入冲刺恢复——enterRecover 不变量：同时清 hold；
+            // startMs = 武器滑回时间基准（走近战同款末帧滑回，轨迹块=dash）
+            clearPose(player);
+            enterRecover(player, { cfgKey: 'dash', startMs: nowMs() });
             this.setPlayerAnimation('dash_recover', 500);
             return;
         }
@@ -1924,50 +2103,43 @@ export class GameScene extends Scene {
         // 攻击后定格保持（连段窗口）与收势动画：
         // 一段/二段攻击 Tween 结束后定格在末帧等待连段；窗口内无攻击输入则播 recover 收势回 idle；
         // 移动立即取消定格/收势（新攻击由上方攻击守卫接管，不会走到这里）
-        if (player._attackHoldUntil || player._attackRecovering) {
-            const now = performance.now();
+        case AnimChannel.ATTACK_HOLD: {
+            const now = nowMs();
             if (player.isMoving) {
-                player._attackHoldUntil = 0;
-                player._attackRecovering = false;
+                clearPose(player); // 移动立即取消定格/收势（pose session 全清）
+                // 移动取消定格/收势后原 if 链落到下方移动/持枪逻辑 → 按新状态重新仲裁（递归即等价落闸）
+                this._updatePlayerAnimation(_game);
+                return;
             } else if (player._attackRecovering) {
                 return; // 收势播放中，等 animationcomplete 解除
             } else if (now < player._attackHoldUntil) {
                 return; // 定格末帧（repeat 0 的攻击动画播完自然停在末帧，不做任何切换）
             } else {
-                player._attackHoldUntil = 0;
                 if (getPlayerAnimDef('recover') && this.anims.exists(playerTextureKey('recover'))) {
-                    player._attackRecovering = true;
-                    player._attackRecoverStart = now; // 收势起点（武器线性滑回 idle 位的时间基准）
+                    // enterRecover 不变量：同时清 hold（原 `_attackHoldUntil = 0` 提前写入并入此处）；
+                    // startMs = 收势起点（武器线性滑回 idle 位的时间基准）
+                    enterRecover(player, { cfgKey: null, startMs: now });
                     // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
                     // 2026-08-03：二段攻击的收势动画固定 0.3s（一段保持配置自然时长 0.33s）
                     this.setPlayerAnimation('recover', player._meleeComboStage === 2
                         ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300) : 0);
                     return;
                 }
+                // recover 动画缺失：清定格（pose session 全清）后原 if 链落到下方 idle/locomotion → 按新状态重新仲裁（递归即等价落闸）
+                clearPose(player);
+                this._updatePlayerAnimation(_game);
+                return;
             }
         }
 
-        // 持枪姿态解析：双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；
-        // 其余枪械 → gun_idle；配置缺失逐级回退
-        const _resolveGunPose = () => {
-            if (!currentItem || !isGunWeapon(currentItem)) return null;
-            const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-            const offhandItem = player.equipments[offhandSlot];
-            const isDualPistol = offhandItem && offhandItem.name
-                && (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol');
-            const isPistolMain = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
-            if (isDualPistol) {
-                const dualDef = getPlayerAnimDef('gun_idle_dual');
-                if (dualDef) return { poseKey: 'gun_idle_dual', def: dualDef };
-            }
-            if (isPistolMain) {
-                const pistolDef = getPlayerAnimDef('gun_idle_pistol');
-                if (pistolDef) return { poseKey: 'gun_idle_pistol', def: pistolDef };
-            }
-            const def = getPlayerAnimDef('gun_idle');
-            return def ? { poseKey: 'gun_idle', def } : null;
-        };
-        const gunPose = _resolveGunPose();
+        // 持枪姿态解析已收口到 anim-state.js 的 resolveGunPose（与原 _resolveGunPose 闭包逐字等价）：
+        // 双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；其余枪械 → gun_idle；配置缺失逐级回退。
+        // GUN_POSE / LOCOMOTION 共用尾部：通道谓词已保证 gunPose 非空 当且仅当 channel === GUN_POSE
+        case AnimChannel.GUN_POSE:
+        case AnimChannel.LOCOMOTION:
+        default: {
+        const gunPose = channel === AnimChannel.GUN_POSE ? animCtx.gunPose : null; // 谓词已解析，复用 ctx 结果（值与 resolveGunPose(player) 相同）
+
 
         // 持枪移动：腿层播走路/跑步腿动画（下半身裁片），躯干层保持（扭转继续由 _syncGunTwist 驱动）
         const gunWalkLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_walklegs` : null;
@@ -2006,7 +2178,7 @@ export class GameScene extends Scene {
         }
 
         // 加入短暂停顿缓冲：停止移动后 80ms 再切回 idle，避免速度抖动导致动画反复重启
-        const now = performance.now();
+        const now = nowMs();
         if (key === 'idle') {
             if (!this._playerAnimIdleStart) this._playerAnimIdleStart = now;
             if (now - this._playerAnimIdleStart < 80) return;
@@ -2018,6 +2190,8 @@ export class GameScene extends Scene {
         this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
         if (this._lastPlayerAnimKey === key) return;
         this.setPlayerAnimation(key);
+        } // end case GUN_POSE / LOCOMOTION（共用尾部）
+        } // end switch (channel)
     }
 
     /**
@@ -2167,13 +2341,18 @@ export class GameScene extends Scene {
         } else if (this.weaponSprite.texture.key !== texture) {
             this.weaponSprite.setTexture(texture);
         }
+        // 复位冲刺 Lerp 的剑柄 origin（特殊动画只在 isSpecialAnim 时走 _syncSpecialWeaponAnim，
+        // 普通路径必须自行复位，否则普通攻击/待机会残留绕剑柄旋转）
+        if (this.weaponSprite.originX !== 0.5 || this.weaponSprite.originY !== 0.5) {
+            this.weaponSprite.setOrigin(0.5, 0.5);
+        }
         
         // ===== Phaser Tween 攻击动画期间，跳过 syncWeapon 的位置更新 =====
         // 但远程武器使用状态机驱动，需要继续执行以应用后坐力
         // inAttackHold：攻击后定格保持窗口（连段等待）——武器定格在上一段轨迹末帧
-        const inAttackHold = !!(player._attackHoldUntil && performance.now() < player._attackHoldUntil && !player.isMoving);
+        const inAttackHold = !!(player._attackHoldUntil && nowMs() < player._attackHoldUntil && !player.isMoving);
         if (weaponAnim.isAttacking || inAttackHold) {
-            const isGun = ['pistol', 'deagle', 'revolver', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            const isGun = GUN_FAMILY.includes(wt);
             if (!isGun) {
                 // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
                 // 连段二段读 attack2 轨迹块（缺失回退 attack）
@@ -2186,7 +2365,7 @@ export class GameScene extends Scene {
                     if (weaponAnim.isAttacking) {
                         progress = 0;
                         if (this._playerAttackStartTime && this._playerAttackDuration > 0) {
-                            progress = Math.min(1, (performance.now() - this._playerAttackStartTime) / this._playerAttackDuration);
+                            progress = Math.min(1, (nowMs() - this._playerAttackStartTime) / this._playerAttackDuration);
                         } else {
                             const currentAnim = this.playerSprite.anims.currentAnim;
                             if (currentAnim && (currentAnim.key === playerTextureKey('attack_sword') || currentAnim.key === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.getProgress) {
@@ -2241,14 +2420,14 @@ export class GameScene extends Scene {
         // 收势滑行（recover 播放中）：武器从上一段轨迹末帧**线性滑回 idle 持械位**（位置/旋转/缩放同步渐变），
         // 不瞬移；朝向沿用定格冻结朝向（收势期间鼠标转向不影响）
         if (player._attackRecovering && player._attackRecoverStart) {
-            const isGunR = ['pistol', 'deagle', 'revolver', 'p4040', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+            const isGunR = GUN_FAMILY.includes(wt); // 2026-08-13 收口：原内联数组漏 beretta93r，R93 收势错误走进近战末帧滑回分支
             if (!isGunR) {
                 const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
                 // 2026-08-03：二段收势 0.3s（与恢复动画同步）；一段用配置自然时长
                 const recDur = player._meleeComboStage === 2
                     ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300)
                     : (getPlayerAnimDurationMs('recover') || 800);
-                const t = Math.max(0, Math.min(1, (performance.now() - player._attackRecoverStart) / recDur));
+                const t = Math.max(0, Math.min(1, (nowMs() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
                 // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标
                 const wacR = WeaponAnimConfig[wt];
@@ -2401,7 +2580,7 @@ export class GameScene extends Scene {
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
-        const isGun = ['pistol', 'deagle', 'revolver', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGun = GUN_FAMILY.includes(wt);
         // 瞄左（|rot|>90°）时贴图 flipY 防倒置——握把点的贴图内 Y 随之镜像，补偿必须同步取反
         const gunFlipY = isGun && Math.abs(rot) > Math.PI / 2;
         // rotOffset 随 flipY 镜像取反：右 -6° ↔ 左 +6°（否则枪管方向左右不对称，火焰/弹道同偏）
@@ -2665,7 +2844,7 @@ export class GameScene extends Scene {
         // rotOffset（配置，度）：枪械贴图固有倾角修正；随 flipY 镜像取反（右 -6° ↔ 左 +6°）
         const rotOffsetOff = !isMelee && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].rotOffset
             ? WeaponAnimConfig[wt].rotOffset * Math.PI / 180 : 0;
-        const isGunOff = ['pistol', 'deagle', 'revolver', 'p4040', 'beretta93r', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGunOff = GUN_FAMILY.includes(wt);
         // flipY 与主手同口径：用 rotOffset 修正【前】的 rot 判定（此前在加过 -6° 偏移后重判，
         // 90°~96° 窗口内主/副手 flipY 相反——双持手枪左右朝向不对称根因）
         const flipY = isGunOff && Math.abs(rot) > Math.PI / 2;
@@ -3161,58 +3340,17 @@ export class GameScene extends Scene {
         if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
     }
 
-    // ==================== 武器真实模糊（Phaser 4 Blur 滤镜，路线 A） ====================
-    // 用 Phaser 内置高斯模糊滤镜（WebGL）复刻开发工具 canvas blur 的效果：
-    // 各向同性（x=y=1），强度按 CSS blur(max/2 px) 标定——
-    // quality2（7-tap 核）单遍轴向 σ ≈ 1.947×strength，steps=2（H/V 各 2 遍）后 σ ≈ 2.754×strength；
-    // 目标 σ = max/2（CSS blur(r) 的标准差 = r），故 strength ≈ max×0.18（峰值 max=12 → σ≈6px）。
+    // ==================== 武器运动模糊（废弃的高斯滤镜路线，已停用） ====================
+    // 2026-08-12：`filters.internal.addBlur`（Phaser 旧版高斯滤镜）在部分 GPU/浏览器下创建
+    // WebGL framebuffer 失败（Framebuffer Unsupported）→ 整个渲染上下文崩溃黑屏。
+    // 该路线早被 SKILL 标记"观感失败已废弃"（细长武器被摊薄消失），正式运动模糊 = 残影
+    // （_syncWeaponGhosts）。以下两方法保留签名兼容调用点，但不再创建任何滤镜。
     _ensureWeaponBlur() {
-        if (this._weaponBlurFilter) return this._weaponBlurFilter;
-        if (!this.weaponSprite) return null;
-        // 防崩守卫：context lost 或超大贴图（模糊帧缓冲超 GPU 上限）时禁用，避免 Framebuffer Unsupported → 渲染器崩溃
-        if (this._weaponBlurDisabled) return null;
-        const srcImg = this.weaponSprite.texture && typeof this.weaponSprite.texture.getSourceImage === 'function'
-            ? this.weaponSprite.texture.getSourceImage() : null;
-        if (srcImg && Math.max(srcImg.width, srcImg.height) >= 4096) {
-            console.warn('[GameScene] weapon texture 过大（≥4096px），运动模糊已禁用（帧缓冲可能超 GPU 上限）');
-            this._weaponBlurDisabled = true;
-            return null;
-        }
-        try {
-            if (!this.weaponSprite.filters && typeof this.weaponSprite.enableFilters === 'function') {
-                this.weaponSprite.enableFilters();
-            }
-            if (this.weaponSprite.filters && this.weaponSprite.filters.internal && this.weaponSprite.filters.internal.addBlur) {
-                const f = this.weaponSprite.filters.internal.addBlur(2, 1, 1, 0, 0xffffff, 2);
-                // 自动按模糊半径扩边：细长武器边缘不会被裁掉
-                if (typeof f.setPaddingOverride === 'function') f.setPaddingOverride(null);
-                this._weaponBlurFilter = f;
-            }
-        } catch (e) {
-            console.warn('[GameScene] weapon blur filter unavailable:', e);
-            this._weaponBlurFilter = null;
-        }
-        return this._weaponBlurFilter;
+        return null;
     }
 
-    /**
-     * 按逐帧 blurX/blurY 更新武器运动模糊（2026-08-03 升级为方向性）：
-     * 刀身在贴图内沿纵向（各行质心 x 恒定），挥砍运动垂直于刀身 = 贴图横向（x 轴）。
-     * 旧版各向同性（x=y=1）会沿刀身方向摊薄——细长武器峰值帧"近乎消失"；
-     * 新版固定 x=1 / y=0.08：只沿挥砍方向横向拉丝（sweep trail），刀身保持清晰。
-     * 强度仍由 max(blurX, blurY) 驱动（峰值帧最浓，起势/收势无）。
-     */
-    _applyWeaponBlur(bx, by) {
-        const m = Math.max(Math.abs(bx || 0), Math.abs(by || 0));
-        if (m < 1.5) {
-            if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
-            return;
-        }
-        const f = this._ensureWeaponBlur();
-        if (!f) return;
-        f.x = 1;       // 挥砍方向（垂直刀身）
-        f.y = 0.08;    // 沿刀身方向几乎不模糊（防摊薄消失）
-        f.strength = m * 1.6;
+    _applyWeaponBlur(_bx, _by) {
+        return; // 废弃：高斯滤镜已停用（崩溃源），运动模糊由残影承担
     }
 
     // 统一的特殊动画武器同步（风车/冲刺/复位/特殊攻击）
@@ -3226,6 +3364,45 @@ export class GameScene extends Scene {
         // 冲刺攻击：sword.dash perFrame 轨迹（面板"冲刺攻击"页可调，与一/二段同插值管线）
         // 末帧定格期（_dashRecoverAt）同轨迹停在 progress=1——定格姿态=冲刺末帧，与人物贴图一致
         const dashCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dash;
+        // 冲刺攻击 Lerp 模式（2026-08-12）：剑柄锚手 + 起始/结束双端点线性插值。
+        // 剑柄（grip）钉在插值位置，剑身绕剑柄旋转；优先于 perFrame，旧数据保留可回退。
+        const dashLerpCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dashLerp;
+        const dashLerpActive = dashLerpCfg && dashLerpCfg.type === 'lerp'
+            && (player._isDashing || player._dashRecoverAt);
+        if (this.weaponSprite && !dashLerpActive
+            && (this.weaponSprite.originX !== 0.5 || this.weaponSprite.originY !== 0.5)) {
+            // 非 Lerp 冲刺状态：复位剑柄 origin（武器绕中心旋转的既有语义）
+            this.weaponSprite.setOrigin(0.5, 0.5);
+        }
+        if (dashLerpActive) {
+            const totalMs = player._dashTotalMs || 800;
+            const progress = player._isDashing
+                ? Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs))
+                : 1;
+            // 朝向=冲刺方向（dashDirection.x 符号；与人物 flipX 绑定同口径）
+            const facingRight = player._dashDirection ? player._dashDirection.x >= 0 : !this.playerSprite.flipX;
+            const lp = WeaponTransform.getLerpDashPosition(player, progress, facingRight, dashLerpCfg);
+            if (lp) {
+                const grip = lp.grip || { x: 0.5, y: 0.5 };
+                // 剑柄锚手：origin=剑柄点（翻转时 X 镜像），旋转绕剑柄 → 剑柄钉在插值位置、剑身绕手转
+                this.weaponSprite.setOrigin(facingRight ? grip.x : 1 - grip.x, grip.y);
+                this.weaponSprite.setPosition(lp.x, lp.y);
+                this.weaponSprite.setRotation(lp.rotation);
+                this.weaponSprite.setFlipX(!facingRight);
+                const wSize = WeaponTransform.getWeaponSize(wt, lp.scale, 'attack');
+                this.weaponSprite.setDisplaySize(
+                    wSize.width * (lp.stretchX || 1),
+                    wSize.height * (lp.stretchY || 1)
+                );
+                if (player._isDashing) {
+                    this._applyWeaponBlur(lp.blurX, lp.blurY);
+                } else if (this._weaponBlurFilter) {
+                    this._weaponBlurFilter.strength = 0;
+                }
+                this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                return;
+            }
+        }
         if ((player._isDashing || player._dashRecoverAt) && dashCfg && dashCfg.type === 'perFrame' && dashCfg.frames) {
             const totalMs = player._dashTotalMs || 800;
             const progress = player._isDashing
@@ -3291,7 +3468,7 @@ export class GameScene extends Scene {
             extraOffset = state.dashOffset || 0;
             extraAngle = state.dashAngle || 0;
         } else if (player._dashResetAnim) {
-            const elapsed = Date.now() - player._dashResetAnim.startTime;
+            const elapsed = nowMs() - player._dashResetAnim.startTime;
             // t 钳制 [0,1]：定格期（startTime 未来）保持攻击位；恢复窗口内**线性**滑回 idle 位并同步旋转
             const easeT = Math.max(0, Math.min(1, elapsed / player._dashResetAnim.duration));
             extraAngle = player._dashResetAnim.startAngle * (1 - easeT);
@@ -3306,7 +3483,7 @@ export class GameScene extends Scene {
             worldX = player.x + cos * currentBaseX - sin * currentBaseY;
             worldY = player.y + sin * currentBaseX + cos * currentBaseY;
         } else if (player._specialResetAnim) {
-            const elapsed = Date.now() - player._specialResetAnim.startTime;
+            const elapsed = nowMs() - player._specialResetAnim.startTime;
             const t = Math.min(1, elapsed / player._specialResetAnim.duration);
             const easeT = Easing.easeOutQuart(t);
             extraAngle = player._specialResetAnim.startAngle * (1 - easeT);
@@ -3333,7 +3510,7 @@ export class GameScene extends Scene {
         // this.weaponSprite.setFlipX(specialFlipX);
         
         const wSize = WeaponTransform.getWeaponSize(wt);
-        const isGunSpecial = ['pistol', 'deagle', 'revolver', 'p4040', 'akm', 'm416', 'pkm', 'qbz191', 'qjb201', 'energy_lmg', 'shotgun'].includes(wt);
+        const isGunSpecial = GUN_FAMILY.includes(wt); // 2026-08-13 收口：原内联数组漏 beretta93r，R93 缩放应走 setScale/flipY 分支
         if (isGunSpecial) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
             const flipY = Math.abs(finalRot) > Math.PI / 2;
@@ -5158,9 +5335,14 @@ export class GameScene extends Scene {
                     const fsCfg = sprCfg.frameSounds;
                     if (fsCfg && Array.isArray(fsCfg.frames) && fsCfg.frames.length && fsCfg.path) {
                         sprite.on('animationupdate', (_anim, frame) => {
-                            if (fsCfg.frames.includes(frame.index)
-                                && SoundManager && typeof SoundManager.playFile === 'function') {
-                                SoundManager.playFile(fsCfg.path);
+                            if (fsCfg.frames.includes(frame.index) && SoundManager) {
+                                // 世界坐标音效：按与玩家的距离衰减（默认传播距离 2000px，
+                                // 远离 NPC 逐步减弱直到静音，见 data/audio-config.json distanceAttenuation）
+                                if (typeof SoundManager.playWorld === 'function') {
+                                    SoundManager.playWorld(fsCfg.path, e.x, e.y);
+                                } else if (typeof SoundManager.playFile === 'function') {
+                                    SoundManager.playFile(fsCfg.path);
+                                }
                             }
                         });
                     }
@@ -5281,9 +5463,10 @@ export class GameScene extends Scene {
             if (!sp) {
                 sp = {
                     base: this.add.sprite(0, 0, 'obstacle_defense_tower'),
-                    arm: this.add.sprite(0, 0, 'obstacle_defense_tower_arm'),
+                    arm: this.add.sprite(0, 0, 'obstacle_defense_tower_arm_frames'),
                     weapon: this.add.sprite(0, 0, 'weapon_rusty_sword'),
                 };
+                sp.arm._frameIdx = -1;
                 sp.base.setOrigin(0.5, 0.5);
                 sp.arm.setOrigin(0.5, 0.5);
                 sp.weapon.setOrigin(0.5, 0.5);
@@ -5293,41 +5476,70 @@ export class GameScene extends Scene {
             sp.base.setPosition(e.x, e.y - V.base.footOffsetY);
             sp.base.setDisplaySize(V.base.w, V.base.h);
             sp.base.setFlipX(!!e._mirrored);
-            sp.base.setDepth(e.y + 12);
+            // 深度锚点=塔脚底 e.y（实体同口径）；+2 仅保证同锚点确定排序。
+            // 前/后遮挡：怪物脚底 y < e.y → 塔盖怪物；y > e.y → 怪物盖塔（2026-08-14）
+            sp.base.setDepth(e.y + 2);
             sp.base.setVisible(true);
-            // 机械臂：枢轴=塔顶中心，绕枢轴旋转（rotation = aimAngle − 臂自然角）
+            // 机械臂：预渲染 3D 旋转帧（48 帧），按 aimAngle 选最近帧；
+            // 枢轴=帧内固定像素（相机固定 + 模型绕塔顶轴旋转），origin 设枢轴。
             const pivotX = e.x;
             const pivotY = e.y - V.arm.pivotWorldY;
-            // origin 设在枢轴（纹理内枢轴比例），旋转绕枢轴而不是绕 sprite 中心
-            sp.arm.setOrigin(V.arm.pivot.x / V.arm.tw, V.arm.pivot.y / V.arm.th);
+            const m = e._mirrored ? -1 : 1;
+            // 世界旋转 = -aimAngle（游戏 y 向下，屏幕顺时针=世界逆时针的镜像）；
+            // 镜像塔再取反并 flipX 帧
+            const theta = e._mirrored ? e.aimAngle : -e.aimAngle;
+            const armStep = (Math.PI * 2) / V.arm.frames;
+            let armIdx = Math.round(theta / armStep) % V.arm.frames;
+            if (armIdx < 0) armIdx += V.arm.frames;
+            if (sp.arm._frameIdx !== armIdx) {
+                sp.arm.setFrame(armIdx);
+                sp.arm._frameIdx = armIdx;
+            }
+            const armFrame = sp.arm.frame;
+            sp.arm.setOrigin(V.arm.pivot.x / armFrame.width, V.arm.pivot.y / armFrame.height);
             sp.arm.setPosition(pivotX, pivotY);
             sp.arm.setDisplaySize(V.arm.w, V.arm.h);
-            sp.arm.setRotation(e.aimAngle - V.arm.naturalAngle);
-            sp.arm.setDepth(e.y + 12.5);
+            sp.arm.setRotation(0);
+            sp.arm.setFlipX(!!e._mirrored);
+            sp.arm.setDepth(e.y + 2.5);
             sp.arm.setVisible(true);
-            // 挂载武器：臂尖世界坐标 + 沿瞄准方向小前置；朝左 flipX
+            // 挂载武器：臂尖 = 椭圆路径（等距投影 x 全量、y 0.5 缩短），
+            // 朝向 = 臂尖方向角；朝左 flipY 防倒置。
             const item = e.weaponItem;
             if (item) {
                 let tex = getWeaponTextureKey(item);
                 if (!this.textures.exists(tex)) tex = 'weapon_rusty_sword';
                 if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
-                const s = V.arm.s;
-                const rot = e.aimAngle - V.arm.naturalAngle;
-                const tdx = (V.arm.tip.x - V.arm.pivot.x) * s;
-                const tdy = (V.arm.tip.y - V.arm.pivot.y) * s;
-                const cosR = Math.cos(rot);
-                const sinR = Math.sin(rot);
-                const tipX = pivotX + tdx * cosR - tdy * sinR;
-                const tipY = pivotY + tdx * sinR + tdy * cosR;
-                // 与玩家枪械同口径：rotation=瞄准角；朝左（|角|>90°）用 flipY 防倒置
-                const flipY = Math.abs(e.aimAngle) > Math.PI / 2;
-                const wH = V.weapon.heights[item.weaponType] || V.weapon.defaultHeight;
-                sp.weapon.setPosition(tipX + Math.cos(e.aimAngle) * 10, tipY + Math.sin(e.aimAngle) * 10);
-                sp.weapon.setRotation(e.aimAngle);
-                sp.weapon.setFlipX(false);
-                sp.weapon.setFlipY(flipY);
-                sp.weapon.setScale(wH / Math.max(1, sp.weapon.height));
-                sp.weapon.setDepth(e.y + 13);
+                const gs = V.arm.gameScale;
+                const tipOX = gs * V.arm.k * V.arm.reach * Math.cos(e.aimAngle) * m;
+                const tipOY = gs * V.arm.k * (0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz);
+                const tipX = pivotX + tipOX;
+                const tipY = pivotY + tipOY;
+                let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(e.aimAngle));
+                if (e._mirrored) wAng = Math.PI - wAng;
+                const flipY = Math.abs(wAng) > Math.PI / 2;
+                // 枪管模式（"枪插进机械臂"假象，2026-08-14）：只渲染武器前 1/3 枪管段，
+                // 切口端（origin x=0）对齐臂尖，枪管从机械臂/钩子里伸出。
+                const barrelCfg = V.weapon.barrel && (V.weapon.barrel[item.weaponId] || V.weapon.barrel[item.weaponType]);
+                if (barrelCfg) {
+                    sp.weapon.setCrop(barrelCfg.x, barrelCfg.y, barrelCfg.w, barrelCfg.h);
+                    sp.weapon.setOrigin(0, 0.5);
+                    sp.weapon.setPosition(tipX, tipY);
+                    sp.weapon.setRotation(wAng);
+                    sp.weapon.setFlipX(false);
+                    sp.weapon.setFlipY(flipY);
+                    sp.weapon.setScale(barrelCfg.height / barrelCfg.h);
+                } else {
+                    if (sp.weapon.isCropped) sp.weapon.setCrop();
+                    sp.weapon.setOrigin(0.5, 0.5);
+                    const wH = V.weapon.heights[item.weaponType] || V.weapon.defaultHeight;
+                    sp.weapon.setPosition(tipX + Math.cos(wAng) * 8, tipY + Math.sin(wAng) * 8);
+                    sp.weapon.setRotation(wAng);
+                    sp.weapon.setFlipX(false);
+                    sp.weapon.setFlipY(flipY);
+                    sp.weapon.setScale(wH / Math.max(1, sp.weapon.height));
+                }
+                sp.weapon.setDepth(e.y + 3);
                 sp.weapon.setVisible(true);
             } else {
                 sp.weapon.setVisible(false);

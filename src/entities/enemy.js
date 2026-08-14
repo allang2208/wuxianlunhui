@@ -4,6 +4,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { Combatant } from './combatant.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
+import { nowMs } from './player/anim-state.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
 import aiConfigData from '../../data/ai-config.json';
@@ -253,7 +254,7 @@ import { loadImage } from '../utils/image-loader.js';
                     case 'swing':
                         anim.timer += dt;
                         if (this._pendingThrust && this._pendingThrust.active) {
-                            if (Date.now() - this._pendingThrust.startTime <= pendingThrustHitWindowMs) {
+                            if (nowMs() - this._pendingThrust.startTime <= pendingThrustHitWindowMs) {
                                 this.attacks.melee.checkTriangleHit(this);
                             } else {
                                 this._pendingThrust.active = false;

@@ -5095,6 +5095,39 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   怪在射程内仍由 cast 分支站定施法；距离自愈阈值 1200→900。③ **朝向**——aiMode
   flipX 由自身决定：移动时面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持
   上次朝向（`_lastFaceRight`），不再跟随玩家镜像（逃跑时不再面朝怪物）。
+- **掉队瞬移理智判定 + walk/run 切换（2026-08-14 五修，用户需求）**：
+  - 需求①：被卡在门外进不来 → 距离过远瞬移回玩家身边，但**区分卡住 vs 正常 AI 远离**
+    （躲避敌人/寻找输出位置离玩家远是合法的，不该瞬移）。
+  - 实现：decision 纯函数 `shouldRelocateCompanion`——超过 teleportDist(700) 后，
+    flee（逃近战威胁，撤退点含朝玩家分量会自动收敛）/ advance 站位（站位点离玩家
+    ≤followOffset×3.3）/ 施法锁定 / 距离在缩小（有效追赶）→ 不瞬移；
+    其余（掉队、路径反复失败 stuckCount≥2、撞墙）→ 瞬移；超 teleportHardDist(1100)
+    无条件瞬移兜底。**掉队判定必须看"距离趋势"**：跟着玩家跑时距离可能瞬时拉大，
+    只要每帧都在缩小就是正常追赶。
+  - 需求②：离玩家过远 / 逃避敌人 / 寻找位置输出 → running；小范围移动 → walking。
+    实现：`shouldUseRun(mode, dist, cfg)`——flee 永远 run；其余按移动距离
+    （到跟随点/站位点的直线距离）超 runDist(260) 用 run。
+    `_setMoveState` 同步 maxSpeed（run→runSpeed/walk→walkSpeed）。advance 归队
+    （离玩家>450）直接 run。
+    **注意：不用 PathManager.path 长度判 run/walk**——决策瞬间路径还是旧目标的
+    （MovementSystem 下帧才重算），读路径长度会 stale 导致误判 run；预寻路整合点
+    在卡住检测（stuckCount）而非路程判定。
+  - 配置：companion-config.json `ai` 字段可覆盖 runDist/teleportDist/teleportHardDist。
+  - 露娜 running 接入 24 帧版：`assets/companions/luna/running.png`（8×3、24 帧完整
+    双步周期）——**完整周期循环不能拆 startFrames**（24 帧拆 6+18 会让循环段不是
+    整数周期，接缝左右脚错位）；配置只给 loopFrames [0,23]，BootScene 无 startFrames
+    时走 frames 默认分支全帧循环。单测 133/133（新增 run 判定/掉队判定 17 条）。
+- **状态机回归修复（2026-08-14 六修）**：用户反馈"running 常态化（无 idle）+ spell 不放"。
+  - 根因①（run 常态化）：`_applyAction` 各分支条件未命中时（flee 无威胁 / cast 无目标 /
+    advance 无目标）不设置 `_animState` → 残留上一帧 run。修复：分支前默认
+    `_setMoveState('idle')` + 清 vx/vy（各分支命中后覆盖）。
+  - 根因②（spell 不放）：默认 idle 重置把**施法锁定期的 spell 动画砍掉**——施法中决策
+    返回 'cast'，但 spell 已进 CD 为 null → 不 _tryCast → _animState 被重置成 idle。
+    修复：`_applyAction` 开头加**施法锁定守卫**——`_castState !== 'idle' || _frozenForCast`
+    时保持 `_animState='spell'` 并直接返回（清 vx/vy）。
+  - 实机探针 `tools/cdp-luna-state-probe.mjs`：静止→idle、远移→run→walk→idle、
+    施法→spell（_tryCast 后 cast=casting/anim=spell/timer=650/frozen=true）、近战→flee(run)，
+    全部 PASS。**CDP 高频采样要在页面内循环**（evaluate 往返延迟会错过 650ms 施法窗）。
 
 ---
 

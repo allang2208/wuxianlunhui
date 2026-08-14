@@ -1,4 +1,5 @@
 import { DataLoader } from '../../systems/data-loader.js';
+import { nowMs } from './anim-state.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { WEAPON_ANIM } from '../../config/math-utils.js';
 
@@ -1043,7 +1044,7 @@ switchWeaponMode() {
                 requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 600); });
                 // 切换武器后150ms触发一次待机动画2（旋转动画）—— 双手武器不触发旋转
                 if (nextItem && !isTwoHanded(nextItem)) {
-                    this.weaponAnim.nextSpin = Date.now() + WEAPON_FX_CONFIG.switchSpinDelayMs;
+                    this.weaponAnim.nextSpin = nowMs() + WEAPON_FX_CONFIG.switchSpinDelayMs;
                 } else {
                     this.weaponAnim.nextSpin = 0;
                     this.weaponAnim.spinEnd = 0;
@@ -1245,7 +1246,7 @@ _initAmmoForSlot(slot) {
         /** 施法跨步：前摇沿起手朝向推进到 +30px，后摇退回原位（每帧调用，WallSystem 解析防穿墙） */
         _updateCastStep() {
             if (!this._castState || this._castState === 'idle') return;
-            const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+            const now = nowMs(); // Phase 3：收口单调时钟（_castStartTime/_castRecoverStartTime 写者在 GameScene，同口径）
             if (this._castState === 'casting') {
                 const t = Math.min(1, (now - (this._castStartTime || now)) / (this._castForwardMs || 500));
                 const targetX = (this._castOriginX ?? this.x) + (this._castStepDirX || 0) * (this._castStepMax || 30) * t;
@@ -2194,7 +2195,7 @@ _drawStickFigure(ctx, bodyScale = 1, bodyOffsetX = 0, bodyOffsetY = 0) {
                 // Walk 动画：2秒循环，左右脚交替走2步
                 // ================================================================
                 if (this.isMoving && !this.isDodging && !this._isWhirlwind) {
-                    const walkCycle = (Date.now() / 1000) % 2;          // 0 ~ 2 秒
+                    const walkCycle = (nowMs() / 1000) % 2;          // 0 ~ 2 秒
                     const phase = walkCycle * Math.PI;                  // 0 ~ 2π
                     const sinP = Math.sin(phase);                       // 左腿主相位
                     const cosP = Math.cos(phase);                       // 用于抬脚和臀部位移
@@ -2241,7 +2242,7 @@ _drawStickFigure(ctx, bodyScale = 1, bodyOffsetX = 0, bodyOffsetY = 0) {
 
                 // ---- 待机动画：呼吸（仅静止时）----
                 if (!this.isMoving) {
-                    const breath = Math.sin(Date.now() / 400) * 0.5;
+                    const breath = Math.sin(nowMs() / 400) * 0.5;
                     J.head.y   += breath;
                     J.neck.y   += breath * 0.8;
                     J.shoulder.y += breath * 0.8;
@@ -2489,21 +2490,21 @@ _updateSubsystems(dt, entities) {
                 }
                 // 冲刺攻击复位动画更新
                 if (this._dashResetAnim) {
-                    const elapsed = Date.now() - this._dashResetAnim.startTime;
+                    const elapsed = nowMs() - this._dashResetAnim.startTime;
                     if (elapsed >= this._dashResetAnim.duration) {
                         this._dashResetAnim = null;
                     }
                 }
                 // 特殊攻击复位动画更新
                 if (this._specialResetAnim) {
-                    const elapsed = Date.now() - this._specialResetAnim.startTime;
+                    const elapsed = nowMs() - this._specialResetAnim.startTime;
                     if (elapsed >= this._specialResetAnim.duration) {
                         this._specialResetAnim = null;
                     }
                 }
                 // 符文长剑复位动画更新
                 if (this._runeSwordResetAnim) {
-                    const elapsed = Date.now() - this._runeSwordResetAnim.startTime;
+                    const elapsed = nowMs() - this._runeSwordResetAnim.startTime;
                     if (elapsed >= this._runeSwordResetAnim.duration) {
                         this._runeSwordResetAnim = null;
                     }

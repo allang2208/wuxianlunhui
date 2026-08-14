@@ -172,9 +172,14 @@ const moveData = this._computeMoveDirection(enemy, entities);
         }
 
         // [ENHANCE] 主动预规划：有目标且路径缺失或路径终点严重偏离目标时，重新计算路径
-        if (enemy._pathManager && enemy.target && enemy.target.active) {
-            const targetX = enemy.target.x;
-            const targetY = enemy.target.y;
+        // [2026-08-14] 移动目标统一为"战术目标优先，其次攻击目标"——侍从（露娜）用
+        // _tacticalTarget 驱动跟随点/施法站位/撤退点，路径必须朝战术点生成而不是敌人。
+        const moveGoal = (enemy._tacticalTarget && !(enemy.ai && enemy.ai.chargeStraight))
+            ? enemy._tacticalTarget
+            : (enemy.target && enemy.target.active ? enemy.target : null);
+        if (enemy._pathManager && moveGoal) {
+            const targetX = moveGoal.x;
+            const targetY = moveGoal.y;
             const distToTarget = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
 
             // 目标太远时不做全程 A*，避免生成巨大网格造成卡顿
@@ -183,8 +188,8 @@ const moveData = this._computeMoveDirection(enemy, entities);
                     // [RELAY] 直冲型（胖子僵尸/突变体-3）保持原直线行为，不参与接力
                     enemy._pathManager._clearPath();
                     enemy._relayTarget = null;
-                } else if (enemy._specialTacticalTarget || enemy._tacticalTarget) {
-                    // [RELAY] 战术目标优先：接力只针对最终目标，战术移动期间保持原直线行为
+                } else if (enemy._circleRadius || enemy._specialTacticalTarget) {
+                    // [RELAY] 绕圈/特殊战术单位保持原直线行为（不参与接力）
                     enemy._pathManager._clearPath();
                 } else {
                     // [RELAY] 大场景分段接力寻路：超距不再纯直线，逐段 A* 到中继点推进

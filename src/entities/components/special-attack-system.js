@@ -1,4 +1,5 @@
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { nowMs } from '../player/anim-state.js';
 import { WEAPON_ANIM } from '../../config/math-utils.js';
 import { Game } from '../../game.js';
 import { WallSystem } from '../../world/wall-system.js';
@@ -102,7 +103,7 @@ class SpecialAttackSystem {
                 startAngle: 0,
                 startRotation: this.player.rotation,
                 targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
-                startTime: Date.now(),
+                startTime: nowMs(), // Phase 3：墙钟→单调时钟（读者 subsystems.js/GameScene.js 同链）
                 duration: effect.recoverMs
             };
             this.player._specialAttackActive = false;

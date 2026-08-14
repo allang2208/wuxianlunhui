@@ -1,9 +1,31 @@
 
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { WEAPON_ANIM, Easing } from '../config/math-utils.js';
+import { PISTOL_FAMILY, AUTO_GUN_FAMILY, MACHINE_GUN_FAMILY } from '../config/weapon-families.js';
 
 const WEAPON_SIZE_BASE = WEAPON_ANIM.size; // 126（2026-07-28 起 105→126，与人物 spriteSize 144 同步放大 20%）
 const MELEE_SCALE = 0.75;
+
+// 手枪族 5 型配置逐字段相同（仅 holdOffsetKey 不同；主/副手锚点与 holdOffset 同口径对齐 G18），工厂生成
+const _makePistolTransform = (holdOffsetKey) => ({
+    mainBaseX: -15, mainBaseY: 16.5,
+    offBaseX: -23, offBaseY: 19,  // 副手锚定双持姿态低手位 (330,115)，与主手 holdOffset 同解
+    holdOffsetKey,
+    afterRotateOffsetX: (s) => s * 0.42,
+    afterRotateOffsetY: 0,
+    baseRotation: 0,
+});
+
+// 机枪族 7 型（含霰弹枪）配置逐字段相同（仅 holdOffsetKey 不同），工厂生成
+const _makeMachineGunTransform = (holdOffsetKey) => ({
+    mainBaseX: (isDual) => isDual ? 0 : 8,
+    mainBaseY: (isDual) => isDual ? 8 : 0,
+    offBaseX: 0, offBaseY: -8,
+    holdOffsetKey,
+    afterRotateOffsetX: (s) => s * 0.42,
+    afterRotateOffsetY: 0,
+    baseRotation: 0,
+});
 
 /**
  * 武器变换配置 — 每种武器类型的 Canvas 变换链参数
@@ -26,113 +48,8 @@ const WEAPON_TRANSFORM_CONFIG = {
         afterRotateOffsetY: 0,
         baseRotation: Math.PI / 2,
     },
-    pistol: {
-        mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -23, offBaseY: 19,  // 副手锚定双持姿态低手位 (330,115)，与主手 holdOffset 同解
-        holdOffsetKey: 'pistol',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    p4040: {
-        // 全面对齐 G18（pistol）：主/副手锚点与 holdOffset 同口径
-        mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -23, offBaseY: 19,
-        holdOffsetKey: 'p4040',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    deagle: {
-        // 全面对齐 G18（同 p4040）
-        mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -23, offBaseY: 19,
-        holdOffsetKey: 'deagle',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    revolver: {
-        // .357 麦格农左轮：对齐 deagle（手枪族）
-        mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -23, offBaseY: 19,
-        holdOffsetKey: 'revolver',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    beretta93r: {
-        // Beretta 93R：全面对齐 G18（pistol 条目；主手 (-9,-35.5)、副手 (-17,-33) 终值一致）
-        mainBaseX: -15, mainBaseY: 16.5,
-        offBaseX: -23, offBaseY: 19,
-        holdOffsetKey: 'beretta93r',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    pkm: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'pkm',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    akm: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'akm',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    m416: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'm416',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    qbz191: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'qbz191',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    qjb201: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'qjb201',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    energy_lmg: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'energy_lmg',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
-    shotgun: {
-        mainBaseX: (isDual) => isDual ? 0 : 8,
-        mainBaseY: (isDual) => isDual ? 8 : 0,
-        offBaseX: 0, offBaseY: -8,
-        holdOffsetKey: 'shotgun',
-        afterRotateOffsetX: (s) => s * 0.42,
-        afterRotateOffsetY: 0,
-        baseRotation: 0,
-    },
+    ...Object.fromEntries(PISTOL_FAMILY.map((key) => [key, _makePistolTransform(key)])),
+    ...Object.fromEntries(MACHINE_GUN_FAMILY.map((key) => [key, _makeMachineGunTransform(key)])),
 };
 
 /**
@@ -351,6 +268,71 @@ class WeaponTransform {
         return this.getInterpolatedPerFramePosition(player, weaponType, frameIndex / Math.max(1, (WeaponAnimConfig[weaponType]?.[cfgKey]?.frames?.length || 1) - 1), facingRight, cfgKey);
     }
 
+    // ==================== perFrame 预计算缓存（Phase 4，2026-08-13） ====================
+    // 逐帧值数组（位置/旋转/缩放/模糊/拉伸）只依赖配置内容，与 progress/玩家位置无关——
+    // 原实现每次调用都 perFrame.map(...) 重建 6 个数组 + 旋转解卷绕，每帧产生数十次小数组分配。
+    // 键 = frames 数组对象身份（WeakMap，自动回收）。失效策略：
+    // - 配置热重载（weapon-anim-config.js Object.assign 整块替换）→ 新数组身份，自动失效；
+    // - dev-tool 种子/整块替换（_getPerFrameFrames 新建 frames 数组）→ 自动失效；
+    // - dev-tool 原地改单帧（_syncPerFrameFromWeaponParams: perFrame[idx] = {...}，数组身份不变）
+    //   → 由该处显式调用 WeaponTransform.invalidatePerFrameCache() 全清。
+    // 缓存只存"配置派生数组"；每次调用仍新建返回对象（消费端 GameScene 收势分支会原地改
+    // start.x/start.rotation，共享引用会串数据——见 Phase 4 报告消费端审计）。
+    static _perFramePre = new WeakMap();
+
+    static invalidatePerFrameCache() {
+        this._perFramePre = new WeakMap();
+    }
+
+    static _getPerFramePrecomputed(perFrame) {
+        let pre = this._perFramePre.get(perFrame);
+        if (pre) return pre;
+        const n = perFrame.length;
+        // 逐元素默认值口径与原调用点严格一致：
+        // 位置/模糊/拉伸走 v() 语义（!== undefined 判缺省），旋转解卷绕走 (f.rotation || 0) 原口径
+        const ox = new Array(n), oy = new Array(n), rotDeg = new Array(n), rotUnwrapped = new Array(n);
+        const scale = new Array(n), blurX = new Array(n), blurY = new Array(n), stretchX = new Array(n), stretchY = new Array(n);
+        for (let i = 0; i < n; i++) {
+            const f = perFrame[i];
+            ox[i] = f.offsetX !== undefined ? f.offsetX : 0;
+            oy[i] = f.offsetY !== undefined ? f.offsetY : 0;
+            rotDeg[i] = f.rotation !== undefined ? f.rotation : 0;
+            rotUnwrapped[i] = (f.rotation || 0) * Math.PI / 180;
+            scale[i] = f.scale !== undefined ? f.scale : 1;
+            blurX[i] = f.blurX !== undefined ? f.blurX : 0;
+            blurY[i] = f.blurY !== undefined ? f.blurY : 0;
+            stretchX[i] = f.stretchX !== undefined ? f.stretchX : 1;
+            stretchY[i] = f.stretchY !== undefined ? f.stretchY : 1;
+        }
+        // 旋转解卷绕：与原 getInterpolatedPerFramePosition 的 map + 逐元素 unwrap 循环逐值一致
+        for (let i = 1; i < n; i++) {
+            let delta = rotUnwrapped[i] - rotUnwrapped[i - 1];
+            while (delta > Math.PI) delta -= Math.PI * 2;
+            while (delta < -Math.PI) delta += Math.PI * 2;
+            rotUnwrapped[i] = rotUnwrapped[i - 1] + delta;
+        }
+        pre = { ox, oy, rotDeg, rotUnwrapped, scale, blurX, blurY, stretchX, stretchY };
+        this._perFramePre.set(perFrame, pre);
+        return pre;
+    }
+
+    // _lerpPerFrame2D 的数组版：输入为预计算 ox/oy，公式/分支次序与原逐帧读取逐值等价
+    static _lerpPerFrame2DArr(ox, oy, progress) {
+        const n = ox.length;
+        if (n === 0) return { x: 0, y: 0 };
+        if (n === 1 || progress <= 0) return { x: ox[0], y: oy[0] };
+        if (progress >= 1) return { x: ox[n - 1], y: oy[n - 1] };
+
+        const raw = progress * (n - 1);
+        const i = Math.floor(raw);
+        const t = raw - i;
+
+        return {
+            x: ox[i] + (ox[i + 1] - ox[i]) * t,
+            y: oy[i] + (oy[i + 1] - oy[i]) * t,
+        };
+    }
+
     /**
      * 逐帧模式：按进度平滑插值 N 帧武器状态
      * @param {string} player - 玩家对象
@@ -377,32 +359,86 @@ class WeaponTransform {
             return this._applyPerFrameToWorld(player, f, facingRight);
         }
 
-        // 位置：线性插值，保证武器严格经过每个配置点并与玩家手部贴合
-        const pos = this._lerpPerFrame2D(perFrame, progress);
+        // 预计算缓存（同 frames 数组只算一次，消除每帧 6 次 map 小数组分配；数组值与原 map 结果逐值等价）
+        const pre = this._getPerFramePrecomputed(perFrame);
 
-        // 旋转：先解卷绕，再线性插值
-        let angles = perFrame.map(f => (f.rotation || 0) * Math.PI / 180);
-        for (let i = 1; i < angles.length; i++) {
-            let delta = angles[i] - angles[i - 1];
-            while (delta > Math.PI) delta -= Math.PI * 2;
-            while (delta < -Math.PI) delta += Math.PI * 2;
-            angles[i] = angles[i - 1] + delta;
-        }
-        const rotation = this._lerpPerFrame1D(angles, progress);
+        // 位置：线性插值，保证武器严格经过每个配置点并与玩家手部贴合
+        const pos = this._lerpPerFrame2DArr(pre.ox, pre.oy, progress);
+
+        // 旋转：解卷绕已在缓存内完成，此处线性插值
+        const rotation = this._lerpPerFrame1D(pre.rotUnwrapped, progress);
 
         // 缩放：线性插值
-        const scales = perFrame.map(f => f.scale !== undefined ? f.scale : 1);
-        const scale = this._lerpPerFrame1D(scales, progress);
+        const scale = this._lerpPerFrame1D(pre.scale, progress);
 
         // 运动模糊（blurX/blurY，缺省 0）与拉伸（stretchX/stretchY，缺省 1）：线性插值
         // 挥砍峰值帧模糊最强，起势/收势清晰（A 方案帧级运动模糊 + B 方案挥砍拉伸）
-        const lerpOpt = (key, def) => this._lerpPerFrame1D(perFrame.map(f => f[key] !== undefined ? f[key] : def), progress);
-
         return this._applyPerFrameToWorld(player, {
             offsetX: pos.x, offsetY: pos.y, rotation: rotation * 180 / Math.PI, scale,
-            blurX: lerpOpt('blurX', 0), blurY: lerpOpt('blurY', 0),
-            stretchX: lerpOpt('stretchX', 1), stretchY: lerpOpt('stretchY', 1),
+            blurX: this._lerpPerFrame1D(pre.blurX, progress),
+            blurY: this._lerpPerFrame1D(pre.blurY, progress),
+            stretchX: this._lerpPerFrame1D(pre.stretchX, progress),
+            stretchY: this._lerpPerFrame1D(pre.stretchY, progress),
         }, facingRight);
+    }
+
+    /**
+     * 冲刺攻击 Lerp 模式：剑柄锚手 + 起始/结束双端点线性插值。
+     * 以 from/to 为参考（剑柄位置 + 剑身角度），progress 0→1 线性移动/旋转：
+     *   - 位置：剑柄锚点从 from.{x,y} 线性移到 to.{x,y}（相对玩家局部偏移）
+     *   - 角度：剑身绕剑柄从 from.rotation 线性转到 to.rotation（解卷绕防 ±π 绕远）
+     * 返回 {x, y, rotation, scale, stretchX, stretchY, blurX, blurY}，
+     * 其中 (x,y) 是**剑柄锚点世界位置**（配合 GameScene 的 weaponSprite.setOrigin(grip)），
+     * 与 perFrame 路径返回结构一致，消费端可复用。
+     * @param {object} player - 玩家对象
+     * @param {number} progress - 0~1
+     * @param {boolean} facingRight - 是否朝右
+     * @param {object} cfg - dashLerp 配置 { from:{x,y,rotation}, to:{x,y,rotation}, scale, stretchX, stretchY, blurPeak }
+     */
+    static getLerpDashPosition(player, progress, facingRight = true, cfg = {}) {
+        const from = cfg.from || { x: 0, y: 0, rotation: 0 };
+        const to = cfg.to || { x: 0, y: 0, rotation: 0 };
+        const t = Math.max(0, Math.min(1, progress));
+
+        // 位置：线性插值（剑柄锚点相对玩家脚底局部偏移）
+        const lx = (from.x || 0) + ((to.x || 0) - (from.x || 0)) * t;
+        const ly = (from.y || 0) + ((to.y || 0) - (from.y || 0)) * t;
+        const offsetX = (facingRight ? 1 : -1) * lx;
+
+        // 角度：字面线性插值（端点角度由作者指定扫向，如 -100°→115° 大扫 215°；
+        // 不做短弧解卷绕，否则会反向扫，违背 perFrame 数据的设计意图）。
+        // 朝左镜像同 perFrame 口径：Math.PI - rotation
+        let a0 = (from.rotation || 0) * Math.PI / 180;
+        let a1 = (to.rotation || 0) * Math.PI / 180;
+        let rotation = a0 + (a1 - a0) * t;
+        if (!facingRight) {
+            rotation = Math.PI - rotation;
+        }
+
+        // 残影强度：由轨迹速度推导（位移速率 + 角度速率归一），blurPeak 配置上限；端点清零
+        const dx = (to.x || 0) - (from.x || 0);
+        const dy = (to.y || 0) - (from.y || 0);
+        const speed = Math.hypot(dx, dy);
+        const angSpeed = Math.abs(a1 - a0);
+        const peak = (cfg.blurPeak !== undefined ? cfg.blurPeak : 12) || 0;
+        const intensity = Math.max(speed / 220, angSpeed / 3.2); // 归一：~220px 位移或 ~3.2rad 旋转=满强度
+        const blur = peak > 0 ? Math.min(1, intensity) * peak : 0;
+        // 峰值在轨迹中段（t=0.5 最强，端点无模糊）
+        const bell = (t <= 0 || t >= 1) ? 0 : Math.sin(t * Math.PI);
+        const blurX = cfg.blurX !== undefined ? cfg.blurX : blur * 0.6 * bell;
+        const blurY = cfg.blurY !== undefined ? cfg.blurY : blur * bell;
+
+        return {
+            x: player.x + offsetX,
+            y: player.y + ly - this._getFootOffsetY(player),
+            rotation,
+            scale: cfg.scale !== undefined ? cfg.scale : 1,
+            stretchX: cfg.stretchX !== undefined ? cfg.stretchX : 1,
+            stretchY: cfg.stretchY !== undefined ? cfg.stretchY : 1,
+            blurX,
+            blurY,
+            grip: cfg.grip || { x: 0.5, y: 0.5 },
+        };
     }
 
     /**
@@ -468,11 +504,9 @@ class WeaponTransform {
         const i = Math.floor(raw);
         const t = raw - i;
         const idx = (k) => ((k % n) + n) % n; // 循环取模，首尾闭合
-        const p0 = perFrame[idx(i - 1)];
-        const p1 = perFrame[idx(i)];
-        const p2 = perFrame[idx(i + 1)];
-        const p3 = perFrame[idx(i + 2)];
-        const v = (f, key, dflt) => (f && f[key] !== undefined ? f[key] : dflt);
+        // 预计算缓存（与 getInterpolatedPerFramePosition 共享，值与 v() 逐帧读取逐值等价）
+        const pre = this._getPerFramePrecomputed(perFrame);
+        const i0 = idx(i - 1), i1 = idx(i), i2 = idx(i + 1), i3 = idx(i + 2);
         // Catmull-Rom 公式：0.5*(2P1 + (−P0+P2)t + (2P0−5P1+4P2−P3)t² + (−P0+3P1−3P2+P3)t³)
         const cr = (a, b, c, d) => 0.5 * (
             2 * b
@@ -483,14 +517,14 @@ class WeaponTransform {
         const lerp = (a, b) => a + (b - a) * t;
 
         const frame = {
-            offsetX: cr(v(p0, 'offsetX', 0), v(p1, 'offsetX', 0), v(p2, 'offsetX', 0), v(p3, 'offsetX', 0)),
-            offsetY: cr(v(p0, 'offsetY', 0), v(p1, 'offsetY', 0), v(p2, 'offsetY', 0), v(p3, 'offsetY', 0)),
-            rotation: lerp(v(p1, 'rotation', 0), v(p2, 'rotation', 0)),
-            scale: lerp(v(p1, 'scale', 1), v(p2, 'scale', 1)),
-            blurX: lerp(v(p1, 'blurX', 0), v(p2, 'blurX', 0)),
-            blurY: lerp(v(p1, 'blurY', 0), v(p2, 'blurY', 0)),
-            stretchX: lerp(v(p1, 'stretchX', 1), v(p2, 'stretchX', 1)),
-            stretchY: lerp(v(p1, 'stretchY', 1), v(p2, 'stretchY', 1)),
+            offsetX: cr(pre.ox[i0], pre.ox[i1], pre.ox[i2], pre.ox[i3]),
+            offsetY: cr(pre.oy[i0], pre.oy[i1], pre.oy[i2], pre.oy[i3]),
+            rotation: lerp(pre.rotDeg[i1], pre.rotDeg[i2]),
+            scale: lerp(pre.scale[i1], pre.scale[i2]),
+            blurX: lerp(pre.blurX[i1], pre.blurX[i2]),
+            blurY: lerp(pre.blurY[i1], pre.blurY[i2]),
+            stretchX: lerp(pre.stretchX[i1], pre.stretchX[i2]),
+            stretchY: lerp(pre.stretchY[i1], pre.stretchY[i2]),
         };
         return this._applyPerFrameToWorld(player, frame, facingRight);
     }
@@ -529,46 +563,25 @@ class WeaponTransform {
         const wac = WeaponAnimConfig[weaponType] || {};
         const rp = wac.renderParams || {};
 
-        if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'revolver' || weaponType === 'p4040' || weaponType === 'beretta93r') {
+        // 枪械后坐力三态共享逻辑，仅默认参数按族区分（剑类攻击动画已禁用，武器保持静止，无分支）
+        const recoilDef = PISTOL_FAMILY.includes(weaponType)
+            ? { windup: 0.04, swing: 0.1, recover: 0.04, shake: 3 }
+            : AUTO_GUN_FAMILY.includes(weaponType)
+                ? { windup: 0.03, swing: 0.08, recover: 0.03, shake: 4 }
+                : weaponType === 'shotgun'
+                    ? { windup: 0.04, swing: 0.12, recover: 0.04, shake: 5 }
+                    : null;
+        if (recoilDef) {
             if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
+                recoilX = -s * (rp.recoilWindup || recoilDef.windup) * Easing.easeOutQuad(anim.timer / wa.windupMs);
             } else if (anim.state === 'swing') {
                 const st = anim.timer / wa.swingMs;
-                recoilX = s * (rp.recoilSwing || 0.1) * (1 - st);
-                recoilY = (Math.random() - 0.5) * (rp.shakeIntensity || 3) * (1 - st);
+                recoilX = s * (rp.recoilSwing || recoilDef.swing) * (1 - st);
+                recoilY = (Math.random() - 0.5) * (rp.shakeIntensity || recoilDef.shake) * (1 - st);
             } else if (anim.state === 'recover') {
                 const rt = anim.timer / wa.recoverMs;
-                recoilX = -s * (rp.recoilRecover || 0.04) * (1 - rt);
+                recoilX = -s * (rp.recoilRecover || recoilDef.recover) * (1 - rt);
             }
-        } else if (weaponType === 'pkm' || weaponType === 'akm' || weaponType === 'm416' || weaponType === 'qbz191' || weaponType === 'qjb201' || weaponType === 'energy_lmg') {
-            if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.03) * Easing.easeOutQuad(anim.timer / wa.windupMs);
-            } else if (anim.state === 'swing') {
-                const st = anim.timer / wa.swingMs;
-                recoilX = s * (rp.recoilSwing || 0.08) * (1 - st);
-                recoilY = (Math.random() - 0.5) * (rp.shakeIntensity || 4) * (1 - st);
-            } else if (anim.state === 'recover') {
-                const rt = anim.timer / wa.recoverMs;
-                recoilX = -s * (rp.recoilRecover || 0.03) * (1 - rt);
-            }
-        } else if (weaponType === 'shotgun') {
-            if (anim.state === 'windup') {
-                recoilX = -s * (rp.recoilWindup || 0.04) * Easing.easeOutQuad(anim.timer / wa.windupMs);
-            } else if (anim.state === 'swing') {
-                const st = anim.timer / wa.swingMs;
-                recoilX = s * (rp.recoilSwing || 0.12) * (1 - st);
-                recoilY = (Math.random() - 0.5) * (rp.shakeIntensity || 5) * (1 - st);
-            } else if (anim.state === 'recover') {
-                const rt = anim.timer / wa.recoverMs;
-                recoilX = -s * (rp.recoilRecover || 0.04) * (1 - rt);
-            }
-        } else if (weaponType === 'sword' || weaponType === 'staff') {
-            // 剑类攻击动画已禁用，武器保持静止
-            // 刺击动画位移在 Canvas 中通过 ctx.translate 直接控制
-            // 这里返回角度变化（已禁用）
-            // if (anim.state === 'windup') { ... }
-            // else if (anim.state === 'swing') { ... }
-            // else if (anim.state === 'recover') { ... }
         }
 
         return { recoilX, recoilY, animAngle };
@@ -597,7 +610,7 @@ class WeaponTransform {
             return { width: ms * 0.63 * scale, height: ms * scale };
         } else if (weaponType === 'bow') {
             return { width: s * scale * 1.10, height: s * scale * 1.10, useAspectRatio: true };
-        } else if (weaponType === 'pistol' || weaponType === 'deagle' || weaponType === 'revolver' || weaponType === 'p4040' || weaponType === 'beretta93r') {
+        } else if (PISTOL_FAMILY.includes(weaponType)) {
             return { width: s * 0.275 * scale, height: s * 0.5 * scale };
         } else {
             return { width: s * 0.75 * scale, height: s * scale };

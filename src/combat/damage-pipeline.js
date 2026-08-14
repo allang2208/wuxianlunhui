@@ -54,7 +54,9 @@ class DamagePipeline {
 
         // 枪械手感反馈（COD/Sakanako 式命中确认链）：远程命中 → hitmarker 三级 + 音效 + trauma + 击杀 hitstop
         // 近战已有独立打击音（下方节流播放），不重复触发
-        if (!isMelee && source && source._faction === 'player' && GunFeel) {
+        // 玩家命中反馈（震屏/hitmarker/trauma）仅限真正的玩家——防御塔等友方结构
+        // 开火命中不震动玩家屏幕（2026-08-14）
+        if (!isMelee && source && source._faction === 'player' && !source._isDefenseStructure && !source._isDefenseTower && GunFeel) {
             GunFeel.onPlayerHit({ killed, crit: !!target._lastHitCrit });
         }
 
@@ -76,7 +78,7 @@ class DamagePipeline {
 
         // 玩家近战攻击命中音效（assets/sounds/weapons/sword/hitting.mp3；
         // 节流 90ms 防连段多目标刷音）
-        if (isMelee && source && source._faction === 'player' && SoundManager && typeof SoundManager.playFile === 'function') {
+        if (isMelee && source && source._faction === 'player' && !source._isDefenseStructure && SoundManager && typeof SoundManager.playFile === 'function') {
             const now = performance.now();
             if (now >= DamagePipeline._meleeHitSoundCd) {
                 DamagePipeline._meleeHitSoundCd = now + 90;

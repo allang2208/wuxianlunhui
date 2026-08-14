@@ -4,6 +4,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { GAME_CONFIG as gameConfigData } from '../config/game-config.js';
 import { COMBAT_FORMULAS as combatFormulasData } from '../config/combat-formulas.js';
 import { COMBAT_CONFIG as combatConfigData } from '../config/combat-config.js';
+import { parseSkillFormula, parseSkillExpFormula, buildSkillFromJSON } from './skill-formula.js';
 
 // data-loader.js — 异步加载 JSON 配置数据
 
@@ -120,183 +121,20 @@ const DataLoader = {
         return enemies;
     },
 
-    /** 解析技能效果公式（安全数学表达式求值，不使用 new Function） */
+    /** 解析技能效果公式（委托 skill-formula 纯函数模块，与侍从共用同一来源） */
     parseSkillFormula(formulaStr, level) {
-        if (typeof formulaStr === 'number' || typeof formulaStr === 'boolean') return formulaStr;
-        if (typeof formulaStr !== 'string' || !formulaStr.trim()) return 0;
-        const lvl = Number(level) || 0;
-        // 白名单过滤：只允许数字、运算符、括号、空白、level、Math函数、常量
-        // 使用 * 允许纯 level / Math.PI 等公式剥离后为空字符串的情况
-        // 逗号不允许：Math.max(a,b) 等多参调用无法正确求值（分词器丢弃逗号会静默算错），
-        // 一律白名单拦截（console.error + 返回 0），公式只支持单参 Math 函数
-        const allowedPattern = /^[0-9+\-*/().\s]*$/i;
-        const mathPattern = /\b(Math\.[a-zA-Z]+|Math\.[A-Z]+|level|PI|E)\b/g;
-        const stripped = formulaStr.replace(mathPattern, '');
-        if (!allowedPattern.test(stripped)) {
-            console.error('Formula contains disallowed characters:', formulaStr);
-            return 0;
-        }
-        try {
-            const result = this._evaluateMathExpression(formulaStr, lvl);
-            return Number.isFinite(result) ? result : 0;
-        } catch (e) {
-            console.error('Formula parse error:', formulaStr, e);
-            return 0;
-        }
+        return parseSkillFormula(formulaStr, level);
     },
 
-    /** 安全求值数学表达式 */
-    _evaluateMathExpression(expr, level) {
-        // 1. 替换 Math 常量和 level 为具体数值
-        let prepared = expr
-            .replace(/\bMath\.PI\b/g, String(Math.PI))
-            .replace(/\bMath\.E\b/g, String(Math.E))
-            .replace(/\blevel\b/g, `(${level})`);
-
-        // 2. 替换 Math 函数调用为可执行的函数引用（通过映射表）
-        const mathFnNames = [];
-        prepared = prepared.replace(/\bMath\.([a-zA-Z]+)\b/g, (match, name) => {
-            if (typeof Math[name] !== 'function') return match;
-            const idx = mathFnNames.length;
-            mathFnNames.push({ name, fn: Math[name] });
-            return `__MATH_FN_${idx}__`;
-        });
-
-        // 3. 使用 JSON 解析数字字面量并递归求值
-        const tokens = this._tokenizeExpression(prepared);
-        const { value } = this._parseExpression(tokens, mathFnNames);
-        return value;
-    },
-
-    _tokenizeExpression(expr) {
-        const tokens = [];
-        // 数字支持前导小数点（.5）与整数/小数（0.5 / 5.）
-        const regex = /(__MATH_FN_\d+__|(?:\d+\.?\d*|\.\d+)|[+\-*/()])/g;
-        let m;
-        while ((m = regex.exec(expr)) !== null) {
-            tokens.push(m[1]);
-        }
-        return tokens;
-    },
-
-    _parseExpression(tokens, mathFnNames) {
-        // 使用调度场算法将中缀转后缀再求值
-        const output = [];
-        const ops = [];
-        const precedence = { '+': 1, '-': 1, '*': 2, '/': 2, 'neg': 3 };
-        let prevToken = null; // 上一个中缀 token（用于区分一元负号）
-
-        for (const token of tokens) {
-            if (token.match(/^(?:\d+\.?\d*|\.\d+)$/)) {
-                output.push(parseFloat(token));
-            } else if (token.startsWith('__MATH_FN_')) {
-                ops.push(token);
-            } else if (token === '(') {
-                ops.push(token);
-            } else if (token === ')') {
-                while (ops.length && ops[ops.length - 1] !== '(') {
-                    output.push(ops.pop());
-                }
-                ops.pop(); // remove '('
-                if (ops.length && ops[ops.length - 1].startsWith('__MATH_FN_')) {
-                    output.push(ops.pop());
-                }
-            } else if (token === '-' || token === '+') {
-                // 一元正负号：表达式开头、左括号后、运算符后视为一元
-                const isUnary = !prevToken || prevToken === '(' || '+-*/'.includes(prevToken);
-                if (isUnary) {
-                    if (token === '-') ops.push('neg');
-                    // 一元正号直接忽略（+5 → 5）
-                } else {
-                    while (ops.length && ops[ops.length - 1] !== '(' &&
-                           precedence[ops[ops.length - 1]] >= precedence[token]) {
-                        output.push(ops.pop());
-                    }
-                    ops.push(token);
-                }
-            } else if ('*/'.includes(token)) {
-                while (ops.length && ops[ops.length - 1] !== '(' &&
-                       precedence[ops[ops.length - 1]] >= precedence[token]) {
-                    output.push(ops.pop());
-                }
-                ops.push(token);
-            }
-            if (token !== ')') prevToken = token;
-        }
-        while (ops.length) output.push(ops.pop());
-
-        // 求值后缀表达式
-        const stack = [];
-        for (const item of output) {
-            if (typeof item === 'number') {
-                stack.push(item);
-            } else if (item === 'neg') {
-                const a = stack.pop() || 0;
-                stack.push(-a);
-            } else if (typeof item === 'string' && item.startsWith('__MATH_FN_')) {
-                const idx = parseInt(item.match(/\d+/)[0], 10);
-                const a = stack.pop();
-                const result = mathFnNames[idx].fn(a);
-                stack.push(result);
-            } else if ('+-*/'.includes(item)) {
-                const b = stack.pop();
-                const a = stack.pop();
-                if (item === '/' && b === 0) { stack.push(0); continue; }
-                stack.push(item === '+' ? a + b : item === '-' ? a - b : item === '*' ? a * b : a / b);
-            }
-        }
-        return { value: stack.length ? stack[0] : 0 };
-    },
-
-    /**
-     * 解析技能经验公式，自动应用全局技能经验倍率
-     * @param {string} formula - 经验公式字符串
-     * @param {number} level - 技能等级
-     * @returns {number} 升级所需经验
-     */
+    /** 解析技能经验公式（委托 skill-formula；自动应用全局技能经验倍率） */
     parseSkillExpFormula(formula, level) {
-        const base = this.parseSkillFormula(formula, level);
-        const multiplier = combatFormulasData.skill?.expMultiplier ?? 1;
-        return Math.floor(base * multiplier);
+        return parseSkillExpFormula(formula, level);
     },
 
-    /** 从 JSON 构建技能对象（兼容原有 Player.skills 结构） */
+    /** 从 JSON 构建技能对象（委托 skill-formula；与侍从共用同一构建/公式/效果缓存） */
     buildSkillFromJSON(skillId, skillData) {
-        const effectFormula = skillData.effectFormula || {};
-        const expFormula = skillData.expFormula || '100 + (level - 1) * 100';
-
-        return {
-            id: skillId,
-            name: skillData.name,
-            icon: skillData.icon,
-            iconImage: skillData.iconImage,
-            selfCast: skillData.selfCast, // 可对玩家自己释放（快捷栏 Alt+快捷键 自目标）
-            description: skillData.description,
-            level: 1,
-            maxLevel: skillData.maxLevel,
-            exp: 0,
-            maxExp: this.parseSkillExpFormula(expFormula, 1),
-            // 击杀/暴击等经验奖励（此前漏拷导致全技能无法获得经验）
-            expRewards: skillData.expRewards || {},
-            tags: skillData.tags || [],
-            getEffect(level) {
-                // 按等级缓存：getEffect 在每帧热路径反复调用（移速/伤害/施法/面板预览），
-                // 等级不变时直接复用求值结果，避免每帧重跑公式 tokenize/parse
-                if (this._effectCache && this._effectCache.level === level) {
-                    return this._effectCache.effect;
-                }
-                const result = {};
-                for (const [key, formula] of Object.entries(effectFormula)) {
-                    result[key] = DataLoader.parseSkillFormula(formula, level);
-                }
-                this._effectCache = { level, effect: result };
-                return result;
-            },
-            getExpForNext(level) {
-                return DataLoader.parseSkillExpFormula(expFormula, level);
-            }
-        };
-    }
+        return buildSkillFromJSON(skillId, skillData);
+    },
 };
 
 const ENEMY_DATA = DataLoader._convertEnemyConfig(enemyConfigData);

@@ -14,6 +14,10 @@ import { SystemUI } from './system-ui.js';
 import { SoundManager } from './sound-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { PartySystem } from '../systems/party-system.js';
+import { RecruitUI } from './recruit-ui.js';
+import { CompanionPanel } from './companion-panel.js';
+import { EventBus } from '../core/event-bus.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
 import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
 import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
@@ -32,6 +36,8 @@ export const ExpeditionSystem = {
         if (UIState.isOpen('expedition')) return;
         UIState.open('expedition');
         this._isOpen = true;
+        // 打开出征面板时关闭组队面板
+        EventBus.emit('ui:panel-open', { panel: 'expedition' });
         this._carriedItems = new Array(this.CAPACITY).fill(null);
         this.selectedDungeon = 'zombie'; // 默认选中僵尸地牢（可选列表见 dungeon-config.json dungeonList）
 
@@ -81,7 +87,9 @@ export const ExpeditionSystem = {
         this._renderInventoryGrid();
 
         // 更新UI
-        this._updatePartyList(player);
+        // 出征队员界面栏：四圆圈（玩家固定 + PartySystem 侍从）
+        this._subscribeParty();
+        this._renderMemberBar(player);
         this._setupDragDrop();
         this._setupClickHandlers();
         this._updateCapacityDisplay();
@@ -512,24 +520,48 @@ export const ExpeditionSystem = {
         if (maxEl) maxEl.textContent = this.CAPACITY;
     },
 
-    // 更新队伍列表（3个槽位：主角 + 2空位）
-    _updatePartyList(player) {
-        const leader = getElement('expeditionPartyLeader');
-        const _slot1 = getElement('expeditionPartySlot1');
-        const _slot2 = getElement('expeditionPartySlot2');
+    // 订阅队伍变化（打开期间自动刷新四圆圈；防重复订阅）
+    _subscribeParty() {
+        if (this._partyUnsub) return;
+        this._partyUnsub = PartySystem.onChange(() => {
+            if (this._isOpen) this._renderMemberBar(window.Game && window.Game.player);
+        });
+    },
 
-        if (leader && player) {
-            const mainItem = player.equipments[player.weaponMode];
-            const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-            const offhandItem = player.equipments[offhandSlot];
-            leader.innerHTML = `
-                <div class="expedition-party-avatar">🧙</div>
-                <div class="expedition-party-info">
-                    <div class="expedition-party-name">${player.data.name}</div>
-                    <div class="expedition-party-detail">Lv.${player.data.level} ${player.data.class} · ${mainItem ? mainItem.name : '无'} / ${offhandItem ? offhandItem.name : '无'}</div>
-                </div>
-            `;
+    // 出征队员界面栏：四个圆圈（玩家固定 + 最多 3 名侍从；空槽=加号，有成员=头像/名字/等级）
+    _renderMemberBar(player) {
+        const bar = getElement('expeditionMemberBar');
+        if (!bar) return;
+        const members = PartySystem.members;
+        const maxSize = PartySystem.maxSize;
+        let html = `
+            <div class="expedition-member-circle expedition-member-circle--player" title="玩家（主角）">
+                <div class="expedition-member-avatar">🧙</div>
+                <div class="expedition-member-name">主角</div>
+                <div class="expedition-member-level">Lv.${player ? player.data.level : '?'}</div>
+            </div>`;
+        for (let i = 0; i < maxSize; i++) {
+            const m = members[i];
+            if (m) {
+                html += `<div class="expedition-member-circle expedition-member-circle--member" data-companion="${m.id}" title="${m.name} · ${m.title}">
+                    <div class="expedition-member-avatar">${m.avatar}</div>
+                    <div class="expedition-member-name">${m.name}</div>
+                    <div class="expedition-member-level">Lv.${m.data.level}</div>
+                </div>`;
+            } else {
+                html += `<div class="expedition-member-circle expedition-member-circle--empty" data-recruit="1" title="添加侍从">
+                    <div class="expedition-member-plus">＋</div>
+                    <div class="expedition-member-name">空位</div>
+                </div>`;
+            }
         }
+        bar.innerHTML = html;
+        bar.querySelectorAll('[data-recruit]').forEach(el => {
+            el.onclick = () => RecruitUI.open();
+        });
+        bar.querySelectorAll('[data-companion]').forEach(el => {
+            el.onclick = () => CompanionPanel.open(el.dataset.companion);
+        });
     },
 
     // 显示消息
