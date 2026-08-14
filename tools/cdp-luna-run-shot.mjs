@@ -72,8 +72,8 @@ await ev(`(() => {
   }
   const luna = PartySystem.getMember('mage_luna');
   player.x = 600; player.y = 620; player._facingDir = 'right';
-  // 露娜放玩家前方，保证在画面内；播 run 动画
-  luna.x = 600 + 120; luna.y = 620;
+  // 露娜放真实跟随位置（玩家左后），播 run 动画——检查法杖是否与玩家/其他遮挡
+  luna.x = 600 - 120; luna.y = 620 + 34;
   luna.target = null; luna._tacticalTarget = null;
   luna.vx = 0; luna.vy = 0; luna.isMoving = false;
   luna._animState = 'run'; luna._castState = 'idle'; luna._frozenForCast = false;
