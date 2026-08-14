@@ -5155,6 +5155,14 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
     改判重播条件前先确认动画 repeat 语义（repeat 0 会自然停 → 不能只查 isPlaying；
     repeat -1 循环 → isPlaying 恒 true → 可安全用）。探针 F 场景：
     walk→idle→walk 循环切换恢复播放 ✓。单测 135/135、npm test 51/51。
+- **idle 抠图白边 + 大小（2026-08-14 九修）**：
+  - 白边：BiRefNet 边缘半透像素 unpremultiply 反推偏白 + 2048→512 缩放插值产生白圈。
+    处理（红狼人同款）：① 合成灰底(127)判据——半透像素合成后亮度 >175 = 白边残留 → alpha 清零；
+    ② 3×3 最小值滤波侵蚀边缘，去掉半透明白圈。边缘白边 15% → 0.78%，GLM 复验无白边、细节完整。
+  - 大小：idle 素材（luna.png 2048²）角色宽高比 0.379，动画素材（walk/run）约 0.52——
+    按高度对齐后 idle 宽 175 vs walk 202-243，显得瘦小。折中：target_h 461→500、feet_y 505
+    （宽 189、高 500，视觉面积约为 walk 的 92%）。**站立姿态窄是素材比例，强行宽度匹配会超高出格**。
+    动画对齐基准：所有动画 frameWidth/frameHeight 512、显示由 spriteSize 控制。
 
 ---
 
