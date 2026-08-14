@@ -5128,6 +5128,41 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   - 实机探针 `tools/cdp-luna-state-probe.mjs`：静止→idle、远移→run→walk→idle、
     施法→spell（_tryCast 后 cast=casting/anim=spell/timer=650/frozen=true）、近战→flee(run)，
     全部 PASS。**CDP 高频采样要在页面内循环**（evaluate 往返延迟会错过 650ms 施法窗）。
+- **spell 动画不播放（2026-08-14 七修，根因在渲染层）**：
+  - 根因：`_syncCompanionSprites` 判重播用 `!sprite.anims.isPlaying || key!==spellKey`——
+    spell 动画 repeat 0 播完一次 isPlaying=false → **每帧从头重播，永远卡在前几帧**
+    （视觉上"没播放/闪一下"）。修复：三个动画分支统一改为**只在动画键变化时播放**
+    （`currentAnim?.key !== targetKey`）。
+  - spell 动画 repeat 0 → **-1**（施法期间循环播放完整施法动作）；castFrozenMs 650 → 1300ms
+    （32 帧@20fps=1.6s 循环的 80%，动作清晰可见；650ms 太短一闪而过）。
+  - **idle 素材接入（2026-08-14）**：`E:\无尽轮回\游戏\素材库\人物\luna\luna.png`（2048² 白底）
+    → BiRefNet 抠图 + 去污染 → 512 格对齐（top19/bottom479/高461/中心256，与 walk/run/spell 一致）
+    → `assets/companions/luna/idle.png` → companion-config `animations.idle`（单帧）
+    → 渲染层 idle 停帧优先取 idle 动画首帧（原为 run 首帧）。
+  - 探针新增 E 场景（渲染层直接验证）：手动设 castState=casting/_animState=spell →
+    `_syncCompanionSprites` → sprite 播放 `companion_mage_luna_spell` ✓；清回 idle →
+    停帧 `companion_mage_luna_idle` 帧 0 ✓。**headless 掉帧会压缩施法窗**（_castTimer 按 dt 递减），
+    AI 层施法验证看 after 状态，渲染层播放由 E 场景直接验证。单测 135/135。
+- **walking 动画不播放（2026-08-14 八修，动画状态机三连 bug 收口）**：
+  - 根因：idle 停帧用 `sprite.setTexture(idleKey, idleFrame)` 停止动画后，
+    `sprite.anims.currentAnim` 仍残留旧动画引用；切回同一动画（如 walk）时
+    `currentAnim.key === walkKey` → 跳过 play → **动画卡在停帧不播**。
+    上一轮为修 spell 把重播条件从 `!isPlaying || key!==X` 收紧成 `key!==X`，恰好引入此回归。
+  - 修复：三个动画分支恢复 `!sprite.anims.isPlaying || currentAnim.key !== X` 判重播——
+    **前提是 spell 已 repeat -1**（循环播放中 isPlaying 恒 true，不会因"播完一次"误重播）；
+    只有被 idle 停帧打断（isPlaying=false）时才重新播放。
+  - 教训：**渲染层动画切换的判重播必须同时覆盖"动画未播"和"键变化"**；
+    改判重播条件前先确认动画 repeat 语义（repeat 0 会自然停 → 不能只查 isPlaying；
+    repeat -1 循环 → isPlaying 恒 true → 可安全用）。探针 F 场景：
+    walk→idle→walk 循环切换恢复播放 ✓。单测 135/135、npm test 51/51。
+- **idle 抠图白边 + 大小（2026-08-14 九修）**：
+  - 白边：BiRefNet 边缘半透像素 unpremultiply 反推偏白 + 2048→512 缩放插值产生白圈。
+    处理（红狼人同款）：① 合成灰底(127)判据——半透像素合成后亮度 >175 = 白边残留 → alpha 清零；
+    ② 3×3 最小值滤波侵蚀边缘，去掉半透明白圈。边缘白边 15% → 0.78%，GLM 复验无白边、细节完整。
+  - 大小：idle 素材（luna.png 2048²）角色宽高比 0.379，动画素材（walk/run）约 0.52——
+    按高度对齐后 idle 宽 175 vs walk 202-243，显得瘦小。折中：target_h 461→500、feet_y 505
+    （宽 189、高 500，视觉面积约为 walk 的 92%）。**站立姿态窄是素材比例，强行宽度匹配会超高出格**。
+    动画对齐基准：所有动画 frameWidth/frameHeight 512、显示由 spriteSize 控制。
 
 ---
 

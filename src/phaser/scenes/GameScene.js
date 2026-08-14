@@ -497,17 +497,18 @@ export class GameScene extends Scene {
                 // AI 状态驱动：spell > run > walk > idle（站立帧 = 奔跑首帧）
                 const st = member._animState || 'idle';
                 if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
-                    // 只在动画键变化时播放：spell repeat 0 播完一次 isPlaying=false，
-                    // 若用 !isPlaying 判重播会每帧从头重播 → 视觉上"没播放/卡首帧"。
-                    if (sprite.anims.currentAnim?.key !== spellKey) {
+                    // 重播条件 = 动画已停止（被 idle 停帧 setTexture 打断）或键变化。
+                    // spell 已 repeat -1（循环播放中不会自然停），isPlaying 恒 true → 不重播；
+                    // 只有被停帧打断时 isPlaying=false → 才重新播放。
+                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== spellKey) {
                         sprite.play(spellKey, true);
                     }
                 } else if (st === 'run' && anims.run && this.textures.exists(runKey)) {
-                    if (sprite.anims.currentAnim?.key !== runKey) {
+                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== runKey) {
                         sprite.play(runKey, true);
                     }
                 } else if (st === 'walk') {
-                    if (sprite.anims.currentAnim?.key !== walkKey) {
+                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkKey) {
                         sprite.play(walkKey, true);
                     }
                 } else {
