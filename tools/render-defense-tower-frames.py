@@ -4,7 +4,8 @@
 绕塔顶枢轴轴（0,0,Z_PIVOT）在 Blender 里旋转 N 帧（默认 48，每 7.5°），
 固定等距正交相机逐帧渲染 —— 每一帧都是真 3D 等距透视，游戏内按 aimAngle 选帧。
 
-用法：blender --background --python render-defense-tower-frames.py -- out_dir frames ortho_scale
+用法：blender --background --python render-defense-tower-frames.py -- out_dir frames ortho_scale [metal_tex.png]
+可选第 4 参：金属材质贴图（PNG），覆盖机械臂全部件（竖柱/横杆/钩子）。
 产出：out_dir/frame_%03d.png（1024×1024，透明底），供 prep-defense-tower-frames.py 打包。
 """
 import bpy
@@ -65,14 +66,20 @@ def add_hook(name, x, z, R, r, mat):
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
     if len(argv) < 3:
-        sys.exit("usage: blender --background --python render-defense-tower-frames.py -- out_dir frames ortho_scale")
+        sys.exit("usage: blender --background --python render-defense-tower-frames.py -- out_dir frames ortho_scale [metal_tex.png]")
     out_dir, frames, ortho_scale = argv[0], int(argv[1]), float(argv[2])
+    metal_tex = argv[3] if len(argv) > 3 else None
     os.makedirs(out_dir, exist_ok=True)
 
-    steel = rdt.flat_material("steel", (0.44, 0.47, 0.52), 0.6, 0.35)
-    dark = rdt.flat_material("dark", (0.30, 0.33, 0.38), 0.7, 0.3)
-    light = rdt.flat_material("light", (0.60, 0.63, 0.68), 0.5, 0.4)
-    accent = rdt.flat_material("accent", (0.82, 0.44, 0.12), 0.5, 0.2)
+    if metal_tex:
+        # 金属贴图覆盖机械臂全部件（竖柱/横杆/钩子统一金属材质；2026-08-15）
+        metal = rdt.textured_material("metal", metal_tex)
+        steel = dark = light = accent = metal
+    else:
+        steel = rdt.flat_material("steel", (0.44, 0.47, 0.52), 0.6, 0.35)
+        dark = rdt.flat_material("dark", (0.30, 0.33, 0.38), 0.7, 0.3)
+        light = rdt.flat_material("light", (0.60, 0.63, 0.68), 0.5, 0.4)
+        accent = rdt.flat_material("accent", (0.82, 0.44, 0.12), 0.5, 0.2)
 
     rdt.clear_scene()
     rdt.setup_lighting()

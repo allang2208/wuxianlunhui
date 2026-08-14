@@ -531,8 +531,8 @@ class Combatant extends DamageableEntity {
             // 注：AI 的 fireSound 已在 data/humanoid-squad-config.json 中配置，无需硬编码 fallback
         }
 
-        // 消耗弹药
-        this._consumeAmmo(slot);
+        // 消耗弹药（散弹多弹丸击发：config.noAmmoConsume=true 时由调用方统一扣 1 发）
+        if (!config.noAmmoConsume) this._consumeAmmo(slot);
 
         // 设置冷却
         attack.cooldown = attack.maxCooldown;

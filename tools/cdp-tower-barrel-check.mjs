@@ -93,6 +93,61 @@ await evalJs(`(async () => {
     if (!ds.active && window.Game && window.Game.player) ds.setup(window.Game.player);
     return ds.active;
 })()`);
+// 就绪重试：vite 热更新可能让页面中途重载，等待 window.Game.entities 可用
+for (let i = 0; i < 30; i++) {
+    const ok = await evalJs(`!!(window.Game && window.Game.entities && window.Game.entities.set)`);
+    if (ok) break;
+    await new Promise((r) => setTimeout(r, 500));
+}
+
+// 霰弹两项校验放最前（就绪后立即跑，避免被 vite 热重载打断）
+console.log('--- shotgun ammo/reload checks ---');
+console.log(JSON.stringify(await evalJs(`(async () => {
+    const { DefenseTower } = await import('/src/world/defense-system.js');
+    const eq = await fetch('/data/equipment.json').then((r) => r.json());
+    const out = {};
+    // Super90：单发装填、一次击发扣 1、333ms 间隔
+    {
+        const t = new DefenseTower(1200, 1900, { id: 's90_test' });
+        window.Game.entities.set('s90_test', t);
+        t.aimAngle = 0.5;
+        t._updateAim = () => {};
+        t.equipWeapon(JSON.parse(JSON.stringify(eq.equipment.super90)));
+        const st = t._ammoState.weapon;
+        out.s90_init = { max: st.max, current: st.current };
+        t._fireBlast(1500, 1800, window.Game.entities, 6);
+        out.s90_afterBlast = { current: st.current, cooldown: t.attacks[t._attackKey].cooldown, maxCd: t.attacks[t._attackKey].maxCooldown };
+        for (let i = 0; i < 20 && !st.reloading; i++) t._fireBlast(1500, 1800, window.Game.entities, 6);
+        const perShell = [];
+        for (let i = 0; i < 10 && st.reloading; i++) { t._updateReload(400); perShell.push(st.current); }
+        out.s90_reload = { emptied: st.current === 0 || perShell[0] === 1, perShell, full: st.current, reloading: st.reloading };
+        window.Game.entities.delete('s90_test');
+    }
+    // SAIGA-12K：整匣 12、4 弹丸/击发扣 1、150ms、整匣换弹
+    {
+        const t = new DefenseTower(1200, 1950, { id: 's12_test' });
+        window.Game.entities.set('s12_test', t);
+        t.aimAngle = 0.5;
+        t._updateAim = () => {};
+        t.equipWeapon(JSON.parse(JSON.stringify(eq.equipment.saiga12k)));
+        const st = t._ammoState.weapon;
+        out.s12_init = { max: st.max, current: st.current };
+        const orig = t.fireProjectile.bind(t);
+        let pellets = 0;
+        t.fireProjectile = (tx, ty, ents, cfg) => { pellets++; return orig(tx, ty, ents, cfg); };
+        t._fireBlast(1500, 1800, window.Game.entities, t.weaponItem.pelletCount || 4);
+        t.fireProjectile = orig;
+        out.s12_afterBlast = { current: st.current, pellets, cooldown: t.attacks[t._attackKey].cooldown, maxCd: t.attacks[t._attackKey].maxCooldown };
+        for (let i = 0; i < 20 && !st.reloading; i++) t._fireBlast(1500, 1800, window.Game.entities, 4);
+        t._updateReload(1999);
+        out.s12_midReload = { current: st.current, reloading: st.reloading };
+        t._updateReload(1);
+        out.s12_afterReload = { current: st.current, reloading: st.reloading };
+        window.Game.entities.delete('s12_test');
+    }
+    return out;
+})()`), null, 1));
+
 await evalJs(`(async () => {
     const { DefenseTower } = await import('/src/world/defense-system.js');
     const t = new DefenseTower(1300, 1850, { id: 'demo_tower' });
@@ -188,14 +243,45 @@ console.log(JSON.stringify(await evalJs(`(async () => {
 })()`), null, 1));
 
 async function snap(aim, name) {
-    await evalJs(`(async () => {
+    const info = await evalJs(`(async () => {
         const t = window.Game.entities.get('demo_tower');
         if (t) t.aimAngle = ${aim};
-        return true;
+        const scene = window.__phaserScene;
+        const sp = scene && scene._defenseSprites ? scene._defenseSprites.get(t) : null;
+        const w = sp ? sp.weapon : null;
+        const cam = scene ? scene.cameras.main : null;
+        return {
+            weapon: w ? {
+                x: +w.x.toFixed(2), y: +w.y.toFixed(2),
+                isCropped: w.isCropped,
+                origin: [w.originX, w.originY],
+                scale: [w.scaleX, w.scaleY],
+                frame: [w.frame.width, w.frame.height],
+                crop: w._crop ? [w._crop.x, w._crop.y, w._crop.width, w._crop.height] : null,
+            } : null,
+            cam: cam ? [cam.scrollX, cam.scrollY, cam.zoom] : null,
+        };
     })()`);
+    console.log(`[snap] ${name} aim=${aim}`, JSON.stringify(info));
     await evalJs(`new Promise((r) => setTimeout(r, 400))`);
+    const cam2 = await evalJs(`(() => { const c = window.__phaserScene.cameras.main; return [c.scrollX, c.scrollY, c.zoom]; })()`);
     await shot(name);
+    console.log(`[snap-after] ${name} cam2=`, JSON.stringify(cam2));
 }
+// 锁定相机：停 _updateCamera 并居中塔（否则玩家/相机漂移导致截图位置不可复现）
+await evalJs(`(async () => {
+    const scene = window.__phaserScene;
+    if (scene) {
+        scene._updateCamera = () => {};
+        const cam = scene.cameras.main;
+        cam.centerOn(1300, 1850);
+        cam.setZoom(1);
+    }
+    const p = window.Game.player;
+    if (p) { p.x = 1300; p.y = 1850; }
+    return true;
+})()`);
+await evalJs(`new Promise((r) => setTimeout(r, 400))`);
 await snap(0, 'barrel-aim0');
 await snap(0.5, 'barrel-aim05');
 await snap(2.5, 'barrel-aim25');
@@ -219,6 +305,19 @@ await evalJs(`(async () => {
 })()`);
 await evalJs(`new Promise((r) => setTimeout(r, 400))`);
 await shot('barrel-super90');
+
+// 武器可见性定位：停同步 + 隐藏武器 → 与 barrel-aim0 差异即武器实际渲染位置
+await evalJs(`(async () => {
+    const scene = window.__phaserScene;
+    const t = window.Game.entities.get('demo_tower');
+    const sp = scene._defenseSprites.get(t);
+    scene._syncDefenseTowers = () => {};
+    t.aimAngle = 0;
+    sp.weapon.setVisible(false);
+    return true;
+})()`);
+await evalJs(`new Promise((r) => setTimeout(r, 300))`);
+await shot('weapon-off');
 
 console.log('--- console errors ---');
 console.log(errs.length ? errs.join('\n') : '(none)');

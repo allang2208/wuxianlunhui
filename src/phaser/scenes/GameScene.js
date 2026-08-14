@@ -5519,19 +5519,21 @@ export class GameScene extends Scene {
                 let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(e.aimAngle));
                 if (e._mirrored) wAng = Math.PI - wAng;
                 const flipY = Math.abs(wAng) > Math.PI / 2;
-                // 枪管模式（"枪插进机械臂"假象，2026-08-14）：只渲染武器前 1/3 枪管段，
-                // 切口端（origin x=0）对齐臂尖，枪管从机械臂/钩子里伸出。
+                // 枪管模式（"枪插进机械臂"假象，2026-08-14）：用预裁剪的枪管独立贴图，
+                // 切口端（origin x=0）对齐臂尖并内嵌，枪管从机械臂/钩子里伸出。
                 const barrelCfg = V.weapon.barrel && (V.weapon.barrel[item.weaponId] || V.weapon.barrel[item.weaponType]);
                 if (barrelCfg) {
-                    sp.weapon.setCrop(barrelCfg.x, barrelCfg.y, barrelCfg.w, barrelCfg.h);
+                    const barrelTex = `tower_barrel_${item.weaponId}`;
+                    if (sp.weapon.texture.key !== barrelTex) sp.weapon.setTexture(barrelTex);
                     sp.weapon.setOrigin(0, 0.5);
-                    sp.weapon.setPosition(tipX, tipY);
+                    const rootInset = barrelCfg.inset ?? 7;
+                    sp.weapon.setPosition(tipX - Math.cos(wAng) * rootInset, tipY - Math.sin(wAng) * rootInset);
                     sp.weapon.setRotation(wAng);
                     sp.weapon.setFlipX(false);
                     sp.weapon.setFlipY(flipY);
                     sp.weapon.setScale(barrelCfg.height / barrelCfg.h);
                 } else {
-                    if (sp.weapon.isCropped) sp.weapon.setCrop();
+                    if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
                     sp.weapon.setOrigin(0.5, 0.5);
                     const wH = V.weapon.heights[item.weaponType] || V.weapon.defaultHeight;
                     sp.weapon.setPosition(tipX + Math.cos(wAng) * 8, tipY + Math.sin(wAng) * 8);
